@@ -26,6 +26,8 @@
 #include "HTTPUtil.h"
 #include "HTTPReq.h"					       /* Implements */
 
+#define PUTC(c)		(*me->target->isa->put_character)(me->target, c)
+#define PUTS(s)		(*me->target->isa->put_string)(me->target, s)
 #define PUTBLOCK(b, l)	(*me->target->isa->put_block)(me->target, b, l)
 
 struct _HTStream {
@@ -33,7 +35,6 @@ struct _HTStream {
     HTStream *		  	target;
     HTRequest *			request;
     SOCKET			sockfd;
-    HTChunk *  			buffer;
     int				version;
     BOOL			transparent;
 };
@@ -50,13 +51,10 @@ PRIVATE void HTTP09Request (HTStream * me, HTRequest * request)
 {
     char *addr = HTAnchor_physical(request->anchor);
     char *fullurl = HTParse(addr, "", PARSE_PATH|PARSE_PUNCTUATION);
-    HTChunk *header = me->buffer;
-    HTChunk_puts(header, "GET ");
-    HTChunk_puts(header, fullurl);
-    HTChunk_putc(header, ' ');
-    HTChunk_putc(header, CR);
-    HTChunk_putc(header, LF);
-    if (PROT_TRACE) TTYPrint(TDEST, "HTTP Tx..... %s", HTChunk_data(header));
+    PUTS("GET ");
+    PUTS(fullurl);
+    PUTC(CR);
+    PUTC(LF);
 }
 
 /*	HTTPMakeRequest
@@ -65,143 +63,146 @@ PRIVATE void HTTP09Request (HTStream * me, HTRequest * request)
 */
 PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 {
-    char linebuf[256];			/* @@@ */
-    HTChunk *header = me->buffer;
+    char crlf[3];
+    char qstr[10];
     HTParentAnchor *anchor = HTRequest_anchor(request);
+    *crlf = CR; *(crlf+1) = LF; *(crlf+2) = '\0';
 
     /* Generate the HTTP/1.0 RequestLine */
     if (request->method != METHOD_INVALID) {
-	HTChunk_puts(header, HTMethod_name(request->method));
-	HTChunk_putc(header, ' ');
+	PUTS(HTMethod_name(request->method));
+	PUTC(' ');
     } else
-	HTChunk_puts(header, "GET ");
+	PUTS("GET ");
 
     /* If we are using a proxy then only take the `path' info in the URL */
     {
 	char *addr = HTAnchor_physical(anchor);
 	char *fullurl = HTParse(addr, "", PARSE_PATH|PARSE_PUNCTUATION);
 	if (request->using_proxy) {
-	    HTChunk_puts(header, fullurl+1);
+	    PUTS(fullurl+1);
 	} else {
-	    HTChunk_puts(header, fullurl);
+	    PUTS(fullurl);
 	}
 	free(fullurl);
     }
-    HTChunk_puts(header, " HTTP/1.0");
-    HTChunk_putc(header, CR);
-    HTChunk_putc(header, LF);
+    PUTS(" HTTP/1.0");
+    PUTBLOCK(crlf, 2);
 
     /* Request Headers */
     if (request->RequestMask & HT_C_ACCEPT_TYPE) {
 	int list;
 	HTList *cur;
+	BOOL first=YES;
 	for (list=0; list<2; list++) {
 	    if ((!list && ((cur = HTFormat_conversion()) != NULL)) ||
 		(list && ((cur = HTRequest_conversion(request)) != NULL))) {
 		HTPresentation  *pres;
-		while ((pres =(HTPresentation *) HTList_nextObject(cur))) {
+		while ((pres = (HTPresentation *) HTList_nextObject(cur))) {
 		    if (pres->rep_out==WWW_PRESENT && pres->quality <= 1.0) {
+			if (first) {
+			    PUTS("Accept: ");
+			    first=NO;
+			} else
+			    PUTC(',');
+			PUTS(HTAtom_name(pres->rep));
 			if (pres->quality != 1.0) {
-			    sprintf(linebuf, "Accept: %s; q=%1.1f%c%c",
-				    HTAtom_name(pres->rep),
-				    pres->quality, CR, LF);
-			} else {
-			    sprintf(linebuf, "Accept: %s%c%c",
-				    HTAtom_name(pres->rep), CR, LF);
+			    sprintf(qstr, ";q=%1.1f", pres->quality);
+			    PUTS(qstr);
 			}
-			HTChunk_puts(header, linebuf);
 		    }
 		}
+		if (!first) PUTBLOCK(crlf, 2);
 	    }
 	}
     }
     if (request->RequestMask & HT_C_ACCEPT_CHAR) {
-	BOOL first=YES;
 	int list;
 	HTList *cur;
+	BOOL first=YES;
 	for (list=0; list<2; list++) {
 	    if ((!list && ((cur = HTFormat_charset()) != NULL)) ||
 		(list && ((cur = HTRequest_charset(request)) != NULL))) {
 		HTAcceptNode *pres;
 		while ((pres = (HTAcceptNode *) HTList_nextObject(cur))) {
 		    if (first) {
-			HTChunk_puts(header, "Accept-Charset: ");
+			PUTS("Accept-Charset: ");
 			first=NO;
-		    }
-		    if (cur->next)
-			sprintf(linebuf, "%s,", HTAtom_name(pres->atom));
-		    else
-			sprintf(linebuf, "%s%c%c", HTAtom_name(pres->atom),
-				CR, LF);
-		    HTChunk_puts(header, linebuf);
+		    } else
+			PUTC(',');
+		    PUTS(HTAtom_name(pres->atom));
 		}
+		if (!first) PUTBLOCK(crlf, 2);
 	    }
 	}
     }
     if (request->RequestMask & HT_C_ACCEPT_ENC) {
-	BOOL first=YES;
 	int list;
 	HTList *cur;
+	BOOL first=YES;
 	for (list=0; list<2; list++) {
 	    if ((!list && ((cur = HTFormat_encoding()) != NULL)) ||
 		(list && ((cur = HTRequest_encoding(request)) != NULL))) {
 		HTAcceptNode *pres;
 		while ((pres = (HTAcceptNode *) HTList_nextObject(cur))) {
 		    if (first) {
-			HTChunk_puts(header, "Accept-Encoding: ");
+			PUTS("Accept-Encoding: ");
 			first=NO;
+		    } else
+			PUTC(',');
+		    PUTS(HTAtom_name(pres->atom));
+		    if (pres->quality != 1.0) {
+			sprintf(qstr, ";q=%1.1f", pres->quality);
+			PUTS(qstr);
 		    }
-		    if (cur->next)
-			sprintf(linebuf, "%s,", HTAtom_name(pres->atom));
-		    else
-			sprintf(linebuf, "%s%c%c", HTAtom_name(pres->atom),
-				CR, LF);
-		    HTChunk_puts(header, linebuf);
 		}
+		if (!first) PUTBLOCK(crlf, 2);
 	    }
 	}
     }
     if (request->RequestMask & HT_C_ACCEPT_LAN) {
-	BOOL first=YES;
 	int list;
 	HTList *cur;
+	BOOL first=YES;
 	for (list=0; list<2; list++) {
 	    if ((!list && ((cur = HTFormat_language()) != NULL)) ||
 		(list && ((cur = HTRequest_language(request)) != NULL))) {
 		HTAcceptNode *pres;
 		while ((pres = (HTAcceptNode *) HTList_nextObject(cur))) {
 		    if (first) {
-			HTChunk_puts(header, "Accept-Language: ");
+			PUTS("Accept-Language: ");
 			first=NO;
+		    } else
+			PUTC(',');
+		    PUTS(HTAtom_name(pres->atom));
+		    if (pres->quality != 1.0) {
+			sprintf(qstr, ";q=%1.1f", pres->quality);
+			PUTS(qstr);
 		    }
-		    if (cur->next)
-			sprintf(linebuf, "%s,", HTAtom_name(pres->atom));
-		    else
-			sprintf(linebuf, "%s%c%c", HTAtom_name(pres->atom),
-				CR, LF);
-		    HTChunk_puts(header, linebuf);
 		}
+		if (!first) PUTBLOCK(crlf, 2);
 	    }
 	}
     }
     if (request->authorization != NULL) {	    /* Put out authorization */
-	sprintf(linebuf, "Authorization: %s%c%c", request->authorization,
-		CR, LF);
-	HTChunk_puts(header, linebuf);
+	PUTS("Authorization: ");
+	PUTS(request->authorization);
+	PUTBLOCK(crlf, 2);
     }
     if (request->RequestMask & HT_C_FROM) {
 	CONST char *mailaddress = HTGetMailAddress();
 	if (mailaddress) {
-	    sprintf(linebuf, "From: %s%c%c", mailaddress, CR, LF);
-	    HTChunk_puts(header, linebuf);
+	    PUTS("From: ");
+	    PUTS(mailaddress);
+	    PUTBLOCK(crlf, 2);
 	}
     }
     if (request->RequestMask & HT_C_IMS) {
 	time_t lm = HTAnchor_lastModified(anchor);
-	if (lm != -1) {
-	    sprintf(linebuf, "If-Modified-Since: %s%c%c",
-		    HTDateTimeStr(&lm, NO), CR, LF);
-	    HTChunk_puts(header, linebuf);
+	if (lm > 0) {
+	    PUTS("If-Modified-Since: ");
+	    PUTS(HTDateTimeStr(&lm, NO));
+	    PUTBLOCK(crlf, 2);
 	}
     }
     if (request->RequestMask & HT_C_HOST) {
@@ -209,8 +210,9 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 	char *host = HTParse(orig, "", PARSE_HOST);
 	char *ptr = strchr(host, ':');		     /* Chop off port number */
 	if (ptr) *ptr = '\0';
-	sprintf(linebuf, "Host: %s%c%c", host, CR, LF);
-	HTChunk_puts(header, linebuf);
+	PUTS("Host: ");
+	PUTS(host);
+	PUTBLOCK(crlf, 2);
 	free(orig);
 	free(host);
     }
@@ -220,20 +222,24 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 	char *relative = HTParse(parent, act,
 				 PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
 	if (relative && *relative) {
-	    HTChunk_puts(header, "Referer: ");
-	    HTChunk_puts(header, parent);
-	    HTChunk_putc(header, CR);
-	    HTChunk_putc(header, LF);
+	    PUTS("Referer: ");
+	    PUTS(parent);
+	    PUTBLOCK(crlf, 2);
 	}
-	free(act);
-	free(parent);
-	    free(relative);
+	FREE(act);
+	FREE(parent);
+	FREE(relative);
     }
     if (request->RequestMask & HT_C_USER_AGENT) {
-	sprintf(linebuf, "User-Agent: %s/%s %s/%s%c%c",
-		HTLib_appName(), HTLib_appVersion(),
-		HTLib_name(), HTLib_version(), CR, LF);
-	HTChunk_puts(header, linebuf);
+	PUTS("User-Agent: ");
+	PUTS(HTLib_appName());
+	PUTC('/');
+	PUTS(HTLib_appVersion());
+	PUTC(' ');
+	PUTS(HTLib_name());
+	PUTC('/');
+	PUTS(HTLib_version());
+	PUTBLOCK(crlf, 2);
     }
     if (PROT_TRACE)TTYPrint(TDEST,"HTTP........ Generating Request Headers\n");
 }
@@ -248,10 +254,8 @@ PRIVATE int HTTPRequest_put_block (HTStream * me, CONST char * b, int l)
 	int status;
 	if (me->version == HTTP_09)
 	    HTTP09Request(me, me->request);
-	else
+	else {
 	    HTTPMakeRequest(me, me->request);		  /* Generate header */
-	if ((status = PUTBLOCK(HTChunk_data(me->buffer),
-			       HTChunk_size(me->buffer))) == HT_OK) {
 	    me->transparent = YES;
 	    return b ? PUTBLOCK(b, l) : HT_OK;
 	}
@@ -287,7 +291,6 @@ PRIVATE int HTTPRequest_free (HTStream * me)
     if (status != HT_WOULD_BLOCK) {
 	if ((status = (*me->target->isa->_free)(me->target)) == HT_WOULD_BLOCK)
 	    return HT_WOULD_BLOCK;
-	HTChunk_delete(me->buffer);
 	free(me);
     }
     return status;
@@ -296,7 +299,6 @@ PRIVATE int HTTPRequest_free (HTStream * me)
 PRIVATE int HTTPRequest_abort (HTStream * me, HTList * e)
 {
     if (me->target) (*me->target->isa->abort)(me->target, e);
-    HTChunk_delete(me->buffer);
     free(me);
     if (PROT_TRACE) TTYPrint(TDEST, "HTTPRequest. ABORTING...\n");
     return HT_ERROR;
@@ -325,7 +327,6 @@ PUBLIC HTStream * HTTPRequest_new (HTRequest * request, HTStream * target,
     me->isa = &HTTPRequestClass;
     me->target = target;
     me->request = request;
-    me->buffer = HTChunk_new(512);
     me->version = HTDNS_serverVersion(dns);
     me->transparent = NO;
 

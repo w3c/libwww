@@ -148,7 +148,7 @@ PRIVATE int HTGuess_flush (HTStream * me)
 		CONTENT_TYPE("application/octet-stream");
 	}
 	
-	if (!me->anchor->content_type)
+	if (me->anchor->content_type == WWW_UNKNOWN)
 	    CONTENT_TYPE("application/octet-stream");
 	if (!me->anchor->content_encoding)
 	    CONTENT_ENCODING("binary");
@@ -164,6 +164,7 @@ PRIVATE int HTGuess_flush (HTStream * me)
 		TTYPrint(TDEST, "HTGuess..... Can't convert media type\n");
 	    me->target = HTErrorStream();
 	}
+	me->transparent = YES;
     }
     return PUT_BLOCK(me->buffer, me->cnt);
 }
@@ -196,8 +197,6 @@ PRIVATE int HTGuess_put_block (HTStream * me, CONST char * b, int l)
 	    if (me->cnt >= SAMPLE_SIZE) {
 		if ((status = HTGuess_flush(me)) != HT_OK)
 		    return status;
-		else
-		    me->transparent = YES;
 	    }
 	}
     }

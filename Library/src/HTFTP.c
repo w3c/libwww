@@ -135,6 +135,7 @@ typedef struct _ftp_data {
     BOOL		pasv;				/* Active or passive */
     char 		type;		     /* 'A', 'I', 'L'(IST), 'N'(LST) */
     BOOL		ready;   /* True if either ctrl or data is HT_LOADED */
+    BOOL		stream_error;
 } ftp_data;
 
 struct _HTStream {
@@ -1173,8 +1174,10 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 		    else
 			sockfd = cnet->sockfd;
 		    data->ready = YES;
-		} else
+		} else {
 		    ctrl->substate = SUB_ERROR;
+		    data->stream_error = YES;
+		}
 	    } else {
 		status = HTSocketRead(request, cnet);
 		if (status == HT_WOULD_BLOCK)
@@ -1342,7 +1345,7 @@ PUBLIC int HTLoadFTP (SOCKET soc, HTRequest * request, SockOps ops)
 		ctrl->state = FTP_SUCCESS;
 	    else if (status == HT_OK)
 		ctrl->state = FTP_NEED_DCON;
-	    else if (!FTP_DIR(data)) {
+	    else if (!FTP_DIR(data) && !data->stream_error) {
 		FTPListType(data, ctrl->server);
 		ctrl->state = FTP_NEED_SERVER;         /* Try a dir instead? */
 	    } else

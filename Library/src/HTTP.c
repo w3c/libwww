@@ -367,8 +367,8 @@ PRIVATE int stream_pipe (HTStream * me)
 				       req->debug_stream, req, NO);
 	} else {
 	    /* We still need to parser the MIME part */
-	    me->target = HTStreamStack(WWW_MIME, WWW_DEBUG, req->debug_stream,
-				       req, NO);
+	    me->target = HTStreamStack(WWW_MIME, req->debug_format,
+				       req->debug_stream, req, NO);
 	}
     }
     if (!me->target) me->target = HTErrorStream();

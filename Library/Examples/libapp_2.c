@@ -1,5 +1,5 @@
 #include "WWWLib.h"
-#include "HTTP.h"
+#include "WWWHTTP.h"
 
 int main()
 {

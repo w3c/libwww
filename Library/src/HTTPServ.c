@@ -61,6 +61,32 @@ struct _HTStream {
 };
 
 /* ------------------------------------------------------------------------- */
+
+/*	ServerCleanup
+**	-------------
+**      This function cleans up after the request
+**      Returns YES on OK, else NO
+*/
+PRIVATE int ServerCleanup (HTRequest * req, HTNet * net, int status)
+{
+    https_info * http = (https_info *) net->context;
+
+    /* Free stream with data TO network */
+    if (req->input_stream) {
+	if (status == HT_INTERRUPTED)
+	    (*req->input_stream->isa->abort)(req->input_stream, NULL);
+	else
+	    (*req->input_stream->isa->_free)(req->input_stream);
+	req->input_stream = NULL;
+    }
+
+    /* Remove the net object and our own context structure for http */
+    HTNet_delete(net, req->internal ? HT_IGNORE : status);
+    FREE(http);
+    return YES;
+}
+
+/* ------------------------------------------------------------------------- */
 /*				REPLY STREAM				     */
 /* ------------------------------------------------------------------------- */
 
@@ -98,9 +124,10 @@ PRIVATE int HTTPReply_free (HTStream * me)
     if (me->target) FREE_TARGET;
     if (STREAM_TRACE) TTYPrint(TDEST, "HTTPReply... Freing server stream\n");
     if (net) {
-	if (HTDNS_socket(net->dns) == INVSOC)
-	    HTNet_delete(net, HT_IGNORE);
-	else
+	if (HTDNS_socket(net->dns) == INVSOC) {
+	    ServerCleanup(me->request, net, HT_IGNORE);
+	    HTRequest_delete(me->request);
+	} else
 	    HTEvent_Register(net->sockfd, me->request, (SockOps) FD_READ,
 			     net->cbf, net->priority);
     }
@@ -182,8 +209,8 @@ PRIVATE int ParseRequest (HTStream * me)
 
     /* Get ready to get the rest of the request */
     if (version_str) {
-	me->target = HTStreamStack(WWW_MIME_HEAD, request->output_format,
-				   request->output_stream, request, NO);
+	me->target = HTStreamStack(WWW_MIME_HEAD, request->debug_format,
+				   request->debug_stream, request, NO);
 	return HT_OK;
     } else {
 	if (PROT_TRACE) TTYPrint(TDEST, "Request Line is formatted as 0.9\n");
@@ -279,20 +306,6 @@ PRIVATE HTStream * HTTPReceive_new (HTRequest * request, https_info * http)
 
 /* ------------------------------------------------------------------------- */
 
-/*	ServerCleanup
-**	-------------
-**      This function cleans up after the request
-**      Returns YES on OK, else NO
-*/
-PRIVATE int ServerCleanup (HTRequest * request, HTNet * net, int status)
-{
-    https_info * http = (https_info *) net->context;
-    HTNet_delete(net, status);
-    request->net = NULL;
-    FREE(http);
-    return YES;
-}
-
 /*	HTServHTTP
 **	----------
 **	Serv Document using HTTP.
@@ -348,14 +361,14 @@ PUBLIC int HTServHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		status = HTSocketRead(request, net);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
-		else if (status == HT_LOADED) {
+		else if (status == HT_PAUSE) {
 		    HTRequest * newreq = HTRequest_dup(request);
-		    HTEvent_Register(net->sockfd, request, (SockOps) FD_READ,
-				     net->cbf, net->priority);
-		    return HTLoad(newreq, NO)==YES ? HT_OK : HT_ERROR;
-		} else if (status == HT_PAUSE) {
-		    HTRequest * newreq = HTRequest_dup(request);
-		    HTRequest_addDestination(request, newreq);
+		    /*
+		    ** If we have a data object in the request then link the
+		    ** two request objects together
+		    */
+		    if (HTMethod_hasEntity(request->method))
+			HTRequest_addDestination(request, newreq);
 		    return HTLoad(newreq, NO)==YES ? HT_OK : HT_ERROR;
 		} else if (status == HT_CLOSED)
 		    http->state = HTTPS_OK;
@@ -374,13 +387,11 @@ PUBLIC int HTServHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	    break;
 
 	  case HTTPS_OK:
-	    return HT_OK;
+	    ServerCleanup(request, net, HT_IGNORE);
 	    break;
 
 	  case HTTPS_ERROR:
-
-	   /* Do the POSTWeb stuff */
-
+	    if (HTRequest_isPostWeb(request)) HTRequest_killPostWeb(request);
 	    ServerCleanup(request, net, HT_ERROR);
 	    return HT_OK;
 	    break;

@@ -1,19 +1,18 @@
 #include "WWWLib.h"
-#include "HTTP.h"
+#include "WWWHTTP.h"
 #include "WWWMIME.h"
-#include "HTDialog.h"
+#include "WWWApp.h"
 
 int main (int argc, char ** argv)
 {
     HTList * converters = HTList_new();
     HTRequest * request = HTRequest_new();	  /* Create a request object */
-    WWWTRACE = SHOW_ALL_TRACE;
     HTLibInit("TestApp", "1.0");
     HTProtocol_add("http", YES, HTLoadHTTP, NULL);
 
-    HTConversion_add(converters, "message/rfc822", "*/*", HTMIMEConvert,
+    HTConversion_add(converters, "text/x-http","*/*", HTTPStatus_new,
 		     1.0, 0.0, 0.0);
-    HTConversion_add(converters, "*/*", "www/present", HTSaveLocally,
+    HTConversion_add(converters, "message/rfc822", "*/*", HTMIMEConvert,
 		     1.0, 0.0, 0.0);
     HTFormat_setConversion(converters);
     HTAlert_add(HTPrompt, HT_A_PROMPT);

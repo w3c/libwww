@@ -571,6 +571,7 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 	me->target = HTStreamStack(anchor->content_type, me->target_format,
 				   me->target, request, YES);
     }
+    if (!me->target) me->target = HTErrorStream();
     return HT_OK;
 }
 
@@ -746,7 +747,7 @@ PUBLIC HTStream* HTMIMEConvert (HTRequest *	request,
     me->request = request;
     me->anchor = request->anchor;
     me->net = request->net;
-    me->target = output_stream ? output_stream : HTErrorStream();
+    me->target = output_stream;
     me->target_format = output_format;
     me->buffer = HTChunk_new(512);
     me->EOLstate = EOL_BEGIN;
@@ -773,7 +774,7 @@ PUBLIC HTStream * HTMIMEHeader (HTRequest *	request,
     me->request = request;
     me->anchor = request->anchor;
     me->net = request->net;
-    me->target = output_stream ? output_stream : HTErrorStream();
+    me->target = output_stream;
     me->target_format = output_format;
     me->buffer = HTChunk_new(512);
     me->EOLstate = EOL_BEGIN;

@@ -453,9 +453,15 @@ PUBLIC HTStream* HTSaveAndExecute (HTRequest *	request,
 	char *suffix = HTBind_getSuffix(anchor);
 	filename = get_filename(HTTmpRoot, HTAnchor_physical(anchor), suffix);
 	FREE(suffix);
-	if (!filename) {
-	    HTRequest_addError(request, ERR_NON_FATAL, NO, HTERR_NO_FILE,
-			       NULL, 0, "HTSaveAndExecute");
+	if (filename) {
+	    if ((fp = fopen(filename, "wb")) == NULL) {
+		HTRequest_addError(request, ERR_NON_FATAL, NO, HTERR_NO_FILE,
+				   filename, strlen(filename),"HTSaveAndExecute");
+		FREE(filename);
+		return HTErrorStream();
+	    }
+	} else {
+	    if (STREAM_TRACE) TTYPrint(TDEST, "Save File... No file name\n");
 	    return HTErrorStream();
 	}
     }

@@ -553,8 +553,10 @@ PUBLIC HTStream * HTStreamStack (HTFormat	rep_in,
 	return output_stream ? output_stream : HTErrorStream();
     }
     if (STREAM_TRACE) {
+	char *p = HTAtom_name(rep_in);
+	char *q = HTAtom_name(rep_out); 
 	TTYPrint(TDEST,"StreamStack. Constructing stream stack for %s to %s\n",
-		 HTAtom_name(rep_in), HTAtom_name(rep_out));
+		 p ? p : "<NULL>", q ? q : "<NULL>");
     }
 
     conversion[0] = request->conversions;

@@ -498,6 +498,7 @@ PRIVATE BOOL delete_object (HTNet *net, int status)
 		(*net->target->isa->abort)(net->target, NULL);
 	    else
 		(*net->target->isa->_free)(net->target);
+	    net->target = NULL;
 	}
 
 	/* Close socket */

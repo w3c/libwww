@@ -138,7 +138,7 @@ PUBLIC char * HTRule_translate (HTList * list, CONST char * token,
     HTRule * pres;
     char * replace = NULL;
     if (!token || !list) return NULL;
-    if (APP_TRACE) TTYPrint(TDEST, "Rule Apply.. Translating '%s\'\n", token);
+    if (APP_TRACE) TTYPrint(TDEST, "Check rules. for `%s\'\n", token);
     while ((pres = (HTRule *) HTList_nextObject(list))) {
 	char * rest = ignore_case ? HTStrCaseMatch(pres->pattern, token) :
 	    HTStrMatch(pres->pattern, token);
@@ -164,7 +164,7 @@ PUBLIC char * HTRule_translate (HTList * list, CONST char * token,
 
 	    if (pres->op == HT_Pass) {
 		if (APP_TRACE)
-		    TTYPrint(TDEST, "............ into `%s'\n", replace);
+		    TTYPrint(TDEST, "............ map into `%s'\n", replace);
 		return replace;
 	    }
 	    break;
