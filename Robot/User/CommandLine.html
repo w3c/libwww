@@ -136,7 +136,7 @@ expressions</A>.
     <A HREF="#Logging">logged to a separate file</A>.
 </DL>
 <H3>
-  <A NAME="Logging">Logging and Statistics Features</A>
+  <A NAME="Logging">Logging Features</A>
 </H3>
 <DL>
   <DT>
@@ -146,21 +146,6 @@ expressions</A>.
     <A HREF="http://www.apache.org/docs/mod/mod_log_referer.html">Referer Log
     Format</A> style log file of all links resulting in a 404 (Not Found) status
     code
-  <DT>
-    <B>-format [ file ]</B>
-  <DD>
-    Specifies a log file of which media types (content types) were encountered
-    in the run and their distribution
-  <DT>
-    <B>-charset [ file ]</B>
-  <DD>
-    Specifies a log file of which charsets (content type parameter) were encountered
-    in the run and their distribution
-  <DT>
-    <B>-hitcount [ file]</B>
-  <DD>
-    Specifies a log file of URIs sorted after how many times they were encountered
-    in the run
   <DT>
     <B>-l [ file ]</B>
   <DD>
@@ -184,6 +169,31 @@ expressions</A>.
     Specifies a log file of all the URIs encountered that didn't fulfill the
     <A HREF="#Constaints">constraints for traversal</A>.
 </DL>
+<H3>
+  Distribution and Statistics Features</A>
+</H3>
+<DL>
+  <DT>
+    <B>-format [ file ]</B>
+  <DD>
+    Specifies a log file of which media types (content types) were encountered
+    in the run and their distribution
+  <DT>
+    <B>-charset [ file ]</B>
+  <DD>
+    Specifies a log file of which charsets (content type parameter) were encountered
+    in the run and their distribution
+  <DT>
+    <B>-hitcount [ file]</B>
+  <DD>
+    Specifies a log file of URIs sorted after how many times they were encountered
+    in the run
+  <DT>
+    <B>-lm [ file]</B>
+  <DD>
+    Specifies a log file of URIs sorted after last modified date. This gives a good overview of the dynamics of the web site that you are checking.
+</DL>
+
 <H3>
   Persistent Cache
 </H3>

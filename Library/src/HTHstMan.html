@@ -73,8 +73,9 @@ struct _HTHost {
     HTNet *             doit;               /* Transfer from pending to pipe */ 
     BOOL		persistent;
     HTTransportMode	mode;	      			   /* Supported mode */
-    int                 recovered;        /* How many times had we recovered */
     HTTimer *           timer;         /* Timer for handling idle connection */
+    BOOL                do_recover;         /* If we are supposed to recover */
+    int                 recovered;        /* How many times had we recovered */
     BOOL                close_notification;        /* Got a hint about close */
 
     /* Support for transports */

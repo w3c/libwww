@@ -45,6 +45,8 @@
 #define DEFAULT_RULE_FILE	"robot.conf"
 #define DEFAULT_LOG_FILE       	"log-clf.txt"
 #define DEFAULT_HIT_FILE       	"log-hit.txt"
+#define DEFAULT_LM_FILE       	"log-lastmodified.txt"
+#define DEFAULT_TITLE_FILE     	"log-title.txt"
 #define DEFAULT_REFERER_FILE   	"log-referer.txt"
 #define DEFAULT_REJECT_FILE   	"log-reject.txt"
 #define DEFAULT_NOTFOUND_FILE  	"log-notfound.txt"
@@ -82,7 +84,9 @@ typedef enum _MRFlags {
     MR_REAL_QUIET  	= 0x40,
     MR_VALIDATE		= 0x80,
     MR_END_VALIDATE	= 0x100,
-    MR_KEEP_META	= 0x200
+    MR_KEEP_META	= 0x200,
+    MR_LOGGING		= 0x400,
+    MR_DISTRIBUTIONS	= 0x800
 } MRFlags;
 
 typedef struct _Robot {
@@ -112,8 +116,10 @@ typedef struct _Robot {
     HTLog *	        noalttag;
 
     char *		hitfile;		/* links sorted after hit counts */
+    char *		titlefile;		/* links with titles */
     char *		mtfile;			/* media types encountered */
     char *		charsetfile;		/* charsets encountered */
+    char *		lmfile;			/* sortef after last modified dates */
 
     char *		outputfile;		
     FILE *	        output;
@@ -181,7 +187,7 @@ typedef struct _MetaDist {
 /*
 **  Some sorting algorithms
 */
-PRIVATE HTComparer HitSort, FormatSort;
+PRIVATE HTComparer HitSort, FormatSort, LastModifiedSort, TitleSort;
 
 PUBLIC HText * HTMainText = NULL;
 PUBLIC HTParentAnchor * HTMainAnchor = NULL;
@@ -253,16 +259,9 @@ PRIVATE BOOL calculate_hits (Robot * mr, HTArray * array)
             HTArray_sort(array, HitSort);
             anchor = (HTParentAnchor *) HTArray_firstObject(array, data);
 	    while (anchor) {
-                char * str = NULL;
                 char * uri = HTAnchor_address((HTAnchor *) anchor);
                 HyperDoc * hd = (HyperDoc *) HTAnchor_document(anchor);
-                if (uri && hd) {
-                    if ((str = (char *) HT_MALLOC(strlen(uri) + 50)) == NULL)
-        	         HT_OUTOFMEM("calculate_hits");
-                    sprintf(str, "%8d %s", hd->hits, uri);
-                    HTLog_addLine(log, str);
-                    HT_FREE(str);
-                }
+                if (uri && hd) HTLog_addText(log, "%8d %s\n", hd->hits, uri);
                 HT_FREE(uri);
                 anchor = (HTParentAnchor *) HTArray_nextObject(array, data);
             }
@@ -279,6 +278,77 @@ PRIVATE int HitSort (const void * a, const void * b)
     HyperDoc * bb = HTAnchor_document(*(HTParentAnchor **) b);
     if (aa && bb) return (bb->hits - aa->hits);
     return bb - aa;
+}
+
+/*
+**  Sort the anchor array and log last modified date
+*/
+PRIVATE BOOL calculate_lm (Robot * mr, HTArray * array)
+{
+    if (mr && array) {
+        HTLog * log = HTLog_open(mr->lmfile, YES, YES);
+        if (log) {
+            void ** data = NULL;
+            HTParentAnchor * anchor = NULL;
+            HTArray_sort(array, LastModifiedSort);
+            anchor = (HTParentAnchor *) HTArray_firstObject(array, data);
+	    while (anchor) {
+                char * uri = HTAnchor_address((HTAnchor *) anchor);
+                time_t lm = HTAnchor_lastModified(anchor);
+                if (uri && lm > 0)
+		    HTLog_addText(log, "%s %s\n", HTDateTimeStr(&lm, NO), uri);
+                HT_FREE(uri);
+                anchor = (HTParentAnchor *) HTArray_nextObject(array, data);
+            }
+	}
+        HTLog_close(log);
+        return YES;
+    }
+    return NO;
+}
+
+PRIVATE int LastModifiedSort (const void * a, const void * b)
+{
+    time_t aa = HTAnchor_lastModified(*(HTParentAnchor **) a);
+    time_t bb = HTAnchor_lastModified(*(HTParentAnchor **) b);
+    return bb - aa;
+}
+
+/*
+**  Sort the anchor array and log the document title
+*/
+PRIVATE BOOL calculate_title (Robot * mr, HTArray * array)
+{
+    if (mr && array) {
+        HTLog * log = HTLog_open(mr->titlefile, YES, YES);
+        if (log) {
+            void ** data = NULL;
+            HTParentAnchor * anchor = NULL;
+            HTArray_sort(array, TitleSort);
+            anchor = (HTParentAnchor *) HTArray_firstObject(array, data);
+	    while (anchor) {
+                char * uri = HTAnchor_address((HTAnchor *) anchor);
+                const char * title = HTAnchor_title(anchor);
+		HTCharset charset = HTAnchor_charset(anchor);
+                if (uri) HTLog_addText(log, "%s `%s\' %s\n",
+				       charset ? HTAtom_name(charset) : "<none>",
+				       title ? title : "<none>",
+				       uri);
+                HT_FREE(uri);
+                anchor = (HTParentAnchor *) HTArray_nextObject(array, data);
+            }
+	}
+        HTLog_close(log);
+        return YES;
+    }
+    return NO;
+}
+
+PRIVATE int TitleSort (const void * a, const void * b)
+{
+    const char * aa = HTAnchor_title(*(HTParentAnchor **) a);
+    const char * bb = HTAnchor_title(*(HTParentAnchor **) b);
+    return strcasecomp(bb?bb:"", aa?aa:"");
 }
 
 /*
@@ -448,13 +518,42 @@ PRIVATE BOOL calculate_statistics (Robot * mr)
 	HTArray * array = HTAnchor_getArray(total_docs);
         if (array) {
 
+	    /* Distributions */
+	    if (mr->flags & MR_DISTRIBUTIONS) {
+		if (SHOW_REAL_QUIET(mr)) HTTrace("Distributions:\n");
+	    }
+
             /* Sort after hit counts */
-            if (mr->hitfile) calculate_hits(mr, array);
+            if (mr->hitfile) {
+		if (SHOW_REAL_QUIET(mr))
+		    HTTrace("Logged hit count distribution in file `%s\'\n",
+			    mr->hitfile);
+		calculate_hits(mr, array);
+	    }
+
+            /* Sort after modified date */
+            if (mr->lmfile) {
+		if (SHOW_REAL_QUIET(mr))
+		    HTTrace("Logged last modified distribution in file `%s\'\n",
+			    mr->lmfile);
+		calculate_lm(mr, array);
+	    }
+
+            /* Sort after title */
+            if (mr->titlefile) {
+		if (SHOW_REAL_QUIET(mr))
+		    HTTrace("Logged title distribution in file `%s\'\n",
+			    mr->titlefile);
+		calculate_title(mr, array);
+	    }
 
             /* Find mediatype distribution */
 	    if (mr->mtfile) {
 		HTList * mtdist = mediatype_distribution(array);
 		if (mtdist) {
+		    if (SHOW_REAL_QUIET(mr))
+			HTTrace("Logged media type distribution in file `%s\'\n",
+				mr->mtfile);
 		    log_meta_distribution(mr->mtfile, mtdist);
 		    delete_meta_distribution(mtdist);
 		}
@@ -464,6 +563,9 @@ PRIVATE BOOL calculate_statistics (Robot * mr)
 	    if (mr->charsetfile) {
 		HTList * charsetdist = charset_distribution(array);
 		if (charsetdist) {
+		    if (SHOW_REAL_QUIET(mr))
+			HTTrace("Logged charset distribution in file `%s\'\n",
+				mr->charsetfile);
 		    log_meta_distribution(mr->charsetfile, charsetdist);
 		    delete_meta_distribution(charsetdist);
 		}
@@ -524,6 +626,10 @@ PRIVATE BOOL Robot_delete (Robot * mr)
 	}
 
 	/* Close all the log files */
+	if (mr->flags & MR_LOGGING) {
+	    if (SHOW_REAL_QUIET(mr)) HTTrace("Raw Log files:\n");
+	}
+
 	if (mr->log) {
 	    if (SHOW_REAL_QUIET(mr))
 		HTTrace("Logged %5d entries in general log file `%s\'\n",
@@ -1042,52 +1148,71 @@ int main (int argc, char ** argv)
 		VersionInfo();
 		Cleanup(mr, 0);
 
-  	    /* log file */
+  	    /* clf log file */
 	    } else if (!strcmp(argv[arg], "-l")) {
 		mr->logfile = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    argv[++arg] : DEFAULT_LOG_FILE;
+		mr->flags |= MR_LOGGING;
 
-  	    /* hit file */
-	    } else if (!strcmp(argv[arg], "-hit")) {
-		mr->hitfile = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    argv[++arg] : DEFAULT_HIT_FILE;
-
-  	    /* referer file */
+  	    /* referer log file */
 	    } else if (!strncmp(argv[arg], "-ref", 4)) {
 		mr->reffile = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    argv[++arg] : DEFAULT_REFERER_FILE;
+		mr->flags |= MR_LOGGING;
 
   	    /* Not found error log file */
 	    } else if (!strncmp(argv[arg], "-404", 4)) {
 		mr->notfoundfile = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    argv[++arg] : DEFAULT_NOTFOUND_FILE;
+		mr->flags |= MR_LOGGING;
 
   	    /* reject log file */
 	    } else if (!strncmp(argv[arg], "-rej", 4)) {
 		mr->rejectfile = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    argv[++arg] : DEFAULT_REJECT_FILE;
-
-  	    /* negoatiated resource log file */
-	    } else if (!strncmp(argv[arg], "-neg", 4)) {
-		mr->connegfile = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    argv[++arg] : DEFAULT_CONNEG_FILE;
-
-  	    /* mediatype distribution log file */
-	    } else if (!strncmp(argv[arg], "-for", 4)) {
-		mr->mtfile = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    argv[++arg] : DEFAULT_FORMAT_FILE;
-		mr->flags |= MR_KEEP_META;
-
-  	    /* charset distribution log file */
-	    } else if (!strncmp(argv[arg], "-char", 5)) {
-		mr->charsetfile = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    argv[++arg] : DEFAULT_CHARSET_FILE;
-		mr->flags |= MR_KEEP_META;
+		mr->flags |= MR_LOGGING;
 
   	    /* no alt tags log file */
 	    } else if (!strncmp(argv[arg], "-alt", 4)) {
 		mr->noalttagfile = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    argv[++arg] : DEFAULT_NOALTTAG_FILE;
+		mr->flags |= MR_LOGGING;
+
+  	    /* negotiated resource log file */
+	    } else if (!strncmp(argv[arg], "-neg", 4)) {
+		mr->connegfile = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    argv[++arg] : DEFAULT_CONNEG_FILE;
+		mr->flags |= MR_LOGGING;
+
+  	    /* hit file log */
+	    } else if (!strcmp(argv[arg], "-hit")) {
+		mr->hitfile = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    argv[++arg] : DEFAULT_HIT_FILE;
+		mr->flags |= MR_DISTRIBUTIONS;
+
+  	    /* last modified log file */
+	    } else if (!strcmp(argv[arg], "-lm")) {
+		mr->lmfile = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    argv[++arg] : DEFAULT_LM_FILE;
+		mr->flags |= MR_DISTRIBUTIONS;
+
+  	    /* title log file */
+	    } else if (!strcmp(argv[arg], "-title")) {
+		mr->titlefile = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    argv[++arg] : DEFAULT_TITLE_FILE;
+		mr->flags |= MR_DISTRIBUTIONS;
+
+  	    /* mediatype distribution log file */
+	    } else if (!strncmp(argv[arg], "-for", 4)) {
+		mr->mtfile = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    argv[++arg] : DEFAULT_FORMAT_FILE;
+		mr->flags |= (MR_KEEP_META | MR_DISTRIBUTIONS);
+
+  	    /* charset distribution log file */
+	    } else if (!strncmp(argv[arg], "-char", 5)) {
+		mr->charsetfile = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    argv[++arg] : DEFAULT_CHARSET_FILE;
+		mr->flags |= (MR_KEEP_META | MR_DISTRIBUTIONS);
 
             /* rule file */
 	    } else if (!strcmp(argv[arg], "-r")) {

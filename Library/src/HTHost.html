@@ -341,7 +341,9 @@ extern HTNet * HTHost_getWriteNet (HTHost * host);
 <P>
 In case a pipeline is broken then we have to recover it and start again.
 This is handled automatically by the host object
-<PRE>extern BOOL HTHost_recoverPipe (HTHost * host);
+<PRE>
+extern BOOL HTHost_recoverPipe (HTHost * host);
+extern BOOL HTHost_doRecover (HTHost * host);
 </PRE>
 <H3>
   Get input and output Streams for this Host

@@ -1,4 +1,7 @@
-## Process this file with Automake to create Makefile.in.
+# Process this file with Automake to create Makefile.in.
+# (c) COPYRIGHT MIT 1995.
+# Please first read the full copyright statement in the file COPYRIGH.
+# @(#) $Id$
 
 FTP = /afs/w3.org/devel/Dist/$(PROD)
 

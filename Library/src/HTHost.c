@@ -676,7 +676,7 @@ PUBLIC BOOL HTHost_setCloseNotification (HTHost * host, BOOL mode)
 {
     if (host) {
 	host->close_notification = mode;
-	return NO;
+	return YES;
     }
     return NO;
 }
@@ -728,6 +728,11 @@ PUBLIC BOOL HTHost_clearChannel (HTHost * host, int status)
     return NO;
 }
 
+PUBLIC BOOL HTHost_doRecover (HTHost * host)
+{
+    return host ? host->do_recover : NO;
+}
+
 /*
 **	Move all entries in the pipeline and move the rest to the pending
 **	queue. They will get launched at a later point in time.
@@ -766,8 +771,10 @@ PUBLIC BOOL HTHost_recoverPipe (HTHost * host)
 		(*net->event.cbf)(HTChannel_socket(host->channel), net->event.param, HTEvent_RESET);
 		HTList_appendObject(host->pending, net);
 	    }
+
 	    HTChannel_setSemaphore(host->channel, 0);
 	    HTHost_clearChannel(host, HT_INTERRUPTED);
+	    host->do_recover = NO;
 	}
 	return YES;
     }
@@ -924,9 +931,30 @@ PUBLIC BOOL HTHost_free (HTHost * host, int status)
 
 	/* Check if we should keep the socket open */
         if (HTHost_isPersistent(host)) {
-            if (HTHost_closeNotification(host) ||
-                (HTList_count(host->pipeline)<=1 && host->reqsMade==host->reqsPerConnection)) {
-                if (CORE_TRACE) HTTrace("Host Object. closing persistent socket %d\n", HTChannel_socket(host->channel));
+            if (HTHost_closeNotification(host)) {
+		int piped = HTList_count(host->pipeline);
+		if (CORE_TRACE)
+		    HTTrace("Host Object. got close notifiation on socket %d\n",
+			    HTChannel_socket(host->channel));
+                
+		/*
+		**  If more than a single element (this one) in the pipe
+		**  then we have to recover gracefully
+		*/
+		if (piped > 1) {
+		    host->reqsPerConnection = host->reqsMade - piped;
+		    if (CORE_TRACE)
+			HTTrace("%d requests made, %d in pipe, max %d requests pr connection\n",
+				host->reqsMade, piped, host->reqsPerConnection);
+		    host->do_recover = YES;
+		}
+
+                HTChannel_delete(host->channel, status);
+
+	    } else if ((HTList_count(host->pipeline) <= 1 &&
+			host->reqsMade == host->reqsPerConnection)) {
+                if (CORE_TRACE) HTTrace("Host Object. closing persistent socket %d\n",
+					HTChannel_socket(host->channel));
                 
                 /* 
                 **  By lowering the semaphore we make sure that the channel

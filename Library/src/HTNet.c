@@ -829,6 +829,7 @@ PUBLIC BOOL HTNet_delete (HTNet * net, int status)
 	    }
 	    HTHost_free(net->host, status);
             HTHost_deleteNet(net->host, net);
+	    if (HTHost_doRecover(net->host)) HTHost_recoverPipe(net->host);
         }
 
         /* Remove object from the table of Net Objects */

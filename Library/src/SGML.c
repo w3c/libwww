@@ -41,7 +41,7 @@ typedef enum _sgml_state
 	S_esc, S_dollar, S_paren, S_nonascii_text,
 #endif
 	S_squoted, S_dquoted, S_end, S_entity, S_junk_tag,
-	S_md, S_md_sqs, S_md_dqs, S_com_1, S_com, S_com_2
+	S_md, S_md_sqs, S_md_dqs, S_com_1, S_com, S_com_2, S_com_2a
     } sgml_state;
 
 
@@ -70,9 +70,9 @@ struct _HTStream
 #define PUTB(b,l) ((*context->actions->put_block)(context->target, b, l))
 
 #define TRACE1(f,a) \
-	do {if (SGML_TRACE) HTTrace("SGML Parser. " f,a); } while(0)
+	do {if (SGML_TRACE) HTTrace((f),(a)); } while(0)
 #define TRACE2(f,a,b) \
-	do {if (SGML_TRACE) HTTrace("SGML Parser. " f,a,b); } while(0)
+	do {if (SGML_TRACE) HTTrace((f),(a),(b)); } while(0)
 
 /*	Find Attribute Number
 **	---------------------
@@ -746,7 +746,16 @@ PRIVATE int SGML_write (HTStream * context, const char * b, int l)
 			break;
 
 		    case S_com_2: /* Ending a comment ? */
-			context->state = (c == '-') ? S_md : S_com;
+			context->state = (c == '-') ? S_com_2a : S_com;
+			break;
+		    
+		    case S_com_2a:
+			if (c == '>') {
+			    text = b;
+			    count = 0;
+			    context->state = S_text;
+			} else
+			    context->state = S_com;
 			break;
 		    }
 	    }
