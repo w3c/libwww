@@ -44,7 +44,7 @@
 #define FREE_TARGET	(*target->isa->_free)(target)
 
 #define DEFAULT_MINFW	15
-#define DEFAULT_MAXFW	22
+#define DEFAULT_MAXFW	25
 
 /* Type definitions and global variables etc. local to this module */
 
@@ -360,7 +360,6 @@ PUBLIC HTDir * HTDir_new (HTRequest * request, HTDirShow show, HTDirKey key)
 	    *ptr = '\0';
 	StrAllocCopy(title, path);
 	HTUnEscape(title);				 	    /* Title */
-	if (PROT_TRACE) fprintf(TDEST, "TESTTESTTEST `%s\'\n", path);
 	if((ptr=strrchr(path, '/')) && (ptr<path+strlen(path)-1 || ptr==path)){
 	    StrAllocCopy(dir->base, ++ptr);
 	    StrAllocCat(dir->base, "/");

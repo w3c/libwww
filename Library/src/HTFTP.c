@@ -1239,7 +1239,6 @@ PUBLIC int HTLoadFTP ARGS3(SOCKET, soc, HTRequest *, request, SockOps, ops)
 	ctrl->state = FTP_BEGIN;
 	ctrl->server = FTP_UNSURE;
 	HTNet_dup(cnet, &ctrl->dnet);
-	cnet->preemtive = NO;	  /* Control connection must be non-blocking */
 	cnet->context = ctrl;		   /* Context for control connection */
 	ctrl->dnet->context = data;	      /* Context for data connection */
     } else if (ops == FD_CLOSE) {			      /* Interrupted */
