@@ -1,0 +1,78 @@
+<HTML>
+<HEAD>
+<TITLE>Using - Dynamic Memory management</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 17-Jan-1996 -->
+</HEAD>  
+<BODY>
+
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48.gif" ALT="W3C"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
+
+<H1>Dynamic Memory Management</H1>
+
+The Library makes use of a dynamic memory manager which handles allocation and deallocation of
+dynamic memory. The methods used for allocation and deallocation are wrapper functions around the
+native <CODE>malloc</CODE>, <CODE>calloc</CODE>, <CODE>realloc</CODE>, and <CODE>free</CODE>
+methods. Hence, the functionality of teh module is very similar to the native C interface but it
+allows for structured error recovery and application termination in case of failure.  It covers
+especially the following three situations:
+
+<UL>
+<LI>Handling of allocation and deallocation of dynamic memory
+<LI>Recovering from temporary lack of available memory
+<LI>Panic handling in case a new allocation fails
+</UL>
+
+<H2>Memory Freer Functions</H2>
+
+The dynamic memory freer functions are typically functions that are capable of freeing large chunks
+of memory. In case a new allocation fails, the allocation method looks for any freer functions to
+call. There can be multriple freer functions and after each call, the allocation method tries again
+to allocate the desired amount of dynamic memory. The freer functions are called in <EM>reverse</EM>
+order meaning that the <EM>last</EM> one registered gets called <EM>first</EM>. That way, it is easy
+to add temporary free functions which then are guaranteed to be called first if a methods fails.
+
+<H3>Add a Freer Function</H3>
+
+You can add a freer function by using the following method. The Library itself registeres a set of
+free functions during initialization. If the application does not register any freer functions then
+the Library looks how it can free internal memory.
+
+<PRE>
+typedef void HTMemoryCallback(size_t size);
+
+extern BOOL HTMemoryCall_add (HTMemoryCallback * cbf);
+</PRE>
+
+<H3>Delete a Freer Function</H3>
+
+Freer functions can be deleted at any time in which case they are not called anymore.
+
+<PRE>
+extern BOOL HTMemoryCall_delete (HTMemoryCallback * cbf);
+extern BOOL HTMemoryCall_deleteAll (void);
+</PRE>
+
+<H2>Panic Handling</H2>
+
+If the freer functions are not capable of deallocation enough memory then the application must have
+an organized way of closing down. This is done using the panic handler. In the libwww, each
+allocation is tested and HT_OUTOFMEM is called if a NULL was returned. HT_OUTOFMEM is a macro which
+calls HTMemory_outofmem. This function calls an exit function defined by the app in a call to
+HTMemory_setExit. If the app has not defined this function, HTMemory_outofmem TTYPrints the error
+message and calls exit(1).
+
+<PRE>
+typedef void HTMemoryExitCallback(char * name, char * file, unsigned long line);
+
+extern void HTMemory_setExit(HTMemoryExitCallback * pExit);
+
+extern HTMemoryExitCallback * HTMemory_exit(void);
+</PRE>
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, December 1995</ADDRESS>
+</BODY>
+</HTML> 
