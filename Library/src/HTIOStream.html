@@ -166,6 +166,17 @@ typedef HTOutputStream * HTOutput_new	(HTHost *	host,
 					 void *		param,
 					 int		mode);
 </PRE>
+<H3>
+  Transport Output Stream Converter
+</H3>
+<PRE>
+typedef HTOutputStream * HTOutputConverter_new(
+	HTHost *		host,
+	HTChannel *		ch,
+	void *			param,
+	int			mode,
+	HTOutputStream *	target);
+</PRE>
 <PRE>
 #endif /* HTIOSTREAM_H */
 </PRE>

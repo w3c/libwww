@@ -256,8 +256,8 @@ PRIVATE const HTOutputStreamClass HTBufferWriter =
     HTBufferWriter_close
 }; 
 
-PUBLIC HTOutputStream * HTBufferWriter_new (HTHost * host, HTChannel * ch,
-					    void * param, int bufsize)
+PRIVATE HTOutputStream * buffer_new (HTHost * host, HTChannel * ch,
+				     void * param, int bufsize)
 {
     if (host && ch) {
 	HTOutputStream * me = HTChannel_output(ch);
@@ -290,9 +290,37 @@ PUBLIC HTOutputStream * HTBufferWriter_new (HTHost * host, HTChannel * ch,
 	    me->allocated = bufsize;
             me->growby = bufsize;
 	    me->expo = 1;
-	    me->target = HTWriter_new(host, ch, param, 0);
 	    me->host = host;
            return me;
+	}
+    }
+    return NULL;
+}
+
+PUBLIC HTOutputStream * HTBufferWriter_new (HTHost *	       	host,
+					    HTChannel * 	ch,
+					    void * 		param,
+					    int 		bufsize)
+{
+    HTOutputStream * me = buffer_new(host, ch, param, bufsize);
+    if (me) {
+	me->target = HTWriter_new(host, ch, param, 0);
+	return me;
+    }
+    return NULL;
+}
+
+PUBLIC HTOutputStream * HTBufferConverter_new (HTHost * 	host,
+					       HTChannel * 	ch,
+					       void * 		param,
+					       int 		bufsize,
+					       HTOutputStream * target)
+{
+    if (target) {
+	HTOutputStream * me = buffer_new(host, ch, param, bufsize);
+	if (me) {
+	    me->target = target;
+	    return me;
 	}
     }
     return NULL;
