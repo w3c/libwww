@@ -945,6 +945,18 @@ PUBLIC int terminate_handler (HTRequest * request, HTResponse * response,
 	mr->other_docs++;
     }
 
+    if (!(mr->flags & MR_BFS)) {
+
+	/* Delete this thread */
+	Finger_delete(finger);
+
+	/* Should we stop? */
+	if (mr->cnt <= 0) {
+	    if (SHOW_QUIET(mr)) HTTrace("             Everything is finished...\n");
+	    Cleanup(mr, 0);			/* No way back from here */
+	}
+    }
+
     if (SHOW_QUIET(mr)) HTTrace("             %d outstanding request%s\n", mr->cnt, mr->cnt == 1 ? "" : "s");
     return HT_OK;
 
@@ -1159,12 +1171,27 @@ PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
 	  }
 
 	/* Test whether we already have a hyperdoc for this document */
-        if (mr->flags & MR_LINK && match && dest_parent
-	    && follow && !hd ) {
-
-          nhd->method = METHOD_HEAD;
-	  HTQueue_enqueue(mr->queue, (void *)nhd); (mr->cq)++;
-	  if(mr->ndoc > 0)      mr->ndoc--;
+        if (mr->flags & MR_LINK && match && dest_parent && follow && !hd) {
+	    if (mr->flags & MR_BFS) {
+		nhd->method = METHOD_HEAD;
+		HTQueue_enqueue(mr->queue, (void *) nhd);
+		(mr->cq)++;
+		if(mr->ndoc > 0) mr->ndoc--;
+	    } else {
+		Finger * newfinger = Finger_new(mr, dest_parent, METHOD_GET);
+		HTRequest * newreq = newfinger->request;
+		HTRequest_setParent(newreq, referer);
+		if (check || depth >= mr->depth) {
+		    if (SHOW_QUIET(mr)) HTTrace("loading at depth %d using HEAD\n", depth);
+		    HTRequest_setMethod(newreq, METHOD_HEAD);
+		} else {
+		    if (SHOW_QUIET(mr)) HTTrace("loading at depth %d\n", depth);
+		}
+		if (HTLoadAnchor((HTAnchor *) dest_parent, newreq) != YES) {
+		    if (SHOW_QUIET(mr)) HTTrace("not tested!\n");
+		    Finger_delete(newfinger);
+		}
+	    }
 
 	} else {
 	    if (SHOW_QUIET(mr)) HTTrace("............ does not fulfill constraints\n");
