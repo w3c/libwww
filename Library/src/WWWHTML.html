@@ -1,62 +1,52 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Sample Code Library libwww HTML PARSER</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 16-Apr-1996 -->
-<NEXTID N="z11">
+  <TITLE>W3C Sample Code Library libwww HTML PARSER</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Declaration of W3C Sample Code HTML MODULE</H1>
-
+<H1>
+  Declaration of W3C Sample Code HTML MODULE
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This is the include file for the basic HTML module that can be used
-together with the core of the W3C Sample Code Library. It contains all
-HTML specific modules which are required to compile and build the HTML
-DLL.  Please note that as the HText is <B>not</B> included in this
-interface. The reason is that the HText interface only is declared by
-the Library but must be defined by the application. Therefore it can
-not be part of a DLL but must be included directly in the
-application.<P>
-
+<P>
+This is the include file for the basic HTML module that can be used together
+with libwww. It contains all HTML specific modules which are required to
+compile and use the <A HREF="HTML.html">default libwww HTML parser</A>
 <PRE>
 #ifndef WWWHTML_H
 #define WWWHTML_H
 </PRE>
-
 <PRE>
 #ifdef __cplusplus
 extern "C" { 
 #endif
 </PRE>
-
-<H2>System dependencies</H2>
-
+<H2>
+  System dependencies
+</H2>
+<P>
 The <A HREF="wwwsys.html">wwwsys.h</A> file includes system-specific include
-files and flags for I/O to network and disk. The only reason for this
-file is that the Internet world is more complicated than Posix and
-ANSI.
-
+files and flags for I/O to network and disk. The only reason for this file
+is that the Internet world is more complicated than Posix and ANSI.
 <PRE>
 #include "wwwsys.h"
 </PRE>
-
-<H2>Library Includes</H2>
-
+<H2>
+  Library Includes
+</H2>
 <PRE>
+#include "HText.h"
 #include "HTMLPDTD.h"
 #include "SGML.h"
 #include "HTMLGen.h"
 #include "HTTeXGen.h"
 </PRE>
-
+<P>
 End of HTML module
-
 <PRE>
 #ifdef __cplusplus
 } /* end extern C definitions */
@@ -64,10 +54,9 @@ End of HTML module
 
 #endif
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

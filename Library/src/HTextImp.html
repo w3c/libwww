@@ -1,10 +1,10 @@
 <HTML>
 <HEAD>
-  <TITLE>W3C Sample Code Library libwww Rich Hypertext Object - Dummy Implementation</TITLE>
+  <TITLE>W3C Sample Code Library libwww Internal Hypertext Object</TITLE>
 </HEAD>
 <BODY>
 <H1>
-  Dummy Implementation of Rich HyperText Object
+  Internal implementation of Hypertext Object Builder
 </H1>
 <PRE>
 /*
@@ -13,43 +13,69 @@
 */
 </PRE>
 <P>
-If you are not using the libwww HTML parser but you are compiling libwww
-as a shared library then you need to include this dummy implementation of
-the <A HREF="HText.html">HText interface</A> in order to link succesfully.
-In order to compile it in, you can do something like this
-<P>
-<CODE>#ifdef LIBWWW_SHARED<BR>
-#include "HTextImp.h"<BR>
-#endif</CODE>
-<P>
-This module is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Sample Code Library</A>.
 <PRE>
 #ifndef HTEXTIMP_H
 #define HTEXTIMP_H
 
+#include "HTReq.h"
+#include "HTAnchor.h"
 #include "HText.h"
-struct _HText {};
-PUBLIC HTStyleSheet * styleSheet = NULL;
-PUBLIC HText * HText_new2 (HTRequest * request, HTParentAnchor * anchor,
-			   HTStream * stream) {return NULL;}
-PUBLIC void HText_free (HText * me) {}
-PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor) {}
-PUBLIC void HText_endAnchor (HText * text) {}
-PUBLIC void HText_appendText (HText * text, const char * str) {}
-PUBLIC void HText_appendImage (HText * text, HTChildAnchor * anchor,
-			       const char *alt, const char * align, BOOL isMap) {}
-PUBLIC void HText_appendCharacter (HText * text, char ch) {}
-PUBLIC void HText_endAppend (HText * text) {}
-PUBLIC void HText_setStyle (HText * text, HTStyle * style) {}
-PUBLIC void HText_beginAppend (HText * text) {}
-PUBLIC void HText_appendParagraph (HText * text) {}
-PUBLIC void HText_appendObject (HText * text, int element_number,
-	                        const BOOL * present, const char ** value) {}
-PUBLIC void HText_appendLink (HText * text, HTChildAnchor * anchor,
-			      const BOOL * present, const char ** value) {}
+</PRE>
+<PRE>
+typedef struct _HTextImp HTextImp;
 
-#endif
+extern HTextImp * HTextImp_new (
+	HTRequest *	request,
+	HTParentAnchor *anchor,
+	HTStream *	output_stream);
+
+extern BOOL HTextImp_delete (
+	HTextImp *	me);
+
+extern void HTextImp_build (
+	HTextImp *	text,
+	HTextStatus	status);
+
+extern void HTextImp_addText (
+	HTextImp * 	me,
+	const char * 	buffer,
+	int 		length);
+
+extern void HTextImp_foundLink (
+	HTextImp * 	me,
+	int 		element_number,
+	int 		attribute_number,
+	HTChildAnchor *	anchor,
+	const BOOL *	present,
+	const char **	value);
+
+extern void HTextImp_beginElement (
+	HTextImp * 	me,
+	int		element_number,
+	const BOOL *	present,
+	const char **	value);
+
+extern void HTextImp_endElement (
+	HTextImp * 	me,
+	int		element_number);
+
+extern void HTextImp_unparsedBeginElement (
+	HTextImp * 	me,
+	const char * 	buffer,
+	int 		length);
+
+extern void HTextImp_unparsedEndElement (
+	HTextImp * 	me,
+	const char * 	buffer,
+	int 		length);
+
+extern void HTextImp_unparsedEntity (
+	HTextImp * 	me,
+	const char * 	buffer,
+	int 		length);
+</PRE>
+<PRE>
+#endif /* HTEXTIMP_H */
 </PRE>
 <P>
   <HR>

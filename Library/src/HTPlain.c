@@ -8,111 +8,63 @@
 **	This version of the stream object just writes to a socket.
 **	The socket is assumed open and left open.
 **
-**	Bugs:
-**		strings written must be less than buffer size.
 */
 
 /* Library include files */
 #include "wwwsys.h"
 #include "HTUtils.h"
-#include "HText.h"
 #include "HTStyle.h"
 #include "HTPlain.h"
-
-#define BUFFER_SIZE 4096;	/* Tradeoff */
-
-extern HTStyleSheet * styleSheet;
-
-
-
-/*		HTML Object
-**		-----------
-*/
+#include "HTextImp.h"
 
 struct _HTStream {
-	const HTStreamClass *	isa;
-
-	HText * 		text;
+    const HTStreamClass *	isa;
+    HTextImp * 			text;
 };
 
-/*	Write the buffer out to the socket
-**	----------------------------------
-*/
-
-
-/*_________________________________________________________________________
-**
-**			A C T I O N 	R O U T I N E S
-*/
-
-/*	Character handling
-**	------------------
-*/
+/* -------------------------------------------------------------------------- */
 
 PRIVATE int HTPlain_put_character (HTStream * me, char c)
 {
-    HText_appendCharacter(me->text, c);
+    HTextImp_addText(me->text, &c, 1);
     return HT_OK;
 }
 
-
-/*	String handling
-**	---------------
-**
-*/
 PRIVATE int HTPlain_put_string (HTStream * me, const char * s)
 {
-    HText_appendText(me->text, s);
+    HTextImp_addText(me->text, s, strlen(s));
     return HT_OK;
 }
-
 
 PRIVATE int HTPlain_write (HTStream * me, const char* b, int l)
 {
-    while (l-- > 0)
-	HText_appendCharacter(me->text, *b++);
+    HTextImp_addText(me->text, b, l);
     return HT_OK;
 }
 
-
-
-/*	Flush an Plain object
-**	--------------------
-*/
 PRIVATE int HTPlain_flush (HTStream * me)
 {
     return HT_OK;
 }
 
-/*	Free an HTML object
-**	-------------------
-**
-**	Note that the SGML parsing context is freed, but the created object is not,
-**	as it takes on an existence of its own unless explicitly freed.
-*/
 PRIVATE int HTPlain_free (HTStream * me)
 {
     if (me) {
-	HText_endAppend(me->text);
+	HTextImp_build(me->text, HTEXT_END);
 	HT_FREE(me);
     }
     return HT_OK;
 }
 
-/*	End writing
-*/
-
 PRIVATE int HTPlain_abort (HTStream * me, HTList * e)
 {
-    HTPlain_free(me);
+    if (me) {
+	HTextImp_build(me->text, HTEXT_ABORT);
+	HT_FREE(me);
+    }
     return HT_ERROR;
 }
 
-
-
-/*		Structured Object Class
-**		-----------------------
-*/
 PRIVATE const HTStreamClass HTPlain =
 {
     "PlainText",
@@ -124,23 +76,18 @@ PRIVATE const HTStreamClass HTPlain =
     HTPlain_write,
 }; 
 
-
-/*		New object
-**		----------
-*/
 PUBLIC HTStream* HTPlainPresent (HTRequest *	request,
 				 void *		param,
 				 HTFormat	input_format,
 				 HTFormat	output_format,
 				 HTStream *	output_stream)
 {
-    HTStream* me;
-    if ((me = (HTStream *) HT_MALLOC(sizeof(HTStream))) == NULL)
+    HTStream * me;
+    if ((me = (HTStream *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
         HT_OUTOFMEM("HTPlain_new");
     me->isa = &HTPlain;       
-    me->text = HText_new2(request, HTRequest_anchor(request), output_stream);
-    HText_beginAppend(me->text);
-    HText_setStyle(me->text, HTStyleNamed(styleSheet, "Example"));
+    me->text = HTextImp_new(request, HTRequest_anchor(request), output_stream);
+    HTextImp_build(me->text, HTEXT_BEGIN);
     return me;
 }
 

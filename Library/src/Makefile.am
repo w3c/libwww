@@ -62,9 +62,9 @@ libwww_la_SOURCES = \
 	HTPEP.c		HTProfil.c	HTMerge.c \
 	HTDemux.c	HTMuxTx.c	HTMuxCh.c \
 	HTTimer.c	HTTrace.c	HTMemLog.c \
-	HTDigest.c	md5.c
+	HText.c		HTDigest.c	md5.c
 
-libwww_la_LIBADD = @HTWAIS@ @HTZLIB@ @HTSQL@ @HTSQLLOG@
+libwww_la_LIBADD = @HTWAIS@ @HTZLIB@ @HTSQL@ @HTSQLLOG@ @HTXML@
 
 EXTRA_libwww_la_SOURCES = \
 	HTWAIS.c \
@@ -72,7 +72,7 @@ EXTRA_libwww_la_SOURCES = \
 	HTSQL.c \
 	HTSQLLog.c
 
-libwww_la_DEPENDENCIES = @HTWAIS@ @HTZLIB@ @HTSQL@ @HTSQLLOG@
+libwww_la_DEPENDENCIES = @HTWAIS@ @HTZLIB@ @HTSQL@ @HTSQLLOG@ @HTXML@
 
 INCLUDES = -I/usr/local/include
 

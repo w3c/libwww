@@ -63,7 +63,20 @@ to perform multiple requests simultanously - in everyday words called
 pseudo-threads. Besides that this profile contains typical filters for handling
 redirection, authentication, logging, and proxy servers.
 <PRE>
-extern void HTProfile_newClient (const char * AppName, const char * AppVersion);
+extern void HTProfile_newClient (
+	const char * AppName,
+	const char * AppVersion);
+</PRE>
+<H3>
+  Simple HTML Client
+</H3>
+<P>
+As above but furthermore contains the <A HREF="HTML.html">default libwww
+HTML parser</A>
+<PRE>
+extern void HTProfile_newHTMLClient (
+	const char * AppName,
+	const char * AppVersion);
 </PRE>
 <H3>
   Client without a Persistent Cache
@@ -71,8 +84,20 @@ extern void HTProfile_newClient (const char * AppName, const char * AppVersion);
 <P>
 This is the same as above except that it doesn't start the persistent cache.
 <PRE>
-extern void HTProfile_newNoCacheClient (const char * AppName,
-					const char * AppVersion);
+extern void HTProfile_newNoCacheClient (
+	const char * AppName,
+	const char * AppVersion);
+</PRE>
+<H3>
+  Simple HTML Client without Persistent Cache
+</H3>
+<P>
+As above but furthermore contains the <A HREF="HTML.html">default libwww
+HTML parser</A>
+<PRE>
+extern void HTProfile_newHTMLNoCacheClient (
+	const char * AppName,
+	const char * AppVersion);
 </PRE>
 <H3>
   Preemptive (Blocking) Client
@@ -86,8 +111,9 @@ We also have a blocking (preemptive) version of the same client interface.
 The difference is that this version uses traditional blocking sockets and
 hence only one reques can be performed at the same time.
 <PRE>
-extern void HTProfile_newPreemptiveClient (const char * AppName,
-					   const char * AppVersion);
+extern void HTProfile_newPreemptiveClient (
+	const char * AppName,
+	const char * AppVersion);
 </PRE>
 <H2>
   <A NAME="Robot">Robot Application Profile</A>
@@ -98,7 +124,9 @@ but it does contain less filters. For example, robots are normally not intereste
 in performing automatic redirections or access authentication, and hence
 this is not part of the robot profile.
 <PRE>
-extern void HTProfile_newRobot (const char * AppName, const char * AppVersion);
+extern void HTProfile_newRobot (
+	const char * AppName,
+	const char * AppVersion);
 </PRE>
 <P>
 <B><IMG SRC="../../Icons/32x32/warning.gif" WIDTH="32" HEIGHT="32" ALT="Note: "
@@ -109,8 +137,9 @@ As for the client interfacem we also have a blocking (preemptive) version
 of the same interface. The difference is that this version uses traditional
 blocking sockets and hence only one reques can be performed at the same time.
 <PRE>
-extern void HTProfile_newPreemptiveRobot (const char * AppName,
-					  const char * AppVersion);
+extern void HTProfile_newPreemptiveRobot (
+	const char * AppName,
+	const char * AppVersion);
 </PRE>
 <H2>
   Delete a Profile

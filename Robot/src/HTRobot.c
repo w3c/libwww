@@ -37,9 +37,12 @@ PRIVATE HTErrorMessage HTErrors[HTERR_ELEMENTS] = {HTERR_ENGLISH_INITIALIZER};
 */
 PRIVATE HTComparer HitSort, FormatSort, LastModifiedSort, TitleSort;
 
-PUBLIC HText * HTMainText = NULL;
-PUBLIC HTParentAnchor * HTMainAnchor = NULL;
-PUBLIC HTStyleSheet * styleSheet = NULL;
+/*
+**  Ths callbacks that we need from the libwww HTML parser
+*/
+PRIVATE HText_new	RHText_new;
+PRIVATE HText_delete	RHText_delete;
+PRIVATE HText_foundLink	RHText_foundLink;
 
 /* ------------------------------------------------------------------------- */
 
@@ -648,7 +651,7 @@ PRIVATE BOOL Robot_delete (Robot * mr)
 	    HTList * cur = mr->htext;
 	    HText * pres;
 	    while ((pres = (HText *) HTList_nextObject(cur)))
-		HText_free(pres);
+		RHText_delete(pres);
 	    HTList_delete(mr->htext);
 	}
 
@@ -1051,8 +1054,15 @@ PUBLIC void Serving_queue(Robot *mr)
 /*				HTEXT INTERFACE				     */
 /* ------------------------------------------------------------------------- */
 
-PUBLIC HText * HText_new2 (HTRequest * request, HTParentAnchor * anchor,
-			   HTStream * stream)
+PUBLIC BOOL Robot_registerHTMLParser (void)
+{
+    HText_registerCDCallback(RHText_new, RHText_delete);
+    HText_registerLinkCallback(RHText_foundLink);
+    return YES;
+}
+
+PRIVATE HText * RHText_new (HTRequest * request, HTParentAnchor * anchor,
+			    HTStream * stream)
 {
     HText * me;
     Finger * finger = (Finger *) HTRequest_context(request);
@@ -1088,11 +1098,11 @@ PUBLIC HText * HText_new2 (HTRequest * request, HTParentAnchor * anchor,
     return me;
 }
 
-PUBLIC void HText_free (HText * me) {
+PRIVATE BOOL RHText_delete (HText * me) {
     if (me) HT_FREE (me);
 }
 
-PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
+PRIVATE void RHText_foundAnchor (HText * text, HTChildAnchor * anchor)
 {
     if (text && anchor) {
 	Finger * finger = (Finger *) HTRequest_context(text->request);
@@ -1219,8 +1229,8 @@ PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
     }
 }
 
-PUBLIC void HText_appendImage (HText * text, HTChildAnchor * anchor,
-			       const char *alt, const char * align, BOOL isMap)
+PRIVATE void RHText_foundImage (HText * text, HTChildAnchor * anchor,
+				const char *alt, const char * align, BOOL isMap)
 {
     if (text && anchor) {
 	Finger * finger = (Finger *) HTRequest_context(text->request);
@@ -1321,71 +1331,26 @@ PUBLIC void HText_appendImage (HText * text, HTChildAnchor * anchor,
     }
 }
 
-PUBLIC void HText_appendLink (HText * text, HTChildAnchor * anchor,
-			      const BOOL * present, const char ** value)
+PRIVATE void RHText_foundLink (HText * text,
+			       int element_number, int attribute_number,
+			       HTChildAnchor * anchor,
+			       const BOOL * present, const char ** value)
 {
     if (text && anchor) {
 	Finger * finger = (Finger *) HTRequest_context(text->request);
 	Robot * mr = finger->robot;
 	if (SHOW_QUIET(mr))
-	    HTTrace("Robot....... Received Link element with anchor %p\n", anchor);
-	HText_beginAnchor(text, anchor);
+	    HTTrace("Robot....... Received element %d, attribute %d with anchor %p\n",
+		    element_number, attribute_number, anchor);
+	if ((element_number==HTML_IMG && attribute_number==HTML_IMG_SRC) || 
+	    (element_number==HTML_BODY && attribute_number==HTML_BODY_BACKGROUND))
+	    RHText_foundImage(text, anchor, NULL, NULL, NO);
+	else
+	    RHText_foundAnchor(text, anchor);
     }
 }
 
-PUBLIC void HText_appendObject (HText * text, int element_number,
-	                        const BOOL * present, const char ** value)
-{
-    /* Here we can look for frames, link tags, meta tags etc. */
-    if (text && text->request) {
-	Finger * finger = (Finger *) HTRequest_context(text->request);
-	Robot * mr = finger->robot;
-
-	if (SHOW_QUIET(mr))
-	    HTTrace("Robot....... HText Object %p called with HTML element number %d\n",
-		    text, element_number);
-
-	switch (element_number) {
-
-	case HTML_FRAME:
-	{
-	    HTChildAnchor * source = HTAnchor_findChildAndLink(
-		HTRequest_anchor(text->request),			/* Parent */
-		NULL,							/* Tag */
-		present[HTML_FRAME_SRC] ? value[HTML_FRAME_SRC] : NULL,	/* Addresss */
-		NULL);							/* Rels */
-	    HText_beginAnchor(text, source);
-	}
-	break;
-
-	case HTML_BODY:
-	{
-	    HTChildAnchor * source = HTAnchor_findChildAndLink(
-		HTRequest_anchor(text->request),			/* Parent */
-		NULL,                     				/* Tag */
-		present[HTML_BODY_BACKGROUND] ? value[HTML_BODY_BACKGROUND] : NULL,  /* Addresss */
-		NULL);							/* Rels */
-	    HText_appendImage(text, source, NULL, NULL, NO);
-	}
-	break;
-
-	default:
-	    break;
-	}
-    }
-}
-
-PUBLIC void HText_endAnchor (HText * text) {}
-PUBLIC void HText_appendText (HText * text, const char * str) {}
-PUBLIC void HText_appendCharacter (HText * text, char ch) {}
-PUBLIC void HText_endAppend (HText * text) {}
-PUBLIC void HText_setStyle (HText * text, HTStyle * style) {}
-PUBLIC void HText_beginAppend (HText * text) {}
-PUBLIC void HText_appendParagraph (HText * text) {}
-
-
-PUBLIC char *
-get_robots_txt(char *uri)
+PUBLIC char * get_robots_txt(char * uri)
 {
   char *str = NULL;
   HTChunk * chunk;

@@ -1,10 +1,6 @@
 #include "WWWLib.h"
 #include "WWWInit.h"
 
-#ifdef LIBWWW_SHARED
-#include "HTextImp.h"
-#endif
-
 /*
 **	Loads a URL to a local file
 */

@@ -35,9 +35,10 @@ of the <A HREF="http://www.w3.org/Library/">W3C Sample Code Library</A>.
 #include "HTStruct.h"
 </PRE>
 <H2>
-  SGML content types
+  SGML Content Types
 </H2>
-<PRE>typedef enum _SGMLContent{
+<PRE>
+typedef enum _SGMLContent{
     SGML_EMPTY,    	/* no content */
     SGML_LITERAL, 	/* character data. Recognized exact close tag only.
   		    	   Old www server compatibility only! Not SGML */
@@ -45,42 +46,61 @@ of the <A HREF="http://www.w3.org/Library/">W3C Sample Code Library</A>.
     SGML_RCDATA,   	/* replaceable character data. recognize &lt;/ and &amp;ref; */
     SGML_MIXED,    	/* elements and parsed character data. recognize all markup */
     SGML_ELEMENT   	/* any data found will be returned as an error*/
-  } SGMLContent;
-
-
-typedef struct {
+} SGMLContent;
+</PRE>
+<H2>
+  Attribute Types
+</H2>
+<P>
+Describes the SGML tag attribute
+<PRE>
+typedef struct _HTAttr {
     char *	name;		/* The (constant) name of the attribute */
     				/* Could put type info in here */
-} attr;
+} HTAttr;
 
-
-/*		A tag structure describes an SGML element.
-**		-----------------------------------------
-**
-**
-**	name		is the string which comes after the tag opener "&lt;".
-**
-**	attributes	points to a zero-terminated array
-**			of attribute names.
-**
-**	litteral	determines how the SGML engine parses the charaters
-**			within the element. If set, tag openers are ignored
-**			except for that which opens a matching closing tag.
-**
-*/
-typedef struct _tag HTTag;
-struct _tag{
-    char * 	name;			/* The name of the tag */
-    attr * 	attributes;		/* The list of acceptable attributes */
+extern char * HTAttr_name (HTAttr * attr);
+</PRE>
+<H2>
+  Tag Structure Describing SGML Elements
+</H2>
+<DL>
+  <DT>
+    name
+  <DD>
+    is the string which comes after the tag opener "&lt;".
+  <DT>
+    attributes
+  <DD>
+    points to a zero-terminated array of attribute names.
+  <DT>
+    litteral
+  <DD>
+    determines how the SGML engine parses the charaters within the element. If
+    set, tag openers are ignored except for that which opens a matching closing
+    tag.
+</DL>
+<PRE>
+typedef struct _HTTag {
+    char *      name;			/* The name of the tag */
+    HTAttr *	attributes;		/* The list of acceptable attributes */
     int		number_of_attributes;	/* Number of possible attributes */
     SGMLContent contents;		/* End only on end tag @@ */		
-};
+} HTTag;
 
-/*		DTD Information
-**		---------------
-**
-** Not the whole DTD, but all this parser usues of it.
-*/
+extern char * HTTag_name (HTTag * tag);
+extern SGMLContent HTTag_content (HTTag * tag);
+extern int HTTag_attributes (HTTag * tag);
+extern char * HTTag_attributeName (HTTag * tag, int attribute_number);
+</PRE>
+<H2>
+  DTD Information
+</H2>
+<P>
+Not the whole DTD, but all this parser uses of it.
+<PRE>
+#define MAX_ATTRIBUTES 20	     /* Max number of attributes per element */
+
 typedef struct {
     HTTag *		tags;		/* Must be in strcmp order by name */ 
     int			number_of_tags;
@@ -88,25 +108,25 @@ typedef struct {
     int			number_of_entities;
 } SGML_dtd;
 
-#define MAX_ATTRIBUTES 20	     /* Max number of attributes per element */
+extern HTTag * SGML_findTag (SGML_dtd * dtd, int element_number);
+extern char * SGML_findTagName (SGML_dtd * dtd, int element_number);
+extern SGMLContent SGML_findTagContents (SGML_dtd * dtd, int element_number);
 </PRE>
 <H2>
-  Create an SGML parser
+  Create an SGML Parser Instance
 </H2>
-<PRE>/*
-** On entry,
-**	dtd		must point to a DTD structure as defined above
-**	callbacks	must point to user routines.
-**	callData	is returned in callbacks transparently.
-** On exit,
-**		The default tag starter has been processed.
-*/
-
-
+<P>
+Create an SGML parser instance which converts a stream to a structured stream.
+<PRE>
 extern HTStream * SGML_new (const SGML_dtd * 	dtd,
 			    HTStructured *	target);
-
-#endif	/* SGML_H */
-
 </PRE>
+<PRE>
+#endif	/* SGML_H */
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
 </BODY></HTML>

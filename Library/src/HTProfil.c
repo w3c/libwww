@@ -39,7 +39,7 @@ PUBLIC void HTProfile_delete (void)
 }
 
 PRIVATE void client_profile (const char * AppName, const char * AppVersion,
-			     BOOL preemptive, BOOL cache)
+			     BOOL preemptive, BOOL cache, BOOL HTMLParser)
 {
     /* If the Library is not already initialized then do it */
     if (!HTLib_isInitialized()) HTLibInit(AppName, AppVersion);
@@ -78,6 +78,11 @@ PRIVATE void client_profile (const char * AppName, const char * AppVersion,
 
     /* Register the default set of converters */
     HTConverterInit(converters);
+
+    /* Register the default libwww HTML parser */
+    if (HTMLParser) HTMLInit(converters);
+
+    /* Set the convertes as global converters for all requests */
     HTFormat_setConversion(converters);
 
     /* Register the default set of transfer encoders and decoders */
@@ -106,7 +111,16 @@ PRIVATE void client_profile (const char * AppName, const char * AppVersion,
 PUBLIC void HTProfile_newClient (const char * AppName, const char * AppVersion)
 {
     /* Do the default setup */
-    client_profile(AppName, AppVersion, NO, YES);
+    client_profile(AppName, AppVersion, NO, YES, NO);
+
+    /* Set up default event loop */
+    HTEventInit();
+}
+
+PUBLIC void HTProfile_newHTMLClient (const char * AppName, const char * AppVersion)
+{
+    /* Do the default setup */
+    client_profile(AppName, AppVersion, NO, YES, YES);
 
     /* Set up default event loop */
     HTEventInit();
@@ -116,7 +130,7 @@ PUBLIC void HTProfile_newPreemptiveClient (const char * AppName,
 					   const char * AppVersion)
 {
     /* Do the default setup */
-    client_profile(AppName, AppVersion, YES, NO);
+    client_profile(AppName, AppVersion, YES, NO, NO);
 
     /* Remember that we are loading preemptively */
     preemptive = YES;
@@ -126,7 +140,17 @@ PUBLIC void HTProfile_newNoCacheClient (const char * AppName,
 					const char * AppVersion)
 {
     /* Do the default setup */
-    client_profile(AppName, AppVersion, NO, NO);
+    client_profile(AppName, AppVersion, NO, NO, NO);
+
+    /* Set up default event loop */
+    HTEventInit();
+}
+
+PUBLIC void HTProfile_newHTMLNoCacheClient (const char * AppName,
+					    const char * AppVersion)
+{
+    /* Do the default setup */
+    client_profile(AppName, AppVersion, NO, NO, YES);
 
     /* Set up default event loop */
     HTEventInit();
@@ -160,8 +184,10 @@ PRIVATE void robot_profile (const char * AppName, const char * AppVersion)
 
     /* Register the default set of converters including the HTML parser */
     HTConverterInit(converters);
-    HTFormat_setConversion(converters);
+    HTMLInit(converters);
 
+    /* Set the convertes as global converters for all requests */
+    HTFormat_setConversion(converters);
 
     /* Register the default set of transfer encoders and decoders */
     HTTransferEncoderInit(transfer_encodings);

@@ -56,13 +56,14 @@ struct _HTStructured {
 /* The buffer has to be bigger than 80 as latex markup might make the line
    longer before we get to flush it. */
 
-PRIVATE char *TeX_names[HTMLP_ELEMENTS][2] = {
+PRIVATE char *TeX_names[HTML_ELEMENTS][2] = {
     { "",       	""		},	/* HTML_A		*/
     { "",		""		},	/* HTML_ABBREV		*/
     { "\n\\begin{abstract}\n","\n\\end{abstract}\n"},  /* HTML_ABSTRACT	*/
     { "",		""		},	/* HTML_ACRONYM		*/
     { "",		""		},	/* HTML_ADDED		*/
     { "{\\it ",		"}"		},	/* HTML_ADDRESS		*/
+    { "",       	""		},	/* HTML_AREA		*/
     { "",		""		},	/* HTML_ARG		*/
     { "{\\bf ",		"}"		},	/* HTML_B		*/
     { "",		""		},	/* HTML_BASE		*/
@@ -86,6 +87,8 @@ PRIVATE char *TeX_names[HTMLP_ELEMENTS][2] = {
     { "",	""			},	/* HTML_FIG		*/
     { "\n\\footnote{",	"}\n"	       	},	/* HTML_FOOTNOTE	*/
     { "",	"" 			},	/* HTML_FORM		*/
+    { "",       	""		},	/* HTML_FRAME		*/
+    { "",       	""		},	/* HTML_FRAMESET	*/
     { "\n\\chapter{",	"}\n"		},	/* HTML_H1		*/
     { "\n\\section{",	"}\n"		},	/* HTML_H2		*/
     { "\n\\subsection{","}\n"  		},	/* HTML_H3		*/
@@ -113,6 +116,7 @@ PRIVATE char *TeX_names[HTMLP_ELEMENTS][2] = {
     { "",		""		},	/* HTML_MENU		*/
     { "",		""		},	/* HTML_NEXTID		*/
     { "",		""		},	/* HTML_NOTE		*/
+    { "",       	""		},	/* HTML_OBJECT		*/
     { "\n\\begin{enumerate}\n","\n\\end{enumerate}\n"}, /* HTML_OL     	*/
     { "",		""		},	/* HTML_OPTION		*/
     { "",		""		},	/* HTML_OVER		*/
@@ -421,7 +425,20 @@ PRIVATE void HTTeXGen_put_entity (HTStructured * me, int entity_number)
     me->markup = mark;
 }
 
+PRIVATE int HTTeXGen_unparsedBeginElement (HTStructured * me, const char * b, int l)
+{
+    return (*me->targetClass.put_block)(me->target, b, l);
+}
 
+PRIVATE int HTTeXGen_unparsedEndElement (HTStructured * me, const char * b, int l)
+{
+    return (*me->targetClass.put_block)(me->target, b, l);
+}
+
+PRIVATE int HTTeXGen_unparsedEntity (HTStructured * me, const char * b, int l)
+{
+    return (*me->targetClass.put_block)(me->target, b, l);
+}
 
 /*	Free an HTML object
 **	-------------------
@@ -456,7 +473,10 @@ PRIVATE const HTStructuredClass HTTeXGeneration = /* As opposed to print etc */
 	HTTeXGen_abort,
 	HTTeXGen_put_character,        	HTTeXGen_put_string,	HTTeXGen_write,
 	HTTeXGen_start_element, 	HTTeXGen_end_element,
-	HTTeXGen_put_entity
+	HTTeXGen_put_entity,
+	HTTeXGen_unparsedBeginElement,
+	HTTeXGen_unparsedEndElement,
+	HTTeXGen_unparsedEntity
 }; 
 
 
@@ -475,12 +495,12 @@ PUBLIC HTStream* HTMLToTeX (HTRequest *	request,
         HT_OUTOFMEM("HTMLToTeX");
 
     me->isa = (HTStructuredClass*) &HTTeXGeneration;
-    me->dtd = &HTMLP_dtd;
+    me->dtd = HTML_dtd();
     me->target = output_stream;
     me->targetClass = *me->target->isa;/* Copy pointers to routines for speed*/
     me->write_pointer = me->buffer;
     me->line_break = 	me->buffer;
     (*me->targetClass.put_string)(me->target,
         "\\documentstyle[11pt]{report}\n\\begin{document}\n");
-    return SGML_new(&HTMLP_dtd, me);
+    return SGML_new(HTML_dtd(), me);
 }

@@ -219,6 +219,7 @@ PUBLIC HyperDoc * HyperDoc_new (Robot * mr,HTParentAnchor * anchor, int depth);
 PUBLIC BOOL HyperDoc_delete (HyperDoc * hd);
 PUBLIC Robot * Robot_new (void);
 PUBLIC Finger * Finger_new (Robot * robot, HTParentAnchor * dest, HTMethod method);
+PUBLIC BOOL Robot_registerHTMLParser (void);
 PUBLIC void Cleanup (Robot * me, int status);
 PUBLIC void SetSignal (void);
 PUBLIC void VersionInfo (void);

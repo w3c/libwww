@@ -22,10 +22,6 @@
 #include "WWWApp.h"
 #include "WWWInit.h"
 
-#ifdef LIBWWW_SHARED
-#include "HTextImp.h"
-#endif
-
 #define MAX_COUNT	1024
 
 int main (int argc, char ** argv)

@@ -23,10 +23,6 @@
 #include "WWWApp.h"
 #include "WWWInit.h"
 
-#ifdef LIBWWW_SHARED
-#include "HTextImp.h"
-#endif
-
 #ifndef W3C_VERSION
 #define W3C_VERSION		"Unspecified"
 #endif

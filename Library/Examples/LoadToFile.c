@@ -8,10 +8,6 @@
 #include "WWWGophe.h"
 #include "WWWInit.h"
 
-#ifdef LIBWWW_SHARED
-#include "HTextImp.h"
-#endif
-
 #define APP_NAME		"GETTOOL"
 #define APP_VERSION		"1.0"
 #define DEFAULT_OUTPUT_FILE     "get.out"

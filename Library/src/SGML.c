@@ -79,7 +79,7 @@ struct _HTStream
 */
 PRIVATE int SGMLFindAttribute  (HTTag* tag, const char * s)
     {
-	attr* attributes = tag->attributes;
+	HTAttr* attributes = tag->attributes;
 
 	int high, low, i, diff;		/* Binary search for attribute name */
 	for(low=0, high=tag->number_of_attributes;
@@ -166,14 +166,11 @@ PRIVATE void handle_entity (HTStream * context)
 			return;
 		    }
 	    }
-	/* If entity string not found, display as text */
+
+	/* If entity string not found */
 	TRACE1("Unknown entity %s\n", s);
-	PUTC('&');
-	    {
-		const char *p;
-		for (p=s; *p; p++)
-			PUTC(*p);
-	    }
+	(*context->actions->unparsed_entity)
+	    (context->target, context->string->data, context->string->size);
     }
 
 /*	End element
@@ -535,15 +532,16 @@ PRIVATE int SGML_write (HTStream * context, const char * b, int l)
 				    }
 				HTChunk_terminate(string);
 				context->current_tag  = SGMLFindTag(dtd, string->data);
-				if (context->current_tag == NULL)
-					TRACE1("*** Unknown element %s\n",
-					       string->data);
-				else for (i=0;
-					  i < context->current_tag->number_of_attributes; i++)
-				    {
+				if (context->current_tag == NULL) {
+				    TRACE1("*** Unknown element %s\n", string->data);
+				    (*context->actions->unparsed_begin_element)
+					(context->target, string->data, string->size);
+				} else {
+				    for (i=0; i<context->current_tag->number_of_attributes; i++) {
 					context->present[i] = NO;
 					context->value[i] = -1;
 				    }
+				}
 				context->token = string->size = 0;
 				context->current_attribute_number = INVALID;
 				goto S_tag_gap;
@@ -671,14 +669,14 @@ PRIVATE int SGML_write (HTStream * context, const char * b, int l)
 					   is required, I have to put the
 					   stack back... -- msa */
 					t = NULL;
-				if (!t)
-					TRACE1("Unknown end tag </%s>\n",
-					       string->data);
-				else
-				    {
-					context->current_tag = NULL;
-					end_element(context, t);
-				    }
+				if (!t) {
+				    TRACE1("Unknown end tag </%s>\n", string->data);
+				    (*context->actions->unparsed_end_element)
+					(context->target, string->data, string->size);
+				} else {
+				    context->current_tag = NULL;
+				    end_element(context, t);
+				}
 				string->size = 0;
 				context->current_attribute_number = INVALID;
 				if (c != '>')
@@ -697,8 +695,6 @@ PRIVATE int SGML_write (HTStream * context, const char * b, int l)
 			    }
 			break;
 
-		    S_junk_tag:
-			context->state = S_junk_tag;
 		    case S_junk_tag:
 			if (c == '>')
 			    {
@@ -801,15 +797,15 @@ PRIVATE int SGML_character (HTStream * context, char c)
 **	-----------------------
 */
 PRIVATE const HTStreamClass SGMLParser = 
-    {		
-	"SGMLParser",
-	SGML_flush,
-	SGML_free,
-	SGML_abort,
-	SGML_character, 
-	SGML_string,
-	SGML_write,
-    }; 
+{
+    "SGML",
+    SGML_flush,
+    SGML_free,
+    SGML_abort,
+    SGML_character, 
+    SGML_string,
+    SGML_write
+}; 
 
 /*	Create SGML Engine
 **	------------------
@@ -820,20 +816,59 @@ PRIVATE const HTStreamClass SGMLParser =
 **
 */
 PUBLIC HTStream *SGML_new(const SGML_dtd * dtd, HTStructured * target)
-    {
-	int i;
-	HTStream* context;
-	if ((context = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
-		HT_OUTOFMEM("SGML_begin");
+{
+    int i;
+    HTStream* context;
+    if ((context = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
+	HT_OUTOFMEM("SGML_begin");
 
-	context->isa = &SGMLParser;
-	context->string = HTChunk_new(128);	/* Grow by this much */
-	context->dtd = dtd;
-	context->target = target;
-	context->actions = (HTStructuredClass*)(((HTStream*)target)->isa);
-	                                    /* Ugh: no OO */
-	context->state = S_text;
-	for(i=0; i<MAX_ATTRIBUTES; i++)
-		context->value[i] = 0;
-	return context;
-    }
+    context->isa = &SGMLParser;
+    context->string = HTChunk_new(128);	/* Grow by this much */
+    context->dtd = dtd;
+    context->target = target;
+    context->actions = (HTStructuredClass*)(((HTStream*)target)->isa);
+    /* Ugh: no OO */
+    context->state = S_text;
+    for(i=0; i<MAX_ATTRIBUTES; i++)
+	context->value[i] = 0;
+    return context;
+}
+
+PUBLIC HTTag * SGML_findTag (SGML_dtd * dtd, int element_number)
+{
+    return (dtd && element_number>=0 && element_number<dtd->number_of_tags) ?
+	(dtd->tags+element_number) : NULL;
+}
+
+PUBLIC char * SGML_findTagName (SGML_dtd * dtd, int element_number)
+{
+    return (dtd && element_number>=0 && element_number<dtd->number_of_tags) ?
+	(dtd->tags+element_number)->name : NULL;
+}
+
+PUBLIC SGMLContent SGML_findTagContents (SGML_dtd * dtd, int element_number)
+{
+    return (dtd && element_number>=0 && element_number<dtd->number_of_tags) ?
+	(dtd->tags+element_number)->contents : SGML_ELEMENT;
+}
+
+PUBLIC char * HTTag_name (HTTag * tag)
+{
+    return tag ? tag->name : NULL;
+}
+
+PUBLIC int HTTag_attributes (HTTag * tag)
+{
+    return tag ? tag->number_of_attributes : -1;
+}
+
+PUBLIC char * HTTag_attributeName (HTTag * tag, int attribute_number)
+{
+    return (tag && attribute_number>=0 && attribute_number<tag->number_of_attributes) ?
+	(tag->attributes+attribute_number)->name : NULL;
+}
+
+PUBLIC char * HTAttr_name (HTAttr * attr)
+{
+    return attr ? attr->name : NULL;
+}

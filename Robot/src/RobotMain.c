@@ -495,11 +495,8 @@ int main (int argc, char ** argv)
     }
 #endif
 
-    /* Add the default HTML parser to the set of converters */
-    {
-	HTList * converters = HTFormat_conversion();
-	HTMLInit(converters);
-    }
+    /* Add our own HTML HText functions */
+    Robot_registerHTMLParser();
 
     /* Register our own terminate filter */
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);

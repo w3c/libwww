@@ -1,166 +1,79 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Sample Code Library libwww STYLE MANAGER</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+  <TITLE>W3C Sample Code Library libwww Stylesheet Manager</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Style Definition for Hypertext</H1>
-
+<H1>
+  Stylesheet Manager
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-Styles allow the translation between a logical property of a piece of
-text and its physical representation. A StyleSheet is a collection of
-styles, defining the translation necessary to represent a document. It
-is a linked list of styles.
-
-<H2>Overriding this module</H2>
-
-Why is the style structure declared in the HTStyle.h module, instead
-of having the user browser define the structure, and the HTStyle
-routines just use sizeof() for copying?<P>
-
-It's not obvious whether HTStyle.c should be common code.  It's useful
-to have common code for loading style sheets, especially if the
-movement toward standard style sheets gets going.<P>
-
-If it <B>is</B> common code, then both the hypertext object and
-HTStyle.c must know the structure of a style, so HTStyle.h is a
-suitable place to put that.<P>
-
-If we take it out of the library, then of course HTStyle could be
-declared as an undefined structure. The only references to it are in
-the structure-flattening code HTML.c and HTPlain.c, which only use
-HTStypeNamed().<P>
-
-You can in any case override this function in your own code, which
-will prevent the HTStyle from being loaded.  You will be able to
-redefine your style structure in this case without problems, as no
-other moule needs to know it. <P>
-
-This module is implemented by <A HREF="HTStyle.c">HTStyle.c</A>, and
-it is a part of the <A
-HREF="http://www.w3.org/Library/">
-W3C Sample Code Library</A>.
-
+<P>
+Styles allow the translation between a logical property of a piece of text
+and its physical representation. A StyleSheet is a collection of styles,
+defining the translation necessary to represent a document. It is a linked
+list of styles.
+<P>
+A stylesheet is a collection of styles - these styles can either come from
+over the net or they can be provided by the application as needed.
+<P>
+The manager doesn't contain any styles - it only provides a mechanism for
+registering styles, looking them up and deleting them. That is, it doesn't
+have any idea of what a style actually looks like - as this is highly application
+dependent, it is not a good idea to provide this as common library code.
+<P>
+This module is implemented by <A HREF="HTStyle.c">HTStyle.c</A>, and it is
+a part of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code
+Library</A>.
 <PRE>
-#ifndef HTStyle_H
-#define HTStyle_H
+#ifndef HTSTYLE_H
+#define HTSTYLE_H
+</PRE>
+<H2>
+  Creating and Deleting a StyleSheet
+</H2>
+<P>
+A Stylesheet is a container containing multiple individual styles. You must
+therefore first create a stylesheet before you can create individual styles.
+<PRE>
+typedef struct _HTStyleSheet HTStyleSheet;
 
-#include "HTFormat.h"
-#include "HTAnchor.h"
-#include "HTML.h"
-
-typedef long int HTFont;	/* Dummy definition instead */
-
-#ifdef DEFINE_STRUCT_HTSTYLE
-#ifdef NeXT_suppressed
-typedef NXCoord HTCoord;
-#define HTParagraphStyle NXTextStyle
-#define HTCoord NXCoord
-typedef struct _color {
-	double	grey;
-	int	RGBColor;
-} HTColor;
-#else
-
-typedef double HTCoord;
-
-typedef struct _HTParagraphStyle {
-    HTCoord	left_indent;		/* @@@@ junk! etc etc*/
-} HTParagraphStyle;
-
-typedef int HTColor;		/* Sorry about the US spelling! */
-
-#endif
-
-typedef struct {
-    short           	kind;		/* only NX_LEFTTAB implemented*/
-    HTCoord         	position;	/* x coordinate for stop */
-} HTTabStop;
-
-#else
-typedef struct _HTParagraphStyle HTParagraphStyle;
-#endif
-
-
-
-#define STYLE_NAME_LENGTH	80	/* @@@@@@@@@@@ */
-	 
-
-/*	The Style Structure
-**	-------------------
-*/
-
+extern HTStyleSheet * HTStyleSheet_new (const char * name);
+extern BOOL HTStyleSheet_delete (HTStyleSheet * me);
+</PRE>
+<H2>
+  Creating and Deleting Individual Styles
+</H2>
+<PRE>
 typedef struct _HTStyle HTStyle;
+
+extern HTStyle * HTStyle_new (const char * name, int element, void * context);
+extern BOOL HTStyle_delete (HTStyle * me);
 </PRE>
-
-<h2>Style Creation</h2>
-
-<h3>HtStyleModify</h3>
-
-This routine is passed the style for a particular SGML nesting state,
-and the element number of a new element whithin that state.
-The routine returns a suitable style for text within the new element.
-It is passed a popinter tothe nesting state so that it can link
-the style back to the nesting state for later manipulation
-of the SGML nesting tree.
+<H2>
+  Adding and Deleting Individual styles from Stylesheet
+</H2>
 <PRE>
-
-extern HTStyle * HTStyleModify (
-		HTStyle * 	style, 
-		HTNesting* 	nesting,
-                int 		element_number);
-
-
-
-/*	Style functions:
-*/
-extern HTStyle * HTStyleNew (void);
-extern HTStyle* HTStyleNewNamed (const char * name);
-extern HTStyle * HTStyleFree (HTStyle * self);
-#ifdef SUPRESS
-extern HTStyle * HTStyleRead (HTStyle * self, HTStream * stream);
-extern HTStyle * HTStyleWrite (HTStyle * self, HTStream * stream);
-#endif
-/*		Style Sheet
-**		-----------
-*/
-typedef struct _HTStyleSheet {
-	char *		name;
-	HTStyle *	styles;
-} HTStyleSheet;
-
-
-/*	Stylesheet functions:
-*/
-extern HTStyleSheet * HTStyleSheetNew (void);
-extern HTStyleSheet * HTStyleSheetFree (HTStyleSheet * self);
-extern HTStyle * HTStyleNamed (HTStyleSheet * self, const char * name);
-extern HTStyle * HTStyleMatching (HTStyleSheet *self, HTStyle * style);
-/* extern HTStyle * HTStyleForRun (HTStyleSheet *self, NXRun * run); */
-extern HTStyleSheet * HTStyleSheetAddStyle (HTStyleSheet * self,
-	HTStyle * style);
-extern HTStyleSheet * HTStyleSheetRemoveStyle (HTStyleSheet * self,
-	HTStyle * style);
-#ifdef SUPPRESS
-extern HTStyleSheet * HTStyleSheetRead (HTStyleSheet * self,
-						HTStream * stream);
-extern HTStyleSheet * HTStyleSheetWrite (HTStyleSheet * self,
-						HTStream * stream);
-#endif
-#define CLEAR_POINTER ((void *)-1)	/* Pointer value means "clear me" */
-#endif /* HTStyle_H */
+extern BOOL HTStyleSheet_addStyle (HTStyleSheet * me, HTStyle * style);
+extern BOOL HTStyleSheet_deleteStyle (HTStyleSheet * me, HTStyle * style);
 </PRE>
-
-<HR>
+<H2>
+  Searching for a Specific Style
+</H2>
+<PRE>
+extern HTStyle * HTStyleSheet_findStyleWithName (HTStyleSheet * me, const char * name);
+extern HTStyle * HTStyleSheet_findStyleForElement (HTStyleSheet * me, int element);
+</PRE>
+<PRE>
+#endif /* HTSTYLE_H */
+</PRE>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

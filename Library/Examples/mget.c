@@ -22,10 +22,6 @@
 #include "WWWLib.h"
 #include "WWWInit.h"
 
-#ifdef LIBWWW_SHARED
-#include "HTextImp.h"
-#endif
-
 #define MAX_COUNT	1024
 
 PRIVATE int remaining = 0;

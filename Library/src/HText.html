@@ -4,7 +4,7 @@
 </HEAD>
 <BODY>
 <H1>
-  Rich HyperText Object
+  HyperText Object Builder
 </H1>
 <PRE>
 /*
@@ -13,273 +13,236 @@
 */
 </PRE>
 <P>
-This is the C interface to the Objective-C (or whatever) Style-oriented HyperText
-class. It is used when a style-oriented text object is available or created
-in order to display hypertext.
+This is the interface that &nbsp;you can use to build a parsed HTML object
+(called an hypertext object) as output of the <A HREF="HTML.html">libwww
+HTML parser</A>. It is based on callback functions that the application can
+register as needed in order to get the various events out of the HTML parser.
+These are the different events that can be registered:
+<A NAME="HyperText"></A>
+<UL>
+  <LI>
+    <A HREF="#ss">When parsing is about to start or terminate</A>
+  <LI>
+    <A HREF="#text">When a chunk of plain text has been found</A>
+  <LI>
+    <A HREF="#links">When a link has been found in some HTML element</A>
+  <LI>
+    <A HREF="#elements">When an HTML element is about to start or end</A>
+  <LI>
+    <A HREF="#unparsedElement">Handler for unparsed elements</A>
+  <LI>
+    <A HREF="#unparsedEntity">Handler for unparsed entities</A>
+</UL>
 <P>
-This module is a part of the <A HREF="http://www.w3.org/Library/"> W3C Sample
-Code Library</A>. Libwww doesn't come with a full implementation of this
-module as it depends on the UI that you are using. Instead, we
-<A HREF="HTextImp.html">provide a dummy (void) implementation in HTextImp.h</A>
-that you can include if for some reason have problems linking against libwww
-(get unresolved HText* functions).
-<P>
-However, it is <B>NOT</B> implemented anywhere in the library, as it is client
-(and often platform) specific code. Hence these functions <EM>must</EM> be
-implemented in the client. The <A HREF="http://www.w3.org/LineMode/">Line
-Mode Browser</A> has the implementation in the
-<A HREF="http://www.w3.org/LineMode/src/GridText.html"> GridText</A> module.
+Building an hypertext object can contain references to stylesheets. Libwww
+doesn't come with a stylesheet implementation but it does have a
+<A HREF="HTStyle.html">generic stylesheet manager</A> which can be used for
+registering and looking up styles. As an example, you can see how the libwww
+<A HREF="../../Robot/src/HTRobot.c">robot</A> uses the link callout whereas
+the <A HREF="http://www.w3.org/LineMode/">Line Mode Browser</A> has a complete
+implementation in the <A HREF="http://www.w3.org/LineMode/src/GridText.html">
+GridText</A> module.
 <PRE>
 #ifndef HTEXT_H
 #define HTEXT_H
 
 #include "<A HREF="HTAnchor.html">HTAnchor.h</A>"
-#include "HTStyle.h"
-#include "HTStruct.h"
-
-#ifndef HyperText		/* Objective C version defined HyperText */
-typedef struct _HText HText;	/* Normal Library */
-#else
-@class HText;			/* Objective C version for NeXTStep */
-#endif
-
-extern HText * HTMainText;		/* Pointer to current main text */
-extern HTParentAnchor * HTMainAnchor;	/* Pointer to current text's anchor */
+#include "<A HREF="HTStream.html">HTStream.h</A>"
 </PRE>
 <H2>
-  Creation and Deletion
+  <A NAME="htext">The HText Object</A>
 </H2>
-<H3>
-  Create hypertext object
-</H3>
 <P>
-There are several methods depending on how much you want to specify. The
-output stream is used with objects which need to output the hypertext to
-a stream. The structure is for objects which need to refer to the structure
-which is kep by the creating stream.
+The <TT>HText</TT> object is only known as a name to libwww - it isn't defined
+or used anywhere as an actual structure. The application can use the HText
+object to contain the information needed to build a parsed object - a hypertext
+object - as data arrives from the <A HREF="HTML.html">libwww HTML parser</A>.
+When a HText object is to be created, this module calls out to any registered
+creation method and in turn uses the newly created HText object in every
+subsequent call to any registered callback routine as the HTML stream is
+parsed.
 <PRE>
-extern HText *	HText_new	(HTRequest * request, HTParentAnchor * anchor);
-
-extern HText *	HText_new2	(HTRequest *		request,
-				 HTParentAnchor *	anchor,
-				 HTStream *		output_stream);
-
-extern HText *	HText_new3	(HTRequest *		request,
-				 HTStream *		output_stream,
-				 HTStructured *		structure);
-</PRE>
-<H3>
-  Free hypertext object
-</H3>
-<PRE>
-extern void 	HText_free (HText * me);
+typedef struct _HText HText;
 </PRE>
 <H2>
-  Object Building methods
+  <A NAME="cd">Callback for Creating and Deleting an HText Object</A>
 </H2>
 <P>
-These are used by a parser to build the text in an object
-<TT>HText_beginAppend</TT> must be called, then any combination of other
-append calls, then <TT>HText_endAppend</TT>. This allows optimised handling
-using buffers and caches which are flushed at the end.
+When an <A HREF="HTML.html">HTML stream</A> is created, the
+<A HREF="HTML.html">HTML parser</A> checks to see if there are any callbacks
+registered for handling the <A HREF="#htext">HText object</A>. If this is
+the case then the creation callback is called so that the application can
+create a new <A HREF="#htext">HText object</A>. After that the various callbacks
+are called (<A HREF="#HyperText">if registered</A>) as text comes in and
+gets parsed.
 <PRE>
-extern void HText_beginAppend (HText * text);
-extern void HText_endAppend (HText * text);
-</PRE>
-<H3>
-  Set the style for future text
-</H3>
-<PRE>
-extern void HText_setStyle (HText * text, HTStyle * style);
+typedef HText * HText_new (
+	HTRequest *		request,
+	HTParentAnchor *	anchor,
+	HTStream *		output_stream);
 
+typedef BOOL HText_delete (HText * me);
 </PRE>
 <H3>
-  Add one character
-</H3>
-<PRE>extern void HText_appendCharacter (HText * text, char ch);
-
-</PRE>
-<H3>
-  Add a zero-terminated string
+  Register Creation/Deletion Callbacks
 </H3>
 <PRE>
-extern void HText_appendText (HText * text, const char * str);
-
+extern BOOL HText_registerCDCallback (HText_new *, HText_delete *);
+extern BOOL HText_unregisterCDCallback (void);
 </PRE>
-<H3>
-  New Paragraph and similar things
-</H3>
-<PRE>
-extern void HText_appendParagraph (HText * text);
-
-extern void HText_appendLineBreak (HText * text);
-
-extern void HText_appendHorizontalRule (HText * text);
-</PRE>
-<H3>
-  Start/end an Anchor
-</H3>
+<H2>
+  <A NAME="ss">Callback for Start and Terminate Parsing</A>
+</H2>
 <P>
-The anchor object is created and passed to <TT>HText_beginAnchor</TT>. The
-senstive text is added to the text object, and then <TT>HText_endAnchor</TT>
-is called. Anchors may not be nested.
-<PRE>extern void HText_beginAnchor (HText * text, HTChildAnchor * anc);
-extern void HText_endAnchor (HText * text);
+The call sequence is the following: First <TT>HText_build</TT> is called
+with the status of <TT>HTEXT_BEGIN</TT>, then any combination of other append
+calls, and at the end <TT>HText_build</TT> is called with the termination
+status - if it terminated normally then the status is <TT>HTEXT_END</TT>,
+if the download was aborted the status is <TT>HTEXT_ABORT</TT>.
+<PRE>
+typedef enum _HTextStatus {
+    HTEXT_BEGIN,
+    HTEXT_END,
+    HTEXT_ABORT
+} HTextStatus;
+
+typedef void HText_build (HText * text, HTextStatus status);
 </PRE>
 <H3>
-  Append an Inlined Image
+  Register Start/End Callback
 </H3>
+<PRE>
+extern BOOL HText_registerBuildCallback (HText_build *);
+extern BOOL HText_unregisterBuildCallback (void);
+</PRE>
+<H2>
+  <A NAME="text">Callback for Handling Chunks of Text</A>
+</H2>
 <P>
-The image is handled by the creation of an anchor whose destination is the
-image document to be included. The semantics is the intended inline display
-of the image. An alternative implementation could be, for example, to begin
-an anchor, append the alternative text or "IMAGE", then end the anchor. This
-would simply generate some text linked to the image itself as a separate
-document.
-<PRE>extern void HText_appendImage (
+<STRONG>THE STRING IS NOT ZERO-TERMINATED!!!</STRONG> When plain text is
+found then it can be passed to the application via this function. HTML text
+is already stripped for unneeded white space whereas literal text isn't.
+The text is of course to be taken "relative" to which element is is found
+within - this is not checked by the HTML parser but can be checked by the
+application by using the <A HREF="#elements">Element callback function</A>.
+<PRE>
+typedef void HText_addText (
 	HText * 	text,
-	HTChildAnchor * anc,
-	const char * 	alternative_text,
-	const char *	alignment,
-	BOOL		isMap);
+	const char * 	buffer,
+	int		length);
 </PRE>
 <H3>
-  Append a Link Relationship
+  Register Text Callback
 </H3>
-<P>
-The <TT>&lt;LINK&gt;</TT> tag is handled by parsing the link attributes and
-creating the relative <A HREF="HTLink.html">link relationships</A> between
-the <A HREF="HTAnchor.html">HTAnchor objects</A>. The HText object gets called
-with the anchor and the set of attributes:
-<PRE>extern void HText_appendLink (
-	HText * 		text,
-	HTChildAnchor *		anchor,
-	const BOOL *		present,
-	const char **	 	value);
-</PRE>
-<H3>
-  Append an object which does its own work
-</H3>
-<P>
-The SGML parameters are passed untouched. Currently this is only used for
-empty elements. Extensions could be (1) to pass CDATA contents as well as
-any attributes and (2) to pass the whole structured stream until the compound
-object has parsed itself.
-<PRE>extern void HText_appendObject (
-	HText * 		text,
-	int			element_number,
-	const BOOL *		present,
-	const char **	 	value);
-</PRE>
-<H3>
-  Warn that object is not completely rendered
-</H3>
-<P>
-If the parser realises that it has incompletely parsed an object, then it
-can call this to flag it to the object. This will for example prevent editing
-or writing back.
 <PRE>
-extern void HText_unimplemented (HText * text);
+extern BOOL HText_registerTextCallback (HText_addText *);
+extern BOOL HText_unregisterTextCallback (void);
 </PRE>
 <H2>
-  Utilities
+  <A NAME="links">Callback for Handling Hypertext Links</A>
 </H2>
-<H3>
-  Set The Next Free Anchor Identifier
-</H3>
 <P>
-The string must be of the form <CODE>aaannnnn</CODE> where <CODE>aaa</CODE>
-is the prefix for automatically generated ids, normally <CODE>z</CODE>, and
-nnnn is the next unused number. If not present, defaults to z0. An editor
-should pick up both the a and n bits, and increment n when generating ids.
-This ensures that old ids are not reused, even if the elements using them
-have been deleted from the document.
+Whenever a link is found in the HTML stream, be it from an anchor element,
+an inlined image, etc. then it is picked up and this called out to this function
+with the parameters necessary to be able to see what type of link it is (the
+element and the name of the attribute where it was found). The element number
+and attribute number are integers that are defined by the
+<A HREF="HTMLPDTD.html">HTML DTD used by the HTMl parser</A>. The
+<TT>present</TT> and <TT>value</TT> arrays contains all the
+<A HREF="HTMLPDTD.html">SGML attributes and values</A> found in the element
+untouched. Again, the array is defined by the <A HREF="HTMLPDTD.html">HTML
+DTD used by the HTML parser</A>.
 <PRE>
-extern void HText_setNextId (HText * text, const char * s);
+typedef void HText_foundLink (
+	HText * 	text,
+	int		element_number,
+	int		attribute_number,
+	HTChildAnchor *	anchor,
+	const BOOL *	present,
+	const char **	value);
 </PRE>
 <H3>
-  Dump Diagnostics to stderr
+  Register Link Callback
 </H3>
 <PRE>
-extern void HText_dump (HText * me);	
-</PRE>
-<H3>
-  Return the anchor associated with this node
-</H3>
-<PRE>
-extern HTParentAnchor * HText_nodeAnchor (HText * me);
+extern BOOL HText_registerLinkCallback (HText_foundLink *);
+extern BOOL HText_unregisterLinkCallback (void);
 </PRE>
 <H2>
-  Browsing functions
+  <A NAME="elements">Callback for Handling HTML Elements</A>
 </H2>
+<P>
+Whenever an element is found in the HTML stream, be it an IMG element, a
+BODY element, etc. then it is picked up and this called out to this function
+with the parameters necessary to be able to see what type of element it is.
+The element number and attribute number are integers that are defined by
+the <A HREF="HTMLPDTD.html">HTML DTD used by the HTMl parser</A>. The
+<TT>present</TT> and <TT>value</TT> arrays contains all the
+<A HREF="HTMLPDTD.html">SGML attributes and values</A> found in the element
+untouched. Again, the array is defined by the <A HREF="HTMLPDTD.html">HTML
+DTD used by the HTML parser</A>.
+<PRE>
+typedef void HText_beginElement (
+	HText * 	text,
+	int		element_number,
+	const BOOL *	present,
+	const char **	value);
+
+typedef void HText_endElement (
+	HText * 	text,
+	int		element_number);
+</PRE>
 <H3>
-  Bring to front and highlight it
+  Register HTML Element Callback
 </H3>
 <PRE>
-extern BOOL HText_select (HText * text); 
-extern BOOL HText_selectAnchor (HText * text, HTChildAnchor* anchor); 
+extern BOOL HText_registerElementCallback (HText_beginElement *, HText_endElement *);
+extern BOOL HText_unregisterElementCallback (void);
 </PRE>
 <H2>
-  Editing HText Objects
+  <A NAME="unparsedElement">Callback for Unparsed Elements</A>
 </H2>
 <P>
-These are called from the application. There are many more functions not
-included here from the orginal text object. These functions <B>NEED NOT BE
-IMPLEMENTED</B> in a browser which cannot edit.
-<H3>
-  Style handling
-</H3>
-<H4>
-  Apply this style to the selection
-</H4>
+Whenever an element is found which is not known by the HTML DTD, then the
+information is passed to the unparsed element handlers.
 <PRE>
-extern void HText_applyStyle (HText * me, HTStyle *style);
-</PRE>
-<H4>
-  Update all text with changed style
-</H4>
-<PRE>
-extern void HText_updateStyle (HText * me, HTStyle *style);
-</PRE>
-<H4>
-  Return style of selection
-</H4>
-<PRE>
-extern HTStyle * HText_selectionStyle (
-	HText * me,
-	HTStyleSheet* sheet);
-</PRE>
-<H4>
-  Paste in styled text
-</H4>
-<PRE>
-extern void HText_replaceSel (HText * me,
-	const char *aString, 
-	HTStyle* aStyle);
-</PRE>
-<H4>
-  Apply this style to the selection and all similarly formatted text
-</H4>
-<P>
-Note: style recovery only
-<PRE>
-extern void HTextApplyToSimilar (HText * me, HTStyle *style);
-</PRE>
-<H4>
-  Select the first unstyled run
-</H4>
-<P>
-Note: style recovery only
-<PRE>
-extern void HTextSelectUnstyled (HText * me, HTStyleSheet *sheet);
+typedef void HText_unparsedBeginElement (
+	HText *		HText,
+	const char * 	buffer,
+	int		length);
+
+typedef void HText_unparsedEndElement (
+	HText *		HText,
+	const char * 	buffer,
+	int		length);
 </PRE>
 <H3>
-  Anchor Handling
+  Register Unparsed Element Callback
 </H3>
 <PRE>
-extern void		HText_unlinkSelection (HText * me);
-extern HTAnchor *	HText_referenceSelected (HText * me);
-extern HTAnchor *	HText_linkSelTo (HText * me, HTAnchor* anchor);
+extern BOOL HText_registerUnparsedElementCallback (
+	HText_unparsedBeginElement *,
+	HText_unparsedEndElement *);
+extern BOOL HText_unregisterUnparsedElementCallback (void);
+</PRE>
+<H2>
+  <A NAME="unparsedEntity">Callback for Unparsed Entity</A>
+</H2>
+<P>
+Whenever an entity is found which is not known by the HTML DTD, then the
+information is passed to the default handler.
+<PRE>
+typedef void HText_unparsedEntity (
+	HText *		HText,
+	const char * 	buffer,
+	int		length);
+</PRE>
+<H3>
+  Register Unparsed Entity Callback
+</H3>
+<PRE>
+extern BOOL HText_registerUnparsedEntityCallback (HText_unparsedEntity *);
+extern BOOL HText_unregisterUnparsedEntityCallback (void);
 </PRE>
 <PRE>
 #endif /* HTEXT_H */

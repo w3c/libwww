@@ -401,7 +401,7 @@ PUBLIC HTStructured* HTMLGenerator (HTRequest *	request,
     if ((me = (HTStructured  *) HT_CALLOC(1, sizeof(HTStructured))) == NULL)
         HT_OUTOFMEM("HTMLGenerator");
     me->isa = &HTMLGeneration;       
-    me->dtd = &HTMLP_dtd;
+    me->dtd = HTML_dtd();
     if ((me->target = HTStreamStack(WWW_HTML, output_format, output_stream,
 				    request, YES)) == NULL) {
 	if (STREAM_TRACE)
@@ -458,7 +458,7 @@ PUBLIC HTStream* HTPlainToHTML (HTRequest *	request,
     memset((void *) value, '\0', MAX_ATTRIBUTES*sizeof(char *));
     
     me->isa = (HTStructuredClass*) &PlainToHTMLConversion;
-    me->dtd = &HTMLP_dtd;
+    me->dtd = HTML_dtd();
     me->target = output_stream;
     me->write_pointer = me->buffer;
     flush_breaks(me);

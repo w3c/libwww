@@ -1,20 +1,16 @@
 /*									 HTML.c
-**	STRUCTURED STREAM TO RICH HYPERTEXT CONVERTER
+**	SIMPLE HTML PARSER WITHOUT ANY PRESENTATION CODE
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 **	@(#) $Id$
 **
 **	This generates of a hypertext object.  It converts from the
-**	structured stream interface fro HTMl events into the style-
-**	oriented iunterface of the HText interface.  This module is
-**	only used in clients and shouldnot be linked into servers.
-**
-**	Override this module if making a new GUI browser.
+**	structured stream interface foo HTML events into the style-
+**	oriented interface of the HText interface.
 **
 ** HISTORY:
 **	 8 Jul 94  FM	Insulate free() from _free structure element.
-**
 */
 
 /* Library include files */
@@ -22,79 +18,47 @@
 #include "WWWUtil.h"
 #include "WWWCore.h"
 #include "WWWHTML.h"
-#include "HText.h"
 #include "HTML.h"
-#include "HTStyle.h"
+#include "HTextImp.h"
 
+#define PUTC(t,c)	(*(t)->target->isa->put_character)((t)->target, (c))
+#define PUTS(t,s)	(*(t)->target->isa->put_string)((t)->target, (s))
+#define PUTB(s,b,l)	(*(t)->target->isa->put_block)((t)->target, (b), (l))
+#define FLUSH_TARGET(t)	(*(t)->target->isa->flush)((t)->target)
+#define FREE_TARGET(t)	(*(t)->target->isa->_free)((t)->target)
+#define ABORT_TARGET(t)	(*(t)->target->isa->abort)((t)->target, e)
 
-extern HTStyleSheet * styleSheet;	/* Application-wide */
-
-/*	Module-wide style cache
-*/
-PRIVATE int 		got_styles = 0;
-PRIVATE HTStyle *styles[HTMLP_ELEMENTS];
-PRIVATE HTStyle *default_style;
-
-#define HTTAB	'\0'
-
-/*		HTML Object
-**		-----------
-*/
-#define MAX_NESTING 20		/* Should be checked by parser */
-
-typedef struct _stack_element {
-        HTStyle *	style;
-	int		tag_number;
-} stack_element;
-
-struct _HTStructured {
-    const HTStructuredClass * 	isa;
-    HTRequest *			request;
-    HTParentAnchor * 		node_anchor;
-    HText * 			text;
-
-    HTStream*			target;			/* Output stream */
-    HTStreamClass		targetClass;		/* Output routines */
-
-    HTChunk * 			title;		/* Grow by 128 */
-    
-    char *			comment_start;	/* for literate programming */
-    char *			comment_end;
-    
-    const SGML_dtd*		dtd;
-    
-    HTTag *			current_tag;
-    BOOL			style_change;
-    HTStyle *			new_style;
-    HTStyle *			old_style;
-    BOOL			in_word;  /* Have just had a non-white char */
-
-    stack_element 		stack[MAX_NESTING];
-    stack_element 		*sp;		      /* Style stack pointer */
-    int				overflow;  /* Keep track of overflow nesting */
-};
+#define MAX_NESTING 40
 
 struct _HTStream {
     const HTStreamClass *	isa;
     /* .... */
 };
 
-/*		Forward declarations of routines
-*/
-PRIVATE void get_styles (void);
+struct _HTStructured {
+    const HTStructuredClass * 	isa;
+    HTRequest *			request;
+    HTParentAnchor * 		node_anchor;
+    HTextImp * 			text;
+    HTStream *			target;
+    HTChunk * 			title;
+    BOOL			in_word;
+    SGML_dtd *			dtd;
+    char *			comment_start;	/* for literate programming */
+    char *			comment_end;
+    BOOL			started;
 
-PRIVATE void actually_set_style (HTStructured * me);
-PRIVATE void change_paragraph_style (HTStructured * me, HTStyle * style);
+    int				overflow;
+    int * 			sp;
+    int	 			stack[MAX_NESTING];
+};
 
-/*	Style buffering avoids dummy paragraph begin/ends.
-*/
-#define UPDATE_STYLE if (me->style_change) { actually_set_style(me); }
-
-/* 	Entity values -- for ISO Latin 1 local representation
-**
+/*
+** 	Entity values -- for ISO Latin 1 local representation
 **	This MUST match exactly the table referred to in the DTD!
 */
-static char * ISO_Latin1[] = {
+#define ENTITY_SIZE	67
+static char * ISO_Latin1[ENTITY_SIZE] = {
   	"\306",	/* capital AE diphthong (ligature) */ 
   	"\301",	/* capital A, acute accent */ 
   	"\302",	/* capital A, circumflex accent */ 
@@ -164,183 +128,38 @@ static char * ISO_Latin1[] = {
   	"\377",	/* small y, dieresis or umlaut mark */ 
 };
 
+PRIVATE char ** CurrentEntityValues = ISO_Latin1;
 
-/* 	Entity values -- for NeXT local representation
-**
-**	This MUST match exactly the table referred to in the DTD!
-**
-*/
-static char * NeXTCharacters[] = {
-  	"\341",	/* capital AE diphthong (ligature) 	*/ 
-  	"\202",	/* capital A, acute accent		*/ 
-  	"\203",	/* capital A, circumflex accent 	*/ 
-  	"\201",	/* capital A, grave accent 		*/ 
-  	"\206",	/* capital A, ring 			*/ 
-  	"\204",	/* capital A, tilde 			*/ 
-  	"\205",	/* capital A, dieresis or umlaut mark	*/ 
-  	"\207",	/* capital C, cedilla 			*/ 
-  	"\220",	/* capital Eth, Icelandic 		*/ 
-  	"\211",	/* capital E, acute accent 				*/ 
-  	"\212",	/* capital E, circumflex accent 			*/ 
-  	"\210",	/* capital E, grave accent 				*/ 
-  	"\213",	/* capital E, dieresis or umlaut mark 			*/ 
-  	"\215",	/* capital I, acute accent 				*/ 
-  	"\216",	/* capital I, circumflex accent 	these are	*/ 
-  	"\214",	/* capital I, grave accent		ISO -100 hex	*/ 
-  	"\217",	/* capital I, dieresis or umlaut mark			*/ 
-  	"\221",	/* capital N, tilde 					*/ 
-  	"\223",	/* capital O, acute accent 				*/ 
-  	"\224",	/* capital O, circumflex accent 			*/ 
-  	"\222",	/* capital O, grave accent 				*/ 
-  	"\351",	/* capital O, slash 		'cept this */ 
-  	"\225",	/* capital O, tilde 					*/ 
-  	"\226",	/* capital O, dieresis or umlaut mark			*/ 
-  	"\234",	/* capital THORN, Icelandic */ 
-  	"\230",	/* capital U, acute accent */ 
-  	"\231",	/* capital U, circumflex accent */ 
-  	"\227",	/* capital U, grave accent */ 
-  	"\232",	/* capital U, dieresis or umlaut mark */ 
-  	"\233",	/* capital Y, acute accent */ 
-  	"\326",	/* small a, acute accent */ 
-  	"\327",	/* small a, circumflex accent */ 
-  	"\361",	/* small ae diphthong (ligature) */ 
-  	"\325",	/* small a, grave accent */ 
-  	"\046",	/* ampersand */ 
-  	"\332",	/* small a, ring */ 
-  	"\330",	/* small a, tilde */ 
-  	"\331",	/* small a, dieresis or umlaut mark */ 
-  	"\333",	/* small c, cedilla */ 
-  	"\335",	/* small e, acute accent */ 
-  	"\336",	/* small e, circumflex accent */ 
-  	"\334",	/* small e, grave accent */ 
-  	"\346",	/* small eth, Icelandic 	*/ 
-  	"\337",	/* small e, dieresis or umlaut mark */ 
-  	"\076",	/* greater than */ 
-  	"\342",	/* small i, acute accent */ 
-  	"\344",	/* small i, circumflex accent */ 
-  	"\340",	/* small i, grave accent */ 
-  	"\345",	/* small i, dieresis or umlaut mark */ 
-  	"\074",	/* less than */ 
-	"\040", /* non-breaking space */
-  	"\347",	/* small n, tilde */ 
-  	"\355",	/* small o, acute accent */ 
-  	"\356",	/* small o, circumflex accent */ 
-  	"\354",	/* small o, grave accent */ 
-  	"\371",	/* small o, slash */ 
-  	"\357",	/* small o, tilde */ 
-  	"\360",	/* small o, dieresis or umlaut mark */ 
-        "\042", /* double quote sign - June 94 */
-  	"\373",	/* small sharp s, German (sz ligature) */ 
-  	"\374",	/* small thorn, Icelandic */ 
-  	"\363",	/* small u, acute accent */ 
-  	"\364",	/* small u, circumflex accent */ 
-  	"\362",	/* small u, grave accent */ 
-  	"\366",	/* small u, dieresis or umlaut mark */ 
-  	"\367",	/* small y, acute accent */ 
-  	"\375",	/* small y, dieresis or umlaut mark */ 
-};
-
-/* 	Entity values -- for IBM/PC Code Page 850 (International)
-**
-**	This MUST match exactly the table referred to in the DTD!
-**
-*/
-/* @@@@@@@@@@@@@@@@@ TBD */
-
-
-
-/*		Set character set
-**		----------------
-*/
-
-PRIVATE char** p_entity_values = ISO_Latin1;	/* Pointer to translation */
-
-PUBLIC void HTMLUseCharacterSet (HTMLCharacterSet i)
+PUBLIC BOOL HTMLUseCharacterSet (HTMLCharacterSet i)
 {
-    p_entity_values = (i == HTML_NEXT_CHARS) ? NeXTCharacters
-    					     : ISO_Latin1;
-}
-
-
-/*		Flattening the style structure
-**		------------------------------
-**
-On the NeXT, and on any read-only browser, it is simpler for the text to have
-a sequence of styles, rather than a nested tree of styles. In this
-case we have to flatten the structure as it arrives from SGML tags into
-a sequence of styles.
-*/
-
-/*		If style really needs to be set, call this
-*/
-PRIVATE void actually_set_style (HTStructured * me)
-{
-    if (!me->text) {			/* First time through */
-	    me->text = HText_new2(me->request, me->node_anchor, me->target);
-	    HText_beginAppend(me->text);
-	    HText_setStyle(me->text, me->new_style);
-	    me->in_word = NO;
+    if (i == HTML_ISO_LATIN1) {
+	CurrentEntityValues = ISO_Latin1;
+	return YES;
     } else {
-	    HText_setStyle(me->text, me->new_style);
+	if (SGML_TRACE) HTTrace("HTML Parser. Doesn't support this character set\n");
+	return NO;
     }
-    me->old_style = me->new_style;
-    me->style_change = NO;
 }
-
-/*      If you THINK you need to change style, call this
-*/
-
-PRIVATE void change_paragraph_style (HTStructured * me, HTStyle *style)
-{
-    if (me->new_style!=style) {
-    	me->style_change = YES;
-	me->new_style = style;
-    }
-    me->in_word = NO;
-}
-
-/*_________________________________________________________________________
-**
-**			A C T I O N 	R O U T I N E S
-*/
 
 PRIVATE int HTML_write (HTStructured * me, const char * b, int l)
 {
-    while (l-- > 0) {
-	const char c = *b++;
-	switch (me->sp[0].tag_number) {
-	case HTML_COMMENT:
-	    break;					/* Do Nothing */
+    if (!me->started) {
+	HTextImp_build(me->text, HTEXT_BEGIN);
+	me->started = YES;
+    }
+
+    /* Look at what we got */
+    switch (me->sp[0]) {
+
+    case HTML_COMMENT:
+	break;					/* Do Nothing */
+		
+    case HTML_TITLE:
+	HTChunk_putb(me->title, b, l);
+	/* Fall through */
 	
-	case HTML_TITLE:	
-	    HTChunk_putb(me->title, &c, 1);
-	    break;
-	
-	case HTML_LISTING:				/* Litteral text */
-	case HTML_XMP:
-	case HTML_PLAINTEXT:
-	case HTML_PRE:
-	    /* We guarrantee that the style is up-to-date in begin_litteral */
-	    HText_appendCharacter(me->text, c);
-	    break;
-	
-	default:					/* Free format text */
-	    if (me->style_change) {
-		if ((c=='\n') || (c==' ')) continue;	       /* Ignore it */
-		UPDATE_STYLE;
-	    }
-	    if (c == HTTAB)
-		HText_appendCharacter(me->text, '\t');
-	    else if (isspace((int) c)) {
-		if (me->in_word) {
-		    HText_appendCharacter(me->text, ' ');
-		    me->in_word = NO;
-		}
-	    } else {
-		HText_appendCharacter(me->text, c);
-		me->in_word = YES;
-	    }
-	}
+    default:
+	HTextImp_addText(me->text, b, l);
     }
     return HT_OK;
 }
@@ -350,59 +169,108 @@ PRIVATE int HTML_put_character (HTStructured * me, char c)
     return HTML_write(me, &c, sizeof(char));
 }
 
-
 PRIVATE int HTML_put_string (HTStructured * me, const char* s)
 {
     return HTML_write(me, s, (int) strlen(s));
 }
 
-/*	Start Element
-**	-------------
-*/
-PRIVATE void HTML_start_element (
-	HTStructured * 	me,
-	int			element_number,
-	const BOOL*	 	present,
-	const char **		value)
+PRIVATE void HTML_start_element (HTStructured *	me,
+				 int		element_number,
+				 const BOOL * 	present,
+				 const char **	value)
 {
+    HTChildAnchor * address = NULL;
+    if (!me->started) {
+	HTextImp_build(me->text, HTEXT_BEGIN);
+	me->started = YES;
+    }
+
+    /* Look at what element was started */
     switch (element_number) {
+    case HTML_A:
+	if (present[HTML_A_HREF] && value[HTML_A_HREF]) {
+	    address = HTAnchor_findChildAndLink(
+		me->node_anchor,					/* parent */
+		present[HTML_A_NAME] ? value[HTML_A_NAME] : NULL,	/* Tag */
+		value[HTML_A_HREF],					/* Addresss */
+		present[HTML_A_REL] && value[HTML_A_REL] ? 
+		(HTLinkType) HTAtom_caseFor(value[HTML_A_REL]) : NULL);
+	    
+	    if (present[HTML_A_TITLE] && value[HTML_A_TITLE]) {
+		HTLink * link = HTAnchor_mainLink((HTAnchor *) address);
+		HTParentAnchor * dest = HTAnchor_parent(HTLink_destination(link));
+		if (!HTAnchor_title(dest)) HTAnchor_setTitle(dest, value[HTML_A_TITLE]);
+	    }
+	    HTextImp_foundLink(me->text, element_number, HTML_A_HREF,
+			       address, present, value);
+	    if (SGML_TRACE)
+		HTTrace("HTML Parser. Anchor `%s\'\n", value[HTML_A_HREF]);
+	}
+	break;
+
+    case HTML_AREA:
+	if (present[HTML_AREA_HREF] && value[HTML_AREA_HREF]) {
+	    address = HTAnchor_findChildAndLink(me->node_anchor, NULL,
+						value[HTML_AREA_HREF], NULL);
+	    HTextImp_foundLink(me->text, element_number, HTML_AREA_HREF,
+			       address, present, value);
+	    if (SGML_TRACE)
+		HTTrace("HTML Parser. Image map area `%s\'\n", value[HTML_AREA_HREF]);
+	}
+	break;
+
+    case HTML_BASE:
+	if (present[HTML_BASE_HREF] && value[HTML_BASE_HREF]) {
+	    HTAnchor_setBase(me->node_anchor, (char *) value[HTML_BASE_HREF]);
+	    if (SGML_TRACE)
+		HTTrace("HTML Parser. New base `%s\'\n", value[HTML_BASE_HREF]);
+	}
+	break;
+
+    case HTML_BODY:
+	if (present[HTML_BODY_BACKGROUND] && value[HTML_BODY_BACKGROUND]) {
+	    address = HTAnchor_findChildAndLink(me->node_anchor, NULL,
+						value[HTML_BODY_BACKGROUND], NULL);
+	    HTextImp_foundLink(me->text, element_number, HTML_BODY_BACKGROUND,
+			       address, present, value);
+	    if (SGML_TRACE)
+		HTTrace("HTML Parser. Background `%s\'\n", value[HTML_BODY_BACKGROUND]);
+	}
+	break;
 
     case HTML_FRAME:
-    {
-	UPDATE_STYLE;
-	HText_appendObject(me->text, HTML_FRAME, present, value);
-    }
-    break;
-
-    case HTML_A:
-    {
-	HTChildAnchor * source = HTAnchor_findChildAndLink(
-	    me->node_anchor,					/* parent */
-	    present[HTML_A_NAME] ? value[HTML_A_NAME] : NULL,	/* Tag */
-	    present[HTML_A_HREF] ? value[HTML_A_HREF] : NULL,	/* Addresss */
-	    present[HTML_A_REL] && value[HTML_A_REL] ? 
-	    (HTLinkType) HTAtom_caseFor(value[HTML_A_REL]) : NULL);
-	    
-	if (present[HTML_A_TITLE] && value[HTML_A_TITLE]) {
-	    HTLink * link = HTAnchor_mainLink((HTAnchor *) source);
-	    HTParentAnchor * dest = HTAnchor_parent(HTLink_destination(link));
-	    if (!HTAnchor_title(dest)) HTAnchor_setTitle(dest, value[HTML_A_TITLE]);
+	if (present[HTML_FRAME_SRC] && value[HTML_FRAME_SRC]) {
+	    address = HTAnchor_findChildAndLink(me->node_anchor, NULL,
+						value[HTML_FRAME_SRC], NULL);
+	    HTextImp_foundLink(me->text, element_number, HTML_FRAME_SRC,
+			       address, present, value);
+	    if (SGML_TRACE)
+		HTTrace("HTML Parser. Frame `%s\'\n", value[HTML_FRAME_SRC]);
 	}
-	UPDATE_STYLE;
-	HText_beginAnchor(me->text, source);
-    }
-    break;
+	break;
+	
+    case HTML_IMG:
+	if (present[HTML_IMG_SRC] && value[HTML_IMG_SRC]) {
+	    address = HTAnchor_findChildAndLink(me->node_anchor, NULL,
+						value[HTML_IMG_SRC], NULL);
+	    HTextImp_foundLink(me->text, element_number, HTML_IMG_SRC,
+			       address, present, value);
+	}
+	break;
+
+    case HTML_ISINDEX:
+   	HTAnchor_setIndex(me->node_anchor);
+	break;
 	
     case HTML_LINK:
-    {
 	if (present[HTML_LINK_HREF] && value[HTML_LINK_HREF]) {
-	    HTChildAnchor * source = HTAnchor_findChildAndLink(
+	    HTParentAnchor * dest = NULL;
+	    address = HTAnchor_findChildAndLink(
 		me->node_anchor,					/* parent */
 		present[HTML_A_NAME] ? value[HTML_A_NAME] : NULL,	/* Tag */
 		present[HTML_A_HREF] ? value[HTML_A_HREF] : NULL,	/* Addresss */
 		NULL);							/* Rels */
-	    HTParentAnchor * dest =
-		HTAnchor_parent(HTAnchor_followMainLink((HTAnchor *) source));
+	    dest = HTAnchor_parent(HTAnchor_followMainLink((HTAnchor *) address));
 
 	    /* If forward reference */
 	    if ((present[HTML_LINK_REL] && value[HTML_LINK_REL])) {
@@ -441,462 +309,253 @@ PRIVATE void HTML_start_element (
 				       (HTFormat) HTAtom_caseFor(value[HTML_LINK_TYPE]));
 	    }
 
-	    UPDATE_STYLE;
-	    HText_appendLink(me->text, source, present, value);
+	    /* Call out to the layout engine */
+	    HTextImp_foundLink(me->text, element_number, HTML_LINK_HREF,
+			       address, present, value);
 	}
-
-    }
-    break;
+	break;
 
     case HTML_META:
-    {
-	/*
-	** We don't handle HTTP-EQUIV here - only "NAME". It shouldn't be
-	** a problem, though :)
-	*/
 	if (present[HTML_META_NAME] && value[HTML_META_NAME]) {
 	    HTAnchor_addMeta (me->node_anchor,
 			      value[HTML_META_NAME],
 			      (present[HTML_META_CONTENT] && value[HTML_META_CONTENT]) ?
 			      value[HTML_META_CONTENT] : "");
 	}
-    }
-    break;
+	break;
+
+    case HTML_OBJECT:
+	if (present[HTML_OBJECT_CLASSID] && value[HTML_OBJECT_CLASSID]) {
+	    address = HTAnchor_findChildAndLink(me->node_anchor, NULL,
+						value[HTML_OBJECT_CLASSID], NULL);
+	    HTextImp_foundLink(me->text, element_number, HTML_OBJECT_CLASSID,
+			       address, present, value);
+	}
+
+	if (present[HTML_OBJECT_CODEBASE] && value[HTML_OBJECT_CODEBASE]) {
+	    address = HTAnchor_findChildAndLink(me->node_anchor, NULL,
+						value[HTML_OBJECT_CODEBASE], NULL);
+	    HTextImp_foundLink(me->text, element_number, HTML_OBJECT_CODEBASE,
+			       address, present, value);
+	}
+
+	if (present[HTML_OBJECT_DATA] && value[HTML_OBJECT_DATA]) {
+	    address = HTAnchor_findChildAndLink(me->node_anchor, NULL,
+						value[HTML_OBJECT_DATA], NULL);
+	    HTextImp_foundLink(me->text, element_number, HTML_OBJECT_DATA,
+			       address, present, value);
+	}
+
+	if (present[HTML_OBJECT_ARCHIVE] && value[HTML_OBJECT_ARCHIVE]) {
+	    address = HTAnchor_findChildAndLink(me->node_anchor, NULL,
+						value[HTML_OBJECT_ARCHIVE], NULL);
+	    HTextImp_foundLink(me->text, element_number, HTML_OBJECT_ARCHIVE,
+			       address, present, value);
+	}
+
+	if (present[HTML_OBJECT_USEMAP] && value[HTML_OBJECT_USEMAP]) {
+	    address = HTAnchor_findChildAndLink(me->node_anchor, NULL,
+						value[HTML_OBJECT_USEMAP], NULL);
+	    HTextImp_foundLink(me->text, element_number, HTML_OBJECT_USEMAP,
+			       address, present, value);
+	}
+	break;
+
+    case HTML_PRE:
+    	if (me->comment_end)
+	    HTextImp_addText(me->text, me->comment_end, strlen(me->comment_end));
+	break;
 
     case HTML_TITLE:
         HTChunk_clear(me->title);
 	break;
-	
-    case HTML_NEXTID:
-    	/* if (present[NEXTID_N] && value[NEXTID_N])
-		HText_setNextId(me->text, atoi(value[NEXTID_N])); */
-    	break;
-	
-    case HTML_ISINDEX:
-   	HTAnchor_setIndex(me->node_anchor);
-	break;
-	
-    case HTML_BR: 
-	UPDATE_STYLE;
-	HText_appendCharacter(me->text, '\n');
-	me->in_word = NO;
-	break;
-	
-    case HTML_HR: 
-	UPDATE_STYLE;
-	HText_appendCharacter(me->text, '\n');
-	HText_appendText(me->text, "___________________________________");
-	HText_appendCharacter(me->text, '\n');
-	me->in_word = NO;
-	break;
-	
-    case HTML_P:
-	UPDATE_STYLE;
-	HText_appendParagraph(me->text);
-	me->in_word = NO;
-	break;
+    }
 
-    case HTML_DL:
-        change_paragraph_style(me, present && present[DL_COMPACT]
-    		? styles[HTML_DL]
-		: styles[HTML_DL]);
-	break;
-	
-    case HTML_DT:
-        if (!me->style_change) {
-	    HText_appendParagraph(me->text);
-	    me->in_word = NO;
-	}
-	break;
-	
-    case HTML_DD:
-        UPDATE_STYLE;
-	HTML_put_character(me, HTTAB);	/* Just tab out one stop */
-	me->in_word = NO;
-	break;
-
-    case HTML_UL:
-    case HTML_OL:
-    case HTML_MENU:
-    case HTML_DIR:
-	change_paragraph_style(me, styles[element_number]);
-	break;
-	
-    case HTML_LI:
-        UPDATE_STYLE;
-	if (me->sp[0].tag_number != HTML_DIR)
-	    HText_appendParagraph(me->text);
-	else
-	    HText_appendCharacter(me->text, HTTAB);
-	me->in_word = NO;
-	break;
-	
-    case HTML_LISTING:				/* Litteral text */
-    case HTML_XMP:
-    case HTML_PLAINTEXT:
-    case HTML_PRE:
-	change_paragraph_style(me, styles[element_number]);
-	UPDATE_STYLE;
-    	if (me->comment_end)
-    	    HText_appendText(me->text, me->comment_end);
-	break;
-
-    case HTML_IMG:			/* Images */
-	{
-	    HTChildAnchor *source;
-	    char *src = NULL;
-	    if (present[HTML_IMG_SRC])
-		StrAllocCopy(src, value[HTML_IMG_SRC]);
-	    source = HTAnchor_findChildAndLink(
-					       me->node_anchor,	   /* parent */
-					       0,                     /* Tag */
-					       src ? src : 0,    /* Addresss */
-					       0);
-	    UPDATE_STYLE;
-	    HText_appendImage(me->text, source,
-		      present[HTML_IMG_ALT] ? value[HTML_IMG_ALT] : NULL,
-		      present[HTML_IMG_ALIGN] ? value[HTML_IMG_ALIGN] : NULL,
-		      present[HTML_IMG_ISMAP] ? YES : NO);
-	    HT_FREE(src);
-	}	
-	break;
-
-    case HTML_BODY:			/* Images in body defn */
-
-	UPDATE_STYLE;
-	HText_appendObject(me->text, HTML_BODY, present, value);
-	break;
-
-    case HTML_BASE:			/* Base header */
-      if (present[HTML_BASE_HREF]) {
-	  char * base = (char *) value[HTML_BASE_HREF];
-	  if (base) {
-	      HTAnchor_setBase(me->node_anchor, base);
-	      if (SGML_TRACE) HTTrace("HTML Parser. New base `%s\'\n", base);
-	  } else {
-	      if (SGML_TRACE) HTTrace("HTML Parser. No base found\n");
-	  }
-      }
-      break;
-
-    case HTML_HTML:			/* Ignore these altogether */
-    case HTML_HEAD:
-	break;
-    
-    case HTML_TT:			/* Physical character highlighting */
-    case HTML_B:			/* Currently ignored */
-    case HTML_I:
-    case HTML_U:
-	UPDATE_STYLE;
-#if 0
-	HText_appendCharacter(me->text, '_');
-#endif
-	me->in_word = NO;
-	break;
-    
-    case HTML_EM:			/* Logical character highlighting */
-    case HTML_STRONG:			/* Currently ignored */
-    case HTML_CODE:
-    case HTML_SAMP:
-    case HTML_KBD:
-    case HTML_VAR:
-    case HTML_DFN:
-    case HTML_CITE:
-    	break;
-	
-    case HTML_H1:			/* paragraph styles */
-    case HTML_H2:
-    case HTML_H3:
-    case HTML_H4:
-    case HTML_H5:
-    case HTML_H6:
-    case HTML_H7:
-    case HTML_ADDRESS:
-    case HTML_BLOCKQUOTE:
-    	change_paragraph_style(me, styles[element_number]);	/* May be postponed */
-	break;
-
-    } /* end switch */
-
-    if (me->dtd->tags[element_number].contents!= SGML_EMPTY) {
+    /* Update our parse stack */
+    if (SGML_findTagContents(me->dtd, element_number) != SGML_EMPTY) {
         if (me->sp == me->stack) {
 	    if (SGML_TRACE)
-		HTTrace("HTML Parser. Maximum nesting of %d exceded!\n",
-			MAX_NESTING); 
+		HTTrace("HTML Parser. Maximum nesting of %d exceded!\n", MAX_NESTING); 
 	    me->overflow++;
 	    return;
 	}
     	--(me->sp);
-	me->sp[0].style = me->new_style;	/* Stack new style */
-	me->sp[0].tag_number = element_number;
+	me->sp[0] = element_number;
     }	
+
+    /* Call out to the layout engine */
+    HTextImp_beginElement(me->text, element_number, present, value);
 }
 
-
-/*		End Element
-**		-----------
-**
-*/
-/*	When we end an element, the style must be returned to that
-**	in effect before that element.  Note that anchors (etc?)
-**	don't have an associated style, so that we must scan down the
-**	stack for an element with a defined style. (In fact, the styles
-**	should be linked to the whole stack not just the top one.)
-**	TBL 921119
-**
-**	We don't turn on "CAREFUL" check because the parser produces
-**	(internal code errors apart) good nesting. The parser checks
-**	incoming code errors, not this module.
-*/
 PRIVATE void HTML_end_element (HTStructured * me, int element_number)
 {
-#ifdef CAREFUL			/* parser assumed to produce good nesting */
-    if (element_number != me->sp[0].tag_number) {
-        HTTrace("HTMLText: end of element %s when expecting end of %s\n",
-		me->dtd->tags[element_number].name,
-		me->dtd->tags[me->sp->tag_number].name);
-		/* panic */
+    if (!me->started) {
+	HTextImp_build(me->text, HTEXT_BEGIN);
+	me->started = YES;
     }
-#endif
 
-    /* HFN, If overflow of nestings, we need to get back to reality */
+    /* Update our parse stack */
     if (me->overflow > 0) {
 	me->overflow--;
 	return;
     }
-
-    me->sp++;				/* Pop state off stack */
+    me->sp++;
     if (me->sp > me->stack + MAX_NESTING - 1) {
-	if (SGML_TRACE) HTTrace("HTML Parser. Bottom of style stack reached\n");
+	if (SGML_TRACE) HTTrace("HTML Parser. Bottom of parse stack reached\n");
 	me->sp = me->stack + MAX_NESTING - 1;
     }
 
+    /* Look at what element was closed */
     switch(element_number) {
-
-    case HTML_A:
-	UPDATE_STYLE;
-	HText_endAnchor(me->text);
-	break;
-
     case HTML_TITLE:
     	HTAnchor_setTitle(me->node_anchor, HTChunk_data(me->title));
 	break;
 	
-    case HTML_TT:			/* Physical character highlighting */
-    case HTML_B:			/* Currently ignored */
-    case HTML_I:
-    case HTML_U:
-	UPDATE_STYLE;
-#if 0
-	HText_appendCharacter(me->text, '_');
-#endif
-	break;
-
-    case HTML_EM:			/* Logical character highlighting */
-    case HTML_STRONG:			/* Currently ignored */
-    case HTML_CODE:
-    case HTML_SAMP:
-    case HTML_KBD:
-    case HTML_VAR:
-    case HTML_DFN:
-    case HTML_CITE:
-    	break;
-    
-    case HTML_LISTING:				/* Litteral text */
-    case HTML_XMP:
-    case HTML_PLAINTEXT:
     case HTML_PRE:
     	if (me->comment_start)
-    	    HText_appendText(me->text, me->comment_start);
-	/* Fall through */
-	
-    default:
-
-	/* Often won't really change */
-	change_paragraph_style(me, me->sp->style);
+	    HTextImp_addText(me->text, me->comment_start, strlen(me->comment_start));
 	break;
-	
-    } /* switch */
+    }
+
+    /* Call out to the layout engine */
+    HTextImp_endElement(me->text, element_number);
 }
-
-
-/*		Expanding entities
-**		------------------
-*/
-/*	(In fact, they all shrink!)
-*/
 
 PRIVATE void HTML_put_entity (HTStructured * me, int entity_number)
 {
-    HTML_put_string(me, ISO_Latin1[entity_number]);	/* @@ Other representations */
+    if (!me->started) {
+	HTextImp_build(me->text, HTEXT_BEGIN);
+	me->started = YES;
+    }
+    if (entity_number>=0 && entity_number<ENTITY_SIZE)
+	HTML_put_string(me, *(CurrentEntityValues+entity_number));
 }
 
-/*	Flush an HTML object
-**	--------------------
-*/
 PUBLIC int HTML_flush (HTStructured * me)
 {
-    UPDATE_STYLE;			     /* Creates empty document here! */
-    if (me->comment_end) HTML_put_string(me,me->comment_end);
-    return me->target ? (*me->targetClass.flush)(me->target) : HT_OK;
+    if (!me->started) {
+	HTextImp_build(me->text, HTEXT_BEGIN);
+	me->started = YES;
+    }
+    if (me->comment_end) HTML_put_string(me, me->comment_end);
+    return me->target ? FLUSH_TARGET(me) : HT_OK;
 }
 
-/*	Free an HTML object
-**	-------------------
-**
-** If the document is empty, the text object will not yet exist.
-   So we could in fact abandon creating the document and return
-   an error code.  In fact an empty document is an important type
-   of document, so we don't.
-**
-**	If non-interactive, everything is freed off.   No: crashes -listrefs
-**	Otherwise, the interactive object is left.	
-*/
+PRIVATE int HTML_unparsedBeginElement (HTStructured * me, const char * b, int l)
+{
+    if (!me->started) {
+	HTextImp_build(me->text, HTEXT_BEGIN);
+	me->started = YES;
+    }
+    HTextImp_unparsedBeginElement(me->text, b, l);
+    return HT_OK;
+}
+
+PRIVATE int HTML_unparsedEndElement (HTStructured * me, const char * b, int l)
+{
+    if (!me->started) {
+	HTextImp_build(me->text, HTEXT_BEGIN);
+	me->started = YES;
+    }
+    HTextImp_unparsedEndElement(me->text, b, l);
+    return HT_OK;
+}
+
+PRIVATE int HTML_unparsedEntity (HTStructured * me, const char * b, int l)
+{
+    if (!me->started) {
+	HTextImp_build(me->text, HTEXT_BEGIN);
+	me->started = YES;
+    }
+    HTextImp_unparsedEntity(me->text, b, l);
+    return HT_OK;
+}
+
 PUBLIC int HTML_free (HTStructured * me)
 {
-    UPDATE_STYLE;		/* Creates empty document here! */
-    if (me->comment_end)
-		HTML_put_string(me,me->comment_end);
-    HText_endAppend(me->text);
-
-    if (me->target) {
-        (*me->targetClass._free)(me->target);
-    }
+    if (!me->started) HTextImp_build(me->text, HTEXT_BEGIN);
+    if (me->comment_end) HTML_put_string(me, me->comment_end);
+    HTextImp_build(me->text, HTEXT_END);
     HTChunk_delete(me->title);
+    if (me->target) FREE_TARGET(me);
     HT_FREE(me);
     return HT_OK;
 }
 
-
 PRIVATE int HTML_abort (HTStructured * me, HTList * e)
-
 {
-    if (me->target) {
-        (*me->targetClass.abort)(me->target, e);
-    }
+    if (!me->started) HTextImp_build(me->text, HTEXT_BEGIN);
+    HTextImp_build(me->text, HTEXT_ABORT);
     HTChunk_delete(me->title);
+    if (me->target) ABORT_TARGET(me);
     HT_FREE(me);
     return HT_ERROR;
 }
-
-
-/*	Get Styles from style sheet
-**	---------------------------
-*/
-PRIVATE void get_styles (void)
-{
-    got_styles = YES;
-    
-    default_style =		HTStyleNamed(styleSheet, "Normal");
-
-    styles[HTML_H1] =		HTStyleNamed(styleSheet, "Heading1");
-    styles[HTML_H2] =		HTStyleNamed(styleSheet, "Heading2");
-    styles[HTML_H3] =		HTStyleNamed(styleSheet, "Heading3");
-    styles[HTML_H4] =		HTStyleNamed(styleSheet, "Heading4");
-    styles[HTML_H5] =		HTStyleNamed(styleSheet, "Heading5");
-    styles[HTML_H6] =		HTStyleNamed(styleSheet, "Heading6");
-    styles[HTML_H7] =		HTStyleNamed(styleSheet, "Heading7");
-
-    styles[HTML_DL] =		HTStyleNamed(styleSheet, "Glossary");
-    styles[HTML_UL] =
-    styles[HTML_OL] =		HTStyleNamed(styleSheet, "List");
-    styles[HTML_MENU] =		HTStyleNamed(styleSheet, "Menu");
-    styles[HTML_DIR] =		HTStyleNamed(styleSheet, "Dir");    
-/*  styles[HTML_DLC] =		HTStyleNamed(styleSheet, "GlossaryCompact"); */
-    styles[HTML_ADDRESS]=	HTStyleNamed(styleSheet, "Address");
-    styles[HTML_BLOCKQUOTE]=	HTStyleNamed(styleSheet, "BlockQuote");
-    styles[HTML_PLAINTEXT] =
-    styles[HTML_XMP] =		HTStyleNamed(styleSheet, "Example");
-    styles[HTML_PRE] =		HTStyleNamed(styleSheet, "Preformatted");
-    styles[HTML_LISTING] =	HTStyleNamed(styleSheet, "Listing");
-}
-/*				P U B L I C
-*/
 
 /*	Structured Object Class
 **	-----------------------
 */
 PRIVATE const HTStructuredClass HTMLPresentation = /* As opposed to print etc */
 {		
-	"text/html",
-	HTML_flush,
-	HTML_free,
-	HTML_abort,
-	HTML_put_character, 	HTML_put_string,  HTML_write,
-	HTML_start_element, 	HTML_end_element,
-	HTML_put_entity
-}; 
+    "text/html",
+    HTML_flush,
+    HTML_free,
+    HTML_abort,
+    HTML_put_character,
+    HTML_put_string,
+    HTML_write,
+    HTML_start_element,
+    HTML_end_element,
+    HTML_put_entity,
+    HTML_unparsedBeginElement,
+    HTML_unparsedEndElement,
+    HTML_unparsedEntity
+};
 
-
-/*		New Structured Text object
-**		--------------------------
+/*	Structured Text object
+**	----------------------
 **
 **	The structured stream can generate either presentation,
 **	or plain text, or HTML.
 */
-PRIVATE HTStructured* HTML_new (HTRequest *	request,
-				     void *		param,
-				     HTFormat		input_format,
-				     HTFormat		output_format,
-				     HTStream *	output_stream)
+PRIVATE HTStructured * HTML_new (HTRequest *	request,
+				 void *		param,
+				 HTFormat	input_format,
+				 HTFormat	output_format,
+				 HTStream *	output_stream)
 {
+    HTStructured * me = NULL;
+    if (request) {
+	if ((me = (HTStructured *) HT_CALLOC(1, sizeof(HTStructured))) == NULL)
+	    HT_OUTOFMEM("HTML_new");
+	me->isa = &HTMLPresentation;
+	me->dtd = HTML_dtd();
+	me->request = request;
+	me->node_anchor =  HTRequest_anchor(request);
+	me->title = HTChunk_new(128);
+	me->comment_start = NULL;
+	me->comment_end = NULL;
+	me->target = output_stream;
+	me->sp = me->stack + MAX_NESTING - 1;
 
-    HTStructured * me;
-    
-#if 0
-    if (output_format != WWW_PLAINTEXT
-    	&& output_format != WWW_PRESENT
-	&& output_format != HTAtom_for("text/x-c")) {
-        HTStream * intermediate = HTStreamStack(WWW_HTML, output_format,
-						output_stream, request, NO);
-	if (intermediate) return HTMLGenerator(intermediate);
-	if (SGML_TRACE)
-	    HTTrace("HTML Parser. Can't parse HTML to %s\n",
-		    HTAtom_name(output_format));
-	exit (-99);
+	/* Create the text object */
+	me->text = HTextImp_new(me->request, me->node_anchor, me->target);
     }
-#endif
-
-    if ((me = (HTStructured *) HT_CALLOC(1, sizeof(*me))) == NULL)
-        HT_OUTOFMEM("HTML_new");
-
-    if (!got_styles) get_styles();
-
-    me->isa = &HTMLPresentation;
-    me->dtd = &HTMLP_dtd;
-    me->request = request;
-    me->node_anchor =  HTRequest_anchor(request);
-    me->title = HTChunk_new(128);
-    me->text = 0;
-    me->style_change = YES; /* Force check leading to text creation */
-    me->new_style = default_style;
-    me->old_style = 0;
-    me->sp = me->stack + MAX_NESTING - 1;
-    me->sp->tag_number = -1;				/* INVALID */
-    me->sp->style = default_style;			/* INVALID */
-    
-    me->comment_start = NULL;
-    me->comment_end = NULL;
-    me->target = output_stream;
-    if (output_stream) me->targetClass = *output_stream->isa;	/* Copy pointers */
-    
-    return (HTStructured*) me;
+    return me;
 }
-
 
 /*	HTConverter for HTML to plain text
 **	----------------------------------
 **
 **	This will convert from HTML to presentation or plain text.
 */
-PUBLIC HTStream* HTMLToPlain (
-	HTRequest *		request,
-	void *			param,
-	HTFormat		input_format,
-	HTFormat		output_format,
-	HTStream *		output_stream)
+PUBLIC HTStream * HTMLToPlain (HTRequest *	request,
+			       void *		param,
+			       HTFormat		input_format,
+			       HTFormat		output_format,
+			       HTStream *	output_stream)
 {
-    return SGML_new(&HTMLP_dtd, HTML_new(
+    return SGML_new(HTML_dtd(), HTML_new(
     	request, NULL, input_format, output_format, output_stream));
 }
 
@@ -908,22 +567,22 @@ PUBLIC HTStream* HTMLToPlain (
 **	is commented out.
 **	This will convert from HTML to presentation or plain text.
 */
-PUBLIC HTStream* HTMLToC (
-	HTRequest *		request,
-	void *			param,
-	HTFormat		input_format,
-	HTFormat		output_format,
-	HTStream *		output_stream)
+PUBLIC HTStream * HTMLToC (HTRequest *	request,
+			   void *	param,
+			   HTFormat	input_format,
+			   HTFormat	output_format,
+			   HTStream *	output_stream)
 {
-    
-    HTStructured * html;
-    
-    (*output_stream->isa->put_string)(output_stream, "/* "); /* Before title */
-    html = HTML_new(request, NULL, input_format, output_format, output_stream);
-    html->comment_start = "\n/* ";
-    html->dtd = &HTMLP_dtd;
-    html->comment_end = " */\n";	/* Must start in col 1 for cpp */
-    return SGML_new(&HTMLP_dtd, html);
+    if (output_stream) {
+	HTStructured * html = NULL;
+	(*output_stream->isa->put_string)(output_stream, "/* "); /* Before title */
+	html = HTML_new(request, NULL, input_format, output_format, output_stream);
+	html->comment_start = "\n/* ";
+	html->dtd = HTML_dtd();
+	html->comment_end = " */\n";	/* Must start in col 1 for cpp */
+	return SGML_new(HTML_dtd(), html);
+    } else
+	return HTErrorStream();
 }
 
 
@@ -934,16 +593,13 @@ PUBLIC HTStream* HTMLToC (
 **
 **	Override this if you have a windows version
 */
-#ifndef GUI
-PUBLIC HTStream* HTMLPresent (
-	HTRequest *		request,
-	void *			param,
-	HTFormat		input_format,
-	HTFormat		output_format,
-	HTStream *		output_stream)
+PUBLIC HTStream * HTMLPresent (HTRequest *	request,
+			       void *		param,
+			       HTFormat		input_format,
+			       HTFormat		output_format,
+			       HTStream *	output_stream)
 {
-    return SGML_new(&HTMLP_dtd, HTML_new(
+    return SGML_new(HTML_dtd(), HTML_new(
     	request, NULL, input_format, output_format, output_stream));
 }
-#endif
 

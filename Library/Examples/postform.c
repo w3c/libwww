@@ -19,10 +19,6 @@
 #include "WWWLib.h"
 #include "WWWInit.h"
 
-#ifdef LIBWWW_SHARED
-#include "HTextImp.h"
-#endif
-
 PRIVATE HTChunk * result = NULL;
 
 PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,

@@ -68,6 +68,12 @@ pointer</EM> warnings
     void (*end_element)	(HTStructured *	me, int element_number);
 
     void (*put_entity)	(HTStructured *	me, int entity_number);
+
+    int (*unparsed_begin_element)(HTStructured * me, const char * str, int len);
+
+    int (*unparsed_end_element)(HTStructured * me, const char * str, int len);
+
+    int (*unparsed_entity)(HTStructured * me, const char * str, int len);
 		
 } HTStructuredClass;
 

@@ -21,10 +21,6 @@
 #include "WWWApp.h"
 #include "WWWInit.h"
 
-#ifdef LIBWWW_SHARED
-#include "HTextImp.h"
-#endif
-
 int main (int argc, char ** argv)
 {
     HTRequest * request;

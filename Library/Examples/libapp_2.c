@@ -3,10 +3,6 @@
 #include "WWWHTTP.h"
 #include "WWWTrans.h"
 
-#ifdef LIBWWW_SHARED
-#include "HTextImp.h"
-#endif
-
 int main()
 {
     HTList *converters = HTList_new();		     /* Create a list object */

@@ -14,12 +14,15 @@
 #include "HTUtils.h"
 #include "HTMLPDTD.h"
 
-/* 	Entity Names
-**	------------
-**
+struct _HTStructured {
+    HTStructuredClass * isa;
+	/* ... */
+};
+
+/*
+**	ENTITY NAMES
 **	This table must be matched exactly with ALL the translation tables
 */
-
 PRIVATE const char* entities[HTML_ENTITIES] = {
   "AElig",	/* capital AE diphthong (ligature) */ 
   "Aacute",	/* capital A, acute accent */ 
@@ -90,85 +93,24 @@ PRIVATE const char* entities[HTML_ENTITIES] = {
   "yuml",	/* small y, dieresis or umlaut mark */ 
 };
 
-/* 
-
-<IMG 
-  SRC="location" 
-  LOWSRC="location" 
-  ALT="alterntiveText" 
-  ALIGN="alignment"
-  BORDER="borderWidth"
-  HEIGHT="height"
-  WIDTH="width"
-  HSPACE="horizMargin"
-  VSPACE="verticalMargin" 
-  ISMAP 
-  USEMAP="#mapName"
-  NAME="imageName"
-  ONABORT="imgLoadJScode"
-  ONERROR="errorJScode"
-  ONLOAD="imgLoadJScode"
-  SUPPRESS="suppressOrNot"
-> 
-
-<BODY 
-  BACKGROUND="bgURL" 
-  BGCOLOR="color" 
-  TEXT="color" 
-  LINK="color" 
-  ALINK="color" 
-  VLINK="color" 
-  ONLOAD="loadJScode" 
-  ONUNLOAD="unloadJScode" 
-  ONBLUR="blurJScode" 
-  ONFOCUS="focusJScode" 
-    CLASS="styleClass"
-    ID="namedPlaceOrStyle"
-    LANG="ISO"
-    STYLE="style"
->
-...
-</BODY> 
+/*
+**	ATTRIBUTE LISTS
 */
-PRIVATE attr body_attr[HTML_BODY_ATTRIBUTES+1] = {		/* to catch images */
+
+PRIVATE HTAttr no_attr[1] = 
+	{{ 0 }};
+
+PRIVATE HTAttr body_attr[HTML_BODY_ATTRIBUTES+1] = {	/* to catch images */
 	{ "BACKGROUND" },
 	{ 0 }	/* Terminate list */
 };	
 
-/*
-<FRAME 
-  BORDERCOLOR="color"
-  FRAMEBORDER="YES"|"NO"
-  MARGINHEIGHT="marginHeight" 
-  MARGINWIDTH="marginWidth" 
-  NAME="frameName" -- likely 
-  NORESIZE 
-  SCROLLING="YES"|"NO"|"AUTO" 
-  SRC="URL"  -- required
->*/	
-PRIVATE attr frame_attr[HTML_FRAME_ATTRIBUTES+1] = {		/* frame attributes */		 
+PRIVATE HTAttr frame_attr[HTML_FRAME_ATTRIBUTES+1] = {	/* frame attributes */
 	{ "SRC" },
 	{ 0 }	/* Terminate list */
 };
 
-/*
-
-<FRAMESET 
-  COLS="columnWidthList" 
-  ROWS="rowHeightList" 
-  BORDER="pixWidth"
-  BORDERCOLOR="color"
-  FRAMEBORDER="YES"|"NO"
-  ONBLUR="JScode" 
-  ONFOCUS="JScode" 
-  ONLOAD="JScode" 
-  ONUNLOAD="JScode" 
->
-...
-</FRAMESET>
-*/
-
-PRIVATE attr frameset_attr[HTML_FRAMESET_ATTRIBUTES+1] = { /* frameset attributes */
+PRIVATE HTAttr frameset_attr[HTML_FRAMESET_ATTRIBUTES+1] = { /* frameset attributes */
 
 	{ "BORDER" },
 	{ "BORDERCOLOR" },
@@ -182,31 +124,7 @@ PRIVATE attr frameset_attr[HTML_FRAMESET_ATTRIBUTES+1] = { /* frameset attribute
 	{ 0 }	/* Terminate list */
 };
 
-/*
-<HTML><HEAD><TITLE>Frame Set Example</TITLE></HEAD>
-
-<FRAMESET COLS="20%,*"> 
-  <NOFRAME>You must use a browser that can display frames 
-  to see this page.</NOFRAME> 
-  <FRAME SRC="frametoc.htm" NAME="noname"> 
-  <FRAMESET ROWS="30%,*"> 
-    <FRAME SRC="frtoc1.htm" NAME="toptoc"> 
-    <FRAME SRC="frstart.htm" NAME="outer"> 
-  </FRAMESET> 
-</FRAMESET> 
-</HTML>
-*/
-
-/*		Attribute Lists
-**		---------------
-**
-**	Lists must be in alphatbetical order by attribute name
-**	The tag elements contain the number of attributes
-*/
-PRIVATE attr no_attr[1] = 
-	{{ 0 }};
-
-PRIVATE attr a_attr[HTML_A_ATTRIBUTES+1] = {		/* Anchor attributes */
+PRIVATE HTAttr a_attr[HTML_A_ATTRIBUTES+1] = {		/* Anchor attributes */
 	{ "EFFECT" },
 	{ "HREF"},
 	{ "ID" },
@@ -220,19 +138,32 @@ PRIVATE attr a_attr[HTML_A_ATTRIBUTES+1] = {		/* Anchor attributes */
 	{ 0 }	/* Terminate list */
 };	
 
-PRIVATE attr base_attr[HTML_BASE_ATTRIBUTES+1] = {	/* BASE attributes */
+PRIVATE HTAttr area_attr[HTML_AREA_ATTRIBUTES+1] = {		/* Area attributes */
+	{ "ALT" },
+	{ "ACCESSKEY"},
+	{ "COORDS" },
+	{ "HREF" },
+	{ "NOHREF" },
+	{ "ONBLUR" },
+	{ "ONFOCUS" },
+	{ "SHAPE" },
+	{ "TABINDEX" },
+	{ 0 }	/* Terminate list */
+};	
+
+PRIVATE HTAttr base_attr[HTML_BASE_ATTRIBUTES+1] = {	/* BASE attributes */
 	{ "HREF"},
 	{ 0 }	/* Terminate list */
 };	
 
 
-PRIVATE attr changed_attr[] = {
+PRIVATE HTAttr changed_attr[] = {
 	{ "ID" },
 	{ "IDREF" },
 	{ 0 }	/* terminate list */
 };
 
-PRIVATE attr fig_attr[] = {		/* Figures */
+PRIVATE HTAttr fig_attr[] = {		/* Figures */
 	{ "ALIGN" },
 	{ "ID" },
 	{ "INDEX" },
@@ -242,7 +173,7 @@ PRIVATE attr fig_attr[] = {		/* Figures */
 	{ 0 }	/* terminate list */
 };
 
-PRIVATE attr form_attr[] = {		/* General, for many things */
+PRIVATE HTAttr form_attr[] = {		/* General, for many things */
 	{ "ACTION" },
 	{ "ID" },
 	{ "INDEX" },
@@ -251,25 +182,25 @@ PRIVATE attr form_attr[] = {		/* General, for many things */
 	{ 0 }	/* terminate list */
 };
 
-PRIVATE attr gen_attr[] = {		/* General, for many things */
+PRIVATE HTAttr gen_attr[] = {		/* General, for many things */
 	{ "ID" },
 	{ "INDEX" },
 	{ "LANG" },
 	{ 0 }	/* terminate list */
 };
 
-PRIVATE attr htmlplus_attr[] = {		/* wrapper HTMLPLUS */
+PRIVATE HTAttr htmlplus_attr[] = {		/* wrapper HTMLPLUS */
 	{ "FORMS" },
 	{ "VERSION" },
 	{ 0 }				/* terminate list */
 };
 
-PRIVATE attr id_attr[2] = {
+PRIVATE HTAttr id_attr[2] = {
 	{ "ID" },
 	{ 0 }				/* terminate list */
 };
 
-PRIVATE attr image_attr[HTML_IMAGE_ATTRIBUTES+1] = {	/* Image attributes */
+PRIVATE HTAttr image_attr[HTML_IMAGE_ATTRIBUTES+1] = {	/* Image attributes */
 	{ "ALIGN" },
 	{ "ISMAP"},			/* Use HTTP SpaceJump instead */
 	{ "LANG" },
@@ -278,7 +209,7 @@ PRIVATE attr image_attr[HTML_IMAGE_ATTRIBUTES+1] = {	/* Image attributes */
 	{ 0 }	/* Terminate list */
 };	
 
-PRIVATE attr img_attr[HTML_IMG_ATTRIBUTES+1] = {	/* IMG attributes */
+PRIVATE HTAttr img_attr[HTML_IMG_ATTRIBUTES+1] = {	/* IMG attributes */
 	{ "ALIGN" },
 	{ "ALT" },
 	{ "ISMAP"},			/* Use HTTP SpaceJump instead */
@@ -288,7 +219,7 @@ PRIVATE attr img_attr[HTML_IMG_ATTRIBUTES+1] = {	/* IMG attributes */
 	{ 0 }	/* Terminate list */
 };	
 
-PRIVATE attr input_attr[HTML_INPUT_ATTRIBUTES+1] = {
+PRIVATE HTAttr input_attr[HTML_INPUT_ATTRIBUTES+1] = {
 	{ "ALIGN" },
 	{ "CHECKED" },
 	{ "DISABLED" },
@@ -303,7 +234,7 @@ PRIVATE attr input_attr[HTML_INPUT_ATTRIBUTES+1] = {
 	{ "0" }
 };
 
-PRIVATE attr l_attr[] = {
+PRIVATE HTAttr l_attr[] = {
 	{ "ALIGN"},
 	{ "ID" },
 	{ "LANG" },
@@ -311,7 +242,7 @@ PRIVATE attr l_attr[] = {
 	{ 0 }	/* Terminate list */
 };
 
-PRIVATE attr li_attr[] = {
+PRIVATE HTAttr li_attr[] = {
 	{ "ID" },
 	{ "INDEX" },
 	{ "LANG" },
@@ -319,7 +250,7 @@ PRIVATE attr li_attr[] = {
 	{ 0 }	/* Terminate list */
 };
 
-PRIVATE attr link_attr[HTML_LINK_ATTRIBUTES+1] = {	/* link attributes */
+PRIVATE HTAttr link_attr[HTML_LINK_ATTRIBUTES+1] = {	/* link attributes */
     { "CHARSET"},
     { "HREF"},
     { "HREFLANG"},
@@ -330,7 +261,24 @@ PRIVATE attr link_attr[HTML_LINK_ATTRIBUTES+1] = {	/* link attributes */
     { 0 }		/* Terminate list */
 };	
 
-PRIVATE attr list_attr[] = {
+PRIVATE HTAttr object_attr[HTML_OBJECT_ATTRIBUTES+1] = {	/* object attributes */
+    { "ARCHIVE" },
+    { "CLASSID" },
+    { "CODEBASE" },
+    { "CODETYPE" },
+    { "DATA" },
+    { "DECLARE" },
+    { "HIGHT" },
+    { "NAME" },
+    { "STANDBY" },
+    { "TABINDEX" },
+    { "TYPE" },
+    { "USEMAP" },
+    { "WIDTH" },
+    { 0 }
+};	
+
+PRIVATE HTAttr list_attr[] = {
 	{ "COMPACT"},
 	{ "ID" },
 	{ "LANG" },
@@ -338,14 +286,14 @@ PRIVATE attr list_attr[] = {
 	{ 0 }	/* Terminate list */
 };
 
-PRIVATE attr glossary_attr[HTML_DL_ATTRIBUTES+1] = {
+PRIVATE HTAttr glossary_attr[HTML_DL_ATTRIBUTES+1] = {
 	{ "ID" },
 	{ "COMPACT " },
 	{ "INDEX" },
 	{ 0 }	/* Terminate list */
 };
 
-PRIVATE attr meta_attr[HTML_META_ATTRIBUTES+1] = {
+PRIVATE HTAttr meta_attr[HTML_META_ATTRIBUTES+1] = {
     { "CONTENT"},
     { "HTTP-EQUIV"},
     { "NAME"},
@@ -353,12 +301,12 @@ PRIVATE attr meta_attr[HTML_META_ATTRIBUTES+1] = {
     { 0 }		/* Terminate list */
 };	
 
-PRIVATE attr nextid_attr[HTML_NEXTID_ATTRIBUTES+1] = {
+PRIVATE HTAttr nextid_attr[HTML_NEXTID_ATTRIBUTES+1] = {
 	{ "N" },
 	{ 0 }	/* Terminate list */
 };
 
-PRIVATE attr note_attr[HTML_NOTE_ATTRIBUTES+1] = {	/* Footnotes etc etc */
+PRIVATE HTAttr note_attr[HTML_NOTE_ATTRIBUTES+1] = {	/* Footnotes etc etc */
 	{ "ID" },
 	{ "INDEX" },
 	{ "LANG" },
@@ -366,20 +314,20 @@ PRIVATE attr note_attr[HTML_NOTE_ATTRIBUTES+1] = {	/* Footnotes etc etc */
 	{ 0 }	/* terminate list */
 };
 
-PRIVATE attr option_attr[HTML_OPTION_ATTRIBUTES+1] = {
+PRIVATE HTAttr option_attr[HTML_OPTION_ATTRIBUTES+1] = {
 	{ "DISABLED" },
 	{ "LANG" },
 	{ "SELECTED" },
 	{ 0 }
 };
 
-PRIVATE attr render_attr[HTML_RENDER_ATTRIBUTES+1] = {
+PRIVATE HTAttr render_attr[HTML_RENDER_ATTRIBUTES+1] = {
 	{ "STYLE" },
 	{ "TAG" },
 	{ 0 }	/* Terminate list */
 };
 
-PRIVATE attr select_attr[HTML_SELECT_ATTRIBUTES+1] = {
+PRIVATE HTAttr select_attr[HTML_SELECT_ATTRIBUTES+1] = {
 	{ "ERROR" },
 	{ "LANG" },
 	{ "MULTIPLE" },			/* WSM bug fix, was SEVERAL */
@@ -388,13 +336,13 @@ PRIVATE attr select_attr[HTML_SELECT_ATTRIBUTES+1] = {
 	{ 0 },
 };
 
-PRIVATE attr tab_attr[HTML_TAB_ATTRIBUTES+1] = {
+PRIVATE HTAttr tab_attr[HTML_TAB_ATTRIBUTES+1] = {
 	{ "ALIGN" },
 	{ "AT" },
 	{ 0 }
 };
 
-PRIVATE attr table_attr[HTML_TABLE_ATTRIBUTES+1] = {
+PRIVATE HTAttr table_attr[HTML_TABLE_ATTRIBUTES+1] = {
 	{ "BORDER" },
 	{ "ID" },
 	{ "INDEX" },
@@ -402,7 +350,7 @@ PRIVATE attr table_attr[HTML_TABLE_ATTRIBUTES+1] = {
 	{ 0 }
 };
 
-PRIVATE attr td_attr[HTML_TD_ATTRIBUTES+1] = {
+PRIVATE HTAttr td_attr[HTML_TD_ATTRIBUTES+1] = {
 	{ "ALIGN" },
 	{ "COLSPAN" },
 	{ "ROWSPAN" },
@@ -410,7 +358,7 @@ PRIVATE attr td_attr[HTML_TD_ATTRIBUTES+1] = {
 	{ 0 }
 };
 
-PRIVATE attr textarea_attr[HTML_TEXTAREA_ATTRIBUTES+1] = {
+PRIVATE HTAttr textarea_attr[HTML_TEXTAREA_ATTRIBUTES+1] = {
 	{ "COLS" },
 	{ "DISABLED" },
 	{ "ERROR" },
@@ -420,7 +368,7 @@ PRIVATE attr textarea_attr[HTML_TEXTAREA_ATTRIBUTES+1] = {
 	{ 0 }
 };
 
-PRIVATE attr ul_attr[HTML_UL_ATTRIBUTES+1] = {
+PRIVATE HTAttr ul_attr[HTML_UL_ATTRIBUTES+1] = {
 	{ "COMPACT" },
 	{ "ID" },
 	{ "INDEX" },
@@ -430,26 +378,21 @@ PRIVATE attr ul_attr[HTML_UL_ATTRIBUTES+1] = {
 	{ 0 }
 };
 
-
-/*	Elements
-**	--------
-**
+/*
+**	ELEMENTS
 **	Must match definitions in HTMLPDTD.html!
 **	Must be in alphabetical order.
 **
-**	HTML is included to allow HTML documents to be parsed as a subset.
-**	TITLE is changed to type SGML_MIXED so it get parsed as well
-**	Henrik 08/03-94
-**
 **    Name, 	Attributes, 		content
 */
-PRIVATE HTTag tags[HTMLP_ELEMENTS] = {
+PRIVATE HTTag tags[HTML_ELEMENTS] = {
     { "A"	, a_attr,	HTML_A_ATTRIBUTES,	SGML_MIXED },
     { "ABBREV"  , gen_attr,     HTML_GEN_ATTRIBUTES,	SGML_MIXED },
     { "ABSTRACT" , gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
     { "ACRONYM"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
     { "ADDED"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
     { "ADDRESS"	, no_attr,	0,			SGML_MIXED },
+    { "AREA"	, area_attr,	HTML_AREA_ATTRIBUTES,	SGML_EMPTY },
     { "ARG"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
     { "B"	, no_attr,	0,			SGML_MIXED },
     { "BASE"	, base_attr,	HTML_BASE_ATTRIBUTES,	SGML_EMPTY },
@@ -504,6 +447,7 @@ PRIVATE HTTag tags[HTMLP_ELEMENTS] = {
     { "NEXTID"  , nextid_attr,	1,			SGML_EMPTY },
     { "NOTE"	, note_attr,	HTML_NOTE_ATTRIBUTES,	SGML_EMPTY },
     { "NOFRAMES", no_attr,	0,			SGML_MIXED },
+    { "OBJECT"	, object_attr,	HTML_OBJECT_ATTRIBUTES,	SGML_MIXED },
     { "OL"	, list_attr,	HTML_LIST_ATTRIBUTES,	SGML_MIXED },
     { "OPTION"	, option_attr,	HTML_OPTION_ATTRIBUTES,	SGML_EMPTY },/*Mixed?*/
     { "OVER"	, no_attr,	0,			SGML_MIXED },
@@ -535,15 +479,28 @@ PRIVATE HTTag tags[HTMLP_ELEMENTS] = {
     { "XMP"	, no_attr,	0,			SGML_LITERAL }
 };
 
-
-PUBLIC const SGML_dtd HTMLP_dtd = {
+PRIVATE SGML_dtd HTMLP_dtd = {
     tags,
-    HTMLP_ELEMENTS,
+    HTML_ELEMENTS,
     entities,
     sizeof(entities)/sizeof(char**)
 };
 
-/*	Utility Routine: useful for people building HTML objects */
+PRIVATE SGML_dtd * DTD = &HTMLP_dtd;
+
+PUBLIC SGML_dtd * HTML_dtd (void)
+{
+    return DTD;
+}
+
+PUBLIC BOOL HTML_setDtd (const SGML_dtd * dtd)
+{
+    if (dtd) {
+	DTD = (SGML_dtd *) dtd;
+	return YES;
+    }
+    return NO;
+}
 
 /*	Start anchor element
 **	--------------------
@@ -552,11 +509,6 @@ PUBLIC const SGML_dtd HTMLP_dtd = {
 **	starting an anchor element, as everything else for HTML is
 **	simple anyway.
 */
-struct _HTStructured {
-    HTStructuredClass * isa;
-	/* ... */
-};
-
 PUBLIC void HTStartAnchor (HTStructured * obj,
 		const char *  name,
 		const char *  href)
@@ -581,8 +533,6 @@ PUBLIC void HTStartAnchor (HTStructured * obj,
     (*obj->isa->start_element)(obj, HTML_A , present, value);
 
 }
-
-/*	Utility Routine: useful for people building HTML objects */
 
 /*	Put image element
 **	--------------------
@@ -617,7 +567,6 @@ PUBLIC void HTMLPutImg (HTStructured * obj,
     (*obj->isa->start_element)(obj, HTML_IMG , present, value);
     /* (*obj->isa->end_element)(obj, HTML_IMG); */
 }
-
 
 PUBLIC void HTNextID (HTStructured * obj,
 		const char *	next_one)

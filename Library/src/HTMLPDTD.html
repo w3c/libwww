@@ -1,63 +1,59 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Sample Code Library libwww HTML DTD</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 28-Jun-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 28-Jun-1996 -->
+  <TITLE>W3C Sample Code Library libwww HTML DTD</TITLE>
 </HEAD>
 <BODY>
-
-<H1>HTML Plus DTD - Software Interface</H1>
-
+<H1>
+  HTML Plus DTD - Software Interface
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-SGML purists should excuse the use of the term "DTD" in this file to
-represent DTD-related information which is not exactly a DTD
-itself. The C modular structure doesn't work very well here, as the
-dtd is partly in the .h and partly in the .c which are not very
-independent.  <EM>Tant pis!</EM> There are a couple of HTML-specific
-utility routines also defined. <P>
-
-This module is a part of the <A
-HREF="http://www.w3.org/Library/">
-W3C Sample Code Library</A>.
-
+<P>
+SGML purists should excuse the use of the term "DTD" in this file to represent
+DTD-related information which is not exactly a DTD itself. The C modular
+structure doesn't work very well here, as the dtd is partly in the .h and
+partly in the .c which are not very independent. <EM>Tant pis!</EM> There
+are a couple of HTML-specific utility routines also defined.
+<P>
+This module is a part of the <A HREF="http://www.w3.org/Library/"> W3C Sample
+Code Library</A>.
 <PRE>
 #ifndef HTMLDTD_H
 #define HTMLDTD_H
 
-#include "HTStruct.h"
-#include "SGML.h"
+#include "<A HREF="HTStruct.html">HTStruct.h</A>"
+#include "<A HREF="SGML.html">SGML.h</A>"
 </PRE>
-
-<H2>Entity numbers</H2>
-
-The entity names are defined in the C file.  This gives the number of them.
-
-<H2>Element Numbers</H2>
-
+<H2>
+  Number of HTML Entities
+</H2>
+<P>
+The entity names are defined in the C file. This gives the number of them.
+Must Match all tables by element!
 <PRE>
 #define HTML_ENTITIES 67
 </PRE>
-
-Must Match all tables by element!  These include tables in <A
-HREF="HTMLPDTD.c" NAME="z1">HTMLPDTD.c</A> and code in <A
-HREF="HTML.c" NAME="z0">HTML.c</A>.<P>
-
-Differences from Internet Draft 00: HTML, H7,PLAINTEXT LISTINGand XMP
-left in.
-
+<H2>
+  HTML Element Enumeration
+</H2>
+<P>
+These include tables in <A HREF="HTMLPDTD.c" NAME="z1">HTMLPDTD.c</A> and
+code in <A HREF="HTML.c" NAME="z0">HTML.c</A>. Note that not everything from
+<A HREF="http://www.w3.org/TR/REC-html40">HTML 4.0</A> is there!
 <PRE>
 typedef enum _HTMLElement {
-	HTML_A, 
+	HTML_A = 0,
 	HTML_ABBREV,
 	HTML_ABSTRACT,
 	HTML_ACRONYM,
 	HTML_ADDED,
 	HTML_ADDRESS,
+	HTML_AREA,
 	HTML_ARG,
 	HTML_B,
 	HTML_BASE,
@@ -112,6 +108,7 @@ typedef enum _HTMLElement {
 	HTML_NEXTID,
 	HTML_NOFRAMES,
 	HTML_NOTE,
+	HTML_OBJECT,
 	HTML_OL,
 	HTML_OPTION,
 	HTML_OVER,
@@ -140,15 +137,21 @@ typedef enum _HTMLElement {
 	HTML_U,
 	HTML_UL,
 	HTML_VAR,
-	HTML_XMP
-}
-HTMLElement;
-
-#define HTMLP_ELEMENTS 89
-
-</PRE><H2>Attribute numbers</H2>Identifier is
-HTML_&lt;element>_&lt;attribute>. These must match the tables in <A
-HREF="HTMLPDTD.c" NAME="z2">HTMLPDTD.c</A> ! <PRE>
+	HTML_XMP,
+	HTML_ELEMENTS		/* This must be the last entry */
+} HTMLElement;
+</PRE>
+<H2>
+  Element Attribute Enumerations
+</H2>
+<P>
+Identifier is <TT>HTML_&lt;element&gt;_&lt;attribute&gt;</TT>. These
+<STRONG>must</STRONG> match the tables in
+<A HREF="HTMLPDTD.c" NAME="z2">HTMLPDTD.c</A>!
+<H3>
+  A
+</H3>
+<PRE>
 #define HTML_A_EFFECT 		0
 #define HTML_A_HREF		1
 #define HTML_A_ID		2
@@ -160,23 +163,58 @@ HREF="HTMLPDTD.c" NAME="z2">HTMLPDTD.c</A> ! <PRE>
 #define HTML_A_SHAPE		8	
 #define HTML_A_TITLE		9
 #define HTML_A_ATTRIBUTES	10
-
+</PRE>
+<H3>
+  AREA
+</H3>
+<PRE>
+#define HTML_AREA_ALT 		0
+#define HTML_AREA_ACCESSKEY	1
+#define HTML_AREA_COORDS	2
+#define HTML_AREA_HREF		3
+#define HTML_AREA_NOHREF	4
+#define HTML_AREA_ONBLUR	5
+#define HTML_AREA_ONFOCUS	6
+#define HTML_AREA_SHAPE		7 
+#define HTML_AREA_TABINDEX	8
+#define HTML_AREA_ATTRIBUTES	9
+</PRE>
+<H3>
+  BASE
+</H3>
+<PRE>
 #define HTML_BASE_HREF		0
 #define HTML_BASE_ATTRIBUTES	1
-
+</PRE>
+<H3>
+  BODY
+</H3>
+<PRE>
 #define HTML_BODY_BACKGROUND    0
 #define HTML_BODY_ATTRIBUTES    1
-
+</PRE>
+<H3>
+  FORM
+</H3>
+<PRE>
 #define HTML_FORM_ACTION	0	/* WSM bug fix, added these five */
 #define HTML_FORM_ID		1
 #define HTML_FORM_INDEX		2
 #define HTML_FORM_LANG		3
 #define HTML_FORM_METHOD	4
 #define HTML_FORM_ATTRIBUTES	5
-
+</PRE>
+<H3>
+  FRAME
+</H3>
+<PRE>
 #define HTML_FRAME_SRC          0
 #define HTML_FRAME_ATTRIBUTES   1
-
+</PRE>
+<H3>
+  FRAMESET
+</H3>
+<PRE>
 #define HTML_FRAMESET_COLS              0
 #define HTML_FRAMESET_ROWS              1
 #define HTML_FRAMESET_BORDER            2
@@ -187,20 +225,50 @@ HREF="HTMLPDTD.c" NAME="z2">HTMLPDTD.c</A> ! <PRE>
 #define HTML_FRAMESET_ONLOAD            7
 #define HTML_FRAMESET_ONUNLOAD          8
 #define HTML_FRAMESET_ATTRIBUTES        9
-
+</PRE>
+<H3>
+  FIG
+</H3>
+<PRE>
 #define HTML_FIG_ATTRIBUTES	6
-
+</PRE>
+<H3>
+  GEN
+</H3>
+<PRE>
 #define HTML_GEN_ATTRIBUTES	3
-
+</PRE>
+<H3>
+  HTMLPLUS
+</H3>
+<PRE>
 #define HTML_HTMLPLUS_ATTRIBUTES	2
-
+</PRE>
+<H3>
+  IMAGE
+</H3>
+<PRE>
 #define HTML_IMAGE_ATTRIBUTES	5
-
+</PRE>
+<H3>
+  CHANGED
+</H3>
+<PRE>
 #define HTML_CHANGED_ATTRIBUTES	2
+</PRE>
+<H3>
+  DL
+</H3>
+<PRE>
+#define HTML_DL_ID	 	0
+#define HTML_DL_COMPACT 	1
+#define HTML_DL_INDEX	 	2
 #define HTML_DL_ATTRIBUTES	3
-
-#define DL_COMPACT 0
-
+</PRE>
+<H3>
+  IMG
+</H3>
+<PRE>
 #define HTML_IMG_ALIGN		0
 #define HTML_IMG_ALT		1
 #define HTML_IMG_ISMAP		2	/* Obsolete but supported */
@@ -208,7 +276,11 @@ HREF="HTMLPDTD.c" NAME="z2">HTMLPDTD.c</A> ! <PRE>
 #define HTML_IMG_SEETHRU	4
 #define HTML_IMG_SRC 		5
 #define HTML_IMG_ATTRIBUTES	6
-
+</PRE>
+<H3>
+  INPUT
+</H3>
+<PRE>
 #define HTML_INPUT_ALIGN	0
 #define HTML_INPUT_CHECKED	1
 #define HTML_INPUT_DISABLED	2
@@ -221,13 +293,29 @@ HREF="HTMLPDTD.c" NAME="z2">HTMLPDTD.c</A> ! <PRE>
 #define HTML_INPUT_TYPE		9
 #define HTML_INPUT_VALUE	10
 #define HTML_INPUT_ATTRIBUTES	11
-
+</PRE>
+<H3>
+  L
+</H3>
+<PRE>
 #define HTML_L_ATTRIBUTES	4
-
+</PRE>
+<H3>
+  LI
+</H3>
+<PRE>
 #define HTML_LI_ATTRIBUTES	4
-
+</PRE>
+<H3>
+  LIST
+</H3>
+<PRE>
 #define HTML_LIST_ATTRIBUTES	4
-
+</PRE>
+<H3>
+  LINK
+</H3>
+<PRE>
 #define HTML_LINK_CHARSET	0
 #define HTML_LINK_HREF		1
 #define HTML_LINK_HREFLANG	2
@@ -236,88 +324,172 @@ HREF="HTMLPDTD.c" NAME="z2">HTMLPDTD.c</A> ! <PRE>
 #define HTML_LINK_REV		5
 #define HTML_LINK_TYPE 		6
 #define HTML_LINK_ATTRIBUTES	7
-
+</PRE>
+<H3>
+  ID
+</H3>
+<PRE>
 #define HTML_ID_ATTRIBUTE	1
-
+</PRE>
+<H3>
+  META
+</H3>
+<PRE>
 #define HTML_META_CONTENT	0
 #define HTML_META_HTTP_EQUIV	1
 #define HTML_META_NAME   	2
 #define HTML_META_SCHEME	3
 #define HTML_META_ATTRIBUTES	4
-
+</PRE>
+<H3>
+  NEXTID
+</H3>
+<PRE>
 #define HTML_NEXTID_ATTRIBUTES  1
 #define HTML_NEXTID_N 0
-
+</PRE>
+<H3>
+  NOTE
+</H3>
+<PRE>
 #define HTML_NOTE_ATTRIBUTES	4
-
+</PRE>
+<H3>
+  OBJECT
+</H3>
+<PRE>
+#define HTML_OBJECT_ARCHIVE     0
+#define HTML_OBJECT_CLASSID	1
+#define HTML_OBJECT_CODEBASE	2
+#define HTML_OBJECT_CODETYPE	3
+#define HTML_OBJECT_DATA	4
+#define HTML_OBJECT_DECLARE     5
+#define HTML_OBJECT_HIGHT       6
+#define HTML_OBJECT_NAME        7
+#define HTML_OBJECT_STANDBY	8
+#define HTML_OBJECT_TABINDEX	9
+#define HTML_OBJECT_TYPE        10
+#define HTML_OBJECT_USEMAP	11
+#define HTML_OBJECT_WIDTH       12
+#define HTML_OBJECT_ATTRIBUTES  13
+</PRE>
+<H3>
+  OPTION
+</H3>
+<PRE>
 #define HTML_OPTION_DISABLED	0	/* WSM bug fix, added these 4 */
 #define HTML_OPTION_LANG	1
 #define HTML_OPTION_SELECTED	2
 #define HTML_OPTION_ATTRIBUTES  3
-
-/* #define HTML_PRE_WIDTH		0
-  #define HTML_PRE_ATTRIBUTES	1
-*/
+</PRE>
+<H3>
+  RENDER
+</H3>
+<PRE>
 #define HTML_RENDER_ATTRIBUTES 	2
-
+</PRE>
+<H3>
+  SELECT
+</H3>
+<PRE>
 #define HTML_SELECT_ERROR	0	/* WSM bug fix, added these 5 */
 #define HTML_SELECT_LANG	1
 #define HTML_SELECT_MULTIPLE	2
 #define HTML_SELECT_NAME	3
 #define HTML_SELECT_SIZE	4
 #define HTML_SELECT_ATTRIBUTES  5
-
+</PRE>
+<H3>
+  TAB
+</H3>
+<PRE>
 #define HTML_TAB_ATTRIBUTES	2
+</PRE>
+<H3>
+  TABLE
+</H3>
+<PRE>
 #define HTML_TABLE_ATTRIBUTES	4
+</PRE>
+<H3>
+  TD
+</H3>
+<PRE>
 #define HTML_TD_ATTRIBUTES	4
-
-#define HTML_TEXTAREA_COLS	0
-#define HTML_TEXTAREA_DISABLED	1
-#define HTML_TEXTAREA_ERROR	2
-#define HTML_TEXTAREA_LANG	3
-#define HTML_TEXTAREA_NAME	4
-#define HTML_TEXTAREA_ROWS	5
+</PRE>
+<H3>
+  TEXTAREA
+</H3>
+<PRE>
+#define HTML_TEXTAREA_COLS		0
+#define HTML_TEXTAREA_DISABLED		1
+#define HTML_TEXTAREA_ERROR		2
+#define HTML_TEXTAREA_LANG		3
+#define HTML_TEXTAREA_NAME		4
+#define HTML_TEXTAREA_ROWS		5
 #define HTML_TEXTAREA_ATTRIBUTES	6
-
+</PRE>
+<H3>
+  TH
+</H3>
+<PRE>
 #define HTML_TH_ATTRIBUTES	4
-
+</PRE>
+<H3>
+  UL
+</H3>
+<PRE>
 #define HTML_UL_ATTRIBUTES	6
-
-extern const SGML_dtd HTMLP_dtd;
-
-
-</PRE><H2>Start anchor element</H2>It is kinda convenient to have a particular
-routine for starting an anchor element,
-as everything else for HTML is simple anyway. <H3>On entry</H3>targetstream
-poinst to a structured stream object.<P>name and href point to attribute
-strings or are NULL if the attribute is to be omitted. <PRE>
+</PRE>
+<H2>
+  The C Representation of the SGML DTD
+</H2>
+<PRE>
+extern SGML_dtd * HTML_dtd (void);
+extern BOOL HTML_setDtd (const SGML_dtd * dtd);
+</PRE>
+<H2>
+  Utitity Functions
+</H2>
+<H3>
+  Start anchor element
+</H3>
+<P>
+It is kinda convenient to have a particular routine for starting an anchor
+element, as everything else for HTML is simple anyway.
+<PRE>
 extern void HTStartAnchor (
 		HTStructured * targetstream,
 		const char *  	name,
 		const char *  	href);
-
-
-</PRE><H2>Put image element</H2>Hopefully as useful as HTStartAnchor. <H3>
-On entry</H3>targetstream point to a structured stream object.<P>src,
-alt and align are omitted if they are set to NULL. <PRE>
+</PRE>
+<H3>
+  Put image element
+</H3>
+<P>
+This is the same idea but for images
+<PRE>
 extern void HTMLPutImg (HTStructured *obj,
 		 	       const char *src,
 			       const char *alt,
 			       const char *align);
 
-</PRE><H2>Specify next ID to be used</H2>This is another convenience routine,
-for specifying the next ID to be used by an editor in the series z1. z2,...
-<PRE>
-extern void HTNextID (HTStructured * targetStream,
-			const char * s);
-
-#endif /* HTMLDTD_H */
-
 </PRE>
-
-<HR>
+<H3>
+  Specify next ID to be used
+</H3>
+<P>
+This is another convenience routine, for specifying the next ID to be used
+by an editor in the series z1. z2,...
+<PRE>
+extern void HTNextID (HTStructured * targetStream, const char * s);
+</PRE>
+<PRE>
+#endif /* HTMLDTD_H */
+</PRE>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

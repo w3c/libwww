@@ -1,58 +1,61 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Sample Code Library libwww HTML TO RICH TEXT CONVERTER</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+  <TITLE>W3C Sample Code Library libwww HTML Parser With Text Object Converter</TITLE>
 </HEAD>
 <BODY>
-
-<H1>The HTML to styled text object converter</H1>
-
+<H1>
+  Simple HTML Parser With Text Object Converter
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This interprets the <A
-HREF="http://www.w3.org/MarkUp/MarkUp.html">HTML</A>
-semantics and some HTMLPlus.<P>
-
-This module is implemented by <A HREF="HTML.c">HTML.c</A>, and it is
-a part of the <A
-HREF="http://www.w3.org/Library/">
-W3C Sample Code Library</A>.
-
+<P>
+This interprets the <A HREF="http://www.w3.org/MarkUp/MarkUp.html">HTML</A>
+semantics passed to it by the <A HREF="SGML.html">SGML parser</A>. It then
+creates a <A HREF="HText.html">HText object</A> which the application can
+use to render an HTML object as text comes in over the wire. The
+<A HREF="HTStyle.html">stylesheet manager</A> can be used to ensure that
+the rendering is done according to whatever style information is present.
+<P>
+This module is implemented by <A HREF="HTML.c">HTML.c</A>, and it is a part
+of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code Library</A>.
 <PRE>
 #ifndef HTML_H
 #define HTML_H
 
 #include "HTFormat.h"
-#include "HTAnchor.h"
 #include "HTMLPDTD.h"
 </PRE>
-
-<H2>Reopen an Existing HTML object</H2>
-
-Reopening an existing HTML object allows it to be retained (for
-example by the styled text object) after the structured stream has
-been closed.  To be actually deleted, the HTML object must be closed
-once more times than it has been reopened.
-
+<H2>
+  Converters
+</H2>
+<P>
+These are the converters implemented in this module. The first converts from
+HTML to presentation or plain text.
 <PRE>
-extern void HTML_reopen (HTStructured * me);
+extern HTConverter HTMLToPlain;
 </PRE>
-
-<H2>Converters</H2>
-
-These are the converters implemented in this module:
-
+<P>
+The next converts from HTML to a simple C like representation. It puts everything
+not in PRE within C style comments. This is the way that the line mode browser
+is used to convert the libwww HTML files to C style .h files
 <PRE>
-extern HTConverter HTMLToPlain, HTMLToC, HTMLPresent;
+extern HTConverter HTMLToC;
 </PRE>
-
-<H2>Selecting internal character set representations</H2>
-
+<P>
+This one converts the HTML stream to a rendered object using the
+<A HREF="HText.html">HText interface</A>.
+<PRE>
+extern HTConverter HTMLPresent;
+</PRE>
+<H2>
+  Selecting Internal Character Set Representation
+</H2>
+<P>
+Only <TT>ISO_LATIN1</TT> is currently supported.
 <PRE>
 typedef enum _HTMLCharacterSet {
 	HTML_ISO_LATIN1,
@@ -60,111 +63,14 @@ typedef enum _HTMLCharacterSet {
 	HTML_PC_CP950
 } HTMLCharacterSet;
 
-extern void HTMLUseCharacterSet (HTMLCharacterSet i);
-
+extern BOOL HTMLUseCharacterSet (HTMLCharacterSet charset);
 </PRE>
-
-<H2>White Space Treatment</H2>
-
-There is a small number of different ways of treating white space in
-SGML, in mapping from a text object to HTML.  These have to be
-programmed it seems.
-
 <PRE>
-/*
-In text object	\n\n		\n	tab	\n\n\t
---------------	-------------	-----	-----	-------
-in Address,
-Blockquote,
-Normal,		&lt;P&gt;		&lt;BR&gt;	-		NORMAL
-H1-6:		close+open	&lt;BR&gt;	-		HEADING
-Glossary	&lt;DT&gt;		&lt;DT&gt;	&lt;DD&gt;	&lt;P&gt;	GLOSSARY
-List,				
-Menu		&lt;LI&gt;		&lt;LI&gt;	-	&lt;P&gt;	LIST
-Dir		&lt;LI&gt;		&lt;LI&gt;	&lt;LI&gt;		DIR
-Pre etc		\n\n		\n	\t		PRE
-
-*/
-
-typedef enum _white_space_treatment {
-	WS_NORMAL,
-	WS_HEADING,
-	WS_GLOSSARY,
-	WS_LIST,
-	WS_DIR,
-	WS_PRE
-} white_space_treatment;
-
-</pre>
-
-<h2>Nesting State</h2>
-These elements form tree with an item for each nesting state: that
-is, each unique combination of nested elements which has a
-specific style.
-<pre>
-typedef struct _HTNesting {
-    void *			style;  /* HTStyle *: Platform dependent */
-    white_space_treatment	wst;
-    struct _HTNesting *		parent;
-    int				element_number;
-    int				item_number;	/* only for ordered lists */
-    int				list_level;	/* how deep nested */
-    HTList *			children;
-    BOOL			paragraph_break;
-    int				magic;
-    BOOL			object_gens_HTML; /* we don't generate HTML */
-} HTNesting;
-
-
-</pre>
-<H2>Nesting functions</H2>
-These functions were new with HTML2.c.  They allow the tree
-of SGML nesting states to be manipulated, and SGML regenerated from the
-style sequence.
-<PRE>
-
-extern void HTRegenInit (void);
-
-extern void HTRegenCharacter (
-	char			c,
-	HTNesting *		nesting,
-	HTStructured *		target);
-
-extern	void HTNestingChange (
-	HTStructured* 	s, 
-	HTNesting*		old, 
-	HTNesting *		newnest,
-	HTChildAnchor *		info,
-	const char *		aName);
-
-extern HTNesting * HTMLCommonality (
-	HTNesting * 	s1,
-	HTNesting *	s2);
-
-extern HTNesting * HTNestElement (HTNesting * p, int ele);
-extern /* HTStyle * */ void * HTStyleForNesting (HTNesting * n);
-
-extern HTNesting* HTMLAncestor (HTNesting * old, int depth);
-
-extern HTNesting* CopyBranch (HTNesting * old, HTNesting * newnest,
-				     int depth);
-
-extern HTNesting * HTInsertLevel (HTNesting * old,
-		int	element_number,
-		int	level);
-extern HTNesting * HTDeleteLevel (HTNesting * old,
-		int	level);
-extern int HTMLElementNumber (HTNesting * s);
-extern int HTMLLevel ( HTNesting * s);
-extern HTNesting* HTMLAncestor (HTNesting * old, int depth);
-
 #endif		/* end HTML_H */
-
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>
