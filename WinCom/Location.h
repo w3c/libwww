@@ -18,6 +18,7 @@ class CLocation : public CPropertyPage
 
 // Construction
 public:
+	bool m_submitRequest;
 	bool m_appendSource;
 	CLocation( CRequest * pRequest );
         CLocation();
@@ -35,6 +36,7 @@ public:
 	// ClassWizard generate virtual function overrides
 	//{{AFX_VIRTUAL(CLocation)
 	public:
+	virtual BOOL OnApply();
 	protected:
             virtual BOOL OnKillActive();
             virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
@@ -47,6 +49,7 @@ protected:
 	// Generated message map functions
 	//{{AFX_MSG(CLocation)
 	afx_msg void OnBrowse();
+	afx_msg void OnEditchangeLocation();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 

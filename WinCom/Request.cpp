@@ -31,7 +31,6 @@ CRequest::CRequest( CWinComApp * pApp ) : CObject()
     m_pApp = pApp;
     pApp->m_pRequest = this;
     m_cwd = HTGetCurrentDirectoryURL();
-    m_pHTRequest = HTRequest_new();
 }
 
 CRequest::~CRequest()
@@ -42,6 +41,9 @@ CRequest::~CRequest()
 int CRequest::PutDocument()
 {
     if (m_pHTAnchorDestination && m_pHTAnchorSource) {
+
+        /* Create a new libwww request object */
+        m_pHTRequest = HTRequest_new();
 	
 	/* Set the context so that we can find it again */
 	HTRequest_setContext(m_pHTRequest, this);

@@ -48,10 +48,15 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 			       void * param, int status) 
 {
     CRequest * Request = (CRequest *) HTRequest_context(request);
+    if (Request->m_pLocation->m_submitRequest == TRUE) {
+        Request->m_pLocation->m_submitRequest = FALSE;
+        Request->m_pLocation->SetModified(FALSE);
+    }
 
-    Request->m_pApp->ExitInstance();
-    
-    exit(0);
+    /* Clean up this request */
+    HTRequest_delete(Request->m_pHTRequest);
+    Request->m_pHTRequest = NULL;
+
     return HT_OK;
 }
 
@@ -131,8 +136,6 @@ BOOL CWinComApp::InitInstance()
 
         // add and initialize the general page....
 	CPropertySheet WinCom( IDS_WINCOM );
-        WinCom.m_psh.dwFlags ^= PSH_NOAPPLYNOW;
-        WinCom.m_psh.dwFlags |= PSH_HASHELP;
 
         // add and initialize the location page....
 	CLocation locationPage( m_pRequest );
@@ -154,26 +157,7 @@ BOOL CWinComApp::InitInstance()
 	CCommandLineInfo cmdInfo;
 	ParseCommandLine(cmdInfo);
 
-	if (WinCom.DoModal() == IDOK) {
-
-            /* Do we have any options to set first? */
-            if (m_pOptions->m_proxy_prefix && m_pOptions->m_proxy) {
-                LPTSTR proxy_prefix = m_pOptions->m_proxy.GetBuffer( 64 );
-                LPTSTR proxy = m_pOptions->m_proxy.GetBuffer( 64 );
-                HTProxy_add(proxy_prefix, proxy);
-                m_pOptions->m_proxy_prefix.ReleaseBuffer( );
-                m_pOptions->m_proxy.ReleaseBuffer( );
-            }
-
-            /* Start the request */
-            if (!m_pRequest->PutDocument()) {
-
-                /* Go into the event loop... */
-                HTEventList_loop(m_pRequest->m_pHTRequest);
-
-            }
-        }
-
+        WinCom.DoModal();
 	return TRUE;
 }
 

@@ -241,8 +241,10 @@ PRIVATE int Timer_dispatch (HTList * cur, HTList * last, int now)
 
     timer = (HTTimer *)HTList_objectOf(cur);
     if (timer == NULL) {
-	HTDebugBreak(__FILE__, __LINE__, "Timer dispatch couldn't find a timer\n");
-	CLEARME(timer);
+#if 0
+        HTDebugBreak(__FILE__, __LINE__, "Timer dispatch couldn't find a timer\n");
+#endif
+        CLEARME(timer);
 	return HT_ERROR;
     }
     if (timer->repetitive)

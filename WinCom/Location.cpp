@@ -7,6 +7,7 @@
 
 // From libwww
 #include "WWWLib.h"
+#include "WWWApp.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -52,7 +53,9 @@ void CLocation::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CLocation, CPropertyPage)
     //{{AFX_MSG_MAP(CLocation)
     ON_BN_CLICKED(ID_BROWSE, OnBrowse)
-    //}}AFX_MSG_MAP
+	ON_CBN_EDITCHANGE(IDC_DESTINATION_URI, OnEditchangeLocation)
+	ON_CBN_EDITCHANGE(IDC_SOURCE_URI, OnEditchangeLocation)
+	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -96,6 +99,7 @@ void CLocation::OnBrowse()
         char * local = HTLocalToWWW(fd.GetPathName());
         if (local) {
             SetDlgItemText(IDC_SOURCE_URI, local);
+            m_source = local;
             HT_FREE(local);
         }
 
@@ -110,3 +114,31 @@ void CLocation::OnBrowse()
     }
 }
 
+void CLocation::OnEditchangeLocation() 
+{
+    if (!m_source.IsEmpty() && !m_destination.IsEmpty()) {
+        SetModified(TRUE);
+        m_submitRequest = TRUE;
+    }
+}
+
+BOOL CLocation::OnApply() 
+{
+    if (m_submitRequest == TRUE) {
+        
+        /* Do we have any options to set first? */
+        if (!m_pRequest->m_pApp->m_pOptions->m_proxy_prefix.IsEmpty() &&
+            !m_pRequest->m_pApp->m_pOptions->m_proxy.IsEmpty()) {
+            LPTSTR proxy_prefix = m_pRequest->m_pApp->m_pOptions->m_proxy.GetBuffer( 64 );
+            LPTSTR proxy = m_pRequest->m_pApp->m_pOptions->m_proxy.GetBuffer( 64 );
+            HTProxy_add(proxy_prefix, proxy);
+            m_pRequest->m_pApp->m_pOptions->m_proxy_prefix.ReleaseBuffer( );
+            m_pRequest->m_pApp->m_pOptions->m_proxy.ReleaseBuffer( );
+        }
+        
+        /* Start the request */
+        m_pRequest->PutDocument();
+
+    }
+    return CPropertyPage::OnApply();
+}

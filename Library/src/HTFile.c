@@ -495,7 +495,7 @@ PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    break;
 
 	  case FS_NEED_OPEN_FILE:
-	    status = HTFileOpen(net, file->local, HT_FT_RDONLY);
+	    status = HTFileOpen(net, file->local, HT_FB_RDONLY);
 	    if (status == HT_OK) {
 		/* 
 		** Create the stream pipe FROM the channel to the application.
