@@ -1,0 +1,86 @@
+<HTML>
+<HEAD>
+  <TITLE>W3C Sample Code Library libwww Hash Table Class</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  Hash Table Class
+</H1>
+<P>
+<STRONG>Written and integrated into libwww by John Punin - thanks!</STRONG>
+<P>
+This module is implemented by <A HREF="HTHash.c">HTHash.c</A>, and is a part
+of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code Library</A>.
+<P>
+This HashTable class implements a simple hash table to keep objects associated
+with key words.
+<PRE>
+#ifndef HTHASH_H
+#define HTHASH_H
+
+#include "HTList.h"
+
+typedef struct _HTHashtable HTHashtable;
+
+struct _HTHashtable {
+    void **table;
+    int count;
+    int size;
+};
+    
+typedef struct _keynode keynode;
+
+struct _keynode {
+    char *key;
+    void *object;
+};
+</PRE>
+<H2>
+  Creation and Deletion Methods
+</H2>
+<P>
+These methods create and deletes a Hash Table
+<PRE>
+extern HTHashtable *	HTHashtable_new	(int size);
+
+extern BOOL	HTHashtable_delete (HTHashtable *me);
+</PRE>
+<H2>
+  Add an Element to a HashTable
+</H2>
+<PRE>
+extern BOOL HTHashtable_addObject (HTHashtable *me, const char *key , void *newObject);
+</PRE>
+<H2>
+  Search for an Element in a Hash Table
+</H2>
+<PRE>
+extern void *	HTHashtable_object (HTHashtable * me, const char *key);
+</PRE>
+<H2>
+  Size of a Hash Table
+</H2>
+<PRE>
+extern int	HTHashtable_count  (HTHashtable *me);
+</PRE>
+<H2>
+  Extract in a dynamic array all keys of the Hash Table
+</H2>
+<PRE>
+extern HTArray * HTHashtable_keys  (HTHashtable *me);
+</PRE>
+<H2>
+  Print the keys of the Hash Table
+</H2>
+<PRE>
+extern void HTHashtable_print (HTHashtable *me);
+</PRE>
+<PRE>
+#endif
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>
