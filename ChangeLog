@@ -1,3 +1,23 @@
+2000-08-18 	Arthur Barstow <barstow@w3.org>
+
+	* HTRDF.c: Added a new public API HTRDF_parseBuffer.  It
+          parses an arbitrary buffer (char *) of RDF.
+
+	* HTRDF.c: Changed the name of HTRDFParseFile to HTRDF_parseFile.
+          it now returns BOOL instead of char * to be consistent with
+          other RDF parser APIs.
+
+        * HTRDF.html - updated to HTRDF.c changes mentioned above
+
+        * Library/Examples/: added two new example programs:
+
+          1. rdf_parse_file - demos/tests HTRDF_parseFile()
+          2. rdf_parse_buffer - demos/tests HTRDF_parseBuffer()
+
+        * configure.in - added the two new programs above
+
+        * Library/Examples/Makefile.am - added the two new programs
+
 2000-08-17 	Arthur Barstow <barstow@w3.org>
 
 	* HTRDF.c: Fixed a memory leak.  (HTElement structures for elements
