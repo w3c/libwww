@@ -1,0 +1,90 @@
+<HTML>
+<HEAD>
+<TITLE>Machine-readable data internals</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Feb-1996 -->
+<NEXTID N="z11">
+</HEAD>
+<BODY>
+
+<H1>Machine-readable data internals</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1996.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This module defines the Machine-readable data structures read by 
+<A HREF="CSParser.c">CSParser.c</A>. Applications will include this if they
+want direct access to the data (as opposed to using iterator methods).
+<P>
+The following data structures relate to the data encapsulated in a PICS 
+description. Each data type correlates to a time in the BNF for the 
+machine-readable description.
+See <A HREF="http://www.w3.org/pub/WWW/PICS/labels.html">PICS Labels spec</A>
+for more details.
+
+<PRE>
+#ifndef CSMRST_H
+#define CSMRST_H
+</PRE>
+
+<PRE>
+typedef struct {
+    SVal_t name;
+    SVal_t description;
+	FVal_t value;
+    SVal_t icon;
+    } MachRead_enum_t;
+
+typedef struct MachRead_category_s MachRead_category_t;
+struct MachRead_category_s {
+    SVal_t transmit;
+    SVal_t icon;
+    SVal_t name;
+    SVal_t description;
+	FVal_t min;
+	FVal_t max;
+	BVal_t multi;
+	BVal_t integer;
+	BVal_t labeled;
+    HTList * machRead_enums;
+    HTList * machRead_categories;
+	MachRead_category_t * pParent;
+    };
+
+struct CSMachReadData_s {
+    FVal_t version;
+    SVal_t system;
+    SVal_t service;
+    SVal_t icon;
+    SVal_t name;
+    SVal_t description;
+	FVal_t min;
+	FVal_t max;
+	BVal_t multi;
+	BVal_t integer;
+	BVal_t labeled;
+    HTList * machRead_categories;
+    };
+ </PRE>
+
+--------------these belong in CSMR.html--------------
+
+<PRE>
+extern CSMachReadData_t * CSMachRead_getCSMachReadData(
+					 CSMachRead_t * pCSMachRead);
+extern MachRead_category_t * CSMachRead_getMachReadCategory(
+					 CSMachRead_t * pCSMachRead);
+extern MachRead_enum_t * CSMachRead_getMachReadEnum(
+					 CSMachRead_t * pCSMachRead);
+</PRE>
+
+<PRE>
+#endif /* CSMRST_H */
+</PRE>
+
+End of Declaration
+</BODY>
+</HTML>

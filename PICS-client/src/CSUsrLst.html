@@ -1,0 +1,62 @@
+<HTML>
+<HEAD>
+<TITLE>UserList for libpics</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Feb-1996 -->
+<NEXTID N="z11">
+</HEAD>
+<BODY>
+
+<H1>UserList</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1996.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This module provides the interface to <A HREF="CSUsrLst.c">CSUsrLst.c</A>. 
+UserLists are a list of users and the URLs where their profiles are kept.
+UserLists are read from a stream.
+
+<PRE>
+#ifndef CSUSRLST_H
+#define CSUSRLST_H
+</PRE>
+
+<H3>UserList element</H3>
+
+<PRE>
+typedef struct {
+	char * user;
+	char * URL;
+} UserListEl_t;
+</PRE>
+
+<H3>Methods</H3>
+
+Getting at the UserList
+
+<PRE>
+extern HTList * CSUserList_get(void);
+extern BOOL CSUserList_destroy(void);
+extern char * CSUserList_findURL(char * username);
+</PRE>
+
+Stream to read the UserList
+
+<PRE>
+extern HTStream * CSUserLists (HTRequest *	request,
+               	               void *		param,
+               	               HTFormat		input_format,
+               	               HTFormat		output_format,
+               	               HTStream *	output_stream);
+</PRE>
+
+<PRE>
+#endif /* CSUSRLST_H */
+</PRE>
+
+End of Declaration
+</BODY>
+</HTML>

@@ -1,0 +1,152 @@
+<HTML>
+<HEAD>
+<TITLEUser parser for libpics</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Feb-1996 -->
+<!-- Changed by: Eric Prud'hommeaux, 28-Mar-1996 -->
+<NEXTID N="z11">
+</HEAD>
+<BODY>
+
+<H1>User parser</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1996.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This module provides the interface to <A HREF="CSUser.c">CSUser.c</A>. 
+Labels are parsed from strings (see <A HREF="CSParse.html">CSParse.html</A>).
+These labels may then be kept in a CSUser_t structure for inspection by 
+the application or compared to the values in a CSLabel_t structure (see 
+<A HREF="CSLL.html">CSLL.html</A>).<P>
+
+<PRE>
+#ifndef CSUSER_H
+#define CSUSER_H
+</PRE>
+
+<A NAME="CSUserTC"><H3>State Change Enumeration</H3></A>
+
+Call to the <A HREF="CSParse.html#TargetChangeCallback">TargetChangeCallback</A>
+will have one of the following values.
+
+<PRE>
+typedef enum {
+	CSUserTC_USER = 1, 
+	CSUserTC_SERVICE,
+	CSUserTC_RLIST,
+	CSUserTC_RATING,
+	CSUserTC_RANGE,
+	CSUserTC_COUNT
+} CSUserTC_t;
+</PRE>
+
+<H3>Data shell</H3>
+
+All PICS user data is stored in a CSUserData_t
+
+<PRE>
+typedef struct CSUserData_s CSUserData_t;
+</PRE>
+
+<H3>TargetChangeCallback</H3>
+
+As the label is parsed, it will call the assigned TargetChangeCallback as it
+passes from state to state.
+
+<PRE>
+typedef UserTargetCallback_t(CSUser_t * pCSUser, 
+				  CSParse_t * pCSParse, 
+				  CSUserTC_t target, BOOL closed, 
+				  void * pVoid);
+</PRE>
+
+<H3>ErrorHandler</H3>
+
+All parsing error will be passed to the Apps UserErrorHandler for user display 
+or automatic dismissal.
+
+<PRE>
+typedef StateRet_t UserErrorHandler_t(CSUser_t * pCSUser, CSParse_t * pCSParse,
+ 				      const char * token, char demark, 
+				      StateRet_t errorCode);
+</PRE>
+
+<H3>Construction/Destruction</H3>
+
+These methods allow the user to create and get access to both the user and 
+the state. CSUsers may be cloned so that one saves state while another 
+continues to iterate or parse. The states mus all be freed. User data will
+only be freed after all the CSUsers that refer to it are deleted.
+
+<PRE>
+extern CSParse_t * CSParse_newUser(void);
+extern BOOL CSParse_deleteUser(CSParse_t *);
+extern CSUser_t * CSParse_getUser(CSParse_t * me);
+extern char * CSUser_name(CSUser_t * pCSUser);
+extern BOOL CSUser_checkPassword(CSUser_t * pCSUser, char * password);
+extern char * CSUser_bureau(CSUser_t * pCSUser);
+extern void CSUser_free(CSUser_t * me);
+extern Range_t * CSUser_getUserRatingRange(CSUser_t * pCSUser);
+extern char * CSUser_getRatingStr(CSUser_t * pCSUser);
+</PRE>
+
+<H3>Iterating methods</H3>
+
+<H3>Callback function</H3>
+
+The Iterators are passed a callback function to be called for each matching 
+element. For instance, when iterating through ranges, the callback function is
+called once for each range, or, if a match is requested, only for the matching
+range.
+
+<PRE>
+typedef CSError_t CSUser_callback_t(CSUser_t *, 
+					       State_Parms_t *, const char *, 
+					       void * pVoid);
+typedef CSError_t CSUser_iterator_t(CSUser_t *, 
+					       CSUser_callback_t *, 
+					       State_Parms_t *, const char *, 
+					       void * pVoid);
+
+extern CSUser_iterator_t CSUser_iterateServices;
+extern CSUser_iterator_t CSUser_iterateServiceRatings;
+
+extern CSError_t CSCheckLabel_checkLabelAndUser(CSLabel_t * pCSLabel, 
+						CSUser_t * pCSUser);
+extern CSError_t CSCheckLabel_parseAndValidateLabelStr(const char * label, 
+						       CSUser_t * pCSUser);
+</PRE>
+<A NAME="CSUser_acceptLabels"><H2>CSUser_acceptLabels</H2></A>
+get a malloced HTTP Accept-Protocol string requesting PICS labels for all 
+services defined for pCSUser
+<PRE>
+extern char * CSUser_acceptLabels(CSUser_t * pCSUser, 
+				  CSCompleteness_t completeness);
+</PRE>
+<A NAME="CSUser_getLabels"><H2>CSUser_getLabels</H2></A>
+get a malloced HTTP GET string requesting PICS labels for all services 
+defined for a user
+<PRE>
+extern char * CSUser_getLabels(CSUser_t * pCSUser, char * url, 
+			       CSOption_t option, 
+			       CSCompleteness_t completeness);
+</PRE>
+<A NAME="CSUser_postLabels"><H2>CSUser_postLabels</H2></A>
+get a malloced HTTP POST string requesting PICS labels for all services 
+defined for a user
+<PRE>
+extern char * CSUser_postLabels(CSUser_t * pCSUser, char * url, 
+				CSOption_t option, 
+				CSCompleteness_t completeness);
+</PRE>
+
+<PRE>
+#endif /* CSUser_H */
+</PRE>
+
+End of Declaration
+</BODY>
+</HTML>

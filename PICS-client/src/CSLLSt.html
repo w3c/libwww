@@ -1,0 +1,173 @@
+<HTML>
+<HEAD>
+<TITLE>Label data internals</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Feb-1996 -->
+<!-- Changed by: Eric Prud'hommeaux, 26-Mar-1996 -->
+<NEXTID N="z11">
+</HEAD>
+<BODY>
+
+<H1>Label data internals</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1996.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This module defines the Label data structures read by 
+<A HREF="CSParser.c">CSParser.c</A>. Applications will include this if they
+want direct access to the data (as opposed to using iterator methods).
+<P>
+The following data structures relate to the data encapsulated in a PICS Label.
+Each data type correlates to a time in the BNF for the label description.
+See <A HREF="http://www.w3.org/pub/WWW/PICS/labels.html">PICS Labels spec</A>
+for more details.
+
+<PRE>
+#ifndef CSLLST_H
+#define CSLLST
+</PRE>
+
+<H2>Label Error</H2>
+combination of:
+<LI><B>label-error</B>
+<LI><B>service-error</B>
+<LI><B>service-info</B> 'no-ratings'
+
+<PRE>
+typedef struct {
+    LabelErrorCode_t errorCode;
+    HTList * explanations; /* HTList of (char *) */
+    } LabelError_t;
+</PRE>
+
+<H2>Extension Data</H2>
+called <B>data</B> in the BNF
+
+<PRE>
+typedef struct ExtensionData_s ExtensionData_t;
+struct ExtensionData_s {
+    char * text;
+    BOOL quoted;
+    HTList * moreData;
+    ExtensionData_t * pParentExtensionData;
+    };
+</PRE>
+
+<H2>Extension</H2>
+<B>option</B> 'extension'
+
+<PRE>
+typedef struct {
+    BOOL mandatory;
+    SVal_t url;
+    HTList * extensionData;
+    } Extension_t;
+</PRE>
+
+<H2>Label Options</H2>
+called <B>option</B> in the BNF
+
+<PRE>
+typedef struct LabelOptions_s LabelOptions_t;
+struct LabelOptions_s {
+    DVal_t at;
+    SVal_t by;
+    SVal_t complete_label;
+    BVal_t generic;
+    SVal_t fur; /* for is a reserved word */
+    SVal_t MIC_md5;
+    DVal_t on;
+    SVal_t signature_PKCS;
+    DVal_t until;
+    HTList * comments;
+    HTList * extensions;
+    /* find service-level label options */
+    LabelOptions_t * pParentLabelOptions;
+    };
+
+</PRE>
+
+<H2>Rating</H2>
+called <B>rating</B> in the BNF
+
+<PRE>
+typedef struct {
+    SVal_t identifier;
+    FVal_t value;
+    HTList * ranges;
+    } LabelRating_t;
+</PRE>
+
+<H2>SingleLabel</H2>
+called <B>single-label</B> in the BNF
+
+<PRE>
+typedef struct {
+    LabelOptions_t * pLabelOptions;
+    HTList * labelRatings;
+    } SingleLabel_t;
+
+</PRE>
+
+<H2>Label</H2>
+also called <B>label</B>
+
+<PRE>
+typedef struct {
+    LabelError_t * pLabelError;
+    HTList * singleLabels;
+    SingleLabel_t * pSingleLabel;
+    } Label_t;
+</PRE>
+
+<H2>ServiceInfo</H2>
+called <B>service-info</B> in the BNF
+
+<PRE>
+typedef struct {
+    SVal_t rating_service;
+    LabelOptions_t * pLabelOptions;
+    LabelError_t * pLabelError;
+    HTList * labels;
+    } ServiceInfo_t;
+</PRE>
+
+<H2>CSLLData</H2>
+The whole shebang.
+
+<PRE>
+struct CSLLData_s {
+    FVal_t version;
+    LabelError_t * pLabelError;
+    HTList * serviceInfos;
+
+    /* some usefull flags */
+    BOOL complete;
+    BOOL hasTree; /* so it can't make a list of labels */
+    int mandatoryExtensions;
+    };
+</PRE>
+
+
+--------------these need the above structures--------------
+
+<PRE>
+extern CSLLData_t * CSLabel_getCSLLData(CSLabel_t * me);
+extern LabelError_t * CSLabel_getLabelError(CSLabel_t * pCSLabel);
+extern LabelOptions_t * CSLabel_getLabelOptions(CSLabel_t * pCSLabel);
+extern ServiceInfo_t * CSLabel_getServiceInfo(CSLabel_t * pCSLabel);
+extern Label_t * CSLabel_getLabel(CSLabel_t * pCSLabel);
+extern SingleLabel_t * CSLabel_getSingleLabel(CSLabel_t * pCSLabel);
+extern LabelRating_t * CSLabel_getLabelRating(CSLabel_t * pCSLabel);
+</PRE>
+
+<PRE>
+#endif /* CSLLST_H */
+</PRE>
+
+End of Declaration
+</BODY>
+</HTML>

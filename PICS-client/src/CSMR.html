@@ -1,0 +1,134 @@
+<HTML>
+<HEAD>
+<TITLE>Machine-readable parser for libpics</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Feb-1996 -->
+<!-- Changed by: Eric Prud'hommeaux, 28-Mar-1996 -->
+<NEXTID N="z11">
+</HEAD>
+<BODY>
+
+<H1>Machine-readable parser</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1996.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This module provides the interface to <A HREF="CSMacRed.c">CSMacRed.c</A>. 
+Labels are parsed from strings (see <A HREF="CSParse.html">CSParse.html</A>).
+These labels may then be kept in a CSMachRead_t structure for inspection by the
+application.
+
+<PRE>
+#ifndef CSMR_H
+#define CSMR_H
+</PRE>
+
+<A NAME="CSMRTC"><H3>State Change Enumeration</H3></A>
+
+Call to the <A HREF="CSParse.html#TargetChangeCallback">TargetChangeCallback</A>
+will have one of the following values.
+
+<PRE>
+typedef enum {
+	CSMRTC_MACHREAD = 1, 
+	CSMRTC_VERSION, 
+	CSMRTC_SYSTEM, 
+	CSMRTC_SERVICE, 
+	CSMRTC_ICON, 
+	CSMSRC_NAME, 
+	CSMSRC_DESC, 
+	CSMRTC_DEF, 
+	CSMRTC_MIN, 
+	CSMRTC_MAX, 
+	CSMRTC_MULTI, 
+	CSMRTC_INT, 
+	CSMRTC_LABL, 
+	CSMRTC_CAT, 
+	CSMRTC_TRANS, 
+	CSMRTC_ENUM, 
+	CSMRTC_COUNT
+} CSMRTC_t;
+</PRE>
+
+<H3>Data shell</H3>
+
+All PICS Machine-readable data is stored in a CSMRData_t
+
+<PRE>
+typedef struct CSMachReadData_s CSMachReadData_t;
+</PRE>
+
+<H3>TargetChangeCallback</H3>
+
+As the label is parsed, it will call the assigned TargetChangeCallback as it
+passes from state to state.
+
+<PRE>
+typedef MachReadTargetCallback_t(CSMachRead_t * pCSMachRead, 
+				CSParse_t * pCSParse, 
+				CSMRTC_t target, BOOL closed, 
+				void * pVoid);
+</PRE>
+
+<H3>ErrorHandler</H3>
+
+All parsing error will be passed to the Apps MRErrorHandler for user display 
+or automatic dismissal.
+
+<PRE>
+typedef StateRet_t MRErrorHandler_t(CSMachRead_t * pCSMachRead, 
+				    CSParse_t * pCSParse, const char * token, 
+				    char demark, StateRet_t errorCode);
+</PRE>
+
+<H3>Construction/Destruction</H3>
+
+These methods allow the user to create and get access to both the description 
+and the state. CSMachReads may be cloned so that one saves state while another 
+continues to iterate or parse. The states must all be freed. description data
+will only be freed after all the CSMachReads that refer to it are deleted.
+
+<PRE>
+extern CSParse_t * CSParse_newMachReadState(void);
+extern BOOL CSParse_deleteMachReadState(CSParse_t *);
+extern CSMachRead_t * CSParse_getMachReadState(CSParse_t * me);
+extern char * CSMachRead_getSystem(CSMachRead_t * pCSMachRead);
+extern char * CSMachRead_getService(CSMachRead_t * pCSMachRead);
+
+
+</PRE>
+
+<H3>Iterating methods</H3>
+
+<H3>Callback function</H3>
+
+The Iterators are passed a callback function to be called for each matching 
+element. For instance, when iterating through ranges, the callback function is
+called once for each range, or, if a match is requested, only for the matching
+range.
+
+<PRE>
+
+
+typedef CSError_t CSMachRead_callback_t(CSMachRead_t *, 
+						   State_Parms_t *, 
+						   const char *, void * pVoid);
+typedef CSError_t CSMachRead_iterator_t(CSMachRead_t *, 
+						CSMachRead_callback_t *, 
+						State_Parms_t *, const char *, 
+						void * pVoid);
+
+extern CSMachRead_iterator_t CSMachRead_iterateCategories;
+extern CSMachRead_iterator_t CSMachRead_iterateLabels;
+</PRE>
+
+<PRE>
+#endif /* CSMR_H */
+</PRE>
+
+End of Declaration
+</BODY>
+</HTML>

@@ -1,0 +1,351 @@
+<HTML>
+<HEAD>
+<TITLE>PICS library utilities</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Feb-1996 -->
+<!-- Changed by: Eric Prud'hommeaux, 28-Mar-1996 -->
+<NEXTID N="z11">
+</HEAD>
+<BODY>
+
+<H1>PICS library utilities</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1996.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This module defines the PICS library interface. 
+<PRE>
+#ifndef CSLUTILS_H
+#define CSLUTILS_H
+</PRE>
+
+<PRE>
+#include "HTUtils.h"
+#include "HTList.h"
+</PRE>
+
+<H1>Primitave Data Structures</H1>
+
+<P>
+BVal_t, FVal_t, SVal_t, DVal_t - hold a boolean, float (not double),
+string, or date value (respectively).  These data structures are designed so
+that they may be initialized to all 0s (and hence included directly within  
+larger structures, rather than allocated and initialized individually).  You
+must, however, call their clear method to deallocate any additional memory  
+used to store the actual value once they have been initialized.  The
+following methods are defined on all four data types ("X" should be either
+"B" "F" "S" or "D", XType is "BOOL" "float" "char *" or "char *", 
+respectively):
+<UL>
+<LI>BOOL XVal_readVal(XVal_t, char *), etc. - convert the string to a value
+of the specified type.  Returns TRUE on success, FALSE on failure.  If
+successful, may allocate additional storage.
+<LI>BOOL XVal_initialized(XVal_t) - Returns TRUE if the value has been  
+initialized (hence contains a legitimate value and may have additional
+storage allocated internally), FALSE otherwise.
+<LI>XType XVal_value(XVal_t) -- Returns the value stored in the object.
+<LI>void XVal_clear(XVal_t) -- Mark the object as uninitialized and release 
+any memory associated with the value currently stored in the object.
+</UL>
+<P>
+<A NAME="BVal"><H2>BVal</H2></A>
+- Boolean value. 
+<H3>definition</H3>
+
+<PRE>
+typedef struct {
+    enum {BVal_UNINITIALIZED = 0,BVal_YES = 1, BVal_INITIALIZED = 2} state;
+    } BVal_t;
+
+extern BOOL BVal_readVal(BVal_t * pBVal, const char * valueStr);
+extern BOOL BVal_initialized(const BVal_t * pBVal);
+extern BOOL BVal_value(const BVal_t * pBVal);
+extern void BVal_clear(BVal_t * pBVal);
+</PRE>
+<H3>additional methods</H3>
+<UL>
+<LI>void set - assign value
+</UL>
+<PRE>
+extern void BVal_set(BVal_t * pBVal, BOOL value);
+</PRE>
+<A NAME="FVal"><H2>FVal</H2></A>
+- Float value with negative and positive infinity values
+<H3>definition</H3>
+
+<PRE>
+typedef struct {
+    float value;
+    enum {FVal_UNINITIALIZED = 0, FVal_VALUE = 1, FVal_NEGATIVE_INF = 2, 
+	  FVal_POSITIVE_INF = 3} stat;
+    } FVal_t;
+
+extern BOOL FVal_readVal(FVal_t * pFVal, const char * valueStr);
+extern BOOL FVal_initialized(const FVal_t * pFVal);
+extern float FVal_value(const FVal_t * pFVal);
+extern void FVal_clear(FVal_t * pFVal);
+</PRE>
+<H3>additional methods</H3>
+<UL>
+<LI>void set - assign a float value
+<LI>void setInfinite - set to negative or positive infinity
+<LI>BOOL isZero - see if value is zero
+<LI>int isInfinite - -1 or 1 for negative or positive infinity
+<LI>BOOL nearerZero - see if check is nearer zero than check
+<LI>FVal_t FVal_minus - subtract small from big
+<LI>char * FVal_toStr - convert to allocated CString, caller must free
+</UL>
+<PRE>
+extern void FVal_set(FVal_t * pFVal, float value);
+extern void FVal_setInfinite(FVal_t * pFVal, BOOL negative);
+extern BOOL FVal_isZero(const FVal_t * pFVal);
+extern int FVal_isInfinite(const FVal_t * pFVal);
+extern BOOL FVal_nearerZero(const FVal_t * pRef, const FVal_t * pCheck);
+extern FVal_t FVal_minus(const FVal_t * pBig, const FVal_t * pSmall);
+extern char * FVal_toStr(FVal_t * pFVal);
+</PRE>
+<H3>initializers</H3>
+FVal intializers may be used when creating an FVal<BR>
+eg. FVal_t localFVal = FVal_NEGATIVE_INF;
+<PRE>
+#define FVal_NEW_UNINITIALIZED {(float) 0.0, FVal_UNINITIALIZED}
+#define FVal_NEW_NEGATIVE_INF {(float) 0.0, FVal_NEGATIVE_INF}
+#define FVal_NEW_POSITIVE_INF {(float) 0.0, FVal_POSITIVE_INF}
+#define FVal_NEW_ZERO {(float) 0.0, FVal_VALUE}
+
+</PRE>
+<A NAME="SVal"><H2>SVal</H2></A>
+- String value. 
+<H3>definition</H3>
+
+<PRE>
+typedef struct {
+    char * value;
+    BOOL initialized;
+    } SVal_t;
+
+extern BOOL SVal_readVal(SVal_t * pSVal, const char * valueStr);
+extern BOOL SVal_initialized(const SVal_t * pSVal);
+extern char * SVal_value(const SVal_t * pSVal);
+extern void SVal_clear(SVal_t * pSVal);
+</PRE>
+<A NAME="DVal"><H2>DVal</H2></A>
+- Date value. 
+<H3>definition</H3>
+
+<PRE>
+typedef struct {
+    char * value; /* keep the string around for debugging and output */
+    BOOL initialized;
+    int year;
+    int month;
+    int day;
+    int hour;
+    int minute;
+    int timeZoneHours;
+    int timeZoneMinutes;
+    } DVal_t;
+
+extern BOOL DVal_readVal(DVal_t * pDVal, const char * valueStr);
+extern BOOL DVal_initialized(const DVal_t * pDVal);
+extern char * DVal_value(const DVal_t * pDVal);
+extern void DVal_clear(DVal_t * pDVal);
+</PRE>
+<H3>additional methods</H3>
+<UL>
+<LI>int compare - -1 or 1 for a before or after b, 0 for equivilence
+</UL>
+<PRE>
+extern int DVal_compare(const DVal_t * a, const DVal_t * b);
+</PRE>
+<A NAME="Range"><H2>Range</H2></A>
+- Range of FVals. 
+<H3>definition</H3>
+
+<PRE>
+typedef struct {
+    FVal_t min;
+    FVal_t max;
+    } Range_t;
+</PRE>
+<H3>methods</H3>
+<UL>
+<LI>rangeToStr - print range to malloced string. This string must be freed 
+by caller
+<LI>gap - find the difference between a and b
+</UL>
+
+<PRE>
+extern char * Range_toStr(Range_t * pRange);
+extern FVal_t Range_gap(Range_t * a, Range_t * b);
+</PRE>
+<H3>initializers</H3>
+
+<PRE>
+#define Range_NEW_UNINITIALIZED {FVal_NEW_UNINITIALIZED, \
+				 FVal_NEW_UNINITIALIZED}
+
+</PRE>
+<H1>Parser</H1>
+
+<H2>CSParse_parseChunk</H2>
+CSParse_t - ephemeral parser data, the 
+<A HREF="CSParse.html#CSParse">CSParse</A> structure is defined in
+<A HREF="CSParse.html">CSParse.html</A>.<BR>
+CSDoMore_t - tells caller whether parseChunk expects more or encountered an 
+error
+
+<PRE>
+typedef struct CSParse_s CSParse_t;
+typedef enum {CSDoMore_more, CSDoMore_done, CSDoMore_error} CSDoMore_t;
+extern CSDoMore_t CSParse_parseChunk (CSParse_t * pCSParse, const char * ptr, 
+				      int len, void * pVoid);
+</PRE>
+<H1>Parse callbacks</H1>
+During parsing, the parser makes callbacks to tell the caller that an error 
+has been encountered or that the parser is reading into a new data structure.
+
+<A NAME="CSParseTC"><H2>CSParseTC</H2></A>
+The TC, or TargetChange, type is a way of itemizing the different targets in
+a parsable object. It is used in the 
+<A HREF="#TargetChangeCallback">TargetChangeCallback</A>
+
+<PRE>
+typedef unsigned int CSParseTC_t;
+</PRE>
+<A NAME="StateRet"><H2>StateRet</H2></A>
+<PRE>
+typedef enum {StateRet_OK = 0, StateRet_DONE = 1, StateRet_WARN = 0x10, 
+	      StateRet_WARN_NO_MATCH = 0x11, StateRet_WARN_BAD_PUNCT = 0x12, 
+	      StateRet_ERROR = 0x100, StateRet_ERROR_BAD_CHAR = 0x101
+} StateRet_t;
+
+</PRE>
+
+<A NAME="TargetChangeCallback"><H2>TargetChangeCallback</H2></A>
+These callbacks keep the caller abreast of what type of object the parser is 
+currently reading. TargetChangeCallbacks are made whenever the parser starts 
+or finishes reading one of these objects. The actual values of targetChange, 
+and what objects they correlate to, can be found in the modules for the object 
+being parsed.
+<UL>
+<LI><A HREF="../src/CSLL.html#CSLLTC">CSLL.html</A> for PICS labels.
+<LI><A HREF="../src/CSMR.html#CSMRTC">CSMR.html</A> for machine-readable 
+service descriptions.
+<LI><A HREF="../src/CSUser.html#CSUserTC">CSUser.html</A> for PICS user 
+profiles.
+</UL>
+
+
+Example: When reading a CSLabel, the callback will be called 
+with pParseState = CSLLTC_SERVICE when reading a service, CSLLTC_LABEL when
+reading a label, etc.
+<PRE>
+typedef struct TargetObject_s TargetObject_t;
+typedef StateRet_t TargetChangeCallback_t(CSParse_t * pCSParse, 
+					 TargetObject_t * pParseState, 
+					 CSParseTC_t targetChange, BOOL closed,
+					 void * pVoid);
+</PRE>
+<A NAME="ParseErrorHandler"><H2>ParseErrorHandler</H2></A>
+
+<PRE>
+typedef StateRet_t ParseErrorHandler_t(CSParse_t * pCSParse, 
+				       const char * token, 
+				       char demark, StateRet_t errorCode);
+
+</PRE>
+<A NAME="CSList_acceptLabels"><H2>CSList_acceptLabels</H2></A>
+get a malloced HTTP Accept-Protocol string requesting PICS labels for all 
+services in pServiceList
+<PRE>
+typedef enum {CSCompleteness_minimal, CSCompleteness_short, 
+	      CSCompleteness_full, CSCompleteness_signed} CSCompleteness_t;
+extern char * CSList_acceptLabels(HTList * pServiceList, 
+				  CSCompleteness_t completeness);
+
+</PRE>
+<A NAME="CSList_getLabels"><H2>CSList_getLabels</H2></A>
+get a malloced HTTP GET string requesting PICS labels for all services 
+in pServiceList
+<PRE>
+typedef enum {CSOption_generic, CSOption_normal, CSOption_tree, 
+	      CSOption_genericTree} CSOption_t;
+extern char * CSList_getLabels(HTList * pServiceList, CSOption_t option, 
+			       CSCompleteness_t completeness);
+</PRE>
+<A NAME="CSList_postLabels"><H2>CSList_postLabels</H2></A>
+get a malloced HTTP GET string requesting PICS labels for all services 
+in pServiceList
+<PRE>
+extern char * CSList_postLabels(HTList * pServiceList, char * url, 
+				CSOption_t option, 
+				CSCompleteness_t completeness);
+</PRE>
+<H2>individual parsers</H2>
+<A NAME="CSLabel"><H2>CSLabel</H2></A>
+PICS label list
+<PRE>
+typedef struct CSLabel_s CSLabel_t;
+</PRE>
+
+<A NAME="CSUser"><H2>CSUser</H2></A>
+PICS user profile
+<PRE>
+typedef struct CSUser_s CSUser_t;
+</PRE>
+
+<A NAME="CSMachRead"><H2>CSMachRead</H2></A>
+PICS machine readable system description
+<PRE>
+typedef struct CSMachRead_s CSMachRead_t;
+</PRE>
+
+for reading label error codes
+<PRE>
+
+typedef enum {
+    labelError_NA = 0, 
+    labelError_NO_RATINGS, 
+    labelError_UNAVAILABLE, 
+    labelError_DENIED, 
+    labelError_NOT_LABELED,
+    labelError_UNKNOWN
+    } LabelErrorCode_t;
+
+</PRE>
+State_Parms - obsolete parameter exchange for iterators
+<PRE>
+typedef struct State_Parms_s State_Parms_t;
+
+typedef enum {
+    CSError_OK = 0, 
+    CSError_YES = 0, 
+    CSError_NO = 1, 
+    CSError_BUREAU_NONE, 
+    CSError_RATING_VALUE, 
+    CSError_RATING_RANGE, 
+    CSError_RATING_MISSING, 
+    CSError_SINGLELABEL_MISSING, 
+    CSError_LABEL_MISSING, 
+    CSError_SERVICE_MISSING, 
+    CSError_CATEGORY_MISSING, 
+    CSError_ENUM_MISSING, 
+    CSError_BAD_PARAM, 
+    CSError_BAD_DATE, 
+    CSError_SERVICE_NONE, 
+    CSError_RATING_NONE, 
+    CSError_APP
+    } CSError_t;
+</PRE>
+
+<PRE>
+#endif /* CSLUTILS_H */
+</PRE>
+
+End of Declaration
+</BODY>
+</HTML>

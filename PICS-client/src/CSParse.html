@@ -1,0 +1,287 @@
+<HTML>
+<HEAD>
+<TITLE>Parser for libpics</TITLE>
+<!-- Changed by: Eric Prud'hommeaux, 24-Mar-1996 -->
+<NEXTID N="z11">
+</HEAD>
+<BODY>
+
+<H1>Parser for libpics</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1996.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This module provides the interface to <A HREF="CSParse.c">CSParse.c</A>. 
+The parser is used to parse <A HREF="CSLL.html">labels</A>, 
+<A HREF="CSMR.html">machine-readable descriptions</A>, and 
+<A HREF="CSUser.html">users</A>. The application creates one of these and iteratevely calls CSParse_parseChunk until it returns a done or an error.
+
+
+<PRE>
+#ifndef CSPARSE_H
+#define CSPARSE_H
+#include "CSLUtils.h"
+#include "HTChunk.h"
+</PRE>
+
+<A NAME="NowIn"><H2>NowIn</H2></A>
+tells CSParse where it is in the task of tokenizing
+<PRE>
+typedef enum {
+    NowIn_INVALID = 0,
+    NowIn_NEEDOPEN,
+    NowIn_ENGINE,
+    NowIn_NEEDCLOSE,
+    NowIn_END,
+    NowIn_MATCHCLOSE,
+    NowIn_ERROR,
+    NowIn_CHAIN
+    } NowIn_t;
+</PRE>
+
+
+<H3>Construction/Destruction</H3>
+
+The parse objects are never created by the application, but instead by one of
+the objects that it is used to parse.
+
+<PRE>
+extern CSParse_t * CSParse_new(void);
+extern void CSParse_delete(CSParse_t * me);
+</PRE>
+
+<H3>some handy definitions</H3>
+
+<PRE>
+#define LPAREN '('
+#define RPAREN ')'
+#define LCURLY '{'
+#define RCURLY '}'
+#define LBRACKET '['
+#define RBRACKET ']'
+#define SQUOTE 0x27 /* avoid confusing parens checking editors */
+#define DQUOTE 0x22
+#define LPARENSTR "("
+#define RPARENSTR ")"
+#define raysize(A) (sizeof(A)/sizeof(A[0]))
+</PRE>
+
+<H1>subparser data</H1>
+<A NAME="Punct"><H2>Punct</H2></A>
+valid punctuation
+
+<PRE>
+typedef enum {Punct_ZERO = 1, Punct_WHITE = 2, Punct_LPAREN = 4, 
+	      Punct_RPAREN = 8, Punct_ALL = 0xf} Punct_t;
+</PRE>
+
+<A NAME="SubState"><H2>SubState</H2></A>
+Enumerated bits that are used to mark a parsing state. Because they are bits, 
+as opposed to sequential numbers, a <A HREF="#StateToken">StateToken</A> may
+or more than one together and serve more than one state. They must have 
+identical outcomes if this is to be exploited.
+<P>
+By convention, the following SubState names are used:
+<LI>X - has no state
+<LI>N - is a newly created object
+<LI>A-H - substate definitions. Because they are non-conflicting bits, a 
+subparser may have options that sit in more than state. For instance, the 
+string "error" may be matched in states A and C with:<P>
+{"error test", SubState_A|SubState_C, Punct_LPAREN, 0, "error"}
+
+*probs* I meant to keep these 16 bit caompatible, but ran up short at the end 
+of one StateToken list. This can be fixed if anyone needs a 16 bit enum.
+
+<PRE>
+typedef enum {SubState_X = -1, SubState_N = 0x100, SubState_A = 1, 
+	      SubState_B = 2, SubState_C = 4, SubState_D = 8, 
+	      SubState_E = 0x10, SubState_F = 0x20, SubState_G = 0x40, 
+	      SubState_H = 0x80} SubState_t;
+</PRE>
+
+forward declaration for StateToken_t
+
+<PRE>
+typedef struct StateToken_s StateToken_t;
+</PRE>
+
+<A NAME="Engine"><H2>Engine</H2></A>
+called by CSParse to process tokens and punctuation
+<PRE>
+typedef NowIn_t Engine_t(CSParse_t * pCSParse, char demark, void * pVoid);
+</PRE>
+
+Engine employed by the Label, MacRed, and User parsers
+<PRE>
+Engine_t CSParse_targetParser;
+</PRE>
+
+<H2>substate methods</H2>
+All methods return a <A HREF="CSLUtils.html#StateRet">StateRet</A>.
+
+<A NAME="Check"><H3>Check</H3></A>
+see if a value is legitimate, may also record it
+<PRE>
+typedef StateRet_t Check_t(CSParse_t * pCSParse, StateToken_t * pStateToken, 
+			   char * token, char demark);
+</PRE>
+
+Punctuation checker to be employed by Check_t functions
+<PRE>
+extern BOOL Punct_badDemark(Punct_t validPunctuation, char demark);
+</PRE>
+
+<A NAME="Open"><H3>Open</H3></A>
+create a new data structure to be filled by the parser
+<PRE>
+typedef StateRet_t Open_t(CSParse_t * pCSParse, char * token, char demark);
+</PRE>
+
+<A NAME="Close"><H3>Close</H3></A>
+tell the state that the data structure is no longer current
+<PRE>
+typedef StateRet_t Close_t(CSParse_t * pCSParse, char * token, char demark);
+</PRE>
+
+<A NAME="Prep"><H3>Prep</H3></A>
+get ready for next state
+<PRE>
+typedef StateRet_t Prep_t(CSParse_t * pCSParse, char * token, char demark);
+</PRE>
+
+<A NAME="Destroy"><H3>Destroy</H3></A>
+something went wrong, throw away the current object
+<PRE>
+typedef void Destroy_t(CSParse_t * pCSParse);
+</PRE>
+
+
+<A NAME="Command"><H2>Command</H2></A>
+substate commands
+
+<LI>open - call the open function for the current data structure
+<LI>close - call the close
+<LI>chain - call again on the next state without re-reading data
+<LI>notoken - clear the token before a chain (so next state just gets punct)
+<LI>matchany - match any string
+
+<PRE>
+typedef enum {Command_NONE = 0, Command_OPEN = 1, Command_CLOSE = 2, 
+	      Command_CHAIN = 4, Command_NOTOKEN = 8, 
+	      Command_MATCHANY = 0x10} Command_t;
+</PRE>
+
+<A NAME="StateToken"><H2>StateToken structure</H2></A>
+Contains all the information about what tokens are expected in what substates.
+The StateTokens are kept in array referenced by a TargetObject.
+
+<PRE>
+struct StateToken_s {
+    char * note;		/* some usefull text that describes the state - usefulll for debugging */
+    <A HREF="#SubState">SubState_t</A> validSubStates;
+    <A HREF="#Punct">Punct_t</A> validPunctuation;
+    <A HREF="#Check">Check_t</A> * pCheck;   /* call this function to check token */
+    char * name1;       /* or compare to this name */
+    char * name2;		/* many strings have 2 spellings ("ratings" vs. "r") */
+    <A HREF="CSLUtils.html#CSParseSC">CSParseTC_t</A> targetChange; /* whether target change implies diving or climbing from current state */
+    <A HREF="#TargetObject">TargetObject_t</A> * pNextParseState;
+    <A HREF="#SubState">SubState_t</A> nextSubState;
+    <A HREF="#Command">Command_t</A> command;	/* open, close, chain, etc. */
+    <A HREF="#Prep">Prep_t</A> * pPrep;		/* prepare for next state */
+    };
+</PRE>
+
+<A NAME="TargetObject"><H2>TargetObject structure</H2></A>
+Methods and a lists of StateTokens associated with a data structure. The
+methods know how to read data into current object and the StateTokens tell
+when to proceed to the next object.
+
+<PRE>
+struct TargetObject_s {
+    char * note;
+    <A HREF="#Open">Open_t</A> * pOpen;   /* call this function to open structure */
+    <A HREF="#Close">Close_t</A> * pClose;   /* call this function to close structure */
+    <A HREF="#Destroy">Destroy_t</A> * pDestroy;
+    <A HREF="#StateToken">StateToken_t</A> * stateTokens; /* array of sub states */
+    int stateTokenCount;        /* number of sub states */
+    <A HREF="CSLUtils.html#CSParseSC">CSParseTC_t</A> targetChange; /* target change signal for opening this parse state */
+    };
+</PRE>
+
+<A NAME="ValTarget"><H2>ValTarget</H2></A>
+
+<PRE>
+typedef union {
+    <A HREF="CSLUtils.html#BVal">BVal_t</A> * pTargetBVal;
+    <A HREF="CSLUtils.html#FVal">FVal_t</A> * pTargetFVal;
+    <A HREF="CSLUtils.html#SVal">SVal_t</A> * pTargetSVal;
+    <A HREF="CSLUtils.html#DVal">DVal_t</A> * pTargetDVal;
+    <A HREF="../../Library/src/HTList.html">HTList</A> ** pTargetList;
+    } ValTarget_t;
+</PRE>
+
+<A NAME="ValType"><H2>ValType</H2></A>
+Write down what value is to be read, and what type it is
+
+<PRE>
+typedef enum {ValType_NONE, ValType_BVAL, ValType_FVAL, 
+	      ValType_SVAL, ValType_DVAL, 
+	      ValType_COMMENT} ValType_t;
+</PRE>
+
+<A NAME="ParseContext"><H2>ParseContext</H2></A>
+Part of a CSParse. The boundry is a litte fuzzy. Maybe it should not exist.
+
+<PRE>
+typedef struct {
+    <A HREF="#Engine">Engine_t</A> * engineOf;
+    <A HREF="CSLUtils.html#TargetChangeCallback">TargetChangeCallback_t</A> * pTargetChangeCallback;
+    <A HREF="CSLUtils.html#ParseErrorHandler">ParseErrorHandler_t</A> * pParseErrorHandler;
+
+    /* for reading [BFSD]Val_t */
+    <A HREF="#ValTarget">ValTarget_t</A> valTarget;
+    <A HREF="#ValType">ValType_t</A> valType;
+
+    char * pTokenError;
+
+    BOOL observeQuotes;
+    BOOL observedQuotes;
+    char * legalChars;
+    int legalCharCount;
+    } ParseContext_t;
+</PRE>
+
+<A NAME="CSParse"><H2>CSParse structure</H2></A>
+Full parser state and pointer to the object that it is reading.
+
+<PRE>
+struct CSParse_s {
+    char quoteState;
+    <A HREF="#NowIn">NowIn_t</A> nowIn;
+    <A HREF="../../Library/src/HTChunk.html">HTChunk</A> * token;
+    char demark;
+    int offset;
+    int depth;
+    <A HREF="#ParseContext">ParseContext_t</A> * pParseContext;
+    union { /* all the types this parse engine fills */
+        <A HREF="CSLUtils.html#CSMachRead">CSMachRead_t</A> * pCSMachRead; /* defined in <A HREF="CSMacRed.c">CSMacRed.c</A> */
+        <A HREF="CSLUtils.html#CSLabel">CSLabel_t</A> * pCSLabel; /* defined in <A HREF="CSLabel.c">CSLabel.c</A> */
+        <A HREF="CSLUtils.html#CSUser">CSUser_t</A> * pCSUser; /* defined in <A HREF="CSUser.c">CSUser.c</A> */
+        } target;
+    <A HREF="#TargetObject">TargetObject_t</A> * pParseState;
+    <A HREF="#SubState">SubState_t</A> currentSubState;
+    <A HREF="#StateToken">StateToken_t</A> * pStateToken;
+    };
+</PRE>
+
+<PRE>
+#endif /* CSPARSE_H */
+</PRE>
+
+End of Declaration
+</BODY>
+</HTML>
