@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
-<TITLE>Anchor object for libwww</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 13-Aug-1995 -->
+<TITLE>Anchor object Manager</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 20-Aug-1995 -->
 </HEAD>
 <BODY>
 
@@ -80,11 +80,19 @@ Must be AFTER definition of HTAnchor:
 <PRE>
 typedef HTAtom HTLinkType;
 
+typedef enum _HTLinkResult
+{
+    HT_LINK_INVALID = -1,
+    HT_LINK_NONE = 0,
+    HT_LINK_ERROR,
+    HT_LINK_OK
+} HTLinkResult;
+
 typedef struct {
-    HTAnchor *	dest;		/* The anchor to which this leads */
-    HTLinkType *type;		/* Semantics of this link */
-    HTMethod	method;		/* Method for this link, for example PUT */
-    int		result;		/* Result of any attempt to get this link */
+    HTAnchor *		dest;		   /* The anchor to which this leads */
+    HTLinkType *	type;		           /* Semantics of this link */
+    HTMethod		method;		   /* Method for this link, e.g. PUT */
+    HTLinkResult	result;    /* Result of any attempt to get this link */
 } HTLink;
 </PRE>
 
@@ -244,9 +252,11 @@ extern BOOL HTAnchor_deleteAll	PARAMS((HTList * objects));
 </PRE>
 
 
-<A NAME="links"><H2>Manipulation of Links</H2></A>
+<A NAME="links"><H2>The Link Object</H2></A>
 
-We really should be using typed links all of us :-)
+Anchors are bound together using link objects. Each anchor can be the
+source or destination of zero, one, or more links from and to other
+anchors.
 
 <H3>Link this Anchor to another given one</H3>
 
@@ -261,18 +271,31 @@ extern BOOL HTAnchor_link	PARAMS((HTAnchor *	source,
 					HTMethod	method));
 </PRE>
 
-<H3>Find destination of Main Link</H3>
+<H3>Find the Link Object that Binds two Anchors</H3>
+
+If the destination anchor is a target of a link from the source anchor
+then return the link object, else NULL.
+
+<PRE>
+extern HTLink *HTAnchor_findLink PARAMS((HTAnchor *src, HTAnchor *dest));
+#define HTAnchor_findMainLink(me) ((me) ? &amp;((me)-&gt;mainLink) : NULL)
+</PRE>
+
+<H3>Find The Method of a Link</H3>
+
+The method used in a link can be PUT, or POST, for example
+
+<PRE>
+#define HTAnchor_linkMethod(me)	((me) ? (me)-&gt;method : METHOD_INVALID)
+</PRE>
+
+<H3>Find destination of a Link</H3>
 
 Find the anchor which is the main target of this anchor.
 
 <PRE>
 extern HTAnchor * HTAnchor_followMainLink	PARAMS((HTAnchor *me));
-</PRE>
-
-<H3>Find Method of Main Link</H3>
-
-<PRE>
-extern HTMethod HTAnchor_mainLinkMethod		PARAMS((HTAnchor *me));
+#define HTAnchor_linkDest(me) ((me) ? (me)-&gt;dest : NULL)
 </PRE>
 
 <H3>Find destination with given relationship</H3>
@@ -284,13 +307,16 @@ extern HTAnchor * HTAnchor_followTypedLink	PARAMS((HTAnchor *me,
 							HTLinkType *type));
 </PRE>
 
-<H3>Is this anchor a destination link?</H3>
+<H3>Result of a Link</H3>
 
-If the destination anchor is a link from the source anchor then return
-YES, else NO.
+When a link has been used for posting an object from a source to a
+destination link, the result of the operation is stored as part of the
+link information.
 
 <PRE>
-extern BOOL HTAnchor_isLink		PARAMS((HTAnchor *src, HTAnchor *dest));
+#define HTAnchor_linkResult(me)	((me) ? me-&gt;result : HT_LINK_INVALID)
+extern BOOL HTAnchor_setLinkResult	PARAMS((HTLink *	link,
+						HTLinkResult 	result));
 </PRE>
 
 <H3>Make a particular link the main link</H3>
@@ -309,10 +335,17 @@ information to the new anchor and change the link information in the
 old one to "redirect".
 
 <PRE>
-extern BOOL HTAnchor_moveLinks			PARAMS((HTAnchor *src,
-							HTAnchor *dest));
+extern BOOL HTAnchor_moveAllLinks PARAMS((HTAnchor *src, HTAnchor *dest));
 </PRE>
 
+<H3>Remove Link Information</H3>
+
+Delete link information between two or more anchors
+
+<PRE>
+extern BOOL HTAnchor_removeLink	PARAMS((HTAnchor *src, HTAnchor *dest));
+extern BOOL HTAnchor_removeAllLinks PARAMS((HTAnchor * me));
+</PRE>
 
 <H3>Move a child anchor to the head of the list of its siblings</H3>
 
@@ -320,7 +353,7 @@ This is to ensure that an anchor which might have already existed is
 put in the correct order as we load the document.
 
 <PRE>
-extern void HTAnchor_makeLastChild		PARAMS((HTChildAnchor *me));
+extern void HTAnchor_makeLastChild	PARAMS((HTChildAnchor *me));
 </PRE>
 
 <A NAME="access"><H2>Access Methods of an Anchor</H2></A>
@@ -509,6 +542,34 @@ extern void HTAnchor_appendMethods	PARAMS((HTParentAnchor *me,
 extern CONST char * HTAnchor_version	PARAMS((HTParentAnchor *me));
 extern void HTAnchor_setVersion		PARAMS((HTParentAnchor *me,
 						CONST char *	version));
+</PRE>
+
+<H3>Date</H3>
+
+Returns the date that was registered in the RFC822 header "Date"
+
+<PRE>
+#define HTAnchor_date(me)		((me) ? (me)-&gt;date : -1)
+extern void HTAnchor_setDate		PARAMS((HTParentAnchor	*me,
+						CONST time_t	*date));
+</PRE>
+
+<H3>Last Modified Date</H3>
+
+Returns the date that was registered in the RFC822 header "Last-Modified"
+
+<PRE>
+#define HTAnchor_lastModified(me)	((me) ? (me)-&gt;last_modified : -1)
+extern void HTAnchor_setLastModified	PARAMS((HTParentAnchor	*me,
+						CONST time_t	*lm));
+</PRE>
+
+<H3>Expires Date</H3>
+
+<PRE>
+#define HTAnchor_expires(me)		((me) ? (me)-&gt;expires : -1)
+extern void HTAnchor_setExpires		PARAMS((HTParentAnchor	*me,
+						CONST time_t	*expires));
 </PRE>
 
 <H3>Derived from</H3>

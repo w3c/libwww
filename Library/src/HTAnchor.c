@@ -51,6 +51,9 @@ PRIVATE HTParentAnchor * HTParentAnchor_new NOARGS
     newAnchor->parent = newAnchor;
     newAnchor->content_type = WWW_UNKNOWN;
     newAnchor->mainLink.method = METHOD_INVALID;
+    newAnchor->date = (time_t) -1;
+    newAnchor->expires = (time_t) -1;
+    newAnchor->last_modified = (time_t) -1;
     return newAnchor;
 }
 
@@ -241,6 +244,44 @@ PUBLIC BOOL HTAnchor_link ARGS4(HTAnchor *,	source,
 
 
 /*
+**  Find the anchor object between a destination and a source ancher.
+**  Return link object if any, else NULL
+*/
+PUBLIC HTLink *HTAnchor_findLink ARGS2(HTAnchor *, src, HTAnchor *, dest)
+{
+    if (src && dest) {
+	if (src->mainLink.dest == dest)
+	    return &(src->mainLink);
+	if (src->links) {
+	    HTList *cur = src->links;
+	    HTLink *pres;
+	    while ((pres = (HTLink *) HTList_nextObject(cur)) != NULL) {
+		if (pres->dest == dest)
+		    return pres;
+	    }
+	}
+    }
+    return NULL;
+}
+
+
+/*  HTAnchor_setLink
+**  ----------------
+**  When a link has been used for posting an object from a source to a
+**  destination link, the result of the operation is stored as part of the
+**  link information.
+*/
+PUBLIC BOOL HTAnchor_setLinkResult ARGS2(HTLink *,	link,
+					 HTLinkResult,	result)
+{
+    if (link) {
+	link->result = result;
+	return YES;
+    }
+    return NO;
+}
+
+/*
 **  Returns the main destination of this anchor
 */
 PUBLIC HTAnchor * HTAnchor_followMainLink ARGS1(HTAnchor *, me)
@@ -264,7 +305,7 @@ PUBLIC HTMethod HTAnchor_mainLinkMethod ARGS1(HTAnchor *, me)
 **  This is used in redirection etc.
 **  Returns YES if OK, else NO
 */
-PUBLIC BOOL HTAnchor_moveLinks ARGS2(HTAnchor *, src, HTAnchor *, dest)
+PUBLIC BOOL HTAnchor_moveAllLinks ARGS2(HTAnchor *, src, HTAnchor *, dest)
 {
     if (!src || !dest) return NO;
     if (ANCH_TRACE)
@@ -280,7 +321,7 @@ PUBLIC BOOL HTAnchor_moveLinks ARGS2(HTAnchor *, src, HTAnchor *, dest)
     src->mainLink.dest = NULL;
     src->mainLink.type = NULL;
     src->mainLink.method = METHOD_INVALID;
-    src->mainLink.result = HT_OK;
+    src->mainLink.result = HT_LINK_INVALID;
 
     /* Move link information for other links */
     if (dest->links) {
@@ -295,6 +336,69 @@ PUBLIC BOOL HTAnchor_moveLinks ARGS2(HTAnchor *, src, HTAnchor *, dest)
     return YES;
 }
 
+
+/*
+**  Removes all link information from one anchor to another.
+**  Returns YES if OK, else NO
+*/
+PUBLIC BOOL HTAnchor_removeLink ARGS2(HTAnchor *, src, HTAnchor *, dest)
+{
+    if (!src || !dest) return NO;
+    if (ANCH_TRACE)
+	fprintf(TDEST, "Remove Link. from anchor %p to anchor %p\n",
+		(void *) src, (void *) dest);
+
+    /* Remove if dest is the main link */
+    if (src->mainLink.dest == dest) {
+	src->mainLink.dest = NULL;
+	src->mainLink.type = NULL;
+	src->mainLink.method = METHOD_INVALID;
+	src->mainLink.result = HT_LINK_INVALID;
+	return YES;
+    }
+
+    /* Remove link information for other links */
+    if (dest->links) {
+	HTList *cur = dest->links;
+	HTLink *pres;
+	while ((pres = (HTLink *) HTList_nextObject(cur))) {
+	    if (pres->dest == dest) {
+		HTList_removeObject(dest->links, pres);
+		free(pres);
+		return YES;
+	    }
+	}
+    }
+    return NO;
+}
+
+/*
+**  Removes all link information
+**  Returns YES if OK, else NO
+*/
+PUBLIC BOOL HTAnchor_removeAllLinks ARGS1(HTAnchor *, me)
+{
+    if (!me) return NO;
+    if (ANCH_TRACE)
+	fprintf(TDEST, "Remove Link. from anchor %p\n", (void *) me);
+
+    /* Remove if dest is the main link */
+    me->mainLink.dest = NULL;
+    me->mainLink.type = NULL;
+    me->mainLink.method = METHOD_INVALID;
+    me->mainLink.result = HT_LINK_INVALID;
+
+    /* Remove link information for other links */
+    if (me->links) {
+	HTList *cur = me->links;
+	HTLink *pres;
+	while ((pres = (HTLink *) HTList_nextObject(cur)))
+	    free(pres);
+	HTList_delete(me->links);
+	me->links = NULL;
+    }
+    return YES;
+}
 
 /*
 **  Returns a link with a given link type or NULL if nothing found
@@ -312,28 +416,6 @@ PUBLIC HTAnchor * HTAnchor_followTypedLink ARGS2(HTAnchor *, me,
 		return link->dest;
     }
     return NULL;		/* No link of me type */
-}
-
-
-/*
-**  Is this anchor a destination link of the source anchor?
-**  Return YES if so, else NO
-*/
-PUBLIC BOOL HTAnchor_isLink ARGS2(HTAnchor *, src, HTAnchor *, dest)
-{
-    if (src && dest) {
-	if (src->mainLink.dest == dest)
-	    return YES;
-	if (src->links) {
-	    HTList *cur = src->links;
-	    HTLink *pres;
-	    while ((pres = (HTLink *) HTList_nextObject(cur)) != NULL) {
-		if (pres->dest == dest)
-		    return YES;
-	    }
-	}
-    }
-    return NO;
 }
 
 
@@ -827,6 +909,33 @@ PUBLIC void HTAnchor_setDerived ARGS2(HTParentAnchor *, me,
 }
 
 /*
+**	Date
+*/
+PUBLIC void HTAnchor_setDate ARGS2(HTParentAnchor *, me,
+				   CONST time_t *, date)
+{
+    if (me) me->date = *date;
+}
+
+/*
+**	Expires
+*/
+PUBLIC void HTAnchor_setExpires ARGS2(HTParentAnchor *, me,
+				      CONST time_t *, expires)
+{
+    if (me) me->expires = *expires;
+}
+
+/*
+**	Last Modified
+*/
+PUBLIC void HTAnchor_setLastModofied ARGS2(HTParentAnchor *, me,
+					   CONST time_t *, lm)
+{
+    if (me) me->last_modified = *lm;
+}
+
+/*
 **	Extra Header List of unknown headers
 */
 PUBLIC HTList * HTAnchor_Extra ARGS1 (HTParentAnchor *, me)
@@ -881,9 +990,9 @@ PUBLIC void HTAnchor_clearHeader ARGS1(HTParentAnchor *, me)
     me->charset = NULL;
     me->level = NULL;
     
-    me->date = (time_t) 0;
-    me->expires = (time_t) 0;
-    me->last_modified = (time_t) 0;
+    me->date = (time_t) -1;
+    me->expires = (time_t) -1;
+    me->last_modified = (time_t) -1;
     
     FREE(me->derived_from);
     FREE(me->version);

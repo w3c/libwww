@@ -303,9 +303,8 @@ int LibraryCallback( SOCKET s, HTRequest * rq, SockOps f)
     if (status != HT_WOULD_BLOCK) {   /* completed - good or bad... */
         if (THD_TRACE) 
             fprintf(TDEST, "LibCallBack. Calling Terminate...\n");
-
-        HTLoadTerminate( rq, status ) ;
 	if (status != HT_OK) {
+	    HTLoadTerminate(rq, status);
 	    state = HTEventRequestTerminate( rq, status) ;
 	    /* if the state isn't EVENT_QUIT */
 	    if (! HTEventCheckState( rq, state ))

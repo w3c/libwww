@@ -206,14 +206,11 @@ PUBLIC HText *	HText_new2 ARGS2(
     return me;
 }
 
-
-/*	Free Entire Text
-**	----------------
+/*	free a hyperdoc object
+**	---------------------
 */
-PUBLIC void 	HText_free ARGS1(HText *,self)
+PUBLIC void hyperfree ARGS1(HText *, self)
 {
-    HTAnchor_setDocument(self->node_anchor, (HyperDoc *)0);
-    
     while(YES) {		/* Free off line array */
         HTLine * l = self->last_line;
 	l->next->prev = l->prev;
@@ -231,6 +228,16 @@ PUBLIC void 	HText_free ARGS1(HText *,self)
     free(self);
     if (self == HTMainText)                       	  /* Henrik 24/02-94 */
 	HTMainText = NULL;
+}
+
+
+/*	Free Entire Text
+**	----------------
+*/
+PUBLIC void 	HText_free ARGS1(HText *,self)
+{
+    HTAnchor_setDocument(self->node_anchor, (HyperDoc *)0);
+    hyperfree(self);
 }
 
 

@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>The Generic Stream Class Definition</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 16-Aug-1995 -->
 </HEAD>
 <BODY>
 
@@ -27,17 +28,18 @@ This module is a part of the <A
 HREF="http://www.w3.org/hypertext/WWW/Library/">
 W3C Reference Library</A>.
 
-<B>NOTE: </B>The <CODE>put_block</CODE> method was <CODE>write</CODE>,
-but this upset systems which had macros for <CODE>write()</CODE><P>
-
 <B>NOTE: </B>All methods in the stream definition do now return an
 integer. The general return codes from the methods are:
 
 <UL>
-<LI>Would Block: HT_WOULD_BLOCK
-<LI>Interrupted: HT_INTERRUPTED
-<LI>Error      : HT_ERROR
-<LI>OK         : HT_OK
+<LI><B>HT_WOULD_BLOCK</B>
+<LI><B>HT_INTERRUPTED</B>
+<LI><B>HT_ERROR</B>
+<LI><B>HT_OK</B>
+<LI><B>&gt;0</B> - any return greater than 0 will result in that the
+return code will be parsed on from the <A
+HREF="HTSocket.html#Read">HTSocketRead</A>. This can be used by
+inidividual stream to introduce their own return codes.
 </UL>
 
 As streams now have a return value, it is <B>very</B> important that

@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Log Manager</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 19-Aug-1995 -->
 <NEXTID N="z1">
 </HEAD>
 <BODY>
@@ -34,7 +35,8 @@ Open the log file and start doing log. The time used in the log file
 is either GMT or local dependent on <CODE>local</CODE>.
 
 <PRE>
-extern BOOL HTLog_enable	PARAMS((CONST char * filename, BOOL local));
+extern BOOL HTLog_enable	PARAMS((CONST char * filename, BOOL local,
+					BOOL append));
 </PRE>
 
 <H2>Disable the log</H2>
@@ -50,7 +52,7 @@ extern BOOL HTLog_disable NOPARAMS;
 This functions logs the result of a request.
 
 <PRE>
-extern BOOL HTLog_request	PARAMS((HTRequest * request));
+extern BOOL HTLog_request	PARAMS((HTRequest * request, int status));
 
 #endif
 </PRE>

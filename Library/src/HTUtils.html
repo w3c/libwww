@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
-<TITLE>Utility macros for the W3 code library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  9-Aug-1995 -->
+<TITLE>Utility macros</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 16-Aug-1995 -->
 </HEAD>
 <BODY>
 
@@ -286,25 +286,38 @@ typedef char	BOOLEAN;				    /* Logical value */
 			/* That one was for decnet */
 </PRE>
 
-<A NAME="ReturnCodes"><H2>Return Codes for Protocol Modules</H2></A>
+<A NAME="ReturnCodes"><H2>Return Codes for Protocol Modules and Streams</H2></A>
 
-Theese are the codes returned from the protocol modules. Success (&gt;=0) and
-failure (&lt;0) codes
+Theese are the codes returned from the protocol modules, and the
+stream modules. Success are (&gt;=0) and failure are (&lt;0)
+
 <PRE>
 #define HT_OK			0	/* Generic success */
-#define HT_LOADED		29999	/* Instead of a socket */
+#define HT_NO_DATA		29997	/* OK but no data was loaded */
 #define HT_REDIRECTION_ON_FLY   29998	/* Redo the retrieve with a new URL */
+#define HT_LOADED		29999	/* Instead of a socket */
 
 #define HT_ERROR		-1	/* Generic failure */
 #define HT_NO_ACCESS		-10	/* Access not available */
 #define HT_FORBIDDEN		-11	/* Access forbidden */
 #define HT_INTERNAL		-12	/* Weird -- should never happen. */
-#define HT_NO_DATA		-9999	/* OK but no data was loaded */
-					/* Typically, other app started */
-#define HT_RETRY		-29996	/* if service isn't available */
+
+#define HT_RETRY		-29996	/* If service isn't available */
 #define HT_WOULD_BLOCK		-29997  /* If we are in a select */
 #define HT_INTERRUPTED 		-29998	/* Note the negative value! */
+</PRE>
 
+The following codes are positive values that will be parsed back
+through streams. This can be used to introduce stream specific return
+values
+
+<PRE>
+#define HT_RELOAD		29996	/* If we must reload the document */
+</PRE>
+
+<H2>Other stuff</H2>
+
+<PRE>
 #ifdef _STANDARD_CODE_
 #include &lt;stdarg.h&gt;
 #else

@@ -1151,7 +1151,7 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 	
 	/* We have 4 situations: single OK, Pb and multi OK, pb */
 	if (net->addressCount >= 1) {
-	    net->connecttime = time((long *)0) - net->connecttime;
+	    net->connecttime = time(NULL) - net->connecttime;
 	    if (status < 0) {					 /* multi PB */
 		if (socerrno == EISCONN) { /* connect multi after would block*/
 		    HTThreadState(net->sockfd, THD_CLR_CONNECT);

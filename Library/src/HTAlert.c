@@ -23,12 +23,12 @@ PRIVATE BOOL HTInteractive=YES;		    /* Any prompts from the Library? */
 
 /* ------------------------------------------------------------------------- */
 
-PUBLIC void HTPrompt_setInterative ARGS1(BOOL, interative)
+PUBLIC void HTPrompt_setInteractive ARGS1(BOOL, interactive)
 {
     HTInteractive = interactive;
 }
 
-PUBLIC void HTPrompt_interative NOARGS
+PUBLIC BOOL HTPrompt_interactive NOARGS
 {
     return HTInteractive;
 }
@@ -256,8 +256,8 @@ PUBLIC void HTErrorMsg ARGS1(HTRequest *, request)
     }
     HTChunkPutc(chunk,  '\n');
     HTChunkTerminate(chunk);
-    if (chunk->size > 2)
-	HTAlert(chunk->data);
+    if (HTChunkSize(chunk) > 2)
+	HTAlert(HTChunkData(chunk));
     HTChunkFree(chunk);
     return;
 }

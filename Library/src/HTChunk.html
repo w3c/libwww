@@ -1,10 +1,11 @@
 <HTML>
 <HEAD>
-<TITLE>HTChunk: Flexible array handling for libwww</TITLE>
+<TITLE>Dynamic Array Class</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 19-Aug-1995 -->
 </HEAD>
 <BODY>
 
-<H1>Chunk handling: Flexible arrays</H1>
+<H1>Dynamic Array Class</H1>
 
 <PRE>
 /*
@@ -33,159 +34,106 @@ W3C Reference Library</A>.
 
 </PRE>
 
-<PRE>typedef struct {
+<H2>Private Data Structure</H2>
+
+This structure should not be referenced outside this module
+
+<PRE>
+typedef struct {
 	int	size;		/* In bytes			*/
 	int	growby;		/* Allocation unit in bytes	*/
 	int	allocated;	/* Current size of *data	*/
 	char *	data;		/* Pointer to malloced area or 0 */
 } HTChunk;
-
 </PRE>
-<H2>Create new chunk</H2>
-<H3>On entry,</H3>
-<DL>
-<DT>growby
-<DD> The number of bytes to allocate
-at a time when the chunk is later
-extended. Arbitrary but normally
-a trade-off time vs. memory
-</DL>
 
-<H3>On exit,</H3>
-<DL>
-<DT>returns
-<DD> A chunk pointer to the new
-chunk,
-</DL>
+<H2>Create new chunk</H2>
+
+Create a new chunk and specify the number of bytes to allocate at a
+time when the chunk is later extended. Arbitrary but normally a
+trade-off time vs. memory
 
 <PRE>
 extern HTChunk * HTChunkCreate PARAMS((int growby));
-
-
 </PRE>
-<H2>Free a chunk</H2>
-<H3>On entry,</H3>
-<DL>
-<DT>ch
-<DD> A valid chunk pointer made by
-HTChunkCreate()
-</DL>
 
-<H3>On exit,</H3>
-<DL>
-<DT>ch
-<DD> is invalid and may not be used.
-</DL>
+<H2>Free a chunk</H2>
+
+Free a chunk created by <CODE>HTChunkCreate</CODE>from memory
 
 <PRE>
 extern void HTChunkFree PARAMS((HTChunk * ch));
-
-
 </PRE>
-<H2>Clear a chunk</H2>
-<H3>On entry,</H3>
-<DL>
-<DT>ch
-<DD> A valid chunk pointer made by
-HTChunkCreate()
-</DL>
 
-<H3>On exit,</H3>
-<DL>
-<DT>*ch
-<DD> The size of the chunk is zero.
-</DL>
+<H2>Clear a chunk</H2>
+
+Keep the chunk in memory but clear all data kept inside.
 
 <PRE>
 extern void HTChunkClear PARAMS((HTChunk * ch));
-
-
 </PRE>
-<H2>Ensure a chunk has a certain space
-in</H2>
-<H3>On entry,</H3>
-<DL>
-<DT>ch
-<DD> A valid chunk pointer made by
-HTChunkCreate()
-<DT>s
-<DD> The size required
-</DL>
 
-<H3>On exit,</H3>
-<DL>
-<DT>*ch
-<DD> Has size at least s
-</DL>
+<H2>Ensure a chunk has a certain space in</H2>
+
+Make sure that a chunk has a certain size. If this is not the case
+then the chunk is expanded. Nothing is done if the current size if
+bigger than the size requested.
 
 <PRE>
 extern void HTChunkEnsure PARAMS((HTChunk * ch, int s));
-
-
 </PRE>
-<H2>Append a character to a  chunk</H2>
-<H3>On entry,</H3>
-<DL>
-<DT>ch
-<DD> A valid chunk pointer made by
-HTChunkCreate()
-<DT>c
-<DD> The character to be appended
-</DL>
 
-<H3>On exit,</H3>
-<DL>
-<DT>*ch
-<DD> Is one character bigger
-</DL>
+<H2>Append a character to a chunk</H2>
 
-<PRE>extern void HTChunkPutc PARAMS((HTChunk * ch, char c));
+Add the character and increment the size of the chunk by one character
 
+<PRE>
+extern void HTChunkPutc PARAMS((HTChunk * ch, char c));
 </PRE>
+
 <H2>Append a string to a  chunk</H2>
-<H3>On entry,</H3>
-<DL>
-<DT>ch
-<DD> A valid chunk pointer made by
-HTChunkCreate()
-<DT>str
-<DD> Tpoints to a zero-terminated
-string to be appended
-</DL>
 
-<H3>On exit,</H3>
-<DL>
-<DT>*ch
-<DD> Is bigger by strlen(str)
-</DL>
+Add the string and increment the size of the chunk by the length of
+the string (without the trailing zero)
 
 <PRE>
-
 extern void HTChunkPuts PARAMS((HTChunk * ch, const char *str));
-
-
 </PRE>
-<A NAME="Terminate"><H2>Append a zero character to a  chunk</H2></A>
-<PRE>
-</PRE>
-<H3>On entry,</H3>
-<DL>
-<DT>ch
-<DD> A valid chunk pointer made by
-HTChunkCreate()
-</DL>
 
-<H3>On exit,</H3>
-<DL>
-<DT>*ch
-<DD> Is one character bigger
-</DL>
+<A NAME="Terminate"><H2>Zero Terminate a chunk</H2></A>
+
+As a chunk often is a dynamic string, it needs to be terminated by a
+zero in order to be used in C. However, <B>by default</B> any chunk
+<EM>is</EM> always zero terminated, so the only purpose of this
+function is to increment the size counter with one corresponding to
+the zero.
 
 <PRE>
-
 extern void HTChunkTerminate PARAMS((HTChunk * ch));
+</PRE>
 
+<H2>Return Pointer to Data</H2>
+
+This define converts a chunk to a normal char pointer so that it can
+be parsed to any ANSI C string function.
+
+<PRE>
+#define HTChunkData(me)		((me) ? (me)-&gt;data : NULL)
+</PRE>
+
+<H2>Return Current Size</H2>
+
+Returns the current size of the chunk
+
+<PRE>
+#define HTChunkSize(me)		((me) ? (me)-&gt;size : -1)
+</PRE>
+
+<PRE>
 #endif
+</PRE>
 
-</PRE>end</A></BODY>
+End of Declaration
+
+</BODY>
 </HTML>

@@ -391,7 +391,7 @@ PUBLIC int HTEvent_UnregisterAll( void )
 
     /* begin */
     if (THD_TRACE)
-	fprintf(stderr, "Unregister.. all sockets\n");
+	fprintf(TDEST, "Unregister.. all sockets\n");
 
     for (i = 0 ; i < PRIME_TABLE_SIZE; i++) {
 	if (table[i] != 0) { 
@@ -661,7 +661,7 @@ PRIVATE int __DoCallBack( SOCKET s, SockOps ops)
 
     if (cbf == 0)  	/* although it makes no sense, callbacks can be null*/
 	return 0;
-    if (rqp->net_info)
+    if (rqp && rqp->net_info)
 	rqp->net_info->action = (ops & ReadBits) ? SOC_READ : (ops & WriteBits) ? SOC_WRITE : 0;
     status = cbf( s, rqp, ops);
     if (status == HT_OK)

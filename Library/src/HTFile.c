@@ -633,6 +633,12 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 	    FileCleanup(request, NO);
 	    if (HTRequest_isPostWeb(request)) {
 		BOOL main = HTRequest_isMainDestination(request);
+		if (HTRequest_isDestination(request)) {
+		    HTLink *link =
+			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+					  (HTAnchor *) request->anchor);
+		    HTAnchor_setLinkResult(link, HT_LINK_OK);
+		}
 		HTRequest_removeDestination(request);
 		return main ? HT_LOADED : HT_OK;
 	    }
@@ -643,6 +649,12 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 	    FileCleanup(request, NO);
 	    if (HTRequest_isPostWeb(request)) {
 		BOOL main = HTRequest_isMainDestination(request);
+		if (HTRequest_isDestination(request)) {
+		    HTLink *link =
+			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+					  (HTAnchor *) request->anchor);
+		    HTAnchor_setLinkResult(link, HT_LINK_OK);
+		}
 		HTRequest_removeDestination(request);
 		return main ? HT_NO_DATA : HT_OK;
 	    }
@@ -650,31 +662,39 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 	    break;
 
 	  case FS_FILE_RETRY:
-	    if (HTRequest_isPostWeb(request))
-		HTRequest_killPostWeb(request);
-	    else
-		FileCleanup(request, YES);
 	    if (HTRequest_isPostWeb(request)) {
 		BOOL main = HTRequest_isMainDestination(request);
+		HTRequest_killPostWeb(request);
+		if (HTRequest_isDestination(request)) {
+		    HTLink *link =
+			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+					  (HTAnchor *) request->anchor);
+		    HTAnchor_setLinkResult(link, HT_LINK_ERROR);
+		}
 		HTRequest_removeDestination(request);
 		return main ? HT_RETRY : HT_OK;
-	    }
+	    } else
+		FileCleanup(request, YES);
 	    return HT_RETRY;
 	    break;
 
 	  case FS_FILE_ERROR:
 	    /* Clean up the other connections or just this one */
 	    if (HTRequest_isPostWeb(request)) {
+		BOOL main = HTRequest_isMainDestination(request);
 		if (file->sockfd == INVSOC)
 		    FileCleanup(request, YES);         /* If no valid socket */
 		HTRequest_killPostWeb(request);
-	    } else
-		FileCleanup(request, YES);
-	    if (HTRequest_isPostWeb(request)) {
-		BOOL main = HTRequest_isMainDestination(request);
+		if (HTRequest_isDestination(request)) {
+		    HTLink *link =
+			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+					  (HTAnchor *) request->anchor);
+		    HTAnchor_setLinkResult(link, HT_LINK_ERROR);
+		}
 		HTRequest_removeDestination(request);
 		return main ? HT_ERROR : HT_OK;
-	    }
+	    } else
+		FileCleanup(request, YES);
 	    return HT_ERROR;
 	    break;
 	}

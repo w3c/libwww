@@ -14,12 +14,9 @@
 #include "HTFormat.h"			/* defines INPUT_BUFFER_SIZE */
 #include "HTXParse.h"                 /* defines HTStreamClass */
 #include "HTEPtoCl.h"               /* defines dummy routine for talking to client */
+#include "HTEvntrg.h"
 
-#if 0
-/*extern void  (*HTCallClient)(HTExtParseStruct *eps);*/
-#endif
-
-extern CallClient HTCallClient;
+extern HTEventState HTCallClient PARAMS((struct _HTExtParseStruct *me));
 
 struct _HTStream {
 	CONST HTStreamClass *	isa;
@@ -139,7 +136,8 @@ PUBLIC HTStream* HTExtParse ARGS5(
     me->eps = (HTExtParseStruct *) calloc(1, sizeof(HTExtParseStruct));
     if (me->eps == NULL) outofmem(__FILE__, "HTExtConvert");
 
-    me->eps->content_type = input_format->name;
+    if (input_format)
+        me->eps->content_type = input_format->name;
     me->eps->call_client = HTCallClient;
     me->eps->buffer = (char *)calloc(INPUT_BUFFER_SIZE,1);
     me->eps->used = 0;

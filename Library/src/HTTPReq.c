@@ -211,7 +211,14 @@ PRIVATE void HTTPMakeRequest ARGS2(HTStream *, me, HTRequest *, request)
 	    HTChunkPuts(header, linebuf);
 	}
     }
-    if (request->RequestMask & HT_PRAGMA) {
+    if (request->RequestMask & HT_IMS) {
+	if (entity->last_modified != -1) {
+	    sprintf(linebuf, "If-Modified-Since: %s%c%c",
+		    HTDateTimeStr(&entity->last_modified, NO), CR,LF);
+	    HTChunkPuts(header, linebuf);
+	}
+    }
+    if (request->RequestMask & HT_NO_CACHE) {
 	sprintf(linebuf, "Pragma: %s%c%c", "no-cache", CR, LF);
 	HTChunkPuts(header, linebuf);
     }
@@ -290,11 +297,19 @@ PRIVATE void HTTPMakeRequest ARGS2(HTStream *, me, HTRequest *, request)
 		    CR, LF);
 	    HTChunkPuts(header, linebuf);
 	}
-	if (request->EntityMask & HT_EXPIRES) {		/* @@@@@@@@@@ */
-
+	if (request->EntityMask & HT_EXPIRES) {
+	    if (entity->expires != -1) {
+		sprintf(linebuf, "Expires: %s%c%c",
+			HTDateTimeStr(&entity->expires, NO), CR,LF);
+		HTChunkPuts(header, linebuf);
+	    }
 	}
-	if (request->EntityMask & HT_LAST_MODIFIED) {	/* @@@@@@@@@@ */
-
+	if (request->EntityMask & HT_LAST_MODIFIED) {
+	    if (entity->last_modified != -1) {
+		sprintf(linebuf, "Last-Modified: %s%c%c",
+			HTDateTimeStr(&entity->last_modified, NO), CR,LF);
+		HTChunkPuts(header, linebuf);
+	    }
 	}
 	if (request->EntityMask & HT_LINK) {		/* @@@@@@@@@@ */
 

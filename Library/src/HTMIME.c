@@ -22,6 +22,8 @@
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTFormat.h"
+#include "HTCache.h"
+#include "HTAlert.h"
 #include "HTChunk.h"
 #include "HTMethod.h"
 #include "HTSocket.h"
@@ -80,8 +82,8 @@ struct _HTStream {
 **	syntax errors.  It ignores field names it does not understand,
 **	and resynchronises on line beginnings.
 */
-PRIVATE void parseheader ARGS3(HTStream *, me, HTRequest *, request,
-			       HTParentAnchor *, anchor)
+PRIVATE int parseheader ARGS3(HTStream *, me, HTRequest *, request,
+			      HTParentAnchor *, anchor)
 {
     MIME_state state = BEGINNING_OF_LINE;
     MIME_state ok_state;			  /* got this state if match */
@@ -90,9 +92,8 @@ PRIVATE void parseheader ARGS3(HTStream *, me, HTRequest *, request,
     char *header = ptr;      				  /* For diagnostics */
     CONST char * check_pointer;				   /* checking input */
     char *value;
-    me->transparent = YES;		  /* Pump rest of data right through */
-    if (!me->buffer->data)			       /* No header to parse */
-	return;
+
+    /* In case we get an empty header consisting of a CRLF, we fall thru */
     while (ptr < stop) {
 	switch (state) {
 	  case BEGINNING_OF_LINE:
@@ -449,6 +450,32 @@ PRIVATE void parseheader ARGS3(HTStream *, me, HTRequest *, request,
 	}
     }
 
+    /*
+    ** If coming from cache then check if the document has expired. We can
+    ** either ignore this or attempt a reload
+    */
+    {
+	char *msg;
+	HTExpiresMode expire_mode = HTAccess_expiresMode(&msg);
+	if (expire_mode != HT_EXPIRES_IGNORE) {
+	    time_t cur = time(NULL);
+	    if (anchor->expires>0 && cur>0 && anchor->expires<cur) {
+		if (expire_mode == HT_EXPIRES_NOTIFY)
+		    HTAlert(msg);
+		else if (request->reloads < HTAccess_maxReload()-1) {
+		    if (PROT_TRACE)
+			fprintf(TDEST, "MIMEParser.. Expired - auto reload\n");
+		    if (anchor->cacheHit) {
+			request->RequestMask |= HT_IMS;
+			request->reload = HT_FORCE_RELOAD;
+			anchor->cacheHit = NO;	       /* Don't want to loop */
+		    }
+		    return HT_RELOAD;
+		}
+	    }
+	}
+    }
+
     if (STREAM_TRACE)
 	fprintf(TDEST, "MIMEParser.. Media type %s is converted to %s\n",
 		HTAtom_name(anchor->content_type),
@@ -461,6 +488,8 @@ PRIVATE void parseheader ARGS3(HTStream *, me, HTRequest *, request,
 	me->target = HTBlackHole();
     }
     anchor->header_parsed = YES;
+    me->transparent = YES;		  /* Pump rest of data right through */
+    return HT_OK;
 }
 
 
@@ -472,9 +501,11 @@ PRIVATE int HTMIME_put_block ARGS3(HTStream *, me, CONST char *, b, int, l)
 {
     while (!me->transparent && l-- > 0) {
 	if (me->EOLstate == EOL_FCR) {
-	    if (*b == CR)				    /* End of header */
-		parseheader(me, me->request, me->request->anchor);
-	    else if (*b == LF)				   	     /* CRLF */
+	    if (*b == CR) {				    /* End of header */
+		int status = parseheader(me, me->request, me->request->anchor);
+		if (status != HT_OK)
+		    return status;
+	    } else if (*b == LF)			   	     /* CRLF */
 		me->EOLstate = EOL_FLF;
 	    else if (WHITE(*b)) {			   /* Folding: CR SP */
 		me->EOLstate = EOL_BEGIN;
@@ -487,9 +518,11 @@ PRIVATE int HTMIME_put_block ARGS3(HTStream *, me, CONST char *, b, int, l)
 	} else if (me->EOLstate == EOL_FLF) {
 	    if (*b == CR)				/* LF CR or CR LF CR */
 		me->EOLstate = EOL_SCR;
-	    else if (*b == LF)				    /* End of header */
-		parseheader(me, me->request, me->request->anchor);
-	    else if (WHITE(*b)) {	       /* Folding: LF SP or CR LF SP */
+	    else if (*b == LF) {			    /* End of header */
+		int status = parseheader(me, me->request, me->request->anchor);
+		if (status != HT_OK)
+		    return status;
+	    } else if (WHITE(*b)) {	       /* Folding: LF SP or CR LF SP */
 		me->EOLstate = EOL_BEGIN;
 		HTChunkPutc(me->buffer, ' ');
 	    } else {						/* New line */
@@ -498,9 +531,11 @@ PRIVATE int HTMIME_put_block ARGS3(HTStream *, me, CONST char *, b, int, l)
 		HTChunkPutc(me->buffer, *b);
 	    }
 	} else if (me->EOLstate == EOL_SCR) {
-	    if (*b==CR || *b==LF)			    /* End of header */
-		parseheader(me, me->request, me->request->anchor);
-	    else if (WHITE(*b)) {	 /* Folding: LF CR SP or CR LF CR SP */
+	    if (*b==CR || *b==LF) {			    /* End of header */
+		int status = parseheader(me, me->request, me->request->anchor);
+		if (status != HT_OK)
+		    return status;
+	    } else if (WHITE(*b)) {	 /* Folding: LF CR SP or CR LF CR SP */
 		me->EOLstate = EOL_BEGIN;
 		HTChunkPutc(me->buffer, ' ');
 	    } else {						/* New line */

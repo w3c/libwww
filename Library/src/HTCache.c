@@ -58,8 +58,9 @@ PRIVATE char *		HTCacheRoot = NULL;  	    /* Destination for cache */
 PRIVATE HTList *	HTCache = NULL;		  /* List of cached elements */
 PRIVATE int		HTCacheLimit = CACHE_LIMIT;
 
+
 /* ------------------------------------------------------------------------- */
-/*  				 CACHE MANAGER				     */
+/*  			      GARBAGE COLLECTOR				     */
 /* ------------------------------------------------------------------------- */
 
 /*
@@ -139,6 +140,42 @@ PRIVATE BOOL reserved_name ARGS1(char *, url)
 
     return NO;
 }
+
+/*
+**  Removes all cache entries in memory
+*/
+PUBLIC void HTCache_clearMem NOARGS
+{
+    HTList *cur=HTCache;
+    HTCacheItem *pres;
+    if (cur) {
+	while ((pres = (HTCacheItem *) HTList_nextObject(cur))) {
+	    FREE(pres->filename);
+	    free(pres);
+	}
+	HTList_delete(HTCache);
+	HTCache = NULL;
+    }
+}
+
+/*
+**  Removes all cache entries in memory and on disk
+*/
+PUBLIC void HTCache_deleteAll NOARGS
+{
+    HTList *cur=HTCache;
+    HTCacheItem * pres;
+    if (cur) {
+	while ((pres = (HTCacheItem *) HTList_lastObject(cur)))
+	    HTCache_remove(pres);
+	HTList_delete(HTCache);
+	HTCache = NULL;
+    }
+}
+
+/* ------------------------------------------------------------------------- */
+/*  				 NAMING SCHEME				     */
+/* ------------------------------------------------------------------------- */
 
 /*
 **	Map url to cache file name.
@@ -341,68 +378,9 @@ PRIVATE char *HTCache_wwwName ARGS1 (char *, name)
     return result;
 }
 
-
-/*
-**
-**  Verifies if a cache object exists for this URL and if so returns a URL
-**  for the cached object. It does not verify whether the object is valid or
-**  not, for example it might have been expired.
-**
-**  Returns: file name	If OK (must be freed by caller)
-**	     NULL	If no cache object found
-*/
-PUBLIC char * HTCache_getObject ARGS1(char *, url)
-{
-    if (url && HTCache_isEnabled()) {
-	char *fnam = cache_file_name(url);
-	if (fnam) {
-	    FILE *fp = fopen(fnam, "r");
-	    if (fp) {
-		char *url = HTCache_wwwName(fnam);
-		fclose(fp);
-		if (CACHE_TRACE)
-		    fprintf(TDEST, "Cache....... Object found `%s\'\n", url);
-		free(fnam);
-		return url;
-	    } else
-		free(fnam);
-	}
-    }
-    return NULL;
-}
-
-
-/*
-**  Removes all cache entries in memory
-*/
-PUBLIC void HTCache_clearMem NOARGS
-{
-    HTList *cur=HTCache;
-    HTCacheItem *pres;
-    if (cur) {
-	while ((pres = (HTCacheItem *) HTList_nextObject(cur))) {
-	    FREE(pres->filename);
-	    free(pres);
-	}
-	HTList_delete(HTCache);
-	HTCache = NULL;
-    }
-}
-
-/*
-**  Removes all cache entries in memory and on disk
-*/
-PUBLIC void HTCache_deleteAll NOARGS
-{
-    HTList *cur=HTCache;
-    HTCacheItem * pres;
-    if (cur) {
-	while ((pres = (HTCacheItem *) HTList_lastObject(cur)))
-	    HTCache_remove(pres);
-	HTList_delete(HTCache);
-	HTCache = NULL;
-    }
-}
+/* ------------------------------------------------------------------------- */
+/*  			      CACHE PARAMETERS				     */
+/* ------------------------------------------------------------------------- */
 
 /*	Enable Cache
 **	------------
@@ -470,7 +448,6 @@ PUBLIC CONST char * HTCache_getRoot NOARGS
     return HTCacheRoot;
 }
 
-
 /*	Free Cache Root
 **	--------------
 **	For clean up memory
@@ -478,6 +455,50 @@ PUBLIC CONST char * HTCache_getRoot NOARGS
 PUBLIC void HTCache_freeRoot NOARGS
 {
     FREE(HTCacheRoot);
+}
+
+/* ------------------------------------------------------------------------- */
+/*  				 CACHE MANAGER				     */
+/* ------------------------------------------------------------------------- */
+
+/*
+**  Verifies if a cache object exists for this URL and if so returns a URL
+**  for the cached object. It does not verify whether the object is valid or
+**  not, for example it might have expired.
+**
+**  Returns: file name	If OK (must be freed by caller)
+**	     NULL	If no cache object found
+*/
+PUBLIC char * HTCache_getReference ARGS1(char *, url)
+{
+    if (url && HTCache_isEnabled()) {
+	char *fnam = cache_file_name(url);
+	if (fnam) {
+	    FILE *fp = fopen(fnam, "r");
+	    if (fp) {
+		char *url = HTCache_wwwName(fnam);
+		fclose(fp);
+		if (CACHE_TRACE)
+		    fprintf(TDEST, "Cache....... Object found `%s\'\n", url);
+		free(fnam);
+		return url;
+	    } else
+		free(fnam);
+	}
+    }
+    return NULL;
+}
+
+/*
+**  This function checks whether a document has expired or not.
+**  The check is based on the metainformation passed in the anchor object
+**  The function returns YES or NO.
+*/
+PUBLIC BOOL HTCache_isValid ARGS1(HTParentAnchor *, anchor)
+{
+    time_t cur = time(NULL);
+    time_t expires = HTAnchor_expires(anchor);
+    return (expires>0 && cur>0 && expires<cur) ? NO : YES;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -576,7 +597,6 @@ PUBLIC HTStream* HTCacheWriter ARGS5(
     } else
 	if (CACHE_TRACE)
 	    fprintf(TDEST, "Cache....... Creating file %s\n", fnam);
-
 
     /* Set up a cache record */
     if ((me->cache = (HTCacheItem *) calloc(sizeof(*me->cache), 1)) == NULL)

@@ -13,21 +13,10 @@
  */
 #include "WWWLib.h"
 
-#ifdef SHORT_NAMES
-#define HText_childNumber               HTGTChNu
-#define HText_canScrollUp               HTGTCaUp
-#define HText_canScrollDown             HTGTCaDo
-#define HText_scrollUp                  HTGTScUp
-#define HText_scrollDown                HTGTScDo
-#define HText_scrollTop                 HTGTScTo
-#define HText_scrollBottom              HTGTScBo
-#define HText_sourceAnchors             HTGTSoAn
-#define HText_setStale                  HTGTStal
-#define HText_refresh                   HTGTRefr
-#endif
-
-
 extern HTChildAnchor * HText_childNumber PARAMS((HText * text, int n));
+
+/* delete a hyper doc object with interfering with any anchors */
+extern void hyperfree PARAMS((HText * me));
 
 /* Is there any file left? */
 extern BOOL HText_canScrollUp PARAMS((HText * text));
@@ -49,5 +38,5 @@ extern int HText_getLines PARAMS((HText * text));
 #endif
 /*
 
-   End of definition  */
+   End of declaration  */
 

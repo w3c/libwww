@@ -48,6 +48,7 @@ WC  = $(WWW)/Library
 CMN = $(WWW)/Library/Implementation/
 VMS = $(CMN)vms
 FTP = /afs/w3.org/member/Dist
+PROD= libwww
 
 # Where shall we put the objects and built library?
 LOB = $(WTMP)/Library/$(WWW_MACH)
@@ -145,7 +146,7 @@ SPECIFIC = \
 	$(VMS)/HTVMSUtils.h $(VMS)/HTVMSUtils.c \
 	$(VMS)/dirent.h $(VMS)/dirent.c $(VMS)/sys_dirent.h
 
-all : inc $(LOB)/libwww.a
+all : inc $(LOB)/$(PROD).a
 
 #	Library
 #
@@ -156,10 +157,10 @@ all : inc $(LOB)/libwww.a
 #	into a fat file of archives. Next time round, ar(1) is 
 #	confused as the .a is now a fat file, not an archive.
 #
-$(LOB)/libwww.a : $(COMMON)
-	- rm $(LOB)/libwww.a
-	ar r $(LOB)/libwww.a $(COMMON)
-	-ranlib $(LOB)/libwww.a
+$(LOB)/$(PROD).a : $(COMMON)
+	- rm $(LOB)/$(PROD).a
+	ar r $(LOB)/$(PROD).a $(COMMON)
+	-ranlib $(LOB)/$(PROD).a
 
 #	Clean up everything generatable except final products
 clean :
@@ -169,16 +170,16 @@ clean :
 #	Clean up everything generatable including final products
 
 cleanall : clean
-	rm $(LOB)/libwww.a
+	rm $(LOB)/$(PROD).a
 
 #	Install W3 library into system space (not normally necessary)
 
-install : libwww.a
+install : $(PROD).a
 	if [ ! -r $(LIBDIR) ] mkdir $(LIBDIR)
-	cp libwww.a $(LIBDIR)/libwww.a
+	cp $(PROD).a $(LIBDIR)/$(PROD).a
 	
 uninstall :
-	rm $(LIBDIR)/libwww.a
+	rm $(LIBDIR)/$(PROD).a
 
 #		Distribution use only:
 #		----------------------
@@ -187,44 +188,44 @@ uninstall :
 inc : $(HFILES)
 	@echo Include files generated from hypertext.
 
-binary : $(FTP)/bin/$(WWW_MACH)/libwww_$(VC).a
+binary : $(FTP)/bin/$(WWW_MACH)/$(PROD)_$(VC).a
 	@echo FTP archive binary Libray $(VC) for $(WWW_MACH) up to date.
 
-$(FTP)/bin/$(WWW_MACH)/libwww_$(VC).a : libwww.a
+$(FTP)/bin/$(WWW_MACH)/$(PROD)_$(VC).a : $(PROD).a
 	-mkdir $(FTP)/bin/$(WWW_MACH)
-	cp libwww.a $(FTP)/bin/$(WWW_MACH)/libwww_$(VC).a
+	cp $(PROD).a $(FTP)/bin/$(WWW_MACH)/$(PROD)_$(VC).a
 
 #	Source Distribution:
 distribute : $(WWW)/README $(WWW)/COPYRIGHT $(WWW)/PATCHES $(WWW)/CERN $(SOURCES)
 	(cd $(WWW)/..; WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 	-f WWW/Library/Implementation/Version.make \
 	-f WWW/Library/Implementation/CommonMakefile \
-	$(FTP)/src/WWWLibrary_$(VC).tar.Z)
+	$(FTP)/src/$(PROD)_$(VC).tar.Z)
 	(cd $(WWW); cvs tag \
 	    `sed -e 's/VC = /v/' Library/Implementation/Version.make | sed -e 's?\.?/?'` \
 	    Library)
 	@echo Distribution of Library version $(VC) up to date.
 
-$(FTP)/src/WWWLibrary_$(VC).tar.Z : $(SOURCES)
-	tar cvf $(FTP)/src/WWWLibrary_$(VC).tar \
+$(FTP)/src/$(PROD)_$(VC).tar.Z : $(SOURCES)
+	tar cvf $(FTP)/src/$(PROD)_$(VC).tar \
 	    $(SOURCES) \
 	    $(SPECIFIC) \
 	    $(CMN)*.html
-	cp $(FTP)/src/WWWLibrary_$(VC).tar $(FTP)/src/temp.tar
-	compress -f $(FTP)/src/WWWLibrary_$(VC).tar
-	mv $(FTP)/src/temp.tar $(FTP)/src/WWWLibrary_$(VC).tar
-	gzip -f $(FTP)/src/WWWLibrary_$(VC).tar
+	cp $(FTP)/src/$(PROD)_$(VC).tar $(FTP)/src/temp.tar
+	compress -f $(FTP)/src/$(PROD)_$(VC).tar
+	mv $(FTP)/src/temp.tar $(FTP)/src/$(PROD)_$(VC).tar
+	gzip -f $(FTP)/src/$(PROD)_$(VC).tar
 
 # This only works on Linux or other platforms with 'zip'
 zip : $(WWW)/README $(WWW)/COPYRIGHT $(WWW)/PATCHES $(WWW)/CERN $(SOURCES)
 	(cd $(WWW)/..; WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 	-f WWW/Library/Implementation/Version.make \
 	-f WWW/Library/Implementation/CommonMakefile \
-	$(FTP)/src/WWWLibrary_$(VC).zip)
+	$(FTP)/src/$(PROD)_$(VC).zip)
 	@echo Distribution of Library version $(VC) up to date.
 
-$(FTP)/src/WWWLibrary_$(VC).zip : $(SOURCES)
-	zip -v $(FTP)/src/WWWLibrary_$(VC).zip \
+$(FTP)/src/$(PROD)_$(VC).zip : $(SOURCES)
+	zip -v $(FTP)/src/$(PROD)_$(VC).zip \
 	    $(SOURCES) \
 	    $(SPECIFIC) \
 	    $(CMN)*.html

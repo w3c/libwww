@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Access manager  for libwww</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 13-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 19-Aug-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -93,11 +93,6 @@ is asking for user confusion.
 #define REMOTE_ADDRESS  "http://www.w3.org/"		    /* can't be file */
 #endif
 
-/* Default log file name */
-#ifndef DEFAULT_LOGFILE
-#define DEFAULT_LOGFILE		"www-log"
-#endif
-
 #ifndef LOCAL_DEFAULT_FILE
 #define LOCAL_DEFAULT_FILE "/usr/local/lib/WWW/default.html"
 #endif
@@ -117,20 +112,53 @@ is asking for user confusion.
 
 Flags and variables which may be set to control the Library
 
-<H3>Maximum Number of Redirections</H3>
+<H3>Maximum Number of Automatic Reloads</H3>
 
-The maximum number of redirections is pr. default 10. This prevents
-the library from going into an infinite loop which is kind of nice :-)
-It is normally not necessary to change the default value.
+Automatic reload can happen in two situations:
+
+<UL>
+<LI>The server sends a redirection response
+<LI>The document has expired
+</UL>
+
+In order to avoid the Library going into an infinite loop, it is
+necessary to keep track of the number of automatic reloads. Loops can
+occur if the server has a reload to the same document or if the server
+sends back a Expires header which has already expired. The default
+maximum number of automatic reloads is 6.
 
 <PRE>
-extern int HTMaxRedirections;
+extern void HTAccess_setMaxReload	PARAMS((int newmax));
+extern int HTAccess_maxReload		NOPARAMS;
+</PRE>
+
+<H3>How do we handle Expires header?</H3>
+
+There are various ways of handling Expires header when met in a
+history list. Either it can be ignored all together, the user can be
+notified with a warning, or the document can be reloaded
+automatically. This flag decides what action to be taken. The default
+action is HT_EXPIRES_IGNORE. In HT_EXPIRES_NOTIFY mode you can specify
+a message to tell the user (NULL is valid in which case my own message
+pops up - watch out it might be in Danish ;-))
+
+<PRE>
+typedef enum _HTExpiresMode {
+    HT_EXPIRES_IGNORE = 0,
+    HT_EXPIRES_NOTIFY,
+    HT_EXPIRES_AUTO
+} HTExpiresMode;
+
+extern void HTAccess_setExpiresMode		PARAMS((HTExpiresMode mode,
+							char *  notify));
+extern HTExpiresMode HTAccess_expiresMode	PARAMS((char ** notify));
 </PRE>
 
 <H3>Allow Accss to Local File System</H3>
 
 This flag can be used to deny an application to get access to the
-local file system (through cache, file URLs etc.)
+local file system (through cache, file URLs etc.) It is a good way to
+avoid accitendal access if an application provides telnet service etc.
 
 <PRE>
 extern BOOL HTSecure;			/* Disable security holes? */
@@ -213,6 +241,25 @@ extern BOOL HTRequest_killPostWeb		PARAMS((HTRequest * me));
 	((me) &amp;&amp; (me)->source)
 </PRE>
 
+<H3>Reload Mode of a Document</H3>
+
+The <A HREF="#FR">reload</A> flag can either force reload of
+object in memory or in a disk cache. That is, if only memory version
+is to reloaded - the new version can come from the local disk
+cache. The default value is <CODE>HT_NO_UPDATE</CODE>.
+
+<PRE>
+typedef enum _HTReload {
+    HT_ANY_VERSION	= 0x0,		/* Use any version available */
+    HT_MEM_REFRESH	= 0x1,		/* Reload from file cache or network */
+    HT_CACHE_REFRESH	= 0x2,		/* Update from network with IMS */
+    HT_FORCE_RELOAD	= 0x4		/* Update from network with no-cache */
+} HTReload;
+
+extern void HTRequest_setReload	PARAMS((HTRequest * request, HTReload mode));
+#define HTRequest_reload(me)	((me) ? (me)->reload : NULL)
+</PRE>
+
 <A NAME="headers"><H2>HTTP/MIME Header Methods</H2></A>
 
 These enumerations set up the headers that are used in a HTTP request
@@ -253,9 +300,10 @@ typedef enum _ReqHeaderEnum {
     HT_ACCEPT_ENC	= 0x4,
     HT_ACCEPT_LAN	= 0x8,
     HT_FROM		= 0x10,
-    HT_PRAGMA		= 0x20,
-    HT_REFERER		= 0x40,
-    HT_USER_AGENT	= 0x80
+    HT_IMS		= 0x20,
+    HT_NO_CACHE		= 0x40,
+    HT_REFERER		= 0x80,
+    HT_USER_AGENT	= 0x200
 } ReqHeaderEnum;
 
 #define <A NAME="DEF_REQ">DEFAULT_REQUEST_HEADERS</A> \
@@ -295,22 +343,6 @@ typedef enum _EntityHeaderEnum {
 
 Extra header can be generated when initializing the <A
 HREF="#ExtraHeaders">ExtraHeaders field</A>.
-
-
-<H3>Force Reload of a Document</H3>
-
-The <A HREF="#FR">ForceReload</A> flag can either force reload of
-object in memory or in a disk cache. That is, if only memory version
-is to reloaded - the new version can come from the local disk
-cache. The default value is <CODE>HT_NO_UPDATE</CODE>.
-
-<PRE>
-typedef enum _HTForceReload {
-    HT_NO_UPDATE	= 0x0,
-    HT_UPDATE_MEM	= 0x1,
-    HT_UPDATE_DISK	= 0x2
-} HTForceReload;
-</PRE>
 
 <A NAME="LoadDoc"><H2>Functions for Loading a Document</H2></A>
 
@@ -775,14 +807,14 @@ current request so that the application knows which post we are
 handling. The function must have the same return values as the other
 <A HREF="#LoadDoc">Load functions</A>.
 
-<A NAME="FR"><H5>Force reload</H5></A>
+<A NAME="FR"><H5>Reload Mode</H5></A>
 
 This flag can either force reload of object in memory or in a disk
 cache. That is, if only memory version is to reloaded - the new
 version can come from the local disk cache.
 
 <PRE>
-    HTForceReload ForceReload;
+    HTReload reload;
 </PRE>
 
 <H5>Other Flags</H5>
@@ -793,7 +825,7 @@ version can come from the local disk cache.
 </PRE>
 
 <CODE>BlockingIO</CODE> can be set to override if a protocol module is
-registered as using non-blocking IO, <CODE>ForceReload</CODE> will
+registered as using non-blocking IO, <CODE>reload</CODE> will
 cancel any cached element, and <CODE>ContentNegotioation</CODE> will
 force content negotiation when looking for a local file. This is the
 default!
@@ -849,7 +881,7 @@ stack of messages.
 
 <PRE>
     char *	redirect;		/* Location or URI */
-    int		redirections;		/* Number of redirections */
+    int		reloads;		/* Number of automatic reloads */
     time_t	retry_after;		/* Absolut time for a retry */
 </PRE>
 

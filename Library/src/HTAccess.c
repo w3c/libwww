@@ -59,13 +59,16 @@
 #include "HTAccess.h"					 /* Implemented here */
 
 /* These flags may be set to modify the operation of this module */
-PUBLIC int  HTMaxRedirections = 10;	       /* Max number of redirections */
-
 PUBLIC char * HTClientHost = NULL;	 /* Name of remote login host if any */
 PUBLIC BOOL HTSecure = NO;		 /* Disable access for telnet users? */
 
 PUBLIC char * HTImServer = NULL;/* cern_httpd sets this to the translated URL*/
 PUBLIC BOOL HTImProxy = NO;			   /* cern_httpd as a proxy? */
+
+/* Private flags */
+PRIVATE HTExpiresMode HTExpMode = HT_EXPIRES_IGNORE;
+PRIVATE int HTMaxReloads = 6;
+PRIVATE char *HTExpNotify;
 
 #ifdef _WINDOWS 
 PUBLIC HWND HTsocketWin = 0 ;
@@ -97,7 +100,7 @@ PUBLIC HTRequest * HTRequest_new NOARGS
     me->charsets = HTList_new();
 
     /* Force Reload */
-    me->ForceReload = HT_NO_UPDATE;
+    me->reload = HT_ANY_VERSION;
 
     /* Format of output */
     me->output_format	= WWW_PRESENT;	    /* default it to present to user */
@@ -500,16 +503,19 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
 #endif /* HT_NO_RULES */
 
     /*
-    ** Check local the Disk Cache (if we are not forced to reload), then
+    ** Check local Disk Cache (if we are not forced to reload), then
     ** for proxy, and finally gateways
     */
     {
-	char *newaddr;
-	if (req->ForceReload != HT_UPDATE_DISK &&
-	    (newaddr = HTCache_getObject(addr))) {
-	    HTAnchor_setPhysical(req->anchor, newaddr);
-	    HTAnchor_setCacheHit(req->anchor, YES);
-	    free(newaddr);
+	char *newaddr=NULL;
+	if (req->reload != HT_FORCE_RELOAD &&
+	    (newaddr = HTCache_getReference(addr))) {
+	    if (req->reload != HT_CACHE_REFRESH) {
+		HTAnchor_setPhysical(req->anchor, newaddr);
+		HTAnchor_setCacheHit(req->anchor, YES);
+	    } else {			 /* If refresh version in file cache */
+		req->RequestMask |= (HT_IMS + HT_NO_CACHE);
+	    }
 	} else if ((newaddr = HTProxy_getProxy(addr))) {
 	    StrAllocCat(newaddr, addr);
 	    req->using_proxy = YES;
@@ -527,6 +533,7 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
 	} else {
 	    req->using_proxy = NO;     	    /* We don't use proxy or gateway */
 	}
+	    FREE(newaddr);
     }
     FREE(addr);
 
@@ -610,7 +617,7 @@ PUBLIC BOOL HTLoadTerminate ARGS2(HTRequest *, request, int, status)
 {
     char * uri = HTAnchor_address((HTAnchor*)request->anchor);
 
-    HTLog_request(request);
+    HTLog_request(request, status);
 
     /* The error stack might contain general information to the client
        about what has been going on in the library (not only errors) */
@@ -626,7 +633,7 @@ PUBLIC BOOL HTLoadTerminate ARGS2(HTRequest *, request, int, status)
 
       case HT_OK:
 	if (PROT_TRACE) {
-	    fprintf(TDEST,"HTAccess.... FRIEND FINISHED ACCESS: `%s\'\n",uri);
+	    fprintf(TDEST, "HTAccess.... FRIEND FINISHED ACCESS: `%s\'\n",uri);
 	}
 	break;
 
@@ -707,23 +714,56 @@ PRIVATE int HTLoadDocument ARGS2(HTRequest *,	request,
 
     if (!request->output_format) request->output_format = WWW_PRESENT;
 
-    /* Check if document is already loaded or in cache */
-    if (request->ForceReload == HT_NO_UPDATE) {
-	if ((text=(HText *)HTAnchor_document(request->anchor))) {
-	    if (PROT_TRACE)
-		fprintf(TDEST, "HTAccess.... Document already in memory.\n");
-	    if (request->childAnchor) {
-		HText_selectAnchor(text, request->childAnchor);
-	    } else {
-		HText_select(text);
+    /*
+    ** Check if document is already loaded. As the application handles the
+    ** memory cache, we call the application to ask. Also check if it has
+    ** expired in which case we reload it (either from disk cache or remotely)
+    ** @@@ BUG - NEED GLOBAL REGISTRATION MECHANISM @@@
+    */
+    if (request->reload != HT_FORCE_RELOAD) {
+	if ((text = (HText *) HTAnchor_document(request->anchor))) {
+	    if (request->reload != HT_MEM_REFRESH) {
+		BOOL use_object = YES;
+		if (PROT_TRACE)
+		    fprintf(TDEST,"HTAccess.... Document already in memory\n");
+		if (HTExpMode != HT_EXPIRES_IGNORE) {
+		    if (!HTCache_isValid(request->anchor)) {
+			if (HTExpMode == HT_EXPIRES_NOTIFY)
+			    HTAlert(HTExpNotify);
+			else {
+			    use_object = NO;
+			    if (PROT_TRACE)
+				fprintf(TDEST,
+					"HTAccess.... Expired - autoreload\n");
+			    request->RequestMask |= HT_IMS;
+#ifndef HT_SHARED_DISK_CACHE
+			    request->reload = HT_CACHE_REFRESH;
+#endif
+			}
+		    }
+		}
+
+		/* If we can use object then select it and return */
+		/* This should be a callback to the app mem cache handler */
+		if (use_object) {
+		    if (request->childAnchor)
+			HText_selectAnchor(text, request->childAnchor);
+		    else
+			HText_select(text);
+		    free(full_address);
+		    return HT_LOADED;
+		}
+	    } else {		/* If refresh version in memory */
+		request->RequestMask |= HT_IMS;
 	    }
-	    free(full_address);
-	    return HT_LOADED;
-	}
-    } else {			  /* Make sure that we don't use old headers */
+	} else			      /* Don't reuse any old metainformation */
+	    HTAnchor_clearHeader(request->anchor);
+    } else {
+	request->RequestMask |= HT_NO_CACHE;		  /* no-cache pragma */
 	HTAnchor_clearHeader(request->anchor);
-	request->RequestMask += HT_PRAGMA;     /* Force reload through proxy */
     }
+
+    /* Now do the load */
     if ((status = HTLoad(request, keep_error_stack)) != HT_WOULD_BLOCK)
 	HTLoadTerminate(request, status);
     free(full_address);
@@ -1045,47 +1085,51 @@ PUBLIC HTStream *HTSaveStream ARGS1(HTRequest *, request)
 **					request->retry_after
 */
 PUBLIC int HTCopyAnchor ARGS2(HTAnchor *,	src_anchor,
-			      HTRequest *,	main_dest)
+			      HTRequest *,	main_req)
 { 
     HTRequest *src_req;
-    if (!src_anchor || !main_dest)
+    if (!src_anchor || !main_req)
 	return HT_ERROR;
 
     /* Build the POST web if not already there */
-    if (!main_dest->source) {
+    if (!main_req->source) {
 	src_req = HTRequest_new();		  /* First set up the source */
 	HTAnchor_clearHeader((HTParentAnchor *) src_anchor);
-	src_req->ForceReload = HT_UPDATE_MEM;
+	src_req->reload = HT_MEM_REFRESH;
 	src_req->source = src_req;			  /* Point to myself */
 	src_req->output_format = WWW_SOURCE;	 /* We want source (for now) */
 
 	/* Set up the main link in the source anchor */
 	{
-	    HTAnchor *main = HTAnchor_followMainLink(src_anchor);
-	    HTMethod method = HTAnchor_mainLinkMethod(src_anchor);
-	    if (!main || method==METHOD_INVALID) {
+	    HTLink *main_link = HTAnchor_findMainLink(src_anchor);
+	    HTAnchor *main_anchor = HTAnchor_linkDest(main_link);
+	    HTMethod method = HTAnchor_linkMethod(main_link);
+	    if (!main_link || method==METHOD_INVALID) {
 		if (TRACE)
 		    fprintf(TDEST, "Copy Anchor. No destination found or unspecified method");
 		HTRequest_delete(src_req);
 		return HT_ERROR;
 	    }
-	    main_dest->GenMask += HT_DATE;		 /* Send date header */
-	    main_dest->source = src_req;
-	    main_dest->ForceReload = HT_UPDATE_DISK;
-	    main_dest->method = method;
-	    HTRequest_addDestination(src_req, main_dest);
-	    main_dest->input_format = WWW_SOURCE;	  /* for now :-( @@@ */
-	    if (HTLoadAnchor(main, main_dest) == HT_ERROR)
-		return HT_ERROR;
+	    if (HTAnchor_linkResult(main_link) == HT_LINK_NONE) {
+		main_req->GenMask |= HT_DATE;		 /* Send date header */
+		main_req->source = src_req;
+		main_req->reload = HT_CACHE_REFRESH;
+		main_req->method = method;
+		HTRequest_addDestination(src_req, main_req);
+		main_req->input_format = WWW_SOURCE;	  /* for now :-( @@@ */
+		if (HTLoadAnchor(main_anchor, main_req) == HT_ERROR)
+		    return HT_ERROR;
+	    }
 	}
 
 	/* For all other links in the source anchor */
 	if (src_anchor->links) {
 	    HTList *cur = src_anchor->links;
 	    HTLink *pres;
-	    while ((pres = (HTLink *) HTList_nextObject(cur)) != NULL) {
-		HTAnchor *dest = pres->dest;
-		HTMethod method = pres->method;
+	    while ((pres = (HTLink *) HTList_nextObject(cur)) &&
+		   HTAnchor_linkResult(pres) == HT_LINK_NONE) {
+		HTAnchor *dest = HTAnchor_linkDest(pres);
+		HTMethod method = HTAnchor_linkMethod(pres);
 		HTRequest *dest_req;
 		if (!dest || method==METHOD_INVALID) {
 		    if (TRACE)
@@ -1094,9 +1138,9 @@ PUBLIC int HTCopyAnchor ARGS2(HTAnchor *,	src_anchor,
 		    return HT_ERROR;
 		}
 		dest_req = HTRequest_new();
-		dest_req->GenMask += HT_DATE;		 /* Send date header */
+		dest_req->GenMask |= HT_DATE;		 /* Send date header */
 		dest_req->source = src_req;
-		dest_req->ForceReload = HT_UPDATE_DISK;
+		dest_req->reload = HT_CACHE_REFRESH;
 		dest_req->method = method;
 		HTRequest_addDestination(src_req, dest_req);
 		dest_req->input_format = WWW_SOURCE;	  /* for now :-( @@@ */
@@ -1105,9 +1149,9 @@ PUBLIC int HTCopyAnchor ARGS2(HTAnchor *,	src_anchor,
 	    }
 	}
     } else {			 /* Use the existing Post Web and restart it */
-	src_req = main_dest->source;
+	src_req = main_req->source;
 	if (src_req->mainDestination)
-	    if (HTLoadDocument(main_dest, NO) == HT_ERROR)
+	    if (HTLoadDocument(main_req, NO) == HT_ERROR)
 		return HT_ERROR;
 	if (src_req->destinations) {
 	    HTList *cur = src_anchor->links;
@@ -1345,4 +1389,43 @@ PUBLIC BOOL HTBindAnchor ARGS2(HTAnchor*, anchor, HTRequest *, request)
     return YES;
 }
 
+/* --------------------------------------------------------------------------*/
+/*					Flags   			     */
+/* --------------------------------------------------------------------------*/
 
+/*
+**  Set the mode for how we handle Expires header from the local history
+**  list. The following modes are available:
+**
+**	HT_EXPIRES_IGNORE : No update in the history list
+**	HT_EXPIRES_NOTIFY : The user is notified but no reload
+**	HT_EXPIRES_AUTO   : Automatic reload
+**
+**  The notify only makes sense when HT_EXPIRES_NOTIFY. NULL is valid.
+*/
+PUBLIC void HTAccess_setExpiresMode ARGS2(HTExpiresMode, mode,
+					  char *,	 notify)
+{
+    HTExpMode = mode;
+    HTExpNotify = notify;
+}
+
+PUBLIC HTExpiresMode HTAccess_expiresMode ARGS1(char **, notify)
+{
+    *notify = HTExpNotify ? HTExpNotify : "This version has expired!";
+    return HTExpMode;
+}
+
+/*
+**  Set max number of automatic reload. Default is HT_MAX_RELOADS
+*/
+PUBLIC void HTAccess_setMaxReload ARGS1(int, newmax)
+{
+    if (newmax > 0)
+	HTMaxReloads = newmax;
+}
+
+PUBLIC int HTAccess_maxReload NOARGS
+{
+    return HTMaxReloads;
+}

@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
-<TITLE>Rich Hypertext object for libWWW</TITLE>
+<TITLE>Rich Hypertext object</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 14-Aug-1995 -->
 </HEAD>
 <BODY>
 
@@ -50,46 +51,49 @@ typedef CHyperText HText;
 
 extern HText * HTMainText;		/* Pointer to current main text */
 extern HTParentAnchor * HTMainAnchor;	/* Pointer to current text's anchor */
-
 </PRE>
+
 <H2>Creation and deletion</H2>
-<H3>HText_new: Create hypertext object</H3>There are several methods depending
-on how much you want to specify.
-The output stream is used with objects
-which need to output the hypertext
-to a stream.  The structure is for
-objects which need to refer to the
-structure which is kep by the creating
-stream.
-<PRE> extern HText *	HText_new PARAMS((HTParentAnchor * 	anchor));
 
- extern HText *	HText_new2 PARAMS((HTParentAnchor * 	anchor,
- 				HTStream * 		output_stream));
+<A NAME="z0"><H3>Create hypertext object</H3></A>
 
- extern HText *	<A
-NAME="z0">HText_new3</A> PARAMS((HTRequest *		request,
- 				HTStream * 		output_stream,
-				HTStructured * 		structure));
+There are several methods depending on how much you want to specify.
+The output stream is used with objects which need to output the
+hypertext to a stream.  The structure is for objects which need to
+refer to the structure which is kep by the creating stream.
 
+<PRE>
+extern HText *	HText_new	PARAMS((HTParentAnchor *anchor));
+
+extern HText *	HText_new2	PARAMS((HTParentAnchor *anchor,
+					HTStream * 	output_stream));
+
+extern HText *	HText_new3	PARAMS((HTRequest *	request,
+					HTStream *	output_stream,
+					HTStructured *	structure));
 </PRE>
+
 <H3>Free hypertext object</H3>
-<PRE>extern void 	HText_free PARAMS((HText * me));
 
-
+<PRE>
+extern void 	HText_free PARAMS((HText * me));
 </PRE>
-<H2>Object Building methods</H2>These are used by a parser to build
-the text in an object HText_beginAppend
-must be called, then any combination
-of other append calls, then HText_endAppend.
-This allows optimised handling using
-buffers and caches which are flushed
-at the end.
-<PRE>extern void HText_beginAppend PARAMS((HText * text));
+
+<H2>Object Building methods</H2>
+
+These are used by a parser to build the text in an object
+HText_beginAppend must be called, then any combination of other append
+calls, then HText_endAppend.  This allows optimised handling using
+buffers and caches which are flushed at the end.
+
+<PRE>
+extern void HText_beginAppend PARAMS((HText * text));
 
 extern void HText_endAppend PARAMS((HText * text));
-
 </PRE>
+
 <H3>Set the style for future text</H3>
+
 <PRE>
 extern void HText_setStyle PARAMS((HText * text, HTStyle * style));
 
@@ -103,23 +107,25 @@ extern void HText_setStyle PARAMS((HText * text, HTStyle * style));
 extern void HText_appendText PARAMS((HText * text, CONST char * str));
 
 </PRE>
-<H3>New Paragraph</H3>and similar things
-<PRE>extern void HText_appendParagraph PARAMS((HText * text));
+
+<H3>New Paragraph</H3>
+
+and similar things
+
+<PRE>
+extern void HText_appendParagraph PARAMS((HText * text));
 
 extern void HText_appendLineBreak PARAMS((HText * text));
 
 extern void HText_appendHorizontalRule PARAMS((HText * text));
-
-
-
 </PRE>
+
 <H3>Start/end sensitive text</H3>
-<PRE>
-</PRE>The anchor object is created and
-passed to HText_beginAnchor. The
-senstive text is added to the text
-object, and then HText_endAnchor
-is called. Anchors may not be nested.
+
+The anchor object is created and passed to HText_beginAnchor. The
+senstive text is added to the text object, and then HText_endAnchor is
+called. Anchors may not be nested.
+
 <PRE>extern void HText_beginAnchor PARAMS((HText * text, HTChildAnchor * anc));
 extern void HText_endAnchor PARAMS((HText * text));
 

@@ -1,12 +1,12 @@
 <HTML>
 <HEAD>
-<TITLE>Cache Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 13-Aug-1995 -->
+<TITLE>Disk Cache Manager</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 16-Aug-1995 -->
 <NEXTID N="z4">
 </HEAD>
 <BODY>
 
-<H1>Cache Manager</H1>
+<H1>Disk Cache Manager</H1>
 
 <PRE>
 /*
@@ -44,13 +44,24 @@ extern HTConverter HTCacheWriter;
 #endif
 </PRE>
 
-<H2>Find a cached object on file</H2>
+<H2>Find a Reference for a Cached Object</H2>
 
-Returns a URL for the cached object is found on disk. Note that there
-might be race conditions with other applications doing gc.
+Verifies if a cache object exists for this URL and if so returns a URL
+for the cached object. It does not verify whether the object is valid
+or not, for example it might have been expired.
 
 <PRE>
-extern char * HTCache_getObject	PARAMS((char * url));
+extern char * HTCache_getReference	PARAMS((char * url));
+</PRE>
+
+<H2>Verify if an Object is Valid</H2>
+
+This function checks whether a document has expired or not.  The check
+is based on the metainformation passed in the anchor object The
+function returns YES or NO.
+
+<PRE>
+extern BOOL HTCache_isValid		PARAMS((HTParentAnchor * anchor));
 </PRE>
 
 <H2>Enable Cache</H2>
@@ -60,7 +71,7 @@ If <EM>cache_root</EM> is NULL then reuse old value or use
 root.
 
 <PRE>
-extern BOOL HTCache_enable PARAMS((CONST char * cache_root));
+extern BOOL HTCache_enable		PARAMS((CONST char * cache_root));
 </PRE>
 
 <H2>Disable Cache</H2>
@@ -70,7 +81,7 @@ at any time. The cache root is kept and can be reused during the
 execution.
 
 <PRE>
-extern BOOL HTCache_disable NOPARAMS;
+extern BOOL HTCache_disable		NOPARAMS;
 </PRE>
 
 <H2>Is Cache Enabled</H2>
@@ -79,7 +90,7 @@ Returns YES or NO. Also makes sure that we have a root value (even
 though it might be invalid)
 
 <PRE>
-extern BOOL HTCache_isEnabled NOPARAMS;
+extern BOOL HTCache_isEnabled		NOPARAMS;
 </PRE>
 
 <H2>Set Cache Root</H2>
@@ -88,37 +99,32 @@ If <EM>cache_root</EM> is NULL then the current value (might be a define)
 Should we check if the cache_root is actually OK? I think not!
 
 <PRE>
-extern BOOL HTCache_setRoot PARAMS((CONST char * cache_root));
+extern BOOL HTCache_setRoot		PARAMS((CONST char * cache_root));
 </PRE>
 
 <H2>Get Cache Root</H2>
 
 <PRE>
-extern CONST char *HTCache_getRoot NOPARAMS;
+extern CONST char *HTCache_getRoot	NOPARAMS;
 </PRE>
 
-<H2>For clean up memory</H2>
+<H2>Clean up memory</H2>
 
 This is done by the Library function <A
-HREF="HTAccess.html#Library">HTLibTerminate()</A>
+HREF="HTAccess.html#Library">HTLibTerminate()</A>. None of these
+functions tourches the disk cache itself - they only manages memory.
 
 <PRE>
-extern void HTCache_freeRoot NOPARAMS;
-</PRE>
-
-<H2>Clear a cache</H2>
-
-Clears all cache entries in memory. Called by <A
-HREF="HTAccess.html#Library">HTLibTerminate</A>
-
-<PRE>
-extern void HTCache_clearMem NOPARAMS;
+extern void HTCache_freeRoot		NOPARAMS;
+extern void HTCache_clearMem		NOPARAMS;
 </PRE>
 
 <H2>To remove All cache files known to this session</H2>
 
+This function also cleans the entries on disk
+
 <PRE>
-extern void HTCache_deleteAll NOPARAMS;
+extern void HTCache_deleteAll		NOPARAMS;
 
 #endif
 </PRE>

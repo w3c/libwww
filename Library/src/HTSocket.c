@@ -582,7 +582,11 @@ PUBLIC int HTSocketRead ARGS2(HTRequest *, request, HTStream *, target)
 		    fprintf(TDEST, "Read Socket. Stream WOULD BLOCK\n");
 		HTThreadState(isoc->input_file_number, THD_CLR_READ);
 		return HT_WOULD_BLOCK;
-	    } else {		/* We have a real error */
+	    } else if (status>0) {	      /* Stream specific return code */
+		if (PROT_TRACE)
+		    fprintf(TDEST, "Read Socket. new code: %d\n", status);
+		return status;
+	    } else {				     /* We have a real error */
 		if (PROT_TRACE)
 		    fprintf(TDEST, "Read Socket. Stream ERROR\n");
 		return status;

@@ -29,22 +29,29 @@ PRIVATE BOOL HTloglocal = YES;		     /* Use local or GMT for logfile */
 /*	Open a Logfile
 **	--------------
 **	You can use either GMT or local time. If no filename is given,
-**	DEFAULT_LOGFILE.
+**	no log is kept. New log entries can be either appended to an existing
+**	file or overwriting an exsisting file.
 **	Returns YES if OK, NO on error
 */
-PUBLIC BOOL HTLog_enable ARGS2(CONST char *, filename, BOOL, local)
+PUBLIC BOOL HTLog_enable ARGS3(CONST char *, filename, BOOL, local,
+			       BOOL, append)
 {
-    CONST char *file = (filename && *filename) ? filename : DEFAULT_LOGFILE;
+    if (!filename || !*filename) {
+	if (TRACE) fprintf(TDEST, "Log......... No log file given\n");
+	return NO;
+    }
     if (TRACE)
-	fprintf(TDEST, "Log......... Open log file `%s\'\n", file);
+	fprintf(TDEST, "Log......... Open log file `%s\'\n", filename);
     if (HTlogfile) {
 	if (TRACE)
 	    fprintf(TDEST, "Log......... Already open\n");
 	return NO;
     }
-    if ((HTlogfile = fopen(file, "a")) == NULL) {
+    HTlogfile = fopen(filename, append ? "a" : "w");
+    if (!HTlogfile) {
 	if (TRACE)
-	    fprintf(TDEST, "Log......... Can't open log file `%s\'\n", file);
+	    fprintf(TDEST, "Log......... Can't open log file `%s\'\n",
+		    filename);
 	return NO;
     }
     HTloglocal = local;					   /* remember state */
@@ -79,17 +86,20 @@ PUBLIC BOOL HTLog_disable NOARGS
 **
 **	BUG: No result code is produced :-( Should be taken from HTError.c
 */
-PUBLIC BOOL HTLog_request ARGS1(HTRequest *, request)
+PUBLIC BOOL HTLog_request ARGS2(HTRequest *, request, int, status)
 {
     if (HTlogfile) {
 	time_t now = time(NULL);	
 	char * uri = HTAnchor_address((HTAnchor*)request->anchor);
-	fprintf(HTlogfile, "%s - - [%s] %s %s %ld\n",
+	if (TRACE) fprintf(TDEST, "Log......... Writing log\n");
+	fprintf(HTlogfile, "%s - - [%s] %s %s %d %ld\n",
 		HTClientHost ? HTClientHost : "localhost",
 		HTDateTimeStr(&now, HTloglocal),
 		HTMethod_name(request->method),
 		uri,
+		status,
 		request->anchor->content_length);
+	FREE(uri);
 	return (fflush(HTlogfile)!=EOF);       /* Actually update it on disk */
     }
     return NO;

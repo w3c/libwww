@@ -908,7 +908,7 @@ PUBLIC HTStream* HTMLToC ARGS5(
     
     (*output_stream->isa->put_string)(output_stream, "/* "); /* Before title */
     html = HTML_new(request, NULL, input_format, output_format, output_stream);
-    html->comment_start = "/* ";
+    html->comment_start = "\n/* ";
     html->dtd = &DTD;
     html->comment_end = " */\n";	/* Must start in col 1 for cpp */
     return SGML_new(&DTD, html);

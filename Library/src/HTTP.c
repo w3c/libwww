@@ -56,6 +56,8 @@ typedef enum _HTTPState {
     HTTP_NEED_CONNECTION,
     HTTP_NEED_REQUEST,
     HTTP_REDIRECTION,
+    HTTP_NOT_MODIFIED,
+    HTTP_EXPIRED,
     HTTP_AA
 } HTTPState;
 
@@ -212,6 +214,10 @@ PRIVATE void HTTPNextState ARGS1(HTStream *, me)
       case 303:							   /* Method */
 	HTAlert("This client doesn't support automatic redirection of type `Method'");
 	me->http->next = HTTP_ERROR;
+	break;
+
+      case 304:						     /* Not Modified */
+	me->http->next = HTTP_NOT_MODIFIED;
 	break;
 	
       case 400:						      /* Bad Request */
@@ -631,6 +637,8 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		    return HT_WOULD_BLOCK;
 		else if (status == HT_INTERRUPTED)
 		    http->state = HTTP_ERROR;
+		else if (status == HT_RELOAD)
+		    http->state = HTTP_EXPIRED;
 		else {
 		    http->state = http->next;	       /* Jump to next state */
 		}
@@ -639,6 +647,14 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	    }
 	    break;
 	    
+	  case HTTP_NOT_MODIFIED:
+	    http->state = HTTP_ERROR;
+	    break;
+
+	  case HTTP_EXPIRED:
+	    /* Dirty hack and fall through */
+	    request->redirect = request->anchor->address;
+
 	  case HTTP_REDIRECTION:
 	    /* Clean up the other connections or just this one */
 	    if (HTRequest_isPostWeb(request))
@@ -659,7 +675,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		}
 
 		/* If we haven't reached the limit for redirection */
-		if (++request->redirections < HTMaxRedirections) {
+		if (++request->reloads < HTAccess_maxReload()) {
 		    HTAnchor *anchor = HTAnchor_findAddress(request->redirect);
 		    if (HTRequest_isPostWeb(request)) {
 			HTRequest *dest = HTRequest_mainDestination(request);
@@ -673,8 +689,8 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 			    free(msg);
 
 			    /* The new anchor inherits the Post Web */
-			    HTAnchor_moveLinks((HTAnchor *) request->anchor,
-					       anchor);
+			    HTAnchor_moveAllLinks((HTAnchor *) request->anchor,
+						  anchor);
 			    if (HTRequest_isSource(request))
 				HTRequest_delete(request);
 			    return HTCopyAnchor((HTAnchor *) anchor, dest);
@@ -693,6 +709,12 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 			       NULL, 0, "HTLoadHTTP");
 		    if (HTRequest_isPostWeb(request)) {
 			BOOL main = HTRequest_isMainDestination(request);
+			if (HTRequest_isDestination(request)) {
+			    HTLink *link =
+				HTAnchor_findLink((HTAnchor *) request->source->anchor,
+						  (HTAnchor *) request->anchor);
+			    HTAnchor_setLinkResult(link, HT_LINK_ERROR);
+			}
 			HTRequest_removeDestination(request);
 			return main ? HT_ERROR : HT_OK;
 		    }
@@ -736,6 +758,12 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		free(unescaped);
 		if (HTRequest_isPostWeb(request)) {
 		    BOOL main = HTRequest_isMainDestination(request);
+		    if (HTRequest_isDestination(request)) {
+			HTLink *link =
+			    HTAnchor_findLink((HTAnchor *) request->source->anchor,
+					      (HTAnchor *) request->anchor);
+			HTAnchor_setLinkResult(link, HT_LINK_ERROR);
+		    }
 		    HTRequest_removeDestination(request);
 		    return main ? HT_ERROR : HT_OK;
 		}
@@ -747,6 +775,12 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	    HTTPCleanup(request, NO);
 	    if (HTRequest_isPostWeb(request)) {
 		BOOL main = HTRequest_isMainDestination(request);
+		if (HTRequest_isDestination(request)) {
+		    HTLink *link =
+			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+					  (HTAnchor *) request->anchor);
+		    HTAnchor_setLinkResult(link, HT_LINK_OK);
+		}
 		HTRequest_removeDestination(request);
 		return main ? HT_LOADED : HT_OK;
 	    }
@@ -757,6 +791,12 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	    HTTPCleanup(request, NO);
 	    if (HTRequest_isPostWeb(request)) {
 		BOOL main = HTRequest_isMainDestination(request);
+		if (HTRequest_isDestination(request)) {
+		    HTLink *link =
+			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+					  (HTAnchor *) request->anchor);
+		    HTAnchor_setLinkResult(link, HT_LINK_OK);
+		}
 		HTRequest_removeDestination(request);
 		return main ? HT_NO_DATA : HT_OK;
 	    }
@@ -764,31 +804,40 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	    break;
 	    
 	  case HTTP_RETRY:	     /* Treat this as an error state for now */
-	    if (HTRequest_isPostWeb(request))
-		HTRequest_killPostWeb(request);
-	    else
-		HTTPCleanup(request, YES);
 	    if (HTRequest_isPostWeb(request)) {
 		BOOL main = HTRequest_isMainDestination(request);
+		HTRequest_killPostWeb(request);
+		if (HTRequest_isDestination(request)) {
+		    HTLink *link = 
+			HTAnchor_findLink((HTAnchor*) request->source->anchor,
+					  (HTAnchor*) request->anchor);
+		    HTAnchor_setLinkResult(link, HT_LINK_ERROR);
+		}
 		HTRequest_removeDestination(request);
 		return main ? HT_RETRY : HT_OK;
-	    }
+
+	    } else
+		HTTPCleanup(request, YES);
 	    return HT_RETRY;
 	    break;
 
 	  case HTTP_ERROR:
 	    /* Clean up the other connections or just this one */
 	    if (HTRequest_isPostWeb(request)) {
+		BOOL main = HTRequest_isMainDestination(request);
 		if (http->sockfd == INVSOC)
 		    HTTPCleanup(request, YES);         /* If no valid socket */
 		HTRequest_killPostWeb(request);
-	    } else
-		HTTPCleanup(request, YES);
-	    if (HTRequest_isPostWeb(request)) {
-		BOOL main = HTRequest_isMainDestination(request);
+		if (HTRequest_isDestination(request)) {
+		    HTLink *link =
+			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+					  (HTAnchor *) request->anchor);
+		    HTAnchor_setLinkResult(link, HT_LINK_ERROR);
+		}
 		HTRequest_removeDestination(request);
 		return main ? HT_ERROR : HT_OK;
-	    }
+	    } else
+		HTTPCleanup(request, YES);
 	    return HT_ERROR;
 	    break;
 	}
