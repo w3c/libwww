@@ -74,15 +74,15 @@ END_OF_HEAD
 sub endBody
 {
     local($output) = @_;
-    print $output "</UL>\n<HR>\n";
-    print $output "<H1><A NAME=\"summary\">summaries</A></H1>\n";
-    print $output "<TABLE ALIGN=CENTER BORDER=1 CELLSPACING=0 CELLPADDING=2 >\n<TR>\n<TH>id</TH>\n";
+    print $output "<HR>\n";
+    print $output "<H1><A NAME=\"summary\">Summaries</A></H1>\n";
+    print $output "<TABLE ALIGN=CENTER BORDER=1 CELLSPACING=0 CELLPADDING=2 WIDTH=\"80%\">\n<TR>\n<TH>id</TH>\n";
     foreach $method (@Methods) {
 	print $output <<"END_OF_SUMMARY_HEAD";
-<TH ALIGN=CENTER WIDTH><B>$method</B>\npackets</TH>
-<TH ALIGN=CENTER>bytes</TH>
+<TH>$method\npackets</TH>
+<TH>bytes</TH>
 <TH>time</TH>
-<TH>effic</TH>
+<TH>TCP Overhead in %</TH>
 END_OF_SUMMARY_HEAD
     }
     print $output "</TR>\n";
@@ -91,14 +91,15 @@ END_OF_SUMMARY_HEAD
 	foreach $method (@Methods) {
 	    local ($key) = ($dir.'.'.$method);
 	    if (defined $AvgPackets{$key}) {
-		printf $output "<TD ALIGN=CENTER><A NAME=\"$key.summary\"><A HREF=\"#$key.item\">%.1f</A></A></TD>\n<TD ALIGN=CENTER>%.1f</TD>\n<TD>%.2f</TD>\n<TD>%.3f</TD>\n", $AvgPackets{$key}, $AvgBytes{$key}, $AvgTime{$key}, $AvgEffic{$key};
+		printf $output "<TD ALIGN=CENTER><A NAME=\"$key.summary\" HREF=\"#$key.item\">%.1f</A></TD>\n<TD ALIGN=CENTER>%.1f</TD>\n<TD ALIGN=CENTER>%.2f</TD>\n<TD ALIGN=CENTER>%.1f</TD>\n", $AvgPackets{$key}, $AvgBytes{$key}, $AvgTime{$key}, $AvgEffic{$key};
 	    } else {
 		print $output "<TD ALIGN=CENTER></TD>\n<TD ALIGN=CENTER></TD>\n<TD></TD>\n<TD></TD>\n";
 	    }
 	    }
     print $output "</TR>\n";
     }
-    print $output "</TABLE>\n";
+    $date = `date`;
+    print $output "</TABLE><P><HR><ADDRESS>Generated on $date</ADDRESS>\n";
     print $output "</BODY>\n</HTML>\n";
 }
 
@@ -107,8 +108,7 @@ sub showProtocol
     local($output, $protocol) = @_;
     print $output <<"END_OF_PROTOCOL";
 
-<LI><A NAME="$protocol"></A><H2>$protocol</H2></LI>
-<UL>
+<H2><A NAME="$protocol">$protocol</A></H2>
 END_OF_PROTOCOL
 }
 
@@ -120,12 +120,13 @@ sub endProtocol
     $AvgBytes /= $Runs;
     $AvgTime /= $Runs;
     $AvgEffic /= $Runs;
-    printf "$key: %.1f packets %d bytes took %.3f - effic: %.3f.\n", $AvgPackets, $AvgBytes, $AvgTime, $AvgEffic;
-    printf $output "<LI><H3><A NAME=\"$key.item\"><A HREF=\"#$key.summary\">average: %.1f packets %d bytes took %.3f - effic: %.3f.</A></A></H3></LI>\n", 
+    $AvgEffic = 100 * (1-$AvgEffic);    
+    printf "$key: %.1f packets %d bytes took %.3f - overhead: %.1f%%\n", $AvgPackets, $AvgBytes, $AvgTime, $AvgEffic;
+    printf $output "<B><A NAME=\"$key.item\" HREF=\"#$key.summary\">average: %.1f packets %d bytes took %.3f - overhead: %.1f%%</A></B>\n", 
 		$AvgPackets, $AvgBytes, $AvgTime, $AvgEffic;
     ($AvgPackets{$key}, $AvgBytes{$key}, $AvgTime{$key}, $AvgEffic{$key}) = 
 	($AvgPackets, $AvgBytes, $AvgTime, $AvgEffic);
-    print $output "</UL>\n";
+    print $output "\n";
 }
 
 sub showMethod
@@ -133,15 +134,14 @@ sub showMethod
     local($output, $method, $protocol) = @_;
     print $output <<"END_OF_METHOD";
 
-<LI><A NAME="$protocol-$method"></A><H3>$method</H3></LI>
-<UL>
+<H3><A NAME="$protocol-$method">$method</A></H3>
 END_OF_METHOD
 }
 
 sub endMethod
 {
     local($output, $method, $protocol) = @_;
-    print $output "</UL>\n";
+    print $output "\n";
 }
 
 sub showRun
@@ -149,14 +149,16 @@ sub showRun
     local($output, $run, $method, $protocol) = @_;
     print $output <<"END_OF_RUN";
 
-<LI><A NAME="$protocol-$method-$run"></A><H3>run-$run:</H3></LI>
-<TABLE ALIGN=ABSCENTER BORDER=1 CELLSPACING=0 CELLPADDING=2 >
+<TABLE ALIGN=CENTER BORDER=1 CELLSPACING=0 CELLPADDING=2>
+<CAPTION>
+  <B><A NAME="$protocol-$method-$run">run-$run</A></B>
+</CAPTION>
 <TR>
-<TD ALIGN=CENTER>id</TD>
-<TD ALIGN=CENTER>packets</TD>
-<TD ALIGN=CENTER>bytes</TD>
-<TD>time</TD>
-<TD>effic</TD>
+<TH>Host and port (<A HREF=\"$protocol/run-$method-$run.txt\">Raw dump</A>)</TH>
+<TH>Packets</TH>
+<TH>Bytes</TH>
+<TH>Time</TH>
+<TH>TCP Overhead in %</TH>
 </TR>
 END_OF_RUN
 }
@@ -164,22 +166,22 @@ END_OF_RUN
 sub endRun
 {
     local($output, $method, $protocol) = @_;
-    print $output "</TABLE>\n";
+    print $output "</TABLE><P>\n";
 }
 
 sub showLine
 {
     local($output, $line, $run, $method, $protocol) = @_;
     local($from, $to, $mode, $xplot, $packets, $bytes, $time, $effic) = split(' ', $line);
-    print $output "<TR><A NAME=\"$protocol-$method-$run-$from\"></A>\n<TD>";
+    print $output "<TR><TD>\n";
     print $output "<EM>" if ($mode eq 'server');
-    print $output "<A HREF=\"$protocol/$xplot\">$from</A>";
+    print $output "<A NAME=\"$protocol-$method-$run-$from\" HREF=\"$protocol/$xplot\">$from</A>";
     print $output "</EM>" if ($mode eq 'server');
     print $output "\n</TD>\n<TD ALIGN=CENTER>$packets</TD>\n";
     print $output "<TD ALIGN=CENTER>$bytes</TD>\n";
-    printf $output "<TD>%.3f</TD>\n", $time;
+    printf $output "<TD ALIGN=CENTER>%.3f</TD>\n", $time;
     warn "$protocol $method $run: can't parse \"$line\".\n" if (!defined $effic);
-    printf $output "<TD>%.3f</TD>\n", $effic;
+    printf $output "<TD ALIGN=CENTER>%.1f</TD>\n", 100 * (1-$effic);
     print $output "</TR>\n";
 }
 
@@ -195,8 +197,8 @@ sub showSummary
     print $output "<TD ALIGN=CENTER>-total-</TD>\n";
     print $output "<TD ALIGN=CENTER>$packets</TD>\n";
     print $output "<TD ALIGN=CENTER>$bytes</TD>\n";
-    printf $output "<TD>%.3f</TD>\n", $time;
-    printf $output "<TD>%.3f</TD>\n", $effic;
+    printf $output "<TD ALIGN=CENTER>%.3f</TD>\n", $time;
+    printf $output "<TD ALIGN=CENTER>%.1f</TD>\n", 100 * (1-$effic);
     print $output "</TR>\n";
 }
 
