@@ -221,11 +221,13 @@ PRIVATE int HostEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    char buf[256];
 	    int ret;
 	    memset(buf, '\0', sizeof(buf));
-	    while ((ret = NETREAD(HTChannel_socket(host->channel), buf, sizeof(buf)-1)) > 0) {
+	    if (HTChannel_socket(host->channel) != INVSOC) {
+	      while ((ret = NETREAD(HTChannel_socket(host->channel), buf, sizeof(buf)-1)) > 0) {
 		HTTRACE(CORE_TRACE, "Host Event.. Host %p `%s\' had %d extraneous bytes: `%s\'\n" _ 
-			    host _ host->hostname _ ret _ buf);
+			host _ host->hostname _ ret _ buf);
 		memset(buf, '\0', sizeof(buf));		
-	    }	    
+	      }	    
+	    }
 	}
 	HTHost_clearChannel(host, HT_OK);
 	return HT_OK; 	     /* extra garbage does not constitute an application error */
