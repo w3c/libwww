@@ -197,7 +197,7 @@ SOURCE=.\wwwnews.def
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTNewsRq.c
+SOURCE=..\HTNewsRq.c
 
 $(INTDIR)/HTNewsRq.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -211,7 +211,7 @@ SOURCE=.\WinDebug\wwwmime.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTNews.c
+SOURCE=..\HTNews.c
 
 $(INTDIR)/HTNews.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -220,7 +220,7 @@ $(INTDIR)/HTNews.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTNDir.c
+SOURCE=..\HTNDir.c
 
 $(INTDIR)/HTNDir.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -229,7 +229,7 @@ $(INTDIR)/HTNDir.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTNewsLs.c
+SOURCE=..\HTNewsLs.c
 
 $(INTDIR)/HTNewsLs.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 

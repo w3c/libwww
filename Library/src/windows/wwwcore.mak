@@ -260,7 +260,7 @@ $(INTDIR)/windll.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTError.c
+SOURCE=..\HTError.c
 
 $(INTDIR)/HTError.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -269,7 +269,7 @@ $(INTDIR)/HTError.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTProt.c
+SOURCE=..\HTProt.c
 
 $(INTDIR)/HTProt.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -278,7 +278,7 @@ $(INTDIR)/HTProt.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTEvntrg.c
+SOURCE=..\HTEvntrg.c
 
 $(INTDIR)/HTEvntrg.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -297,7 +297,7 @@ SOURCE=.\WinDebug\wwwutils.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTParse.c
+SOURCE=..\HTParse.c
 
 $(INTDIR)/HTParse.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -311,7 +311,7 @@ SOURCE=.\wwwcore.def
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTReqMan.c
+SOURCE=..\HTReqMan.c
 
 $(INTDIR)/HTReqMan.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -320,7 +320,7 @@ $(INTDIR)/HTReqMan.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTNet.c
+SOURCE=..\HTNet.c
 
 $(INTDIR)/HTNet.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -329,7 +329,7 @@ $(INTDIR)/HTNet.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTTCP.c
+SOURCE=..\HTTCP.c
 
 $(INTDIR)/HTTCP.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -338,7 +338,7 @@ $(INTDIR)/HTTCP.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTDialog.c
+SOURCE=..\HTDialog.c
 
 $(INTDIR)/HTDialog.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -347,7 +347,7 @@ $(INTDIR)/HTDialog.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTEscape.c
+SOURCE=..\HTEscape.c
 
 $(INTDIR)/HTEscape.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -356,7 +356,7 @@ $(INTDIR)/HTEscape.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTDNS.c
+SOURCE=..\HTDNS.c
 
 $(INTDIR)/HTDNS.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -365,7 +365,7 @@ $(INTDIR)/HTDNS.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTFWrite.c
+SOURCE=..\HTFWrite.c
 
 $(INTDIR)/HTFWrite.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -374,7 +374,7 @@ $(INTDIR)/HTFWrite.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTAccess.c
+SOURCE=..\HTAccess.c
 
 $(INTDIR)/HTAccess.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -383,7 +383,7 @@ $(INTDIR)/HTAccess.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTFormat.c
+SOURCE=..\HTFormat.c
 
 $(INTDIR)/HTFormat.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -392,7 +392,7 @@ $(INTDIR)/HTFormat.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTAlert.c
+SOURCE=..\HTAlert.c
 
 $(INTDIR)/HTAlert.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -401,7 +401,7 @@ $(INTDIR)/HTAlert.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTBind.c
+SOURCE=..\HTBind.c
 
 $(INTDIR)/HTBind.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -410,7 +410,7 @@ $(INTDIR)/HTBind.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTAnchor.c
+SOURCE=..\HTAnchor.c
 
 $(INTDIR)/HTAnchor.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -419,7 +419,7 @@ $(INTDIR)/HTAnchor.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTWriter.c
+SOURCE=..\HTWriter.c
 
 $(INTDIR)/HTWriter.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -428,7 +428,7 @@ $(INTDIR)/HTWriter.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTTee.c
+SOURCE=..\HTTee.c
 
 $(INTDIR)/HTTee.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -437,7 +437,7 @@ $(INTDIR)/HTTee.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTSocket.c
+SOURCE=..\HTSocket.c
 
 $(INTDIR)/HTSocket.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -446,7 +446,7 @@ $(INTDIR)/HTSocket.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTMethod.c
+SOURCE=..\HTMethod.c
 
 $(INTDIR)/HTMethod.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -455,7 +455,7 @@ $(INTDIR)/HTMethod.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTConLen.c
+SOURCE=..\HTConLen.c
 
 $(INTDIR)/HTConLen.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -464,7 +464,7 @@ $(INTDIR)/HTConLen.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTWWWStr.c
+SOURCE=..\HTWWWStr.c
 
 $(INTDIR)/HTWWWStr.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 

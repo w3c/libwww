@@ -203,7 +203,7 @@ SOURCE=.\WinDebug\wwwcore.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTHeader.c
+SOURCE=..\HTHeader.c
 
 $(INTDIR)/HTHeader.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -212,7 +212,7 @@ $(INTDIR)/HTHeader.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTBound.c
+SOURCE=..\HTBound.c
 
 $(INTDIR)/HTBound.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -226,7 +226,7 @@ SOURCE=.\wwwmime.def
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTMIMERq.c
+SOURCE=..\HTMIMERq.c
 
 $(INTDIR)/HTMIMERq.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -235,7 +235,7 @@ $(INTDIR)/HTMIMERq.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTMIME.c
+SOURCE=..\HTMIME.c
 
 $(INTDIR)/HTMIME.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 

@@ -180,7 +180,7 @@ $(INTDIR)/windll.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTRules.c
+SOURCE=..\HTRules.c
 
 $(INTDIR)/HTRules.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -209,7 +209,7 @@ SOURCE=.\wwwrules.def
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTProxy.c
+SOURCE=..\HTProxy.c
 
 $(INTDIR)/HTProxy.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 

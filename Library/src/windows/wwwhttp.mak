@@ -204,7 +204,7 @@ $(INTDIR)/windll.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTTP.c
+SOURCE=..\HTTP.c
 
 $(INTDIR)/HTTP.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -243,7 +243,7 @@ SOURCE=.\wwwhttp.def
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTAABrow.c
+SOURCE=..\HTAABrow.c
 
 $(INTDIR)/HTAABrow.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -252,7 +252,7 @@ $(INTDIR)/HTAABrow.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTAlert.c
+SOURCE=..\HTAlert.c
 
 $(INTDIR)/HTAlert.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -261,7 +261,7 @@ $(INTDIR)/HTAlert.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTAAUtil.c
+SOURCE=..\HTAAUtil.c
 
 $(INTDIR)/HTAAUtil.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -270,7 +270,7 @@ $(INTDIR)/HTAAUtil.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTTPReq.c
+SOURCE=..\HTTPReq.c
 
 $(INTDIR)/HTTPReq.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -279,7 +279,7 @@ $(INTDIR)/HTTPReq.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTTPServ.c
+SOURCE=..\HTTPServ.c
 
 $(INTDIR)/HTTPServ.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -288,12 +288,12 @@ $(INTDIR)/HTTPServ.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTTPServ.h
+SOURCE=..\HTTPServ.h
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTTPRes.c
+SOURCE=..\HTTPRes.c
 
 $(INTDIR)/HTTPRes.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -302,7 +302,7 @@ $(INTDIR)/HTTPRes.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTTPRes.h
+SOURCE=..\HTTPRes.h
 # End Source File
 # End Group
 # End Project

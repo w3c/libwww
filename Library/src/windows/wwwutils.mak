@@ -196,7 +196,7 @@ $(INTDIR)/windll.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTArray.c
+SOURCE=..\HTArray.c
 
 $(INTDIR)/HTArray.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -210,7 +210,7 @@ SOURCE=.\WinDebug\wwwdll.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTString.c
+SOURCE=..\HTString.c
 
 $(INTDIR)/HTString.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -219,7 +219,7 @@ $(INTDIR)/HTString.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTList.c
+SOURCE=..\HTList.c
 
 $(INTDIR)/HTList.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -233,7 +233,7 @@ SOURCE=.\wwwutils.def
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTAssoc.c
+SOURCE=..\HTAssoc.c
 
 $(INTDIR)/HTAssoc.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -242,7 +242,7 @@ $(INTDIR)/HTAssoc.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTAtom.c
+SOURCE=..\HTAtom.c
 
 $(INTDIR)/HTAtom.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -251,7 +251,7 @@ $(INTDIR)/HTAtom.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTUU.c
+SOURCE=..\HTUU.c
 
 $(INTDIR)/HTUU.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -260,7 +260,7 @@ $(INTDIR)/HTUU.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTChunk.c
+SOURCE=..\HTChunk.c
 
 $(INTDIR)/HTChunk.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 

@@ -200,7 +200,7 @@ SOURCE=.\wwwmlgen.def
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTMLPDTD.c
+SOURCE=..\HTMLPDTD.c
 
 $(INTDIR)/HTMLPDTD.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
@@ -209,7 +209,7 @@ $(INTDIR)/HTMLPDTD.obj :  $(SOURCE)  $(INTDIR)
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTMLGen.c
+SOURCE=..\HTMLGen.c
 
 $(INTDIR)/HTMLGen.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 

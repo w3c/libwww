@@ -184,7 +184,7 @@ SOURCE=.\WinDebug\wwwcore.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTCache.c
+SOURCE=..\HTCache.c
 
 $(INTDIR)/HTCache.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
