@@ -7,6 +7,8 @@
 **	The dimensions are all in characters!
 */
 
+#include "sysdep_b.h"
+
 #include "GridStyle.h"
 #include "HTFont.h"
 

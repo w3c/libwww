@@ -6,6 +6,7 @@
 **
 */
 
+#include "sysdep_b.h"
 /* Implements: */
 #include "HText.h"
 
@@ -14,8 +15,6 @@
 #include "a_stdio.h"
 #endif
 
-#include <assert.h>
-#include <ctype.h>
 #include "HTUtils.h"
 #include "HTString.h"
 #include "GridText.h"
@@ -31,11 +30,6 @@ struct _HTStream {			/* only know it as object */
 };
 
 #define MAX_LINE	HTScreenWidth	/* No point in accumulating more */
-#ifdef THINK_C
-#define LOADED_LIMIT 3			/* For now, save last two texts */
-#else
-#define LOADED_LIMIT 6			/* For now, save last five texts */
-#endif
 
 /*	From main program:
 */
@@ -525,16 +519,14 @@ PRIVATE void split_line ARGS2(HText *,text, int,split)
 **	Not on the RS6000 due to a chaotic bug in realloc argument passing.
 **	Same problem with Ultrix (4.2) : realloc() is not declared properly.
 */
-#ifndef AIX
-#ifndef ultrix
+#ifndef BUGGY_REALLOC
     while ((previous->size > 0) &&
     	(previous->data[previous->size-1] == ' '))	/* Strip trailers */
         previous->size--;
 
     previous = (HTLine *) realloc (previous, LINE_SIZE(previous->size));
     if (previous == NULL) outofmem(__FILE__, "split_line");
-#endif /* ultrix */
-#endif /* AIX */
+#endif /* BUGGY_REALLOC */
 
     previous->prev->next = previous;	/* Link in new line */
     previous->next->prev = previous;	/* Could be same node of course */

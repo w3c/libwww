@@ -52,7 +52,7 @@
 **	VL		Version number, quoted eg "1.2a"
 */
 
-#include <ctype.h>
+#include "sysdep_b.h"	/* system dependencies */
 #include "HTUtils.h"	/* WWW general purpose macros */
 #include "HTBrowse.h"	/* Things exported, short names */
 #include "GridText.h"	/* Hypertext definition */
@@ -78,9 +78,7 @@
 #include "a_stdio.h"
 #endif
 
-#ifdef THINK_C			     /* Macintosh Think C development system */
-#include <console.h>
-#include <time.h>
+#ifdef HAVE_SOCKETDEBUG
 extern int socketdebug;		   /* Must be declared in the socket library */
 #endif
 
@@ -170,10 +168,6 @@ extern int socketdebug;		   /* Must be declared in the socket library */
 
 /* #define LONG_PROMPT	1 */			/* Long or short user prompt */
 
-#if defined(ultrix) || defined(__osf__)
-#define GET_SCREEN_SIZE
-#endif
-
 #define Check_User_Input(command) \
     (!strncasecomp (command, this_word, strlen(this_word)))
 
@@ -229,7 +223,6 @@ PRIVATE FILE *	     output = stdout;
 /* ------------------------------------------------------------------------- */
 
 #ifdef GET_SCREEN_SIZE
-#include <sys/ioctl.h>
 /*
 ** Get size of the output screen. Stolen from less.
 */
@@ -318,7 +311,7 @@ PRIVATE void help_screen NOARGS {
     printf("  REFresh         Refresh screen with current document\n");
     printf("  Go <address>    Go to document of given [relative] address\n");
 	    
-#ifdef GOT_SYSTEM
+#ifdef HAVE_SYSTEM
     if (!HTClientHost) {	/* NOT for telnet guest! */
 	    printf("  PRInt           Print text of this document. *\n");
 	    printf("  ! <command>     Execute shell <command> without leaving.\n");
@@ -326,7 +319,7 @@ PRIVATE void help_screen NOARGS {
 	    printf("                  If <file> exists use '>!' to overwrite it.\n");
 	    printf("  >> <file>       Append the text of this document to <file>. *\n");
 	    printf("  | <command>     Pipe this document to the shell <command>. *\n");
-#ifdef unix
+#ifdef HAVE_CHDIR
 	    printf("  CD <directory>  Change local working directory.\n");
 #endif
 	    printf("* Prefix these commands with \"Source \" to use raw source.\n\n");
@@ -733,7 +726,7 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 	    found = NO;
 	break;
 	
-#ifdef unix
+#ifdef HAVE_CHDIR
       case 'C':
 	if (Check_User_Input("CD")) {	       /* Change working directory ? */
 	    goto lcd;
@@ -810,7 +803,7 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 	if (Check_User_Input("LIST")) {		     /* List of references ? */
 	    Reference_List(!OutSource);
 	}
-#ifdef unix
+#ifdef HAVE_CHDIR
 	else if (Check_User_Input ("LCD")) {	       /* Local change dir ? */
 	  lcd:
 	    if (!next_word) {				 /* Missing argument */
@@ -820,18 +813,18 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 		perror (next_word);
 	    } else {		    /* Success : display new local directory */
 		/* AS Sep 93 */
-#ifdef NO_GETWD     /* No getwd() on this machine */
-#ifdef HAS_GETCWD   /* System V variant SIGN CHANGED TBL 921006 !! */
+#ifdef HAVE_GETCWD   /* System V variant SIGN CHANGED TBL 921006 !! */
 		printf ("\nLocal directory is now:\n %s\n",
 			getcwd (choice, sizeof(choice)));
-#else   /* has NO getcwd */
+#else
+# ifdef HAVE_GETWD
+		printf("\nLocal directory is now:\n %s\n",
+			(char *) getwd (choice));
+# else
 		ErrMsg("This platform does not support getwd() or getcwd()",
 		       NULL);
-#endif	/* has no getcwd */
-#else   /* has getwd */
-		printf("\nLocal directory is now:\n %s\n",
-		       (char *) getwd (choice));
-#endif  /* has getwd */
+# endif
+#endif
 		/* End AS Sep 93 */
 	    }
 	}
@@ -875,7 +868,7 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 		loadstat = HTLoadAnchor(HTHistory_moveBy(-1), *actreq);
 	    }
 	}
-#ifdef GOT_SYSTEM	    
+#ifdef HAVE_SYSTEM	    
 	else if (!HTClientHost && Check_User_Input("PRINT")) {
 	    char * address = HTAnchor_address((HTAnchor *) HTMainAnchor);
 	    char * command;
@@ -1012,7 +1005,7 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 	}
 	break;
 	
-#ifdef GOT_PIPE
+#ifdef HAVE_PIPE
       case '|':
 	if (!HTClientHost) {	             	           /* Local only!!!! */
 	    char * address = HTAnchor_address((HTAnchor *) HTMainAnchor);
@@ -1038,7 +1031,7 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 	break;
 #endif
 	    
-#ifdef GOT_SYSTEM
+#ifdef HAVE_SYSTEM
       case '!':
 	if (!HTClientHost) {				      /* Local only! */
 	    int result;
@@ -1119,7 +1112,7 @@ int main ARGS2(int, argc, char **, argv)
     HTFormat	input_format = WWW_HTML;	         /* Used with filter */
     HTEventCallBack user;		/* To register STDIN for user events */
 
-#ifdef THINK_C /* command line from Think_C */
+#ifdef HAVE_CCOMMAND
     int i;
     argc=ccommand(&argv);
 #endif
@@ -1341,7 +1334,7 @@ int main ARGS2(int, argc, char **, argv)
 		    request->output_format = WWW_SOURCE;
 		    HTInteractive = NO;			/* JFG */
 
-#ifdef THINK_C
+#ifdef HAVE_CECHO2FILE
 	    /* Echo to file */
 	    } else if (!strcmp(argv[arg], "-e")){
 		struct tm *tm_now; time_t time_now;
@@ -1454,7 +1447,7 @@ int main ARGS2(int, argc, char **, argv)
 		DEFAULT_LOGFILE : DEFAULT_LOCAL_LOGFILE;
 	HTLogFileName = (char*) malloc(strlen(logfile_root)+20);
 
-#ifdef NO_GETPID
+#ifndef HAVE_GETPID
 	sprintf(HTLogFileName, "%s", logfile_root);  /* No getpid() */
 #else
 	sprintf(HTLogFileName, "%s-%d", logfile_root, (int) getpid());
@@ -1507,11 +1500,7 @@ endproc:
 	free(default_default);
 
     if(!return_status) {			/* Everything is working :-) */
-#ifdef VMS 
-	return 1;
-#else
-	return 0;	/* Good */
-#endif
+	return GOOD_RETURN_STATUS;
     }
     return return_status;		       /* An error occured somewhere */
 }

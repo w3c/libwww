@@ -13,8 +13,6 @@
 #ifndef HTBROWSE_H
 #define HTBROWSE_H
 
-#include "tcp.h"
-
 #ifdef SHORT_NAMES
 #define HTScreenHeight		HTScHeig
 #define HTScreenWidth		HTScWidt
