@@ -170,7 +170,7 @@ PRIVATE int HostEvent (SOCKET soc, void * pVoid, HTEventType type)
 {
     HTHost * host = (HTHost *)pVoid;
 
-    if (type == HTEvent_READ || type == HTEvent_CLOSE) {
+    if (type == HTEvent_READ || type == HTEvent_CLOSE || type == HTEvent_ACCEPT) {
 	HTNet * targetNet;
 
 	/* call the first net object */
