@@ -1,0 +1,42 @@
+<HTML>
+<HEAD>
+  <TITLE>Calling libwww from C++</TITLE>
+</HEAD>
+<BODY>
+<P>
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48" ALT="W3C"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x" ALT="libwww"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/progstyle48x" ALT="C Style"></A>
+<H1>
+  Calling libwww from C++
+</H1>
+<P>
+Even though libwww is written in C, all
+<A HREF="../../src/windows/wwwlist.txt">public functions and data
+objects&nbsp;</A>in libwww can be called from any C++ program as they are
+all declared as having C linkage and defined as separately compiled translation
+unit. An include file can be made to have C linkage by adding the following
+declaration:
+<PRE>	#ifdef __cplusplus
+	extern "C" {		/* Start extern C declarations */
+	#endif
+
+	Declarations...
+
+	#ifdef __cplusplus
+	} 			/* End extern C declarations */
+	#endif
+</PRE>
+<P>
+All the <A HREF="../Guide/">Library interface</A> include files (called WWW*.h)
+have the <CODE>extern "C"</CODE> declaration, so by using these include files
+your application should with no modification be able to call libwww public
+functions directly.
+<P>
+  <HR>
+<ADDRESS>
+  Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A> 
+  <P>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>
