@@ -1143,8 +1143,19 @@ lcd:	      if (!next_word) {  /* Missing argument */
 					perror (next_word);
 					}
 				else {  /* Success : display new local directory */
-					printf ("\n  Local directory is now:\n    %s\n", getwd (choice));
-					}
+				    /* AS Sep 93 */
+#ifdef NO_GETWD  		/* No getwd() on this machine */
+#ifdef HAS_GETCWD		/* System V variant SIGN CHANGED TBL 921006 !! */
+				    printf ("\n  Local directory is now:\n    %s\n", getcwd (choice, sizeof(choice)));
+#else   /* has NO getcwd */
+				    if (TRACE) fprintf(stderr,
+						       "HTBrowse: This platform does not support getwd() or getcwd()\n");
+#endif	/* has no getcwd */
+#else   /* has getwd */
+				    printf ("\n  Local directory is now:\n    %s\n", getwd (choice));
+#endif  /* has getwd */
+				    /* End AS Sep 93 */
+				}
 				goto ret;
 				}
 #endif
