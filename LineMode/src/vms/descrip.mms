@@ -160,7 +160,7 @@ www : $(WWW_HEADERS) $(EXE)www.exe
  	@ continue
 
 $(EXE)www.exe :	$(WWW_OBJECTS)
-	link $(LFLAGS)$(LMAP)/exe=$(EXE)www.exe $(WWW_OBJECTS), $(WWW_LIBS), $(WWW_LIB)www_lib.opt/opt
+	link $(LFLAGS)$(LMAP)/exe=$(EXE)www.exe $(WWW_OBJECTS), $(WWW_LIBS), $(WWW_LIB)wwwlib.opt/opt
 
 !_____________________________	HTBrowse
 

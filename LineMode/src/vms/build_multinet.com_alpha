@@ -5,6 +5,6 @@ $ copy []setup.com [--.ALPHA.MULTINET]setup.com
 $ cc /DEFINE=(DEBUG,VL="""2.12""",RULES,ACCESS_AUTH,MULTINET)/INC=[---.Library.Implementation]/Standard=VAXC/obj=[--.ALPHA.MULTINET]HTBROWSE.obj [-]HTBrowse.c
 $ cc /DEFINE=(DEBUG,VL="""2.12""",RULES,ACCESS_AUTH,MULTINET)/INC=[---.Library.Implementation]/Standard=VAXC/obj=[--.ALPHA.MULTINET]GRIDTEXT.obj [-]GridText.c
 $ cc /DEFINE=(DEBUG,VL="""2.12""",RULES,ACCESS_AUTH,MULTINET)/INC=[---.Library.Implementation]/Standard=VAXC/obj=[--.ALPHA.MULTINET]DEFAULTSTYLES.obj [-]DefaultStyles.c
-$ link /exe=[--.ALPHA.MULTINET]www.exe [--.ALPHA.MULTINET]HTBrowse.obj, [--.ALPHA.MULTINET]GridText.obj, [--.ALPHA.MULTINET]DefaultStyles.obj, [---.LIBRARY.ALPHA.MULTINET]wwwlib/lib, [---.LIBRARY.ALPHA.MULTINET]www_lib.opt/opt
+$ link /exe=[--.ALPHA.MULTINET]www.exe [--.ALPHA.MULTINET]HTBrowse.obj, [--.ALPHA.MULTINET]GridText.obj, [--.ALPHA.MULTINET]DefaultStyles.obj, [---.LIBRARY.ALPHA.MULTINET]wwwlib/lib, [---.LIBRARY.ALPHA.MULTINET]wwwlib.opt/opt
 $ continue
 $ continue

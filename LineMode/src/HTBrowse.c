@@ -202,9 +202,7 @@ PUBLIC char * log_file_name = 0;	      	    /* Root of log file name */
 
 #ifdef OLD_CODE
 #ifdef VMS
-#ifdef __DECC
 PUBLIC  BOOL interactive     = YES;        /*  e.g. shows prompts etc */
-#endif /* DECC */
 #else /* not VMS */
 PRIVATE  BOOL interactive     = YES;        /*  e.g. shows prompts etc */
 #endif /* not VMS */
