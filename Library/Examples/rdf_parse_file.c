@@ -41,7 +41,7 @@ PRIVATE void new_triple_handler (HTRDF * rdfp, HTTriple * t, void * context)
  */
 int main (int argc, char ** argv)
 {
-    char * s;
+    BOOL status;
     int i;
 
     if (argc <= 1) {
@@ -50,9 +50,9 @@ int main (int argc, char ** argv)
     }
 
     for (i=1; i < argc; i++) {
-        s = HTRDF_parseFile(argv[i], new_triple_handler);
-        if (s) 
-            (void) fprintf (stderr, "Parse ERROR: '%s'\n", s);
+        status = HTRDF_parseFile(argv[i], new_triple_handler);
+        if (!status) 
+            (void) fprintf (stderr, "An error occured parsing: '%s'\n", argv[i]);
     }
 
     return 0;

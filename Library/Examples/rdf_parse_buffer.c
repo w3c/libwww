@@ -110,7 +110,8 @@ PRIVATE char * parse_buffer(const char *file_name, char **ret_buff, int *ret_len
  */
 int main (int argc, char ** argv)
 {
-    char * s;
+    BOOL status;
+    char *msg;
     char *buffer = NULL;
     int buff_len = 0;
     int i;
@@ -121,14 +122,14 @@ int main (int argc, char ** argv)
     }
 
     for (i=1; i < argc; i++) {
-        s = parse_buffer(argv[i], &buffer, &buff_len);
-        if (!s) {
-            s = HTRDF_parseBuffer(buffer, argv[i], buff_len, new_triple_handler);
-            if (s)
-                (void) fprintf (stderr, "ERROR parsing the buffer: '%s'\n", s);
+        msg = parse_buffer(argv[i], &buffer, &buff_len);
+        if (!msg) {
+            status = HTRDF_parseBuffer(buffer, argv[i], buff_len, new_triple_handler);
+            if (!status)
+                (void) fprintf (stderr, "ERROR parsing the buffer from file: '%s'\n", argv[i]);
         }
         else
-            (void) fprintf (stderr, "ERROR creating the buffer: '%s'\n", s);
+            (void) fprintf (stderr, "ERROR creating the buffer: '%s'\n", msg);
     }
 
     return 0;
