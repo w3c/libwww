@@ -5,10 +5,10 @@
 </HEAD>
 <BODY BGCOLOR="#ffffff">
 <P>
-<A HREF="../../"><IMG BORDER="0" ALT="W3C" SRC="../../Icons/WWW/w3c_home" WIDTH="72"
+<A HREF="../../"><IMG BORDER="0" ALT="W3C" SRC="../../Icons/WWW/w3c_home"
+    WIDTH="72" HEIGHT="48" BORDER="0"></A>
+<A HREF="../"><IMG BORDER="0" ALT="libwww" SRC="../../Icons/WWW/Lib48x" WIDTH="48"
     HEIGHT="48" BORDER="0"></A>
-<A HREF="../"><IMG BORDER="0" ALT="libwww" SRC="../../Icons/WWW/Lib48x" WIDTH="48" HEIGHT="48"
-    BORDER="0"></A>
 <H1>
   Change History of libwww
 </H1>
@@ -21,7 +21,7 @@ in reverse chronological order.
 <P>
 This release was originally called 4.1 but because we now have a complete
 <A HREF="../../Protocols/">HTTP/1.1</A> client side implemenation including
-a <A HREF="../src/WWWCache/html">persistent cache manager</A> and full support
+a <A HREF="../src/WWWCache.html">persistent cache manager</A> and full support
 for uploading documents, we decided to call it <B>version 5.0</B> instead.
 <P>
 The focus for version 5.0 of the <A HREF="../">W3C Sample Code Library</A>
@@ -77,8 +77,7 @@ noting.
     and the <I>entity-tag</I> validators have precedence over the <I>date</I>
     validators.
   <LI>
-    Added <A HREF="../acinclude.m4">acinclude.m4</A> in the WWW directory. The
-    file is used by automake
+    Added acinclude.m4 in the WWW directory. The file is used by automake
   <LI>
     Changed the <A HREF="../../INSTALL.html">configure script</A> to handle the
     location of the icons distributed as part of the libwww distribution package.
@@ -97,14 +96,14 @@ noting.
     include any notification messages. Any messages to be transmitted to the
     user is now handled by the <A HREF="../src/HTAlert.html">Alert manager</A>.
   <LI>
-    Added <A HREF="../src/WWWCacge.html">persistent cache manager</A> to the
+    Added <A HREF="../src/WWWCache.html">persistent cache manager</A> to the
     <A HREF="../src/HTProfil.html">client profile</A>.
   <LI>
     Added <I>validation</I> command to the line mode browser
   <LI>
     Changed the cache validation management in the
-    <A HREF="../src/Req.html">Request object</A>. The validation scheme is now
-    compatible with HTTP/1.1 caching including handling of the history list.
+    <A HREF="../src/HTReq.html">Request object</A>. The validation scheme is
+    now compatible with HTTP/1.1 caching including handling of the history list.
     We have changed the validation enumerations from
     <UL>
       <LI>
@@ -807,8 +806,8 @@ manager where the HTRequest object is an opaque object.
     Introduction of application call back function for memory cache. This is
     a part of separating the <A HREF="../src/HText.html">HText module</A> and
     also to make the memory cache manager more flexible. An example implementation
-    can be found in the <A HREF="../LineMode/src/GridText.c">GridText module</A>
-    in the <A HREF="../LineMode/">Line Mode Browser</A>.
+    can be found in the <A HREF="../../LineMode/src/GridText.c">GridText module</A>
+    in the <A HREF="../../LineMode/">Line Mode Browser</A>.
   <LI>
     Full support for the <A HREF="../src/HTAnchor.html#links">HTLink object</A>
     that binds together two anchors. This is a requirement for keeping track
@@ -1235,8 +1234,8 @@ this and remember that comments are welcome!
 </H2>
 <P>
 A lot of the work put into this release has been to update the API of the
-Library. This is mainly described in the new <A HREF="../Using/">User
-Guide</A>, so please do read this and remember that comments are welcome!
+Library. This is mainly described in the new <A HREF="Using/">User Guide</A>,
+so please do read this and remember that comments are welcome!
 <H3>
   New Features and Interfaces
 </H3>
@@ -1555,8 +1554,8 @@ Many of the modifications and new features are mentioned under the pre-releases.
     in HTAlert can prompt the User from within the Library or not. Default is
     YES.
   <LI>
-    The common BUILD for the Line Mode Browser, the CERN Server and the W3C Sample Code
-    Library now accepts a command line option:
+    The common BUILD for the Line Mode Browser, the CERN Server and the W3C Sample
+    Code Library now accepts a command line option:
     <PRE>
 	BUILD linemode | daemon | library
 </PRE>
@@ -1731,8 +1730,8 @@ state.
     </OL>
   <LI>
     Long directory listings are supported for unix-like systems and VMS. This
-    includes NetWare and WindowsNT. See <A HREF="Workinglist.html">Future plans</A>
-    for more and <A HREF="#z20">Directory Listings</A>
+    includes NetWare and WindowsNT. See <A HREF="../">Future plans</A> for more
+    and <A HREF="#z20">Directory Listings</A>
   <LI>
     Information from the FTP-server is pr default presented to the client using
     the following rule:
