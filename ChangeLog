@@ -1,3 +1,16 @@
+2000-08-17 	Arthur Barstow <barstow@w3.org>
+
+	* HTRDF.c: Fixed a memory leak.  (HTElement structures for elements
+	  within a property with parseType="Literal" were not free'd
+	  after the parser was done.)
+
+	* HTRDF.c: Bug fixes. Added code to circumvent calls to HTSAlloc 
+	  (via StrAllocCopy) when the src and dest were identical (this 
+	  causes a free'd pointer to be used) or both NULL.
+
+	* HTRDF.c: Changed addMarkup{Add,End} to make one call to 
+	  StrAllocMCat instead of multiple StrAllocCat calls.
+
 2000-08-11 	Jose Kahan <jose@w3.org>
 
 	* Memory leak. The HTPlain (HTPlain.c) stream wasn't freeing the
