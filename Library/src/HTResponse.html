@@ -373,6 +373,17 @@ extern HTAssocList * HTResponse_header (HTResponse * response);
 
 extern HTAssocList * HTResponse_handOverHeader (HTResponse * me);
 </PRE>
+
+<H3>
+  The HTTP reason string
+</H3>
+<P>The string returned in the HTTP status line. Some servers send custom
+info in this string and applications may want to show it.
+<PRE>
+extern PUBLIC char * HTResponse_reason (HTResponse * me);
+PUBLIC BOOL HTResponse_setReason (HTResponse * me, char * reason);
+</PRE>
+
 <PRE>
 #endif /* HTRESPONSE_H */
 </PRE>
