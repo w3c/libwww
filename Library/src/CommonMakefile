@@ -93,7 +93,7 @@ CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTProxy.c \
 	$(CMN)HTDescpt.c $(CMN)HTGuess.c \
 	$(CMN)HTIcons.c $(CMN)HTError.c $(CMN)HTLog.c \
 	$(CMN)HTTP.c $(CMN)HTTPReq.c $(CMN)HTNet.c $(CMN)HTEvntrg.c \
-	$(CMN)HTNews.c $(CMN)HTNewsRq.c$(CMN)HTNDir.c $(CMN)HTNewsLs.c \
+	$(CMN)HTNews.c $(CMN)HTNewsRq.c$ (CMN)HTNDir.c $(CMN)HTNewsLs.c \
 	$(CMN)HTEscape.c $(CMN)HTNetTxt.c $(CMN)HTBind.c
 
 HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h  $(CMN)HTProxy.h $(CMN)HTFile.h \
