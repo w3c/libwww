@@ -2,7 +2,10 @@
 
 LDFLAGS = -version-info "1:0:1"
 
-lib_LTLIBRARIES = libwwwssl.la
+lib_LTLIBRARIES = @WWWSSL@
+
+EXTRA_LTLIBRARIES = \
+	libwwwssl.la
 
 SUBDIRS = windows
 

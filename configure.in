@@ -31,6 +31,7 @@ AM_CONFIG_HEADER(wwwconf.h)
 
 dnl Regular configure...
 AC_PROG_CC
+AC_ISC_POSIX
 dnl AC_PROG_CXX		Caused problems and is not needed...
 AC_CYGWIN 	dnl   You should probably
 AC_MINGW32  	dnl   use all three of these
@@ -41,7 +42,6 @@ AC_PROG_INSTALL
 
 dnl Remove next line and you get an error -- autoconf
 dnl should deal with this automatically.
-AC_ISC_POSIX
 AC_PATH_X
 dnl AC_PATH_XTRA 	Causes problems...
 
@@ -183,8 +183,8 @@ AC_CHECK_TYPE(u_long, unsigned long)
 
 AC_CHECK_SIZEOF(char)
 AC_CHECK_SIZEOF(char *)
-AC_CHECK_SIZEOF(int)
-AC_CHECK_SIZEOF(long)
+AC_CHECK_SIZEOF(int,4)
+AC_CHECK_SIZEOF(long,4)
 AC_CHECK_SIZEOF_TIME_T
 AC_CHECK_SIZEOF_SIZE_T
 
@@ -545,7 +545,7 @@ elif test -d '/usr/include/openssl'; then
 else
   sslinc=""
 fi
-LIBWWWSSLDIR=""
+WWWSSL=""
 SSLINC=""
 LIBSSL=""
 LWWWSSL=""
@@ -568,27 +568,14 @@ AC_ARG_WITH(ssl,
 		[],
 		[ AC_MSG_ERROR(Could not find the $withval libraries.  You must first install openSSL.) ])
     AC_MSG_RESULT(yes)
-    LIBWWWSSLDIR="SSL"
+    WWWSSL="libwwwssl.la"
     LWWWSSL="-lwwwssl" 
     LIBWWWSSL='${top_builddir}/Library/src/SSL/libwwwssl.la'
     WWWSSLEX="wwwssl"
     ;;
   esac ],
-[
-  withval=$ssllib
-  SSLINC=$sslinc
-  LIBS="$LIBS $withval"
-  AC_TRY_LINK([],
-	      [ SSL_library_init(); ],
-	      [],
-	      [ AC_MSG_ERROR(Could not find the $withval libraries.  You must first install openSSL.) ])
-  AC_MSG_RESULT(yes)
-  LIBWWWSSLDIR="SSL"
-  LWWWSSL="-lwwwssl" 
-  LIBWWWSSL='${top_builddir}/Library/src/SSL/libwwwssl.la'
-  WWWSSLEX="wwwssl"
-])
-AC_SUBST(LIBWWWSSLDIR)
+[ AC_MSG_RESULT(no) ])
+AC_SUBST(WWWSSL)
 AC_SUBST(SSLINC)
 AC_SUBST(LWWWSSL)
 AC_SUBST(LIBWWWSSL)
