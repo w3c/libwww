@@ -40,27 +40,35 @@ PUBLIC BOOL HTDigest_init (HTDigestContext *context, int digesttype)
 
 PUBLIC BOOL HTDigest_update (HTDigestContext *context, char *input, unsigned int inputLen)
 {
-    switch (context->algorithm) {
-      case HTDaMD5:
-	  MD5Update (&context->context.md5, (unsigned char *) input,
-		     inputLen);
-	  break;
-      default:
-          return NO;
-	  break;
-    }	
+    if (context) {
+	switch (context->algorithm) {
+	case HTDaMD5:
+	    MD5Update (&context->context.md5, (unsigned char *) input,
+		       inputLen);
+	    break;
+	default:
+	    return NO;
+	    break;
+	}
+	return YES;
+    }
+    return NO;
 }
 
 PUBLIC BOOL HTDigest_final (unsigned char *digest, HTDigestContext *context)
 {
-    switch (context->algorithm) {
-      case HTDaMD5:
-	  MD5Final (digest, &context->context.md5);
-	  break;
-      default:
-          return NO;
-	  break;
+    if (context) {
+	switch (context->algorithm) {
+	case HTDaMD5:
+	    MD5Final (digest, &context->context.md5);
+	    break;
+	default:
+	    return NO;
+	    break;
+	}
+	return YES;
     }
+    return NO;
 }
 
 
