@@ -632,7 +632,10 @@ PRIVATE int stream_pipe (HTStream * me, int length)
 	    me->transparent = YES;
 	HTHost_setVersion(host, HTTP_09);
 	if (length > 0) HTHost_setConsumed(host, length);
-	return status;
+	if (PROT_TRACE)
+	    HTTrace("HTTP Status. `%s\' is probably a broken 1.0 server that doesn't understand HEAD\n",
+		    HTHost_name(host));
+	return HT_ERROR;
     } else {
 	HTResponse * response = HTRequest_response(request);
 	char * ptr = me->buffer+5;		       /* Skip the HTTP part */
@@ -646,14 +649,20 @@ PRIVATE int stream_pipe (HTStream * me, int length)
 	}
 
 	/* Here we want to find out when to use persistent connection */
-	if (major > 1) {
+	if (major > 1 && major < 100) {
 	    if (PROT_TRACE)HTTrace("HTTP Status. Major version number is %d\n", major);
 	    me->target = HTErrorStream();
 	    me->status = 9999;
 	    HTTPNextState(me);					   /* Get next state */
 	    return HT_ERROR;
 	} else if (minor <= 0) {
-	    if (PROT_TRACE)HTTrace("HTTP Status. This is an HTTP/1.0 server\n");
+	    if (major > 100) {
+		if (PROT_TRACE) HTTrace("HTTP Status. This is a *BROKEN* HTTP/1.0 server\n");
+		me->status = 200;
+	    } else {
+		if (PROT_TRACE)HTTrace("HTTP Status. This is an HTTP/1.0 server\n");
+		me->status = atoi(HTNextField(&ptr));
+	    }
 	    HTHost_setVersion(host, HTTP_10);
 	} else {					/* 1.x, x>0 family */
 	    HTHost_setVersion(host, HTTP_11);		/* Best we can do */
@@ -671,9 +680,9 @@ PRIVATE int stream_pipe (HTStream * me, int length)
 		HTNet_setPersistent(net, NO, HT_TP_SINGLE);
 	    } else
 		HTNet_setPersistent(net, YES, HT_TP_PIPELINE);
+	    me->status = atoi(HTNextField(&ptr));
 	}
 
-	me->status = atoi(HTNextField(&ptr));
 	me->reason = ptr;
 	if ((ptr = strchr(me->reason, '\r')) != NULL)	  /* Strip \r and \n */
 	    *ptr = '\0';
@@ -1037,6 +1046,9 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 		http->state = HTTP_NEED_STREAM;
 	    } else if (status == HT_WOULD_BLOCK || status == HT_PENDING) {
 		return HT_OK;
+	    } else if (status == HT_NO_HOST) {
+		http->result = HT_NO_HOST;
+		http->state = HTTP_ERROR;
 	    } else	
 		http->state = HTTP_ERROR;	       /* Error or interrupt */
 	    break;
