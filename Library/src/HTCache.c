@@ -1439,6 +1439,9 @@ PRIVATE BOOL meta_read (FILE * fp, HTRequest * request, HTStream * target)
 	
 	    /* Send the data down the pipe */
 	    status = (*target->isa->put_block)(target, buffer, status);
+
+	    /* Delete the response headers */ 
+	    HTRequest_setResponse(request, NULL);
 	    if (status == HT_LOADED) {
 		(*target->isa->flush)(target);
 		return YES;

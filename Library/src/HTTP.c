@@ -755,7 +755,8 @@ PRIVATE int stream_pipe (HTStream * me, int length)
 				       HTRequest_debugStream(request),
 				       request, NO);
 	} else if (HTRequest_debugStream(request)) {
-	    if (me->status == 201) HTResponse_setCachable(response, HT_CACHE_ETAG);
+	    HTResponse_setCachable(response,
+				   (me->status == 201) ? HT_CACHE_ETAG : HT_NO_CACHE);
 	    me->target = HTStreamStack(WWW_MIME,
 				       HTRequest_debugFormat(request),
 				       HTRequest_debugStream(request),
@@ -765,7 +766,8 @@ PRIVATE int stream_pipe (HTStream * me, int length)
 	    **  We still need to parse the MIME part in order to find any
 	    **  valuable meta information which is needed from the response.
 	    */
-	    if (me->status == 201) HTResponse_setCachable(response, HT_CACHE_ETAG);
+	    HTResponse_setCachable(response,
+				   (me->status == 201) ? HT_CACHE_ETAG : HT_NO_CACHE);
 	    me->target = HTStreamStack(WWW_MIME,
 				       HTRequest_debugFormat(request),
 				       HTRequest_debugStream(request),

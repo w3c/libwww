@@ -724,6 +724,7 @@ PUBLIC BOOL HTAnchor_update (HTParentAnchor * me, HTResponse * response)
 	    /*
 	    **  Inherit all the unparsed headers - we may need them later!
 	    */
+	    if (me->headers) HTAssocList_delete(me->headers);
 	    me->headers = HTResponse_handOverHeader(response);
 
 	    /*

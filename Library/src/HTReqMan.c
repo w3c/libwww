@@ -349,6 +349,7 @@ PUBLIC HTResponse * HTRequest_response (HTRequest * me)
 PUBLIC BOOL HTRequest_setResponse (HTRequest * me, HTResponse * response)
 {
     if (me) {
+	if (me->response) HTResponse_delete(me->response);
 	me->response = response;
 	return YES;
     }
