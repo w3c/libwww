@@ -204,9 +204,9 @@ containing the source code. Doing so allows you to compile it on more than one
 kind of computer at the same time. To do this, you must use a version of
 `make' that supports the `VPATH' variable, such as GNU `make.' `cd' to the
 directory where you want to object files and library to go and run the
-<i>configure</i> script (i.e., go `../src/configure'). <i>configure</i>
-automatically checks for source code in the directory that <i>configure</i> is
-in and in `..' as well.</p>
+<i>configure</i> script (i.e., go `<code>../src/configure</code>').
+<i>configure</i> automatically checks for source code in the directory that
+<i>configure</i> is in and in `..' as well.</p>
 
 <h3>Installation Names</h3>
 
@@ -272,27 +272,48 @@ Build static libraries [default=yes]
 </dd>
 </dl>
 
-<h4>Highly Recommended Packages!</h4>
+<h4 id="Highly">Highly Recommended Packages!</h4>
 
 <p>These provide very useful added functionality in the <a
 href="Library/">libwww</a> and the <a
 href="Library/User/Applications.html">libwww applications</a></p>
 <dl>
+<dt><code>--with-expat[=PATH]</code></dt>
+<dd>
+Compile a libwww XML parser wrapper for the <a
+href="Library/External/Overview.html#Expat">Expat library</a> and enable it as
+a libwww converter stream. This is <strong>on</strong> by default as the code
+is incorporated into the libwww codebase!
+</dd>
+<dt><code>--with-md5[=PATH]</code></dt>
+<dd>
+Compile a <a href="Library/External/Overview.html#Support">MD5 library</a>
+which is required in order to handle HTTP digest authentication etc. This is
+<strong>on</strong> by default as the code is incorporated into the libwww
+codebase!
+</dd>
 <dt><code>--with-mysql[=PATH]</code></dt>
 <dd>
-Compile with support for <a href="http://www.tcx.se/">MySQL</a> database
-access used for <a href="Robot/User/CommandLine.html#Logging">Webbot
+Compile with support for <a href="Library/External/#MySQL">MySQL database
+access</a> used for <a href="Robot/User/CommandLine.html#Logging">Webbot
 logging</a> etc.
-</dd>
-<dt><code>--with-zlib[=PATH]</code></dt>
-<dd>
-Compile with <a href="http://www.cdrom.com/pub/infozip/zlib/">zlib
-compress/decompress</a> support used for compressing HTML etc.
 </dd>
 <dt><code>--with-regex[=PATH]</code></dt>
 <dd>
-Compile with <a href="http://www.delorie.com/gnu/docs/rx/">POSIX regex
+Compile with <a href="Library/External/Overview.html#Regular">POSIX regex
 library</a> support used for regular expession matching of URIs
+</dd>
+<dt><code>--with-ssl[=path]</code></dt>
+<dd>
+Libwww can be <a href="Library/External/Overview.html">set up to use SSL as a
+transport</a>, for example in order to deal with the <code>https</code> URI
+access scheme. This requires the <a href="http://www.openssl.org/">OpenSSL
+library</a>, for example.
+</dd>
+<dt><code>--with-zlib[=PATH]</code></dt>
+<dd>
+Compile with <a href="Library/External/Overview.html#Zlib">zlib
+compress/decompress support</a> used for compressing HTML etc.
 </dd>
 </dl>
 
