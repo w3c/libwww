@@ -217,7 +217,7 @@ PUBLIC int HTParseInet (HTHost * host, char * hostname, HTRequest * request)
 		*strptr = '\0';	   /* Don't want port number in numeric host */
 		break;
 	    }
-	    if (!isdigit(*strptr) && *strptr != '.')
+	    if (!isdigit((int) *strptr) && *strptr != '.')
 		break;
 	    strptr++;
 	}
@@ -322,7 +322,7 @@ PUBLIC char * HTGetHostName (void)
 		    while (*domainstr == ' ' || *domainstr == '\t')
 			domainstr++;
 		    end = domainstr;
-		    while (*end && !isspace(*end))
+		    while (*end && !isspace((int) *end))
 			end++;
 		    *end = '\0';
 		    if (*domainstr) {
@@ -484,7 +484,7 @@ PUBLIC char * HTGetNewsServer (void)
 		while (*newshost == ' ' || *newshost == '\t')
 		    newshost++;
 		end = newshost;
-		while (*end && !isspace(*end))
+		while (*end && !isspace((int) *end))
 		    end++;
 		*end = '\0';
 	    }

@@ -153,12 +153,12 @@ PUBLIC char * HTStrip (char * s)
 	char * p=s;
 	for(p=s;*p;p++);		/* Find end of string */
 	for(p--;p>=s;p--) {
-	    if (WHITE(*p))
+	    if (isspace((int) *p))
 		*p=0;			/* Zap trailing blanks */
 	    else
 		break;
 	}
-	while (WHITE(*s)) s++;		/* Strip leading blanks */
+	while (isspace((int) *s)) s++;	/* Strip leading blanks */
     }
     return s;
 }

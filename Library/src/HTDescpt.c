@@ -63,19 +63,19 @@ PUBLIC HTList * HTReadDescriptions (char * dirname)
 	char * t = NULL;
 	char * d = NULL;
 
-	while (*s && WHITE(*s)) s++;		/* Skip initial whitespace */
+	while (*s && isspace((int) *s)) s++;		/* Skip initial whitespace */
 	if (*s!='d' && *s!='D') continue;	/* Junk non-description lines*/
 
 	t = s+1;
-	while (*t && !WHITE(*t)) t++;	/* Find the end of the keyword */
-	while (*t && WHITE(*t)) t++;	/* Find the beginning of template */
+	while (*t && !isspace((int) *t)) t++;	/* Find the end of the keyword */
+	while (*t && isspace((int) *t)) t++;	/* Find the beginning of template */
 
 	if (*t) {
 	    d = t+1;
-	    while (*d && !WHITE(*d)) d++;	/* Find end of template */
+	    while (*d && !isspace((int) *d)) d++;	/* Find end of template */
 	    if (*d) {
 		*d++ = 0;			/* Terminate template */
-		while (*d && WHITE(*d)) d++;	/* Find start of description */
+		while (*d && isspace((int) *d)) d++;	/* Find start of description */
 		if (*d) {
 		    char * p = d;
 		    while (*p && *p!='\r' && *p!='\n') p++;
@@ -162,7 +162,7 @@ PRIVATE char * HTPeekTitle (char * dirname,
 	    if ((p = ret = (char*) HT_MALLOC(strlen(cur) + 1)) == NULL)
 		HT_OUTOFMEM("HTPeekTitle");
 	    while (*cur) {
-		if (WHITE(*cur)) {
+		if (isspace((int) *cur)) {
 		    if (!space) {
 			space = YES;
 			*p++ = ' ';

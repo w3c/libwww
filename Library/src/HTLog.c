@@ -22,6 +22,7 @@
 struct _HTLog {
     FILE *		fp;
     BOOL		localtime;
+    int			accesses;
 };
 
 /* ------------------------------------------------------------------------- */
@@ -72,6 +73,11 @@ PUBLIC BOOL HTLog_close (HTLog * log)
     return NO;
 }
 
+PUBLIC int HTLog_accessCount (HTLog * log)
+{
+    return log ? log->accesses : -1;
+}
+
 /*	Add entry to the log file
 **	-------------------------
 **	Format: <HOST> - - <DATE> <METHOD> <URI> <RESULT> <CONTENT_LENTGH>
@@ -96,6 +102,7 @@ PUBLIC BOOL HTLog_addCLF (HTLog * log, HTRequest * request, int status)
 		abs(status),
 		HTAnchor_length(anchor));
 	HT_FREE(uri);
+	log->accesses++;
 	return (fflush(log->fp) != EOF); /* Actually update it on disk */
     }
     return NO;
@@ -122,6 +129,7 @@ PUBLIC BOOL HTLog_addReferer (HTLog * log, HTRequest * request, int status)
 	    }
 	    HT_FREE(me);
 	    HT_FREE(parent);
+	    log->accesses++;
 	    return (fflush(log->fp) != EOF); /* Actually update it on disk */
 	}
     }
@@ -135,6 +143,7 @@ PUBLIC BOOL HTLog_addLine (HTLog * log, const char * line)
 {
     if (log && log->fp && line) {
 	fprintf(log->fp, "%s\n", line);
+	log->accesses++;
 	return (fflush(log->fp) != EOF); /* Actually update it on disk */
     }
     return NO;
@@ -149,6 +158,7 @@ PUBLIC BOOL HTLog_addText (HTLog * log, const char * fmt, ...)
 	va_list pArgs;
 	va_start(pArgs, fmt);
 #ifdef HAVE_VPRINTF
+	log->accesses++;
 	(vfprintf(log->fp, fmt, pArgs));
 	return (fflush(log->fp) != EOF); /* Actually update it on disk */
 #endif

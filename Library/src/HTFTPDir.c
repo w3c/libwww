@@ -65,10 +65,10 @@ PRIVATE BOOL ParseUnix (HTDir *dir, char * line)
     ** This field can either be group or size. We find out by looking at the
     ** next field. If this is a non-digit then this field is the size.
     */
-    while (*ptr && WHITE(*ptr)) ptr++;
-    if (isdigit(*ptr)) {
+    while (*ptr && isspace((int) *ptr)) ptr++;
+    if (isdigit((int) *ptr)) {
 	column = HTNextField(&ptr);
-	while (*ptr && WHITE(*ptr)) ptr++;
+	while (*ptr && isspace((int) *ptr)) ptr++;
     }
 
     if (mode == HT_IS_FILE) {
@@ -84,7 +84,7 @@ PRIVATE BOOL ParseUnix (HTDir *dir, char * line)
     date = HTStrip(date);
 
     /* Take the reminder as the filename */
-    while (*ptr && WHITE(*ptr)) ptr++;
+    while (*ptr && isspace((int) *ptr)) ptr++;
     if ((column = strstr(ptr, " -> ")))
 	*column = '\0';					   /* Strip any '->' */
     

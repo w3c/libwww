@@ -331,7 +331,7 @@ PRIVATE int HTML_put_character (HTStructured * me, char c)
 	}
 	if (c == TAB)
 	    HText_appendCharacter(me->text, '\t');
-	else if (WHITE(c)) {
+	else if (isspace((int) c)) {
 	    if (me->in_word) {
 		HText_appendCharacter(me->text, ' ');
 		me->in_word = NO;

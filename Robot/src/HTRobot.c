@@ -23,7 +23,13 @@
 #include "HTRobot.h"			     		 /* Implemented here */
 
 #ifdef HT_POSIX_REGEX
-#include "rxposix.h"
+#ifdef HAVE_REGEX_H
+#include <regex.h>
+#else
+#ifdef HAVE_RXPOSIX_H
+#include <rxposix.h>
+#endif
+#endif
 #define	W3C_REGEX_FLAGS		(REG_EXTENDED | REG_NEWLINE)
 #endif
 
@@ -33,6 +39,7 @@
 
 #define APP_NAME		"W3CRobot"
 #define APP_VERSION		W3C_VERSION
+#define COMMAND_LINE		"http://www.w3.org/Robot/User/CommandLine"
 
 #define DEFAULT_OUTPUT_FILE	"robot.out"
 #define DEFAULT_RULE_FILE	"robot.conf"
@@ -56,7 +63,8 @@
 #endif
 
 /* #define SHOW_MSG		(WWWTRACE || HTAlert_interactive()) */
-#define SHOW_MSG		(!(mr->flags & MR_QUIET))
+#define SHOW_QUIET(mr)		((mr) && !((mr)->flags & MR_QUIET))
+#define SHOW_REAL_QUIET(mr)	((mr) && !((mr)->flags & MR_REAL_QUIET))
 
 #define DEFAULT_TIMEOUT		10000		       /* timeout in millis */
 
@@ -71,9 +79,10 @@ typedef enum _MRFlags {
     MR_TIME		= 0x8,
     MR_SAVE	  	= 0x10,
     MR_QUIET	  	= 0x20,
-    MR_VALIDATE		= 0x40,
-    MR_END_VALIDATE	= 0x80,
-    MR_KEEP_META	= 0x100
+    MR_REAL_QUIET  	= 0x40,
+    MR_VALIDATE		= 0x80,
+    MR_END_VALIDATE	= 0x100,
+    MR_KEEP_META	= 0x200
 } MRFlags;
 
 typedef struct _Robot {
@@ -418,16 +427,19 @@ PRIVATE BOOL calculate_statistics (Robot * mr)
 	    double reqprsec = (total_docs / (t * 0.001));
 	    double secs = t / 1000.0;
             char bytes[50];
-	    HTTrace("Accessed %ld documents in %.2f seconds (%.2f requests pr sec)\n",
-		    total_docs, secs, reqprsec);
+	    if (SHOW_REAL_QUIET(mr))
+		HTTrace("Accessed %ld documents in %.2f seconds (%.2f requests pr sec)\n",
+			total_docs, secs, reqprsec);
 
             HTNumToStr(mr->get_bytes, bytes, 50);
-	    HTTrace("Did a GET on %ld document(s) and downloaded %s bytes of document bodies (%2.1f bytes/sec)\n",
-		    mr->get_docs, bytes, loadfactor);
+	    if (SHOW_REAL_QUIET(mr))
+		HTTrace("Did a GET on %ld document(s) and downloaded %s bytes of document bodies (%2.1f bytes/sec)\n",
+			mr->get_docs, bytes, loadfactor);
 
             HTNumToStr(mr->head_bytes, bytes, 50);
-	    HTTrace("Did a HEAD on %ld document(s) with a total of %s bytes\n",
-		    mr->head_docs, bytes);
+	    if (SHOW_REAL_QUIET(mr))
+		HTTrace("Did a HEAD on %ld document(s) with a total of %s bytes\n",
+			mr->head_docs, bytes);
 	}
     }
 
@@ -488,59 +500,94 @@ PRIVATE Robot * Robot_new (void)
 /*	Delete a Command Line Object
 **	----------------------------
 */
-PRIVATE BOOL Robot_delete (Robot * me)
+PRIVATE BOOL Robot_delete (Robot * mr)
 {
-    if (me) {
-	HTList_delete(me->fingers);
+    if (mr) {
+	HTList_delete(mr->fingers);
 
        	/* Calculate statistics */
-	calculate_statistics(me);
+	calculate_statistics(mr);
 
-        if (me->hyperdoc) {
-	    HTList * cur = me->hyperdoc;
+        if (mr->hyperdoc) {
+	    HTList * cur = mr->hyperdoc;
 	    HyperDoc * pres;
 	    while ((pres = (HyperDoc *) HTList_nextObject(cur)))
 		HyperDoc_delete(pres);
-	    HTList_delete(me->hyperdoc);
+	    HTList_delete(mr->hyperdoc);
 	}
-	if (me->htext) {
-	    HTList * cur = me->htext;
+	if (mr->htext) {
+	    HTList * cur = mr->htext;
 	    HText * pres;
 	    while ((pres = (HText *) HTList_nextObject(cur)))
 		HText_free(pres);
-	    HTList_delete(me->htext);
+	    HTList_delete(mr->htext);
 	}
-	if (me->log) HTLog_close(me->log);
-	if (me->ref) HTLog_close(me->ref);
-	if (me->reject) HTLog_close(me->reject);
-	if (me->notfound) HTLog_close(me->notfound);
-	if (me->conneg) HTLog_close(me->conneg);
-	if (me->noalttag) HTLog_close(me->noalttag);
-	if (me->output && me->output != STDOUT) fclose(me->output);
-	if (me->flags & MR_TIME) {
+
+	/* Close all the log files */
+	if (mr->log) {
+	    if (SHOW_REAL_QUIET(mr))
+		HTTrace("Logged %5d entries in general log file `%s\'\n",
+			HTLog_accessCount(mr->log), mr->logfile);
+	    HTLog_close(mr->log);
+	}
+	if (mr->ref) {
+	    if (SHOW_REAL_QUIET(mr))
+		HTTrace("Logged %5d entries in referer log file `%s\'\n",
+			HTLog_accessCount(mr->ref), mr->reffile);
+	    HTLog_close(mr->ref);
+	}
+	if (mr->reject) {
+	    if (SHOW_REAL_QUIET(mr))
+		HTTrace("Logged %5d entries in rejected log file `%s\'\n",
+			HTLog_accessCount(mr->reject), mr->rejectfile);
+	    HTLog_close(mr->reject);
+	}
+	if (mr->notfound) {
+	    if (SHOW_REAL_QUIET(mr))
+		HTTrace("Logged %5d entries in not found log file `%s\'\n",
+			HTLog_accessCount(mr->notfound), mr->notfoundfile);
+	    HTLog_close(mr->notfound);
+	}
+	if (mr->conneg) {
+	    if (SHOW_REAL_QUIET(mr))
+		HTTrace("Logged %5d entries in content negotiation log file `%s\'\n",
+			HTLog_accessCount(mr->conneg), mr->connegfile);
+	    HTLog_close(mr->conneg);
+	}
+	if (mr->noalttag) {
+	    if (SHOW_REAL_QUIET(mr))
+		HTTrace("Logged %5d entries in missing alt tag log file `%s\'\n",
+			HTLog_accessCount(mr->noalttag), mr->noalttagfile);
+	    HTLog_close(mr->noalttag);
+	}
+
+	if (mr->output && mr->output != STDOUT) fclose(mr->output);
+
+	if (mr->flags & MR_TIME) {
 	    time_t local = time(NULL);
-	    HTTrace("Robot terminated %s\n",HTDateTimeStr(&local,YES));
+	    if (SHOW_REAL_QUIET(mr))
+		HTTrace("Robot terminated %s\n", HTDateTimeStr(&local, YES));
 	}
 
 #ifdef HT_POSIX_REGEX
-	if (me->include) {
-	    regfree(me->include);
-	    HT_FREE(me->include);
+	if (mr->include) {
+	    regfree(mr->include);
+	    HT_FREE(mr->include);
 	}
-	if (me->exclude) {
-	    regfree(me->exclude);
-	    HT_FREE(me->exclude);
+	if (mr->exclude) {
+	    regfree(mr->exclude);
+	    HT_FREE(mr->exclude);
 	}
-	if (me->check) {
-	    regfree(me->check);
-	    HT_FREE(me->check);
+	if (mr->check) {
+	    regfree(mr->check);
+	    HT_FREE(mr->check);
 	}
 #endif
 
-	HT_FREE(me->cwd);
-	HT_FREE(me->prefix);
-	HT_FREE(me->img_prefix);
-	HT_FREE(me);
+	HT_FREE(mr->cwd);
+	HT_FREE(mr->prefix);
+	HT_FREE(mr->img_prefix);
+	HT_FREE(mr);
 	return YES;
     }
     return NO;
@@ -664,7 +711,8 @@ PRIVATE regex_t * get_regtype (Robot * mr, const char * regex_str, int cflags)
 	    HT_OUTOFMEM("get_regtype");
 	if ((status = regcomp(regex, regex_str, cflags))) {
 	    char * err_msg = get_regerror(status, regex);
-	    HTTrace("Regular expression error: %s\n", err_msg);
+	    if (SHOW_REAL_QUIET(mr))
+		HTTrace("Regular expression error: %s\n", err_msg);
 	    HT_FREE(err_msg);
 	    Cleanup(mr, -1);
 	}
@@ -675,10 +723,10 @@ PRIVATE regex_t * get_regtype (Robot * mr, const char * regex_str, int cflags)
 
 PRIVATE void VersionInfo (void)
 {
-    OutputData("\n\nW3C Reference Software\n\n");
-    OutputData("\tW3C Mini Robot (%s) version %s.\n",
-	     APP_NAME, APP_VERSION);
-    OutputData("\tW3C Reference Library version %s.\n\n",HTLib_version());
+    OutputData("W3C Sample Software\n\n");
+    OutputData("\tW3C Mini Robot (%s) version %s\n", APP_NAME, APP_VERSION);
+    OutputData("\tW3C Sample Library (libwww) version %s\n\n", HTLib_version());
+    OutputData("For command line options, see\n\t%s\n\n", COMMAND_LINE);
     OutputData("Please send feedback to <libwww@w3.org>\n");
 }
 
@@ -692,7 +740,7 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 {
     Finger * finger = (Finger *) HTRequest_context(request);
     Robot * mr = finger->robot;
-    if (SHOW_MSG) HTTrace("Robot....... done with %s\n", HTAnchor_physical(finger->dest));
+    if (SHOW_QUIET(mr)) HTTrace("Robot....... done with %s\n", HTAnchor_physical(finger->dest));
 
     /* Check if negotiated resource and whether we should log that*/
     if (mr->conneg) {
@@ -749,10 +797,10 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 
     /* Should we stop? */
     if (mr->cnt <= 0) {
-	if (SHOW_MSG) HTTrace("             Everything is finished...\n");
+	if (SHOW_QUIET(mr)) HTTrace("             Everything is finished...\n");
 	Cleanup(mr, 0);			/* No way back from here */
     }
-    if (SHOW_MSG) HTTrace("             %d outstanding request%s\n", mr->cnt, mr->cnt == 1 ? "" : "s");
+    if (SHOW_QUIET(mr)) HTTrace("             %d outstanding request%s\n", mr->cnt, mr->cnt == 1 ? "" : "s");
     return HT_OK;
 }
 
@@ -796,10 +844,10 @@ PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
 	BOOL check = NO;
 
 	if (!uri) return;
-	if (SHOW_MSG) HTTrace("Robot....... Found `%s\' - ", uri ? uri : "NULL\n");
+	if (SHOW_QUIET(mr)) HTTrace("Robot....... Found `%s\' - ", uri ? uri : "NULL\n");
 
         if (hd) {
-	    if (SHOW_MSG) HTTrace("Already checked\n");
+	    if (SHOW_QUIET(mr)) HTTrace("Already checked\n");
             hd->hits++;
 	    HT_FREE(uri);
 	    return;
@@ -831,18 +879,18 @@ PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
 	    HyperDoc_new(mr, dest_parent, depth);
 	    HTRequest_setParent(newreq, referer);
 	    if (check || depth >= mr->depth) {
-		if (SHOW_MSG) HTTrace("loading at depth %d using HEAD\n", depth);
+		if (SHOW_QUIET(mr)) HTTrace("loading at depth %d using HEAD\n", depth);
 		HTRequest_setMethod(newreq, METHOD_HEAD);
 		HTRequest_setOutputFormat(newreq, WWW_DEBUG);
 	    } else {
-		if (SHOW_MSG) HTTrace("loading at depth %d\n", depth);
+		if (SHOW_QUIET(mr)) HTTrace("loading at depth %d\n", depth);
 	    }
 	    if (HTLoadAnchor((HTAnchor *) dest_parent, newreq) != YES) {
-		if (SHOW_MSG) HTTrace("not tested!\n");
+		if (SHOW_QUIET(mr)) HTTrace("not tested!\n");
 		Finger_delete(newfinger);
 	    }
 	} else {
-	    if (SHOW_MSG) HTTrace("does not fulfill constraints\n");
+	    if (SHOW_QUIET(mr)) HTTrace("does not fulfill constraints\n");
 	    if (mr->reject) {
 		if (referer) {
 		    char * ref_addr = HTAnchor_address((HTAnchor *) referer);
@@ -870,7 +918,7 @@ PUBLIC void HText_appendImage (HText * text, HTChildAnchor * anchor,
 	    BOOL match = YES;
 
 	    if (hd) {
-		if (SHOW_MSG) HTTrace("Already checked\n");
+		if (SHOW_QUIET(mr)) HTTrace("Already checked\n");
 		hd->hits++;
 		HT_FREE(uri);
 		return;
@@ -897,13 +945,13 @@ PUBLIC void HText_appendImage (HText * text, HTChildAnchor * anchor,
 		    }
 		}
 		
-		if (SHOW_MSG) HTTrace("Robot....... Checking Image `%s\'\n", uri);
+		if (SHOW_QUIET(mr)) HTTrace("Robot....... Checking Image `%s\'\n", uri);
 		if (HTLoadAnchor((HTAnchor *) dest, newreq) != YES) {
-		    if (SHOW_MSG) HTTrace("Robot....... Image not tested!\n");
+		    if (SHOW_QUIET(mr)) HTTrace("Robot....... Image not tested!\n");
 		    Finger_delete(newfinger);
 		}
 	    } else {
-		if (SHOW_MSG) HTTrace("does not fulfill constraints\n");
+		if (SHOW_QUIET(mr)) HTTrace("does not fulfill constraints\n");
 		if (mr->reject) {
 		    if (referer) {
 			char * ref_addr = HTAnchor_address((HTAnchor *) referer);
@@ -989,6 +1037,11 @@ int main (int argc, char ** argv)
 	    if (!strcmp(argv[arg], "-n")) {
 		HTAlert_setInteractive(NO);
 
+  	    /* help */
+	    } else if (!strcmp(argv[arg], "-h") || !strcmp(argv[arg], "-?")) {
+		VersionInfo();
+		Cleanup(mr, 0);
+
   	    /* log file */
 	    } else if (!strcmp(argv[arg], "-l")) {
 		mr->logfile = (arg+1 < argc && *argv[arg+1] != '-') ?
@@ -1051,7 +1104,7 @@ int main (int argc, char ** argv)
 		char * prefix = NULL;
 		prefix = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    argv[++arg] : DEFAULT_PREFIX;
-		if (*prefix && *prefix != "*") {
+		if (*prefix && *prefix != '*') {
 		    StrAllocCopy(mr->prefix, prefix);
 		    StrAllocCat(mr->prefix, "*");
 		}
@@ -1110,7 +1163,7 @@ int main (int argc, char ** argv)
 		char * prefix = NULL;
 		prefix = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    argv[++arg] : DEFAULT_IMG_PREFIX;
-		if (*prefix && *prefix!="*") {
+		if (*prefix && *prefix!='*') {
 		    StrAllocCopy(mr->img_prefix, prefix);
 		    StrAllocCat(mr->img_prefix, "*");
 		}
@@ -1123,9 +1176,6 @@ int main (int argc, char ** argv)
 
 	    /* Output start and end time */
 	    } else if (!strcmp(argv[arg], "-ss")) {
-		time_t local = time(NULL);
-		HTTrace("Robot started on %s\n",
-			 HTDateTimeStr(&local, YES));
 		mr->flags |= MR_TIME;
 
 	    /* print version and exit */
@@ -1136,6 +1186,10 @@ int main (int argc, char ** argv)
 	    /* run in quiet mode */
 	    } else if (!strcmp(argv[arg], "-q")) { 
 		mr->flags |= MR_QUIET;
+
+	    /* run in really quiet mode */
+	    } else if (!strcmp(argv[arg], "-Q")) { 
+		mr->flags |= MR_REAL_QUIET;
 
 #ifdef WWWTRACE
 	    /* trace flags */
@@ -1161,7 +1215,7 @@ int main (int argc, char ** argv)
 #endif
 
 	    } else {
-		if (SHOW_MSG) HTTrace("Bad Argument (%s)\n", argv[arg]);
+		if (SHOW_REAL_QUIET(mr)) HTTrace("Bad Argument (%s)\n", argv[arg]);
 	    }
        } else {	 /* If no leading `-' then check for URL or keywords */
     	    if (!keycnt) {
@@ -1187,33 +1241,39 @@ int main (int argc, char ** argv)
 #endif
 
     if (!keycnt) {
-	if (SHOW_MSG) HTTrace("Please specify URL to check.\n");
+	if (SHOW_REAL_QUIET(mr)) HTTrace("Please specify URL to check.\n");
 	Cleanup(mr, -1);
     }
 
     if (mr->depth != DEFAULT_DEPTH && 
 	(mr->prefix == NULL || *mr->prefix == '*')) {
-	if (SHOW_MSG)
+	if (SHOW_REAL_QUIET(mr))
 	    HTTrace("A depth of more than 0 requires that you also specify a URI prefix.\n",
 		    mr->depth);
 	Cleanup(mr, -1);
     }
 
     /* Testing that HTTrace is working */
-    if (SHOW_MSG) HTTrace ("Welcome to the W3C mini Robot\n");
+    if (mr->flags & MR_TIME) {
+	if (SHOW_REAL_QUIET(mr)) {
+	    time_t local = time(NULL);
+	    HTTrace("Welcome to the W3C mini Robot - started on %s\n",
+		    HTDateTimeStr(&local, YES));
+	}
+    }
 
     /* Rule file specified? */
     if (mr->rules) {
 	char * rules = HTParse(mr->rules, mr->cwd, PARSE_ALL);
 	if (!HTLoadRules(rules))
-	    if (SHOW_MSG) HTTrace("Can't access rules\n");
+	    if (SHOW_REAL_QUIET(mr)) HTTrace("Can't access rules\n");
 	HT_FREE(rules);
     }
 
     /* Output file specified? */
     if (mr->outputfile) {
 	if ((mr->output = fopen(mr->outputfile, "wb")) == NULL) {
-	    if (SHOW_MSG) HTTrace("Can't open `%s'\n", mr->outputfile);
+	    if (SHOW_REAL_QUIET(mr)) HTTrace("Can't open `%s'\n", mr->outputfile);
 	    mr->output = OUTPUT;
 	}
     }
@@ -1297,7 +1357,7 @@ int main (int argc, char ** argv)
 
     if (keywords) HTChunk_delete(keywords);
     if (status != YES) {
-	if (SHOW_MSG) HTTrace("Can't access resource\n");
+	if (SHOW_REAL_QUIET(mr)) HTTrace("Can't access resource\n");
 	Cleanup(mr, -1);
     }
 

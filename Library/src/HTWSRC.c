@@ -147,7 +147,7 @@ PRIVATE int WSRCParser_put_character (HTStream* me, char c)
 	break;
 
     case colon:
-        if (WHITE(c)) {
+        if (isspace((int) c)) {
 	    me->param[me->param_count++] = 0;	/* Terminate */
 	    for(me->param_number = 0; par_name[me->param_number]; me->param_number++) {
 		if (0==strcmp(par_name[me->param_number], me->param)) {
@@ -173,7 +173,7 @@ PRIVATE int WSRCParser_put_character (HTStream* me, char c)
 	    me->state = done;
 	    return HT_OK;			/* Done with input file */
 	}
-	if (WHITE(c)) return HT_OK;		/* Skip white space */
+	if (isspace((int) c)) return HT_OK;		/* Skip white space */
 	me->param_count = 0;
 	if (c=='"') {
 	    me->state = quoted_value;
@@ -185,7 +185,7 @@ PRIVATE int WSRCParser_put_character (HTStream* me, char c)
 	break;
 
     case value:
-        if (WHITE(c)) {
+        if (isspace((int) c)) {
 	    me->param[me->param_count] = 0;
 	    StrAllocCopy(me->par_value[me->param_number], me->param);
 	    me->state = before_tag;

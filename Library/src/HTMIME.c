@@ -239,7 +239,7 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
 	        me->EOLstate = EOL_END;
 	    else if (*b == LF)			   	     /* CRLF */
 		me->EOLstate = EOL_FLF;
-	    else if (WHITE(*b))				   /* Folding: CR SP */
+	    else if (isspace((int) *b))			   /* Folding: CR SP */
 	        me->EOLstate = EOL_FOLD;
 	    else						 /* New line */
 	        me->EOLstate = EOL_LINE;
@@ -248,14 +248,14 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
 		me->EOLstate = EOL_SCR;
 	    else if (*b == LF)				    /* End of header */
 	        me->EOLstate = EOL_END;
-	    else if (WHITE(*b))		       /* Folding: LF SP or CR LF SP */
+	    else if (isspace((int) *b))	       /* Folding: LF SP or CR LF SP */
 		me->EOLstate = EOL_FOLD;
 	    else						/* New line */
 		me->EOLstate = EOL_LINE;
 	} else if (me->EOLstate == EOL_SCR) {
 	    if (*b==CR || *b==LF)			    /* End of header */
 	        me->EOLstate = EOL_END;
-	    else if (WHITE(*b))		 /* Folding: LF CR SP or CR LF CR SP */
+	    else if (isspace((int) *b))	 /* Folding: LF CR SP or CR LF CR SP */
 		me->EOLstate = EOL_FOLD;
 	    else						/* New line */
 		me->EOLstate = EOL_LINE;
@@ -265,7 +265,7 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
 	    me->EOLstate = EOL_FLF;			       /* Line found */
 	else {
 	    if (!me->haveToken) {
-	        if (*b == ':' || isspace(*b)) {
+	        if (*b == ':' || isspace((int) *b)) {
 		    HTChunk_putb(me->token, start, end-start);
 		    HTChunk_putc(me->token, '\0');
 		    me->haveToken = YES;
@@ -274,7 +274,7 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
 		    ch = tolower(ch);
 		    me->hash = (me->hash * 3 + ch) % MIME_HASH_SIZE;
 		}
-	    } else if (value == NULL && *b != ':' && !isspace(*b))
+	    } else if (value == NULL && *b != ':' && !isspace((int) *b))
 	        value = b;
 	    end++;
 	}

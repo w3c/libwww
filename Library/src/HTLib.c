@@ -125,7 +125,7 @@ PUBLIC BOOL HTLibInit (const char * AppName, const char * AppVersion)
 	StrAllocCopy(HTAppName, AppName);
 	ptr = HTAppName;
 	while (*ptr) {
-	    if (WHITE(*ptr)) *ptr = '_';
+	    if (isspace((int) *ptr)) *ptr = '_';
 	    ptr++;
 	}
     }
@@ -134,7 +134,7 @@ PUBLIC BOOL HTLibInit (const char * AppName, const char * AppVersion)
 	StrAllocCopy(HTAppVersion, AppVersion);
 	ptr = HTAppVersion;
 	while (*ptr) {
-	    if (WHITE(*ptr)) *ptr = '_';
+	    if (isspace((int) *ptr)) *ptr = '_';
 	    ptr++;
 	}
     }

@@ -53,7 +53,7 @@ PRIVATE HTList * PendHost = NULL;	    /* List of pending host elements */
 
 PRIVATE int EventTimeout = -1;		        /* Global Host event timeout */
 
-PRIVATE WriteDelay = DEFAULT_DELAY;			      /* Delay in ms */
+PRIVATE ms_t WriteDelay = DEFAULT_DELAY;		      /* Delay in ms */
 
 /* ------------------------------------------------------------------------- */
 
@@ -320,7 +320,7 @@ PUBLIC HTHost * HTHost_newWParse (HTRequest * request, char * url, u_short u_por
 	HTTrace("HTDoConnect. Looking up `%s\'\n", parsedHost);
     if (port) {
 	*port++ = '\0';
-	if (!*port || !isdigit(*port))
+	if (!*port || !isdigit((int) *port))
 	    port = 0;
 	u_port = (u_short) atol(port);
     }

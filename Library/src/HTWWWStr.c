@@ -51,7 +51,7 @@ PUBLIC char * HTNextField (char ** pstr)
     if (!pstr || !*pstr) return NULL;
     while (1) {
 	/* Strip white space and other delimiters */
-	while (*p && (WHITE(*p) || *p==',' || *p==';' || *p=='=')) p++;
+	while (*p && (isspace((int) *p) || *p==',' || *p==';' || *p=='=')) p++;
 	if (!*p) {
 	    *pstr = p;
 	    return NULL;				   	 /* No field */
@@ -73,7 +73,7 @@ PUBLIC char * HTNextField (char ** pstr)
 	    p++;
 	} else {					      /* Spool field */
 	    start = p;
-	    while(*p && !WHITE(*p) && *p!=',' && *p!=';' && *p!='=')
+	    while(*p && !isspace((int) *p) && *p!=',' && *p!=';' && *p!='=')
 		p++;
 	    break;						   /* Got it */
 	}
@@ -141,7 +141,7 @@ PUBLIC char * HTNextSegment (char ** pstr)
     if (!pstr || !*pstr) return NULL;
     while (1) {
 	/* Strip white space and other delimiters */
-	while (*p && (WHITE(*p) || *p==',' || *p==';' || *p=='=' || *p=='/')) p++;
+	while (*p && (isspace((int) *p) || *p==',' || *p==';' || *p=='=' || *p=='/')) p++;
 	if (!*p) {
 	    *pstr = p;
 	    return NULL;				   	 /* No field */
@@ -163,7 +163,7 @@ PUBLIC char * HTNextSegment (char ** pstr)
 	    p++;
 	} else {					      /* Spool field */
 	    start = p;
-	    while(*p && !WHITE(*p) && *p!=',' && *p!=';' && *p!='=' && *p!='/')
+	    while(*p && !isspace((int) *p) && *p!=',' && *p!=';' && *p!='=' && *p!='/')
 		p++;
 	    break;						   /* Got it */
 	}
@@ -185,7 +185,7 @@ PUBLIC char * HTNextSExp (char ** exp, char ** param)
     char * p = *exp;
     char * name = NULL;
     if (!exp || !*exp) return NULL;
-    while (*p && WHITE(*p)) p++;		/* Strip leading white space */
+    while (*p && isspace((int) *p)) p++;		/* Strip leading white space */
     if (!*p) {
 	*exp = p;
 	return NULL;					   	 /* No field */
@@ -198,7 +198,7 @@ PUBLIC char * HTNextSExp (char ** exp, char ** param)
 	*/
 	p++;
 	if ((name = HTNextField(&p)) == NULL) return NULL;
-	while (*p && WHITE(*p)) p++;
+	while (*p && isspace((int) *p)) p++;
 	*param = p;
 	while (*p) {
 	    if (*p == '{') cnt++;
@@ -266,7 +266,7 @@ PRIVATE int make_num (const char *  s)
 PRIVATE int make_month (char * s, char ** ends)
 {
     char * ptr = s;
-    while (!isalpha(*ptr)) ptr++;
+    while (!isalpha((int) *ptr)) ptr++;
     if (*ptr) {
 	int i;
 	*ends = ptr+3;		
@@ -327,7 +327,7 @@ PUBLIC time_t HTParseTime (const char * str, HTUserProfile * up, BOOL expand)
 	    tm.tm_min = strtol(++s, &s, 10);
 	    tm.tm_sec = strtol(++s, &s, 10);
 	}
-    } else if (isdigit(*str)) {
+    } else if (isdigit((int) *str)) {
 
 	if (strchr(str, 'T')) {		        /* ISO (limited format) date string */
 	    if (CORE_TRACE) HTTrace("Format...... YYYY.MM.DDThh:mmStzWkd\n");

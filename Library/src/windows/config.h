@@ -316,6 +316,9 @@
 /* Define if you have the <pwd.h> header file.  */
 /* #undef HAVE_PWD_H */
 
+/* Define if you have the <curses.h> header file.  */
+#define HAVE_REGEX_H 1
+
 /* Define if you have the <resource.h> header file.  */
 /* #undef HAVE_RESOURCE_H */
 

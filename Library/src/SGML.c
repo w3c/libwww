@@ -464,7 +464,7 @@ PRIVATE int SGML_write (HTStream * context, const char * b, int l)
 			** Handle Entities
 			*/
 		    case S_entity:
-			if (isalnum(c))
+			if (isalnum((int) c))
 				HTChunk_putc(string, c);
 			else
 			    {
@@ -484,7 +484,7 @@ PRIVATE int SGML_write (HTStream * context, const char * b, int l)
 			/*	Character reference
 			 */
 		    case S_cro:
-			if (isalnum(c))
+			if (isalnum((int)c))
 				/* accumulate a character NUMBER */
 				HTChunk_putc(string, c);
 			else
@@ -511,7 +511,7 @@ PRIVATE int SGML_write (HTStream * context, const char * b, int l)
 
 		    case S_tag:		/* new tag */
 		    handle_S_tag:
-			if (isalnum(c))
+			if (isalnum((int)c))
 				HTChunk_putc(string, c);
 			else
 			    { /* End of tag name */
@@ -553,7 +553,7 @@ PRIVATE int SGML_write (HTStream * context, const char * b, int l)
 		    S_tag_gap:
 			context->state = S_tag_gap;
 		    case S_tag_gap:		/* Expecting attribute or > */
-			if (WHITE(c))
+			if (isspace((int) c))
 				break;	/* Gap between attributes */
 
 			if (c == '>')
@@ -569,7 +569,7 @@ PRIVATE int SGML_write (HTStream * context, const char * b, int l)
 			context->state = S_attr;
 			string->size = context->token;
 		    case S_attr:
-			if (WHITE(c) || c == '>' || c == '=')
+			if (isspace((int) c) || c == '>' || c == '=')
 				goto got_attribute_name;
 			else
 				HTChunk_putc(string, c);
@@ -587,7 +587,7 @@ PRIVATE int SGML_write (HTStream * context, const char * b, int l)
 			string->size = context->token;
 			context->state = S_attr_gap;
 		    case S_attr_gap:	/* Expecting attribute or = or > */
-			if (WHITE(c))
+			if (isspace((int) c))
 				break;	/* Gap after attribute */
 
 			if (c == '>')
@@ -599,7 +599,7 @@ PRIVATE int SGML_write (HTStream * context, const char * b, int l)
 			break;
 
 		    case S_equals:	/* After attr = */ 
-			if (WHITE(c))
+			if (isspace((int) c))
 				break;	/* Before attribute value */
 
 			if (c == '>')
@@ -619,7 +619,7 @@ PRIVATE int SGML_write (HTStream * context, const char * b, int l)
 			context->state = S_value;
 			string->size = context->token;
 		    case S_value:
-			if (WHITE(c) || c == '>')
+			if (isspace((int) c) || c == '>')
 			    {
 				HTChunk_terminate(string);
 				handle_attribute_value(context);
@@ -655,7 +655,7 @@ PRIVATE int SGML_write (HTStream * context, const char * b, int l)
 			break;
 
 		    case S_end:	/* </ */
-			if (isalnum(c))
+			if (isalnum((int) c))
 				HTChunk_putc(string, c);
 			else
 			    {		/* End of end tag name */
@@ -683,7 +683,7 @@ PRIVATE int SGML_write (HTStream * context, const char * b, int l)
 				context->current_attribute_number = INVALID;
 				if (c != '>')
 				    {
-					if (!WHITE(c))
+					if (!isspace((int) c))
 						TRACE2("`</%s%c' found!\n",
 						       string->data, c);
 					context->state = S_junk_tag;

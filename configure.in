@@ -137,15 +137,20 @@ AC_ARG_WITH(regex,
     ;;
   *)
     AC_MSG_RESULT(yes)
-    if test "x$withval" = "xyes"; then
-      withval="-lrx"
-    fi
-    LIBS="$withval $LIBS"
     AC_DEFINE(HT_POSIX_REGEX)
-    AC_TRY_LINK([],
-                [ regexec(); ],
-		[],
-		[ AC_MSG_ERROR(Could not find the $withval library.  You must first install POSIX regex library.) ])
+    if test "x$withval" = "xyes"; then
+	AC_CHECK_LIB(rx, regexec,
+	    [ LIBS="-lrx $LIBS" ],
+	    [ AC_CHECK_LIB(c, regexec,
+	    [],
+	    [ AC_MSG_ERROR(Could not find a POSIX regex library.  You must first install regex.) ] ) ] )
+    else
+        LIBS="$withval $LIBS"
+	AC_TRY_LINK([],
+	            [ regexec(); ],
+		    [],
+		    [ AC_MSG_ERROR(Could not find the $withval library.  You must first install regex.) ] )
+    fi
     ;;
   esac ],
   AC_MSG_RESULT(no)
@@ -433,6 +438,7 @@ AC_CHECK_HEADERS(memory.h)
 AC_CHECK_HEADERS(unixlib.h)
 AC_CHECK_HEADERS(ctype.h)
 AC_CHECK_HEADERS(cursesX.h curses.h)
+AC_CHECK_HEADERS(rxposix.h regex.h)
 AC_HEADER_DIRENT
 AC_CHECK_HEADERS(dir.h direct.h) dnl AC_HEADER_DIRENT only checks for some..
 AC_HEADER_STDC

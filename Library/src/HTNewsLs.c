@@ -68,7 +68,7 @@ PRIVATE char* GetNewsGroupTitle (HTRequest* request)
 PRIVATE BOOL ParseList (HTNewsDir * dir, char * line)
 {
     char *ptr = line;
-    while (*ptr && !WHITE(*ptr)) ptr++;
+    while (*ptr && !isspace((int) *ptr)) ptr++;
     *ptr = '\0';
     /* Changed by MP */
     return (HTNewsDir_addGroupElement(dir, line, NO) != NULL);
@@ -122,7 +122,7 @@ PRIVATE BOOL ParseGroup (HTRequest * request, HTNewsDir *dir, char * line)
 	ptr++;
     }
     *ptr++ = '\0';					/* MsgId */
-    while (ptr && *ptr && !isdigit(*ptr)) {
+    while (ptr && *ptr && !isdigit((int) *ptr)) {
         char* refstart = ptr;       /* Added by MP. */
         char* refcopy = NULL;
 	    char* refstop;

@@ -88,10 +88,11 @@ PUBLIC BOOL HTTimer_delete (HTTimer * timer)
 	CLEARME(timer);
 	return NO;
     }
-    if (HTList_quickRemoveElement(cur, last))
+    if (HTList_quickRemoveElement(cur, last)) {
 	if (THD_TRACE) HTTrace("Timer....... Deleted timer %p\n", timer);
-    else
+    } else { 
 	if (THD_TRACE) HTTrace("Timer....... Could not delete timer %p\n", timer);
+    }
 
     /*
     **  Call any platform specific timer handler

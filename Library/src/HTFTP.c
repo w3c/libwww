@@ -216,7 +216,7 @@ PRIVATE int ScanResponse (HTStream * me)
     char cont = '\0';
     char *ptr = me->buffer+4;
     *(me->buffer+me->buflen) = '\0';
-    if (isdigit(*(me->buffer))) sscanf(me->buffer, "%d%c", &reply, &cont);
+    if (isdigit((int) *(me->buffer))) sscanf(me->buffer, "%d%c", &reply, &cont);
     if (me->first_line) {
 	if (PROT_TRACE) HTTrace("FTP Rx...... `%s\'\n", me->buffer);
 	if (!reply) return HT_ERROR;
@@ -781,7 +781,7 @@ PRIVATE int HTFTPDataConnection (HTRequest * request, HTNet *cnet,
 			*/
 			char *host = ctrl->reply;
 			int h0, h1, h2, h3, p0=0, p1=0;
-			while (*host && !isdigit(*host++));
+			while (*host && !isdigit((int) *host++));
 			if (!*host || sscanf(--host, "%d,%d,%d,%d,%d,%d",
 					     &h0,&h1,&h2,&h3,&p0,&p1) < 6) {
 			    if (PROT_TRACE)
@@ -1435,7 +1435,7 @@ PRIVATE int FTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 
 	  case FTP_SUCCESS:
 	    if (HTRequest_isPostWeb(request)) {
-		BOOL main = HTRequest_isMainDestination(request);
+		BOOL main_dest = HTRequest_isMainDestination(request);
 		if (HTRequest_isDestination(request)) {
 		    HTRequest * source = HTRequest_source(request);
 		    HTLink *link = HTLink_find((HTAnchor *) HTRequest_anchor(source),
@@ -1443,7 +1443,7 @@ PRIVATE int FTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 		    HTLink_setResult(link, HT_LINK_OK);
 		}
 		HTRequest_removeDestination(request);
-		FTPCleanup(request, main ? HT_LOADED : HT_IGNORE);
+		FTPCleanup(request, main_dest ? HT_LOADED : HT_IGNORE);
 	    } else
 		FTPCleanup(request, HT_LOADED);
 	    return HT_OK;
@@ -1452,7 +1452,7 @@ PRIVATE int FTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 	  case FTP_ERROR:
 	    /* Clean up the other connections or just this one */
 	    if (HTRequest_isPostWeb(request)) {
-		BOOL main = HTRequest_isMainDestination(request);
+		BOOL main_dest = HTRequest_isMainDestination(request);
 		HTRequest_killPostWeb(request);
 		if (HTRequest_isDestination(request)) {
 		    HTRequest * source = HTRequest_source(request);
@@ -1461,7 +1461,7 @@ PRIVATE int FTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 		    HTLink_setResult(link, HT_LINK_ERROR);
 		}
 		HTRequest_removeDestination(request);
-		FTPCleanup(request, main ? HT_ERROR : HT_IGNORE);
+		FTPCleanup(request, main_dest ? HT_ERROR : HT_IGNORE);
 	    } else
 		FTPCleanup(request, HT_ERROR);
 	    return HT_OK;

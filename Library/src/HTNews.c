@@ -105,7 +105,7 @@ PRIVATE int ScanResponse (HTStream * me)
 {
     news_info *news = me->news;
     *(me->buffer+me->buflen) = '\0';
-    if (isdigit(*(me->buffer))) sscanf(me->buffer, "%d", &news->repcode);
+    if (isdigit((int) *(me->buffer))) sscanf(me->buffer, "%d", &news->repcode);
     me->buflen = 0;
     news->reply = me->buffer+4;
     if (PROT_TRACE) HTTrace("News Rx..... `%s\'\n", news->reply);

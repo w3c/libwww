@@ -45,6 +45,14 @@ Close the log file and delete the object
 extern BOOL HTLog_close (HTLog * log);
 </PRE>
 
+<H2>How many times has log object been accessed?</h2>
+
+Returns access count number or -1
+
+<PRE>
+extern int HTLog_accessCount (HTLog * log);
+</PRE>
+
 <H2>Log a Client Request in CLF</H2>
 
 This functions logs the result of a request in what's close to CLF. It can 

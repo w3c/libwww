@@ -282,7 +282,7 @@ PRIVATE int HTRule_put_block (HTStream * me, const char * b, int l)
 	if (me->EOLstate == EOL_FCR) {
 	    if (*b == LF)				   	     /* CRLF */
 		me->EOLstate = EOL_FLF;
-	    else if (WHITE(*b))				   /* Folding: CR SP */
+	    else if (isspace((int) *b))				   /* Folding: CR SP */
 		me->EOLstate = EOL_DOT;
 	    else {						 /* New line */
 		HTRule_parseLine(rules, HTChunk_data(me->buffer));
@@ -291,7 +291,7 @@ PRIVATE int HTRule_put_block (HTStream * me, const char * b, int l)
 		continue;
 	    }
 	} else if (me->EOLstate == EOL_FLF) {
-	    if (WHITE(*b))		       /* Folding: LF SP or CR LF SP */
+	    if (isspace((int) *b))		       /* Folding: LF SP or CR LF SP */
 		me->EOLstate = EOL_DOT;
 	    else {						/* New line */
 		HTRule_parseLine(rules, HTChunk_data(me->buffer));
@@ -300,7 +300,7 @@ PRIVATE int HTRule_put_block (HTStream * me, const char * b, int l)
 		continue;
 	    }
 	} else if (me->EOLstate == EOL_DOT) {
-	    if (WHITE(*b)) {
+	    if (isspace((int) *b)) {
 		me->EOLstate = EOL_BEGIN;
 		HTChunk_putc(me->buffer, ' ');
 	    } else {
