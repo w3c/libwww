@@ -1,63 +1,99 @@
-18.29.0.116.2021 -> 18.29.0.24.80 over TCP
-	HEAD /frystyk/test/puttest.html HTTP/1.1.
+18.29.0.116.1311 -> 18.29.0.24.80 over TCP
+	<No data>
+-----------------------------------------------------------------
+18.29.0.24.80 -> 18.29.0.116.1311 over TCP
+	<No data>
+-----------------------------------------------------------------
+18.29.0.116.1311 -> 18.29.0.24.80 over TCP
+	<No data>
+-----------------------------------------------------------------
+18.29.0.116.1311 -> 18.29.0.24.80 over TCP
+	HEAD /frystyk/test/test.html HTTP/1.1.
 	Accept: */*;q=0.3.
 	Accept-Encoding: deflate.
 	TE: trailers,deflate.
-	Authorization: Basic Hjfuafjr676afjkd98sl.
 	Host: jigedit.w3.org.
-	User-Agent: WebCommander/1.1 libwww/5.1n.
-	Connection: TE.
+	User-Agent: WebCommander/1.1 libwww/5.2.1.
+	Connection: TE,Keep-Alive.
 	.
 	
 -----------------------------------------------------------------
-18.29.0.24.80 -> 18.29.0.116.2021 over TCP
+18.29.0.24.80 -> 18.29.0.116.1311 over TCP
 	<No data>
 -----------------------------------------------------------------
-18.29.0.24.80 -> 18.29.0.116.2021 over TCP
-	HTTP/1.1 200 OK.
-	Date: Tue, 08 Sep 1998 14:47:09 GMT.
-	Content-Length: 9894.
+18.29.0.24.80 -> 18.29.0.116.1311 over TCP
+	HTTP/1.1 401 Unauthorized.
+	Date: Wed, 25 Nov 1998 22:00:19 GMT.
+	Content-Length: 196.
 	Content-Type: text/html.
-	Etag: "16cjh7d:q9is1fuo".
-	Last-Modified: Tue, 08 Sep 1998 14:47:09 GMT.
 	Server: Jigsaw/2.0beta1.
+	WWW-authenticate: Basic realm="test".
 	.
 	
 -----------------------------------------------------------------
-18.29.0.116.2021 -> 18.29.0.24.80 over TCP
+18.29.0.116.1311 -> 18.29.0.24.80 over TCP
 	<No data>
 -----------------------------------------------------------------
-18.29.0.116.2021 -> 18.29.0.24.80 over TCP
-	PUT /frystyk/test/puttest.html HTTP/1.1.
+18.29.0.116.1311 -> 18.29.0.24.80 over TCP
+	HEAD /frystyk/test/test.html HTTP/1.1.
 	Accept: */*;q=0.3.
 	Accept-Encoding: deflate.
 	TE: trailers,deflate.
-	Authorization: Basic Hjfuafjr676afjkd98sl.
-	Expect: 100-continue.
+	Authorization: Basic fgjBnHJfu4asrkns34wnsg==.
 	Host: jigedit.w3.org.
-	User-Agent: WebCommander/1.1 libwww/5.1n.
-	Connection: TE.
-	Date: Tue, 08 Sep 1998 14:47:17 GMT.
+	User-Agent: WebCommander/1.1 libwww/5.2.1.
+	Connection: TE,Keep-Alive.
+	.
+	
+-----------------------------------------------------------------
+18.29.0.24.80 -> 18.29.0.116.1311 over TCP
+	<No data>
+-----------------------------------------------------------------
+18.29.0.24.80 -> 18.29.0.116.1311 over TCP
+	HTTP/1.1 200 OK.
+	Date: Wed, 25 Nov 1998 22:00:22 GMT.
 	Content-Length: 104.
 	Content-Type: text/html.
-	Last-Modified: Fri, 04 Sep 1998 13:50:18 GMT.
-	.
-	
------------------------------------------------------------------
-18.29.0.24.80 -> 18.29.0.116.2021 over TCP
-	<No data>
------------------------------------------------------------------
-18.29.0.24.80 -> 18.29.0.116.2021 over TCP
-	HTTP/1.1 100 Continue.
-	Date: Tue, 08 Sep 1998 14:38:48 GMT.
+	Etag: "jrbkiq:qhcjujp0".
+	Last-Modified: Wed, 25 Nov 1998 21:46:29 GMT.
 	Server: Jigsaw/2.0beta1.
 	.
 	
 -----------------------------------------------------------------
-18.29.0.116.2021 -> 18.29.0.24.80 over TCP
+18.29.0.116.1311 -> 18.29.0.24.80 over TCP
 	<No data>
 -----------------------------------------------------------------
-18.29.0.116.2021 -> 18.29.0.24.80 over TCP
+18.29.0.116.1311 -> 18.29.0.24.80 over TCP
+	PUT /frystyk/test/test.html HTTP/1.1.
+	Accept: */*;q=0.3.
+	Accept-Encoding: deflate.
+	TE: trailers,deflate.
+	Authorization: Basic fgjBnHJfu4asrkns34wnsg==.
+	Expect: 100-continue.
+	Host: jigedit.w3.org.
+	User-Agent: WebCommander/1.1 libwww/5.2.1.
+	Connection: TE.
+	Date: Wed, 25 Nov 1998 22:00:25 GMT.
+	Content-Length: 104.
+	Content-Type: text/html.
+	Last-Modified: Fri, 04 Sep 1998 12:50:18 GMT.
+	.
+	
+-----------------------------------------------------------------
+18.29.0.24.80 -> 18.29.0.116.1311 over TCP
+	<No data>
+-----------------------------------------------------------------
+18.29.0.24.80 -> 18.29.0.116.1311 over TCP
+	HTTP/1.1 100 Continue.
+	Date: Fri, 13 Nov 1998 14:18:30 GMT.
+	Server: Jigsaw/2.0beta1.
+	.
+	
+-----------------------------------------------------------------
+18.29.0.116.1311 -> 18.29.0.24.80 over TCP
+	<No data>
+-----------------------------------------------------------------
+18.29.0.116.1311 -> 18.29.0.24.80 over TCP
 	<HTML>
 	<HEAD>
 	  <TITLE>this is a testfile</TITLE>
@@ -68,19 +104,31 @@
 	</BODY></HTML>
 	
 -----------------------------------------------------------------
-18.29.0.24.80 -> 18.29.0.116.2021 over TCP
+18.29.0.24.80 -> 18.29.0.116.1311 over TCP
 	<No data>
 -----------------------------------------------------------------
-18.29.0.24.80 -> 18.29.0.116.2021 over TCP
+18.29.0.24.80 -> 18.29.0.116.1311 over TCP
 	HTTP/1.1 204 No Content.
-	Date: Tue, 08 Sep 1998 14:47:18 GMT.
+	Date: Wed, 25 Nov 1998 22:00:28 GMT.
 	Content-Length: 104.
 	Content-Type: text/html.
-	Etag: "16cjh7d:qb30v26o".
-	Last-Modified: Tue, 08 Sep 1998 14:47:18 GMT.
+	Etag: "jrbkiq:qhcko64g".
+	Last-Modified: Wed, 25 Nov 1998 22:00:28 GMT.
 	Server: Jigsaw/2.0beta1.
 	.
 	
 -----------------------------------------------------------------
-18.29.0.116.2021 -> 18.29.0.24.80 over TCP
+18.29.0.116.1311 -> 18.29.0.24.80 over TCP
+	<No data>
+-----------------------------------------------------------------
+18.29.0.116.1311 -> 18.29.0.24.80 over TCP
+	<No data>
+-----------------------------------------------------------------
+18.29.0.24.80 -> 18.29.0.116.1311 over TCP
+	<No data>
+-----------------------------------------------------------------
+18.29.0.24.80 -> 18.29.0.116.1311 over TCP
+	<No data>
+-----------------------------------------------------------------
+18.29.0.116.1311 -> 18.29.0.24.80 over TCP
 	<No data>

@@ -1,29 +1,29 @@
-18.29.0.116.2009 -> 18.29.0.24.80 over TCP
+18.29.0.116.1270 -> 18.29.0.24.80 over TCP
 	<No data>
 -----------------------------------------------------------------
-18.29.0.24.80 -> 18.29.0.116.2009 over TCP
+18.29.0.24.80 -> 18.29.0.116.1270 over TCP
 	<No data>
 -----------------------------------------------------------------
-18.29.0.116.2009 -> 18.29.0.24.80 over TCP
+18.29.0.116.1270 -> 18.29.0.24.80 over TCP
 	<No data>
 -----------------------------------------------------------------
-18.29.0.116.2009 -> 18.29.0.24.80 over TCP
-	HEAD /frystyk/test/test350.html HTTP/1.1.
+18.29.0.116.1270 -> 18.29.0.24.80 over TCP
+	HEAD /frystyk/test/test.html HTTP/1.1.
 	Accept: */*;q=0.3.
 	Accept-Encoding: deflate.
 	TE: trailers,deflate.
 	Host: jigedit.w3.org.
-	User-Agent: WebCommander/1.1 libwww/5.1n.
+	User-Agent: WebCommander/1.1 libwww/5.2.1.
 	Connection: TE,Keep-Alive.
 	.
 	
 -----------------------------------------------------------------
-18.29.0.24.80 -> 18.29.0.116.2009 over TCP
+18.29.0.24.80 -> 18.29.0.116.1270 over TCP
 	<No data>
 -----------------------------------------------------------------
-18.29.0.24.80 -> 18.29.0.116.2009 over TCP
+18.29.0.24.80 -> 18.29.0.116.1270 over TCP
 	HTTP/1.1 401 Unauthorized.
-	Date: Tue, 08 Sep 1998 14:38:44 GMT.
+	Date: Wed, 25 Nov 1998 21:22:06 GMT.
 	Content-Length: 196.
 	Content-Type: text/html.
 	Server: Jigsaw/2.0beta1.
@@ -31,64 +31,65 @@
 	.
 	
 -----------------------------------------------------------------
-18.29.0.116.2009 -> 18.29.0.24.80 over TCP
+18.29.0.116.1270 -> 18.29.0.24.80 over TCP
 	<No data>
 -----------------------------------------------------------------
-18.29.0.116.2009 -> 18.29.0.24.80 over TCP
-	HEAD /frystyk/test/test350.html HTTP/1.1.
+18.29.0.116.1270 -> 18.29.0.24.80 over TCP
+	HEAD /frystyk/test/test.html HTTP/1.1.
 	Accept: */*;q=0.3.
 	Accept-Encoding: deflate.
 	TE: trailers,deflate.
-	Authorization: Basic Hjfuafjr676afjkd98sl.
+	Authorization: Basic fgjBnHJfu4asrkns34wnsg==.
 	Host: jigedit.w3.org.
-	User-Agent: WebCommander/1.1 libwww/5.1n.
+	User-Agent: WebCommander/1.1 libwww/5.2.1.
 	Connection: TE,Keep-Alive.
 	.
 	
 -----------------------------------------------------------------
-18.29.0.24.80 -> 18.29.0.116.2009 over TCP
+18.29.0.24.80 -> 18.29.0.116.1270 over TCP
 	<No data>
 -----------------------------------------------------------------
-18.29.0.24.80 -> 18.29.0.116.2009 over TCP
+18.29.0.24.80 -> 18.29.0.116.1270 over TCP
 	HTTP/1.1 404 Not Found.
-	Date: Tue, 08 Sep 1998 14:38:48 GMT.
-	Content-Length: 201.
+	Date: Wed, 25 Nov 1998 21:22:09 GMT.
+	Content-Length: 148.
 	Content-Type: text/html.
 	Server: Jigsaw/2.0beta1.
 	.
 	
 -----------------------------------------------------------------
-18.29.0.116.2009 -> 18.29.0.24.80 over TCP
-	PUT /frystyk/test/test350.html HTTP/1.1.
+18.29.0.116.1270 -> 18.29.0.24.80 over TCP
+	PUT /frystyk/test/test.html HTTP/1.1.
 	Accept: */*;q=0.3.
 	Accept-Encoding: deflate.
 	TE: trailers,deflate.
-	Authorization: Basic Hjfuafjr676afjkd98sl.
+	Authorization: Basic fgjBnHJfu4asrkns34wnsg==.
 	Expect: 100-continue.
 	Host: jigedit.w3.org.
-	User-Agent: WebCommander/1.1 libwww/5.1n.
+	If-None-Match: *.
+	User-Agent: WebCommander/1.1 libwww/5.2.1.
 	Connection: TE.
-	Date: Tue, 08 Sep 1998 14:38:49 GMT.
+	Date: Wed, 25 Nov 1998 21:22:09 GMT.
 	Content-Length: 104.
 	Content-Type: text/html.
-	Last-Modified: Fri, 04 Sep 1998 13:50:18 GMT.
+	Last-Modified: Fri, 04 Sep 1998 12:50:18 GMT.
 	.
 	
 -----------------------------------------------------------------
-18.29.0.24.80 -> 18.29.0.116.2009 over TCP
+18.29.0.24.80 -> 18.29.0.116.1270 over TCP
 	<No data>
 -----------------------------------------------------------------
-18.29.0.24.80 -> 18.29.0.116.2009 over TCP
+18.29.0.24.80 -> 18.29.0.116.1270 over TCP
 	HTTP/1.1 100 Continue.
-	Date: Tue, 08 Sep 1998 14:38:48 GMT.
+	Date: Fri, 13 Nov 1998 14:18:30 GMT.
 	Server: Jigsaw/2.0beta1.
 	.
 	
 -----------------------------------------------------------------
-18.29.0.116.2009 -> 18.29.0.24.80 over TCP
+18.29.0.116.1270 -> 18.29.0.24.80 over TCP
 	<No data>
 -----------------------------------------------------------------
-18.29.0.116.2009 -> 18.29.0.24.80 over TCP
+18.29.0.116.1270 -> 18.29.0.24.80 over TCP
 	<HTML>
 	<HEAD>
 	  <TITLE>this is a testfile</TITLE>
@@ -99,26 +100,26 @@
 	</BODY></HTML>
 	
 -----------------------------------------------------------------
-18.29.0.24.80 -> 18.29.0.116.2009 over TCP
+18.29.0.24.80 -> 18.29.0.116.1270 over TCP
 	<No data>
 -----------------------------------------------------------------
-18.29.0.24.80 -> 18.29.0.116.2009 over TCP
+18.29.0.24.80 -> 18.29.0.116.1270 over TCP
 	HTTP/1.1 201 Created.
-	Date: Tue, 08 Sep 1998 14:38:50 GMT.
+	Date: Wed, 25 Nov 1998 21:22:11 GMT.
 	Transfer-Encoding: deflate,chunked.
 	Content-Type: text/html.
-	Etag: "13iqh05:qb30fi3o".
-	Location: http://jigedit.w3.org/frystyk/test/test350.html.
+	Etag: "jrbkiq:qhcii3ug".
+	Location: http://jigedit.w3.org/frystyk/test/test.html.
 	Server: Jigsaw/2.0beta1.
 	.
 	2A.
 	x..).s.+.,.TH.O.T(N,KMQ(.MNN-N+...TP.....|.
 	
 -----------------------------------------------------------------
-18.29.0.24.80 -> 18.29.0.116.2009 over TCP
+18.29.0.24.80 -> 18.29.0.116.1270 over TCP
 	0.
 	.
 	
 -----------------------------------------------------------------
-18.29.0.116.2009 -> 18.29.0.24.80 over TCP
+18.29.0.116.1270 -> 18.29.0.24.80 over TCP
 	<No data>

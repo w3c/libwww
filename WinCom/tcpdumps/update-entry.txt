@@ -1,82 +1,36 @@
-18.29.0.116.2011 -> 18.29.0.24.80 over TCP
-	<No data>
 -----------------------------------------------------------------
-18.29.0.24.80 -> 18.29.0.116.2011 over TCP
-	<No data>
------------------------------------------------------------------
-18.29.0.116.2011 -> 18.29.0.24.80 over TCP
-	<No data>
------------------------------------------------------------------
-18.29.0.116.2011 -> 18.29.0.24.80 over TCP
-	PUT /frystyk/test/test350.html HTTP/1.1.
+18.29.0.116.1321 -> 18.29.0.24.80 over TCP
+	PUT /frystyk/test/test.html HTTP/1.1.
 	Accept: */*;q=0.3.
 	Accept-Encoding: deflate.
 	TE: trailers,deflate.
+	Authorization: Basic fgjBnHJfu4asrkns34wnsg==.
 	Expect: 100-continue.
 	Host: jigedit.w3.org.
-	If-Match: "13iqh05:qb30fi3o".
-	User-Agent: WebCommander/1.1 libwww/5.1n.
-	Connection: TE,Keep-Alive.
-	Date: Tue, 08 Sep 1998 14:40:18 GMT.
+	If-Match: "jrbkiq:qhcliqlo".
+	User-Agent: WebCommander/1.1 libwww/5.2.1.
+	Connection: TE.
+	Date: Wed, 25 Nov 1998 22:15:02 GMT.
 	Content-Length: 104.
 	Content-Type: text/html.
-	Last-Modified: Fri, 04 Sep 1998 13:50:18 GMT.
+	Last-Modified: Fri, 04 Sep 1998 12:50:18 GMT.
 	.
 	
 -----------------------------------------------------------------
-18.29.0.24.80 -> 18.29.0.116.2011 over TCP
+18.29.0.24.80 -> 18.29.0.116.1321 over TCP
 	<No data>
 -----------------------------------------------------------------
-18.29.0.24.80 -> 18.29.0.116.2011 over TCP
-	HTTP/1.1 401 Unauthorized.
-	Date: Tue, 08 Sep 1998 14:40:17 GMT.
-	Content-Length: 196.
-	Content-Type: text/html.
-	Server: Jigsaw/2.0beta1.
-	WWW-authenticate: Basic realm="test".
-	.
-	<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Draft//EN">
-	<HTML><HEAD>
-	<TITLE>Unauthorised</TITLE>
-	</HEAD>
-	<BODY><h1>Unauthorised access</h1><p>You are denied access to this resource.</BODY>
-	</HTML>
------------------------------------------------------------------
-18.29.0.116.2011 -> 18.29.0.24.80 over TCP
-	<No data>
------------------------------------------------------------------
-18.29.0.116.2011 -> 18.29.0.24.80 over TCP
-	PUT /frystyk/test/test350.html HTTP/1.1.
-	Accept: */*;q=0.3.
-	Accept-Encoding: deflate.
-	TE: trailers,deflate.
-	Authorization: Basic Hjfuafjr676afjkd98sl.
-	Expect: 100-continue.
-	Host: jigedit.w3.org.
-	If-Match: "13iqh05:qb30fi3o".
-	User-Agent: WebCommander/1.1 libwww/5.1n.
-	Connection: TE,Keep-Alive.
-	Date: Tue, 08 Sep 1998 14:40:18 GMT.
-	Content-Length: 104.
-	Content-Type: text/html.
-	Last-Modified: Fri, 04 Sep 1998 13:50:18 GMT.
-	.
-	
------------------------------------------------------------------
-18.29.0.24.80 -> 18.29.0.116.2011 over TCP
-	<No data>
------------------------------------------------------------------
-18.29.0.24.80 -> 18.29.0.116.2011 over TCP
+18.29.0.24.80 -> 18.29.0.116.1321 over TCP
 	HTTP/1.1 100 Continue.
-	Date: Tue, 08 Sep 1998 14:38:48 GMT.
+	Date: Fri, 13 Nov 1998 14:18:30 GMT.
 	Server: Jigsaw/2.0beta1.
 	.
 	
 -----------------------------------------------------------------
-18.29.0.116.2011 -> 18.29.0.24.80 over TCP
+18.29.0.116.1321 -> 18.29.0.24.80 over TCP
 	<No data>
 -----------------------------------------------------------------
-18.29.0.116.2011 -> 18.29.0.24.80 over TCP
+18.29.0.116.1321 -> 18.29.0.24.80 over TCP
 	<HTML>
 	<HEAD>
 	  <TITLE>this is a testfile</TITLE>
@@ -87,19 +41,31 @@
 	</BODY></HTML>
 	
 -----------------------------------------------------------------
-18.29.0.24.80 -> 18.29.0.116.2011 over TCP
+18.29.0.24.80 -> 18.29.0.116.1321 over TCP
 	<No data>
 -----------------------------------------------------------------
-18.29.0.24.80 -> 18.29.0.116.2011 over TCP
+18.29.0.24.80 -> 18.29.0.116.1321 over TCP
 	HTTP/1.1 204 No Content.
-	Date: Tue, 08 Sep 1998 14:40:22 GMT.
+	Date: Wed, 25 Nov 1998 22:15:05 GMT.
 	Content-Length: 104.
 	Content-Type: text/html.
-	Etag: "13iqh05:qb30ibuo".
-	Last-Modified: Tue, 08 Sep 1998 14:40:22 GMT.
+	Etag: "jrbkiq:qhcliuio".
+	Last-Modified: Wed, 25 Nov 1998 22:15:05 GMT.
 	Server: Jigsaw/2.0beta1.
 	.
 	
 -----------------------------------------------------------------
-18.29.0.116.2011 -> 18.29.0.24.80 over TCP
+18.29.0.116.1321 -> 18.29.0.24.80 over TCP
+	<No data>
+-----------------------------------------------------------------
+18.29.0.116.1321 -> 18.29.0.24.80 over TCP
+	<No data>
+-----------------------------------------------------------------
+18.29.0.24.80 -> 18.29.0.116.1321 over TCP
+	<No data>
+-----------------------------------------------------------------
+18.29.0.24.80 -> 18.29.0.116.1321 over TCP
+	<No data>
+-----------------------------------------------------------------
+18.29.0.116.1321 -> 18.29.0.24.80 over TCP
 	<No data>

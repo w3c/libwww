@@ -31,40 +31,65 @@ A couple of notes:
     Web Commander only detects conflicts - it doesn't try to resolve them
 </UL>
 <H3>
-  Testing Whether a Document Exists using HEAD Requests
+  Saving a Document for the First Time
 </H3>
 <P>
 If the user wants to save a document that we don't know anything about then
-we have to issue a HEAD request before doing a PUT.
-<UL>
-  <LI>
-    <A HREF="tcpdumps/new-entry.txt">The first trace</A> shows a situation where
-    the document doesn't exist and the PUT request is executed normally
-  <LI>
-    <A HREF="tcpdumps/replace-entry.txt">The second trace</A> shows a situation
-    where the document already exists. The user is then given two options: two
-    download the existing version or to override it. In the trace the user overrides
-    the existing version.
-</UL>
+we have to issue a <TT>HEAD</TT> request before doing the save using a
+<TT>PUT</TT> request. The <TT>HEAD</TT> request is necessary as we don't
+know whether we are speaking to an HTTP/1.0 or an HTTP/1.1 server - only
+the latter understands etags. Note, that the <TT>PUT</TT> request uses the
+"<TT>If-None-Match: *</TT>" header field to ensure that no race condition
+occurs between the two requests. There are two situations that have to be
+handled:
+<DL>
+  <DT>
+    <EM><A HREF="tcpdumps/new-entry.txt">The document doesn't already
+    exist</A></EM>
+  <DD>
+    The first trace shows a situation where the document doesn't exist and the
+    <TT>PUT</TT> request is executed normally
+  <DT>
+    <EM><A HREF="tcpdumps/replace-entry.txt">The document already exists</A></EM>
+  <DD>
+    The second trace shows a situation where the document already exists. The
+    user is then given two options in a GUI dialog box: to download the existing
+    version or to override it. In the trace the user overrides the existing version
+    which is done by removing any preconditions.
+</DL>
 <H3>
-  Using the Etag in subsequent PUT Requests
+  Saving a Document for the 2nd or more Time
 </H3>
 <P>
-When a new document has been created on the server, it sends back the etag
+When a new document has been created on the server, it sends back an etag
 in the <TT>201 (Created)</TT> response. This etag is stored in our
 <A HREF="../Library/src/HTCache.html">persistent HTTP/1.1 cache</A>. Once
-the etag is known, it is used on all subsequent PUT requests in a
-<TT>if-match</TT> header field. If the resource has changed on the server
-the etags will no match and the PUT will not succeed. Instead the user will
-be given the same two options as above, that is, either to get the new version
-or to override it.
-<UL>
-  <LI>
-    <A HREF="tcpdumps/update-entry.txt">This trace</A> shows a PUT request with
-    a&nbsp;if-match header field. In this situation the etag matches and the
-    PUT request is executed. A new etag is sent back in the <TT>204 (No Data)</TT>
-    response. This etag is now saved in the persistent cache.
-</UL>
+the etag is known, it is used on all subsequent <TT>PUT</TT> requests in
+a <TT>if-match</TT> header field. If the document hasn't changed, the etags
+will match and the <TT>PUT</TT> can proceed. However, if it has changed,
+then the etags will not match and the <TT>PUT</TT> can not proceed. Instead
+the user will be given the same two options as above, that is, either to
+get the new version or to override it.
+<DL>
+  <DT>
+    <EM><A HREF="tcpdumps/update-entry.txt">The document has not been
+    changed</A></EM>
+  <DD>
+    This trace shows a <TT>PUT</TT> request with a&nbsp;<TT>if-match</TT> header
+    field. In this situation the etag matches and the <TT>PUT</TT> request is
+    executed as normal.
+  <DT>
+    <EM><A HREF="tcpdumps/override-entry.txt">The document has been
+    changed</A></EM>
+  <DD>
+    The last trace shows a situation where someone else updated the document
+    and so the etags don't match anymore. THe PUT therefore fails and the user
+    is then presented with the option of downloading the new version of overriding
+    the existing one. In this case, the existing version is simply overridden.
+</DL>
+<P>
+In both cases, the new etag sent back is saved in the persistent cache and
+the old etag deleted.
 <P>
   <HR>
 <ADDRESS>
