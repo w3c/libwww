@@ -23,10 +23,6 @@ public:
 
 	CString	    m_source;
 	CString	    m_destination;
-	CString	    m_saveAs;
-
-// Operations       
-        void OnFinish (void);
 
 // Dialog Data
 	//{{AFX_DATA(CLocation)
@@ -34,7 +30,6 @@ public:
 	CComboBox	m_destinationList;
 	CComboBox	m_sourceList;
 	CButton	m_submit;
-	CButton	m_cancel;
 	//}}AFX_DATA
 
 
@@ -48,19 +43,11 @@ public:
             virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	//}}AFX_VIRTUAL
 
-// Implementation
-protected:
-	void CheckSubmit (void);
-
 // Generated message map functions
 	//{{AFX_MSG(CLocation)
 	afx_msg void OnBrowse();
-	afx_msg void OnEditSourceLocation();
-	afx_msg void OnEditDestinationLocation();
 	afx_msg void OnSubmit();
-	afx_msg void OnCancel();
-	afx_msg void OnKillfocusSourceUri();
-	afx_msg void OnKillfocusDestinationUri();
+	afx_msg void OnEditchangeSourceUri();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 

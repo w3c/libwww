@@ -5,6 +5,8 @@
 #include "WinCom.h"
 
 #include "WinComDoc.h"
+#include "Load.h"
+#include "Delete.h"
 
 // From libwww
 #include "WWWLib.h"
@@ -17,6 +19,9 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
+#define WEBCOMMANDER_LATEST     "http://www.w3.org/WinCom/WinCom.zip"
+#define WEBCOMMANDER_THIS       "http://www.w3.org/WinCom/WinCom-0.984.zip"
+
 /////////////////////////////////////////////////////////////////////////////
 // CWinComDoc
 
@@ -28,6 +33,9 @@ BEGIN_MESSAGE_MAP(CWinComDoc, CDocument)
 	ON_UPDATE_COMMAND_UI(ID_VERSION_CONFLICT, OnUpdateVersionConflict)
 	ON_COMMAND(ID_SHOW_SERVER_STATUS, OnShowServerStatus)
 	ON_UPDATE_COMMAND_UI(ID_SHOW_SERVER_STATUS, OnUpdateShowServerStatus)
+	ON_COMMAND(ID_APP_UPGRADE, OnAppUpgrade)
+	ON_COMMAND(ID_LOAD_ADDRESS, OnLoadAddress)
+	ON_COMMAND(ID_DELETE_ADDRESS, OnDeleteAddress)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -39,8 +47,6 @@ CWinComDoc::CWinComDoc()
     CWinComApp * pApp = (CWinComApp *) AfxGetApp();
     ASSERT(pApp != NULL); 
     
-    // TODO: add one-time construction code here
-    m_pRequest = new CRequest(this);
     m_cwd = HTGetCurrentDirectoryURL();
     m_detectVersionConflict = pApp->GetIniDetectVersionConflict();
     m_showServerStatus = pApp->GetIniShowServerStatus();
@@ -50,7 +56,7 @@ CWinComDoc::~CWinComDoc()
 {
     CWinComApp * pApp = (CWinComApp *) AfxGetApp();
     ASSERT(pApp != NULL); 
-    delete m_pRequest;
+
     HT_FREE(m_cwd);
     pApp->SetIniDetectVersionConflict(m_detectVersionConflict);
     pApp->SetIniShowServerStatus(m_showServerStatus);
@@ -58,16 +64,14 @@ CWinComDoc::~CWinComDoc()
 
 BOOL CWinComDoc::OnNewDocument()
 {
-	if (!CDocument::OnNewDocument())
-		return FALSE;
-
-	// TODO: add reinitialization code here
-	// (SDI documents will reuse this document)
-
-	return TRUE;
+    if (!CDocument::OnNewDocument())
+	return FALSE;
+    
+    // TODO: add reinitialization code here
+    // (SDI documents will reuse this document)
+    
+    return TRUE;
 }
-
-
 
 /////////////////////////////////////////////////////////////////////////////
 // CWinComDoc serialization
@@ -100,18 +104,33 @@ void CWinComDoc::Dump(CDumpContext& dc) const
 #endif //_DEBUG
 
 /////////////////////////////////////////////////////////////////////////////
+// CWinComDoc handling of created request objects
+
+BOOL CWinComDoc::AddRequest (CRequest * pRequest)
+{
+    return TRUE;
+}
+
+BOOL CWinComDoc::DeleteRequest (CRequest * pRequest)
+{
+    return TRUE;
+}
+
+/////////////////////////////////////////////////////////////////////////////
 // CWinComDoc commands
 
-BOOL CWinComDoc::SubmitRequest()
+BOOL CWinComDoc::SaveDocument()
 {
-    ASSERT(m_pRequest != NULL);
+    CRequest * request = new CRequest(this);
+    HTAnchor * source = NULL;
+    HTAnchor * destination = NULL;
 
-    // Create the anchors
+    // Create the source anchor
     char * src = HTParse(m_Location.m_source, m_cwd, PARSE_ALL);
-    m_pRequest->m_pHTAnchorSource = HTAnchor_findAddress(src);
+    source = HTAnchor_findAddress(src);
     HT_FREE(src);
     
-    /* If destination is not http then error */
+    /* If destination is not http://... then error */
     if (!m_Location.m_destination.IsEmpty()) {
 	char * access = HTParse(m_Location.m_destination, "", PARSE_ACCESS);
 	if (strcasecomp(access, "http")) {
@@ -122,87 +141,47 @@ BOOL CWinComDoc::SubmitRequest()
 	    return FALSE;
 	} else {
 	    char * dest = HTParse(m_Location.m_destination, m_cwd, PARSE_ALL);
-	    m_pRequest->m_pHTAnchorDestination = HTAnchor_findAddress(dest);
+	    destination = HTAnchor_findAddress(dest);
             HT_FREE(dest);
 	    HT_FREE(access);
 	}
     }
 
-    
     // Do we have any metadata to set up?
     {
-        HTParentAnchor * anchor = HTAnchor_parent(m_pRequest->m_pHTAnchorSource);
+        HTParentAnchor * source_parent = HTAnchor_parent(source);
         
         if (!m_EntityInfo.m_mediaType.IsEmpty()) {
-            HTAnchor_setFormat(anchor, HTAtom_for(m_EntityInfo.m_mediaType));
+            HTAnchor_setFormat(source_parent, HTAtom_for(m_EntityInfo.m_mediaType));
         }
         if (!m_EntityInfo.m_contentEncoding.IsEmpty()) {
-            HTAnchor_deleteEncodingAll(anchor);
-            HTAnchor_addEncoding(anchor, HTAtom_for(m_EntityInfo.m_contentEncoding));
+            HTAnchor_deleteEncodingAll(source_parent);
+            HTAnchor_addEncoding(source_parent, HTAtom_for(m_EntityInfo.m_contentEncoding));
         }
         if (!m_EntityInfo.m_charset.IsEmpty()) {
-            HTAnchor_setCharset(anchor, HTAtom_for(m_EntityInfo.m_charset));
+            HTAnchor_setCharset(source_parent, HTAtom_for(m_EntityInfo.m_charset));
         }
         if (!m_EntityInfo.m_language.IsEmpty()) {
-            HTAnchor_deleteLanguageAll(anchor);
-            HTAnchor_addLanguage(anchor, HTAtom_for(m_EntityInfo.m_language));
+            HTAnchor_deleteLanguageAll(source_parent);
+            HTAnchor_addLanguage(source_parent, HTAtom_for(m_EntityInfo.m_language));
         }
     }
     
     // Do we have any link relationships to set up?
-    m_Links.AddLinkRelationships(m_pRequest->m_pHTAnchorSource);
+    m_Links.AddLinkRelationships(source);
 
-    /* Set the cursor */
-    BeginWaitCursor();
-    
     /* Start the request */
-    if (m_pRequest->PutDocument(m_detectVersionConflict))
-	EndWaitCursor();
-
-    return TRUE;
-}
-
-BOOL CWinComDoc::LoadRequest()
-{
-    CWinComApp * pApp = (CWinComApp *) AfxGetApp();
-    ASSERT(pApp != NULL); 
-    
-    ASSERT(m_pRequest != NULL);
-    
-    // Find the file name where we should save the document
-    CFileDialog fd(FALSE);
-    fd.m_ofn.lpstrInitialDir = pApp->GetIniCWD();
-    if (fd.DoModal() == IDOK) {
-	
-	m_pRequest->m_saveAs = fd.GetPathName();
-	
-	// Set the initial dir for next time
-	CString path = m_pRequest->m_saveAs;    
-	int idx = path.ReverseFind('\\');
-	if (idx != -1) path.GetBufferSetLength(idx+1);
-	pApp->SetIniCWD(path);
-	
-	/* Set the cursor */
-	BeginWaitCursor();
-	
-	/* Start the request */
-	if (m_pRequest->GetDocument(FALSE))
-	    EndWaitCursor();
-
-        return TRUE;
+    if (m_detectVersionConflict) {
+        char * etag = HTAnchor_etag(HTAnchor_parent(destination));
+        if (etag) {
+	    request->PutDocument(source, destination, m_detectVersionConflict);
+        } else {
+	    request->PutDocumentWithPrecheck(source, destination, FALSE);
+	    // request->PutDocument(source, destination, m_detectVersionConflict);
+        }
+    } else {
+	request->PutDocument(source, destination, m_detectVersionConflict);
     }
-    return FALSE;
-}
-
-BOOL CWinComDoc::CancelRequest()
-{
-    ASSERT(m_pRequest != NULL);
-
-    /* Abort the request */
-    m_pRequest->Cancel();
-
-    /* End the wait cursor */
-    EndWaitCursor();
 
     return TRUE;
 }
@@ -227,4 +206,30 @@ void CWinComDoc::OnShowServerStatus()
 void CWinComDoc::OnUpdateShowServerStatus(CCmdUI* pCmdUI) 
 {
     pCmdUI->SetCheck(m_showServerStatus);
+}
+
+void CWinComDoc::OnAppUpgrade() 
+{
+    if (AfxMessageBox(IDS_APP_UPGRADE, MB_YESNO | MB_ICONEXCLAMATION )) {
+
+#if 0
+        CRequest * request = new CRequest(this);
+        
+        request->m_pHTAnchor = HTAnchor_findAddress(WEBCOMMANDER_THIS);
+        
+        request->CheckDocument(FALSE);
+#endif
+    }
+}
+
+void CWinComDoc::OnLoadAddress() 
+{
+    CLoad * load = new CLoad(this);
+    load->DoModal();
+}
+
+void CWinComDoc::OnDeleteAddress() 
+{
+    CDelete * del = new CDelete(this);
+    del->DoModal();
 }

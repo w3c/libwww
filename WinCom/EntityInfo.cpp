@@ -69,10 +69,11 @@ END_MESSAGE_MAP()
 
 BOOL CEntityInfo::OnKillActive() 
 {
-	// TODO: Add your specialized code here and/or call the base class
-	UpdateData();
-    
-	return CPropertyPage::OnKillActive();
+    UpdateData();
+
+    // @@@ make sure that all entries are saved!@@@
+
+    return CPropertyPage::OnKillActive();
 }
 
 void CEntityInfo::OnGetInfo() 
@@ -80,13 +81,13 @@ void CEntityInfo::OnGetInfo()
     ASSERT(GetParentFrame()->GetActiveView()->IsKindOf(RUNTIME_CLASS(CTabsView)));
     CTabsView * view = (CTabsView *) GetParentFrame()->GetActiveView();
     CWinComDoc * doc = view->GetDocument();
-    CRequest * request = doc->m_pRequest;        
-    char * srcstr = HTParse(doc->m_Location.m_source, doc->m_cwd, PARSE_ALL);
-    request->m_pHTAnchorSource = HTAnchor_findAddress(srcstr);
-    HTParentAnchor * src = HTAnchor_parent(request->m_pHTAnchorSource);
-    if (src) {
-	char * uri = HTAnchor_address((HTAnchor *) src);
-	char * local = HTWWWToLocal (uri, "", NULL);
+    
+    // Create the source anchor
+    char * src_str = HTParse(doc->m_Location.m_source, doc->m_cwd, PARSE_ALL);
+    HTParentAnchor * src_parent = HTAnchor_parent(HTAnchor_findAddress(src_str));
+    
+    if (src_str) {
+	char * local = HTWWWToLocal (src_str, "", NULL);
 	
 	/* Check what we can find out about the file */
 	if (local) {
@@ -97,7 +98,7 @@ void CEntityInfo::OnGetInfo()
 		    CString strMessage;
 		    AfxFormatString1(strMessage, IDS_CANNOT_READ_FILE, local);
 		    AfxMessageBox(strMessage);
-		    HT_FREE(uri);
+		    HT_FREE(src_str);
 		    HT_FREE(local);
 		    return;
 		}
@@ -106,20 +107,20 @@ void CEntityInfo::OnGetInfo()
 		CFileStatus status;
 		if(src_file.GetStatus(status)) {
 		    m_contentLength = status.m_size;
-		    HTAnchor_setLength(src, m_contentLength);
+		    HTAnchor_setLength(src_parent, m_contentLength);
 		    SetDlgItemInt(IDC_CONTENT_LENGTH, m_contentLength);
 		    m_lastModified = status.m_mtime;
-		    HTAnchor_setLastModified(src, m_lastModified.GetTime());
+		    HTAnchor_setLastModified(src_parent, m_lastModified.GetTime());
 		    m_lmDate = m_lastModified.Format("%a, %d %b %Y %H:%M:%S");
 		    SetDlgItemText(IDC_LAST_MODIFIED, m_lmDate);
 		}
 		src_file.Close();
 		
 		/* Get file suffix bindings */
-		if (HTBind_getAnchorBindings(src)) {
-		    char * mt = HTAtom_name(HTAnchor_format(src));
-		    char * charset = HTAtom_name(HTAnchor_charset(src));
-		    long length = HTAnchor_length(src);
+		if (HTBind_getAnchorBindings(src_parent)) {
+		    char * mt = HTAtom_name(HTAnchor_format(src_parent));
+		    char * charset = HTAtom_name(HTAnchor_charset(src_parent));
+		    long length = HTAnchor_length(src_parent);
 		    if (mt) {
 			m_mediaType = mt;
 			SetDlgItemText(IDC_MEDIA_TYPE, mt);
@@ -138,8 +139,8 @@ void CEntityInfo::OnGetInfo()
 	/* Update the data */
 	UpdateData(FALSE);
 	
-	HT_FREE(uri);
 	HT_FREE(local);
+        HT_FREE(src_str);
     }
 }
 

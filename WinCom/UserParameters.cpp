@@ -121,7 +121,10 @@ PUBLIC BOOL UserProgress (HTRequest * request, HTAlertOpcode op,
     static int inside = 0;
     char space[256];
     CWaitCursor wait;
-    if (!request) return NO;
+    CRequest * req = (CRequest *) HTRequest_context(request);
+    ASSERT(request != NULL);
+    ASSERT(req != NULL);
+    CProgressCtrl * progress = req->GetProgressBar();
 
     switch (op) {
     case HT_PROG_DNS:
@@ -145,8 +148,10 @@ PUBLIC BOOL UserProgress (HTRequest * request, HTAlertOpcode op,
                 char buf[10];
                 HTNumToStr((unsigned long) cl, buf, 10);
                 sprintf(space, "Read (%d%% of %s)", (int) pro, buf);
-            } else
+		progress->SetPos(pro);
+            } else {
                 sprintf(space, "Reading...");
+	    }
         }
         break;
         
@@ -159,8 +164,10 @@ PUBLIC BOOL UserProgress (HTRequest * request, HTAlertOpcode op,
                 char buf[10];
                 HTNumToStr((unsigned long) cl, buf, 10);
                 sprintf(space, "Writing (%d%% of %s)", (int) pro, buf);
-            } else
+		progress->SetPos(pro);
+            } else {
                 sprintf(space, "Writing...");
+	    }
         }
         break;
         
@@ -182,15 +189,12 @@ PUBLIC BOOL UserProgress (HTRequest * request, HTAlertOpcode op,
     }
 
     // Update pane 0 of the status bar
-    CRequest * req = (CRequest *) HTRequest_context(request);
-    if (req) {
-	CWinComDoc * doc = req->m_pDoc;
-	if (doc) {
-            POSITION pos = doc->GetFirstViewPosition();
-            CView * view = doc->GetNextView( pos );
-	    CMainFrame * mainframe = (CMainFrame *) view->GetParentFrame();
-	    mainframe->m_wndStatusBar.SetPaneText(ID_SEPARATOR, space);
-	}
+    CWinComDoc * doc = req->m_pDoc;
+    if (doc) {
+	POSITION pos = doc->GetFirstViewPosition();
+	CView * view = doc->GetNextView( pos );
+	CMainFrame * mainframe = (CMainFrame *) view->GetParentFrame();
+	mainframe->m_wndStatusBar.SetPaneText(ID_SEPARATOR, space);
     }
     return YES;
 }
@@ -284,13 +288,29 @@ PUBLIC BOOL UserConfirm (HTRequest * request, HTAlertOpcode op,
 {
     WPARAM wParam = 0;
     int result = IDRETRY;
+    BOOL status = YES;
     CUserParameters UserParams(request, op, msgnum, dfault, input, reply);
-    if (msgnum == HT_MSG_RETRY_PROXY_AUTH) {
+    switch (msgnum) {
+
+    case HT_MSG_RETRY_PROXY_AUTH:
         result = AfxMessageBox(IDS_RETRY_PROXY_AUTH, MB_RETRYCANCEL | MB_ICONEXCLAMATION );
-    } else if (msgnum == HT_MSG_RETRY_AUTHENTICATION) {
+        status = result==IDRETRY ? YES : NO;
+        break;
+
+    case HT_MSG_RETRY_AUTHENTICATION:
         result = AfxMessageBox(IDS_RETRY_AUTH, MB_RETRYCANCEL | MB_ICONEXCLAMATION );
+        status = result==IDRETRY ? YES : NO;
+        break;
+    
+    case HT_MSG_CACHE_LOCK:
+        result = AfxMessageBox(IDS_BREAK_CACHE_LOCK, MB_YESNO | MB_ICONSTOP | MB_DEFBUTTON2 );
+        status = result==IDYES ? YES : NO;
+        break;
+
+    default:
+        status = YES;
     }
-    return result == IDRETRY ? YES : NO;
+    return status;
 }
 
 PUBLIC BOOL UserPrompt (HTRequest * request, HTAlertOpcode op,

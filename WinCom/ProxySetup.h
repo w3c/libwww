@@ -22,6 +22,7 @@ public:
 	enum { IDD = IDD_PROXIES };
 	CString	m_proxy;
 	CString	m_proxyPrefix;
+	CString	m_proxyException;
 	//}}AFX_DATA
 
 // Operations

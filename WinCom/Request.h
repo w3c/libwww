@@ -11,6 +11,7 @@
 
 #include "WWWLib.h"			      /* Global Library Include file */
 #include "WinComDoc.h"
+#include "Progress.h"
 
 class CRequest : public CObject
 {
@@ -18,23 +19,48 @@ class CRequest : public CObject
 	
 // Construction
 public:
-    CRequest(CWinComDoc * doc);
-    CRequest();
+    CRequest(CWinComDoc * doc = NULL);
     ~CRequest();
     
-    int		PutDocument (BOOL UsePreconditions);
-    int		GetDocument (BOOL UsePreconditions);
-    int		Cancel();
+    int		GetDocument	(HTAnchor * address, int cacheValidation);
 
-    HTAnchor *	m_pHTAnchorSource;
-    HTAnchor *	m_pHTAnchorDestination;
-    HTRequest * m_pHTRequest;
-    CString	m_saveAs;
+    int		HeadDocument	(HTAnchor * address, int cacheValidation);
+
+    int		DeleteDocument	(HTAnchor * address, BOOL UsePreconditions);
+
+    int		PutDocument	(HTAnchor * source,
+				 HTAnchor * destination,
+				 BOOL UsePreconditions);
+
+    int		PutDocumentWithPrecheck (HTAnchor * source,
+					 HTAnchor * destination,
+					 BOOL UsePreconditions);
+
+    int		Cancel();
+    BOOL	Cleanup();
+
+    CProgressCtrl * GetProgressBar();
+
+    HTAnchor *	Source();
+    HTAnchor *	Destination();
 
     CWinComDoc *m_pDoc;	
-    FILE *	m_file;
 
 protected:
+    BOOL SetCacheValidation     (int mode);
+
+    HTRequest * m_pHTRequest;
+
+    HTAnchor *	m_pSource;
+    HTAnchor *	m_pDestination;
+
+    CString	m_saveAs;
+    FILE *	m_file;
+
+    CProgress *	m_pProgress;
+
+private:
+	BOOL InitializeFilters();
 };
 
 #endif // !defined(AFX_REQUEST_H__E0D48280_C4BE_11D1_93E1_080009DCA30B__INCLUDED_)

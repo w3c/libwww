@@ -60,6 +60,7 @@ protected:
 
 	// one page for each menu so we can initialize controls
 	// using OnInitDialog
+	CPropertyPage* m_pLoad;
 	CPropertyPage* m_pLocation;
 	CPropertyPage* m_pEntityInfo;
 	CPropertyPage* m_pLinks;

@@ -38,16 +38,19 @@ public:
 
 // Implementation
 public:
-	BOOL            SubmitRequest();
-	BOOL            LoadRequest();
-	BOOL            CancelRequest();
+	BOOL		AddRequest (CRequest * pRequest);
+	BOOL		DeleteRequest (CRequest * pRequest);
+    
+	BOOL            SaveDocument ();
 
 	char *		m_cwd;
-	CRequest *	m_pRequest;
+
+//	CList		m_ActiveRequests;
+	CProxySetup     m_ProxySetup;
+
+	CLocation	m_Location;
 	CEntityInfo     m_EntityInfo;
 	CLinks		m_Links;
-	CLocation	m_Location;
-	CProxySetup     m_ProxySetup;
 
 	virtual ~CWinComDoc();
 #ifdef _DEBUG
@@ -66,6 +69,9 @@ protected:
 	afx_msg void OnUpdateVersionConflict(CCmdUI* pCmdUI);
 	afx_msg void OnShowServerStatus();
 	afx_msg void OnUpdateShowServerStatus(CCmdUI* pCmdUI);
+	afx_msg void OnAppUpgrade();
+	afx_msg void OnLoadAddress();
+	afx_msg void OnDeleteAddress();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

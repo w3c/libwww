@@ -18,19 +18,7 @@
 // From libwww
 #include "WWWLib.h"			      /* Global Library Include file */
 #include "WWWApp.h"
-#include "WWWMIME.h"				    /* MIME parser/generator */
-#include "WWWHTML.h"				    /* HTML parser/generator */
-#include "WWWNews.h"				       /* News access module */
-#include "WWWHTTP.h"				       /* HTTP access module */
-#include "WWWFTP.h"
-#include "WWWFile.h"
-#include "WWWGophe.h"
-#include "WWWStream.h"
-#include "WWWTrans.h"
 #include "WWWInit.h"
-
-// Glue code between MFC and libwww UI interactions
-#include "UserParameters.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -39,92 +27,12 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 /////////////////////////////////////////////////////////////////////////////
-// Libwww filters
-
-/*
-**  Request termination handler
-*/
-PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
-			       void * param, int status) 
-{
-    CRequest * req = (CRequest *) HTRequest_context(request);
-    CWinComDoc * pDoc = req ? req->m_pDoc : NULL;
-
-    /* Clean up this request */
-    if (pDoc && pDoc->m_pRequest) {
-        HTRequest_delete(pDoc->m_pRequest->m_pHTRequest);
-        req->m_pDoc->m_pRequest->m_pHTRequest = NULL;
-
-	if (req->m_file) {
-	    fclose(req->m_file);
-	    req->m_file = NULL;
-	}
-    }
-
-    /*
-    ** If succesful PUT then copy last modified and etag
-    ** from destination to source anchor
-    */
-    if (status == HT_CREATED || status == HT_NO_DATA) {
-        time_t dst_time = HTAnchor_lastModified(HTAnchor_parent(req->m_pHTAnchorDestination));
-        char * dst_etag = HTAnchor_etag(HTAnchor_parent(req->m_pHTAnchorDestination));
-	HTAnchor_setLastModified(HTAnchor_parent(req->m_pHTAnchorSource), dst_time);
-        HTAnchor_setEtag(HTAnchor_parent(req->m_pHTAnchorSource), dst_etag);
-    }
-
-    // Turn off the cancel button
-    pDoc->m_Location.OnFinish();
-
-    req->m_pDoc->EndWaitCursor();
-    return HT_OK;
-}
-
-/*
-**  412 "Precondition failed" handler
-*/
-PRIVATE int precondition_handler (HTRequest * request, HTResponse * response,
-			          void * param, int status) 
-{
-    CRequest * req = (CRequest *) HTRequest_context(request);
-    CWinComDoc * pDoc = req ? req->m_pDoc : NULL;
-    CVersionConflict conflict;
-    if (conflict.DoModal() == IDOK) {
-
-	/* Clean up this request */
-	if (pDoc && pDoc->m_pRequest) {
-	    HTRequest_delete(pDoc->m_pRequest->m_pHTRequest);
-	    req->m_pDoc->m_pRequest->m_pHTRequest = NULL;
-	}
-
-	if (conflict.m_versionResolution == 0) {
-	    
-	    /* Start a new PUT request without preconditions */
-	    if (pDoc->m_pRequest->PutDocument(FALSE))
-		pDoc->EndWaitCursor();
-	    
-	} else if (conflict.m_versionResolution == 1) {
-	    
-	    /* Start a new GET request without preconditions */
-	    if (pDoc->LoadRequest())
-		pDoc->EndWaitCursor();
-
-	} else
-	    return HT_OK;   /* Just finish the request */
-	
-	/* Don't call the other after filters */
-	return HT_ERROR;
-    }
-    return HT_OK;
-}
-
-/////////////////////////////////////////////////////////////////////////////
 // CWinComApp
 
 BEGIN_MESSAGE_MAP(CWinComApp, CWinApp)
 	//{{AFX_MSG_MAP(CWinComApp)
 	ON_COMMAND(ID_APP_ABOUT, OnAppAbout)
 	ON_COMMAND(ID_OPTIONS_PROXIES, OnOptionsProxies)
-	ON_COMMAND(ID_HELP, OnHelp)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -136,6 +44,10 @@ CWinComApp::CWinComApp()
 	// TODO: add construction code here,
 	m_pSourceList = NULL;
 	m_pDestinationList = NULL;
+	m_pLinkList = NULL;
+	m_pLoadList = NULL;
+	m_pDeleteList = NULL;
+
         m_detectVersionConflict = FALSE;
         m_showServerStatus = FALSE;
     
@@ -166,7 +78,7 @@ BOOL CWinComApp::InitInstance()
 	LoadStdProfileSettings(0);  // Load standard INI file options (including MRU)
 
         /* Initialize libwww */
-        HTProfile_newNoCacheClient("WebCommander", "1.0");
+        HTProfile_newNoCacheClient("WebCommander", "1.1");
 
         /* Setup our own dialog handlers */
         {
@@ -179,18 +91,15 @@ BOOL CWinComApp::InitInstance()
             HTAlert_add(UserNameAndPassword, HT_A_USER_PW);
         }
 
-        /* Set up amount of warning info */
+        /* Set up the persistent cache */
+        HTCacheInit(NULL, 20);
+
+        /* Set up amount of warning info wanted */
         {
             m_showServerStatus = GetIniShowServerStatus();
             int show_flag = m_showServerStatus ? HT_ERR_SHOW_PARS : 0;
             HTError_setShow((HTErrorShow) (HT_ERR_SHOW_INFO | show_flag));
         }
-
-	/* Add our own after filter to handle 412 precondition failed */
-        HTNet_addAfter(precondition_handler, NULL, NULL, HT_PRECONDITION_FAILED, HT_FILTER_MIDDLE);
-
-        /* Add our own after filter to clecn up */
-        HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
 
         /* We don't care about case sensitivity when matching local files */
         HTBind_caseSensitive(NO);
@@ -207,11 +116,16 @@ BOOL CWinComApp::InitInstance()
 	static TCHAR BASED_CODE srcIniFileSection[] = _T("Most Recent Source Address");
 	static TCHAR BASED_CODE dstIniFileSection[] = _T("Most Recent Destination Address");
 	static TCHAR BASED_CODE lnkIniFileSection[] = _T("Most Recent Link Address");
+	static TCHAR BASED_CODE lodIniFileSection[] = _T("Most Recent Load Address");
+	static TCHAR BASED_CODE delIniFileSection[] = _T("Most Recent Delete Address");
+
 	static TCHAR BASED_CODE szIniFileEntry[] = _T("URI%d");
 
 	m_pSourceList = new CRecentFileList(1, srcIniFileSection, szIniFileEntry, MAX_LIST_LENGTH);
 	m_pDestinationList = new CRecentFileList(1, dstIniFileSection, szIniFileEntry, MAX_LIST_LENGTH);
 	m_pLinkList = new CRecentFileList(1, lnkIniFileSection, szIniFileEntry, MAX_LIST_LENGTH);
+	m_pLoadList = new CRecentFileList(1, lodIniFileSection, szIniFileEntry, MAX_LIST_LENGTH);
+	m_pDeleteList = new CRecentFileList(1, delIniFileSection, szIniFileEntry, MAX_LIST_LENGTH);
 
 	ASSERT(m_pDestinationList != NULL);
         m_pDestinationList->ReadList();
@@ -219,10 +133,16 @@ BOOL CWinComApp::InitInstance()
 	ASSERT(m_pSourceList != NULL);
 	m_pSourceList->ReadList();
 
-	ASSERT(m_pSourceList != NULL);
+	ASSERT(m_pLinkList != NULL);
 	m_pLinkList->ReadList();
 
-	// Setup proxies
+	ASSERT(m_pLoadList != NULL);
+	m_pLoadList->ReadList();
+
+	ASSERT(m_pDeleteList != NULL);
+	m_pDeleteList->ReadList();
+
+        // Setup proxies
 	if (ProxySetup.GetProxyOptions() == TRUE)
 	    ProxySetup.RegisterProxies();
 	
@@ -257,6 +177,30 @@ int CWinComApp::GetDestinationIniListSize (void)
 {
     ASSERT(m_pDestinationList != NULL);
     return m_pDestinationList->GetSize();
+}
+
+void CWinComApp::AddLoadAddressToIniFile (LPCTSTR lpszPathName)
+{
+    ASSERT(m_pLoadList != NULL);
+    m_pLoadList->Add(lpszPathName);
+}
+
+int CWinComApp::GetLoadAddressIniListSize (void)
+{
+    ASSERT(m_pLoadList != NULL);
+    return m_pLoadList->GetSize();
+}
+
+void CWinComApp::AddDeleteAddressToIniFile (LPCTSTR lpszPathName)
+{
+    ASSERT(m_pDeleteList != NULL);
+    m_pDeleteList->Add(lpszPathName);
+}
+
+int CWinComApp::GetDeleteAddressIniListSize (void)
+{
+    ASSERT(m_pDeleteList != NULL);
+    return m_pDeleteList->GetSize();
 }
 
 void CWinComApp::AddLinkToIniFile (LPCTSTR lpszPathName)
@@ -303,6 +247,16 @@ int CWinComApp::FillDestinationComboBox (CComboBox * pBox)
     return FillComboBox(m_pDestinationList, pBox);
 }
 
+int CWinComApp::FillLoadComboBox (CComboBox * pBox)
+{
+    return FillComboBox(m_pLoadList, pBox);
+}
+
+int CWinComApp::FillDeleteComboBox (CComboBox * pBox)
+{
+    return FillComboBox(m_pDeleteList, pBox);
+}
+
 BOOL CWinComApp::SetIniCWD (CString cwd)
 {
     CString strSection		= "Application";
@@ -331,7 +285,7 @@ BOOL CWinComApp::GetIniDetectVersionConflict (void)
 {
     CString strSection		= "Application";
     CString strCWD		= "Detect Conflicts";
-    m_detectVersionConflict = GetProfileInt(strSection, strCWD, FALSE);
+    m_detectVersionConflict = GetProfileInt(strSection, strCWD, TRUE);
     return m_detectVersionConflict;
 }
 
@@ -421,16 +375,23 @@ int CWinComApp::ExitInstance()
 
     ASSERT(m_pDestinationList != NULL);
     m_pDestinationList->WriteList();
+    delete m_pDestinationList;
 
     ASSERT(m_pSourceList != NULL);
     m_pSourceList->WriteList();
+    delete m_pSourceList;
     
     ASSERT(m_pLinkList != NULL);
     m_pLinkList->WriteList();
-
-    delete m_pSourceList;
-    delete m_pDestinationList;
     delete m_pLinkList;
+
+    ASSERT(m_pLoadList != NULL);
+    m_pLoadList->WriteList();
+    delete m_pLoadList;
+
+    ASSERT(m_pDeleteList != NULL);
+    m_pDeleteList->WriteList();
+    delete m_pDeleteList;
 
     return CWinApp::ExitInstance();
 }

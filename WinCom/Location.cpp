@@ -36,39 +36,19 @@ void CLocation::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_SOURCE_URI, m_sourceList);
 	DDX_Control(pDX, IDC_DESTINATION_URI, m_destinationList);
 	DDX_Control(pDX, ID_SUBMIT, m_submit);
-	DDX_Control(pDX, ID_CANCEL, m_cancel);
 	//}}AFX_DATA_MAP
 }
 
 BEGIN_MESSAGE_MAP(CLocation, CPropertyPage)
     //{{AFX_MSG_MAP(CLocation)
 	ON_BN_CLICKED(ID_BROWSE, OnBrowse)
-	ON_CBN_EDITCHANGE(IDC_SOURCE_URI, OnEditSourceLocation)
-	ON_CBN_EDITCHANGE(IDC_DESTINATION_URI, OnEditDestinationLocation)
 	ON_BN_CLICKED(ID_SUBMIT, OnSubmit)
-	ON_CBN_KILLFOCUS(IDC_SOURCE_URI, OnKillfocusSourceUri)
-	ON_BN_CLICKED(ID_CANCEL, OnCancel)
-	ON_CBN_KILLFOCUS(IDC_DESTINATION_URI, OnKillfocusDestinationUri)
+	ON_CBN_EDITCHANGE(IDC_SOURCE_URI, OnEditchangeSourceUri)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
 // CLocation message handlers
-
-void CLocation::CheckSubmit (void)
-{
-#if 0
-    // If both source and destination are available then allow "submit"
-    int slen = m_sourceList.GetWindowTextLength();
-    int dlen = m_destinationList.GetWindowTextLength(); 
-    if (slen > 0 && dlen > 0) {
-        m_submit.EnableWindow(TRUE);
-    } else
-        m_submit.EnableWindow(FALSE);
-#else
-        m_submit.EnableWindow(TRUE);
-#endif
-}
 
 void CLocation::OnBrowse()
 {
@@ -121,12 +101,11 @@ void CLocation::OnBrowse()
 	view->GetDocument()->m_EntityInfo.Clear();
         view->GetDocument()->m_Links.Clear();
 
-	CheckSubmit();
         UpdateData();
     }
 }
 
-void CLocation::OnEditSourceLocation() 
+void CLocation::OnEditchangeSourceUri() 
 {
     UpdateData();
     
@@ -137,13 +116,6 @@ void CLocation::OnEditSourceLocation()
     view->GetDocument()->m_EntityInfo.Clear();
     view->GetDocument()->m_Links.Clear();
 
-    CheckSubmit();
-}
-
-void CLocation::OnEditDestinationLocation() 
-{
-    UpdateData();
-    CheckSubmit();
 }
 
 void CLocation::OnSubmit() 
@@ -184,53 +156,13 @@ void CLocation::OnSubmit()
         pApp->AddDestinationToIniFile(m_destination);
     }
 
-    // Turn off the submit button
-    m_submit.EnableWindow(FALSE);
-
-    // Turn on the cancel button
-    m_cancel.EnableWindow(TRUE);
-
-    // Turn off source and destination controls
-    m_sourceList.EnableWindow(FALSE);
-    m_destinationList.EnableWindow(FALSE);
-
     // Update our data
     UpdateData();
 
     // Call the document with a request request
     ASSERT(GetParentFrame()->GetActiveView()->IsKindOf(RUNTIME_CLASS(CTabsView)));
     CTabsView * view = (CTabsView *) GetParentFrame()->GetActiveView();
-    view->GetDocument()->SubmitRequest();    
-}
-
-void CLocation::OnCancel() 
-{
-    CheckSubmit();
-
-    // Turn off the cancel button
-    m_cancel.EnableWindow(FALSE);
-
-    // Turn on source and destination controls
-    m_sourceList.EnableWindow(TRUE);
-    m_destinationList.EnableWindow(TRUE);
-
-    // Call the document with a request request
-    ASSERT(GetParentFrame()->GetActiveView()->IsKindOf(RUNTIME_CLASS(CTabsView)));
-    CTabsView * view = (CTabsView *) GetParentFrame()->GetActiveView();
-    view->GetDocument()->CancelRequest();
-}
-
-void CLocation::OnFinish()
-{
-    // Turn on the submit button
-    m_submit.EnableWindow(TRUE);
-
-    // Turn off the cancel button
-    m_cancel.EnableWindow(FALSE);
-
-    // Turn on source and destination controls
-    m_sourceList.EnableWindow(TRUE);
-    m_destinationList.EnableWindow(TRUE);
+    view->GetDocument()->SaveDocument();
 }
 
 BOOL CLocation::OnInitDialog() 
@@ -250,12 +182,3 @@ BOOL CLocation::OnKillActive()
     return CPropertyPage::OnKillActive();
 }
 
-void CLocation::OnKillfocusSourceUri() 
-{
-    CheckSubmit();
-}
-
-void CLocation::OnKillfocusDestinationUri() 
-{
-    CheckSubmit();
-}

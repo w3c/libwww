@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\..\Library\src" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_AFXDLL" /D "WWW_WIN_DLL" /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\Library\src" /I "..\Library\External" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_AFXDLL" /D "WWW_WIN_DLL" /Yu"stdafx.h" /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o NUL /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o NUL /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG" /d "_AFXDLL"
@@ -68,7 +68,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /I "..\Library\src" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_AFXDLL" /D "WWW_WIN_DLL" /FD /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /I "..\Library\src" /I "..\Library\External" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_AFXDLL" /D "WWW_WIN_DLL" /FD /c
 # SUBTRACT CPP /YX /Yc /Yu
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o NUL /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o NUL /win32
@@ -90,6 +90,10 @@ LINK32=link.exe
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+# Begin Source File
+
+SOURCE=.\Delete.cpp
+# End Source File
 # Begin Source File
 
 SOURCE=.\EntityInfo.cpp
@@ -120,6 +124,10 @@ SOURCE=.\Listvwex.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\Load.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\Location.cpp
 # End Source File
 # Begin Source File
@@ -129,6 +137,10 @@ SOURCE=.\MainFrm.cpp
 # Begin Source File
 
 SOURCE=.\Password.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Progress.cpp
 # End Source File
 # Begin Source File
 
@@ -249,6 +261,10 @@ SOURCE=..\Bin\wwwzip.lib
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
+SOURCE=.\Delete.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\EntityInfo.h
 # End Source File
 # Begin Source File
@@ -265,6 +281,10 @@ SOURCE=.\Listvwex.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\Load.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\Location.h
 # End Source File
 # Begin Source File
@@ -274,6 +294,10 @@ SOURCE=.\MainFrm.h
 # Begin Source File
 
 SOURCE=.\Password.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Progress.h
 # End Source File
 # Begin Source File
 

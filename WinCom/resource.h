@@ -20,6 +20,9 @@
 #define IDB_SMALLICONS                  150
 #define IDB_STATEICONS                  151
 #define IDD_VERSION_CONFLICT            153
+#define IDD_LOAD                        154
+#define IDD_PROGRESS                    155
+#define IDD_DELETE                      156
 #define IDC_SOURCE_URI                  1001
 #define IDC_DESTINATION_URI             1002
 #define IDC_MEDIA_TYPE                  1002
@@ -50,16 +53,28 @@
 #define IDC_PROXY_SERVER                1020
 #define IDC_USE_PROXY                   1021
 #define ID_GET_INFO                     1022
+#define IDC_USE_NO_PROXY                1022
 #define IDC_LINK_REL                    1024
 #define IDC_LINK_REV                    1025
 #define IDC_LINK_RELS                   1027
 #define ID_LINK_ADD                     1028
 #define IDC_RESOLVE_CONFLICT1           1030
 #define IDC_RESOLVE_CONFLICT2           1031
+#define IDC_LOAD_ADDRESS                1031
+#define IDC_CACHE_VALIDATE              1032
+#define IDC_PROGRESS                    1033
+#define IDC_CACHE_END_VALIDATE          1033
+#define IDC_DELETE_ADDRESS              1034
+#define IDC_CACHE_RELOAD                1034
+#define IDC_CACHE_VALIDATION            1035
 #define ID_PROXY_SETUP                  32771
 #define ID_OPTIONS_PROXIES              32772
 #define ID_VERSION_CONFLICT             32777
 #define ID_SHOW_SERVER_STATUS           32778
+#define IP_CHECK_UPGRADE                32779
+#define ID_LOAD_ADDRESS                 32781
+#define ID_DELETE_DOCUMENT              32782
+#define ID_DELETE_ADDRESS               32783
 #define IDS_WINCOM                      61446
 #define IDS_SOURCE                      61447
 #define IDS_CANNOT_OPEN_FILE            61448
@@ -71,15 +86,18 @@
 #define IDS_RETRY_AUTH                  61454
 #define IDS_VERSION_CONFLICT            61455
 #define IDS_APP_VERSION                 61456
+#define IDS_APP_UPGRADE                 61457
+#define IDS_BREAK_CACHE_LOCK            61459
+#define ID_APP_UPGRADE                  61460
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        154
-#define _APS_NEXT_COMMAND_VALUE         32779
-#define _APS_NEXT_CONTROL_VALUE         1031
+#define _APS_NEXT_RESOURCE_VALUE        157
+#define _APS_NEXT_COMMAND_VALUE         32784
+#define _APS_NEXT_CONTROL_VALUE         1036
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

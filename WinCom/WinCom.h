@@ -53,7 +53,15 @@ public:
 	int  GetLinkIniListSize(void);
 	int  FillLinkComboBox (CComboBox * pBox);
 
-	BOOL SetIniCWD (CString cwd);
+	void AddLoadAddressToIniFile(LPCTSTR lpszPathName);
+	int  GetLoadAddressIniListSize(void);
+	int  FillLoadComboBox (CComboBox * pBox);
+
+	void AddDeleteAddressToIniFile(LPCTSTR lpszPathName);
+	int  GetDeleteAddressIniListSize(void);
+	int  FillDeleteComboBox (CComboBox * pBox);
+
+        BOOL SetIniCWD (CString cwd);
 	CString GetIniCWD (void);
 
 	BOOL SetIniDetectVersionConflict (BOOL detect);
@@ -73,10 +81,14 @@ public:
 protected:
 	CString		m_currentDir;
 	CProxySetup	ProxySetup;
-	CRecentFileList	* m_pSourceList;
+
+        CRecentFileList	* m_pSourceList;
 	CRecentFileList * m_pDestinationList;
 	CRecentFileList * m_pLinkList;
-	BOOL            m_detectVersionConflict;
+	CRecentFileList * m_pLoadList;
+	CRecentFileList * m_pDeleteList;
+
+        BOOL            m_detectVersionConflict;
 	BOOL            m_showServerStatus;
 };
 

@@ -109,6 +109,8 @@ IDR_MAINFRAME MENU PRELOAD DISCARDABLE
 BEGIN
     POPUP "&File"
     BEGIN
+        MENUITEM "Load Document",               ID_LOAD_ADDRESS
+        MENUITEM "Delete Document",             ID_DELETE_ADDRESS
         MENUITEM SEPARATOR
         MENUITEM "E&xit",                       ID_APP_EXIT
     END
@@ -130,7 +132,7 @@ BEGIN
     BEGIN
         MENUITEM "&Help Topics",                ID_HELP_FINDER
         MENUITEM SEPARATOR
-        MENUITEM "&About WebCommandor...",      ID_APP_ABOUT
+        MENUITEM "&About WebCommander...",      ID_APP_ABOUT
     END
 END
 
@@ -172,8 +174,7 @@ CAPTION "About WinCom"
 FONT 8, "MS Sans Serif"
 BEGIN
     ICON            IDR_MAINFRAME,IDC_STATIC,11,17,20,20
-    LTEXT           "WebCommander Version 1.0",IDC_STATIC,41,10,119,8,
-                    SS_NOPREFIX
+    LTEXT           "WebCommander",IDC_STATIC,41,10,71,8,SS_NOPREFIX
     LTEXT           "Henrik Frystyk Nielsen",IDC_STATIC,41,22,154,8
     DEFPUSHBUTTON   "OK",IDOK,178,7,32,14,WS_GROUP
     LTEXT           "W3C Copyright (C) 1998",IDC_STATIC,41,34,154,8
@@ -184,17 +185,16 @@ STYLE WS_CHILD | WS_DISABLED | WS_CAPTION
 CAPTION "Save Document"
 FONT 8, "MS Sans Serif"
 BEGIN
+    LTEXT           "Source",IDC_STATIC,5,11,24,8
     COMBOBOX        IDC_SOURCE_URI,42,9,165,58,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP,
                     WS_EX_RTLREADING
+    DEFPUSHBUTTON   "Browse",ID_BROWSE,209,8,50,14
+    LTEXT           "Destination",IDC_STATIC,5,27,36,8
     COMBOBOX        IDC_DESTINATION_URI,42,25,218,55,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP,
                     WS_EX_RTLREADING
-    LTEXT           "Source",IDC_STATIC,5,11,24,8
-    LTEXT           "Destination",IDC_STATIC,5,27,36,8
-    DEFPUSHBUTTON   "Browse",ID_BROWSE,209,8,50,14
-    PUSHBUTTON      "Submit",ID_SUBMIT,157,81,50,14
-    PUSHBUTTON      "Cancel",ID_CANCEL,210,81,50,14,WS_DISABLED
+    PUSHBUTTON      "Submit",ID_SUBMIT,210,81,50,14
 END
 
 IDD_ENTITY_INFO DIALOG DISCARDABLE  0, 0, 267, 98
@@ -204,29 +204,29 @@ FONT 8, "MS Sans Serif"
 BEGIN
     LTEXT           "Media type",IDC_STATIC,5,12,36,8
     LTEXT           "Encoding",IDC_STATIC,5,27,31,8
-    LTEXT           "Charset",IDC_STATIC,5,60,25,8
     LTEXT           "Language",IDC_STATIC,5,44,33,8
-    EDITTEXT        IDC_CONTENT_LENGTH,174,9,86,13,ES_AUTOHSCROLL | 
-                    ES_READONLY | ES_NUMBER
-    LTEXT           "Length",IDC_STATIC,129,12,23,8
-    EDITTEXT        IDC_LAST_MODIFIED,174,25,86,13,ES_AUTOHSCROLL | 
-                    ES_READONLY
-    LTEXT           "Last Modified",IDC_STATIC,129,27,43,8
-    EDITTEXT        IDC_ETAG,174,58,86,13,ES_AUTOHSCROLL | ES_READONLY | 
-                    ES_NUMBER
-    LTEXT           "Entity Tag",IDC_STATIC,129,60,33,8
-    EDITTEXT        IDC_EXPIRES,174,42,86,13,ES_AUTOHSCROLL | ES_READONLY | 
-                    ES_NUMBER
-    LTEXT           "Expires",IDC_STATIC,129,44,24,8
-    PUSHBUTTON      "Guess",ID_GET_INFO,210,81,50,14
+    LTEXT           "Charset",IDC_STATIC,5,60,25,8
+    COMBOBOX        IDC_CONTENT_TYPE,42,9,84,56,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | CBS_SORT | WS_TABSTOP
     COMBOBOX        IDC_CONTENT_ENCODING,42,25,84,56,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | CBS_SORT | WS_TABSTOP
     COMBOBOX        IDC_CONTENT_LANGUAGE,42,42,84,56,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | CBS_SORT | WS_TABSTOP
     COMBOBOX        IDC_CONTENT_CHARSET,42,57,84,56,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | CBS_SORT | WS_TABSTOP
-    COMBOBOX        IDC_CONTENT_TYPE,42,9,84,56,CBS_DROPDOWN | 
-                    CBS_AUTOHSCROLL | CBS_SORT | WS_TABSTOP
+    LTEXT           "Length",IDC_STATIC,129,12,23,8
+    LTEXT           "Last Modified",IDC_STATIC,129,27,43,8
+    LTEXT           "Expires",IDC_STATIC,129,44,24,8
+    LTEXT           "Entity Tag",IDC_STATIC,129,60,33,8
+    EDITTEXT        IDC_CONTENT_LENGTH,174,9,86,13,ES_AUTOHSCROLL | 
+                    ES_READONLY | ES_NUMBER
+    EDITTEXT        IDC_LAST_MODIFIED,174,25,86,13,ES_AUTOHSCROLL | 
+                    ES_READONLY
+    EDITTEXT        IDC_EXPIRES,174,42,86,13,ES_AUTOHSCROLL | ES_READONLY | 
+                    ES_NUMBER
+    EDITTEXT        IDC_ETAG,174,58,86,13,ES_AUTOHSCROLL | ES_READONLY | 
+                    ES_NUMBER
+    PUSHBUTTON      "Guess",ID_GET_INFO,210,81,50,14
 END
 
 IDD_PASSWORD DIALOG DISCARDABLE  0, 0, 186, 82
@@ -241,7 +241,8 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,77,61,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,129,61,50,14
     LTEXT           "Realm",IDC_STATIC,16,13,21,8
-    EDITTEXT        IDC_REALM,58,9,121,14,ES_AUTOHSCROLL | ES_READONLY
+    EDITTEXT        IDC_REALM,58,9,121,14,ES_AUTOHSCROLL | ES_READONLY | NOT 
+                    WS_TABSTOP
 END
 
 IDD_LINKS DIALOGEX 0, 0, 267, 98
@@ -249,36 +250,45 @@ STYLE WS_CHILD | WS_CAPTION
 CAPTION "Link Relationships"
 FONT 8, "MS Sans Serif"
 BEGIN
-    LTEXT           "Destination",IDC_STATIC,5,27,36,8
+    LTEXT           "Link Type",IDC_STATIC,5,12,32,8
     COMBOBOX        IDC_LINK_TYPE,42,9,84,56,CBS_DROPDOWN | CBS_SORT | 
                     WS_GROUP | WS_TABSTOP
-    LTEXT           "Link Type",IDC_STATIC,5,12,32,8
+    LTEXT           "Destination",IDC_STATIC,5,27,36,8
     COMBOBOX        IDC_LINK,42,25,218,55,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
-                    CBS_SORT | WS_VSCROLL | WS_GROUP,WS_EX_RTLREADING
+                    CBS_SORT | WS_VSCROLL | WS_GROUP | WS_TABSTOP,
+                    WS_EX_RTLREADING
     CONTROL         "Forward",IDC_LINK_REL,"Button",BS_AUTORADIOBUTTON | 
-                    BS_NOTIFY | WS_GROUP,160,12,41,10
+                    BS_NOTIFY | WS_GROUP | WS_TABSTOP,160,12,41,10
     CONTROL         "Reverse",IDC_LINK_REV,"Button",BS_AUTORADIOBUTTON | 
                     BS_NOTIFY,212,12,43,10
     CONTROL         "List2",IDC_LINK_RELS,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SORTDESCENDING | WS_BORDER | 
-                    WS_GROUP | WS_TABSTOP,6,40,254,39
+                    WS_GROUP,6,40,254,39
     PUSHBUTTON      "Add",ID_LINK_ADD,157,81,50,14
     PUSHBUTTON      "Remove",ID_LINK_REMOVE,210,81,50,14,WS_DISABLED
     GROUPBOX        "Direction",IDC_STATIC,147,3,113,21
 END
 
-IDD_PROXIES DIALOG DISCARDABLE  0, 0, 237, 79
+IDD_PROXIES DIALOG DISCARDABLE  0, 0, 259, 143
 STYLE DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Proxy Setup"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,127,58,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,180,58,50,14
-    LTEXT           "Use this proxy",IDC_STATIC,7,15,45,8
-    COMBOBOX        IDC_PROXY_SERVER,78,14,152,13,CBS_SIMPLE | CBS_SORT | 
+    GROUPBOX        "Proxy Server",IDC_STATIC,7,7,245,67
+    LTEXT           "Let all addresses matching this regular expression:",
+                    IDC_STATIC,13,18,158,8
+    COMBOBOX        IDC_USE_PROXY,13,28,233,13,CBS_SIMPLE | CBS_SORT | 
                     WS_TABSTOP
-    LTEXT           "For this address prefix",IDC_STATIC,7,33,69,8
-    COMBOBOX        IDC_USE_PROXY,78,32,152,13,CBS_DROPDOWNLIST | WS_TABSTOP
+    LTEXT           "go through this proxy:",IDC_STATIC,13,46,68,8
+    COMBOBOX        IDC_PROXY_SERVER,13,56,233,13,CBS_SIMPLE | CBS_SORT | 
+                    WS_TABSTOP
+    GROUPBOX        "Exceptions",IDC_STATIC,7,79,245,40
+    LTEXT           "Do not use any proxy for addresses matching this regular expression:",
+                    IDC_STATIC,13,90,216,8
+    COMBOBOX        IDC_USE_NO_PROXY,13,100,233,13,CBS_SIMPLE | CBS_SORT | 
+                    WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,149,122,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,202,122,50,14
 END
 
 IDD_TABS DIALOG DISCARDABLE  0, 0, 298, 110
@@ -294,16 +304,65 @@ STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Version Conflict"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,94,69,50,14,WS_GROUP
-    PUSHBUTTON      "Abort",IDCANCEL,147,69,50,14,WS_GROUP
     LTEXT           "The version you are trying to save differs from the current version on the server. How do you want to proceed?",
                     IDC_STATIC,14,10,176,27
     CONTROL         "Replace the current version on the server",
                     IDC_RESOLVE_CONFLICT1,"Button",BS_AUTORADIOBUTTON | 
-                    WS_GROUP,26,40,147,10
+                    WS_GROUP | WS_TABSTOP,26,40,147,10
     CONTROL         "Download the current version from the server",
-                    IDC_RESOLVE_CONFLICT2,"Button",BS_AUTORADIOBUTTON,26,52,
-                    157,10
+                    IDC_RESOLVE_CONFLICT2,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,26,52,157,10
+    DEFPUSHBUTTON   "OK",IDOK,95,69,50,14,WS_GROUP
+    PUSHBUTTON      "Abort",IDCANCEL,147,69,50,14,WS_GROUP
+END
+
+IDD_LOAD DIALOGEX 0, 0, 267, 101
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Load Document"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Load a document and save it to local file...",
+                    IDC_STATIC,5,7,134,8
+    LTEXT           "Address",IDC_STATIC,5,22,26,8
+    COMBOBOX        IDC_LOAD_ADDRESS,42,20,218,55,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_GROUP | WS_TABSTOP,
+                    WS_EX_RTLREADING
+    CONTROL         "Check local cache",IDC_CACHE_VALIDATION,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,26,38,75,10
+    CONTROL         "Validate at nearest remote cache",IDC_CACHE_VALIDATE,
+                    "Button",BS_AUTORADIOBUTTON | WS_TABSTOP,26,49,120,10
+    CONTROL         "Validate at origin server",IDC_CACHE_END_VALIDATE,
+                    "Button",BS_AUTORADIOBUTTON | WS_TABSTOP,26,60,89,10
+    CONTROL         "Force full reload",IDC_CACHE_RELOAD,"Button",
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,26,71,66,10
+    PUSHBUTTON      "Load",IDOK,158,80,50,14,WS_GROUP
+    DEFPUSHBUTTON   "Cancel",IDCANCEL,210,80,50,14,WS_GROUP
+END
+
+IDD_PROGRESS DIALOG DISCARDABLE  0, 0, 186, 63
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "Operation in Progress..."
+FONT 8, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "Cancel",IDCANCEL,129,42,50,14
+    CONTROL         "Progress1",IDC_PROGRESS,"msctls_progress32",WS_BORDER,7,
+                    21,172,14
+    LTEXT           "Working...",IDC_STATIC,7,7,34,8
+END
+
+IDD_DELETE DIALOGEX 0, 0, 267, 63
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Delete Document"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Remove a document on a remote server...",IDC_STATIC,5,7,
+                    134,8
+    LTEXT           "Address",IDC_STATIC,5,25,26,8
+    COMBOBOX        IDC_DELETE_ADDRESS,42,23,218,55,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP,
+                    WS_EX_RTLREADING
+    PUSHBUTTON      "Delete",IDOK,158,42,50,14
+    DEFPUSHBUTTON   "Cancel",IDCANCEL,210,42,50,14
 END
 
 
@@ -401,9 +460,9 @@ BEGIN
     IDD_PROXIES, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 230
+        RIGHTMARGIN, 252
         TOPMARGIN, 7
-        BOTTOMMARGIN, 72
+        BOTTOMMARGIN, 136
     END
 
     IDD_TABS, DIALOG
@@ -420,6 +479,30 @@ BEGIN
         RIGHTMARGIN, 197
         TOPMARGIN, 7
         BOTTOMMARGIN, 82
+    END
+
+    IDD_LOAD, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 260
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 94
+    END
+
+    IDD_PROGRESS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 56
+    END
+
+    IDD_DELETE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 260
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 56
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -451,6 +534,14 @@ END
 
 IDD_ENTITY_INFO DLGINIT
 BEGIN
+    IDC_CONTENT_TYPE, 0x403, 10, 0
+0x6574, 0x7478, 0x682f, 0x6d74, 0x006c, 
+    IDC_CONTENT_TYPE, 0x403, 11, 0
+0x6574, 0x7478, 0x702f, 0x616c, 0x6e69, "\000" 
+    IDC_CONTENT_TYPE, 0x403, 10, 0
+0x6d69, 0x6761, 0x2f65, 0x6967, 0x0066, 
+    IDC_CONTENT_TYPE, 0x403, 10, 0
+0x6d69, 0x6761, 0x2f65, 0x6e70, 0x0067, 
     IDC_CONTENT_ENCODING, 0x403, 9, 0
 0x6f63, 0x706d, 0x6572, 0x7373, "\000" 
     IDC_CONTENT_ENCODING, 0x403, 9, 0
@@ -489,21 +580,6 @@ BEGIN
 0x7475, 0x2d66, 0x0037, 
     IDC_CONTENT_CHARSET, 0x403, 6, 0
 0x7475, 0x2d66, 0x0038, 
-    IDC_CONTENT_TYPE, 0x403, 10, 0
-0x6574, 0x7478, 0x682f, 0x6d74, 0x006c, 
-    IDC_CONTENT_TYPE, 0x403, 11, 0
-0x6574, 0x7478, 0x702f, 0x616c, 0x6e69, "\000" 
-    IDC_CONTENT_TYPE, 0x403, 10, 0
-0x6d69, 0x6761, 0x2f65, 0x6967, 0x0066, 
-    IDC_CONTENT_TYPE, 0x403, 10, 0
-0x6d69, 0x6761, 0x2f65, 0x6e70, 0x0067, 
-    0
-END
-
-IDD_PROXIES DLGINIT
-BEGIN
-    IDC_USE_PROXY, 0x403, 5, 0
-0x7468, 0x7074, "\000" 
     0
 END
 
@@ -512,11 +588,6 @@ END
 //
 // String Table
 //
-
-STRINGTABLE PRELOAD DISCARDABLE 
-BEGIN
-    IDR_MAINFRAME           "WebCommander\n\nWebCommander\n\n\nWebCommander.Document\nWebCommander Document"
-END
 
 STRINGTABLE PRELOAD DISCARDABLE 
 BEGIN
@@ -551,7 +622,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     ID_APP_ABOUT            "Display program information, version number and copyright\nAbout"
-    ID_APP_EXIT             "Quit the application; prompts to save documents\nExit"
+    ID_APP_EXIT             "Quit the application\nExit"
     ID_HELP_INDEX           "Opens Help\nHelp Topics"
     ID_HELP_FINDER          "List Help topics\nHelp Topics"
     ID_HELP_USING           "Display instructions about how to use help\nHelp"
@@ -648,11 +719,23 @@ BEGIN
     ID_OPTIONS_PROXIES      "Define Proxies\nProxy Setup"
     ID_VERSION_CONFLICT     "Detect Version Conflicts\nDetect Version Conflicts"
     ID_SHOW_SERVER_STATUS   "Show the Server's Response Status Message\nShow the Server's Response Status Message"
+    IP_CHECK_UPGRADE        "Check the W3C site for available Upgrades\nCheck the W3C site for available Upgrades"
+    ID_LOAD_ADDRESS         "Load a Document\nLoad a Remote Document"
+    ID_DELETE_DOCUMENT      "Delete Document\nDelete Remote Document"
+    ID_DELETE_ADDRESS       "Delete a Document\nDelete a Remote Document"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_APP_VERSION         "1.01a"
+    IDS_APP_UPGRADE         "Do you want to check the W3C site to see if an upgrade is available?"
+    IDS_BREAK_CACHE_LOCK    "The persistent cache is currently locked. This may indicate that the cache is already in use.\n\nIf you are absolutely sure this is not the case then you can delete the lock.\n\nDo you want to delete the lock?"
+    ID_APP_UPGRADE          "Do you want to check the W3C site to see if an upgrade is available?"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDR_MAINFRAME           "WebCommander\n\nWebCommander\n\n\nWebCommander.Document\nWebCommander Document"
 END
 
 #endif    // English (U.S.) resources
