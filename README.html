@@ -1,7 +1,7 @@
 <HTML><HEAD>
 <TITLE>W3C Software Read Me</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 15-Dec-1995 -->
-</HEAD><BODY><H1>Install the W3C Reference Code
+<!-- Changed by: Henrik Frystyk Nielsen,  8-Mar-1996 -->
+</HEAD><BODY><H1>W3C Reference Code Distribution
 </H1><P><HR>
 
 <PRE><P>
@@ -10,12 +10,11 @@
 </PRE><P>This is the README file which you get when you unwrap one of our distribution files. Each package
 contains source code for building one or more of our Web applications and related helper
 applications. The set of W3C Web applications is currently:
-
-<UL><LI><A HREF="Library/">W3C Reference Library</A>
-<LI><A HREF="LineMode/">W3C Line Mode Browser</A>
-<LI><A HREF="ComLine/">W3C Command Line Tool</A>
-<LI><A HREF="MiniServ/">W3C Mini Server</A>
-<LI><A HREF="Robot/">W3C Mini Robot</A>
+<UL><LI><A HREF="Library/">Reference Library (libwww)</A>
+<LI><A HREF="LineMode/">Line Mode Browser</A>
+<LI><A HREF="ComLine/">Command Line Tool</A>
+<LI><A HREF="MiniServ/">Mini Server</A>
+<LI><A HREF="Robot/">Mini Robot</A>
 </UL><P>Please note that the W3C Reference Library distribution file is required
 in order to build any of
 the other applications. At the bottom of this file, you will find pointers
@@ -50,58 +49,7 @@ distribution:
 
 <PRE><P>
 	unzip &lt;dist&gt;.zip
-</PRE><P><A NAME="dirstruc"></A>
-<H2><A NAME="dirstruc">Generated Directory structure</A>
-</H2><P>The distribution files are all designed to be unwrapped in the directory
-named "WWW". They create
-different parts of a common directory tree under that directory. A minor
-part of this three will be
-included in multiple distribution files. A distribution file also contains
-a few informative files
-like this README file, a copyright statement, and installation instructions.
-Please take a moment to
-study these files. The structure of all the unpacked distribution file is
-as follows (directories):
-
-<PRE><P>
-	WWW				Top-node
-
-	WWW/All/*/Makefile.include	Platform dependent make files
-
-@	WWW/Library			W3C Reference Library
-	WWW/Library/Implementation	Source Code
-	WWW/Library/User		Documentation
-	WWW/Library/User/Patch		Patches
-	WWW/Library/&lt;platform&gt;/*	Platform dependent object files
-
-@	WWW/LineMode			W3C LineMode Browser
-	WWW/LineMode/Implementation	Source Code
-	WWW/LineMode/Defaults/		Documentation
-	WWW/Library/User/Patch		Patches
-	WWW/LineMode/&lt;platform&gt;/*	Platform dependent object files
-
-@	WWW/MiniServ			W3C Mini Server
-	WWW/MiniServ/Implementation	Source Code
-	WWW/MiniServ/User/		Documentation
-	WWW/MiniServ/User/Patch		Patches
-	WWW/MiniServ/&lt;platform&gt;/*	Platform dependent object files
-
-@	WWW/ComLine			W3C Command Line Tool
-	WWW/ComLine/Implementation	Source Code
-	WWW/ComLine/User/		Documentation
-	WWW/ComLine/User/Patch		Patches
-	WWW/ComLine/&lt;platform&gt;/*	Platform dependent object files
-
-@	WWW/Robot			W3C Mini Robot
-	WWW/Robot/Implementation	Source Code
-	WWW/Robot/User/			Documentation
-	WWW/Robot/User/Patch		Patches
-	WWW/Robot/&lt;platform&gt;/*	Platform dependent object files
-</PRE><P>"<CODE>@</CODE>" means that each of these modules are given out as a <EM>separate distribution
-file</EM>.  Some or more of these directories might not be there but please make sure that at least
-the W3C Reference Library is.
-
-<H2>Compilation
+</PRE><H2>Compilation
 </H2><P>Compilation can be put into two groups depending on your platform
 and if it is supported in the
 BUILD script or not. The <EM>BUILD</EM> script is placed in the
@@ -113,29 +61,15 @@ of a platform independent
 part and a platform dependent part.
 
 <H3>Compilation on already supported Unix platforms
-</H3><P><IMG SRC="Icons/32x32/caution.gif"> Stop here and take a look at
-the "<B>Patches</B>" pages
-(indicated in the <A HREF="#dirstruc">Generated Directory structure</A> to
-see if you need to apply
-any patches before you compile any of the modules. You can find the Patches
+</H3><P><IMG SRC="Icons/32x32/caution.gif" ALT="Note">Stop here and take
+a look at
+the <A HREF="Library/User/Patch/Overview.html">patches</A> &nbsp;to see if
+you have to apply any source code patches
 <P>
 
-To <CODE>BUILD</CODE> any of the applications go to the WWW directory and
-type
-
-<PRE><P>
-	./BUILD library
-
-	./BUILD daemon
-
-	./BUILD linemode
-
-	./BUILD comline
-
-	./BUILD miniserv
-
-	./BUILD robot
-</PRE><H3>Compilation on un-supported Unix platforms
+We use autoconf in order to compile the reference source code on Unix platforms.
+Please read the <A HREF="INSTALL.html">INSTALL</A> document for instructions.
+<H3>Compilation on un-supported Unix platforms
 </H3><P>For other Unix platforms please read the guide on how to
 <A
 HREF="Library/User/Platform/Porting.html">adjust the BUILD script</A> for
@@ -147,7 +81,7 @@ platform.
 <A HREF="Library/User/Platform/Windows.html">special documentation</A> on
 how you can produce DLLs out of the Reference Library.
 
-<H2>W3C Reference Library
+<H2>Reference Library (libwww)
 </H2><P>The W3C Reference Library is a general code base that can be used
 to build clients and servers. It
 contains code for accessing HTTP, FTP, Gopher, News, WAIS, Telnet servers,
@@ -169,7 +103,7 @@ find the top page at
 	Library/User/Overview.html
 </PRE><P>You can also use the <A HREF="Library/">online documentation</A>
 
-<H2>W3C Line Mode Browser
+<H2>Line Mode Browser
 </H2><P>The W3C Line Mode Browser is a simple character based client. It
 is developed for use on dumb
 terminals and as a test tool for the Common Code Library. It can be run in
@@ -194,10 +128,10 @@ and you can find the top
 page at
 
 <PRE><P>
-	LineMode/Defaults/Overview.html
+	LineMode/User/Overview.html
 </PRE><P>You can also use the <A HREF="LineMode/">online documentation</A>
 
-<H2>W3C Mini Server
+<H2>Mini Server
 </H2><P>The W3C Mini Server is a cross platform server frame work that can
 be used as a basis for writing
 portable servers. It is <B>NOT</B> a full server - only a frame! It is developed
@@ -213,7 +147,7 @@ can find the top page at
 	MiniServ/User/Overview.html
 </PRE><P>You can also use the <A HREF="MiniServ/">online documentation</A>
 
-<H2>W3C Command Line Tool
+<H2>Command Line Tool
 </H2><P>The W3C Command Line Tool is a cross platform command line tool for
 accessing the Web. It is
 developed in C and serves as an example of a client application using the
@@ -231,10 +165,10 @@ and you can find the top
 page at
 
 <PRE><P>
-	ComLine/Defaults/Overview.html
+	ComLine/User/Overview.html
 </PRE><P>You can also use the <A HREF="ComLine/">online documentation</A>
 
-<H2>W3C Mini Robot
+<H2>Mini Robot
 </H2><P>The W3C Mini Robot is a cross platform command line tool for accessing
 the Web. It is developed in C
 and serves as an example of a robot application using the
@@ -250,7 +184,7 @@ you can find the top page
 at
 
 <PRE><P>
-	Robot/Defaults/Overview.html
+	Robot/User/Overview.html
 </PRE><P>You can also use the <A HREF="Robot/">online documentation</A>
 
 <H2>Got Problems or Comments?
@@ -260,23 +194,7 @@ mail explaining your problem <EM>and</EM> the version of the W3C software
 to <A
 HREF="mailto:libwww@w3.org">libwww@w3.org</A>
 
-<H2>Useful Pointers
-</H2><P>These are the locations where you can get more information.
-
-<H3>W3C Members
-</H3><OL><LI><A HREF="http://www.w3.org/member/WWW/Library/">http://www.w3.org/member/WWW/Library/</A>
-<LI><A HREF="http://www.w3.org/member/WWW/LineMode/">http://www.w3.org/member/WWW/LineMode/</A>
-<LI><A HREF="http://www.w3.org/member/WWW/MiniServ/">http://www.w3.org/member/WWW/MiniServ/</A>
-<LI><A HREF="http://www.w3.org/member/WWW/ComLine/">http://www.w3.org/member/WWW/ComLine/</A>
-<LI><A HREF="http://www.w3.org/member/WWW/Robot/">http://www.w3.org/member/WWW/Robot/</A>
-</OL><H3>Others
-</H3><OL><LI><A HREF="http://www.w3.org/pub/WWW/Library/">http://www.w3.org/pub/WWW/Library/</A>
-<LI><A HREF="http://www.w3.org/pub/WWW/LineMode/">http://www.w3.org/pub/WWW/LineMode/</A>
-<LI><A HREF="http://www.w3.org/pub/WWW/MiniServ/">http://www.w3.org/pub/WWW/MiniServ/</A>
-<LI><A HREF="http://www.w3.org/pub/WWW/ComLine/">http://www.w3.org/pub/WWW/ComLine/</A>
-<LI><A HREF="http://www.w3.org/pub/WWW/Robot/">http://www.w3.org/pub/WWW/Robot/</A>
-</OL><P><EM>Have fun!</EM>
-
+<P><B>Have fun!</B>
 <P>
 <HR>
 <ADDRESS>Henrik Frystyk Nielsen, February 1996
