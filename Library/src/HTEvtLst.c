@@ -170,7 +170,7 @@ PRIVATE void fd_dump (SOCKET maxfs, fd_set * rset, fd_set * wset, fd_set * oset,
     HTTRACE(THD_TRACE, "\n");
 
     if (wt)
-	HTTRACE(THD_TRACE, "............ Timeout is %ld s, %ld ms\n" _
+	HTTRACE(THD_TRACE, "............ Timeout is %ld s, %ld microsecs\n" _
 		wt->tv_sec _ wt->tv_usec);
 }
 #endif /* HTDEBUG */
@@ -635,9 +635,6 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 
     /* Don't leave this loop until we leave the application */
     while (!HTEndLoop) {
-        treadset = FdArray[HTEvent_INDEX(HTEvent_READ)];
-        twriteset = FdArray[HTEvent_INDEX(HTEvent_WRITE)];
-        texceptset = FdArray[HTEvent_INDEX(HTEvent_OOB)];
 
         /*
 	**  Timeval struct copy needed for linux, as it set the value to the
@@ -654,6 +651,14 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 	    wt = &waittime;
 	}
 
+	/*
+	**  Now we copy the current active file descriptors to pass them to select.
+	*/
+        treadset = FdArray[HTEvent_INDEX(HTEvent_READ)];
+        twriteset = FdArray[HTEvent_INDEX(HTEvent_WRITE)];
+        texceptset = FdArray[HTEvent_INDEX(HTEvent_OOB)];
+
+	/* And also get the max socket value */
         maxfds = MaxSock; 
 
 	HTTRACE(THD_TRACE, "Event Loop.. calling select: maxfds is %d\n" _ maxfds);
