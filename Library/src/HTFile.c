@@ -512,7 +512,7 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 	    ** returns 0 when blocking and NOT -1. FNDELAY is ONLY for BSD
 	    ** and does NOT work on SVR4 systems. O_NONBLOCK is POSIX.
 	    */
-	    if (!HTProtocolBlocking(request)) {
+	    if (!HTProtocol_isBlocking(request)) {
 		if ((status = FCNTL(file->sockfd, F_GETFL, 0)) != -1) {
 		    status |= O_NONBLOCK;			    /* POSIX */
 		    status = FCNTL(file->sockfd, F_SETFL, status);
@@ -663,14 +663,9 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 
 /*
 **  Protocol descriptor
-**  Make this non-blocking is possible
 */
-#ifndef NO_UNIX_IO
+
 GLOBALDEF PUBLIC HTProtocol HTFile = {
     "file", SOC_NON_BLOCK, HTLoadFile, HTFileSaveStream, NULL
 };
-#else
-GLOBALDEF PUBLIC HTProtocol HTFile = {
-    "file", SOC_BLOCK, HTLoadFile, HTFileSaveStream, NULL
-};
-#endif
+

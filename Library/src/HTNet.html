@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Multithreaded Management</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  7-Jul-1995 -->
 </HEAD>
 <BODY>
 
@@ -35,8 +36,7 @@ of Common Code</A>.
 <A NAME="Init"><H2>Initiation</H2></A>
 
 This function initiates the arrays of socket descriptors used in the
-Library. It is currently done in the private <A
-HREF="HTAccess.html#ProtReg">HTAccessInit</A> function. <P>
+Library. It's called in <A HREF="HTAccess.html#Library">HTLibInit()</A>.
 
 <PRE>
 extern BOOL HTThreadInit	NOPARAMS;

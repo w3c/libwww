@@ -1,0 +1,110 @@
+<HTML>
+<HEAD>
+<TITLE>Access Scheme Manager</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  7-Jul-1995 -->
+<NEXTID N="z11">
+</HEAD>
+<BODY>
+
+<H1>Access Scheme Manager</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This module keeps a list of valid protocol (naming scheme) specifiers
+with associated access code. New access protocols may be registered at
+any time.<P>
+
+This module is implemented by <A HREF="HTProt.c">HTProt.c</A>, and it
+is a part of the <A NAME="z10"
+HREF="http://www.w3.org/hypertext/WWW/Library/User/Guide/Guide.html">
+Library of Common Code</A>. <P>
+
+<PRE>
+#ifndef HTPROT_H
+#define HTPROT_H
+
+#include "HTAccess.h"
+#include "HTAnchor.h"
+</PRE>
+
+An access scheme is defined by an HTProtocol structure which point to
+the routines for performing the various logical operations on an
+object: in HTTP terms, GET, PUT, and POST. The access schemes
+supported in the Library are initiated automaticly using the function
+<CODE>HTAccessInit()</CODE> <B>if not</B> defined
+<CODE>HT_NO_INIT</CODE> <P>
+
+Each of these routine takes as a parameter a <A NAME="z2"
+HREF="HTAccess.html#z1">request structure</A> containing details of
+the request.  When the protocol class routine is called, the anchor
+element in the request is already valid (made valid by HTAccess).
+
+<PRE>
+typedef enum _HTSocBlock {
+    SOC_BLOCK,
+    SOC_NON_BLOCK
+} HTSocBlock;
+
+typedef struct _HTProtocol {
+    char *	name;
+    HTSocBlock	block;	
+    int		(*load)		PARAMS((HTRequest *	request));
+    HTStream*	(*saveStream)	PARAMS((HTRequest *	request));
+    HTStream* 	(*postStream)	PARAMS((HTRequest *	request,
+					HTParentAnchor* postTo));
+} HTProtocol;
+</PRE>
+
+<H3>Add an Access Scheme</H3>
+
+This functions registers a protocol module and binds it to a specific
+access acheme. For example HTTP.c is bound to http URLs.
+
+<PRE>
+extern BOOL HTProtocol_add		PARAMS((HTProtocol * protocol));
+</PRE>
+
+<H3>Get an Access Scheme</H3>
+
+This function finds the access scheme that is bound to the anchor's
+type of URL. Returns YES if found, else NO
+
+<PRE>
+extern BOOL HTProtocol_getScheme	PARAMS((HTParentAnchor * anchor));
+</PRE>
+
+<H3>Remove ALL Registered Schemes</H3>
+
+This is the garbage collection function. It is called by <A
+HREF="HTAccess.html#Library">HTLibTerminate</A>
+
+<PRE>
+extern void HTProtocol_deleteAll	NOPARAMS;
+</PRE>
+
+<H3>Is the Scheme using Blocking I/O?</H3>
+
+A small function to make life easier. Returns <CODE>YES</CODE> or
+<CODE>NO</CODE>. If the Library is run in non-interactive mode then
+the function always returns YES;
+
+<PRE>
+#define HTProtocol_isBlocking(me) \
+	((me) &amp;&amp; ((me)->BlockingIO || \
+		((me)->anchor &amp;&amp; (me)->anchor->protocol &amp;&amp; \
+			((HTProtocol*)((me)->anchor->protocol))->block==SOC_BLOCK)))
+</PRE>
+
+<PRE>
+#endif /* HTPROT_H */
+</PRE>
+
+End of Declaration
+
+</BODY>
+</HTML>

@@ -17,6 +17,7 @@
 /* Library include files */
 #include "HTUtils.h"
 #include "HTAccess.h"
+#include "HTProt.h"
 #include "HTError.h"
 #include "HTThread.h"					 /* Implemented here */
 

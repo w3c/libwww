@@ -22,6 +22,7 @@
 #include "HTAtom.h"
 #include "HTList.h"
 #include "HTParse.h"
+#include "HTProt.h"
 #include "HTAccess.h"
 #include "HTError.h"
 #include "HTThread.h"
@@ -511,10 +512,6 @@ PUBLIC int HTGetHostByName ARGS3(char *, host, SockA *, sin,
 	pres->hits++;	 	 /* Update total number of hits on this host */
     } else {						/* Go and ask for it */
 	struct hostent *hostelement;			      /* see netdb.h */
-#ifdef MVS	/* Outstanding problem with crash in MVS gethostbyname */
-	if (PROT_TRACE)
-	    fprintf(TDEST, "HTTCP on MVS gethostbyname(%s)\n", host);
-#endif
 	if ((hostelement = gethostbyname(host)) == NULL) {
 	    if (PROT_TRACE)
 		fprintf(TDEST, "HostByName.. Can't find internet node name `%s'.\n", host);
@@ -1070,7 +1067,7 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 	     ** returns 0 when blocking and NOT -1. FNDELAY is ONLY for BSD and
 	     ** does NOT work on SVR4 systems. O_NONBLOCK is POSIX.
 	     */
-	    if (!HTProtocolBlocking(net->request)) {
+	    if (!HTProtocol_isBlocking(net->request)) {
 #ifdef _WINDOWS 
 		{		/* begin windows scope  */
 		    HTRequest * rq = net->request;

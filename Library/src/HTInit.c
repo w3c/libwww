@@ -12,7 +12,10 @@
 #include "HTUtils.h"
 #include "HTFormat.h"
 #include "HTList.h"
+
+/* Binding Managers */
 #include "HTBind.h"
+#include "HTProt.h"
 
 /* Converters and Presenters */
 #include "HTML.h"
@@ -113,19 +116,19 @@ PUBLIC void HTFormatInit ARGS1(HTList *, c)
 PUBLIC void HTAccessInit NOARGS
 {
 #ifndef DECNET
-    HTRegisterProtocol(&HTFTP);
-    HTRegisterProtocol(&HTNews);
-    HTRegisterProtocol(&HTGopher);
+    HTProtocol_add(&HTFTP);
+    HTProtocol_add(&HTNews);
+    HTProtocol_add(&HTGopher);
 #ifdef HT_DIRECT_WAIS
-    HTRegisterProtocol(&HTWAIS);
+    HTProtocol_add(&HTWAIS);
 #endif
 #endif /* DECNET */
 
-    HTRegisterProtocol(&HTTP);
-    HTRegisterProtocol(&HTFile);
-    HTRegisterProtocol(&HTTelnet);
-    HTRegisterProtocol(&HTTn3270);
-    HTRegisterProtocol(&HTRlogin);
+    HTProtocol_add(&HTTP);
+    HTProtocol_add(&HTFile);
+    HTProtocol_add(&HTTelnet);
+    HTProtocol_add(&HTTn3270);
+    HTProtocol_add(&HTRlogin);
 }
 #endif /* !HT_NO_INIT */
 

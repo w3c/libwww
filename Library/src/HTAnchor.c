@@ -283,8 +283,13 @@ PUBLIC BOOL HTAnchor_moveLinks ARGS2(HTAnchor *, src, HTAnchor *, dest)
     src->mainLink.result = HT_OK;
 
     /* Move link information for other links */
-    if (dest->links)
+    if (dest->links) {
+	HTList *cur = dest->links;
+	HTLink *pres;
+	while ((pres = (HTLink *) HTList_nextObject(cur)))
+	    free(pres);
 	HTList_delete(dest->links);
+    }
     dest->links = src->links;
     src->links = NULL;
     return YES;
@@ -393,7 +398,13 @@ PRIVATE HyperDoc * delete_parent ARGS1(HTParentAnchor *, me)
     HyperDoc *doc = me->document;
 
     /* Remove link and address information */
-    HTList_delete (me->links);
+    if (me->links) {
+	HTList *cur = me->links;
+	HTLink *pres;
+	while ((pres = (HTLink *) HTList_nextObject(cur)))
+	    free(pres);
+	HTList_delete(me->links);
+    }
     HTList_delete (me->children);
     HTList_delete (me->sources);
     FREE(me->physical);
@@ -440,6 +451,13 @@ PRIVATE HyperDoc *delete_family ARGS1(HTAnchor *, me)
 	while ((child = (HTChildAnchor *)
 		HTList_removeLastObject(parent->children))) {
 	    FREE(child->tag);
+	    if (child->links) {
+		HTList *cur = child->links;
+		HTLink *pres;
+		while ((pres = (HTLink *) HTList_nextObject(cur)))
+		    free(pres);
+		HTList_delete(child->links);
+	    }
 	    free(child);
 	}
     }

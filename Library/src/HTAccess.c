@@ -45,6 +45,7 @@
 #include "HTThread.h"
 #include "HTEvent.h"
 #include "HTBind.h"
+#include "HTProt.h"
 #include "HTInit.h"
 #include "HTProxy.h"
 #include "HTML.h"		/* SCW */
@@ -71,9 +72,6 @@ unsigned long HTwinMsg = 0 ;
 #endif 
 
 /* Variables and typedefs local to this module */
-PRIVATE HTList * protocols = NULL;           /* List of registered protocols */
-
-/* Superclass defn */
 struct _HTStream {
 	HTStreamClass * isa;
 	/* ... */
@@ -332,48 +330,6 @@ PUBLIC BOOL HTRequest_killPostWeb  ARGS1(HTRequest *, me)
 }
 
 /* --------------------------------------------------------------------------*/
-/*		      Management of the HTProtocol structure		     */
-/* --------------------------------------------------------------------------*/
-
-/*
-**	Register a Protocol as an active access method
-*/
-PUBLIC BOOL HTRegisterProtocol ARGS1(HTProtocol *, protocol)
-{
-    if (!protocols) protocols = HTList_new();
-    HTList_addObject(protocols, (void *) protocol);
-    return YES;
-}
-
-
-/*
-**	Delete the list of registered access methods. This is called from
-**	within HTLibTerminate. Written by Eric Sink, eric@spyglass.com
-*/
-PUBLIC void HTDisposeProtocols NOARGS
-{
-    if (protocols) {
-	HTList_delete(protocols);
-	protocols = NULL;
-    }
-}
-
-
-/*
-**	Is a protocol registered as BLOCKING? The default behavior registered
-**	when the protocol module was registered can be overridden by the
-**	BlockingIO field in the HTRequest structure
-*/
-PUBLIC BOOL HTProtocolBlocking ARGS1(HTRequest *, me)
-{
-    if (me) {
-	return (me->BlockingIO || (me->anchor && me->anchor->protocol &&
-		((HTProtocol *) (me->anchor->protocol))->block == SOC_BLOCK));
-    }
-    return NO;
-}
-
-/* --------------------------------------------------------------------------*/
 /*	           Initialization and Termination of the Library	     */
 /* --------------------------------------------------------------------------*/
 
@@ -473,7 +429,7 @@ PUBLIC BOOL HTLibTerminate NOARGS
     HTTCPCacheRemoveAll();
 
 #ifndef HT_NO_INIT
-    HTDisposeProtocols();    /* Remove bindings between access and protocols */
+    HTProtocol_deleteAll();  /* Remove bindings between access and protocols */
     HTBind_deleteAll();	    /* Remove bindings between suffixes, media types */
 #endif
 
@@ -622,44 +578,6 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
     HTAnchor_setPhysical(req->anchor, addr);
 #endif /* HT_NO_RULES */
 
-#ifdef OLDCODE
-    access =  HTParse(HTAnchor_physical(req->anchor),
-		      "file:", PARSE_ACCESS);
-
-    if (!override_proxy(addr)) {
-    /* make sure the using_proxy variable is false */
-    req->using_proxy = NO;
-
-	char * gateway_parameter, *gateway, *proxy;
-
-	gateway_parameter = (char *)malloc(strlen(access)+20);
-	if (gateway_parameter == NULL) outofmem(__FILE__, "HTLoad");
-
-	/* search for proxy gateways */
-	strcpy(gateway_parameter, "WWW_");
-	strcat(gateway_parameter, access);
-	strcat(gateway_parameter, "_GATEWAY");
-	gateway = (char *)getenv(gateway_parameter); /* coerce for decstation */
-
-	/* search for proxy servers */
-	strcpy(gateway_parameter, access);
-	strcat(gateway_parameter, "_proxy");
-	proxy = (char *)getenv(gateway_parameter);
-
-	free(gateway_parameter);
-
-#ifndef HT_DIRECT_WAIS
-	if (!gateway && 0==strcmp(access, "wais")) {
-	    gateway = HT_DEFAULT_WAIS_GATEWAY;
-	}
-#endif
-
-	if (TRACE && gateway)
-	    fprintf(TDEST,"Gateway..... Found: `%s\'\n", gateway);
-	if (TRACE && proxy)
-	    fprintf(TDEST,"Proxy....... Found: `%s\'\n", proxy);
-#endif /* OLD_CODE */
-
     /*
     **  Check whether gateway or proxy access has been set up for this url
     */
@@ -688,28 +606,8 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
     }
     FREE(addr);
 
-    /*
-    ** Search registered protocols to find suitable one
-    */
-    {
-	char *access = HTParse(HTAnchor_physical(req->anchor),"",PARSE_ACCESS);
-	HTList *cur = protocols;
-	HTProtocol *p;
-	if (!cur) {
-	    if (TRACE)
-		fprintf(TDEST, "HTAccess.... NO PROTOCOL MODULES INITIATED\n");
-	} else {
-	    while ((p = (HTProtocol*)HTList_nextObject(cur))) {
-		if (strcmp(p->name, access)==0) {	/* Case insensitive? */
-		    HTAnchor_setProtocol(req->anchor, p);
-		    free(access);
-		    return (HT_OK);
-		}
-	    }
-	}
-	free(access);
-    }
-    return HT_NO_ACCESS;
+    /* Set the access scheme on our way out */
+    return (HTProtocol_getScheme(req->anchor)==YES) ? HT_OK : HT_NO_ACCESS;
 }
 
 /* --------------------------------------------------------------------------*/

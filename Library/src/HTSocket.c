@@ -14,6 +14,7 @@
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTAccess.h"
+#include "HTProt.h"
 #include "HTTCP.h"
 #include "HTStream.h"
 #include "HTFormat.h"
@@ -515,6 +516,7 @@ PUBLIC int HTSocketRead ARGS2(HTRequest *, request, HTStream *, target)
 {
     HTInputSocket *isoc = request->net_info->isoc;
     int b_read = isoc->input_limit-isoc->input_buffer;
+    BOOL blocking = HTProtocol_isBlocking(request);
     int status;
     if (!isoc || isoc->input_file_number==INVSOC) {
 	if (PROT_TRACE) fprintf(TDEST, "Read Socket. Bad argument\n");
@@ -525,67 +527,70 @@ PUBLIC int HTSocketRead ARGS2(HTRequest *, request, HTStream *, target)
 	return HT_INTERRUPTED;
 
     /* Read from socket if we got rid of all the data previously read */
-    if (isoc->input_pointer >= isoc->input_limit) {
-	if ((b_read = NETREAD(isoc->input_file_number, isoc->input_buffer,
-			      INPUT_BUFFER_SIZE)) < 0) {
+    do {
+	if (isoc->input_pointer >= isoc->input_limit) {
+	    if ((b_read = NETREAD(isoc->input_file_number, isoc->input_buffer,
+				  INPUT_BUFFER_SIZE)) < 0) {
 #ifdef EAGAIN
-	    if (socerrno==EAGAIN || socerrno==EWOULDBLOCK)    /* POSIX, SVR4 */
+		if (socerrno==EAGAIN || socerrno==EWOULDBLOCK)      /* POSIX */
 #else
-	    if (socerrno==EWOULDBLOCK) /* BSD */
+		    if (socerrno==EWOULDBLOCK) /* BSD */
 #endif
-	    {
+			{
+			    if (PROT_TRACE)
+				fprintf(TDEST, "Read Socket. WOULD BLOCK soc %d\n",
+					isoc->input_file_number);
+			    HTThreadState(isoc->input_file_number, THD_SET_READ);
+			    return HT_WOULD_BLOCK;
+			} else { /* We have a real error */
+			    if (PROT_TRACE)
+				fprintf(TDEST, "Read Socket. READ ERROR %d\n",
+					socerrno);
+			    return HT_ERROR;
+			}
+	    } else if (!b_read) {
 		if (PROT_TRACE)
-		    fprintf(TDEST, "Read Socket. WOULD BLOCK soc %d\n",
+		    fprintf(TDEST, "Read Socket. Finished loading socket %d\n",
 			    isoc->input_file_number);
-		HTThreadState(isoc->input_file_number, THD_SET_READ);
-		return HT_WOULD_BLOCK;
-	    } else {				     /* We have a real error */
-		if (PROT_TRACE)
-		    fprintf(TDEST, "Read Socket. READ ERROR %d\n", socerrno);
-		return HT_ERROR;
+		HTThreadState(isoc->input_file_number, THD_CLR_READ);
+		return HT_LOADED;
 	    }
-	} else if (!b_read) {
-	    if (PROT_TRACE)
-		fprintf(TDEST, "Read Socket. Finished loading socket %d\n",
-			isoc->input_file_number);
-	    HTThreadState(isoc->input_file_number, THD_CLR_READ);
-	    return HT_LOADED;
-	}
 
-	/* Remember how much we have read from the input socket */
-	isoc->input_pointer = isoc->input_buffer;
-	isoc->input_limit = isoc->input_buffer + b_read;
+	    /* Remember how much we have read from the input socket */
+	    isoc->input_pointer = isoc->input_buffer;
+	    isoc->input_limit = isoc->input_buffer + b_read;
 
 #ifdef NOT_ASCII
-	{
-	    char *p = isoc->input_buffer;
-	    while (p < isoc->input_limit) {
-		*p = FROMASCII(*p);
-		p++;
+	    {
+		char *p = isoc->input_buffer;
+		while (p < isoc->input_limit) {
+		    *p = FROMASCII(*p);
+		    p++;
+		}
+	    }
+#endif
+	    if (PROT_TRACE)
+		fprintf(TDEST, "Read Socket. %d bytes read from socket %d\n",
+			b_read, isoc->input_file_number);
+	}
+	
+	/* Now push the data down the stream */
+	if ((status = (*target->isa->put_block)(target, isoc->input_buffer,
+						b_read)) != HT_OK) {
+	    if (status==HT_WOULD_BLOCK) {
+		if (PROT_TRACE)
+		    fprintf(TDEST, "Read Socket. Stream WOULD BLOCK\n");
+		HTThreadState(isoc->input_file_number, THD_CLR_READ);
+		return HT_WOULD_BLOCK;
+	    } else {		/* We have a real error */
+		if (PROT_TRACE)
+		    fprintf(TDEST, "Read Socket. Stream ERROR\n");
+		return status;
 	    }
 	}
-#endif
-	if (PROT_TRACE)
-	    fprintf(TDEST, "Read Socket. %d bytes read from socket %d\n",
-		    b_read, isoc->input_file_number);
-    }
-    
-    /* Now push the data down the stream */
-    if ((status = (*target->isa->put_block)(target, isoc->input_buffer,
-					    b_read)) != HT_OK) {
-	if (status==HT_WOULD_BLOCK) {
-	    if (PROT_TRACE)
-		fprintf(TDEST, "Read Socket. Stream WOULD BLOCK\n");
-	    HTThreadState(isoc->input_file_number, THD_CLR_READ);
-	    return HT_WOULD_BLOCK;
-	} else {		/* We have a real error */
-	    if (PROT_TRACE)
-		fprintf(TDEST, "Read Socket. Stream ERROR\n");
-	    return status;
-	}
-    }
-    isoc->input_pointer = isoc->input_buffer + b_read;
-    HTThreadState(isoc->input_file_number, THD_SET_READ);
+	isoc->input_pointer = isoc->input_buffer + b_read;
+	HTThreadState(isoc->input_file_number, THD_SET_READ);
+    } while (blocking);
     return HT_WOULD_BLOCK;
 }
 

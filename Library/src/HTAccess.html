@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Access manager  for libwww</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  7-Jul-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -32,9 +33,7 @@ The module contains a lot of stuff but the main topics are:
 <LI><A HREF="#flags">Global Flags</A><P>
 
 <LI><A HREF="#z100">Management of the HTRequest Object</A>
-<LI><A HREF="#user">Local User preferences</A> <P>
-
-<LI><A HREF="#ProtReg">Access Scheme Registration</H2></A> <P>
+<LI><A HREF="#headers">Handling HTTP headers</A><P>
 
 <LI><A HREF="#LoadDoc">Functions for loading a document</A>
 <LI><A HREF="#ClientHelp">Help functions for clients to get started</A>
@@ -211,18 +210,7 @@ extern BOOL HTRequest_killPostWeb		PARAMS((HTRequest * me));
 	((me) &amp;&amp; (me)->source)
 </PRE>
 
-<A NAME="user"><H2>Local User Preferences</H2></A>
-
-These methods sets local user preferences for <EM>language</EM>,
-<EM>media types</EM>, <EM>charsets</EM>, and <EM>encodings</EM> which
-are added to the <A HREF="HTFormat.html#user">global set of
-preferences</A>.
-
-<PRE>
-/* NOT FINISHED */
-</PRE>
-
-<H2>HTTP/MIME Header Methods</H2>
+<A NAME="headers"><H2>HTTP/MIME Header Methods</H2></A>
 
 These enumerations set up the headers that are used in a HTTP request
 <EM>OR</EM> a HTTP response.
@@ -527,50 +515,6 @@ into the stream pipe.
 extern int HTUploadAnchor	PARAMS((HTAnchor *	src_anchor,
 					HTParentAnchor *dest_anchor,
 					HTRequest *	dest_req));
-</PRE>
-
-
-<A NAME="ProtReg"><H2>Access Scheme Registration</H2></A>
-
-An access method is defined by an HTProtocol structure which point to
-the routines for performing the various logical operations on an
-object: in HTTP terms, GET, PUT, and POST. The access methods
-supported in the Library are initiated automaticly using the private
-function <CODE>HTAccessInit()</CODE> <B>if not</B> defined
-<CODE>HT_NO_INIT</CODE> <P>
-
-Each of these routine takes as a parameter a <A NAME="z2"
-HREF="#z1">request structure</A> containing details of the request.
-When the protocol class routine is called, the anchor element in the
-request is already valid (made valid by HTAccess).
-
-<PRE>
-typedef enum _HTSocBlock {
-    SOC_BLOCK,
-    SOC_NON_BLOCK
-} HTSocBlock;
-
-typedef struct _HTProtocol {
-    char *	name;
-    HTSocBlock	block;	
-    int		(*load)		PARAMS((HTRequest *	request));
-    HTStream*	(*saveStream)	PARAMS((HTRequest *	request));
-    HTStream* 	(*postStream)	PARAMS((HTRequest *	request,
-					HTParentAnchor* postTo));
-} HTProtocol;
-
-extern BOOL HTRegisterProtocol PARAMS((HTProtocol * protocol));
-extern void HTDisposeProtocols NOPARAMS;
-</PRE>
-
-<H3>Uses Protocol Blocking IO</H3>
-
-A small function to make life easier. Returns <CODE>YES</CODE> or
-<CODE>NO</CODE>. If the Library is run in NON-INTERACTIVE MODE then
-the function always returns YES;
-
-<PRE>
-extern BOOL HTProtocolBlocking	PARAMS((HTRequest *	request));
 </PRE>
 
 <A NAME="Int"><H2>Internal Data Structures</H2></A>

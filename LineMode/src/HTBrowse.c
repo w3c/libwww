@@ -186,7 +186,7 @@ PRIVATE BOOL		filter = NO;		      	 /* Load from stdin? */
 PRIVATE BOOL		reformat_html = NO;		   /* Reformat html? */
 PRIVATE BOOL		OutSource = NO;		    /* Output source, YES/NO */
 PRIVATE int		OldTraceFlag = SHOW_ALL_TRACE;
-PRIVATE BOOL		UseMulti = YES;			/* Use multithreaded */
+PRIVATE BOOL		Blocking = NO;			/* Use multithreaded */
 PRIVATE FILE *	        output = NULL;
 
 #ifdef VMS
@@ -218,8 +218,8 @@ PRIVATE HTRequest *Thread_new ARGS1(BOOL, Interactive)
     if (Interactive)
 	HTPresenterInit(newreq->conversions);		/* Set up local list */
 
-    if (!UseMulti)
-	request->BlockingIO = YES;			 /* Use blocking I/O */
+    if (Blocking)
+	newreq->BlockingIO = YES;			 /* Use blocking I/O */
     HTList_addObject(reqlist, (void *) newreq);
     return newreq;
 }
@@ -347,7 +347,7 @@ PRIVATE void help_screen NOARGS {
 		HText_sourceAnchors(HTMainText));
     }
 	    
-    if (UseMulti)
+    if (!Blocking)
 	printf("  z               Interrupt a request\n");
 
     if (HTAnchor_isIndex(HTMainAnchor))
@@ -1050,7 +1050,9 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 	    HText *curText = HTMainText;     /* Remember current main vindow */
 	    *actreq = Thread_new(NO);
 	    (*actreq)->ForceReload = YES;
+#if 0
 	    (*actreq)->BlockingIO = YES;     		 /* Use blocking I/O */
+#endif
 	    if (OutSource) (*actreq)->output_format = WWW_SOURCE;
 	    if (SaveOutputStream(*actreq, this_word, next_word))
 		loadstat = HT_WOULD_BLOCK;
@@ -1309,7 +1311,8 @@ int main ARGS2(int, argc, char **, argv)
 
 	    /* Multithreaded ot not? */
 	    } else if (!strcmp(argv[arg], "-single")) {
-		UseMulti = NO;
+		request->BlockingIO = YES;
+		Blocking = YES;
 
 	    /* Output filename */
 	    } else if (!strcmp(argv[arg], "-o")) { 
@@ -1552,11 +1555,11 @@ int main ARGS2(int, argc, char **, argv)
 	    Reference_List(NO);		   	      /* List without titles */
 	}
     }
-#else
-    /* Test of putting non-interactive mode into the event loop as well */
     if (!HTInteractive)
 	request->BlockingIO = YES;		/* Turn off non-blocking I/O */
+#else
 
+    /* Test of putting non-interactive mode into the event loop as well */
     reqlist = HTList_new();
     user.sockfd = STDIN_FILENO;
     user.callback = EventHandler;
@@ -1583,15 +1586,12 @@ endproc:
 	HTAnchor_deleteAll(hyperdocs);
     }
     HTLibTerminate();
-    printf("\n");
-    if (!return_status) {			/* Everything is working :-) */
-#ifdef VMS 
-	return 1;
+
+#ifdef VMS
+    return return_status ? return_status : 1;
 #else
-	return 0;	/* Good */
+    return return_status ? return_status : 0;
 #endif
-    }
-    return return_status;		       /* An error occured somewhere */
 }
 
 /* End HTBrowse.c */
