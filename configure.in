@@ -1086,7 +1086,6 @@ modules/md5/Makefile
 Library/Makefile Library/User/Makefile Library/User/Patch/Makefile
 Library/User/Architecture/Makefile Library/User/Using/Makefile Library/User/Guide/Makefile
 Library/User/Style/Makefile Library/User/Platform/Makefile
-Library/Test/Makefile Library/Test/User/Makefile Library/Test/src/Makefile
 Library/src/Makefile Library/src/windows/Makefile Library/src/vms/Makefile 
 Library/src/SSL/Makefile Library/src/SSL/windows/Makefile
 Library/Examples/Makefile
