@@ -319,7 +319,9 @@ PRIVATE App * App_new (void)
     me->active = HTList_new();
 
     /* Register stdin as our console */
+#ifdef STDIN_FILENO
     if (isatty(STDIN_FILENO)) HTEventList_register(STDIN_FILENO, HTEvent_READ, me->console_event);
+#endif
 
     return me;
 }
