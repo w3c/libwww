@@ -1,66 +1,83 @@
-<html>
-<head>
-  <meta http-equiv="Content-Type" content="text/html">
-  <title>W3C Sample Code Library libwww Debug Information and General Purpose
-  Macros</title>
-</head>
-
-<body>
-<h1>Debug Information and General Purpose Macros</h1>
-<pre>/*
+<HTML>
+<HEAD>
+  <TITLE>W3C Sample Code Library libwww Debug Information and General Purpose
+  Macros</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  Debug Information and General Purpose Macros
+</H1>
+<PRE>
+/*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
-*/</pre>
-
-<p>This module is a part of the <a href="http://www.w3.org/Library/"> W3C
-Sample Code Library</a>. See also the system dependent file <a
-href="wwwsys.html">sysdep module</a> for system specific information.</p>
-<pre>#ifndef HTUTILS_H
-#define HTUTILS_H</pre>
-
-<h2>Destination for User Print Messages</h2>
-
-<p>You can send print messages to the user to various destinations depending
-on the type of your application. By default, on Unix the messages are sent to
-<code>stdout</code> using <code>fprintf</code>. If we are on MSWindows and
-have a windows applications then register a <code>HTPrintCallback</code>
-function. This is done with <code>HTPrint_setCallback</code>. It tells
-<code>HTPrint</code> to call a <code>HTPrintCallback</code>. If
-<code>HTDEBUG</code> is not defined then don't do any of the above.</p>
-<pre>typedef int HTPrintCallback(const char * fmt, va_list pArgs);
+*/
+</PRE>
+<P>
+This module is a part of the <A HREF="http://www.w3.org/Library/"> W3C Sample
+Code Library</A>. See also the system dependent file
+<A HREF="wwwsys.html">sysdep module</A> for system specific information.
+<PRE>
+#ifndef HTUTILS_H
+#define HTUTILS_H
+</PRE>
+<H2>
+  Destination for User Print Messages
+</H2>
+<P>
+You can send print messages to the user to various destinations
+depending on the type of your application. By default, on Unix the
+messages are sent to <CODE>stdout</CODE> using
+<CODE>fprintf</CODE>. If we are on MSWindows and have a windows
+applications then register a <CODE>HTPrintCallback</CODE>
+function. This is done with <CODE>HTPrint_setCallback</CODE>. It tells
+<CODE>HTPrint</CODE> to call a <CODE>HTPrintCallback</CODE>. If
+<CODE>HTDEBUG</CODE>
+is not defined then don't do any of the above.
+<PRE>
+typedef int HTPrintCallback(const char * fmt, va_list pArgs);
 extern void HTPrint_setCallback(HTPrintCallback * pCall);
 extern HTPrintCallback * HTPrint_getCallback(void);
 
-extern int HTPrint(const char * fmt, ...);</pre>
-
-<h2><a name="Debug">Debug Message Control</a></h2>
-
-<p>This is the global flag for setting the <code><em>WWWTRACE</em></code>
-options. The verbose mode is no longer a simple boolean but a bit field so
-that it is possible to see parts of the output messages.</p>
-<pre>#if defined(NODEBUG) || defined(NDEBUG) || defined(_NDEBUG)
+extern int HTPrint(const char * fmt, ...);
+</PRE>
+<H2>
+  <A NAME="Debug">Debug Message Control</A>
+</H2>
+<P>
+This is the global flag for setting the <CODE><EM>WWWTRACE</EM></CODE> options.
+The verbose mode is no longer a simple boolean but a bit field so that it
+is possible to see parts of the output messages.
+<PRE>
+#if defined(NODEBUG) || defined(NDEBUG) || defined(_NDEBUG)
 #undef HTDEBUG
 #else
 #ifndef HTDEBUG
 #define HTDEBUG		1
 #endif /* HTDEBUG */
-#endif</pre>
-
-<h3>C Preprocessor defines</h3>
-
-<p>Make sure that the following macros are defined</p>
-<pre>#ifndef __FILE__
+#endif
+</PRE>
+<H3>
+  C Preprocessor defines
+</H3>
+<P>
+Make sure that the following macros are defined
+<PRE>
+#ifndef __FILE__
 #define __FILE__	""
 #endif
 
 #ifndef __LINE__
 #define __LINE__	0L
-#endif</pre>
-
-<h3>Definition of the Global Trace Flag</h3>
-
-<p>The global trace flag variable is available everywhere.</p>
-<pre>#ifdef HTDEBUG
+#endif
+</PRE>
+<H3>
+  Definition of the Global Trace Flag
+</H3>
+<P>
+The global trace flag variable is available everywhere.
+<PRE>
+#ifdef HTDEBUG
 #ifdef WWW_WIN_DLL
 extern int *		WWW_TraceFlag;	 /* In DLLs, we need the indirection */
 #define WWWTRACE	(*WWW_TraceFlag) 
@@ -70,17 +87,20 @@ extern unsigned int	WWW_TraceFlag;	     /* Global flag for all W3 trace */
 #endif /* WWW_WIN_DLL */
 #else
 #define WWWTRACE	0
-#endif /* HTDEBUG */</pre>
-
-<h3>Select which Trace Messages to show</h3>
-
-<p>Libwww has a huge set of trace messages and it is therefor a good idea to
-be able to select which ones to see for any particular trace. An easy way to
-set this is using the funtion <a
-href="HTHome.html#Trace">HTSetTraceMessageMask</a>. The <em>WWWTRACE</em>
+#endif /* HTDEBUG */
+</PRE>
+<H3>
+  Select which Trace Messages to show
+</H3>
+<P>
+Libwww has a huge set of trace messages and it is therefor a good idea to
+be able to select which ones to see for any particular trace. An easy way
+to set this is using the funtion
+<A HREF="HTHome.html#Trace">HTSetTraceMessageMask</A>. The <EM>WWWTRACE</EM>
 define outputs messages if verbose mode is active according to the following
-rules:</p>
-<pre>typedef enum _HTTraceFlags {
+rules:
+<PRE>
+typedef enum _HTTraceFlags {
     SHOW_UTIL_TRACE	= 0x1,
     SHOW_APP_TRACE	= 0x2,
     SHOW_CACHE_TRACE	= 0x4,
@@ -99,11 +119,13 @@ rules:</p>
     SHOW_SQL_TRACE      = 0x8000,
     SHOW_XML_TRACE      = 0x10000,
     SHOW_ALL_TRACE	= (int) 0xFFFFFFFF
-} HTTraceFlags;</pre>
-
-<p>The flags are made so that they can serve as a group flag for correlated
-trace messages, e.g. showing messages for SGML and HTML at the same time.</p>
-<pre>#define UTIL_TRACE        (WWWTRACE &amp; SHOW_UTIL_TRACE)
+} HTTraceFlags;
+</PRE>
+<P>
+The flags are made so that they can serve as a group flag for correlated
+trace messages, e.g. showing messages for SGML and HTML at the same time.
+<PRE>
+#define UTIL_TRACE	(WWWTRACE &amp; SHOW_UTIL_TRACE)
 #define APP_TRACE	(WWWTRACE &amp; SHOW_APP_TRACE)
 #define CACHE_TRACE	(WWWTRACE &amp; SHOW_CACHE_TRACE)
 #define SGML_TRACE	(WWWTRACE &amp; SHOW_SGML_TRACE)
@@ -120,28 +142,33 @@ trace messages, e.g. showing messages for SGML and HTML at the same time.</p>
 #define MUX_TRACE	(WWWTRACE &amp; SHOW_MUX_TRACE)
 #define SQL_TRACE	(WWWTRACE &amp; SHOW_SQL_TRACE)
 #define XML_TRACE	(WWWTRACE &amp; SHOW_XML_TRACE)
-#define ALL_TRACE         (WWWTRACE &amp; SHOW_ALL_TRACE)</pre>
-
-<h3>Destination for Trace Messages</h3>
-
-<p>You can send trace messages to various destinations depending on the type
+#define ALL_TRACE	(WWWTRACE &amp; SHOW_ALL_TRACE)
+</PRE>
+<H3>
+  Destination for Trace Messages
+</H3>
+<P>
+You can send trace messages to various destinations depending on the type
 of your application. By default, on Unix the messages are sent to
-<code>stderr</code> using <code>fprintf</code>. If we are on MSWindows and
-have a windows applications then register a <code>HTTraceCallback</code>
-function. This is done with <code>HTTrace_setCallback</code>. It tells
-<code>HTTrace</code> to call a <code>HTTraceCallback</code>. If
-<code>HTDEBUG</code> is not defined then don't do any of the above.</p>
-<pre>typedef int HTTraceCallback(const char * fmt, va_list pArgs);
+<CODE>stderr</CODE> using <CODE>fprintf</CODE>. If we are on MSWindows and
+have a windows applications then register a <CODE>HTTraceCallback</CODE>
+function. This is done with <CODE>HTTrace_setCallback</CODE>. It tells
+<CODE>HTTrace</CODE> to call a <CODE>HTTraceCallback</CODE>. If 
+<CODE>HTDEBUG</CODE> is not defined then don't do any of the above.
+<PRE>
+typedef int HTTraceCallback(const char * fmt, va_list pArgs);
 extern void HTTrace_setCallback(HTTraceCallback * pCall);
-extern HTTraceCallback * HTTrace_getCallback(void);</pre>
-
-<p>The <code>HTTRACE</code> macro uses "<code>_</code>" as parameter
-separater instead of "<code>,</code>". This enables us to use a single macro
-instead of a macro for each number of arguments which we consider a more
-elegant and flexible solution. The implication is, however, that we can't
-have variables that start or end with an "<code>_</code>" if they are to be
-used in a trace message.</p>
-<pre>#ifdef HTDEBUG
+extern HTTraceCallback * HTTrace_getCallback(void);
+</PRE>
+<P>
+The <CODE>HTTRACE</CODE> macro uses "<CODE>_</CODE>" as parameter separater
+instead of "<CODE>,</CODE>". This enables us to use a single macro instead
+of a macro for each number of arguments which we consider a more elegant
+and flexible solution. The implication is, however, that we can't have variables
+that start or end with an "<CODE>_</CODE>" if they are to be used in a trace
+message.
+<PRE>
+#ifdef HTDEBUG
 #undef _
 #define _ ,
 #define HTTRACE(TYPE, FMT) \
@@ -149,66 +176,86 @@ used in a trace message.</p>
 extern int HTTrace(const char * fmt, ...);
 #else
 #define HTTRACE(TYPE, FMT)		/* empty */
-#endif /* HTDEBUG */</pre>
-
-<h3>Data Trace Logging</h3>
-
-<p>A similar mechanism exists for logging data, except that is adds a data
-and length argument to the trace call. Again, you can register your own
-callbacks if need be.</p>
-<pre>typedef int HTTraceDataCallback(char * data, size_t len, char * fmt, va_list pArgs);
+#endif /* HTDEBUG */
+</PRE>
+<H3>
+  Data Trace Logging
+</H3>
+<P>
+A similar mechanism exists for logging data, except that is adds a data and
+length argument to the trace call. Again, you can register your own callbacks
+if need be.
+<PRE>
+typedef int HTTraceDataCallback(char * data, size_t len, char * fmt, va_list pArgs);
 extern void HTTraceData_setCallback(HTTraceDataCallback * pCall);
-extern HTTraceDataCallback * HTTraceData_getCallback(void);</pre>
-
-<p>Again we use the same macro expansion mechanism as for
-<code>HTTrace</code></p>
-<pre>#ifdef HTDEBUG
+extern HTTraceDataCallback * HTTraceData_getCallback(void);
+</PRE>
+<P>
+Again we use the same macro expansion mechanism as for <CODE>HTTrace</CODE>
+<PRE>
+#ifdef HTDEBUG
 #define HTTRACEDATA(DATA, LEN, FMT) HTTraceData((DATA), (LEN), FMT)
 extern int HTTraceData(char * data, size_t len, char * fmt, ...);
 #else
 #define HTTRACEDATA(DATA, LEN, FMT)	/* empty */
-#endif /* HTDEBUG */</pre>
-
-<h3>Debug Breaks</h3>
-
-<p>Call this function and the program halts. We use the same macro expansion
-mechanism as for <code>HTTrace</code></p>
-<pre>extern void HTDebugBreak(char * file, unsigned long line, const char * fmt, ...);
+#endif /* HTDEBUG */
+</PRE>
+<H3>
+  Debug Breaks
+</H3>
+<P>
+Call this function and the program halts. We use the same macro expansion
+mechanism as for <CODE>HTTrace</CODE>
+<PRE>
+extern void HTDebugBreak(char * file, unsigned long line, const char * fmt, ...);
 
 #ifdef HTDEBUG
 #define HTDEBUGBREAK(FMT) HTDebugBreak(__FILE__, __LINE__, FMT)
 #else
 #define HTDEBUGBREAK(FMT)		/* empty */
-#endif /* HTDEBUG */</pre>
-
-<h2>Macros for Function Declarations</h2>
-
-<p>These function prefixes are used by scripts and other tools and helps
-figuring out which functions are exported and which are not. See also the <a
-href="../User/Style/Macros.html">libwww style guide</a>.</p>
-<pre>#define PUBLIC                        /* Accessible outside this module     */
-#define PRIVATE static                /* Accessible only within this module */</pre>
-
-<h2>Often used Interger Macros</h2>
-
-<h3>Min and Max functions</h3>
-<pre>#ifndef HTMIN 
+#endif /* HTDEBUG */
+</PRE>
+<H2>
+  Macros for Function Declarations
+</H2>
+<P>
+These function prefixes are used by scripts and other tools and helps figuring
+out which functions are exported and which are not. See also the
+<A HREF="../User/Style/Macros.html">libwww style guide</A>.
+<PRE>
+#define PUBLIC			/* Accessible outside this module     */
+#define PRIVATE static		/* Accessible only within this module */
+</PRE>
+<H2>
+  Often used Interger Macros
+</H2>
+<H3>
+  Min and Max functions
+</H3>
+<PRE>
+#ifndef HTMIN 
 #define HTMIN(a,b) ((a) &lt;= (b) ? (a) : (b))
 #define HTMAX(a,b) ((a) &gt;= (b) ? (a) : (b))
-#endif</pre>
-
-<h3>Double abs function</h3>
-<pre>#ifndef HTDABS
+#endif
+</PRE>
+<H3>
+  Double abs function
+</H3>
+<PRE>
+#ifndef HTDABS
 #define HTDABS(a) ((a) &lt; 0.0 ? (-(a)) : (a))
-#endif</pre>
-
-<p><a name="ReturnCodes"></a></p>
-
-<h2><a name="return">Return Codes for Protocol Modules and Streams</a></h2>
-
-<p>Theese are the codes returned from the protocol modules, and the stream
-modules. Success are (&gt;=0) and failure are (&lt;0)</p>
-<pre>#define HT_OK                        0        /* Generic success */
+#endif
+</PRE>
+<P>
+<A NAME="ReturnCodes"></A>
+<H2>
+  <A NAME="return">Return Codes for Protocol Modules and Streams</A>
+</H2>
+<P>
+Theese are the codes returned from the protocol modules, and the stream modules.
+Success are (&gt;=0) and failure are (&lt;0)
+<PRE>
+#define HT_OK			0	/* Generic success */
 #define HT_ALL			1	/* Used by Net Manager */
 
 #define HT_CONTINUE             100     /* Continue an operation */
@@ -257,12 +304,12 @@ modules. Success are (&gt;=0) and failure are (&lt;0)</p>
 #define HT_BAD_VERSION		-505	/* Bad protocol version */
 
 #ifdef HT_DAV                           /* WebDAV Status codes */
-#define HT_PROCESSING            102        /* Processing  */
-#define HT_MULTI_STATUS          207        /* Multi-Status */
-#define HT_UNPROCESSABLE        -422        /* Unprocessable Entity */  
-#define HT_LOCKED               -423        /* Locked */
-#define HT_FAILED_DEPENDENCY    -424        /* Failed Dependency */
-#define HT_INSUFFICIENT_STORAGE -507        /* Insufficient Storage */
+#define HT_PROCESSING            102    /* Processing  */
+#define HT_MULTI_STATUS          207    /* Multi-Status */
+#define HT_UNPROCESSABLE        -422    /* Unprocessable Entity */  
+#define HT_LOCKED               -423    /* Locked */
+#define HT_FAILED_DEPENDENCY    -424    /* Failed Dependency */
+#define HT_INSUFFICIENT_STORAGE -507    /* Insufficient Storage */
 #endif
 
 #define HT_INTERNAL		-900    /* Weird -- should never happen. */
@@ -271,44 +318,57 @@ modules. Success are (&gt;=0) and failure are (&lt;0)</p>
 #define HT_PAUSE                -903    /* If we want to pause a stream */
 #define HT_RECOVER_PIPE         -904    /* Recover pipe line */
 #define HT_TIMEOUT              -905    /* Connection timeout */
-#define HT_NO_HOST              -906    /* Can't locate host */</pre>
-
-<h2>Upper- and Lowercase macros</h2>
-
-<p>The problem here is that toupper(x) is not defined officially unless
-isupper(x) is. These macros are CERTAINLY needed on #if defined(pyr) ||
-define(mips) or BDSI platforms. For safefy, we make them mandatory.</p>
-<pre>#ifndef TOLOWER
+#define HT_NO_HOST              -906    /* Can't locate host */
+</PRE>
+<H2>
+  Upper- and Lowercase macros
+</H2>
+<P>
+The problem here is that toupper(x) is not defined officially unless isupper(x)
+is. These macros are CERTAINLY needed on #if defined(pyr) || define(mips)
+or BDSI platforms. For safefy, we make them mandatory.
+<PRE>
+#ifndef TOLOWER
 #define TOLOWER(c) tolower((int) (c))
 #define TOUPPER(c) toupper((int) (c))
-#endif</pre>
-
-<h2>Max and Min values for Integers and Floating Point</h2>
-<pre>#ifdef FLT_EPSILON                                    /* The ANSI C way define */
+#endif
+</PRE>
+<H2>
+  Max and Min values for Integers and Floating Point
+</H2>
+<PRE>
+#ifdef FLT_EPSILON				    /* The ANSI C way define */
 #define HT_EPSILON FLT_EPSILON
 #else
 #define HT_EPSILON 0.00000001
-#endif</pre>
-
-<h2>The local equivalents of CR and LF</h2>
-
-<p>We can check for these after net ascii text has been converted to the
-local representation. Similarly, we include them in strings to be sent as net
-ascii after translation.</p>
-<pre>#define LF   FROMASCII('\012')  /* ASCII line feed LOCAL EQUIVALENT */
-#define CR   FROMASCII('\015')  /* Will be converted to ^M for transmission */</pre>
-
-<h2>Library Dynamic Memory Magement</h2>
-
-<p>The Library has it's own dynamic memory API which is declared in <a
-href="HTMemory.html">memory management module</a>.</p>
-<pre>#include "HTMemory.h"</pre>
-<pre>#endif /* HT_UTILS.h */</pre>
-
-<p></p>
-<hr>
-<address>
+#endif
+</PRE>
+<H2>
+  The local equivalents of CR and LF
+</H2>
+<P>
+We can check for these after net ascii text has been converted to the local
+representation. Similarly, we include them in strings to be sent as net ascii
+after translation.
+<PRE>
+#define LF   FROMASCII('\012')  /* ASCII line feed LOCAL EQUIVALENT */
+#define CR   FROMASCII('\015')  /* Will be converted to ^M for transmission */
+</PRE>
+<H2>
+  Library Dynamic Memory Magement
+</H2>
+<P>
+The Library has it's own dynamic memory API which is declared in
+<A HREF="HTMemory.html">memory management module</A>.
+<PRE>
+#include "HTMemory.h"
+</PRE>
+<PRE>
+#endif /* HT_UTILS.h */
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
   @(#) $Id$
-</address>
-</body>
-</html>
+</ADDRESS>
+</BODY></HTML>
