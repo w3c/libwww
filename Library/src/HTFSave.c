@@ -128,7 +128,7 @@ PRIVATE char * get_filename (char * base, const char * uri,
 	char * uri_path = NULL;
 	if (uri && (uri_path = HTParse(uri, "", PARSE_PATH|PARSE_PUNCTUATION))) {
 	    char * last_segment = strrchr(uri_path, '/');
-	    BOOL slash = (base && *(base+strlen(base)-1)=='/'); 
+	    BOOL slash = (base && *(base+strlen(base)-1)==DIR_SEPARATOR_CHAR); 
 	    if (last_segment && *(last_segment+1)) {
 		StrAllocMCopy(&path, base ? base : "",
 			      slash ? "" : DIR_SEPARATOR_STR, ++last_segment, NULL);
