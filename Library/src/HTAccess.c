@@ -309,6 +309,8 @@ PRIVATE BOOL HTLoadDocument ARGS2(
     if (TRACE) fprintf (stderr,
       "HTAccess: loading document %s\n", full_address);
 
+    request->using_cache = NULL;
+    
     if (!request->output_format) request->output_format = WWW_PRESENT;
     
     if (text=(HText *)HTAnchor_document(request->anchor))
@@ -328,11 +330,16 @@ PRIVATE BOOL HTLoadDocument ARGS2(
 	int n = HTList_count(list);
 	for(i=0; i<n; i++) {
 	    HTCacheItem * item = HTList_objectAt(list, i);
-	    HTStream * s = HTStreamStack(item->format, request);
+	    HTStream * s;
+	    
+	    request->using_cache = item;
+	    
+	    s = HTStreamStack(item->format, request);
 	    if (s) {		/* format was suitable */
 	        FILE * fp = fopen(item->filename, "r");
-	    	if (TRACE) fprintf(stderr, "Cache hit for %s\n",
-					full_address);
+	    	if (TRACE) fprintf(stderr, "Cache: HIT file %s for %s\n",
+					item->filename, 
+					 full_address);
 		if (fp) {
 		    HTFileCopy(fp, s);
 		    fclose(fp);

@@ -374,12 +374,13 @@ PUBLIC HTStream* HTSaveLocally ARGS5(
 **	--------------
 */
 
-PUBLIC HTList * HTCache;
+PUBLIC HTList * HTCache = NULL;
 PUBLIC int	HTCacheLimit = CACHE_LIMIT;
 
-PRIVATE void HTCache_remove ARGS1(HTCacheItem *, item)
+PRIVATE void HTCache_remove ARGS2(HTList *, list, HTCacheItem *, item)
 {
-    HTList_removeObject(HTCache, item);
+    if (TRACE) fprintf(stderr, "Cache: Removing %s\n", item->filename);
+    HTList_removeObject(list, item);
     HTList_removeObject(item->anchor->cacheItems, item);
     unlink(item->filename);
     free(item->filename);
@@ -395,17 +396,17 @@ PUBLIC void HTCacheClear (HTList * list)
 {
     HTCacheItem * item;
     while ((item=HTList_objectAt(list, 0)) != NULL) {
-        HTCache_remove(item);
+        HTCache_remove(list, item);
     }
 }
 
 /*  Remove a file from the cache to prevent too many files from being cached
 */
-PRIVATE void limit_cache NOARGS
+PRIVATE void limit_cache ARGS1(HTList * , list)
 {
     HTCacheItem * item;
     int i;
-    int n = HTList_count(HTCache);
+    int n = HTList_count(list);
     time_t best_delay = 0;   /* time_t in principle can be any arith type */
     HTCacheItem* best_item = NULL;
     
@@ -418,7 +419,7 @@ PRIVATE void limit_cache NOARGS
 	}
     }
     
-    if (best_item) HTCache_remove(best_item);
+    if (best_item) HTCache_remove(list, best_item);
 }
 
 
@@ -460,7 +461,7 @@ PUBLIC HTStream* HTCacheWriter ARGS5(
     if (suffix) strcat(fnam, suffix);
     me->filename = NULL;
     
-    limit_cache();		/* Limit number (not size) of files */
+    limit_cache(HTCache);		/* Limit number (not size) of files */
     
     me->fp = fopen (fnam, "w");
     if (!me->fp) {
@@ -472,6 +473,7 @@ PUBLIC HTStream* HTCacheWriter ARGS5(
     
     /* Set up a cache record */
     
+    if (TRACE) fprintf(stderr, "Cache: Creating file %s\n", fnam);
     me->cache = (HTCacheItem*)calloc(sizeof(*me->cache),1);
     if (!me->cache)outofmem(__FILE__, "cache");
     time(&me->cache->load_time);
@@ -481,6 +483,8 @@ PUBLIC HTStream* HTCacheWriter ARGS5(
     	request->anchor->cacheItems = HTList_new();
     HTList_addObject(request->anchor->cacheItems, me->cache);
     me->cache->format = input_format;
+    
+    if (!HTCache) HTCache = HTList_new();
     HTList_addObject(HTCache, me->cache);
     
     me->callback = request->callback;
@@ -492,6 +496,9 @@ PUBLIC HTStream* HTCacheWriter ARGS5(
 /*	Save and Call Back
 **	------------------
 **
+**
+**	The special case is a kludge. Better is everything uses streams
+**	and nothing uses files.  Then this routine will go too. :-))
 */
 
 
@@ -502,12 +509,18 @@ PUBLIC HTStream* HTSaveAndCallBack ARGS5(
 	HTFormat,		output_format,
 	HTStream *,		output_stream)
 {
-   HTStream * me = HTCacheWriter(request, param,
-   			input_format, output_format, output_stream);
-   if (me) {
-       me->callback = request->callback;
-   }
-   return me;
+   HTStream * me;
    
+   if (request->using_cache) {  /* Special case! file wanted && cache hit */
+        (*request->callback)(me->request,
+			 ((HTCacheItem*)request->using_cache)->filename);
+   } else {
+   	me = HTCacheWriter(request, param,
+			    input_format, output_format, output_stream);
+	if (me) {
+	    me->callback = request->callback;
+	}
+   }
+   return me;   
 }
 

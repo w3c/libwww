@@ -93,10 +93,11 @@ of things about it need to be passed
 along.  These are all put into a
 HTRequest structure.  Note there
 is also a <A
-NAME="z4" HREF="HTFormat.html#z17">global list of converters</A>.
+NAME="z4" HREF="HTFormat.html#z17">global list of converters</A>
+.
 <PRE>struct _HTRequest {
 	HTList * 	<A
-NAME="z5">conversions</A>;	/* conversions allowed in this case */
+NAME="z5">conversions</A> ;	/* conversions allowed in this case */
 	char *		from;		/* On behalf of whom? */
 	HTStream*	output_stream;	/* For non-interactive, set this */ 
 	HTAtom * 	output_format;	/* To convert on load, set this */
@@ -106,6 +107,9 @@ NAME="z5">conversions</A>;	/* conversions allowed in this case */
 	void *		context;	/* caller data -- HTAccess unaware */
 
 	HTParentAnchor*	anchor;		/* Set by HTAccess */
+
+	void *		using_cache;	/* pointer to cache element if cache hit */
+
 	/* To be added: authentication, etc */
 };
 
@@ -382,5 +386,5 @@ use this.
 
 #endif /* HTACCESS_H */
 
-</PRE>end of HTAccess</A></BODY>
+</PRE>end of HTAccess</BODY>
 </HTML>
