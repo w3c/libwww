@@ -3,10 +3,14 @@
 bin_PROGRAMS = www
 
 www_LDADD = \
-	../../Library/src/libwww.la ../../PICS-client/src/libpics.a -lm
+	../../Library/src/libwww.la \
+	../../PICS-client/src/libpics.a \
+	-lm @A_STDIO@
 
 www_DEPENDENCIES = \
-	../../Library/src/libwww.la ../../PICS-client/src/libpics.a
+	../../Library/src/libwww.la \
+	../../PICS-client/src/libpics.a \
+	@A_STDIO@
 
 SUBDIRS = windows vms
 
@@ -14,7 +18,7 @@ INCLUDES = -I$(srcdir)/../../Library/src -I$(srcdir)/../../PICS-client/src
 
 #	.h files are distributed but originally are made from the
 #	self-documenting hypertext files.
-SUFFIXES = .h .html
+SUFFIXES = .g .h .html
 .html.h:
     ifdef WWW
 	$(WWW) -w90 -na -p -to text/x-c $(srcdir)/$(*F).html -o $(srcdir)/$(*F).h
@@ -27,13 +31,21 @@ SUFFIXES = .h .html
 	perl $(top_srcdir)/config/winConfigure.pl $(srcdir)
     endif
 
+.g.c:
+	-$(RM) $(srcdir)/$(*F).c
+	$(LN_S) $(srcdir)/$(*F).g $(srcdir)/$(*F).c
+
 www_SOURCES = \
 	HTBrowse.c	GridText.c	ConView.c \
 	GridStyle.c	DefaultStyles.c
 
 BUILT_SOURCES = \
 	HTBrowse.h	GridStyle.h	GridText.h \
-	HTFont.h
+	HTFont.h	a_stdio.c
+
+EXTRA_www_SOURCES = \
+	a_stdio.g \
+	a_stdio.h
 
 inc: $(BUILT_SOURCES)
 	@echo Generated built sources
@@ -51,6 +63,4 @@ purify: $(www_OBJECTS) $(www_DEPENDENCIES)
 EXTRA_DIST = \
 	$(BUILT_SOURCES) \
 	DefaultStyles.c.classic \
-	DefaultStyles.c.modern \
-	a_stdio.g \
-	a_stdio.h
+	DefaultStyles.c.modern
