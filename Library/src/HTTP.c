@@ -1142,10 +1142,8 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 		      return HT_OK;
 		  else if (status == HT_PAUSE || status == HT_LOADED) {
 		      type = HTEvent_READ;
-		  } else if (status==HT_CLOSED)
+		  } else if (status==HT_ERROR)
 		      http->state = HTTP_RECOVER_PIPE;
-		  else if (status == HT_ERROR)
-		      http->state = HTTP_KILL_PIPE;
 	      } else if (type == HTEvent_FLUSH) {
 		  HTStream * input = HTRequest_inputStream(request);
 		  if (input == NULL)
