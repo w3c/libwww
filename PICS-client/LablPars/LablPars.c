@@ -6,13 +6,13 @@
 
 int Total;
 
+extern int ParseDebug;
+
 CSError_t spit(char* text, CSLabel_t * pCSMR, BOOL closed)
 {
     printf("%s %s\n", text, closed ? "closed" : "opened");
     return CSDoMore_more;
 }
-
-int ParseDebug = 0;
 
 LabelTargetCallback_t targetCallback;
 StateRet_t targetCallback(CSLabel_t * pCSMR, CSParse_t * pCSParse, CSLLTC_t target, BOOL closed, void * pVoid)

@@ -15,13 +15,13 @@
 
 /* Library include files */
 #include "sysdep.h"
-/*#include "HTUtils.h" */
 #include "HTChunk.h"
 #include "HTString.h"
 #include "CSLUtils.h"
 #include "CSParse.h"
 
-/*  */
+PUBLIC int ParseDebug = 0;	/* For use with LablPars and RatPars */
+
 PUBLIC BOOL BVal_readVal(BVal_t * pBVal, const char * valueStr)
 {
     if (!strcasecomp(valueStr, "true") || 
@@ -531,8 +531,6 @@ PUBLIC char * CSParse_subState2str(SubState_t subState)
     }
     return space;
 }
-
-extern int ParseDebug;
 
 PRIVATE int ParseTrace(const char * fmt, ...)
 {
