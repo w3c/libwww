@@ -142,6 +142,7 @@ PUBLIC HTStream* HTFWriter_new ARGS1(FILE *, fp)
 */
 /* @@ to be written.  sprintfs will do for now.  */
 
+
 /*	Take action using a system command
 **	----------------------------------
 **
@@ -158,6 +159,12 @@ PUBLIC HTStream* HTSaveAndExecute ARGS3(
 
 #ifdef unix
 #define REMOVE_COMMAND "/bin/rm -f %s\n"
+#endif
+#ifdef VMS
+#define REMOVE_COMMAND "delete/noconfirm/nolog %s.."
+#endif
+
+#ifdef REMOVE_COMMAND
 {
     char *fnam;
     CONST char * suffix;
@@ -209,7 +216,7 @@ PUBLIC HTStream* HTSaveAndExecute ARGS3(
     return me;
 }
 
-#else	/* Not unix */
+#else	/* can do remove */
 { return NULL; }
 #endif
 

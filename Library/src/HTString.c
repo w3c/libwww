@@ -72,6 +72,8 @@ PUBLIC char * HTSACopy
   return *dest;
 }
 
+/*	String Allocate and Concatenate
+*/
 PUBLIC char * HTSACat
   ARGS2 (char **,dest, CONST char *,src)
 {
@@ -88,4 +90,44 @@ PUBLIC char * HTSACat
     }
   }
   return *dest;
+}
+
+
+/*	Find next Field
+**	---------------
+**
+** On entry,
+**	*pstr	points to a string containig white space separated
+**		field, optionlly quoted.
+**
+** On exit,
+**	*pstr	has been moved to the first delimiter past the
+**		field
+**		THE STRING HAS BEEN MUTILATED by a 0 terminator
+**
+**	returns	a pointer to the first field
+*/
+PUBLIC char * HTNextField ARGS1(char **, pstr)
+{
+    char * p = *pstr;
+    char * start;			/* start of field */
+    
+    while(*p && WHITE(*p)) p++;		/* Strip white space */
+    if (!*p) {
+	*pstr = p;
+        return NULL;		/* No first field */
+    }
+    if (*p == '"') {			/* quoted field */
+        p++;
+	start = p;
+	for(;*p && *p!='"'; p++) {
+	    if (*p == '\\' && p[1]) p++;	/* Skip escaped chars */
+	}
+    } else {
+	start = p;
+	while(*p && !WHITE(*p)) p++;	/* Skip first field */
+    }
+    if (*p) *p++ = 0;
+    *pstr = p;
+    return start;
 }

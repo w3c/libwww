@@ -14,7 +14,6 @@
 #include "HTRules.h"
 
 #include <stdio.h>
-#include "HTUtils.h"
 #include "tcp.h"
 #include "HTFile.h"
 
@@ -230,6 +229,68 @@ char * HTTranslate(required)
     return current;
 }
 
+/*	Load one line of configuration
+**	------------------------------
+**
+**	Call this, for example, to load a X resource with config info.
+**
+** returns	0 OK, < 0 syntax error.
+*/
+PUBLIC int  HTSetConfiguration ARGS1(CONST char *, config)
+{
+    HTRuleOp op;
+    char * line = NULL;
+    char * pointer = line;
+    char *word1, *word2, *word3;
+    float quality, secs, secs_per_byte;
+    int status;
+    
+    StrAllocCopy(line, config);
+    {
+	char * p = strchr(line, '#');	/* Chop off comments */
+	if (p) *p = 0;
+    }
+    pointer = line;
+    word1 = HTNextField(&pointer);
+    if (!word1) {
+    	free(line);
+	return 0;
+    } ;	/* Comment only or blank */
+    
+    word2 = HTNextField(&pointer);
+    word3 = HTNextField(&pointer);
+    if (!word2) {
+	fprintf(stderr, "HTRule: Insufficient operands: %s\n", line);
+	free(line);
+	return -2;	/*syntax error */
+    }
+    if (pointer) status = sscanf(pointer, "%f%f%f",
+			    &quality, &secs, &secs_per_byte);
+    else status = 0;
+
+    if (0==strcasecomp(word1, "suffix")) {
+	HTSetSuffix(word2, word3, status >= 1? quality : 1.0);
+
+    } else if (0==strcasecomp(word1, "presentation")) {
+	HTSetPresentation(word2, word3,
+		    status >= 1? quality 		: 1.0,
+		    status >= 2 ? secs 		: 0.0,
+		    status >= 3 ? secs_per_byte 	: 0.0 );
+
+    } else {
+	op =	0==strcasecomp(word1, "map")  ?	HT_Map
+	    :	0==strcasecomp(word1, "pass") ?	HT_Pass
+	    :	0==strcasecomp(word1, "fail") ?	HT_Fail
+	    :						HT_Invalid;
+	if (op==HT_Invalid) {
+	    fprintf(stderr, "HTRule: Bad rule `%s'\n", config);
+	} else {  
+	    HTAddRule(op, word2, word3);
+	} 
+    }
+    free(line);
+    return 0;
+}
 
 
 /*	Load the rules from a file				HtLoadRules()
@@ -239,8 +300,8 @@ char * HTTranslate(required)
 **	Rules can be in any state
 ** On exit,
 **	Any existing rules will have been kept.
-**	Any new rules will have been loaded on top, so as to be tried first.
-**	Returns		0 if no error.
+**	Any new rules will have been loaded.
+**	Returns		0 if no error, 0 if error!
 **
 ** Bugs:
 **	The strings may not contain spaces.
@@ -250,47 +311,15 @@ int HTLoadRules ARGS1(CONST char *, filename)
 {
     FILE * fp = fopen(filename, "r");
     char line[LINE_LENGTH+1];
-    char pattern[LINE_LENGTH+1];
-    char operation [LINE_LENGTH+1];
-    char equiv[LINE_LENGTH+1];
-    float quality;
-    int status;
     
     if (!fp) {
         if (TRACE) printf("HTRules: Can't open rules file %s\n", filename);
 	return -1; /* File open error */
     }
     for(;;) {
-        HTRuleOp op;
 	if (!fgets(line, LINE_LENGTH+1, fp)) break;	/* EOF or error */
-	
-	{
-	    char * p = strchr(line, '#');	/* Chop off comments */
-	    if (p) *p = 0;
-	}
-	status = sscanf(line, "%256s%256s%256s%f",
-		operation, pattern, equiv, &quality);
-	if (status<=0) continue;	/* Comment only or blank */    
-	if (status<2) {
-	    fprintf(stderr, "HTRule: Insufficient operands: %s\n", line);
-	    return -2;	/*syntax error */
-	}
-	
-	if (0==strcasecomp(operation, "suffix")) {
-	    HTSetSuffix(pattern, equiv, status = 4? quality : 1.0);
-	} else {
-	    op =	0==strcasecomp(operation, "map")  ?	HT_Map
-		:	0==strcasecomp(operation, "pass") ?	HT_Pass
-		:	0==strcasecomp(operation, "fail") ?	HT_Fail
-		:						HT_Invalid;
-	    if (op==HT_Invalid) {
-		fprintf(stderr, "HTRule: Bad rule `%s'\n", line);
-		/* return -2; */
-	    } else {  
-	        HTAddRule(op, pattern, status > 2 ? equiv : NULL);
-	    } 
-	}
+	(void) HTSetConfiguration(line);
     }
     fclose(fp);
-    return 0;		/* No error */
+    return 0;		/* No error or syntax errors ignored */
 }

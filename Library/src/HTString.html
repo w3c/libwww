@@ -1,8 +1,9 @@
-<PRE>
-/*		Case-independent string comparison		HTString.h
-**		and allocations with copies
-*/
-#ifndef HTSTRING_H
+<HEADER>
+<TITLE>String handling for libwww</TITLE></HEADER>
+<BODY>
+<H1>Strings</H1>Case-independent string comparison
+and allocations with copies etc
+<PRE>#ifndef HTSTRING_H
 #define HTSTRING_H
 
 #include "HTUtils.h"
@@ -11,15 +12,24 @@ extern int WWW_TraceFlag;	/* Global flag for all W3 trace */
 
 extern CONST char * HTLibraryVersion;	/* String for help screen etc */
 
-extern int strcasecomp  PARAMS((CONST char *a, CONST char *b));
+</PRE>
+<H2>Case-insensitive string comparison</H2>The usual routines (comp instead
+of cmp) had some problem.
+<PRE>extern int strcasecomp  PARAMS((CONST char *a, CONST char *b));
 extern int strncasecomp PARAMS((CONST char *a, CONST char *b, int n));
 
+</PRE>
+<H2>Malloced string manipulation</H2>
+<PRE>#define StrAllocCopy(dest, src) HTSACopy (&amp;(dest), src)
+#define StrAllocCat(dest, src)  HTSACat  (&amp;(dest), src)
 extern char * HTSACopy PARAMS ((char **dest, CONST char *src));
 extern char * HTSACat  PARAMS ((char **dest, CONST char *src));
 
-/* Enable the old macro-like calling methods */
-#define StrAllocCopy(dest, src) HTSACopy (&#38;(dest), src)
-#define StrAllocCat(dest, src)  HTSACat  (&#38;(dest), src)
+</PRE>
+<H2>Next word or quoted string</H2>
+<PRE>extern char * HTNextField PARAMS ((char** pstr));
+
 
 #endif
-</PRE>
+</PRE>end</A><P>
+</BODY>
