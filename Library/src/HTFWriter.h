@@ -1,5 +1,9 @@
-/*		C File Writer			HTWriter.c
-**		-------------
+   /*
+   
+ */
+
+/*              C File Writer                   HTWriter.c
+**              -------------
 **
 **   It is useful to have both FWriter and Writer for environments in
 **   which fdopen() doesn't exist for example.
@@ -15,8 +19,11 @@
 extern HTStream * HTFWriter_new PARAMS((FILE * fp));
 
 extern HTStream * HTSaveAndExecute PARAMS((
-	HTPresentation *	pres,
-	HTParentAnchor *	anchor,	/* Not used */
-	HTStream *		sink));
+        HTPresentation *        pres,
+        HTParentAnchor *        anchor, /* Not used */
+        HTStream *              sink));
 
 #endif
+/*
+
+    */

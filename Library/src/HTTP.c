@@ -21,6 +21,9 @@
 #define HTTP_VERSION	"HTTP/1.0"
 #define HTTP2				/* Version is greater than 0.9 */
 
+#define CR   FROMASCII('\015')	/* Must be converted to ^M for transmission */
+#define LF   FROMASCII('\012')	/* Must be converted to ^J for transmission */
+
 #define INIT_LINE_SIZE		1024	/* Start with line buffer this big */
 #define LINE_EXTEND_THRESH	256	/* Minimum read size */
 #define VERSION_LENGTH 		20	/* for returned protocol version */
@@ -35,7 +38,6 @@
 #include <ctype.h>
 #include "HTAlert.h"
 #include "HTMIME.h"
-
 
 struct _HTStream {
 	HTStreamClass * isa;		/* all we need to know */
@@ -69,9 +71,12 @@ PUBLIC int HTLoadHTTP ARGS4 (
 {
     int s;				/* Socket number for returned data */
     char *command;			/* The whole command */
+    char * eol = 0;			/* End of line if found */
     int status;				/* tcp return */
+    HTStream *	target = NULL;		/* Unconverted data */
+    HTFormat format_in;			/* Format arriving in the message */
+    
     CONST char* gate = 0;		/* disable this feature */
-    HTFormat format = WWW_HTML;		/* default is HTTP2 */   
     SockA soc_address;			/* Binary network address */
     SockA * sin = &soc_address;
     BOOL had_header = NO;		/* Have we had at least one header? */
@@ -164,10 +169,14 @@ retry:
         strcat(command, HTTP_VERSION);
     }
 #endif
-    strcat(command, "\r\n");	/* Include CR for telnet compat. */
-	    
+    {
+	char * p = command + strlen(command);
+	*p++ = CR;		/* Macros to be correct on Mac */
+	*p++ = LF;
+	*p++ = 0;
+	/* strcat(command, "\r\n");	*/	/* CR LF, as in rfc 977 */
+    }
 
-#ifdef HTTP2
     if (extensions) {
 
 	int n;
@@ -182,30 +191,29 @@ retry:
 	    HTPresentation * pres = HTList_objectAt(HTPresentations, i);
 	    if (pres->rep_out == present) {
 	      if (pres->quality != 1.0) {
-                 sprintf(line, "Accept: %s q=%.3f\r\n",
-			 HTAtom_name(pres->rep), pres->quality);
+                 sprintf(line, "Accept: %s q=%.3f%c%c",
+			 HTAtom_name(pres->rep), pres->quality, CR, LF);
 	      } else {
-                 sprintf(line, "Accept: %s\r\n",
-			 HTAtom_name(pres->rep));
+                 sprintf(line, "Accept: %s%c%c",
+			 HTAtom_name(pres->rep), CR, LF);
 	      }
 	      StrAllocCat(command, line);
 
 	    }
 	}
     }
-    
-    StrAllocCat(command, "\r\n");	/* BLANK LINE means "end" */
-   
-#endif
-
-#ifdef NOT_ASCII
+       
     {
     	char * p;
+	char crlf[3] = "\015\012";
+	StrAllocCat(command, crlf);	/* Blank line means "end" */
+#ifdef NOT_ASCII
 	for(p = command; *p; p++) {
 	    *p = TOASCII(*p);
 	}
-    }
 #endif
+
+    }
 
     if (TRACE) fprintf(stderr, "HTTP Tx: %s\n", command);
     status = NETWRITE(s, command, (int)strlen(command));
@@ -218,16 +226,15 @@ retry:
 
 /*	Now load the data:	HTTP2 response parse
 */
-#ifdef HTTP2
+
+    format_in = WWW_HTML;	/* default */
     {
     
     /* Get numeric status etc */
 
 	int status;
 	int length = 0;
-	char * eol = 0;
 	BOOL end_of_file = NO;
-	HTFormat format = WWW_PLAINTEXT;	/* default */
 	HTAtom * encoding = HTAtom_for("7bit");
 	int buffer_length = INIT_LINE_SIZE;	/* Why not? */
 	
@@ -267,8 +274,8 @@ retry:
 		}
 	    }
 #endif
-	    eol = strchr(line_buffer + length, '\n');
-            if (eol && *(eol-1) == '\r') *(eol-1) = ' '; 
+	    eol = strchr(line_buffer + length, LF);
+            if (eol && *(eol-1) == CR) *(eol-1) = ' '; 
 
 	    length = length + status;
 	    	    
@@ -302,32 +309,25 @@ retry:
 
 	    if (fields < 2) break;
 	    
+	    format_in = HTAtom_for("www/mime");
+
 	    switch (server_status / 100) {
 	    
+	    default:		/* bad number */
+		HTAlert("Unknown status reply from server!");
+		break;
+		
 	    case 3:		/* Various forms of redirection */
+	    	HTAlert(
+	"Redirection response from server is not handled by this client");
+		break;
+		
 	    case 4:		/* "I think I goofed" */
 	    case 5:		/* I think you goofed */
-	    default:		/* bad number */
-	    	
-		HTAlert("Bad status reply from server");
-		/* Fall through @@@@@@@@@@@@@@@@@@@@@ */
+		HTAlert("Error response from server");
+		break;
 		
 	    case 2:		/* Good: Got MIME object */
-		{
-		    HTStream * mime = HTStreamStack(HTAtom_for("www/mime"),
-		    	format_out, sink, anAnchor);
-			
-		    if (!mime) {
-		    	if (line_buffer) free(line_buffer);
-			return HTLoadError(sink, 403,
-				"MIME: Can't convert this format");
-		    }
-		    mime->isa->put_string(mime, eol+1); /* Rest of buffer */
-		    HTCopyNoCR(s, mime);		/* Rest of doc */
-		    mime->isa->end_document(mime);
-		    mime->isa->free(mime);
-		    goto done;
-		}
 		break;
 
 	    }
@@ -337,26 +337,52 @@ retry:
 	} /* Loop over lines */
     }		/* Scope of HTTP2 handling block */
 
-/* Now, we can assume that we did NOT have a MIME header so behave as for HTTP0
+/*	Set up the stream stack to handle the body of the message
 */
-    {
-	HTParseSocket(format, format_out,
-                (HTParentAnchor *) anAnchor, s, sink);
+
+    target = HTStreamStack(format_in,
+			format_out,
+			sink , anAnchor);
+
+    if (!target) {
+	char buffer[1024];	/* @@@@@@@@ */
+	if (line_buffer) free(line_buffer);
+	sprintf(buffer, "Sorry, no known way of converting %s to %s.",
+		HTAtom_name(format_in), HTAtom_name(format_out));
+	fprintf(stderr, "HTTP: %s", buffer);
+	return HTLoadError(sink, 501, buffer);
     }
-#else
-    HTParseSocket(format, format_out,
-                (HTParentAnchor *) anAnchor, s, sink);
-#endif
+
+    
+/*	Push the data, maybe ignoring CR, down the stream
+**	We have to remember the end of the first buffer we just read
+*/
+    if (format_in != WWW_HTML) {
+        if (eol) (*target->isa->put_string)(target, eol+1);
+	HTCopy(s, target);
+	
+    } else {   /* ascii text with CRLFs :-( */
+        if (eol) {
+	    char * p;
+	    for (p = eol+1; *p; p++)
+	        if (*p != '\r') (*target->isa->put_character)(target, *p);
+	}
+	HTCopyNoCR(s, target);
+    }
+    (*target->isa->end_document)(target);
+    (*target->isa->free)(target);
+	
 
 /*	Clean up
 */
-done:
-    if (line_buffer) free(line_buffer);
     
+    if (line_buffer) free(line_buffer);
+
     if (TRACE) fprintf(stderr, "HTTP: close socket %d.\n", s);
     status = NETCLOSE(s);
 
     return HT_LOADED;			/* Good return */
+
 }
 
 /*	Protocol descriptor

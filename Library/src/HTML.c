@@ -22,6 +22,7 @@
 #include "HTStyle.h"
 
 #include "HTAlert.h"
+#include "HTMLGen.h"
 
 extern HTStyleSheet * styleSheet;	/* Application-wide */
 
@@ -74,12 +75,12 @@ struct _HTStream {
 PRIVATE void get_styles NOPARAMS;
 
 
-PRIVATE void actually_set_style PARAMS((HTStructured * this));
-PRIVATE void change_style PARAMS((HTStructured * this, HTStyle * style));
+PRIVATE void actually_set_style PARAMS((HTStructured * me));
+PRIVATE void change_style PARAMS((HTStructured * me, HTStyle * style));
 
 /*	Style buffering avoids dummy paragraph begin/ends.
 */
-#define UPDATE_STYLE if (this->style_change) { actually_set_style(this); }
+#define UPDATE_STYLE if (me->style_change) { actually_set_style(me); }
 
 
 #ifdef OLD_CODE
@@ -298,28 +299,28 @@ a sequence of styles.
 
 /*		If style really needs to be set, call this
 */
-PRIVATE void actually_set_style ARGS1(HTStructured *, this)
+PRIVATE void actually_set_style ARGS1(HTStructured *, me)
 {
-    if (!this->text) {			/* First time through */
-	    this->text = HText_new2(this->node_anchor, this->target);
-	    HText_beginAppend(this->text);
-	    HText_setStyle(this->text, this->new_style);
-	    this->in_word = NO;
+    if (!me->text) {			/* First time through */
+	    me->text = HText_new2(me->node_anchor, me->target);
+	    HText_beginAppend(me->text);
+	    HText_setStyle(me->text, me->new_style);
+	    me->in_word = NO;
     } else {
-	    HText_setStyle(this->text, this->new_style);
+	    HText_setStyle(me->text, me->new_style);
     }
-    this->old_style = this->new_style;
-    this->style_change = NO;
+    me->old_style = me->new_style;
+    me->style_change = NO;
 }
 
 /*      If you THINK you need to change style, call this
 */
 
-PRIVATE void change_style ARGS2(HTStructured *, this, HTStyle *,style)
+PRIVATE void change_style ARGS2(HTStructured *, me, HTStyle *,style)
 {
-    if (this->new_style!=style) {
-    	this->style_change = YES;
-	this->new_style = style;
+    if (me->new_style!=style) {
+    	me->style_change = YES;
+	me->new_style = style;
     }
 }
 
@@ -331,15 +332,15 @@ PRIVATE void change_style ARGS2(HTStructured *, this, HTStyle *,style)
 /*	Character handling
 **	------------------
 */
-PRIVATE void HTML_put_character ARGS2(HTStructured *, this, char, c)
+PRIVATE void HTML_put_character ARGS2(HTStructured *, me, char, c)
 {
 
-    switch (this->sp[0].tag_number) {
+    switch (me->sp[0].tag_number) {
     case HTML_COMMENT:
     	break;					/* Do Nothing */
 	
     case HTML_TITLE:	
-    	HTChunkPutc(&this->title, c);
+    	HTChunkPutc(&me->title, c);
 	break;
 
 	
@@ -349,22 +350,22 @@ PRIVATE void HTML_put_character ARGS2(HTStructured *, this, char, c)
     case HTML_PRE:
 /*	We guarrantee that the style is up-to-date in begin_litteral
 */
-    	HText_appendCharacter(this->text, c);
+    	HText_appendCharacter(me->text, c);
 	break;
 	
     default:					/* Free format text */
-	if (this->style_change) {
+	if (me->style_change) {
 	    if ((c=='\n') || (c==' ')) return;	/* Ignore it */
 	    UPDATE_STYLE;
 	}
 	if (c=='\n') {
-	    if (this->in_word) {
-		HText_appendCharacter(this->text, ' ');
-		this->in_word = NO;
+	    if (me->in_word) {
+		HText_appendCharacter(me->text, ' ');
+		me->in_word = NO;
 	    }
 	} else {
-	    HText_appendCharacter(this->text, c);
-	    this->in_word = YES;
+	    HText_appendCharacter(me->text, c);
+	    me->in_word = YES;
 	}
     } /* end switch */
 }
@@ -377,15 +378,15 @@ PRIVATE void HTML_put_character ARGS2(HTStructured *, this, char, c)
 **	This is written separately from put_character becuase the loop can
 **	in some cases be postponed to a lower level for speed.
 */
-PRIVATE void HTML_put_string ARGS2(HTStructured *, this, CONST char*, s)
+PRIVATE void HTML_put_string ARGS2(HTStructured *, me, CONST char*, s)
 {
 
-    switch (this->sp[0].tag_number) {
+    switch (me->sp[0].tag_number) {
     case HTML_COMMENT:
     	break;					/* Do Nothing */
 	
     case HTML_TITLE:	
-    	HTChunkPuts(&this->title, s);
+    	HTChunkPuts(&me->title, s);
 	break;
 
 	
@@ -396,30 +397,30 @@ PRIVATE void HTML_put_string ARGS2(HTStructured *, this, CONST char*, s)
 
 /*	We guarrantee that the style is up-to-date in begin_litteral
 */
-    	HText_appendText(this->text, s);
+    	HText_appendText(me->text, s);
 	break;
 	
     default:					/* Free format text */
         {
 	    CONST char *p = s;
-	    if (this->style_change) {
+	    if (me->style_change) {
 		for (; *p && ((*p=='\n') || (*p==' ')); p++)  ;  /* Ignore leaders */
 		if (!*p) return;
 		UPDATE_STYLE;
 	    }
 	    for(; *p; p++) {
-		if (this->style_change) {
+		if (me->style_change) {
 		    if ((*p=='\n') || (*p==' ')) continue;  /* Ignore it */
 		    UPDATE_STYLE;
 		}
 		if (*p=='\n') {
-		    if (this->in_word) {
-			HText_appendCharacter(this->text, ' ');
-			this->in_word = NO;
+		    if (me->in_word) {
+			HText_appendCharacter(me->text, ' ');
+			me->in_word = NO;
 		    }
 		} else {
-		    HText_appendCharacter(this->text, *p);
-		    this->in_word = YES;
+		    HText_appendCharacter(me->text, *p);
+		    me->in_word = YES;
 		}
 	    } /* for */
 	}
@@ -430,11 +431,11 @@ PRIVATE void HTML_put_string ARGS2(HTStructured *, this, CONST char*, s)
 /*	Buffer write
 **	------------
 */
-PRIVATE void HTML_write ARGS3(HTStructured *, this, CONST char*, s, int, l)
+PRIVATE void HTML_write ARGS3(HTStructured *, me, CONST char*, s, int, l)
 {
     CONST char* p;
     CONST char* e = s+l;
-    for (p=s; s<e; p++) HTML_put_character(this, *p);
+    for (p=s; s<e; p++) HTML_put_character(me, *p);
 }
 
 
@@ -442,7 +443,7 @@ PRIVATE void HTML_write ARGS3(HTStructured *, this, CONST char*, s, int, l)
 **	-------------
 */
 PRIVATE void HTML_start_element ARGS4(
-	HTStructured *, 	this,
+	HTStructured *, 	me,
 	int,		element_number,
 	CONST BOOL*,	 	present,
 	CONST char **,	value)
@@ -451,7 +452,7 @@ PRIVATE void HTML_start_element ARGS4(
     case HTML_A:
 	{
 	    HTChildAnchor * source = HTAnchor_findChildAndLink(
-		this->node_anchor,				/* parent */
+		me->node_anchor,				/* parent */
 		present[HTML_A_NAME] ? value[HTML_A_NAME] : 0,	/* Tag */
 		present[HTML_A_HREF] ? value[HTML_A_HREF] : 0,	/* Addresss */
 		present[HTML_A_TYPE] && value[HTML_A_TYPE] ? 
@@ -467,85 +468,86 @@ PRIVATE void HTML_start_element ARGS4(
 			HTAnchor_setTitle(dest, value[HTML_A_TITLE]);
 	    }
 	    UPDATE_STYLE;
-	    HText_beginAnchor(this->text, source);
+	    HText_beginAnchor(me->text, source);
 	}
     	break;
 	
     case HTML_TITLE:
-        HTChunkClear(&this->title);
+        HTChunkClear(&me->title);
 	break;
 	
     case HTML_NEXTID:
     	/* if (present[NEXTID_N] && value[NEXTID_N])
-		HText_setNextId(this->text, atoi(value[NEXTID_N])); */
+		HText_setNextId(me->text, atoi(value[NEXTID_N])); */
     	break;
 	
     case HTML_ISINDEX:
-   	HTAnchor_setIndex(this->node_anchor);
+   	HTAnchor_setIndex(me->node_anchor);
 	break;
 	
     case HTML_P:
 	UPDATE_STYLE;
-	HText_appendParagraph(this->text);
-	this->in_word = NO;
+	HText_appendParagraph(me->text);
+	me->in_word = NO;
 	break;
 
     case HTML_DL:
-        change_style(this, present[DL_COMPACT]
+        change_style(me, present && present[DL_COMPACT]
     		? styles[HTML_DLC]
 		: styles[HTML_DL]);
-    	this->in_word = NO;
+    	me->in_word = NO;
 	break;
 	
     case HTML_DT:
-        if (!this->style_change) {
-	    HText_appendParagraph(this->text);
-	    this->in_word = NO;
+        if (!me->style_change) {
+	    HText_appendParagraph(me->text);
+	    me->in_word = NO;
 	}
 	break;
 	
     case HTML_DD:
         UPDATE_STYLE;
-	HTML_put_character(this, '\t');	/* Just tab out one stop */
-	this->in_word = NO;
+	HTML_put_character(me, '\t');	/* Just tab out one stop */
+	me->in_word = NO;
+	break;
 
     case HTML_UL:
     case HTML_OL:
     case HTML_MENU:
     case HTML_DIR:
-	change_style(this, styles[element_number]);
-	this->in_word = NO;
+	change_style(me, styles[element_number]);
+	me->in_word = NO;
 	break;
 	
     case HTML_LI:
         UPDATE_STYLE;
-	if (this->sp[1].tag_number != HTML_DIR)
-	    HText_appendParagraph(this->text);
+	if (me->sp[1].tag_number != HTML_DIR)
+	    HText_appendParagraph(me->text);
 	else
-	    HText_appendCharacter(this->text, '\t');	/* Tab @@ nl for UL? */
-	this->in_word = NO;
+	    HText_appendCharacter(me->text, '\t');	/* Tab @@ nl for UL? */
+	me->in_word = NO;
 	break;
 	
     case HTML_LISTING:				/* Litteral text */
     case HTML_XMP:
     case HTML_PLAINTEXT:
     case HTML_PRE:
-	change_style(this, styles[element_number]);
+	change_style(me, styles[element_number]);
 	UPDATE_STYLE;
-    	if (this->comment_end)
-    	    HText_appendText(this->text, this->comment_end);
+    	if (me->comment_end)
+    	    HText_appendText(me->text, me->comment_end);
 	break;
 	
     default:
-    	change_style(this, styles[element_number]);	/* May be postponed */
+    	change_style(me, styles[element_number]);	/* May be postponed */
 	break;
 
     } /* end switch */
 
     if (HTML_dtd.tags[element_number].contents!= SGML_EMPTY) {
-    	--(this->sp);
-	this->sp[0].style = this->new_style;	/* Stack new style */
-	this->sp[0].tag_number = element_number;
+    	--(me->sp);
+	me->sp[0].style = me->new_style;	/* Stack new style */
+	me->sp[0].tag_number = element_number;
     }
 	
 }
@@ -561,43 +563,43 @@ PRIVATE void HTML_start_element ARGS4(
 **	should be linked to the whole stack not just the top one.)
 **	TBL 921119
 */
-PRIVATE void HTML_end_element ARGS2(HTStructured *, this, int , element_number)
+PRIVATE void HTML_end_element ARGS2(HTStructured *, me, int , element_number)
 {
 #ifdef CAREFUL			/* parser assumed to produce good nesting */
-    if (element_number != this->sp[0].tag_number) {
+    if (element_number != me->sp[0].tag_number) {
         fprintf(stderr, "HTMLText: end of element %s when expecting end of %s\n",
 		HTML_dtd.tags[element_number].name,
-		HTML_dtd.tags[this->sp->tag_number].name);
+		HTML_dtd.tags[me->sp->tag_number].name);
     		exit(-20);
     }
 #endif
     
-    this->sp++;				/* Pop state off stack */
+    me->sp++;				/* Pop state off stack */
     
     switch(element_number) {
 
     case HTML_A:
 	UPDATE_STYLE;
-	HText_endAnchor(this->text);
+	HText_endAnchor(me->text);
 	break;
 
     case HTML_TITLE:
-        HTChunkTerminate(&this->title);
-    	HTAnchor_setTitle(this->node_anchor, this->title.data);
+        HTChunkTerminate(&me->title);
+    	HTAnchor_setTitle(me->node_anchor, me->title.data);
 	break;
 	
     case HTML_LISTING:				/* Litteral text */
     case HTML_XMP:
     case HTML_PLAINTEXT:
     case HTML_PRE:
-    	if (this->comment_start)
-    	    HText_appendText(this->text, this->comment_start);
+    	if (me->comment_start)
+    	    HText_appendText(me->text, me->comment_start);
 	/* Fall through */
 	
     default:
     
-	change_style(this, this->sp->style);	/* Often won't really change */
-    	this->in_word = NO;		/* Paragraph styles only @@ */
+	change_style(me, me->sp->style);	/* Often won't really change */
+    	me->in_word = NO;		/* Paragraph styles only @@ */
 	break;
 	
     } /* switch */
@@ -610,9 +612,9 @@ PRIVATE void HTML_end_element ARGS2(HTStructured *, this, int , element_number)
 /*	(In fact, they all shrink!)
 */
 
-PRIVATE void HTML_put_entity ARGS2(HTStructured *, this, int, entity_number)
+PRIVATE void HTML_put_entity ARGS2(HTStructured *, me, int, entity_number)
 {
-    HTML_put_string(this, ISO_Latin1[entity_number]);	/* @@ Other representations */
+    HTML_put_string(me, ISO_Latin1[entity_number]);	/* @@ Other representations */
 }
 
 
@@ -620,33 +622,33 @@ PRIVATE void HTML_put_entity ARGS2(HTStructured *, this, int, entity_number)
 /*	Free an HTML object
 **	-------------------
 **
-**	If non-interactive, everything is freed off.
-**	Otherwise, the interactive object is left.	
-*/
-PUBLIC void HTML_free ARGS1(HTStructured *, this)
-{
-    if (this->target) {
-        (*this->targetClass.free)(this->target);
-	HText_free(this->text);
-    }
-    free(this);
-}
-
-
-PRIVATE void HTML_end_document ARGS1(HTStructured *, this)
-
-/* If the document is empty, the text object will not yet exist.
+** If the document is empty, the text object will not yet exist.
    So we could in fact abandon creating the document and return
    an error code.  In fact an empty document is an important type
    of document, so we don't.
+**
+**	If non-interactive, everything is freed off.   No: crashes -listrefs
+**	Otherwise, the interactive object is left.	
 */
+PUBLIC void HTML_free ARGS1(HTStructured *, me)
 {
     UPDATE_STYLE;		/* Creates empty document here! */
-    if (this->comment_end)
-		HTML_put_string(this,this->comment_end);
-    HText_endAppend(this->text);
-    if (this->target)
-        (*this->targetClass.end_document)(this->target);
+    if (me->comment_end)
+		HTML_put_string(me,me->comment_end);
+    HText_endAppend(me->text);
+
+    if (me->target) {
+        (*me->targetClass.end_document)(me->target);
+        (*me->targetClass.free)(me->target);
+/*	HText_free(me->text);	*/		/* @@@@@@@@@@@@@@@ */
+    }
+    free(me);
+}
+
+
+PRIVATE void HTML_end_document ARGS1(HTStructured *, me)
+
+{			/* Obsolete */
 }
 
 
@@ -696,40 +698,53 @@ PUBLIC CONST HTStructuredClass HTMLPresentation = /* As opposed to print etc */
 	HTML_put_entity
 }; 
 
+
 /*		New Structured Text object
 **		--------------------------
 **
-**	If the stream is NULL then an interactive object is produced
+**	The strutcured stream can generate either presentation,
+**	or plain text, or HTML.
 */
-PUBLIC HTStructured* HTML_new ARGS2(
+PUBLIC HTStructured* HTML_new ARGS3(
 	HTParentAnchor *, 	anchor,
+	HTFormat,		format_out,
 	HTStream*,		stream)
 {
 
-    HTStructured * this = malloc(sizeof(*this));
+    HTStructured * me;
+    
+    if (format_out == WWW_HTML) return HTMLGenerator(stream);
+    if (format_out != WWW_PLAINTEXT && format_out != WWW_PRESENT) {
+        fprintf(stderr, "** Internal error: can't parse HTML to %s\n",
+       		HTAtom_name(format_out));
+	exit (-99);
+    }
+
+    me = (HTStructured*) malloc(sizeof(*me));
+    if (me == NULL) outofmem(__FILE__, "HTML_new");
 
     if (!got_styles) get_styles();
 
-    this->isa = &HTMLPresentation;
-    this->node_anchor =  anchor;
-    this->title.size = 0;
-    this->title.growby = 128;
-    this->title.allocated = 0;
-    this->title.data = 0;
-    this->text = 0;
-    this->style_change = YES; /* Force check leading to text creation */
-    this->new_style = default_style;
-    this->old_style = 0;
-    this->sp = this->stack + MAX_NESTING - 1;
-    this->sp->tag_number = -1;				/* INVALID */
-    this->sp->style = default_style;			/* INVALID */
+    me->isa = &HTMLPresentation;
+    me->node_anchor =  anchor;
+    me->title.size = 0;
+    me->title.growby = 128;
+    me->title.allocated = 0;
+    me->title.data = 0;
+    me->text = 0;
+    me->style_change = YES; /* Force check leading to text creation */
+    me->new_style = default_style;
+    me->old_style = 0;
+    me->sp = me->stack + MAX_NESTING - 1;
+    me->sp->tag_number = -1;				/* INVALID */
+    me->sp->style = default_style;			/* INVALID */
     
-    this->comment_start = NULL;
-    this->comment_end = NULL;
-    this->target = stream;
-    if (stream) this->targetClass = *stream->isa;	/* Copy pointers */
+    me->comment_start = NULL;
+    me->comment_end = NULL;
+    me->target = stream;
+    if (stream) me->targetClass = *stream->isa;	/* Copy pointers */
     
-    return (HTStructured*) this;
+    return (HTStructured*) me;
 }
 
 
@@ -743,7 +758,7 @@ PUBLIC HTStream* HTMLToPlain ARGS3(
 	HTParentAnchor *,	anchor,	
 	HTStream *,		sink)
 {
-    return SGML_new(&HTML_dtd, HTML_new(anchor, sink));
+    return SGML_new(&HTML_dtd, HTML_new(anchor, pres->rep_out, sink));
 }
 
 
@@ -759,10 +774,14 @@ PUBLIC HTStream* HTMLToC ARGS3(
 	HTParentAnchor *,	anchor,	
 	HTStream *,		sink)
 {
-    HTStructured * html = HTML_new(anchor, sink);
+    
+    HTStructured * html;
+    
+    (*sink->isa->put_string)(sink, "/* ");	/* Before even title */
+    html = HTML_new(anchor, WWW_PLAINTEXT, sink);
     html->comment_start = "/* ";
     html->comment_end = " */\n";	/* Must start in col 1 for cpp */
-    HTML_put_string(html,html->comment_start);
+/*    HTML_put_string(html,html->comment_start); */
     return SGML_new(&HTML_dtd, html);
 }
 
@@ -780,7 +799,7 @@ PUBLIC HTStream* HTMLPresent ARGS3(
 	HTParentAnchor *,	anchor,	
 	HTStream *,		sink)
 {
-    return SGML_new(&HTML_dtd, HTML_new(anchor, NULL));
+    return SGML_new(&HTML_dtd, HTML_new(anchor, WWW_PRESENT, NULL));
 }
 #endif
 

@@ -29,7 +29,8 @@ typedef enum _MIME_state {
 	JUNK_LINE,		/* Ignore the rest of this folded line */
 	NEWLINE,		/* Just found a LF .. maybe continuation */
 	CHECK,			/* check against check_pointer */
-	TRANSPARENT		/* put straight through to target ASAP! */
+	TRANSPARENT,		/* put straight through to target ASAP! */
+	IGNORE			/* ignore entire file */
 } MIME_state;
 
 #define VALUE_SIZE 128		/* @@@@@@@ Arbitrary? */
@@ -76,6 +77,9 @@ PRIVATE void HTMIME_put_character ARGS2(HTStream *, me, char, c)
 {
     switch(me->state) {
 
+    case IGNORE:
+    	return;
+	
     case TRANSPARENT:
     	(*me->targetClass.put_character)(me->target, c);	/* MUST BE FAST */
 	return;
@@ -99,14 +103,22 @@ PRIVATE void HTMIME_put_character ARGS2(HTStream *, me, char, c)
 	case '\n':			/* Blank line: End of Header! */
 	    {
 	        if (TRACE) fprintf(stderr,
-			"HTMIME: MIME content type is %s, converting to\n",
-			HTAtom_name(me->format),HTAtom_name(me->targetRep));
+			"HTMIME: MIME content type is %s, converting to %s\n",
+			HTAtom_name(me->format), HTAtom_name(me->targetRep));
 		me->target = HTStreamStack(me->format, me->targetRep,
 	 		me->sink , me->anchor);
-		me->targetClass = *me->target->isa;
+		if (!me->target) {
+		    if (TRACE) fprintf(stderr, "MIME: Can't translate! ** \n");
+		    me->target = me->sink;	/* Cheat */
+		}
+		if (me->target) {
+		    me->targetClass = *me->target->isa;
 		/* Check for encoding and select state from there @@ */
 		
-		me->state = TRANSPARENT; /* From now on push straight through */
+		    me->state = TRANSPARENT; /* From now push straigh through */
+		} else {
+		    me->state = IGNORE;		/* What else to do? */
+		}
 	    }
 	    break;
 	    
@@ -224,7 +236,7 @@ PRIVATE void HTMIME_put_string ARGS2(HTStream *, me, CONST char*, s)
     CONST char * p;
     if (me->state == TRANSPARENT)		/* Optimisation */
         (*me->targetClass.put_string)(me->target,s);
-    else
+    else if (me->state != IGNORE)
         for (p=s; *p; p++) HTMIME_put_character(me, *p);
 }
 

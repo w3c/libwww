@@ -53,6 +53,9 @@ BUGS:	@@@  	Limit connection cache size!
 
 #include "HTFTP.h"	/* Implemented here */
 
+#define CR   FROMASCII('\015')	/* Must be converted to ^M for transmission */
+#define LF   FROMASCII('\012')	/* Must be converted to ^J for transmission */
+
 #define REPEAT_PORT	/* Give the port number for each file */
 #define REPEAT_LISTEN	/* Close each listen socket and open a new one */
 
@@ -252,7 +255,7 @@ PRIVATE int response(cmd)
     do {
 	char *p = response_text;
 	for(;;) {  
-	    if (((*p++=NEXT_CHAR) == '\n')
+	    if (((*p++=NEXT_CHAR) == LF)
 			|| (p == &response_text[LINE_LENGTH])) {
 		*p++=0;			/* Terminate the string */
 		if (TRACE) fprintf(stderr, "    Rx: %s", response_text);
@@ -410,11 +413,11 @@ PRIVATE int get_connection ARGS1 (CONST char *,arg)
 		if (username) {
 		    command = (char*)malloc(10+strlen(username)+2+1);
 		    if (command == NULL) outofmem(__FILE__, "get_connection");
-		    sprintf(command, "USER %s\r\n", username);
+		    sprintf(command, "USER %s%c%c", username, CR, LF);
 		} else {
 		    command = (char*)malloc(25);
 		    if (command == NULL) outofmem(__FILE__, "get_connection");
-		    sprintf(command, "USER anonymous\r\n");
+		    sprintf(command, "USER anonymous%c%c", CR, LF);
 	        }
 		status = response(command);
 		free(command);
@@ -424,19 +427,19 @@ PRIVATE int get_connection ARGS1 (CONST char *,arg)
 		if (password) {
 		    command = (char*)malloc(10+strlen(password)+2+1);
 		    if (command == NULL) outofmem(__FILE__, "get_connection");
-		    sprintf(command, "PASS %s\r\n", password);
+		    sprintf(command, "PASS %s%c%c", password, CR, LF);
 		} else {
 #ifdef ANON_FTP_HOSTNAME
 		    command = (char*)malloc(20+strlen(HTHostName())+2+1);
 		    if (command == NULL) outofmem(__FILE__, "get_connection");
 		    sprintf(command,
-		    "PASS WWWuser@%s\r\n", HTHostName()); /*@@*/
+		    "PASS WWWuser@%s%c%c", HTHostName(), CR, LF); /*@@*/
 #else
 		    /* In fact ftp.uu.net for example prefers just "@"
 		    	the fulle domain name, which we can't get - DD */
 		    command = (char*)malloc(20);
 		    if (command == NULL) outofmem(__FILE__, "get_connection");
-		    sprintf(command, "PASS WWWuser@\r\n"); /*@@*/
+		    sprintf(command, "PASS WWWuser@%c%c", CR, LF); /*@@*/
 #endif
 	        }
 		status = response(command);
@@ -444,8 +447,11 @@ PRIVATE int get_connection ARGS1 (CONST char *,arg)
 	    }
             if (username) free(username);
 
-	    if (status == 3) status = response("ACCT noaccount\r\n");
-	    
+	    if (status == 3) {
+	        char temp[80];
+		sprintf(temp, "ACCT noaccount%c%c", CR, LF);
+		status = response(temp);
+	    }
 	    if (status !=2) {
 	        if (TRACE) fprintf(stderr, "FTP: Login fail: %s", response_text);
 	    	if (control) close_connection(control);
@@ -600,13 +606,14 @@ PRIVATE int get_listen_socket()
 /*	Now we must find out who we are to tell the other guy
 */
     (void)HTHostName(); 	/* Make address valid - doesn't work*/
-    sprintf(port_command, "PORT %d,%d,%d,%d,%d,%d\r\n",
+    sprintf(port_command, "PORT %d,%d,%d,%d,%d,%d%c%c",
 		    (int)*((unsigned char *)(&sin->sin_addr)+0),
 		    (int)*((unsigned char *)(&sin->sin_addr)+1),
 		    (int)*((unsigned char *)(&sin->sin_addr)+2),
 		    (int)*((unsigned char *)(&sin->sin_addr)+3),
 		    (int)*((unsigned char *)(&sin->sin_port)+0),
-		    (int)*((unsigned char *)(&sin->sin_port)+1));
+		    (int)*((unsigned char *)(&sin->sin_port)+1),
+		    CR, LF);
 
 
 /*	Inform TCP that we will accept connections
@@ -637,13 +644,14 @@ PRIVATE int get_listen_socket()
 **			<0 if error.
 */
 PRIVATE int read_directory
-ARGS3 (
+ARGS4 (
   HTParentAnchor *,		parent,
   CONST char *,			address,
+  HTFormat,			format_out,
   HTStream *,			sink
 )
 {
-  HTStructured* target = HTML_new(parent, sink);
+  HTStructured* target = HTML_new(parent, format_out, sink);
   HTStructuredClass targetClass;
   BOOL present[HTML_A_ATTRIBUTES];
   char * value[HTML_A_ATTRIBUTES];
@@ -699,13 +707,13 @@ ARGS3 (
       c = NEXT_DATA_CHAR;
       if (c == '\r') {
 	c = NEXT_DATA_CHAR;
-	if (c != '\n') {
+	if (c != LF) {
 	  if (TRACE)
 	    printf ("Warning: No newline but %d after carriage return.\n", c);
 	  break;
 	}
       }
-      if (c == '\n' || c == (char) EOF)
+      if (c == LF || c == (char) EOF)
 	break;
       *p++ = c;
     }
@@ -777,7 +785,7 @@ ARGS4 (
 	{
 	    char *p;
 	    int reply, h0, h1, h2, h3, p0, p1;	/* Parts of reply */
-	    status = response("PASV\r\n");
+	    status = response("PASV%c%c", CR, LF);
 	    if (status !=2) {
 		if (status<0) continue;		/* retry or Bad return */
 		return -status;			/* bad reply */
@@ -840,15 +848,15 @@ ARGS4 (
         char *filename = HTParse(name, "", PARSE_PATH + PARSE_PUNCTUATION);
 	char command[LINE_LENGTH+1];
 	if (!*filename) StrAllocCopy(filename, "/");
-	sprintf(command, "RETR %s\r\n", filename);
+	sprintf(command, "RETR %s%c%c", filename, CR, LF);
 	format = HTFileFormat(filename);
 	status = response(command);
 	if (status != 1) {  /* Failed : try to CWD to it */
-	  sprintf(command, "CWD %s\r\n", filename);
+	  sprintf(command, "CWD %s%c%c", filename, CR, LF);
 	  status = response(command);
 	  if (status == 2) {  /* Successed : let's NAME LIST it */
 	    isDirectory = YES;
-	    sprintf(command, "NLST\r\n");
+	    sprintf(command, "NLST%c%c", CR, LF);
 	    status = response (command);
 	  }
 	}
@@ -874,7 +882,7 @@ ARGS4 (
 /* @@ */
 #endif
     if (isDirectory) {
-	return read_directory (anchor, name, sink);
+	return read_directory (anchor, name, format_out, sink);
       /* returns HT_LOADED or error */
     } else {
 	HTParseSocket(format, format_out,
@@ -1003,7 +1011,7 @@ int main(argc, argv)
 
         } /* if */
     } /* for */
-    status = response("QUIT\r\n");		/* Be good */
+    status = response("QUIT%c%c", CR, LF);		/* Be good */
     if (TRACE) fprintf(stderr, "Quit returned %d\n", status);
 
     while(connections) close_connection(connections);

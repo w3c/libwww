@@ -18,8 +18,8 @@ extern char * HTSACopy PARAMS ((char **dest, CONST char *src));
 extern char * HTSACat  PARAMS ((char **dest, CONST char *src));
 
 /* Enable the old macro-like calling methods */
-#define StrAllocCopy(dest, src) HTSACopy (&#38(dest), src)
-#define StrAllocCat(dest, src)  HTSACat  (&#38(dest), src)
+#define StrAllocCopy(dest, src) HTSACopy (&#38;(dest), src)
+#define StrAllocCat(dest, src)  HTSACat  (&#38;(dest), src)
 
 #endif
 </PRE>

@@ -32,6 +32,7 @@ PUBLIC HTStream* HTMLPresent PARAMS((
 
 extern HTStructured* HTML_new PARAMS((
 	HTParentAnchor * anchor,
+	HTFormat	format_out,
 	HTStream *	target));
 
 /*	Names for selected internal representations:
@@ -57,7 +58,7 @@ extern void HTMLUseCharacterSet PARAMS((HTMLCharacterSet i));
 **	number	is the HTTP error number
 **	message	is the human readable message.
 ** On exit,
-**	a retrun code like HT_LOADED if object exists else <#60 0
+**	a retrun code like HT_LOADED if object exists else &#60; 0
 */
 
 PUBLIC int HTLoadError PARAMS((

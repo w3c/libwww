@@ -43,9 +43,9 @@ struct _HTStream {
 **	------------------
 */
 
-PRIVATE void HTPlain_put_character ARGS2(HTStream *, this, char, c)
+PRIVATE void HTPlain_put_character ARGS2(HTStream *, me, char, c)
 {
-    HText_appendCharacter(this->text, c);
+    HText_appendCharacter(me->text, c);
 }
 
 
@@ -54,17 +54,17 @@ PRIVATE void HTPlain_put_character ARGS2(HTStream *, this, char, c)
 **	---------------
 **
 */
-PRIVATE void HTPlain_put_string ARGS2(HTStream *, this, CONST char*, s)
+PRIVATE void HTPlain_put_string ARGS2(HTStream *, me, CONST char*, s)
 {
-    HText_appendText(this->text, s);
+    HText_appendText(me->text, s);
 }
 
 
-PRIVATE void HTPlain_write ARGS3(HTStream *, this, CONST char*, s, int, l)
+PRIVATE void HTPlain_write ARGS3(HTStream *, me, CONST char*, s, int, l)
 {
     CONST char* p;
     CONST char* e = s+l;
-    for (p=s; s<e; p++) HText_appendCharacter(this->text, *p);
+    for (p=s; s<e; p++) HText_appendCharacter(me->text, *p);
 }
 
 
@@ -75,17 +75,17 @@ PRIVATE void HTPlain_write ARGS3(HTStream *, this, CONST char*, s, int, l)
 **	Note that the SGML parsing context is freed, but the created object is not,
 **	as it takes on an existence of its own unless explicitly freed.
 */
-PRIVATE void HTPlain_free ARGS1(HTStream *, this)
+PRIVATE void HTPlain_free ARGS1(HTStream *, me)
 {
-    free(this);
+    free(me);
 }
 
 /*	End writing
 */
 
-PRIVATE void HTPlain_end_document ARGS1(HTStream *, this)
+PRIVATE void HTPlain_end_document ARGS1(HTStream *, me)
 {
-    HText_endAppend(this->text);
+    HText_endAppend(me->text);
 }
 
 
@@ -111,15 +111,15 @@ PUBLIC HTStream* HTPlainPresent ARGS3(
 	HTStream *,		sink)
 {
 
-    HTStream* this = malloc(sizeof(*this));
-    if (this == NULL) outofmem(__FILE__, "HTPlain_new");
-    this->isa = &HTPlain;       
+    HTStream* me = malloc(sizeof(*me));
+    if (me == NULL) outofmem(__FILE__, "HTPlain_new");
+    me->isa = &HTPlain;       
 
-    this->text = HText_new(anchor);
-    HText_setStyle(this->text, HTStyleNamed(styleSheet, "Example"));
-    HText_beginAppend(this->text);
+    me->text = HText_new(anchor);
+    HText_setStyle(me->text, HTStyleNamed(styleSheet, "Example"));
+    HText_beginAppend(me->text);
 
-    return (HTStream*) this;
+    return (HTStream*) me;
 }
 
 

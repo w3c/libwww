@@ -16,22 +16,26 @@
 #include "HTFile.h"
 #include "HTFormat.h"
 #include "HTMIME.h"
+#include "HTWSRC.h"
 
 PUBLIC void HTFormatInit NOARGS
 {
 #ifdef NeXT
   HTSetPresentation("application/postscript", "open %s",	1.0, 2.0, 0.0);
-  HTSetPresentation("image/gif", 		"open %s", 	1.0, 2.0, 0.0);
+  HTSetPresentation("image/x-tiff", 		"open %s", 	1.0, 2.0, 0.0);
   HTSetPresentation("audio/basic", 		"open %s", 	1.0, 2.0, 0.0);
   HTSetPresentation("*", 			"open %s", 	1.0, 0.0, 0.0);
 #else
  if (getenv("DISPLAY")) {	/* Must have X11 */
   HTSetPresentation("application/postscript", "ghostview %s",	1.0, 3.0, 0.0);
   HTSetPresentation("image/gif", 		"xv %s", 	1.0, 3.0, 0.0);
+  HTSetPresentation("image/x-tiff", 		"xv %s", 	1.0, 3.0, 0.0);
   HTSetPresentation("image/jpeg", 		"xv %s", 	1.0, 3.0, 0.0);
  }
 #endif
  HTSetConversion("www/mime",  "*",  	     HTMIMEConvert, 	1.0, 0.0, 0.0);
+ HTSetConversion("application/x-wais-source",
+ 		      "*",  	     HTWSRCConvert, 	1.0, 0.0, 0.0);
  HTSetConversion("text/html", "text/x-c",    HTMLToC, 	        0.5, 0.0, 0.0);
  HTSetConversion("text/html", "text/plain",  HTMLToPlain, 	0.5, 0.0, 0.0);
  HTSetConversion("text/html", "www/present", HTMLPresent, 	1.0, 0.0, 0.0);
@@ -62,7 +66,7 @@ PUBLIC void HTFileInit NOARGS
     HTSetSuffix(".ai",	"application/postscript", 0.5);	/* Adobe illustator */
     HTSetSuffix(".ps",	"application/postscript", 0.8);
     
-    HTSetSuffix(".html","text/html", 1.0);		/* Jumping the gun a little */
+    HTSetSuffix(".html","text/html", 1.0);	/* Jumping the gun a little */
 
     HTSetSuffix(".c",	"text/plain", 0.5);
     HTSetSuffix(".h",	"text/plain", 0.5);		/* html better */
@@ -70,6 +74,8 @@ PUBLIC void HTFileInit NOARGS
     HTSetSuffix(".txt", "text/plain", 0.5);
 
     HTSetSuffix(".rtf",	"application/x-rtf", 1.0);
+
+    HTSetSuffix(".src",	"application/x-wais-source", 1.0);
     
     HTSetSuffix(".snd", "audio/basic", 1.0);
     

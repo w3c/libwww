@@ -1,6 +1,7 @@
-/*		Telnet and similar access methods		HTTelnet.h
-**		---------------------------------
-*/
+/*                 /Net/dxcern/userd/timbl/hypertext/WWW/Library/Implementation/HTTelnet.html
+                            TELNET AND SIMILAR ACCESS METHODS
+                                             
+ */
 
 #ifndef HTTELNET_H
 #define HTTELNET_H
@@ -11,5 +12,9 @@ extern HTProtocol HTTelnet;
 extern HTProtocol HTRlogin;
 extern HTProtocol HTTn3270;
 
+#endif
 
-#endif /* HTTELNET_H */
+
+/*
+
+    */

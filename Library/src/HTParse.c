@@ -339,3 +339,41 @@ char * HTRelative(aName, relatedName)
     		aName, relatedName, result);
     return result;
 }
+
+
+/*		Decode %xx escaped characters			HTUnEscape()
+**		-----------------------------
+**
+**	This function takes a pointer to a string in which some
+**	characters may have been encoded in %xy form, where xy is
+**	the acsii hex code for character 16x+y.
+**	The string is converted in place, as it will never grow.
+*/
+
+PRIVATE char from_hex ARGS1(char, c)
+{
+    return  TOASCII(c) > '9' ? c - 'A' + 10
+    			     : c - '0';
+}
+
+PUBLIC char * HTUnEscape ARGS1( char *, str)
+{
+    char * p = str;
+    char * q = str;
+    while(*p) {
+        if (*p == '%') {
+	    p++;
+	    if (*p) *q = from_hex(*p++) * 16;
+	    if (*p) *q = FROMASCII(*q + from_hex(*p++));
+	    q++;
+	} else {
+	    *q++ = *p++; 
+	}
+    }
+    
+    *q++ = 0;
+    return str;
+    
+} /* HTUnEscape */
+
+

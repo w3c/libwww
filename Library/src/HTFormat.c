@@ -8,7 +8,6 @@
 **	format, and so ALWAYS converts from ASCII on non-ASCII machines.
 **	Therefore, non-ASCII machines can't read local files.
 **
-**	Bugs:  Big shakeup comming here
 */
 
 /* Implements:
@@ -247,11 +246,11 @@ PUBLIC HTStream * HTStreamStack ARGS4(
 	}
     }
     
-/*    if (HTConfirm("Save as temporary file?"))
-    	return HTSaveAndExecute("ls -l %s", ".ps");
-*/
+#ifdef XMOSAIC_HACK
+    return sink;
+#else
     return NULL;
-
+#endif
 }
 	
 
@@ -408,15 +407,21 @@ PUBLIC int HTParseSocket ARGS5(
         char buffer[1024];	/* @@@@@@@@ */
 	sprintf(buffer, "Sorry, can't convert from %s to %s.",
 		HTAtom_name(format_in), HTAtom_name(format_out));
-	fprintf(stderr, "HTFormat: %s", buffer);
+	if (TRACE) fprintf(stderr, "HTFormat: %s\n", buffer);
         return HTLoadError(sink, 501, buffer);
     }
     
-/*	Push the data, ignoring CRLF, down the stream
+/*	Push the data, ignoring CRLF if necessary, down the stream
 **
+**
+**   @@  Bug:  This decision ought to be made based on "encoding"
+**   rather than on format.  @@@  Whne we handle encoding.
+**   The current method smells anyway.
 */
     targetClass = *(stream->isa);	/* Copy pointers to procedures */
-    if (format_in == WWW_BINARY || HTOutputSource) { /* @@@@@@ */
+    if (format_in == WWW_BINARY || HTOutputSource
+        || strstr(HTAtom_name(format_in), "image/")
+	|| strstr(HTAtom_name(format_in), "video/")) { /* @@@@@@ */
         HTCopy(file_number, stream);
     } else {   /* ascii text with CRLFs :-( */
         HTCopyNoCR(file_number, stream);

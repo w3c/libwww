@@ -9,6 +9,9 @@
 */
 #include "HTNews.h"
 
+#define CR   FROMASCII('\015')	/* Must be converted to ^M for transmission */
+#define LF   FROMASCII('\012')	/* Must be converted to ^J for transmission */
+
 #define NEWS_PORT 119		/* See rfc977 */
 #define APPEND			/* Use append methods */
 #define MAX_CHUNK	40	/* Largest number of articles in one window */
@@ -212,7 +215,8 @@ PRIVATE int response ARGS1(CONST char *,command)
     } /* if command to be sent */
     
     for(;;) {  
-	if (((*p++=NEXT_CHAR) == '\n') || (p == &response_text[LINE_LENGTH])) {
+	if (((*p++=NEXT_CHAR) == LF)
+	                || (p == &response_text[LINE_LENGTH])) {
 	    *p++=0;				/* Terminate the string */
 	    if (TRACE) fprintf(stderr, "NNTP Response: %s\n", response_text);
 	    sscanf(response_text, "%d", &result);
@@ -397,7 +401,7 @@ PRIVATE void read_article NOARGS
 		abort_socket();	/* End of file, close socket */
 	    	return;		/* End of file on response */
 	    }
-	    if ((ch == '\n') || (p == &line[LINE_LENGTH])) {
+	    if ((ch == LF) || (p == &line[LINE_LENGTH])) {
 		*--p=0;				/* Terminate the string */
 		if (TRACE) fprintf(stderr, "H %s\n", line);
 
@@ -470,7 +474,7 @@ PRIVATE void read_article NOARGS
 	    abort_socket();	/* End of file, close socket */
 	    return;		/* End of file on response */
 	}
-	if ((ch == '\n') || (p == &line[LINE_LENGTH])) {
+	if ((ch == LF) || (p == &line[LINE_LENGTH])) {
 	    *p++=0;				/* Terminate the string */
 	    if (TRACE) fprintf(stderr, "B %s", line);
 	    if (line[0]=='.') {
@@ -546,7 +550,7 @@ PRIVATE void read_list NOARGS
 	    abort_socket();	/* End of file, close socket */
 	    return;		/* End of file on response */
 	}
-	if ((ch == '\n') || (p == &line[LINE_LENGTH])) {
+	if ((ch == LF) || (p == &line[LINE_LENGTH])) {
 	    *p++=0;				/* Terminate the string */
 	    if (TRACE) fprintf(stderr, "B %s", line);
     	    (*targetClass.start_element)(target, HTML_LI , 0, 0);
@@ -657,7 +661,7 @@ PRIVATE void read_group ARGS3(
 	"\nThere are about %d articles currently available in %s, IDs as follows:\n\n",
 		count, groupName); 
         PUTS(buffer);
-        sprintf(buffer, "XHDR Message-ID %d-%d\n", first, last);
+        sprintf(buffer, "XHDR Message-ID %d-%d%c%c", first, last, CR, LF);
 	status = response(buffer);
 	if (status==221) {
 
@@ -715,21 +719,22 @@ PRIVATE void read_group ARGS3(
 */
 	    if (art==first_required) {
 		if (art==last_required) {
-			sprintf(buffer, "HEAD %d\n", art);	/* Only one */
+			sprintf(buffer, "HEAD %d%c%c", art, CR, LF);	/* Only one */
 			status = response(buffer);
 		    } else {					/* First of many */
-			sprintf(buffer, "HEAD %d\nHEAD %d\n", art, art+1);
+			sprintf(buffer, "HEAD %d%c%cHEAD %d%c%c",
+				art, CR, LF, art+1, CR, LF);
 			status = response(buffer);
 		    }
 	    } else if (art==last_required) {			/* Last of many */
 		    status = response(NULL);
 	    } else {						/* Middle of many */
-		    sprintf(buffer, "HEAD %d\n", art+1);
+		    sprintf(buffer, "HEAD %d%c%c", art+1, CR, LF);
 		    status = response(buffer);
 	    }
 	    
 #else	/* NOT OVERLAP */
-	    sprintf(buffer, "HEAD %d\n", art);
+	    sprintf(buffer, "HEAD %d%c%c", art, CR, LF);
 	    status = response(buffer);
 #endif	/* NOT OVERLAP */
 
@@ -743,7 +748,7 @@ PRIVATE void read_group ARGS3(
 			abort_socket();	/* End of file, close socket */
 			return;		/* End of file on response */
 		    }
-		    if ((ch == '\n')
+		    if ((ch == LF)
 			|| (p == &line[LINE_LENGTH]) ) {
 		    
 			*--p=0;		/* Terminate  & chop LF*/
@@ -777,7 +782,7 @@ PRIVATE void read_group ARGS3(
 				strcpy(author,
 					author_name(strchr(line,':')+1));
 				p = author + strlen(author) - 1;
-				if (*p=='\n') *p = 0;	/* Chop off newline */
+				if (*p==LF) *p = 0;	/* Chop off newline */
 			    }
 			    break;
 				    
@@ -890,10 +895,14 @@ PUBLIC int HTLoadNews ARGS4(
 	    strcat(command, p1);
 	    if (strchr(p1, '>')==0) strcat(command,">");
 	}
-/*   	free(p1); * bug fix TBL 5 Aug 92 */
 
-        strcat(command, "\r\n");		/* CR LF, as in rfc 977 */
-	
+        {
+	    char * p = command + strlen(command);
+	    *p++ = CR;		/* Macros to be correct on Mac */
+	    *p++ = LF;
+	    *p++ = 0;
+	    /* strcat(command, "\r\n");	*/	/* CR LF, as in rfc 977 */
+	}
     } /* scope of p1 */
     
     if (!*arg) return NO;			/* Ignore if no name */
@@ -902,7 +911,7 @@ PUBLIC int HTLoadNews ARGS4(
 /*	Make a hypertext object with an anchor list.
 */       
     node_anchor = anAnchor;
-    target = HTML_new(anAnchor, stream);
+    target = HTML_new(anAnchor, format_out, stream);
     targetClass = *target->isa;	/* Copy routine entry points */
     
     	

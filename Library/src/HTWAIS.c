@@ -15,7 +15,7 @@
 **	   Sep 91	TBL adapted shell-ui.c (BK) with HTRetrieve.c from WWW.
 **	   Feb 91	TBL Generated HTML cleaned up a bit (quotes, escaping)
 **			    Refers to lists of sources. 
-**	   Mac 93	TBL   Lib 2.0 compatible module made.	
+**	   Mar 93	TBL   Lib 2.0 compatible module made.	
 **
 ** Bugs
 **	Uses C stream i/o to read and write sockets, which won't work
@@ -48,13 +48,9 @@
 
 #define BIG 1024	/* identifier size limit  @@@@@ */
 
-/*				From WAIS:
+/*			From WAIS
+**			---------
 */
-#ifdef NOT_NEEDED_HERE
-#include <ctype.h>
-#include <string.h>
-#include <sockets.h>
-#endif
 
 #include <ui.h>
 
@@ -64,35 +60,64 @@
 #define WAISSEARCH_DATE "Fri Jul 19 1991"
 
 
-/*				From WWW:
+/*			FROM WWW
+**			--------
 */
 #define BUFFER_SIZE 4096	/* Arbitrary size for efficiency */
 
+#define HEX_ESCAPE '%'
+
 #include "HTUtils.h"
 #include "tcp.h"
-#ifdef RULES			/* Use rules? Nope.*/
-#include "HTRules.h"
-#endif
 #include "HTParse.h"
-
-#include "ParseWSRC.h"
+#include "HTAccess.h"		/* We implement a protocol */
+#include "HTML.h"		/* The object we will generate */
+ 
+/* #include "ParseWSRC.h" */
 
 extern int WWW_TraceFlag;	/* Control diagnostic output */
 extern FILE * logfile;		/* Log file output */
-extern char HTClientHost[16];	/* Client name to be output */
 
-PRIVATE FILE * client;		/* File pointer for client channel */
-PRIVATE BOOL	wsrc;		/* Data being read is wais source info */
 PRIVATE BOOL	as_gate;	/* Client is using us as gateway */
 
 PRIVATE char	line[2048];	/* For building strings to display */
 				/* Must be able to take id */
+
+
+#include "HTParse.h"
+#include "HTFormat.h"
+#include "HTTCP.h"
+#include "HTWSRC.h"		/* Need some bits from here */
+
+/*		Hypertext object building machinery
+*/
+#include "HTML.h"
+
+#define PUTC(c) (*target->isa->put_character)(target, c)
+#define PUTS(s) (*target->isa->put_string)(target, s)
+#define START(e) (*target->isa->start_element)(target, e, 0, 0)
+#define END(e) (*target->isa->end_element)(target, e)
+#define END_TARGET (*target->isa->end_document)(target)
+#define FREE_TARGET (*target->isa->free)(target)
+
+struct _HTStructured {
+	CONST HTStructuredClass *	isa;
+	/* ... */
+};
+
+struct _HTStream {
+	CONST HTStreamClass *	isa;
+	/* ... */
+};
+
+
 /*								showDiags
 */
 /* modified from Jonny G's version in ui/question.c */
 
-void showDiags ARGS1(
-	diagnosticRecord **, d)
+void showDiags ARGS2(
+	HTStream *, 		target,
+	diagnosticRecord **, 	d)
 {
   long i;
 
@@ -149,8 +174,8 @@ char * WWW_from_archie ARGS1 (char *, file)
     return result;
 } /* WWW_from_archie */
 
-/*	Transform document identifier into WWW address
-**	----------------------------------------------
+/*	Transform document identifier into URL
+**	--------------------------------------
 **
 ** Bugs: A static buffer of finite size is used!
 **	The format of the docid MUST be good!
@@ -159,7 +184,11 @@ char * WWW_from_archie ARGS1 (char *, file)
 **	returns		nil if error
 **			pointer to malloced string (must be freed) if ok
 */
-char * WWW_from_WAIS ARGS1(any *, docid)
+PRIVATE char hex [16] = "0123456789ABCDEF";
+extern char from_hex PARAMS((char a));			/* In HTWSRC @@ */
+
+PRIVATE char * WWW_from_WAIS ARGS1(any *, docid)
+
 {
     static char buf[BIG];
     char * q = buf;
@@ -167,12 +196,12 @@ char * WWW_from_WAIS ARGS1(any *, docid)
     int i, l;
     if (TRACE) {
 	char *p;
-	fprintf(stderr, "WAIS id (%d bytes) is ", docid->size);
+	fprintf(stderr, "WAIS id (%d bytes) is ", (int)docid->size);
 	for(p=docid->bytes; p<docid->bytes+docid->size; p++) {
 	    if ((*p >= ' ') && (*p<= '~')) /* Assume ASCII! */
 		fprintf(stderr, "%c", *p);
 	    else
-		fprintf(stderr, "<%x>", *p);
+		fprintf(stderr, "<%x>", (unsigned)*p);
 	}
 	fprintf(stderr, "\n");
     }	 
@@ -183,7 +212,19 @@ char * WWW_from_WAIS ARGS1(any *, docid)
 	    fprintf(stderr, "Eh? DOCID record type of %d!\n", *p);
 	    return 0;
 	}
-	*q++ = (*p++) + '0';	/* Record type */
+	{	/* Bug fix -- allow any byte value 15 Apr 93 */
+	    unsigned int i = (unsigned) *p++;
+	    
+	    if (i > 99) {
+		*q++ = (i/100) + '0';
+		i = i % 100;
+	    }
+	    if (i > 9) {
+		*q++ = (i/10) + '0';
+		i = i % 10;
+	    }
+	    *q++ = i + '0';	/* Record type */
+	}
 	*q++ = '=';		/* Separate */
 	l = *p++;		/* Length */
 	for(i=0; i<l; i++, p++){
@@ -206,8 +247,8 @@ char * WWW_from_WAIS ARGS1(any *, docid)
 } /* WWW_from_WAIS */
 
 
-/*	Transform document name into document identifier
-**	------------------------------------------------
+/*	Transform URL into WAIS document identifier
+**	-------------------------------------------
 **
 ** On entry,
 **	docname		points to valid name produced originally by
@@ -236,9 +277,20 @@ PRIVATE any * WAIS_from_WWW ARGS2 (any *, docid, char *, docname)
     z = docid->bytes;
     
     for(p = docname; *p; ) {	/* Convert of strings */
-        *z++ = *p++ - '0';	/* Record type */
+    				/* Record type */
+				
+	*z = 0;			/* Initialize record type */
+	while (*p >= '0' && *p <= '9') {
+	    *z = *z*10 + (*p++ - '0');	/* Decode decimal record type */
+	}
+	z++;
+	if (*p != '=') return 0;
+	q = p;
+	
+/*        *z++ = *p++ - '0';
 	q = strchr(p , '=');
 	if (!q) return 0;
+*/
 	s = strchr(q, ';');	/* (Check only) */
 	if (!s) return 0;	/* Bad! No ';';	*/
         sor = z;		/* Remember where the size field was */
@@ -263,12 +315,12 @@ PRIVATE any * WAIS_from_WWW ARGS2 (any *, docid, char *, docname)
     
     if (TRACE) {
 	char *p;
-	fprintf(stderr, "WAIS id (%d bytes) is ", docid->size);
+	fprintf(stderr, "WAIS id (%d bytes) is ", (int)docid->size);
 	for(p=docid->bytes; p<docid->bytes+docid->size; p++) {
 	    if ((*p >= ' ') && (*p<= '~')) /* Assume ASCII! */
 		fprintf(stderr, "%c", *p);
 	    else
-		fprintf(stderr, "<%x>", *p);
+		fprintf(stderr, "<%x>", (unsigned)*p);
 	}
 	fprintf(stderr, "\n");
     }	 
@@ -276,36 +328,15 @@ PRIVATE any * WAIS_from_WWW ARGS2 (any *, docid, char *, docname)
     
 } /* WAIS_from_WWW */
 
-/*	Output a characater in HTML, escaping < and &
-**
-*/
-PRIVATE void html_putc(char ch)
-{
-    switch(ch) {
-
-    case '<':
-    case '&': fprintf(client, "&#%d;", (int)ch);
-	    break;
-	    
-    case '\n': fprintf(client, "\r\n");	/* CRLF a la telnet */
-    	    break;
-	    
-    default:
-	    putc(ch, client);
-	    break;
-    
-    } /* switch */
-}
-
 
 /*	Send a plain text record to the client		output_text_record()
 **	--------------------------------------
 */
-#define PUT(c) wsrc ? WSRC_treat(c) : html_putc(c)
+
 PRIVATE void output_text_record ARGS3(
-    FILE *,		client,
-    WAISDocumentText *,	record,
-    boolean,		quote_string_quotes)
+    HTStream *,			target,
+    WAISDocumentText *,		record,
+    boolean,			quote_string_quotes)
 {
   long count;
   /* printf(" Text\n");
@@ -314,7 +345,7 @@ PRIVATE void output_text_record ARGS3(
      */
   for(count = 0; count < record->DocumentText->size; count++){
     long ch = (unsigned char)record->DocumentText->bytes[count];
-    if (ch == 27) {
+    if (ch == 27) {	/* What is this in for? Tim */
 
 	    /* then we have an escape code */
 	    /* if the next letter is '(' or ')', then ignore two letters */
@@ -323,12 +354,13 @@ PRIVATE void output_text_record ARGS3(
 	    count += 1;             /* it is a term marker */
 	    else count += 4;		/* it is a paragraph marker */
     } else if (ch == '\n' || ch == '\r') {
-	    PUT('\n');
+	    PUTC('\n');
     } else if ((ch=='\t') || isprint(ch)){
-	    PUT(ch);
+	    PUTC(ch);
     } 
   }
 } /* output text record */
+
 
 
 /*	Format A Search response for the client		display_search_response
@@ -338,7 +370,8 @@ PRIVATE void output_text_record ARGS3(
  * displays either a text record or a set of headlines.
  */
 void
-display_search_response ARGS3(
+display_search_response ARGS4(
+    HTStructured *,		target,
     SearchResponseAPDU *,	response,
     char *,			database,
     char *,	 		keywords)
@@ -352,21 +385,21 @@ display_search_response ARGS3(
   sprintf(line,
   	"Index %s contains the following %d item%s relevant to '%s'.\n",
 	 database,
-	 response->NumberOfRecordsReturned,
+	 (int)(response->NumberOfRecordsReturned),
 	 response->NumberOfRecordsReturned ==1 ? "" : "s",
 	 keywords);
-#ifdef GEN_HT
-  PUTS( line);
-  START(HTML_DL);
-#else
-  fprintf(client, "%s<dl>\n", line);
-#endif 
+
+  PUTS(line);
+  PUTS("The first figure for each entry is its relative score, ");
+  PUTS("the second the number of lines in the item.");
+  START(HTML_MENU);
+
   if ( response->DatabaseDiagnosticRecords != 0 ) {
     info = (WAISSearchResponse *)response->DatabaseDiagnosticRecords;
     i =0; 
 
     if (info->Diagnostics != NULL)
-      showDiags(info->Diagnostics);
+      showDiags((HTStream*)target, info->Diagnostics);
 
     if ( info->DocHeaders != 0 ) {
       for (k=0; info->DocHeaders[k] != 0; k++ ) {
@@ -379,62 +412,46 @@ display_search_response ARGS3(
 /*	Make a printable string out of the document id.
 */
 	if (TRACE) fprintf(stderr, 
-		"WAISGate:  %2d: Score: %4ld, lines:%4ld '%s'\n", 
+		"WAISGate:  %2ld: Score: %4ld, lines:%4ld '%s'\n", 
 	       i,
-	       (info->DocHeaders[k]->Score),
-	       info->DocHeaders[k]->Lines,
+	       (long int)(info->DocHeaders[k]->Score),
+	       (long int)(info->DocHeaders[k]->Lines),
 	       headline);
+
+	START(HTML_LI);
+	sprintf(line, "%4ld  %4ld  ",
+	    head->Score,
+	    head->Lines);
+	PUTS( line);
 
 	if (archie) {
 	    char * www_name = WWW_from_archie(headline);
 	    if (www_name) {
-		HTChildAnchor * anc = HTAnchor_findChildAndLink(
-			HTMainAnchor, www_name, "");
-		HText_beginAnchor(HT, anc);
+		HTStartAnchor(target, NULL, www_name);
 		PUTS(headline);
-		HText_endAnchor(HT);
-		sprintf(line, "\tScore: %4ld, lines:%4ld\n",
-		    head->Score,
-		    head->Lines);
-		PUTS( line);
+		
+		END(HTML_A);
 		free(www_name);
 	    } else {
-		sprintf(line,
-		    "\n%s\tScore: %4ld, lines:%4ld (bad file name)\n",
-		    headline,
-		    head->Score,
-		    head->Lines);
-		 PUTS( line);
+		 PUTS(headline);
+		 PUTS(" (bad file name)");
 	    }
 	} else { /* Not archie */
 	    docname =  WWW_from_WAIS(docid);
 	    if (docname) {
-		char * dbname = deslash(database);
+		char * dbname = HTDeSlash(database);
 		sprintf(line, "%s/%s/%d/%s",		/* W3 address */
 				    dbname,
 		    head->Types ? head->Types[0] : "TEXT",
-		    head->DocumentLength,
+		    (int)(head->DocumentLength),
 		    docname);
-		{
-		    HTChildAnchor * anc = HTAnchor_findChildAndLink(
-			HTMainAnchor, line, "");
-		    HText_beginAnchor(HT, anc);
-		}
-		HText_appendText(headline);
-		HText_endAnchor(HT);
-		sprintf(line, "\tScore: %4ld, lines:%4ld\n",
-		    head->Score,
-		    head->Lines);
-		PUTS( line);
+		HTStartAnchor(target, NULL, line);
+		PUTS(headline);
+		END(HTML_A);
 		free(dbname);
 		free(docname);
 	    } else {
-		sprintf(line,
-		    "\n%s\tScore: %4ld, lines:%4ld (bad doc id)\n",
-		    headline,
-		    head->Score,
-		    head->Lines);
-		 PUTS( line);
+		 PUTS("(bad doc id)");
 	    }
 	  }
       } /* next document header */
@@ -444,19 +461,14 @@ display_search_response ARGS3(
       k =0;
       while (info->ShortHeaders[k] != 0 ) {
 	i++;
-	PUTS( "\nShort Header record, can't display\n");
+	PUTS( "(Short Header record, can't display)");
       }
     }
     if ( info->LongHeaders != 0 ) {
       k =0;
       while (info->LongHeaders[k] != 0) {
 	i++;
-#ifdef GEN_HT
 	PUTS( "\nLong Header record, can't display\n");
-#else
-	fprintf(client, "\n    Longheader record %2d, (cant display) ", i);
-	/* dsply_long_hdr_record( info->LongHeaders[k++]); */
-#endif
       }
     }
     if ( info->Text != 0 ) {
@@ -464,7 +476,7 @@ display_search_response ARGS3(
       while (info->Text[k] != 0) {
 	i++;
 	PUTS( "\nText record\n");
-	output_text_record(client, info->Text[k++], false);
+	output_text_record((HTStream*)target, info->Text[k++], false);
       }
     }
     if ( info->Headlines != 0 ) {
@@ -484,19 +496,23 @@ display_search_response ARGS3(
       }
     }
   }				/* Loop: display user info */
-  END(HTML_DL);
+  END(HTML_MENU);
   PUTC('\n'); ;
 }
 
 
 
-/*	Retrieve a file or perform a search
-**	-----------------------------------
+
+/*		Load by name					HTLoadWAIS
+**		============
+**
+**	This renders any object or search as required
 */
-PUBLIC int HTRetrieve ARGS3(
-	CONST char *,	arg,
-	CONST char *,	key,
-	int,		soc)
+PUBLIC int HTLoadWAIS ARGS4(
+	CONST char *,		arg,
+	HTParentAnchor *,	anAnchor,
+	HTFormat,		format_out,
+	HTStream*,		sink)
 
 #define MAX_KEYWORDS_LENGTH 1000
 #define MAX_SERVER_LENGTH 1000
@@ -507,7 +523,7 @@ PUBLIC int HTRetrieve ARGS3(
 {
     static CONST char * error_header =
 "<h1>Access error</h1>\nThe WWW-WAIS gateway reports the following error:<P>\n";
-
+    char * key;			  /* pointer to keywords in URL */
     char* request_message = NULL; /* arbitrary message limit */
     char* response_message = NULL; /* arbitrary message limit */
     long request_buffer_length;	/* how of the request is left */
@@ -527,18 +543,8 @@ PUBLIC int HTRetrieve ARGS3(
     
     extern FILE * connect_to_server();
     
-    wsrc = NO;
     if (!acceptable_inited) init_acceptable();
     
-    client = fdopen(soc, "w");	/* Convert file descriptor to file pointer */
-    				/* Can't be done under VMS/UCX */
-				
-    if (!client) {
-        fprintf(stderr,
-		"WAISGate: Can't open file on socket, errno=%d",
-		errno);
-        return (-1);
-    }
         
 /*	Decipher and check syntax of WWW address:
 **	----------------------------------------
@@ -546,7 +552,14 @@ PUBLIC int HTRetrieve ARGS3(
 **	First we remove the "wais:" if it was spcified.  920110
 */  
     names = HTParse(arg, "", PARSE_HOST | PARSE_PATH | PARSE_PUNCTUATION);
-
+    key = strchr(names, '?');
+    
+    if (key) {
+    	char * p;
+	*key++ = 0;	/* Split off keywords */
+	for (p=key; *p; p++) if (*p == '+') *p = ' ';
+	HTUnEscape(key);
+    }
     if (names[0]== '/') {
 	server_name = names+1;
 	if (as_gate =(*server_name == '/'))
@@ -577,24 +590,9 @@ PUBLIC int HTRetrieve ARGS3(
 	} /* if database */
      }
      
-     if (!ok) {
-	 fprintf(client, "%sSyntax error in WWW document address\n",
-	 	error_header);
-	 fprintf(client, "<P>Address received was\n<XMP>\n%s\n</XMP>\n",
-	 	arg);
-	 fprintf(client,
-	 "<P>Syntax is //node:port/databse\n");
-	 fprintf(client,
-	 "<P>or //node:port/databse?query+query\n");
-	 fprintf(client,
-	 "<P>or //node:port/database/doctype/doclength/docid\n");
-	 fprintf(stderr,
-	 	"WAISGate: Syntax error in WWW document address `%s'\n",
-	 	arg);
-	 fclose(client);
-	 free(names);
-	  return -1;
-     } 
+     if (!ok)
+	 return HTLoadError(sink, 500, "Syntax error in WAIS URL");
+
      if (TRACE) fprintf(stderr, "WAISGate: Parsed OK\n");
      
      service = strchr(names, ':');
@@ -607,16 +605,15 @@ PUBLIC int HTRetrieve ARGS3(
      else if (!(key && !*key))
       if ((connection=connect_to_server(server_name,atoi(service)))
       	 == NULL)  {
-	 fprintf (client,
+	 if (TRACE) fprintf (stderr,
 	     "%sCan't open connection to %s via service %s.\n",
 	     error_header, server_name, service);
-	 fclose(client);
 	 free(names);
-        return (-1);
+	 return HTLoadError(sink, 500, "Can't open connection to WAIS server");
     }
 
-    wais_database = enslash(www_database);
-
+    wais_database = HTEnSlash(www_database);
+	/* This below fixed size stuff is terrible */
     request_message = (char*)s_malloc((size_t)MAX_MESSAGE_LEN * sizeof(char));
     response_message = (char*)s_malloc((size_t)MAX_MESSAGE_LEN * sizeof(char));
 
@@ -627,11 +624,18 @@ PUBLIC int HTRetrieve ARGS3(
 
     if (key && !*key) {				/* I N D E X */
     
-	char filename[256];
-	FILE * fp;
 	
+	HTStructured * target = HTML_new(anAnchor, format_out, sink);
+	
+	START(HTML_ISINDEX);
+
 	/* If we have seen a source file for this database, use that:
 	*/
+
+#ifdef CACHING			/* old code ... do it this way now? */
+
+	char filename[256];
+	FILE * fp;
 	sprintf(filename, "%s%s:%s:%s.html",
 		WAIS_CACHE_ROOT,
 		server_name, service, www_database);
@@ -641,53 +645,51 @@ PUBLIC int HTRetrieve ARGS3(
 		"WAISGate: Description of server %s %s.\n",
 		filename,
 		fp ? "exists already" : "does NOT exist!");
-	fprintf(client, "<ISINDEX>\n");
+
 	if (fp) {
 	    char c;
-	    while((c=getc(fp))!=EOF) putc(c, client);	/* Transfer file */
+	    while((c=getc(fp))!=EOF) PUT(c);	/* Transfer file */
 	    fclose(fp);
-	} else {
-	    fprintf(client, "<TITLE>%s index</TITLE>\n",
-		    wais_database);
-	    fprintf(client, "<H1>%s</H1>\n", wais_database);
-	    fprintf(client, "%s\n%s%s?%s\">full cover page</a>)<p>\n",
- "This is a document index whose cover page has not yet been retrieved.",
-	      "(Retrieve <a href=\"", DIRECTORY, wais_database);
-	    fprintf(client,"Please specify search words to find documents.\n");
+	} else
+#endif
+	{
+	    START(HTML_TITLE);
+	    PUTS(wais_database);
+	    PUTS(" index");
+	    END(HTML_TITLE);
+	    
+	    START(HTML_H1);
+	    PUTS(wais_database);
+	    END(HTML_H1);
+	    
 	}
-	fprintf(client, "%s%s%s",
-	    "<P>(The search matches your words against full document text.\n",
-	    "Access to this index is provided by the\n",
-	    "WWW to WAIS gateway.\n");
-	if (0!=strcmp(wais_database, "directory-of-servers")) {
-	    fprintf(client, "%s%s%s%s%s%s%s",
-"Specify search words to find documents.\nFor other databases, see the ",
-"<a\r\nhref=\"http://info.cern.ch/hypertext/DataSources/WAIS/ByHost.html\">",
-"list by internet domain</a>, or the <a href=\"",
-"<a\r\nhref=\"http://info.cern.ch/hypertext/DataSources/WAIS/BySource.html\">",
-"list by index name</a>, or the <a\r\nhref=\"",
-DIRECTORY,
-"\">directory of servers</a>.\r\n");
-		
-	} else {
-	    fprintf(client, 
-	    "Please specify search words to find other databases.");
-	}
-	fprintf(client, ")\n");
+	PUTS("Specify search words.");
 	
-	fflush(client);
+	END_TARGET;
+	FREE_TARGET;
 	
     } else if (key) {					/* S E A R C H */
 	char *p;
+	HTStructured * target;
+	
 	strncpy(keywords, key, MAX_KEYWORDS_LENGTH);
 	while(p=strchr(keywords, '+')) *p = ' ';
     
         /* Send advance title to get something fast to the other end */
 	
-	fprintf(client, "<ISINDEX><TITLE>%s (in %s)</TITLE>\n",
-		keywords, wais_database);
-	fprintf(client, "<H1>%s</H1>\n", keywords);
-	fflush(client);
+	target = HTML_new(anAnchor, format_out, sink);
+	
+	START(HTML_ISINDEX);
+	START(HTML_TITLE);
+	PUTS(keywords);
+	PUTS(" (in ");
+	PUTS(wais_database);
+	PUTS(")");
+	END(HTML_TITLE);
+	
+	START(HTML_H1);
+	PUTS(keywords);
+	END(HTML_H1);
 
 	request_buffer_length = MAX_MESSAGE_LEN; /* Amount left */
 	if (TRACE) fprintf(stderr, "WAISGate: Search for `%s' in `%s'\n",
@@ -713,37 +715,42 @@ DIRECTORY,
 	    SearchResponseAPDU  *query_response = 0;
 	    readSearchResponseAPDU(&query_response,
 	    	response_message + HEADER_LENGTH);
-	    display_search_response(query_response, wais_database, keywords);
+	    display_search_response(target, 
+	    	query_response, wais_database, keywords);
 	    if (query_response->DatabaseDiagnosticRecords)
 		freeWAISSearchResponse(
 			query_response->DatabaseDiagnosticRecords);         
 	    freeSearchResponseAPDU( query_response);
 	}	/* returned message not too large */
     
+	END_TARGET;
+	FREE_TARGET;
+
     } else {			/* D O C U M E N T    F E T C H */
     
+	HTFormat format_in;
+	HTStream * target;
 	long count;
 	any   doc_chunk;
 	any * docid = &doc_chunk;
 	if (TRACE) printf(
-		"WAISGate: Retrieve document id `%s' type `%s' length %d\n",
+		"WAISGate: Retrieve document id `%s' type `%s' length %ld\n",
 		docname, doctype, document_length);
-	wsrc = 0==strcmp(doctype, "WSRC");	/* WAIS "source" file? */
+		
+	format_in = 
+	  !strcmp(doctype, "WSRC") ? HTAtom_for("application/x-wais-source") :
+	  !strcmp(doctype, "TEXT") ? HTAtom_for("text/plain") :
+	  !strcmp(doctype, "GIF")  ? HTAtom_for("image/gif") :
+	   		             HTAtom_for("text/plain");
 
+	target = HTStreamStack(format_in, format_out, sink, anAnchor);
+	if (!target) return HTLoadError(sink, 500,
+		"Can't convert format of WAIS document");
 /*	Decode hex or litteral format for document ID
 */	
 	WAIS_from_WWW(docid, docname);
 
-	if (wsrc) {
-	    WSRC_init();	/* Clear state machine */
-	    fprintf(client, "<TITLE>Index description file</TITLE>\n");
-	    
-	} else if (strcmp(doctype, "HTML")!=0) {
-	    fprintf(client, "
-	    <HEAD>\r\n<TITLE>Document</TITLE>\r\n</HEAD>\r\n"); /* BORING! */
-	    fprintf(client, "<BODY>\r\n<PRE>\r\n");
-	}
-
+	
 /*	Loop over slices of the document
 */	
 	for(count = 0; 
@@ -751,7 +758,7 @@ DIRECTORY,
 	    count++){
 	  char *type = s_strdup(doctype);	/* Gets freed I guess */
 	  request_buffer_length = MAX_MESSAGE_LEN; /* Amount left */
-	  if (TRACE) fprintf(stderr, "    Slice at %d\n", count);
+	  if (TRACE) fprintf(stderr, "HTWAIS: Slice number %ld\n", count);
 	  if(0 ==
 	      generate_retrieval_apdu(request_message + HEADER_LENGTH,
 		    &request_buffer_length, 
@@ -763,7 +770,8 @@ DIRECTORY,
 		    wais_database
 		    ))
 		panic("request too long");
-	     
+	  
+	  /*	Actually do the transaction given by request_message */   
 	  if(0 ==
 	     interpret_message(request_message, 
 			       MAX_MESSAGE_LEN - request_buffer_length, 
@@ -774,23 +782,21 @@ DIRECTORY,
 			       ))
 	    panic("Returned message too large");
 
+	  /* 	Parse the result which came back into memory.
+	  */
 	  readSearchResponseAPDU(&retrieval_response, 
 				 response_message + HEADER_LENGTH);
 
 	  if(NULL == ((WAISSearchResponse *)
 	  	retrieval_response->DatabaseDiagnosticRecords)->Text){
-		display_search_response(retrieval_response,
-					wais_database, keywords);
-#ifdef GEN_HT
-		PUTS( "No text was returned!\n");
-#else
-		fprintf(client, "<h2>No text was returned!</h2>\n");
-#endif
+		/* display_search_response(target, retrieval_response,
+					wais_database, keywords); */
+		PUTS("No text was returned!\n");
 		/* panic("No text was returned"); */
 	  } else {
 	  
-		output_text_record(client,
-		((WAISSearchResponse *)
+		output_text_record(target,
+		   ((WAISSearchResponse *)
 		    retrieval_response->DatabaseDiagnosticRecords)->Text[0],
 		false);
 	  
@@ -798,21 +804,9 @@ DIRECTORY,
 	  
 	}	/* Loop over slices */
 
+	(*target->isa->end_document)(target);
+	(*target->isa->free)(target);
 
-	if (wsrc) {
-	    if (!WSRC_gen_html()) {
-	        fprintf(client,
-"The index cover page has been retrieved. Please see the <a href=\"%s\">index itself</a><p>\n",
-	    	WSRC_address);
-	    } else {
-	        if (TRACE) fprintf(stderr,
-		     "WAISGate: Insufficient info in source file for %s!\n",
-		     WSRC_address);
-		fprintf(client, "Insufficient info in wais source file!\n");
-	    }
-	} else {  /* not wsrc */
-	    fprintf(client, "</PRE>\r\n</BODY>\r\n");
-	}
 	free (docid->bytes);
 	
 	freeWAISSearchResponse( retrieval_response->DatabaseDiagnosticRecords); 
@@ -820,9 +814,10 @@ DIRECTORY,
 
     } /* If document rather than search */
 
-    fclose(client);
 
-/*	(This could be done only after a timeout:)
+
+
+/*	(This postponed until later,  after a timeout:)
 */
     if (connection) close_connection(connection);
     if (wais_database) free(wais_database);
@@ -830,8 +825,9 @@ DIRECTORY,
     s_free(response_message);
 
     free(names);
-    return 0;
+    return HT_LOADED;
 }
 
+PUBLIC HTProtocol HTWAIS = { "wais", HTLoadWAIS, NULL };
 
 

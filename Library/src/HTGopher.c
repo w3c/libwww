@@ -10,6 +10,10 @@
 */
 #include "HTGopher.h"
 
+#define CR	    FROMASCII('\015')	/* Carriage return */
+#define LF 	    FROMASCII('\012')	/* ASCII line feed
+				   (sometimes \n is CR on Mac) */
+
 #define GOPHER_PORT 70		/* See protocol spec */
 #define BIG 1024		/* Bug */
 #define LINE_LENGTH 256		/* Bug */
@@ -25,7 +29,9 @@
 #define GOPHER_UUENCODED	'6'
 #define GOPHER_INDEX		'7'
 #define GOPHER_TELNET		'8'
+#define GOPHER_GIF              'g'
 #define GOPHER_HTML		'h'		/* HTML */
+#define GOPHER_IMAGE            'I'
 #define GOPHER_DUPLICATE	'+'
 #define GOPHER_WWW		'w'		/* W3 address */
 
@@ -173,8 +179,7 @@ PRIVATE void parse_menu ARGS2 (
     
     START(HTML_MENU);
     while ((ch=NEXT_CHAR) != (char)EOF) {
-        START(HTML_LI);
-        if (ch != '\n') {
+        if (ch != LF) {
 	    *p = ch;		/* Put character in line */
 	    if (p< &line[BIG-1]) p++;
 	    
@@ -191,6 +196,7 @@ PRIVATE void parse_menu ARGS2 (
 	    if (gtype && *p) {
 	        name = p;
 		selector = strchr(name, TAB);
+		START(HTML_LI);
 		if (selector) {
 		    *selector++ = 0;	/* Terminate name */
 		    host = strchr(selector, TAB);
@@ -367,7 +373,7 @@ PUBLIC int HTLoadGopher ARGS4(
             HTAnchor_setIndex(anAnchor);	/* Search is allowed */
 	    query = strchr(selector, '?');	/* Look for search string */
 	    if (!query || !query[1]) {		/* No search required */
-		target = HTML_new(anAnchor, sink);
+		target = HTML_new(anAnchor, format_out, sink);
 		targetClass = *target->isa;
 		display_index(arg, anAnchor);	/* Display "cover page" */
 		return 1;			/* Local function only */
@@ -395,8 +401,13 @@ PUBLIC int HTLoadGopher ARGS4(
 	free(p1);
     }
     
-    strcat(command, "\r\n");		/* Include CR for telnet compat. */
-    
+    {
+	char * p = command + strlen(command);
+	*p++ = CR;		/* Macros to be correct on Mac */
+	*p++ = LF;
+	*p++ = 0;
+	/* strcat(command, "\r\n");	*/	/* CR LF, as in rfc 977 */
+    }
 
 /*	Set up a socket to the server for the data:
 */      
@@ -437,9 +448,14 @@ PUBLIC int HTLoadGopher ARGS4(
     	HTParseSocket(WWW_HTML, format_out, anAnchor, s, sink);
 	break;
 
+    case GOPHER_GIF:
+    case GOPHER_IMAGE:
+    	HTParseSocket(HTAtom_for("image/gif"), 
+			   format_out, anAnchor, s, sink);
+  	break;
     case GOPHER_MENU :
     case GOPHER_INDEX :
-	target = HTML_new(anAnchor, sink);
+	target = HTML_new(anAnchor, format_out, sink);
 	targetClass = *target->isa;
         parse_menu(arg, anAnchor);
 	break;

@@ -1,26 +1,28 @@
+/*  */
+
 #ifndef HTHISTORY_H
 #define HTHISTORY_H
 
 #include "HTAnchor.h"
 
 #ifdef SHORT_NAMES
-#define HTHistory_record		HTHiReco
-#define HTHistory_backtrack		HTHiBack
-#define HTHistory_canBacktrack		HTHiCaBa
-#define HTHistory_moveBy		HTHiMoBy
-#define HTHistory_canMoveBy		HTHiCaMo
-#define HTHistory_read			HTHiRead
-#define HTHistory_recall		HTHiReca
-#define HTHistory_count			HTHiCoun
-#define HTHistory_leavingFrom		HTHiLeFr
+#define HTHistory_record                HTHiReco
+#define HTHistory_backtrack             HTHiBack
+#define HTHistory_canBacktrack          HTHiCaBa
+#define HTHistory_moveBy                HTHiMoBy
+#define HTHistory_canMoveBy             HTHiCaMo
+#define HTHistory_read                  HTHiRead
+#define HTHistory_recall                HTHiReca
+#define HTHistory_count                 HTHiCoun
+#define HTHistory_leavingFrom           HTHiLeFr
 #endif
 
-/*				Navigation
-**				==========
+/*                              Navigation
+**                              ==========
 */
 
-/*		Record the jump to an anchor
-**		----------------------------
+/*              Record the jump to an anchor
+**              ----------------------------
 */
 
 extern void HTHistory_record
@@ -28,8 +30,8 @@ extern void HTHistory_record
     (HTAnchor * destination)
   );
 
-/*		Go back in history (find the last visited node)
-**		------------------
+/*              Go back in history (find the last visited node)
+**              ------------------
 */
 
 extern HTAnchor * HTHistory_backtrack
@@ -38,11 +40,11 @@ extern HTAnchor * HTHistory_backtrack
 extern BOOL HTHistory_canBacktrack
   NOPARAMS;
 
-/*		Browse through references in the same parent node
-**		-------------------------------------------------
+/*              Browse through references in the same parent node
+**              -------------------------------------------------
 **
-**	Take the n-th child's link after or before the one we took to get here.
-**	Positive offset means go towards most recently added children.
+**      Take the n-th child's link after or before the one we took to get here.
+**      Positive offset means go towards most recently added children.
 */
 
 extern HTAnchor * HTHistory_moveBy
@@ -61,12 +63,12 @@ extern BOOL HTHistory_canMoveBy
 #define HTHistory_canPrevious (HTHistory_canMoveBy (-1))
 
 
-/*				Retrieval
-**				=========
+/*                              Retrieval
+**                              =========
 */
 
-/*		Read numbered visited anchor (1 is the oldest)
-**		----------------------------
+/*              Read numbered visited anchor (1 is the oldest)
+**              ----------------------------
 */
 
 extern HTAnchor * HTHistory_read
@@ -74,9 +76,9 @@ extern HTAnchor * HTHistory_read
     (int number)
   );
 
-/*		Recall numbered visited anchor (1 is the oldest)
-**		------------------------------
-**	This reads the anchor and stores it again in the list, except if last.
+/*              Recall numbered visited anchor (1 is the oldest)
+**              ------------------------------
+**      This reads the anchor and stores it again in the list, except if last.
 */
 
 extern HTAnchor * HTHistory_recall
@@ -84,20 +86,20 @@ extern HTAnchor * HTHistory_recall
     (int number)
   );
 
-/*		Number of Anchors stored
-**		------------------------
+/*              Number of Anchors stored
+**              ------------------------
 **
-**	This is needed in order to check the validity of certain commands
-**	for menus, etc.
+**      This is needed in order to check the validity of certain commands
+**      for menus, etc.
 (not needed for now. Use canBacktrack, etc.)
 extern int HTHistory_count NOPARAMS;
 */
 
-/*		Change last history entry
-**		-------------------------
+/*              Change last history entry
+**              -------------------------
 **
-**	Sometimes we load a node by one anchor but leave by a different
-**	one, and it is the one we left from which we want to remember.
+**      Sometimes we load a node by one anchor but leave by a different
+**      one, and it is the one we left from which we want to remember.
 */
 extern void HTHistory_leavingFrom
   PARAMS(
@@ -105,3 +107,6 @@ extern void HTHistory_leavingFrom
   );
 
 #endif /* HTHISTORY_H */
+/*
+
+    */

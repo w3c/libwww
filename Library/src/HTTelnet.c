@@ -19,7 +19,6 @@
 
 #include "HTParse.h"
 #include "HTUtils.h"
-#include "WWW.h"
 #include "HTAnchor.h"
 #include "HTTP.h"
 #include "HTFile.h"

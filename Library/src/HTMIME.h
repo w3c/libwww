@@ -1,5 +1,7 @@
-/*		MIME Parser			HTMIME.h
-**		-----------
+/*  */
+
+/*              MIME Parser                     HTMIME.h
+**              -----------
 **
 **   The MIME parser stream presents a MIME document.
 **
@@ -13,8 +15,8 @@
 #include "HTAnchor.h"
 
 extern HTStream * HTMIMEConvert PARAMS((HTPresentation * pres,
-					HTParentAnchor * anchor,
-				     	HTStream * sink));
+                                        HTParentAnchor * anchor,
+                                        HTStream * sink));
 
 
 #endif
@@ -22,3 +24,6 @@ extern HTStream * HTMIMEConvert PARAMS((HTPresentation * pres,
 
 
 
+/*
+
+    */

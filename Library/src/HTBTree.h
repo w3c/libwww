@@ -1,10 +1,9 @@
 /*		Balanced Binary Tree for sorting things		HTBTree.h
 **		=======================================
 **
-**  Tree creation, retrieval and freeing.  User-supplied
+**  Tree createion, trversal and freeing.  User-supplied
 **  comparison routine.
 */
-
 
 
 typedef struct _HTBTree_element {
@@ -16,7 +15,7 @@ typedef struct _HTBTree_element {
     int				right_depth;
 } HTBTElement;
 
-typedef int (*HTComparer) PARAMS((void * a, void * b));
+typedef (int *HTComparer) PARAMS((void * a, void * b));
 
 typedef struct _HTBTree_top {
     HTComparer			compare;
@@ -57,10 +56,11 @@ extern void HTBTree_add PARAMS((HTBTree* tree, void * object));
 ** On entry,
 **	ele		if NULL, start with leftmost element.
 **			if != 0 give next object to the right.
-**HTBTree.c
-
+**
 ** returns		Pointer to element ot NULL if none left.
 **
 */
 
 extern HTBTElement * HTBTree_next PARAMS((HTBTree* tree, HTBTElement * ele));
+
+

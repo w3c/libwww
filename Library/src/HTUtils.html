@@ -17,7 +17,7 @@
 /*	Debug message control.
 */
 #ifndef STDIO_H
-#include <#60stdio.h>#62
+#include &#60;stdio.h>
 #define STDIO_H
 #endif
 
@@ -45,20 +45,20 @@
 #ifndef VMS
 #ifndef ultrix
 #ifdef NeXT
-#include <#60libc.h>#62	/* NeXT */
+#include &#60;libc.h>	/* NeXT */
 #endif
 #ifndef MACH /* Vincent.Cate@furmint.nectar.cs.cmu.edu */
-#include <#60stdlib.h>#62	/* ANSI */
+#include &#60;stdlib.h>	/* ANSI */
 #endif
 #else /* ultrix */
-#include <#60malloc.h>#62
-#include <#60memory.h>#62
-#include <#60stdio.h>#62
+#include &#60;malloc.h>
+#include &#60;memory.h>
+#include &#60;stdio.h>
 #endif
 
 #else	/* VMS */
-#include <#60stdio.h>#62
-#include <#60ctype.h>#62
+#include &#60;stdio.h>
+#include &#60;ctype.h>
 #endif
 
 #define PUBLIC			/* Accessible outside this module     */
@@ -126,7 +126,7 @@
 
 
 /* Note: GOOD and BAD are already defined (differently) on RS6000 aix */
-/* #define GOOD(status) ((status)&#381)	 VMS style status: test bit 0	      */
+/* #define GOOD(status) ((status)&#38;1)	 VMS style status: test bit 0	      */
 /* #define BAD(status)  (!GOOD(status))	 Bit 0 set if OK, otherwise clear   */
 
 #ifndef BOOLEAN_DEFINED
@@ -149,8 +149,8 @@
 #endif
 
 #ifndef min
-#define min(a,b) ((a) <#60= (b) ? (a) : (b))
-#define max(a,b) ((a) >#62= (b) ? (a) : (b))
+#define min(a,b) ((a) &#60;= (b) ? (a) : (b))
+#define max(a,b) ((a) >= (b) ? (a) : (b))
 #endif
 
 #define TCP_PORT 80	/* Allocated to http by Jon Postel/ISI 24-Jan-92 */
@@ -160,10 +160,10 @@
 /*	Inline Function WHITE: Is character c white space? */
 /*	For speed, include all control characters */
 
-#define WHITE(c) (((unsigned char)(TOASCII(c)))<#60=32)
+#define WHITE(c) (((unsigned char)(TOASCII(c)))&#60;=32)
 
 
-/*	Sucess (>#62=0) and failure (<#600) codes
+/*	Sucess (>=0) and failure (&#60;0) codes
 */
 #define HT_LOADED 29999			/* Instead of a socket */
 #define HT_OK		0		/* Generic success*/
@@ -176,14 +176,14 @@
 #include "HTString.h"  /* String utilities */
 
 #ifdef __STDC__
-#include <#60stdarg.h>#62
+#include &#60;stdarg.h>
 #else
-#include <#60varargs.h>#62
+#include &#60;varargs.h>
 #endif
 
 #ifdef CURSES
 	/* htbrowse.c; */
-#include <#60curses.h>#62
+#include &#60;curses.h>
 
 	extern        WINDOW  *w_top, *w_text, *w_prompt;
 	extern        void    user_message PARAMS((const char *fmt, ...));
@@ -218,7 +218,7 @@ extern void msg_exit PARAMS((int wait_for_key));
 ** For safefy, we make them mandatory.
 */
 
-#include <#60ctype.h>#62
+#include &#60;ctype.h>
 
 #ifndef TOLOWER
   /* Pyramid and Mips can't uppercase non-alpha */

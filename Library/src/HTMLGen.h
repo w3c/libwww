@@ -1,4 +1,6 @@
-/*		HTML generator
+/*  */
+
+/*              HTML generator
 */
 
 #ifndef HTMLGEN_H
@@ -16,9 +18,12 @@
 extern HTStructured * HTMLGenerator PARAMS((HTStream * output));
 
 extern HTStream * HTPlainToHTML PARAMS((
-	HTPresentation *	pres,
-	HTParentAnchor *	anchor,	
-	HTStream *		sink));
+        HTPresentation *        pres,
+        HTParentAnchor *        anchor,
+        HTStream *              sink));
 
 
 #endif
+/*
+
+    */

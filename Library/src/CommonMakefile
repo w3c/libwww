@@ -26,6 +26,15 @@
 # LIBDIR	Directory for installed library
 #______________________________________________________________________
 
+#	.h files are distributed but originally are made from the
+#	self-documenting hypertext files.
+
+.SUFFIXES: .h .html
+.html.h:
+	- chmod +w $*.h
+	www -w90 -na -to text/x-c $*.html > $*.h
+	chmod -w $*.h
+
 # If this is actually run in a subdirectory,
 #
 # WWW = ../../..
@@ -38,13 +47,20 @@ CMN = $(WWW)/Library/Implementation/
 
 LOB = $(WTMP)/Library/$(WWW_MACH)
 
-# Bug: This path, if relative, is taken relative to the directory
+# Only needed if HTWAIS.c is to be compiled. Put into your Makefile.include
+#   WAIS = YES
+#   WAISINC = -I../../../freeWAIS/ir
+#   WAISCFLAGS = -DDIRECT_WAIS
+#
+
+# This path, if relative, is taken relative to the directory
 # in which this makefile is, not the pwd.  This screws up the 
 # recursive invocation
 # include $(CMN)Version.make
 include $(ABS)$(WWW)/Library/Implementation/Version.make
 
-CFLAGS2 = $(CFLAGS) -I$(CMN)
+# XMOsAIC hack is only for server to cope with xmosaic kludge for mmedia
+CFLAGS2 = $(CFLAGS) $(WAISCFLAGS) -I$(CMN) -DXMOSAIC_HACK
 
 CERNLIBBIN = $(WWW)/bin
 
@@ -57,7 +73,7 @@ COMMON = $(LOB)/HTParse.o $(LOB)/HTAccess.o $(LOB)/HTTP.o \
 	$(LOB)/HTList.o $(LOB)/HTString.o $(LOB)/HTAlert.o \
 	$(LOB)/HTRules.o $(LOB)/HTFormat.o $(LOB)/HTInit.o $(LOB)/HTMIME.o \
 	$(LOB)/HTHistory.o $(LOB)/HTNews.o $(LOB)/HTGopher.o \
-	$(LOB)/HTTelnet.o
+	$(LOB)/HTTelnet.o $(LOB)/HTWSRC.o $(HTWAIS)
 
 CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTTP.c $(CMN)HTFile.c \
 	$(CMN)HTFTP.c   $(CMN)HTTCP.c     $(CMN)SGML.c $(CMN)HTML.c	\
@@ -66,7 +82,8 @@ CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTTP.c $(CMN)HTFile.c \
 	$(CMN)HTChunk.c $(CMN)HTAtom.c   $(CMN)HTAnchor.c $(CMN)HTStyle.c \
 	$(CMN)HTList.c  $(CMN)HTString.c $(CMN)HTAlert.c $(CMN)HTRules.c \
 	$(CMN)HTFormat.c $(CMN)HTInit.c $(CMN)HTMIME.c $(CMN)HTHistory.c \
-	$(CMN)HTNews.c  $(CMN)HTGopher.c $(CMN)HTTelnet.c
+	$(CMN)HTNews.c  $(CMN)HTGopher.c $(CMN)HTTelnet.c \
+	$(CMN)HTWAIS.c  $(CMN)HTWSRC.c
 
 HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h $(CMN)HTTP.h $(CMN)HTFile.h \
 	$(CMN)HTFTP.h $(CMN)HTTCP.h \
@@ -80,11 +97,12 @@ HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h $(CMN)HTTP.h $(CMN)HTFile.h \
 	$(CMN)HTFormat.h $(CMN)HTInit.h \
 	$(CMN)HTMIME.h $(CMN)HTHistory.h $(CMN)HTNews.h \
 	$(CMN)HTGopher.h \
-	$(CMN)HTUtils.h $(CMN)tcp.h $(CMN)WWW.h $(CMN)HText.h \
-	$(CMN)HTTelnet.h
+	$(CMN)HTUtils.h $(CMN)tcp.h $(CMN)HText.h \
+	$(CMN)HTTelnet.h \
+	$(CMN)HTWAIS.h  $(CMN)HTWSRC.h
 
 SOURCES = $(CFILES) $(HFILES) $(CMN)Version.make $(CMN)CommonMakefile \
-	$(WWW)/README.txt $(WWW)/Copyright.txt $(WWW)/BUILD
+	$(WWW)/README.txt $(WWW)/Copyright.txt $(WWW)/BUILD $(WWW)/Makefile
 SPECIFIC = $(WWW)/All/*/Makefile.include $(WWW)/All/Implementation/Makefile*
 
 
@@ -109,7 +127,7 @@ cleanall : clean
 #	Install W3 library into system space (not normally necessary)
 
 install : libwww.a
-	- mkdir $(LIBDIR)
+	if [ ! -r $(LIBDIR) ] mkdir $(LIBDIR)
 	cp libwww.a $(LIBDIR)/libwww.a
 	
 uninstall :
@@ -117,6 +135,9 @@ uninstall :
 
 #		Distribution use only:
 #		----------------------
+
+includes : $(HFILES)
+	echo incldues made.
 
 binary : /pub/www/bin/$(WWW_MACH)/libwww_$(VC).a
 	echo FTP archive binary Libray $(VC) for $(WWW_MACH) up to date.
@@ -226,6 +247,12 @@ $(LOB)/HTMLDTD.o : $(OE) $(CMN)HTMLDTD.c $(CMN)SGML.h
 
 $(LOB)/HTPlain.o : $(OE) $(CMN)HTPlain.c $(CMN)HTPlain.h $(CMN)HTStream.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTPlain.c
+
+$(LOB)/HTWAIS.o : $(OE) $(CMN)HTWAIS.c $(CMN)HTUtils.h $(CMN)HTList.h
+	$(CC) -c -o $@ $(CFLAGS2) $(WAISINC) $(CMN)HTWAIS.c
+
+$(LOB)/HTWSRC.o : $(OE) $(CMN)HTWSRC.c $(CMN)HTUtils.h $(CMN)HTList.h
+	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTWSRC.c
 
 $(LOB)/HTWriter.o : $(OE) $(CMN)HTWriter.c $(CMN)HTWriter.h $(CMN)HTStream.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTWriter.c

@@ -152,7 +152,7 @@ extern HTAnchor * HTAnchor_findAddress
 
 extern BOOL HTAnchor_delete
   PARAMS(
-     (HTParentAnchor *this)
+     (HTParentAnchor *me)
      );
 
 
@@ -165,7 +165,7 @@ extern BOOL HTAnchor_delete
 
 extern void HTAnchor_makeLastChild
   PARAMS(
-     (HTChildAnchor *this)
+     (HTChildAnchor *me)
      );
 
 /*	Data access functions
@@ -174,22 +174,22 @@ extern void HTAnchor_makeLastChild
 
 extern HTParentAnchor * HTAnchor_parent
   PARAMS(
-     (HTAnchor *this)
+     (HTAnchor *me)
      );
 
 extern void HTAnchor_setDocument
   PARAMS(
-     (HTParentAnchor *this, HyperDoc *doc)
+     (HTParentAnchor *me, HyperDoc *doc)
      );
 
 extern HyperDoc * HTAnchor_document
   PARAMS(
-     (HTParentAnchor *this)
+     (HTParentAnchor *me)
      );
 /* We don't want code to change an address after anchor creation... yet ?
 extern void HTAnchor_setAddress
   PARAMS(
-     (HTAnchor *this, char *addr)
+     (HTAnchor *me, char *addr)
      );
 */
 
@@ -198,49 +198,49 @@ extern void HTAnchor_setAddress
 */
 extern char * HTAnchor_address
   PARAMS(
-     (HTAnchor *this)
+     (HTAnchor *me)
      );
 
 extern void HTAnchor_setFormat
   PARAMS(
-     (HTParentAnchor *this, HTFormat form)
+     (HTParentAnchor *me, HTFormat form)
      );
 
 extern HTFormat HTAnchor_format
   PARAMS(
-     (HTParentAnchor *this)
+     (HTParentAnchor *me)
      );
 
 extern void HTAnchor_setIndex
   PARAMS(
-     (HTParentAnchor *this)
+     (HTParentAnchor *me)
      );
 
 extern BOOL HTAnchor_isIndex
   PARAMS(
-     (HTParentAnchor *this)
+     (HTParentAnchor *me)
      );
 
 extern BOOL HTAnchor_hasChildren
   PARAMS(
-     (HTParentAnchor *this)
+     (HTParentAnchor *me)
      );
 
 /*	Title handling
 */
 extern CONST char * HTAnchor_title
   PARAMS(
-     (HTParentAnchor *this)
+     (HTParentAnchor *me)
      );
 
 extern void HTAnchor_setTitle
   PARAMS(
-     (HTParentAnchor *this, CONST char * title)
+     (HTParentAnchor *me, CONST char * title)
      );
 
 extern void HTAnchor_appendTitle
   PARAMS(
-     (HTParentAnchor *this, CONST char * title)
+     (HTParentAnchor *me, CONST char * title)
      );
 
 /*	Link this Anchor to another given one
@@ -258,36 +258,36 @@ extern BOOL HTAnchor_link
 
 extern HTAnchor * HTAnchor_followMainLink
   PARAMS(
-     (HTAnchor *this)
+     (HTAnchor *me)
      );
 
 extern HTAnchor * HTAnchor_followTypedLink
   PARAMS(
-     (HTAnchor *this, HTLinkType *type)
+     (HTAnchor *me, HTLinkType *type)
      );
 
 extern BOOL HTAnchor_makeMainLink
   PARAMS(
-     (HTAnchor *this, HTLink *movingLink)
+     (HTAnchor *me, HTLink *movingLink)
      );
      
 /*	Read and write methods
 **	----------------------
 */
-extern HTList * HTAnchor_methods PARAMS((HTParentAnchor *this));
+extern HTList * HTAnchor_methods PARAMS((HTParentAnchor *me));
 
 /*	Protocol
 **	--------
 */
-extern void * HTAnchor_protocol PARAMS((HTParentAnchor * this));
-extern void HTAnchor_setProtocol PARAMS((HTParentAnchor * this,
+extern void * HTAnchor_protocol PARAMS((HTParentAnchor * me));
+extern void HTAnchor_setProtocol PARAMS((HTParentAnchor * me,
 					void* protocol));
 
 /*	Physical address
 **	----------------
 */
-extern char * HTAnchor_physical PARAMS((HTParentAnchor * this));
-extern void HTAnchor_setPhysical PARAMS((HTParentAnchor * this,
+extern char * HTAnchor_physical PARAMS((HTParentAnchor * me));
+extern void HTAnchor_setPhysical PARAMS((HTParentAnchor * me,
 					char * protocol));
 
 #endif /* HTANCHOR_H */

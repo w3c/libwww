@@ -1,5 +1,9 @@
-/*		Plain text object			HTPlain.h
-**		-----------------
+   /*
+   
+ */
+
+/*              Plain text object                       HTPlain.h
+**              -----------------
 **
 **
 */
@@ -11,9 +15,12 @@
 #include "HTAnchor.h"
 
 extern HTStream* HTPlainPresent PARAMS((
-	HTPresentation *	pres,
-	HTParentAnchor *	anchor,	
-	HTStream *		sink));
+        HTPresentation *        pres,
+        HTParentAnchor *        anchor,
+        HTStream *              sink));
 
 
 #endif
+/*
+
+    */

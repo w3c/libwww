@@ -28,7 +28,6 @@
 
 #include "HTParse.h"
 #include "HTUtils.h"
-#include "WWW.h"
 
 #ifndef NO_RULES
 #include "HTRules.h"
@@ -39,16 +38,6 @@
 #include "HTList.h"
 #include "HText.h"	/* See bugs above */
 #include "HTAlert.h"
-
-#ifdef OLD_CODE
-#include <errno.h>
-#include "tcp.h"
-#ifndef DECNET
-#include "HTFTP.h"
-#include "HTGopher.h"
-#include "HTNews.h"
-#endif
-#endif
 
 
 /*	These flags may be set to modify the operation of this module
@@ -95,9 +84,15 @@ PRIVATE void HTAccessInit NOARGS			/* Call me once */
 extern HTProtocol HTTP, HTFile, HTTelnet, HTTn3270, HTRlogin;
 #ifndef DECNET
 extern HTProtocol HTFTP, HTNews, HTGopher;
+#ifdef DIRECT_WAIS
+extern HTProtocol HTWAIS;
+#endif
     HTRegisterProtocol(&HTFTP);
     HTRegisterProtocol(&HTNews);
     HTRegisterProtocol(&HTGopher);
+#ifdef DIRECT_WAIS
+    HTRegisterProtocol(&HTWAIS);
+#endif
 #endif
 
     HTRegisterProtocol(&HTTP);

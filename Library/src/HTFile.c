@@ -26,7 +26,6 @@
 
 #include "HTUtils.h"
 
-#include "WWW.h"
 #include "HTParse.h"
 #include "tcp.h"
 #include "HTTCP.h"
@@ -400,7 +399,7 @@ PUBLIC HTFormat HTFileFormat ARGS1 (CONST char *,filename)
 	    return suff->rep;		/* OK -- found */
 	}
     }
-    return WWW_BINARY;		/* Dunno */
+    return strchr(filename, '.') ? WWW_BINARY : WWW_PLAINTEXT;	/* Dunno */
 }
 
 
@@ -740,7 +739,7 @@ forget_multi:
 
  /*	Directory access is allowed and possible
  */
-		target = HTML_new(anchor, sink);
+		target = HTML_new(anchor, format_out, sink);
 		targetClass = *target->isa;	/* Copy routine entry points */
 		    
   		{ int i;

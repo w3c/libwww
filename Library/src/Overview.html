@@ -1,11 +1,11 @@
 <HEADER>
 <TITLE>W3 Library Internals Overview</TITLE>
-<NEXTID N="34">
+<NEXTID N="48">
 </HEADER>
 <BODY>
 <H1>Library Internals</H1>The <A
 NAME=5 HREF="../../Architecture/../TheProject.html">WWW</A> browsers and servers share
-a common architrecure, and a libaary
+a common architrecure, and a library
 of common code. (See also: Browser<A
 NAME=7 HREF="../../Architecture/BrowserOperation.html">
 operation</A> , and<A
@@ -83,43 +83,47 @@ socket descriptor to the format manager
 for parsing by one of the parser
 modules. 
 <DL>
-<DT>File access
+<DT><A
+NAME=z46 HREF="HTFile.html">File access</A>
 <DD> HTFile.c provides access
 to files, using HTFTP.c for remote
 access.  The latter uses HTTCP for
 common TCP routines.
-<DT>HTTP access
+<DT><A
+NAME=z45 HREF="HTTP.html">HTTP access</A>
 <DD> The <A
 NAME=25 HREF="../../Architecture/../Implementation/HTTP.h">HTTP module</A> handles
 document search and retrieve using
 the<A
 NAME=6 HREF="../../Architecture/../Protocols/HTTP/AsImplemented.html"> HTTP</A> protocol.
-<DT>News access
+<DT><A
+NAME=z40 HREF="HTNews.html">News access</A>
 <DD> The NNTP internet news
-protocol is handled by <A
-NAME=24 HREF="../../Architecture/../Implementation/HTNews.h">HTNews</A> which
+protocol is handled by HTNews which
 builds a hypertext.
-<DT>Gopher access
+<DT><A
+NAME=z44 HREF="HTGopher.html">Gopher access</A>
 <DD> The internet gopher
 access to menus and flat files (and
 links to telnet nodes etc) is handled
 by <A
 NAME=26 HREF="../../Architecture/../Implementation/HTGopher.h">HTGopher</A> .
-<DT>WAIS access
-<DD> is implemented in a separate<A
-NAME=27 HREF="../../Architecture/../Daemon/WAISGate.html">
-gateway program</A> .
+<DT><A
+NAME=z39 HREF="HTWAIS.html">WAIS access</A>
+<DD> WAIS access is also implemented
+in a separate<A
+NAME=27 HREF="../../Architecture/../Daemon/WAISGate.html"> gateway program</A> .
 </DL>
 
 <H2><A
 NAME=11>Format conversion modules</A></H2>These modules allow different formats
 to be used to generate graphic objects.
 They invoked by the <A
-NAME=z30 HREF="HTFormat.html">format manager</A>.
-Currently we only parse HTML and
+NAME=z30 HREF="HTFormat.html">format manager</A>
+. Currently we only parse HTML and
 plain text and MIME messages, but
 obviously other formats can be added.<P>
-See the fromat manager for the registration
+See the format manager for the registration
 and typing of conversion modules.
 <DL>
 <DT><A
@@ -134,9 +138,43 @@ and element stack manager.
 can be converted.
 </DL>
 
-<H2>Structured streams</H2>A structured stream is like a <A
-NAME=z32 HREF="HTStream.html">stream</A>,
-but instead of just acepting text,
+<H2><A
+NAME=z37>Streams</A></H2>Streams are objects which accept
+characters (and strings and blocks).
+There is a basic <A
+NAME=z35 HREF="HTStream.html">stream object</A> definition,
+and many individual modules with
+creation routines for different types
+of stream.<P>
+Streams can be thought of as like
+files open for write.   Examples
+of specific stream objects are:
+<DL>
+<DT><A
+NAME=z43 HREF="HTFWriter.html">HTWriter</A>
+<DD> Writes to a socket or something
+opend with open().
+<DT><A
+NAME=z42 HREF="HTFWriter.html">File writer</A>
+<DD> Writes to a C  FILE *
+object, as opened by fopen(), etc.
+<DT><A
+NAME=z41 HREF="SGML.html">SGML parser</A>
+<DD> Parses a stream and generates
+a structured stream.
+<DT><A
+NAME=z36 HREF="HTWSRC.html">WAIS source parser</A>
+<DD> Parses a stream
+with a WAIS source file on it, and
+generates, via an HTML structured
+stream, a stream of the required
+type.
+</DL>
+
+<H2><A
+NAME=z38>Structured streams</A></H2>A structured stream is like a <A
+NAME=z32 HREF="HTStream.html">stream</A>
+, but instead of just acepting text,
 it also accepts SGML events such
 as begina nd end elements. A structured
 stream therefore represents a structured
@@ -147,7 +185,18 @@ with knowledge of the DTD which it
 is currently using.<P>
 The structured strams are definied
 in the <A
-NAME=z33 HREF="SGML.html">SGML module</A>.
+NAME=z33 HREF="SGML.html">SGML module</A> .<P>
+Any instance of a structured stream
+has a related DTD which gives the
+rules and element anbd entity names
+for events on the structured stream.
+The only DTD which is currently in
+the library is the HTML DTD, in the<A
+NAME=z34 HREF="HTMLDTD.html">
+HTMLDTD</A> module.<P>
+The SGML parser uses a DTD to generate
+a structured stream from a stream
+of SGML.
 <H2><A
 NAME=14>Graphic objects</A></H2>A graphic object is a (complex) displayable
 entity. It is built by a protocol
@@ -173,6 +222,14 @@ object, providing the generic functionality
 of HText.h
 </DL>
 
+<H2>General modules</H2>
+<DL>
+<DT><A
+NAME=z47 HREF="tcp.html">System specifics</A>
+<DD>The tcp.h file includes
+system-specific include files and
+flags for I/O to network and disk.
+</DL>
+
 <ADDRESS><A
-NAME=0 HREF="http://info.cern.ch./hypertext/TBL_Disclaimer.html">Tim BL</A></A>
-</ADDRESS></BODY>
+NAME=0 HREF="http://info.cern.ch./hypertext/TBL_Disclaimer.html">Tim BL</A></BODY>

@@ -1,3 +1,6 @@
+<HEADER>
+<TITLE>/Net/dxcern/userd/timbl/hypertext/WWW/Library/Implementation/HTMLDTD.html</TITLE></HEADER>
+<BODY>
 <PRE>
 /*		HTML Definition Interface			HTMLDTD.h
 **		=========================
@@ -14,6 +17,7 @@
 #ifndef HTMLDTD_H
 #define HTMLDTD_H
 
+#include "HTUtils.h"
 #include "SGML.h"
 
 /*	Element Numbers
@@ -38,7 +42,7 @@ typedef enum _HTMLElement {
 /*	Attribute numbers
 **	-----------------
 **
-**	Name is <#60element>#62_<#60attribute>#62.  These must match the tables in .c!
+**	Name is 60;element>_60;attribute>.  These must match the tables in .c!
 */
 #define HTML_A_HREF 		0
 #define HTML_A_NAME 		1
@@ -53,5 +57,23 @@ typedef enum _HTMLElement {
 
 extern CONST SGML_dtd HTML_dtd;
 
-#endif /* HTMLDTD_H */
+
 </PRE>
+<H2>Start anchor element</H2>It is kinda convenient to have a
+particulr routine for starting an
+anchor element, as everything else
+for HTML is simple anyway.
+<H3>On entry</H3>targetstream poinst to a structured
+stream object.<P>
+name and href point to attribute
+strings or are NULL if the attribute
+is to be omitted.
+<PRE>extern void HTStartAnchor PARAMS((
+		HTStructured * targetstream,
+		CONST char *  	name,
+		CONST char *  	href));
+
+
+#endif /* HTMLDTD_H */
+
+</PRE>End of module definition</BODY>

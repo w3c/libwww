@@ -1,6 +1,6 @@
 <HEADER>
 <TITLE>HTFormat: The format manager in the WWW Library</TITLE>
-<NEXTID N="8">
+<NEXTID N="9">
 </HEADER>
 <BODY>
 <H1>Manage different document formats</H1>Here we describe the functions of
@@ -8,10 +8,13 @@ the HTFormat module which handles
 conversion between different data
 representations.  (In MIME parlance,
 a representation is known as a content-type.
-In WWW the term "format" is often
+In WWW  the term "format" is often
 used as it is shorter).<P>
 This module is implemented by <A
-NAME=z0 HREF="HTFormat.c">HTFormat.c</A>
+NAME=z0 HREF="HTFormat.c">HTFormat.c</A>.
+This hypertext document is used to
+generate the <A
+NAME=z8 HREF="HTFormat.h">HTFormat.h</A> inlude file.
 <H2>Preamble</H2>
 <PRE>#ifndef HTFORMAT_H
 #define HTFORMAT_H
@@ -20,6 +23,7 @@ NAME=z0 HREF="HTFormat.c">HTFormat.c</A>
 #include <A
 NAME=z7 HREF="HTStream.html">"HTStream.h"</A>
 #include "HTAtom.h"
+#include "HTList.h"
 
 #ifdef SHORT_NAMES
 #define HTOutputSource HTOuSour
@@ -35,7 +39,7 @@ that if we stayed with strings.
 			
 </PRE>These macros (which used to be constants)
 define some basic internally referenced
-representations.  The www/* ones
+representations.  The www/xxx ones
 are of course not MIME standard.<P>
 www/source  is an output format which
 leaves the input untouched. It is
@@ -86,7 +90,7 @@ NAME=z6 HREF="HTInit.html">initialisation
 module</A> for a list of conversion routines.
 <PRE>typedef struct _HTPresentation HTPresentation;
 
-typedef HTStream * (*HTConverter) PARAMS((
+typedef HTStream * HTConverter PARAMS((
 	HTPresentation *	pres,
 	HTParentAnchor *	anchor,
 	HTStream *		sink));
@@ -94,7 +98,7 @@ typedef HTStream * (*HTConverter) PARAMS((
 struct _HTPresentation {
 	HTAtom* rep;		/* representation name atmoized */
 	HTAtom* rep_out;	/* resulting representation */
-	HTConverter converter;	/* The routine to gen the stream stack */
+	HTConverter *converter;	/* The routine to gen the stream stack */
 	char *  command;	/* MIME-format string */
 	float	quality;	/* Between 0 (bad) and 1 (good) */
 	float   secs;
@@ -110,7 +114,7 @@ set of formats supported. for example.
 </PRE>
 <H2>HTSetPresentation: Register a system
 command to present a format</H2>
-<H2>On entry,</H3>
+<H2>On entry,</H2>
 <DL>
 <DT>rep
 <DD> is the MIME - style format name
@@ -139,7 +143,7 @@ will wait (0 for infinity)
 </PRE>
 <H2>HTSetConversion:   Register a converstion
 routine</H2>
-<H2>On entry,</H3>
+<H2>On entry,</H2>
 <DL>
 <DT>rep_in
 <DD> is the content-type input
@@ -154,7 +158,7 @@ the stream to do it
 extern void HTSetConversion PARAMS((
 	CONST char * 	rep_in,
 	CONST char * 	rep_out,
-	HTConverter	converter,
+	HTConverter *	converter,
 	float		quality,
 	float		secs, 
 	float		secs_per_byte
@@ -168,7 +172,7 @@ streams</A></H2>This is the routine which actually
 sets up the conversion. It currently
 checks only for direct conversions,
 but indirect conversions are forseen.
- It takes a stream into which the
+It takes a stream into which the
 output should be sent in the final
 format, builds the conversion stack,
 and returns a stream into which the
@@ -188,7 +192,7 @@ them.
 filter stack</H2>Must return the cost of the same
 stack which HTStreamStack would set
 up.
-<H2>On entry,</H3>
+<H2>On entry,</H2>
 <DL>
 <DT>format_in
 <DD> The fomat of the data to
@@ -266,6 +270,4 @@ above.  Returns HT_LOADED if succesful,
 <PRE>extern BOOL HTOutputSource;	/* Flag: shortcut parser */
 #endif
 
-
-
-</BODY>
+</PRE>end</BODY>

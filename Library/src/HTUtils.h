@@ -1,11 +1,15 @@
-/*	Macros for general use					HTUtils.h
+   /*
+   
+ */
+
+/*      Macros for general use                                  HTUtils.h
 **
-**	See also: the system dependent file "tcp.h"
+**      See also: the system dependent file "tcp.h"
 */
 #ifndef DEBUG
-#define DEBUG	/* Noone ever turns this off as trace is too important */
-#endif		/* Keeep option for really small memory applications tho */
-		
+#define DEBUG   /* Noone ever turns this off as trace is too important */
+#endif          /* Keeep option for really small memory applications tho */
+                
 #ifndef HTUTILS_H
 #define HTUTILS_H
 
@@ -13,7 +17,7 @@
 #define WWW_TraceFlag HTTrFlag
 #endif
 
-/*	Debug message control.
+/*      Debug message control.
 */
 #ifndef STDIO_H
 #include <stdio.h>
@@ -23,7 +27,7 @@
 #ifdef DEBUG
 #define TRACE (WWW_TraceFlag)
 #define PROGRESS(str) printf(str)
-	extern int WWW_TraceFlag;
+        extern int WWW_TraceFlag;
 #else
 #define TRACE 0
 #define PROGRESS(str) /* nothing for now */
@@ -33,21 +37,21 @@
 #define tfp stdout
 
 
-/*	Standard C library for malloc() etc
+/*      Standard C library for malloc() etc
 */
 #ifdef vax
 #ifdef unix
-#define ultrix	/* Assume vax+unix=ultrix */
+#define ultrix  /* Assume vax+unix=ultrix */
 #endif
 #endif
 
 #ifndef VMS
 #ifndef ultrix
 #ifdef NeXT
-#include <libc.h>	/* NeXT */
+#include <libc.h>       /* NeXT */
 #endif
 #ifndef MACH /* Vincent.Cate@furmint.nectar.cs.cmu.edu */
-#include <stdlib.h>	/* ANSI */
+#include <stdlib.h>     /* ANSI */
 #endif
 #else /* ultrix */
 #include <malloc.h>
@@ -55,39 +59,39 @@
 #include <stdio.h>
 #endif
 
-#else	/* VMS */
+#else   /* VMS */
 #include <stdio.h>
 #include <ctype.h>
 #endif
 
-#define PUBLIC			/* Accessible outside this module     */
-#define PRIVATE static		/* Accessible only within this module */
+#define PUBLIC                  /* Accessible outside this module     */
+#define PRIVATE static          /* Accessible only within this module */
 
 #ifdef __STDC__
-#define CONST const		/* "const" only exists in STDC */
+#define CONST const             /* "const" only exists in STDC */
 #define NOPARAMS (void)
 #define PARAMS(parameter_list) parameter_list
 #define NOARGS (void)
 #define ARGS1(t,a) \
-		(t a)
+                (t a)
 #define ARGS2(t,a,u,b) \
-		(t a, u b)
+                (t a, u b)
 #define ARGS3(t,a,u,b,v,c) \
-		(t a, u b, v c)
+                (t a, u b, v c)
 #define ARGS4(t,a,u,b,v,c,w,d) \
-		(t a, u b, v c, w d)
+                (t a, u b, v c, w d)
 #define ARGS5(t,a,u,b,v,c,w,d,x,e) \
-		(t a, u b, v c, w d, x e)
+                (t a, u b, v c, w d, x e)
 #define ARGS6(t,a,u,b,v,c,w,d,x,e,y,f) \
-		(t a, u b, v c, w d, x e, y f)
+                (t a, u b, v c, w d, x e, y f)
 #define ARGS7(t,a,u,b,v,c,w,d,x,e,y,f,z,g) \
-		(t a, u b, v c, w d, x e, y f, z g)
+                (t a, u b, v c, w d, x e, y f, z g)
 #define ARGS8(t,a,u,b,v,c,w,d,x,e,y,f,z,g,s,h) \
-		(t a, u b, v c, w d, x e, y f, z g, s h)
+                (t a, u b, v c, w d, x e, y f, z g, s h)
 #define ARGS9(t,a,u,b,v,c,w,d,x,e,y,f,z,g,s,h,r,i) \
-		(t a, u b, v c, w d, x e, y f, z g, s h, r i)
+                (t a, u b, v c, w d, x e, y f, z g, s h, r i)
 #define ARGS10(t,a,u,b,v,c,w,d,x,e,y,f,z,g,s,h,r,i,q,j) \
-		(t a, u b, v c, w d, x e, y f, z g, s h, r i, q j)
+                (t a, u b, v c, w d, x e, y f, z g, s h, r i, q j)
 
 #else  /* not ANSI */
 
@@ -96,27 +100,27 @@
 #define PARAMS(parameter_list) ()
 #define NOARGS ()
 #define ARGS1(t,a) (a) \
-		t a;
+                t a;
 #define ARGS2(t,a,u,b) (a,b) \
-		t a; u b;
+                t a; u b;
 #define ARGS3(t,a,u,b,v,c) (a,b,c) \
-		t a; u b; v c;
+                t a; u b; v c;
 #define ARGS4(t,a,u,b,v,c,w,d) (a,b,c,d) \
-		t a; u b; v c; w d;
+                t a; u b; v c; w d;
 #define ARGS5(t,a,u,b,v,c,w,d,x,e) (a,b,c,d,e) \
-		t a; u b; v c; w d; x e;
+                t a; u b; v c; w d; x e;
 #define ARGS6(t,a,u,b,v,c,w,d,x,e,y,f) (a,b,c,d,e,f) \
-		t a; u b; v c; w d; x e; y f;
+                t a; u b; v c; w d; x e; y f;
 #define ARGS7(t,a,u,b,v,c,w,d,x,e,y,f,z,g) (a,b,c,d,e,f,g) \
-		t a; u b; v c; w d; x e; y f; z g;
+                t a; u b; v c; w d; x e; y f; z g;
 #define ARGS8(t,a,u,b,v,c,w,d,x,e,y,f,z,g,s,h) (a,b,c,d,e,f,g,h) \
-		t a; u b; v c; w d; x e; y f; z g; s h;
+                t a; u b; v c; w d; x e; y f; z g; s h;
 #define ARGS9(t,a,u,b,v,c,w,d,x,e,y,f,z,g,s,h,r,i) (a,b,c,d,e,f,g,h,i) \
-		t a; u b; v c; w d; x e; y f; z g; s h; r i;
+                t a; u b; v c; w d; x e; y f; z g; s h; r i;
 #define ARGS10(t,a,u,b,v,c,w,d,x,e,y,f,z,g,s,h,r,i,q,j) (a,b,c,d,e,f,g,h,i,j) \
-		t a; u b; v c; w d; x e; y f; z g; s h; r i q j;
-		
-	
+                t a; u b; v c; w d; x e; y f; z g; s h; r i q j;
+                
+        
 #endif /* __STDC__ (ANSI) */
 
 #ifndef NULL
@@ -125,15 +129,15 @@
 
 
 /* Note: GOOD and BAD are already defined (differently) on RS6000 aix */
-/* #define GOOD(status) ((status)&1)	 VMS style status: test bit 0	      */
-/* #define BAD(status)  (!GOOD(status))	 Bit 0 set if OK, otherwise clear   */
+/* #define GOOD(status) ((status)&1)     VMS style status: test bit 0         */
+/* #define BAD(status)  (!GOOD(status))  Bit 0 set if OK, otherwise clear   */
 
 #ifndef BOOLEAN_DEFINED
-	typedef char	BOOLEAN;		/* Logical value */
+        typedef char    BOOLEAN;                /* Logical value */
 #ifndef CURSES
 #ifndef TRUE
-#define TRUE	(BOOLEAN)1
-#define	FALSE	(BOOLEAN)0
+#define TRUE    (BOOLEAN)1
+#define FALSE   (BOOLEAN)0
 #endif
 #endif
 #define BOOLEAN_DEFINED
@@ -152,25 +156,25 @@
 #define max(a,b) ((a) >= (b) ? (a) : (b))
 #endif
 
-#define TCP_PORT 80	/* Allocated to http by Jon Postel/ISI 24-Jan-92 */
-#define OLD_TCP_PORT 2784	/* Try the old one if no answer on 80 */
-#define DNP_OBJ 80	/* This one doesn't look busy, but we must check */
+#define TCP_PORT 80     /* Allocated to http by Jon Postel/ISI 24-Jan-92 */
+#define OLD_TCP_PORT 2784       /* Try the old one if no answer on 80 */
+#define DNP_OBJ 80      /* This one doesn't look busy, but we must check */
 
-/*	Inline Function WHITE: Is character c white space? */
-/*	For speed, include all control characters */
+/*      Inline Function WHITE: Is character c white space? */
+/*      For speed, include all control characters */
 
 #define WHITE(c) (((unsigned char)(TOASCII(c)))<=32)
 
 
-/*	Sucess (>=0) and failure (<0) codes
+/*      Sucess (>=0) and failure (<0) codes
 */
-#define HT_LOADED 29999			/* Instead of a socket */
-#define HT_OK		0		/* Generic success*/
+#define HT_LOADED 29999                 /* Instead of a socket */
+#define HT_OK           0               /* Generic success*/
 
-#define HT_NO_ACCESS	-10		/* Access not available */
-#define HT_FORBIDDEN	-11		/* Access forbidden */
-#define HT_INTERNAL	-12		/* Weird -- should never happen. */
-#define HT_BAD_EOF	-12		/* Premature EOF */
+#define HT_NO_ACCESS    -10             /* Access not available */
+#define HT_FORBIDDEN    -11             /* Access forbidden */
+#define HT_INTERNAL     -12             /* Weird -- should never happen. */
+#define HT_BAD_EOF      -12             /* Premature EOF */
 
 #include "HTString.h"  /* String utilities */
 
@@ -181,18 +185,18 @@
 #endif
 
 #ifdef CURSES
-	/* htbrowse.c; */
+        /* htbrowse.c; */
 #include <curses.h>
 
-	extern        WINDOW  *w_top, *w_text, *w_prompt;
-	extern        void    user_message PARAMS((const char *fmt, ...));
-	extern        void    prompt_set PARAMS((CONST char * msg));
-	extern        void    prompt_count PARAMS((long kb));
+        extern        WINDOW  *w_top, *w_text, *w_prompt;
+        extern        void    user_message PARAMS((const char *fmt, ...));
+        extern        void    prompt_set PARAMS((CONST char * msg));
+        extern        void    prompt_count PARAMS((long kb));
 #else
 #define user_message printf
 #endif
 
-/*	Out Of Memory checking for malloc() return:
+/*      Out Of Memory checking for malloc() return:
 */
 #ifndef __FILE__
 #define __FILE__ ""
@@ -209,7 +213,7 @@ extern void msg_init PARAMS((int height));
 extern void msg_printf PARAMS((int y, const char *fmt, ...));
 extern void msg_exit PARAMS((int wait_for_key));
 
-/*	Upper- and Lowercase macros
+/*      Upper- and Lowercase macros
 **
 **  The problem here is that toupper(x) is not defined officially unless
 **  isupper(x) is.  These macros are CERTAINLY needed on
@@ -227,3 +231,6 @@ extern void msg_exit PARAMS((int wait_for_key));
 
 #endif /* HTUTILS_H */
 
+/*
+
+    */

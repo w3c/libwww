@@ -1,8 +1,10 @@
-/*			GOPHER ACCESS				HTGopher.h
-**			=============
+/*  */
+
+/*                      GOPHER ACCESS                           HTGopher.h
+**                      =============
 **
 ** History:
-**	 8 Jan 92	Adapted from HTTP TBL
+**       8 Jan 92       Adapted from HTTP TBL
 */
 
 #ifndef HTGOPHER_H
@@ -12,9 +14,12 @@
 #include "HTAnchor.h"
 
 /* extern int HTLoadGopher PARAMS((const char *arg,
-	HTParentAnchor * anAnchor,
-	int diag));
+        HTParentAnchor * anAnchor,
+        int diag));
 */
 extern HTProtocol HTGopher;
 
 #endif /* HTGOPHER_H */
+/*
+
+    */

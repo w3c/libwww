@@ -22,9 +22,9 @@
 #include "SGML.h"
 #include "HTFormat.h"
 
-#define PUTC(c) (*this->targetClass.put_character)(this->target, c)
-#define PUTS(s) (*this->targetClass.put_string)(this->target, s)
-#define PUTB(s,l) (*this->targetClass.write)(this->target, s, l)
+#define PUTC(c) (*me->targetClass.put_character)(me->target, c)
+#define PUTS(s) (*me->targetClass.put_string)(me->target, s)
+#define PUTB(s,l) (*me->targetClass.write)(me->target, s, l)
 
 /*		HTML Object
 **		-----------
@@ -46,7 +46,7 @@ struct _HTStructured {
 /*	Character handling
 **	------------------
 */
-PRIVATE void HTMLGen_put_character ARGS2(HTStructured *, this, char, c)
+PRIVATE void HTMLGen_put_character ARGS2(HTStructured *, me, char, c)
 {
     PUTC(c);
 }
@@ -56,12 +56,12 @@ PRIVATE void HTMLGen_put_character ARGS2(HTStructured *, this, char, c)
 /*	String handling
 **	---------------
 */
-PRIVATE void HTMLGen_put_string ARGS2(HTStructured *, this, CONST char*, s)
+PRIVATE void HTMLGen_put_string ARGS2(HTStructured *, me, CONST char*, s)
 {
     PUTS(s);
 }
 
-PRIVATE void HTMLGen_write ARGS3(HTStructured *, this, CONST char*, s, int, l)
+PRIVATE void HTMLGen_write ARGS3(HTStructured *, me, CONST char*, s, int, l)
 {
     PUTB(s,l);
 }
@@ -71,7 +71,7 @@ PRIVATE void HTMLGen_write ARGS3(HTStructured *, this, CONST char*, s, int, l)
 **	-------------
 */
 PRIVATE void HTMLGen_start_element ARGS4(
-	HTStructured *, 	this,
+	HTStructured *, 	me,
 	int,			element_number,
 	CONST BOOL*,	 	present,
 	CONST char **,		value)
@@ -107,7 +107,7 @@ PRIVATE void HTMLGen_start_element ARGS4(
 **	should be linked to the whole stack not just the top one.)
 **	TBL 921119
 */
-PRIVATE void HTMLGen_end_element ARGS2(HTStructured *, this,
+PRIVATE void HTMLGen_end_element ARGS2(HTStructured *, me,
 			int , element_number)
 {
     PUTS("</");
@@ -121,7 +121,7 @@ PRIVATE void HTMLGen_end_element ARGS2(HTStructured *, this,
 **
 */
 
-PRIVATE void HTMLGen_put_entity ARGS2(HTStructured *, this, int, entity_number)
+PRIVATE void HTMLGen_put_entity ARGS2(HTStructured *, me, int, entity_number)
 {
     PUTC('&');
     PUTS(HTML_dtd.entity_names[entity_number]);
@@ -136,25 +136,25 @@ PRIVATE void HTMLGen_put_entity ARGS2(HTStructured *, this, int, entity_number)
 **	Note that the SGML parsing context is freed, but the created object is not,
 **	as it takes on an existence of its own unless explicitly freed.
 */
-PRIVATE void HTMLGen_free ARGS1(HTStructured *, this)
+PRIVATE void HTMLGen_free ARGS1(HTStructured *, me)
 {
-    (*this->targetClass.free)(this->target);	/* ripple through */
-    free(this);
+    (*me->targetClass.free)(me->target);	/* ripple through */
+    free(me);
 }
 
 
 
-PRIVATE void HTMLGen_end_document ARGS1(HTStructured *, this)
+PRIVATE void HTMLGen_end_document ARGS1(HTStructured *, me)
 {
     PUTC('\n');		/* Make sure ends with newline for sed etc etc */
-    (*this->targetClass.end_document)(this->target);
+    (*me->targetClass.end_document)(me->target);
 }
 
 
-PRIVATE void PlainToHTML_end_document ARGS1(HTStructured *, this)
+PRIVATE void PlainToHTML_end_document ARGS1(HTStructured *, me)
 {
     PUTS("</PRE></BODY>\n");/* Make sure ends with newline for sed etc etc */
-    (*this->targetClass.end_document)(this->target);
+    (*me->targetClass.end_document)(me->target);
 }
 
 
@@ -179,14 +179,14 @@ PUBLIC CONST HTStructuredClass HTMLGeneration = /* As opposed to print etc */
 
 PUBLIC HTStructured * HTMLGenerator ARGS1(HTStream *, output)
 {
-    HTStructured* this = (HTStructured*)malloc(sizeof(*this));
-    if (this == NULL) outofmem(__FILE__, "HTMLGenerator");
-    this->isa = &HTMLGeneration;       
+    HTStructured* me = (HTStructured*)malloc(sizeof(*me));
+    if (me == NULL) outofmem(__FILE__, "HTMLGenerator");
+    me->isa = &HTMLGeneration;       
 
-    this->target = output;
-    this->targetClass = *this->target->isa; /* Copy pointers to routines for speed*/
+    me->target = output;
+    me->targetClass = *me->target->isa; /* Copy pointers to routines for speed*/
 
-    return this;
+    return me;
 }
 
 /*	Stream Object Class
@@ -219,16 +219,16 @@ PUBLIC HTStream* HTPlainToHTML ARGS3(
 	HTParentAnchor *,	anchor,	
 	HTStream *,		sink)
 {
-    HTStream* this = (HTStream*)malloc(sizeof(*this));
-    if (this == NULL) outofmem(__FILE__, "PlainToHTML");
-    this->isa = (HTStreamClass*) &PlainToHTMLConversion;       
+    HTStream* me = (HTStream*)malloc(sizeof(*me));
+    if (me == NULL) outofmem(__FILE__, "PlainToHTML");
+    me->isa = (HTStreamClass*) &PlainToHTMLConversion;       
 
-    this->target = sink;
-    this->targetClass = *this->target->isa;
+    me->target = sink;
+    me->targetClass = *me->target->isa;
     	/* Copy pointers to routines for speed*/
 	
     PUTS("<BODY>\n<PRE>\n");
-    return this;
+    return me;
 }
 
 

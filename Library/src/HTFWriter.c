@@ -14,8 +14,8 @@
 #include "HTAlert.h"
 #include "HTFile.h"
 
-/*		HTML Object
-**		-----------
+/*		Stream Object
+**		------------
 */
 
 struct _HTStream {
@@ -38,9 +38,9 @@ struct _HTStream {
 **	------------------
 */
 
-PRIVATE void HTFWriter_put_character ARGS2(HTStream *, this, char, c)
+PRIVATE void HTFWriter_put_character ARGS2(HTStream *, me, char, c)
 {
-    putc(c, this->fp);
+    putc(c, me->fp);
 }
 
 
@@ -50,18 +50,18 @@ PRIVATE void HTFWriter_put_character ARGS2(HTStream *, this, char, c)
 **
 **	Strings must be smaller than this buffer size.
 */
-PRIVATE void HTFWriter_put_string ARGS2(HTStream *, this, CONST char*, s)
+PRIVATE void HTFWriter_put_string ARGS2(HTStream *, me, CONST char*, s)
 {
-    fputs(s, this->fp);
+    fputs(s, me->fp);
 }
 
 
 /*	Buffer write.  Buffers can (and should!) be big.
 **	------------
 */
-PRIVATE void HTFWriter_write ARGS3(HTStream *, this, CONST char*, s, int, l)
+PRIVATE void HTFWriter_write ARGS3(HTStream *, me, CONST char*, s, int, l)
 {
-    fwrite(s, 1, l, this->fp); 
+    fwrite(s, 1, l, me->fp); 
 }
 
 
@@ -74,29 +74,29 @@ PRIVATE void HTFWriter_write ARGS3(HTStream *, this, CONST char*, s, int, l)
 **	object is not,
 **	as it takes on an existence of its own unless explicitly freed.
 */
-PRIVATE void HTFWriter_free ARGS1(HTStream *, this)
+PRIVATE void HTFWriter_free ARGS1(HTStream *, me)
 {
-    fflush(this->fp);
-    if (this->end_command) {		/* Temp file */
-    	fclose(this->fp);
-        HTProgress(this->end_command);	/* Tell user what's happening */
-	system(this->end_command);
-	free (this->end_command);
-	if (this->remove_command) {
-	    system(this->remove_command);
-	    free(this->remove_command);
+    fflush(me->fp);
+    if (me->end_command) {		/* Temp file */
+    	fclose(me->fp);
+        HTProgress(me->end_command);	/* Tell user what's happening */
+	system(me->end_command);
+	free (me->end_command);
+	if (me->remove_command) {
+	    system(me->remove_command);
+	    free(me->remove_command);
 	}
     }
 
-    free(this);
+    free(me);
 }
 
 /*	End writing
 */
 
-PRIVATE void HTFWriter_end_document ARGS1(HTStream *, this)
+PRIVATE void HTFWriter_end_document ARGS1(HTStream *, me)
 {
-    fflush(this->fp);
+    fflush(me->fp);
 }
 
 
@@ -120,19 +120,19 @@ PUBLIC CONST HTStreamClass HTFWriter = /* As opposed to print etc */
 
 PUBLIC HTStream* HTFWriter_new ARGS1(FILE *, fp)
 {
-    HTStream* this;
+    HTStream* me;
     
     if (!fp) return NULL;
 
-    this = malloc(sizeof(*this));
-    if (this == NULL) outofmem(__FILE__, "HTML_new");
-    this->isa = &HTFWriter;       
+    me = (HTStream*)malloc(sizeof(*me));
+    if (me == NULL) outofmem(__FILE__, "HTML_new");
+    me->isa = &HTFWriter;       
 
-    this->fp = fp;
-    this->end_command = NULL;
-    this->remove_command = NULL;
+    me->fp = fp;
+    me->end_command = NULL;
+    me->remove_command = NULL;
 
-    return this;
+    return me;
 }
 
 /*	Make system command from template
@@ -162,11 +162,11 @@ PUBLIC HTStream* HTSaveAndExecute ARGS3(
     char *fnam;
     CONST char * suffix;
     
-    HTStream* this;
+    HTStream* me;
     
-    this = malloc(sizeof(*this));
-    if (this == NULL) outofmem(__FILE__, "Save and execute");
-    this->isa = &HTFWriter;  
+    me = (HTStream*)malloc(sizeof(*me));
+    if (me == NULL) outofmem(__FILE__, "Save and execute");
+    me->isa = &HTFWriter;  
     
     /* Save the file under a suitably suffixed name */
     
@@ -176,37 +176,37 @@ PUBLIC HTStream* HTSaveAndExecute ARGS3(
     tmpnam (fnam);
     if (suffix) strcat(fnam, suffix);
     
-    this->fp = fopen (fnam, "w");
-    if (!this->fp) {
+    me->fp = fopen (fnam, "w");
+    if (!me->fp) {
 	HTAlert("Can't open temporary file!");
         free(fnam);
-	free(this);
+	free(me);
 	return NULL;
     }
 
 /*	Make command to process file
 */
-    this->end_command = (char *)malloc (
+    me->end_command = (char *)malloc (
     			(strlen (pres->command) + 10+ 3*strlen(fnam))
     			 * sizeof (char));
-    if (this == NULL) outofmem(__FILE__, "SaveAndExecute");
+    if (me == NULL) outofmem(__FILE__, "SaveAndExecute");
     
-    sprintf (this->end_command, pres->command, fnam, fnam, fnam);
+    sprintf (me->end_command, pres->command, fnam, fnam, fnam);
 
-    this->remove_command = NULL;	/* If needed, put into end_command */
+    me->remove_command = NULL;	/* If needed, put into end_command */
 #ifdef NOPE
 /*	Make command to delete file
 */ 
-    this->remove_command = (char *)malloc (
+    me->remove_command = (char *)malloc (
     			(strlen (REMOVE_COMMAND) + 10+ strlen(fnam))
     			 * sizeof (char));
-    if (this == NULL) outofmem(__FILE__, "SaveAndExecute");
+    if (me == NULL) outofmem(__FILE__, "SaveAndExecute");
     
-    sprintf (this->remove_command, REMOVE_COMMAND, fnam);
+    sprintf (me->remove_command, REMOVE_COMMAND, fnam);
 #endif
 
     free (fnam);
-    return this;
+    return me;
 }
 
 #else	/* Not unix */

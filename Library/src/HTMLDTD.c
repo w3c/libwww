@@ -160,3 +160,43 @@ PUBLIC CONST SGML_dtd HTML_dtd = {
 	entities,
 	sizeof(entities)/sizeof(char**)
 };
+
+/*	Utility Routine: useful for people building HTML objects */
+
+/*	Start anchor element
+**	--------------------
+**
+**	It is kinda convenient to have a particulr routine for
+**	starting an anchor elementm as everything else for HTML is
+**	simple anyway.
+*/
+struct _HTStructured {
+    HTStructuredClass * isa;
+	/* ... */
+};
+
+PUBLIC void HTStartAnchor ARGS3(HTStructured *, obj,
+		CONST char *,  name,
+		CONST char *,  href)
+{
+    BOOL		present[HTML_A_ATTRIBUTES];
+    CONST char*		value[HTML_A_ATTRIBUTES];
+    
+    {
+    	int i;
+    	for(i=0; i<HTML_A_ATTRIBUTES; i++)
+	    present[i] = NO;
+    }
+    if (name) {
+    	present[HTML_A_NAME] = YES;
+	value[HTML_A_NAME] = name;
+    }
+    if (href) {
+        present[HTML_A_HREF] = YES;
+        value[HTML_A_HREF] = href;
+    }
+    
+    (*obj->isa->start_element)(obj, HTML_A , present, value);
+
+}
+
