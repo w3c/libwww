@@ -379,7 +379,7 @@ PRIVATE int FileCleanup (HTRequest *req, int status)
 #ifdef WWW_WIN_DLL
 	    HTSocket_DLLHackFclose(file->fp);
 #else
-	    close(file->fp);
+	    fclose(file->fp);
 #endif
 	}
 #endif
