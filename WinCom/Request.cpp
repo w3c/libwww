@@ -69,7 +69,7 @@ PRIVATE int precondition_handler (HTRequest * request, HTResponse * response,
 	    delete req;
 	    
 	    /* Start a new PUT request without preconditions */
-	    new_req->PutDocument(source, dest, FALSE);
+	    new_req->PutDocument(source, dest, HT_NO_MATCH);
 
 	    /* Stop here */
 	    return HT_ERROR;
@@ -119,8 +119,8 @@ PRIVATE int check_handler (HTRequest * request, HTResponse * response,
 	CRequest * new_req = new CRequest(req->m_pDoc);
 	delete req;
 	
-	/* Start a new PUT request without preconditions */
-	new_req->PutDocument(source, dest, FALSE);
+	/* Start a new PUT request with a "if-none-match *" precondition */
+	new_req->PutDocument(source, dest, HT_DONT_MATCH_ANY);
 	
     } else if (conflict.DoModal() == IDOK) {
 	
@@ -131,7 +131,7 @@ PRIVATE int check_handler (HTRequest * request, HTResponse * response,
 	    delete req;
 	    
 	    /* Start a new PUT request without preconditions */
-	    new_req->PutDocument(source, dest, FALSE);
+	    new_req->PutDocument(source, dest, HT_NO_MATCH);
 	    
 	} else if (conflict.m_versionResolution == 1) {
 	    HTAnchor * address = req->Source();
@@ -282,7 +282,7 @@ int CRequest::HeadDocument (HTAnchor * address, int cacheValidation)
     return 0;
 }
 
-int CRequest::DeleteDocument (HTAnchor * address, BOOL UsePreconditions)
+int CRequest::DeleteDocument (HTAnchor * address, HTPreconditions preconditions)
 {
     ASSERT(address != NULL); 
 
@@ -295,8 +295,7 @@ int CRequest::DeleteDocument (HTAnchor * address, BOOL UsePreconditions)
     HTRequest_setContext(m_pHTRequest, this);
     
     /* Should we use preconditions? */
-    if (UsePreconditions)
-	HTRequest_setPreconditions(m_pHTRequest, YES);
+    HTRequest_setPreconditions(m_pHTRequest, preconditions);
 
     /* Terminating filters */
     InitializeFilters();
@@ -315,7 +314,7 @@ int CRequest::DeleteDocument (HTAnchor * address, BOOL UsePreconditions)
 
 int CRequest::PutDocument (HTAnchor * source,
 			   HTAnchor * destination,
-			   BOOL UsePreconditions)
+			   HTPreconditions preconditions)
 {
     ASSERT(source != NULL); 
     ASSERT(destination != NULL); 
@@ -330,8 +329,7 @@ int CRequest::PutDocument (HTAnchor * source,
     HTRequest_setContext(m_pHTRequest, this);
     
     /* Should we use preconditions? */
-    if (UsePreconditions)
-	HTRequest_setPreconditions(m_pHTRequest, YES);
+    HTRequest_setPreconditions(m_pHTRequest, preconditions);
 	
     /* Terminating filters */
     InitializeFilters();
@@ -349,8 +347,7 @@ int CRequest::PutDocument (HTAnchor * source,
 }
 
 int CRequest::PutDocumentWithPrecheck (HTAnchor * source,
-				       HTAnchor * destination,
-				       BOOL UsePreconditions)
+				       HTAnchor * destination)
 {
     ASSERT(source != NULL); 
     ASSERT(destination != NULL); 

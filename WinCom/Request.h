@@ -38,15 +38,15 @@ public:
 
     int		HeadDocument	(HTAnchor * address, int cacheValidation);
 
-    int		DeleteDocument	(HTAnchor * address, BOOL UsePreconditions);
+    int		DeleteDocument	(HTAnchor * address,
+				 HTPreconditions conditions);
 
     int		PutDocument	(HTAnchor * source,
 				 HTAnchor * destination,
-				 BOOL UsePreconditions);
+				 HTPreconditions conditions);
 
     int		PutDocumentWithPrecheck (HTAnchor * source,
-					 HTAnchor * destination,
-					 BOOL UsePreconditions);
+					 HTAnchor * destination);
 
     int		Cancel();
     BOOL	Cleanup();

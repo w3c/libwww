@@ -89,7 +89,7 @@ void CDelete::OnOK()
 	
 	// Start the request
 	CRequest * request = new CRequest(m_pDoc);
-	request->DeleteDocument(anchor, FALSE);
+	request->DeleteDocument(anchor, HT_NO_MATCH);
     }
     CDialog::OnOK();
 }

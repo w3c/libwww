@@ -189,13 +189,12 @@ BOOL CWinComDoc::SaveDocument()
     if (m_detectVersionConflict) {
         char * etag = HTAnchor_etag(HTAnchor_parent(destination));
         if (etag) {
-	    request->PutDocument(source, destination, m_detectVersionConflict);
+	    request->PutDocument(source, destination, HT_MATCH_THIS);
         } else {
-	    request->PutDocumentWithPrecheck(source, destination, FALSE);
-	    // request->PutDocument(source, destination, m_detectVersionConflict);
+	    request->PutDocumentWithPrecheck(source, destination);
         }
     } else {
-	request->PutDocument(source, destination, m_detectVersionConflict);
+	request->PutDocument(source, destination, HT_NO_MATCH);
     }
 
     return TRUE;
