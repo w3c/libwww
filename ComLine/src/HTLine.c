@@ -463,7 +463,8 @@ int main (int argc, char ** argv)
 		char * name = HTNextField(&string);
 		char * value = HTNextField(&string);
 		if (tokencount++ <= 1) formfields = HTAssocList_new();
-		if (name && value) {
+		if (!value) value="";
+		if (name) {
 		    char * escaped_name = HTEscape(name, URL_XPALPHAS);
 		    char * escaped_value = HTEscape(value, URL_XPALPHAS);
 		    HTAssocList_addObject(formfields,
