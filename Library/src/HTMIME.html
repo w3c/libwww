@@ -1,11 +1,10 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 17-Apr-1996 -->
-  <TITLE>W3C Sample Code Library libwww MIME/RFC822 Parsers</TITLE>
+  <TITLE>W3C Sample Code Library libwww MIME Parsers</TITLE>
 </HEAD>
 <BODY>
 <H1>
-  MIME Parsers
+  Libwww MIME Parsers
 </H1>
 <PRE>
 /*
@@ -18,7 +17,8 @@ The MIME parser stream presents a MIME document with a header and possibly
 a footer. It recursively invokes the format manager to handle embedded formats
 like MIME multipart. As well as stripping off and parsing the headers, the
 MIME parser has to parse any weird MIME encodings it may meet within the
-body parts of messages, and must deal with multipart messages.
+body parts of messages, and must deal with <A HREF="HTBound.html">multipart
+messages</A> (see HTBound.h).
 <P>
 This module is implemented to the level necessary for operation with WWW,
 but is not currently complete for any arbitrary MIME message.
@@ -33,69 +33,88 @@ Library</A>.
 #include "HTStream.h"
 #include "HTFormat.h"
 </PRE>
-<H3>
-  How to deal with "application/octetstream" etc.
-</H3>
+<H2>
+  How to Deal with Unknown Data
+</H2>
 <P>
 When the MIME parser can't find a target stream, for example because the
-format is application/octetstream, or it has a content encoding or
-transfer encoding that we don't know about then it has to get rid of the
-data in some other fashion, for example by dumping it to local disk. The
-following two functions allow you to set and get the local file save stream.
-<P>
-Libwww provides a default implementation as <A
-HREF="HTFSave.html">HTSaveLocally</A> which you may want to use.
+media type is unknown, or it has a content encoding or transfer encoding
+that it doesn't know about then it has to get rid of the data in some other
+fashion, for example by dumping it to local disk (but it could also be dumping
+it to a black hole). The following two functions allow you to set and get
+the stream to use in this situation. By default, libwww provides an
+implementation of a save stream as <A HREF="HTFSave.html">HTSaveLocally</A>
+which you may want to use - this is for example used by the
+<A HREF="HTProfil.html">current profiles</A>.
 <PRE>
 extern void HTMIME_setSaveStream (HTConverter * save_stream);
 extern HTConverter * HTMIME_saveStream (void);
 </PRE>
-
-<H3>
-  MIME header parser stream
-</H3>
+<H2>
+  MIME Parse Stream
+</H2>
 <P>
-This stream parses a complete MIME header and if a content type header is
-found then the stream stack is called. Any left over data is pumped right
-through the stream.
+This stream parses a complete MIME message and if a media type header is
+found then the stream stack is called to create the nest stream instance
+in the stream pipe. Any piece of the MIME body is pumped right through the
+stream.
 <PRE>
 extern HTConverter HTMIMEConvert;
 </PRE>
-<H3>
-  MIME Header ONLY parser stream
-</H3>
+<H2>
+  MIME Header ONLY Parse Stream
+</H2>
 <P>
-This stream parses a complete MIME header and then returnes HT_PAUSE. It
-does not set up any streams and resting data stays in the buffer. This can
-be used if you only want to parse the headers before you decide what to do
-next. This is for example the case in a server app.
+This stream parses a complete MIME header and then returnes
+<CODE>HT_LOADED</CODE>. It does not set up any streams and resting data stays
+in the buffer. This can be used if you only want to parse the headers before
+you decide what to do next. This is for example the case with HTTP HEAD requests.
 <PRE>
 extern HTConverter HTMIMEHeader;
 </PRE>
-<H3>
-  MIME Footer ONLY parser
-</H3>
+<H2>
+  MIME Footer ONLY Parse Stream
+</H2>
 <P>
 Parse only a footer, for example after a chunked encoding.
 <PRE>
 extern HTConverter HTMIMEFooter;
 </PRE>
-<H3>
-  MIME 1xx Continue Header Parser
-</H3>
+<H2>
+  HTTP 100 Continue Parse Stream
+</H2>
 <P>
-When parsed the header it returns HT_CONTINUE
+The 100 continue status codes can come at any time - we take them and put
+the data down a temporary stream. When the 100 continue message has been
+parsed, the stream returns <CODE>HT_CONTINUE</CODE>
 <PRE>
 extern HTConverter HTMIMEContinue;
 </PRE>
-<H3>
-  Partial MIME Response parser
-</H3>
+<H2>
+  HTTP 101 Switching Protocol Parse Stream
+</H2>
 <P>
-In case we sent a <I>Range conditional GET</I> we may get back a partial
-response. This response must be appended to the already existing cache entry
-before presented to the user. That is, first we load the cached object and
-pump it down the pipe and then the new data follows. Only the latter part
-gets appended to the cache, of course.
+The 101 Switching Protocol status code indicates that the rest of the stream
+is using another format, protocol, what ever. The result is the same - we
+are done parsing here and must leave the rest to the next stream which hopefully
+knows more about how to parse the rest of the stream. The stream stack is
+called to look for a stream registered for handling
+<TT><A HREF="HTFormat.html#type">WWW_MIME_UPGRADE</A></TT>. This steam should
+return <CODE>HT_LOADED</CODE> when it is done, <CODE>HT_ERROR</CODE> if an
+error occurred and <CODE>HT_OK</CODE> as long as it just reads more data.
+<PRE>
+extern HTConverter HTMIMEUpgrade;
+</PRE>
+<H2>
+  HTTP 206 Partial Data MIME Parse Stream
+</H2>
+<P>
+In case we sent a <I>Range conditional GET</I> we may get back a 206 Partial
+Response. This response must be appended to the already existing cache entry
+before presented to the user. That is, first we load the
+<A HREF="HTCache.html">cached object</A> and pump it down the pipe and then
+the new data follows. Only the latter part gets appended to the cache, of
+course.
 <PRE>
 extern HTConverter HTMIMEPartial;
 </PRE>
