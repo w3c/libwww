@@ -890,7 +890,7 @@ PUBLIC HTAssocList * HTRequest_credentials (HTRequest * me)
 */
 PUBLIC BOOL HTRequest_setRealm (HTRequest * me, char * realm)
 {
-    if (me && realm) {
+    if (me && realm && realm != me->realm) {
 	StrAllocCopy(me->realm, realm);
 	return YES;
     }
@@ -900,6 +900,15 @@ PUBLIC BOOL HTRequest_setRealm (HTRequest * me, char * realm)
 PUBLIC const char * HTRequest_realm (HTRequest * me)
 {
     return (me ? me->realm : NULL);
+}
+
+PUBLIC BOOL HTRequest_deleteRealm (HTRequest * me)
+{
+    if (me) {
+	HT_FREE(me->realm);
+	return YES;
+    }
+    return NO;
 }
 
 /*

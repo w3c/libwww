@@ -677,9 +677,12 @@ extern HTAssocList * HTRequest_credentials (HTRequest * request);
 <H3>
   Realms
 </H3>
+The realm is normally set and used by the authentication filters.
+
 <PRE>
 extern BOOL HTRequest_setRealm (HTRequest * request, char * realm);
 extern const char * HTRequest_realm (HTRequest * request);
+extern BOOL HTRequest_deleteRealm (HTRequest * me);
 </PRE>
 <H2>
   HTTP Extensions (PEP)
