@@ -27,7 +27,8 @@ BUILT_SOURCES = \
 
 EXTRA_DIST = \
 	 $(BUILT_SOURCES) \
-	Robot.tcl
+	Robot.tcl \
+	Robot.sh
 
 inc: $(BUILT_SOURCES)
 	@echo Generated built sources
