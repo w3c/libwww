@@ -55,14 +55,20 @@ These are the things that are upcoming in the next release
     If you are using libwww as a shared library but do <EM>not</EM> use the
     <A HREF="../src/WWWHTML.html">libwww HTML parser</A> then you MUST include
     this <A HREF="../src/HTextImp.html">dummy implementation</A> of the
-    <A HREF="../src/HText.html">HText interface</A> somewhere in your code.
+    <A HREF="../src/HText.html">HText interface</A> somewhere in your code. The
+    reason for this is that the HText interface may be called (it depends a bit
+    on how your platform supports shared libraries) but an implementation isn't
+    provided.
   <LI>
-    Added support for <A HREF="http://www.tcx.se/">MySQL</A> access. Currently
-    I use this for <A HREF="../src/HTSQLLog.html">handling logging</A> in
-    <A HREF="../../Robot/User/CommandLine.html#Logging">the webbot </A>but many
-    other features like persistent caching, preferences, etc. can use this. You
-    can also see some cool examples of how to use the robot's logs when querying
-    <A HREF="http://www.tcx.se/">MySQL</A> through
+    Added support for <A HREF="http://www.tcx.se/">MySQL</A> access in
+    <A HREF="../src/HTSQL.html">this simple SQL interface</A> which takes care
+    of most os the common problems encountered when talking to an SQL server.
+    Currently I use this for <A HREF="../src/HTSQLLog.html">handling logging</A>
+    in <A HREF="../../Robot/User/CommandLine.html#Logging">the webbot </A>but
+    many other features like persistent caching, preferences, etc. can use the
+    <A HREF="../src/HTSQL.html">SQL module</A> as well. You can also see some
+    <A HREF="../../Robot/www-sql/">cool examples</A> of how to use the robot's
+    logs when querying <A HREF="http://www.tcx.se/">MySQL</A> through
     <A HREF="http://www.daa.com.au/~james/www-sql/">www-sql</A>.
   <LI>
     Changed the name of "<TT>config.h</TT>" to "<TT>wwwconf.h</TT>" as the
