@@ -51,7 +51,32 @@ ifelse([$2], , , [else
   $2
 ])dnl
 fi
-])dnl AC_DEFUN
+])
+
+dnl AC_PATH_TCL(ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND])
+AC_DEFUN(AC_PATH_TCL, [
+AC_MSG_CHECKING(for TCL)
+AC_CACHE_VAL(ac_cv_path_tcl,
+[
+TCLLIB="$TCLLIB /usr/local/lib/libtcl*.a"
+for ac_dir in $TCLLIB ; do
+  if test -f $ac_dir; then
+    ac_cv_path_tcl=$ac_dir
+    break;
+  fi
+done
+])
+ac_path_tcl=$ac_cv_path_tcl
+test -z $ac_path_tcl && ac_path_tcl=missing
+AC_MSG_RESULT($ac_path_tcl)
+if test -n $ac_cv_path_tcl; then
+  LIBTCL="$ac_path_tcl"
+  ifelse([$1], , :, [$1])
+ifelse([$2], , , [else
+  $2
+])dnl
+fi
+])
 
 dnl AC_PATH_SOCKS(ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND])
 AC_DEFUN(AC_PATH_SOCKS, [
