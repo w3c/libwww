@@ -3,6 +3,7 @@
 **
 **	(c) COPRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **  Authors:
 **	HFN		Henrik Frystyk Nielsen, (frystyk@w3.org)
@@ -305,6 +306,12 @@ int main (int argc, char ** argv)
 
     /* Add our own filter to update the history list */
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
+
+    /*
+    ** Add default content decoder. We insert a through line as it doesn't
+    ** matter that we get an encoding that we don't know.
+    */
+    HTFormat_addCoding("*", HTIdentityCoding, HTIdentityCoding, 0.3);
 
     /* Scan command Line for parameters */
     for (arg=1; arg<argc; arg++) {
