@@ -6,8 +6,6 @@ SRC := $(wildcard *.c)
 MAK := $(wildcard *.mak)
 FLS := $(wildcard *.files)
 
-AUTOMAKE_OPTIONS = foreign
-
 BUILT_SOURCES = \
 	wwwapp.def	wwwapp.def	wwwcache.def \
 	wwwcore.def	wwwdir.def 	wwwmux.def \
