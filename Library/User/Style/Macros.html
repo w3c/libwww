@@ -1,0 +1,102 @@
+<HEADER>
+<TITLE>Macros -- /Project</TITLE>
+<NEXTID N="21">
+</HEADER>
+<BODY>
+<H1>Macros used in W3 code</H1>These are macros which make it less
+tedious to program in portable C.
+ They are defined in <A
+NAME=13 HREF="../Implementation/HTUtils.h">HTUtils.h</A> .
+See <A
+NAME=11 HREF="Language.html">Language features</A> .
+<H2><A
+NAME=5>ARGS1</A></H2>Generates the format parameter list
+for a function heading. Expands to
+either an ANSI or non-ANSI argument
+declaration list. Note in order to
+do this, it has to take one argument
+for the type and one for the argument
+name. This is messy but necessary.
+See example, also NOARGS,<A
+NAME=8 HREF="#1"> </A><A
+NAME=z16 HREF="#9">ARGSn</A>,
+<A
+NAME=8 HREF="#1">PARAMS</A> .
+<H2><A
+NAME=9>ARGSn</A> </H2>As <A
+NAME=6 HREF="#5">ARGS1</A> , macros ARGS2, ARGS3 etc
+up to ARGS9 generate arguments lists
+for function headings with different
+numbers of arguments. See also <A
+NAME=z18 HREF="#z17">NOARGS</A>,
+<A
+NAME=7 HREF="#1">PARAMS</A> .<P>
+These should be used for private
+function definitions.  If the function
+is <A
+NAME=z15 HREF="#z14">PUBLIC</A> (not static) then there
+will already be a function prototype
+in the header file, so a K&amp;R style
+function definition may be used instead
+of ARG
+<H2><A
+NAME=10>CONST</A></H2>This is used instead of the keyword
+"const" which does not exist in K&amp;R
+C. It expands to const when using
+ANSI C, otherwise nothing.
+<H2><A
+NAME=z17>NOARGS</A></H2>Generates  the argument list for
+a function header with no arguments..
+See also <A
+NAME=z20 HREF="#9">ARGSn</A>, <A
+NAME=z19 HREF="#3">NOPARAMS</A>.
+<H2><A
+NAME=3>NOPARAMS</A></H2>This is used to generate the formal
+parameter list in a function declaration
+having no parameters. It expands
+to (void) for ANSI C and () for non-ANSI.
+See also: <A
+NAME=2 HREF="#1">PARAMS</A>  
+<H2><A
+NAME=1>PARAMS</A></H2>Define formal parameter list in function
+declaration. The  normal ANSI function
+header is given enclosed in DOUBLE
+parentheses.  This causes the whole
+list to be replaced with just ()
+when a non-ANSI compiler is used.
+See also: <A
+NAME=4 HREF="#3">NOPARAMS</A>
+<H2>PRIVATE</H2>This expands to "static".  It  is
+used in a function or variable declaration
+to signify that the function is private
+to the module, rather than public
+(the default).  Avoids the confusion
+in C between "static" used in this
+sense, and used to declare storage
+variables within blocks as static
+as opposed to automatic.
+<H2><A
+NAME=z14>PUBLIC</A></H2>The alternative to PRIVATE. expands
+to nothing.  One or other of PRIVATE
+or PUBLIC should be used to ensure
+that the programmer has thought about
+it.   This prevents unnecessry accidental
+public definitions which may later
+clash with other people's routines.	
+<H2>StrAllocCopy</H2>This is a safe string assignment
+function.   It takes as arguments
+two pointers. If the first is non-zero,
+it frees the block it points to.
+It then allocates a block of size
+sufficient for the zero-terminated
+string pointed to by the second,
+and assigns the first pointer to
+point to that block. Implemented
+nowadays in terms of a function.
+Note that unlike the function, StrAllocCopy
+takes its first pointer by name not
+address (p, not ).<P>
+(Part of <A
+NAME=12 HREF="Coding.html">style guide</A> )
+<ADDRESS><A
+NAME=0 HREF="http://www.w3.org./hypertext/TBL_Disclaimer.html">Tim BL</A></BODY>

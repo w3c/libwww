@@ -1,0 +1,34 @@
+<TITLE>Body -- /Project</TITLE>
+<NEXTID 1>
+<H1>Function body layout</H1>With the body of functions, this is the way we aim to do it...we're
+not religious about it, but consistency helps.  If you think your
+way is smarter, you may be right but this is the way we do it.  <P>
+Whatever you do, NEVER make global changes to the indentation etc
+in a file without agreement from me first. (It screws up diffs and
+cde management as well as people).
+<H2>Indentation</H2>
+<UL>
+<LI>Put opening { at the end of the same line as the if, while, etc which
+affects the block;
+<LI>Align the closing brace with the START of that opening line;
+<LI>Indent everything between { and }  by an extra 4 (FOUR) spaces.
+<LI>Never indent preprocessor instructions (#ifdef, etc), nor increase
+the indentation level on account of preprocessor instructions.
+<LI>Block comments should start with /* in column 1, end end with */ in
+column 1. In between, having ** in column 1 is conventional but not
+necessary for very large comments.
+<LI>Comment the closing braces of conditionals and other blocks with the
+type of block, including the correct sense of the condition of the
+block being closed if there was an "else",  of the function name.
+For example,
+</UL>
+<XMP>			    if (cb[k]==0) {	/* if black */
+				foo = bar;
+			    } else {		/* if white */
+				foo = foobar;
+			    }			/* if white */
+			} 		/* switch on character */
+		    } 			/* loop on lines */
+		}			/* scan_lines()	*/
+
+</XMP>_________________________________________________________________

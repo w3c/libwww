@@ -1,0 +1,24 @@
+<TITLE>IncludeFiles -- /Project</TITLE>
+<NEXTID 4>
+<H1>Include Files</H1>
+<H2>Module include files</H2>Every module in the project should have a C #incldue file defining
+its interface, and a   .c source file (of the same name apart from
+the suffix) containing the implementation. <P>
+The .c file should #include its own .h file.<P>
+A .h file should be protected so that no errors occur if  it is #included
+twice.<P>
+An interface which relies on other interfaces should #include those
+interface files.  An implemention file which uses other modules should
+#include the .h file if it not already #included by its own .h file.
+<H2>Common include files</H2>These are all in the WWW/Implementation directory.
+<DL>
+<DT><A NAME=1>HTUtils.h</A>
+<DD> Definitions of macros like PUBLIC and PRIVATE and YES and
+NO. For use in all .c files.
+<DT>tcp.h
+<DD> All machine-dependent code for accesing TCP/IP channels and
+files. Also defines some machine-dependent bits like SHORT_NAMES.
+<DT>WWW.h
+<DD> Project-wide definition of constants, etc.
+</DL>
+(See also: <A NAME=2 HREF=Coding.html>Style in general</A> , <A NAME=3 HREF=Directories.html>directory structure</A> )

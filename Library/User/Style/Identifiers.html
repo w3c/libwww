@@ -1,0 +1,22 @@
+<TITLE>Identifiers -- /Project</TITLE>
+<NEXTID 2>
+<H1>Identifiers</H1>When chosing identifier names, 
+<UL>
+<LI>Macros should be un upper case entirely unless they mimic and replace
+a genuine function.
+<LI>External names should be prefixed with HT to avoid confusion with
+other projects' code. Wthin the rest of the identifier, we use initial
+capitals a la Objective-C (e.g. HTSendBuffer).
+<LI>The macro SHORT_NAMES is defined on systems in which external names
+must be unique to within 8 characters (case insesitive). If your names
+would clash, at the top of the .h file for a module you should include
+macros defining distinct short names:
+</UL>
+<XMP>			#ifdef SHORT_NAMES
+			#define HTSendBufferHeader	HTSeBuHe
+			#define HTSendBuffer		HTSeBuff
+			#endif
+
+
+</XMP>(back to <A NAME=1 HREF=Coding.html>Overview</A>)<P>
+___________________________________________________________

@@ -1,0 +1,26 @@
+<TITLE>Headings -- /Project</TITLE>
+<NEXTID 3>
+<H1>Function Headings</H1>This style concerns the comments, and so is not essential to compilation.
+However, it helps readability of code written by a number of people.
+Some of these conventions may be arbitrary, but are none the less
+useful for that. 
+<H2>Format</H2>See a <A NAME=1 HREF=Ex_Heading.html>sample procedure heading</A> . Note:-
+<UL>
+<LI>White space of two lines separating functions.
+<LI>The identifier of the function right-justified to make it easy to
+find when flicking through a listing
+<LI>The separate definitions for standard and old C.
+<LI>The macros PUBLIC and PRIVATE (in <A NAME=2 HREF=IncludeFiles.html#1>HTUtils.h</A> ) expand to null and to
+"static" respectively.  They show that one has thought about whether
+visibility is required outside the module, and they get over the overloading
+of the keyword "static" in C. Use one or the other. (Use for top level
+variables too).
+</UL>
+<H2>Entry and exit condidtions</H2>It is most important to document the function as seen by the rest
+of the world (especially the caller). The most important aspects of
+the appearance of the function to the caller are the pre- and post-conditions.<P>
+The pre conditions include the value of the parameters and structures
+they point to.  Both include any requirements on or changes to global
+data, the screen, disk files, etc.<P>
+_________________________________________________________________
+<ADDRESS><A NAME=0 HREF=http://www.w3.org./hypertext/TBL_Disclaimer.html>Tim BL</A></A>

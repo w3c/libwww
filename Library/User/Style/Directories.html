@@ -1,0 +1,13 @@
+<TITLE>Directories -- /Project</TITLE>
+<NEXTID 1>
+<H1>Directory structure</H1>This is an outline of the directory structure used to support multiple
+platforms.
+<UL>
+<LI>All code is under a subdirectory "Implementation" at the appropriate
+point in the tree.
+<LI>All object files are in a subdirectory Implementation/xxx where xxx
+is the machine name. See for example WWW/LineMode/Implementation/*.
+<LI>Makefiles in the system-specific directories incldue a CommonMakefile
+which is in the parent Implementation directory (..).
+</UL>
+
