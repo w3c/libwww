@@ -231,7 +231,7 @@ PRIVATE char * WWW_from_WAIS ARGS1(any *, docid)
 	*q++ = '=';		/* Separate */
 	l = *p++;		/* Length */
 	for(i=0; i<l; i++, p++){
-	    if (!acceptable[*p]) {
+	    if (!acceptable[(int)*p]) {
 		*q++ = HEX_ESCAPE;	/* Means hex commming */
 		*q++ = hex[(*p) >> 4];
 		*q++ = hex[(*p) & 15];
@@ -532,7 +532,6 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 
 {
     CONST char * arg = HTAnchor_physical(request->anchor);
-    HTParentAnchor *	anAnchor = request->anchor;
     HTFormat		format_out = request->output_format;
     HTStream*		sink = request->output_stream;
     
@@ -577,7 +576,7 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
     }
     if (names[0]== '/') {
 	server_name = names+1;
-	if (as_gate =(*server_name == '/'))
+	if ((as_gate =(*server_name == '/')))
 	    server_name++;	/* Accept one or two */
 	www_database = strchr(server_name,'/');
 	if (www_database) {
@@ -693,7 +692,7 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 	HTStructured * target;
 	
 	strncpy(keywords, key, MAX_KEYWORDS_LENGTH);
-	while(p=strchr(keywords, '+')) *p = ' ';
+	while ((p = strchr(keywords,'+'))) *p = ' ';
     
         /* Send advance title to get something fast to the other end */
 	

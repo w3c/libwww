@@ -52,7 +52,11 @@
 PUBLIC char * HTCacheDir = 0;	/* Root for cached files or 0 for no cache */
 PUBLIC char * HTSaveLocallyDir = SAVE_LOCALLY_HOME_DIR;	/* Save & exe files */
 PUBLIC char * HTClientHost = 0;	/* Name of remote login host if any */
+
+#ifdef OLD_CODE	/* WAIS now defines its own logfile */
 PUBLIC FILE * logfile = 0;	/* File to which to output one-liners */
+#endif
+
 PUBLIC BOOL HTForceReload = NO;	/* Force reload from cache or net */
 PUBLIC BOOL HTSecure = NO;	/* Disable access for telnet users? */
 PUBLIC BOOL using_proxy = NO;	/* are we using a proxy gateway? */
@@ -598,6 +602,7 @@ PRIVATE BOOL HTLoadDocument ARGS1(HTRequest *,		request)
     
 /*	Log the access if necessary
 */
+#ifdef OLD_CODE	/* WAIS now defines its own logfile */
     if (logfile) {
 	time_t theTime;
 	time(&theTime);
@@ -613,6 +618,7 @@ PRIVATE BOOL HTLoadDocument ARGS1(HTRequest *,		request)
 	    status<0 ? "FAIL" : "GET",
 	    full_address);
     }
+#endif
     
 
     if (status == HT_LOADED) {

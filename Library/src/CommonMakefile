@@ -50,12 +50,6 @@ VMS = $(CMN)vms
 
 LOB = $(WTMP)/Library/$(WWW_MACH)
 
-# Only needed if HTWAIS.c is to be compiled. Put into your Makefile.include
-#   WAIS = YES
-#   WAISINC = -I../../../freeWAIS/ir
-#   WAISCFLAGS = -DDIRECT_WAIS
-#
-
 # This path, if relative, is taken relative to the directory
 # in which this makefile is, not the pwd.  This screws up the 
 # recursive invocation

@@ -16,6 +16,7 @@
 #include "HTFormat.h"
 #include "HTAlert.h"
 #include "HTList.h"
+#include "HTML.h"	/* HTLoadError() */
 
 /*		Stream Object
 **		------------
