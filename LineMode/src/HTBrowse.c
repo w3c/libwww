@@ -56,25 +56,6 @@
 #include "HTBrowse.h"	/* Things exported, short names */
 #include "GridText.h"	/* Hypertext definition */
 
-#if 0
-#include <ctype.h>
-#include "HTFormat.h"
-#include "HTTCP.h"	/* TCP/IP utilities */
-#include "HTAnchor.h"   /* Anchor class */
-#include "HTParse.h"    /* WWW address manipulation */
-#include "HTAccess.h"   /* WWW document access network code */
-#include "HTHist.h"	/* Navigational aids */
-#include "HTML.h"	/* For parser */
-#include "HTFWrite.h"	/* For non-interactive output */
-#include "HTMLGen.h"	/* For reformatting HTML */
-#include "HTFile.h"	/* For Dir access flags */
-#include "HTRules.h"    /* For loading rule file */
-#include "HTError.h"
-#include "HTAlert.h"
-#include "HTTP.h"
-#include "HTEvent.h"
-#endif
-
 /* HWL 18/7/94: applied patch from agl@glas2.glas.apc.org (Anton Tropashko) */
 #ifdef CYRILLIC		
 #include "a_stdio.h"
@@ -93,15 +74,11 @@ extern int socketdebug;		   /* Must be declared in the socket library */
 
 /*	If the guy gives the "MANUAL" command, jump to this: */
 #ifndef MANUAL
-#define MANUAL "http://info.cern.ch/hypertext/WWW/LineMode/Defaults/QuickGuide.html"
+#define MANUAL "http://www.w3.org/hypertext/WWW/LineMode/Defaults/QuickGuide.html"
 #endif
 
 #ifndef COM_HELP_FILE
-#define COM_HELP_FILE "http://info.cern.ch/hypertext/WWW/LineMode/Defaults/CommandLine.html"
-#endif
-
-#ifndef DEFAULT_LOCAL_LOGFILE
-#define DEFAULT_LOCAL_LOGFILE		"WWW-log"	/* Log file name for local execution */
+#define COM_HELP_FILE "http://www.w3.org/hypertext/WWW/LineMode/Defaults/CommandLine.html"
 #endif
 
 #ifndef DEFAULT_OUTPUT_FILE
@@ -196,21 +173,22 @@ PUBLIC char *		reference_mark = "[%d] ";     /* for reference lists */
 PUBLIC char *		end_mark = END_MARK;   	  /* Format string for [End] */
  
 /* Type definitions and global variables local to this module */
-PRIVATE HTRequest *	request = NULL;
 PRIVATE	HTList *	reqlist = NULL;		  /* List of active requests */
+PRIVATE HTRequest *	request = NULL;
 PRIVATE HTParentAnchor*	home_anchor = NULL;	    /* First document anchor */
+PRIVATE HTRequest *	post_request = NULL;
+PRIVATE HTParentAnchor*	post_anchor = NULL;	         /* Document to post */
+
 PRIVATE char		keywords[ADDRESS_LENGTH];       /* From command line */
+
 PRIVATE char *		output_file_name = NULL;		  /* -o xxxx */
 PRIVATE char		choice[RESPONSE_LENGTH];	  /* Users response  */
 PRIVATE char *		refhead = DEFAULT_REF_HEAD;	 /* Ref list heading */
-PRIVATE char *		logfile_root = NULL;	 	    /* Log file name */
 PRIVATE BOOL		filter = NO;		      	 /* Load from stdin? */
 PRIVATE BOOL		reformat_html = NO;		   /* Reformat html? */
 PRIVATE BOOL		listrefs_option = NO;	  /* -listrefs option used?  */
 PRIVATE BOOL		OutSource = NO;		    /* Output source, YES/NO */
-PRIVATE char *		HTLogFileName = NULL;  	    /* Root of log file name */
 PRIVATE int		OldTraceFlag = SHOW_ALL_TRACE;
-PRIVATE HTList *	conversions = NULL;	       /* Format conversions */
 PRIVATE BOOL		UseMulti = YES;			/* Use multithreaded */
 
 #ifdef VMS
@@ -565,11 +543,10 @@ PRIVATE HTRequest *Thread_new ARGS1(BOOL, Interactive)
     HTRequest *newreq = HTRequest_new(); 	     /* Set up a new request */
     if (!reqlist)
 	reqlist = HTList_new();
-    if (Interactive) {
-	HTList_delete(newreq->conversions);
-	newreq->conversions = conversions;	    /* Take from global list */
-    } else
-	HTFormatInitNIM(newreq->conversions);
+    
+    if (Interactive)
+	HTPresenterInit(newreq->conversions);		/* Set up local list */
+
     if (!UseMulti)
 	request->BlockingIO = YES;			 /* Use blocking I/O */
     HTList_addObject(reqlist, (void *) newreq);
@@ -586,8 +563,6 @@ PRIVATE void Thread_delete ARGS1(HTRequest *, oldreq)
     if (oldreq) {
 	if (reqlist)
 	    HTList_removeObject(reqlist, (void *) oldreq);
-	if (oldreq->conversions == conversions)
-	    oldreq->conversions = NULL;	    /* We keep them in a global list */
 	HTRequest_delete(oldreq);
     }
 }
@@ -598,18 +573,11 @@ PRIVATE void Thread_delete ARGS1(HTRequest *, oldreq)
 */
 PRIVATE void Thread_deleteAll NOARGS
 {
-    BOOL first=YES;	      /* We only have one global list of conversions */
     if (reqlist) {
 	HTList *cur = reqlist;
 	HTRequest* pres;
 	while ((pres = (HTRequest *) HTList_nextObject(cur)) != NULL) {
-	    if (first) {
-		HTRequest_delete(pres);
-		first = NO;
-	    } else {
-		pres->conversions = NULL;
-		HTRequest_delete(pres);
-	    }
+	    HTRequest_delete(pres);
 	}
 	HTList_delete(reqlist);
 	reqlist = NULL;
@@ -666,9 +634,10 @@ PRIVATE BOOL SaveOutputStream ARGS2(char *, This, char *, Next)
 	if (OutSource)
 	    req->output_format = WWW_SOURCE;
 	req->output_stream = HTFWriter_new(fp, NO);
-	HTForceReload = YES;
+	req->output_stream = HTNetToText(req->output_stream);
+	req->ForceReload = YES;
 	status = HTLoadAnchor((HTAnchor*) HTMainAnchor, req);
-	HTForceReload = NO;
+	req->ForceReload = NO;
 	return (status != HT_WOULD_BLOCK);
     }
 }
@@ -760,14 +729,23 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 	    found = NO;
 	break;
 	
-#ifdef unix
       case 'C':
-	if (Check_User_Input("CD")) {	       /* Change working directory ? */
+	if (Check_User_Input("COPY")) {
+	    if (next_word) {
+		post_anchor = (HTParentAnchor*)HTAnchor_findAddress(next_word);
+		post_request = Thread_new(YES);
+		*actreq = Thread_new(YES);
+		post_request->method = METHOD_PUT;
+		loadstat = HTCopyAnchor((HTAnchor *) HTMainAnchor, *actreq,
+					post_anchor, post_request);
+	    }
+#ifdef unix
+	} else if (Check_User_Input("CD")) {   /* Change working directory ? */
 	    goto lcd;
+#endif
 	} else
 	    found = NO;
 	break;
-#endif
 	
       case 'D':
 	if (Check_User_Input("DOWN")) {		    /* Scroll down one page  */
@@ -778,8 +756,12 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 	    found = NO;
 	break;
 	
-      case 'E':			       /* Quit program ? Alternative command */
-	if (Check_User_Input("EXIT")) {
+      case 'E':
+	if (Check_User_Input("EDIT")) {
+
+	    /* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+	    
+	} else if (Check_User_Input("EXIT")) {		    /* Quit program? */
 	    status = EVENT_QUIT;
 	} else
 	    found = NO;
@@ -1144,11 +1126,16 @@ int main ARGS2(int, argc, char **, argv)
     int		return_status = 0;	
     int		arg;			       /* Argument number as we scan */
     BOOL	argument_found = NO;
-    BOOL	logfile_flag = NO;
+    char *     	logfilename = NULL;		 	    /* Log file name */
     BOOL	first_keyword = YES;
     char *	default_default = HTFindRelatedName();
     HTFormat	input_format = WWW_HTML;	         /* Used with filter */
     HTEventCallBack user;		/* To register STDIN for user events */
+
+    /* Start up Library of Common Code */
+    WWW_TraceFlag = 1;
+    HTLibInit();
+    WWW_TraceFlag = 0;
 
 #ifdef THINK_C /* command line from Think_C */
     int i;
@@ -1241,9 +1228,8 @@ int main ARGS2(int, argc, char **, argv)
 
 	    /* Specify a cache root (caching is otherwise disabled) */
 	    } else if (!strcmp(argv[arg], "-cacheroot")) {
-		StrAllocCopy(HTCacheDir,
-			     (arg+1>=argc || *argv[arg+1]=='-') ?
-			     CACHE_HOME_DIR : argv[++arg]);
+		HTCache_enable((arg+1>=argc || *argv[arg+1]=='-') ?
+			       NULL : argv[++arg]);
 
 	    /* to -- Final representation */
 	    } else if (!strcmp(argv[arg], "-to")) {
@@ -1261,26 +1247,24 @@ int main ARGS2(int, argc, char **, argv)
 
 	    /* Log file */
 	    } else if (!strcmp(argv[arg], "-l")) {
-		if (arg+1 < argc && *argv[arg+1] != '-')
-		    logfile_root = argv[++arg];
-		logfile_flag = YES;
-		    
+		logfilename = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    argv[++arg] : DEFAULT_LOGFILE;
+
 	    /* List References */
 	    } else if (!strcmp(argv[arg], "-listrefs")) {
 		listrefs_option = YES;
-		HTInteractive = NO;			/* non-interactive */
+		HTInteractive = NO;			  /* non-interactive */
+	    
+	    } else if (!strcasecomp(argv[arg], "-head")) {    /* HEAD Method */
+		request->method = METHOD_HEAD;
+		request->output_format = WWW_MIME;
 
-	    /* Method Used (Currently on GET and HEAD are supported) */
-	    } else if (!strcmp(argv[arg], "-m")) {
-		HTInteractive = NO;
-		if (++arg < argc) {
-		    if (!strcasecomp(argv[arg], "head")) {
-			request->method = METHOD_HEAD;
-			request->output_format = WWW_MIME;
-		    } else if (!strcasecomp(argv[arg], "get"))
-			request->method = METHOD_GET;
-		    else
-			request->method = METHOD_INVALID;
+	    /* @@@ NOT FINISHED @@@ */
+	    } else if (!strcasecomp(argv[arg], "-post")) {    /* POST Method */
+		if (arg+1 < argc && *argv[arg+1] != '-') {
+		    char *ref = HTParse(argv[arg], default_default, PARSE_ALL);
+		    post_anchor = (HTParentAnchor*) HTAnchor_findAddress(ref);
+		    free(ref);
 		}
 
 	    /* Non-interactive */
@@ -1364,8 +1348,10 @@ int main ARGS2(int, argc, char **, argv)
 		for(; *p; p++) {
 		    switch (*p) {
 		      case 'a': WWW_TraceFlag += SHOW_ANCHOR_TRACE; break;
+		      case 'c': WWW_TraceFlag += SHOW_CACHE_TRACE; break;
+		      case 'g':	WWW_TraceFlag += SHOW_SGML_TRACE; break;
 		      case 'p':	WWW_TraceFlag += SHOW_PROTOCOL_TRACE; break;
-		      case 's':	WWW_TraceFlag += SHOW_SGML_TRACE; break;
+		      case 's':	WWW_TraceFlag += SHOW_STREAM_TRACE; break;
 		      case 't':	WWW_TraceFlag += SHOW_THREAD_TRACE; break;
 		      case 'u': WWW_TraceFlag += SHOW_URI_TRACE; break;
 		      default:
@@ -1425,9 +1411,7 @@ int main ARGS2(int, argc, char **, argv)
     } /* End of argument loop */
 
     /* Initialization */
-    HTLibInit();
     if (HTClientHost) HTSecure = YES;		   /* Access to local files? */
-    HTEnableFrom = YES;			     /* Send `From:' in the request? */
 #ifdef CATCH_SIG
     SetSignal();
 #endif
@@ -1448,7 +1432,7 @@ int main ARGS2(int, argc, char **, argv)
     if (HTClientHost && HTDirAccess==HT_DIR_OK)
 	HTDirAccess = HT_DIR_SELECTIVE;
 
-#ifndef NO_RULES
+#ifndef HT_NO_RULES
     {
     	char * rules = getenv("WWW_CONFIG");
 	if (rules && HTLoadRules(rules) < 0) {
@@ -1457,14 +1441,10 @@ int main ARGS2(int, argc, char **, argv)
     }
 #endif
 
-    /* Force predefined presentations etc to be set up */
-    if (HTInteractive) {
-	conversions = HTList_new();
-	HTFormatInit(conversions);
-	HTList_delete(request->conversions);
-	request->conversions = conversions;
-    } else
-	HTFormatInitNIM(request->conversions);
+    /* Force predefined presentations etc to be set up  */
+    HTConverterInit(HTConversions);		       /* Set up global list */
+    if (HTInteractive)
+	HTPresenterInit(request->conversions);		       /* Local list */
 
     /* Open output file */
     if (!HTInteractive)	{
@@ -1491,22 +1471,9 @@ int main ARGS2(int, argc, char **, argv)
 	}
     }
     
-    /* Open Log File. Logfile via Telnet is now optional (HENRIK 11/02-94) */
-    if (logfile_flag) {
-        if(!logfile_root)
-            logfile_root = HTClientHost ?
-		DEFAULT_LOGFILE : DEFAULT_LOCAL_LOGFILE;
-	HTLogFileName = (char*) malloc(strlen(logfile_root)+20);
-
-#ifdef NO_GETPID
-	sprintf(HTLogFileName, "%s", logfile_root);  /* No getpid() */
-#else
-	sprintf(HTLogFileName, "%s-%d", logfile_root, (int) getpid());
-#endif
-	HTlogfile = fopen(HTLogFileName, "a");
-	if (!HTlogfile)
-	    ErrMsg("Can't open log file", HTLogFileName);
-    };
+    /* Open Log File */
+    if (logfilename)
+	HTLog_enable(logfilename, YES);
 
     /* Make home page address */
     if (!home_anchor)
@@ -1519,6 +1486,9 @@ int main ARGS2(int, argc, char **, argv)
      	HTParseSocket(input_format, 0, request);      /* From std UNIX input */
 	    goto endproc;
     }
+
+    request->HeaderMask += HT_DATE;
+
     if (HTInteractive) {
 	reqlist = HTList_new();
 	user.sockfd = STDIN_FILENO;
@@ -1548,6 +1518,8 @@ endproc:
     Thread_deleteAll();
     if (default_default)
 	free(default_default);
+    if (logfilename)
+	HTLog_disable();
     HTLibTerminate();
     printf("\n");
     if (!return_status) {			/* Everything is working :-) */

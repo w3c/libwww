@@ -38,7 +38,7 @@ FTP = /afs/w3.org/ftp/pub
 # PURIFY_LOG = $(HOME)/purify-output
 PURIFY_CACHE = $(HOME)/purify-cache
 
-CFLAGS2 = -I$(CMN) -I$(LM) $(CFLAGS)
+CFLAGS2 = $(CFLAGS) -I$(CMN) -I$(LM)
 
 CERNLIBBIN = $(WWW)/bin
 
@@ -103,6 +103,8 @@ SPECIFIC =  \
 # This is now done by cat in WWW/All/Implementation/Makefile
 # include $(ABS)$(LM)Version.make
 
+# PURIFY_LOG = $(HOME)/purify-output
+PURIFY_CACHE = $(HOME)/purify-cache
 PURIFY = purify -cache-dir=$(PURIFY_CACHE) # -logfile=$(PURIFY_LOG)
 
 $(BIN)/$(PROD) : $(OBJS) $(USELIBDIR)/libwww.a
@@ -113,6 +115,14 @@ $(BIN)/$(PROD) : $(OBJS) $(USELIBDIR)/libwww.a
 
 purify : $(OBJS) $(USELIBDIR)/libwww.a
 	$(PURIFY) $(CC) -o $(PROD)_$(VL) $(OBJS) $(LFLAGS) $(WWWLIB) \
+	$(WAISLIB) $(MATHLIB)
+	-rm $(BIN)/$(PROD)
+	ln -s $(PROD)_$(VL) $(BIN)/$(PROD)
+
+PROOF = proof
+
+proof : $(OBJS) $(USELIBDIR)/libwww.a
+	$(PROOF) $(CC) -o $(PROD)_$(VL) $(OBJS) $(LFLAGS) $(WWWLIB) \
 	$(WAISLIB) $(MATHLIB)
 	-rm $(BIN)/$(PROD)
 	ln -s $(PROD)_$(VL) $(BIN)/$(PROD)
