@@ -91,8 +91,8 @@ inc:
 #
 #	Hypertext supplied in text format
 #
-$(top_srcdir)/COPYRIGH : $(top_srcdir)/COPYRIGHT.html
-	#ifdef WWW
-	#  -$(WWW) -p -na $(top_srcdir)/COPYRIGHT.html \
-	#	  -o $(top_srcdir)/COPYRIGH
-	#endif
+#$(top_srcdir)/COPYRIGH : $(top_srcdir)/COPYRIGHT.html
+#	ifdef WWW
+#	  -$(WWW) -p -na $(top_srcdir)/COPYRIGHT.html \
+#		  -o $(top_srcdir)/COPYRIGH
+#	endif
