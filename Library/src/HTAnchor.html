@@ -435,6 +435,7 @@ extern BOOL HTAnchor_setLevel		(HTParentAnchor * me,
 <PRE>
 extern HTList * HTAnchor_language	(HTParentAnchor * me);
 extern BOOL HTAnchor_addLanguage	(HTParentAnchor *me, HTLanguage lang);
+extern BOOL HTAnchor_deleteLanguageAll  (HTParentAnchor * me);
 </PRE>
 <H3>
   Content Encoding
@@ -442,7 +443,10 @@ extern BOOL HTAnchor_addLanguage	(HTParentAnchor *me, HTLanguage lang);
 <PRE>
 extern HTList * HTAnchor_encoding	(HTParentAnchor * me);
 extern BOOL HTAnchor_addEncoding	(HTParentAnchor * me, HTEncoding enc);
-extern BOOL HTAnchor_removeEncoding     (HTParentAnchor * me, HTEncoding enc);
+extern BOOL HTAnchor_deleteEncoding     (HTParentAnchor * me, HTEncoding enc);
+extern BOOL HTAnchor_deleteEncodingAll  (HTParentAnchor * me);
+
+#define HTAnchor_removeEncoding(a, e)   HTAnchor_deleteEncoding((a), (e))
 </PRE>
 <H3>
   Content Transfer Encoding

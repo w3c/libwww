@@ -918,10 +918,20 @@ PUBLIC BOOL HTAnchor_addEncoding (HTParentAnchor * me, HTEncoding encoding)
     return NO;
 }
 
-PUBLIC BOOL HTAnchor_removeEncoding (HTParentAnchor * me, HTEncoding encoding)
+PUBLIC BOOL HTAnchor_deleteEncoding (HTParentAnchor * me, HTEncoding encoding)
 {
     return (me && me->content_encoding && encoding) ?
 	HTList_removeObject(me->content_encoding, encoding) : NO;
+}
+
+PUBLIC BOOL HTAnchor_deleteEncodingAll (HTParentAnchor * me)
+{
+    if (me && me->content_encoding) {
+	HTList_delete(me->content_encoding);
+	me->content_encoding = NULL;
+	return YES;
+    }
+    return NO;
 }
 
 /*
@@ -950,6 +960,16 @@ PUBLIC BOOL HTAnchor_addLanguage (HTParentAnchor * me, HTLanguage language)
     if (me && language) {
 	if (!me->content_language) me->content_language = HTList_new();
 	return HTList_addObject(me->content_language, language);
+    }
+    return NO;
+}
+
+PUBLIC BOOL HTAnchor_deleteLanguageAll (HTParentAnchor * me)
+{
+    if (me && me->content_language) {
+	HTList_delete(me->content_language);
+	me->content_language = NULL;
+	return YES;
     }
     return NO;
 }
