@@ -161,6 +161,7 @@ PUBLIC GroupDef *HTAA_getAclEntry ARGS3(FILE *,		acl_file,
 
     if (!(filename = strrchr(pathname, '/')))
 	filename = pathname;
+    else filename++;	/* Skip slash */
 
     len = strlen(filename);
 

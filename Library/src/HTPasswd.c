@@ -278,9 +278,11 @@ PUBLIC BOOL HTAA_checkPassword ARGS3(CONST char *, username,
 			"against passwd record:", user, pw);
 	    if (username  &&  user  &&  !strcmp(username,user)) {
 		/* User's record found */
-		if (!password || !pw ||
-		    !HTAA_passwdMatch(password,pw))/* Check the password */
-		    status = EOF;	/* If wrong, indicate it with EOF */
+		if (pw) { /* So password is required for this user */
+		    if (!password ||
+			!HTAA_passwdMatch(password,pw)) /* Check the password */
+			status = EOF;	/* If wrong, indicate it with EOF */
+		}
 		break;  /* exit loop */
 	    }  /* if username found */
 	}  /* if record is ok */

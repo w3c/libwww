@@ -201,11 +201,6 @@ PRIVATE char *status_name ARGS1(HTAAFailReasonType, reason)
 **	must be returned from somewhere else (this is
 **	to avoid unnecessary overhead of opening the
 **	file twice).
-**
-** REMEMBER:
-**	allowed_groups is returned by function
-**	HTAA_getAuthorizedGroups(), which also frees
-**	it automatically.
 */
 PRIVATE HTAAFailReasonType check_authorization ARGS4(CONST char *,  pathname,
 						     HTAAMethod,    method,
@@ -224,7 +219,7 @@ PRIVATE HTAAFailReasonType check_authorization ARGS4(CONST char *,  pathname,
 			   "HTAA_checkAuthorization: Forbidden by rule\n");
 	return HTAA_BY_RULE;
     }
-    if (TRACE) fprintf(stderr, "%s `%s' %s `%s'\n",
+    if (TRACE) fprintf(stderr, "%s `%s' %s %s\n",
 		       "HTAA_checkAuthorization: translated path:",
 		       pathname, "method:", HTAAMethod_name(method));
 
@@ -239,117 +234,122 @@ PRIVATE HTAAFailReasonType check_authorization ARGS4(CONST char *,  pathname,
     */
     if (!(acl_file = HTAA_openAcl(pathname))) {
 	if (prot) { /* protect rule, but no ACL */
-	    if (!prot->valid_schemes || 0==HTList_count(prot->valid_schemes)) {
-		/* Only IP masking enabled */
-
+	    if (prot->mask_group) {
+		/*
+		** Only mask enabled, check that
+		*/
+		GroupDefList *group_def_list =
+		    HTAA_readGroupFile(HTAssocList_lookup(prot->values,
+							  "group"));
+		/*
+		** Authenticate if authentication info given
+		*/
+		if (scheme != HTAA_UNKNOWN  &&  scheme != HTAA_NONE) {
+		    htaa_user = HTAA_authenticate(scheme,
+						  scheme_specifics,
+						  prot);
+		    if (TRACE) fprintf(stderr, "Authentication returned: %s\n",
+				       (htaa_user ? htaa_user->username
+					          : "NOT-AUTHENTICATED"));
+		}
+		HTAA_resolveGroupReferences(prot->mask_group, group_def_list);
 		reason = HTAA_userAndInetInGroup(prot->mask_group,
-						 "",
+						 htaa_user
+						  ? htaa_user->username : "",
 						 HTClientHost,
 						 NULL);
-		if (reason != HTAA_OK) {
-		    if (TRACE) fprintf(stderr, "%s %s %s %s\n",
-				       "HTAA_checkAuthorization: access denied",
-				       "by mask (no ACL, only Protect rule)",
-				       "host", HTClientHost);
-		    return reason;
+		if (TRACE) {
+		    if (reason != HTAA_OK)
+			fprintf(stderr, "%s %s %s %s\n",
+				"HTAA_checkAuthorization: access denied",
+				"by mask (no ACL, only Protect rule)",
+				"host", HTClientHost);
+		    else fprintf(stderr, "%s %s %s %s\n",
+				 "HTAA_checkAuthorization: request from",
+				 HTClientHost, 
+				 "accepted by only mask match (no ACL, only",
+				 "Protect rule, and only mask enabled)");
 		}
-		else {
-		    if (TRACE) fprintf(stderr, "%s %s %s %s %s\n",
-				       "HTAA_checkAuthorization: request from",
-				       HTClientHost, 
-				       "accepted by just IP number",
-				       "(no ACL, only Protect rule, and only",
-				       "mask enabled, no authentication)");
-		    return HTAA_OK;
-		}
+		return reason;
 	    }
 	    else {	/* 403 Forbidden */
-		if (TRACE) fprintf(stderr, "HTAA_checkAuthorization: %s\n",
-				   "Protected, but no ACL -- forbidden");
+		if (TRACE) fprintf(stderr, "%s %s\n",
+				   "HTAA_checkAuthorization: Protected, but",
+				   "no mask group nor ACL -- forbidden");
 		return HTAA_NO_ACL;
 	    }
 	}
 	else { /* No protect rule and no ACL => OK 200 */
-	    if (TRACE) fprintf(stderr,
-			       "HTAA_checkAuthorization: no protect nor ACL\n");
+	    if (TRACE) fprintf(stderr, "HTAA_checkAuthorization: %s\n",
+			       "no protect rule nor ACL -- ok\n");
 	    return HTAA_OK;
 	}
     }
 
+    /*
+    ** Now we know that ACL exists
+    */
     if (!prot) {		/* Not protected by "protect" rule */
 	if (TRACE) fprintf(stderr,
 			   "HTAA_checkAuthorization: default protection\n");
 	prot = HTAA_getDefaultProtection();   /* Also sets current protection */
-    }
 
-    if (!prot) {		/* @@ Default protection not set ?? */
-	if (TRACE) fprintf(stderr, "%s %s\n",
-			   "HTAA_checkAuthorization: default protection",
-			   "not set (internal server error)!!");
-	return HTAA_SETUP_ERROR;
+	if (!prot) {		/* @@ Default protection not set ?? */
+	    if (TRACE) fprintf(stderr, "%s %s\n",
+			       "HTAA_checkAuthorization: default protection",
+			       "not set (internal server error)!!");
+	    return HTAA_SETUP_ERROR;
+	}
     }
 
     /*
-    ** Now we know document is protected ACL exists, and
-    ** authentication is necessary.
-    */
-
-    /*
-    ** Authenticate if authentication info given.
-    */
-    if (scheme != HTAA_UNKNOWN) {
-	htaa_user = HTAA_authenticate(scheme,
-				      scheme_specifics,
-				      prot);
-	if (TRACE) fprintf(stderr, "Authentication returned: %s\n",
-			   (htaa_user
-			    ? htaa_user->username : "NOT AUTHENTICATED"));
-    }
-
-    if (!htaa_user) {	/* No anonymous access to protected files */
-	if (TRACE) fprintf(stderr, "HTAA_checkAuthorization: %s\n",
-			   "no anonymous access to a protected file");
-	return HTAA_NO_AUTH;
-    }
-
-
-    /*
-    ** Check against mask and ACL entry
+    ** Now we know that document is protected and ACL exists.
+    ** Check against ACL entry.
     */
     {
 	GroupDefList *group_def_list =
 	    HTAA_readGroupFile(HTAssocList_lookup(prot->values, "group"));
 
 	/*
-	** Check mask
+	** Authenticate now that we know protection mode
+	*/
+	if (scheme != HTAA_UNKNOWN  &&  scheme != HTAA_NONE) {
+	    htaa_user = HTAA_authenticate(scheme,
+					  scheme_specifics,
+					  prot);
+	    if (TRACE) fprintf(stderr, "Authentication returned: %s\n",
+			       (htaa_user
+				? htaa_user->username : "NOT-AUTHENTICATED"));
+	}
+	/* 
+	** Check mask group
 	*/
 	if (prot->mask_group) {
 	    HTAA_resolveGroupReferences(prot->mask_group, group_def_list);
-	    reason = HTAA_userAndInetInGroup(prot->mask_group,
-					     htaa_user->username,
-					     HTClientHost,
-					     NULL);
+	    reason=HTAA_userAndInetInGroup(prot->mask_group,
+					   htaa_user ? htaa_user->username : "",
+					   HTClientHost,
+					   NULL);
 	    if (reason != HTAA_OK) {
-		if (TRACE) fprintf(stderr, "%s %s %s %s %s\n",
-				   "HTAA_checkAuthorization: user",
-				   htaa_user->username,
-				   "from host",
-				   HTClientHost,
-				   "not accepted (didn't match mask group)");
+		if (TRACE) fprintf(stderr, "%s %s %s\n",
+				   "HTAA_checkAuthorization: access denied",
+				   "by mask, host:", HTClientHost);
 		return reason;
 	    }
-	    else if (TRACE) fprintf(stderr, "%s %s (user %s) %s\n",
-				    "HTAA_checkAuthorization: request from",
-				    HTClientHost,
-				    htaa_user->username,
-				    "accepted (matched mask)");
+	    else {
+		if (TRACE) fprintf(stderr, "%s %s %s %s %s\n",
+				   "HTAA_checkAuthorization: request from",
+				   HTClientHost, 
+				   "accepted by just mask group match",
+				   "(no ACL, only Protect rule, and only",
+				   "mask enabled)");
+		/* And continue authorization checking */
+	    }
 	}
-	else if (TRACE) fprintf(stderr, "%s (host %s user %s accepted)\n",
-				"HTAA_checkAuthorization: masking not enabled ",
-				HTClientHost, htaa_user->username);
-
 	/*
-        ** Get ACL entry; get first one first, the loop others
+        ** Get ACL entries; get first one first, the loop others
+	** Remember, allowed_groups is automatically freed by
+	** HTAA_getAclEntry().
 	*/
 	allowed_groups = HTAA_getAclEntry(acl_file, pathname, method);
 	if (!allowed_groups) {
@@ -362,7 +362,8 @@ PRIVATE HTAAFailReasonType check_authorization ARGS4(CONST char *,  pathname,
 	    do {
 		HTAA_resolveGroupReferences(allowed_groups, group_def_list);
 		reason = HTAA_userAndInetInGroup(allowed_groups,
-						 htaa_user->username,
+						 htaa_user
+						 ? htaa_user->username : "",
 						 HTClientHost,
 						 NULL);
 		if (reason == HTAA_OK) {

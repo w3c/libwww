@@ -731,7 +731,8 @@ PUBLIC HTAAFailReasonType HTAA_userAndInetInGroup ARGS4(GroupDef *, group,
 				return HTAA_OK;
 			}
 			else {	/* Username, check directly */
-			    if (!strcmp(ref->name, username))
+			    if (username && *username &&
+				0==strcmp(ref->name, username))
 				return HTAA_OK;
 			}
 		    } /* Every user/group name in this group */
