@@ -22,7 +22,7 @@ PUBLIC FILE *WWWTrace = NULL;
 #endif
 
 #ifndef WWW_WIN_DLL
-PUBLIC int WWW_TraceFlag = 0;		/* Global trace flag for ALL W3 code */
+PUBLIC unsigned int WWW_TraceFlag = 0;		/* Global trace flag for ALL W3 code */
 #endif
 
 PRIVATE HTTraceCallback * PHTTraceCallback = NULL;

@@ -720,6 +720,15 @@ Their existance is discovered by <CODE>configure</CODE>.
 #define S_IFDIR __S_IFDIR
 #endif
 
+/* in.h */
+#ifdef HAVE_NETINET_IN_H
+#include &lt;netinet/in.h&gt;
+#else
+#ifdef HAVE_IN_H
+#include &lt;in.h&gt;
+#endif
+#endif
+
 /* tcp.h */
 #ifdef HAVE_NETINET_TCP_H
 #include &lt;netinet/tcp.h&gt;
@@ -797,15 +806,6 @@ Their existance is discovered by <CODE>configure</CODE>.
 #else
 #ifdef HAVE_APPKIT_H
 #include &lt;appkit.h&gt;
-#endif
-#endif
-
-/* in.h */
-#ifdef HAVE_NETINET_IN_H
-#include &lt;netinet/in.h&gt;
-#else
-#ifdef HAVE_IN_H
-#include &lt;in.h&gt;
 #endif
 #endif
 

@@ -46,7 +46,7 @@ The global trace flag variable is available everywhere.
 extern int *		WWW_TraceFlag;	 /* In DLLs, we need the indirection */
 #define WWWTRACE	(*WWW_TraceFlag) 
 #else
-extern int		WWW_TraceFlag;	     /* Global flag for all W3 trace */
+extern unsigned int	WWW_TraceFlag;	     /* Global flag for all W3 trace */
 #define WWWTRACE	(WWW_TraceFlag)
 #endif /* WWW_WIN_DLL */
 #else
