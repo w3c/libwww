@@ -98,25 +98,25 @@ LINK32_OBJS= \
 	".\Release\HTRobot.obj" \
 	".\Release\HTMLPDTD.obj" \
 	".\Release\HTProfil.obj" \
-	"..\..\..\Library\src\windows\wwwtrans\Debug\wwwtrans.lib" \
-	"..\..\..\Library\src\windows\wwwhtml\Debug\wwwhtml.lib" \
-	"..\..\..\Library\src\windows\wwwdir\Debug\wwwdir.lib" \
-	"..\..\..\Library\src\windows\wwwmime\Debug\wwwmime.lib" \
-	"..\..\..\Library\src\windows\wwwtelnt\Debug\wwwtelnt.lib" \
-	"..\..\..\Library\src\windows\wwwhttp\Debug\wwwhttp.lib" \
-	"..\..\..\Library\src\windows\wwwapp\Debug\wwwapp.lib" \
-	"..\..\..\Library\src\windows\wwwcore\Debug\wwwcore.lib" \
-	"..\..\..\Library\src\windows\wwwwais\Debug\wwwwais.lib" \
-	"..\..\..\Library\src\windows\wwwfile\Debug\wwwfile.lib" \
-	"..\..\..\Library\src\windows\wwwutils\Debug\wwwutils.lib" \
-	"..\..\..\PICS-client\src\windows\Debug\pics.lib" \
-	"..\..\..\Library\src\windows\wwwstream\Debug\wwwstream.lib" \
-	"..\..\..\Library\src\windows\wwwcache\Debug\wwwcache.lib" \
-	"..\..\..\Library\src\windows\wwwgophe\Debug\wwwgophe.lib" \
-	"..\..\..\Library\src\windows\wwwdll\Debug\wwwdll.lib" \
-	"..\..\..\Library\src\windows\wwwrules\Debug\wwwrules.lib" \
-	"..\..\..\Library\src\windows\wwwnews\Debug\wwwnews.lib" \
-	"..\..\..\Library\src\windows\wwwftp\Debug\wwwftp.lib"
+	"..\..\..\Bin\wwwtrans.lib" \
+	"..\..\..\Bin\wwwhtml.lib" \
+	"..\..\..\Bin\wwwdir.lib" \
+	"..\..\..\Bin\wwwmime.lib" \
+	"..\..\..\Bin\wwwtelnt.lib" \
+	"..\..\..\Bin\wwwhttp.lib" \
+	"..\..\..\Bin\wwwapp.lib" \
+	"..\..\..\Bin\wwwcore.lib" \
+	"..\..\..\Bin\wwwwais.lib" \
+	"..\..\..\Bin\wwwfile.lib" \
+	"..\..\..\Bin\wwwutils.lib" \
+	"..\..\..\Bin\pics.lib" \
+	"..\..\..\Bin\wwwstream.lib" \
+	"..\..\..\Bin\wwwcache.lib" \
+	"..\..\..\Bin\wwwgophe.lib" \
+	"..\..\..\Bin\wwwdll.lib" \
+	"..\..\..\Bin\wwwrules.lib" \
+	"..\..\..\Bin\wwwnews.lib" \
+	"..\..\..\Bin\wwwftp.lib"
 
 "$(OUTDIR)\webbot.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -219,25 +219,25 @@ LINK32_OBJS= \
 	"..\..\..\Bin\Debug\HTBInit.obj" \
 	"..\..\..\Bin\Debug\SGML.obj" \
 	"..\..\..\Bin\Debug\HTProfil.obj" \
-	"..\..\..\Library\src\windows\wwwtrans\Debug\wwwtrans.lib" \
-	"..\..\..\Library\src\windows\wwwhtml\Debug\wwwhtml.lib" \
-	"..\..\..\Library\src\windows\wwwdir\Debug\wwwdir.lib" \
-	"..\..\..\Library\src\windows\wwwmime\Debug\wwwmime.lib" \
-	"..\..\..\Library\src\windows\wwwtelnt\Debug\wwwtelnt.lib" \
-	"..\..\..\Library\src\windows\wwwhttp\Debug\wwwhttp.lib" \
-	"..\..\..\Library\src\windows\wwwapp\Debug\wwwapp.lib" \
-	"..\..\..\Library\src\windows\wwwcore\Debug\wwwcore.lib" \
-	"..\..\..\Library\src\windows\wwwwais\Debug\wwwwais.lib" \
-	"..\..\..\Library\src\windows\wwwfile\Debug\wwwfile.lib" \
-	"..\..\..\Library\src\windows\wwwutils\Debug\wwwutils.lib" \
-	"..\..\..\PICS-client\src\windows\Debug\pics.lib" \
-	"..\..\..\Library\src\windows\wwwstream\Debug\wwwstream.lib" \
-	"..\..\..\Library\src\windows\wwwcache\Debug\wwwcache.lib" \
-	"..\..\..\Library\src\windows\wwwgophe\Debug\wwwgophe.lib" \
-	"..\..\..\Library\src\windows\wwwdll\Debug\wwwdll.lib" \
-	"..\..\..\Library\src\windows\wwwrules\Debug\wwwrules.lib" \
-	"..\..\..\Library\src\windows\wwwnews\Debug\wwwnews.lib" \
-	"..\..\..\Library\src\windows\wwwftp\Debug\wwwftp.lib"
+	"..\..\..\Bin\wwwtrans.lib" \
+	"..\..\..\Bin\wwwhtml.lib" \
+	"..\..\..\Bin\wwwdir.lib" \
+	"..\..\..\Bin\wwwmime.lib" \
+	"..\..\..\Bin\wwwtelnt.lib" \
+	"..\..\..\Bin\wwwhttp.lib" \
+	"..\..\..\Bin\wwwapp.lib" \
+	"..\..\..\Bin\wwwcore.lib" \
+	"..\..\..\Bin\wwwwais.lib" \
+	"..\..\..\Bin\wwwfile.lib" \
+	"..\..\..\Bin\wwwutils.lib" \
+	"..\..\..\Bin\pics.lib" \
+	"..\..\..\Bin\wwwstream.lib" \
+	"..\..\..\Bin\wwwcache.lib" \
+	"..\..\..\Bin\wwwgophe.lib" \
+	"..\..\..\Bin\wwwdll.lib" \
+	"..\..\..\Bin\wwwrules.lib" \
+	"..\..\..\Bin\wwwnews.lib" \
+	"..\..\..\Bin\wwwftp.lib"
 
 "$(OUTDIR)\webbot.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -331,7 +331,7 @@ DEP_CPP_HTROB=\
 	".\..\..\..\Library\src\HTWriter.h"\
 	".\..\..\..\Library\src\HTBufWrt.h"\
 	".\..\..\..\Library\src\HTMux.h"\
-	"..\..\..\Library\src\HTProfil.h"\
+	".\..\..\..\Library\src\HTProfil.h"\
 	".\..\..\..\Library\src\HTInit.h"\
 	".\..\..\..\Library\src\HTHInit.h"\
 	".\..\..\..\Library\src\HTBInit.h"\
@@ -428,7 +428,7 @@ BuildCmds= \
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\src\windows\wwwapp\Debug\wwwapp.lib
+SOURCE=..\..\..\Bin\wwwapp.lib
 
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
@@ -440,7 +440,7 @@ SOURCE=..\..\..\Library\src\windows\wwwapp\Debug\wwwapp.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\src\windows\wwwcache\Debug\wwwcache.lib
+SOURCE=..\..\..\Bin\wwwcache.lib
 
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
@@ -452,7 +452,7 @@ SOURCE=..\..\..\Library\src\windows\wwwcache\Debug\wwwcache.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\src\windows\wwwcore\Debug\wwwcore.lib
+SOURCE=..\..\..\Bin\wwwcore.lib
 
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
@@ -464,7 +464,7 @@ SOURCE=..\..\..\Library\src\windows\wwwcore\Debug\wwwcore.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\src\windows\wwwdir\Debug\wwwdir.lib
+SOURCE=..\..\..\Bin\wwwdir.lib
 
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
@@ -476,7 +476,7 @@ SOURCE=..\..\..\Library\src\windows\wwwdir\Debug\wwwdir.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\src\windows\wwwfile\Debug\wwwfile.lib
+SOURCE=..\..\..\Bin\wwwfile.lib
 
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
@@ -488,7 +488,7 @@ SOURCE=..\..\..\Library\src\windows\wwwfile\Debug\wwwfile.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\src\windows\wwwdll\Debug\wwwdll.lib
+SOURCE=..\..\..\Bin\wwwdll.lib
 
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
@@ -500,7 +500,7 @@ SOURCE=..\..\..\Library\src\windows\wwwdll\Debug\wwwdll.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\src\windows\wwwftp\Debug\wwwftp.lib
+SOURCE=..\..\..\Bin\wwwftp.lib
 
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
@@ -512,7 +512,7 @@ SOURCE=..\..\..\Library\src\windows\wwwftp\Debug\wwwftp.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\src\windows\wwwgophe\Debug\wwwgophe.lib
+SOURCE=..\..\..\Bin\wwwgophe.lib
 
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
@@ -524,7 +524,7 @@ SOURCE=..\..\..\Library\src\windows\wwwgophe\Debug\wwwgophe.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\src\windows\wwwhtml\Debug\wwwhtml.lib
+SOURCE=..\..\..\Bin\wwwhtml.lib
 
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
@@ -536,7 +536,7 @@ SOURCE=..\..\..\Library\src\windows\wwwhtml\Debug\wwwhtml.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\src\windows\wwwhttp\Debug\wwwhttp.lib
+SOURCE=..\..\..\Bin\wwwhttp.lib
 
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
@@ -548,7 +548,7 @@ SOURCE=..\..\..\Library\src\windows\wwwhttp\Debug\wwwhttp.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\src\windows\wwwmime\Debug\wwwmime.lib
+SOURCE=..\..\..\Bin\wwwmime.lib
 
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
@@ -560,7 +560,7 @@ SOURCE=..\..\..\Library\src\windows\wwwmime\Debug\wwwmime.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\src\windows\wwwnews\Debug\wwwnews.lib
+SOURCE=..\..\..\Bin\wwwnews.lib
 
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
@@ -572,7 +572,7 @@ SOURCE=..\..\..\Library\src\windows\wwwnews\Debug\wwwnews.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\src\windows\wwwrules\Debug\wwwrules.lib
+SOURCE=..\..\..\Bin\wwwrules.lib
 
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
@@ -584,7 +584,7 @@ SOURCE=..\..\..\Library\src\windows\wwwrules\Debug\wwwrules.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\src\windows\wwwstream\Debug\wwwstream.lib
+SOURCE=..\..\..\Bin\wwwstream.lib
 
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
@@ -596,7 +596,7 @@ SOURCE=..\..\..\Library\src\windows\wwwstream\Debug\wwwstream.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\src\windows\wwwtelnt\Debug\wwwtelnt.lib
+SOURCE=..\..\..\Bin\wwwtelnt.lib
 
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
@@ -608,7 +608,7 @@ SOURCE=..\..\..\Library\src\windows\wwwtelnt\Debug\wwwtelnt.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\src\windows\wwwtrans\Debug\wwwtrans.lib
+SOURCE=..\..\..\Bin\wwwtrans.lib
 
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
@@ -620,7 +620,7 @@ SOURCE=..\..\..\Library\src\windows\wwwtrans\Debug\wwwtrans.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\src\windows\wwwutils\Debug\wwwutils.lib
+SOURCE=..\..\..\Bin\wwwutils.lib
 
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
@@ -632,7 +632,7 @@ SOURCE=..\..\..\Library\src\windows\wwwutils\Debug\wwwutils.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\src\windows\wwwwais\Debug\wwwwais.lib
+SOURCE=..\..\..\Bin\wwwwais.lib
 
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
@@ -1166,7 +1166,7 @@ BuildCmds= \
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\PICS-client\src\windows\Debug\pics.lib
+SOURCE=..\..\..\Bin\pics.lib
 
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
