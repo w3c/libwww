@@ -11,7 +11,7 @@
    of Common Code.
    
  */
-#include "HText.h"              /* Superclass */
+#include "WWWLib.h"
 
 #ifdef SHORT_NAMES
 #define HText_childNumber               HTGTChNu

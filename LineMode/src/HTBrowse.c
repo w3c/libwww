@@ -52,19 +52,20 @@
 **	VL		Version number, quoted eg "1.2a"
 */
 
-#include "sysdep_b.h"	/* system dependencies */
-#include "HTUtils.h"	/* WWW general purpose macros */
+#include "WWWLib.h"
 #include "HTBrowse.h"	/* Things exported, short names */
 #include "GridText.h"	/* Hypertext definition */
 
+#if 0
+#include <ctype.h>
 #include "HTFormat.h"
 #include "HTTCP.h"	/* TCP/IP utilities */
 #include "HTAnchor.h"   /* Anchor class */
 #include "HTParse.h"    /* WWW address manipulation */
 #include "HTAccess.h"   /* WWW document access network code */
-#include "HTHistory.h"	/* Navigational aids */
+#include "HTHist.h"	/* Navigational aids */
 #include "HTML.h"	/* For parser */
-#include "HTFWriter.h"	/* For non-interactive output */
+#include "HTFWrite.h"	/* For non-interactive output */
 #include "HTMLGen.h"	/* For reformatting HTML */
 #include "HTFile.h"	/* For Dir access flags */
 #include "HTRules.h"    /* For loading rule file */
@@ -72,13 +73,16 @@
 #include "HTAlert.h"
 #include "HTTP.h"
 #include "HTEvent.h"
+#endif
 
 /* HWL 18/7/94: applied patch from agl@glas2.glas.apc.org (Anton Tropashko) */
 #ifdef CYRILLIC		
 #include "a_stdio.h"
 #endif
 
-#ifdef HAVE_SOCKETDEBUG
+#ifdef THINK_C			     /* Macintosh Think C development system */
+#include <console.h>
+#include <time.h>
 extern int socketdebug;		   /* Must be declared in the socket library */
 #endif
 
@@ -162,11 +166,15 @@ extern int socketdebug;		   /* Must be declared in the socket library */
 #define ADDRESS_LENGTH		INFINITY   /* Maximum address length of node */
 #define RESPONSE_LENGTH		INFINITY /* Maximum length of users response */
 
-#ifndef MAXPATHLEN
-#define NO_GETWD                      /* Assume no  getwd() if no MAXPATHLEN */
+/* #define LONG_PROMPT	1 */			/* Long or short user prompt */
+
+#if defined(ultrix) || defined(__osf__)
+#define GET_SCREEN_SIZE
 #endif
 
-/* #define LONG_PROMPT	1 */			/* Long or short user prompt */
+#if defined(__svr4__)
+#define CATCH_SIG
+#endif
 
 #define Check_User_Input(command) \
     (!strncasecomp (command, this_word, strlen(this_word)))
@@ -203,6 +211,7 @@ PRIVATE BOOL		OutSource = NO;		    /* Output source, YES/NO */
 PRIVATE char *		HTLogFileName = NULL;  	    /* Root of log file name */
 PRIVATE int		OldTraceFlag = SHOW_ALL_TRACE;
 PRIVATE HTList *	conversions = NULL;	       /* Format conversions */
+PRIVATE BOOL		UseMulti = YES;			/* Use multithreaded */
 
 #ifdef VMS
 PRIVATE FILE *       output;		/* assignment done in main */
@@ -223,6 +232,7 @@ PRIVATE FILE *	     output = stdout;
 /* ------------------------------------------------------------------------- */
 
 #ifdef GET_SCREEN_SIZE
+#include <sys/ioctl.h>
 /*
 ** Get size of the output screen. Stolen from less.
 */
@@ -249,6 +259,26 @@ PRIVATE void scrsize ARGS2(int *, p_height, int *, p_width)
               *p_width = 80;
 }
 #endif /* GET_SCREEN_SIZE, BSN */
+
+#ifdef CATCH_SIG
+#include <signal.h>
+/*								    SetSignal
+**  This function sets up signal handlers. This might not be necessary to
+**  call if the application has its own handlers.
+*/
+PRIVATE void SetSignal NOARGS
+{
+    /* On some systems (SYSV) it is necessary to catch the SIGPIPE signal
+    ** when attemting to connect to a remote host where you normally should
+    ** get `connection refused' back
+    */
+    if (signal(SIGPIPE, SIG_IGN) == SIG_ERR) {
+	if (PROT_TRACE) fprintf(stderr, "HTSignal.... Can't catch SIGPIPE\n");
+    } else {
+	if (PROT_TRACE) fprintf(stderr, "HTSignal.... Ignoring SIGPIPE\n");
+    }
+}
+#endif /* CATCH_SIG */
 
 
 /*		Display Help screen	 		 Help_screen
@@ -289,6 +319,10 @@ PRIVATE void help_screen NOARGS {
 		HText_sourceAnchors(HTMainText));
     }
 	    
+    if (UseMulti) {
+	printf("  z               Interrupt a request\n");
+    }
+
     if (HTAnchor_isIndex(HTMainAnchor)) {
 	printf(
 		"  Find <words>    Search this index for given words (separated by spaces).\n"); 
@@ -311,7 +345,7 @@ PRIVATE void help_screen NOARGS {
     printf("  REFresh         Refresh screen with current document\n");
     printf("  Go <address>    Go to document of given [relative] address\n");
 	    
-#ifdef HAVE_SYSTEM
+#ifdef GOT_SYSTEM
     if (!HTClientHost) {	/* NOT for telnet guest! */
 	    printf("  PRInt           Print text of this document. *\n");
 	    printf("  ! <command>     Execute shell <command> without leaving.\n");
@@ -319,7 +353,7 @@ PRIVATE void help_screen NOARGS {
 	    printf("                  If <file> exists use '>!' to overwrite it.\n");
 	    printf("  >> <file>       Append the text of this document to <file>. *\n");
 	    printf("  | <command>     Pipe this document to the shell <command>. *\n");
-#ifdef HAVE_CHDIR
+#ifdef unix
 	    printf("  CD <directory>  Change local working directory.\n");
 #endif
 	    printf("* Prefix these commands with \"Source \" to use raw source.\n\n");
@@ -351,25 +385,23 @@ PRIVATE void help_screen NOARGS {
 */
 
 PRIVATE void Reference_List ARGS1(BOOL, titles)
-
 {
-    int  n;
-    if (HText_sourceAnchors(HTMainText) == 0) {
+    int cnt;
+    int refs = HText_sourceAnchors(HTMainText);
+    if (refs <= 0) {
 	fprintf(output, "\n\nThere are no references from this document.\n\n");
     } else {
 	fprintf(output, "\n%s\n", refhead);
-	for (n=1; n<=HText_sourceAnchors(HTMainText); n++) {
-	    HTAnchor * destination =
-	    HTAnchor_followMainLink(
-		    (HTAnchor *)HText_childNumber(HTMainText, n)
-		    );
-	    HTParentAnchor * parent = HTAnchor_parent(destination);
-	    char * address =  HTAnchor_address(destination);
-	    CONST char * title = titles ? HTAnchor_title(parent) : 0 ;
-
-	    fprintf(output, reference_mark, n);
+	for (cnt=1; cnt<=refs; cnt++) {
+	    HTAnchor *dest =
+		HTAnchor_followMainLink((HTAnchor *)
+					HText_childNumber(HTMainText, cnt));
+	    HTParentAnchor * parent = HTAnchor_parent(dest);
+	    char * address =  HTAnchor_address(dest);
+	    CONST char * title = titles ? HTAnchor_title(parent) : NULL;
+	    fprintf(output, reference_mark, cnt);
 	    fprintf(output, "%s%s\n",
-		    ((HTAnchor*)parent!=destination) && title ? "in " : "",
+		    ((HTAnchor*)parent!=dest) && title ? "in " : "",
 		    (char *)(title ? title : address));
 	    free(address);
 	}
@@ -538,6 +570,8 @@ PRIVATE HTRequest *Thread_new ARGS1(BOOL, Interactive)
 	newreq->conversions = conversions;	    /* Take from global list */
     } else
 	HTFormatInitNIM(newreq->conversions);
+    if (!UseMulti)
+	request->BlockingIO = YES;			 /* Use blocking I/O */
     HTList_addObject(reqlist, (void *) newreq);
     return newreq;
 }
@@ -726,7 +760,7 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 	    found = NO;
 	break;
 	
-#ifdef HAVE_CHDIR
+#ifdef unix
       case 'C':
 	if (Check_User_Input("CD")) {	       /* Change working directory ? */
 	    goto lcd;
@@ -803,7 +837,7 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 	if (Check_User_Input("LIST")) {		     /* List of references ? */
 	    Reference_List(!OutSource);
 	}
-#ifdef HAVE_CHDIR
+#ifdef unix
 	else if (Check_User_Input ("LCD")) {	       /* Local change dir ? */
 	  lcd:
 	    if (!next_word) {				 /* Missing argument */
@@ -813,18 +847,18 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 		perror (next_word);
 	    } else {		    /* Success : display new local directory */
 		/* AS Sep 93 */
-#ifdef HAVE_GETCWD   /* System V variant SIGN CHANGED TBL 921006 !! */
+#ifdef NO_GETWD     /* No getwd() on this machine */
+#ifdef HAS_GETCWD   /* System V variant SIGN CHANGED TBL 921006 !! */
 		printf ("\nLocal directory is now:\n %s\n",
 			getcwd (choice, sizeof(choice)));
-#else
-# ifdef HAVE_GETWD
-		printf("\nLocal directory is now:\n %s\n",
-			(char *) getwd (choice));
-# else
+#else   /* has NO getcwd */
 		ErrMsg("This platform does not support getwd() or getcwd()",
 		       NULL);
-# endif
-#endif
+#endif	/* has no getcwd */
+#else   /* has getwd */
+		printf("\nLocal directory is now:\n %s\n",
+		       (char *) getwd (choice));
+#endif  /* has getwd */
 		/* End AS Sep 93 */
 	    }
 	}
@@ -868,7 +902,7 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 		loadstat = HTLoadAnchor(HTHistory_moveBy(-1), *actreq);
 	    }
 	}
-#ifdef HAVE_SYSTEM	    
+#ifdef GOT_SYSTEM	    
 	else if (!HTClientHost && Check_User_Input("PRINT")) {
 	    char * address = HTAnchor_address((HTAnchor *) HTMainAnchor);
 	    char * command;
@@ -950,7 +984,8 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 		}
 	    }
 	} else if (Check_User_Input("REFRESH")) {
-	    HText_select(HTMainText);			   /* Refresh screen */
+	    HText_setStale(HTMainText);			    /* Force refresh */
+	    HText_refresh(HTMainText);			   /* Refresh screen */
 	} else
 	    found = NO;
 	break;
@@ -994,7 +1029,8 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 	break;
 	
       case 'Z':
-	HText_select(HTMainText);			   /* Refresh screen */
+	HText_setStale(HTMainText);			    /* Force refresh */
+	HText_refresh(HTMainText);			   /* Refresh screen */
 	status = EVENT_INTR_ALL;
 	break;
 
@@ -1005,7 +1041,7 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 	}
 	break;
 	
-#ifdef HAVE_PIPE
+#ifdef GOT_PIPE
       case '|':
 	if (!HTClientHost) {	             	           /* Local only!!!! */
 	    char * address = HTAnchor_address((HTAnchor *) HTMainAnchor);
@@ -1031,7 +1067,7 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 	break;
 #endif
 	    
-#ifdef HAVE_SYSTEM
+#ifdef GOT_SYSTEM
       case '!':
 	if (!HTClientHost) {				      /* Local only! */
 	    int result;
@@ -1059,7 +1095,7 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
     }
     if (loadstat != HT_INTERNAL && loadstat != HT_WOULD_BLOCK)
 	status = EVENT_TERM;
-    if (loadstat != HT_LOADED)
+    if (loadstat != HT_LOADED && loadstat != HT_ERROR)
 	MakeCommandLine(is_index);
     free (the_choice);
     return status;
@@ -1093,6 +1129,8 @@ PUBLIC HTEventState HTEventRequestTerminate ARGS2(HTRequest *,	actreq,
 	MakeCommandLine(is_index);
     } else if (!HTMainText)			      /* If first try failed */
 	return EVENT_QUIT;
+    else
+	MakeCommandLine(is_index);
     Thread_delete(actreq);
     return EVENT_OK;
 }
@@ -1112,7 +1150,7 @@ int main ARGS2(int, argc, char **, argv)
     HTFormat	input_format = WWW_HTML;	         /* Used with filter */
     HTEventCallBack user;		/* To register STDIN for user events */
 
-#ifdef HAVE_CCOMMAND
+#ifdef THINK_C /* command line from Think_C */
     int i;
     argc=ccommand(&argv);
 #endif
@@ -1201,7 +1239,13 @@ int main ARGS2(int, argc, char **, argv)
 		    HTInteractive = NO;
 		    reformat_html = YES;
 
-	    /* to -- Final represntation */
+	    /* Specify a cache root (caching is otherwise disabled) */
+	    } else if (!strcmp(argv[arg], "-cacheroot")) {
+		StrAllocCopy(HTCacheDir,
+			     (arg+1>=argc || *argv[arg+1]=='-') ?
+			     CACHE_HOME_DIR : argv[++arg]);
+
+	    /* to -- Final representation */
 	    } else if (!strcmp(argv[arg], "-to")) {
 		request->output_format =
 		    (arg+1 >= argc || *argv[arg+1] == '-') ?
@@ -1242,6 +1286,10 @@ int main ARGS2(int, argc, char **, argv)
 	    /* Non-interactive */
 	    } else if (!strcmp(argv[arg], "-n")) {
 		HTInteractive = NO;
+
+	    /* Multithreaded ot not? */
+	    } else if (!strcmp(argv[arg], "-single")) {
+		UseMulti = NO;
 
 	    /* Output filename */
 	    } else if (!strcmp(argv[arg], "-o")) { 
@@ -1334,7 +1382,7 @@ int main ARGS2(int, argc, char **, argv)
 		    request->output_format = WWW_SOURCE;
 		    HTInteractive = NO;			/* JFG */
 
-#ifdef HAVE_CECHO2FILE
+#ifdef THINK_C
 	    /* Echo to file */
 	    } else if (!strcmp(argv[arg], "-e")){
 		struct tm *tm_now; time_t time_now;
@@ -1380,6 +1428,9 @@ int main ARGS2(int, argc, char **, argv)
     HTLibInit();
     if (HTClientHost) HTSecure = YES;		   /* Access to local files? */
     HTEnableFrom = YES;			     /* Send `From:' in the request? */
+#ifdef CATCH_SIG
+    SetSignal();
+#endif
     if (HTScreenHeight == -1) {				/* Default page size */
 	if (HTInteractive) {
 #ifdef GET_SCREEN_SIZE
@@ -1393,9 +1444,9 @@ int main ARGS2(int, argc, char **, argv)
 	    HTScreenHeight = 999999;
     }
 
-    /* Enable local directory access */
-    HTDirReadme = HT_DIR_README_TOP;		      /* Readme presentation */
-    HTDirAccess = HTClientHost ? HT_DIR_SELECTIVE : HT_DIR_OK;	 /* browsing */
+    /* Siable free directory browsing when using telnet host */
+    if (HTClientHost && HTDirAccess==HT_DIR_OK)
+	HTDirAccess = HT_DIR_SELECTIVE;
 
 #ifndef NO_RULES
     {
@@ -1447,7 +1498,7 @@ int main ARGS2(int, argc, char **, argv)
 		DEFAULT_LOGFILE : DEFAULT_LOCAL_LOGFILE;
 	HTLogFileName = (char*) malloc(strlen(logfile_root)+20);
 
-#ifndef HAVE_GETPID
+#ifdef NO_GETPID
 	sprintf(HTLogFileName, "%s", logfile_root);  /* No getpid() */
 #else
 	sprintf(HTLogFileName, "%s-%d", logfile_root, (int) getpid());
@@ -1487,20 +1538,24 @@ int main ARGS2(int, argc, char **, argv)
 	    free(addr);
 	    if (!HTMainText) {
 		return_status = -2;		     /* Can't get first page */
-	    } else if (listrefs_option) {
-		Reference_List(NO);		      /* List without titles */
 	    }
+	} else if (listrefs_option) {
+	    Reference_List(NO);		   	      /* List without titles */
 	}
     }
 
 endproc:
-    HTLibTerminate();
     Thread_deleteAll();
-    if(default_default)
+    if (default_default)
 	free(default_default);
-
-    if(!return_status) {			/* Everything is working :-) */
-	return GOOD_RETURN_STATUS;
+    HTLibTerminate();
+    printf("\n");
+    if (!return_status) {			/* Everything is working :-) */
+#ifdef VMS 
+	return 1;
+#else
+	return 0;	/* Good */
+#endif
     }
     return return_status;		       /* An error occured somewhere */
 }

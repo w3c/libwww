@@ -38,11 +38,6 @@ Overriding this module
 #ifndef GridStyle_H
 #define GridStyle_H
 
-#include "HTStyle.h"           /* Portable bits */
-
-
-
-
 typedef float HTCoord;
 
 #ifdef OLD_CODE

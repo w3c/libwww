@@ -11,11 +11,9 @@
 **	translation necessary to
 **	represent a document. It is a linked list of styles.
 */
-#include "sysdep_b.h"
 
-#include "HTStyle.h"
+#include "WWWLib.h"
 #include "HTUtils.h"
-
 
 /*	Local definition of style
 **	-------------------------
@@ -240,7 +238,7 @@ HTStyleSheet * HTStyleSheetFree ARGS1 (HTStyleSheet *,self)
 **	as existing styles, they replace the old ones without changing the ids.
 */
 
-#ifdef HAVE_NXSCANF
+#ifdef NEXT_SUPRESS  /* Only on the NeXT */
 HTStyleSheet * HTStyleSheetRead(HTStyleSheet * self, NXStream * stream)
 {
     int numStyles;

@@ -3,6 +3,7 @@
 */
 #ifndef A_STDIO_H
 #define A_STDIO_H
+#include <stdio.h>
 #define H 64000
 int	a_print(char	*, int, FILE *fp);
 char	*agets(char *, int psize, FILE *fp);
