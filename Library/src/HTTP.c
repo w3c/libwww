@@ -150,7 +150,9 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
     CONST char* gate = 0;		/* disable this feature */
     SockA soc_address;			/* Binary network address */
     SockA * sin = &soc_address;
-    BOOL extensions = YES;		/* Assume good HTTP server */
+    BOOL extensions = YES;		/* Assume good HTTP server 
+    char * cache_file_name = NULL;
+    BOOL HTCacheHTTP_old = HTCacheHTTP;	/* Save initial cache conditions */
 
     if (HTImProxy) HTProxyBytes = 0;
 
@@ -567,7 +569,10 @@ copy:
 clean_up: 
 	if (TRACE) fprintf(stderr, "HTTP: close socket %d.\n", s);
 	(void) NETCLOSE(s);
-	return status;			/* Good return */
+	if(status_line)
+	    free(status_line);		/* Leak fix Henrik 18/02-94 */
+	HTCacheHTTP = HTCacheHTTP_old;	/* Reestablish cache conditions */
+	return status;			/* Good return  */
     
     } /* read response */
 } /* load HTTP */

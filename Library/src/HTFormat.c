@@ -577,6 +577,9 @@ PRIVATE char * get_some_line ARGS2(HTInputSocket *,	isoc,
 		} /* if not CR */
 	    } /* while characters in buffer remain */
 	} /* until line read or end-of-file */
+
+	if(line)		/* Leak fix Henrik 18/02-94 */
+	    free(line);
     } /* valid parameters to function */
 }
 

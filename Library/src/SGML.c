@@ -292,15 +292,25 @@ PUBLIC HTTag * SGMLFindTag ARGS2(CONST SGML_dtd*, dtd, CONST char *, string)
 
 PUBLIC void SGML_free  ARGS1(HTStream *, context)
 {
+    int cnt;
+
     (*context->actions->free)(context->target);
     HTChunkFree(context->string);
+    for(cnt=0; cnt<MAX_ATTRIBUTES; cnt++)      	/* Leak fix Henrik 18/02-94 */
+	if(context->value[cnt])
+	    free(context->value[cnt]);
     free(context);
 }
 
 PUBLIC void SGML_abort  ARGS2(HTStream *, context, HTError, e)
 {
+    int cnt;
+
     (*context->actions->abort)(context->target, e);
     HTChunkFree(context->string);
+    for(cnt=0; cnt<MAX_ATTRIBUTES; cnt++)      	/* Leak fix Henrik 18/02-94 */
+	if(context->value[cnt])
+	    free(context->value[cnt]);
     free(context);
 }
 
@@ -708,4 +718,15 @@ PUBLIC HTStream* SGML_new  ARGS2(
 
     return context;
 }
+
+
+
+
+
+
+
+
+
+
+
 
