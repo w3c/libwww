@@ -257,8 +257,17 @@ PRIVATE int HostEvent (SOCKET soc, void * pVoid, HTEventType type)
 			HTAnchor_physical(HTRequest_anchor(HTNet_request(targetNet))));
 	    return (*targetNet->event.cbf)(HTChannel_socket(host->channel), targetNet->event.param, type);
 	}
-	HTTrace("Host Event.. Who wants to write to `%s\'?\n", host->hostname);
+	HTTrace("Host Event Host %p (`%s\') dispatched with event %d but doesn't have a target - %d requests made, %d requests in pipe, %d pending\n",
+		host, host ? host->hostname : "<null>", type,
+		host, host->reqsMade,
+		HTList_count(host->pipeline), HTList_count(host->pending));
+#if 0
+	HTDebugBreak(__FILE__, __LINE__, "Host Event.. Host %p (`%s\') dispatched with event %d\n",
+		     host, host ? host->hostname : "<null>", type);
 	return HT_ERROR;
+#else
+	return HT_OK;
+#endif
     } else if (type == HTEvent_TIMEOUT) {
 	killPipeline(host, HTEvent_TIMEOUT);
     } else {
@@ -340,6 +349,9 @@ PUBLIC HTHost * HTHost_new (char * host, u_short u_port)
                         HTTrace("Host info... REUSING CHANNEL %p\n",pres->channel);
                 }
             }
+	} else {
+	    if (CORE_TRACE)
+		HTTrace("Host info... Found Host %p with no active channel\n", pres);
 	}
     } else {
 	if ((pres = (HTHost *) HT_CALLOC(1, sizeof(HTHost))) == NULL)
@@ -388,15 +400,15 @@ PUBLIC HTHost * HTHost_newWParse (HTRequest * request, char * url, u_short u_por
 	HT_FREE(fullhost);
 	return NULL;
     }
-    port = strchr(parsedHost, ':');
-    if (PROT_TRACE)
-	HTTrace("HTHost parse Looking up `%s\'\n", parsedHost);
-    if (port) {
+
+    /* See if the default port should be overridden */
+    if ((port = strchr(parsedHost, ':')) != NULL) {
 	*port++ = '\0';
-	if (!*port || !isdigit((int) *port))
-	    port = 0;
-	u_port = (u_short) atol(port);
+	if (*port && isdigit((int) *port)) u_port = (u_short) atol(port);
     }
+    if (PROT_TRACE)
+	HTTrace("HTHost parse Looking up `%s\' on port %u\n", parsedHost, u_port);
+
     /* Find information about this host */
     if ((me = HTHost_new(parsedHost, u_port)) == NULL) {
 	if (PROT_TRACE)HTTrace("HTHost parse Can't get host info\n");
@@ -965,8 +977,9 @@ PUBLIC int HTHost_addNet (HTHost * host, HTNet * net)
 	    if (!host->pending) host->pending = HTList_new();
 	    HTList_addObject(host->pending, net);	    
  	    if (CORE_TRACE)
-		HTTrace("Host info... Added Host %p with Net %p (request %p) as pending, %d requests made, %d requests in pipe, %d pending\n",
-			host, net, net->request, host->reqsMade, HTList_count(host->pipeline), HTList_count(host->pending));
+		HTTrace("Host info... Added Net %p (request %p) as pending on pending Host %p, %d requests made, %d requests in pipe, %d pending\n",
+			net, net->request, host, host->reqsMade,
+			HTList_count(host->pipeline), HTList_count(host->pending));
 	    return HT_PENDING;
 	}
 
@@ -1013,8 +1026,9 @@ PUBLIC int HTHost_addNet (HTHost * host, HTNet * net)
 	    HTList_addObject(host->pipeline, net);
 	    host->reqsMade++;
             if (CORE_TRACE)
-		HTTrace("Host info... Add Net %p (request %p) to pipe, %d requests made, %d requests in pipe, %d pending\n",
-			net, net->request, host->reqsMade, HTList_count(host->pipeline), HTList_count(host->pending));
+		HTTrace("Host info... Added Net %p (request %p) to pipe on Host %p, %d requests made, %d requests in pipe, %d pending\n",
+			net, net->request, host, host->reqsMade,
+			HTList_count(host->pipeline), HTList_count(host->pending));
 
 	    /*
 	    **  If we have been idle then make sure we delete the timer
@@ -1034,8 +1048,9 @@ PUBLIC int HTHost_addNet (HTHost * host, HTNet * net)
 	    if (!host->pending) host->pending = HTList_new();
 	    HTList_addObject(host->pending, net);	    
 	    if (CORE_TRACE)
-		HTTrace("Host info... Add Net %p (request %p) to pending, %d requests made, %d requests in pipe, %d pending\n",
-			net, net->request, host->reqsMade, HTList_count(host->pipeline), HTList_count(host->pending));
+		HTTrace("Host info... Added Net %p (request %p) as pending on Host %p, %d requests made, %d requests in pipe, %d pending\n",
+			net, net->request, host, host->reqsMade,
+			HTList_count(host->pipeline), HTList_count(host->pending));
 	    status = HT_PENDING;
 	}
 	return status;
@@ -1251,27 +1266,46 @@ PUBLIC int HTHost_connect (HTHost * host, HTNet * net, char * url, HTProtocolId 
 
 	/*
 	** If not already locked and without a channel
-	** then lock the darn thing
+	** then lock the darn thing with the first Net object
+	** pending.
 	*/
 	if (!host->lock && !host->channel) {
+	    HTNet * next_pending = NULL;
 	    host->forceWriteFlush = YES;
-	    host->lock = net;
+	    host->lock = (next_pending = HTList_firstObject(host->pending)) ?
+		next_pending : net;
+	    if (CORE_TRACE) HTTrace("Host connect Grabbing lock on Host %p with %p\n", host, host->lock);
 	}
 	HTNet_setHost(net, host);
     }
 
     if (!host->lock || (host->lock && host->lock == net)) {
 	status = HTDoConnect(net, url, port);
-	if (status == HT_OK) {
-	    host->lock = NULL;
-	    return HT_OK;
-	}
-	if (status == HT_WOULD_BLOCK) {
+	if (status == HT_PENDING)
+	    return HT_WOULD_BLOCK;
+	else if (status == HT_WOULD_BLOCK) {
 	    host->lock = net;
 	    return status;
+	} else {
+
+	    /*
+	    **  See if there is already a new pending request that should
+	    **  take over the current lock
+	    */
+	    HTNet * next_pending = NULL;
+	    if ((next_pending = HTList_firstObject(host->pending))) {
+		if (CORE_TRACE) HTTrace("Host connect Changing lock on Host %p to %p\n",
+					host, next_pending);
+		host->lock = next_pending;	    
+	    } else {
+		if (CORE_TRACE) HTTrace("Host connect Unlocking Host %p\n", host);
+		host->lock = NULL;	    
+	    }
+	    return status;
 	}
-	if (status == HT_PENDING) return HT_WOULD_BLOCK;
     } else {
+	if (CORE_TRACE)
+	    HTTrace("Host connect Host %p already locked with %p\n", host, host->lock);
 	if ((status = HTHost_addNet(host, net)) == HT_PENDING) {
 	    return HT_PENDING;
 	}
