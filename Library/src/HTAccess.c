@@ -77,7 +77,7 @@ struct _HTStream {
 
 PUBLIC HTRequest * HTRequest_new NOARGS
 {
-    HTRequest * me = (HTRequest*) calloc(sizeof(*me), 1);  /* zero fill */
+    HTRequest * me = (HTRequest*) calloc(1, sizeof(*me));  /* zero fill */
     if (!me) outofmem(__FILE__, "HTRequest_new()");
     
     me->conversions	= HTList_new();	/* No conversions registerd yet */
@@ -103,6 +103,7 @@ PUBLIC void HTRequest_delete ARGS1(HTRequest *, req)
 	    }
 	    HTList_delete(req->conversions);	/* Leak fixed AL 6 Feb 1994 */
 	}
+	FREE(req->authorization);
 	free(req);
     }
 }

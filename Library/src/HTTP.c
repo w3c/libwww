@@ -255,8 +255,6 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		strcat(command, p1+1);
 	    else
 		strcat(command, p1);
-fprintf(stderr, " ** DEBUG: arg=\"%s\" p1=\"%s\" command=\"%s\"\n",
-	arg, p1, command);
 	    free(p1);
 	}
 #ifdef HTTP2

@@ -28,7 +28,7 @@
 #ifdef VMS
 PRIVATE char * suffix_separators = "_,";
 #else
-PRIVATE char * suffix_separators = ".,";
+PRIVATE char * suffix_separators = ".,_";
 #endif
 
 
@@ -642,7 +642,7 @@ PUBLIC char * HTLocalName ARGS1(CONST char *,name)
     
     HTUnEscape(path);	/* Interpret % signs */
 
-    if (HTImServer) {
+    if (HTImServer && !*access) {
 	free(access);
 	free(host);
 	CTRACE(stderr, "Local filename is \"%s\"\n", path);
