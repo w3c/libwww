@@ -31,7 +31,7 @@ struct _HTStream {
 	FILE *			fp;
 	BOOL			leave_open;     /* Close file? HFN 08/02-94 */
 	char * 			end_command;
-	char * 			remove_command;
+	BOOL 			remove_on_close;
 	BOOL			announce;
 	char *			filename;
 	HTRequest *		request;	/* saved for callback */
@@ -104,11 +104,12 @@ PUBLIC HTStream * HTBlackHole NOARGS
 /* -------------------------------------------------------------------------
    This function tries really hard to find a non-existent filename relative
    to the path given.
-       path:	path name
+       path:	path of directory in which to put temp file
        url:	used for a similar name or generating a hash within 'limit'
        suffix:	if != 0, this suffix is used, else no suffix
-       limit:	if 0 => use last part of url, else generate hash. Max value
-                is max(unsigned int).
+       limit:	if 0 => use last part of url
+       		if >0 generate hash. Max value
+                      of limit is max(unsigned int).
    Returns NULL if no filename could be found.
    Henrik 10/03-94
    ------------------------------------------------------------------------- */
@@ -260,11 +261,10 @@ PRIVATE void HTFWriter_free ARGS1(HTStream *, me)
 
     if (me->end_command) {		/* Temp file */
         HTProgress(me->end_command);	/* Tell user what's happening */
-	system(me->end_command);
+	system(me->end_command);	/* @@ Beware of security hole */
 	free (me->end_command);
-	if (me->remove_command) {
-	    system(me->remove_command);
-	    free(me->remove_command);
+	if (me->remove_on_close) {
+	    unlink(me->filename);
 	}
     }
     if (me->callback) {
@@ -285,9 +285,8 @@ PRIVATE void HTFWriter_abort ARGS2(HTStream *, me, HTError, e)
 		"HTFWriter: Aborting: file %s not executed.\n",
 		me->filename ? me->filename : "???" );
 	free (me->end_command);
-	if (me->remove_command) {
-	    system(me->remove_command);
-	    free(me->remove_command);
+	if (me->remove_on_close) {
+	    unlink(me->filename);
 	}
     }
 
@@ -328,7 +327,7 @@ PUBLIC HTStream* HTFWriter_new ARGS2(FILE *, fp, BOOL, leave_open)
     me->fp = fp;
     me->leave_open = leave_open;		/* HENRIK 08/02-94 */
     me->end_command = NULL;
-    me->remove_command = NULL;
+    me->remove_on_close = NO;
     me->announce = NO;
     me->callback = NULL;
     return me;
@@ -359,13 +358,13 @@ PUBLIC HTStream* HTSaveAndExecute ARGS5(
 	HTStream *,		output_stream)
 
 #ifdef unix
-#define REMOVE_COMMAND "/bin/rm -f %s\n"	/* @@@ security @@@ */
+#define REMOVE_FILE unlink
 #endif
 #ifdef VMS
-#define REMOVE_COMMAND "delete/noconfirm/nolog %s.."
+#define REMOVE_FILE unlink		/* ok? */
 #endif
 
-#ifdef REMOVE_COMMAND
+#ifdef REMOVE_FILE
 {
     char *fnam;
     
@@ -390,8 +389,14 @@ PUBLIC HTStream* HTSaveAndExecute ARGS5(
     CONST char * suffix;
     /* Save the file under a suitably suffixed name */
     suffix = HTFileSuffix(input_format);
+#ifdef OLD_CODE
     fnam = (char *)malloc (L_tmpnam + 16 + strlen(suffix));
     tmpnam (fnam);
+#endif
+    fnam = HTFWriter_filename(HTSaveLocallyDir,
+			      HTAnchor_physical(request->anchor),
+			      HTFileSuffix(input_format),
+			      0);
     if (suffix) strcat(fnam, suffix);
 #endif
 
@@ -423,17 +428,7 @@ PUBLIC HTStream* HTSaveAndExecute ARGS5(
     
     sprintf (me->end_command, param, fnam, fnam, fnam);
 
-    me->remove_command = NULL;	/* If needed, put into end_command */
-#ifdef NOPE
-/*	Make command to delete file
-*/ 
-    me->remove_command = (char *)malloc (
-    			(strlen (REMOVE_COMMAND) + 10+ strlen(fnam))
-    			 * sizeof (char));
-    if (me == NULL) outofmem(__FILE__, "SaveAndExecute");
-    
-    sprintf (me->remove_command, REMOVE_COMMAND, fnam);
-#endif
+    me->remove_on_close = NO;
 
     me->announce = NO;
     free (fnam);
@@ -632,15 +627,22 @@ PUBLIC HTStream* HTCacheWriter ARGS5(
     if (me == NULL) outofmem(__FILE__, "CacheWriter");
     me->isa = &HTFWriter;  
     me->end_command = NULL;
-    me->remove_command = NULL;	/* If needed, put into end_command */
+    me->remove_on_close = NO;	/* If needed, put into end_command */
     me->announce = NO;
     
     /* Save the file under a suitably suffixed name */
     
     suffix = HTFileSuffix(input_format);
 
+#ifdef OLD_CODE
     fnam = (char *)malloc (L_tmpnam + 16 + strlen(suffix));
     tmpnam (fnam);
+#endif
+    fnam = HTFWriter_filename(HTSaveLocallyDir,
+			      HTAnchor_physical(request->anchor),
+			      HTFileSuffix(input_format),
+			      0);
+    
     if (suffix) strcat(fnam, suffix);
     me->filename = NULL;
     

@@ -136,6 +136,19 @@ extern void HText_endAnchor PARAMS((HText * text));
 
 
 </PRE>
+<h3>Set the next free identifier</h3>
+The string must be of the form aaannnnn where aaa is the prefix
+for automatically generated ids, normally "z", and nnnn is the
+next unused number.  If not present, defaults to z0.  An
+editor should pick up both the a and n bits, and increment n
+when generating ids. This ensures that old ids are not reused,
+even if the elements using them have been deleted from the document.
+<pre>
+extern void HText_setNextId PARAMS((
+	HText *		text,
+	CONST char *    s));
+
+</pre>
 <H3>Append an inline image</H3>The image is handled by the creation
 of an anchor whose destination is
 the image document to be included.

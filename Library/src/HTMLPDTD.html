@@ -242,11 +242,12 @@ extern void HTMLPutImg PARAMS((HTStructured *obj,
 			       CONST char *align));
 </PRE>
 
-<H2>Specify next ID to be used</H2>This is anoter convenience routine,
+<H2>Specify next ID to be used</H2>This is another convenience routine,
 for specifying the next ID to be
 used by an editor in the series z1.
 z2,...
-<PRE>extern void HTNextID PARAMS((HTStructured * targetStream, int n));
+<PRE>extern void HTNextID PARAMS((HTStructured * targetStream,
+			CONST char * s));
 
 #endif /* HTMLDTD_H */
 

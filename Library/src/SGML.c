@@ -55,7 +55,8 @@ struct _HTStream {
     HTChunk		*string;
     HTElement		*element_stack;
     enum sgml_state { S_text, S_literal, S_tag, S_tag_gap, 
-		S_attr, S_attr_gap, S_equals, S_value,
+		S_attr, S_attr_gap, S_equals, S_value, S_after_open,
+		S_nl, S_nl_tago,
 		S_ero, S_cro,
 #ifdef ISO_2022_JP
  		S_esc, S_dollar, S_paren, S_nonascii_text,
@@ -371,7 +372,19 @@ PUBLIC void SGML_character ARGS2(HTStream *, context, char,c)
     HTChunk	*string = 	context->string;
 
     switch(context->state) {
+    
+    case S_after_open:	/* Strip one trainling newline
+    			only after opening nonempty element.  - SGML:Ugh! */
+        if (c=='\n' && (context->current_tag->contents != SGML_EMPTY)) {
+	    break;
+	}
+	context->state = S_text;
+	goto normal_text;
+	/* (***falls through***) */
+	
     case S_text:
+normal_text:
+
 #ifdef ISO_2022_JP
  	if (c=='\033') {
  	    context->state = S_esc;
@@ -394,8 +407,31 @@ PUBLIC void SGML_character ARGS2(HTStream *, context, char,c)
 	    	context->element_stack->tag  &&
 	    	context->element_stack->tag->contents == SGML_LITERAL) ?
 	    			S_literal : S_tag;
+	} else if (c=='\n') {	/* Newline - ignore if before tag end! */
+	    context->state = S_nl;
 	} else PUTC(c);
 	break;
+
+    case S_nl:
+        if (c=='<') {
+	    string->size = 0;
+	    context->state = (context->element_stack &&
+		context->element_stack->tag  &&
+		context->element_stack->tag->contents == SGML_LITERAL) ?
+				S_literal : S_nl_tago;
+	} else {
+	    PUTC('\n');
+	    context->state = S_text;
+	    goto normal_text;
+	}
+	break;
+
+    case S_nl_tago:		/* Had newline and tag opener */
+        if (c != '/') {
+	    PUTC('\n');		/* Only ignore newline before </ */
+	}
+	context->state = S_tag;
+	goto handle_S_tag;
 
 #ifdef ISO_2022_JP
     case S_esc:
@@ -498,6 +534,8 @@ PUBLIC void SGML_character ARGS2(HTStream *, context, char,c)
 /*		Tag
 */	    
     case S_tag:				/* new tag */
+handle_S_tag:
+
 	if (isalnum(c))
 	    HTChunkPutc(string, c);
 	else {				/* End of tag name */
@@ -532,7 +570,7 @@ PUBLIC void SGML_character ARGS2(HTStream *, context, char,c)
 	    
 	    if (c=='>') {
 		if (context->current_tag->name) start_element(context);
-		context->state = S_text;
+		context->state = S_after_open;
 	    } else {
 	        context->state = S_tag_gap;
 	    }
@@ -544,7 +582,7 @@ PUBLIC void SGML_character ARGS2(HTStream *, context, char,c)
 	if (WHITE(c)) break;	/* Gap between attributes */
 	if (c=='>') {		/* End of tag */
 	    if (context->current_tag->name) start_element(context);
-	    context->state = S_text;
+	    context->state = S_after_open;
 	    break;
 	}
 	HTChunkPutc(string, c);
@@ -559,7 +597,7 @@ PUBLIC void SGML_character ARGS2(HTStream *, context, char,c)
 	    string->size = 0;
 	    if (c=='>') {		/* End of tag */
 		if (context->current_tag->name) start_element(context);
-		context->state = S_text;
+		context->state = S_after_open;
 		break;
 	    }
 	    context->state = (c=='=' ?  S_equals: S_attr_gap);
@@ -572,7 +610,7 @@ PUBLIC void SGML_character ARGS2(HTStream *, context, char,c)
 	if (WHITE(c)) break;	/* Gap after attribute */
 	if (c=='>') {		/* End of tag */
 	    if (context->current_tag->name) start_element(context);
-	    context->state = S_text;
+	    context->state = S_after_open;
 	    break;
 	} else if (c=='=') {
 	    context->state = S_equals;
@@ -587,7 +625,7 @@ PUBLIC void SGML_character ARGS2(HTStream *, context, char,c)
 	if (c=='>') {		/* End of tag */
 	    if (TRACE) fprintf(stderr, "SGML: found = but no value\n");
 	    if (context->current_tag->name) start_element(context);
-	    context->state = S_text;
+	    context->state = S_after_open;
 	    break;
 	    
 	} else if (c=='\'') {
@@ -609,7 +647,7 @@ PUBLIC void SGML_character ARGS2(HTStream *, context, char,c)
 	    string->size = 0;
 	    if (c=='>') {		/* End of tag */
 		if (context->current_tag->name) start_element(context);
-		context->state = S_text;
+		context->state = S_after_open;
 		break;
 	    }
 	    else context->state = S_tag_gap;

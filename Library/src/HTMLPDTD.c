@@ -509,20 +509,17 @@ PUBLIC void HTMLPutImg ARGS4(HTStructured *, obj,
 
 
 PUBLIC void HTNextID ARGS2(HTStructured *, obj,
-		int,	next_one)
+		CONST char *,	next_one)
 {
     BOOL		present[HTML_NEXTID_ATTRIBUTES];
     CONST char*		value[HTML_NEXTID_ATTRIBUTES];
-    char string[10];
-    
-    sprintf(string, "z%i", next_one);
     {
     	int i;
     	for(i=0; i<HTML_NEXTID_ATTRIBUTES; i++)
 	    present[i] = NO;
     }
     present[HTML_NEXTID_N] = YES;
-    value[HTML_NEXTID_N] = string;
+    value[HTML_NEXTID_N] = next_one;
     
     (*obj->isa->start_element)(obj, HTML_NEXTID , present, value);
 

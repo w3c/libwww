@@ -210,11 +210,10 @@ PRIVATE void HTMLGen_start_element ARGS4(
     int i;
     HTTag * tag = &me->dtd->tags[element_number];
 
-#ifdef OLD_CODE 
-    /* Make very specific HTML assumption that PRE can't be nested! */
-    BOOL was_preformatted = me->preformatted;
-    me->preformatted = NO;	/* free text within tags NO!, henrik */
-#endif
+    /* Control line breaks allowed within tag! */
+    int was_preformatted = me->preformatted;	/* save state */
+    me->preformatted = 1;	/* Can break between attributes */
+
     HTMLGen_output_character(me, '<');
     HTMLGen_output_string(me, tag->name);
     if (present) for (i=0; i< tag->number_of_attributes; i++) {
@@ -231,14 +230,27 @@ PRIVATE void HTMLGen_start_element ARGS4(
 	    }
 	}
     }
+    me->preformatted = was_preformatted;	/* Restore state */
+
     /* Nested PRE is no more a problem! */
     if (element_number == HTML_PRE)
 	me->preformatted++;
 
     HTMLGen_output_character(me, '>');
     
-    if(!me->preformatted)  /* in fact, could break after PRE but confuses! */
-     if (tag->contents != SGML_EMPTY) {  /* can break after element start */ 
+    /* Here is a funny one.  In PRE, newlines are significant, except of
+    course for one after the <PRE> which is ignored. This means that
+    we MUST put in a dummy one after the <PRE> to protect any real newline
+    within the pre section.
+    
+    However, *within* a PRE section, although we can break after
+    (for example) emphasis start tags, it will probably confuse some
+    parsers so we won't.*/
+    
+    if (element_number == HTML_PRE) {
+        HTMLGen_output_character(me, '\n');
+    } else  if (!me->preformatted && 
+    	 tag->contents != SGML_EMPTY) {  /* can break after element start */ 
     	me->line_break = me->write_pointer;	/* Don't you hate SGML?  */
 	me->cleanness = 3;
 	me->delete_line_break_char = NO;
@@ -251,12 +263,14 @@ PRIVATE void HTMLGen_start_element ARGS4(
 **
 **      The rules for insertring CR LF into SGML are weird, strict, and
 ** 	nonintitive.
+**	See comment also about PRE above.
 */
 PRIVATE void HTMLGen_end_element ARGS2(HTStructured *, me,
 			int , element_number)
 {
-    if (me->dtd->tags[element_number].contents != SGML_EMPTY) {
-    				/* can break before element end */ 
+    if (element_number == HTML_PRE) {
+        HTMLGen_output_character(me, '\n');
+    } else  if (!me->preformatted) { /* can break before element end */ 
     	me->line_break = me->write_pointer;	/* Don't you hate SGML?  */
 	me->cleanness = 1;
 	me->delete_line_break_char = NO;
