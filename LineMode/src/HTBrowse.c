@@ -1484,7 +1484,7 @@ endproc:
     else
 	HTRequest_delete(request);
     HTFormat_deleteAll();
-    HTPresenter_deleteAll(presenters);
+    HTPresentation_deleteAll(presenters);
     HTLibTerminate();
 #ifdef VMS
     return status ? status : 1;
