@@ -9,7 +9,7 @@
 /*
 
    This module defines the HText functions referenced from the HTML module in the W3C
-   Reference Library.
+   Sample Code Library.
    
  */
 #include "WWWLib.h"

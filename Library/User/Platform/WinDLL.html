@@ -11,7 +11,7 @@
   Building libwww for Windows 32-bit
 </H1>
 <P>
-When building the W3C Reference Library on a Windows platform (Windows 3.1
+When building the W3C Sample Code Library on a Windows platform (Windows 3.1
 (32 bit), Windows 95, or Windows NT), you can decide on a set of different
 options to be enabled or disabled. This document describes the set of DLLs
 and how they can be built. C compilers on Windows platforms often have a
@@ -44,7 +44,7 @@ by the application in an signal handler. Using the <CODE>select()</CODE>
 call is called <EM>reactive</EM> whereas using signals is called
 <EM>pro-active</EM>.
 <P>
-The W3C Reference Library supports both approaches under Windows, and therefore
+The W3C Sample Code Library supports both approaches under Windows, and therefore
 you must choose which model you prefer. The choice can depend on what type
 of application you are using and what other libraries you are using.
 <A NAME="unix"></A>
@@ -129,7 +129,7 @@ known as <EM>DLLs</EM>. It is out of scope here to describe the difference
 between DLLs and static libraries, but as DLLs is based on a lot more flexible
 memory model it is almost always the best solution for Windows applications.
 <P>
-The W3C Reference Library support both models in that if can be built as
+The W3C Sample Code Library support both models in that if can be built as
 either one big static library or as a set of small DLLs. As mentioned, it
 is in almost all cases recommended to build DLLs instead of static libraries,
 and on Win16 it is required because a static library is too big.
