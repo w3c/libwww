@@ -26,6 +26,7 @@ struct _HTStream {
     int			max_size;
     BOOL		give_up;
     BOOL		ignore;
+    BOOL		ensure;
 };
 
 /* ------------------------------------------------------------------------- */
@@ -65,7 +66,7 @@ PRIVATE int HTSC_putBlock (HTStream * me, const char * b, int l)
     ** must give up the request. In all other cases we stop if the buffer fills
     ** up.
     */
-    if (!me->ignore && me->cur_size > me->max_size) {
+    if (!me->ignore && me->max_size > 0 && me->cur_size > me->max_size) {
 	HTMethod method = HTRequest_method(me->request);
 	if (HTMethod_hasEntity(method)) {
 	    HTAlertCallback *cbf = HTAlert_find(HT_A_CONFIRM);
@@ -77,6 +78,11 @@ PRIVATE int HTSC_putBlock (HTStream * me, const char * b, int l)
 	} else {
 	    me->give_up = YES;
 	}
+    } else if (!me->ensure) {
+	HTParentAnchor * anchor = HTRequest_anchor(me->request);
+	int cl = HTAnchor_length(anchor);
+	if (cl > 0) HTChunk_ensure(me->chunk, cl);
+	me->ensure = YES;
     }
     if (!me->give_up) {
 	HTChunk_putb(me->chunk, b, l);
@@ -116,8 +122,10 @@ PUBLIC HTStream * HTStreamToChunk (HTRequest * 	request,
 	    HT_OUTOFMEM("HTStreamToChunk");
 	me->isa = &HTStreamToChunkClass;
 	me->request = request;
-	me->max_size = (max_size > 0) ? max_size : HT_MAXSIZE;
-	me->chunk = *chunk = HTChunk_new(HTMIN(me->max_size, HT_MAXGROWSIZE));
+	me->max_size = (!max_size) ? max_size : HT_MAXSIZE;
+	me->chunk = *chunk = HTChunk_new(me->max_size > 0 ?
+					 HTMIN(me->max_size, HT_MAXGROWSIZE) :
+					 HT_MAXGROWSIZE);
 	if (STREAM_TRACE)
 	    HTTrace("ChunkStream. Chunk %p created with max size %d\n",
 		    me->chunk, me->max_size);

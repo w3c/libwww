@@ -63,6 +63,8 @@ typedef struct _http_info {
     int			result;	     /* Result to report to the after filter */
     BOOL		lock;				/* Block for writing */
     HTNet *		net;
+    HTRequest *		request;
+    HTTimer *		timer;
 } http_info;
 
 #define MAX_STATUS_LEN		100   /* Max nb of chars to check StatusLine */
@@ -70,6 +72,7 @@ typedef struct _http_info {
 struct _HTStream {
     const HTStreamClass *	isa;
     HTStream *		  	target;
+    HTStream *		  	info_target;	/* For 100 codes */
     HTRequest *			request;
     http_info *			http;
     HTEOLState			state;
@@ -128,6 +131,14 @@ PRIVATE int HTTPCleanup (HTRequest *req, int status)
 	else
 	    (*input->isa->_free)(input);
 	HTRequest_setInputStream(req, NULL);
+    }
+
+    /*
+    **  Remove if we have registered an upload function as a callback
+    */
+    if (http->timer) {
+	HTTimer_delete(http->timer);
+	http->timer = NULL;
     }
 
     /*
@@ -544,23 +555,11 @@ PRIVATE void HTTPNextState (HTStream * me)
 **
 **	Return: YES if buffer should be written out. NO otherwise
 */
-PRIVATE int stream_pipe (HTStream * me)
+PRIVATE int stream_pipe (HTStream * me, int length)
 {
     HTRequest * request = me->request;
     HTNet * net = HTRequest_net(request);
     HTHost * host = HTNet_host(net);
-
-    if (me->target) {
-	int status = PUTBLOCK(me->buffer, me->buflen);
-	if (status == HT_OK)
-	    me->transparent = YES;
-	return status;
-    } else if (HTRequest_isSource(request)&&!HTRequest_outputStream(request)) {
-	/*
-	**  We need to wait for the destinations to get ready
-	*/
-	return HT_WOULD_BLOCK;
-    }
 
 #if 0
     {
@@ -587,6 +586,7 @@ PRIVATE int stream_pipe (HTStream * me)
 	if ((status = PUTBLOCK(me->buffer, me->buflen)) == HT_OK)
 	    me->transparent = YES;
 	HTHost_setVersion(host, HTTP_09);
+	if (length > 0) HTHost_setConsumed(host, length);
 	return status;
     } else {
 	HTResponse * response = HTRequest_response(request);
@@ -606,6 +606,7 @@ PRIVATE int stream_pipe (HTStream * me)
 	    me->target = HTErrorStream();
 	    me->status = 999999;
 	    HTTPNextState(me);					   /* Get next state */
+	    if (length > 0) HTHost_setConsumed(host, length);
 	    return HT_OK;
 	} else if (minor <= 0) {
 	    if (PROT_TRACE)HTTrace("HTTP Status. This is an HTTP/1.0 server\n");
@@ -647,12 +648,13 @@ PRIVATE int stream_pipe (HTStream * me)
 	    if (HTTPInformation(me) == YES) {
 		me->buflen = 0;
 		me->state = EOL_BEGIN;
-		me->target = HTStreamStack(WWW_MIME_CONT,
-					   HTRequest_debugFormat(request),
-					   HTRequest_debugStream(request),
-					   request, NO);
-		return HTMethod_hasEntity(HTRequest_method(request)) ?
-		    HT_CONTINUE : HT_OK;
+		if (me->info_target) (*me->info_target->isa->_free)(me->info_target);
+		me->info_target = HTStreamStack(WWW_MIME_CONT,
+						HTRequest_debugFormat(request),
+						HTRequest_debugStream(request),
+						request, NO);
+		if (length > 0) HTHost_setConsumed(host, length);
+		return HT_OK;
 	    }
 	}
 
@@ -721,6 +723,7 @@ PRIVATE int stream_pipe (HTStream * me)
     if (!me->target) me->target = HTErrorStream();
     HTTPNextState(me);					   /* Get next state */
     me->transparent = YES;
+    if (length > 0) HTHost_setConsumed(HTNet_host(HTRequest_net(me->request)), length);
     return HT_OK;
 }
 
@@ -734,52 +737,40 @@ PRIVATE int HTTPStatus_put_block (HTStream * me, const char * b, int l)
     int length = l;
     me->startLen = me->buflen;
     while (!me->transparent && l-- > 0) {
-	if (me->target) {
-	    if (me->cont) {
-		FREE_TARGET;
-		me->target = NULL;
-		l++;
-	    } else {
-		if ((status = stream_pipe(me)) == HT_CONTINUE) {
-		    b++; break;
-		}
-		if (status != HT_OK) return status;
-	    }
+	if (me->info_target) {
+
+	    /* Put data down the 1xx return code parser until we are done. */
+	    status = (*me->info_target->isa->put_block)(me->info_target, b, l+1);
+	    if (status != HT_CONTINUE) return status;
+
+	    /* Now free the info stream */
+	    (*me->info_target->isa->_free)(me->info_target);
+	    me->info_target = NULL;		
+
+	    /* Update where we are in the stream */
+	    l = HTHost_remainingRead(HTNet_host(HTRequest_net(me->request)));
+	    b += (length-l);
+
 	} else {
 	    *(me->buffer+me->buflen++) = *b;
 	    if (me->state == EOL_FCR) {
 		if (*b == LF) {	/* Line found */
-		    if ((status = stream_pipe(me)) == HT_CONTINUE) {
-			me->cont = YES;
-			b++; break;
-		    }
-		    if (status != HT_OK) return status;
+		    if ((status = stream_pipe(me, length-l)) != HT_OK) return status;
 		} else {
 		    me->state = EOL_BEGIN;
 		}
 	    } else if (*b == CR) {
 		me->state = EOL_FCR;
 	    } else if (*b == LF) {
-		if ((status = stream_pipe(me)) == HT_CONTINUE) {
-		    me->cont = YES;
-		    b++; break;
-		}
-		if (status != HT_OK) return status;
+		if ((status = stream_pipe(me, length-l)) != HT_OK) return status;
 	    } else {
 		if (me->buflen >= MAX_STATUS_LEN) {
-		    if ((status = stream_pipe(me)) == HT_CONTINUE) {
-			me->cont = YES;
-			b++; break;
-		    }
-		    if (status != HT_OK) return status;
+		    if ((status = stream_pipe(me, length-l)) != HT_OK) return status;
 		}
 	    }
 	    b++;
 	}
     }
-
-    if (length != l)
-	HTHost_setConsumed(HTNet_host(HTRequest_net(me->request)), length - l);
 
     if (l > 0) return PUTBLOCK(b, l);
     return status;
@@ -888,11 +879,33 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request)
     if ((http = (http_info *) HT_CALLOC(1, sizeof(http_info))) == NULL)
       HT_OUTOFMEM("HTLoadHTTP");
     http->net = net;
+    http->request = request;
     HTNet_setContext(net, http);
     HTNet_setEventCallback(net, HTTPEvent);
     HTNet_setEventParam(net, http);  /* callbacks get http* */
 
-    return HTTPEvent(soc, http, HTEvent_BEGIN);		/* get it started - ops is ignored */
+    return HTTPEvent(soc, http, HTEvent_BEGIN);	    /* get it started - ops is ignored */
+}
+
+PRIVATE int FlushPutEvent (HTTimer * timer, void * param, HTEventType type)
+{
+    http_info * http = (http_info *) param;
+    HTStream * input = HTRequest_inputStream(http->request);
+    HTPostCallback * pcbf = HTRequest_postCallback(http->request);
+
+    if (timer != http->timer) HTDebugBreak();
+    if (PROT_TRACE) HTTrace("Uploading... Flushing %p with timer %p\n", http, timer);
+
+    /*
+    **  We ignore the return code here which we shouldn't!!!
+    */
+    if (http && input && pcbf) (*pcbf)(http->request, input);
+
+    /*
+    **  Delete the timer
+    */
+    http->timer = NULL;
+    return HT_OK;
 }
 
 PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
@@ -1034,76 +1047,75 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    /* As we can do simultanous read and write this is now one state */
 	  case HTTP_CONNECTED:
 	      if (type == HTEvent_WRITE) {
-		 if (HTRequest_isDestination(request)) {
-		     HTRequest * source = HTRequest_source(request);
-		     HTNet * srcnet = HTRequest_net(source);
-		     if (srcnet) {
-			 HTHost_register(HTNet_host(srcnet), srcnet, HTEvent_READ);
-			 HTHost_unregister(HTNet_host(srcnet), srcnet, HTEvent_WRITE);
-		     }
-		     return HT_OK;
-		 }
+		  HTStream * input = HTRequest_inputStream(request);
+		  HTPostCallback * pcbf = HTRequest_postCallback(request);
+		  status = HTRequest_flush(request) ?
+		      HTHost_forceFlush(host) : (*input->isa->flush)(input);
 
-		/*
-		**  Should we use the input stream directly or call the post
-		**  callback function to send data down to the network?
-		*/
-		{
-		    HTStream * input = HTRequest_inputStream(request);
-		    HTPostCallback * pcbf = HTRequest_postCallback(request);
-		    if (pcbf) {
-			if (http->lock)
-			    return HT_OK;
-			else {
-			    status = (*pcbf)(request, input);
-			    if (status == HT_PAUSE || status == HT_LOADED) {
-				type = HTEvent_READ;
-				http->lock = YES;
-			    } else if (status==HT_CLOSED)
-				http->state = HTTP_RECOVER_PIPE;
-			    else if (status == HT_ERROR) {
-				http->result = HT_INTERRUPTED;
-				http->state = HTTP_ERROR;
-				break;
-			    }
-			}
-		    } else {
-			status = HTRequest_flush(request) ?
-			    HTHost_forceFlush(host) : (*input->isa->flush)(input);
+		  /*
+		  **  Check to see if we are uploading something or just a normal
+		  **  GET kind of thing.
+		  */
+		  if (pcbf) {
+		      if (http->lock == NO) {
+			  int retrys = HTRequest_retrys(request);
+			  ms_t delay = retrys > 3 ? 3000 : 2000;
+			  if (!http->timer) {
+			      ms_t exp = HTGetTimeInMillis() + delay;
+			      http->timer = HTTimer_new(NULL, FlushPutEvent, http, exp, NO);
+			      if (PROT_TRACE)
+				  HTTrace("Uploading... Holding %p request for %lu ms\n",
+					  request, delay);
+			      HTHost_register(host, net, HTEvent_READ);
+			  }
+			  http->lock = YES;
+		      }
+		      type = HTEvent_READ;
+		  } else {
 
-			/*
-			**  Check to see if we can start a new request
-			**  pending in the host object.
-			*/
-			HTHost_launchPending(host);
-			type = HTEvent_READ;
-		    }
-		    if (status == HT_WOULD_BLOCK) return HT_OK;
-		}
-	    } else if (type == HTEvent_FLUSH) {
-		HTStream * input = HTRequest_inputStream(request);
-		if (input == NULL)
-		    return HT_ERROR;
-		return (*input->isa->flush)(input);
-	    } else if (type == HTEvent_READ) {
-		status = HTHost_read(host, net);
-		if (status == HT_WOULD_BLOCK)
-		    return HT_OK;
-		else if (status == HT_CONTINUE) {
-		    if (PROT_TRACE) HTTrace("HTTP........ Continuing\n");
-		    http->lock = NO;
-		    type = HTEvent_WRITE;
-		    continue;
-		} else if (status==HT_LOADED)
-		    http->state = http->next;	/* Jump to next state (OK or ERROR) */
-		else if (status==HT_CLOSED)
-		    http->state = HTTP_RECOVER_PIPE;
-		else
-		    http->state = HTTP_ERROR;
-	    } else {
-		http->state = HTTP_ERROR;	/* don't know how to handle OOB */
-	    }
-	    break;
+		      /*
+		      **  Check to see if we can start a new request
+		      **  pending in the host object.
+		      */
+		      HTHost_launchPending(host);
+		      type = HTEvent_READ;
+		  }
+
+		  /* Now check the status code */
+		  if (status == HT_WOULD_BLOCK)
+		      return HT_OK;
+		  else if (status == HT_PAUSE || status == HT_LOADED) {
+		      type = HTEvent_READ;
+		  } else if (status==HT_CLOSED)
+		      http->state = HTTP_RECOVER_PIPE;
+		  else if (status == HT_ERROR) {
+		      http->result = HT_INTERRUPTED;
+		      http->state = HTTP_ERROR;
+		      break;
+		  }
+	      } else if (type == HTEvent_FLUSH) {
+		  HTStream * input = HTRequest_inputStream(request);
+		  if (input == NULL)
+		      return HT_ERROR;
+		  return (*input->isa->flush)(input);
+	      } else if (type == HTEvent_READ) {
+		  status = HTHost_read(host, net);
+		  if (status == HT_WOULD_BLOCK)
+		      return HT_OK;
+		  else if (status == HT_CONTINUE) {
+		      if (PROT_TRACE) HTTrace("HTTP........ Continuing\n");
+		      http->lock = NO;
+		      continue;
+		  } else if (status==HT_LOADED)
+		      http->state = http->next;	/* Jump to next state (OK or ERROR) */
+		  else if (status==HT_CLOSED)
+		      http->state = HTTP_RECOVER_PIPE;
+		  else
+		      http->state = HTTP_ERROR;
+	      } else {
+		  http->state = HTTP_ERROR;	/* don't know how to handle OOB */
+	      }
+	      break;
 
 	  case HTTP_OK:
 	    if (HTRequest_isPostWeb(request)) {

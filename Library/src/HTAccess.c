@@ -1053,6 +1053,9 @@ PRIVATE int HTSaveFilter (HTRequest * request, HTResponse * response,
 	HTRequest_setOutputFormat(request, me->format);
 	HTRequest_setOutputStream(request, me->target);
 
+	/* Make sure we flush the output immediately */
+	HTRequest_forceFlush(request);
+
 	/* Turn progress notifications back on */
 	HTRequest_setInternal(request, NO);
 
@@ -1416,7 +1419,6 @@ PUBLIC BOOL HTHeadAnchor (HTAnchor * anchor, HTRequest * request)
 {
     if (anchor && request) {
 	HTRequest_setAnchor(request, anchor);
-	HTRequest_setOutputFormat(request, WWW_MIME);
 	HTRequest_setMethod(request, METHOD_HEAD);
 	return launch_request(request, NO);
     }

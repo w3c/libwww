@@ -31,12 +31,13 @@ struct _HTStream {
     const HTStreamClass *	isa;
     HTStream *		  	target;
     HTRequest *			request;
-    BOOL			put_fix;
     BOOL			endHeader;
     BOOL			transparent;
 };
 
 #define HT_MAX_WAIT		8      /* Max number of secs to wait for PUT */
+
+PRIVATE int MIMERequest_put_block (HTStream * me, const char * b, int l);
 
 /* ------------------------------------------------------------------------- */
 /* 			    MIME Output Request Stream			     */
@@ -123,21 +124,6 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 	    }
 	}
 	PUTBLOCK(crlf, 2);
-#if 0
-	if (entity->charset) {
-	    strcat(linebuf, "; charset=");
-	    strcat(linebuf, HTAtom_name(entity->charset));
-	}
-	if (entity->level) {
-	    strcat(linebuf, "; level=");
-	    strcat(linebuf, HTAtom_name(entity->level));
-	}
-	len = strlen(linebuf);
-	*(linebuf+len) = CR;
-	*(linebuf+len+1) = LF;
-	*(linebuf+len+2) = '\0';
-	PUTBLOCK(linebuf, (int) len+2);
-#endif
     }
     if (EntityMask & HT_E_DERIVED_FROM && entity->derived_from) {
 	sprintf(linebuf, "Derived-From: %s%c%c", entity->derived_from,
@@ -203,66 +189,35 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
     return HT_OK;
 }
 
+/*
+**	Flushes header but doesn't free stream object
+*/
+PRIVATE int MIMERequest_flush (HTStream * me)
+{
+    int status = MIMERequest_put_block(me, NULL, 0);
+    return status==HT_OK ? (*me->target->isa->flush)(me->target) : status;
+}
+
 PRIVATE int MIMERequest_put_block (HTStream * me, const char * b, int l)
 {
     HTNet * net = HTRequest_net(me->request);
-    if (me->transparent) {
-	if (me->put_fix) {
-	    HTNet * net = HTRequest_net(me->request);
-	    HTEvent_unregister(HTNet_socket(net), HTEvent_READ);
-	    HTEvent_unregister(HTNet_socket(net), HTEvent_WRITE);
-	    me->put_fix = NO;
-	}
-    } else {
+    if (!me->transparent) {
 	MIMEMakeRequest(me, me->request);
-	if (HTRequest_isDestination(me->request)) {
-	    HTNet * net = HTRequest_net(me->request);
-	    HTNet_setBytesWritten(net, 0);
-	}
 	me->transparent = YES;	
 
 	/*
-	**  If we know we are talking to an HTTP 1.1 server and we are sending
-	**  an entity body then wait until we have received a 100 response
+	**  First we only send the header
 	*/
 	if (HTMethod_hasEntity(HTRequest_method(me->request))) {
 	    HTHost * host = HTNet_host(net);
 	    char * class = HTHost_class(host);
 	    if (class && !strcmp(class, "http")) {
-
-		/*
-		** If this is a HTTP/1.1 or later then wait for 100 code. If
-		** it is a HTTP/1.0 server then wait a bit and hope the best.
-		*/
-		if (HTHost_version(host) >= 3) {
-		    if (STREAM_TRACE)
-			HTTrace("MIME........ Waiting for 100...\n");
-		    if (HTRequest_flush(me->request))	 /* @@@ Ignore return value@@@ */
-			HTHost_forceFlush(host);
-		    else
-			(*me->target->isa->flush)(me->target);
-		    return HT_PAUSE;
-		} else {
-		    HTNet * net = HTRequest_net(me->request);
-		    int zzzz = HTRequest_retrys(me->request);
-		    zzzz = zzzz ? zzzz * 2 : 2;
-		    if (zzzz > HT_MAX_WAIT) zzzz = HT_MAX_WAIT;
-		    if (HTRequest_flush(me->request))	 /* @@@ Ignore return value@@@ */
-			HTHost_forceFlush(host);
-		    else
-			(*me->target->isa->flush)(me->target);
-		    if (STREAM_TRACE)
-			HTTrace("MIME........ Sleeping for %d secs\n", zzzz);
-		    HTHost_register(HTNet_host(net), net, HTEvent_READ);
-		    HTHost_register(HTNet_host(net), net, HTEvent_WRITE);
-		    SLEEP(zzzz);
-		    me->put_fix = YES;
-		    return HT_WOULD_BLOCK;
-		}
+		MIMERequest_flush(me);
+		return HT_PAUSE;
 	    }
 	}
     }
-
+    
     /* Check if we have written it all */
     if (b) {
 	HTParentAnchor * entity = HTRequest_entityAnchor(me->request);
@@ -281,15 +236,6 @@ PRIVATE int MIMERequest_put_character (HTStream * me, char c)
 PRIVATE int MIMERequest_put_string (HTStream * me, const char * s)
 {
     return MIMERequest_put_block(me, s, strlen(s));
-}
-
-/*
-**	Flushes header but doesn't free stream object
-*/
-PRIVATE int MIMERequest_flush (HTStream * me)
-{
-    int status = MIMERequest_put_block(me, NULL, 0);
-    return status==HT_OK ? (*me->target->isa->flush)(me->target) : status;
 }
 
 /*

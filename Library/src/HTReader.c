@@ -227,7 +227,7 @@ PRIVATE int HTReader_read (HTInputStream * me)
 /*		me->write = me->read; */
 		return status;
 	    } else {				     /* We have a real error */
-		if (PROT_TRACE) HTTrace("Read Socket. Target ERROR\n");
+		if (PROT_TRACE) HTTrace("Read Socket. Target ERROR %d\n", status);
 		return status;
 	    }
 	}

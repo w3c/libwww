@@ -79,8 +79,12 @@ PRIVATE int HTBufferWriter_lazyFlush (HTOutputStream * me)
     HTNet * net;
     int delay;
 
-    if (me->read <= me->data)
+    if (me->read <= me->data) {
+#if 0
+	fprintf(stderr, "nothing to flush\n");
+#endif
 	return HT_OK;			/* nothing to flush */
+    }
     /*
     **  If we are allowed to delay the flush then set a timer with the
     **  delay descibed by our delay variable. If we can't delay then flush 

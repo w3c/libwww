@@ -298,7 +298,7 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
 			b++, l--;
 			ret = pumpData(me);
 			HTNet_addBytesRead(me->net, 1);
-			if (me->mode & HT_MIME_FOOTER) {
+			if (me->mode & (HT_MIME_FOOTER | HT_MIME_CONT)) {
 			    HTHost_setConsumed(HTNet_host(me->net), length - l);
 			    return ret;
                         } else {
@@ -348,11 +348,11 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
     ** that we get the correct content length of data. If we have a CL in
     ** the headers then this stream is responsible for the accountance.
     */
-    if (me->target) {
+    if (me->hasBody) {
 	HTNet * net = me->net;
 	/* Check if CL at all - thanks to jwei@hal.com (John Wei) */
 	long cl = HTResponse_length(me->response);
-	if (cl >= 0 && me->hasBody) {
+	if (cl >= 0) {
 	    long bodyRead = HTNet_bytesRead(net) - HTNet_headerLength(net);
 
 	    /*

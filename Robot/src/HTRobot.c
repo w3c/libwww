@@ -69,7 +69,7 @@
 #define SHOW_QUIET(mr)		((mr) && !((mr)->flags & MR_QUIET))
 #define SHOW_REAL_QUIET(mr)	((mr) && !((mr)->flags & MR_REAL_QUIET))
 
-#define DEFAULT_TIMEOUT		10000		       /* timeout in millis */
+#define DEFAULT_TIMEOUT		50000		       /* timeout in millis */
 
 #if defined(__svr4__)
 #define CATCH_SIG
@@ -1065,7 +1065,6 @@ PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
 	    if (check || depth >= mr->depth) {
 		if (SHOW_QUIET(mr)) HTTrace("loading at depth %d using HEAD\n", depth);
 		HTRequest_setMethod(newreq, METHOD_HEAD);
-		HTRequest_setOutputFormat(newreq, WWW_DEBUG);
 	    } else {
 		if (SHOW_QUIET(mr)) HTTrace("loading at depth %d\n", depth);
 	    }
