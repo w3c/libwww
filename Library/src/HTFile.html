@@ -60,15 +60,6 @@ PUBLIC int HTSplitFilename PARAMS((char *	s_str,
 PUBLIC HTContentDescription * HTGetContentDescription PARAMS((char ** actual,
 							      int	  n));
 
-</PRE>
-
-<H3>Do Multiformat Handling</H3>
-This is actually implemented in <CODE>HTMulti.c</CODE>.
-<PRE>
-PUBLIC char * HTMulti PARAMS((HTRequest *	req,
-			      char *		path,
-			      struct stat *	stat_info));
-
 #define MULTI_SUFFIX ".multi"   /* Extension for scanning formats */
 #define MAX_SUFF 15		/* Maximum number of suffixes for a file */
 

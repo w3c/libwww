@@ -49,6 +49,7 @@ PRIVATE char * suffix_separators = ".,_";
 #include "HTInit.h"
 #include "HTBTree.h"
 #include "HTFormat.h"
+#include "HTMulti.h"
 
 typedef struct _HTSuffix {
 	char *		suffix;

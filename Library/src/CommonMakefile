@@ -94,7 +94,7 @@ CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTTP.c $(CMN)HTFile.c \
 	$(CMN)HTUU.c
 
 HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h $(CMN)HTTP.h $(CMN)HTFile.h \
-	$(CMN)HTBTree.h $(CMN)HTFTP.h $(CMN)HTTCP.h \
+	$(CMN)HTMulti.h $(CMN)HTBTree.h $(CMN)HTFTP.h $(CMN)HTTCP.h \
 	$(CMN)SGML.h $(CMN)HTML.h $(CMN)HTMLPDTD.h $(CMN)HTChunk.h \
 	$(CMN)HTPlain.h		$(CMN)HTWriter.h \
 	$(CMN)HTFWriter.h 	$(CMN)HTMLGen.h	\
@@ -329,7 +329,7 @@ $(LOB)/HTFile.o : $(OE) $(CMN)HTFile.c $(CMN)HTUtils.h \
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTFile.c
 
 $(LOB)/HTMulti.o : $(OE) $(CMN)HTMulti.c $(CMN)HTUtils.h \
-	 $(CMN)HTFile.h
+	 $(CMN)HTFile.h $(CMN)HTMulti.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTMulti.c
 
 $(LOB)/HTBTree.o : $(OE) $(CMN)HTBTree.c $(CMN)HTUtils.h

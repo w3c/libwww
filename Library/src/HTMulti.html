@@ -1,0 +1,23 @@
+<HTML>
+<HEAD>
+<TITLE>Multiformat handling in libwww</TITLE>
+</HEAD>
+<BODY>
+<H1>Multiformat Handling</H1>
+
+<PRE>
+#ifndef HTMULTI_H
+#define HTMULTI_H
+
+#include "HTFile.h"
+
+PUBLIC char * HTMulti PARAMS((HTRequest *	req,
+			      char *		path,
+			      struct stat *	stat_info));
+
+#endif /* HTMULTI_H */
+
+</PRE>
+End of HTMulti.
+</BODY>
+</HTML>
