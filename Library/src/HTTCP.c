@@ -623,7 +623,6 @@ PUBLIC int HTParseInet ARGS3(SockA *, sin, CONST char *, str,
 	if ((port=strchr(host, ':'))) {
 	    *port++ = 0;			       	    /* Chop off port */
 	    if (isdigit(*port)) {
-		if (TRACE) fprintf(stderr, "TESTTESTTEST `%s\'\n", host);
 
 #ifdef DECNET
 		sin->sdn_objnum = (unsigned char)(strtol(port, (char**)0, 10));

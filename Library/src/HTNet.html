@@ -79,7 +79,8 @@ typedef enum _HTThreadAction {
     THD_CLR_WRITE,
     THD_SET_READ,
     THD_CLR_READ,
-    THD_INTR,
+    THD_SET_INTR,
+    THD_CLR_INTR,
     THD_CLOSE
 } HTThreadAction;
 </PRE>
@@ -92,7 +93,7 @@ This function makes life easier if you want to mark all sockets as
 interrupted.
 
 <PRE>
-extern void HTThreadMarkIntrAll		NOPARAMS;
+extern void HTThreadMarkIntrAll	PARAMS((CONST fd_set * fd_user));
 </PRE>
 
 <H2>Is a Thread Interrupted?</H2>
@@ -100,7 +101,7 @@ extern void HTThreadMarkIntrAll		NOPARAMS;
 This function returns YES if the socket is registered as interrupted
 
 <PRE>
-extern BOOL HTThreadIntr PARAMS((int sockfd));
+extern BOOL HTThreadIntr	PARAMS((int sockfd));
 </PRE>
 
 <H2>Any Threads Registered?</H2>
@@ -109,7 +110,7 @@ This function returns YES if any HTTP sockets are still registered in the
 set of active sockets. Otherwise it returns NO.
 
 <PRE>
-extern BOOL HTThreadActive NOPARAMS;
+extern BOOL HTThreadActive	NOPARAMS;
 </PRE>
 
 <H2>Select an Active Thread</H2>

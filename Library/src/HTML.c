@@ -443,9 +443,8 @@ PRIVATE void HTML_put_string ARGS2(HTStructured *, me, CONST char*, s)
 */
 PRIVATE void HTML_write ARGS3(HTStructured *, me, CONST char*, s, int, l)
 {
-    CONST char* p;
-    CONST char* e = s+l;
-    for (p=s; s<e; p++) HTML_put_character(me, *p);
+    while (l-- > 0)
+	HTML_put_character(me, *s++);
 }
 
 

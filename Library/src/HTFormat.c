@@ -1174,6 +1174,8 @@ PUBLIC int HTInputSocket_read ARGS2(HTInputSocket *, isoc, HTStream *, target)
 
 	/* This is based on the assumption that we actually get rid of ALL
 	   the bytes we have read. Maybe more feedback! */
+	if (PROT_TRACE)
+	    fprintf(stderr, "Read Socket. %d bytes read\n", b_read);
 	(*target->isa->put_block)(target, isoc->input_buffer, b_read);
 	isoc->input_pointer += b_read;
     }

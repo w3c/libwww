@@ -118,10 +118,14 @@ PUBLIC void HTThreadState ARGS2(int, sockfd, HTThreadAction, action)
 	FD_CLR(sockfd, &HTfd_set);
 	break;
 
-      case THD_INTR:
+      case THD_SET_INTR:
 	FD_CLR(sockfd, &HTfd_read);
 	FD_CLR(sockfd, &HTfd_write);
 	FD_SET(sockfd, &HTfd_intr);
+	break;
+
+      case THD_CLR_INTR:
+	FD_CLR(sockfd, &HTfd_intr);
 	break;
 
       default:
@@ -130,12 +134,11 @@ PUBLIC void HTThreadState ARGS2(int, sockfd, HTThreadAction, action)
     }
 
     /* Update max bit width. The method used ignores any other default
-       opened file descriptors between STDERR_FILENO and the actual set
-       of file descriptors used. However, they are not registered anyway */
+       opened file descriptors between 0 and the actual set of file
+       descriptors used. However, they are not registered anyway */
     if (action == THD_CLOSE) {
 	if (sockfd+1 >= HTMaxfdpl) {
-	    while (HTMaxfdpl > STDERR_FILENO+1 &&
-		   !FD_ISSET(HTMaxfdpl-1, &HTfd_set))
+	    while (HTMaxfdpl > 0 && !FD_ISSET(HTMaxfdpl-1, &HTfd_set))
 		HTMaxfdpl--;
 	}
     } else {
@@ -159,15 +162,17 @@ PUBLIC BOOL HTThreadIntr ARGS1(int, sockfd)
 
 /*							    HTThreadMarkIntrAll
 **
-**	Marks all sockets as interrupted
+**	Marks all Library sockets as interrupted. User sockets can not be
+**	interrupted
 */
-PUBLIC void HTThreadMarkIntrAll NOARGS
+PUBLIC void HTThreadMarkIntrAll ARGS1(CONST fd_set *,	fd_user)
 {
     int cnt;
     if (THD_TRACE)
-	fprintf(stderr, "Thread...... Mark all sockets as INTERRUPTED\n");
-    for (cnt=STDERR_FILENO+1; cnt<HTMaxfdpl; cnt++)
-	FD_SET(cnt, &HTfd_intr);
+	fprintf(stderr, "Thread...... Mark ALL Library sockfd INTERRUPTED\n");
+    for (cnt=0; cnt<HTMaxfdpl; cnt++) {
+	if (!FD_ISSET(cnt, fd_user)) FD_SET(cnt, &HTfd_intr);
+    }
 }
 
 
@@ -229,6 +234,7 @@ PUBLIC HTRequest *HTThread_getRequest ARGS2(CONST fd_set *,	fd_read,
 	if (FD_ISSET(cnt, &HTfd_intr)) {
 	    if (THD_TRACE)
 		fprintf(stderr, "GetSocket... Socket %d INTERRUPTED\n", cnt);
+	    HTThreadState(cnt, THD_CLR_INTR);		/* Only called once! */
 	    found = YES;
 	    break;
 	}

@@ -741,6 +741,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		    http->state = HTTP_ERROR;
 		}
 	    } else {
+		fprintf(stderr, "HEREHREHRE\n");
 		HTErrorAdd(request, ERR_FATAL, NO, HTERR_BAD_REPLY,
 			   NULL, 0, "HTLoadHTTP");
 		http->state = HTTP_ERROR;

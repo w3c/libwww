@@ -381,16 +381,6 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
     char * access=0;	/* Name of access method */
     char * addr = HTAnchor_address((HTAnchor*)req->anchor);	/* free me */
 
-    /*
-    ** This HACK is here until we have redirection implemented.
-    ** This is used when we are recursively calling HTLoad().
-    ** We then take the physical address, because currently the
-    ** virtual address is kept in a hash table so it can't be
-    ** changed -- otherwise it wouldn't be found anymore.
-    */
-    if (HTAnchor_physical(req->anchor))
-	StrAllocCopy(addr, HTAnchor_physical(req->anchor));
-
 #ifndef NO_RULES
     if (HTImServer) {	/* cern_httpd has already done its own translations */
 	HTAnchor_setPhysical(req->anchor, HTImServer);
@@ -443,9 +433,9 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
 	free(gateway_parameter);
 
 	if (TRACE && gateway)
-	    fprintf(stderr,"Gateway found: %s\n",gateway);
+	    fprintf(stderr,"Gateway..... Found: `%s\'\n", gateway);
 	if (TRACE && proxy)
-	    fprintf(stderr,"Proxy server found: %s\n",proxy);
+	    fprintf(stderr,"Proxy....... Found: `%s\'\n", proxy);
 
 #ifndef DIRECT_WAIS
 	if (!gateway && 0==strcmp(access, "wais")) {
@@ -454,7 +444,7 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
 #endif
 
 	/* proxy servers have precedence over gateway servers */
-	if (proxy) {
+	if (proxy && *proxy) {
 	    char * gatewayed=0;
 
             StrAllocCopy(gatewayed,proxy);
@@ -466,7 +456,7 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
 
 	    access =  HTParse(HTAnchor_physical(req->anchor),
 			      "http:", PARSE_ACCESS);
-	} else if (gateway) {
+	} else if (gateway && *gateway) {
 	    char * path = HTParse(addr, "",
 	    	PARSE_HOST + PARSE_PATH + PARSE_PUNCTUATION);
 		/* Chop leading / off to make host into part of path */
