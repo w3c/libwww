@@ -637,12 +637,12 @@ PUBLIC BOOL HTRequest_negotiation (HTRequest *request)
 /*
 **	Are we using a proxy or not?
 */
-PUBLIC void HTRequest_setUsingProxy (HTRequest *request, BOOL mode)
+PUBLIC void HTRequest_setFullURI (HTRequest *request, BOOL mode)
 {
     if (request) request->using_proxy = mode;
 }
 
-PUBLIC BOOL HTRequest_usingProxy (HTRequest *request)
+PUBLIC BOOL HTRequest_fullURI (HTRequest *request)
 {
     return request ? request->using_proxy : NO;
 }

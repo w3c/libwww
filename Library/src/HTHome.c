@@ -256,7 +256,7 @@ PUBLIC int HTLoadStart (HTRequest * request, void * param, int status)
 	    }
 	} else if ((newaddr = HTProxy_find(addr))) {
 	    StrAllocCat(newaddr, addr);
-	    HTRequest_setUsingProxy(request, YES);
+	    HTRequest_setFullURI(request, YES);
 	    HTAnchor_setPhysical(anchor, newaddr);
 	} else if ((newaddr = HTGateway_find(addr))) {
 	    char * path = HTParse(addr, "",
@@ -267,7 +267,7 @@ PUBLIC int HTLoadStart (HTRequest * request, void * param, int status)
 	    HT_FREE(path);
 	    HT_FREE(gatewayed);
 	} else {
-	    HTRequest_setUsingProxy(request, NO);
+	    HTRequest_setFullURI(request, NO);
 	}
 	HT_FREE(newaddr);
     }

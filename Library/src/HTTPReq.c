@@ -79,7 +79,7 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
     {
 	char *addr = HTAnchor_physical(anchor);
 	char *fullurl = HTParse(addr, "", PARSE_PATH|PARSE_PUNCTUATION);
-	if (HTRequest_usingProxy(request)) {
+	if (HTRequest_fullURI(request)) {
 	    PUTS(fullurl+1);
 	} else {
 	    PUTS(fullurl);

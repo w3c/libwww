@@ -669,8 +669,8 @@ In early versions of HTTP, the request sent to the remote server varies whether
 we use a proxy or go directly to the origin server. The default value is
 <EM>OFF</EM>.
 <PRE>
-extern void HTRequest_setUsingProxy (HTRequest *request, BOOL mode);
-extern BOOL HTRequest_usingProxy (HTRequest *request);
+extern void HTRequest_setFullURI (HTRequest *request, BOOL mode);
+extern BOOL HTRequest_fullURI (HTRequest *request);
 </PRE>
 <H2>
   Error Manager
