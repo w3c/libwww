@@ -1,0 +1,20 @@
+
+		 WELCOME TO THE PICS Label Parser
+		 ================================
+
+(c) COPYRIGHT MIT 1996.
+Please first read the full copyright statement in the file COPYRIGH.
+
+The PICS Label Parser is an example for using the PICS label parsing
+utilities. It is also useful as a mechanism for testing the syntax 
+of labels. 
+
+For more information on the application, please look at the page
+
+	http://www.w3.org/pub/WWW/PicsLablPars/
+
+Have fun!
+
+--
+
+libwww@w3.org, November 1995
