@@ -184,7 +184,6 @@ PRIVATE int HTBufferWriter_write (HTOutputStream * me, const char * buf, int len
 		me->lastFlushTime = HTGetTimeInMillis();
 		status = PUTBLOCK(me->data, size);
 		if (status == HT_OK) {
-		    HTNet_addBytesWritten(net, size);
 		    me->read = me->data;
 		} else {
 		    return (status == HT_WOULD_BLOCK) ? HT_OK : HT_ERROR;
@@ -203,7 +202,6 @@ PRIVATE int HTBufferWriter_write (HTOutputStream * me, const char * buf, int len
 	    me->lastFlushTime = HTGetTimeInMillis();
 	    status = PUTBLOCK(me->data, me->allocated);
 	    if (status == HT_OK) {
-		HTNet_addBytesWritten(net, me->allocated);
 		me->read = me->data;
 	    } else if (status == HT_WOULD_BLOCK) {
 		HTBufferWriter_addBuffer(me, len);

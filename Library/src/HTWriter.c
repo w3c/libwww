@@ -162,6 +162,7 @@ PRIVATE int HTWriter_write (HTOutputStream * me, const char * buf, int len)
 
 	/* We do this unconditionally, should we check to see if we ever blocked? */
 	HTTraceData(wrtp, b_write, "Writing to socket %d", soc);
+	HTNet_addBytesWritten(net, b_write);
 	wrtp += b_write;
 	len -= b_write;
 	if (STREAM_TRACE) HTTrace("Write Socket %d bytes written to %d\n", b_write, soc);
