@@ -42,6 +42,7 @@ PUBLIC int HTFileOpen (HTNet * net, char * local, HTLocalMode mode)
 	HTRequest_addSystemError(request, ERR_FATAL, errno, NO, "open");
 	return HT_ERROR;
     }
+    HTTRACE(PROT_TRACE, "Socket...... Opened %d\n" _ sockfd);
 
     /* If non-blocking protocol then change socket status
     ** I use fcntl() so that I can ask the status before I set it.

@@ -2271,8 +2271,10 @@ PRIVATE int CacheEvent (SOCKET soc, void * pVoid, HTEventType type)
 		HTHost * host = NULL;
 		if ((host = HTHost_new("cache", 0)) == NULL) return HT_ERROR;
 		HTNet_setHost(net, host);
-		if (HTHost_addNet(host, net) == HT_PENDING)
+		if (HTHost_addNet(host, net) == HT_PENDING) {
 		    HTTRACE(PROT_TRACE, "HTLoadCache. Pending...\n");
+		    return HT_OK;
+		}
 	    }
 	    cache->state = CL_NEED_BODY;
 	    break;
