@@ -35,7 +35,7 @@
 #include "HTAccess.h"
 #include "HTChunk.h"
 #include "HTGuess.h"
-#include "HTNet.h"
+#include "HTNetMan.h"
 #include "HTTPReq.h"
 #include "HTTP.h"					       /* Implements */
 
@@ -310,6 +310,7 @@ PRIVATE void HTTPNextState ARGS1(HTStream *, me)
 PRIVATE int stream_pipe ARGS1(HTStream *, me)
 {
     HTRequest *req = me->request;
+    HTNet *net = req->net;
     if (me->target) {
 	int status = PUTBLOCK(me->buffer, me->buflen);
 	if (status == HT_OK)
@@ -331,10 +332,15 @@ PRIVATE int stream_pipe ARGS1(HTStream *, me)
 	me->http->next = HTTP_GOT_DATA;
 	if ((status = PUTBLOCK(me->buffer, me->buflen)) == HT_OK)
 	    me->transparent = YES;
+	HTDNS_setServerVersion(net->dns, HTTP_09, HT_TCP_SINGLE);
 	return status;
     } else {
 	char *ptr = me->buffer+5;		       /* Skip the HTTP part */
 	me->version = HTNextField(&ptr);
+
+	/* here we want to find out when to use persistent connection */
+	HTDNS_setServerVersion(net->dns, HTTP_10, HT_TCP_SINGLE);
+
 	me->status = atoi(HTNextField(&ptr));
 	me->reason = ptr;
 	if ((ptr = strchr(me->reason, '\r')) != NULL)	  /* Strip \r and \n */
@@ -543,8 +549,19 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	    
 	  case HTTP_NEED_CONNECTION: 	    /* Now let's set up a connection */
 	    status = HTDoConnect(net, HTAnchor_physical(request->anchor),
-				 HTTP_PORT, NULL, NO);
+				 HTTP_PORT);
 	    if (status == HT_OK) {
+
+		/* Check the protocol class */
+		char *class = HTDNS_serverClass(net->dns);
+		if (class && strcasecomp(class, "http")) {
+		    HTErrorAdd(request, ERR_FATAL, NO, HTERR_CLASS,
+			       NULL, 0, "HTLoadHTTP");
+		    http->state = HTTP_ERROR;
+		    break;
+		}
+		HTDNS_setServerClass(net->dns, "http");
+
 		if (PROT_TRACE)
 		    fprintf(TDEST, "HTTP........ Connected, socket %d\n",
 			    net->sockfd);
@@ -573,6 +590,8 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		http->state = HTTP_NEED_REQUEST;
 	    } else if (status == HT_WOULD_BLOCK)
 		return HT_OK;
+	    else if (status == HT_PERSISTENT)
+		return HT_OK;				/* @@@@@@@@@@@ */
 	    else
 		http->state = HTTP_ERROR;	       /* Error or interrupt */
 	    break;

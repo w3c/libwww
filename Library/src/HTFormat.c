@@ -21,7 +21,7 @@
 #include "HTTCP.h"
 #include "HTFWrite.h"
 #include "HTGuess.h"
-#include "HTNet.h"
+#include "HTNetMan.h"
 #include "HTError.h"
 #include "HTReqMan.h"
 #include "HTFormat.h"					 /* Implemented here */

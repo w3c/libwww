@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Utility macros</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  9-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 14-Sep-1995 -->
 </HEAD>
 <BODY>
 
@@ -290,6 +290,7 @@ stream modules. Success are (&gt;=0) and failure are (&lt;0)
 #define HT_OK			0	/* Generic success */
 #define HT_ALL			1	/* Used by Net Manager */
 
+#define HT_PERSISTENT		29995	/* Wait for persistent connection */
 #define HT_IGNORE		29996	/* Ignore this in the Net manager */
 #define HT_NO_DATA		29997	/* OK but no data was loaded */
 #define HT_REDIRECTION_ON_FLY   29998	/* Redo the retrieve with a new URL */

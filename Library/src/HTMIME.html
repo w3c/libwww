@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>RFC822 Header Parser</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Sep-1995 -->
 </HEAD>
 <BODY>
 
@@ -51,7 +51,30 @@ W3C Reference Library</A>.
 #ifndef pyramid
 extern HTConverter HTMIMEConvert, HTNetMIME;
 #endif
+</PRE>
 
+<H2>Handling Unknown Headers</H2>
+
+If you have additional headers that you want to experient with you can
+register a header parser to handle all unknown headers. This handler
+is called whenever an unknown header is encountered when parsing the
+object header. If the returns YES then the MIME parser stores the
+metainformation in the anchor object ifself so that it can be found at
+a later point in time.  If the handler returns NO, then the header is
+discarded.<P>
+
+The header passed to the call back function will be in normal NULL
+terminated C string without any CRLF. The line will also be unwrapped
+so that it is easier to parse for the call back function.
+
+<PRE>
+typedef BOOL HTMIMEHandler	(HTRequest * request, char * header);
+ 
+extern BOOL HTMIME_register	(HTMIMEHandler * cbf);
+extern BOOL HTMIME_unRegister	(void);
+</PRE>
+
+<PRE>
 #endif
 </PRE>
 

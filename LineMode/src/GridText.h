@@ -41,6 +41,14 @@ extern int HText_getLines PARAMS((HText * text));
 
 /*
 
+Unknown Header Parser
+
+   We want this function to be called if we encounter an unknown header.
+   
+ */
+extern HTMIMEHandler HTHeaderParser;
+/*
+
 Memory Cache Handler
 
    Check if document is already loaded. As the application handles the memory cache, we
@@ -48,9 +56,7 @@ Memory Cache Handler
    (either from disk cache or remotely)
    
  */
-extern int HTMemoryCache        PARAMS((HTRequest *     request,
-                                        HTExpiresMode   mode,
-                                        char *          notification));
+extern HTMemoryCacheHandler HTMemoryCache;
 /*
 
    End of declaration  */

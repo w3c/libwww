@@ -1111,6 +1111,10 @@ int main ARGS2(int, argc, char **, argv)
 		show_refs = YES;
 		HTPrompt_setInteractive(NO);
 
+	    } else if (!strcasecomp(argv[arg], "-delete")) {  	   /* DELETE */
+		request->method = METHOD_DELETE;
+		HTPrompt_setInteractive(NO);
+
 	    } else if (!strcasecomp(argv[arg], "-head")) {    /* HEAD Method */
 		request->method = METHOD_HEAD;
 		request->output_format = WWW_MIME;
@@ -1368,12 +1372,18 @@ int main ARGS2(int, argc, char **, argv)
 	/* Register our own memory cache handler (implemented in GridText.c) */
 	HTMemoryCache_register(HTMemoryCache);
 
+	/* Register our own "unknwon" header handler (see GridText.c) */
+	HTMIME_register(HTHeaderParser);
+
 	/* Make first command line */
  	MakeCommandLine(HTAnchor_isIndex(home_anchor));
 
 	/* Register STDIN as the user socket */
 	HTEvent_RegisterTTY(STDIN_FILENO, request, (SockOps)FD_READ,
 			    scan_command, 1);
+
+	/* Set the DNS timeout */
+	HTDNS_setTimeout(30);
 
 	/* Go into the event loop... */
 	HTEvent_Loop(request);

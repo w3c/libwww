@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Style Management for Line Mode Browser</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 27-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Sep-1995 -->
 </HEAD>
 <BODY>
 
@@ -48,6 +48,14 @@ extern int HText_getLines PARAMS((HText * text));
 
 </PRE>
 
+<H2>Unknown Header Parser</H2>
+
+We want this function to be called if we encounter an unknown header.
+
+<PRE>
+extern HTMIMEHandler HTHeaderParser;
+</PRE>
+
 <H2>Memory Cache Handler</H2>
 
 Check if document is already loaded. As the application handles the
@@ -56,9 +64,7 @@ expired in which case we reload it (either from disk cache or
 remotely)
 
 <PRE>
-extern int HTMemoryCache	PARAMS((HTRequest *	request,
-					HTExpiresMode	mode,
-					char *		notification));
+extern HTMemoryCacheHandler HTMemoryCache;
 </PRE>
 
 End of declaration

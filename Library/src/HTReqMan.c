@@ -36,7 +36,7 @@
 #include "HTError.h"
 #include "HTList.h"
 #include "HTCache.h"
-#include "HTNet.h"
+#include "HTNetMan.h"
 #include "HTEvntrg.h"
 #include "HTBind.h"
 #include "HTProt.h"

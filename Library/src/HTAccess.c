@@ -135,7 +135,7 @@ PUBLIC BOOL HTLibTerminate NOARGS
 #endif
     HTAtom_deleteAll();
     HTDisposeConversions();
-    HTTCPCacheRemoveAll();
+    HTDNS_deleteAll();
 
 #ifndef HT_NO_INIT
     HTProtocol_deleteAll();  /* Remove bindings between access and protocols */

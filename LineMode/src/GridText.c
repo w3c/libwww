@@ -1040,12 +1040,22 @@ PUBLIC HTAnchor *	HText_linkSelTo ARGS2(HText *,me, HTAnchor *,anchor)
 }
 
 /*
+**	Returns YES: keep header, NO: discard
+*/
+PUBLIC BOOL HTHeaderParser (HTRequest *request, char *header)
+{
+    if (STREAM_TRACE)
+	fprintf(TDEST, "MIMEExtra... we are now in callback\n");
+    return YES;
+}
+
+/*
 ** Check if document is already loaded. As the application handles the
 ** memory cache, we call the application to ask. Also check if it has
 ** expired in which case we reload it (either from disk cache or remotely)
 */
-PUBLIC int HTMemoryCache ARGS3(HTRequest *, request, HTExpiresMode, mode,
-			       char *, notification)
+PUBLIC int HTMemoryCache (HTRequest * request, HTExpiresMode mode,
+			  char * notification)
 {
     HText *text;
     if (!request)

@@ -15,7 +15,7 @@
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTReq.h"
-#include "HTNet.h"
+#include "HTNetMan.h"
 #include "HTWriter.h"					 /* Implemented here */
 
 struct _HTStream {

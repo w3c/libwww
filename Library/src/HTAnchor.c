@@ -48,6 +48,7 @@ PRIVATE HTParentAnchor * HTParentAnchor_new NOARGS
 {
     HTParentAnchor *newAnchor =
 	(HTParentAnchor *) calloc(1, sizeof (HTParentAnchor));
+    if (!newAnchor) outofmem(__FILE__, "HTParentAnchor_new");
     newAnchor->parent = newAnchor;
     newAnchor->content_type = WWW_UNKNOWN;
     newAnchor->mainLink.method = METHOD_INVALID;
@@ -60,7 +61,9 @@ PRIVATE HTParentAnchor * HTParentAnchor_new NOARGS
 
 PRIVATE HTChildAnchor * HTChildAnchor_new NOARGS
 {
-    return (HTChildAnchor *) calloc (1, sizeof (HTChildAnchor));
+    HTChildAnchor *child = (HTChildAnchor *) calloc (1, sizeof(HTChildAnchor));
+    if (!child) outofmem(__FILE__, "HTChildAnchor_new");
+    return child;
 }
 
 
@@ -88,7 +91,7 @@ PUBLIC HTChildAnchor * HTAnchor_findChild ARGS2 (HTParentAnchor *, parent,
     if ((kids = parent->children)) {
 	if (tag && *tag) {	/* TBL */
 	    while ((child = (HTChildAnchor *) HTList_nextObject(kids))) {
-		if (child->tag && !strcasecomp(child->tag, tag)) {
+		if (child->tag && !strcmp(child->tag, tag)) {
 		    if (ANCH_TRACE)
 			fprintf (TDEST,
 				 "Find Child.. %p of parent %p with name `%s' already exists.\n",
@@ -152,15 +155,17 @@ PUBLIC HTAnchor * HTAnchor_findAddress ARGS1 (CONST char *, address)
 	/* Select list from hash table */
 	for(p=newaddr, hash=0; *p; p++)
 	    hash = (int) ((hash * 3 + (*(unsigned char*)p)) % HASH_SIZE);
-	if (!adult_table)
+	if (!adult_table) {
 	    adult_table = (HTList**) calloc(HASH_SIZE, sizeof(HTList*));
+	    if (!adult_table) outofmem(__FILE__, "HTAnchor_findAddress");
+	}
 	if (!adult_table[hash]) adult_table[hash] = HTList_new();
 	adults = adult_table[hash];
 
 	/* Search list for anchor */
 	grownups = adults;
 	while ((foundAnchor = (HTParentAnchor *) HTList_nextObject(grownups))){
-	    if (!strcasecomp(foundAnchor->address, newaddr)) {
+	    if (!strcmp(foundAnchor->address, newaddr)) {
 		if (ANCH_TRACE)
 		    fprintf(TDEST, "Find Parent. %p with address `%s' already exists.\n",
 			    (void*) foundAnchor, newaddr);
@@ -227,7 +232,7 @@ PUBLIC BOOL HTAnchor_link ARGS4(HTAnchor *,	source,
 	source->mainLink.method = method;
     } else {
 	HTLink * newLink = (HTLink *) calloc(1, sizeof (HTLink));
-	if (newLink == NULL) outofmem(__FILE__, "HTAnchor_link");
+	if (!newLink) outofmem(__FILE__, "HTAnchor_link");
 	newLink->dest = destination;
 	newLink->type = type;
 	newLink->method = method;

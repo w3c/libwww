@@ -41,7 +41,7 @@
 #include "HTDirBrw.h"
 #include "HTBind.h"
 #include "HTSocket.h"
-#include "HTNet.h"
+#include "HTNetMan.h"
 #include "HTError.h"
 #include "HTReqMan.h"
 #include "HTFile.h"		/* Implemented here */

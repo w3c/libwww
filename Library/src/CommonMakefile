@@ -69,6 +69,7 @@ COMMON = $(LOB)/HTParse.o $(LOB)/HTAccess.o $(LOB)/HTProxy.o \
 	$(LOB)/HTMethod.o $(LOB)/HTProt.o $(LOB)/HTCache.o \
 	$(LOB)/HTNet.o $(LOB)/HTReqMan.o $(LOB)/HTBind.o \
 	$(LOB)/HTBTree.o $(LOB)/HTTCP.o $(LOB)/HTNetTxt.o \
+	$(LOB)/HTDNS.o \
 	$(LOB)/SGML.o $(LOB)/HTML.o $(LOB)/HTMLPDTD.o $(LOB)/HTChunk.o \
 	$(LOB)/HTPlain.o $(LOB)/HTWriter.o $(LOB)/HTFWrite.o \
 	$(LOB)/HTMLGen.o $(LOB)/HTTee.o $(LOB)/HTXParse.o $(LOB)/HTEPtoCl.o \
@@ -86,7 +87,7 @@ COMMON = $(LOB)/HTParse.o $(LOB)/HTAccess.o $(LOB)/HTProxy.o \
 
 CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTProxy.c \
 	$(CMN)HTMethod.c $(CMN)HTProt.c $(CMN)HTCache.c \
-	$(CMN)HTReqMan.c \
+	$(CMN)HTReqMan.c $(CMN)HTDNS.c\
         $(CMN)HTFile.c $(CMN)HTBTree.c $(CMN)HTMulti.c \
 	$(CMN)HTFTP.c $(CMN)HTTCP.c     $(CMN)SGML.c $(CMN)HTML.c \
 	$(CMN)HTMLPDTD.c \
@@ -106,9 +107,10 @@ CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTProxy.c \
 
 HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h  $(CMN)HTProxy.h $(CMN)HTFile.h \
 	$(CMN)HTMethod.h $(CMN)HTProt.h $(CMN)HTCache.h \
-	$(CMN)HTReqMan.h $(CMN)HTReq.h \
+	$(CMN)HTReqMan.h $(CMN)HTReq.h  $(CMN)HTDNS.h \
 	$(CMN)HTMulti.h $(CMN)HTBTree.h $(CMN)HTFTP.h $(CMN)HTTCP.h \
 	$(CMN)SGML.h $(CMN)HTML.h $(CMN)HTMLPDTD.h $(CMN)HTChunk.h \
+	$(CMN)HTNet.h $(CMN)HTNetMan.h \
 	$(CMN)HTPlain.h		$(CMN)HTWriter.h \
 	$(CMN)HTFWrite.h 	$(CMN)HTMLGen.h	\
 	$(CMN)HTStream.h	$(CMN)HTStruct.h \
@@ -126,7 +128,7 @@ HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h  $(CMN)HTProxy.h $(CMN)HTFile.h \
 	$(CMN)HTUU.h $(CMN)HTTeXGen.h \
 	$(CMN)HTDirBrw.h $(CMN)HTDescpt.h $(CMN)HTGuess.h \
 	$(CMN)HTIcons.h $(CMN)HTError.h $(CMN)HTLog.h \
-	$(CMN)HTTP.h $(CMN)HTTPReq.h $(CMN)HTNet.h $(CMN)HTEvntrg.h \
+	$(CMN)HTTP.h $(CMN)HTTPReq.h $(CMN)HTEvntrg.h \
 	$(CMN)HTEscape.h $(CMN)HTNetTxt.h $(CMN)HTBind.h $(CMN)WWWLib.h
 
 SOURCES = $(CFILES) $(HFILES) \
@@ -395,6 +397,9 @@ $(LOB)/HTUU.o : $(OE) $(CMN)HTUU.c $(CMN)HTUU.h $(CMN)HTUtils.h
 
 $(LOB)/HTTCP.o : $(OE) $(CMN)HTTCP.c $(CMN)HTUtils.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTTCP.c
+
+$(LOB)/HTDNS.o : $(OE) $(CMN)HTDNS.c $(CMN)HTUtils.h
+	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTDNS.c
 
 $(LOB)/HTFile.o : $(OE) $(CMN)HTFile.c $(CMN)HTFile.h $(CMN)HTUtils.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTFile.c

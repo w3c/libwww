@@ -24,7 +24,8 @@
 #include "HTParse.h"
 #include "HTAlert.h"
 #include "HTError.h"
-#include "HTNet.h"
+#include "HTNetMan.h"
+#include "HTDNS.h"
 #include "HTTCP.h"					 /* Implemented here */
 
 #ifdef VMS 
@@ -54,29 +55,9 @@
 #define RESOLV_CONF "/etc/resolv.conf"
 #endif
 
-/* Globals */
-PUBLIC unsigned int	HTConCacheSize = 512;	 /* Number of cached servers */
-
-/* Type definitions and global variables etc. local to this module */
-
-/* This structure is a cache of hosts to whom we have connected over time.
-   The structure contains the necessary parts from hostent. For Internet host
-   hostent->h_addr_list is not an array of char pointers but an array of 
-   pointers of type in_addr. */
-typedef struct _host_info {
-    HTAtom *		hostname;		    /* Official name of host */
-    int			hits;		/* Total number of hits on this host */
-    int			addrlength;	       /* Length of address in bytes */
-    int			homes;	       /* Number of IP addresses on the host */
-    int			offset;         /* Offset value of active IP address */
-    char **		addrlist;      /* List of addresses from name server */
-    double *		weight;			   /* Weight on each address */
-} host_info;
-
 PRIVATE char *hostname = NULL;			    /* The name of this host */
+
 PRIVATE char *mailaddress = NULL;		     /* Current mail address */
-PRIVATE HTList *hostcache = NULL;  /* List of servers that we have talked to */
-PRIVATE unsigned int HTCacheSize = 0;		    /* Current size of cache */
 
 /* ------------------------------------------------------------------------- */
 
@@ -203,234 +184,8 @@ PUBLIC void HTSetSignal NOARGS
 #endif /* WWWLIB_SIG */
 
 /* ------------------------------------------------------------------------- */
-/*	       		     HOST CACHE MANAGEMENT 			     */
-/* ------------------------------------------------------------------------- */
-
-/*                                                     	HTTCPCacheRemoveElement
-**
-**	Remove the element specified from the cache
-*/
-PRIVATE void HTTCPCacheRemoveElement ARGS1(host_info *, element)
-{
-    if (!hostcache) {
-        if (PROT_TRACE)
-            fprintf(TDEST, "HostCache... Remove not done, no cache\n");
-        return;
-    }
-    if (PROT_TRACE) fprintf(TDEST, "HostCache... Remove `%s' from cache\n",
-			    HTAtom_name(element->hostname));
-    HTList_removeObject(hostcache, (void *) element);
-    if (*element->addrlist)
-	free(*element->addrlist);
-    if (element->addrlist)
-	free(element->addrlist);
-    if (element->weight)
-	free(element->weight);
-    free(element);
-}
-
-
-/*                                                     	HTTCPCacheRemoveAll
-**
-**	Cleans up the memory. Called by HTLibTerminate
-*/
-PUBLIC void HTTCPCacheRemoveAll NOARGS
-{
-    if (hostcache) {
-	HTList *cur = hostcache;
-	host_info *pres;
-	while ((pres = (host_info *) HTList_nextObject(cur))) {
-	    if (*pres->addrlist)
-		free(*pres->addrlist);
-	    if (pres->addrlist)
-		free(pres->addrlist);
-	    if (pres->weight)
-		free(pres->weight);
-	    free(pres);
-	}
-	HTList_delete(hostcache);
-	hostcache = NULL;
-    }
-}
-
-
-/*                                                     HTTCPCacheRemoveHost
-**
-**	Removes the corresponding entrance in the cache
-*/
-PRIVATE void HTTCPCacheRemoveHost ARGS1(char *, host)
-{
-    HTAtom *hostatom = HTAtom_for(host);
-    HTList *cur = hostcache;
-    host_info *pres = NULL;
-    if (!hostcache) {
-	if (PROT_TRACE)
-	    fprintf(TDEST, "HostCache... Remove host not done, no cache\n");
-	return;
-    }
-    while ((pres = (host_info *) HTList_nextObject(cur)) != NULL) {
-	if (pres->hostname == hostatom) {
-	    break;
-	}
-    }
-    if (pres)
-	HTTCPCacheRemoveElement(pres);
-}
-
-
-/*                                                     HTTCPCacheGarbage
-**
-**	Remove the element with the lowest hit rate
-*/
-PRIVATE void HTTCPCacheGarbage NOARGS
-{
-    HTList *cur = hostcache;
-    host_info *pres, *worst_match = NULL;
-    unsigned int worst_hits = 30000;		  /* Should use UINT_MAX :-( */
-    if (!hostcache) {
-	if (PROT_TRACE)
-	    fprintf(TDEST, "HostCache... Garbage collection not done, no cache\n");
-	return;
-    }
-
-    /* Seek for worst element */
-    while ((pres = (host_info *) HTList_nextObject(cur))) {
-	if (!worst_match || pres->hits <= worst_hits) {
-	    worst_match = pres;
-	    worst_hits = pres->hits;
-	}
-    }
-    if (worst_match)
-	HTTCPCacheRemoveElement(worst_match);
-}
-
-
-/*                                                     HTTCPCacheAddElement
-**
-**	Add an element to the cache of visited hosts. Note that this function
-**	requires the system implemented structure hostent and not our own
-**	host_info. The homes variable indicates the number of
-**	IP addresses found.
-**
-**      Returns new element if OK NULL if error
-*/
-PRIVATE host_info *HTTCPCacheAddElement ARGS2(HTAtom *, host,
-					      struct hostent *, element)
-{
-    host_info *newhost;
-    char *addr;
-    char **index = element->h_addr_list;
-    int cnt = 1;
-    if (!host || !element) {
-	if (PROT_TRACE)
-	    fprintf(TDEST, "HostCache... Bad argument to add to cache\n");
-	return NULL;
-    }
-    while(*index++)
-	cnt++;
-    if ((newhost = (host_info *) calloc(1, sizeof(host_info))) == NULL ||
-	(newhost->addrlist = (char **) calloc(1, cnt*sizeof(char*))) == NULL ||
-	(addr = (char *) calloc(1, cnt*element->h_length)) == NULL)
-	outofmem(__FILE__, "HTTCPCacheAddElement");
-    newhost->hostname = host;
-    index = element->h_addr_list;
-    cnt = 0;
-    while (*index) {
-	*(newhost->addrlist+cnt) = addr+cnt*element->h_length;
-	memcpy((void *) *(newhost->addrlist+cnt++), *index++,
-	       element->h_length);
-    }
-    newhost->homes = cnt;
-    if ((newhost->weight = (double *) calloc(newhost->homes,
-					    sizeof(double))) == NULL)
-	outofmem(__FILE__, "HTTCPCacheAddElement");
-
-    newhost->addrlength = element->h_length;
-    if (!hostcache)
-	hostcache = HTList_new();
-
-    if (PROT_TRACE) {
-	if (newhost->homes == 1)
-	    fprintf(TDEST, "HostCache... Adding single-homed host `%s'\n",
-		    HTAtom_name(host));
-	else
-	    fprintf(TDEST, "HostCache... Adding host `%s' with %d homes\n",
-		    HTAtom_name(host), newhost->homes);
-    }
-    HTList_addObject(hostcache, (void *) newhost);
-    HTCacheSize++;				/* Update number of elements */
-    return newhost;
-}
-
-
-/*                                                     	      HTTCPAddrWeights
-**
-**	This function calculates the weights of the different IP addresses
-**	on a multi homed host. Each weight is calculated as
-**
-**		w(n+1) = w(n)*a + (1-a) * deltatime
-**		a = exp(-1/Neff)
-**		Neff is the effective number of samples used
-**		deltatime is time spend on making a connection
-**
-**	A short window (low Neff) gives a high sensibility, but this is
-**	required as we can't expect a lot of data to test on.
-**
-*/
-PUBLIC void HTTCPAddrWeights ARGS2(char *, host, time_t, deltatime)
-{
-    HTAtom *hostatom = HTAtom_for(host);
-    HTList *cur = hostcache;
-    host_info *pres = NULL;
-    if (!hostcache) {
-	fprintf(TDEST, "HostCache... Weights not calculated, no cache\n");
-	return;
-    }
-    /* Skip any port number from host name */
-    if (strchr(host, ':')) {
-	char *newhost = NULL;
-	char *strptr;
-	StrAllocCopy(newhost, host);
-	strptr = strchr(newhost, ':');
-	*strptr = '\0';
-	hostatom = HTAtom_for(newhost);
-	free(newhost);
-    } else
-	hostatom = HTAtom_for(host);
-    
-    while ((pres = (host_info *) HTList_nextObject(cur)) != NULL) {
-	if (pres->hostname == hostatom) {
-	    break;
-	}
-    }
-    if (pres) {
-	int cnt;
-	CONST double passive = 0.9; 	  /* Factor for all passive IP_addrs */
-#if 0
-	CONST int Neff = 3;
-	CONST double alpha = exp(-1.0/Neff);
-#else
-	CONST double alpha = 0.716531310574;	/* Doesn't need the math lib */
-#endif
-	for (cnt=0; cnt<pres->homes; cnt++) {
-	    if (cnt == pres->offset) {
-		*(pres->weight+pres->offset) = *(pres->weight+pres->offset)*alpha + (1.0-alpha)*deltatime;
-	    } else {
-		*(pres->weight+cnt) = *(pres->weight+cnt) * passive;
-	    }
-	    if (PROT_TRACE)
-		fprintf(TDEST, "AddrWeights. Home %d has weight %4.2f\n", cnt,
-			*(pres->weight+cnt));
-	}
-    } else if (PROT_TRACE) {
-	fprintf(TDEST, "HostCache... Weights not calculated, host not found in cache: `%s\'\n", host);
-    }
-}
-
-/* ------------------------------------------------------------------------- */
 /*	       		     HOST NAME FUNCTIONS 			     */
 /* ------------------------------------------------------------------------- */
-
 
 /*	Produce a string for an Internet address
 **	----------------------------------------
@@ -460,169 +215,22 @@ PUBLIC CONST char * HTInetString ARGS1(SockA *, sin)
 #endif /* Decnet */
 }
 
-
-/*	                                                     HTGetHostByName
-**
-**	Searched first the local cache then asks the DNS for an address of
-**	the host specified.
-**
-**      Returns:	>0 if OK the number of homes are returned
-**		     	-1 if error
-*/
-PUBLIC int HTGetHostByName ARGS4(HTRequest *, request,
-				 char *, host, SockA *, sin, BOOL, use_cur)
-{
-    HTAtom *hostatom = HTAtom_for(host);
-    host_info *pres = NULL;
-    if (!hostcache)
-	hostcache = HTList_new(); 	     	       /* First time through */
-    else {
-	HTList *cur = hostcache;       		 	     /* Search cache */
-	while ((pres = (host_info *) HTList_nextObject(cur)) != NULL) {
-	    if (pres->hostname == hostatom) {
-		if (PROT_TRACE)
-		    fprintf(TDEST, "HostByName.. Host `%s\' found in cache.\n", host);
-		break;
-	    }
-	}
-    }
-    
-    /* If the host was not found in the cache, then do gethostbyname.
-       If we are talking to a multi homed host then take the IP address with
-       the lowest weight. If `use_cur'=YES then use current IP-address */
-    if (pres) {
-	if (pres->homes > 1 && !use_cur) {
-	    int cnt;
-	    double best_weight = 1e30;		    /* Should be FLT_MAX :-( */
-	    for (cnt=0; cnt<pres->homes; cnt++) {
-		if (*(pres->weight+cnt) < best_weight) {
-		    best_weight = *(pres->weight+cnt);
-		    pres->offset = cnt;
-		}
-	    }
-	}
-	pres->hits++;	 	 /* Update total number of hits on this host */
-    } else {						/* Go and ask for it */
-	struct hostent *hostelement;			      /* see netdb.h */
-#ifdef HT_REENTRANT
-	int thd_errno;
-	char buffer[HOSTENT_MAX];
-	struct hostent result;			      /* For gethostbyname_r */
-	HTProgress(request, HT_PROG_DNS, host);
-	if ((hostelement = gethostbyname_r(host, &result, buffer,
-					   HOSTENT_MAX, &thd_errno)) == NULL) {
-#else
-	HTProgress(request, HT_PROG_DNS, host);
-	if ((hostelement = gethostbyname(host)) == NULL) {
-#endif
-	    if (PROT_TRACE)
-		fprintf(TDEST, "HostByName.. Can't find internet node name `%s'.\n", host);
-	    return -1;
-	}
-	
-	/* Add element to the cache and maybe do garbage collection */
-	if (HTCacheSize >= HTConCacheSize)
-	    HTTCPCacheGarbage();
-	if ((pres = HTTCPCacheAddElement(hostatom, hostelement)) == NULL) {
-	    return -1;
-	}
-    }
-    
-    /* Update socket structure using the element with the lowest weight. On
-       single homed hosts it means the first value */
-    memcpy(&sin->sin_addr, *(pres->addrlist+pres->offset), pres->addrlength);
-    return pres->homes;
-}
-
-
-/*
-**	Get host name of the machine on the other end of a socket.
-**
-*/
-PUBLIC char * HTGetHostBySock ARGS1(int, soc)
-{
-    struct sockaddr addr;
-    int len = sizeof(struct sockaddr);
-    struct in_addr *iaddr;
-    char *name = NULL;
-    struct hostent * phost;		/* Pointer to host -- See netdb.h */
-#ifdef HT_REENTRANT
-    int thd_errno;
-    char buffer[HOSTENT_MAX];
-    struct hostent result;		      	      /* For gethostbyaddr_r */
-#endif
-
-#ifdef DECNET  /* Decnet ain't got no damn name server 8#OO */
-    return NULL;
-#else
-    if (getpeername(soc, &addr, &len) < 0)
-	return NULL;
-    iaddr = &(((struct sockaddr_in *)&addr)->sin_addr);
-
-#ifdef HT_REENTRANT
-    phost = gethostbyaddr_r((char *) iaddr, sizeof(struct in_addr), AF_INET,
-			    &result, buffer, HOSTENT_MAX, &thd_errno);
-#else
-    phost = gethostbyaddr((char *) iaddr, sizeof(struct in_addr), AF_INET);
-#endif
-    if (!phost) {
-	if (PROT_TRACE)
-	    fprintf(TDEST, "TCP......... Can't find internet node name for peer!!\n");
-	return NULL;
-    }
-    StrAllocCopy(name, phost->h_name);
-    if (PROT_TRACE) fprintf(TDEST, "TCP......... Peer name is `%s'\n", name);
-    return name;
-
-#endif	/* not DECNET */
-}
-
-
 /*	Parse a network node address and port
 **	-------------------------------------
-**
-** On entry,
-**	str	points to a string with a node name or number,
-**		with optional trailing colon and port number.
-**	sin	points to the binary internet or decnet address field.
-**
-** On exit,	-1	If error
-**		>0	If OK the number of homes on the host
-**	*sin	is filled in. If no port is specified in str, that
-**		field is left unchanged in *sin.
-**
-** NOTE:	It is assumed that any portnumber and numeric host address
-**		is given in decimal notation. Separation character is '.'
+** 	It is assumed that any portnumber and numeric host address
+**	is given in decimal notation. Separation character is '.'
+**	Any port number given in host name overrides all other values.
+**	'host' might be modified.
+**      Returns:
+**	       	>0	Number of homes
+**		 0	Wait for persistent socket
+**		-1	Error
 */
-PUBLIC int HTParseInet ARGS4(HTRequest *, request,
-			     SockA *, sin, CONST char *, str, BOOL, use_cur)
+PRIVATE int HTParseInet (HTNet * net, char * host)
 {
-    char *host = NULL;
-    int status = 0;
-    StrAllocCopy(host, str);		      /* Take a copy we can mutilate */
+    int status = 1;
+    SockA *sin = &net->sock_addr;
 
-    /* Parse port number if present. */    
-    {
-	char *port;
-	if ((port=strchr(host, ':'))) {
-	    *port++ = 0;			       	    /* Chop off port */
-	    if (isdigit(*port)) {
-
-#ifdef DECNET
-		sin->sdn_objnum = (unsigned char)(strtol(port, (char**)0, 10));
-#else /* Internet */
-		sin->sin_port = htons(atol(port));
-#endif
-	    } else {
-		if (PROT_TRACE)
-		    fprintf(TDEST, "ParseInet... No port indicated\n");
-		free(host);
-		return -1;
-	    }
-	}
-    }
-
-    /* Parse Internet host */
 #ifdef DECNET
     /* read Decnet node name. @@ Should know about DECnet addresses, but it's
        probably worth waiting until the Phase transition from IV to V. */
@@ -633,40 +241,34 @@ PUBLIC int HTParseInet ARGS4(HTRequest *, request,
     if (PROT_TRACE) fprintf(TDEST,  
 	"DECnet: Parsed address as object number %d on host %.6s...\n",
 		      sin->sdn_objnum, host);
-
 #else /* Internet */
-
-    /*	Parse host number if present */
     {
-	BOOL numeric = YES;
 	char *strptr = host;
 	while (*strptr) {
-	    if (!isdigit(*strptr) && *strptr != '.') {
-		numeric = NO;
+	    if (*strptr == ':') {
+		*strptr = '\0';	   /* Don't want port number in numeric host */
 		break;
 	    }
-	    ++strptr;
+	    if (!isdigit(*strptr) && *strptr != '.')
+		break;
+	    strptr++;
 	}
-	if (numeric) {
+	if (!*strptr) {
 #ifdef GUSI
 	    sin->sin_addr = inet_addr(host); 		 /* See netinet/in.h */
 #else
 	    sin->sin_addr.s_addr = inet_addr(host);	  /* See arpa/inet.h */
 #endif
-	} else {
-	    if ((status = HTGetHostByName(request, host, sin, use_cur)) < 0) {
-		free(host);
-		return -1;
-	    }
-	}
+	} else
+	    status = HTGetHostByName(net, host);
+
 	if (PROT_TRACE) {
-	    fprintf(TDEST, "ParseInet... Parsed address as port %d on %s\n",
-		    (int) ntohs(sin->sin_port),
-		    HTInetString(sin));
+	    if (status > 0)
+		fprintf(TDEST, "ParseInet... as port %d on %s with %d homes\n",
+			(int) ntohs(sin->sin_port), HTInetString(sin), status);
 	}
     }
-#endif  /* Internet vs. Decnet */
-    free(host);
+#endif /* Internet vs. Decnet */
     return status;
 }
 
@@ -957,23 +559,21 @@ PUBLIC void HTFreeMailAddress NOARGS
 /*								HTDoConnect()
 **
 **	Note: Any port indication in URL, e.g., as `host:port' overwrites
-**	the default_port value.
+**	the default port value.
 **
 **	returns		HT_ERROR	Error has occured or interrupted
 **			HT_OK		if connected
 **			HT_WOULD_BLOCK  if operation would have blocked
 */
-PUBLIC int HTDoConnect ARGS5(HTNet *, net, char *, url,
-			     u_short, default_port, u_long *, addr,
-			     BOOL, use_cur)
+PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 {
     int status;
     char *p1 = HTParse(url, "", PARSE_HOST);
     char *at_sign;
     char *host;
 
-    /* if theres an @ then use the stuff after it as a hostname */
-    if((at_sign = strchr(p1, '@')) != NULL)
+    /* if there's an @ then use the stuff after it as a hostname */
+    if ((at_sign = strchr(p1, '@')) != NULL)
 	host = at_sign+1;
     else
 	host = p1;
@@ -984,35 +584,55 @@ PUBLIC int HTDoConnect ARGS5(HTNet *, net, char *, url,
 	return HT_ERROR;
     }
 
-    /* Set up defaults */
-    if (net->sockfd==INVSOC) {
-	memset((void *) &net->sock_addr, '\0', sizeof(net->sock_addr));
+    /* Look for a port number, else use default port */
+    if (net->sockfd == INVSOC) {
+	char *port = strchr(host, ':');
+	SockA *sin = &net->sock_addr;
+	memset((void *) sin, '\0', sizeof(SockA));
+	if (port++ && isdigit(*port)) {
 #ifdef DECNET
-	net->sock_addr.sdn_family = AF_DECnet;/* Family = DECnet, host order */
-	net->sock_addr.sdn_objnum = DNP_OBJ;  /* Default: http object number */
-#else  /* Internet */
-	net->sock_addr.sin_family = AF_INET;
-	net->sock_addr.sin_port = htons(default_port);
+	    sin->sdn_family = AF_DECnet;      /* Family = DECnet, host order */
+	    sin->sdn_objnum = (unsigned char)(strtol(port, (char**)0, 10));
+#else /* Internet */
+	    sin->sin_family = AF_INET;
+	    sin->sin_port = htons(atol(port));
 #endif
+	} else {
+#ifdef DECNET
+	    sin->sdn_family = AF_DECnet;      /* Family = DECnet, host order */
+	    net->sock_addr.sdn_objnum = DNP_OBJ; /* Default: http object num */
+#else  /* Internet */
+	    sin->sin_family = AF_INET;
+	    sin->sin_port = htons(default_port);
+#endif
+	}
     }
-                                      
+
     /* If we are trying to connect to a multi-homed host then loop here until
        success or we have tried all IP-addresses */
     do {
+	BOOL reuse = NO;
 	if (net->sockfd==INVSOC) {
-	    int hosts;
+	    int homes;
 	    if (PROT_TRACE)
 		fprintf(TDEST, "HTDoConnect. Looking up `%s\'\n", host);
-	    if ((hosts = HTParseInet(net->request, &net->sock_addr,
-				     host, use_cur)) < 0) {
+	    if ((homes = HTParseInet(net, host)) < 0) {
 		if (PROT_TRACE)
 		    fprintf(TDEST, "HTDoConnect. Can't locate remote host `%s\'\n", host);
 		HTErrorAdd(net->request, ERR_FATAL, NO, HTERR_NO_REMOTE_HOST,
 			   (void *) host, strlen(host), "HTDoConnect");
 		break;
+	    } else if (!homes)
+		return HT_PERSISTENT;
+
+	    if (net->sockfd != INVSOC) {
+		reuse = YES;
+		if (PROT_TRACE)
+		    fprintf(TDEST, "HTDoConnect. REUSING SOCKET %d\n", net->sockfd);
+		goto connect;
 	    }
-	    if (!net->addressCount && hosts > 1)
-		net->addressCount = hosts;
+	    if (!net->retry && homes > 1)
+		net->retry = homes;
 #ifdef DECNET
 	    if ((net->sockfd=socket(AF_DECnet, SOCK_STREAM, 0))==INVSOC)
 #else
@@ -1022,8 +642,6 @@ PUBLIC int HTDoConnect ARGS5(HTNet *, net, char *, url,
 		HTErrorSysAdd(net->request, ERR_FATAL, socerrno, NO, "socket");
 		break;
 	    }
-	    if (addr)
-		*addr = ntohl(net->sock_addr.sin_addr.s_addr);
 	    if (PROT_TRACE)
 		fprintf(TDEST, "HTDoConnect. Created socket number %d\n",
 			net->sockfd);
@@ -1087,14 +705,15 @@ PUBLIC int HTDoConnect ARGS5(HTNet *, net, char *, url,
 	    }
 	    
 	    /* If multi-homed host then start timer on connection */
-	    if (net->addressCount >= 1)
+	    if (net->retry)
 		net->connecttime = time(NULL);
 
 	    /* Update progress state */
 	    HTProgress(net->request, HT_PROG_CONNECT, NULL);
-	} /* IF socket is invalid */
-	
+	}
+
 	/* Do a connect */
+      connect:
 	status = connect(net->sockfd, (struct sockaddr *) &net->sock_addr,
 			 sizeof(net->sock_addr));
 	/*
@@ -1135,59 +754,58 @@ PUBLIC int HTDoConnect ARGS5(HTNet *, net, char *, url,
 	}
 	
 	/* We have 4 situations: single OK, Pb and multi OK, pb */
-	if (net->addressCount >= 1) {
+	if (net->retry) {
 	    net->connecttime = time(NULL) - net->connecttime;
 	    if (status < 0) {					 /* multi PB */
 		if (socerrno == EISCONN) { /* connect multi after would block*/
 		    HTEvent_UnRegister(net->sockfd, (SockOps) FD_CONNECT);
-		    HTTCPAddrWeights(host, net->connecttime);
+		    HTDNS_updateWeigths(net->dns, net->home, net->connecttime);
+		    net->retry = 0;
 		    free(p1);
-		    net->addressCount = 0;
-		    if (PROT_TRACE)
-			fprintf(TDEST, "HTDoConnect: Socket %d already connected\n", net->sockfd);
 		    return HT_OK;
 		}
-
-		HTErrorSysAdd(net->request, ERR_NON_FATAL, socerrno, NO,
-			      "connect");
-
-		/* I have added EINVAL `invalid argument' as this is what I 
-		   get back from a non-blocking connect where I should 
-		   get `connection refused' on SVR4 */
-
-		if (socerrno==ECONNREFUSED || socerrno==ETIMEDOUT ||
-		    socerrno==ENETUNREACH || socerrno==EHOSTUNREACH ||
+		if (reuse)
+		    HTDNS_setSocket(net->dns, INVSOC);
+		else  {
+		    HTErrorSysAdd(net->request, ERR_NON_FATAL, socerrno, NO,
+				  "connect");
+		    
+		    /* Added EINVAL `invalid argument' as this is what I 
+		       get back from a non-blocking connect where I should 
+		       get `connection refused' on BSD. SVR4 gives SIG_PIPE */
+		    if (socerrno==ECONNREFUSED || socerrno==ETIMEDOUT ||
+			socerrno==ENETUNREACH || socerrno==EHOSTUNREACH ||
 #ifdef __srv4__
-		    socerrno==EHOSTDOWN || socerrno==EINVAL)
+			socerrno==EHOSTDOWN || socerrno==EINVAL)
 #else
-		    socerrno==EHOSTDOWN)
+			socerrno==EHOSTDOWN)
 #endif
-		    net->connecttime += TCP_DELAY;
-	        else
-		    net->connecttime += TCP_PENALTY;
-
-	            if (NETCLOSE(net->sockfd) < 0)
-		        HTErrorSysAdd(net->request, ERR_FATAL, socerrno, NO, 
-				      "NETCLOSE");
+		        net->connecttime += TCP_DELAY;
+		    else
+		        net->connecttime += TCP_PENALTY;
+	        }
+	        if (NETCLOSE(net->sockfd) < 0)
+		    HTErrorSysAdd(net->request, ERR_FATAL, socerrno, NO, 
+				  "NETCLOSE");
 	        HTEvent_UnRegister(net->sockfd, (SockOps) FD_ALL);
 	        net->sockfd = INVSOC;
-	        HTTCPAddrWeights(host, net->connecttime);
+	        HTDNS_updateWeigths(net->dns, net->home, net->connecttime);
 	    } else {						 /* multi OK */
-		HTTCPAddrWeights(host, net->connecttime);
+		HTDNS_updateWeigths(net->dns, net->home, net->connecttime);
+		net->retry = 0;
 		free(p1);
-		net->addressCount = 0;
 		return HT_OK;
 	    }
         } else if (status < 0) {				/* single PB */
 	    if (socerrno==EISCONN) { 	 /* Connect single after would block */
 		HTEvent_UnRegister(net->sockfd, (SockOps) FD_CONNECT);
-		net->addressCount = 0;
+		net->retry = 0;
 		free(p1);
 		return HT_OK;
 	    } else {
 		HTErrorSysAdd(net->request, ERR_FATAL, socerrno, NO,
 			  "connect");
-		HTTCPCacheRemoveHost(host);
+		HTDNS_delete(host);
 		if (NETCLOSE(net->sockfd) < 0)
 		    HTErrorSysAdd(net->request, ERR_FATAL, socerrno, NO,
 				  "NETCLOSE");
@@ -1196,15 +814,15 @@ PUBLIC int HTDoConnect ARGS5(HTNet *, net, char *, url,
 	    }
 	} else {				  		/* single OK */
 	    free(p1);
-	    net->addressCount = 0;
+	    net->retry = 0;
 	    return HT_OK;
 	}
-    } while (--net->addressCount);			 /* End of mega loop */
+    } while (--net->retry);				 /* End of mega loop */
 
     if (PROT_TRACE)
         fprintf(TDEST, "HTDoConnect. Connect failed\n");
     free (p1);
-    net->addressCount = 0;
+    net->retry = 0;
     net->sockfd = INVSOC;
     return HT_ERROR;
 }

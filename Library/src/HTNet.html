@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Asyncronous Socket Management</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 12-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 14-Sep-1995 -->
 </HEAD>
 <BODY>
 
@@ -30,8 +30,6 @@ Reference Library</A>.
 #ifndef HTNET_H
 #define HTNET_H
 #include "HTReq.h"
-#include "HTEvntrg.h"
-#include "HTSocket.h"
 </PRE>
 
 <H2>The HTNet Object</H2>
@@ -42,23 +40,7 @@ descriptor, the input read buffer etc. required to identify and
 service a request. <P>
 
 <PRE>
-typedef struct _HTNet {
-    SOCKFD		sockfd;				/* Socket descripter */
-    SockA 		sock_addr;		/* SockA is defined in tcp.h */
-    HTInputSocket *	isoc;				     /* Input buffer */
-    HTStream *		target;				    /* Target stream */
-    int 		addressCount;	     /* Attempts if multi-homed host */
-    time_t		connecttime;		 /* Used on multihomed hosts */
-    long		bytes_read;		  /* Bytes read from network */
-    BOOL		preemtive;   /* Eff result from Request and Protocol */
-    BOOL		persistent;		/* Do persistent connection? */
-    HTPriority		priority;	 /* Priority of this request (event) */
-    HTEventCallBack *	cbf;			     /* Library load routine */
-    HTRequest *		request;	   /* Link back to request structure */
-    void *		context;		/* Protocol Specific context */
-} HTNet;
-
-#define HTNet_bytesRead(me) ((me) ? (me)-&gt;bytes_read : -1)
+typedef struct _HTNet HTNet;
 </PRE>
 
 <H2>Request Termination Call Back Functions</H2>

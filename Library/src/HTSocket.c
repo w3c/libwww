@@ -19,7 +19,7 @@
 #include "HTStream.h"
 #include "HTAlert.h"
 #include "HTFormat.h"
-#include "HTNet.h"
+#include "HTNetMan.h"
 #include "HTError.h"
 #include "HTSocket.h"					 /* Implemented here */
 
@@ -566,7 +566,7 @@ PUBLIC int HTSocketRead ARGS2(HTRequest *, request, HTStream *, target)
 	    if (PROT_TRACE)
 		fprintf(TDEST, "Read Socket. %d bytes read from socket %d\n",
 			b_read, isoc->sockfd);
-	    request->net->bytes_read += b_read;
+	    net->bytes_read += b_read;
 	    HTProgress(request, HT_PROG_READ, NULL);
 	}
 	
@@ -575,16 +575,16 @@ PUBLIC int HTSocketRead ARGS2(HTRequest *, request, HTStream *, target)
 						b_read)) != HT_OK) {
 	    if (status==HT_WOULD_BLOCK) {
 		if (PROT_TRACE)
-		    fprintf(TDEST, "Read Socket. Stream WOULD BLOCK\n");
+		    fprintf(TDEST, "Read Socket. Target WOULD BLOCK\n");
 		HTEvent_UnRegister(isoc->sockfd, FD_READ);
 		return HT_WOULD_BLOCK;
 	    } else if (status>0) {	      /* Stream specific return code */
 		if (PROT_TRACE)
-		    fprintf(TDEST, "Read Socket. new code: %d\n", status);
+		    fprintf(TDEST, "Read Socket. Target returns %d\n", status);
 		return status;
 	    } else {				     /* We have a real error */
 		if (PROT_TRACE)
-		    fprintf(TDEST, "Read Socket. Stream ERROR\n");
+		    fprintf(TDEST, "Read Socket. Target ERROR\n");
 		return status;
 	    }
 	}
@@ -639,7 +639,7 @@ PUBLIC int HTFileRead ARGS3(FILE *, fp, HTRequest *, request,
 	if ((status = (*target->isa->put_block)(target, isoc->buffer,
 						b_read)) != HT_OK) {
 	    if (PROT_TRACE)
-		fprintf(TDEST, "Read File... Stream ERROR\n");
+		fprintf(TDEST, "Read File... Target ERROR\n");
 	    return status;
 	}
 	isoc->write = isoc->buffer + b_read;

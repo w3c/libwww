@@ -70,8 +70,10 @@ PRIVATE HTBind unknown_suffix = { "*.*", NULL, NULL, NULL, 1.0};
 */
 PUBLIC BOOL HTBind_init NOARGS
 {
-    if (!HTBindings)
+    if (!HTBindings) {
 	HTBindings = (HTList**) calloc(HASH_SIZE, sizeof(HTList *));
+	if (!HTBindings) outofmem(__FILE__, "HTBind_init");
+    }
     StrAllocCopy(HTDelimiters, DEFAULT_SUFFIXES);
     return YES;
 }

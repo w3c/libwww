@@ -79,7 +79,8 @@ PUBLIC HTErrorMsgInfo error_info[HTERR_ELEMENTS] = {
 	                                                "wais.multi" },
     { 0,   "WAIS-server doesn't return any data", 	"wais.multi" },
     { 0,   "Can't connect to WAIS-server",		"wais.multi" },
-    { 0,   "System call `%s' failed: ",			"system.multi" }
+    { 0,   "System call `%s' failed: ",			"system.multi" },
+    { 0,   "Wrong Protocol Class",			"class.multi" }
 };
 
 /* ------------------------------------------------------------------------- */

@@ -1,0 +1,175 @@
+<HTML>
+<HEAD>
+<TITLE>Domain Name Service Manager</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 16-Sep-1995 -->
+</HEAD>
+<BODY>
+
+<H1>Domain Name Service Manager</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This module has the common code for handling DNS access. It maintains
+a cache of all visited hosts so that subsequent connects to the same
+host doesn't imply a new request to the DNS every time. <P>
+
+Multihomed hosts are treated specially in that the time spend on every
+connect is measured and kept in the cache. On the next request to the
+same host, the IP-address with the lowest average connect time is
+chosen. If one IP-address fails completely, e.g. <EM>connection
+refused</EM> then it disabled and HTDoConnect tries one of the other
+IP-addresses to the same host.<P>
+
+If the connect fails in the case of at single-homed host then the
+entry is removed from the cache and HTDoConnect tries again asking the
+DNS. <P>
+
+This module is implemented by <A HREF="HTDNS.c">HTDNS.c</A>, and it is
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
+
+<PRE>
+#ifndef HTDNS_H
+#define HTDNS_H
+#include "tcp.h"
+</PRE>
+
+<H2>The DNS Object</H2>
+
+The DNS object contains information obtained from the DNS system but
+in addition it stores known information about the remote server, for
+example the type (HTTP/1.0, HTTP/1.1, FT etc.) along with information
+on how the connections can be used (if it supports persistent TCP
+connections, interleaved access etc.)
+
+<PRE>
+typedef struct _HTdns HTdns;
+</PRE>
+
+<H2>Cache Timeouts</H2>
+
+When to remove an entry in the cache. The default value is 48h.
+
+<PRE>
+extern void HTDNS_setTimeout (time_t timeout);
+extern time_t HTDNS_timeout  (time_t timeout);
+</PRE>
+
+<H2>Object Methods</H2>
+
+<H3>Persistent Sockets</H3>
+
+<PRE>
+extern SOCKFD HTDNS_socket	(HTdns *dns);
+extern void HTDNS_setSocket	(HTdns *dns, SOCKFD socket);
+extern void HTDNS_clearActive	(HTdns *dns);
+</PRE>
+
+<H3>Persistent Connection Timeouts</H3>
+
+When should we drop a socket. The default value is 1h
+
+<PRE>
+extern time_t HTDNS_sockTimeout (time_t timeout);
+extern void HTDNS_setSockTimeout (time_t timeout);
+</PRE>
+
+<H3>Persistent Connection Expiration</H3>
+
+Absolute value of when this socket will expire. Default value can be
+set with the function HTDNS_setSockTimeout and is normally 1 h.
+
+<PRE>
+extern void HTDNS_setSockExpires (HTdns * dns, time_t expires);
+extern time_t HTDNS_sockExpires (HTdns * dns);
+</PRE>
+
+<H3>Set the Server Class and Type</H3>
+
+Define the <EM>server class</EM> of the server at the other end. A
+class is a generic description of the protocol which is exactly like
+the access method in a URL, for example "http" etc. The <EM>server
+version</EM> is a finer distinction (sub-class) between various
+versions of the server class, for example HTTP/0.9, HTTP/1.1 etc. The
+server version is a bit flag that the protocol module can define on
+its own. That way we don't have to change this module when registering
+a new protocol module. The <EM>server type</EM> is a description of
+whether we can keep the connection persistsent or not.
+
+<PRE>
+typedef enum _HTTCPType {
+    HT_TCP_SINGLE = 0,				  /* Plain old TCP one timer */
+    HT_TCP_MULTI,			      /* Multiple requests pr socket */
+    HT_TCP_INTERLEAVE		  	      /* Can we interleave requests? */
+} HTTCPType;
+
+extern char *HTDNS_serverClass		(HTdns *dns);
+extern void HTDNS_setServerClass	(HTdns *dns, char *class);
+
+extern int HTDNS_serverVersion (HTdns *dns);
+extern void HTDNS_setServerVersion (HTdns *dns, int version, HTTCPType type);
+</PRE>
+
+<H3>Recalculating the Time-Weights on Multihomed Hosts</H3>
+
+On every connect to a multihomed host, the average connect time is updated
+exponentially for all the entries.
+
+<PRE>
+extern BOOL HTDNS_updateWeigths (HTdns *dns, int cur, time_t deltatime);
+</PRE>
+
+<H3>Delete a host element from Cache</H3>
+
+This function deletes a single cache entry.
+
+<PRE>
+extern BOOL HTDNS_delete (CONST char * host);
+</PRE>
+
+<H3>Delete ALL host elements from Cache</H3>
+
+This function is called from <A HREF="HTAccess.html#Library">
+HTLibTerminate</A>. It can be called at any point in time if the DNS
+cache is going to be flushed.
+
+<PRE>
+extern BOOL HTDNS_deleteAll (void);
+</PRE>
+
+<H2>Resolver Functions</H2>
+
+These are the functions that resolve a host name 
+
+<H3>Get Host By Socket</H3>
+
+This function should have been called HTGetHostByAddr but for
+historical reasons this is not the case. <P>
+
+<PRE>
+extern char * HTGetHostBySock PARAMS((int soc));
+</PRE>
+
+<H3>Get Host By Name</H3>
+
+This function gets the address of the host and puts it in to the
+socket structure. It maintains its own cache of connections so that
+the communication to the Domain Name Server is minimized. Returns the
+number of homes or -1 if error.
+
+<PRE>
+extern int HTGetHostByName (struct _HTNet *net, char *host);
+</PRE>
+
+<PRE>
+#endif
+</PRE>
+
+End of declaration file
+</BODY>
+</HTML>

@@ -1,0 +1,75 @@
+<HTML>
+<HEAD>
+<TITLE>Asyncronous Socket Management</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 16-Sep-1995 -->
+</HEAD>
+<BODY>
+
+<H1>Asyncronous Socket Management</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This module contains the routines for handling the set of active
+sockets currently in use by the multithreaded clients. It is an
+internal module to the Library, the application interface is
+implemented in the <A HREF="HTEvntrg.html">Event Module</A>. Look for
+more information in the <A
+HREF="http://www.w3.org/pub/WWW/Library/User/Architecture/">
+Multithread Specifications</A>. <P>
+
+This module is implemented by <A HREF="HTNet.c">HTNet.c</A>, and it is
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C
+Reference Library</A>.
+
+<PRE>
+#ifndef HTNETMAN_H
+#define HTNETMAN_H
+#include "HTNet.h"
+#include "HTDNS.h"
+#include "HTEvntrg.h"
+#include "HTSocket.h"
+</PRE>
+
+<H2>The HTNet Object</H2>
+
+The <CODE>HTNet</CODE> object is the core of the request queue
+management. This object contains information about the socket
+descriptor, the input read buffer etc. required to identify and
+service a request. <P>
+
+<PRE>
+struct _HTNet {
+    SOCKFD		sockfd;				/* Socket descripter */
+    SockA 		sock_addr;		/* SockA is defined in tcp.h */
+    HTInputSocket *	isoc;				     /* Input buffer */
+    HTdns *		dns;			       /* Entry in DNS table */
+    HTStream *		target;				    /* Target stream */
+    int			retry;		     /* Counting attempts to connect */
+    int 		home;			 /* Current home if multiple */
+    time_t		connecttime;		 /* Used on multihomed hosts */
+    long		bytes_read;		  /* Bytes read from network */
+    BOOL		preemtive;   /* Eff result from Request and Protocol */
+    HTPriority		priority;	 /* Priority of this request (event) */
+    HTEventCallBack *	cbf;			     /* Library load routine */
+    HTRequest *		request;	   /* Link back to request structure */
+    void *		context;		/* Protocol Specific context */
+};
+
+#define HTNet_bytesRead(me)	((me) ? (me)-&gt;bytes_read : -1)
+#define HTNet_dns(me)		((me) ? (me)-&gt;dns : NULL)
+</PRE>
+
+<PRE>
+#endif /* HTNETMAN_H */
+</PRE>
+
+End of declaration module
+</BODY>
+</HTML>
+
+

@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>HTTP Request Stream</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Sep-1995 -->
 </HEAD>
 <BODY>
 
@@ -28,9 +29,16 @@ This stream makes a HTTP request header before it goes into
 transparent mode.
 
 <PRE>
+typedef enum _HTTPVersion {
+    HTTP = 0,
+    HTTP_09,		
+    HTTP_10,
+    HTTP_11,
+    HTTP_12
+} HTTPVersion;
+
 extern HTStream * HTTPRequest_new	PARAMS((HTRequest *	request,
 						HTStream *	target));
-
 #endif
 </PRE>
 

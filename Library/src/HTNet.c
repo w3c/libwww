@@ -23,7 +23,7 @@
 #include "HTReqMan.h"
 #include "HTEvntrg.h"
 #include "HTStream.h"
-#include "HTNet.h"					 /* Implemented here */
+#include "HTNetMan.h"					 /* Implemented here */
 
 #ifdef WIN32
 #include <io.h>
@@ -44,9 +44,11 @@ struct _HTStream {
 };
 
 PRIVATE int 	HTMaxActive = HT_MAX_SOCKETS;  	      /* Max active requests */
+PRIVATE HTList *HTNetCBF = NULL;	      /* List of call back functions */
+
 PRIVATE HTList *HTNetActive = NULL;               /* List of active requests */
 PRIVATE HTList *HTNetPending = NULL;		 /* List of pending requests */
-PRIVATE HTList *HTNetCBF = NULL;	      /* List of call back functions */
+PRIVATE HTList *HTNetPersistent = NULL;	   /* List of persistent connections */
 
 /* ------------------------------------------------------------------------- */
 
@@ -246,7 +248,7 @@ PUBLIC BOOL HTNet_new (HTRequest * request, HTPriority priority)
 	if (THD_TRACE)
 	    fprintf(TDEST, "HTNet_new... starting request %p (retry=%d)\n",
 		    me->request, me->request->retrys);
-	(*(me->cbf))(INVSOC, me->request, FD_NONE);
+	(*(me->cbf))(me->sockfd, me->request, FD_NONE);
     } else {
 	if (!HTNetPending) HTNetPending = HTList_new();
 	if (THD_TRACE)
@@ -278,10 +280,16 @@ PRIVATE BOOL delete_object (HTNet *net, int status)
 
 	/* Close socket */
 	if (net->sockfd != INVSOC) {
-	    if ((status = NETCLOSE(net->sockfd)) < 0)
-		HTErrorSysAdd(net->request, ERR_FATAL,socerrno,NO,"NETCLOSE");
-	    if (THD_TRACE)
-		fprintf(TDEST, "HTNet_delete closing socket %d\n",net->sockfd);
+	    if (HTDNS_socket(net->dns) == INVSOC) {
+		if ((status = NETCLOSE(net->sockfd)) < 0)
+		    HTErrorSysAdd(net->request, ERR_FATAL, socerrno, NO,
+				  "NETCLOSE");
+		if (THD_TRACE)
+		    fprintf(TDEST, "HTNet_delete closing %d\n", net->sockfd);
+	    } else {
+		if (THD_TRACE)
+		    fprintf(TDEST, "HTNet_delete keeping %d\n", net->sockfd);
+	    }
 	    HTEvent_UnRegister(net->sockfd, (SockOps) FD_ALL);
 	}
 	if (net->isoc)

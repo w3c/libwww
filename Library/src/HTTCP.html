@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Generic Network Communication</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  8-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 13-Sep-1995 -->
 </HEAD>
 <BODY>
 
@@ -53,11 +53,7 @@ HTDoConnect measures the time to do the connection and updates the
 calculated weights in the cache of visited hosts.
 
 <PRE>
-extern int HTDoConnect PARAMS((	HTNet  	*net,
-				char		*url,
-			     	u_short		default_port,
-			    	u_long 		*addr,
-				BOOL		use_cur));
+extern int HTDoConnect (HTNet * net, char * url, u_short default_port);
 </PRE>
 
 <H3>Passive Connection Establishment</H3>
@@ -67,48 +63,6 @@ until MAX_ACCEPT_POLL is reached.
 
 <PRE>
 extern int HTDoAccept PARAMS((HTNet *net));
-</PRE>
-
-<A NAME="hostcache"><H2>Caching Hosts Names</H2></A>
-
-This part of the HTTCP module maintains a cache of all visited hosts so that
-subsequent connects to the same host doesn't imply a new request to the DNS
-every time. <P>
-
-Multihomed hosts are treated specially in that the time spend on every connect
-is measured and kept in the cache. On the next request to the same host, the
-IP-address with the lowest average connect time is chosen. If one IP-address
-fails completely, e.g. <EM>connection refused</EM> then it disabled and
-HTDoConnect tries one of the other IP-addresses to the same host.<P>
-
-If the connect fails in the case of at single-homed host then the entry is
-removed from the cache and HTDoConnect tries again asking the DNS.
-
-<H3>Recalculating the Time-Weights on Multihomed Hosts</H3>
-
-On every connect to a multihomed host, the average connect time is updated
-exponentially for all the entries.
-
-<PRE>
-extern void HTTCPAddrWeights PARAMS((char * host, time_t deltatime));
-</PRE>
-
-<H3>Cleanup the Memory</H3>
-
-This function is called from <A
-HREF="HTReq.html#Library">HTLibTerminate</A>.
-
-<PRE>
-extern void HTTCPCacheRemoveAll NOPARAMS;
-</PRE>
-
-<H3>Control Variables</H3>
-
-This parameter determines the maximum number of hosts in the cache. The
-default number is 500.
-
-<PRE>
-extern unsigned int	HTConCacheSize;
 </PRE>
 
 <A NAME="errormsg"><H2>System Description of Error Message</H2></A>
@@ -159,50 +113,6 @@ kept.
 <PRE>
 extern CONST char * HTInetString PARAMS((struct sockaddr_in * sin));
 </PRE>
-
-<H3>Parse an internet node address and port</H3>
-
-This function finds the address of a specified host and fills out the sockaddr
-structure. str points to a string with a node name or number, with optional
-trailing colon and port number. sin points to the binary internet or decnet
-address field. <P>
-
-On exit *sin is filled in. If no port is specified in str, that field is left
-unchanged in *sin. On success, the number of homes on the host is returned.
-
-<PRE>
-extern int HTParseInet	PARAMS((HTRequest *		request,
-				struct sockaddr_in *	sin,
-			       	CONST char *		str,
-				BOOL			use_cur));
-</PRE>
-
-<H3>Name of a Machine on the Other Side of a Socket</H3>
-
-This function should have been called HTGetHostByAddr but for historical
-reasons this is not the case. <P>
-
-<EM><NOTE>Note:</NOTE>This function used to be called HTGetHostName but
-this is now used to find you own host name, see <A HREF="HTTCP.html#HTGetHostName">HTGetHostName()</A></EM>
-
-<PRE>
-extern char * HTGetHostBySock PARAMS((int soc));
-</PRE>
-
-<H3>Host address retuned for specified host name</H3>
-
-This function gets the address of the host and puts it in to the socket
-structure. It maintains its own cache of connections so that the communication
-to the Domain Name Server is minimized. If OK and single homed host then
-it returns 0 but if it is a multi-homed host then 1 is returned.
-
-<PRE>
-extern int HTGetHostByName	PARAMS((HTRequest *	request,
-					char *		host,
-					SockA *		sin,
-					BOOL		use_cur));
-</PRE>
-
 
 <A NAME="HTGetHostName"><H3>Get Name of This Machine</H3></A>
 

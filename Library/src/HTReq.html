@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Public Declaration of Request Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 13-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Sep-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -285,10 +285,11 @@ typedef enum _HTGnHd {
     HT_FORWARDED	= 0x2,
     HT_MESSAGE_ID	= 0x4,
     HT_MIME		= 0x8,
-    HT_NO_CACHE		= 0x10					   /* Pragma */
+    HT_CONNECTION	= 0x10,
+    HT_NO_CACHE		= 0x20					   /* Pragma */
 } HTGnHd;
 
-#define DEFAULT_GENERAL_HEADERS		0
+#define DEFAULT_GENERAL_HEADERS		HT_CONNECTION
 
 extern void HTRequest_setGnHd (HTRequest *request, HTGnHd gnhd);
 extern void HTRequest_addGnHd (HTRequest *request, HTGnHd gnhd);

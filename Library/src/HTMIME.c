@@ -24,10 +24,12 @@
 #include "HTFormat.h"
 #include "HTCache.h"
 #include "HTAlert.h"
+#include "HTAnchor.h"
 #include "HTChunk.h"
 #include "HTMethod.h"
 #include "HTSocket.h"
 #include "HTFWrite.h"
+#include "HTNetMan.h"
 #include "HTReqMan.h"
 #include "HTMIME.h"					 /* Implemented here */
 
@@ -40,7 +42,8 @@ typedef enum _MIME_state {
     UNKNOWN,				/* Unknown header */
     JUNK_LINE,				/* Ignore rest of header */
 
-    CONTENT,				/* Intermediate states */
+    CON,				/* Intermediate states */
+    CONTENT,
     FIRSTLETTER_D,
     FIRSTLETTER_L,
     CONTENTLETTER_L,
@@ -48,11 +51,13 @@ typedef enum _MIME_state {
 
     ALLOW,				/* Headers supported */
     AUTHENTICATE,
+    CONNECTION,
     CONTENT_ENCODING,
     CONTENT_LANGUAGE,
     CONTENT_LENGTH,
     CONTENT_TRANSFER_ENCODING,
     CONTENT_TYPE,
+    KEEP_ALIVE,
     MIME_DATE,
     DERIVED_FROM,
     EXPIRES,
@@ -69,6 +74,8 @@ typedef enum _MIME_state {
 struct _HTStream {
     CONST HTStreamClass *	isa;
     HTRequest *			request;
+    HTNet *			net;
+    HTParentAnchor *		anchor;
     HTStream *			target;
     HTFormat			target_format;
     HTChunk *			buffer;
@@ -76,6 +83,30 @@ struct _HTStream {
     BOOL			transparent;
 };
 
+PRIVATE HTMIMEHandler *HTMIMEUnknown = NULL;  	   /* Unknown header handler */
+
+/* ------------------------------------------------------------------------- */
+/*  			  HANDLING UNKNOWN HEADERS			     */
+/* ------------------------------------------------------------------------- */
+
+/*	Register a unknown header handler
+**	---------------------------------
+**	The application can register a handler that gets called when an
+**	unknown header is found in the header
+*/
+PUBLIC BOOL HTMIME_register (HTMIMEHandler * cbf)
+{
+    return (HTMIMEUnknown = cbf) ? YES : NO;
+}
+
+PUBLIC BOOL HTMIME_unRegister (void)
+{
+    HTMIMEUnknown = NULL;
+    return YES;
+}
+
+/* ------------------------------------------------------------------------- */
+/*  			       MIME PARSER				     */
 /* ------------------------------------------------------------------------- */
 
 /*
@@ -107,8 +138,8 @@ PRIVATE int parseheader ARGS3(HTStream *, me, HTRequest *, request,
 		break;
 
 	      case 'c':
-		check_pointer = "ontent-";
-		ok_state = CONTENT;
+		check_pointer = "on";
+		ok_state = CON;
 		state = CHECK;
 		break;
 
@@ -120,6 +151,10 @@ PRIVATE int parseheader ARGS3(HTStream *, me, HTRequest *, request,
 		check_pointer = "xpires";
 		ok_state = EXPIRES;
 		state = CHECK;
+		break;
+
+	      case 'k':
+		state = KEEP_ALIVE;
 		break;
 
 	      case 'l':
@@ -216,6 +251,27 @@ PRIVATE int parseheader ARGS3(HTStream *, me, HTRequest *, request,
 	      case 'o':
 		check_pointer = "cation";
 		ok_state = LOCATION;
+		state = CHECK;
+		break;
+
+	      default:
+		state = UNKNOWN;
+		break;
+	    }
+	    ptr++;
+	    break;
+
+	  case CON:
+	    switch (TOLOWER(*ptr)) {
+	      case 'n':
+		check_pointer = "ection";
+		ok_state = CONNECTION;
+		state = CHECK;
+		break;
+
+	      case 't':
+		check_pointer = "ent-";
+		ok_state = CONTENT;
 		state = CHECK;
 		break;
 
@@ -324,6 +380,17 @@ PRIVATE int parseheader ARGS3(HTStream *, me, HTRequest *, request,
 	    state = JUNK_LINE;
 	    break;
 
+	  case CONNECTION:
+ 	    if ((value = HTNextField(&ptr)) != NULL) {
+		if (!strcasecomp(value, "keep-alive")) {
+		    if (STREAM_TRACE)
+			fprintf(TDEST,"MIMEParser.. Persistent Connection!\n");
+		    HTDNS_setSocket(me->net->dns, me->net->sockfd);
+		}
+	    }
+	    state = JUNK_LINE;
+	    break;
+
 	  case CONTENT_ENCODING:
 	    if ((value = HTNextField(&ptr)) != NULL) {
 		char *lc = value;
@@ -381,6 +448,21 @@ PRIVATE int parseheader ARGS3(HTStream *, me, HTRequest *, request,
 	    state = JUNK_LINE;
 	    break;
 
+	  case KEEP_ALIVE:
+	    while ((value = HTNextField(&ptr)) != NULL) {
+		if (!strcasecomp(value, "timeout")) {
+		    if ((value = HTNextField(&ptr)) != NULL) {
+			int delta = atoi(value);
+			if (STREAM_TRACE)
+			    fprintf(TDEST, "MIMEParser.. Socket expires: %d\n",
+				    delta);
+			HTDNS_setSockExpires(me->net->dns, time(NULL)+delta);
+		    }
+		}
+	    }
+	    state = JUNK_LINE;
+	    break;
+	    
 	  case MIME_DATE:
 	    anchor->date = HTParseTime(ptr);
 	    state = JUNK_LINE;
@@ -447,7 +529,8 @@ PRIVATE int parseheader ARGS3(HTStream *, me, HTRequest *, request,
 	  case UNKNOWN:
 	    if (STREAM_TRACE)
 		fprintf(TDEST,"MIMEParser.. Unknown header: `%s\'\n", header);
-	    HTAnchor_addExtra(anchor, header);
+	    if (HTMIMEUnknown && HTMIMEUnknown(request, header))
+		HTAnchor_addExtra(anchor, header);
 
 	    /* Fall through */
 
@@ -508,11 +591,12 @@ PRIVATE int parseheader ARGS3(HTStream *, me, HTRequest *, request,
 */
 PRIVATE int HTMIME_put_block ARGS3(HTStream *, me, CONST char *, b, int, l)
 {
+    int status = HT_OK;
     while (!me->transparent && l-- > 0) {
 	if (me->EOLstate == EOL_FCR) {
 	    if (*b == CR) {				    /* End of header */
-		int status = parseheader(me, me->request, me->request->anchor);
-		me->request->net->bytes_read = l;
+		int status = parseheader(me, me->request, me->anchor);
+		me->net->bytes_read = l;
 		if (status != HT_OK)
 		    return status;
 	    } else if (*b == LF)			   	     /* CRLF */
@@ -529,8 +613,8 @@ PRIVATE int HTMIME_put_block ARGS3(HTStream *, me, CONST char *, b, int, l)
 	    if (*b == CR)				/* LF CR or CR LF CR */
 		me->EOLstate = EOL_SCR;
 	    else if (*b == LF) {			    /* End of header */
-		int status = parseheader(me, me->request, me->request->anchor);
-		me->request->net->bytes_read = l;
+		int status = parseheader(me, me->request, me->anchor);
+		me->net->bytes_read = l;
 		if (status != HT_OK)
 		    return status;
 	    } else if (WHITE(*b)) {	       /* Folding: LF SP or CR LF SP */
@@ -543,8 +627,8 @@ PRIVATE int HTMIME_put_block ARGS3(HTStream *, me, CONST char *, b, int, l)
 	    }
 	} else if (me->EOLstate == EOL_SCR) {
 	    if (*b==CR || *b==LF) {			    /* End of header */
-		int status = parseheader(me, me->request, me->request->anchor);
-		me->request->net->bytes_read = l;
+		int status = parseheader(me, me->request, me->anchor);
+		me->net->bytes_read = l;
 		if (status != HT_OK)
 		    return status;
 	    } else if (WHITE(*b)) {	 /* Folding: LF CR SP or CR LF CR SP */
@@ -571,9 +655,19 @@ PRIVATE int HTMIME_put_block ARGS3(HTStream *, me, CONST char *, b, int, l)
     }
     return HT_WOULD_BLOCK;
 #endif
-    if (me->target && l > 0)				   /* Anything left? */
-	return (*me->target->isa->put_block)(me->target, b, l);
-    return HT_OK;
+
+    /* 
+    ** Put the rest down the stream without touching the data but make sure
+    ** that we get the correct content length of data
+    */
+    if (me->target && l > 0) {
+	int status = (*me->target->isa->put_block)(me->target, b, l);
+	if (status==HT_OK && me->net->bytes_read >=me->anchor->content_length){
+	    HTDNS_clearActive(me->net->dns);
+	    return HT_LOADED;
+	}
+    }
+    return status;
 }
 
 
@@ -666,9 +760,12 @@ PUBLIC HTStream* HTMIMEConvert ARGS5(
 	outofmem(__FILE__, "HTMIMEConvert");
     me->isa = &HTMIME;       
     me->request = request;
+    me->anchor = request->anchor;
+    me->net = request->net;
     me->target = output_stream;
     me->target_format = output_format;
     me->buffer = HTChunkCreate(512);
     me->EOLstate = EOL_BEGIN;
     return me;
 }
+

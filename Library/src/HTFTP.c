@@ -1083,7 +1083,7 @@ PRIVATE ftp_ctrl *HTFTP_init_con ARGS2(HTRequest *, req, char *, url)
     FREE(user.passwd);
 
     /* Now get ready for a connect */
-    if ((status = HTDoConnect((HTNet *) ctrl, url, FTP_PORT, NULL, NO)) < 0)
+    if ((status = HTDoConnect((HTNet *) ctrl, url, FTP_PORT)) < 0)
     {
 	if (PROT_TRACE)
 	    fprintf(TDEST, "HTFTP_init_con: Connection not established!\n");
@@ -1547,8 +1547,7 @@ PRIVATE int HTFTP_get_data_con ARGS3(HTRequest *, request,
 	    /* We can't generally expect that the data connection is going to
 	       be on the same host as the control connection. Use therefore
 	       not the URL but the host and port returned by the PASV call */
-	    status = HTDoConnect((HTNet *) data, data->host, serv_port,
-				 NULL, YES);
+	    status = HTDoConnect((HTNet *) data, data->host, serv_port);
 	    if (status < 0) {
 		if (PROT_TRACE) fprintf(TDEST,
 				   "FTP......... Data connection failed using PASV, let's try PORT instead\n");

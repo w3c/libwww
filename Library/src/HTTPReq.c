@@ -15,7 +15,8 @@
 #include "HTString.h"
 #include "HTParse.h"
 #include "HTFormat.h"
-#include "HTNet.h"
+#include "HTNetMan.h"
+#include "HTDNS.h"
 #include "HTTCP.h"
 #include "HTWriter.h"
 #include "HTReqMan.h"
@@ -28,7 +29,6 @@ extern char * HTAppVersion;	       /* Application version: please supply */
 PUBLIC char * HTProxyHeaders = NULL;		    /* Headers to pass as-is */
 
 /* Macros and other defines */
-#define HTTP_VERSION	"HTTP/1.0"
 #define MIME_VERSION	"MIME/1.0"
 #define PUTC(c)		(*me->target->isa->put_character)(me->target, c)
 #define PUTS(s)		(*me->target->isa->put_string)(me->target, s)
@@ -46,6 +46,7 @@ struct _HTStream {
     HTRequest *			request;
     SOCKFD			sockfd;
     HTChunk *  			buffer;
+    int				version;
     BOOL			transparent;
 };
 
@@ -53,11 +54,30 @@ struct _HTStream {
 /* 			    HTTP Output Request Stream			     */
 /* ------------------------------------------------------------------------- */
 
-/*                                                              HTTPMakeRequest
-**
-**	This function composes the HTTP request header.
+/*	HTTP09Request
+**	-------------
+**	Makes a HTTP/0.9 request
 */
-PRIVATE void HTTPMakeRequest ARGS2(HTStream *, me, HTRequest *, request)
+PRIVATE void HTTP09Request (HTStream * me, HTRequest * request)
+{
+    char *addr = HTAnchor_physical(request->anchor);
+    char *fullurl = HTParse(addr, "", PARSE_PATH|PARSE_PUNCTUATION);
+    HTChunk *header = me->buffer;
+    HTChunkPuts(header, "GET ");
+    HTChunkPuts(header, fullurl);
+    HTChunkPutc(header, ' ');
+    HTChunkPutc(header, CR);
+    HTChunkPutc(header, LF);
+    HTChunkTerminate(header);
+    if (PROT_TRACE)
+	fprintf(TDEST, "HTTP Tx..... %s", header->data);
+}
+
+/*	HTTPMakeRequest
+**	---------------
+**	Makes a HTTP/1.0-1.1 request header.
+*/
+PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 {
     HTChunk *header = me->buffer;
     HTParentAnchor *entity =
@@ -82,8 +102,7 @@ PRIVATE void HTTPMakeRequest ARGS2(HTStream *, me, HTRequest *, request)
 	}
 	free(fullurl);
     }
-    HTChunkPutc(header, ' ');
-    HTChunkPuts(header, HTTP_VERSION);
+    HTChunkPuts(header, " HTTP/1.0");
     HTChunkPutc(header, CR);
     HTChunkPutc(header, LF);
 
@@ -106,8 +125,10 @@ PRIVATE void HTTPMakeRequest ARGS2(HTStream *, me, HTRequest *, request)
 	sprintf(linebuf, "MIME-Version: %s%c%c", MIME_VERSION, CR, LF);
 	HTChunkPuts(header, linebuf);
     }
-
-    /* Various PRAGMA headers */
+    if (request->GenMask & HT_CONNECTION) {
+	sprintf(linebuf, "Connection: Keep-Alive%c%c", CR, LF);
+	HTChunkPuts(header, linebuf);
+    }
     if (request->RequestMask & HT_NO_CACHE) {
 	sprintf(linebuf, "Pragma: %s%c%c", "no-cache", CR, LF);
 	HTChunkPuts(header, linebuf);
@@ -345,55 +366,34 @@ PRIVATE void HTTPMakeRequest ARGS2(HTStream *, me, HTRequest *, request)
 	fprintf(TDEST, "HTTP Tx..... %s", header->data);
 }
 
-PRIVATE int HTTPRequest_put_character ARGS2(HTStream *, me, char, c)
-{
-    if (!me->target) {
-	return HT_WOULD_BLOCK;
-    } else if (me->transparent)
-	return PUTC(c);
-    else {
-	int status;
-	HTTPMakeRequest(me, me->request);		  /* Generate header */
-	if ((status=PUTBLOCK(me->buffer->data, me->buffer->size-1)) == HT_OK) {
-	    me->transparent = YES;
-	    return PUTC(c);
-	}
-	return status;
-    }
-}
-
-PRIVATE int HTTPRequest_put_string ARGS2(HTStream *, me, CONST char*, s)
-{
-    if (!me->target) {
-	return HT_WOULD_BLOCK;
-    } else if (me->transparent)
-	return PUTS(s);
-    else {
-	int status;
-	HTTPMakeRequest(me, me->request);		  /* Generate header */
-	if ((status=PUTBLOCK(me->buffer->data, me->buffer->size-1)) == HT_OK) {
-	    me->transparent = YES;
-	    return PUTS(s);
-	}
-	return status;
-    }
-}
-
 PRIVATE int HTTPRequest_put_block ARGS3(HTStream *, me, CONST char*, b, int, l)
 {
     if (!me->target) {
 	return HT_WOULD_BLOCK;
     } else if (me->transparent)
-	return PUTBLOCK(b, l);
+	return b ? PUTBLOCK(b, l) : HT_OK;
     else {
 	int status;
-	HTTPMakeRequest(me, me->request);		  /* Generate header */
+	if (me->version == HTTP_09)
+	    HTTP09Request(me, me->request);
+	else
+	    HTTPMakeRequest(me, me->request);		  /* Generate header */
 	if ((status=PUTBLOCK(me->buffer->data, me->buffer->size-1)) == HT_OK) {
 	    me->transparent = YES;
-	    return PUTBLOCK(b, l);
+	    return b ? PUTBLOCK(b, l) : HT_OK;
 	}
 	return status;
     }
+}
+
+PRIVATE int HTTPRequest_put_character ARGS2(HTStream *, me, char, c)
+{
+    return HTTPRequest_put_block(me, &c, 1);
+}
+
+PRIVATE int HTTPRequest_put_string ARGS2(HTStream *, me, CONST char*, s)
+{
+    return HTTPRequest_put_block(me, s, strlen(s));
 }
 
 /*
@@ -401,17 +401,7 @@ PRIVATE int HTTPRequest_put_block ARGS3(HTStream *, me, CONST char*, b, int, l)
 */
 PRIVATE int HTTPRequest_flush ARGS1(HTStream *, me)
 {
-    if (!me->target) {
-	return HT_WOULD_BLOCK;
-    } else if (!me->transparent) {
-	int status;
-	HTTPMakeRequest(me, me->request);		  /* Generate header */
-	if ((status=PUTBLOCK(me->buffer->data, me->buffer->size-1)) == HT_OK)
-	    me->transparent = YES;
-	else
-	    return status;
-    }
-    return HT_OK;
+    return HTTPRequest_put_block(me, NULL, 0);
 }
 
 /*
@@ -419,20 +409,13 @@ PRIVATE int HTTPRequest_flush ARGS1(HTStream *, me)
 */
 PRIVATE int HTTPRequest_free ARGS1(HTStream *, me)
 {
-    int status;
-    if (!me->target) {
-	return HT_WOULD_BLOCK;
-    } else if (!me->transparent) {
-	HTTPMakeRequest(me, me->request);		  /* Generate header */
-	if ((status = PUTBLOCK(me->buffer->data, me->buffer->size-1)) == HT_OK)
-	    me->transparent = YES;
-	else
-	    return status;
+    int status = HTTPRequest_flush(me);
+    if (status != HT_WOULD_BLOCK) {
+	if ((status = (*me->target->isa->_free)(me->target)) == HT_WOULD_BLOCK)
+	    return HT_WOULD_BLOCK;
+	HTChunkFree(me->buffer);
+	free(me);
     }
-    if ((status = (*me->target->isa->_free)(me->target)) == HT_WOULD_BLOCK)
-	return HT_WOULD_BLOCK;
-    HTChunkFree(me->buffer);
-    free(me);
     return status;
 }
 
@@ -465,13 +448,13 @@ PUBLIC HTStream * HTTPRequest_new ARGS2(HTRequest *,	request,
 					HTStream *,	target)
 {
     HTStream * me = (HTStream *) calloc(1, sizeof(HTStream));
+    HTdns *dns = HTNet_dns(request->net);
     if (!me) outofmem(__FILE__, "HTTPRequest_new");
     me->isa = &HTTPRequestClass;
     me->target = target;
     me->request = request;
     me->buffer = HTChunkCreate(512);
+    me->version = HTDNS_serverVersion(dns);
     me->transparent = NO;
     return me;
 }
-
-

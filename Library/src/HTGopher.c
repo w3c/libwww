@@ -30,7 +30,7 @@
 #include "HTGuess.h"
 #include "HTError.h"
 #include "HTWriter.h"
-#include "HTNet.h"
+#include "HTNetMan.h"
 #include "HTBind.h"
 #include "HTMLGen.h"
 #include "HTDirBrw.h"
@@ -720,7 +720,7 @@ PUBLIC int HTLoadGopher (SOCKET soc, HTRequest * request, SockOps ops)
 	    break;
 
 	  case GOPHER_NEED_CONNECTION:
-	    status = HTDoConnect(net, url, GOPHER_PORT, NULL, NO);
+	    status = HTDoConnect(net, url, GOPHER_PORT);
 	    if (status == HT_OK) {
 		if (PROT_TRACE)
 		    fprintf(TDEST, "Gopher...... Connected, socket %d\n",
