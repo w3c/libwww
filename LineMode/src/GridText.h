@@ -50,3 +50,4 @@ extern int HText_getLines PARAMS((HText * text));
 /*
 
    End of definition  */
+

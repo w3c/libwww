@@ -1133,9 +1133,7 @@ int main ARGS2(int, argc, char **, argv)
     HTEventCallBack user;		/* To register STDIN for user events */
 
     /* Start up Library of Common Code */
-    WWW_TraceFlag = 1;
     HTLibInit();
-    WWW_TraceFlag = 0;
 
 #ifdef THINK_C /* command line from Think_C */
     int i;
