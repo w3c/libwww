@@ -543,9 +543,12 @@ PRIVATE int HTTPRequest_free (HTStream * me)
 PRIVATE int HTTPRequest_abort (HTStream * me, HTList * e)
 {
     if (PROT_TRACE) HTTrace("HTTPRequest. ABORTING...\n");
+    /* JK: Added protection against NULL pointers */
     if (me) {
-	if (me->target) (*me->target->isa->abort)(me->target, e);
-	HT_FREE(me->url);
+	if (me->target && me->target->isa)
+	  (*me->target->isa->abort)(me->target, e);
+	if (me->url)
+	  HT_FREE(me->url);
 	HT_FREE(me);
     }
     return HT_ERROR;

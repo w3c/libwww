@@ -47,6 +47,13 @@ PRIVATE time_t	TcpTtl = TCP_TTL;          /* Timeout on persistent channels */
 PRIVATE HTList	** HostTable = NULL;
 PRIVATE HTList * PendHost = NULL;	    /* List of pending host elements */
 
+/* JK: New functions for interruption the automatic pending request 
+   activation */
+PRIVATE HTHost_ActivateRequestCallback * ActivateReqCBF = NULL;
+PRIVATE int HTHost_ActivateRequest (HTNet *net);
+PRIVATE BOOL DoPendingReqLaunch = YES; /* controls automatic activation
+                                              of pending requests */
+
 PRIVATE int EventTimeout = -1;		        /* Global Host event timeout */
 
 PRIVATE ms_t WriteDelay = DEFAULT_DELAY;		      /* Delay in ms */
@@ -907,6 +914,12 @@ PUBLIC int HTHost_addNet (HTHost * host, HTNet * net)
 		HTTimer_delete(host->timer);
 		host->timer = NULL;
 	    }
+           
+            /*JK: New CBF function
+	    ** Call any user-defined callback to say the request will
+            ** be processed.
+            */
+            HTHost_ActivateRequest (net);
 
 	} else {
 	    if (!host->pending) host->pending = HTList_new();
@@ -1089,14 +1102,23 @@ PUBLIC BOOL HTHost_launchPending (HTHost * host)
 	**  Send out as many as will fit in pipe.
 	*/
 	while (_roomInPipe(host) && (net = HTHost_nextPendingNet(host))) {
-	    int status;
-	    if (CORE_TRACE)
-		HTTrace("Launch pending net object %p with %d reqs in pipe (%d reqs made)\n",
-			net, HTList_count(host->pipeline), host->reqsMade);
-	    status = HTNet_execute(net, HTEvent_WRITE);
+	    int status = NO;
+	    /* JK: Added new code to interrupt pending requests*/
+	    if (DoPendingReqLaunch) {
+	      HTHost_ActivateRequest (net);
+	      if (CORE_TRACE)
+		HTTrace("Launch pending net object %p with %d reqs in pipe (%d reqs made)\n", net, HTList_count(host->pipeline), host->reqsMade);
+	      status = HTNet_execute(net, HTEvent_WRITE);
+            } else
+	      {
+		/* replace the object that was taken off the list */
+		HTList_appendObject (host->pending, (void *) net);
+		/* go the the other pending hosts routine */
+		break;
+	      }
+
 	    if (status != HT_OK)
 		return status;
-
         }
 
 	/*
@@ -1106,7 +1128,16 @@ PUBLIC BOOL HTHost_launchPending (HTHost * host)
 	    HTHost * pending = HTHost_nextPendingHost();
 	    if (pending) {
 		HTNet * net = HTHost_nextPendingNet(pending);
-		if (net) return HTNet_execute(net, HTEvent_WRITE);
+		if (net) {
+                   if (DoPendingReqLaunch) {
+                       HTHost_ActivateRequest (net);
+                       return HTNet_execute(net, HTEvent_WRITE);
+                   } else {
+		     /* replace the object that was taken off the list */
+		     HTList_appendObject (PendHost, (void *) pending);
+                     return NO;
+		   }
+		}
 	    }
 	}
     } else
@@ -1141,6 +1172,8 @@ PUBLIC int HTHost_connect (HTHost * host, HTNet * net, char * url, HTProtocolId 
 */
 PUBLIC int HTHost_register (HTHost * host, HTNet * net, HTEventType type)
 {
+  HTEvent *event;
+
     if (host && net) {
 
 	if (type == HTEvent_CLOSE) {
@@ -1164,8 +1197,11 @@ PUBLIC int HTHost_register (HTHost * host, HTNet * net, HTEventType type)
 	    if (host->registeredFor & HTEvent_BITS(type))
 		return YES;
 	    host->registeredFor ^= HTEvent_BITS(type);
+	    /* JK:  register a request in the event structure */
+	    event =  *(host->events+HTEvent_INDEX(type));
+	    event->request = HTNet_request (net);
 	    return HTEvent_register(HTChannel_socket(host->channel),
-				    type, *(host->events+HTEvent_INDEX(type)));
+				    type, event);
 	}
     }
     return NO;
@@ -1416,12 +1452,12 @@ PUBLIC int HTHost_forceFlush(HTHost * host)
 */
 PUBLIC void HTHost_setContext (HTHost * me, void * context)
 {
-    if (me) me->context = context;
+  if (me) me->context = context;
 }
 
 PUBLIC void * HTHost_context (HTHost * me)
 {
-    return me ? me->context : NULL;
+  return me ? me->context : NULL;
 }
 
 PUBLIC int HTHost_eventTimeout (void)
@@ -1434,3 +1470,36 @@ PUBLIC void HTHost_setEventTimeout (int millis)
     EventTimeout = millis;
     if (CORE_TRACE) HTTrace("Host........ Setting event timeout to %d ms\n", millis);
 }
+
+
+PUBLIC void HTHost_setActivateRequestCallback (HTHost_ActivateRequestCallback *
+cbf)
+{
+    if (CORE_TRACE) HTTrace("HTHost....... registering %p\n", cbf);
+    ActivateReqCBF = cbf;
+}
+
+PRIVATE int HTHost_ActivateRequest (HTNet *net)
+{
+  HTRequest *request;
+
+  if (!ActivateReqCBF) {
+    if (CORE_TRACE) HTTrace("HTHost....... No ActivateRequest "
+                            "callback handler registered\n");
+    return -1;
+  }
+
+  request = HTNet_request (net);
+  return (*ActivateReqCBF) (request);
+}
+
+PUBLIC void HTHost_disable_PendingReqLaunch (void)
+{
+  DoPendingReqLaunch = NO;
+}
+
+PUBLIC void HTHost_enable_PendingReqLaunch (void)
+{
+  DoPendingReqLaunch = YES;
+}
+
