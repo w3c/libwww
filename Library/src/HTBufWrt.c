@@ -46,7 +46,7 @@ struct _HTOutputStream {
 */
 PRIVATE int HTBufferWriter_flush (HTOutputStream * me)
 {
-    int status = HT_ERROR;
+    int status = HT_OK;
     if (me && me->read > me->data) {
 	me->lastFlushTime = HTGetTimeInMillis();
         if ((status = PUTBLOCK(me->data, me->read - me->data))==HT_WOULD_BLOCK)
@@ -60,7 +60,7 @@ PRIVATE int FlushEvent (HTTimer * timer, void * param, HTEventType type)
 {
     HTOutputStream * me = (HTOutputStream *) param;
     if (timer != me->timer) HTDebugBreak();
-    if (PROT_TRACE) HTTrace("Buffer...... Timeout Flushing...\n");
+    if (PROT_TRACE) HTTrace("Buffer...... Timeout flushing %p with timer %p\n", me, timer);
 
     /*
     **  We ignore the return code here which we shouldn't!!!
@@ -93,7 +93,7 @@ PRIVATE int HTBufferWriter_lazyFlush (HTOutputStream * me)
     */
     if (!delay) {
 	int status;
-	if (PROT_TRACE) HTTrace("Buffer...... Flushing\n");
+	if (PROT_TRACE) HTTrace("Buffer...... Flushing %p\n", me);
 	if ((status = HTBufferWriter_flush(me)) && me->timer) {
 	    HTTimer_delete(me->timer);
 	    me->timer = NULL;
@@ -110,7 +110,7 @@ PRIVATE int HTBufferWriter_lazyFlush (HTOutputStream * me)
 	net = HTHost_getWriteNet(me->host);
 	me->timer = HTTimer_new(NULL, FlushEvent, me, exp, NO);
 	HTHost_unregister(me->host, net, HTEvent_WRITE);
-	if (PROT_TRACE) HTTrace("Buffer...... Waiting...\n");
+	if (PROT_TRACE) HTTrace("Buffer...... Waiting %p\n", me);
     }
     return HT_OK;
 }
@@ -123,8 +123,8 @@ PRIVATE int HTBufferWriter_free (HTOutputStream * me)
 PRIVATE BOOL HTBufferWriter_addBuffer(HTOutputStream * me, int addthis)
 {
     if (me) {
-	me->expo += me->expo;
         me->allocated += (addthis - addthis%me->growby + (me->growby*me->expo));
+	me->expo *= 2;
 	if (PROT_TRACE) HTTrace("Buffer...... Increasing buffer to %d bytes\n", me->allocated);
         if (me->data) {
             int size = me->read-me->data;
@@ -273,8 +273,7 @@ PUBLIC HTOutputStream * HTBufferWriter_new (HTHost * host, HTChannel * ch,
 		}		
 	    }
 #endif
-	    if (bufsize <= 0) bufsize = tcpbufsize ? tcpbufsize>>1 : OUTPUT_BUFFER_SIZE;
-	    if (PROT_TRACE) HTTrace("Socket...... We use buffer size %d\n", bufsize);
+	    if (bufsize <= 0) bufsize = tcpbufsize ? tcpbufsize : OUTPUT_BUFFER_SIZE;
 	    if ((me = (HTOutputStream *) HT_CALLOC(1, sizeof(HTOutputStream)))==NULL ||
 		(me->data = (char *) HT_MALLOC(bufsize)) == NULL)
 		HT_OUTOFMEM("HTBufferWriter_new");

@@ -538,10 +538,12 @@ PRIVATE int HTTPRequest_free (HTStream * me)
 
 PRIVATE int HTTPRequest_abort (HTStream * me, HTList * e)
 {
-    if (me->target) (*me->target->isa->abort)(me->target, e);
-    HT_FREE(me->url);
-    HT_FREE(me);
     if (PROT_TRACE) HTTrace("HTTPRequest. ABORTING...\n");
+    if (me) {
+	if (me->target) (*me->target->isa->abort)(me->target, e);
+	HT_FREE(me->url);
+	HT_FREE(me);
+    }
     return HT_ERROR;
 }
 

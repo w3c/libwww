@@ -25,8 +25,8 @@
 #include "HTWWWStr.h"
 #include "HTAncMan.h"					 /* Implemented here */
 
-#define HASH_SIZE	101	   /* Arbitrary prime. Memory/speed tradeoff */
-#define CHILD_HASH_SIZE	 67	       /* Often smaller than hash of parents */
+#define HASH_SIZE	599	   /* Arbitrary prime. Memory/speed tradeoff */
+#define CHILD_HASH_SIZE	 97	       /* Often smaller than hash of parents */
 
 PRIVATE HTList **adult_table=0;  /* Point to table of lists of all parents */
 

@@ -138,7 +138,7 @@ PUBLIC BOOL HTLog_addReferer (HTLog * log, HTRequest * request, int status)
 PUBLIC BOOL HTLog_addLine (HTLog * log, const char * line)
 {
     if (log && log->fp && line) {
-	fprintf(log->fp, line);
+	fprintf(log->fp, "%s\n", line);
 	return (fflush(log->fp) != EOF); /* Actually update it on disk */
     }
     return NO;

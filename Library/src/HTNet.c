@@ -36,7 +36,7 @@
 #define HT_MAX_SOCKETS	6
 #endif
 
-#define HASH_SIZE	101
+#define HASH_SIZE	599
 
 typedef struct _BeforeFilter {
     HTNetBefore *	before;				  /* Filter function */

@@ -28,7 +28,7 @@ struct _HTOutputStream {
     const HTOutputStreamClass *	isa;
     HTChannel *			ch;
     HTHost *			host;
-    char *			write;
+    int				offset;
 #ifdef NOT_ASCII
     char *			ascbuf;	    /* Buffer for TOASCII conversion */
 #endif
@@ -87,6 +87,7 @@ PRIVATE int HTWriter_write (HTOutputStream * me, const char * buf, int len)
     SOCKET soc = HTChannel_socket(HTHost_channel(host));
     HTNet * net = HTHost_getWriteNet(host);
     int b_write;
+    char * wrtp;
     const char *limit = buf+len;
 
 #ifdef NOT_ASCII
@@ -101,27 +102,32 @@ PRIVATE int HTWriter_write (HTOutputStream * me, const char * buf, int len)
 	    *dest = TOASCII(*orig);
 	    dest++, orig++;
 	}
-	me->write = me->ascbuf;
+	wrtp = me->ascbuf;
 	limit = me->ascbuf+len;
     }
 #else
-    me->write = (char *) buf;
+    if (!me->offset)
+	wrtp = (char *) buf;
+    else {
+	wrtp = (char *) buf + me->offset;
+	len -= me->offset;
+	me->offset = 0;
+    }
 #endif
 
     /* Write data to the network */
-    while (me->write < limit) {
-        b_write = NETWRITE(soc, me->write, len);
-        if (b_write < 0) {
-
+    while (wrtp < limit) {
+	if ((b_write = NETWRITE(soc, wrtp, len)) < 0) {
 #ifdef EAGAIN
 	    if (socerrno == EAGAIN || socerrno == EWOULDBLOCK)/* POSIX, SVR4 */
 #else
 	    if (socerrno == EWOULDBLOCK)			      /* BSD */
 #endif
 	    {
-		if (PROT_TRACE)
-		    HTTrace("Write Socket WOULD BLOCK %d\n",soc);
 		HTHost_register(host, net, HTEvent_WRITE);
+		me->offset = wrtp - buf;
+		if (PROT_TRACE)
+		    HTTrace("Write Socket WOULD BLOCK %d (offset %d)\n",soc, me->offset);
 		return HT_WOULD_BLOCK;
 #ifdef EINTR
 	    } else if (socerrno == EINTR) {
@@ -145,12 +151,10 @@ PRIVATE int HTWriter_write (HTOutputStream * me, const char * buf, int len)
 	}
 
 	/* We do this unconditionally, should we check to see if we ever blocked? */
-	HTTraceData(me->write, b_write, "HTWriter.... Writing");
-        me->write += b_write;
+	HTTraceData(wrtp, b_write, "HTWriter.... Writing");
+	wrtp += b_write;
 	len -= b_write;
-	if (PROT_TRACE)
-	    HTTrace("Write Socket %d bytes written to socket %d\n",
-		    b_write, soc);
+	if (PROT_TRACE) HTTrace("Write Socket %d bytes written to %d\n", b_write, soc);
 	{
 	    HTAlertCallback *cbf = HTAlert_find(HT_PROG_READ);
 	    if (cbf) (*cbf)(net->request, HT_PROG_WRITE,
@@ -217,7 +221,7 @@ PUBLIC HTOutputStream * HTWriter_new (HTHost * host, HTChannel * ch,
 	    me->ch = ch;
 	    me->host = host;
 	}
-        return me;
+	return me;
     }
     return NULL;
 }

@@ -207,6 +207,7 @@ PUBLIC int HTMIME_contentType (HTRequest * request, HTResponse * response,
     return HT_OK;
 }
 
+#if 0
 PRIVATE int HTFindInt(char * haystack, char * needle, int deflt)
 {
     char * start = strstr(haystack, needle);
@@ -226,6 +227,7 @@ PRIVATE int HTFindInt(char * haystack, char * needle, int deflt)
     }
     return value;
 }
+#endif
 
 PUBLIC int HTMIME_keepAlive (HTRequest * request, HTResponse * response,
 			     char * token, char * value)
@@ -448,7 +450,16 @@ PUBLIC int HTMIME_userAgent (HTRequest * request, HTResponse * response,
 PUBLIC int HTMIME_vary (HTRequest * request, HTResponse * response,
 			char * token, char * value)
 {
-
+    /*
+    **  Walk through the set of vary directives and add them to the
+    **  response association list for vary directives
+    */
+    char * name_val;
+    while ((name_val = HTNextPair(&value)) != NULL) {
+	char * name = HTNextField(&name_val);
+	char * val = HTNextField(&name_val);
+	if (name) HTResponse_addVariant(response, name, val ? val : "");
+    }
     return HT_OK;
 }
 

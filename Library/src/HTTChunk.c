@@ -48,8 +48,10 @@ PRIVATE BOOL HTChunkDecode_header (HTStream * me)
 {
     char * line = HTChunk_data(me->buf);
     if (line) {
-	me->left = strtol(line, (char **) NULL, 16);    /* hex! */
-	if (STREAM_TRACE) HTTrace("Chunked..... chunk size: %X\n", me->left);
+	char *errstr = NULL;
+	me->left = strtol(line, &errstr, 16);    /* hex! */
+	if (STREAM_TRACE) HTTrace("Chunked..... `%s\' chunk size: %X\n", line, me->left);
+	if (errstr == line) return NO;
 	if (me->left > 0) {
 	    me->total += me->left;
 
@@ -100,10 +102,10 @@ PRIVATE int HTChunkDecode_block (HTStream * me, const char * b, int l)
 	/*
 	** If we have to read trailers. Otherwise we are done.
 	*/
-	if (me->trailer)
+	if (me->trailer) {
 	    me->target = HTStreamStack(WWW_MIME_FOOT, WWW_SOURCE,
 				       me->target, me->request, NO);
-	else if (me->state == EOL_SLF) {
+	} else if (me->state == EOL_SLF) {
 	    if (me->lastchunk) return HT_LOADED;
 	    me->state = EOL_BEGIN;
 	}

@@ -23,7 +23,7 @@
 #include "HTList.h"
 #include "HTAtom.h"
 
-#define HASH_SIZE	101		/* Tunable */
+#define HASH_SIZE	599		/* Tunable */
 
 PRIVATE HTAtom * hash_table[HASH_SIZE];
 PRIVATE BOOL initialised = NO;

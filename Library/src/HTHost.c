@@ -935,8 +935,6 @@ PUBLIC BOOL HTHost_free (HTHost * host, int status)
                 HTChannel_setSemaphore(host->channel, 0);
                 HTHost_clearChannel(host, status);
 
-                /* Force a write next time we open the socket */
-                host->forceWriteFlush = YES;
             } else {
                 if (CORE_TRACE) HTTrace("Host Object. keeping persistent socket %d\n", HTChannel_socket(host->channel));
                 HTChannel_delete(host->channel, status);
@@ -1365,6 +1363,7 @@ PUBLIC ms_t HTHost_writeDelay (HTHost * host)
 
 PUBLIC int HTHost_findWriteDelay (HTHost * host, ms_t lastFlushTime, int buffSize)
 {
+#if 0
     unsigned short mtu;
     int ret = -1;
     int socket = HTChannel_socket(host->channel);
@@ -1374,6 +1373,9 @@ PUBLIC int HTHost_findWriteDelay (HTHost * host, ms_t lastFlushTime, int buffSiz
     if ((ret == 0 && buffSize >= mtu) || host->forceWriteFlush)
 	return 0;
     return host->delay;
+#else
+    return host->forceWriteFlush ? 0 : host->delay;
+#endif
 }
 
 PUBLIC BOOL HTHost_setDefaultWriteDelay (ms_t delay)
@@ -1393,17 +1395,15 @@ PUBLIC ms_t HTHost_defaultWriteDelay (void)
 
 PUBLIC int HTHost_forceFlush(HTHost * host)
 {
-    HTNet * targetNet = (HTNet *)HTList_lastObject(host->pipeline);
-    int wasForced = host->forceWriteFlush;
+    HTNet * targetNet = (HTNet *) HTList_lastObject(host->pipeline);
     int ret;
-    if (targetNet == NULL)
-	return HT_ERROR;
+    if (targetNet == NULL) return HT_ERROR;
     if (CORE_TRACE)
 	HTTrace("Host Event.. FLUSH passed to `%s\'\n", 
 		HTAnchor_physical(HTRequest_anchor(HTNet_request(targetNet))));
     host->forceWriteFlush = YES;
     ret = (*targetNet->event.cbf)(HTChannel_socket(host->channel), targetNet->event.param, HTEvent_FLUSH);
-    host->forceWriteFlush = wasForced;
+    host->forceWriteFlush = NO;
     return ret;
 }
 

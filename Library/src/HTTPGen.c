@@ -195,9 +195,11 @@ PRIVATE int HTTPGen_free (HTStream * me)
 
 PRIVATE int HTTPGen_abort (HTStream * me, HTList * e)
 {
-    if (me->target) (*me->target->isa->abort)(me->target, e);
-    HT_FREE(me);
     if (PROT_TRACE) HTTrace("HTTPGen..... ABORTING...\n");
+    if (me) {
+	if (me->target) (*me->target->isa->abort)(me->target, e);
+	HT_FREE(me);
+    }
     return HT_ERROR;
 }
 

@@ -38,6 +38,33 @@ the latest &nbsp;<A HREF="Extrnals.html">list of public functions</A></B>
 <P>
   <HR>
 <H2>
+  Release 5.1e January 1998
+</H2>
+<H3>
+  New Features
+</H3>
+<UL>
+  <LI>
+    Added support for linking against a
+    <A HREF="http://www.delorie.com/gnu/docs/rx/rx_3.html">POSIX Regular
+    Expression</A> (regex) library. This is used in the
+    <A HREF="../../Robot/">Robot</A>, for example, to support
+    <A HREF="../../Robot/User/CommandLine.html#Constraints">regular expressions
+    on URIs</A> to include and exclude from a traversal. The code has been tested
+    with the <A HREF="http://ftp.digital.com/pub/GNU/">GNU regex library</A>.
+  <LI>
+    Added more <A HREF="../../Robot/User/CommandLine.html#Logging">logging features
+    to the webbot</A>
+</UL>
+<H3>
+  Bug Fixes
+</H3>
+<UL>
+  <LI>
+    Fixed bug in <A HREF="../src/HTWriter.html">ouputstream</A> that caused buffer
+    to be overwritten in some cases when blocked on write
+</UL>
+<H2>
   Release 5.1d December 1997
 </H2>
 <H3>

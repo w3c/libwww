@@ -302,6 +302,16 @@ extern HTEncoding HTResponse_transfer (HTResponse * response);
 extern BOOL HTResponse_setTransfer (HTResponse * response, HTEncoding cte);
 </PRE>
 <H3>
+  Vary Headers
+</H3>
+<P>
+Any Vary header fields
+<PRE>
+extern BOOL HTResponse_addVariant (HTResponse * me, char * token, char * value);
+extern BOOL HTResponse_deleteVariantAll (HTResponse * me);
+extern HTAssocList * HTResponse_variant (HTResponse * me);
+</PRE>
+<H3>
   Trailers
 </H3>
 <P>

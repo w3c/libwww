@@ -142,7 +142,7 @@ PUBLIC void HTMemory_free (void * ptr)
 **	----------------
 **	Register the memory exit function. This function notifies the user that
 **	it is all over. If this function returns or is undefined, 
-**	HTMemory_outofmem calls exit(1).
+**	HTMemory_outofmem calls abort.
 */
 PUBLIC void HTMemory_setExit (HTMemory_exitCallback * pExit)
 {
@@ -169,6 +169,6 @@ PUBLIC void HTMemory_outofmem (char * name, char * file, unsigned long line)
     HTTrace("%s:%ld failed allocation for \"%s\" (%ld bytes).\n\
 Program aborted.\n",
 	     file, line, name, LastAllocSize);
-    exit(1);
+    abort();
 }
 

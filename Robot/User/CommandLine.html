@@ -1,7 +1,5 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 10-Feb-1996 -->
-  <NEXTID N="z29">
   <TITLE>Command Line Syntax for the W3C Mini Robot</TITLE>
 </HEAD>
 <BODY BGCOLOR="#ffffff" TEXT="#000000">
@@ -15,17 +13,15 @@
 </H1>
 <P>
 The generic syntax is:
-<PRE>
- 	webbot [ <A HREF="#z19">options</A> ]  [ <A HREF="#z16">docaddress</A> [ <A HREF="#z17">keywords</A> ]]
- 
+<PRE> 	webbot [ <A HREF="#z19">options</A> ] [ <A HREF="#z16">URI</A> [ <A HREF="#z17">keywords</A> ] ]
 </PRE>
 <H2>
   <A NAME="z19">Options</A>
 </H2>
 <P>
 The order of the options is not important and options can in fact be specified
-on either side of any <A HREF="#z16"NAME="z14">docaddress</A>. Currently
-available options are:-
+on either side of any <A HREF="#z16"NAME="z14">URI</A>. Currently available
+options are:-
 <H3>
   Getting Help
 </H3>
@@ -35,7 +31,7 @@ available options are:-
   <DD>
     Verbose mode: Gives a running commentary on the program's attempts to read
     data in various ways. As the amount of verbose output is substantial, the
-    <CODE>-v</CODE> option can now be followed by zero, one or more of the following
+    <TT>-v</TT> option can now be followed by zero, one or more of the following
     flags (without space) in order to differentiate the verbose output generated:
     <UL>
       <LI>
@@ -56,33 +52,121 @@ available options are:-
 	<B>u</B>: URI relevant information
     </UL>
     <P>
-    The <CODE>-v</CODE> option without any appended options shows all trace messages.
-    An example is
-    <PRE>
- 	-vpt
- 
-</PRE>
-    <P>
-    showing <EM>thread</EM> and <EM>protocol</EM> trace messages
+    The <TT>-v</TT> option without any appended options shows all trace messages.
+    An example is "<TT>-vpt</TT>" showing <EM>thread</EM> and <EM>protocol</EM>
+    trace messages
   <DT>
     <B>-version</B>
   <DD>
-    Prints out the version number of the software, and the version number of
-    the WWW library, and exits.
+    Prints out the version number of the robot and the version number of libwww
+    and exits.
 </DL>
 <H3>
-  Configuration Options
+  <A NAME="Constraints">Setting Constraints for Traversal</A>
+</H3>
+<DL>
+  <DT>
+    <B>-depth [ n ]</B>
+  <DD>
+    Limit jumps to <B>n</B> hops from the start page. The n-1 link is checked
+    using a <TT>HEAD</TT> request. The default value is 0 which means that only
+    the start page is searched. A value of 1 will cause the start page <B>and</B>
+    all pages directly linked from that start page to be checked.
+  <DT>
+    <B>-prefix [ URI ]</B>
+  <DD>
+    Define a URI prefix for all URIs - if they do not match the prefix then they
+    are not checked. The rejected URIs can be <A HREF="#Logging">logged to a
+    separate file</A>.
+</DL>
+<P>
+The following options are only available if you have
+<A HREF="../../INSTALL.html#features">linked against a regex library</A>
+handling <A HREF="http://www.delorie.com/gnu/docs/rx/rx_3.html">regular
+expressions</A>.
+<DL>
+  <DT>
+    <B>-exclude [ regex ] </B>
+  <DD>
+    Allows you to define a
+    <A HREF="http://www.delorie.com/gnu/docs/rx/rx_3.html">regular expression</A>
+    of which URIs should be excluded from the traversal. The rejected URIs can
+    be <A HREF="#Logging">logged to a separate file</A>.
+  <DT>
+    <B>-check [ regex ]</B>
+  <DD>
+    Check all URIs that match this regular expression with a <TT>HEAD</TT> method
+    instead of a <TT>GET</TT> method. This can be used to verify links but avoiding
+    downloading large distribution files, for example.
+  <DT>
+    <B>-include [ regex ]</B>
+  <DD>
+    Allows you to define a
+    <A HREF="http://www.delorie.com/gnu/docs/rx/rx_3.html">regular expression</A>
+    of which URIs should be included in the traversal
+</DL>
+<H3>
+  Checking Inlined Images
 </H3>
 <DL>
   <DT>
     <B>-img</B>
   <DD>
-    Test include inlined images using a <CODE>HEAD</CODE> request
+    Test include inlined images using a <TT>HEAD</TT> request
   <DT>
     <B>-saveimg</B>
   <DD>
     Saving the inlined images on local disk or pump them to a black hole. This
-    is primarili to test a true client behavior in the robot
+    is primarily to emulate a GUI client's behavior using the robot
+</DL>
+<H3>
+  <A NAME="Logging">Logging and Statistics Features</A>
+</H3>
+<DL>
+  <DT>
+    <B>-404 [ file ]</B>
+  <DD>
+    Specifies a
+    <A HREF="http://www.apache.org/docs/mod/mod_log_referer.html">Referer Log
+    Format</A> style log file of all links resulting in a 404 (Not Found) status
+    code
+  <DT>
+    <B>-format [ file ]</B>
+  <DD>
+    Specifies a log file of which media types (content types) were encountered
+    in the run and their distribution
+  <DT>
+    <B>-hitcount [ file]</B>
+  <DD>
+    Specifies a log file of URIs sorted after how many times they were encountered
+    in the run
+  <DT>
+    <B>-l [ file ]</B>
+  <DD>
+    Specifies a
+    <A HREF="../../Daemon/User/Config/Logging.html#common-logfile-format">Common
+    Log File Format</A> style log file with a list of visited documents and the
+    result codes obtained.
+  <DT>
+    <B>-negotiated [ file ]</B>
+  <DD>
+    Specifies a log file of all URIs that where subject to content negotiation.
+  <DT>
+    <B>-referer [ file ]</B>
+  <DD>
+    Specifies a
+    <A HREF="http://www.apache.org/docs/mod/mod_log_referer.html">Referer Log
+    Format</A> style log file of which documents points to which documents
+  <DT>
+    <B>-reject [ file ]</B>
+  <DD>
+    Specifies a log file of all the URIs encountered that didn't fulfill the
+    <A HREF="#Constaints">constraints for traversal</A>.
+</DL>
+<H3>
+  Persistent Cache
+</H3>
+<DL>
   <DT>
     <B>-cache</B>
   <DD>
@@ -91,54 +175,32 @@ available options are:-
   <DT>
     <B>-cacheroot [ dir ]</B>
   <DD>
-    Where should the cache be located? The default is <CODE>/tmp/w3c-cache</CODE>
+    Where should the cache be located? The default is <TT>/tmp/w3c-cache</TT>
   <DT>
     <B>-validate</B>
   <DD>
-    Force validation using either the <CODE>etag</CODE> or the <CODE>last-modified
-    </CODE>date provided by the server
+    Force validation using either the <TT>etag</TT> or the <TT>last-modified
+    </TT>date provided by the server
   <DT>
     <B>-endvalidate</B>
   <DD>
-    Force end-to-end validation by adding a <CODE>max-age=0</CODE> cache control
+    Force end-to-end validation by adding a <TT>max-age=0</TT> cache control
     directive
+</DL>
+<H3>
+  Other Options
+</H3>
+<DL>
   <DT>
-    <B>-l</B> [ file ]
+    <B>-delay [ n]</B>
   <DD>
-    Specifies a log file with a list of visited documents. The default value
-    is "robot.log"
-  <DT>
-    <B>-hit </B>[ file]
-  <DD>
-    Specifies a log file of URIs sorted after how many times they were encountered
-    in the run
-  <DT>
-    <B>-referer</B> [file ]
-  <DD>
-    Speficies the referer log information of which documents points to which
-    documents
-  <DT>
-    <B>-link</B> [ n ]
-  <DD>
-    Fetch all links from this document. By indicating an integer "n" as the parameter
-    you can specify the depth of which the search should go. The default value
-    is 0 which means that only the start page is searched. Level 1 indicates
-    that the start page <B>and</B> all pages directly linked from the start page
-    are searched.
+    Specify the write delay in milliseconds for how long we can wait until we
+    flush the output buffer when using pipelining. The default value is 50 ms.
+    The longer delay, the bigger TCP packets but also longer response time.
   <DT>
     <B>-n</B>
   <DD>
-    Non-interactive mode. Outputs the formatted document to the standard output,
-    then exits. Pages are delimited with form feed (FF) characters.
-  <DT>
-    <B>-o</B> [ file ]
-  <DD>
-    Redirects output to specified file. The default value is "www-out". This
-    mode forced non-interactive mode
-  <DT>
-    <B>-q</B>
-  <DD>
-    Quit mode. Don't say anything at all
+    Non-interactive mode.
   <DT>
     <B>-nopipe</B>
   <DD>
@@ -146,22 +208,21 @@ available options are:-
     set using the <A HREF="../../INSTALL.html">configure script under
     installation</A>.
   <DT>
-    <B>-delay [ n]</B>
+    <B>-o [ file ]</B>
   <DD>
-    Specify the write delay in ms for how long we can wait until we flush the
-    output buffer when using pipelining. The default value is 50 ms. The longer
-    delay, the bigger TCP packets but also longer response time.
+    Redirects output to specified file. This mode forced non-interactive mode.
   <DT>
-    <B>-r</B> &lt;file&gt;
+    <B>-q</B>
   <DD>
-    Rule file, a.k.a. configuration file. If this is specified, a rule file may
-    be used to map URLs, and to set up other aspects of the behavior of the browser.
-    Many rule files may be given with successive -r options, and a default rule
-    file name may be given using the <B>WWW_CONFIG</B> environment variable.
+    Quit mode. Don't say anything at all!
   <DT>
-    <B>-ss</B>
+    <B>-r &lt;file&gt;</B>
   <DD>
-    Print out date and time for start and stop for the job.
+    <A HREF="../../Library/User/Using/Rules.html">Rule file, a.k.a. configuration
+    file</A>. If this is specified, a rule file may be used to map URLs, and
+    to set up other aspects of the behavior of the browser. Many rule files may
+    be given with successive -r options, and a default rule file name may be
+    given using the <B>WWW_CONFIG</B> environment variable.
   <DT>
     <A NAME="single"><B>-single</B></A>
   <DD>
@@ -169,18 +230,20 @@ available options are:-
     non interruptible I/O in interactive mode. Non-interactive mode always uses
     blocking I/O.
   <DT>
-    <B>-timeout</B> &lt;n&gt;
+    <B>-ss</B>
+  <DD>
+    Print out date and time for start and stop for the job.
+  <DT>
+    <B>-timeout &lt;n&gt;</B>
   <DD>
     Timeout in seconds on sockets
 </DL>
 <H2>
-  <A NAME="z16">docaddress</A>
+  <A NAME="z16">URI</A>
 </H2>
 <P>
-If present, the next argument (docaddress) is the
-<A HREF="../../Addressing/Addressing.html"> hypertext address</A> , of the
-document at which you want to start browsing. You may want to define an alias
-for www followed by name of your favorite index.
+The URI is the <A HREF="../../Addressing/Addressing.html"> hypertext
+address</A> of the document at which you want to start the robot.
 <H2>
   <A NAME="z17">keywords</A>
 </H2>
@@ -191,8 +254,7 @@ the keywords, and a list of matching entries is displayed.
 <P>
   <HR>
 <ADDRESS>
-  <A HREF="../../People/Frystyk/#Frystyk">Henrik Frystyk Nielsen</A>,
-  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
+  <A HREF="../../People/Frystyk/">Henrik Frystyk Nielsen</A><BR>
   @(#) $Id$
 </ADDRESS>
 </BODY></HTML>
