@@ -11,11 +11,8 @@ all:
 EXTRA_PROGRAMS = www		# Should be www_PROGRAMS
 
 www_LDADD = \
-	../../Library/src/libwww.la \
-	../../PICS-client/src/libpics.a @LIBWWWSSL@ \
-	../../modules/md5/libmd5.la \
-	../../modules/expat/xmltok/libxmltok.la \
-	../../modules/expat/xmlparse/libxmlparse.la \
+	@HTLIBXML@ ../../Library/src/libwww.la @LIBWWWMD5@ \
+	../../PICS-client/src/libpics.a \
 	-lm @A_STDIO@
 
 SUBDIRS = windows vms

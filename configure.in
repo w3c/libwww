@@ -456,6 +456,7 @@ AC_ARG_WITH(expat,
   no)
     AC_MSG_RESULT(no)
     HTXML=""
+    HTLIBXML=""
     XMLTOK=""
     XMLPARSE=""
     WWWXML=""
@@ -467,6 +468,7 @@ AC_ARG_WITH(expat,
     AC_MSG_RESULT(yes)
     AC_DEFINE(HT_EXPAT)
     HTXML="HTXML.lo"
+    HTLIBXML='${top_builddir}/modules/expat/xmlparse/libxmlparse.la ${top_builddir}/modules/expat/xmltok/libxmltok.la'
     XMLTOK="libxmltok.la"
     XMLPARSE="libxmlparse.la"
     WWWXML="libwwwxml.la"
@@ -478,6 +480,7 @@ AC_ARG_WITH(expat,
   AC_MSG_RESULT(yes)
   AC_DEFINE(HT_EXPAT)
   HTXML="HTXML.lo"
+  HTLIBXML='${top_builddir}/modules/expat/xmlparse/libxmlparse.la ${top_builddir}/modules/expat/xmltok/libxmltok.la'
   XMLTOK="libxmltok.la"
   XMLPARSE="libxmlparse.la"
   WWWXML="libwwwxml.la"
@@ -485,7 +488,8 @@ AC_ARG_WITH(expat,
   LIBWWWXML='${top_builddir}/Library/src/libwwwxml.la ${top_builddir}/modules/expat/xmlparse/libxmlparse.la ${top_builddir}/modules/expat/xmltok/libxmltok.la'
   SHOWXML="showxml"
 )
-AC_SUBST(HTXML)
+AC_SUBST(HTXML)		# for old style big library
+AC_SUBST(HTLIBXML)	# for old style big library
 AC_SUBST(XMLTOK)
 AC_SUBST(XMLPARSE)
 AC_SUBST(WWWXML)

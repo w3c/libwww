@@ -4,10 +4,7 @@ bin_PROGRAMS = w3c
 
 w3c_LDADD = \
 	-lm \
-	../../Library/src/libwww.la @LIBWWWSSL@ \
-	../../modules/md5/libmd5.la \
-	../../modules/expat/xmlparse/libxmlparse.la \
-	../../modules/expat/xmltok/libxmltok.la
+	@HTLIBXML@ ../../Library/src/libwww.la @LIBWWWMD5@
 
 SUBDIRS = windows
 
