@@ -22,7 +22,6 @@ legal : $(BUILT_SOURCES)
 	@echo Generated built sources
 
 EXTRA_DIST = \
-	acinclude.m4 \
 	INSTALL.html \
 	README.html
 

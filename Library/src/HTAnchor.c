@@ -1074,6 +1074,7 @@ PUBLIC void HTAnchor_setHeaderParsed (HTParentAnchor * me)
 #if 0
 	if (me->last_modified < 0) me->last_modified = me->date;
 #endif
+	if (ANCH_TRACE) HTTrace("HTAnchor.... Anchor is parsed\n");
 	me->header_parsed = YES;
     }
 }
@@ -1088,6 +1089,7 @@ PUBLIC BOOL HTAnchor_headerParsed (HTParentAnchor * me)
 */
 PUBLIC void HTAnchor_clearHeader (HTParentAnchor * me)
 {
+    if (ANCH_TRACE) HTTrace("HTAnchor.... Clearing header\n");
     me->methods = METHOD_INVALID;
     if (me->content_encoding) {
 	HTList_delete(me->content_encoding);
@@ -1129,15 +1131,6 @@ PUBLIC void HTAnchor_clearHeader (HTParentAnchor * me)
     HT_FREE(me->version);
     HT_FREE(me->etag);
 
-#if 0
-    if (me->extra_headers) {
-	HTList *cur = me->extra_headers;
-	char *pres;
-	while ((pres = (char *) HTList_nextObject(cur)))
-	    HT_FREE(pres);
-	HTList_delete(me->extra_headers);
-	me->extra_headers = NULL;
-    }
-    me->header_parsed = NO;				      /* All cleared */
-#endif
+    /* Anchor is cleared */
+    me->header_parsed = NO;
 }

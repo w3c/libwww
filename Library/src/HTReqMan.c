@@ -1187,7 +1187,7 @@ PUBLIC BOOL HTRequest_addCacheControl (HTRequest * request,
 {
     if (request) {
 	if (!request->cache_control) request->cache_control=HTAssocList_new();
-	return HTAssocList_addObject(request->cache_control, token, value);
+	return HTAssocList_replaceObject(request->cache_control, token, value);
     }
     return NO;
 }
@@ -1247,7 +1247,8 @@ PUBLIC BOOL HTRequest_addClientConnection (HTRequest * request,
     if (request) {
 	if (!request->client_connection)
 	    request->client_connection=HTAssocList_new();
-	return HTAssocList_addObject(request->client_connection, token, value);
+	return HTAssocList_replaceObject(request->client_connection,
+					 token, value);
     }
     return NO;
 }
@@ -1273,7 +1274,8 @@ PUBLIC BOOL HTRequest_addServerConnection (HTRequest * request,
     if (request) {
 	if (!request->server_connection)
 	    request->server_connection=HTAssocList_new();
-	return HTAssocList_addObject(request->server_connection, token, value);
+	return HTAssocList_replaceObject(request->server_connection,
+					 token, value);
     }
     return NO;
 }

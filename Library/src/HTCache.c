@@ -256,7 +256,7 @@ PUBLIC BOOL HTCacheIndex_write (const char * cache_root)
 
 	/*
 	**  Walk through the list and write it out. The format is really
-	**  simple as we keep it all in ASCII
+	**  simple as we keep it all in ASCII.
 	*/
 	{
 	    HTList * cur;
@@ -331,6 +331,18 @@ PRIVATE BOOL HTCacheIndex_parseLine (char * line)
 	    return NO;
 	}
 	cache->must_revalidate = validate-0x30;
+
+	/*
+	**  Create the new anchor and fill in the information that we have read
+	**  in the index. This is for example the etag and date
+	*/
+	if (cache) {
+	    HTAnchor * anchor = HTAnchor_findAddress(cache->url);
+	    HTParentAnchor * parent = HTAnchor_parent(anchor);
+	    HTAnchor_setDate(parent, cache->date);
+	    HTAnchor_setExpires(parent, cache->expires);
+	    if (cache->etag) HTAnchor_setEtag(parent, cache->etag);
+	}
 
 	/*
 	**  Create the cache table if not already existent and add the new
@@ -983,6 +995,85 @@ PUBLIC BOOL HTCache_deleteAll (void)
 }
 
 /*
+**  Is we have a valid entry in the cache then we also need a location
+**  where we can get it. Hopefully, we may be able to access it
+**  thourgh one of our protocol modules, for example the local file
+**  module. The name returned is in URL syntax and must be freed by
+**  the caller
+*/
+PRIVATE char * HTCache_location (HTCache * cache, BOOL meta)
+{
+    char * local = NULL;
+    if (cache && HTCacheRoot) {
+	if (meta) {
+	    if ((local = (char *) HT_MALLOC(strlen(HTCacheRoot) + 10 +
+					    strlen(HT_CACHE_META) +
+					    strlen(cache->cachename))) == NULL)
+		HT_OUTOFMEM("HTCache_location");
+	    sprintf(local, "%s%d/%s%s", HTCacheRoot, cache->hash, cache->cachename,
+		    HT_CACHE_META);
+	} else {
+	    if ((local = (char *) HT_MALLOC(strlen(HTCacheRoot) + 10 +
+					    strlen(cache->cachename))) == NULL)
+		HT_OUTOFMEM("HTCache_location");
+	    sprintf(local, "%s%d/%s", HTCacheRoot, cache->hash, cache->cachename);
+	}
+    }
+    return local;
+}
+
+/*
+**  Remove from disk. You must explicitly remove a lock
+**  before this operation can succeed
+*/
+PRIVATE BOOL flush_object (HTCache * cache)
+{
+    if (cache && !HTCache_hasLock(cache)) {
+	char * head = HTCache_location(cache, YES);
+	char * body = HTCache_location(cache, NO);
+	REMOVE(head);
+	REMOVE(body);
+	HT_FREE(head);
+	HT_FREE(body);
+	return YES;
+    }
+    return NO;
+}
+
+/*	HTCache_flushAll
+**	----------------
+**	Destroys all cache entried in memory and on disk. Resets the cache
+**	to empty but the cache does not have to be reinitialized before we
+**	can use it again.
+*/
+PUBLIC BOOL HTCache_flushAll (void)
+{
+    if (CacheTable) {
+	HTList * cur;
+	int cnt;
+
+	/* Delete the rest */
+	for (cnt=0; cnt<HASH_SIZE; cnt++) {
+	    if ((cur = CacheTable[cnt])) { 
+		HTCache * pres;
+		while ((pres = (HTCache *) HTList_nextObject(cur)) != NULL) {
+		    flush_object(pres);
+		    free_object(pres);
+		}
+	    }
+	    HTList_delete(CacheTable[cnt]);
+	    CacheTable[cnt] = NULL;
+	}
+
+	/* Write the new empty index to disk */
+	HTCacheIndex_write(HTCacheRoot);
+	HTTotalSize = 0L;
+	return YES;
+    }
+    return NO;
+}
+
+/*
 **  This function checks whether a document has expired or not.
 **  The check is based on the metainformation passed in the anchor object
 **  The function returns the level of validation needed for getting a fresh
@@ -1096,34 +1187,6 @@ PUBLIC BOOL HTCache_breakLock (HTCache * cache, HTRequest * request)
 **  module. The name returned is in URL syntax and must be freed by
 **  the caller
 */
-PRIVATE char * HTCache_location (HTCache * cache, BOOL meta)
-{
-    char * local = NULL;
-    if (cache && HTCacheRoot) {
-	if (meta) {
-	    if ((local = (char *) HT_MALLOC(strlen(HTCacheRoot) + 10 +
-					    strlen(HT_CACHE_META) +
-					    strlen(cache->cachename))) == NULL)
-		HT_OUTOFMEM("HTCache_location");
-	    sprintf(local, "%s%d/%s%s", HTCacheRoot, cache->hash, cache->cachename,
-		    HT_CACHE_META);
-	} else {
-	    if ((local = (char *) HT_MALLOC(strlen(HTCacheRoot) + 10 +
-					    strlen(cache->cachename))) == NULL)
-		HT_OUTOFMEM("HTCache_location");
-	    sprintf(local, "%s%d/%s", HTCacheRoot, cache->hash, cache->cachename);
-	}
-    }
-    return local;
-}
-
-/*
-**  Is we have a valid entry in the cache then we also need a location
-**  where we can get it. Hopefully, we may be able to access it
-**  thourgh one of our protocol modules, for example the local file
-**  module. The name returned is in URL syntax and must be freed by
-**  the caller
-*/
 PUBLIC char * HTCache_name (HTCache * cache)
 {
     if (cache && HTCacheRoot) {
@@ -1141,16 +1204,7 @@ PUBLIC char * HTCache_name (HTCache * cache)
 */
 PUBLIC BOOL HTCache_remove (HTCache * cache)
 {
-    if (cache && !HTCache_hasLock(cache)) {
-	char * head = HTCache_location(cache, YES);
-	char * body = HTCache_location(cache, NO);
-	REMOVE(head);
-	REMOVE(body);
-	HT_FREE(head);
-	HT_FREE(body);
-	return HTCache_delete(cache);
-    }
-    return NO;
+    return flush_object(cache) && HTCache_delete(cache);
 }
 
 /*

@@ -264,6 +264,14 @@ PUBLIC int HTMemoryCacheFilter (HTRequest * request, void * param, int status)
     void * document = HTAnchor_document(anchor);
 
     /*
+    **  We only check the memory cache if it's a GET method
+    */
+    if (HTRequest_method(request) != METHOD_GET) {
+	if (CACHE_TRACE) HTTrace("Mem Cache... We only check GET methods\n");
+	return HT_OK;
+    }
+
+    /*
     **  If we are asked to flush the persistent cache then there is no reason
     **  to do anything here - we're flushing it anyway. Also if no document
     **  then just exit from this filter.
@@ -278,9 +286,10 @@ PUBLIC int HTMemoryCacheFilter (HTRequest * request, void * param, int status)
     **  have the object in the history list. Depending on what the user asked,
     **  we can add a cache validator
     */
+#if 0
     if (document) {
-	HTExpiresMode expires = HTCacheMode_expires();
 	if (validation != HT_CACHE_FLUSH_MEM) {
+	    HTExpiresMode expires = HTCacheMode_expires();
 	    if (CACHE_TRACE)
 		HTTrace("Mem Cache... Document already in memory\n");
 	    if (expires != HT_EXPIRES_IGNORE) {
@@ -289,11 +298,7 @@ PUBLIC int HTMemoryCacheFilter (HTRequest * request, void * param, int status)
 		**  Ask the cache manager if this object has expired. Also
 		**  check if we should care about expiration or not.
 		*/
-#if 0
 		if (!HTCache_isValid(anchor)) {
-#else
-		    if (1) {
-#endif
 		    if (expires == HT_EXPIRES_NOTIFY) {
 
 			/*
@@ -311,15 +316,14 @@ PUBLIC int HTMemoryCacheFilter (HTRequest * request, void * param, int status)
 		    }
 		}
 	    }
-	    return HT_LOADED;			/* Got it! */
-	} else {
-
-	    /*
-	    **  If we were asked to validate the memory version then
-	    **  use either the etag or the last modified for cache validation
-	    */
-	    HTRequest_addRqHd(request, HT_C_IF_NONE_MATCH | HT_C_IMS);
 	}
+	return HT_LOADED;			/* Got it! */
+    }
+    return HT_OK;
+#endif
+    if (document && validation != HT_CACHE_FLUSH_MEM) {
+	if (CACHE_TRACE) HTTrace("Mem Cache... Document already in memory\n");
+	return HT_LOADED;
     }
     return HT_OK;
 }

@@ -40,6 +40,8 @@
 #define FREE_TARGET	(*me->target->isa->_free)(me->target)
 #define ABORT_TARGET	(*me->target->isa->abort)(me->target, e)
 
+#define HTTP_OUTPUT	"w3chttp.out"
+
 /* Type definitions and global variables etc. local to this module */
 
 /* Final states have negative value */
@@ -56,6 +58,7 @@ typedef struct _http_info {
     HTTPState		state;		  /* Current State of the connection */
     HTTPState		next;				       /* Next state */
     int			result;	     /* Result to report to the after filter */
+    BOOL		lock;				/* Block for writing */
 } http_info;
 
 #define MAX_STATUS_LEN		100   /* Max nb of chars to check StatusLine */
@@ -531,16 +534,18 @@ PRIVATE int stream_pipe (HTStream * me)
 	**  As we are getting fresh metainformation in the HTTP response,
 	**  we clear the old metainfomation in order not to mix it with the new
 	**  one. This is particularly important for the content-length and the
-	**  like.
+	**  like. The TRACE and OPTIONS method just adds to the current 
+	**  metainformation so in that case we don't clear the anchor.
 	*/
 	if (me->status==200 || me->status==203 || me->status==300) {
-	    HTAnchor_clearHeader(anchor);
+	    HTMethod  method = HTRequest_method(request);
+	    if (!HTMethod_addMeta(method)) HTAnchor_clearHeader(anchor);
 	    HTAnchor_setCachable(anchor, YES);
 	    me->target = HTStreamStack(WWW_MIME,
 				       HTRequest_outputFormat(request),
 				       HTRequest_outputStream(request),
 				       request, NO);
-	} else if (me->status==304) {
+	} else if (me->status==204 || me->status==304) {
 	    HTAnchor_setCachable(anchor, YES);
 	    me->target = HTStreamStack(WWW_MIME_HEAD,
 				       HTRequest_debugFormat(request),
@@ -553,7 +558,7 @@ PRIVATE int stream_pipe (HTStream * me)
 				       HTRequest_debugStream(request),
 				       request, NO);
 	} else {
-	    /* We still need to parser the MIME part */
+	    /* We still need to parse the MIME part */
 	    HTAnchor_clearHeader(anchor);
 	    me->target = HTStreamStack(WWW_MIME,
 				       HTRequest_debugFormat(request),
@@ -775,11 +780,23 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		*/
 		{
 		    HTOutputStream * output = HTNet_getOutput(net, NULL, 0);
-		    HTStream * app =
-			HTMethod_hasEntity(HTRequest_method(request)) ?
-		        HTMIMERequest_new(request,
-			  HTTPRequest_new(request,(HTStream*) output,NO),YES) :
-			    HTTPRequest_new(request, (HTStream*) output, YES);
+		    HTStream * app = NULL;
+#ifdef HTTP_DUMP
+		    if (PROT_TRACE) {
+			FILE * fp = NULL;
+			if ((fp = fopen(HTTP_OUTPUT, "wb"))) {
+			    output = HTTee(output,
+					   HTFWriter_new(request,fp,YES),NULL);
+			    HTTrace("HTTP........ Dumping request to `%s\'\n",
+				    HTTP_OUTPUT);
+			}
+		    }	
+#endif /* HTTP_DUMP */
+		    app = HTMethod_hasEntity(HTRequest_method(request)) ?
+			HTMIMERequest_new(request,
+					  HTTPRequest_new(request,(HTStream *)
+							  output,NO),YES) :
+			HTTPRequest_new(request, (HTStream*) output, YES);
 		    HTRequest_setInputStream(request, app);
 		}
 
@@ -825,9 +842,21 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		    HTStream * input = HTRequest_inputStream(request);
 		    HTPostCallback * pcbf = HTRequest_postCallback(request);
 		    if (pcbf) {
-			status = pcbf(request, input);
-			if (status == HT_PAUSE || status == HT_LOADED)
-			    ops = FD_READ;
+			if (http->lock)
+			    return HT_OK;
+			else {
+			    status = pcbf(request, input);
+			    if (status == HT_PAUSE) {
+				ops = FD_READ;
+				http->lock = YES;
+			    } else if (status == HT_LOADED)
+				ops = FD_READ;
+			    else if (status == HT_ERROR) {
+				http->result = HT_INTERRUPTED;
+				http->state = HTTP_ERROR;
+				break;
+			    }
+			}
 		    } else {
 			status = (*input->isa->flush)(input);
 			ops = FD_READ;	  /* Trick to ensure that we do READ */
@@ -840,6 +869,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		    return HT_OK;
 		else if (status == HT_CONTINUE) {
 		    if (PROT_TRACE) HTTrace("HTTP........ Continuing\n");
+		    http->lock = NO;
 		    ops = FD_WRITE;
 		    continue;
 		} else if (status==HT_LOADED)

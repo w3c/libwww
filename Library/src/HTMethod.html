@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
+  <!-- Changed by: Henrik Frystyk Nielsen,  1-Jul-1996 -->
   <TITLE>W3C Reference Library libwww Request Access Methods</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  1-Jul-1996 -->
 </HEAD>
 <BODY>
 <H1>
@@ -65,9 +65,19 @@ extern const char * HTMethod_name (HTMethod method);
   Is Method "Safe"?
 </H3>
 <P>
-If a method a safe, it doesn't produce any side effects on the server
+If a method is safe, it doesn't produce any side effects on the server
 <PRE>
 #define HTMethod_isSafe(me)	((me) &amp; (METHOD_GET|METHOD_HEAD))
+</PRE>
+<H3>
+  Does the Method Replace or Add to Metainformation
+</H3>
+<P>
+Most methods override the current set of metainformation stored in an
+<A HREF="HTAnchor.html">anchor</A>. However, a few methods actually only
+add to the anchor metainformation. We have a small macro to make the distinction.
+<PRE>
+#define HTMethod_addMeta(me)  ((me) &amp; (METHOD_TRACE | METHOD_OPTIONS))
 </PRE>
 <H3>
   Does a Method include Entity?

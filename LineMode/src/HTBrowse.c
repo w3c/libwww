@@ -575,7 +575,6 @@ PRIVATE void MakeCommandLine (LineMode * lm, BOOL is_index)
 */
 PRIVATE int PutAnchor (LineMode * lm, HTRequest * request)
 {
-    int status = HT_INTERNAL;
     char * dest = AskUser(request, "Destination: ", NULL);
 
     /*
@@ -585,10 +584,10 @@ PRIVATE int PutAnchor (LineMode * lm, HTRequest * request)
     */
     if (dest) {
 	HTRequest * new_request = Thread_new(lm, YES, LM_UPDATE);
-	status = HTPutRelative(HTMainAnchor, dest, HTMainAnchor, new_request);
+	HTPutDocumentRelative(HTMainAnchor, dest, HTMainAnchor, new_request);
 	HT_FREE(dest);
     }
-    return status;
+    return YES;
 }
 
 /*
@@ -934,6 +933,10 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 					    (HTAnchor *) HTMainAnchor, req);
 		}
 	    }
+	} else if (CHECK_INPUT("FLUSH", token)) {	 /* Flush file cache */
+	    if (confirm(req, "Flush Persistent Cache?") == YES)
+		HTCache_flushAll();
+
 	} else if (CHECK_INPUT("FORWARD", token)) {
 	    if (HTHistory_canForward(lm->history)) {
 		req = Thread_new(lm, YES, LM_NO_UPDATE);
@@ -1020,6 +1023,16 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
       case 'M':
 	if (CHECK_INPUT("MANUAL", token)) {		 /* Read User manual */
 	    status = LineMode_load(lm, HTMainAnchor, MANUAL, YES, &req);
+	} else
+	    found = NO;
+	break;
+	
+      case 'O':
+	if (CHECK_INPUT("OPTIONS", token)) {		   /* OPTIONS method */
+	    req = Thread_new(lm, YES, LM_NO_UPDATE);
+	    status = HTOptionsAnchor((HTAnchor*)
+				     (HTMainAnchor ? HTMainAnchor:lm->anchor),
+				     req);
 	} else
 	    found = NO;
 	break;

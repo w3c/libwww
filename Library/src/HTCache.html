@@ -210,13 +210,23 @@ a lock before this operation can succeed
 extern BOOL HTCache_remove (HTCache * cache);
 </PRE>
 <H3>
-  Delete All Cache Objects
+  Delete All Cache Objects in Memory
 </H3>
 <P>
 Destroys all cache entried in memory but does not write anything to disk.
 Use the index methods above for doing that. We do not delete the disk contents.
 <PRE>
 extern BOOL HTCache_deleteAll (void);
+</PRE>
+<H3>
+  Delete all Cache Object and File Entries
+</H3>
+<P>
+Destroys all cache entried in memory <B>and</B> on disk. This call basically
+resets the cache to the inital state but it does not terminate the cache.
+That is, you don't have to reinitialize the cache before you can use it again.
+<PRE>
+extern BOOL HTCache_flushAll (void);
 </PRE>
 <H3>
   Find a Cached Object

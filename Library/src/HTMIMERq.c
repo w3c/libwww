@@ -209,7 +209,7 @@ PRIVATE int MIMERequest_put_block (HTStream * me, const char * b, int l)
     if (me->transparent) {
 	if (me->put_fix) {
 	    HTNet * net = HTRequest_net(me->request);
-	    HTEvent_unregister(net->sockfd, FD_READ);
+	    HTEvent_unregister(net->sockfd, FD_READ | FD_WRITE);
 	    me->put_fix = NO;
 	}
     } else {

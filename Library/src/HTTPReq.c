@@ -103,10 +103,13 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 		/*
 		** We don't preserve the final slash or lack of same through
 		** out the code. This is mainly for optimization reasons
-		** but it gives a problem OPTIONS
+		** but it gives a problem OPTIONS. We can either send a "*"
+		** or a "/" but not both. For now we send a "*".
 		*/
-		if (!me->url) me->url = HTParse(addr, "", PARSE_PATH);
-		if (!*me->url) StrAllocCopy(me->url, "*");
+		if (!me->url) {
+		    me->url = HTParse(addr, "", PARSE_PATH|PARSE_PUNCTUATION);
+		    if (!strcmp(me->url, "/")) *me->url = '*';
+		}
 		status = PUTS(me->url);
 	    } else {
 		if (!me->url)
