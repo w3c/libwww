@@ -1,5 +1,13 @@
 Changes with libwww 5.3.2
 
+2000-12-18	Jose Kahan <jose@w3.org>
+
+	* Compilation fix: The HTMIME_anchor2response() function
+	  added a dependency between the cache and mime mini-libs.
+	  I changed the call to a stream converter (HTCacheCopyHeaders)
+	  to make it optional and to avoid the dependency. The converter
+	  is initialized in HTInit.c:HTConverterInit.
+
 2000-12-14	Jose Kahan <jose@w3.org>
 	
 	* Bug fix: make dist didn't work because of a recurrent rule

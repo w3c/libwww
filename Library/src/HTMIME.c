@@ -780,12 +780,13 @@ PUBLIC HTConverter * HTMIME_saveStream (void)
     return LocalSaveStream;
 }
 
+#ifndef NO_CACHE
 /* HTMIME_anchor2response
  * Copies the anchor HTTP headers into a response object by means
  * of the generic _dispatchParsers function. Written so that we can
  * copy the HTTP headers stored in the cache to the response object.
  */
-PUBLIC void HTMIME_anchor2response (HTRequest * req)
+PRIVATE void HTMIME_anchor2response (HTRequest * req)
 {
   char * token;
   char * value;
@@ -799,6 +800,9 @@ PUBLIC void HTMIME_anchor2response (HTRequest * req)
   
   anchor = HTRequest_anchor (req);
   header = HTAnchor_header (anchor);
+  if (!anchor || !header)
+    return;
+
   while ((pres = (HTAssoc *) HTAssocList_nextObject (header)))
     {
       token = HTAssoc_name (pres);
@@ -814,3 +818,19 @@ PUBLIC void HTMIME_anchor2response (HTRequest * req)
   HTResponse_isCached (res, YES);  
 }
 
+/*
+**	A small AFTER filter that is a frontend to the 
+**      HTMIME_anchor2headers function.
+*/
+
+PUBLIC HTStream * HTCacheCopyHeaders   (HTRequest *	request,
+					void *		param,
+					HTFormat	input_format,
+					HTFormat	output_format,
+					HTStream *	output_stream)
+{
+    HTTRACE(STREAM_TRACE, "Cache Copy Headers.. Copying headers into the response object\n");
+    HTMIME_anchor2response (request);
+    return HT_OK;
+}
+#endif /* NO_CACHE */

@@ -2191,6 +2191,32 @@ PUBLIC HTStream * HTCacheAppend (HTRequest *	request,
 /* ------------------------------------------------------------------------- */
 
 /*
+**      This function copies the headers associated with a cached
+**      object to closes the connection and frees memory.
+**      Returns YES on OK, else NO
+*/
+PRIVATE void HTCache_copyHeaders (HTRequest * req)
+{
+  HTParentAnchor * anchor;
+  char * url;
+
+  anchor = HTRequest_anchor (req);
+  url = HTAnchor_physical(anchor);
+  if (url && !strncmp (url,  "cache:", sizeof ("cache:") - 1 ))
+    {
+      /*
+	HTMIME_anchor2response (req);
+      */
+
+      /* set up a "dummy" stack just for copying the MIME type.
+       We need this to remove any dependencies between the MIME 
+       and CACHE minilibs */
+      HTStreamStack(WWW_MIME_COPYHEADERS, WWW_DEBUG,
+		    HTBlackHole(), req, NO);
+    }
+}
+
+/*
 **      This function closes the connection and frees memory.
 **      Returns YES on OK, else NO
 */
@@ -2226,7 +2252,7 @@ PRIVATE int CacheCleanup (HTRequest * req, int status)
        from the anchor object (where they are stored) to the
        response object */
     if (status == HT_NOT_MODIFIED)
-      HTMIME_anchor2response (req);
+	HTCache_copyHeaders (req);
     HTNet_delete(net, status);
     return YES;
 }

@@ -126,7 +126,9 @@ Copies the anchor HTTP headers into a response object by means
 of the generic _dispatchParsers function. Written so that we can
 copy the HTTP headers stored in the cache to the response object.
 <PRE>
-extern void HTMIME_anchor2response (HTRequest * req);
+#ifndef NO_CACHE
+extern HTConverter HTCacheCopyHeaders;
+#endif
 </PRE>
 <PRE>
 #endif
