@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Displaying and Promting User Messages</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 17-Aug-1995 -->
 <NEXTID N="z3">
 </HEAD>
 <BODY>
@@ -55,7 +55,8 @@ functions returning a <EM>string</EM> return a dynamic string which
 must be freed by the caller.
 
 <PRE>
-extern BOOL HTInteractive;      	    /* Any prompts from the Library? */
+extern void HTPrompt_setInterative	PARAMS((BOOL interative));
+extern void HTPrompt_interative		NOPARAMS;
 </PRE>
 
 <H3>Display a message, then wait for 'YES' or 'NO'</H3>

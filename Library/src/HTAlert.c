@@ -19,9 +19,19 @@
 #include "HTError.h"					 /* Implemented here */
 #include "HTAlert.h"					 /* Implemented here */
 
-PUBLIC BOOL HTInteractive=YES;		    /* Any prompts from the Library? */
+PRIVATE BOOL HTInteractive=YES;		    /* Any prompts from the Library? */
 
 /* ------------------------------------------------------------------------- */
+
+PUBLIC void HTPrompt_setInterative ARGS1(BOOL, interative)
+{
+    HTInteractive = interactive;
+}
+
+PUBLIC void HTPrompt_interative NOARGS
+{
+    return HTInteractive;
+}
 
 PUBLIC void HTProgress ARGS1(CONST char *, Msg)
 {

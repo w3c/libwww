@@ -259,7 +259,7 @@ PRIVATE int HTLoadTelnet ARGS1(HTRequest *, request)
     }
 
     /* We must be in interactive mode */
-    if (!HTInteractive) {
+    if (!HTAlert_interactive()) {
         HTAlert("Can't output a live session -- it has to be interactive");
 	return HT_ERROR;
     }
