@@ -344,7 +344,7 @@ PRIVATE BOOL LineMode_load(LineMode * lm, HTParentAnchor * anchor,
     char * fullURL;
     HTParentAnchor * pAnchor;
 
-    *pPReq = Thread_new(lm, YES, LM_NO_UPDATE);
+    *pPReq = Thread_new(lm, YES, LM_UPDATE);
     if (preemptive)
         HTRequest_setPreemptive(*pPReq, YES);
     if (anchor)

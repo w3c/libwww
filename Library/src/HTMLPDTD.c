@@ -71,6 +71,7 @@ PRIVATE const char* entities[HTML_ENTITIES] = {
   "igrave",	/* small i, grave accent */ 
   "iuml",	/* small i, dieresis or umlaut mark */ 
   "lt",		/* less than */ 
+  "nbsp",	/* non breaking space */
   "ntilde",	/* small n, tilde */ 
   "oacute",	/* small o, acute accent */ 
   "ocirc",	/* small o, circumflex accent */ 

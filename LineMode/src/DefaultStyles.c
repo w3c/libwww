@@ -117,12 +117,12 @@ PRIVATE HTStyle HTStyleHeading1 =
 
 PRIVATE HTStyle HTStyleHeading2 =
 	{ &HTStyleHeading1,  "Heading2", "H2",
-	HT_FONT+HT_BOLD, 1.0, HT_BLACK,		0, 0,
+	HT_FONT+HT_CAPITALS, 1.0, HT_BLACK,		0, 0,
 	0, 0, 0, HT_LEFT,		1, 0,	0,
 	YES, YES, 1, 1,			0 };	
 
 PRIVATE HTStyle HTStyleHeading3 = { &HTStyleHeading2,  "Heading3", "H3",
-	HT_FONT+HT_CAPITALS, 1.0, HT_BLACK,		0, 0,
+	HT_FONT+HT_BOLD, 1.0, HT_BLACK,		0, 0,
 	2, 2, 0, HT_LEFT,		1, 0,	0, 
 	YES, YES, 1, 0,			0 };	
 

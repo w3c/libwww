@@ -38,6 +38,7 @@ PRIVATE int 		got_styles = 0;
 PRIVATE HTStyle *styles[HTMLP_ELEMENTS];
 PRIVATE HTStyle *default_style;
 
+#define TAB	'\0'
 
 /*		HTML Object
 **		-----------
@@ -186,6 +187,7 @@ static char * ISO_Latin1[] = {
   	"\354",	/* small i, grave accent */ 
   	"\357",	/* small i, dieresis or umlaut mark */ 
   	"\074",	/* less than */ 
+	"\040", /* non-breaking space */
   	"\361",	/* small n, tilde */ 
   	"\363",	/* small o, acute accent */ 
   	"\364",	/* small o, circumflex accent */ 
@@ -261,6 +263,7 @@ static char * NeXTCharacters[] = {
   	"\340",	/* small i, grave accent */ 
   	"\345",	/* small i, dieresis or umlaut mark */ 
   	"\074",	/* less than */ 
+	"\040", /* non-breaking space */
   	"\347",	/* small n, tilde */ 
   	"\355",	/* small o, acute accent */ 
   	"\356",	/* small o, circumflex accent */ 
@@ -372,7 +375,9 @@ PRIVATE int HTML_put_character (HTStructured * me, char c)
 	    if ((c=='\n') || (c==' ')) return HT_OK;	/* Ignore it */
 	    UPDATE_STYLE;
 	}
-	if (c=='\n') {
+	if (c == TAB)
+	    HText_appendCharacter(me->text, '\t');
+	else if (WHITE(c)) {
 	    if (me->in_word) {
 		HText_appendCharacter(me->text, ' ');
 		me->in_word = NO;
@@ -541,7 +546,7 @@ PRIVATE void HTML_start_element (
 	
     case HTML_DD:
         UPDATE_STYLE;
-	HTML_put_character(me, '\t');	/* Just tab out one stop */
+	HTML_put_character(me, TAB);	/* Just tab out one stop */
 	me->in_word = NO;
 	break;
 
@@ -557,7 +562,7 @@ PRIVATE void HTML_start_element (
 	if (me->sp[0].tag_number != HTML_DIR)
 	    HText_appendParagraph(me->text);
 	else
-	    HText_appendCharacter(me->text, '\t');	/* Tab @@ nl for UL? */
+	    HText_appendCharacter(me->text, TAB);
 	me->in_word = NO;
 	break;
 	
@@ -594,11 +599,16 @@ PRIVATE void HTML_start_element (
     case HTML_HTML:			/* Ignore these altogether */
     case HTML_HEAD:
     case HTML_BODY:
+	break;
     
     case HTML_TT:			/* Physical character highlighting */
     case HTML_B:			/* Currently ignored */
     case HTML_I:
     case HTML_U:
+	UPDATE_STYLE;
+	HText_appendCharacter(me->text, '_');
+	me->in_word = NO;
+	break;
     
     case HTML_EM:			/* Logical character highlighting */
     case HTML_STRONG:			/* Currently ignored */
@@ -684,6 +694,14 @@ PRIVATE void HTML_end_element (HTStructured * me, int element_number)
     	HTAnchor_setTitle(me->node_anchor, HTChunk_data(me->title));
 	break;
 	
+    case HTML_TT:			/* Physical character highlighting */
+    case HTML_B:			/* Currently ignored */
+    case HTML_I:
+    case HTML_U:
+	UPDATE_STYLE;
+	HText_appendCharacter(me->text, '_');
+	break;
+    
     case HTML_LISTING:				/* Litteral text */
     case HTML_XMP:
     case HTML_PLAINTEXT:
