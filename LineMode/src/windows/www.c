@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdarg.h>
 #include "lib.h"
 #include "scroll.h"
 #include "wwwrc.h"
@@ -35,17 +36,194 @@ HTView * PDataView = 0;
 
 extern HTRequest * LineMode_getConsole(LineMode * pLm);
 
+typedef struct {	/* default */
+    int zeroPad;	/* 0 */
+    int leftJustify;	/* 0 */
+    int showSign;	/* 0 */
+    int width;		/* -1 */
+    int precision;	/* -1 */
+    char size;		/* 0 */
+    int iArgs;		/* 0 */
+} Crack_format_t;	/* = -2 */
+
+#define Crack_format_INIT {0, 0, 0, -1, -1, 0, 0}
+
+typedef struct {
+    int freeMe;
+    char * ptr;
+    int ptrLen;
+    int index;
+    char terminate;
+    Crack_format_t format;
+} Crack_t;
+
+#define Crack_INIT {0, 0, 0, 0, 0, Crack_format_INIT}
+
+PRIVATE int _readInt(char * ptr, int * pDest)
+{
+    int i;
+    int ret = 0;
+    for (i = 0; ptr[i] >= '0' && ptr[i] <= '9'; i++) {
+	ret *= 10;
+	ret += ptr[i];
+    }
+    if (!i)
+	return 0;
+    *pDest = i;
+    return i;
+}
+
+PRIVATE int Crack_next(Crack_t * pCrack, char * fmt, va_list pArgs)
+{
+    int innastring = 0;
+    int scanIndex = pCrack->index;
+    int used;
+    static char shortRet[50];
+    char sprintFmt[20];
+
+    switch (fmt[scanIndex]) {
+    case 0:
+	return 0;
+    case '%':
+	scanIndex++;
+	/* check for modifiers */
+	if (fmt[scanIndex] == '0') {
+	    pCrack->format.zeroPad = -1;
+	    scanIndex++;
+	}
+	if (fmt[scanIndex] == '-') {
+	    pCrack->format.leftJustify = -1;
+	    scanIndex++;
+	}
+	if (fmt[scanIndex] == '+') {
+	    pCrack->format.showSign = -1;
+	    scanIndex++;
+	}
+	if ((used = _readInt(fmt+scanIndex, &pCrack->format.width)) > 0)
+	    scanIndex += used;
+	if (fmt[scanIndex] == '.') {
+	    scanIndex++;
+    	    if ((used = _readInt(fmt+scanIndex, &pCrack->format.precision)) > 0)
+		scanIndex += used;
+	    else
+		pCrack->format.precision = 0;
+	}
+	if (fmt[scanIndex] == 'h' || fmt[scanIndex] == 'l' || fmt[scanIndex] == 'L') {
+	    pCrack->format.size = fmt[scanIndex];
+	    scanIndex++;
+	}
+	/* time for the format */
+	switch (fmt[scanIndex]) {
+	case 'd':
+	case 'i':
+	case 'o':
+	case 'u':
+	case 'x':
+	case 'X':
+	    strncpy(sprintFmt, fmt+pCrack->index, scanIndex+1-pCrack->index);
+	    sprintFmt[scanIndex+1-pCrack->index] = 0;
+	    if (!(pCrack->ptr = (char *)malloc(pCrack->format.width + pCrack->format.precision+20)))
+		return 0;
+	    pCrack->freeMe = 1;
+	    switch (pCrack->format.size) {
+	    case 0:
+		pCrack->ptrLen = sprintf(pCrack->ptr, sprintFmt, *(int*)(pArgs+pCrack->format.iArgs));
+		pCrack->format.iArgs += sizeof(int);
+		break;
+	    case 'h':
+		pCrack->ptrLen = sprintf(pCrack->ptr, sprintFmt, *(short int*)(pArgs+pCrack->format.iArgs));
+		pCrack->format.iArgs += sizeof(short int);
+		break;
+	    case 'l':
+		pCrack->ptrLen = sprintf(pCrack->ptr, sprintFmt, *(long int*)(pArgs+pCrack->format.iArgs));
+	        pCrack->format.iArgs += sizeof(long int);
+		break;
+	    default:
+		free(pCrack->ptr);
+		goto FMTSTRING; /* invalid arg combo */
+	    }
+	    pCrack->index = scanIndex+1;
+	    return 1;
+	case 'e':
+	case 'E':
+	case 'f':
+	case 'g':
+	case 'G':
+	    strncpy(sprintFmt, fmt+pCrack->index, scanIndex+1-pCrack->index);
+	    sprintFmt[scanIndex+1-pCrack->index] = 0;
+	    if (!(pCrack->ptr = (char *)malloc(pCrack->format.width + pCrack->format.precision+20)))
+		return 0;
+	    pCrack->freeMe = 1;
+	    switch (pCrack->format.size) {
+	    case 0:
+		pCrack->ptrLen = sprintf(pCrack->ptr, sprintFmt, *(double*)(pArgs+pCrack->format.iArgs));
+		pCrack->format.iArgs += sizeof(double);
+		break;
+	    case 'L':
+		pCrack->ptrLen = sprintf(pCrack->ptr, sprintFmt, *(long double*)(pArgs+pCrack->format.iArgs));
+	        pCrack->format.iArgs += sizeof(long double);
+		break;
+	    default:
+		free(pCrack->ptr);
+		goto FMTSTRING; /* invalid arg combo */
+	    }
+	    pCrack->index = scanIndex+1;
+	    return 1;
+	case 'c':
+	    shortRet[0] = *(char *)(pArgs+pCrack->format.iArgs);
+	    pCrack->ptr = shortRet;
+	    pCrack->freeMe = 0;
+	    pCrack->ptrLen = 1;
+	    pCrack->format.iArgs += sizeof(char);
+	    pCrack->index = scanIndex+1;
+	    return 1;
+	case 's':
+	    pCrack->ptr = *(char **)(pArgs+pCrack->format.iArgs);
+	    pCrack->freeMe = 0;
+	    pCrack->ptrLen = strlen(pCrack->ptr);
+	    pCrack->format.iArgs += sizeof(char *);
+	    pCrack->index = scanIndex+1;
+	    return 1;
+	case 'p':
+	    pCrack->ptr = shortRet;
+	    pCrack->freeMe = 0;
+	    pCrack->ptrLen = sprintf(shortRet, "%p", *(void **)(pArgs+pCrack->format.iArgs));
+	    pCrack->format.iArgs += sizeof(void *);
+	    pCrack->index = scanIndex+1;
+	    return 1;
+	case 'n':
+	    return 0;
+	case '%':
+	    shortRet[0] = '%';
+	    pCrack->ptr = shortRet;
+	    pCrack->freeMe = 0;
+	    pCrack->ptrLen = 1;
+	    pCrack->index = scanIndex+1;
+	    return 1;
+	}
+    }
+FMTSTRING:
+    while (fmt[scanIndex] && fmt[scanIndex] != '%')
+	scanIndex++;
+    pCrack->ptr = fmt+pCrack->index;
+    pCrack->freeMe = 0;
+    pCrack->ptrLen = scanIndex - pCrack->index;
+    pCrack->index = scanIndex;
+    return 1;
+}
+
 PUBLIC int TextToAWindow(HTView * pView, const char * fmt, va_list pArgs)
 {
-    char * space;
-    int len;
+    Crack_t crack = Crack_INIT;
+    int totalLen = 0;
 
-    if ((space = (char  *) HT_MALLOC(8193)) == NULL)
-        HT_OUTOFMEM("print buffer");
-    len = vsprintf(space, fmt, pArgs);
-    Scroll_WriteBlock(pView->pScrollInfo, pView->hWnd, (LPSTR)space, len);
-    HT_FREE(space);
-    return (len);
+    while (Crack_next(&crack, fmt, pArgs)) {
+	totalLen += crack.ptrLen;
+        Scroll_WriteBlock(pView->pScrollInfo, pView->hWnd, (LPSTR)crack.ptr, crack.ptrLen);
+	if (crack.freeMe)
+	    free(crack.ptr);
+    }
+    return (totalLen);
 }
 
 PUBLIC int OutputConsole(const char* fmt, va_list pArgs)
@@ -111,7 +289,7 @@ static int sized = 0;
 //	    	    case IDM_CRBEGETSLF:
 //	    	    	pView->pScrollInfo->control ^= Scroll_control_crBegetsLf;
 //	    	    	CheckMenuItem(GetMenu(hWnd), (UINT)IDM_CRBEGETSLF, (pView->pScrollInfo->control & Scroll_control_crBegetsLf) ? MF_CHECKED : MF_UNCHECKED);
-    	    	    break;
+//    	    	    break;
 
     	    	case IDM_FONT:
     	    	    if (Lib_SelectWorkingFont(hWnd, pView->pFontInfo))
@@ -584,10 +762,86 @@ static int inside = 0;
 }
 
 PUBLIC BOOL HTError_print (HTRequest * request, HTAlertOpcode op,
-                                int msgnum, const char * dfault, void * input,
-                                HTAlertPar * reply)
+			   int msgnum, const char * dfault, void * input,
+			   HTAlertPar * reply)
 {
-    MessageBox(0, dfault ? dfault : "???", "HTError_print", MB_OK);
+    HTList *cur = (HTList *) input;
+    HTError *pres;
+    HTErrorShow showmask = HTError_show();
+    HTChunk *msg = NULL;
+    int code;
+    if (WWWTRACE) HTTrace("HTError..... Generating message\n");
+    if (!request || !cur) return NO;
+    while ((pres = (HTError *) HTList_nextObject(cur))) {
+	int index = HTError_index(pres);
+	if (HTError_doShow(pres)) {
+	    if (!msg) {
+		HTSeverity severity = HTError_severity(pres);
+		msg = HTChunk_new(128);
+		if (severity == ERR_WARN)
+		    HTChunk_puts(msg, "Warning: ");
+		else if (severity == ERR_NON_FATAL)
+		    HTChunk_puts(msg, "Non Fatal Error: ");
+		else if (severity == ERR_FATAL)
+		    HTChunk_puts(msg, "Fatal Error: ");
+		else if (severity == ERR_INFO)
+		    HTChunk_puts(msg, "Information: ");
+		else {
+		    if (WWWTRACE)
+			HTTrace("HTError..... Unknown Classification of Error (%d)...\n", severity);
+		    HTChunk_delete(msg);
+		    return NO;
+		}
+
+		/* Error number */
+		if ((code = HTErrors[index].code) > 0) {
+		    char buf[10];
+		    sprintf(buf, "%d ", code);
+		    HTChunk_puts(msg, buf);
+		}
+	    } else
+		HTChunk_puts(msg, "\nReason: ");
+	    HTChunk_puts(msg, HTErrors[index].msg);	    /* Error message */
+
+	    if (showmask & HT_ERR_SHOW_PARS) {		 /* Error parameters */
+		int length;
+		int cnt;		
+		char *pars = (char *) HTError_parameter(pres, &length);
+		if (length && pars) {
+		    HTChunk_puts(msg, " (");
+		    for (cnt=0; cnt<length; cnt++) {
+			char ch = *(pars+cnt);
+			if (ch < 0x20 || ch >= 0x7F)
+			    HTChunk_putc(msg, '#');
+			else
+			    HTChunk_putc(msg, ch);
+		    }
+		    HTChunk_puts(msg, ") ");
+		}
+	    }
+
+	    if (showmask & HT_ERR_SHOW_LOCATION) {	   /* Error Location */
+		HTChunk_puts(msg, "This occured in ");
+		HTChunk_puts(msg, HTError_location(pres));
+		HTChunk_putc(msg, '\n');
+	    }
+
+	    /*
+	    ** Make sure that we don't get this error more than once even
+	    ** if we are keeping the error stack from one request to another
+	    */
+	    HTError_setIgnore(pres);
+	    
+	    /* If we only are show the most recent entry then break here */
+	    if (showmask & HT_ERR_SHOW_FIRST)
+		break;
+	}
+    }
+    if (msg) {
+	HTChunk_putc(msg, '\n');
+	HTTrace("WARNING: %s\n", HTChunk_data(msg));
+	HTChunk_delete(msg);
+    }
     return YES;
 }
 
