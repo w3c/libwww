@@ -161,7 +161,11 @@ PUBLIC BOOL HTLoadToFile (const char * url, HTRequest * request,
 	/* Set the output stream and start the request */
 	HTRequest_setOutputFormat(request, WWW_SOURCE);
 	HTRequest_setOutputStream(request, HTFWriter_new(request, fp, NO));
-	return HTLoadAbsolute(url, request);
+	if (HTLoadAbsolute(url, request) == NO) {
+	    fclose(fp);
+	    return NO;
+	} else
+	    return YES;
     }
     return NO;
 }
@@ -817,7 +821,8 @@ PUBLIC BOOL HTPutAnchor (HTParentAnchor *	source,
 
 	    /* Set up the request object */
 	    HTRequest_addGnHd(request, HT_G_DATE);
-	    HTRequest_addRqHd(request, HT_C_IF_MATCH);
+	    if (HTRequest_preconditions(request))
+    		HTRequest_addRqHd(request, HT_C_IF_MATCH | HT_C_IF_UNMOD_SINCE);
 	    HTRequest_setEntityAnchor(request, source);
 	    HTRequest_setMethod(request, METHOD_PUT);
 	    HTRequest_setAnchor(request, destination);
@@ -971,7 +976,8 @@ PUBLIC BOOL HTPutStructuredAnchor (HTParentAnchor *	source,
 
 	    /* Set up the request object */
 	    HTRequest_addGnHd(request, HT_G_DATE);
-	    HTRequest_addRqHd(request, HT_C_IF_MATCH);
+	    if (HTRequest_preconditions(request))
+	        HTRequest_addRqHd(request, HT_C_IF_MATCH | HT_C_IF_UNMOD_SINCE);
 	    HTRequest_setEntityAnchor(request, source);
 	    HTRequest_setMethod(request, METHOD_PUT);
 	    HTRequest_setAnchor(request, destination);
@@ -987,7 +993,7 @@ PUBLIC BOOL HTPutStructuredAnchor (HTParentAnchor *	source,
 }
 
 /*
-**	After filter for handling PUT of document. We should now have the 
+**	After filter for handling PUT of document.
 */
 PRIVATE int HTSaveFilter (HTRequest * request, HTResponse * response,
 			  void * param, int status)
@@ -1063,12 +1069,25 @@ PRIVATE int HTSaveFilter (HTRequest * request, HTResponse * response,
 
 	/* Set up the request object */
 	HTRequest_addGnHd(request, HT_G_DATE);
-	HTRequest_addRqHd(request, HT_C_IF_MATCH);
 	HTRequest_setEntityAnchor(request, me->source);
 	HTRequest_setMethod(request, METHOD_PUT);
 	HTRequest_setAnchor(request, me->destination);
 	HTRequest_setOutputFormat(request, me->format);
 	HTRequest_setOutputStream(request, me->target);
+
+	/* 
+	** If we are to use preconditions then 
+	** copy the last modified and etag information from
+	** the source to the destination. This is needed in
+	** order to avoid the lost update problem
+	*/
+	if (HTRequest_preconditions(request)) {
+    	    time_t src_time = HTAnchor_lastModified(me->source);
+	    char * src_etag = HTAnchor_etag(me->source);
+	    HTAnchor_setLastModified(HTAnchor_parent(me->destination), src_time);
+	    HTAnchor_setEtag(HTAnchor_parent(me->destination), src_etag);
+	    HTRequest_addRqHd(request, HT_C_IF_MATCH | HT_C_IF_UNMOD_SINCE);
+	}
 
 	/* Make sure we flush the output immediately */
 	HTRequest_forceFlush(request);
