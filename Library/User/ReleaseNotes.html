@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library Release Notes</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 13-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Oct-1995 -->
 </HEAD>
 <BODY>
 
@@ -9,277 +9,278 @@
 <A HREF="../"><IMG ALT="Lib" SRC="../../Icons/WWW/Lib48x.gif"></A>
 <IMG SRC="../../Icons/WWW/relnotes48x.gif" ALT="RELEASE"></A>
 
-<H1>Library 3.1 Release Notes</H1>
+<H1>Library 4.0 Release Notes</H1>
 
-This is the announcement of the version 3.1 release of the W3C
-Reference Library. The code word for this release is support for
-remote collaborate work where people can use HTTP and the Web as a
-remote authoring environment.<P>
+<H2>Alpha Release 3A, October 15 1995</H2>
 
-In addition to the new set of features and functionality this release
-also is the first example of source code distributed under the W3C
-conditions. This means that the code is available to consortium
-members only within a month from the release date. <P>
+The Library has now undergone a major restructuring in order to define the APIs between the various
+parts and to make it more modular. The new architecture is described in the <A
+HREF="Architecture/DesignModel.html">Architecture document</A> and includes a new Net manager that
+handles a request queue, a DNS manager that handles persistent connections and a well defined
+Request manager where the HTRequest structure is an opaque object.
 
-Due to the limited distribution of the source code it is only
-available from our <A HREF="../../../Dist/">HTTP server</A> and NOT
-our FTP server. There is a new "<A HREF="Using/">User's Guide</A>" on
-how to use the Library as a basic tool for Web applications and as
-usual, we also have a "<A HREF="Guide/">Internals and Programmer's
-Guide</A>". <P>
-
-The Library is now under <A HREF="../../COPYRIGHT.html">MIT
-copyright</A> and another new formality is that everybody who makes
-modifications, contributions etc. and wishes to incorporate them as
-part of the W3C software distribution <A
-HREF="../../PATCHES.html"><B>must sign a form</B></A> that gives MIT
-the permissions to use the contributions under the terms of the W3C
-software distribution. <P>
-
-<H2>Library 3.1pre3 Release Notes, July 13</H2>
-
-This is a last test of the 3.1 release. The official 3.1 release will
-follow in a few days. The purpose of this third pre-release is simply
-to avoid any obvious problems while we still have time. Very little
-will change in the final release! The big difference is that Windows
-NT is fully supported!
-
-<H3>New Features and Interfaces</H3>
+<H3>Core Modules</H3>
 
 <UL>
 
-<LI>Changed "rs6000" to "AIX" and "decstation" to "ultrix" in
-BUILD script. The previous names were not obvious
+<LI>The balanced binary tree in <A HREF="../Implementation/HTBTree.html">HTBtree</A> is not used
+anymore. The functionality is now provided by the new <A HREF="../Implementation/HTArray.html">
+HTArray module</A> that is a dynamic array of pointers. It is much like the <A
+HREF="../Implementation/HTChunk.html">HTChunk module</A> but for pointers instead of dynamic
+strings. The advantage is that the fast <EM>qsort</EM> algorithm can be used on the array.
 
-<LI>Have created <A HREF="../Implementation/HTProt.html">HTProt
-module</A> which handles protocol module registration. It used to be
-in <A HREF="../Implementation/HTAccess.html">HTAccess module</A>, but
-this module is now uniquely for user requests
+<LI>Moved the two functions <CODE>HTWWWTLocal()</CODE> and <CODE>HTLocalToWWW()</CODE> from the <A
+HREF="../Implementation/HTFile.html">HTFile Module</A> to the <A
+HREF="../Implementation/HTString.html">HTString module</A> for converting between local file names
+and URLs
 
-<LI>Changed the names of the following functions in the <A
-HREF="../Implementation/HTProt.html">HTProt module</A>
+<LI>It is now possible to register a call back function together with a timeout that is used in the
+select call of the event loop. When the select() call times out, the call back function is
+called. The registration can either be so that the call back <EM>always</EM> is called when that the
+select call times out <EM>or</EM> only when Library sockets are in use.
+
+<LI>We have a port to PowerMac and 68K!!! This has been provided by Steven T. Roussey
+&lt;sroussey@eng.uci.edu&gt; and Brad Barber &lt;barber@well.com&gt;
+
+<LI>We have changed HTThread to <A HREF="../Implementation/HTNet.c"> HTNet.c</A> as thread was too
+confusing. This module has been cleaned up and rewritten so that <A
+HREF="../Implementation/HTNet.c">HTNet.c</A> now contains the Net manager. The Net manager controls
+the net access so that we only keeps a specified amount of sockets open simultaneously (called a
+request queue). It also partly controls the management of persistent connections together with the
+<A HREF="../Implementation/HTDNS.html"> DNS Manager.</A>
+
+<LI>The <EM>HTRequest Object</EM> is now known to the <A HREF="../Implementation/HTReq.html">Request
+Manager</A> only. It is accessible through a lot of methods just like the <A
+HREF="../Implementation/HTAnchor.html">Anchor object</A> etc. The <A
+HREF="../Implementation/HTAccess.html">HTAccess module</A> is now a user interface to the Request
+Manager but it doesn't have to be used - you can use the Request Manager directly but often it is
+easier to go through the Access Module.
+
+<LI>The Protocol structure has been turned into an object internal to the <A
+HREF="../Implementation/HTProt.html">Protocol manager</A>. This means that protocol information can
+be accessed via a set of methods provided by the manager.
+
+<LI>We have changed case sensitive search to insensitive search when finding an access methods
+(HTTP, FTP, telnet etc.) for a URL. This catches silly errors in URLs like
+<EM>HTTP://www.foo.com</EM>
+
+<LI>The static protocol declarations have been replaced with a set of parameters to the creation
+method of a protocol object in the <A HREF="../Implementation/HTProt.html"> Protocol Manager</A>
+which is more handy.
+
+<LI>We added HTProtocol_delete() as method in the <A HREF="../Implementation/HTProt.html">Protocol
+manager</A>. This means that it is now possible to <EM>unregister</EM> a protocol at runtime. If you
+are on a platform with dynamic linking (for example DLLs) then this can save a lot of space.
+
+<LI>Introduction of application call back function for memory cache. This is a part of separating
+the <A HREF="../Implementation/HText.html">HText module</A> and also to make the memory cache
+manager more flexible. An example implementation can be found in the <A
+HREF="../../LineMode/Implementation/GridText.c">GridText module</A> in the <A
+HREF="../../LineMode/">Line Mode Browser</A>.
+
+<LI>Full support for the <A HREF="../Implementation/HTAnchor.html#links">HTLink object</A> that
+binds together two anchors. This is a requirement for keeping track of the <A
+HREF="Architecture/PostWeb.html">Post Web</A>.
+
+<LI>URL fragment identifiers were case insensitive - they are now case sensitive
+
+<LI>Added <CODE>result</CODE> field to the <A HREF="../Implementation/HTAnchor.html#links">
+HTLink</A> so that the result of a posting operation is stored in the link object. This means that
+the application can see which post operations succeeded and which didn't. This can for example be
+used in a GUI client to show the relations between the source and destination anchor as "dim" links.
+
+<LI>Fixed bug in put mechanism that caused destinations to accumulate in the postweb. Now `old'
+destinations are still registered but not included in a new postweb - they can, however, be
+discarded all together, but often the information is nice to have. On a GUI client, it can be shown
+as 'dimmed' destinations.
+
+<LI>Removed remaining outputs directly to stdout using <EM>fprintf()</EM>. Now all goes through <A
+HREF="../Implementation/HTAlert.html"> HTAlert module</A>. This was a problem in some of the
+protocol modules as well (especially in the Telnet module).
+
+<LI>The <CODE>CacheItems</CODE> structure is removed from anchor object and replaced by <CODE>(BOOL)
+CacheHit</CODE>. If <CODE>CacheHit=YES</CODE> then the format negotiation and suffix binding is not
+used in <A HREF="../Implementation/HTFile.html">HTFile Module</A> but the object is loaded directly
+(from the local file cache) using non-blocking I/O
+
+<LI>Internal DNS/hostname cache optimized and made more flexible to support <B>persistent
+connections</B> for all protocols that support this, for example HTTP, FTP, and NNTP. The first
+version has support for HTTP only, but the other ones will follow shortly. and multiple connections
+to same address. You can now control the garbage collection of DNS entries based on time. The DNS
+object keeps also information about the remote server (class of request, for example HTTP or FTP and
+the type of server, for example HTTP/1.0, HTTP/0.0 etc.). This means that it is possible to adjust a
+request to a remote server once the type is known. For example, the Library now distinguishes
+between HTTP servers version 0.9, 1.0, and 1.1. New classes and versions can be registered at run
+time just like protocol modules.
+
+<LI><A HREF="../Implementation/HTTCP.html">HTDoConnect</A> rewritten as a state machine which makes
+it a lot easier to understand and change. It is furthermore and important part of the persistent
+connection management.
+
+<LI>Removed <CODE>HTMaxRedirect</CODE> as a global variable. It is now private to <A
+HREF="../Implementation/HTReq.html">Request manager</A> with two methods to access it
+
+<LI>Support for context swapping and call back function in the <A
+HREF="../Implementation/HTReqMan.html">HTRequest object</A>. This allows the application to
+distinguish between multiple ongoing requests. See more information in the <A
+HREF="Using/Access.html">User's Guide</A>.
+
+<LI>Bug fix in <A HREF="../Implementation/HTTCP.c">HTTCP.c</A> HTGetHostName thanks to "dave (d.)
+mielke" &lt;davem@bnr.ca&gt;
+
+</UL>
+
+<H3>Protocol Modules</H3>
+
+<UL>
+
+<LI>Re-implemented long directory listings for FILE and FTP access using streams. The HTML machinery is
+now separated into the new <A HREF="../Implementation/HTDir.html">HTDir module</A>. It provides long
+directory listings for Unix, NT, and VMS.
+
+<LI>Support for <B>persistent connections</B> in HTTP requests. This has been enabled by the generic
+model in the DNS manager.
+
+<LI>Support for the methods <EM>DELETE</EM>, <EM>LINK</EM>, and <EM>UNLINK</EM>.
+
+<LI>Re-implemented <A HREF="../Implementation/HTFTP.html">HTFTP</A> module using <B>persistent
+connections</B>, multiplexed (non-blocking) sockets and streams for input and output. In fact the
+FTP module is now very capable and it's <EM>half</EM> the size of what it was because the Library in
+general supports the features needed in the FTP module. NOTE: Generation of HTML objects from
+directory listings is disabled for the moment as we are re-implementing it using streams. However,
+now it is possible to get the raw source code directly from the FTP server by typing:
 
 <PRE>
-	HTRegisterProtocol	-> HTProtocol_add
-	HTProtocolDispose	-> HTProtocol_deleteAll
-	HTProtocolBlocking	-> HTProtocol_isBlocking
+	www -source ftp://ftp.w3.org
 </PRE>
 
-<LI>Canonicalization now understands host names terminated with a ":",
-for example "www.w3.org:" is converted into "www.w3.org"
+<LI>Re-implemented <A HREF="../Implementation/HTGopher.html">Gopher module</A> so that it uses
+streams for input and output instead of the obsolete <A HREF="../Implementation/HTSocket.html">
+HTSocket_getCharacter()</A> method. The module now also uses non-blocking I/O as the HTTP module and
+the file module. A result of using streams is that you now can obtain the "real" source (the ASCII
+object sent by the gopher server) by using <EM>WWW_SOURCE</EM> as the output format. Before the
+source was equivalent of the source of the HTML object that was generated on the fly.
 
-<LI>HTEvnttd.c is removed from the source tree; it's no longer needed.
-Likewise, HTEvent.c is no longer needed; it has been superseded by
-HTEvntrg.c and HTEvntrg.html.
+<LI>Updated <A HREF="../Implementation/HTTelnet.c">Telnet module</A> to understand URL format
+<EM>user:passwd@host:port</EM>. Cleaned up the code and fixed a set of bugs at the same time.
 
-<LI>Added support for REENTRANT versions of
+<LI>Support for <EM>Host</EM> header in <A HREF="../Implementation/HTTPReq.html">HTTP Request
+module</A>. Actually this was <EM>Orig-URI</EM> but it was changed on the fly.
 
-<PRE>
-	getlogin_r
-	gethostbyname_r
-	gethostbyaddr_r
-	ctime_r
-	localtime_r
-	gmtime_r
-	asctime_r
-	ctermid_r
-	rand_r
-	readdir_r
-</PRE>
-
-<EM>except</EM> in <A HREF="../Implementation/HTFTP.html">HTFTP
-module</A> as it will be changed later. Some of the function cause
-problems on Solaris...
+<LI>Fixed bug on HTTP redirect if no body part was present. This is the new "trend" especially from
+Netscape's server. The old servers always sent back a small HTML document explaining if the client
+didn't understand automatic redirect.
 
 </UL>
 
-
-<H3>Bug Fixes</H3>
+<H3>Stream Modules</H3>
 
 <UL>
 
-<LI>Fixed bug in HTBind_getSuffix that caused garbage file suffixes
+<LI>For the first time, it is <EM>not</EM> required to define dummy definitions of the external
+declared function in the <A HREF="../Implementation/HText.html">HText Interface</A>. It is now only
+referenced from the <A HREF="../Implementation/HTML.html">HTML module</A> and the <A
+HREF="../Implementation/HTPlain.html">Plain Text Presentation module</A>. This means that
+applications that do not use the HTML/HText interface no more have the modules linked into the final
+object code.
 
-<LI>Fixed memory leak in HTAnchor if a child has more than one destination
+<LI>The <A HREF="../Implementation/SGML.html">SGML module</A> is no longer included anywhere anymore
+except where necessary. The structured stream definition can be found in <A
+HREF="../Implementation/HTStruct.html">HTStruct module</A>
+
+<LI>Make registration of callback function for unknown MIME headers in the <A
+HREF="../Implementation/HTMIME.html">MIME parser</A>. The application can now more easily experiment
+with new headers. The registration process is described in the section <A HREF="Using.html">How to
+get Started Writing an App</A>
+
+<LI>Added support for png (lossless graphics format) (patch from unknown?) into the <A
+HREF="../Implementation/HTGuess.html">Guess stream</A>
+
+<LI>Bug fixed in <A HREF="../Implementation/HTML.html">HTML parser</A> It couldn't handle more than
+20 nested HTML tags which can happen for example in auto-generated HTML documents.
+
+<LI>HTLoadError taken out completely. Replaced by the <A HREF="../Implementation/HTError.html">error
+manager</A>. It was for (stupid) historic reasons put into the HTML parser.
 
 </UL>
 
-<H2>Library 3.1pre2 Release Notes, July 1</H2>
-
-This is the announcement of the second release of the W3C Reference
-Library. The release is called 3.1 prerelease 2 and is to be
-considered as a beta version of the official version 3.1. This
-prerelease is also the last one before the "real thing" which will be
-out shortly after this. As usual, the release is ONLY available to W3C
-members, and it not be public available until one month from now. <P>
-
-The code word for the 3.1 release is support for remote collaborate
-work where people can use HTTP and the Web as a remote authoring
-environment. The reason for the slight delay is that this release has
-a new "Post Web" model for implementing PUT and POST, the
-documentation has been reorganized and rewritten, and some other
-important features have been incorporated. The Post Web model is
-described in the new documentation, see the reference below. <P>
-
-The functionality of the Library is now almost at the planned level
-for release 3.1, what we still need approximately a week for is to
-integrate the Windows NT port which has kept Charlie Brooks
-(cbrooks@osf.org) very busy - thanks! <P>
-
-In addition to the new set of features and functionality this release
-also is the first example of source code distributed under the W3C
-conditions. This means that the code is available to consortium
-members only within a month from the release date. <P>
-
-A lot of the work put into this release has been to update the API of
-the Library. This is mainly described in the new "User Guide", so
-please do read this and remember that comments are welcome! <P>
-
-<H3>New Features and Interfaces</H3>
+<H3>Application Modules</H3>
 
 <UL>
 
-<LI>The Post Web model is supported by the following methods to handle
-the <A HREF="../Implementation/HTAccess.html#z1">HTRequest
-structure</A>
+<LI><A HREF="../Implementation/HTAlert.html">HTInteractive</A> made a private flag to <A
+HREF="../Implementation/HTAlert.c">HTAlert.c</A>. It can now be reached via two methods in the
+module.
+
+<LI>All functions in the <A HREF="../Implementation/HTAlert.html">Alert Module</A> now has a request
+object as part of the calling parameters. The reason is that then the implementation of this module
+can call a registered call back function (as described above) so that the user message can be put
+into the right context.
+
+<LI>Mem leak fixed in <A HREF="../Implementation/HTLog.html">HTLog module</A> and added result of
+request to the log file. The log module is no longer called in the Library at all so if you do not
+use then it is not included in the application.
+
+<LI>Rewritten <A HREF="../Implementation/HTHist.html">HTHistory module</A> to perform a better
+history mechanism - the old version did not work properly. Some of the new features are
 
 <UL>
-<LI>HTRequest_removeDestination()
-<LI>HTRequest_linkDestination()
-<LI>HTRequest_unlinkDestination()
-<LI>HTRequest_removePostWeb()
-<LI>HTRequest_killPostWeb()
+<LI>Support for multiple history lists. You can use the context information in the request
+object to find the right list at any given time.
+<LI>The list now supports both <EM>back</EM> and <EM>forward</EM> for navigation. The list is no
+more "back trace with deletion".
 </UL>
 
-<LI><A HREF="../Implementation/HTFile.html">HTFile module</A> is
-completely rewritten as a state machine much like the <A
-HREF="../Implementation/HTTP.html">HTTP module</A>. It is now
-possible to have non-blocking, interruptible I/O and to PUT and POTS
-from a local file as well as from a remote HTTP server.
+See <A HREF="Using/History.html">User's Guide</A> for more information
 
-<LI>HTCopyAnchor is rewritten to use the PostWeb
+<LI>Introduced <A HREF="../Implementation/HTAlert.html">HTProgress()</A> notifications for the
+following operations
 
-<LI>The thread model is extended to include a HTThread_kill() function
-so that threads are terminated immediately upon request
+<UL>
+<LI>DNS lookup
+<LI>connect to remote host (either passive or active)
+<LI>read data from network
+<LI>write data to network
+<LI>request finished
+<LI>waiting for free socket
+</UL>
 
-<LI><A HREF="../Implementation/HTProxy.html">HTProxy module</A> is
-introduced. This module substitutes the environment variables for
-defining gateways and proxies. It can now be done dynamically at run
-time. For backwards compatibility HTProxy_getEnvVar() can be used to
-read the most used environment variables.
-
-<LI>Taken socket read/write functionality out of HTFormat and created
-<A HREF="../Implementation/HTSocket.html">HTSocket module</A> which
-handles all the basic network access
-
-<LI>Spawned <A HREF="../Implementation/HTMethod.html">HTMethod
-module</A> from HTAccess module
-
-<LI>Better handling of WAIS src files and use of gateway information
-
-<LI>Upgraded the WAIS to handle version 0.5 of the freeWAIS Library.
-
-<LI>Better handling of media types from WAIS responses (guessing)
-
-<LI>All HTTP headers can now be transmitted and received and they can
-all be enabled/disabled using a bitmask.
-
-<LI>New functions to support accept encoding, language, and charset
-
-<LI>Guess stream now handles macbinhex format
-
-<LI>No more circular references in any of the Library include files
-
-<LI>Introduced REMOVE and RMDIR as macros instead of direct system calls
-
-<LI>Removed HTRequest_clear() - it's not safe to reuse a request structure!
-
-<LI>HTStrip() is now placed in the HTString module
-
-<LI>introducing the method used in the link structure in the anchor
-
-<LI>HTTP modified to support PostWeb
+On each of these operations, the library calls <EM>HTProgress()</EM> with a code so that the
+application can define what to do with it.
 
 </UL>
 
-<H3>Bug Fixes</H3>
+<H3>Generic Utilities</H3>
 
 <UL>
-<LI>Cache is now avoided if in secure mode (no access to local file system)
 
-<LI>Bug fix to allow simultaneous read and write on the same socket
+<LI>Introduced HTChunkData() and HTChunkSize() as methods in the <A
+HREF="../Implementation/HTChunk.html">HTChunk module</A>. No more need to look into the HTChunk
+object itself.
 
-<LI>Stream stack now dumps to local file if no conversion can be made
+<LI>Changed HTStat to HT_STAT and HTLStat to HT_LSTAT as they are macros
 
-<LI>Bug fix that caused core dumps for HTTP 0.9 servers
+<LI>The <CODE>HTSimplify()</CODE> function in the <A HREF="../Implementation/HTParse.html">HTParse
+module</A> now follows the <A HREF="http://www.ics.uci.edu/pub/ietf/uri/rfc1808.txt">RFC 1808
+Specification</A>
 
-<LI>Bug fixed in stream stack if system() call is not present. This
-release has a new model called "Post Web" for handling put and post
-from a source to a multiple number of destinations. Furthermore
-</UL>
+<LI>Fixed bug in <A HREF="../Implementation/HTParse.c">HTCanon()</A> that got confused about
+&lt;http://teller.datawave.net:80/test/../imx/weelogo.gif&gt; thanks to Henry Minsky
 
-<H2>Library 3.1pre1 Release Notes, May 20</H2>
+<LI><A HREF="../Implementation/HTParse.c">HTCanon()</A> made private to <A
+HREF="../Implementation/HTParse.html">HTParse module</A> as it is called from HTSimplify() only
 
-A lot of the work put into this release has been to update the API of
-the Library. This is mainly described in the new "User Guide", so
-please do read this and remember that comments are welcome!
+<LI>All <EM></EM> replaced with <EM>(wb|ab)</EM> if known binary output. This was a problem on
+Windows 3.1 platform as it inserted extra <EM>CRLF</EM> line terminators.
 
-<H3>New Features and Interfaces</H3>
+<LI>Created HTNumToStr() in <A HREF="../Implementation/HTString.html">HTString Module</A> to convert
+a number to a string using prefixes. This can be used in the progress notification to write <EM>Read
+1.6K</EM> etc.
 
-<UL>
-<LI>Windows NT Support (and possibly Windows 3.1 with Win32S) thanks
-to Charlie Brooks, &lt;cbrooks@osf.org&gt;
-
-<LI>A lot easier handling of headers in the HTTP module including
-support for extra headers
-
-<LI>Improved <A HREF="../Implementation/HTMIME.html">HTTP/MIME
-parser</A> which recognizes 99% of the HTTP headers The rest will be
-ready in the next release! This includes support for "charset" and
-"level" parameter
-
-<LI>Support for PUT and POST. This is not yet fully implemented but it
-is possible to experiment with it
-
-<LI>Big enhancement of the anchor module with support for all HTTP/1.0
-headers, garbage collection etc.
-
-<LI>The Cache manager is made more object oriented with a broader set
-of methods. The garbage collector is not the best
-
-<LI>HTBind module created for better bindings to file system with new
-hash function for improved speed and more functionality than before
-
-<LI>Created HTDateTimeStr() and HTMessageID() in <A
-HREF="../Implementation/HTString.html">HTString</A>
-
-<LI>Separated HTStructured into its own stream definition module (<A
-HREF="../Implementation/HTStruct.html">HTStruct.h</A>)
-
-<LI>Introduced STREAM_TRACE and BIND_TRACE as new debug flag
-
-<LI>Original reason messages are now passed back as a parameter by the
-error handler when talking to a remote HTTP server
-
-<LI>Introduction of error_format in the request structure. This can be
-used to get debug information out of the Library
-
-<LI>Better handling of media types in FTP and Gopher including
-recognition of UU encoded files
-</UL>
-
-<H3>Bug Fixes</H3>
-
-<UL>
-<LI>Eventloop responds now faster on events as it more often does a select
-
-<LI>HTTP version strings are now string and not floats
-
-<LI>Many platform dependent macros introduced and a lot of cleanup
 </UL>
 
 <P>
 <HR>
-<ADDRESS>Henrik Frystyk, libwww@w3.org, July 1995</ADDRESS>
+<ADDRESS>Henrik Frystyk, libwww@w3.org, October 1995</ADDRESS>
 </BODY>
 </HTML>

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Libwww Architecture</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 12-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Oct-1995 -->
 </HEAD>
 <BODY>
 
@@ -11,54 +11,31 @@
 
 <H1>Libwww Architecture</H1>
 
-<IMG SRC="../../../Icons/WWW/construction.gif" ALT="Under Construction"> Under
-construction. Any suggestions or ideas are welcome at
-<EM>libwww@w3.org</EM>. <P>
+<IMG SRC="../../../Icons/WWW/construction.gif" ALT="Under
+Construction"> Under construction. Any suggestions or ideas are
+welcome at <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>. <P>
 
 The W3C Reference Library, a.k.a. Library of Common Code, is a general
-code base that can be used as a basis for building clients, servers
-and many other Web applications. It contains reference code for
-accessing HTTP, FTP, Gopher, News, WAIS, Telnet servers, and the local
-file system. Furthermore it provides modules for parsing, managing and
-presenting hypertext objects to the user and a wide spectra of generic
-programming utilities. The Library is the basis for many <A
-HREF="../">World-Wide Web</A> applications and the W3C reference
-applications are built on top of it. This document is the first of
-three documents that each describes different aspects of the Library:
+code base written in portable C that can be used as a basis for
+building clients, servers and many other Web applications. It contains
+reference code for accessing HTTP, FTP, Gopher, News, WAIS, Telnet
+servers, and the local file system. Furthermore it provides modules
+for parsing, managing and presenting hypertext objects to the user and
+a wide spectra of generic programming utilities. The Library is the
+basis for many <A HREF="../">World-Wide Web</A> applications and the
+W3C reference applications are built on top of it. <P>
 
-<DL>
-
-<DT><A HREF="./"><IMG ALT="Architecture" SRC="../../../Icons/WWW/design48x.gif"></A> <B>The Architecture</B>
-
-<DD>The current document is the first in the series and it describes
-the architecture of the Library without referring directly to the code
-itself. This is the "designer view" where bugs are a unknown
-phenomenon.
-
-<DT><A HREF="../Using/"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A> <B>The User's Guide</B>
-
-<DD>The second document introduces the "official" API of the
-Library. This document represents the "User's view" and should be
-sufficient to use the Library without being aware of what's going on
-underneeth the interface. It is also the API that is least exposed to
-changes. The description contains a set of examples.
-
-<DT><A HREF="../Guide/"><IMG ALT="Internals" SRC="../../../Icons/WWW/internals48x.gif"></A> <B>The Internals and Programmer's Guide</B>
-
-<DD>The last document in the serie presents all modules in the Library
-regardles if they are part of the API described in the User's Guide or
-not. This is also known as the "hacker's view" of the Library.
-
-</UL>
+This document describes the architecture of the Library in generic
+terms without referring too much directly to the code itself. It is
+meant to give an overview of the design which is required if you
+intend to enhance the Library. If you are looking for a specific
+description of the API then please read the <A HREF="../Using/">User's
+Guide</A>. <P>
 
 <IMG ALIGN=BOTTOM SRC="../../../Icons/32x32/caution.gif" ALT="NOTE">
-Each part of the documentation is also available as <A
-HREF="choppy.html"><B>one big HTML file</B></A> intended for
-printout. As a result, the relative links in this document do not
-work!<P>
-
-The current documentation is based on version 3.1 which is to be
-released July 1995.<P>
+This document is also available as <A HREF="choppy.html"><B>one big
+HTML file</B></A> intended for printout. Please note that not all
+links in this version work!<P>
 
 <H2>Table of Contents</H2>
 
@@ -727,11 +704,13 @@ is removed from the sub-web.
 
 </OL>
 
+
 <H1>Protocol Manager</H1>
 
 <IMG SRC="../../../Icons/WWW/construction.gif" ALT="Under Construction"> Under
 construction. Any suggestions or ideas are welcome at
 <EM>libwww@w3.org</EM>.
+
 
 <H1>Libwww Threads and Net Objects</H1>
 
@@ -897,6 +876,7 @@ function to handle the status of the request regarding to some
 internal actions. This function is registered at initialization time
 of the Library. The application can add its own call back functions to
 be called on termination of a request.
+
 
 <H1>Internal and External Events</H1>
 
@@ -1281,6 +1261,10 @@ construction. Any suggestions or ideas are welcome at
 <EM>libwww@w3.org</EM>.
 
 <H1>Handling Error Situations</H1>
+
+<IMG SRC="../../../Icons/WWW/construction.gif" ALT="Under Construction"> Under
+construction. Any suggestions or ideas are welcome at
+<EM>libwww@w3.org</EM>.
 
 <H1>What is a libwww Request?</H1>
 

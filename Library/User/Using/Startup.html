@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Getting Started</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 24-Jun-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 14-Oct-1995 -->
 </HEAD>  
 <BODY>
 
@@ -11,67 +11,107 @@
 
 <H1>Getting Started</H1>
 
-The Library distribution package can be obtained from the <A
-HREF="../../">Library status page</A> and it includes all source files
-and some <A HREF="../../../README.html">README</A> files describing
-what the package contains. There is also an online "<A
-HREF="../Installation.html">Installation Guide</A>" explaining how to
-unpack and compile the Library. As new versions of the Library are
-released frequently, it is recommended that you verify that the
-version is up to date by looking into the "Version.Make" file in the
-"Implementation" directory of the Library and compare it with the
-information given at the <A HREF="../../">Library status page</A>.<P>
+This guide assumes that you have already compiled the library and are ready to use it building an
+application. If this is not the case then please read the <A
+HREF="../Installation.html">Installation guide</A> before you continue reading this document. One
+thing to note is that as new versions of the Library are released frequently, it is recommended that
+you verify that the version is up to date. On a Unix platform you can do this by typing the
+following command
 
-From version 3.0, the include file "<A
-HREF="../../Implementation/WWWLib.html">WWWLib.h</A>" is the only
-include file which is required in order to use the Library.  This file
-contains all the functionality that is publicly available, but as the
-architecture is currently very exposed, this includes most of the
-modules in the Library itself.  Apart from this, only two functions
-are necessary in order to initialize and cleanup the Library
-respectively:
+<PRE>
+	cat Library/Implementation/Version.make
+</PRE>
+
+assuming that you are at the top of the WWW tree created when unpacking the distribution file. You
+can compare your version of the code with the current version which is available from the online
+documentation from out WWW server.<P>
+
+In order to use the public functions of the Library, your application needs to include the file "<A
+HREF="../../Implementation/WWWLib.html">WWWLib.h</A>". This file is a container for all the Library
+include files that together define the public API of the core of the Library. As described in the
+document <A HREF="../Architecture">Library Architecture</A> the core is a frame work for other
+modules that provide the actual functionality, for example for parsing HTML documents or getting a
+document via HTTP or FTP. We will explain later how this functionality can be enabled and used by an
+application. <P>
+
+The application must explicitly initialize the Library before it can start using it so that the
+internal file descriptors, and variables can be set to their respective values. This only has to be
+done once while the application is running and is typically done when the application is stated
+up. The application also should close down the Library when it has stopped using it - typically when
+the application is closing down. The Library will then return resources like file descriptors and
+dynamic memory to the operating system. In practice the initialization and termination is done using
+the following two functions:
 
 <DL>
 
 <DT><CODE>BOOL HTLibInit()</CODE>
 
-<DD>This function initializes memory, file descriptors, interrupt
-handlers etc. By default it also calls initialization functions for
-all the dynamic modules in the Library. The dynamic modules are
-described in "<A HREF="../Architecture/DesignModel.html">Libwww
-Architecture</A>". A major part of the User's Guide is to describe how
-the Library can be configured, both at run time and at compile time,
-and the dynamic modules are an important part of the Library
-configuration.
+<DD>This function initializes memory, file descriptors, and interrupt handlers etc. By default it
+also calls initialization functions for all the dynamic modules in the Library. The dynamic modules
+are described in "<A HREF="../Architecture/DesignModel.html">Libwww Architecture</A>". A major part
+of the User's Guide is devoted to describing how the Library can be configured, both at run time and
+at compile time, and the dynamic modules are an important part of the Library configuration.
 
 <DT><CODE>BOOL HTLibTerminate()</CODE>
 
-<DD>Cleans up the memory and closes open file descriptors.
+<DD>Cleans up the memory, closes open file descriptors, and returns all resources to the operating
+system.
 
 </DL>
 
-It is essential that <CODE>HTLibInit()</CODE> is the first call to the
-Library and <CODE>HTLibTerminate()</CODE> is the last as the behavior
-otherwise is undefined. As an example, a minimal application will look
-like this:
+It is essential that <CODE>HTLibInit()</CODE> is the first call to the Library and
+<CODE>HTLibTerminate()</CODE> is the last as the behavior otherwise is undefined. <P>
+
+Before the application can successfully link to the Library it must provide two global strings
+(<EM>HTAppName</EM> and <EM>HTAppVersion</EM>) used for identifying the name and the version number
+of the application. It is not a requirement that these values are unique and they can both be the
+empty string (""). However, as the strings are used in the <A
+HREF="../../Implementation/HTTP.html/">HTTP protocol module</A> when communicating with other WWW
+applications it is strongly recommended that the values are chosen carefully according to the <A
+HREF="../../../Protocols/">HTTP specifications</A>. The most important requirement is to use normal
+ASCII characters without any form for space, for example:
 
 <PRE>
-	#include &lt;WWWLib.h>
-	/* Other initializations */
+	char * HTAppName = "W3CLineMode";
+	char * HTAppVersion = "4.0";
+</PRE>
 
+As explained in the next section, the <CODE>HTLibInit()</CODE> function uses the information in the
+Library <A HREF="../../Implementation/HTInit.html">HTInit module</A> when initializing the
+Library. The result of the setup of dynamic modules might require additional definitions of
+variables and functions in the application before the linker can create an executable file. <P>
+
+Also, some platforms require a socket library when building network applications. This is for
+example the case when building on Macintosh or Windows machines. The Library uses the <A
+HREF="http://err.ethz.ch/members/neeri/macintosh/gusiman/GUSI.html">GUSI socket</A> library on the
+Macintosh and the <A HREF="ftp://ftp.spry.com/ms-windows/winsock/docs/winsock.txt">WinSock
+library</A> on windows platforms. Please check the documentation on these libraries for how to
+install them and also if there are any specific requirements on your platform when building network
+applications.<P>
+
+We have now explained the first few steps in how to use the core of the Library. As a summary we
+will write a minimal application that does nothing but initializes and terminates the Library. In
+the example we assume that the compiler knows where to look for the Library include file
+<CODE>WWWLib.h</CODE> and also knows where to find the binary library, often called
+<CODE>libwww.a</CODE>. Again, the result might depend on the setup of the dynamic modules, but if no
+dynamic modules are enabled then the example will generate an executable file. If you are in doubt
+about how to set your compiler then you can often get some good ideas by looking into the <A
+HREF="../../../LineMode/">Line Mode Browser</A>.
+
+<PRE>
+	#include "WWWLib.h"
+	char * HTAppName = "TestApp";
+	char * HTAppVersion = "1.0";
 	int main()
 	{
-		HTLibInit();
-
-		/* Application stuff */
-
-		HTLibTerminate();
-		return 0;
+	    HTLibInit();
+	    HTLibTerminate();
+	    return 0;
 	}
 </PRE>
 
 <P>
 <HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, July 1995</ADDRESS>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, October 1995</ADDRESS>
 </BODY>
 </HTML> 

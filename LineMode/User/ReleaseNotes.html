@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Line Mode Browser 3.1 Release Notes</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 13-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Oct-1995 -->
 </HEAD>
 <BODY>
 
@@ -9,67 +9,23 @@
 <A HREF="../"><IMG ALT="LMB" SRC="../../Icons/WWW/LMB48x.gif"></A>
 <IMG SRC="../../Icons/WWW/relnotes48x.gif" ALT="RELEASE">
 
-<H1>Line Mode Browser 3.1 Release Notes</H1>
+<H1>Line Mode Browser 4.0 Release Notes</H1>
 
-This is the announcement of the version 3.1 release of the W3C Line
-Mode Browser. The code word for this release is support for remote
-collaborate work where people can use HTTP and the Web as a remote
-authoring environment.<P>
-
-Due to the limited distribution of the source code it is only
-available from our <A HREF="../../../Dist/">HTTP server</A> and NOT
-our FTP server. There is a "<A HREF="QuickGuide.html">User's
-Guide</A>" on how to use the Line Mode Browser as a basic tool for Web
-applications.<P>
-
-The Line Mode Browser is now under <A HREF="../../COPYRIGHT.html">MIT
-copyright</A> and another new formality is that everybody who makes
-modifications, contributions etc. and wishes to incorporate them as
-part of the W3C software distribution <A
-HREF="../../PATCHES.html"><B>must sign a form</B></A> that gives MIT
-the permissions to use the contributions under the terms of the W3C
-software distribution. <P>
-
-<H2>Line Mode Browser 3.1 Prerelease 3, July 13</H2>
-
-The browser has been adapted to support the new <A
-HREF="../../Library/Implementation/HTEvntrg.html">Event Interface</A>
-
-<H2>Line Mode Browser 3.1 Prerelease 2, July 1</H2>
-
-<H3>New Features and Interfaces</H3>
+<H2>Alpha Release 3A, October 15 1995</H2>
 
 <UL>
-<LI>Introduction of the commands "PUT" and "POST" for sending data
-from either the local file system of a remote HTTP server to a remote
-wHTTP server - try it, it's fun :-)
-</UL>
-
-<H2>Line Mode Browser 3.1 Prerelease 1, May 20</H2>
-
-As usual most of the functionality in the Line Mode Browser comes
-from the Library, but there are some things that deserve to be
-mentioned:
-
-<H3>New Features and Interfaces</H3>
-
-<UL>
-<LI>Added the -single flag so that it can run in singlethreaded mode
-<LI>refresh screen is now improved
-<LI>Introduced `-cacheroot' as command line option
-<LI>Added STREAM_TRACE to command line option
-<LI>Changed SGML trace to `g' instead of `s'
-</UL>
-
-<H3>Bug Fixes</H3>
-
-<UL>
-<LI>No more coredump if HTMainText=NULL!
-<LI>command line option -listrefs now works again
+<LI>Introduced "RELOAD" as command. If forces reload in memory and update of cache
+<LI>Fixed bug where -single didn't have any history list
+<LI>Changed the default help page to be online manual
+<LI>Introduced POST as METHOD
+<LI>Replaced the original event loop with the new version
+<LI>Cleaned up and reorganized the code 
+<LI>Introduced CLEAR and FORWARD as commands
+<LI>Introduced -delete as command line flag
 </UL>
 
 <P>
 <HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:www-bug@w3.org">www-bug@w3.org</A>, July 1995</ADDRESS>
+<ADDRESS>Henrik Frystyk, libwww@w3.org, September 1995</ADDRESS>
 </BODY>
 </HTML>
