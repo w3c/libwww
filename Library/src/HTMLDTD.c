@@ -92,7 +92,7 @@ static CONST char* entities[] = {
 **	Lists must be in alphatbetical order by attribute name
 **	The tag elements contain the number of attributes
 */
-static attr no_attr[] = 
+static attr no_attr[1] = 
 	{{ 0 }};
 
 static attr a_attr[] = {		/* Anchor attributes */
@@ -124,12 +124,14 @@ static attr glossary_attr[] = {
 	{ 0 }	/* Terminate list */
 };
 
-static attr nextid_attr[HTML_NEXTID_ATTRIBUTES] = {
-	{ "N" }
+static attr nextid_attr[HTML_NEXTID_ATTRIBUTES+1] = {
+	{ "N" },
+	{ 0 }	/* Terminate list */
 };
 
-static attr pre_attr[HTML_PRE_ATTRIBUTES] = {
-	{ "WIDTH" }
+static attr pre_attr[HTML_PRE_ATTRIBUTES+1] = {
+	{ "WIDTH" },
+	{ 0 }	/* Terminate list */
 };
 
 
@@ -180,7 +182,7 @@ static HTTag tags[HTML_ELEMENTS] = {
     { "OL"	, list_attr,	1,		SGML_MIXED },
     { "P"	, no_attr,	0,		SGML_EMPTY },
     { "PLAINTEXT", no_attr,	0,		SGML_LITTERAL },
-    { "PRE"	, no_attr,	0,		SGML_MIXED },
+    { "PRE"	, pre_attr,	0,		SGML_MIXED },
     { "SAMP"	, no_attr,	0,		SGML_MIXED },
     { "STRONG"	, no_attr,	0,		SGML_MIXED },
     { "TITLE", 	  no_attr,	0,		SGML_CDATA },

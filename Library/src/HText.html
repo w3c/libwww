@@ -14,6 +14,7 @@ in order to display hypertext.
 #include "HTAnchor.h"
 #include "HTStyle.h"
 #include "HTStream.h"
+#include "SGML.h"
 
 #ifdef SHORT_NAMES
 #define HTMainText			HTMaText
@@ -59,14 +60,26 @@ extern HTParentAnchor * HTMainAnchor;	/* Pointer to current text's anchor */
 
 </PRE>
 <H2>Creation and deletion</H2>
-<H3>HText_new: Create hypertext object</H3>
+<H3>HText_new: Create hypertext object</H3>There are several methods depending
+on how much you want to specify.
+The output stream is used with objects
+which need to output the hypertext
+to a stream.  The structure is for
+objects which need to refer to the
+structure which is kep by the creating
+stream.
 <PRE> extern HText *	HText_new PARAMS((HTParentAnchor * anchor));
+
  extern HText *	HText_new2 PARAMS((HTParentAnchor * anchor,
  				HTStream * output_stream));
 
-/*	Free hypertext object					HText_free
-*/
-extern void 	HText_free PARAMS((HText * me));
+ extern HText *	HText_new3 PARAMS((HTParentAnchor * anchor,
+ 				HTStream * output_stream,
+				HTStructured * structure));
+
+</PRE>
+<H3>Free hypertext object</H3>
+<PRE>extern void 	HText_free PARAMS((HText * me));
 
 
 </PRE>

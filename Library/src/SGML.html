@@ -158,7 +158,7 @@ typedef struct _HTStructuredClass{
 </PRE>
 <H2>Find a Tag by Name</H2>Returns a pointer to the tag within
 the DTD.
-<PRE>extern HTTag * SGMLFindTag PARAMS((CONST SGML_dtd* dtd, char * string));
+<PRE>extern HTTag * SGMLFindTag PARAMS((CONST SGML_dtd* dtd, CONST char * string));
 
 
 </PRE>
@@ -181,6 +181,7 @@ extern CONST HTStreamClass SGMLParser;
 
 
 #endif	/* SGML_H */
+
 
 
 

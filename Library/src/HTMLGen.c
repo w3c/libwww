@@ -43,10 +43,11 @@ struct _HTStructured {
 	HTStream * 			target;
 	HTStreamClass			targetClass;	/* COPY for speed */
 	
-	char				buffer[BUFFER_SIZE];
+	char				buffer[BUFFER_SIZE+1]; /* 1for NL */
 	char *				write_pointer;
 	char *				line_break;
 	int				cleanness;
+	BOOL				delete_line_break_char;
 	BOOL				preformatted;
 };
 
@@ -62,11 +63,22 @@ PRIVATE void HTMLGen_flush ARGS1(HTStructured *, me)
     me->write_pointer = me->buffer;
     me->line_break = me->buffer;
     me->cleanness = 0;
+    me->delete_line_break_char = NO;
 }
 
 
 /*	Character handling
 **	------------------
+**
+**	The tricky bits are the line break handling.  This attempts
+**	to synchrononise line breaks on sentence or phrase ends. This
+**	is important if one stores SGML files in a line-oriented code
+**	repository, so that if a small change is made, line ends don't
+**	shift in a ripple-through to apparently change a large part of the
+**	file. We give extra "cleanness" to spaces appearing directly
+**	after periods (full stops), [semi]colons and commas.
+**	   This should make the source files easier to read and modify
+**	by hand, too, though this is not a primary design consideration.
 */
 PRIVATE void HTMLGen_put_character ARGS2(HTStructured *, me, char, c)
 {
@@ -79,29 +91,47 @@ PRIVATE void HTMLGen_put_character ARGS2(HTStructured *, me, char, c)
     }
     
     if ((!me->preformatted  && c==' ')) {
-    	me->line_break = me->write_pointer;
-	me->cleanness = 1;
+        int new_cleanness = 1;
+	if (me->write_pointer > (me->buffer + 1)) {
+		char delims[] = ",;:.";		/* @@ english bias */
+		char * p = strchr(delims, me->write_pointer[-2]);
+		if (p) new_cleanness = p - delims + 2;
+	}
+	if (new_cleanness >= me->cleanness) {
+	    me->line_break = me->write_pointer - 1;  /* Point to space */
+	    me->cleanness = new_cleanness;
+	    me->delete_line_break_char = YES;
+	}
     }
     
     /* Flush buffer out when full */
     if (me->write_pointer == me->buffer + BUFFER_SIZE) {
     	if (me->cleanness) {
-	    me->line_break[-1] = '\n';
+	    char line_break_char = me->line_break[0];
+	    char * saved = me->line_break;
+	    
+	    if (me->delete_line_break_char) saved++; 
+	    me->line_break[0] = '\n';
 	    (*me->targetClass.put_block)(me->target,
 	    				me->buffer,
-					me->line_break - me->buffer);
+					me->line_break - me->buffer + 1);
+	    me->line_break[0] = line_break_char;
 	    {  /* move next line in */
-	    	char * p,*q;
-		for(q=me->buffer, p=me->line_break; p < me->write_pointer; )
+	    	char * p=saved;
+		char *q;
+		for(q=me->buffer; p < me->write_pointer; )
 			*q++ = *p++;
 	    }
 	    me->cleanness = 0;
+	    me->delete_line_break_char = 0;
+	    me->write_pointer = me->write_pointer - (saved-me->buffer);
+
 	} else {
 	    (*me->targetClass.put_block)(me->target,
 	    	me->buffer,
 		BUFFER_SIZE);
+	    me->write_pointer = me->buffer;
 	}
-	me->write_pointer = me->buffer;
 	me->line_break = me->buffer;
     }
 }
@@ -141,7 +171,7 @@ PRIVATE void HTMLGen_start_element ARGS4(
     BOOL was_preformatted = me->preformatted;
     HTTag * tag = &HTML_dtd.tags[element_number];
 
-    me->preformatted = NO;
+    me->preformatted = NO;	/* free text within tags */
     HTMLGen_put_character(me, '<');
     HTMLGen_put_string(me, tag->name);
     if (present) for (i=0; i< tag->number_of_attributes; i++) {
@@ -157,6 +187,11 @@ PRIVATE void HTMLGen_start_element ARGS4(
     }
     HTMLGen_put_string(me, ">\n");
     
+    if (tag->contents != SGML_EMPTY) {  /* can break after element start */ 
+    	me->line_break = me->write_pointer;	/* Don't you hate SGML?  */
+	me->cleanness = 1;
+	me->delete_line_break_char = NO;
+    }
     /* Make very specific HTML assumption that PRE can't be
        nested! */
        
@@ -178,6 +213,12 @@ PRIVATE void HTMLGen_start_element ARGS4(
 PRIVATE void HTMLGen_end_element ARGS2(HTStructured *, me,
 			int , element_number)
 {
+    if (HTML_dtd.tags[element_number].contents != SGML_EMPTY) {
+    				/* can break before element end */ 
+    	me->line_break = me->write_pointer;	/* Don't you hate SGML?  */
+	me->cleanness = 1;
+	me->delete_line_break_char = NO;
+    }
     HTMLGen_put_string(me, "</");
     HTMLGen_put_string(me, HTML_dtd.tags[element_number].name);
     HTMLGen_put_character(me, '>');
@@ -265,6 +306,7 @@ PUBLIC HTStructured * HTMLGenerator ARGS1(HTStream *, output)
     me->write_pointer = me->buffer;
     me->line_break = 	me->buffer;
     me->cleanness = 	0;
+    me->delete_line_break_char = NO;
     me->preformatted = 	NO;
     return me;
 }

@@ -265,7 +265,7 @@ PRIVATE void start_element(context)
 **		NULL		tag not found
 **		else		address of tag structure in dtd
 */
-PUBLIC HTTag * SGMLFindTag ARGS2(CONST SGML_dtd*, dtd, char *, string)
+PUBLIC HTTag * SGMLFindTag ARGS2(CONST SGML_dtd*, dtd, CONST char *, string)
 {
     int high, low, i, diff;
     for(low=0, high=dtd->number_of_tags;
