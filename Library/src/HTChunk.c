@@ -117,6 +117,22 @@ PUBLIC HTChunk * HTChunk_fromCString (char * str, int grow)
     return ch;
 }
 
+/*	Create a chunk from an allocated buffer
+**	---------------------------------------
+*/
+PUBLIC HTChunk * HTChunk_fromBuffer (char * buf, int buflen, int size, int grow)
+{
+    HTChunk * ch;
+    ch = HTChunk_new(grow);
+    if (buf) {
+	ch->data = buf;
+	ch->size = ch->allocated = buflen;
+	if (size < buflen)
+	    HTChunk_setSize(ch, size);	/* This ensures the end is 0-filled */
+    }
+    return ch;
+}
+
 /*	Free a chunk but keep the data
 **	------------------------------
 */

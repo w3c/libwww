@@ -155,10 +155,25 @@ extern void HTChunk_terminate (HTChunk * ch);
 A Chunk may be built from an allocated string. The chunk assumes control
 of the passed string, eliminating the need for additional allocations and
 string copies.<BR>
-When you take control of the CString from a chunk, it is destroyed.
+When you take control of the CString from a chunk, the chunk is destroyed.
 <PRE>
 extern HTChunk * HTChunk_fromCString	(char * str, int grow);
 extern char * HTChunk_toCString		(HTChunk * ch);
+</PRE>
+<H2>
+ Creating a Chunk from an allocated buffer
+</H2>
+<P>
+A Chunk may be built from an allocted buffer.  You must specify how much
+memory is allocated in the buffer (buflen) and what the size the new
+Chunk should be (size).  All memory between size and buflen is zeroed.
+Note that is is legal to specify a size equal to the buflen if you don't
+expect the Chunk to be null terminated.  The chunk takes control of the
+memory, and will free it when the Chunk is destroyed. Note that in order
+to avoid conflicts, the buffer's memory should be allocated using
+libwww's dedicated functions.
+<PRE>
+extern HTChunk * HTChunk_fromBuffer (char * buf, int buflen, int size, int grow);
 </PRE>
 <H2>
   Old Interface Names

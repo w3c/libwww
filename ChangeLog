@@ -1,6 +1,9 @@
 2000-09-01 	Wayne Davison <wayne@clari.net>
 
 	* HTAccess.c: Typo fix
+	* HTChunk.c, HTChunk.html: new function, HTChunk_fromBuffer for
+	  creating a chunk from an existing  block of memory, without having
+	  to allocate more memory.
 
 2000-09-01      Peter Stamfest <peter.stamfest@eunet.at>
 
