@@ -680,7 +680,7 @@ PUBLIC CONST char * HTHostName NOARGS
 	    FREE(hostname);
 	    return NULL;
 	}
-	StrAllocCopy(hostname, phost->h_name);
+	StrAllocCopy(hostname, (char *) hostelement->h_name);
     }
 #endif /* DNS access */
 #endif /* not Decnet */
