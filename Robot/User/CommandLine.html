@@ -25,7 +25,11 @@
     <LI>
       <A HREF="#Constraints">Setting Basic Constraints for Traversal</A>
     <LI>
+      <A HREF="#txt">Robots.txt and HTML META tags</A>
+    <LI>
       <A HREF="#regex">Regular Expressions based Constraints</A>
+    <LI>
+      <A HREF="#Search">Breath First or Depth First Search</A>
     <LI>
       <A HREF="#Inlined">Checking Inlined Images</A>
     <LI>
@@ -39,8 +43,6 @@
     <LI>
       <A HREF="#Other">Other Options</A>
   </UL>
-  <P>
-  Henrik Frystyk Nielsen
 </DIV>
 <P>
   <HR>
@@ -112,6 +114,26 @@ the webbot.
     separate file</A>.
 </DL>
 <H3>
+  <A NAME="txt">Robots.txt and HTML META tags</A>
+</H3>
+<P>
+There are situations where you may not want the robot to behave as a robot
+but more as a link checker in which case you may consider using these options:
+<DL>
+  <DT>
+    <B>-norobotstxt</B>
+  <DD>
+    If you for some reason don't want the robot to check for a
+    <A HREF="http://info.webcrawler.com/mak/projects/robots/exclusion.html#robotstxt">robots.txt
+    file</A> then add this command line option
+  <DT>
+    <B>-nometatags</B>
+  <DD>
+    If you for some reason don't want the robot to check for
+    <A HREF="http://info.webcrawler.com/mak/projects/robots/exclusion.html#meta">HTML
+    robots related META tags</A> then add this command line option
+</DL>
+<H3>
   <A NAME="regex">Regular Expressions based Constraints</A>
 </H3>
 <P>
@@ -146,6 +168,21 @@ when checking the links.
     Allows you to define a
     <A HREF="http://www.delorie.com/gnu/docs/rx/rx_3.html">regular expression</A>
     of which URIs should be included in the traversal
+</DL>
+<H3>
+  <A NAME="Search">Breath First or Depth First Search</A>
+</H3>
+<P>
+The webbot can perform either a
+<A HREF="http://study.haifa.ac.il/~gmazorvs/">Depth First Search (DFS) or
+a Breadth First Search (BFS)</A>. The default is DFS where the robot issues
+new requests as soon as they are encountered. To change to the BFS algorithmn,
+use the "<TT>-bfs</TT>" flag:
+<DL>
+  <DT>
+    <B>-bfs</B>
+  <DD>
+    Use Breadth First Search (BFS) instead of Depth First Search (DFS)
 </DL>
 <H3>
   <A NAME="Inlined">Checking Inlined Images</A>

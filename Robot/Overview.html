@@ -40,7 +40,8 @@ it!</A> |&nbsp;<A HREF="#Features">Features</A>
   <DT>
     Author(s)
   <DD>
-    <A HREF="../People/Frystyk/">Henrik Frystyk Nielsen</A>
+    <A HREF="../People/Frystyk/">Henrik Frystyk Nielsen</A>, John Punin, Bob
+    Racko
   <DT>
     Status
   <DD>
@@ -76,7 +77,13 @@ it!</A> |&nbsp;<A HREF="#Features">Features</A>
   <LI>
     Really fast <A HREF="../Library/">libwww HTTP/1.1 engine</A> - uses
     <A HREF="../Protocols/HTTP/Performance/">HTTP/1.1 pipelining</A> which
-    <A HREF="../Protocols/HTTP/Performance/">speeds up performance a lot</A>.
+    <A HREF="../Protocols/HTTP/Performance/">speeds up performance a lot</A>
+  <LI>
+    Supports
+    <A HREF="http://info.webcrawler.com/mak/projects/robots/exclusion.html#robotstxt">robot.txt
+    </A>files and
+    <A HREF="http://info.webcrawler.com/mak/projects/robots/exclusion.html#meta">robot
+    META tags</A>
   <LI>
     Smart use of <CODE>GET</CODE> and <CODE>HEAD</CODE> - only downloads the
     strictly necessary
@@ -117,10 +124,10 @@ it!</A> |&nbsp;<A HREF="#Features">Features</A>
 </H2>
 <P>
 Be careful - this is a robot and hence can be used to traverse many links
-- it should not be used for anything but
-<A HREF="../Protocols/HTTP/Forum/">HTTP/1.1 testing</A>. Especially, it doesn't
-follow directions indicated in <TT>robot.txt</TT> files and hence should
-not be used on the Internet at large.
+- it should be used with care and is not designed to be let loose on the
+Internet at large. Its primary design goal was to be able to test
+<A HREF="../Protocols/HTTP/Performance/Pipeline.html">HTTP/1.1 pipelining
+features</A>.
 <P>
 The robot has a large set of <A HREF="User/CommandLine.html">command line
 options</A> that can be used in a large set of different combinations. You

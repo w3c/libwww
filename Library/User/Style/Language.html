@@ -62,6 +62,10 @@ via variuous libwww APIs, especially provided by the
 should not be used:
 <UL>
   <LI>
+    <CODE>printf</CODE> shouldn't be used to output debug messages, use the
+    <A HREF="../../src/HTTrace.html">libwww HTTrace</A> instead. Also, you may
+    want to use <A HREF="../../src/HTUtils.html#Debug">the trace filters</A>
+  <LI>
     <CODE>strdup</CODE> is not supported on many platforms. Use
     <A HREF="../../src/HTString.html">libwww dynamic strings</A> instead
   <LI>
@@ -98,8 +102,8 @@ should not be used:
 	<B>Don't indent</B> any preprocessor statements. They must (for some compilers)
 	begin in column 1.
       <LI>
-	If you add comments after pre processor directives, for Do put the ending
-	condition in a comment. Don't put it as code - it won't pass all compilers.
+	If you add a comment after preprocessor directives, then it MUST be within
+	a C style comment <CODE>/* ... */</CODE>
       <LI>
 	<B>Don't use <CODE>#elif</CODE></B>. Basic <B>cpp</B> doesn't know it.
     </UL>

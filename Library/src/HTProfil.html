@@ -39,8 +39,8 @@ initialization function <CODE>HTLibInit()</CODE> which is defined in the
 <A HREF="HTLib.html">HTLib module</A>.
 <P>
 This module is implemented by <A HREF="HTProfil.c">HTProfil.c</A>, and it
-is a part of the <A HREF="http://www.w3.org/Library/">W3C Sample
-Code Library</A>. You can also have a look at the other
+is a part of the <A HREF="http://www.w3.org/Library/">W3C Sample Code
+Library</A>. You can also have a look at the other
 <A HREF="WWWInit.html">Initialization modules</A>.
 <PRE>
 #ifndef HTPROF_H
@@ -78,6 +78,10 @@ extern void HTProfile_newNoCacheClient (const char * AppName,
   Preemptive (Blocking) Client
 </H3>
 <P>
+<B><IMG SRC="../../Icons/32x32/warning.gif" WIDTH="32" HEIGHT="32" ALT="Note: "
+    BORDER="0">Do not use preemptive profiles if you are doing <TT>PUT</TT> or
+<TT>POST</TT> requests.</B>
+<P>
 We also have a blocking (preemptive) version of the same client interface.
 The difference is that this version uses traditional blocking sockets and
 hence only one reques can be performed at the same time.
@@ -97,6 +101,10 @@ this is not part of the robot profile.
 extern void HTProfile_newRobot (const char * AppName, const char * AppVersion);
 </PRE>
 <P>
+<B><IMG SRC="../../Icons/32x32/warning.gif" WIDTH="32" HEIGHT="32" ALT="Note: "
+    BORDER="0">Do not use preemptive profiles if you are doing <TT>PUT</TT> or
+<TT>POST</TT> requests.</B>
+<P>
 As for the client interfacem we also have a blocking (preemptive) version
 of the same interface. The difference is that this version uses traditional
 blocking sockets and hence only one reques can be performed at the same time.
@@ -104,16 +112,6 @@ blocking sockets and hence only one reques can be performed at the same time.
 extern void HTProfile_newPreemptiveRobot (const char * AppName,
 					  const char * AppVersion);
 </PRE>
-<H2>
-  <A NAME="Proxy">Proxy Server Profile</A>
-</H2>
-<P>
-MORE
-<H2>
-  <A NAME="Server">Server Application Profile</A>
-</H2>
-<P>
-MORE
 <H2>
   Delete a Profile
 </H2>
