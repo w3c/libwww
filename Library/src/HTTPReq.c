@@ -413,7 +413,7 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 	}
 	else {
 	    PUTS(host); /* this may be dangerous, but helps server side debugging */
-        HTTRACE(PROT_TRACE, "HTTP........ Error: Cannot convert to ACE: `%s\'\n", host);
+        HTTRACE(PROT_TRACE, "HTTP........ Error: Cannot convert to ACE: `%s\'\n" _ host);
 	}
 	PUTBLOCK(crlf, 2);
 	HT_FREE(orig);
