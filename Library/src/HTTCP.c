@@ -665,7 +665,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	    ** returns 0 when blocking and NOT -1. FNDELAY is ONLY for BSD and
 	    ** does NOT work on SVR4 systems. O_NONBLOCK is POSIX.
 	    */
-	    if (!net->preemtive) {
+	    if (!net->preemptive) {
 #ifdef _WINSOCKAPI_
 		{		/* begin windows scope  */
 		    HTRequest * rq = request;
@@ -975,7 +975,7 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKET master, int backlog)
 	    ** returns 0 when blocking and NOT -1. FNDELAY is ONLY for BSD and
 	    ** does NOT work on SVR4 systems. O_NONBLOCK is POSIX.
 	    */
-	    if (!net->preemtive) {
+	    if (!net->preemptive) {
 #ifdef _WINSOCKAPI_ 
 		{		/* begin windows scope  */
 		    long levents = FD_READ | FD_WRITE | FD_ACCEPT | 

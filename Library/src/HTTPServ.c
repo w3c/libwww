@@ -102,7 +102,7 @@ PRIVATE int ServerCleanup (HTRequest *req, int status)
 PRIVATE int ParseRequest (HTStream * me)
 {
     HTRequest * request = me->request;
-    HTRequest * newreq = me->http->serve = HTRequest_dup(request);
+    HTRequest * newreq = me->http->serve = HTRequest_dupInternal(request);
     char * line = HTChunk_data(me->buffer);
     char * method;
     char * request_uri;

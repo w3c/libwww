@@ -197,14 +197,11 @@ PRIVATE int MIMERequest_put_block (HTStream * me, CONST char * b, int l)
 	return b ? PUTBLOCK(b, l) : HT_OK;
     else {
 	MIMEMakeRequest(me, me->request);
-#if 0
-	if ((status = PUTBLOCK(HTChunk_data(me->buffer),
-			       HTChunk_size(me->buffer))) == HT_OK) {
-	    me->transparent = YES;
-	    return b ? PUTBLOCK(b, l) : HT_OK;
+	if (HTRequest_isDestination(me->request)) {
+	    (*me->target->isa->flush)(me->target);
+	    HTNet_setBytesWritten(me->request->net, 0);
 	}
-#endif
-	me->transparent = YES;
+	me->transparent = YES;	
 	return b ? PUTBLOCK(b, l) : HT_OK;
     }
 }

@@ -119,7 +119,7 @@ PUBLIC HTDirReadme HTFile_dirReadme (void)
 **	Reads the directory "path"
 **	Returns:
 **		HT_ERROR	Error
-**		HT_NO_ACCESS	Directory reading not allowed
+**		HT_FORBIDDEN	Directory reading not allowed
 **		HT_LOADED	Successfully read the directory
 */
 PRIVATE int HTFile_readDir (HTRequest * request, file_info *file)
@@ -136,7 +136,7 @@ PRIVATE int HTFile_readDir (HTRequest * request, file_info *file)
     if (dir_access == HT_DIR_FORBID) {
 	HTRequest_addError(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
 		   NULL, 0, "HTFile_readDir");
-	return HT_NO_ACCESS;
+	return HT_FORBIDDEN;
     }
     
     /* Initialize path name for stat() */
@@ -160,7 +160,7 @@ PRIVATE int HTFile_readDir (HTRequest * request, file_info *file)
 			"Read dir.... `%s\' not found\n", DEFAULT_DIR_FILE);
 	    HTRequest_addError(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
 		       NULL, 0, "HTFile_readDir");
-	    return HT_NO_ACCESS;
+	    return HT_FORBIDDEN;
 	}
     }
 
@@ -363,7 +363,9 @@ PRIVATE int FileCleanup (HTRequest *req, int status)
     file_info *file = (file_info *) net->context;
 
     /* Free stream with data TO Local file system */
-    if (!HTRequest_isDestination(req) && req->input_stream) {
+    if (HTRequest_isDestination(req))
+	HTRequest_removeDestination(req);
+    else  if (req->input_stream) {
 	if (status == HT_INTERRUPTED)
 	    (*req->input_stream->isa->abort)(req->input_stream, NULL);
 	else
@@ -382,7 +384,7 @@ PRIVATE int FileCleanup (HTRequest *req, int status)
 	FREE(file->local);
 	free(file);
     }
-    HTNet_delete(net, status);
+    HTNet_delete(net, req->internal ? HT_IGNORE : status);
     return YES;
 }
 
@@ -416,10 +418,9 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	file->state = FS_BEGIN;
 	net->context = file;
     } if (ops == FD_CLOSE) {				      /* Interrupted */
-	if(HTRequest_isPostWeb(request)&&!HTRequest_isMainDestination(request))
-	    FileCleanup(request, HT_IGNORE);
-	else
-	    FileCleanup(request, HT_INTERRUPTED);
+	HTRequest_addError(request, ERR_FATAL, NO, HTERR_INTERRUPTED,
+			   NULL, 0, "HTLoadHTTP");
+	FileCleanup(request, HT_INTERRUPTED);
 	return HT_OK;
     } else
 	file = (file_info *) net->context;		/* Get existing copy */
@@ -528,7 +529,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	    ** and does NOT work on SVR4 systems. O_NONBLOCK is POSIX.
 	    */
 #ifndef NO_FCNTL
-	    if (!request->net->preemtive) {
+	    if (!request->net->preemptive) {
 		if ((status = FCNTL(net->sockfd, F_GETFL, 0)) != -1) {
 		    status |= O_NONBLOCK;			    /* POSIX */
 		    status = FCNTL(net->sockfd, F_SETFL, status);
@@ -559,15 +560,6 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		TTYPrint(TDEST,"HTLoadFile.. `%s' opened using FILE %p\n",
 			file->local, file->fp);
 #endif /* !NO_UNIX_IO */
-	    file->state = FS_NEED_TARGET;
-	    break;
-
-	  case FS_NEED_TARGET:
-	    /*
-	    ** We need to wait for the destinations to get ready
-	    */
-	    if (HTRequest_isSource(request) && !request->output_stream)
-		return HT_OK;
 
 	    /* Set up stream TO local file system */
 	    request->input_stream = HTBufWriter_new(net, YES, 512);
@@ -578,12 +570,17 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	    ** before all destinations are ready. If destination then
 	    ** register the input stream and get ready for read
 	    */
-	    if (HTRequest_isPostWeb(request)) {
+	    if (HTRequest_isDestination(request)) {
 		HTEvent_Register(net->sockfd, request, (SockOps) FD_READ,
 				 HTLoadFile, net->priority);
 		HTRequest_linkDestination(request);
 	    }
+	    file->state = FS_NEED_TARGET;
+	    if (HTRequest_isSource(request) && !HTRequest_destinationsReady(request))
+		return HT_OK;
+	    break;
 
+	  case FS_NEED_TARGET:
 	    /*
 	    ** Set up read buffer and streams.
 	    ** If cache element, we know that it's MIME, so call MIME parser
@@ -639,68 +636,55 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 
 	  case FS_GOT_DATA:
 	    if (HTRequest_isPostWeb(request)) {
-		FileCleanup(request, HTRequest_isMainDestination(request) ?
-			    HT_LOADED : HT_IGNORE);
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
 					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_OK);
 		}
-		HTRequest_removeDestination(request);
-	    } else
-		FileCleanup(request, HT_LOADED);
+	    }
+	    FileCleanup(request, HT_LOADED);
 	    return HT_OK;
 	    break;
 
 	  case FS_NO_DATA:
 	    if (HTRequest_isPostWeb(request)) {
-		FileCleanup(request, HTRequest_isMainDestination(request) ?
-			    HT_NO_DATA : HT_IGNORE);
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
 					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_OK);
 		}
-		HTRequest_removeDestination(request);
-	    } else
-		FileCleanup(request, HT_NO_DATA);
+	    }
+	    FileCleanup(request, HT_NO_DATA);
 	    return HT_OK;
 	    break;
 
 	  case FS_RETRY:
 	    if (HTRequest_isPostWeb(request)) {
-		FileCleanup(request, HTRequest_isMainDestination(request) ?
-			    HT_RETRY : HT_IGNORE);
-		HTRequest_killPostWeb(request);
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
 					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_ERROR);
 		}
-		HTRequest_removeDestination(request);
-	    } else
-		FileCleanup(request, HT_RETRY);
+		HTRequest_killPostWeb(request);
+	    }
+	    FileCleanup(request, HT_RETRY);
 	    return HT_OK;
 	    break;
 
 	  case FS_ERROR:
-	    /* Clean up the other connections or just this one */
 	    if (HTRequest_isPostWeb(request)) {
-		FileCleanup(request, HTRequest_isMainDestination(request) ?
-			    HT_ERROR : HT_IGNORE);
-		HTRequest_killPostWeb(request);
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
 					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_ERROR);
 		}
-		HTRequest_removeDestination(request);
-	    } else
-		FileCleanup(request, HT_ERROR);
+		HTRequest_killPostWeb(request);
+	    }
+	    FileCleanup(request, HT_ERROR);
 	    return HT_OK;
 	    break;
 	}

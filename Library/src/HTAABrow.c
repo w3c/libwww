@@ -768,3 +768,43 @@ PUBLIC BOOL HTAA_retryWithAuth (HTRequest * req)
     return (HTPasswordDialog(req));
 }
 
+/*
+**	Setup HTTP access authentication
+*/
+PUBLIC BOOL HTAA_authentication (HTRequest * request)
+{
+    HTAAScheme scheme;
+    HTList *valid_schemes = HTList_new();
+    HTAssocList **scheme_specifics = NULL;
+    char *tmplate = NULL;
+
+    if (request->WWWAAScheme) {
+	if ((scheme = HTAAScheme_enum(request->WWWAAScheme)) != HTAA_UNKNOWN) {
+	    HTList_addObject(valid_schemes, (void *) scheme);
+	    if (!scheme_specifics) {
+		int i;
+		scheme_specifics = (HTAssocList**)
+		    malloc(HTAA_MAX_SCHEMES * sizeof(HTAssocList*));
+		if (!scheme_specifics)
+		    outofmem(__FILE__, "HTTPAuthentication");
+		for (i=0; i < HTAA_MAX_SCHEMES; i++)
+		    scheme_specifics[i] = NULL;
+	    }
+	    scheme_specifics[scheme] = HTAA_parseArgList(request->WWWAARealm);
+	} else if (PROT_TRACE) {
+	    HTRequest_addError(request, ERR_INFO, NO, HTERR_UNKNOWN_AA,
+		       (void *) request->WWWAAScheme, 0, "HTTPAuthentication");
+	    return NO;
+	}
+    }
+    if (request->WWWprotection) {
+	if (PROT_TRACE)
+	    TTYPrint(TDEST, "Protection template set to `%s'\n",
+		    request->WWWprotection);
+	StrAllocCopy(tmplate, request->WWWprotection);
+    }
+    request->valid_schemes = valid_schemes;
+    request->scheme_specifics = scheme_specifics;
+    request->prot_template = tmplate;
+    return YES;
+}

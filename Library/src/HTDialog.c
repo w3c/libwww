@@ -136,7 +136,18 @@ PUBLIC BOOL HTProgress (HTRequest * request, HTAlertOpcode op,
 	break;
 
       case HT_PROG_WRITE:
-	TTYPrint(TDEST, "Writing...\n");
+	if (HTRequest_isPostWeb(request)) {
+	    HTParentAnchor *anchor=HTRequest_anchor(HTRequest_source(request));
+	    long cl = HTAnchor_length(anchor);
+	    if (cl > 0) {
+		long b_write = HTRequest_bytesWritten(request);
+		double pro = (double) b_write/cl*100;
+		char buf[10];
+		HTNumToStr((unsigned long) cl, buf, 10);
+		TTYPrint(TDEST, "Written (%d%% of %s)\n", (int) pro, buf);
+	    } else
+		TTYPrint(TDEST, "Writing...\n");
+	}
 	break;
 
       case HT_PROG_DONE:

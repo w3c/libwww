@@ -348,7 +348,7 @@ PUBLIC HTNet * HTNet_new (HTRequest * request, SOCKET sockfd)
     if (WWWTRACE) TTYPrint(TDEST, "HTNet_new... Create empty Net object\n");
     if (!request || sockfd==INVSOC) return NULL;
     if ((me = create_object(request)) == NULL) return NULL;
-    me->preemtive = request->preemtive;
+    me->preemptive = request->preemptive;
     me->priority = request->priority;
     me->sockfd = sockfd;
     return me;
@@ -379,7 +379,7 @@ PUBLIC BOOL HTNet_newServer (HTRequest * request, SOCKET sockfd)
 	
     /* Create new net object and bind it to the request object */
     if ((me = create_object(request)) == NULL) return NO;
-    me->preemtive = (HTProtocol_preemtive(protocol) || request->preemtive);
+    me->preemptive = (HTProtocol_preemptive(protocol) || request->preemptive);
     me->priority = request->priority;
     me->sockfd = sockfd;
     if (!(me->cbf = HTProtocol_server(protocol))) {
@@ -448,7 +448,7 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
 	
     /* Create new net object and bind it to the request object */
     if ((me = create_object(request)) == NULL) return NO;
-    me->preemtive = (HTProtocol_preemtive(protocol) || request->preemtive);
+    me->preemptive = (HTProtocol_preemptive(protocol) || request->preemptive);
     me->priority = request->priority;
     me->sockfd = INVSOC;
     if (!(me->cbf = HTProtocol_client(protocol))) {
@@ -503,19 +503,18 @@ PRIVATE BOOL delete_object (HTNet *net, int status)
 
 	/* Close socket */
 	if (net->sockfd != INVSOC) {
+	    HTEvent_UnRegister(net->sockfd, (SockOps) FD_ALL);
 	    if (HTDNS_socket(net->dns) == INVSOC) {
 		if ((status = NETCLOSE(net->sockfd)) < 0)
 		    HTRequest_addSystemError(net->request, ERR_FATAL,
 					     socerrno, NO, "NETCLOSE");
 		if (WWWTRACE)
 		    TTYPrint(TDEST, "HTNet_delete closing %d\n", net->sockfd);
-		HTEvent_UnRegister(net->sockfd, (SockOps) FD_ALL);
 	    } else {
 		if (WWWTRACE)
 		    TTYPrint(TDEST, "HTNet_delete keeping %d\n", net->sockfd);
 		HTDNS_clearActive(net->dns);
 		/* Here we should probably use a low priority */
-		HTEvent_UnRegister(net->sockfd, (SockOps) FD_ALL);
 		HTEvent_Register(net->sockfd, net->request, (SockOps) FD_READ,
 				 HTDNS_closeSocket, net->priority);
 	    }

@@ -114,9 +114,8 @@ PUBLIC int HTSocketRead (HTRequest * request, HTNet * net)
 				     net->cbf, net->priority);
 		    return HT_WOULD_BLOCK;
 		} else { /* We have a real error */
-		    if (PROT_TRACE)
-			TTYPrint(TDEST, "Read Socket. READ ERROR %d\n",
-				socerrno);
+		    HTRequest_addSystemError(request,  ERR_FATAL, socerrno, NO,
+					     "NETREAD");
 		    return HT_ERROR;
 		}
 	    } else if (!b_read) {
@@ -174,7 +173,7 @@ PUBLIC int HTSocketRead (HTRequest * request, HTNet * net)
 	    }
 	}
 	isoc->write = isoc->buffer + b_read;
-    } while (net->preemtive);
+    } while (net->preemptive);
     HTEvent_Register(isoc->sockfd, request, (SockOps) FD_READ,
 		     net->cbf, net->priority);
     return HT_WOULD_BLOCK;

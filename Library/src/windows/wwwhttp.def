@@ -3,6 +3,7 @@ EXPORTS
 HTAA_composeAuth	@ 101
 HTPasswordDialog	@ 102
 HTAA_retryWithAuth	@ 103
+HTAA_authentication	@ 104
 
 ;HTAAUtil.c		@ 200
 HTAAScheme_enum		@ 201

@@ -125,6 +125,7 @@ PRIVATE int buf_flush (HTStream * me)
 	me->head = cur->next;
 	free_buf(cur);
     }
+    me->give_up = YES;
     return HT_OK;
 }
 
@@ -186,10 +187,15 @@ PRIVATE int buf_free (HTStream * me)
 
 PRIVATE int buf_abort (HTStream * me, HTList * e)
 {
+    HTBufItem * cur;
     if (!me->give_up)
 	free_buf_all(me);
     if (me->target)
 	(*me->target->isa->abort)(me->target,e);
+    while ((cur = me->head)) {
+	me->head = cur->next;
+	free_buf(cur);
+    }
     free(me);
     if (PROT_TRACE) TTYPrint(TDEST, "Length...... ABORTING...\n");
     return HT_ERROR;

@@ -1,6 +1,6 @@
 <HEAD>
 <TITLE>Browser side Access Auth</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 19-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 20-Jan-1996 -->
 </HEAD>
 <BODY>
 
@@ -186,6 +186,12 @@ elses previous authorization information.
 extern void HTAAForwardAuth_set (CONST char * scheme_name,
 				 CONST char * scheme_specifics);
 extern void HTAAForwardAuth_reset (void);
+</PRE>
+
+<H2>Setup HTTP access authentication</H2>
+
+<PRE>
+extern BOOL HTAA_authentication (HTRequest * request);
 </PRE>
 
 <PRE>

@@ -76,7 +76,6 @@ PRIVATE BOOL Cleanup (HTStream * me)
 PRIVATE void HTTPMakeResponse (HTStream * me, HTRequest * request)
 {
     char linebuf[256];
-    HTParentAnchor *anchor = HTRequest_anchor(request);
 
     /* Generate the HTTP/1.0 ResponseLine */
     if (request->error_stack) {

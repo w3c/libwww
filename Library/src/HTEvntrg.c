@@ -431,7 +431,7 @@ PRIVATE void __RequestUpdate( RQ * rqp, SOCKET s, HTRequest * rq,
     	TTYPrint(TDEST, "Req Update.. updating for socket %u\n", s) ;
     rqp->unregister = (ops & FD_UNREGISTER) ? YES : NO;
     rqp->actions[0].rq = rq ;
-    rqp->actions[0].ops = ops ;
+    rqp->actions[0].ops |= ops ;
     rqp->actions[0].cbf = cbf ;
     rqp->actions[0].p = p ;
     return;
@@ -459,8 +459,8 @@ PUBLIC int HTEvent_UnRegister( SOCKET s, SockOps ops)
     }
 
     if (THD_TRACE)
-    	TTYPrint(TDEST, "UnRegister.. %s entry for socket %d\n",
-		(found) ? "Found" : "Didn't find", s);
+    	TTYPrint(TDEST, "UnRegister.. %s entry for socket %d with ops %x\n",
+		 (found) ? "Found" : "Didn't find", s, (unsigned) ops);
     if (! found) 
         return 0;
 
@@ -844,8 +844,10 @@ PRIVATE int __DoCallback( SOCKET s, SockOps ops)
     HTRequest * rqp = NULL;
     HTEventCallback *cbf = HTEvent_Retrieve( s, ops, &rqp);
     /* although it makes no sense, callbacks can be null */
-    if (!cbf || rqp->priority == HT_PRIORITY_OFF)
+    if (!cbf || !rqp || rqp->priority == HT_PRIORITY_OFF) {
+	if (THD_TRACE) TTYPrint(TDEST, "Callback.... No callback found\n");
         return (0);
+    }
     return (*cbf)(s, rqp, ops);
 }
 
@@ -858,8 +860,10 @@ PRIVATE int __DoUserCallback( SOCKET s, SockOps ops)
     HTRequest * rqp = NULL;
     HTEventCallback *cbf = HTEvent_Retrieve( s, ops, &rqp);
     /* although it makes no sense, callbacks can be null*/
-    if (!cbf || rqp->priority == HT_PRIORITY_OFF)
+    if (!cbf || !rqp || rqp->priority == HT_PRIORITY_OFF) {
+	if (THD_TRACE) TTYPrint(TDEST, "UserCallback No callback found\n");
         return (0);
+    }
     return (*cbf)(s, rqp, ops);
 }
 
@@ -962,7 +966,7 @@ PRIVATE void __DumpFDSet( fd_set * fdp, CONST char * str)
             s = all_fds.fd_array[ui] ;
 #else 
         for (s = 0 ; s <= max_sock; s++) { 
-            if (FD_ISSET(s, &all_fds))
+            if (FD_ISSET(s, fdp))
 #endif
 	    {
 	        TTYPrint(TDEST, "%4d\n", s);

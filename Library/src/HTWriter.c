@@ -18,6 +18,7 @@
 #include "HTReq.h"
 #include "HTNetMan.h"
 #include "HTConLen.h"
+#include "HTAlert.h"
 #include "HTWriter.h"					 /* Implemented here */
 
 struct _HTStream {
@@ -68,6 +69,8 @@ PRIVATE int HTWriter_write (HTStream * me, CONST char * buf, int len)
 {
     int b_write;
     CONST char *limit = buf+len;
+    HTRequest * request = me->net->request;
+    HTNet * net = me->net;
 
 #ifdef NOT_ASCII
     if (me->make_ascii && len && !me->ascbuf) {	      /* Generate new buffer */
@@ -101,13 +104,13 @@ PRIVATE int HTWriter_write (HTStream * me, CONST char * buf, int len)
 #endif
 	    {
 		if (PROT_TRACE)
-		    TTYPrint(TDEST,"Write Socket WOULD BLOCK %d\n", me->sockfd);
-		HTEvent_Register(me->sockfd,me->net->request,(SockOps)FD_WRITE,
-				 me->net->cbf, me->net->priority);
+		    TTYPrint(TDEST,"Write Socket WOULD BLOCK %d\n",me->sockfd);
+		HTEvent_Register(me->sockfd, request, (SockOps) FD_WRITE,
+				 net->cbf, net->priority);
 		return HT_WOULD_BLOCK;
 	    } else {
-		if (PROT_TRACE)
-		    TTYPrint(TDEST, "Write Socket WRITE ERROR %d\n", socerrno);
+		HTRequest_addSystemError(request,  ERR_FATAL, socerrno, NO,
+					 "NETWRITE");
 		return HT_ERROR;
 	    }
 	}
@@ -117,6 +120,11 @@ PRIVATE int HTWriter_write (HTStream * me, CONST char * buf, int len)
 	if (PROT_TRACE)
 	    TTYPrint(TDEST, "Write Socket %d bytes written to socket %d\n",
 		    b_write, me->sockfd);
+	net->bytes_written += b_write;
+	{
+	    HTAlertCallback *cbf = HTAlert_find(HT_PROG_READ);
+	    if (cbf) (*cbf)(request, HT_PROG_WRITE,HT_MSG_NULL,NULL,NULL,NULL);
+	}
     }
 #ifdef NOT_ASCII
     FREE(me->ascbuf);

@@ -423,19 +423,21 @@ PUBLIC BOOL HTSearchAbsolute (CONST char *	keywords,
 **	to NNTP and puts into the "newsgroups" header
 **	Returns YES if request accepted, else NO
 */
-PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_req)
+PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_dest)
 { 
     HTRequest * src_req;
     HTList * cur;
-    if (!src_anchor || !main_req)
+    if (!src_anchor || !main_dest) {
+	if (WWWTRACE) TTYPrint(TDEST, "Copy........ BAD ARGUMENT\n");
 	return NO;
+    }
 
     /* Build the POST web if not already there */
-    if (!main_req->source) {
-	src_req = HTRequest_dup(main_req);	  /* First set up the source */
+    if (!main_dest->source) {
+	src_req = HTRequest_dupInternal(main_dest);	  /* Get a duplicate */
 	HTAnchor_clearHeader((HTParentAnchor *) src_anchor);
+	src_req->method = METHOD_GET;
 	src_req->reload = HT_MEM_REFRESH;
-	src_req->source = src_req;			  /* Point to myself */
 	src_req->output_stream = NULL;
 	src_req->output_format = WWW_SOURCE;	 /* We want source (for now) */
 
@@ -446,27 +448,23 @@ PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_req)
 	    HTMethod method = HTLink_method(main_link);
 	    if (!main_link || method==METHOD_INVALID) {
 		if (WWWTRACE)
-		    TTYPrint(TDEST, "Copy Anchor. No destination found or unspecified method");
+		    TTYPrint(TDEST, "Copy Anchor. No destination found or unspecified method\n");
 		HTRequest_delete(src_req);
 		return NO;
 	    }
-	    if (HTLink_result(main_link) == HT_LINK_NONE) {
-		main_req->GenMask |= HT_G_DATE;		 /* Send date header */
-		main_req->source = src_req;
-		main_req->reload = HT_CACHE_REFRESH;
-		main_req->method = method;
-		HTRequest_addDestination(src_req, main_req);
-		main_req->input_format = WWW_SOURCE;
-		if (HTLoadAnchor(main_anchor, main_req) == NO)
-		    return NO;
-	    }
+	    main_dest->GenMask |= HT_G_DATE;		 /* Send date header */
+	    main_dest->reload = HT_CACHE_REFRESH;
+	    main_dest->method = method;
+	    main_dest->input_format = WWW_SOURCE;
+	    HTRequest_addDestination(src_req, main_dest);
+	    if (HTLoadAnchor(main_anchor, main_dest) == NO)
+		return NO;
 	}
 
 	/* For all other links in the source anchor */
 	if ((cur = HTAnchor_subLinks(src_anchor))) {
 	    HTLink * pres;
-	    while ((pres = (HTLink *) HTList_nextObject(cur)) &&
-		   HTLink_result(pres) == HT_LINK_NONE) {
+	    while ((pres = (HTLink *) HTList_nextObject(cur))) {
 		HTAnchor *dest = HTLink_destination(pres);
 		HTMethod method = HTLink_method(pres);
 		HTRequest *dest_req;
@@ -476,24 +474,22 @@ PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_req)
 				dest);
 		    return NO;
 		}
-		dest_req = HTRequest_dup(main_req);
+		dest_req = HTRequest_dupInternal(main_dest);
 		dest_req->GenMask |= HT_G_DATE;		 /* Send date header */
-		dest_req->source = src_req;
 		dest_req->reload = HT_CACHE_REFRESH;
 		dest_req->method = method;
-		HTRequest_addDestination(src_req, dest_req);
-
 		dest_req->output_stream = NULL;
 		dest_req->output_format = WWW_SOURCE;
+		HTRequest_addDestination(src_req, dest_req);
 
 		if (HTLoadAnchor(dest, dest_req) == NO)
 		    return NO;
 	    }
 	}
     } else {			 /* Use the existing Post Web and restart it */
-	src_req = main_req->source;
+	src_req = main_dest->source;
 	if (src_req->mainDestination)
-	    if (HTLoadDocument(main_req, NO) == NO)
+	    if (HTLoadDocument(main_dest, NO) == NO)
 		return NO;
 	if (src_req->destinations) {
 	    HTRequest * pres;
@@ -523,8 +519,10 @@ PUBLIC BOOL HTUploadAnchor (HTAnchor *		src_anchor,
 			    HTRequest *		dest_req)
 {
     HTMethod allowed = HTAnchor_methods(dest_anchor);
-    if (!src_anchor || !dest_anchor || !dest_req)
+    if (!src_anchor || !dest_anchor || !dest_req) {
+	if (WWWTRACE) TTYPrint(TDEST, "Upload...... BAD ARGUMENT\n");
 	return NO;
+    }
     if (!(allowed & dest_req->method)) {
 	BOOL confirm = NO;
 	HTAlertCallback *cbf = HTAlert_find(HT_A_CONFIRM);

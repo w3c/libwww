@@ -61,9 +61,9 @@ typedef enum _HTTPState {
     HTTP_BEGIN		= 0,
     HTTP_NEED_CONNECTION,
     HTTP_NEED_REQUEST,
-    HTTP_REDIRECTION,
+    HTTP_PERM_REDIRECT,
+    HTTP_TEMP_REDIRECT,
     HTTP_NOT_MODIFIED,
-    HTTP_EXPIRED,
     HTTP_AA
 } HTTPState;
 
@@ -104,7 +104,9 @@ PRIVATE int HTTPCleanup (HTRequest *req, int status)
     http_info *http = (http_info *) net->context;
 
     /* Free stream with data TO network */
-    if (!HTRequest_isDestination(req) && req->input_stream) {
+    if (HTRequest_isDestination(req))
+	HTRequest_removeDestination(req);
+    else if (req->input_stream) {
 	if (status == HT_INTERRUPTED)
 	    (*req->input_stream->isa->abort)(req->input_stream, NULL);
 	else
@@ -112,51 +114,15 @@ PRIVATE int HTTPCleanup (HTRequest *req, int status)
 	req->input_stream = NULL;
     }
 
+    /* Free user part of stream pipe if error */
+    if (!net->target && req->output_stream)
+	(*req->output_stream->isa->abort)(req->output_stream, NULL);
+
     /* Remove the request object and our own context structure for http */
-    HTNet_delete(net, status);
+    HTNet_delete(net, req->internal ? HT_IGNORE : status);
     FREE(http);
     return YES;
 }
-
-
-PRIVATE BOOL HTTPAuthentication (HTRequest * request)
-{
-    HTAAScheme scheme;
-    HTList *valid_schemes = HTList_new();
-    HTAssocList **scheme_specifics = NULL;
-    char *tmplate = NULL;
-
-    if (request->WWWAAScheme) {
-	if ((scheme = HTAAScheme_enum(request->WWWAAScheme)) != HTAA_UNKNOWN) {
-	    HTList_addObject(valid_schemes, (void *) scheme);
-	    if (!scheme_specifics) {
-		int i;
-		scheme_specifics = (HTAssocList**)
-		    malloc(HTAA_MAX_SCHEMES * sizeof(HTAssocList*));
-		if (!scheme_specifics)
-		    outofmem(__FILE__, "HTTPAuthentication");
-		for (i=0; i < HTAA_MAX_SCHEMES; i++)
-		    scheme_specifics[i] = NULL;
-	    }
-	    scheme_specifics[scheme] = HTAA_parseArgList(request->WWWAARealm);
-	} else if (PROT_TRACE) {
-	    HTRequest_addError(request, ERR_INFO, NO, HTERR_UNKNOWN_AA,
-		       (void *) request->WWWAAScheme, 0, "HTTPAuthentication");
-	    return NO;
-	}
-    }
-    if (request->WWWprotection) {
-	if (PROT_TRACE)
-	    TTYPrint(TDEST, "Protection template set to `%s'\n",
-		    request->WWWprotection);
-	StrAllocCopy(tmplate, request->WWWprotection);
-    }
-    request->valid_schemes = valid_schemes;
-    request->scheme_specifics = scheme_specifics;
-    request->prot_template = tmplate;
-    return YES;
-}
-
 
 /*
 **	This is a big switch handling all HTTP return codes. It puts in any
@@ -169,19 +135,49 @@ PRIVATE void HTTPNextState (HTStream * me)
 
       case 0:						     /* 0.9 response */
       case 200:
+	me->http->next = HTTP_GOT_DATA;
+	break;
+
       case 201:
+	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_CREATED,
+			   me->reason, (int) strlen(me->reason),
+			   "HTTPNextState");
+	me->http->next = HTTP_GOT_DATA;
+	break;
+
       case 202:
+	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_ACCEPTED,
+			   me->reason, (int) strlen(me->reason),
+			   "HTTPNextState");
+	me->http->next = HTTP_GOT_DATA;
+	break;
+
       case 203:
+	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_PARTIAL,
+			   me->reason, (int) strlen(me->reason),
+			   "HTTPNextState");
 	me->http->next = HTTP_GOT_DATA;
 	break;
 
       case 204:						      /* No Response */
+	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_NO_CONTENT,
+			   me->reason, (int) strlen(me->reason),
+			   "HTTPNextState");
 	me->http->next = HTTP_NO_DATA;
 	break;
 
       case 301:						   	    /* Moved */
+	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_MOVED,
+			   me->reason, (int) strlen(me->reason),
+			   "HTTPNextState");
+	me->http->next = HTTP_PERM_REDIRECT;
+	break;
+
       case 302:							    /* Found */
-	me->http->next = HTTP_REDIRECTION;
+	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_FOUND,
+			   me->reason, (int) strlen(me->reason),
+			   "HTTPNextState");
+	me->http->next = HTTP_TEMP_REDIRECT;
 	break;
 	
       case 303:							   /* Method */
@@ -192,6 +188,9 @@ PRIVATE void HTTPNextState (HTStream * me)
 	break;
 
       case 304:						     /* Not Modified */
+	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_NOT_MODIFIED,
+			   me->reason, (int) strlen(me->reason),
+			   "HTTPNextState");
 	me->http->next = HTTP_NOT_MODIFIED;
 	break;
 	
@@ -351,7 +350,7 @@ PRIVATE int stream_pipe (HTStream * me)
 	    *ptr = '\0';
 
 	/* Set up the streams */
-	if (me->status==200 && req->method==METHOD_GET) {
+	if (me->status==200) {
 	    HTStream *s;
 	    me->target = HTStreamStack(WWW_MIME, req->output_format,
 				       req->output_stream, req, NO);
@@ -493,7 +492,8 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
     int status = HT_ERROR;
     HTNet *net = request->net;		     /* Generic protocol information */
     http_info *http;			    /* Specific protocol information */
-    
+    HTParentAnchor *anchor = HTRequest_anchor(request);
+
     /*
     ** Initiate a new http structure and bind to request structure
     ** This is actually state HTTP_BEGIN, but it can't be in the state
@@ -501,21 +501,16 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
     */
     if (ops == FD_NONE) {
 	if (PROT_TRACE) TTYPrint(TDEST, "HTTP........ Looking for `%s\'\n",
-				HTAnchor_physical(request->anchor));
+				HTAnchor_physical(anchor));
 	if ((http = (http_info *) calloc(1, sizeof(http_info))) == NULL)
 	    outofmem(__FILE__, "HTLoadHTTP");
 	http->state = HTTP_BEGIN;
 	http->next = HTTP_ERROR;
 	net->context = http;
     } else if (ops == FD_CLOSE) {			      /* Interrupted */
-#if 1
-	if (HTRequest_isPostWeb(request))
-#else
-	if(HTRequest_isPostWeb(request)&&!HTRequest_isMainDestination(request))
-#endif
-	    HTTPCleanup(request, HT_IGNORE);
-	else
-	    HTTPCleanup(request, HT_INTERRUPTED);
+	HTRequest_addError(request, ERR_FATAL, NO, HTERR_INTERRUPTED,
+			   NULL, 0, "HTLoadHTTP");
+	HTTPCleanup(request, HT_INTERRUPTED);
 	return HT_OK;
     } else
 	http = (http_info *) net->context;		/* Get existing copy */
@@ -543,7 +538,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	    break;
 	    
 	  case HTTP_NEED_CONNECTION: 	    /* Now let's set up a connection */
-	    status = HTDoConnect(net, HTAnchor_physical(request->anchor),
+	    status = HTDoConnect(net, HTAnchor_physical(anchor),
 				 HTTP_PORT);
 	    if (status == HT_OK) {
 
@@ -571,7 +566,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		** before all destinations are ready. If destination then
 		** register the input stream and get ready for read
 		*/
-		if (HTRequest_isPostWeb(request)) {
+		if (HTRequest_isDestination(request)) {
 		    HTEvent_Register(net->sockfd, request, (SockOps) FD_READ,
 				     HTLoadHTTP, net->priority);
 		    HTRequest_linkDestination(request);
@@ -579,9 +574,8 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 
 		/* Set up stream FROM network and corresponding read buffer */
 		net->isoc = HTInputSocket_new(net->sockfd);
-
-		/* @@@ USE STREAM STACK @@@ */
 		net->target = HTTPStatus_new(request, http);
+
 		http->state = HTTP_NEED_REQUEST;
 	    } else if (status == HT_WOULD_BLOCK || status == HT_PERSISTENT)
 		return HT_OK;
@@ -594,10 +588,12 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	    if (ops == FD_WRITE || ops == FD_NONE) {
 		if (HTRequest_isDestination(request)) {
 		    HTNet *srcnet = request->source->net;
-		    TTYPrint(TDEST,"File Serve. HERE!\n");		
-		    HTEvent_Register(srcnet->sockfd, request->source,
-				     (SockOps) FD_READ,
-				     srcnet->cbf, srcnet->priority);
+		    if (srcnet) {
+			HTEvent_Register(srcnet->sockfd, request->source,
+					 (SockOps) FD_READ,
+					 srcnet->cbf, srcnet->priority);
+			HTEvent_UnRegister(net->sockfd, FD_WRITE);
+		    }
 		    return HT_OK;
 		}
 		status = request->PostCallback ?
@@ -613,8 +609,6 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		    return HT_OK;
 		else if (status == HT_LOADED)
 		    http->state = http->next;	       /* Jump to next state */
-		else if (status == HT_RELOAD)
-		    http->state = HTTP_EXPIRED;
 		else
 		    http->state = HTTP_ERROR;
 	    } else {
@@ -626,196 +620,100 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	    http->state = HTTP_ERROR;
 	    break;
 
-	  case HTTP_EXPIRED:
-#if 0
-	    /* Dirty hack and fall through */
-	    if (PROT_TRACE) TTYPrint(TDEST, "HTTP........ Expired\n");
-	    request->redirect = request->anchor->address;
-#endif
-
-	  case HTTP_REDIRECTION:
-	    /* Clean up the other connections or just this one */
-	    if (HTRequest_isPostWeb(request))
-		HTRequest_killPostWeb(request);
-	    else
-		HTTPCleanup(request, HT_IGNORE);
-
-	    /* If we found a new URL in the response */
-	    if (request->redirect) {
-		if (status == 301) {
-		    HTRequest_addError(request, ERR_INFO, NO, HTERR_MOVED,
-			       (void *) request->redirect,
-			       (int) strlen(request->redirect), "HTLoadHTTP");
-		} else if (status == 302) {
-		    HTRequest_addError(request, ERR_INFO, NO, HTERR_FOUND,
-			       (void *) request->redirect,
-			       (int) strlen(request->redirect), "HTLoadHTTP");
-		}
-
-		/* If we haven't reached the limit for redirection */
-		if (HTRequest_retry(request)) {
-		    HTAlertCallback *cbf = HTAlert_find(HT_A_CONFIRM);
-		    HTAnchor *anchor = HTAnchor_findAddress(request->redirect);
-
-		    /* Make sure that we don't get this from cache */
-		    HTRequest_setReloadMode(request, HT_FORCE_RELOAD);
-		    
-		    if (HTRequest_isPostWeb(request)) {
-			HTRequest *dest = HTRequest_mainDestination(request);
-			if (cbf && (*cbf)(request, HT_A_CONFIRM, HT_MSG_MOVED,
-					  NULL, request->redirect, NULL)) {
-
-			    /* The new anchor inherits the Post Web */
-			    HTAnchor_moveAllLinks((HTAnchor *) request->anchor,
-						  anchor);
-			    if (HTRequest_isSource(request))
-				HTRequest_delete(request);
-			    return HTCopyAnchor((HTAnchor *) anchor, dest) ?
-				HT_OK : HT_ERROR;
-			}
-			return HT_OK;
-		    } if (request->PostCallback) {
-#if 0
-			return HTUploadAnchor((HTAnchor*) anchor, request) ?
-			    HT_OK : HT_ERROR;
-#endif
-		    } else {
-			return HTLoadAnchor((HTAnchor *) anchor, request) ?
-			    HT_OK : HT_ERROR;
-		    }
-		} else {
-		    HTRequest_addError(request, ERR_FATAL, NO,
-				       HTERR_MAX_REDIRECT,NULL,0,"HTLoadHTTP");
-		    if (HTRequest_isPostWeb(request)) {
-			BOOL main = HTRequest_isMainDestination(request);
-			if (HTRequest_isDestination(request)) {
-			    HTLink *link =
-				HTAnchor_findLink((HTAnchor *)request->source->anchor,
-						  (HTAnchor *)request->anchor);
-			    HTLink_setResult(link, HT_LINK_ERROR);
-			}
-			HTNet_callAfter(request, main ? HT_ERROR : HT_IGNORE);
-			HTRequest_removeDestination(request);
-		    }
-		    return HT_OK;
-		}
-	    } else {
-		HTRequest_addError(request, ERR_FATAL, NO, HTERR_BAD_REPLY,
-			   NULL, 0, "HTLoadHTTP");
-		return HT_OK;
-	    }
-	    break;
-	    
-	  case HTTP_AA:
-	    /* Clean up the other connections or just this one */
-	    if (HTRequest_isPostWeb(request))
-		HTRequest_killPostWeb(request);
-	    else
-		HTTPCleanup(request, HT_IGNORE);
-
-	    /* Ask the user for a UserID and a passwd */
-	    if (HTTPAuthentication(request) && HTAA_retryWithAuth(request)) {
-		int ret;
-
-		/* Make sure that we don't get this from cache */
-		HTRequest_setReloadMode(request, HT_FORCE_RELOAD);
-
-		if (HTRequest_isPostWeb(request)) {
-		    HTRequest *dest = HTRequest_mainDestination(request);
-		    HTAnchor_appendMethods(request->anchor, request->method);
-		    ret=HTCopyAnchor((HTAnchor*)request->source->anchor, dest);
-		    return ret ? HT_OK : HT_ERROR;
-		} else if (request->PostCallback) {
-#if 0
-		    ret = HTUploadAnchor((HTAnchor*) request->anchor,request);
-		    return ret ? HT_OK : HT_ERROR;
-#endif
-		} else {
-		    ret = HTLoadAnchor((HTAnchor *) request->anchor, request);
-		    return ret ? HT_OK : HT_ERROR;
-		}
-	    } else {				   /* If the guy said no :-( */
-		HTRequest_addError(request, ERR_FATAL, NO, HTERR_UNAUTHORIZED,
-			   NULL, 0, "HTLoadHTTP");
-		if (HTRequest_isPostWeb(request)) {
-		    BOOL main = HTRequest_isMainDestination(request);
-		    if (HTRequest_isDestination(request)) {
-			HTLink *link =
-			    HTAnchor_findLink((HTAnchor *) request->source->anchor,
-					      (HTAnchor *) request->anchor);
-			HTLink_setResult(link, HT_LINK_ERROR);
-		    }
-		    HTNet_callAfter(request, main ? HT_ERROR : HT_IGNORE);
-		    HTRequest_removeDestination(request);
-		}
-		return HT_OK;
-	    }
-	    break;
-	    
-	  case HTTP_GOT_DATA:
+	  case HTTP_PERM_REDIRECT:
 	    if (HTRequest_isPostWeb(request)) {
-		HTTPCleanup(request, HTRequest_isMainDestination(request) ?
-			    HT_LOADED : HT_IGNORE);
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
-					  (HTAnchor *) request->anchor);
+					  (HTAnchor *) anchor);
+		    HTLink_setResult(link, HT_LINK_ERROR);
+		}
+		HTRequest_killPostWeb(request);
+	    }
+	    HTTPCleanup(request, HT_PERM_REDIRECT);
+	    return HT_OK;
+	    break;
+
+
+	  case HTTP_TEMP_REDIRECT:
+	    if (HTRequest_isPostWeb(request)) {
+		if (HTRequest_isDestination(request)) {
+		    HTLink *link =
+			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+					  (HTAnchor *) anchor);
+		    HTLink_setResult(link, HT_LINK_ERROR);
+		}
+		HTRequest_killPostWeb(request);
+	    }
+	    HTTPCleanup(request, HT_TEMP_REDIRECT);
+	    return HT_OK;
+	    break;
+
+	  case HTTP_AA:
+	    if (HTRequest_isPostWeb(request)) {
+		if (HTRequest_isDestination(request)) {
+		    HTLink *link =
+			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+					  (HTAnchor *) anchor);
+		    HTLink_setResult(link, HT_LINK_ERROR);
+		}
+		HTRequest_killPostWeb(request);
+	    }
+	    HTTPCleanup(request, HT_NO_ACCESS);
+	    return HT_OK;
+	    break;
+
+	  case HTTP_GOT_DATA:
+	    if (HTRequest_isPostWeb(request)) {
+		if (HTRequest_isDestination(request)) {
+		    HTLink *link =
+			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_OK);
 		}
-		HTRequest_removeDestination(request);
-	    } else
-		HTTPCleanup(request, HT_LOADED);
+	    }
+	    HTTPCleanup(request, HT_LOADED);
 	    return HT_OK;
 	    break;
 	    
 	  case HTTP_NO_DATA:
 	    if (HTRequest_isPostWeb(request)) {
-		HTTPCleanup(request, HTRequest_isMainDestination(request) ?
-			    HT_NO_DATA : HT_IGNORE);
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
-					  (HTAnchor *) request->anchor);
+					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_OK);
 		}
-		HTRequest_removeDestination(request);
-	    } else
-		HTTPCleanup(request, HT_NO_DATA);
+	    }
+	    HTTPCleanup(request, HT_NO_DATA);
 	    return HT_OK;
 	    break;
 	    
 	  case HTTP_RETRY:
 	    if (HTRequest_isPostWeb(request)) {
-		HTTPCleanup(request, HTRequest_isMainDestination(request) ?
-			    HT_RETRY : HT_IGNORE);
-		HTRequest_killPostWeb(request);
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link = 
 			HTAnchor_findLink((HTAnchor*) request->source->anchor,
-					  (HTAnchor*) request->anchor);
+					  (HTAnchor*) anchor);
 		    HTLink_setResult(link, HT_LINK_ERROR);
 		}
-		HTRequest_removeDestination(request);
-	    } else
-		HTTPCleanup(request, HT_RETRY);
+		HTRequest_killPostWeb(request);
+	    }
+	    HTTPCleanup(request, HT_RETRY);
 	    return HT_OK;
 	    break;
 
 	  case HTTP_ERROR:
-	    /* Clean up the other connections or just this one */
 	    if (HTRequest_isPostWeb(request)) {
-		HTTPCleanup(request, HTRequest_isMainDestination(request) ?
-			    HT_ERROR : HT_IGNORE);
-		HTRequest_killPostWeb(request);
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
-					  (HTAnchor *) request->anchor);
+					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_ERROR);
 		}
-		HTRequest_removeDestination(request);
-	    } else
-		HTTPCleanup(request, HT_ERROR);
+		HTRequest_killPostWeb(request);
+	    }
+	    HTTPCleanup(request, HT_ERROR);
 	    return HT_OK;
 	    break;
 	}

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Public Declaration of Request Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 18-Dec-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 23-Jan-1996 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -85,6 +85,18 @@ Returns YES if OK, else NO
 extern HTRequest * HTRequest_dup (HTRequest * src);
 </PRE>
 
+<H4>Create a duplicate for Internal use</H4>
+
+Creates a new HTRequest object as a duplicate of the src request.  The
+difference to the HTRequest_dup function is that we don't copy the
+error_stack and other information that the application keeps in its
+copy of the request object. Otherwise it will be freed multiple times.
+Returns YES if OK, else NO
+
+<PRE>
+extern HTRequest * HTRequest_dupInternal (HTRequest * src);
+</PRE>
+
 <H3>Delete Object</H3>
 
 This function deletes the object and cleans up the memory.
@@ -150,6 +162,19 @@ typedef enum _HTReload {
 
 extern void HTRequest_setReloadMode (HTRequest *request, HTReload mode);
 extern HTReload HTRequest_reloadMode (HTRequest *request);
+</PRE>
+
+<H2>Redirections</H2>
+
+When a redirection response is returned to the Library, for example
+from a remote HTTP server, this code is passed back to the
+application. The application can then decide whether a new request
+should be established or not. These two methods return the redirection
+information required to issue a new request, that is the new anchor
+and any list of keywords associated with this anchor.
+
+<PRE>
+extern HTAnchor * HTRequest_redirection (HTRequest * request);
 </PRE>
 
 <H2>Max number of Retrys for a Down Load</H2>
@@ -561,16 +586,17 @@ extern BOOL HTRequest_addSystemError (HTRequest * 	request,
 				      char *		syscall);
 </PRE>
 
-<H2>Bytes Read in Current Request</H2>
+<H2>Bytes Read or Written in a Request</H2>
 
 This function returns the bytes read in the current request. For a
 deeper description of what the current request is, please read the
 user's guide. This function can be used in for example the <A
 HREF="HTAlert.html">HTAlert module</A> to give the number of bytes
-read in a progress message.
+read or written in a progress message.
 
 <PRE>
-extern long HTRequest_bytesRead(HTRequest * request);
+extern long HTRequest_bytesRead (HTRequest * request);
+extern long HTRequest_bytesWritten (HTRequest * request);
 </PRE>
 
 <H2>Kill a Request</H2>

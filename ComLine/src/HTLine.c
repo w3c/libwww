@@ -65,6 +65,7 @@ typedef struct _ComLine {
     HTRequest *		request;
     HTParentAnchor *	anchor;
     HTParentAnchor *	dest;			 /* Destination for PUT etc. */
+    HTMethod		method;		      /* What method are we envoking */
     struct timeval *	tv;				/* Timeout on socket */
     char *		cwd;				  /* Current dir URL */
     char *		rules;
@@ -154,6 +155,72 @@ PRIVATE void VersionInfo (void)
     TTYPrint(OUTPUT,"Please send feedback to <libwww@w3.org>\n");
 }
 
+/*	authentication_handler
+**	----------------------
+**	This function is registered to handle access authentication,
+**	for example for HTTP
+*/
+PRIVATE int authentication_handler (HTRequest * request, int status)
+{
+    ComLine * cl = (ComLine *) HTRequest_context(request);
+
+    /* Ask the authentication module for getting credentials */
+    if (HTAA_authentication(request) && HTAA_retryWithAuth(request)) {
+
+	/* Make sure we do a reload from cache */
+	HTRequest_setReloadMode(request, HT_FORCE_RELOAD);
+
+	/* Log current request */
+	if (HTLog_isOpen()) HTLog_add(request, status);
+
+	/* Start request with new credentials */
+	if (cl->dest)					   /* PUT, POST etc. */
+	    HTCopyAnchor((HTAnchor *) cl->anchor, cl->request);
+	else					   /* GET, HEAD, DELETE etc. */
+	    HTLoadAnchor((HTAnchor *) cl->anchor, cl->request);
+    } else {
+	TTYPrint(OUTPUT, "Access denied\n");
+	Cleanup(cl, -1);
+    }
+    return HT_ERROR;	  /* Make sure this is the last callback in the list */
+}
+
+/*	redirection_handler
+**	-------------------
+**	This function is registered to handle permanent and temporary
+**	redirections
+*/
+PRIVATE int redirection_handler (HTRequest * request, int status)
+{
+    BOOL result = YES;
+    ComLine * cl = (ComLine *) HTRequest_context(request);
+    HTAnchor * new_anchor = HTRequest_redirection(request);
+
+    /* Make sure we do a reload from cache */
+    HTRequest_setReloadMode(request, HT_FORCE_RELOAD);
+
+    /* If destination specified then bind together anchors */
+    if (cl->dest) {
+	HTAnchor_removeAllLinks((HTAnchor *) cl->anchor);
+	HTAnchor_link((HTAnchor *) cl->anchor, new_anchor, NULL, cl->method);
+    }
+
+    /* Log current request */
+    if (HTLog_isOpen()) HTLog_add(request, status);
+
+    /* Start new request */
+    if (HTRequest_retry(request)) {
+	if (cl->dest)					   /* PUT, POST etc. */
+	    result = HTCopyAnchor((HTAnchor *) cl->anchor, cl->request);
+	else					   /* GET, HEAD, DELETE etc. */
+	    result = HTLoadAnchor(new_anchor, cl->request);
+    } else {
+	TTYPrint(OUTPUT, "Too many redirections detected\n");
+	Cleanup(cl, -1);
+    }
+    return HT_ERROR;	  /* Make sure this is the last callback in the list */
+}
+
 /*	terminate_handler
 **	-----------------
 **	This function is registered to handle the result of the request
@@ -167,10 +234,14 @@ PRIVATE int terminate_handler (HTRequest * request, int status)
 		TTYPrint(OUTPUT, "Content Length found to be %ld\n",
 			 HTAnchor_length(cl->anchor));
 	    }
-	    Cleanup(cl, status == HT_LOADED ? 0 : -1);
 	}
+    } else {
+	HTAlertCallback *cbf = HTAlert_find(HT_A_MESSAGE);
+	if (cbf) (*cbf)(request, HT_A_MESSAGE, HT_MSG_NULL, NULL,
+			HTRequest_error(request), NULL);
     }
     if (HTLog_isOpen()) HTLog_add(request, status);
+    Cleanup(cl, status == HT_LOADED ? 0 : -1);
     return HT_OK;
 }
 
@@ -229,6 +300,7 @@ int main (int argc, char ** argv)
 
     /* Initiate W3C Reference Library */
     HTLibInit(APP_NAME, APP_VERSION);
+    HTAlert_setInteractive(YES);
 
     /* Initialize the protocol modules */
     HTProtocol_add("http", NO, HTLoadHTTP, NULL);
@@ -323,9 +395,9 @@ int main (int argc, char ** argv)
 		    atoi(argv[++arg]) : DEFAULT_TIMEOUT;
 		if (timeout > 0) cl->tv->tv_sec = timeout;
 
-	    /* preemtive or non-preemtive access */
+	    /* preemptive or non-preemptive access */
 	    } else if (!strcmp(argv[arg], "-single")) {
-		HTRequest_setPreemtive(cl->request, YES);
+		HTRequest_setPreemptive(cl->request, YES);
 
 	    /* content Length Counter */
 	    } else if (!strcmp(argv[arg], "-cl")) { 
@@ -373,13 +445,23 @@ int main (int argc, char ** argv)
 	    } else if (!strcasecomp(argv[arg], "-delete")) {
 		HTRequest_setMethod(cl->request, METHOD_DELETE);
 
+	    /*
+	    ** Note that we for PUT and POST still use the GET method as we
+	    ** store methods in a POST web in the link relationship between
+	    ** anchors. This allows us to have multiple destinations each
+	    ** with their own method as described in the POST web in the online
+	    ** documentation of the Library
+	    */
+
 	    /* POST Method */
 	    } else if (!strcasecomp(argv[arg], "-post")) {
-		HTRequest_setMethod(cl->request, METHOD_POST);
+		cl->method = METHOD_POST;
+		HTRequest_setMethod(cl->request, METHOD_GET);
 
 	    /* PUT Method */
 	    } else if (!strcasecomp(argv[arg], "-put")) {
-		HTRequest_setMethod(cl->request, METHOD_PUT);
+		cl->method = METHOD_PUT;
+		HTRequest_setMethod(cl->request, METHOD_GET);
 
 	    } else {
 		if (SHOW_MSG) TTYPrint(TDEST,"Bad Argument (%s)\n", argv[arg]);
@@ -411,11 +493,9 @@ int main (int argc, char ** argv)
 	Cleanup(cl, -1);
     }
 
-    /* Destination specified? */
-    if (cl->dest) {
-	HTMethod method = HTRequest_method(cl->request);
-	HTAnchor_link((HTAnchor*)cl->anchor, (HTAnchor*)cl->dest, NULL,method);
-    }
+    /* If destination specified then bind together anchors */
+    if (cl->dest) HTAnchor_link((HTAnchor*)cl->anchor,
+				(HTAnchor*)cl->dest, NULL, cl->method);
 
     /* Output file specified? */
     if (cl->outputfile) {
@@ -435,7 +515,7 @@ int main (int argc, char ** argv)
     if (cl->flags & CL_FILTER) {
 #ifdef STDIN_FILENO
 	HTRequest_setAnchor(cl->request, (HTAnchor *) cl->anchor);
-	HTRequest_setPreemtive(cl->request, YES);
+	HTRequest_setPreemptive(cl->request, YES);
 	HTLoadSocket(STDIN_FILENO, cl->request, FD_NONE);
 #endif
 	Cleanup(cl, 0);
@@ -450,11 +530,16 @@ int main (int argc, char ** argv)
 
     /* Register our User Prompts etc in the Alert Manager */
     if (HTAlert_interactive()) {
+	HTAlert_add(HTProgress, HT_A_PROGRESS);
 	HTAlert_add(HTError_print, HT_A_MESSAGE);
 	HTAlert_add(HTPromptUsernameAndPassword, HT_A_USER_PW);
+	
     }
 
     /* Register a call back function for the Net Manager */
+    HTNetCall_addAfter(authentication_handler, HT_NO_ACCESS);
+    HTNetCall_addAfter(redirection_handler, HT_PERM_REDIRECT);
+    HTNetCall_addAfter(redirection_handler, HT_TEMP_REDIRECT);
     HTNetCall_addAfter(terminate_handler, HT_ALL);
     
     /* Register our own MIME header handler for extra headers */
@@ -469,7 +554,7 @@ int main (int argc, char ** argv)
 	HTRequest * rr = HTRequest_new();
 	char * rules = HTParse(cl->rules, cl->cwd, PARSE_ALL);
 	HTParentAnchor * ra = (HTParentAnchor *) HTAnchor_findAddress(rules);
-	HTRequest_setPreemtive(rr, YES);
+	HTRequest_setPreemptive(rr, YES);
 	HTConversion_add(list, "application/x-www-rules", "*/*", HTRules,
 			 1.0, 0.0, 0.0);
 	HTRequest_setConversion(rr, list, YES);
@@ -484,8 +569,12 @@ int main (int argc, char ** argv)
     if (cl->dest)					   /* PUT, POST etc. */
 	status = HTCopyAnchor((HTAnchor *) cl->anchor, cl->request);
     else if (keywords)						   /* Search */
+	/*
+	** Note that a search also can be done by creating a URL with the '?'
+	** and the set of keywords embedded and then use HTLoadAnchor directly
+	*/
 	status = HTSearch(HTChunk_data(keywords), cl->anchor, cl->request);
-    else						   /* GET, HEAD etc. */
+    else					   /* GET, HEAD, DELETE etc. */
 	status = HTLoadAnchor((HTAnchor *) cl->anchor, cl->request);
 
     if (keywords) HTChunk_delete(keywords);

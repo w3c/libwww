@@ -137,7 +137,6 @@ typedef enum _LMFlags {
 typedef struct _LineMode {
     HTRequest *		request;
     HTParentAnchor *	anchor;
-    HTParentAnchor *	dest;			 /* Destination for PUT etc. */
     struct timeval *	tv;				/* Timeout on socket */
     HTList *		active;			  /* List of acitve contexts */
     HTList *		converters;
@@ -164,6 +163,7 @@ typedef struct _Context {
     LMState		state;
     HTRequest *		request;
     LineMode *		lm;
+    HTParentAnchor *	source;	   /* The source if we are using PUT or POST */
 } Context;
 
 #ifndef WWW_WIN_WINDOW
@@ -208,7 +208,7 @@ PRIVATE HTRequest * Thread_new (LineMode * lm, BOOL Interactive, LMState state)
     if (!lm) return NULL;
     Context_new(lm, newreq, state);
     if (Interactive) HTRequest_setConversion(newreq, lm->presenters, NO);
-    if (lm->flags & LM_PREEMTIVE) HTRequest_setPreemtive(newreq, YES);
+    if (lm->flags & LM_PREEMTIVE) HTRequest_setPreemptive(newreq, YES);
     HTRequest_addRqHd(newreq, HT_C_HOST);
     return newreq;
 }
@@ -544,11 +544,15 @@ PRIVATE int Upload (LineMode * lm, HTRequest * req, HTMethod method)
 		    HTMethod_name(HTLink_method(link)), HTLink_result(link));
 	    doit = confirm(req, msg);
 	    free(msg);
-	} else
+	} else {
+	    HTAnchor_removeAllLinks((HTAnchor *) src);
 	    HTAnchor_link((HTAnchor *) src, (HTAnchor *) dest, NULL, method);
+	}
 	if (doit) {
-	    req = Thread_new(lm, YES, LM_UPDATE);
-	    status = HTCopyAnchor((HTAnchor *) src, req);
+	    HTRequest * new_request = Thread_new(lm, YES, LM_UPDATE);
+	    Context * new_context = (Context *) HTRequest_context(new_request);
+	    new_context->source = src;
+	    status = HTCopyAnchor((HTAnchor *) src, new_request);
 	}
 	free(fd);
 	free(fs);
@@ -556,6 +560,27 @@ PRIVATE int Upload (LineMode * lm, HTRequest * req, HTMethod method)
     FREE(scr_url);
     FREE(dest_url);
     FREE(base);
+    return status;
+}
+
+/*
+**  Delete a URL
+*/
+PRIVATE int DeleteURL (LineMode * lm, HTRequest * request)
+{
+    char * base = HTAnchor_address((HTAnchor*) HTMainAnchor);
+    char * url = NULL;
+    int status = HT_INTERNAL;
+    if ((url = AskUser(request, "URL to delete:", base)) != NULL) {
+	char * full = HTParse(HTStrip(url), base, PARSE_ALL);
+	HTParentAnchor * anchor=(HTParentAnchor *) HTAnchor_findAddress(full);
+	request = Thread_new(lm, YES, LM_UPDATE);
+	HTRequest_setMethod(request, METHOD_DELETE);
+	status = HTLoadAnchor((HTAnchor *) anchor, request);
+	free(full);
+    }
+    FREE(base);
+    FREE(url);
     return status;
 }
 
@@ -710,7 +735,9 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	break;
 	
       case 'D':
-	if (CHECK_INPUT("DOWN", token)) {	    /* Scroll down one page  */
+	if (CHECK_INPUT("DELETE", token)) {	    		   /* DELETE */
+	    status = DeleteURL(lm, req);
+	} else if (CHECK_INPUT("DOWN", token)) {    /* Scroll down one page  */
 	  down:
 	    if (HText_canScrollDown(HTMainText))
 		HText_scrollDown(HTMainText);
@@ -761,14 +788,14 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	
       case '?':
 	req = Thread_new(lm, YES, LM_NO_UPDATE);
-	HTRequest_setPreemtive(req, YES);
+	HTRequest_setPreemptive(req, YES);
 	status = HTLoadRelative(C_HELP, HTMainAnchor, req);
 	break;
 	
       case 'H':
 	if (CHECK_INPUT("HELP", token)) {		     /* help menu, ..*/
 	    req = Thread_new(lm, YES, LM_NO_UPDATE);
-	    HTRequest_setPreemtive(req, YES);
+	    HTRequest_setPreemptive(req, YES);
 	    status = HTLoadRelative(C_HELP, HTMainAnchor, req);
 	} else if (CHECK_INPUT("HOME", token)) {		/* back HOME */
 	    if (!HTHistory_canBacktrack(lm->history)) {
@@ -825,7 +852,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
       case 'M':
 	if (CHECK_INPUT("MANUAL", token)) {		 /* Read User manual */
 	    req = Thread_new(lm, YES, LM_NO_UPDATE);
-	    HTRequest_setPreemtive(req, YES);
+	    HTRequest_setPreemptive(req, YES);
 	    status = HTLoadRelative(MANUAL, HTMainAnchor,req);
 	} else
 	    found = NO;
@@ -1184,6 +1211,75 @@ PRIVATE int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 #endif
 }
 
+/*	authentication_handler
+**	----------------------
+**	This function is registered to handle access authentication,
+**	for example for HTTP
+*/
+PRIVATE int authentication_handler (HTRequest * request, int status)
+{
+    Context * context = (Context *) HTRequest_context(request);
+    LineMode * lm = context->lm;
+
+    /* Ask the authentication module for getting credentials */
+    if (HTAA_authentication(request) && HTAA_retryWithAuth(request)) {
+	HTMethod method = HTRequest_method(request);
+
+	/* Make sure we do a reload from cache */
+	HTRequest_setReloadMode(request, HT_FORCE_RELOAD);
+
+	/* Log current request */
+	if (HTLog_isOpen()) HTLog_add(request, status);
+
+	/* Start request with new credentials */
+	if (HTMethod_hasEntity(method)) {		   /* PUT, POST etc. */
+	    HTCopyAnchor((HTAnchor *) context->source, request);
+	} else					   /* GET, HEAD, DELETE etc. */
+	    HTLoadAnchor((HTAnchor *) HTRequest_anchor(request), request);
+    } else {
+	TTYPrint(OUTPUT, "Access denied\n");
+	if (!HTAlert_interactive()) Cleanup(lm, -1);
+    }
+    return HT_ERROR;	  /* Make sure this is the last callback in the list */
+}
+
+/*	redirection_handler
+**	-------------------
+**	This function is registered to handle permanent and temporary
+**	redirections
+*/
+PRIVATE int redirection_handler (HTRequest * request, int status)
+{
+    Context * context = (Context *) HTRequest_context(request);
+    HTMethod method = HTRequest_method(request);
+    LineMode * lm = context->lm;
+    HTAnchor * new_anchor = HTRequest_redirection(request);
+
+    /* Make sure we do a reload from cache */
+    HTRequest_setReloadMode(request, HT_FORCE_RELOAD);
+
+    /* If destination specified then bind source anchor with new destination */
+    if (HTMethod_hasEntity(method)) {
+	HTAnchor_removeAllLinks((HTAnchor *) context->source);
+	HTAnchor_link((HTAnchor *) context->source, new_anchor, NULL, method);
+    }
+
+    /* Log current request */
+    if (HTLog_isOpen()) HTLog_add(request, status);
+
+    /* Start new request */
+    if (HTRequest_retry(request)) {
+	if (HTMethod_hasEntity(method))			   /* PUT, POST etc. */
+	    HTCopyAnchor((HTAnchor *) context->source, request);
+	else					   /* GET, HEAD, DELETE etc. */
+	    HTLoadAnchor(new_anchor, request);
+    } else {
+	TTYPrint(OUTPUT, "Too many redirections detected\n");
+	if (!HTAlert_interactive()) Cleanup(lm, -1);
+    }
+    return HT_ERROR;	  /* Make sure this is the last callback in the list */
+}
+
 /*	terminate_handler
 **	-----------------
 **	This function is registered to handle the result of the request
@@ -1290,10 +1386,11 @@ int main (int argc, char ** argv)
     arc.locale=0; arc.encoding=0; arc.i_encoding=0; doinull();
 #endif
 
+    /* Create a new Line Mode object */
     lm = LineMode_new();
+
     /* Initiate W3C Reference Library */
     HTLibInit(APP_NAME, APP_VERSION);
-    lm = LineMode_new();
 
     /* Initialize the protocol modules */
     HTAccessInit();
@@ -1447,9 +1544,9 @@ int main (int argc, char ** argv)
 		    atoi(argv[++arg]) : -1;
 		if (timeout > 0) lm->tv->tv_sec = timeout;
 
-	    /* preemtive or non-preemtive access */
+	    /* preemptive or non-preemptive access */
 	    } else if (!strcmp(argv[arg], "-single")) {
-		HTRequest_setPreemtive(lm->request, YES);
+		HTRequest_setPreemptive(lm->request, YES);
 		lm->flags |= LM_PREEMTIVE;
 
 	    /* Specify a cache root (caching is otherwise disabled) */
@@ -1626,7 +1723,7 @@ int main (int argc, char ** argv)
     if (lm->flags & LM_FILTER) {
 #ifdef STDIN_FILENO
 	HTRequest_setAnchor(lm->request, (HTAnchor *) lm->anchor);
-	HTRequest_setPreemtive(lm->request, YES);
+	HTRequest_setPreemptive(lm->request, YES);
 	HTLoadSocket(STDIN_FILENO, lm->request, FD_NONE);
 #endif
 	Cleanup(lm, 0);
@@ -1651,7 +1748,11 @@ int main (int argc, char ** argv)
     }
 
     /* Register a call back function for the Net Manager */
-    HTNetInit();
+    HTNetCall_addBefore(HTLoadStart, 0);
+    HTNetCall_addAfter(authentication_handler, HT_NO_ACCESS);
+    HTNetCall_addAfter(redirection_handler, HT_PERM_REDIRECT);
+    HTNetCall_addAfter(redirection_handler, HT_TEMP_REDIRECT);
+    HTNetCall_addAfter(HTLoadTerminate, HT_ALL);
     HTNetCall_addAfter(terminate_handler, HT_ALL);
 
     /* Register our own MIME header handler for extra headers */
@@ -1676,7 +1777,7 @@ int main (int argc, char ** argv)
 	HTRequest * rr = Thread_new(lm, NO, LM_NO_UPDATE);
 	char * rules = HTParse(lm->rules, lm->cwd, PARSE_ALL);
 	HTParentAnchor * ra = (HTParentAnchor *) HTAnchor_findAddress(rules);
-	HTRequest_setPreemtive(rr, YES);
+	HTRequest_setPreemptive(rr, YES);
 	HTConversion_add(list, "application/x-www-rules", "*/*", HTRules,
 			 1.0, 0.0, 0.0);
 	HTRequest_setConversion(rr, list, YES);

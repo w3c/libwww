@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Asyncronous Socket Management</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 24-Jan-1996 -->
 </HEAD>
 <BODY>
 
@@ -65,15 +65,21 @@ struct _HTNet {
     int 		home;			 /* Current home if multiple */
     time_t		connecttime;		 /* Used on multihomed hosts */
     long		bytes_read;		  /* Bytes read from network */
-    BOOL		preemptive;   /* Eff result from Request and Protocol */
+    long		bytes_written;		 /* Bytes written to network */
+    BOOL		preemptive;  /* Eff result from Request and Protocol */
     HTPriority		priority;	 /* Priority of this request (event) */
     HTEventCallback *	cbf;			     /* Library load routine */
     HTRequest *		request;	   /* Link back to request structure */
     void *		context;		/* Protocol Specific context */
 };
 
-#define HTNet_bytesRead(me)	((me) ? (me)-&gt;bytes_read : -1)
-#define HTNet_dns(me)		((me) ? (me)-&gt;dns : NULL)
+#define HTNet_bytesRead(me)		((me) ? (me)-&gt;bytes_read : -1)
+#define HTNet_bytesWritten(me)		((me) ? (me)-&gt;bytes_written : -1)
+
+#define HTNet_setBytesRead(me,l)	((me) ? (me-&gt;bytes_read=(l)) : -1)
+#define HTNet_setBytesWritten(me,l)	((me) ? (me-&gt;bytes_written=(l)) :-1)
+
+#define HTNet_dns(me)			((me) ? (me)-&gt;dns : NULL)
 </PRE>
 
 <PRE>

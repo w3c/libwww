@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>User Guide - Request Callback functions</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 12-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 21-Jan-1996 -->
 <NEXTID N="z78">
 </HEAD>
 <BODY>
@@ -55,14 +55,20 @@ have a result and the functions is called with the code <EM>HT_OK</EM>. However,
 <DL>
 <DT>HT_ERROR
 <DD>An error occured
+<DT>HT_INTERRUPTED
+<DD>The request was interrupted
 <DT>HT_LOADED
 <DD>The document was loaded
 <DT>HT_NO_DATA
 <DD>OK, but no data
 <DT>HT_RETRY
 <DD>Retry request after at a later time
-<DT>HT_REDIRECT
-<DD>The request has been redirected and we send back the new URL
+<DT>HT_PERM_REDIRECT
+<DD>The request has been permanently redirected and we send back the new URL
+<DT>HT_TEMP_REDIRECT
+<DD>The request has been temporarily redirected and we send back the new URL
+<DT>HT_NO_ACCESS
+<DD>The request could not be fulfilled because it didn't contain sufficient credentials
 </DL>
 
 When a callback function is registered, it may be registered with a status code for which it is to

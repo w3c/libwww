@@ -108,13 +108,42 @@ PUBLIC HTRequest * HTRequest_dup (HTRequest * src)
     return me;
 }
 
+/*	HTRequest_dupInternal
+**	---------------------
+**	Creates a new HTRequest object as a duplicate of the src request.
+**	The difference to the HTRequest_dup function is that we don't copy the
+**	error_stack and other information that the application keeps in its
+**	copy of the request object. Otherwise it will be freed multiple times
+**	Returns YES if OK, else NO
+*/
+PUBLIC HTRequest * HTRequest_dupInternal (HTRequest * src)
+{
+    HTRequest * me;
+    if (!src) return NO;
+    if ((me = (HTRequest *) malloc(sizeof(HTRequest))) == NULL)
+	outofmem(__FILE__, "HTRequest_dup");
+    memcpy(me, src, sizeof(HTRequest));
+    me->internal = YES;
+    me->boundary = NULL;
+    me->authenticate = NULL;
+    me->error_stack = NULL;
+    me->access = NULL;
+    me->authorization = NULL;
+    me->prot_template = NULL;
+    me->dialog_msg = NULL;
+    me->net = NULL;
+    me->WWWAAScheme = NULL;
+    me->WWWAARealm = NULL;
+    me->WWWprotection = NULL;
+    return me;
+}
+
 /*  Delete a request structure
 **  --------------------------
 */
 PUBLIC void HTRequest_delete (HTRequest * request)
 {
     if (request) {
-	FREE(request->redirect);
 	FREE(request->boundary);
 	FREE(request->authenticate);
 	if (request->error_stack) HTError_deleteAll(request->error_stack);
@@ -129,7 +158,6 @@ PUBLIC void HTRequest_delete (HTRequest * request)
 	    request->net->request = NULL;
 
 	/* These are temporary until we get a MIME thingy */
-	FREE(request->redirect);
 	FREE(request->WWWAAScheme);
 	FREE(request->WWWAARealm);
 	FREE(request->WWWprotection);
@@ -472,16 +500,16 @@ PUBLIC void *HTRequest_context (HTRequest *request)
 }
 
 /*
-**	Socket mode: preemtive or non-preemtive (blocking or non-blocking)
+**	Socket mode: preemptive or non-preemptive (blocking or non-blocking)
 */
-PUBLIC void HTRequest_setPreemtive (HTRequest *request, BOOL mode)
+PUBLIC void HTRequest_setPreemptive (HTRequest *request, BOOL mode)
 {
-    if (request) request->preemtive = mode;
+    if (request) request->preemptive = mode;
 }
 
-PUBLIC BOOL HTRequest_preemtive (HTRequest *request)
+PUBLIC BOOL HTRequest_preemptive (HTRequest *request)
 {
-    return request ? request->preemtive : NO;
+    return request ? request->preemptive : NO;
 }
 
 /*
@@ -503,6 +531,14 @@ PUBLIC BOOL HTRequest_negotiation (HTRequest *request)
 PUBLIC long HTRequest_bytesRead(HTRequest * request)
 {
     return request ? HTNet_bytesRead(request->net) : -1;
+}
+
+/*
+**	Bytes written in this request
+*/
+PUBLIC long HTRequest_bytesWritten (HTRequest * request)
+{
+    return request ? HTNet_bytesWritten(request->net) : -1;
 }
 
 /*
@@ -564,6 +600,14 @@ PUBLIC BOOL HTRequest_addSystemError (HTRequest * 	request,
 PUBLIC time_t HTRequest_retryTime (HTRequest * request)
 {
     return request ? request->retry_after : -1;
+}
+
+/*
+**    Redirection informantion
+*/
+PUBLIC HTAnchor * HTRequest_redirection (HTRequest * request)
+{
+    return (request ? request->redirectionAnchor : NULL);
 }
 
 /*
@@ -638,18 +682,24 @@ PUBLIC HTNet * HTRequest_net (HTRequest * request)
 **  build the internal request representation of the POST web
 **  Returns YES if OK, else NO
 */
-PUBLIC BOOL HTRequest_addDestination (HTRequest *src, HTRequest *dest)
+PUBLIC BOOL HTRequest_addDestination (HTRequest * src, HTRequest * dest)
 {
     if (src && dest) {
+	dest->source = src->source = src;
 	if (!src->mainDestination) {
 	    src->mainDestination = dest;
 	    src->destRequests = 1;
+	    if (WWWTRACE)
+		TTYPrint(TDEST,"POSTWeb..... Adding dest %p to src %p\n",
+			 dest, src);
 	    return YES;
 	} else {
-	    if (!src->destinations)
-		src->destinations = HTList_new();
+	    if (!src->destinations) src->destinations = HTList_new();
 	    if (HTList_addObject(src->destinations, (void *) dest)==YES) {
 		src->destRequests++;
+		if (WWWTRACE)
+		    TTYPrint(TDEST,"POSTWeb..... Adding dest %p to src %p\n",
+			     dest, src);
 		return YES;
 	    }
 	}
@@ -659,11 +709,11 @@ PUBLIC BOOL HTRequest_addDestination (HTRequest *src, HTRequest *dest)
 
 /*
 **  Remove a destination request from this source request structure
-**  Remember not to delete the main destination as it comes from the
-**  application!
+**  Remember only to delete the internal request objects as the other
+**  comes from the application!
 **  Returns YES if OK, else NO
 */
-PUBLIC BOOL HTRequest_removeDestination (HTRequest *dest)
+PUBLIC BOOL HTRequest_removeDestination (HTRequest * dest)
 {
     BOOL found=NO;
     if (dest && dest->source) {
@@ -673,29 +723,51 @@ PUBLIC BOOL HTRequest_removeDestination (HTRequest *dest)
 	    src->mainDestination = NULL;
 	    src->destRequests--;
 	    found = YES;
-	} if (src->destinations) {
+	} else if (src->destinations) {
 	    if (HTList_removeObject(src->destinations, (void *) dest)) {
-		HTRequest_delete(dest);
 		src->destRequests--;
 		found = YES;
 	    }
 	}
 	if (found) {
+	    if (dest->internal) HTRequest_delete(dest);
 	    if (WWWTRACE)
-		TTYPrint(TDEST, "Destination. %p removed from %p\n",
-			dest, src);
+	    	TTYPrint(TDEST, "POSTWeb..... Deleting dest %p from src %p\n",
+			 dest, src);
 	}
-	if (!src->destRequests) {
+	if (src->destRequests <= 0) {
 	    if (WWWTRACE)
-		TTYPrint(TDEST, "Destination. PostWeb terminated\n");
-	    HTRequest_delete(src);
+		TTYPrint(TDEST, "POSTWeb..... terminated\n");
+	    if (src->internal) HTRequest_delete(src);
 	}
     }
     return found;
 }
 
 /*
-**  Find the source request structure and make the link between the 
+**  Check to see whether all destinations are ready. If so then enable the
+**  source as ready for reading.
+**  Returns YES if all dests are ready, NO otherwise
+*/
+PUBLIC BOOL HTRequest_destinationsReady (HTRequest * me)
+{
+    HTRequest * source = me ? me->source : NULL;
+    if (source) {
+	if (source->destStreams == source->destRequests) {
+	    HTNet * net = source->net;
+	    if (WWWTRACE)
+		TTYPrint(TDEST, "POSTWeb..... All destinations are ready!\n");
+	    if (net)			      /* Might already have finished */
+		HTEvent_Register(net->sockfd, source, (SockOps) FD_READ,
+				 net->cbf, net->priority);
+	    return YES;
+	}
+    }
+    return NO;
+}
+
+/*
+**  Find the source request object and make the link between the 
 **  source output stream and the destination input stream. There can be
 **  a conversion between the two streams!
 **  Returns YES if link is made, NO otherwise
@@ -710,17 +782,20 @@ PUBLIC BOOL HTRequest_linkDestination (HTRequest *dest)
 				       dest, YES);
 
 	/* Check if we are the only one - else spawn off T streams */
-
 	/* @@@ We don't do this yet @@@ */
 
+	/* Now set up output stream of the source */
+	if (source->output_stream)
+	    (*source->output_stream->isa->_free)(source->output_stream);
 	source->output_stream = pipe ? pipe : dest->input_stream;
 
-	if (STREAM_TRACE)
-	    TTYPrint(TDEST,"Destination. Linked %p to source %p\n",dest,source);
+	if (WWWTRACE)
+	    TTYPrint(TDEST,"POSTWeb..... Linking dest %p to src %p\n",
+		     dest, source);
 	if (++source->destStreams == source->destRequests) {
 	    HTNet *net = source->net;
-	    if (STREAM_TRACE)
-		TTYPrint(TDEST, "Destination. All destinations ready!\n");
+	    if (WWWTRACE)
+		TTYPrint(TDEST, "POSTWeb..... All destinations ready!\n");
 	    if (net)			      /* Might already have finished */
 		HTEvent_Register(net->sockfd, source, (SockOps) FD_READ,
 				 net->cbf, net->priority);
@@ -753,9 +828,9 @@ PUBLIC BOOL HTRequest_unlinkDestination (HTRequest *dest)
 	}	
 	if (found) {
 	    src->destStreams--;
-	    if (STREAM_TRACE)
-		TTYPrint(TDEST, "Destination. Unlinked %p from source %p\n",
-			dest, src);
+	    if (WWWTRACE)
+		TTYPrint(TDEST, "POSTWeb..... Unlinking dest %p from src %p\n",
+			 dest, src);
 	    return YES;
 	}
     }
@@ -791,8 +866,8 @@ PUBLIC BOOL HTRequest_removePostWeb (HTRequest *me)
 
 /*
 **  Kills all threads in a POST WEB connected to this request but
-**  keep the request structures.
-**  Some requests might be preemtive, for example a SMTP request (when
+**  NOT this request itself. We also keep the request structures.
+**  Some requests might be preemptive, for example a SMTP request (when
 **  that has been implemented). However, this will be handled internally
 **  in the load function.
 */
@@ -800,24 +875,28 @@ PUBLIC BOOL HTRequest_killPostWeb (HTRequest *me)
 {
     if (me && me->source) {
 	HTRequest *source = me->source;
+	if (WWWTRACE) TTYPrint(TDEST, "POSTWeb..... Killing\n");
 
-	/* Kill main destination */
-	if (source->mainDestination)
-	    HTNet_kill(source->mainDestination->net);
+	/*
+	** Kill source. The stream tree is now freed so we have to build
+	** that again. This is done in HTRequest_linkDestination()
+	*/
+	if (me != source) {
+	    HTNet_kill(source->net);
+	    source->output_stream = NULL;
+	}
 
 	/* Kill all other destinations */
 	if (source->destinations) {
 	    HTList *cur = source->destinations;
 	    HTRequest *pres;
 	    while ((pres = (HTRequest *) HTList_nextObject(cur)) != NULL)
-		HTNet_kill(pres->net);
+		if (me != pres) HTNet_kill(pres->net);
 	}
-	/*
-	** Kill source. The stream tree is now freed so we have to build
-	** that again. This is done in HTRequest_linkDestination()
-	*/
-	HTNet_kill(source->net);
-	source->output_stream = NULL;
+
+	/* Kill main destination */
+	if (source->mainDestination && me != source->mainDestination)
+	    HTNet_kill(source->mainDestination->net);
 	return YES;
     }
     return NO;

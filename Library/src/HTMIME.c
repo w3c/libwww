@@ -499,15 +499,7 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 	    break;
 
 	  case LOCATION:
-#if 0
-	    /*
-	    ** Doesn't work as a redirection header might contain a '='
-	    ** Thanks to mitch@tam.net (Mitch DeShields)
-	    */
-	    if ((value = HTNextField(&ptr)) != NULL)
-		StrAllocCopy(request->redirect, value);
-#endif
-	    StrAllocCopy(request->redirect, ptr);
+	    request->redirectionAnchor = HTAnchor_findAddress(HTStrip(ptr));
 	    state = JUNK_LINE;
 	    break;
 
@@ -594,7 +586,7 @@ PRIVATE int HTMIME_put_block (HTStream * me, CONST char * b, int l)
 	if (me->EOLstate == EOL_FCR) {
 	    if (*b == CR) {				    /* End of header */
 		int status = parseheader(me, me->request, me->anchor);
-		me->net->bytes_read = l;
+		HTNet_setBytesRead(me->net, l);
 		if (status != HT_OK)
 		    return status;
 	    } else if (*b == LF)			   	     /* CRLF */
@@ -612,7 +604,7 @@ PRIVATE int HTMIME_put_block (HTStream * me, CONST char * b, int l)
 		me->EOLstate = EOL_SCR;
 	    else if (*b == LF) {			    /* End of header */
 		int status = parseheader(me, me->request, me->anchor);
-		me->net->bytes_read = l;
+		HTNet_setBytesRead(me->net, l);
 		if (status != HT_OK)
 		    return status;
 	    } else if (WHITE(*b)) {	       /* Folding: LF SP or CR LF SP */
@@ -626,7 +618,7 @@ PRIVATE int HTMIME_put_block (HTStream * me, CONST char * b, int l)
 	} else if (me->EOLstate == EOL_SCR) {
 	    if (*b==CR || *b==LF) {			    /* End of header */
 		int status = parseheader(me, me->request, me->anchor);
-		me->net->bytes_read = l;
+		HTNet_setBytesRead(me->net, l);
 		if (status != HT_OK)
 		    return status;
 	    } else if (WHITE(*b)) {	 /* Folding: LF CR SP or CR LF CR SP */
@@ -651,17 +643,20 @@ PRIVATE int HTMIME_put_block (HTStream * me, CONST char * b, int l)
     ** that we get the correct content length of data
     */
     if (l > 0) {
+	HTParentAnchor * anchor = me->anchor;
 	if (me->target) {
 	    int status = (*me->target->isa->put_block)(me->target, b, l);
 	    if (status == HT_OK)
 		/* Check if CL at all - thanks to jwei@hal.com (John Wei) */
 		return (me->request->method == METHOD_HEAD ||
-			(me->anchor->content_length >= 0 &&
-			 me->net->bytes_read >= me->anchor->content_length)) ?
+			(anchor->content_length >= 0 &&
+			 HTNet_bytesRead(me->net) >= anchor->content_length)) ?
 			     HT_LOADED : HT_OK;
 	    else
 		return status;
-	} else
+	} else if (anchor->header_parsed)
+	    return HT_LOADED;
+	else
 	    return HT_WOULD_BLOCK;
     }
     return HT_OK;

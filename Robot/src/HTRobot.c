@@ -32,10 +32,11 @@
 #define DEFAULT_OUTPUT_FILE	"robot.out"
 #define DEFAULT_RULE_FILE	"robot.conf"
 #define DEFAULT_LOG_FILE       	"robot.log"
+#define DEFAULT_DEPTH		0
 
 #define SHOW_MSG		(WWWTRACE || HTAlert_interactive())
 
-#define DEFAULT_TIMEOUT		60		       /* timeout in seconds */
+#define DEFAULT_TIMEOUT		10		       /* timeout in seconds */
 
 #if defined(__svr4__)
 #define CATCH_SIG
@@ -44,11 +45,12 @@
 typedef enum _MRFlags {
     MR_IMG	= 0x1,
     MR_LINK	= 0x2,
-    MR_PREEMTIVE= 0x4
+    MR_PREEMPTIVE= 0x4
 } MRFlags;
 
 typedef struct _Robot {
     HTRequest *		request;
+    HTRequest *		timeout;	  /* Until we get a server eventloop */
     HTParentAnchor *	anchor;
     int			depth;			     /* How deep is our tree */
     HTList *		hyperdoc;	     /* List of our HyperDoc Objects */
@@ -114,10 +116,6 @@ PRIVATE HyperDoc * HyperDoc_new (Robot * mr,HTParentAnchor * anchor, int depth)
     /* Add this HyperDoc object to our list */
     if (!mr->hyperdoc) mr->hyperdoc = HTList_new();
     HTList_addObject(mr->hyperdoc, (void *) hd);
-
-    if (SHOW_MSG)
-	TTYPrint(TDEST, "HyperDoc.... %p bound to anchor %p with depth %d\n",
-		 hd, anchor, depth);
     return hd;
 }
 
@@ -147,6 +145,10 @@ PRIVATE Robot * Robot_new (void)
     me->tv->tv_sec = DEFAULT_TIMEOUT;
     me->cwd = HTFindRelatedName();
     me->output = OUTPUT;
+
+    /* We keep an extra timeout request object for the timeout_handler */
+    me->timeout = HTRequest_new();
+    HTRequest_setContext (me->timeout, me);
 
     /* Bind the Robot object together with the Request Object */
     me->request = HTRequest_new();
@@ -191,7 +193,7 @@ PRIVATE HTRequest * Thread_new (Robot * mr, HTMethod method)
 {
     HTRequest * newreq = HTRequest_new();
     HTRequest_setContext (newreq, mr);
-    if (mr->flags & MR_PREEMTIVE) HTRequest_setPreemtive(newreq, YES);
+    if (mr->flags & MR_PREEMPTIVE) HTRequest_setPreemptive(newreq, YES);
     HTRequest_addRqHd(newreq, HT_C_HOST);
     HTRequest_setMethod(newreq, method);
     return newreq;
@@ -268,14 +270,19 @@ PRIVATE int terminate_handler (HTRequest * request, int status)
 /*	timeout_handler
 **	---------------
 **	This function is registered to handle timeout in select eventloop
+**
+**	BUG: This doesn't work as we don't get the right request object
+**	back from the event loop
 */
 PRIVATE int timeout_handler (HTRequest * request)
 {
     Robot * mr = (Robot *) HTRequest_context(request);
     if (SHOW_MSG) TTYPrint(TDEST, "Robot....... Request timeout...\n");
+#if 0
     HTRequest_kill(request);
     Thread_delete(mr, request);
-    if (HTNet_isEmpty()) Cleanup(mr, -1);
+#endif
+    Cleanup(mr, -1);
     return HT_OK;
 }
 
@@ -310,8 +317,11 @@ PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
 	Robot * mr = (Robot *) HTRequest_context(text->request);
 	HTAnchor * dest = HTAnchor_followMainLink((HTAnchor *) anchor);
 	HTParentAnchor * dest_parent = HTAnchor_parent(dest);
+	char * uri = HTAnchor_address((HTAnchor *) dest_parent);
 	HyperDoc * hd = HTAnchor_document(dest_parent);
 
+	if (SHOW_MSG) TTYPrint(TDEST, "Robot....... Found `%s\' - ", uri ? uri : "NULL");
+	
 	/* Test whether we already have a hyperdoc for this document */
 	if (mr->flags & MR_LINK && dest_parent && !hd) {
 	    HTParentAnchor * parent = HTRequest_parent(text->request);
@@ -319,16 +329,23 @@ PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
 	    int depth = last ? last->depth+1 : 0;
 	    HTRequest * newreq = Thread_new(mr, METHOD_GET);
 	    HyperDoc_new(mr, dest_parent, depth);
-	    if (SHOW_MSG) {
-		char * uri = HTAnchor_address((HTAnchor *) dest_parent);
-		TTYPrint(TDEST, "Robot....... Loading `%s\'\n", uri);
-		free(uri);
+	    HTRequest_setParent(newreq, HTRequest_anchor(text->request));
+	    if (depth >= mr->depth) {
+		if (SHOW_MSG)
+		    TTYPrint(TDEST, "loading at depth %d using HEAD\n", depth);
+		HTRequest_setMethod(newreq, METHOD_HEAD);
+		HTRequest_setOutputFormat(newreq, WWW_MIME);
+	    } else {
+		if (SHOW_MSG) TTYPrint(TDEST, "loading at depth %d\n", depth);
 	    }
 	    if (HTLoadAnchor((HTAnchor *) dest_parent, newreq) != YES) {
-		if (SHOW_MSG) TTYPrint(TDEST, "Robot...... URI Not tested!\n");
+		if (SHOW_MSG) TTYPrint(TDEST, "not tested!\n");
 		Thread_delete(mr, newreq);
 	    }
+	} else {
+	    if (SHOW_MSG) TTYPrint(TDEST, "duplicate\n");
 	}
+	FREE(uri);
     }
 }
 
@@ -450,10 +467,10 @@ int main (int argc, char ** argv)
 		    atoi(argv[++arg]) : DEFAULT_TIMEOUT;
 		if (timeout > 0) mr->tv->tv_sec = timeout;
 
-	    /* preemtive or non-preemtive access */
+	    /* preemptive or non-preemptive access */
 	    } else if (!strcmp(argv[arg], "-single")) {
-		HTRequest_setPreemtive(mr->request, YES);
-		mr->flags |= MR_PREEMTIVE;
+		HTRequest_setPreemptive(mr->request, YES);
+		mr->flags |= MR_PREEMPTIVE;
 
 	    /* test inlined images */
 	    } else if (!strcmp(argv[arg], "-img")) {
@@ -462,11 +479,13 @@ int main (int argc, char ** argv)
 	    /* load anchors */
 	    } else if (!strcmp(argv[arg], "-link")) {
 		mr->flags |= MR_LINK;
+		mr->depth = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    atoi(argv[++arg]) : DEFAULT_DEPTH;
 
-	    /* preemtive or non-preemtive access */
+	    /* preemptive or non-preemptive access */
 	    } else if (!strcmp(argv[arg], "-single")) {
-		HTRequest_setPreemtive(mr->request, YES);
-		mr->flags |= MR_PREEMTIVE;
+		HTRequest_setPreemptive(mr->request, YES);
+		mr->flags |= MR_PREEMPTIVE;
 
 	    /* print version and exit */
 	    } else if (!strcmp(argv[arg], "-version")) { 
@@ -504,6 +523,7 @@ int main (int argc, char ** argv)
     	    if (!keycnt) {
 		char * ref = HTParse(argv[arg], mr->cwd, PARSE_ALL);
 		mr->anchor = (HTParentAnchor *) HTAnchor_findAddress(ref);
+		HyperDoc_new(mr, mr->anchor, 0);
 		keycnt = 1;
 		FREE(ref);
 	    } else {		   /* Check for successive keyword arguments */
@@ -533,7 +553,7 @@ int main (int argc, char ** argv)
 	HTRequest * rr = HTRequest_new();
 	char * rules = HTParse(mr->rules, mr->cwd, PARSE_ALL);
 	HTParentAnchor * ra = (HTParentAnchor *) HTAnchor_findAddress(rules);
-	HTRequest_setPreemtive(rr, YES);
+	HTRequest_setPreemptive(rr, YES);
 	HTConversion_add(list, "application/x-www-rules", "*/*", HTRules,
 			 1.0, 0.0, 0.0);
 	HTRequest_setConversion(rr, list, YES);
@@ -571,7 +591,7 @@ int main (int argc, char ** argv)
     HTNetCall_addAfter(terminate_handler, HT_ALL);
     
     /* Set timeout on sockets */
-    HTEvent_registerTimeout(mr->tv, mr->request, timeout_handler, NO);
+    HTEvent_registerTimeout(mr->tv, mr->timeout, timeout_handler, NO);
 
     /* Start the request */
     if (keywords)						   /* Search */

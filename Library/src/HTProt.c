@@ -20,7 +20,7 @@
 /* Variables and typedefs local to this module */
 struct _HTProtocol {
     char *		name;
-    BOOL		preemtive;
+    BOOL		preemptive;
     HTEventCallback *	client;
     HTEventCallback *	server;
 };
@@ -35,7 +35,7 @@ PRIVATE HTList * protocols = NULL;           /* List of registered protocols */
 **	Register a Protocol module as an active access method
 */
 PUBLIC BOOL HTProtocol_add (CONST char *       	name,
-			    BOOL		preemtive,
+			    BOOL		preemptive,
 			    HTEventCallback *	client,
 			    HTEventCallback *	server)
 {
@@ -47,7 +47,7 @@ PUBLIC BOOL HTProtocol_add (CONST char *       	name,
 	    char *ptr = newProt->name;
 	    while ((*ptr = TOLOWER(*ptr))) ptr++;
 	}
-	newProt->preemtive = preemtive;
+	newProt->preemptive = preemptive;
 	newProt->client = client;
 	newProt->server = server;
 	if (!protocols) protocols = HTList_new();
@@ -91,11 +91,11 @@ PUBLIC HTEventCallback * HTProtocol_server (HTProtocol * protocol)
 }
 
 /*
-**	Returns YES if preemtive else NO
+**	Returns YES if preemptive else NO
 */
-PUBLIC BOOL HTProtocol_preemtive (HTProtocol * protocol)
+PUBLIC BOOL HTProtocol_preemptive (HTProtocol * protocol)
 {
-    return protocol ? protocol->preemtive : NO;
+    return protocol ? protocol->preemptive : NO;
 }
 
 /*

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Request Object</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  8-Dec-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 23-Jan-1996 -->
 </HEAD>
 <BODY>
 
@@ -49,10 +49,12 @@ itself is terminated.
 
 <PRE>
 struct _HTRequest {
+
+    BOOL		internal;      /* Does the app knows about this one? */
+
     HTMethod		method;
     HTReload		reload;
 
-    char *		redirect;			  /* Location or URI */
     char *		boundary;		  /* MIME multipart boundary */
     int			retrys;       	      /* Number of automatic reloads */
     time_t		retry_after;		 /* Absolut time for a retry */
@@ -99,6 +101,15 @@ struct _HTRequest {
 
     HTChildAnchor *	childAnchor;	    /* For element within the object */
     HTParentAnchor *	parentAnchor;			/* For referer field */
+</PRE>
+
+<H4>Redirection</H4>
+
+If we get a redirection back then we return the new destination for
+this request to the application using this anchor.
+
+<PRE>
+    HTAnchor *		redirectionAnchor;		  /* Redirection URL */
 </PRE>
 
 <H3>Streams From Network to Application</H3>
@@ -199,6 +210,7 @@ no reason for them not to be public.
 <PRE>
 extern BOOL HTRequest_addDestination (HTRequest * src, HTRequest * dest);
 extern BOOL HTRequest_removeDestination	(HTRequest * dest);
+extern BOOL HTRequest_destinationsReady (HTRequest * me);
 
 extern BOOL HTRequest_linkDestination (HTRequest * dest);
 extern BOOL HTRequest_unlinkDestination (HTRequest * dest);
