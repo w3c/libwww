@@ -67,8 +67,6 @@
 #include "CSUser.h"
 #include "CSUsrLst.h"
 
-#include "HTMemLog.h"
-
 #ifndef W3C_VERSION
 #define W3C_VERSION		"Unspecified"
 #endif
@@ -88,7 +86,12 @@
 #define DEFAULT_OUTPUT_FILE	"www.out"
 #define DEFAULT_RULE_FILE	"www.conf"
 #define DEFAULT_LOG_FILE       	"www.log"
+#define DEFAULT_MEMLOG		"www.mem"
 #define DEFAULT_USERLIST_FILE	"PICSusrs.html"
+
+#if 0
+#define HT_MEMLOG
+#endif
 
 #define PROMPT			"%s"
 #define REF_MARK		"[%d]"
@@ -368,7 +371,10 @@ PRIVATE void Cleanup (LineMode * me, int status)
 
     LineMode_delete(me);
     HTProfile_delete();
+#ifdef HT_MEMLOG
     HTMemLog_close();
+#endif
+
 #ifdef VMS
     exit(status ? status : 1);
 #else
@@ -421,6 +427,11 @@ PRIVATE void SetSignal (void)
     } else {
 	if (PROT_TRACE) HTTrace("HTSignal.... Ignoring SIGPIPE\n");
     }
+
+#ifdef HT_MEMLOG
+    HTMemLog_flush();
+#endif
+
 }
 #endif /* CATCH_SIG */
 
@@ -1570,8 +1581,11 @@ int main (int argc, char ** argv)
     arc.locale=0; arc.encoding=0; arc.i_encoding=0; doinull();
 #endif
 
-    HTMemLog_open("data.log", 8192, YES);
+#ifdef HT_MEMLOG
+    HTMemLog_open(DEFAULT_MEMLOG, 8192, YES);
     HTTraceData_setCallback(HTMemLog_callback);
+#endif
+
     /* Initiate W3C Reference Library with a client profile */
     HTProfile_newClient(APP_NAME, APP_VERSION);
     

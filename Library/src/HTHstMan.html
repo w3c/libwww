@@ -92,6 +92,7 @@ struct _HTHost {
     size_t		remainingRead;	 /* Tells HostEvent to call next net */
 
     /* User specific stuff */
+    ms_t                delay;                          /* Write delay in ms */
     void *		context;		/* Protocol Specific context */
     int			forceWriteFlush;
 };

@@ -20,7 +20,6 @@
 
 #include "HText.h"
 
-#include "HTMemLog.h"
 #include "HTRobot.h"			     		 /* Implemented here */
 
 #ifndef W3C_VERSION
@@ -35,6 +34,7 @@
 #define DEFAULT_LOG_FILE       	"robot.log"
 #define DEFAULT_MEMLOG		"robot.mem"
 #define DEFAULT_DEPTH		0
+#define DEFAULT_DELAY		200			/* Write delay in ms */
 
 #if 0
 #define HT_MEMLOG
@@ -541,6 +541,12 @@ int main (int argc, char ** argv)
 	    /* Force no pipelined requests */
 	    } else if (!strcmp(argv[arg], "-nopipe")) {
 		HTTP_setConnectionMode(HTTP_NO_PIPELINING);
+
+	    /* Stream write flush delay in ms */
+	    } else if (!strcmp(argv[arg], "-delay")) {
+		int delay = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    atoi(argv[++arg]) : DEFAULT_DELAY;
+		HTHost_setDefaultWriteDelay(delay);
 
 	    /* Persistent cache flush */
 	    } else if (!strcmp(argv[arg], "-flush")) {

@@ -30,6 +30,7 @@
 #define TCP_TIMEOUT		3600L		/* Default TCP timeout i 1 h */
 #define MAX_PIPES		50   /* maximum number of pipelined requests */
 #define MAX_HOST_RECOVER	3	      /* Max number of auto recovery */
+#define DEFAULT_DELAY		200	  /* Default write flush delay in ms */
 
 struct _HTInputStream {
     const HTInputStreamClass *	isa;
@@ -45,6 +46,8 @@ PRIVATE HTList	** HostTable = NULL;
 PRIVATE HTList * PendHost = NULL;	    /* List of pending host elements */
 
 PRIVATE int EventTimeout = -1;		        /* Global Host event timeout */
+
+PRIVATE WriteDelay = DEFAULT_DELAY;			      /* Delay in ms */
 
 /* ------------------------------------------------------------------------- */
 
@@ -234,10 +237,11 @@ PUBLIC HTHost * HTHost_new (char * host, u_short u_port)
 	pres->u_port = u_port;
 	pres->ntime = time(NULL);
 	pres->mode = HT_TP_SINGLE;
+	pres->delay = WriteDelay;
 	{
-	int i;
-	for (i = 0; i < HTEvent_TYPES; i++)
-	    pres->events[i]= HTEvent_new(HostEvent, pres, HT_PRIORITY_MAX, EventTimeout);
+	    int i;
+	    for (i = 0; i < HTEvent_TYPES; i++)
+		pres->events[i]= HTEvent_new(HostEvent, pres, HT_PRIORITY_MAX, EventTimeout);
 	}
 	if (CORE_TRACE) 
 	    HTTrace("Host info... added `%s\' with host %p to list %p\n",
@@ -1219,7 +1223,21 @@ PUBLIC int HTHost_hash (HTHost * host)
     return host ? host->hash : -1;
 }
 
-PUBLIC int HTHost_writeDelay(HTHost * host, ms_t lastFlushTime, int buffSize)
+PUBLIC BOOL HTHost_setWriteDelay (HTHost * host, ms_t delay)
+{
+    if (host && delay >= 0) {
+	host->delay = delay;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC ms_t HTHost_writeDelay (HTHost * host)
+{
+    return host ? host->delay : 0;
+}
+
+PUBLIC int HTHost_findWriteDelay (HTHost * host, ms_t lastFlushTime, int buffSize)
 {
     unsigned short mtu;
     int ret = -1;
@@ -1229,7 +1247,22 @@ PUBLIC int HTHost_writeDelay(HTHost * host, ms_t lastFlushTime, int buffSize)
 #endif /* WWW_MSWINDOWS */
     if ((ret == 0 && buffSize >= mtu) || host->forceWriteFlush)
 	return 0;
-    return 1000;
+    return host->delay;
+}
+
+PUBLIC BOOL HTHost_setDefaultWriteDelay (ms_t delay)
+{
+    if (delay >= 0) {
+	WriteDelay = delay;
+	if (CORE_TRACE) HTTrace("Host........ Default write delay is %d ms\n", delay);
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC ms_t HTHost_defaultWriteDelay (void)
+{
+    return WriteDelay;
 }
 
 PUBLIC int HTHost_forceFlush(HTHost * host)

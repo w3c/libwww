@@ -86,7 +86,7 @@ PRIVATE int HTBufferWriter_lazyFlush (HTOutputStream * me)
     **  delay descibed by our delay variable. If we can't delay then flush 
     **  right away.
     */
-    delay = HTHost_writeDelay(me->host, me->lastFlushTime, me->read - me->data);
+    delay = HTHost_findWriteDelay(me->host, me->lastFlushTime, me->read - me->data);
 
     /*
     **	Flush immediately

@@ -76,10 +76,11 @@ this host. If not then we return NULL.
 <PRE>extern HTHost * HTHost_find (char * host);
 </PRE>
 <H2>
-  Host Class Methods
+  Remote Host Information
 </H2>
 <P>
-This is what we know about the remote host
+We keep track of the capabilities of the host in the other end so thatwe
+may adjust our queries to fit it better
 <H3>
   Remote Host Name
 </H3>
@@ -110,15 +111,8 @@ extern int  HTHost_version	(HTHost * host);
 extern void HTHost_setVersion	(HTHost * host, int version);
 </PRE>
 <H3>
-  Remote host Options and Services
-</H3>
-<P>
-We keep track of the capabilities of the remote host. In many cases the
-information that we get is specific to servers but this doesn't <I>have</I>
-to be the case.
-<H4>
   Public Methods accessible on This Host
-</H4>
+</H3>
 <P>
 A server can inform a client about the supported methods using the
 <CODE>Public</CODE> header.
@@ -126,27 +120,27 @@ A server can inform a client about the supported methods using the
 extern void HTHost_setPublicMethods 	(HTHost * me, HTMethod methodset);
 extern void HTHost_appendPublicMethods	(HTHost * me, HTMethod methodset);
 </PRE>
-<H4>
+<H3>
   Server Name of Remote Host
-</H4>
+</H3>
 <P>
 A server can send its server application name and version in a HTTP response.
 We pick up this information and add it to the Host object
 <PRE>extern char * HTHost_server	(HTHost * host);
 extern BOOL HTHost_setServer	(HTHost * host, const char * server);
 </PRE>
-<H4>
+<H3>
   User Agent Name of Remote Host
-</H4>
+</H3>
 <P>
 A client can send the name of the client application in a HTTP request. We
 pick up this information and add it to the Host Object
 <PRE>extern char * HTHost_userAgent 	(HTHost * host);
 extern BOOL HTHost_setUserAgent	(HTHost * host, const char * userAgent);
 </PRE>
-<H4>
+<H3>
   Range Units Accepted by this Host
-</H4>
+</H3>
 <P>
 Since all HTTP entities are represented in HTTP messages as sequences of
 bytes, the concept of a byte range is meaningful for any HTTP entity. (However,
@@ -164,9 +158,9 @@ extern char * HTHost_rangeUnits  (HTHost * host);
 extern BOOL HTHost_setRangeUnits (HTHost * host, const char * units);
 extern BOOL HTHost_isRangeUnitAcceptable (HTHost * host, const char * unit);
 </PRE>
-<H3>
-  Register a Persistent Channel
-</H3>
+<H2>
+  Persistent Connections
+</H2>
 <P>
 We don't want more than MaxSockets-2 connections to be persistent in order
 to avoid deadlock.
@@ -184,29 +178,6 @@ extern HTChannel * HTHost_channel (HTHost * host);
 Check whether we have a persistent channel or not
 <PRE>
 extern BOOL HTHost_isPersistent (HTHost * host);
-</PRE>
-<H3>
-  Is the Host Idle?
-</H3>
-<P>
-Before we can start a new connection to the host we must be sure that the
-host is idle. That is, if it can accept a new connection. We have several
-modes describing how and when a host is idle. This is a function of the Transport
-Object
-<PRE>
-extern BOOL HTHost_isIdle (HTHost * host);
-</PRE>
-<H3>
-  Handling the Transport Mode
-</H3>
-<P>
-Handle the connection mode. The mode may change mode in the middle of a
-connection If the new mode is lower than the old mode then adjust the pipeline
-accordingly. That is, if we are going into single mode then move all entries
-in the pipeline and move the rest to the pending queue. They will get launched
-at a later point in time.
-<PRE>extern HTTransportMode HTHost_mode (HTHost * host, BOOL * active);
-extern BOOL HTHost_setMode (HTHost * host, HTTransportMode mode);
 </PRE>
 <H3>
   Timing Persistent Channels
@@ -233,6 +204,18 @@ extern void HTHost_setReqsMade (HTHost * host, int reqs);
 extern int HTHost_reqsMade (HTHost * host);
 </PRE>
 <H2>
+  Transport Mode
+</H2>
+<P>
+Handle the connection mode. The mode may change mode in the middle of a
+connection If the new mode is lower than the old mode then adjust the pipeline
+accordingly. That is, if we are going into single mode then move all entries
+in the pipeline and move the rest to the pending queue. They will get launched
+at a later point in time.
+<PRE>extern HTTransportMode HTHost_mode (HTHost * host, BOOL * active);
+extern BOOL HTHost_setMode (HTHost * host, HTTransportMode mode);
+</PRE>
+<H2>
   Queuing Requests
 </H2>
 <P>
@@ -246,7 +229,7 @@ extern BOOL HTHost_deleteNet (HTHost * host, HTNet * net);
 extern HTList * HTHost_net   (HTHost * host);
 </PRE>
 <H3>
-  Is the Host Idle
+  Is the Host Idle?
 </H3>
 <P>
 Before we can start a new connection to the host we must be sure that the
@@ -295,9 +278,9 @@ extern int HTHost_connect (HTHost * host, HTNet * net, char * url,
 <P>
 HTHost clients can use the host for all IO and take advantage of host
 multiplexing and pipelining.
-<H3>
+<H2>
   Event Management
-</H3>
+</H2>
 <PRE>
 extern int HTHost_register(HTHost * host, HTNet * net, HTEventType type);
 extern int HTHost_unregister(HTHost * host, HTNet * net, HTEventType type);
@@ -305,48 +288,55 @@ extern int HTHost_tickleFirstNet(HTHost * host, HTEventType type);
 extern BOOL HTHost_setRemainingRead(HTHost * host, size_t remainaing);
 extern SockA * HTHost_getSockAddr(HTHost * host);
 </PRE>
-
 <H3>
-Event Timeouts
+  Control the Delayed Flush Timer
 </H3>
-
-Events can be assigned a timeout which causes the event to be
-triggered if the timeout happens before other action is available on
-the socket. You can assign a global timeout for all host object using
-the following methods
-
+<P>
+These methods can control how long we want to wait for a flush on a given
+host.
+<PRE>
+extern BOOL HTHost_setWriteDelay (HTHost * host, ms_t delay);
+extern ms_t HTHost_writeDelay (HTHost * host);
+extern int HTHost_findWriteDelay(HTHost * host, ms_t lastFlushTime, int buffSize);
+</PRE>
+<P>
+It is also possible to explicitly require a flush using the following method
+<PRE>
+extern int HTHost_forceFlush(HTHost * host);
+</PRE>
+<P>
+You can also set the global value so that all new host objects will inherit
+this value instead of setting it individually.
+<PRE>extern BOOL HTHost_setDefaultWriteDelay (ms_t delay);
+extern ms_t HTHost_defaultWriteDelay (void);
+</PRE>
+<H3>
+  Event Timeouts
+</H3>
+<P>
+Events can be assigned a timeout which causes the event to be triggered if
+the timeout happens before other action is available on the socket. You can
+assign a global timeout for all host object using the following methods
 <PRE>
 extern int HTHost_eventTimeout (void);
 extern void HTHost_setEventTimeout (int millis);
 </PRE>
-
 <H3>
-  Multi homed Host Management
+  Get the Next Net object for Reading and Writing
 </H3>
-<PRE>
-extern BOOL HTHost_setHome (HTHost * host, int home);
-extern int HTHost_home (HTHost * host);
-</PRE>
-<H3>
-  The Channel Associated with this Host
-</H3>
-<PRE>
-extern BOOL HTHost_setChannel (HTHost * host, HTChannel * channel);
-extern HTChannel * HTHost_channel (HTHost * host);
-</PRE>
-
-<H3>
-Get the Next Net object for Reading and Writing
-</H3>
-
 <PRE>
 extern HTNet * HTHost_firstNet     (HTHost * host);
 extern HTNet * HTHost_getReadNet  (HTHost * host);
 extern HTNet * HTHost_getWriteNet (HTHost * host);
-extern int HTHost_writeDelay(HTHost * host, ms_t lastFlushTime, int buffSize);
-extern int HTHost_forceFlush(HTHost * host);
 </PRE>
-
+<H3>
+  Automatic Connection Recovery
+</H3>
+<P>
+In case a pipeline is broken then we have to recover it and start again.
+This is handled automatically by the host object
+<PRE>extern BOOL HTHost_recoverPipe (HTHost * host);
+</PRE>
 <H3>
   Get input and output Streams for this Host
 </H3>
@@ -358,11 +348,30 @@ extern HTOutputStream * HTHost_getOutput (HTHost * host, HTTransport * tp,
 					  void * param, int mode);
 </PRE>
 <H3>
+  The Channel Associated with this Host
+</H3>
+<PRE>
+extern BOOL HTHost_setChannel (HTHost * host, HTChannel * channel);
+extern HTChannel * HTHost_channel (HTHost * host);
+</PRE>
+<H3>
   Read Management
 </H3>
 <PRE>
 extern int HTHost_read(HTHost * host, HTNet * net);
 extern BOOL HTHost_setConsumed(HTHost * host, size_t bytes);
+</PRE>
+<H2>
+  Multi homed Host Management
+</H2>
+<P>
+We also keep track of if a host has multiple IP addresses. If so then it
+is called a <I>multi-homed host</I>. This is used for two things: finding
+the fastest host with this name and as a backup if one or more of the hosts
+are down.
+<PRE>
+extern BOOL HTHost_setHome (HTHost * host, int home);
+extern int HTHost_home (HTHost * host);
 </PRE>
 <PRE>
 #endif /* HTHOST_H */

@@ -130,6 +130,12 @@ available options are:-
     set using the <A HREF="../../INSTALL.html">configure script under
     installation</A>.
   <DT>
+    <B>-delay [ n]</B>
+  <DD>
+    Specify the write delay in ms for how long we can wait until we flush the
+    output buffer when using pipelining. The default value is 200 ms. The longer
+    delay, the bigger TCP packets but also longer response time.
+  <DT>
     <B>-r</B> &lt;file&gt;
   <DD>
     Rule file, a.k.a. configuration file. If this is specified, a rule file may

@@ -13,6 +13,7 @@ HTInet.c
 HTLib.c
 HTLink.c
 HTMethod.c
+HTMemLog.c
 HTNet.c
 HTParse.c
 HTProt.c
