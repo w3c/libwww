@@ -1,86 +1,91 @@
 <HTML>
 <HEAD>
-<TITLE>Internals - Utilities</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
-<NEXTID N="z78">
+  <!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
+  <NEXTID N="z78">
+  <TITLE>Internals - Utilities</TITLE>
 </HEAD>
 <BODY>
-
+<P>
 <A HREF="../../../"><IMG BORDER="0" ALT="W3C" SRC="../../../Icons/WWW/w3c_home"></A>
 <A HREF="../../"><IMG BORDER="0" ALT="libwww" SRC="../../../Icons/WWW/Lib48x"></A>
 <A HREF="./"><IMG BORDER="0" ALT="LibGuide" SRC="../../../Icons/WWW/internals48x"></A>
-
-<H1>Utilities</H1>
-
-This document covers the basic programming utilities that can be used
-in the client or server to make life easier.
-
-<H2>Container Modules</H2>
-
-These modules are generic data object storage modules that might be
-used wherever convenient. The general rule for freeing memory from
-these modules is that free methods handles data object generated
-within the modules whereas user data is for the caller to free. The
-modules consist of:<P>
-
-<DL>
-<DT><A NAME="z59" HREF="../../src/HTBTree.html">Binary Trees</A>
-<DD>This is a complete balanced binary tree that might be used for storage
-and sort of a large number of data objects, e.g. filenames in directory
-listings etc.
-
-<DT><A NAME="z50" HREF="../../src/HTChunk.html">Dynamic Strings</A>
-<DD>A Chunk is a block wise expandable array of type (char *) and is a sort of
-apology for real strings in C. Chunks make it easier to handle dynamic strings
-of unknown size. It is often faster than using the String Copy Routines</A>.
-
-<DT><A NAME="z77" HREF="../../src/HTList.html">Linked Lists</A>
-<DD>This module provides the functionality for managing a generic list of data
-objects. The module is implemented as a single linked list using the scheme
-<EM>first in - last out (FILO)</EM>.
-
-<DT><A HREF="../../src/HTAssoc.html">Association Lists</A>
-<DD>This is a small module build on top of HTList that provides a way to
-store <EM>Name-Value</EM> pairs in an easy way.
-
-<DT><A HREF="../../src/HTString.html">Strings</A>
-
-<DD>Routines for dynamic arrays of characters include string copy,
-case insensitive comparison etc. It also contains functions for
-generating <B>date and time stamps</B>, <B>MessageID</B> etc.
-
-<DT><A HREF="../../src/HTAtom.html">Atoms</A>
-<DD>Atoms are strings which are given representative pointer values so that
-they can be stored more efficiently, and comparisons for equality done more
-efficiently. The pointer values are in fact entries into a hash table.
-
-</DL>
-
-<H2>Basic Utilities</H2>
-
-<IMG BORDER="0" SRC="../../../Icons/32x32/caution"> Look into these modules
-before you start defining system dependent stuff. Most things are
-already defined here! The list of basic utility modules are currently
-as follows
-
-<DL>
-<DT><A HREF="../../src/sysdep.html">System specifics</A>
-<DD>The <A HREF="../../src/sysdep.html">sysdep.h</A> file
-includes system-specific include files and flags for I/O to network
-and disk. The only reason for this file is that the Internet world is
-more complicated than Posix and ANSI.
-
-<DT><A HREF="../../src/HTUtils.html">Platform Independent macros</A>
-<DD>The <A HREF="../../src/HTUtils.html">HTUtil.h</A>
-include file contains things we need everywhere, generally macros for
-declarations, booleans, etc.
-
-</DL>
-
+<H1>
+  Utilities
+</H1>
 <P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-@(#) $Id$
+This document covers the basic programming utilities that can be used in
+the client or server to make life easier.
+<H2>
+  Container Modules
+</H2>
+<P>
+These modules are generic data object storage modules that might be used
+wherever convenient. The general rule for freeing memory from these modules
+is that free methods handles data object generated within the modules whereas
+user data is for the caller to free. The modules consist of:
+<P>
+<DL>
+  <DT>
+    <A NAME="z59" HREF="../../src/HTBTree.html">Binary Trees</A>
+  <DD>
+    This is a complete balanced binary tree that might be used for storage and
+    sort of a large number of data objects, e.g. filenames in directory listings
+    etc.
+  <DT>
+    <A NAME="z50" HREF="../../src/HTChunk.html">Dynamic Strings</A>
+  <DD>
+    A Chunk is a block wise expandable array of type (char *) and is a sort of
+    apology for real strings in C. Chunks make it easier to handle dynamic strings
+    of unknown size. It is often faster than using the String Copy Routines.
+  <DT>
+    <A NAME="z77" HREF="../../src/HTList.html">Linked Lists</A>
+  <DD>
+    This module provides the functionality for managing a generic list of data
+    objects. The module is implemented as a single linked list using the scheme
+    <EM>first in - last out (FILO)</EM>.
+  <DT>
+    <A HREF="../../src/HTAssoc.html">Association Lists</A>
+  <DD>
+    This is a small module build on top of HTList that provides a way to store
+    <EM>Name-Value</EM> pairs in an easy way.
+  <DT>
+    <A HREF="../../src/HTString.html">Strings</A>
+  <DD>
+    Routines for dynamic arrays of characters include string copy, case insensitive
+    comparison etc. It also contains functions for generating <B>date and time
+    stamps</B>, <B>MessageID</B> etc.
+  <DT>
+    <A HREF="../../src/HTAtom.html">Atoms</A>
+  <DD>
+    Atoms are strings which are given representative pointer values so that they
+    can be stored more efficiently, and comparisons for equality done more
+    efficiently. The pointer values are in fact entries into a hash table.
+</DL>
+<H2>
+  Basic Utilities
+</H2>
+<P>
+<IMG BORDER="0" SRC="../../../Icons/32x32/caution" WIDTH="32" HEIGHT="32"
+    ALT="Note:"> Look into these modules before you start defining system dependent
+stuff. Most things are already defined here! The list of basic utility modules
+are currently as follows
+<DL>
+  <DT>
+    <A HREF="../../src/sysdep.html">System specifics</A>
+  <DD>
+    The <A HREF="../../src/sysdep.html">sysdep.h</A> file includes system-specific
+    include files and flags for I/O to network and disk. The only reason for
+    this file is that the Internet world is more complicated than Posix and ANSI.
+  <DT>
+    <A HREF="../../src/HTUtils.html">Platform Independent macros</A>
+  <DD>
+    The <A HREF="../../src/HTUtils.html">HTUtil.h</A> include file contains things
+    we need everywhere, generally macros for declarations, booleans, etc.
+</DL>
+<P>
+  <HR>
+<ADDRESS>
+  <A HREF="../../../People/Frystyk/">Henrik Frystyk Nielsen</A>,<BR>
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>
