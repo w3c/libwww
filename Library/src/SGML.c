@@ -72,22 +72,12 @@ struct _HTStream {
 #define PUTC(ch) ((*context->actions->put_character)(context->target, ch))
 
 
-
-/*	Handle Attribute
-**	----------------
+/*	Find Attribute Number
+**	---------------------
 */
-/* PUBLIC CONST char * SGML_default = "";   ?? */
 
-#ifdef __STDC__
-PRIVATE void handle_attribute_name(HTStream * context, const char * s)
-#else
-PRIVATE void handle_attribute_name(context, s)
-    HTStream * context;
-    char *s;
-#endif
+PUBLIC int SGMLFindAttribute ARGS2 (HTTag*, tag, CONST char *, s)
 {
-
-    HTTag * tag = context->current_tag;
     attr* attributes = tag->attributes;
 
     int high, low, i, diff;		/* Binary search for attribute name */
@@ -96,18 +86,40 @@ PRIVATE void handle_attribute_name(context, s)
 		diff < 0 ? (low = i+1) : (high = i) )  {
 	i = (low + (high-low)/2);
 	diff = strcasecomp(attributes[i].name, s);
-	if (diff==0) {			/* success: found it */
-    	    context->current_attribute_number = i;
-	    context->present[i] = YES;
-	    if (context->value[i]) {
-		free(context->value[i]);
-		context->value[i] = NULL;
-	    }
-	    return;
-	} /* if */
-	
+	if (diff==0) return i;			/* success: found it */
     } /* for */
     
+    return -1;
+}
+
+
+/*	Handle Attribute
+**	----------------
+*/
+/* PUBLIC CONST char * SGML_default = "";   ?? */
+
+#ifdef __STDC__
+PRIVATE void handle_attribute_name(HTStream * context, CONST char * s)
+#else
+PRIVATE void handle_attribute_name(context, s)
+    HTStream * context;
+    char *s;
+#endif
+{
+
+    HTTag * tag = context->current_tag;
+
+    int i = SGMLFindAttribute(tag, s);
+    if (i>=0) {
+	context->current_attribute_number = i;
+	context->present[i] = YES;
+	if (context->value[i]) {
+	    free(context->value[i]);
+	    context->value[i] = NULL;
+	}
+	return;
+    } /* if */
+	
     if (TRACE)
 	fprintf(stderr, "SGML: Unknown attribute %s for tag %s\n",
 	    s, context->current_tag->name);
@@ -229,7 +241,8 @@ PRIVATE void end_element(context, old_tag)
 }
 
 
-/*	Start a element
+/*	Start an element
+**	----------------
 */
 #ifdef __STDC__
 PRIVATE void start_element(HTStream * context)

@@ -114,7 +114,7 @@ PRIVATE void HTMLGen_output_character ARGS2(HTStructured *, me, char, c)
 	}
     }
     
-    /* Flush buffer out when full. If preformetted then don't wrap! */
+    /* Flush buffer out when full. If preformatted then don't wrap! */
     if (me->write_pointer >= me->buffer + BUFFER_SIZE-1) {
     	if (!me->preformatted && me->cleanness) {
 	    char line_break_char = me->line_break[0];
@@ -219,6 +219,9 @@ PRIVATE void HTMLGen_start_element ARGS4(
     HTMLGen_output_string(me, tag->name);
     if (present) for (i=0; i< tag->number_of_attributes; i++) {
         if (present[i]) {
+	    me->line_break = me->write_pointer;	/* Don't you hate SGML?  */
+	    me->cleanness = 1;	/* Can break between attributes */
+	    me->delete_line_break_char = YES;
 	    HTMLGen_output_character(me, ' ');
 	    HTMLGen_output_string(me, tag->attributes[i].name);
 	    if (value[i]) {
@@ -231,14 +234,13 @@ PRIVATE void HTMLGen_start_element ARGS4(
     /* Nested PRE is no more a problem! */
     if (element_number == HTML_PRE)
 	me->preformatted++;
-    if(me->preformatted)
-	HTMLGen_output_character(me, '>');
-    else
-	HTMLGen_output_string(me, ">\n");
+
+    HTMLGen_output_character(me, '>');
     
-    if (tag->contents != SGML_EMPTY) {  /* can break after element start */ 
+    if(!me->preformatted)  /* in fact, could break after PRE but confuses! */
+     if (tag->contents != SGML_EMPTY) {  /* can break after element start */ 
     	me->line_break = me->write_pointer;	/* Don't you hate SGML?  */
-	me->cleanness = 1;
+	me->cleanness = 3;
 	me->delete_line_break_char = NO;
     }
 }

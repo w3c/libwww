@@ -385,7 +385,7 @@ static HTTag tags[HTMLP_ELEMENTS] = {
     { "NEXTID"  , nextid_attr,	1,			SGML_EMPTY },
     { "NOTE"	, note_attr,	HTML_NOTE_ATTRIBUTES,	SGML_EMPTY },
     { "OL"	, list_attr,	HTML_LIST_ATTRIBUTES,	SGML_MIXED },
-    { "OPTION"	, option_attr,	HTML_OPTION_ATTRIBUTES,	SGML_MIXED },
+    { "OPTION"	, option_attr,	HTML_OPTION_ATTRIBUTES,	SGML_EMPTY },/*Mixed?*/
     { "OVER"	, no_attr,	0,			SGML_MIXED },
     { "P"	, l_attr,	HTML_L_ATTRIBUTES,	SGML_EMPTY },
     { "PERSON"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
