@@ -634,7 +634,6 @@ PRIVATE BOOL SaveOutputStream ARGS2(char *, This, char *, Next)
 	if (OutSource)
 	    req->output_format = WWW_SOURCE;
 	req->output_stream = HTFWriter_new(fp, NO);
-	req->output_stream = HTNetToText(req->output_stream);
 	req->ForceReload = YES;
 	status = HTLoadAnchor((HTAnchor*) HTMainAnchor, req);
 	req->ForceReload = NO;
@@ -1256,6 +1255,7 @@ int main ARGS2(int, argc, char **, argv)
 	    } else if (!strcasecomp(argv[arg], "-head")) {    /* HEAD Method */
 		request->method = METHOD_HEAD;
 		request->output_format = WWW_MIME;
+		HTInteractive = NO;
 
 	    /* @@@ NOT FINISHED @@@ */
 	    } else if (!strcasecomp(argv[arg], "-post")) {    /* POST Method */
