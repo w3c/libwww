@@ -1,7 +1,6 @@
 <HTML>
 <HEAD>
 <TITLE>Anchor object for libwww</TITLE>
-<NEXTID N="z2">
 </HEAD>
 <BODY>
 
@@ -25,13 +24,11 @@ Library of Common Code</A>.
 <PRE>
 #ifndef HTANCHOR_H
 #define HTANCHOR_H
+#include "HTList.h"
+#include "HTAtom.h"
 
 /* Version 0 (TBL) written in Objective-C for the NeXT browser */
 /* Version 1 of 24-Oct-1991 (JFG), written in C, browser-independant */
-
-#include "sysdep.h"
-#include "HTList.h"
-#include "HTAtom.h"
 
 </PRE>
 <H3>Short names</H3>
@@ -113,7 +110,7 @@ typedef struct {
   char *	physical;	/* Physical address */
   HTList *	<A
 NAME="z1">cacheItems</A> ;	/* Cache hits (see <A
-NAME="z0" HREF="HTFWriter.html">HTFWriter</A> ) for this URL */
+NAME="z0" HREF="HTFWrite.html">HTFWriter</A> ) for this URL */
   long int      size;           /* Indicative size only if multiformat */ 
 };
 

@@ -15,13 +15,14 @@
 **
 */
 
-#include "sysdep.h"
-
-#define HASH_SIZE	101		/* Tunable */
+/* Library include files */
+#include "tcp.h"
+#include "HTUtils.h"
+#include "HTString.h"
+#include "HTList.h"
 #include "HTAtom.h"
 
-#include "HTUtils.h"
-#include "HTList.h"
+#define HASH_SIZE	101		/* Tunable */
 
 PRIVATE HTAtom * hash_table[HASH_SIZE];
 PRIVATE BOOL initialised = NO;
@@ -55,7 +56,7 @@ PUBLIC HTAtom * HTAtom_for ARGS1(CONST char *, string)
     */
     for (a=hash_table[hash]; a; a=a->next) {
 	if (0==strcmp(a->name, string)) {
-    	    /* if (TRACE) fprintf(stderr,
+    	    /* if (TRACE) fprintf(TDEST,
 	    	"HTAtom: Old atom %p for `%s'\n", a, string); */
 	    return a;				/* Found: return it */
 	}
@@ -70,7 +71,7 @@ PUBLIC HTAtom * HTAtom_for ARGS1(CONST char *, string)
     strcpy(a->name, string);
     a->next = hash_table[hash];		/* Put onto the head of list */
     hash_table[hash] = a;
-/*    if (TRACE) fprintf(stderr, "HTAtom: New atom %p for `%s'\n", a, string); */
+/*    if (TRACE) fprintf(TDEST, "HTAtom: New atom %p for `%s'\n", a, string); */
     return a;
 }
 

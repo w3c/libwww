@@ -8,7 +8,9 @@
 **  				for terminator.
 */
 
-#include "sysdep.h"
+/* Library include files */
+#include "tcp.h"
+#include "HTUtils.h"
 #include "HTMLPDTD.h"
 
 /* 	Entity Names

@@ -9,12 +9,11 @@
 **
 */
 
-/* Platform dependent stuff */
-#include "sysdep.h"
+/* Library include files */
+#include "tcp.h"
 #include "HTUtils.h"
-
-/* Library Includes */
 #include "HTParse.h"
+#include "HTString.h"
 #include "HTTCP.h"
 
 struct struct_parts {
@@ -77,9 +76,13 @@ PRIVATE void scan ARGS2(char *, name, struct struct_parts *, parts)
 		*p = 0;
 		parts->access = after_access; /* Scheme has been specified */
 
+/* The combination of gcc, the "-O" flag and the HP platform is
+   unhealthy. The following three lines is a quick & dirty fix, but is
+   not recommended. Rather, turn off "-O". */
+
 /*		after_access = p;*/
-/*		while (*after_access == 0)*/	/* HWL 15/10/94: weird bug on hp */
-/*		    after_access++;*/		/* after_access = p + 1 */
+/*		while (*after_access == 0)*/
+/*		    after_access++;*/
 
 		after_access = p+1;
 
@@ -300,6 +303,8 @@ PRIVATE void ari_strcpy ARGS2(char *, to,
 //
 // If more than one set of `://' is found (several proxies in cascade) then
 // only the part after the last `://' is simplified.
+//
+// Returns: A string which might be the old one or a new one.
 */
 PUBLIC char *HTSimplify ARGS1(char *, filename)
 {
@@ -308,11 +313,11 @@ PUBLIC char *HTSimplify ARGS1(char *, filename)
 
     if (!filename) {
 	if (URI_TRACE)
-	    fprintf(stderr, "HTSimplify.. Bad argument\n");
+	    fprintf(TDEST, "HTSimplify.. Bad argument\n");
 	return filename;
     }
     if (URI_TRACE)
-	fprintf(stderr, "HTSimplify.. `%s\' ", filename);
+	fprintf(TDEST, "HTSimplify.. `%s\' ", filename);
 
     if ((path = strstr(filename, "://")) != NULL) {	   /* Find host name */
 	char *newptr;
@@ -334,7 +339,7 @@ PUBLIC char *HTSimplify ARGS1(char *, filename)
 	    ptr++;
 	}
 	if (URI_TRACE)
-	    fprintf(stderr, "into\n............ `%s'\n", filename);
+	    fprintf(TDEST, "into\n............ `%s'\n", filename);
 	return filename;		      /* Doesn't need to do any more */
     }
     if ((p = path)) {
@@ -383,7 +388,7 @@ PUBLIC char *HTSimplify ARGS1(char *, filename)
 	}  /* end while (*p) */
     }
     if (URI_TRACE)
-	fprintf(stderr, "into\n............ `%s'\n", filename);
+	fprintf(TDEST, "into\n............ `%s'\n", filename);
     return filename;
 }
 
@@ -480,7 +485,7 @@ char * HTRelative ARGS2(CONST char *, aName, CONST char *, relatedName)
 	for(;levels; levels--)strcat(result, "../");
 	strcat(result, last_slash+1);
     }
-    if (URI_TRACE) fprintf(stderr,
+    if (URI_TRACE) fprintf(TDEST,
 		      "HTRelative.. `%s' expressed relative to `%s' is `%s'\n",
 		       aName, relatedName, result);
     return result;
@@ -498,6 +503,7 @@ char * HTRelative ARGS2(CONST char *, aName, CONST char *, relatedName)
 **	3) Chop off port if `:80' (http), `:70' (gopher), or `:21' (ftp)
 **
 **	Return: OK	The position of the current path part of the URL
+**			which might be the old one or a new one.
 */
 PUBLIC char *HTCanon ARGS2 (char **, filename, char *, host)
 {
@@ -599,10 +605,10 @@ PUBLIC BOOL HTCleanTelnetString ARGS1(char *, str)
 	int a = TOASCII(*cur);
 	if (a != 0x9 && (a < 0x20 || (a > 0x7E && a < 0xA0) ||  a > 0xFE)) {
 	    if (URI_TRACE)
-		fprintf(stderr, "Illegal..... character in URL: \"%s\"\n",str);
+		fprintf(TDEST, "Illegal..... character in URL: \"%s\"\n",str);
 	    *cur = 0;
 	    if (URI_TRACE)
-		fprintf(stderr, "Truncated... \"%s\"\n",str);
+		fprintf(TDEST, "Truncated... \"%s\"\n",str);
 	    return YES;
 	}
 	cur++;

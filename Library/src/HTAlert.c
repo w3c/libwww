@@ -12,25 +12,27 @@
 **	   Sep 93 Corrected 3 bugs in HTConfirm() :-( AL
 */
 
-#include "sysdep.h"
-
+/* Library include files */
+#include "tcp.h"
+#include "HTUtils.h"
+#include "HTString.h"
 #include "HTAlert.h"
 
 PUBLIC BOOL HTInteractive=YES;		    /* Any prompts from the Library? */
 
 PUBLIC void HTAlert ARGS1(CONST char *, Msg)
 {
-#ifdef HAVE_NXRUNALERTPANEL
+#ifdef NeXTStep
     NXRunAlertPanel(NULL, "%s", NULL, NULL, NULL, Msg);
 #else
-    fprintf(stderr, "WWW Alert:  %s\n", Msg);
+    fprintf(TDEST, "\nWWW Alert:  %s\n", Msg);
 #endif
 }
 
 
 PUBLIC void HTProgress ARGS1(CONST char *, Msg)
 {
-    fprintf(stderr, "   %s ...\n", Msg);
+    fprintf(TDEST, "   %s ...\n", Msg);
 }
 
 
@@ -39,8 +41,10 @@ PUBLIC BOOL HTConfirm ARGS1(CONST char *, Msg)
   char Reply[4];	/* One more for terminating NULL -- AL */
   char *URep;
   
-  fprintf(stderr, "WWW: %s (y/n) ", Msg);	   /* (y/n) came twice -- AL */
+  fprintf(TDEST, "WWW: %s (y/n) ", Msg);	   /* (y/n) came twice -- AL */
+#ifndef NO_STDIO
   if (!HTInteractive || !fgets(Reply, 4, stdin))   /* get reply, max 3 chars */
+#endif
       return NO;
   URep=Reply;
   while (*URep) {
@@ -60,40 +64,43 @@ PUBLIC BOOL HTConfirm ARGS1(CONST char *, Msg)
     return(NO);
 }
 
-/*	Prompt for answer and get text back
+/*	Prompt for answer and get text back. Reply text is either NULL on
+**	error or a dynamic string which the caller must free.
 */
 PUBLIC char * HTPrompt ARGS2(CONST char *, Msg, CONST char *, deflt)
 {
-    char Tmp[200];
-    char * rep = 0;
-    fprintf(stderr, "WWW: %s", Msg);
-    if (deflt) fprintf(stderr, " (RETURN for [%s]) ", deflt);
-    if (!HTInteractive || !fgets(Tmp, 200, stdin))
-	return NULL;		       	     /* NULL string on error, Henrik */
-    Tmp[strlen(Tmp)-1] = (char) 0;			/* Overwrite newline */
-   
-    StrAllocCopy(rep, *Tmp ? Tmp : deflt);
-    return rep;
+    char buffer[200];
+    char *reply = NULL;
+    fprintf(TDEST, "WWW: %s", Msg);
+    if (deflt)
+	fprintf(TDEST, " (RETURN for [%s]) ", deflt);
+
+    if (HTInteractive) {
+#ifndef NO_STDIO
+	if (!fgets(buffer, 200, stdin))
+	    return NULL;	       	     /* NULL string on error, Henrik */
+	buffer[strlen(buffer)-1] = '\0';	        /* Overwrite newline */
+	StrAllocCopy(reply, *buffer ? buffer : deflt);
+#endif
+    }
+    return reply;
 }
 
 
-/*	Prompt for password without echoing the reply
+/*	Prompt for password without echoing the reply. Reply text is
+**	either NULL on error or a dynamic string which the caller must free.
 */
 PUBLIC char * HTPromptPassword ARGS1(CONST char *, Msg)
 {
-    char *result = NULL;
-    char *pw;
-
-#ifdef HAVE_GETPASS
-    if (!HTInteractive)
-	return "";
-    pw = (char *) getpass(Msg ? Msg : "Password: ");
-    StrAllocCopy(result, pw);
-    return result;
-#else
-    return HTPrompt(Msg, NULL);
+    char *reply = NULL;
+    if (HTInteractive) {
+#ifndef NO_PASSWD
+	char *pw = (char *) getpass(Msg ? Msg : "Password: ");
+	if (pw)
+	    StrAllocCopy(reply, pw);
 #endif
-
+    }
+    return reply;
 }
 
 
@@ -120,13 +127,8 @@ PUBLIC void HTPromptUsernameAndPassword ARGS3(CONST char *,	Msg,
 					      char **,		username,
 					      char **,		password)
 {
-    if (!HTInteractive) {
-	*username = "";
-	*password = "";
-	return;
-    }
-    if (Msg)
-	fprintf(stderr, "WWW: %s\n", Msg);
+    if (Msg && *Msg)
+	fprintf(TDEST, "WWW: %s\n", Msg);
     *username = HTPrompt("Username: ", *username);
     *password = HTPromptPassword("Password: ");
 }

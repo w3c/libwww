@@ -15,20 +15,21 @@
 **			and HTDoAccept
 */
 
-#include "sysdep.h"
-
+/* Library include files */
+#include "tcp.h"
 #include "HTUtils.h"
+#include "HTString.h"
 #include "HTAtom.h"
 #include "HTList.h"
 #include "HTParse.h"
 #include "HTAccess.h"
 #include "HTError.h"
-
-#ifdef EVENT_LOOP
 #include "HTThread.h"
-#endif /* EVENT_LOOP */
-
 #include "HTTCP.h"					 /* Implemented here */
+
+#ifdef VMS 
+#include "HTVMSUtils.h"
+#endif /* VMS */
 
 #ifdef SHORT_NAMES
 #define HTInetStatus		HTInStat
@@ -36,6 +37,16 @@
 #define HTInetString 		HTInStri
 #define HTParseInet		HTPaInet
 #endif
+
+
+/* VMS stuff */
+#ifdef VMS
+#ifndef MULTINET
+#define FD_SETSIZE 32
+#else /* Multinet */
+#define FD_SETSIZE 256
+#endif /* Multinet */
+#endif /* VMS */
 
 /* Macros and other defines */
 /* x seconds penalty on a multi-homed host if IP-address is down */
@@ -47,6 +58,10 @@
 /* Max number of non-blocking accepts */
 #define MAX_ACCEPT_POLL		30
 #define FCNTL(r, s, t)		fcntl(r, s, t)
+
+#ifndef RESOLV_CONF
+#define RESOLV_CONF "/etc/resolv.conf"
+#endif
 
 /* Globals */
 PUBLIC unsigned int	HTConCacheSize = 512;	 /* Number of cached servers */
@@ -73,100 +88,59 @@ PRIVATE HTList *hostcache = NULL;  /* List of servers that we have talked to */
 PRIVATE unsigned int HTCacheSize = 0;		    /* Current size of cache */
 
 /* ------------------------------------------------------------------------- */
-/* TEMPORARY STUFF */
-#define IOCTL ioctl
-/* ------------------------------------------------------------------------- */
-
-/*	Encode INET status (as in sys/errno.h)			  inet_status()
-**	------------------
-**
-** On entry,
-**	where		gives a description of what caused the error
-**	global errno	gives the error number in the unix way.
-**
-** On return,
-**	returns		a negative status in the unix way.
-*/
-#if 0 /* Is this needed? --fgmr */
-#ifdef HAVE_SOCKET_ERRNO
-extern volatile noshare int socket_errno;
-#endif
-
-#ifndef errno
-extern volatile noshare int errno; 
-#endif
-#endif
-
-#ifdef HAVE_SYS_ERRLIST
-#ifdef NEED_SYS_ERRLIST_DECLARED
-extern char *sys_errlist[];		/* see man perror on cernvax */
-#endif
-#endif
-
-#ifdef HAVE_SYS_NERR
-#ifdef NEED_SYS_NERR_DECLARED
-extern int sys_nerr;
-#endif
-#endif
 
 /*
- *	Returns the string equivalent of the current errno.
- */
-PUBLIC CONST char * HTErrnoString NOARGS
+**	Returns the string equivalent to the errno passed in the argument.
+**	We can't use errno directly as we haev both errno and socerrno. The
+**	result is a static buffer.
+*/
+PUBLIC CONST char * HTErrnoString ARGS1(int, errornumber)
 {
-#ifdef HAVE_STRERROR
-    return strerror(errno);
+#if defined(NeXT) || defined(THINK_C)
+    return strerror(errornumber);
 #else
-
-#ifdef HAVE_SYS_ERRLIST
-# ifdef HAVE_SYS_NERR
-    return (errno < sys_nerr ? sys_errlist[errno] : "Unknown error");
-# else
-    return sys_errlist[errno];
-# endif
-#endif
-
-#ifdef HAVE_VAXC_ERRNO
+#ifdef VMS
     static char buf[60];
-    sprintf(buf,"Unix errno = %ld dec, VMS error = %lx hex",errno,vaxc$errno);
+    sprintf(buf,"Unix errno = %ld dec, VMS error = %lx hex", errornumber,
+	    vaxc$errno);
     return buf;
+#else
+    return (errornumber < sys_nerr ? sys_errlist[errornumber]:"Unknown error");
 #endif
-
-    return "(Error number not translated)";
 #endif
 }
 
-/*	Report Internet Error
-**	---------------------
+
+#ifdef OLD_CODE
+/*	Debug error message
 */
 PUBLIC int HTInetStatus ARGS1(char *, where)
 {
-#ifndef HAVE_VAXC_ERRNO
+#ifndef VMS
 
     if (PROT_TRACE)
-	fprintf(stderr, "TCP errno... %d after call to %s() failed.\n............ %s\n", errno, where, HTErrnoString());
+	fprintf(TDEST, "TCP errno... %d after call to %s() failed.\n............ %s\n", errno, where, HTErrnoString(errornumber));
 
-#else /* HAVE_VAXC_ERRNO */
+#else /* VMS */
 
-    if (PROT_TRACE) fprintf(stderr, "         Unix error number          = %ld dec\n", errno);
-    if (PROT_TRACE) fprintf(stderr, "         VMS error                  = %lx hex\n", vaxc$errno);
+    if (PROT_TRACE) fprintf(TDEST, "         Unix error number          = %ld dec\n", errno);
+    if (PROT_TRACE) fprintf(TDEST, "         VMS error                  = %lx hex\n", vaxc$errno);
 
-#ifdef HAVE_SOCKET_ERRNO
-    if (PROT_TRACE) fprintf(stderr, "         Multinet error             = %lx hex\n", socket_errno); 
-#endif
-#ifdef HAVE_VMS_ERRNO_STRING
-    if (PROT_TRACE) fprintf(stderr, "         Error String               = %s\n", vms_errno_string());
-#endif
+#ifdef MULTINET
+    if (PROT_TRACE) fprintf(TDEST, "         Multinet error             = %lx hex\n", socket_errno); 
+    if (PROT_TRACE) fprintf(TDEST, "         Error String               = %s\n", vms_errno_string());
+#endif /* MULTINET */
 
-#endif /* HAVE_VAXC_ERRNO */
+#endif /* VMS */
 
-#ifdef HAVE_VAXC_ERRNO
+#ifdef VMS
     /* errno happen to be zero if vaxc$errno <> 0 */
     return -vaxc$errno;
 #else
     return -errno;
 #endif
 }
+#endif
 
 
 /*	Parse a cardinal value				       parse_cardinal()
@@ -188,13 +162,11 @@ PUBLIC unsigned int HTCardinal ARGS3
 	char **,	pp,
 	unsigned int,	max_value)
 {
-    int   n;
+    unsigned int n=0;
     if ( (**pp<'0') || (**pp>'9')) {	    /* Null string is error */
 	*pstatus = -3;  /* No number where one expeceted */
 	return 0;
     }
-
-    n=0;
     while ((**pp>='0') && (**pp<='9')) n = n*10 + *((*pp)++) - '0';
 
     if (n>max_value) {
@@ -222,9 +194,9 @@ PUBLIC void HTSetSignal NOARGS
     ** get `connection refused' back
     */
     if (signal(SIGPIPE, SIG_IGN) == SIG_ERR) {
-	if (PROT_TRACE) fprintf(stderr, "HTSignal.... Can't catch SIGPIPE\n");
+	if (PROT_TRACE) fprintf(TDEST, "HTSignal.... Can't catch SIGPIPE\n");
     } else {
-	if (PROT_TRACE) fprintf(stderr, "HTSignal.... Ignoring SIGPIPE\n");
+	if (PROT_TRACE) fprintf(TDEST, "HTSignal.... Ignoring SIGPIPE\n");
     }
 }
 #endif /* WWWLIB_SIG */
@@ -241,10 +213,10 @@ PRIVATE void HTTCPCacheRemoveElement ARGS1(host_info *, element)
 {
     if (!hostcache) {
         if (PROT_TRACE)
-            fprintf(stderr, "HostCache... Remove not done, no cache\n");
+            fprintf(TDEST, "HostCache... Remove not done, no cache\n");
         return;
     }
-    if (PROT_TRACE) fprintf(stderr, "HostCache... Remove `%s' from cache\n",
+    if (PROT_TRACE) fprintf(TDEST, "HostCache... Remove `%s' from cache\n",
 			    HTAtom_name(element->hostname));
     HTList_removeObject(hostcache, (void *) element);
     if (*element->addrlist)
@@ -291,7 +263,8 @@ PRIVATE void HTTCPCacheRemoveHost ARGS1(char *, host)
     HTList *cur = hostcache;
     host_info *pres = NULL;
     if (!hostcache) {
-	fprintf(stderr, "HostCache... Remove host not done, no cache\n");
+	if (PROT_TRACE)
+	    fprintf(TDEST, "HostCache... Remove host not done, no cache\n");
 	return;
     }
     while ((pres = (host_info *) HTList_nextObject(cur)) != NULL) {
@@ -315,7 +288,7 @@ PRIVATE void HTTCPCacheGarbage NOARGS
     unsigned int worst_hits = 30000;		  /* Should use UINT_MAX :-( */
     if (!hostcache) {
 	if (PROT_TRACE)
-	    fprintf(stderr, "HostCache... Garbage collection not done, no cache\n");
+	    fprintf(TDEST, "HostCache... Garbage collection not done, no cache\n");
 	return;
     }
 
@@ -349,7 +322,7 @@ PRIVATE host_info *HTTCPCacheAddElement ARGS2(HTAtom *, host,
     int cnt = 1;
     if (!host || !element) {
 	if (PROT_TRACE)
-	    fprintf(stderr, "HostCache... Bad argument to add to cache\n");
+	    fprintf(TDEST, "HostCache... Bad argument to add to cache\n");
 	return NULL;
     }
     while(*index++)
@@ -377,10 +350,10 @@ PRIVATE host_info *HTTCPCacheAddElement ARGS2(HTAtom *, host,
 
     if (PROT_TRACE) {
 	if (newhost->homes == 1)
-	    fprintf(stderr, "HostCache... Adding single-homed host `%s'\n",
+	    fprintf(TDEST, "HostCache... Adding single-homed host `%s'\n",
 		    HTAtom_name(host));
 	else
-	    fprintf(stderr, "HostCache... Adding host `%s' with %d homes\n",
+	    fprintf(TDEST, "HostCache... Adding host `%s' with %d homes\n",
 		    HTAtom_name(host), newhost->homes);
     }
     HTList_addObject(hostcache, (void *) newhost);
@@ -409,7 +382,7 @@ PUBLIC void HTTCPAddrWeights ARGS2(char *, host, time_t, deltatime)
     HTList *cur = hostcache;
     host_info *pres = NULL;
     if (!hostcache) {
-	fprintf(stderr, "HostCache... Weights not calculated, no cache\n");
+	fprintf(TDEST, "HostCache... Weights not calculated, no cache\n");
 	return;
     }
     /* Skip any port number from host name */
@@ -445,11 +418,11 @@ PUBLIC void HTTCPAddrWeights ARGS2(char *, host, time_t, deltatime)
 		*(pres->weight+cnt) = *(pres->weight+cnt) * passive;
 	    }
 	    if (PROT_TRACE)
-		fprintf(stderr, "AddrWeights. Home %d has weight %4.2f\n", cnt,
+		fprintf(TDEST, "AddrWeights. Home %d has weight %4.2f\n", cnt,
 			*(pres->weight+cnt));
 	}
     } else if (PROT_TRACE) {
-	fprintf(stderr, "HostCache... Weights not calculated, host not found in cache: `%s\'\n", host);
+	fprintf(TDEST, "HostCache... Weights not calculated, host not found in cache: `%s\'\n", host);
     }
 }
 
@@ -506,7 +479,7 @@ PUBLIC int HTGetHostByName ARGS3(char *, host, SockA *, sin,
 	while ((pres = (host_info *) HTList_nextObject(cur)) != NULL) {
 	    if (pres->hostname == hostatom) {
 		if (PROT_TRACE)
-		    fprintf(stderr, "HostByName.. Host `%s\' found in cache.\n", host);
+		    fprintf(TDEST, "HostByName.. Host `%s\' found in cache.\n", host);
 		break;
 	    }
 	}
@@ -531,11 +504,11 @@ PUBLIC int HTGetHostByName ARGS3(char *, host, SockA *, sin,
 	struct hostent *hostelement;			      /* see netdb.h */
 #ifdef MVS	/* Outstanding problem with crash in MVS gethostbyname */
 	if (PROT_TRACE)
-	    fprintf(stderr, "HTTCP on MVS gethostbyname(%s)\n", host);
+	    fprintf(TDEST, "HTTCP on MVS gethostbyname(%s)\n", host);
 #endif
 	if ((hostelement = gethostbyname(host)) == NULL) {
 	    if (PROT_TRACE)
-		fprintf(stderr, "HostByName.. Can't find internet node name `%s'.\n", host);
+		fprintf(TDEST, "HostByName.. Can't find internet node name `%s'.\n", host);
 	    return -1;
 	}
 	
@@ -578,11 +551,11 @@ PUBLIC char * HTGetHostBySock ARGS1(int, soc)
 			AF_INET);
     if (!phost) {
 	if (PROT_TRACE)
-	    fprintf(stderr, "TCP......... Can't find internet node name for peer!!\n");
+	    fprintf(TDEST, "TCP......... Can't find internet node name for peer!!\n");
 	return NULL;
     }
     StrAllocCopy(name, phost->h_name);
-    if (PROT_TRACE) fprintf(stderr, "TCP......... Peer name is `%s'\n", name);
+    if (PROT_TRACE) fprintf(TDEST, "TCP......... Peer name is `%s'\n", name);
 
     return name;
 
@@ -627,7 +600,7 @@ PUBLIC int HTParseInet ARGS3(SockA *, sin, CONST char *, str,
 #endif
 	    } else {
 		if (PROT_TRACE)
-		    fprintf(stderr, "ParseInet... No port indicated\n");
+		    fprintf(TDEST, "ParseInet... No port indicated\n");
 		free(host);
 		return -1;
 	    }
@@ -642,7 +615,7 @@ PUBLIC int HTParseInet ARGS3(SockA *, sin, CONST char *, str,
     sin->sdn_nam.n_len = min(DN_MAXNAML, strlen(host));  /* <=6 in phase 4 */
     strncpy (sin->sdn_nam.n_name, host, sin->sdn_nam.n_len + 1);
 
-    if (PROT_TRACE) fprintf(stderr,  
+    if (PROT_TRACE) fprintf(TDEST,  
 	"DECnet: Parsed address as object number %d on host %.6s...\n",
 		      sin->sdn_objnum, host);
 
@@ -668,7 +641,7 @@ PUBLIC int HTParseInet ARGS3(SockA *, sin, CONST char *, str,
 	    }
 	}
 	if (PROT_TRACE) {
-	    fprintf(stderr, "ParseInet... Parsed address as port %d on %s\n",
+	    fprintf(TDEST, "ParseInet... Parsed address as port %d on %s\n",
 		    (int) ntohs(sin->sin_port),
 		    HTInetString(sin));
 	}
@@ -686,6 +659,10 @@ PUBLIC int HTParseInet ARGS3(SockA *, sin, CONST char *, str,
 */
 PRIVATE void get_host_details NOARGS
 
+#ifndef MAXHOSTNAMELEN
+#define MAXHOSTNAMELEN 64		/* Arbitrary limit */
+#endif
+
 {
     char name[MAXHOSTNAMELEN+1];	/* The name of this host */
     struct hostent * phost;		/* Pointer to host -- See netdb.h */
@@ -693,24 +670,24 @@ PRIVATE void get_host_details NOARGS
     
     if (hostname) return;		/* Already done */
     gethostname(name, namelength);	/* Without domain */
-    if (PROT_TRACE) fprintf(stderr, "TCP......... Local host name is %s\n", name);
+    if (PROT_TRACE) fprintf(TDEST, "TCP......... Local host name is %s\n", name);
     StrAllocCopy(hostname, name);
 
 #ifndef DECNET  /* Decnet ain't got no damn name server 8#OO */
     phost=gethostbyname(name);		/* See netdb.h */
     if (!phost) {
-	if (PROT_TRACE) fprintf(stderr, 
+	if (PROT_TRACE) fprintf(TDEST, 
 		"TCP......... Can't find my own internet node address for `%s'!!\n",
 		name);
 	return;  /* Fail! */
     }
     StrAllocCopy(hostname, phost->h_name);
     if (PROT_TRACE)
-	fprintf(stderr, "TCP......... Full local host name is %s\n", hostname);
+	fprintf(TDEST, "TCP......... Full local host name is %s\n", hostname);
 
 #ifdef NEED_HOST_ADDRESS		/* no -- needs name server! */
     memcpy(&HTHostAddress, &phost->h_addr, phost->h_length);
-    if (PROT_TRACE) fprintf(stderr, "     Name server says that I am `%s' = %s\n",
+    if (PROT_TRACE) fprintf(TDEST, "     Name server says that I am `%s' = %s\n",
 	    hostname, HTInetString(&HTHostAddress));
 #endif /* NEED_HOST_ADDRESS */
 
@@ -722,7 +699,9 @@ PRIVATE void get_host_details NOARGS
 /*								HTGetDomainName
 **	Returns the current domain name without the local host name.
 **	The response is pointing to a static area that might be changed
-**	using HTSetHostName(). Returns NULL on error
+**	using HTSetHostName().
+**
+**	Returns NULL on error, "" if domain name is not found
 */
 PUBLIC CONST char *HTGetDomainName NOARGS
 {
@@ -732,7 +711,7 @@ PUBLIC CONST char *HTGetDomainName NOARGS
 	if ((domain = strchr(host, '.')) != NULL)
 	    return ++domain;
 	else
-	    return host;
+	    return "";
     } else
 	return NULL;
 }
@@ -757,7 +736,7 @@ PUBLIC void HTSetHostName ARGS1(char *, host)
 	if (*(hostname+strlen(hostname)-1) == '.')    /* Remove trailing dot */
 	    *(hostname+strlen(hostname)-1) = '\0';
     } else {
-	if (PROT_TRACE) fprintf(stderr, "SetHostName. Bad argument ignored\n");
+	if (PROT_TRACE) fprintf(TDEST, "SetHostName. Bad argument ignored\n");
     }
 }
 
@@ -793,11 +772,11 @@ PUBLIC CONST char * HTGetHostName NOARGS
     *(name+MAXHOSTNAMELEN) = '\0';
     if (gethostname(name, MAXHOSTNAMELEN)) { 	     /* Maybe without domain */
 	if (PROT_TRACE)
-	    fprintf(stderr, "HostName.... Can't get host name\n");
+	    fprintf(TDEST, "HostName.... Can't get host name\n");
 	return NULL;
     }
     if (PROT_TRACE)
-	fprintf(stderr, "HostName.... Local host name is  `%s\'\n", name);
+	fprintf(TDEST, "HostName.... Local host name is  `%s\'\n", name);
     StrAllocCopy(hostname, name);
     {
 	char *strptr = strchr(hostname, '.');
@@ -805,7 +784,7 @@ PUBLIC CONST char * HTGetHostName NOARGS
 	    got_it = YES;
     }
 
-#ifdef RESOLV_CONF
+#ifndef VMS
     /* Now try the resolver config file */
     if (!got_it && (fp = fopen(RESOLV_CONF, "r")) != NULL) {
 	char buffer[80];
@@ -830,14 +809,13 @@ PUBLIC CONST char * HTGetHostName NOARGS
 	}
 	fclose(fp);
     }
-#endif /* RESOLV_CONF */
 
     /* If everything else has failed then try getdomainname */
-#ifdef HAVE_GETDOMAINNAME
+#ifndef NO_GETDOMAINNAME
     if (!got_it) {
 	if (getdomainname(name, MAXHOSTNAMELEN)) {
 	    if (PROT_TRACE)
-		fprintf(stderr, "HostName.... Can't get domain name\n");
+		fprintf(TDEST, "HostName.... Can't get domain name\n");
 	    StrAllocCopy(hostname, "");
 	    return NULL;
 	}
@@ -846,13 +824,12 @@ PUBLIC CONST char * HTGetHostName NOARGS
 	   then use the former as it is more exact (I guess) */
 	if (strncmp(name, hostname, (int) strlen(hostname))) {
 	    char *domain = strchr(name, '.');
-	    if (!domain)
-		domain = name;
-	    StrAllocCat(hostname, ".");
-	    StrAllocCat(hostname, domain);
+	    if (domain)
+		StrAllocCat(hostname, domain);
 	}
     }
-#endif /* HAVE_GETDOMAINNAME */
+#endif /* NO_GETDOMAINNAME */
+#endif /* not VMS */
 
     {
 	char *strptr = hostname;
@@ -864,7 +841,7 @@ PUBLIC CONST char * HTGetHostName NOARGS
 	    *(hostname+strlen(hostname)-1) = '\0';
     }
     if (PROT_TRACE)
-	fprintf(stderr, "HostName.... Full host name is `%s\'\n", hostname);
+	fprintf(TDEST, "HostName.... Full host name is `%s\'\n", hostname);
     return hostname;
 
 #ifndef DECNET  /* Decnet ain't got no damn name server 8#OO */
@@ -874,7 +851,7 @@ PUBLIC CONST char * HTGetHostName NOARGS
 	struct hostent *hostelement;
 	if ((hostelement = gethostbyname(hostname)) == NULL) {
 	    if (PROT_TRACE)
-		fprintf(stderr, "HostName.... Can't find host name on DNS\n");
+		fprintf(TDEST, "HostName.... Can't find host name on DNS\n");
 	    FREE(hostname);
 	    return NULL;
 	}
@@ -907,7 +884,7 @@ PUBLIC void HTSetMailAddress ARGS1(char *, address)
     else
 	StrAllocCopy(mailaddress, address);
     if (TRACE)
-	fprintf(stderr, "SetMailAdr.. Set mail address to `%s\'\n",
+	fprintf(TDEST, "SetMailAdr.. Set mail address to `%s\'\n",
 		mailaddress);
 }
 
@@ -933,9 +910,7 @@ PUBLIC CONST char * HTGetMailAddress NOARGS
 {
     char *login;
     CONST char *domain;
-#ifdef HAVE_PWD_H
     struct passwd *pw_info;
-#endif
     if (mailaddress) {
 	if (*mailaddress)
 	    return mailaddress;
@@ -943,36 +918,36 @@ PUBLIC CONST char * HTGetMailAddress NOARGS
 	    return NULL;       /* No luck the last time so we wont try again */
     }
 
-#ifdef HAVE_CUSERID
+#ifdef VMS
     if ((login = (char *) cuserid(NULL)) == NULL) {
-        if (PROT_TRACE) fprintf(stderr, "MailAddress. cuserid returns NULL\n");
-    } else goto ok;
-#endif
-#ifdef HAVE_GETLOGIN
+        if (PROT_TRACE) fprintf(TDEST, "MailAddress. cuserid returns NULL\n");
+    }
+
+#else
+#ifdef _WINDOWS
+    login = "PCUSER";				  /* @@@ COULD BE BETTER @@@ */
+#else /* Unix like... */
     if ((login = (char *) getlogin()) == NULL) {
-	if (PROT_TRACE) fprintf(stderr, "MailAddress. getlogin returns NULL\n");
-    } else goto ok;
-#endif
-#ifdef HAVE_PWD_H
-    if ((pw_info = getpwuid(getuid())) == NULL) {
-        if (PROT_TRACE) fprintf(stderr, "MailAddress. getpwid returns NULL\n");
-    } else {
-        login = pw_info->pw_name;
-        goto ok;
+	if (PROT_TRACE)
+	    fprintf(TDEST, "MailAddress. getlogin returns NULL\n");
+	if ((pw_info = getpwuid(getuid())) == NULL) {
+	    if (PROT_TRACE)
+		fprintf(TDEST, "MailAddress. getpwid returns NULL\n");
+	    if ((login = getenv("LOGNAME")) == NULL) {
+		if (PROT_TRACE)
+		    fprintf(TDEST, "MailAddress. LOGNAME not found\n");
+		if ((login = getenv("USER")) == NULL) {
+		    if (PROT_TRACE)
+			fprintf(TDEST,"MailAddress. USER not found\n");
+		    return NULL;		/* I GIVE UP */
+		}
+	    }
+	} else
+	    login = pw_info->pw_name;
     }
 #endif
+#endif
 
-    if ((login = getenv("LOGNAME")) == NULL) {
-	if (PROT_TRACE) fprintf(stderr, "MailAddress. LOGNAME not found\n");
-    } else goto ok;
-
-    if ((login = getenv("USER")) == NULL) {
-        if (PROT_TRACE) fprintf(stderr,"MailAddress. USER not found\n");
-    } else goto ok;
-
-    return NULL;		/* I GIVE UP */
-
-  ok:
     if (login) {
 	StrAllocCopy(mailaddress, login);
 	StrAllocCat(mailaddress, "@");
@@ -1029,11 +1004,11 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 	return -1;
     } else {
 	if (PROT_TRACE)
-	    fprintf(stderr, "HTDoConnect. Looking up `%s\'\n", host);
+	    fprintf(TDEST, "HTDoConnect. Looking up `%s\'\n", host);
     }
 
    /* Set up defaults */
-    if (net->sockfd < 0) {
+    if (net->sockfd==INVSOC) {
 	memset((void *) &net->sock_addr, '\0', sizeof(net->sock_addr));
 #ifdef DECNET
 	net->sock_addr.sdn_family = AF_DECnet;/* Family = DECnet, host order */
@@ -1047,11 +1022,11 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
     /* If we are trying to connect to a multi-homed host then loop here until
        success or we have tried all IP-addresses */
     do {
-	if (net->sockfd < 0) {
+	if (net->sockfd==INVSOC) {
 	    int hosts;
 	    if ((hosts = HTParseInet(&net->sock_addr, host, use_cur)) < 0) {
 		if (PROT_TRACE)
-		    fprintf(stderr, "HTDoConnect. Can't locate remote host `%s\'\n", host);
+		    fprintf(TDEST, "HTDoConnect. Can't locate remote host `%s\'\n", host);
 		HTErrorAdd(net->request, ERR_FATAL, NO, HTERR_NO_REMOTE_HOST,
 			   (void *) host, strlen(host), "HTDoConnect");
 		break;
@@ -1059,18 +1034,18 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 	    if (!net->addressCount && hosts > 1)
 		net->addressCount = hosts;
 #ifdef DECNET
-	    if ((net->sockfd = socket(AF_DECnet, SOCK_STREAM, 0)) < 0)
+	    if ((net->sockfd=socket(AF_DECnet, SOCK_STREAM, 0))==INVSOC)
 #else
-	    if ((net->sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
+	    if ((net->sockfd=socket(AF_INET,SOCK_STREAM,IPPROTO_TCP))==INVSOC)
 #endif
 	    {
-		HTErrorSysAdd(net->request, ERR_FATAL, NO, "socket");
+		HTErrorSysAdd(net->request, ERR_FATAL, socerrno, NO, "socket");
 		break;
 	    }
 	    if (addr)
 		*addr = ntohl(net->sock_addr.sin_addr.s_addr);
 	    if (PROT_TRACE)
-		fprintf(stderr, "HTDoConnect. Created socket number %d\n",
+		fprintf(TDEST, "HTDoConnect. Created socket number %d\n",
 			net->sockfd);
 
 	    /* If non-blocking protocol then change socket status
@@ -1081,19 +1056,22 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 	    ** does NOT work on SVR4 systems. O_NONBLOCK is POSIX.
 	    */
 	    if (!HTProtocolBlocking(net->request)) {
-#ifdef O_NONBLOCK
+#if defined(_WINDOWS) || defined(VMS)
+		{
+		    int enable = 1;
+		    status = IOCTL(net->sockfd, FIONBIO, &enable);
+		}
+#else
 		if((status = FCNTL(net->sockfd, F_GETFL, 0)) != -1) {
 		    status |= O_NONBLOCK;			    /* POSIX */
 		    status = FCNTL(net->sockfd, F_SETFL, status);
 		}
-#else
-		status = -1;
 #endif
 		if (status == -1) {
 		    if (PROT_TRACE)
-			fprintf(stderr, "HTDoConnect. Can NOT make socket non-blocking\n");
+			fprintf(TDEST, "HTDoConnect. Can NOT make socket non-blocking\n");
 		} else if (PROT_TRACE)
-		    fprintf(stderr, "HTDoConnect. Using NON_BLOCKING I/O\n");
+		    fprintf(TDEST, "HTDoConnect. Using NON_BLOCKING I/O\n");
 	    }
 	    
 	    /* If multi-homed host then start timer on connection */
@@ -1104,11 +1082,9 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 	/* Check for interrupt */
 	if (HTThreadIntr(net->sockfd)) {
 	    if (NETCLOSE(net->sockfd) < 0)
-		HTErrorSysAdd(net->request, ERR_FATAL, NO, "NETCLOSE");
-#ifdef EVENT_LOOP
+		HTErrorSysAdd(net->request, ERR_FATAL, socerrno,NO,"NETCLOSE");
 	    HTThreadState(net->sockfd, THD_CLOSE);
-#endif /* EVENT_LOOP */
-	    net->sockfd = -1;
+	    net->sockfd = INVSOC;
 	    free(p1);
 	    return HT_INTERRUPTED;
 	}
@@ -1135,52 +1111,48 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 	 *                         the normal case.
 	 */
 #ifdef EAGAIN
-	if ((status < 0) && ((errno == EINPROGRESS) || (errno == EAGAIN)))
+	if ((status < 0) && ((socerrno==EINPROGRESS) || (socerrno==EAGAIN)))
 #else
-	if ((status < 0) && (errno == EINPROGRESS))
+	if ((status < 0) && (socerrno == EINPROGRESS))
 #endif /* EAGAIN */
 	{
 	    if (PROT_TRACE)
-		fprintf(stderr, "HTDoConnect. WOULD BLOCK `%s'\n", host);
-#ifdef EVENT_LOOP
+		fprintf(TDEST, "HTDoConnect. WOULD BLOCK `%s'\n", host);
 	    HTThreadState(net->sockfd, THD_SET_WRITE);
-#endif /* EVENT_LOOP */
 	    free(p1);
 	    return HT_WOULD_BLOCK;
 	}
 	if (net->addressCount >= 1) {
 	    net->connecttime = time(NULL) - net->connecttime;
 	    if (status < 0) {
-		if (errno == EISCONN) {	  /* connect multi after would block */
-#ifdef EVENT_LOOP
+		if (socerrno==EISCONN) {  /* connect multi after would block */
 		    HTThreadState(net->sockfd, THD_CLR_WRITE);
-#endif /* EVENT_LOOP */
 		    HTTCPAddrWeights(host, net->connecttime);
 		    free(p1);
 		    net->addressCount = 0;
 		    return 0;
 		}
-		HTErrorSysAdd(net->request, ERR_NON_FATAL, NO, "connect");
+		HTErrorSysAdd(net->request, ERR_NON_FATAL, socerrno, NO,
+			      "connect");
 
 		/* I have added EINVAL `invalid argument' as this is what I 
 		   get back from a non-blocking connect where I should 
-		   get `connection refused' */
-		if (errno==ECONNREFUSED || errno==ETIMEDOUT ||
-		    errno==ENETUNREACH || errno==EHOSTUNREACH ||
-		    errno==EHOSTDOWN
-#ifdef EINVAL
-		    || errno == EINVAL
+		   get `connection refused' on SVR4 */
+		if (socerrno==ECONNREFUSED || socerrno==ETIMEDOUT ||
+		    socerrno==ENETUNREACH || socerrno==EHOSTUNREACH ||
+#ifdef __srv4__
+		    socerrno==EHOSTDOWN || socerrno==EINVAL)
+#else
+		    socerrno==EHOSTDOWN)
 #endif
-		   )
 		    net->connecttime += TCP_DELAY;
 		else
 		    net->connecttime += TCP_PENALTY;
 		if (NETCLOSE(net->sockfd) < 0)
-		    HTErrorSysAdd(net->request, ERR_FATAL, NO, "NETCLOSE");
-#ifdef EVENT_LOOP
+		    HTErrorSysAdd(net->request, ERR_FATAL, socerrno, NO, 
+				  "NETCLOSE");
 		HTThreadState(net->sockfd, THD_CLOSE);
-#endif /* EVENT_LOOP */
-		net->sockfd = -1;
+		net->sockfd = INVSOC;
 		HTTCPAddrWeights(host, net->connecttime);
 	    } else {				   /* Connect on multi-homed */
 		HTTCPAddrWeights(host, net->connecttime);
@@ -1189,21 +1161,19 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 		return 0;
 	    }
 	} else if (status < 0) {
-	    if (errno == EISCONN) {      /* Connect single after would block */
-#ifdef EVENT_LOOP
+	    if (socerrno==EISCONN) {     /* Connect single after would block */
 		HTThreadState(net->sockfd, THD_CLR_WRITE);
-#endif /* EVENT_LOOP */
 		net->addressCount = 0;
 		free(p1);
 		return 0;
 	    } else {
-		HTErrorSysAdd(net->request, ERR_FATAL, NO, "connect");
+		HTErrorSysAdd(net->request, ERR_FATAL, socerrno, NO,
+			      "connect");
 		HTTCPCacheRemoveHost(host);
 		if (NETCLOSE(net->sockfd) < 0)
-		    HTErrorSysAdd(net->request, ERR_FATAL, NO, "NETCLOSE");
-#ifdef EVENT_LOOP
+		    HTErrorSysAdd(net->request, ERR_FATAL, socerrno, NO,
+				  "NETCLOSE");
 		HTThreadState(net->sockfd, THD_CLOSE);
-#endif /* EVENT_LOOP */
 		break;
 	    }
 	} else {				  /* Connect on single homed */
@@ -1214,10 +1184,10 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
     } while (--net->addressCount);
 
     if (PROT_TRACE)
-	fprintf(stderr, "HTDoConnect. Connect failed\n");
+	fprintf(TDEST, "HTDoConnect. Connect failed\n");
     free (p1);
     net->addressCount = 0;
-    net->sockfd = -1;
+    net->sockfd = INVSOC;
     return -1;
 }
 
@@ -1239,44 +1209,44 @@ PUBLIC int HTDoAccept ARGS1(HTNetInfo *, net)
     int status;
     int cnt;
     int soc_addrlen = sizeof(soc_address);
-    if (net->sockfd < 0) {
-	if (PROT_TRACE) fprintf(stderr, "HTDoAccept.. Bad socket number\n");
+    if (net->sockfd==INVSOC) {
+	if (PROT_TRACE) fprintf(TDEST, "HTDoAccept.. Bad socket number\n");
 	return -1;
     }
 
     /* First make the socket non-blocking */
-#ifdef HAVE_SOCKET_IOCTL
+#if defined(_WINDOWS) || defined(VMS)
     {
-       int enable = 1;
-       status = socket_ioctl(net->sockfd, FIONBIO, &enable);
+	int enable = 1;		/* Need the variable! */
+	status = IOCTL(net->sockfd, FIONBIO, enable);
     }
-#else /* no socket_ioctl */
+#else
     if((status = FCNTL(net->sockfd, F_GETFL, 0)) != -1) {
-	status |= FNDELAY;					/* O_NDELAY; */
+	status |= O_NONBLOCK;	/* POSIX */
 	status = FCNTL(net->sockfd, F_SETFL, status);
     }
-#endif /* SOCKET_IOCTL */
+#endif
     if (status == -1) {
-	HTErrorSysAdd(net->request, ERR_FATAL, NO, "fcntl");
+	HTErrorSysAdd(net->request, ERR_FATAL, socerrno, NO, "IOCTL");
 	return -1;
     }
 
     /* Now poll every sekund */
     for(cnt=0; cnt<MAX_ACCEPT_POLL; cnt++) {
 	if ((status = accept(net->sockfd, (struct sockaddr*) &soc_address,
-			     &soc_addrlen)) >= 0) {
-	    if (PROT_TRACE) fprintf(stderr,
+			     &soc_addrlen)) != INVSOC) {
+	    if (PROT_TRACE) fprintf(TDEST,
 			       "HTDoAccept.. Accepted new socket %d\n",	
 			       status);
 	    return status;
 	} else
-	    HTErrorSysAdd(net->request, ERR_WARNING, YES, "accept");
+	    HTErrorSysAdd(net->request, ERR_WARN, socerrno, YES, "accept");
 	sleep(1);
     }	
     
     /* If nothing has happened */    
     if (PROT_TRACE)
-	fprintf(stderr, "HTDoAccept.. Timed out, no connection!\n");
+	fprintf(TDEST, "HTDoAccept.. Timed out, no connection!\n");
     HTErrorAdd(net->request, ERR_FATAL, NO, HTERR_TIME_OUT, NULL, 0,
 	       "HTDoAccept");
     return -1;

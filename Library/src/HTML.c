@@ -16,20 +16,18 @@
 **
 */
 
-#include "sysdep.h"
-
-#include "HTML.h"
-
-/* #define CAREFUL		 Check nesting here not really necessary */
-
+/* Library include files */
+#include "tcp.h"
+#include "HTUtils.h"
+#include "HTString.h"
 #include "HTAtom.h"
 #include "HTChunk.h"
 #include "HText.h"
 #include "HTStyle.h"
-
 #include "HTAlert.h"
 #include "HTMLGen.h"
 #include "HTParse.h"
+#include "HTML.h"
 
 extern HTStyleSheet * styleSheet;	/* Application-wide */
 
@@ -629,7 +627,7 @@ PRIVATE void HTML_start_element ARGS4(
 
     if (me->dtd->tags[element_number].contents!= SGML_EMPTY) {
         if (me->sp == me->stack) {
-	    fprintf(stderr, "HTML: ****** Maximum nesting of %d exceded!\n",
+	    fprintf(TDEST, "HTML: ****** Maximum nesting of %d exceded!\n",
 	    MAX_NESTING); 
 	    return;
 	}
@@ -659,7 +657,7 @@ PRIVATE void HTML_end_element ARGS2(HTStructured *, me, int , element_number)
 {
 #ifdef CAREFUL			/* parser assumed to produce good nesting */
     if (element_number != me->sp[0].tag_number) {
-        fprintf(stderr, "HTMLText: end of element %s when expecting end of %s\n",
+        fprintf(TDEST, "HTMLText: end of element %s when expecting end of %s\n",
 		me->dtd->tags[element_number].name,
 		me->dtd->tags[me->sp->tag_number].name);
 		/* panic */
@@ -817,7 +815,7 @@ PUBLIC HTStructured* HTML_new ARGS5(
         HTStream * intermediate = HTStreamStack(WWW_HTML, output_format,
 						output_stream, request, NO);
 	if (intermediate) return HTMLGenerator(intermediate);
-        fprintf(stderr, "** Internal error: can't parse HTML to %s\n",
+        fprintf(TDEST, "** Internal error: can't parse HTML to %s\n",
        		HTAtom_name(output_format));
 	exit (-99);
     }

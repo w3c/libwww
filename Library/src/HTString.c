@@ -11,9 +11,14 @@
 **	 6 Oct 92 (TBL) Moved WWW_TraceFlag in here to be in library
 */
 
-#include "sysdep.h"
+/* Library include files */
+#include "tcp.h"
 #include "HTUtils.h"
 #include "HTString.h"					 /* Implemented here */
+
+#ifdef NO_STDIO
+PUBLIC FILE *WWWTrace = NULL;
+#endif
 
 PUBLIC int WWW_TraceFlag = 0;	/* Global trace flag for ALL W3 code */
 
@@ -23,7 +28,7 @@ PUBLIC int WWW_TraceFlag = 0;	/* Global trace flag for ALL W3 code */
 
 PUBLIC CONST char * HTLibraryVersion = VC; /* String for help screen etc */
 
-#ifndef HAVE_STRCASECOMP
+#ifndef VM		/* VM has these already it seems */
 	
 /*	Strings of any length
 **	---------------------
@@ -40,9 +45,7 @@ PUBLIC int strcasecomp ARGS2 (CONST char*,a, CONST char *,b)
 	if (*q) return -1;	/* p was shorter than q */
 	return 0;		/* Exact match */
 }
-#endif
 
-#ifndef HAVE_STRNCASECOMP
 
 /*	With count limit
 **	----------------
@@ -83,17 +86,18 @@ PUBLIC char * strcasestr ARGS2(char *,	s1,
 		cur2++;
 	    }
 	    if (!*cur2) {
-		CTRACE(stderr,
-	      "Debug....... strcasestr(s1 = \"%s\", s2 = \"%s\") => \"%s\"\n",
-		       s1,s2,ptr);
+		if (PROT_TRACE)
+		    fprintf(TDEST, "Debug....... strcasestr(s1 = \"%s\", s2 = \"%s\") => \"%s\"\n",
+			    s1,s2,ptr);
 		return ptr;
 	    }
 	}
 	ptr++;
     }
-    CTRACE(stderr,
-	   "Debug....... strcasestr(s1 = \"%s\", s2 = \"%s\") => No match\n",
-	   s1,s2);
+    if (TRACE)
+	fprintf(TDEST,
+		"Debug....... strcasestr(s1=\"%s\", s2=\"%s\") => No match\n",
+		s1,s2);
     return NULL;
 }
 

@@ -25,12 +25,13 @@
 **
 */
 
-#include "sysdep.h"
-
+/* Library include files */
+#include "tcp.h"
+#include "HTUtils.h"
+#include "HTString.h"
 #include "HTFile.h"
 #include "HTParse.h"
 #include "HTAAUtil.h"
-
 #include "HTRules.h"					 /* Implemented here */
 
 #define LINE_LENGTH 256
@@ -92,9 +93,9 @@ PUBLIC int HTAddRule ARGS3(HTRuleOp,		op,
     strcpy(pPattern, pattern);
     if (TRACE) {
        if (equiv)
-          fprintf(stderr, "Rule: For `%s' op %d `%s'\n", pattern, op, equiv);
+          fprintf(TDEST, "Rule: For `%s' op %d `%s'\n", pattern, op, equiv);
        else
-          fprintf(stderr, "Rule: For `%s' op %d\n", pattern, op);
+          fprintf(TDEST, "Rule: For `%s' op %d\n", pattern, op);
     }
 
 #ifdef PUT_ON_HEAD
@@ -177,14 +178,16 @@ PUBLIC char * HTTranslate ARGS1(CONST char *, required)
 
 	case HT_Pass:				/* Authorised */
     		if (!r->equiv) {
-		    CTRACE(stderr, "HTRule: Pass `%s'\n", current);
+		    if (PROT_TRACE)
+			fprintf(TDEST, "HTRule: Pass `%s'\n", current);
 		    return current;
 	        }
 		/* Else fall through ...to map and pass */
 		
 	case HT_Map:
 	    if (*p == *q) { /* End of both strings, no wildcard */
-		CTRACE(stderr, "For `%s' using `%s'\n", current, r->equiv);  
+		if (PROT_TRACE)
+		    fprintf(TDEST, "For `%s' using `%s'\n",current,r->equiv);
 		StrAllocCopy(current, r->equiv); /* use entire translation */
 	    } else {
 		  char * ins = strchr(r->equiv, '*');	/* Insertion point */
@@ -197,8 +200,9 @@ PUBLIC char * HTTranslate ARGS1(CONST char *, required)
 			/* Note: temp may be unterminated now! */
 			strncpy(temp+(ins-r->equiv), q, m);  /* Matched bit */
 			strcpy (temp+(ins-r->equiv)+m, ins+1);	/* Last bit */
-    			CTRACE(stderr, "For `%s' using `%s'\n",
-						current, temp);
+    			if (PROT_TRACE)
+			    fprintf(TDEST, "For `%s' using `%s'\n",
+				    current, temp);
 			free(current);
 			current = temp;			/* Use this */
 
@@ -207,20 +211,24 @@ PUBLIC char * HTTranslate ARGS1(CONST char *, required)
 			if (temp==NULL) 
 			    outofmem(__FILE__, "HTTranslate"); /* NT & AS */
 			strcpy(temp, r->equiv);
-    			CTRACE(stderr, "For `%s' using `%s'\n", current, temp);
+    			if (PROT_TRACE)
+			    fprintf(TDEST, "For `%s' using `%s'\n", current,
+				    temp);
 			free(current);
 			current = temp;			/* Use this */
 		    } /* If no insertion point exists */
 		}
 		if (r->op == HT_Pass) {
-		    CTRACE(stderr, "HTRule: ...and pass `%s'\n", current);
+		    if (PROT_TRACE)
+			fprintf(TDEST, "HTRule: ...and pass `%s'\n", current);
 		    return current;
 		}
 		break;
 
 	case HT_Fail:				/* Unauthorised */
 	default:
-	    CTRACE(stderr,"HTRule: *** FAIL `%s'\n", current);
+	    if (PROT_TRACE)
+		fprintf(TDEST,"HTRule: *** FAIL `%s'\n", current);
 	    return (char *)0;
 		    		    
 	} /* if tail matches ... switch operation */
@@ -264,7 +272,7 @@ PUBLIC int HTSetConfiguration ARGS1(CONST char *, config)
     word3 = HTNextField(&pointer);
 
     if (!word2) {
-	fprintf(stderr, "HTRule: Insufficient operands: %s\n", line);
+	fprintf(TDEST, "HTRule: Insufficient operands: %s\n", line);
 	free(line);
 	return -2;	/*syntax error */
     }
@@ -297,7 +305,7 @@ PUBLIC int HTSetConfiguration ARGS1(CONST char *, config)
 			    &quality, &secs, &secs_per_byte);
         else status = 0;
 	if (!HTConversions) HTConversions = HTList_new();
-	HTSetPresentation(HTConversions, word2, word3, (const char *)NULL,
+	HTSetPresentation(HTConversions, word2, word3, NULL,
 		    status >= 1? quality 		: 1.0,
 		    status >= 2 ? secs 			: 0.0,
 		    status >= 3 ? secs_per_byte 	: 0.0 );
@@ -308,7 +316,8 @@ PUBLIC int HTSetConfiguration ARGS1(CONST char *, config)
 	    :	0==strcasecomp(word1, "fail") ?	HT_Fail
 	    :					HT_Invalid;
 	if (op==HT_Invalid) {
-	    CTRACE(stderr, "HTRule: Bad rule `%s'\n", config);
+	    if (PROT_TRACE)
+		fprintf(TDEST, "HTRule: Bad rule `%s'\n", config);
 	} else {  
 	    HTAddRule(op, word2, word3);
 	} 
@@ -338,7 +347,8 @@ int HTLoadRules ARGS1(CONST char *, filename)
     char line[LINE_LENGTH+1];
     
     if (!fp) {
-        CTRACE(stderr, "HTRules: Can't open rules file %s\n", filename);
+        if (PROT_TRACE)
+	    fprintf(TDEST, "HTRules: Can't open rules file %s\n", filename);
 	return -1; /* File open error */
     }
     for(;;) {

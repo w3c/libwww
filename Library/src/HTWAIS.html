@@ -28,9 +28,6 @@ If you include this module in the library, you must also
 <LI> Link with the WAIS libraries
 </UL>
 
-<p>This is done automatically when configuring the package, if you include
-the command-line argument ``--with-WAIS'' to the configure script.</p>
-
 The wais source files are parsed by a separate and independent module,
 <A NAME="z1" HREF="HTWSRC.html">HTWSRC</A>.  You can include HTWSRC
 without including direct wais using this module, and your WWW code will
@@ -47,8 +44,7 @@ Library of Common Code</A>.
 <PRE>
 #ifndef HTWAIS_H
 #define HTWAIS_H
-#include "sysdep.h"
-#include "HTUtils.h"
+
 #include "HTAccess.h"
 </PRE>
 

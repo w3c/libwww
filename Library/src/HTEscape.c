@@ -9,11 +9,9 @@
 **			programs without loading the whole library
 */
 
-/* Platform dependent stuff */
-#include "sysdep.h"
+/* Library include files */
+#include "tcp.h"
 #include "HTUtils.h"
-
-/* Library Includes */
 #include "HTEscape.h"					 /* Implemented here */
 
 #define HEX_ESCAPE '%'
@@ -108,7 +106,7 @@ PUBLIC char * HTUnEscape ARGS1( char *, str)
 
     if (!str) {					      /* Just for safety ;-) */
 	if (URI_TRACE)
-	    fprintf(stderr, "HTUnEscape.. Called with NULL argument.\n");
+	    fprintf(TDEST, "HTUnEscape.. Called with NULL argument.\n");
 	return "";
     }
     while(*p) {

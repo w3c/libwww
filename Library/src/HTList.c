@@ -9,7 +9,9 @@
 **	New nodes are inserted between the header and the rest of the list.
 */
 
-#include "sysdep.h"
+/* Library include files */
+#include "tcp.h"
+#include "HTUtils.h"
 #include "HTList.h"
 
 HTList * HTList_new NOARGS
@@ -40,7 +42,7 @@ void HTList_addObject ARGS2(HTList *,me, void *,newObject)
     me->next = newNode;
   }
   else {
-    if (TRACE) fprintf(stderr,
+    if (TRACE) fprintf(TDEST,
         "HTList: Trying to add object %p to a nonexisting list\n",
 		       newObject);
     abort();
@@ -128,3 +130,24 @@ void * HTList_objectAt ARGS2 (HTList *,me, int,position)
   }
   return NULL;  /* Reached the end of the list */
 }
+
+
+void * HTList_removeObjectAt ARGS2 (HTList *,me, int,position)
+{
+  if (position < 0)
+    return NULL;
+  if (me) {
+    HTList * prevNode;
+    prevNode = me;
+    while ((me = me->next)) {
+      if (position == 0) {
+	prevNode->next = me->next;
+	return me->object;
+      }
+      prevNode = me;
+      position--;
+    }
+  }
+  return NULL;  /* Reached the end of the list */
+}
+

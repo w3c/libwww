@@ -19,13 +19,12 @@
 **
 */
 
-
-#include "sysdep.h"
-
+/* Library include files */
+#include "tcp.h"
+#include "HTUtils.h"
 #include "HTAAUtil.h"
 #include "HTAssoc.h"
 #include "HTString.h"
-
 
 PUBLIC HTAssocList *HTAssocList_new NOARGS
 {
@@ -64,7 +63,7 @@ PUBLIC void HTAssocList_add ARGS3(HTAssocList *,	alist,
 	if (value) StrAllocCopy(assoc->value, value);
 	HTList_addObject(alist, (void*)assoc);
     }
-    else if (TRACE) fprintf(stderr, "HTAssoc_add: ERROR: assoc list NULL!!\n");
+    else if (TRACE) fprintf(TDEST, "HTAssoc_add: ERROR: assoc list NULL!!\n");
 }
 
 

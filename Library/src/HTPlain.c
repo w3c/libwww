@@ -11,15 +11,14 @@
 **		strings written must be less than buffer size.
 */
 
-#include "sysdep.h"
-
-#include "HTPlain.h"
-
-#define BUFFER_SIZE 4096;	/* Tradeoff */
-
+/* Library include files */
+#include "tcp.h"
 #include "HTUtils.h"
 #include "HText.h"
 #include "HTStyle.h"
+#include "HTPlain.h"
+
+#define BUFFER_SIZE 4096;	/* Tradeoff */
 
 extern HTStyleSheet * styleSheet;
 

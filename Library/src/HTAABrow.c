@@ -49,8 +49,8 @@
 **
 */
 
-#include "sysdep.h"
-
+/* Library include files */
+#include "tcp.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTParse.h"		/* URL parsing function		*/
@@ -222,24 +222,24 @@ PRIVATE HTAASetup *HTAASetup_lookup ARGS3(CONST char *, hostname,
 
 	HTList *cur = server->setups;
 
-	if (TRACE) fprintf(stderr, "%s (%s:%d:%s)\n",
+	if (TRACE) fprintf(TDEST, "%s (%s:%d:%s)\n",
 			   "HTAASetup_lookup: resolving setup for",
 			   hostname, portnumber, docname);
 
 	while (NULL != (setup = (HTAASetup*)HTList_nextObject(cur))) {
 	    if (HTAA_templateMatch(setup->tmplate, docname)) {
-		if (TRACE) fprintf(stderr, "%s `%s' %s `%s'\n",
+		if (TRACE) fprintf(TDEST, "%s `%s' %s `%s'\n",
 				   "HTAASetup_lookup:", docname,
 				   "matched template", setup->tmplate);
 		return setup;
 	    }
-	    else if (TRACE) fprintf(stderr, "%s `%s' %s `%s'\n",
+	    else if (TRACE) fprintf(TDEST, "%s `%s' %s `%s'\n",
 				    "HTAASetup_lookup:", docname,
 				    "did NOT match template", setup->tmplate);
 	} /* while setups remain */
     } /* if valid parameters and server found */
 
-    if (TRACE) fprintf(stderr, "%s `%s' %s\n",
+    if (TRACE) fprintf(TDEST, "%s `%s' %s\n",
 		       "HTAASetup_lookup: No template matched",
 		       (docname ? docname : "(null)"),
 		       "(so probably not protected)");
@@ -564,15 +564,6 @@ PUBLIC BOOL HTAA_composeAuth ARGS1(HTRequest *, req)
     if (!req  ||  !req->anchor)
 	return NO;
 
-#ifdef OLD_CODE
-    if (req->authorization) {
-	CTRACE(stderr,
-"HTAA_composeAuth: forwarding auth.info from client\nAuthorization: %s\n",
-	       req->authorization);
-	return YES;
-    }
-#endif
-
     arg = HTAnchor_physical(req->anchor);
     docname = HTParse(arg, "", PARSE_PATH);
     hostname = HTParse((gate ? gate : arg), "", PARSE_HOST);
@@ -583,7 +574,7 @@ PUBLIC BOOL HTAA_composeAuth ARGS1(HTRequest *, req)
     }
     else portnumber = 80;
 	
-    if (TRACE) fprintf(stderr,
+    if (TRACE) fprintf(TDEST,
 		       "Composing Authorization for %s:%d/%s\n",
 		       hostname, portnumber, docname);
 
@@ -780,7 +771,7 @@ PUBLIC BOOL HTAA_retryWithAuth ARGS1(HTRequest *,	req)
 	}
 	else portnumber = 80;
 	
-	if (TRACE) fprintf(stderr,
+	if (TRACE) fprintf(TDEST,
 			   "HTAA_retryWithAuth: first retry of %s:%d/%s\n",
 			   hostname, portnumber, docname);
 

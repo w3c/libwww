@@ -19,8 +19,9 @@
 **
 */
 
-#include "sysdep.h"
-
+/* Library include files */
+#include "tcp.h"
+#include "HTUtils.h"
 #include "HTMLPDTD.h"
 #include "HTStream.h"
 #include "SGML.h"
@@ -453,7 +454,7 @@ PUBLIC HTStream* HTPlainToHTML ARGS5(
     if (me == NULL) outofmem(__FILE__, "PlainToHTML");
     
     memset(present, '\0', MAX_ATTRIBUTES);
-    memset(value, '\0', MAX_ATTRIBUTES*sizeof(char *));
+    memset((char *) value, '\0', MAX_ATTRIBUTES*sizeof(char *));
     
     me->isa = (HTStructuredClass*) &PlainToHTMLConversion;
     me->dtd = &HTMLP_dtd;

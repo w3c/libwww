@@ -11,10 +11,8 @@
 **  	12 June 94	Written by Henrik Frystyk, frystyk@dxcern.cern.ch
 */
 
-/* Implemention dependent include files */
-#include "sysdep.h"
-
 /* Library include files */
+#include "tcp.h"
 #include "HTUtils.h"
 #include "HTAccess.h"
 #include "HTError.h"
@@ -44,7 +42,7 @@ PUBLIC BOOL HTThreadInit NOARGS
 
     if (done) {
 	if (THD_TRACE)
-	    fprintf(stderr, "ThreadInit.. Already done\n");
+	    fprintf(TDEST, "ThreadInit.. Already done\n");
 	return NO;
     }
     done = YES;
@@ -74,7 +72,7 @@ PUBLIC int HTThreadGetFDInfo ARGS2(fd_set *, read, fd_set *, write)
 **	This function registers a socket as waiting for the action given
 **	(read or write etc.).
 */
-PUBLIC void HTThreadState ARGS2(int, sockfd, HTThreadAction, action)
+PUBLIC void HTThreadState ARGS2(SOCKFD, sockfd, HTThreadAction, action)
 {
     if (THD_TRACE) {
 	static char *actionmsg[] = {
@@ -86,7 +84,7 @@ PUBLIC void HTThreadState ARGS2(int, sockfd, HTThreadAction, action)
 	    "CLEAR INTERRUPT",
 	    "CLOSE"
 	    };
-	fprintf(stderr,
+	fprintf(TDEST,
 		"Thread...... Register socket number %d for action %s\n",
 		sockfd, *(actionmsg+action));
     }
@@ -134,7 +132,7 @@ PUBLIC void HTThreadState ARGS2(int, sockfd, HTThreadAction, action)
 
       default:
 	if (THD_TRACE)
-	    fprintf(stderr, "Thread...... Illigal socket action\n");
+	    fprintf(TDEST, "Thread...... Illigal socket action\n");
     }
 
     /* Update max bit width. The method used ignores any other default
@@ -150,7 +148,7 @@ PUBLIC void HTThreadState ARGS2(int, sockfd, HTThreadAction, action)
 	    HTMaxfdpl = sockfd+1;
     }
     if (THD_TRACE)
-	fprintf(stderr, "Thread...... Max bitwidth is %d\n", HTMaxfdpl);
+	fprintf(TDEST, "Thread...... Max bitwidth is %d\n", HTMaxfdpl);
 }
 
 
@@ -158,7 +156,7 @@ PUBLIC void HTThreadState ARGS2(int, sockfd, HTThreadAction, action)
 **
 **	This function returns YES or NO to the question
 */
-PUBLIC BOOL HTThreadIntr ARGS1(int, sockfd)
+PUBLIC BOOL HTThreadIntr ARGS1(SOCKFD, sockfd)
 {
     return FD_ISSET(sockfd, &HTfd_intr) ? YES : NO;
 }
@@ -173,7 +171,7 @@ PUBLIC void HTThreadMarkIntrAll ARGS1(CONST fd_set *,	fd_user)
 {
     int cnt;
     if (THD_TRACE)
-	fprintf(stderr, "Thread...... Mark ALL Library sockfd INTERRUPTED\n");
+	fprintf(TDEST, "Thread...... Mark ALL Library sockfd INTERRUPTED\n");
     for (cnt=0; cnt<HTMaxfdpl; cnt++) {
 	if (FD_ISSET(cnt, &HTfd_set) && !FD_ISSET(cnt, fd_user))
 	    FD_SET(cnt, &HTfd_intr);
@@ -233,12 +231,12 @@ PUBLIC HTRequest *HTThread_getRequest ARGS2(CONST fd_set *,	fd_read,
 {
     HTList *cur = HTThreads;
     HTNetInfo *pres;
-    int cnt;
+    SOCKFD cnt;
     BOOL found = NO;
     for (cnt=STDIN_FILENO+1; cnt<HTMaxfdpl; cnt++) {		/* INTERRUPT */
 	if (FD_ISSET(cnt, &HTfd_intr)) {
 	    if (THD_TRACE)
-		fprintf(stderr, "GetSocket... Socket %d INTERRUPTED\n", cnt);
+		fprintf(TDEST, "GetSocket... Socket %d INTERRUPTED\n", cnt);
 	    found = YES;
 	    break;
 	}
@@ -247,7 +245,7 @@ PUBLIC HTRequest *HTThread_getRequest ARGS2(CONST fd_set *,	fd_read,
 	for (cnt=STDIN_FILENO+1; cnt<HTMaxfdpl; cnt++) {	     /* READ */
 	    if (FD_ISSET(cnt, fd_read)) {
 		if (THD_TRACE)
-		    fprintf(stderr, "GetSocket... Socket %d for READ\n", cnt);
+		    fprintf(TDEST, "GetSocket... Socket %d for READ\n", cnt);
 		found = YES;
 		break;
 	    }
@@ -257,7 +255,7 @@ PUBLIC HTRequest *HTThread_getRequest ARGS2(CONST fd_set *,	fd_read,
 	for (cnt=STDIN_FILENO+1; cnt<HTMaxfdpl; cnt++) {   	    /* WRITE */
 	    if (FD_ISSET(cnt, fd_write)) {
 		if (THD_TRACE)
-		    fprintf(stderr, "GetSocket... Socket %d for WRITE\n", cnt);
+		    fprintf(TDEST, "GetSocket... Socket %d for WRITE\n", cnt);
 		found = YES;
 		break;
 	    }

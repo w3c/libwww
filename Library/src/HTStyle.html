@@ -51,8 +51,6 @@ Library of Common Code</A>.
 #ifndef HTStyle_H
 #define HTStyle_H
 
-#include "sysdep.h"
-#include "HTUtils.h"
 #include "HTFormat.h"
 #include "HTAnchor.h"
 #include "HTML.h"
@@ -80,6 +78,7 @@ typedef long int HTFont;	/* Dummy definition instead */
 
 #ifdef DEFINE_STRUCT_HTSTYLE
 #ifdef NeXT_suppressed
+#include &lt;appkit/appkit.h>
 typedef NXCoord HTCoord;
 #define HTParagraphStyle NXTextStyle
 #define HTCoord NXCoord

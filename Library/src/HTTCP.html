@@ -19,6 +19,7 @@ etc. The main topics of functions in this module are:
 <UL>
 <LI><A HREF="#ConEst">Connection establishment</A>
 <LI><A HREF="#hostcache">Cache of host names</A>
+<LI><A HREF="#errormsg">Errno Messages</A>
 <LI><A HREF="#DNS">Host and mail addresses</A>
 <LI><A HREF="#Signals">Signal Handling</A>
 </UL>
@@ -31,23 +32,14 @@ Library of Common Code</A>.
 <PRE>
 #ifndef HTTCP_H
 #define HTTCP_H
-
-#include "sysdep.h"
-#include "HTUtils.h"
 #include "HTAccess.h"
-
-#ifdef SHORT_NAMES
-#define HTInetStatus		HTInStat
-#define HTInetString 		HTInStri
-#define HTParseInet		HTPaInet
-#endif
 </PRE>
 
-<H2>Connection Management</H2>
+<A NAME="ConEst"><H2>Connection Management</H2></A>
 
 All connections are established through the following functions.
 
-<A NAME="ConEst"><H3>Active Connection Establishment</H3></A>
+<H3>Active Connection Establishment</H3>
 
 This makes an active connect to the specified host. The <A
 HREF="HTAccess.html#HTNetInfo">HTNetInfo structure</A> is parsed in
@@ -117,29 +109,14 @@ default number is 500.
 extern unsigned int	HTConCacheSize;
 </PRE>
 
-<H2>Errors and status indications</H2>
+<A NAME="errormsg"><H2>System Description of Error Message</H2></A>
 
-Theese functions return an explanation if an error has occured.
-
-<H3>Errno Message</H3>
-
-Return error message corresponding to current errno, just like strerror().
+Return error message corresponding to errno number given. We need to
+pass the error number as a parameter as we on some platforms get
+different codes from sockets and local file access.
 
 <PRE>
-extern CONST char * HTErrnoString NOPARAMS;
-</PRE>
-
-<H3>Description of what Caused the Error</H3>
-
-The parameter `where' gives a description of what caused the error, often
-the name of a system call. <P>
-
-This function should only rarely be called directly. Instead the common error
-function HTErrorAdd() should be used as then the error is parsed all the way
-to the user. The function returns a negative status in the unix way.
-
-<PRE>
-extern int HTInetStatus PARAMS((char * where));
+extern CONST char * HTErrnoString PARAMS((int errornumber));
 </PRE>
 
 <H3>Parse a Cardinal Value</H3>

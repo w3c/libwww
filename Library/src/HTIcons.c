@@ -12,17 +12,22 @@
 **
 */
 
-#include "sysdep.h"
-
 /* Library include files */
-#include "HTMLPDTD.h"
+#include "tcp.h"
 #include "HTUtils.h"
+#include "HTString.h"
+#include "HTMLPDTD.h"
 #include "HTAnchor.h"
 #include "HTParse.h"
 #include "HTFile.h"
 #include "HTFormat.h"
 #include "HTChunk.h"
 #include "HTIcons.h"					 /* Implemented here */
+
+#ifdef VMS
+typedef unsigned long mode_t;
+#include "HTVMSUtils.h"
+#endif /* VMS */
 
 /* Globals */
 PUBLIC BOOL HTDirShowBrackets = YES;
@@ -105,9 +110,9 @@ PUBLIC void HTAddIcon ARGS3(char *,	url,
     if (!icons) icons = HTList_new();
     HTList_addObject(icons, (void*)node);
     alt_resize(alt);
-    CTRACE(stderr,
-	   "AddIcon..... %s => SRC=\"%s\" ALT=\"%s\"\n",type_templ,url,
-	   alt ? alt : "");
+    if (PROT_TRACE)
+	fprintf(TDEST, "AddIcon..... %s => SRC=\"%s\" ALT=\"%s\"\n",
+		type_templ,url, alt ? alt : "");
 }
 
 
@@ -130,8 +135,8 @@ PUBLIC void HTAddHref ARGS2(char *,     url,
 
     if (!hrefs) hrefs = HTList_new();
     HTList_addObject(hrefs, (void*)node);
-    CTRACE(stderr,
-           "AddHref..... %s => URL=\"%s\" \n",type_templ,url);
+    if (PROT_TRACE)
+	fprintf(TDEST, "AddHref..... %s => URL=\"%s\" \n",type_templ,url);
 }
 
 
@@ -149,9 +154,9 @@ PUBLIC void HTAddUnknownIcon ARGS2(char *, url,
     if (url) StrAllocCopy(icon_unknown->icon_url, url);
     if (alt) StrAllocCopy(icon_unknown->icon_alt, alt);
     alt_resize(alt);
-    CTRACE(stderr,"AddIcon..... UNKNOWN => SRC=\"%s\" ALT=\"%s\"\n",url,
-	   alt ? alt : "");
-
+    if (PROT_TRACE)
+	fprintf(TDEST,"AddIcon..... UNKNOWN => SRC=\"%s\" ALT=\"%s\"\n",url,
+		alt ? alt : "");
 }
 
 
@@ -168,8 +173,9 @@ PUBLIC void HTAddBlankIcon ARGS2(char *, url,
     if (url) StrAllocCopy(icon_blank->icon_url, url);
     if (alt) StrAllocCopy(icon_blank->icon_alt, alt);
     alt_resize(alt);
-    CTRACE(stderr,"AddIcon..... BLANK => SRC=\"%s\" ALT=\"%s\"\n",url,
-	   alt ? alt : "");
+    if (PROT_TRACE)
+	fprintf(TDEST,"AddIcon..... BLANK => SRC=\"%s\" ALT=\"%s\"\n",url,
+		alt ? alt : "");
 }
 
 
@@ -185,8 +191,9 @@ PUBLIC void HTAddParentIcon ARGS2(char *, url,
     if (url) StrAllocCopy(icon_parent->icon_url, url);
     if (alt) StrAllocCopy(icon_parent->icon_alt, alt);
     alt_resize(alt);
-    CTRACE(stderr,"AddIcon..... PARENT => SRC=\"%s\" ALT=\"%s\"\n",url,
-	   alt ? alt : "");
+    if (PROT_TRACE)
+	fprintf(TDEST,"AddIcon..... PARENT => SRC=\"%s\" ALT=\"%s\"\n",url,
+		alt ? alt : "");
 }
 
 
@@ -202,9 +209,9 @@ PUBLIC void HTAddDirIcon ARGS2(char *, url,
     if (url) StrAllocCopy(icon_dir->icon_url, url);
     if (alt) StrAllocCopy(icon_dir->icon_alt, alt);
     alt_resize(alt);
-    CTRACE(stderr,
-	   "AddIcon..... DIRECTORY => SRC=\"%s\" ALT=\"%s\"\n",url,
-	   alt ? alt : "");
+    if (PROT_TRACE)
+	fprintf(TDEST,"AddIcon..... DIRECTORY => SRC=\"%s\" ALT=\"%s\"\n",url,
+		alt ? alt : "");
 }
 
 

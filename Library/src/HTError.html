@@ -20,7 +20,7 @@ output by a simple function that easily can be overwritten by a smart
 server or client.  <P>
 
 <NOTE><B>Note: </B></NOTE> At the moment, <A
-HREF="HTErrorMsg.c">HTErrorMsg()</A> is called, if the flag
+HREF="HTErrMsg.c">HTErrorMsg()</A> is called, if the flag
 HTRequest-&gt;error_block is set to YES, then a stream has been put up
 or taken down in the library and therefore it is <B>VERY</B> unsafe to
 put anything more to the stream. <P>
@@ -33,7 +33,7 @@ Library of Common Code</A>.
 <PRE>
 #ifndef HTERROR_H
 #define HTERROR_H
-#include "sysdep.h"
+
 #include "HTAccess.h"
 </PRE>
 
@@ -55,6 +55,8 @@ typedef enum _HTErrorElement {
 	HTERR_ACCEPTED,						/* 202 */
 	HTERR_PARTIAL,						/* 203 */
 	HTERR_NO_RESPONSE,					/* 204 */
+	HTERR_DELETED,						/* 205 */
+	HTERR_MODIFIED,						/* 206 */
 	HTERR_MOVED,						/* 301 */
 	HTERR_FOUND,						/* 302 */
 	HTERR_METHOD,						/* 303 */
@@ -64,8 +66,15 @@ typedef enum _HTErrorElement {
 	HTERR_PAYMENT_REQUIRED,					/* 402 */
 	HTERR_FORBIDDEN,					/* 403 */
 	HTERR_NOT_FOUND,					/* 404 */
+	HTERR_NOT_ALLOWED,					/* 405 */
+	HTERR_NONE_ACCEPTABLE,					/* 406 */
+	HTERR_PROXY,						/* 407 */
+	HTERR_TIMEOUT,						/* 408 */
 	HTERR_INTERNAL,						/* 500 */
 	HTERR_NOT_IMPLEMENTED,					/* 501 */
+	HTERR_BAD_GATE,						/* 502 */
+	HTERR_DOWN,						/* 503 */
+	HTERR_GATE_TIMEOUT,					/* 504 */
 	HTERR_HTTP_CODES_END,    /* Put all non-HTTP status codes after this */
 	HTERR_NO_REMOTE_HOST,
 	HTERR_NO_HOST,
@@ -76,8 +85,8 @@ typedef enum _HTErrorElement {
 	HTERR_INTERRUPTED,
 	HTERR_CON_INTR,
 	HTERR_CSO_SERVER,
-	HTERR_HTTP09,						/* HTTP */
-	HTERR_BAD_REPLY,					/* HTTP */
+	HTERR_HTTP09,
+	HTERR_BAD_REPLY,
 	HTERR_UNKNOWN_AA,
 	HTERR_NEWS_SERVER,
 	HTERR_FILE_TO_FTP,
@@ -90,14 +99,10 @@ typedef enum _HTErrorElement {
 	HTERR_ELEMENTS		            /* This MUST be the last element */
 } HTErrorElement;
 
-#ifdef ERR_WARNING
-#undef ERR_WARNING
-#endif
-
 typedef enum _HTErrSeverity {
     ERR_FATAL		  = 0x1,
     ERR_NON_FATAL	  = 0x2,
-    ERR_WARNING 	  = 0x4,
+    ERR_WARN	 	  = 0x4,
     ERR_INFO	 	  = 0x8
 } HTErrSeverity;
 
@@ -182,6 +187,7 @@ structure. It always returns a negative value.
 <PRE>
 extern int HTErrorSysAdd PARAMS(( HTRequest * 	request,
 				  HTErrSeverity	severity,
+				  int		errornumber,
 				  BOOL		ignore,
 				  char *	syscall));
 </PRE>
@@ -213,7 +219,7 @@ extern CONST char *HTErrorGetPrefix NOPARAMS;
 This function outputs the content of the error_stack to standard output 
 (used in Line Mode Browser), but smart clients and servers might overwrite
 this function so that the error messages can be handled to the user in a nice 
-way. That is the reason for putting the actual implementation in HTErrorMsg.c,
+way. That is the reason for putting the actual implementation in HTErrMsg.c,
 that can be overwritten by clients and servers apart from Line Mode Browser.<P>
 
 <NOTE><B>Note: </B></NOTE>

@@ -13,11 +13,11 @@
 **  	05 May 94	Written by Henrik Frystyk, frystyk@dxcern.cern.ch
 */
 
-#include "sysdep.h"
-
 /* Library include files */
-#include "HTTCP.h"
+#include "tcp.h"
 #include "HTUtils.h"
+#include "HTString.h"
+#include "HTTCP.h"
 #include "HTError.h"					 /* Implemented here */
 
 /* Globals */
@@ -36,19 +36,28 @@ PUBLIC HTErrorMsgInfo error_info[HTERR_ELEMENTS] = {
     { 200, "OK", 					"ok.multi" },
     { 201, "Created", 					"created.multi" },
     { 202, "Accepted", 					"accepted.multi" },
-    { 203, "Partial Information", 			"partial.multi" },
+    { 203, "Provisional Information", 			"partial.multi" },
     { 204, "No Response",				"no_response.multi" },
-    { 301, "Moved", 					"moved.multi" },
-    { 302, "Found", 					"found.multi" },
+    { 205, "Deleted",					"deleted.multi" },
+    { 206, "Modified",					"modified.multi" },
+    { 301, "Moved Permanently",				"moved.multi" },
+    { 302, "Moved Temporarily", 			"moved.multi" },
     { 303, "Method", 					"method.multi" },
-    { 304, "Not Modified Since",       			"not_modified.multi" },
-    { 400, "Invalid Request", 				"bad_request.multi" },
-    { 401, "Unauthorized Access Denied",		"unauthorized.multi" },
+    { 304, "Not Modified",       			"not_modified.multi" },
+    { 400, "Bad Request", 				"bad_request.multi" },
+    { 401, "Unauthorized",				"unauthorized.multi" },
     { 402, "Payment Required", 				"payment.multi" },
-    { 403, "Access forbidden", 				"forbidden.multi" },
-    { 404, "No Match Found for",       			"not_found.multi" },
-    { 500, "Can't Access Document",			"internal.multi" },
-    { 501, "Command not Implemented", 			"not_implem.multi" },
+    { 403, "Forbidden", 				"forbidden.multi" },
+    { 404, "Not Found",		       			"not_found.multi" },
+    { 405, "Method Not Allowed",	 		"method.multi" },
+    { 406, "None Acceptable",		 		"none.multi" },
+    { 407, "Proxy Authentication Required", 		"proxy.multi" },
+    { 408, "Request Timeout",		 		"timeout.multi" },
+    { 500, "Internal Server Error",			"internal.multi" },
+    { 501, "Not Implemented", 				"not_made.multi" },
+    { 502, "Bad Gateway", 				"bad_gate.multi" },
+    { 503, "Service Unavailable",			"unavailable.multi" },
+    { 504, "Gateway Timeout", 				"timeout.multi" },
     { 0,   "-------------------------", "----------------------------------" },
     { 0,   "Can't locate remote host", 			"host.multi" },
     { 0,   "No host name found", 			"host.multi" },
@@ -86,7 +95,7 @@ PUBLIC HTErrorMsgInfo error_info[HTERR_ELEMENTS] = {
 **
 **	NOTE: See also HTErrorSysAdd for system errors
 **
-**	Returns always < 0
+**	Returns always HT_ERROR
 */
 PUBLIC int HTErrorAdd ARGS7(HTRequest *, 	request,
 			    HTErrSeverity, 	severity,
@@ -98,8 +107,8 @@ PUBLIC int HTErrorAdd ARGS7(HTRequest *, 	request,
 {
     HTErrorInfo *newError;
     if (!request) {
-	if (TRACE) fprintf(stderr, "HTErrorAdd.. Bad argument!\n");
-	return -1;
+	if (TRACE) fprintf(TDEST, "HTErrorAdd.. Bad argument!\n");
+	return HT_ERROR;
     }
     if ((newError = (HTErrorInfo *) calloc(1, sizeof(HTErrorInfo))) == NULL)
 	outofmem(__FILE__, "HTErrorAdd");
@@ -127,7 +136,7 @@ PUBLIC int HTErrorAdd ARGS7(HTRequest *, 	request,
 	    newError->handle = pres->handle+1;
     }
     if (TRACE) {
-	fprintf(stderr, "Message..... Handle: %d\tCode: %3d\tMessage: `%s\'\tSeverity: %d\tParameter: `%s\'\tWhere: `%s\'\n",
+	fprintf(TDEST, "Message..... Handle: %d\tCode: %3d\tMessage: `%s\'\tSeverity: %d\tParameter: `%s\'\tWhere: `%s\'\n",
 		newError->handle,
 		error_info[newError->element].code,
 		error_info[newError->element].msg,
@@ -136,7 +145,7 @@ PUBLIC int HTErrorAdd ARGS7(HTRequest *, 	request,
 		newError->where ? newError->where : "Unspecified");
     }
     HTList_addObject(request->error_stack, (void *) newError);
-    return (-element);
+    return HT_ERROR;
 }
 
 
@@ -144,38 +153,33 @@ PUBLIC int HTErrorAdd ARGS7(HTRequest *, 	request,
 **
 **	Add a system error message to the error list in HTRequest. syscall
 **	is the name of the system call, e.g. "close". The message put to the
-**	list is that corresponds to the errno. This function also replaces
-**	HTInetStatus, which is called from within.
+**	list is that corresponds to the error number passed. 
 **
 **	See also HTErrorAdd.
 **
-**	Returns always < 0
+**	Returns always HT_ERROR
 */
-PUBLIC int HTErrorSysAdd ARGS4(HTRequest *, 	request,
+PUBLIC int HTErrorSysAdd ARGS5(HTRequest *, 	request,
 			       HTErrSeverity, 	severity,
+			       int,		errornumber,
 			       BOOL,		ignore,
 			       char *,		syscall)
-
 {
     if (!request) {
-	if (TRACE) fprintf(stderr, "HTErrorSys.. Bad argument!\n");
-	return -1;
+	if (TRACE) fprintf(TDEST, "HTErrorSys.. Bad argument!\n");
+	return HT_ERROR;
     }
-    if (syscall) {
-	HTInetStatus(syscall);
-    } else
-	HTInetStatus("Unspecified System Call");
     {
 	char temp[100];
 	char *errmsg = NULL;
 	sprintf(temp, error_info[HTERR_SYSTEM].msg, syscall);
 	StrAllocCopy(errmsg, temp);
-	StrAllocCat(errmsg, HTErrnoString());
+	StrAllocCat(errmsg, HTErrnoString(errornumber));
 	HTErrorAdd(request, severity, ignore, HTERR_SYSTEM, (void *) errmsg,
 		   (int) strlen(errmsg), syscall);
 	free(errmsg);
     }
-    return (-HTERR_SYSTEM);
+    return HT_ERROR;
 }
 
 
@@ -210,7 +214,7 @@ PUBLIC void HTErrorIgnore ARGS2(HTRequest *, request, int, handle)
     HTList *cur;
     HTErrorInfo *pres;
     if (!request) {
-	if (TRACE) fprintf(stderr, "HTErrorIgnore Bad argument!\n");
+	if (TRACE) fprintf(TDEST, "HTErrorIgnore Bad argument!\n");
 	return;
     }
     cur = request->error_stack;
@@ -224,7 +228,7 @@ PUBLIC void HTErrorIgnore ARGS2(HTRequest *, request, int, handle)
 
     if (TRACE) {
 	if (found) {
-	    fprintf(stderr, "Error Ignore Handle: %d\tCode: %3d\tMessage: `%s\tSeverity: %d\tParameter: `%s\'\tWhere: `%s\'\n",
+	    fprintf(TDEST, "Error Ignore Handle: %d\tCode: %3d\tMessage: `%s\tSeverity: %d\tParameter: `%s\'\tWhere: `%s\'\n",
 		    pres->handle,
 		    error_info[pres->element].code,
 		    error_info[pres->element].msg,
@@ -232,7 +236,7 @@ PUBLIC void HTErrorIgnore ARGS2(HTRequest *, request, int, handle)
 		    pres->par ? (char *) pres->par : "Unspecified",
 		    pres->where ? pres->where : "Unspecified");
 	} else {
-	    fprintf(stderr, "Error Ignore Bad handle\n");
+	    fprintf(TDEST, "Error Ignore Bad handle\n");
 	}
     }
     return;
@@ -249,13 +253,13 @@ PUBLIC void HTErrorIgnoreLast ARGS1(HTRequest *, request)
     HTList *cur;
     HTErrorInfo *pres;
     if (!request) {
-	if (TRACE) fprintf(stderr, "HTErrorIgnore Bad argument!\n");
+	if (TRACE) fprintf(TDEST, "HTErrorIgnore Bad argument!\n");
 	return;
     }
     cur = request->error_stack;
     if (cur && (pres = (HTErrorInfo *) HTList_nextObject(cur)) != NULL) {
 	if (TRACE)
-	    fprintf(stderr, "Error Ignore Code: %3d\tMessage: `%s\tSeverity: %d\tParameter: `%s\'\tWhere: `%s\'\n",
+	    fprintf(TDEST, "Error Ignore Code: %3d\tMessage: `%s\tSeverity: %d\tParameter: `%s\'\tWhere: `%s\'\n",
 		    error_info[pres->element].code,
 		    error_info[pres->element].msg,
 		    pres->severity,
@@ -294,7 +298,7 @@ PUBLIC CONST char *HTErrorGetPrefix NOARGS
 **	error_stack messages.
 */
 
-/* *** LOOK IN HTErrorMsg.c FOR ACTUAL IMPLEMENTATION OF THIS FUNCTION *** */
+/* *** LOOK IN HTErrMsg.c FOR ACTUAL IMPLEMENTATION OF THIS FUNCTION *** */
 
 /* END OF MODULE */
 

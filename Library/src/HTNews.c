@@ -15,14 +15,15 @@
 **	 8 Jul 94  FM	Insulate free() from _free structure element.
 */
 
-#include "sysdep.h"
-
-/* Implements:
-*/
-#include "HTNews.h"
-
-#define CR   FROMASCII('\015')	/* Must be converted to ^M for transmission */
-#define LF   FROMASCII('\012')	/* Must be converted to ^J for transmission */
+#include "tcp.h"
+#include "HTUtils.h"		/* Coding convention macros */
+#include "HTString.h"
+#include "HTML.h"
+#include "HTParse.h"
+#include "HTFormat.h"
+#include "HTAlert.h"
+#include "HTError.h"
+#include "HTNews.h"				/* Implemented here */
 
 #define NEWS_PORT 119		/* See rfc977 */
 #define APPEND			/* Use append methods */
@@ -35,13 +36,6 @@
 #ifndef SERVER_FILE
 #define SERVER_FILE "/usr/local/lib/rn/server"
 #endif
-
-#include "HTUtils.h"		/* Coding convention macros */
-#include "HTML.h"
-#include "HTParse.h"
-#include "HTFormat.h"
-#include "HTAlert.h"
-#include "HTError.h"
 
 #define BIG 1024 /* @@@ */
 
@@ -62,9 +56,8 @@ struct _HTStructured {
 */
 PUBLIC char * HTNewsHost;
 PRIVATE struct sockaddr_in soc_address;		/* Binary network address */
-PRIVATE int s;					/* Socket for NewsHost */
+PRIVATE SOCKFD s;				/* Socket for NewsHost */
 PRIVATE char response_text[LINE_LENGTH+1];	/* Last response */
-/* PRIVATE HText *	HT;	*/		/* the new hypertext */
 PRIVATE HTStructured * target;			/* The output sink */
 PRIVATE HTStructuredClass targetClass;		/* Copy of fn addresses */
 PRIVATE HTParentAnchor *node_anchor;		/* Its anchor */
@@ -118,14 +111,14 @@ PRIVATE BOOL initialize NOARGS
 
 /*   Get name of Host
 */
-#ifdef HAVE_NXGETDEFAULTVALUE
+#ifdef NeXTStep
     if ((HTNewsHost = NXGetDefaultValue("WorldWideWeb","NewsHost"))==0)
         if ((HTNewsHost = NXGetDefaultValue("News","NewsHost")) == 0)
 	    HTNewsHost = DEFAULT_NEWS_HOST;
 #else
     if (getenv("NNTPSERVER")) {
         StrAllocCopy(HTNewsHost, (char *)getenv("NNTPSERVER"));
-	if (TRACE) fprintf(stderr, "HTNews: NNTPSERVER defined as `%s'\n",
+	if (TRACE) fprintf(TDEST, "HTNews: NNTPSERVER defined as `%s'\n",
 		HTNewsHost);
     } else {
         char server_name[256];
@@ -133,7 +126,7 @@ PRIVATE BOOL initialize NOARGS
         if (fp) {
 	    if (fscanf(fp, "%s", server_name)==1) {
 	        StrAllocCopy(HTNewsHost, server_name);
-		if (TRACE) fprintf(stderr,
+		if (TRACE) fprintf(TDEST,
 		"HTNews: File %s defines news host as `%s'\n",
 		        SERVER_FILE, HTNewsHost);
 	    }
@@ -154,14 +147,14 @@ PRIVATE BOOL initialize NOARGS
 	    "HTNews: Can't find news host `%s'.\n%s",HTNewsHost,
 	    "Please define your NNTP server");
 	    HTAlert(message);
-	    CTRACE(tfp,
-	      "HTNews: Can't find news host `%s'.\n",HTNewsHost);
+	    if (PROT_TRACE)
+		fprintf(TDEST, "HTNews: Can't find news host `%s'.\n",HTNewsHost);
 	    return NO;  /* Fail */
 	}
 	memcpy(&sin->sin_addr, phost->h_addr, phost->h_length);
     }
 
-    if (TRACE) fprintf(stderr,  
+    if (TRACE) fprintf(TDEST,  
 	"HTNews: Parsed address as port %4x, inet %d.%d.%d.%d\n",
 		(unsigned int)ntohs(sin->sin_port),
 		(int)*((unsigned char *)(&sin->sin_addr)+0),
@@ -169,7 +162,7 @@ PRIVATE BOOL initialize NOARGS
 		(int)*((unsigned char *)(&sin->sin_addr)+2),
 		(int)*((unsigned char *)(&sin->sin_addr)+3));
 
-    s = -1;		/* Disconnected */
+    s = INVSOC;		/* Disconnected */
     
     return YES;
 }
@@ -195,7 +188,7 @@ PRIVATE int response ARGS1(CONST char *,command)
     if (command) {
         int status;
 	int length = strlen(command);
-	if (TRACE) fprintf(stderr, "NNTP command to be sent: %s", command);
+	if (TRACE) fprintf(TDEST, "NNTP command to be sent: %s", command);
 #ifdef NOT_ASCII
 	{
 	    CONST char  * p;
@@ -210,11 +203,11 @@ PRIVATE int response ARGS1(CONST char *,command)
         status = NETWRITE(s, command, length);
 #endif
 	if (status<0){
-	    if (TRACE) fprintf(stderr,
+	    if (TRACE) fprintf(TDEST,
 	        "HTNews: Unable to send command. Disconnecting.\n");
 	    NETCLOSE(s);
 	    HTInputSocket_free(isoc);
-	    s = -1;
+	    s = INVSOC;
 	    return status;
 	} /* if bad status */
     } /* if command to be sent */
@@ -223,24 +216,25 @@ PRIVATE int response ARGS1(CONST char *,command)
 	if (((*p++=NEXT_CHAR) == LF)
 	                || (p == &response_text[LINE_LENGTH])) {
 	    *p++=0;				/* Terminate the string */
-	    if (TRACE) fprintf(stderr, "NNTP Response: %s\n", response_text);
+	    if (TRACE) fprintf(TDEST, "NNTP Response: %s\n", response_text);
 	    sscanf(response_text, "%d", &result);
 	    if (result >= 411 && result <= 430) { /* no such article/group */
 		char * msg = strchr(response_text,' ');
 		if (!msg) msg = response_text;
 		PUTS("<H1>News error</H1>\n");
 		PUTS(msg);
-		CTRACE(stderr, "News error.. %s", response_text);
+		if (PROT_TRACE)
+		    fprintf(TDEST, "News error.. %s", response_text);
 	    }
 	    return result;	    
 	} /* if end of line */
 	
 	if (*(p-1) < 0) {
-	    if (TRACE) fprintf(stderr,
+	    if (TRACE) fprintf(TDEST,
 	    	"HTNews: EOF on read, closing socket %d\n", s);
 	    NETCLOSE(s);	/* End of file, close socket */
 	    HTInputSocket_free(isoc);
-	    return s = -1;	/* End of file on response */
+	    return s = INVSOC;	/* End of file on response */
 	}
     } /* Loop over characters */
 }
@@ -398,13 +392,13 @@ PRIVATE void write_anchors ARGS1 (char *,text)
 */
 PRIVATE void abort_socket NOARGS
 {
-    if (TRACE) fprintf(stderr,
+    if (TRACE) fprintf(TDEST,
 	    "HTNews: EOF on read, closing socket %d\n", s);
     NETCLOSE(s);	/* End of file, close socket */
     HTInputSocket_free(isoc);
     PUTS("Network Error: connection lost");
     PUTC('\n');
-    s = -1;		/* End of file on response */
+    s = INVSOC;		/* End of file on response */
     return;
 }
 
@@ -444,7 +438,7 @@ PRIVATE void read_article NOARGS
 	    }
 	    if ((ch == LF) || (p == &line[LINE_LENGTH])) {
 		*--p=0;				/* Terminate the string */
-		if (TRACE) fprintf(stderr, "H %s\n", line);
+		if (TRACE) fprintf(TDEST, "H %s\n", line);
 
 		if (line[0]=='.') {	
 		    if (line[1]<' ') {		/* End of article? */
@@ -567,7 +561,7 @@ PRIVATE void read_article NOARGS
 	}
 	if ((ch == LF) || (p == &line[LINE_LENGTH])) {
 	    *p++=0;				/* Terminate the string */
-	    if (TRACE) fprintf(stderr, "B %s", line);
+	    if (TRACE) fprintf(TDEST, "B %s", line);
 	    if (line[0]=='.') {
 		if (line[1]<' ') {		/* End of article? */
 		    done = YES;
@@ -643,7 +637,7 @@ PRIVATE void read_list NOARGS
 	}
 	if ((ch == LF) || (p == &line[LINE_LENGTH])) {
 	    *p++=0;				/* Terminate the string */
-	    if (TRACE) fprintf(stderr, "B %s", line);
+	    if (TRACE) fprintf(TDEST, "B %s", line);
     	    (*targetClass.start_element)(target, HTML_DT , 0, 0);
 	    if (line[0]=='.') {
 		if (line[1]<' ') {		/* End of article? */
@@ -715,7 +709,7 @@ PRIVATE void read_group ARGS3(
 
     sscanf(response_text, " %d %d %d %d", &status, &count, &first, &last);
     if(TRACE)
-	fprintf(stderr, 
+	fprintf(TDEST, 
 		"Newsgroup status=%d, count=%d, (%d-%d) required:(%d-%d)\n",
 		status, count, first, last, first_required, last_required);
     if (last==0) {
@@ -743,7 +737,7 @@ PRIVATE void read_group ARGS3(
     if (last_required-first_required+1 > MAX_CHUNK) {	/* Trim this block */
         first_required = last_required-CHUNK_SIZE+1;
     }
-    if (TRACE) fprintf (stderr, "    Chunk will be (%d-%d)\n",
+    if (TRACE) fprintf (TDEST, "    Chunk will be (%d-%d)\n",
 		       first_required, last_required);
 
 /*	Set window title
@@ -761,7 +755,7 @@ PRIVATE void read_group ARGS3(
 	if (first_required-MAX_CHUNK <= first) before = first;
 	else before = first_required-CHUNK_SIZE;
     	sprintf(buffer, "%s/%d-%d", groupName, before, first_required-1);
-	if (TRACE) fprintf(stderr, "    Block before is %s\n", buffer);
+	if (TRACE) fprintf(TDEST, "    Block before is %s\n", buffer);
 	PUTS( " (");
 	start_anchor(buffer);
 	PUTS("Earlier articles");
@@ -791,7 +785,7 @@ PRIVATE void read_group ARGS3(
 		}
 		if ((ch == '\n') || (p == &line[LINE_LENGTH])) {
 		    *p++=0;				/* Terminate the string */
-		    if (TRACE) fprintf(stderr, "X %s", line);
+		    if (TRACE) fprintf(TDEST, "X %s", line);
 		    if (line[0]=='.') {
 			if (line[1]<' ') {		/* End of article? */
 			    done = YES;
@@ -870,7 +864,7 @@ PRIVATE void read_group ARGS3(
 		    
 			*--p=0;		/* Terminate  & chop LF*/
 			p = line;		/* Restart at beginning */
-			if (TRACE) fprintf(stderr, "G %s\n", line);
+			if (TRACE) fprintf(TDEST, "G %s\n", line);
 			switch(line[0]) {
     
 			case '.':
@@ -936,7 +930,7 @@ PRIVATE void read_group ARGS3(
 	after = last_required+CHUNK_SIZE;
     	if (after==last) sprintf(buffer, "news:%s", groupName);	/* original group */
     	else sprintf(buffer, "news:%s/%d-%d", groupName, last_required+1, after);
-	if (TRACE) fprintf(stderr, "    Block after is %s\n", buffer);
+	if (TRACE) fprintf(TDEST, "    Block after is %s\n", buffer);
 	PUTS( "(");
 	start_anchor(buffer);
 	PUTS( "Later articles");
@@ -981,7 +975,7 @@ PUBLIC int HTLoadNews ARGS1(HTRequest *,		request)
 
     diagnostic = (request->output_format == WWW_SOURCE);	/* set global flag */
     
-    if (TRACE) fprintf(stderr, "HTNews: Looking for %s\n", arg);
+    if (TRACE) fprintf(TDEST, "HTNews: Looking for %s\n", arg);
     
     if (!initialized) initialized = initialize();
     if (!initialized) return -1;	/* FAIL */
@@ -1061,10 +1055,10 @@ PUBLIC int HTLoadNews ARGS1(HTRequest *,		request)
 	    status = connect(s, (struct sockaddr*)&soc_address, sizeof(soc_address));
 	    if (status<0){
 	        NETCLOSE(s);
-		s = -1;
+		s = INVSOC;
 #ifdef OLD_CODE
 		char message[256];
-		if (TRACE) fprintf(stderr, "HTNews: Unable to connect to news host.\n");
+		if (TRACE) fprintf(TDEST, "HTNews: Unable to connect to news host.\n");
 /*		if (retries<=1) continue;   WHY TRY AGAIN ? 	*/
 		sprintf(message,
 "\nCould not access %s.\n\n (Check default WorldWideWeb NewsHost ?)\n",
@@ -1082,14 +1076,14 @@ PUBLIC int HTLoadNews ARGS1(HTRequest *,		request)
 		    return -1;
 		}
 	    } else {
-		if (TRACE) fprintf(stderr, "HTNews: Connected to news host %s.\n",
+		if (TRACE) fprintf(TDEST, "HTNews: Connected to news host %s.\n",
 				HTNewsHost);
 		isoc = HTInputSocket_new(s);	/* set up buffering */
 		if ((response(NULL) / 100) !=2) {
 		    int length = strlen(response_text);
 		    NETCLOSE(s);
 		    HTInputSocket_free(isoc);
-		    s = -1;
+		    s = INVSOC;
 		    HTErrorAdd(request, ERR_FATAL, NO, HTERR_NEWS_SERVER,
 			       (void *) response_text, length < 50 ?
 			       length : 50, "HTLoadNews");
@@ -1121,7 +1115,7 @@ PUBLIC int HTLoadNews ARGS1(HTRequest *,		request)
 */
 	    NETCLOSE(s);
 	    HTInputSocket_free(isoc);
-	    s = -1;
+	    s = INVSOC;
 /* return HT; -- no:the message might be "Timeout-disconnected" left over */
 	    continue;	/*	Try again */
 	}

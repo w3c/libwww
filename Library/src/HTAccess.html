@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<TITLE>HTAccess:  Access manager  for libwww</TITLE>
+<TITLE>Access manager  for libwww</TITLE>
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -46,7 +46,6 @@ The module contains a lot of stuff but the main topics are:
 #ifndef HTACCESS_H
 #define HTACCESS_H
 
-#include "sysdep.h"
 #include "HTList.h"
 #include "HTChunk.h"
 </PRE>
@@ -236,14 +235,16 @@ is asking for user confusion.
 
 <H2><A NAME="HTNetInfo">Protocol Specific Information</A></H2>
 
-This structure contains information about socket number, input buffer for
-reading from the network etc. The structure is used through out the protocol
-modules and is the refenrence point for introducing multi threaded execution
-into the library, see specifications on <A HREF="http://info.cern.ch/hypertext/WWW/Library/User/Multithread/multithread.html">Multiple Threads</A>.
+This structure contains information about socket number, input buffer
+for reading from the network etc. The structure is used through out
+the protocol modules and is the refenrence point for introducing multi
+threaded execution into the library, see specifications on <A
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Features/multithread.html">Multiple
+Threads</A>.
 
 <PRE>
 struct _HTNetInfo {
-    int			sockfd;				/* Socket descripter */
+    SOCKFD		sockfd;				/* Socket descripter */
     SockA 		sock_addr;		/* SockA is defined in tcp.h */
     HTInputSocket *	isoc;				     /* Input buffer */
     HTStream *		target;			            /* Output stream */
@@ -330,6 +331,15 @@ to the <A NAME="z10" HREF="#z9">callback</A> .
 The output stream to be used to put data down to as they come in from the
 network. The default value is <CODE>NULL</CODE> which means that the stream
 goes to the user (display).
+
+<PRE>
+    HTStream*	output_flush; 
+</PRE>
+
+All object bodies sent from the server with status codes different
+from <CODE>200 OK</CODE> will be put down this stream. This can be
+used as a debug window etc. If the value is NULL (default) then the
+stream used is <A HREF="HTFormat.html#BlackHole">HTBlackHole</A>.
 
 <PRE>
     HTAtom * 	output_format;

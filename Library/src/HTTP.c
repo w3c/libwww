@@ -15,11 +15,10 @@
 **
 */
 
-/* Platform dependent stuff */
-#include "sysdep.h"
+/* Library include files */
+#include "tcp.h"
 #include "HTUtils.h"
-
-/* Libray Includes */
+#include "HTString.h"
 #include "HTParse.h"
 #include "HTTCP.h"
 #include "HTFormat.h"
@@ -28,7 +27,7 @@
 #include "HTAccess.h"		/* HTRequest */
 #include "HTAABrow.h"		/* Access Authorization */
 #include "HTTee.h"		/* Tee off a cache stream */
-#include "HTFWriter.h"		/* Write to cache file */
+#include "HTFWrite.h"		/* Write to cache file */
 #include "HTError.h"
 #include "HTChunk.h"
 #include "HTGuess.h"
@@ -68,7 +67,7 @@ typedef enum _HTTPState {
 } HTTPState;
 
 typedef struct _http_info {
-    int			sockfd;				/* Socket descripter */
+    SOCKFD		sockfd;				/* Socket descripter */
     SockA 		sock_addr;		/* SockA is defined in tcp.h */
     HTInputSocket *	isoc;				     /* Input buffer */
     HTStream *		target;			            /* Output stream */
@@ -111,18 +110,19 @@ PRIVATE int HTTPCleanup ARGS1(HTRequest *, request)
     http_info *http;
     int status = 0;
     if (!request || !request->net_info) {
-	if (PROT_TRACE) fprintf(stderr, "HTTPCleanup. Bad argument!\n");
+	if (PROT_TRACE) fprintf(TDEST, "HTTPCleanup. Bad argument!\n");
 	status = -1;
     } else {
 	http = (http_info *) request->net_info;
-	if (http->sockfd >= 0) {
-	    if (PROT_TRACE) fprintf(stderr, "HTTP........ Closing socket %d\n",
-			       http->sockfd);
+	if (http->sockfd != INVSOC) {
+	    if (PROT_TRACE)
+		fprintf(TDEST,"HTTP........ Closing socket %d\n",http->sockfd);
 	    if ((status = NETCLOSE(http->sockfd)) < 0)
-		HTErrorSysAdd(http->request, ERR_FATAL, NO, "NETCLOSE");
+		HTErrorSysAdd(http->request, ERR_FATAL, socerrno, NO,
+			      "NETCLOSE");
 	    HTThreadState(http->sockfd, THD_CLOSE);
 	    HTThread_clear((HTNetInfo *) http);
-	    http->sockfd = -1;
+	    http->sockfd = INVSOC;
 	}
 	if (http->isoc)
 	    HTInputSocket_free(http->isoc);
@@ -257,7 +257,7 @@ PRIVATE int HTTPSendRequest ARGS3(HTRequest *, request,
 	HTChunkPutc(command, CR);		   /* Blank line means "end" */
 	HTChunkPutc(command, LF);
 	HTChunkTerminate(command);
-	if (PROT_TRACE) fprintf(stderr, "HTTP Tx..... %s", command->data);
+	if (PROT_TRACE) fprintf(TDEST, "HTTP Tx..... %s", command->data);
 	
 	/* Translate into ASCII if necessary */
 #ifdef NOT_ASCII
@@ -275,18 +275,18 @@ PRIVATE int HTTPSendRequest ARGS3(HTRequest *, request,
 		      http->transmit->size-1);
     if (status < 0) {
 #ifdef EAGAIN
-	if (errno == EAGAIN || errno == EWOULDBLOCK) 
+	if (socerrno == EAGAIN || socerrno == EWOULDBLOCK) 
 #else
-	if (errno == EWOULDBLOCK)
+	if (socerrno == EWOULDBLOCK)
 #endif
 	{
 	    if (PROT_TRACE)
-		fprintf(stderr, "HTTP Tx..... Write operation would block\n");
+		fprintf(TDEST, "HTTP Tx..... Write operation would block\n");
 	    HTThreadState(http->sockfd, THD_SET_WRITE);
 	    return HT_WOULD_BLOCK;
 	} else {	    			 /* A real error has occured */
 	    char *unescaped = NULL;
-	    HTErrorSysAdd(request, ERR_FATAL, NO, "NETWRITE");
+	    HTErrorSysAdd(request, ERR_FATAL, socerrno, NO, "NETWRITE");
 	    StrAllocCopy(unescaped, url);
 	    HTUnEscape(unescaped);
 	    HTErrorAdd(request, ERR_FATAL, NO, HTERR_INTERNAL,
@@ -329,7 +329,7 @@ PRIVATE BOOL HTTPAuthentication ARGS1(HTRequest *, request)
     }
     if (request->WWWprotection) {
 	if (PROT_TRACE)
-	    fprintf(stderr, "Protection template set to `%s'\n",
+	    fprintf(TDEST, "Protection template set to `%s'\n",
 		    request->WWWprotection);
 	StrAllocCopy(tmplate, request->WWWprotection);
     }
@@ -343,29 +343,25 @@ PRIVATE BOOL HTTPAuthentication ARGS1(HTRequest *, request)
 /*
 **	This is a big switch handling all HTTP return codes. It puts in any
 **	appropiate error message and decides whether we should expect data
-**	or not. If we are not interested in the body (for example in 3xx
-**	codes) then turn the stream into a black hole.
+**	or not.
 */
 PRIVATE void HTTPResponse ARGS1(HTStream *, me)
 {
-    char *url = HTAnchor_physical(me->request->anchor);
     switch (me->status) {
 
-      case 204:						      /* No response */
-	HTErrorAdd(me->request, ERR_INFO, NO, HTERR_NO_RESPONSE,
-		   NULL, 0, "HTLoadHTTP");
-	me->http->state = HTTP_NO_DATA; 
-	break;
-	
-      case 203:							  /* Partial */
-	HTErrorAdd(me->request, ERR_INFO, NO, HTERR_PARTIAL,
-		   NULL, 0, "HTLoadHTTP");
-	/* Drop through to 200 to get the body */
-	
+      case 0:						     /* 0.9 response */
       case 200:
-	me->http->state = HTTP_NEED_BODY;
+      case 201:
+      case 202:
+      case 203:
+      case 205:
+      case 206:
 	break;
-	
+
+      case 204:						      /* No Response */
+	me->http->state = HTTP_NO_DATA;
+	break;
+
       case 301:						   	    /* Moved */
       case 302:							    /* Found */
 	me->http->state = HTTP_REDIRECTION;
@@ -376,89 +372,90 @@ PRIVATE void HTTPResponse ARGS1(HTStream *, me)
 	me->http->state = HTTP_ERROR;
 	break;
 	
-      case 304:					       /* Not modified Since */
-	{
-	    char *unescaped = NULL;
-	    StrAllocCopy(unescaped, url);
-	    HTUnEscape(unescaped);
-	    HTErrorAdd(me->request, ERR_INFO, NO, HTERR_NOT_MODIFIED,
-		       (void *) unescaped, (int) strlen(unescaped),
-		       "HTLoadHTTP");
-	    free(unescaped);
-	}
-	me->http->state = HTTP_NO_DATA;
-	break;
-	
-      case 400:						  /* Bad me->request */
-	{
-	    char *unescaped = NULL;
-	    StrAllocCopy(unescaped, url);
-	    HTUnEscape(unescaped);
-	    HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_BAD_REQUEST,
-		       (void *) unescaped, (int) strlen(unescaped),
-		       "HTLoadHTTP");
-	    free(unescaped);
-	}
+      case 400:						      /* Bad Request */
+	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_BAD_REQUEST,
+		   NULL, 0, "HTLoadHTTP");
 	me->http->state = HTTP_ERROR;
 	break;
 
       case 401:
+	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_UNAUTHORIZED,
+		   NULL, 0, "HTLoadHTTP");
 	me->http->state = HTTP_AA;
 	break;
 	
       case 402:						 /* Payment required */
-	{
-	    char *unescaped = NULL;
-	    StrAllocCopy(unescaped, url);
-	    HTUnEscape(unescaped);
-	    HTErrorAdd(me->request, ERR_FATAL, NO,
-		       HTERR_PAYMENT_REQUIRED, (void *) unescaped,
-		       (int) strlen(unescaped), "HTLoadHTTP");
-	    free(unescaped);
-	}
-	me->http->state = HTTP_NO_DATA;
+	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_PAYMENT_REQUIRED,
+		   NULL, 0, "HTLoadHTTP");
+	me->http->state = HTTP_ERROR;
 	break;
 	
       case 403:							/* Forbidden */
-	{
-	    char *unescaped = NULL;
-	    StrAllocCopy(unescaped, url);
-	    HTUnEscape(unescaped);
-	    HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_FORBIDDEN,
-		       (void *) unescaped, (int) strlen(unescaped),
-		       "HTLoadHTTP");
-	    free(unescaped);
-	}
+	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_FORBIDDEN,
+		   NULL, 0, "HTLoadHTTP");
 	me->http->state = HTTP_ERROR;
 	break;
 	
       case 404:							/* Not Found */
-	{
-	    char *unescaped = NULL;
-	    StrAllocCopy(unescaped, url);
-	    HTUnEscape(unescaped);
-	    HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_NOT_FOUND,
-		       (void *) unescaped, (int) strlen(unescaped),
-		       "HTLoadHTTP");
-	    free(unescaped);
-	}
+	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_NOT_FOUND,
+		   NULL, 0, "HTLoadHTTP");
 	me->http->state = HTTP_ERROR;
 	break;
 	
+      case 405:						      /* Not Allowed */
+	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_NOT_ALLOWED,
+		   NULL, 0, "HTLoadHTTP");
+	me->http->state = HTTP_ERROR;
+	break;
+
+      case 406:						  /* None Acceptable */
+	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_NONE_ACCEPTABLE,
+		   NULL, 0, "HTLoadHTTP");
+	me->http->state = HTTP_ERROR;
+	break;
+
+      case 407:			       	    /* Proxy Authentication Required */
+	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_PROXY,
+		   NULL, 0, "HTLoadHTTP");
+	me->http->state = HTTP_ERROR;
+	break;
+
+      case 408:						  /* Request Timeout */
+	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_TIMEOUT,
+		   NULL, 0, "HTLoadHTTP");
+	me->http->state = HTTP_ERROR;
+	break;
+
       case 500:
-      case 501:
-	{
-	    char *unescaped = NULL;
-	    StrAllocCopy(unescaped, url);
-	    HTUnEscape(unescaped);
-	    HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_INTERNAL,
-		       (void *) unescaped, (int) strlen(unescaped),
-		       "HTLoadHTTP");
-	    free(unescaped);
-	}
+	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_INTERNAL,
+		   NULL, 0, "HTLoadHTTP");
 	me->http->state = HTTP_ERROR;
 	break;
 	
+      case 501:
+	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_NOT_IMPLEMENTED,
+		   NULL, 0, "HTLoadHTTP");
+	me->http->state = HTTP_ERROR;
+	break;
+
+      case 502:
+	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_BAD_GATE,
+		   NULL, 0, "HTLoadHTTP");
+	me->http->state = HTTP_ERROR;
+	break;
+
+      case 503:
+	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_DOWN,
+		   NULL, 0, "HTLoadHTTP");
+	me->http->state = HTTP_ERROR;
+	break;
+
+      case 504:
+	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_GATE_TIMEOUT,
+		   NULL, 0, "HTLoadHTTP");
+	me->http->state = HTTP_ERROR;
+	break;
+
       default:						       /* bad number */
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_BAD_REPLY,
 		   (void *) me->buffer, me->cnt, "HTLoadHTTP");
@@ -476,6 +473,11 @@ PRIVATE void HTTPResponse ARGS1(HTStream *, me)
 **	then create a MIME-stream, else create a Guess stream to find out
 **	what the 0.9 server is sending. We need to copy the buffer as we don't
 **	know if we can modify the contents or not.
+**
+**	Stream handling is a function of the status code returned from the 
+**	server:
+**		200:	 Use `output_stream' in HTRequest structure
+**		else:	 Use `output_flush' in HTRequest structure
 */
 PRIVATE void flush ARGS1(HTStream *, me)
 {
@@ -490,31 +492,32 @@ PRIVATE void flush ARGS1(HTStream *, me)
 				     req->output_format, req->output_stream);
 	    PUTBLOCK(me->buffer, me->cnt);
 	} else {
-	    HTTPResponse(me);				   /* Get next state */
 	    if (req->output_format == WWW_SOURCE) {
 		me->target = HTMIMEConvert(req, NULL, WWW_MIME,
 					   req->output_format,
 					   req->output_stream);
-	    } else if (me->http->state == HTTP_NEED_BODY) {
+	    } else if (me->status==200 && req->method==METHOD_GET) {
+		HTStream *s;
+
 		me->target = HTStreamStack(WWW_MIME,req->output_format,
-					   req->output_stream,
-					   req, NO);
-		if (HTCacheDir) { 		 /* Cache HTTP 1.0 responses */
-		    me->target =
-			HTTee(me->target,
-			      HTCacheWriter(req, NULL, WWW_MIME,
-					    req->output_format,
-					    req->output_stream));
-		}
+					   req->output_stream, req, NO);
+
+		/* Cache HTTP 1.0 responses */
+		/* howcome added test for return value from HTCacheWriter 12/1/95 */
+
+		if (HTCacheDir && (s = HTCacheWriter(req, NULL, WWW_MIME,
+							req->output_format,
+							req->output_stream)))
+		    {
+			me->target = HTTee(me->target, s);
+		    }
 	    } else {
 		me->target = HTMIMEConvert(req, NULL, WWW_MIME,
-					   WWW_SOURCE, HTBlackHole());
+					   WWW_SOURCE, req->output_flush ?
+					   req->output_flush : HTBlackHole());
 	    }
-	    if (!me->target) {
-		if (PROT_TRACE)
-		    fprintf(stderr, "HTTPStream.. Using a black hole\n");
+	    if (!me->target)
 		me->target = HTBlackHole();			/* What else */
-	    }		
 	}
     } else {
 	me->target = HTGuess_new(req, NULL, WWW_UNKNOWN, req->output_format,
@@ -571,6 +574,7 @@ PRIVATE void HTTPStatus_put_block ARGS3(HTStream *, me, CONST char*, b, int, l)
 PRIVATE int HTTPStatus_free ARGS1(HTStream *, me)
 {
     int status = me->status;
+    HTTPResponse(me);					   /* Get next state */
     if (!me->transparent)
 	flush(me);
     if (me->target)
@@ -585,7 +589,7 @@ PRIVATE int HTTPStatus_abort ARGS2(HTStream *, me, HTError, e)
 	ABORT_TARGET;
     free(me);
     if (PROT_TRACE)
-	fprintf(stderr, "HTTPStatus.. ABORTING LOAD...\n");
+	fprintf(TDEST, "HTTPStatus.. ABORTING LOAD...\n");
     return EOF;
 }
 
@@ -637,7 +641,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
     http_info *http;			    /* Specific protocol information */
 
     if (!request || !request->anchor) {
-        if (PROT_TRACE) fprintf(stderr, "HTLoadHTTP.. Bad argument\n");
+        if (PROT_TRACE) fprintf(TDEST, "HTLoadHTTP.. Bad argument\n");
         return HT_ERROR;
     }
     url = HTAnchor_physical(request->anchor);
@@ -650,10 +654,10 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	** This is actually state HTTP_BEGIN, but it can't be in the state
 	** machine as we need the structure first.
 	*/
-	if (PROT_TRACE) fprintf(stderr, "HTTP........ Looking for `%s\'\n", url);
+	if (PROT_TRACE) fprintf(TDEST, "HTTP........ Looking for `%s\'\n", url);
 	if ((http = (http_info *) calloc(1, sizeof(http_info))) == NULL)
 	    outofmem(__FILE__, "HTLoadHTTP");
-	http->sockfd = -1;			    /* Invalid socket number */
+	http->sockfd = INVSOC;			    /* Invalid socket number */
 	http->request = request;
 	http->state = HTTP_BEGIN;
 	request->net_info = (HTNetInfo *) http;
@@ -674,10 +678,10 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	    HTAA_composeAuth(request);
 	    if (PROT_TRACE) {
 		if (request->authorization)
-		    fprintf(stderr, "HTTP........ Sending Authorization: %s\n",
+		    fprintf(TDEST, "HTTP........ Sending Authorization: %s\n",
 			    request->authorization);
 		else
-		    fprintf(stderr,
+		    fprintf(TDEST,
 			    "HTTP........ Not sending authorization (yet)\n");
 	    }
 	    http->state = HTTP_NEED_CONNECTION;
@@ -688,7 +692,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 				 NULL, NO);
 	    if (!status) {
 		if (PROT_TRACE)
-		    fprintf(stderr, "HTTP........ Connected, socket %d\n",
+		    fprintf(TDEST, "HTTP........ Connected, socket %d\n",
 			    http->sockfd);
 		http->isoc = HTInputSocket_new(http->sockfd);
 		http->state = HTTP_NEED_REQUEST;
@@ -709,24 +713,26 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	    }
 	    break;
 
-	  case HTTP_SENT_REQUEST:			/* Read the response */
-	  case HTTP_NEED_BODY:
-	    if (!http->target) {
-		if (HTImProxy)
-		    http->target = request->output_stream;
-		else
-		    http->target = HTTPStatus_new(request, http);
-	    }
+	  case HTTP_SENT_REQUEST:			    /* Put up stream */
+	    http->target = HTImProxy ?
+		request->output_stream : HTTPStatus_new(request, http);
+	    http->state = HTTP_NEED_BODY;
+	    break;
+
+	  case HTTP_NEED_BODY:				/* Read the response */
 	    status = HTInputSocket_read(http->isoc, http->target);
 	    if (status == HT_WOULD_BLOCK)
 		return HT_WOULD_BLOCK;
 	    else if (status == HT_INTERRUPTED) {
 		(*http->target->isa->abort)(http->target, NULL);
 		http->state = HTTP_ERROR;
-	    } else {
+	    } else if (status == HT_LOADED) {
 		(*http->target->isa->_free)(http->target);
 		if (http->state == HTTP_NEED_BODY)
 		    http->state = HTTP_GOT_DATA;
+	    } else {
+		(*http->target->isa->_free)(http->target);
+		http->state = HTTP_ERROR;
 	    }
 	    break;
 
@@ -759,9 +765,9 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	    break;
 
 	  case HTTP_AA:
-	    HTTPCleanup(request);
 	    if (HTTPAuthentication(request) == YES &&
 		HTAA_retryWithAuth(request) == YES) {
+		HTTPCleanup(request);
 		return HTLoadAnchor((HTAnchor *) request->anchor, request);
 	    } else {
 		char *unescaped = NULL;
@@ -771,7 +777,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 			   (void *) unescaped,
 			   (int) strlen(unescaped), "HTLoadHTTP");
 		free(unescaped);
-		http->state = HTTP_ERROR;
+		http->state = HT_ERROR;
 	    }
 	    break;
 
@@ -795,13 +801,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 
 /* Protocol descriptor */
 
-#ifdef EVENT_LOOP
 GLOBALDEF PUBLIC HTProtocol HTTP = {
     "http", SOC_NON_BLOCK, HTLoadHTTP, NULL, NULL
 };
-#else
-GLOBALDEF PUBLIC HTProtocol HTTP = {
-    "http", SOC_BLOCK, HTLoadHTTP, NULL, NULL
-};
-#endif
 

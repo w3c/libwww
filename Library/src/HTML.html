@@ -26,8 +26,6 @@ Library of Common Code</A>.
 #ifndef HTML_H
 #define HTML_H
 
-#include "sysdep.h"
-#include "HTUtils.h"
 #include "HTFormat.h"
 #include "HTAnchor.h"
 #include "HTMLPDTD.h"
@@ -72,7 +70,7 @@ extern void HTML_reopen PARAMS((HTStructured * me));
 These are the converters implemented in this module:
 
 <PRE>
-#ifndef NO_EXTERN_TYPEDEF_FUNC
+#ifndef pyramid
 extern HTConverter HTMLToPlain, HTMLToC, HTMLPresent, HTMLToTeX;
 #endif
 </PRE>
@@ -114,22 +112,25 @@ exists else &lt; 0
 
 
 </PRE>
-<h2>White Space Treatment</h2>
-There is a small number of different ways of treating white
-space in SGML, in mapping from a text object to HTML.
-These have to be programmed it seems.
-<pre>
+
+<H2>White Space Treatment</H2>
+
+There is a small number of different ways of treating white space in
+SGML, in mapping from a text object to HTML.  These have to be
+programmed it seems.
+
+<PRE>
 /*
 In text object	\n\n		\n	tab	\n\n\t
 --------------	-------------	-----	-----	-------
 in Address,
 Blockquote,
-Normal,		<P>		<BR>	-		NORMAL
-H1-6:		close+open	<BR>	-		HEADING
-Glossary	<DT>		<DT>	<DD>	<P>	GLOSSARY
+Normal,		&lt;P&gt;		&lt;BR&gt;	-		NORMAL
+H1-6:		close+open	&lt;BR&gt;	-		HEADING
+Glossary	&lt;DT&gt;		&lt;DT&gt;	&lt;DD&gt;	&lt;P&gt;	GLOSSARY
 List,				
-Menu		<LI>		<LI>	-	<P>	LIST
-Dir		<LI>		<LI>	<LI>		DIR
+Menu		&lt;LI&gt;		&lt;LI&gt;	-	&lt;P&gt;	LIST
+Dir		&lt;LI&gt;		&lt;LI&gt;	&lt;LI&gt;		DIR
 Pre etc		\n\n		\n	\t		PRE
 
 */
@@ -144,6 +145,7 @@ typedef enum _white_space_treatment {
 } white_space_treatment;
 
 </pre>
+
 <h2>Nesting State</h2>
 These elements form tree with an item for each nesting state: that
 is, each unique combination of nested elements which has a

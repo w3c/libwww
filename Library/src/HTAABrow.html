@@ -47,9 +47,7 @@ Library of Common Code</A>.
 <PRE>
 #ifndef HTAABROW_H
 #define HTAABROW_H
-
-#include "sysdep.h"
-#include "HTUtils.h"		/* BOOL, PARAMS, ARGS */
+		/* BOOL, PARAMS, ARGS */
 #include "HTAAUtil.h"		/* Common parts of AA */
 #include "HTList.h"
 #include "HTAssoc.h"
@@ -185,7 +183,7 @@ extern BOOL HTAA_composeAuth PARAMS((HTRequest * req));
 extern BOOL HTAA_retryWithAuth PARAMS((HTRequest *	req));
 
 
-/* PUBLIC						HTAA_cleanup()
+/* PUPLIC						HTAA_cleanup()
 **
 **	Free the memory used by the entries concerning Access Authorization
 **	in the request structure and put all pointers to NULL

@@ -11,10 +11,12 @@
 **	translation necessary to
 **	represent a document. It is a linked list of styles.
 */
-#include "sysdep.h"
 
-#include "HTStyle.h"
+/* Library include files */
+#include "tcp.h"
 #include "HTUtils.h"
+#include "HTString.h"
+#include "HTStyle.h"
 
 
 /*	Local definition of style
@@ -247,13 +249,13 @@ HTStyle * HTStyleNamed ARGS2 (HTStyleSheet *,self, CONST char *,name)
     HTStyle * scan;
 
     if (!self) {	/* added by HWL 11/8/94 */
-	if (TRACE) fprintf(stderr, "HTStyleNamed.. Called with NULL pointer\n");
+	if (TRACE) fprintf(TDEST, "HTStyleNamed.. Called with NULL pointer\n");
 	return NULL;
     }
 
     for (scan=self->styles; scan; scan=scan->next)
         if (0==strcmp(scan->name, name)) return scan;
-    if (TRACE) fprintf(stderr, "StyleSheet: No style named `%s'\n", name);
+    if (TRACE) fprintf(TDEST, "StyleSheet: No style named `%s'\n", name);
     return NULL;
 }
 
@@ -304,7 +306,7 @@ HTStyle * HTStyleForRun (HTStyleSheet *self, NXRun *run)
 	    }
 	}
     }
-    if (TRACE) fprintf(stderr, "HTStyleForRun: Best match for style is %d out of 18\n",
+    if (TRACE) fprintf(TDEST, "HTStyleForRun: Best match for style is %d out of 18\n",
     			 bestMatch);
     return best;
 }
@@ -394,7 +396,7 @@ HTStyleSheet * HTStyleSheetRead(HTStyleSheet * self, NXStream * stream)
     HTStyle * style;
     char styleName[80];
     NXScanf(stream, " %d ", &numStyles);
-    if (TRACE) fprintf(stderr, "Stylesheet: Reading %d styles\n", numStyles);
+    if (TRACE) fprintf(TDEST, "Stylesheet: Reading %d styles\n", numStyles);
     for (i=0; i<numStyles; i++) {
         NXScanf(stream, "%s", styleName);
         style = HTStyleNamed(self, styleName);
@@ -422,7 +424,7 @@ HTStyleSheet * HTStyleSheetWrite(HTStyleSheet * self, NXStream * stream)
     for(style=self->styles; style; style=style->next) numStyles++;
     NXPrintf(stream, "%d\n", numStyles);
     
-    if (TRACE) fprintf(stderr, "StyleSheet: Writing %d styles\n", numStyles);
+    if (TRACE) fprintf(TDEST, "StyleSheet: Writing %d styles\n", numStyles);
     for (style=self->styles; style; style=style->next) {
         NXPrintf(stream, "%s ", style->name);
 	(void) HTStyleWrite(style, stream);

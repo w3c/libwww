@@ -27,8 +27,9 @@ HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
 Library of Common Code</A>.
 
 <PRE>
-#include "sysdep.h"
-#include "HTUtils.h"
+#ifndef HTINIT_H
+#define HTINIT_H
+
 #include "HTList.h"
 </PRE>
 
@@ -54,6 +55,7 @@ MIME types.
 
 <PRE>
 extern void HTFileInit NOPARAMS;
+#endif
 </PRE>
 
 End of HTInit Module.

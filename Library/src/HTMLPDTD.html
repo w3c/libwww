@@ -28,22 +28,27 @@ Library of Common Code</A>.
 #ifndef HTMLDTD_H
 #define HTMLDTD_H
 
-#include "sysdep.h"
-#include "HTUtils.h"
-#include <A HREF="SGML.html" NAME="z3">"SGML.h"</A>
+#include "SGML.h"
+</PRE>
 
-</PRE><H2>Entity numbers</H2></BODY><BODY>
+<H2>Entity numbers</H2>
+
 The entity names are defined in the C file.  This gives the number of them.
-</BODY><BODY><PRE>
+
+<PRE>
 #define HTML_ENTITIES 66
+</PRE>
 
+<H2>Element Numbers</H2>
 
+Must Match all tables by element!  These include tables in <A
+HREF="HTMLPDTD.c" NAME="z1">HTMLPDTD.c</A> and code in <A
+HREF="HTML.c" NAME="z0">HTML.c</A>.<P>
 
-</PRE></BODY><BODY><H2>Element Numbers</H2>Must Match all tables by element!
-These include tables in <A HREF="HTMLPDTD.c" NAME="z1">HTMLPDTD.c</A> and code
-in <A HREF="HTML.c" NAME="z0">HTML.c</A> .
-<P>Differences from Internet Draft 00:
-HTML, H7,PLAINTEXT LISTINGand XMP left in. <PRE>
+Differences from Internet Draft 00: HTML, H7,PLAINTEXT LISTINGand XMP
+left in.
+
+<PRE>
 typedef enum _HTMLElement {
 	HTML_A, 
 	HTML_ABBREV,

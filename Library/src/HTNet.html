@@ -18,7 +18,7 @@ sockets currently in use by the multithreaded clients. It is an
 internal module to the Library, the application interface is
 implemented in the <A HREF="HTEvent.html">Event Module</A>. Look for
 more information in the <A
-HREF="http://info.cern.ch/hypertext/WWW/Library/User/Multithread/multithread.html">
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Features/multithread.html">
 Multithread Specifications</A>. <P>
 
 This module is implemented by <A HREF="HTThread.c">HTThread.c</A>, and
@@ -29,6 +29,7 @@ of Common Code</A>.
 <PRE>
 #ifndef HTTHREAD_H
 #define HTTHREAD_H
+
 </PRE>
 
 <A NAME="Init"><H2>Initiation</H2></A>
@@ -92,7 +93,7 @@ typedef enum _HTThreadAction {
 </PRE>
 
 <PRE>
-extern void HTThreadState PARAMS((int sockfd, HTThreadAction action));
+extern void HTThreadState PARAMS((SOCKFD sockfd, HTThreadAction action));
 </PRE>
 
 This function makes life easier if you want to mark all sockets as
@@ -107,7 +108,7 @@ extern void HTThreadMarkIntrAll	PARAMS((CONST fd_set * fd_user));
 This function returns YES if the socket is registered as interrupted
 
 <PRE>
-extern BOOL HTThreadIntr	PARAMS((int sockfd));
+extern BOOL HTThreadIntr	PARAMS((SOCKFD sockfd));
 </PRE>
 
 <H2>Any Threads Registered?</H2>

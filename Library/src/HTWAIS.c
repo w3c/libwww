@@ -48,8 +48,6 @@
    Brewster@think.com
 */
 
-#include "sysdep.h"
-
 
 #define DIRECTORY "/cnidr.org:210/directory-of-servers"
 /* define DIRECTORY "/quake.think.com:210/directory-of-servers" */
@@ -61,6 +59,7 @@
 */
 
 #include <ui.h>
+#include <sockets.h>
 
 #define MAX_MESSAGE_LEN 100000
 #define CHARS_PER_PAGE 10000 /* number of chars retrieved in each request */
@@ -74,8 +73,10 @@
 
 #define HEX_ESCAPE '%'
 
-/* Library includes */
+/* Library include files */
+#include "tcp.h"
 #include "HTUtils.h"
+#include "HTString.h"
 #include "HTParse.h"
 #include "HTAccess.h"		/* We implement a protocol */
 #include "HTError.h"
@@ -199,18 +200,18 @@ PRIVATE char * WWW_from_WAIS ARGS1(any *, docid)
     int i, l;
     if (PROT_TRACE) {
 	char *p;
-	fprintf(stderr, "HTLoadWAIS.. id (%d bytes) is ", (int)docid->size);
+	fprintf(TDEST, "HTLoadWAIS.. id (%d bytes) is ", (int)docid->size);
 	for(p=docid->bytes; p<docid->bytes+docid->size; p++) {
 	    if ((*p >= ' ') && (*p<= '~')) /* Assume ASCII! */
-		fprintf(stderr, "%c", *p);
+		fprintf(TDEST, "%c", *p);
 	    else
-		fprintf(stderr, "<%x>", (unsigned)*p);
+		fprintf(TDEST, "<%x>", (unsigned)*p);
 	}
-	fprintf(stderr, "\n");
+	fprintf(TDEST, "\n");
     }	 
     for (p=docid->bytes; (p<docid->bytes+docid->size) && (q<&buf[BIG]);) {
 	if (PROT_TRACE)
-	    fprintf(stderr, "............ Record type %d, length %d\n",
+	    fprintf(TDEST, "............ Record type %d, length %d\n",
 		    (unsigned char) p[0], (unsigned char) p[1]);
 	sprintf(num, "%d", (int)*p);
 	memcpy(q, num, strlen(num));
@@ -240,7 +241,7 @@ PRIVATE char * WWW_from_WAIS ARGS1(any *, docid)
 #ifdef OLD_CODE
         if (*p>10) {
 	    if (PROT_TRACE)
-		fprintf(stderr, "WAIS........ DOCID record type of %d!\n", *p);
+		fprintf(TDEST, "WAIS........ DOCID record type of %d!\n", *p);
 	    return 0;
 	}
 	{	/* Bug fix -- allow any byte value 15 Apr 93 */
@@ -270,7 +271,7 @@ PRIVATE char * WWW_from_WAIS ARGS1(any *, docid)
 #endif /* OLD_CODE */
     }
     *q++ = 0;			/* Terminate string */
-    if (PROT_TRACE) fprintf(stderr, "HTLoadWAIS.. WWW form of id: %s\n", buf); 
+    if (PROT_TRACE) fprintf(TDEST, "HTLoadWAIS.. WWW form of id: %s\n", buf); 
     {
         char *result;
 	if ((result = (char *) malloc((int) strlen(buf)+1)) == NULL)
@@ -300,7 +301,7 @@ PRIVATE any * WAIS_from_WWW ARGS2 (any *, docid, char *, docname)
     char *s; 	/* Position of semicolon */
     int n;	/* size */
     if (PROT_TRACE)
-	fprintf(stderr, "HTLoadWAIS.. WWW id (to become WAIS id): %s\n",
+	fprintf(TDEST, "HTLoadWAIS.. WWW id (to become WAIS id): %s\n",
 		docname); 
     for(n=0, p = docname; *p; p++) {	/* Count sizes of strings */
         n++;
@@ -416,14 +417,14 @@ PRIVATE any * WAIS_from_WWW ARGS2 (any *, docid, char *, docname)
 #endif /* OLD_CODE */
     if (PROT_TRACE) {
 	char *p;
-	fprintf(stderr, "WAIS........ id (%d bytes) is ", (int)docid->size);
+	fprintf(TDEST, "WAIS........ id (%d bytes) is ", (int)docid->size);
 	for(p=docid->bytes; p<docid->bytes+docid->size; p++) {
 	    if ((*p >= ' ') && (*p<= '~')) /* Assume ASCII! */
-		fprintf(stderr, "%c", *p);
+		fprintf(TDEST, "%c", *p);
 	    else
-		fprintf(stderr, "<%x>", (unsigned)*p);
+		fprintf(TDEST, "<%x>", (unsigned)*p);
 	}
-	fprintf(stderr, "\n");
+	fprintf(TDEST, "\n");
     }	 
     return docid;		/* Ok */
     
@@ -491,7 +492,7 @@ display_search_response ARGS4(
   
   BOOL archie =  strstr(database, "archie")!=0;	/* Specical handling */
   
-  if (PROT_TRACE) fprintf(stderr, "WAIS........ Displaying search response\n");
+  if (PROT_TRACE) fprintf(TDEST, "WAIS........ Displaying search response\n");
   sprintf(line,
 	  "Index %s contains the following %d item%s relevant to '%s'.\n",
 	  database,
@@ -521,7 +522,7 @@ display_search_response ARGS4(
 /*	Make a printable string out of the document id.
 */
 	if (PROT_TRACE)
-	    fprintf(stderr, "HTWAIS:  %2ld: Score: %4ld, lines:%4ld '%s'\n", i,
+	    fprintf(TDEST, "HTWAIS:  %2ld: Score: %4ld, lines:%4ld '%s'\n", i,
 		    (long int)(info->DocHeaders[k]->Score),
 		    (long int)(info->DocHeaders[k]->Lines),
 		    headline);
@@ -563,7 +564,7 @@ display_search_response ARGS4(
                         free (type_escaped);
                       }
                     if (PROT_TRACE)
-                      fprintf (stderr, "WAIS........ Types_array `%s\'\n",
+                      fprintf (TDEST, "WAIS........ Types_array `%s\'\n",
 			       types_array);
 		} else {
                     strcat (types_array, "TEXT");
@@ -684,10 +685,12 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
     int status = -1;
     char *basetitle = NULL;
     
+#if 0
     extern FILE * connect_to_server();
+#endif
     
     if (PROT_TRACE)
-	fprintf(stderr, "HTLoadWAIS.. Looking for `%s\'\n", arg);
+	fprintf(TDEST, "HTLoadWAIS.. Looking for `%s\'\n", arg);
      
     if (!acceptable_inited) init_acceptable();
     
@@ -748,7 +751,7 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 	return -1;
     }
     
-    if (PROT_TRACE) fprintf(stderr, "HTLoadWAIS.. URL Parsed OK\n");
+    if (PROT_TRACE) fprintf(TDEST, "HTLoadWAIS.. URL Parsed OK\n");
      
      service = strchr(names, ':');
      if (service)  *service++ = 0;
@@ -761,7 +764,7 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
       if ((connection=connect_to_server(server_name,atoi(service))) == NULL)  {
 	  char *host = HTParse(arg, "", PARSE_HOST);
 	  if (PROT_TRACE)
-	      fprintf (stderr, "HTLoadWAIS.. Can't open connection to %s via service %s.\n",
+	      fprintf (TDEST, "HTLoadWAIS.. Can't open connection to %s via service %s.\n",
 		       server_name, service);
 	  HTErrorAdd(request, ERR_FATAL, NO, HTERR_WAIS_NO_CONNECT,
 		     (void *) host, (int) strlen(host), "HTLoadWAIS");
@@ -823,7 +826,7 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 		server_name, service, www_database);
 
 	fp = fopen(filename, "r");	/* Have we found this already? */
-	if (PROT_TRACE) fprintf(stderr,
+	if (PROT_TRACE) fprintf(TDEST,
 		"HTLoadWAIS.. Description of server %s %s.\n",
 		filename,
 		fp ? "exists already" : "does NOT exist!");
@@ -873,15 +876,15 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 
 	request_buffer_length = MAX_MESSAGE_LEN; /* Amount left */
 	if (PROT_TRACE)
-	    fprintf(stderr, "HTLoadWAIS.. Search for `%s' in `%s'\n",
+	    fprintf(TDEST, "HTLoadWAIS.. Search for `%s' in `%s'\n",
 		    keywords, wais_database);
 	if(generate_search_apdu(request_message + HEADER_LENGTH, 
 				&request_buffer_length, 
 				keywords, wais_database, NULL,
 				HTMaxWAISLines) == NULL) {
 	    if (PROT_TRACE)
-		fprintf(stderr, "WAIS Search. Too many lines in response\n");
-	    HTErrorAdd(request, ERR_WARNING, NO, HTERR_WAIS_OVERFLOW, 
+		fprintf(TDEST, "WAIS Search. Too many lines in response\n");
+	    HTErrorAdd(request, ERR_WARN, NO, HTERR_WAIS_OVERFLOW, 
 		       NULL, 0, "HTLoadWAIS");
 	}
 
@@ -893,8 +896,8 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 				false	/* true verbose */
 				)) {
 	    if (PROT_TRACE)
-		fprintf(stderr, "WAIS Search. Too many lines in response\n");
-	    HTErrorAdd(request, ERR_WARNING, NO, HTERR_WAIS_OVERFLOW, 
+		fprintf(TDEST, "WAIS Search. Too many lines in response\n");
+	    HTErrorAdd(request, ERR_WARN, NO, HTERR_WAIS_OVERFLOW, 
 		       NULL, 0, "HTLoadWAIS");
         } else {	/* returned message ok */
 	    SearchResponseAPDU  *query_response = 0;
@@ -914,17 +917,16 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 
     } else {			/* D O C U M E N T    F E T C H */
     
-	HTFormat format_in;
 	boolean binary;     /* how to transfer stuff coming over */
 	HTStream * target;
 	long count;
 	any   doc_chunk;
 	any * docid = &doc_chunk;
 	if (PROT_TRACE)
-	    fprintf(stderr, 
+	    fprintf(TDEST, 
 		    "HTLoadWAIS.. Retrieve document `%s'\n............ type `%s' length %ld\n", docname, doctype, document_length);
 		
-	format_in = 
+	request->content_type = 
 	  !strcmp(doctype, "WSRC") ? HTAtom_for("application/x-wais-source") :
 	  !strcmp(doctype, "TEXT") ? WWW_UNKNOWN :
 	  !strcmp(doctype, "HTML") ? HTAtom_for("text/html") :
@@ -936,7 +938,8 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 	  0 != strcmp(doctype, "HTML") ;
 
 	/* Guess on TEXT format as it might be HTML */
-	if ((target = HTStreamStack(format_in, request->output_format,
+	if ((target = HTStreamStack(request->content_type,
+				    request->output_format,
 				    request->output_stream,
 				    request, YES)) == NULL) {
 	    status = -1;
@@ -950,7 +953,7 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 	for (count = 0; count * CHARS_PER_PAGE < document_length; count++) {
 	    char *type = s_strdup(doctype);
 	    request_buffer_length = MAX_MESSAGE_LEN;	      /* Amount left */
-	    if (PROT_TRACE) fprintf(stderr, "HTLoadWAIS.. Slice number %ld\n",
+	    if (PROT_TRACE) fprintf(TDEST, "HTLoadWAIS.. Slice number %ld\n",
 			       count);
 	    if (generate_retrieval_apdu(request_message + HEADER_LENGTH,
 					&request_buffer_length, 
@@ -960,7 +963,7 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 					      document_length),
 					type,
 					wais_database) == 0) {
-		HTErrorAdd(request, ERR_WARNING, NO, HTERR_WAIS_OVERFLOW, 
+		HTErrorAdd(request, ERR_WARN, NO, HTERR_WAIS_OVERFLOW, 
 			   NULL, 0, "HTLoadWAIS");
 	    }
 	    FREE(type);
@@ -973,7 +976,7 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 				  connection,
 				  false /* true verbose */	
 				  ) == 0) {
-		HTErrorAdd(request, ERR_WARNING, NO, HTERR_WAIS_OVERFLOW, 
+		HTErrorAdd(request, ERR_WARN, NO, HTERR_WAIS_OVERFLOW, 
 			   NULL, 0, "HTLoadWAIS");
 	    }
 	    
@@ -986,11 +989,11 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 		    if (searchres->Diagnostics && *searchres->Diagnostics &&
 			(*searchres->Diagnostics)->ADDINFO) {
 			char *errmsg = (*searchres->Diagnostics)->ADDINFO;
-			HTErrorAdd(request, ERR_WARNING, NO, HTERR_WAIS_MODULE,
+			HTErrorAdd(request, ERR_WARN, NO, HTERR_WAIS_MODULE,
 				   (void *) errmsg, (int) strlen(errmsg),
 				   "HTLoadWAIS");
 		    } else {
-			HTErrorAdd(request, ERR_WARNING, NO, HTERR_WAIS_MODULE,
+			HTErrorAdd(request, ERR_WARN, NO, HTERR_WAIS_MODULE,
 				   NULL, 0, "HTLoadWAIS");
 		    }
 		    (*target->isa->_free)(target);

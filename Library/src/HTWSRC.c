@@ -12,10 +12,11 @@
 **	8 Jul 94  FM	Insulate free() from _free structure element.
 */
 
-#include "sysdep.h"
-
-#include "HTML.h"
+/* Library include files */
+#include "tcp.h"
 #include "HTUtils.h"
+#include "HTString.h"
+#include "HTML.h"
 #include "HTParse.h"
 #include "HTWSRC.h"					 /* Implemented here */
 
@@ -148,7 +149,7 @@ PRIVATE void WSRCParser_put_character ARGS2(HTStream*, me, char, c)
 		}
 	    }
 	    if (!par_name[me->param_number]) {	/* Unknown field */
-	        if (TRACE) fprintf(stderr,
+	        if (TRACE) fprintf(TDEST,
 		    "HTWSRC: Unknown field `%s' in source file\n",
 		    me->param);
 		me->param_number = PAR_UNKNOWN;

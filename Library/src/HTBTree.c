@@ -11,8 +11,8 @@
 **
 */
 
-#include "sysdep.h"
-
+/* Library include files */
+#include "tcp.h"
 #include "HTUtils.h"
 #include "HTBTree.h"
 

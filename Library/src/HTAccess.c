@@ -25,37 +25,30 @@
 **	defined which accepts select and select_anchor.
 */
 
-#include "sysdep.h"
-
 #ifndef DEFAULT_WAIS_GATEWAY
-#define DEFAULT_WAIS_GATEWAY "http://info.cern.ch:8001/"
+#define DEFAULT_WAIS_GATEWAY "http://www.w3.org:8001/"
 #endif
 
-/* Implements:
-*/
-#include "HTAccess.h"
-
-/* Uses:
-*/
-
-#include "HTParse.h"
+/* Library include files */
+#include "tcp.h"
 #include "HTUtils.h"
+#include "HTParse.h"
 #include "HTML.h"		/* SCW */
-
-#ifndef NO_RULES
-#include "HTRules.h"
-#endif
-
 #include "HTList.h"
 #include "HText.h"	/* See bugs above */
 #include "HTAlert.h"
-#include "HTFWriter.h"	/* for cache stuff */
+#include "HTFWrite.h"	/* for cache stuff */
 #include "HTTee.h"
 #include "HTError.h"
+#include "HTString.h"
 #include "HTTCP.h"      /* HWL: for HTFindRelatedName */
 #include "HTFile.h"
 #include "HTThread.h"
 #include "HTEvent.h"
+#ifndef NO_RULES
+#include "HTRules.h"
+#endif
+#include "HTAccess.h"					 /* Implemented here */
 
 /* These flags may be set to modify the operation of this module */
 PUBLIC char * HTCacheDir = NULL;  /* Root for cached files or 0 for no cache */
@@ -107,7 +100,7 @@ PUBLIC void HTRequest_clear ARGS1(HTRequest *, req)
     HTList *conversions;
     if (!req) {
 	if (TRACE)
-	    fprintf(stderr, "Clear....... request: Bad argument!\n");
+	    fprintf(TDEST, "Clear....... request: Bad argument!\n");
 	return;
     }
     conversions = req->conversions;		     /* Save the conversions */
@@ -202,7 +195,8 @@ PUBLIC BOOL HTMethod_inList ARGS2(HTMethod,	method,
     char *item;
 
     while (NULL != (item = (char*)HTList_nextObject(cur))) {
-	CTRACE(stderr, " %s", item);
+	if (PROT_TRACE)
+	    fprintf(TDEST, " %s", item);
 	if (0==strcasecomp(item, method_name))
 	    return YES;
     }
@@ -304,8 +298,19 @@ PRIVATE void HTAccessInit NOARGS
 */
 PUBLIC BOOL HTLibInit NOARGS
 {
+#ifdef NO_STDIO						  /* Open trace file */
+    if ((TDEST = fopen(TRACE_FILE, "a")) != NULL) {
+	if (setvbuf(TDEST, NULL, _IOLBF, 0) < 0) {  /* Change to line buffer */
+	    fclose(TDEST);
+	    TDEST = NULL;
+	    WWW_TraceFlag = 0;
+	}
+    } else
+	WWW_TraceFlag = 0;
+#endif
+
     if (TRACE)
-	fprintf(stderr, "WWWLibInit.. INITIALIZING LIBRARY OF COMMON CODE\n");
+	fprintf(TDEST, "WWWLibInit.. INITIALIZING LIBRARY OF COMMON CODE\n");
 
 #ifndef NO_INIT
     if (!protocols)
@@ -314,11 +319,32 @@ PUBLIC BOOL HTLibInit NOARGS
 
 #ifdef WWWLIB_SIG
     /* On Solaris (and others?) we get a BROKEN PIPE signal when connecting
-    ** to a port where er should get `connection refused'. We ignore this 
+    ** to a port where we should get `connection refused'. We ignore this 
     ** using the following function call
     */
     HTSetSignal();				   /* Set signals in library */
 #endif
+
+#ifdef _WINDOWS
+    /*
+    ** Initialise WinSock DLL. This must also be shut down! PMH
+    */
+    {
+        WSADATA            wsadata;
+	if (WSAStartup(DESIRED_WINSOCK_VERSION, &wsadata)) {
+	    if (TRACE)
+		fprintf(TDEST, "WWWLibInit.. Can't initialize WinSoc\n");
+            WSACleanup();
+            return NO;
+        }
+        if (wsadata.wVersion < MINIMUM_WINSOCK_VERSION) {
+            if (TRACE)
+		fprintf(TDEST, "WWWLibInit.. Bad version of WinSoc\n");
+            WSACleanup();
+            return NO;
+        }
+    }
+#endif /* _WINDOWS */
 
     HTThreadInit();			            /* Initialize bit arrays */
     return YES;
@@ -333,7 +359,7 @@ PUBLIC BOOL HTLibInit NOARGS
 PUBLIC BOOL HTLibTerminate NOARGS
 {
     if (TRACE)
-	fprintf(stderr, "WWWLibTerm.. Cleaning up LIBRARY OF COMMON CODE\n");
+	fprintf(TDEST, "WWWLibTerm.. Cleaning up LIBRARY OF COMMON CODE\n");
     HTAtom_deleteAll();
     HTDisposeProtocols();
     HTDisposeConversions();
@@ -341,9 +367,21 @@ PUBLIC BOOL HTLibTerminate NOARGS
     HTTCPCacheRemoveAll();
     HTFreeHostName();
     HTFreeMailAddress();
+    FREE(HTCacheDir);
+
+#ifdef _WINDOWS
+    WSACleanup();
+#endif
+
+#ifdef NO_STDIO						 /* Close trace file */
+    if (TDEST) {
+	fclose(TDEST);
+	TDEST = NULL;
+	WWW_TraceFlag = 0;
+    }
+#endif
     return YES;
 }
-
 
 /* --------------------------------------------------------------------------*/
 /*			Physical Anchor Address Manager			     */
@@ -500,9 +538,9 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
 	free(gateway_parameter);
 
 	if (TRACE && gateway)
-	    fprintf(stderr,"Gateway..... Found: `%s\'\n", gateway);
+	    fprintf(TDEST,"Gateway..... Found: `%s\'\n", gateway);
 	if (TRACE && proxy)
-	    fprintf(stderr,"Proxy....... Found: `%s\'\n", proxy);
+	    fprintf(TDEST,"Proxy....... Found: `%s\'\n", proxy);
 
 #ifndef DIRECT_WAIS
 	if (!gateway && 0==strcmp(access, "wais")) {
@@ -547,7 +585,7 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
 	HTProtocol *p;
 	if (!cur) {
 	    if (TRACE)
-		fprintf(stderr, "HTAccess.... NO PROTOCOL MODULES INITIATED\n");
+		fprintf(TDEST, "HTAccess.... NO PROTOCOL MODULES INITIATED\n");
 	} else {
 	    while ((p = (HTProtocol*)HTList_nextObject(cur))) {
 		if (strcmp(p->name, access)==0) {
@@ -682,7 +720,7 @@ PUBLIC BOOL HTLoadTerminate ARGS2(HTRequest *, request, int, status)
 	    HTClientHost ? HTClientHost : "local",
 	    status<0 ? "FAIL" : "GET", uri);
 	fflush(HTlogfile);	/* Actually update it on disk */
-	if (PROT_TRACE) fprintf(stderr, "Log: %24.24s %s %s %s\n",
+	if (PROT_TRACE) fprintf(TDEST, "Log: %24.24s %s %s %s\n",
 	    ctime(&theTime),
 	    HTClientHost ? HTClientHost : "local",
 	    status<0 ? "FAIL" : "GET", uri);
@@ -696,19 +734,19 @@ PUBLIC BOOL HTLoadTerminate ARGS2(HTRequest *, request, int, status)
     switch (status) {
       case HT_LOADED:
 	if (PROT_TRACE) {
-	    fprintf(stderr, "HTAccess.... OK: `%s' has been accessed.\n", uri);
+	    fprintf(TDEST, "HTAccess.... OK: `%s' has been accessed.\n", uri);
 	}
 	break;
 
       case HT_NO_DATA:
 	if (PROT_TRACE) {
-	    fprintf(stderr, "HTAccess.... OK BUT NO DATA: `%s'\n", uri);
+	    fprintf(TDEST, "HTAccess.... OK BUT NO DATA: `%s'\n", uri);
 	}
 	break;
 
       case HT_WOULD_BLOCK:
 	if (PROT_TRACE) {
-	    fprintf(stderr, "HTAccess.... WOULD BLOCK: `%s'\n", uri);
+	    fprintf(TDEST, "HTAccess.... WOULD BLOCK: `%s'\n", uri);
 	}
 	break;
 
@@ -716,14 +754,17 @@ PUBLIC BOOL HTLoadTerminate ARGS2(HTRequest *, request, int, status)
 	if (HTImProxy)
 	    HTErrorMsg(request);		     /* Only on a real error */
 	if (PROT_TRACE) {
-	    fprintf(stderr, "HTAccess.... ERROR: Can't access `%s'\n", uri);
+	    fprintf(TDEST, "HTAccess.... ERROR: Can't access `%s'\n", uri);
 	}
 	break;
 
       default:
 	if (PROT_TRACE) {
-	    fprintf(stderr, "HTAccess.... Internal software error in CERN WWWLib version %s ****\n\nPlease mail www-bug@info.cern.ch quoting what software and what version you are using\nand the URL: %s that caused the problem, thanks!\n",
-		    HTLibraryVersion, uri);
+	    fprintf(TDEST, "HTAccess.... **** Internal software error in CERN WWWLib version %s ****\n", HTLibraryVersion);
+	    fprintf(TDEST, "............ Please mail libwww@info.cern.ch quoting what software\n");
+	    fprintf(TDEST, "............ and version you are using including the URL:\n");
+	    fprintf(TDEST, "............ `%s\'\n", uri);
+	    fprintf(TDEST, "............ that caused the problem, thanks!\n");
 	}
 	break;
     }
@@ -737,14 +778,11 @@ PUBLIC BOOL HTLoadTerminate ARGS2(HTRequest *, request, int, status)
 **
 **	- Checks or documents already loaded
 **	- Logs the access
-**	- Allows stdin filter option
 **	- Trace ouput and error messages
 **
 **    On Entry,
 **        request->anchor	valid for of the document to be accessed.
 **	 request->childAnchor   optional anchor within doc to be selected
-**
-**        filter            if YES, treat stdin as HTML
 **
 **	  request->anchor   is the node_anchor for the document
 **	  request->output_format is valid
@@ -764,62 +802,59 @@ PRIVATE int HTLoadDocument ARGS2(HTRequest *,	request,
     HText *	text;
     char * full_address = HTAnchor_address((HTAnchor*)request->anchor);
 
-    if (PROT_TRACE) fprintf (stderr, "HTAccess.... Loading document %s\n",
+    if (PROT_TRACE) fprintf (TDEST, "HTAccess.... Loading document %s\n",
 			     full_address);
 
     request->using_cache = NULL;
     
     if (!request->output_format) request->output_format = WWW_PRESENT;
 
-    /* Check if document is already loaded */
-    if (!HTForceReload && (text=(HText *)HTAnchor_document(request->anchor)))
-    {
-        if (PROT_TRACE)
-	    fprintf(stderr, "HTAccess.... Document already in memory.\n");
-	if (request->childAnchor) {
-	    HText_selectAnchor(text, request->childAnchor);
-	} else {
-	    HText_select(text);	
+    /* Check if document is already loaded or in cache */
+    if (!HTForceReload) {
+	if ((text=(HText *)HTAnchor_document(request->anchor))) {
+	    if (PROT_TRACE)
+		fprintf(TDEST, "HTAccess.... Document already in memory.\n");
+	    if (request->childAnchor) {
+		HText_selectAnchor(text, request->childAnchor);
+	    } else {
+		HText_select(text);	
+	    }
+	    free(full_address);
+	    return HT_LOADED;
 	}
-	free(full_address);
-	return HT_LOADED;
+	
+	/* Check the Cache */
+	/* Bug: for each format, we only check whether it is ok, we
+	   don't check them all and chose the best */
+	if (request->anchor->cacheItems) {
+	    HTList * list = request->anchor->cacheItems;
+	    HTList * cur = list;
+	    HTCacheItem * item;
+	    while ((item = (HTCacheItem*)HTList_nextObject(cur))) {
+		HTStream * s;
+		request->using_cache = item;
+		s = HTStreamStack(item->format, request->output_format,
+				  request->output_stream, request, NO);
+		if (s) {	/* format was suitable */
+		    FILE * fp = fopen(item->filename, "r");
+		    if (PROT_TRACE) 
+			fprintf(TDEST, "Cache...... HIT file %s for %s\n",
+				item->filename, 
+				full_address);
+		    if (fp) {
+			HTFileCopy(fp, s);
+			(*s->isa->_free)(s); /* close up pipeline */
+			fclose(fp);
+			free(full_address);
+			return HT_LOADED;
+		    } else {
+			fprintf(TDEST, "***** Can't read cache file %s !\n",
+				item->filename);
+		    } /* file open ok */
+		} /* stream ok */
+	    } /* next cache item */
+	} /* if cache available for this anchor */
     }
-    
-    /* Check the Cache */
-    /* Bug: for each format, we only check whether it is ok, we
-       don't check them all and chose the best */
-    if (request->anchor->cacheItems) {
-        HTList * list = request->anchor->cacheItems;
-	HTList * cur = list;
-	HTCacheItem * item;
-
-	while ((item = (HTCacheItem*)HTList_nextObject(cur))) {
-	    HTStream * s;
-	    
-	    request->using_cache = item;
-	    
-	    s = HTStreamStack(item->format, request->output_format,
-			      request->output_stream, request, NO);
-	    if (s) {		/* format was suitable */
-	        FILE * fp = fopen(item->filename, "r");
-	    	if (PROT_TRACE) 
-		    fprintf(stderr, "Cache: HIT file %s for %s\n",
-				   item->filename, 
-				   full_address);
-		if (fp) {
-		    HTFileCopy(fp, s);
-		    (*s->isa->_free)(s);	/* close up pipeline */
-		    fclose(fp);
-		    free(full_address);
-		    return HT_LOADED;
-		} else {
-		    fprintf(stderr, "***** Can't read cache file %s !\n",
-			    item->filename);
-		} /* file open ok */
-	    } /* stream ok */
-	} /* next cache item */
-    } /* if cache available for this anchor */
-    
     if ((status = HTLoad(request, keep_error_stack)) != HT_WOULD_BLOCK)
 	HTLoadTerminate(request, status);
     free(full_address);
@@ -832,7 +867,6 @@ PRIVATE int HTLoadDocument ARGS2(HTRequest *,	request,
 **
 ** On Entry,
 **        addr     The absolute address of the document to be accessed.
-**        filter   if YES, treat document as HTML
 **
 ** On exit,
 **	returns		HT_WOULD_BLOCK	An I/O operation would block
@@ -1104,11 +1138,19 @@ PUBLIC char * HTFindRelatedName NOARGS
 	StrAllocCat(default_default, host);
     else
 	StrAllocCat(default_default, "localhost");
-
-#ifdef HAVE_GETCWD
     {
 	char wd[HT_MAX_PATH+1];
-	char * result = getcwd(wd, sizeof(wd)); 
+
+#ifdef NO_GETWD
+#ifdef HAS_GETCWD	      /* System V variant SIGN CHANGED TBL 921006 !! */
+	char *result = (char *) getcwd(wd, sizeof(wd)); 
+#else
+	char *result = NULL;
+	HTAlert("This platform does not support neither getwd nor getcwd\n");
+#endif
+#else
+	char *result = (char *) getwd(wd);
+#endif
 	*(wd+HT_MAX_PATH) = '\0';
 	if (result) {
 #ifdef VMS 
@@ -1130,28 +1172,9 @@ PUBLIC char * HTFindRelatedName NOARGS
 	    }
 #else  /* not VMS */
 	    StrAllocCat (default_default, wd);
-#endif  /* not VMS */
-	    } else {
-	        fprintf(stderr,"Can't read working directory (getcwd)", NULL);
-	    }
-	}  /* end if good getcwd result */
-#else /* HAVE_GETCWD */	
-# ifdef HAVE_GETWD
-	{
-      	    char wd[HT_MAX_PATH+1];
-      	    char * result = (char *) getwd(wd);
-	    *(wd+HT_MAX_PATH) = '\0';
-	    if (result) {
-	        StrAllocCat(default_default, wd);
-	    } else {
-	        fprintf(stderr,"Can't read working directory.");
-	    }
+#endif /* not VMS */
 	}
-# else /* Neither HAVE_GETCWD or HAVE_GETWD */
-  fprintf(stderr,"This platform does not support getwd() or getcwd()",NULL);
-# endif /* HAVE_GETWD */
-#endif /* HAVE_GETCWD */
-		
+    }
     StrAllocCat(default_default, "/default.html");
     return default_default;
 }
@@ -1201,6 +1224,9 @@ PUBLIC HTParentAnchor * HTHomeAnchor NOARGS
     }
 
     
+
+#ifdef unix
+
     if (!my_home_document) {
 	FILE * fp = NULL;
 	CONST char * home =  (CONST char*)getenv("HOME");
@@ -1220,14 +1246,14 @@ PUBLIC HTParentAnchor * HTHomeAnchor NOARGS
 	    fclose(fp);
 	} else {
 	    if (TRACE)
-		fprintf(stderr,
+		fprintf(TDEST,
 			"HTBrowse: No local home document ~/%s or %s\n",
 			PERSONAL_DEFAULT, LOCAL_DEFAULT_FILE);
 	    free(my_home_document);
 	    my_home_document = NULL;
 	}
     }
-
+#endif
     ref = HTParse( my_home_document ?	my_home_document :
 				HTClientHost ? REMOTE_ADDRESS
 				: LAST_RESORT,
@@ -1235,7 +1261,7 @@ PUBLIC HTParentAnchor * HTHomeAnchor NOARGS
 		    PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
     if (my_home_document) {
 	if (TRACE)
-	    fprintf(stderr,
+	    fprintf(TDEST,
 		   "HTAccess.... `%s\' used for custom home page as\n`%s\'\n",
 		    my_home_document, ref);
 	free(my_home_document);

@@ -3,6 +3,7 @@
 <TITLE>Balanced Binary Tree</TITLE>
 </HEAD>
 <BODY>
+
 <H1>Balanced Binary Tree</H1>
 
 <PRE>
@@ -21,19 +22,11 @@ HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
 Library of Common Code</A>.
 
 <PRE>
-#include "sysdep.h"
-
-#ifdef SHORT_NAMES
-#define	HTBTree_new		HTBTNew
-#define	HTBTree_free		HTBTFree
-#define HTBTreeAndObject_free	HTBTAOFr
-#define HTBTree_add		HTBTAdd
-#define	HTBTree_next		HTBTNext
-/* #define	HTBTree_object		HTBTObje already a macro */
-#endif
-
+#ifndef HTBTTEE_H
+#define HTBTREE_H
 
 </PRE>
+
 <H2>Data structures</H2>
 <PRE>typedef struct _HTBTree_element {
     void			*object;	/* User object */
@@ -99,4 +92,8 @@ if none left.
 
 <PRE>extern HTBTElement * HTBTree_next PARAMS((HTBTree* tree, HTBTElement * ele));
 
-</PRE>end</BODY>
+#endif
+</PRE>
+end
+</BODY>
+</HTML>

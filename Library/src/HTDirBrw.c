@@ -7,6 +7,7 @@
 **	This is unix-specific code in general
 **	The module is intended for use in HTFile.c and HTFTP.c where
 **	it replaces the old directory browsing routine.
+**	The module is only compiled if GOT_READ_DIR is defined
 **
 ** Authors:
 **		HF	Henrik Frystyk, CERN, <frystyk@dxcern.cern.ch>
@@ -24,32 +25,44 @@
 **
 */
 
-#include "sysdep.h"
-
 /* Library include files */
-#include "HTMLPDTD.h"
+#include "tcp.h"
 #include "HTUtils.h"
+#include "HTString.h"
+#include "HTMLPDTD.h"
 #include "HTFile.h"
 #include "HTAnchor.h"
 #include "HTParse.h"
-#include "HTFWriter.h"
+#include "HTFWrite.h"
 #include "HTInit.h"
 #include "HTBTree.h"
 #include "HTFormat.h"
 #include "HTChunk.h"
 #include "HTIcons.h"
-#include "HTDescript.h"
+#include "HTDescpt.h"
 #include "HTError.h"
 #include "HTDirBrw.h"					 /* Implemented here */
 
-#ifndef HAVE_STRFTIME
+#ifdef VMS
+#include "HTVMSUtils.h"
+#endif
+
+#if defined(Mips) || (defined(VMS) && !defined(DECC))
 PRIVATE char * months[12] = {
     "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"
 };
-#endif
+#endif /* Mips || (VMS && !DECC) */
 
 
 /* Macros and other defines */
+#ifdef OLD_CODE
+#ifdef USE_DIRENT			       /* Set this for Sys V systems */
+#define STRUCT_DIRENT struct dirent
+#else
+#define STRUCT_DIRENT struct direct
+#endif /* USE_DIRENT */
+#endif /* OLD_CODE */
+
 #define PUTC(c) (*target->isa->put_character)(target, c)
 #define PUTS(s) (*target->isa->put_string)(target, s)
 #define START(e) (*target->isa->start_element)(target, e, 0, 0)
@@ -111,11 +124,11 @@ PRIVATE char *HTDirSpace = NULL;
 */
 PRIVATE void FilePerm ARGS2(mode_t, mode, char *, strptr)
 {
-    if (S_ISREG(mode))
+    if ((mode & S_IFMT) == S_IFREG)
 	*strptr++ = '-';
-    else if (S_ISDIR(mode))
+    else if ((mode & S_IFMT) == S_IFDIR)
 	*strptr++ = 'd';
-    else if (S_ISLNK(mode))
+    else if ((mode & S_IFMT) == S_IFLNK)
 	*strptr++ = 'l';
     else
 	*strptr++ = '?';			  /* Hmmm, any better ideas? */
@@ -432,7 +445,7 @@ PRIVATE void HTDirOutReadme ARGS2(HTStructured *, target,
     char *readme_file_name = (char *) 
 	malloc(strlen(localname)+1+strlen(HT_DIR_README_FILE)+1);
 
-    if (TRACE) fprintf(stderr, "HTReadMe.... Looking for file `%s'\n",
+    if (TRACE) fprintf(TDEST, "HTReadMe.... Looking for file `%s'\n",
 		       localname ? localname : "-null-");
     if (!target || !localname) {
 	free(readme_file_name);
@@ -606,7 +619,7 @@ PRIVATE void HTDirOutList ARGS4(HTStructured *, target, HTBTree *, bt,
 	*(tail+tailend) = '\0';
 	StrAllocCat(tail, escaped);
 
-	if (TRACE) fprintf(stderr, "OutList: %s\n", tail);
+	if (TRACE) fprintf(TDEST, "OutList: %s\n", tail);
 	if (HTDirShowMask & HT_DIR_ICON_ANCHOR  &&
 	    nkey->icon && nkey->icon->icon_url) {	/* Icon as anchor */
 	    HTStartAnchor(target, NULL, tail);
@@ -640,7 +653,7 @@ PRIVATE void HTDirOutList ARGS4(HTStructured *, target, HTBTree *, bt,
 		    strcat(url, directory);
 		    strcat(url,"/");
 		    strcat(url, nkey->filename); 
-		    if (TRACE) fprintf(stderr,"Href: %s\n", url);
+		    if (TRACE) fprintf(TDEST,"Href: %s\n", url);
 		    HTStartAnchor(target,NULL,url);
  		}
 		HTMLPutImg(target,
@@ -731,7 +744,7 @@ PRIVATE void HTDirOutBottom ARGS4(HTStructured *, target,
 }
 
 
-#ifdef HAVE_OPENDIR
+#ifdef GOT_READ_DIR
 /*						    	HTBrowseDirectory()
 **	This function scrolls through the directory file given and
 **	generates an HTML-object. It uses the global variables:
@@ -763,7 +776,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
     HTList * descriptions = NULL;
 
     if (TRACE)
-	fprintf(stderr,"HTBrowse.... Browsing `%s\'\n", directory);
+	fprintf(TDEST,"HTBrowse.... Browsing `%s\'\n", directory);
         
     if (HTDirAccess == HT_DIR_FORBID)
 	return HTErrorAdd(req, ERR_FATAL, NO, HTERR_FORBIDDEN,
@@ -801,7 +814,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
     if (HTDirAccess == HT_DIR_SELECTIVE) {
 	StrAllocCat(pathname, HT_DIR_ENABLE_FILE);
 	if (HTStat(pathname, &file_info)) {
-	    if (TRACE) fprintf(stderr,
+	    if (TRACE) fprintf(TDEST,
 	        "HTBrowse.... Can't stat() file: %s (errno: %d)\n",
 			       pathname, errno);
 	    free(pathname);
@@ -812,7 +825,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
     }
 
     if ((dp = opendir(directory)) == NULL)
-	return HTErrorSysAdd(req,  ERR_FATAL, NO, "opendir");
+	return HTErrorSysAdd(req,  ERR_FATAL, errno, NO, "opendir");
 
     if (HTDirDescriptions)
 	descriptions = HTReadDescriptions(directory);
@@ -823,13 +836,9 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	char dottest = 2;		  /* To avoid two strcmp() each time */
 	char *topstr;
 	void *keyptr = NULL;		   /* Points to the key in file_info */
-	struct dirent *dirbuf;
-#ifdef HAVE_PWD_H
+	STRUCT_DIRENT *dirbuf;
 	struct passwd *pw_info;
-#endif
-#ifdef HAVE_GRP_H
 	struct group *gr_info;
-#endif
 	HTBTree *bt;
 
 	/* Set up sort key and initialize BTree */
@@ -858,13 +867,8 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	    HTAtom *language = NULL;
 	    HTFormat format;
 
-#ifdef HAVE_DIRENT_INO
 	    if (!dirbuf->d_ino)		 		 /* Skip if not used */
 		continue;
-#else
-	    if (!dirbuf->d_name)			/* Skip if not used */
-		continue;
-#endif
 	    
 	    /* Current and parent directories are never shown in list */
 	    if (dottest && (!strcmp(dirbuf->d_name, ".") ||
@@ -882,7 +886,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	    StrAllocCat(pathname, dirbuf->d_name);
 	    if (HTLstat(pathname, &file_info)) {
 #ifndef VMS
-		if (TRACE) fprintf(stderr,
+		if (TRACE) fprintf(TDEST,
 		"HTBrowse.... OUPS, lstat failed on %s (errno: %d)\n",
 				   pathname, errno);
 		DirAbort(bt);
@@ -896,14 +900,14 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	    if ((nodekey = (HTDirKey *) calloc(1, sizeof(HTDirKey))) == NULL)
 		outofmem(__FILE__, "HTFileBrowseDirectory");
 
-#ifdef HAVE_SYMLINK
+#ifndef VMS
 	    /* Check if symbolic link, if so do a stat(). If this fails, don't
 	       show the item in the list */
-	    if (S_ISLNK(file_info.st_mode)) {
+	    if ((file_info.st_mode & S_IFMT) == S_IFLNK) {
 		int symend;		
 		if (HTStat(pathname, &file_info)) {
 		    if (TRACE)
-			fprintf(stderr, "HTBrowse.... stat failed on symbolic link %s, errno: %d\n", pathname, errno);
+			fprintf(TDEST, "HTBrowse.... stat failed on symbolic link %s, errno: %d\n", pathname, errno);
 		    KeyFree(nodekey);
 		    continue;
 		}
@@ -913,7 +917,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 		symend = readlink(pathname, nodekey->symlink, HT_MAX_PATH);
 		if (symend < 0) {
 		    if (TRACE)
-			fprintf(stderr,
+			fprintf(TDEST,
 			        "HTBrowse.... readlink errno: %d (%s)\n",
 				errno, pathname);
 		    FREE(nodekey->symlink);
@@ -921,19 +925,19 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 		    *(nodekey->symlink+symend) = '\0';
 		}
 	    }
-#endif /* not HAVE_SYMLINK */
+#endif /* not VMS */
 
 	    /* Generate key entry in nodekey */
 	    if (keyptr) {	             /* Use content of keyptr as key */
 		if ((nodekey->key = (void *) malloc(sizeof keyptr)) == NULL ||
 		    (nodekey->filename =
-		     (char *) malloc(NAMLEN(dirbuf)+1)) == NULL)
+		     (char *) malloc(strlen(dirbuf->d_name)+1)) == NULL)
 		    outofmem(__FILE__, "HTFileBrowseDirectory");
 		memcpy(nodekey->key, keyptr, sizeof keyptr);
 		strcpy(nodekey->filename, dirbuf->d_name);
 	    } else {				/* Use dirbuf->d_name as key */
 		if ((nodekey->key =
-		     (void *) malloc(NAMLEN(dirbuf)+1)) == NULL)
+		     (void *) malloc(strlen(dirbuf->d_name)+1)) == NULL)
 		    outofmem(__FILE__, "HTFileBrowseDirectory");
 		strcpy((char *) nodekey->key, dirbuf->d_name);
 		nodekey->filename = (char *) nodekey->key;
@@ -944,7 +948,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	    {
 		int filestrlen = strlen(nodekey->filename);
 
-		if (S_ISDIR(file_info.st_mode)) {
+		if ((file_info.st_mode & S_IFMT) == S_IFDIR) {
 #ifdef VMS  
 		    /* strip .DIR part... */
                     char *dot;
@@ -976,7 +980,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 		bodyptr = nodekey->body;
 		memset((void *) bodyptr, ' ', HTBodyLength);
 		if (HTDirShowMask & HT_DIR_SHOW_DATE) {
-#ifndef HAVE_STRFTIME
+#if defined(Mips) || (defined(VMS) && !defined(DECC))
 		    struct tm * t = localtime(&file_info.st_mtime);
 
 		    sprintf(bodyptr,"%02d-%s-%02d %02d:%02d",
@@ -988,13 +992,13 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 #else
 		    strftime(bodyptr, HT_LENGTH_DATE+1, "%d-%b-%y %H:%M",
 			     localtime(&file_info.st_mtime));
-#endif
+#endif /* Mips || (VMS && !DECC) */
 		    bodyptr += HT_LENGTH_DATE;
 		    *bodyptr = ' ';
 		    bodyptr += HT_LENGTH_SPACE;
 		}
 		if (HTDirShowMask & HT_DIR_SHOW_SIZE) {
-		    if (!S_ISDIR(file_info.st_mode))
+		    if ((file_info.st_mode & S_IFMT) != S_IFDIR)
 			HTDirSize(file_info.st_size, bodyptr, HT_LENGTH_SIZE);
 		    else
 			bodyptr[HT_LENGTH_SIZE-1] = '-';
@@ -1012,9 +1016,8 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 		if (HTDirShowMask & HT_DIR_SHOW_OWNER) {
 		    char *bp = bodyptr;
 		    char *pwptr;
-#ifdef HAVE_PWD_H
 		    if ((pw_info = getpwuid(file_info.st_uid)) == NULL) {
-			if (TRACE) fprintf(stderr,
+			if (TRACE) fprintf(TDEST,
 				      "HTBrowse.... getpwuid() failed on %s\n",
 					   pathname);
 			ItoA(file_info.st_uid, bodyptr, HT_LENGTH_OWNER);
@@ -1023,17 +1026,13 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 			while ((*bp++ = *pwptr++) != '\0');
 			*--bp = ' ';
 		    }
-#else
-                        ItoA(file_info.st_uid, bodyptr, HT_LENGTH_OWNER);
-#endif 
 		    bodyptr += HT_LENGTH_OWNER+HT_LENGTH_SPACE;
 		}
 		if (HTDirShowMask & HT_DIR_SHOW_GROUP) {
 		    char *bp = bodyptr;
 		    char *grptr;
-#ifdef HAVE_GRP_H
 		    if ((gr_info = getgrgid(file_info.st_gid)) == NULL) {
-			if (TRACE) fprintf(stderr,
+			if (TRACE) fprintf(TDEST,
 			    "HTBrowse.... getgrgid() failed on %s\n",
 					   pathname);
 			ItoA(file_info.st_gid, bodyptr, HT_LENGTH_GROUP);
@@ -1042,9 +1041,6 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 			while ((*bp++ = *grptr++) != '\0');
 			*--bp = ' ';
 		    }
-#else
-                        ItoA(file_info.st_gid, bodyptr, HT_LENGTH_GROUP);
-#endif
 		    bodyptr += HT_LENGTH_GROUP+HT_LENGTH_SPACE;
 		}
 #endif /* not VMS */
@@ -1118,7 +1114,7 @@ cleanup:
     return HT_LOADED;
 } /* End of directory reading section */
 
-#endif /* HAVE_OPENDIR */
+#endif /* GOT_READ_DIR */
 
 /*						    	HTFTPBrowseDirectory()
 **	This function scrolls through the directory file given in a FTP session
@@ -1147,7 +1143,7 @@ PUBLIC int HTFTPBrowseDirectory ARGS3(HTRequest *, req, char *, directory,
     int status;
     char *tail = NULL;
     
-    if (TRACE) fprintf(stderr, "HTFTPBrowse. Browsing `%s\'\n", directory);
+    if (TRACE) fprintf(TDEST, "HTFTPBrowse. Browsing `%s\'\n", directory);
         
     /* Set up the offset string of the anchor reference */
     {
@@ -1232,7 +1228,7 @@ PUBLIC int HTFTPBrowseDirectory ARGS3(HTRequest *, req, char *, directory,
             {
                 int filestrlen = strlen(nodekey->filename);
 
-                if (S_ISDIR(file_info.f_mode)) {
+                if ((file_info.f_mode & S_IFMT) == S_IFDIR) {
                     nodekey->is_dir = YES;      /* We need the trailing slash*/
                     filestrlen++;
                 }
@@ -1255,7 +1251,7 @@ PUBLIC int HTFTPBrowseDirectory ARGS3(HTRequest *, req, char *, directory,
 		memset((void *) bodyptr, ' ', HTBodyLength);
 		if (HTDirShowMask & HT_DIR_SHOW_DATE) {
 		    if (file_info.f_mtime) {
-#ifndef HAVE_STRFTIME
+#if defined(Mips) || (defined(VMS) && !defined(DECC))
 			struct tm * t = localtime(&file_info.f_mtime);
 
 			sprintf(bodyptr,"%02d-%s-%02d %02d:%02d",
@@ -1267,7 +1263,7 @@ PUBLIC int HTFTPBrowseDirectory ARGS3(HTRequest *, req, char *, directory,
 #else
 			strftime(bodyptr, HT_LENGTH_DATE+1, "%d-%b-%y %H:%M",
 				 localtime(&file_info.f_mtime));
-#endif
+#endif /* Mips || (VMS && !DECC) */
 		    } else {
 			*bodyptr = '-';
 		    }
@@ -1278,7 +1274,7 @@ PUBLIC int HTFTPBrowseDirectory ARGS3(HTRequest *, req, char *, directory,
 
 		/* If we are using NLST, then don't show any size */
 		if (HTDirShowMask & HT_DIR_SHOW_SIZE) {
-                    if (!S_ISDIR(file_info.f_mode) &&
+                    if ((file_info.f_mode & S_IFMT) != S_IFDIR &&
 			HTFTUseList(req->net_info) == YES)
                         HTDirSize(file_info.f_size, bodyptr, HT_LENGTH_SIZE);
                     else

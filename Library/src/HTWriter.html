@@ -27,16 +27,17 @@ Library of Common Code</A>.
 <LI>strings written must be less than
 buffer size.
 </UL>
-<PRE>#ifndef HTWRITE_H
+
+<PRE>
+#ifndef HTWRITE_H
 #define HTWRITE_H
 
-#include "sysdep.h"
 #include "HTStream.h"
 
-extern HTStream * HTWriter_new PARAMS((int soc));
-extern HTStream * HTWriter_newNoClose PARAMS((int soc));
+extern HTStream * HTWriter_new		PARAMS((SOCKFD soc));
+extern HTStream * HTWriter_newNoClose	PARAMS((SOCKFD soc));
 
-extern HTStream * HTASCIIWriter PARAMS((int soc));
+extern HTStream * HTASCIIWriter		PARAMS((SOCKFD soc));
 
 #endif
 

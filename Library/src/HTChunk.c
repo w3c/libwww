@@ -10,11 +10,10 @@
 **
 */
 
-/* Implementation dependent include files */
-#include "sysdep.h"
-
+/* Library include files */
+#include "tcp.h"
 #include "HTUtils.h"
-#include "HTChunk.h"
+#include "HTChunk.h"				         /* Implemented here */
 
 /*	Create a chunk with a certain allocation unit
 **	--------------

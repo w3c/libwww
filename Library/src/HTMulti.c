@@ -9,8 +9,10 @@
 **			multiformat handling would be a mess in VMS.
 */
 
-#include "sysdep.h"
-
+/* Library include files */
+#include "tcp.h"
+#include "HTUtils.h"
+#include "HTString.h"
 #include "HTMulti.h"
 #include "HTFile.h"
 #include "HTList.h"
@@ -35,7 +37,7 @@ PUBLIC void HTAddWelcome ARGS1(char *, name)
 }
 
 
-#ifdef HAVE_OPENDIR
+#ifdef GOT_READ_DIR
 
 /* PRIVATE						multi_match()
 **
@@ -97,7 +99,7 @@ PRIVATE HTList * dir_matches ARGS1(char *, path)
     int baselen;
     char * multi = NULL;
     DIR * dp;
-    struct dirent * dirbuf;
+    STRUCT_DIRENT * dirbuf;
     HTList * matches = NULL;
 
     if (!path) return NULL;
@@ -117,24 +119,23 @@ PRIVATE HTList * dir_matches ARGS1(char *, path)
 
     dp = opendir(dirname);
     if (!dp) {
-	CTRACE(stderr,"Warning..... Can't open directory %s\n",
-	       dirname);
+	if (PROT_TRACE)
+	    fprintf(TDEST,"Warning..... Can't open directory %s\n", dirname);
 	goto dir_match_failed;
     }
 
     matches = HTList_new();
     while ((dirbuf = readdir(dp))) {
-#ifdef HAVE_DIRENT_INO
 	if (!dirbuf->d_ino) continue;	/* Not in use */
-#else
-	if (!dirbuf->d_name) continue; 	/* Not in use */
-#endif
 	if (!strcmp(dirbuf->d_name,".") ||
 	    !strcmp(dirbuf->d_name,"..") ||
 	    !strcmp(dirbuf->d_name, HT_DIR_ENABLE_FILE))
 	    continue;
 
-	if (NAMLEN(dirbuf) >= baselen) {
+	/* Use of direct->namlen is only valid in BSD'ish system */
+	/* Thanks to chip@chinacat.unicom.com (Chip Rosenthal) */
+	/* if ((int)(dirbuf->d_namlen) >= baselen) { */
+	if ((int) strlen(dirbuf->d_name) >= baselen) {
 	    n = HTSplitFilename(dirbuf->d_name, actual);
 	    if (multi_match(required, m, actual, n)) {
 		HTContentDescription * cd;
@@ -182,28 +183,31 @@ PRIVATE char * HTGetBest ARGS2(HTRequest *,	req,
     HTContentDescription * best = NULL;
     char * best_path = NULL;
 
-    
-    if (!path || !*path) return NO;
+    if (!path || !*path) return NULL;
 
     matches = dir_matches(path);
     if (!matches) {
-	CTRACE(stderr, "No matches.. for \"%s\"\n", path);
-	return NO;
+	if (PROT_TRACE)
+	    fprintf(TDEST, "No matches.. for \"%s\"\n", path);
+	return NULL;
     }
 
     /* BEGIN DEBUG */
     cur = matches;
-    CTRACE(stderr, "Multi....... Possibilities for \"%s\"\n", path);
-    CTRACE(stderr, "\nCONTENT-TYPE  LANGUAGE  ENCODING  QUALITY  FILE\n");
+    if (PROT_TRACE)
+	fprintf(TDEST, "Multi....... Possibilities for \"%s\"\n", path);
+    if (PROT_TRACE)
+	fprintf(TDEST, "\nCONTENT-TYPE  LANGUAGE  ENCODING  QUALITY  FILE\n");
     while ((cd = (HTContentDescription*)HTList_nextObject(cur))) {
-	CTRACE(stderr, "%s\t%s\t%s\t  %.5f  %s\n",
-	       cd->content_type    ?HTAtom_name(cd->content_type)  :"-\t",
-	       cd->content_language?HTAtom_name(cd->content_language):"-",
-	       cd->content_encoding?HTAtom_name(cd->content_encoding):"-",
-	       cd->quality,
-	       cd->filename        ?cd->filename                     :"-");
+	if (PROT_TRACE)
+	   fprintf(TDEST, "%s\t%s\t%s\t  %.5f  %s\n",
+		   cd->content_type    ?HTAtom_name(cd->content_type)  :"-\t",
+		   cd->content_language?HTAtom_name(cd->content_language):"-",
+		   cd->content_encoding?HTAtom_name(cd->content_encoding):"-",
+		   cd->quality,
+		   cd->filename        ?cd->filename                     :"-");
     }
-    CTRACE(stderr, "\n");
+    if (PROT_TRACE) fprintf(TDEST, "\n");
     /* END DEBUG */
 
     /*
@@ -216,8 +220,8 @@ PRIVATE char * HTGetBest ARGS2(HTRequest *,	req,
 		if (access(best->filename, R_OK) != -1) {
 		    StrAllocCopy(best_path, best->filename);
 		    break;
-		}
-		else CTRACE(stderr, "Bad News.... \"%s\" is not readable\n",
+		} else if (PROT_TRACE)
+		    fprintf(TDEST, "Bad News.... \"%s\" is not readable\n",
 			    best->filename);
 	    }
 	}
@@ -255,7 +259,7 @@ PRIVATE char * get_best_welcome ARGS1(char *, path)
     char * best_welcome = NULL;
     int best_value = 0;
     DIR * dp;
-    struct dirent * dirbuf;
+    STRUCT_DIRENT * dirbuf;
     char * last = strrchr(path, '/');
 
     if (!welcome_names) {
@@ -271,16 +275,12 @@ PRIVATE char * get_best_welcome ARGS1(char *, path)
     dp = opendir(path);
     if (last && last!=path) *last='/';
     if (!dp) {
-	CTRACE(stderr, "Warning..... Can't open directory %s\n",path);
+	if (PROT_TRACE)
+	    fprintf(TDEST, "Warning..... Can't open directory %s\n",path);
 	return NULL;
     }
     while ((dirbuf = readdir(dp))) {
-	if (
-#ifdef HAVE_DIRENT_INO
-	    !dirbuf->d_ino ||
-#else
-	    !dirbuf->d_name ||
-#endif
+	if (!dirbuf->d_ino ||
 	    !strcmp(dirbuf->d_name,".") ||
 	    !strcmp(dirbuf->d_name,"..") ||
 	    !strcmp(dirbuf->d_name, HT_DIR_ENABLE_FILE))
@@ -300,13 +300,14 @@ PRIVATE char * get_best_welcome ARGS1(char *, path)
 	if (!welcome) outofmem(__FILE__, "get_best_welcome");
 	sprintf(welcome, "%s%s%s", path, last ? "" : "/", best_welcome);
 	free(best_welcome);
-	CTRACE(stderr,"Welcome..... \"%s\"\n",welcome);
+	if (PROT_TRACE)
+	    fprintf(TDEST,"Welcome..... \"%s\"\n",welcome);
 	return welcome;
     }
     return NULL;
 }
 
-#endif /* HAVE_OPENDIR */
+#endif /* GOT_READ_DIR */
 
 
 /*
@@ -337,7 +338,7 @@ PUBLIC char * HTMulti ARGS3(HTRequest *,	req,
     if (!req || !path || !*path || !stat_info)
 	return NULL;
 
-#ifdef HAVE_OPENDIR
+#ifdef GOT_READ_DIR
     len = strlen(path);
     if (path[len-1] == '/') {	/* Find welcome page */
 	new_path = get_best_welcome(path);
@@ -346,9 +347,11 @@ PUBLIC char * HTMulti ARGS3(HTRequest *,	req,
     else{
 	char * multi = strrchr(path, MULTI_SUFFIX[0]);
 	if (multi && !strcasecomp(multi, MULTI_SUFFIX)) {
-	    CTRACE(stderr, "Multi....... by %s suffix\n", MULTI_SUFFIX);
+	    if (PROT_TRACE)
+		fprintf(TDEST, "Multi....... by %s suffix\n", MULTI_SUFFIX);
 	    if (!(new_path = HTGetBest(req, path))) {
-		CTRACE(stderr, "Multi....... failed -- giving up\n");
+		if (PROT_TRACE)
+		    fprintf(TDEST, "Multi....... failed -- giving up\n");
 		return NULL;
 	    }
 	    path = new_path;
@@ -356,24 +359,27 @@ PUBLIC char * HTMulti ARGS3(HTRequest *,	req,
 	else {
 	    stat_status = HTStat(path, stat_info);
 	    if (stat_status == -1) {
-		CTRACE(stderr,
-		       "AutoMulti... because can't stat \"%s\" (errno %d)\n",
-		       path, errno);
+		if (PROT_TRACE)
+		    fprintf(TDEST,
+			    "AutoMulti... can't stat \"%s\"(errno %d)\n",
+			    path, errno);
 		if (!(new_path = HTGetBest(req, path))) {
-		    CTRACE(stderr, "AutoMulti... failed -- giving up\n");
+		    if (PROT_TRACE)
+			fprintf(TDEST, "AutoMulti... failed -- giving up\n");
 		    return NULL;
 		}
 		path = new_path;
 	    }
 	}
     }
-#endif /* HAVE_OPENDIR */
+#endif /* GOT_READ_DIR */
 
     if (stat_status == -1)
 	stat_status = HTStat(path, stat_info);
     if (stat_status == -1) {
-	CTRACE(stderr, "Stat fails.. on \"%s\" -- giving up (errno %d)\n",
-	       path, errno);
+	if (PROT_TRACE)
+	    fprintf(TDEST, "Stat fails.. on \"%s\" -- giving up (errno %d)\n",
+		    path, errno);
 	return NULL;
     }
     else {

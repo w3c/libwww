@@ -7,11 +7,9 @@
 **	Define a basic set of suffixes and presentations
 */
 
-#include "sysdep.h"
-
-/* Implements: */
-#include "HTInit.h"
-
+/* Library include files */
+#include "tcp.h"
+#include "HTUtils.h"
 #include "HTML.h"
 #include "HTList.h"
 #include "HTPlain.h"
@@ -20,8 +18,9 @@
 #include "HTFormat.h"
 #include "HTMIME.h"
 #include "HTWSRC.h"
-#include "HTFWriter.h"
+#include "HTFWrite.h"
 #include "HTNews.h"
+#include "HTInit.h"				         /* Implemented here */
 
 /* Note: Wildcard is no longer `*' (see further dovn) */
 PUBLIC void HTFormatInit ARGS1(HTList *, c)

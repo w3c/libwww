@@ -13,21 +13,19 @@
 */
 </PRE>
 
-See also the system dependent file <A HREF="tcp.html">tcp module</A>
-for system specific information. <P>
-
 This module is a part of the <A
 HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
 Library of Common Code</A>.
+
+See also the system dependent file <A HREF="tcp.html">tcp module</A>
+for system specific information. <P>
 
 <PRE>
 #ifndef HTUTILS_H
 #define HTUTILS_H
 
-#include "sysdep.h"
-
-#ifdef SHORT_NAMES
-#define WWW_TraceFlag HTTrFlag
+#if defined(__STDC__) || defined(__cplusplus) || defined(_WINDOWS)
+#define _STANDARD_CODE_
 #endif
 </PRE>
 
@@ -36,6 +34,10 @@ Library of Common Code</A>.
 This is the global flag for setting the TRACE options.
 
 <PRE>
+#ifndef DEBUG
+#define DEBUG	/* No one ever turns this off as trace is too important */
+#endif		/* Keep option for really small memory applications too */
+
 extern int WWW_TraceFlag;		     /* Global flag for all W3 trace */
 </PRE>
 
@@ -45,6 +47,16 @@ outputs all messages if verbose mode is active, but in addition the following
 TRACE defines have been made:
 
 <PRE>
+#ifdef NO_STDIO
+extern FILE *WWWTrace;
+#ifndef TRACE_FILE
+#define TRACE_FILE "WWWTRACE.TXT"
+#endif
+#define TDEST WWWTrace 
+#else /* got stdio */
+#define TDEST stderr
+#endif
+
 typedef enum _HTTraceFlags {
     SHOW_SGML_TRACE	= 0xF,				/*		1111 */
     SHOW_THREAD_TRACE	= 0x30,				/* 	     11.0000 */
@@ -78,14 +90,13 @@ trace messages, e.g. showing messages for SGML and HTML at the same time.
 #endif
 </PRE>
 
-<EM><B>Note: </B> The CTRACE flag might interfere with other if () else
-constructions in the code. It should not be used but replaced by TRACE</EM>
+<EM><B>Note: </B> The CTRACE flag might interfere with other if ()
+else constructions in the code. IT SHOULD NOT BE USED BUT REPLACED BY
+TRACE</EM>
 
 <PRE>
 #define CTRACE if(TRACE) fprintf
-#define tfp stderr
 </PRE>
-
 
 <H2>Error type</H2>
 
@@ -99,12 +110,74 @@ reasons. Curently this is a placeholder
 for something more sophisticated.
 <PRE>typedef void * HTError;			/* Unused at present -- best definition? */
 </PRE>
+
+<H2>Standard C library for malloc() etc</H2>
+
+Replace memory allocation and free C RTL functions with VAXC$xxx_OPT
+altrenatives for VAXC (but not DECC) on VMS. This makes a big
+performance difference. (Foteos Macrides).
+
+<PRE>
+#ifdef vax
+#ifdef unix
+#define ultrix	/* Assume vax+unix=ultrix */
+#endif
+#endif
+
+#ifndef VMS
+#ifndef ultrix
+#ifdef NeXT
+#include &lt;libc.h&gt;	/* NeXT */
+#endif
+
+#ifndef Mips
+#ifndef MACH /* Vincent.Cate@furmint.nectar.cs.cmu.edu */
+#include &lt;stdlib.h&gt;	/* ANSI */
+#endif
+#endif
+
+#else /* ultrix */
+#include &lt;malloc.h&gt;
+#include &lt;memory.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;   /* ANSI */   /* BSN */
+#endif
+
+#else	/* VMS */
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;unixlib.h&gt;
+#include &lt;ctype.h&gt;
+#if defined(VAXC) && !defined(__DECC)
+#define malloc	VAXC$MALLOC_OPT
+#define calloc	VAXC$CALLOC_OPT
+#define free	VAXC$FREE_OPT
+#define cfree	VAXC$CFREE_OPT
+#define realloc	VAXC$REALLOC_OPT
+#endif /* VAXC but not DECC */
+#define unlink remove
+#define gmtime localtime
+#include &lt;stat.h&gt;
+#define S_ISDIR(m)      (((m)&S_IFMT) == S_IFDIR)
+#define S_ISREG(m)      (((m)&S_IFMT) == S_IFREG)
+#define putenv HTVMS_putenv
+#endif
+</PRE>
+
 <H2>Macros for declarations</H2>
-<PRE>#define PUBLIC			/* Accessible outside this module */
+
+<PRE>
+#define PUBLIC			/* Accessible outside this module     */
 #define PRIVATE static		/* Accessible only within this module */
 
-#define CONST const
-#ifdef __STDC__
+#ifdef _STANDARD_CODE_
+
+#ifndef sco			/* The sco CC compiler does not know const */
+#define CONST const		/* "const" only exists in STDC */
+#else
+#define CONST
+#endif
+
 #define NOPARAMS (void)
 #define PARAMS(parameter_list) parameter_list
 #define NOARGS (void)
@@ -130,6 +203,8 @@ for something more sophisticated.
 		(t a, u b, v c, w d, x e, y f, z g, s h, r i, q j)
 
 #else  /* not ANSI */
+
+#define CONST
 
 #define NOPARAMS ()
 #define PARAMS(parameter_list) ()
@@ -161,12 +236,12 @@ for something more sophisticated.
 #ifndef NULL
 #define NULL ((void *)0)
 #endif
-
 </PRE>
+
 <H2>Booleans</H2>
-<PRE>/* Note: GOOD and BAD are already defined (differently) on RS6000 aix */
-/* #define GOOD(status) ((status)38;1)	 VMS style status: test bit 0	      */
-/* #define BAD(status)  (!GOOD(status))	 Bit 0 set if OK, otherwise clear   */
+
+<PRE>
+typedef char	BOOLEAN;				    /* Logical value */
 
 #ifndef CURSES
 #ifndef TRUE
@@ -192,8 +267,8 @@ for something more sophisticated.
 #define OLD_TCP_PORT 2784	/* Try the old one if no answer on 80 */
 #define DNP_OBJ 80	/* This one doesn't look busy, but we must check */
 			/* That one was for decnet */
-
 </PRE>
+
 <A NAME="ReturnCodes"><H2>Return Codes for Protocol Modules</H2></A>
 
 Theese are the codes returned from the protocol modules. Success (&gt;=0) and
@@ -212,10 +287,19 @@ failure (&lt;0) codes
 #define HT_WOULD_BLOCK		-29997  /* If we are in a select */
 #define HT_INTERRUPTED 		-29998	/* Note the negative value! */
 
-
-#include "HTString.h"  	/* String utilities */
+#ifdef _STANDARD_CODE_
+#include &lt;stdarg.h&gt;
+#else
+#include &lt;varargs.h&gt;
+#endif
 
 #ifdef CURSES
+	/* htbrowse.c; */
+#ifdef ULTRIX      /* or DECSTATION */
+#include &lt;cursesX.h&gt; /* Extended curses under X. Only decent one :lou. */
+#else
+#include &lt;curses.h&gt;
+#endif /* ULTRIX */
 	extern        WINDOW  *w_top, *w_text, *w_prompt;
 	extern        void    user_message PARAMS((const char *fmt, ...));
 	extern        void    prompt_set PARAMS((CONST char * msg));
@@ -225,53 +309,60 @@ failure (&lt;0) codes
 #endif
 
 </PRE>
-<H2>Out Of Memory checking for malloc()
-return:</H2>
-<PRE>#ifndef __FILE__
+
+<H2>Out Of Memory checking for malloc() return:</H2>
+
+<PRE>
+#ifndef __FILE__
 #define __FILE__ ""
 #define __LINE__ ""
 #endif
 
 #define outofmem(file, func) \
- { fprintf(stderr, "%s %s: out of memory.\nProgram aborted.\n", file, func); \
+ { fprintf(TDEST, "%s %s: out of memory.\nProgram aborted.\n", file, func); \
   exit(1);}
-/* extern void outofmem PARAMS((const char *fname, const char *func)); */
-
 
 </PRE>
-<H3>who put these in and what are they
-anyway?</H3>
-<PRE>#ifdef THEY_WILL_BE_REMOVED
-extern void msg_init PARAMS((int height));
-extern void msg_printf PARAMS((int y, const char *fmt, ...));
-extern void msg_exit PARAMS((int wait_for_key));
-#endif
 
-</PRE>
-<H2>Upper- and Lowercase macros</H2>The problem here is that toupper(x)
-is not defined officially unless
-isupper(x) is.  These macros are
-CERTAINLY needed on #if defined(pyr)
-|| define(mips) or BDSI platforms.
-For safefy, we make them mandatory.
+<H2>Upper- and Lowercase macros</H2>
+
+The problem here is that toupper(x) is not defined officially unless
+isupper(x) is.  These macros are CERTAINLY needed on #if defined(pyr)
+|| define(mips) or BDSI platforms. For safefy, we make them mandatory.
+
 <PRE>
+#include &lt;ctype.h&gt;
 
 #ifndef TOLOWER
   /* Pyramid and Mips can't uppercase non-alpha */
 #define TOLOWER(c) (isupper(c) ? tolower(c) : (c))
 #define TOUPPER(c) (islower(c) ? toupper(c) : (c))
 #endif /* ndef TOLOWER */
-
 </PRE>
-<H2>The local equivalents of CR and LF</H2>We can check for these after net
-ascii text has been converted to
-the local representation. Similarly,
-we include them in strings to be
-sent as net ascii after translation.
-<PRE>#define LF   FROMASCII('\012')  /* ASCII line feed LOCAL EQUIVALENT */
+
+<H2>The local equivalents of CR and LF</H2>
+
+We can check for these after net ascii text has been converted to the
+local representation. Similarly, we include them in strings to be sent
+as net ascii after translation.
+
+<PRE>
+#define LF   FROMASCII('\012')  /* ASCII line feed LOCAL EQUIVALENT */
 #define CR   FROMASCII('\015')  /* Will be converted to ^M for transmission */
+</PRE>
+
+<H3>Other Macros...</H3>
+
+Where else to put these..
+
+<PRE>
+#ifndef MAXPASSWDLEN
+#define MAXPASSWDLEN	64
+#endif
 
 #endif /* HTUTILS_H */
+</PRE>
 
-</PRE>end of utilities</BODY>
+end of utilities
+</BODY>
 </HTML>

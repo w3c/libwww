@@ -5,12 +5,13 @@
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 
-#include "sysdep.h"
+/* Library include files */
+#include "tcp.h"
+#include "HTUtils.h"
+#include "HTString.h"
 #include "HTWriter.h"
 
 #define BUFFER_SIZE 4096	/* Tradeoff */
-
-#include "HTUtils.h"
 
 /*		HTML Object
 **		-----------
@@ -19,7 +20,7 @@
 struct _HTStream {
 	CONST HTStreamClass *	isa;
 
-	int	soc;
+	SOCKFD	soc;
 	char	*write_pointer;
 	char 	buffer[BUFFER_SIZE];
 	BOOL	leave_open;
@@ -50,7 +51,7 @@ PRIVATE void flush ARGS1(HTStream *, me)
 			      write_pointer - read_pointer);
 	if (status < 0) {
 	    if (PROT_TRACE)
-		fprintf(stderr, "WriteStream.. Error writing to target\n");
+		fprintf(TDEST, "WriteStream.. Error writing to target\n");
 	    return;
 	}
 	read_pointer += status;
@@ -113,7 +114,7 @@ PRIVATE void HTWriter_write ARGS3(HTStream *, me, CONST char*, s, int, l)
         int status = NETWRITE(me->soc, read_pointer,
 			write_pointer - read_pointer);
 	if (status<0) {
-	    if(TRACE) fprintf(stderr,
+	    if(TRACE) fprintf(TDEST,
 	    "HTWriter_write: Error on socket output stream!!!\n");
 	    return;
 	}
@@ -163,7 +164,7 @@ PRIVATE CONST HTStreamClass HTWriter = /* As opposed to print etc */
 **	-------------------------
 */
 
-PUBLIC HTStream* HTWriter_new ARGS1(int, soc)
+PUBLIC HTStream* HTWriter_new ARGS1(SOCKFD, soc)
 {
     HTStream* me = (HTStream*)calloc(1,sizeof(*me));
     if (me == NULL) outofmem(__FILE__, "HTWriter_new");
@@ -177,7 +178,7 @@ PUBLIC HTStream* HTWriter_new ARGS1(int, soc)
     return me;
 }
 
-PUBLIC HTStream* HTWriter_newNoClose ARGS1(int, soc)
+PUBLIC HTStream* HTWriter_newNoClose ARGS1(SOCKFD, soc)
 {
     HTStream * me = HTWriter_new(soc);
     if (me) me->leave_open = YES;
@@ -189,7 +190,7 @@ PUBLIC HTStream* HTWriter_newNoClose ARGS1(int, soc)
 **	-------------------------
 */
 
-PUBLIC HTStream* HTASCIIWriter ARGS1(int, soc)
+PUBLIC HTStream* HTASCIIWriter ARGS1(SOCKFD, soc)
 {
     HTStream* me = (HTStream*)calloc(1,sizeof(*me));
     if (me == NULL) outofmem(__FILE__, "HTML_new");

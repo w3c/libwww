@@ -46,22 +46,13 @@ Library of Common Code</A>.
 #ifndef HTAAUTIL_H
 #define HTAAUTIL_H
 
-#include "sysdep.h"
-#include "HTUtils.h"		/* BOOL, PARAMS, ARGS */
 #include "HTList.h"
-
-#ifdef SHORT_NAMES
-#define HTAASenu	HTAAScheme_enum
-#define HTAASnam	HTAAScheme_name
-#define HTAAteMa	HTAA_templateMatch
-#define HTAAmaPT	HTAA_makeProtectionTemplate
-#define HTAApALi	HTAA_parseArgList
-#endif /*SHORT_NAMES*/
-
-
 </PRE>
+
 <H2>Default filenames</H2>
-<PRE>#ifndef PASSWD_FILE
+
+<PRE>
+#ifndef PASSWD_FILE
 #define PASSWD_FILE	"/home2/luotonen/passwd"
 #endif
 
@@ -70,7 +61,6 @@ Library of Common Code</A>.
 #endif
 
 #define ACL_FILE_NAME	".www_acl"
-
 
 /*
 ** Numeric constants

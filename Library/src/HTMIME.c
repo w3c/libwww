@@ -15,10 +15,14 @@
 **	 8 Jul 94  FM	Insulate free() from _free structure element.
 **
 */
-#include "sysdep.h"
+
+/* Library include files */
+#include "tcp.h"
+#include "HTUtils.h"
+#include "HTString.h"
 #include "HTFormat.h"
 #include "HTAlert.h"
-#include "HTFWriter.h"
+#include "HTFWrite.h"
 #include "HTMIME.h"					 /* Implemented here */
 
 #define VALUE_SIZE 128		/* @@@@@@@ Arbitrary? */
@@ -142,7 +146,7 @@ PRIVATE void HTMIME_put_character ARGS2(HTStream *, me, char, c)
 
 	  case '\n':			/* Blank line: End of Header! */
 	    {
-	        if (TRACE) fprintf(stderr,
+	        if (TRACE) fprintf(TDEST,
 			"HTMIME: MIME content type is %s, converting to %s\n",
 			HTAtom_name(me->format), HTAtom_name(me->targetRep));
 		me->target = HTStreamStack(me->format, me->targetRep,
@@ -151,7 +155,7 @@ PRIVATE void HTMIME_put_character ARGS2(HTStream *, me, char, c)
 		    me->state = MIME_TRANSPARENT;
 		} else {
 		    if (TRACE)
-			fprintf(stderr, "MIMEParser.. Can't convert to output format\n");
+			fprintf(TDEST, "MIMEParser.. Can't convert to output format\n");
 		    me->target = me->sink;	/* Cheat */
 		}
 	    }
@@ -168,7 +172,7 @@ PRIVATE void HTMIME_put_character ARGS2(HTStream *, me, char, c)
         if (TOLOWER(c) == *(me->check_pointer)++) {
 	    if (!*me->check_pointer) me->state = me->if_ok;
 	} else {		/* Error */
-	    if (TRACE) fprintf(stderr,
+	    if (TRACE) fprintf(TDEST,
 	    	"HTMIME: Bad character `%c' found where `%s' expected\n",
 		c, me->check_pointer - 1);
 	    goto bad_field_name;
@@ -296,7 +300,7 @@ PRIVATE void HTMIME_put_character ARGS2(HTStream *, me, char, c)
     return;
     
 value_too_long:
-    if (TRACE) fprintf(stderr,
+    if (TRACE) fprintf(TDEST,
     	"HTMIME: *** Syntax error. (string too long)\n");
     
 bad_field_name:				/* Ignore it */

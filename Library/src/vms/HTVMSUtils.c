@@ -103,7 +103,7 @@ unsigned long Prv[2], PreviousPrv[2];
 
       if (Result == SS$_NORMAL) {
          if (!(PreviousPrv[0] & PRV$M_SYSPRV)) {
-            CTRACE(stderr, "VMS......... Enabled SYSPRV\n");
+            CTRACE(TDEST, "VMS......... Enabled SYSPRV\n");
 	}
    }
 }
@@ -129,7 +129,7 @@ unsigned long Prv[2], PreviousPrv[2];
 
       if (Result == SS$_NORMAL) {
          if (PreviousPrv[0] & PRV$M_SYSPRV) {
-            CTRACE(stderr, "VMS......... Disabled SYSPRV\n");
+            CTRACE(TDEST, "VMS......... Disabled SYSPRV\n");
          }
    }
 }
@@ -233,7 +233,7 @@ char *colon;
    /* user nobody should access as from account under which server is running */
    if (0 == strcmp(UserName,""))
    {
-      CTRACE(stderr, "VMSAccess... No access allowed user nobody. Error in rulefile specifying 'nobody' as uid for protect rule\n");
+      CTRACE(TDEST, "VMSAccess... No access allowed user nobody. Error in rulefile specifying 'nobody' as uid for protect rule\n");
       return(NO);
    }
 
@@ -300,11 +300,11 @@ char *colon;
         return(YES);
 
      /* failed for filename and .dir */
-     CTRACE(stderr, "VMSAccess... No access allowed for user '%s', file '%s' under method '%s'\n",UserName,Fname,HTMethod_name(Method));
+     CTRACE(TDEST, "VMSAccess... No access allowed for user '%s', file '%s' under method '%s'\n",UserName,Fname,HTMethod_name(Method));
      return(NO);
    }
 
-   CTRACE(stderr, "VMSAccess... No access allowed for method '%s'\n",HTMethod_name(Method));
+   CTRACE(TDEST, "VMSAccess... No access allowed for method '%s'\n",HTMethod_name(Method));
 
    return(NO);
 }
@@ -852,20 +852,20 @@ int Result;
    /* user nobody should access as from account under which server is running */
    if (0 == strcmp(UserName,""))
    {
-      CTRACE(stderr, "VMSisOwner.. No access allowed user nobody.\n");
+      CTRACE(TDEST, "VMSisOwner.. No access allowed user nobody.\n");
       return(NO);
    }
 
    /* load buf */
    Result = HTStat(FileName, &buf);
    if (Result) {
-      CTRACE(stderr, "VMSisOwner.. HTStat() failed for '%s'\n", FileName);
+      CTRACE(TDEST, "VMSisOwner.. HTStat() failed for '%s'\n", FileName);
       return NO;  /* no file or directory, so UserName can't own it */
    }
 
    /* compare with UIC for UserName */
    if (buf.st_uid != HTVMS_getUIC(UserName)) {
-      CTRACE(stderr, "VMSisOwner.. '%s' does not own '%s'\n",
+      CTRACE(TDEST, "VMSisOwner.. '%s' does not own '%s'\n",
       		     UserName, FileName);
       return NO;
    }

@@ -14,20 +14,21 @@
 **
 */
 
-#include "sysdep.h"
-
-#include "HTFormat.h"
+/* Library include files */
+#include "tcp.h"
 #include "HTUtils.h"
+#include "HTString.h"
+#include "HTFormat.h"
 #include "HTParse.h"
-#include "HTFWriter.h"					  /* for cache stuff */
+#include "HTFWrite.h"					  /* for cache stuff */
 #include "HTAnchor.h"					 /* Implemented here */
 
 #define HASH_SIZE 101		/* Arbitrary prime. Memory/speed tradeoff */
 
 typedef struct _HyperDoc Hyperdoc;
-#ifdef NO_PTR_UNDEF_STRUCT
+#ifdef VMS
 struct _HyperDoc {
-	int junk;	/* some platforms cannot handle pointers to undefined structs */
+	int junk;	/* VMS cannot handle pointers to undefined structs */
 };
 #endif
 
@@ -40,20 +41,18 @@ PRIVATE HTList **adult_table=0;  /* Point to table of lists of all parents */
 **	consistency, we insist that you furnish more information about the
 **	anchor you are creating : use newWithParent or newWithAddress.
 */
-
-PRIVATE HTParentAnchor * HTParentAnchor_new
-  NOARGS
+PRIVATE HTParentAnchor * HTParentAnchor_new NOARGS
 {
-  HTParentAnchor *newAnchor = 
-    (HTParentAnchor *) calloc (1, sizeof (HTParentAnchor));  /* zero-filled */
-  newAnchor->parent = newAnchor;
-  return newAnchor;
+    HTParentAnchor *newAnchor =
+	(HTParentAnchor *) calloc(1, sizeof (HTParentAnchor));
+    newAnchor->parent = newAnchor;
+    return newAnchor;
 }
 
-PRIVATE HTChildAnchor * HTChildAnchor_new
-  NOARGS
+
+PRIVATE HTChildAnchor * HTChildAnchor_new NOARGS
 {
-  return (HTChildAnchor *) calloc (1, sizeof (HTChildAnchor));  /* zero-filled */
+    return (HTChildAnchor *) calloc (1, sizeof (HTChildAnchor));
 }
 
 
@@ -96,14 +95,14 @@ PUBLIC HTChildAnchor * HTAnchor_findChild
 
   if (! parent) {
     if (ANCH_TRACE)
-	fprintf(stderr, "HTAnchor_findChild called with NULL parent.\n");
+	fprintf(TDEST, "HTAnchor_findChild called with NULL parent.\n");
     return NULL;
   }
   if ((kids = parent->children)) {  /* parent has children : search them */
     if (tag && *tag) {		/* TBL */
 	while ((child = (HTChildAnchor *) HTList_nextObject (kids))) {
 	    if (equivalent(child->tag, tag)) { /* Case sensitive 920226 */
-		if (ANCH_TRACE) fprintf (stderr,
+		if (ANCH_TRACE) fprintf (TDEST,
 	       "AnchorChild. %p of parent %p with name `%s' already exists.\n",
 		    (void*)child, (void*)parent, tag);
 		return child;
@@ -116,7 +115,7 @@ PUBLIC HTChildAnchor * HTAnchor_findChild
   child = HTChildAnchor_new ();
   /* int for apollo */
   if (ANCH_TRACE)
-      fprintf(stderr, "AnchorChild. New Anchor %p named `%s' is child of %p\n",
+      fprintf(TDEST, "AnchorChild. New Anchor %p named `%s' is child of %p\n",
 	      (void *) child, tag ? tag : (CONST char *) "", (void *) parent);
   HTList_addObject (parent->children, child);
   child->parent = parent;
@@ -162,67 +161,60 @@ PUBLIC HTChildAnchor * HTAnchor_findChildAndLink
 **	like with fonts.
 */
 
-PUBLIC HTAnchor * HTAnchor_findAddress
-  ARGS1 (CONST char *,address)
+PUBLIC HTAnchor * HTAnchor_findAddress ARGS1 (CONST char *, address)
 {
-  char *tag = HTParse (address, "", PARSE_ANCHOR);  /* Anchor tag specified ? */
-
-  /* If the address represents a sub-anchor, we recursively load its parent,
-     then we create a child anchor within that document. */
-  if (*tag) {
-    char *docAddress = HTParse(address, "", PARSE_ACCESS | PARSE_HOST |
-			                    PARSE_PATH | PARSE_PUNCTUATION);
-    HTParentAnchor * foundParent =
-      (HTParentAnchor *) HTAnchor_findAddress (docAddress);
-    HTChildAnchor * foundAnchor = HTAnchor_findChild (foundParent, tag);
-    free (docAddress);
-    free (tag);
-    return (HTAnchor *) foundAnchor;
-  }
-  
-  else { /* If the address has no anchor tag, 
-	    check whether we have this node */
-    int hash;
-    CONST char *p;
-    HTList * adults;
-    HTList *grownups;
-    HTParentAnchor * foundAnchor;
-
-    free (tag);
+    char *tag = HTParse (address, "", PARSE_ANCHOR);	        /* Any tags? */
+    char *newaddr=NULL;
     
-    /* Select list from hash table */
-    for(p=address, hash=0; *p; p++)
-    	hash = (int) ((hash * 3 + (*(unsigned char*)p)) % HASH_SIZE);
-    if (!adult_table)
-        adult_table = (HTList**) calloc(HASH_SIZE, sizeof(HTList*));
-    if (!adult_table[hash]) adult_table[hash] = HTList_new();
-    adults = adult_table[hash];
+    StrAllocCopy(newaddr, address);		       /* Get a working copy */
+    if (!HTImProxy)
+	newaddr = HTSimplify(newaddr);	     /* Proxy has already simplified */
 
-    /* Search list for anchor */
-    grownups = adults;
-    while ((foundAnchor = (HTParentAnchor *) HTList_nextObject (grownups))) {
-       if (equivalent(foundAnchor->address, address)) {
-	if (ANCH_TRACE)
-	    fprintf(stderr, "FindAnchor.. %p with address `%s' already exists.\n",
-		    (void*) foundAnchor, address);
+    /* If the address represents a sub-anchor, we recursively load its parent,
+       then we create a child anchor within that document. */
+    if (*tag) {
+	char *docAddress = HTParse(newaddr, "", PARSE_ACCESS | PARSE_HOST |
+				   PARSE_PATH | PARSE_PUNCTUATION);
+	HTParentAnchor * foundParent =
+	    (HTParentAnchor *) HTAnchor_findAddress (docAddress);
+	HTChildAnchor * foundAnchor = HTAnchor_findChild (foundParent, tag);
+	free (docAddress);
+	free (tag);
 	return (HTAnchor *) foundAnchor;
-      }
-    }
-    
-    /* Node not found : create new anchor. */
-    foundAnchor = HTParentAnchor_new ();
-    if (ANCH_TRACE) fprintf(stderr, "FindAnchor.. %p with hash %d and address `%s' created\n", (void*)foundAnchor, hash, address);
+    } else {		       	     /* Else check whether we have this node */
+	int hash;
+	CONST char *p;
+	HTList * adults;
+	HTList *grownups;
+	HTParentAnchor * foundAnchor;
+	free (tag);
+	
+	/* Select list from hash table */
+	for(p=newaddr, hash=0; *p; p++)
+	    hash = (int) ((hash * 3 + (*(unsigned char*)p)) % HASH_SIZE);
+	if (!adult_table)
+	    adult_table = (HTList**) calloc(HASH_SIZE, sizeof(HTList*));
+	if (!adult_table[hash]) adult_table[hash] = HTList_new();
+	adults = adult_table[hash];
 
-    /* This is done earlier in the Proxy server */
-    if (HTImProxy) {
-	StrAllocCopy(foundAnchor->address, address);
-    } else {
-	StrAllocCopy(foundAnchor->address, address);
-	foundAnchor->address = HTSimplify(foundAnchor->address);
+	/* Search list for anchor */
+	grownups = adults;
+	while ((foundAnchor = (HTParentAnchor *) HTList_nextObject(grownups))){
+	    if (equivalent(foundAnchor->address, newaddr)) {
+		if (ANCH_TRACE)
+		    fprintf(TDEST, "FindAnchor.. %p with address `%s' already exists.\n",
+			    (void*) foundAnchor, newaddr);
+		return (HTAnchor *) foundAnchor;
+	    }
+	}
+	
+	/* Node not found : create new anchor. */
+	foundAnchor = HTParentAnchor_new();
+	if (ANCH_TRACE) fprintf(TDEST, "FindAnchor.. %p with hash %d and address `%s' created\n", (void*)foundAnchor, hash, newaddr);
+	foundAnchor->address = newaddr;			/* Remember our copy */
+	HTList_addObject (adults, foundAnchor);
+	return (HTAnchor *) foundAnchor;
     }
-    HTList_addObject (adults, foundAnchor);
-    return (HTAnchor *) foundAnchor;
-  }
 }
 
 
@@ -444,7 +436,7 @@ PUBLIC BOOL HTAnchor_link
   if (! (source && destination))
     return NO;  /* Can't link to/from non-existing anchor */
   if (ANCH_TRACE)
-      fprintf(stderr, "LinkAnchor.. Linking anchor %p to anchor %p\n",
+      fprintf(TDEST, "LinkAnchor.. Linking anchor %p to anchor %p\n",
 	      (void *) source, (void *) destination);
   if (! source->mainLink.dest) {
     source->mainLink.dest = destination;
@@ -555,7 +547,7 @@ PUBLIC void HTAnchor_setPhysical ARGS2(HTParentAnchor *, me,
 {
     if (!me || !physical) {
 	if (ANCH_TRACE)
-	    fprintf(stderr, "HTAnchor.... setPhysical, called with null argument\n");
+	    fprintf(TDEST, "HTAnchor.... setPhysical, called with null argument\n");
 	return;
     }
     StrAllocCopy(me->physical, physical);

@@ -34,11 +34,9 @@ Library of Common Code</A>.
 #ifndef SGML_H
 #define SGML_H
 
-#include "sysdep.h"
-#include "HTUtils.h"
 #include "HTStream.h"
-
 </PRE>
+
 <H2>SGML content types</H2>
 <PRE>typedef enum _SGMLContent{
   SGML_EMPTY,    /* no content */
@@ -78,9 +76,6 @@ struct _tag{
     int		number_of_attributes;	/* Number of possible attributes */
     SGMLContent contents;		/* End only on end tag @@ */		
 };
-
-
-
 
 /*		DTD Information
 **		---------------

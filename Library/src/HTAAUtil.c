@@ -47,9 +47,10 @@
 **
 */
 
-#include "sysdep.h"
-
+/* Library include files */
+#include "tcp.h"
 #include "HTUtils.h"
+#include "HTString.h"
 #include "HTAAUtil.h"	/* Implemented here	*/
 #include "HTAssoc.h"	/* Assoc list		*/
 
@@ -142,7 +143,7 @@ PUBLIC BOOL HTAA_templateMatch ARGS2(CONST char *, tmplate,
     int m;
 
     if (!tmplate || !filename) {
-	if (TRACE) fprintf(stderr,
+	if (TRACE) fprintf(TDEST,
 			   "HTAA_templateMatch: invalid param: %s is NULL!!\n",
 			   (tmplate ? "filename" : "template"));
 	return NO;
@@ -195,7 +196,7 @@ PUBLIC BOOL HTAA_templateCaseMatch ARGS2(CONST char *, tmplate,
     int m;
 
     if (!tmplate || !filename) {
-	if (TRACE) fprintf(stderr,
+	if (TRACE) fprintf(TDEST,
 			   "HTAA_templateCaseMatch: invalid param: %s is NULL!!\n",
 			   (tmplate ? "filename" : "template"));
 	return NO;
@@ -252,7 +253,7 @@ PUBLIC char *HTAA_makeProtectionTemplate ARGS1(CONST char *, docname)
     }
     else StrAllocCopy(tmplate, "*");
 
-    if (TRACE) fprintf(stderr,
+    if (TRACE) fprintf(TDEST,
 		       "make_template: made template `%s' for file `%s'\n",
 		       tmplate, docname);
 

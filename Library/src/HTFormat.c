@@ -13,16 +13,13 @@
 **	8 Jul 94  FM	Insulate free() from _free structure element.
 **	8 Nov 94  HFN	Changed a lot to make reentrant
 */
-#include "sysdep.h"
-#include "HTFormat.h"
-
-/* Implementation dependent include files */
-#include "sysdep.h"
-#include "HTUtils.h"
 
 /* Library Include files */
+#include "tcp.h"
+#include "HTUtils.h"
+#include "HTString.h"
 #include "HTTCP.h"
-#include "HTFWriter.h"
+#include "HTFWrite.h"
 #include "HTGuess.h"
 #include "HTThread.h"
 #include "HTError.h"
@@ -360,8 +357,8 @@ PUBLIC BOOL HTRank ARGS4(HTList *, possibilities,
 	}
     }
 
-    CTRACE(stderr, "Ranking.....\n");
-    CTRACE(stderr,
+    if (PROT_TRACE) fprintf(TDEST, "Ranking.....\n");
+    if (PROT_TRACE) fprintf(TDEST,
 	   "\nRANK QUALITY CONTENT-TYPE         LANGUAGE ENCODING    FILE\n");
 
     sorted = HTList_new();
@@ -373,22 +370,23 @@ PUBLIC BOOL HTRank ARGS4(HTList *, possibilities,
 		worst = d;
 	}
 	if (worst) {
-	    CTRACE(stderr, "%d.   %.4f  %-20.20s %-8.8s %-10.10s %s\n",
-		   accepted_cnt+1,
-		   worst->quality,
-		   (worst->content_type
+	    if (PROT_TRACE)
+		fprintf(TDEST, "%d.   %.4f  %-20.20s %-8.8s %-10.10s %s\n",
+			accepted_cnt+1,
+			worst->quality,
+			(worst->content_type
 		         ? HTAtom_name(worst->content_type)      : "-"),
-		   (worst->content_language
+			(worst->content_language
 		         ? HTAtom_name(worst->content_language)  :"-"),
-		   (worst->content_encoding
+			(worst->content_encoding
 		         ? HTAtom_name(worst->content_encoding)  :"-"),
-		   (worst->filename
+			(worst->filename
 		         ? worst->filename                       :"-"));
 	    HTList_removeObject(accepted, (void*)worst);
 	    HTList_addObject(sorted, (void*)worst);
 	}
     }
-    CTRACE(stderr, "\n");
+    if (PROT_TRACE) fprintf(TDEST, "\n");
     HTList_delete(accepted);
     HTList_delete(possibilities->next);
     possibilities->next = sorted->next;
@@ -424,7 +422,7 @@ PUBLIC BOOL HTRank ARGS4(HTList *, possibilities,
 **	many parsers, and on PCs and Macs we should not duplicate
 **	the static buffer area.
 */
-PUBLIC HTInputSocket * HTInputSocket_new ARGS1 (int,file_number)
+PUBLIC HTInputSocket * HTInputSocket_new ARGS1 (SOCKFD, file_number)
 {
     HTInputSocket *isoc = (HTInputSocket *)calloc(1, sizeof(*isoc));
     if (!isoc) outofmem(__FILE__, "HTInputSocket_new");
@@ -447,10 +445,11 @@ PUBLIC int HTInputSocket_getCharacter ARGS1(HTInputSocket*, isoc)
 		    return EOF;
 		if (status == HT_INTERRUPTED) {
 		    if (TRACE)
-			fprintf(stderr, "Get Char.... Interrupted in HTInputSocket_getCharacter\n");
+			fprintf(TDEST, "Get Char.... Interrupted in HTInputSocket_getCharacter\n");
 		    return HT_INTERRUPTED;
 		}
-		HTInetStatus("read");
+		if (PROT_TRACE)
+		    fprintf(TDEST, "Read Socket. READ ERROR %d\n", socerrno);
 		return EOF; 	/* -1 is returned by UCX at end of HTTP link */
 	    }
 	    isoc->input_pointer = isoc->input_buffer;
@@ -478,8 +477,10 @@ PUBLIC char * HTInputSocket_getBlock ARGS2(HTInputSocket*,	isoc,
 			      *len : INPUT_BUFFER_SIZE));
 	if (status <= 0) {
 	    isoc->input_limit = isoc->input_buffer;
-	    if (status < 0)
-		HTInetStatus("read");
+	    if (status < 0) {
+		if (PROT_TRACE)
+		    fprintf(TDEST, "Read Socket. READ ERROR %d\n", socerrno);
+	    }
 	    *len = 0;
 	    return NULL;
 	}
@@ -508,8 +509,10 @@ PRIVATE int fill_in_buffer ARGS1(HTInputSocket *, isoc)
 			 INPUT_BUFFER_SIZE);
 	if (status <= 0) {
 	    isoc->input_limit = isoc->input_buffer;
-	    if (status < 0)
-		HTInetStatus("read");
+	    if (status < 0) {
+		if (PROT_TRACE)
+		    fprintf(TDEST, "Read Socket. READ ERROR %d\n", socerrno);
+	    }
 	}
 	else 
 	    isoc->input_limit = isoc->input_buffer + status;
@@ -662,13 +665,13 @@ PUBLIC HTStream * HTStreamStack ARGS5(HTFormat,		rep_in,
     HTPresentation *pres, *match, *best_match=0;
     
     request->error_block = YES;		   /* No more error output to stream */
-    if (TRACE) fprintf(stderr,
+    if (TRACE) fprintf(TDEST,
     	"StreamStack. Constructing stream stack for %s to %s\n",
 	HTAtom_name(rep_in),	
 	HTAtom_name(rep_out));
 
     if (guess  &&  rep_in == WWW_UNKNOWN) {
-	CTRACE(stderr, "Returning... guessing stream\n");
+	if (PROT_TRACE) fprintf(TDEST, "Returning... guessing stream\n");
 	return HTGuess_new(request, NULL, rep_in, rep_out, output_stream);
     }
 
@@ -689,13 +692,14 @@ PUBLIC HTStream * HTStreamStack ARGS5(HTFormat,		rep_in,
 		    better_match(pres->rep, best_match->rep) ||
 		    (!better_match(best_match->rep, pres->rep) &&
 		     pres->quality > best_quality)) {
-/* HWL */
-		    if (!pres->test_command || (system(pres->test_command)==0)) { 
+#ifdef GOT_SYSTEM
+		    if (!pres->test_command||(system(pres->test_command)==0)){ 
 			if (TRACE && pres->test_command) 
-			    printf("HTStreamStack testing %s %d\n",pres->test_command,system(pres->test_command)); 
+			    fprintf(TDEST, "HTStreamStack testing %s %d\n",pres->test_command,system(pres->test_command)); 
 			best_match = pres;
 			best_quality = pres->quality;
 		    }
+#endif /* GOT_SYSTEM */
 		}
 	    }
 	}
@@ -704,7 +708,7 @@ PUBLIC HTStream * HTStreamStack ARGS5(HTFormat,		rep_in,
     match = best_match ? best_match : NULL;
     if (match) {
 	if (match->rep == WWW_SOURCE) {
-	    if (TRACE) fprintf(stderr, "StreamStack. Don't know how to handle this, so put out %s to %s\n",
+	    if (TRACE) fprintf(TDEST, "StreamStack. Don't know how to handle this, so put out %s to %s\n",
 			       HTAtom_name(match->rep), 
 			       HTAtom_name(rep_out));
 	}
@@ -744,7 +748,7 @@ PUBLIC float HTStackValue ARGS5(
     int which_list;
     HTList* conversion[2];
     
-    if (TRACE) fprintf(stderr,
+    if (TRACE) fprintf(TDEST,
     	"StackValue.. Evaluating stream stack for %s worth %.3f to %s\n",
 	HTAtom_name(rep_in),	initial_value,
 	HTAtom_name(rep_out));
@@ -791,7 +795,7 @@ PUBLIC float HTStackValue ARGS5(
 **
 */
 PUBLIC int HTCopy ARGS2(
-	int,			file_number,
+	SOCKFD,			file_number,
 	HTStream*,		sink)
 {
     HTStreamClass targetClass;    
@@ -813,9 +817,9 @@ PUBLIC int HTCopy ARGS2(
 		file_number, isoc->input_buffer, INPUT_BUFFER_SIZE);
 	if (status <= 0) {
 	    if (status == 0) break;
-	    if (TRACE) fprintf(stderr,
+	    if (TRACE) fprintf(TDEST,
 		"Socket Copy. Read error, read returns %d with errno=%d\n",
-		status, errno);
+		status, socerrno);
 	    break;
 	}
 
@@ -866,7 +870,7 @@ PUBLIC void HTFileCopy ARGS2(
 	       input_buffer, 1, INPUT_BUFFER_SIZE, fp);
 	if (status == 0) { /* EOF or error */
 	    if (ferror(fp) == 0) break;
-	    if (TRACE) fprintf(stderr,
+	    if (TRACE) fprintf(TDEST,
 		"File Copy... Read error, read returns %d\n", ferror(fp));
 	    break;
 	}
@@ -890,7 +894,7 @@ PUBLIC void HTFileCopy ARGS2(
 **	Character handling is now of type int, Henrik, May 09-94
 */
 PUBLIC void HTCopyNoCR ARGS2(
-	int,			file_number,
+	SOCKFD,			file_number,
 	HTStream*,		sink)
 {
     HTStreamClass targetClass;
@@ -930,14 +934,14 @@ PUBLIC void HTCopyNoCR ARGS2(
 
 PUBLIC int HTParseSocket ARGS3(
 	HTFormat,		rep_in,
-	int,			file_number,
+	SOCKFD,			file_number,
 	HTRequest *,		request)
 {
     HTStream * stream;
     HTStreamClass targetClass;    
 
     if (request->error_stack) {
-	if (TRACE) fprintf(stderr, "ParseSocket. Called whith non-empty error stack, so I return right away!\n");
+	if (TRACE) fprintf(TDEST, "ParseSocket. Called whith non-empty error stack, so I return right away!\n");
 	return -1;
     }
 
@@ -990,7 +994,7 @@ PUBLIC int HTParseFile ARGS3(
     HTStreamClass targetClass;    
 
     if (request->error_stack) {
-	if (TRACE) fprintf(stderr, "ParseFile... Called whith non-empty error stack, so I return right away!\n");
+	if (TRACE) fprintf(TDEST, "ParseFile... Called whith non-empty error stack, so I return right away!\n");
 	return -1;
     }
 
@@ -1137,8 +1141,8 @@ PUBLIC int HTInputSocket_read ARGS2(HTInputSocket *, isoc, HTStream *, target)
 {
     int b_read;
 
-    if (!isoc || isoc->input_file_number < 0) {
-	if (PROT_TRACE) fprintf(stderr, "Read Socket. Bad argument\n");
+    if (!isoc || isoc->input_file_number==INVSOC) {
+	if (PROT_TRACE) fprintf(TDEST, "Read Socket. Bad argument\n");
 	return EOF;
     }
 
@@ -1149,19 +1153,19 @@ PUBLIC int HTInputSocket_read ARGS2(HTInputSocket *, isoc, HTStream *, target)
 	if ((b_read = NETREAD(isoc->input_file_number, isoc->input_buffer,
 			      INPUT_BUFFER_SIZE)) < 0) {
 #ifdef EAGAIN
-	    if (errno == EAGAIN || errno == EWOULDBLOCK)      /* POSIX, SVR4 */
+	    if (socerrno==EAGAIN || socerrno==EWOULDBLOCK)    /* POSIX, SVR4 */
 #else
-	    if (errno == EWOULDBLOCK)				      /* BSD */
+	    if (socerrno == EWOULDBLOCK)			      /* BSD */
 #endif
 	    {
 		if (THD_TRACE)
-		    fprintf(stderr, "Read Socket. WOULD BLOCK soc %d\n",
+		    fprintf(TDEST, "Read Socket. WOULD BLOCK soc %d\n",
 			    isoc->input_file_number);
 		HTThreadState(isoc->input_file_number, THD_SET_READ);
 		return HT_WOULD_BLOCK;
 	    } else {				     /* We have a real error */
 		if (PROT_TRACE)
-		    fprintf(stderr, "Read Socket. READ ERROR %d\n", errno);
+		    fprintf(TDEST, "Read Socket. READ ERROR %d\n", socerrno);
 		return EOF;
 	    }
 	} else if (!b_read) {
@@ -1181,11 +1185,8 @@ PUBLIC int HTInputSocket_read ARGS2(HTInputSocket *, isoc, HTStream *, target)
 	/* This is based on the assumption that we actually get rid of ALL
 	   the bytes we have read. Maybe more feedback! */
 	if (PROT_TRACE)
-	    fprintf(stderr, "Read Socket. %d bytes read\n", b_read);
+	    fprintf(TDEST, "Read Socket. %d bytes read\n", b_read);
 	(*target->isa->put_block)(target, isoc->input_buffer, b_read);
 	isoc->input_pointer += b_read;
     }
 }
-
-
-

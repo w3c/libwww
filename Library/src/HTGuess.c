@@ -13,15 +13,16 @@
 **
 */
 
-#include "sysdep.h"
-
-#define SAMPLE_SIZE	200	/* Number of chars to look at */
-
-#include "HTGuess.h"
-
+/* Library include files */
+#include "tcp.h"
+#include "HTUtils.h"
+#include "HTString.h"
 #include "HTFormat.h"
 #include "HTAlert.h"
 #include "HTList.h"
+#include "HTGuess.h"
+
+#define SAMPLE_SIZE	200	/* Number of chars to look at */
 
 /*		Stream Object
 **		------------
@@ -79,10 +80,11 @@ PRIVATE BOOL is_html ARGS1(char *, buf)
 
 PRIVATE BOOL header_and_flush ARGS1(HTStream *, me)
 {
-    CTRACE(stderr,"GUESSING.... text=%d newlines=%d ctrl=%d high=%d\n",
-	   me->text_cnt, me->lf_cnt, me->ctrl_cnt, me->high_cnt);
+    if (PROT_TRACE)
+	fprintf(TDEST,"GUESSING.... text=%d newlines=%d ctrl=%d high=%d\n",
+		me->text_cnt, me->lf_cnt, me->ctrl_cnt, me->high_cnt);
     if (me->cnt) {
-	CTRACE(stderr,
+	if (PROT_TRACE) fprintf(TDEST,
 	       "Percentages. text=%d%% newlines=%d%% ctrl=%d%% high=%d%%\n",
 	       (int)(100*me->text_cnt/me->cnt + 0.5),
 	       (int)(100*me->lf_cnt  /me->cnt + 0.5),
@@ -142,8 +144,10 @@ PRIVATE BOOL header_and_flush ARGS1(HTStream *, me)
     if (!me->req->content_type)  CONTENT_TYPE("www/unknown");
     if (!me->req->content_encoding)  CONTENT_ENCODING("binary");
 
-    CTRACE(stderr,"Guessed..... %s\n", HTAtom_name(me->req->content_type));
-    CTRACE(stderr,"Encoding.... %s\n", HTAtom_name(me->req->content_encoding));
+    if (PROT_TRACE)
+	fprintf(TDEST,"Guessed..... %s\n",HTAtom_name(me->req->content_type));
+    if (PROT_TRACE)
+	fprintf(TDEST,"Encoding.... %s\n",HTAtom_name(me->req->content_encoding));
 
     me->target = HTStreamStack(me->req->content_type, me->output_format,
 			       me->output_stream, me->req, NO);

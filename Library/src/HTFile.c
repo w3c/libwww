@@ -24,18 +24,16 @@
 **	target machine runs VMS?
 */
 
-/* System dependent stuff */
-#include "sysdep.h"
-
 /* Library Includes */
+#include "tcp.h"
 #include "HTUtils.h"
+#include "HTString.h"
 #include "HTParse.h"
 #include "HTTCP.h"
-#include "HTFTP.h"
 #include "HTAnchor.h"
 #include "HTAtom.h"
 #include "HTWriter.h"
-#include "HTFWriter.h"
+#include "HTFWrite.h"
 #include "HTInit.h"
 #include "HTBTree.h"
 #include "HTFormat.h"
@@ -44,6 +42,7 @@
 #include "HTFile.h"		/* Implemented here */
 
 #ifdef VMS
+#include "HTVMSUtils.h"
 PRIVATE char * suffix_separators = "._";
 #else
 PRIVATE char * suffix_separators = ".,_";
@@ -239,7 +238,8 @@ PUBLIC HTContentDescription * HTGetContentDescription ARGS2(char **,	actual,
 	HTSuffix * suff;
 	BOOL found = NO;
 
-	CTRACE(stderr, "Searching... for suffix %d: \"%s\"\n", i, actual[i]);
+	if (PROT_TRACE)
+	    fprintf(TDEST, "Searching... for suffix %d: \"%s\"\n",i,actual[i]);
 
 	while ((suff = (HTSuffix*)HTList_nextObject(cur))) {
 	    if ((HTSuffixCaseSense && !strcmp(suff->suffix, actual[i])) ||
@@ -346,7 +346,8 @@ PUBLIC char * HTLocalName ARGS1(CONST char *,name)
         HTVMS_checkDecnet(path);
 #endif /* VMS */
 
-	CTRACE(stderr, "Local filename is \"%s\"\n", path);
+	if (PROT_TRACE)
+	    fprintf(TDEST, "Local filename is \"%s\"\n", path);
 	return(path);
     }
 
@@ -360,7 +361,8 @@ PUBLIC char * HTLocalName ARGS1(CONST char *,name)
         HTVMS_checkDecnet(path);
 #endif /* VMS */
 
-	    if (TRACE) fprintf(stderr, "Node........ `%s' means path `%s'\n", name, path);
+	    if (TRACE)
+		fprintf(TDEST, "Node........ `%s' means path `%s'\n",name,path);
 	    return(path);
 	} else {
 	    char * result = (char *)malloc(
@@ -369,7 +371,7 @@ PUBLIC char * HTLocalName ARGS1(CONST char *,name)
 	    sprintf(result, "%s%s%s", "/Net/", host, path);
 	    free(host);
 	    free(path);
-	    if (TRACE) fprintf(stderr, "Node........ `%s' means file `%s'\n", name, result);
+	    if (TRACE) fprintf(TDEST, "Node........ `%s' means file `%s'\n", name, result);
 	    return result;
 	}
     } else {  /* other access */
@@ -422,7 +424,7 @@ PUBLIC char * WWW_nameOfFile ARGS1 (CONST char *,name)
 	if (result == NULL) outofmem(__FILE__, "WWW_nameOfFile");
 	sprintf(result, "file://%s%s", HTGetHostName(), name);
     }
-    if (TRACE) fprintf(stderr, "File `%s'\n\tmeans node `%s'\n", name, result);
+    if (TRACE) fprintf(TDEST, "File `%s'\n\tmeans node `%s'\n", name, result);
     return result;
 }
 
@@ -525,7 +527,7 @@ PUBLIC float HTFileValue ARGS1 (CONST char *,filename)
     while ((suff = (HTSuffix*)HTList_nextObject(cur))) {
         int ls = strlen(suff->suffix);
 	if ((ls <= lf) && 0==strcmp(suff->suffix, filename + lf - ls)) {
-	    if (TRACE) fprintf(stderr, "File Value.. Value of %s is %.3f\n",
+	    if (TRACE) fprintf(TDEST, "File Value.. Value of %s is %.3f\n",
 			       filename, suff->quality);
 	    return suff->quality;		/* OK -- found */
 	}
@@ -544,12 +546,17 @@ PUBLIC float HTFileValue ARGS1 (CONST char *,filename)
 **	1.	No code for non-unix systems.
 **	2.	Isn't there a quicker way?
 */
+#ifndef NO_UNIX_IO
 PUBLIC BOOL HTEditable ARGS1 (CONST char *,filename)
 {
-#ifndef HAVE_GRP_H
+#ifdef NO_GROUPS
     return NO;		/* Safe answer till we find the correct algorithm */
 #else
-    GETGROUPS_T groups[NGROUPS];
+#ifdef NeXT
+    int		groups[NGROUPS];
+#else
+    gid_t 	groups[NGROUPS];
+#endif	
     uid_t	myUid;
     int		ngroups;			/* The number of groups  */
     struct stat	fileStatus;
@@ -563,12 +570,12 @@ PUBLIC BOOL HTEditable ARGS1 (CONST char *,filename)
 
     if (TRACE) {
         int i;
-	fprintf(stderr, 
+	fprintf(TDEST, 
 	    "File mode is 0%o, uid=%d, gid=%d. My uid=%d, %d groups (",
     	    (unsigned int) fileStatus.st_mode, (int) fileStatus.st_uid,
 	    (int) fileStatus.st_gid, (int) myUid, ngroups);
-	for (i=0; i<ngroups; i++) fprintf(stderr, " %d", (int) groups[i]);
-	fprintf(stderr, ")\n");
+	for (i=0; i<ngroups; i++) fprintf(TDEST, " %d", (int) groups[i]);
+	fprintf(TDEST, ")\n");
     }
     
     if (fileStatus.st_mode & 0002)		/* I can write anyway? */
@@ -585,10 +592,11 @@ PUBLIC BOOL HTEditable ARGS1 (CONST char *,filename)
 	        return YES;
 	}
     }
-    if (TRACE) fprintf(stderr, "\tFile is not editable.\n");
+    if (TRACE) fprintf(TDEST, "\tFile is not editable.\n");
     return NO;					/* If no excuse, can't do */
 #endif
 }
+#endif /* NO_UNIX_IO */
 
 /*	Make a save stream
 **	------------------
@@ -627,16 +635,16 @@ PUBLIC HTStream * HTFileSaveStream ARGS1(HTRequest *, request)
 	if ((fp=fopen(filename, "r"))) {		/* File exists */
 #endif /* not VMS */
 	    fclose(fp);
-	    if (TRACE) fprintf(stderr, "File `%s' exists\n", filename);
+	    if (TRACE) fprintf(TDEST, "File `%s' exists\n", filename);
 	    if (remove(backup_filename)) {
-		if (TRACE) fprintf(stderr, "Backup file `%s' removed\n",
+		if (TRACE) fprintf(TDEST, "Backup file `%s' removed\n",
 				   backup_filename);
 	    }
 	    if (rename(filename, backup_filename)) {	/* != 0 => Failure */
-		if (TRACE) fprintf(stderr, "Rename `%s' to `%s' FAILED!\n",
+		if (TRACE) fprintf(TDEST, "Rename `%s' to `%s' FAILED!\n",
 				   filename, backup_filename);
 	    } else {					/* Success */
-		if (TRACE) fprintf(stderr, "Renamed `%s' to `%s'\n", filename,
+		if (TRACE) fprintf(TDEST, "Renamed `%s' to `%s'\n", filename,
 				   backup_filename);
 	    }
 	}
@@ -644,7 +652,7 @@ PUBLIC HTStream * HTFileSaveStream ARGS1(HTRequest *, request)
     } /* if take backup */    
     
     if ((fp = fopen(filename, "w")) == NULL) {
-	HTErrorSysAdd(request, ERR_FATAL, NO, "fopen");
+	HTErrorSysAdd(request, ERR_FATAL, errno, NO, "fopen");
 	return NULL;
     } else
     	return HTFWriter_new(fp, NO);
@@ -669,11 +677,11 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
     char *url;
 
     if (!request || !request->anchor) {
-	if (TRACE) fprintf(stderr, "HTLoadFile.. Called with bad argument\n");
+	if (TRACE) fprintf(TDEST, "HTLoadFile.. Called with bad argument\n");
 	return HT_INTERNAL;
     }
     url = HTAnchor_physical(request->anchor);
-    if (TRACE) fprintf(stderr, "LoadFile.... Looking for `%s\'\n", url);
+    if (TRACE) fprintf(TDEST, "LoadFile.... Looking for `%s\'\n", url);
 
 
 /*	For unix, we try to translate the name into the name of a transparently
@@ -681,17 +689,19 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 **
 **	Not allowed in secure (HTClientHost) situations TBL 921019
 */
+#ifndef NO_UNIX_IO
     /*  Need protection here for telnet server but not httpd server */
 	 
     if (!HTSecure) {
 	char * localname = HTLocalName(url);		   /* Does unescape! */
 	struct stat stat_info;
 	char * multi;
-	HTFormat format = HTFileFormat(localname, &request->content_encoding,
-				       &request->content_language);
-	if (TRACE) fprintf(stderr, "HTLoadFile.. Accessing local file system.\n");
+	request->content_type = HTFileFormat(localname,
+					     &request->content_encoding,
+					     &request->content_language);
+	if (TRACE) fprintf(TDEST, "HTLoadFile.. Accessing local file system.\n");
 
-#ifdef HAVE_OPENDIR
+#ifdef GOT_READ_DIR
 
 /*	Multiformat handling. If suffix matches MULTI_SUFFIX then scan
 **	directory to find a good file.
@@ -720,7 +730,7 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 */
 	if (HTStat(localname, &stat_info) == -1) {
 	    if (TRACE)
-		fprintf(stderr, "HTLoadFile.. Can't stat %s\n", localname);
+		fprintf(TDEST, "HTLoadFile.. Can't stat %s\n", localname);
 	} else {
 	    if (((stat_info.st_mode) & S_IFMT) == S_IFDIR) {
 		status = HTBrowseDirectory(request, localname);
@@ -729,7 +739,7 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 	    }
 	}
 
-#endif /* HAVE_OPENDIR */
+#endif /* GOT_READ_DIR */
 
 open_file:
 	{
@@ -740,7 +750,7 @@ open_file:
 #endif /* not VMS */
 
 	    if (fp) {
-		if(TRACE) fprintf (stderr, "HTLoadFile.. Opened `%s' on local file system\n", localname);
+		if(TRACE) fprintf(TDEST, "HTLoadFile.. Opened `%s' on local file system\n", localname);
 		if (HTEditable(localname)) {
 		    HTAtom * put = HTAtom_for("PUT");
 		    HTList * methods = HTAnchor_methods(request->anchor);
@@ -748,27 +758,31 @@ open_file:
 			HTList_addObject(methods, put);
 		    }
 		}
-		status = HTParseFile(format, fp, request);
+		status = HTParseFile(request->content_type, fp, request);
 		fclose(fp);
 
 		FREE(localname);
 		goto cleanup;
 	    } else
-		HTErrorSysAdd(request, ERR_FATAL, NO, "fopen");
+		HTErrorSysAdd(request, ERR_FATAL, errno, NO, "fopen");
 	}
 	FREE(localname);
     } /* End of local file system */
+#endif /* NO_UNIX_IO */
 
 #ifndef DECNET
     /* Now, as transparently mounted access has failed, we try FTP. */
     {
 	char *nodename = HTParse(url, "", PARSE_HOST);
-	if (nodename && *nodename && strcmp(nodename, HTGetHostName())!=0) {
-	    char * newname = NULL;
+	CONST char *hostname = HTGetHostName();
+	if (nodename && *nodename && hostname &&
+	    strcmp(nodename, hostname) && strcmp(nodename, "localhost")) {
+	    HTAnchor *anchor;
+	    char *newname = NULL;
 	    char *unescaped = NULL;
 	    StrAllocCopy(unescaped, url);
 	    HTUnEscape(unescaped);
-	    HTErrorAdd(request, ERR_FATAL, NO, HTERR_FILE_TO_FTP,
+	    HTErrorAdd(request, ERR_WARN, NO, HTERR_FILE_TO_FTP,
 		       (void *) unescaped,
 		       (int) strlen(unescaped), "HTLoadFile");
 	    StrAllocCopy(newname, "ftp:");
@@ -776,32 +790,21 @@ open_file:
 		StrAllocCat(newname, url+5);
 	    else
 		StrAllocCat(newname, url);
-	    HTAnchor_setPhysical(request->anchor, newname);
+	    anchor = HTAnchor_findAddress(newname);
 	    free(newname);
 	    free(nodename);
 	    free(unescaped);
-	    return HTLoad(request, YES);      /* Jump directly to FTP module */
+	    return HTLoadAnchorRecursive(anchor, request);
 	}
 	free(nodename);
     }
 #endif
 
   cleanup:
-#if 0
-    if (status < 0 && status != HT_INTERRUPTED) {
-        char *unescaped = NULL;
-        StrAllocCopy(unescaped, url);
-        HTUnEscape(unescaped);
-        HTErrorAdd(request, ERR_FATAL, NO, HTERR_NOT_FOUND, (void *) unescaped,
-                   (int) strlen(unescaped), "HTLoadFile");
-        free(unescaped);
-    }
-#endif
     return status;
 }
 
-/*		Protocol descriptors
-*/
+/* Protocol descriptors */
 GLOBALDEF PUBLIC HTProtocol HTFile = {
     "file", SOC_BLOCK, HTLoadFile, HTFileSaveStream, NULL
 };
