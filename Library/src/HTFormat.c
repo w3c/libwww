@@ -19,6 +19,7 @@
 #include "sysdep.h"
 #include "WWWUtil.h"
 #include "HTStream.h"
+#include "HTWWWStr.h"
 #include "HTFWrite.h"
 #include "HTError.h"
 #include "HTFormat.h"					 /* Implemented here */
@@ -427,36 +428,6 @@ PRIVATE BOOL better_match (HTFormat f, HTFormat g)
     return NO;
 }
 
-
-PRIVATE BOOL wild_match (HTAtom * tmplate, HTAtom * actual)
-{
-    const char *t, *a;
-    char *st, *sa;
-    BOOL match = NO;
-
-    if (tmplate && actual && (t = HTAtom_name(tmplate))) {
-	if (!strcmp(t, "*"))
-	    return YES;
-
-	if (strchr(t, '*') &&
-	    (a = HTAtom_name(actual)) &&
-	    (st = strchr(t, '/')) && (sa = strchr(a,'/'))) {
-
-	    *sa = 0;
-	    *st = 0;
-
-	    if ((*(st-1)=='*' &&
-		 (*(st+1)=='*' || !strcasecomp(st+1, sa+1))) ||
-		(*(st+1)=='*' && !strcasecomp(t,a)))
-		match = YES;
-
-	    *sa = '/';
-	    *st = '/';
-	}    
-    }
-    return match;
-}
-
 /*	Create a Content Type filter stack
 **	----------------------------------
 **	If a wildcard match is made, a temporary HTPresentation
@@ -502,8 +473,8 @@ PUBLIC HTStream * HTStreamStack (HTFormat	rep_in,
     for(which_list = 0; which_list<2; which_list++) {
 	HTList * cur = conversion[which_list];
 	while ((pres = (HTPresentation*)HTList_nextObject(cur))) {
-	    if ((pres->rep==rep_in || wild_match(pres->rep, rep_in)) &&
-		(pres->rep_out==rep_out || wild_match(pres->rep_out,rep_out))){
+	    if ((pres->rep==rep_in || HTMIMEMatch(pres->rep, rep_in)) &&
+		(pres->rep_out==rep_out || HTMIMEMatch(pres->rep_out,rep_out))){
 		if (!best_match || better_match(pres->rep, best_match->rep) ||
 		    (!better_match(best_match->rep, pres->rep) &&
 		     pres->quality > best_quality)) {
@@ -580,7 +551,7 @@ PUBLIC double HTStackValue (HTList *	theseConversions,
 	HTPresentation * pres;
 	while ((pres = (HTPresentation*)HTList_nextObject(cur))) {
 	    if (pres->rep == rep_in &&
-		(pres->rep_out == rep_out || wild_match(pres->rep_out, rep_out))) {
+		(pres->rep_out == rep_out || HTMIMEMatch(pres->rep_out, rep_out))) {
 	        double value = initial_value * pres->quality;
 		if (HTMaxSecs != 0.0)
 		    value = value - (length*pres->secs_per_byte + pres->secs)

@@ -784,10 +784,23 @@ extern BOOL HTRequest_negotiation (HTRequest *request);
 <P>
 In early versions of HTTP, the request sent to the remote server varies whether
 we use a proxy or go directly to the origin server. The default value is
-<EM>OFF</EM>.
+<EM>OFF</EM> but we use a full request if we are talking to a proxy server.
 <PRE>
 extern void HTRequest_setFullURI (HTRequest *request, BOOL mode);
 extern BOOL HTRequest_fullURI (HTRequest *request);
+</PRE>
+<H2>
+  Proxy URL
+</H2>
+<P>
+In case we are using a proxy for this requst then we can register it together
+with the request object. That way we can find the proxy and look for
+authentication information, for example in the
+<A HREF="HTAAUtil.html">Authentication filter</A>. The string is freed by the
+Request object on deletion.
+<PRE>
+extern BOOL HTRequest_setProxy (HTRequest * request, const char * proxy);
+extern char * HTRequest_proxy (HTRequest * request);
 </PRE>
 <H2>
   <A NAME="Error">Error Object</A>

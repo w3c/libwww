@@ -32,19 +32,18 @@ AC_DEFUN(AC_PATH_WAIS, [
 AC_MSG_CHECKING(for WAIS)
 AC_CACHE_VAL(ac_cv_path_wais,
 [
-WAISPATH="$WAISPATH $srcdir/../*WAIS* $srcdir/../../*WAIS* $srcdir/../../../*WAIS* $srcdir/../*wais* $srcdir/../../*wais* $srcdir/../../../*wais*"
+WAISPATH="$WAISPATH ${srcdir}/*WAIS* ${srcdir}/*wais* ${srcdir}/../*WAIS* ${srcdir}/../../*WAIS* ${srcdir}/../../../*WAIS* ${srcdir}/../*wais* ${srcdir}/../../*wais* ${srcdir}/../../../*wais*"
 for ac_dir in $WAISPATH ; do
-  if test -f $ac_dir/ir/ui.h; then
+  if test -f ${ac_dir}/include/ui.h; then
     ac_cv_path_wais=$ac_dir
     break;
   fi
 done
 ])
 ac_path_wais=$ac_cv_path_wais
-test -z $ac_path_wais && ac_path_wais=missing
+test -z "$ac_path_wais" && ac_path_wais=missing
 AC_MSG_RESULT($ac_path_wais)
-if test -n $ac_cv_path_wais; then
-  CFLAGS="$CFLAGS -I$ac_path_wais/ir"
+if test -n "$ac_cv_path_wais"; then
   LIBS="$LIBS $ac_path_wais/bin/client.a $ac_path_wais/bin/wais.a"
   ifelse([$1], , :, [$1])
 ifelse([$2], , , [else
@@ -85,7 +84,7 @@ AC_CACHE_VAL(ac_cv_path_socks,
 [
   AC_CHECK_LIB(socks, main, ac_cv_path_socks=installed, 
   [
-    SOCKSPATH="$SOCKSPATH $srcdir/../*SOCKS* $srcdir/../../*SOCKS* $srcdir/../../../*SOCKS* $srcdir/../*socks* $srcdir/../../*socks* $srcdir/../../../*socks*"
+    SOCKSPATH="$SOCKSPATH ${srcdir}/../*SOCKS* ${srcdir}/../../*SOCKS* ${srcdir}/../../../*SOCKS* ${srcdir}/../*socks* ${srcdir}/../../*socks* ${srcdir}/../../../*socks*"
     for ac_dir in $SOCKSPATH; do
       if test -f $ac_dir/lib/libsocks.a ; then
         ac_cv_path_socks=$ac_dir/lib
@@ -95,9 +94,9 @@ AC_CACHE_VAL(ac_cv_path_socks,
   ])
 ])
 ac_path_socks=$ac_cv_path_socks
-test -z $ac_path_socks && ac_path_socks=missing
+test -z "$ac_path_socks" && ac_path_socks=missing
 AC_MSG_RESULT($ac_path_socks)
-if test -n $ac_cv_path_socks && test "$ac_path_socks" != installed ; then
+if test -n "$ac_cv_path_socks" && test "$ac_path_socks" != installed ; then
   LIBS="$LIBS $ac_path_socks/libsocks.a"
 fi;
 if test -n $ac_cv_path_socks; then
@@ -563,7 +562,7 @@ if test "$no_recursion" != yes; then
 
     # Do not complain, so a configure script can configure whichever
     # parts of a large source tree are present.
-    if test ! -d $srcdir/../$ac_config_dir; then
+    if test ! -d ${srcdir}/../$ac_config_dir; then
       continue
     fi
 
@@ -573,20 +572,20 @@ if test "$no_recursion" != yes; then
     ac_bn=`basename $ac_pd`
     AC_SUBST(ac_bn)
 
-    case "$srcdir" in
+    case "${srcdir}" in
     .) ;;
     *)
-      if test -d $srcdir/../$ac_config_dir/$ac_bn || mkdir $srcdir/../$ac_config_dir/$ac_bn; then :;
+      if test -d ${srcdir}/../$ac_config_dir/$ac_bn || mkdir ${srcdir}/../$ac_config_dir/$ac_bn; then :;
       else
-        AC_MSG_ERROR(can not create `pwd`/$srcdir/../$ac_config_dir/$bn)
+        AC_MSG_ERROR(can not create `pwd`/${srcdir}/../$ac_config_dir/$bn)
       fi
       ;;
     esac
 
     ac_popdir=`pwd`
-    cd $srcdir/../$ac_config_dir/$ac_bn
+    cd ${srcdir}/../$ac_config_dir/$ac_bn
 
-    ac_sub_srcdir=$srcdir
+    ac_sub_srcdir=${srcdir}
 
     # Check for guested configure; otherwise get Cygnus style configure.
     if test -f $ac_sub_srcdir/configure; then

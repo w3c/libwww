@@ -241,9 +241,8 @@ PRIVATE int MIMERequest_put_block (HTStream * me, const char * b, int l)
 		    HTNet * net = HTRequest_net(me->request);
 		    int zzzz = HTRequest_retrys(me->request);
 		    zzzz = zzzz ? zzzz * 2 : 2;
-		    if (STREAM_TRACE)
-			HTTrace("MIME........ Sleeping for %d secs\n", zzzz);
 		    (*me->target->isa->flush)(me->target);
+		    if (STREAM_TRACE) HTTrace("MIME........ Sleeping for %d secs\n", zzzz);
 		    HTEvent_register(net->sockfd, me->request,
 				     (SockOps) FD_READ | FD_WRITE,
 				     net->cbf, net->priority);
@@ -259,6 +258,7 @@ PRIVATE int MIMERequest_put_block (HTStream * me, const char * b, int l)
     if (b) {
 	HTParentAnchor * entity = HTRequest_entityAnchor(me->request);
 	long cl = HTAnchor_length(entity);
+	if (STREAM_TRACE)
 	return (cl>=0 && HTNet_bytesWritten(net) >= cl) ?
 	    HT_LOADED : PUTBLOCK(b, l);
     }

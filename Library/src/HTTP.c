@@ -349,7 +349,15 @@ PRIVATE int stream_pipe (HTStream * me)
 	return HT_WOULD_BLOCK;
     }
 	
+    /*
+    ** Just check for HTTP and not HTTP/ as NCSA server chokes on 1.1 replies
+    ** Thanks to Markku Savela <msa@msa.tte.vtt.fi>
+    */
+#if 0
     if (strncasecomp(me->buffer, "http/", 5)) {
+#else
+    if (strncasecomp(me->buffer, "http", 4)) {
+#endif
 	int status;
 	HTRequest_addError(req, ERR_INFO, NO, HTERR_HTTP09,
 		   (void *) me->buffer, me->buflen, "HTTPStatusStream");

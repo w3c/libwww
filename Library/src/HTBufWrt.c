@@ -113,7 +113,6 @@ PRIVATE int HTBufferWriter_write (HTOutputStream *me, const char *buf, int len)
 	me->read = me->data;
     me->block = NULL;
     me->net->bytes_written += total;
-    if (WWWTRACE) HTTrace("TESTTESTTEST size %ld\n", me->net->bytes_written);
     return HT_OK;
 }
 

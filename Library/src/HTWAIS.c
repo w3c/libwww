@@ -60,8 +60,8 @@
 **			---------
 */
 
-#include <ui.h>
-#include <sockets.h>
+#include "ui.h"
+#include "sockets.h"
 
 #define MAX_MESSAGE_LEN 100000
 #define CHARS_PER_PAGE 10000 /* number of chars retrieved in each request */
@@ -79,6 +79,7 @@
 #include "sysdep.h"
 #include "WWWUtil.h"
 #include "WWWCore.h"
+#include "WWWHTML.h"
  
 extern FILE * logfile;		/* Log file output */
 
@@ -268,9 +269,9 @@ PRIVATE char * WWW_from_WAIS (any * docid)
     if (PROT_TRACE) HTTrace("HTLoadWAIS.. WWW form of id: %s\n", buf); 
     {
         char *result;
-	if ((result = (char *) HT_MALLOC((int) strlen(buf)+1)) == NULL)
+	if ((result = (char *) HT_MALLOC((int) strlen((char *) buf)+1))==NULL)
 	    HT_OUTOFMEM("WWW_from_WAIS");
-	strcpy(result, buf);
+	strcpy(result, (char *) buf);
 	return result;
     }
 } /* WWW_from_WAIS */

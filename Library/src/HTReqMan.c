@@ -182,6 +182,9 @@ PUBLIC void HTRequest_delete (HTRequest * request)
 	HT_FREE(request->realm);
 	HT_FREE(request->scheme);
 
+	/* Proxy information */
+	HT_FREE(request->proxy);
+
 	/* PEP Information */
 
 	/* more */
@@ -697,16 +700,33 @@ PUBLIC BOOL HTRequest_negotiation (HTRequest *request)
 }
 
 /*
-**	Are we using a proxy or not?
+**	Are we using the full URL in the request or not?
 */
 PUBLIC void HTRequest_setFullURI (HTRequest *request, BOOL mode)
 {
-    if (request) request->using_proxy = mode;
+    if (request) request->full_uri = mode;
 }
 
 PUBLIC BOOL HTRequest_fullURI (HTRequest *request)
 {
-    return request ? request->using_proxy : NO;
+    return request ? request->full_uri : NO;
+}
+
+/*
+**	Are we using a proxy or not and in that case, which one?
+*/
+PUBLIC BOOL HTRequest_setProxy (HTRequest * request, const char * proxy)
+{
+    if (request && proxy) {
+	StrAllocCopy(request->proxy, proxy);
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC char * HTRequest_proxy (HTRequest * request)
+{
+    return request ? request->proxy : NULL;
 }
 
 /*

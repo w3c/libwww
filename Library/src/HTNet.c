@@ -219,6 +219,11 @@ PUBLIC BOOL HTNetCall_addBefore (HTNetCallback * cbf, void * param, int status)
     return HTNetCall_add(HTBefore, cbf, param, status);
 }
 
+PUBLIC BOOL HTNetCall_deleteBefore (HTNetCallback * cbf)
+{
+    return HTNetCall_delete(HTBefore, cbf);
+}
+
 /*
 **	Global set of callback functions AFTER the request is issued
 **	list can be NULL
@@ -254,6 +259,11 @@ PUBLIC BOOL HTNetCall_addAfter (HTNetCallback * cbf, void * param, int status)
 {
     if (!HTAfter) HTAfter = HTList_new();
     return HTNetCall_add(HTAfter, cbf, param, status);
+}
+
+PUBLIC BOOL HTNetCall_deleteAfter (HTNetCallback * cbf)
+{
+    return HTNetCall_delete(HTBefore, cbf);
 }
 
 /* ------------------------------------------------------------------------- */

@@ -306,13 +306,13 @@ PUBLIC const char *HTDateTimeStr (time_t * calendar, BOOL local)
 	struct tm *loctime = localtime(calendar);
 #endif /* HT_REENTRANT */
 	sprintf(buf,"%s, %02d %s 19%02d %02d:%02d:%02d",
-		wkdays[gmt->tm_wday],
-		gmt->tm_mday,
-		months[gmt->tm_mon],
-		gmt->tm_year % 100,
-		gmt->tm_hour,
-		gmt->tm_min,
-		gmt->tm_sec);
+		wkdays[loctime->tm_wday],
+		loctime->tm_mday,
+		months[loctime->tm_mon],
+		loctime->tm_year % 100,
+		loctime->tm_hour,
+		loctime->tm_min,
+		loctime->tm_sec);
     } else {
 #if defined(HT_REENTRANT) || defined(SOLARIS)
 	struct tm gmt;
@@ -352,7 +352,7 @@ PUBLIC BOOL HTDateDirStr (time_t * time, char * str, int len)
 #else
     if (len >= 16) {
 	struct tm *loctime = localtime(time);
-	sprintf(bodyptr,"%02d-%s-%02d %02d:%02d",
+	sprintf(str,"%02d-%s-%02d %02d:%02d",
 		loctime->tm_mday,
 		months[loctime->tm_mon],
 		loctime->tm_year % 100,
@@ -392,6 +392,41 @@ PUBLIC void HTNumToStr (unsigned long n, char * str, int len)
 	sprintf(str, "%.1fG", (size + 0.05));
     else
 	sprintf(str, "%dG", (int)(size + 0.5));
+}
+
+/*
+**	Matches MIME constructions for content-types and others like
+**	them, for example "text/html", "text/plain". It can also match
+**	wild cards like "text/<star>" and "<star>/<star>. We use <star>
+**	instead of * in order note to make C like comments :-)
+*/
+PUBLIC BOOL HTMIMEMatch (HTAtom * tmplate, HTAtom * actual)
+{
+    const char *t, *a;
+    char *st, *sa;
+    BOOL match = NO;
+
+    if (tmplate && actual && (t = HTAtom_name(tmplate))) {
+	if (!strcmp(t, "*"))
+	    return YES;
+
+	if (strchr(t, '*') &&
+	    (a = HTAtom_name(actual)) &&
+	    (st = strchr(t, '/')) && (sa = strchr(a,'/'))) {
+
+	    *sa = 0;
+	    *st = 0;
+
+	    if ((*(st-1)=='*' &&
+		 (*(st+1)=='*' || !strcasecomp(st+1, sa+1))) ||
+		(*(st+1)=='*' && !strcasecomp(t,a)))
+		match = YES;
+
+	    *sa = '/';
+	    *st = '/';
+	}    
+    }
+    return match;
 }
 
 /*	Convert file URLs into a local representation

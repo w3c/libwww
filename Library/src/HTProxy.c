@@ -22,11 +22,9 @@
 
 /* Library include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
-#include "HTList.h"
-#include "HTParse.h"
-#include "HTWWWStr.h"
+#include "WWWUtil.h"
+#include "WWWCore.h"
+#include "WWWHTTP.h"
 #include "HTProxy.h"					 /* Implemented here */
 
 /* Variables and typedefs local to this module */
@@ -167,8 +165,15 @@ PRIVATE BOOL remove_AllHostnames (HTList * list)
 */
 PUBLIC BOOL HTProxy_add (const char * access, const char * proxy)
 {
-    if (!proxies)
-	proxies = HTList_new();    
+    /*
+    **  If this is the first time here then also add a before filter to handle
+    **  proxy authentication. This filter will be removed if we remove all
+    **  proxies again
+    */
+    if (!proxies) {
+	proxies = HTList_new();
+	HTNetCall_addBefore(HTAA_proxyBeforeFilter, NULL, 0);
+    }
     return add_object(proxies, access, proxy);
 }
 
@@ -179,6 +184,13 @@ PUBLIC BOOL HTProxy_deleteAll (void)
 {
     if (remove_allObjects(proxies)) {
 	HTList_delete(proxies);
+
+	/*
+	** If we have no more proxies then there is no reason for checking
+	** proxy authentication. We therefore unregister the filter
+	*/
+	HTNetCall_deleteBefore(HTAA_proxyBeforeFilter);
+
 	proxies = NULL;
 	return YES;
     }
@@ -364,22 +376,42 @@ PUBLIC void HTProxy_getEnvVar (void)
 	NULL
     };
     const char **access = accesslist;
+    if (PROT_TRACE)HTTrace("Proxy....... Looking for environment variables\n");
     while (*access) {
+	BOOL found = NO;
 	char *gateway=NULL;
 	char *proxy=NULL;
 
-	/* search for proxy gateways */
-	strcpy(buf, *access);
-	strcat(buf, "_proxy");
-	if ((proxy = (char *) getenv(buf)) && *proxy)
-	    HTProxy_add(*access, proxy);
+	/* Search for proxy gateways */
+	if (found == NO) {
+	    strcpy(buf, *access);
+	    strcat(buf, "_proxy");
+	    if ((proxy = (char *) getenv(buf)) && *proxy) {
+		HTProxy_add(*access, proxy);
+		found = YES;
+	    }
 
-	/* search for gateway servers */
-	strcpy(buf, "WWW_");
-	strcat(buf, *access);
-	strcat(buf, "_GATEWAY");
-	if ((gateway = (char *) getenv(buf)) && *gateway)
-	    HTGateway_add(*access, gateway);
+	    /* Try the same with upper case */
+	    if (found == NO) {
+		char * up = buf;
+		while ((*up = TOUPPER(*up))) up++;
+		if ((proxy = (char *) getenv(buf)) && *proxy) {
+		    HTProxy_add(*access, proxy);
+		    found = YES;
+		}
+	    }
+	}
+
+	/* As a last resort, search for gateway servers */
+	if (found == NO) {
+	    strcpy(buf, "WWW_");
+	    strcat(buf, *access);
+	    strcat(buf, "_GATEWAY");
+	    if ((gateway = (char *) getenv(buf)) && *gateway) {
+		HTGateway_add(*access, gateway);
+		found = YES;
+	    }
+	}
 	++access;
     }
 

@@ -32,6 +32,7 @@ struct _HTStream {
     char * 			param;	    /* Extra parameters for encoding */
     long			left;	    /* Remaining bytes in this chunk */
     long			total;			      /* Full length */
+    BOOL			done;
     HTEOLState			state;    
     HTChunk *			buf;
 };
@@ -175,6 +176,7 @@ PUBLIC HTStream * HTChunkedDecoder   (HTRequest *	request,
 PRIVATE int HTChunkEncode_block (HTStream * me, const char * b, int l)
 {
     char * chunky = HTChunk_data(me->buf);
+    if (me->done) return HT_LOADED;
     if (me->param) {
 	if (me->total)
 	    sprintf(chunky, "%c%c%x %s %c%c", CR, LF, l, me->param, CR, LF);
@@ -188,13 +190,15 @@ PRIVATE int HTChunkEncode_block (HTStream * me, const char * b, int l)
     }
     me->total += l;
     PUTBLOCK(chunky, (int) strlen(chunky));
-    if (STREAM_TRACE) HTTrace("Chunked..... chunk size: %X\n", l);
+    if (STREAM_TRACE) HTTrace("Chunked..... chunk size 0x%X\n", l);
     if (l > 0) return PUTBLOCK(b, l);
 
     /* Here we should provide a footer */
 
     PUTC(CR);
     PUTC(LF);
+    me->done = YES;
+    (*me->target->isa->flush)(me->target);
     return HT_LOADED;
 }
 
@@ -215,6 +219,7 @@ PRIVATE int HTChunkEncode_flush (HTStream * me)
 
 PRIVATE int HTChunkEncode_free (HTStream * me)
 {
+#if 0
     int status = HTChunkEncode_block(me, NULL, 0);
     if (status != HT_WOULD_BLOCK) {
 	if ((status = (*me->target->isa->_free)(me->target)) == HT_WOULD_BLOCK)
@@ -222,6 +227,11 @@ PRIVATE int HTChunkEncode_free (HTStream * me)
 	HT_FREE(me);
     }
     return status;
+#else
+    int status = me->target ? (*me->target->isa->_free)(me->target) : HT_OK;
+    HT_FREE(me);
+    return status;
+#endif
 }
 
 PRIVATE int HTChunkEncode_abort (HTStream * me, HTList * e)

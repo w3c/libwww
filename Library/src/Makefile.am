@@ -15,6 +15,8 @@ inc: $(BUILT_SOURCES)
 
 AUTOMAKE_OPTIONS = foreign
 
+CFLAGS = @CFLAGS@ -I$(srcdir)/@WAISINCLUDE@
+
 www_SOURCES = \
 	HTParse.c	HTAccess.c 	HTProxy.c \
 	HTMethod.c 	HTProt.c 	HTCache.c \
@@ -50,6 +52,9 @@ www_SOURCES = \
 	HTLink.c 	HTFilter.c	HTUTree.c \
 	HTPEP.c		HTProfil.c \
 	@HTWAIS@
+
+EXTRA_www_SOURCES = \
+	HTWAIS.c
 
 BUILT_SOURCES = sysdep.h \
 	WWWUtil.h 	WWWCore.h 	WWWLib.h \

@@ -45,35 +45,6 @@ PRIVATE int VariantSort (const void * a, const void * b)
     return (aa->quality > bb->quality) ? -1 : 1;
 }
 
-PRIVATE BOOL wild_match (HTAtom * tmplate, HTAtom * actual)
-{
-    const char *t, *a;
-    char *st, *sa;
-    BOOL match = NO;
-
-    if (tmplate && actual && (t = HTAtom_name(tmplate))) {
-	if (!strcmp(t, "*"))
-	    return YES;
-
-	if (strchr(t, '*') &&
-	    (a = HTAtom_name(actual)) &&
-	    (st = strchr(t, '/')) && (sa = strchr(a,'/'))) {
-
-	    *sa = 0;
-	    *st = 0;
-
-	    if ((*(st-1)=='*' &&
-		 (*(st+1)=='*' || !strcasecomp(st+1, sa+1))) ||
-		(*(st+1)=='*' && !strcasecomp(t,a)))
-		match = YES;
-
-	    *sa = '/';
-	    *st = '/';
-	}    
-    }
-    return match;
-}
-
 /*
  * Added by takada@seraph.ntt.jp (94/04/08)
  */
@@ -117,7 +88,7 @@ PRIVATE double type_value (HTAtom * content_type, HTList * accepted)
 	while ((pres = (HTPresentation *) HTList_nextObject(cur))) {
 	    if (pres->rep == content_type)
 		return pres->quality;
-	    else if (wild_match(pres->rep, content_type))
+	    else if (HTMIMEMatch(pres->rep, content_type))
 		wild = pres;
 	}
 	if (wild) return wild->quality;
@@ -139,7 +110,7 @@ PRIVATE double lang_value (HTAtom * language, HTList * accepted)
 	    /*
 	     * patch by takada@seraph.ntt.jp (94/04/08)
 	     * the original line was
-	     * else if (wild_match(node->atom, language)) {
+	     * else if (HTMIMEMatch(node->atom, language)) {
 	     * and the new line is
 	     */
 	    else if (lang_match(node->atom, language))
@@ -164,7 +135,7 @@ PRIVATE double encoding_value (HTAtom * encoding, HTList * accepted)
 	while ((node = (HTAcceptNode*)HTList_nextObject(cur))) {
 	    if (node->atom == encoding)
 		return node->quality;
-	    else if (wild_match(node->atom, encoding))
+	    else if (HTMIMEMatch(node->atom, encoding))
 		wild = node;
 	}
 	if (wild) return wild->quality;

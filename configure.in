@@ -51,12 +51,16 @@ esac
 dnl Checks for configuration arguments
 AC_ARG_WITH(wais, [  --with-wais             build in the WAIS searching code],
   AC_PATH_WAIS(
-    AC_DEFINE(HT_DIRECT_WAIS)
-    HTWAIS="HTWAIS.o",
-    AC_MSG_WARN(Cannot find WAIS; code will be built without it)
-    HTWAIS=""),
-  HTWAIS="")
+	[AC_DEFINE(HT_DIRECT_WAIS)
+	 HTWAIS="HTWAIS.c"
+	 WAISINCLUDE="${srcdir}/$ac_path_wais/include"] ,
+	[AC_MSG_WARN(Cannot find WAIS; code will be built without it)
+	 HTWAIS=""
+	 WAISINCLUDE="" ] ),
+  HTWAIS=""
+  WAISINCLUDE="")
 AC_SUBST(HTWAIS)
+AC_SUBST(WAISINCLUDE)
 
 AC_ARG_WITH(socks, [  --with-socks            build in the firewall-breaching SOCKS code],
   AC_PATH_SOCKS(

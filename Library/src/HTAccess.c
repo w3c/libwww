@@ -522,9 +522,35 @@ PRIVATE int HTEntity_callback (HTRequest * request, HTStream * target)
     if (WWWTRACE) HTTrace("Posting Data from callback function\n");
     if (!request || !entity || !target) return HT_ERROR;
     {
+	BOOL chunking = NO;
 	int status;
 	char * document = (char *) HTAnchor_document(entity);
 	int len = HTAnchor_length(entity);
+	if (!document) {
+	    if (PROT_TRACE) HTTrace("Posting Data No document\n");
+	    return HT_ERROR;
+	}
+
+	/*
+	** If the length is unknown (-1) then see if the document is a text
+	** type and in that case take the strlen. If not then we don't know
+	** how much data we can write and must stop
+	*/
+	if (len < 0) {
+	    HTFormat actual = HTAnchor_format(entity);
+	    HTFormat tmplate = HTAtom_for("text/*");
+	    if (HTMIMEMatch(tmplate, actual)) {
+		len = strlen(document);			/* Naive! */
+		chunking = YES;
+	    } else {
+		if (PROT_TRACE)
+		    HTTrace("Posting Data Must know the length of document %p\n",
+			    document);
+		return HT_ERROR;
+	    }
+	}
+
+	/* Send the data down the pipe */
 	status = (*target->isa->put_block)(target, document, len);
 	if (status == HT_LOADED) {
 	    if (PROT_TRACE) HTTrace("Posting Data Target is SAVED\n");
@@ -535,9 +561,12 @@ PRIVATE int HTEntity_callback (HTRequest * request, HTStream * target)
 	    if (PROT_TRACE)HTTrace("Posting Data Target WOULD BLOCK\n");
 	    return HT_WOULD_BLOCK;
 	} else if (status == HT_PAUSE) {
-	    if (PROT_TRACE) HTTrace("Posting Data. Target PAUSED\n");
+	    if (PROT_TRACE) HTTrace("Posting Data Target PAUSED\n");
 	    return HT_PAUSE;
-	} else if (status >= 0) {	      /* Stream specific return code */
+	} else if (chunking && status == HT_OK) {
+	    if (PROT_TRACE) HTTrace("Posting Data Target is SAVED using chunked\n");
+	    return (*target->isa->put_block)(target, "", 0);
+	} else if (status > 0) {	      /* Stream specific return code */
 	    if (PROT_TRACE)
 		HTTrace("Posting Data. Target returns %d\n", status);
 	    return status;

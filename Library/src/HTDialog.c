@@ -25,6 +25,7 @@
 */
 PRIVATE const char * HTDialogs[HT_MSG_ELEMENTS] = {
     "Please enter username:",
+    "Please enter username for proxy authentication:",
     "Password:",
     "Please give name of file to save in:",
     "Plase enter account:",

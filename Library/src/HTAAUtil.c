@@ -33,7 +33,8 @@
 #include "WWWCore.h"
 #include "HTAAUtil.h"					 /* Implemented here */
 
-#define AA_NAME			"w3c-AA"	      /* Name of the AA tree */
+#define AA_TREE			"w3c-AA"	      /* Name of the AA tree */
+#define AA_PROXY_TREE		"w3c-proxy-AA"  /* Name of the proxy AA tree */
 #define DEFAULT_PORT            80                    /* Concentrate on HTTP */
 
 struct _HTAAModule {
@@ -232,7 +233,8 @@ PRIVATE int HTAA_deleteElement (void * context)
 **	Return the node found else NULL which means that we don't have any
 **	authentication information to hook on to this request or response
 */
-PRIVATE HTAAElement * HTAA_findElement (const char * realm, const char * url)
+PRIVATE HTAAElement * HTAA_findElement (BOOL proxy_access,
+					const char * realm, const char * url)
 {
     HTUTree * tree;
     if (!url) {
@@ -250,7 +252,7 @@ PRIVATE HTAAElement * HTAA_findElement (const char * realm, const char * url)
 	    *(colon++) = '\0';			     /* Chop off port number */
 	    port = atoi(colon);
 	}	
-	tree = HTUTree_find(AA_NAME, host, port);
+	tree = HTUTree_find(proxy_access ? AA_PROXY_TREE : AA_TREE, host,port);
 	HT_FREE(host);
 	if (!tree) {
 	    if (AUTH_TRACE) HTTrace("Auth Engine. No information\n");
@@ -273,7 +275,7 @@ PRIVATE HTAAElement * HTAA_findElement (const char * realm, const char * url)
 **	Each node in the AA URL tree is a list of the modules we must call
 **	for this particular node.
 */
-PUBLIC void * HTAA_updateNode (char const * scheme,
+PUBLIC void * HTAA_updateNode (BOOL proxy_access, char const * scheme,
 			       const char * realm, const char * url,
 			       void * context)
 {
@@ -301,7 +303,8 @@ PUBLIC void * HTAA_updateNode (char const * scheme,
 	    *(colon++) = '\0';			     /* Chop off port number */
 	    port = atoi(colon);
 	}
-	tree = HTUTree_new(AA_NAME, host, port, HTAA_deleteElement);
+	tree = HTUTree_new(proxy_access ? AA_PROXY_TREE : AA_TREE,
+			   host, port, HTAA_deleteElement);
 	HT_FREE(host);
 	if (!tree) {
 	    if (AUTH_TRACE) HTTrace("Auth Engine. Can't create tree\n");
@@ -340,13 +343,15 @@ PUBLIC int HTAA_beforeFilter (HTRequest * request, void * param, int status)
 {
     char * url = HTAnchor_address((HTAnchor *) HTRequest_anchor(request));
     const char * realm = HTRequest_realm(request);
-    HTAAElement * element = HTAA_findElement(realm, url); 
+    HTAAElement * element = HTAA_findElement(NO, realm, url); 
     HT_FREE(url);
 
-    /* Delete any old challenges if any */
+    /* If we have an element then call the before filter with this scheme */
     if (element) {
 	HTAAModule * module = HTAA_findModule(element->scheme);
 	if (module) {
+
+	    /* Delete any old challenges if any */
 	    HTRequest_deleteChallenge(request);
 	    if (AUTH_TRACE) HTTrace("Auth Engine. Found BEFORE filter %p\n",
 				   module->before);
@@ -380,4 +385,32 @@ PUBLIC BOOL HTAA_afterFilter (HTRequest * request, void * param, int status)
 	return (*module->after)(request, NULL, status);
     }
     return HT_ERROR;
+}
+
+/*	HTAA_proxybeforeFilter
+**	----------------------
+**	Make a lookup in the proxy URL tree to find any context for this node,
+**	If no context is found then we assume that we don't know anything about
+**	this URL and hence we don't call any BEFORE filters at all.
+**	Return HT_OK or whatever callback returns
+*/
+PUBLIC int HTAA_proxyBeforeFilter (HTRequest * request, void * param, int status)
+{
+    char * url = HTRequest_proxy(request);
+    const char * realm = HTRequest_realm(request);
+    HTAAElement * element = HTAA_findElement(YES, realm, url); 
+
+    /* If we have an element then call the before filter with this scheme */
+    if (element) {
+	HTAAModule * module = HTAA_findModule(element->scheme);
+	if (module) {
+
+	    /* Delete any old challenges if any */
+	    HTRequest_deleteChallenge(request);
+	    if (AUTH_TRACE) HTTrace("Auth Engine. Found BEFORE filter %p\n",
+				   module->before);
+	    return (*module->before)(request, element->context,status);
+	}
+    }
+    return HT_OK;
 }

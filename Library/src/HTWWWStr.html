@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
-<!-- Changed by: Henrik Frystyk Nielsen, 18-May-1996 -->
-<!-- Changed by: Eric Prud'hommeaux, 28-May-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 18-May-1996 -->
+  <!-- Changed by: Eric Prud'hommeaux, 28-May-1996 -->
   <TITLE>W3C Reference Library libwww WWW String Utilities</TITLE>
 </HEAD>
 <BODY>
@@ -28,6 +28,7 @@ Library</A>.
 #define HTWWWSTR_H
 
 #include "HTUser.h"
+#include "HTAtom.h"
 </PRE>
 <H2>
   Next word or quoted string
@@ -98,6 +99,17 @@ The message ID string can for example be use as a RFC 822 header. The content
 is based on the information taken from the <A HREF="HTUser.html">user
 profile</A> which can be supplied by the applciation.
 <PRE>extern const char * HTMessageIdStr (HTUserProfile * up);
+</PRE>
+<H2>
+  Matching MIME Content-Types
+</H2>
+<P>
+Matches MIME constructions for <I>content-types</I> and others like them,
+for example "text/html", "text/plain". It can also match wild cards like
+"text/<star>" and "<star>/<star>. We use <star> instead of * in order note
+to make C like comments :-)
+<PRE>
+extern BOOL HTMIMEMatch (HTAtom * tmplate, HTAtom * actual);
 </PRE>
 <H2>
   Converts an Integer to a String using Prefix

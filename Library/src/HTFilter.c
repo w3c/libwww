@@ -40,9 +40,10 @@ PUBLIC int HTProxyFilter (HTRequest * request, void * param, int status)
     char * addr = HTAnchor_physical(anchor);
     char * physical = NULL;
     if ((physical = HTProxy_find(addr))) {
-	StrAllocCat(physical, addr);
-	HTAnchor_setPhysical(anchor, physical);
+	HTRequest_setProxy(request, physical);
 	HTRequest_setFullURI(request, YES);
+	StrAllocCat(physical, addr);
+	HTAnchor_setPhysical(anchor, physical);	
     } else if ((physical = HTGateway_find(addr))) {
 	/* 
 	** A gateway URL is crated by chopping off any leading "/" to make the
