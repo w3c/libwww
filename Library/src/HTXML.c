@@ -14,7 +14,7 @@
 #include "WWWCore.h"
 
 /* 2000-29-08 JK : pre-pruning code out of libwww */
-#ifdef 
+#ifdef HT_STRUCT_XML_STREAM 
 #undef HT_STRUCT_XML_STREAM
 #endif
 
