@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<!-- Changed by: Henrik Frystyk Nielsen, 15-Jul-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 15-Jul-1996 -->
   <TITLE>W3C Sample Code Library libwww Default Initialization</TITLE>
 </HEAD>
 <BODY>
@@ -22,10 +22,9 @@ functionality must be registered by the application. This way, the core of
 libwww is kept application independent and can be used as the basic building
 block for any kind of Web application. The Library comes with a large set
 of default functions, for example for accessing HTTP and FTP servers, parsing
-<A HREF="http://info.internet.isi.edu:80/in-notes/rfc/files/rfc822.txt">RFC
-822</A> headers etc. This module helps the application programmer setting
-up all this functionality, but it is important to note that none of it is
-<I>required</I> in order to use the Library.
+MIME headers etc. This module helps the application programmer setting up
+all this functionality, but it is important to note that none of it is
+<I>required</I> in order to use libwww.
 <PRE>
 #ifndef WWWINIT_H
 #define WWWINIT_H
@@ -34,6 +33,15 @@ up all this functionality, but it is important to note that none of it is
 #ifdef __cplusplus
 extern "C" { 
 #endif
+</PRE>
+<H2>
+  Default Protocols, Transports, MIME Headers, Dialogs etc.
+</H2>
+<P>
+This module contains a large set of default initialization functions for
+protocol modules, stream converters, event managers etc.
+<PRE>
+#include "<A HREF="HTInit.html">HTInit.h</A>"
 </PRE>
 <H2>
   Application Profiles
@@ -47,24 +55,8 @@ later in this interface description. In many cases you do not need to use
 anything else than the profiles, but if you have more specific requirements
 then you can always fall back on using the initialization functions below
 or even werite your own extensions.
-<PRE>#include "<A HREF="HTProfil.html">HTProfil.h</A>"
-</PRE>
-<H2>
-  Default Protocols, Transports, MIME Headers, Dialogs etc.
-</H2>
-<P>
-This module contains a large set of default initialization functions for
-protocol modules, stream converters, event managers etc.
-<PRE>#include "<A HREF="HTInit.html">HTInit.h</A>"
-</PRE>
-<H2>
-  Default HTML Parsers
-</H2>
-<P>
-This file contains the initialization for the HTML parsers in libwww. The
-parsers are used for presenting HTML objects as well as clear text documents.
 <PRE>
-#include "<A HREF="HTHInit.html">HTHInit.h</A>"
+#include "<A HREF="HTProfil.html">HTProfil.h</A>"
 </PRE>
 <PRE>
 #ifdef __cplusplus

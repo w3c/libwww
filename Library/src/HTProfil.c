@@ -14,6 +14,7 @@
 #include "WWWCore.h"
 #include "WWWCache.h"
 #include "WWWStream.h"
+#include "HTInit.h"
 #include "HTProfil.h"				         /* Implemented here */
 
 PRIVATE HTList * converters = NULL;
