@@ -70,9 +70,6 @@ PRIVATE int pumpData (HTStream * me)
     BOOL savestream = NO;
     me->transparent = YES;		  /* Pump rest of data right through */
 
-    /*  If this request is a source in PostWeb then pause here */
-    if (HTRequest_isSource(request)) return HT_PAUSE;
-
     /*
     **  Cache the metainformation in the anchor object by copying
     **  it from the response object. This we do regardless if
