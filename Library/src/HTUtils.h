@@ -2,8 +2,9 @@
 **
 **	See also: the system dependent file "tcp.h"
 */
-#define DEBUG	/* Noone ever truns this off as trace is too important */
-		/* Keeep in for really small memory applications */
+#ifndef DEBUG
+#define DEBUG	/* Noone ever turns this off as trace is too important */
+#endif		/* Keeep option for really small memory applications tho */
 		
 #ifndef HTUTILS_H
 #define HTUTILS_H
@@ -156,14 +157,20 @@
 #define DNP_OBJ 80	/* This one doesn't look busy, but we must check */
 
 /*	Inline Function WHITE: Is character c white space? */
+/*	For speed, include all control characters */
 
-#ifndef NOT_ASCII
-#define WHITE(c) (((unsigned char)(c))<=' ')	/* Assumes ASCII but faster */
-#else
-#define WHITE(c) ( ((c)==' ') || ((c)=='\t') || ((c)=='\n') || ((c)=='\r') )
-#endif
+#define WHITE(c) (((unsigned char)(TOASCII(c)))<=32)
 
-#define HT_LOADED (29999)		/* Instead of a socket */
+
+/*	Sucess (>=0) and failure (<0) codes
+*/
+#define HT_LOADED 29999			/* Instead of a socket */
+#define HT_OK		0		/* Generic success*/
+
+#define HT_NO_ACCESS	-10		/* Access not available */
+#define HT_FORBIDDEN	-11		/* Access forbidden */
+#define HT_INTERNAL	-12		/* Weird -- should never happen. */
+#define HT_BAD_EOF	-12		/* Premature EOF */
 
 #include "HTString.h"  /* String utilities */
 
@@ -209,6 +216,9 @@ extern void msg_exit PARAMS((int wait_for_key));
 **  #if defined(pyr) || define(mips) or BDSI platforms.
 ** For safefy, we make them mandatory.
 */
+
+#include <ctype.h>
+
 #ifndef TOLOWER
   /* Pyramid and Mips can't uppercase non-alpha */
 #define TOLOWER(c) (isupper(c) ? tolower(c) : (c))

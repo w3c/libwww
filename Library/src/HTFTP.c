@@ -26,6 +26,7 @@
 **	10 Feb 92	Retry if cached connection times out or breaks
 **	 8 Dec 92	Bug fix 921208 TBL after DD
 **	17 Dec 92	Anon FTP password now just WWWuser@ suggested by DD
+**			fails on princeton.edu!
 **
 ** Options:
 **	LISTEN		We listen, the other guy connects for data.
@@ -50,6 +51,8 @@ BUGS:	@@@  	Limit connection cache size!
 **		same time.
 */		
 
+#include "HTFTP.h"	/* Implemented here */
+
 #define REPEAT_PORT	/* Give the port number for each file */
 #define REPEAT_LISTEN	/* Close each listen socket and open a new one */
 
@@ -67,20 +70,11 @@ BUGS:	@@@  	Limit connection cache size!
 #include "tcp.h"
 #include "HTTCP.h"
 #include "HTAnchor.h"
-#include "HText.h"
-#include "HTStyle.h"
-
-#include "HTFTP.h"
+#include "HTFile.h"	/* For HTFileFormat() */
 
 #ifndef IPPORT_FTP
 #define IPPORT_FTP	21
 #endif
-
-extern HTStyleSheet * styleSheet;
-PRIVATE HTStyle *h1Style;			/* For heading level 1 */
-PRIVATE HTStyle *h2Style;			/* For heading level 2 */
-PRIVATE HTStyle *textStyle;			/* Text style */
-PRIVATE HTStyle *dirStyle;			/* Compact List style */
 
 #ifdef REMOVED_CODE
 extern char *malloc();
@@ -98,6 +92,21 @@ typedef struct _connection {
 #ifndef NIL
 #define NIL 0
 #endif
+
+/*		Hypertext object building machinery
+*/
+#include "HTML.h"
+
+#define PUTC(c) (*targetClass.put_character)(target, c)
+#define PUTS(s) (*targetClass.put_string)(target, s)
+#define START(e) (*targetClass.start_element)(target, e, 0, 0)
+#define END(e) (*targetClass.end_element)(target, e)
+#define END_TARGET (*targetClass.end_document)(target)
+#define FREE_TARGET (*targetClass.free)(target)
+struct _HTStructured {
+	CONST HTStructuredClass *	isa;
+	/* ... */
+};
 
 
 /*	Module-Wide Variables
@@ -309,7 +318,7 @@ PRIVATE int get_connection ARGS1 (CONST char *,arg)
 */
     {
 	char *p1 = HTParse(arg, "", PARSE_HOST);
-	char *p2 = strchr(p1, '@');	/* user? */
+	char *p2 = strrchr(p1, '@');	/* user? */
 	char * pw;
 	if (p2) {
 	    username = p1;
@@ -616,51 +625,49 @@ PRIVATE int get_listen_socket()
 #endif
 
 
-/*	Get Styles from stylesheet
-**	--------------------------
-*/
-PRIVATE void get_styles NOARGS
-{
-    if (!h1Style) h1Style = HTStyleNamed(styleSheet, "Heading1");
-    if (!h2Style) h2Style = HTStyleNamed(styleSheet, "Heading2");
-    if (!textStyle) textStyle = HTStyleNamed(styleSheet, "Example");
-    if (!dirStyle) dirStyle = HTStyleNamed(styleSheet, "Dir");
-}
-
 
 /*	Read a directory into an hypertext object from the data socket
 **	--------------------------------------------------------------
 **
 ** On entry,
-**	anchor		Parent anchor to link the HText to
+**	anchor		Parent anchor to link the this node to
 **	address		Address of the directory
 ** On exit,
 **	returns		HT_LOADED if OK
 **			<0 if error.
 */
 PRIVATE int read_directory
-ARGS2 (
-  HTParentAnchor *,	parent,
-  CONST char *,			address
+ARGS3 (
+  HTParentAnchor *,		parent,
+  CONST char *,			address,
+  HTStream *,			sink
 )
 {
-  HText * HT = HText_new (parent);
+  HTStructured* target = HTML_new(parent, sink);
+  HTStructuredClass targetClass;
+  BOOL present[HTML_A_ATTRIBUTES];
+  char * value[HTML_A_ATTRIBUTES];
   char *filename = HTParse(address, "", PARSE_PATH + PARSE_PUNCTUATION);
-  HTChildAnchor * child;  /* corresponds to an entry of the directory */
+
   char c = 0;
 #define LASTPATH_LENGTH 150  /* @@@@ Horrible limit on the entry size */
   char lastpath[LASTPATH_LENGTH + 1];
   char *p, *entry;
 
-  HText_beginAppend (HT);
-  get_styles();
+  { int i; for(i=0; i<HTML_A_ATTRIBUTES; i++) present[i] = (i==HTML_A_HREF);}
 
-  HTAnchor_setTitle (parent, "FTP Directory of ");
-  HTAnchor_appendTitle (parent, address + 5);  /* +5 gets rid of "file:" */
-  HText_setStyle (HT, h1Style);
-  HText_appendText (HT, filename);
+  targetClass = *(target->isa);
 
-  HText_setStyle (HT, dirStyle);
+  START(HTML_TITLE);
+  PUTS("FTP Directory of ");
+  PUTS(address + 5);  /* +5 gets rid of "file:" */
+  END(HTML_TITLE);
+  
+  START(HTML_H1);
+  PUTS(filename);
+  END(HTML_H1);
+  
+  present[HTML_A_HREF] = YES;		/* Attribute list for anchors */
   data_read_pointer = data_write_pointer = data_buffer;
 
   if (*filename == 0)  /* Empty filename : use root */
@@ -678,12 +685,13 @@ ARGS2 (
 
   if (strlen (lastpath) > 1) {  /* Current file is not the FTP root */
     strcpy (entry, "..");
-    child = HTAnchor_findChildAndLink (parent, 0, lastpath, 0);
-    HText_beginAnchor (HT, child);
-    HText_appendText (HT, "Parent Directory");
-    HText_endAnchor (HT);
-    HText_appendCharacter (HT, '\t');
+    value[HTML_A_HREF] = lastpath;
+    (*targetClass.start_element)(target, HTML_A, present, value);
+    PUTS("Up to Parent Directory");
+    END(HTML_A);
   }
+
+  START(HTML_DIR);
   for (;;) {
     p = entry;
     while (p - lastpath < LASTPATH_LENGTH) {
@@ -703,15 +711,17 @@ ARGS2 (
     if (c == (char) EOF && p == entry)
       break;
     *p = 0;
-    child = HTAnchor_findChildAndLink (parent, 0, lastpath, 0);
-    HText_beginAnchor (HT, child);
-    HText_appendText (HT, entry);
-    HText_endAnchor (HT);
-    HText_appendCharacter (HT, '\t');
+    START(HTML_LI);
+    value[HTML_A_HREF] = lastpath;
+    (*targetClass.start_element)(target, HTML_A, present, value);
+    PUTS(entry);
+    END(HTML_A);
   }
 
-  HText_appendParagraph (HT);
-  HText_endAppend (HT);
+  END(HTML_DIR);
+  END_TARGET;
+  FREE_TARGET;
+
   return response(NIL) == 2 ? HT_LOADED : -1;
 }
 
@@ -725,15 +735,18 @@ ARGS2 (
 **	returns		Socket number for file if good.
 **			<0 if bad.
 */
-PUBLIC int HTFTP_open_file_read
-ARGS2 (
+PUBLIC int HTFTPLoad
+ARGS4 (
   CONST char *,			name,
-  HTParentAnchor *,	anchor
+  HTParentAnchor *,		anchor,
+  HTFormat,			format_out,
+  HTStream *,			sink
 )
 {
     BOOL isDirectory = NO;
     int status;
     int retry;			/* How many times tried? */
+    HTFormat format;
     
     for (retry=0; retry<2; retry++) {	/* For timed out/broken connections */
     
@@ -826,6 +839,7 @@ ARGS2 (
 	char command[LINE_LENGTH+1];
 	if (!*filename) StrAllocCopy(filename, "/");
 	sprintf(command, "RETR %s\r\n", filename);
+	format = HTFileFormat(filename);
 	status = response(command);
 	if (status != 1) {  /* Failed : try to CWD to it */
 	  sprintf(command, "CWD %s\r\n", filename);
@@ -857,12 +871,26 @@ ARGS2 (
 #else
 /* @@ */
 #endif
-    if (isDirectory)
-      return read_directory (anchor, name);
+    if (isDirectory) {
+	return read_directory (anchor, name, sink);
       /* returns HT_LOADED or error */
-    else
-      return data_soc;
-       
+    } else {
+	HTParseSocket(format, format_out,
+		anchor, data_soc, sink);
+		
+	HTInitInput(control->socket);
+	/* Reset buffering to control connection DD 921208 */
+    
+	status = NETCLOSE(data_soc);
+	if (TRACE) fprintf(stderr, "FTP: Closing data socket %d\n", data_soc);
+	if (status<0) (void) HTInetStatus("close");	/* Comment only */
+	data_soc = -1;	/* invalidate it */
+	
+	status = response(NIL);		/* Pick up final reply */
+	if (status!=2) return -status;
+
+	return HT_LOADED;
+    }       
 } /* open_file_read */
 
 
@@ -870,6 +898,7 @@ ARGS2 (
 **	-------------------------------------------------------------
 **
 */
+#ifdef OLD_CODE
 PUBLIC int HTFTP_close_file
 ARGS1 (int,soc)
 {
@@ -895,6 +924,7 @@ ARGS1 (int,soc)
     
     return status; 	/* Good */
 }
+#endif /* old code */
 
 
 /*___________________________________________________________________________
@@ -903,6 +933,7 @@ ARGS1 (int,soc)
 **	-----------------
 **
 **	Compiling this with -DTEST produces a test program.  Unix only
+**	OBSOLETE -- WON'T COMPILE,
 **
 ** Syntax:
 **	test <file or option> ...

@@ -11,14 +11,20 @@
 **			Fixed access bug for relative names on VMS.
 **
 ** Bugs:
-**	Cannot access VMS files from a unix machine. How can we know that the
+**	FTP: Cannot access VMS files from a unix machine.
+**      How can we know that the
 **	target machine runs VMS?
+**
+**	DIRECTORIES are NOT SORTED.. alphabetically etc.
 */
 
+#include "HTFile.h"		/* Implemented here */
+
+
 #define INFINITY 512		/* file name length @@ FIXME */
+#define MULTI_SUFFIX ".multi"   /* Extension for scanning formats */
 
 #include "HTUtils.h"
-#include "HTFile.h"
 
 #include "WWW.h"
 #include "HTParse.h"
@@ -28,11 +34,42 @@
 #include "HTFTP.h"
 #endif
 #include "HTAnchor.h"
-#include "HTAccess.h"
+#include "HTAtom.h"
+#include "HTWriter.h"
+#include "HTFWriter.h"
+#include "HTInit.h"
+
+typedef struct _HTSuffix {
+	char *		suffix;
+	HTAtom *	rep;
+	float		quality;
+} HTSuffix;
+
+
 
 #ifdef unix			/* if this is to compile on a UNIX machine */
-#include "HText.h"		/* For directory object building */
-#endif
+#include "HTML.h"		/* For directory object building */
+
+#define PUTC(c) (*targetClass.put_character)(target, c)
+#define PUTS(s) (*targetClass.put_string)(target, s)
+#define START(e) (*targetClass.start_element)(target, e, 0, 0)
+#define END(e) (*targetClass.end_element)(target, e)
+#define END_TARGET (*targetClass.end_document)(target)
+#define FREE_TARGET (*targetClass.free)(target)
+struct _HTStructured {
+	CONST HTStructuredClass *	isa;
+	/* ... */
+};
+
+#endif				/* unix */
+
+
+/*                   Controlling globals
+**
+*/
+
+PUBLIC int HTDirAccess = HT_DIR_OK;
+PUBLIC int HTDirReadme = HT_DIR_README_TOP;
 
 PRIVATE char *HTMountRoot = "/Net/";		/* Where to find mounts */
 #ifdef vms
@@ -42,6 +79,35 @@ PRIVATE char *HTCacheRoot = "/tmp/W3_Cache_";   /* Where to cache things */
 #endif
 
 /* PRIVATE char *HTSaveRoot  = "$(HOME)/WWW/";*/    /* Where to save things */
+
+
+/*	Suffix registration
+*/
+
+PRIVATE HTList * HTSuffixes = 0;
+
+/*	Define the representation associated with a file suffix
+**	-------------------------------------------------------
+*/
+PUBLIC void HTSetSuffix ARGS3(
+	CONST char *,	suffix,
+	CONST char *,	representation,
+	float,		value)
+{
+    
+    HTSuffix * suff = (HTSuffix*) calloc(1, sizeof(HTSuffix));
+    if (suff == NULL) outofmem(__FILE__, "HTSetSuffix");
+    
+    if (!HTSuffixes) HTSuffixes = HTList_new();
+    
+    StrAllocCopy(suff->suffix, suffix);
+    suff->rep = HTAtom_for(representation);
+    suff->quality = value;
+    HTList_addObject(HTSuffixes, suff);
+}
+
+
+
 
 #ifdef vms
 /*	Convert unix-style name into VMS name
@@ -110,6 +176,55 @@ PRIVATE char * vms_name(CONST char * nn, CONST char * fn)
 
 #endif /* vms */
 
+
+
+/*	Send README file
+**
+**  If a README file exists, then it is inserted into the document here.
+*/
+
+PRIVATE void do_readme ARGS2(HTStructured *, target, CONST char *, localname)
+{ 
+    FILE * fp;
+    char * readme_file_name = 
+	malloc(strlen(localname)+ 1 + strlen(HT_DIR_README_FILE) + 1);
+    strcpy(readme_file_name, localname);
+    strcat(readme_file_name, "/");
+    strcat(readme_file_name, HT_DIR_README_FILE);
+    
+    fp = fopen(readme_file_name,  "r");
+    
+    if (fp) {
+	HTStructuredClass targetClass;
+	
+	targetClass =  *target->isa;	/* (Can't init agregate in K&R) */
+	START(HTML_PRE);
+	for(;;){
+	    char c = fgetc(fp);
+	    if (c == (char)EOF) break;
+	    switch (c) {
+	    	case '&':
+		case '<':
+		case '>':
+			PUTC('&');
+			PUTC('#');
+			PUTC((char)(c / 10));
+			PUTC((char) (c % 10));
+			PUTC(';');
+			break;
+	    	case '\n':
+			PUTC('\r');	/* Fall through */
+		default:
+			PUTC(c);
+	    }
+	}
+	END(HTML_PRE);
+	fclose(fp);
+    } 
+}
+
+
+
 /*	Make the cache file name for a W3 document
 **	------------------------------------------
 **	Make up a suitable name for saving the node in
@@ -137,6 +252,7 @@ PUBLIC char * HTCacheFileName ARGS1(CONST char *,name)
     free(host);
     return result;
 }
+
 
 /*	Open a file for write, creating the path
 **	----------------------------------------
@@ -228,49 +344,105 @@ PUBLIC char * WWW_nameOfFile ARGS1 (CONST char *,name)
 }
 
 
+/*	Determine a suitable suffix, given the representation
+**	-----------------------------------------------------
+**
+** On entry,
+**	rep	is the atomized MIME style representation
+**
+** On exit,
+**	returns	a pointer to a suitable suffix string if one has been
+**		found, else "".
+*/
+PUBLIC CONST char * HTFileSuffix ARGS1(HTAtom*, rep)
+{
+    HTSuffix * suff;
+    int n;
+    int i;
+
+#ifndef NO_INIT    
+    if (!HTSuffixes) HTFileInit();
+#endif
+    n = HTList_count(HTSuffixes);
+    for(i=0; i<n; i++) {
+	suff = HTList_objectAt(HTSuffixes, i);
+	if (suff->rep == rep) {
+	    return suff->suffix;		/* OK -- found */
+	}
+    }
+    return "";		/* Dunno */
+}
+
+
 /*	Determine file format from file name
 **	------------------------------------
-**
-** Note: This function is also in the server file HTRetrieve.c
-** 	If it gets complicated, it should be shared.
-**
-** Note: This is a kludge algorithm for use in a file environment only.
-**	It is NOT used in HTTP!
 **
 */
 
 PUBLIC HTFormat HTFileFormat ARGS1 (CONST char *,filename)
-{
-    CONST char * extension;
-    for (extension=filename+strlen(filename);
-	(extension>filename) &&
-		(*extension != '.') &&
-		(*extension!='/');
-	extension--) /* search */ ;
 
-    if (*extension == '.') {
-	return    0==strcmp(".html", extension) ? WWW_HTML
-		: 0==strcmp(".rtf",  extension) ? WWW_RICHTEXT
-		: 0==strcmp(".txt",  extension) ? WWW_PLAINTEXT
-		: 0==strcmp(".c",  extension) ? WWW_PLAINTEXT
-		: 0==strcmp(".h",  extension) ? WWW_PLAINTEXT
-		: 0==strcmp(".m",  extension) ? WWW_PLAINTEXT
-		: WWW_BINARY;	/* Unrecognised, assume binary */
-    } else {
-	return WWW_PLAINTEXT;
-    } 
+{
+    HTSuffix * suff;
+    int n;
+    int i;
+    int lf = strlen(filename);
+
+#ifndef NO_INIT    
+    if (!HTSuffixes) HTFileInit();
+#endif
+    n = HTList_count(HTSuffixes);
+    for(i=0; i<n; i++) {
+        int ls;
+	suff = HTList_objectAt(HTSuffixes, i);
+	ls = strlen(suff->suffix);
+	if ((ls <= lf) && 0==strcmp(suff->suffix, filename + lf - ls)) {
+	    return suff->rep;		/* OK -- found */
+	}
+    }
+    return WWW_BINARY;		/* Dunno */
+}
+
+
+/*	Determine value from file name
+**	------------------------------
+**
+*/
+
+PUBLIC float HTFileValue ARGS1 (CONST char *,filename)
+
+{
+    HTSuffix * suff;
+    int n;
+    int i;
+    int lf = strlen(filename);
+
+#ifndef NO_INIT    
+    if (!HTSuffixes) HTFileInit();
+#endif
+    n = HTList_count(HTSuffixes);
+    for(i=0; i<n; i++) {
+        int ls;
+	suff = HTList_objectAt(HTSuffixes, i);
+	ls = strlen(suff->suffix);
+	if ((ls <= lf) && 0==strcmp(suff->suffix, filename + lf - ls)) {
+	    if (TRACE) fprintf(stderr, "File: Value of %s is %.3f\n",
+			       filename, suff->quality);
+	    return suff->quality;		/* OK -- found */
+	}
+    }
+    return 0.3;		/* Dunno! */
 }
 
 
 /*	Determine write access to a file
-//	--------------------------------
-//
-// On exit,
-//	return value	YES if file can be accessed and can be written to.
-//
-// Bugs:
-//	1.	No code for non-unix systems.
-//	2.	Isn't there a quicker way?
+**	--------------------------------
+**
+** On exit,
+**	return value	YES if file can be accessed and can be written to.
+**
+** Bugs:
+**	1.	No code for non-unix systems.
+**	2.	Isn't there a quicker way?
 */
 
 #ifdef vms
@@ -329,6 +501,26 @@ PUBLIC BOOL HTEditable ARGS1 (CONST char *,filename)
 }
 
 
+/*	Make a save stream
+**	------------------
+**
+**	The stream must be used for writing back the file.
+**	@@@ no backup done
+*/
+PUBLIC HTStream * HTFileSaveStream ARGS1(HTParentAnchor *, anchor)
+{
+
+    CONST char * addr = HTAnchor_address((HTAnchor*)anchor);
+    char *  localname = HTLocalName(addr);
+    
+    FILE* fp = fopen(localname, "w");
+    if (!fp) return NULL;
+    
+    return HTFWriter_new(fp);
+    
+}
+
+
 /*	Load a document
 **	---------------
 **
@@ -337,15 +529,15 @@ PUBLIC BOOL HTEditable ARGS1 (CONST char *,filename)
 **			This is the physsical address of the file
 **
 ** On exit,
-**	returns		<0	Error has occured.
-**			>=0	Value of file descriptor or socket to be used
-**				 to read data.
+**	returns		<0		Error has occured.
+**			HTLOADED	OK 
 **
 */
-PRIVATE int HTLoadFile ARGS3 (
+PUBLIC int HTLoadFile ARGS4 (
 	CONST char *,		addr,
 	HTParentAnchor *,	anchor,
-	int,			diagnostic
+	HTFormat,		format_out,
+	HTStream *,		sink
 )
 {
     char * filename;
@@ -393,11 +585,87 @@ PRIVATE int HTLoadFile ARGS3 (
 **	Not allowed in secure (HTClienntHost) situations TBL 921019
 */
 #ifndef NO_UNIX_IO
-    if (!HTClientHost) {		/* try local unix file system */
+    /* @@@@ Need protection here for telnet server but not httpd server */
+	 
+    /* if (!HTClientHost) */ {		/* try local unix file system */
 	char * localname = HTLocalName(addr);
-	
+	struct stat dir_info;
 	
 #ifdef GOT_READ_DIR
+
+/*			  Multiformat handling
+**
+**	If needed, scan directory to find a good file.
+**  Bug:  we don't stat the file to find the length
+*/
+	if ( (strlen(localname) > strlen(MULTI_SUFFIX))
+	   && (0==strcmp(localname + strlen(localname) - strlen(MULTI_SUFFIX),
+	                  MULTI_SUFFIX))) {
+	    DIR *dp;
+	    struct direct * dirbuf;
+
+	    float best = NO_VALUE_FOUND;	/* So far best is bad */
+	    HTFormat best_rep = NULL;	/* Set when rep found */
+	    struct direct best_dirbuf;	/* Best dir entry so far */
+
+	    char * base = strrchr(localname, '/');
+	    int baselen;
+
+	    if (!base || base == localname) goto forget_multi;
+	    *base++ = 0;		/* Just got directory name */
+	    baselen = strlen(base)- strlen(MULTI_SUFFIX);
+	    base[baselen] = 0;	/* Chop off suffix */
+
+	    dp = opendir(localname);
+	    if (!dp) {
+forget_multi:
+		free(filename);  
+		free(localname);
+		return HTLoadError(sink, 500,
+			"Multiformat: directory scan failed.");
+	    }
+	    
+	    while (dirbuf = readdir(dp)) {
+			/* while there are directory entries to be read */
+		if (dirbuf->d_ino == 0) continue;
+				/* if the entry is not being used, skip it */
+		
+		if (dirbuf->d_namlen > baselen &&      /* Match? */
+		    !strncmp(dirbuf->d_name, base, baselen)) {	
+		    HTFormat rep = HTFileFormat(dirbuf->d_name);
+		    float value = HTStackValue(rep, format_out,
+		    				HTFileValue(dirbuf->d_name),
+						0.0  /* @@@@@@ */);
+		    if (value != NO_VALUE_FOUND) {
+		        if (TRACE) fprintf(stderr,
+				"HTFile: value of presenting %s is %f\n",
+				HTAtom_name(rep), value);
+			if  (value > best) {
+			    best_rep = rep;
+			    best = value;
+			    best_dirbuf = *dirbuf;
+		       }
+		    }	/* if best so far */ 		    
+		 } /* if match */  
+		    
+	    } /* end while directory entries left to read */
+	    closedir(dp);
+	    
+	    if (best_rep) {
+		format = best_rep;
+		base[-1] = '/';		/* Restore directory name */
+		base[0] = 0;
+		StrAllocCat(localname, best_dirbuf.d_name);
+		goto open_file;
+		
+	    } else { 			/* If not found suitable file */
+		free(filename);  
+		free(localname);
+		return HTLoadError(sink, 403,	/* List formats? */
+		   "Could not find suitable representation for transmission.");
+	    }
+	    /*NOTREACHED*/
+	} /* if multi suffix */
 /*
 **	Check to see if the 'localname' is in fact a directory.  If it is
 **	create a new hypertext object containing a list of files and 
@@ -408,7 +676,6 @@ PRIVATE int HTLoadFile ARGS3 (
 **      the current directory being read.
 */
 	
-	struct stat dir_info;
 	
 	if (stat(localname,&dir_info) == -1) {     /* get file information */
 	                               /* if can't read file information */
@@ -419,117 +686,173 @@ PRIVATE int HTLoadFile ARGS3 (
 
 	    if (((dir_info.st_mode) & S_IFMT) == S_IFDIR) {
 		/* if localname is a directory */	
-		HTChildAnchor * child;
-		HText * HT;
-		extern HTStyleSheet * styleSheet;
-		static HTStyle * DirectoryStyle = 0;
-		static HTStyle * H1Style = 0;
+
+		HTStructured* target;		/* HTML object */
+		HTStructuredClass targetClass;
+
 		DIR *dp;
 		struct direct * dirbuf;
-		    
+		
+		BOOL present[HTML_A_ATTRIBUTES];
+		char * value[HTML_A_ATTRIBUTES];
+		
 		char * tmpfilename = NULL;
 		char * shortfilename = NULL;
-		struct stat *file_info =
-		  (struct stat *) malloc(sizeof(struct stat));
-		if (!file_info) outofmem(__FILE__, "HTOpenFile");
+		struct stat file_info;
 		
 		if (TRACE)
 		    fprintf(stderr,"%s is a directory\n",localname);
 			
-		if (!H1Style)
-		    H1Style = HTStyleNamed(styleSheet, "Heading1");
-		
-		if (!DirectoryStyle)
-		    DirectoryStyle = HTStyleNamed(styleSheet, "Dir");
-		
-		HTAnchor_setTitle(anchor, filename);
+/*	Check directory access.
+**	Selective access means only those directories containing a
+**	marker file can be browsed
+*/
+		if (HTDirAccess == HT_DIR_FORBID) {
+		    return HTLoadError(sink, 403,
+		    "Directory browsing is not allowed.");
+		}
+
+
+		if (HTDirAccess == HT_DIR_SELECTIVE) {
+		    char * enable_file_name = 
+			malloc(strlen(localname)+ 1 +
+			 strlen(HT_DIR_ENABLE_FILE) + 1);
+		    strcpy(enable_file_name, localname);
+		    strcat(enable_file_name, "/");
+		    strcat(enable_file_name, HT_DIR_ENABLE_FILE);
+		    if (stat(enable_file_name, &file_info) != 0) {
+			free(filename);  
+			free(localname);
+			return HTLoadError(sink, 403,
+			"Selective access is not enabled for this directory");
+		    }
+		}
+
+ 
+		dp = opendir(localname);
+		if (!dp) {
+		    free(filename);  
+		    free(localname);
+		    return HTLoadError(sink, 403, "This directory is not readable.");
+		}
+
+
+ /*	Directory access is allowed and possible
+ */
+		target = HTML_new(anchor, sink);
+		targetClass = *target->isa;	/* Copy routine entry points */
 		    
-		HT = HText_new(anchor);
-		HText_beginAppend(HT);
-		    
-		HText_setStyle(HT,H1Style);
+  		{ int i;
+			for(i=0; i<HTML_A_ATTRIBUTES; i++)
+				present[i] = (i==HTML_A_HREF);
+		}
+		
+		START(HTML_TITLE);
+		PUTS(filename);
+		END(HTML_TITLE);    
+
+		START(HTML_H1);
 		shortfilename=strrchr(localname,'/');
 		/* put the last part of the path in shortfilename */
 		shortfilename++;               /* get rid of leading '/' */
 		if (*shortfilename=='\0')
 		    shortfilename--;
-		    
-		HText_appendText(HT,shortfilename);
-		HText_setStyle(HT,DirectoryStyle);
+		PUTS(shortfilename);
+		END(HTML_H1);
+
+                if (HTDirReadme == HT_DIR_README_TOP)
+		    do_readme(target, localname);
 		
-		dp = opendir(localname);
-		if (dp) {                   
-		   /* if the directory file is readable */
-		    while (dirbuf = readdir(dp)) {
-				/* while there are directory entries to be read */
-			if (dirbuf->d_ino == 0)
-					/* if the entry is not being used, skip it */
+
+#ifdef SORT
+		HTBTree * bt = HTBTree_new(strcasecmp);
+#endif
+		START(HTML_DIR);		
+
+		while (dirbuf = readdir(dp)) {
+		    START(HTML_LI);
+			    /* while there are directory entries to be read */
+		    if (dirbuf->d_ino == 0)
+				    /* if the entry is not being used, skip it */
+			continue;
+		    
+		    if (!strcmp(dirbuf->d_name,"."))
+			continue;      /* skip the entry for this directory */
+			
+		    if (strcmp(dirbuf->d_name,".."))
+				/* if the current entry is parent directory */
+			if ((*(dirbuf->d_name)=='.') ||
+			    (*(dirbuf->d_name)==','))
+			    continue;    /* skip those files whose name begins
+					    with '.' or ',' */
+
+		    StrAllocCopy(tmpfilename,localname);
+		    if (strcmp(localname,"/")) 
+					/* if filename is not root directory */
+			StrAllocCat(tmpfilename,"/"); 
+		    else
+			if (!strcmp(dirbuf->d_name,".."))
 			    continue;
-			
-			if (!strcmp(dirbuf->d_name,"."))
-			    continue;      /* skip the entry for this directory */
-			    
-			if (strcmp(dirbuf->d_name,".."))
-				    /* if the current entry is parent directory */
-			    if ((*(dirbuf->d_name)=='.') ||
-				(*(dirbuf->d_name)==','))
-				continue;    /* skip those files whose name begins
-						with '.' or ',' */
-    
-			StrAllocCopy(tmpfilename,localname);
-			if (strcmp(localname,"/")) 
-					    /* if filename is not root directory */
-			    StrAllocCat(tmpfilename,"/"); 
-			else
-			    if (!strcmp(dirbuf->d_name,".."))
-				continue;
-		/* if root directory and current entry is parent
-					directory, skip the current entry */
-			
-			StrAllocCat(tmpfilename,dirbuf->d_name);
-			/* append the current entry's filename to the path */
-			HTSimplify(tmpfilename);
-		
-			child = HTAnchor_findChildAndLink(
-				anchor, 0, tmpfilename, 0);
-			HText_beginAnchor(HT, child); 
-			stat(tmpfilename,file_info);
-			
-			if (strcmp(dirbuf->d_name,"..")) {
+	    /* if root directory and current entry is parent
+				    directory, skip the current entry */
+		    
+		    StrAllocCat(tmpfilename,dirbuf->d_name);
+		    /* append the current entry's filename to the path */
+		    HTSimplify(tmpfilename);
+	    
+		    {
+			char * relative = (char*) malloc(
+			    strlen(shortfilename) + strlen(dirbuf->d_name) + 2);
+			if (relative == NULL) outofmem(__FILE__, "sdfghj");
+			sprintf(relative, "%s/%s", shortfilename, dirbuf->d_name);
+			value[HTML_A_HREF] = relative;
+			(*targetClass.start_element)(
+				    target,HTML_A, present, value);
+			free(relative);
+		    }
+		    stat(tmpfilename, &file_info);
+		    
+		    if (strcmp(dirbuf->d_name,"..")) {
 /* if the current entry is not the parent directory then use the file name */
-			    HText_appendText(HT,dirbuf->d_name);
-			    if (((file_info->st_mode) & S_IFMT) == S_IFDIR) 
-				HText_appendCharacter(HT, '/'); 
-			}		        
-			else {
-			/* use name of parent directory */
-			    char * endbit = strrchr(tmpfilename, '/');
-			    HText_appendText(HT,"Up to ");
-			    HText_appendText(HT, endbit?endbit+1:tmpfilename);
-			}	
-			HText_endAnchor(HT);
-			    
-			HText_appendCharacter(HT, '\t');
-		    } /* end while directory entries left to read */
-		    
-		    closedir(dp);
-		    free(tmpfilename);
-		    
-		}  else {   /* Directory is not readable */
-		    if (TRACE)
-			fprintf(stderr,"HTFile.c: directory %s unreadable\n",
-				localname);
-		    HText_appendText(HT,
-			   "Sorry, can't read the contents of this directory - probably read protected\n");
-			    
-		} /* end if directory not readable */	 
+			PUTS(dirbuf->d_name);
+			if (((file_info.st_mode) & S_IFMT) == S_IFDIR) 
+			    PUTC('/'); 
+		    }		        
+		    else {
+		    /* use name of parent directory */
+			char * endbit = strrchr(tmpfilename, '/');
+			PUTS("Up to ");
+			PUTS(endbit?endbit+1:tmpfilename);
+		    }	
+		    END(HTML_A);
+			
+		} /* end while directory entries left to read */
 		
-		HText_endAppend(HT);
+		closedir(dp);
+		free(tmpfilename);
+		
+#ifdef SORT
+		{		/* Read out sorted filenames */
+		    void * ele = NULL;
+		    while ( (ele=HTBTree_next(bt, ele) != 0) {
+		       if (TRACE) fprintf(stderr,
+		       	"Sorted: %s\n", HTBTree_object(ele);
+			/* @@@@@@@@@@@@@@@@@ */
+		    }
+		    HTBTree_free(bt);
+		}
+#endif		
+		END(HTML_DIR);
+
+		if (HTDirReadme == HT_DIR_README_BOTTOM)
+		    do_readme(target, localname);
+
+		END_TARGET;
+		FREE_TARGET;
 		    
-		free(file_info);
 		free(filename);  
 		free(localname);
-		return HT_LOADED;	/* fd not valid, but document loaded anyway */
+		return HT_LOADED;	/* document loaded */
 		
 	    } /* end if localname is directory */
 	
@@ -538,11 +861,20 @@ PRIVATE int HTLoadFile ARGS3 (
 /* End of directory reading section
 */
 #endif
-
+open_file:
 	fd = open(localname, O_RDONLY, 0);
 	if(TRACE) printf ("HTAccess: Opening `%s' gives %d\n",
 			    localname, fd);
+	if (fd>=0) {		/* Good! */
+	    if (HTEditable(localname)) {
+	        HTAtom * put = HTAtom_for("PUT");
+		HTList * methods = HTAnchor_methods(anchor);
+		if (HTList_indexOf(methods, put) == (-1)) {
+		    HTList_addObject(methods, put);
+		}
+	    }
 	free(localname);
+	}
     }  /* local unix file system */
 #endif
 #endif
@@ -550,36 +882,34 @@ PRIVATE int HTLoadFile ARGS3 (
 #ifndef DECNET
 /*	Now, as transparently mounted access has failed, we try FTP.
 */
-    if (fd<0)
+    if (fd<0) {
 	if (strcmp(nodename, HTHostName())!=0) {
 	    free(filename);
-	    status = HTFTP_open_file_read(addr, anchor);
-	    if (status<0) return Inet_status("FTP file load");
-	    else {
-    		HTParseFormat(diagnostic ? WWW_PLAINTEXT : format,
-			anchor, new_file_number);
-        	HTFTP_close_file(new_file_number);
-		status = HT_LOADED
-	    }
+	    fd = HTFTPLoad(addr, anchor, format_out, sink);
+	    if (fd<0) return HTInetStatus("FTP file load");
+	    return fd;
+        }
     }
 #endif
 
 /*	All attempts have failed if fd<0.
 */
-    if (fd<0) if (TRACE)
+    if (fd<0) {
+    	if (TRACE)
     	printf("Can't open `%s', errno=%d\n", filename, errno);
-    else {
-    	HTParseFormat(HTDiag ? WWW_PLAINTEXT : format, anchor, new_file_number);
-    
-        HTClose(new_file_number);
+	free(filename);
+	return HTLoadError(sink, 403, "Can't access requested file.");
     }
+    
+    HTParseSocket(format, format_out, anchor, fd, sink);
+    NETCLOSE(fd);
     free(filename);
-    return fd;
+    return HT_LOADED;
 
 }
 
 /*		Protocol descriptors
 */
 PUBLIC HTProtocol HTFTP  = { "ftp", HTLoadFile, 0 };
-PUBLIC HTProtocol HTFile = { "file", HTLoadFile, 0 };
+PUBLIC HTProtocol HTFile = { "file", HTLoadFile, HTFileSaveStream };
 

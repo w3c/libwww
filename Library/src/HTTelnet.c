@@ -15,7 +15,7 @@
 
 /* Implements:
 */
-#include HTTelnet.h
+#include "HTTelnet.h"
 
 #include "HTParse.h"
 #include "HTUtils.h"
@@ -95,7 +95,6 @@ PRIVATE int remote_session ARGS2(char *, access, char *, host)
 #endif
 
 #ifdef TELNET_MINUS_L
-#endif
 	sprintf(command, "%s%s%s %s %s", access,
 		user ? " -l " : "",
 		user ? user : "",
@@ -106,6 +105,7 @@ PRIVATE int remote_session ARGS2(char *, access, char *, host)
 	system(command);
 	return HT_NO_DATA;		/* Ok - it was done but no data */
 #define TELNET_DONE
+#endif
 
 /* Most unix machines suppport username only with rlogin */
 #ifdef unix
@@ -197,17 +197,27 @@ PRIVATE int remote_session ARGS2(char *, access, char *, host)
 **
 */
 PRIVATE int HTLoadTelnet
-ARGS3
+ARGS4
 (
  CONST char *,		addr,
  HTParentAnchor *,	anchor,
- int,			diagnostic
+ int,			diagnostic,
+ HTStream *,		sink			/* Ignored */
 )
 {
-    char * access =  HTParse(addr, "file:", PARSE_ACCESS);
+    char * access;
     
-    char * host = HTParse(addr, "", PARSE_HOST);
-    int status = remote_session(access, host);
+    char * host;
+    int status;
+    
+    if (sink) {
+        HTAlert("Can't output a live session -- it has to be interactive");
+	return HT_NO_ACCESS;
+    }
+    access =  HTParse(addr, "file:", PARSE_ACCESS);
+    
+    host = HTParse(addr, "", PARSE_HOST);
+    status = remote_session(access, host);
 
     free(host);	
     free(access);
@@ -215,8 +225,8 @@ ARGS3
 }
 
 
-PUBLIC HTAccessMethod HTTelnet = { "telnet", HTLoadTelnet, NULL };
-PUBLIC HTAccessMethod HTRlogin = { "rlogin", HTLoadTelnet, NULL };
-PUBLIC HTAccessMethod HTTn3270 = { "tn3270", HTLoadTelnet, NULL };
+PUBLIC HTProtocol HTTelnet = { "telnet", HTLoadTelnet, NULL };
+PUBLIC HTProtocol HTRlogin = { "rlogin", HTLoadTelnet, NULL };
+PUBLIC HTProtocol HTTn3270 = { "tn3270", HTLoadTelnet, NULL };
 
 

@@ -7,6 +7,7 @@
 #define HTEXT_H
 #include "HTAnchor.h"
 #include "HTStyle.h"
+#include "HTStream.h"
 
 #ifdef SHORT_NAMES
 #define HTMainText			HTMaText
@@ -53,6 +54,8 @@ extern HTParentAnchor * HTMainAnchor;	/* Pointer to current text's anchor */
 **	Create hypertext object					HText_new
 */
  extern HText *	HText_new PARAMS((HTParentAnchor * anchor));
+ extern HText *	HText_new2 PARAMS((HTParentAnchor * anchor,
+ 				HTStream * output_stream));
 
 /*	Free hypertext object					HText_free
 */

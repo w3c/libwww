@@ -46,6 +46,7 @@ typedef struct _HyperDoc HyperDoc;  /* Ready for forward references */
 typedef struct _HTAnchor HTAnchor;
 typedef struct _HTParentAnchor HTParentAnchor;
 
+/*	After definition of HTFormat: */
 #include "HTFormat.h"
 
 typedef HTAtom HTLinkType;
@@ -74,9 +75,13 @@ struct _HTParentAnchor {
   HTList *	sources;	/* List of anchors pointing to this, if any */
   HyperDoc *	document;	/* The document within which this is an anchor */
   char * 	address;	/* Absolute address of this node */
-  HTFormat *	format; 	/* Pointer to node format descriptor */
+  HTFormat	format; 	/* Pointer to node format descriptor */
   BOOL		isIndex;	/* Acceptance of a keyword search */
   char *	title;		/* Title of document */
+  
+  HTList*	methods;	/* Methods available as HTAtoms */
+  void *	protocol;	/* Protocol object */
+  char *	physical;	/* Physical address */
 };
 
 typedef struct {
@@ -197,10 +202,10 @@ extern char * HTAnchor_address
 
 extern void HTAnchor_setFormat
   PARAMS(
-     (HTParentAnchor *this, HTFormat *form)
+     (HTParentAnchor *this, HTFormat form)
      );
 
-extern HTFormat * HTAnchor_format
+extern HTFormat HTAnchor_format
   PARAMS(
      (HTParentAnchor *this)
      );
@@ -264,5 +269,24 @@ extern BOOL HTAnchor_makeMainLink
   PARAMS(
      (HTAnchor *this, HTLink *movingLink)
      );
+     
+/*	Read and write methods
+**	----------------------
+*/
+extern HTList * HTAnchor_methods PARAMS((HTParentAnchor *this));
+
+/*	Protocol
+**	--------
+*/
+extern void * HTAnchor_protocol PARAMS((HTParentAnchor * this));
+extern void HTAnchor_setProtocol PARAMS((HTParentAnchor * this,
+					void* protocol));
+
+/*	Physical address
+**	----------------
+*/
+extern char * HTAnchor_physical PARAMS((HTParentAnchor * this));
+extern void HTAnchor_setPhysical PARAMS((HTParentAnchor * this,
+					char * protocol));
 
 #endif /* HTANCHOR_H */

@@ -29,7 +29,12 @@ struct _HTList {
 
 extern HTList *	HTList_new NOPARAMS;
 extern void	HTList_delete PARAMS((HTList *this));
+
+/*	Add object to START of list
+*/
 extern void	HTList_addObject PARAMS((HTList *this, void *newObject));
+
+
 extern BOOL	HTList_removeObject PARAMS((HTList *this, void *oldObject));
 extern void *	HTList_removeLastObject PARAMS((HTList *this));
 extern void *	HTList_removeFirstObject PARAMS((HTList *this));

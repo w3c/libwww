@@ -2,6 +2,13 @@
 **			====================
 */
 
+
+#ifndef HTFTP_H
+#define HTFTP_H
+
+#include "HTAnchor.h"
+#include "HTStream.h"
+
 /*	Retrieve File from Server
 **	-------------------------
 **
@@ -9,19 +16,20 @@
 **	returns		Socket number for file if good.
 **			<0 if bad.
 */
-extern int HTFTP_open_file_read
+extern int HTFTPLoad
 PARAMS
 ((
-  CONST char * name,
-  HTParentAnchor * anchor
+  CONST char * 		name,
+  HTParentAnchor * 	anchor,
+  HTFormat		format_out,
+  HTStream*		sink
 ));
 
 /*	Close socket opened for reading a file, and get final message
 **	-------------------------------------------------------------
 **
 */
-extern int HTFTP_close_file
-PARAMS ((int soc));
+/*extern int HTFTP_close_file PARAMS ((int soc)); */
 
 
 /*	Return Host Name
@@ -29,3 +37,5 @@ PARAMS ((int soc));
 */
 extern CONST char * HTHostName
 NOPARAMS;
+
+#endif

@@ -50,28 +50,42 @@ CERNLIBBIN = $(WWW)/bin
 
 COMMON = $(LOB)/HTParse.o $(LOB)/HTAccess.o $(LOB)/HTTP.o \
 	$(LOB)/HTFile.o	$(LOB)/HTFTP.o $(LOB)/HTTCP.o \
-	$(LOB)/SGML.o $(LOB)/HTML.o $(LOB)/HTChunk.o \
+	$(LOB)/SGML.o $(LOB)/HTML.o $(LOB)/HTMLDTD.o $(LOB)/HTChunk.o \
+	$(LOB)/HTPlain.o $(LOB)/HTWriter.o $(LOB)/HTFWriter.o \
+	$(LOB)/HTMLGen.o \
 	$(LOB)/HTAtom.o $(LOB)/HTAnchor.o $(LOB)/HTStyle.o \
-	$(LOB)/HTList.o $(LOB)/HTString.o $(LOB)/HTFormat.o \
-	$(LOB)/HTHistory.o $(LOB)/HTNews.o $(LOB)/HTGopher.o
+	$(LOB)/HTList.o $(LOB)/HTString.o $(LOB)/HTAlert.o \
+	$(LOB)/HTRules.o $(LOB)/HTFormat.o $(LOB)/HTInit.o $(LOB)/HTMIME.o \
+	$(LOB)/HTHistory.o $(LOB)/HTNews.o $(LOB)/HTGopher.o \
+	$(LOB)/HTTelnet.o
 
 CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTTP.c $(CMN)HTFile.c \
-	$(CMN)HTFTP.c   $(CMN)HTTCP.c     $(CMN)SGML.c $(CMN)HTML.c \
+	$(CMN)HTFTP.c   $(CMN)HTTCP.c     $(CMN)SGML.c $(CMN)HTML.c	\
+	$(CMN)HTMLDTD.c \
+	$(CMN)HTPlain.c	$(CMN)HTWriter.c  $(CMN)HTFWriter.c $(CMN)HTMLGen.c	\
 	$(CMN)HTChunk.c $(CMN)HTAtom.c   $(CMN)HTAnchor.c $(CMN)HTStyle.c \
-	$(CMN)HTList.c  $(CMN)HTString.c $(CMN)HTFormat.c $(CMN)HTHistory.c \
-	$(CMN)HTNews.c  $(CMN)HTGopher.c
+	$(CMN)HTList.c  $(CMN)HTString.c $(CMN)HTAlert.c $(CMN)HTRules.c \
+	$(CMN)HTFormat.c $(CMN)HTInit.c $(CMN)HTMIME.c $(CMN)HTHistory.c \
+	$(CMN)HTNews.c  $(CMN)HTGopher.c $(CMN)HTTelnet.c
 
 HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h $(CMN)HTTP.h $(CMN)HTFile.h \
 	$(CMN)HTFTP.h $(CMN)HTTCP.h \
-	$(CMN)SGML.h $(CMN)HTML.h $(CMN)HTChunk.h \
+	$(CMN)SGML.h $(CMN)HTML.h $(CMN)HTMLDTD.h $(CMN)HTChunk.h \
+	$(CMN)HTPlain.h		$(CMN)HTWriter.h \
+	$(CMN)HTFWriter.h 	$(CMN)HTMLGen.h	\
+	$(CMN)HTStream.h \
 	$(CMN)HTAtom.h $(CMN)HTAnchor.h $(CMN)HTStyle.h \
 	$(CMN)HTList.h \
-	$(CMN)HTString.h $(CMN)HTFormat.h $(CMN)HTHistory.h $(CMN)HTNews.h \
+	$(CMN)HTString.h $(CMN)HTAlert.h $(CMN)HTRules.h \
+	$(CMN)HTFormat.h $(CMN)HTInit.h \
+	$(CMN)HTMIME.h $(CMN)HTHistory.h $(CMN)HTNews.h \
 	$(CMN)HTGopher.h \
-	$(CMN)HTUtils.h $(CMN)tcp.h $(CMN)WWW.h $(CMN)HText.h
+	$(CMN)HTUtils.h $(CMN)tcp.h $(CMN)WWW.h $(CMN)HText.h \
+	$(CMN)HTTelnet.h
 
 SOURCES = $(CFILES) $(HFILES) $(CMN)Version.make $(CMN)CommonMakefile \
-	$(WWW)/README.txt $(WWW)/Copyright.txt
+	$(WWW)/README.txt $(WWW)/Copyright.txt $(WWW)/BUILD
+SPECIFIC = $(WWW)/All/*/Makefile.include $(WWW)/All/Implementation/Makefile*
 
 
 #	Library
@@ -122,7 +136,7 @@ distribute :  /pub/www/README.txt /pub/www/Copyright.txt
 
 /pub/www/src/WWWLibrary_$(VC).tar.Z : $(SOURCES)
 	tar cf /pub/www/src/WWWLibrary_$(VC).tar \
-	    $(SOURCES)  $(WC)/*/Makefile $(WC)/vms/descrip.mms
+	    $(SOURCES)  $(SPECIFIC) $(WC)/*/Makefile $(WC)/vms/descrip.mms
 	compress /pub/www/src/WWWLibrary_$(VC).tar
 
 
@@ -162,6 +176,12 @@ $(LOB)/HTAnchor.o : $(OE) $(CMN)HTAnchor.c $(CMN)HTUtils.h $(CMN)HTList.h
 $(LOB)/HTFormat.o : $(OE) $(CMN)HTFormat.c $(CMN)HTUtils.h $(CMN)HTList.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTFormat.c
 
+$(LOB)/HTInit.o : $(OE) $(CMN)HTInit.c $(CMN)HTUtils.h $(CMN)HTList.h
+	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTInit.c
+
+$(LOB)/HTMIME.o : $(OE) $(CMN)HTMIME.c $(CMN)HTUtils.h $(CMN)HTList.h
+	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTMIME.c
+
 $(LOB)/HTHistory.o : $(OE) $(CMN)HTHistory.c $(CMN)HTUtils.h $(CMN)HTList.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTHistory.c
 
@@ -170,6 +190,9 @@ $(LOB)/HTNews.o : $(OE) $(CMN)HTNews.c $(CMN)HTUtils.h $(CMN)HTList.h
 
 $(LOB)/HTGopher.o : $(OE) $(CMN)HTGopher.c $(CMN)HTUtils.h $(CMN)HTList.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTGopher.c
+
+$(LOB)/HTTelnet.o : $(OE) $(CMN)HTTelnet.c $(CMN)HTUtils.h $(CMN)HTTelnet.h
+	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTTelnet.c
 
 $(LOB)/HTStyle.o : $(OE) $(CMN)HTStyle.c $(CMN)HTUtils.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTStyle.c
@@ -183,11 +206,32 @@ $(LOB)/HTChunk.o : $(OE) $(CMN)HTChunk.c $(CMN)HTUtils.h
 $(LOB)/HTString.o : $(OE) $(CMN)HTString.c $(CMN)HTUtils.h $(CMN)Version.make
 	$(CC) -c -o $@ $(CFLAGS2) -DVC=\"$(VC)\" $(CMN)HTString.c
 
+$(LOB)/HTAlert.o : $(OE) $(CMN)HTAlert.c $(CMN)HTUtils.h $(CMN)Version.make
+	$(CC) -c -o $@ $(CFLAGS2) -DVC=\"$(VC)\" $(CMN)HTAlert.c
+
+$(LOB)/HTRules.o : $(OE) $(CMN)HTRules.c $(CMN)HTUtils.h $(CMN)Version.make
+	$(CC) -c -o $@ $(CFLAGS2) -DVC=\"$(VC)\" $(CMN)HTRules.c
+
 $(LOB)/SGML.o : $(OE) $(CMN)SGML.c $(CMN)HTUtils.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)SGML.c
 
-$(LOB)/HTML.o : $(OE) $(CMN)HTML.c $(CMN)HTUtils.h
+$(LOB)/HTML.o : $(OE) $(CMN)HTML.c $(CMN)HTUtils.h $(CMN)HTMLDTD.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTML.c
+
+$(LOB)/HTMLGen.o : $(OE) $(CMN)HTMLGen.c $(CMN)HTUtils.h $(CMN)HTMLDTD.h
+	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTMLGen.c
+
+$(LOB)/HTMLDTD.o : $(OE) $(CMN)HTMLDTD.c $(CMN)SGML.h
+	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTMLDTD.c
+
+$(LOB)/HTPlain.o : $(OE) $(CMN)HTPlain.c $(CMN)HTPlain.h $(CMN)HTStream.h
+	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTPlain.c
+
+$(LOB)/HTWriter.o : $(OE) $(CMN)HTWriter.c $(CMN)HTWriter.h $(CMN)HTStream.h
+	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTWriter.c
+
+$(LOB)/HTFWriter.o : $(OE) $(CMN)HTFWriter.c $(CMN)HTFWriter.h $(CMN)HTStream.h
+	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTFWriter.c
 
 #	Communications & Files
 

@@ -85,7 +85,7 @@ PRIVATE BOOL equivalent
 **	document. The parent anchor must already exist.
 */
 
-PRIVATE HTChildAnchor * HTAnchor_findChild
+PUBLIC HTChildAnchor * HTAnchor_findChild
   ARGS2 (HTParentAnchor *,parent, CONST char *,tag)
 {
   HTChildAnchor *child;
@@ -136,13 +136,12 @@ PUBLIC HTChildAnchor * HTAnchor_findChildAndLink
 {
   HTChildAnchor * child = HTAnchor_findChild(parent, tag);
   if (href && *href) {
-    char * parsed_address;
-    HTAnchor * dest;
-    parsed_address = HTParse(href, HTAnchor_address((HTAnchor *) parent),
-			     PARSE_ALL);
-    dest = HTAnchor_findAddress(parsed_address);
+    char * relative_to = HTAnchor_address((HTAnchor *) parent);
+    char * parsed_address = HTParse(href, relative_to, PARSE_ALL);
+    HTAnchor * dest = HTAnchor_findAddress(parsed_address);
     HTAnchor_link((HTAnchor *) child, dest, ltype);
     free(parsed_address);
+    free(relative_to);
   }
   return child;
 }
@@ -185,7 +184,9 @@ HTAnchor * HTAnchor_findAddress
     free (tag);
     
     /* Select list from hash table */
-    for(p=address, hash=0; *p; p++) hash = (hash * 3 + *p) % HASH_SIZE;
+    for(p=address, hash=0; *p; p++)
+    	hash = (hash * 3 + (*(unsigned char*)p))
+    	 % HASH_SIZE;
     if (!adult_table)
         adult_table = (HTList**) calloc(HASH_SIZE, sizeof(HTList*));
     if (!adult_table[hash]) adult_table[hash] = HTList_new();
@@ -194,7 +195,7 @@ HTAnchor * HTAnchor_findAddress
     /* Search list for anchor */
     grownups = adults;
     while (foundAnchor = HTList_nextObject (grownups)) {
-      if (equivalent(foundAnchor->address, address)) {
+       if (equivalent(foundAnchor->address, address)) {
 	if (TRACE) fprintf(stderr, "Anchor %p with address `%s' already exists.\n",
 			  foundAnchor, address);
 	return (HTAnchor *) foundAnchor;
@@ -357,13 +358,13 @@ char * HTAnchor_address
 
 
 void HTAnchor_setFormat
-  ARGS2 (HTParentAnchor *,this, HTFormat *,form)
+  ARGS2 (HTParentAnchor *,this, HTFormat ,form)
 {
   if (this)
     this->format = form;
 }
 
-HTFormat * HTAnchor_format
+HTFormat HTAnchor_format
   ARGS1 (HTParentAnchor *,this)
 {
   return this ? this->format : NULL;
@@ -466,6 +467,9 @@ HTAnchor * HTAnchor_followTypedLink
   return NULL;  /* No link of this type */
 }
 
+
+/*	Make main link
+*/
 BOOL HTAnchor_makeMainLink
   ARGS2 (HTAnchor *,this, HTLink *,movingLink)
 {
@@ -484,4 +488,47 @@ BOOL HTAnchor_makeMainLink
     free (movingLink);
     return YES;
   }
+}
+
+
+/*	Methods List
+**	------------
+*/
+
+PUBLIC HTList * HTAnchor_methods ARGS1(HTParentAnchor *, this)
+{
+    if (!this->methods) {
+        this->methods = HTList_new();
+    }
+    return this->methods;
+}
+
+/*	Protocol
+**	--------
+*/
+
+PUBLIC void * HTAnchor_protocol ARGS1(HTParentAnchor *, this)
+{
+    return this->protocol;
+}
+
+PUBLIC void HTAnchor_setProtocol ARGS2(HTParentAnchor *, this,
+	void*,	protocol)
+{
+    this->protocol = protocol;
+}
+
+/*	Physical Address
+**	----------------
+*/
+
+PUBLIC char * HTAnchor_physical ARGS1(HTParentAnchor *, this)
+{
+    return this->physical;
+}
+
+PUBLIC void HTAnchor_setPhysical ARGS2(HTParentAnchor *, this,
+	char *,	physical)
+{
+    StrAllocCopy(this->physical, physical);
 }

@@ -5,6 +5,9 @@
 **	26 Sep 90	Written TBL
 **	29 Nov 91	Downgraded to C, for portable implementation.
 */
+/* Implements:
+*/
+#include "HTNews.h"
 
 #define NEWS_PORT 119		/* See rfc977 */
 #define APPEND			/* Use append methods */
@@ -22,11 +25,14 @@
 #include "HTUtils.h"		/* Coding convention macros */
 #include "tcp.h"
 
-#include "HTNews.h"
-
-#include "HText.h"
+#include "HTML.h"
 #include "HTParse.h"
 #include "HTFormat.h"
+
+struct _HTStructured {
+	CONST HTStructuredClass *	isa;
+	/* ... */
+};
 
 #ifdef NeXTStep
 #include <appkit/defaults.h>
@@ -35,7 +41,6 @@
 #define NEWS_PROGRESS(foo) fprintf(stderr, "%s\n", (foo))
 #endif
 
-extern HTStyleSheet * styleSheet;
 
 #define NEXT_CHAR HTGetChararcter()
 #define LINE_LENGTH 512			/* Maximum length of line of ARTICLE etc */
@@ -44,18 +49,31 @@ extern HTStyleSheet * styleSheet;
 
 /*	Module-wide variables
 */
-PRIVATE char * NewsHost;
+PUBLIC char * HTNewsHost;
 PRIVATE struct sockaddr_in soc_address;		/* Binary network address */
 PRIVATE int s;					/* Socket for NewsHost */
 PRIVATE char response_text[LINE_LENGTH+1];	/* Last response */
-PRIVATE HText *	HT;				/* the new hypertext */
+/* PRIVATE HText *	HT;	*/		/* the new hypertext */
+PRIVATE HTStructured * target;			/* The output sink */
+PRIVATE HTStructuredClass targetClass;		/* Copy of fn addresses */
 PRIVATE HTParentAnchor *node_anchor;		/* Its anchor */
 PRIVATE int	diagnostic;			/* level: 0=none 2=source */
 
-PRIVATE HTStyle *addressStyle;			/* For address etc */
-PRIVATE HTStyle *heading1Style;			/* For heading level 1 */
-PRIVATE HTStyle *textStyle;			/* Text style */
 
+#define PUTC(c) (*targetClass.put_character)(target, c)
+#define PUTS(s) (*targetClass.put_string)(target, s)
+#define START(e) (*targetClass.start_element)(target, e, 0, 0)
+#define END(e) (*targetClass.end_element)(target, e)
+
+PUBLIC CONST char * HTGetNewsHost NOARGS
+{
+	return HTNewsHost;
+}
+
+PUBLIC void HTSetNewsHost ARGS1(CONST char *, value)
+{
+	StrAllocCopy(HTNewsHost, value);
+}
 
 /*	Initialisation for this module
 **	------------------------------
@@ -90,47 +108,47 @@ PRIVATE BOOL initialize NOARGS
 /*   Get name of Host
 */
 #ifdef NeXTStep
-    if ((NewsHost = NXGetDefaultValue("WorldWideWeb","NewsHost"))==0)
-        if ((NewsHost = NXGetDefaultValue("News","NewsHost")) == 0)
-	    NewsHost = DEFAULT_NEWS_HOST;
+    if ((HTNewsHost = NXGetDefaultValue("WorldWideWeb","NewsHost"))==0)
+        if ((HTNewsHost = NXGetDefaultValue("News","NewsHost")) == 0)
+	    HTNewsHost = DEFAULT_NEWS_HOST;
 #else
     if (getenv("NNTPSERVER")) {
-        StrAllocCopy(NewsHost, (char *)getenv("NNTPSERVER"));
+        StrAllocCopy(HTNewsHost, (char *)getenv("NNTPSERVER"));
 	if (TRACE) fprintf(stderr, "HTNews: NNTPSERVER defined as `%s'\n",
-		NewsHost);
+		HTNewsHost);
     } else {
         char server_name[256];
         FILE* fp = fopen(SERVER_FILE, "r");
         if (fp) {
 	    if (fscanf(fp, "%s", server_name)==1) {
-	        StrAllocCopy(NewsHost, server_name);
+	        StrAllocCopy(HTNewsHost, server_name);
 		if (TRACE) fprintf(stderr,
 		"HTNews: File %s defines news host as `%s'\n",
-		        SERVER_FILE, NewsHost);
+		        SERVER_FILE, HTNewsHost);
 	    }
 	    fclose(fp);
 	}
     }
-    if (!NewsHost) NewsHost = DEFAULT_NEWS_HOST;
+    if (!HTNewsHost) HTNewsHost = DEFAULT_NEWS_HOST;
 #endif
 
-    if (*NewsHost>='0' && *NewsHost<='9') {   /* Numeric node address: */
-	sin->sin_addr.s_addr = inet_addr((char *)NewsHost); /* See arpa/inet.h */
+    if (*HTNewsHost>='0' && *HTNewsHost<='9') {   /* Numeric node address: */
+	sin->sin_addr.s_addr = inet_addr((char *)HTNewsHost); /* See arpa/inet.h */
 
     } else {		    /* Alphanumeric node name: */
-	phost=gethostbyname((char*)NewsHost);	/* See netdb.h */
+	phost=gethostbyname((char*)HTNewsHost);	/* See netdb.h */
 	if (!phost) {
 #ifdef NeXTStep
 	    NXRunAlertPanel(NULL, "Can't find news host name `%s'.",
-	    	NULL, NULL, NULL, NewsHost);
+	    	NULL, NULL, NULL, HTNewsHost);
 #else
 	    fprintf(stderr,
-	      "HTNews: Can't find news host `%s'.\n",NewsHost);
+	      "HTNews: Can't find news host `%s'.\n",HTNewsHost);
 	    fprintf(stderr,
 "  Please see online documentation for instructions to set the news host.\n");
 #endif
 	    CTRACE(tfp,
-	      "HTNews: Can't find news host `%s'.\n",NewsHost);
+	      "HTNews: Can't find news host `%s'.\n",HTNewsHost);
 	    return NO;  /* Fail */
 	}
 	memcpy(&sin->sin_addr, phost->h_addr, phost->h_length);
@@ -149,17 +167,6 @@ PRIVATE BOOL initialize NOARGS
     return YES;
 }
 
-
-
-/*	Get Styles from stylesheet
-**	--------------------------
-*/
-PRIVATE void get_styles NOARGS
-{
-    if (!heading1Style) heading1Style = HTStyleNamed(styleSheet, "Heading1");
-    if (!addressStyle) addressStyle = HTStyleNamed(styleSheet, "Address");
-    if (!textStyle) textStyle = HTStyleNamed(styleSheet, "Example");
-}
 
 
 /*	Send NNTP Command line to remote host & Check Response
@@ -267,6 +274,23 @@ PRIVATE char * author_name ARGS1 (char *,email)
 
 }
 
+/*	Start anchor element
+**	--------------------
+*/
+PRIVATE void start_anchor ARGS1(CONST char *,  href)
+{
+    BOOL		present[HTML_A_ATTRIBUTES];
+    CONST char*		value[HTML_A_ATTRIBUTES];
+    
+    {
+    	int i;
+    	for(i=0; i<HTML_A_ATTRIBUTES; i++)
+	    present[i] = (i==HTML_A_HREF);
+    }
+    value[HTML_A_HREF] = href;
+    (*targetClass.start_element)(target, HTML_A , present, value);
+
+}
 
 /*	Paste in an Anchor
 **	------------------
@@ -289,10 +313,9 @@ PRIVATE void write_anchor ARGS2(CONST char *,text, CONST char *,addr)
         strncat(href, addr, p-addr);	/* Make complete hypertext reference */
     }
     
-    HText_beginAnchor(HT,
-    		HTAnchor_findChildAndLink(node_anchor, "",  href, 0));
-    HText_appendText(HT, text);
-    HText_endAnchor(HT);
+    start_anchor(href);
+    PUTS(text);
+    END(HTML_A);
 }
 
 
@@ -334,8 +357,8 @@ PRIVATE void abort_socket NOARGS
     if (TRACE) fprintf(stderr,
 	    "HTNews: EOF on read, closing socket %d\n", s);
     NETCLOSE(s);	/* End of file, close socket */
-    HText_appendText(HT, "Network Error: connection lost");
-    HText_appendParagraph(HT);
+    PUTS("Network Error: connection lost");
+    PUTC('\n');
     s = -1;		/* End of file on response */
     return;
 }
@@ -367,7 +390,7 @@ PRIVATE void read_article NOARGS
 **	 Text.
 */
     if (!diagnostic) {
-        HText_setStyle(HT, addressStyle);
+        (*targetClass.start_element)(target, HTML_ADDRESS, 0, 0);
 	while(!done){
 	    char ch = *p++ = NEXT_CHAR;
 	    if (ch==(char)EOF) {
@@ -387,15 +410,20 @@ PRIVATE void read_article NOARGS
 		} else if (line[0]<' ') {
 		    break;		/* End of Header? */
 		} else if (match(line, "SUBJECT:")) {
-		    HTAnchor_setTitle(node_anchor, line+8);
-		    HText_setStyle(HT, heading1Style);
-		    HText_appendText(HT, line+8);
-		    HText_setStyle(HT, addressStyle);
+		    END(HTML_ADDRESS);
+		    START(HTML_TITLE);			/** Uuugh! @@@ */
+		    PUTS(line+8);
+		    END(HTML_TITLE);
+		    START(HTML_ADDRESS);
+		    (*targetClass.start_element)(target, HTML_H1 , 0, 0);
+		    PUTS(line+8);
+		    (*targetClass.end_element)(target, HTML_H1);
+		    (*targetClass.start_element)(target, HTML_ADDRESS , 0, 0);
 		} else if (match(line, "DATE:")
 			|| match(line, "FROM:")
 			|| match(line, "ORGANIZATION:")) {
 		    strcat(line, "\n");
-		    HText_appendText(HT, strchr(line,':')+1);
+		    PUTS(strchr(line,':')+1);
 		} else if (match(line, "NEWSGROUPS:")) {
 		    StrAllocCopy(newsgroups, HTStrip(strchr(line,':')+1));
 		    
@@ -406,29 +434,35 @@ PRIVATE void read_article NOARGS
 		p = line;			/* Restart at beginning */
 	    } /* if end of line */
 	} /* Loop over characters */
+	(*targetClass.end_element)(target, HTML_ADDRESS);
     
-	HText_appendCharacter(HT, '\n');
-	HText_setStyle(HT, textStyle);
-	if (newsgroups) {
-	    HText_appendText(HT, "\nNewsgroups: ");
-	    write_anchors(newsgroups);
-	    free(newsgroups);
+	if (newsgroups || references) {
+	    (*targetClass.start_element)(target, HTML_DLC , 0, 0);
+	    if (newsgroups) {
+	        (*targetClass.start_element)(target, HTML_DT , 0, 0);
+		PUTS("Newsgroups:");
+	        (*targetClass.start_element)(target, HTML_DD , 0, 0);
+		write_anchors(newsgroups);
+		free(newsgroups);
+	    }
+	    
+	    if (references) {
+	        (*targetClass.start_element)(target, HTML_DT , 0, 0);
+		PUTS("References:");
+	        (*targetClass.start_element)(target, HTML_DD , 0, 0);
+		write_anchors(references);
+		free(references);
+	    }
+	    (*targetClass.end_element)(target, HTML_DLC);
 	}
+	PUTS("\n\n\n");
 	
-	if (references) {
-	    HText_appendText(HT, "\nReferences: ");
-	    write_anchors(references);
-	    free(references);
-	}
-    
-	HText_appendText(HT, "\n\n\n");
-	
-    } else { /* diagnostic */
-        HText_setStyle(HT, textStyle);
     }
     
 /*	Read in the BODY of the Article:
 */
+    (*targetClass.start_element)(target, HTML_PRE , 0, 0);
+
     p = line;
     while(!done){
 	char ch = *p++ = NEXT_CHAR;
@@ -444,7 +478,7 @@ PRIVATE void read_article NOARGS
 		    done = YES;
 		    break;
 		} else {			/* Line starts with dot */
-		    HText_appendText(HT, &line[1]);	/* Ignore first dot */
+		    PUTS(&line[1]);	/* Ignore first dot */
 		}
 	    } else {
 
@@ -460,24 +494,24 @@ PRIVATE void read_article NOARGS
 		        char c = q[1];
 			q[1] = 0;		/* chop up */
 			*p = 0;
-			HText_appendText(HT, l);
+			PUTS(l);
 			*p = '<'; 		/* again */
 			*q = 0;
-			HText_beginAnchor(HT,
-			    HTAnchor_findChildAndLink(
-			    	node_anchor, "", p+1, 0));
+			start_anchor(p+1);
 			*q = '>'; 		/* again */
-			HText_appendText(HT, p);
-			HText_endAnchor(HT);
+			PUTS(p);
+			(*targetClass.end_element)(target, HTML_A);
 			q[1] = c;		/* again */
 			l=q+1;
 		    } else break;		/* line has unmatched <> */
 		} 
-		HText_appendText(HT,  l);	/* Last bit of the line */
+		PUTS( l);	/* Last bit of the line */
 	    } /* if not dot */
 	    p = line;				/* Restart at beginning */
 	} /* if end of line */
     } /* Loop over characters */
+    
+    (*targetClass.end_element)(target, HTML_PRE);
 }
 
 
@@ -501,10 +535,11 @@ PRIVATE void read_list NOARGS
 **	The header fields are either ignored, or formatted and put into the
 **	Text.
 */
-    HText_setStyle(HT, heading1Style);
-    HText_appendText(HT,  "Newsgroups");
-    HText_setStyle(HT, textStyle);
+    (*targetClass.start_element)(target, HTML_H1 , 0, 0);
+    PUTS( "Newsgroups");
+    (*targetClass.end_element)(target, HTML_PRE);
     p = line;
+    (*targetClass.start_element)(target, HTML_MENU , 0, 0);
     while(!done){
 	char ch = *p++ = NEXT_CHAR;
 	if (ch==(char)EOF) {
@@ -514,12 +549,13 @@ PRIVATE void read_list NOARGS
 	if ((ch == '\n') || (p == &line[LINE_LENGTH])) {
 	    *p++=0;				/* Terminate the string */
 	    if (TRACE) fprintf(stderr, "B %s", line);
+    	    (*targetClass.start_element)(target, HTML_LI , 0, 0);
 	    if (line[0]=='.') {
 		if (line[1]<' ') {		/* End of article? */
 		    done = YES;
 		    break;
 		} else {			/* Line starts with dot */
-		    HText_appendText(HT,  &line[1]);
+		    PUTS( &line[1]);
 		}
 	    } else {
 
@@ -531,11 +567,12 @@ PRIVATE void read_list NOARGS
 		if (sscanf(line, "%s %d %d %c", group, &first, &last, &postable)==4)
 		    write_anchor(line, group);
 		else
-		    HText_appendText(HT, line);
+		    PUTS(line);
 	    } /* if not dot */
 	    p = line;			/* Restart at beginning */
 	} /* if end of line */
     } /* Loop over characters */
+    (*targetClass.end_element)(target, HTML_MENU);
 }
 
 
@@ -567,7 +604,7 @@ PRIVATE void read_group ARGS3(
     if(TRACE) printf("Newsgroup status=%d, count=%d, (%d-%d) required:(%d-%d)\n",
     			status, count, first, last, first_required, last_required);
     if (last==0) {
-        HText_appendText(HT,  "\nNo articles in this group.\n");
+        PUTS( "\nNo articles in this group.\n");
 	return;
     }
     
@@ -578,7 +615,7 @@ PRIVATE void read_group ARGS3(
     if ((last_required==0) || (last_required > last)) last_required = last;
     
     if (last_required<=first_required) {
-        HText_appendText(HT,  "\nNo articles in this range.\n");
+        PUTS( "\nNo articles in this range.\n");
 	return;
     }
 
@@ -588,6 +625,14 @@ PRIVATE void read_group ARGS3(
     if (TRACE) printf (
     "    Chunk will be (%d-%d)\n", first_required, last_required);
 
+/*	Set window title
+*/
+    sprintf(buffer, "Newsgroup %s,  Articles %d-%d",
+    		groupName, first_required, last_required);
+    START(HTML_TITLE);
+    PUTS(buffer);
+    END(HTML_TITLE);
+
 /*	Link to earlier articles
 */
     if (first_required>first) {
@@ -596,12 +641,11 @@ PRIVATE void read_group ARGS3(
 	else before = first_required-CHUNK_SIZE;
     	sprintf(buffer, "%s/%d-%d", groupName, before, first_required-1);
 	if (TRACE) fprintf(stderr, "    Block before is %s\n", buffer);
-	HText_appendText(HT,  " (");
-	HText_beginAnchor(HT,
-	    HTAnchor_findChildAndLink(node_anchor, "", buffer, 0));
-	HText_appendText(HT,  "Earlier articles");
-	HText_endAnchor(HT);
-	HText_appendText(HT,  "...)\n");
+	PUTS( " (");
+	start_anchor(buffer);
+	PUTS("Earlier articles");
+	END(HTML_A);
+	PUTS( "...)\n");
     }
     
     done = NO;
@@ -612,7 +656,7 @@ PRIVATE void read_group ARGS3(
         sprintf(buffer,
 	"\nThere are about %d articles currently available in %s, IDs as follows:\n\n",
 		count, groupName); 
-        HText_appendText(HT, buffer);
+        PUTS(buffer);
         sprintf(buffer, "XHDR Message-ID %d-%d\n", first, last);
 	status = response(buffer);
 	if (status==221) {
@@ -655,10 +699,10 @@ PRIVATE void read_group ARGS3(
 */
     if (!done) {
         if (first==first_required && last==last_required)
-		HText_appendText(HT, "\nAll available articles in ");
-        else HText_appendText(HT,  "\nArticles in ");
-	HText_appendText(HT, groupName);
-	HText_appendText(HT, "\n\n");
+		PUTS("\nAll available articles in ");
+        else PUTS( "\nArticles in ");
+	PUTS(groupName);
+	START(HTML_MENU);
 	for(art=first_required; art<=last_required; art++) {
     
 /*#define OVERLAP*/
@@ -741,28 +785,25 @@ PRIVATE void read_group ARGS3(
 		    } /* if end of line */
 		} /* Loop over characters */
     
+		START(HTML_LI);
 		sprintf(buffer, "\"%s\" - %s", subject, author);
 		if (reference) {
 		    write_anchor(buffer, reference);
 		    free(reference);
 		    reference=0;
 		} else {
-		    HText_appendText(HT, buffer);
+		    PUTS(buffer);
 		}
-	        HText_appendParagraph(HT);
 		
     
-/*	Change the title bar to indicate progress!
+/*	 indicate progress!   @@@@@@
 */
-		if (art%10 == 0) {
-		    sprintf(buffer, "Reading newsgroup %s,  Article %d (of %d-%d) ...",
-			    groupName, art, first, last);
-		    HTAnchor_setTitle(node_anchor, buffer);
-		}
     
 	    } /* If good response */
 	} /* Loop over article */	    
     } /* If read headers */
+    END(HTML_MENU);
+    START(HTML_P);
     
 /*	Link to later articles
 */
@@ -772,19 +813,13 @@ PRIVATE void read_group ARGS3(
     	if (after==last) sprintf(buffer, "news:%s", groupName);	/* original group */
     	else sprintf(buffer, "news:%s/%d-%d", groupName, last_required+1, after);
 	if (TRACE) fprintf(stderr, "    Block after is %s\n", buffer);
-	HText_appendText(HT,  "(");
-	HText_beginAnchor(HT, HTAnchor_findChildAndLink(
-		node_anchor, "", buffer, 0));
-	HText_appendText(HT,  "Later articles");
-	HText_endAnchor(HT);
-	HText_appendText(HT,  "...)\n");
+	PUTS( "(");
+	start_anchor(buffer);
+	PUTS( "Later articles");
+	END(HTML_A);
+	PUTS( "...)\n");
     }
     
-/*	Set window title
-*/
-    sprintf(buffer, "Newsgroup %s,  Articles %d-%d",
-    		groupName, first_required, last_required);
-    HTAnchor_setTitle(node_anchor, buffer);
 
 }
 
@@ -792,10 +827,11 @@ PRIVATE void read_group ARGS3(
 /*		Load by name					HTLoadNews
 **		============
 */
-PUBLIC int HTLoadNews ARGS3(
-	CONST char *,arg,
-	HTParentAnchor *,anAnchor,
-	int,diag)
+PUBLIC int HTLoadNews ARGS4(
+	CONST char *,		arg,
+	HTParentAnchor *,	anAnchor,
+	HTFormat,		format_out,
+	HTStream*,		stream)
 {
     char command[257];			/* The whole command */
     char groupName[GROUP_NAME_LENGTH];	/* Just the group name */
@@ -805,10 +841,9 @@ PUBLIC int HTLoadNews ARGS3(
     BOOL list_wanted;			/* Flag: group was asked for, not article */
     int first, last;			/* First and last articles asked for */
 
-    diagnostic = diag;			/* set global flag */
+    diagnostic = (format_out == WWW_SOURCE);	/* set global flag */
     
     if (TRACE) fprintf(stderr, "HTNews: Looking for %s\n", arg);
-    get_styles();
     
     if (!initialized) initialized = initialize();
     if (!initialized) return -1;	/* FAIL */
@@ -867,15 +902,15 @@ PUBLIC int HTLoadNews ARGS3(
 /*	Make a hypertext object with an anchor list.
 */       
     node_anchor = anAnchor;
-    HT = HText_new(anAnchor);
-    HText_beginAppend(HT);
+    target = HTML_new(anAnchor, stream);
+    targetClass = *target->isa;	/* Copy routine entry points */
+    
     	
 /*	Now, let's get a stream setup up from the NewsHost:
 */       
     for(retries=0;retries<2; retries++){
     
         if (s<0) {
-    	    HTAnchor_setTitle(node_anchor, "Connecting to NewsHost ...");/* Tell user  */
             NEWS_PROGRESS("Connecting to NewsHost ...");
 	    s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	    status = connect(s, (struct sockaddr*)&soc_address, sizeof(soc_address));
@@ -889,21 +924,21 @@ PUBLIC int HTLoadNews ARGS3(
 		NXRunAlertPanel(NULL,
     		    "Could not access newshost %s.",
 		    NULL,NULL,NULL,
-		    NewsHost);
+		    HTNewsHost);
 #else
 		fprintf(stderr, "Could not access newshost %s\n",
-		    NewsHost);
+		    HTNewsHost);
 #endif
 		sprintf(message,
 "\nCould not access %s.\n\n (Check default WorldWideWeb NewsHost ?)\n",
-		    NewsHost);
-		HText_beginAppend(HT);
-		HText_appendText(HT, message);
-		HText_endAppend(HT);
+		    HTNewsHost);
+		
+		PUTS(message);
+		(*targetClass.end_document)(target);
 		return YES;
 	    } else {
 		if (TRACE) fprintf(stderr, "HTNews: Connected to news host %s.\n",
-				NewsHost);
+				HTNewsHost);
 		HTInitInput(s);		/* set up buffering */
 		if ((response(NULL) / 100) !=2) {
 			NETCLOSE(s);
@@ -914,27 +949,28 @@ PUBLIC int HTLoadNews ARGS3(
 			    NULL,NULL,NULL,
 			    response_text);
 #endif
-    			HTAnchor_setTitle(node_anchor, "News host response");
-			HText_beginAppend(HT);
-			HText_appendText(HT,
-			     "Sorry, could not retrieve information: ");
-			HText_appendText(HT, response_text);
-			HText_endAppend(HT);
+			START(HTML_TITLE);
+			PUTS("News host response");
+			END(HTML_TITLE);
+			PUTS("Sorry, could not retrieve information: ");
+			PUTS(response_text);
+			(*targetClass.end_document)(target);
 			return YES;
 		}
 	    }
 	} /* If needed opening */
 	
-	HTAnchor_setTitle(node_anchor, arg);/* Tell user something's happening */
+	/* @@@@@@@@@@@@@@Tell user something's happening */
+	
 	status = response(command);
 	if (status<0) break;
 	if ((status/ 100) !=2) {
 /*	    NXRunAlertPanel("News access", response_text,
 	    	NULL,NULL,NULL);
 */
-	    HText_beginAppend(HT);
-	    HText_appendText(HT, response_text);
-	    HText_endAppend(HT);
+	    
+	    PUTS(response_text);
+	    (*targetClass.end_document)(target);
 	    NETCLOSE(s);
 	    s = -1;
 /* return HT; -- no:the message might be "Timeout-disconnected" left over */
@@ -943,24 +979,25 @@ PUBLIC int HTLoadNews ARGS3(
   
 /*	Load a group, article, etc
 */
-        HText_beginAppend(HT);
+        
 	
 	if (list_wanted) read_list();
 	else if (group_wanted) read_group(groupName, first, last);
         else read_article();
 
-	HText_endAppend(HT);
-	return YES;
+	(*targetClass.end_document)(target);
+	return HT_LOADED;
 	
     } /* Retry loop */
     
-    HText_beginAppend(HT);
-    HText_appendText(HT, "Sorry, could not load requested news.\n");
-    HText_endAppend(HT);
+    
+    PUTS("Sorry, could not load requested news.\n");
+    (*targetClass.end_document)(target);
     
 /*    NXRunAlertPanel(NULL, "Sorry, could not load `%s'.",
 	    NULL,NULL,NULL, arg);No -- message earlier wil have covered it */
 
-    return YES;
+    return HT_LOADED;
 }
 
+PUBLIC HTProtocol HTNews = { "news", HTLoadNews, NULL };

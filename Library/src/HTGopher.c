@@ -6,6 +6,10 @@
 **	29 Nov 91	Downgraded to C, for portable implementation.
 */
 
+/* Implements:
+*/
+#include "HTGopher.h"
+
 #define GOPHER_PORT 70		/* See protocol spec */
 #define BIG 1024		/* Bug */
 #define LINE_LENGTH 256		/* Bug */
@@ -29,12 +33,29 @@
 #include "HTUtils.h"		/* Coding convention macros */
 #include "tcp.h"
 
-#include "HTGopher.h"
 
-#include "HText.h"
 #include "HTParse.h"
 #include "HTFormat.h"
 #include "HTTCP.h"
+
+/*		Hypertext object building machinery
+*/
+#include "HTML.h"
+
+#define PUTC(c) (*targetClass.put_character)(target, c)
+#define PUTS(s) (*targetClass.put_string)(target, s)
+#define START(e) (*targetClass.start_element)(target, e, 0, 0)
+#define END(e) (*targetClass.end_element)(target, e)
+#define END_TARGET (*targetClass.end_document)(target)
+#define FREE_TARGET (*targetClass.free)(target)
+struct _HTStructured {
+	CONST HTStructuredClass *	isa;
+	/* ... */
+};
+
+PRIVATE HTStructured *target;			/* the new hypertext */
+PRIVATE HTStructuredClass targetClass;		/* Its action routines */
+
 
 #ifdef NeXTStep
 #include <appkit/defaults.h>
@@ -43,8 +64,6 @@
 #define GOPHER_PROGRESS(foo) fprintf(stderr, "%s\n", (foo))
 #endif
 
-extern HTStyleSheet * styleSheet;
-
 #define NEXT_CHAR HTGetChararcter()
 
 
@@ -52,13 +71,7 @@ extern HTStyleSheet * styleSheet;
 /*	Module-wide variables
 */
 PRIVATE int s;					/* Socket for GopherHost */
-PRIVATE HText *	HT;				/* the new hypertext */
-PRIVATE HTParentAnchor *node_anchor;		/* Its anchor */
-PRIVATE int	diagnostic;			/* level: 0=none 2=source */
 
-PRIVATE HTStyle *addressStyle;			/* For address etc */
-PRIVATE HTStyle *heading1Style;			/* For heading level 1 */
-PRIVATE HTStyle *textStyle;			/* Text style */
 
 
 /*	Matrix of allowed characters in filenames
@@ -93,17 +106,6 @@ PRIVATE char from_hex ARGS1(char, c)
 
 
 
-/*	Get Styles from stylesheet
-**	--------------------------
-*/
-PRIVATE void get_styles NOARGS
-{
-    if (!heading1Style) heading1Style = HTStyleNamed(styleSheet, "Heading1");
-    if (!addressStyle) addressStyle = HTStyleNamed(styleSheet, "Address");
-    if (!textStyle) textStyle = HTStyleNamed(styleSheet, "Example");
-}
-
-
 /*	Paste in an Anchor
 **	------------------
 **
@@ -117,18 +119,24 @@ PRIVATE void get_styles NOARGS
 */
 PRIVATE void write_anchor ARGS2(CONST char *,text, CONST char *,addr)
 {
-    HTChildAnchor 	*anchor;
-    HTParentAnchor	*dest;
+
+
     
-    HText_beginAnchor(HT,
-    		anchor = HTAnchor_findChildAndLink(node_anchor, "",  addr, 0));
-    dest = HTAnchor_parent(
-	    HTAnchor_followMainLink((HTAnchor *)anchor));
+    BOOL present[HTML_A_ATTRIBUTES];
+    CONST char * value[HTML_A_ATTRIBUTES];
+    
+    int i;
+    
+    for (i=0; i<HTML_A_ATTRIBUTES; i++) present[i]=0;
+    present[HTML_A_HREF] = YES;
+    value[HTML_A_HREF] = addr;
+    present[HTML_A_TITLE] = YES;
+    value[HTML_A_TITLE] = text;
+    
+    (*targetClass.start_element)(target, HTML_A, present, value);
 	    
-    if (!HTAnchor_title(dest)) HTAnchor_setTitle(dest, text);
-	    
-    HText_appendText(HT, text);
-    HText_endAnchor(HT);
+    PUTS(text);
+    END(HTML_A);
 }
 
 
@@ -138,8 +146,8 @@ PRIVATE void write_anchor ARGS2(CONST char *,text, CONST char *,addr)
 */
 
 PRIVATE void parse_menu ARGS2 (
-	CONST char *,	arg,
-	HTParentAnchor *,anAnchor)
+	CONST char *,		arg,
+	HTParentAnchor *,	anAnchor)
 {
     char gtype;
     char ch;
@@ -149,22 +157,23 @@ PRIVATE void parse_menu ARGS2 (
     char *host;
     char *port;
     char *p = line;
-    
+    CONST char *title;
 
 #define TAB 		'\t'
 #define HEX_ESCAPE 	'%'
 
-    if (!HTAnchor_title(anAnchor))
-    	HTAnchor_setTitle(anAnchor, arg);/* Tell user something's happening */
     
-    node_anchor = anAnchor;
-    HT = HText_new(anAnchor);
+    title = HTAnchor_title(anAnchor);
+    if (title) {
+        START(HTML_H1);
+	PUTS(title);
+	END(HTML_H1);
+    } else
+        PUTS("Select one of:\n\n");
     
-    HText_beginAppend(HT);
-    HText_appendText(HT, "Select one of:\n\n");
-    
+    START(HTML_MENU);
     while ((ch=NEXT_CHAR) != (char)EOF) {
-    
+        START(HTML_LI);
         if (ch != '\n') {
 	    *p = ch;		/* Put character in line */
 	    if (p< &line[BIG-1]) p++;
@@ -202,7 +211,6 @@ PRIVATE void parse_menu ARGS2 (
 	    
 	    if (gtype == GOPHER_WWW) {	/* Gopher pointer to W3 */
 		write_anchor(name, selector);
-		HText_appendParagraph(HT);
 
 	    } else if (port) {		/* Other types need port */
 		if (gtype == GOPHER_TELNET) {
@@ -225,14 +233,14 @@ PRIVATE void parse_menu ARGS2 (
 		    }
 		    *q++ = 0;			/* terminate address */
 		}
-		HText_appendText(HT, "        "); /* Prettier JW/TBL */
+		PUTS("        "); /* Prettier JW/TBL */
 		write_anchor(name, address);
-		HText_appendParagraph(HT);
+
 	    } else { /* parse error */
 	        if (TRACE) fprintf(stderr,
 			"HTGopher: Bad menu item.\n");
-		HText_appendText(HT, line);
-		HText_appendParagraph(HT);
+		PUTS(line);
+
 	    } /* parse error */
 	    
 	    p = line;	/* Start again at beginning of line */
@@ -241,7 +249,10 @@ PRIVATE void parse_menu ARGS2 (
 	
     } /* Loop over characters */
 	
-    HText_endAppend(HT);
+    END(HTML_MENU);
+    END_TARGET;
+    FREE_TARGET;
+    
     return;
 }
 
@@ -253,18 +264,18 @@ PRIVATE void display_index ARGS2 (
 	CONST char *,	arg,
 	HTParentAnchor *,anAnchor)
 {
-    node_anchor = anAnchor;
-    HT = HText_new(anAnchor);
-    HText_beginAppend(HT);
-    HText_setStyle(HT, heading1Style);
-    HText_appendText(HT, arg);
-    HText_setStyle(HT, textStyle);
-    HText_appendText(HT, "\nThis is a searchable index.\n");
+    
+    START(HTML_H1);
+    PUTS(arg);
+    END(HTML_H1);
+    
+    PUTS("\nPlease enter words to search for.\n");
 	
     if (!HTAnchor_title(anAnchor))
-    	HTAnchor_setTitle(anAnchor, arg);/* Tell user something's happening */
+    	HTAnchor_setTitle(anAnchor, arg);
     
-    HText_endAppend(HT);
+    END_TARGET;
+    FREE_TARGET;
     return;
 }
 
@@ -304,10 +315,11 @@ PRIVATE void de_escape ARGS2(char *, command, CONST char *, selector)
 **	 Bug:	No decoding of strange data types as yet.
 **
 */
-PUBLIC int HTLoadGopher ARGS3(
-	CONST char *,arg,
-	HTParentAnchor *,anAnchor,
-	int,diag)
+PUBLIC int HTLoadGopher ARGS4(
+	CONST char *,		arg,
+	HTParentAnchor *,	anAnchor,
+	HTFormat,		format_out,
+	HTStream*,		sink)
 {
     char *command;			/* The whole command */
     int status;				/* tcp return */
@@ -316,8 +328,6 @@ PUBLIC int HTLoadGopher ARGS3(
  
     struct sockaddr_in soc_address;	/* Binary network address */
     struct sockaddr_in* sin = &soc_address;
-
-    diagnostic = diag;			/* set global flag */
     
     if (!acceptable_inited) init_acceptable();
     
@@ -325,7 +335,6 @@ PUBLIC int HTLoadGopher ARGS3(
     if (!*arg) return -2;		/* Bad if name had zero length	*/
     
     if (TRACE) fprintf(stderr, "HTGopher: Looking for %s\n", arg);
-    get_styles();
     
     
 /*  Set up defaults:
@@ -358,6 +367,8 @@ PUBLIC int HTLoadGopher ARGS3(
             HTAnchor_setIndex(anAnchor);	/* Search is allowed */
 	    query = strchr(selector, '?');	/* Look for search string */
 	    if (!query || !query[1]) {		/* No search required */
+		target = HTML_new(anAnchor, sink);
+		targetClass = *target->isa;
 		display_index(arg, anAnchor);	/* Display "cover page" */
 		return 1;			/* Local function only */
 	    }
@@ -420,27 +431,29 @@ PUBLIC int HTLoadGopher ARGS3(
 
 /*	Now read the data from the socket:
 */    
-    if (diagnostic==2) gtype = GOPHER_TEXT;	/* Read as plain text anyway */
-    
     switch (gtype) {
     
     case GOPHER_HTML :
-    	HTParseFormat(WWW_HTML, anAnchor, s);
-	NETCLOSE(s);
-	return 1;
+    	HTParseSocket(WWW_HTML, format_out, anAnchor, s, sink);
+	break;
 
     case GOPHER_MENU :
     case GOPHER_INDEX :
+	target = HTML_new(anAnchor, sink);
+	targetClass = *target->isa;
         parse_menu(arg, anAnchor);
-	NETCLOSE(s);
-	return 1;
-    	
+	break;
+	    	
     case GOPHER_TEXT :
     default:			/* @@ parse as plain text */
-     	HTParseFormat(WWW_PLAINTEXT, anAnchor, s);
-	NETCLOSE(s);
-	return 1;
+     	HTParseSocket(WWW_PLAINTEXT, format_out, anAnchor, s, sink);
+	break;
+	
     } /* switch(gtype) */
-    /*NOTREACHED*/
+
+    NETCLOSE(s);
+    return HT_LOADED;
 }
+
+PUBLIC HTProtocol HTGopher = { "gopher", HTLoadGopher, NULL };
 

@@ -7,9 +7,9 @@
 
 #include "HTAccess.h"
 
-extern HTAccessMethod HTTelnet;
-extern HTAccessMethod HTRlogin;
-extern HTAccessMethod HTTn3270;
+extern HTProtocol HTTelnet;
+extern HTProtocol HTRlogin;
+extern HTProtocol HTTn3270;
 
 
 #endif /* HTTELNET_H */
