@@ -283,19 +283,19 @@ PUBLIC int HTGetHostByName (HTHost * host, char *hostname, HTRequest* request)
 	char buffer[HOSTENT_MAX];
 	struct hostent result;			      /* For gethostbyname_r */
 #endif
-#ifdef GETHOSTBYNAME_R_3
+#ifdef HAVE_GETHOSTBYNAME_R_3
         struct hostent_data hdata;
 #endif
 
 	if (cbf) (*cbf)(request, HT_PROG_DNS, HT_MSG_NULL,NULL,hostname,NULL);
-#ifdef GETHOSTBYNAME_R_5
+#ifdef HAVE_GETHOSTBYNAME_R_5
 	hostelement = gethostbyname_r(hostname, &result, buffer,
 				      HOSTENT_MAX, &thd_errno);
-#elif defined(GETHOSTBYNAME_R_6)
+#elif defined(HAVE_GETHOSTBYNAME_R_6)
 	gethostbyname_r(hostname, &result, buffer,
 		        HOSTENT_MAX, &hostelement, &thd_errno);
 
-#elif defined(GETHOSTBYNAME_R_3)
+#elif defined(HAVE_GETHOSTBYNAME_R_3)
         if (gethostbyname_r(hostname, &result, &hdata) == 0) {
 	    hostelement = &result;
 	}

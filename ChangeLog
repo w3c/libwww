@@ -1,5 +1,11 @@
 Changes with libwww 5.3.3
- 
+
+2002-03-21      Jose Kahan <jose@w3.org>
+
+	* Added the HTDNS.c configure patches for the reentrant call to
+	  gethostbynamer function. (sorry, I can't find the name of
+	  the person who contributed this patch right now).
+	
 2001-08-30      Jose Kahan <jose@w3.org>
 
 	* Added a new field in the HTRequest structure for specifying
