@@ -49,7 +49,8 @@ int main (int argc, char ** argv)
 	    char * string = argv[arg];
 	    char * name = HTNextField(&string);
 	    char * value = HTNextField(&string);
-	    if (name && value) {
+	    if (!value) value = "";
+	    if (name) {
 		char * escaped_name = HTEscape(name, URL_XPALPHAS);
 		char * escaped_value = HTEscape(value, URL_XPALPHAS);
 
