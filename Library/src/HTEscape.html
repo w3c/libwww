@@ -1,0 +1,63 @@
+<HEADER>
+<TITLE>Escape and Unescape Illegal Characters in URIs</TITLE>
+<NEXTID N="1">
+</HEADER>
+<BODY>
+
+<H1>Escape and Unescape Illegal Characters in URIs</H1>
+
+This module have been spawned from <A HREF="HTParse.html">HTParse</A>,
+as it then can be used in utility programs without loading a whole
+bunch of the library code. It contains functions for escaping and
+unescaping a URI for reserved characters in URIs. <P>
+
+This module is implemented by <A HREF="HTEscape.c">HTEscape.c</A>, and
+it is a part of the <A NAME="z10"
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">Library
+of Common Code</A>.
+
+<PRE>
+#ifndef HTESCAPE_H
+#define HTESCAPE_H
+</PRE>
+
+
+<H2>Encode Unacceptable Characters using %xy</H2>
+
+This funtion takes a string containing any sequence of ASCII
+characters, and returns a malloced string containing the same
+infromation but with all "unacceptable" characters represented in the
+form <CODE>%xy</CODE> where <CODE>x</CODE> and <CODE>y</CODE> are two
+hex digits.
+
+<PRE>
+extern char * HTEscape PARAMS((CONST char * str, unsigned char mask));
+</PRE>
+
+The following are valid mask values. The terms are the BNF names in
+the URI document.
+
+<PRE>
+#define URL_XALPHAS	(unsigned char) 1
+#define URL_XPALPHAS	(unsigned char) 2
+#define URL_PATH	(unsigned char) 4
+</PRE>
+
+<H2>Decode %xy Escaped Characters</H2>
+
+This function takes a pointer to a string in which character smay have
+been encoded in <CODE>%xy</CODE> form, where <CODE>xy</CODE> is the
+acsii hex code for character 16x+y. The string is converted in place,
+as it will never grow.
+
+<PRE>
+extern char * HTUnEscape PARAMS(( char * str));
+
+
+#endif	/* HTESCAPE_H */
+</PRE>
+
+End of HTEscape Module
+</BODY>
+</HTML>
+
