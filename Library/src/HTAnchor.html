@@ -53,6 +53,7 @@ a different document.
 <PRE>typedef struct _HyperDoc HyperDoc;  /* Ready for forward references */
 typedef struct _HTAnchor HTAnchor;
 typedef struct _HTParentAnchor HTParentAnchor;
+typedef struct _HTChildAnchor HTChildAnchor;
 
 </PRE>Must be AFTER definition of HTAnchor:
 <PRE>#include "HTFormat.h"
@@ -95,14 +96,14 @@ typedef struct {
   void *	protocol;	/* Protocol object */
   char *	physical;	/* Physical address */
   HTList *	<A
-NAME="z1">cacheItems</A>;	/* Cache hits (see <A
-NAME="z0" HREF="HTFWriter.html">HTFWriter</A>) for this URL */
+NAME="z1">cacheItems</A> ;	/* Cache hits (see <A
+NAME="z0" HREF="HTFWriter.html">HTFWriter</A> ) for this URL */
   long int      size;           /* Indicative size only if multiformat */ 
 };
 
 </PRE>
 <H3>Anchor for a fragment of an object</H3>
-<PRE>typedef struct {
+<PRE>struct _HTChildAnchor {
   /* Common part from the generic anchor structure */
   HTLink	mainLink;	/* Main (or default) destination of this */
   HTList *	links;  	/* List of extra links from this, if any */
@@ -110,7 +111,7 @@ NAME="z0" HREF="HTFWriter.html">HTFWriter</A>) for this URL */
 
   /* ChildAnchor-specific information */
   char * 	tag;		/* Address of this anchor relative to parent */
-} HTChildAnchor;
+};
 
 </PRE>
 <H2>Class methods</H2>
@@ -327,5 +328,6 @@ extern BOOL HTAnchor_link
 
 
 
-</A></PRE></BODY>
+
+</PRE></BODY>
 </HTML>

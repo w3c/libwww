@@ -1,9 +1,19 @@
+<HTML>
+<HEAD>
+<TITLE>List object for libwww</TITLE>
+<NEXTID N="z3">
+</HEAD>
+<BODY>
+<H1>List object</H1>The list object is a generic container
+for storing collections of things
+in order.   In principle it could
+be implemented in many ways, but
+in practice knowing that it is a
+linked list is important for speed.
+See also the  <A
+NAME="z2" HREF="#z1">traverse macro</A> for
+example.
 <PRE>
-/*		List object
-**
-**	The list object is a generic container for storing collections
-**	of things in order.
-*/
 #ifndef HTLIST_H
 #define HTLIST_H
 
@@ -31,8 +41,9 @@ struct _HTList {
 extern HTList *	HTList_new NOPARAMS;
 extern void	HTList_delete PARAMS((HTList *me));
 
-/*	Add object to START of list
-*/
+</PRE>
+<H3>Add object to START of list</H3>
+<PRE>
 extern void	HTList_addObject PARAMS((HTList *me, void *newObject));
 
 
@@ -43,14 +54,25 @@ extern void *	HTList_removeFirstObject PARAMS((HTList *me));
 extern int	HTList_count PARAMS((HTList *me));
 extern int	HTList_indexOf PARAMS((HTList *me, void *object));
 #define 	HTList_lastObject(me) \
-  (me &#38;&#38; me->next ? me->next->object : NULL)
+  (me &amp;&amp; me->next ? me->next->object : NULL)
 extern void *	HTList_objectAt PARAMS((HTList *me, int position));
 
-/* Fast macro to traverse the list. Call it first with copy of list header :
-   it returns the first object and increments the passed list pointer.
-   Call it with the same variable until it returns NULL. */
-#define HTList_nextObject(me) \
-  (me &#38;&#38; (me = me->next) ? me->object : NULL)
+</PRE>
+<H3><A
+NAME="z1">Traverse list</A></H3>Fast macro to traverse the list.
+Call it first with copy of list header
+:  it returns the first object and
+increments the passed list pointer.
+Call it with the same variable until
+it returns NULL.
+<PRE>#define HTList_nextObject(me) \
+  (me &amp;&amp; (me = me->next) ? me->object : NULL)
+
+</PRE>
+<H3>Free list</H3>
+<PRE>#define HTList_free(x)  free(x)
 
 #endif /* HTLIST_H */
-</PRE>
+
+</PRE>end</A></BODY>
+</HTML>
