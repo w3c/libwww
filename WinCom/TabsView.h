@@ -1,16 +1,18 @@
-// TabsView.h : interface of the CTabsView class
-//
-// This is a part of the Microsoft Foundation Classes C++ library.
-// Copyright (C) 1992-1997 Microsoft Corporation
-// All rights reserved.
-//
-// This source code is only intended as a supplement to the
-// Microsoft Foundation Classes Reference and related
-// electronic documentation provided with the library.
-// See these sources for detailed information regarding the
-// Microsoft Foundation Classes product.
-
-/////////////////////////////////////////////////////////////////////////////
+/*
+**	@(#) $Id$
+**	
+**	W3C Web Commander can be found at "http://www.w3.org/WinCom/"
+**	
+**	Copyright © 1995-1998 World Wide Web Consortium, (Massachusetts
+**	Institute of Technology, Institut National de Recherche en
+**	Informatique et en Automatique, Keio University). All Rights
+**	Reserved. This program is distributed under the W3C's Software
+**	Intellectual Property License. This program is distributed in the hope
+**	that it will be useful, but WITHOUT ANY WARRANTY; without even the
+**	implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+**	PURPOSE. See W3C License http://www.w3.org/Consortium/Legal/ for more
+**	details.
+*/
 
 class CTabsView : public CView
 {
