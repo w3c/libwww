@@ -367,11 +367,15 @@ PUBLIC int HTInfoFilter (HTRequest * request, HTResponse * response,
     HTParentAnchor * anchor = HTRequest_anchor(request);
     char * uri = HTAnchor_address((HTAnchor*) anchor);
     switch (status) {
-    case HT_RETRY:
+    case HT_RETRY: {
+        HTAlertCallback *cbf = HTAlert_find(HT_A_MESSAGE);
+	if (cbf) (*cbf)(request, HT_A_MESSAGE, HT_MSG_NULL, NULL,
+			HTRequest_error(request), NULL);
 	if (PROT_TRACE)
 	    HTTrace("Load End.... NOT AVAILABLE, RETRY AT %ld\n",
 		    HTResponse_retryTime(response));
-	break;
+        }
+        break;
 
     case HT_NO_DATA:
     {
