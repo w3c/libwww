@@ -161,7 +161,12 @@ PRIVATE int prompt_user (HTRequest * request, const char * realm,
 			 HTBasic * basic)
 {
     HTAlertCallback * cbf = HTAlert_find(HT_A_USER_PW);
-    if (request && cbf) {
+
+    /* If no method for prompting the user then we might as well give up */
+    if (!cbf) return HT_ERROR;
+
+    /* Otherwise go ahead and ask the user */
+    if (request) {
 	HTAlertPar * reply = HTAlert_newReply();
 	int msg = basic->proxy ? HT_MSG_PROXY_UID : HT_MSG_UID;
 	BOOL res = (*cbf)(request, HT_A_USER_PW, msg,
@@ -402,7 +407,12 @@ PRIVATE int prompt_digest_user (HTRequest * request, const char * realm,
 				HTDigest * digest)
 {
     HTAlertCallback * cbf = HTAlert_find(HT_A_USER_PW);
-    if (request && cbf) {
+
+    /* If no method for prompting the user then we might as well give up */
+    if (!cbf) return HT_ERROR;
+
+    /* Otherwise go ahead and ask the user */
+    if (request) {
 	HTAlertPar * reply = HTAlert_newReply();
 	int msg = digest->proxy ? HT_MSG_PROXY_UID : HT_MSG_UID;
 	BOOL res = (*cbf)(request, HT_A_USER_PW, msg,
