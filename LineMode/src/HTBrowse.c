@@ -53,16 +53,32 @@
 #define VL "unspecified"
 #endif
 
-/*	If the guy gives the "MANUAL" command, jump to this:
-*/
+/*	If the guy gives the "MANUAL" command, jump to this: */
 #ifndef MANUAL
-#define MANUAL "http://info.cern.ch/hypertext/WWW/LineMode/Defaults/QuickGuide.html"
+    #define MANUAL "http://info.cern.ch/hypertext/WWW/LineMode/Defaults/QuickGuide.html"
+#endif
+
+#ifndef DEFAULT_LOCAL_LOGFILE
+    #define DEFAULT_LOCAL_LOGFILE	"WWW-log"	/* Log file name for local execution */
+#endif
+
+#ifndef DEFAULT_OUTPUT_FILE
+    #define DEFAULT_OUTPUT_FILE		"WWW-out"	/* Output file name for non-interactive run */
+#endif
+
+#ifndef DEFAULT_REF_HEAD
+    #define DEFAULT_REF_HEAD		"*** References from this document ***"
+#endif
+
+#ifndef DEFAULT_OUTPUT_FORMAT
+    #define DEFAULT_OUTPUT_FORMAT	"www/present"
 #endif
 
 /* Check Statements */
 /* ================ */
 
-#define NAME_CHECK 0	/* Trace to show NAME anchors */
+#define NAME_CHECK	0	/* Trace to show NAME anchors */
+/* #define LONG_PROMPT	1 */	/* Long or short user prompt */
 
 
 /* Include Files */
@@ -141,11 +157,10 @@ extern HTStyleSheet * styleSheet;
 #endif
 #endif
 
-#define INFINITY 1024		   		/*!! BUG*/
-#define ADDRESS_LENGTH  INFINITY	   /* Maximum address length of node */
-#define TITLE_LENGTH    INFINITY    /* Maximum length of a title */
-#define RESPONSE_LENGTH INFINITY    /* Maximum length of users response */
-
+#define INFINITY		1024		/*!! BUG*/
+#define ADDRESS_LENGTH		INFINITY	/* Maximum address length of node */
+#define TITLE_LENGTH		INFINITY	/* Maximum length of a title */
+#define RESPONSE_LENGTH		INFINITY	/* Maximum length of users response */
 
 /*	Public Variables
 **	================
@@ -254,7 +269,6 @@ scrsize(p_height, p_width)
 #endif /* GET_SCREEN_SIZE, BSN */
 
 
-
 /* MAIN PROGRAM
 ** ------------
 */
@@ -271,6 +285,7 @@ int main
 {
     int  arg;		         /* Argument number as we scan */
     BOOL argument_found = NO;
+    BOOL logfile_flag = NO;
     BOOL first_keyword = YES;
     BOOL default_used = NO;	 /* Fell back on home page? */
     char* default_default=0;	 /* Parse home relative to this */
@@ -400,6 +415,13 @@ int main
 	    } else if (0==strcmp(argv[arg], "-from")) {
 		if (++arg < argc)
 		    HTInputFormat = HTAtom_for(argv[arg]);
+		    
+	    /* to -- Final represntation */
+	    } else if (0==strcmp(argv[arg], "-to")) {
+		request->output_format = (++arg < argc && *argv[arg] != '-') ?
+		    HTAtom_for(argv[arg]) : HTAtom_for(DEFAULT_OUTPUT_FORMAT);
+		    HTOutputSource = YES;	/* Turn on shortcut */
+		    interactive = NO;	/* JFG */		    
 
 	    /* Telnet from */
 	    } else if (argv[arg][1] == 'h') {
@@ -409,11 +431,11 @@ int main
 			
 	    /* Log file */
 	    } else if (0==strcmp(argv[arg], "-l")) {
-		if (++arg <argc) {
+		if (++arg < argc && *argv[arg] != '-')
 		    logfile_root = argv[arg];
-		}
+		logfile_flag = YES;
 		    
-	    /* Log file */
+	    /* List References */
 	    } else if (0==strcmp(argv[arg], "-listrefs")) {
 		listrefs_option = YES;
 		interactive = NO;	/* Force non-interactive */
@@ -424,10 +446,10 @@ int main
 
 	    /* Output filename */
 	    } else if (0==strcmp(argv[arg], "-o")) { 
-		if (++arg < argc) {
-		    output_file_name = argv[arg];/* Change representation */
+		output_file_name = (++arg < argc && *argv[arg] != '-') ?
+		    argv[arg] : DEFAULT_OUTPUT_FILE;
 		    interactive = NO;
-		}
+		    
 	    /* Anchor format */
 	    } else if (0==strcmp(argv[arg], "-a")) { 
 		if (++arg < argc)
@@ -473,22 +495,15 @@ int main
 #endif
 	    /* Reference list heading */
 	    } else if (0==strcmp(argv[arg], "-refhead")) { 
-		if (++arg < argc)
-		    refhead = argv[arg]; /* Change representation */
-
+		refhead = (++arg < argc && *argv[arg] != '-') ?
+		    argv[arg] : DEFAULT_REF_HEAD;
+				
 	    /* Source please */
 	    } else if (0==strcmp(argv[arg], "-source")) {
 		    request->output_format = WWW_SOURCE;
 		    HTOutputSource = YES;	/* Turn on shortcut */
 		    interactive = NO;	/* JFG */
-		    
-	    /* to -- Final represntation */
-	    } else if (0==strcmp(argv[arg], "-to")) {
-		if (++arg < argc) {
-		    request->output_format = HTAtom_for(argv[arg]);
-		    HTOutputSource = YES;	/* Turn on shortcut */
-		    interactive = NO;	/* JFG */
-		}
+
 	    /* Print version and exit */
 	    } else if (0==strcmp(argv[arg], "-version")) { 
     		printf("WWW LineMode Browser version %s (WWW Library %s)\n",
@@ -582,15 +597,21 @@ int main
     }
     
     
-/*	Open Log File if necessary
+/*	Open Log File if necessary	Logfile via Telnet is now optional (HENRIK 11/02-94)
 **	--------------------------
 */
-    if (!logfile_root && HTClientHost) {
+
+/* OLD VERSION
+   if (!logfile_root && HTClientHost)
+     {
 	logfile_root = DEFAULT_LOGFILE;
     }
-    
-        
-    if (logfile_root) {
+*/
+
+    if (logfile_flag) {
+        if(!logfile_root)
+            logfile_root = HTClientHost ? DEFAULT_LOGFILE : DEFAULT_LOCAL_LOGFILE;
+
 	log_file_name = (char*) malloc(strlen(logfile_root)+20);
 #ifdef NO_GETPID
 	sprintf(log_file_name, "%s", logfile_root);  /* No getpid() */
@@ -627,6 +648,7 @@ int main
 	/* request->output_stream);				*/
 		
 	/* HENRIK */
+	HTBindAnchor((HTAnchor*)home_anchor, request);
      	HTParseSocket(	format_in,
 			0,		/* stdin unix file */
 		  	request);
@@ -649,6 +671,7 @@ int main
   
     if (!HTMainText) exit(0);	/* Hypertext object was not created */
     
+
 /* 	Main "Event Loop"
 **	----------------
 */
@@ -756,17 +779,17 @@ PRIVATE void help_screen NOARGS {
     if (HTHistory_canMoveBy(-1))
 	    printf("  Previous        Take previous link from last document.\n");
 
-    printf("  Go address      Go to document of given [relative] address\n");
+    printf("  Go <address>    Go to document of given [relative] address\n");
 	    
 #ifdef GOT_SYSTEM
     if (!HTClientHost) {	/* NOT for telnet guest! */
 	    printf("  PRInt           Print text of this document. *\n");
-	    printf("  ! command       Execute shell command without leaving.\n");
-	    printf("  > file          Save the text of this document in a file. *\n");
-	    printf("  >> file         Append the text of this document to a file. *\n");
-	    printf("  | command       Pipe this document to a shell command. *\n");
+	    printf("  ! <command>     Execute shell <command> without leaving.\n");
+	    printf("  > <file>        Save the text of this document in <file>. *\n");
+	    printf("  >> <file>       Append the text of this document to <file>. *\n");
+	    printf("  | <command>     Pipe this document to the shell <command>. *\n");
 #ifdef unix
-	    printf("  CD directory    Change local working directory.\n");
+	    printf("  CD <directory>  Change local working directory.\n");
 #endif
 	    printf("* Prefix these commands with \"Source \" to use raw source.\n\n");
     }
@@ -836,9 +859,7 @@ PRIVATE void Reference_List ARGS1(BOOL, titles)
 	"\n\n     There are no references from this document.\n\n");
     } else {
 	
-	fprintf(output, "%s\n",
-		refhead ? refhead 
-		: "\n\n     References from this document:-");
+	fprintf(output, "\n%s\n", refhead);
 	for (n=1; n<=HText_sourceAnchors(HTMainText); n++) {
 	    HTAnchor * destination =
 	    HTAnchor_followMainLink(
@@ -1108,6 +1129,7 @@ loop:
 				printf(" as there are no previous documents\n");
 				goto ret; 
 				}
+				
 			HTLoadAnchor(HTHistory_backtrack(), request);
 			goto ret;
 			}
