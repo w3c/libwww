@@ -42,7 +42,6 @@ PUBLIC int HTFileOpen (HTNet * net, char * local, HTLocalMode mode)
 	HTRequest_addSystemError(request, ERR_FATAL, errno, NO, "open");
 	return HT_ERROR;
     }
-    HTTRACE(PROT_TRACE, "Socket...... Opened %d\n" _ sockfd);
 
     /* If non-blocking protocol then change socket status
     ** I use fcntl() so that I can ask the status before I set it.
@@ -64,8 +63,8 @@ PUBLIC int HTFileOpen (HTNet * net, char * local, HTLocalMode mode)
 	    status = fcntl(sockfd, F_SETFL, status);
 	}
 #endif /* HAVE_FCNTL */
-	HTTRACE(PROT_TRACE, "HTFileOpen.. `%s\' opened using %sblocking socket\n" _ 
-		    local _ status == -1 ? "" : "NON-");
+	HTTRACE(PROT_TRACE, "HTFileOpen.. `%s\' opened %d as %sblocking socket\n" _ 
+		local _ sockfd _ status == -1 ? "" : "NON-");
     }
     /* #endif - HAVE_FCNTL <- wrong location, moved up JTD:5/30/96 */
 #else /* !NO_UNIX_IO */
