@@ -237,7 +237,7 @@ PUBLIC BOOL HTThreadIntr ARGS1(SOCKFD, sockfd)
 **	Marks all Library sockets as interrupted. User sockets can not be
 **	interrupted
 */
-PUBLIC BOOL HTThreadMarkIntrAll( CONST fd_set * fd_user )
+PUBLIC BOOL HTThreadMarkIntrAll ARGS1(CONST fd_set *, fd_user)
 {
     HTNetInfo *pres;
     if (HTThreads) {
