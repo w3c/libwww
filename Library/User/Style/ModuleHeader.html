@@ -1,47 +1,48 @@
+<HTML>
 <HEAD>
-<TITLE>Modules</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  9-Nov-1995 -->
+  <!-- Changed by: Henrik Frystyk Nielsen,  9-Nov-1995 -->
+  <TITLE>Modules</TITLE>
 </HEAD>
 <BODY>
-
-<A HREF="../../"><IMG ALT="W3C" SRC="../../Icons/WWW/w3c_48x48.gif"></A>
-<A HREF="./"><IMG ALT="C-Style" SRC="../../Icons/WWW/progstyle48x.gif"></A>
-
-<H1>Modules</H1>
-
+<P>
+<A HREF="../../"><IMG ALT="W3C" SRC="../../Icons/WWW/w3c_48x48"></A>
+<A HREF="./"><IMG ALT="C-Style" SRC="../../Icons/WWW/progstyle48x"></A>
+<H1>
+  Modules
+</H1>
+<P>
 A module consists normally of the following:
-
 <UL>
-<LI>A module definition file, for example <EM>foo.c</EM>
-<LI>A module declaration file, for example <EM>foo.h</EM>
-<LI>A module description file, for example <EM>foo.html</EM>
+  <LI>
+    A module definition file, for example <EM>foo.c</EM>
+  <LI>
+    A module declaration file, for example <EM>foo.h</EM>
+  <LI>
+    A module description file, for example <EM>foo.html</EM>
 </UL>
-
-Even though ANSI C doesn't support classes or objects, it is an
-advantage - especially when more and more people are going to
-contribute with modules that each module is a self contained unit with
-a clearly defined interface to the rest of the world. It is important
-that you supply a lot of "methods" for accessing the data structures
-and only declare as little <CODE>PUBLIC</CODE> as possible of the
-internal structures.<P>
-
-Make sure that your file names are not <B>longer than 8 characters</B>
-as we support PCs as well. The declaration file is
-<B>automatically</B> generated from the description file. This ensures
-that the description of a module is done at the same time as the
-declaration of the module. The generation of the declaration files is
-done at compile time using the <A HREF="../../LineMode/">Line Mode
-Browser</A>, so be sure that you have a recent version of this. <P>
-
-<IMG SRC="../../Icons/32x32/caution.gif" ALT="NOTE"> It is <EM>very</EM>
-important that all modifications to the modules declaration part is
-done in the description file as this is what we keep in CVS - NOT the
-declaration file itself! <P>
-
-The module header is the comment at the top of a definition file and
-description file. Remember - as other people are going to read this
-then fill it out carefully.
-
+<P>
+Even though ANSI C doesn't support classes or objects, it is an advantage
+- especially when more and more people are going to contribute with modules
+that each module is a self-contained unit with a clearly defined interface
+to the rest of the world. It is important that you supply a lot of "methods"
+for accessing the data structures and only declare as little
+<CODE>PUBLIC</CODE> as possible of the internal structures.
+<P>
+Make sure that your file names are not <B>longer than 8 characters</B> as
+we support PCs as well. The declaration file is <B>automatically</B> generated
+from the description file. This ensures that the description of a module
+is done at the same time as the declaration of the module. The generation
+of the declaration files is done at compile time using the
+<A HREF="../../LineMode/">Line Mode Browser</A>, so be sure that you have
+a recent version of this.
+<P>
+<IMG SRC="../../Icons/32x32/caution" ALT="NOTE"> It is <EM>very</EM> important
+that all modifications to the modules declaration part is done in the description
+file as this is what we keep in CVS - NOT the declaration file itself!
+<P>
+The module header is the comment at the top of a definition file and description
+file. Remember - as other people are going to read this then fill it out
+carefully.
 <PRE>
 /*				Foo Bar Module			foobar.c
 **				==============
@@ -64,36 +65,35 @@ then fill it out carefully.
 **			-----------
 */
 </PRE>
-
 <DL>
-
-<DT>Heading
-
-<DD> To make it easy to spot the file in a long listing, put a header
-and the file name in the top right-hand corner.
-
-<DT> Authors
-
-<DD> Just a list to make the initials intelligible. Use initials in
-the history or in comments in the file.
-
-<DT>History
-
-<DD> A list of major changes of the file. You do not need to repeat
-information carried by a code management system or in an accompanying
-hypertext file.
-
-<DT>Section headings
-
-<DD> Sections in the file such as public data, private module-wide
-data, etc should be made visible. Two blank lines and a heading are
-useful for this.
-
+  <DT>
+    Heading
+  <DD>
+    To make it easy to spot the file in a long listing, put a header and the
+    file name in the top right-hand corner.
+  <DT>
+    Authors
+  <DD>
+    Just a list to make the initials intelligible. Use initials in the history
+    or in comments in the file.
+  <DT>
+    History
+  <DD>
+    A list of major changes of the file. You do not need to repeat information
+    carried by a code management system or in an accompanying hypertext file.
+  <DT>
+    Section headings
+  <DD>
+    Sections in the file such as public data, private module-wide data, etc should
+    be made visible. Two blank lines and a heading are useful for this.
 </DL>
-
 <P>
-<HR>
-<ADDRESS><A HREF="../../../TBL_Disclaimer.html">Tim BL</A>, and <A
-HREF="../../People.html#Frystyk">Henrik Frystyk</A>, May 1995</ADDRESS>
-</BODY>
-</HTML>
+  <HR>
+<ADDRESS>
+  <A HREF="../../../TBL_Disclaimer.html">Tim BL</A>, and
+  <A HREF="../../People.html#Frystyk">Henrik Frystyk</A>
+</ADDRESS>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

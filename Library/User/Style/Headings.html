@@ -1,23 +1,24 @@
+<HTML>
 <HEAD>
-<TITLE>Include Files</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 28-Nov-1995 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 28-Nov-1995 -->
+  <TITLE>Include Files</TITLE>
 </HEAD>
 <BODY>
-
-<A HREF="../../"><IMG ALT="W3C" SRC="../../Icons/WWW/w3c_48x48.gif"></A>
-<A HREF="./"><IMG ALT="C-Style" SRC="../../Icons/WWW/progstyle48x.gif"></A>
-
-<H1>Function Headings</H1>
-
+<P>
+<A HREF="../../"><IMG ALT="W3C" SRC="../../Icons/WWW/w3c_48x48"></A>
+<A HREF="./"><IMG ALT="C-Style" SRC="../../Icons/WWW/progstyle48x"></A>
+<H1>
+  Function Headings
+</H1>
+<P>
 This style concerns the comments, and so is not essential to compilation.
-However, it helps readability of code written by a number of people.
-Some of these conventions may be arbitrary, but are none the less
-useful for that. 
-
-<H2>Format</H2>
-
+However, it helps readability of code written by a number of people. Some
+of these conventions may be arbitrary, but are none the less useful for that.
+<H2>
+  Format
+</H2>
+<P>
 A typical example of a function header looks like:
-
 <PRE>
 /*	Scan a line
 **	-----------
@@ -36,42 +37,44 @@ PRIVATE int scan_line (CONST char * line)
    /* Code here */
 }
 </PRE>
-
 <DL>
-
-<DT>Separation of functions
-<DD>White space of two lines separating functions
-
-<DT>Name of the function 
-<DD>The identifier of the function right-justified to make it easy to
-find when flicking through a listing
-
-<DT>Function header
-<DD>The macros <CODE>PUBLIC</CODE> and <CODE>PRIVATE</CODE> (in <A
-HREF="../../Library/Implementation/HTUtils.html">HTUtils.h</A>) expand to
-<CODE>NULL</CODE> and to <CODE>static</CODE> respectively. They show
-that one has thought about whether visibility is required outside the
-module, and they get over the overloading of the keyword "static" in
-C. Use one or the other. (Use for top level variables too).
-
-<DT>Entry and exit conditions 
-
-<DD>It is most important to document the function as seen by the rest
-of the world (especially the caller). The most important aspects of
-the appearance of the function to the caller are the pre- and
-post-conditions. The preconditions include the value of the parameters
-and structures they point to. Both include any requirements on or
-changes to global data, the screen, disk files, etc.
-
+  <DT>
+    Separation of functions
+  <DD>
+    White space of two lines separating functions
+  <DT>
+    Name of the function
+  <DD>
+    The identifier of the function right-justified to make it easy to find when
+    flicking through a listing
+  <DT>
+    Function header
+  <DD>
+    The macros <CODE>PUBLIC</CODE> and <CODE>PRIVATE</CODE> (in
+    <A HREF="../../Library/src/HTUtils.html">HTUtils.h</A>) expand to
+    <CODE>NULL</CODE> and to <CODE>static</CODE> respectively. They show that
+    one has thought about whether visibility is required outside the module,
+    and they get over the overloading of the keyword "static" in C. Use one or
+    the other. (Use for top level variables too).
+  <DT>
+    Entry and exit conditions
+  <DD>
+    It is most important to document the function as seen by the rest of the
+    world (especially the caller). The most important aspects of the appearance
+    of the function to the caller are the pre- and post-conditions. The preconditions
+    include the value of the parameters and structures they point to. Both include
+    any requirements on or changes to global data, the screen, disk files, etc.
 </DL>
-
-<IMG SRC="../../Icons/32x32/caution.gif" ALT="NOTE"> We have a set of
-predefined exit values in <A
-HREF="../../Library/Implementation/HTUtils.html">HTUtils module</A>.
-
 <P>
-<HR>
-<ADDRESS><A HREF="../../../TBL_Disclaimer.html">Tim BL</A>, and <A
-HREF="../../People.html#Frystyk">Henrik Frystyk</A>, May 1995</ADDRESS>
-</BODY>
-</HTML>
+<IMG SRC="../../Icons/32x32/caution" ALT="NOTE"> We have a set of predefined
+exit values in <A HREF="../../Library/src/HTUtils.html">HTUtils module</A>.
+<P>
+  <HR>
+<ADDRESS>
+  <A HREF="../../../TBL_Disclaimer.html">Tim BL</A>, and
+  <A HREF="../../People.html#Frystyk">Henrik Frystyk</A>
+</ADDRESS>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

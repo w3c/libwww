@@ -1,98 +1,98 @@
+<HTML>
 <HEAD>
-<TITLE>House Style for C Programming</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 28-Nov-1995 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 28-Nov-1995 -->
+  <TITLE>House Style for C Programming</TITLE>
 </HEAD>
 <BODY>
-
-<A HREF="../../"><IMG ALT="W3C" SRC="../../Icons/WWW/w3c_48x48.gif"></A>
-<A HREF="./"><IMG ALT="C-Style" SRC="../../Icons/WWW/progstyle48x.gif"></A>
-
-<H1>Language Features</H1>
-
-Let us first start with some general language rules for how to provide
-maintainable and portable C code. One of the main objectives is to use
-the ANSI C and the POSIX.1 standard <EM>wherever possible</EM> in
-order to maximum portability. This means that we can not use
-(unfortunately!) neither objective C nor C++. However, we also want to
-support original Kernighan Ritchie C compilers and C++ compilers which
-brings in two important aspects in the coding style:
-
-<DL>
-
-<DT>Reserved words
-
-<DD>It is important that there are no reserved words used as variable
-names, function calls etc in our code. Some of the more common problem
-makes are listed below but see also <A
-HREF="Identifiers.html">Identifiers</A>
-
-<UL>
-<LI>new
-<LI>this
-<LI>class
-<LI>template
-<LI>operator
-<LI>friend
-<LI>catch
-</UL>
-
-</DL>
-
-As the world is not ideal, there are some traps that often show up
-when coding after these standards. This sections gives an overview of
-the more serious ones:<P>
-
-<DL>
-
-<DT><CODE>memmove()</CODE>
-<DD>Many platforms do not support this feature or dump core
-<DT><CODE>malloc()</CODE>
-
-<DD>One some platforms <CODE>malloc()</CODE> returns <CODE>NULL</CODE>
-if size is 0.
-
-<DT>Variable length argument list
-<DD>This is not supported on a lot of platforms
-
-<DT><CODE>CONST</CODE> (const) and <CODE>PRIVATE</CODE> (static)
-
-<DD>gcc has a problem with variables declared both <CODE>static</CODE>
-and <CODE>const</CODE>.
-
-<DT><CODE>#endif</CODE>
-
-<DD>Do put the ending condition in a comment. Don't put it as code -
-it won't pass all compilers.
-
-<DT>#elif
-<DD> Don't use it. Basic <B>cpp</B> doesn't know it.
-
-<DT>#preprocessor statements
-
-<DD>DON'T indent any preprocessor statements. They must (for some
-compilers) begin in column 1.
-
-<DT>const
-
-<DD>As mentioned above, this keyword does not exist in K&amp;C, so use
-the macro <A HREF="Macros.html#10">CONST</A> which expands to
-<CODE>const</CODE> under standard C and nothing otherwise.
-
-<DT>Comments
-
-<DD>Don't use <CODE>//</CODE> as a comment delimiter. This is not
-supported by ANSI C.
-
-</DL>
-
-Remember that your code should compile without warnings under an ANSI
-C compiler such as gcc with all warnings enabled <B>BUT</B> this is
-not enough. The more native compilers you can use the better - gcc is
-<EM>not</EM> the only answer of an ANSI compiler.
-
 <P>
-<HR>
-<ADDRESS><A HREF="../../../TBL_Disclaimer.html">Tim BL</A>, and <A
-HREF="../../People.html#Frystyk">Henrik Frystyk</A>, May 1995</ADDRESS>
-</BODY>
-</HTML>
+<A HREF="../../"><IMG ALT="W3C" SRC="../../Icons/WWW/w3c_48x48"></A>
+<A HREF="./"><IMG ALT="C-Style" SRC="../../Icons/WWW/progstyle48x"></A>
+<H1>
+  Language Features
+</H1>
+<P>
+Let us first start with some general language rules for how to provide
+maintainable and portable C code. One of the main objectives is to use the
+ANSI C and the POSIX.1 standard <EM>wherever possible</EM> in order to maximum
+portability. This means that we can not use (unfortunately!) neither objective
+C nor C++. However, we also want to support original Kernighan Ritchie C
+compilers and C++ compilers which brings in two important aspects in the
+coding style:
+<P>
+<DL>
+  <DT>
+    Reserved words
+  <DD>
+    It is important that there are no reserved words used as variable names,
+    function calls etc in our code. Some of the more common problem makes are
+    listed below but see also <A HREF="Identifiers.html">Identifiers</A>
+    <UL>
+      <LI>
+	<CODE>new</CODE>
+      <LI>
+	<CODE>this</CODE>
+      <LI>
+	<CODE>class</CODE>
+      <LI>
+	<CODE>template</CODE>
+      <LI>
+	<CODE>operator</CODE>
+      <LI>
+	<CODE>friend</CODE>
+      <LI>
+	<CODE>catch</CODE>
+    </UL>
+</DL>
+<P>
+As the world is not ideal, there are some traps that often show up when coding
+after these standards. This sections gives an overview of the more serious
+ones:
+<P>
+<DL>
+  <DT>
+    <CODE>memmove()</CODE>
+  <DD>
+    Many platforms do not support this feature or dump core
+  <DT>
+    <CODE>malloc()</CODE>
+  <DD>
+    One some platforms <CODE>malloc()</CODE> returns <CODE>NULL</CODE> if size
+    is 0.
+  <DT>
+    const and static
+  <DD>
+    some versions of gcc have problems with variables declared both
+    <CODE>static</CODE> and <CODE>const</CODE>.
+  <DT>
+    Preprocessor statements
+    <UL>
+      <LI>
+	DON'T indent any preprocessor statements. They must (for some compilers)
+	begin in column 1.
+      <LI>
+	If you add comments after pre processor directives, for Do put the ending
+	condition in a comment. Don't put it as code - it won't pass all compilers.
+      <LI>
+	Don't use <CODE>#elif</CODE>. Basic <B>cpp</B> doesn't know it.
+    </UL>
+  <DT>
+    Comments
+  <DD>
+    Don't use <CODE>//</CODE> as a comment delimiter. This is not supported by
+    ANSI C.
+</DL>
+<P>
+Remember that your code should compile without warnings under an ANSI C compiler
+such as gcc with all warnings enabled <B>BUT</B> this is not enough. The
+more native compilers you can use the better - gcc is <EM>not</EM> the only
+answer of an ANSI compiler.
+<P>
+  <HR>
+<ADDRESS>
+  <A HREF="../../../TBL_Disclaimer.html">Tim BL</A>, and
+  <A HREF="../../People.html#Frystyk">Henrik Frystyk</A>
+</ADDRESS>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

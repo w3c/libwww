@@ -1,45 +1,42 @@
+<HTML>
 <HEAD>
-<TITLE>Macros used in the W3C Code</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 28-Nov-1995 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 28-Nov-1995 -->
+  <TITLE>Macros used in the W3C Code</TITLE>
 </HEAD>
 <BODY>
-
-<A HREF="../../"><IMG ALT="W3C" SRC="../../Icons/WWW/w3c_48x48.gif"></A>
-<A HREF="./"><IMG ALT="C-Style" SRC="../../Icons/WWW/progstyle48x.gif"></A>
-
-<H1>Macros used in the W3C Code</H1>
-
-These are macros which make it less tedious to program in portable
-C. They are defined in <A
-HREF="../../Library/Implementation/HTUtils.html">HTUtils.html</A>.
-
-<H2><A NAME=10>CONST</A></H2>
-
-This is used instead of the keyword "const" which causes on some
-platforms
-
-<H2>PRIVATE</H2>
-
-It is used in a function or variable declaration to signify that the
-function is private to the module, rather than public (the default).
-Avoids the confusion in C between "static" used in this sense, and
-used to declare storage variables within blocks as static as opposed
-to automatic.
-
-<H2><A NAME=z14>PUBLIC</A></H2>
-
-It is used to signify that a function is part of the public
-interface. As this macro is used in windows to generate DLLs it is
-<EM>very</EM> important that you use it! It also is a good idea to use
-simply because it ensures that the programmer has thought about it.
-This prevents unnecessry accidental public definitions which may later
-clash with other people's routines.
-
 <P>
-<HR>
-<ADDRESS><A HREF="../../../TBL_Disclaimer.html">Tim BL</A>, and <A
-HREF="../../People.html#Frystyk">Henrik Frystyk</A>, May 1995</ADDRESS>
-</BODY>
-</HTML>
-
-
+<A HREF="../../"><IMG ALT="W3C" SRC="../../Icons/WWW/w3c_48x48"></A>
+<A HREF="./"><IMG ALT="C-Style" SRC="../../Icons/WWW/progstyle48x"></A>
+<H1>
+  Macros used in the W3C Code
+</H1>
+<P>
+These are macros which make it less tedious to program in portable C. They
+are defined in <A HREF="../../Library/src/HTUtils.html">HTUtils.html</A>.
+<H2>
+  <A NAME="PRIVATE">PRIVATE</A>
+</H2>
+<P>
+It is used in a function or variable declaration to signify that the function
+is private to the module, rather than public (the default). Avoids the confusion
+in C between "static" used in this sense, and used to declare storage variables
+within blocks as static as opposed to automatic.
+<H2>
+  <A NAME=z14>PUBLIC</A>
+</H2>
+<P>
+It is used to signify that a function is part of the public interface. As
+this macro is used in windows to generate DLLs it is <EM>very</EM> important
+that you use it! It also is a good idea to use simply because it ensures
+that the programmer has thought about it. This prevents unnecessry accidental
+public definitions which may later clash with other people's routines.
+<P>
+  <HR>
+<ADDRESS>
+  <A HREF="../../../TBL_Disclaimer.html">Tim BL</A>, and
+  <A HREF="../../People.html#Frystyk">Henrik Frystyk</A>
+</ADDRESS>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

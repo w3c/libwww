@@ -1,28 +1,32 @@
+<HTML>
 <HEAD>
-<TITLE>Include Files</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  9-Nov-1995 -->
+  <!-- Changed by: Henrik Frystyk Nielsen,  9-Nov-1995 -->
+  <TITLE>Include Files</TITLE>
 </HEAD>
 <BODY>
-
-<A HREF="../../"><IMG ALT="W3C" SRC="../../Icons/WWW/w3c_48x48.gif"></A>
-<A HREF="./"><IMG ALT="C-Style" SRC="../../Icons/WWW/progstyle48x.gif"></A>
-
-<H1>Include Files</H1>
-
+<P>
+<A HREF="../../"><IMG ALT="W3C" SRC="../../Icons/WWW/w3c_48x48"></A>
+<A HREF="./"><IMG ALT="C-Style" SRC="../../Icons/WWW/progstyle48x"></A>
+<H1>
+  Include Files
+</H1>
+<P>
 There are three kinds of include files:
-
 <UL>
-<LI>Application include files
-<LI>Library include files
-<LI>System include files and standard C include files
+  <LI>
+    Application include files
+  <LI>
+    Library include files
+  <LI>
+    System include files and standard C include files
 </UL>
-
-<H2>Application Include Files</H2>
-
-The .c file should #include its own .h file. A .h file should be
-protected so that no errors occur if it is #included twice. This can
-be done by the following directives:
-
+<H2>
+  Application Include Files
+</H2>
+<P>
+The .c file should #include its own .h file. A .h file should be protected
+so that no errors occur if it is #included twice. This can be done by the
+following directives:
 <PRE>
 	#ifndef HTFOO_H
 	#define HTFOO_H
@@ -31,42 +35,46 @@ be done by the following directives:
 
 	#endif /* HTFOO_H */
 </PRE>
-
-An interface which relies on other interfaces should include those
-interface files.  An implemention file which uses other modules should
-include the .h file if it not already included by its own .h file. <P>
-
-<IMG SRC="../../Icons/32x32/warning.gif" ALT="WARNING"> The text format
-in description files which are converted into declaration files
-<EM>MUST NOT</EM> be more than 90 characters wide - otherwise it will
-get chopped off by the <A HREF="../../LineMode/">Line Mode Browser</A>
-the way the conversion is set up.
-
-<H2>Library Include Files</H2>
-
-If you are making a <A HREF="../../Library/">Library of Common Code</A>
-module then you need to include all the modules that you reference in
-your code. You will in all cases need the following:
-
-<PRE>
-	#include "tcp.h"
-	#include "HTUtils.h"
-	#include "HTString.h"
-</PRE>
-
-If you are <B>not</B> making a Library module, then the only one you
-need is <A HREF="../../Library/Implementation/WWWLib.html">WWWLib.h</A>
-
-<H2>System include files and standard C include files</H2>
-
-As these are included in the Library code, you will normally not need
-to (and should avoid) include any such files. The reason is that these
-include files are very difficult to get portable over multiple
-platforms.
-
 <P>
-<HR>
-<ADDRESS><A HREF="../../../TBL_Disclaimer.html">Tim BL</A>, and <A
-HREF="../../People.html#Frystyk">Henrik Frystyk</A>, May 1995</ADDRESS>
-</BODY>
-</HTML>
+An interface which relies on other interfaces should include those interface
+files. An implemention file which uses other modules should include the .h
+file if it not already included by its own .h file.
+<P>
+<IMG SRC="../../Icons/32x32/warning" ALT="WARNING"> The text format in
+description files which are converted into declaration files <EM>MUST NOT</EM>
+be more than 90 characters wide - otherwise it will get chopped off by the
+<A HREF="../../LineMode/">Line Mode Browser</A> the way the conversion is
+set up.
+<H2>
+  Library Include Files
+</H2>
+<P>
+If you are making a <A HREF="../../Library/">Library</A> module then you
+need to include all the modules that you reference in your code. You will
+in all cases need the following:
+<PRE>
+	#include "sysdep.h"
+	#include "WWWUtil.h"
+</PRE>
+<P>
+If you are <B>not</B> making a Library module, then you need the following:
+<PRE>	#include "sysdep.h"
+	#include "WWWLib.h"
+</PRE>
+<H2>
+  System include files and standard C include files
+</H2>
+<P>
+As these are included in the Library code, you will normally not need to
+(and should avoid) include any such files. The reason is that these include
+files are very difficult to get portable over multiple platforms.
+<P>
+  <HR>
+<ADDRESS>
+  <A HREF="../../../TBL_Disclaimer.html">Tim BL</A>, and
+  <A HREF="../../People.html#Frystyk">Henrik Frystyk</A>
+</ADDRESS>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>
