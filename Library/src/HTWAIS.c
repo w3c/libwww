@@ -55,11 +55,6 @@
    Brewster@think.com
 */
 
-
-#define DIRECTORY "/cnidr.org:210/directory-of-servers"
-
-#define BIG 1024	/* identifier size limit  @@@@@ */
-
 /* Library include files */
 #include "wwwsys.h"
 #include "WWWUtil.h"
@@ -67,6 +62,13 @@
 #include "WWWHTML.h"
 #include "HTReqMan.h"
  
+#ifndef HT_DIRECT_WAIS
+PUBLIC int HTLoadWAIS (SOCKET soc, HTRequest* request)
+{
+    return HT_ERROR;
+}
+#else
+
 #ifdef HAVE_WAIS_WAIS_H
 #include "wais/wais.h"
 #else
@@ -80,6 +82,10 @@
 #endif
 #endif
 #endif
+
+#define DIRECTORY "/cnidr.org:210/directory-of-servers"
+
+#define BIG 1024	/* identifier size limit  @@@@@ */
 
 /*			From WAIS
 **			---------
@@ -1412,3 +1418,5 @@ PUBLIC int HTLoadWAIS (SOCKET soc, HTRequest* request)
  /* get it started - ops is ignored */
  return HTWAISEvent(soc, theWAISinfo, HTEvent_BEGIN);
 }
+
+#endif /* HT_DIRECT_WAIS */

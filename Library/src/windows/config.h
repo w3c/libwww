@@ -70,6 +70,9 @@
    byte first (like Motorola and SPARC, unlike Intel and VAX).  */
 /* #undef WORDS_BIGENDIAN */
 
+/* Define to enable direct WAIS access. */
+/* #undef HT_DIRECT_WAIS */
+
 /* Define to enable mysql access. */
 /* #undef HT_MYSQL */
 
