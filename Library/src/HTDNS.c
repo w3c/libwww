@@ -297,8 +297,8 @@ PUBLIC int HTGetHostByName (HTHost * host, char *hostname, HTRequest* request)
 	hostelement = gethostbyname(hostname);
 #endif
 	if (!hostelement) {
-	    if (PROT_TRACE)
-		HTTrace("HostByName.. Can't find node `%s'.\n", hostname);
+            HTRequest_addSystemError(request, ERR_FATAL, socerrno, NO,
+   			             "gethostbyname");
 	    return -1;
 	}	
 	host->dns = HTDNS_add(list, hostelement, hostname, &homes);

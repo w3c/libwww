@@ -241,7 +241,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 				   HTERR_NO_REMOTE_HOST,
 				   (void *) hostname, strlen(hostname),
 				   "HTDoConnect");
-		me->tcpstate = TCP_ERROR;
+		me->tcpstate = TCP_DNS_ERROR;
 		if (PROT_TRACE) HTTrace("HTHost %p going to state TCP_ERROR.\n", me);
 		break;
 	    }
@@ -355,6 +355,14 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 
 	      HTChannel_upSemaphore(me->channel);
 	      return HT_OK;
+
+	  case TCP_DNS_ERROR:
+	    HTTrace("HTDoConnect. DNS failed %d\n", socerrno);
+	    HTHost_setRetry(me, 0);
+	    me->tcpstate = TCP_BEGIN;
+	    if (PROT_TRACE) HTTrace("HTHost %p going to state TCP_BEGIN.\n", me);
+	    return HT_ERROR;
+	    break;
 
 	  case TCP_NEED_BIND:
 	  case TCP_NEED_LISTEN:
