@@ -492,7 +492,7 @@ PUBLIC BOOL HTMemoryCache_unRegister (void)
 
 PUBLIC int HTMemoryCache_check (HTRequest * request)
 {
-    return HTMemoryCache ? HTMemoryCache(request,HTExpMode,HTExpNotify) : NULL;
+    return HTMemoryCache ? HTMemoryCache(request,HTExpMode,HTExpNotify) : 0;
 }
 
 /*

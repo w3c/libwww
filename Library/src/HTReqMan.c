@@ -79,7 +79,7 @@ struct _HTStream {
 /*  Create  a request structure
 **  ---------------------------
 */
-HTRequest * HTRequest_new (void)
+PUBLIC HTRequest * HTRequest_new (void)
 {
     HTRequest * me = (HTRequest*) calloc(1, sizeof(HTRequest));
     if (!me) outofmem(__FILE__, "HTRequest_new()");
@@ -120,7 +120,7 @@ HTRequest * HTRequest_new (void)
 /*  Delete a request structure
 **  --------------------------
 */
-void HTRequest_delete (HTRequest * request)
+PUBLIC void HTRequest_delete (HTRequest * request)
 {
     if (request) {
 	FREE(request->redirect);
@@ -145,12 +145,12 @@ void HTRequest_delete (HTRequest * request)
 /*
 **	Method
 */
-void HTRequest_setMethod (HTRequest *request, HTMethod method)
+PUBLIC void HTRequest_setMethod (HTRequest *request, HTMethod method)
 {
     if (request) request->method = method;
 }
 
-HTMethod HTRequest_method (HTRequest *request)
+PUBLIC HTMethod HTRequest_method (HTRequest *request)
 {
     return request ? request->method : METHOD_INVALID;
 }
@@ -158,12 +158,12 @@ HTMethod HTRequest_method (HTRequest *request)
 /*
 **	Reload Mode
 */
-void HTRequest_setReloadMode (HTRequest *request, HTReload mode)
+PUBLIC void HTRequest_setReloadMode (HTRequest *request, HTReload mode)
 {
     if (request) request->reload = mode;
 }
 
-HTReload HTRequest_reloadMode (HTRequest *request)
+PUBLIC HTReload HTRequest_reloadMode (HTRequest *request)
 {
     return request ? request->reload : HT_ANY_VERSION;
 }
@@ -172,7 +172,8 @@ HTReload HTRequest_reloadMode (HTRequest *request)
 **	Accept Format Types
 **	list can be NULL
 */
-void HTRequest_setFormat (HTRequest *request, HTList *type, BOOL override)
+PUBLIC void HTRequest_setFormat (HTRequest *request, HTList *type,
+				 BOOL override)
 {
     if (request) {
 	request->conversions = type;
@@ -180,7 +181,7 @@ void HTRequest_setFormat (HTRequest *request, HTList *type, BOOL override)
     }
 }
 
-HTList * HTRequest_format (HTRequest *request)
+PUBLIC HTList * HTRequest_format (HTRequest *request)
 {
     return request ? request->conversions : NULL;
 }
@@ -189,7 +190,8 @@ HTList * HTRequest_format (HTRequest *request)
 **	Accept Encoding 
 **	list can be NULL
 */
-void HTRequest_setEncoding (HTRequest *request, HTList *enc, BOOL override)
+PUBLIC void HTRequest_setEncoding (HTRequest *request, HTList *enc,
+				   BOOL override)
 {
     if (request) {
 	request->encodings = enc;
@@ -197,7 +199,7 @@ void HTRequest_setEncoding (HTRequest *request, HTList *enc, BOOL override)
     }
 }
 
-HTList * HTRequest_encoding (HTRequest *request)
+PUBLIC HTList * HTRequest_encoding (HTRequest *request)
 {
     return request ? request->encodings : NULL;
 }
@@ -206,7 +208,8 @@ HTList * HTRequest_encoding (HTRequest *request)
 **	Accept Language
 **	list can be NULL
 */
-void HTRequest_setLanguage (HTRequest *request, HTList *lang, BOOL override)
+PUBLIC void HTRequest_setLanguage (HTRequest *request, HTList *lang,
+				   BOOL override)
 {
     if (request) {
 	request->languages = lang;
@@ -214,7 +217,7 @@ void HTRequest_setLanguage (HTRequest *request, HTList *lang, BOOL override)
     }
 }
 
-HTList * HTRequest_language (HTRequest *request)
+PUBLIC HTList * HTRequest_language (HTRequest *request)
 {
     return request ? request->languages : NULL;
 }
@@ -223,7 +226,8 @@ HTList * HTRequest_language (HTRequest *request)
 **	Accept Charset
 **	list can be NULL
 */
-void HTRequest_setCharset (HTRequest *request, HTList *charset, BOOL override)
+PUBLIC void HTRequest_setCharset (HTRequest *request, HTList *charset,
+				  BOOL override)
 {
     if (request) {
 	request->charsets = charset;
@@ -231,7 +235,7 @@ void HTRequest_setCharset (HTRequest *request, HTList *charset, BOOL override)
     }
 }
 
-HTList * HTRequest_charset (HTRequest *request)
+PUBLIC HTList * HTRequest_charset (HTRequest *request)
 {
     return request ? request->charsets : NULL;
 }
@@ -239,17 +243,17 @@ HTList * HTRequest_charset (HTRequest *request)
 /*
 **	Set General Headers
 */
-void HTRequest_setGnHd (HTRequest *request, HTGnHd gnhd)
+PUBLIC void HTRequest_setGnHd (HTRequest *request, HTGnHd gnhd)
 {
     if (request) request->GenMask = gnhd;
 }
 
-void HTRequest_addGnHd (HTRequest *request, HTGnHd gnhd)
+PUBLIC void HTRequest_addGnHd (HTRequest *request, HTGnHd gnhd)
 {
     if (request) request->GenMask |= gnhd;
 }
 
-HTGnHd HTRequest_gnHd (HTRequest *request)
+PUBLIC HTGnHd HTRequest_gnHd (HTRequest *request)
 {
     return request ? request->GenMask : 0;
 }
@@ -257,17 +261,17 @@ HTGnHd HTRequest_gnHd (HTRequest *request)
 /*
 **	Set Request Headers
 */
-void HTRequest_setRqHd (HTRequest *request, HTRqHd rqhd)
+PUBLIC void HTRequest_setRqHd (HTRequest *request, HTRqHd rqhd)
 {
     if (request) request->RequestMask = rqhd;
 }
 
-void HTRequest_addRqHd (HTRequest *request, HTRqHd rqhd)
+PUBLIC void HTRequest_addRqHd (HTRequest *request, HTRqHd rqhd)
 {
     if (request) request->RequestMask |= rqhd;
 }
 
-HTRqHd HTRequest_rqHd (HTRequest *request)
+PUBLIC HTRqHd HTRequest_rqHd (HTRequest *request)
 {
     return request ? request->RequestMask : 0;
 }
@@ -275,17 +279,17 @@ HTRqHd HTRequest_rqHd (HTRequest *request)
 /*
 **	Set Entity Headers (for the object)
 */
-void HTRequest_setEnHd (HTRequest *request, HTEnHd enhd)
+PUBLIC void HTRequest_setEnHd (HTRequest *request, HTEnHd enhd)
 {
     if (request) request->EntityMask = enhd;
 }
 
-void HTRequest_addEnHd (HTRequest *request, HTEnHd enhd)
+PUBLIC void HTRequest_addEnHd (HTRequest *request, HTEnHd enhd)
 {
     if (request) request->EntityMask |= enhd;
 }
 
-HTEnHd HTRequest_enHd (HTRequest *request)
+PUBLIC HTEnHd HTRequest_enHd (HTRequest *request)
 {
     return request ? request->EntityMask : 0;
 }
@@ -293,7 +297,7 @@ HTEnHd HTRequest_enHd (HTRequest *request)
 /*
 **	Anchor
 */
-void HTRequest_setAnchor (HTRequest *request, HTAnchor *anchor)
+PUBLIC void HTRequest_setAnchor (HTRequest *request, HTAnchor *anchor)
 {
     if (request && anchor) {
 	request->anchor = HTAnchor_parent(anchor);
@@ -302,7 +306,7 @@ void HTRequest_setAnchor (HTRequest *request, HTAnchor *anchor)
     }
 }
 
-HTParentAnchor * HTRequest_anchor (HTRequest *request)
+PUBLIC HTParentAnchor * HTRequest_anchor (HTRequest *request)
 {
     return request ? request->anchor : NULL;
 }
@@ -310,12 +314,12 @@ HTParentAnchor * HTRequest_anchor (HTRequest *request)
 /*
 **	Parent anchor for Referer field
 */
-void HTRequest_setParent (HTRequest *request, HTParentAnchor *parent)
+PUBLIC void HTRequest_setParent (HTRequest *request, HTParentAnchor *parent)
 {
     if (request) request->parentAnchor = parent;
 }
 
-HTParentAnchor * HTRequest_parent (HTRequest *request)
+PUBLIC HTParentAnchor * HTRequest_parent (HTRequest *request)
 {
     return request ? request->parentAnchor : NULL;
 }
@@ -323,12 +327,12 @@ HTParentAnchor * HTRequest_parent (HTRequest *request)
 /*
 **	Extra headers to be sent
 */
-void HTRequest_setExtra (HTRequest *request, char *extra)
+PUBLIC void HTRequest_setExtra (HTRequest *request, char *extra)
 {
     if (request) request->ExtraHeaders = extra;
 }
 
-char *HTRequest_extra (HTRequest *request)
+PUBLIC char *HTRequest_extra (HTRequest *request)
 {
     return request ? request->ExtraHeaders : NULL;
 }
@@ -336,12 +340,12 @@ char *HTRequest_extra (HTRequest *request)
 /*
 **	Output stream
 */
-void HTRequest_setOutputStream (HTRequest *request, HTStream *output)
+PUBLIC void HTRequest_setOutputStream (HTRequest *request, HTStream *output)
 {
     if (request) request->output_stream = output;
 }
 
-HTStream *HTRequest_OutputStream (HTRequest *request)
+PUBLIC HTStream *HTRequest_OutputStream (HTRequest *request)
 {
     return request ? request->output_stream : NULL;
 }
@@ -349,12 +353,12 @@ HTStream *HTRequest_OutputStream (HTRequest *request)
 /*
 **	Output format
 */
-void HTRequest_setOutputFormat (HTRequest *request, HTFormat format)
+PUBLIC void HTRequest_setOutputFormat (HTRequest *request, HTFormat format)
 {
     if (request) request->output_format = format;
 }
 
-HTFormat HTRequest_OutputFormat (HTRequest *request)
+PUBLIC HTFormat HTRequest_OutputFormat (HTRequest *request)
 {
     return request ? request->output_format : NULL;
 }
@@ -362,12 +366,12 @@ HTFormat HTRequest_OutputFormat (HTRequest *request)
 /*
 **	Debug stream
 */
-void HTRequest_setDebugStream (HTRequest *request, HTStream *debug)
+PUBLIC void HTRequest_setDebugStream (HTRequest *request, HTStream *debug)
 {
     if (request) request->debug_stream = debug;
 }
 
-HTStream *HTRequest_DebugStream (HTRequest *request)
+PUBLIC HTStream *HTRequest_DebugStream (HTRequest *request)
 {
     return request ? request->debug_stream : NULL;
 }
@@ -375,12 +379,12 @@ HTStream *HTRequest_DebugStream (HTRequest *request)
 /*
 **	Debug Format
 */
-void HTRequest_setDebugFormat (HTRequest *request, HTFormat format)
+PUBLIC void HTRequest_setDebugFormat (HTRequest *request, HTFormat format)
 {
     if (request) request->debug_format = format;
 }
 
-HTFormat HTRequest_DebugFormat (HTRequest *request)
+PUBLIC HTFormat HTRequest_DebugFormat (HTRequest *request)
 {
     return request ? request->debug_format : NULL;
 }
@@ -388,12 +392,12 @@ HTFormat HTRequest_DebugFormat (HTRequest *request)
 /*
 **	Call back function for context swapping
 */
-void HTRequest_setCallback (HTRequest *request, HTRequestCallback *callback)
+PUBLIC void HTRequest_setCallback (HTRequest *request, HTRequestCallback *cbf)
 {
-    if (request) request->callback = callback;
+    if (request) request->callback = cbf;
 }
 
-HTRequestCallback *HTRequest_callback (HTRequest *request)
+PUBLIC HTRequestCallback *HTRequest_callback (HTRequest *request)
 {
     return request ? request->callback : NULL;
 }
@@ -401,12 +405,12 @@ HTRequestCallback *HTRequest_callback (HTRequest *request)
 /*
 **	Context pointer to be used in context call back function
 */
-void HTRequest_setContext (HTRequest *request, void *context)
+PUBLIC void HTRequest_setContext (HTRequest *request, void *context)
 {
     if (request) request->context = context;
 }
 
-void *HTRequest_context (HTRequest *request)
+PUBLIC void *HTRequest_context (HTRequest *request)
 {
     return request ? request->context : NULL;
 }
@@ -414,12 +418,12 @@ void *HTRequest_context (HTRequest *request)
 /*
 **	Socket mode: preemtive or non-preemtive (blocking or non-blocking)
 */
-void HTRequest_setPreemtive (HTRequest *request, BOOL mode)
+PUBLIC void HTRequest_setPreemtive (HTRequest *request, BOOL mode)
 {
     if (request) request->preemtive = mode;
 }
 
-BOOL HTRequest_preemtive (HTRequest *request)
+PUBLIC BOOL HTRequest_preemtive (HTRequest *request)
 {
     return request ? request->preemtive : NO;
 }
@@ -427,12 +431,12 @@ BOOL HTRequest_preemtive (HTRequest *request)
 /*
 **	Should we use content negotiation?
 */
-void HTRequest_setNegotiation (HTRequest *request, BOOL mode)
+PUBLIC void HTRequest_setNegotiation (HTRequest *request, BOOL mode)
 {
     if (request) request->ContentNegotiation = mode;
 }
 
-BOOL HTRequest_negotiation (HTRequest *request)
+PUBLIC BOOL HTRequest_negotiation (HTRequest *request)
 {
     return request ? request->ContentNegotiation : NO;
 }
@@ -440,7 +444,7 @@ BOOL HTRequest_negotiation (HTRequest *request)
 /*
 **	Bytes read in this request
 */
-long HTRequest_bytesRead(HTRequest * request)
+PUBLIC long HTRequest_bytesRead(HTRequest * request)
 {
     return request ? HTNet_bytesRead(request->net) : -1;
 }
@@ -448,7 +452,7 @@ long HTRequest_bytesRead(HTRequest * request)
 /*
 **	Kill this request
 */
-BOOL HTRequest_kill(HTRequest * request)
+PUBLIC BOOL HTRequest_kill(HTRequest * request)
 {
     return request ? HTNet_kill(request->net) : NO;
 }
@@ -458,7 +462,7 @@ BOOL HTRequest_kill(HTRequest * request)
 **	-----------
 **	Returns the error stack if a stream is 
 */
-HTList *HTRequest_errorStack (HTRequest *request)
+PUBLIC HTList *HTRequest_errorStack (HTRequest *request)
 {
     return request ? request->error_stack : NULL;
 }
@@ -475,7 +479,7 @@ PUBLIC time_t HTRequest_retryTime (HTRequest * request)
 /*
 **  Set max number of automatic reload. Default is HT_MAX_RELOADS
 */
-BOOL  HTRequest_setMaxRetry (int newmax)
+PUBLIC BOOL HTRequest_setMaxRetry (int newmax)
 {
     if (newmax > 0) {
 	HTMaxRetry = newmax;
@@ -484,7 +488,7 @@ BOOL  HTRequest_setMaxRetry (int newmax)
     return NO;
 }
 
-int HTRequest_maxRetry (void)
+PUBLIC int HTRequest_maxRetry (void)
 {
     return HTMaxRetry;
 }
@@ -495,7 +499,7 @@ int HTRequest_maxRetry (void)
 **	Returns YES if we are to retry the load, NO otherwise. We check
 **	this so that we don't go into an infinte loop
 */
-BOOL HTRequest_retry (HTRequest *request)
+PUBLIC BOOL HTRequest_retry (HTRequest *request)
 {
     return (request && request->retrys < HTMaxRetry-1);
 }
@@ -509,7 +513,7 @@ BOOL HTRequest_retry (HTRequest *request)
 **  build the internal request representation of the POST web
 **  Returns YES if OK, else NO
 */
-BOOL HTRequest_addDestination (HTRequest *src, HTRequest *dest)
+PUBLIC BOOL HTRequest_addDestination (HTRequest *src, HTRequest *dest)
 {
     if (src && dest) {
 	if (!src->mainDestination) {
@@ -534,7 +538,7 @@ BOOL HTRequest_addDestination (HTRequest *src, HTRequest *dest)
 **  application!
 **  Returns YES if OK, else NO
 */
-BOOL HTRequest_removeDestination (HTRequest *dest)
+PUBLIC BOOL HTRequest_removeDestination (HTRequest *dest)
 {
     BOOL found=NO;
     if (dest && dest->source) {
@@ -571,7 +575,7 @@ BOOL HTRequest_removeDestination (HTRequest *dest)
 **  a conversion between the two streams!
 **  Returns YES if link is made, NO otherwise
 */
-BOOL HTRequest_linkDestination (HTRequest *dest)
+PUBLIC BOOL HTRequest_linkDestination (HTRequest *dest)
 {
     if (dest && dest->input_stream && dest->source && dest!=dest->source) {
 	HTRequest *source = dest->source;
@@ -607,7 +611,7 @@ BOOL HTRequest_linkDestination (HTRequest *dest)
 **  ready to take down and the operation can be terminated.
 **  Returns YES if removed, else NO
 */
-BOOL HTRequest_unlinkDestination (HTRequest *dest)
+PUBLIC BOOL HTRequest_unlinkDestination (HTRequest *dest)
 {
     BOOL found = NO;
     if (dest && dest->source && dest != dest->source) {
@@ -636,7 +640,7 @@ BOOL HTRequest_unlinkDestination (HTRequest *dest)
 /*
 **  Removes all request structures in this PostWeb.
 */
-BOOL HTRequest_removePostWeb (HTRequest *me)
+PUBLIC BOOL HTRequest_removePostWeb (HTRequest *me)
 {
     if (me && me->source) {
 	HTRequest *source = me->source;
@@ -667,7 +671,7 @@ BOOL HTRequest_removePostWeb (HTRequest *me)
 **  that has been implemented). However, this will be handled internally
 **  in the load function.
 */
-BOOL HTRequest_killPostWeb (HTRequest *me)
+PUBLIC BOOL HTRequest_killPostWeb (HTRequest *me)
 {
     if (me && me->source) {
 	HTRequest *source = me->source;
@@ -781,7 +785,7 @@ PRIVATE int get_physical (HTRequest *req)
 **		YES	if request has been registered (success)
 **		NO	an error occured
 */
-BOOL HTLoad (HTRequest * request, HTPriority priority, BOOL recursive)
+PUBLIC BOOL HTLoad (HTRequest * request, HTPriority priority, BOOL recursive)
 {
     char *arg = NULL;
     int status;
@@ -821,7 +825,8 @@ BOOL HTLoad (HTRequest * request, HTPriority priority, BOOL recursive)
 			   NULL, 0, "HTLoad");
 	    }
 	} 
-	return NO;			       /* Can't resolve or forbidden */
+	return HTNet_callback(request, HT_ERROR);
+	return YES;			       /* Can't resolve or forbidden */
     }
     if (!(arg = HTAnchor_physical(request->anchor)) || !*arg)
 	return NO;
@@ -838,7 +843,7 @@ BOOL HTLoad (HTRequest * request, HTPriority priority, BOOL recursive)
 **    On Entry,
 **	Status code from load function
 */
-int HTLoad_terminate (HTRequest *request, int status)
+PUBLIC int HTLoad_terminate (HTRequest *request, int status)
 {
     char * uri = HTAnchor_address((HTAnchor*)request->anchor);
 

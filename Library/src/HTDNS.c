@@ -355,7 +355,7 @@ PUBLIC int HTDNS_closeSocket(SOCKET soc, HTRequest * request, SockOps ops)
 	HTdns *pres;
 	while ((pres = (HTdns *) HTList_nextObject(cur))) {
 	    if (pres->sockfd == soc) {
-		fprintf(TDEST, "DNS Close... socket\n");
+		if (PROT_TRACE) fprintf(TDEST, "DNS Close... socket %d\n",soc);
 		NETCLOSE(soc);
 		HTDNS_setSocket(pres, INVSOC);
 		break;

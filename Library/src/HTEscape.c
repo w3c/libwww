@@ -15,6 +15,28 @@
 #include "HTEscape.h"					 /* Implemented here */
 
 #define HEX_ESCAPE '%'
+#define ACCEPTABLE(a)	( a>=32 && a<128 && ((isAcceptable[a-32]) & mask))
+
+/*
+**  Not BOTH static AND const at the same time in gcc :-(, Henrik 18/03-94 
+**  code gen error in gcc when making random access to static const table(!!)
+*/
+
+/*
+**	Bit 0		xalpha		-- see HTFile.h
+**	Bit 1		xpalpha		-- as xalpha but with plus.
+**	Bit 2 ...	path		-- as xpalpha but with /
+*/
+PRIVATE unsigned char isAcceptable[96] =
+{/* 0 1 2 3 4 5 6 7 8 9 A B C D E F */
+    0,0,0,0,0,0,0,0,0,0,7,6,0,7,7,4,		/* 2x   !"#$%&'()*+,-./	 */
+    7,7,7,7,7,7,7,7,7,7,0,0,0,0,0,0,		/* 3x  0123456789:;<=>?	 */
+    7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,		/* 4x  @ABCDEFGHIJKLMNO  */
+    7,7,7,7,7,7,7,7,7,7,7,0,0,0,0,7,		/* 5X  PQRSTUVWXYZ[\]^_	 */
+    0,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,		/* 6x  `abcdefghijklmno	 */
+    7,7,7,7,7,7,7,7,7,7,7,0,0,0,0,0		/* 7X  pqrstuvwxyz{\}~	DEL */
+};
+PRIVATE char *hex = "0123456789ABCDEF";
 
 /* ------------------------------------------------------------------------- */
 
@@ -34,32 +56,8 @@
 **	Unlike HTUnEscape(), this routine returns a malloced string.
 **
 */
-
-/* Not BOTH static AND const at the same time in gcc :-(, Henrik 18/03-94 
-**  code gen error in gcc when making random access to
-**  static const table(!!)  */
-/* PRIVATE CONST unsigned char isAcceptable[96] = */
-PRIVATE unsigned char isAcceptable[96] =
-
-/* Overencodes */
-/*	Bit 0		xalpha		-- see HTFile.h
-**	Bit 1		xpalpha		-- as xalpha but with plus.
-**	Bit 2 ...	path		-- as xpalpha but with /
-*/
-    /*   0 1 2 3 4 5 6 7 8 9 A B C D E F */
-    {    0,0,0,0,0,0,0,0,0,0,7,6,0,7,7,4,	/* 2x   !"#$%&'()*+,-./	 */
-         7,7,7,7,7,7,7,7,7,7,0,0,0,0,0,0,	/* 3x  0123456789:;<=>?	 */
-	 7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,	/* 4x  @ABCDEFGHIJKLMNO  */
-	 7,7,7,7,7,7,7,7,7,7,7,0,0,0,0,7,	/* 5X  PQRSTUVWXYZ[\]^_	 */
-	 0,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,	/* 6x  `abcdefghijklmno	 */
-	 7,7,7,7,7,7,7,7,7,7,7,0,0,0,0,0 };	/* 7X  pqrstuvwxyz{\}~	DEL */
-
-PRIVATE char *hex = "0123456789ABCDEF";
-
-PUBLIC char * HTEscape ARGS2 (CONST char *, str,
-	unsigned char, mask)
+PUBLIC char * HTEscape (CONST char * str, HTURIEncoding mask)
 {
-#define ACCEPTABLE(a)	( a>=32 && a<128 && ((isAcceptable[a-32]) & mask))
     CONST char * p;
     char * q;
     char * result;

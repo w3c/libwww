@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Access manager  for libwww</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 12-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 19-Sep-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -15,20 +15,23 @@
 */
 </PRE>
 
-This module is the application interface module to the access
-manager. It contains help functions for accessing documents and for
+This module is the application interface module to the <A
+HREF="HTReq.html">Request Manager</A>. You can use the Request Manager
+directly but this module makes it easier to use by providing a lot of
+small request functions using the Request Manager in different
+ways. It contains help functions for accessing documents and for
 uploading documents to a remote server.<P>
 
 This module is implemented by <A HREF="HTAccess.c">HTAccess.c</A>, and
-it is a part of the <A NAME="z10"
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>. <P>
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>. <P>
 
 <PRE>
 #ifndef HTACCESS_H
 #define HTACCESS_H
 
-#include "<A HREF="HTList.html">HTReq.h</A>"
+#include "HTReq.h"
+#include "HTAnchor.h"
 </PRE>
 
 <A NAME="Library"><H2>Initializing and Terminating the Library</H2></A>
@@ -41,6 +44,32 @@ application. It is highly recommended that they are used!
 <PRE>
 extern BOOL HTLibInit (void);
 extern BOOL HTLibTerminate (void);
+</PRE>
+
+<H2>Client Get Started Help</H2>
+
+Two small functions that make life easier for client apps
+
+<H3>Generate the Anchor for the Home Page</H3>
+
+As it involves file access, this should only be done once when the
+program first runs. This is a default algorithm using the
+<CODE>WWW_HOME</CODE> environment variable.
+
+<PRE>
+extern HTParentAnchor * HTHomeAnchor (void);
+</PRE>
+
+<H3>Find Related Name</H3>
+
+Creates a local file URI that can be used as a relative name when
+calling HTParse() to expand a relative file name to an absolute
+one. The code for this routine originates from the Line Mode Browser
+and was moved here by <EM>howcome@w3.org</EM> in order for all clients
+to take advantage.<P>
+
+<PRE>
+extern char *  HTFindRelatedName (void);
 </PRE>
 
 <A NAME="Addresses"><H2>Default WWW Addresses</H2></A>
@@ -74,181 +103,115 @@ is asking for user confusion.
 #endif
 </PRE>
 
-<A NAME="LoadDoc"><H2>Functions for Loading a Document</H2></A>
+<A NAME="LoadDoc"><H2>Functions for Requesting an Object</H2></A>
 
-There are several different ways of loading a document. However, the
-major difference between them is whether the document is referenced by
+<H3>Request a document from absolute name</H3>
 
-<UL>
-<LI><A HREF="#Relative">Relative URI</A>
-<LI><A HREF="#Absolute">Absolute URI</A>
-<LI><A HREF="#Anchor">Anchor element</A> or
-<LI>Contains keywords for <A HREF="#RelSearch">searching an relative URI</A>
-<LI>Contains keywords for <A HREF="#AbsSearch">searching an absolute URI</A>
-</UL>
-
-<B>NOTE:</B> From release 3.0 of the Library, the return codes from
-the loading functions are no mode <CODE>BOOL</CODE>, that is
-<CODE>YES</CODE> or <CODE>NO</CODE>. Insted they have been replaced
-with the following set of return codes defined in the <A
-HREF="HTUtils.html#ReturnCodes">Utility module</A>:
-
-<DL>
-<DT>HT_WOULD_BLOCK
-<DD>An I/O operation would block
-
-<DT>HT_ERROR
-<DD>Error has occured
-
-<DT>HT_LOADED
-<DD>Success
-
-<DT>HT_NO_DATA
-<DD>Success, but no document loaded. This might be the situation when a 
-telnet sesssion is started etc.
-
-<DT>HT_RETRY
-<DD>The remote server is down but will serve documents from the
-calendar time indicated in HTRequest-&gt;retry_after.
-
-</DL>
-
-However, a general rule about the return codes is that <B>ERRORS</B>
-have a <EM>negative</EM> value whereas <B>SUCCESS</B> has a
-<EM>positive</EM> value. <P>
-
-There are also some functions to help the client getting started with
-<A HREF="#ClientHelp">the first URI</A>.
-
-<A NAME="Relative"><H3>Load a document from relative URL</H3></A>
+Request a document referencd by an absolute URL.  Returns YES if
+request accepted, else NO
 
 <PRE>
-extern int HTLoadRelative	PARAMS((CONST char * 	relative_name,
-					HTParentAnchor*	here,
-					HTRequest *	request));
+extern BOOL HTLoadAbsolute (CONST char * url, HTRequest* request);
 </PRE>
 
-<A NAME="Absolute"></A><H3>Load a document from absolute URL</H3>
+<H3>Request a document from absolute name to stream</H3>
+
+Request a document referencd by an absolute URL and sending the data
+down a stream. This is _excactly_ the same as HTLoadAbsolute as the
+ourputstream is specified using the function.
+HTRequest_setOutputStream(). 'filter' is ignored!  Returns YES if
+request accepted, else NO
 
 <PRE>
-extern int HTLoadAbsolute	PARAMS((CONST char *	addr,
-					HTRequest *	request));
+extern BOOL HTLoadToStream (CONST char * url, BOOL filter, HTRequest *request);
 </PRE>
 
-<H3>Load a document from absolute name to a stream</H3>
+<H3>Request a document from relative name</H3>
+
+Request a document referenced by a relative URL. The relative URL is
+made absolute by resolving it relative to the address of the 'base'
+anchor. Returns YES if request accepted, else NO
 
 <PRE>
-extern int HTLoadToStream	PARAMS((CONST char * 	addr,
-					BOOL 		filter,
-					HTRequest *	request));
+extern BOOL HTLoadRelative (CONST char * 	relative,
+			    HTParentAnchor *	base,
+			    HTRequest *		request);
 </PRE>
 
-<A NAME="Anchor"><H3>Load a document from anchor</H3></A>
+<H3>Request an anchor</H3>
 
-The anchor parameter may be a child anchor. The anchor in the request
-is set to the parent anchor. The recursive function keeps the error
-stack in the request structure so that no information is lost having
-more than one call. See also <A HREF="#BindAnchor">HTBindAnchor()</A>.
+Request the document referenced by the anchor Returns YES if request
+accepted, else NO
 
 <PRE>
-extern int HTLoadAnchor		PARAMS((HTAnchor  * 	a,
-					HTRequest *	request));
-extern int HTLoadAnchorRecursive PARAMS((HTAnchor *	a,
-					HTRequest *	request));
+extern BOOL HTLoadAnchor (HTAnchor * anchor, HTRequest * request);
 </PRE>
 
-<A NAME="RelSearch"><H3>Search Using Relative URL</H3></A>
+<H3>Request an anchor</H3>
 
-Performs a search on word given by the user. Adds the search words to
-the end of the current address and attempts to open the new address.
+Same as HTLoadAnchor but any information in the Error Stack in the
+request object is kept, so that any error messages in one This
+function is almost identical to HTLoadAnchor, but it doesn't clear the
+error stack so that the information in there is kept.  Returns YES if
+request accepted, else NO
 
 <PRE>
-extern int HTSearch		PARAMS((CONST char *	keywords,
-					HTParentAnchor*	here,
-					HTRequest *	request));
+extern BOOL HTLoadAnchorRecursive (HTAnchor * anchor, HTRequest * request);
 </PRE>
 
-<A NAME="AbsSearch"><H3>Search using Absolute URL</H3></A>
+<H3>Search an Anchor</H3>
 
 Performs a keyword search on word given by the user. Adds the keyword
 to the end of the current address and attempts to open the new
-address.
+address.  The list of keywords must be a space-separated list and
+spaces will be converted to '+' before the request is issued.  Search
+can also be performed by HTLoadAbsolute() etc.  Returns YES if request
+accepted, else NO
 
 <PRE>
-extern int HTSearchAbsolute	PARAMS((CONST char *	keywords,
-					CONST char * 	indexname,
-					HTRequest *	request));
+extern BOOL HTSearch (CONST char *	keywords,
+		      HTParentAnchor *  base,
+		      HTRequest * 	request);
 </PRE>
 
-<A NAME="HomePage"><H3>Generate the Anchor for the Home Page</H3></A>
+<H3>Search a document from absolute name</H3>
 
-As it involves file access, this should only be done once when the
-program first runs. This is a default algorithm using the
-<CODE>WWW_HOME</CODE> environment variable.
+Request a document referencd by an absolute URL appended with the
+keywords given. The URL can NOT contain any fragment identifier!  The
+list of keywords must be a space-separated list and spaces will be
+converted to '+' before the request is issued.  Returns YES if request
+accepted, else NO
 
 <PRE>
-extern HTParentAnchor * HTHomeAnchor NOPARAMS;
+extern BOOL HTSearchAbsolute (CONST char *	keywords,
+			      CONST char *	url,
+			      HTRequest *	request);
 </PRE>
 
-<H3>Find Related Name</H3>
+<H3>Copy an anchor</H3>
 
-Creates a local file URI that can be used as a relative name when
-calling HTParse() to expand a relative file name to an absolute
-one. <P>
-
-The code for this routine originates from the Line Mode Browser and
-was moved here by <EM>howcome@w3.org</EM> in order for all
-clients to take advantage.<P>
+Fetch the URL (possibly local file URL) and send it using either PUT
+or POST to the remote destination using HTTP. The caller can decide the
+exact method used and which HTTP header fields to transmit by setting
+the user fields in the request structure.
+Returns YES if request accepted, else NO
 
 <PRE>
-extern char *  HTFindRelatedName NOPARAMS;
+extern BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_req);
 </PRE>
-
-<A NAME="PostDoc"><H2>Functions for Posting a Document</H2></A>
-
-<B>NOTE:</B> The Posting functions are used to send a data object
-along with the request. The functions have the same set of return
-codes as for the <A HREF="#LoadDoc">Load Functions</A>.
-
-<H3>Get a Save Stream</H3>
-
-<PRE>
-extern HTStream * HTSaveStream	PARAMS((HTRequest * request));
-</PRE>
-
-<H3>Copy an Anchor</H3>
-
-Fetch the URL (possibly local file URL) and send it using either
-<B>PUT</B> or <B>POST</B> directly to the remote destination using
-HTTP, that is remote copy of object <EM>O</EM> from <EM>A</EM> to
-<EM>B</EM> where <EM>A</EM> might be the host of the application. The
-caller can decide the exact method used and which HTTP header fields
-to transmit by setting the user fields in the destination request
-structure.
-
-<PRE>
-extern int HTCopyAnchor		PARAMS((HTAnchor *	src_anchor,
-					HTRequest *	dest_req));
-</PRE>
-
 
 <H3>Upload an Anchor</H3>
 
-Send the contents (in hyperdoc) of the source anchor using either
-<B>PUT</B> or <B>POST</B> to the remote destination using HTTP. The
-caller can decide the exact method used and which HTTP header fields
-to transmit by setting the user fields in the request structure.
-<EM>Format conversion</EM> can be made on the fly by setting the <A
-HREF="#input_format">input_format field</A> in the destination request
-structure. If the content-length is unknown (-1) then a <A
-HREF="HTConLen.html">content-length counter</A> is automaticly put
-into the stream pipe.
-
+Send the contents (in hyperdoc) of the source anchor using either PUT
+or POST to the remote destination using HTTP. The caller can decide
+the exact method used and which HTTP header fields to transmit by
+setting the user fields in the request structure.  Returns YES if
+request accepted, else NO
 
 <PRE>
-extern int HTUploadAnchor	PARAMS((HTAnchor *	src_anchor,
-					HTParentAnchor *dest_anchor,
-					HTRequest *	dest_req));
+extern BOOL HTUploadAnchor (HTAnchor *		src_anchor,
+			    HTParentAnchor *	dest_anchor,
+			    HTRequest *		dest_req);
 </PRE>
 
 <PRE>

@@ -955,8 +955,8 @@ PRIVATE int terminate_handler (HTRequest * request, int status)
 	    return HT_ERROR;
 	}
 	HText_setStale(HTMainText);		   /* We corrupt the display */
+	MakeCommandLine(is_index);
     }
-    MakeCommandLine(is_index);
     Thread_delete(request);
     return HT_OK;
 }
@@ -1256,17 +1256,19 @@ int main ARGS2(int, argc, char **, argv)
     	    if (!keycnt) {
 		char * ref = HTParse(argv[arg], abs_home, PARSE_ALL);
 		home_anchor = (HTParentAnchor *) HTAnchor_findAddress(ref);
-		free(ref);
 		keycnt = 1;
+		free(ref);
 	    } else {		   /* Check for successive keyword arguments */
+		char *escaped = HTEscape(argv[arg], URL_XALPHAS);
 		if (keycnt++ <= 1)
 		    keywords = HTChunkCreate(128);
 		else
 		    HTChunkPutc(keywords, ' ');
-		HTChunkPuts(keywords, HTStrip(argv[arg]));
+		HTChunkPuts(keywords, HTStrip(escaped));
+		free(escaped);
 	    }
-	} /* Not an option '-'*/
-    } /* End of argument loop */
+	}
+    }
 
     /* Do remaining Initialization */
 #ifdef CATCH_SIG
@@ -1376,9 +1378,6 @@ int main ARGS2(int, argc, char **, argv)
 
 	/* Register our own memory cache handler (implemented in GridText.c) */
 	HTMemoryCache_register(HTMemoryCache);
-
-	/* Make first command line */
- 	MakeCommandLine(HTAnchor_isIndex(home_anchor));
 
 	/* Register STDIN as the user socket */
 	HTEvent_RegisterTTY(STDIN_FILENO, request, (SockOps)FD_READ,

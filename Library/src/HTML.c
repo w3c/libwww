@@ -573,12 +573,8 @@ PRIVATE void HTML_start_element ARGS4(
 	{
 	    HTChildAnchor *source;
 	    char *src = NULL;
-	    if (present[HTML_IMG_SRC]) {
+	    if (present[HTML_IMG_SRC])
 		StrAllocCopy(src, value[HTML_IMG_SRC]);
-#ifdef OLD_CODE
-		HTSimplify(src);
-#endif
-	    }
 	    source = HTAnchor_findChildAndLink(
 					       me->node_anchor,	   /* parent */
 					       0,                     /* Tag */

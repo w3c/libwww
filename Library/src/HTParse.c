@@ -178,7 +178,9 @@ char * HTParse ARGS3(CONST char *, aName, CONST char *, relatedName,
 		for (; *p!='/'; p--);	/* last / */
 		p[1]=0;					/* Remove filename */
 		strcat(result, given.relative);		/* Add given one */
+#if 0
 		result = HTSimplify (&result);
+#endif
 	    }
 	} else if(given.relative) {
 	    strcat(result, given.relative);		/* what we've got */
@@ -311,11 +313,6 @@ PRIVATE char *HTCanon ARGS2 (char **, filename, char *, host)
 //
 //	or	../../albert.html
 //
-// In the same manner, the following prefixed are preserved:
-//
-//	./<etc>
-//	//<etc>
-//
 // In order to avoid empty URLs the following URLs become:
 //
 //		/fred/..		becomes /fred/..
@@ -327,29 +324,28 @@ PRIVATE char *HTCanon ARGS2 (char **, filename, char *, host)
 //
 // Returns: A string which might be the old one or a new one.
 */
-PUBLIC char *HTSimplify ARGS1(char **, filename)
+PUBLIC char *HTSimplify ARGS1(char **, url)
 {
     char *path;
     char *p;
 
-    if (!*filename) {
-	if (URI_TRACE)
-	    fprintf(TDEST, "HTSimplify.. Bad argument\n");
-	return *filename;
+    if (!url || !*url) {
+	if (URI_TRACE) fprintf(TDEST, "HTSimplify.. Nothing done\n");
+	return *url;
     }
-    if (URI_TRACE)
-	fprintf(TDEST, "HTSimplify.. `%s\' ", *filename);
+    if (URI_TRACE) fprintf(TDEST, "HTSimplify.. `%s\' ", *url);
 
-    if ((path = strstr(*filename, "://")) != NULL) {	   /* Find host name */
+    /* Find any scheme name */
+    if ((path = strstr(*url, "://")) != NULL) {		   /* Find host name */
 	char *newptr;
 	path += 3;
 	while ((newptr = strstr(path, "://")) != NULL)
 	    path = newptr+3;
-	path = HTCanon(filename, path);       	      /* We have a host name */
-    } else if ((path = strstr(*filename, ":/")) != NULL) {
+	path = HTCanon(url, path);       	      /* We have a host name */
+    } else if ((path = strstr(*url, ":/")) != NULL) {
 	path += 2;
     } else
-	path = *filename;
+	path = *url;
     if (*path == '/' && *(path+1)=='/') {	  /* Some URLs start //<foo> */
 	path += 1;
     } else if (!strncmp(path, "news:", 5)) {
@@ -360,14 +356,19 @@ PUBLIC char *HTSimplify ARGS1(char **, filename)
 	    ptr++;
 	}
 	if (URI_TRACE)
-	    fprintf(TDEST, "into\n............ `%s'\n", *filename);
-	return *filename;		      /* Doesn't need to do any more */
+	    fprintf(TDEST, "into\n............ `%s'\n", *url);
+	return *url;		      /* Doesn't need to do any more */
     }
     if ((p = path)) {
-	int segments = 0;
+	char *end;
+	if (!((end = strchr(path, ';')) || (end = strchr(path, '?')) ||
+	      (end = strchr(path, '#'))))
+	    end = path+strlen(path);
 
+#if 0
 	/* Parse string first time to find number of `real' tokens */
-	while (*p) {
+	int segments = 0;
+	while (p<end) {
 	    if (*p=='/' || p==path) {
 		if (!((*(p+1)=='/' || !*(p+1)) ||
 		      (*(p+1)=='.' && (*(p+2)=='/' || !*(p+2))) ||
@@ -376,16 +377,17 @@ PUBLIC char *HTSimplify ARGS1(char **, filename)
 	    }
 	    p++;
 	}
-	
+#endif	
 	/* Parse string second time to simplify */
 	p = path;
-	while(*p) {
+	while(p<end) {
 	    if (*p=='/') {
 		if (p>path && *(p+1)=='.' && (*(p+2)=='/' || !*(p+2))) {
-		    char *orig=p, *dest=p+2;
+		    char *orig=p+1, *dest=p+2;
 		    while ((*orig++ = *dest++)); /* Remove a slash and a dot */
+		    end = orig-1;
 		    p--;
-		} else if (segments>1 && *(p+1)=='.' && *(p+2)=='.' &&
+		} else if (*(p+1)=='.' && *(p+2)=='.' &&
 		    (*(p+3)=='/' || !*(p+3))) {
 		    char *q = p;
 		    while (q>path && *--q!='/');	       /* prev slash */
@@ -394,7 +396,7 @@ PUBLIC char *HTSimplify ARGS1(char **, filename)
 			char *orig=q, *dest=p+3;
 			if (*q!='/') dest++;
 			while ((*orig++ = *dest++));	   /* Remove /xxx/.. */
-			segments--;
+			end = orig-1;
 			p = q-1;	      /* Start again with prev slash */
 		    } else
 			p++;
@@ -402,6 +404,7 @@ PUBLIC char *HTSimplify ARGS1(char **, filename)
 		    while (*(p+1)=='/') {
 			char *orig=p, *dest=p+1;
 			while ((*orig++ = *dest++));  /* Remove multiple /'s */
+			end = orig-1;
 		    }
 		}
 	    }
@@ -409,8 +412,8 @@ PUBLIC char *HTSimplify ARGS1(char **, filename)
 	}  /* end while (*p) */
     }
     if (URI_TRACE)
-	fprintf(TDEST, "into\n............ `%s'\n", *filename);
-    return *filename;
+	fprintf(TDEST, "into\n............ `%s'\n", *url);
+    return *url;
 }
 
 #ifdef OLD_CODE

@@ -33,7 +33,6 @@
 #include "HTMIME.h"
 #include "HTAnchor.h"
 #include "HTAtom.h"
-#include "HTAccess.h"
 #include "HTWriter.h"
 #include "HTFWrite.h"
 #include "HTFormat.h"
@@ -582,7 +581,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		anchor = HTAnchor_findAddress(newname);
 		free(newname);
 		FileCleanup(request, HT_IGNORE);
-		return HTLoadAnchorRecursive(anchor, request);
+		return HTLoad(request, net->priority, YES);
 	    }
 	    break;
 

@@ -126,32 +126,29 @@ PUBLIC HTChildAnchor * HTAnchor_findChild ARGS2 (HTParentAnchor *, parent,
 PUBLIC HTAnchor * HTAnchor_findAddress ARGS1 (CONST char *, address)
 {
     char *tag = HTParse (address, "", PARSE_ANCHOR);	        /* Any tags? */
-    char *newaddr=NULL;
     
-    StrAllocCopy(newaddr, address);		         /* Get our own copy */
-    if (!HTImProxy)
-	newaddr = HTSimplify(&newaddr);	     /* Proxy has already simplified */
-
     /* If the address represents a sub-anchor, we recursively load its parent,
        then we create a child anchor within that document. */
     if (*tag) {
-	char *docAddress = HTParse(newaddr, "", PARSE_ACCESS | PARSE_HOST |
-				   PARSE_PATH | PARSE_PUNCTUATION);
-	HTParentAnchor * foundParent =
-	    (HTParentAnchor *) HTAnchor_findAddress (docAddress);
-	HTChildAnchor * foundAnchor = HTAnchor_findChild (foundParent, tag);
-	free (docAddress);
-	free (tag);
-	free (newaddr);
-	return (HTAnchor *) foundAnchor;
+	char *addr = HTParse(address, "", PARSE_ACCESS | PARSE_HOST |
+			     PARSE_PATH | PARSE_PUNCTUATION);
+	HTParentAnchor * parent = (HTParentAnchor*) HTAnchor_findAddress(addr);
+	HTChildAnchor * child = HTAnchor_findChild(parent, tag);
+	free(addr);
+	free(tag);
+	return (HTAnchor *) child;
     } else {		       	     /* Else check whether we have this node */
 	int hash;
 	CONST char *p;
 	HTList * adults;
 	HTList *grownups;
 	HTParentAnchor * foundAnchor;
-	free (tag);
-	
+	char *newaddr = NULL;
+	StrAllocCopy(newaddr, address);		         /* Get our own copy */
+	free(tag);
+	if (!HTImProxy)
+	    newaddr = HTSimplify(&newaddr);  /* Proxy has already simplified */
+
 	/* Select list from hash table */
 	for(p=newaddr, hash=0; *p; p++)
 	    hash = (int) ((hash * 3 + (*(unsigned char*)p)) % HASH_SIZE);
@@ -192,25 +189,23 @@ PUBLIC HTAnchor * HTAnchor_findAddress ARGS1 (CONST char *, address)
 **
 **	Create new anchor with a given parent and possibly
 **	a name, and possibly a link to a _relatively_ named anchor.
+**	All parameters EXCEPT parent can be NULL
 */
-PUBLIC HTChildAnchor * HTAnchor_findChildAndLink
-  ARGS4(
-       HTParentAnchor *,parent,	/* May not be 0 */
-       CONST char *,tag,	/* May be "" or 0 */
-       CONST char *,href,	/* May be "" or 0 */
-       HTLinkType *,ltype	/* May be 0 */
-       )
+PUBLIC HTChildAnchor * HTAnchor_findChildAndLink (HTParentAnchor *	parent,
+						  CONST char *		tag,
+						  CONST char *		href,
+						  HTLinkType *		ltype)
 {
-  HTChildAnchor * child = HTAnchor_findChild(parent, tag);
-  if (href && *href) {
-    char * relative_to = HTAnchor_address((HTAnchor *) parent);
-    char * parsed_address = HTParse(href, relative_to, PARSE_ALL);
-    HTAnchor * dest = HTAnchor_findAddress(parsed_address);
-    HTAnchor_link((HTAnchor *) child, dest, ltype, METHOD_INVALID);
-    free(parsed_address);
-    free(relative_to);
-  }
-  return child;
+    HTChildAnchor * child = HTAnchor_findChild(parent, tag);
+    if (href && *href) {
+	char * relative_to = HTAnchor_address((HTAnchor *) parent);
+	char * parsed_address = HTParse(href, relative_to, PARSE_ALL);
+	HTAnchor * dest = HTAnchor_findAddress(parsed_address);
+	HTAnchor_link((HTAnchor *) child, dest, ltype, METHOD_INVALID);
+	free(parsed_address);
+	free(relative_to);
+    }
+    return child;
 }
 
 /*	Link me Anchor to another given one

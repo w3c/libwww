@@ -42,7 +42,7 @@
 **	This function initiates the Library and it MUST be called when
 **	starting up an application. See also HTLibTerminate()
 */
-PUBLIC BOOL HTLibInit NOARGS
+PUBLIC BOOL HTLibInit (void)
 {
 #ifdef NO_STDIO						  /* Open trace file */
     if ((TDEST = fopen(TRACE_FILE, "a")) != NULL) {
@@ -121,8 +121,8 @@ PUBLIC BOOL HTLibInit NOARGS
 }
 
 
-/*								 HTLibTerminate
-**
+/*	HTLibTerminate
+**	--------------
 **	This function frees memory kept by the Library and should be called
 **	before exit of an application (if you are on a PC platform)
 */
@@ -130,9 +130,6 @@ PUBLIC BOOL HTLibTerminate NOARGS
 {
     if (TRACE)
 	fprintf(TDEST, "WWWLibTerm.. Cleaning up LIBRARY OF COMMON CODE\n");
-#if 0
-    HTNet_deleteAll();			    /* Remove all remaining requests */
-#endif
     HTAtom_deleteAll();
     HTDisposeConversions();
     HTDNS_deleteAll();
@@ -170,358 +167,181 @@ PUBLIC BOOL HTLibTerminate NOARGS
 /*	           		Access functions			     */
 /* --------------------------------------------------------------------------*/
 
-/*	Load a document
-**	---------------
-**
-**	- Checks or documents already loaded
-**	- Logs the access
-**	- Trace ouput and error messages
-**
-**    On Entry,
-**        request->anchor	valid for of the document to be accessed.
-**	 request->childAnchor   optional anchor within doc to be selected
-**
-**	  request->anchor   is the node_anchor for the document
-**	  request->output_format is valid
-**
-**	returns
-**		YES	if request has been registered (success)
-**		NO	an error occured
+/*	Request a document
+**	-----------------
+**	Private version that requests a document from the request manager
+**	Returns YES if request accepted, else NO
 */
-PRIVATE int HTLoadDocument ARGS2(HTRequest *, request, BOOL, recursive)
+PRIVATE BOOL HTLoadDocument ARGS2(HTRequest *, request, BOOL, recursive)
 {
     if (PROT_TRACE) {
-	char * full_address = HTAnchor_address((HTAnchor *) request->anchor);
+	HTParentAnchor *anchor = HTRequest_anchor(request);
+	char * full_address = HTAnchor_address((HTAnchor *) anchor);
 	fprintf (TDEST, "HTAccess.... Accessing document %s\n", full_address);
 	free(full_address);
     }
-    if (!request->output_format)
-	request->output_format = WWW_PRESENT;
     return HTLoad(request, recursive, 0);	       /* @@@@ PRIORITY @@@@ */
 }
 
 
-/*		Load a document from absolute name
-**		---------------
-**
-** On Entry,
-**        addr     The absolute address of the document to be accessed.
-**
-** On exit,
-**	returns		HT_WOULD_BLOCK	An I/O operation would block
-**			HT_ERROR	Error has occured
-**			HT_LOADED	Success
-**			HT_NO_DATA	Success, but no document loaded.
-**					(telnet sesssion started etc)
-**			HT_RETRY	if service isn't available before
-**					request->retry_after
+/*	Request a document from absolute name
+**	-------------------------------------
+**	Request a document referencd by an absolute URL.
+**	Returns YES if request accepted, else NO
 */
-PUBLIC int HTLoadAbsolute ARGS2(CONST char *,addr, HTRequest*, request)
+PUBLIC BOOL HTLoadAbsolute (CONST char * url, HTRequest* request)
 {
-   HTAnchor * anchor = HTAnchor_findAddress(addr);
-   request->anchor = HTAnchor_parent(anchor);
-   request->childAnchor = ((HTAnchor*)request->anchor == anchor) ?
-   			NULL : (HTChildAnchor*) anchor;
-   return HTLoadDocument(request, NO);
+    if (url && request) {
+	HTAnchor * anchor = HTAnchor_findAddress(url);
+	HTRequest_setAnchor(request, anchor);
+	return HTLoadDocument(request, NO);
+    }
+    return NO;
 }
 
 
-/*		Load a document from absolute name to stream
-**		--------------------------------------------
-**
-** On Entry,
-**        addr     The absolute address of the document to be accessed.
-**        request->output_stream     if non-NULL, send data down this stream
-**
-** On exit,
-**	returns		HT_WOULD_BLOCK	An I/O operation would block
-**			HT_ERROR	Error has occured
-**			HT_LOADED	Success
-**			HT_NO_DATA	Success, but no document loaded.
-**					(telnet sesssion started etc)
-**			HT_RETRY	if service isn't available before
-**					request->retry_after
+/*	Request a document from absolute name to stream
+**	-----------------------------------------------
+**	Request a document referencd by an absolute URL and sending the data
+**	down a stream. This is _excactly_ the same as HTLoadAbsolute as
+**	the ourputstream is specified using the function
+**	HTRequest_setOutputStream(). 'filter' is ignored!
+**	Returns YES if request accepted, else NO
 */
-PUBLIC int HTLoadToStream ARGS3(CONST char *,	addr,
-				BOOL, 		filter,
-				HTRequest*,	request)
+PUBLIC BOOL HTLoadToStream (CONST char * url, BOOL filter, HTRequest *request)
 {
-    HTAnchor * anchor = HTAnchor_findAddress(addr);
-    request->anchor = HTAnchor_parent(anchor);
-    request->childAnchor = ((HTAnchor*)request->anchor == anchor) ? NULL :
-   	(HTChildAnchor*) anchor;
-    request->output_stream = request->output_stream;
-    return HTLoadDocument(request, NO);
+    return HTLoadAbsolute(url, request);
 }
 
 
-/*		Load a document from relative name
-**		---------------
-**
-** On Entry,
-**        relative_name     The relative address of the document
-**	  		    to be accessed.
-**
-** On exit,
-**	returns		HT_WOULD_BLOCK	An I/O operation would block
-**			HT_ERROR	Error has occured
-**			HT_LOADED	Success
-**			HT_NO_DATA	Success, but no document loaded.
-**					(telnet sesssion started etc)
-**			HT_RETRY	if service isn't available before
-**					request->retry_after
+/*	Request a document from relative name
+**	-------------------------------------
+**	Request a document referenced by a relative URL. The relative URL is 
+**	made absolute by resolving it relative to the address of the 'base' 
+**	anchor.
+**	Returns YES if request accepted, else NO
 */
-PUBLIC int HTLoadRelative ARGS3(CONST char *,		relative_name,
-				HTParentAnchor *,	here,
-				HTRequest *,		request)
+PUBLIC BOOL HTLoadRelative (CONST char * 	relative,
+			    HTParentAnchor *	base,
+			    HTRequest *		request)
 {
-    char * 		full_address = 0;
-    int       		result;
-    char * 		mycopy = 0;
-    char * 		stripped = 0;
-    char *		current_address =
-    				HTAnchor_address((HTAnchor*)here);
-
-    StrAllocCopy(mycopy, relative_name);
-
-    stripped = HTStrip(mycopy);
-    full_address = HTParse(stripped,
-	           current_address,
-		   PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
-    result = HTLoadAbsolute(full_address, request);
-    free(full_address);
-    free(current_address);
-    free(mycopy);  /* Memory leak fixed 10/7/92 -- JFG */
-    return result;
+    BOOL status = NO;
+    if (relative && base && request) {
+	char * rel = NULL;
+	char * full_url = NULL;
+	char * base_url = HTAnchor_address((HTAnchor *) base);
+	StrAllocCopy(rel, relative);
+	full_url = HTParse(HTStrip(rel), base_url,
+			 PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
+	status = HTLoadAbsolute(full_url, request);
+	free(rel);
+	free(full_url);
+	free(base_url);
+    }
+    return status;
 }
 
 
-/*		Load if necessary, and select an anchor
-**		--------------------------------------
-**
-** On Entry,
-**        destination      	    The child or parenet anchor to be loaded.
-**
-** On exit,
-**	returns		HT_WOULD_BLOCK	An I/O operation would block
-**			HT_ERROR	Error has occured
-**			HT_LOADED	Success
-**			HT_NO_DATA	Success, but no document loaded.
-**					(telnet sesssion started etc)
-**			HT_RETRY	if service isn't available before
-**					request->retry_after
+/*	Request an anchor
+**	-----------------
+**	Request the document referenced by the anchor
+**	Returns YES if request accepted, else NO
 */
-PUBLIC int HTLoadAnchor ARGS2(HTAnchor*, anchor, HTRequest *, request)
+PUBLIC BOOL HTLoadAnchor (HTAnchor * anchor, HTRequest * request)
 {
-    if (!anchor || !request)
-	return HT_ERROR;
-    request->anchor = HTAnchor_parent(anchor);
-    request->childAnchor = ((HTAnchor *) request->anchor == anchor) ?
-	NULL : (HTChildAnchor*) anchor;
-    return HTLoadDocument(request, NO);
+    if (anchor && request) {
+	HTRequest_setAnchor(request, anchor);
+	return HTLoadDocument(request, NO);
+    }
+    return NO;
 }
 
 
-/*		Load if necessary, and select an anchor
-**		--------------------------------------
-**
+/*	Request an anchor
+**	-----------------
+**	Same as HTLoadAnchor but any information in the Error Stack in the 
+**	request object is kept, so that any error messages in one 
 **	This function is almost identical to HTLoadAnchor, but it doesn't
 **	clear the error stack so that the information in there is kept.
-**
-** On Entry,
-**        destination      	    The child or parenet anchor to be loaded.
-**
-** On exit,
-**	returns		HT_WOULD_BLOCK	An I/O operation would block
-**			HT_ERROR	Error has occured
-**			HT_LOADED	Success
-**			HT_NO_DATA	Success, but no document loaded.
-**					(telnet sesssion started etc)
-**			HT_RETRY	if service isn't available before
-**					request->retry_after
+**	Returns YES if request accepted, else NO
 */
-PUBLIC int HTLoadAnchorRecursive ARGS2(HTAnchor*,	anchor,
-				       HTRequest *,	request)
+PUBLIC BOOL HTLoadAnchorRecursive (HTAnchor * anchor, HTRequest * request)
 {
-    if (!anchor) return HT_ERROR;				  /* No link */
-    
-    request->anchor  = HTAnchor_parent(anchor);
-    request->childAnchor = ((HTAnchor *) request->anchor == anchor) ?
-	NULL : (HTChildAnchor*) anchor;
-    
-    return HTLoadDocument(request, YES);
+    if (anchor && request) {
+	HTRequest_setAnchor(request, anchor);
+        return HTLoadDocument(request, YES);
+    }
+    return NO;
 }
 
 
-/*		Search
-**		------
-**  Performs a keyword search on word given by the user. Adds the keyword to 
-**  the end of the current address and attempts to open the new address.
-**
-**  On Entry,
-**       *keywords  	space-separated keyword list or similar search list
-**	here		is anchor search is to be done on.
-**
-** On exit,
-**	returns		HT_WOULD_BLOCK	An I/O operation would block
-**			HT_ERROR	Error has occured
-**			HT_LOADED	Success
-**			HT_NO_DATA	Success, but no document loaded.
-**					(telnet sesssion started etc)
-**			HT_RETRY	if service isn't available before
-**					request->retry_after
+/*	Search an Anchor
+**	----------------
+**	Performs a keyword search on word given by the user. Adds the keyword
+**	to the end of the current address and attempts to open the new address.
+**	The list of keywords must be a space-separated list and spaces will
+**	be converted to '+' before the request is issued.
+**	Search can also be performed by HTLoadAbsolute() etc.
+**	Returns YES if request accepted, else NO
 */
-PRIVATE char hex ARGS1(int, i)
+PUBLIC BOOL HTSearch (CONST char *	keywords,
+		      HTParentAnchor *  base,
+		      HTRequest * 	request)
 {
-    char * hexchars = "0123456789ABCDEF";
-    return hexchars[i];
-}
-
-PUBLIC int HTSearch ARGS3(CONST char *,        	keywords,
-			  HTParentAnchor *, 	here,
-			  HTRequest *,		request)
-{
-
-#define acceptable \
-"1234567890abcdefghijlkmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-_"
-
-    char *q, *u;
-    CONST char * p, *s, *e;		/* Pointers into keywords */
-    char * address = HTAnchor_address((HTAnchor*)here);
-    int result;
-    char * escaped = (char *) malloc(strlen(keywords)*3+1);
-
-    /* static CONST BOOL isAcceptable[96] = */
-    /* static AND const is not good for a gnu compiler! Frystyk 25/02-94 */
-    static BOOL isAcceptable[96] =
-    /*   0 1 2 3 4 5 6 7 8 9 A B C D E F */
-    {    0,0,0,0,0,0,0,0,0,0,1,0,0,1,1,0,	/* 2x   !"#$%&'()*+,-./	 */
-         1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,	/* 3x  0123456789:;<=>?	 */
-	 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,	/* 4x  @ABCDEFGHIJKLMNO  */
-	 1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,1,	/* 5X  PQRSTUVWXYZ[\]^_	 */
-	 0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,	/* 6x  `abcdefghijklmno	 */
-	 1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0 };	/* 7X  pqrstuvwxyz{\}~	DEL */
-
-    if (escaped == NULL) outofmem(__FILE__, "HTSearch");
-    
-/* Convert spaces to + and hex escape unacceptable characters */
-
-    for(s=keywords; *s && WHITE(*s); s++); /*scan */ 	 /* Skip white space */
-    for(e = s + strlen(s); e>s && WHITE(*(e-1)) ; e--);     /* Skip trailers */
-    for(q=escaped, p=s; p<e; p++) {		      /* scan stripped field */
-        int c = (int)TOASCII(*p);
-        if (WHITE(*p)) {
-	    *q++ = '+';
-	} else if (c>=32 && c<=127 && isAcceptable[c-32] != 0) {
-	    *q++ = *p;			/* 930706 TBL for MVS bug */
-	} else {
-	    *q++ = '%';
-	    *q++ = hex(c / 16);
-	    *q++ = hex(c % 16);
+    if (keywords && base && request) {
+	char *base_url = HTAnchor_address((HTAnchor *) base);
+	if (*keywords) {
+	    char *plus;
+	    StrAllocCat(base_url, "?");
+	    StrAllocCat(base_url, keywords);
+	    plus = strchr(base_url, '?');
+	    while (*plus) {
+		if (*plus == ' ') *plus = '+';
+		plus++;
+	    }
 	}
-    } /* Loop over string */
-    
-    *q=0;
-    				/* terminate escaped sctring */
-    u=strchr(address, '?');		/* Find old search string */
-    if (u) *u = 0;			        /* Chop old search off */
-
-    StrAllocCat(address, "?");
-    StrAllocCat(address, escaped);
-    free(escaped);
-    result = HTLoadRelative(address, here, request);
-    free(address);
-    
-    return result;
+	return HTLoadAbsolute(base_url, request);
+    }
+    return NO;
 }
 
 
-/*		Search Given Indexname
-**		------
-**  Performs a keyword search on word given by the user. Adds the keyword to 
-**  the end of the current address and attempts to open the new address.
-**
-** On Entry,
-**       *keywords  	space-separated keyword list or similar search list
-**	*addres		is name of object search is to be done on.
-** On exit,
-**	returns		HT_WOULD_BLOCK	An I/O operation would block
-**			HT_ERROR	Error has occured
-**			HT_LOADED	Success
-**			HT_NO_DATA	Success, but no document loaded.
-**					(telnet sesssion started etc)
-**			HT_RETRY	if service isn't available before
-**					request->retry_after
+/*	Search a document from absolute name
+**	------------------------------------
+**	Request a document referencd by an absolute URL appended with the
+**	keywords given. The URL can NOT contain any fragment identifier!
+**	The list of keywords must be a space-separated list and spaces will
+**	be converted to '+' before the request is issued.
+**	Returns YES if request accepted, else NO
 */
-PUBLIC int HTSearchAbsolute ARGS3(CONST char *, 	keywords,
-				  CONST char *, 	indexname,
-				  HTRequest *,		request)
+PUBLIC BOOL HTSearchAbsolute (CONST char *	keywords,
+			      CONST char *	url,
+			      HTRequest *	request)
 {
-    HTParentAnchor * anchor =
-    	(HTParentAnchor*) HTAnchor_findAddress(indexname);
-    return HTSearch(keywords, anchor, request);
+    if (url && request) {
+	HTAnchor * anchor = HTAnchor_findAddress(url);
+	return HTSearch(keywords, HTAnchor_parent(anchor), request);
+    }
+    return NO;
 }
 
 /* --------------------------------------------------------------------------*/
 /*				Document Poster 			     */
 /* --------------------------------------------------------------------------*/
 
-#if 0
-/*		Get a save stream for a document
-**		--------------------------------
-*/
-PUBLIC HTStream *HTSaveStream ARGS1(HTRequest *, request)
-{
-    HTProtocol * p;
-    int status;
-    request->method = METHOD_PUT;
-    status = get_physical(request);
-    if (status == HT_FORBIDDEN) {
-	char *url = HTAnchor_address((HTAnchor *) request->anchor);
-	if (url) {
-	    HTUnEscape(url);
-	    HTErrorAdd(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
-		       (void *) url, (int) strlen(url), "HTSaveStream");
-	    free(url);
-	} else {
-	    HTErrorAdd(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
-		       NULL, 0, "HTSaveStream");
-	}
-	return NULL;	/* should return error status? */
-    }
-    if (status < 0) return NULL; /* @@ error. Can't resolve or forbidden */
-    
-    p = (HTProtocol *) HTAnchor_protocol(request->anchor);
-    if (!p) return NULL;
-    
-    return (*p->saveStream)(request);
-    
-}
-#endif
-
-/*	COPY AN ANCHOR
+/*	Copy an anchor
 **	--------------
-**  Fetch the URL (possibly local file URL) and send it using either PUT
-**  or POST to the remote destination using HTTP. The caller can decide the
-**  exact method used and which HTTP header fields to transmit by setting the
-**  user fields in the request structure.
-**
-**  BUGS: Should take ALL links in the destination anchor and PUT/POST to
-**  all of them!
-**
-**	returns		HT_WOULD_BLOCK	An I/O operation would block
-**			HT_ERROR	Error has occured
-**			HT_LOADED	Success
-**			HT_NO_DATA	Success, but no document loaded.
-**			HT_RETRY	if service isn't available before
-**					request->retry_after
+**	Fetch the URL (possibly local file URL) and send it using either PUT
+**	or POST to the remote destination using HTTP. The caller can decide the
+**	exact method used and which HTTP header fields to transmit by setting
+**	the user fields in the request structure.
+**	Returns YES if request accepted, else NO
 */
-PUBLIC int HTCopyAnchor ARGS2(HTAnchor *,	src_anchor,
-			      HTRequest *,	main_req)
+PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_req)
 { 
     HTRequest *src_req;
     if (!src_anchor || !main_req)
-	return HT_ERROR;
+	return NO;
 
     /* Build the POST web if not already there */
     if (!main_req->source) {
@@ -540,7 +360,7 @@ PUBLIC int HTCopyAnchor ARGS2(HTAnchor *,	src_anchor,
 		if (TRACE)
 		    fprintf(TDEST, "Copy Anchor. No destination found or unspecified method");
 		HTRequest_delete(src_req);
-		return HT_ERROR;
+		return NO;
 	    }
 	    if (HTAnchor_linkResult(main_link) == HT_LINK_NONE) {
 		main_req->GenMask |= HT_DATE;		 /* Send date header */
@@ -549,8 +369,8 @@ PUBLIC int HTCopyAnchor ARGS2(HTAnchor *,	src_anchor,
 		main_req->method = method;
 		HTRequest_addDestination(src_req, main_req);
 		main_req->input_format = WWW_SOURCE;	  /* for now :-( @@@ */
-		if (HTLoadAnchor(main_anchor, main_req) == HT_ERROR)
-		    return HT_ERROR;
+		if (HTLoadAnchor(main_anchor, main_req) == NO)
+		    return NO;
 	    }
 	}
 
@@ -567,7 +387,7 @@ PUBLIC int HTCopyAnchor ARGS2(HTAnchor *,	src_anchor,
 		    if (TRACE)
 			fprintf(TDEST, "Copy Anchor. Bad anchor setup %p\n",
 				dest);
-		    return HT_ERROR;
+		    return NO;
 		}
 		dest_req = HTRequest_new();
 		dest_req->GenMask |= HT_DATE;		 /* Send date header */
@@ -576,21 +396,21 @@ PUBLIC int HTCopyAnchor ARGS2(HTAnchor *,	src_anchor,
 		dest_req->method = method;
 		HTRequest_addDestination(src_req, dest_req);
 		dest_req->input_format = WWW_SOURCE;	  /* for now :-( @@@ */
-		if (HTLoadAnchor(dest, dest_req) == HT_ERROR)
-		    return HT_ERROR;
+		if (HTLoadAnchor(dest, dest_req) == NO)
+		    return NO;
 	    }
 	}
     } else {			 /* Use the existing Post Web and restart it */
 	src_req = main_req->source;
 	if (src_req->mainDestination)
-	    if (HTLoadDocument(main_req, NO) == HT_ERROR)
-		return HT_ERROR;
+	    if (HTLoadDocument(main_req, NO) == NO)
+		return NO;
 	if (src_req->destinations) {
 	    HTList *cur = src_anchor->links;
 	    HTRequest *pres;
 	    while ((pres = (HTRequest *) HTList_nextObject(cur)) != NULL) {
-		if (HTLoadDocument(pres, NO) == HT_ERROR)
-		    return HT_ERROR;
+		if (HTLoadDocument(pres, NO) == NO)
+		    return NO;
 	    }
 	}
     }
@@ -600,37 +420,30 @@ PUBLIC int HTCopyAnchor ARGS2(HTAnchor *,	src_anchor,
 }
 
 
-/*	UPLOAD AN ANCHOR
+/*	Upload an Anchor
 **	----------------
-**  Send the contents (in hyperdoc) of the source anchor using either PUT
-**  or POST to the remote destination using HTTP. The caller can decide the
-**  exact method used and which HTTP header fields to transmit by setting the
-**  user fields in the request structure.
-**
-**	returns		HT_WOULD_BLOCK	An I/O operation would block
-**			HT_ERROR	Error has occured
-**			HT_LOADED	Success
-**			HT_NO_DATA	Success, but no document loaded.
-**			HT_RETRY	if service isn't available before
-**					request->retry_after
+**	Send the contents (in hyperdoc) of the source anchor using either PUT
+**	or POST to the remote destination using HTTP. The caller can decide the
+**	exact method used and which HTTP header fields to transmit by setting
+**	the user fields in the request structure.
+**	Returns YES if request accepted, else NO
 */
-PUBLIC int HTUploadAnchor ARGS3(HTAnchor *,		src_anchor,
-				HTParentAnchor *,	dest_anchor,
-				HTRequest *,		dest_req)
+PUBLIC BOOL HTUploadAnchor (HTAnchor *		src_anchor,
+			    HTParentAnchor *	dest_anchor,
+			    HTRequest *		dest_req)
 {
-    if (!(src_anchor && dest_anchor && dest_req))
-	return HT_ERROR;
-
+    if (!src_anchor || !dest_anchor || !dest_req)
+	return NO;
     if (!(dest_anchor->methods & dest_req->method)) {
 	char buf[80];
 	sprintf(buf, "It might not be allowed to %s to this destination, continue?", HTMethod_name(dest_req->method));
 	if (!HTConfirm(dest_req, buf))
-	    return HT_ERROR;
+	    return NO;
     }
 
     /* @@@ NOT FINISHED @@@ */
 
-    return HT_ERROR;
+    return NO;
 }
 
 /* --------------------------------------------------------------------------*/
