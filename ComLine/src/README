@@ -5,6 +5,11 @@
 (c) COPYRIGHT MIT 1995.
 Please first read the full copyright statement in the file COPYRIGH.
 
+"This product includes computer software created and made available by
+CERN. This acknowledgement shall be mentioned in full in any product
+which includes the CERN computer software included herein or parts
+thereof."
+
 The W3C Command Line Tool is a cross platform command line tool for
 accessing the Web. It is developed in C and serves as an example of a
 client application using the W3C Reference Library and as a test-tool

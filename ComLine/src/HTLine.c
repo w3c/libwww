@@ -400,7 +400,7 @@ int main (int argc, char ** argv)
     SetSignal();
 #endif
 
-    if (!keycnt) {
+    if (!keycnt && !cl->flags & CL_FILTER) {
 	if (SHOW_MSG) TTYPrint(TDEST, "No URL specified\n");
 	Cleanup(cl, -1);
     }
@@ -444,9 +444,10 @@ int main (int argc, char ** argv)
 
     /* Just convert formats */
     if (cl->flags & CL_FILTER) {
-#if 0
-	HTRequest_setAnchor (cl->request, (HTAnchor *) cl->anchor);
-     	HTParseSocket(cl->format, 0, request);      /* From std UNIX input */
+#ifdef STDIN_FILENO
+	HTRequest_setAnchor(cl->request, (HTAnchor *) cl->anchor);
+	HTRequest_setPreemtive(cl->request, YES);
+	HTLoadSocket(STDIN_FILENO, cl->request, FD_NONE);
 #endif
 	Cleanup(cl, 0);
     }
