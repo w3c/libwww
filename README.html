@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Read Me</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  5-Dec-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  6-Dec-1995 -->
 </HEAD>
 <BODY>
 
@@ -22,7 +22,8 @@ applications. The set of W3C Web applications is currently:
 <LI><A HREF="Library/">W3C Reference Library</A>
 <LI><A HREF="LineMode/">W3C Line Mode Browser</A>
 <LI><A HREF="ComLine/">W3C Command Line Tool</A>
-<LI><A HREF="MiniServ/">W3C Mini Server Frame</A>
+<LI><A HREF="MiniServ/">W3C Mini Server</A>
+<LI><A HREF="Robot/">W3C Mini Robot</A>
 </UL>
 
 Please note that the W3C Reference Library distribution file is required in order to build any of
@@ -95,6 +96,12 @@ study these files. The structure of all the unpacked distribution file is as fol
 	WWW/ComLine/User/		Documentation
 	WWW/ComLine/User/Patch		Patches
 	WWW/ComLine/&lt;platform&gt;/*	Platform dependent object files
+
+@	WWW/Robot			W3C Mini Robot (example)
+	WWW/Robot/Implementation	Source Code
+	WWW/Robot/User/			Documentation
+	WWW/Robot/User/Patch		Patches
+	WWW/Robot/&lt;platform&gt;/*	Platform dependent object files
 </PRE>
 
 "<CODE>@</CODE>" means that each of these modules are given out as a <EM>separate distribution
@@ -127,6 +134,8 @@ To <CODE>BUILD</CODE> any of the applications go to the WWW directory and type
 	./BUILD comline
 
 	./BUILD miniserv
+
+	./BUILD robot
 </PRE>
 
 <H3>Compilation on un-supported Unix platforms</H3>
@@ -190,7 +199,7 @@ The Mini Server documentation is included in the distribution file and you can f
 	MiniServ/User/Overview.html
 </PRE>
 
-You can also use the <A HREF="LineMode/">online documentation</A>
+You can also use the <A HREF="MiniServ/">online documentation</A>
 
 <H2>W3C Command Line Tool</H2>
 
@@ -207,19 +216,29 @@ page at
 	ComLine/Defaults/Overview.html
 </PRE>
 
-You can also use the <A HREF="LineMode/">online documentation</A>
+You can also use the <A HREF="ComLine/">online documentation</A>
+
+<H2>W3C Mini Robot</H2>
+
+The W3C Mini Robot is a cross platform command line tool for accessing the Web. It is developed in C
+and serves as an example of a robot application using the <A HREF="../Library/">W3C Reference
+Library</A> and as a test-tool for quick access to the Web from scripts, cron jobs etc. It is
+primarily intended as a test-tool for quick access to the Web or used in scripts, cron jobs etc.<P>
+
+The W3C Mini Robot documentation is included in the distribution file and you can find the top page
+at
+
+<PRE>
+	Robot/Defaults/Overview.html
+</PRE>
+
+You can also use the <A HREF="Robot/">online documentation</A>
 
 <H2>Got Problems or Comments?</H2>
 
-If you encounter problems, would like to feed back suggestions good ideas etc. then please contact
-the following addresses:
-
-<UL>
-<LI><B><A HREF="mailto:libwww@w3.org">libwww@w3.org</A></B> regarding the W3C Reference Library,
-Command Line Tool, and the Mini Server.
-<LI><B><A HREF="mailto:httpd@w3.org">httpd@w3.org</A></B> regarding the W3C httpd
-<LI><B><A HREF="mailto:www-bug@w3.org">www-bug@w3.org</A></B> regarding the W3C Line Mode Browser
-</UL>
+If you encounter problems, would like to feed back suggestions good ideas etc. then please send a
+mail explaining your problem <EM>and</EM> the version of the W3C software to <A
+HREF="mailto:libwww@w3.org">libwww@w3.org</A></B>
 
 <H2>Useful Pointers</H2>
 
@@ -233,6 +252,7 @@ These are the locations where you can get more information.
 <LI><A HREF="http://www.w3.org/member/WWW/LineMode/">http://www.w3.org/member/WWW/LineMode/</A>
 <LI><A HREF="http://www.w3.org/member/WWW/MiniServ/">http://www.w3.org/member/WWW/MiniServ/</A>
 <LI><A HREF="http://www.w3.org/member/WWW/ComLine/">http://www.w3.org/member/WWW/ComLine/</A>
+<LI><A HREF="http://www.w3.org/member/WWW/Robot/">http://www.w3.org/member/WWW/Robot/</A>
 </OL>
 
 <H3>Others</H3>
@@ -243,6 +263,7 @@ These are the locations where you can get more information.
 <LI><A HREF="http://www.w3.org/pub/WWW/Daemon/">http://www.w3.org/pub/WWW/Daemon/</A>
 <LI><A HREF="http://www.w3.org/pub/WWW/MiniServ/">http://www.w3.org/pub/WWW/MiniServ/</A>
 <LI><A HREF="http://www.w3.org/pub/WWW/ComLine/">http://www.w3.org/pub/WWW/ComLine/</A>
+<LI><A HREF="http://www.w3.org/pub/WWW/Robot/">http://www.w3.org/pub/WWW/Robot/</A>
 </OL>
 
 <EM>Have fun!</EM>
