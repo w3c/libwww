@@ -33,10 +33,6 @@
 
 #define DEFAULT_FORMAT		WWW_RAW
 
-#if defined(__svr4__)
-#define CATCH_SIG
-#endif
-
 typedef struct _ListenTool {
     HTRequest *		request;
     int			port;
@@ -81,26 +77,6 @@ PRIVATE void Cleanup (ListenTool * me, int status)
     exit(status ? status : 0);
 #endif
 }
-
-#ifdef CATCH_SIG
-#include <signal.h>
-/*								    SetSignal
-**  This function sets up signal handlers. This might not be necessary to
-**  call if the application has its own handlers.
-*/
-PRIVATE void SetSignal (void)
-{
-    /* On some systems (SYSV) it is necessary to catch the SIGPIPE signal
-    ** when attemting to connect to a remote host where you normally should
-    ** get `connection refused' back
-    */
-    if (signal(SIGPIPE, SIG_IGN) == SIG_ERR) {
-	if (WWWTRACE) HTTrace("HTSignal.... Can't catch SIGPIPE\n");
-    } else {
-	if (WWWTRACE) HTTrace("HTSignal.... Ignoring SIGPIPE\n");
-    }
-}
-#endif /* CATCH_SIG */
 
 PRIVATE void VersionInfo (const char * name)
 {
@@ -187,10 +163,6 @@ int main (int argc, char ** argv)
 	}
     }
 	
-#ifdef CATCH_SIG
-    SetSignal();
-#endif
-
     /* Set up a tool to listen on this port */
     if (ms->port >= 0) {
 
