@@ -324,6 +324,7 @@ PRIVATE BOOL HTLoadDocument ARGS4(
     
     fprintf(stderr,
     "**** HTAccess: socket or file number returned by obsolete load routine!\n");
+    { char c = *(char*)0; } /* crash */
     exit(-6996);
 
 } /* HTLoadDocument */
