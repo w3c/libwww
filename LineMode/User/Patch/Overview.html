@@ -1,106 +1,101 @@
 <HTML>
 <HEAD>
-<TITLE>Known Bugs in Line Mode Browser</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 25-Jan-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 25-Jan-1996 -->
+  <TITLE>Known Bugs in Line Mode Browser</TITLE>
 </HEAD>
 <BODY>
-
+<P>
 <A HREF="../../../"><IMG BORDER="0" ALT="W3C" SRC="../../../Icons/WWW/w3c_home"></A>
 <A HREF="../../"><IMG BORDER="0" ALT="LMB" SRC="../../../Icons/WWW/LMB48x"></A>
 <IMG BORDER="0" ALT="BUG" SRC="../../../Icons/WWW/Bug48x">
-
-<H1>Known Bugs in Line Mode Browser</H1>
-
-The list of known bugs are in reverse chronological order. Please
-report bugs or bug-fixes to <A
-HREF="mailto:libwww@w3.org">libwww@w3.org</A> noting the version of
-the Line Mode Browser and the Library and what caused the bug to
-appear.
-
+<H1>
+  Known Bugs in Line Mode Browser
+</H1>
+<P>
+The list of known bugs are in reverse chronological order. Please report
+bugs or bug-fixes to <A HREF="mailto:libwww@w3.org">libwww@w3.org</A> noting
+the version of the Line Mode Browser and the Library and what caused the
+bug to appear.
 <PRE>
 	./www -version
 </PRE>
-
-The provided patches are relative to the <CODE>WWW</CODE> directory in
-the distribution tree. In order to apply a patch, do the following in
-the <CODE>WWW</CODE> directory:
-
+<P>
+The provided patches are relative to the <CODE>WWW</CODE> directory in the
+distribution tree. In order to apply a patch, do the following in the
+<CODE>WWW</CODE> directory:
 <OL>
-
-<LI>Download the patch, for example <EM>lmb-1.fix</EM>
-
-<LI>Invoke the patch command by typing 
-
-<PRE>
+  <LI>
+    Download the patch, for example <EM>lmb-1.fix</EM>
+  <LI>
+    Invoke the patch command by typing
+    <PRE>
 	patch &lt; lmb-1.fix
 </PRE>
-
-<LI>Rebuild the code by typing
-
-<PRE>
+  <LI>
+    Rebuild the code by typing
+    <PRE>
 	make clobber
 	./BUILD linemode
 </PRE>
 </OL>
-
-You should only apply patches under the section with <B>same</B> version number as your current
-version. You can see the current version of this software by looking into the <A
-HREF="../../src/Version.make">version file</A>. Please also make sure that this version
-is the same as for the <A HREF="../../../Library/src/Version.make">version of the W3C
-Sample Code Library</A><P>
-
-<HR>
-
-<H2>Version 3.1</H2>
-
-<DL>
-<DT><A HREF="lmb_3.1_1.fix">Problem running from scripts or as a cron job</A>
-
-<DD>Version 3.1 of the Line Mode Browser registers STDIN as an channel
-for user input. If the browser is run as a cron job then STDIN comes
-from <CODE>/dev/null</CODE> which always returns ready for reading in
-a select call. Line Mode browser then thinks that the user has
-interrupted the request and exists.
-
-</DL>
-
-<H2>On the Wish list</H2>
-
-<DL>
-
-<DT>Better error reporting
- 
-<DD>Difficult when many possible paths have been tried. Save log of
-attempts? Portability of error message generation?
-
-<DT>Command wanted: Append
-
-<DD>to a given file a hypertext reference to the document.
-
-<DT>Anchors in paper prints
-
-<DD>If the user needs to print out documents when following links,
-instead of inserting anchor numbers, insert page numbers of the
-destination nodes, as they would appear in the printed document. Do
-this by first following the links with no output on the screen,
-reading all the files into the buffer and calculating the page
-numbers.  Then go through the path again, with output directed to the
-printer, inserting the corresponding page numbers rather than the
-anchor numbers.
-
-<DT>Deal with lists within lists
-
-<DD>This is a part of having a better HTML parser
-
-<DT>Style sheets
-
-<DD>Nested style sheets like everybody is asking for
-
-</UL>
-
 <P>
-<HR>
-<ADDRESS><A HREF="../../../People.html#BernersLee">Tim BL</A>, and <A HREF="../../../People.html#Frystyk">Henrik Frystyk</A>,
-<A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, October 1995</ADDRESS>
-</BODY>
-</HTML>
+You should only apply patches under the section with <B>same</B> version
+number as your current version. You can see the current version of this software
+by looking into the version file. Please also make sure that this version
+is the same as for the <A HREF="../../../Library/src/Version.make">version
+of the W3C Sample Code Library</A>
+<P>
+  <HR>
+<H2>
+  Version 3.1
+</H2>
+<DL>
+  <DT>
+    <A HREF="lmb_3.1_1.fix">Problem running from scripts or as a cron job</A>
+  <DD>
+    Version 3.1 of the Line Mode Browser registers STDIN as an channel for user
+    input. If the browser is run as a cron job then STDIN comes from
+    <CODE>/dev/null</CODE> which always returns ready for reading in a select
+    call. Line Mode browser then thinks that the user has interrupted the request
+    and exists.
+</DL>
+<H2>
+  On the Wish list
+</H2>
+<DL>
+  <DT>
+    Better error reporting
+  <DD>
+    Difficult when many possible paths have been tried. Save log of attempts?
+    Portability of error message generation?
+  <DT>
+    Command wanted: Append
+  <DD>
+    to a given file a hypertext reference to the document.
+  <DT>
+    Anchors in paper prints
+  <DD>
+    If the user needs to print out documents when following links, instead of
+    inserting anchor numbers, insert page numbers of the destination nodes, as
+    they would appear in the printed document. Do this by first following the
+    links with no output on the screen, reading all the files into the buffer
+    and calculating the page numbers. Then go through the path again, with output
+    directed to the printer, inserting the corresponding page numbers rather
+    than the anchor numbers.
+  <DT>
+    Deal with lists within lists
+  <DD>
+    This is a part of having a better HTML parser
+  <DT>
+    Style sheets
+  <DD>
+    Nested style sheets like everybody is asking for
+</DL>
+<P>
+  <HR>
+<ADDRESS>
+  <A HREF="../../../People.html#BernersLee">Tim BL</A>, and
+  <A HREF="../../../People.html#Frystyk">Henrik Frystyk</A>,
+  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, October 1995
+</ADDRESS>
+</BODY></HTML>

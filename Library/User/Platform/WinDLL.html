@@ -11,8 +11,8 @@
   Building libwww for Windows 32-bit
 </H1>
 <P>
-When building the W3C Sample Code Library on a Windows platform (Windows 3.1
-(32 bit), Windows 95, or Windows NT), you can decide on a set of different
+When building the W3C Sample Code Library on a Windows platform (Windows
+3.1 (32 bit), Windows 95, or Windows NT), you can decide on a set of different
 options to be enabled or disabled. This document describes the set of DLLs
 and how they can be built. C compilers on Windows platforms often have a
 notion of <EM>projects</EM> that define what files to include in the compilation
@@ -52,21 +52,21 @@ of application you are using and what other libraries you are using.
   <A NAME="unix">Interleaved I/O Using select()</A>
 </H3>
 <P>
-In this mode the <A HREF="../../src/HTLoop.html">Event Manager</A> registers
+In this mode the <A HREF="../../src/HTEvtLst.html">Event Manager</A> registers
 all active sockets and passes them to a <CODE>select()</CODE> call which
 then processes the registered sockets. When <CODE>select()</CODE> returns
 the Event Manager dispatches the appropriate handlers as the sockets get
 ready.
 <P>
-<IMG BORDER="0" SRC="../../../Icons/WWW/bullet"> <B>What to do:</B> <EM>Undefine</EM>
-<B>WWW_WIN_ASYNC</B> as a preprocessor directive when generating the project
-for the Library. Please make sure that <EM>all</EM> DLLs are compiled without
-this flag. <A NAME="async"></A>
+<IMG BORDER="0" SRC="../../../Icons/WWW/bullet"> <B>What to do:</B>
+<EM>Undefine</EM> <B>WWW_WIN_ASYNC</B> as a preprocessor directive when
+generating the project for the Library. Please make sure that <EM>all</EM>
+DLLs are compiled without this flag. <A NAME="async"></A>
 <H3>
   <A NAME="async">Asynchronous I/O based using Signals</A>
 </H3>
 <P>
-Here the <A HREF="../../src/HTLoop.html">Event Manager</A> registers all
+Here the <A HREF="../../src/HTEvtLst.html">Event Manager</A> registers all
 active sockets using <CODE>WSAAsyncSelect</CODE> which is part of the WinSock
 API. When <CODE>AsyncSelect()</CODE> which is the asynchronous equivalent
 to the <CODE>select()</CODE> returns, the Event Manager dispatches the results
@@ -75,9 +75,9 @@ a windows handle, the Library creates a <EM>hidden window</EM>. This window
 is <EM>not</EM> to be used explicitly by the application and the Library
 closes the window when exiting.
 <P>
-<IMG BORDER="0" SRC="../../../Icons/WWW/bullet"> <B>What to do:</B> <EM>Define</EM>
-<B>WWW_WIN_ASYNC</B> as preprocessor directives when generating the project
-for the Library. <A NAME="io"></A>
+<IMG BORDER="0" SRC="../../../Icons/WWW/bullet"> <B>What to do:</B>
+<EM>Define</EM> <B>WWW_WIN_ASYNC</B> as preprocessor directives when generating
+the project for the Library. <A NAME="io"></A>
 <H2>
   <A NAME="io">Console vs Windows Application</A>
 </H2>
@@ -148,11 +148,11 @@ on <A HREF="#select">Select Options</A> and <A HREF="#io">Input/Output
 Options</A>, accumulate all the <CODE>#defines</CODE> that are required,
 and build the whole libwww with those <CODE>#defines</CODE>.
 <P>
-<IMG BORDER="0" SRC="../../../Icons/WWW/bullet"> <B>What to do:</B> <EM>Undefine</EM>
-<B>WWW_WIN_DLL</B> as preprocessor directives when generating the project
-for the Library. Please note, that it is not recommended to staticly link
-to the libraries if you are building a Win16 application as it creates segment
-size problems. <A NAME="dynamic"></A>
+<IMG BORDER="0" SRC="../../../Icons/WWW/bullet"> <B>What to do:</B>
+<EM>Undefine</EM> <B>WWW_WIN_DLL</B> as preprocessor directives when generating
+the project for the Library. Please note, that it is not recommended to staticly
+link to the libraries if you are building a Win16 application as it creates
+segment size problems. <A NAME="dynamic"></A>
 <H3>
   <A NAME="dynamic">Dynamic Libraries (DLLs)</A>
 </H3>
@@ -189,8 +189,9 @@ flag definition.
     - def (exports) files for the DLLs of the same names.
 </UL>
 <P>
-<IMG BORDER="0" SRC="../../../Icons/WWW/bullet"> <B>What to do:</B> Include the windll.dll
-as a part of your project and make sure that it is built as the first DLL.
+<IMG BORDER="0" SRC="../../../Icons/WWW/bullet"> <B>What to do:</B> Include
+the windll.dll as a part of your project and make sure that it is built as
+the first DLL.
 <H3>
   Exporting Functions from DLLs
 </H3>
@@ -202,9 +203,9 @@ by the <A HREF="../../../config/makedefs.pl">makeDefs.pl</A> perl script,
 see the description below. You can use the def files as a basis for generating
 the DLL projects for your compiler.
 <P>
-<IMG BORDER="0" SRC="../../../Icons/WWW/bullet"> <B>What to do:</B> Generate the DLLs
-according to the def files so the exported interface is identical to the
-set of functions defined in the actual c files included in the DLL.
+<IMG BORDER="0" SRC="../../../Icons/WWW/bullet"> <B>What to do:</B> Generate
+the DLLs according to the def files so the exported interface is identical
+to the set of functions defined in the actual c files included in the DLL.
 <H2>
   Make Files and Projects
 </H2>
