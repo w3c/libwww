@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>HTTP Request Stream</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 19-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  3-Dec-1995 -->
 </HEAD>
 <BODY>
 
@@ -11,9 +11,8 @@ The HTTP Request stream generates a HTTP request header and writes it
 to the target which is normally a HTWriter stream.<P>
 
 This module is implemented by <A HREF="HTTPReq.c">HTTPReq.c</A>, and
-it is a part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>.
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
 
 <PRE>
 #ifndef HTTPREQ_H
@@ -29,19 +28,14 @@ This stream makes a HTTP request header before it goes into
 transparent mode.
 
 <PRE>
-typedef enum _HTTPVersion {
-    HTTP = 0,
-    HTTP_09,		
-    HTTP_10,
-    HTTP_11,
-    HTTP_12
-} HTTPVersion;
-
 extern HTStream * HTTPRequest_new (HTRequest * request, HTStream * target);
+</PRE>
+
+<PRE>
 #endif
 </PRE>
 
-End of HTTPReq
+End of declaration
 </BODY>
 </HTML>
 

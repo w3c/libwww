@@ -1038,16 +1038,15 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 
 	  case NEED_ACCEPT:
 	    {
-		SOCKET newfd = INVSOC;
-		status = HTDoAccept(dnet, &newfd);
+		SOCKET oldsocket = dnet->sockfd;
+		status = HTDoAccept(dnet);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_WOULD_BLOCK;
 		else if (status == HT_OK) {
 		    if (PROT_TRACE)
-			TTYPrint(TDEST, "FTP Data.... Passive data socket %d\n",
-				dnet->sockfd);
-		    NETCLOSE(dnet->sockfd);
-		    dnet->sockfd = newfd;
+			TTYPrint(TDEST,"FTP Data.... Passive data socket %d\n",
+				 dnet->sockfd);
+		    NETCLOSE(oldsocket);        /* We only accept one socket */
 		    if (PROT_TRACE)
 			TTYPrint(TDEST, "FTP Data.... New data socket %d\n",
 				dnet->sockfd);
@@ -1357,7 +1356,7 @@ PUBLIC int HTLoadFTP (SOCKET soc, HTRequest * request, SockOps ops)
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
 					  (HTAnchor *) request->anchor);
-		    HTAnchor_setLinkResult(link, HT_LINK_OK);
+		    HTLink_setResult(link, HT_LINK_OK);
 		}
 		HTRequest_removeDestination(request);
 		FTPCleanup(request, main ? HT_LOADED : HT_IGNORE);
@@ -1375,7 +1374,7 @@ PUBLIC int HTLoadFTP (SOCKET soc, HTRequest * request, SockOps ops)
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
 					  (HTAnchor *) request->anchor);
-		    HTAnchor_setLinkResult(link, HT_LINK_ERROR);
+		    HTLink_setResult(link, HT_LINK_ERROR);
 		}
 		HTRequest_removeDestination(request);
 		FTPCleanup(request, main ? HT_ERROR : HT_IGNORE);

@@ -539,8 +539,7 @@ PRIVATE int Upload (LineMode * lm, HTRequest * req, HTMethod method)
 	    char *msg = (char *) malloc(128);
 	    if (!msg) outofmem(__FILE__, "Upload");
 	    sprintf(msg, "The destination is already related to the source with a %s method - result %d, continue?",
-		    HTMethod_name(HTAnchor_linkMethod(link)),
-		    HTAnchor_linkResult(link));
+		    HTMethod_name(HTLink_method(link)), HTLink_result(link));
 	    doit = confirm(req, msg);
 	    free(msg);
 	} else

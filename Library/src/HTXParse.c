@@ -6,6 +6,9 @@
 **
 **  AUTHORS:
 **	HWL 23/8/94
+**
+**  HISTORY:
+**      HWL 5/12/95: Added NUL-terminatio, changed name from Ext to X
 */
 
 /* Library include files */
@@ -19,59 +22,62 @@
 
 struct _HTStream {
 	CONST HTStreamClass *	isa;
-	HTExtParseStruct *      eps;
+	HTXParseStruct *      eps;
 };
 
-PRIVATE int HTExtParse_put_character (HTStream * me, char c)
+PRIVATE int HTXParse_put_character (HTStream * me, char c)
 {
-    while ((me->eps->used + 1) > me->eps->length) {
+    while ((me->eps->used + 1) > (me->eps->length + 1)) {
 	me->eps->length += INPUT_BUFFER_SIZE;
     }
-    me->eps->buffer = (char *) realloc(me->eps->buffer, me->eps->length);
+    me->eps->buffer = (char *) realloc(me->eps->buffer, (me->eps->length + 1));
     *(me->eps->buffer + me->eps->used) = c;
     me->eps->used++;
+    me->eps->buffer[me->eps->used] = '\0'; /* null-terminate string */
     return HT_OK;
 }
 
-PRIVATE int HTExtParse_put_string (HTStream * me, CONST char * s)
+PRIVATE int HTXParse_put_string (HTStream * me, CONST char * s)
 {
     int l = strlen(s);
 
-    if (WWWTRACE) TTYPrint(TDEST, "HTExtParse_put_string, %s\n",s);
+    if (WWWTRACE) TTYPrint(TDEST, "HTXParse_put_string, %s\n",s);
 
-    while ((me->eps->used + l) > me->eps->length) {
+    while ((me->eps->used + l) > (me->eps->length + 1)) {
 	me->eps->length += INPUT_BUFFER_SIZE;
     }
-    me->eps->buffer = (char *) realloc(me->eps->buffer, me->eps->length);
+    me->eps->buffer = (char *) realloc(me->eps->buffer, (me->eps->length + 1));
     memcpy( (me->eps->buffer + me->eps->used), s, l); 
     me->eps->used += l;
+    me->eps->buffer[me->eps->used] = '\0'; /* null-terminate string */
     return HT_OK;
 }
 
-PRIVATE int HTExtParse_write (HTStream * me, CONST char * s, int l)
+PRIVATE int HTXParse_write (HTStream * me, CONST char * s, int l)
 {
-    while ((me->eps->used + l) > me->eps->length) {
+    while ((me->eps->used + l) > (me->eps->length + 1)) {
 	me->eps->length += INPUT_BUFFER_SIZE;
     }
-    me->eps->buffer = (char *) realloc(me->eps->buffer, me->eps->length);
+    me->eps->buffer = (char *) realloc(me->eps->buffer, (me->eps->length + 1));
     memcpy( (me->eps->buffer + me->eps->used), s, l); 
     me->eps->used += l;
+    me->eps->buffer[me->eps->used] = '\0'; /* null-terminate string */
     (*(me->eps->call_client))(me->eps);       /* client can give status info */
     if (WWWTRACE)
-	TTYPrint(TDEST, "HTExtParse_write, l=%d, used = %d\n",l,me->eps->used);
+	TTYPrint(TDEST, "HTXParse_write, l=%d, used = %d\n",l,me->eps->used);
     return HT_OK;
 }
 
 
-PRIVATE int HTExtParse_flush (HTStream * me)
+PRIVATE int HTXParse_flush (HTStream * me)
 {
-    if (WWWTRACE) TTYPrint(TDEST, "HTExtParse_flush\n");
+    if (WWWTRACE) TTYPrint(TDEST, "HTXParse_flush\n");
     return HT_OK;
 }
 
-PRIVATE int HTExtParse_free (HTStream * me)
+PRIVATE int HTXParse_free (HTStream * me)
 {
-    if (WWWTRACE) TTYPrint(TDEST, "HTExtParse_free\n");
+    if (WWWTRACE) TTYPrint(TDEST, "HTXParse_free\n");
     me->eps->finished = YES;
     (*(me->eps->call_client))(me->eps);           /* client will free buffer */
     free(me->eps);
@@ -79,32 +85,32 @@ PRIVATE int HTExtParse_free (HTStream * me)
     return HT_OK;
 }
 
-PRIVATE int HTExtParse_abort (HTStream * me, HTList * e)
+PRIVATE int HTXParse_abort (HTStream * me, HTList * e)
 {
     if (WWWTRACE)
-	TTYPrint(TDEST, "HTExtParse_abort\n");
-    HTExtParse_free(me);				  /* Henrik Nov 2 94 */
+	TTYPrint(TDEST, "HTXParse_abort\n");
+    HTXParse_free(me);				  /* Henrik Nov 2 94 */
     return HT_ERROR;
 }
 
 
-/*	ExtParse stream
+/*	XParse stream
 **	-----------------
 */
 
 
-PRIVATE CONST HTStreamClass HTExtParseClass =
+PRIVATE CONST HTStreamClass HTXParseClass =
 {		
-	"ExtParse",
-	HTExtParse_flush,
-	HTExtParse_free,
-	HTExtParse_abort,
-	HTExtParse_put_character,
-	HTExtParse_put_string,
-	HTExtParse_write
+	"XParse",
+	HTXParse_flush,
+	HTXParse_free,
+	HTXParse_abort,
+	HTXParse_put_character,
+	HTXParse_put_string,
+	HTXParse_write
 }; 
 
-PUBLIC HTStream* HTExtParse (HTRequest *	request,
+PUBLIC HTStream* HTXParse (HTRequest *	request,
 			     void *		param,
 			     HTFormat		input_format,
 			     HTFormat		output_format,
@@ -113,7 +119,7 @@ PUBLIC HTStream* HTExtParse (HTRequest *	request,
     HTStream* me;
   
     if (WWWTRACE) {
-	TTYPrint(TDEST, "HTExtConvert..");
+	TTYPrint(TDEST, "HTXConvert..");
 	if (input_format && input_format->name)
             TTYPrint(TDEST, ".. input format is %s",input_format->name);
 	if (output_format && output_format->name)
@@ -122,11 +128,11 @@ PUBLIC HTStream* HTExtParse (HTRequest *	request,
     }
 
     me = (HTStream*)calloc(1, sizeof(*me));
-    if (me == NULL) outofmem(__FILE__, "HTExtConvert");
-    me->isa = &HTExtParseClass;
+    if (me == NULL) outofmem(__FILE__, "HTXConvert");
+    me->isa = &HTXParseClass;
 
-    me->eps = (HTExtParseStruct *) calloc(1, sizeof(HTExtParseStruct));
-    if (me->eps == NULL) outofmem(__FILE__, "HTExtConvert");
+    me->eps = (HTXParseStruct *) calloc(1, sizeof(HTXParseStruct));
+    if (me->eps == NULL) outofmem(__FILE__, "HTXConvert");
 
     if (input_format)
         me->eps->content_type = input_format->name;

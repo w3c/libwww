@@ -248,16 +248,13 @@ HTStyle * HTStyleDump (HTStyle * style)
 */
 HTStyle * HTStyleNamed  (HTStyleSheet *self, CONST char *name)
 {
-    HTStyle * scan;
-
-    if (!self) {	/* added by HWL 11/8/94 */
-	if (WWWTRACE) TTYPrint(TDEST, "HTStyleNamed.. Called with NULL pointer\n");
-	return NULL;
+    if (self && name) {				     /* added by HWL 11/8/94 */
+	HTStyle * scan;
+	for (scan=self->styles; scan; scan=scan->next)
+	    if (!strcmp(scan->name, name)) return scan;
+	if (SGML_TRACE)
+	    TTYPrint(TDEST, "StyleSheet.. No style named `%s'\n", name);
     }
-
-    for (scan=self->styles; scan; scan=scan->next)
-        if (0==strcmp(scan->name, name)) return scan;
-    if (WWWTRACE) TTYPrint(TDEST, "StyleSheet: No style named `%s'\n", name);
     return NULL;
 }
 

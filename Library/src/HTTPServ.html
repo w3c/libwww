@@ -1,0 +1,37 @@
+<HTML>
+<HEAD>
+<TITLE>HTTP Server Module</TITLE>
+</HEAD>
+<BODY>
+
+<H1>HTTP Server Module</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This is actually a very small definition file as almost everything is
+set up elsewhere. <P>
+
+This module is implemented by <A HREF="HTTPServ.c">HTTPServ.c</A>, and
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C
+Reference Library</A>. <P>
+
+<PRE>
+#ifndef HTTPSERV_H
+#define HTTPSERV_H
+
+#include "HTEvntrg.h"
+
+extern HTEventCallback HTServHTTP;
+
+#endif /* HTTPSERV_H */
+</PRE>
+
+End of HTTPSERV module declaration
+</BODY>
+</HTML>
+

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Rich Hypertext object</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 19-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  6-Dec-1995 -->
 </HEAD>
 <BODY>
 
@@ -19,13 +19,12 @@ Style-oriented HyperText class. It is used when a style-oriented text
 object is available or craeted in order to display hypertext. <P>
 
 This module is a part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>. However, it is <B>NOT</B> implemented
-anywhere in the library, as it is client (and often platform) specific
-code. Hence these functions <EM>must</EM> be implemented in the
-client. The <A
-HREF="http://www.w3.org/pub/WWW/LineMode/">Line Mode
-Browser</A> has the implementation in the <A
+HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>. However, it is <B>NOT</B> implemented anywhere in the
+library, as it is client (and often platform) specific code. Hence
+these functions <EM>must</EM> be implemented in the client. The <A
+HREF="http://www.w3.org/pub/WWW/LineMode/">Line Mode Browser</A> has
+the implementation in the <A
 HREF="http://www.w3.org/pub/WWW/LineMode/Implementation/GridText.html">
 GridText</A> module.
 
@@ -57,14 +56,15 @@ hypertext to a stream.  The structure is for objects which need to
 refer to the structure which is kep by the creating stream.
 
 <PRE>
-extern HText *	HText_new	(HTParentAnchor *anchor);
+extern HText *	HText_new	(HTRequest * request, HTParentAnchor * anchor);
 
-extern HText *	HText_new2	(HTParentAnchor *anchor,
-					HTStream * 	output_stream);
+extern HText *	HText_new2	(HTRequest *		request,
+				 HTParentAnchor *	anchor,
+				 HTStream *		output_stream);
 
-extern HText *	HText_new3	(HTRequest *	request,
-					HTStream *	output_stream,
-					HTStructured *	structure);
+extern HText *	HText_new3	(HTRequest *		request,
+				 HTStream *		output_stream,
+				 HTStructured *		structure);
 </PRE>
 
 <H3>Free hypertext object</H3>

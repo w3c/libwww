@@ -24,7 +24,7 @@
 #include "HTFormat.h"
 #include "HTCache.h"
 #include "HTAlert.h"
-#include "HTAnchor.h"
+#include "HTAncMan.h"
 #include "HTChunk.h"
 #include "HTMethod.h"
 #include "HTHeader.h"
@@ -500,11 +500,7 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 	    break;
 
 	  case UNKNOWN:
-#if 0
-	    if ((value = HTNextField(&ptr)) != NULL) {
-#else
 	    {
-#endif
 		HTList * list;
 		HTParserCallback *cbf;
 		int status;
@@ -529,34 +525,6 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 	    break;
 	}
     }
-
-#if 0
-    /*
-    ** If coming from cache then check if the document has expired. We can
-    ** either ignore this or attempt a reload
-    */
-    {
-	char *msg;
-	HTExpiresMode expire_mode = HTCache_expiresMode(&msg);
-	if (expire_mode != HT_EXPIRES_IGNORE) {
-	    time_t cur = time(NULL);
-	    if (anchor->expires>0 && cur>0 && anchor->expires<cur) {
-		if (expire_mode == HT_EXPIRES_NOTIFY)
-		    HTAlert(request, msg);
-		else if (HTRequest_retry(request)) {
-		    if (PROT_TRACE)
-			TTYPrint(TDEST, "MIMEParser.. Expired - auto reload\n");
-		    if (anchor->cacheHit) {
-			HTRequest_addRqHd(request, HT_IMS);
-			HTRequest_setReloadMode(request, HT_FORCE_RELOAD);
-			anchor->cacheHit = NO;	       /* Don't want to loop */
-		    }
-		    return HT_RELOAD;
-		}
-	    }
-	}
-    }
-#endif
 
     /* News server almost never send content type or content length */
     if (anchor->content_type != WWW_UNKNOWN || me->nntp) {

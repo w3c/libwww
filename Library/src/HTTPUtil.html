@@ -1,0 +1,38 @@
+<HTML>
+<HEAD>
+<TITLE>HTTP Communalities between Server and Client Module</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 19-Nov-1995 -->
+</HEAD>
+<BODY>
+
+<H1>HTTP Communalities between Server and Client Module</H1>
+
+The HTTP <A HREF="HTTP.html">client module</A> and the <A
+HREF="HTTPServ.html">server module</A> has a few things in common
+which we keep in this file.<P>
+
+<PRE>
+#ifndef HTTPUTIL_H
+#define HTTPUTIL_H
+</PRE>
+
+<H3>HTTP Version Management</H3>
+
+<PRE>
+typedef enum _HTTPVersion {
+    HTTP = 0,
+    HTTP_09,		
+    HTTP_10,
+    HTTP_11,
+    HTTP_12
+} HTTPVersion;
+</PRE>
+
+<PRE>
+#endif
+</PRE>
+
+End of declaration
+</BODY>
+</HTML>
+

@@ -15,6 +15,7 @@
 #include "HTWWWStr.h"
 #include "HTParse.h"
 #include "HTFormat.h"
+#include "HTAncMan.h"
 #include "HTNetMan.h"
 #include "HTDNS.h"
 #include "HTTCP.h"

@@ -350,7 +350,7 @@ PUBLIC HTNet * HTNet_new (HTRequest * request, SOCKET sockfd)
 **	more than HTMaxActive connections already then return NO.
 **	Returns YES if OK, else NO
 */
-PUBLIC BOOL HTNet_newServer (HTRequest * request)
+PUBLIC BOOL HTNet_newServer (HTRequest * request, SOCKET sockfd)
 {
     HTNet * me;
     HTProtocol * protocol;
@@ -371,7 +371,7 @@ PUBLIC BOOL HTNet_newServer (HTRequest * request)
     if ((me = create_object(request)) == NULL) return NO;
     me->preemtive = (HTProtocol_preemtive(protocol) || request->preemtive);
     me->priority = request->priority;
-    me->sockfd = INVSOC;
+    me->sockfd = sockfd;
     if (!(me->cbf = HTProtocol_server(protocol))) {
 	if (WWWTRACE) TTYPrint(TDEST, "HTNet_new... NO CALL BACK FUNCTION!\n");
 	free(me);
@@ -693,3 +693,25 @@ PUBLIC BOOL HTNet_killAll (void)
     }
     return YES;
 }
+
+/* ------------------------------------------------------------------------- */
+/*			      Data Access Methods  			     */
+/* ------------------------------------------------------------------------- */
+
+/*
+**  Get and set the socket number
+*/
+PUBLIC BOOL HTNet_setSocket (HTNet * net, SOCKET sockfd)
+{
+    if (net) {
+	net->sockfd = sockfd;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC SOCKET HTNet_socket (HTNet * net)
+{
+    return (net ? net->sockfd : INVSOC);
+}
+

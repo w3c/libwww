@@ -627,7 +627,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
 					  (HTAnchor *) anchor);
-		    HTAnchor_setLinkResult(link, HT_LINK_OK);
+		    HTLink_setResult(link, HT_LINK_OK);
 		}
 		HTRequest_removeDestination(request);
 	    } else
@@ -643,7 +643,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
 					  (HTAnchor *) anchor);
-		    HTAnchor_setLinkResult(link, HT_LINK_OK);
+		    HTLink_setResult(link, HT_LINK_OK);
 		}
 		HTRequest_removeDestination(request);
 	    } else
@@ -660,7 +660,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
 					  (HTAnchor *) anchor);
-		    HTAnchor_setLinkResult(link, HT_LINK_ERROR);
+		    HTLink_setResult(link, HT_LINK_ERROR);
 		}
 		HTRequest_removeDestination(request);
 	    } else
@@ -678,7 +678,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
 					  (HTAnchor *) anchor);
-		    HTAnchor_setLinkResult(link, HT_LINK_ERROR);
+		    HTLink_setResult(link, HT_LINK_ERROR);
 		}
 		HTRequest_removeDestination(request);
 	    } else

@@ -156,9 +156,6 @@ PUBLIC BOOL HTLibInit (CONST char * AppName, CONST char * AppVersion)
 
     HTBind_init();				      /* Initialize bindings */
 
-    /* Register a call back function for the Net Manager */
-    HTNetCall_addAfter(HTLoad_terminate, HT_ALL);
-
 #ifdef WWWLIB_SIG
     /* On Solaris (and others?) we get a BROKEN PIPE signal when connecting
     ** to a port where we should get `connection refused'. We ignore this 
@@ -428,7 +425,8 @@ PUBLIC BOOL HTSearchAbsolute (CONST char *	keywords,
 */
 PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_req)
 { 
-    HTRequest *src_req;
+    HTRequest * src_req;
+    HTList * cur;
     if (!src_anchor || !main_req)
 	return NO;
 
@@ -443,16 +441,16 @@ PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_req)
 
 	/* Set up the main link in the source anchor */
 	{
-	    HTLink *main_link = HTAnchor_findMainLink(src_anchor);
-	    HTAnchor *main_anchor = HTAnchor_linkDest(main_link);
-	    HTMethod method = HTAnchor_linkMethod(main_link);
+	    HTLink * main_link = HTAnchor_mainLink((HTAnchor *) src_anchor);
+	    HTAnchor *main_anchor = HTLink_destination(main_link);
+	    HTMethod method = HTLink_method(main_link);
 	    if (!main_link || method==METHOD_INVALID) {
 		if (WWWTRACE)
 		    TTYPrint(TDEST, "Copy Anchor. No destination found or unspecified method");
 		HTRequest_delete(src_req);
 		return NO;
 	    }
-	    if (HTAnchor_linkResult(main_link) == HT_LINK_NONE) {
+	    if (HTLink_result(main_link) == HT_LINK_NONE) {
 		main_req->GenMask |= HT_DATE;		 /* Send date header */
 		main_req->source = src_req;
 		main_req->reload = HT_CACHE_REFRESH;
@@ -465,13 +463,12 @@ PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_req)
 	}
 
 	/* For all other links in the source anchor */
-	if (src_anchor->links) {
-	    HTList *cur = src_anchor->links;
-	    HTLink *pres;
+	if ((cur = HTAnchor_subLinks(src_anchor))) {
+	    HTLink * pres;
 	    while ((pres = (HTLink *) HTList_nextObject(cur)) &&
-		   HTAnchor_linkResult(pres) == HT_LINK_NONE) {
-		HTAnchor *dest = HTAnchor_linkDest(pres);
-		HTMethod method = HTAnchor_linkMethod(pres);
+		   HTLink_result(pres) == HT_LINK_NONE) {
+		HTAnchor *dest = HTLink_destination(pres);
+		HTMethod method = HTLink_method(pres);
 		HTRequest *dest_req;
 		if (!dest || method==METHOD_INVALID) {
 		    if (WWWTRACE)
@@ -499,8 +496,8 @@ PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_req)
 	    if (HTLoadDocument(main_req, NO) == NO)
 		return NO;
 	if (src_req->destinations) {
-	    HTList *cur = src_anchor->links;
-	    HTRequest *pres;
+	    HTRequest * pres;
+	    cur = HTAnchor_subLinks(src_anchor);
 	    while ((pres = (HTRequest *) HTList_nextObject(cur)) != NULL) {
 		if (HTLoadDocument(pres, NO) == NO)
 		    return NO;
@@ -525,14 +522,14 @@ PUBLIC BOOL HTUploadAnchor (HTAnchor *		src_anchor,
 			    HTParentAnchor *	dest_anchor,
 			    HTRequest *		dest_req)
 {
+    HTMethod allowed = HTAnchor_methods(dest_anchor);
     if (!src_anchor || !dest_anchor || !dest_req)
 	return NO;
-    if (!(dest_anchor->methods & dest_req->method)) {
+    if (!(allowed & dest_req->method)) {
 	BOOL confirm = NO;
 	HTAlertCallback *cbf = HTAlert_find(HT_A_CONFIRM);
-	if (cbf)
-	    confirm=(*cbf)(dest_req, HT_A_CONFIRM, HT_MSG_METHOD, NULL,
-			   (void *) HTMethod_name(dest_req->method), NULL);
+	if (cbf) confirm=(*cbf)(dest_req, HT_A_CONFIRM, HT_MSG_METHOD, NULL,
+				(void *) HTMethod_name(dest_req->method),NULL);
 	if (!confirm) return NO;
     }
 
@@ -550,11 +547,12 @@ PUBLIC BOOL HTUploadAnchor (HTAnchor *		src_anchor,
 **	This function sets up a request to service a document using the
 **	specified access scheme.
 */
-PUBLIC BOOL HTServDocument (HTRequest * request, CONST char * access)
+PUBLIC BOOL HTServDocument (HTRequest * request, SOCKET master,
+			    CONST char * access)
 {
     if (request && access) {
 	HTRequest_setAccess(request, (char *) access);
-	return HTServ(request, NO);
+	return HTServ(request, master, NO);
     }
     return NO;
 }

@@ -33,36 +33,80 @@ PRIVATE int HTTee_put_character (HTStream * me, char c)
 {
     int ret1 = (*me->s1->isa->put_character)(me->s1, c);
     int ret2 = (*me->s2->isa->put_character)(me->s2, c);
+
+    if (ret1 < 0)	/* howcome 6 dec 95 */
+        return ret1;
+    if (ret2 < 0)
+        return ret2;
+    if (ret1 == 0)
+        return ret2;
+    return ret1;
+
+/*
     return (!(ret1+ret2) ? HT_OK :
 	    (ret1==HT_ERROR || ret2==HT_ERROR) ? HT_ERROR :
 	    HT_WOULD_BLOCK);
+*/
 }
 
 PRIVATE int HTTee_put_string (HTStream * me, CONST char* s)
 {
     int ret1 = (*me->s1->isa->put_string)(me->s1, s);
     int ret2 = (*me->s2->isa->put_string)(me->s2, s);
+
+    if (ret1 < 0)	/* howcome 6 dec 95 */
+        return ret1;
+    if (ret2 < 0)
+        return ret2;
+    if (ret1 == 0)
+        return ret2;
+    return ret1;
+
+/*
     return (!(ret1+ret2) ? HT_OK :
 	    (ret1==HT_ERROR || ret2==HT_ERROR) ? HT_ERROR :
 	    HT_WOULD_BLOCK);
+*/
 }
 
 PRIVATE int HTTee_write (HTStream * me, CONST char* s, int l)
 {
     int ret1 = (*me->s1->isa->put_block)(me->s1, s, l);
     int ret2 = (*me->s2->isa->put_block)(me->s2, s, l);
+
+    if (ret1 < 0)	/* howcome 6 dec 95 */
+        return ret1;
+    if (ret2 < 0)
+        return ret2;
+    if (ret1 == 0)
+        return ret2;
+    return ret1;
+
+/*
     return (!(ret1+ret2) ? HT_OK :
 	    (ret1==HT_ERROR || ret2==HT_ERROR) ? HT_ERROR :
 	    HT_WOULD_BLOCK);
+*/
 }
 
 PRIVATE int HTTee_flush (HTStream * me)
 {
     int ret1 = (*me->s1->isa->flush)(me->s1);
     int ret2 = (*me->s2->isa->flush)(me->s2);
+
+    if (ret1 < 0)	/* howcome 6 dec 95 */
+        return ret1;
+    if (ret2 < 0)
+        return ret2;
+    if (ret1 == 0)
+        return ret2;
+    return ret1;
+
+/*
     return (!(ret1+ret2) ? HT_OK :
 	    (ret1==HT_ERROR || ret2==HT_ERROR) ? HT_ERROR :
 	    HT_WOULD_BLOCK);
+*/
 }
 
 PRIVATE int HTTee_free (HTStream * me)
@@ -70,9 +114,20 @@ PRIVATE int HTTee_free (HTStream * me)
     int ret1 = (*me->s1->isa->_free)(me->s1);
     int ret2 = (*me->s2->isa->_free)(me->s2);
     free(me);
+
+    if (ret1 < 0)	/* howcome 6 dec 95 */
+        return ret1;
+    if (ret2 < 0)
+        return ret2;
+    if (ret1 == 0)
+        return ret2;
+    return ret1;
+
+/*
     return (!(ret1+ret2) ? HT_OK :
 	    (ret1==HT_ERROR || ret2==HT_ERROR) ? HT_ERROR :
 	    HT_WOULD_BLOCK);
+*/
 }
 
 PRIVATE int HTTee_abort (HTStream * me, HTList * e)

@@ -46,6 +46,7 @@ CMN = $(WWW)/Library/Implementation/
 DOC = $(WWW)/Library/User
 EXP = $(WWW)/Library/Examples
 ICON= $(WWW)/Icons
+TOP = $(WWW)/..
 VMS = $(CMN)vms
 WIN = $(CMN)windows
 PROD= libwww
@@ -73,9 +74,10 @@ COMMON=	$(LOB)/HTList.o $(LOB)/HTString.o $(LOB)/HTAtom.o \
 	$(LOB)/HTHome.o $(LOB)/HTDialog.o \
 	$(LOB)/HTEscape.o $(LOB)/HTDescpt.o $(LOB)/HTGuess.o \
 	$(LOB)/HTTelnet.o $(LOB)/HTWSRC.o $(HTWAIS) $(LOB)/HTGopher.o \
-	$(LOB)/HTTP.o $(LOB)/HTTPReq.o $(LOB)/HTFile.o \
+	$(LOB)/HTTP.o $(LOB)/HTTPReq.o $(LOB)/HTTPServ.o \
+	$(LOB)/HTFile.o $(LOB)/HTDir.o \
 	$(LOB)/HTNews.o $(LOB)/HTNewsRq.o $(LOB)/HTNDir.o $(LOB)/HTNewsLs.o \
-	$(LOB)/HTFTP.o  $(LOB)/HTFTPDir.o $(LOB)/HTDir.o
+	$(LOB)/HTFTP.o  $(LOB)/HTFTPDir.o 
 
 CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTProxy.c \
 	$(CMN)HTMethod.c $(CMN)HTProt.c $(CMN)HTCache.c \
@@ -97,7 +99,8 @@ CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTProxy.c \
 	$(CMN)HTDescpt.c $(CMN)HTGuess.c $(CMN)HTWWWStr.c \
 	$(CMN)HTIcons.c $(CMN)HTError.c $(CMN)HTLog.c \
 	$(CMN)HTHome.c $(CMN)HTDialog.c \
-	$(CMN)HTTP.c $(CMN)HTTPReq.c $(CMN)HTNet.c $(CMN)HTEvntrg.c \
+	$(CMN)HTTP.c $(CMN)HTTPReq.c $(CMN)HTTPServ.c \
+	$(CMN)HTNet.c $(CMN)HTEvntrg.c \
 	$(CMN)HTNews.c $(CMN)HTNewsRq.c $(CMN)HTNDir.c $(CMN)HTNewsLs.c \
 	$(CMN)HTEscape.c $(CMN)HTNetTxt.c $(CMN)HTBind.c
 
@@ -109,9 +112,10 @@ HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h  $(CMN)HTProxy.h $(CMN)HTFile.h \
 	$(CMN)HTNet.h $(CMN)HTNetMan.h $(CMN)HTFTPDir.h \
 	$(CMN)HTPlain.h		$(CMN)HTWriter.h \
 	$(CMN)HTFWrite.h 	$(CMN)HTMLGen.h	\
+	$(CMN)HTEvntrg.h \
 	$(CMN)HTStream.h $(CMN)HTStruct.h $(CMN)HTMulpar.h \
 	$(CMN)HTTee.h $(CMN)HTXParse.h $(CMN)HTEPtoCl.h \
-	$(CMN)HTAtom.h $(CMN)HTAnchor.h $(CMN)HTStyle.h \
+	$(CMN)HTAtom.h $(CMN)HTAnchor.h $(CMN)HTAncMan.h $(CMN)HTStyle.h \
 	$(CMN)HTList.h $(CMN)HTWWWStr.h \
 	$(CMN)HTString.h $(CMN)HTAlert.h $(CMN)HTRules.h \
 	$(CMN)HTFormat.h $(CMN)HTInit.h \
@@ -127,7 +131,7 @@ HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h  $(CMN)HTProxy.h $(CMN)HTFile.h \
 	$(CMN)HTDescpt.h $(CMN)HTGuess.h \
 	$(CMN)HTIcons.h $(CMN)HTError.h $(CMN)HTLog.h \
 	$(CMN)HTHome.h $(CMN)HTDialog.h \
-	$(CMN)HTTP.h $(CMN)HTTPReq.h $(CMN)HTEvntrg.h \
+	$(CMN)HTTP.h $(CMN)HTTPReq.h $(CMN)HTTPServ.h $(CMN)HTTPUtil.h \
 	$(CMN)HTNews.h $(CMN)HTNewsRq.h $(CMN)HTNDir.h $(CMN)HTNewsLs.h \
 	$(CMN)HTEscape.h $(CMN)HTNetTxt.h $(CMN)HTBind.h \
 	$(CMN)WWWLib.h $(CMN)WWWApp.h $(CMN)WWWCore.h $(CMN)WWWUtil.h \
@@ -151,7 +155,8 @@ ICONS = $(ICON)/WWW/Bug48x.gif \
 	$(ICON)/32x32/smiley.gif \
 	$(ICON)/32x32/caution.gif
 
-LEGAL =	$(WWW)/README \
+LEGAL =	$(TOP)/WELCOME \
+	$(WWW)/README \
 	$(WWW)/COPYRIGH \
 	$(WWW)/PATCHES \
 	$(WWW)/CERN
@@ -286,6 +291,9 @@ $(FTP)/$(PROD)_$(VC)_src.zip : $(SOURCES)
 #	Hypertext supplied in text format
 #	---------------------------------
 
+$(TOP)/WELCOME : /afs/w3.org/member/WELCOME.html
+	www -p -na http://www.w3.org/member/WELCOME.html -o $(TOP)/WELCOME
+
 $(WWW)/README : /afs/w3.org/member/WWW/README.html
 	www -p -na http://www.w3.org/member/WWW/README.html -o $(WWW)/README
 
@@ -369,7 +377,7 @@ $(LOB)/HTEscape.o : $(OE) $(CMN)HTEscape.c $(CMN)HTEscape.h $(CMN)HTUtils.h
 $(LOB)/HTError.o : $(OE) $(CMN)HTError.c $(CMN)HTError.h $(CMN)HTUtils.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTError.c
 
-$(LOB)/HTAnchor.o : $(OE) $(CMN)HTAnchor.c $(CMN)HTAnchor.h $(CMN)HTUtils.h
+$(LOB)/HTAnchor.o : $(OE) $(CMN)HTAnchor.c $(CMN)HTAnchor.h $(CMN)HTAncMan.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTAnchor.c
 
 $(LOB)/HTMethod.o : $(OE) $(CMN)HTMethod.c $(CMN)HTMethod.h $(CMN)HTUtils.h
@@ -534,6 +542,9 @@ $(LOB)/HTWSRC.o : $(OE) $(CMN)HTWSRC.c $(CMN)HTUtils.h $(CMN)HTList.h
 
 $(LOB)/HTTP.o : $(OE) $(CMN)HTTP.c $(CMN)HTTP.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTTP.c
+
+$(LOB)/HTTPServ.o : $(OE) $(CMN)HTTPServ.c $(CMN)HTTPServ.h
+	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTTPServ.c
 
 $(LOB)/HTTPReq.o : $(OE) $(CMN)HTTPReq.c $(CMN)HTTPReq.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTTPReq.c

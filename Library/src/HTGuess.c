@@ -19,6 +19,7 @@
 #include "HTString.h"
 #include "HTFormat.h"
 #include "HTAlert.h"
+#include "HTAncMan.h"
 #include "HTList.h"
 #include "HTFWrite.h"
 #include "HTGuess.h"

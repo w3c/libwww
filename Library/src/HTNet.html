@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Asyncronous Socket Management</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 24-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  3-Dec-1995 -->
 </HEAD>
 <BODY>
 
@@ -197,14 +197,6 @@ extern HTList *HTNet_pendingQueue (void);
 <H2>Create an Object</H2>
 
 You can create a new HTNet object as a new request to be handled. If
-we have more than HTMaxActive connections already then return NO.
-Returns YES if OK, else NO
-
-<PRE>
-extern BOOL HTNet_newServer (HTRequest * request);
-</PRE>
-
-You can create a new HTNet object as a new request to be handled. If
 we have more than HTMaxActive connections already then put this into
 the pending queue, else start the request by calling the call back
 function registered with this access method.  Returns YES if OK, else
@@ -212,6 +204,14 @@ NO
 
 <PRE>
 extern BOOL HTNet_newClient (HTRequest * request);
+</PRE>
+
+You can create a new HTNet object as a new request to be handled. If
+we have more than HTMaxActive connections already then return NO.
+Returns YES if OK, else NO
+
+<PRE>
+extern BOOL HTNet_newServer (HTRequest * request, SOCKET sockfd);
 </PRE>
 
 And you can create a plain new HTNet object using the following method:
@@ -298,6 +298,15 @@ if success, NO on error
 
 <PRE>
 extern BOOL HTNet_killAll (void);
+</PRE>
+
+<H2>Data Access Methods</H2>
+
+<H3>Socket Descriptor</H3>
+
+<PRE>
+extern BOOL HTNet_setSocket (HTNet * net, SOCKET sockfd);
+extern SOCKET HTNet_socket (HTNet * net);
 </PRE>
 
 <PRE>

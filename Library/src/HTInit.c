@@ -35,6 +35,12 @@ PUBLIC void HTConverterInit (HTList * c)
     HTConversion_add(c,"text/html",	       	"text/latex",	HTMLToTeX,	1.0, 0.0, 0.0);
 
     /*
+    ** You can get debug information out through the debug stream if you set
+    ** the debug format appropriately
+    */
+    HTConversion_add(c,"*/*",			"www/debug",	HTBlackHoleConverter,	1.0, 0.0, 0.0);
+
+    /*
     ** These are converters that converts to something other than www/present,
     ** that is not directly outputting someting to the user on the screen
     */

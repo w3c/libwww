@@ -35,6 +35,7 @@
 #include "HTChunk.h"
 #include "HTWWWStr.h"
 #include "HTNetMan.h"
+#include "HTTPUtil.h"
 #include "HTTPReq.h"
 #include "HTTP.h"					       /* Implements */
 
@@ -366,8 +367,8 @@ PRIVATE int stream_pipe (HTStream * me)
 				       req->debug_stream, req, NO);
 	} else {
 	    /* We still need to parser the MIME part */
-	    me->target = HTStreamStack(WWW_MIME, WWW_PRESENT,
-				       HTBlackHole(), req, NO);
+	    me->target = HTStreamStack(WWW_MIME, WWW_DEBUG, req->debug_stream,
+				       req, NO);
 	}
     }
     if (!me->target) me->target = HTBlackHole();
@@ -625,9 +626,11 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	    break;
 
 	  case HTTP_EXPIRED:
+#if 0
 	    /* Dirty hack and fall through */
 	    if (PROT_TRACE) TTYPrint(TDEST, "HTTP........ Expired\n");
 	    request->redirect = request->anchor->address;
+#endif
 
 	  case HTTP_REDIRECTION:
 	    /* Clean up the other connections or just this one */
@@ -688,7 +691,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 			    HTLink *link =
 				HTAnchor_findLink((HTAnchor *)request->source->anchor,
 						  (HTAnchor *)request->anchor);
-			    HTAnchor_setLinkResult(link, HT_LINK_ERROR);
+			    HTLink_setResult(link, HT_LINK_ERROR);
 			}
 			HTNet_callAfter(request, main ? HT_ERROR : HT_IGNORE);
 			HTRequest_removeDestination(request);
@@ -739,7 +742,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 			HTLink *link =
 			    HTAnchor_findLink((HTAnchor *) request->source->anchor,
 					      (HTAnchor *) request->anchor);
-			HTAnchor_setLinkResult(link, HT_LINK_ERROR);
+			HTLink_setResult(link, HT_LINK_ERROR);
 		    }
 		    HTNet_callAfter(request, main ? HT_ERROR : HT_IGNORE);
 		    HTRequest_removeDestination(request);
@@ -756,7 +759,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
 					  (HTAnchor *) request->anchor);
-		    HTAnchor_setLinkResult(link, HT_LINK_OK);
+		    HTLink_setResult(link, HT_LINK_OK);
 		}
 		HTRequest_removeDestination(request);
 	    } else
@@ -772,7 +775,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
 					  (HTAnchor *) request->anchor);
-		    HTAnchor_setLinkResult(link, HT_LINK_OK);
+		    HTLink_setResult(link, HT_LINK_OK);
 		}
 		HTRequest_removeDestination(request);
 	    } else
@@ -789,7 +792,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		    HTLink *link = 
 			HTAnchor_findLink((HTAnchor*) request->source->anchor,
 					  (HTAnchor*) request->anchor);
-		    HTAnchor_setLinkResult(link, HT_LINK_ERROR);
+		    HTLink_setResult(link, HT_LINK_ERROR);
 		}
 		HTRequest_removeDestination(request);
 	    } else
@@ -807,7 +810,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
 					  (HTAnchor *) request->anchor);
-		    HTAnchor_setLinkResult(link, HT_LINK_ERROR);
+		    HTLink_setResult(link, HT_LINK_ERROR);
 		}
 		HTRequest_removeDestination(request);
 	    } else

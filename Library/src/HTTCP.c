@@ -857,7 +857,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 **		HT_OK		if connected
 **		HT_WOULD_BLOCK  if operation would have blocked
 */
-PUBLIC int HTDoAccept (HTNet * net, SOCKET * newfd)
+PUBLIC int HTDoAccept (HTNet * net)
 {
     int status;
     int size = sizeof(net->sock_addr);
@@ -902,8 +902,10 @@ PUBLIC int HTDoAccept (HTNet * net, SOCKET * newfd)
 	}
 	return HT_ERROR;
     }
-    *newfd = status;
-    HTEvent_UnRegister(status, (SockOps) FD_ACCEPT);
+
+    /* Swap to new socket */
+    HTEvent_UnRegister(net->sockfd, (SockOps) FD_ACCEPT);
+    net->sockfd = status;
     return HT_OK;
 }
 

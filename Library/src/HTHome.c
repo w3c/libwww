@@ -280,9 +280,48 @@ PUBLIC int HTLoadStart (HTRequest * request, int status)
 **	gives for handling AFTER a request.
 */
 PUBLIC int HTLoadTerminate (HTRequest * request, int status)
-{    
+{
+    char * uri = HTAnchor_address((HTAnchor*)request->anchor);
+    switch (status) {
+      case HT_LOADED:
+	if (PROT_TRACE)
+	    TTYPrint(TDEST, "Load End.... OK: `%s\' has been accessed\n", uri);
+	break;
+
+      case HT_NO_DATA:
+	if (PROT_TRACE)
+	    TTYPrint(TDEST, "Load End.... OK BUT NO DATA: `%s\'\n", uri);
+	break;
+
+      case HT_INTERRUPTED:
+	if (PROT_TRACE)
+	    TTYPrint(TDEST, "Load End.... INTERRUPTED: `%s\'\n", uri);
+	break;
+
+      case HT_RETRY:
+	if (PROT_TRACE)
+	    TTYPrint(TDEST, "Load End.... NOT AVAILABLE, RETRY AT %ld\n",
+		     HTRequest_retryTime(request));
+	break;
+
+      case HT_ERROR:
+	{
+	    HTAlertCallback *cbf = HTAlert_find(HT_A_MESSAGE);
+	    if (cbf) (*cbf)(request, HT_A_MESSAGE, HT_MSG_NULL, NULL,
+			    request->error_stack, NULL);
+	}
+	if (PROT_TRACE)
+	    TTYPrint(TDEST, "Load End.... ERROR: Can't access `%s\'\n", uri);
+	break;
+
+      default:
+	if (PROT_TRACE)
+	    TTYPrint(TDEST, "Load End.... UNKNOWN RETURN CODE %d\n", status);
+	break;
+    }
 
     /* Should we do logging? */
     if (HTLog_isOpen()) HTLog_add(request, status);
+    free(uri);
     return HT_OK;
 }

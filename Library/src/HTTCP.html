@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Generic Network Communication</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 22-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  3-Dec-1995 -->
 </HEAD>
 <BODY>
 
@@ -57,11 +57,12 @@ extern int HTDoConnect (HTNet * net, char * url, u_short default_port);
 
 <H3>Passive Connection Establishment</H3>
 
-This function makes a non-blocking accept on a port and polls every second
-until MAX_ACCEPT_POLL is reached.
+This function makes a non-blocking accept on a port. The net must
+contain a valid socket to accept on. If accept is OK then the socket
+descripter in the Net object is swapped to the new one.
 
 <PRE>
-extern int HTDoAccept (HTNet * net, SOCKET * newfd);
+extern int HTDoAccept (HTNet * net);
 </PRE>
 
 <H3>Listen on a Socket</H3>

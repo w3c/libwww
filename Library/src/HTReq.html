@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Public Declaration of Request Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 26-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  3-Dec-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -55,17 +55,7 @@ accross the network.  Returns: YES if request has been registered
 (success) NO an error occured
 
 <PRE>
-extern BOOL HTServ (HTRequest * request, BOOL recursive);
-</PRE>
-
-<H2>Library Request Call Back Functions</H2>
-
-This function is registered at startup time by HTLibInit() in order to
-probably terminate a request to the Library. The application can
-register additional call back functions in the same manner:
-
-<PRE>
-extern HTNetCallback HTLoad_terminate;
+extern BOOL HTServ (HTRequest * request, SOCKET master, BOOL recursive);
 </PRE>
 
 <H2>Creation and Deletion Methods</H2>

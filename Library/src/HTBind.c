@@ -34,7 +34,7 @@
 #include "tcp.h"
 #include "HTUtils.h"
 #include "HTString.h"
-#include "HTAnchor.h"
+#include "HTAncMan.h"
 #include "HTAtom.h"
 #include "HTParse.h"
 #include "HTBind.h"					 /* Implemented here */

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Access manager  for libwww</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 24-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  3-Dec-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -204,7 +204,9 @@ This function sets up a request to service a document using the
 specified access scheme.
 
 <PRE>
-extern BOOL HTServDocument (HTRequest * request, CONST char * access);
+extern BOOL HTServDocument (HTRequest *		request,
+			    SOCKET		master,
+			    CONST char *	access);
 </PRE>
 
 <PRE>

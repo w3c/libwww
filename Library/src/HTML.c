@@ -50,6 +50,7 @@ typedef struct _stack_element {
 
 struct _HTStructured {
     CONST HTStructuredClass * 	isa;
+    HTRequest *			request;
     HTParentAnchor * 		node_anchor;
     HText * 			text;
 
@@ -313,7 +314,7 @@ a sequence of styles.
 PRIVATE void actually_set_style (HTStructured * me)
 {
     if (!me->text) {			/* First time through */
-	    me->text = HText_new2(me->node_anchor, me->target);
+	    me->text = HText_new2(me->request, me->node_anchor, me->target);
 	    HText_beginAppend(me->text);
 	    HText_setStyle(me->text, me->new_style);
 	    me->in_word = NO;
@@ -474,8 +475,8 @@ PRIVATE void HTML_start_element (
 		present[HTML_A_NAME] ? value[HTML_A_NAME] : 0,	/* Tag */
 		present[HTML_A_HREF] ? href : 0,		/* Addresss */
 		present[HTML_A_REL] && value[HTML_A_REL] ? 
-			(HTLinkType*)HTAtom_for(value[HTML_A_REL])
-			    			: 0);
+			(HTLinkType) HTAtom_for(value[HTML_A_REL])
+					       : 0);
 	    
 	    if (present[HTML_A_TITLE] && value[HTML_A_TITLE]) {
 	        HTParentAnchor * dest = 
@@ -847,6 +848,7 @@ PRIVATE HTStructured* HTML_new (HTRequest *	request,
 
     me->isa = &HTMLPresentation;
     me->dtd = &HTMLP_dtd;
+    me->request = request;
     me->node_anchor =  HTRequest_anchor(request);
     me->title.size = 0;
     me->title.growby = 128;

@@ -794,7 +794,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
 					  (HTAnchor *) request->anchor);
-		    HTAnchor_setLinkResult(link, HT_LINK_OK);
+		    HTLink_setResult(link, HT_LINK_OK);
 		}
 		HTRequest_removeDestination(request);
 		HTNewsCleanup(request, main ? HT_LOADED : HT_IGNORE);
@@ -812,7 +812,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
 					  (HTAnchor *) request->anchor);
-		    HTAnchor_setLinkResult(link, HT_LINK_ERROR);
+		    HTLink_setResult(link, HT_LINK_ERROR);
 		}
 		HTRequest_removeDestination(request);
 		HTNewsCleanup(request, main ? HT_ERROR : HT_IGNORE);

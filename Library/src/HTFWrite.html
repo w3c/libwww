@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>ANSI C FILE Stream</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  2-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  6-Dec-1995 -->
 <NEXTID N="z4">
 </HEAD>
 <BODY>
@@ -40,22 +40,34 @@ W3C Reference Library</A>.
 #include "HTFormat.h"
 </PRE>
 
-<H2><A NAME="BlackHole">Black Hole Stream</A></H2>
+<H2>Utility Streams</H2>
+
+We have a few dummy streams that can be used when needed.
+
+<H3><A NAME="BlackHole">Black Hole Stream</A></H3>
 
 This stream simply absorbs data without doing anything what so ever.
 
 <PRE>
 extern HTStream * HTBlackHole (void);
+extern HTConverter HTBlackHoleConverter;
 </PRE>
 
-<A NAME="converters"><H2>Converters</H2></A>
+<H3>Through Line</H3>
+
+This stream just pumps data right through.
+
+<PRE>
+extern HTConverter HTThroughLine;
+</PRE>
+
+<A NAME="converters"><H2>Local File Dump Converters</H2></A>
 
 This is the set of functions that can be registered as
 converters.
 
 <PRE>
-extern HTConverter HTSaveAndExecute, HTSaveLocally, HTSaveAndCallback,
-       HTThroughLine;
+extern HTConverter HTSaveAndExecute, HTSaveLocally, HTSaveAndCallback;
 </PRE>
 
 <A NAME="tmp"><H2>Location of Temporary Files</H2></A>

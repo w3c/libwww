@@ -98,7 +98,7 @@ PUBLIC BOOL HTLog_add (HTRequest * request, int status)
 		HTMethod_name(HTRequest_method(request)),
 		uri,
 		status,
-		anchor->content_length);
+		HTAnchor_length(anchor));
 	FREE(uri);
 	return (fflush(HTLogFile)!=EOF);       /* Actually update it on disk */
     }

@@ -11,7 +11,7 @@
 **         Nov 1990  Written in Objective-C for the NeXT browser (TBL)
 **	24-Oct-1991 (JFG), written in C, browser-independant 
 **	21-Nov-1991 (JFG), first complete version
-**	 3-May-1995 (HF), Added a lot of methods and other stuff
+**	 3-May-1995 (HF), Added a lot of methods and other stuff made an object
 */
 
 /* Library include files */
@@ -22,16 +22,9 @@
 #include "HTParse.h"
 #include "HTMethod.h"
 #include "HTFWrite.h"					  /* for cache stuff */
-#include "HTAnchor.h"					 /* Implemented here */
+#include "HTAncMan.h"					 /* Implemented here */
 
 #define HASH_SIZE 101		/* Arbitrary prime. Memory/speed tradeoff */
-
-typedef struct _HyperDoc Hyperdoc;
-#ifdef VMS
-struct _HyperDoc {
-	int junk;	/* VMS cannot handle pointers to undefined structs */
-};
-#endif
 
 PRIVATE HTList **adult_table=0;  /* Point to table of lists of all parents */
 
@@ -52,6 +45,7 @@ PRIVATE HTParentAnchor * HTParentAnchor_new (void)
     newAnchor->parent = newAnchor;
     newAnchor->content_type = WWW_UNKNOWN;
     newAnchor->mainLink.method = METHOD_INVALID;
+    newAnchor->content_length = -1;			 /* howcome 6 dec 95 */
     newAnchor->date = (time_t) -1;
     newAnchor->expires = (time_t) -1;
     newAnchor->last_modified = (time_t) -1;
@@ -179,10 +173,6 @@ PUBLIC HTAnchor * HTAnchor_findAddress (CONST char * address)
     }
 }
 
-/* ------------------------------------------------------------------------- */
-/*				   Link Methods				     */
-/* ------------------------------------------------------------------------- */
-
 /*	Create or find a child anchor with a possible link
 **	--------------------------------------------------
 **
@@ -193,7 +183,7 @@ PUBLIC HTAnchor * HTAnchor_findAddress (CONST char * address)
 PUBLIC HTChildAnchor * HTAnchor_findChildAndLink (HTParentAnchor *	parent,
 						  CONST char *		tag,
 						  CONST char *		href,
-						  HTLinkType *		ltype)
+						  HTLinkType		ltype)
 {
     HTChildAnchor * child = HTAnchor_findChild(parent, tag);
     if (href && *href) {
@@ -207,12 +197,80 @@ PUBLIC HTChildAnchor * HTAnchor_findChildAndLink (HTParentAnchor *	parent,
     return child;
 }
 
+/* ------------------------------------------------------------------------- */
+/*				   Link Methods				     */
+/* ------------------------------------------------------------------------- */
+
+/*
+**	Link destinations
+*/
+PUBLIC BOOL HTLink_setDestination (HTLink * link, HTAnchor * dest)
+{
+    if (link) {
+	link->dest = dest;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTAnchor * HTLink_destination (HTLink * link)
+{
+    return link ? link->dest : NULL;
+}
+
+PUBLIC BOOL HTLink_setType (HTLink * link, HTLinkType type)
+{
+    if (link) {
+	link->type = type;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTLinkType HTLink_type (HTLink * link)
+{
+    return link ? link->type : NULL;
+}
+
+/* 
+**  When a link has been used for posting an object from a source to a
+**  destination link, the result of the operation is stored as part of the
+**  link information.
+*/
+PUBLIC BOOL HTLink_setResult (HTLink * link, HTLinkResult result)
+{
+    if (link) {
+	link->result = result;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTLinkResult HTLink_result (HTLink * link)
+{
+    return link ? link->result : HT_LINK_INVALID;
+}
+
+PUBLIC BOOL HTLink_setMethod (HTLink * link, HTMethod method)
+{
+    if (link) {
+	link->method = method;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTMethod HTLink_method (HTLink * link)
+{
+    return link ? link->method : METHOD_INVALID;
+}
+
 /*	Link me Anchor to another given one
 **	-------------------------------------
 */
 PUBLIC BOOL HTAnchor_link (HTAnchor *	source,
 			   HTAnchor * 	destination, 
-			   HTLinkType *	type,
+			   HTLinkType   type,
 			   HTMethod	method)
 {
     if (!(source && destination))
@@ -240,12 +298,11 @@ PUBLIC BOOL HTAnchor_link (HTAnchor *	source,
     return YES;
 }
 
-
 /*
 **  Find the anchor object between a destination and a source ancher.
 **  Return link object if any, else NULL
 */
-PUBLIC HTLink *HTAnchor_findLink (HTAnchor * src, HTAnchor * dest)
+PUBLIC HTLink * HTAnchor_findLink (HTAnchor * src, HTAnchor * dest)
 {
     if (src && dest) {
 	if (src->mainLink.dest == dest)
@@ -262,30 +319,50 @@ PUBLIC HTLink *HTAnchor_findLink (HTAnchor * src, HTAnchor * dest)
     return NULL;
 }
 
-
-/*  HTAnchor_setLink
-**  ----------------
-**  When a link has been used for posting an object from a source to a
-**  destination link, the result of the operation is stored as part of the
-**  link information.
+/*
+**  Upgrade the link to the main destination and and downgrade the
+**  current main link to the list
 */
-PUBLIC BOOL HTAnchor_setLinkResult (HTLink * link, HTLinkResult result)
+PUBLIC HTLink * HTAnchor_mainLink (HTAnchor * me)
 {
-    if (link) {
-	link->result = result;
+    return me ? &(me->mainLink) : NULL;
+}
+
+PUBLIC BOOL HTAnchor_setMainLink  (HTAnchor * me, HTLink * movingLink)
+{
+    if (!(me && me->links && movingLink &&
+	  HTList_removeObject(me->links, movingLink)))
+	return NO;
+    else {
+	/* First push current main link onto top of links list */
+	HTLink *newLink = (HTLink*) malloc (sizeof (HTLink));
+	if (newLink == NULL) outofmem(__FILE__, "HTAnchor_makeMainLink");
+	memcpy (newLink, & me->mainLink, sizeof (HTLink));
+	HTList_addObject (me->links, newLink);
+
+	/* Now make movingLink the new main link, and free it */
+	memcpy (& me->mainLink, movingLink, sizeof (HTLink));
+	free (movingLink);
+	return YES;
+    }
+}
+
+/*
+**	Handling sub links
+*/
+PUBLIC HTList * HTAnchor_subLinks (HTAnchor * anchor)
+{
+    return anchor ? anchor->links : NULL;
+}
+
+PUBLIC BOOL HTAnchor_setSubLinks (HTAnchor * anchor, HTList * list)
+{
+    if (anchor) {
+	anchor->links = list;
 	return YES;
     }
     return NO;
 }
-
-/*
-**  Returns the main destination of this anchor
-*/
-PUBLIC HTAnchor * HTAnchor_followMainLink (HTAnchor * me)
-{
-    return me ? me->mainLink.dest : NULL;
-}
-
 
 /*
 **  Returns the methods registered for the main destination of this
@@ -296,6 +373,13 @@ PUBLIC HTMethod HTAnchor_mainLinkMethod (HTAnchor * me)
     return me ? me->mainLink.method : METHOD_INVALID;
 }
 
+/*
+**  Returns the main destination of this anchor
+*/
+PUBLIC HTAnchor * HTAnchor_followMainLink (HTAnchor * me)
+{
+    return me ? me->mainLink.dest : NULL;
+}
 
 /*
 **  Moves all link information from one anchor to another.
@@ -400,7 +484,7 @@ PUBLIC BOOL HTAnchor_removeAllLinks (HTAnchor * me)
 /*
 **  Returns a link with a given link type or NULL if nothing found
 */
-PUBLIC HTAnchor * HTAnchor_followTypedLink (HTAnchor * me, HTLinkType * type)
+PUBLIC HTAnchor * HTAnchor_followTypedLink (HTAnchor * me, HTLinkType  type)
 {
     if (me->mainLink.type == type)
 	return me->mainLink.dest;
@@ -414,29 +498,6 @@ PUBLIC HTAnchor * HTAnchor_followTypedLink (HTAnchor * me, HTLinkType * type)
     return NULL;		/* No link of me type */
 }
 
-
-/*
-**  Upgrade the link to the main destination and and downgrade the
-**  current main link to the list
-*/
-PUBLIC BOOL HTAnchor_makeMainLink  (HTAnchor * me, HTLink * movingLink)
-{
-    if (!(me && me->links && movingLink &&
-	  HTList_removeObject(me->links, movingLink)))
-	return NO;
-    else {
-	/* First push current main link onto top of links list */
-	HTLink *newLink = (HTLink*) malloc (sizeof (HTLink));
-	if (newLink == NULL) outofmem(__FILE__, "HTAnchor_makeMainLink");
-	memcpy (newLink, & me->mainLink, sizeof (HTLink));
-	HTList_addObject (me->links, newLink);
-
-	/* Now make movingLink the new main link, and free it */
-	memcpy (& me->mainLink, movingLink, sizeof (HTLink));
-	free (movingLink);
-	return YES;
-    }
-}
 
 /*		Move an anchor to the head of the list of its siblings
 **		------------------------------------------------------
@@ -467,12 +528,12 @@ PUBLIC void HTAnchor_makeLastChild (HTChildAnchor * me)
 **	If this anchor's source list is empty, we delete it and its children.
 */
 
-/*	Deletes all the memory allocated in a parent anchor and returns the
-**	hyperdoc
+/*	Deletes all the memory allocated in a parent anchor and returns any
+**	hyperdoc object hanging of this anchor
 */
-PRIVATE HyperDoc * delete_parent (HTParentAnchor * me)
+PRIVATE void * delete_parent (HTParentAnchor * me)
 {
-    HyperDoc *doc = me->document;
+    void * doc = me->document;
 
     /* Remove link and address information */
     if (me->links) {
@@ -503,10 +564,10 @@ PRIVATE HyperDoc * delete_parent (HTParentAnchor * me)
 }
 
 
-/*	Delete a parent anchor and all its children. If a HyperDoc is found
-**	then it's returned
+/*	Delete a parent anchor and all its children. If a hyperdoc object
+**	is found hanging off the parent anchor then this is returned
 */
-PRIVATE HyperDoc *delete_family (HTAnchor * me)
+PRIVATE void * delete_family (HTAnchor * me)
 {
     HTParentAnchor *parent = me->parent;
     if (ANCH_TRACE)
@@ -554,8 +615,8 @@ PUBLIC BOOL HTAnchor_deleteAll (HTList * documents)
 	if ((cur = adult_table[cnt])) { 
 	    HTParentAnchor *pres;
 	    while ((pres = (HTParentAnchor *) HTList_nextObject(cur)) != NULL){
-		HyperDoc *doc = delete_family((HTAnchor *) pres);
-		if (doc && documents) HTList_addObject(documents, (void *)doc);
+		void * doc = delete_family((HTAnchor *) pres);
+		if (doc && documents) HTList_addObject(documents, doc);
 	    }
 	}
 	HTList_delete(adult_table[cnt]);
@@ -629,13 +690,12 @@ PUBLIC HTParentAnchor * HTAnchor_parent  (HTAnchor * me)
     return me ? me->parent : NULL;
 }
 
-PUBLIC void HTAnchor_setDocument  (HTParentAnchor * me, HyperDoc * doc)
+PUBLIC void HTAnchor_setDocument  (HTParentAnchor * me, void * doc)
 {
-    if (me)
-	me->document = doc;
+    if (me) me->document = doc;
 }
 
-PUBLIC HyperDoc * HTAnchor_document  (HTParentAnchor * me)
+PUBLIC void * HTAnchor_document  (HTParentAnchor * me)
 {
     return me ? me->document : NULL;
 }
@@ -847,7 +907,7 @@ PUBLIC void HTAnchor_appendTitle (HTParentAnchor * me, CONST char * title)
 /*
 **	Version
 */
-PUBLIC CONST char * HTAnchor_version (HTParentAnchor * me)
+PUBLIC char * HTAnchor_version (HTParentAnchor * me)
 {
     return me ? me->version : NULL;
 }
@@ -860,7 +920,7 @@ PUBLIC void HTAnchor_setVersion (HTParentAnchor * me, CONST char * version)
 /*
 **	Derived from
 */
-PUBLIC CONST char * HTAnchor_derived (HTParentAnchor * me)
+PUBLIC char * HTAnchor_derived (HTParentAnchor * me)
 {
     return me ? me->derived_from : NULL;
 }
@@ -873,25 +933,40 @@ PUBLIC void HTAnchor_setDerived (HTParentAnchor * me, CONST char *derived_from)
 /*
 **	Date
 */
-PUBLIC void HTAnchor_setDate (HTParentAnchor * me, CONST time_t * date)
+PUBLIC time_t HTAnchor_date (HTParentAnchor * me)
 {
-    if (me) me->date = *date;
+    return me ? me->date : -1;
+}
+
+PUBLIC void HTAnchor_setDate (HTParentAnchor * me, CONST time_t date)
+{
+    if (me) me->date = date;
 }
 
 /*
 **	Expires
 */
-PUBLIC void HTAnchor_setExpires (HTParentAnchor * me, CONST time_t * expires)
+PUBLIC time_t HTAnchor_expires (HTParentAnchor * me)
 {
-    if (me) me->expires = *expires;
+    return me ? me->expires : -1;
+}
+
+PUBLIC void HTAnchor_setExpires (HTParentAnchor * me, CONST time_t expires)
+{
+    if (me) me->expires = expires;
 }
 
 /*
 **	Last Modified
 */
-PUBLIC void HTAnchor_setLastModified (HTParentAnchor * me, CONST time_t * lm)
+PUBLIC time_t HTAnchor_lastModified (HTParentAnchor * me)
 {
-    if (me) me->last_modified = *lm;
+    return me ? me->last_modified : -1;
+}
+
+PUBLIC void HTAnchor_setLastModified (HTParentAnchor * me, CONST time_t lm)
+{
+    if (me) me->last_modified = lm;
 }
 
 /*

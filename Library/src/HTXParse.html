@@ -3,10 +3,11 @@
 <TITLE>ExtParse: Module to get unparsed stream from libwww</TITLE>
 <!-- Changed by: , 30-Nov-1994 -->
 <!-- Changed by: Henrik Frystyk Nielsen, 19-Nov-1995 -->
+<!-- Changed by: Hakon Lie,  5-Dec-1995 -->
 </HEAD>
 <BODY>
 
-<H1>ExtParse: Module to get unparsed stream from libwww</H1>
+<H1>XParse: Module to get unparsed stream from libwww</H1>
 
 <PRE>
 /*
@@ -16,10 +17,10 @@
 </PRE>
 
 This version of the stream object is a hook for clients that want an
-unparsed stream from libwww. The HTExtParse_put_* and HTExtParse_write
+unparsed stream from libwww. The HTXParse_put_* and HTXParse_write
 routines copy the content of the incoming buffer into a buffer that is
 realloced whenever necessary. This buffer is handed over to the client
-in HTExtParse_free. See also <A HREF="HTFWrite.html">HTFWriter</A>
+in HTXParse_free. See also <A HREF="HTFWrite.html">HTFWriter</A>
 for writing to C files.<P>
 
 <H3>Bugs:</H3>
@@ -33,17 +34,17 @@ it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
 Reference Library</A>.
 
 <PRE>
-#ifndef HTEXTPARSE_H
-#define HTEXTPARSE_H
+#ifndef HTXPARSE_H
+#define HTXPARSE_H
 
 #include "HTStream.h"
 #include "HTReq.h"
 
-typedef struct _HTExtParseStruct HTExtParseStruct;
+typedef struct _HTXParseStruct HTXParseStruct;
 
-typedef void CallClient (HTExtParseStruct * me);
+typedef void CallClient (HTXParseStruct * me);
 
-struct _HTExtParseStruct {
+struct _HTXParseStruct {
 	CallClient	*call_client;
 	int             used;         /* how much of the buffer is being used*/
 	BOOL            finished;     /* document loaded? */
@@ -53,7 +54,7 @@ struct _HTExtParseStruct {
 	HTRequest *	request;      /* the request structure */
 };
 
-extern HTConverter HTExtParse;
+extern HTConverter HTXParse;
 
 #endif
 </PRE>

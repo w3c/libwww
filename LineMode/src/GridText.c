@@ -127,7 +127,7 @@ PRIVATE HTList * loaded_texts;	/* A list of all those in memory */
 **	Interactive version
 **
 */
-PUBLIC HText *	HText_new (HTParentAnchor * anchor)
+PUBLIC HText *	HText_new (HTRequest * request, HTParentAnchor * anchor)
 {
     HTLine * line;
     HText * self = (HText *) malloc(sizeof(*self));
@@ -156,7 +156,7 @@ PUBLIC HText *	HText_new (HTParentAnchor * anchor)
     
     self->target = NULL;
     
-    HTAnchor_setDocument(anchor, (HyperDoc *)self);
+    HTAnchor_setDocument(anchor, (void *) self);
 
     clear_screen();
     HTMainText = self;
@@ -183,12 +183,11 @@ PUBLIC HText *	HText_new (HTParentAnchor * anchor)
 **	Non-interative  OR interactive if stream is NULL
 **	Stream is assumed open and left open.
 */
-PUBLIC HText *	HText_new2 (
-		HTParentAnchor * 	anchor,
-		HTStream* 		stream)
-
+PUBLIC HText *	HText_new2 (HTRequest *		request,
+			    HTParentAnchor * 	anchor,
+			    HTStream * 		stream)
 {
-    HText * me = HText_new(anchor);
+    HText * me = HText_new(request, anchor);
         
     if (stream) {
         me->target = stream;
@@ -198,8 +197,9 @@ PUBLIC HText *	HText_new2 (
     return me;
 }
 
-/*	free a hyperdoc object
-**	---------------------
+/*	Free a data object
+**	------------------
+**	Removes the data object from the anchor
 */
 PUBLIC void hyperfree (HText *  self)
 {
@@ -228,7 +228,7 @@ PUBLIC void hyperfree (HText *  self)
 */
 PUBLIC void 	HText_free (HText * self)
 {
-    HTAnchor_setDocument(self->node_anchor, (HyperDoc *)0);
+    HTAnchor_setDocument(self->node_anchor, NULL);
     hyperfree(self);
 }
 

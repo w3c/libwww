@@ -46,7 +46,7 @@ VMS = $(CL)/vms
 WIN = $(CL)/windows
 BIN = $(WWW)/Robot/$(WWW_MACH)
 LIBWWW = $(LIB)/libwww.a
-PROD= robot
+PROD= webbot
 FTP = /afs/w3.org/devel/Dist/Robot
 
 CFLAGS2 = $(CFLAGS) -I$(CMN) -I$(CL)
@@ -243,3 +243,4 @@ $(OBJ)/HTRobot.o : $(OE) $(CL)/HTRobot.c $(CL)/HTRobot.h \
 	$(CL)/Version.make \
 	$(CMN)/WWWUtil.h $(CMN)/WWWCore.h $(CMN)/WWWApp.h
 	$(CC) -c -o $@ $(CFLAGS2) -DVR=\"$(VR)\" $(CL)/HTRobot.c  
+

@@ -120,6 +120,14 @@ PUBLIC HTStream * HTBlackHole (void)
     return &HTBlackHoleInstance;
 }
 
+PUBLIC HTStream * HTBlackHoleConverter (HTRequest *	request,
+					void *		param,
+					HTFormat	input_format,
+					HTFormat	output_format,
+					HTStream *	output_stream)
+{
+    return HTBlackHole();
+}
 
 /*	HTThroughLine
 **	-------------

@@ -62,11 +62,11 @@ PRIVATE BOOL NewsPost_start (HTStream * me, HTRequest * request)
     if (HTRequest_isDestination(request)) {
 	HTRequest *src_req = HTRequest_source(request);
 	HTParentAnchor *src_anchor = HTRequest_anchor(src_req);
-	HTLink *link = HTAnchor_findMainLink(src_anchor);
-	HTAnchor *dest = HTAnchor_linkDest(link);
-	HTMethod method = HTAnchor_linkMethod(link);
+	HTLink *link = HTAnchor_mainLink((HTAnchor *) src_anchor);
+	HTAnchor *dest = HTLink_destination(link);
+	HTMethod method = HTLink_method(link);
 	if (link && method == METHOD_POST &&
-	    HTAnchor_linkResult(link) == HT_LINK_NONE) {
+	    HTLink_result(link) == HT_LINK_NONE) {
 	    char *desturl = HTAnchor_physical((HTParentAnchor *) dest);
 	    char *access = HTParse(desturl, "", PARSE_ACCESS);
 	    if (!strcasecomp(access, "news") || !strcasecomp(access, "nntp")) {

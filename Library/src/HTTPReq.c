@@ -23,6 +23,7 @@
 #include "HTReqMan.h"
 #include "HTChunk.h"
 #include "HTMIMERq.h"
+#include "HTTPUtil.h"
 #include "HTTPReq.h"					       /* Implements */
 
 #define PUTBLOCK(b, l)	(*me->target->isa->put_block)(me->target, b, l)
@@ -196,9 +197,10 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 	}
     }
     if (request->RequestMask & HT_IMS) {
-	if (anchor->last_modified != -1) {
+	time_t lm = HTAnchor_lastModified(anchor);
+	if (lm != -1) {
 	    sprintf(linebuf, "If-Modified-Since: %s%c%c",
-		    HTDateTimeStr(&anchor->last_modified, NO), CR, LF);
+		    HTDateTimeStr(&lm, NO), CR, LF);
 	    HTChunkPuts(header, linebuf);
 	}
     }

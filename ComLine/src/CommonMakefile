@@ -42,6 +42,7 @@ CMN = $(WWW)/Library/Implementation
 CL  = $(WWW)/ComLine/Implementation
 DOC = $(WWW)/ComLine/User
 ICON= $(WWW)/Icons
+TOP = $(WWW)/..
 VMS = $(CL)/vms
 WIN = $(CL)/windows
 BIN = $(WWW)/ComLine/$(WWW_MACH)
@@ -82,7 +83,8 @@ ICONS = $(ICON)/WWW/Bug48x.gif \
 	$(ICON)/WWW/startup48x.gif \
 	$(ICON)/32x32/caution.gif
 
-LEGAL =	$(WWW)/README \
+LEGAL =	$(TOP)/WELCOME \
+	$(WWW)/README \
 	$(WWW)/COPYRIGH \
 	$(WWW)/PATCHES \
 	$(WWW)/CERN
@@ -215,6 +217,9 @@ $(FTP)/$(PROD)_$(VT)_src.zip : $(SOURCES)
 
 #	Hypertext supplied in text format
 #	---------------------------------
+
+$(TOP)/WELCOME : /afs/w3.org/member/WELCOME.html
+	www -p -na http://www.w3.org/member/WELCOME.html -o $(TOP)/WELCOME
 
 $(WWW)/README : /afs/w3.org/member/WWW/README.html
 	www -p -na http://www.w3.org/member/WWW/README.html -o $(WWW)/README

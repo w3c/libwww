@@ -903,7 +903,7 @@ PUBLIC BOOL HTLoad (HTRequest * request, BOOL recursive)
 **		YES	if request has been registered (success)
 **		NO	an error occured
 */
-PUBLIC BOOL HTServ (HTRequest * request, BOOL recursive)
+PUBLIC BOOL HTServ (HTRequest * request, SOCKET master, BOOL recursive)
 {
     if (!request || !request->access) {
         if (PROT_TRACE) TTYPrint(TDEST, "Serv Start.. Bad argument\n");
@@ -913,54 +913,5 @@ PUBLIC BOOL HTServ (HTRequest * request, BOOL recursive)
 	HTError_deleteAll(request->error_stack);
 	request->error_stack = NULL;
     }
-    return HTNet_newServer(request);
-}
-
-/*	Terminate a LOAD
-**	----------------
-**	This function looks at the status code from the HTLoadDocument
-**	It is registered in the Net Manager
-*/
-PUBLIC int HTLoad_terminate (HTRequest *request, int status)
-{
-    char * uri = HTAnchor_address((HTAnchor*)request->anchor);
-    switch (status) {
-      case HT_LOADED:
-	if (PROT_TRACE)
-	    TTYPrint(TDEST, "Load End.... OK: `%s\' has been accessed\n", uri);
-	break;
-
-      case HT_NO_DATA:
-	if (PROT_TRACE)
-	    TTYPrint(TDEST, "Load End.... OK BUT NO DATA: `%s\'\n", uri);
-	break;
-
-      case HT_INTERRUPTED:
-	if (PROT_TRACE)
-	    TTYPrint(TDEST, "Load End.... INTERRUPTED: `%s\'\n", uri);
-	break;
-
-      case HT_RETRY:
-	if (PROT_TRACE)
-	    TTYPrint(TDEST, "Load End.... NOT AVAILABLE, RETRY AT %ld\n",
-		    HTRequest_retryTime(request));
-	break;
-
-      case HT_ERROR:
-	{
-	    HTAlertCallback *cbf = HTAlert_find(HT_A_MESSAGE);
-	    if (cbf) (*cbf)(request, HT_A_MESSAGE, HT_MSG_NULL, NULL,
-			    request->error_stack, NULL);
-	}
-	if (PROT_TRACE)
-	    TTYPrint(TDEST, "Load End.... ERROR: Can't access `%s\'\n", uri);
-	break;
-
-      default:
-	if (PROT_TRACE)
-	    TTYPrint(TDEST, "Load End.... UNKNOWN RETURN CODE %d\n", status);
-	break;
-    }
-    free(uri);
-    return HT_OK;
+    return HTNet_newServer(request, master);
 }
