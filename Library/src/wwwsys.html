@@ -466,7 +466,7 @@ extern int errno;
 <H2>Solaris</H2>
 (And Linux, thanks to Rainer Klute)
 <PRE>
-#if defined(__svr4__) || defined(_POSIX_SOURCE)
+#if defined(__svr4__) || defined(_POSIX_SOURCE) || defined(__hpux)
 #include &lt;unistd.h>
 #endif
 </PRE>
@@ -558,9 +558,12 @@ NAME="z1">Defaults</A></H2>
 <PRE>#ifndef TCP_INCLUDES_DONE
 #include &lt;sys/socket.h>
 #include &lt;netinet/in.h>
-#ifndef __hpux /* this may or may not be good -marc */
+
+/* #ifndef __hpux */ /* this may or may not be good -marc -- according
+			to somebody, it wasn't a good thing...(?) -- Ari */
 #include &lt;arpa/inet.h>	    /* Must be after netinet/in.h */
-#endif
+/* #endif */
+
 #include &lt;netdb.h>
 #endif	/* TCP includes */
 
