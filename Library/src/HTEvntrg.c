@@ -116,7 +116,7 @@ typedef struct _HTTimeout {
 PRIVATE HTTimeout 	seltime;
 #ifndef WWW_WIN_ASYNC
 PRIVATE struct timeval *tvptr = NULL;
-#endif
+#endif /* WWW_WIN_ASYNC */
 
 /*
 ** this set of SockOps map our WinSock "socket event SockOps" into 
@@ -249,8 +249,6 @@ PUBLIC int HTEvent_RegisterTTY( SOCKET fd, HTRequest * rq, SockOps ops,
 */
 #ifdef WIN32
 
-    if (rq->hwnd != 0)  /* Windows GUI processing requested */
-    	return 0;
     if (THD_TRACE) 
    	TTYPrint(TDEST, "RegisterTTY. Windows, and no handle given\n");
 
@@ -305,13 +303,14 @@ PUBLIC int HTEvent_Register (SOCKET s, HTRequest * rq, SockOps ops,
 
     (void)__HTEvent_addRequest( s, rq, ops, cbf, p);
  
-#ifdef _WINSOCKAPI_
+#ifdef WWW_WIN_ASYNC
 #ifndef WIN32	/* EGP */
 #define GetLastError WSAGetLastError
 #endif
-    if (rq -> hwnd != 0) {
+    if (rq->hwnd != 0) {
         if (WSAAsyncSelect( s, rq->hwnd, rq->winMsg, ops) < 0) {
-	    HTRequest_addSystemError( rq, ERR_FATAL, GetLastError(), NO,"WSAAsyncSelect");
+	    HTRequest_addSystemError(rq, ERR_FATAL, GetLastError(), NO,
+				     "WSAAsyncSelect");
 	    return HTERROR;
 	}
     }
@@ -909,10 +908,10 @@ PRIVATE int __EventUnregister(register RQ *rqp, register RQ ** rqpp,
 	if (rqp->s == max_sock) 
 	    	__ResetMaxSock();
 
-#ifdef _WINSOCKAPI_
+#ifdef WWW_WIN_ASYNC
 	if (ap->rq->hwnd) 
-	    (void)WSAAsyncSelect( rqp->s, ap->rq->hwnd, 0, 0);
-#endif
+	    (void) WSAAsyncSelect( rqp->s, ap->rq->hwnd, 0, 0);
+#endif /* WWW_WIN_ASYNC */
         *rqpp = rqp->next ;
 
 	/* NB we only count network sockets, NOT the console/display socket */
@@ -923,11 +922,11 @@ PRIVATE int __EventUnregister(register RQ *rqp, register RQ ** rqpp,
         free(rqp) ;
     }  /* if all unregistered */
     else { 
-#ifdef _WINSOCKAPI_
+#ifdef WWW_WIN_ASYNC
 	if (ap->rq->hwnd != 0) { 			      /* re-register */
 	    (void)WSAAsyncSelect(rqp->s, ap->rq->hwnd, ap->rq->winMsg,ap->ops);
 	}
-#endif /* _WINSOCKAPI_ */
+#endif /* WWW_WIN_ASYNC */
     }
     return 0 ;
 }

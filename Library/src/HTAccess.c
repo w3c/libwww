@@ -503,19 +503,3 @@ PUBLIC BOOL HTUploadAnchor (HTAnchor *		src_anchor,
     return NO;
 }
 
-#if WWWTRACE_MODE == WWWTRACE_TTY && (!defined(_WINDOWS) || defined(_CONSOLE))
-/* single function through which all trace messages must pass - EGP */
-int TTYPrint(FILE* file, const char* fmt, ...)
-	{
-	int len;
-	char space[513];
-	char* pArgs;
-
-	pArgs = (char*)(&fmt + 1);
-	len = vsprintf(space, (char*)fmt, (char*)pArgs);
-	fprintf(file, space);
-	return (len);
-	}
-/* otherwise handled in www.c with the rest of the window shit */
-#endif
-

@@ -290,3 +290,22 @@ PUBLIC void HTError_print (HTRequest * request, HTList * list)
     }
     return;
 }
+
+/*	TTYPrint
+**	--------
+**	Single function through which all trace messages must pass - EGP
+*/
+#if WWWTRACE_MODE == WWWTRACE_TTY && (!defined(_WINDOWS) || defined(_CONSOLE))
+int TTYPrint(FILE* file, const char* fmt, ...)
+{
+    int len;
+    char space[513];
+    char* pArgs;
+
+    pArgs = (char*)(&fmt + 1);
+    len = vsprintf(space, (char*)fmt, (char*)pArgs);
+    fprintf(file, space);
+    return (len);
+}
+/* otherwise handled in www.c with the rest of the window shit */
+#endif
