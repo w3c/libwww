@@ -343,6 +343,7 @@ PUBLIC HTHost * HTHost_new (char * host, u_short u_port)
 	pres->ntime = time(NULL);
 	pres->mode = HT_TP_SINGLE;
 	pres->delay = WriteDelay;
+	pres->inFlush = NO;
 	{
 	    int i;
 	    for (i = 0; i < HTEvent_TYPES; i++)
@@ -1707,11 +1708,23 @@ PUBLIC int HTHost_forceFlush(HTHost * host)
     HTNet * targetNet = (HTNet *) HTList_lastObject(host->pipeline);
     int ret;
     if (targetNet == NULL) return HT_ERROR;
+    /* JK: The following test was proposed by Heiner Kallweit, as there's a problem
+    ** while using SSL because of a recursive call to this function. We tested the
+    ** fix and it doesn't seem to introduce any side effects... but one never knows,
+    ** thus this comment. This seems more like a bug in the SSL code than here.
+    */
+    if (host->inFlush) {
+	HTTRACE(CORE_TRACE, "Host Event.. FLUSH requested for  `%s\'\n, but ignoring it as we're already processing a flush in this host" _ 
+		HTAnchor_physical(HTRequest_anchor(HTNet_request(targetNet))));
+	return HT_OK;
+    }
     HTTRACE(CORE_TRACE, "Host Event.. FLUSH passed to `%s\'\n" _ 
 		HTAnchor_physical(HTRequest_anchor(HTNet_request(targetNet))));
     host->forceWriteFlush = YES;
+    host->inFlush = YES;
     ret = (*targetNet->event.cbf)(HTChannel_socket(host->channel), targetNet->event.param, HTEvent_FLUSH);
     host->forceWriteFlush = NO;
+    host->inFlush = NO;
     return ret;
 }
 
