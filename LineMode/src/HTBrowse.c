@@ -69,7 +69,7 @@
 #include "HTRules.h"    /* For loading rule file */
 #include "HTError.h"
 #include "HTAlert.h"
-#include "HTTPMulti.h"
+#include "HTTP.h"
 #include "HTEvent.h"
 
 /* HWL 18/7/94: applied patch from agl@glas2.glas.apc.org (Anton Tropashko) */
