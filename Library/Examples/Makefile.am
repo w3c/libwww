@@ -2,7 +2,7 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-noinst_PROGRAMS = head libapp_1 libapp_2 libapp_3 libapp_4 init chunk chunkbody LoadToFile postform
+noinst_PROGRAMS = head libapp_1 libapp_2 libapp_3 libapp_4 init chunk chunkbody LoadToFile postform multichunk
 
 LDADD = ../../Library/src/libwww.la -lm
 
