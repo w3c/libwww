@@ -19,8 +19,6 @@
 #include "WWWLib.h"
 #include "WWWInit.h"
 
-PRIVATE HTChunk * result = NULL;
-
 PRIVATE int printer (const char * fmt, va_list pArgs)
 {
     return (vfprintf(stdout, fmt, pArgs));
@@ -34,11 +32,6 @@ PRIVATE int tracer (const char * fmt, va_list pArgs)
 PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 			       void * param, int status) 
 {
-    if (status == HT_LOADED && result && HTChunk_data(result)) {
-	fprintf(stderr, HTChunk_data(result));
-	HTChunk_delete(result);
-    }
-
     /* We are done with this request */
     HTRequest_delete(request);
 
