@@ -186,13 +186,12 @@ PRIVATE char		choice[RESPONSE_LENGTH];	  /* Users response  */
 PRIVATE char *		refhead = DEFAULT_REF_HEAD;	 /* Ref list heading */
 PRIVATE BOOL		filter = NO;		      	 /* Load from stdin? */
 PRIVATE BOOL		reformat_html = NO;		   /* Reformat html? */
-PRIVATE BOOL		listrefs_option = NO;	  /* -listrefs option used?  */
 PRIVATE BOOL		OutSource = NO;		    /* Output source, YES/NO */
 PRIVATE int		OldTraceFlag = SHOW_ALL_TRACE;
 PRIVATE BOOL		UseMulti = YES;			/* Use multithreaded */
+PRIVATE FILE *	        output = NULL;
 
 #ifdef VMS
-PRIVATE FILE *       output;		/* assignment done in main */
 #ifdef __DECC
 /* dummy declarations to make sure that LINKER will not complain */
 PUBLIC char *HTBinDir;
@@ -201,9 +200,8 @@ PUBLIC char *HTPostScript;
 PUBLIC char *HTPutScript;
 PUBLIC char *HTSearchScript;
 #endif /* DECC */
-#else /* not VMS */
-PRIVATE FILE *	     output = stdout;
 #endif /* not VMS */ 
+
 
 /* ------------------------------------------------------------------------- */
 /*				HELP FUNCTIONS				     */
@@ -365,11 +363,12 @@ PRIVATE void help_screen NOARGS {
 PRIVATE void Reference_List ARGS1(BOOL, titles)
 {
     int cnt;
+    FILE *out = output ? output : stdout;
     int refs = HText_sourceAnchors(HTMainText);
     if (refs <= 0) {
-	fprintf(output, "\n\nThere are no references from this document.\n\n");
+	fprintf(out, "\n\nThere are no references from this document.\n\n");
     } else {
-	fprintf(output, "\n%s\n", refhead);
+	fprintf(out, "\n%s\n", refhead);
 	for (cnt=1; cnt<=refs; cnt++) {
 	    HTAnchor *dest =
 		HTAnchor_followMainLink((HTAnchor *)
@@ -377,13 +376,13 @@ PRIVATE void Reference_List ARGS1(BOOL, titles)
 	    HTParentAnchor * parent = HTAnchor_parent(dest);
 	    char * address =  HTAnchor_address(dest);
 	    CONST char * title = titles ? HTAnchor_title(parent) : NULL;
-	    fprintf(output, reference_mark, cnt);
-	    fprintf(output, "%s%s\n",
+	    fprintf(out, reference_mark, cnt);
+	    fprintf(out, "%s%s\n",
 		    ((HTAnchor*)parent!=dest) && title ? "in " : "",
 		    (char *)(title ? title : address));
 	    free(address);
 	}
-	fflush(stdout);
+	fflush(out);
     }
 }      
 
@@ -594,7 +593,8 @@ PRIVATE void Thread_deleteAll NOARGS
 **
 **  Henrik Frystyk 02/03-94
 */
-PRIVATE BOOL SaveOutputStream ARGS2(char *, This, char *, Next)
+PRIVATE BOOL SaveOutputStream ARGS3(HTRequest *, req,
+				    char *, This, char *, Next)
 {
     FILE *fp;
     char *fname;
@@ -624,21 +624,12 @@ PRIVATE BOOL SaveOutputStream ARGS2(char *, This, char *, Next)
 	ErrMsg("Can't access file", fname);
 	return NO;
     }
+    req->output_stream = HTFWriter_new(fp, NO);
 
     /* Now, file is open and OK: reload the text and put up a stream for it! */
     if (TRACE)
 	fprintf(stderr, "Saving to file %s\n", fname);
-    {
-	int status;
-	HTRequest *req = Thread_new(NO); 	     /* Set up a new request */
-	if (OutSource)
-	    req->output_format = WWW_SOURCE;
-	req->output_stream = HTFWriter_new(fp, NO);
-	req->ForceReload = YES;
-	status = HTLoadAnchor((HTAnchor*) HTMainAnchor, req);
-	req->ForceReload = NO;
-	return (status != HT_WOULD_BLOCK);
-    }
+    return (HTLoadAnchor((HTAnchor*) HTMainAnchor, req) != HT_WOULD_BLOCK);
 }
 
 
@@ -1017,8 +1008,14 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 
       case '>':
 	if (!HTClientHost) {
-	    if (SaveOutputStream(this_word, next_word))
+	    HText *curText = HTMainText;     /* Remember current main vindow */
+	    *actreq = Thread_new(NO);
+	    (*actreq)->ForceReload = YES;
+	    (*actreq)->BlockingIO = YES;     		 /* Use blocking I/O */
+	    if (OutSource) (*actreq)->output_format = WWW_SOURCE;
+	    if (SaveOutputStream(*actreq, this_word, next_word))
 		loadstat = HT_WOULD_BLOCK;
+	    HText_select(curText);
 	}
 	break;
 	
@@ -1091,6 +1088,7 @@ PUBLIC HTEventState HTEventRequestTerminate ARGS2(HTRequest *,	actreq,
 						  int,		status) 
 {
     BOOL is_index = HTAnchor_isIndex(HTMainAnchor);
+    if (!HTInteractive) return EVENT_QUIT;
     if (status == HT_LOADED) {
 	if (actreq->parentAnchor) {
 	    HTParentAnchor *parent = actreq->parentAnchor;
@@ -1108,7 +1106,7 @@ PUBLIC HTEventState HTEventRequestTerminate ARGS2(HTRequest *,	actreq,
 	}
 	HText_setStale(HTMainText);		   /* We corrupt the display */
 	MakeCommandLine(is_index);
-    } else if (!HTMainText)			      /* If first try failed */
+    } else if (!HTMainText)	 				   /* Failed */
 	return EVENT_QUIT;
     else
 	MakeCommandLine(is_index);
@@ -1130,6 +1128,7 @@ int main ARGS2(int, argc, char **, argv)
     char *	default_default = HTFindRelatedName();
     HTFormat	input_format = WWW_HTML;	         /* Used with filter */
     HTEventCallBack user;		/* To register STDIN for user events */
+    BOOL       	listrefs_option = NO;	  	  /* -listrefs option used?  */
 
     /* Start up Library of Common Code */
     HTLibInit();
@@ -1146,10 +1145,6 @@ int main ARGS2(int, argc, char **, argv)
     arc.locale=0; arc.encoding=0; arc.i_encoding=0; doinull();
 #endif
 
-#ifdef VMS
-    output = stdout;
-#endif /* VMS */
-	
     request =  HTRequest_new();
 
     /* Check for command line options */
@@ -1448,19 +1443,15 @@ int main ARGS2(int, argc, char **, argv)
 
     /* Open output file */
     if (!HTInteractive)	{
-    	if (output_file_name) {
-	    FILE * fp = fopen(output_file_name, "w");
-	    if (!fp) {
+    	if (output_file_name) {	    
+	    if ((output = fopen(output_file_name, "w")) == NULL) {
 	        ErrMsg("Can't open file for writing", output_file_name);
 		return_status = -3;
 		goto endproc;
 	    }
-	    output = fp;
 	}
-	request->output_stream = HTFWriter_new(output, 
-					       output == stdout ? YES : NO);  
-	/* Just pump to stdout but YES: leave it open */
-	
+	request->output_stream = HTFWriter_new(output ? output : stdout, YES);
+
 	/*	To reformat HTML, just put it through a parser running
 	**	into a regenerator   tbl 940613 */
 	
@@ -1487,6 +1478,7 @@ int main ARGS2(int, argc, char **, argv)
 	    goto endproc;
     }
 
+#if 0
     if (HTInteractive) {
 	reqlist = HTList_new();
 	user.sockfd = STDIN_FILENO;
@@ -1504,15 +1496,32 @@ int main ARGS2(int, argc, char **, argv)
 	    char *addr = HTAnchor_address((HTAnchor *) home_anchor);
 	    ErrMsg("Can't access document", addr);
 	    free(addr);
-	    if (!HTMainText) {
-		return_status = -2;		     /* Can't get first page */
-	    }
+	    return_status = -2;			     /* Can't get first page */
 	} else if (listrefs_option) {
 	    Reference_List(NO);		   	      /* List without titles */
 	}
     }
+#else
+    /* Test of putting non-interactive mode into the event loop as well */
+    if (!HTInteractive)
+	request->BlockingIO = YES;		/* Turn off non-blocking I/O */
+
+    reqlist = HTList_new();
+    user.sockfd = STDIN_FILENO;
+    user.callback = EventHandler;
+    HTList_addObject(reqlist, (void *) request);
+    HTEventRegister(&user);				   /* Register STDIN */
+    HTHistory_record((HTAnchor *) home_anchor);	    	    /* Setup history */
+    return_status = HTEventLoop(request, home_anchor,
+				(keywords && *keywords) ? keywords : NULL);
+
+    if (!HTInteractive && listrefs_option)
+	Reference_List(NO);		   	      /* List without titles */
+#endif
 
 endproc:
+    if (output)
+	fclose(output);
     Thread_deleteAll();
     if (default_default)
 	free(default_default);
