@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Domain Name Service Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 18-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 20-Sep-1995 -->
 </HEAD>
 <BODY>
 
@@ -112,7 +112,7 @@ typedef enum _HTTCPType {
 } HTTCPType;
 
 extern char *HTDNS_serverClass		(HTdns *dns);
-extern void HTDNS_setServerClass	(HTdns *dns, char *class);
+extern void HTDNS_setServerClass	(HTdns *dns, char *s_class);
 
 extern int HTDNS_serverVersion (HTdns *dns);
 extern void HTDNS_setServerVersion (HTdns *dns, int version, HTTCPType type);

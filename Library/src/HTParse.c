@@ -382,22 +382,20 @@ PUBLIC char *HTSimplify ARGS1(char **, url)
 	p = path;
 	while(p<end) {
 	    if (*p=='/') {
-		if (p>path && *(p+1)=='.' && (*(p+2)=='/' || !*(p+2))) {
-		    char *orig=p+1, *dest=p+2;
+		if (p>*url && *(p+1)=='.' && (*(p+2)=='/' || !*(p+2))) {
+		    char *orig = p+1;
+		    char *dest = (*(p+2)!='/') ? p+2 : p+3;
 		    while ((*orig++ = *dest++)); /* Remove a slash and a dot */
 		    end = orig-1;
-		    p--;
-		} else if (*(p+1)=='.' && *(p+2)=='.' &&
-		    (*(p+3)=='/' || !*(p+3))) {
+		} else if (*(p+1)=='.' && *(p+2)=='.' && (*(p+3)=='/' || !*(p+3))) {
 		    char *q = p;
 		    while (q>path && *--q!='/');	       /* prev slash */
-		    if (strncmp(q, "/../", 4) && strncmp(q, "/./", 3) &&
-			strncmp(q, "./", 2)) {
-			char *orig=q, *dest=p+3;
-			if (*q!='/') dest++;
+		    if (strncmp(q, "/../", 4)) {
+			char *orig = q+1;
+			char *dest = (*(p+3)!='/') ? p+3 : p+4;
 			while ((*orig++ = *dest++));	   /* Remove /xxx/.. */
 			end = orig-1;
-			p = q-1;	      /* Start again with prev slash */
+			p = q;		      /* Start again with prev slash */
 		    } else
 			p++;
 		} else if (*(p+1)=='/') {
@@ -406,10 +404,11 @@ PUBLIC char *HTSimplify ARGS1(char **, url)
 			while ((*orig++ = *dest++));  /* Remove multiple /'s */
 			end = orig-1;
 		    }
-		}
-	    }
-	    p++;
-	}  /* end while (*p) */
+		} else
+		    p++;
+	    } else
+		p++;
+	}
     }
     if (URI_TRACE)
 	fprintf(TDEST, "into\n............ `%s'\n", *url);

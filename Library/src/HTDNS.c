@@ -125,9 +125,9 @@ PUBLIC char *HTDNS_serverClass (HTdns *dns)
      return dns ? dns->server : NULL;
 }
 
-PUBLIC void HTDNS_setServerClass (HTdns * dns, char *class)
+PUBLIC void HTDNS_setServerClass (HTdns * dns, char *s_class)
 {
-    if (dns && class) StrAllocCopy(dns->server, class);
+    if (dns && s_class) StrAllocCopy(dns->server, s_class);
 }
 
 /*	HTDNS_serverVersion

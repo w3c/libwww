@@ -553,8 +553,8 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	    if (status == HT_OK) {
 
 		/* Check the protocol class */
-		char *class = HTDNS_serverClass(net->dns);
-		if (class && strcasecomp(class, "http")) {
+		char *s_class = HTDNS_serverClass(net->dns);
+		if (s_class && strcasecomp(s_class, "http")) {
 		    HTErrorAdd(request, ERR_FATAL, NO, HTERR_CLASS,
 			       NULL, 0, "HTLoadHTTP");
 		    http->state = HTTP_ERROR;

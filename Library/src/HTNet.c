@@ -165,7 +165,7 @@ PUBLIC BOOL HTNet_callback (HTRequest * request, int status)
     if (HTNetCBF && request && status != HT_IGNORE) {	
 	int cnt = HTList_count(HTNetCBF);
 	while (--cnt >= 0) {
-	    CBFInfo *pres = HTList_objectAt(HTNetCBF, cnt);
+	    CBFInfo *pres = (CBFInfo *) HTList_objectAt(HTNetCBF, cnt);
 	    if (pres && (pres->status == status || pres->status == HT_ALL)) {
 		if (THD_TRACE)
 		    fprintf(TDEST, "Net callback %p (request=%p, status=%d)\n",
@@ -221,7 +221,7 @@ PUBLIC BOOL HTNet_new (HTRequest * request, HTPriority priority)
     HTProtocol *prot;
     if (!request) return HT_ERROR;
     if (!HTNetActive) HTNetActive = HTList_new();
-    prot = HTAnchor_protocol(request->anchor);
+    prot = (HTProtocol *) HTAnchor_protocol(request->anchor);
 
     /* Create new net object and bind it to the request object */
     if ((me = (HTNet *) calloc(1, sizeof(HTNet))) == NULL)
