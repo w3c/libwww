@@ -337,7 +337,7 @@ PUBLIC char * HTLocalName ARGS1(CONST char *,name)
 
     if (0==strcmp(access, "file")) { /* local file */
         free(access);	
-	if ((0==strcasecomp(host, HTHostName())) ||
+	if ((0==strcasecomp(host, HTGetHostName())) ||
 	    (0==strcasecomp(host, "localhost")) || !*host) {
 	    free(host);
 	    if (TRACE) fprintf(stderr, "Node........ `%s' means path `%s'\n", name, path);
@@ -398,9 +398,9 @@ PUBLIC char * WWW_nameOfFile ARGS1 (CONST char *,name)
 	if (result == NULL) outofmem(__FILE__, "WWW_nameOfFile");
 	sprintf(result, "file://%s", name+5);
     } else {
-        result = (char *)malloc(7+strlen(HTHostName())+strlen(name)+1);
+        result = (char *)malloc(7+strlen(HTGetHostName())+strlen(name)+1);
 	if (result == NULL) outofmem(__FILE__, "WWW_nameOfFile");
-	sprintf(result, "file://%s%s", HTHostName(), name);
+	sprintf(result, "file://%s%s", HTGetHostName(), name);
     }
     if (TRACE) fprintf(stderr, "File `%s'\n\tmeans node `%s'\n", name, result);
     return result;
@@ -793,7 +793,7 @@ open_file:
     /* Now, as transparently mounted access has failed, we try FTP. */
     {
 	char *nodename = HTParse(url, "", PARSE_HOST);
-	if (nodename && *nodename && strcmp(nodename, HTHostName())!=0) {
+	if (nodename && *nodename && strcmp(nodename, HTGetHostName())!=0) {
 	    char * newname = NULL;
 	    char *unescaped = NULL;
 	    StrAllocCopy(unescaped, url);

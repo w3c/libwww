@@ -153,10 +153,13 @@ extern int HTParseInet PARAMS((struct sockaddr_in *	sin,
 <H3>Name of a Machine on the Other Side of a Socket</H3>
 
 This function should have been called HTGetHostByAddr but for historical
-reasons this is not the case.
+reasons this is not the case. <P>
+
+<EM><NOTE>Note:</NOTE>This function used to be called HTGetHostName but
+this is now used to find you own host name, see <A HREF="HTTCP.html#HTGetHostName">HTGetHostName()</A></EM>
 
 <PRE>
-extern char * HTGetHostName PARAMS((int soc));
+extern char * HTGetHostBySock PARAMS((int soc));
 </PRE>
 
 <H3>Host address retuned for specified host name</H3>
@@ -171,14 +174,46 @@ extern char * HTGetHostByName PARAMS((char *host, SockA *sin, BOOL *multi));
 </PRE>
 
 
-<H3>Get Name of This Machine</H3>
+<A NAME="HTGetHostName"><H3>Get Name of This Machine</H3></A>
 
 This functions a char pointer to a static location containing the name of this
 host.
 
 <PRE>
-extern CONST char * HTHostName NOPARAMS;
+extern CONST char * HTGetHostName NOPARAMS;
 </PRE>
+
+
+<H3>Set Name of This Machine</H3>
+
+This function overwrites any other value of current host name. This might
+be set by the user to change the value in the ID value parsed to a news host
+when posting.
+
+<PRE>
+extern void HTSetHostName PARAMS((char * host));
+</PRE>
+
+
+<H3>Get User Mail Address</H3>
+
+This functions a char pointer to a static location containing the mail address
+of the current user.
+
+<PRE>
+extern CONST char * HTGetMailAddress NOPARAMS;
+</PRE>
+
+
+<H3>Set User Mail Address</H3>
+
+This function overwrites any other value of current mail address. This might
+be set by the user to change the value in the  <A HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html#from">From field</A> in the <A HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/HTTP2.html">HTTP Protocol</A>.
+
+<PRE>
+extern void HTSetMailAddress PARAMS((char * address));
+</PRE>
+
 
 <PRE>
 #endif   /* HTTCP_H */
@@ -186,3 +221,6 @@ extern CONST char * HTHostName NOPARAMS;
 End of file
 </BODY>
 </HTML>
+
+
+

@@ -12,7 +12,9 @@
 **			and HTDoAccept
 */
 
+#include <pwd.h>
 #include "tcp.h"		/* Defines SHORT_NAMES if necessary */
+
 #include "HTUtils.h"
 #include "HTAtom.h"
 #include "HTList.h"
@@ -65,6 +67,7 @@ typedef struct _host_info {
 } host_info;
 
 PRIVATE char *hostname = NULL;			    /* The name of this host */
+PRIVATE char *mailaddress = NULL;		     /* Current mail address */
 PRIVATE HTList *hostcache = NULL;  /* List of servers that we have talked to */
 PRIVATE unsigned int HTCacheSize = 0;		    /* Current size of cache */
 
@@ -207,35 +210,9 @@ PUBLIC unsigned int HTCardinal ARGS3
     return n;
 }
 
-
-#ifndef DECNET  /* Function only used below for a trace message */
-
-/*	Produce a string for an Internet address
-**	----------------------------------------
-**
-** On exit,
-**	returns	a pointer to a static string which must be copied if
-**		it is to be kept.
-*/
-
-PUBLIC CONST char * HTInetString ARGS1(SockA *, sin)
-{
-#if 0
-    /* This dumps core on some Sun systems :-(. Yhe problem is now, that 
-       the current implememtation only works for IP-addresses and not in
-       other address spaces. */
-    return inet_ntoa(sin->sin_addr);
-#endif
-    static char string[16];
-    sprintf(string, "%d.%d.%d.%d",
-	    (int)*((unsigned char *)(&sin->sin_addr)+0),
-	    (int)*((unsigned char *)(&sin->sin_addr)+1),
-	    (int)*((unsigned char *)(&sin->sin_addr)+2),
-	    (int)*((unsigned char *)(&sin->sin_addr)+3));
-    return string;
-}
-#endif /* Decnet */
-
+/* ------------------------------------------------------------------------- */
+/*	       		     HOST CACHE MANAGEMENT 			     */
+/* ------------------------------------------------------------------------- */
 
 /*                                                     HTTCPCacheRemoveElement
 **
@@ -406,6 +383,38 @@ PUBLIC void HTTCPAddrWeights ARGS2(char *, host, time_t, deltatime)
     }
 }
 
+/* ------------------------------------------------------------------------- */
+/*	       		     HOST NAME FUNCTIONS 			     */
+/* ------------------------------------------------------------------------- */
+
+#ifndef DECNET  /* Function only used below for a trace message */
+
+/*	Produce a string for an Internet address
+**	----------------------------------------
+**
+** On exit,
+**	returns	a pointer to a static string which must be copied if
+**		it is to be kept.
+*/
+
+PUBLIC CONST char * HTInetString ARGS1(SockA *, sin)
+{
+#if 0
+    /* This dumps core on some Sun systems :-(. Yhe problem is now, that 
+       the current implememtation only works for IP-addresses and not in
+       other address spaces. */
+    return inet_ntoa(sin->sin_addr);
+#endif
+    static char string[16];
+    sprintf(string, "%d.%d.%d.%d",
+	    (int)*((unsigned char *)(&sin->sin_addr)+0),
+	    (int)*((unsigned char *)(&sin->sin_addr)+1),
+	    (int)*((unsigned char *)(&sin->sin_addr)+2),
+	    (int)*((unsigned char *)(&sin->sin_addr)+3));
+    return string;
+}
+#endif /* Decnet */
+
 
 /*	                                                     HTGetHostByName
 **
@@ -472,6 +481,43 @@ PUBLIC int HTGetHostByName ARGS3(char *, host, SockA *, sin, BOOL *, multi)
        single homed hosts it means the first value */
     memcpy(&sin->sin_addr, *(pres->addrlist+pres->offset), pres->addrlength);
     return 0;
+}
+
+
+/*
+**	Get host name of the machine on the other end of a socket.
+**
+**	THIS FUNCTION USED TO BE CALLED HTGetHostName()
+*/
+PUBLIC char * HTGetHostBySock ARGS1(int, soc)
+{
+    struct sockaddr addr;
+    int len = sizeof(struct sockaddr);
+    struct in_addr *iaddr;
+    struct hostent * phost;		/* Pointer to host -- See netdb.h */
+    char *name = NULL;
+
+#ifdef DECNET  /* Decnet ain't got no damn name server 8#OO */
+    return NULL;
+#else
+    if (getpeername(soc, &addr, &len) < 0)
+	return NULL;
+
+    iaddr = &(((struct sockaddr_in *)&addr)->sin_addr);
+    phost=gethostbyaddr((char*)iaddr,
+			sizeof(struct in_addr),
+			AF_INET);
+    if (!phost) {
+	if (TRACE) fprintf(stderr,
+			   "TCP......... Can't find internet node name for peer!!\n");
+	return NULL;
+    }
+    StrAllocCopy(name, phost->h_name);
+    if (TRACE) fprintf(stderr, "TCP......... Peer name is `%s'\n", name);
+
+    return name;
+
+#endif	/* not DECNET */
 }
 
 
@@ -558,42 +604,6 @@ PUBLIC int HTParseInet ARGS3(SockA *,sin, CONST char *,str, BOOL *, multihome)
 }
 
 
-/*
-**	Get host name of the machine on the other end of a socket.
-**	THIS SHOULD BE CALLED HTGetHostByAddr :-(
-*/
-PUBLIC char * HTGetHostName ARGS1(int, soc)
-{
-    struct sockaddr addr;
-    int len = sizeof(struct sockaddr);
-    struct in_addr *iaddr;
-    struct hostent * phost;		/* Pointer to host -- See netdb.h */
-    char *name = NULL;
-
-#ifdef DECNET  /* Decnet ain't got no damn name server 8#OO */
-    return NULL;
-#else
-    if (getpeername(soc, &addr, &len) < 0)
-	return NULL;
-
-    iaddr = &(((struct sockaddr_in *)&addr)->sin_addr);
-    phost=gethostbyaddr((char*)iaddr,
-			sizeof(struct in_addr),
-			AF_INET);
-    if (!phost) {
-	if (TRACE) fprintf(stderr,
-			   "TCP......... Can't find internet node name for peer!!\n");
-	return NULL;
-    }
-    StrAllocCopy(name, phost->h_name);
-    if (TRACE) fprintf(stderr, "TCP......... Peer name is `%s'\n", name);
-
-    return name;
-
-#endif	/* not DECNET */
-}
-
-
 #ifdef OLD_CODE
 /*	Derive the name of the host on which we are
 **	-------------------------------------------
@@ -637,7 +647,23 @@ PRIVATE void get_host_details NOARGS
 }
 #endif /* OLD_CODE */
 
-/*								HTHostName
+
+/*								HTSetHostName
+**	Sets the current hostname inclusive domain name.
+**	If this is not set then the default approach is used using
+**	HTGetHostname().
+*/
+PUBLIC void HTSetHostName ARGS1(char *, host)
+{
+    if (host && *host)
+	StrAllocCopy(hostname, host);
+    else {
+	if (TRACE) fprintf(stderr, "SetHostName. Bad argument ignored\n");
+    }
+}
+
+
+/*								HTGetHostName
 **	Returns the name of this host. It uses the following algoritm:
 **
 **	1) gethostname()
@@ -654,7 +680,7 @@ PRIVATE void get_host_details NOARGS
 **
 **	Return: hostname on success else NULL
 */
-PUBLIC CONST char * HTHostName NOARGS
+PUBLIC CONST char * HTGetHostName NOARGS
 {
     BOOL got_it = NO;
     FILE *fp;
@@ -739,6 +765,73 @@ PUBLIC CONST char * HTHostName NOARGS
 #endif /* not Decnet */
 }
 
+
+/*							       HTSetMailAddress
+**	Sets the current mail address plus host name and domain name.
+**	If this is not set then the default approach is used using
+**	HTGetMailAddress().
+*/
+PUBLIC void HTSetMailAddress ARGS1(char *, address)
+{
+    if (address && *address)
+	StrAllocCopy(mailaddress, address);
+    else {
+	if (TRACE) fprintf(stderr, "SetMailAddress. Bad argument ignored\n");
+    }
+}
+
+
+/*							       HTGetMailAddress
+**
+**	Get the mail address of the current user on the current host. The
+**	domain name used is the one initialized in HTSetHostName or
+**	HTGetHostName. The login name is determined using (ordered):
+**
+**		getlogin
+**		getpwuid(getuid())
+**
+**	The weakness about the last attempt is if the user has multiple
+**	login names each with the same user ID. If this fails as well then:
+**
+**		LOGNAME environment variable
+**		USER environment variable
+**
+**	Returns NULL if error else pointer to static string
+*/
+PUBLIC CONST char * HTGetMailAddress NOARGS
+{
+    char *login;
+    CONST char *domain;
+    struct passwd *pw_info;
+    if (mailaddress)
+	return mailaddress;
+    if ((login = (char *) getlogin()) == NULL) {
+	if (TRACE) fprintf(stderr, "MailAddress. getlogin returns NULL\n");
+	if ((pw_info = getpwuid(getuid())) == NULL) {
+	    if (TRACE) fprintf(stderr, "MailAddress. getpwid returns NULL\n");
+	    if ((login = getenv("LOGNAME")) == NULL) {
+		if (TRACE) fprintf(stderr, "MailAddress. LOGNAME not found\n");
+		if ((login = getenv("USER")) == NULL) {
+		    if (TRACE) fprintf(stderr,"MailAddress. USER not found\n");
+		    return NULL;		/* I GIVE UP */
+		}
+	    }
+	} else
+	    login = pw_info->pw_name;
+    }
+    if (login) {
+	StrAllocCopy(mailaddress, login);
+	StrAllocCat(mailaddress, "@");
+	if ((domain = HTGetHostName()) != NULL)
+	    StrAllocCat(mailaddress, domain);
+	return mailaddress;
+    }
+    return NULL;
+}
+
+/* ------------------------------------------------------------------------- */
+/*	       	      CONNECTION ESTABLISHMENT MANAGEMENT 		     */
+/* ------------------------------------------------------------------------- */
 
 /*								HTDoConnect()
 **
