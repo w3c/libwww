@@ -29,30 +29,28 @@
 # SUCH DAMAGE.
 
 # defaults:
-$plotwindow = 0;
-$local = '<$from>';
-$remote = '<$to>';
-$LPlot = 'a2b.xplot';
-$RPlot = 'b2a.xplot';
+$Plotwindow = 0;
+$Plot = '$from.".xplot"';
 $Tcpdump = 'STDIN';
 $Usage_first = 1;
+$BreakOnSyns = 0;
 
 # other initializations
-$ClientPackets = 0;
-$ServerPackets = 0;
-$ClientBytes = 0;
-$ServerBytes = 0;
-$StartTime = 0;
+#$Packets;
+#$Bytes;
+#$StartTime = 0;
+#$LastTime;
+#$State;	# 'synSent', 'synRecvd', 'synackSent', 'synackRecvd', 'finSent', 'finRecvd', 'finackSent', 'finackRecvd'
 
 sub usage
 {
     return if (!$Usage_first);
     $Usage_first = 0;
     print <<"END_OF_USAGE";
-Usage: $0 [-w] [-lname<host:port>] [-rname<host:port>] [-lplot<file>] [-rplot<file>] [-?] [-help]
--w: plotwindow
--lname/-rname<host:port>: set local or remote name to <host:port>
--lplot/-rplot<file>: plot local or remote packets in <file>
+Usage: $0 [-w] [-s] [-plot<file>] [-?] [-help]
+-w: plot window
+-s: break up conversations on syns
+-plot<file>: plot packets in <file>
 -?/-help: this message
 END_OF_USAGE
 }
@@ -65,15 +63,11 @@ sub ReadArg
 	&usage;
 	exit(0);
     } elsif ($arg eq 'w') {
-	$plotwindow = 1;
-    } elsif (substr($arg, 0, 5) eq 'lname') {
-        $local = substr($arg, 5);
-    } elsif (substr($arg, 0, 5) eq 'rname') {
-        $remote = substr($arg, 5);
-    } elsif (substr($arg, 0, 5) eq 'lplot') {
-        $LPlot = substr($arg, 5);
-    } elsif (substr($arg, 0, 5) eq 'rplot') {
-        $RPlot = substr($arg, 5);
+	$Plotwindow = 1;
+    } elsif ($arg eq 's') {
+	$BreakOnSyns = 1;
+    } elsif (substr($arg, 0, 4) eq 'plot') {
+        $Plot = substr($arg, 4);
     } else {
 	&usage();
         print "unknown argument \"$arg\".\n";
@@ -97,17 +91,65 @@ sub subTimes
     return ($big - $little);
 }
 
+sub newConversation
+{
+    local($from, $to, $time) = @_;
+    local($name) = eval($Plot);
+    open($from, ">$name") || die "error opening \"$from\" for writing: $!\n";
+    $LastSendSeq{$from} = -1;
+    $LastSendSeqLast{$from} = -1;
+    print $from "timeval signed\ntitle\n$from-->$to\n";
+    $StartTime{$from} = $time;
+    push(@Froms, $from);
+}
+
+sub closeOut
+{
+    local($from) = @_;
+    print $from "go\n";
+    $TotalPackets += $Packets{$from};
+    $TotalBytes += $Bytes{$from};
+    print "$from: $Packets{$from} packets $Bytes{$from} bytes took ", 
+	&subTimes($LastTime{$from}, $StartTime{$from}), "\n";
+    $MaxLast = $LastTime{$from} if (!defined($MaxLast) || $LastTime{$from} > $MaxLast);
+    $MinFirst = $StartTime{$from} if (!defined($MinFirst) || $StartTime{$from} < $MinFirst);
+}
+
+sub clearOut
+{
+    local($from) = @_;
+    delete $LastSendSeq{$from};
+    delete $LastSendSeqLast{$from};
+    delete $Packets{$from};
+    delete $Bytes{$from};
+    delete $LastTime{$from};
+    delete $StartTime{$from};
+    delete $firstseq{$from};
+    delete $last_time{$from};
+    delete $last_ack{$from};
+    delete $last_wind{$from};
+    delete $Mode{$from};
+    delete $Served{$from};	# not needed now because server is never cleared
+}
+
+sub removeFrom
+{
+    local($from) = @_;
+    local($i);
+    foreach $i ($[ .. $#Froms) {
+	if ($Froms[$i] eq $from) {
+	    splice(@Froms, $i, 1);
+	    return 1;
+	}
+    }
+    return 0;
+}
+
 while (@ARGV[0] =~ /^-/ && &ReadArg(shift(@ARGV))) {}
 if (($inputFile = shift(@ARGV))) {
     open (TCPDUMP, "<$inputFile") || die "error opening \"$inputFile\" for reading: $!\n";
     $Tcpdump = 'TCPDUMP';
 }
-
-open(ABPL, ">$LPlot") || die "error opening \"$LPlot\" for writing: $!\n";
-open(BAPL, ">$RPlot") || die "error opening \"$RPlot\" for writing: $!\n";
-
-@lastsendseq = (-1, -1);
-@lastsendseqlast = (-1, -1);
 
 for ($lineNo = 1; <$Tcpdump>; $lineNo++) {
     chop;
@@ -118,44 +160,44 @@ for ($lineNo = 1; <$Tcpdump>; $lineNo++) {
     chop($to);			# strip off colon
     $flags = $_[4];
 
-    $local = eval($1) if ($local =~ m/<(\$\w+)>/);
-    $remote = eval($1) if ($remote =~ m/<(\$\w+)>/);
+    last if (/\d+\s+packets/);
+    &newConversation($from, $to, $time) if (!(defined($StartTime{$from})));
 
-    if ($from eq $local) {
-	$topl = BAPL;
-	$frompl = ABPL;
-	$lastndx = 0;
-	$ClientPackets++;
-	$bytes = 'ClientBytes';
-    } else {
-	$topl = ABPL;
-	$frompl = BAPL;
-	$lastndx = 1;
-	$ServerPackets++;
-	$bytes = 'ServerBytes';
+    if ($flags =~ /S/) {
+	if ($Mode{$from} eq 'client') {		# re-used client socket's syn
+	    if ($BreakOnSyns) {
+		&closeOut($from);
+		&removeFrom($from);
+		&clearOut($from);
+		&newConversation($from, $to, $time);
+		$Mode{$from} = 'client';
+	    }
+	} elsif ($Mode{$from} eq 'server') {	# server's syn
+	    $Served{$from}++;
+	} else {				# client socket's syn
+	    $Mode{$from} = 'client';
+	    $Mode{$to} = 'server';
+	}
     }
 
-    if ($lineNo == 1) {
-	print ABPL "timeval signed\ntitle\n$local-->$remote\n";
-	print BAPL "timeval signed\ntitle\n$remote-->$local\n";
-	$StartTime = $time;
-    }
+    $LastTime{$from} = $time;
+    $Packets{$from}++;
 
     if (/$flags ([0-9]*):([0-9]*)\(([0-9]*)\) /) {
-	$lastsendseq[$lastndx] = $sendseq = $1;
-	if (!defined $firstseq[$lastndx]) {
-	    $firstseq[$lastndx] = $1;
+	$LastSendSeq{$from} = $sendseq = $1;
+	if (!defined $firstseq{$from}) {
+	    $firstseq{$from} = $1;
 	}
-	$lastsendseqlast[$lastndx] = $sendseqlast = $2;
+	$LastSendSeqLast{$from} = $sendseqlast = $2;
 	$datalength = $3;
-	$$bytes += $3;
+	$Bytes{$from} += $3;
     } else {
-	$sendseq = $lastsendseq[$lastndx];
-	$sendseqlast = $lastsendseq[$lastndx];
+	$sendseq = $LastSendSeq{$from};
+	$sendseqlast = $LastSendSeq{$from};
     }
 
-    $sendseq -= $firstseq[$lastndx];
-    $sendseqlast -= $firstseq[$lastndx];
+    $sendseq -= $firstseq{$from};
+    $sendseqlast -= $firstseq{$from};
 
     if (/win ([0-9]*)/) {	# remove space in "]*) /" to handle win <num><EOL> - EGP
 	$window = $1;
@@ -165,57 +207,48 @@ for ($lineNo = 1; <$Tcpdump>; $lineNo++) {
 
     if (/ack ([0-9]*) /) {
 	$ack = $1;
-	if ($lastndx) {
-	    $ack -= $firstseq[0] if ($ack >= $firstseq[0]);
-	} else {
-	    $ack -= $firstseq[1] if ($ack >= $firstseq[1]);
-	}
+	$ack -= $firstseq{$to} if ($ack >= $firstseq{$to});
     } else {
 	$ack = -1;
     }
 
-    print $frompl "darrow $time $sendseq\n";
-    print $frompl "uarrow $time $sendseqlast\n";
-    print $frompl "line $time $sendseq $time $sendseqlast\n";
+    print $from "darrow $time $sendseq\n";
+    print $from "uarrow $time $sendseqlast\n";
+    print $from "line $time $sendseq $time $sendseqlast\n";
 
     if ($ack != -1) {
 	$winend = $ack + $window;
-	if (defined $last_time[$lastndx]) {
-	    print $topl "line $last_time[$lastndx] $last_ack[$lastndx] ";
-	    print $topl "$time $last_ack[$lastndx]\n";
-	    if ($last_ack[$lastndx] != $ack) {
-		print $topl "line $time $last_ack[$lastndx] $time $ack\n";
+	if (defined $last_time{$from}) {
+	    print $to "line $last_time{$from} $last_ack{$from} ";
+	    print $to "$time $last_ack{$from}\n";
+	    if ($last_ack{$from} != $ack) {
+		print $to "line $time $last_ack{$from} $time $ack\n";
 	    } else {
-		print $topl "dtick $time $ack\n";
+		print $to "dtick $time $ack\n";
 	    }
 
-	    if ($plotwindow) {
-		print $topl "line $last_time[$lastndx] $last_wind[$lastndx] ";
-		print $topl "$time $last_wind[$lastndx]\n";
-		if ($last_wind[$lastndx] != $winend) {
-		    print $topl "line $time $last_wind[$lastndx] $time $winend\n";
+	    if ($Plotwindow) {
+		print $to "line $last_time{$from} $last_wind{$from} ";
+		print $to "$time $last_wind{$from}\n";
+		if ($last_wind{$from} != $winend) {
+		    print $to "line $time $last_wind{$from} $time $winend\n";
 		} else {
-		    print $topl "utick $time $winend\n";
+		    print $to "utick $time $winend\n";
 		}
 	    }
 	}
-	$last_time[$lastndx] = $time;
-	$last_ack[$lastndx] = $ack;
-	$last_wind[$lastndx] = $winend;
+	$last_time{$from} = $time;
+	$last_ack{$from} = $ack;
+	$last_wind{$from} = $winend;
     }
 }
 
-print ABPL "go\n";
-print BAPL "go\n";
-close(ABPL); close(BAPL);
+foreach $from (@Froms) {
+    &closeOut($from);
+}
 
-$TotalPackets = $ClientPackets+$ServerPackets;
-$TotalBytes = $ClientBytes+$ServerBytes;
-
-print "client to server: $ClientPackets packets $ClientBytes bytes\n";
-print "server to client: $ServerPackets packets $ServerBytes bytes\n";
-print "           total: $TotalPackets packets $TotalBytes bytes\n";
-print "            time: ", &subTimes($time, $StartTime), "\n";
+print "           total: $TotalPackets packets $TotalBytes bytes took ",
+    &subTimes($MaxLast, $MinFirst), "\n";
 print "      efficiency: ", $TotalBytes/($TotalBytes + $TotalPackets*40), "\n";
 
 exit 0;
