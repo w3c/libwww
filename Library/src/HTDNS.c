@@ -185,6 +185,10 @@ PUBLIC BOOL HTDNS_setSocket(HTdns *dns, SOCKET socket)
 	dns->expires = time(NULL) + TCPTimeout;		  /* Default timeout */
 	HTList_addObject(PersSock, dns);
 	return YES;
+    } else {
+	if (PROT_TRACE)
+	    TTYPrint(TDEST, "DNS Socket.. not room for persistent socket %d\n",
+		     socket);
     }
     if (PROT_TRACE)
 	TTYPrint(TDEST, "DNS Socket.. semaphor is %d for soc %d\n",
@@ -375,13 +379,14 @@ PUBLIC int HTDNS_closeSocket(SOCKET soc, HTRequest * request, SockOps ops)
 	HTdns *pres;
 	while ((pres = (HTdns *) HTList_nextObject(cur))) {
 	    if (pres->sockfd == soc) {
-		if (PROT_TRACE) TTYPrint(TDEST, "DNS Close... socket %d\n",soc);
+		if (PROT_TRACE)TTYPrint(TDEST, "DNS Close... socket %d\n",soc);
 		NETCLOSE(soc);
 		HTDNS_setSocket(pres, INVSOC);
 		break;
 	    }
 	}
-	if (!pres) TTYPrint(TDEST, "DNS Close... socket NOT FOUND!\n");
+	if (!pres)
+	    if (PROT_TRACE)TTYPrint(TDEST, "DNS Close... socket NOT FOUND!\n");
     }
     HTEvent_UnRegister(soc, (SockOps) FD_ALL);
     return HT_OK;
