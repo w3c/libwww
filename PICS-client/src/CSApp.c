@@ -530,10 +530,9 @@ PRIVATE int CSApp_headerGenerator (HTRequest * pReq, HTStream * target)
 }
 
 /*HTParserCallback CSApp_headerParser;*/
-PRIVATE int CSApp_headerParser (HTRequest * pReq, const char * token)
+PRIVATE int CSApp_headerParser (HTRequest * pReq, char * token, char * value)
 {
     char * label;
-    char * value = 0;
     CSParse_t * pCSParse;
     ReqParms_t * pReqParms = ReqParms_getReq(pReq);
 
@@ -543,10 +542,6 @@ PRIVATE int CSApp_headerParser (HTRequest * pReq, const char * token)
     }
     if (!pReqParms->pCSUser) /* if there is no user */
        	return HT_OK;             /* send the document on its way */
-    StrAllocCopy(value, token);
-    if ((label = HTNextField(&value)) == NULL) {
-        return HT_ERROR;
-    }
  /*   pReqParms->disposition = CSCheckLabel_parseAndValidateLabelStr(value, pReqParms->pCSUser); */
     pCSParse = CSParse_newLabel(0, 0);
 
