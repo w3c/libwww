@@ -1,6 +1,4 @@
-   /*
-   
- */
+/*  */
 
 /*              C File Writer                   HTWriter.c
 **              -------------

@@ -1,6 +1,4 @@
-   /*
-   
- */
+/*  */
 
 /*      Macros for general use                                  HTUtils.h
 **

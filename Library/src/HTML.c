@@ -713,8 +713,10 @@ PUBLIC HTStructured* HTML_new ARGS3(
 
     HTStructured * me;
     
-    if (format_out == WWW_HTML) return HTMLGenerator(stream);
     if (format_out != WWW_PLAINTEXT && format_out != WWW_PRESENT) {
+        me = HTStreamStack(WWW_HTML, format_out,
+		HTMLGenerator(stream), anchor);
+	if (me) return me;
         fprintf(stderr, "** Internal error: can't parse HTML to %s\n",
        		HTAtom_name(format_out));
 	exit (-99);

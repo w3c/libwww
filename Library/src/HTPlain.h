@@ -1,6 +1,4 @@
-   /*
-   
- */
+/*  */
 
 /*              Plain text object                       HTPlain.h
 **              -----------------

@@ -1,18 +1,18 @@
-/*                                                                                                                                  /Net/dxcern/userd/timbl/hypertext/WWW/Library/Implementation/SGML.html
-  
-   
-                                                                                      SGML AND STRUCTURED STREAMS
-                                                                                                    
+/*                     /Net/dxcern/userd/timbl/hypertext/WWW/Library/Implementation/SGML.html
+                               SGML AND STRUCTURED STREAMS
+                                             
    The SGML parser is a state machine. It is called for every character
    
    of the input stream. The DTD data structure contains pointers
    
    to functions which are called to implement the actual effect of the
    
-   text read. When these functions are called, the attribute structures pointed to by the DTD are valid, and the function is passed a pointer to the curent tag structure, and an "element stack" which
-   represents the state of nesting within SGML elements.
+   text read. When these functions are called, the attribute structures pointed to by the
+   DTD are valid, and the function is passed a pointer to the curent tag structure, and an
+   "element stack" which represents the state of nesting within SGML elements.
    
-   The following aspects are from Dan Connolly's suggestions:  Binary search, Strcutured object scheme basically, SGML content enum type.
+   The following aspects are from Dan Connolly's suggestions:  Binary search, Strcutured
+   object scheme basically, SGML content enum type.
    
    (c) Copyright CERN 1991 - See Copyright.html
    

@@ -203,17 +203,15 @@ retry:
 	}
     }
        
+    StrAllocCat(command, "\015\012");	/* Blank line means "end" */
+#ifdef NOT_ASCII
     {
     	char * p;
-	char crlf[3] = "\015\012";
-	StrAllocCat(command, crlf);	/* Blank line means "end" */
-#ifdef NOT_ASCII
 	for(p = command; *p; p++) {
 	    *p = TOASCII(*p);
 	}
-#endif
-
     }
+#endif
 
     if (TRACE) fprintf(stderr, "HTTP Tx: %s\n", command);
     status = NETWRITE(s, command, (int)strlen(command));

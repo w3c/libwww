@@ -1,6 +1,4 @@
-   /*
-   
- */
+/*  */
 
 /*              Unix File or Socket Writer                      HTWriter.c
 **              --------------------------

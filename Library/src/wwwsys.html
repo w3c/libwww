@@ -41,7 +41,7 @@ xmosaic release
 by system-specific sections later
 on.  there are also a bunch of <A
 NAME=z2 HREF="#z1">defaults
-at the end</A>.
+at the end</A> .
 <PRE>/* Default values of those: */
 #define NETCLOSE close	    /* Routine to close a TCP-IP socket		*/
 #define NETREAD  read	    /* Routine to read from a TCP-IP socket	*/
@@ -248,8 +248,9 @@ extern char asciitoebcdic[], ebcdictoascii[];
 </PRE>
 <H2>IBM-PC running MS-DOS with SunNFS
 for TCP/IP</H2>This code thanks to Eelco van Asperen
-&lt;evas@cs.few.eur.nl>#ifdef PCNFS
-<PRE>#include &lt;sys/types.h>
+&lt;evas@cs.few.eur.nl>
+<PRE>#ifdef PCNFS
+#include &lt;sys/types.h>
 #include &lt;string.h>
 #include &lt;errno.h>	    /* independent */
 #include &lt;sys/time.h>	    /* independent */
@@ -457,4 +458,4 @@ NAME=z0>M</A> acros for converting characters</H3>
 
 
 
-</PRE>end of system-specific file</A></BODY>
+</PRE>end of system-specific file</BODY>

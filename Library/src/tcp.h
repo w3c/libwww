@@ -12,6 +12,8 @@
                          
   MA                      Marc Andreesen NCSA
                          
+  AT                      Aleksandar Totic (atotic@ncsa.uiuc.edu)
+                         
   HISTORY:
   
   22 Feb 91               Written (TBL) as part of the WWW library.
@@ -25,6 +27,14 @@
 #ifndef TCP_H
 #define TCP_H
 
+/*
+
+Default values
+
+   These values may be reset and altered by system-specific sections later on.  there are
+   also a bunch of defaults at the end .
+   
+ */
 /* Default values of those: */
 #define NETCLOSE close      /* Routine to close a TCP-IP socket         */
 #define NETREAD  read       /* Routine to read from a TCP-IP socket     */
@@ -48,15 +58,17 @@ typedef struct sockaddr_in SockA;  /* See netinet/in.h */
 #endif
 
 
-/*      Macintosh - Think-C
-**      -------------------
-**
-**      Think-C is one development environment on the Mac.
-**
-**      We recommend that you compile with 4-byte ints to be compatible
-**      with MPW C.  We used Tom Milligan's s_socket library which was
-**      written for 4 byte int, and the MacTCP library assumes 4-byte int.
-*/
+/*
+
+Macintosh - Think-C
+
+   Think-C is one development environment on the Mac.
+   
+   We recommend that you compile with 4-byte ints to be compatible with MPW C.  We used
+   Tom Milligan's s_socket library which was written for 4 byte int, and the MacTCP
+   library assumes 4-byte int.
+   
+ */
 #ifdef THINK_C
 #undef GOT_SYSTEM
 #define DEBUG                   /* Can't put it on the CC command line  */
@@ -98,12 +110,60 @@ extern unsigned long inet_addr(const char * name);
 #endif /* THINK_C */
 
 
+/*
+
+Macintosh - MPW
+
+   MPW is one development environment on the Mac.
+   
+   This entry was created by Aleksandar Totic (atotic@ncsa.uiuc.edu) this file is
+   compatible with sockets package released by NCSA.  One major conflict is that this
+   library redefines write/read/etc as macros.  In some of HTML code these macros get
+   executed when they should not be. Such files should define NO_SOCKET_DEFS on top. This
+   is a temporary hack.
+   
+ */
+#ifdef applec                   /* MPW  */
+#undef GOT_SYSTEM
+#define DEBUG                   /* Can't put it on the CC command line */
+#define NO_UNIX_IO              /* getuid() missing
+*/
+#define NO_GETPID               /* getpid() does not exist
+*/
+#define NO_GETWD                /* getwd() does not exist
+*/
+
+#undef NETCLOSE             /* Routine to close a TCP-IP socket */
+#undef NETREAD              /* Routine to read from a TCP-IP socket */
+#undef NETWRITE             /* Routine to write to a TCP-IP socket */
+#define NETCLOSE s_close    /* Routine to close a TCP-IP socket */
+#define NETREAD  s_read     /* Routine to read from a TCP-IP socket */
+#define NETWRITE s_write    /* Routine to write to a TCP-IP socket */
+#define _ANSI_SOURCE
+#define GUI
+#define LINEFEED 10
+#define ANON_FTP_HOSTNAME
+#ifndef NO_SOCKET_DEFS
+#include <MacSockDefs.h>
+#endif
+
+#include <socket.ext.h>
+#include <string.h>
+
+#endif                 /* MPW */
+
+
+
 #ifndef STDIO_H
 #include <stdio.h>
 #define STDIO_H
 #endif
 
+/*
 
+IBM RS600
+
+ */
 /*      On the IBM RS-6000, AIX is almost Unix.
 **      But AIX must be defined in the makefile.
 */
@@ -114,11 +174,25 @@ extern unsigned long inet_addr(const char * name);
 #define unix
 #endif
 
+/*    AIX 3.2
+**    -------
+*/
+
+#ifdef _IBMR2
+#define USE_DIRENT
+#endif
+
+
+/*
+
+IBM VM-CMS, VM-XA Mainframes
+
+ */
 /*      MVS is compiled as for VM. MVS has no unix-style I/O
 **      The command line compile options seem to come across in
 **      lower case.
 **
-**      See aslo lots of VM stuff lower down.
+**      See also lots of VM stuff lower down.
 */
 #ifdef mvs
 #define MVS
@@ -137,7 +211,70 @@ extern unsigned long inet_addr(const char * name);
 #include <string.h>             /* For bzero etc - not  VM */
 #endif
 
+/*      Note:   All include file names must have 8 chars max (+".h")
+**
+**      Under VM, compile with "(DEF=VM,SHORT_NAMES,DEBUG)"
+**
+**      Under MVS, compile with "NOMAR DEF(MVS)" to get rid of 72 char margin
+**        System include files TCPIP and COMMMAC neeed line number removal(!)
+*/
 
+#ifdef VM                       /* or MVS -- see above. */
+#define NOT_ASCII               /* char type is not ASCII */
+#define NO_UNIX_IO              /* Unix I/O routines are not supported */
+#define NO_GETPID               /* getpid() does not exist */
+#define NO_GETWD                /* getwd() does not exist */
+#ifndef SHORT_NAMES
+#define SHORT_NAMES             /* 8 character uniqueness for globals */
+#endif
+#include <manifest.h>
+#include <bsdtypes.h>
+#include <stdefs.h>
+#include <socket.h>
+#include <in.h>
+#include <inet.h>
+#include <netdb.h>
+#include <errno.h>          /* independent */
+extern char asciitoebcdic[], ebcdictoascii[];
+#define TOASCII(c)   (c=='\n' ?  10  : ebcdictoascii[c])
+#define FROMASCII(c) (c== 10  ? '\n' : asciitoebcdic[c])
+
+#include <bsdtime.h>
+#include <time.h>
+#include <string.h>
+#define INCLUDES_DONE
+#define TCP_INCLUDES_DONE
+#endif
+
+
+/*
+
+IBM-PC running MS-DOS with SunNFS for TCP/IP
+
+   This code thanks to Eelco van Asperen &lt;evas@cs.few.eur.nl>
+   
+ */
+#ifdef PCNFS
+#include <sys/types.h>
+#include <string.h>
+#include <errno.h>          /* independent */
+#include <sys/time.h>       /* independent */
+#include <sys/stat.h>
+#include <fcntl.h>          /* In place of sys/param and sys/file */
+#define INCLUDES_DONE
+#define FD_SET(fd,pmask) (*(unsigned*)(pmask)) |=  (1<<(fd))
+#define FD_CLR(fd,pmask) (*(unsigned*)(pmask)) &= ~(1<<(fd))
+#define FD_ZERO(pmask)   (*(unsigned*)(pmask))=0
+#define FD_ISSET(fd,pmask) (*(unsigned*)(pmask) & (1<<(fd)))
+#endif  /* PCNFS */
+
+
+
+/*
+
+VAX/VMS
+
+ */
 /*      Under VMS, there are many versions of TCP-IP. Define one if you
 **      do not use Digital's UCX product:
 **
@@ -240,93 +377,37 @@ extern unsigned long inet_addr(const char * name);
 #endif  /* vms */
 
 
-/*      IBM VM/CMS or MVS
-**      -----------------
-**
-**      Note:   All include file names must have 8 chars max (+".h")
-**
-**      Under VM, compile with "(DEF=VM,SHORT_NAMES,DEBUG)"
-**
-**      Under MVS, compile with "NOMAR DEF(MVS)" to get rid of 72 char margin
-**        System include files TCPIP and COMMMAC neeed line number removal(!)
-*/
 
-#ifdef VM                       /* or MVS -- see above. */
-#define NOT_ASCII               /* char type is not ASCII */
-#define NO_UNIX_IO              /* Unix I/O routines are not supported */
-#define NO_GETPID               /* getpid() does not exist */
-#define NO_GETWD                /* getwd() does not exist */
-#ifndef SHORT_NAMES
-#define SHORT_NAMES             /* 8 character uniqueness for globals */
-#endif
-#include <manifest.h>
-#include <bsdtypes.h>
-#include <stdefs.h>
-#include <socket.h>
-#include <in.h>
-#include <inet.h>
-#include <netdb.h>
-#include <errno.h>          /* independent */
-extern char asciitoebcdic[], ebcdictoascii[];
-#define TOASCII(c)   (c=='\n' ?  10  : ebcdictoascii[c])
-#define FROMASCII(c) (c== 10  ? '\n' : asciitoebcdic[c])
+/*
 
-#include <bsdtime.h>
-#include <time.h>
-#include <string.h>
-#define INCLUDES_DONE
-#define TCP_INCLUDES_DONE
-#endif
+SCO ODT unix version
 
+ */
 
-/*      IBM-PC running MS-DOS with SunNFS for TCP/IP
-**      ---------------------
-**
-**      This code thanks to Eelco van Asperen <evas@cs.few.eur.nl>
-*/
-
-#ifdef PCNFS
-#include <sys/types.h>
-#include <string.h>
-
-
-#include <errno.h>          /* independent */
-#include <sys/time.h>       /* independent */
-#include <sys/stat.h>
-#include <fcntl.h>          /* In place of sys/param and sys/file */
-#define INCLUDES_DONE
-
-#define FD_SET(fd,pmask) (*(unsigned*)(pmask)) |=  (1<<(fd))
-#define FD_CLR(fd,pmask) (*(unsigned*)(pmask)) &= ~(1<<(fd))
-#define FD_ZERO(pmask)   (*(unsigned*)(pmask))=0
-#define FD_ISSET(fd,pmask) (*(unsigned*)(pmask) & (1<<(fd)))
-#endif  /* PCNFS */
-
-
-/*    SCO ODT unix version
-**    -------------------------
-*/
 #ifdef sco
 #include <sys/fcntl.h>
 #define USE_DIRENT
 #endif
 
-/*    AIX 3.2
-**    -------
-*/
-#ifdef _IBMR2
-#define USE_DIRENT
-#endif
+/*
 
-/*      Regular BSD unix versions:      (default)
-**      -------------------------
-*/
+MIPS unix
 
+ */
 /* Mips hack (bsd4.3/sysV mixture...) */
+
 #ifdef mips
 extern int errno;
 #endif
 
+
+/*
+
+Regular BSD unix versions
+
+   These are a default unix where not already defined specifically.
+   
+ */
 #ifndef INCLUDES_DONE
 #include <sys/types.h>
 /* #include <streams/streams.h>                 not ultrix */
@@ -356,8 +437,13 @@ extern int errno;
 #endif
 #endif
 
-/*      Default include files for TCP
-*/
+/*
+
+Defaults
+
+  INCLUDE FILES FOR TCP
+  
+ */
 #ifndef TCP_INCLUDES_DONE
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -368,8 +454,11 @@ extern int errno;
 #endif  /* TCP includes */
 
 
-/*      Default macros for manipulating masks for select()
-*/
+/*
+
+  MACROS FOR MANIPULATING MASKS FOR SELECT()
+  
+ */
 #ifdef SELECT
 #ifndef FD_SET
 typedef unsigned int fd_set;
@@ -380,9 +469,11 @@ typedef unsigned int fd_set;
 #endif  /* FD_SET */
 #endif  /* SELECT */
 
-/*      Default macros for converting characters
-**
-*/
+/*
+
+  M ACROS FOR CONVERTING CHARACTERS
+  
+ */
 #ifndef TOASCII
 #define TOASCII(c) (c)
 #define FROMASCII(c) (c)
@@ -392,7 +483,6 @@ typedef unsigned int fd_set;
 
 
 
-
 /*
 
-    */
+   end of system-specific file  */
