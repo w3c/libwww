@@ -290,6 +290,8 @@ PUBLIC BOOL HTChannel_safeDeleteAll (void)
               HTChannel_delete (pres, HT_TIMEOUT);
               cur = channels[cnt];
             }
+	    HTList_delete (channels[cnt]);
+	    channels[cnt] = NULL;
           }
         }
         return YES;
