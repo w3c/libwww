@@ -507,7 +507,8 @@ PUBLIC BOOL HTLoadAnchor ARGS1(HTAnchor *,destination)
 PRIVATE char hex(i)
     int i;
 {
-    return i < 10 ? '0'+i : 'A'+ i - 10;
+    char * hexchars = "0123456789ABCDEF";
+    return hexchars[i];
 }
 
 PUBLIC BOOL HTSearch ARGS2(
@@ -546,7 +547,7 @@ PUBLIC BOOL HTSearch ARGS2(
         if (WHITE(*p)) {
 	    *q++ = '+';
 	} else if (c>=32 && c<=(char)127 && isAcceptable[c-32]) {
-	    *q++ = (char)c;
+	    *q++ = *p;			/* 930706 TBL for MVS bug */
 	} else {
 	    *q++ = '%';
 	    *q++ = hex(c / 16);

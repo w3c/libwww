@@ -691,7 +691,6 @@ PUBLIC int HTLoadFile ARGS4 (
 {
     char * filename;
     HTFormat format;
-    int fd = -1;		/* Unix file descriptor number = INVALID */
     char * nodename = 0;
     char * newname=0;	/* Simplified name of file */
     HTAtom * encoding;	/* @@ not used yet */
@@ -776,7 +775,7 @@ forget_multi:
 			"Multiformat: directory scan failed.");
 	    }
 	    
-	    while (dirbuf = readdir(dp)) {
+	    while ((dirbuf = readdir(dp))!=0) {
 			/* while there are directory entries to be read */
 		if (dirbuf->d_ino == 0) continue;
 				/* if the entry is not being used, skip it */
@@ -907,7 +906,7 @@ forget_multi:
 		{
 		    HTBTree * bt = HTBTree_new((HTComparer)strcasecomp);
 
-		    while (dirbuf = readdir(dp))
+		    while ((dirbuf = readdir(dp))!=0)
 		    {
 		        HTBTElement * dirname = NULL;
 

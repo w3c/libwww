@@ -159,6 +159,7 @@ char * HTParse(aName, relatedName, wanted)
     char * name = 0;
     char * rel = 0;
     char * p;
+    char * access;
     struct struct_parts given, related;
     
     /* Make working copies of input strings to cut up:
@@ -173,9 +174,10 @@ char * HTParse(aName, relatedName, wanted)
     scan(name, &given);
     scan(rel,  &related); 
     result[0]=0;		/* Clear string  */
+    access = given.access ? given.access : related.access;
     if (wanted & PARSE_ACCESS)
-        if (given.access|| related.access) {
-	    strcat(result, given.access ? given.access : related.access);
+        if (access) {
+	    strcat(result, access);
 	    if(wanted & PARSE_PUNCTUATION) strcat(result, ":");
 	}
 	
@@ -189,8 +191,30 @@ char * HTParse(aName, relatedName, wanted)
 	
     if (wanted & PARSE_HOST)
         if(given.host || related.host) {
+	    char * tail = result + strlen(result);
 	    if(wanted & PARSE_PUNCTUATION) strcat(result, "//");
 	    strcat(result, given.host ? given.host : related.host);
+#define CLEAN_URLS
+#ifdef CLEAN_URLS
+	    /* Ignore default port numbers, and trailing dots on FQDNs
+	       which will only cause identical adreesses to look different */
+	    {
+	    	char * p;
+		p = strchr(tail, ':');
+		if (p && access) {		/* Port specified */
+		    if (  (   strcmp(access, "http") == 0
+		    	   && strcmp(p, ":80") == 0 )
+			||
+		          (   strcmp(access, "gopher") == 0
+		    	   && strcmp(p, ":70") == 0 )
+		    	)
+		    *p = (char)0;	/* It is the default: ignore it */
+		}
+		if (!p) p = tail + strlen(tail); /* After hostname */
+		p--;				/* End of hostname */
+		if (*p == '.') *p = (char)0; /* chop final . */
+	    }
+#endif
 	}
 	
     if (given.host && related.host)  /* If different hosts, inherit no path. */

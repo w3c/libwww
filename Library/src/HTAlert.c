@@ -17,7 +17,11 @@
 
 PUBLIC void HTAlert ARGS1(CONST char *, Msg)
 {
+#ifdef NeXTStep
+    NXRunAlertPanel(NULL, "%s", NULL, NULL, NULL, Msg);
+#else
     fprintf(stderr, "WWW Alert:  %s\n", Msg);
+#endif
 }
 
 

@@ -92,9 +92,11 @@ static CONST char* entities[] = {
 static attr no_attr[] = 
 	{{ 0 }};
 
-static attr a_attr[] = {			/* Anchor attributes */
+static attr a_attr[] = {		/* Anchor attributes */
 	{ "HREF"},
-	{ "NAME" },				/* Should be ID */
+	{ "NAME" },			/* Should be ID */
+	{ "REL" },			/* Relationship */
+	{ "REV" },			/* Reverse relationship */
 	{ "TITLE" },
 	{ "TYPE" },
 	{ "URN" },
@@ -103,6 +105,7 @@ static attr a_attr[] = {			/* Anchor attributes */
 
 static attr img_attr[] = {			/* Anchor attributes */
 	{ "SRC"},
+	{ "ISMAP"},			/* @@@ Use HTTP SpaceJump instead */
 	{ 0 }	/* Terminate list */
 };	
 
@@ -133,8 +136,8 @@ static HTTag tags[HTML_ELEMENTS] = {
     { "A"	, a_attr,	HTML_A_ATTRIBUTES,	SGML_MIXED },
     { "ADDRESS"	, no_attr,	0,		SGML_MIXED },
     { "B"	, no_attr,	0,		SGML_MIXED },
-    { "BODY"	, no_attr,	0,		SGML_MIXED },
     { "BLOCKQUOTE", no_attr,	0,		SGML_MIXED },
+    { "BODY"	, no_attr,	0,		SGML_MIXED },
     { "CITE"	, no_attr,	0,		SGML_MIXED },
     { "CODE"	, no_attr,	0,		SGML_MIXED },
     { "COMMENT",  no_attr,	0,		SGML_MIXED },
@@ -155,14 +158,14 @@ static HTTag tags[HTML_ELEMENTS] = {
     { "H7"	, no_attr,	0,		SGML_MIXED },
     { "HTML"	, no_attr,	0,		SGML_MIXED },
     { "I"	, no_attr,	0,		SGML_MIXED },
-    { "IMG"     , img_attr,	0,		SGML_EMPTY },
+    { "IMG"     , img_attr,	2,		SGML_EMPTY },
     { "ISINDEX" , no_attr,	0,		SGML_EMPTY },
     { "KBD"	, no_attr,	0,		SGML_MIXED },
     { "LI"	, list_attr,	1,		SGML_EMPTY },
     { "LINK"	, a_attr,	HTML_A_ATTRIBUTES,	SGML_EMPTY },
     { "LISTING"	, no_attr,	0,		SGML_LITTERAL },
-    { "NEXTID"  , nextid_attr,	1,		SGML_EMPTY },
     { "MENU"	, list_attr,	1,		SGML_MIXED },
+    { "NEXTID"  , nextid_attr,	1,		SGML_EMPTY },
     { "OL"	, list_attr,	1,		SGML_MIXED },
     { "P"	, no_attr,	0,		SGML_EMPTY },
     { "PLAINTEXT", no_attr,	0,		SGML_LITTERAL },

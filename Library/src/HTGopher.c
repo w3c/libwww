@@ -348,8 +348,6 @@ PUBLIC int HTLoadGopher ARGS4(
     sin->sin_family = AF_INET;	    		/* Family, host order  */
     sin->sin_port = htons(GOPHER_PORT);	    	/* Default: new port,  */
 
-    if (TRACE) fprintf(stderr, "HTTPAccess: Looking for %s\n", arg);
-
 /* Get node name and optional port number:
 */
     {
@@ -376,7 +374,7 @@ PUBLIC int HTLoadGopher ARGS4(
 		target = HTML_new(anAnchor, format_out, sink);
 		targetClass = *target->isa;
 		display_index(arg, anAnchor);	/* Display "cover page" */
-		return 1;			/* Local function only */
+		return HT_LOADED;		/* Local function only */
 	    }
 	    *query++ = 0;			/* Skip '?' 	*/
 	    command = malloc(strlen(selector)+ 1 + strlen(query)+ 2 + 1);

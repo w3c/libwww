@@ -37,12 +37,7 @@ struct _HTStructured {
 	/* ... */
 };
 
-#ifdef NeXTStep
-#include <appkit/defaults.h>
-#define NEWS_PROGRESS(foo)
-#else
-#define NEWS_PROGRESS(foo) fprintf(stderr, "%s\n", (foo))
-#endif
+#define NEWS_PROGRESS(foo) HTProgress(foo)
 
 
 #define NEXT_CHAR HTGetChararcter()
@@ -141,15 +136,11 @@ PRIVATE BOOL initialize NOARGS
     } else {		    /* Alphanumeric node name: */
 	phost=gethostbyname((char*)HTNewsHost);	/* See netdb.h */
 	if (!phost) {
-#ifdef NeXTStep
-	    NXRunAlertPanel(NULL, "Can't find news host name `%s'.",
-	    	NULL, NULL, NULL, HTNewsHost);
-#else
-	    fprintf(stderr,
-	      "HTNews: Can't find news host `%s'.\n",HTNewsHost);
-	    fprintf(stderr,
-"  Please see online documentation for instructions to set the news host.\n");
-#endif
+	    char message[150];		/* @@@ */
+	    sprintf(message, 
+	    "HTNews: Can't find news host `%s'.\n%s",HTNewsHost,
+	    "Please define your NNTP server");
+	    HTAlert(message);
 	    CTRACE(tfp,
 	      "HTNews: Can't find news host `%s'.\n",HTNewsHost);
 	    return NO;  /* Fail */
@@ -929,19 +920,9 @@ PUBLIC int HTLoadNews ARGS4(
 		s = -1;
 		if (TRACE) fprintf(stderr, "HTNews: Unable to connect to news host.\n");
 /*		if (retries<=1) continue;   WHY TRY AGAIN ? 	*/
-#ifdef NeXTStep
-		NXRunAlertPanel(NULL,
-    		    "Could not access newshost %s.",
-		    NULL,NULL,NULL,
-		    HTNewsHost);
-#else
-		fprintf(stderr, "Could not access newshost %s\n",
-		    HTNewsHost);
-#endif
 		sprintf(message,
 "\nCould not access %s.\n\n (Check default WorldWideWeb NewsHost ?)\n",
 		    HTNewsHost);
-		
 		PUTS(message);
 		(*targetClass.end_document)(target);
 		return YES;
@@ -952,12 +933,6 @@ PUBLIC int HTLoadNews ARGS4(
 		if ((response(NULL) / 100) !=2) {
 			NETCLOSE(s);
 			s = -1;
-#ifdef NeXTStep
-			NXRunAlertPanel("News access",
-			    "Could not retrieve information:\n   %s.",
-			    NULL,NULL,NULL,
-			    response_text);
-#endif
 			START(HTML_TITLE);
 			PUTS("News host response");
 			END(HTML_TITLE);

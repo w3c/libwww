@@ -185,7 +185,7 @@ char * WWW_from_archie ARGS1 (char *, file)
 **	returns		nil if error
 **			pointer to malloced string (must be freed) if ok
 */
-PRIVATE char hex [16] = "0123456789ABCDEF";
+PRIVATE char hex [17] = "0123456789ABCDEF";
 extern char from_hex PARAMS((char a));			/* In HTWSRC @@ */
 
 PRIVATE char * WWW_from_WAIS ARGS1(any *, docid)
@@ -334,16 +334,25 @@ PRIVATE any * WAIS_from_WWW ARGS2 (any *, docid, char *, docname)
 **	--------------------------------------
 */
 
-PRIVATE void output_text_record ARGS3(
+PRIVATE void output_text_record ARGS4(
     HTStream *,			target,
     WAISDocumentText *,		record,
-    boolean,			quote_string_quotes)
+    boolean,			quote_string_quotes,
+    boolean,                    binary)
 {
   long count;
   /* printf(" Text\n");
      print_any("     DocumentID:  ", record->DocumentID);
      printf("     VersionNumber:  %d\n", record->VersionNumber);
      */
+
+  if (binary) {
+    (*target->isa->put_block)(target,
+			      record->DocumentText->bytes,
+			      record->DocumentText->size);
+    return;
+  }
+
   for(count = 0; count < record->DocumentText->size; count++){
     long ch = (unsigned char)record->DocumentText->bytes[count];
     if (ch == 27) {	/* What is this in for? Tim */
@@ -477,7 +486,7 @@ display_search_response ARGS4(
       while (info->Text[k] != 0) {
 	i++;
 	PUTS( "\nText record\n");
-	output_text_record((HTStream*)target, info->Text[k++], false);
+	output_text_record((HTStream*)target, info->Text[k++], false, false);
       }
     }
     if ( info->Headlines != 0 ) {
@@ -735,6 +744,7 @@ PUBLIC int HTLoadWAIS ARGS4(
     } else {			/* D O C U M E N T    F E T C H */
     
 	HTFormat format_in;
+	boolean binary;     /* how to transfer stuff coming over */
 	HTStream * target;
 	long count;
 	any   doc_chunk;
@@ -746,8 +756,14 @@ PUBLIC int HTLoadWAIS ARGS4(
 	format_in = 
 	  !strcmp(doctype, "WSRC") ? HTAtom_for("application/x-wais-source") :
 	  !strcmp(doctype, "TEXT") ? HTAtom_for("text/plain") :
+	  !strcmp(doctype, "HTML") ? HTAtom_for("text/html") :
 	  !strcmp(doctype, "GIF")  ? HTAtom_for("image/gif") :
-	   		             HTAtom_for("text/plain");
+	   		             HTAtom_for("application/binary");
+	binary = 
+	  0 != strcmp(doctype, "WSRC") &&
+	  0 != strcmp(doctype, "TEXT") &&
+	  0 != strcmp(doctype, "HTML") ;
+
 
 	target = HTStreamStack(format_in, format_out, sink, anAnchor);
 	if (!target) return HTLoadError(sink, 500,
@@ -804,7 +820,7 @@ PUBLIC int HTLoadWAIS ARGS4(
 		output_text_record(target,
 		   ((WAISSearchResponse *)
 		    retrieval_response->DatabaseDiagnosticRecords)->Text[0],
-		false);
+		false, binary);
 	  
 	  } /* If text existed */
 	  

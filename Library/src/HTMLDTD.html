@@ -1,7 +1,8 @@
-<HEADER>
+<HTML>
+<HEAD>
 <TITLE>The HTML DTD -- software interface in libwww</TITLE>
-<NEXTID N="1">
-</HEADER>
+<NEXTID N="z2">
+</HEAD>
 <BODY>
 <H1>HTML DTD - Software Interface</H1>SGML purists should excuse the use
 of the term "DTD" in this file to
@@ -21,9 +22,10 @@ are not very independent.  Tant pis.
 <H2>Element Numbers</H2>
 <PRE>
 </PRE>Must Match all tables by element!
-These include tables in HTMLDTD.c
+These include tables in <A
+NAME="z1" HREF="HTMLDTD.c">HTMLDTD.c</A>
 and code in <A
-NAME=z0 HREF="HTML.c">HTML.c</A> . 
+NAME="z0" HREF="HTML.c">HTML.c</A> . 
 <PRE>typedef enum _HTMLElement {
 	HTML_A, 	HTML_ADDRESS,
 	HTML_B,		HTML_BLOCKQUOTE,	HTML_BODY,
@@ -54,10 +56,12 @@ NAME=z0 HREF="HTML.c">HTML.c</A> .
 These must match the tables in HTML.c!
 <PRE>#define HTML_A_HREF 		0
 #define HTML_A_NAME 		1
-#define HTML_A_TITLE		2
-#define HTML_A_TYPE 		3
-#define HTML_A_URN		4
-#define HTML_A_ATTRIBUTES	5
+#define HTML_A_REL		2
+#define HTML_A_REV		3
+#define HTML_A_TITLE		4
+#define HTML_A_TYPE 		5
+#define HTML_A_URN		6
+#define HTML_A_ATTRIBUTES	7
 
 #define DL_COMPACT 0
 
@@ -86,4 +90,5 @@ is to be omitted.
 
 #endif /* HTMLDTD_H */
 
-</PRE>End of module definition</BODY>
+</PRE>End of module definition</A></BODY>
+</HTML>

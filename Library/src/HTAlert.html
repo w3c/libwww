@@ -1,49 +1,90 @@
-<PRE>
-/*	Displaying messages and getting input for WWW Library
-**	=====================================================
-**
-**	   May 92 Created By C.T. Barker
-**	   Feb 93 Portablized etc TBL
-*/
+<HTML>
+<HEAD>
+<TITLE>/Net/dxcern/userd/timbl/hypertext/WWW/Library/Implementation/HTAlert.html</TITLE>
+<NEXTID N="z3">
+</HEAD>
+<BODY>
+<H1>Displaying messages and getting input
+for <A
+NAME="z0" HREF="Overview.html">WWW Library</A></H1>This module may be overridden for
+GUI clients.    It allows progress
+indications and warning messages
+to be communicated to the user in
+a portable way.  It should be used
+for this purpose throughout the library
+but isn't yet (July 93)
+<UL>
+<LI>May 92 Created By C.T. Barker
+<LI>Feb 93 Portablized etc TBL
+</UL>
+<PRE>#include <A
+NAME="z1" HREF="HTUtils.html">"HTUtils.h"</A>
+#include <A
+NAME="z2" HREF="tcp.html">"tcp.h"</A>
 
-#include "HTUtils.h"
-#include "tcp.h"
+</PRE>
+<H2>HTPrompt: Display a message and get
+the input</H2>
+<H3>On entry,</H3>
+<DL>
+<DT>Msg
+<DD> String to be displayed.
+</DL>
 
-/*	Display a message and get the input
-**
-**	On entry,
-**		Msg is the message.
-**
-**	On exit,
-**		Return value is malloc'd string which must be freed.
-*/		
+<H3>On exit,</H3>
+<DL>
+<DT>Return value
+<DD> is malloc'd string which
+must be freed.
+</DL>
+
+<PRE>		
 extern char * HTPrompt PARAMS((CONST char * Msg, CONST char * deflt));
 
 
-/*	Display a message, don't wait for input
-**
-**	On entry,
-**		The input is a list of parameters for printf.
-*/
+</PRE>
+<H2>Display a message, don't wait for
+input</H2>
+<H3>On entry,</H3>
+<DL>
+<DT>Msg
+<DD> String to be displayed.
+</DL>
+
+<PRE>
 extern void HTAlert PARAMS((CONST char * Msg));
 
 
-/*	Display a progress message for information (and diagnostics) only
-**
-**	On entry,
-**		The input is a list of parameters for printf.
-*/
-extern void HTProgress PARAMS((CONST char * Msg));
-
-
-/*	Display a message, then wait for 'yes' or 'no'.
-**
-**	On entry,
-**		Takes a list of parameters for printf.
-**
-**	On exit,
-**		If the user enters 'YES', returns TRUE, returns FALSE
-**		otherwise.
-*/ 
-extern BOOL HTConfirm PARAMS ((CONST char * Msg));
 </PRE>
+<H2>Display a progress message for information
+(and diagnostics) only</H2>
+<H3>On entry,</H3>The input is a list of parameters
+for printf.
+<PRE>extern void HTProgress PARAMS((CONST char * Msg));
+
+
+</PRE>
+<H2>Display a message, then wait for
+'yes' or 'no'.</H2>
+<H3>On entry,</H3>
+<DL>
+<DT>Msg
+<DD> String to be displayed
+</DL>
+
+<H3>On exit,</H3>
+<DL>
+<DT>Returns
+<DD> If the user reacts in the
+affirmative, returns TRUE, returns
+FALSE otherwise.
+</DL>
+
+<PRE>
+extern BOOL HTConfirm PARAMS ((CONST char * Msg));
+
+
+
+
+</PRE></BODY>
+</HTML>
