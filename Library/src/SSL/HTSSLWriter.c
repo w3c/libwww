@@ -201,13 +201,19 @@ PRIVATE int HTSSLWriter_write (HTOutputStream * me, const char * buf, int len)
 	case SSL_ERROR_SYSCALL:
 	    host->broken_pipe = YES;
 	    HTRequest_addSystemError(net->request, ERR_FATAL, socerrno, NO, "SSLWRITE");
-
 	    /* 
 	    ** Notify HTSSL (shared) object that sock connection is broken 
 	    ** so that next read/write will reconnect
 	    */
 	    HTSSL_close(me->htssl);
-        
+
+ 	    return HT_ERROR;
+	case -1:
+ 	    /* This code is returned by HTSSL_getError() itself,
+ 	       when it's unable to access the ssl object.
+ 	       So just exiting here is the only thing to do.
+ 	       If we don't, we get an eternal loop
+ 	    */
 	    return HT_ERROR;
 	}
     }
