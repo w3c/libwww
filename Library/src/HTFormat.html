@@ -93,6 +93,12 @@ representations. The <CODE>www/xxx</CODE> ones are of course not MIME standard.
 They are internal representations used in the Library but they can't be exported
 to other apps!
 <PRE>
+#define WWW_INTERNAL	HTAtom_for("www/*")          /* All internal formats */
+</PRE>
+<P>
+<CODE>WWW_INTERNAL</CODE> represent all internal formats. This can for example
+be used to match using the <A HREF="HTWWWStr.html">HTMIMEMatch(...)</A>.
+<PRE>
 #define WWW_RAW		HTAtom_for("www/void")   /* Raw output from Protocol */
 </PRE>
 <P>
@@ -461,8 +467,8 @@ extern BOOL HTFormat_addCoding ( char *		encoding,
 				 double		quality);
 </PRE>
 <P>
-We also define a macro to find out whether a content encoding is really
-an encoding or whether it is a unity encoder.
+We also define a macro to find out whether a content encoding is really an
+encoding or whether it is a unity encoder.
 <PRE>
 #define HTFormat_isUnityContent(me) \
 	((me)==NULL || \

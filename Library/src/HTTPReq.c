@@ -172,12 +172,14 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 
     /* Request Headers */
     if (request_mask & HT_C_ACCEPT_TYPE) {
+	HTFormat format = HTRequest_outputFormat(request);
+	
 	/*
 	** If caller has specified a specific output format then use this.
 	** Otherwise use all the registered converters to generate the 
 	** accept header
 	*/
-	if (HTRequest_outputFormat(request) == WWW_PRESENT) {
+	if (format == WWW_PRESENT) {
 	    int list;
 	    HTList *cur;
 	    BOOL first=YES;
@@ -203,9 +205,17 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 	    }
 	    if (!first) PUTBLOCK(crlf, 2);
 	} else {
-	    PUTS("Accept: ");
-	    PUTS(HTAtom_name(HTRequest_outputFormat(request)));
-	    PUTBLOCK(crlf, 2);
+
+	    /*
+	    **  If we have an explicit output format then only send
+	    **  this one if not this is an internal libwww format
+	    **	of type www/<star>
+	    */
+	    if (!HTMIMEMatch(WWW_INTERNAL, format)) {
+		PUTS("Accept: ");
+		PUTS(HTAtom_name(format));
+		PUTBLOCK(crlf, 2);
+	    }
 	}	
     }
     if (request_mask & HT_C_ACCEPT_CHAR) {
