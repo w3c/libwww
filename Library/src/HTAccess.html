@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Access manager  for libwww</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  7-Jul-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 13-Aug-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -186,6 +186,9 @@ extern void HTRequest_delete PARAMS((HTRequest * req));
 
 <H3>Post Web Management</H3>
 
+These functions are mainly used internally in the Library but there is
+no reason for them not to be public.
+
 <PRE>
 extern BOOL HTRequest_addDestination		PARAMS((HTRequest * src,
 							HTRequest * dest));
@@ -292,6 +295,22 @@ typedef enum _EntityHeaderEnum {
 
 Extra header can be generated when initializing the <A
 HREF="#ExtraHeaders">ExtraHeaders field</A>.
+
+
+<H3>Force Reload of a Document</H3>
+
+The <A HREF="#FR">ForceReload</A> flag can either force reload of
+object in memory or in a disk cache. That is, if only memory version
+is to reloaded - the new version can come from the local disk
+cache. The default value is <CODE>HT_NO_UPDATE</CODE>.
+
+<PRE>
+typedef enum _HTForceReload {
+    HT_NO_UPDATE	= 0x0,
+    HT_UPDATE_MEM	= 0x1,
+    HT_UPDATE_DISK	= 0x2
+} HTForceReload;
+</PRE>
 
 <A NAME="LoadDoc"><H2>Functions for Loading a Document</H2></A>
 
@@ -756,11 +775,20 @@ current request so that the application knows which post we are
 handling. The function must have the same return values as the other
 <A HREF="#LoadDoc">Load functions</A>.
 
+<A NAME="FR"><H5>Force reload</H5></A>
+
+This flag can either force reload of object in memory or in a disk
+cache. That is, if only memory version is to reloaded - the new
+version can come from the local disk cache.
+
+<PRE>
+    HTForceReload ForceReload;
+</PRE>
+
 <H5>Other Flags</H5>
 
 <PRE>
     BOOL BlockingIO;
-    BOOL ForceReload;
     BOOL ContentNegotiation;
 </PRE>
 
@@ -806,11 +834,10 @@ ensure that is is selected, highlighted, etc when the object is
 loaded.
 
 <PRE>
-    void *	using_cache;
     BOOL	using_proxy;
 </PRE>
 
-Pointer to cache element if cache hit anfd if using proxy
+If we are using a proxy this affects the HTTP request
 
 <PRE>
     BOOL	error_block;		/* YES if stream has been used	  */

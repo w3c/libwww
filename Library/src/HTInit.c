@@ -93,6 +93,7 @@ PUBLIC void HTPresenterInit ARGS1(HTList *, c)
 	HTSetPresentation(c,"image/gif", 		"xv %s",	NULL, 1.0, 3.0, 0.0);
 	HTSetPresentation(c,"image/x-tiff", 	"xv %s",	NULL, 1.0, 3.0, 0.0);
 	HTSetPresentation(c,"image/jpeg", 	"xv %s",	NULL, 1.0, 3.0, 0.0);
+ 	HTSetPresentation(c,"image/x-png",	"xv %s",	NULL, 1.0, 3.0, 0.0);
     }
 #endif
 }
@@ -198,6 +199,7 @@ PUBLIC void HTFileInit NOARGS
     HTBind_setBinding("aif",    "audio/x-aiff",		"binary", NULL, 1.0);
     HTBind_setBinding("wav",    "audio/x-wav",			"binary", NULL, 1.0);	/* Windows+ WAVE format	*/
     HTBind_setBinding("gif",    "image/gif",			"binary", NULL, 1.0);	/* GIF			*/
+    HTBind_setBinding("png",    "image/x-png",			"binary", NULL, 1.0);	/* PNG			*/
     HTBind_setBinding("ief",    "image/ief",			"binary", NULL, 1.0);	/* Image Exchange fmt	*/
     HTBind_setBinding("jpg",    "image/jpeg",			"binary", NULL, 1.0);	/* JPEG			*/
     HTBind_setBinding("JPG",    "image/jpeg",			"binary", NULL, 1.0);

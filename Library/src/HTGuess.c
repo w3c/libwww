@@ -131,6 +131,9 @@ PRIVATE int HTGuess_flush ARGS1(HTStream *, me)
 	    else if (!strcmp(me->buffer, "MM"))	/* MM followed by a zero */
 		CONTENT_TYPE("image/tiff");
 
+ 	    else if (!strncmp(me->buffer, "\211PNG\r\n\032\n", 8))
+ 		CONTENT_TYPE("image/x-png");
+
 	    else if (!strncmp(me->buffer, ".snd", 4))
 		CONTENT_TYPE("audio/basic");
 

@@ -30,6 +30,7 @@
 #include "HTString.h"
 #include "HTParse.h"
 #include "HTTCP.h"
+#include "HTMIME.h"
 #include "HTAnchor.h"
 #include "HTAtom.h"
 #include "HTWriter.h"
@@ -47,9 +48,10 @@
 typedef enum _FileState {
     FS_FILE_RETRY		= -4,
     FS_FILE_ERROR		= -3,
-    FS_FILE_NO_DATA	= -2,
-    FS_FILE_GOT_DATA	= -1,
+    FS_FILE_NO_DATA		= -2,
+    FS_FILE_GOT_DATA		= -1,
     FS_FILE_BEGIN		= 0,
+    FS_FILE_DO_CN,
     FS_FILE_NEED_OPEN_FILE,
     FS_FILE_NEED_TARGET,
     FS_FILE_NEED_BODY,
@@ -431,10 +433,17 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 		file->state = FS_FILE_TRY_FTP;
 		break;
 	    }
+
+	    /* If cache element then jump directly to OPEN FILE state */
+	    file->state = HTAnchor_cacheHit(request->anchor) ?
+		FS_FILE_NEED_OPEN_FILE : FS_FILE_DO_CN;
+	    break;
+
+	  case FS_FILE_DO_CN:
 	    /*
 	    ** If we have to do content negotiation then find the object that
 	    ** fits best into either what the client has indicated in the
-	    ** accept headers or what the client has registered on it own.
+	    ** accept headers or what the client has registered on its own.
 	    ** The object chosen can in fact be a directory! However, content
 	    ** negotiation only makes sense it we can read the directory!
 	    ** We stat the file in order to find the size and to see it if
@@ -560,11 +569,21 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 		HTRequest_linkDestination(request);
 	    }
 
-	    /* Set up read buffer and streams. If ANSI then sockfd=INVSOC */
+	    /*
+	    ** Set up read buffer and streams.
+	    ** If cache element, we know that it's MIME, so call MIME parser
+	    ** If ANSI then sockfd=INVSOC
+	    */
 	    file->isoc = HTInputSocket_new(file->sockfd);
-	    file->target = HTStreamStack(HTAnchor_format(request->anchor),
-					 request->output_format,
-					 request->output_stream, request, YES);
+	    if (HTAnchor_cacheHit(request->anchor))
+		file->target = HTMIMEConvert(request, NULL, WWW_MIME,
+					     request->output_format,
+					     request->output_stream);
+	    else
+		file->target = HTStreamStack(HTAnchor_format(request->anchor),
+					     request->output_format,
+					     request->output_stream,
+					     request, YES);
 	    file->state = file->target ? FS_FILE_NEED_BODY : FS_FILE_ERROR;
 	    break;
 

@@ -38,7 +38,8 @@
 #include "HTError.h"
 #include "HTList.h"
 #include "HTAABrow.h"				/* Should be HTAAUtil.html! */
-#include "HTFWrite.h"	/* for cache stuff */
+#include "HTFWrite.h"
+#include "HTCache.h"
 #include "HTLog.h"
 #include "HTSocket.h"
 #include "HTTCP.h"      /* HWL: for HTFindRelatedName */
@@ -94,6 +95,9 @@ PUBLIC HTRequest * HTRequest_new NOARGS
     me->encodings = HTList_new();
     me->languages = HTList_new();
     me->charsets = HTList_new();
+
+    /* Force Reload */
+    me->ForceReload = HT_NO_UPDATE;
 
     /* Format of output */
     me->output_format	= WWW_PRESENT;	    /* default it to present to user */
@@ -440,6 +444,7 @@ PUBLIC BOOL HTLibTerminate NOARGS
     HTFreeHostName();			    /* Free up some internal strings */
     HTFreeMailAddress();
     HTCache_freeRoot();
+    HTCache_clearMem();				  /* Keep the disk versions! */
     HTTmp_freeRoot();
 
 #ifdef _WINDOWS
@@ -460,94 +465,10 @@ PUBLIC BOOL HTLibTerminate NOARGS
 /*			Physical Anchor Address Manager			     */
 /* --------------------------------------------------------------------------*/
 
-#ifdef OLD_CODE
-/*							override_proxy()
-**
-**	Check the no_proxy environment variable to get the list
-**	of hosts for which proxy server is not consulted.
-**
-**	no_proxy is a comma- or space-separated list of machine
-**	or domain names, with optional :port part.  If no :port
-**	part is present, it applies to all ports on that domain.
-**
-**	Example:
-**		no_proxy="cern.ch,some.domain:8001"
-**
-*/
-PRIVATE BOOL override_proxy ARGS1(CONST char *, addr)
-{
-    CONST char * no_proxy = getenv("no_proxy");
-    char * p = NULL;
-    char * host = NULL;
-    int port = 0;
-    int h_len = 0;
-
-    if (!no_proxy || !addr || !(host = HTParse(addr, "", PARSE_HOST)))
-	return NO;
-    if (!*host) { free(host); return NO; }
-
-    if ((p = strchr(host, ':')) != NULL) {	/* Port specified */
-	*p++ = 0;			/* Chop off port */
-	port = atoi(p);
-    }
-    else {				/* Use default port */
-	char * access = HTParse(addr, "", PARSE_ACCESS);
-	if (access) {
-	    if	    (!strcmp(access,"http"))	port = 80;
-	    else if (!strcmp(access,"gopher"))	port = 70;
-	    else if (!strcmp(access,"ftp"))	port = 21;
-	    free(access);
-	}
-    }
-    if (!port) port = 80;		/* Default */
-    h_len = strlen(host);
-
-    while (*no_proxy) {
-	CONST char * end;
-	CONST char * colon = NULL;
-	int templ_port = 0;
-	int t_len;
-
-	while (*no_proxy && (WHITE(*no_proxy) || *no_proxy==','))
-	    no_proxy++;			/* Skip whitespace and separators */
-
-	end = no_proxy;
-	while (*end && !WHITE(*end) && *end != ',') {	/* Find separator */
-	    if (*end==':') colon = end;			/* Port number given */
-	    end++;
-	}
-
-	if (colon) {
-	    templ_port = atoi(colon+1);
-	    t_len = colon - no_proxy;
-	}
-	else {
-	    t_len = end - no_proxy;
-	}
-
-	if ((!templ_port || templ_port == port)  &&
-	    (t_len > 0  &&  t_len <= h_len  &&
-	     !strncmp(host + h_len - t_len, no_proxy, t_len))) {
-	    free(host);
-	    return YES;
-	}
-	if (*end) no_proxy = end+1;
-	else break;
-    }
-
-    free(host);
-    return NO;
-}
-#endif /* OLD_CODE */
-
-
 /*		Find physical name and access protocol
 **		--------------------------------------
 **
-**
-** On entry,
-**	addr		must point to the fully qualified hypertext reference.
-**	anchor		a pareent anchor with whose address is addr
+**	Checks for Cache, proxy, and gateway (in that order)
 **
 ** On exit,    
 **	returns		HT_NO_ACCESS		no protocol module found
@@ -579,27 +500,30 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
 #endif /* HT_NO_RULES */
 
     /*
-    **  Check whether gateway or proxy access has been set up for this url
+    ** Check local the Disk Cache (if we are not forced to reload), then
+    ** for proxy, and finally gateways
     */
     {
-	char *proxy = HTProxy_getProxy(addr);
-	char *gateway = HTProxy_getGateway(addr);
-
-	/* Proxy servers have precedence over gateway servers */
-	if (proxy) {
-	    StrAllocCat(proxy, addr);
+	char *newaddr;
+	if (req->ForceReload != HT_UPDATE_DISK &&
+	    (newaddr = HTCache_getObject(addr))) {
+	    HTAnchor_setPhysical(req->anchor, newaddr);
+	    HTAnchor_setCacheHit(req->anchor, YES);
+	    free(newaddr);
+	} else if ((newaddr = HTProxy_getProxy(addr))) {
+	    StrAllocCat(newaddr, addr);
 	    req->using_proxy = YES;
-	    HTAnchor_setPhysical(req->anchor, proxy);
-	    free(proxy);
-	} else if (gateway) {
+	    HTAnchor_setPhysical(req->anchor, newaddr);
+	    free(newaddr);
+	} else if ((newaddr = HTProxy_getGateway(addr))) {
 	    char * path = HTParse(addr, "",
 				  PARSE_HOST + PARSE_PATH + PARSE_PUNCTUATION);
 		/* Chop leading / off to make host into part of path */
-	    char * gatewayed = HTParse(path+1, gateway, PARSE_ALL);
+	    char * gatewayed = HTParse(path+1, newaddr, PARSE_ALL);
             HTAnchor_setPhysical(req->anchor, gatewayed);
 	    free(path);
 	    free(gatewayed);
-	    free(gateway);
+	    free(newaddr);
 	} else {
 	    req->using_proxy = NO;     	    /* We don't use proxy or gateway */
 	}
@@ -781,12 +705,10 @@ PRIVATE int HTLoadDocument ARGS2(HTRequest *,	request,
     if (PROT_TRACE) fprintf (TDEST, "HTAccess.... Accessing document %s\n",
 			     full_address);
 
-    request->using_cache = NULL;
-    
     if (!request->output_format) request->output_format = WWW_PRESENT;
 
     /* Check if document is already loaded or in cache */
-    if (!request->ForceReload) {
+    if (request->ForceReload == HT_NO_UPDATE) {
 	if ((text=(HText *)HTAnchor_document(request->anchor))) {
 	    if (PROT_TRACE)
 		fprintf(TDEST, "HTAccess.... Document already in memory.\n");
@@ -798,38 +720,6 @@ PRIVATE int HTLoadDocument ARGS2(HTRequest *,	request,
 	    free(full_address);
 	    return HT_LOADED;
 	}
-	
-	/* Check the Cache */
-	/* Bug: for each format, we only check whether it is ok, we
-	   don't check them all and chose the best */
-	if (request->anchor->cacheItems) {
-	    HTList * list = request->anchor->cacheItems;
-	    HTList * cur = list;
-	    HTCacheItem * item;
-	    while ((item = (HTCacheItem*)HTList_nextObject(cur))) {
-		HTStream * s;
-		request->using_cache = item;
-		s = HTStreamStack(item->format, request->output_format,
-				  request->output_stream, request, NO);
-		if (s) {	/* format was suitable */
-		    FILE * fp = fopen(item->filename, "r");
-		    if (PROT_TRACE) 
-			fprintf(TDEST, "Cache....... HIT file %s for %s\n",
-				item->filename, 
-				full_address);
-		    if (fp) {
-			HTFileCopy(fp, s);
-			(*s->isa->_free)(s); /* close up pipeline */
-			fclose(fp);
-			free(full_address);
-			return HT_LOADED;
-		    } else {
-			fprintf(TDEST, "***** Can't read cache file %s !\n",
-				item->filename);
-		    } /* file open ok */
-		} /* stream ok */
-	    } /* next cache item */
-	} /* if cache available for this anchor */
     } else {			  /* Make sure that we don't use old headers */
 	HTAnchor_clearHeader(request->anchor);
 	request->RequestMask += HT_PRAGMA;     /* Force reload through proxy */
@@ -1165,7 +1055,7 @@ PUBLIC int HTCopyAnchor ARGS2(HTAnchor *,	src_anchor,
     if (!main_dest->source) {
 	src_req = HTRequest_new();		  /* First set up the source */
 	HTAnchor_clearHeader((HTParentAnchor *) src_anchor);
-	src_req->ForceReload = YES;
+	src_req->ForceReload = HT_UPDATE_MEM;
 	src_req->source = src_req;			  /* Point to myself */
 	src_req->output_format = WWW_SOURCE;	 /* We want source (for now) */
 
@@ -1181,7 +1071,7 @@ PUBLIC int HTCopyAnchor ARGS2(HTAnchor *,	src_anchor,
 	    }
 	    main_dest->GenMask += HT_DATE;		 /* Send date header */
 	    main_dest->source = src_req;
-	    main_dest->ForceReload = YES;
+	    main_dest->ForceReload = HT_UPDATE_DISK;
 	    main_dest->method = method;
 	    HTRequest_addDestination(src_req, main_dest);
 	    main_dest->input_format = WWW_SOURCE;	  /* for now :-( @@@ */
@@ -1206,7 +1096,7 @@ PUBLIC int HTCopyAnchor ARGS2(HTAnchor *,	src_anchor,
 		dest_req = HTRequest_new();
 		dest_req->GenMask += HT_DATE;		 /* Send date header */
 		dest_req->source = src_req;
-		dest_req->ForceReload = YES;
+		dest_req->ForceReload = HT_UPDATE_DISK;
 		dest_req->method = method;
 		HTRequest_addDestination(src_req, dest_req);
 		dest_req->input_format = WWW_SOURCE;	  /* for now :-( @@@ */

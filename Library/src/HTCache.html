@@ -1,0 +1,128 @@
+<HTML>
+<HEAD>
+<TITLE>Cache Manager</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 13-Aug-1995 -->
+<NEXTID N="z4">
+</HEAD>
+<BODY>
+
+<H1>Cache Manager</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+The cache contains details of temporary disk files which contain the
+contents of remote documents.  There is also a <A
+HREF="HTAnchor.html#z1">list of cache items for each URL</A> in its
+anchor object. <P>
+
+This module is implemented by <A HREF="HTCache.c">HTCache.c</A>, and
+it is a part of the <A
+HREF="http://www.w3.org/hypertext/WWW/Library/">W3C Reference
+Library</A>.
+
+<PRE>
+#ifndef HTCACHE_H
+#define HTCACHE_H
+
+#include "HTStream.h"
+#include "HTAnchor.h"
+#include "HTFormat.h"
+</PRE>
+
+<H2>Converters</H2>
+
+The cache stream is in fact a stream that can be registered as a converter!
+
+<PRE>
+#ifndef pyramid
+extern HTConverter HTCacheWriter;
+#endif
+</PRE>
+
+<H2>Find a cached object on file</H2>
+
+Returns a URL for the cached object is found on disk. Note that there
+might be race conditions with other applications doing gc.
+
+<PRE>
+extern char * HTCache_getObject	PARAMS((char * url));
+</PRE>
+
+<H2>Enable Cache</H2>
+
+If <EM>cache_root</EM> is NULL then reuse old value or use
+<CODE>HT_CACHE_ROOT</CODE>.  An empty string will make '/' as cache
+root.
+
+<PRE>
+extern BOOL HTCache_enable PARAMS((CONST char * cache_root));
+</PRE>
+
+<H2>Disable Cache</H2>
+
+Turns off the cache. Note that the cache can be disabled and enabled
+at any time. The cache root is kept and can be reused during the
+execution.
+
+<PRE>
+extern BOOL HTCache_disable NOPARAMS;
+</PRE>
+
+<H2>Is Cache Enabled</H2>
+
+Returns YES or NO. Also makes sure that we have a root value (even
+though it might be invalid)
+
+<PRE>
+extern BOOL HTCache_isEnabled NOPARAMS;
+</PRE>
+
+<H2>Set Cache Root</H2>
+
+If <EM>cache_root</EM> is NULL then the current value (might be a define)
+Should we check if the cache_root is actually OK? I think not!
+
+<PRE>
+extern BOOL HTCache_setRoot PARAMS((CONST char * cache_root));
+</PRE>
+
+<H2>Get Cache Root</H2>
+
+<PRE>
+extern CONST char *HTCache_getRoot NOPARAMS;
+</PRE>
+
+<H2>For clean up memory</H2>
+
+This is done by the Library function <A
+HREF="HTAccess.html#Library">HTLibTerminate()</A>
+
+<PRE>
+extern void HTCache_freeRoot NOPARAMS;
+</PRE>
+
+<H2>Clear a cache</H2>
+
+Clears all cache entries in memory. Called by <A
+HREF="HTAccess.html#Library">HTLibTerminate</A>
+
+<PRE>
+extern void HTCache_clearMem NOPARAMS;
+</PRE>
+
+<H2>To remove All cache files known to this session</H2>
+
+<PRE>
+extern void HTCache_deleteAll NOPARAMS;
+
+#endif
+</PRE>
+
+End of declaration module
+</BODY>
+</HTML>

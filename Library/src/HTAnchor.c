@@ -421,11 +421,6 @@ PRIVATE HyperDoc * delete_parent ARGS1(HTParentAnchor *, me)
 	    free(pres);
 	HTList_delete(me->extra_headers);
     }
-
-    /* @@@ TEMPORARY SOLUTION FOR CACHE - SHOULD BE PERSISTENT */
-    if (me->cacheItems) {
-	HTCacheClear(me->cacheItems);
-    }
     free(me);
     return doc;
 }
@@ -654,6 +649,19 @@ PUBLIC void HTAnchor_setPhysical ARGS2(HTParentAnchor *, me,
 	return;
     }
     StrAllocCopy(me->physical, physical);
+}
+
+/*	Cache Information
+**	-----------------
+*/
+PUBLIC BOOL HTAnchor_cacheHit ARGS1(HTParentAnchor *, me)
+{
+    return me->cacheHit;
+}
+
+PUBLIC void HTAnchor_setCacheHit ARGS2(HTParentAnchor *, me, BOOL, cacheHit)
+{
+    me->cacheHit = cacheHit;
 }
 
 /* ------------------------------------------------------------------------- */

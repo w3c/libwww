@@ -68,8 +68,10 @@ struct _HTStructured {
     HTStyle *			new_style;
     HTStyle *			old_style;
     BOOL			in_word;  /* Have just had a non-white char */
-    stack_element 	stack[MAX_NESTING];
-    stack_element 	*sp;		/* Style stack pointer */
+
+    stack_element 		stack[MAX_NESTING];
+    stack_element 		*sp;		      /* Style stack pointer */
+    int				overflow;  /* Keep track of overflow nesting */
 };
 
 struct _HTStream {
@@ -626,8 +628,10 @@ PRIVATE void HTML_start_element ARGS4(
 
     if (me->dtd->tags[element_number].contents!= SGML_EMPTY) {
         if (me->sp == me->stack) {
-	    fprintf(TDEST, "HTML: ****** Maximum nesting of %d exceded!\n",
-	    MAX_NESTING); 
+	    if (SGML_TRACE)
+		fprintf(TDEST, "HTML........ Maximum nesting of %d exceded!\n",
+			MAX_NESTING); 
+	    me->overflow++;
 	    return;
 	}
     	--(me->sp);
@@ -662,9 +666,15 @@ PRIVATE void HTML_end_element ARGS2(HTStructured *, me, int , element_number)
 		/* panic */
     }
 #endif
-    
+
+    /* HFN, If overflow of nestings, we need to get back to reality */
+    if (me->overflow > 0) {
+	me->overflow--;
+	return;
+    }
+
     me->sp++;				/* Pop state off stack */
-    
+
     switch(element_number) {
 
     case HTML_A:
@@ -686,8 +696,9 @@ PRIVATE void HTML_end_element ARGS2(HTStructured *, me, int , element_number)
 	/* Fall through */
 	
     default:
-    
-	change_paragraph_style(me, me->sp->style);	/* Often won't really change */
+
+	/* Often won't really change */
+	change_paragraph_style(me, me->sp->style);
 	break;
 	
     } /* switch */
@@ -826,13 +837,14 @@ PUBLIC HTStructured* HTML_new ARGS5(
         HTStream * intermediate = HTStreamStack(WWW_HTML, output_format,
 						output_stream, request, NO);
 	if (intermediate) return HTMLGenerator(intermediate);
-        fprintf(TDEST, "** Internal error: can't parse HTML to %s\n",
-       		HTAtom_name(output_format));
+	if (SGML_TRACE)
+	    fprintf(TDEST, "HTML........ Can't parse HTML to %s\n",
+		    HTAtom_name(output_format));
 	exit (-99);
     }
 
-    me = (HTStructured*) malloc(sizeof(*me));
-    if (me == NULL) outofmem(__FILE__, "HTML_new");
+    if ((me = (HTStructured*) calloc(1, sizeof(*me))) == NULL)
+	outofmem(__FILE__, "HTML_new");
 
     if (!got_styles) get_styles();
 

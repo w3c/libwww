@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Anchor object for libwww</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 13-Aug-1995 -->
 </HEAD>
 <BODY>
 
@@ -123,7 +124,7 @@ struct _HTParentAnchor {
   HyperDoc *	document;	/* The document within this is an anchor */
   void *	protocol;	/* Protocol object */
   char *	physical;	/* Physical address */
-  HTList *	<A NAME="z1">cacheItems</A> ;	/* Cache hits (see <A HREF="HTFWrite.html">HTFWriter</A> ) for this URL */
+  BOOL		cacheHit;	/* Yes, if cached object found */
   char * 	address;	/* Absolute address of this node */
   BOOL		isIndex;	/* Acceptance of a keyword search */
 
@@ -375,6 +376,21 @@ string to be freed by the caller as when th eanchor was created.
 
 <PRE>
 extern char * HTAnchor_address		PARAMS((HTAnchor *me));
+</PRE>
+
+<H3>Cache Information</H3>
+
+If the cache manager finds a cached obejct, it is registered in the
+anchor object. This way the <A HREF="HTFile.html">file loader</A>
+knows that it is a MIME data object. The cache manager does not know
+whether the data object is out of date (for example if a
+<EM>Expires:</EM> header is in the MIME header. This is for the <A
+HREF="HTMIME.html">MIME parser</A> to find out.
+
+<PRE>
+extern BOOL HTAnchor_cacheHit		PARAMS((HTParentAnchor	*me));
+extern void HTAnchor_setCacheHit	PARAMS((HTParentAnchor	*me,
+						BOOL		cacheHit));
 </PRE>
 
 <H3>Physical address</H3>

@@ -93,34 +93,7 @@ PRIVATE void scan ARGS2(char *, name, struct struct_parts *, parts)
     } else {
         parts->relative = (*after_access) ? after_access : 0; /* zero for "" */
     }
-
-#ifdef OLD_CODE
-    /* Access specified but no host: the anchor was not really one
-       e.g. news:j462#36487@foo.bar -- JFG 10/jul/92, from bug report */
-    /* This kludge doesn't work for example when coming across
-       file:/usr/local/www/fred#123
-       which loses its anchor. Correct approach in news is to
-       escape weird characters not allowed in URL.  TBL 21/dec/93
-    */
-    if (parts->access && ! parts->host && parts->anchor) {
-      *(parts->anchor - 1) = '#';  /* Restore the '#' in the address */
-      parts->anchor = 0;
-    }
-#endif
-
-#ifdef NOT_DEFINED	/* search is just treated as part of path */
-    {
-        char *p = relative ? relative : absolute;
-	if (p) {
-	    char * q = strchr(p, '?');	/* Any search string? */
-	    if (q) {
-	    	*q = 0;			/* If so, chop that off. */
-		parts->search = q+1;
-	    }
-	}
-    }
-#endif
-} /*scan */    
+}
 
 
 /*	Parse a Name relative to another name
@@ -153,8 +126,7 @@ char * HTParse ARGS3(CONST char *, aName, CONST char *, relatedName,
     if (!relatedName)        /* HWL 23/8/94: dont dump due to NULL */
         relatedName = "";
     
-    /* Make working copies of input strings to cut up:
-    */
+    /* Make working copies of input strings to cut up: */
     len = strlen(aName)+strlen(relatedName)+10;
     result=(char *)malloc(len);		/* Lots of space: more than enough */
     if (result == NULL) outofmem(__FILE__, "HTParse");
@@ -427,10 +399,6 @@ char * HTRelative ARGS2(CONST char *, aName, CONST char *, relatedName)
         StrAllocCopy(result, aName);
     } else if (slashes<3){			/* Different nodes */
     	StrAllocCopy(result, after_access);
-#if 0 /* Henrik */
-    } else if (slashes==3){			/* Same node, different path */
-        StrAllocCopy(result, path);
-#endif
     } else {					/* Some path in common */
         int levels= 0;
         for(; *q && (*q!='#'); q++)  if (*q=='/') levels++;

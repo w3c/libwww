@@ -29,6 +29,7 @@
 #include "HTAABrow.h"		/* Access Authorization */
 #include "HTTee.h"		/* Tee off a cache stream */
 #include "HTFWrite.h"		/* Write to cache file */
+#include "HTCache.h"
 #include "HTWriter.h"
 #include "HTError.h"
 #include "HTChunk.h"
@@ -633,8 +634,9 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		else {
 		    http->state = http->next;	       /* Jump to next state */
 		}
-	    } else
+	    } else {
 		http->state = HTTP_ERROR;
+	    }
 	    break;
 	    
 	  case HTTP_REDIRECTION:

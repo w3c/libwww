@@ -1,12 +1,12 @@
 <HTML>
 <HEAD>
-<TITLE>Cache Manager and Writing to a File using ANSI C</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 28-Jun-1995 -->
+<TITLE>Writing to a File using ANSI C</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 12-Aug-1995 -->
 <NEXTID N="z4">
 </HEAD>
 <BODY>
 
-<H1>Cache Manager and Writing to a File using ANSI C</H1>
+<H1>Wrting to a File using ANSI C</H1>
 
 <PRE>
 /*
@@ -23,7 +23,6 @@ the following parts:
 <LI><A HREF="#BlackHole">A Balckhole for absorbing data</A>
 <LI><A HREF="#write">A File Writer Stream</A>
 <LI><A HREF="#converters">Converters using the file writer stream</A>
-<LI><A HREF="#z3">Cache Manager</A>
 </UL>
 
 
@@ -52,12 +51,12 @@ extern HTStream * HTBlackHole NOPARAMS;
 <A NAME="converters"><H2>Converters</H2></A>
 
 This is the set of functions that can be registered as
-converters. Note that the cache writer stream is also a converter!
+converters.
 
 <PRE>
 #ifndef pyramid
 extern HTConverter HTSaveAndExecute, HTSaveLocally, HTSaveAndCallBack,
-       HTThroughLine, HTCacheWriter;
+       HTThroughLine;
 #endif
 </PRE>
 
@@ -84,112 +83,13 @@ HREF="HTAccess.html#Addresses">HTAccess.html</A>
 This function puts up a new stream given an open file descripter. If the file
 is not to be closed afterwards, then set leave_open = NO.
 
-<PRE>extern HTStream * HTFWriter_new PARAMS((FILE *	fp,
+<PRE>
+extern HTStream * HTFWriter_new PARAMS((FILE *	fp,
 					     BOOL	leave_open));
-</PRE>
-
-<H2><A NAME="z3">The Cache Manager</A></H2>
-
-The cache contains details of temporary disk files which contain the
-contents of remote documents.  There is also a <A NAME="z2"
-HREF="HTAnchor.html#z1">list of cache items for each URL</A> in its
-anchor object.
-
-<A NAME="cacheitem"><H3>An item in the cache</H3></A>
-
-This will not be public in the next release so <B>DON'T USE IT ;-)</B>
-
-<PRE>typedef struct _HTCacheItem {
-    HTParentAnchor *	anchor;
-    HTFormat		format;		/* May have many formats per anchor */
-    char *		filename;
-    time_t		load_time;
-    time_t		load_delay;
-    int			reference_count;
-} HTCacheItem;
-</PRE>
-
-<H3>The Cache Limit</H3>
-
-The cache limit is the number of files which are kept. Yes, I know,
-the amount of disk space would be more relevant. So this may change.
-Currently it is preset to 100 but may be changed by the application by
-writing into this variable.
-
-<PRE>
-extern int HTCacheLimit;
-</PRE>
-
-<H3>Enable Cache</H3>
-
-If <EM>cache_root</EM> is NULL then reuse old value or use
-<CODE>HT_CACHE_ROOT</CODE>.  An empty string will make '/' as cache
-root.
-
-<PRE>
-extern BOOL HTCache_enable PARAMS((CONST char * cache_root));
-</PRE>
-
-<H3>Disable Cache</H3>
-
-Turns off the cache. Note that the cache can be disabled and enabled
-at any time. The cache root is kept and can be reused during the
-execution.
-
-<PRE>
-extern BOOL HTCache_disable NOPARAMS;
-</PRE>
-
-<H3>Is Cache Enabled</H3>
-
-Returns YES or NO. Also makes sure that we have a root value (even
-though it might be invalid)
-
-<PRE>
-extern BOOL HTCache_isEnabled NOPARAMS;
-</PRE>
-
-<H3>Set Cache Root</H3>
-
-If <EM>cache_root</EM> is NULL then the current value (might be a define)
-Should we check if the cache_root is actually OK? I think not!
-
-<PRE>
-extern BOOL HTCache_setRoot PARAMS((CONST char * cache_root));
-</PRE>
-
-
-<H3>Get Cache Root</H3>
-
-<PRE>
-extern CONST char *HTCache_getRoot NOPARAMS;
-</PRE>
-
-<H3>For clean up memory</H3>
-
-This is done by the Library function <A
-HREF="HTAccess.html#Library">HTLibTerminate()</A>
-
-<PRE>
-extern void HTCache_freeRoot NOPARAMS;
-</PRE>
-
-<H3>Clear a cache</H3>
-
-Can clear a list of cache items.
-
-<PRE>
-extern void HTCacheClear PARAMS((HTList * cache));
-</PRE>
-
-<H3>To remove All cache files known to this session</H3>
-
-<PRE>
-extern void HTCacheDeleteAll NOPARAMS;
 
 #endif
 </PRE>
 
-End of definition module
+End of declaration module
 </BODY>
 </HTML>

@@ -998,6 +998,10 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 	} else if (Check_User_Input("REFRESH")) {
 	    HText_setStale(HTMainText);			    /* Force refresh */
 	    HText_refresh(HTMainText);			   /* Refresh screen */
+	} else if (Check_User_Input("RELOAD")) {
+	    *actreq = Thread_new(YES);
+	    (*actreq)->ForceReload = HT_UPDATE_DISK;	/* Force full reload */
+	    loadstat = HTLoadAnchor((HTAnchor*) HTMainAnchor, *actreq);
 	} else
 	    found = NO;
 	break;
@@ -1050,7 +1054,7 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 	if (!HTClientHost) {
 	    HText *curText = HTMainText;     /* Remember current main vindow */
 	    *actreq = Thread_new(NO);
-	    (*actreq)->ForceReload = YES;
+	    (*actreq)->ForceReload = HT_UPDATE_MEM;
 	    if (OutSource) (*actreq)->output_format = WWW_SOURCE;
 	    if (SaveOutputStream(*actreq, this_word, next_word))
 		loadstat = HT_WOULD_BLOCK;
