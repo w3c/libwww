@@ -2,6 +2,8 @@
 
 AUTOMAKE_OPTIONS = foreign
 
+noinst_PROGRAM = export
+
 DOCS :=	$(wildcard *.html *.gif)
 
 EXTRA_DIST = \
@@ -19,9 +21,11 @@ DEPENDENCIES = \
 
 Extrnals.html:
 	(cd $(srcdir) && \
-	perl $(top_srcdir)/config/makeindx.pl ../src/ ../src/WWW*.html > $(srcdir)/Extrnals.html)
+	perl $(top_srcdir)/config/makeindx.pl ../src/ ../src/WWW*.html \
+		> $(srcdir)/Extrnals.html)
 
 export: Extrnals.html
 	-rm $(srcdir)/Extrnals.html;
 	(cd $(srcdir) && \
-	perl $(top_srcdir)/config/makeindx.pl ../src/ ../src/WWW*.html > $(srcdir)/Extrnals.html)
+	perl $(top_srcdir)/config/makeindx.pl ../src/ ../src/WWW*.html \
+		> $(srcdir)/Extrnals.html)
