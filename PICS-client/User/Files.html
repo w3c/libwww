@@ -1,0 +1,186 @@
+<HTML>
+<HEAD>
+<TITLE>W3C PICS library files</TITLE>
+<!-- Changed by: Eric Prud'hommeaux, 27-Mar-1996 -->
+<NEXTID N="z11">
+</HEAD>
+<BODY>
+
+<A HREF="../../"><IMG SRC="../../Icons/WWW/w3c_48x48.gif" ALT="W3C"></A>
+<A HREF="../"><IMG SRC="../../Icons/WWW/PICS48x.gif" ALT="Lib"></A>
+<IMG SRC="../../Icons/WWW/Files48x.gif">
+
+<H1>W3C PICS library files</H1>
+
+<A NAME="contents"><H1>Contents</H1></A>
+<UL>
+<LI><A HREF="#CSLUtils">CSLUtils</A>
+<LI><A HREF="#CSLApp">CSLApp</A>
+<LI><A HREF="#documentation">Documentation</A>
+</UL>
+<P>
+
+
+<HR>
+<A NAME="CSLUtils"><H1>CSLUtils</H1></A>
+
+<A HREF="../src/CSLUtils.html">CSLUtils.html</A>. This 
+contains definitions of primitive data types and ephemoral types
+<P>
+
+<H2>Parser</H2>
+
+<A HREF="../src/CSParse.html"<H3>CSParse.html</H3></A>
+Included by CSParse and the individual parsers.
+<P>
+
+<A HREF="../src/CSParse.c"<H3>CSParse.c</H3></A>
+Contains the parse engine and the common funtions that the individual parsers
+use.
+<P>
+
+<H3>Labels</H3>
+
+<A HREF="../src/CSLL.html"<H3>CSLL.html</H3></A>
+Application interface to Label data structures and internals
+<P>
+
+<A HREF="../src/CSLLSt.html"<H3>CSLLSt.html</H3></A>
+Label data internals
+<P>
+
+<A HREF="../src/CSLabel.c"<H3>CSLabel.c</H3></A>
+ or 
+<A HREF="CSLabel.html"<H3>CSLabel.html</H3></A>
+Label parser and iterators
+<P>
+
+<A HREF="../src/CSLLURLs.c"<H3>CSLLURLs.c</H3></A>
+Iterates through a CSLabel, returns list of the <B>SingleLabels</B>
+<P>
+
+<A HREF="../src/CSLLOut.c"<H3>CSLLOut.c</H3></A>
+Spit out CSLLData through an HTStream, useful for debugging
+<P>
+
+<BR>
+<H3>machine-readable description</H3>
+
+<A HREF="../src/CSMR.html"<H3>CSMR.html</H3></A>
+Application interface to MR data structures and internals
+<P>
+
+<A HREF="../src/CSMRSt.html"<H3>CSMRSt.html</H3></A>
+MR data internals
+<P>
+
+<A HREF="../src/CSMacRed.c"<H3>CSMacRed.c</H3></A>
+ or 
+<A HREF="CSMacRed.html"<H3>CSMacRed.html</H3></A>
+MR parser and iterators
+<P>
+
+<BR>
+<H3>User</H3>
+Example user description, not specified in any standard.
+<P>
+
+<A HREF="../src/CSUser.html"<H3>CSUser.html</H3></A>
+Application interface to User data structures and internals
+<P>
+
+<A HREF="../src/CSUserSt.html"<H3>CSUserSt.html</H3></A>
+User data internals
+<P>
+
+<A HREF="../src/CSUser.c"<H3>CSUser.c</H3></A>
+ or 
+<A HREF="CSUser.html"<H3>CSUser.html</H3></A>
+User parser and iterators
+<P>
+<HR>
+<A NAME="LablPars"><H2>Label parser example</H2></A>
+
+<BR>
+<A HREF="../LablPars/LablPars.c"<H3>LablPars.c</H3></A>
+LablPars provide an example of using the Label parser in a minimal program. 
+See the <A HREF="../LablPars/Makefile">Makefile</A> for an idea 
+of what modules are used and <A HREF="HTFuncs.html">HTFuncs.html</A> for a 
+list of functions imported from libwww.
+<P>
+<HR>
+<A NAME="CSLApp"><H1>CSLApp</H1></A>
+
+On <A HREF="../../Library/User/Platform/WinDLL.html">Windows platforms</A>, 
+The <A HREF="#CSLApp">application</A> interface is implemented as a DLL
+<BR>
+<A HREF="../src/CSLApp.html"<H3>CSLApp.html</H3></A>
+Interface for an application using the full libwww to retrieve URLs. This
+provides automated label retrieval and user profile validation when a document
+is loaded.
+<P>
+
+<A HREF="../src/CSApp.c"<H3>CSApp.c</H3></A>
+User selection and MIME header generation and bureau requests.
+<P>
+
+<A HREF="../src/CSCore.c"<H3>CSCore.c</H3></A>
+Provides the ability to load Labels, MR, and Users through standard data flow
+(HTStream). 
+<P>
+
+<A HREF="../src/CSUsrLst.html"<H3>CSUsrLst.html</H3></A> and 
+<A HREF="../src/CSUsrLst.c"<H3>CSUsrLst.c</H3></A>
+This maintains a list that associates users with URLs. This allows the 
+application to have access to user profiles kept at a central site and allows 
+the users to remember only their name and password. This may be usefull at 
+proxy sites at well.
+<P>
+
+<A HREF="../src/CSChkLab.c"<H3>CSChkLab.c</H3></A>
+Compare labels ratings to user ratings to permit or deny a document
+<P>
+
+<A HREF="../src/CSKwik.c"<H3>CSKwik.c</H3></A>
+Simple HTStream that prints to the console. It is used in conjunction with 
+CSLLOut
+<P>
+
+<A HREF="../../LineMode/src/HTBrowse.c"<H3>HTBrowse.c</H3></A>
+A slightly modified version of the W3 LineMode browser.
+<P>
+<HR>
+<A NAME="documentation"><H1>Documentation</H1></A>
+
+<A HREF="Overview.html"<H3>Overview.html</H3></A>
+Cover page for the PICS docs
+<P>
+
+<A HREF="Using.html"<H3>Using.html</H3></A>
+Introduction to the PICS docs
+<P>
+
+<A HREF="Intrface.html"<H3>Intrface.html</H3></A>
+Descritpion of the header file interfaces to the library
+<P>
+
+<A HREF="HTFuncs.html"<H3>HTFuncs.html</H3></A>
+List of libwww functions needed for the minimal "CSUtils" interface to libpics
+<P>
+
+<A HREF="ReleaseNotes.html"<H3>ReleaseNotes.html</H3></A>
+Exciting news about <B><I>THIS</B></I> release!
+<P>
+
+<A HREF="Parsing.html"<H3>Parsing.html</H3></A>
+A description of the parsing process. It describes the purpose of the data
+structures and the process for creating them from a BNF description of the language.
+<P>
+
+<A HREF="Files.html"<H3>Files.html</H3></A>
+This file - a description of all the files associated with the PICS library.
+<P>
+<HR>
+<ADDRESS>Eric Prud'hommeuax, <A HREF="mailto:libpics@w3.org">libpics@w3.org</A>,
+March 96
+</ADDRESS></BODY></HTML>

@@ -1,0 +1,126 @@
+<HTML>
+<HEAD>
+<TITLE>HTUtils functions</TITLE>
+<!-- Changed by: Eric Prud'hommeaux, 28-Mar-1996 -->
+<NEXTID N="z11">
+</HEAD>
+<BODY>
+
+<A HREF="../../"><IMG SRC="../../Icons/WWW/w3c_48x48.gif" ALT="W3C"></A>
+<A HREF="../"><IMG SRC="../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<IMG SRC="../../Icons/WWW/doc48x.gif">
+
+<H1>HTUtils functions</H1>
+HTUtils is a subset of the libwww modules that is used by CSLUtils. That
+is, the CSLUtils modules, CSParse and CSLabel, use certain functionality
+from libwww. The functions containing these modules have been sequestered
+into a seperated directory called <A HREF="../HTUtils">HTUtils</A>. When
+CSLApp is being used in an application not based on libwww, it is expected
+that the developer will either:
+
+<OL>
+<LI><A HREF="#import">import the modules</A>
+<LI><A HREF="#emulate">emulate their functionality elsewhere in the app</A>
+<LI><A HREF="#map">define macros to map HT functions to those already in the application</A>
+</OL>
+
+A combination of 1 and 2 can be see in the <A HREF="#LablPars">LablPars</A>
+example.
+
+<A NAME="functionList"><H2>function list</H2></A>
+<UL>
+<H3>tracing</H3>
+<LI><A HREF="../HTUtils/HTUtils.html#HTTrace">HTTrace</A> - provides a
+simple error tracing facility. The calling convention is identical to that 
+of printf so
+<PRE>
+#define HTTrace printf
+</PRE>
+is a perfectly logical implementation.
+<P>
+<H3>List functions from HTList.c</H3>
+<LI><A HREF="../HTUtils/HTList.html#new">HTList_new</A>
+<LI><A HREF="../HTUtils/HTList.html#delete">HTList_delete</A>
+<LI><A HREF="../HTUtils/HTList.html#appendObject">HTList_appendObject</A>
+<LI><A HREF="../HTUtils/HTList.html#removeObject">HTList_removeObject</A>
+<LI><A HREF="../HTUtils/HTList.html#removeLastObject">HTList_removeLastObject</A>
+<LI><A HREF="../HTUtils/HTList.html#count">HTList_count</A>
+<H3>Chunk functions from HTChunk.c</H3>
+<LI><A HREF="../HTUtils/HTChunk.html#new">HTChunk_new</A>
+<LI><A HREF="../HTUtils/HTChunk.html#delete">HTChunk_delete</A>
+<LI><A HREF="../HTUtils/HTChunk.html#clear">HTChunk_clear</A>
+<LI><A HREF="../HTUtils/HTChunk.html#putb">HTChunk_putb</A>
+<LI><A HREF="../HTUtils/HTChunk.html#putc">HTChunk_putc</A>
+<H3>string functions from HTString.c</H3>
+<LI><A HREF="../HTUtils/HTString.html#strcasecomp">strcasecomp</A>
+<LI><A HREF="../HTUtils/HTString.html#strncasecomp">strcasecomp</A>
+<LI><A HREF="../HTUtils/HTString.html#HTSACopy">HTSACopy</A>
+<H3>memory allocation functions from HTMemory.c</H3>
+<LI><A HREF="../HTUtils/HTMemory.html#malloc">HTMemory_malloc</A>
+<LI><A HREF="../HTUtils/HTMemory.html#calloc">HTMemory_calloc</A>
+<LI><A HREF="../HTUtils/HTMemory.html#realloc">HTMemory_realloc</A>
+<LI><A HREF="../HTUtils/HTMemory.html#free">HTMemory_free</A>
+<LI><A HREF="../HTUtils/HTMemory.html#outofmem">HTMemory_outofmem</A>
+</UL>
+
+<A NAME="import"><H2>importing HT modules</H2></A>
+The simplest way to provide the HT functionality to the application is to
+add the required modules to the application. Because all libwww functions
+and macros start with HT, there should be no name collisions. However, this
+may result in redundant code. If your application already has List, Chunk,
+string, or memory functions, it may be advisable to use one of the
+following solutions:
+<P>
+<A NAME="emulate"><H2>emulating HT functions in the application</H2></A>
+Any of the HT functions may be resolved elsewhere in the application. The 
+<A HREF="#LablPars">LablPars</A> example uses this technique to provide the
+HTMemory_ functions. It includes simple version of the HTMemory_ functions
+in LabePars.c, eg:
+<PRE>
+void * HTMemory_malloc (size_t size)
+{
+    return malloc(size);
+}
+
+void HTMemory_free (void * ptr)
+{
+    free(ptr);
+}
+
+</PRE>
+<P>
+<A NAME="map"><H2>mapping HT functions to application functions</H2></A>
+The parser modules all include HTUtils.h. This module maps macros to the HT
+functions listed above. The developer may with to replace HTUtils.h with one
+that maps the macros to funtions already present in the application. Some
+of the functions, HTTrace, and the HTMemory_ functions, correlate to stdlib
+functions and may be mapped directly to them, eg:
+<PRE>
+#define HT_MALLOC malloc
+#define HT_CALLOC calloc
+#define HT_REALLOC realloc
+#define HT_FREE free
+</PRE>
+<P>
+<A NAME="LablPars"><H2>LablPars</H2></A>
+The <A HREF="../LablPars/LablPars.c">LablParse.c</A> program is an example
+of a simple application using the 
+<A HREF="Intrface.html#CSLUtils">CSLUtils</A>
+interface to libpics. It includes the libwww modules
+<UL>
+<LI>HTList.c
+<LI>HTChunk.c
+<LI>HTString.c
+</UL>
+
+The functionality of HTMemory.c is provided by the HTMemory_ functions in
+the bottom of LablPars.c. HTMemory.c's implementation of the HTMemory_ 
+functions provides callbacks for out of memory conditions and was more
+complicated than the LablPars example merrited.
+<P>
+
+<P>
+<HR>
+<ADDRESS>Eric Prud'hommeuax, <A HREF="mailto:libpics@w3.org">libpics@w3.org</A>,
+March 96
+</ADDRESS></BODY></HTML>

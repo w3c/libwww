@@ -1,0 +1,624 @@
+<PRE>
+#include "sysdep.h"
+#include "HTUtils.h"
+#include "HTString.h"
+#include "CSParse.h"
+#include "CSUser.h"
+#include "CSUserSt.h"
+
+#define GetCSUser(A) ((A)->target.pCSUser)
+
+struct CSUser_s {
+    CSUserData_t * pCSUserData;
+
+    UserService_t * pCurrentUserService;
+    UserServiceRating_t * pCurrentUserServiceRating;
+    Range_t * pCurrentRange;
+
+    int currentLabelNumber;
+
+    UserChangeCallback_t * pUserChangeCallback;
+    UserErrorHandler_t * pUserErrorHandler;
+};
+
+PRIVATE TargetObject_t User_targetObject;
+PRIVATE TargetObject_t UserService_targetObject;
+PRIVATE TargetObject_t UserRatingList_targetObject;
+PRIVATE TargetObject_t UserRating_targetObject;
+PRIVATE TargetObject_t UserRange_targetObject;
+PRIVATE Prep_t User_setTarget;
+PRIVATE Prep_t clearToken;
+PRIVATE Check_t getProxy;
+PRIVATE Check_t getValue;
+PRIVATE Check_t UserService_getId;
+PRIVATE Check_t UserRating_getId;
+PRIVATE Check_t UserRange_get;
+PRIVATE Open_t User_open;
+PRIVATE Open_t UserService_open;
+PRIVATE Open_t UserRating_open;
+PRIVATE Open_t UserRatingList_open;
+PRIVATE Open_t UserRange_open;
+PRIVATE Close_t User_close;
+PRIVATE Close_t UserService_close;
+PRIVATE Close_t UserRatingList_close;
+PRIVATE Close_t UserRating_close;
+PRIVATE Close_t UserRange_close;
+PRIVATE Destroy_t User_destroy;
+PRIVATE Destroy_t UserService_destroy;
+PRIVATE Destroy_t UserRatingList_destroy;
+PRIVATE Destroy_t UserRating_destroy;
+PRIVATE Destroy_t UserRange_destroy;
+
+PRIVATE StateChangeCallback_t stateChangeCallback;
+PRIVATE ParseErrorHandler_t parseErrorHandler;
+
+/* CSParse_doc states */
+/* U S E R   P A R S E R   S T A T E S */
+/* This parses the example User profile for the LineMode browser.
+ * See User/Parsing.html for details.
+ */
+PRIVATE StateToken_t User_stateTokens[] = { 
+    /* A: open or close
+       B: red open
+       C: read value 
+       D: read proxy */
+     {           "start",<A NAME="User_N"> SubState_N</A>,    Punct_ALL, 0,                  0, 0, 0, &<A HREF="#User_A">User, SubState_A</A>, Command_MATCHANY|Command_OPEN|Command_CHAIN, 0},
+     {            "open",<A NAME="User_A"> SubState_A</A>, Punct_LPAREN, 0,                  0, 0, 0, &<A HREF="#User_B">User, SubState_B</A>, 0, 0},
+     {             "end", SubState_A, Punct_RPAREN, 0,                  0, 0, 0, &<A HREF="#User_A">User, SubState_A</A>, Command_CLOSE, 0},
+     {         "version",<A NAME="User_B"> SubState_B</A>,  Punct_WHITE, 0,          "version", 0, 0, &<A HREF="#User_C">User, SubState_C</A>, 0, &<A HREF="#User_setTarget">User_setTarget</A>},
+     {       "user-name", SubState_B,  Punct_WHITE, 0,        "user-name", 0, 0, &<A HREF="#User_C">User, SubState_C</A>, 0, &<A HREF="#User_setTarget">User_setTarget</A>},
+     {        "password", SubState_B,  Punct_WHITE, 0,         "password", 0, 0, &<A HREF="#User_C">User, SubState_C</A>, 0, &<A HREF="#User_setTarget">User_setTarget</A>},
+     {      "super-user", SubState_B,  Punct_WHITE, 0,       "super-user", 0, 0, &<A HREF="#User_C">User, SubState_C</A>, 0, &<A HREF="#User_setTarget">User_setTarget</A>},
+     {"minimum-services", SubState_B,  Punct_WHITE, 0, "minimum-services", 0, 0, &<A HREF="#User_C">User, SubState_C</A>, 0, &<A HREF="#User_setTarget">User_setTarget</A>},
+     { "missing-service", SubState_B,  Punct_WHITE, 0,  "missing-service", 0, 0, &<A HREF="#User_C">User, SubState_C</A>, 0, &<A HREF="#User_setTarget">User_setTarget</A>},
+     {   "missing-scale", SubState_B,  Punct_WHITE, 0,    "missing-scale", 0, 0, &<A HREF="#User_C">User, SubState_C</A>, 0, &<A HREF="#User_setTarget">User_setTarget</A>},
+     {   "observe-dates", SubState_B,  Punct_WHITE, 0,    "observe-dates", 0, 0, &<A HREF="#User_C">User, SubState_C</A>, 0, &<A HREF="#User_setTarget">User_setTarget</A>},
+     {      "use-bureau", SubState_B,  Punct_WHITE, 0,       "use-bureau", 0, 0, &<A HREF="#User_C">User, SubState_C</A>, 0, &<A HREF="#User_setTarget">User_setTarget</A>},
+     {           "proxy", SubState_B,  Punct_WHITE, 0,            "proxy", 0, 0, &<A HREF="#User_D">User, SubState_D</A>, 0, 0},
+     {  "rating-service", SubState_B,  Punct_WHITE, 0,   "rating-service", 0, 0, &<A HREF="#UserService_N">UserService, SubState_N</A>, 0, 0},
+     {       "get value",<A NAME="User_C"> SubState_C</A>, Punct_RPAREN, &<A HREF="#getValue">getValue</A>,          0, 0, 0, &<A HREF="#User_A">User, SubState_A</A>, 0, 0},
+     {       "get proxy",<A NAME="User_D"> SubState_D</A>, Punct_RPAREN, &<A HREF="#getProxy">getProxy</A>,          0, 0, 0, &<A HREF="#User_A">User, SubState_A</A>, 0, 0}
+    };
+PRIVATE TargetObject_t User_targetObject = {"User", &<A HREF="#User_open">User_open</A>, &<A HREF="#User_close">User_close</A>, &<A HREF="#User_destroy">User_destroy</A>, User_stateTokens, raysize(User_stateTokens), CSUserSC_USER};
+
+PRIVATE StateToken_t UserService_stateTokens[] = { 
+    /* A: fresh UserService
+       B: red id
+       C: read value 
+       D: need paren before next parm */
+     {          "start",<A NAME="UserService_N"> SubState_N</A>,    Punct_ALL, 0,                  0, 0, 0, &<A HREF="#UserService_A">UserService, SubState_A</A>, Command_MATCHANY|Command_OPEN|Command_CHAIN, 0},
+     {  "rating system",<A NAME="UserService_A"> SubState_A</A>, Punct_LPAREN, &<A HREF="#UserService_getId">UserService_getId</A>, 0, 0, 0, &<A HREF="#UserService_B">UserService, SubState_B</A>, 0, 0},
+     {        "service",<A NAME="UserService_B"> SubState_B</A>,  Punct_WHITE, 0,   "rating-service", 0, 0, &<A HREF="#UserService_C">UserService, SubState_C</A>, 0, &<A HREF="#User_setTarget">User_setTarget</A>},
+     {"missing-service", SubState_B,  Punct_WHITE, 0,  "missing-service", 0, 0, &<A HREF="#UserService_C">UserService, SubState_C</A>, 0, &<A HREF="#User_setTarget">User_setTarget</A>},
+     {  "missing-scale", SubState_B,  Punct_WHITE, 0,    "missing-scale", 0, 0, &<A HREF="#UserService_C">UserService, SubState_C</A>, 0, &<A HREF="#User_setTarget">User_setTarget</A>},
+     {  "observe-dates", SubState_B,  Punct_WHITE, 0,    "observe-dates", 0, 0, &<A HREF="#UserService_C">UserService, SubState_C</A>, 0, &<A HREF="#User_setTarget">User_setTarget</A>},
+     {        "ratings", SubState_B, Punct_LPAREN|Punct_RPAREN,0,"ratings",0,0, &<A HREF="#UserRatingList_N">UserRatingList, SubState_N</A>, Command_CHAIN, &<A HREF="#clearToken">clearToken</A>},
+     {      "get value",<A NAME="UserService_C"> SubState_C</A>, Punct_RPAREN, &<A HREF="#getValue">getValue</A>,          0, 0, 0, &<A HREF="#UserService_D">UserService, SubState_D</A>, 0, 0},
+     {            "end",<A NAME="UserService_D"> SubState_D</A>, Punct_RPAREN, 0,                  0, 0, 0, &<A HREF="#User_A">User, SubState_A</A>, Command_CLOSE, 0},
+     {      "need open", SubState_D, Punct_LPAREN, 0,                  0, 0, 0, &<A HREF="#UserService_B">UserService, SubState_B</A>, 0, 0}
+    };
+PRIVATE TargetObject_t UserService_targetObject = {"UserService", &<A HREF="#UserService_open">UserService_open</A>, &<A HREF="#UserService_close">UserService_close</A>, &<A HREF="#UserService_destroy">UserService_destroy</A>, UserService_stateTokens, raysize(UserService_stateTokens), CSUserSC_SERVICE};
+
+PRIVATE StateToken_t UserRatingList_stateTokens[] = { 
+    /* A: single state list, expects open or close paren */
+     {          "start",<A NAME="UserRatingList_N"> SubState_N</A>,    Punct_ALL, 0, 0, 0, 0, &<A HREF="#UserRatingList_A">UserRatingList, SubState_A</A>, Command_MATCHANY|Command_OPEN|Command_CHAIN, 0},
+     {   "start rating",<A NAME="UserRatingList_A"> SubState_A</A>, Punct_LPAREN, 0, 0, 0, 0,     &<A HREF="#UserRating_N">UserRating, SubState_N</A>, 0, 0},
+     {"end rating list", SubState_A, Punct_RPAREN, 0, 0, 0, 0,    &<A HREF="#UserService_D">UserService, SubState_D</A>, Command_CLOSE, 0}
+    };
+PRIVATE TargetObject_t UserRatingList_targetObject = {"UserRatingList", &<A HREF="#UserRatingList_open">UserRatingList_open</A>, &<A HREF="#UserRatingList_close">UserRatingList_close</A>, &<A HREF="#UserRatingList_destroy">UserRatingList_destroy</A>, UserRatingList_stateTokens, raysize(UserRatingList_stateTokens), CSUserSC_RLIST};
+
+PRIVATE StateToken_t UserRating_stateTokens[] = { 
+    /* A: fresh UserRating
+       B: red id
+       C: get value
+       D: need paren before next parm */
+     {          "start",<A NAME="UserRating_N"> SubState_N</A>,    Punct_ALL, 0,                 0, 0, 0, &<A HREF="#UserRating_A">UserRating, SubState_A</A>, Command_MATCHANY|Command_OPEN|Command_CHAIN, 0},
+     {       "range id",<A NAME="UserRating_A"> SubState_A</A>, Punct_LPAREN, &<A HREF="#UserRating_getId">UserRating_getId</A>, 0, 0, 0, &<A HREF="#UserRating_B">UserRating, SubState_B</A>, 0, 0},
+     {  "missing-scale",<A NAME="UserRating_B"> SubState_B</A>,  Punct_WHITE, 0,   "missing-scale", 0, 0, &<A HREF="#UserRating_C">UserRating, SubState_C</A>, 0, &<A HREF="#User_setTarget">User_setTarget</A>},
+     {  "observe-dates", SubState_B,  Punct_WHITE, 0,   "observe-dates", 0, 0, &<A HREF="#UserRating_C">UserRating, SubState_C</A>, 0, &<A HREF="#User_setTarget">User_setTarget</A>},
+     {         "ranges", SubState_B,  Punct_WHITE, 0,    "range", "ranges", 0, &<A HREF="#UserRange_N">UserRange, SubState_N</A>, 0, 0},
+     {      "get value",<A NAME="UserRating_C"> SubState_C</A>, Punct_RPAREN, &<A HREF="#getValue">getValue</A>,         0, 0, 0, &<A HREF="#UserRating_D">UserRating, SubState_D</A>, 0, 0},
+     {     "rating end",<A NAME="UserRating_D"> SubState_D</A>, Punct_RPAREN, 0,                 0, 0, 0, &<A HREF="#UserRatingList_A">UserRatingList, SubState_A</A>, Command_CLOSE, 0},
+     {      "need open", SubState_D, Punct_LPAREN, 0,                 0, 0, 0, &<A HREF="#UserRating_B">UserRating, SubState_B</A>, 0, 0}
+    };
+PRIVATE TargetObject_t UserRating_targetObject = {"UserRating", &<A HREF="#UserRating_open">UserRating_open</A>, &<A HREF="#UserRating_close">UserRating_close</A>, &<A HREF="#UserRating_destroy">UserRating_destroy</A>, UserRating_stateTokens, raysize(UserRating_stateTokens), CSUserSC_RATING};
+
+PRIVATE StateToken_t UserRange_stateTokens[] = { 
+    /* A: read ranges */
+     {      "start",<A NAME="UserRange_N"> SubState_N</A>,    Punct_ALL,              0, 0, 0, 0, &<A HREF="#UserRange_A">UserRange, SubState_A</A>, Command_MATCHANY|Command_OPEN|Command_CHAIN, 0},
+     {      "value",<A NAME="UserRange_A"> SubState_A</A>,  Punct_WHITE, &<A HREF="#UserRange_get">UserRange_get</A>, 0, 0, 0, &<A HREF="#UserRange_A">UserRange, SubState_A</A>, 0, 0},
+     {  "value end", SubState_A, Punct_RPAREN, &<A HREF="#UserRange_get">UserRange_get</A>, 0, 0, 0, &<A HREF="#UserRating_D">UserRating, SubState_D</A>, Command_CLOSE, 0}
+    };
+PRIVATE TargetObject_t UserRange_targetObject = {"UserRange", &<A HREF="#UserRange_open">UserRange_open</A>, &<A HREF="#UserRange_close">UserRange_close</A>, &<A HREF="#UserRange_destroy">UserRange_destroy</A>, UserRange_stateTokens, raysize(UserRange_stateTokens), CSUserSC_RANGE};
+
+/* CSParse_doc end */
+/* S T A T E   A S S O C I A T I O N - associate a CSUser with the label list data 
+   The label list data is kept around until all states referencing it are destroyed */
+typedef struct {
+    CSUser_t * pCSUser;
+    CSUserData_t * pCSUserData;
+    } CSUserAssoc_t;
+
+PRIVATE HTList * CSUserAssocs = 0;
+
+PRIVATE void CSUserAssoc_add(CSUser_t * pCSUser, CSUserData_t * pCSUserData)
+{
+    CSUserAssoc_t * pElement;
+    if ((pElement = (CSUserAssoc_t *) HT_CALLOC(1, sizeof(CSUserAssoc_t))) == NULL)
+        HT_OUTOFMEM("CSUserAssoc_t");
+    pElement->pCSUser = pCSUser;
+    pElement->pCSUserData = pCSUserData;
+    if (!CSUserAssocs)
+        CSUserAssocs = HTList_new();
+    HTList_appendObject(CSUserAssocs, (void *)pElement);
+}
+
+PRIVATE CSUserAssoc_t * CSUserAssoc_findByData(CSUserData_t * pCSUserData)
+{
+    HTList * assocs = CSUserAssocs;
+    CSUserAssoc_t * pElement;
+    while ((pElement = (CSUserAssoc_t *) HTList_nextObject(assocs)))
+        if (pElement->pCSUserData == pCSUserData)
+            return pElement;
+    return 0;
+}
+
+PRIVATE CSUserAssoc_t * CSUserAssoc_findByState(CSUser_t * pCSUser)
+{
+    HTList * assocs = CSUserAssocs;
+    CSUserAssoc_t * pElement;
+    while ((pElement = (CSUserAssoc_t *) HTList_nextObject(assocs)))
+        if (pElement->pCSUser == pCSUser)
+            return pElement;
+    return 0;
+}
+
+PRIVATE void CSUserAssoc_removeByState(CSUser_t * pCSUser)
+{
+    CSUserAssoc_t * pElement = CSUserAssoc_findByState(pCSUser);
+    if (!pElement)
+        return;
+    HTList_removeObject(CSUserAssocs, (void *)pElement);
+    HT_FREE(pElement);
+}
+
+/* C O N S T R U C T O R S / D E S T R U C T O R S */
+PRIVATE UserServiceRating_t * UserServiceRating_new(void)
+{
+    UserServiceRating_t * me;
+	if ((me = (UserServiceRating_t *) HT_CALLOC(1, sizeof(UserServiceRating_t))) == NULL)
+	    HT_OUTOFMEM("UserServiceRating_t");
+    me->ranges = HTList_new();
+    return me;
+}
+
+PUBLIC void UserServiceRating_free(UserServiceRating_t * me)
+{
+    Range_t * pRange;
+    while ((pRange = (Range_t *) HTList_removeLastObject(me->ranges)))
+        HT_FREE(pRange);
+    SVal_clear(&me->identifier);
+    BVal_clear(&me->missing_scale);
+    BVal_clear(&me->observe_dates);
+}
+
+PRIVATE UserService_t * UserService_new(void)
+{
+    UserService_t * me;
+	if ((me = (UserService_t *) HT_CALLOC(1, sizeof(UserService_t))) == NULL)
+	    HT_OUTOFMEM("UserService_t");
+    return me;
+}
+
+PUBLIC void UserService_free(UserService_t * me)
+{
+    UserServiceRating_t * pUserServiceRating;
+    while ((pUserServiceRating = (UserServiceRating_t *) HTList_removeLastObject(me->userServiceRatings)))
+        UserServiceRating_free(pUserServiceRating);
+    HTList_delete(me->userServiceRatings);
+    FVal_clear(&me->version);
+    SVal_clear(&me->rating_system);
+    SVal_clear(&me->rating_service);
+    BVal_clear(&me->missing_service);
+    BVal_clear(&me->missing_scale);
+    BVal_clear(&me->observe_dates);
+}
+
+PUBLIC CSUserData_t * CSUserData_new(void)
+{
+    CSUserData_t * me;
+    if ((me = (CSUserData_t *) HT_CALLOC(1, sizeof(CSUserData_t))) == NULL)
+        HT_OUTOFMEM("CSUserData_t");
+    me->userServices = HTList_new();
+    me->proxies = HTList_new();
+    return me;
+}
+
+PUBLIC void CSUserData_free(CSUserData_t * me)
+{
+    UserService_t * pUserService;
+    char * proxy;
+    if (CSUserAssoc_findByData(me))
+        return;
+    while ((pUserService = (UserService_t *) HTList_removeLastObject(me->userServices)))
+        UserService_free(pUserService);
+    HTList_free(me->userServices);
+    while ((proxy = (char *) HTList_removeLastObject(me->proxies)))
+        HT_FREE(proxy);
+    HTList_free(me->proxies);
+    FVal_clear(&me->version);
+    SVal_clear(&me->user_name);
+    SVal_clear(&me->password);
+    BVal_clear(&me->super_user);
+    FVal_clear(&me->minimum_services);
+    BVal_clear(&me->missing_service);
+    BVal_clear(&me->missing_scale);
+    BVal_clear(&me->observe_dates);
+    HT_FREE(me);
+}
+
+PUBLIC CSUser_t * CSUser_new(CSUserData_t * pCSUserData)
+{
+    CSUser_t * me;
+    if ((me = (CSUser_t *) HT_CALLOC(1, sizeof(CSUser_t))) == NULL)
+        HT_OUTOFMEM("CSUser_t");
+    me->pCSUserData = pCSUserData;
+    CSUserAssoc_add(me, pCSUserData);
+    return me;
+}
+
+PUBLIC CSUser_t * CSUser_copy(CSUser_t * old)
+{
+    CSUser_t * me;
+    me = CSUser_new(old->pCSUserData);
+    memcpy(me, old, sizeof(CSUser_t));
+    return me;
+}
+
+PUBLIC void CSUser_free(CSUser_t * me)
+{
+    CSUserData_t * pCSUserData = me->pCSUserData;
+    CSUserAssoc_removeByState(me);
+    HT_FREE(me);
+    CSUserData_free(pCSUserData);
+}
+
+PUBLIC char * CSUser_name(CSUser_t * pCSUser) {return SVal_value(&pCSUser->pCSUserData->user_name);}
+PUBLIC BOOL CSUser_checkPassword(CSUser_t * pCSUser, char * password) {return strcasecomp(SVal_value(&pCSUser->pCSUserData->password), password) ? NO : YES;}
+PUBLIC CSUserData_t * CSUser_getCSUserData(CSUser_t * me) {return me->pCSUserData;}
+PUBLIC UserService_t * CSUser_getUserService(CSUser_t * pCSUser) {return pCSUser->pCurrentUserService;}
+PUBLIC UserServiceRating_t * CSUser_getUserServiceRating(CSUser_t * pCSUser) {return pCSUser->pCurrentUserServiceRating;}
+PUBLIC Range_t * CSUser_getUserRatingRange(CSUser_t * pCSUser) {return pCSUser->pCurrentRange;}
+
+PUBLIC CSParse_t * CSParse_newUser()
+{
+    CSParse_t * me = CSParse_new();
+    me->pParseContext->engineOf = &CSParse_targetParser;
+    me->pParseContext->pStateChangeCallback = &stateChangeCallback;
+    me->pParseContext->pParseErrorHandler = &parseErrorHandler;
+    me->target.pCSUser = CSUser_new(CSUserData_new());
+    me->pParseState = &User_targetObject;
+    me->currentSubState = SubState_N;
+    return me;
+}
+
+PUBLIC CSUser_t * CSParse_getUser(CSParse_t * me)
+{
+    return (me->target.pCSUser);
+}
+
+PUBLIC BOOL CSParse_deleteUser(CSParse_t * pCSParse)
+{
+    CSUser_t * me = GetCSUser(pCSParse);
+    CSUserData_free(CSUser_getCSUserData(me));
+    CSUser_free(me);
+    return YES;
+}
+
+/* P A R S I N G   H A N D L E R S */
+PRIVATE StateRet_t stateChangeCallback(CSParse_t * pCSParse, TargetObject_t * pParseState, CSParseSC_t change, BOOL closed, void * pVoid)
+{
+
+    CSUser_t * pCSUser = GetCSUser(pCSParse);
+    if (pCSUser->pUserChangeCallback)
+	return (*pCSUser->pUserChangeCallback)(pCSUser, pCSParse, (CSUserSC_t)change, closed, pVoid);
+    return StateRet_OK;
+}
+
+PRIVATE StateRet_t parseErrorHandler(CSParse_t * pCSParse, char * token, char demark, StateRet_t errorCode)
+{
+	CSUser_t * pCSUser = GetCSUser(pCSParse);
+	if (pCSUser->pUserErrorHandler)
+		return (*pCSUser->pUserErrorHandler)(pCSUser, pCSParse, token, demark, errorCode);
+  return errorCode;
+}
+
+/* CSParse_doc methods */
+/* P A R S I N G   S T A T E   F U N C T I O N S */
+PRIVATE StateRet_t <A NAME="clearToken">clearToken</A>(CSParse_t * pCSParse, char * token, char demark)
+{
+    HTChunk_clear(pCSParse->token);
+    return StateRet_OK;
+}
+
+PRIVATE StateRet_t <A NAME="getProxy">getProxy</A>(CSParse_t * pCSParse, StateToken_t * pStateToken, char * token, char demark)
+{
+    CSUser_t * pCSUser = GetCSUser(pCSParse);
+    ParseContext_t * pParseContext = pCSParse->pParseContext;
+    char * proxy = 0;
+    if (!token || !pParseContext->observedQuotes)
+        return StateRet_WARN_NO_MATCH;
+    if (Punct_badDemark(pStateToken->validPunctuation, demark))
+        return StateRet_WARN_BAD_PUNCT; /* let CSParse_targetParser get the punctuation error */
+    StrAllocCopy(proxy, token);
+    HTList_appendObject(pCSUser->pCSUserData->proxies, (void *)proxy);
+    return StateRet_OK;
+}
+
+#define READY_BVAL(holder, pointer) \
+    pCSParse->pParseContext->valTarget.pTargetBVal = &CSUser_get##holder(pCSUser)->pointer; pCSParse->pParseContext->valType = ValType_BVAL;
+#define READY_FVAL(holder, pointer) \
+    pCSParse->pParseContext->valTarget.pTargetFVal = &CSUser_get##holder(pCSUser)->pointer; pCSParse->pParseContext->valType = ValType_FVAL;
+#define READY_DVAL(holder, pointer) \
+    pCSParse->pParseContext->valTarget.pTargetDVal = &CSUser_get##holder(pCSUser)->pointer; pCSParse->pParseContext->valType = ValType_DVAL;
+#define READY_SVAL(holder, pointer) \
+    pCSParse->pParseContext->valTarget.pTargetSVal = &CSUser_get##holder(pCSUser)->pointer; pCSParse->pParseContext->valType = ValType_SVAL;
+
+PRIVATE StateRet_t <A NAME="User_setTarget">User_setTarget</A>(CSParse_t * pCSParse, char * token, char demark)
+{
+    CSUser_t * pCSUser = GetCSUser(pCSParse);
+    int caseNumber;
+    pCSParse->pParseContext->valType = ValType_SVAL;
+
+    if (pCSParse->pParseState == &User_targetObject) {
+        caseNumber = pCSParse->pStateToken-User_stateTokens;
+        switch (caseNumber) {
+            case 2: READY_FVAL(CSUserData, version); break;
+            case 3: READY_SVAL(CSUserData, user_name); break;
+            case 4: READY_SVAL(CSUserData, password); break;
+            case 5: READY_BVAL(CSUserData, super_user); break;
+            case 6: READY_FVAL(CSUserData, minimum_services); break;
+            case 7: READY_BVAL(CSUserData, missing_service); break;
+            case 8: READY_BVAL(CSUserData, missing_scale); break;
+            case 9: READY_BVAL(CSUserData, observe_dates); break;
+            case 10: READY_BVAL(CSUserData, use_bureau); break;
+        }
+    } else if (pCSParse->pParseState == &UserService_targetObject) {
+        caseNumber = pCSParse->pStateToken-UserService_stateTokens;
+        switch (caseNumber) {
+            case 2: READY_SVAL(UserService, rating_service); break;
+            case 3: READY_BVAL(UserService, missing_service); break;
+            case 4: READY_BVAL(UserService, missing_scale); break;
+            case 5: READY_BVAL(UserService, observe_dates); break;
+        }
+    } else if (pCSParse->pParseState == &UserRating_targetObject) {
+        caseNumber = pCSParse->pStateToken-UserRating_stateTokens;
+        switch (caseNumber) {
+            case 2: READY_BVAL(UserServiceRating, missing_scale); break;
+            case 3: READY_BVAL(UserServiceRating, observe_dates); break;
+        }
+    }
+    return StateRet_OK;
+}
+
+PRIVATE StateRet_t <A NAME="getValue">getValue</A>(CSParse_t * pCSParse, StateToken_t * pStateToken, char * token, char demark)
+{
+    switch (pCSParse->pParseContext->valType) {
+        case ValType_BVAL:
+            BVal_readVal(pCSParse->pParseContext->valTarget.pTargetBVal, token);
+            pCSParse->pParseContext->valType = ValType_NONE;
+            break;
+        case ValType_FVAL:
+            FVal_readVal(pCSParse->pParseContext->valTarget.pTargetFVal, token);
+            pCSParse->pParseContext->valType = ValType_NONE;
+            break;
+        case ValType_SVAL:
+            SVal_readVal(pCSParse->pParseContext->valTarget.pTargetSVal, token);
+            pCSParse->pParseContext->valType = ValType_NONE;
+            break;
+        case ValType_DVAL:
+            DVal_readVal(pCSParse->pParseContext->valTarget.pTargetDVal, token);
+            pCSParse->pParseContext->valType = ValType_NONE;
+            break;
+	default:
+	    break;
+    }
+    return StateRet_OK;
+}
+
+PRIVATE StateRet_t <A NAME="User_open">User_open</A>(CSParse_t * pCSParse, char * token, char demark)
+{
+    return StateRet_OK;
+}
+
+PRIVATE StateRet_t <A NAME="User_close">User_close</A>(CSParse_t * pCSParse, char * token, char demark)
+{
+    return StateRet_DONE;
+}
+
+PRIVATE void User_destroy(CSParse_t * pCSParse)
+{
+/*    CSUser_t * pCSUser = GetCSUser(pCSParse); */
+}
+
+PRIVATE StateRet_t <A NAME="UserService_open">UserService_open</A>(CSParse_t * pCSParse, char * token, char demark)
+{
+    CSUser_t * pCSUser = GetCSUser(pCSParse);
+    pCSUser->pCurrentUserService = UserService_new();
+    HTList_appendObject(pCSUser->pCSUserData->userServices, (void *)pCSUser->pCurrentUserService);
+    return StateRet_OK;
+}
+
+PRIVATE StateRet_t <A NAME="UserService_getId">UserService_getId</A>(CSParse_t * pCSParse, StateToken_t * pStateToken, char * token, char demark)
+{
+    CSUser_t * pCSUser = GetCSUser(pCSParse);
+    ParseContext_t * pParseContext = pCSParse->pParseContext;
+    if (!token || !pParseContext->observedQuotes)
+        return StateRet_WARN_NO_MATCH;
+    if (Punct_badDemark(pStateToken->validPunctuation, demark))
+        return StateRet_WARN_BAD_PUNCT; /* let CSParse_targetParser get the punctuation error */
+    SVal_readVal(&pCSUser->pCurrentUserService->rating_service, token);
+    return StateRet_OK;
+}
+
+PRIVATE StateRet_t <A NAME="UserService_close">UserService_close</A>(CSParse_t * pCSParse, char * token, char demark)
+{
+    CSUser_t * pCSUser = GetCSUser(pCSParse);
+    pCSUser->pCurrentUserService = 0;
+    return StateRet_OK;
+}
+
+PRIVATE void UserService_destroy(CSParse_t * pCSParse)
+{
+    CSUser_t * pCSUser = GetCSUser(pCSParse);
+    HTList_removeObject(pCSUser->pCSUserData->userServices, (void *)pCSUser->pCurrentUserService);
+    UserService_free(pCSUser->pCurrentUserService);
+    pCSUser->pCurrentUserService = 0;
+}
+
+PRIVATE StateRet_t <A NAME="UserRatingList_open">UserRatingList_open</A>(CSParse_t * pCSParse, char * token, char demark)
+{
+    CSUser_t * pCSUser = GetCSUser(pCSParse);
+    pCSUser->pCurrentUserService->userServiceRatings = HTList_new();
+    return StateRet_OK;
+}
+
+PRIVATE StateRet_t <A NAME="UserRatingList_close">UserRatingList_close</A>(CSParse_t * pCSParse, char * token, char demark)
+{
+    return StateRet_OK;
+}
+
+PRIVATE void UserRatingList_destroy(CSParse_t * pCSParse)
+{
+    CSUser_t * pCSUser = GetCSUser(pCSParse);
+    UserService_t * pUserService = pCSUser->pCurrentUserService;
+    UserServiceRating_t * pUserServiceRating;
+    while ((pUserServiceRating = (UserServiceRating_t *) HTList_removeLastObject(pUserService->userServiceRatings)))
+        UserServiceRating_free(pUserServiceRating);
+    HTList_delete(pUserService->userServiceRatings);
+    pUserService->userServiceRatings = 0;
+}
+
+PRIVATE StateRet_t <A NAME="UserRating_open">UserRating_open</A>(CSParse_t * pCSParse, char * token, char demark)
+{
+    CSUser_t * pCSUser = GetCSUser(pCSParse);
+    pCSUser->pCurrentUserServiceRating = UserServiceRating_new();
+    HTList_appendObject(pCSUser->pCurrentUserService->userServiceRatings, (void *)pCSUser->pCurrentUserServiceRating);
+    return StateRet_OK;
+}
+
+PRIVATE StateRet_t <A NAME="UserRating_getId">UserRating_getId</A>(CSParse_t * pCSParse, StateToken_t * pStateToken, char * token, char demark)
+{
+    CSUser_t * pCSUser = GetCSUser(pCSParse);
+    ParseContext_t * pParseContext = pCSParse->pParseContext;
+    if (!token || !pParseContext->observedQuotes)
+        return StateRet_WARN_NO_MATCH;
+    if (Punct_badDemark(pStateToken->validPunctuation, demark))
+        return StateRet_WARN_BAD_PUNCT; /* let CSParse_targetParser get the punctuation error */
+    SVal_readVal(&pCSUser->pCurrentUserServiceRating->identifier, token);
+    return StateRet_OK;
+}
+
+PRIVATE StateRet_t <A NAME="UserRating_close">UserRating_close</A>(CSParse_t * pCSParse, char * token, char demark)
+{
+    CSUser_t * pCSUser = GetCSUser(pCSParse);
+    pCSUser->pCurrentUserServiceRating = 0;
+    return StateRet_OK;
+}
+
+PRIVATE void UserRating_destroy(CSParse_t * pCSParse)
+{
+    CSUser_t * pCSUser = GetCSUser(pCSParse);
+    HTList_removeObject(pCSUser->pCurrentUserService->userServiceRatings, (void *)pCSUser->pCurrentUserServiceRating);
+    UserServiceRating_free(pCSUser->pCurrentUserServiceRating);
+    pCSUser->pCurrentUserServiceRating = 0;
+}
+
+PRIVATE StateRet_t <A NAME="UserRange_open">UserRange_open</A>(CSParse_t * pCSParse, char * token, char demark)
+{
+    return StateRet_OK;
+}
+
+PRIVATE StateRet_t <A NAME="UserRange_get">UserRange_get</A>(CSParse_t * pCSParse, StateToken_t * pStateToken, char * token, char demark)
+{
+    CSUser_t * pCSUser = GetCSUser(pCSParse);
+    UserServiceRating_t * pUserServiceRating = pCSUser->pCurrentUserServiceRating;
+    Range_t * me;
+    char * ptr, * backPtr;
+    if (!token)
+        return StateRet_WARN_NO_MATCH;
+    if (Punct_badDemark(pStateToken->validPunctuation, demark))
+        return StateRet_WARN_BAD_PUNCT;
+	if ((me = (Range_t *) HT_CALLOC(1, sizeof(Range_t))) == NULL)
+	    HT_OUTOFMEM("Range_t");
+/*    me = Range_new(); */
+    HTList_appendObject(pUserServiceRating->ranges, (void *)me);
+    backPtr = ptr = token;
+    while (*ptr) {
+        if (*ptr == ':') {
+            *ptr = 0;
+            ptr++;
+            break;
+        }
+        ptr++;
+    }
+    FVal_readVal(&me->min, backPtr);
+    if (*ptr)
+        FVal_readVal(&me->max, ptr);
+    return StateRet_OK;
+}
+
+PRIVATE StateRet_t <A NAME="UserRange_close">UserRange_close</A>(CSParse_t * pCSParse, char * token, char demark)
+{
+    return StateRet_OK;
+}
+
+PRIVATE void UserRange_destroy(CSParse_t * pCSParse)
+{
+}
+
+/* CSParse_doc end */
+/* I T E R A T O R S - scan through the CSUser data structures for <identifier>
+ */
+PUBLIC CSError_t CSUser_iterateServices(CSUser_t * pCSUser, CSUser_callback_t * pIteratorCB, State_Parms_t * pParms, const char * identifier, void * pVoid)
+{
+    HTList * userServices;
+    CSError_t ret = CSError_OK;
+    int count = 0;
+    if (!pIteratorCB ||
+        !pCSUser ||
+        !pCSUser->pCSUserData->userServices)
+        return CSError_BAD_PARAM;
+    userServices = pCSUser->pCSUserData->userServices;
+	while ((pCSUser->pCurrentUserService = (UserService_t *) HTList_nextObject(userServices)) && ret == CSError_OK)
+        if (!identifier || !strcasecomp(SVal_value(&pCSUser->pCurrentUserService->rating_service), identifier)) {
+            ret = (*pIteratorCB)(pCSUser, pParms, identifier, pVoid) != CSError_OK;
+            count++;
+        }
+    if (!count)
+        return CSError_SERVICE_MISSING;
+    return ret;
+}
+
+PUBLIC CSError_t CSUser_iterateServiceRatings(CSUser_t * pCSUser, CSUser_callback_t * pIteratorCB, State_Parms_t * pParms, const char * identifier, void * pVoid)
+{
+    HTList * userServiceRatings;
+    CSError_t ret = CSError_OK;
+    int count = 0;
+    if (!pIteratorCB ||
+        !pCSUser ||
+        !pCSUser->pCurrentUserService ||
+        !pCSUser->pCurrentUserService->userServiceRatings)
+        return CSError_BAD_PARAM;
+    userServiceRatings = pCSUser->pCurrentUserService->userServiceRatings;
+	while ((pCSUser->pCurrentUserServiceRating = (UserServiceRating_t *) HTList_nextObject(userServiceRatings)) && ret == CSError_OK)
+        if (!identifier || !strcasecomp(SVal_value(&pCSUser->pCurrentUserServiceRating->identifier), identifier)) {
+            ret = (*pIteratorCB)(pCSUser, pParms, identifier, pVoid) != CSError_OK;
+            count++;
+        }
+    if (!count)
+        return CSError_RATING_MISSING;
+    return ret;
+}
+
+<PRE>

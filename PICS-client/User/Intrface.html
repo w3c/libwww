@@ -1,0 +1,331 @@
+<HTML>
+<HEAD>
+<TITLE>W3C PICS library Interfaces</TITLE>
+<!-- Changed by: Eric Prud'hommeaux, 24-Apr-1996 -->
+<NEXTID N="z11">
+</HEAD>
+<BODY>
+
+<A HREF="../../"><IMG SRC="../../Icons/WWW/w3c_48x48.gif" ALT="W3C"></A>
+<A HREF="../"><IMG SRC="../../Icons/WWW/PICS48x.gif" ALT="PICS"></A>
+<IMG SRC="../../Icons/WWW/internals48x.gif">
+
+<H1>W3C PICS library Interfaces</H1>
+
+<IMG SRC="../../../Icons/WWW/construction.gif"> Any suggestions or ideas are 
+welcome at <AHREF="mailto:libpics@w3.org">libpics@w3.org</A>. <P>
+
+<A NAME="components"><H2>Components</H2></A>
+The libpics library is divided into two components, accessible through two 
+interfaces:
+<UL>
+<LI><A HREF="#CSLUtils">CSLUtils</A> - a minimal set of files providing parsing
+capabilities for PICS labels and Machine-readable service descritpions.
+<LI><A HREF="#CSLApp">CSLApp</A> - component library for building PICS 
+applications on top of libwww. It provides the application with automatic 
+label requests, parsing of the results, user management, and document 
+authorization.
+<P>
+Furthur functionality is provided by:
+<LI><A HREF="#CSLabel">CSLabel</A> - access to PICS label structures
+<LI><A HREF="#CSUser">CSUser</A> - sample user profiles
+<LI><A HREF="#CSMacRed">CSMacRed</A> - machine-readable service descritpions
+<P>
+Of interest, but no consequence:
+<LI><A HREF="#CSParse">CSParse</A> - how the above three are generated
+</UL>
+<P>
+
+Every module in the PICS library has a HTML document associated with it 
+containing a detailed description of its interface. See 
+<A HREF="../../Library/User/Guide/Overview.html#headers">w3c Library Interfaces</A>
+for instructions on modifying header or html files.
+<P>
+
+<HR>
+<A NAME="CSLUtils"><H1>CSLUtils</H1></A>
+The minimal interface to the PICS library is to use it as just a parser. The 
+parser may read a label, machine readable service description, or a user 
+descritpion. The only PICS modules needed for this interface are the parser 
+and a module specific to the object you wish to parse (see the 
+<A HREF="#LablPars">Label parser example</A>). The parser uses list, chunk, and
+memory management from the libwww modules. See the 
+<A HREF="HTFuncs.html">function list</A> for a list of the needed funtions.
+These functions are implemented in libwww. To make it easier to genericly 
+integrate CSLUtils with any application, the libwww modules of these 
+functions have been sequestered to <A HREF="../HTUtils">HTUtils</A>, along 
+with the necessary headers.
+<P>
+
+The CSLUtils interface is defined in 
+<A HREF="../src/CSLUtils.html">CSLUtils.html</A>. This contains the 
+definition of primitive data types and ephemoral types, as well as some 
+<A HREF="#labelGen">label request generation functions</A>.
+<A NAME="CSLUtilsObjects"><H3>objects</H3></A>
+It defined the following objects needed to employ the parser:
+<UL>
+<LI> BVal, FVal, SVal, DVal - boolean and floating values need 
+a structure to convey an unititialized state. The float value also needs to 
+have positive and negative infinity values. BVal and FVal implement this.
+SVal and DVal are parellel structures for string and date values.
+<LI> StateRet - a comprehensive set of error parsing error codes.
+<LI> CSParse - holds the state data for iterative calls to the parser. A 
+CSParse object is created with the following:
+<UL>
+<LI>TargetChangeCallback - called whenever the parser switches target data types. For instance, the label parser will do a callback when it encounters a 
+single-label in a service-info. It will do another callback when the 
+single-label is finished and the context is switching back to the service-info.
+<LI> ParseErrorHandler - how the application provides error information to the 
+user and decides which errors allow the parser to attempt to continue.
+</UL>
+<LI> CSLabel, CSUser, and CSMachRead - contain the data read by the parser.
+These objects contain all the data that could be encountered while parsing 
+these objects.
+<LI> CSError - a bastardised concatination of the errors encountered in 
+generating and dealing with labels requests.
+</UL>
+<A NAME="labelGen"><H3>label request generation functions</H3></A>
+These functions generate label requests given a list of services. These are 
+also implemented for CSUsers
+<UL>
+<LI> CSList_acceptLabels
+<LI> CSList_getLabels
+<LI> CSList_postLabels
+</UL>
+<P>
+
+<A NAME="LablPars"><H2>LablPars</H2></A>
+
+<A HREF="../LablPars/LablPars.c">LablPars.c</A> demonstrates the use of
+the <A HREF="#CSLUtils">CSLUtil</A>s interface. The 
+<A HREF="Using.html#howToParse">User's guide</A> explains how LablPars 
+uses the CSLUtils interface.  
+<A HREF="HTFuncs.html#LablPars">HTFuncs.html</A> explains how LablPars
+provides the list and memory functions required by the parser. Example 
+output is in <A HREF="Simple.html">Simple.html</A>. Another example, 
+that parses .rat files (machine-readable service descriptions), is in 
+<A HREF="../RatPars">RatPars</A>.
+
+<HR>
+<A NAME="CSLApp"><H2>CSLApp</H2></A>
+This interface is a superset of the <A HREF="#CSLUtils">CSLUtils</A> interface.
+It automates the process of generating label requests for each URL request and
+checking user profiles to allow or deny access to the URL. It is intended to 
+supplement the <A HREF="../../Library/User/Overview.html">libwww</A> and will 
+probably only be usefull to applications based it.
+<P>
+The CSLApp interface is defined in 
+<A HREF="../src/CSLApp.html">CSLApp.html</A>. This contains the 
+definition of primitive data types and ephemoral types, as well as some 
+<A HREF="#labelGen">label request generation functions</A>.
+
+<A NAME="CSAppObjects"><H3>objects</H3></A>
+It defined the following objects:
+<UL>
+<LI>CSApp_callback - this is called whenever libpics determines whether a user
+is allowed to see a labeld document. The application may use it to inform the 
+user, or allow the user an opportunitiy to switch to a more priviledged 
+identity.
+<LI>CSUserList - a list to associate user names with URLs to their profiles.
+<LI>CSApp_userCallback - called when a new PICS profile is loaded. It gives 
+the application the opportunity to prompt the user switch to that profile.
+</UL>
+<A NAME="CSAppFunctions"><H3>functions</H3></A>
+<UL>
+<LI>CSApp_registerApp - called to enable libpics for an application. This sets 
+up default callbacks.
+<LI>CSApp_registerDefaultUser - the simplest way to use libpics is to set the 
+default user. This means that an application may have only one user at a time.
+<LI>CSApp_registerUser - select a user and return a handle to the app. This is 
+usefull if the app registers a user for each request.
+<LI>CSApp_registerReq - associate a user and other parameters with a request.
+<LI>CSApp_unregisterReq
+<LI>CSApp_unregisterUser
+<LI>CSApp_unregisterApp
+</UL>
+<BR>
+<HR>
+<A NAME="CSLabel"><H2>CSLabel</H2></A>
+
+<A HREF="../src/CSLL.html"<H3>CSLL.html</H3></A>
+Application interface to Label data structures and internals
+
+<A NAME="CSLLObjects"><H3>objects</H3></A><UL>
+<LI>CSLLTC - CSLabel List Target Change. This enum lists the values passed to
+TargetChangeCallback
+<LI>CSLLData - optionally ephemeral container of label data. The contents are 
+available in <A HREF="#CSLLSt">CSLLSt</A>. The application may treat CSLLData 
+as an ephemeral type and use <A HREF="#CSLLIterator">iterators</A> to access
+the data.
+<P>
+TargetChangeCallback and ErrorHandler are subclassed to deal with CSLabels and CSLLTC:
+<LI>LabelTargetCallback
+<LI>LLErrorHandler
+<P>
+The CSLabel iterator callback:
+<LI>CSLabel_callback 
+</UL>
+<A NAME="CSLLFunctions"><H3>functions</H3></A>
+<UL>
+<LI>CSParse_newLabel - make a CSParse object for parsing labels
+<LI>CSParse_deleteLabel - reclaim the above memory
+<LI>CSParse_getLabel - get a CSLabel from the CSParse made above
+<LI>CSLabel_copy - copy a CSLabel object, useful for <A HREF="#CSLLIterator"> iterators</A>
+<LI>CSLabel_free
+<P>
+<A NAME="CSLLIterator">iterators</A> are a way of accessing CSLabel data:
+<LI>CSLabel_iterateServices
+<LI>CSLabel_iterateLabels
+<LI>CSLabel_iterateSingleLabels
+<LI>CSLabel_iterateLabelRatings
+<P>
+<A NAME="CSLLRange">range functions</A> check to see if a user range includes
+a rating value or range:
+<LI>CSLabel_ratingsIncludeFVal - check inclusion of single value
+<LI>CSLabel_ratingsIncludeRange - check inclusion of range
+<LI>CSLabel_ratingsIncludeRanges - check inclusion of list of ranges
+</UL>
+<P>
+
+<A NAME="CSLLSt"></A>
+</ADDRESS><A HREF="../src/CSLLSt.html"<H3>CSLLSt.html</H3></A>
+Label data internals
+
+<A NAME="CSLLStObjects"><H3>objects</H3></A><UL>
+<LI>CSLLData
+<LI>ServiceInfo
+<LI>Label
+<LI>SingleLabel
+<LI>LabelRating
+<LI>LabelOptions
+<LI>Extension
+<LI>ExtensionData
+<LI>LabelError
+</UL>
+<A NAME="CSLLStFunctions"><H3>functions</H3></A>
+<UL>
+<LI>CSLabel_getCSLLData
+<LI>CSLabel_getLabelError
+<LI>CSLabel_getLabelOptions
+<LI>CSLabel_getServiceInfo
+<LI>CSLabel_getServiceName
+<LI>CSLabel_getLabel
+<LI>CSLabel_getLabelNumber
+<LI>CSLabel_getSingleLabel
+<LI>CSLabel_getLabelRating
+<LI>CSLabel_getRatingName
+<LI>CSLabel_getRange
+</UL>
+<P>
+
+<HR>
+<A NAME="CSUser"><H3>CSUser</H3></A>
+Example user description, not specified in any standard.
+<P>
+
+<A HREF="../src/CSUser.html"<H3>CSUser.html</H3></A>
+Application interface to User data structures and internals
+
+<A NAME="CSUserObjects"><H3>objects</H3></A><UL>
+<LI>
+<LI>
+<LI>
+</UL>
+<A NAME="CSUserFunctions"><H3>functions</H3></A>
+<UL>
+<LI>
+<LI>
+<LI>
+</UL>
+<P>
+
+<A NAME="CSUserSt"></A>
+<A HREF="../src/CSUserSt.html"<H3>CSUserSt.html</H3></A>
+User data internals
+
+<A NAME="CSUserStObjects"><H3>objects</H3></A><UL>
+<LI>
+<LI>
+<LI>
+</UL>
+<A NAME="CSUserStFunctions"><H3>functions</H3></A>
+<UL>
+<LI>
+<LI>
+<LI>
+</UL>
+<P>
+
+<HR>
+<A NAME="CSMacRed"><H3>CSMacRed</H3></A>
+
+<A HREF="../src/CSMR.html"<H3>CSMR.html</H3></A>
+Application interface to MR data structures and internals
+
+<A NAME="CSMRObjects"><H3>objects</H3></A><UL>
+<LI>
+<LI>
+<LI>
+</UL>
+<A NAME="CSMRFunctions"><H3>functions</H3></A>
+<UL>
+<LI>
+<LI>
+<LI>
+</UL>
+<P>
+
+<A NAME="CSMRSt"></A>
+<A HREF="../src/CSMRSt.html"<H3>CSMRSt.html</H3></A>
+MR data internals
+
+<A NAME="CSMRStObjects"><H3>objects</H3></A><UL>
+<LI>
+<LI>
+<LI>
+</UL>
+<A NAME="CSMRStFunctions"><H3>functions</H3></A>
+<UL>
+<LI>
+<LI>
+<LI>
+</UL>
+<P>
+
+<HR>
+<A NAME="CSParse"><H2>CSParser</H2></A>
+
+<A NAME="CSParseDefinition"><H3>definition files</H3></A>
+
+<UL>
+<LI><A HREF="../src/CSParse.html">CSParse.html</A>
+ - included by CSParse and the component parsers.
+<LI><A HREF="../src/CSLUtils.html">CSLUtils.html</A>
+ - included by application calling parser.
+
+</UL>
+
+<A NAME="CSParseObjects"><H3>objects</H3></A><UL>
+<LI>CSParse - the shell parser's context. Made of:
+<UL>
+<LI>NowIn - how the parser keeps track of whether it is in a token, string, 
+etc.
+<LI>Engine - what the parser calls with each token after it and its 
+terminating punctuation is found. This is set by the component parsers.
+</UL>
+<LI>StateToken and TargetObject - the data structures that tell the component 
+parsers what to expect and where to place data.
+</UL>
+<A NAME="CSParseFunctions"><H3>functions</H3></A>
+<UL>
+<LI>CSParse_new - used by label, user, MacRed parses to create parser for their
+own objects
+<LI>CSParse_delete use by app to remove the CSParse object that built a lalel,user, MacRed. 
+<LI>CSParse_parseChunk - called by app to read a string and generate data 
+structures.
+</UL>
+<P>
+<HR>
+<ADDRESS>Eric Prud'hommeuax, <A HREF="mailto:libpics@w3.org">libpics@w3.org</A>,
+March 96
+</ADDRESS></BODY></HTML>

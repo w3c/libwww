@@ -1,0 +1,143 @@
+<HTML>
+<HEAD>
+<TITLE>Parser Guide</TITLE>
+<!-- Changed by: Eric Prud'hommeaux, 24-Mar-1996 -->
+<NEXTID N="z11">
+</HEAD>
+<BODY>
+
+<A HREF="../../"><IMG SRC="../../Icons/WWW/w3c_48x48.gif" ALT="W3C"></A>
+<A HREF="../"><IMG SRC="../../Icons/WWW/PICS48x.gif" ALT="Lib"></A>
+<IMG SRC="../../Icons/WWW/internals48x.gif">
+
+<H1>Parser Guide</H1>
+
+This section describes how to use CSParse or it's children, CSParse_.
+
+<H2>Parser States</H2>
+
+The parser works through a series of 
+<A HREF="../src/CSParse.html#TargetObject">TargetObjects</A> and 
+<A HREF="../src/CSParse.html#StateToken">StateTokens</A>.
+The TargetObject describes the current data type being filled and the 
+StateTokens describe what tokens are permitted at what 
+<A HREF="../src/CSParse.html#SubState">SubStates</A> 
+within that TargetObject. For instance, while reading a label service, the 
+name of the service must come before any options. Therefor, the substate that 
+matches the service name advances to the next substate, which will accept 
+options.
+<P>
+One of the parameters when creating a parser is a callback function that is 
+called whenever the parser changes TargetObject. This allows the calling 
+program to see each data element as it is created.
+
+See more info in <A HREF="../src/CSParse.html">CSParse.html</A>.<P>
+
+<A NAME="ParsingExample"><H2>Parsing Example</H2></A>
+This example is taken from the Label parser. StateTokens are generated from the
+BNF:
+
+<PRE>
+<B>labellist ::</B> '(' 'PICS-1.0' <I>service-info</I>+<I> </I>')'
+<A NAME="BNFServiceInfo"><B>service-info :: </B></A>'error' '(no-ratings' <I>explanation</I>* ')'
+              | <I>serviceID service-error </I>| <I>serviceID option</I>*<I> labelword label</I>*
+</PRE>
+
+From this, we generate two TargetObjects, 
+<A HREF="#LabelList_targetObject">LabelList_targetObject</A> and 
+<A HREF="#ServiceInfo_targetObject">ServiceInfo_targetObject</A>.
+
+<PRE>
+StateToken_t LabelList_stateTokens[] = { 
+    /* A: fresh LabelList
+       C: expect end */
+     {       "open", SubState_N,    Punct_ALL,              0,        0, 0, 0,   &<A HREF="#LabelList_targetObject">LabelList_targetObject</A>, SubState_A, Command_MATCHANY|Command_OPEN|Command_CHAIN, 0},
+     {"get version", <A NAME="LabelList_A">SubState_A</A>,  Punct_WHITE, &LabelList_getVersion, 0, 0, 0, &<A HREF="#ServiceInfo_targetObject">ServiceInfo_targetObject</A>, SubState_N, 0, 0},
+     {"end of list", <A NAME="LabelList_C">SubState_C</A>, Punct_RPAREN,              0,        0, 0, 0,   &<A HREF="#LabelList_targetObject">LabelList_targetObject</A>, SubState_A, Command_MATCHANY|Command_CLOSE, 0}
+    };
+TargetObject_t <A NAME="LabelList_targetObject">LabelList_targetObject</A> = {"LabelList", &LabelList_open, &LabelList_close, &LabelList_destroy, LabelList_stateTokens, raysize(LabelList_stateTokens), CSLLSC_LIST};
+</PRE>
+
+<PRE>
+StateToken_t ServiceInfo_stateTokens[] = {
+    /* A: fresh ServiceInfo
+       B: has service id
+       C: needs option value
+       D: call from Awkward or NoRat to close 
+       E: call from Awkward to re-enter */
+     {             "open", <A NAME="ServiceInfo_N">SubState_N</A>,    Punct_ALL,                0,        0,   0, 0, &<A HREF="#ServiceInfo_targetObject">ServiceInfo_targetObject</A>, SubState_A, Command_MATCHANY|Command_OPEN|Command_CHAIN, 0},
+     {     <A NAME="ServiceInfo_A_err">"error w/o id"</A>, SubState_A, Punct_LPAREN,                0, "error",    0, 0, &ServiceNoRat_targetObject, SubState_N, 0, 0},
+     {       <A NAME="ServiceInfo_A_id">"service id"</A>, SubState_A,  Punct_WHITE, &ServiceInfo_getServiceId, 0, 0, 0,  &<A HREF="#ServiceInfo_targetObject">ServiceInfo_targetObject</A>, SubState_B, 0, 0},
+     .
+     .
+     .
+     {            "close", <A NAME="ServiceInfo_D">SubState_D</A>, Punct_ALL,                   0,        0,   0, 0, &<A HREF="#LabelList_targetObject">LabelList_targetObject</A>, SubState_C, Command_MATCHANY|Command_CLOSE|Command_CHAIN, 0},
+     {         "re-enter", SubState_E, Punct_ALL,                   0,        0,   0, 0, &<A HREF="#ServiceInfo_targetObject">ServiceInfo_targetObject</A>, SubState_N, Command_MATCHANY|Command_CLOSE|Command_CHAIN, 0}
+    };
+TargetObject_t <A NAME="ServiceInfo_targetObject">ServiceInfo_targetObject</a> = {"ServiceInfo", ServiceInfo_open, &ServiceInfo_close, &ServiceInfo_destroy, ServiceInfo_stateTokens, raysize(ServiceInfo_stateTokens), CSLLSC_SERVICE};
+
+</PRE>
+
+LabelList_targetObject will start out needing to have the data structure created 
+and initialized. The "open" line matches any punctuation (Punct_ALL) and any 
+string (Command_MATCHANY). It will call the open command (Command_OPEN), and 
+pass its input (Command_CHAIN) to <A HREF="#LabelList_A">SubState_A</A>.
+<P>
+<A HREF="#LabelList_A">SubState_A</A> has only one possible match, "get 
+version". This match is checked by LabelList_getVersion and, if it checks out
+OK, we proceed to 
+<A HREF="#ServiceInfo_N">ServiceInfo_targetObject SubState_N</A>. This promotes 
+to SubState_A, as above. From the BNF section on <A HREF="#BNFServiceInfo">
+<B>service-info</B></A>, we see that it must start with 'error' or a serviceID.
+These are checked by the SubStates <A HREF="#ServiceInfo_A_err">"error w/o id"</A> and <A HREF="#ServiceInfo_A_id">"service id"</A>.
+<P>
+If the token is the string "error", followed by a left paren, the next state 
+is ServiceNoRat_targetObject, not included in the example. If "error" does not
+match, the parser tries the next StateToken in SubState_A, which is "service 
+id". If ServiceInfo_getServiceId approves of the input, The serviceId is read
+and the parser proceeds on to SubState_B.
+<P>
+<H3>finishing</H3>
+When the last rating is read, and a close paren is found, the paren is passed 
+through all the open TargetObjects, SingleLabel, Label, ServiceInfo, and 
+LabelList. This is accomplished with SubStates that are specificly for closing 
+out the TargetObjects. This example shows how the <A HREF="#ServiceInfo_D">
+ServiceInfo_targetObject SubState_D</A> chains the close paren to 
+<A HREF="#LabelList_C">LabelList_targetObject SubState_C</A>.
+<P>
+<H2>Produit du Parsing</H2>
+
+The parsable objects, PICS Labels, machine-readable service descriptions, and, 
+users, all create an object that contains all the information needed to parse
+and iterate through the data structures. This is container for all the 
+TargetObjects created in the parsing process. These containers are implemented 
+in the following files:
+
+<UL>
+<LI>Labels are in <A HREF="../src/CSLL.html">CSLL.html</A>
+<LI>Machine-readable is in <A HREF="../src/CSMR.html">CSMR.html</A>
+<LI>Users are in <A HREF="../src/CSUser.html">CSUser.html</A>
+</UL>
+
+<P>
+<H2>Plans</H2>
+
+<H3>note</H3>
+The first field in both the TargetObject and the StateToken is a char * called
+the note. I have only used this field for debugging; it makes it very easy to 
+track which state you are in and where you are going. I have an idea, though, 
+that it may be useful for giving very usefull error messages that specify what
+was expected next. At such a time, it may be worth changing the note on the 
+Awkward_TargetObject to something like "after rating set" or something else 
+palletable.
+<P>
+<H3>Destroy</H3>
+All the TargetObjects have a Destroy method which allows them to proceed after 
+an error. I'm not sure when this will be usefull, but the mechanism is there, 
+and only nominally tested.
+
+<P>
+<HR>
+<ADDRESS>Eric Prud'hommeaux, Feb 1996</ADDRESS>
+</BODY>
+</HTML>

@@ -1,0 +1,231 @@
+<HTML>
+<HEAD>
+<TITLE>How to get Started Writing an App</TITLE>
+<!-- Changed by: Eric Prud'hommeaux, 29-Mar-1996 -->
+</HEAD>
+
+<BODY>
+
+<A HREF="../../"><IMG ALT="W3C" SRC="../../Icons/WWW/w3c_48x48.gif"></A>
+<A HREF="../"><IMG ALT="PICS" SRC="../../Icons/WWW/PICS48x.gif"></A>
+<IMG SRC="../../Icons/WWW/startup48x.gif" ALT="QUICKGUIDE"></A>
+
+<H1>How to get Started Writing a PICS complient App</H1>
+
+<A NAME="libraryPrefix"><H2>Library Name Prefix</H2></A>
+In an effort to eliminate name conflicts and clarify code, all Pics library 
+functions and data types are prepended with CS (for Content Selection). All
+source files are also prefixed with CS to avoid module collision. Library
+interface headers are prefixed with CSL (for Library), as in CSLUtils.h and 
+CSLApp.h.
+<P>
+
+<A NAME="components"><H2>Components</H2></A>
+The libpics library is divided into two components, accessible through two 
+interfaces:
+<UL>
+<LI><A HREF="#CSLUtils">CSLUtils</A> - a minimal set of files providing parsing
+capabilities for PICS labels and Machine-readable service descritpions.
+<LI><A HREF="#CSLApp">CSLApp</A> - component library for building PICS 
+applications on top of libwww. It provides the application with automatic 
+label requests, parsing of the results, user management, and document 
+authorization.
+</UL>
+
+<HR>
+<A NAME="CSLUtils"><H1>CSLUtils</H1></A>
+
+The <A HREF="Intrface.html#CSLUtils">CSLUtils</A> interface provides access
+to the <A HREF="../src/CSParse.html">basic parser</A>, and its component
+parsing objects, <A HREF="../src/CSLL.html">labels</A>, 
+<A HREF="../src/CSMR.html">machine-readable service descritpions</A>, 
+<A HREF="../src/CSUser.html">sample user profiles</A>.
+
+<H3>Implementation</H3>
+This interface is intended to be used by including the component .c and .h 
+files in the user's project. It relies on a small subset of the libwww, 
+namely the 
+<A HREF="../HTUtils">HTUtils</A> portion. These functions provide 
+<A HREF="../HTUtils/HTString.html">string</A>, 
+<A HREF="../HTUtils/HTList.html">list</A> and 
+<A HREF="../HTUtils/HTChunk.html">chunk</A> functionality.
+The funtions required by these modules are listed in 
+<A HREF="HTFuncs.html">HTFuncs.html</A>.
+<P>
+<H3>Interface</H3>
+The primary purpose for the CSLUtils interface is to provide parsing 
+capablilities for PICS labels. <A Href="../LablPars/LablPars.c">LablPars.c</A>
+provides an example of this usage.
+<P>
+<A NAME="howToParse"><H3>How to parse</H3></A>
+<UL>
+<LI><A HREF="#parserCallbacks">create parser callbacks</A>
+<UL>
+<LI><A HREF="#targetCallback">targetCallback</A>
+<LI><A HREF="#errorHandler">LLErrorHandler</A>
+</UL>
+<LI><A HREF="#memoryFuncs">assign memory functionality</A>
+<LI><A HREF="#callParser">call parser with some or all of the text to be parsed</A>
+</UL>
+<P>
+<A NAME="parserCallbacks"><H3>parser callbacks</H3></A>
+The parser passes through the passed text, building a data structure 
+containing all the parsed information, making callbacks to the parser when it
+passed to a new data structure or encounters an error.
+<P>
+
+<A NAME="targetCallback"><H3>target callbacks</H3></A>
+While the parser is reading and filling data structures, it keeps track of 
+what data type it is currently filling. Whenever this target data changes, it 
+call back to the application. This allows the application to check the data 
+that has just been read, or allocate space for the new object. The most common
+use of this would be to abort when label data comes through with a value that
+is out of range for the user.
+<P>
+
+<A NAME="errorHandler"><H3>error handler</H3></A>
+The error handler gets called with all parsing problems and data 
+inconsistancies. It is intended to provide the interface to the user. The 
+return values tells the parser to abort or continue parsing.
+<P>
+
+<A NAME="memoryFuncs"><H3>memory functionality</H3></A>
+All allocation in libwww or libpics goes through the macros HT_?ALLOC and 
+HT_FREE. The macros are assigned to HTMemory functions in HTUtils. The 
+developer may subsititue macros for their own proprietary memory system, or 
+the ANSI malloc functions. Alternatively, the aplication may employ the 
+macros and provide the HTMemory functions, either through the library module 
+<A HREF="../../Library/src/HTMemory.c">HTMemory.c</A>, or in their own 
+application.
+<P>
+
+<A NAME="callParser"><H3>calling the parser</H3></A>
+The life cycle of a parse object is as fillows:
+<UL>
+<LI>Creation - a parse obejct is created to parse PICS labels, service 
+descriptions, or user profiles.
+<LI>Parsing - the parser gets called with the object data as it comes in. The 
+data may be passed in one chunk, but that may not fit network applications.
+<LI>Parser destruction - the parser is destroyed, leaving the object that was parsed.
+<LI>Object destruction - the object is finally destroyed, recaliming all the memory associated with the above operations.
+</UL>
+<P>
+
+<P>
+for interface details... <A HREF="Intrface.html#CSLUtils"><IMG SRC="../../Icons/WWW/doc48x.gif" ALT="click here"></A>
+
+for parser innerworkings... <A HREF="Parsing.html"><IMG SRC="../../Icons/WWW/internals48x.gif" ALT="click here"></A>
+<P>
+
+<HR>
+<A NAME="CSLApp"><H1>CSLApp</H1></A>
+The <A HREF="Intrface.html#CSLApp">CSLApp</A> provides a library interface for an
+application based on <A HREF="../../Library/User/Overview.html">libwww</A>. 
+You must first understand how to write an application on top of the 
+<A HREF="../../Library/User/Using.html">W3C Reference Library</A> (libwww). 
+<P>
+For details on how to use the library, you should look at the <A
+HREF="../src/CSLApp.html">CSLApp.html</A>. 
+<P>
+
+The <A HREF="../../LineMode/">Line-Mode Browser</A> uses the CSLApp interface 
+to libpics. The steps involved in adapting the Line-Mode Browser to libpics 
+are outlined in <A HREF="#steps">steps</A>.
+
+<P>
+
+<A NAME="mechanism"><H2>Mechanism</H2></A>
+When libwww is about to send out a request to a server, it calls Pics to send 
+a request for Pics ratings. The text of the request is based on the desired 
+URL and the current service. This request may accompany the URL request or may 
+go to a different server.
+<P>
+If the request goes to the same server, ie. accompanies the URL request, the 
+ratings come back ahead of the requested data. When Pics recieves an answer to 
+a service request, it determines whether the URL should be permitted. If there 
+is a callback assiciated with this request, Pics calls the callback to allow 
+the app to override this descision. If no callback is associated with the 
+request, Pics checks to see if there is a default callback for the application.
+If either of these callbacks is called, the user or services associated with 
+this request or this app may change. If the forbidden disposition remains, the 
+request is marked with a Forbidden (403) error and the remaining network 
+traffic is killed with a call the HTNet_kill.
+<P>
+If the ratings must be acquired from another server, the current request is set
+to 0 priority and a second request is generated to send the ratings request. 
+Once Pics recievs the results of the ratings request, the accompanying URL 
+request is either killed off, or restored to high priority which enables the 
+request to be sent. When the data returns, the request is already marked as 
+allowed and the request passes on to the app.
+<P>
+<A NAME="steps"><H2>Steps</H2></A>
+This quick guide takes you through the basic steps necessary to create your 
+own PICS complient application:
+
+<OL>
+<LI><A HREF="#user">Define a user type</A>
+<P>The application must do the fillowing:
+See the interface in <A HREF="../src/CSLApp.html">CSLApp.html</A> for details.
+
+<LI><A HREF="#lodU">Load a User</A>
+<LI><A HREF="#regA">Register your application with PICS</A>
+<LI><A HREF="#regR">Register a request with PICS</A>
+
+<LI><A HREF="#free">When to free Objects</A>
+</OL>
+
+<A NAME="user"><H2>User profile</H2></A>
+
+The <A HREF="../src/CSUser.html">CSUser module</A> is a special module in that
+defines the the parsing and use of a user profile. It is intended to serve as 
+an example, not reference code, as there is no specification for a PICS user.
+To furthur it's usability, the password is not encrypted. Possibly a field that
+encrypts the password and checks the validity of the rest of the document will 
+be used here in the future. In the meantime, it is reccomended that the 
+<A HREF="../src/CSUser.c">CSUser.c</A>module be replaced by a proprietary one.
+<P>
+
+
+<A NAME="lodU"><H2>Load a PICS user</H2></A>
+This user is kept around for PICS to inspect when creating label requests and
+checking values on returns.
+
+<A NAME="regA"><H2>Register an application</H2></A>
+This sets of the application's callbacks and 
+<A HREF="#defU">default user</A>.
+
+<A NAME="regR"><H2>Register request</H2></A>
+The application may have different callbacks and different users associated 
+with different users associated with different requests. This is more robust
+than defaulting to the user specified in the 
+<A HREF="#regA">application registry</A>.
+
+<A NAME="free"><H2>When to free Objects</H2></A>
+
+This is a short set of recommendation on when to free objects in memory.
+
+
+<DL>
+<DT><A HREF="../src/CSParse.html">Parsers</A>
+
+<DD>
+These should be destroyed as soon as the object they are parsing is created.
+<P>
+
+<DT><A HREF="../src/CSLL.html">PICS Labels</A>
+<DT><A HREF="../src/CSMR.html">PICS service descritpions</A>
+<DT><A HREF="../src/CSUser.html">User profiles</A>
+
+<DD>
+These may be should be around for the duration of the application's use of
+the PICS library, though they <EM>can</EM> be freed at any time if they are 
+not used by an ongoing request
+
+</DL>
+
+<P>
+for furthur details... <A HREF="Intrface.html#CSLApp"><IMG SRC="../../Icons/WWW/doc48x.gif" ALT="click here"></A>
+<HR>
+<ADDRESS>Eric Prud'hommeaux, <A HREF="mailto:libpics@w3.org">libpics@w3.org</A>, March 96</ADDRESS>
+</BODY>
+</HTML>
