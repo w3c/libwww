@@ -396,7 +396,8 @@ PRIVATE void parseheader ARGS3(HTStream *, me, HTRequest *, request,
 	    break;
 
 	  case RETRY_AFTER:
-	    state = UNKNOWN;
+	    request->retry_after = HTParseTime(ptr);
+	    state = JUNK_LINE;
 	    break;
 
 	  case TITLE:	  /* Can't reuse buffer as HTML version might differ */
@@ -440,7 +441,6 @@ PRIVATE void parseheader ARGS3(HTStream *, me, HTRequest *, request,
 	    fprintf(TDEST, "MIMEParser.. Can't convert media type\n");
 	me->target = HTBlackHole();
     }
-    anchor->header = me->buffer;	  /* Gets freed when anchor is freed */
     anchor->header_parsed = YES;
 }
 
@@ -537,6 +537,7 @@ PRIVATE int HTMIME_free ARGS1(HTStream *, me)
     int status = HT_OK;
     if (me->target)
 	status = (*me->target->isa->_free)(me->target);
+    HTChunkFree(me->buffer);
     free(me);
     return status;
 }

@@ -49,6 +49,7 @@ PUBLIC int  HTMaxRedirections = 10;	       /* Max number of redirections */
 /* Type definitions and global variables etc. local to this module */
 /* This is the local definition of HTRequest->net_info */
 typedef enum _HTTPState {
+    HTTP_RETRY		= -4,
     HTTP_ERROR		= -3,
     HTTP_NO_DATA	= -2,
     HTTP_GOT_DATA	= -1,
@@ -69,7 +70,8 @@ typedef struct _http_info {
     time_t		connecttime;		 /* Used on multihomed hosts */
     struct _HTRequest *	request;	   /* Link back to request structure */
 
-    HTTPState		state;			  /* State of the connection */
+    HTTPState		state;		  /* Current State of the connection */
+    HTTPState		next;				       /* Next state */
 } http_info;
 
 #define MAX_STATUS_LEN		75    /* Max nb of chars to check StatusLine */
@@ -81,8 +83,9 @@ struct _HTStream {
     http_info *			http;
     HTSocketEOL			state;
     BOOL			transparent;
-    double			version;		 /* @@@ DOESN'T WORK */
+    char *			version;	     /* Should we save this? */
     int				status;
+    char *			reason;
     char 			buffer[MAX_STATUS_LEN+1];
     int				buflen;
 };
@@ -184,7 +187,7 @@ PRIVATE BOOL HTTPAuthentication ARGS1(HTRequest *, request)
 **	appropiate error message and decides whether we should expect data
 **	or not.
 */
-PRIVATE void HTTPResponse ARGS1(HTStream *, me)
+PRIVATE void HTTPNextState ARGS1(HTStream *, me)
 {
     switch (me->status) {
 
@@ -195,110 +198,116 @@ PRIVATE void HTTPResponse ARGS1(HTStream *, me)
       case 203:
       case 205:
       case 206:
+	me->http->next = HTTP_GOT_DATA;
 	break;
 
       case 204:						      /* No Response */
-	me->http->state = HTTP_NO_DATA;
+	me->http->next = HTTP_NO_DATA;
 	break;
 
       case 301:						   	    /* Moved */
       case 302:							    /* Found */
-	me->http->state = HTTP_REDIRECTION;
+	me->http->next = HTTP_REDIRECTION;
 	break;
 	
       case 303:							   /* Method */
 	HTAlert("This client doesn't support automatic redirection of type `Method'");
-	me->http->state = HTTP_ERROR;
+	me->http->next = HTTP_ERROR;
 	break;
 	
       case 400:						      /* Bad Request */
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_BAD_REQUEST,
-		   NULL, 0, "HTLoadHTTP");
-	me->http->state = HTTP_ERROR;
+		   me->reason, (int) strlen(me->reason), "HTLoadHTTP");
+	me->http->next = HTTP_ERROR;
 	break;
 
       case 401:
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_UNAUTHORIZED,
-		   NULL, 0, "HTLoadHTTP");
-	me->http->state = HTTP_AA;
+		   me->reason, (int) strlen(me->reason), "HTLoadHTTP");
+	me->http->next = HTTP_AA;
 	break;
 	
       case 402:						 /* Payment required */
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_PAYMENT_REQUIRED,
-		   NULL, 0, "HTLoadHTTP");
-	me->http->state = HTTP_ERROR;
+		   me->reason, (int) strlen(me->reason), "HTLoadHTTP");
+	me->http->next = HTTP_ERROR;
 	break;
 	
       case 403:							/* Forbidden */
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_FORBIDDEN,
-		   NULL, 0, "HTLoadHTTP");
-	me->http->state = HTTP_ERROR;
+		   me->reason, (int) strlen(me->reason), "HTLoadHTTP");
+	me->http->next = HTTP_ERROR;
 	break;
 	
       case 404:							/* Not Found */
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_NOT_FOUND,
-		   NULL, 0, "HTLoadHTTP");
-	me->http->state = HTTP_ERROR;
+		   me->reason, (int) strlen(me->reason), "HTLoadHTTP");
+	me->http->next = HTTP_ERROR;
 	break;
 	
       case 405:						      /* Not Allowed */
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_NOT_ALLOWED,
-		   NULL, 0, "HTLoadHTTP");
-	me->http->state = HTTP_ERROR;
+		   me->reason, (int) strlen(me->reason), "HTLoadHTTP");
+	me->http->next = HTTP_ERROR;
 	break;
 
       case 406:						  /* None Acceptable */
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_NONE_ACCEPTABLE,
-		   NULL, 0, "HTLoadHTTP");
-	me->http->state = HTTP_ERROR;
+		   me->reason, (int) strlen(me->reason), "HTLoadHTTP");
+	me->http->next = HTTP_ERROR;
 	break;
 
       case 407:			       	    /* Proxy Authentication Required */
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_PROXY,
-		   NULL, 0, "HTLoadHTTP");
-	me->http->state = HTTP_ERROR;
+		   me->reason, (int) strlen(me->reason), "HTLoadHTTP");
+	me->http->next = HTTP_ERROR;
 	break;
 
       case 408:						  /* Request Timeout */
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_TIMEOUT,
-		   NULL, 0, "HTLoadHTTP");
-	me->http->state = HTTP_ERROR;
+		   me->reason, (int) strlen(me->reason), "HTLoadHTTP");
+	me->http->next = HTTP_ERROR;
 	break;
 
       case 500:
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_INTERNAL,
-		   NULL, 0, "HTLoadHTTP");
-	me->http->state = HTTP_ERROR;
+		   me->reason, (int) strlen(me->reason), "HTLoadHTTP");
+	me->http->next = HTTP_ERROR;
 	break;
 	
       case 501:
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_NOT_IMPLEMENTED,
-		   NULL, 0, "HTLoadHTTP");
-	me->http->state = HTTP_ERROR;
+		   me->reason, (int) strlen(me->reason), "HTLoadHTTP");
+	me->http->next = HTTP_ERROR;
 	break;
 
       case 502:
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_BAD_GATE,
-		   NULL, 0, "HTLoadHTTP");
-	me->http->state = HTTP_ERROR;
+		   me->reason, (int) strlen(me->reason), "HTLoadHTTP");
+	me->http->next = HTTP_ERROR;
 	break;
 
       case 503:
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_DOWN,
-		   NULL, 0, "HTLoadHTTP");
-	me->http->state = HTTP_ERROR;
+		   me->reason, (int) strlen(me->reason), "HTLoadHTTP");
+
+	/* If Retry-After header is found then return HT_RETRY else HT_ERROR */
+	if (me->request->retry_after)
+	    me->http->next = HTTP_RETRY;
+	else
+	    me->http->next = HTTP_ERROR;
 	break;
 
       case 504:
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_GATE_TIMEOUT,
-		   NULL, 0, "HTLoadHTTP");
-	me->http->state = HTTP_ERROR;
+		   me->reason, (int) strlen(me->reason), "HTLoadHTTP");
+        me->http->next = HTTP_ERROR;
 	break;
 
       default:						       /* bad number */
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_BAD_REPLY,
 		   (void *) me->buffer, me->buflen, "HTLoadHTTP");
-	me->http->state = HTTP_ERROR;
+	me->http->next = HTTP_ERROR;
 	break;
     }
 }
@@ -329,8 +338,7 @@ PRIVATE int stream_pipe ARGS1(HTStream *, me)
 	    me->transparent = YES;
 	return status;
     }
-    if (strncasecomp(me->buffer, "http/", 5) ||
-	sscanf(me->buffer+5, "%lf %d", &me->version, &me->status) < 2) {
+    if (strncasecomp(me->buffer, "http/", 5)) {
 	int status;
 	HTErrorAdd(req, ERR_INFO, NO, HTERR_HTTP09,
 		   (void *) me->buffer, me->buflen, "HTTPStatusStream");
@@ -340,10 +348,17 @@ PRIVATE int stream_pipe ARGS1(HTStream *, me)
 	    me->transparent = YES;
 	return status;
     } else {
-	if (req->output_format == WWW_SOURCE) {
-	    me->target = HTMIMEConvert(req, NULL, WWW_MIME, req->output_format,
-				       req->output_stream);
-	} else if (me->status==200) {
+	char *ptr = me->buffer+5;		       /* Skip the HTTP part */
+	me->version = HTNextField(&ptr);
+	me->status = atoi(HTNextField(&ptr));
+	me->reason = ptr;
+	if ((ptr = strchr(me->reason, '\r')) != NULL)	  /* Strip \r and \n */
+	    *ptr = '\0';
+	else if ((ptr = strchr(me->reason, '\n')) != NULL)
+	    *ptr = '\0';
+
+	/* Set up the streams */
+	if (me->status==200) {
 	    HTStream *s;
 	    me->target = HTStreamStack(WWW_MIME, req->output_format,
 				       req->output_stream, req, NO);
@@ -354,15 +369,17 @@ PRIVATE int stream_pipe ARGS1(HTStream *, me)
 				   req->output_stream))) {
 		me->target = HTTee(me->target, s);
 	    }
+	} else if (req->output_format == WWW_SOURCE) {
+	    me->target = HTMIMEConvert(req, NULL, WWW_MIME, req->output_format,
+				       req->output_stream);
 	} else {
-	    me->target = HTStreamStack(WWW_MIME, WWW_SOURCE,
-				       req->error_stream ?
-				       req->error_stream : HTBlackHole(),
-				       req, NO);
+	    me->target = HTMIMEConvert(req, NULL, WWW_MIME, req->error_format,
+				       req->error_stream);
 	}
 	if (!me->target)
 	    me->target = HTBlackHole();				/* What else */
     }
+    HTTPNextState(me);					   /* Get next state */
     me->transparent = YES;
     return HT_OK;
 }
@@ -423,7 +440,6 @@ PRIVATE int HTTPStatus_flush ARGS1(HTStream *, me)
 
 PRIVATE int HTTPStatus_free ARGS1(HTStream *, me)
 {
-    HTTPResponse(me);					   /* Get next state */
     if (me->target)
 	FREE_TARGET;
     free(me);
@@ -480,6 +496,7 @@ PUBLIC HTStream * HTTPStatus_new ARGS2(HTRequest *, request,
 **			HT_WOULD_BLOCK  if operation would have blocked
 **			HT_LOADED	if return status 200 OK
 **			HT_NO_DATA	if return status 204 No Response
+**			HT_RETRY	if return status 503 Service Unavail.
 */
 PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 {
@@ -586,8 +603,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		else if (status == HT_INTERRUPTED)
 		    http->state = HTTP_ERROR;
 		else if (status == HT_LOADED) {
-		    if (http->state == HTTP_NEED_REQUEST)
-			http->state = HTTP_GOT_DATA;
+		    http->state = http->next;	       /* Jump to next state */
 		} else
 		    http->state = HTTP_ERROR;
 	    } else
@@ -649,6 +665,11 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	    return HT_NO_DATA;
 	    break;
 	    
+	  case HTTP_RETRY:
+	    HTTPCleanup(request, YES);
+	    return HT_RETRY;
+	    break;
+
 	  case HTTP_ERROR:
 	    HTTPCleanup(request, YES);
 	    return HT_ERROR;

@@ -215,6 +215,7 @@ PUBLIC void HTErrorMsg ARGS1(HTRequest *, request)
 	    if (pres->par && HTErrorShowMask & HT_ERR_SHOW_PARS) {
 		unsigned int cnt;
 		char ch;
+		HTChunkPutc(chunk, '(');
 		for (cnt=0; cnt<pres->par_length; cnt++) {
 		    ch = *((char *)(pres->par)+cnt);
 		    if (ch < 0x20 || ch >= 0x7F)
@@ -222,6 +223,7 @@ PUBLIC void HTErrorMsg ARGS1(HTRequest *, request)
 		    else
 			HTChunkPutc(chunk, ch);
 		}
+		HTChunkPutc(chunk, ')');
 	    }
 
 	    /* Output location */

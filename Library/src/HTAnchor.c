@@ -630,9 +630,11 @@ PUBLIC void HTAnchor_addExtra ARGS2(HTParentAnchor *, me,
 				    CONST char *    , header)
 {
     if (me) {
+	char *newhead = NULL;
+	StrAllocCopy(newhead, header);
 	if (!me->extra_headers)
 	    me->extra_headers = HTList_new();
-	HTList_addObject(me->extra_headers, (void *) header);
+	HTList_addObject(me->extra_headers, (void *) newhead);
     }
 }
 
@@ -649,15 +651,6 @@ PUBLIC BOOL HTAnchor_headerParsed ARGS1(HTParentAnchor *, me)
 */
 PUBLIC void HTAnchor_clearHeader ARGS1(HTParentAnchor *, me)
 {
-    if (me->header) {
-	HTChunkFree(me->header);
-	me->derived_from = NULL;
-	me->version = NULL;
-	me->header = NULL;
-    } else {
-	FREE(me->version);
-	FREE(me->derived_from);
-    }
     me->methods = METHOD_INVALID;
     me->content_encoding = NULL;
     if (me->content_language) {
@@ -674,5 +667,16 @@ PUBLIC void HTAnchor_clearHeader ARGS1(HTParentAnchor *, me)
     me->expires = (time_t) 0;
     me->last_modified = (time_t) 0;
     
+    FREE(me->derived_from);
+    FREE(me->version);
+
+    if (me->extra_headers) {
+	HTList *cur = me->extra_headers;
+	char *pres;
+	while ((pres = (char *) HTList_nextObject(cur)))
+	    free(pres);
+	HTList_delete(me->extra_headers);
+	me->extra_headers = NULL;
+    }
     me->header_parsed = NO;				      /* All cleared */
 }

@@ -81,6 +81,7 @@ PUBLIC HTRequest * HTRequest_new NOARGS
     
     me->conversions	= HTList_new();     /* No conversions registered yet */
     me->output_format	= WWW_PRESENT;	    /* default it to present to user */
+    me->error_format	= WWW_HTML;	 /* default format of error messages */
     me->HeaderMask	= DEFAULT_HEADERS;	       /* Send these headers */
     me->EntityMask	= DEFAULT_ENTITY_HEADERS;	       /* Also these */
     return me;
@@ -660,7 +661,8 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
 **			HT_LOADED	Success
 **			HT_NO_DATA	Success, but no document loaded.
 **					(telnet sesssion started etc)
-**
+**			HT_RETRY	if service isn't available before
+**					request->retry_after
 */
 PUBLIC int HTLoad ARGS2(HTRequest *, request, BOOL, keep_error_stack)
 {
@@ -722,19 +724,25 @@ PUBLIC BOOL HTLoadTerminate ARGS2(HTRequest *, request, int, status)
     switch (status) {
       case HT_LOADED:
 	if (PROT_TRACE) {
-	    fprintf(TDEST, "HTAccess.... OK: `%s' has been accessed.\n", uri);
+	    fprintf(TDEST, "HTAccess.... OK: `%s\' has been accessed.\n", uri);
 	}
 	break;
 
       case HT_NO_DATA:
 	if (PROT_TRACE) {
-	    fprintf(TDEST, "HTAccess.... OK BUT NO DATA: `%s'\n", uri);
+	    fprintf(TDEST, "HTAccess.... OK BUT NO DATA: `%s\'\n", uri);
 	}
 	break;
 
       case HT_WOULD_BLOCK:
 	if (PROT_TRACE) {
-	    fprintf(TDEST, "HTAccess.... WOULD BLOCK: `%s'\n", uri);
+	    fprintf(TDEST, "HTAccess.... WOULD BLOCK: `%s\'\n", uri);
+	}
+	break;
+
+      case HT_RETRY:
+	if (PROT_TRACE) {
+	    fprintf(TDEST, "HTAccess.... NOT AVAILABLE, RETRY AT `%s\'\n",uri);
 	}
 	break;
 
@@ -742,7 +750,7 @@ PUBLIC BOOL HTLoadTerminate ARGS2(HTRequest *, request, int, status)
 	if (HTImProxy)
 	    HTErrorMsg(request);		     /* Only on a real error */
 	if (PROT_TRACE) {
-	    fprintf(TDEST, "HTAccess.... ERROR: Can't access `%s'\n", uri);
+	    fprintf(TDEST, "HTAccess.... ERROR: Can't access `%s\'\n", uri);
 	}
 	break;
 
@@ -781,6 +789,8 @@ PUBLIC BOOL HTLoadTerminate ARGS2(HTRequest *, request, int, status)
 **			HT_LOADED	Success
 **			HT_NO_DATA	Success, but no document loaded.
 **					(telnet sesssion started etc)
+**			HT_RETRY	if service isn't available before
+**					request->retry_after
 */
 PRIVATE int HTLoadDocument ARGS2(HTRequest *,	request,
 				 BOOL,		keep_error_stack)
@@ -865,8 +875,9 @@ PRIVATE int HTLoadDocument ARGS2(HTRequest *,	request,
 **			HT_LOADED	Success
 **			HT_NO_DATA	Success, but no document loaded.
 **					(telnet sesssion started etc)
+**			HT_RETRY	if service isn't available before
+**					request->retry_after
 */
-
 PUBLIC int HTLoadAbsolute ARGS2(CONST char *,addr, HTRequest*, request)
 {
    HTAnchor * anchor = HTAnchor_findAddress(addr);
@@ -890,8 +901,9 @@ PUBLIC int HTLoadAbsolute ARGS2(CONST char *,addr, HTRequest*, request)
 **			HT_LOADED	Success
 **			HT_NO_DATA	Success, but no document loaded.
 **					(telnet sesssion started etc)
+**			HT_RETRY	if service isn't available before
+**					request->retry_after
 */
-
 PUBLIC int HTLoadToStream ARGS3(CONST char *,	addr,
 				BOOL, 		filter,
 				HTRequest*,	request)
@@ -918,8 +930,9 @@ PUBLIC int HTLoadToStream ARGS3(CONST char *,	addr,
 **			HT_LOADED	Success
 **			HT_NO_DATA	Success, but no document loaded.
 **					(telnet sesssion started etc)
+**			HT_RETRY	if service isn't available before
+**					request->retry_after
 */
-
 PUBLIC int HTLoadRelative ARGS3(CONST char *,		relative_name,
 				HTParentAnchor *,	here,
 				HTRequest *,		request)
@@ -957,8 +970,9 @@ PUBLIC int HTLoadRelative ARGS3(CONST char *,		relative_name,
 **			HT_LOADED	Success
 **			HT_NO_DATA	Success, but no document loaded.
 **					(telnet sesssion started etc)
+**			HT_RETRY	if service isn't available before
+**					request->retry_after
 */
-
 PUBLIC int HTLoadAnchor ARGS2(HTAnchor*, anchor, HTRequest *, request)
 {
     if (!anchor || !request)
@@ -985,8 +999,9 @@ PUBLIC int HTLoadAnchor ARGS2(HTAnchor*, anchor, HTRequest *, request)
 **			HT_LOADED	Success
 **			HT_NO_DATA	Success, but no document loaded.
 **					(telnet sesssion started etc)
+**			HT_RETRY	if service isn't available before
+**					request->retry_after
 */
-
 PUBLIC int HTLoadAnchorRecursive ARGS2(HTAnchor*,	anchor,
 				       HTRequest *,	request)
 {
@@ -1015,8 +1030,9 @@ PUBLIC int HTLoadAnchorRecursive ARGS2(HTAnchor*,	anchor,
 **			HT_LOADED	Success
 **			HT_NO_DATA	Success, but no document loaded.
 **					(telnet sesssion started etc)
+**			HT_RETRY	if service isn't available before
+**					request->retry_after
 */
-
 PRIVATE char hex ARGS1(int, i)
 {
     char * hexchars = "0123456789ABCDEF";
@@ -1096,8 +1112,9 @@ PUBLIC int HTSearch ARGS3(CONST char *,        	keywords,
 **			HT_LOADED	Success
 **			HT_NO_DATA	Success, but no document loaded.
 **					(telnet sesssion started etc)
+**			HT_RETRY	if service isn't available before
+**					request->retry_after
 */
-
 PUBLIC int HTSearchAbsolute ARGS3(CONST char *, 	keywords,
 				  CONST char *, 	indexname,
 				  HTRequest *,		request)
@@ -1153,6 +1170,8 @@ PUBLIC HTStream *HTSaveStream ARGS1(HTRequest *, request)
 **			HT_ERROR	Error has occured
 **			HT_LOADED	Success
 **			HT_NO_DATA	Success, but no document loaded.
+**			HT_RETRY	if service isn't available before
+**					request->retry_after
 */
 PUBLIC int HTCopyAnchor ARGS4(HTAnchor *,	src_anchor,
 			      HTRequest *,	src_req,
@@ -1201,6 +1220,8 @@ PUBLIC int HTCopyAnchor ARGS4(HTAnchor *,	src_anchor,
 **			HT_ERROR	Error has occured
 **			HT_LOADED	Success
 **			HT_NO_DATA	Success, but no document loaded.
+**			HT_RETRY	if service isn't available before
+**					request->retry_after
 */
 PUBLIC int HTUploadAnchor ARGS3(HTAnchor *,		src_anchor,
 				HTParentAnchor *,	dest_anchor,

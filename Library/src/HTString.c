@@ -364,6 +364,12 @@ PUBLIC long HTGetTimeZoneOffset NOARGS
 
 /*
 **	Parse a str in GMT format to a local time time_t representation
+**	Four formats are accepted:
+**
+**		Wkd, 00 Mon 0000 00:00:00 GMT		(rfc1123)
+**		Weekday, 00-Mon-00 00:00:00 GMT		(rfc850)
+**		Wkd Mon 00 00:00:00 0000 GMT		(ctime)
+**		1*DIGIT					(delta-seconds)
 */
 PUBLIC time_t HTParseTime ARGS1(CONST char *, str)
 {
@@ -373,10 +379,10 @@ PUBLIC time_t HTParseTime ARGS1(CONST char *, str)
 
     if (!str) return 0;
 
-    if ((s = strchr(str, ','))) {	/* Thursday, 10-Jun-93 01:29:59 GMT */
+    if ((s = strchr(str, ','))) {	 /* Thursday, 10-Jun-93 01:29:59 GMT */
 	s++;				/* or: Thu, 10 Jan 1993 01:29:59 GMT */
 	while (*s && *s==' ') s++;
-	if (strchr(s,'-')) {		/* First format */
+	if (strchr(s,'-')) {				     /* First format */
 	    if (TRACE)
 		fprintf(TDEST, "Format...... Weekday, 00-Mon-00 00:00:00 GMT\n");
 	    if ((int)strlen(s) < 18) {
@@ -391,8 +397,7 @@ PUBLIC time_t HTParseTime ARGS1(CONST char *, str)
 	    tm.tm_hour = make_num(s+10);
 	    tm.tm_min = make_num(s+13);
 	    tm.tm_sec = make_num(s+16);
-	}
-	else {				/* Second format */
+	} else {					    /* Second format */
 	    if (TRACE)
 		fprintf(TDEST, "Format...... Wkd, 00 Mon 0000 00:00:00 GMT\n");
 	    if ((int)strlen(s) < 20) {
@@ -409,8 +414,13 @@ PUBLIC time_t HTParseTime ARGS1(CONST char *, str)
 	    tm.tm_sec = make_num(s+18);
 
 	}
-    }
-    else {	/* Try the other format:  Wed Jun  9 01:29:59 1993 GMT */
+    } else if (isdigit(*str)) {				    /* delta seconds */
+	t = time(NULL) + atol(str);	      /* Current local calendar time */
+	if (TRACE)
+	    fprintf(TDEST, "Time string. Delta-time %s parsed to %ld seconds, or in local time: %s", str, (long) t, ctime(&t));
+	return t;
+
+    } else {	      /* Try the other format:  Wed Jun  9 01:29:59 1993 GMT */
 	if (TRACE)
 	    fprintf(TDEST, "Format...... Wkd Mon 00 00:00:00 0000 GMT\n");
 	s = str;

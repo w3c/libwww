@@ -427,6 +427,14 @@ from <CODE>200 OK</CODE> will be put down this stream. This can be
 used as a debug window etc. If the value is NULL (default) then the
 stream used is <A HREF="HTFormat.html#BlackHole">HTBlackHole</A>.
 
+<PRE>
+    HTAtom * 	error_format;
+</PRE>
+
+The desired format of the error stream. This can be used to get
+unconverted data etc. from the library. The default value if
+<CODE>WWW_HTML</CODE> as a character based only has one WWW_PRESENT.
+
 <H4>Streams From Application to Network</H4>
 
 <PRE>
@@ -526,6 +534,7 @@ stack of messages.
 <PRE>
     HTNetInfo *	net_info;		/* Information about socket etc. */
     int		redirections;		/* Number of redirections */
+    time_t	retry_after;		/* Absolut time for a retry */
 </PRE>
 
 Protocol specific information, socket number etc.
@@ -634,6 +643,11 @@ HREF="HTUtils.html#ReturnCodes">Utility module</A>:
 <DT>HT_NO_DATA
 <DD>Success, but no document loaded. This might be the situation when a 
 telnet sesssion is started etc.
+
+<DT>HT_RETRY
+<DD>The remote server is down but will serve documents from the
+calendar time indicated in HTRequest-&gt;retry_after.
+
 </DL>
 
 However, a general rule about the return codes is that <B>ERRORS</B>
