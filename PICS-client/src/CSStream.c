@@ -261,7 +261,7 @@ if (PICS_TRACE)
 		    demark, token);
             break;
     }
-    printf(space);
+    HTTrace("%s", space); /* make sure %s don't get interpretted */
 /*
     CSLabel_dump(pCSMR);
     HTTrace(pParseState->note);

@@ -332,13 +332,13 @@ PUBLIC int HTEvent_Register (SOCKET s, HTRequest * rq, SockOps ops,
 #ifndef WIN32	/* EGP */
 #define GetLastError WSAGetLastError
 #endif
-    if (rq->hwnd != 0) {
-        if (WSAAsyncSelect( s, rq->hwnd, rq->winMsg, ops) < 0) {
+/*    if (rq->hwnd != 0) {
+        if (WSAAsyncSelect( s, rq->hwnd, rq->winMsg, ops) < 0) { */
+        if (WSAAsyncSelect( s, HTSocketWin, HTwinMsg, ops) < 0) {
 	    HTRequest_addSystemError(rq, ERR_FATAL, GetLastError(), NO,
 				     "WSAAsyncSelect");
 	    return HTERROR;
 	}
-    }
 #endif
     /* insert socket into appropriate file descriptor set */
 
@@ -856,7 +856,7 @@ PRIVATE int __DoCallback( SOCKET s, SockOps ops)
     HTRequest * rqp = NULL;
     HTEventCallback *cbf = HTEvent_Retrieve( s, ops, &rqp);
     /* although it makes no sense, callbacks can be null */
-    if (!cbf || !rqp || rqp->priority == HT_PRIORITY_OFF) {
+    if (!cbf || (rqp && rqp->priority == HT_PRIORITY_OFF)) {
 	if (THD_TRACE) HTTrace("Callback.... No callback found\n");
         return (0);
     }

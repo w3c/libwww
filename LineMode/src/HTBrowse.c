@@ -297,7 +297,7 @@ PRIVATE LineMode * LineMode_new (void)
     Context_new(me, me->console, LM_UPDATE);
     me->trace = SHOW_ALL_TRACE;
     me->pCSUser = 0;
-    if (!(me->pView = HTView_create("'nother Window", 50, 80, me)))
+    if (!(me->pView = HTView_create("'nother Window", 25, 80, me)))
     	return 0;
     return me;
 }
@@ -878,8 +878,9 @@ CSError_t PICSCallback(HTRequest* pReq, CSLabel_t * pCSLabel,
 	    }
 	    return disposition;
         case CSError_BUREAU_NONE: mesg="label bureau was not contacted"; break;
-        case CSError_RATING_VALUE:mesg="value"; break;
+        case CSError_RATING_VALUE: mesg="value"; break;
         case CSError_RATING_MISSING: mesg="rating not found"; break;
+        case CSError_SINGLELABEL_MISSING: mesg="no single-labels found"; break;
         case CSError_SERVICE_MISSING: mesg="service not available";break;
         case CSError_SERVICE_NONE: mesg="no services available for document"; break;
         case CSError_RATING_NONE: mesg="no ratings in a service"; break;
@@ -1588,6 +1589,8 @@ PRIVATE int terminate_handler (HTRequest * request, void * param, int status)
 	    return HT_OK;
 	}
 
+    } else { /* No page loaded so sit around and wait for a go command */
+	MakeCommandLine(lm, is_index);
     }
     context->state |= LM_DONE;
     Thread_cleanup(lm);

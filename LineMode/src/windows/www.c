@@ -37,11 +37,14 @@ extern HTRequest * LineMode_getConsole(LineMode * pLm);
 
 PUBLIC int TextToAWindow(HTView * pView, const char * fmt, va_list pArgs)
 {
-    char space[513];
+    char * space;
     int len;
 
+    if ((space = (char  *) HT_MALLOC(8193)) == NULL)
+        HT_OUTOFMEM("print buffer");
     len = vsprintf(space, fmt, pArgs);
     Scroll_WriteBlock(pView->pScrollInfo, pView->hWnd, (LPSTR)space, len);
+    HT_FREE(space);
     return (len);
 }
 
@@ -277,7 +280,7 @@ int PASCAL WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdL
     WWWClassName}; //LPCSTR	lpszClassName
 
     RegisterClass(&wc); // don't check error as class may be laying around from previously use
-    if (!(PMonitorView = HTView_create("WWW Console", 25, 80, 0)))
+    if (!(PMonitorView = HTView_create("WWW Console", 50, 80, 0)))
     	return (0);
     HTTrace_setCallback(&OutputConsole);
     argc = makeArgcArgv(hInstance, &argv, lpszCmdLine);
@@ -291,6 +294,9 @@ PUBLIC HTView * HTView_create(char* name, int rows, int cols, LineMode * pLm)
 {
     HTView * pView;
     DWORD style;
+static nextX = 0;
+static nextY = 0;
+
     if ((pView = (HTView *)HT_CALLOC(1, sizeof(HTView))) == NULL || 
 	(pView->pScrollInfo = (ScrollInfo_t *)HT_CALLOC(1, sizeof(ScrollInfo_t))) == NULL || 
 	(pView->pFontInfo = (FontInfo_t *)HT_CALLOC(1, sizeof(FontInfo_t))) == NULL || 
@@ -304,8 +310,11 @@ PUBLIC HTView * HTView_create(char* name, int rows, int cols, LineMode * pLm)
     style = WS_CAPTION | WS_VISIBLE | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
     style |= PMonitorView ? WS_POPUPWINDOW : WS_POPUPWINDOW;
     pView->pLm = pLm;
-    pView->hWnd = CreateWindow(WWWClassName, pView->name, style, CW_USEDEFAULT, CW_USEDEFAULT, 
+//    pView->hWnd = CreateWindow(WWWClassName, pView->name, style, CW_USEDEFAULT, CW_USEDEFAULT, 
+    pView->hWnd = CreateWindow(WWWClassName, pView->name, style, nextX, nextY, 
 				CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, HInstance, (LPVOID)pView);
+    nextX += 400;
+    nextY += 100;
     return pView;
 }
 

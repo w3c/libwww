@@ -122,6 +122,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	    if ((net->channel = HTHost_channel(net->host)) != NULL) {
 		net->sockfd = HTChannel_socket(net->channel);
 		if (HTChannel_idle(net->channel)) {
+		    HTChannel_upSemaphore(net->channel);
 		    net->tcpstate = TCP_CONNECTED;
 		    break;
 		} else {
