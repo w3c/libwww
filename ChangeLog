@@ -1,5 +1,10 @@
-Changes with libwww 5.3.2
+Changes with libwww 5.3.3
 
+2001-03-09	Jose Kahan <jose@w3.org>
+
+	* Digest authentication wasn't being compiled by default in Win32
+	  because windows/config.h was missing the HT_MD5 define.
+	
 2001-03-06      Serge Adda <sAdda@infovista.com>
 	
 	* HTAnchor bug. HTAnchor_delete wasn't removing the reference to
@@ -23,6 +28,8 @@ Changes with libwww 5.3.2
 	  a while loop, when reading a cached metadata in meta_read(). I 
 	  moved the delete to outside this function.
 
+Changes with libwww 5.3.2
+	
 2000-12-19	Jose Kahan <jose@w3.org>
 
 	* Compilation fix: two prototypes in HTResponse.html were declared

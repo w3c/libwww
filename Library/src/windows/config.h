@@ -82,6 +82,9 @@
 /* Define to enable Zlib compression / decompression support. */
 #define HT_ZLIB 1
 
+/* Define to enable Digest Authenticaiton support */
+#define HT_MD5 1
+
 /* Define to enable POSIX RegEx support. */
 #define HT_POSIX_REGEX 1
 
