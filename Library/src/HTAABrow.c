@@ -73,11 +73,19 @@ PRIVATE char * make_template (const char * docname)
 	char * path = HTParse(docname, "", PARSE_PATH|PARSE_PUNCTUATION);
 	char * slash = strrchr(path, '/');
 	if (slash) {
+#if 0
 	    if (*(slash+1)) {		
 		strcpy(slash, "*");
 		StrAllocCat(host, path);
 	    } else
 		StrAllocCat(host, "/*");
+#else
+	    if (slash > path) {		
+		strcpy(slash, "*");
+		StrAllocCat(host, path);
+	    } else
+		StrAllocCat(host, "/*");
+#endif
 	}
 	HT_FREE(path);
 	tmplate = host;
