@@ -4,7 +4,7 @@ dnl Please first read the full copyright statement in the file COPYRIGH.
 dnl @(#) $Id$
 
 AC_REVISION([$Id$])
-AC_PREREQ(2.2)
+AC_PREREQ(2.13)
 AC_INIT(Library)
 
 AC_CONFIG_AUX_DIR(config)
@@ -31,9 +31,10 @@ AM_CONFIG_HEADER(wwwconf.h)
 
 dnl Regular configure...
 AC_PROG_CC
-dnl AC_CYGWIN 	dnl   You should probably
-dnl AC_MINGW32  	dnl   use all three of these
-dnl AC_EXEEXT   	dnl   for maximum portability
+AC_PROG_CXX
+AC_CYGWIN 	dnl   You should probably
+AC_MINGW32  	dnl   use all three of these
+AC_EXEEXT   	dnl   for maximum portability
 AM_PROG_LIBTOOL
 AC_PROG_MAKE_SET
 AC_PROG_INSTALL
@@ -428,23 +429,6 @@ AC_ARG_WITH(expat,
   HTXML=""
 )
 AC_SUBST(HTXML)
-
-AC_MSG_CHECKING(whether to link libwww as shared library)
-AC_ARG_ENABLE(shared, [],
-[ case "${enableval}" in
-  no)
-    AC_MSG_RESULT(no)
-    ;;
-  *) 
-    AC_MSG_RESULT(yes)
-    AC_DEFINE(LIBWWW_SHARED)
-    ;;
-  esac ],
-[
-  AC_MSG_RESULT(yes)
-  AC_DEFINE(LIBWWW_SHARED)
-]
-)
 
 AC_MSG_CHECKING(whether to use internal signal handlers)
 AC_ARG_ENABLE(signals, [  --enable-signals        use internal libwww signal handler.],
