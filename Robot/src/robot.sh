@@ -1,13 +1,17 @@
 #!/bin/sh
 if [ $# -lt 3 ]
 then
+	echo "A simple example of how the libwww robot can be used"
+	echo "For a full description, see"
+	echo
+	echo "        http://www.w3.org/Robot/User/CommandLine.html"
 	echo
 	echo "Usage:	$0 RootURI ImageRootURI LogPrefix [ flags ]"
 	echo
         echo "where"
-	echo "        RootURI       is the URI prefix for links, for example http://www.w3.org"
+	echo "        RootURI       is the URI prefix for links, for example http://www.w3.org/Robot/"
 	echo "        ImageRootURI  is the URI prefix for inlined images, for example http://www.w3.org"
-	echo "        LogPrefix     is the prefix for log files, for example w3c"
+	echo "        LogPrefix     is the prefix for log files, for example robot"
 	echo "        flags         are any additional command line flags, for example -vp"
 	echo
 	echo "See"
@@ -22,9 +26,9 @@ IMGROOT=$2
 LOG=$3
 FLAGS=$4
 
-ROBOT=./webbot
+ROBOT=/home/frystyk/w3c-lib/Robot/src/webbot
 
-${ROBOT} ${FLAGS} -ss -q -n -depth 1 \
+${ROBOT} ${FLAGS} -q -ss -n -depth 99 \
 -exclude "/ArchiveBrowser/|/History/|/member/|/team/" \
 -check "\.gz$|\.Z$|\.zip$|\.ZIP$|\.tar$|\.ps$|\.doc$|\.pdf$|\.xplot$|\.java$|\.c$|\.h$|\.txt$|\.ppt$|\.gif$|\.GIF$|\.tiff$|\.png$|\.PNG$|\.jpeg$|\.jpg$|\.JPE$" \
 -prefix ${ROOT} \
@@ -32,6 +36,7 @@ ${ROBOT} ${FLAGS} -ss -q -n -depth 1 \
 -l ${LOG}-log-clf.txt \
 -alt ${LOG}-log-alt.txt \
 -hit ${LOG}-log-hit.txt \
+-rellog ${LOG}-log-link-relations.txt -relation stylesheet \
 -lm ${LOG}-log-lastmodified.txt \
 -title ${LOG}-log-title.txt \
 -referer ${LOG}-log-referer.txt \

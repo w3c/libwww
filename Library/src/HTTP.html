@@ -34,8 +34,10 @@ The HTTP client module supports various modes for communicating with HTTP
 servers. The mode are defined by the enumeration below.
 <PRE>
 typedef enum _HTTPConnectionMode { 
-    HTTP_NO_PIPELINING  = 0x1, 
-    HTTP_FORCE_10       = 0x2 
+    HTTP_11_PIPELINING     = 0x1,
+    HTTP_11_NO_PIPELINING  = 0x2, 
+    HTTP_11_MUX            = 0x4,
+    HTTP_FORCE_10          = 0x8
 } HTTPConnectionMode; 
 
 extern void HTTP_setConnectionMode (HTTPConnectionMode mode);

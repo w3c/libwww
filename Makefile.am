@@ -5,8 +5,6 @@
 
 FTP = /afs/w3.org/devel/Dist/$(PROD)
 
-AUTOMAKE_OPTIONS = foreign
-
 #	.h files are distributed but originally are made from the
 #	self-documenting hypertext files.
 SUFFIXES = .html

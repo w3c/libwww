@@ -273,6 +273,24 @@ PUBLIC HTAnchor * HTAnchor_followMainLink (HTAnchor * me)
     return me ? HTLink_destination(&me->mainLink) : NULL;
 }
 
+/*
+**  Returns a link with a given link type or NULL if nothing found
+*/
+PUBLIC HTLink * HTAnchor_findLinkType (HTAnchor * me, HTLinkType type)
+{
+    if (me) {
+	HTLink * link = HTAnchor_mainLink(me);
+	HTList * sublinks = HTAnchor_subLinks(me);
+	if (link && HTLink_type(link) == type)
+	    return link;
+	else if (sublinks) {
+	    while ((link = (HTLink *) HTList_nextObject (sublinks)))
+		if (HTLink_type(link) == type) return link;
+	}
+    }
+    return NULL;
+}
+
 /* ------------------------------------------------------------------------- */
 /*				Deletion Methods			     */
 /* ------------------------------------------------------------------------- */

@@ -35,7 +35,7 @@ PRIVATE BOOL initialised = NO;
 PUBLIC HTAtom * HTAtom_for (const char * string)
 {
     int hash;
-    const char * p;
+    const unsigned char * p;
     HTAtom * a;
 
     if (!string) return NULL;			/* prevent core dumps */
@@ -50,7 +50,7 @@ PUBLIC HTAtom * HTAtom_for (const char * string)
     /*		Generate hash function
     */
     for (p=string, hash=0; *p; p++) {
-        hash = (hash * 3 +(*(unsigned char *) p)) % HASH_SIZE;
+        hash = (hash * 3 + tolower(*p)) % HASH_SIZE;
     }
     
     /*		Search for the string in the list
@@ -85,7 +85,7 @@ PUBLIC HTAtom * HTAtom_for (const char * string)
 PUBLIC HTAtom * HTAtom_caseFor (const char * string)
 {
     int hash;
-    const char * p;
+    const unsigned char * p;
     HTAtom * a;
 
     if (!string) return NULL;			/* prevent core dumps */
@@ -100,7 +100,7 @@ PUBLIC HTAtom * HTAtom_caseFor (const char * string)
     /*		Generate hash function
     */
     for(p=string, hash=0; *p; p++) {
-        hash = (hash * 3 + *p) % HASH_SIZE;
+        hash = (hash * 3 + tolower(*p)) % HASH_SIZE;
     }
     
     /*		Search for the string in the list

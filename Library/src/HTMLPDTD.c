@@ -207,19 +207,21 @@ PRIVATE attr l_attr[] = {
 
 PRIVATE attr li_attr[] = {
 	{ "ID" },
-	{ "LANG" },
 	{ "INDEX" },
+	{ "LANG" },
 	{ "SRC"},
 	{ 0 }	/* Terminate list */
 };
 
 PRIVATE attr link_attr[HTML_LINK_ATTRIBUTES+1] = {	/* link attributes */
-	{ "HREF"},
-	{ "IDREF" },
-	{ "METHODS" },
-	{ "REL" },			/* Relationship */
-	{ "REV" },			/* Reverse relationship */
-	{ 0 }	/* Terminate list */
+    { "CHARSET"},
+    { "HREF"},
+    { "HREFLANG"},
+    { "MEDIA" },
+    { "REL" },		/* Relationship */
+    { "REV" },		/* Reverse relationship */
+    { "TYPE" },
+    { 0 }		/* Terminate list */
 };	
 
 PRIVATE attr list_attr[] = {

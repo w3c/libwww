@@ -16,6 +16,11 @@
 #include "HTAlert.h"
 #include "HTHost.h"
 #include "HTError.h"
+
+#ifdef HT_MUX
+#include "WWWMux.h"
+#endif
+
 #include "HTChannl.h"					 /* Implemented here */
 
 #define HASH_SIZE	67
@@ -177,6 +182,18 @@ PUBLIC HTChannel * HTChannel_new (SOCKET sockfd, FILE * fp, BOOL active)
     ch->channelOStream.channel = ch;
     HTList_addObject(list, (void *) ch);
 
+#ifdef HT_MUX
+	    /*
+	    **  Create a MUX channel and do a connect on this channel with a
+	    **  new session.
+	    */
+	    {
+		HTProtocol * protocol = HTNet_protocol(net);
+		HTMuxChannel * muxch = HTMuxChannel_new(me);
+		net->session = HTMuxSession_connect(muxch, net, HTProtocol_id(protocol));
+	    }
+#endif /* HT_MUX */
+
     if (PROT_TRACE) HTTrace("Channel..... Added %p to list %p\n", ch,list);
     return ch;
 }
@@ -333,6 +350,12 @@ PUBLIC void HTChannel_upSemaphore (HTChannel * channel)
 	if (PROT_TRACE)
 	    HTTrace("Channel..... Semaphore increased to %d for channel %p\n",
 		    channel->semaphore, channel);
+#ifdef HT_MUX
+		HTMuxChannel * muxch = HTMuxChannel_find(me);
+		HTProtocol * protocol = HTNet_protocol(net);
+		net->session = HTMuxSession_connect(muxch, net, HTProtocol_id(protocol));
+#endif /* HT_MUX */
+
     }
 }
 

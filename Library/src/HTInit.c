@@ -12,7 +12,10 @@
 #include "sysdep.h"
 #include "WWWUtil.h"
 #include "WWWCore.h"
+
+#ifdef HT_MUX
 #include "WWWMux.h"
+#endif
 
 #include "HTInit.h"				         /* Implemented here */
 

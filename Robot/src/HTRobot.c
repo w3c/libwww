@@ -23,11 +23,11 @@
 #include "HTRobot.h"			     		 /* Implemented here */
 
 #ifdef HT_POSIX_REGEX
-#ifdef HAVE_REGEX_H
-#include <regex.h>
-#else
 #ifdef HAVE_RXPOSIX_H
 #include <rxposix.h>
+#else
+#ifdef HAVE_REGEX_H
+#include <regex.h>
 #endif
 #endif
 #define	W3C_REGEX_FLAGS		(REG_EXTENDED | REG_NEWLINE)
@@ -45,6 +45,7 @@
 #define DEFAULT_RULE_FILE	"robot.conf"
 #define DEFAULT_LOG_FILE       	"log-clf.txt"
 #define DEFAULT_HIT_FILE       	"log-hit.txt"
+#define DEFAULT_REL_FILE      	"log-rel.txt"
 #define DEFAULT_LM_FILE       	"log-lastmodified.txt"
 #define DEFAULT_TITLE_FILE     	"log-title.txt"
 #define DEFAULT_REFERER_FILE   	"log-referer.txt"
@@ -116,6 +117,8 @@ typedef struct _Robot {
     HTLog *	        noalttag;
 
     char *		hitfile;		/* links sorted after hit counts */
+    char *		relfile;		/* link sorted after relationships */
+    HTLinkType		relation;		/* Specific relation to look for */
     char *		titlefile;		/* links with titles */
     char *		mtfile;			/* media types encountered */
     char *		charsetfile;		/* charsets encountered */
@@ -278,6 +281,51 @@ PRIVATE int HitSort (const void * a, const void * b)
     HyperDoc * bb = HTAnchor_document(*(HTParentAnchor **) b);
     if (aa && bb) return (bb->hits - aa->hits);
     return bb - aa;
+}
+
+/*
+**  Sort the anchor array and log link relations
+*/
+PRIVATE BOOL calculate_linkRelations (Robot * mr, HTArray * array)
+{
+    if (mr && array) {
+        HTLog * log = HTLog_open(mr->relfile, YES, YES);
+        if (log) {
+            void ** data = NULL;
+            HTParentAnchor * anchor = NULL;
+            anchor = (HTParentAnchor *) HTArray_firstObject(array, data);
+	    while (anchor) {
+                char * uri = HTAnchor_address((HTAnchor *) anchor);
+		if (uri) {
+		    /*
+		    **  If we have a specific relation to look for then use that.
+		    */
+		    if (mr->relation) {
+			HTLink * link = HTAnchor_findLinkType((HTAnchor *) anchor,
+							      mr->relation);
+			if (link) {
+			    HTParentAnchor * dest = HTAnchor_parent(HTLink_destination(link));
+			    char * dest_uri = HTAnchor_address((HTAnchor *) dest);
+			    HTFormat format = HTAnchor_format(dest);
+			    if (dest_uri) {
+				HTLog_addText(log, "%s %s %s --> %s\n",
+					      HTAtom_name(mr->relation),
+					      format != WWW_UNKNOWN ?
+					      HTAtom_name(format) : "<unknown>",
+					      uri, dest_uri);
+				HT_FREE(dest_uri);
+			    }
+			}
+		    }
+		    HT_FREE(uri);
+		}
+                anchor = (HTParentAnchor *) HTArray_nextObject(array, data);
+            }
+	}
+        HTLog_close(log);
+        return YES;
+    }
+    return NO;
 }
 
 /*
@@ -498,17 +546,17 @@ PRIVATE BOOL calculate_statistics (Robot * mr)
 	    double secs = t / 1000.0;
             char bytes[50];
 	    if (SHOW_REAL_QUIET(mr))
-		HTTrace("Accessed %ld documents in %.2f seconds (%.2f requests pr sec)\n",
+		HTTrace("\nAccessed %ld documents in %.2f seconds (%.2f requests pr sec)\n",
 			total_docs, secs, reqprsec);
 
             HTNumToStr(mr->get_bytes, bytes, 50);
 	    if (SHOW_REAL_QUIET(mr))
-		HTTrace("Did a GET on %ld document(s) and downloaded %s bytes of document bodies (%2.1f bytes/sec)\n",
+		HTTrace("\tDid a GET on %ld document(s) and downloaded %s bytes of document bodies (%2.1f bytes/sec)\n",
 			mr->get_docs, bytes, loadfactor);
 
             HTNumToStr(mr->head_bytes, bytes, 50);
 	    if (SHOW_REAL_QUIET(mr))
-		HTTrace("Did a HEAD on %ld document(s) with a total of %s bytes\n",
+		HTTrace("\tDid a HEAD on %ld document(s) with a total of %s bytes\n",
 			mr->head_docs, bytes);
 	}
     }
@@ -520,21 +568,29 @@ PRIVATE BOOL calculate_statistics (Robot * mr)
 
 	    /* Distributions */
 	    if (mr->flags & MR_DISTRIBUTIONS) {
-		if (SHOW_REAL_QUIET(mr)) HTTrace("Distributions:\n");
+		if (SHOW_REAL_QUIET(mr)) HTTrace("\nDistributions:\n");
 	    }
 
             /* Sort after hit counts */
             if (mr->hitfile) {
 		if (SHOW_REAL_QUIET(mr))
-		    HTTrace("Logged hit count distribution in file `%s\'\n",
+		    HTTrace("\tLogged hit count distribution in file `%s\'\n",
 			    mr->hitfile);
 		calculate_hits(mr, array);
+	    }
+
+            /* Sort after link relations */
+            if (mr->relfile) {
+		if (SHOW_REAL_QUIET(mr))
+		    HTTrace("\tLogged link relationship distribution in file `%s\'\n",
+			    mr->relfile);
+		calculate_linkRelations(mr, array);
 	    }
 
             /* Sort after modified date */
             if (mr->lmfile) {
 		if (SHOW_REAL_QUIET(mr))
-		    HTTrace("Logged last modified distribution in file `%s\'\n",
+		    HTTrace("\tLogged last modified distribution in file `%s\'\n",
 			    mr->lmfile);
 		calculate_lm(mr, array);
 	    }
@@ -542,7 +598,7 @@ PRIVATE BOOL calculate_statistics (Robot * mr)
             /* Sort after title */
             if (mr->titlefile) {
 		if (SHOW_REAL_QUIET(mr))
-		    HTTrace("Logged title distribution in file `%s\'\n",
+		    HTTrace("\tLogged title distribution in file `%s\'\n",
 			    mr->titlefile);
 		calculate_title(mr, array);
 	    }
@@ -552,7 +608,7 @@ PRIVATE BOOL calculate_statistics (Robot * mr)
 		HTList * mtdist = mediatype_distribution(array);
 		if (mtdist) {
 		    if (SHOW_REAL_QUIET(mr))
-			HTTrace("Logged media type distribution in file `%s\'\n",
+			HTTrace("\tLogged media type distribution in file `%s\'\n",
 				mr->mtfile);
 		    log_meta_distribution(mr->mtfile, mtdist);
 		    delete_meta_distribution(mtdist);
@@ -564,7 +620,7 @@ PRIVATE BOOL calculate_statistics (Robot * mr)
 		HTList * charsetdist = charset_distribution(array);
 		if (charsetdist) {
 		    if (SHOW_REAL_QUIET(mr))
-			HTTrace("Logged charset distribution in file `%s\'\n",
+			HTTrace("\tLogged charset distribution in file `%s\'\n",
 				mr->charsetfile);
 		    log_meta_distribution(mr->charsetfile, charsetdist);
 		    delete_meta_distribution(charsetdist);
@@ -627,42 +683,42 @@ PRIVATE BOOL Robot_delete (Robot * mr)
 
 	/* Close all the log files */
 	if (mr->flags & MR_LOGGING) {
-	    if (SHOW_REAL_QUIET(mr)) HTTrace("Raw Log files:\n");
+	    if (SHOW_REAL_QUIET(mr)) HTTrace("\nRaw Log files:\n");
 	}
 
 	if (mr->log) {
 	    if (SHOW_REAL_QUIET(mr))
-		HTTrace("Logged %5d entries in general log file `%s\'\n",
+		HTTrace("\tLogged %5d entries in general log file `%s\'\n",
 			HTLog_accessCount(mr->log), mr->logfile);
 	    HTLog_close(mr->log);
 	}
 	if (mr->ref) {
 	    if (SHOW_REAL_QUIET(mr))
-		HTTrace("Logged %5d entries in referer log file `%s\'\n",
+		HTTrace("\tLogged %5d entries in referer log file `%s\'\n",
 			HTLog_accessCount(mr->ref), mr->reffile);
 	    HTLog_close(mr->ref);
 	}
 	if (mr->reject) {
 	    if (SHOW_REAL_QUIET(mr))
-		HTTrace("Logged %5d entries in rejected log file `%s\'\n",
+		HTTrace("\tLogged %5d entries in rejected log file `%s\'\n",
 			HTLog_accessCount(mr->reject), mr->rejectfile);
 	    HTLog_close(mr->reject);
 	}
 	if (mr->notfound) {
 	    if (SHOW_REAL_QUIET(mr))
-		HTTrace("Logged %5d entries in not found log file `%s\'\n",
+		HTTrace("\tLogged %5d entries in not found log file `%s\'\n",
 			HTLog_accessCount(mr->notfound), mr->notfoundfile);
 	    HTLog_close(mr->notfound);
 	}
 	if (mr->conneg) {
 	    if (SHOW_REAL_QUIET(mr))
-		HTTrace("Logged %5d entries in content negotiation log file `%s\'\n",
+		HTTrace("\tLogged %5d entries in content negotiation log file `%s\'\n",
 			HTLog_accessCount(mr->conneg), mr->connegfile);
 	    HTLog_close(mr->conneg);
 	}
 	if (mr->noalttag) {
 	    if (SHOW_REAL_QUIET(mr))
-		HTTrace("Logged %5d entries in missing alt tag log file `%s\'\n",
+		HTTrace("\tLogged %5d entries in missing alt tag log file `%s\'\n",
 			HTLog_accessCount(mr->noalttag), mr->noalttagfile);
 	    HTLog_close(mr->noalttag);
 	}
@@ -672,7 +728,7 @@ PRIVATE BOOL Robot_delete (Robot * mr)
 	if (mr->flags & MR_TIME) {
 	    time_t local = time(NULL);
 	    if (SHOW_REAL_QUIET(mr))
-		HTTrace("Robot terminated %s\n", HTDateTimeStr(&local, YES));
+		HTTrace("\nRobot terminated %s\n", HTDateTimeStr(&local, YES));
 	}
 
 #ifdef HT_POSIX_REGEX
@@ -1190,6 +1246,18 @@ int main (int argc, char ** argv)
 		    argv[++arg] : DEFAULT_HIT_FILE;
 		mr->flags |= MR_DISTRIBUTIONS;
 
+  	    /* link relations file log */
+	    } else if (!strcmp(argv[arg], "-rellog")) {
+		mr->relfile = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    argv[++arg] : DEFAULT_REL_FILE;
+		mr->flags |= MR_DISTRIBUTIONS;
+
+  	    /* Specific link relation to look for (only used i also -rellog) */
+	    } else if (!strcmp(argv[arg], "-relation")) {
+		mr->relation = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    (HTLinkType) HTAtom_caseFor(argv[++arg]) : NULL;
+		mr->flags |= MR_DISTRIBUTIONS;
+
   	    /* last modified log file */
 	    } else if (!strcmp(argv[arg], "-lm")) {
 		mr->lmfile = (arg+1 < argc && *argv[arg+1] != '-') ?
@@ -1242,7 +1310,7 @@ int main (int argc, char ** argv)
 
 	    /* Force no pipelined requests */
 	    } else if (!strcmp(argv[arg], "-nopipe")) {
-		HTTP_setConnectionMode(HTTP_NO_PIPELINING);
+		HTTP_setConnectionMode(HTTP_11_NO_PIPELINING);
 
 	    /* Start the persistent cache */
 	    } else if (!strcmp(argv[arg], "-cache")) {

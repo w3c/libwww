@@ -20,8 +20,6 @@
 #include "sysdep.h"
 #include "WWWUtil.h"
 #include "WWWCore.h"
-#include "WWWMux.h"
-
 #include "HTReqMan.h"
 #include "HTNetMan.h"
 #include "HTTCP.h"					 /* Implemented here */
@@ -234,16 +232,6 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	    } else {
 
 		/*
-		**  Get a new session on the MUX layer - we already have a
-		**  connection.
-		*/
-#ifdef HT_MUX
-		HTMuxChannel * muxch = HTMuxChannel_find(me);
-		HTProtocol * protocol = HTNet_protocol(net);
-		net->session = HTMuxSession_connect(muxch, net, HTProtocol_id(protocol));
-#endif /* HT_MUX */
-
-		/*
 		**  There is now one more using the channel
 		*/
 		HTChannel_upSemaphore(me->channel);
@@ -277,18 +265,6 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	  case TCP_NEED_SOCKET:
 	    if (_makeSocket(me, request, preemptive, net->transport) == -1)
 		break;
-
-#ifdef HT_MUX
-	    /*
-	    **  Create a MUX channel and do a connect on this channel with a
-	    **  new session.
-	    */
-	    {
-		HTProtocol * protocol = HTNet_protocol(net);
-		HTMuxChannel * muxch = HTMuxChannel_new(me);
-		net->session = HTMuxSession_connect(muxch, net, HTProtocol_id(protocol));
-	    }
-#endif /* HT_MUX */
 
 	    /* If multi-homed host then start timer on connection */
 	    if (HTHost_retry(me)) me->connecttime = HTGetTimeInMillis();
@@ -485,9 +461,6 @@ PUBLIC int HTDoAccept (HTNet * net, HTNet ** accepted)
     {
 	HTHost * host = (*accepted)->host;
 	HTChannel * ch = HTChannel_new(HTNet_socket(*accepted), NULL, NO);
-#ifdef HT_MUX
-	HTMuxChannel_new(host);
-#endif /* HT_MUX */
 	HTHost_setChannel(host, ch);
     }
     return HT_OK;

@@ -88,9 +88,17 @@ struct _HTInputStream {
 };
 
 #ifdef HT_NO_PIPELINING
-PRIVATE HTTPConnectionMode ConnectionMode = HTTP_NO_PIPELINING;
+PRIVATE HTTPConnectionMode ConnectionMode = HTTP_11_NO_PIPELINING;
 #else
-PRIVATE HTTPConnectionMode ConnectionMode = 0;
+#ifdef HT_MUX
+PRIVATE HTTPConnectionMode ConnectionMode = HTTP_11_MUX;
+#else
+#ifdef HT_FORCE_10
+PRIVATE HTTPConnectionMode ConnectionMode = HTTP_FORCE_10;
+#else
+PRIVATE HTTPConnectionMode ConnectionMode = HTTP_11_PIPELINING;
+#endif
+#endif
 #endif
 
 /* ------------------------------------------------------------------------- */
@@ -604,19 +612,20 @@ PRIVATE int stream_pipe (HTStream * me)
 	    HTHost_setVersion(host, HTTP_10);
 	} else {					/* 1.x, x>0 family */
 	    HTHost_setVersion(host, HTTP_11);		/* Best we can do */
-#ifdef HT_MUX
-	    HTNet_setPersistent(net, YES, HT_TP_INTERLEAVE);
-#else
-	    if (ConnectionMode & HTTP_NO_PIPELINING) {
-		if (PROT_TRACE) HTTrace("HTTP........ Mode is HTTP/1.x WITH NO PIPELINING\n");
+	    if (ConnectionMode & HTTP_11_NO_PIPELINING) {
+		if (PROT_TRACE)
+		    HTTrace("HTTP........ Mode is HTTP/1.1 with NO PIPELINING\n");
 		HTNet_setPersistent(net, YES, HT_TP_SINGLE);
+	    } else if (ConnectionMode & HTTP_11_MUX) {
+		if (PROT_TRACE)
+		    HTTrace("HTTP........ Mode is HTTP/1.1 with MUXING\n");
+		HTNet_setPersistent(net, YES, HT_TP_INTERLEAVE);
 	    } else if (ConnectionMode & HTTP_FORCE_10) {
 		if (PROT_TRACE) HTTrace("HTTP........ Mode is FORCE HTTP/1.0\n");
 		HTHost_setVersion(host, HTTP_10);
 		HTNet_setPersistent(net, NO, HT_TP_SINGLE);
 	    } else
 		HTNet_setPersistent(net, YES, HT_TP_PIPELINE);
-#endif /* HT_MUX */
 	}
 
 	me->status = atoi(HTNextField(&ptr));
@@ -942,7 +951,7 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 		    }
 		}
 
-		if (ConnectionMode & HTTP_NO_PIPELINING) {
+		if (ConnectionMode & HTTP_11_NO_PIPELINING) {
 		    if (PROT_TRACE) HTTrace("HTTP........ Mode is HTTP/1.1 WITH NO PIPELINING\n");
 		    HTRequest_setFlush(request, YES);
 		} else if (ConnectionMode & HTTP_FORCE_10) {
@@ -989,15 +998,6 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 		int version = HTHost_version(host);
 		HTStream * app = NULL;
 		
-		/*
-		**  Instead of calling this directly we could have a 
-		**  stream stack builder on the output stream as well
-		*/
-#ifdef HT_MUX
-		output = (HTOutputStream *)
-		    HTBuffer_new(HTMuxWriter_new(host, net, output), request, 512);
-#endif
-		    
 #ifdef HTTP_DUMP
 		if (PROT_TRACE) {
 		    FILE * htfp = NULL;

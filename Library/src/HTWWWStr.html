@@ -56,7 +56,18 @@ extern char * HTNextPair (char ** pstr);
 </PRE>
 
 <H3>
-  Find next "/" Delimied Segment
+  Next LWS Delimited Token
+</H3>
+
+A simpler version of the above that only looks for linear white space
+as the delimiter.
+
+<PRE>
+extern char * HTNextLWSToken (char ** pstr);
+</PRE>
+
+<H3>
+  Find next "/" Delimited Segment
 </H3>
 
 This is the same as HTNextField but it includes "/" as a delimiter.

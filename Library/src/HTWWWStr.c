@@ -83,6 +83,43 @@ PUBLIC char * HTNextField (char ** pstr)
     return start;
 }
 
+/*	Find next LWS delimited token
+**	-----------------------------
+**	On entry,
+**	*pstr	points to a string containing a word separated
+**		by white white space "," ";" or "=". The word
+**		can optionally be quoted using <"> or "<" ">"
+**		Comments surrrounded by '(' ')' are filtered out
+**
+** 	On exit,
+**	*pstr	has been moved to the first delimiter past the
+**		field
+**		THE STRING HAS BEEN MUTILATED by a 0 terminator
+**
+**	Returns	a pointer to the first word or NULL on error
+*/
+PUBLIC char * HTNextLWSToken (char ** pstr)
+{
+    char * p = *pstr;
+    char * start = NULL;
+    if (!pstr || !*pstr) return NULL;
+
+    /* Strip initial white space  */
+    while (*p && (isspace((int) *p))) p++;
+    if (!*p) {
+	*pstr = p;
+	return NULL;				   	 /* No field */
+    }
+
+    /* Now search for the next white space */
+    start = p;
+    while(*p && !isspace((int) *p)) p++;
+
+    if (*p) *p++ = '\0';
+    *pstr = p;
+    return start;
+}
+
 /*	Find next Name-value pair
 **	-------------------------
 **	This is the same as HTNextField but it does not look for '=' as a

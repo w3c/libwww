@@ -54,6 +54,12 @@
 /* Define to disable HTTP/1.1 pipelining */
 #undef HT_NO_PIPELINING
 
+/* Define to force use of HTTP/1.0 */
+#undef HT_FORCE_10
+
+/* Define to disable HTTP/1.1 pipelining */
+#undef HT_NO_PIPELINING
+
 /* Define to enable MUX as HTTP transport */
 #undef HT_MUX
 

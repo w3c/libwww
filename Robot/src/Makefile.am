@@ -7,8 +7,6 @@ webbot_LDADD = ../../Library/src/libwww.a -lm
 webbot_DEPENDENCIES = \
 	../../Library/src/libwww.a
 
-AUTOMAKE_OPTIONS = foreign
-
 SUBDIRS = windows
 
 INCLUDES = -I$(srcdir)/../../Library/src

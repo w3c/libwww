@@ -115,12 +115,13 @@ expressions</A>.
   <DT>
     <B>-img</B>
   <DD>
-    Test include inlined images using a <TT>HEAD</TT> request
+    Test include <STRONG>inlined images </STRONG>using a <TT>HEAD</TT> request
   <DT>
     <B>-saveimg</B>
   <DD>
-    Saving the inlined images on local disk or pump them to a black hole. This
-    is primarily to emulate a GUI client's behavior using the robot
+    Saving the <STRONG>inlined images</STRONG> on local disk or pump them to
+    a black hole. This is primarily to emulate a GUI client's behavior using
+    the robot
   <DT>
     <B>-alt [ file ]</B>
   <DD>
@@ -176,28 +177,44 @@ expressions</A>.
   <DT>
     <B>-format [ file ]</B>
   <DD>
-    Specifies a log file of which media types (content types) were encountered
-    in the run and their distribution
+    Specifies a log file of which <STRONG>media types</STRONG> (content types)
+    were encountered in the run and their distribution
   <DT>
     <B>-charset [ file ]</B>
   <DD>
-    Specifies a log file of which charsets (content type parameter) were encountered
-    in the run and their distribution
+    Specifies a log file of which <STRONG>charsets</STRONG> (content type parameter)
+    were encountered in the run and their distribution
   <DT>
     <B>-hitcount [ file]</B>
   <DD>
-    Specifies a log file of URIs sorted after how many times they were encountered
-    in the run
+    Specifies a log file of URIs sorted after <STRONG>how many times</STRONG>
+    they were referenced in the run
   <DT>
     <B>-lm [ file]</B>
   <DD>
-    Specifies a log file of URIs sorted after last modified date. This gives
-    a good overview of the dynamics of the web site that you are checking.
+    Specifies a log file of URIs sorted after <STRONG>last modified date</STRONG>.
+    This gives a good overview of the dynamics of the web site that you are checking.
+  <DT>
+    <B>-rellog [ file ]</B>
+  <DD>
+    Specifies a log file of any link relationship found in the <STRONG>HTML LINK
+    tag</STRONG> (either the <STRONG>REL</STRONG> of the <STRONG>REV</STRONG>
+    attribute) that has the relation specified in the <B>-relation</B> parameter
+    (all relations are modelled by libwww as "forward"). For example <TT>"-rellog
+    stylesheets-logfile.txt -relation stylesheet"</TT> will produce a log file
+    of all link relationships of type "stylesheet". The format of the log file
+    is
+    <P ALIGN=Center>
+    <TT>"&lt;relationship&gt; &lt;media type&gt; &lt;from-URI&gt; --&gt;
+    &lt;to-URI&gt;"</TT>
+    <P>
+    meaning that the <TT>from-URI</TT> has the forward <TT>relationship</TT>
+    with <TT>to-URI</TT>.
   <DT>
     <B>-title [ file ]</B>
   <DD>
-    Specifies a log file of URIs sorted after any title found either as an HTTP
-    header or in the HTML.
+    Specifies a log file of URIs sorted after any <STRONG>title</STRONG> found
+    either as an HTTP header or in the HTML.
 </DL>
 <H3>
   Persistent Cache

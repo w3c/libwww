@@ -194,6 +194,19 @@ extern HTAnchor * HTAnchor_followMainLink (HTAnchor * anchor);
 extern BOOL HTAnchor_setSubLinks	(HTAnchor * anchor, HTList * list);
 extern HTList * HTAnchor_subLinks	(HTAnchor * anchor);
 </PRE>
+
+<H3>
+  Search for a Link Type
+</H3>
+
+Links can have relations (indicated by the "rel" or "rev" HTML link
+attributes).  This function can search an anchor looking for a
+specific type, for example "stylesheet".
+
+<PRE>
+extern HTLink * HTAnchor_findLinkType (HTAnchor * me, HTLinkType type);
+</PRE>
+
 <H2>
   Relations Between Children and Parents
 </H2>

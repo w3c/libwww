@@ -8,9 +8,6 @@ www_LDADD = \
 www_DEPENDENCIES = \
 	../../Library/src/libwww.a ../../PICS-client/src/libpics.a
 
-#	For easier use - NOT THE DEFAULT!
-AUTOMAKE_OPTIONS = foreign
-
 SUBDIRS = windows vms
 
 INCLUDES = -I$(srcdir)/../../Library/src -I$(srcdir)/../../PICS-client/src

@@ -368,36 +368,73 @@ PRIVATE void HTML_start_element (
 {
     switch (element_number) {
     case HTML_A:
-	{
-	    HTChildAnchor * source;
-	    char * href = NULL;
-	    if (present[HTML_A_HREF])
-	    	StrAllocCopy(href, value[HTML_A_HREF]);
-	    source = HTAnchor_findChildAndLink(
-		me->node_anchor,				/* parent */
-		present[HTML_A_NAME] ? value[HTML_A_NAME] : 0,	/* Tag */
-		present[HTML_A_HREF] ? href : 0,		/* Addresss */
-		present[HTML_A_REL] && value[HTML_A_REL] ? 
-			(HTLinkType) HTAtom_for(value[HTML_A_REL])
-					       : 0);
+    {
+	HTChildAnchor * source = HTAnchor_findChildAndLink(
+	    me->node_anchor,					/* parent */
+	    present[HTML_A_NAME] ? value[HTML_A_NAME] : NULL,	/* Tag */
+	    present[HTML_A_HREF] ? value[HTML_A_HREF] : NULL,	/* Addresss */
+	    present[HTML_A_REL] && value[HTML_A_REL] ? 
+	    (HTLinkType) HTAtom_caseFor(value[HTML_A_REL]) : NULL);
 	    
-	    if (present[HTML_A_TITLE] && value[HTML_A_TITLE]) {		
-		HTLink * link = HTAnchor_mainLink((HTAnchor *) source);
-	        HTParentAnchor *dest=HTAnchor_parent(HTLink_destination(link));
-		if (!HTAnchor_title(dest))
-			HTAnchor_setTitle(dest, value[HTML_A_TITLE]);
-	    }
-	    UPDATE_STYLE;
-	    HText_beginAnchor(me->text, source);
-	    HT_FREE(href);		        /* Leak fix Henrik 17/02-94 */
+	if (present[HTML_A_TITLE] && value[HTML_A_TITLE]) {
+	    HTLink * link = HTAnchor_mainLink((HTAnchor *) source);
+	    HTParentAnchor * dest = HTAnchor_parent(HTLink_destination(link));
+	    if (!HTAnchor_title(dest)) HTAnchor_setTitle(dest, value[HTML_A_TITLE]);
 	}
-    	break;
+	UPDATE_STYLE;
+	HText_beginAnchor(me->text, source);
+    }
+    break;
 	
     case HTML_LINK:
+    {
+	if (present[HTML_LINK_HREF] && value[HTML_LINK_HREF]) {
+	    char * relative_to = HTAnchor_expandedAddress((HTAnchor *) me->node_anchor);
+	    char * dest_addr = HTParse(value[HTML_LINK_HREF], relative_to, PARSE_ALL);
+	    HTParentAnchor * dest = HTAnchor_parent(HTAnchor_findAddress(dest_addr));
 
-	/* MORE */
+	    /* If forward reference */
+	    if ((present[HTML_LINK_REL] && value[HTML_LINK_REL])) {
+		char * strval = NULL;
+		char * ptr = NULL;
+		char * relation = NULL;
+		StrAllocCopy(strval, value[HTML_LINK_REL]);
+		ptr = strval;
+		while ((relation = HTNextLWSToken(&ptr)) != NULL) {
+		    HTLink_add((HTAnchor *) me->node_anchor, (HTAnchor *) dest,
+			       (HTLinkType) HTAtom_caseFor(relation),
+			       METHOD_INVALID);
+		}
+		HT_FREE(strval);
+	    }
 
-	break;
+	    /* If reverse reference */
+	    if ((present[HTML_LINK_REV] && value[HTML_LINK_REV])) {
+		char * strval = NULL;
+		char * ptr = NULL;
+		char * relation = NULL;
+		StrAllocCopy(strval, value[HTML_LINK_REV]);
+		ptr = strval;
+		while ((relation = HTNextLWSToken(&ptr)) != NULL) {
+		    HTLink_add((HTAnchor *) dest, (HTAnchor *) me->node_anchor,
+			       (HTLinkType) HTAtom_caseFor(relation),
+			       METHOD_INVALID);
+		}
+		HT_FREE(strval);
+	    }
+
+	    /* If we got any type information as well */
+	    if (present[HTML_LINK_TYPE] && value[HTML_LINK_TYPE]) {
+		if (HTAnchor_format(dest) == WWW_UNKNOWN)
+		    HTAnchor_setFormat(dest,
+				       (HTFormat) HTAtom_caseFor(value[HTML_LINK_TYPE]));
+	    }
+
+	    HT_FREE(dest_addr);
+	    HT_FREE(relative_to);
+	}
+    }
+    break;
 
     case HTML_TITLE:
         HTChunk_clear(me->title);

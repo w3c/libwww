@@ -25,10 +25,6 @@
 #include "HTHost.h"					 /* Implemented here */
 #include "HTHstMan.h"
 
-#ifdef HT_MUX
-#include "WWWMux.h"
-#endif
-
 #define HOST_TIMEOUT		43200L	     /* Default host timeout is 12 h */
 
 #define TCP_TTL 		600L	     /* Timeout on a busy connection */
@@ -947,10 +943,11 @@ PUBLIC BOOL HTHost_free (HTHost * host, int status)
 			HTTrace("%d requests made, %d in pipe, max %d requests pr connection\n",
 				host->reqsMade, piped, host->reqsPerConnection);
 		    host->do_recover = YES;
+		    HTChannel_delete(host->channel, status);
+		} else {
+		    HTChannel_setSemaphore(host->channel, 0);
+		    HTHost_clearChannel(host, status);
 		}
-
-                HTChannel_delete(host->channel, status);
-
 	    } else if ((HTList_count(host->pipeline) <= 1 &&
 			host->reqsMade == host->reqsPerConnection)) {
                 if (CORE_TRACE) HTTrace("Host Object. closing persistent socket %d\n",
@@ -1274,16 +1271,7 @@ PUBLIC BOOL HTHost_setChannel (HTHost * host, HTChannel * channel)
 
 PUBLIC HTNet * HTHost_getReadNet(HTHost * host)
 {
-    if (host) {
-	if (host->mode == HT_TP_INTERLEAVE) {
-#ifdef HT_MUX
-	    HTMuxChannel * muxch = HTMuxChannel_find(host);
-	    return HTMuxChannel_net(muxch);
-#endif
-	}
-        return (HTNet *) HTList_firstObject(host->pipeline);
-    }
-    return NULL;
+    return host ? (HTNet *) HTList_firstObject(host->pipeline) : NULL;
 }
 
 PUBLIC HTNet * HTHost_getWriteNet(HTHost * host)
@@ -1325,18 +1313,6 @@ PUBLIC HTOutputStream * HTHost_output (HTHost * host, HTNet * net)
 {
     if (host && host->channel && net) {
 	HTOutputStream * output = HTChannel_output(host->channel);
-
-	/*
-	**  If we are in MUX mode then create new output stream on top
-	**  of the already existing one. Otherwise just return what we
-	**  have.
-	*/
-	if (host->mode == HT_TP_INTERLEAVE) {
-#ifdef HT_MUX
-	    HTStream * target = (HTStream *) HTChannel_output(host->channel);
-	    output = HTMuxWriter_new(host, net, target);
-#endif
-	}
 	return output;
     }
     return NULL;
