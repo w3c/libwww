@@ -33,7 +33,7 @@ The <I>home page </I>is special in that this is is the first page to visit
 when &nbsp;a client application starts up. Note that a home page is a generic
 URL and hence can be any resouce - not only resources on the local file system.
 <H2>
-  Personal Home Page
+  <A NAME="Personal">Personal Home Page</A>
 </H2>
 <PRE>#define LOGICAL_DEFAULT 	"WWW_HOME"    /* Defined to be the home page */
 
@@ -47,7 +47,7 @@ URL and hence can be any resouce - not only resources on the local file system.
 #endif
 </PRE>
 <H2>
-  Home Page for Remote Access
+  <A NAME="Remote">Home Page for Remote Access</A>
 </H2>
 <P>
 Some Web applications can also be run remotely - for example as a telnet
@@ -69,7 +69,7 @@ that case, the home page is often more generic than a personal home page.
 #endif
 </PRE>
 <H2>
-  Get an Anchor for the Home Page
+  <A NAME="HomeAnchor">Get an Anchor for the Home Page</A>
 </H2>
 <P>
 Getting an anchor for the <I>home page</I> involves looking for the (environment)
@@ -110,8 +110,75 @@ extern char *  HTGetCurrentDirectoryURL (void);
 <P>
 Standard interface to libwww <A HREF="HTUtils.html#Debug">TRACE messages</A>.
 Pass this function a string of characters and it will set up the appropriate
-TRACE flags. The shortnames for the trace messages are not as intuitive as
-they could be :-(. The string must be null terminated
+TRACE flags. The following characters are used as follows:
+<DL COMPACT>
+  <DT>
+    <B>f</B>
+  <DD>
+    Show <A HREF="WWWUtil.html">BASIC UTILITIES </A>Trace Messages
+  <DT>
+    <B>l</B>
+  <DD>
+    Show <A HREF="WWWApp.html">APPLICATION LEVEL</A> Trace Messages
+  <DT>
+    <B>c</B>
+  <DD>
+    Show <A HREF="WWWCache.html]">CACHE</A> Trace Messages
+  <DT>
+    <B>g</B>
+  <DD>
+    Show <A HREF="WWWHTML.html">SGML</A> Trace Messages
+  <DT>
+    <B>b</B>
+  <DD>
+    Show <A HREF="HTBind.html">BIND</A> Trace Messages
+  <DT>
+    <B>t</B>
+  <DD>
+    Show <A HREF="HTEvent.html">THREAD</A> Trace Messages
+  <DT>
+    <B>s</B>
+  <DD>
+    Show <A HREF="WWWStream.html">STREAM</A> Trace Messages
+  <DT>
+    <B>p</B>
+  <DD>
+    Show <A HREF="HTProt.html">PROTOCOL</A> Trace Messages
+  <DT>
+    <B>m</B>
+  <DD>
+    Show <A HREF="HTMemory.html">MEMORY</A> Trace Messages
+  <DT>
+    <B>q</B>
+  <DD>
+    Show <A HREF="WWWSQL.html">SQL</A> Trace Messages
+  <DT>
+    <B>u</B>
+  <DD>
+    Show <A HREF="HTParse.html">URI</A> Trace Messages
+  <DT>
+    <B>h</B>
+  <DD>
+    Show <A HREF="HTAAUtil.html">AUTH</A> Trace Messages
+  <DT>
+    <B>a</B>
+  <DD>
+    Show <A HREF="HTAnchor.html">ANCHOR</A> Trace Messages
+  <DT>
+    <B>i</B>
+  <DD>
+    Show <A HREF="../../PICS-client/">PICS</A> Trace Messages
+  <DT>
+    <B>o</B>
+  <DD>
+    Show <A HREF="WWWCore.html">CORE</A> Trace Messages
+  <DT>
+    <B>x</B>
+  <DD>
+    Show <A HREF="WWWMux.html">MUX</A> Trace Messages
+</DL>
+<P>
+The string must be null terminated, an example is "<TT>sop</TT>".
 <PRE>
 extern int HTSetTraceMessageMask (const char * shortnames);
 </PRE>

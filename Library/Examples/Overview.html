@@ -10,9 +10,11 @@
   Libwww Ready to go Samples
 </H1>
 <P ALIGN=Center>
-<A HREF="#Initialization">Initialization</A> | <A HREF="#GET">GET Requests</A>
-| <A HREF="#HEAD">HEAD Requests</A> | <A HREF="#PUT">PUT Requests</A> |
-<A HREF="#POST">POST Requests</A> | <A HREF="#TRACE">TRACE Requests</A>
+<A HREF="#Initialization">Initialization</A> | <A HREF="#GET">GET</A> |
+<A HREF="#HEAD">HEAD</A> | <A HREF="#PUT">PUT</A> | <A HREF="#POST">POST</A>
+| <A HREF="#TRACE">TRACE</A> | <A HREF="#OPTIONS">OPTIONS</A>
+|&nbsp;<A HREF="#serve">Serving Requests</A> | <A HREF="#event">Eventloop</A>
+| <A HREF="#Big">Big sample apps</A>
 <P>
 This is the list of small examples using the very basic features of the Library.
 If you have not already compiled the library then please read the
@@ -25,9 +27,9 @@ include files and the binary library itself. &nbsp;If you are using the GNU
 autoconf configure script then the examples are built as part of the overall
 package. On <A HREF="../User/Platform/">other platforms</A>, you must provide
 the make file on your own.
-<H3>
+<H2>
   <A NAME="Initialization">Initialization Samples</A>
-</H3>
+</H2>
 <DL>
   <DT>
     <A HREF="libapp_1.c">Start and Stop the Library</A>
@@ -48,6 +50,12 @@ the make file on your own.
     Figures out what timezone you are in. This is important for libwww to know
     as the persistent cache and a lot of other things depends on it.
 </DL>
+<H2>
+  Client Requests using libwww
+</H2>
+<P>
+These sample programs are all using libwww as a&nbsp;client side library
+which is what comes most natural to libwww.
 <H3>
   <A NAME="GET">Samples using GET Requests</A>
 </H3>
@@ -84,7 +92,8 @@ the make file on your own.
     You can use this (but be careful) to beat up a server with the same document
     as fast as possible.
   <DT>
-    <A HREF="mget.c">Load the same document n times using non-blocking sockets</A>
+    <A HREF="mget.c">Load the same document <TT>n</TT> times using non-blocking
+    sockets</A>
   <DD>
     Be careful! Also remember that only <TT>GET</TT> and <TT>HEAD</TT> requests
     can be pipelined in HTTP - not <TT>POST</TT>, for example.
@@ -104,6 +113,11 @@ the make file on your own.
   <DD>
     This small example sets up a request and performs a HEAD method on the resource
     provided on the command line
+  <DT>
+    <A HREF="isredirected.c">Issue a HEAD request and check for redirections</A>
+  <DD>
+    A small program that sends a request out and checks whether is was redirected.
+    If so then print out the redirected address
 </DL>
 <H3>
   <A NAME="PUT">Samples using PUT Requests</A>
@@ -138,11 +152,58 @@ the make file on your own.
   <DD>
     Allows to include the max number of hops (proxies) the request must pass
 </DL>
+<H3>
+  <A NAME="OPTIONS">Samples using OPTIONS Requests</A>
+</H3>
+<DL>
+  <DT>
+    Send an OPTIONS request to a server - this is yet an exersize for the user!
+  <DD>
+    It should allow support for sending <TT>OPTIONS</TT> on a * URI (although
+    I really don't like that!)
+</DL>
+<H2>
+  <A NAME="serve">Server Requests using libwww</A>
+</H2>
+<P>
+Although libwww is primarily for clients, it is in fact symmetric in that
+it can handle both client requests and server requests. The way this is handled
+is that each <A HREF="../src/HTProt.html">protocol</A> is registered with
+both a client handler and a server handler - depending on which type of request
+you use, one of them is called. Note that in order to be able to serve any
+document, there actually have to be a server handler. Currently, libwww only
+comes with a <A HREF="../src/HTSocket.html">raw socket loader</A> which isn't
+much of a server.
+<DL>
+  <DT>
+    <A HREF="listen.c">Listen on a socket</A>
+  <DD>
+    This sample program opens a raw socket and listens on that port. Anything
+    arriving is forwarded asis to stdout
+</DL>
+<H2>
+  <A NAME="event">Using the Eventloop</A>
+</H2>
+<P>
+Libwww is designed using a "coke machine model", in orther words using
+asynchronous requests for most of its operations. For <TT>GET</TT> and
+<TT>HEAD</TT> requests you can also use synchronous requests, but they are
+not as flexible and requires more care.
+<DL>
+  <DT>
+    <A HREF="eventloop.c">Simple eventloop</A>
+  <DD>
+    Keeps loading the same file whenever a user enters something. Stop the
+    application by hitting "<TT>q</TT>"
+</DL>
+<H2>
+  <A NAME="Big">Bigger Sample Applications</A>
+</H2>
 <P>
 You can also have a look at the more
 <A HREF="../User/Applications.html">complete sample applications</A> which
 are capable of doing more interesting things. If you have any example code
-that you would like to <A HREF="../../PATCHES.html">share with us </A>then
+that you would like to <A HREF="../../PATCHES.html">share with us</A> then
 please send us a mail so that we can add it to this page.
 <P>
   <HR>
