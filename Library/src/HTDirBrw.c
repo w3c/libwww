@@ -416,7 +416,7 @@ PRIVATE void CenterStr ARGS3(char *, str_out, char *, str_in, int, length)
 {
     char *inptr = str_in;
     char *outptr = str_out + (length-strlen(str_in))/2;
-    memset(str_out, ' ', length);
+    memset((void *) str_out, ' ', length);
     while ((*outptr++ = *inptr++) != '\0');
     *--outptr = ' ';
     *(str_out+length-1) = '\0';
@@ -431,7 +431,7 @@ PRIVATE void LeftStr ARGS3(char *, str_out, char *, str_in, int, length)
 {
     char *inptr = str_in;
     char *outptr = str_out;
-    memset(str_out, ' ', length);
+    memset((void *) str_out, ' ', length);
     while ((*outptr++ = *inptr++));
     *--outptr = ' ';
     str_out[length-1] = 0;
@@ -445,7 +445,7 @@ PRIVATE void RightStr ARGS3(char *, str_out, char *, str_in, int, length)
 {
     char *inptr = str_in;
     char *outptr = str_out + length - strlen(str_in) - 1;
-    memset(str_out, ' ', length);
+    memset((void *) str_out, ' ', length);
     while ((*outptr++ = *inptr++));
 }
 
@@ -700,7 +700,7 @@ PRIVATE char *InitBody NOARGS
 PRIVATE void HTDirOutMessage ARGS2(HTStructured *, target,
 				   HTChunk *, message)
 {
-    if (!message)
+    if (!message || !message->data)
 	return;
     START(HTML_PRE);
     PUTS(message->data);
@@ -1124,7 +1124,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	}
 	if ((HTDirSpace = (char *) malloc(HT_LENGTH_SPACE+1)) == NULL)
 	    outofmem(__FILE__, "HTBrowseDirectory");
-	memset(HTDirSpace, ' ', HT_LENGTH_SPACE);
+	memset((void *) HTDirSpace, ' ', HT_LENGTH_SPACE);
 	*(HTDirSpace+HT_LENGTH_SPACE) = '\0';
 	topstr = InitBody();
 	HTDirFileLength = 0;
@@ -1229,7 +1229,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 		if  ((nodekey->body = (char *) malloc(HTBodyLength+1)) == NULL)
 		    outofmem(__FILE__, "HTBrowseDirectory");
 		bodyptr = nodekey->body;
-		memset(bodyptr, ' ', HTBodyLength);
+		memset((void *) bodyptr, ' ', HTBodyLength);
 		if (HTDirShowMask & HT_DIR_SHOW_DATE) {
 		    strftime(bodyptr, HT_LENGTH_DATE+1, "%d-%b-%y %H:%M",
 			     localtime(&file_info.st_mtime));
@@ -1422,8 +1422,8 @@ PUBLIC int HTFTPBrowseDirectory ARGS4(HTRequest *, req, char *, directory,
 	}
 	if ((HTDirSpace = (char *) malloc(HT_LENGTH_SPACE+1)) == NULL)
 	    outofmem(__FILE__, "HTFTPBrowseDirectory");
-	memset(HTDirSpace, ' ', HT_LENGTH_SPACE);
-	memset(&file_info, '\0', sizeof(dir_file_info));
+	memset((void *) HTDirSpace, ' ', HT_LENGTH_SPACE);
+	memset((void *) &file_info, '\0', sizeof(dir_file_info));
 	*(HTDirSpace+HT_LENGTH_SPACE) = '\0';
 	topstr = InitBody();
 	HTDirFileLength = 0;
@@ -1479,7 +1479,7 @@ PUBLIC int HTFTPBrowseDirectory ARGS4(HTRequest *, req, char *, directory,
 		if  ((nodekey->body = (char *) malloc(HTBodyLength+1)) == NULL)
 		    outofmem(__FILE__, "HTBrowseDirectory");
 		bodyptr = nodekey->body;
-		memset(bodyptr, ' ', HTBodyLength);
+		memset((void *) bodyptr, ' ', HTBodyLength);
 		if (HTDirShowMask & HT_DIR_SHOW_DATE) {
 		    if (file_info.f_mtime) {
 			strftime(bodyptr, HT_LENGTH_DATE+1, "%d-%b-%y %H:%M",

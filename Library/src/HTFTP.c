@@ -132,7 +132,7 @@ PRIVATE int HTDoConnect ARGS5(char *, url, char *, protocol,
     if (TRACE) fprintf(stderr, "HTDoConnect. Looking up `%s\'\n", host);
 
    /* Set up defaults: */
-    bzero((char *) &sock_addr, sizeof(sock_addr));
+    memset((void *) &sock_addr, '\0', sizeof(sock_addr));
     sock_addr.sin_family = AF_INET;
     sock_addr.sin_port = htons(default_port);
 
@@ -220,16 +220,17 @@ PRIVATE int HTDoAccept ARGS1(int, sockfd)
 /* ------------------------------------------------------------------------- */
 /*			   Directory Specific Functions			     */
 /* ------------------------------------------------------------------------- */
-/*							      HTParseWelcome
+
+/*							      HTFTPParseWelcome
 **
 **	This function parses the welcome message stored in ctrl->welcome.
 **	Only multi-line messages are considered interesting, and the starting
 **	return code is removed.
 **
 */
-PRIVATE void HTParseWelcome ARGS1(ftp_ctrl_info *, ctrl)
+PRIVATE void HTFTPParseWelcome ARGS1(HTChunk **, welcome)
 {
-    HTChunk *oldtext = ctrl->welcome;
+    HTChunk *oldtext = *welcome;
     if (!oldtext) {
 	if (TRACE) fprintf(stderr, "FTP......... No welcome message?\n");
 	return;
@@ -251,7 +252,25 @@ PRIVATE void HTParseWelcome ARGS1(ftp_ctrl_info *, ctrl)
 	}
 	HTChunkTerminate(newtext);
 	HTChunkFree(oldtext);
-	ctrl->welcome = newtext;
+	*welcome = newtext;
+    }
+}
+
+
+/*							      HTFTPAddWelcome
+**
+**	This function accumulates every welcome messages from the various
+**	states in the login procedure.
+**
+*/
+PRIVATE void HTFTPAddWelcome ARGS1(ftp_ctrl_info *, ctrl)
+{
+    if (!ctrl->welcome)				            /* If first time */
+	ctrl->welcome = HTChunkCreate(128);
+
+    HTFTPParseWelcome(&ctrl->reply);
+    if (ctrl->reply->size > 1) {
+	HTChunkPuts(ctrl->welcome, ctrl->reply->data);
     }
 }
 
@@ -986,6 +1005,8 @@ PRIVATE int HTFTP_close_ctrl_con ARGS1(ftp_ctrl_info *, ctrl)
 	}
 	if (ctrl->welcome)
 	    HTChunkFree(ctrl->welcome);
+	if (ctrl->reply)
+	    HTChunkFree(ctrl->reply);
 	HTList_delete(ctrl->data_cons);
 	free(ctrl);
     }
@@ -1037,6 +1058,8 @@ PRIVATE int HTFTP_abort_ctrl_con ARGS1(ftp_ctrl_info *, ctrl)
 	}
 	if (ctrl->welcome)
 	    HTChunkFree(ctrl->welcome);
+	if (ctrl->reply)
+	    HTChunkFree(ctrl->reply);
 	free(ctrl);
     }
     return status;
@@ -1163,11 +1186,11 @@ PRIVATE ftp_ctrl_info *HTFTP_init_con ARGS1(char *, url)
     data->active = YES;				    /* We do the active open */
     
     /* Scan URL for uid, pw and portnumber */
-    memset(&user, '\0', sizeof(user_info));
+    memset((void *) &user, '\0', sizeof(user_info));
     use_url = HTFTP_parse_login(url, &user, &serv_port);
 
     {
-	char *filename = HTParse(url, "", PARSE_PATH);
+	char *filename = HTParse(url, "", PARSE_PATH+PARSE_PUNCTUATION);
 	char *strptr;
 
 	/* Check if file name is a directory */
@@ -1214,7 +1237,7 @@ PRIVATE ftp_ctrl_info *HTFTP_init_con ARGS1(char *, url)
 	}
 	
 	/* Set up defaults: */
-	bzero((char *) &sock_addr, sizeof(sock_addr));
+	memset((void *) &sock_addr, '\0', sizeof(sock_addr));
 	sock_addr.sin_family = AF_INET;
 	sock_addr.sin_port = htons(serv_port);
 	
@@ -1373,7 +1396,7 @@ PRIVATE BOOL get_listen_socket ARGS1(ftp_data_info *, data)
 		data->socket);
     
     /* Search for a free port. */
-    bzero((char *) &local_addr, sizeof(local_addr));
+    memset((void *) &local_addr, '\0', sizeof(local_addr));
     local_addr.sin_family = AF_INET;	    /* Family = internet, host order */
     local_addr.sin_addr.s_addr = htonl(INADDR_ANY); /* For multi homed hosts */
 
@@ -1497,13 +1520,13 @@ PRIVATE int HTFTP_login ARGS1(ftp_ctrl_info *, ctrl)
 	NEED_ACCOUNT,
 	SENT_ACCOUNT
     } state = BEGIN;
-    HTChunk *newtext = HTChunkCreate(128);
     BOOL asked = YES;		    /* Have we already asked for uid/passwd? */
-    int status = HTFTP_get_response(ctrl, &ctrl->welcome);   /* Get greeting */
+    int status = HTFTP_get_response(ctrl, &ctrl->reply);     /* Get greeting */
     if (status < 0) {
         if (TRACE) fprintf (stderr, "FTP......... Interrupted at beginning of login.\n");
 	return ERROR;
-    }
+    } else
+	HTFTPAddWelcome(ctrl);
 
     /* This loop only stops if state is ERROR, FAILURE or SUCCESS */
     while (state > 0) {
@@ -1516,14 +1539,11 @@ PRIVATE int HTFTP_login ARGS1(ftp_ctrl_info *, ctrl)
 	    break;
 
 	  case SENT_UID:
-	    status = HTFTP_get_response(ctrl, &newtext);
-	    if (newtext->size > ctrl->welcome->size) {
-		HTChunkFree(ctrl->welcome);
-		ctrl->welcome = newtext;
-	    }
-	    if (status/100 == 2)		    /* Logged in w/o passwd! */
+	    status = HTFTP_get_response(ctrl, &ctrl->reply);
+	    if (status/100 == 2) {		    /* Logged in w/o passwd! */
+		HTFTPAddWelcome(ctrl);		
 		state = SUCCESS;
-	    else if (status/100 == 3)			/* Password demanded */
+	    } else if (status/100 == 3)			/* Password demanded */
 		state = NEED_PASSWD;
 	    else if (status == 530 && asked == YES)
 		state = NEED_USER_INFO;			     /* User unknown */
@@ -1561,14 +1581,11 @@ PRIVATE int HTFTP_login ARGS1(ftp_ctrl_info *, ctrl)
 	    break;
 
 	  case SENT_PASSWD:
-	    status = HTFTP_get_response(ctrl, &newtext);
-	    if (newtext->size > ctrl->welcome->size) {
-		HTChunkFree(ctrl->welcome);
-		ctrl->welcome = newtext;
-	    }
-	    if (status/100 == 2)		    /* Logged in with passwd */
+	    status = HTFTP_get_response(ctrl, &ctrl->reply);
+	    if (status/100 == 2) {		    /* Logged in with passwd */
+		HTFTPAddWelcome(ctrl);
 		state = SUCCESS;
-	    else if (status/100 == 3)			 /* Account demanded */
+	    } else if (status/100 == 3)			 /* Account demanded */
 		state = NEED_ACCOUNT;
 	    else if (status == 530 && asked == YES)
 		state = NEED_USER_INFO;			     /* User unknown */
@@ -1598,14 +1615,11 @@ PRIVATE int HTFTP_login ARGS1(ftp_ctrl_info *, ctrl)
 	    break;
 
 	  case SENT_ACCOUNT:
-	    status = HTFTP_get_response(ctrl, &newtext);
-	    if (newtext->size > ctrl->welcome->size) {
-		HTChunkFree(ctrl->welcome);
-		ctrl->welcome = newtext;
-	    }
-	    if (status/100 == 2)
+	    status = HTFTP_get_response(ctrl, &ctrl->reply);
+	    if (status/100 == 2) {
+		HTFTPAddWelcome(ctrl);
 		state = SUCCESS;
-	    else if (status/100 == 4)
+	    } else if (status/100 == 4)
 		state = FAILURE;
 	    else
 		state = ERROR;
@@ -1648,8 +1662,6 @@ PRIVATE int HTFTP_login ARGS1(ftp_ctrl_info *, ctrl)
 	StrAllocCopy(old_user->id, ctrl->user->id);
 	StrAllocCopy(old_user->passwd, ctrl->user->passwd);
     }
-    if (newtext != ctrl->welcome)
-	HTChunkFree(newtext);
     return state;
 }
 
@@ -2081,7 +2093,7 @@ PRIVATE char *HTFTPLocation ARGS2(ftp_ctrl_info *, ctrl, char *, url)
 	    free(relative);
 	} else
 	    result = relative;
-	if (*(relative+strlen(relative)-1) == '/')
+	if (*relative && *(relative+strlen(relative)-1) == '/')
 	    *(relative+strlen(relative)-1) = '\0';
     }
     if (TRACE)
@@ -2254,7 +2266,7 @@ PRIVATE int HTFTP_get_dir ARGS4(ftp_ctrl_info *, ctrl, HTRequest *, req,
 		if (TRACE)
 		    fprintf(stderr, "FTP......... Receiving directory `%s\'\n",
 			    path);
-		HTParseWelcome(ctrl);
+		fprintf(stderr, "Message `%s\'\n", ctrl->welcome->data);
 		status = HTFTPBrowseDirectory(req, path, data,
 					      HTFTP_get_dir_string);
 		if (status == -1)
@@ -2557,8 +2569,11 @@ PUBLIC int HTFTPLoad ARGS1(HTRequest *, request)
     /* Initiate a (possibly already exsisting) control connection and a
        corresponding data connection */
     HTSimplify(url);
-    if((ctrl = HTFTP_init_con(url)) == NULL)
+    if((ctrl = HTFTP_init_con(url)) == NULL) {
+	HTLoadError(request, 500,
+		    "Could not establish connection to FTP-server\n");
 	return -1;
+    }
 
     /* Only if the control connection is in IDLE state, a new
        transfer can be started. The control connection can be in another
@@ -2646,6 +2661,7 @@ PUBLIC int HTFTPLoad ARGS1(HTRequest *, request)
 		break;
 
 	      case ERROR:
+		HTLoadError(request, 500, ctrl->reply->data);
 		HTFTP_abort_ctrl_con(ctrl);
 		return -1;				 /* Exit immediately */
 		break;

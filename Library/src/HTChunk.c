@@ -1,7 +1,14 @@
 /*		Chunk handling:	Flexible arrays
 **		===============================
 **
+** history:	AL, HF	28 Apr 94, Now chunk->data is filled by '\0' so
+**			that the string is terminated at any time. That makes
+**			HTChunkTerminate not needed any more, but never mind.
+**
 */
+
+/* Implementation dependent include files */
+#include "tcp.h"
 
 #include "HTUtils.h"
 #include "HTChunk.h"
@@ -12,13 +19,9 @@
 */
 PUBLIC HTChunk * HTChunkCreate ARGS1 (int,grow)
 {
-    HTChunk * ch = (HTChunk *) malloc(sizeof(HTChunk));
+    HTChunk * ch = (HTChunk *) calloc(1, sizeof(HTChunk));
     if (ch == NULL) outofmem(__FILE__, "cretion of chunk");
-
-    ch->data = 0;
     ch->growby = grow;
-    ch->size = 0;
-    ch->allocated = 0;
     return ch;
 }
 
@@ -52,11 +55,24 @@ PUBLIC void HTChunkFree ARGS1 (HTChunk *,ch)
 */
 PUBLIC void HTChunkPutc ARGS2 (HTChunk *,ch, char,c)
 {
+#ifdef OLD_CODE
     if (ch->size >= ch->allocated) {
-	ch->allocated = ch->allocated + ch->growby;
+        ch->allocated = ch->allocated + ch->growby;
         ch->data = ch->data ? (char *)realloc(ch->data, ch->allocated)
-			    : (char *)malloc(ch->allocated);
+	    : (char *)malloc(ch->allocated);
       if (!ch->data) outofmem(__FILE__, "HTChunkPutc");
+    }
+    ch->data[ch->size++] = c;
+#endif
+    if (ch->size >= ch->allocated) {
+	if (ch->data) {
+	    ch->data = (char *) realloc(ch->data, ch->allocated + ch->growby);
+	    memset((void *) ch->data + ch->allocated, '\0', ch->growby);
+	} else {
+	    ch->data = (char *) calloc(1, ch->allocated + ch->growby);
+	}
+	ch->allocated = ch->allocated + ch->growby;
+	if (!ch->data) outofmem(__FILE__, "HTChunkPutc");
     }
     ch->data[ch->size++] = c;
 }

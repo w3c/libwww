@@ -80,6 +80,7 @@ typedef struct _ftp_ctrl_info {
     char *			location;        /* Current escaped position */
     user_info *			user;           /* Userid, passwd and domain */
     HTChunk *			welcome;	      /* The welcome message */
+    HTChunk *			reply;	           /* Last reply from server */
     HTFTPServerType		server;		           /* Type of server */
     BOOL			unsure_type;         /* Sure about the type? */
     BOOL			use_list;	  	  /* Can we use LIST */
