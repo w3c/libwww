@@ -1557,8 +1557,6 @@ PRIVATE int terminate_handler (HTRequest * request, void * param, int status)
     LineMode * lm;
     BOOL is_index;
 
-    if (!context)
-        return HT_OK; /* not a LineMode request */
     lm = context->lm;
     if (CSApp_unregisterReq(request) == NO)
         HTTrace("PICS request not found\n");

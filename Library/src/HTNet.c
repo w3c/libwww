@@ -394,7 +394,7 @@ PUBLIC BOOL HTNet_newServer (HTRequest * request, SOCKET sockfd, char * access)
     /* Check if we can start the request, else return immediately */
     if (HTList_count(HTNetActive) > HTMaxActive) {
 	if (CORE_TRACE) HTTrace("HTNet new... NO SOCKET AVAILABLE\n");
-	HTNetCall_execute(HTAfter, request, HT_RETRY);
+	HTNet_callAfter(request, HT_RETRY);
 	return YES;
     }
 
@@ -585,7 +585,7 @@ PUBLIC BOOL HTNet_delete (HTNet * net, int status)
 	    if (CORE_TRACE)
 		HTTrace("HTNetDelete. %p not registered!\n", net);
  	delete_object(net, status);
-	HTNetCall_execute(HTAfter, request, status);
+	HTNet_callAfter(request, status);
 
 	/*
 	** See first if we have a persistent request queued up for this socket
