@@ -519,7 +519,9 @@ PRIVATE void HTML_start_element (
     case HTML_I:
     case HTML_U:
 	UPDATE_STYLE;
+#if 0
 	HText_appendCharacter(me->text, '_');
+#endif
 	me->in_word = NO;
 	break;
     

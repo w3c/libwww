@@ -116,7 +116,6 @@ PUBLIC int HTMIME_connection (HTRequest * request, HTResponse * response,
 	*/
 	if (name) {
 	    if (!strcasecomp(name, "close")) {			 /* HTTP/1.1 */
-		HTNet * net = HTRequest_net(request);
 		if (STREAM_TRACE) HTTrace("MIMEParser.. Close received...\n");
 	    } else if (!strcasecomp(name, "keep-alive")) {       /* HTTP/1.0 */
 		HTNet * net = HTRequest_net(request);

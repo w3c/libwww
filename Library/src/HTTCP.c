@@ -162,7 +162,7 @@ PRIVATE int _makeSocket(HTHost * host, HTRequest * request, int preemptive, HTTr
     **  Associate the channel with the host and create an input and and output stream
     **  for this host/channel
     */
-    HTHost_setChannel(host, HTChannel_new(sockfd, YES));
+    HTHost_setChannel(host, HTChannel_new(sockfd, NULL, YES));
     HTHost_getInput(host, transport, NULL, 0);
     HTHost_getOutput(host, transport, NULL, 1024);
 
@@ -483,7 +483,7 @@ PUBLIC int HTDoAccept (HTNet * net, HTNet ** accepted)
     /* Create a channel for the new socket */
     {
 	HTHost * host = (*accepted)->host;
-	HTChannel * ch = HTChannel_new(HTNet_socket(*accepted), NO);
+	HTChannel * ch = HTChannel_new(HTNet_socket(*accepted), NULL, NO);
 #ifdef HT_MUX
 	HTMuxChannel_new(host);
 #endif /* HT_MUX */

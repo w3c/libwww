@@ -12,12 +12,7 @@
 /* Library include files */
 #include "sysdep.h"
 #include "WWWUtil.h"
-#include "HTAlert.h"
-#include "HTParse.h"
-#include "HTReq.h"
-#include "HTNetMan.h"
-#include "HTHstMan.h"
-#include "HTError.h"
+#include "WWWCore.h"
 #include "HTLocal.h"					 /* Implemented here */
 
 /* ------------------------------------------------------------------------- */
@@ -33,8 +28,14 @@
 */
 PUBLIC int HTFileOpen (HTNet * net, char * local, HTLocalMode mode)
 {
-    HTRequest * request = net->request;
+    HTRequest * request = HTNet_request(net);
+    HTHost * host = HTNet_host(net);
+#ifdef NO_UNIX_IO
+    FILE * fp = NULL;
+#else
     SOCKET sockfd = INVSOC;
+#endif /* NO_UNIX_IO */
+
 #ifndef NO_UNIX_IO
     int status = -1;    /* JTD:5/30/96 - must init status to -1 */
     if ((sockfd = open(local, mode)) == -1) {
@@ -49,7 +50,7 @@ PUBLIC int HTFileOpen (HTNet * net, char * local, HTLocalMode mode)
     ** returns 0 when blocking and NOT -1. FNDELAY is ONLY for BSD
     ** and does NOT work on SVR4 systems. O_NONBLOCK is POSIX.
     */
-    if (!net->preemptive) {
+    if (!HTNet_preemptive(net)) {
 #ifdef HAVE_FCNTL
 	if ((status = fcntl(HTNet_socket(net), F_GETFL, 0)) != -1) {
 #ifdef O_NONBLOCK
@@ -69,28 +70,31 @@ PUBLIC int HTFileOpen (HTNet * net, char * local, HTLocalMode mode)
     /* #endif - HAVE_FCNTL <- wrong location, moved up JTD:5/30/96 */
 #else /* !NO_UNIX_IO */
 #ifdef VMS
-    if (!(net->host->fp = fopen(local, mode,"shr=put","shr=upd"))) {
+    if ((fp = fopen(local, mode,"shr=put","shr=upd")) == NULL) {
 	HTRequest_addSystemError(request, ERR_FATAL, errno, NO, "fopen");
 	return HT_ERROR;
     }
 #else
-    if ((net->host->fp = fopen(local, mode)) == NULL) {
+    if ((fp = fopen(local, mode)) == NULL) {
         HTRequest_addSystemError(request, ERR_FATAL, errno, NO, "fopen");
         return HT_ERROR;
     }
 #endif /* VMS */
-    if (PROT_TRACE)
-        HTTrace("HTDoOpen.... `%s\' opened using FILE %p\n",local, net->host->fp);
+    if (PROT_TRACE) HTTrace("HTDoOpen.... `%s\' opened using FILE %p\n",local, fp);
 #endif /* !NO_UNIX_IO */
 
     /*
-    **  Associate the channel with the host and create an input and and output stream
-    **  for this host/channel
+    **  Associate the channel with the host and create
+    **  an input and and output stream 
     */
-    HTHost_setChannel(net->host, HTChannel_new(sockfd, YES));
-    HTHost_getInput(net->host, net->transport, NULL, 0);
-    HTHost_getOutput(net->host, net->transport, NULL, 0);
+#ifdef NO_UNIX_IO
+    HTHost_setChannel(host, HTChannel_new(INVSOC, fp, YES));
+#else
+    HTHost_setChannel(host, HTChannel_new(sockfd, NULL, YES));
+#endif /* NO_UNIX_IO */
 
+    HTHost_getInput(host, HTNet_transport(net), NULL, 0);
+    HTHost_getOutput(host, HTNet_transport(net), NULL, 0);
     return HT_OK;
 }
 
@@ -105,19 +109,23 @@ PUBLIC int HTFileOpen (HTNet * net, char * local, HTLocalMode mode)
 */
 PUBLIC int HTFileClose (HTNet * net)
 {
+    HTHost * host = HTNet_host(net);
+    HTChannel * ch = HTHost_channel(host);
     int status = -1;
-    if (net) {
+    if (net && ch) {
 #ifdef NO_UNIX_IO
-	if (net->host->fp) {
-	    if (PROT_TRACE) HTTrace("Closing..... ANSI file %p\n", net->host->fp);
+	FILE * fp = HTChannel_file(ch);
+	if (fp) {
+	    if (PROT_TRACE) HTTrace("Closing..... ANSI file %p\n", fp);
 	    status = fclose(net->host->fp);
-	    net->host->fp = NULL;
+	    HTChannel_setFile(ch, NULL);
 	}
 #else
-	if (HTNet_socket(net) != INVSOC) {
-	    if (PROT_TRACE) HTTrace("Closing..... fd %d\n", HTNet_socket(net));
-	    status = NETCLOSE(HTNet_socket(net));
-	    HTNet_setSocket(net, INVSOC);
+	SOCKET sockfd = HTChannel_socket(ch);
+	if (sockfd != INVSOC) {
+	    if (PROT_TRACE) HTTrace("Closing..... fd %d\n", sockfd);
+	    status = NETCLOSE(sockfd);
+	    HTChannel_setSocket(ch, INVSOC);
 	}
 #endif /* NO_UNIX_IO */
     }

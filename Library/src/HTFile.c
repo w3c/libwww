@@ -403,8 +403,7 @@ PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
 		    HT_FREE(file->local);
 		    file->local = conneg;
 		    HTAnchor_setPhysical(anchor, conneg);
-		    if (PROT_TRACE)
-			HTTrace("Load File... Found `%s\'\n", conneg);
+		    if (PROT_TRACE) HTTrace("Load File... Found `%s\'\n", conneg);
 		} else {
 		    if (PROT_TRACE)
 			HTTrace("Load File... Not found - even tried content negotiation\n");

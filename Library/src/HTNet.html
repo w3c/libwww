@@ -565,6 +565,22 @@ extern void * HTNet_context (HTNet * net);
 extern BOOL HTNet_setSocket (HTNet * net, SOCKET sockfd);
 extern SOCKET HTNet_socket (HTNet * net);
 </PRE>
+
+<H3>
+  Preemptive or Non-preemptive Access
+</H3>
+<P>
+A access scheme is defined with a default for using either preemptive (blocking
+I/O) or non-premitve (non-blocking I/O). This is basically a result of the
+implementation of the protocol module itself. However, if non-blocking I/O
+is the default then some times it is nice to be able to set the mode to blocking
+instead. For example when loading the first document (the home page) then
+blocking can be used instead of non-blocking.
+
+<PRE>
+extern BOOL HTNet_preemptive (HTNet * net);
+</PRE>
+
 <H3>
   The Request Object
 </H3>

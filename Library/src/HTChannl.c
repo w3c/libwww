@@ -1,4 +1,4 @@
-/*								     HTChannl.c
+/*
 **	CONTAINS STREAMS FOR READING AND WRITING TO AND FROM A TRANSPORT
 **
 **	(c) COPYRIGHT MIT 1995.
@@ -34,11 +34,12 @@ struct _HTOutputStream {
 struct _HTChannel {
     /* what media do we talk to? */
     SOCKET		sockfd;					   /* Socket */
-    FILE *		fp;
+    FILE *		fp;				  /* File descriptor */
 
     /* what streams handle the IO */
     HTInputStream *	input;				     /* Input stream */
     HTOutputStream *	output;				    /* Output stream */
+
     /* proxy streams to dereference the above streams */
     HTInputStream	channelIStream;
     HTOutputStream	channelOStream;
@@ -130,14 +131,15 @@ PRIVATE void free_channel (HTChannel * ch)
    	    HTNet_decreaseSocket();
 	    if (PROT_TRACE)
 		HTTrace("Channel..... Deleted %p, socket %d\n", ch,ch->sockfd);
+	    ch->sockfd = INVSOC;
 	}
-	ch->sockfd = INVSOC;
 
 	/* Close the file */
 	if (ch->fp) {
 	    fclose(ch->fp);
 	    if (PROT_TRACE)
 		HTTrace("Channel..... Deleted %p, file %p\n", ch, ch->fp);
+	    ch->fp = NULL;
 	}
 	HT_FREE(ch);
     }
@@ -151,7 +153,7 @@ PRIVATE void free_channel (HTChannel * ch)
 **	We only keep a hash on sockfd's as we don't have to look for channels
 **	for ANSI file descriptors.
 */
-PUBLIC HTChannel * HTChannel_new (SOCKET sockfd, BOOL active)
+PUBLIC HTChannel * HTChannel_new (SOCKET sockfd, FILE * fp, BOOL active)
 {
     HTList * list = NULL;
     HTChannel * ch = NULL;
@@ -166,6 +168,7 @@ PUBLIC HTChannel * HTChannel_new (SOCKET sockfd, BOOL active)
     if ((ch = (HTChannel *) HT_CALLOC(1, sizeof(HTChannel))) == NULL)
 	HT_OUTOFMEM("HTChannel_new");	    
     ch->sockfd = sockfd;
+    ch->fp = fp;
     ch->active = active;
     ch->semaphore = 1;
     ch->channelIStream.isa = &ChannelIStreamIsa;
@@ -276,10 +279,13 @@ PUBLIC SOCKET HTChannel_socket (HTChannel * channel)
     return channel ? channel->sockfd : INVSOC;
 }
 
-PUBLIC void HTChannel_setSocket (HTChannel * channel, SOCKET socket)
+PUBLIC BOOL HTChannel_setSocket (HTChannel * channel, SOCKET socket)
 {
-    if (channel)
+    if (channel) {
       channel->sockfd = socket;
+      return YES;
+    }
+    return NO;
 }
 
 /*
@@ -288,6 +294,15 @@ PUBLIC void HTChannel_setSocket (HTChannel * channel, SOCKET socket)
 PUBLIC FILE * HTChannel_file (HTChannel * channel)
 {
     return channel ? channel->fp : NULL;
+}
+
+PUBLIC BOOL HTChannel_setFile (HTChannel * channel, FILE * fp)
+{
+    if (channel) {
+	channel->fp = fp;
+	return YES;
+    }
+    return NO;
 }
 
 /*

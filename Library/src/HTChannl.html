@@ -49,8 +49,12 @@ connection.
 <H3>
   Creation and Deletion of Channel Objects
 </H3>
+
+Either the socket can be invalid (INVSOC) or the file descriptor can
+be NULL but not both.
+
 <PRE>
-extern HTChannel * HTChannel_new (SOCKET sockfd, BOOL active);
+extern HTChannel * HTChannel_new (SOCKET sockfd, FILE * fp, BOOL active);
 </PRE>
 <H3>
   Deleting a Channel Object
@@ -77,8 +81,10 @@ transport, we leave this to the caller to figure out. This is probably not
 the best way of doing it.
 <PRE>
 extern SOCKET HTChannel_socket	(HTChannel * channel);
-extern void HTChannel_setSocket	(HTChannel * channel, SOCKET socket);
+extern BOOL HTChannel_setSocket	(HTChannel * channel, SOCKET socket);
+
 extern FILE * HTChannel_file	(HTChannel * channel);
+extern BOOL HTChannel_setFile   (HTChannel * channel, FILE * fp);
 </PRE>
 <H3>
   The Host Object

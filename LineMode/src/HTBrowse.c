@@ -884,8 +884,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, HTEventType t
 		    req = Thread_new(lm, YES, LM_UPDATE);		    
 
 		    /* Continous browsing, so we want Referer field */
-		    HTRequest_setParent(req,
-					HTAnchor_parent((HTAnchor*)source));
+		    HTRequest_setParent(req, HTAnchor_parent((HTAnchor*)source));
 		    HTLoadAnchor(destination, req);
 		} else {
 		    status = NO;				/* No anchor */
@@ -908,6 +907,9 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, HTEventType t
 	    }
 	} else if (CHECK_INPUT("BOTTOM", token)) {	/* Scroll to bottom  */
 	    HText_scrollBottom(HTMainText);
+	} else if (CHECK_INPUT("BYE", token)) {		    /* Quit program? */
+	    HTNet_killAll();				/* Kill all requests */
+	    status = NO;
 	} else
 	    found = NO;
 	break;
@@ -939,6 +941,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, HTEventType t
 	if (CHECK_INPUT("EDIT", token)) {
 	    status = PutAnchor(lm, req);
 	} else if (CHECK_INPUT("EXIT", token)) {	    /* Quit program? */
+	    HTNet_killAll();				/* Kill all requests */
 	    status = NO;
 	} else
 	    found = NO;

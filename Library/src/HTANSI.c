@@ -16,6 +16,8 @@
 #include "HTNetMan.h"
 #include "HTANSI.h"					 /* Implemented here */
 
+#include  "HTHstMan.h"			/* @@@ FIX ME @@@ */
+
 struct _HTStream {
     const HTStreamClass *	isa;
     /* ... */
@@ -72,10 +74,8 @@ PRIVATE int HTANSIReader_abort (HTInputStream * me, HTList * e)
 
 PRIVATE int HTANSIReader_read (HTInputStream * me)
 {
-    HTHost * host = me->host;
     FILE * fp = HTChannel_file(me->ch);
     HTNet * net = HTHost_getReadNet(me->host);
-    HTRequest * request = HTNet_request(net);
     int status;
 
     /* Read the file desriptor */
@@ -251,7 +251,7 @@ PUBLIC HTOutputStream * HTANSIWriter_new (HTHost * host, HTChannel * ch,
 	    me->isa = &HTANSIWriter;
 	    me->ch = ch;
 	    me->host = host;
-	    me->fp = HTChannel_file(HTHost_channel(host));
+	    me->fp = HTChannel_file(ch);
 	}
 	return me;
     }

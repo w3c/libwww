@@ -813,17 +813,6 @@ PUBLIC BOOL HTNet_delete (HTNet * net, int status)
         /* Remove object from the table of Net Objects */
 	remove_net(net);
 
-#if 0
-	if (NetTable) {
-	    HTList * list = NetTable[net->hash];
-	    if (list) {
-		HTList_removeObject(list, (void *) net);
-		delete_object(net);
-		HTNetCount--;
-	    }
-	}
-#endif
-
     	/* Call AFTER filters */
 	HTNet_executeAfterAll(request, status);
         return YES;
@@ -1072,6 +1061,25 @@ PUBLIC BOOL HTNet_setProtocol (HTNet * net, HTProtocol * protocol)
 PUBLIC HTProtocol * HTNet_protocol (HTNet * net)
 {
     return (net ? net->protocol : NULL);
+}
+
+PUBLIC BOOL HTNet_setTransport (HTNet * net, HTTransport * tp)
+{
+    if (net && tp) {
+	net->transport = tp;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTTransport * HTNet_transport (HTNet * net)
+{
+    return (net ? net->transport : NULL);
+}
+
+PUBLIC BOOL HTNet_preemptive (HTNet * net)
+{
+    return (net ? net->preemptive : NO);
 }
 
 /*

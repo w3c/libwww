@@ -676,16 +676,19 @@ PUBLIC char * HTAnchor_base (HTParentAnchor * me)
 	    **  If no base is found then take the content-location if this
 	    **  is present and is absolute, else use the Request-URI.
 	    */
-	    if (base)
-		StrAllocCopy(me->content_base, HTStrip(base));
-	    else {
-		char * location = HTAnchor_location(me);
-		StrAllocCopy(me->content_base,
-			     (location && HTURL_isAbsolute(location)) ?
-			     location : me->address);
-	    }
-	    return me->content_base;
+	    if (base) StrAllocCopy(me->content_base, HTStrip(base));
 	}
+
+	/*
+	**  Try the content location if any
+	*/
+	{
+	    char * location = HTAnchor_location(me);
+	    StrAllocCopy(me->content_base,
+			 (location && HTURL_isAbsolute(location)) ?
+			 location : me->address);
+	}
+	return me->content_base;
     }
     return NULL;
 }
