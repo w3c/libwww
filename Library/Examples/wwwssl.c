@@ -82,9 +82,9 @@ int main (int argc, char ** argv)
        or SSLv2 */
     HTSSL_protMethod_set (HTSSL_V23);
 
-    /* Set the certificate verification depth to 1 in order to be able to
+    /* Set the certificate verification depth to 2 in order to be able to
        validate self signed certificates */
-    HTSSL_verifyDepth_set (1);
+    HTSSL_verifyDepth_set (2);
 
     /* Register SSL stuff for handling ssl access */
     HTSSLhttps_init(YES);
