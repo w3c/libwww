@@ -790,7 +790,6 @@ PUBLIC void LMHText_beginAnchor (HText * text,
     int elem_num, int attr_num, HTChildAnchor * anc,
     const BOOL *present, const char **value)
 {
-    char marker[100];
     TextAnchor * a;
 
 			/* this is because it's called as link callback */
