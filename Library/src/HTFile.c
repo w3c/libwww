@@ -326,7 +326,7 @@ PRIVATE int FileCleanup ARGS2(HTRequest *, req, BOOL, abort)
 	status = -1;
     } else {
 	file = (file_info *) req->net_info;
-	if (file->sockfd != INVSOC) {
+	if (file->sockfd != INVSOC || file->fp) {
 
 	    /* Free stream with data FROM local file system */
 	    if (file->target) {
@@ -336,6 +336,7 @@ PRIVATE int FileCleanup ARGS2(HTRequest *, req, BOOL, abort)
 		    (*file->target->isa->_free)(file->target);
 	    }
 
+#ifndef NO_UNIX_IO
 	    if (PROT_TRACE)
 		fprintf(TDEST,"FILE........ Closing socket %d\n",file->sockfd);
 	    if ((status = NETCLOSE(file->sockfd)) < 0)
@@ -343,12 +344,16 @@ PRIVATE int FileCleanup ARGS2(HTRequest *, req, BOOL, abort)
 			      "NETCLOSE");
 	    HTThreadState(file->sockfd, THD_CLOSE);
 	    file->sockfd = INVSOC;
+#else
+	    if (PROT_TRACE)
+		fprintf(TDEST,"FILE........ Closing file %p\n", file->fp);
+	    fclose(file->fp);
+	    file->fp = NULL;
+#endif
 	    HTThread_clear((HTNetInfo *) file);
 	}
 	if (file->isoc)
 	    HTInputSocket_free(file->isoc);
-	if (file->fp)
-	    fclose(file->fp);
 	FREE(file->localname);
 	free(file);
 	req->net_info = NULL;
@@ -400,7 +405,7 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 	file = (file_info *) request->net_info;		/* Get existing copy */
 
 	/* @@@ NEED ALSO TO CHECK FOR ANSI FILE DESCRIPTORS @@@ */
-	if (file->sockfd != INVSOC && HTThreadIntr(file->sockfd))
+	if ((file->sockfd != INVSOC && HTThreadIntr(file->sockfd)) || file->fp)
 	    file->state = FILE_ERROR;
     }
 
@@ -490,60 +495,61 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 	    if ((file->sockfd = open(file->localname, O_RDONLY)) == -1) {
 		HTErrorSysAdd(request, ERR_FATAL, errno, NO, "open");
 		file->state = FILE_ERROR;
-	    } else {
-		if (PROT_TRACE)
-		    fprintf(TDEST,"HTLoadFile.. `%s' opened using fd %d \n",
-			    file->localname, file->sockfd);
-
-		/* If non-blocking protocol then change socket status
-		** I use FCNTL so that I can ask the status before I set it.
-		** See W. Richard Stevens (Advan. Prog. in UNIX env, p.364)
-		** Be CAREFULL with the old `O_NDELAY' - it wont work as read()
-		** returns 0 when blocking and NOT -1. FNDELAY is ONLY for BSD
-		** and does NOT work on SVR4 systems. O_NONBLOCK is POSIX.
-		*/
-		if (!HTProtocolBlocking(request)) {
-		    if ((status = FCNTL(file->sockfd, F_GETFL, 0)) != -1) {
-			status |= O_NONBLOCK;			    /* POSIX */
-			status = FCNTL(file->sockfd, F_SETFL, status);
-		    }
-		    if (PROT_TRACE) {
-			if (status == -1)
-			    fprintf(TDEST, "HTLoadFile.. Can't make socket non-blocking\n");
-			else
-			    fprintf(TDEST, "HTLoadFile.. Using NON_BLOCKING I/O\n");
-		    }
-		}
-	    
-	        /* Set up read buffer and streams */
-		file->isoc = HTInputSocket_new(file->sockfd);
-		file->target = HTStreamStack(HTAnchor_format(request->anchor),
-					     request->output_format,
-					     request->output_stream,
-					     request, YES);
-		HTThreadState(file->sockfd, THD_SET_READ);
-		file->state = file->target ? FILE_NEED_BODY : FILE_ERROR;
+		break;
 	    }
+	    if (PROT_TRACE)
+		fprintf(TDEST,"HTLoadFile.. `%s' opened using fd %d \n",
+			file->localname, file->sockfd);
+
+	    /* If non-blocking protocol then change socket status
+	    ** I use FCNTL so that I can ask the status before I set it.
+	    ** See W. Richard Stevens (Advan. Prog. in UNIX env, p.364)
+	    ** Be CAREFULL with the old `O_NDELAY' - it wont work as read()
+	    ** returns 0 when blocking and NOT -1. FNDELAY is ONLY for BSD
+	    ** and does NOT work on SVR4 systems. O_NONBLOCK is POSIX.
+	    */
+	    if (!HTProtocolBlocking(request)) {
+		if ((status = FCNTL(file->sockfd, F_GETFL, 0)) != -1) {
+		    status |= O_NONBLOCK;			    /* POSIX */
+		    status = FCNTL(file->sockfd, F_SETFL, status);
+		}
+		if (PROT_TRACE) {
+		    if (status == -1)
+			fprintf(TDEST, "HTLoadFile.. Can't make socket non-blocking\n");
+		    else
+			fprintf(TDEST,"HTLoadFile.. Using NON_BLOCKING I/O\n");
+		}
+	    }
+	    HTThreadState(file->sockfd, THD_SET_READ);
 #else
 #ifdef VMS
-	    if ((file->fp = fopen(file->localname,"r","shr=put","shr=upd")) == NULL) {
+	    if (!(file->fp = fopen(file->localname,"r","shr=put","shr=upd"))) {
 #else
-	    if ((file->fp = fopen(file->localname,"r")) == NULL){
-#endif /* not VMS */
+	    if ((file->fp = fopen(file->localname,"r")) == NULL) {
+#endif /* !VMS */
 		HTErrorSysAdd(request, ERR_FATAL, errno, NO, "fopen");
 		file->state = FILE_ERROR;
-	    } else {
-		if (PROT_TRACE)
-		    fprintf(TDEST,"HTLoadFile.. Open `%s'\n",file->localname);
-		file->state = FILE_NEED_BODY;
+		break;
 	    }
+	    if (PROT_TRACE)
+		fprintf(TDEST,"HTLoadFile.. `%s' opened using FILE %p\n",
+			file->localname, file->fp);
 #endif /* !NO_UNIX_IO */
-	    
+
+	    /* Set up read buffer and streams. If ANSI then sockfd=INVSOC */
+	    file->isoc = HTInputSocket_new(file->sockfd);
+	    file->target = HTStreamStack(HTAnchor_format(request->anchor),
+					 request->output_format,
+					 request->output_stream, request, YES);
+	    file->state = file->target ? FILE_NEED_BODY : FILE_ERROR;
 	    break;
 
 	  case FILE_NEED_BODY:
 #ifndef NO_UNIX_IO
 	    status = HTSocketRead(request, file->target);
+#else
+	    status = HTFileRead(file->fp, request, file->target);
+#endif
 	    if (status == HT_WOULD_BLOCK)
 		return HT_WOULD_BLOCK;
 	    else if (status == HT_INTERRUPTED)
@@ -552,13 +558,6 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 		file->state = FILE_GOT_DATA;
 	    } else
 		file->state = FILE_ERROR;
-#else
-	    if (HTParseFile(HTAnchor_format(request->anchor), file->fp,
-			    request) < 0)
-		file->state = FILE_ERROR;
-	    else
-		file->state = FILE_GOT_DATA;
-#endif
 	    break;
 
 	  case FILE_PARSE_DIR:
@@ -589,7 +588,9 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 
 	  case FILE_GOT_DATA:
 	    FileCleanup(request, NO);
-	    return HT_LOADED;
+
+	    /* HT_OK means everything is OK, but not finished! */
+	    return request->Source ? HT_OK : HT_LOADED;
 	    break;
 
 	  case FILE_NO_DATA:

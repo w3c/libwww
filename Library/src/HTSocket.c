@@ -13,12 +13,20 @@
 #include "tcp.h"
 #include "HTUtils.h"
 #include "HTString.h"
+#include "HTAccess.h"
 #include "HTTCP.h"
 #include "HTStream.h"
 #include "HTFormat.h"
 #include "HTThread.h"
 #include "HTError.h"
 #include "HTSocket.h"					 /* Implemented here */
+
+struct _HTInputSocket {
+    char	input_buffer[INPUT_BUFFER_SIZE];
+    char *	input_pointer;
+    char *	input_limit;
+    SOCKFD	input_file_number;
+};
 
 struct _HTStream {
     CONST HTStreamClass *	isa;
@@ -450,7 +458,7 @@ PUBLIC int HTParseSocket ARGS3(
 **   when the format is textual.
 **
 */
-PUBLIC int HTParseFile ARGS3(
+PRIVATE int HTParseFile ARGS3(
 	HTFormat,		rep_in,
 	FILE *,			fp,
 	HTRequest *,		request)
@@ -582,3 +590,54 @@ PUBLIC int HTSocketRead ARGS2(HTRequest *, request, HTStream *, target)
     return HT_WOULD_BLOCK;
 #endif
 }
+
+
+
+/*	Push data from an ANSI file descriptor down a stream
+**	----------------------------------------------------
+**
+**   This routine is responsible for creating and PRESENTING any
+**   graphic (or other) objects described by the file.
+**
+**   Bugs: When we can wait on a file then this should also check interrupts!
+**
+**   Returns    HT_LOADED	if finished reading
+**	      	HT_ERROR	if error,
+*/
+PUBLIC int HTFileRead ARGS3(FILE *, fp, HTRequest *, request,
+			    HTStream *, target)
+{
+    HTInputSocket *isoc = request->net_info->isoc;
+    int b_read;
+    int status;
+    if (!fp) {
+	if (PROT_TRACE) fprintf(TDEST, "Read File... Bad argument\n");
+	return HT_ERROR;
+    }
+
+    while(1) {
+	if ((b_read = fread(isoc->input_buffer, 1, INPUT_BUFFER_SIZE, fp))==0){
+	    if (ferror(fp)) {
+		if (PROT_TRACE)
+		    fprintf(TDEST, "Read File... READ ERROR\n");
+	    } else
+		return HT_LOADED;
+	}
+	isoc->input_pointer = isoc->input_buffer;
+	isoc->input_limit = isoc->input_buffer + b_read;
+	if (PROT_TRACE)
+	    fprintf(TDEST, "Read File... %d bytes read from file %p\n",
+		    b_read, fp);
+
+	/* Now push the data down the stream (we use blocking I/O) */
+	if ((status = (*target->isa->put_block)(target, isoc->input_buffer,
+						b_read)) != HT_OK) {
+	    if (PROT_TRACE)
+		fprintf(TDEST, "Read File... Stream ERROR\n");
+	    return status;
+	}
+	isoc->input_pointer = isoc->input_buffer + b_read;
+    }
+}
+
+

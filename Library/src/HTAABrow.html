@@ -75,24 +75,24 @@ typedef struct {
 ** HTAASetup contains information about one server's one
 ** protected tree of documents.
 */
-typedef struct {
+typedef struct _HTAASetup {
     HTAAServer *server;		/* Which server serves this tree	     */
     char *	tmplate;	/* Template for this tree		     */
     HTList *	valid_schemes;	/* Valid authentic.schemes   		     */
     HTAssocList**scheme_specifics;/* Scheme specific params		     */
     BOOL	reprompt;	/* Failed last time -- reprompt (or whatever)*/
-} HTAASetup;
+};
 
 
 /*
 ** Information about usernames and passwords in
 ** Basic and Pubkey authentication schemes;
 */
-typedef struct {
+typedef struct _HTAARealm {
     char *	realmname;	/* Password domain name		*/
     char *	username;	/* Username in that domain	*/
     char *	password;	/* Corresponding password	*/
-} HTAARealm;
+};
 
 
 #include "HTAccess.h"		/* HTRequest */

@@ -287,7 +287,7 @@ PUBLIC BOOL HTThread_clear ARGS1(HTNetInfo *, old_net)
 */
 PUBLIC BOOL HTThread_kill ARGS1(HTNetInfo *, kill_net)
 {
-    if (HTThreads) {
+    if (kill_net && HTThreads) {
 	HTList *cur = HTThreads;
 	HTNetInfo *pres;
 
@@ -309,13 +309,31 @@ PUBLIC BOOL HTThread_kill ARGS1(HTNetInfo *, kill_net)
 		(*(prot->load))(kill_net->request);
 	    }
 	    return HTThread_clear(kill_net);
-	} else {
-	    if (THD_TRACE)
-		fprintf(TDEST, "Kill Thread. Thread is not registered\n");
-	    return NO;
 	}
     }
+    if (THD_TRACE)
+	fprintf(TDEST, "Kill Thread. Thread is not registered\n");
     return NO;
+}
+
+
+/*							      HTThread_isAlive
+**
+**	Checks whether a thread is still registered and if so returns the 
+**	corresponding HTRequest structure, else return NULL.
+*/
+PUBLIC HTRequest *HTThread_isAlive ARGS1(HTNetInfo *, net)
+{
+    HTList *cur = HTThreads;
+    HTNetInfo *pres;
+    if (cur && net) {
+	while ((pres = (HTNetInfo *) HTList_nextObject(cur)) != NULL) {
+	    if (pres == net) return pres->request;
+	}
+    }
+    if (THD_TRACE)
+	fprintf(TDEST, "Thread...... Thread is not alive\n");
+    return NULL;
 }
 
 

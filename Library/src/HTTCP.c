@@ -1018,12 +1018,9 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 		   NULL, 0, "HTDoConnect");
 	free(p1);
 	return HT_ERROR;
-    } else {
-	if (PROT_TRACE)
-	    fprintf(TDEST, "HTDoConnect. Looking up `%s\'\n", host);
     }
 
-   /* Set up defaults */
+    /* Set up defaults */
     if (net->sockfd==INVSOC) {
 	memset((void *) &net->sock_addr, '\0', sizeof(net->sock_addr));
 #ifdef DECNET
@@ -1040,6 +1037,8 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
     do {
 	if (net->sockfd==INVSOC) {
 	    int hosts;
+	    if (PROT_TRACE)
+		fprintf(TDEST, "HTDoConnect. Looking up `%s\'\n", host);
 	    if ((hosts = HTParseInet(&net->sock_addr, host, use_cur)) < 0) {
 		if (PROT_TRACE)
 		    fprintf(TDEST, "HTDoConnect. Can't locate remote host `%s\'\n", host);

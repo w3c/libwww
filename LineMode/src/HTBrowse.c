@@ -723,7 +723,6 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 	    char *source, *dest;
 	    if ((source = HTPrompt("Source:", this_addr)) != NULL &&
 		(dest = HTPrompt("Destination:", NULL)) != NULL) {
-		HTRequest * dest_request = Thread_new(YES);
 		char * full_dest = HTParse(HTStrip(dest), this_addr,
 					   PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
 		char * full_source = HTParse(HTStrip(source), this_addr,
@@ -731,9 +730,9 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 		HTParentAnchor*	dest_anchor = (HTParentAnchor*) HTAnchor_findAddress(full_dest);
 		HTParentAnchor*	source_anchor = (HTParentAnchor*) HTAnchor_findAddress(full_source);
 		*actreq = Thread_new(YES);	       /* This is the source */
-		dest_request->method = METHOD_PUT;
-		loadstat = HTCopyAnchor((HTAnchor *) source_anchor, *actreq,
-					dest_anchor, dest_request);
+		(*actreq)->method = METHOD_PUT;
+		loadstat = HTCopyAnchor((HTAnchor *) source_anchor,
+					dest_anchor, *actreq);
 		free(this_addr);
 		free(source);
 		free(dest);

@@ -68,6 +68,16 @@ machine. It also removes the thread from the list of active threads.
 extern BOOL HTThread_kill	PARAMS((HTNetInfo * net));
 </PRE>
 
+<H2>Is Thread Alive?</H2>
+
+Checks whether a thread is still registered and if so returns the
+corresponding <A HREF="HTAccess.html#z1">HTRequest structure</A>, else
+return NULL.
+
+<PRE>
+extern HTRequest *HTThread_isAlive	PARAMS((HTNetInfo * net));
+</PRE>
+
 <H2>Get Copy of Registered Bit-arrays</H2>
 
 This function returns a copy of the current bit-arrays contaning the

@@ -442,8 +442,11 @@ PRIVATE int HTTPStatus_flush ARGS1(HTStream *, me)
 
 PRIVATE int HTTPStatus_free ARGS1(HTStream *, me)
 {
-    if (me->target)
-	FREE_TARGET;
+    int status = HT_OK;
+    if (me->target) {
+	if ((status = (*me->target->isa->_free)(me->target))==HT_WOULD_BLOCK)
+	    return HT_WOULD_BLOCK;
+    }
     free(me);
     return HT_OK;
 }
@@ -579,7 +582,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		http->state = HTTP_ERROR;	       /* Error or interrupt */
 	    break;
 
-	    /* As we can do simultanous read and write this is now 1 state */
+	    /* As we can do simultanous read and write this is now one state */
 	  case HTTP_NEED_REQUEST:
 	    if (http->action == SOC_WRITE) {
 
@@ -616,7 +619,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 #else
 		else {
 		    if (PROT_TRACE)
-			fprintf(TDEST, "TESTTESTTEST Jumpingto bext state\n");
+			fprintf(TDEST, "TESTTESTTEST Jumping to next state\n");
 		    http->state = http->next;	       /* Jump to next state */
 		}
 #endif
@@ -626,7 +629,6 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	    
 	  case HTTP_REDIRECTION:
 	    if (request->redirect) {
-		HTAnchor *anchor;
 		if (status == 301) {
 		    HTErrorAdd(request, ERR_INFO, NO, HTERR_MOVED,
 			       (void *) request->redirect,
@@ -636,10 +638,37 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 			       (void *) request->redirect,
 			       (int) strlen(request->redirect), "HTLoadHTTP");
 		}
-		anchor = HTAnchor_findAddress(request->redirect);
 		if (++request->redirections < HTMaxRedirections) {
+		    HTAnchor *anchor = HTAnchor_findAddress(request->redirect);
 		    HTTPCleanup(request, NO);
-		    return HTLoadAnchorRecursive((HTAnchor *) anchor, request);
+		    if (request->CopyRequest) {
+			HTThread_kill(request->CopyRequest->net_info);
+			request->input_stream = NULL;
+		    }
+
+		    /* We have to figure out where we were called from */
+		    if (request->CopyRequest) {
+			char *msg = malloc(strlen(request->redirect)+100);
+			if (!msg) outofmem(__FILE__, "HTLoadHTTP");
+			sprintf(msg, "Location for destination location has changed to %s, continue operation?", request->redirect);
+			if (!HTConfirm(msg)) {
+			    http->state = HTTP_ERROR;
+			    free(msg);
+			    break;
+			}
+			free(msg);
+			return HTCopyAnchor((HTAnchor *)
+					    request->CopyRequest->anchor,
+					    (HTParentAnchor *) anchor,
+					    request);
+		    } else if (request->PostCallBack) {
+#if 0
+			/* Ask if OK */
+			return HTUploadAnchor((HTAnchor *) anchor, request);
+#endif
+		    } else {
+			return HTLoadAnchor((HTAnchor *) anchor, request);
+		    }
 		} else {
 		    HTErrorAdd(request, ERR_FATAL, NO, HTERR_MAX_REDIRECT,
 			       NULL, 0, "HTLoadHTTP");
@@ -654,17 +683,17 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	    
 	  case HTTP_AA:
 	    HTTPCleanup(request, NO);			 /* Close connection */
-
 	    /*
-	    ** We must also kill the source request. As now the whole stream
-	    ** get's freed (this input stream is identical to the copyrequest
-	    ** output stream, we must re-initialize the input_stream
+	    **  We must also kill the source request. If this request has 
+	    **  already got all the date this will result in that we close
+	    **	the connection but keeps the stream chain and return 
+	    **  HT_WOULD_BLOCK so that we can get the data using the
+	    **  call back function
 	    */
 	    if (request->CopyRequest) {
 		HTThread_kill(request->CopyRequest->net_info);
 		request->input_stream = NULL;
 	    }
-
 	    if (HTTPAuthentication(request) == YES &&
 		HTAA_retryWithAuth(request) == YES) {
 
@@ -672,7 +701,6 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		if (request->CopyRequest) {
 		    return HTCopyAnchor((HTAnchor *)
 					request->CopyRequest->anchor,
-					request->CopyRequest,
 					request->anchor,
 					request);
 		} else if (request->PostCallBack) {
@@ -696,7 +724,9 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	    
 	  case HTTP_GOT_DATA:
 	    HTTPCleanup(request, NO);
-	    return HT_LOADED;
+
+	    /* HT_OK means evreything is OK, but not finished! */
+	    return request->Source ? HT_OK : HT_LOADED;
 	    break;
 	    
 	  case HTTP_NO_DATA:

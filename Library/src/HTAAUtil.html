@@ -45,8 +45,8 @@ Library of Common Code</A>.
 <PRE>
 #ifndef HTAAUTIL_H
 #define HTAAUTIL_H
-
 #include "HTList.h"
+#include "HTAccess.h"
 </PRE>
 
 <H2>Default filenames</H2>
@@ -99,24 +99,6 @@ typedef enum {
     HTAA_NOT_FOUND,	/* 404 Not found, or read protected	*/
     HTAA_MULTI_FAILED	/* 404 No suitable presentation found	*/
 } HTAAFailReason;
-
-
-</PRE>
-<H2>Datatype definitions</H2>
-<H3>HTAAScheme</H3>The enumeration HTAAScheme represents
-the possible authentication schemes
-used by the WWW Access Authorization.
-<PRE>
-typedef enum {
-    HTAA_UNKNOWN,
-    HTAA_NONE,
-    HTAA_BASIC,
-    HTAA_PUBKEY,
-    HTAA_KERBEROS_V4,
-    HTAA_KERBEROS_V5,
-    HTAA_MAX_SCHEMES /* THIS MUST ALWAYS BE LAST! Number of schemes */
-} HTAAScheme;
-
 </PRE>
 
 <H2>Authentication Schemes</H2>
@@ -143,6 +125,32 @@ extern HTAAScheme HTAAScheme_enum PARAMS((CONST char* name));
 **			"none", "basic", "pubkey", ...
 */
 extern char *HTAAScheme_name PARAMS((HTAAScheme scheme));
+
+
+/* extern						HTAA_templateMatch()
+**		STRING COMPARISON FUNCTION FOR FILE NAMES
+**		   WITH ONE WILDCARD * IN THE TEMPLATE
+** NOTE:
+**	This is essentially the same code as in HTRules.c, but it
+**	cannot be used because it is embedded in between other code.
+**	(In fact, HTRules.c should use this routine, but then this
+**	 routine would have to be more sophisticated... why is life
+**	 sometimes so hard...)
+**
+** ON ENTRY:
+**	tmplate		is a template string to match the file name
+**			agaist, may contain a single wildcard
+**			character * which matches zero or more
+**			arbitrary characters.
+**	filename	is the filename (or pathname) to be matched
+**			agaist the template.
+**
+** ON EXIT:
+**	returns		YES, if filename matches the template.
+**			NO, otherwise.
+*/
+extern BOOL HTAA_templateMatch PARAMS((CONST char * tmplate, 
+				       CONST char * filename));
 
 
 /* PUBLIC					    HTAA_templateCaseMatch()

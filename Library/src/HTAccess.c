@@ -32,23 +32,23 @@
 /* Library include files */
 #include "tcp.h"
 #include "HTUtils.h"
+#include "HTString.h"
 #include "HTParse.h"
-#include "HTML.h"		/* SCW */
-#include "HTList.h"
-#include "HText.h"	/* See bugs above */
 #include "HTAlert.h"
+#include "HTError.h"
+#include "HTList.h"
+#include "HTAABrow.h"				/* Should be HTAAUtil.html! */
 #include "HTFWrite.h"	/* for cache stuff */
 #include "HTLog.h"
-#include "HTTee.h"
-#include "HTError.h"
 #include "HTSocket.h"
-#include "HTString.h"
 #include "HTTCP.h"      /* HWL: for HTFindRelatedName */
 #include "HTThread.h"
 #include "HTEvent.h"
 #include "HTBind.h"
 #include "HTInit.h"
 #include "HTProxy.h"
+#include "HTML.h"		/* SCW */
+#include "HText.h"	/* See bugs above */
 
 #ifndef NO_RULES
 #include "HTRules.h"
@@ -59,18 +59,19 @@
 /* These flags may be set to modify the operation of this module */
 PUBLIC int  HTMaxRedirections = 10;	       /* Max number of redirections */
 
-PUBLIC char * HTClientHost = 0;		 /* Name of remote login host if any */
+PUBLIC char * HTClientHost = NULL;	 /* Name of remote login host if any */
 PUBLIC BOOL HTSecure = NO;		 /* Disable access for telnet users? */
 
 PUBLIC char * HTImServer = NULL;/* cern_httpd sets this to the translated URL*/
 PUBLIC BOOL HTImProxy = NO;			   /* cern_httpd as a proxy? */
 
-PRIVATE HTList * protocols = NULL;           /* List of registered protocols */
-
 #ifdef _WINDOWS 
 PUBLIC HWND HTsocketWin = 0 ;
 unsigned long HTwinMsg = 0 ;
 #endif 
+
+/* Variables and typedefs local to this module */
+PRIVATE HTList * protocols = NULL;           /* List of registered protocols */
 
 /* Superclass defn */
 struct _HTStream {
@@ -159,6 +160,8 @@ PUBLIC void HTRequest_delete ARGS1(HTRequest *, req)
 	HTFormatDelete(req);
 	HTErrorFree(req);
 	HTAACleanup(req);
+	if (req->CopyRequest)
+	    HTRequest_delete(req->CopyRequest);
 
 	/* These are temporary until we get a MIME thingy */
 	FREE(req->redirect);
@@ -736,6 +739,12 @@ PUBLIC BOOL HTLoadTerminate ARGS2(HTRequest *, request, int, status)
 	}
 	break;
 
+      case HT_OK:
+	if (PROT_TRACE) {
+	    fprintf(TDEST,"HTAccess.... SOURCE FINISHED LOADING: `%s\'\n",uri);
+	}
+	break;
+
       case HT_NO_DATA:
 	if (PROT_TRACE) {
 	    fprintf(TDEST, "HTAccess.... OK BUT NO DATA: `%s\'\n", uri);
@@ -1181,12 +1190,12 @@ PUBLIC HTStream *HTSaveStream ARGS1(HTRequest *, request)
 **			HT_RETRY	if service isn't available before
 **					request->retry_after
 */
-PUBLIC int HTCopyAnchor ARGS4(HTAnchor *,	src_anchor,
-			      HTRequest *,	src_req,
+PUBLIC int HTCopyAnchor ARGS3(HTAnchor *,	src_anchor,
 			      HTParentAnchor *,	dest_anchor,
 			      HTRequest *,	dest_req)
 {
-    if (!(src_anchor && src_req && dest_anchor && dest_req))
+    HTRequest *src_req;
+    if (!(src_anchor && dest_anchor && dest_req))
 	return HT_ERROR;
 
     if (!(dest_anchor->methods & dest_req->method)) {
@@ -1196,22 +1205,45 @@ PUBLIC int HTCopyAnchor ARGS4(HTAnchor *,	src_anchor,
 	    return HT_ERROR;
     }
 
+    /* Get an internal HTRequest structure to handle the source part */
+    src_req = HTRequest_new();
+    HTAnchor_clearHeader((HTParentAnchor *) src_anchor);
+    src_req->ForceReload = YES;
+
+    /* Mark the source request so that there only is one HTThreadTerminate()
+       function call handling the outcome of the destination request */
+    src_req->Source = YES;
+
+    /* Use SOURCE but at some point we can introduce format conversion here! */
+    src_req->output_format = WWW_SOURCE;
+
+#ifdef NO_UNIX_IO
+    {
+	char * addr = HTAnchor_address((HTAnchor *) src_anchor);
+	char *access = HTParse(addr, "", PARSE_ACCESS);
+	if (*access && !strcmp(access, "file"))
+	    dest_req->BlockingIO = YES;
+	free(addr);
+	free(access);
+    }
+#endif
+
+    dest_req->GenMask += HT_DATE;			 /* Send date header */
+    dest_req->CopyRequest = src_req;
+
     /* First open the destination then open the source */
     if (HTLoadAnchor((HTAnchor *) dest_anchor, dest_req) != HT_ERROR) {
-	src_req->ForceReload = YES;
-	if (src_req->output_format == WWW_PRESENT)	       /* Use source */
-	    src_req->output_format = WWW_SOURCE;
-
-	/* Now make the link between the two request structures. First setup
-	   the output stream of the source so that data get redirected to
-	   the destination. Then set up the call back function so that
-	   the destination can call for more data */
+	int status;
+	/*
+	** Now make the link between the two request structures. First setup
+	** the output stream of the source so that data get redirected to
+	** the destination. Then set up the call back function so that
+	** the destination can call for more data
+	*/
 	src_req->output_stream = dest_req->input_stream;
-	dest_req->GenMask += HT_DATE;			 /* Send date header */
-	dest_req->CopyRequest = src_req;
 	dest_req->PostCallBack = HTSocketRead;
-
-	return HTLoadAnchor(src_anchor, src_req);
+	if ((status = HTLoadAnchor(src_anchor, src_req)) != HT_LOADED)
+	    return status;
     }
     return HT_ERROR;
 }

@@ -618,7 +618,7 @@ PUBLIC HTStream* HTCacheWriter ARGS5(
     char *fnam;
     HTStream* me;
 
-    if (HTClientHost) {
+    if (HTSecure) {
 	if (CACHE_TRACE)
 	    fprintf(TDEST, "Only caching if WWW is run locally.\n");
 	return HTBlackHole();
@@ -840,7 +840,7 @@ PUBLIC HTStream* HTSaveLocally ARGS5(
     char *answer = NULL;
     HTStream* me;
     
-    if (HTClientHost) {
+    if (HTSecure) {
         HTAlert("Can't save data to file -- please run WWW locally");
 	return HTBlackHole();
     }

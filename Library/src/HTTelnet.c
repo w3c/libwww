@@ -108,13 +108,6 @@ PRIVATE int remote_session ARGS2(char *, access, char *, host)
 /* This is a security precaution, for us and remote site */
 
 	if (HTSecure) {
-
-#ifdef TELNETHOPPER_MAIL
-	    sprintf(command, 
-	      "finger @%s | mail -s \"**telnethopper %s\" tbl@dxcern.cern.ch",
-	       HTClientHost, HTClientHost);
-	    system(command);
-#endif
 	    printf("\n\nSorry, but the service you have selected is one\n");
 	    printf("to which you have to log in.  If you were running www\n");
 	    printf("on your own computer, you would be automatically connected.\n");

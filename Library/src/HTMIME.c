@@ -554,8 +554,10 @@ PRIVATE int HTMIME_flush ARGS1(HTStream *, me)
 PRIVATE int HTMIME_free ARGS1(HTStream *, me)
 {
     int status = HT_OK;
-    if (me->target)
-	status = (*me->target->isa->_free)(me->target);
+    if (me->target) {
+	if ((status = (*me->target->isa->_free)(me->target))==HT_WOULD_BLOCK)
+	    return HT_WOULD_BLOCK;
+    }
     HTChunkFree(me->buffer);
     free(me);
     return status;

@@ -42,7 +42,6 @@ PRIVATE char linebuf[256];	/* @@@ */
 struct _HTStream {
     CONST HTStreamClass *	isa;
     HTStream *		  	target;
-    char *			url;
     HTRequest *			request;
     HTChunk *  			buffer;
     BOOL			transparent;
@@ -72,7 +71,8 @@ PRIVATE void HTTPMakeRequest ARGS2(HTStream *, me, HTRequest *, request)
 
     /* If we are using a proxy then only take the `path' info in the URL */
     {
-	char *fullurl = HTParse(me->url, "", PARSE_PATH|PARSE_PUNCTUATION);
+	char *addr = HTAnchor_physical(request->anchor);
+	char *fullurl = HTParse(addr, "", PARSE_PATH|PARSE_PUNCTUATION);
 	if (request->using_proxy) {
 	    HTChunkPuts(header, fullurl+1);
 	} else {
@@ -251,7 +251,10 @@ PRIVATE void HTTPMakeRequest ARGS2(HTStream *, me, HTRequest *, request)
 		    HTAtom_name(entity->content_encoding), CR, LF);
 	    HTChunkPuts(header, linebuf);
 	}
-	if (request->EntityMask & HT_CONTENT_LANGUAGE) {     /* @@@ LIST @@@ */
+
+	/* @@@ SHOULD BE A LIST @@@ */
+	if (request->EntityMask & HT_CONTENT_LANGUAGE &&
+	    entity->content_language) {
 	    sprintf(linebuf, "Content-Language: %s%c%c",
 		    HTAtom_name(entity->content_language), CR, LF);
 	    HTChunkPuts(header, linebuf);
@@ -394,16 +397,16 @@ PRIVATE int HTTPRequest_free ARGS1(HTStream *, me)
 {
     if (!me->target)
 	return HT_WOULD_BLOCK;
-    else if (!me->transparent) {
+    if (!me->transparent) {
 	int status;
 	HTTPMakeRequest(me, me->request);		  /* Generate header */
-	if ((status=PUTBLOCK(me->buffer->data, me->buffer->size-1)) == HT_OK)
+	if ((status = PUTBLOCK(me->buffer->data, me->buffer->size-1)) == HT_OK)
 	    me->transparent = YES;
 	else
 	    return status;
     }
-    if (me->target)
-	FREE_TARGET;
+    if (FREE_TARGET == HT_WOULD_BLOCK)
+	return HT_WOULD_BLOCK;
     HTChunkFree(me->buffer);
     free(me);
     return HT_OK;
@@ -441,7 +444,6 @@ PUBLIC HTStream * HTTPRequest_new ARGS2(HTRequest *,	request,
     if (!me) outofmem(__FILE__, "HTTPRequest_new");
     me->isa = &HTTPRequestClass;
     me->target = target;
-    me->url = HTAnchor_physical(request->anchor);
     me->request = request;
     me->buffer = HTChunkCreate(512);
     me->transparent = NO;
