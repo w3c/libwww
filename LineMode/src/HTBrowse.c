@@ -70,10 +70,6 @@
 #define DEFAULT_REF_HEAD		"*** References from this document ***"
 #endif
 
-#ifndef DEFAULT_OUTPUT_FORMAT
-#define DEFAULT_OUTPUT_FORMAT		"www/present"
-#endif
-
 /* Check Statements */
 /* ================ */
 
@@ -197,6 +193,14 @@ extern int getpid();
 **	================
 */
 
+<<<<<<< HTBrowse.c
+PUBLIC char * HTAppName = "CERN-LineMode";	         /* Application name */
+PUBLIC char * HTAppVersion = VL; 	              /* Application version */
+PUBLIC  int   HTScreenWidth   = SCREEN_WIDTH;		       /* By default */
+PUBLIC  int   HTScreenHeight  = -1;	         		/* Undefined */
+PUBLIC BOOL   display_anchors = YES;	    /* anchor will be shown in text? */
+PUBLIC char * log_file_name = 0;	      	    /* Root of log file name */
+=======
 PUBLIC char * HTAppName = "CERN-LineMode";	/* Application name */
 PUBLIC char * HTAppVersion = VL; 	/* Application version */
 
@@ -213,11 +217,11 @@ PRIVATE  BOOL interactive     = YES;        /*  e.g. shows prompts etc */
 #endif /* not VMS */
 PRIVATE  char * output_file_name = NULL;    /* -o xxxx */
 					   
+>>>>>>> 1.17
 PUBLIC char * start_reference = NULL;      /* Format string for start anchor */
-PUBLIC char * end_reference = REF_MARK;     /* for end anchor */
-PUBLIC char * reference_mark = "[%d] ";     /* for reference lists */
-PRIVATE char * refhead = DEFAULT_REF_HEAD;  /* Reference list heading */
-PUBLIC char * end_mark = END_MARK;          /* Format string for [End] */
+PUBLIC char * end_reference = REF_MARK;     		   /* for end anchor */
+PUBLIC char * reference_mark = "[%d] ";     	      /* for reference lists */
+PUBLIC char * end_mark = END_MARK;          	  /* Format string for [End] */
 
 /* Moved into other files: */
 
@@ -225,22 +229,21 @@ PUBLIC char * end_mark = END_MARK;          /* Format string for [End] */
 /* PUBLIC  int  WWW_TraceFlag   = 0;      HTString */
 /* PUBLIC FILE * logfile = 0;		  HTAccess */
  
- 
  /*	Private variables
  **	=================
  */
 /* Arrays for storing the HyperText References */
 
-PRIVATE HTParentAnchor * home_anchor = NULL;	/* First document anchor */
-PRIVATE char keywords[ADDRESS_LENGTH]; /* Search terms from command line */
-
+PRIVATE HTParentAnchor * home_anchor = NULL;	    /* First document anchor */
+PRIVATE char keywords[ADDRESS_LENGTH];     /* Search terms from command line */
+PRIVATE char * output_file_name = NULL;                          /* -o xxxx */
 PRIVATE char        choice[RESPONSE_LENGTH];    /* Users response  */
-
-PRIVATE char *	     logfile_root = 0;	         /* Log file name */
-PUBLIC char *	     log_file_name = 0;	         /* Root of log file name */
-PRIVATE BOOL	     filter=0;		               /* Load from stdin? */
+PRIVATE char * refhead = DEFAULT_REF_HEAD;  	   /* Reference list heading */
+PRIVATE char *	     logfile_root = 0;	      	/* Log file name */
+PRIVATE BOOL	     filter=0;		     	/* Load from stdin? */
 PRIVATE BOOL	     listrefs_option = 0;	/* -listrefs option used?  */
 PRIVATE HTRequest * request;
+PRIVATE BOOL  OutSource = NO;			    /* Output source, YES/NO */
 
 
 #ifdef VMS
@@ -266,7 +269,8 @@ PRIVATE void Error_Selection NOPARAMS;
 PRIVATE void help_screen NOPARAMS;
 PRIVATE void Reference_List PARAMS((BOOL titles));
 PRIVATE void ErrMsg PARAMS((char *Msg, char *Str));
-PRIVATE HTFormat HTInputFormat = NULL;
+PRIVATE BOOL SaveOutputStream PARAMS((char *This, char *Next));
+
 
 #ifdef ultrix
 #define GET_SCREEN_SIZE
@@ -328,15 +332,15 @@ int main
     int  arg;		         /* Argument number as we scan */
     BOOL argument_found = NO;
     BOOL logfile_flag = NO;
+    BOOL interactive = YES;		      /* Default is interactive mode */
     BOOL first_keyword = YES;
     char* default_default=0;	 /* Parse home relative to this */
+    HTFormat input_format = WWW_HTML;	                 /* Used with filter */
 
 #if defined(ultrix) || defined(__osf__)
     int scr_height, scr_width;
 #endif /* ultrix and OSF/1 */
 
-    HTFormat format_in = WWW_HTML;		/* By default */
-    
 #ifdef THINK_C /* command line from Think_C */
     int i;
     argc=ccommand(&argv);
@@ -421,7 +425,6 @@ int main
 /*	Check for command line options
 **	------------------------------
 */
-
     keywords[0] = 0;				/* Clear string */
     for (arg=1; arg<argc ; arg++) {
 	if (*argv[arg] == '-') {
@@ -429,7 +432,12 @@ int main
 	    /* - alone => filter */
 	    if (argv[arg][1] == 0) {
 		filter = YES;	   
-		interactive = NO;  /* Take from stdin, Force non-interactive */
+		interactive = NO;     /* From stdin, Force non-interactive */
+	    
+	    /* from -- Initial represntation (only with filter) */
+	    } else if (!strcmp(argv[arg], "-from")) {
+		input_format = (arg+1 >= argc || *argv[arg+1] == '-') ?
+		    WWW_HTML : HTAtom_for(argv[++arg]);
 
 #ifdef TRACE
 	   /* Verify: Turns on trace */
@@ -462,17 +470,12 @@ int main
 		    if(HTScreenWidth > MAX_SCREEN_WIDTH)
 		        HTScreenWidth = MAX_SCREEN_WIDTH;
 	        }
-	    
-	    /* from -- Initial represntation */
-	    } else if (!strcmp(argv[arg], "-from")) {
-		if (++arg < argc)
-		    HTInputFormat = HTAtom_for(argv[arg]);
 		    
 	    /* to -- Final represntation */
 	    } else if (!strcmp(argv[arg], "-to")) {
 		request->output_format =
 		    (arg+1 >= argc || *argv[arg+1] == '-') ?
-		    HTAtom_for(DEFAULT_OUTPUT_FORMAT) : 
+		    WWW_PRESENT : 
 		    HTAtom_for(argv[++arg]);
 		    HTOutputSource = YES;		/* Turn on shortcut */
 		    interactive = NO;			/* JFG */
@@ -634,12 +637,13 @@ int main
     }
 #endif
 
-/*	Force predefined presentations etc to be set up
-**	-----------------------------------------------
-*/
+/* Force predefined presentations etc to be set up. Now it is taking
+   care of non-interactive, where no HTSaveLocally() of call backs are used */
+    if (interactive)
+	HTFormatInit(request->conversions);
+    else
+	HTFormatInitNIM(request->conversions);
 
-    HTFormatInit(request->conversions);
-    
 /*	Open output file
 **	----------------
 */
@@ -653,7 +657,8 @@ int main
 	    }
 	    output = fp;
 	}
-	request->output_stream = HTFWriter_new(output, YES);  
+	request->output_stream = HTFWriter_new(output, 
+					       output == stdout ? YES : NO);  
 	/* Just pump to stdout but YES: leave it open */
     }
     
@@ -684,7 +689,6 @@ int main
 	    ErrMsg("Can't open log file", log_file_name);
     };
 
-
 /*	Enable local directory access
 */
     HTDirReadme = HT_DIR_README_TOP;	/* Readme presentation */
@@ -703,7 +707,7 @@ int main
 */
     if (filter) {			             /* Just convert formats */
 	HTBindAnchor((HTAnchor*)home_anchor, request);
-     	HTParseSocket( format_in, 0, request);        /* From std UNIX input */
+     	HTParseSocket(input_format, 0, request);      /* From std UNIX input */
 	    goto endproc;
     }
     
@@ -754,6 +758,7 @@ endproc:
     HTRequest_delete(request);
     if(default_default)
 	free(default_default);
+
     if(!return_status) {		/* Good! */
 #ifdef VMS 
     return 1;
@@ -819,7 +824,7 @@ PRIVATE void help_screen NOARGS {
 	};
 	    
     if (HText_sourceAnchors(HTMainText) != 0) {
-	printf("  List            List the references from this document.\n");
+	printf("  List            List the references from this document.\n *");
 	printf("  <number>        Select a referenced document by number (from 1 to %d).\n",
 		HText_sourceAnchors(HTMainText));
     }
@@ -1021,7 +1026,6 @@ PRIVATE void Selection_Prompt(void)
 PRIVATE void Selection_Prompt()
 #endif
 { 
-    BOOL HTDiag = NO;	                /* Flag == source asked for? */
     int length_of_prompt = 0;
     BOOL is_index = HTAnchor_isIndex(HTMainAnchor);
     
@@ -1246,7 +1250,7 @@ find:	       	if (next_word && HTSearch(other_words, HTMainAnchor, request))
 
 	  case 'L':
 	    if (Check_User_Input("LIST")){           /* List of references ? */
-		Reference_List(!HTDiag);
+		Reference_List(!OutSource);
 		goto ret;
 	    }
 #ifdef unix
@@ -1407,7 +1411,7 @@ lcd:	        if (!next_word) {                        /* Missing argument */
 	  case 'S':					       /* TBL 921009 */
 	    if (Check_User_Input("SOURCE")) {     	  /* Apply to source */
 		if (!next_word) goto ret;    /* Should refresh as source @@@ */
-		HTDiag = YES;			       /* Load, print source */
+		OutSource = YES;		 /* Load and print as source */
 		this_word = next_word;		         /* Move up one word */
 		next_word = strtok (NULL, " \t\n\r");
 		this_command = the_choice + (this_word - choice);
@@ -1443,29 +1447,11 @@ lcd:	        if (!next_word) {                        /* Missing argument */
 	
 #ifdef GOT_PIPE
 	  case '>':
-	    /* Checks if file exists. Can be overruled by using '>!' */
 	    if (!HTClientHost) {
-		if (*(this_word+1) == '>') {
-		    if(!(*(this_word+2) || next_word))
-			goto ret;
-		} else if (*(this_word+1) == '!') {
-		    if(!(*(this_word+2) || next_word))
-			goto ret;
-		    else
-			*(this_command+1) = ' ';   /* Strip '!' from command */
-		} else {
-		    char *fname = *(this_word+1) ? (this_word+1) : next_word;
-		    if (fname) {
-			FILE *fp = fopen(fname, "r");
-			if (fp != NULL) {
-			    printf("%s: File exists\n", fname);
-			    fclose(fp);
-			    goto ret;
-			}
-		    } else
-			goto ret;
-		}
-	    } /* Note: no break! */
+		SaveOutputStream(this_word, next_word);
+		goto ret;
+	    }
+	    break;
 	 
 	  case '|':
 	    if (!HTClientHost) {	                   /* Local only!!!! */
@@ -1482,7 +1468,7 @@ lcd:	        if (!next_word) {                        /* Missing argument */
 #else	
 	        sprintf(command, "www %s \"%s\" %s", 
 #endif
-		HTDiag ? "-source" : "-n -na -p", address, this_command);
+		OutSource ? "-source" : "-n -na -p", address, this_command);
 
 		printf("Command: %s\n", command);
 		result = system(command);
@@ -1523,15 +1509,85 @@ ret:	free (the_choice);
 }  /* Selection_Prompt */
 
 
-/* General Error Message for Line Mode Browser */
+/* -------------------------------------------------------------------------
+   General Error Message for Line Mode Browser. If verbose mode is od, then
+   the message is passed to stdout.
 
+   Henrik Frystyk 02/03-94
+   ------------------------------------------------------------------------- */
 PRIVATE void ErrMsg ARGS2(char *, Msg, char *, Str)
 {
-    if(Str)
-	fprintf(stderr, "Line Mode Browser Message: %s (%s)\n", Msg, Str);
-    else
-	fprintf(stderr, "Line Mode Browser Message: %s\n", Msg);
+    if (WWW_TraceFlag) {
+	if (Str)
+	    fprintf(stderr, "Line Mode Browser Message: %s (%s)\n", Msg, Str);
+	else
+	    fprintf(stderr, "Line Mode Browser Message: %s\n", Msg);
+    }
 }
 
-/* *end HTBrowse.c* */
+
+/* -------------------------------------------------------------------------
+   This function puts up a stream to a file in order to save a document. This
+   is activated by '>', '>>' or '>!' from the prompt line.
+   Returns NO if Error and YES if OK
+
+   Henrik Frystyk 02/03-94
+   ------------------------------------------------------------------------- */
+PRIVATE BOOL SaveOutputStream ARGS2(char *, This, char *, Next)
+{
+    FILE *fp;
+    char *fname;
+    char *fmode;
+    
+    /* Checks if file exists. Can be overruled by using '>!' */
+    if (*(This+1) == '>') {	 		   	   /* Append to file */
+	fmode = "a";
+	fname = *(This+2) ? (This+2) : Next;
+    } else if (*(This+1) == '!') {
+	fmode = "w";				           /* Overwrite file */
+	fname = *(This+2) ? (This+2) : Next;
+    } else {						/* File name follows */
+	fmode = "w";
+	fname = *(This+1) ? (This+1) : Next;
+	if (fname) {				       /* See if file exists */
+	    if ((fp = fopen(fname, "r")) != NULL) {
+		printf("%s: File exists\n", fname);
+		fclose(fp);
+		return NO;
+	    }
+	}
+    }
+    if (!fname)					       /* No file name given */
+	return NO;
+    if ((fp = fopen(fname, fmode)) == NULL) {
+	ErrMsg("Can't access file", fname);
+	return NO;
+    }
+
+    /* Now, file is open and OK: reload the text and put up a stream for it! */
+    printf("Put text from %s to file  %s, mode: %s\n",
+	   OutSource ? HTAtom_name(WWW_SOURCE) :
+	   HTAtom_name(WWW_HTML), fname, fmode);
+    {
+	BOOL ret = NO;
+	HTRequest *req = HTRequest_new(); 	     /* Set up a new request */
+	HTFormatInitNIM(req->conversions);	     /* Non-interactive mode */
+	if(OutSource)
+	    req->output_format = WWW_SOURCE;
+	req->output_stream = HTFWriter_new(fp, NO);
+	HTForceReload = YES;
+	ret = HTLoadAnchor((HTAnchor*) HTMainAnchor, req);
+	HTForceReload = NO;
+	HTRequest_delete(req);
+	return ret;
+    }
+}
+
+/* End HTBrowse.c */
+
+
+
+
+
+
 
