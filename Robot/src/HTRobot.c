@@ -1256,6 +1256,21 @@ PUBLIC void HText_appendImage (HText * text, HTChildAnchor * anchor,
 	    /* Check for prefix match */
 	    if (mr->img_prefix) match = HTStrMatch(mr->img_prefix, uri) ? YES : NO;
 
+#ifdef HT_POSIX_REGEX
+	/*
+	**  Check for any regular expression. The include may override
+	**  the prefix matching
+	*/
+	if (mr->include) {
+	    match = regexec(mr->include, uri, 0, NULL, 0) ? NO : YES;
+	}
+	if (match && mr->exc_robot) {
+	    match = regexec(mr->exc_robot, uri, 0, NULL, 0) ? YES : NO;
+	}
+	if (match && mr->exclude) {
+	    match = regexec(mr->exclude, uri, 0, NULL, 0) ? YES : NO;
+	}
+#endif
 	    /* Test whether we already have a hyperdoc for this document */
 	    if (match && dest) {
 		Finger * newfinger = Finger_new(mr, dest_parent,
