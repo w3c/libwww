@@ -182,18 +182,18 @@ PRIVATE void fd_dump (SOCKET maxfs, fd_set * rset, fd_set * wset, fd_set * oset,
 #ifdef WWW_WIN_ASYNC
 PRIVATE BOOL Timer_setWindowsTimer (HTTimer * timer)
 {
-    HWND hwnd;
     UINT id;
-    hwnd = HTEventList_getWinHandle(&id);
-    return SetTimer(hwnd, (UINT)timer, (UINT)HTTimer_getTime(timer), NULL) != 0;
+    HWND hwnd = HTEventList_getWinHandle(&id);
+    BOOL status = (SetTimer(hwnd, (UINT)timer, (UINT)HTTimer_getTime(timer), NULL) == 0) ? NO : YES;
+    return status;
 }
 
 PRIVATE BOOL Timer_deleteWindowsTimer (HTTimer * timer)
 {
-    HWND hwnd;
     UINT id;
-    hwnd = HTEventList_getWinHandle(&id);
-    return KillTimer(hwnd, (UINT)timer) != 0;
+    HWND hwnd = HTEventList_getWinHandle(&id);
+    BOOL status = (KillTimer(hwnd, (UINT)timer) == 0) ? NO : YES;
+    return status;
 }
 #endif /* WWW_WIN_ASYNC */
 
@@ -826,10 +826,17 @@ PUBLIC BOOL HTEventInit (void)
 
     osInfo.dwOSVersionInfoSize = sizeof(osInfo);
     GetVersionEx(&osInfo);
+
+    /* According to Gary Johnson, GetModuleHandle() works for NT as well */
+#if 0
     if (osInfo.dwPlatformId == VER_PLATFORM_WIN32s || osInfo.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS)
 	wc.hInstance=GetModuleHandle(NULL); /* 95 and non threaded platforms */
     else
-	wc.hInstance=GetCurrentProcess(); /* NT and hopefully everything following */
+        wc.hInstance=GetCurrentProcess(); /* NT and hopefully everything following */
+#else
+    wc.hInstance=GetModuleHandle(NULL); /* Should work on all win32 stuff */
+#endif
+
     HTinstance = wc.hInstance;
     HTclass = RegisterClass(&wc);
     if (!HTclass) {
