@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Public Declaration of Request Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  8-Dec-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 18-Dec-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -329,7 +329,7 @@ typedef enum _HTRsHd {
 
 extern void HTRequest_setRsHd (HTRequest * request, HTRsHd rshd);
 extern void HTRequest_addRsHd (HTRequest * request, HTRsHd rshd);
-extern HTRqHd HTRequest_rsHd (HTRequest * request);
+extern HTRsHd HTRequest_rsHd (HTRequest * request);
 </PRE>
 
 <H3><A NAME="enhd">Entity Header Mask</A></H3>

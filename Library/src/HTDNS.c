@@ -492,7 +492,8 @@ PUBLIC int HTGetHostByName (HTNet *net, char *host)
 	    }
 	}
 	net->dns = pres;
-	memcpy(&sin->sin_addr, *(pres->addrlist+net->home), pres->addrlength);
+	memcpy((void *) &sin->sin_addr, *(pres->addrlist+net->home),
+	       pres->addrlength);
     } else {
 	struct hostent *hostelement;			      /* see netdb.h */
 	char *port = strchr(host, ':');
@@ -517,7 +518,8 @@ PUBLIC int HTGetHostByName (HTNet *net, char *host)
 	}	
 	if (port) *port=':';			       	  /* Put ':' back in */
 	net->dns = HTDNS_add(list, hostelement, host, &homes);
-	memcpy(&sin->sin_addr,*hostelement->h_addr_list,hostelement->h_length);
+	memcpy((void *) &sin->sin_addr, *hostelement->h_addr_list,
+	       hostelement->h_length);
     }
     return homes;
 }

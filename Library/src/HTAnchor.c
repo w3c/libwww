@@ -337,11 +337,11 @@ PUBLIC BOOL HTAnchor_setMainLink  (HTAnchor * me, HTLink * movingLink)
 	/* First push current main link onto top of links list */
 	HTLink *newLink = (HTLink*) malloc (sizeof (HTLink));
 	if (newLink == NULL) outofmem(__FILE__, "HTAnchor_makeMainLink");
-	memcpy (newLink, & me->mainLink, sizeof (HTLink));
+	memcpy ((void *) newLink, & me->mainLink, sizeof (HTLink));
 	HTList_addObject (me->links, newLink);
 
 	/* Now make movingLink the new main link, and free it */
-	memcpy (& me->mainLink, movingLink, sizeof (HTLink));
+	memcpy ((void *) &me->mainLink, movingLink, sizeof (HTLink));
 	free (movingLink);
 	return YES;
     }

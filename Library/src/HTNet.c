@@ -292,7 +292,7 @@ PUBLIC HTNet * HTNet_dup (HTNet * src)
     if (!src) return NO;
     if ((me = (HTNet *) malloc(sizeof(HTNet))) == NULL)
 	outofmem(__FILE__, "HTNet_dup");
-    memcpy(me, src, sizeof(HTNet));
+    memcpy((void *) me, src, sizeof(HTNet));
     return me;
 }
 

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Utility macros</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 11-Dec-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 18-Dec-1995 -->
 </HEAD>
 <BODY>
 
@@ -228,6 +228,10 @@ performance difference. (Foteos Macrides).
 #else
 #define CONST const			      /* "const" only exists in STDC */
 #endif
+
+#else
+
+#define CONST
 
 #endif /* _STANDARD_CODE_ (ANSI) */
 

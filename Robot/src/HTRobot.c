@@ -35,7 +35,7 @@
 
 #define SHOW_MSG		(WWWTRACE || HTAlert_interactive())
 
-#define DEFAULT_TIMEOUT		10		       /* timeout in seconds */
+#define DEFAULT_TIMEOUT		60		       /* timeout in seconds */
 
 #if defined(__svr4__)
 #define CATCH_SIG
