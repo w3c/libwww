@@ -1,7 +1,7 @@
 <!DOCTYPE HTML SYSTEM "legacy.dtd">
 <HTML>
 <HEAD>
-<TITLE>Using the Library of Common Code</TITLE>
+<TITLE>Using the W3C Reference Library</TITLE>
 </HEAD>  
 <BODY><P><A HREF="../../../"><IMG SRC="../../../Icons/WWW/WWW48x.gif" ALT="WWW"
 ></A>
@@ -9,11 +9,11 @@
 <IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Guide"></P> 
 <ADDRESS><A HREF="../../../People.html#Frystyk">Henrik Frystyk</A>,<A HREF="../../../Consortium/"
 >World-Wide Web Consortium</A>, June 1995</ADDRESS> <H1>Using the
-Library of Common Code</H1> 
+W3C Reference Library</H1> 
 <P><IMG SRC="../../../Icons/WWW/construction.gif" ALT="WIP"> This
 paper is still under construction. Comments are welcome at
 <EM>libwww@w3.org</EM></P> <H2>Abstract</H2>
-<P>The architecture of the <A HREF="../../">Library of Common Code</A>
+<P>The architecture of the <A HREF="../../">W3C Reference Library</A>, a.k.a. Library of Common Code,
 is both flexible and open  which guarantees high usability for many
 different  purposes. This paper describes some important practical
 aspects of how to use the Library and what is provided through the
@@ -21,7 +21,7 @@ current API for threads, streams and other basic concepts in the
 Library. The description contains a set of examples and is based on
 version 3.1 which is to be released June 1995. It is furthermore the
 intention that this paper can be used as a basis for discussions on how
-to improve the API for the Library of Common Code. For a more detailed
+to improve the API for the W3C Reference Library. For a more detailed
 discussion on the architecture of the Library and a full listing of the
 functionality and various class definitions provided, the reader is
 referred to the
@@ -34,7 +34,7 @@ Common Code</A>.</P>
 <LI><A NAME="" HREF="#arc">Architectural Overview</A></LI>
 <LI><A HREF="#start">Getting Started</A></LI>
 <LI><A HREF="#eventloop">Use of libwww Threads</A></LI>
-<LI><A HREF="#access">Access Methods</A></LI>
+<LI><A HREF="#methods">Access Methods</A></LI>
 <LI><A HREF="#stream">The Stream Object</A></LI>
 <LI><A HREF="#pref">Setting Up User Preferences</A></LI>
 <LI><A HREF="#bind">Bindings to the local File system</A></LI>
@@ -79,8 +79,8 @@ though this application is usable as an independent Web application, its
 main purpose is to show a working examples of how the Library can be
 used. However, it is important to note that the Line Mode Browser is
 only <EM>one</EM> way of using the Library and many other applications
-may want to use it in other ways.</P><P>The development of the
-World-Wide Web Library of Common Code was started by <A HREF="../../../People.html#BernersLee"
+may want to use it in other ways.</P><P>The development of the 
+W3C Reference Library was started by <A HREF="../../../People.html#BernersLee"
 >Tim Berners-Lee</A> in 1990, and today the Library is a multifunctional
 code base with a large amount of knowledge about network programming and
 portability built into it with help from Ari Luotonen, Jean-Francois
@@ -254,7 +254,7 @@ will look like this:</P><PRE>	#include &lt;WWWLib.h>
 	}
 </PRE><H2><A NAME="eventloop">Use of libwww Threads</A></H2><P>Library
 version 3.0 has been designed using a new libwww
-<A HREF="../Features/multithread.html">thread concept</A> which allows
+<A HREF="../Architecture/Threads.html">thread concept</A> which allows
 an application to handle requests in a constrained asynchronous manner
 using non-blocking I/O and an event loop. As a result, I/O operations
 such as establishment of a TCP connection to a remote server and reading
@@ -340,7 +340,7 @@ Library handles the creation and termination of its internal threads
 without any interaction required by the application. The thread model is
 based on callback routines which must be supplied by the application as
 indicated in the figure: 
-</P><P><IMG SRC="../Features/Internal.gif" ALT="Callback"></P><P>The
+</P><P><IMG SRC="../Architecture/Internal.gif" ALT="Callback"></P><P>The
 dashed lines from the event loop to some of the access modules
 symbolizes that the access method is not yet implemented using
 non-blocking I/O, but the event loop is still a part of the call-stack.
@@ -414,7 +414,7 @@ rarely feel any delay as the Library very often returns to the event
 loop as a result of a blocking I/O operation, even on fast networks. In
 passive mode the application has complete control over when to catch
 user events and also how and when to handle them if another thread model
-than the one provided by the Library is provided.</P><H2><A NAME="access">
+than the one provided by the Library is provided.</P><H2><A NAME="methods">
 Access Methods</A></H2><P>The Library handles a wide set of Internet
 Protocols as well as access to the local file system. The current set of
 access methods supported are: HTTP, FTP, Gopher, telnet, rlogin, NNTP
@@ -445,7 +445,7 @@ module</A> by providing a new definition as described in <A HREF="#override"
 desired, the application must be linked with a <A HREF="http://www.cnidr.org/"
 >WAIS library</A> in which case the <A HREF="../../Implementation/HTWAIS.c">
 HTWAIS</A> module will be compiled into the Library as the interface
-between the Library of Common Code and the WAIS library. This can be
+between the W3C Reference Library and the WAIS library. This can be
 done by enabling the following lines  in the <A HREF="../Platform/Porting.html"
 ><EM>Makefile.include</EM></A> which is the platform specific part of
 the
@@ -511,17 +511,17 @@ or by using the  <CODE>HT_NO_INIT</CODE> preprocessor define as
 explained in  <A HREF="#override">Application Specific Modules</A> and
 <A HREF="#flags">Global Flags</A> respectively. </P><H2><A NAME="#pref">
 Setting Up User Preferences</A></H2><P>The Library supports a large set
-of user preferences of which many of them includes the usage of dynamic
-modules. This section describes how the preferences can be enabled and
-used in an application. It is important to note that <EM>no</EM>
-preferences  are  setup automatically by the Library in  the <CODE>HTLibInit()</CODE>
+of user preferences often through the use  of dynamic modules. This
+section describes how the preferences can be enabled and used in an
+application. It is important to note that <EM>no</EM> preferences  are 
+setup automatically by the Library in  the <CODE>HTLibInit()</CODE>
 function - it is for the application to specify as the preferences  can
 change from request to request. However, the Library has a set of
-initialization functions that makes it easy for the application to set
-of the preferences that are directly supported by the Library. These are
+initialization functions that make it easy for the application to set 
+the preferences that are directly supported by the Library. These are
 all located in the <A HREF="../../Implementation/HTInit.html">HTInit
 module </A>and can be modified to suit a particular application.</P><P>The
-first four paragraphs in this section describes the preferences that are
+first four paragraphs in this section describe the preferences that are
 bound to the HTTP request <EM>accept</EM> headers: Converters and
 presenters, natural languages, encodings, and charsets. All of these
 preferences are registered in pairs of lists: A <EM>global</EM> list
@@ -531,15 +531,16 @@ and presenters are closely related and they are treated exactly the same
 way in the Library. Both converters and presenters take part in the
 stream stack algorithm that finds the best conversion of the media type
 of a data object. The difference is that presenters depend on external
-viewers for the presentation of the graphic object.whereas converters
+viewers for the presentation of the graphic object whereas converters
 use internal modules in the Library and they do not necessarily have to
 present the graphic object to the user. The Library has two
 initialization functions which are defined in the <A HREF="../../Implementation/HTInit.html"
 >HTInit module</A> as described in the section <A HREF="#start">Get
 Started</A> The two functions for setting up a list of default
 converters and presenters respectively are:
-</P><PRE>	HTConverterInit()
-	HTPresenterInit()
+</P><PRE>
+	void HTConverterInit(HTList *list);
+	void HTPresenterInit(HTList *list);
 </PRE><P>Converters and presenters can be registered both globally for
 all requests and locally for a single request. The global list is called
 <CODE>HTConversions</CODE>, and the local list is a part of the
@@ -591,11 +592,12 @@ part of the
 for the list of natural languages  there is no initialization function
 in the <A HREF="../../Implementation/HTInit.html">HTInit module</A>.
 Preferences for charsets can be added individually to both the local and
-global list using the functions:</P><PRE>	HTAcceptCharset()</PRE><H3><A NAME="prox"
->Proxy Servers and Gateways</A></H3><P>An application can  indirectly
-support an access method by redirecting the request to either a proxy or
-a gateway. The difference between a proxy server and a gateway is subtle
-and is described in
+global list using the functions:</P><PRE>
+	void HTAcceptCharset(HTList *list, const char *charset, double quality);</PRE><H3
+><A NAME="prox">Proxy Servers and Gateways</A></H3><P>An application
+can  indirectly support an access method by redirecting the request to
+either a proxy or a gateway. The difference between a proxy server and a
+gateway is subtle and is described in
 <A HREF="../Guide/Config.html#proxy">Internals and Programmer's Guide</A>,
 but it does not affect the application using the Library and the
 redirection is normally transparent to the user. The Library supports
@@ -604,9 +606,16 @@ both proxies and gateways through the <A HREF="../../Implementation/HTProxy.html
 gateway, even requests on the local file system. Of course, the Library
 can also be used in  proxy or gateway applications which in terms can
 use other proxies or gateways so that a single request can be passed
-through a series of intermediate agents.</P><P>The behavior of the
-Library can  be modified using the preprocessor defines <CODE>HT_NO_RULES</CODE>
-and
+through a series of intermediate agents.</P>
+<P>The set of public function to registere a gateway or a proxy are as
+follows:</P><PRE>
+	BOOL HTProxy_setProxy(const char *access,const char *proxy);
+	BOOL HTProxy_setNoProxy(const char *host, CONST char *access, unsigned port);
+	BOOL HTProxy_setGateway(const char *access, const char *gate);
+</PRE><P>The <EM>no_proxy</EM> can be used to avoid contactinga proxy
+server for a particular host name or domain name. The access method and
+port number is optional. The behavior of the Library can  be modified
+using the preprocessor defines <CODE>HT_NO_RULES</CODE> and
 <CODE>HT_NO_PROXY</CODE> as explained in section  <A HREF="#flags">Global
 Flags</A></P><H4>Using Environment Variables</H4><P>Version 3.1 is the
 first version of the Library where proxies ans gateways are not handled
@@ -1219,7 +1228,7 @@ Henrik is now working in the <A HREF="http://www.w3.org/hypertext/WWW/Consortium
 Institute of Technology</A> as a research engineer. Research interests
 includes enhanced network protocols and communications systems.  Henrik
 is responsible for design and development of the <A HREF="../../Library/">
-World-Wide Web Library of Common Code</A>.</DD> 
+W3C Reference Library</A>.</DD> 
 </DL> 
 </BODY>
 </HTML> 
