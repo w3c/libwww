@@ -1,4 +1,5 @@
 #include "HTAccess_glue.h"
+#include "WWWApp.h"
 
 #define max_keyname 20
 #define bad_vars "Invalid variable names or non-existent entries."
@@ -141,10 +142,10 @@ int HTLib_secure_tcl(ClientData clientData, Tcl_Interp *interp,
 int HTLib_setSecure_tcl(ClientData clientData, Tcl_Interp *interp, 
 			int argc, char **argv) {
   if (argc == 2) {
-    BOOL mode;
+    int mode;
     int conversion_success = Tcl_GetBoolean(interp, argv[1], &mode);
     if(conversion_success == TCL_OK) {
-      HTLib_setSecure(mode);
+      HTLib_setSecure( (BOOL) mode);
       return TCL_OK;
     }
     Tcl_AppendResult(interp, bad_vars, NULL);
@@ -392,9 +393,9 @@ int HTLoadAnchor_tcl (ClientData clientData, Tcl_Interp *interp,
     Tcl_AppendResult(interp, bad_vars, NULL);
     return TCL_ERROR;
   }
-  else {
-    Tcl_AppendResult(interp, err_string, NULL);
-  }
+ 
+  Tcl_AppendResult(interp, err_string, NULL);
+  return TCL_ERROR;
 }
 
 /*Load a Document into Memory using an Anchor*/
@@ -455,9 +456,8 @@ int HTLoadAnchorRecursive_tcl (ClientData clientData, Tcl_Interp *interp,
     Tcl_AppendResult(interp, bad_vars, NULL);
     return TCL_ERROR;
   }
-  else {
-    Tcl_AppendResult(interp, err_string, NULL);
-  }
+  Tcl_AppendResult(interp, err_string, NULL);
+  return TCL_ERROR;
 }
 
 
@@ -542,9 +542,9 @@ int HTSearchAbsolute_tcl (ClientData clientData, Tcl_Interp *interp,
     Tcl_AppendResult(interp, bad_vars, NULL);
     return TCL_ERROR;
   }
-  else {
-    Tcl_AppendResult(interp, err_string, NULL);
-  }
+  
+  Tcl_AppendResult(interp, err_string, NULL);
+  return TCL_ERROR;
 }
 
 
@@ -648,7 +648,7 @@ int HTSearchString_tcl(ClientData clientData, Tcl_Interp *interp,
 	HTAnchor *anchor = Tcl_GetHashValue(anchor_entry);
 	HTRequest *request = Tcl_GetHashValue(request_entry);
 	
-	BOOL result = HTSearchAnchor(keywords, anchor, request);
+	BOOL result = HTSearchString(keywords, anchor, request);
 	Tcl_AppendResult(interp, result ? "YES" : "NO", NULL);
 	return TCL_OK;
       }
@@ -1141,7 +1141,7 @@ int HTPutAnchor_tcl(ClientData clientData, Tcl_Interp *interp,
       Tcl_HashEntry *dest_entry =Tcl_FindHashEntry(&HTableAnchor, dest_key);
       Tcl_HashEntry *request_entry = Tcl_FindHashEntry(&HTableReq, request_key);
       if (source_entry && dest_entry && request_entry){
-	HTAnchor *source = Tcl_GetHashValue(source_entry);
+	HTParentAnchor *source = Tcl_GetHashValue(source_entry);
 	HTAnchor *dest = Tcl_GetHashValue(dest_entry);
 	HTRequest *request = Tcl_GetHashValue(request_entry);
 
@@ -1354,7 +1354,7 @@ int HTPutDocumentAnchor_tcl(ClientData clientData, Tcl_Interp *interp,
       Tcl_HashEntry *dest_entry =Tcl_FindHashEntry(&HTableAnchor, dest_key);
       Tcl_HashEntry *request_entry = Tcl_FindHashEntry(&HTableReq, request_key);
       if (source_entry && dest_entry && request_entry){
-	HTAnchor *source = Tcl_GetHashValue(source_entry);
+	HTParentAnchor *source = Tcl_GetHashValue(source_entry);
 	HTAnchor *dest = Tcl_GetHashValue(dest_entry);
 	HTRequest *request = Tcl_GetHashValue(request_entry);
 
@@ -1450,7 +1450,7 @@ int HTPostAnchor_tcl(ClientData clientData, Tcl_Interp *interp,
       Tcl_HashEntry *dest_entry =Tcl_FindHashEntry(&HTableAnchor, dest_key);
       Tcl_HashEntry *request_entry = Tcl_FindHashEntry(&HTableReq, request_key);
       if (source_entry && dest_entry && request_entry){
-	HTAnchor *source = Tcl_GetHashValue(source_entry);
+	HTParentAnchor *source = Tcl_GetHashValue(source_entry);
 	HTAnchor *dest = Tcl_GetHashValue(dest_entry);
 	HTRequest *request = Tcl_GetHashValue(request_entry);
 
@@ -1590,9 +1590,8 @@ int HTCopyAnchor_tcl (ClientData clientData, Tcl_Interp *interp,
     Tcl_AppendResult(interp, bad_vars, NULL);
     return TCL_ERROR;
   }
-  else {
-    Tcl_AppendResult(interp, err_string, NULL);
-  }
+  Tcl_AppendResult(interp, err_string, NULL);
+  return TCL_ERROR;
 }
 
 
@@ -1630,9 +1629,10 @@ int HTUploadAnchor_tcl (ClientData clientData, Tcl_Interp *interp,
     Tcl_AppendResult(interp, bad_vars, NULL);
     return TCL_ERROR;
   }
-  else {
-    Tcl_AppendResult(interp, err_string, NULL);
-  }
+
+  Tcl_AppendResult(interp, err_string, NULL);
+  return TCL_ERROR;
+
 }
 
 
@@ -1664,9 +1664,8 @@ int HTUpload_callback_tcl (ClientData clientData, Tcl_Interp *interp,
     Tcl_AppendResult(interp, bad_vars, NULL);
     return TCL_ERROR;
   }
-  else {
-    Tcl_AppendResult(interp, err_string, NULL);
-  }
+  Tcl_AppendResult(interp, err_string, NULL);
+  return TCL_ERROR;
 }
 
 

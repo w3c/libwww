@@ -220,7 +220,7 @@ Tcl_HashEntry *CreateNewProtocolEntry(char *name, char **final_keyname) {
   char *keyname = malloc(max_keyname);
   
   while (!new) {
-    sprintf(keyname, "%s_%d", new, id);
+    sprintf(keyname, "%s_%d", name, id);
     entryPtr = Tcl_CreateHashEntry(&HTableProt, keyname, &new);
     ++id;
   }

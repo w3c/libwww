@@ -1,5 +1,5 @@
 #include "HTLog_glue.h"
-
+#include "WWWApp.h"
 
 #define max_keyname 20
 

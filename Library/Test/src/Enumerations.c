@@ -115,6 +115,15 @@ char *HTPriority_names[] =
   NULL
 };
 
+char *HTURIEncoding_names[] = 
+{
+  "URL_XALPHAS", 
+  "URL_XPALPHAS",
+  "URL_PATH", 
+  NULL
+};
+
+
 /* ------------------------------------------------------------------ */
 /* ------------------------------------------------------------------ */
       
@@ -370,3 +379,16 @@ char *HTPriority_name(HTPriority priority) {
   else
     return *HTPriority_names;
 }
+
+
+HTURIEncoding HTURIEncoding_enum(char *name) {
+  if (name) {
+    if (!strcasecomp(name, *(HTURIEncoding_names+1) )) 
+      return URL_XPALPHAS;
+    if (!strcasecomp(name, *(HTURIEncoding_names+2) ) )
+      return URL_PATH;
+  }
+  return URL_XALPHAS;
+}
+
+

@@ -29,4 +29,8 @@ extern char * HTAlertOpcode_name(HTAlertOpcode opcode);
 
 extern HTAlertOpcode HTAlertOpcode_enum(char *name);
 
+extern HTURIEncoding HTURIEncoding_enum(char *name);
+
+
+
 

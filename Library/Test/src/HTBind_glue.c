@@ -57,10 +57,10 @@ int HTBind_caseSensitive_tcl(ClientData clientData, Tcl_Interp *interp,
 			       int argc, char **argv) {
     if (argc == 2) {
         int conversion;
-        BOOL *sensitive = malloc (sizeof(BOOL));
-        conversion = Tcl_GetBoolean(interp, argv[1], sensitive);
+        int sensitive;
+        conversion = Tcl_GetBoolean(interp, argv[1], &sensitive);
 	if (conversion == TCL_OK) {
-	  HTBind_caseSensitive(*sensitive);
+	  HTBind_caseSensitive( (BOOL) sensitive);
 	  return TCL_OK;
 	}
 	Tcl_AppendResult(interp, bad_vars, NULL);

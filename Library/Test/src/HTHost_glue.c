@@ -21,7 +21,6 @@ int HTHost_new_tcl(ClientData clientData, Tcl_Interp *interp,
   if (argc == 2) {
     char *name = argv[1];
     char *keyname;
-    int newPtr;
     if(name) {
       Tcl_HashEntry *host_entry;
       HTHost *host = HTHost_new(name);
@@ -86,10 +85,8 @@ int HTHost_setClass_tcl(ClientData clientData, Tcl_Interp *interp,
       return TCL_ERROR;
     }
   }
-  else {
-    Tcl_AppendResult(interp, err_string, argv[0], " HTHost", NULL);
-    return TCL_ERROR;
-  }
+  Tcl_AppendResult(interp, err_string, argv[0], " HTHost", NULL);
+  return TCL_ERROR;
 }
 
 
@@ -114,10 +111,8 @@ int HTHost_version_tcl(ClientData clientData, Tcl_Interp *interp,
       return TCL_ERROR;
     }
   }
-  else {
-    Tcl_AppendResult(interp, err_string, argv[0], " HTHost", NULL);
-    return TCL_ERROR;
-  }
+  Tcl_AppendResult(interp, err_string, argv[0], " HTHost", NULL);
+  return TCL_ERROR;
 }
 
 
@@ -145,10 +140,9 @@ int HTHost_setVersion_tcl(ClientData clientData, Tcl_Interp *interp,
       return TCL_ERROR;
     }
   }
-  else {
-    Tcl_AppendResult(interp, err_string, argv[0], " HTHost", NULL);
-    return TCL_ERROR;
-  }
+
+  Tcl_AppendResult(interp, err_string, argv[0], " HTHost", NULL);
+  return TCL_ERROR;
 }
 
 
@@ -179,10 +173,9 @@ int HTHost_setChannel_tcl(ClientData clientData, Tcl_Interp *interp,
       return TCL_ERROR;
     }
   }
-  else {
-    Tcl_AppendResult(interp, err_string, argv[0], " HTHost", NULL);
-    return TCL_ERROR;
-  }
+  Tcl_AppendResult(interp, err_string, argv[0], " HTHost", NULL);
+  return TCL_ERROR;
+
 }
 
 
@@ -205,10 +198,10 @@ int HTHost_clearChannel_tcl(ClientData clientData, Tcl_Interp *interp,
       return TCL_ERROR;
     }
   }
-  else {
-    Tcl_AppendResult(interp, err_string, argv[0], " HTHost", NULL);
-    return TCL_ERROR;
-  }
+
+  Tcl_AppendResult(interp, err_string, argv[0], " HTHost", NULL);
+  return TCL_ERROR;
+  
 }
 
 
@@ -241,10 +234,10 @@ int HTHost_channel_tcl(ClientData clientData, Tcl_Interp *interp,
       return TCL_ERROR;
     }
   }
-  else {
-    Tcl_AppendResult(interp, err_string, argv[0], " HTHost", NULL);
-    return TCL_ERROR;
-  }
+  
+  Tcl_AppendResult(interp, err_string, argv[0], " HTHost", NULL);
+  return TCL_ERROR;
+  
 }
 
 
@@ -270,10 +263,10 @@ int HTHost_isPersistent_tcl(ClientData clientData, Tcl_Interp *interp,
       return TCL_ERROR;
     }
   }
-  else {
-    Tcl_AppendResult(interp, err_string, argv[0], " HTHost", NULL);
-    return TCL_ERROR;
-  }
+
+  Tcl_AppendResult(interp, err_string, argv[0], " HTHost", NULL);
+  return TCL_ERROR;
+
 }
 
 
@@ -296,7 +289,7 @@ int HTHost_persistTimeout_tcl(ClientData clientData, Tcl_Interp *interp,
 	timeout = (time_t) *time_storage;
 	time_output = HTHost_persistTimeout(timeout);
 	result = malloc(sizeof(time_output));
-	sprintf(result, "%d", time_output);
+	sprintf(result, "%d", (int) time_output);
 	Tcl_AppendResult(interp, result, NULL);
 	return TCL_OK;
       }
@@ -304,9 +297,9 @@ int HTHost_persistTimeout_tcl(ClientData clientData, Tcl_Interp *interp,
     Tcl_AppendResult(interp, bad_vars, NULL);
     return TCL_ERROR;
   }
-  else {
-    Tcl_AppendResult(interp, err_string, NULL);
-  }
+
+  Tcl_AppendResult(interp, err_string, NULL);
+  return TCL_ERROR;
 }
 
 
@@ -333,9 +326,9 @@ int HTHost_setPersistTimeout_tcl(ClientData clientData, Tcl_Interp *interp,
     Tcl_AppendResult(interp, bad_vars, NULL);
     return TCL_ERROR;
   }
-  else {
-    Tcl_AppendResult(interp, err_string, NULL);
-  }
+ 
+  Tcl_AppendResult(interp, err_string, NULL);
+  return TCL_ERROR;
 }
 
 
@@ -370,9 +363,9 @@ int HTHost_setPersistExpires_tcl(ClientData clientData, Tcl_Interp *interp,
     Tcl_AppendResult(interp, bad_vars, NULL);
     return TCL_ERROR;
   }
-  else {
-    Tcl_AppendResult(interp, err_string, NULL);
-  }
+
+  Tcl_AppendResult(interp, err_string, NULL);
+  return TCL_ERROR;
 }
 
 
@@ -397,7 +390,7 @@ int HTHost_persistExpires_tcl(ClientData clientData, Tcl_Interp *interp,
 
 	result_time = HTHost_persistExpires(host);
 	result = malloc(sizeof(result_time));
-	sprintf(result, "%d", result_time);
+	sprintf(result, "%d", (int) result_time);
 	
 	Tcl_AppendResult(interp, result, NULL);
 	return TCL_OK;
@@ -406,9 +399,9 @@ int HTHost_persistExpires_tcl(ClientData clientData, Tcl_Interp *interp,
     Tcl_AppendResult(interp, bad_vars, NULL);
     return TCL_ERROR;
   }
-  else {
-    Tcl_AppendResult(interp, err_string, NULL);
-  }
+
+  Tcl_AppendResult(interp, err_string, NULL);
+  return TCL_ERROR;
 }
 
 
@@ -427,6 +420,22 @@ int HTHost_catchClose_tcl(ClientData clientData, Tcl_Interp *interp,
     SOCKET soc 
 
     */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

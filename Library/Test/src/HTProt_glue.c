@@ -21,7 +21,7 @@ int HTProtocol_add_tcl(ClientData clientData, Tcl_Interp *interp,
   if (argc == 6) {
     const char *name = argv[1];
     const char *transport = argv[2];
-    BOOL preemptive;
+    int preemptive;
     int conversion_success = Tcl_GetBoolean(interp, argv[3], &preemptive);
     char *client_keyname = argv[4];
     char *server_keyname = argv[5];
@@ -36,8 +36,8 @@ int HTProtocol_add_tcl(ClientData clientData, Tcl_Interp *interp,
       if(client_entry && server_entry){
 	HTEventCallback *client = Tcl_GetHashValue(client_entry);
 	HTEventCallback *server = Tcl_GetHashValue(server_entry);
-	BOOL result = HTProtocol_add(name, transport, preemptive, client, 
-				     server);
+	BOOL result = HTProtocol_add(name, transport, (BOOL) preemptive, 
+				     client, server);
 
 	Tcl_AppendResult(interp, result ? "YES" : "NO", NULL);
 	return TCL_OK;

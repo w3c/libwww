@@ -63,13 +63,12 @@ int HTAlertCall_add_tcl(ClientData clientData, Tcl_Interp *interp,
       Tcl_HashEntry *list_entry = Tcl_FindHashEntry(&HTableList, list_key);
       Tcl_HashEntry *cbf_entry = Tcl_FindHashEntry(&HTableAlertCallback, 
 						   cbf_key);
-      HTAlertOpcode opcode = HTAlertOpcode_enum(opcode_name);
+      /*HTAlertOpcode opcode = HTAlertOpcode_enum(opcode_name);*/
       
       if (list_entry && cbf_entry) {
-	HTList *list = Tcl_GetHashValue(list_entry);
-	HTAlertCallback *cbf = Tcl_GetHashValue(cbf_entry);
-
-	/*	
+      /*	HTList *list = Tcl_GetHashValue(list_entry);
+		HTAlertCallback *cbf = Tcl_GetHashValue(cbf_entry);
+	
 		BOOL result = HTAlertcall_add(list, cbf, opcode);
 		Tcl_AppendResult(interp, result ? "YES" : "NO", NULL);
 
@@ -97,11 +96,11 @@ int HTAlertCall_delete_tcl(ClientData clientData, Tcl_Interp *interp,
       Tcl_HashEntry *cbf_entry = Tcl_FindHashEntry(&HTableAlertCallback, 
 						   cbf_key);
       if (list_entry && cbf_entry) {
-	HTList *list = Tcl_GetHashValue(list_entry);
-	HTAlertCallback *cbf = Tcl_GetHashValue(cbf_entry);
-	/*	
-	BOOL result = HTAlertcall_delete(list, cbf);
-	Tcl_AppendResult(interp, result ? "YES" : "NO", NULL);
+	/*HTList *list = Tcl_GetHashValue(list_entry);
+	  HTAlertCallback *cbf = Tcl_GetHashValue(cbf_entry);
+      	
+	  BOOL result = HTAlertcall_delete(list, cbf);
+	  Tcl_AppendResult(interp, result ? "YES" : "NO", NULL);
 	*/
 	return TCL_OK;
       }
@@ -125,10 +124,11 @@ int HTAlertCall_deleteAll_tcl(ClientData clientData, Tcl_Interp *interp,
       Tcl_HashEntry *list_entry = Tcl_FindHashEntry(&HTableList, list_key);
       
       if (list_entry) {
-	HTList *list = Tcl_GetHashValue(list_entry);
-	/*	
-	BOOL result = HTAlertcall_deleteAll(list);
-	Tcl_AppendResult(interp, result ? "YES" : "NO", NULL);
+	/*
+	  HTList *list = Tcl_GetHashValue(list_entry);
+	
+	  BOOL result = HTAlertcall_deleteAll(list);
+	  Tcl_AppendResult(interp, result ? "YES" : "NO", NULL);
 	*/
 	return TCL_OK;
       }
