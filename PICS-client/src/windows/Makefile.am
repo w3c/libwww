@@ -12,7 +12,6 @@ BUILT_SOURCES = \
 	pics.def	picslist.txt
 
 EXTRA_DIST = \
-	wwwdll.def \
 	$(SRC) \
 	$(MAK) \
 	$(PL)
@@ -20,7 +19,7 @@ EXTRA_DIST = \
 .files.def:
 	../../../config/makedefs.pl @ < $(srcdir)/$(*F).files > $(srcdir)/$(*F).def
 
-wwwlist.txt:
+picslist.txt:
 	ls -1 ../*.c | sed -e s=\.\./==1 | ../../../config/makedefs.pl @ > picslist.txt
 
 
