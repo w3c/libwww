@@ -87,7 +87,7 @@ PUBLIC void HTThreadStateByRequest ARGS2(HTRequest *, request,
 **  LibraryCallback - "glue" between 3.0 thread code and new callback functions
 **  map return codes into a simple yes/no model. 
 */
-int LibraryCallback( SOCKET s, HTRequest * rq, SockOps f)
+PRIVATE int LibraryCallback ARGS3(SOCKET, s, HTRequest *, rq, SockOps, f)
 {
     int status = 0 ;
     HTEventState state ;
