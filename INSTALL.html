@@ -44,11 +44,21 @@ which is a Win32 port of the popular GNU development tools for Windows NT,
 95, and 98 which allows us to use <A HREF="#Unix">autoconf, automake, and
 libtool</A>.
 <P>
-You can find some options determining how libwww is going to be compiled
-in the special <A HREF="Library/src/windows/config.h">windows config.h
-file</A>. Libwww can work with <A HREF="Library/External/">several external
-software packages</A> of which <A HREF="Library/External/">some you get by
-default</A>. Here is the current list:
+Vladimir Kozlov provides <A HREF="http://www.idm.ru/libwww.htm">fresh binaries
+for wintel</A> and you can also get my
+<A HREF="Library/Distribution/libwww-win32.zip">MSVC makefiles to play with</A>
+(<A HREF="Library/Distribution/libwww-win32.zip.sig">PGP signature</A>) which
+I try to keep up with the <A HREF="Library/cvs.html">latest CVS sourcetree</A>.
+Just unzip them on top of your checked out tree and compile using nmake,
+for example.
+<P>
+You can configure libwww in <A HREF="Library/src/windows/config.h">windows
+config.h</A> and if you are interested in the details of how we build libwww
+on Windows then please read the documentation on
+<A HREF="Library/User/Platform/WinDLL.html">how to install on Windows</A>.
+Libwww can work with <A HREF="Library/External/">several external software
+packages</A> of which <A HREF="Library/External/">some you get by default</A>.
+Here is the current list:
 <H3>
   Zlib Support
 </H3>
@@ -137,9 +147,6 @@ and compile them in the order below.
   Detailed Installation
 </H3>
 <P>
-If you are interested in the details of how we build libwww on windows then
-please continue by reading the special documentation on
-<A HREF="Library/User/Platform/WinDLL.html">how to install on Windows</A>.
 <H2>
   <A NAME="Unix">Building on Unix and in the Cygwin Environment</A>
 </H2>
