@@ -661,6 +661,10 @@ typedef unsigned short mode_t;
 #ifndef WEXITSTATUS
 #define WEXITSTATUS(s) (((s).w_status &gt;&gt; 8) &amp; 0377)
 #endif
+
+#ifndef O_NONBLOCK
+#define O_NONBLOCK	O_NDELAY
+#endif
 </PRE>
 
 <H3>File Permissions for NeXT</H3>

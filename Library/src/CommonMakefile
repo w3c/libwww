@@ -96,8 +96,8 @@ CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTFile.c \
 	$(CMN)HTUU.c $(CMN)HTTeXGen.c \
 	$(CMN)HTDirBrw.c $(CMN)HTDescript.c $(CMN)HTGuess.c \
 	$(CMN)HTIcons.c $(CMN)HTError.c $(CMN)HTErrorMsg.c \
-	$(CMN)/HTTP.c $(CMN)/HTThread.c $(CMN)/HTEvent.c \
-	$(CMN)/HTEscape.c
+	$(CMN)HTTP.c $(CMN)HTThread.c $(CMN)HTEvent.c \
+	$(CMN)HTEscape.c
 
 HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h $(CMN)HTFile.h \
 	$(CMN)HTMulti.h $(CMN)HTBTree.h $(CMN)HTFTP.h $(CMN)HTTCP.h \
@@ -122,7 +122,7 @@ HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h $(CMN)HTFile.h \
 	$(CMN)HTEscape.h
 
 SOURCES = $(CFILES) $(HFILES) \
-	$(CMN)Version.make $(CMN)CommonMakefile $(CMN)Makefile \
+	$(CMN)Version.make $(CMN)CommonMakefile $(CMN)Makefile $(CMN)README \
 	$(WWW)/README $(WWW)/COPYRIGH \
 	$(WWW)/BUILD $(WWW)/BUILD.SH $(WWW)/Makefile
 
