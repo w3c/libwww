@@ -29,6 +29,11 @@
 **    Jun 2000 JKO      Changed the buffer size for HTUU_encode in order
 **                      to avoid a potential SIGSEV when calling that 
 **                      function (as advised by Heiner Kallweit).
+**    Mar 2001 JKO      When doing pipelining digest requests, the stale
+**                      nonce reply appears only for one of such requests,
+**                      all the following ones in the pipe will receive a 
+**                      401. I added some code to take into account these cases
+**                      by trying to infer if a nonce is stale. 
 **
 */
 
@@ -864,6 +869,27 @@ PUBLIC int HTDigest_generate (HTRequest * request, void * context, int mode)
     return HT_OK;
 }
 
+/*
+**	Evaluates the existing authentication info (nonce, uid, pwd) and
+**      returns TRUE if we evaluate that the nonce is stale, FALSE
+**      otherwise.
+*/
+PRIVATE BOOL nonce_is_stale (HTRequest *request, HTDigest * digest, char * old_nonce)
+{
+  if (!digest->uid || !digest->pw)
+      return FALSE;
+  if (!digest->nonce || !old_nonce)
+     return FALSE;
+  if (strcmp (digest->nonce, old_nonce))
+     return TRUE;
+  /* because of a pipelining implementation bug, we don't send any good
+     credentials on requests following the first one in the pipeline  */
+  if (!HTRequest_credentials (request) && HTRequest_AAretrys (request) == 1)
+     return TRUE;
+  
+  return FALSE;
+}
+
 /*	HTDigest_parse
 **	-------------
 **	This function parses the contents of a "digest" challenge 
@@ -885,6 +911,9 @@ PUBLIC int HTDigest_parse (HTRequest * request, HTResponse * response,
 	char * value = NULL;
 	char * token = NULL;
 	char * uris = NULL;
+	/* the value of the previous nonce in case the server has changed its
+	   challenge */
+	char * old_nonce = NULL;
 
 	/*
 	** If valid challenge then make a template for the resource and
@@ -932,6 +961,8 @@ PUBLIC int HTDigest_parse (HTRequest * request, HTResponse * response,
 	    /* it's an old digest, so we clean all in it except for the
 	       uid and the password, hoping that the server send back
 	       that data */
+	    old_nonce = digest->nonce;
+	    digest->nonce = NULL;
 	    HTDigest_reset (digest);
 	} else {
 	    /* it's a brand new digest */
@@ -963,7 +994,6 @@ PUBLIC int HTDigest_parse (HTRequest * request, HTResponse * response,
 		    /* only true if we already had a digest with uid and pw info */
 		    if (digest->uid && digest->pw) {
 			digest->stale = YES;		
-			digest->retry = NO;
 		    }
 		}
 	    } else if (!strcasecomp(token, "algorithm")) {
@@ -973,14 +1003,33 @@ PUBLIC int HTDigest_parse (HTRequest * request, HTResponse * response,
 		    */
 		    HTTRACE(AUTH_TRACE, "Digest Parse Unknown algorithm `%s\'\n" _ value);
 		    HTDigest_delete(digest);
+		    if (old_nonce)
+		      HT_FREE (old_nonce);
 		    return HT_ERROR;
 		} else
 		    digest->algorithm = HTDaMD5;
 	    }
 	}
-	
-	if (digest->stale)
+
+	/* Pipelining support. If a nonce becomes stale When sending 
+	** several requests thru the pipeline, we may miss the stale
+	** reply in the server's answer. To avoid this, we keep a copy
+	** of the nonce in each request. If the nonce wasn't explicitly
+	** marked stale and if it's the same that we sent, then we 
+	** consider that the uid/pwd pairs were false. Otherwise, we
+	** assume the stole went stale before 
+	*/
+	if (!digest->stale && nonce_is_stale (request, digest, old_nonce))
+	    digest->stale = YES;
+
+	if (old_nonce)
+	  HT_FREE (old_nonce);
+
+	if (digest->stale) {
+	    digest->stale = NO;
+	    digest->retry = NO;
 	    return HT_OK;
+	}
 	else if (digest->uid || digest->pw) {
 	    /*
 	    ** For some reason there was no stale nonce header and the
@@ -1049,17 +1098,3 @@ PUBLIC int HTDigest_parse (HTRequest * request, HTResponse * response,
     HTTRACE(AUTH_TRACE, "Auth........ No challenges found\n");
     return HT_ERROR;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

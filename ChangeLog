@@ -1,5 +1,17 @@
 Changes with libwww 5.3.3
+	
+2001-03-14	Jose Kahan <jose@w3.org>
 
+	* Digest authentication didn't work well with pipelining requests.
+	  Only one of such requests got the stale nonce. The other 401
+	  were being re-interpreted as if the user had given a wrong
+	  login name or password. To fix this, we try to infer a stale 
+	  nonce if the previous nonce and the new one sent by the server
+	  are different and a wrong login name/password if they are the
+	  same. The patch is in HTAABrow.c. 
+	  I also added a second bug fix in the same patch as not all 
+	  pipelined requests seem to go thru the first authentication filter.
+	
 2001-03-09	Jose Kahan <jose@w3.org>
 
 	* Digest authentication wasn't being compiled by default in Win32
