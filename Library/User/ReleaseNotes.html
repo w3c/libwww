@@ -27,6 +27,11 @@ as many people had started to refer to the previous release as 5.3.0.</p>
 <ul>
 <li>What's new
 <ul>
+    <li>Art Barstow (barstow@w3.org): fixed a bug with the handling of 
+        parseType="Literal" by the RDF parser.  None of the elements 
+        [and attributes if there were any] were added to the literal. 
+        The only string that was added to the literal was the elements' 
+        content (aka CDATA).</li>
     <li>Changed the Makefile so that .html-&gt;.h file conversion will only be
       done with Perl. This is faster than using the www tool.</li>
     <li>Updated the latest autoconf, automake, and libtools scripts. Now using
