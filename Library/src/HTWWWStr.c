@@ -166,6 +166,50 @@ PUBLIC char * HTNextPair (char ** pstr)
     return start;
 }
 
+/*	Find next Name-value param
+**	--------------------------
+**	This is the same as HTNextPair but doesn't look for ','
+**	Returns	a pointer to the first word or NULL on error
+*/
+PUBLIC char * HTNextParam (char ** pstr)
+{
+    char * p = *pstr;
+    char * start = NULL;
+    if (!pstr || !*pstr) return NULL;
+    while (1) {
+	/* Strip white space and other delimiters */
+	while (*p && *p==';') p++;
+	if (!*p) {
+	    *pstr = p;
+	    return NULL;				   	 /* No field */
+	}
+
+	if (*p == '"') {				     /* quoted field */
+	    start = ++p;
+	    for(;*p && *p!='"'; p++)
+		if (*p == '\\' && *(p+1)) p++;	       /* Skip escaped chars */
+	    break;			    /* kr95-10-9: needs to stop here */
+	} else if (*p == '<') {				     /* quoted field */
+	    start = ++p;
+	    for(;*p && *p!='>'; p++)
+		if (*p == '\\' && *(p+1)) p++;	       /* Skip escaped chars */
+	    break;			    /* kr95-10-9: needs to stop here */
+	} else if (*p == '(') {					  /* Comment */
+	    for(;*p && *p!=')'; p++)
+		if (*p == '\\' && *(p+1)) p++;	       /* Skip escaped chars */
+	    p++;
+	} else {					      /* Spool field */
+	    start = p;
+	    while (*p && *p!=';')
+		p++;
+	    break;						   /* Got it */
+	}
+    }
+    if (*p) *p++ = '\0';
+    *pstr = p;
+    return start;
+}
+
 /*	Find next element in a comma separated string
 **	---------------------------------------------
 **	This is the same as HTNextPair but it does not look for anything

@@ -60,6 +60,16 @@ Returns a pointer to the first word or NULL on error
 extern char * HTNextPair (char ** pstr);
 </PRE>
 <H3>
+  Next Name-value Parameter
+</H3>
+<P>
+This is the same as <CODE>HTNextPair</CODE> but it does not look for ','
+as a separator so if there is a name-value pair then both parts are returned.
+Returns a pointer to the first word or NULL on error
+<PRE>
+extern char * HTNextParam (char ** pstr);
+</PRE>
+<H3>
   Next LWS Delimited Token
 </H3>
 <P>
