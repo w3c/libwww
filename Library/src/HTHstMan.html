@@ -44,7 +44,8 @@ typedef enum _TCPState {
     TCP_NEED_SOCKET,
     TCP_NEED_BIND,
     TCP_NEED_LISTEN,
-    TCP_NEED_CONNECT
+    TCP_NEED_CONNECT,
+    TCP_IN_USE
 } TCPState;
 
 struct _HTHost {
@@ -63,6 +64,8 @@ struct _HTHost {
 
     /* When does this entry expire? */
     time_t		expires;	  /* Persistent channel expires time */
+    int			reqsPerConnection;	  /* from Keep-Alive: header */
+    int			reqsMade;		 /* updated as they are sent */
 
     /* Queuing and connection modes */
     HTList *		pipeline;		 /* Pipe line of net objects */

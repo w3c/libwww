@@ -28,7 +28,7 @@ PRIVATE int MemLogTimeout (HTTimer * timer, void * param, HTEventType type)
 {
     int ret;
  
-    HTTrace("MemLog...... flushing on timeout\n");
+    if (PROT_TRACE) HTTrace("MemLog...... flushing on timeout\n");
     ret = HTMemLog_flush();
 
 #if 0

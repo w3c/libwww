@@ -188,22 +188,21 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
     char * hostname = HTHost_name(me);
 
     /* Jump into the state machine */
-    if (!me)
-	goto tcp_begin;
+    if (!me) {
+	char * proxy = HTRequest_proxy(request);
+	HTProtocol * protocol = HTNet_protocol(net);
+
+	/* Check to see whether we connect directly or via a proxy */
+	if ((me = HTHost_newWParse(request, proxy ? proxy : url, 
+				   HTProtocol_id(protocol))) == NULL)
+	    return NO;
+
+	net->host = me;
+    }
     while (1) {
 	switch (me->tcpstate) {
-	  tcp_begin:
 	  case TCP_BEGIN:
 	  {
-	      char * proxy = HTRequest_proxy(request);
-	      HTProtocol * protocol = HTNet_protocol(net);
-
-	      /* Check to see whether we connect directly or via a proxy */
-	      if ((net->host = HTHost_newWParse(request, proxy ? proxy : url, 
-						HTProtocol_id(protocol))) == NULL)
-		  return NO;
-	      me = net->host;
-
 	      /*
 	      ** Add the net object to the host object found above. If the
 	      ** host is idle then we can start the request right away,
@@ -377,10 +376,20 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 		HTDNS_updateWeigths(me->dns, me->home, me->connecttime);
 	    }
 	    retry = 0;
-	    me->tcpstate = TCP_BEGIN;
+	    me->tcpstate = TCP_IN_USE;
 	    if (PROT_TRACE) HTTrace(HTHIDE("HTHost %p connected.\n"), me);
 	    return HT_OK;
 	    break;
+
+	  /* once a host is connected, subsequent connections are immediately OK */
+	  case TCP_IN_USE:
+	      if ((status = HTHost_addNet(net->host, net)) == HT_PENDING) {
+		  if (PROT_TRACE) HTTrace("HTDoConnect. Pending...\n");
+		  return HT_PENDING;
+	      }
+
+	      HTChannel_upSemaphore(me->channel);
+	      return HT_OK;
 
 	  case TCP_NEED_BIND:
 	  case TCP_NEED_LISTEN:

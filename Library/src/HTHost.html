@@ -227,6 +227,10 @@ own timeout.
 <PRE>
 extern void HTHost_setPersistExpires (HTHost * host, time_t expires);
 extern time_t HTHost_persistExpires (HTHost * host);
+extern void HTHost_setReqsPerConnection (HTHost * host, int reqs);
+extern int HTHost_reqsPerConnection (HTHost * host);
+extern void HTHost_setReqsMade (HTHost * host, int reqs);
+extern int HTHost_reqsMade (HTHost * host);
 </PRE>
 <H2>
   Queuing Requests

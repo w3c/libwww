@@ -458,8 +458,9 @@ PUBLIC int HTEventList_unregister(SOCKET s, HTEventType type)
       	    if (THD_TRACE)
 		HTTrace("Event....... Socket %d unregisterd for %s\n", s, HTEvent_type2str(type));
 	    /*
-	    **	stay in loop to finish checking list for max socket
+	    **	stay in loop to finish checking list for max socket if not at end
 	    */
+	    if (!cur) break;
 	}
 	last = cur;
 #ifndef WWW_WIN_ASYNC

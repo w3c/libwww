@@ -131,7 +131,7 @@ PRIVATE int HostEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    char buf[256];
 	    int ret;
 	    while ((ret = NETREAD(HTChannel_socket(host->channel), buf, sizeof(buf))) > 0)
-		HTTrace(HTHIDE("Host %s had %d extraneous bytes.\n"));
+		HTTrace(HTHIDE("Host Event.. Host %s had %d extraneous bytes.\n"), host->hostname, ret);
 	}
 	HTHost_clearChannel(host, HT_OK);
 	return HT_OK; /* extra garbage does not constitute an application error */
@@ -407,6 +407,27 @@ PUBLIC time_t HTHost_persistExpires (HTHost * host)
     return host ? host->expires : -1;
 }
 
+PUBLIC void HTHost_setReqsPerConnection (HTHost * host, int reqs)
+{
+    if (host) host->reqsPerConnection = reqs;
+}
+
+PUBLIC int HTHost_reqsPerConnection (HTHost * host)
+{
+    return host ? host->reqsPerConnection : -1;
+}
+
+PUBLIC void HTHost_setReqsMade (HTHost * host, int reqs)
+{
+    if (host) host->reqsMade = reqs;
+}
+
+PUBLIC int HTHost_reqsMade (HTHost * host)
+{
+    return host ? host->reqsMade : -1;
+}
+
+
 /*
 **	Public methods for this host
 */
@@ -621,6 +642,8 @@ PUBLIC BOOL HTHost_clearChannel (HTHost * host, int status)
 	HTChannel_delete(host->channel, status);
 	host->expires = 0;	
 	host->channel = NULL;
+	host->tcpstate = TCP_BEGIN;
+	host->reqsMade = 0;
 	HTNet_decreasePersistentSocket();
 	if (CORE_TRACE)
 	    HTTrace("Host info... removed host %p as persistent\n", host);
@@ -734,6 +757,8 @@ PRIVATE BOOL _roomInPipe (HTHost * host)
 {
     int count;
     if (!host) return NO;
+    if (host->reqsPerConnection && host->reqsMade >= host->reqsPerConnection)
+	return 0;
     count = HTList_count(host->pipeline);
     switch (host->mode) {
     case HT_TP_SINGLE:
@@ -814,6 +839,7 @@ PUBLIC BOOL HTHost_free (HTHost * host, int status)
 	HTChannel_downSemaphore(host->channel);
 	HTChannel_delete(host->channel, status);
 	host->channel = NULL;
+	host->tcpstate = TCP_BEGIN;
     }
     return YES;
 }
@@ -854,7 +880,7 @@ PUBLIC HTNet * HTHost_nextPendingNet (HTHost * host)
 	if ((net = (HTNet *) HTList_removeFirstObject(host->pending)) != NULL) {
 	  if (PROT_TRACE)
 	      HTTrace("Host info... Popping %p from pending net queue\n", net);
-	  HTList_addObject(host->pipeline, net);
+/*	  HTList_addObject(host->pipeline, net); */
 	}
     }
     return net;
@@ -947,8 +973,10 @@ PUBLIC int HTHost_connect (HTHost * host, HTNet * net, char * url, HTProtocolId 
 	return HT_OK;
 */
     status = HTDoConnect(net, url, port);
-    if (status == HT_OK)
+    if (status == HT_OK) {
+	HTNet_host(net)->reqsMade++;	/* @@@ - what if there's a connect but no req sent? */
 	return HT_OK;
+    }
     if (status == HT_WOULD_BLOCK || status == HT_PENDING)
 	return HT_WOULD_BLOCK;
     return HT_ERROR; /* @@@ - some more deletion and stuff here? */

@@ -339,7 +339,7 @@ PUBLIC void HTMIMEInit (void)
 	{"content-transfer-encoding", &HTMIME_contentTransferEncoding}, 
 	{"content-type", &HTMIME_contentType},
 	{"digest-MessageDigest", &HTMIME_messageDigest}, 
-	{"keep-alive", NULL}, 
+	{"keep-alive", &HTMIME_keepAlive}, 
 	{"link", &HTMIME_link},
 	{"location", &HTMIME_location},
 	{"max-forwards", &HTMIME_maxForwards}, 

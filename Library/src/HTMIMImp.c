@@ -214,6 +214,43 @@ PUBLIC int HTMIME_contentType (HTRequest * request, HTResponse * response,
     return HT_OK;
 }
 
+PUBLIC int HTFindInt(char * haystack, char * needle, int deflt)
+{
+    char * start = strstr(haystack, needle);
+    int value = deflt;
+    if (start != NULL) {
+	start += strlen(needle);
+	while isspace(*start) start++;
+	if (isdigit(*start)) {
+	    char * end = start + 1;
+	    char save;
+	    while (isdigit(*end)) end++;
+	    save = *end;
+	    *end = 0;
+	    value = atoi(start);
+	    *end = save;
+	}
+    }
+    return value;
+}
+
+/* Keep-Alive: timeout=100, max=50
+ */
+PUBLIC int HTMIME_keepAlive (HTRequest * request, HTResponse * response,
+			     char * token, char * value)
+{
+    if (value) {
+	HTNet * net = HTRequest_net(request);
+	HTHost * host = HTNet_host(net);
+	HTHost_setReqsPerConnection(host, HTFindInt(value, "max=", 0));
+	/* Should one of these be set? Neither are called in Library.
+	**  PUBLIC void HTHost_setPersistTimeout (time_t timeout)
+	**  PUBLIC void HTHost_setPersistExpires (HTHost * host, time_t expires)
+	*/
+    }
+    return HT_OK;
+}
+
 PUBLIC int HTMIME_link (HTRequest * request, HTResponse * response,
 			char * token, char * value)
 {
