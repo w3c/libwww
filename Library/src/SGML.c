@@ -294,9 +294,17 @@ PUBLIC void SGML_free  ARGS1(HTStream *, context)
 {
     int cnt;
 
+    while (context->element_stack) {    /* Make sure, that all tags are gone */
+	HTElement *ptr = context->element_stack;
+
+	if(TRACE) fprintf(stderr, "SGML: Non-matched tag found: <%s>\n",
+			  context->element_stack->tag->name);
+	context->element_stack = ptr->next;
+	free(ptr);
+    }
     (*context->actions->free)(context->target);
     HTChunkFree(context->string);
-    for(cnt=0; cnt<MAX_ATTRIBUTES; cnt++)      	/* Leak fix Henrik 18/02-94 */
+    for(cnt=0; cnt<MAX_ATTRIBUTES; cnt++)      	 /* Leak fix Henrik 18/02-94 */
 	if(context->value[cnt])
 	    free(context->value[cnt]);
     free(context);
@@ -306,6 +314,14 @@ PUBLIC void SGML_abort  ARGS2(HTStream *, context, HTError, e)
 {
     int cnt;
 
+    while (context->element_stack) {    /* Make sure, that all tags are gone */
+	HTElement *ptr = context->element_stack;
+
+	if(TRACE) fprintf(stderr, "SGML: Non-matched tag found: <%s>\n",
+			  context->element_stack->tag->name);
+	context->element_stack = ptr->next;
+	free(ptr);
+    }
     (*context->actions->abort)(context->target, e);
     HTChunkFree(context->string);
     for(cnt=0; cnt<MAX_ATTRIBUTES; cnt++)      	/* Leak fix Henrik 18/02-94 */

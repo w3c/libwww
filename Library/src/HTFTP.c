@@ -180,7 +180,11 @@ PRIVATE int close_connection(con)
 {
     connection * scan;
     int status = NETCLOSE(con->socket);
-    HTInputSocket_free(con->isoc);
+    
+    if(con->isoc) {
+	HTInputSocket_free(con->isoc);
+	con->isoc = NULL;
+    }
     if (TRACE) fprintf(stderr, "FTP: Closing control socket %d\n", con->socket);
     if (connections==con) {
         connections = con->next;
@@ -379,7 +383,7 @@ PRIVATE int get_connection ARGS1 (CONST char *,arg)
 */      
     {
         int status;
-	connection * con = (connection *)malloc(sizeof(*con));
+	connection * con = (connection *)calloc(1, sizeof(*con));
 	if (con == NULL) outofmem(__FILE__, "get_connection");
 	con->addr = sin->sin_addr.s_addr;	/* save it */
 	con->binary = NO;

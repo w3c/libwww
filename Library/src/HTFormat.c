@@ -402,7 +402,7 @@ PUBLIC BOOL HTRank ARGS4(HTList *, possibilities,
 */
 PUBLIC HTInputSocket * HTInputSocket_new ARGS1 (int,file_number)
 {
-    HTInputSocket *isoc = (HTInputSocket *)malloc(sizeof(*isoc));
+    HTInputSocket *isoc = (HTInputSocket *)calloc(1, sizeof(*isoc));
     if (!isoc) outofmem(__FILE__, "HTInputSocket_new");
     isoc->input_file_number = file_number;
     isoc->input_pointer = isoc->input_limit = isoc->input_buffer;
@@ -577,9 +577,6 @@ PRIVATE char * get_some_line ARGS2(HTInputSocket *,	isoc,
 		} /* if not CR */
 	    } /* while characters in buffer remain */
 	} /* until line read or end-of-file */
-
-	if(line)		/* Leak fix Henrik 18/02-94 */
-	    free(line);
     } /* valid parameters to function */
 }
 

@@ -150,8 +150,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
     CONST char* gate = 0;		/* disable this feature */
     SockA soc_address;			/* Binary network address */
     SockA * sin = &soc_address;
-    BOOL extensions = YES;		/* Assume good HTTP server 
-    char * cache_file_name = NULL;
+    BOOL extensions = YES;		/* Assume good HTTP server */
 
     if (HTImProxy) HTProxyBytes = 0;
 
@@ -354,7 +353,6 @@ fprintf(stderr, " ** DEBUG: arg=\"%s\" p1=\"%s\" command=\"%s\"\n",
 **	conversion from ASCII may lose information) in case it turns
 **	out that we want the binary original.
 */
-
     if (HTImProxy) {
 
 	/*

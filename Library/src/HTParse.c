@@ -300,11 +300,14 @@ PRIVATE void ari_strcpy ARGS2(char *, to,
 */
 PUBLIC void HTSimplify ARGS1(char *, filename)
 {
-    char * p;
+    char * p = filename;
     char * q;
-    if (filename && filename[0] && filename[1])
-     for(p=filename+2; *p; p++) {
-	if (*p=='/') {
+    
+    if (p) {
+	while (*p && (*p == '/' || *p == '.'))     /* Pass starting / or .'s */
+	    p++;
+	while(*p) {
+	    if (*p=='/') {
 	    if ((p[1]=='.') && (p[2]=='.') && (p[3]=='/' || !p[3] )) {
 		for (q=p-1; (q>=filename) && (*q!='/'); q--); /* prev slash */
 		if (q[0]=='/' && 0!=strncmp(q, "/../", 4)
@@ -325,8 +328,10 @@ PUBLIC void HTSimplify ARGS1(char *, filename)
 		    ari_strcpy(p, p+1);	/* Remove multiple slashes */
 		}
 	    }
-	}
-    }
+	    }
+	    p++;
+	}  /* end while (*p) */
+    } /* end if (p) */
 }
 
 

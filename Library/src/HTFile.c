@@ -1426,6 +1426,7 @@ open_file:
 		fclose(fp);
 		return HT_LOADED;
 	    }  /* If succesfull open */
+	    FREE(localname);		/* If error in fopen */
 	}    /* scope of fp */
     }  /* local unix file system */    
 #endif
@@ -1448,7 +1449,6 @@ open_file:
     {
     	if (TRACE)
 	    printf("Can't open `%s', errno=%d\n", addr, errno);
-
 	return HTLoadError(request, 403, "Can't access requested file.");
     }
     
