@@ -28,7 +28,7 @@
 #define HT_CACHE_INDEX	".index"
 #define HT_CACHE_LOCK	".lock"
 #define HT_CACHE_META	".meta"
-#define HT_CACHE_ETAG	"@w3c@"
+#define HT_CACHE_EMPTY_ETAG	"@w3c@"
 
 /* Default heuristics cache expirations - thanks to Jeff Mogul for good comments! */
 #define NO_LM_EXPIRATION	24*3600		/* 24 hours */
@@ -305,7 +305,7 @@ PUBLIC BOOL HTCacheIndex_write (const char * cache_root)
 			if (fprintf(fp, "%s %s %s %ld %ld %ld %c %d %d %ld %ld %ld %c\r\n",
 				    pres->url,
 				    pres->cachename,
-				    pres->etag ? pres->etag : HT_CACHE_ETAG,
+				    pres->etag ? pres->etag : HT_CACHE_EMPTY_ETAG,
 				    (long) (pres->lm),
 				    (long) (pres->expires),
 				    pres->size,
@@ -353,7 +353,7 @@ PRIVATE BOOL HTCacheIndex_parseLine (char * line)
 	    char * etag = HTNextField(&line);
 	    StrAllocCopy(cache->url, url);
 	    StrAllocCopy(cache->cachename, cachename);
-	    if (strcmp(etag, HT_CACHE_ETAG)) StrAllocCopy(cache->etag, etag);
+	    if (strcmp(etag, HT_CACHE_EMPTY_ETAG)) StrAllocCopy(cache->etag, etag);
 	}
 #ifdef HAVE_LONG_TIME_T
 	/*
