@@ -47,6 +47,7 @@ PRIVATE HTMIMEParseEl * HTMIMEParseEl_new(HTMIMEParseEl ** pBefore,
 PRIVATE int HTMIMEParseEl_delete(HTMIMEParseEl * me, HTMIMEParseEl ** pBefore)
 {
     *pBefore = me->next;
+    HT_FREE(me->token);
     HT_FREE(me);
     return HT_OK;
 }
