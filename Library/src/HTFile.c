@@ -439,7 +439,7 @@ PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
 		} else {
 		    if (PROT_TRACE)
 			HTTrace("Load File... Not found - even tried content negotiation\n");
-		    HTRequest_addError(request, ERR_INFO, NO, HTERR_NOT_FOUND,
+		    HTRequest_addError(request, ERR_FATAL, NO, HTERR_NOT_FOUND,
 				       NULL, 0, "HTLoadFile");
 		    file->state = FS_ERROR;
 		    break;
@@ -447,7 +447,7 @@ PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    } else {
 		if (HT_STAT(file->local, &file->stat_info) == -1) {
 		    if (PROT_TRACE)
-			HTTrace("Load.File... Not found `%s\'\n", file->local);
+			HTTrace("Load File... Not found `%s\'\n", file->local);
 		    HTRequest_addError(request, ERR_FATAL, NO, HTERR_NOT_FOUND,
 				       NULL, 0, "HTLoadFile");
 		    file->state = FS_ERROR;

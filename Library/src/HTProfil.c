@@ -39,7 +39,7 @@ PUBLIC void HTProfile_delete (void)
 }
 
 PRIVATE void client_profile (const char * AppName, const char * AppVersion,
-			     BOOL preemptive)
+			     BOOL preemptive, BOOL cache)
 {
     /* If the Library is not already initialized then do it */
     if (!HTLib_isInitialized()) HTLibInit(AppName, AppVersion);
@@ -62,7 +62,7 @@ PRIVATE void client_profile (const char * AppName, const char * AppVersion,
 	HTProtocolInit();
 
     /* The persistent cache does not work in preemptive mode */
-    if (!preemptive) HTCacheInit(NULL, 20);
+    if (cache) HTCacheInit(NULL, 20);
 
     /* Register the default set of BEFORE and AFTER filters */
     HTNetInit();
@@ -103,7 +103,7 @@ PRIVATE void client_profile (const char * AppName, const char * AppVersion,
 PUBLIC void HTProfile_newClient (const char * AppName, const char * AppVersion)
 {
     /* Do the default setup */
-    client_profile(AppName, AppVersion, NO);
+    client_profile(AppName, AppVersion, NO, YES);
 
     /* Set up default event loop */
     HTEventInit();
@@ -113,10 +113,20 @@ PUBLIC void HTProfile_newPreemptiveClient (const char * AppName,
 					   const char * AppVersion)
 {
     /* Do the default setup */
-    client_profile(AppName, AppVersion, YES);
+    client_profile(AppName, AppVersion, YES, NO);
 
     /* Remember that we are loading preemptively */
     preemptive = YES;
+}
+
+PUBLIC void HTProfile_newNoCacheClient (const char * AppName,
+					const char * AppVersion)
+{
+    /* Do the default setup */
+    client_profile(AppName, AppVersion, NO, NO);
+
+    /* Set up default event loop */
+    HTEventInit();
 }
 
 PRIVATE void robot_profile (const char * AppName, const char * AppVersion)

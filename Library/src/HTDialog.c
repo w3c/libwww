@@ -166,7 +166,20 @@ PUBLIC BOOL HTPromptPassword (HTRequest * request, HTAlertOpcode op,
 	if (pw) HTAlert_setReplySecret(reply, pw);
 	return YES;
 #else
-	return NO;	/* needed for WWW_MSWINDOWS */
+	/*
+	**  This is just to be able to get it wo work when getpass() 
+	**  isn't available.
+	*/
+        char buffer[100];
+	memset(buffer, '\0', 100);
+        HTTrace("%s ", HTDialogs[msgnum]);
+	if (!fgets(buffer, 99, stdin)) return NO;
+	buffer[strlen(buffer)-1] = '\0';	        /* Overwrite newline */
+        if (*buffer) {
+            HTAlert_setReplySecret(reply, buffer);
+            return YES;
+        }
+        return NO;
 #endif /* HAVE_GETPASS */
     }
     return NO;

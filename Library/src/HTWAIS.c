@@ -67,14 +67,16 @@
 #include "WWWHTML.h"
 #include "HTReqMan.h"
  
-#ifdef HAVE_WAIS_H
-#include "wais.h"
-#else
 #ifdef HAVE_WAIS_WAIS_H
 #include "wais/wais.h"
 #else
+#ifdef HAVE_WAIS_H
+#include "wais.h"
+#else
 #ifdef WAIS_INCLUDE
 #include WAIS_INCLUDE
+#else
+#include "wais/wais.h"
 #endif
 #endif
 #endif

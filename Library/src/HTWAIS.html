@@ -33,7 +33,7 @@ including direct wais using this module, and your WWW code will be able to
 read source files, and access WAIS indexes through a gateway.
 <P>
 A <A HREF="../User/WAIS.html" NAME="z2">WAIS-WWW gateway</A> is just a normal
-W3 server with a libwww compiled with this module.
+Web server with a libwww compiled with this module.
 <P>
 This module is implemented by <A HREF="HTWAIS.c">HTWAIS.c</A>, and it is
 a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Sample Code
@@ -42,7 +42,7 @@ Library</A>.
 #ifndef HTWAIS_H
 #define HTWAIS_H
 
-#include "HTEvent.h"
+#include "<A HREF="HTEvent.html">HTEvent.h</A>"
 </PRE>
 <H2>
   Control Flags
@@ -53,7 +53,7 @@ The default value is 100 (this is defined in the module)
 <PRE>
 extern int HTMaxWAISLines;
 
-extern HTEventCallback HTLoadWAIS;
+extern HTProtCallback HTLoadWAIS;
 </PRE>
 <PRE>
 #endif

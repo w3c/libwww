@@ -1,56 +1,58 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Sample Code Library libwww FTP CLIENT</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 16-Apr-1996 -->
-<NEXTID N="z11">
+  <TITLE>W3C Sample Code Library libwww FTP CLIENT</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Declaration of W3C Sample Code FTP MODULE</H1>
-
+<H1>
+  Declaration of W3C Sample Code FTP MODULE
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This is the include file for the basic FTP module that can be used
-together with the core of the W3C Sample Code Library. It contains all
-FTP specific modules which are required to compile and build the FTP
-DLL.<P>
-
+<P>
+This is the include file for the basic FTP module that can be used together
+with the <A HREF="WWWCore.html">core of the W3C Sample Code Library</A>.
+It contains all FTP specific modules which are required to compile and build
+the FTP DLL.
 <PRE>
 #ifndef WWWFTP_H
 #define WWWFTP_H
 </PRE>
-
 <PRE>
 #ifdef __cplusplus
 extern "C" { 
 #endif
 </PRE>
-
-<H2>System dependencies</H2>
-
+<H2>
+  System dependencies
+</H2>
+<P>
 The <A HREF="sysdep.html">sysdep.h</A> file includes system-specific include
-files and flags for I/O to network and disk. The only reason for this
-file is that the Internet world is more complicated than Posix and
-ANSI.
-
+files and flags for I/O to network and disk. The only reason for this file
+is that the Internet world is more complicated than Posix and ANSI.
 <PRE>
 #include "sysdep.h"
 </PRE>
-
-<H2>Library Includes</H2>
-
+<H2>
+  Library Includes
+</H2>
+<H3>
+  The main FTP state machine
+</H3>
 <PRE>
-#include "HTFTP.h"			/* FTP client state machine */
-#include "HTFTPDir.h"			/* Streams for parsing FTP output */
+#include "<A HREF="HTFTP.html">HTFTP.h</A>"			/* FTP client state machine */
 </PRE>
-
+<H3>
+  The FTP Directory listing Management
+</H3>
+<PRE>
+#include "<A HREF="HTFTPDir.html">HTFTPDir.h</A>"			/* Streams for parsing FTP output */
+</PRE>
+<P>
 End of FTP module
-
 <PRE>
 #ifdef __cplusplus
 } /* end extern C definitions */
@@ -58,10 +60,9 @@ End of FTP module
 
 #endif
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

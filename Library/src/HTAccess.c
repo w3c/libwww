@@ -713,10 +713,17 @@ PRIVATE BOOL setup_anchors (HTRequest * request,
 	char * addr = HTAnchor_address((HTAnchor *) source);
 	char * hostname = HTParse(addr, "", PARSE_HOST);
 	HTHost * host = HTHost_find(hostname);
+#if 0
 	HTMethod public_methods = HTHost_publicMethods(host);
 	HTMethod private_methods = HTAnchor_allow(dest);
+#endif
 	HT_FREE(hostname);
 	HT_FREE(addr);
+
+#if 0
+	/*
+	**  Again, this may be too cautios for normal operations
+	*/
 	if (!(method & (private_methods | public_methods))) {
 	    HTAlertCallback * prompt = HTAlert_find(HT_A_CONFIRM);
 	    if (prompt) {
@@ -725,6 +732,7 @@ PRIVATE BOOL setup_anchors (HTRequest * request,
 		    return NO;
 	    }
 	}
+#endif
     }
 
     /*
@@ -1019,6 +1027,11 @@ PRIVATE int HTSaveFilter (HTRequest * request, HTResponse * response,
 		    me->state = HT_ABORT_SAVE;
 		}
 	    } else {
+#if 0
+		/*
+		** If you are very precautios then you can ask here whether
+		** we should continue or not in case of a redirection
+		*/
 		if ((*prompt)(request, HT_A_CONFIRM, HT_MSG_DESTINATION_MOVED,
 			      NULL, NULL, NULL) == YES) {
 		    me->destination = redirection;
@@ -1028,6 +1041,10 @@ PRIVATE int HTSaveFilter (HTRequest * request, HTResponse * response,
 		    */
 		    me->state = HT_ABORT_SAVE;
 		}
+#else
+		if (APP_TRACE) HTTrace("Save Filter. Destination hae moved!\n");
+		me->destination = redirection;
+#endif
 	    }
 	}
 	return HT_OK;

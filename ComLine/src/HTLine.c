@@ -227,11 +227,8 @@ int main (int argc, char ** argv)
 #endif
 
     /* Initiate W3C Reference Library with a client profile */
-    HTProfile_newClient(APP_NAME, APP_VERSION);
+    HTProfile_newNoCacheClient(APP_NAME, APP_VERSION);
     HTTrace_setCallback(LineTrace);
-
-    /* Add progress notification */
-    HTAlert_add(HTProgress, HT_A_PROGRESS);
 
     /* Add our own filter to update the history list */
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
@@ -402,6 +399,12 @@ int main (int argc, char ** argv)
 	Cleanup(cl, -1);
     }
 
+    /* Add progress notification */
+    if (cl->flags & CL_QUIET) {
+	HTList * global = HTAlert_global();
+	HTAlertCall_delete(global, HTProgress);
+    }
+
     /* Output file specified? */
     if (cl->outputfile) {
 	if ((cl->output = fopen(cl->outputfile, "wb")) == NULL) {
@@ -409,9 +412,6 @@ int main (int argc, char ** argv)
 	    cl->output = OUTPUT;
 	}
     }
-
-    /* We don't wanna cache */
-    HTCacheMode_setEnabled(NO);
 
     /*
     ** Set up the output. Even though we don't use this explicit, it is

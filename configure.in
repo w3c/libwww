@@ -17,12 +17,12 @@ PACKAGE=w3c-libwww
 AC_SUBST(PACKAGE)
 AC_DEFINE_UNQUOTED(W3C_PACKAGE, "$PACKAGE")
  
-VERSION=5.1k
+VERSION=5.1l
 AC_SUBST(VERSION)
 AC_DEFINE_UNQUOTED(W3C_VERSION, "$VERSION")
 
 #dnl for CVS to be able to make a release diff
-PREVIOUS_VERSION=5.1j
+PREVIOUS_VERSION=5.1k
 AC_SUBST(PREVIOUS_VERSION)
 
 AM_INIT_AUTOMAKE($PACKAGE, $VERSION) 
@@ -84,6 +84,7 @@ AC_ARG_WITH(wais,
       withval="/usr/local/lib/wais/wais.a /usr/local/lib/wais/client.a"
     fi
     LIBS="$withval -lm $LIBS"
+    AC_DEFINE(HT_DIRECT_WAIS)
     AC_TRY_LINK([],
                 [ makeDocID(); ],
 		[],
@@ -434,7 +435,7 @@ AC_CHECK_HEADERS(unixlib.h)
 AC_CHECK_HEADERS(ctype.h)
 AC_CHECK_HEADERS(cursesX.h curses.h)
 AC_CHECK_HEADERS(rxposix.h regex.h)
-AC_CHECK_HEADERS(wais.h wais/wais.h)
+AC_CHECK_HEADERS(wais/wais.h wais.h)
 AC_HEADER_DIRENT
 AC_CHECK_HEADERS(dir.h direct.h) dnl AC_HEADER_DIRENT only checks for some..
 AC_HEADER_STDC

@@ -427,7 +427,7 @@ PUBLIC int HTRedirectFilter (HTRequest * request, HTResponse * response,
 
     /*
     ** Only do automatic redirect on GET and HEAD. Ask for all
-    ** other methods
+    ** other methods.
     */
     if (!HTMethod_isSafe(method)) {
 
@@ -445,7 +445,7 @@ PUBLIC int HTRedirectFilter (HTRequest * request, HTResponse * response,
 	    if (prompt) {
 		if ((*prompt)(request, HT_A_CONFIRM, HT_MSG_REDIRECTION,
 			      NULL, NULL, NULL) != YES)
-		    return HT_ERROR;
+		    return HT_OK;
 	    }
 	}
     } 

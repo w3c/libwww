@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<!-- Changed by: Henrik Frystyk Nielsen, 15-Jul-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 15-Jul-1996 -->
   <TITLE>W3C Sample Code Library libwww Default Initialization</TITLE>
 </HEAD>
 <BODY>
@@ -53,17 +53,36 @@ Library</A>. You can also have a look at the other
 </H2>
 <P>
 We have a couple of different client application profiles suited to different
-types of clients. The first uses a non-blocking socket interface which enables
-the application to perform multiple requests simultanously - in everyday
-words called pseudo-threads. Besides that this profile contains typical filters
-for handling redirection, authentication, logging, and proxy servers.
-<PRE>extern void HTProfile_newClient (const char * AppName, const char * AppVersion);
+types of clients.
+<H3>
+  Traditional Client Application
+</H3>
+<P>
+The first uses a non-blocking socket interface which enables the application
+to perform multiple requests simultanously - in everyday words called
+pseudo-threads. Besides that this profile contains typical filters for handling
+redirection, authentication, logging, and proxy servers.
+<PRE>
+extern void HTProfile_newClient (const char * AppName, const char * AppVersion);
 </PRE>
+<H3>
+  Client without a Persistent Cache
+</H3>
+<P>
+This is the same as above except that it doesn't start the persistent cache.
+<PRE>
+extern void HTProfile_newNoCacheClient (const char * AppName,
+					const char * AppVersion);
+</PRE>
+<H3>
+  Preemptive (Blocking) Client
+</H3>
 <P>
 We also have a blocking (preemptive) version of the same client interface.
 The difference is that this version uses traditional blocking sockets and
 hence only one reques can be performed at the same time.
-<PRE>extern void HTProfile_newPreemptiveClient (const char * AppName,
+<PRE>
+extern void HTProfile_newPreemptiveClient (const char * AppName,
 					   const char * AppVersion);
 </PRE>
 <H2>
@@ -74,19 +93,17 @@ The robot profile contains much of the same functionality as the client,
 but it does contain less filters. For example, robots are normally not interested
 in performing automatic redirections or access authentication, and hence
 this is not part of the robot profile.
-<PRE>extern void HTProfile_newRobot (const char * AppName, const char * AppVersion);
+<PRE>
+extern void HTProfile_newRobot (const char * AppName, const char * AppVersion);
 </PRE>
-
-As for the client interfacem we also have a blocking (preemptive)
-version of the same interface. The difference is that this version
-uses traditional blocking sockets and hence only one reques can be
-performed at the same time.
-
+<P>
+As for the client interfacem we also have a blocking (preemptive) version
+of the same interface. The difference is that this version uses traditional
+blocking sockets and hence only one reques can be performed at the same time.
 <PRE>
 extern void HTProfile_newPreemptiveRobot (const char * AppName,
 					  const char * AppVersion);
 </PRE>
-
 <H2>
   <A NAME="Proxy">Proxy Server Profile</A>
 </H2>

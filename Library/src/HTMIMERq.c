@@ -72,11 +72,12 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 	}
 	if (!first) PUTBLOCK(crlf, 2);
     }
-    if (EntityMask & HT_E_CONTENT_ENCODING && entity->content_encoding){
+    if (EntityMask & HT_E_CONTENT_ENCODING && entity->content_encoding) {
 	BOOL first = YES;
 	HTList * cur = entity->content_encoding;
 	HTEncoding pres;
-	while ((pres = (HTEncoding) HTList_nextObject(cur))) {
+	while ((pres = (HTEncoding) HTList_nextObject(cur)) &&
+	       !HTFormat_isUnityContent(pres)) {
 	    if (first) {
 		PUTS("Content-Encoding: ");
 		first = NO;
