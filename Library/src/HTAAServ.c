@@ -70,9 +70,7 @@ PUBLIC time_t theTime;
 /*
 ** Module-wide global variables
 */
-PRIVATE FILE *  htaa_logfile	    = NULL; 		/* Log file	      */
-PRIVATE HTAAUser *htaa_user = NULL;			/* Authenticated user */
-PRIVATE HTAAFailReasonType HTAAFailReason = HTAA_OK;	/* AA fail reason     */
+PRIVATE FILE *  htaa_logfile	    = NULL; 		/* Log file */
 
 
 
@@ -80,70 +78,82 @@ PRIVATE HTAAFailReasonType HTAAFailReason = HTAA_OK;	/* AA fail reason     */
 **		RETURN A STRING EXPLAINING ACCESS
 **		AUTHORIZATION FAILURE
 **		(Can be used in server reply status line
-**		 with 401/403 replies.)
+**		 with 401/403/404 replies.)
+** ON ENTRY:
+**	req	failing request.
 ** ON EXIT:
 **	returns	a string containing the error message
-**		corresponding to internal HTAAFailReason.
+**		corresponding to internal fail reason.
+**		Sets the message also to req->reason_line.
 */
-PUBLIC char *HTAA_statusMessage NOARGS
+PUBLIC char *HTAA_statusMessage ARGS1(HTRequest *, req)
 {
-    switch (HTAAFailReason) {
+    if (!req)
+	return "Internal error, request structure pointer is NULL!";
+
+    if (req->reason_line)
+	return req->reason_line;
+
+    switch (req->reason) {
 
     /* 401 cases */
       case HTAA_NO_AUTH:
-	return "Unauthorized -- authentication failed";
+	req->reason_line = "Unauthorized -- authentication failed";
 	break;
       case HTAA_NOT_MEMBER:
-	return "Unauthorized to access the document";
+	req->reason_line = "Unauthorized to access the document";
 	break;
 
     /* 403 cases */
       case HTAA_BY_RULE:
-	return "Forbidden -- by rule";
+	req->reason_line = "Forbidden -- by rule";
 	break;
       case HTAA_IP_MASK:
-	return "Forbidden -- server refuses to serve to your IP address";
+	req->reason_line = "Forbidden -- server refuses to serve to your IP address";
 	break;
       case HTAA_NO_ACL:
       case HTAA_NO_ENTRY:
-	return "Forbidden -- access to file is never allowed";
+	req->reason_line = "Forbidden -- access to file is never allowed";
 	break;
       case HTAA_SETUP_ERROR:
-	return "Forbidden -- server protection setup error";
+	req->reason_line = "Forbidden -- server protection setup error";
 	break;
       case HTAA_DOTDOT:
-	return "Forbidden -- URL containing /../ disallowed";
+	req->reason_line = "Forbidden -- URL containing /../ disallowed";
 	break;
       case HTAA_HTBIN:
-	return "Forbidden -- /htbin feature not enabled on this server";
+	req->reason_line = "Forbidden -- /htbin feature not enabled on this server";
 	break;
 
     /* 404 cases */
       case HTAA_NOT_FOUND:
-	return "Not found -- file doesn't exist or is read protected";
+	req->reason_line = "Not found -- file doesn't exist or is read protected";
 	break;
 
     /* Success */
       case HTAA_OK:
-	return "AA: Access should be ok but something went wrong"; 
+	req->reason_line = "AA: Access should be ok but something went wrong"; 
 	break;
 
       case HTAA_OK_GATEWAY:
-	return "AA check bypassed (gatewaying) but something went wrong";
+	req->reason_line = "AA check bypassed (gatewaying) but something went wrong";
 	break;
 
     /* Others */
       default:
-	return "Access denied -- unable to specify reason (bug)";
+	req->reason_line = "Access denied -- unable to specify reason (bug)";
 
     } /* switch */
+
+    return req->reason_line;
 }
 
 
 
-PRIVATE char *status_name ARGS1(HTAAFailReasonType, reason)
+#ifdef OLD_CODE
+PRIVATE char *status_name ARGS1(HTAAFailReason, reason)
 {
-    switch (HTAAFailReason) {
+    switch (reason) {
 
     /* 401 cases */
       case HTAA_NO_AUTH:
@@ -194,26 +204,20 @@ PRIVATE char *status_name ARGS1(HTAAFailReasonType, reason)
 	return "SERVER-BUG";
     } /* switch */
 }
-
+#endif
     
 
 
 
 
-/* PRIVATE						check_uthorization()
+/* PRIVATE						check_authorization()
 **		CHECK IF USER IS AUTHORIZED TO ACCESS A FILE
 ** ON ENTRY:
-**	pathname	is the physical file pathname
-**			to access.
-**	method		method, e.g. METHOD_GET, METHOD_PUT, ...
-**	scheme		authentication scheme.
-**	scheme_specifics authentication string (or other
-**			scheme specific parameters, like
-**			Kerberos-ticket).
+**	req	data structure representing the request.
 **
 ** ON EXIT:
-**	returns		HTAA_OK on success.
-**			Otherwise the reason for failing.
+**	returns	HTAA_OK on success.
+**		Otherwise the reason for failing.
 ** NOTE:
 **	This function does not check whether the file
 **	exists or not -- so the status  404 Not found
@@ -221,60 +225,59 @@ PRIVATE char *status_name ARGS1(HTAAFailReasonType, reason)
 **	to avoid unnecessary overhead of opening the
 **	file twice).
 */
-PRIVATE HTAAFailReasonType check_authorization ARGS4(CONST char *,  pathname,
-						     HTAAMethod,    method,
-						     HTAAScheme,    scheme,
-						     char *, scheme_specifics)
+PRIVATE HTAAFailReason check_authorization ARGS1(HTRequest *, req)
 {
-    HTAAFailReasonType reason;
+    HTAAFailReason reason;
     GroupDef *allowed_groups;
     FILE *acl_file = NULL;
-    HTAAProt *prot = NULL;	/* Protection mode */
+    char *check_this;
 
-    htaa_user = NULL;
+    req->user = NULL;
 
-    if (!pathname) {
+    if (req->script) {
+	check_this = req->script;
+	fprintf(stderr,
+		"check_authorization: translated script name: `%s'\n",
+		req->script);
+    }
+    else if (req->translated) {
+	check_this = req->translated;
+	fprintf(stderr,
+		"check_authorization: translated path: `%s' %s `%s'\n",
+		req->translated, "method:", HTAtom_name(req->method));
+    }
+    else {
 	if (TRACE) fprintf(stderr,
 			   "HTAA_checkAuthorization: Forbidden by rule\n");
 	return HTAA_BY_RULE;
     }
-    if (TRACE) fprintf(stderr, "%s `%s' %s %s\n",
-		       "HTAA_checkAuthorization: translated path:",
-		       pathname, "method:", HTAAMethod_name(method));
-
-    /*
-    ** Get protection setting (set up by callbacks from rule system)
-    ** NULL, if not protected by a "protect" rule.
-    */
-    prot = HTAA_getCurrentProtection();
 
     /*
     ** Check ACL existence
     */
-    if (!(acl_file = HTAA_openAcl(pathname))) {
-	if (prot) { /* protect rule, but no ACL */
-	    if (prot->mask_group) {
+    if (!(acl_file = HTAA_openAcl(check_this))) {
+	if (req->prot) { /* protect rule, but no ACL */
+	    if (req->prot->mask_group) {
 		/*
 		** Only mask enabled, check that
 		*/
 		GroupDefList *group_def_list =
-		    HTAA_readGroupFile(HTAssocList_lookup(prot->values,
+		    HTAA_readGroupFile(HTAssocList_lookup(req->prot->values,
 							  "group"));
 		/*
 		** Authenticate if authentication info given
 		*/
-		if (scheme != HTAA_UNKNOWN  &&  scheme != HTAA_NONE) {
-		    htaa_user = HTAA_authenticate(scheme,
-						  scheme_specifics,
-						  prot);
+		if (req->scheme != HTAA_UNKNOWN  && req->scheme != HTAA_NONE) {
+		    HTAA_authenticate(req);
 		    if (TRACE) fprintf(stderr, "Authentication returned: %s\n",
-				       (htaa_user ? htaa_user->username
+				       (req->user ? req->user->username
 					          : "NOT-AUTHENTICATED"));
 		}
-		HTAA_resolveGroupReferences(prot->mask_group, group_def_list);
-		reason = HTAA_userAndInetInGroup(prot->mask_group,
-						 htaa_user
-						  ? htaa_user->username : "",
+		HTAA_resolveGroupReferences(req->prot->mask_group,
+					    group_def_list);
+		reason = HTAA_userAndInetInGroup(req->prot->mask_group,
+						 req->user
+						  ? req->user->username : "",
 						 HTClientHost,
 						 NULL);
 		if (TRACE) {
@@ -308,12 +311,12 @@ PRIVATE HTAAFailReasonType check_authorization ARGS4(CONST char *,  pathname,
     /*
     ** Now we know that ACL exists
     */
-    if (!prot) {		/* Not protected by "protect" rule */
+    if (!req->prot) {		/* Not protected by "protect" rule */
 	if (TRACE) fprintf(stderr,
 			   "HTAA_checkAuthorization: default protection\n");
-	prot = HTAA_getDefaultProtection();   /* Also sets current protection */
+	req->prot = req->def_prot;  /* Get default protection */
 
-	if (!prot) {		/* @@ Default protection not set ?? */
+	if (!req->prot) {	/* @@ Default protection not set ?? */
 	    if (TRACE) fprintf(stderr, "%s %s\n",
 			       "HTAA_checkAuthorization: default protection",
 			       "not set (internal server error)!!");
@@ -327,26 +330,24 @@ PRIVATE HTAAFailReasonType check_authorization ARGS4(CONST char *,  pathname,
     */
     {
 	GroupDefList *group_def_list =
-	    HTAA_readGroupFile(HTAssocList_lookup(prot->values, "group"));
+	    HTAA_readGroupFile(HTAssocList_lookup(req->prot->values, "group"));
 
 	/*
 	** Authenticate now that we know protection mode
 	*/
-	if (scheme != HTAA_UNKNOWN  &&  scheme != HTAA_NONE) {
-	    htaa_user = HTAA_authenticate(scheme,
-					  scheme_specifics,
-					  prot);
+	if (req->scheme != HTAA_UNKNOWN  &&  req->scheme != HTAA_NONE) {
+	    HTAA_authenticate(req);
 	    if (TRACE) fprintf(stderr, "Authentication returned: %s\n",
-			       (htaa_user
-				? htaa_user->username : "NOT-AUTHENTICATED"));
+			       (req->user
+				? req->user->username : "NOT-AUTHENTICATED"));
 	}
 	/* 
 	** Check mask group
 	*/
-	if (prot->mask_group) {
-	    HTAA_resolveGroupReferences(prot->mask_group, group_def_list);
-	    reason=HTAA_userAndInetInGroup(prot->mask_group,
-					   htaa_user ? htaa_user->username : "",
+	if (req->prot->mask_group) {
+	    HTAA_resolveGroupReferences(req->prot->mask_group, group_def_list);
+	    reason=HTAA_userAndInetInGroup(req->prot->mask_group,
+					   req->user ? req->user->username :"",
 					   HTClientHost,
 					   NULL);
 	    if (reason != HTAA_OK) {
@@ -370,10 +371,11 @@ PRIVATE HTAAFailReasonType check_authorization ARGS4(CONST char *,  pathname,
 	** Remember, allowed_groups is automatically freed by
 	** HTAA_getAclEntry().
 	*/
-	allowed_groups = HTAA_getAclEntry(acl_file, pathname, method);
+	allowed_groups =
+	    HTAA_getAclEntry(acl_file, check_this, req->method);
 	if (!allowed_groups) {
 	    if (TRACE) fprintf(stderr, "%s `%s' %s\n",
-			       "No entry for file", pathname, "in ACL");
+			       "No entry for file", check_this, "in ACL");
 	    HTAA_closeAcl(acl_file);
 	    return HTAA_NO_ENTRY;	/* Forbidden -- no entry in the ACL */
 	}
@@ -381,15 +383,16 @@ PRIVATE HTAAFailReasonType check_authorization ARGS4(CONST char *,  pathname,
 	    do {
 		HTAA_resolveGroupReferences(allowed_groups, group_def_list);
 		reason = HTAA_userAndInetInGroup(allowed_groups,
-						 htaa_user
-						 ? htaa_user->username : "",
+						 req->user
+						 ? req->user->username : "",
 						 HTClientHost,
 						 NULL);
 		if (reason == HTAA_OK) {
 		    HTAA_closeAcl(acl_file);
 		    return HTAA_OK;	/* OK */
 		}
-		allowed_groups = HTAA_getAclEntry(acl_file, pathname, method);
+		allowed_groups =
+		    HTAA_getAclEntry(acl_file, check_this, req->method);
 	    } while (allowed_groups);
 	    HTAA_closeAcl(acl_file);
 	    return HTAA_NOT_MEMBER;	/* Unauthorized */
@@ -402,12 +405,7 @@ PRIVATE HTAAFailReasonType check_authorization ARGS4(CONST char *,  pathname,
 /* PUBLIC					      HTAA_checkAuthorization()
 **		CHECK IF USER IS AUTHORIZED TO ACCESS A FILE
 ** ON ENTRY:
-**	url		is the document to be accessed.
-**	method_name	name of the method, e.g. "GET"
-**	scheme_name	authentication scheme name.
-**	scheme_specifics authentication string (or other
-**			scheme specific parameters, like
-**			Kerberos-ticket).
+**	req	data structure representing the request.
 **
 ** ON EXIT:
 **	returns	status codes uniform with those of HTTP:
@@ -425,109 +423,89 @@ PRIVATE HTAAFailReasonType check_authorization ARGS4(CONST char *,  pathname,
 **	file twice).
 **
 */
-PUBLIC int HTAA_checkAuthorization ARGS4(CONST char *,	url,
-					 CONST char *,	method_name,
-					 CONST char *,	scheme_name,
-                                         char *,	scheme_specifics)
+PUBLIC int HTAA_checkAuthorization ARGS1(HTRequest *, req)
 {
-    static char *pathname = NULL;
-    char *local_copy = NULL;
-    HTAAMethod method = HTAAMethod_enum(method_name);
-    HTAAScheme scheme = HTAAScheme_enum(scheme_name);
+    if (!req  ||  !req->argument  ||  req->reason != HTAA_OK) {
+	if (req && req->status_code == 200)
+	    req->status_code = 403;
+	if (req && !req->reason_line)
+	    HTAA_statusMessage(req);
+	return 403;
+    }
 
-    HTAAFailReason = HTAA_OK;
+#ifdef THIS_IS_DONE_BY_DAEMON
+    /*
+    ** Parse Authorization: field
+    */
+    if (req->authorization) {
+	char *tmp = strdup(req->authorization);
+	char *scheme_specifics = tmp;
+	char *scheme_name = HTNextField(&scheme_specifics);
+
+	req->scheme = HTAAScheme_enum(HTStrip(scheme_name));
+	StrAllocCopy(req->auth_string, HTStrip(scheme_specifics));
+	free(tmp);
+    }
+    else req->scheme = HTAA_NONE;
+#endif
 
     /*
     ** Translate into absolute pathname, and
-    ** check for "protect" and "defprot" rules.
+    ** get protection by "protect" and "defprot" rules.
     */
-    FREE(pathname);		/* From previous call	*/
-    StrAllocCopy(local_copy, url);
-    {
-	char *keywords = strchr(local_copy, '?');
-	if (keywords) *keywords = (char)0;	/* Chop off keywords */
-    }
-    HTSimplify(local_copy);	/* Remove ".." etc. */
-
-    /* HTSimplify will leave in a "/../" at the top, which can
-    ** be a security hole.
-    */
-    if (strstr(local_copy, "/../")) {
-	if (TRACE) fprintf(stderr, "HTAA_checkAuthorization: %s (`%s')\n",
-			   "Illegal attempt to use /../", url);
-	HTAAFailReason = HTAA_DOTDOT;
-    }
-    else {
-	pathname = HTTranslate(local_copy); /* Translate rules even if */
-	                                    /* a /htbin call to set up */
-	                                    /* protections.	       */
-	if (0 == strncmp(local_copy, "/htbin/", 7)) {
-	    if (!HTBinDir)
-		HTAAFailReason = HTAA_HTBIN;
-	    else {
-		char *end = strchr(local_copy+7, '/');
-		if (end)
-		    *end = (char)0;
-		FREE(pathname);
-		pathname=(char*)malloc(strlen(HTBinDir)+strlen(local_copy)+1);
-		strcpy(pathname, HTBinDir);
-		strcat(pathname, local_copy+6);
-	    }
+    if (HTTranslateReq(req)) {
+	if (req->script) {	/* Script request */
+	    req->reason = check_authorization(req);
 	}
-
-	if (!pathname) {		/* Forbidden by rule */
-	    if (TRACE) fprintf(stderr,
-			       "HTAA_checkAuthorization: Forbidden by rule\n");
-	    HTAAFailReason = HTAA_BY_RULE;
-	}
-	else if (HTAAFailReason != HTAA_HTBIN) {
-	    /* pathname != NULL */
-	    char *access = HTParse(pathname, "", PARSE_ACCESS);
-	    if (!*access || 0 == strcmp(access,"file")) { /*Local file, do AA*/
-		if (!HTSecure && 0 != strncmp(local_copy, "/htbin/", 7)) {
-		    char *localname = HTLocalName(pathname);
-		    free(pathname);
-		    pathname = localname;
+	else {			/* Not a script request */
+	    char *access = HTParse(req->translated, "", PARSE_ACCESS);
+	    if (!*access || 0 == strcmp(access,"file")) {
+		/* Local file, do AA check */
+		if (!HTSecure) {
+		    char *localname = HTLocalName(req->translated);
+		    free(req->translated);
+		    req->translated = localname;
 		}
-		HTAAFailReason = check_authorization(pathname, method,
-						     scheme, scheme_specifics);
+		req->reason = check_authorization(req);
 	    }
 	    else {  /* Not local access */
-		HTAAFailReason = HTAA_OK_GATEWAY;
-		fprintf(stderr, "HTAA_checkAuthorization: %s (%s access)\n",
+		req->reason = HTAA_OK_GATEWAY;
+		fprintf(stderr,
+			"HTAA_checkAuthorization: %s (%s access)\n",
 			"Gatewaying -- skipping authorization check",
 			access);
 	    }
-	} /* pathname */
-    }
-    FREE(local_copy);
+	} /* Not a script request */
+    } /* if translation succeeded */
 
+#ifdef OLD_CODE_LETS_DO_THIS_OFFICIALLY_NOW
     if (htaa_logfile) {
 	time(&theTime);
 	fprintf(htaa_logfile, "%24.24s %s %s %s %s %s\n",
 		ctime(&theTime),
 		HTClientHost ? HTClientHost : "local",
-		method_name,
-		url,
-		status_name(HTAAFailReason),
-		htaa_user && htaa_user->username
-		? htaa_user->username : "");
+		HTMethod_name(req->method),
+		req->argument,
+		status_name(reason),
+		req->user && req->user->username
+		? req->user->username : "");
 	fflush(htaa_logfile);	/* Actually update it on disk */
 	if (TRACE) fprintf(stderr, "Log: %24.24s %s %s %s %s %s\n",
 			   ctime(&theTime),
 			   HTClientHost ? HTClientHost : "local",
-			   method_name,
-			   url,
-			   status_name(HTAAFailReason),
-			   htaa_user && htaa_user->username
-			   ? htaa_user->username : "");
+			   HTMethod_name(req->method),
+			   req->argument,
+			   status_name(reason),
+			   req->user && req->user->username
+			   ? req->user->username : "");
     }
+#endif /* OLD_CODE */
 
-    switch (HTAAFailReason) {
+    switch (req->reason) {
 
       case HTAA_NO_AUTH:
       case HTAA_NOT_MEMBER:
-	return 401;
+	req->status_code = 401;
 	break;
 
       case HTAA_BY_RULE:
@@ -537,21 +515,24 @@ PUBLIC int HTAA_checkAuthorization ARGS4(CONST char *,	url,
       case HTAA_SETUP_ERROR:
       case HTAA_DOTDOT:
       case HTAA_HTBIN:
-	return 403;
+	req->status_code = 403;
 	break;
 
       case HTAA_NOT_FOUND:
-	return 404;
+	req->status_code = 404;
 	break;
 
       case HTAA_OK:
       case HTAA_OK_GATEWAY:
-	return 200;
+	req-> status_code = 200;
 	break;
 
       default:
-	return 500;
+	req->status_code = 500;
     } /* switch */
+
+    HTAA_statusMessage(req);
+    return req->status_code;
 }
 
 
@@ -610,9 +591,7 @@ PRIVATE char *compose_scheme_specifics ARGS2(HTAAScheme,	scheme,
 **		INDICATING VALID AUTHENTICATION SCHEMES
 **		FOR THE REQUESTED DOCUMENT
 ** ON ENTRY:
-**	No parameters, but HTAA_checkAuthorization() must
-**	just before have failed because a wrong (or none)
-**	authentication scheme was used.
+**	req	request structure.
 **
 ** ON EXIT:
 **	returns	a buffer containing all the WWW-Authenticate:
@@ -621,22 +600,24 @@ PRIVATE char *compose_scheme_specifics ARGS2(HTAAScheme,	scheme,
 **		the requested document.
 **
 */
-PUBLIC char *HTAA_composeAuthHeaders NOARGS
+PUBLIC char *HTAA_composeAuthHeaders ARGS1(HTRequest *, req)
 {
     static char *result = NULL;
     HTAAScheme scheme;
     char *scheme_name;
     char *scheme_params;
-    HTAAProt *prot = HTAA_getCurrentProtection();
 
-    if (!prot) {
+    if (!req) return NULL;
+
+    if (!req->prot) {
 	if (TRACE) fprintf(stderr, "%s %s\n",
 			   "HTAA_composeAuthHeaders: Document not protected",
 			   "-- why was this function called??");
 	return NULL;
     }
     else if (TRACE) fprintf(stderr, "HTAA_composeAuthHeaders: for file `%s'\n",
-			    prot->filename);
+			    (req->translated
+			     ? req->translated : "(null)"));
 
     FREE(result);	/* From previous call */
     if (!(result = (char*)malloc(4096)))	/* @@ */
@@ -644,9 +625,9 @@ PUBLIC char *HTAA_composeAuthHeaders NOARGS
     *result = (char)0;
 
     for (scheme=0; scheme < HTAA_MAX_SCHEMES; scheme++) {
-	if (-1 < HTList_indexOf(prot->valid_schemes, (void*)scheme)) {
+	if (-1 < HTList_indexOf(req->prot->valid_schemes, (void*)scheme)) {
 	    if ((scheme_name = HTAAScheme_name(scheme))) {
-		scheme_params = compose_scheme_specifics(scheme,prot);
+		scheme_params = compose_scheme_specifics(scheme,req->prot);
 		strcat(result, "WWW-Authenticate: ");
 		strcat(result, scheme_name);
 		if (scheme_params) {
@@ -665,6 +646,7 @@ PUBLIC char *HTAA_composeAuthHeaders NOARGS
 
 
 
+#ifdef OLD_CODE_LETS_DO_THIS_OFFICIALLY_NOW
 /* PUBLIC						HTAA_startLogging()
 **		START UP ACCESS AUTHORIZATION LOGGING
 ** ON ENTRY:
@@ -675,4 +657,5 @@ PUBLIC void HTAA_startLogging ARGS1(FILE *, fp)
 {
     htaa_logfile = fp;
 }
+#endif /*OLD_CODE*/
 

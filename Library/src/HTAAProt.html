@@ -27,7 +27,9 @@
 <PRE>
 typedef struct {
     char *	  template;	/* Template for this protection		*/
+#ifdef NOT_NEEDED_NOR_SHOULD_BE
     char *	  filename;	/* Current document file		*/
+#endif
     char *	  uid_name;	/* Effective uid (name of it)		*/
     char *	  gid_name;	/* Effective gid (name of it)		*/
     GroupDef *	  mask_group;	/* Allowed users and IP addresses	*/
@@ -37,6 +39,11 @@ typedef struct {
 } HTAAProt;
 </PRE>
 
+<PRE>
+
+#include "HTAccess.h"	/* HTRequest structure */
+
+</PRE>
 
 <H2>Callbacks for rule system</H2>
 The following three functioncs are called by the rule system:
@@ -53,7 +60,7 @@ Protection setup files are cached by these functions.
 **		(called by rule system when a
 **		"defprot" rule is matched)
 ** ON ENTRY:
-**	cur_docname	is the current result of rule translations.
+**	req		request.
 **	prot_filename	is the protection setup file (second argument
 **			for "defprot" rule, optional)
 **	eff_ids		contains user and group names separated by
@@ -67,7 +74,7 @@ Protection setup files are cached by these functions.
 **	returns		nothing.
 **			Sets the module-wide variable default_prot.
 */
-PUBLIC void HTAA_setDefaultProtection PARAMS((CONST char *	cur_docname,
+PUBLIC void HTAA_setDefaultProtection PARAMS((HTRequest *	req,
 					      CONST char *	prot_filename,
 					      CONST char *	eff_ids));
 
@@ -78,7 +85,7 @@ PUBLIC void HTAA_setDefaultProtection PARAMS((CONST char *	cur_docname,
 **		(called by rule system when a
 **		"protect" rule is matched)
 ** ON ENTRY:
-**	cur_docname	is the current result of rule translations.
+**	req		request.
 **	prot_filename	is the protection setup file (second argument
 **			for "protect" rule, optional)
 **	eff_ids		contains user and group names separated by
@@ -92,7 +99,7 @@ PUBLIC void HTAA_setDefaultProtection PARAMS((CONST char *	cur_docname,
 **	returns		nothing.
 **			Sets the module-wide variable current_prot.
 */
-PUBLIC void HTAA_setCurrentProtection PARAMS((CONST char *	cur_docname,
+PUBLIC void HTAA_setCurrentProtection PARAMS((HTRequest *	req,
 					      CONST char *	prot_filename,
 					      CONST char *	eff_ids));
 
@@ -169,25 +176,25 @@ PUBLIC HTAAProt *HTAA_getDefaultProtection NOPARAMS;
 /* PUBLIC							HTAA_getUid()
 **		GET THE USER ID TO CHANGE THE PROCESS UID TO
 ** ON ENTRY:
-**	No arguments.
+**	req	request.
 **
 ** ON EXIT:
 **	returns	the uid number to give to setuid() system call.
 **		Default is 65534 (nobody).
 */
-PUBLIC int HTAA_getUid NOPARAMS;
+PUBLIC int HTAA_getUid PARAMS((HTRequest * req));
 
 
 /* PUBLIC							HTAA_getGid()
 **		GET THE GROUP ID TO CHANGE THE PROCESS GID TO
 ** ON ENTRY:
-**	No arguments.
+**	req	request.
 **
 ** ON EXIT:
 **	returns	the uid number to give to setgid() system call.
 **		Default is 65534 (nogroup).
 */
-PUBLIC int HTAA_getGid NOPARAMS;
+PUBLIC int HTAA_getGid PARAMS((HTRequest * req));
 #endif /* not VMS */
 </PRE>
 

@@ -36,7 +36,8 @@
 **	MD 	Mark Donszelmann    duns@vxdeop.cern.ch
 **
 ** HISTORY:
-**	 8 Nov 93  MD	(VMS only) Added case insensitive comparison in HTAA_templateCaseMatch
+**	 8 Nov 93  MD	(VMS only) Added case insensitive comparison
+**			in HTAA_templateCaseMatch
 **
 **
 ** BUGS:
@@ -75,18 +76,12 @@ PUBLIC HTAAScheme HTAAScheme_enum ARGS1(CONST char*, name)
 	cur++;
     }
     
-    if (!strncmp(upcased, "NONE", 4))
-	return HTAA_NONE;
-    else if (!strncmp(upcased, "BASIC", 5))
-	return HTAA_BASIC;
-    else if (!strncmp(upcased, "PUBKEY", 6))
-	return HTAA_PUBKEY;
-    else if (!strncmp(upcased, "KERBEROSV4", 10))
-	return HTAA_KERBEROS_V4;
-    else if (!strncmp(upcased, "KERBEROSV5", 10))
-	return HTAA_KERBEROS_V5;
-    else
-	return HTAA_UNKNOWN;
+    if      (!strncmp(upcased, "NONE", 4))	   return HTAA_NONE;
+    else if (!strncmp(upcased, "BASIC", 5))	   return HTAA_BASIC;
+    else if (!strncmp(upcased, "PUBKEY", 6))	   return HTAA_PUBKEY;
+    else if (!strncmp(upcased, "KERBEROSV4", 10))  return HTAA_KERBEROS_V4;
+    else if (!strncmp(upcased, "KERBEROSV5", 10))  return HTAA_KERBEROS_V5;
+    else					   return HTAA_UNKNOWN;
 }
 
 
@@ -114,61 +109,8 @@ PUBLIC char *HTAAScheme_name ARGS1(HTAAScheme, scheme)
 }
 
 
-/* PUBLIC						    HTAAMethod_enum()
-**		TRANSLATE METHOD NAME INTO AN ENUMERATED VALUE
-** ON ENTRY:
-**	name		is the method name to translate.
-**
-** ON EXIT:
-**	returns		HTAAMethod enumerated value corresponding
-**			to the given name.
-*/
-PUBLIC HTAAMethod HTAAMethod_enum ARGS1(CONST char *, name)
-{
-    char tmp[MAX_METHODNAME_LEN+1];
-    CONST char *src = name;
-    char *dest = tmp;
 
-    if (!name) return METHOD_UNKNOWN;
-
-    while (*src) {
-	*dest = TOUPPER(*src);
-	dest++;
-	src++;
-    }
-    *dest = 0;
-
-    if (0==strcmp(tmp, "GET"))
-	return METHOD_GET;
-    else if (0==strcmp(tmp, "PUT"))
-	return METHOD_PUT;
-    else
-	return METHOD_UNKNOWN;
-}
-
-
-/* PUBLIC						HTAAMethod_name()
-**			GET THE NAME OF A GIVEN METHOD
-** ON ENTRY:
-**	method		is one of the method enum values:
-**			METHOD_GET, METHOD_PUT, ...
-**
-** ON EXIT:
-**	returns		the name of the scheme, i.e.
-**			"GET", "PUT", ...
-*/
-PUBLIC char *HTAAMethod_name ARGS1(HTAAMethod, method)
-{
-    switch (method) {
-      case METHOD_GET:		return "GET";           break;
-      case METHOD_PUT:		return "PUT";           break;
-      case METHOD_UNKNOWN:	return "UNKNOWN";       break;
-      default:			return "THIS-IS-A-BUG";
-    }
-}
-
-
-/* PUBLIC						HTAAMethod_inList()
+/* PUBLIC						HTMethod_inList()
 **		IS A METHOD IN A LIST OF METHOD NAMES
 ** ON ENTRY:
 **	method		is the method to look for.
@@ -178,15 +120,22 @@ PUBLIC char *HTAAMethod_name ARGS1(HTAAMethod, method)
 **	returns		YES, if method was found.
 **			NO, if not found.
 */
-PUBLIC BOOL HTAAMethod_inList ARGS2(HTAAMethod,	method,
-				    HTList *,	list)
+PUBLIC BOOL HTMethod_inList ARGS2(HTAtom *,	method,
+				  HTList *,	list)
 {
+    char *method_name;
     HTList *cur = list;
     char *item;
 
+    if (!method || !(method_name = HTAtom_name(method))) {
+	fprintf(stderr, "HTMethod_inList: invalid param: %s is NULL!!\n",
+		(method ? "method's name (atom name)" : "method (atom)"));
+	return NO;
+    }
+
     while (NULL != (item = (char*)HTList_nextObject(cur))) {
 	if (TRACE) fprintf(stderr, " %s", item);
-	if (method == HTAAMethod_enum(item))
+	if (0==strcasecomp(item, method_name))
 	    return YES;
     }
 
@@ -224,6 +173,13 @@ PUBLIC BOOL HTAA_templateMatch ARGS2(CONST char *, template,
     CONST char *q = filename;
     int m;
 
+    if (!template || !filename) {
+	if (TRACE) fprintf(stderr,
+			   "HTAA_templateMatch: invalid param: %s is NULL!!\n",
+			   (template ? "filename" : "template"));
+	return NO;
+    }
+
     for( ; *p  &&  *q  &&  *p == *q; p++, q++)	/* Find first mismatch */
 	; /* do nothing else */
 
@@ -241,9 +197,9 @@ PUBLIC BOOL HTAA_templateMatch ARGS2(CONST char *, template,
 }    
 
 
-/* PUBLIC						HTAA_templateCaseMatch()
+/* PUBLIC					HTAA_templateCaseMatch()
 **		STRING COMPARISON FUNCTION FOR FILE NAMES
-**		   WITH ONE WILDCARD * IN THE TEMPLATE (Case Insensitive)
+**	   WITH ONE WILDCARD * IN THE TEMPLATE (Case Insensitive)
 ** NOTE:
 **	This is essentially the same code as in HTAA_templateMatch, but
 **	it compares case insensitive (for VMS). Reason for this routine
@@ -269,6 +225,13 @@ PUBLIC BOOL HTAA_templateCaseMatch ARGS2(CONST char *, template,
     CONST char *p = template;
     CONST char *q = filename;
     int m;
+
+    if (!template || !filename) {
+	if (TRACE) fprintf(stderr,
+			   "HTAA_templateCaseMatch: invalid param: %s is NULL!!\n",
+			   (template ? "filename" : "template"));
+	return NO;
+    }
 
     for( ; *p  &&  *q  &&  toupper(*p) == toupper(*q); p++, q++) /* Find first mismatch */
 	; /* do nothing else */
@@ -422,152 +385,4 @@ PUBLIC HTAssocList *HTAA_parseArgList ARGS1(char *, str)
 
     return assoc_list;
 }
-
-
-
-/************** HEADER LINE READER -- DOES UNFOLDING *************************/
-
-#define BUFFER_SIZE	1024
-
-PRIVATE char buffer[BUFFER_SIZE + 1];
-PRIVATE char *start_pointer = buffer;
-PRIVATE char *end_pointer = buffer;
-PRIVATE int in_soc = -1;
-
-/* PUBLIC						HTAA_setupReader()
-**		SET UP HEADER LINE READER, i.e. give
-**		the already-read-but-not-yet-processed
-**		buffer of text to be read before more
-**		is read from the socket.
-** ON ENTRY:
-**	start_of_headers is a pointer to a buffer containing
-**			the beginning of the header lines
-**			(rest will be read from a socket).
-**	length		is the number of valid characters in
-**			'start_of_headers' buffer.
-**	soc		is the socket to use when start_of_headers
-**			buffer is used up.
-** ON EXIT:
-**	returns		nothing.
-**			Subsequent calls to HTAA_getUnfoldedLine()
-**			will use this buffer first and then
-**			proceed to read from socket.
-*/
-PUBLIC void HTAA_setupReader ARGS3(char *,	start_of_headers,
-				   int,		length,
-				   int,		soc)
-{
-    start_pointer = buffer;
-    if (start_of_headers) {
-	strncpy(buffer, start_of_headers, length);
-	buffer[length] = (char)0;
-	end_pointer = buffer + length;
-    }
-    else {
-	*start_pointer = (char)0;
-	end_pointer = start_pointer;
-    }
-    in_soc = soc;
-}
-
-
-/* PUBLIC						HTAA_getUnfoldedLine()
-**		READ AN UNFOLDED HEADER LINE FROM SOCKET
-** ON ENTRY:
-**	HTAA_setupReader must absolutely be called before
-**	this function to set up internal buffer.
-**
-** ON EXIT:
-**	returns	a newly-allocated character string representing
-**		the read line.  The line is unfolded, i.e.
-**		lines that begin with whitespace are appended
-**		to current line.  E.g.
-**
-**			Field-Name: Blaa-Blaa
-**			 This-Is-A-Continuation-Line
-**			 Here-Is_Another
-**
-**		is seen by the caller as:
-**
-**	Field-Name: Blaa-Blaa This-Is-A-Continuation-Line Here-Is_Another
-**
-*/
-PUBLIC char *HTAA_getUnfoldedLine NOARGS
-{
-    char *line = NULL;
-    char *cur;
-    int count;
-    BOOL peek_for_folding = NO;
-
-    if (in_soc < 0) {
-	fprintf(stderr, "%s %s\n",
-		"HTAA_getUnfoldedLine: buffer not initialized",
-		"with function HTAA_setupReader()");
-	return NULL;
-    }
-
-    for(;;) {
-
-	/* Reading from socket */
-
-	if (start_pointer >= end_pointer) {/*Read the next block and continue*/
-	    count = NETREAD(in_soc, buffer, BUFFER_SIZE);
-	    if (count <= 0) {
-		in_soc = -1;
-		return line;
-	    }
-	    start_pointer = buffer;
-	    end_pointer = buffer + count;
-	    *end_pointer = (char)0;
-#ifdef NOT_ASCII
-	    cur = start_pointer;
-	    while (cur < end_pointer) {
-		*cur = TOASCII(*cur);
-		cur++;
-	    }
-#endif /*NOT_ASCII*/
-	}
-	cur = start_pointer;
-
-
-	/* Unfolding */
-	
-	if (peek_for_folding) {
-	    if (*cur != ' '  &&  *cur != '\t')
-		return line;	/* Ok, no continuation line */
-	    else		/* So this is a continuation line, continue */
-		peek_for_folding = NO;
-	}
-
-
-	/* Finding end-of-line */
-
-	while (cur < end_pointer && *cur != '\n') /* Find the end-of-line */
-	    cur++;				  /* (or end-of-buffer).  */
-
-	
-	/* Terminating line */
-
-	if (cur < end_pointer) {	/* So *cur==LF, terminate line */
-	    *cur = (char)0;		/* Overwrite LF */
-	    if (*(cur-1) == '\r')
-		*(cur-1) = (char)0;	/* Overwrite CR */
-	    peek_for_folding = YES;	/* Check for a continuation line */
-	}
-
-
-	/* Copying the result */
-
-	if (line)
-	    StrAllocCat(line, start_pointer);	/* Append */
-	else
-	    StrAllocCopy(line, start_pointer);	/* A new line */
-
-	start_pointer = cur+1;	/* Skip the read line */
-
-    } /* forever */
-}
-
-
-
 

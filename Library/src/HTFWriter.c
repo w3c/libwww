@@ -390,7 +390,9 @@ PRIVATE void HTCache_remove ARGS2(HTList *, list, HTCacheItem *, item)
 /* This can be called for the main list or an anchor's list
 */
 
+#ifdef WHO_THE_HELL_IS_FRED
 int fred;
+#endif /* Freddy is now going bye-bye! -- Cheers, Ari -- */
 
 PUBLIC void HTCacheClear (HTList * list)
 {
@@ -404,23 +406,23 @@ PUBLIC void HTCacheClear (HTList * list)
 */
 PRIVATE void limit_cache ARGS1(HTList * , list)
 {
+    HTList * cur = list;
     HTCacheItem * item;
-    int i;
-    int n = HTList_count(list);
     time_t best_delay = 0;   /* time_t in principle can be any arith type */
     HTCacheItem* best_item = NULL;
-    
-    if (n < HTCacheLimit) return;		/* Limit not reached */
-    
-    for (i=0; i<n; i++) {
-	if (item->load_delay < best_delay) {
-	    best_delay = item->load_delay;
-	    best_item = item;
-	}
+
+    if (HTList_count(list) < HTCacheLimit) return;   /* Limit not reached */
+
+    while (NULL != (item = (HTCacheItem*)HTList_nextObject(cur))) {
+        if (best_delay == 0  ||  item->load_delay < best_delay) {
+            best_delay = item->load_delay;
+            best_item = item;
+        }
     }
-    
+
     if (best_item) HTCache_remove(list, best_item);
 }
+
 
 
 /*	Save and Call Back

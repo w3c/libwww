@@ -176,10 +176,9 @@ PUBLIC BOOL HTAA_passwdMatch ARGS2(CONST char *, password,
     status = strncmp(result, encrypted, strlen(encrypted));
 
     if (TRACE)
-	fprintf(stderr,
-		"%s `%s' (encrypted: `%s') with: `%s' => %s\n",
-		"HTAA_passwdMatch: Matching password:",
-		password, result, encrypted,
+	fprintf(stderr, "%s `%s' with `%s' => %s\n",
+		"HTAA_passwdMatch: Matching encrypted password:",
+		result, encrypted,
 		(status==0 ? "OK" : "INCORRECT"));
 
     free(result);
@@ -291,8 +290,9 @@ PUBLIC BOOL HTAA_checkPassword ARGS3(CONST char *, username,
 
     fclose(fp);
     
-    if (TRACE) fprintf(stderr, "HTAAFile_checkPassword: (%s,%s) %scorrect\n",
-		       username, password, ((status != EOF) ? "" : "in"));
+    if (TRACE) fprintf(stderr,
+		       "HTAAFile_checkPassword: password for %s is %scorrect\n",
+		       username, ((status != EOF) ? "" : "in"));
 
     if (status == EOF)  return NO;  /* We traversed to the end without luck */
     else                return YES; /* The user was found */

@@ -39,12 +39,7 @@ typedef struct {
     HTAAProt *	prot;
 } HTAAProtCache;
 
-PRIVATE HTList *  prot_cache	= NULL;	/* Protection setup cache.	*/
-PRIVATE HTAAProt *default_prot	= NULL;	/* Default protection.		*/
-PRIVATE HTAAProt *current_prot	= NULL;	/* Current protection mode	*/
-                                        /* which is set up by callbacks	*/
-                                        /* from the rule system when	*/
-                                        /* a "protect" rule is matched.	*/
+PRIVATE HTList *  prot_cache	= NULL;	/* Protection setup cache. */
 
 
 
@@ -71,7 +66,7 @@ PRIVATE BOOL isNumber ARGS1(CONST char *, s)
 
 #ifdef VMS
 
-/* PUBLIC							HTAA_getUidName()
+/* PUBLIC						HTAA_getUidName()
 **		GET THE USER ID NAME (VMS ONLY)
 ** ON ENTRY:
 **	No arguments.
@@ -89,7 +84,8 @@ PUBLIC char * HTAA_getUidName NOARGS
        return("");
 }
 
-/* PUBLIC							HTAA_getFileName
+#ifdef OLD_CODE /* prot->filename no longer exists */
+/* PUBLIC						HTAA_getFileName
 **		GET THE FILENAME (VMS ONLY)
 ** ON ENTRY:
 **	No arguments.
@@ -104,39 +100,41 @@ PUBLIC char * HTAA_getFileName NOARGS
     else
        return("");
 }
+#endif /*OLD_CODE*/
+
 
 #else /* not VMS */
 
 /* PUBLIC							HTAA_getUid()
 **		GET THE USER ID TO CHANGE THE PROCESS UID TO
 ** ON ENTRY:
-**	No arguments.
+**	req	request.
 **
 ** ON EXIT:
 **	returns	the uid number to give to setuid() system call.
 **		Default is 65534 (nobody).
 */
-PUBLIC int HTAA_getUid NOARGS
+PUBLIC int HTAA_getUid ARGS1(HTRequest *, req)
 {
     struct passwd *pw = NULL;
 
-    if (current_prot  &&  current_prot->uid_name) {
-	if (isNumber(current_prot->uid_name)) {
-	    if (NULL != (pw = getpwuid(atoi(current_prot->uid_name)))) {
+    if (req  &&  req->prot  &&  req->prot->uid_name) {
+	if (isNumber(req->prot->uid_name)) {
+	    if (NULL != (pw = getpwuid(atoi(req->prot->uid_name)))) {
 		if (TRACE) fprintf(stderr, 
 				   "%s(%s) returned (%s:%s:%d:%d:...)\n",
 				   "HTAA_getUid: getpwuid",
-				   current_prot->uid_name,
+				   req->prot->uid_name,
 				   pw->pw_name, pw->pw_passwd,
 				   pw->pw_uid, pw->pw_gid);
 		return pw->pw_uid;	
 	    }
 	}
 	else {	/* User name (not a number) */
-	    if (NULL != (pw = getpwnam(current_prot->uid_name))) {
+	    if (NULL != (pw = getpwnam(req->prot->uid_name))) {
 		if (TRACE) fprintf(stderr, "%s(\"%s\") %s (%s:%s:%d:%d:...)\n",
 				   "HTAA_getUid: getpwnam",
-				   current_prot->uid_name, "returned",
+				   req->prot->uid_name, "returned",
 				   pw->pw_name, pw->pw_passwd,
 				   pw->pw_uid, pw->pw_gid);
 		return pw->pw_uid;
@@ -162,33 +160,33 @@ PUBLIC int HTAA_getUid NOARGS
 /* PUBLIC							HTAA_getGid()
 **		GET THE GROUP ID TO CHANGE THE PROCESS GID TO
 ** ON ENTRY:
-**	No arguments.
+**	req	request.
 **
 ** ON EXIT:
 **	returns	the uid number to give to setgid() system call.
 **		Default is 65534 (nogroup).
 */
-PUBLIC int HTAA_getGid NOARGS
+PUBLIC int HTAA_getGid ARGS1(HTRequest *, req)
 {    
     struct group *gr = NULL;
     
-    if (current_prot  &&  current_prot->gid_name) {
-	if (isNumber(current_prot->gid_name)) {
-	    if (NULL != (gr = getgrgid(atoi(current_prot->gid_name)))) {
+    if (req  &&  req->prot  &&  req->prot->gid_name) {
+	if (isNumber(req->prot->gid_name)) {
+	    if (NULL != (gr = getgrgid(atoi(req->prot->gid_name)))) {
 		if (TRACE) fprintf(stderr,
 				   "%s(%s) returned (%s:%s:%d:...)\n",
 				   "HTAA_getGid: getgrgid",
-				   current_prot->gid_name,
+				   req->prot->gid_name,
 				   gr->gr_name, gr->gr_passwd, gr->gr_gid);
 		return gr->gr_gid;
 	    }
 	}
 	else {	/* Group name (not number) */
-	    if (NULL != (gr = getgrnam(current_prot->gid_name))) {
+	    if (NULL != (gr = getgrnam(req->prot->gid_name))) {
 		if (TRACE) fprintf(stderr, 
 				   "%s(\"%s\") returned (%s:%s:%d:...)\n",
 				   "HTAA_getGid: getgrnam",
-				   current_prot->gid_name,
+				   req->prot->gid_name,
 				   gr->gr_name, gr->gr_passwd, gr->gr_gid);
 		return gr->gr_gid;
 	    }
@@ -365,7 +363,6 @@ PRIVATE void HTAA_parseProtFile ARGS2(HTAAProt *, prot,
 **		ALLOCATE A NEW HTAAProt STRUCTURE AND
 **		INITIALIZE IT FROM PROTECTION SETUP FILE
 ** ON ENTRY:
-**	cur_docname	current filename after rule translations.
 **	prot_filename	protection setup file name.
 **			If NULL, not an error.
 **	ids		Uid and gid names or numbers,
@@ -387,8 +384,7 @@ PRIVATE void HTAA_parseProtFile ARGS2(HTAAProt *, prot,
 **			in cache), only sets uid_name and gid
 **			fields, and returns that.
 */
-PRIVATE HTAAProt *HTAAProt_new ARGS3(CONST char *,	cur_docname,
-				     CONST char *,	prot_filename,
+PRIVATE HTAAProt *HTAAProt_new ARGS2(CONST char *,	prot_filename,
 				     CONST char *,	ids)
 {
     HTList *cur = prot_cache;
@@ -416,7 +412,6 @@ PRIVATE HTAAProt *HTAAProt_new ARGS3(CONST char *,	cur_docname,
 	    outofmem(__FILE__, "HTAAProt_new");
 
 	prot->template	= NULL;
-	prot->filename	= NULL;
 	prot->uid_name	= NULL;
 	prot->gid_name	= NULL;
 	prot->valid_schemes = HTList_new();
@@ -438,8 +433,6 @@ PRIVATE HTAAProt *HTAAProt_new ARGS3(CONST char *,	cur_docname,
 				(prot_filename ? prot_filename : "(null)"));
     }
 
-    if (cur_docname)
-	StrAllocCopy(prot->filename, cur_docname);
     HTAA_setIds(prot, ids);
 
     return prot;
@@ -452,7 +445,7 @@ PRIVATE HTAAProt *HTAAProt_new ARGS3(CONST char *,	cur_docname,
 **		(called by rule system when a
 **		"defprot" rule is matched)
 ** ON ENTRY:
-**	cur_docname	is the current result of rule translations.
+**	req		request structure.
 **	prot_filename	is the protection setup file (second argument
 **			for "defprot" rule, optional)
 **	ids		contains user and group names separated by
@@ -464,16 +457,22 @@ PRIVATE HTAAProt *HTAAProt_new ARGS3(CONST char *,	cur_docname,
 **
 ** ON EXIT:
 **	returns		nothing.
-**			Sets the module-wide variable default_prot.
+**			Sets default protection mode of the request.
 */
-PUBLIC void HTAA_setDefaultProtection ARGS3(CONST char *,	cur_docname,
+PUBLIC void HTAA_setDefaultProtection ARGS3(HTRequest *,	req,
 					    CONST char *,	prot_filename,
 					    CONST char *,	ids)
 {
-    default_prot = NULL;	/* Not free()'d because this is in cache */
+    if (!req) {
+	if (TRACE) fprintf(stderr,
+			   "HTAA_setDefaultProtection: ERROR: req == NULL!\n");
+	return;
+    }
+
+    req->def_prot = NULL;	/* Not free()'d because this is in cache */
 
     if (prot_filename) {
-	default_prot = HTAAProt_new(cur_docname, prot_filename, ids);
+	req->def_prot = HTAAProt_new(prot_filename, ids);
     } else {
 	if (TRACE) fprintf(stderr, "%s %s\n",
 			   "HTAA_setDefaultProtection: ERROR: Protection file",
@@ -488,7 +487,7 @@ PUBLIC void HTAA_setDefaultProtection ARGS3(CONST char *,	cur_docname,
 **		(called by rule system when a
 **		"protect" rule is matched)
 ** ON ENTRY:
-**	cur_docname	is the current result of rule translations.
+**	req		request structure.
 **	prot_filename	is the protection setup file (second argument
 **			for "protect" rule, optional)
 **	ids		contains user and group names separated by
@@ -500,20 +499,28 @@ PUBLIC void HTAA_setDefaultProtection ARGS3(CONST char *,	cur_docname,
 **
 ** ON EXIT:
 **	returns		nothing.
-**			Sets the module-wide variable current_prot.
+**			Sets current protection mode of the request.
 */
-PUBLIC void HTAA_setCurrentProtection ARGS3(CONST char *,	cur_docname,
+PUBLIC void HTAA_setCurrentProtection ARGS3(HTRequest *,	req,
 					    CONST char *,	prot_filename,
 					    CONST char *,	ids)
 {
-    current_prot = NULL;	/* Not free()'d because this is in cache */
+    if (!req) {
+	if (TRACE) fprintf(stderr,
+			   "HTAA_setCurrentProtection: ERROR: req == NULL!\n");
+	return;
+    }
+
+    req->prot = NULL;	/* Not free()'d because this is in cache */
 
     if (prot_filename) {
-	current_prot = HTAAProt_new(cur_docname, prot_filename, ids);
+	req->prot = HTAAProt_new(prot_filename, ids);
     } else {
-	if (default_prot) {
-	    current_prot = default_prot;
-	    HTAA_setIds(current_prot, ids);
+	if (req->def_prot) {
+	    req->prot = req->def_prot;
+#ifdef I_DONT_THINK_THIS_SHOULD_BE_HERE
+	    HTAA_setIds(req->prot, ids);
+#endif
 	    if (TRACE) fprintf(stderr, "%s %s %s\n",
 			       "HTAA_setCurrentProtection: Protection file",
 			       "not specified for Protect rule",
@@ -528,6 +535,8 @@ PUBLIC void HTAA_setCurrentProtection ARGS3(CONST char *,	cur_docname,
 }
 
 
+
+#ifdef OLD_CODE
 
 /* PUBLIC					HTAA_getCurrentProtection()
 **		GET CURRENT PROTECTION SETUP STRUCTURE
@@ -601,4 +610,6 @@ PUBLIC void HTAA_clearProtections NOARGS
     default_prot = NULL;	/* they are actually in cache.	*/
 }
 
+
+#endif /* OLD_CODE */
 

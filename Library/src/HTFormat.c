@@ -98,7 +98,8 @@ PUBLIC void HTSetPresentation ARGS6(
     
 /*    if (!HTPresentations) HTPresentations = HTList_new(); */
     
-#ifdef OLD_CODE    if (strcmp(representation, "*")==0) {
+#ifdef OLD_CODE
+    if (strcmp(representation, "*")==0) {
         if (default_presentation) free(default_presentation);
 	default_presentation = pres;
     } else 
@@ -205,6 +206,225 @@ PUBLIC void HTInputSocket_free(HTInputSocket * me)
 }
 
 
+PRIVATE int fill_in_buffer ARGS1(HTInputSocket *, isoc)
+{
+    if (isoc) {
+	int status;
+
+	isoc->input_pointer = isoc->input_buffer;
+	status = NETREAD(isoc->input_file_number,
+			 isoc->input_buffer,
+			 INPUT_BUFFER_SIZE);
+	if (status <= 0) {
+	    isoc->input_limit = isoc->input_buffer;
+	    if (status < 0)
+		if (TRACE) fprintf(stderr,
+				   "HTInputSocket: File read error %d\n",
+				   status);
+	}
+	else 
+	    isoc->input_limit = isoc->input_buffer + status;
+	return status;
+    }
+    return -1;
+}
+
+
+PRIVATE void ascii_cat ARGS3(char **,	linep,
+			     char *,	start,
+			     char *,	end)
+{
+    if (linep && start && end && start <= end) {
+	char *ptr;
+
+	if (*linep) {
+	    int len = strlen(*linep);
+	    *linep = (char*)realloc(*linep, len + end-start + 1);
+	    ptr = *linep + len;
+	}
+	else {
+	    ptr = *linep = (char*)malloc(end-start + 1);
+	}
+
+	while (start < end) {
+	    *ptr = FROMASCII(*start);
+	    ptr++;
+	    start++;
+	}
+	*ptr = 0;
+    }
+}
+
+
+PRIVATE char * get_some_line ARGS2(HTInputSocket *,	isoc,
+				   BOOL,		unfold)
+{
+    if (!isoc)
+	return NULL;
+    else {
+	BOOL check_unfold = NO;
+	int prev_cr = 0;
+	char *start = isoc->input_pointer;
+	char *cur = isoc->input_pointer;
+	char * line = NULL;
+
+	for(;;) {
+	    /*
+	    ** Get more if needed to complete line
+	    */
+	    if (cur >= isoc->input_limit) { /* Need more data */
+#if 0
+		if (TRACE) fprintf(stderr, "HTInputSocket: reading more data\n");
+#endif
+		ascii_cat(&line, start, cur);
+		if (fill_in_buffer(isoc) <= 0)
+		    return line;
+		start = cur = isoc->input_pointer;
+	    } /* if need more data */
+
+	    /*
+	    ** Find a line feed if there is one
+	    */
+#if 0
+	    if (TRACE) fprintf(stderr, "HTInputSocket: processing read buffer\n");
+#endif
+	    for(; cur < isoc->input_limit; cur++) {
+		char c = FROMASCII(*cur);
+		if (!c) {
+#if 0
+		    if (TRACE) fprintf(stderr, "HTInputSocket: panic, read zero!\n");
+#endif
+		    return NULL;	/* Panic! read a 0! */
+		}
+		if (check_unfold  &&  c != ' '  &&  c != '\t') {
+#if 0
+		    if (TRACE) fprintf(stderr, "HTInputSocket: returning \"%s\"\n",
+				       (line ? line : "(null)"));
+#endif
+		    return line;  /* Note: didn't update isoc->input_pointer */
+		}
+		else {
+		    check_unfold = NO;
+		}
+
+		if (c=='\r') {
+#if 0
+		    if (TRACE) fprintf(stderr, "HTInputSocket: found linefeed\n");
+#endif
+		    prev_cr = 1;
+		}
+		else {
+		    if (c=='\n') {		/* Found a line feed */
+#if 0
+			if (TRACE) fprintf(stderr, "HTInputSocket: found newline\n");
+#endif
+			ascii_cat(&line, start, cur-prev_cr);
+			start = isoc->input_pointer = cur+1;
+
+			if (line && strlen(line) > 0 && unfold) {
+#if 0
+			    if (TRACE) fprintf(stderr, "HTInputSocket: next time check unfolding\n");
+#endif
+			    check_unfold = YES;
+			}
+			else {
+#if 0
+			    if (TRACE) fprintf(stderr,
+					       "HTInputSocket: no unfold check -- just return \"%s\"\n",
+					       (line ? line : "(line)"));
+#endif
+			    return line;
+			}
+		    } /* if NL */
+		    /* else just a regular character */
+		    prev_cr = 0;
+		} /* if not CR */
+	    } /* while characters in buffer remain */
+	} /* until line read or end-of-file */
+    } /* valid parameters to function */
+}
+
+
+PUBLIC char * HTInputSocket_getLine ARGS1(HTInputSocket *, isoc)
+{
+    return get_some_line(isoc, NO);
+}
+
+PUBLIC char * HTInputSocket_getUnfoldedLine ARGS1(HTInputSocket *, isoc)
+{
+    return get_some_line(isoc, YES);
+}
+
+
+/*
+** Read HTTP status line (if there is one).
+**
+** Kludge to trap binary responses from illegal HTTP0.9 servers.
+** First look at the stub in ASCII and check if it starts "HTTP/".
+**
+** Bugs: A HTTP0.9 server returning a document starting "HTTP/"
+**	 will be taken as a HTTP 1.0 server.  Failure.
+*/
+#define STUB_LENGTH 20
+PUBLIC char * HTInputSocket_getStatusLine ARGS1(HTInputSocket *, isoc)
+{
+    if (!isoc) {
+	return NULL;
+    }
+    else {
+	char buf[STUB_LENGTH + 1];
+	int i;
+	char server_version[STUB_LENGTH+1];
+	int server_status;
+
+	/*
+	** Read initial buffer
+	*/
+	if (isoc->input_pointer >= isoc->input_limit &&
+	    fill_in_buffer(isoc) <= 0) {
+	    return NULL;
+        }
+
+	for (i=0; i < STUB_LENGTH; i++)
+	    buf[i] = FROMASCII(isoc->input_buffer[i]);
+	buf[STUB_LENGTH] = 0;
+
+	if (0 != strncmp(buf, "HTTP/", 5) ||
+	    sscanf(buf, "%20s%d", server_version, &server_status) < 2)
+	    return NULL;
+	else
+	    return get_some_line(isoc, NO);
+    }
+}
+
+
+/*
+** Do heuristic test to see if this is binary.
+**
+** We check for characters above 128 in the first few bytes, and
+** if we find them we forget the html default.
+** Kludge to trap binary responses from illegal HTTP0.9 servers.
+**
+** Bugs: An HTTP 0.9 server returning a binary document with
+**	 characters < 128 will be read as ASCII.
+*/
+PUBLIC BOOL HTInputSocket_seemsBinary ARGS1(HTInputSocket *, isoc)
+{
+    if (isoc &&
+	(isoc->input_pointer < isoc->input_limit ||
+	 fill_in_buffer(isoc) > 0)) {
+	char *p = isoc->input_buffer;
+	int i = STUB_LENGTH;
+
+	for( ; i && p < isoc->input_limit; p++, i++)
+	    if (((int)*p)&128)
+		return YES;
+    }
+    return NO;
+}
+
+
+
 /*	Stream the data to an ouput file as binary
 */
 PUBLIC int HTOutputBinary ARGS3( HTInputSocket *, isoc,
@@ -255,23 +475,24 @@ PUBLIC HTStream * HTStreamStack ARGS2(
 	HTAtom_name(rep_out));
 		
 
+#ifdef BUG_OUT	/* by Lou Montulli 16 Aug 93, put in by AL 6 Dec 93 */
     if (rep_out == WWW_SOURCE ||
     	rep_out == rep_in) return request->output_stream;
+#endif
+    if (rep_out == rep_in) return request->output_stream;
 
     conversion[0] = request->conversions;
     conversion[1] = HTConversions;
     
-    for(which_list = 0; which_list<2; which_list++)
-     if (conversion[which_list]) {
-        HTList * conversions = conversion[which_list];
-	int n = HTList_count(conversions);
-	int i;
-	for(i=0; i<n; i++) {
-	    pres = HTList_objectAt(conversions, i);
+    for(which_list = 0; which_list<2; which_list++) {
+	HTList * cur = conversion[which_list];
+	
+	while ((pres = (HTPresentation*)HTList_nextObject(cur))) {
 	    if (pres->rep == rep_in) {
 	        if (pres->rep_out == rep_out)
 	            return (*pres->converter)(request, pres->command,
-		    		rep_in, pres->rep_out, request->output_stream);
+					      rep_in, pres->rep_out,
+					      request->output_stream);
 		if (pres->rep_out == wildcard) {
 		    wildcard_match = pres;
 		}
@@ -331,18 +552,14 @@ PUBLIC float HTStackValue ARGS5(
     
     for(which_list = 0; which_list<2; which_list++)
      if (conversion[which_list]) {
-        HTList * conversions = conversion[which_list];
-	int n = HTList_count(conversions);
-	int i;
+        HTList * cur = conversion[which_list];
 	HTPresentation * pres;
-	for(i=0; i<n; i++) {
-	    pres = HTList_objectAt(conversions, i);
-	    if (pres->rep == rep_in && (
-	    		pres->rep_out == rep_out ||
-			pres->rep_out == wildcard)) {
+	while ((pres = (HTPresentation*)HTList_nextObject(cur))) {
+	    if (pres->rep == rep_in &&
+		(pres->rep_out == rep_out || pres->rep_out == wildcard)) {
 	        float value = initial_value * pres->quality;
 		if (HTMaxSecs != 0.0)
-		value = value - (length*pres->secs_per_byte + pres->secs)
+		    value = value - (length*pres->secs_per_byte + pres->secs)
 			                 /HTMaxSecs;
 		return value;
 	    }

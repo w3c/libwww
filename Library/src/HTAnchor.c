@@ -17,6 +17,7 @@
 
 #include <ctype.h>
 #include "tcp.h"
+#include "HTFormat.h"
 #include "HTAnchor.h"
 
 #include "HTUtils.h"
@@ -97,9 +98,9 @@ PUBLIC HTChildAnchor * HTAnchor_findChild
     if (TRACE) printf ("HTAnchor_findChild called with NULL parent.\n");
     return NULL;
   }
-  if (kids = parent->children) {  /* parent has children : search them */
+  if ((kids = parent->children)) {  /* parent has children : search them */
     if (tag && *tag) {		/* TBL */
-	while (child = HTList_nextObject (kids)) {
+	while ((child = HTList_nextObject (kids))) {
 	    if (equivalent(child->tag, tag)) { /* Case sensitive 920226 */
 		if (TRACE) fprintf (stderr,
 	       "Child anchor %p of parent %p with name `%s' already exists.\n",
@@ -197,7 +198,7 @@ HTAnchor * HTAnchor_findAddress
 
     /* Search list for anchor */
     grownups = adults;
-    while (foundAnchor = HTList_nextObject (grownups)) {
+    while ((foundAnchor = HTList_nextObject (grownups))) {
        if (equivalent(foundAnchor->address, address)) {
 	if (TRACE) fprintf(stderr, "Anchor %p with address `%s' already exists.\n",
 			  (void*) foundAnchor, address);
@@ -241,7 +242,7 @@ PRIVATE void deleteLinks
   }
   if (me->links) {  /* Extra destinations */
     HTLink *target;
-    while (target = HTList_removeLastObject (me->links)) {
+    while ((target = HTList_removeLastObject (me->links))) {
       HTParentAnchor *parent = target->dest->parent;
       HTList_removeObject (parent->sources, me);
       if (! parent->document)  /* Test here to avoid calling overhead */
@@ -265,14 +266,14 @@ PUBLIC BOOL HTAnchor_delete
   if (! HTList_isEmpty (me->sources)) {  /* There are still incoming links */
     /* Delete all outgoing links from children, if any */
     HTList *kids = me->children;
-    while (child = HTList_nextObject (kids))
+    while ((child = HTList_nextObject (kids)))
       deleteLinks ((HTAnchor *) child);
     return NO;  /* Parent not deleted */
   }
 
   /* No more incoming links : kill everything */
   /* First, recursively delete children */
-  while (child = HTList_removeLastObject (me->children)) {
+  while ((child = HTList_removeLastObject (me->children))) {
     deleteLinks ((HTAnchor *) child);
     free (child->tag);
     free (child);
@@ -466,7 +467,7 @@ HTAnchor * HTAnchor_followTypedLink
   if (me->links) {
     HTList *links = me->links;
     HTLink *link;
-    while (link = HTList_nextObject (links))
+    while ((link = HTList_nextObject (links)))
       if (link->type == type)
 	return link->dest;
   }

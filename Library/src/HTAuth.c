@@ -132,13 +132,13 @@ PRIVATE HTAAUser *decompose_auth_string ARGS2(char *,		authstring,
 
     if (TRACE) {
 	if (scheme==HTAA_BASIC)
-	    fprintf(stderr, "decompose_auth_string: %s (%s,%s)\n",
-		    "Basic scheme authentication string:",
-		    username, password);
+	    fprintf(stderr, "decompose_auth_string: %s '%s'\n",
+		    "Got Basic scheme authentication string for user",
+		    username);
 	else
-	    fprintf(stderr, "decompose_auth_string: %s (%s,%s,%s,%s,%s)\n",
+	    fprintf(stderr, "decompose_auth_string: %s (%s,PW,%s,%s,%s)\n",
 		    "Pubkey scheme authentication string:",
-		    username, password, inet_addr, timestamp, browsers_key);
+		    username, inet_addr, timestamp, browsers_key);
     }
     
     return user;
@@ -161,48 +161,52 @@ PRIVATE BOOL HTAA_checkInetAddress ARGS1(CONST char *, inet_addr)
 /* SERVER PUBLIC					HTAA_authenticate()
 **			AUTHENTICATE USER
 ** ON ENTRY:
-**	scheme		used authentication scheme.
-**	scheme_specifics the scheme specific parameters
+**	req		request.
+**	req->scheme	used authentication scheme.
+**	req->scheme_specifics
+**			the scheme specific parameters
 **			(authentication string for Basic and
 **			Pubkey schemes).
-**	prot		is the protection information structure
+**	req->prot	is the protection information structure
 **			for the file.
 **
 ** ON EXIT:
-**	returns		NULL, if authentication failed.
-**			Otherwise a pointer to a structure
-**			representing authenticated user,
-**			which should not be freed.
+**	returns		YES, if authentication succeeds and
+**			req->user is set to point to the authenticated
+**			user.  NO, if authentication fails.
+** BUGS:
+**	req->user must NOT be freed.
 */
-PUBLIC HTAAUser *HTAA_authenticate ARGS3(HTAAScheme,	scheme,
-					 char *,	scheme_specifics,
-					 HTAAProt *,	prot)
+PUBLIC BOOL HTAA_authenticate ARGS1(HTRequest *, req)
 {
-    if (HTAA_UNKNOWN == scheme || !prot ||
-	-1 == HTList_indexOf(prot->valid_schemes, (void*)scheme))
+    if (HTAA_UNKNOWN == req->scheme || !req->prot ||
+	-1 == HTList_indexOf(req->prot->valid_schemes, (void*)req->scheme))
 	return NULL;
 
-    switch (scheme) {
+    switch (req->scheme) {
       case HTAA_BASIC:
       case HTAA_PUBKEY:
 	{
-	    HTAAUser *user = decompose_auth_string(scheme_specifics, scheme);
+	    HTAAUser *user =
+		decompose_auth_string(req->auth_string, req->scheme);
 	                                   /* Remember, user is auto-freed */
 	    if (user &&
 		HTAA_checkPassword(user->username,
 				   user->password,
-				   HTAssocList_lookup(prot->values, "passw")) &&
-		(HTAA_BASIC == scheme ||
+				   HTAssocList_lookup(req->prot->values,
+						      "passw")) &&
+		(HTAA_BASIC == req->scheme ||
 		 (HTAA_checkTimeStamp(user->timestamp) &&
-		  HTAA_checkInetAddress(user->inet_addr))))
-		return user;
-	    else
-		return NULL;
+		  HTAA_checkInetAddress(user->inet_addr)))) {
+		req->user = user;
+		return YES;
+	    }
+	    else return NO;
 	}
 	break;
       default:
 	/* Other authentication routines go here */
-	return NULL;
+	return NO;
     }
 }
 

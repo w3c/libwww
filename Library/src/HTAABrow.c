@@ -58,51 +58,7 @@
 #include "HTAssoc.h"		/* Assoc list			*/
 #include "HTAABrow.h"		/* Implemented here		*/
 #include "HTUU.h"		/* Uuencoding and uudecoding	*/
-
-
-
-/*
-** Local datatype definitions
-**
-** HTAAServer contains all the information about one server.
-*/
-typedef struct {
-
-    char *	hostname;	/* Host's name			*/
-    int		portnumber;	/* Port number			*/
-    HTList *	setups;		/* List of protection setups	*/
-                                /* on this server; i.e. valid	*/
-                                /* authentication schemes and	*/
-                                /* templates when to use them.	*/
-                                /* This is actually a list of	*/
-                                /* HTAASetup objects.		*/
-    HTList *	realms;		/* Information about passwords	*/
-} HTAAServer;
-
-
-/*
-** HTAASetup contains information about one server's one
-** protected tree of documents.
-*/
-typedef struct {
-    HTAAServer *server;		/* Which server serves this tree	     */
-    char *	template;	/* Template for this tree		     */
-    HTList *	valid_schemes;	/* Valid authentic.schemes   		     */
-    HTAssocList**scheme_specifics;/* Scheme specific params		     */
-    BOOL	retry;		/* Failed last time -- reprompt (or whatever)*/
-} HTAASetup;
-
-
-/*
-** Information about usernames and passwords in
-** Basic and Pubkey authentication schemes;
-*/
-typedef struct {
-    char *	realmname;	/* Password domain name		*/
-    char *	username;	/* Username in that domain	*/
-    char *	password;	/* Corresponding password	*/
-} HTAARealm;
-
+#include "HTAccess.h"		/* HTRequest structure		*/
 
 
 /*
@@ -110,6 +66,8 @@ typedef struct {
 */
 
 PRIVATE HTList *server_table	= NULL;	/* Browser's info about servers	     */
+
+#ifdef OLD_CODE
 PRIVATE char *secret_key	= NULL;	/* Browser's latest secret key       */
 PRIVATE HTAASetup *current_setup= NULL;	/* The server setup we are currently */
                                         /* talking to			     */
@@ -149,6 +107,7 @@ PUBLIC void HTAAForwardAuth_reset NOARGS
 {
     FREE(HTAAForwardAuth);
 }
+#endif /*OLD_CODE*/
 
 
 /**************************** HTAAServer ***********************************/
@@ -362,7 +321,7 @@ PRIVATE HTAASetup *HTAASetup_new ARGS4(HTAAServer *,	server,
     if (!(setup = (HTAASetup*)malloc(sizeof(HTAASetup))))
 	outofmem(__FILE__, "HTAASetup_new");
 
-    setup->retry = NO;
+    setup->reprompt = NO;
     setup->server = server;
     setup->template = NULL;
     if (template) StrAllocCopy(setup->template, template);
@@ -508,131 +467,70 @@ PRIVATE HTAARealm *HTAARealm_new ARGS4(HTList *,	realm_table,
 
 /***************** Basic and Pubkey Authentication ************************/
 
-/* PRIVATE						compose_auth_string()
+/* PRIVATE						compose_Basic_auth()
 **
-**		COMPOSE Basic OR Pubkey AUTHENTICATION STRING;
-**		PROMPTS FOR USERNAME AND PASSWORD IF NEEDED
+**		COMPOSE Basic SCHEME AUTHENTICATION STRING
 **
 ** ON ENTRY:
-**	scheme		is either HTAA_BASIC or HTAA_PUBKEY.
-**	realmname	is the password domain name.
+**	req		request, where
+**	req->scheme	== HTAA_BASIC
+**	req->realm	contains username and password.
 **
 ** ON EXIT:
 **	returns		a newly composed authorization string,
-**			(with, of course, a newly generated secret
-**			key and fresh timestamp, if Pubkey-scheme
-**			is being used).
 **			NULL, if something fails.
 ** NOTE:
 **	Like throughout the entire AA package, no string or structure
 **	returned by AA package needs to (or should) be freed.
 **
 */
-PRIVATE char *compose_auth_string ARGS2(HTAAScheme,	scheme,
-					HTAASetup *,	setup)
+PRIVATE char *compose_Basic_auth ARGS1(HTRequest *, req)
 {
     static char *result = NULL;	/* Uuencoded presentation, the result */
     char *cleartext = NULL;	/* Cleartext presentation */
-    char *ciphertext = NULL;	/* Encrypted presentation */
     int len;
-    char *username;
-    char *password;
-    char *realmname;
-    HTAARealm *realm;
-    char *inet_addr = "0.0.0.0";	/* Change... @@@@ */
-    char *timestamp = "42";		/* ... these @@@@ */
-    
 
     FREE(result);	/* From previous call */
 
-    if ((scheme != HTAA_BASIC && scheme != HTAA_PUBKEY) || !setup ||
-	!setup->scheme_specifics || !setup->scheme_specifics[scheme] ||
-	!setup->server  ||  !setup->server->realms)
+    if (!req || req->scheme != HTAA_BASIC || !req->setup ||
+	!req->setup->server)
 	return NULL;
 
-    realmname = HTAssocList_lookup(setup->scheme_specifics[scheme], "realm");
-    if (!realmname) return NULL;
+    if (!req->realm) {
+	char *realmname;
 
-    realm = HTAARealm_lookup(setup->server->realms, realmname);
-    if (!realm || setup->retry) {
-	char msg[100];
+	if (!req->setup || !req->setup->scheme_specifics ||
+	    !(realmname =
+	      HTAssocList_lookup(req->setup->scheme_specifics[HTAA_BASIC],
+				 "realm")))
+	    return NULL;
 
-	if (!realm) {
-	    if (TRACE) fprintf(stderr, "%s `%s' %s\n",
-			       "compose_auth_string: realm:", realmname,
-			       "not found -- creating");
-	    realm = HTAARealm_new(setup->server->realms, realmname, NULL,NULL);
-	    sprintf(msg,
-		    "Document is protected. Enter username for %s at %s",
-		    realm->realmname,
-		    setup->server->hostname ? setup->server->hostname : "??");
+	req->realm = HTAARealm_lookup(req->setup->server->realms, realmname);
+	if (!req->realm) {
+	    req->realm = HTAARealm_new(req->setup->server->realms,
+				       realmname, NULL, NULL);
+	    return NULL;
 	}
-	else {
-	    sprintf(msg,"Enter username for %s at %s", realm->realmname,
-		    setup->server->hostname ? setup->server->hostname : "??");
-	}
-
-	username = realm->username;
-	password = NULL;
-	HTPromptUsernameAndPassword(msg, &username, &password);
-
-	FREE(realm->username);
-	FREE(realm->password);
-	realm->username = username;
-	realm->password = password;
-
-	if (!realm->username)
-	    return NULL;		/* Suggested by marca; thanks! */
     }
-    
-    len = strlen(realm->username ? realm->username : "") +
-	  strlen(realm->password ? realm->password : "") + 3;
 
-    if (scheme == HTAA_PUBKEY) {
-#ifdef PUBKEY
-	/* Generate new secret key */
-	StrAllocCopy(secret_key, HTAA_generateRandomKey());
-#endif
-	/* Room for secret key, timestamp and inet address */
-	len += strlen(secret_key ? secret_key : "") + 30;
-    }
-    else
-	FREE(secret_key);
+    len = strlen(req->realm->username ? req->realm->username : "") +
+	  strlen(req->realm->password ? req->realm->password : "") + 3;
 
     if (!(cleartext  = (char*)calloc(len, 1)))
-	outofmem(__FILE__, "compose_auth_string");
+	outofmem(__FILE__, "compose_Basic_auth");
 
-    if (realm->username) strcpy(cleartext, realm->username);
+    if (req->realm->username) strcpy(cleartext, req->realm->username);
     else *cleartext = (char)0;
 
     strcat(cleartext, ":");
 
-    if (realm->password) strcat(cleartext, realm->password);
+    if (req->realm->password) strcat(cleartext, req->realm->password);
 
-    if (scheme == HTAA_PUBKEY) {
-	strcat(cleartext, ":");
-	strcat(cleartext, inet_addr);
-	strcat(cleartext, ":");
-	strcat(cleartext, timestamp);
-	strcat(cleartext, ":");
-	if (secret_key) strcat(cleartext, secret_key);
+    if (!(result = (char*)malloc(4 * ((len+2)/3) + 1)))
+	outofmem(__FILE__, "compose_Basic_auth");
+    HTUU_encode((unsigned char *)cleartext, strlen(cleartext), result);
+    free(cleartext);
 
-	if (!((ciphertext = (char*)malloc(2*len)) &&
-	      (result     = (char*)malloc(3*len))))
-	    outofmem(__FILE__, "compose_auth_string");
-#ifdef PUBKEY
-	HTPK_encrypt(cleartext, ciphertext, server->public_key);
-	HTUU_encode((unsigned char *)ciphertext, strlen(ciphertext), result);
-#endif
-	free(cleartext);
-	free(ciphertext);
-    }
-    else { /* scheme == HTAA_BASIC */
-	if (!(result = (char*)malloc(4 * ((len+2)/3) + 1)))
-	    outofmem(__FILE__, "compose_auth_string");
-	HTUU_encode((unsigned char *)cleartext, strlen(cleartext), result);
-	free(cleartext);
-    }
     return result;
 }
 
@@ -665,7 +563,7 @@ PRIVATE HTAAScheme HTAA_selectScheme ARGS1(HTAASetup *, setup)
 	    if (-1 < HTList_indexOf(setup->valid_schemes, (void*)scheme))
 		return scheme;
     }
-    return HTAA_BASIC;
+    return HTAA_NONE;
 }
 
 
@@ -673,32 +571,35 @@ PRIVATE HTAAScheme HTAA_selectScheme ARGS1(HTAASetup *, setup)
 
 /* BROWSER PUBLIC					HTAA_composeAuth()
 **
-**	SELECT THE AUTHENTICATION SCHEME AND
-**	COMPOSE THE ENTIRE AUTHORIZATION HEADER LINE
+**	COMPOSE Authorization: HEADER LINE CONTENTS
 **	IF WE ALREADY KNOW THAT THE HOST REQUIRES AUTHENTICATION
 **
 ** ON ENTRY:
-**	hostname	is the hostname of the server.
-**	portnumber	is the portnumber in which the server runs.
-**	docname		is the pathname of the document (as in URL)
+**	req		request, which contains
+**	req->argument	document, that we're trying to access.
+**	req->setup	protection setup info on browser.
+**	req->scheme	selected authentication scheme.
+**	req->realm	for Basic scheme the username and password.
 **
 ** ON EXIT:
-**	returns	NULL, if no authorization seems to be needed, or
-**		if it is the entire Authorization: line, e.g.
+**	returns	NO, if no authorization seems to be needed, and
+**		req->authorization is NULL.
+**		YES, if it has composed Authorization field,
+**		in which case the result is in req->authorization,
+**		e.g.
 **
-**		   "Authorization: Basic username:password"
-**
-**		As usual, this string is automatically freed.
+**		   "Basic AkRDIhEF8sdEgs72F73bfaS=="
 */
-PUBLIC char *HTAA_composeAuth ARGS3(CONST char *,	hostname,
-				    CONST int,		portnumber,
-				    CONST char *,	docname)
+PUBLIC BOOL HTAA_composeAuth ARGS1(HTRequest *, req)
 {
-    static char *result = NULL;
-    char *auth_string;
-    BOOL retry;
-    HTAAScheme scheme;
+    char *auth_string = NULL;
+    static char *docname;
+    static char *hostname;
+    int portnumber;
+    char *colon;
+    char *gate = NULL;	/* Obsolite? */
 
+#ifdef OLD_CODE
     /*
     ** Make gateway httpds pass authorization field as it was received.
     ** (This still doesn't really work because Authenticate: headers
@@ -715,14 +616,28 @@ PUBLIC char *HTAA_composeAuth ARGS3(CONST char *,	hostname,
 	HTAAForwardAuth_reset();	/* Just a precaution */
 	return result;
     }
+#endif
 
-    FREE(result);			/* From previous call */
+    FREE(hostname);	/* From previous call */
+    FREE(docname);	/*	- " -	      */
 
-    if (TRACE)
-	fprintf(stderr, 
-		"Composing Authorization for %s:%d/%s\n",
-		hostname, portnumber, docname);
+    if (!req  ||  !req->argument)
+	return NO;
 
+    docname = HTParse(req->argument, "", PARSE_PATH);
+    hostname = HTParse((gate ? gate : req->argument), "", PARSE_HOST);
+    if (hostname &&
+	NULL != (colon = strchr(hostname, ':'))) {
+	*(colon++) = '\0';	/* Chop off port number */
+	portnumber = atoi(colon);
+    }
+    else portnumber = 80;
+	
+    if (TRACE) fprintf(stderr,
+		       "Composing Authorization for %s:%d/%s\n",
+		       hostname, portnumber, docname);
+
+#ifdef OLD_CODE
     if (current_portnumber != portnumber ||
 	!current_hostname || !current_docname ||
 	!hostname         || !docname         ||
@@ -740,19 +655,21 @@ PUBLIC char *HTAA_composeAuth ARGS3(CONST char *,	hostname,
 	else FREE(current_docname);
     }
     else retry = YES;
-    
-    if (!current_setup || !retry)
-	current_setup = HTAASetup_lookup(hostname, portnumber, docname);
+#endif /*OLD_CODE*/
 
-    if (!current_setup)
-	return NULL;
+    if (!req->setup)
+	req->setup = HTAASetup_lookup(hostname, portnumber, docname);
+    if (!req->setup)
+	return NO;
 
+    if (req->scheme == HTAA_NONE)
+	req->scheme = HTAA_selectScheme(req->setup);
 
-    switch (scheme = HTAA_selectScheme(current_setup)) {
+    switch (req->scheme) {
       case HTAA_BASIC:
-      case HTAA_PUBKEY:
-	auth_string = compose_auth_string(scheme, current_setup);
+	auth_string = compose_Basic_auth(req);
 	break;
+      case HTAA_PUBKEY:
       case HTAA_KERBEROS_V4:
 	/* OTHER AUTHENTICATION ROUTINES ARE CALLED HERE */
       default:
@@ -760,169 +677,215 @@ PUBLIC char *HTAA_composeAuth ARGS3(CONST char *,	hostname,
 	    char msg[100];
 	    sprintf(msg, "%s %s `%s'",
 		    "This client doesn't know how to compose authentication",
-		    "information for scheme", HTAAScheme_name(scheme));
+		    "information for scheme", HTAAScheme_name(req->scheme));
 	    HTAlert(msg);
 	    auth_string = NULL;
 	}
     } /* switch scheme */
 
-    current_setup->retry = NO;
+    req->setup->reprompt = NO;
 
     /* Added by marca. */
     if (!auth_string)
-	return NULL;
+	return NO;
     
-    if (!(result = (char*)malloc(sizeof(char) * (strlen(auth_string)+40))))
+    if (!(req->authorization =
+	  (char*)malloc(sizeof(char) * (strlen(auth_string)+40))))
 	outofmem(__FILE__, "HTAA_composeAuth");
-    strcpy(result, "Authorization: ");
-    strcat(result, HTAAScheme_name(scheme));
-    strcat(result, " ");
-    strcat(result, auth_string);
-    return result;
+
+    strcpy(req->authorization, HTAAScheme_name(req->scheme));
+    strcat(req->authorization, " ");
+    strcat(req->authorization, auth_string);
+
+    return YES;
+}
+
+
+/* BROWSER OVERLOADED					HTPasswordDialog()
+**
+**		PROMPT USERNAME AND PASSWORD, AND MAKE A
+**		CALLBACK TO FUNCTION HTLoadHTTP().
+**
+**	This function must be redifined by GUI clients, which
+**	call HTLoadHTTP(req) when user presses "Ok".
+**
+** ON ENTRY:
+**	req		request.
+**	req->dialog_msg	prompting message.
+**	req->setup	information about protections of this request.
+**	req->realm	structure describing one password realm.
+**			This function should only be called when
+**			server has replied with a 401 (Unauthorized)
+**			status code, and req structure has been filled
+**			up according to server reply, especially the
+**			req->valid_shemes list must have been set up
+**			according to WWW-Authenticate: headers.
+**	req->retry_callback
+**			function to call when username and password
+**			have been entered.
+** ON EXIT:
+**
+**	returns	nothing.
+**		Calls (*req->retry_callback)(req).
+**
+*/
+PUBLIC void HTPasswordDialog ARGS1(HTRequest *,	req)
+{
+    if (!req || !req->setup || !req->realm || !req->dialog_msg ||
+	!req->retry_callback) {
+	HTAlert("HTPasswordDialog() called with an illegal parameter");
+	return;
+    }
+    if (req->setup->reprompt &&
+	NO == HTConfirm("Authorization failed.  Retry?")) {
+	return;
+    } /* HTConfirm(...) == NO */
+    else { /* re-ask username+password (if misspelled) */
+	char *username = req->realm->username;
+	char *password = NULL;
+
+	HTPromptUsernameAndPassword(req->dialog_msg, &username, &password);
+
+	if (req->realm->username) free(req->realm->username);
+	if (req->realm->password) free(req->realm->password);
+	req->realm->username = username;
+	req->realm->password = password;
+
+	if (!req->realm->username)
+	    return;		/* Suggested by marca; thanks! */
+	else
+	    (*req->retry_callback)(req);	/* Callback */
+    }
 }
 
 
 
-
-/* BROWSER PUBLIC				HTAA_shouldRetryWithAuth()
+/* BROWSER PUBLIC					HTAA_retryWithAuth()
 **
-**		DETERMINES IF WE SHOULD RETRY THE SERVER
-**		WITH AUTHORIZATION
-**		(OR IF ALREADY RETRIED, WITH A DIFFERENT
-**		USERNAME AND/OR PASSWORD (IF MISSPELLED))
+**		RETRY THE SERVER WITH AUTHORIZATION (OR IF
+**		ALREADY RETRIED, WITH A DIFFERENT USERNAME
+**		AND/OR PASSWORD (IF MISSPELLED)) OR CANCEL
 ** ON ENTRY:
-**	start_of_headers is the first block already read from socket,
-**			but status line skipped; i.e. points to the
-**			start of the header section.
-**	length		is the remaining length of the first block.
-**	soc		is the socket to read the rest of server reply.
-**
+**	req		request.
+**	req->valid_schemes
 **			This function should only be called when
 **			server has replied with a 401 (Unauthorized)
-**			status code.
+**			status code, and req structure has been filled
+**			up according to server reply, especially the
+**			req->valid_shemes list must have been set up
+**			according to WWW-Authenticate: headers.
 ** ON EXIT:
-**	returns		YES, if connection should be retried.
-**			     The node containing all the necessary
-**			     information is
-**				* either constructed if it does not exist
-**				* or password is reset to NULL to indicate
-**				  that username and password should be
-**				  reprompted when composing Authorization:
-**				  field (in function HTAA_composeAuth()).
-**			NO, otherwise.
+**	On GUI clients pops up a username/password dialog box
+**	with "Ok" and "Cancel".
+**	"Ok" button press should do a callback
+**
+**		HTLoadHTTP(req);
+**
+**	This actually done by function HTPasswordDialog(),
+**	which GUI clients redefine.
+**
+**	returns		YES, if dialog box was popped up.
+**			NO, on failure.
 */
-PUBLIC BOOL HTAA_shouldRetryWithAuth ARGS3(char *, start_of_headers,
-					   int,	   length,
-					   int,	   soc)
+PUBLIC BOOL HTAA_retryWithAuth ARGS2(HTRequest *,	  req,
+				     HTRetryCallbackType, callback)
 {
-    HTAAScheme scheme;
-    char *line;
-    int num_schemes = 0;
-    HTList *valid_schemes = HTList_new();
-    HTAssocList **scheme_specifics = NULL;
-    char *template = NULL;
+    int len;
+    char *realmname;
 
-
-    /* Read server reply header lines */
-
-    if (TRACE)
-	fprintf(stderr, "Server reply header lines:\n");
-
-    HTAA_setupReader(start_of_headers, length, soc);
-    while (NULL != (line = HTAA_getUnfoldedLine())  &&  *line != (char)0) {
-
-	if (TRACE) fprintf(stderr, "%s\n", line);
-
-	if (strchr(line, ':')) {	/* Valid header line */
-
-	    char *p = line;
-	    char *fieldname = HTNextField(&p);
-	    char *arg1 = HTNextField(&p);
-	    char *args = p;
-	    
-	    if (0==strcasecomp(fieldname, "WWW-Authenticate:")) {
-		if (HTAA_UNKNOWN != (scheme = HTAAScheme_enum(arg1))) {
-		    HTList_addObject(valid_schemes, (void*)scheme);
-		    if (!scheme_specifics) {
-			int i;
-			scheme_specifics = (HTAssocList**)
-			    malloc(HTAA_MAX_SCHEMES * sizeof(HTAssocList*));
-			if (!scheme_specifics)
-			    outofmem(__FILE__, "HTAA_shouldRetryWithAuth");
-			for (i=0; i < HTAA_MAX_SCHEMES; i++)
-			    scheme_specifics[i] = NULL;
-		    }
-		    scheme_specifics[scheme] = HTAA_parseArgList(args);
-		    num_schemes++;
-		}
-		else if (TRACE) {
-		    fprintf(stderr, "Unknown scheme `%s' %s\n",
-			    (arg1 ? arg1 : "(null)"),
-			    "in WWW-Authenticate: field");
-		}
-	    }
-
-	    else if (0==strcasecomp(fieldname, "WWW-Protection-Template:")) {
-		if (TRACE)
-		    fprintf(stderr, "Protection template set to `%s'\n", arg1);
-		StrAllocCopy(template, arg1);
-	    }
-
-	} /* if a valid header line */
-	else if (TRACE) {
-	    fprintf(stderr, "Invalid header line `%s' ignored\n", line);
-	} /* else invalid header line */
-    } /* while header lines remain */
-
-
-    /* So should we retry with authorization */
-
-    if (num_schemes == 0) {		/* No authentication valid */
-	current_setup = NULL;
+    if (!req || !req->argument ||
+	!req->valid_schemes || HTList_count(req->valid_schemes) == 0) {
+	req->setup = NULL;
 	return NO;
     }
 
-    if (current_setup && current_setup->server) {
+    if (req->setup && req->setup->server) {
 	/* So we have already tried with authorization.	*/
 	/* Either we don't have access or username or	*/
 	/* password was misspelled.			*/
 	    
 	/* Update scheme-specific parameters	*/
 	/* (in case they have expired by chance).	*/
-	HTAASetup_updateSpecifics(current_setup, scheme_specifics);
-
-	if (NO == HTConfirm("Authorization failed.  Retry?")) {
-	    current_setup = NULL;
-	    return NO;
-	} /* HTConfirm(...) == NO */
-	else { /* re-ask username+password (if misspelled) */
-	    current_setup->retry = YES;
-	    return YES;
-	} /* HTConfirm(...) == YES */
-    } /* if current_setup != NULL */
-
+	HTAASetup_updateSpecifics(req->setup, req->scheme_specifics);
+	req->scheme = HTAA_selectScheme(req->setup);
+	req->setup->reprompt = YES;
+    }
     else { /* current_setup == NULL, i.e. we have a	 */
 	   /* first connection to a protected server or  */
 	   /* the server serves a wider set of documents */
 	   /* than we expected so far.                   */
 
-	HTAAServer *server = HTAAServer_lookup(current_hostname,
-					       current_portnumber);
-	if (!server) {
-	    server = HTAAServer_new(current_hostname,
-				    current_portnumber);
-	}
-	if (!template)
-	    template = HTAA_makeProtectionTemplate(current_docname);
-	current_setup = HTAASetup_new(server, 
-				      template,
-				      valid_schemes,
-				      scheme_specifics);
+	static char *hostname;
+	static char *docname;
+	int portnumber;
+	char *colon;
+	HTAAServer *server;
 
-        HTAlert("Access without authorization denied -- retrying");
-	return YES;
+	FREE(hostname);	/* From previous call */
+	FREE(docname);	/*	- " -	      */
+
+	docname = HTParse(req->argument, "", PARSE_PATH);
+	hostname = HTParse(req->argument, "", PARSE_HOST);
+	if (hostname &&
+	    NULL != (colon = strchr(hostname, ':'))) {
+	    *(colon++) = '\0';	/* Chop off port number */
+	    portnumber = atoi(colon);
+	}
+	else portnumber = 80;
+	
+	if (TRACE) fprintf(stderr,
+			   "HTAA_retryWithAuth: first retry of %s:%d/%s\n",
+			   hostname, portnumber, docname);
+
+	if (!(server = HTAAServer_lookup(hostname, portnumber))) {
+	    server = HTAAServer_new(hostname, portnumber);
+	}
+	else {
+	    HTAlert("Access without authorization denied -- retrying");
+	}
+
+	if (!req->prot_template)
+	    req->prot_template = HTAA_makeProtectionTemplate(docname);
+	req->setup = HTAASetup_new(server, 
+				   req->prot_template,
+				   req->valid_schemes,
+				   req->scheme_specifics);
+	req->setup->reprompt = NO;
+	req->scheme = HTAA_selectScheme(req->setup);
+
     } /* else current_setup == NULL */
 
-    /* Never reached */
+    realmname = HTAssocList_lookup(req->setup->scheme_specifics[req->scheme],
+				   "realm");
+    if (!realmname)
+	return NO;
+
+    req->realm = HTAARealm_lookup(req->setup->server->realms, realmname);
+    if (!req->realm)
+	req->realm = HTAARealm_new(req->setup->server->realms,
+				   realmname, NULL, NULL);
+
+    len = strlen(realmname) + 100;
+    if (req->setup->server->hostname)
+	len += strlen(req->setup->server->hostname);
+    if (!(req->dialog_msg = (char*)malloc(len)))
+	outofmem(__FILE__, "HTAA_retryWithAuth");
+    if (!req->realm->username)
+	sprintf(req->dialog_msg, "%s %s at %s",
+		"Document is protected. Enter username for",
+		req->realm->realmname,
+		req->setup->server->hostname
+		? req->setup->server->hostname : "??");
+    else sprintf(req->dialog_msg, "%s %s at %s",
+		 "Authorization failed. Enter username for",
+		 req->realm->realmname,
+		 req->setup->server->hostname
+		 ? req->setup->server->hostname : "??");
+
+    req->retry_callback = callback;	/* Set callback function */
+    HTPasswordDialog(req);
+    return YES;
 }
+
+
 

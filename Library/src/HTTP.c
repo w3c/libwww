@@ -41,6 +41,7 @@
 #include "HTMIME.h"
 #include "HTML.h"		/* SCW */
 #include "HTInit.h"		/* SCW */
+#include "HTAccess.h"		/* HTRequest */
 #include "HTAABrow.h"		/* Access Authorization */
 #include "HTTee.h"		/* Tee off a cache stream */
 #include "HTFWriter.h"		/* Write to cache file */
@@ -54,6 +55,75 @@ extern char * HTAppName;	/* Application name: please supply */
 extern char * HTAppVersion;	/* Application version: please supply */
 
 PUBLIC BOOL HTCacheHTTP = YES;	/* Enable caching of HTTP-retrieved files */
+
+
+PRIVATE void parse_401_headers ARGS2(HTRequest *,	req,
+				     HTInputSocket *,	isoc)
+{
+    HTAAScheme scheme;
+    char *line;
+    int num_schemes = 0;
+    HTList *valid_schemes = HTList_new();
+    HTAssocList **scheme_specifics = NULL;
+    char *template = NULL;
+
+    /* Read server reply header lines */
+
+    if (TRACE)
+	fprintf(stderr, "Server 401 reply header lines:\n");
+
+    while (NULL != (line = HTInputSocket_getUnfoldedLine(isoc)) &&
+	   *line != 0) {
+
+	if (TRACE) fprintf(stderr, "%s\n", line);
+
+	if (strchr(line, ':')) {	/* Valid header line */
+
+	    char *p = line;
+	    char *fieldname = HTNextField(&p);
+	    char *arg1 = HTNextField(&p);
+	    char *args = p;
+	    
+	    if (0==strcasecomp(fieldname, "WWW-Authenticate:")) {
+		if (HTAA_UNKNOWN != (scheme = HTAAScheme_enum(arg1))) {
+		    HTList_addObject(valid_schemes, (void*)scheme);
+		    if (!scheme_specifics) {
+			int i;
+			scheme_specifics = (HTAssocList**)
+			    malloc(HTAA_MAX_SCHEMES * sizeof(HTAssocList*));
+			if (!scheme_specifics)
+			    outofmem(__FILE__, "parse_401_headers");
+			for (i=0; i < HTAA_MAX_SCHEMES; i++)
+			    scheme_specifics[i] = NULL;
+		    }
+		    scheme_specifics[scheme] = HTAA_parseArgList(args);
+		    num_schemes++;
+		}
+		else if (TRACE) {
+		    fprintf(stderr, "Unknown scheme `%s' %s\n",
+			    (arg1 ? arg1 : "(null)"),
+			    "in WWW-Authenticate: field");
+		}
+	    }
+
+	    else if (0==strcasecomp(fieldname, "WWW-Protection-Template:")) {
+		if (TRACE)
+		    fprintf(stderr, "Protection template set to `%s'\n", arg1);
+		StrAllocCopy(template, arg1);
+	    }
+
+	} /* if a valid header line */
+	else if (TRACE) {
+	    fprintf(stderr, "Invalid header line `%s' ignored\n", line);
+	} /* else invalid header line */
+    } /* while header lines remain */
+
+    req->valid_schemes = valid_schemes;
+    req->scheme_specifics = scheme_specifics;
+    req->prot_template = template;
+}
+
+
 
 /*		Load Document from HTTP Server			HTLoadHTTP()
 **		==============================
@@ -79,7 +149,6 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
     int status;				/* tcp return */
     char crlf[3];			/* A CR LF equivalent string */
     HTStream *	target = NULL;		/* Unconverted data */
-    char *auth = NULL;			/* Authorization information */
     
     CONST char* gate = 0;		/* disable this feature */
     SockA soc_address;			/* Binary network address */
@@ -116,8 +185,6 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	if (status) return status;   /* No such host for example */
     }
     
-retry:
-
 /*
 ** Compose authorization information (this was moved here
 ** from after the making of the connection so that the connection
@@ -125,32 +192,14 @@ retry:
 ** from the user).				-- AL 13.10.93
 */
 #ifdef ACCESS_AUTH
-#define FREE(x)	if (x) {free(x); x=NULL;}
-    {
-	char *docname;
-	char *hostname;
-	char *colon;
-	int portnumber;
-
-	docname = HTParse(arg, "", PARSE_PATH);
-	hostname = HTParse((gate ? gate : arg), "", PARSE_HOST);
-	if (hostname &&
-	    NULL != (colon = strchr(hostname, ':'))) {
-	    *(colon++) = '\0';	/* Chop off port number */
-	    portnumber = atoi(colon);
-	}
-	else portnumber = 80;
-	
-	auth = HTAA_composeAuth(hostname, portnumber, docname);
-
-	if (TRACE) {
-	    if (auth)
-		fprintf(stderr, "HTTP: Sending authorization: %s\n", auth);
-	    else
-		fprintf(stderr, "HTTP: Not sending authorization (yet)\n");
-	}
-	FREE(hostname);
-	FREE(docname);
+    StrAllocCopy(request->argument, arg);
+    HTAA_composeAuth(request);
+    if (TRACE) {
+	if (request->authorization)
+	    fprintf(stderr, "HTTP: Sending Authorization: %s\n",
+		    request->authorization);
+	else
+	    fprintf(stderr, "HTTP: Not sending authorization (yet)\n");
     }
 #endif /* ACCESS_AUTH */
    
@@ -204,28 +253,32 @@ retry:
 	strcat(command, crlf);	/* CR LF, as in rfc 977 */
     
 	if (extensions) {
-    
-	    int n;
+
 	    int i;
 	    HTAtom * present = WWW_PRESENT;
 	    char line[256];    /*@@@@ */
-    
-/*	    if (!request->conversions) HTFormatInit(request->conversions); */
-	    n = HTList_count(request->conversions);
-    
-	    for(i=0; i<n; i++) {
-		HTPresentation * pres =
-			HTList_objectAt(request->conversions, i);
-		if (pres->rep_out == present) {
-		    if (pres->quality != 1.0) {
-			sprintf(line, "Accept: %s q=%.3f%c%c",
-				HTAtom_name(pres->rep), pres->quality, CR, LF);
-		    } else {
-			sprintf(line, "Accept: %s%c%c",
-				HTAtom_name(pres->rep), CR, LF);
+	    HTList *conversions[2];
+
+	    if (!HTConversions) HTFormatInit(HTConversions);
+	    conversions[0] = HTConversions;
+	    conversions[1] = request->conversions;
+
+	    for (i=0; i<2; i++) {
+		HTList *cur = conversions[i];
+		HTPresentation *pres;
+
+		while ((pres = (HTPresentation*)HTList_nextObject(cur))) {
+		    if (pres->rep_out == present) {
+			if (pres->quality != 1.0) {
+			    sprintf(line, "Accept: %s q=%.3f%c%c",
+				    HTAtom_name(pres->rep),
+				    pres->quality, CR, LF);
+			} else {
+			    sprintf(line, "Accept: %s%c%c",
+				    HTAtom_name(pres->rep), CR, LF);
+			}
+			StrAllocCat(command, line);
 		    }
-		    StrAllocCat(command, line);
-    
 		}
 	    }
 	    
@@ -236,8 +289,9 @@ retry:
 		    StrAllocCat(command, line);
     
 #ifdef ACCESS_AUTH
-	    if (auth != NULL) {
-		sprintf(line, "%s%c%c", auth, CR, LF);
+	    if (request->authorization != NULL) {
+		sprintf(line, "Authorization: %s%c%c",
+			request->authorization, CR, LF);
 		StrAllocCat(command, line);
 	    }
 #endif /* ACCESS_AUTH */
@@ -284,77 +338,12 @@ retry:
 **	out that we want the binary original.
 */
 
-    {   /* read response */
-    
-	char * eol = 0;			/* End of line if found */
-	char * start_of_data;		/* Start of body of reply */
-	int length;			/* Number of valid bytes in buffer */
-	char * text_buffer = NULL;
-	char * binary_buffer = NULL;
-	HTFormat format_in;		/* Format arriving in the message */
-	
-        { /* local variablees for loop*/
-    
-    /* Get numeric status etc */
+    {	/* read response */
 
-	    BOOL end_of_file = NO;
-	    HTAtom * encoding = HTAtom_for("7bit");
-	    int buffer_length = INIT_LINE_SIZE;	/* Why not? */
-	    
-	    binary_buffer = (char *) malloc(buffer_length * sizeof(char));
-	    if (!binary_buffer) outofmem(__FILE__, "HTLoadHTTP");
-	    text_buffer = (char *) malloc(buffer_length * sizeof(char));
-	    if (!text_buffer) outofmem(__FILE__, "HTLoadHTTP");
-	    length = 0;
-	    
-	    do {	/* Loop to read in the first line */
-		
-		/* Extend line buffer if necessary for those crazy WAIS URLs ;-) */
-		
-		if (buffer_length - length < LINE_EXTEND_THRESH) {
-		    buffer_length = buffer_length + buffer_length;
-		    binary_buffer = (char *) realloc(
-			    binary_buffer, buffer_length * sizeof(char));
-		    if (!binary_buffer) outofmem(__FILE__, "HTLoadHTTP");
-		    text_buffer = (char *) realloc(
-			    text_buffer, buffer_length * sizeof(char));
-		    if (!text_buffer) outofmem(__FILE__, "HTLoadHTTP");
-		}
-		status = NETREAD(s, binary_buffer + length,
-				    buffer_length - length -1);
-		if (status < 0) {
-		    HTAlert("Unexpected network read error on response");
-		    NETCLOSE(s);
-		    return status;
-		}
-    
-		if (TRACE) fprintf(stderr, "HTTP: read returned %d bytes.\n",
-			status);
-    
-		if (status == 0) {
-		    end_of_file = YES;
-		    break;
-		}
-		binary_buffer[length+status] = 0;
-    
-    
-/*	Make an ASCII *copy* of the buffer
-*/
-#ifdef NOT_ASCII
-		if (TRACE) fprintf(stderr, 
-			"Local codes CR=%d, LF=%d\n", CR, LF);
-#endif
-		{
-		    char * p;
-		    char * q;
-		    for(p = binary_buffer+length, q=text_buffer+length;
-			    *p; p++, q++) {
-			*q = FROMASCII(*p);
-		    }
-    
-		    *q++ = 0;
-		}
-    
+	HTFormat format_in;		/* Format arriving in the message */
+	HTInputSocket *isoc = HTInputSocket_new(s);
+	char * status_line = HTInputSocket_getStatusLine(isoc);
+
 /* Kludge to trap binary responses from illegal HTTP0.9 servers.
 ** First time we have enough, look at the stub in ASCII
 ** and get out of here if it doesn't look right.
@@ -367,178 +356,120 @@ retry:
 **	An HTTP 0.9 server returning a binary document with
 **	characters < 128 will be read as ASCII.
 */
-#define STUB_LENGTH 20
-		if (length < STUB_LENGTH && length+status >= STUB_LENGTH) {
-		    if(strncmp("HTTP/", text_buffer, 5)!=0) {
-			char *p;
-			start_of_data = text_buffer; /* reparse whole reply */
-			for(p=binary_buffer; p <binary_buffer+STUB_LENGTH;p++) {
-			    if (((int)*p)&128) {
-				format_in = HTAtom_for("www/unknown");
-				length = length + status;
-				goto copy; /* out of while loop */
-			    }
-			}
-		    }
-		}
-    /* end kludge */
-    
-		
-		eol = strchr(text_buffer + length, 10);	    
-		if (eol) {
-		    *eol = 0;		/* Terminate the line */
-		    if (eol[-1] == CR) eol[-1] = 0;	/* Chop trailing CR */
-						    /* = corrected to ==  -- AL  */
-		}
-    
-		length = length + status;
-    
-	    } while (!eol && !end_of_file);		/* No LF */	    
-		    
-	} /* Scope of loop variables */
-
-    
-/*	We now have a terminated unfolded line. Parse it.
-**	-------------------------------------------------
-*/
-
-	if (TRACE)fprintf(stderr, "HTTP: Rx: %.70s\n", text_buffer);
-    
-	{
-	    int fields;
-	    char server_version [VERSION_LENGTH+1];
-	    int server_status;
-    
-    
-#ifdef OLD_CODE				/* old buggy servers should not exist now tbl9311 */
-/* Kludge to work with old buggy servers.  They can't handle the third word
-** so we try again without it.
-*/
-	    if (extensions &&
-		    0==strcmp(text_buffer,		/* Old buggy server? */
-		    "Document address invalid or access not authorised")) {
-		extensions = NO;
-		if (binary_buffer) free(binary_buffer);
-		if (text_buffer) free(text_buffer);
-		if (TRACE) fprintf(stderr,
-		    "HTTP: close socket %d to retry with HTTP0\n", s);
-		NETCLOSE(s);
-		goto retry;		/* @@@@@@@@@@ */
+	if (!status_line) {	/* HTTP0 response */
+	    if (HTInputSocket_seemsBinary(isoc)) {
+		format_in = HTAtom_for("www/unknown");
 	    }
-#endif
-    
-	    fields = sscanf(text_buffer, "%20s%d",
-		server_version,
-		&server_status);
-    
-	    if (fields < 2 || 
-		    strncmp(server_version, "HTTP/", 5)!=0) { /* HTTP0 reply */
+	    else {
 		format_in = WWW_HTML;
-		start_of_data = text_buffer;	/* reread whole reply */
-		if (eol) *eol = '\n';		/* Reconstitute buffer */
-		
-	    } else {				/* Full HTTP reply */
-	    
-		/*	Decode full HTTP response */
-	    
-		format_in = HTAtom_for("www/mime");
-		start_of_data = eol ? eol + 1 : text_buffer + length;
+	    }
+	    goto copy;
+	} /* end kludge */
+
+	if (status_line) {	/* Decode full HTTP response */
+	    /*
+	    ** We now have a terminated server status line, and we have
+	    ** checked that it is most probably a legal one.  Parse it.
+	    */
+	    char server_version[VERSION_LENGTH+1];
+	    int server_status;
+
+	    if (TRACE)
+		fprintf(stderr, "HTTP Status Line: Rx: %.70s\n", status_line);
     
-		switch (server_status / 100) {
-		
-		default:		/* bad number */
-		    HTAlert("Unknown status reply from server!");
-		    break;
+	    sscanf(status_line, "%20s%d", server_version, &server_status);
+
+	    format_in = HTAtom_for("www/mime");
+    
+	    switch (server_status / 100) {
+
+	      default:		/* bad number */
+		HTAlert("Unknown status reply from server!");
+		break;
 		    
-		case 3:		/* Various forms of redirection */
-		    HTAlert(
+	      case 3:		/* Various forms of redirection */
+		HTAlert(
 	    "Redirection response from server is not handled by this client");
-		    break;
+		break;
 		    
-		case 4:		/* Access Authorization problem */
+	      case 4:		/* Access Authorization problem */
 #ifdef ACCESS_AUTH
-		    switch (server_status) {
-			case 401:
-			length -= start_of_data - text_buffer;
-			if (HTAA_shouldRetryWithAuth(start_of_data, length, s)) {
-			    /* Clean up before retrying */
-			    if (binary_buffer) free(binary_buffer);
-			    if (text_buffer) free(text_buffer);
-			    if (TRACE) 
-				fprintf(stderr, "%s %d %s\n",
-					"HTTP: close socket", s,
-					"to retry with Access Authorization");
-			    (void)NETCLOSE(s);
-			    goto retry;
-			    break;
-			}
-			else {
-			    /* FALL THROUGH */
-			}
-			default:
-			{
-			    char *p1 = HTParse(gate ? gate : arg, "",
-			    	PARSE_HOST);
-			    char * message;
-    
-			    if (!(message = (char*)malloc(strlen(text_buffer) +
-							    strlen(p1) + 100)))
-				outofmem(__FILE__, "HTTP 4xx status");
-			    sprintf(message,
-				    "HTTP server at %s replies:\n%s\n\n%s\n",
-				    p1, text_buffer,
-				    ((server_status == 401) 
-					? "Access Authorization package giving up.\n"
-					: ""));
-			    status = HTLoadError(request->output_stream,
-			    	 server_status, message);
-			    free(message);
-			    free(p1);
-			    goto clean_up;
-			}
-		    } /* switch */
-		    goto clean_up;
-		    break;
-#else
-		    /* case 4 without Access Authorization falls through */
-		    /* to case 5 (previously "I think I goofed").  -- AL */
-#endif /* ACCESS_AUTH */
-    
-		case 5:		/* I think you goofed */
+		switch (server_status) {
+		  case 401:
+		    parse_401_headers(request, isoc);
+
+		    if (TRACE) fprintf(stderr, "%s %d %s\n",
+				       "HTTP: close socket", s,
+				       "to retry with Access Authorization");
+		    HTInputSocket_free(isoc);
+		    (void)NETCLOSE(s);
+		    if (HTAA_retryWithAuth(request, &HTLoadHTTP)) {
+			status = HT_LOADED;/* @@ THIS ONLY WORKS ON LINEMODE */
+			goto clean_up;
+		    }
+		    /* else falltrough */
+		  default:
 		    {
-			char *p1 = HTParse(gate ? gate : arg, "", PARSE_HOST);
-			char * message = (char*)malloc(
-			    strlen(text_buffer)+strlen(p1) + 100);
-			if (!message) outofmem(__FILE__, "HTTP 5xx status");
+			char *p1 = HTParse(gate ? gate : arg, "",
+					   PARSE_HOST);
+			char * message;
+
+			if (!(message = (char*)malloc(strlen(status_line) +
+						      strlen(p1) + 100)))
+			    outofmem(__FILE__, "HTTP 4xx status");
 			sprintf(message,
-			"HTTP server at %s replies:\n%s", p1, text_buffer);
-			status = HTLoadError(request->output_stream, server_status, message);
+				"HTTP server at %s replies:\n%s\n\n%s\n",
+				p1, status_line,
+				((server_status == 401) 
+				 ? "Access Authorization package giving up.\n"
+				 : ""));
+			status = HTLoadError(request->output_stream,
+					     server_status, message);
 			free(message);
 			free(p1);
 			goto clean_up;
 		    }
-		    break;
+		} /* switch */
+		goto clean_up;
+		break;
+#else
+		/* case 4 without Access Authorization falls through */
+		/* to case 5 (previously "I think I goofed").  -- AL */
+#endif /* ACCESS_AUTH */
+
+	      case 5:		/* I think you goofed */
+		{
+		    char *p1 = HTParse(gate ? gate : arg, "", PARSE_HOST);
+		    char * message = (char*)malloc(strlen(status_line) + 
+						   strlen(p1) + 100);
+		    if (!message) outofmem(__FILE__, "HTTP 5xx status");
+		    sprintf(message,
+			    "HTTP server at %s replies:\n%s", p1, status_line);
+		    status = HTLoadError(request->output_stream,
+					 server_status, message);
+		    free(message);
+		    free(p1);
+		    goto clean_up;
+		}
+		break;
 		    
-		case 2:		/* Good: Got MIME object */
-		    break;
+	      case 2:		/* Good: Got MIME object */
+		break;
     
-		} /* switch on response code */
+	    } /* switch on response code */
 	    
-	    }		/* Full HTTP reply */
+	} /* Full HTTP reply */
 	    
-	} /* scope of fields */
     
 /*	Set up the stream stack to handle the body of the message
 */
-    
+
 copy:
-    
+
 	target = HTStreamStack(format_in, request);
-    
+
 	if (!target) {
 	    char buffer[1024];	/* @@@@@@@@ */
-	    if (binary_buffer) free(binary_buffer);
-	    if (text_buffer) free(text_buffer);
 	    sprintf(buffer, "Sorry, no known way of converting %s to %s.",
 		    HTAtom_name(format_in), HTAtom_name(request->output_format));
 	    fprintf(stderr, "HTTP: %s", buffer);
@@ -547,11 +478,12 @@ copy:
 	}
     
         /* @@ Bug: The decision of whether or not to cache should also be
-	made contingent on a IP address match or non match */
-	
+	** made contingent on a IP address match or non match.
+	*/
         if (HTCacheHTTP) {
 	    target = HTTee(target, HTCacheWriter(request, NULL, format_in,
-	    	request->output_format, request->output_stream));
+						 request->output_format,
+						 request->output_stream));
 	}
 	
 /*	Push the data down the stream
@@ -560,10 +492,11 @@ copy:
 	if (format_in == WWW_HTML) {
 	    target = HTNetToText(target);	/* Pipe through CR stripper */
 	}
-	
+
 	(*target->isa->put_block)(target,
-		    binary_buffer + (start_of_data - text_buffer),
-		    length - (start_of_data - text_buffer));
+				  isoc->input_pointer,
+				  isoc->input_limit - isoc->input_pointer);
+	HTInputSocket_free(isoc);
 	HTCopy(s, target);
 	    
 	(*target->isa->free)(target);
@@ -573,9 +506,6 @@ copy:
 */
 	
 clean_up: 
-	if (binary_buffer) free(binary_buffer);
-	if (text_buffer) free(text_buffer);
-    
 	if (TRACE) fprintf(stderr, "HTTP: close socket %d.\n", s);
 	(void) NETCLOSE(s);
     
@@ -588,3 +518,4 @@ clean_up:
 */
 
 GLOBALDEF PUBLIC HTProtocol HTTP = { "http", HTLoadHTTP, 0, 0 };
+

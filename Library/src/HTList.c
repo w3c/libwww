@@ -22,7 +22,7 @@ HTList * HTList_new NOARGS
 void HTList_delete ARGS1(HTList *,me)
 {
   HTList *current;
-  while (current = me) {
+  while ((current = me)) {
     me = me->next;
     free (current);
   }
@@ -37,10 +37,12 @@ void HTList_addObject ARGS2(HTList *,me, void *,newObject)
     newNode->next = me->next;
     me->next = newNode;
   }
-  else
+  else {
     if (TRACE) fprintf(stderr,
         "HTList: Trying to add object %p to a nonexisting list\n",
 		       newObject);
+    abort();
+  }
 }
 
 BOOL HTList_removeObject ARGS2(HTList *,me, void *,oldObject)
@@ -93,7 +95,7 @@ int HTList_count ARGS1 (HTList *,me)
 {
   int count = 0;
   if (me)
-    while (me = me->next)
+    while ((me = me->next))
       count++;
   return count;
 }
@@ -102,7 +104,7 @@ int HTList_indexOf ARGS2(HTList *,me, void *,object)
 {
   if (me) {
     int position = 0;
-    while (me = me->next) {
+    while ((me = me->next)) {
       if (me->object == object)
 	return position;
       position++;
@@ -116,7 +118,7 @@ void * HTList_objectAt ARGS2 (HTList *,me, int,position)
   if (position < 0)
     return NULL;
   if (me) {
-    while (me = me->next) {
+    while ((me = me->next)) {
       if (position == 0)
 	return me->object;
       position--;

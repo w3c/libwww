@@ -702,12 +702,12 @@ PUBLIC GroupDefList *HTAA_readGroupFile ARGS1(CONST char *, filename)
 **			to the group.
 **			HTAA_OK if both IP address and user are ok.
 */
-PUBLIC HTAAFailReasonType HTAA_userAndInetInGroup ARGS4(GroupDef *, group,
-							char *,	    username,
-							char *,	    ip_number,
-							char *,	    ip_name)
+PUBLIC HTAAFailReason HTAA_userAndInetInGroup ARGS4(GroupDef *,	group,
+						    char *,	username,
+						    char *,	ip_number,
+						    char *,	ip_name)
 {
-    HTAAFailReasonType reason = HTAA_NOT_MEMBER;
+    HTAAFailReason reason = HTAA_NOT_MEMBER;
 
     if (group && username) {
 	ItemList *cur1 = group->item_list;

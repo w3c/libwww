@@ -51,8 +51,8 @@ BUGS:	@@@  	Limit connection cache size!
 **		same time.
 */		
 
-#include "HTFTP.h"	/* Implemented here */
 #include "HTFormat.h"
+#include "HTFTP.h"	/* Implemented here */
 
 #define CR   FROMASCII('\015')	/* Must be converted to ^M for transmission */
 #define LF   FROMASCII('\012')	/* Must be converted to ^J for transmission */
@@ -664,11 +664,7 @@ ARGS6 (
     HTStructured* target = HTML_new(request, NULL, WWW_HTML, format_out, sink);
     HTStructuredClass targetClass;
     char *filename = HTParse(address, "", PARSE_PATH + PARSE_PUNCTUATION);
-
-    char c = 0;
-
     char *lastpath;  /* prefix for link, either "" (for root) or xxx  */
-    char *entry;   /* pointer into lastpath to bit after last slash */
 
     targetClass = *(target->isa);
 
@@ -696,7 +692,6 @@ ARGS6 (
 	for (c=0; c!=(char)EOF;)   /* For each entry in the directory */
 	{
 	    char * filename = NULL;
-	    char * p = entry;
 	    HTChunkClear(chunk);
 	    /*   read directory entry
 	     */

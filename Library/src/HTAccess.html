@@ -23,6 +23,8 @@ NAME="z0" HREF="Overview.html">libwww library</A> .
 */
 #include "HTUtils.h"
 #include "tcp.h"
+#include "HTGroup.h"	/* HTAAFailReason */
+
 
 #ifdef SHORT_NAMES
 #define HTClientHost 		HTClHost
@@ -36,9 +38,19 @@ in advance of the other include files
 because of circular references.
 <PRE>typedef struct _HTRequest HTRequest;
 
+/*
+** Callback to call when username and password
+** have been prompted.
+*/
+typedef int (*HTRetryCallbackType) PARAMS((HTRequest * req));
+
+
 #include "HTAnchor.h"
 #include <A
 NAME="z3" HREF="HTFormat.html">"HTFormat.h"</A>
+#include "HTAAUtil.h"		/* HTAAScheme */
+#include "HTAuth.h"		/* HTAAUser */
+#include "HTAABrow.h"		/* HTAASetup */
 
 
 /*	Return codes from load routines:
@@ -105,24 +117,66 @@ NAME="z5">conversions</A> ;	/* conversions allowed in this case */
 				struct _HTRequest* request,
 				void *param));
 	void *		context;	/* caller data -- HTAccess unaware */
-
 	HTParentAnchor*	anchor;		/* Set by HTAccess */
-
 	void *		using_cache;	/* pointer to cache element if cache hit */
-	HTAtom *	method;		/* Operation code */
+	HTAtom *	method;		/* HTTP method */
 	HTChildAnchor *	childAnchor;	/* For element within the object */
-
-	/* To be added: authentication, etc */
+	int		content_length;	/* MIME message Content-Length	  */
+	int		status_code;	/* HTTP status code		  */
+	char *		reason_line;	/* Reason for failing		  */
+	/*
+	** Server side info about request
+	*/
+	char *		request;	/* First request line as received */
+	char *		argument;	/* Arg to HTTP method as given	  */
+	char *		arg_path;	/* Pathinfo part of argument	  */
+	char *		arg_keywords;	/* ?keywords part of argument	  */
+	char *		simplified;	/* Simplified filename		  */
+	char *		translated;	/* Translated filename		  */
+	char *		script;		/* Executable server script name  */
+	char *		script_pathinfo;/* Path info after script name	  */
+	BOOL		cgi_script;	/* If a CGI/1.0 script		  */
+	char *		location;	/* Location for redirection	  */
+	char *		redir_on_fly;	/* Non-full URL location on local */
+	/*
+	** Access Authorization
+	*/
+	char *		authorization;	/* Authorization: field		  */
+	HTAAScheme	scheme;		/* Authentication scheme used	  */
+	char *		auth_string;	/* Authentication string	  */
+	/*
+	** Server side AA
+	*/
+	HTAAProt *	prot;		/* Protection (Protect rule)	  */
+	HTAAProt *	def_prot;	/* Default prot (DefProt rule)	  */
+	HTAAUser *	user;		/* Authenticated user		  */
+	HTAAFailReason	reason;		/* Reason for failing		  */
+	/*
+	** Client side AA
+	*/
+	HTList *	valid_schemes;	/* Valid auth.schemes		  */
+	HTAssocList **	scheme_specifics;/* Scheme-specific parameters	  */
+	char *		prot_template;	/* WWW-Protection-Template: field */
+	HTAASetup *	setup;		/* Doc protection info		  */
+	HTAARealm *	realm;		/* Password realm		  */
+	char *		dialog_msg;	/* Authentication prompt (client) */
+	HTRetryCallbackType
+			retry_callback;	/* Called when password entered	  */
+#ifdef OLD_CODE
+	void		(*retry_callback) PARAMS((
+				struct _HTRequest * request
+			));		/* Call this when password entered*/
+#endif
 };
 
 </PRE>The elements of the request structure
 are as follows.
 <DL>
-<DT>method
+<DT><CODE>method</CODE>
 <DD>An atom for the name of the
 operation using HTTP <A
 NAME="z7" HREF="../../Protocols/HTTP/Methods.html">method names</A>.
-<DT>conversions
+<DT><CODE>conversions</CODE>
 <DD> NULL, or a list of conversions
 which the format manager can do in
 order to fulfill the request.  This
@@ -130,19 +184,19 @@ is set by the caller of HTAccess.
 Typically points to a list set up
 an initialisation time for example
 by HTInit.
-<DT>from
-<DD> Email format adderss of person
+<DT><CODE>from</CODE>
+<DD>Email format adderss of person
 responible for request
-<DT>output_stream
-<DD> NULL or if a specific
+<DT><CODE>output_stream</CODE>
+<DD>NULL or if a specific
 output stream is required, te stream.
-<DT>output_format
-<DD> The output format required,
+<DT><CODE>output_format</CODE>
+<DD>The output format required,
 or a generic format such as www/present
 (present to user). 
-<DT>anchor
-<DD> The anchor for the object
-in question.  NOTE: Set by HTAcesss.
+<DT><CODE>anchor</CODE>
+<DD>The anchor for teh object in
+question.  NOTE: Set by HTAcesss.
 <DT><A
 NAME="z6">childAnchor</A>
 <DD>the anchor for the subobject
@@ -150,6 +204,22 @@ if any.  The object builder should
 ensure that htis is selected, highlighted,
 etc when the object is loaded. NOTE:
 Set by HTAccess.
+<DT><CODE>simplified</CODE>
+<DD>Simplified filename (after removing <CODE>..</CODE> etc).
+<DT><CODE>translated</CODE>
+<DD>Translated filename (set by function <CODE>HTTranslateReq().</CODE>
+<CODE>NULL,</CODE> if this is a script execution request.
+<DT><CODE>script</CODE>
+<DD>Executable script name (set by <CODE>HTTranslateReq().</CODE>
+<CODE>NULL</CODE> if not a script request.
+<DT><CODE>authorization</CODE>
+<DD><CODE>Authorization:</CODE> field contents.
+<DT><CODE>scheme</CODE>
+<DD>Authentication scheme used.
+<DT><CODE>scheme_specifics</CODE>
+<DD>Authentication scheme specific information.
+<DT><CODE>user</CODE>
+<DD>Authenticated user.
 </DL>
 Just to make things easier especially
 for clients, here is a function to
@@ -159,7 +229,15 @@ most cases it will need some information
 added before being passed to HTAccess,
 but it will work as is for a simple
 request.
-<PRE>extern HTRequest * HTRequest_new NOPARAMS;
+<PRE>
+PUBLIC HTRequest * HTRequest_new NOPARAMS;
+
+
+</PRE>
+<H2>Delete request structure</H2>
+Frees also conversion list hanging from <CODE>req-&gt;conversions.</CODE>
+<PRE>
+PUBLIC void HTRequest_delete PARAMS((HTRequest * req));
 
 
 </PRE>

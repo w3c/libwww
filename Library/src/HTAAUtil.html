@@ -42,19 +42,16 @@ has itself allocated.
 
 #include "HTUtils.h"		/* BOOL, PARAMS, ARGS */
 #include "HTList.h"
+#include "HTAtom.h"
 #include "tcp.h"
 
 #ifdef SHORT_NAMES
 #define HTAASenu	HTAAScheme_enum
 #define HTAASnam	HTAAScheme_name
-#define HTAAMenu	HTAAMethod_enum
-#define HTAAMnam	HTAAMethod_name
-#define	HTAAMinL	HTAAMethod_inList
+#define	HTMeInLi	HTMethod_inList
 #define HTAAteMa	HTAA_templateMatch
 #define HTAAmaPT	HTAA_makeProtectionTemplate
 #define HTAApALi	HTAA_parseArgList
-#define HTAAsuRe	HTAA_setupReader
-#define HTAAgUfL	HTAA_getUnfoldedLine
 #endif /*SHORT_NAMES*/
 
 
@@ -75,8 +72,8 @@ has itself allocated.
 ** Numeric constants
 */
 #define MAX_USERNAME_LEN	16	/* @@ Longest allowed username	  */
-#define MAX_PASSWORD_LEN	3*13	/* @@ Longest allowed password	  */
-					/* (encrypted, so really only 3*8)*/
+#define MAX_PASSWORD_LEN	4*13	/* @@ Longest allowed password	  */
+					/* (encrypted, so really only 4*8)*/
 #define MAX_METHODNAME_LEN	12	/* @@ Longest allowed method name */
 #define MAX_FIELDNAME_LEN	16	/* @@ Longest field name in	  */
 					/* protection setup file	  */
@@ -105,15 +102,7 @@ typedef enum {
 } HTAAScheme;
 
 </PRE>
-<H3>Enumeration to Represent HTTP Methods</H3>
-<PRE>
-typedef enum {
-    METHOD_UNKNOWN,
-    METHOD_GET,
-    METHOD_PUT
-} HTAAMethod;
 
-</PRE>
 <H2>Authentication Schemes</H2>
 <PRE>
 /* PUBLIC						HTAAScheme_enum()
@@ -141,33 +130,9 @@ PUBLIC char *HTAAScheme_name PARAMS((HTAAScheme scheme));
 
 </PRE>
 <H2>Methods</H2>
+Methods are now represented as HTAtoms.
 <PRE>
-/* PUBLIC						    HTAAMethod_enum()
-**		TRANSLATE METHOD NAME INTO AN ENUMERATED VALUE
-** ON ENTRY:
-**	name		is the method name to translate.
-**
-** ON EXIT:
-**	returns		HTAAMethod enumerated value corresponding
-**			to the given name.
-*/
-PUBLIC HTAAMethod HTAAMethod_enum PARAMS((CONST char * name));
-
-
-/* PUBLIC						HTAAMethod_name()
-**			GET THE NAME OF A GIVEN METHOD
-** ON ENTRY:
-**	method		is one of the method enum values:
-**			METHOD_GET, METHOD_PUT, ...
-**
-** ON EXIT:
-**	returns		the name of the scheme, i.e.
-**			"GET", "PUT", ...
-*/
-PUBLIC char *HTAAMethod_name PARAMS((HTAAMethod method));
-
-
-/* PUBLIC						HTAAMethod_inList()
+/* PUBLIC						HTMethod_inList()
 **		IS A METHOD IN A LIST OF METHOD NAMES
 ** ON ENTRY:
 **	method		is the method to look for.
@@ -177,8 +142,8 @@ PUBLIC char *HTAAMethod_name PARAMS((HTAAMethod method));
 **	returns		YES, if method was found.
 **			NO, if not found.
 */
-PUBLIC BOOL HTAAMethod_inList PARAMS((HTAAMethod	method,
-				     HTList *		list));
+PUBLIC BOOL HTMethod_inList PARAMS((HTAtom *	method,
+				    HTList *	list));
 </PRE>
 <H2>Match Template Against Filename</H2>
 <PRE>
@@ -287,55 +252,8 @@ PUBLIC char *HTAA_makeProtectionTemplate PARAMS((CONST char * docname));
 PUBLIC HTList *HTAA_parseArgList PARAMS((char * str));
 
 </PRE>
-<H2>Header Line Reader</H2>
+
 <PRE>
-/* PUBLIC						HTAA_setupReader()
-**		SET UP HEADER LINE READER, i.e. give
-**		the already-read-but-not-yet-processed
-**		buffer of text to be read before more
-**		is read from the socket.
-** ON ENTRY:
-**	start_of_headers is a pointer to a buffer containing
-**			the beginning of the header lines
-**			(rest will be read from a socket).
-**	length		is the number of valid characters in
-**			'start_of_headers' buffer.
-**	soc		is the socket to use when start_of_headers
-**			buffer is used up.
-** ON EXIT:
-**	returns		nothing.
-**			Subsequent calls to HTAA_getUnfoldedLine()
-**			will use this buffer first and then
-**			proceed to read from socket.
-*/
-PUBLIC void HTAA_setupReader PARAMS((char *	start_of_headers,
-				     int	length,
-				     int	soc));
-
-
-/* PUBLIC						HTAA_getUnfoldedLine()
-**		READ AN UNFOLDED HEADER LINE FROM SOCKET
-** ON ENTRY:
-**	HTAA_setupReader must absolutely be called before
-**	this function to set up internal buffer.
-**
-** ON EXIT:
-**	returns	a newly-allocated character string representing
-**		the read line.  The line is unfolded, i.e.
-**		lines that begin with whitespace are appended
-**		to current line.  E.g.
-**
-**			Field-Name: Blaa-Blaa
-**			 This-Is-A-Continuation-Line
-**			 Here-Is_Another
-**
-**		is seen by the caller as:
-**
-**	Field-Name: Blaa-Blaa This-Is-A-Continuation-Line Here-Is_Another
-**
-*/
-PUBLIC char *HTAA_getUnfoldedLine NOPARAMS;
-
 #endif	/* NOT HTAAUTIL_H */
 </PRE>End of file HTAAUtil.h.</BODY>
 </HTML>

@@ -346,15 +346,13 @@ PUBLIC char * WWW_nameOfFile ARGS1 (CONST char *,name)
 PUBLIC CONST char * HTFileSuffix ARGS1(HTAtom*, rep)
 {
     HTSuffix * suff;
-    int n;
-    int i;
+    HTList * cur;
 
 #ifndef NO_INIT    
     if (!HTSuffixes) HTFileInit();
 #endif
-    n = HTList_count(HTSuffixes);
-    for(i=0; i<n; i++) {
-	suff = HTList_objectAt(HTSuffixes, i);
+    cur = HTSuffixes;
+    while ((suff = (HTSuffix*)HTList_nextObject(cur))) {
 	if (suff->rep == rep) {
 	    return suff->suffix;		/* OK -- found */
 	}
@@ -378,34 +376,29 @@ PUBLIC HTFormat HTFileFormat ARGS2 (
 
 {
     HTSuffix * suff;
-    int n;
-    int i;
+    HTList * cur;
     int lf = strlen(filename);
 
 #ifndef NO_INIT    
     if (!HTSuffixes) HTFileInit();
 #endif
     if (pencoding) *pencoding = NULL;
-    n = HTList_count(HTSuffixes);
-    for(i=0; i<n; i++) {
-        int ls;
-	suff = HTList_objectAt(HTSuffixes, i);
-	ls = strlen(suff->suffix);
+    cur = HTSuffixes;
+    while ((suff = (HTSuffix*)HTList_nextObject(cur))) {
+        int ls = strlen(suff->suffix);
 	if ((ls <= lf) && 0==strcmp(suff->suffix, filename + lf - ls)) {
-	    int j;
 	    if (pencoding) *pencoding = suff->encoding;
 	    if (suff->rep) return suff->rep;		/* OK -- found */
-	    
-	    for(j=0; j<n; j++) {  /* Got encoding, need representation */
-		int ls2;
-		suff = HTList_objectAt(HTSuffixes, j);
-		ls2 = strlen(suff->suffix);
-		if ((ls <= lf) && 0==strncmp(
-			suff->suffix, filename + lf - ls -ls2, ls2)) {
+
+	    /* Got encoding, need representation */
+	    cur = HTSuffixes;
+	    while ((suff = (HTSuffix*)HTList_nextObject(cur))) {
+		int ls2 = strlen(suff->suffix);
+		if ((ls <= lf) &&
+		    0==strncmp(suff->suffix, filename + lf - ls -ls2, ls2)) {
 		    if (suff->rep) return suff->rep;
 		}
 	    }
-	    
 	}
     }
     
@@ -431,18 +424,15 @@ PUBLIC float HTFileValue ARGS1 (CONST char *,filename)
 
 {
     HTSuffix * suff;
-    int n;
-    int i;
+    HTList * cur;
     int lf = strlen(filename);
 
 #ifndef NO_INIT    
     if (!HTSuffixes) HTFileInit();
 #endif
-    n = HTList_count(HTSuffixes);
-    for(i=0; i<n; i++) {
-        int ls;
-	suff = HTList_objectAt(HTSuffixes, i);
-	ls = strlen(suff->suffix);
+    cur = HTSuffixes;
+    while ((suff = (HTSuffix*)HTList_nextObject(cur))) {
+        int ls = strlen(suff->suffix);
 	if ((ls <= lf) && 0==strcmp(suff->suffix, filename + lf - ls)) {
 	    if (TRACE) fprintf(stderr, "File: Value of %s is %.3f\n",
 			       filename, suff->quality);
@@ -553,7 +543,7 @@ PUBLIC HTStream * HTFileSaveStream ARGS1(HTRequest *, request)
 	    p[1] = p[0];	/* Move up everything to the right of it */
 	}
 	
-	if (fp=fopen(filename, "r")) {			/* File exists */
+	if ((fp=fopen(filename, "r"))) {		/* File exists */
 	    fclose(fp);
 	    if (TRACE) printf("File `%s' exists\n", filename);
 	    if (remove(backup_filename)) {

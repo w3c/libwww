@@ -71,10 +71,30 @@ PUBLIC HTRequest * HTRequest_new NOARGS
     HTRequest * me = (HTRequest*) calloc(sizeof(*me), 1);  /* zero fill */
     if (!me) outofmem(__FILE__, "HTRequest_new()");
     
-    me->output_format = WWW_PRESENT;	/* default it to present to user */
-    me->conversions = HTList_new();	/* No conversions registerd yet */
+    me->conversions	= HTList_new();	/* No conversions registerd yet */
+    me->output_format	= WWW_PRESENT;	/* default it to present to user */
+    me->scheme		= HTAA_NONE;
+
     return me;
 }
+
+
+/*	Delete a request structure
+**	--------------------------
+*/
+PUBLIC void HTRequest_delete ARGS1(HTRequest *, req)
+{
+    if (req) {
+	HTList *cur = req->conversions;
+	HTPresentation *pres;
+
+	while ((pres = (HTPresentation*)HTList_nextObject(cur)))
+	    free(pres);
+
+	free(req);
+    }
+}
+
 
 
 /*	Register a Protocol				HTRegisterProtocol
@@ -204,13 +224,13 @@ PRIVATE int get_physical ARGS1(HTParentAnchor *,	anchor)
 /*	Search registered protocols to find suitable one
 */
     {
-	int i, n;
+	HTList *cur;
+	HTProtocol *p;
 #ifndef NO_INIT
         if (!protocols) HTAccessInit();
 #endif
-	n = HTList_count(protocols);
-	for (i=0; i<n; i++) {
-	    HTProtocol *p = HTList_objectAt(protocols, i);
+	cur = protocols;
+	while ((p = (HTProtocol*)HTList_nextObject(cur))) {
 	    if (strcmp(p->name, access)==0) {
 		HTAnchor_setProtocol(anchor, p);
 		free(access);
@@ -324,7 +344,7 @@ PRIVATE BOOL HTLoadDocument ARGS1(HTRequest *,		request)
     
     if (!request->output_format) request->output_format = WWW_PRESENT;
     
-    if (text=(HText *)HTAnchor_document(request->anchor))
+    if ((text=(HText *)HTAnchor_document(request->anchor)))
     {	/* Already loaded */
         if (TRACE) fprintf(stderr, "HTAccess: Document already in memory.\n");
 	if (request->childAnchor) {
@@ -342,10 +362,10 @@ PRIVATE BOOL HTLoadDocument ARGS1(HTRequest *,		request)
        don't check them all and chose the best */
     if (request->anchor->cacheItems) {
         HTList * list = request->anchor->cacheItems;
-        int i;
-	int n = HTList_count(list);
-	for(i=0; i<n; i++) {
-	    HTCacheItem * item = HTList_objectAt(list, i);
+	HTList * cur = list;
+	HTCacheItem * item;
+
+	while ((item = (HTCacheItem*)HTList_nextObject(cur))) {
 	    HTStream * s;
 	    
 	    request->using_cache = item;
@@ -354,8 +374,8 @@ PRIVATE BOOL HTLoadDocument ARGS1(HTRequest *,		request)
 	    if (s) {		/* format was suitable */
 	        FILE * fp = fopen(item->filename, "r");
 	    	if (TRACE) fprintf(stderr, "Cache: HIT file %s for %s\n",
-					item->filename, 
-					 full_address);
+				   item->filename, 
+				   full_address);
 		if (fp) {
 		    HTFileCopy(fp, s);
 		    fclose(fp);
@@ -363,7 +383,7 @@ PRIVATE BOOL HTLoadDocument ARGS1(HTRequest *,		request)
 		    return YES;
 		} else {
 		    fprintf(stderr, "***** Can't read cache file %s !\n",
-		    	item->filename);
+			    item->filename);
 		} /* file open ok */
 	    } /* stream ok */
 	} /* next cache item */
@@ -433,7 +453,7 @@ PRIVATE BOOL HTLoadDocument ARGS1(HTRequest *,		request)
     free(full_address);
    
     exit(-6996);
-
+    return NO;	/* For gcc :-( */
 } /* HTLoadDocument */
 
 
@@ -509,7 +529,7 @@ PUBLIC BOOL HTLoadToStream ARGS3(
 PUBLIC BOOL HTLoadRelative ARGS3(
 		CONST char *,		relative_name,
 		HTParentAnchor *,	here,
-		HTRequest*,		request)
+		HTRequest *,		request)
 {
     char * 		full_address = 0;
     BOOL       		result;
@@ -546,7 +566,6 @@ PUBLIC BOOL HTLoadRelative ARGS3(
 
 PUBLIC BOOL HTLoadAnchor ARGS2(HTAnchor*, anchor, HTRequest *, request)
 {
-    BOOL loaded = NO;
     if (!anchor) return NO;	/* No link */
     
     request->anchor  = HTAnchor_parent(anchor);

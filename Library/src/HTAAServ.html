@@ -65,12 +65,7 @@ authorization function.
 /* PUBLIC					      HTAA_checkAuthorization()
 **		CHECK IF USER IS AUTHORIZED TO ACCESS A FILE
 ** ON ENTRY:
-**	url		is the document to be accessed.
-**	method_name	name of the method, e.g. "GET"
-**	scheme_name	authentication scheme name.
-**	scheme_specifics authentication string (or other
-**			scheme specific parameters, like
-**			Kerberos-ticket).
+**	req	data structure representing the request.
 **
 ** ON EXIT:
 **	returns	status codes uniform with those of HTTP:
@@ -88,10 +83,7 @@ authorization function.
 **	file twice).
 **
 */
-PUBLIC int HTAA_checkAuthorization PARAMS((CONST char *	url,
-					   CONST char *	method_name,
-					   CONST char *	scheme_name,
-                                           char *	scheme_specifics));
+PUBLIC int HTAA_checkAuthorization PARAMS((HTRequest * req));
 </PRE>
 
 
@@ -103,11 +95,13 @@ PUBLIC int HTAA_checkAuthorization PARAMS((CONST char *	url,
 **		AUTHORIZATION FAILURE
 **		(Can be used in server reply status line
 **		 with 401/403 replies.)
+** ON ENTRY:
+**	req	failing request.
 ** ON EXIT:
 **	returns	a string containing the error message
 **		corresponding to internal HTAAFailReason.
 */
-PUBLIC char *HTAA_statusMessage NOPARAMS;
+PUBLIC char *HTAA_statusMessage PARAMS((HTRequest * req));
 </PRE>
 
 
@@ -120,9 +114,7 @@ PUBLIC char *HTAA_statusMessage NOPARAMS;
 **		INDICATING VALID AUTHENTICATION SCHEMES
 **		FOR THE REQUESTED DOCUMENT
 ** ON ENTRY:
-**	No parameters, but HTAA_checkAuthorization() must
-**	just before have failed because a wrong (or none)
-**	authentication scheme was used.
+**	req	request.
 **
 ** ON EXIT:
 **	returns	a buffer containing all the WWW-Authenticate:
@@ -130,7 +122,7 @@ PUBLIC char *HTAA_statusMessage NOPARAMS;
 **		NULL, if authentication won't help in accessing
 **		the requested document.
 */
-PUBLIC char *HTAA_composeAuthHeaders NOPARAMS;
+PUBLIC char *HTAA_composeAuthHeaders PARAMS((HTRequest * req));
 </PRE>
 
 

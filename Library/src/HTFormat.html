@@ -325,6 +325,13 @@ number</H3>
 <PRE>extern void HTInputSocket_free PARAMS((HTInputSocket * isoc));
 
 </PRE>
+<PRE>
+PUBLIC char * HTInputSocket_getLine PARAMS((HTInputSocket * isoc));
+PUBLIC char * HTInputSocket_getUnfoldedLine PARAMS((HTInputSocket * isoc));
+PUBLIC char * HTInputSocket_getStatusLine PARAMS((HTInputSocket * isoc));
+PUBLIC BOOL   HTInputSocket_seemsBinary PARAMS((HTInputSocket * isoc));
+
+</PRE>
 <H2>HTParseSocket: Parse a socket given
 its format</H2>This routine is called by protocol
 modules to load an object.  uses<A

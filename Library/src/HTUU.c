@@ -129,7 +129,7 @@ PUBLIC int HTUU_decode ARGS3(char *,		bufcoded,
 			     int,		outbufsize)
 {
 /* single character decode */
-#define DEC(c) pr2six[c]
+#define DEC(c) pr2six[(int)c]
 #define MAXVAL 63
 
    static int first = 1;
@@ -146,7 +146,7 @@ PUBLIC int HTUU_decode ARGS3(char *,		bufcoded,
       first = 0;
       for(j=0; j<256; j++) pr2six[j] = MAXVAL+1;
 
-      for(j=0; j<64; j++) pr2six[six2pr[j]] = (unsigned char) j;
+      for(j=0; j<64; j++) pr2six[(int)six2pr[j]] = (unsigned char) j;
 #if 0
       pr2six['A']= 0; pr2six['B']= 1; pr2six['C']= 2; pr2six['D']= 3; 
       pr2six['E']= 4; pr2six['F']= 5; pr2six['G']= 6; pr2six['H']= 7; 
@@ -176,7 +176,7 @@ PUBLIC int HTUU_decode ARGS3(char *,		bufcoded,
     * the output buffer, adjust the number of input bytes downwards.
     */
    bufin = bufcoded;
-   while(pr2six[*(bufin++)] <= MAXVAL);
+   while(pr2six[(int)*(bufin++)] <= MAXVAL);
    nprbytes = bufin - bufcoded - 1;
    nbytesdecoded = ((nprbytes+3)/4) * 3;
    if(nbytesdecoded > outbufsize) {
@@ -194,7 +194,7 @@ PUBLIC int HTUU_decode ARGS3(char *,		bufcoded,
    }
    
    if(nprbytes & 03) {
-      if(pr2six[bufin[-2]] > MAXVAL) {
+      if(pr2six[(int)bufin[-2]] > MAXVAL) {
          nbytesdecoded -= 2;
       } else {
          nbytesdecoded -= 1;

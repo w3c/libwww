@@ -491,7 +491,7 @@ PRIVATE void read_article NOARGS
 */
 		char *l = line;
 		char * p;
-		while (p=strchr(l, '<')) {
+		while ((p=strchr(l, '<'))) {
 		    char *q  = strchr(p,'>');
 		    char *at = strchr(p, '@');
 		    if (q && at && at<q) {

@@ -40,12 +40,59 @@ than what it has itself allocated.
 
 #include "HTUtils.h"		/* BOOL, PARAMS, ARGS */
 #include "HTAAUtil.h"		/* Common parts of AA */
-
+#include "HTList.h"
+#include "HTAssoc.h"
 
 #ifdef SHORT_NAMES
 #define	HTAAcoAu	HTAA_composeAuth
 #define HTAAsRWA	HTAA_shouldRetryWithAuth
 #endif /*SHORT_NAMES*/
+
+
+/*
+** Local datatype definitions
+**
+** HTAAServer contains all the information about one server.
+*/
+typedef struct {
+
+    char *	hostname;	/* Host's name			*/
+    int		portnumber;	/* Port number			*/
+    HTList *	setups;		/* List of protection setups	*/
+                                /* on this server; i.e. valid	*/
+                                /* authentication schemes and	*/
+                                /* templates when to use them.	*/
+                                /* This is actually a list of	*/
+                                /* HTAASetup objects.		*/
+    HTList *	realms;		/* Information about passwords	*/
+} HTAAServer;
+
+
+/*
+** HTAASetup contains information about one server's one
+** protected tree of documents.
+*/
+typedef struct {
+    HTAAServer *server;		/* Which server serves this tree	     */
+    char *	template;	/* Template for this tree		     */
+    HTList *	valid_schemes;	/* Valid authentic.schemes   		     */
+    HTAssocList**scheme_specifics;/* Scheme specific params		     */
+    BOOL	reprompt;	/* Failed last time -- reprompt (or whatever)*/
+} HTAASetup;
+
+
+/*
+** Information about usernames and passwords in
+** Basic and Pubkey authentication schemes;
+*/
+typedef struct {
+    char *	realmname;	/* Password domain name		*/
+    char *	username;	/* Username in that domain	*/
+    char *	password;	/* Corresponding password	*/
+} HTAARealm;
+
+
+#include "HTAccess.h"		/* HTRequest */
 
 </PRE>
 
@@ -71,59 +118,62 @@ password was misspelled).
 
 </UL>
 <PRE>
-/* PUBLIC						HTAA_composeAuth()
+/* BROWSER PUBLIC					HTAA_composeAuth()
 **
-**	COMPOSE THE ENTIRE AUTHORIZATION HEADER LINE IF WE
-**	ALREADY KNOW, THAT THE HOST MIGHT REQUIRE AUTHORIZATION
+**	COMPOSE Authorization: HEADER LINE CONTENTS
+**	IF WE ALREADY KNOW THAT THE HOST REQUIRES AUTHENTICATION
 **
 ** ON ENTRY:
-**	hostname	is the hostname of the server.
-**	portnumber	is the portnumber in which the server runs.
-**	docname		is the pathname of the document (as in URL)
+**	req		request, which contains
+**	req->argument	document, that we're trying to access.
+**	req->setup	protection setup info on browser.
+**	req->scheme	selected authentication scheme.
+**	req->realm	for Basic scheme the username and password.
 **
 ** ON EXIT:
-**	returns	NULL, if no authorization seems to be needed, or
-**		if it is the entire Authorization: line, e.g.
+**	returns	NO, if no authorization seems to be needed, and
+**		req->authorization is NULL.
+**		YES, if it has composed Authorization field,
+**		in which case the result is in req->authorization,
+**		e.g.
 **
-**		   "Authorization: basic username:password"
-**
-**		As usual, this string is automatically freed.
+**		   "Basic AkRDIhEF8sdEgs72F73bfaS=="
 */
-PUBLIC char *HTAA_composeAuth PARAMS((CONST char * hostname,
-				      CONST int	  portnumber,
-				      CONST char * docname));
+PUBLIC BOOL HTAA_composeAuth PARAMS((HTRequest * req));
 
 
-/* BROWSER PUBLIC				HTAA_shouldRetryWithAuth()
+/* BROWSER PUBLIC					HTAA_retryWithAuth()
 **
-**		DETERMINES IF WE SHOULD RETRY THE SERVER
-**		WITH AUTHORIZATION
-**		(OR IF ALREADY RETRIED, WITH A DIFFERENT
-**		USERNAME AND/OR PASSWORD (IF MISSPELLED))
+**		RETRY THE SERVER WITH AUTHORIZATION (OR IF
+**		ALREADY RETRIED, WITH A DIFFERENT USERNAME
+**		AND/OR PASSWORD (IF MISSPELLED)) OR CANCEL
 ** ON ENTRY:
-**	start_of_headers is the first block already read from socket,
-**			but status line skipped; i.e. points to the
-**			start of the header section.
-**	length		is the remaining length of the first block.
-**	soc		is the socket to read the rest of server reply.
-**
+**	req		request.
+**	req-&gt;valid_schemes
 **			This function should only be called when
 **			server has replied with a 401 (Unauthorized)
-**			status code.
+**			status code, and req structure has been filled
+**			up according to server reply, especially the
+**			req->valid_shemes list must have been set up
+**			according to WWW-Authenticate: headers.
+**	callback	the function to call when username and
+**			password have been entered (HTLoadHTTP()).
 ** ON EXIT:
-**	returns		YES, if connection should be retried.
-**			     The node containing all the necessary
-**			     information is
-**				* either constructed if it does not exist
-**				* or password is reset to NULL to indicate
-**				  that username and password should be
-**				  reprompted when composing Authorization:
-**				  field (in function HTAA_composeAuth()).
-**			NO, otherwise.
+**	On GUI clients pops up a username/password dialog box
+**	with "Ok" and "Cancel".
+**	"Ok" button press should do a callback
+**
+**		HTLoadHTTP(req);
+**
+**	This actually done by function HTPasswordDialog(),
+**	which GUI clients redefine.
+**
+**	returns		YES, if dialog box was popped up.
+**			NO, on failure.
 */
-PUBLIC BOOL HTAA_shouldRetryWithAuth PARAMS((char *	start_of_headers,
-					     int	length,
-					     int	soc));
+PUBLIC BOOL HTAA_retryWithAuth PARAMS((HTRequest *		req,
+				       HTRetryCallbackType	callback));
+
 </PRE>
 
 

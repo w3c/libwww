@@ -15,6 +15,7 @@
 **			Bug Fix: in case of PASS, only one parameter to printf.
 **	19 Sep 93  AL	Added Access Authorization stuff.
 **	 1 Nov 93  AL	Added htbin.
+**	30 Nov 93  AL	Added HTTranslateReq().
 **
 */
 
@@ -36,7 +37,7 @@ typedef struct _rule {
 	char *		equiv;
 } rule;
 
-/*	Global variables
+/*	Global variables (these will be obsolite once I put exec rule in)
 **	----------------
 */
 PUBLIC char *HTBinDir = NULL;	/* Physical /htbin directory path.	*/
@@ -65,14 +66,9 @@ PRIVATE rule * rule_tail = 0;	/* Pointer to last on list */
 **	returns		0 if success, -1 if error.
 */
 
-#ifdef __STDC__
-PUBLIC int HTAddRule (HTRuleOp op, const char * pattern, const char * equiv)
-#else
-int HTAddRule(op, pattern, equiv)
-    HTRuleOp	op;
-    char *	pattern;
-    char *	equiv;
-#endif
+PUBLIC int HTAddRule ARGS3(HTRuleOp,		op,
+			   CONST char *,	pattern,
+			   CONST char *,	equiv)
 { /* BYTE_ADDRESSING removed and memory check - AS - 1 Sep 93 */
     rule *      temp;
     char *      pPattern;
@@ -128,11 +124,7 @@ int HTAddRule(op, pattern, equiv)
 ** See also
 **	HTAddRule()
 */
-#ifdef __STDC__
-int HTClearRules(void)
-#else
-int HTClearRules()
-#endif
+PUBLIC int HTClearRules NOARGS
 {
     while (rules) {
     	rule * temp = rules;
@@ -152,7 +144,13 @@ int HTClearRules()
 /*	Translate by rules					HTTranslate()
 **	------------------
 **
-**	The most recently defined rules are applied first.
+** ATTENTION:
+**	THIS FUNCTION HAS BEEN OBSOLITED BY HTTranslateReq()
+**	ON SERVER SIDE -- ON BROWSER SIDE THIS IS STILL USED!
+**	Don't add new server features to this, this already has
+**	more than it can handle cleanly.
+**
+**	The most recently defined rules are applied last.
 **
 ** On entry,
 **	required	points to a string whose equivalent value is neeed
@@ -168,18 +166,15 @@ int HTClearRules()
 **			protected, and so it knows how to handle it.
 **								-- AL
 */
-#ifdef __STDC__
-char * HTTranslate(const char * required)
-#else
-char * HTTranslate(required)
-	char * required;
-#endif
+PUBLIC char * HTTranslate ARGS1(CONST char *, required)
 {
     rule * r;
     char *current = NULL;
     StrAllocCopy(current, required);
 
+#ifdef OLD_CODE
     HTAA_clearProtections();	/* Reset from previous call -- AL */
+#endif
 
     for(r = rules; r; r = r->next) {
         char * p = r->pattern;
@@ -222,11 +217,12 @@ char * HTTranslate(required)
 		    eff_ids = HTNextField(&p);
 		}
 
+#ifdef THESE_NO_LONGER_WORK
 		if (r->op == HT_Protect)
 		    HTAA_setCurrentProtection(current, prot_file, eff_ids);
 		else
 		    HTAA_setDefaultProtection(current, prot_file, eff_ids);
-
+#endif
 		FREE(local_copy);
 
 		/* continue translating rules */
@@ -279,8 +275,10 @@ char * HTTranslate(required)
 		}
 		break;
 
+	case HT_Exec:
 	case HT_Invalid:
 	case HT_Fail:				/* Unauthorised */
+	default:
     		    if (TRACE) printf("HTRule: *** FAIL `%s'\n", current);
 		    return (char *)0;
 		    		    
@@ -292,6 +290,212 @@ char * HTTranslate(required)
     return current;
 }
 
+
+
+/*	Translate by rules					HTTranslate()
+**	------------------
+**
+** On entry,
+**	req		request structure.
+**	req->simplified	simplified pathname (no ..'s etc in it),
+**			which will be translated.
+**			If this starts with /htbin/ it is taken
+**			to be a script call request.
+**
+** On exit,
+**	returns		YES on success, NO on failure (Forbidden).
+**	req->translated	contains the translated filename;
+**			NULL if a script call.
+**	req->script	contains the executable script name;
+**			NULL if not a script call.
+*/
+PUBLIC BOOL HTTranslateReq ARGS1(HTRequest *, req)
+{
+    rule * r;
+    char *current = NULL;
+
+    if (!req  ||  !req->simplified)
+	return NO;
+
+    current = strdup(req->simplified);
+
+#ifdef OLD_CODE
+    if (0 == strncmp(current, "/htbin/", 7)) {
+	if (!HTBinDir) {
+	    req->reason = HTAA_HTBIN;
+	    return NO;
+	}
+	else {
+	    char *end = strchr(current + 7, '/');
+	    if (end)
+		*end = (char)0;
+	    req->script=(char*)malloc(strlen(HTBinDir)+strlen(current)+1);
+	    strcpy(req->script, HTBinDir);
+	    strcat(req->script, current + 6);
+	    if (end) {
+		*end = '/';	/* Reconstruct */
+		req->script_pathinfo = strdup(end);	/* @@@@ This should */
+		                                        /* be translated !! */
+	    }
+	    free(current);
+	    return YES;
+	}
+    }
+#endif /*OLD_CODE*/
+
+    for(r = rules; r; r = r->next) {
+        char * p = r->pattern;
+	int m=0;   /* Number of characters matched against wildcard */
+	CONST char * q = current;
+	for(;*p && *q; p++, q++) {   /* Find first mismatch */
+	    if (*p!=*q) break;
+	}
+
+	if (*p == '*') {		/* Match up to wildcard */
+	    m = strlen(q) - strlen(p+1); /* Amount to match to wildcard */
+	    if(m<0) continue;           /* tail is too short to match */
+	    if (0!=strcmp(q+m, p+1)) continue;	/* Tail mismatch */
+	} else 				/* Not wildcard */
+	    if (*p != *q) continue;	/* plain mismatch: go to next rule */
+
+	switch (r->op) {		/* Perform operation */
+
+#ifdef ACCESS_AUTH
+	case HT_DefProt:
+	case HT_Protect:
+	    {
+		char *local_copy = NULL;
+		char *p;
+		char *eff_ids = NULL;
+		char *prot_file = NULL;
+
+		if (TRACE) fprintf(stderr,
+				   "HTRule: `%s' matched %s %s: `%s'\n",
+				   current,
+				   (r->op==HT_Protect ? "Protect" : "DefProt"),
+				   "rule, setup",
+				   (r->equiv ? r->equiv :
+				    (r->op==HT_Protect ?"DEFAULT" :"NULL!!")));
+
+		if (r->equiv) {
+		    StrAllocCopy(local_copy, r->equiv);
+		    p = local_copy;
+		    prot_file = HTNextField(&p);
+		    eff_ids = HTNextField(&p);
+		}
+
+		if (r->op == HT_Protect)
+		    HTAA_setCurrentProtection(req, prot_file, eff_ids);
+		else
+		    HTAA_setDefaultProtection(req, prot_file, eff_ids);
+
+		FREE(local_copy);
+
+		/* continue translating rules */
+	    }
+	    break;
+#endif ACCESS_AUTH
+
+	case HT_Exec:
+	    if (!r->equiv) {
+		if (TRACE) fprintf(stderr,
+				   "HTRule: Exec `%s', no extra pathinfo\n",
+				   current);
+		req->script = current;
+		req->script_pathinfo = NULL;
+		return YES;
+	    }
+	    else if (*p == *q || !strchr(r->equiv, '*')) { /* No wildcards */
+		if (TRACE) fprintf(stderr,
+				   "HTRule: Exec `%s', no extra pathinfo\n",
+				   r->equiv);
+		StrAllocCopy(req->script, r->equiv);
+		req->script_pathinfo = NULL;
+		return YES;
+	    }
+	    else {
+		char *ins = strchr(r->equiv, '*');
+		char *pathinfo;
+		if (!(req->script = (char*)malloc(strlen(r->equiv) + m)))
+		    outofmem(__FILE__, "HTTranslate");
+		strncpy(req->script, r->equiv, ins-r->equiv);
+		strncpy(req->script+(ins-r->equiv), q, m);
+		strcpy(req->script+(ins-r->equiv)+m, ins+1);
+		for (pathinfo = req->script+(ins-r->equiv)+1;
+		     *pathinfo && *pathinfo != '/';
+		     pathinfo++)
+		    ;
+		if (*pathinfo) {
+		    StrAllocCopy(req->script_pathinfo, pathinfo);
+		    *pathinfo = 0;
+		}
+		return YES;
+	    }
+	    break;
+			     
+	case HT_Pass:				/* Authorised */
+    		if (!r->equiv) {
+		    if (TRACE) fprintf(stderr, "HTRule: Pass `%s'\n", current);
+		    req->translated = current;
+		    return YES;
+	        }
+		/* Else fall through ...to map and pass */
+		
+	case HT_Map:
+	    if (*p == *q) { /* End of both strings, no wildcard */
+    	          if (TRACE) printf(
+			       "For `%s' using `%s'\n", current, r->equiv);  
+	          StrAllocCopy(current, r->equiv); /* use entire translation */
+	    } else {
+		  char * ins = strchr(r->equiv, '*');	/* Insertion point */
+	          if (ins) {	/* Consistent rule!!! */
+			char * temp = (char *)malloc(
+				strlen(r->equiv)-1 + m + 1);
+			if (temp==NULL) 
+			    outofmem(__FILE__, "HTTranslate"); /* NT & AS */
+			strncpy(temp, 	r->equiv, ins-r->equiv);
+			/* Note: temp may be unterminated now! */
+			strncpy(temp+(ins-r->equiv), q, m);  /* Matched bit */
+			strcpy (temp+(ins-r->equiv)+m, ins+1);	/* Last bit */
+    			if (TRACE) printf("For `%s' using `%s'\n",
+						current, temp);
+			free(current);
+			current = temp;			/* Use this */
+
+		    } else {	/* No insertion point */
+			char * temp = (char *)malloc(strlen(r->equiv)+1);
+			if (temp==NULL) 
+			    outofmem(__FILE__, "HTTranslate"); /* NT & AS */
+			strcpy(temp, r->equiv);
+    			if (TRACE) printf("For `%s' using `%s'\n",
+						current, temp);
+			free(current);
+			current = temp;			/* Use this */
+		    } /* If no insertion point exists */
+		}
+		if (r->op == HT_Pass) {
+		    if (TRACE) fprintf(stderr, "HTRule: Pass `%s'\n", current);
+		    req->translated = current;
+		    return YES;
+		}
+		break;
+
+	case HT_Invalid:
+	case HT_Fail:				/* Unauthorised */
+    		    if (TRACE) printf("HTRule: *** FAIL `%s'\n", current);
+		    return NO;
+	            break;
+	} /* if tail matches ... switch operation */
+
+    } /* loop over rules */
+
+    /* Actually here failing might be more appropriate?? */
+    req->translated = current;
+    return YES;
+}
+
+
+
 /*	Load one line of configuration
 **	------------------------------
 **
@@ -299,7 +503,7 @@ char * HTTranslate(required)
 **
 ** returns	0 OK, < 0 syntax error.
 */
-PUBLIC int  HTSetConfiguration ARGS1(CONST char *, config)
+PUBLIC int HTSetConfiguration ARGS1(CONST char *, config)
 {
     HTRuleOp op;
     char * line = NULL;
@@ -354,10 +558,37 @@ PUBLIC int  HTSetConfiguration ARGS1(CONST char *, config)
 
     } else if (0==strncasecomp(word1, "htbin", 5) ||
 	       0==strncasecomp(word1, "bindir", 6)) {
-	StrAllocCopy(HTBinDir, word2);	/* Physical /htbin location */
+	char *bindir = (char*)malloc(strlen(word2) + 3);
+	if (!bindir) outofmem(__FILE__, "HTSetConfiguration");
+	strcpy(bindir, word2);
+	strcat(bindir, "/*");
+	HTAddRule(HT_Exec, "/htbin/*", bindir);
+
+	/*
+	** Physical /htbin location -- this is almost obsolite
+	** (only search may need it).
+	*/
+	StrAllocCopy(HTBinDir, word2);
 
     } else if (0==strncasecomp(word1, "search", 6)) {
-	StrAllocCopy(HTSearchScript, word2);	/* Search script name */
+	if (strchr(word2, '/'))
+	    StrAllocCopy(HTSearchScript, word2); /* Full search script path */
+	else if (HTBinDir) {
+	    if (!(HTSearchScript =
+		  (char*)malloc(strlen(HTBinDir) + strlen(word2) + 2)))
+		outofmem(__FILE__, "HTSetConfiguration");
+	    strcpy(HTSearchScript, HTBinDir);
+	    strcat(HTSearchScript, "/");
+	    strcat(HTSearchScript, word2);
+	}
+	else if (TRACE) fprintf(stderr,
+		"HTRule: Search rule without HTBin rule before ignored\n");
+	if (TRACE) {
+	    if (HTSearchScript)
+		fprintf(stderr, "HTRule: Search script set to `%s'\n",
+			HTSearchScript);
+	    else fprintf(stderr, "HTRule: Search script not set\n");
+	}
 
     } else {
 	op =	0==strcasecomp(word1, "map")  ?	HT_Map

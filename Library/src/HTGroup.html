@@ -44,7 +44,7 @@ typedef enum {
     HTAA_DOTDOT,	/* 403 Forbidden, URL with /../ illegal	*/
     HTAA_HTBIN,		/* 403 Forbidden, /htbin not enabled	*/
     HTAA_NOT_FOUND	/* 404 Not found, or read protected	*/
-} HTAAFailReasonType;
+} HTAAFailReason;
 
 </PRE>
 
@@ -131,10 +131,10 @@ This function checks both the username and the internet address.
 **			to the group.
 **			HTAA_OK if both IP address and user are ok.
 */
-PUBLIC HTAAFailReasonType HTAA_userAndInetInGroup PARAMS((GroupDef * group,
-							  char *     username,
-							  char *     ip_number,
-							  char *     ip_name));
+PUBLIC HTAAFailReason HTAA_userAndInetInGroup PARAMS((GroupDef * group,
+						      char *     username,
+						      char *     ip_number,
+						      char *     ip_name));
 </PRE>
 
 

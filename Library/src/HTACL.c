@@ -82,7 +82,13 @@ PUBLIC char *HTAA_getAclFilename ARGS1(CONST char *, pathname)
 */
 PUBLIC FILE *HTAA_openAcl ARGS1(CONST char *, pathname)
 {
-    return fopen(HTAA_getAclFilename(pathname), "r");
+    if (pathname)
+	return fopen(HTAA_getAclFilename(pathname), "r");
+    else {
+	if (TRACE) fprintf(stderr,
+		   "HTAA_openAcl: error: trying to open ACL with NULL param\n");
+	return NULL;
+    }
 }
 
 
@@ -147,7 +153,7 @@ PUBLIC void HTAA_closeAcl ARGS1(FILE *, acl_file)
 */
 PUBLIC GroupDef *HTAA_getAclEntry ARGS3(FILE *,		acl_file,
 					CONST char *,	pathname,
-					HTAAMethod,	method)
+					HTAtom *,	method)
 {
     static GroupDef * group_def = NULL;
     CONST char * filename;
@@ -155,7 +161,14 @@ PUBLIC GroupDef *HTAA_getAclEntry ARGS3(FILE *,		acl_file,
     char *buf;
 
     if (!acl_file) return NULL;		/* ACL doesn't exist */
-    
+
+    if (!pathname || !method) {
+	if (TRACE) fprintf(stderr,
+			   "HTAA_getAclEntry: invalid param: %s is NULL!!\n",
+			   (pathname ? "method" : "pathname"));
+	return NULL;
+    }
+
     if (group_def) {
 	GroupDef_delete(group_def);	/* From previous call */
 	group_def = NULL;
@@ -183,7 +196,7 @@ PUBLIC GroupDef *HTAA_getAclEntry ARGS3(FILE *,		acl_file,
 			"Filename '%s' matched template '%s', allowed methods:",
 			filename, buf);
 	    }	
-	    if (HTAAMethod_inList(method, methods)) {	/* right method? */
+	    if (HTMethod_inList(method, methods)) {	/* right method? */
 		if (TRACE) fprintf(stderr, " METHOD OK\n");
 		HTList_delete(methods);
 		free(buf);

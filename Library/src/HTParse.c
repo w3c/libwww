@@ -26,16 +26,12 @@ struct struct_parts {
 **	All trailing white space is OVERWRITTEN with zero.
 */
 
-#ifdef __STDC__
-char * HTStrip(char * s)
-#else
-char * HTStrip(s)
-	char *s;
-#endif
+PUBLIC char * HTStrip ARGS1(char *, s)
 {
 #define SPACE(c) ((c==' ')||(c=='\t')||(c=='\n')) 
     char * p=s;
-    for(p=s;*p;p++);		        /* Find end of string */
+    if (!s) return NULL;	/* Doesn't dump core if NULL */
+    for(p=s;*p;p++);		/* Find end of string */
     for(p--;p>=s;p--) {
     	if(SPACE(*p)) *p=0;	/* Zap trailing blanks */
 	else break;
@@ -289,7 +285,7 @@ void HTSimplify(filename)
     char * q;
     if (filename[0] && filename[1])	/* Bug fix 12 Mar 93 TBL */
      for(p=filename+2; *p; p++) {
-        if (*p=='/') {
+	if (*p=='/') {
 	    if ((p[1]=='.') && (p[2]=='.') && (p[3]=='/' || !p[3] )) {
 		for (q=p-1; (q>=filename) && (*q!='/'); q--); /* prev slash */
 		if (q[0]=='/' && 0!=strncmp(q, "/../", 4)
@@ -305,6 +301,10 @@ void HTSimplify(filename)
 		}
 	    } else if ((p[1]=='.') && (p[2]=='/' || !p[2])) {
 	        strcpy(p, p+2);			/* Remove a slash and a dot */
+	    } else if (p[-1] != ':') {
+		while (p[1] == '/') {
+		    strcpy(p, p+1);		/* Remove multiple slashes */
+		}
 	    }
 	}
     }
