@@ -197,7 +197,7 @@ PUBLIC HTStream* HTSaveLocally (HTRequest *	request,
 	return HTErrorStream();
     }
     if (!tmproot) {
-	if (STREAM_TRACE) HTTrace("Save File... turned off");
+	if (STREAM_TRACE) HTTrace("Save File... turned off\n");
 	return HTErrorStream();
     }
 	
