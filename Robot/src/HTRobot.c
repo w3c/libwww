@@ -1038,7 +1038,14 @@ PUBLIC int redirection_handler (HTRequest * request, HTResponse * response,
 	/* Now call the default libwww handler for actually carrying it out */
 	if (mr->redir_code==0 || mr->redir_code==status) {
 	    HyperDoc * me_hd = HTAnchor_document(me);
-	    HyperDoc_new(mr, redirection_parent, me_hd->depth);
+	    HyperDoc *nhd = HyperDoc_new(mr, redirection_parent, me_hd->depth);
+
+	    if(mr->flags & MR_BFS) {
+		nhd->method = METHOD_HEAD;
+		HTQueue_append(mr->queue, (void *) nhd);
+		(mr->cq)++;
+	    }
+
 	    if (check) {
 		if (SHOW_QUIET(mr)) HTPrint("Checking redirection using HEAD\n");
 		HTRequest_setMethod(request, METHOD_HEAD);
