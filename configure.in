@@ -545,6 +545,8 @@ if test -d '/usr/local/ssl/include'; then
   sslinc="-I/usr/local/ssl/include"
 elif test -d '/usr/local/openssl/include'; then
   sslinc="-I/usr/local/openssl/include"
+elif test -d '/usr/local/include/openssl'; then
+  sslinc="-I/usr/local/include/openssl"
 elif test -d '/usr/include/ssl'; then
   sslinc="-I/usr/include/ssl"
 elif test -d '/usr/include/openssl'; then
