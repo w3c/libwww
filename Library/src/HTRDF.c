@@ -57,6 +57,7 @@ struct _HTElement {
 struct _HTRDFParser {
     HTList *			m_namespaceStack;
     HTList *			m_elementStack;
+    HTList *			m_literalStack;
     HTElement *			m_root;
     HTList *			m_triples;
     char * 			m_sSource;
@@ -592,6 +593,14 @@ PRIVATE void XML_startElement (void * userData,
                 /* Add the element to the parser's literal buffer */
                 addMarkupStart (rdfp, name, atts);
 
+                /* Add this literal element to the literal stack */
+		if (!HTList_isEmpty(rdfp->m_literalStack)) {
+		    HTElement *e = (HTElement *)
+			HTList_lastObject(rdfp->m_literalStack);
+		    HTElement_addChild(e, newElement);
+		}
+		HTList_addObject(rdfp->m_literalStack, newElement);
+
 		HTList_addObject(rdfp->m_elementStack, newElement);
 		return;
 	    }
@@ -900,6 +909,19 @@ PRIVATE void delete_elements (HTRDF * me)
     }
 }
 
+PRIVATE void delete_literal_elements (HTRDF * me)
+{
+    if (me && me->m_literalStack) {
+	HTList *cur = me->m_literalStack;
+	HTElement *e = NULL;
+	while ((e = (HTElement *) HTList_nextObject(cur))) {
+	    HTElement_delete(e);
+        }
+	HTList_delete(me->m_literalStack);
+    }
+}
+
+
 PUBLIC HTRDF * HTRDF_new (void)
 {
     HTRDF * me;
@@ -907,6 +929,7 @@ PUBLIC HTRDF * HTRDF_new (void)
 	HT_OUTOFMEM("HTRDF_new");
     me->m_namespaceStack = HTList_new();
     me->m_elementStack = HTList_new();
+    me->m_literalStack = HTList_new();
 
     me->m_triples = HTList_new();
     me->m_vAllNameSpaces = HTList_new();
@@ -937,6 +960,9 @@ PUBLIC BOOL HTRDF_delete (HTRDF * me)
 	    HTList_delete(me->m_namespaceStack);
 	}
 	if (me->m_elementStack) HTList_delete(me->m_elementStack);
+
+        delete_literal_elements(me);
+
 	me->m_root = NULL;
 	if (me->m_triples) {
 	    HTList *cur = me->m_triples;
@@ -2639,10 +2665,3 @@ PUBLIC char * HTRDFParseFile (const char *file_name, HTTripleCallback_new * new_
 
     return NULL;
 }
-
-
-
-
-
-
-
