@@ -20,7 +20,7 @@ SUFFIXES = .h .html
 inc: $(BUILT_SOURCES)
 	@echo Generated built sources
 
-PURIFY_CACHE = /home2/frystyk/purify-cache
+PURIFY_CACHE = @PURIFY_CACHE@
 
 purify: $(w3c_OBJECTS) $(w3c_DEPENDENCIES)
 	purify -cache-dir=$(PURIFY_CACHE) \
