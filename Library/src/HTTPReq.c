@@ -62,7 +62,6 @@ PRIVATE int HTTP09Request (HTStream * me, HTRequest * request)
     PUTC(CR);
     PUTC(LF);
     if (PROT_TRACE)HTTrace("HTTP........ Generating HTTP/0.9 Request\n");
-    HTDebugBreak(__FILE__, __LINE__, "Why is this?\n");
     return HT_OK;
 }
 
