@@ -552,6 +552,12 @@ PUBLIC BOOL HTCacheIndex_read (const char * cache_root)
 	HTRequest * request = HTRequest_new();
 	HTRequest_setPreemptive(request, YES);
 	HTRequest_setOutputFormat(request, WWW_SOURCE);
+
+	/* Make sure we don't use any filters */
+	HTRequest_addBefore(request, NULL, NULL, NULL, 0, YES);
+	HTRequest_addAfter(request, NULL, NULL, NULL, HT_ALL, 0, YES);
+
+	/* Set the output */    
 	HTRequest_setOutputStream(request, HTCacheIndexReader(request));
 	HTRequest_setAnchor(request, anchor);
 	HTAnchor_setFormat((HTParentAnchor *) anchor, HTAtom_for("www/cache-index"));
