@@ -181,7 +181,7 @@ PUBLIC HTTraceCallback * HTTrace_getCallback(void)
     return PHTTraceCallback;
 }
 
-PUBLIC int HTTrace(const char * fmt, ...)
+PUBLIC int HTTrace(CONST char * fmt, ...)
 {
     va_list pArgs;
     va_start(pArgs, fmt);

@@ -3,6 +3,7 @@
 <TITLE>Utility macros</TITLE>
 <!-- Changed by: Henrik Frystyk Nielsen, 12-Feb-1996 -->
 <!-- Changed by: Eric Prud'hommeaux, 13-Feb-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 14-Feb-1996 -->
 </HEAD>
 <BODY>
 
@@ -33,6 +34,19 @@ We hopefully are...
 <PRE>
 #if defined(__STDC__) || defined(__cplusplus) || defined(WWW_MSWINDOWS)
 #define _STANDARD_CODE_
+#endif
+</PRE>
+
+<H3>Variable Argument Functions</H3>
+
+This is normally one of the more tricky part in portable code as it
+very often doesn't work. If you are going to use it then watch out!
+
+<PRE>
+#ifdef _STANDARD_CODE_
+#include &lt;stdarg.h&gt;
+#else
+#include &lt;varargs.h&gt;
 #endif
 </PRE>
 
@@ -102,6 +116,26 @@ the same time.
 #define MEM_TRACE	(WWWTRACE & SHOW_MEM_TRACE)
 #define URI_TRACE	(WWWTRACE & SHOW_URI_TRACE)
 #define ANCH_TRACE	(WWWTRACE & SHOW_ANCHOR_TRACE)
+</PRE>
+
+<H3>Destination for Trace Messages</H3>
+
+You can send trace messages to various destinations depending on the
+type of your application. By default, on Unix the messages are sent to
+stderr using fprintf() and if we are on Windows and have a windows
+applications then register a HTTraceCallback function. This is done with
+HTTrace_setCallback. It tells HTTrace to call a HTTraceCallback. If your 
+compiler has problems with va_list, then you may forget about registering 
+the callback and instead macro HTTrace as follows:
+#define HTTrace MyAppSpecificTrace
+
+<PRE>
+typedef int HTTraceCallback(CONST char * fmt, va_list pArgs);
+
+extern void HTTrace_setCallback(HTTraceCallback * pCall);
+extern HTTraceCallback * HTTrace_getCallback(void);
+
+extern int HTTrace(CONST char * fmt, ...);
 </PRE>
 
 <H2>Standard C library for malloc() etc</H2>
@@ -178,37 +212,6 @@ HREF="HTMemory.html">Dynamic Memory Module</A> for how to handle
 #define CONST
 
 #endif /* _STANDARD_CODE_ (ANSI) */
-</PRE>
-
-<H2>Variable Argument Functions</H2>
-
-This is normally one of the more tricky part in portable code as it
-very often doesn't work. If you are going to use it then watch out!
-
-<PRE>
-#ifdef _STANDARD_CODE_
-#include &lt;stdarg.h&gt;
-#else
-#include &lt;varargs.h&gt;
-#endif
-</PRE>
-
-<H3>Destination for Trace Messages</H3>
-
-You can send trace messages to various destinations depending on the
-type of your application. By default, on Unix the messages are sent to
-stderr using fprintf() and if we are on Windows and have a windows
-applications then register a HTTraceCallback function. This is done with
-HTTrace_setCallback. It tells HTTrace to call a HTTraceCallback. If your 
-compiler has problems with va_list, then you may forget about registering 
-the callback and instead macro HTTrace as follows:
-#define HTTrace MyAppSpecificTrace
-
-<PRE>
-typedef int HTTraceCallback(const char * fmt, va_list pArgs);
-extern void HTTrace_setCallback(HTTraceCallback * pCall);
-extern HTTraceCallback * HTTrace_getCallback(void);
-extern int HTTrace(const char * fmt, ...);
 </PRE>
 
 <H2>Booleans</H2>
