@@ -1,0 +1,63 @@
+<HTML>
+<HEAD>
+<TITLE>Internals -- Line Mode Browser</TITLE>
+</HEAD>
+<BODY>
+
+<A HREF="../"><IMG ALT="WWW"
+SRC="../Icons/WWW/WWW48x.gif"></A> <A HREF="Status.html"><IMG
+ALT="LMB" SRC="../Icons/WWW/LMB48x.gif"></A>
+
+<H1>Line Mode Browser Internals</H1>
+
+<HR>
+
+The <A HREF="Status.html">Line Mode Browser</A> is built directly on
+top of the the <A HREF="../Library/Status.html">Library of Common
+Code</A> as indicated in the <A
+HREF="../Library/User/Guide/Overview.html#Architecture">Control Flow
+diagram</A> of the Library where the Line Mode Browser is indicated to
+the left. <P>
+
+As the <A HREF="../Library/Status.html">Library of Common Code</A> is
+a generic, platform independent library, the Line Mode Browser must
+contain the presentation specific code. The few extra modules this
+includes are:
+
+<DL>
+
+<DT><A HREF="Implementation/HTBrowse.html">HTBrowse</A>
+
+<DD>This module is the main module in the browser and it is the doing
+the shell command analysis, prompts and command line handling etc.
+
+<DT><A HREF="Implementation/GridText.html">GridText</A>
+
+<DD>The <CODE>GridText</CODE> module is the <A
+HREF="../Library/User/Guide/Presentation.html">graphic
+object</A>. This assumes fixed-width characters (hence "grid"). This
+module has the basic functions of a hypertext object plus some extra
+interface to the HTBrowse module.
+
+<DT><A HREF="Implementation/GridStyle.html">GridStyle</A>
+
+<DD>The <CODE>GridStyle</CODE> module is the Line Mode Browser
+management of static stylesheets.
+
+<DT><A HREF="Implementation/DefaultStyles.c">DefaultStyles.c</A>
+
+<DD>This module is the default set of formats for displaying text in
+each style.
+
+</DL>
+
+<P>
+<HR>
+
+<ADDRESS><A HREF="../../TBL_Disclaimer.html">Tim BL</A>, and <A
+HREF="../People.html#Frystyk">Henrik Frystyk</A>, January
+1995</ADDRESS>
+
+</BODY>
+</HTML>
+
