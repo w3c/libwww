@@ -19,6 +19,7 @@
 
 #include "HTTPGen.h"
 #include "HTTPUtil.h"
+#include "HTDNS.h"
 #include "HTTPReq.h"					       /* Implements */
 
 #define PUTC(c)		(*me->target->isa->put_character)(me->target, c)
@@ -399,13 +400,21 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
     if (request_mask & HT_C_HOST) {
 	char *orig = HTAnchor_address((HTAnchor *) anchor);
 	char *host = HTParse(orig, "", PARSE_HOST);
+        char hostace[256]; /* check lengths!!! */
 #if 0
 	/* Keep the port number for HTTP/1.1 compliance */
 	char *ptr = strchr(host, ':');		     /* Chop off port number */
 	if (ptr) *ptr = '\0';
 #endif
-	PUTS("Host: ");
-	PUTS(host);
+        PUTS("Host: ");
+        /****** check UTF8toACE with port number */
+        if (!HTACEfromUTF8 (host, hostace, 255)) {
+	    PUTS(hostace);
+	}
+	else {
+	    PUTS(host); /* this may be dangerous, but helps server side debugging */
+            HTTRACE(PROT_TRACE, "HTTP........ Error: Cannot convert to ACE: `%s\'\n", host);
+	}
 	PUTBLOCK(crlf, 2);
 	HT_FREE(orig);
 	HT_FREE(host);
