@@ -174,7 +174,8 @@ PRIVATE void HTXML_newInstance (HTStream *		me,
 				HTRequest *		request,
 				HTFormat 		target_format,
 				HTStream *		target_stream,
-				XML_Parser              xmlparser)
+				XML_Parser              xmlparser,
+				void * 			context)
 {
     if (me && xmlparser) HTXML_setHandlers(xmlparser);
 }
@@ -229,7 +230,7 @@ int main (int argc, char ** argv)
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
 
     /* Register our new XML Instance handler */
-    HTXMLCallback_registerNew (HTXML_newInstance);
+    HTXMLCallback_registerNew (HTXML_newInstance, NULL);
 
     /* Setup a timeout on the request for 15 secs */
     HTHost_setEventTimeout(15000);
