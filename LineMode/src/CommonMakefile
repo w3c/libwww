@@ -33,7 +33,10 @@ LM =  $(WWW)/LineMode/Implementation/
 LMD = $(WWW)/LineMode/Defaults
 CMN = $(WWW)/Library/Implementation/
 DEFAULTS = $(WWW)/LineMode/Defaults
-FTP = /appl/disk5/ftp/pub
+FTP = /afs/w3.org/ftp/pub
+
+# PURIFY_LOG = $(HOME)/purify-output
+PURIFY_CACHE = $(HOME)/purify-cache
 
 CFLAGS2 = $(CFLAGS) -I$(CMN) -I$(LM)
 
@@ -76,6 +79,7 @@ DISTRIBUTION = \
 
 # $(LM)a_stdio.g $(LM)a_stdio.h were added to support -DCYRILLIC
 HTMLFILES = \
+	$(LM)HTBrowse.h \
 	$(LM)GridStyle.h \
 	$(LM)GridText.h \
 	$(LM)HTFont.h \
@@ -88,8 +92,6 @@ HTMLFILES = \
 # $(LM)a_stdio.h was added to support -DCYRILLIC
 SPECIFIC =  \
 	$(WWW)/All/*/Makefile.include $(WWW)/All/Implementation/Makefile* \
-	$(LM)vax_ultrix/Makefile \
-	$(LM)vax_ultrix_cc/Makefile \
 	$(LM)vms/descrip.mms \
 	$(LM)vms/build_multinet.com \
 	$(LM)vms/setup.com
@@ -101,9 +103,7 @@ SPECIFIC =  \
 # This is now done by cat in WWW/All/Implementation/Makefile
 # include $(ABS)$(LM)Version.make
 
-PURIFY = purify \
-	-logfile=/home2/frystyk/purify-output \
-	-cache-dir=/home2/frystyk/purify-cache
+PURIFY = purify -cache-dir=$(PURIFY_CACHE) # -logfile=$(PURIFY_LOG)
 
 $(BIN)/$(PROD) : $(OBJS) $(USELIBDIR)/libwww.a
 	$(CC) -o $(BIN)/$(PROD)_$(VL)  $(OBJS) $(LFLAGS) $(WWWLIB) \
@@ -271,10 +271,10 @@ $(FTP)/www/src/WWWLineMode_$(VL).tar.Z : $(SOURCES)
 #		---------------------------------
 
 $(WWW)/README : $(WWW)/../README.html
-	www -p -na http://info.cern.ch/hypertext/README.html -o $(WWW)/README
+	www -p -na http://www.w3.org/hypertext/README.html -o $(WWW)/README
 
 $(WWW)/COPYRIGHT : $(WWW)/../COPYRIGHT.html
-	www -p -na http://info.cern.ch/hypertext/COPYRIGHT.html -o $(WWW)/COPYRIGH
+	www -p -na http://www.w3.org/hypertext/COPYRIGHT.html -o $(WWW)/COPYRIGH
 
 #	Line Mode Manual
 #
