@@ -2,7 +2,7 @@
 **			===========
 **
 **	This is unix-specific code in general, with some VMS bits.
-**	These are routines for file access used by WWW browsers.
+**	These are routines for file access used by browsers.
 **
 ** History:
 **	   Feb 91	Written Tim Berners-Lee CERN/CN
@@ -283,7 +283,8 @@ PUBLIC char * HTLocalName ARGS1(CONST char *,name)
     
     if (0==strcmp(access, "file")) {
         free(access);	
-	if ((0==strcmp(host, HTHostName())) || !*host) {
+	if ((0==strcasecmp(host, HTHostName())) ||
+	    (0==strcasecmp(host, "localhost")) || !*host) {
 	    free(host);
 	    if (TRACE) fprintf(stderr, "Node `%s' means path `%s'\n", name, path);
 	    return(path);
@@ -841,14 +842,13 @@ forget_multi:
 					/* if filename is not root directory */
 			        StrAllocCat(tmpfilename,"/"); 
 			    else
-			        if (!strcmp((char *)
-				       (1 + HTBTree_object(next_element)),".."))
+			        if (!strcmp(
+				       (char *)HTBTree_object(next_element)+1,".."))
 			            continue;
 			        /* if root directory and current entry is parent
 				    directory, skip the current entry */
 
-			    StrAllocCat(tmpfilename,(char *)
-					(1 + HTBTree_object(next_element)));
+			    StrAllocCat(tmpfilename,(char *)HTBTree_object(next_element)+1);
 			    /* append the current entry's filename to the path */
 			    HTSimplify(tmpfilename);
 			    /* Output the directory entry */
@@ -862,7 +862,7 @@ forget_multi:
 				    if (first_of_directories)
 				    {
 				        up_directory = NO; 
-					      /* to avoid problems with root directory */
+			  /* to avoid problems with root directory */
 				        first_of_directories = NO;
 					START(HTML_H2);
 					PUTS("Subdirectories:");
@@ -890,9 +890,9 @@ forget_multi:
 			    }
 			    {
 			        char * relative;
-				char * escaped = HTEscape((char *)(1 + 
-						    HTBTree_object(next_element)),
-								   URL_XPALPHAS);
+				char * escaped = HTEscape(
+					(char *)HTBTree_object(next_element)+1,
+					URL_XPALPHAS);
 				/* If empty tail, gives absolute ref below */
 				relative = (char*) malloc(
 				       strlen(tail) + strlen(escaped)+2);
@@ -905,13 +905,12 @@ forget_multi:
 				free(relative);
 			    }
 
-	     		    if (strcmp((char *)
-				       (1 + HTBTree_object(next_element)),".."))
+	     		    if (strcmp((char *)HTBTree_object(next_element)+1,".."))
 			    {
 
 				  /* if the current entry is not the parent 
 				     directory then use the file name */
-				  PUTS((char *)(1 + HTBTree_object(next_element)));
+				  PUTS((char *)HTBTree_object(next_element)+1);
 
 			    }		        
 			    else 

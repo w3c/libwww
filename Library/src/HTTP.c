@@ -46,6 +46,9 @@ struct _HTStream {
 };
 
 
+extern char * HTAppName;	/* Application name: please supply */
+extern char * HTAppVersion;	/* Application version: please supply */
+
 /*		Load Document from HTTP Server			HTLoadHTTP()
 **		==============================
 **
@@ -203,6 +206,12 @@ retry:
 
 	    }
 	}
+	
+	sprintf(line, "User-Agent:  %s/%s  libwww/%s%c%c",
+		HTAppName ? HTAppName : "unknown",
+		HTAppVersion ? HTAppVersion : "0.0",
+		HTLibraryVersion, CR, LF);
+	      StrAllocCat(command, line);
     }
        
     StrAllocCat(command, "\015\012");	/* Blank line means "end" */
@@ -324,7 +333,18 @@ retry:
 		
 	    case 4:		/* "I think I goofed" */
 	    case 5:		/* I think you goofed */
-		HTAlert("Error response from server");
+		{
+		    char *p1 = HTParse(gate ? gate : arg, "", PARSE_HOST);
+		    char * message = (char*)malloc(
+		    	strlen(line_buffer)+strlen(p1) + 100);
+		    if (!message) outofmem(__FILE__, "HTTP 5xx status");
+		    sprintf(message,
+		    "HTTP server at %s replies:\n%s", p1, line_buffer);
+		    status = HTLoadError(sink, server_status, message);
+		    free(message);
+		    free(p1);
+		    goto clean_up;
+		}
 		break;
 		
 	    case 2:		/* Good: Got MIME object */
@@ -350,7 +370,8 @@ retry:
 	sprintf(buffer, "Sorry, no known way of converting %s to %s.",
 		HTAtom_name(format_in), HTAtom_name(format_out));
 	fprintf(stderr, "HTTP: %s", buffer);
-	return HTLoadError(sink, 501, buffer);
+	status = HTLoadError(sink, 501, buffer);
+	goto clean_up;
     }
 
     
@@ -375,13 +396,15 @@ retry:
 
 /*	Clean up
 */
+    status = HT_LOADED;
     
+clean_up: 
     if (line_buffer) free(line_buffer);
 
     if (TRACE) fprintf(stderr, "HTTP: close socket %d.\n", s);
-    status = NETCLOSE(s);
+    (void) NETCLOSE(s);
 
-    return HT_LOADED;			/* Good return */
+    return status;			/* Good return */
 
 }
 

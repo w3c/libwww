@@ -272,7 +272,7 @@ PRIVATE void HTMIME_free ARGS1(HTStream *, me)
 
 PRIVATE void HTMIME_end_document ARGS1(HTStream *, me)
 {
-    (*me->targetClass.end_document)(me->target);
+    if (me->target) (*me->targetClass.end_document)(me->target);
 }
 
 

@@ -23,6 +23,7 @@
 
 #include "HTAlert.h"
 #include "HTMLGen.h"
+#include "HTParse.h"
 
 extern HTStyleSheet * styleSheet;	/* Application-wide */
 
@@ -451,7 +452,9 @@ PRIVATE void HTML_start_element ARGS4(
     switch (element_number) {
     case HTML_A:
 	{
-	    HTChildAnchor * source = HTAnchor_findChildAndLink(
+	    HTChildAnchor * source;
+	    if (present[HTML_A_HREF]) HTSimplify(value[HTML_A_HREF]);
+	    source = HTAnchor_findChildAndLink(
 		me->node_anchor,				/* parent */
 		present[HTML_A_NAME] ? value[HTML_A_NAME] : 0,	/* Tag */
 		present[HTML_A_HREF] ? value[HTML_A_HREF] : 0,	/* Addresss */
