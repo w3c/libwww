@@ -308,7 +308,7 @@ PRIVATE void Cleanup (LineMode * me, int status)
 #ifdef GET_SCREEN_SIZE
 #include <sys/ioctl.h>
 /*
-** Get size of the OUTPUT screen. Stolen from less.
+** Get size of the output screen. Stolen from less.
 */
 PRIVATE void scrsize (int * p_height, int * p_width)
 {
@@ -1321,7 +1321,7 @@ int main (int argc, char ** argv)
 		lm->flags |= LM_REFS;
 		HTAlert_setInteractive(NO);
 
-	    /* original OUTPUT */
+	    /* original output */
 	    } else if (!strcmp(argv[arg], "-raw")) {
 		HTRequest_setOutputFormat(lm->request, WWW_RAW);
 		HTAlert_setInteractive(NO);
@@ -1337,7 +1337,7 @@ int main (int argc, char ** argv)
 		HTRequest_setOutputFormat(lm->request, WWW_MIME);
 		HTAlert_setInteractive(NO);
 
-	    /* OUTPUT filename */
+	    /* output filename */
 	    } else if (!strcmp(argv[arg], "-o")) { 
 		lm->outputfile = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    argv[++arg] : DEFAULT_OUTPUT_FILE;
@@ -1589,7 +1589,7 @@ int main (int argc, char ** argv)
 	    if ((OUTPUT = fopen(lm->outputfile, "wb")) == NULL) {
 		if (SHOW_MSG) TTYPrint(TDEST, "Can't open `%s'\\n",
 				       lm->outputfile);
-		OUTPUT = OUTPUT;
+		OUTPUT = STDOUT;
 	    }
 	}
 	HTRequest_setOutputStream(lm->request, HTFWriter_new(OUTPUT, YES));

@@ -225,6 +225,9 @@ PUBLIC HTStream * HTASCIIWriter (HTNet *net, BOOL leave_open)
 }
 #else
 #ifdef WWW_WIN_DLL
-PUBLIC HTStream * HTASCIIWriter (HTNet *net, BOOL leave_open) {}
+PUBLIC HTStream * HTASCIIWriter (HTNet *net, BOOL leave_open)
+{
+    return NULL;
+}
 #endif /* WWW_WIN_DLL */
 #endif /* NOT_ASCII */
