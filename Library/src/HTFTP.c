@@ -1434,8 +1434,16 @@ PRIVATE int FTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 	switch (ctrl->state) {
 	  case FTP_BEGIN:
 	      if (PROT_TRACE) HTTrace("FTP Event... now in state FTP_BEGIN\n");
-	      HTFTPParseURL(request, url, ctrl, data);
 
+	      /* Only handle GET requests for now */
+	      if (HTRequest_method(request) != METHOD_GET) {
+		  if (PROT_TRACE)
+		      HTTrace("FTP Event... This module only supports the GET method\n");
+		  ctrl->state = FTP_ERROR;
+		  break;
+	      }
+
+	      HTFTPParseURL(request, url, ctrl, data);
 
 	      /* The following is added by Neil Griffin, GAIN Software */
 
