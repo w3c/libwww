@@ -70,10 +70,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /FR /YX /c
-# ADD CPP /nologo /W3 /GX /O2 /I "..\..\..\Library\Implementation" /I "..\..\..\Pics\Implementation" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_ASYNC" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /W3 /GX /O2 /I "..\..\..\Library\src" /I "..\..\..\Pics\src" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_ASYNC" /D "WWW_WIN_DLL" /YX /c
 # SUBTRACT CPP /Fr
-CPP_PROJ=/nologo /ML /W3 /GX /O2 /I "..\..\..\Library\Implementation" /I\
- "..\..\..\Pics\Implementation" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D\
+CPP_PROJ=/nologo /ML /W3 /GX /O2 /I "..\..\..\Library\src" /I\
+ "..\..\..\Pics\src" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D\
  "WWW_WIN_ASYNC" /D "WWW_WIN_DLL" /Fp"$(INTDIR)/msvc_40.pch" /YX /Fo"$(INTDIR)/"\
  /c 
 CPP_OBJS=.\WinRel/
@@ -110,23 +110,23 @@ LINK32_OBJS= \
 	"$(INTDIR)/scroll.obj" \
 	"$(INTDIR)/GridStyle.obj" \
 	"$(INTDIR)/www.res" \
-	"..\..\..\Library\Implementation\windows\wwwdir\Debug\wwwdir.lib" \
-	"..\..\..\Library\Implementation\windows\wwwcache\Debug\wwwcache.lib" \
-	"..\..\..\Library\Implementation\windows\wwwgophe\Debug\wwwgophe.lib" \
-	"..\..\..\Library\Implementation\windows\wwwguess\Debug\wwwguess.lib" \
-	"..\..\..\Library\Implementation\windows\wwwapp\Debug\wwwapp.lib" \
-	"..\..\..\Library\Implementation\windows\wwwdll\Debug\wwwdll.lib" \
-	"..\..\..\Library\Implementation\windows\wwwfile\Debug\wwwfile.lib" \
-	"..\..\..\Library\Implementation\windows\wwwrules\Debug\wwwrules.lib" \
-	"..\..\..\Library\Implementation\windows\wwwmime\Debug\wwwmime.lib" \
-	"..\..\..\Library\Implementation\windows\wwwhttp\Debug\wwwhttp.lib" \
-	"..\..\..\Library\Implementation\windows\wwwnews\Debug\wwwnews.lib" \
-	"..\..\..\Library\Implementation\windows\wwwcore\Debug\wwwcore.lib" \
-	"..\..\..\Library\Implementation\windows\wwwwais\Debug\wwwwais.lib" \
-	"..\..\..\Library\Implementation\windows\wwwutils\Debug\wwwutils.lib" \
-	"..\..\..\Library\Implementation\windows\wwwtelnt\Debug\wwwtelnt.lib" \
-	"..\..\..\Library\Implementation\windows\wwwftp\Debug\wwwftp.lib" \
-	"..\..\..\Library\Implementation\windows\wwwhtml\Debug\wwwhtml.lib"
+	"..\..\..\Library\src\windows\wwwdir\Debug\wwwdir.lib" \
+	"..\..\..\Library\src\windows\wwwcache\Debug\wwwcache.lib" \
+	"..\..\..\Library\src\windows\wwwgophe\Debug\wwwgophe.lib" \
+	"..\..\..\Library\src\windows\wwwguess\Debug\wwwguess.lib" \
+	"..\..\..\Library\src\windows\wwwapp\Debug\wwwapp.lib" \
+	"..\..\..\Library\src\windows\wwwdll\Debug\wwwdll.lib" \
+	"..\..\..\Library\src\windows\wwwfile\Debug\wwwfile.lib" \
+	"..\..\..\Library\src\windows\wwwrules\Debug\wwwrules.lib" \
+	"..\..\..\Library\src\windows\wwwmime\Debug\wwwmime.lib" \
+	"..\..\..\Library\src\windows\wwwhttp\Debug\wwwhttp.lib" \
+	"..\..\..\Library\src\windows\wwwnews\Debug\wwwnews.lib" \
+	"..\..\..\Library\src\windows\wwwcore\Debug\wwwcore.lib" \
+	"..\..\..\Library\src\windows\wwwwais\Debug\wwwwais.lib" \
+	"..\..\..\Library\src\windows\wwwutils\Debug\wwwutils.lib" \
+	"..\..\..\Library\src\windows\wwwtelnt\Debug\wwwtelnt.lib" \
+	"..\..\..\Library\src\windows\wwwftp\Debug\wwwftp.lib" \
+	"..\..\..\Library\src\windows\wwwhtml\Debug\wwwhtml.lib"
 
 "$(OUTDIR)\msvc_40.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -172,10 +172,10 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 # ADD BASE CPP /nologo /W3 /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /FR /YX /c
-# ADD CPP /nologo /W3 /Gm /GX /Zi /Od /I "..\..\..\Library\Implementation" /I "..\..\..\Pics\Implementation" /D "_DEBUG" /D "DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_ASYNC" /D "WWW_WIN_DLL" /YX /c
+# ADD CPP /nologo /W3 /Gm /GX /Zi /Od /I "..\..\..\Library\src" /I "..\..\..\Pics\src" /D "_DEBUG" /D "DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_ASYNC" /D "WWW_WIN_DLL" /YX /c
 # SUBTRACT CPP /Fr
-CPP_PROJ=/nologo /MLd /W3 /Gm /GX /Zi /Od /I "..\..\..\Library\Implementation"\
- /I "..\..\..\Pics\Implementation" /D "_DEBUG" /D "DEBUG" /D "WIN32" /D\
+CPP_PROJ=/nologo /MLd /W3 /Gm /GX /Zi /Od /I "..\..\..\Library\src"\
+ /I "..\..\..\Pics\src" /D "_DEBUG" /D "DEBUG" /D "WIN32" /D\
  "_WINDOWS" /D "WWW_WIN_ASYNC" /D "WWW_WIN_DLL" /Fp"$(INTDIR)/msvc_40.pch" /YX\
  /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\WinDebug/
@@ -212,23 +212,23 @@ LINK32_OBJS= \
 	"$(INTDIR)/HTBInit.obj" \
 	"$(INTDIR)/HTInit.obj" \
 	"$(INTDIR)/www.res" \
-	"..\..\..\Library\Implementation\windows\wwwdir\Debug\wwwdir.lib" \
-	"..\..\..\Library\Implementation\windows\wwwcache\Debug\wwwcache.lib" \
-	"..\..\..\Library\Implementation\windows\wwwgophe\Debug\wwwgophe.lib" \
-	"..\..\..\Library\Implementation\windows\wwwguess\Debug\wwwguess.lib" \
-	"..\..\..\Library\Implementation\windows\wwwapp\Debug\wwwapp.lib" \
-	"..\..\..\Library\Implementation\windows\wwwdll\Debug\wwwdll.lib" \
-	"..\..\..\Library\Implementation\windows\wwwfile\Debug\wwwfile.lib" \
-	"..\..\..\Library\Implementation\windows\wwwrules\Debug\wwwrules.lib" \
-	"..\..\..\Library\Implementation\windows\wwwmime\Debug\wwwmime.lib" \
-	"..\..\..\Library\Implementation\windows\wwwhttp\Debug\wwwhttp.lib" \
-	"..\..\..\Library\Implementation\windows\wwwnews\Debug\wwwnews.lib" \
-	"..\..\..\Library\Implementation\windows\wwwcore\Debug\wwwcore.lib" \
-	"..\..\..\Library\Implementation\windows\wwwwais\Debug\wwwwais.lib" \
-	"..\..\..\Library\Implementation\windows\wwwutils\Debug\wwwutils.lib" \
-	"..\..\..\Library\Implementation\windows\wwwtelnt\Debug\wwwtelnt.lib" \
-	"..\..\..\Library\Implementation\windows\wwwftp\Debug\wwwftp.lib" \
-	"..\..\..\Library\Implementation\windows\wwwhtml\Debug\wwwhtml.lib"
+	"..\..\..\Library\src\windows\wwwdir\Debug\wwwdir.lib" \
+	"..\..\..\Library\src\windows\wwwcache\Debug\wwwcache.lib" \
+	"..\..\..\Library\src\windows\wwwgophe\Debug\wwwgophe.lib" \
+	"..\..\..\Library\src\windows\wwwguess\Debug\wwwguess.lib" \
+	"..\..\..\Library\src\windows\wwwapp\Debug\wwwapp.lib" \
+	"..\..\..\Library\src\windows\wwwdll\Debug\wwwdll.lib" \
+	"..\..\..\Library\src\windows\wwwfile\Debug\wwwfile.lib" \
+	"..\..\..\Library\src\windows\wwwrules\Debug\wwwrules.lib" \
+	"..\..\..\Library\src\windows\wwwmime\Debug\wwwmime.lib" \
+	"..\..\..\Library\src\windows\wwwhttp\Debug\wwwhttp.lib" \
+	"..\..\..\Library\src\windows\wwwnews\Debug\wwwnews.lib" \
+	"..\..\..\Library\src\windows\wwwcore\Debug\wwwcore.lib" \
+	"..\..\..\Library\src\windows\wwwwais\Debug\wwwwais.lib" \
+	"..\..\..\Library\src\windows\wwwutils\Debug\wwwutils.lib" \
+	"..\..\..\Library\src\windows\wwwtelnt\Debug\wwwtelnt.lib" \
+	"..\..\..\Library\src\windows\wwwftp\Debug\wwwftp.lib" \
+	"..\..\..\Library\src\windows\wwwhtml\Debug\wwwhtml.lib"
 
 "$(OUTDIR)\msvc_40.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -277,47 +277,47 @@ SOURCE=.\www.c
 DEP_CPP_WWW_C=\
 	".\..\windows\lib.h"\
 	".\..\windows\scroll.h"\
-	".\..\..\..\Library\Implementation\WWWLib.h"\
+	".\..\..\..\Library\src\WWWLib.h"\
 	".\..\HTBrowse.h"\
-	".\..\..\..\Library\Implementation\WWWUtil.h"\
-	".\..\..\..\Library\Implementation\WWWCore.h"\
-	".\..\..\..\Library\Implementation\tcp.h"\
-	".\..\..\..\Library\Implementation\HTUtils.h"\
-	".\..\..\..\Library\Implementation\HTArray.h"\
-	".\..\..\..\Library\Implementation\HTAssoc.h"\
-	".\..\..\..\Library\Implementation\HTAtom.h"\
-	".\..\..\..\Library\Implementation\HTChunk.h"\
-	".\..\..\..\Library\Implementation\HTList.h"\
-	".\..\..\..\Library\Implementation\HTMemory.h"\
-	".\..\..\..\Library\Implementation\HTString.h"\
-	".\..\..\..\Library\Implementation\HTUU.h"\
+	".\..\..\..\Library\src\WWWUtil.h"\
+	".\..\..\..\Library\src\WWWCore.h"\
+	".\..\..\..\Library\src\tcp.h"\
+	".\..\..\..\Library\src\HTUtils.h"\
+	".\..\..\..\Library\src\HTArray.h"\
+	".\..\..\..\Library\src\HTAssoc.h"\
+	".\..\..\..\Library\src\HTAtom.h"\
+	".\..\..\..\Library\src\HTChunk.h"\
+	".\..\..\..\Library\src\HTList.h"\
+	".\..\..\..\Library\src\HTMemory.h"\
+	".\..\..\..\Library\src\HTString.h"\
+	".\..\..\..\Library\src\HTUU.h"\
 	{$(INCLUDE)}"\sys\Types.h"\
 	{$(INCLUDE)}"\sys\Stat.h"\
-	".\..\..\..\Library\Implementation\HTAccess.h"\
-	".\..\..\..\Library\Implementation\HTAlert.h"\
-	".\..\..\..\Library\Implementation\HTAnchor.h"\
-	".\..\..\..\Library\Implementation\HTBind.h"\
-	".\..\..\..\Library\Implementation\HTConLen.h"\
-	".\..\..\..\Library\Implementation\HTDNS.h"\
-	".\..\..\..\Library\Implementation\HTError.h"\
-	".\..\..\..\Library\Implementation\HTEscape.h"\
-	".\..\..\..\Library\Implementation\HTEvntrg.h"\
-	".\..\..\..\Library\Implementation\HTFWrite.h"\
-	".\..\..\..\Library\Implementation\HTFormat.h"\
-	".\..\..\..\Library\Implementation\HTMethod.h"\
-	".\..\..\..\Library\Implementation\HTNet.h"\
-	".\..\..\..\Library\Implementation\HTParse.h"\
-	".\..\..\..\Library\Implementation\HTProt.h"\
-	".\..\..\..\Library\Implementation\HTReq.h"\
-	".\..\..\..\Library\Implementation\HTSocket.h"\
-	".\..\..\..\Library\Implementation\HTTCP.h"\
-	".\..\..\..\Library\Implementation\HTTee.h"\
-	".\..\..\..\Library\Implementation\HTWWWStr.h"\
-	".\..\..\..\Library\Implementation\HTWriter.h"\
-	".\..\..\..\Library\Implementation\HTStream.h"\
+	".\..\..\..\Library\src\HTAccess.h"\
+	".\..\..\..\Library\src\HTAlert.h"\
+	".\..\..\..\Library\src\HTAnchor.h"\
+	".\..\..\..\Library\src\HTBind.h"\
+	".\..\..\..\Library\src\HTConLen.h"\
+	".\..\..\..\Library\src\HTDNS.h"\
+	".\..\..\..\Library\src\HTError.h"\
+	".\..\..\..\Library\src\HTEscape.h"\
+	".\..\..\..\Library\src\HTEvntrg.h"\
+	".\..\..\..\Library\src\HTFWrite.h"\
+	".\..\..\..\Library\src\HTFormat.h"\
+	".\..\..\..\Library\src\HTMethod.h"\
+	".\..\..\..\Library\src\HTNet.h"\
+	".\..\..\..\Library\src\HTParse.h"\
+	".\..\..\..\Library\src\HTProt.h"\
+	".\..\..\..\Library\src\HTReq.h"\
+	".\..\..\..\Library\src\HTSocket.h"\
+	".\..\..\..\Library\src\HTTCP.h"\
+	".\..\..\..\Library\src\HTTee.h"\
+	".\..\..\..\Library\src\HTWWWStr.h"\
+	".\..\..\..\Library\src\HTWriter.h"\
+	".\..\..\..\Library\src\HTStream.h"\
 	
 NODEP_CPP_WWW_C=\
-	".\..\..\..\Library\Implementation\HTVMSUtils.h"\
+	".\..\..\..\Library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\www.obj" : $(SOURCE) $(DEP_CPP_WWW_C) "$(INTDIR)"
@@ -328,10 +328,10 @@ NODEP_CPP_WWW_C=\
 DEP_CPP_WWW_C=\
 	".\..\windows\lib.h"\
 	".\..\windows\scroll.h"\
-	".\..\..\..\Library\Implementation\WWWLib.h"\
+	".\..\..\..\Library\src\WWWLib.h"\
 	".\..\HTBrowse.h"\
-	".\..\..\..\Library\Implementation\WWWUtil.h"\
-	".\..\..\..\Library\Implementation\tcp.h"\
+	".\..\..\..\Library\src\WWWUtil.h"\
+	".\..\..\..\Library\src\tcp.h"\
 	
 
 "$(INTDIR)\www.obj" : $(SOURCE) $(DEP_CPP_WWW_C) "$(INTDIR)"
@@ -373,51 +373,51 @@ SOURCE=..\GridStyle.c
 !IF  "$(CFG)" == "www - Win32 Release"
 
 DEP_CPP_GRIDS=\
-	".\..\..\..\Library\Implementation\WWWLib.h"\
-	".\..\..\..\Library\Implementation\HTUtils.h"\
-	".\..\..\..\Library\Implementation\HTStyle.h"\
-	".\..\..\..\Library\Implementation\WWWUtil.h"\
-	".\..\..\..\Library\Implementation\WWWCore.h"\
-	".\..\..\..\Library\Implementation\tcp.h"\
-	".\..\..\..\Library\Implementation\HTArray.h"\
-	".\..\..\..\Library\Implementation\HTAssoc.h"\
-	".\..\..\..\Library\Implementation\HTAtom.h"\
-	".\..\..\..\Library\Implementation\HTChunk.h"\
-	".\..\..\..\Library\Implementation\HTList.h"\
-	".\..\..\..\Library\Implementation\HTMemory.h"\
-	".\..\..\..\Library\Implementation\HTString.h"\
-	".\..\..\..\Library\Implementation\HTUU.h"\
+	".\..\..\..\Library\src\WWWLib.h"\
+	".\..\..\..\Library\src\HTUtils.h"\
+	".\..\..\..\Library\src\HTStyle.h"\
+	".\..\..\..\Library\src\WWWUtil.h"\
+	".\..\..\..\Library\src\WWWCore.h"\
+	".\..\..\..\Library\src\tcp.h"\
+	".\..\..\..\Library\src\HTArray.h"\
+	".\..\..\..\Library\src\HTAssoc.h"\
+	".\..\..\..\Library\src\HTAtom.h"\
+	".\..\..\..\Library\src\HTChunk.h"\
+	".\..\..\..\Library\src\HTList.h"\
+	".\..\..\..\Library\src\HTMemory.h"\
+	".\..\..\..\Library\src\HTString.h"\
+	".\..\..\..\Library\src\HTUU.h"\
 	{$(INCLUDE)}"\sys\Types.h"\
 	{$(INCLUDE)}"\sys\Stat.h"\
-	".\..\..\..\Library\Implementation\HTAccess.h"\
-	".\..\..\..\Library\Implementation\HTAlert.h"\
-	".\..\..\..\Library\Implementation\HTAnchor.h"\
-	".\..\..\..\Library\Implementation\HTBind.h"\
-	".\..\..\..\Library\Implementation\HTConLen.h"\
-	".\..\..\..\Library\Implementation\HTDNS.h"\
-	".\..\..\..\Library\Implementation\HTError.h"\
-	".\..\..\..\Library\Implementation\HTEscape.h"\
-	".\..\..\..\Library\Implementation\HTEvntrg.h"\
-	".\..\..\..\Library\Implementation\HTFWrite.h"\
-	".\..\..\..\Library\Implementation\HTFormat.h"\
-	".\..\..\..\Library\Implementation\HTMethod.h"\
-	".\..\..\..\Library\Implementation\HTNet.h"\
-	".\..\..\..\Library\Implementation\HTParse.h"\
-	".\..\..\..\Library\Implementation\HTProt.h"\
-	".\..\..\..\Library\Implementation\HTReq.h"\
-	".\..\..\..\Library\Implementation\HTSocket.h"\
-	".\..\..\..\Library\Implementation\HTTCP.h"\
-	".\..\..\..\Library\Implementation\HTTee.h"\
-	".\..\..\..\Library\Implementation\HTWWWStr.h"\
-	".\..\..\..\Library\Implementation\HTWriter.h"\
-	".\..\..\..\Library\Implementation\HTStream.h"\
-	".\..\..\..\Library\Implementation\HTML.h"\
-	".\..\..\..\Library\Implementation\HTMLPDTD.h"\
-	".\..\..\..\Library\Implementation\HTStruct.h"\
-	".\..\..\..\Library\Implementation\SGML.h"\
+	".\..\..\..\Library\src\HTAccess.h"\
+	".\..\..\..\Library\src\HTAlert.h"\
+	".\..\..\..\Library\src\HTAnchor.h"\
+	".\..\..\..\Library\src\HTBind.h"\
+	".\..\..\..\Library\src\HTConLen.h"\
+	".\..\..\..\Library\src\HTDNS.h"\
+	".\..\..\..\Library\src\HTError.h"\
+	".\..\..\..\Library\src\HTEscape.h"\
+	".\..\..\..\Library\src\HTEvntrg.h"\
+	".\..\..\..\Library\src\HTFWrite.h"\
+	".\..\..\..\Library\src\HTFormat.h"\
+	".\..\..\..\Library\src\HTMethod.h"\
+	".\..\..\..\Library\src\HTNet.h"\
+	".\..\..\..\Library\src\HTParse.h"\
+	".\..\..\..\Library\src\HTProt.h"\
+	".\..\..\..\Library\src\HTReq.h"\
+	".\..\..\..\Library\src\HTSocket.h"\
+	".\..\..\..\Library\src\HTTCP.h"\
+	".\..\..\..\Library\src\HTTee.h"\
+	".\..\..\..\Library\src\HTWWWStr.h"\
+	".\..\..\..\Library\src\HTWriter.h"\
+	".\..\..\..\Library\src\HTStream.h"\
+	".\..\..\..\Library\src\HTML.h"\
+	".\..\..\..\Library\src\HTMLPDTD.h"\
+	".\..\..\..\Library\src\HTStruct.h"\
+	".\..\..\..\Library\src\SGML.h"\
 	
 NODEP_CPP_GRIDS=\
-	".\..\..\..\Library\Implementation\HTVMSUtils.h"\
+	".\..\..\..\Library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\GridStyle.obj" : $(SOURCE) $(DEP_CPP_GRIDS) "$(INTDIR)"
@@ -427,26 +427,26 @@ NODEP_CPP_GRIDS=\
 !ELSEIF  "$(CFG)" == "www - Win32 Debug"
 
 DEP_CPP_GRIDS=\
-	".\..\..\..\Library\Implementation\WWWLib.h"\
-	".\..\..\..\Library\Implementation\HTUtils.h"\
-	".\..\..\..\Library\Implementation\HTStyle.h"\
-	".\..\..\..\Library\Implementation\WWWUtil.h"\
-	".\..\..\..\Library\Implementation\tcp.h"\
-	".\..\..\..\Library\Implementation\HTMemory.h"\
-	".\..\..\..\Library\Implementation\HTFormat.h"\
-	".\..\..\..\Library\Implementation\HTAnchor.h"\
-	".\..\..\..\Library\Implementation\HTML.h"\
-	".\..\..\..\Library\Implementation\HTStream.h"\
-	".\..\..\..\Library\Implementation\HTAtom.h"\
-	".\..\..\..\Library\Implementation\HTList.h"\
-	".\..\..\..\Library\Implementation\HTReq.h"\
-	".\..\..\..\Library\Implementation\HTEvntrg.h"\
-	".\..\..\..\Library\Implementation\HTError.h"\
-	".\..\..\..\Library\Implementation\HTNet.h"\
-	".\..\..\..\Library\Implementation\HTMethod.h"\
-	".\..\..\..\Library\Implementation\HTMLPDTD.h"\
-	".\..\..\..\Library\Implementation\HTStruct.h"\
-	".\..\..\..\Library\Implementation\SGML.h"\
+	".\..\..\..\Library\src\WWWLib.h"\
+	".\..\..\..\Library\src\HTUtils.h"\
+	".\..\..\..\Library\src\HTStyle.h"\
+	".\..\..\..\Library\src\WWWUtil.h"\
+	".\..\..\..\Library\src\tcp.h"\
+	".\..\..\..\Library\src\HTMemory.h"\
+	".\..\..\..\Library\src\HTFormat.h"\
+	".\..\..\..\Library\src\HTAnchor.h"\
+	".\..\..\..\Library\src\HTML.h"\
+	".\..\..\..\Library\src\HTStream.h"\
+	".\..\..\..\Library\src\HTAtom.h"\
+	".\..\..\..\Library\src\HTList.h"\
+	".\..\..\..\Library\src\HTReq.h"\
+	".\..\..\..\Library\src\HTEvntrg.h"\
+	".\..\..\..\Library\src\HTError.h"\
+	".\..\..\..\Library\src\HTNet.h"\
+	".\..\..\..\Library\src\HTMethod.h"\
+	".\..\..\..\Library\src\HTMLPDTD.h"\
+	".\..\..\..\Library\src\HTStruct.h"\
+	".\..\..\..\Library\src\SGML.h"\
 	
 
 "$(INTDIR)\GridStyle.obj" : $(SOURCE) $(DEP_CPP_GRIDS) "$(INTDIR)"
@@ -464,61 +464,61 @@ SOURCE=..\GridText.c
 !IF  "$(CFG)" == "www - Win32 Release"
 
 DEP_CPP_GRIDT=\
-	".\..\..\..\Library\Implementation\WWWLib.h"\
-	".\..\..\..\Library\Implementation\WWWCache.h"\
-	".\..\..\..\Library\Implementation\WWWRules.h"\
+	".\..\..\..\Library\src\WWWLib.h"\
+	".\..\..\..\Library\src\WWWCache.h"\
+	".\..\..\..\Library\src\WWWRules.h"\
 	".\..\HTBrowse.h"\
 	".\..\HTFont.h"\
 	".\..\GridStyle.h"\
 	".\..\GridText.h"\
-	".\..\..\..\Library\Implementation\HTReqMan.h"\
+	".\..\..\..\Library\src\HTReqMan.h"\
 	".\..\a_stdio.h"\
-	".\..\..\..\Library\Implementation\WWWUtil.h"\
-	".\..\..\..\Library\Implementation\WWWCore.h"\
-	".\..\..\..\Library\Implementation\tcp.h"\
-	".\..\..\..\Library\Implementation\HTUtils.h"\
-	".\..\..\..\Library\Implementation\HTArray.h"\
-	".\..\..\..\Library\Implementation\HTAssoc.h"\
-	".\..\..\..\Library\Implementation\HTAtom.h"\
-	".\..\..\..\Library\Implementation\HTChunk.h"\
-	".\..\..\..\Library\Implementation\HTList.h"\
-	".\..\..\..\Library\Implementation\HTMemory.h"\
-	".\..\..\..\Library\Implementation\HTString.h"\
-	".\..\..\..\Library\Implementation\HTUU.h"\
+	".\..\..\..\Library\src\WWWUtil.h"\
+	".\..\..\..\Library\src\WWWCore.h"\
+	".\..\..\..\Library\src\tcp.h"\
+	".\..\..\..\Library\src\HTUtils.h"\
+	".\..\..\..\Library\src\HTArray.h"\
+	".\..\..\..\Library\src\HTAssoc.h"\
+	".\..\..\..\Library\src\HTAtom.h"\
+	".\..\..\..\Library\src\HTChunk.h"\
+	".\..\..\..\Library\src\HTList.h"\
+	".\..\..\..\Library\src\HTMemory.h"\
+	".\..\..\..\Library\src\HTString.h"\
+	".\..\..\..\Library\src\HTUU.h"\
 	{$(INCLUDE)}"\sys\Types.h"\
 	{$(INCLUDE)}"\sys\Stat.h"\
-	".\..\..\..\Library\Implementation\HTAccess.h"\
-	".\..\..\..\Library\Implementation\HTAlert.h"\
-	".\..\..\..\Library\Implementation\HTAnchor.h"\
-	".\..\..\..\Library\Implementation\HTBind.h"\
-	".\..\..\..\Library\Implementation\HTConLen.h"\
-	".\..\..\..\Library\Implementation\HTDNS.h"\
-	".\..\..\..\Library\Implementation\HTError.h"\
-	".\..\..\..\Library\Implementation\HTEscape.h"\
-	".\..\..\..\Library\Implementation\HTEvntrg.h"\
-	".\..\..\..\Library\Implementation\HTFWrite.h"\
-	".\..\..\..\Library\Implementation\HTFormat.h"\
-	".\..\..\..\Library\Implementation\HTMethod.h"\
-	".\..\..\..\Library\Implementation\HTNet.h"\
-	".\..\..\..\Library\Implementation\HTParse.h"\
-	".\..\..\..\Library\Implementation\HTProt.h"\
-	".\..\..\..\Library\Implementation\HTReq.h"\
-	".\..\..\..\Library\Implementation\HTSocket.h"\
-	".\..\..\..\Library\Implementation\HTTCP.h"\
-	".\..\..\..\Library\Implementation\HTTee.h"\
-	".\..\..\..\Library\Implementation\HTWWWStr.h"\
-	".\..\..\..\Library\Implementation\HTWriter.h"\
-	".\..\..\..\Library\Implementation\HTStream.h"\
-	".\..\..\..\Library\Implementation\HText.h"\
-	".\..\..\..\Library\Implementation\HTStyle.h"\
-	".\..\..\..\Library\Implementation\HTStruct.h"\
-	".\..\..\..\Library\Implementation\HTML.h"\
-	".\..\..\..\Library\Implementation\HTMLPDTD.h"\
-	".\..\..\..\Library\Implementation\SGML.h"\
-	".\..\..\..\Library\Implementation\HTAABrow.h"\
+	".\..\..\..\Library\src\HTAccess.h"\
+	".\..\..\..\Library\src\HTAlert.h"\
+	".\..\..\..\Library\src\HTAnchor.h"\
+	".\..\..\..\Library\src\HTBind.h"\
+	".\..\..\..\Library\src\HTConLen.h"\
+	".\..\..\..\Library\src\HTDNS.h"\
+	".\..\..\..\Library\src\HTError.h"\
+	".\..\..\..\Library\src\HTEscape.h"\
+	".\..\..\..\Library\src\HTEvntrg.h"\
+	".\..\..\..\Library\src\HTFWrite.h"\
+	".\..\..\..\Library\src\HTFormat.h"\
+	".\..\..\..\Library\src\HTMethod.h"\
+	".\..\..\..\Library\src\HTNet.h"\
+	".\..\..\..\Library\src\HTParse.h"\
+	".\..\..\..\Library\src\HTProt.h"\
+	".\..\..\..\Library\src\HTReq.h"\
+	".\..\..\..\Library\src\HTSocket.h"\
+	".\..\..\..\Library\src\HTTCP.h"\
+	".\..\..\..\Library\src\HTTee.h"\
+	".\..\..\..\Library\src\HTWWWStr.h"\
+	".\..\..\..\Library\src\HTWriter.h"\
+	".\..\..\..\Library\src\HTStream.h"\
+	".\..\..\..\Library\src\HText.h"\
+	".\..\..\..\Library\src\HTStyle.h"\
+	".\..\..\..\Library\src\HTStruct.h"\
+	".\..\..\..\Library\src\HTML.h"\
+	".\..\..\..\Library\src\HTMLPDTD.h"\
+	".\..\..\..\Library\src\SGML.h"\
+	".\..\..\..\Library\src\HTAABrow.h"\
 	
 NODEP_CPP_GRIDT=\
-	".\..\..\..\Library\Implementation\HTVMSUtils.h"\
+	".\..\..\..\Library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\GridText.obj" : $(SOURCE) $(DEP_CPP_GRIDT) "$(INTDIR)"
@@ -528,37 +528,37 @@ NODEP_CPP_GRIDT=\
 !ELSEIF  "$(CFG)" == "www - Win32 Debug"
 
 DEP_CPP_GRIDT=\
-	".\..\..\..\Library\Implementation\WWWLib.h"\
-	".\..\..\..\Library\Implementation\WWWCache.h"\
-	".\..\..\..\Library\Implementation\WWWRules.h"\
+	".\..\..\..\Library\src\WWWLib.h"\
+	".\..\..\..\Library\src\WWWCache.h"\
+	".\..\..\..\Library\src\WWWRules.h"\
 	".\..\HTBrowse.h"\
 	".\..\HTFont.h"\
 	".\..\GridStyle.h"\
 	".\..\GridText.h"\
-	".\..\..\..\Library\Implementation\HTReqMan.h"\
+	".\..\..\..\Library\src\HTReqMan.h"\
 	".\..\a_stdio.h"\
-	".\..\..\..\Library\Implementation\WWWUtil.h"\
-	".\..\..\..\Library\Implementation\tcp.h"\
-	".\..\..\..\Library\Implementation\HText.h"\
-	".\..\..\..\Library\Implementation\HTAnchor.h"\
-	".\..\..\..\Library\Implementation\HTStyle.h"\
-	".\..\..\..\Library\Implementation\HTStruct.h"\
-	".\..\..\..\Library\Implementation\HTList.h"\
-	".\..\..\..\Library\Implementation\HTAtom.h"\
-	".\..\..\..\Library\Implementation\HTMethod.h"\
-	".\..\..\..\Library\Implementation\HTFormat.h"\
-	".\..\..\..\Library\Implementation\HTML.h"\
-	".\..\..\..\Library\Implementation\HTUtils.h"\
-	".\..\..\..\Library\Implementation\HTStream.h"\
-	".\..\..\..\Library\Implementation\HTReq.h"\
-	".\..\..\..\Library\Implementation\HTMemory.h"\
-	".\..\..\..\Library\Implementation\HTEvntrg.h"\
-	".\..\..\..\Library\Implementation\HTError.h"\
-	".\..\..\..\Library\Implementation\HTNet.h"\
-	".\..\..\..\Library\Implementation\HTMLPDTD.h"\
-	".\..\..\..\Library\Implementation\SGML.h"\
-	".\..\..\..\Library\Implementation\HTAABrow.h"\
-	".\..\..\..\Library\Implementation\HTSocket.h"\
+	".\..\..\..\Library\src\WWWUtil.h"\
+	".\..\..\..\Library\src\tcp.h"\
+	".\..\..\..\Library\src\HText.h"\
+	".\..\..\..\Library\src\HTAnchor.h"\
+	".\..\..\..\Library\src\HTStyle.h"\
+	".\..\..\..\Library\src\HTStruct.h"\
+	".\..\..\..\Library\src\HTList.h"\
+	".\..\..\..\Library\src\HTAtom.h"\
+	".\..\..\..\Library\src\HTMethod.h"\
+	".\..\..\..\Library\src\HTFormat.h"\
+	".\..\..\..\Library\src\HTML.h"\
+	".\..\..\..\Library\src\HTUtils.h"\
+	".\..\..\..\Library\src\HTStream.h"\
+	".\..\..\..\Library\src\HTReq.h"\
+	".\..\..\..\Library\src\HTMemory.h"\
+	".\..\..\..\Library\src\HTEvntrg.h"\
+	".\..\..\..\Library\src\HTError.h"\
+	".\..\..\..\Library\src\HTNet.h"\
+	".\..\..\..\Library\src\HTMLPDTD.h"\
+	".\..\..\..\Library\src\SGML.h"\
+	".\..\..\..\Library\src\HTAABrow.h"\
+	".\..\..\..\Library\src\HTSocket.h"\
 	
 
 "$(INTDIR)\GridText.obj" : $(SOURCE) $(DEP_CPP_GRIDT) "$(INTDIR)"
@@ -576,93 +576,93 @@ SOURCE=..\HTBrowse.c
 !IF  "$(CFG)" == "www - Win32 Release"
 
 DEP_CPP_HTBRO=\
-	".\..\..\..\Library\Implementation\WWWLib.h"\
-	".\..\..\..\Library\Implementation\WWWMIME.h"\
-	".\..\..\..\Library\Implementation\WWWRules.h"\
-	".\..\..\..\Library\Implementation\WWWCache.h"\
-	".\..\..\..\Library\Implementation\WWWApp.h"\
-	".\..\..\..\Library\Implementation\WWWInit.h"\
+	".\..\..\..\Library\src\WWWLib.h"\
+	".\..\..\..\Library\src\WWWMIME.h"\
+	".\..\..\..\Library\src\WWWRules.h"\
+	".\..\..\..\Library\src\WWWCache.h"\
+	".\..\..\..\Library\src\WWWApp.h"\
+	".\..\..\..\Library\src\WWWInit.h"\
 	".\..\GridText.h"\
 	".\..\HTBrowse.h"\
 	".\..\a_stdio.h"\
-	".\..\..\..\Library\Implementation\WWWUtil.h"\
-	".\..\..\..\Library\Implementation\WWWCore.h"\
-	".\..\..\..\Library\Implementation\tcp.h"\
-	".\..\..\..\Library\Implementation\HTUtils.h"\
-	".\..\..\..\Library\Implementation\HTArray.h"\
-	".\..\..\..\Library\Implementation\HTAssoc.h"\
-	".\..\..\..\Library\Implementation\HTAtom.h"\
-	".\..\..\..\Library\Implementation\HTChunk.h"\
-	".\..\..\..\Library\Implementation\HTList.h"\
-	".\..\..\..\Library\Implementation\HTMemory.h"\
-	".\..\..\..\Library\Implementation\HTString.h"\
-	".\..\..\..\Library\Implementation\HTUU.h"\
+	".\..\..\..\Library\src\WWWUtil.h"\
+	".\..\..\..\Library\src\WWWCore.h"\
+	".\..\..\..\Library\src\tcp.h"\
+	".\..\..\..\Library\src\HTUtils.h"\
+	".\..\..\..\Library\src\HTArray.h"\
+	".\..\..\..\Library\src\HTAssoc.h"\
+	".\..\..\..\Library\src\HTAtom.h"\
+	".\..\..\..\Library\src\HTChunk.h"\
+	".\..\..\..\Library\src\HTList.h"\
+	".\..\..\..\Library\src\HTMemory.h"\
+	".\..\..\..\Library\src\HTString.h"\
+	".\..\..\..\Library\src\HTUU.h"\
 	{$(INCLUDE)}"\sys\Types.h"\
 	{$(INCLUDE)}"\sys\Stat.h"\
-	".\..\..\..\Library\Implementation\HTAccess.h"\
-	".\..\..\..\Library\Implementation\HTAlert.h"\
-	".\..\..\..\Library\Implementation\HTAnchor.h"\
-	".\..\..\..\Library\Implementation\HTBind.h"\
-	".\..\..\..\Library\Implementation\HTConLen.h"\
-	".\..\..\..\Library\Implementation\HTDNS.h"\
-	".\..\..\..\Library\Implementation\HTError.h"\
-	".\..\..\..\Library\Implementation\HTEscape.h"\
-	".\..\..\..\Library\Implementation\HTEvntrg.h"\
-	".\..\..\..\Library\Implementation\HTFWrite.h"\
-	".\..\..\..\Library\Implementation\HTFormat.h"\
-	".\..\..\..\Library\Implementation\HTMethod.h"\
-	".\..\..\..\Library\Implementation\HTNet.h"\
-	".\..\..\..\Library\Implementation\HTParse.h"\
-	".\..\..\..\Library\Implementation\HTProt.h"\
-	".\..\..\..\Library\Implementation\HTReq.h"\
-	".\..\..\..\Library\Implementation\HTSocket.h"\
-	".\..\..\..\Library\Implementation\HTTCP.h"\
-	".\..\..\..\Library\Implementation\HTTee.h"\
-	".\..\..\..\Library\Implementation\HTWWWStr.h"\
-	".\..\..\..\Library\Implementation\HTWriter.h"\
-	".\..\..\..\Library\Implementation\HTStream.h"\
-	".\..\..\..\Library\Implementation\HTMIME.h"\
-	".\..\..\..\Library\Implementation\HTMIMERq.h"\
-	".\..\..\..\Library\Implementation\HTBound.h"\
-	".\..\..\..\Library\Implementation\HTMulpar.h"\
-	".\..\..\..\Library\Implementation\HTHeader.h"\
-	".\..\..\..\Library\Implementation\HTHome.h"\
-	".\..\..\..\Library\Implementation\HTDialog.h"\
-	".\..\..\..\Library\Implementation\HTLog.h"\
-	".\..\..\..\Library\Implementation\HTHist.h"\
-	".\..\..\..\Library\Implementation\HTInit.h"\
-	".\..\..\..\Library\Implementation\HTBInit.h"\
-	".\..\..\..\Library\Implementation\HTML.h"\
-	".\..\..\..\Library\Implementation\HTPlain.h"\
-	".\..\..\..\Library\Implementation\HTTeXGen.h"\
-	".\..\..\..\Library\Implementation\HTMLGen.h"\
-	".\..\..\..\Library\Implementation\HTGuess.h"\
-	".\..\..\..\Library\Implementation\HTRules.h"\
-	".\..\..\..\Library\Implementation\HTWSRC.h"\
-	".\..\..\..\Library\Implementation\HTNewsLs.h"\
-	".\..\..\..\Library\Implementation\HTIcons.h"\
-	".\..\..\..\Library\Implementation\WWWHTTP.h"\
-	".\..\..\..\Library\Implementation\HTFile.h"\
-	".\..\..\..\Library\Implementation\HTFTP.h"\
-	".\..\..\..\Library\Implementation\HTGopher.h"\
-	".\..\..\..\Library\Implementation\HTTelnet.h"\
-	".\..\..\..\Library\Implementation\HTNews.h"\
-	".\..\..\..\Library\Implementation\HTWAIS.h"\
-	".\..\..\..\Library\Implementation\HTMLPDTD.h"\
-	".\..\..\..\Library\Implementation\HTStruct.h"\
-	".\..\..\..\Library\Implementation\SGML.h"\
-	".\..\..\..\Library\Implementation\HTTPUtil.h"\
-	".\..\..\..\Library\Implementation\HTTP.h"\
-	".\..\..\..\Library\Implementation\HTTPServ.h"\
-	".\..\..\..\Library\Implementation\HTTPGen.h"\
-	".\..\..\..\Library\Implementation\HTTPReq.h"\
-	".\..\..\..\Library\Implementation\HTTPRes.h"\
-	".\..\..\..\Library\Implementation\HTAAUtil.h"\
-	".\..\..\..\Library\Implementation\HTAABrow.h"\
+	".\..\..\..\Library\src\HTAccess.h"\
+	".\..\..\..\Library\src\HTAlert.h"\
+	".\..\..\..\Library\src\HTAnchor.h"\
+	".\..\..\..\Library\src\HTBind.h"\
+	".\..\..\..\Library\src\HTConLen.h"\
+	".\..\..\..\Library\src\HTDNS.h"\
+	".\..\..\..\Library\src\HTError.h"\
+	".\..\..\..\Library\src\HTEscape.h"\
+	".\..\..\..\Library\src\HTEvntrg.h"\
+	".\..\..\..\Library\src\HTFWrite.h"\
+	".\..\..\..\Library\src\HTFormat.h"\
+	".\..\..\..\Library\src\HTMethod.h"\
+	".\..\..\..\Library\src\HTNet.h"\
+	".\..\..\..\Library\src\HTParse.h"\
+	".\..\..\..\Library\src\HTProt.h"\
+	".\..\..\..\Library\src\HTReq.h"\
+	".\..\..\..\Library\src\HTSocket.h"\
+	".\..\..\..\Library\src\HTTCP.h"\
+	".\..\..\..\Library\src\HTTee.h"\
+	".\..\..\..\Library\src\HTWWWStr.h"\
+	".\..\..\..\Library\src\HTWriter.h"\
+	".\..\..\..\Library\src\HTStream.h"\
+	".\..\..\..\Library\src\HTMIME.h"\
+	".\..\..\..\Library\src\HTMIMERq.h"\
+	".\..\..\..\Library\src\HTBound.h"\
+	".\..\..\..\Library\src\HTMulpar.h"\
+	".\..\..\..\Library\src\HTHeader.h"\
+	".\..\..\..\Library\src\HTHome.h"\
+	".\..\..\..\Library\src\HTDialog.h"\
+	".\..\..\..\Library\src\HTLog.h"\
+	".\..\..\..\Library\src\HTHist.h"\
+	".\..\..\..\Library\src\HTInit.h"\
+	".\..\..\..\Library\src\HTBInit.h"\
+	".\..\..\..\Library\src\HTML.h"\
+	".\..\..\..\Library\src\HTPlain.h"\
+	".\..\..\..\Library\src\HTTeXGen.h"\
+	".\..\..\..\Library\src\HTMLGen.h"\
+	".\..\..\..\Library\src\HTGuess.h"\
+	".\..\..\..\Library\src\HTRules.h"\
+	".\..\..\..\Library\src\HTWSRC.h"\
+	".\..\..\..\Library\src\HTNewsLs.h"\
+	".\..\..\..\Library\src\HTIcons.h"\
+	".\..\..\..\Library\src\WWWHTTP.h"\
+	".\..\..\..\Library\src\HTFile.h"\
+	".\..\..\..\Library\src\HTFTP.h"\
+	".\..\..\..\Library\src\HTGopher.h"\
+	".\..\..\..\Library\src\HTTelnet.h"\
+	".\..\..\..\Library\src\HTNews.h"\
+	".\..\..\..\Library\src\HTWAIS.h"\
+	".\..\..\..\Library\src\HTMLPDTD.h"\
+	".\..\..\..\Library\src\HTStruct.h"\
+	".\..\..\..\Library\src\SGML.h"\
+	".\..\..\..\Library\src\HTTPUtil.h"\
+	".\..\..\..\Library\src\HTTP.h"\
+	".\..\..\..\Library\src\HTTPServ.h"\
+	".\..\..\..\Library\src\HTTPGen.h"\
+	".\..\..\..\Library\src\HTTPReq.h"\
+	".\..\..\..\Library\src\HTTPRes.h"\
+	".\..\..\..\Library\src\HTAAUtil.h"\
+	".\..\..\..\Library\src\HTAABrow.h"\
 	
 NODEP_CPP_HTBRO=\
 	".\..\CSLApp.h"\
-	".\..\..\..\Library\Implementation\HTVMSUtils.h"\
+	".\..\..\..\Library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\HTBrowse.obj" : $(SOURCE) $(DEP_CPP_HTBRO) "$(INTDIR)"
@@ -672,68 +672,68 @@ NODEP_CPP_HTBRO=\
 !ELSEIF  "$(CFG)" == "www - Win32 Debug"
 
 DEP_CPP_HTBRO=\
-	".\..\..\..\Library\Implementation\WWWLib.h"\
-	".\..\..\..\Library\Implementation\WWWMIME.h"\
-	".\..\..\..\Library\Implementation\WWWRules.h"\
-	".\..\..\..\Library\Implementation\WWWCache.h"\
-	".\..\..\..\Library\Implementation\WWWApp.h"\
-	".\..\..\..\Library\Implementation\WWWInit.h"\
+	".\..\..\..\Library\src\WWWLib.h"\
+	".\..\..\..\Library\src\WWWMIME.h"\
+	".\..\..\..\Library\src\WWWRules.h"\
+	".\..\..\..\Library\src\WWWCache.h"\
+	".\..\..\..\Library\src\WWWApp.h"\
+	".\..\..\..\Library\src\WWWInit.h"\
 	".\..\GridText.h"\
 	".\..\HTBrowse.h"\
 	".\..\a_stdio.h"\
-	".\..\..\..\Library\Implementation\WWWUtil.h"\
-	".\..\..\..\Library\Implementation\tcp.h"\
-	".\..\..\..\Library\Implementation\HTMIME.h"\
-	".\..\..\..\Library\Implementation\HTMIMERq.h"\
-	".\..\..\..\Library\Implementation\HTBound.h"\
-	".\..\..\..\Library\Implementation\HTMulpar.h"\
-	".\..\..\..\Library\Implementation\HTHeader.h"\
-	".\..\..\..\Library\Implementation\HTStream.h"\
-	".\..\..\..\Library\Implementation\HTFormat.h"\
-	".\..\..\..\Library\Implementation\HTUtils.h"\
-	".\..\..\..\Library\Implementation\HTAtom.h"\
-	".\..\..\..\Library\Implementation\HTList.h"\
-	".\..\..\..\Library\Implementation\HTAnchor.h"\
-	".\..\..\..\Library\Implementation\HTReq.h"\
-	".\..\..\..\Library\Implementation\HTMemory.h"\
-	".\..\..\..\Library\Implementation\HTMethod.h"\
-	".\..\..\..\Library\Implementation\HTEvntrg.h"\
-	".\..\..\..\Library\Implementation\HTError.h"\
-	".\..\..\..\Library\Implementation\HTNet.h"\
-	".\..\..\..\Library\Implementation\HTHome.h"\
-	".\..\..\..\Library\Implementation\HTDialog.h"\
-	".\..\..\..\Library\Implementation\HTLog.h"\
-	".\..\..\..\Library\Implementation\HTHist.h"\
-	".\..\..\..\Library\Implementation\HTInit.h"\
-	".\..\..\..\Library\Implementation\HTBInit.h"\
-	".\..\..\..\Library\Implementation\HTML.h"\
-	".\..\..\..\Library\Implementation\HTPlain.h"\
-	".\..\..\..\Library\Implementation\HTTeXGen.h"\
-	".\..\..\..\Library\Implementation\HTMLGen.h"\
-	".\..\..\..\Library\Implementation\HTGuess.h"\
-	".\..\..\..\Library\Implementation\HTRules.h"\
-	".\..\..\..\Library\Implementation\HTWSRC.h"\
-	".\..\..\..\Library\Implementation\HTFWrite.h"\
-	".\..\..\..\Library\Implementation\HTNewsLs.h"\
-	".\..\..\..\Library\Implementation\HTIcons.h"\
-	".\..\..\..\Library\Implementation\WWWHTTP.h"\
-	".\..\..\..\Library\Implementation\HTFile.h"\
-	".\..\..\..\Library\Implementation\HTFTP.h"\
-	".\..\..\..\Library\Implementation\HTGopher.h"\
-	".\..\..\..\Library\Implementation\HTTelnet.h"\
-	".\..\..\..\Library\Implementation\HTNews.h"\
-	".\..\..\..\Library\Implementation\HTWAIS.h"\
-	".\..\..\..\Library\Implementation\HTMLPDTD.h"\
-	".\..\..\..\Library\Implementation\HTStruct.h"\
-	".\..\..\..\Library\Implementation\SGML.h"\
-	".\..\..\..\Library\Implementation\HTTPUtil.h"\
-	".\..\..\..\Library\Implementation\HTTP.h"\
-	".\..\..\..\Library\Implementation\HTTPServ.h"\
-	".\..\..\..\Library\Implementation\HTTPGen.h"\
-	".\..\..\..\Library\Implementation\HTTPReq.h"\
-	".\..\..\..\Library\Implementation\HTTPRes.h"\
-	".\..\..\..\Library\Implementation\HTAAUtil.h"\
-	".\..\..\..\Library\Implementation\HTAABrow.h"\
+	".\..\..\..\Library\src\WWWUtil.h"\
+	".\..\..\..\Library\src\tcp.h"\
+	".\..\..\..\Library\src\HTMIME.h"\
+	".\..\..\..\Library\src\HTMIMERq.h"\
+	".\..\..\..\Library\src\HTBound.h"\
+	".\..\..\..\Library\src\HTMulpar.h"\
+	".\..\..\..\Library\src\HTHeader.h"\
+	".\..\..\..\Library\src\HTStream.h"\
+	".\..\..\..\Library\src\HTFormat.h"\
+	".\..\..\..\Library\src\HTUtils.h"\
+	".\..\..\..\Library\src\HTAtom.h"\
+	".\..\..\..\Library\src\HTList.h"\
+	".\..\..\..\Library\src\HTAnchor.h"\
+	".\..\..\..\Library\src\HTReq.h"\
+	".\..\..\..\Library\src\HTMemory.h"\
+	".\..\..\..\Library\src\HTMethod.h"\
+	".\..\..\..\Library\src\HTEvntrg.h"\
+	".\..\..\..\Library\src\HTError.h"\
+	".\..\..\..\Library\src\HTNet.h"\
+	".\..\..\..\Library\src\HTHome.h"\
+	".\..\..\..\Library\src\HTDialog.h"\
+	".\..\..\..\Library\src\HTLog.h"\
+	".\..\..\..\Library\src\HTHist.h"\
+	".\..\..\..\Library\src\HTInit.h"\
+	".\..\..\..\Library\src\HTBInit.h"\
+	".\..\..\..\Library\src\HTML.h"\
+	".\..\..\..\Library\src\HTPlain.h"\
+	".\..\..\..\Library\src\HTTeXGen.h"\
+	".\..\..\..\Library\src\HTMLGen.h"\
+	".\..\..\..\Library\src\HTGuess.h"\
+	".\..\..\..\Library\src\HTRules.h"\
+	".\..\..\..\Library\src\HTWSRC.h"\
+	".\..\..\..\Library\src\HTFWrite.h"\
+	".\..\..\..\Library\src\HTNewsLs.h"\
+	".\..\..\..\Library\src\HTIcons.h"\
+	".\..\..\..\Library\src\WWWHTTP.h"\
+	".\..\..\..\Library\src\HTFile.h"\
+	".\..\..\..\Library\src\HTFTP.h"\
+	".\..\..\..\Library\src\HTGopher.h"\
+	".\..\..\..\Library\src\HTTelnet.h"\
+	".\..\..\..\Library\src\HTNews.h"\
+	".\..\..\..\Library\src\HTWAIS.h"\
+	".\..\..\..\Library\src\HTMLPDTD.h"\
+	".\..\..\..\Library\src\HTStruct.h"\
+	".\..\..\..\Library\src\SGML.h"\
+	".\..\..\..\Library\src\HTTPUtil.h"\
+	".\..\..\..\Library\src\HTTP.h"\
+	".\..\..\..\Library\src\HTTPServ.h"\
+	".\..\..\..\Library\src\HTTPGen.h"\
+	".\..\..\..\Library\src\HTTPReq.h"\
+	".\..\..\..\Library\src\HTTPRes.h"\
+	".\..\..\..\Library\src\HTAAUtil.h"\
+	".\..\..\..\Library\src\HTAABrow.h"\
 	
 NODEP_CPP_HTBRO=\
 	".\..\CSLApp.h"\
@@ -754,54 +754,54 @@ SOURCE=..\DefaultStyles.c
 !IF  "$(CFG)" == "www - Win32 Release"
 
 DEP_CPP_DEFAU=\
-	".\..\..\..\Library\Implementation\WWWLib.h"\
+	".\..\..\..\Library\src\WWWLib.h"\
 	".\..\GridStyle.h"\
 	".\..\HTFont.h"\
-	".\..\..\..\Library\Implementation\WWWUtil.h"\
-	".\..\..\..\Library\Implementation\WWWCore.h"\
-	".\..\..\..\Library\Implementation\tcp.h"\
-	".\..\..\..\Library\Implementation\HTUtils.h"\
-	".\..\..\..\Library\Implementation\HTArray.h"\
-	".\..\..\..\Library\Implementation\HTAssoc.h"\
-	".\..\..\..\Library\Implementation\HTAtom.h"\
-	".\..\..\..\Library\Implementation\HTChunk.h"\
-	".\..\..\..\Library\Implementation\HTList.h"\
-	".\..\..\..\Library\Implementation\HTMemory.h"\
-	".\..\..\..\Library\Implementation\HTString.h"\
-	".\..\..\..\Library\Implementation\HTUU.h"\
+	".\..\..\..\Library\src\WWWUtil.h"\
+	".\..\..\..\Library\src\WWWCore.h"\
+	".\..\..\..\Library\src\tcp.h"\
+	".\..\..\..\Library\src\HTUtils.h"\
+	".\..\..\..\Library\src\HTArray.h"\
+	".\..\..\..\Library\src\HTAssoc.h"\
+	".\..\..\..\Library\src\HTAtom.h"\
+	".\..\..\..\Library\src\HTChunk.h"\
+	".\..\..\..\Library\src\HTList.h"\
+	".\..\..\..\Library\src\HTMemory.h"\
+	".\..\..\..\Library\src\HTString.h"\
+	".\..\..\..\Library\src\HTUU.h"\
 	{$(INCLUDE)}"\sys\Types.h"\
 	{$(INCLUDE)}"\sys\Stat.h"\
-	".\..\..\..\Library\Implementation\HTAccess.h"\
-	".\..\..\..\Library\Implementation\HTAlert.h"\
-	".\..\..\..\Library\Implementation\HTAnchor.h"\
-	".\..\..\..\Library\Implementation\HTBind.h"\
-	".\..\..\..\Library\Implementation\HTConLen.h"\
-	".\..\..\..\Library\Implementation\HTDNS.h"\
-	".\..\..\..\Library\Implementation\HTError.h"\
-	".\..\..\..\Library\Implementation\HTEscape.h"\
-	".\..\..\..\Library\Implementation\HTEvntrg.h"\
-	".\..\..\..\Library\Implementation\HTFWrite.h"\
-	".\..\..\..\Library\Implementation\HTFormat.h"\
-	".\..\..\..\Library\Implementation\HTMethod.h"\
-	".\..\..\..\Library\Implementation\HTNet.h"\
-	".\..\..\..\Library\Implementation\HTParse.h"\
-	".\..\..\..\Library\Implementation\HTProt.h"\
-	".\..\..\..\Library\Implementation\HTReq.h"\
-	".\..\..\..\Library\Implementation\HTSocket.h"\
-	".\..\..\..\Library\Implementation\HTTCP.h"\
-	".\..\..\..\Library\Implementation\HTTee.h"\
-	".\..\..\..\Library\Implementation\HTWWWStr.h"\
-	".\..\..\..\Library\Implementation\HTWriter.h"\
-	".\..\..\..\Library\Implementation\HTStream.h"\
-	".\..\..\..\Library\Implementation\HText.h"\
-	".\..\..\..\Library\Implementation\HTStyle.h"\
-	".\..\..\..\Library\Implementation\HTStruct.h"\
-	".\..\..\..\Library\Implementation\HTML.h"\
-	".\..\..\..\Library\Implementation\HTMLPDTD.h"\
-	".\..\..\..\Library\Implementation\SGML.h"\
+	".\..\..\..\Library\src\HTAccess.h"\
+	".\..\..\..\Library\src\HTAlert.h"\
+	".\..\..\..\Library\src\HTAnchor.h"\
+	".\..\..\..\Library\src\HTBind.h"\
+	".\..\..\..\Library\src\HTConLen.h"\
+	".\..\..\..\Library\src\HTDNS.h"\
+	".\..\..\..\Library\src\HTError.h"\
+	".\..\..\..\Library\src\HTEscape.h"\
+	".\..\..\..\Library\src\HTEvntrg.h"\
+	".\..\..\..\Library\src\HTFWrite.h"\
+	".\..\..\..\Library\src\HTFormat.h"\
+	".\..\..\..\Library\src\HTMethod.h"\
+	".\..\..\..\Library\src\HTNet.h"\
+	".\..\..\..\Library\src\HTParse.h"\
+	".\..\..\..\Library\src\HTProt.h"\
+	".\..\..\..\Library\src\HTReq.h"\
+	".\..\..\..\Library\src\HTSocket.h"\
+	".\..\..\..\Library\src\HTTCP.h"\
+	".\..\..\..\Library\src\HTTee.h"\
+	".\..\..\..\Library\src\HTWWWStr.h"\
+	".\..\..\..\Library\src\HTWriter.h"\
+	".\..\..\..\Library\src\HTStream.h"\
+	".\..\..\..\Library\src\HText.h"\
+	".\..\..\..\Library\src\HTStyle.h"\
+	".\..\..\..\Library\src\HTStruct.h"\
+	".\..\..\..\Library\src\HTML.h"\
+	".\..\..\..\Library\src\HTMLPDTD.h"\
+	".\..\..\..\Library\src\SGML.h"\
 	
 NODEP_CPP_DEFAU=\
-	".\..\..\..\Library\Implementation\HTVMSUtils.h"\
+	".\..\..\..\Library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\DefaultStyles.obj" : $(SOURCE) $(DEP_CPP_DEFAU) "$(INTDIR)"
@@ -811,29 +811,29 @@ NODEP_CPP_DEFAU=\
 !ELSEIF  "$(CFG)" == "www - Win32 Debug"
 
 DEP_CPP_DEFAU=\
-	".\..\..\..\Library\Implementation\WWWLib.h"\
+	".\..\..\..\Library\src\WWWLib.h"\
 	".\..\GridStyle.h"\
 	".\..\HTFont.h"\
-	".\..\..\..\Library\Implementation\WWWUtil.h"\
-	".\..\..\..\Library\Implementation\tcp.h"\
-	".\..\..\..\Library\Implementation\HText.h"\
-	".\..\..\..\Library\Implementation\HTAnchor.h"\
-	".\..\..\..\Library\Implementation\HTStyle.h"\
-	".\..\..\..\Library\Implementation\HTStruct.h"\
-	".\..\..\..\Library\Implementation\HTList.h"\
-	".\..\..\..\Library\Implementation\HTAtom.h"\
-	".\..\..\..\Library\Implementation\HTMethod.h"\
-	".\..\..\..\Library\Implementation\HTFormat.h"\
-	".\..\..\..\Library\Implementation\HTML.h"\
-	".\..\..\..\Library\Implementation\HTUtils.h"\
-	".\..\..\..\Library\Implementation\HTStream.h"\
-	".\..\..\..\Library\Implementation\HTReq.h"\
-	".\..\..\..\Library\Implementation\HTMemory.h"\
-	".\..\..\..\Library\Implementation\HTEvntrg.h"\
-	".\..\..\..\Library\Implementation\HTError.h"\
-	".\..\..\..\Library\Implementation\HTNet.h"\
-	".\..\..\..\Library\Implementation\HTMLPDTD.h"\
-	".\..\..\..\Library\Implementation\SGML.h"\
+	".\..\..\..\Library\src\WWWUtil.h"\
+	".\..\..\..\Library\src\tcp.h"\
+	".\..\..\..\Library\src\HText.h"\
+	".\..\..\..\Library\src\HTAnchor.h"\
+	".\..\..\..\Library\src\HTStyle.h"\
+	".\..\..\..\Library\src\HTStruct.h"\
+	".\..\..\..\Library\src\HTList.h"\
+	".\..\..\..\Library\src\HTAtom.h"\
+	".\..\..\..\Library\src\HTMethod.h"\
+	".\..\..\..\Library\src\HTFormat.h"\
+	".\..\..\..\Library\src\HTML.h"\
+	".\..\..\..\Library\src\HTUtils.h"\
+	".\..\..\..\Library\src\HTStream.h"\
+	".\..\..\..\Library\src\HTReq.h"\
+	".\..\..\..\Library\src\HTMemory.h"\
+	".\..\..\..\Library\src\HTEvntrg.h"\
+	".\..\..\..\Library\src\HTError.h"\
+	".\..\..\..\Library\src\HTNet.h"\
+	".\..\..\..\Library\src\HTMLPDTD.h"\
+	".\..\..\..\Library\src\SGML.h"\
 	
 
 "$(INTDIR)\DefaultStyles.obj" : $(SOURCE) $(DEP_CPP_DEFAU) "$(INTDIR)"
@@ -859,7 +859,7 @@ DEP_RSC_WWW_R=\
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\Implementation\windows\wwwgophe\Debug\wwwgophe.lib
+SOURCE=..\..\..\Library\src\windows\wwwgophe\Debug\wwwgophe.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -871,7 +871,7 @@ SOURCE=..\..\..\Library\Implementation\windows\wwwgophe\Debug\wwwgophe.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\Implementation\windows\wwwdir\Debug\wwwdir.lib
+SOURCE=..\..\..\Library\src\windows\wwwdir\Debug\wwwdir.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -883,7 +883,7 @@ SOURCE=..\..\..\Library\Implementation\windows\wwwdir\Debug\wwwdir.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\Implementation\windows\wwwftp\Debug\wwwftp.lib
+SOURCE=..\..\..\Library\src\windows\wwwftp\Debug\wwwftp.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -895,7 +895,7 @@ SOURCE=..\..\..\Library\Implementation\windows\wwwftp\Debug\wwwftp.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\Implementation\windows\wwwtelnt\Debug\wwwtelnt.lib
+SOURCE=..\..\..\Library\src\windows\wwwtelnt\Debug\wwwtelnt.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -907,7 +907,7 @@ SOURCE=..\..\..\Library\Implementation\windows\wwwtelnt\Debug\wwwtelnt.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\Implementation\windows\wwwmime\Debug\wwwmime.lib
+SOURCE=..\..\..\Library\src\windows\wwwmime\Debug\wwwmime.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -919,7 +919,7 @@ SOURCE=..\..\..\Library\Implementation\windows\wwwmime\Debug\wwwmime.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\Implementation\windows\wwwhttp\Debug\wwwhttp.lib
+SOURCE=..\..\..\Library\src\windows\wwwhttp\Debug\wwwhttp.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -931,7 +931,7 @@ SOURCE=..\..\..\Library\Implementation\windows\wwwhttp\Debug\wwwhttp.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\Implementation\windows\wwwutils\Debug\wwwutils.lib
+SOURCE=..\..\..\Library\src\windows\wwwutils\Debug\wwwutils.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -943,7 +943,7 @@ SOURCE=..\..\..\Library\Implementation\windows\wwwutils\Debug\wwwutils.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\Implementation\windows\wwwnews\Debug\wwwnews.lib
+SOURCE=..\..\..\Library\src\windows\wwwnews\Debug\wwwnews.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -955,7 +955,7 @@ SOURCE=..\..\..\Library\Implementation\windows\wwwnews\Debug\wwwnews.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\Implementation\windows\wwwcore\Debug\wwwcore.lib
+SOURCE=..\..\..\Library\src\windows\wwwcore\Debug\wwwcore.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -967,7 +967,7 @@ SOURCE=..\..\..\Library\Implementation\windows\wwwcore\Debug\wwwcore.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\Implementation\windows\wwwdll\Debug\wwwdll.lib
+SOURCE=..\..\..\Library\src\windows\wwwdll\Debug\wwwdll.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -979,7 +979,7 @@ SOURCE=..\..\..\Library\Implementation\windows\wwwdll\Debug\wwwdll.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\Implementation\windows\wwwcache\Debug\wwwcache.lib
+SOURCE=..\..\..\Library\src\windows\wwwcache\Debug\wwwcache.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -991,7 +991,7 @@ SOURCE=..\..\..\Library\Implementation\windows\wwwcache\Debug\wwwcache.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\Implementation\windows\wwwrules\Debug\wwwrules.lib
+SOURCE=..\..\..\Library\src\windows\wwwrules\Debug\wwwrules.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -1003,7 +1003,7 @@ SOURCE=..\..\..\Library\Implementation\windows\wwwrules\Debug\wwwrules.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\Implementation\windows\wwwfile\Debug\wwwfile.lib
+SOURCE=..\..\..\Library\src\windows\wwwfile\Debug\wwwfile.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -1015,36 +1015,36 @@ SOURCE=..\..\..\Library\Implementation\windows\wwwfile\Debug\wwwfile.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\Implementation\HTPlain.c
+SOURCE=..\..\..\Library\src\HTPlain.c
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
 DEP_CPP_HTPLA=\
-	".\..\..\..\Library\Implementation\tcp.h"\
-	".\..\..\..\Library\Implementation\HTUtils.h"\
-	".\..\..\..\Library\Implementation\HText.h"\
-	".\..\..\..\Library\Implementation\HTStyle.h"\
-	".\..\..\..\Library\Implementation\HTPlain.h"\
+	".\..\..\..\Library\src\tcp.h"\
+	".\..\..\..\Library\src\HTUtils.h"\
+	".\..\..\..\Library\src\HText.h"\
+	".\..\..\..\Library\src\HTStyle.h"\
+	".\..\..\..\Library\src\HTPlain.h"\
 	{$(INCLUDE)}"\sys\Types.h"\
 	{$(INCLUDE)}"\sys\Stat.h"\
-	".\..\..\..\Library\Implementation\HTMemory.h"\
-	".\..\..\..\Library\Implementation\HTAnchor.h"\
-	".\..\..\..\Library\Implementation\HTStruct.h"\
-	".\..\..\..\Library\Implementation\HTList.h"\
-	".\..\..\..\Library\Implementation\HTAtom.h"\
-	".\..\..\..\Library\Implementation\HTMethod.h"\
-	".\..\..\..\Library\Implementation\HTStream.h"\
-	".\..\..\..\Library\Implementation\HTFormat.h"\
-	".\..\..\..\Library\Implementation\HTML.h"\
-	".\..\..\..\Library\Implementation\HTReq.h"\
-	".\..\..\..\Library\Implementation\HTEvntrg.h"\
-	".\..\..\..\Library\Implementation\HTError.h"\
-	".\..\..\..\Library\Implementation\HTNet.h"\
-	".\..\..\..\Library\Implementation\HTMLPDTD.h"\
-	".\..\..\..\Library\Implementation\SGML.h"\
+	".\..\..\..\Library\src\HTMemory.h"\
+	".\..\..\..\Library\src\HTAnchor.h"\
+	".\..\..\..\Library\src\HTStruct.h"\
+	".\..\..\..\Library\src\HTList.h"\
+	".\..\..\..\Library\src\HTAtom.h"\
+	".\..\..\..\Library\src\HTMethod.h"\
+	".\..\..\..\Library\src\HTStream.h"\
+	".\..\..\..\Library\src\HTFormat.h"\
+	".\..\..\..\Library\src\HTML.h"\
+	".\..\..\..\Library\src\HTReq.h"\
+	".\..\..\..\Library\src\HTEvntrg.h"\
+	".\..\..\..\Library\src\HTError.h"\
+	".\..\..\..\Library\src\HTNet.h"\
+	".\..\..\..\Library\src\HTMLPDTD.h"\
+	".\..\..\..\Library\src\SGML.h"\
 	
 NODEP_CPP_HTPLA=\
-	".\..\..\..\Library\Implementation\HTVMSUtils.h"\
+	".\..\..\..\Library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\HTPlain.obj" : $(SOURCE) $(DEP_CPP_HTPLA) "$(INTDIR)"
@@ -1054,26 +1054,26 @@ NODEP_CPP_HTPLA=\
 !ELSEIF  "$(CFG)" == "www - Win32 Debug"
 
 DEP_CPP_HTPLA=\
-	".\..\..\..\Library\Implementation\tcp.h"\
-	".\..\..\..\Library\Implementation\HTUtils.h"\
-	".\..\..\..\Library\Implementation\HText.h"\
-	".\..\..\..\Library\Implementation\HTStyle.h"\
-	".\..\..\..\Library\Implementation\HTPlain.h"\
-	".\..\..\..\Library\Implementation\HTMemory.h"\
-	".\..\..\..\Library\Implementation\HTAnchor.h"\
-	".\..\..\..\Library\Implementation\HTStruct.h"\
-	".\..\..\..\Library\Implementation\HTList.h"\
-	".\..\..\..\Library\Implementation\HTAtom.h"\
-	".\..\..\..\Library\Implementation\HTMethod.h"\
-	".\..\..\..\Library\Implementation\HTStream.h"\
-	".\..\..\..\Library\Implementation\HTFormat.h"\
-	".\..\..\..\Library\Implementation\HTML.h"\
-	".\..\..\..\Library\Implementation\HTReq.h"\
-	".\..\..\..\Library\Implementation\HTEvntrg.h"\
-	".\..\..\..\Library\Implementation\HTError.h"\
-	".\..\..\..\Library\Implementation\HTNet.h"\
-	".\..\..\..\Library\Implementation\HTMLPDTD.h"\
-	".\..\..\..\Library\Implementation\SGML.h"\
+	".\..\..\..\Library\src\tcp.h"\
+	".\..\..\..\Library\src\HTUtils.h"\
+	".\..\..\..\Library\src\HText.h"\
+	".\..\..\..\Library\src\HTStyle.h"\
+	".\..\..\..\Library\src\HTPlain.h"\
+	".\..\..\..\Library\src\HTMemory.h"\
+	".\..\..\..\Library\src\HTAnchor.h"\
+	".\..\..\..\Library\src\HTStruct.h"\
+	".\..\..\..\Library\src\HTList.h"\
+	".\..\..\..\Library\src\HTAtom.h"\
+	".\..\..\..\Library\src\HTMethod.h"\
+	".\..\..\..\Library\src\HTStream.h"\
+	".\..\..\..\Library\src\HTFormat.h"\
+	".\..\..\..\Library\src\HTML.h"\
+	".\..\..\..\Library\src\HTReq.h"\
+	".\..\..\..\Library\src\HTEvntrg.h"\
+	".\..\..\..\Library\src\HTError.h"\
+	".\..\..\..\Library\src\HTNet.h"\
+	".\..\..\..\Library\src\HTMLPDTD.h"\
+	".\..\..\..\Library\src\SGML.h"\
 	
 
 "$(INTDIR)\HTPlain.obj" : $(SOURCE) $(DEP_CPP_HTPLA) "$(INTDIR)"
@@ -1086,40 +1086,40 @@ DEP_CPP_HTPLA=\
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\Implementation\HTML.c
+SOURCE=..\..\..\Library\src\HTML.c
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
 DEP_CPP_HTML_=\
-	".\..\..\..\Library\Implementation\tcp.h"\
-	".\..\..\..\Library\Implementation\HTUtils.h"\
-	".\..\..\..\Library\Implementation\HTString.h"\
-	".\..\..\..\Library\Implementation\HTAtom.h"\
-	".\..\..\..\Library\Implementation\HTChunk.h"\
-	".\..\..\..\Library\Implementation\HText.h"\
-	".\..\..\..\Library\Implementation\HTStyle.h"\
-	".\..\..\..\Library\Implementation\HTAlert.h"\
-	".\..\..\..\Library\Implementation\HTMLGen.h"\
-	".\..\..\..\Library\Implementation\HTParse.h"\
-	".\..\..\..\Library\Implementation\HTML.h"\
+	".\..\..\..\Library\src\tcp.h"\
+	".\..\..\..\Library\src\HTUtils.h"\
+	".\..\..\..\Library\src\HTString.h"\
+	".\..\..\..\Library\src\HTAtom.h"\
+	".\..\..\..\Library\src\HTChunk.h"\
+	".\..\..\..\Library\src\HText.h"\
+	".\..\..\..\Library\src\HTStyle.h"\
+	".\..\..\..\Library\src\HTAlert.h"\
+	".\..\..\..\Library\src\HTMLGen.h"\
+	".\..\..\..\Library\src\HTParse.h"\
+	".\..\..\..\Library\src\HTML.h"\
 	{$(INCLUDE)}"\sys\Types.h"\
 	{$(INCLUDE)}"\sys\Stat.h"\
-	".\..\..\..\Library\Implementation\HTMemory.h"\
-	".\..\..\..\Library\Implementation\HTList.h"\
-	".\..\..\..\Library\Implementation\HTAnchor.h"\
-	".\..\..\..\Library\Implementation\HTStruct.h"\
-	".\..\..\..\Library\Implementation\HTMethod.h"\
-	".\..\..\..\Library\Implementation\HTStream.h"\
-	".\..\..\..\Library\Implementation\HTFormat.h"\
-	".\..\..\..\Library\Implementation\HTReq.h"\
-	".\..\..\..\Library\Implementation\HTEvntrg.h"\
-	".\..\..\..\Library\Implementation\HTError.h"\
-	".\..\..\..\Library\Implementation\HTNet.h"\
-	".\..\..\..\Library\Implementation\HTMLPDTD.h"\
-	".\..\..\..\Library\Implementation\SGML.h"\
+	".\..\..\..\Library\src\HTMemory.h"\
+	".\..\..\..\Library\src\HTList.h"\
+	".\..\..\..\Library\src\HTAnchor.h"\
+	".\..\..\..\Library\src\HTStruct.h"\
+	".\..\..\..\Library\src\HTMethod.h"\
+	".\..\..\..\Library\src\HTStream.h"\
+	".\..\..\..\Library\src\HTFormat.h"\
+	".\..\..\..\Library\src\HTReq.h"\
+	".\..\..\..\Library\src\HTEvntrg.h"\
+	".\..\..\..\Library\src\HTError.h"\
+	".\..\..\..\Library\src\HTNet.h"\
+	".\..\..\..\Library\src\HTMLPDTD.h"\
+	".\..\..\..\Library\src\SGML.h"\
 	
 NODEP_CPP_HTML_=\
-	".\..\..\..\Library\Implementation\HTVMSUtils.h"\
+	".\..\..\..\Library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\HTML.obj" : $(SOURCE) $(DEP_CPP_HTML_) "$(INTDIR)"
@@ -1129,30 +1129,30 @@ NODEP_CPP_HTML_=\
 !ELSEIF  "$(CFG)" == "www - Win32 Debug"
 
 DEP_CPP_HTML_=\
-	".\..\..\..\Library\Implementation\tcp.h"\
-	".\..\..\..\Library\Implementation\HTUtils.h"\
-	".\..\..\..\Library\Implementation\HTString.h"\
-	".\..\..\..\Library\Implementation\HTAtom.h"\
-	".\..\..\..\Library\Implementation\HTChunk.h"\
-	".\..\..\..\Library\Implementation\HText.h"\
-	".\..\..\..\Library\Implementation\HTStyle.h"\
-	".\..\..\..\Library\Implementation\HTAlert.h"\
-	".\..\..\..\Library\Implementation\HTMLGen.h"\
-	".\..\..\..\Library\Implementation\HTParse.h"\
-	".\..\..\..\Library\Implementation\HTML.h"\
-	".\..\..\..\Library\Implementation\HTMemory.h"\
-	".\..\..\..\Library\Implementation\HTList.h"\
-	".\..\..\..\Library\Implementation\HTAnchor.h"\
-	".\..\..\..\Library\Implementation\HTStruct.h"\
-	".\..\..\..\Library\Implementation\HTMethod.h"\
-	".\..\..\..\Library\Implementation\HTStream.h"\
-	".\..\..\..\Library\Implementation\HTFormat.h"\
-	".\..\..\..\Library\Implementation\HTReq.h"\
-	".\..\..\..\Library\Implementation\HTEvntrg.h"\
-	".\..\..\..\Library\Implementation\HTError.h"\
-	".\..\..\..\Library\Implementation\HTNet.h"\
-	".\..\..\..\Library\Implementation\HTMLPDTD.h"\
-	".\..\..\..\Library\Implementation\SGML.h"\
+	".\..\..\..\Library\src\tcp.h"\
+	".\..\..\..\Library\src\HTUtils.h"\
+	".\..\..\..\Library\src\HTString.h"\
+	".\..\..\..\Library\src\HTAtom.h"\
+	".\..\..\..\Library\src\HTChunk.h"\
+	".\..\..\..\Library\src\HText.h"\
+	".\..\..\..\Library\src\HTStyle.h"\
+	".\..\..\..\Library\src\HTAlert.h"\
+	".\..\..\..\Library\src\HTMLGen.h"\
+	".\..\..\..\Library\src\HTParse.h"\
+	".\..\..\..\Library\src\HTML.h"\
+	".\..\..\..\Library\src\HTMemory.h"\
+	".\..\..\..\Library\src\HTList.h"\
+	".\..\..\..\Library\src\HTAnchor.h"\
+	".\..\..\..\Library\src\HTStruct.h"\
+	".\..\..\..\Library\src\HTMethod.h"\
+	".\..\..\..\Library\src\HTStream.h"\
+	".\..\..\..\Library\src\HTFormat.h"\
+	".\..\..\..\Library\src\HTReq.h"\
+	".\..\..\..\Library\src\HTEvntrg.h"\
+	".\..\..\..\Library\src\HTError.h"\
+	".\..\..\..\Library\src\HTNet.h"\
+	".\..\..\..\Library\src\HTMLPDTD.h"\
+	".\..\..\..\Library\src\SGML.h"\
 	
 
 "$(INTDIR)\HTML.obj" : $(SOURCE) $(DEP_CPP_HTML_) "$(INTDIR)"
@@ -1165,7 +1165,7 @@ DEP_CPP_HTML_=\
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\Implementation\windows\wwwhtml\Debug\wwwhtml.lib
+SOURCE=..\..\..\Library\src\windows\wwwhtml\Debug\wwwhtml.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -1177,24 +1177,24 @@ SOURCE=..\..\..\Library\Implementation\windows\wwwhtml\Debug\wwwhtml.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\Implementation\HTMLPDTD.c
+SOURCE=..\..\..\Library\src\HTMLPDTD.c
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
 DEP_CPP_HTMLP=\
-	".\..\..\..\Library\Implementation\tcp.h"\
-	".\..\..\..\Library\Implementation\HTUtils.h"\
-	".\..\..\..\Library\Implementation\HTMLPDTD.h"\
+	".\..\..\..\Library\src\tcp.h"\
+	".\..\..\..\Library\src\HTUtils.h"\
+	".\..\..\..\Library\src\HTMLPDTD.h"\
 	{$(INCLUDE)}"\sys\Types.h"\
 	{$(INCLUDE)}"\sys\Stat.h"\
-	".\..\..\..\Library\Implementation\HTMemory.h"\
-	".\..\..\..\Library\Implementation\HTStruct.h"\
-	".\..\..\..\Library\Implementation\SGML.h"\
-	".\..\..\..\Library\Implementation\HTStream.h"\
-	".\..\..\..\Library\Implementation\HTList.h"\
+	".\..\..\..\Library\src\HTMemory.h"\
+	".\..\..\..\Library\src\HTStruct.h"\
+	".\..\..\..\Library\src\SGML.h"\
+	".\..\..\..\Library\src\HTStream.h"\
+	".\..\..\..\Library\src\HTList.h"\
 	
 NODEP_CPP_HTMLP=\
-	".\..\..\..\Library\Implementation\HTVMSUtils.h"\
+	".\..\..\..\Library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\HTMLPDTD.obj" : $(SOURCE) $(DEP_CPP_HTMLP) "$(INTDIR)"
@@ -1204,14 +1204,14 @@ NODEP_CPP_HTMLP=\
 !ELSEIF  "$(CFG)" == "www - Win32 Debug"
 
 DEP_CPP_HTMLP=\
-	".\..\..\..\Library\Implementation\tcp.h"\
-	".\..\..\..\Library\Implementation\HTUtils.h"\
-	".\..\..\..\Library\Implementation\HTMLPDTD.h"\
-	".\..\..\..\Library\Implementation\HTMemory.h"\
-	".\..\..\..\Library\Implementation\HTStruct.h"\
-	".\..\..\..\Library\Implementation\SGML.h"\
-	".\..\..\..\Library\Implementation\HTStream.h"\
-	".\..\..\..\Library\Implementation\HTList.h"\
+	".\..\..\..\Library\src\tcp.h"\
+	".\..\..\..\Library\src\HTUtils.h"\
+	".\..\..\..\Library\src\HTMLPDTD.h"\
+	".\..\..\..\Library\src\HTMemory.h"\
+	".\..\..\..\Library\src\HTStruct.h"\
+	".\..\..\..\Library\src\SGML.h"\
+	".\..\..\..\Library\src\HTStream.h"\
+	".\..\..\..\Library\src\HTList.h"\
 	
 
 "$(INTDIR)\HTMLPDTD.obj" : $(SOURCE) $(DEP_CPP_HTMLP) "$(INTDIR)"
@@ -1224,83 +1224,83 @@ DEP_CPP_HTMLP=\
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\Implementation\HTInit.c
+SOURCE=..\..\..\Library\src\HTInit.c
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
 DEP_CPP_HTINI=\
-	".\..\..\..\Library\Implementation\tcp.h"\
-	".\..\..\..\Library\Implementation\HTUtils.h"\
-	".\..\..\..\Library\Implementation\HTFormat.h"\
-	".\..\..\..\Library\Implementation\HTList.h"\
-	".\..\..\..\Library\Implementation\HTProt.h"\
-	".\..\..\..\Library\Implementation\HTInit.h"\
+	".\..\..\..\Library\src\tcp.h"\
+	".\..\..\..\Library\src\HTUtils.h"\
+	".\..\..\..\Library\src\HTFormat.h"\
+	".\..\..\..\Library\src\HTList.h"\
+	".\..\..\..\Library\src\HTProt.h"\
+	".\..\..\..\Library\src\HTInit.h"\
 	{$(INCLUDE)}"\sys\Types.h"\
 	{$(INCLUDE)}"\sys\Stat.h"\
-	".\..\..\..\Library\Implementation\HTMemory.h"\
-	".\..\..\..\Library\Implementation\HTStream.h"\
-	".\..\..\..\Library\Implementation\HTAtom.h"\
-	".\..\..\..\Library\Implementation\HTAnchor.h"\
-	".\..\..\..\Library\Implementation\HTReq.h"\
-	".\..\..\..\Library\Implementation\HTMethod.h"\
-	".\..\..\..\Library\Implementation\HTEvntrg.h"\
-	".\..\..\..\Library\Implementation\HTError.h"\
-	".\..\..\..\Library\Implementation\HTNet.h"\
-	".\..\..\..\Library\Implementation\WWWLib.h"\
-	".\..\..\..\Library\Implementation\HTML.h"\
-	".\..\..\..\Library\Implementation\HTPlain.h"\
-	".\..\..\..\Library\Implementation\HTTeXGen.h"\
-	".\..\..\..\Library\Implementation\HTMLGen.h"\
-	".\..\..\..\Library\Implementation\HTMIME.h"\
-	".\..\..\..\Library\Implementation\HTBound.h"\
-	".\..\..\..\Library\Implementation\HTGuess.h"\
-	".\..\..\..\Library\Implementation\HTRules.h"\
-	".\..\..\..\Library\Implementation\HTWSRC.h"\
-	".\..\..\..\Library\Implementation\HTFWrite.h"\
-	".\..\..\..\Library\Implementation\HTNewsLs.h"\
-	".\..\..\..\Library\Implementation\HTIcons.h"\
-	".\..\..\..\Library\Implementation\WWWHTTP.h"\
-	".\..\..\..\Library\Implementation\HTFile.h"\
-	".\..\..\..\Library\Implementation\HTFTP.h"\
-	".\..\..\..\Library\Implementation\HTGopher.h"\
-	".\..\..\..\Library\Implementation\HTTelnet.h"\
-	".\..\..\..\Library\Implementation\HTNews.h"\
-	".\..\..\..\Library\Implementation\HTWAIS.h"\
-	".\..\..\..\Library\Implementation\HTHome.h"\
-	".\..\..\..\Library\Implementation\HTDialog.h"\
-	".\..\..\..\Library\Implementation\WWWUtil.h"\
-	".\..\..\..\Library\Implementation\WWWCore.h"\
-	".\..\..\..\Library\Implementation\HTArray.h"\
-	".\..\..\..\Library\Implementation\HTAssoc.h"\
-	".\..\..\..\Library\Implementation\HTChunk.h"\
-	".\..\..\..\Library\Implementation\HTString.h"\
-	".\..\..\..\Library\Implementation\HTUU.h"\
-	".\..\..\..\Library\Implementation\HTAccess.h"\
-	".\..\..\..\Library\Implementation\HTAlert.h"\
-	".\..\..\..\Library\Implementation\HTBind.h"\
-	".\..\..\..\Library\Implementation\HTConLen.h"\
-	".\..\..\..\Library\Implementation\HTDNS.h"\
-	".\..\..\..\Library\Implementation\HTEscape.h"\
-	".\..\..\..\Library\Implementation\HTParse.h"\
-	".\..\..\..\Library\Implementation\HTSocket.h"\
-	".\..\..\..\Library\Implementation\HTTCP.h"\
-	".\..\..\..\Library\Implementation\HTTee.h"\
-	".\..\..\..\Library\Implementation\HTWWWStr.h"\
-	".\..\..\..\Library\Implementation\HTWriter.h"\
-	".\..\..\..\Library\Implementation\HTMLPDTD.h"\
-	".\..\..\..\Library\Implementation\HTStruct.h"\
-	".\..\..\..\Library\Implementation\SGML.h"\
-	".\..\..\..\Library\Implementation\HTTPUtil.h"\
-	".\..\..\..\Library\Implementation\HTTP.h"\
-	".\..\..\..\Library\Implementation\HTTPServ.h"\
-	".\..\..\..\Library\Implementation\HTTPGen.h"\
-	".\..\..\..\Library\Implementation\HTTPReq.h"\
-	".\..\..\..\Library\Implementation\HTTPRes.h"\
-	".\..\..\..\Library\Implementation\HTAAUtil.h"\
-	".\..\..\..\Library\Implementation\HTAABrow.h"\
+	".\..\..\..\Library\src\HTMemory.h"\
+	".\..\..\..\Library\src\HTStream.h"\
+	".\..\..\..\Library\src\HTAtom.h"\
+	".\..\..\..\Library\src\HTAnchor.h"\
+	".\..\..\..\Library\src\HTReq.h"\
+	".\..\..\..\Library\src\HTMethod.h"\
+	".\..\..\..\Library\src\HTEvntrg.h"\
+	".\..\..\..\Library\src\HTError.h"\
+	".\..\..\..\Library\src\HTNet.h"\
+	".\..\..\..\Library\src\WWWLib.h"\
+	".\..\..\..\Library\src\HTML.h"\
+	".\..\..\..\Library\src\HTPlain.h"\
+	".\..\..\..\Library\src\HTTeXGen.h"\
+	".\..\..\..\Library\src\HTMLGen.h"\
+	".\..\..\..\Library\src\HTMIME.h"\
+	".\..\..\..\Library\src\HTBound.h"\
+	".\..\..\..\Library\src\HTGuess.h"\
+	".\..\..\..\Library\src\HTRules.h"\
+	".\..\..\..\Library\src\HTWSRC.h"\
+	".\..\..\..\Library\src\HTFWrite.h"\
+	".\..\..\..\Library\src\HTNewsLs.h"\
+	".\..\..\..\Library\src\HTIcons.h"\
+	".\..\..\..\Library\src\WWWHTTP.h"\
+	".\..\..\..\Library\src\HTFile.h"\
+	".\..\..\..\Library\src\HTFTP.h"\
+	".\..\..\..\Library\src\HTGopher.h"\
+	".\..\..\..\Library\src\HTTelnet.h"\
+	".\..\..\..\Library\src\HTNews.h"\
+	".\..\..\..\Library\src\HTWAIS.h"\
+	".\..\..\..\Library\src\HTHome.h"\
+	".\..\..\..\Library\src\HTDialog.h"\
+	".\..\..\..\Library\src\WWWUtil.h"\
+	".\..\..\..\Library\src\WWWCore.h"\
+	".\..\..\..\Library\src\HTArray.h"\
+	".\..\..\..\Library\src\HTAssoc.h"\
+	".\..\..\..\Library\src\HTChunk.h"\
+	".\..\..\..\Library\src\HTString.h"\
+	".\..\..\..\Library\src\HTUU.h"\
+	".\..\..\..\Library\src\HTAccess.h"\
+	".\..\..\..\Library\src\HTAlert.h"\
+	".\..\..\..\Library\src\HTBind.h"\
+	".\..\..\..\Library\src\HTConLen.h"\
+	".\..\..\..\Library\src\HTDNS.h"\
+	".\..\..\..\Library\src\HTEscape.h"\
+	".\..\..\..\Library\src\HTParse.h"\
+	".\..\..\..\Library\src\HTSocket.h"\
+	".\..\..\..\Library\src\HTTCP.h"\
+	".\..\..\..\Library\src\HTTee.h"\
+	".\..\..\..\Library\src\HTWWWStr.h"\
+	".\..\..\..\Library\src\HTWriter.h"\
+	".\..\..\..\Library\src\HTMLPDTD.h"\
+	".\..\..\..\Library\src\HTStruct.h"\
+	".\..\..\..\Library\src\SGML.h"\
+	".\..\..\..\Library\src\HTTPUtil.h"\
+	".\..\..\..\Library\src\HTTP.h"\
+	".\..\..\..\Library\src\HTTPServ.h"\
+	".\..\..\..\Library\src\HTTPGen.h"\
+	".\..\..\..\Library\src\HTTPReq.h"\
+	".\..\..\..\Library\src\HTTPRes.h"\
+	".\..\..\..\Library\src\HTAAUtil.h"\
+	".\..\..\..\Library\src\HTAABrow.h"\
 	
 NODEP_CPP_HTINI=\
-	".\..\..\..\Library\Implementation\HTVMSUtils.h"\
+	".\..\..\..\Library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\HTInit.obj" : $(SOURCE) $(DEP_CPP_HTINI) "$(INTDIR)"
@@ -1310,55 +1310,55 @@ NODEP_CPP_HTINI=\
 !ELSEIF  "$(CFG)" == "www - Win32 Debug"
 
 DEP_CPP_HTINI=\
-	".\..\..\..\Library\Implementation\tcp.h"\
-	".\..\..\..\Library\Implementation\HTUtils.h"\
-	".\..\..\..\Library\Implementation\HTFormat.h"\
-	".\..\..\..\Library\Implementation\HTList.h"\
-	".\..\..\..\Library\Implementation\HTProt.h"\
-	".\..\..\..\Library\Implementation\HTInit.h"\
-	".\..\..\..\Library\Implementation\HTMemory.h"\
-	".\..\..\..\Library\Implementation\HTStream.h"\
-	".\..\..\..\Library\Implementation\HTAtom.h"\
-	".\..\..\..\Library\Implementation\HTAnchor.h"\
-	".\..\..\..\Library\Implementation\HTReq.h"\
-	".\..\..\..\Library\Implementation\HTMethod.h"\
-	".\..\..\..\Library\Implementation\HTEvntrg.h"\
-	".\..\..\..\Library\Implementation\HTError.h"\
-	".\..\..\..\Library\Implementation\HTNet.h"\
-	".\..\..\..\Library\Implementation\WWWLib.h"\
-	".\..\..\..\Library\Implementation\HTML.h"\
-	".\..\..\..\Library\Implementation\HTPlain.h"\
-	".\..\..\..\Library\Implementation\HTTeXGen.h"\
-	".\..\..\..\Library\Implementation\HTMLGen.h"\
-	".\..\..\..\Library\Implementation\HTMIME.h"\
-	".\..\..\..\Library\Implementation\HTBound.h"\
-	".\..\..\..\Library\Implementation\HTGuess.h"\
-	".\..\..\..\Library\Implementation\HTRules.h"\
-	".\..\..\..\Library\Implementation\HTWSRC.h"\
-	".\..\..\..\Library\Implementation\HTFWrite.h"\
-	".\..\..\..\Library\Implementation\HTNewsLs.h"\
-	".\..\..\..\Library\Implementation\HTIcons.h"\
-	".\..\..\..\Library\Implementation\WWWHTTP.h"\
-	".\..\..\..\Library\Implementation\HTFile.h"\
-	".\..\..\..\Library\Implementation\HTFTP.h"\
-	".\..\..\..\Library\Implementation\HTGopher.h"\
-	".\..\..\..\Library\Implementation\HTTelnet.h"\
-	".\..\..\..\Library\Implementation\HTNews.h"\
-	".\..\..\..\Library\Implementation\HTWAIS.h"\
-	".\..\..\..\Library\Implementation\HTHome.h"\
-	".\..\..\..\Library\Implementation\HTDialog.h"\
-	".\..\..\..\Library\Implementation\WWWUtil.h"\
-	".\..\..\..\Library\Implementation\HTMLPDTD.h"\
-	".\..\..\..\Library\Implementation\HTStruct.h"\
-	".\..\..\..\Library\Implementation\SGML.h"\
-	".\..\..\..\Library\Implementation\HTTPUtil.h"\
-	".\..\..\..\Library\Implementation\HTTP.h"\
-	".\..\..\..\Library\Implementation\HTTPServ.h"\
-	".\..\..\..\Library\Implementation\HTTPGen.h"\
-	".\..\..\..\Library\Implementation\HTTPReq.h"\
-	".\..\..\..\Library\Implementation\HTTPRes.h"\
-	".\..\..\..\Library\Implementation\HTAAUtil.h"\
-	".\..\..\..\Library\Implementation\HTAABrow.h"\
+	".\..\..\..\Library\src\tcp.h"\
+	".\..\..\..\Library\src\HTUtils.h"\
+	".\..\..\..\Library\src\HTFormat.h"\
+	".\..\..\..\Library\src\HTList.h"\
+	".\..\..\..\Library\src\HTProt.h"\
+	".\..\..\..\Library\src\HTInit.h"\
+	".\..\..\..\Library\src\HTMemory.h"\
+	".\..\..\..\Library\src\HTStream.h"\
+	".\..\..\..\Library\src\HTAtom.h"\
+	".\..\..\..\Library\src\HTAnchor.h"\
+	".\..\..\..\Library\src\HTReq.h"\
+	".\..\..\..\Library\src\HTMethod.h"\
+	".\..\..\..\Library\src\HTEvntrg.h"\
+	".\..\..\..\Library\src\HTError.h"\
+	".\..\..\..\Library\src\HTNet.h"\
+	".\..\..\..\Library\src\WWWLib.h"\
+	".\..\..\..\Library\src\HTML.h"\
+	".\..\..\..\Library\src\HTPlain.h"\
+	".\..\..\..\Library\src\HTTeXGen.h"\
+	".\..\..\..\Library\src\HTMLGen.h"\
+	".\..\..\..\Library\src\HTMIME.h"\
+	".\..\..\..\Library\src\HTBound.h"\
+	".\..\..\..\Library\src\HTGuess.h"\
+	".\..\..\..\Library\src\HTRules.h"\
+	".\..\..\..\Library\src\HTWSRC.h"\
+	".\..\..\..\Library\src\HTFWrite.h"\
+	".\..\..\..\Library\src\HTNewsLs.h"\
+	".\..\..\..\Library\src\HTIcons.h"\
+	".\..\..\..\Library\src\WWWHTTP.h"\
+	".\..\..\..\Library\src\HTFile.h"\
+	".\..\..\..\Library\src\HTFTP.h"\
+	".\..\..\..\Library\src\HTGopher.h"\
+	".\..\..\..\Library\src\HTTelnet.h"\
+	".\..\..\..\Library\src\HTNews.h"\
+	".\..\..\..\Library\src\HTWAIS.h"\
+	".\..\..\..\Library\src\HTHome.h"\
+	".\..\..\..\Library\src\HTDialog.h"\
+	".\..\..\..\Library\src\WWWUtil.h"\
+	".\..\..\..\Library\src\HTMLPDTD.h"\
+	".\..\..\..\Library\src\HTStruct.h"\
+	".\..\..\..\Library\src\SGML.h"\
+	".\..\..\..\Library\src\HTTPUtil.h"\
+	".\..\..\..\Library\src\HTTP.h"\
+	".\..\..\..\Library\src\HTTPServ.h"\
+	".\..\..\..\Library\src\HTTPGen.h"\
+	".\..\..\..\Library\src\HTTPReq.h"\
+	".\..\..\..\Library\src\HTTPRes.h"\
+	".\..\..\..\Library\src\HTAAUtil.h"\
+	".\..\..\..\Library\src\HTAABrow.h"\
 	
 
 "$(INTDIR)\HTInit.obj" : $(SOURCE) $(DEP_CPP_HTINI) "$(INTDIR)"
@@ -1371,31 +1371,31 @@ DEP_CPP_HTINI=\
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\Implementation\HTBInit.c
+SOURCE=..\..\..\Library\src\HTBInit.c
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
 DEP_CPP_HTBIN=\
-	".\..\..\..\Library\Implementation\tcp.h"\
-	".\..\..\..\Library\Implementation\HTUtils.h"\
-	".\..\..\..\Library\Implementation\HTFormat.h"\
-	".\..\..\..\Library\Implementation\HTBind.h"\
-	".\..\..\..\Library\Implementation\HTBInit.h"\
+	".\..\..\..\Library\src\tcp.h"\
+	".\..\..\..\Library\src\HTUtils.h"\
+	".\..\..\..\Library\src\HTFormat.h"\
+	".\..\..\..\Library\src\HTBind.h"\
+	".\..\..\..\Library\src\HTBInit.h"\
 	{$(INCLUDE)}"\sys\Types.h"\
 	{$(INCLUDE)}"\sys\Stat.h"\
-	".\..\..\..\Library\Implementation\HTMemory.h"\
-	".\..\..\..\Library\Implementation\HTStream.h"\
-	".\..\..\..\Library\Implementation\HTAtom.h"\
-	".\..\..\..\Library\Implementation\HTList.h"\
-	".\..\..\..\Library\Implementation\HTAnchor.h"\
-	".\..\..\..\Library\Implementation\HTReq.h"\
-	".\..\..\..\Library\Implementation\HTMethod.h"\
-	".\..\..\..\Library\Implementation\HTEvntrg.h"\
-	".\..\..\..\Library\Implementation\HTError.h"\
-	".\..\..\..\Library\Implementation\HTNet.h"\
+	".\..\..\..\Library\src\HTMemory.h"\
+	".\..\..\..\Library\src\HTStream.h"\
+	".\..\..\..\Library\src\HTAtom.h"\
+	".\..\..\..\Library\src\HTList.h"\
+	".\..\..\..\Library\src\HTAnchor.h"\
+	".\..\..\..\Library\src\HTReq.h"\
+	".\..\..\..\Library\src\HTMethod.h"\
+	".\..\..\..\Library\src\HTEvntrg.h"\
+	".\..\..\..\Library\src\HTError.h"\
+	".\..\..\..\Library\src\HTNet.h"\
 	
 NODEP_CPP_HTBIN=\
-	".\..\..\..\Library\Implementation\HTVMSUtils.h"\
+	".\..\..\..\Library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\HTBInit.obj" : $(SOURCE) $(DEP_CPP_HTBIN) "$(INTDIR)"
@@ -1405,21 +1405,21 @@ NODEP_CPP_HTBIN=\
 !ELSEIF  "$(CFG)" == "www - Win32 Debug"
 
 DEP_CPP_HTBIN=\
-	".\..\..\..\Library\Implementation\tcp.h"\
-	".\..\..\..\Library\Implementation\HTUtils.h"\
-	".\..\..\..\Library\Implementation\HTFormat.h"\
-	".\..\..\..\Library\Implementation\HTBind.h"\
-	".\..\..\..\Library\Implementation\HTBInit.h"\
-	".\..\..\..\Library\Implementation\HTMemory.h"\
-	".\..\..\..\Library\Implementation\HTStream.h"\
-	".\..\..\..\Library\Implementation\HTAtom.h"\
-	".\..\..\..\Library\Implementation\HTList.h"\
-	".\..\..\..\Library\Implementation\HTAnchor.h"\
-	".\..\..\..\Library\Implementation\HTReq.h"\
-	".\..\..\..\Library\Implementation\HTMethod.h"\
-	".\..\..\..\Library\Implementation\HTEvntrg.h"\
-	".\..\..\..\Library\Implementation\HTError.h"\
-	".\..\..\..\Library\Implementation\HTNet.h"\
+	".\..\..\..\Library\src\tcp.h"\
+	".\..\..\..\Library\src\HTUtils.h"\
+	".\..\..\..\Library\src\HTFormat.h"\
+	".\..\..\..\Library\src\HTBind.h"\
+	".\..\..\..\Library\src\HTBInit.h"\
+	".\..\..\..\Library\src\HTMemory.h"\
+	".\..\..\..\Library\src\HTStream.h"\
+	".\..\..\..\Library\src\HTAtom.h"\
+	".\..\..\..\Library\src\HTList.h"\
+	".\..\..\..\Library\src\HTAnchor.h"\
+	".\..\..\..\Library\src\HTReq.h"\
+	".\..\..\..\Library\src\HTMethod.h"\
+	".\..\..\..\Library\src\HTEvntrg.h"\
+	".\..\..\..\Library\src\HTError.h"\
+	".\..\..\..\Library\src\HTNet.h"\
 	
 
 "$(INTDIR)\HTBInit.obj" : $(SOURCE) $(DEP_CPP_HTBIN) "$(INTDIR)"
@@ -1432,7 +1432,7 @@ DEP_CPP_HTBIN=\
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\Implementation\windows\wwwapp\Debug\wwwapp.lib
+SOURCE=..\..\..\Library\src\windows\wwwapp\Debug\wwwapp.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -1444,7 +1444,7 @@ SOURCE=..\..\..\Library\Implementation\windows\wwwapp\Debug\wwwapp.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\Implementation\windows\wwwguess\Debug\wwwguess.lib
+SOURCE=..\..\..\Library\src\windows\wwwguess\Debug\wwwguess.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
@@ -1456,7 +1456,7 @@ SOURCE=..\..\..\Library\Implementation\windows\wwwguess\Debug\wwwguess.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=..\..\..\Library\Implementation\windows\wwwwais\Debug\wwwwais.lib
+SOURCE=..\..\..\Library\src\windows\wwwwais\Debug\wwwwais.lib
 
 !IF  "$(CFG)" == "www - Win32 Release"
 

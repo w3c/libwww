@@ -578,7 +578,7 @@ PUBLIC BOOL HTError_print (HTRequest * request, HTAlertOpcode op,
                                 int msgnum, const char * dfault, void * input,
                                 HTAlertPar * reply)
 {
-    MessageBox(0, dfault, "HTError_print", MB_OK);
+    MessageBox(0, dfault ? dfault : "???", "HTError_print", MB_OK);
     return YES;
 }
 
