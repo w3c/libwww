@@ -265,7 +265,45 @@ PUBLIC int HTMIME_keepAlive (HTRequest * request, HTResponse * response,
 PUBLIC int HTMIME_link (HTRequest * request, HTResponse * response,
 			char * token, char * value)
 {
-
+    char * element;
+    HTParentAnchor * me = HTRequest_anchor(request);
+    while ((element = HTNextElement(&value))) {
+	char * param_pair;
+	char * uri = HTNextField(&element);
+	HTChildAnchor * child_dest = HTAnchor_findChildAndLink(me, NULL, uri, NULL);
+	HTParentAnchor * parent_dest =
+	    HTAnchor_parent(HTAnchor_followMainLink((HTAnchor *) child_dest));
+	if (parent_dest) {
+	    while ((param_pair = HTNextPair(&element))) {
+		char * name = HTNextField(&param_pair);
+		char * val = HTNextField(&param_pair);
+		if (name) {
+		    if (!strcasecomp(name, "rel") && val && *val) {
+			if (STREAM_TRACE)
+			    HTTrace("MIMEParser.. Link forward relationship `%s\'\n",
+				    val);
+			HTLink_add((HTAnchor *) me, (HTAnchor *) parent_dest,
+				   (HTLinkType) HTAtom_caseFor(val),
+				   METHOD_INVALID);
+		    } else if (!strcasecomp(name, "rev") && val && *val) {
+			if (STREAM_TRACE)
+			    HTTrace("MIMEParser.. Link reverse relationship `%s\'\n",
+				    val);
+			HTLink_add((HTAnchor *) parent_dest, (HTAnchor *) me,
+				   (HTLinkType) HTAtom_caseFor(val),
+				   METHOD_INVALID);
+		    } else if (!strcasecomp(name, "type") && val && *val) {
+			if (STREAM_TRACE) HTTrace("MIMEParser.. Link type `%s\'\n", val);
+			if (HTAnchor_format(parent_dest) == WWW_UNKNOWN)
+			    HTAnchor_setFormat(parent_dest, (HTFormat) HTAtom_caseFor(val));
+		    } else
+			if (STREAM_TRACE)
+			    HTTrace("MIMEParser.. Link unknown `%s\' with value `%s\'\n",
+				    name, val ? val : "<null>");
+		}
+	    }
+	}
+    }
     return HT_OK;
 }
 
