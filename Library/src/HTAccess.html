@@ -48,6 +48,12 @@ is asking for user confusion.
 #ifndef LOCAL_DEFAULT_FILE
 #define LOCAL_DEFAULT_FILE "/usr/local/lib/WWW/default.html"
 #endif
+/*  If one telnets to a www access point,
+    it will look in this file for home page */
+#ifndef REMOTE_POINTER
+#define REMOTE_POINTER  "/etc/www-remote.url"  /* can't be file */
+#endif
+/* and if that fails it will use this. */
 #ifndef REMOTE_ADDRESS
 #define REMOTE_ADDRESS  "http://info.cern.ch/remote.html"  /* can't be file */
 #endif
@@ -71,6 +77,7 @@ this module</H2>
 <PRE>extern int HTDiag;			/* Flag: load source as plain text */
 extern char * HTClientHost;		/* Name or number of telnetting host */
 extern FILE * logfile;			/* File to output one-liners to */
+extern BOOL HTSecure;			/* Disable security holes? */
 extern HTStream* HTOutputStream;	/* For non-interactive, set this */ 
 extern HTFormat HTOutputFormat;		/* To convert on load, set this */
 

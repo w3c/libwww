@@ -50,6 +50,7 @@
 */
 PUBLIC char * HTClientHost = 0;	/* Name of remote login host if any */
 PUBLIC FILE * logfile = 0;	/* File to which to output one-liners */
+PUBLIC BOOL HTSecure = NO;	/* Disable access for telnet users? */
 
 /*	To generate other things, play with these:
 */
@@ -606,11 +607,36 @@ PUBLIC BOOL HTSearchAbsolute ARGS2(
 */
 PUBLIC HTParentAnchor * HTHomeAnchor NOARGS
 {
-    char * my_home_document = (char *)getenv(LOGICAL_DEFAULT);
+    char * my_home_document = NULL;
+    char * home = (char *)getenv(LOGICAL_DEFAULT);
     char * ref;
     HTParentAnchor * anchor;
     
+    if (home) {
+        StrAllocCopy(my_home_document, home);
+    
+/* 	Someone telnets in, they get a special home.
+*/
+#define MAX_FILE_NAME 1024					/* @@@ */
+    } else  if (HTClientHost) {			/* Telnet server */
+    	FILE * fp = fopen(REMOTE_POINTER, "r");
+	char * status;
+	if (fp) {
+	    my_home_document = (char*) malloc(MAX_FILE_NAME);
+	    status = fgets(my_home_document, MAX_FILE_NAME, fp);
+	    if (!status) {
+	        free(my_home_document);
+		my_home_document = NULL;
+	    }
+	    fclose(fp);
+	}
+	if (!my_home_document) StrAllocCopy(my_home_document, REMOTE_ADDRESS);
+    }
+
+    
+
 #ifdef unix
+
     if (!my_home_document) {
 	FILE * fp = NULL;
 	CONST char * home =  (CONST char*)getenv("HOME");

@@ -59,7 +59,7 @@ PRIVATE int remote_session ARGS2(char *, access, char *, host)
 /* If the person is already telnetting etc, forbid hopping */
 /* This is a security precaution, for us and remote site */
 
-	if (HTClientHost) {
+	if (HTSecure) {
 
 #ifdef TELNETHOPPER_MAIL
 	    sprintf(command, 

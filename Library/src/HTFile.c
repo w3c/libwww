@@ -713,9 +713,9 @@ PUBLIC int HTLoadFile ARGS4 (
 **	Not allowed in secure (HTClienntHost) situations TBL 921019
 */
 #ifndef NO_UNIX_IO
-    /* @@@@ Need protection here for telnet server but not httpd server */
+    /*  Need protection here for telnet server but not httpd server */
 	 
-    /* if (!HTClientHost) */ {		/* try local unix file system */
+    if (!HTSecure) {		/* try local file system */
 	char * localname = HTLocalName(addr);
 	struct stat dir_info;
 	
