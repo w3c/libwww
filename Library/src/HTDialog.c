@@ -85,12 +85,12 @@ PUBLIC BOOL HTProgress (HTRequest * request, HTAlertOpcode op,
 	HTTrace("Connection closed\n");
 	break;
 
-      case HT_PROG_WAIT:
-	HTTrace("Waiting for free socket...\n");
+      case HT_PROG_INTERRUPT:
+	HTTrace("Interrupted!\n");
 	break;
 
-      case HT_PROG_GC:
-	HTTrace("Garbage colleting persistent cache - please wait...\n");
+      case HT_PROG_OTHER:
+	HTTrace("Working - please wait...\n");
 	break;
 
       default:

@@ -62,8 +62,8 @@ typedef enum _HTAlertOpcode {
     HT_PROG_READ	= 0x8,		/* Read data */
     HT_PROG_WRITE	= 0x10,		/* Write data */
     HT_PROG_DONE	= 0x20,		/* Request finished */
-    HT_PROG_WAIT	= 0x40,		/* Wait for socket */
-    HT_PROG_GC          = 0x80,         /* Cache garbage collecting */
+    HT_PROG_INTERRUPT=0x40,     /* Request interrupted */
+    HT_PROG_OTHER   = 0x80,     /* Other progress notes */
     HT_A_PROGRESS	= 0xFF,		/* Send a progress report - no reply */
 
     /* First word are reserved for progresss notifications */

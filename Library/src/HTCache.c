@@ -141,11 +141,11 @@ PRIVATE BOOL HTCacheGarbage (void)
 	int hits;
 
 	/*
-	**  Tell the use that we're gc'ing.
+	**  Tell the user that we're gc'ing.
 	*/
 	{
-	    HTAlertCallback * cbf = HTAlert_find(HT_PROG_GC);
-	    if (cbf) (*cbf)(NULL, HT_PROG_GC, HT_MSG_NULL,NULL, NULL, NULL);
+	    HTAlertCallback * cbf = HTAlert_find(HT_PROG_OTHER);
+	    if (cbf) (*cbf)(NULL, HT_PROG_OTHER, HT_MSG_NULL,NULL, NULL, NULL);
 	}
 
 	/*
