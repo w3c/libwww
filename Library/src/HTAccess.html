@@ -23,7 +23,7 @@ using the Request class in different ways. It contains help functions for
 accessing documents and for uploading documents to a remote server.
 <P>
 This module is implemented by <A HREF="HTAccess.c">HTAccess.c</A>, and it
-is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Sample Code
+is a part of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code
 Library</A>.
 <PRE>
 #ifndef HTACCESS_H
@@ -145,7 +145,7 @@ the URL specified and add the set of rules to the existing set.
 </H2>
 <P>
 The search methods all use <CODE>GET</CODE> as the method in the
-<A HREF="http://www.w3.org/pub/WWW/Protocols/">HTTP request</A>. The functions
+<A HREF="http://www.w3.org/Protocols/">HTTP request</A>. The functions
 take the keywords and encode them according to
 <A HREF="http://info.internet.isi.edu:80/in-notes/rfc/files/rfc1866.txt">RFC
 1866 (Hypertext Markup language)</A>. That is, the query part is separated
@@ -255,7 +255,7 @@ extern BOOL HTGetFormAnchor (HTAssocList *	formdata,
 <P>
 The main difference between a <CODE>GET</CODE> form and a <CODE>POST</CODE>
 form is that the data in a <CODE>POST</CODE> form is sent as the body part
-of the <A HREF="http://www.w3.org/pub/WWW/Protocols/">HTTP</A> message whereas
+of the <A HREF="http://www.w3.org/Protocols/">HTTP</A> message whereas
 a <CODE>GET</CODE> form wraps it all up into the URL. In order to be able
 to use the <CODE>POST</CODE> data object at a later point in time, we create
 a new anchor on the fly. This anchor has a URL file location which points

@@ -26,7 +26,7 @@ This module contains code to parse URIs and various related things such as:
 </UL>
 <P>
 This module is implemented by <A HREF="HTParse.c">HTParse.c</A>, and it is
-a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Sample Code
+a part of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code
 Library</A>.
 <PRE>
 #ifndef HTPARSE_H
@@ -50,7 +50,7 @@ is the URI which the <CODE>aName</CODE> is to be parsed relative to. Passing
 an empty string means that the <CODE>aName</CODE> is an absolute URI. The
 following are flag bits which may be OR'ed together to form a number to give
 the 'wanted' argument to HTParse. As an example we have the URL:
-"<CODE>http://www.w3.org/pub/WWW/TheProject.html#news</CODE>"
+"<CODE>/TheProject.html#news</CODE>"
 <PRE>
 #define PARSE_ACCESS		16	/* Access scheme, e.g. "HTTP" */
 #define PARSE_HOST		 8	/* Host name, e.g. "www.w3.org" */
