@@ -316,7 +316,7 @@ PUBLIC long HTGetTimeZoneOffset NOARGS
 {
 #ifndef NO_TIMEZONE
     {
-#ifdef HAS_ALTZONE
+#ifndef NO_ALTZONE
 	time_t cur_t = time(NULL);
 	struct tm * local = localtime(&cur_t);
 	if (daylight && local->tm_isdst==1)	/* daylight time? */
@@ -430,7 +430,7 @@ PUBLIC time_t HTParseTime ARGS1(CONST char *, str)
 	return 0;
     }
 
-#ifdef HAS_ALTZONE
+#ifndef NO_ALTZONE
     tm.tm_isdst = daylight;		       /* Already taken into account */
 #else
     tm.tm_isdst = -1;

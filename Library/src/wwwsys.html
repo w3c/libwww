@@ -719,6 +719,14 @@ typedef mode_t		int;
 #endif /* Mips */
 </PRE>
 
+<H2>SGI/IRIX</H2>
+
+<PRE>
+#ifdef __sgi
+#define NO_GMTOFF
+#endif
+</PRE>
+
 <H2>Solaris</H2>
 
 Includes Linux (thanks to Rainer Klute) and other SVR5 based systems
@@ -726,7 +734,11 @@ Includes Linux (thanks to Rainer Klute) and other SVR5 based systems
 <PRE>
 #if defined(__svr4__) || defined(_POSIX_SOURCE) || defined(__hpux)
 
-#define NO_GMTOFF
+#define NO_GMTOFF				/* They should have timezone */
+
+#ifdef __hpux
+#define NO_ALTZONE
+#endif
 
 #ifdef UTS4				      /* UTS wants sys/types.h first */
 #include &lt;sys/types.h&gt;
@@ -791,6 +803,7 @@ This is for NCR 3000 and Pyramid that also are SVR4 systems. Thanks to
 <PRE>
 #ifdef __osf__
 #define USE_DIRENT
+#define NO_ALTZONE
 #endif /* OSF1 AXP */
 </PRE>
 
