@@ -1,6 +1,5 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen,  1-Jul-1996 -->
   <TITLE>W3C Sample Code Library libwww Association Pairs</TITLE>
 </HEAD>
 <BODY>
@@ -17,7 +16,7 @@
 This Assoctiation List class is closely related to the
 <A HREF="HTList.html">HTList Class</A> as it simply is a list of a specific
 list element containing a characters based name/value pair. Lookups from
-association list are <I>not case-sensitive</I>.
+association list can be <EM>case sensitive</EM> and or <EM>prefix based</EM>.
 <P>
 This module is implemented by <A HREF="HTAssoc.c">HTAssoc.c</A>, and it is
 a part of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code
@@ -26,7 +25,7 @@ Library</A>.
 #ifndef HTASSOC_H
 #define HTASSOC_H
 
-#include "HTList.h"
+#include "<A HREF="HTList.html">HTList.h</A>"
 
 typedef HTList HTAssocList;
 
@@ -35,55 +34,107 @@ typedef struct {
     char * value;
 } HTAssoc;
 </PRE>
-<H3>
+<H2>
   Creation and Deletetion Methods
-</H3>
+</H2>
 <P>
 These methods create and deletes and association list
-<PRE>extern HTAssocList * HTAssocList_new (void);
+<PRE>
+extern HTAssocList * HTAssocList_new (void);
 extern BOOL 	     HTAssocList_delete (HTAssocList * alist);
 </PRE>
-<H3>
+<H2>
   Add an Element to a List
-</H3>
+</H2>
 <P>
 We have two methods for adding new elements - you can either add unconditionally
 <I>or</I> replace any existing element with the same name but a new value.
-A new list element is added to the beginning of the list so that it is the
-first element just after the head element.
-<PRE>extern BOOL HTAssocList_addObject (HTAssocList * alist,
-				   const char * name, const char * value);
+In replacing an element, the search is <EM><A HREF="#cip">case insensitive
+prefix match</A></EM>! A new list element is added to the beginning of the
+list so that it is the first element just after the head element.
+<PRE>
+extern BOOL HTAssocList_addObject (
+	HTAssocList *	alist,
+	const char *	name,
+	const char *	value);
 
-extern BOOL HTAssocList_replaceObject (HTAssocList * list,
-				       const char * name, const char * value);
+extern BOOL HTAssocList_replaceObject (
+	HTAssocList *	list,
+	const char * 	name,
+	const char *	value);
 </PRE>
-<H3>
+<H2>
   Remove an Element from a List
-</H3>
+</H2>
 <P>
-Remove the element with the given name from the list.
-<PRE>extern BOOL HTAssocList_removeObject (HTAssocList * list, const char * name);
+Remove the element with the given name from the list. Search is
+<EM><A HREF="#cip">case insensitive prefix match</A></EM>!
+<PRE>
+extern BOOL HTAssocList_removeObject (
+	HTAssocList * 	list,
+	const char * 	name);
 </PRE>
-<H3>
-  Search for Elements in a list
-</H3>
+<H2>
+  Search for Element in a list
+</H2>
 <P>
 We have a small set of methods for searching a specific element within a
 list.
-<PRE>extern char * HTAssocList_findObject (HTAssocList * alist, const char * name);
+<H3>
+  <A NAME="cip">Case Insensitive, Prefix Match</A>
+</H3>
+<P>
+In many situations, the values of associations are case insensitive - use
+this method to search the list using case insensitive comparison. Also, you
+can search for matching prefixes and not the whole string, for example
+"<TT>foo</TT>" matches "<TT>football</TT>"
+<PRE>
+extern char * HTAssocList_findObject (
+	HTAssocList *	alist,
+	const char *	name);
 </PRE>
 <H3>
-  Get Name and Values
+  <A NAME="cie">Case Insensitive, Exact Match</A>
 </H3>
+<P>
+In case you want case insensitive, exact match
+<PRE>
+extern char * HTAssocList_findObjectExact (
+	HTAssocList *	alist,
+	const char *	name);
+</PRE>
+<H3>
+  <A NAME="csp">Case Sensitive, Prefix Match</A>
+</H3>
+<P>
+In case you want case sensitive, prefix match
+<PRE>
+extern char * HTAssocList_findObjectCaseSensitive (
+	HTAssocList *	list,
+	const char *	name);
+</PRE>
+<H3>
+  <A NAME="cse">Case Sensitive, Exact Match</A>
+</H3>
+<P>
+And finally if you want case sensitive, exact match
+<PRE>
+extern char * HTAssocList_findObjectCaseSensitiveExact (
+	HTAssocList *	list,
+	const char * 	name);
+</PRE>
+<H2>
+  Get Name and Values
+</H2>
 <P>
 Use this to get the name and value of a assoc object
 <PRE>
 #define HTAssoc_name(me)	((me) ? (me)-&gt;name : NULL)
 #define HTAssoc_value(me)	((me) ? (me)-&gt;value : NULL)
 </PRE>
-<H3>
+<H2>
   Traverse list
-</H3>
+</H2>
 <P>
 Fast macro to traverse the list. Call it first with copy of list header:
 it returns the first object and increments the passed list pointer. Call

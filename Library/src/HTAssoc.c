@@ -96,6 +96,46 @@ PUBLIC char * HTAssocList_findObject (HTAssocList * list, const char * name)
     return NULL;
 }
 
+PUBLIC char * HTAssocList_findObjectExact (HTAssocList * list, const char * name)
+{
+    if (list && name) {
+	HTAssocList * cur = list;
+	HTAssoc * assoc;
+	while ((assoc = (HTAssoc *) HTList_nextObject(cur))) {
+	    if (!strcasecomp(assoc->name, name))
+		return assoc->value;
+	}
+    }
+    return NULL;
+}
+
+PUBLIC char * HTAssocList_findObjectCaseSensitive (HTAssocList * list, const char * name)
+{
+    if (list && name) {
+	HTAssocList * cur = list;
+	HTAssoc * assoc;
+	int len = strlen(name);
+	while ((assoc = (HTAssoc *) HTList_nextObject(cur))) {
+	    if (!strncmp(assoc->name, name, len))
+		return assoc->value;
+	}
+    }
+    return NULL;
+}
+
+PUBLIC char * HTAssocList_findObjectCaseSensitiveExact (HTAssocList * list, const char * name)
+{
+    if (list && name) {
+	HTAssocList * cur = list;
+	HTAssoc * assoc;
+	while ((assoc = (HTAssoc *) HTAssocList_nextObject(cur))) {
+	    if (!strcmp(HTAssoc_name(assoc), name))
+		return HTAssoc_value(assoc);
+	}
+    }
+    return NULL;
+}
+
 /*
 **  Searches the whole list and removes all elements with this name
 */
