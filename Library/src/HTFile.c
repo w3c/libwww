@@ -21,11 +21,14 @@
 **	target machine runs VMS?
 */
 
+#ifdef VMS
+#define GOT_READ_DIR
+#endif /* VMS */
+
 #include "HTFile.h"		/* Implemented here */
 
 #ifdef VMS
 #define NO_GROUPS		/* MOVE TO tcp.html */
-#define INFINITY 512		/* file name length @@ FIXME */
 PRIVATE char * suffix_separators = "._";
 #else
 PRIVATE char * suffix_separators = ".,_";
@@ -265,7 +268,6 @@ PUBLIC HTContentDescription * HTGetContentDescription ARGS2(char **,	actual,
 }
 
 
-
 /*	Make the cache file name for a W3 document
 **	------------------------------------------
 **	Make up a suitable name for saving the node in
@@ -336,6 +338,11 @@ PUBLIC char * HTLocalName ARGS1(CONST char *,name)
 	free(host);
 	StrAllocCopy(path, HTImServer);
 	HTUnEscape(path);
+
+#if VMS
+        HTVMS_checkDecnet(path);
+#endif /* VMS */
+
 	CTRACE(stderr, "Local filename is \"%s\"\n", path);
 	return(path);
     }
@@ -345,6 +352,11 @@ PUBLIC char * HTLocalName ARGS1(CONST char *,name)
 	if ((0==strcasecomp(host, HTGetHostName())) ||
 	    (0==strcasecomp(host, "localhost")) || !*host) {
 	    free(host);
+
+#if VMS
+        HTVMS_checkDecnet(path);
+#endif /* VMS */
+
 	    if (TRACE) fprintf(stderr, "Node........ `%s' means path `%s'\n", name, path);
 	    return(path);
 	} else {
@@ -545,7 +557,7 @@ PUBLIC BOOL HTEditable ARGS1 (CONST char *,filename)
     struct stat	fileStatus;
     int		i;
         
-    if (stat(filename, &fileStatus))		/* Get details of filename */
+    if (HTStat(filename, &fileStatus))		/* Get details of filename */
     	return NO;				/* Can't even access file! */
 
     ngroups = getgroups(NGROUPS, groups);	/* Groups to which I belong  */
@@ -613,7 +625,12 @@ PUBLIC HTStream * HTFileSaveStream ARGS1(HTRequest *, request)
 	    p[1] = p[0];	/* Move up everything to the right of it */
 	}
 	
+
+#ifdef VMS
+	if ((fp=fopen(filename, "r", "shr=put", "shr=upd"))) {	/* File exists */
+#else /* not VMS */
 	if ((fp=fopen(filename, "r"))) {		/* File exists */
+#endif /* not VMS */
 	    fclose(fp);
 	    if (TRACE) fprintf(stderr, "File `%s' exists\n", filename);
 	    if (remove(backup_filename)) {
@@ -664,55 +681,6 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
     HTSimplify(url);
     if (TRACE) fprintf(stderr, "LoadFile.... Looking for `%s\'\n", url);
 
-#ifdef VMS
-/* Assume that the file is in Unix-style syntax if it contains a '/'
-   after the leading one @@ */
-    {
-/* CHECK THIS - IT DIDN'T WORK BEFORE :-(
-   What about checking for secure mode??? */
-	HTFormat format;
-	char unescaped = HTParse(url, "", PARSE_PATH|PARSE_PUNCTUATION);
-        FILE * fp;
-	char * nodename = NULL;
-	HTSimplify(unescaped);
-	HTUnEscape(unescaped);
-	nodename = HTParse(url, "", PARSE_HOST);
-	format = HTFileFormat(unescaped, &request->content_encoding,
-			      &request->content_language);
-/* END */	
-	char * vmsname = strchr(unescaped + 1, '/') ?
-	  HTVMS_name(nodename, unescaped) : unescaped + 1;
-	fp = fopen(vmsname, "r", "shr=put", "shr=upd");
-	
-/*	If the file wasn't VMS syntax, then perhaps it is ultrix
-*/
-	if (!fp) {
-	    char ultrixname[INFINITY];
-	    if (TRACE) fprintf(stderr, "HTFile: Can't open as %s\n", vmsname);
-	    sprintf(ultrixname, "%s::\"%s\"", nodename, unescaped);
-  	    fp = fopen(ultrixname, "r", "shr=put", "shr=upd");
-	    if (!fp) {
-		if (TRACE) fprintf(stderr, 
-				   "HTFile: Can't open as %s\n", ultrixname);
-	    }
-	}
-        if (fp)
-        {
-	    if (HTEditable(vmsname)) {
-		HTAtom * put = HTAtom_for("PUT");
-		HTList * methods = HTAnchor_methods(request->anchor);
-		if (HTList_indexOf(methods, put) == (-1)) {
-	   	    HTList_addObject(methods, put);
-	        }
-	    }
-	    HTParseFile(format, fp, request);
-	    fclose(fp);
-	    free(nodename);		/* HENRIK */
-	    free(unescaped);		/* HENRIK */
-            return HT_LOADED;
-        }  /* If successfull open */
-    }
-#else
 
 /*	For unix, we try to translate the name into the name of a transparently
 **	mounted file.
@@ -757,7 +725,7 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 **	subdirectories contained in the directory.  All of these are links
 **      to the directories or files listed.
 */
-	if (stat(localname, &stat_info) == -1) {
+	if (HTStat(localname, &stat_info) == -1) {
 	    if (TRACE)
 		fprintf(stderr, "HTLoadFile.. Can't stat %s\n", localname);
 	} else {
@@ -772,7 +740,12 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 
 open_file:
 	{
+#ifdef VMS
+	    FILE * fp = fopen(localname,"r","shr=put","shr=upd");
+#else /* not VMS */
 	    FILE * fp = fopen(localname,"r");
+#endif /* not VMS */
+
 	    if (fp) {
 		if(TRACE) fprintf (stderr, "HTLoadFile.. Opened `%s' on local file system\n", localname);
 		if (HTEditable(localname)) {
@@ -784,6 +757,7 @@ open_file:
 		}
 		status = HTParseFile(format, fp, request);
 		fclose(fp);
+
 		FREE(localname);
 		goto cleanup;
 	    } else
@@ -792,7 +766,6 @@ open_file:
 	FREE(localname);
     } /* End of local file system */
 #endif /* NO_UNIX_IO */
-#endif /* VMS */
 
 #ifndef DECNET
     /* Now, as transparently mounted access has failed, we try FTP. */
