@@ -219,8 +219,8 @@ PRIVATE BOOL wild_match ARGS2(HTAtom *,	template,
 	    *sa = '/';
 	    *st = '/';
 	}    
-	return match;
     }
+    return match;
 }
 
 
