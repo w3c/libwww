@@ -233,12 +233,12 @@ $(WWW)/CERN : /afs/w3.org/member/WWW/CERN.html
 #	OBJECT GENERATION
 #	=================
 #	Directory for object files - .created checks it exists
-OE = $(LOB)/.created
+OE = $(OBJ)/.created
 $(OE) :
 	if [ ! -r $(WTMP) ] ; then mkdir $(WTMP); else echo OK ; fi
-	if [ ! -r $(WTMP)/Library ] ; then mkdir $(WTMP)/Library; else echo OK ; fi
-	if [ ! -r $(WTMP)/Library/$(WWW_MACH) ] ; \
-		then mkdir $(WTMP)/Library/$(WWW_MACH); else echo OK ; fi
+	if [ ! -r $(WTMP)/LineMode ] ; then mkdir $(WTMP)/LineMode; else echo OK ; fi
+	if [ ! -r $(WTMP)/LineMode/$(WWW_MACH) ] ; \
+		then mkdir $(WTMP)/LineMode/$(WWW_MACH); else echo OK ; fi
 	touch $@
 
 $(OBJ)/HTBrowse.o : $(OE) $(LM)HTBrowse.c $(LM)GridText.h $(LM)Version.make \

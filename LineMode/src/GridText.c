@@ -239,7 +239,7 @@ PUBLIC void 	HText_free ARGS1(HText *,self)
 */
 PUBLIC void clear_screen NOARGS
 {
-    if (TRACE)
+    if (WWWTRACE)
 	return;     		    /* in trace mode, don't clear trace away */
 #ifdef CURSES
     if (w_text != NULL) {

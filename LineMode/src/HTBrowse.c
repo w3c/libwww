@@ -91,7 +91,7 @@
 #define ADDRESS_LENGTH		512	   /* Maximum address length of node */
 #define RESPONSE_LENGTH		1024     /* Maximum length of users response */
 
-#define SHOW_MSG		(TRACE || HTPrompt_interactive())
+#define SHOW_MSG		(WWWTRACE || HTPrompt_interactive())
 #define CHECK_INPUT(a, b)	(!strncasecomp ((a), (b), strlen((b))))
 
 #define SEC_TIMEOUT		1		       /* timeout in seconds */
@@ -496,7 +496,7 @@ PRIVATE BOOL SaveOutputStream ARGS3(HTRequest *, req, char *,This, char *,Next)
     req->output_stream = HTFWriter_new(fp, NO);
 
     /* Now, file is open and OK: reload the text and put up a stream for it! */
-    if (TRACE)
+    if (SHOW_MSG)
 	fprintf(TDEST, "Saving to file %s\n", fname);
     return (HTLoadAnchor((HTAnchor*) HTMainAnchor, req) != HT_WOULD_BLOCK);
 }
