@@ -72,7 +72,7 @@ PUBLIC char * HTDialog_progressMessage (HTRequest * request, HTAlertOpcode op,
 		char pct[10];
 		HTNumToStr((unsigned long) cl, buf, 10);
 		sprintf(pct, "%d%%", (int) pro);
-		StrAllocMCopy(&result, "Read (", pct, "of ", buf, ")", NULL);
+		StrAllocMCopy(&result, "Read (", pct, " of ", buf, ")", NULL);
 	    } else {
 		long b_read = HTRequest_bytesRead(request);
 		int * raw_read = input ? (int *) input : NULL;
@@ -102,7 +102,7 @@ PUBLIC char * HTDialog_progressMessage (HTRequest * request, HTAlertOpcode op,
 		char pct[10];
 		HTNumToStr((unsigned long) cl, buf, 10);
 		sprintf(pct, "%d%%", (int) pro);
-		StrAllocMCopy(&result, "Writing (", pct, "of ", buf, ")", NULL);
+		StrAllocMCopy(&result, "Writing (", pct, " of ", buf, ")", NULL);
 	    } else {
 		long b_written = HTRequest_bytesWritten(request);
 		int * raw_written = input ? (int *) input : NULL;
