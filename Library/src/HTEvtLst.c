@@ -755,7 +755,7 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest )
 {
     MSG msg;
     int status;
-    while (GetMessage(&msg,0,0,0)) {
+    while (!HTEndLoop && GetMessage(&msg,0,0,0)) {
 	    TranslateMessage(&msg);
 	    DispatchMessage(&msg);
     }
