@@ -53,6 +53,11 @@ PRIVATE char * suffix_separators = ".,_";
 #include "HTMulti.h"
 #include "HTError.h"
 
+#ifdef ISC3	/* Lauren */		
+#define _POSIX_SOURCE       
+#include <sys/limits.h>		
+#endif
+
 typedef struct _HTSuffix {
 	char *		suffix;
 	HTAtom *	rep;		/* Content-Type */

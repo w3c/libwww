@@ -532,30 +532,24 @@ typedef mode_t		int;
 by Lauren Weinstein &lt;lauren@vortex.com&gt;.
 <PRE>
 
-#ifdef ISC3
-#define USE_DIRENT		/* Lauren */
-#define GOT_READ_DIR 1		/* Lauren */
-#include &lt;sys/ipc.h&gt;	/* Lauren */
-#include &lt;sys/dirent.h&gt;	/* Lauren */
-#include &lt;sys/unistd.h&gt;	/* Lauren */
-typedef int mode_t;		/* Lauren */
-#define d_namlen d_reclen 	/* Lauren */
-#define _POSIX_SOURCE		/* Lauren */
-#include &lt;sys/limits.h&gt;	/* Lauren */
-#define NGROUPS NGROUPS_MAX	/* Lauren */
+#ifdef ISC3			/* Lauren */
+#define USE_DIRENT
+#define GOT_READ_DIR 1
+#include &lt;sys/ipc.h&gt;
+#include &lt;sys/dirent.h&gt;
+#define direct dirent
+#include &lt;sys/unistd.h&gt;
+#define d_namlen d_reclen
+#include &lt;sys/limits.h&gt;
 
-#define SIGSTP			/* Lauren */
-#define POSIXWAIT		/* Lauren */
-#include &lt;sys/types.h&gt;	/* Lauren */
-#include &lt;sys/wait.h&gt;	/* Lauren */
-#include &lt;net/errno.h&gt;	/* Lauren */
+#define SIGSTP
+#define POSIXWAIT
+#include &lt;sys/types.h&gt;
+#include &lt;sys/wait.h&gt;
+#include &lt;net/errno.h&gt;
 
-#ifdef ORGLW	/* Lauren */
-#include &lt;sys/file.h&gt;
-#endif
-
-#define _SYSV3	   /* Lauren */
-#include &lt;time.h&gt;  /* Lauren */
+#define _SYSV3
+#include &lt;time.h&gt;
 
 #include &lt;sys/fcntl.h&gt;
 #define S_ISDIR(m)	(((m) & 0170000) == 0040000)

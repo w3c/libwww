@@ -56,7 +56,7 @@ LOB = $(WTMP)/Library/$(WWW_MACH)
 # in which this makefile is, not the pwd.  This screws up the 
 # recursive invocation
 # include $(CMN)Version.make
-include $(ABS)$(WWW)/Library/Implementation/Version.make
+# include $(ABS)$(WWW)/Library/Implementation/Version.make
 
 CFLAGS2 = $(CFLAGS) $(WAISCFLAGS) -I$(CMN) $(SOCKS_FLAGS)
 
