@@ -930,6 +930,19 @@ PUBLIC int HTCacheMode_maxCacheEntrySize (void)
     return HTCacheMaxEntrySize / MEGA;
 }
 
+/*
+** Set the default expiration time. In seconds.
+*/
+PUBLIC void HTCacheMode_setDefaultExpiration (const int exp_time)
+{
+    DefaultExpiration = exp_time;
+}
+
+PUBLIC int HTCacheMode_DefaultExpiration (void)
+{
+    return DefaultExpiration;
+}
+
 /* ------------------------------------------------------------------------- */
 /*  				 CACHE OBJECT				     */
 /* ------------------------------------------------------------------------- */

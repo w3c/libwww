@@ -121,6 +121,17 @@ extern BOOL HTCacheMode_setMaxCacheEntrySize (int size);
 extern int HTCacheMode_maxCacheEntrySize (void);
 </PRE>
 <H3>
+ Default expiration time of cache entries
+</H3>
+<P>
+If a response does not arrive with an expiration time and does not
+explicitly forbid its being cached, use the default expiration time. The
+time is given in seconds (e.g., 3,600 is one hour).
+<PRE>
+extern void HTCacheMode_setDefaultExpiration (const int exp_time);
+extern int HTCacheMode_DefaultExpiration (void);
+</PRE>
+<H3>
   How do we handle Expiration of Cached Objects?
 </H3>
 <P>
