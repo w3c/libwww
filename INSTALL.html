@@ -58,24 +58,51 @@ You can find some options determining how libwww is going to be compiled
 in the special <A HREF="Library/src/windows/config.h">windows config.h
 file</A>.
 <H3>
-  ZLib Support
+  Zlib Support
 </H3>
 <P>
-One of the options in the <A HREF="Library/src/windows/config.h">windows
-config.h file</A> is to determine whether you want to use the
-<A HREF="http://www.cdrom.com/pub/infozip/zlib/">zlib library</A> for handling
-the <B>deflate</B> content-encoding. This may cause better performance as
-we then can inflate a compressed document on the fly. A version of the
-precompiled <A HREF="http://www.winimage.com/zLibDll/">zlib DLL for Win32</A>
-is already included in the w3c-libwww distribution file and you can find
-it in
-<PRE>	.../w3c-libwww-5.1/Library/External
- 
-</PRE>
+If <CODE>HT_ZLIB</CODE> is defined in the
+<A HREF="Library/src/windows/config.h">windows config.h file</A> then libwww
+can use the <A HREF="http://www.cdrom.com/pub/infozip/zlib/">zlib library</A>
+for handling the <B>deflate</B> content-encoding. This may cause better
+performance as we then can inflate a compressed document on the fly. A version
+of the precompiled <A HREF="http://www.winimage.com/zLibDll/">zlib DLL for
+Win32</A> is already included in the w3c-libwww distribution file.
+<OL>
+  <LI>
+    Define <CODE>HT_ZLIB</CODE> in <A HREF="Library/src/windows/config.h">windows
+    config.h file</A>
+  <LI>
+    Copy <CODE>zlib.dll</CODE> into a location where Windows can find it, for
+    example <CODE>.\Bin\Debug\</CODE>
+</OL>
+<H3>
+  Regular Expressions
+</H3>
 <P>
-Make sure that your system knows about DLLs in this directory or that you
-move the zlib.dll to another location. Otherwise you will not be able to
-run the application as zlib DLL can not be found.
+If <CODE>HT_POSIX_REGEX</CODE> is defined in the
+<A HREF="Library/src/windows/config.h">windows config.h file</A> then libwww
+can use <A HREF="http://www.delorie.com/gnu/docs/rx/">posix compliant regular
+expressions</A>, for example to handle URI matching. This is for example
+<A HREF="Robot/User/CommandLine.html#Constraints">used in the webbot</A>
+which can handle regular expressions when matching which URIs to check. The
+library has been tested with the
+<A HREF="http://people.delphi.com/gjc/gnu_regex.html">GNU regular expression
+library for Win32</A>.
+<OL>
+  <LI>
+    Define <CODE>HT_POSIX_REGEX</CODE> in
+    <A HREF="Library/src/windows/config.h">windows config.h file</A>
+  <LI>
+    Copy <CODE>regex.h</CODE> into <CODE>.\Library\External</CODE> and name it
+    <CODE>rxposix.h</CODE>
+  <LI>
+    Add <CODE>gnu_regex.lib</CODE> to the robot project (or whatever application
+    you are building)
+  <LI>
+    Copy <CODE>gnu_regex.dll</CODE> into a location where Windows can find it,
+    for example <CODE>.\Bin\Debug\</CODE>
+</OL>
 <H3>
   Detailed Installation
 </H3>
