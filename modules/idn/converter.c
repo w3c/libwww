@@ -3,6 +3,24 @@ static char *rcsid = "$Id$";
 #endif
 
 /*
+ * idn module for libwww: see http://dev.w3.org/cvsweb/libwww/modules/idn/
+ *
+ * Changes by Martin Duerst (W3C) are:
+ *   Copyright (C) 2003 World Wide Web Consortium, (Massachusetts
+ *   Institute of Technology, European Research Consortium for Informatics
+ *   and Mathematics, Keio University). All Rights Reserved. This work is
+ *   distributed under the W3C Software License [1] in the hope that
+ *   it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ *   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ *   [1] http://www.w3.org/Consortium/Legal/2002/copyright-software-20021231
+ */
+
+/* changes: MJD 2003-03-20: removed <race.h>
+ */
+
+/* Original sources are: */
+/*
  * Copyright (c) 2000,2002 Japan Network Information Center.
  * All rights reserved.
  *  
@@ -66,7 +84,6 @@ static char *rcsid = "$Id$";
 #include <idn/debug.h>
 #include <idn/ucs4.h>
 #include <idn/punycode.h>
-#include <idn/race.h>
 #include <idn/util.h>
 
 #ifndef IDN_UTF8_ENCODING_NAME
