@@ -241,3 +241,39 @@ PUBLIC HTIconNode * HTIcon_find (HTFileMode	mode,
     }
     return icon_unknown;
 }
+
+PRIVATE void HTIconNode_delete (HTIconNode* pNode)
+{
+    if (pNode) {
+      HT_FREE(pNode->icon_url);
+      HT_FREE(pNode->icon_alt);
+      HT_FREE(pNode->type_templ);
+      HT_FREE(pNode);
+    }
+}
+/*
+**  cleans up all memory used by icons. Should be called by
+**  HTLibTerminate() (but it isn't)
+**
+*/
+PUBLIC void HTIcon_deleteAll (void)
+{
+    if(icons != NULL) {
+	HTList * iconList = icons;
+	HTIconNode * node;
+	while((node = (HTIconNode*)HTList_removeLastObject(iconList))) {
+	  HTIconNode_delete(node);
+	}
+	/* delete the list as well */
+	HTList_delete(icons);
+	icons = NULL;
+    }
+    HTIconNode_delete(icon_unknown);
+    icon_unknown = NULL;
+    HTIconNode_delete(icon_blank);
+    icon_blank = NULL;
+    HTIconNode_delete(icon_parent);
+    icon_parent = NULL;
+    HTIconNode_delete(icon_dir);
+    icon_dir = NULL;
+}

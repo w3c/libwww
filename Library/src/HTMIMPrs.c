@@ -20,8 +20,8 @@
 
 struct _HTMIMEParseEl{
     HTMIMEParseEl * 	next;
-    const char * 	token;
-    BOOL 		caseSensitive;
+    char *		token;
+    BOOL		caseSensitive;
     HTParserCallback * 	pFunk;
 };
 
@@ -79,18 +79,18 @@ PUBLIC int HTMIMEParseSet_deleteAll (HTMIMEParseSet * me)
 {
     int i;
     HTMIMEParseEl * pEl, * next;
-    
-    for (i=0; i<me->size; i++)
-	for (pEl = me->parsers[i]; pEl; pEl = next) {
-	    next = pEl->next;
-	    HT_FREE(pEl);
-	}
 
-    for (pEl = me->parsers[i]; pEl; pEl = next) {
-        next = pEl->next;
-	HT_FREE(pEl);
+    if (me && me->parsers) {
+	for (i=0; i<me->size; i++) {
+	    for (pEl = me->parsers[i]; pEl; pEl = next) {
+		next = pEl->next;
+		HT_FREE(pEl->token);
+		HT_FREE(pEl);
+	    }
+	}
+	HT_FREE(me->parsers);
+	HT_FREE(me);
     }
-    HT_FREE(me);
     return HT_OK;
 }
 

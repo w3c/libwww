@@ -124,6 +124,14 @@ by the caller.
 <PRE>extern char * HTIcon_alternative (HTIconNode * node, BOOL brackets);
 </PRE>
 <H2>
+  Delete all icons
+</H2>
+<P>
+Cleans up all memory used by icons. Should be called by
+HTLibTerminate() (but it isn't).
+<PRE>extern void HTIcon_deleteAll (void);
+</PRE>
+<H2>
   A Standard Set of Icons
 </H2>
 <P>
