@@ -1375,6 +1375,11 @@ PRIVATE StateRet_t ServiceInfo_doClose(CSParse_t * pCSParse, char * token, char 
 /* CSParse_doc end */
 /* I T E R A T O R S - scan through the CSLabel data structures for <identifier> */
 /* CSLabel_iterateServices - look for rating service in a label list
+	   (pCSLabel->pCurrentServiceInfo = (ServiceInfo_t *) HTList_nextObject(serviceInfos)) && 
+	   SVal_initialized(&pCSLabel->pCurrentServiceInfo->rating_service))
+        if (!identifier || !strcasecomp(SVal_value(&pCSLabel->pCurrentServiceInfo->rating_service), identifier)) {
+	    ret = (*pIteratorCB)(pCSLabel, pParms, identifier, pVoid);
+            count++;
  */
 PUBLIC CSError_t CSLabel_iterateServices(CSLabel_t * pCSLabel, CSLabel_callback_t * pIteratorCB, State_Parms_t * pParms, const char * identifier, void * pVoid)
 {
@@ -1386,11 +1391,15 @@ PUBLIC CSError_t CSLabel_iterateServices(CSLabel_t * pCSLabel, CSLabel_callback_
         !pCSLabel->pCSLLData->serviceInfos)
         return CSError_BAD_PARAM;
     serviceInfos = pCSLabel->pCSLLData->serviceInfos;
-	while (ret == CSError_OK && (pCSLabel->pCurrentServiceInfo = (ServiceInfo_t *) HTList_nextObject(serviceInfos)))
-        if (!identifier || !strcasecomp(SVal_value(&pCSLabel->pCurrentServiceInfo->rating_service), identifier)) {
-            ret = (*pIteratorCB)(pCSLabel, pParms, identifier, pVoid);
-            count++;
-        }
+    while (ret == CSError_OK && 
+	   (pCSLabel->pCurrentServiceInfo = (ServiceInfo_t *) HTList_nextObject(serviceInfos))) {
+        if (identifier && 
+	    (!SVal_initialized(&pCSLabel->pCurrentServiceInfo->rating_service) || 
+	     strcasecomp(SVal_value(&pCSLabel->pCurrentServiceInfo->rating_service), identifier)))
+	    continue;
+	ret = (*pIteratorCB)(pCSLabel, pParms, identifier, pVoid);
+	count++;
+    }
     if (!count)
         return CSError_SERVICE_MISSING;
     return ret;

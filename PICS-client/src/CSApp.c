@@ -51,6 +51,7 @@ PRIVATE char * S_URLList = "application/x-url-list";
                         Useful for loading user list and profiles. */
 HTList * ListWithBureauBefore = 0;
 HTList * ListWithBureauAfter = 0;
+#include "HTAncMan.h" /* allow me to set physical to 0 */
 PRIVATE BOOL LoadURLToConverter(const char * url, const char * relatedName, 
 				const char * type, HTConverter * converter, 
 				const char * errMessage, HTRequest ** pPReq, 
@@ -65,6 +66,11 @@ PRIVATE BOOL LoadURLToConverter(const char * url, const char * relatedName,
     pRequest = HTRequest_new();
     fullURL = HTParse(url, relatedName, PARSE_ALL);
     pParentAnchor = (HTParentAnchor *) HTAnchor_findAddress(fullURL);
+    /* !!! */
+    if (pParentAnchor->physical) {
+        HT_FREE(pParentAnchor->physical);
+	pParentAnchor->physical = 0;
+    }
     HTRequest_setPreemptive(pRequest, YES);
     if (converter) {
         HTConversion_add(conversions, type, "*/*", converter, 1.0, 0.0, 0.0);

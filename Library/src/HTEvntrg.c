@@ -986,6 +986,10 @@ PRIVATE void __DumpFDSet( fd_set * fdp, const char * str)
     return ;
 }
 
+/*	REGISTER DEFULT EVENT MANAGER
+**	-----------------------------
+**	Not done automaticly - may be done by application!
+*/
 PUBLIC BOOL HTEventrgInit (void)
 {
 #ifdef WWW_WIN_ASYNC
@@ -1028,6 +1032,8 @@ PUBLIC BOOL HTEventrgInit (void)
     }
     HTwinMsg = WM_USER;  /* use first available message since app uses none */
 #endif /* WWW_WIN_ASYNC */
+    HTEvent_setRegisterCallback(HTEventrg_register);
+    HTEvent_setUnregisterCallback(HTEventrg_unregister);
     return YES;
 }
 

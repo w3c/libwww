@@ -573,8 +573,8 @@ static NowIn_t lastRet = NowIn_END;
                     continue;
                 case StateRet_ERROR_BAD_CHAR:
 		    (*pCSParse->pParseContext->pParseErrorHandler)(pCSParse, token, demark, StateRet_ERROR_BAD_CHAR);
-                    if (pTargetObject->pDestroy)
-		        (*pTargetObject->pDestroy)(pCSParse);
+		    /*                    if (pTargetObject->pDestroy)
+		        (*pTargetObject->pDestroy)(pCSParse); */
                     return NowIn_ERROR;
 	        default:
 		    break;

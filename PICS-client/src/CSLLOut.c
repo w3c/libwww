@@ -116,6 +116,10 @@ PRIVATE CSError_t CSLLOut_outputService(CSLabel_t * pCSLabel, State_Parms_t * pP
 {
     CSError_t ret;
     ServiceInfo_t * pServiceInfo = CSLabel_getServiceInfo(pCSLabel);
+    if (!SVal_initialized(&pServiceInfo->rating_service)) {
+        ps(pParms->pStream, "%s ", "<service error>");
+	return HT_OK;
+    }
     ps(pParms->pStream, "\"%s\" ", SVal_value(&pServiceInfo->rating_service));
     LabelOptions_output(pServiceInfo->pLabelOptions, pParms->pStream);
     ps(pParms->pStream, "l ");

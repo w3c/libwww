@@ -51,10 +51,8 @@
     for dynamic registration of an event manager. This will make it much easier
     to use external event managers together with libwww. If you wish to continue
     to use the event loop from HTEvntrg, you must register it explicitly with
-    <A HREF="../src/HTEvent.c">HTEventInit</A>. To activate this event loop
-    (currently only necessary in MSWindows), you must call
-    <A HREF="../src/HTEvntrg.html">HTEventrgInit</A>. Both of these calls are
-    demonstrated in <A HREF="../../LineMode/src/HTBrowse.c">HTBrowse</A>.
+    <A HREF="../src/HTEvntrg.html">HTEventrgInit</A>. This call is demonstrated
+    in <A HREF="../../LineMode/src/HTBrowse.c">HTBrowse</A>.
   <LI>
     The <A HREF="../src/HTStream.html">HTStream module</A> has been created
     containing a set of basiv streams such as an error stream etc.
@@ -67,7 +65,8 @@
     <A HREF="../src/HTMIME.html">HTMIME</A> module only unwraps the &nbsp;MIME
     header fields and calls the best parser. The header parsing origonally done
     in HTMIME can be found in <A HREF="../src/HTInit.c">HTInit.c</A> and is
-    registered with <A HREF="../src/HTInit.html">HTMIMEInit</A>.
+    registered with <A HREF="../src/HTInit.html">HTMIMEInit</A>. This call is
+    demonstrated in <A HREF="../../LineMode/src/HTBrowse.c">HTBrowse</A>.
 </UL>
 <H3>
   Bug Fixes
