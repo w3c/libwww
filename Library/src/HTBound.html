@@ -1,0 +1,41 @@
+<HTML>
+<HEAD>
+<TITLE>MIME MULTIPART PARSER STREAM</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  2-Oct-1995 -->
+<NEXTID N="z1">
+</HEAD>
+<BODY>
+
+<H1>MIME Multipart Parser Stream</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This stream parses a MIME multipart stream and builds a set of new
+streams via the stream stack each time we encounter a boundary start.
+We get the boundary from the normal MIME parser via the Request
+object. As we keep a local copy this also work for nested
+multiparts.<P>
+
+This module is implemented by <A HREF="HTBound.c">HTBound.c</A>, and it is
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C
+Reference Library</A>.
+
+<PRE>
+#ifndef HTBOUND_H
+#define HTBOUND_H
+#include "HTFormat.h"
+
+extern HTConverter HTBoundary;
+
+#endif
+</PRE>
+end of HTNound Module
+</BODY>
+</HTML>
+
+
