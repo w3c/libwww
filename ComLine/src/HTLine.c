@@ -39,7 +39,7 @@
 #define APP_VERSION		VT
 
 /* Default page for "-help" command line option */
-#define HELP			"http://www.w3.org/pub/WWW/ComLine/User/"
+#define HELP	"http://www.w3.org/pub/WWW/ComLine/User/CommandLine.html"
 
 #define DEFAULT_OUTPUT_FILE	"w3c.out"
 #define DEFAULT_RULE_FILE	"w3c.conf"
@@ -245,6 +245,8 @@ int main (int argc, char ** argv)
     HTConversion_add(conv,"message/rfc822","*/*",HTMIMEConvert, 1.0, 0.0, 0.0);
     HTConversion_add(conv,"multipart/*", "*/*", HTBoundary, 1.0, 0.0, 0.0);
 
+    HTConversion_add(conv,"www/unknown", "*/*",	HTGuess_new, 1.0, 0.0, 0.0);
+
     /* Normal converters */
     HTConversion_add(conv, "*/*", "www/present", HTSaveLocally, 0.5, 0.0, 0.0);
 
@@ -352,14 +354,18 @@ int main (int argc, char ** argv)
 		if (!WWWTRACE) WWWTRACE = SHOW_ALL_TRACE;
 #endif
 
-	    /* DELETE method */
-	    } else if (!strcasecomp(argv[arg], "-delete")) {
-		HTRequest_setMethod(cl->request, METHOD_DELETE);
+	    /* GET method */
+	    } else if (!strcasecomp(argv[arg], "-get")) {
+		HTRequest_setMethod(cl->request, METHOD_GET);
 
 	    /* HEAD method */
 	    } else if (!strcasecomp(argv[arg], "-head")) {
 		HTRequest_setMethod(cl->request, METHOD_HEAD);
 		HTRequest_setOutputFormat(cl->request, WWW_MIME);
+
+	    /* DELETE method */
+	    } else if (!strcasecomp(argv[arg], "-delete")) {
+		HTRequest_setMethod(cl->request, METHOD_DELETE);
 
 	    /* POST Method */
 	    } else if (!strcasecomp(argv[arg], "-post")) {
@@ -438,8 +444,8 @@ int main (int argc, char ** argv)
 
     /* Just convert formats */
     if (cl->flags & CL_FILTER) {
-	HTRequest_setAnchor (cl->request, (HTAnchor *) cl->anchor);
 #if 0
+	HTRequest_setAnchor (cl->request, (HTAnchor *) cl->anchor);
      	HTParseSocket(cl->format, 0, request);      /* From std UNIX input */
 #endif
 	Cleanup(cl, 0);
