@@ -39,7 +39,7 @@ install-exec-local:
 AUTOMAKE_OPTIONS = foreign
 
 # These are the sub directories
-SUBDIRS = config Library PICS-client LineMode Robot ComLine Listen Icons
+SUBDIRS = config Library PICS-client LineMode Robot ComLine Icons
 
 # Extra distribution files in zip format and in compress
 dist-hook:
@@ -50,7 +50,7 @@ dist-hook:
 
 # Tag before making distribution.  Also, don't make a distribution if
 # checks fail.
-CVSSTUFF = config Library PICS-client LineMode Robot ComLine Listen \
+CVSSTUFF = config Library PICS-client LineMode Robot ComLine \
 Makefile.am acconfig.h acinclude.m4 aclocal.m4 wwwconf.h.in configure.in
 
 # If not indicated otherwise then use this to make the CVS diff with

@@ -531,7 +531,5 @@ LineMode/Makefile LineMode/User/Makefile
 LineMode/src/Makefile LineMode/src/windows/Makefile LineMode/src/vms/Makefile
 Robot/Makefile Robot/User/Makefile Robot/src/Makefile Robot/src/windows/Makefile
 ComLine/Makefile ComLine/User/Makefile ComLine/src/Makefile ComLine/src/windows/Makefile
-MiniServ/Makefile MiniServ/User/Makefile MiniServ/src/Makefile
-Listen/Makefile Listen/User/Makefile Listen/src/Makefile
 Icons/Makefile Icons/WWW/Makefile Icons/32x32/Makefile Icons/internal/Makefile
 ], date>stamp-h)
