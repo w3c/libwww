@@ -38,6 +38,46 @@ the latest &nbsp;<A HREF="Extrnals.html">list of public functions</A></B>
 <P>
   <HR>
 <H2>
+  Release 5.1j March 9 1998
+</H2>
+<H3>
+  New Features
+</H3>
+<UL>
+  <LI>
+    Made the distinction between Transfer-Encoding and Content-Transfer-Encoding
+    clear - they were somewhat mixed up before. Libwww also now supports multiple
+    transfer-codings as well as multiple content-codings as required by
+    <A HREF="../../Protocols/History/#latest">HTTP/1.1</A>.
+  <LI>
+    Changed the <A HREF="../src/HTFormat.html">Stream Stack</A> to not call the
+    <CODE>SaveLocally</CODE> stream any more but instead return an ErrorStream.
+    The reason for this is that there are several places in the stram stack building
+    algorithm where we might want to save the file to local file: when there
+    is a content type that we don't understand, a content-encoding, or a
+    transfer-encoding (or a combiunation of these) that we don't understand.
+    Now we can make sure that the <CODE>SaveLocally</CODE> stream is only called
+    once
+  <LI>
+    Added support for "<B>identity</B>" transfer-coding and content-coding
+  <LI>
+    Added support for Allow header when doing PUT and POST
+</UL>
+<H3>
+  Bug Fixes
+</H3>
+<UL>
+  <LI>
+    Fixed a problem handling wrong HTTP responses from NCSA HTTPD dereived servers
+    (they don't include a version number when responding to an HTTP/1.1 request)
+  <LI>
+    PUT now works much more reliable, and it also works on Windows (at least
+    &nbsp;NT, I haven't tested it on 95).
+  <LI>
+    Fixed a refresh problem in the <A HREF="../../LineMode/">Line Mode Browser</A>
+    which caused it to sometimes render the screen twice.
+</UL>
+<H2>
   Release 5.1f January 1998
 </H2>
 <H3>
