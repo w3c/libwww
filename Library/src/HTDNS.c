@@ -37,7 +37,7 @@ struct _HTdns {
     int 		version;			   /* Server version */
     HTTCPType		type;				  /* Connection type */
 
-    BOOL		active;				    /* Socket in use */
+    int 		active;			 /* Semaphor on Socket usage */
     time_t		expires;		      /* Socket expires time */
     SOCKET		sockfd;			    /* Persistent connection */
 
@@ -59,7 +59,7 @@ PRIVATE void free_object (HTdns * me)
     if (me) {
 	FREE(me->hostname);
 	FREE(me->server);
- 	if (me->sockfd != INVSOC && !me->active) {
+ 	if (me->sockfd != INVSOC && me->active <= 0) {
 	    NETCLOSE(me->sockfd);
 	    HTEvent_UnRegister(me->sockfd, (SockOps) FD_ALL);
 	    HTList_removeObject(PersSock, me);
@@ -174,17 +174,21 @@ PUBLIC BOOL HTDNS_setSocket(HTdns *dns, SOCKET socket)
     if (!PersSock) PersSock = HTList_new();
     if (socket == INVSOC) {
 	dns->sockfd = socket;
-	dns->active = NO;
+	dns->active = 0;
+	if (dns->active < 0) dns->active = 0;
 	dns->expires = 0;
 	HTList_removeObject(PersSock, dns);
 	return YES;
     } else if (HTList_count(PersSock) < HTNet_maxSocket()-2) {
 	dns->sockfd = socket;
-	dns->active = YES;
+	if (dns->active <= 0) dns->active = 1;
 	dns->expires = time(NULL) + TCPTimeout;		  /* Default timeout */
 	HTList_addObject(PersSock, dns);
 	return YES;
     }
+    if (PROT_TRACE)
+	TTYPrint(TDEST, "DNS Socket.. semaphor is %d for soc %d\n",
+		 dns->active, dns->sockfd);
     return NO;
 }
 
@@ -196,10 +200,11 @@ PUBLIC int HTDNS_socketCount (void)
 PUBLIC void HTDNS_clearActive (HTdns *dns)
 {
     if (dns) {
+	dns->active--;	
+	if (dns->active < 0) dns->active = 0;
 	if (PROT_TRACE)
-	    TTYPrint(TDEST, "DNS Clear... Active bit for socket %d\n",
-		    dns->sockfd);
-	dns->active = NO;
+	    TTYPrint(TDEST, "DNS Clear... semaphor is %d for soc %d\n",
+		     dns->active, dns->sockfd);
     }
 }
 
@@ -441,11 +446,17 @@ PUBLIC int HTGetHostByName (HTNet *net, char *host)
 
 	/* See if we have an open connection already */
 	if (pres->sockfd != INVSOC) {
-	    if (pres->active) {			   /* Warm connection in use */
+	    if (pres->active >= 0) {		   /* Warm connection in use */
 		net->sockfd = pres->sockfd;		    /* Assign always */
-		if (pres->type == HT_TCP_INTERLEAVE) {
+		pres->active++;
+		if (PROT_TRACE)
+		    TTYPrint(TDEST,"HostByName.. semaphor is %d for soc %d\n",
+			     pres->active, pres->sockfd);
+		if (pres->type == HT_TCP_PLAIN) {
 		    if (PROT_TRACE)
-			TTYPrint(TDEST, "HostByName.. waiting for socket\n");
+			TTYPrint(TDEST, "HostByName.. waiting for socket %d\n",
+				 pres->sockfd);
+		    net->dns = pres;
 		    return 0;			/* Wait for clear connection */
 		}
 	    } else if (pres->expires < time(NULL)) {	      /* Gotton cold */
@@ -456,7 +467,10 @@ PUBLIC int HTGetHostByName (HTNet *net, char *host)
 		HTDNS_setSocket(pres, INVSOC);
 	    } else {		    /* Warm connection is idle and ready :-) */
 		HTEvent_UnRegister(pres->sockfd, (SockOps) FD_ALL);
-		pres->active = YES;		
+		pres->active = 1;
+		if (PROT_TRACE)
+		    TTYPrint(TDEST,"HostByName.. semaphor is %d for soc %d\n",
+			     pres->active, pres->sockfd);
 		net->sockfd = pres->sockfd;
 	    }
  	}

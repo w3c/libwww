@@ -552,8 +552,8 @@ PUBLIC BOOL HTNet_delete (HTNet * net, int status)
 	    while ((next = (HTNet *) HTList_nextObject(cur))) {
 		if (next->sockfd == cs) {
 		    if (WWWTRACE)
-			TTYPrint(TDEST, "HTNet delete launch WARM request %p\n",
-				next->request);
+			TTYPrint(TDEST, "HTNet delete Launch request %p on WARM socket %d (net object %p)\n",
+				 next->request, next->sockfd, next);
 		    HTList_addObject(HTNetActive, (void *) next);
 		    HTList_removeObject(HTNetPersistent, (void *) next);
 		    (*(next->cbf))(next->sockfd, next->request, FD_NONE);

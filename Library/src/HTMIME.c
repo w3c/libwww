@@ -368,7 +368,7 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
  	    if ((value = HTNextField(&ptr)) != NULL) {
 		if (!strcasecomp(value, "keep-alive")) {
 		    if (STREAM_TRACE)
-			TTYPrint(TDEST,"MIMEParser.. Persistent Connection!\n");
+			TTYPrint(TDEST,"MIMEParser.. Persistent Connection\n");
 		    HTDNS_setSocket(me->net->dns, me->net->sockfd);
 		}
 	    }
@@ -526,6 +526,9 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 	}
     }
 
+    anchor->header_parsed = YES;
+    if (request->method == METHOD_HEAD) return HT_LOADED;
+
     /* News server almost never send content type or content length */
     if (anchor->content_type != WWW_UNKNOWN || me->nntp) {
 	if (STREAM_TRACE)
@@ -539,7 +542,6 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 	    me->target = HTBlackHole();
 	}
     }
-    anchor->header_parsed = YES;
     me->transparent = YES;		  /* Pump rest of data right through */
     return HT_OK;
 }
@@ -616,9 +618,10 @@ PRIVATE int HTMIME_put_block (HTStream * me, CONST char * b, int l)
 	    int status = (*me->target->isa->put_block)(me->target, b, l);
 	    if (status == HT_OK)
 		/* Check if CL at all - thanks to jwei@hal.com (John Wei) */
-		return (me->anchor->content_length >= 0 &&
-			me->net->bytes_read >= me->anchor->content_length) ?
-			    HT_LOADED : HT_OK;
+		return (me->request->method == METHOD_HEAD ||
+			(me->anchor->content_length >= 0 &&
+			 me->net->bytes_read >= me->anchor->content_length)) ?
+			     HT_LOADED : HT_OK;
 	    else
 		return status;
 	} else

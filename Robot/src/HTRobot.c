@@ -41,13 +41,16 @@
 #endif
 
 typedef enum _MRFlags {
-    MR_FILTER	=0x1,
-    MR_COUNT	=0x2
+    MR_IMG	= 0x1,
+    MR_LINK	= 0x2,
+    MR_PREEMTIVE= 0x4
 } MRFlags;
 
 typedef struct _Robot {
     HTRequest *		request;
     HTParentAnchor *	anchor;
+    int			depth;			     /* How deep is our tree */
+    HTList *		hyperdoc;	     /* List of our HyperDoc Objects */
     struct timeval *	tv;				/* Timeout on socket */
     char *		cwd;				  /* Current dir URL */
     HTList *		converters;
@@ -92,6 +95,45 @@ PUBLIC HTStyleSheet * styleSheet = NULL;
 
 /* ------------------------------------------------------------------------- */
 
+/*	Create a "HyperDoc" object
+**	--------------------------
+**	A HyperDoc object contains information about whether we have already
+**	started checking the anchor and the depth in our search
+*/
+PRIVATE HyperDoc * HyperDoc_new (Robot * mr,HTParentAnchor * anchor, int depth)
+{
+    HyperDoc * hd;
+    if ((hd = (HyperDoc *) calloc(1, sizeof(HyperDoc))) == NULL)
+	outofmem(__FILE__, "HyperDoc_new");
+    hd->state = L_INVALID;
+    hd->depth = depth;
+ 
+    /* Bind the HyperDoc object together with the Anchor Object */
+    hd->anchor = anchor;
+    HTAnchor_setDocument(anchor, (void *) hd);
+
+    /* Add this HyperDoc object to our list */
+    if (!mr->hyperdoc) mr->hyperdoc = HTList_new();
+    HTList_addObject(mr->hyperdoc, (void *) hd);
+
+    if (SHOW_MSG)
+	TTYPrint(TDEST, "HyperDoc.... %p bound to anchor %p with depth %d\n",
+		 hd, anchor, depth);
+    return hd;
+}
+
+/*	Delete a "HyperDoc" object
+**	--------------------------
+*/
+PRIVATE BOOL HyperDoc_delete (HyperDoc * hd)
+{
+    if (hd) {
+	free (hd);
+	return YES;
+    }
+    return NO;
+}
+
 /*	Create a Command Line Object
 **	----------------------------
 */
@@ -101,6 +143,7 @@ PRIVATE Robot * Robot_new (void)
     if ((me = (Robot *) calloc(1, sizeof(Robot))) == NULL ||
 	(me->tv = (struct timeval*) calloc(1, sizeof(struct timeval))) == NULL)
 	outofmem(__FILE__, "Robot_new");
+    me->hyperdoc = HTList_new();
     me->tv->tv_sec = DEFAULT_TIMEOUT;
     me->cwd = HTFindRelatedName();
     me->output = OUTPUT;
@@ -117,7 +160,13 @@ PRIVATE Robot * Robot_new (void)
 PRIVATE BOOL Robot_delete (Robot * me)
 {
     if (me) {
-	HTRequest_delete(me->request);
+	if (me->hyperdoc) {
+	    HTList * cur = me->hyperdoc;
+	    HyperDoc * pres;
+	    while ((pres = (HyperDoc *) HTList_nextObject(cur)))
+		HyperDoc_delete(pres);
+	    HTList_delete(me->hyperdoc);
+	}
 	if (me->logfile) HTLog_close();
 	if (me->output && me->output != STDOUT) fclose(me->output);
 	FREE(me->cwd);
@@ -128,8 +177,35 @@ PRIVATE BOOL Robot_delete (Robot * me)
     return NO;
 }
 
+/*
+**  This function creates a new request object and initializes it
+*/
+PRIVATE HTRequest * Thread_new (Robot * mr, HTMethod method)
+{
+    HTRequest * newreq = HTRequest_new();
+    HTRequest_setContext (newreq, mr);
+    if (mr->flags & MR_PREEMTIVE) HTRequest_setPreemtive(newreq, YES);
+    HTRequest_addRqHd(newreq, HT_HOST);
+    HTRequest_setMethod(newreq, method);
+    return newreq;
+}
+
+PRIVATE BOOL Thread_delete (Robot * mr, HTRequest * request)
+{
+    if (mr && request) {
+	HTRequest_delete(request);
+	return YES;
+    }
+    return NO;
+}
+
+/*
+**  Cleanup and make sure we close all connections including the persistent
+**  ones
+*/
 PRIVATE void Cleanup (Robot * me, int status)
 {
+    HTNet_killAll();
     Robot_delete(me);
     HTLibTerminate();
 #ifdef VMS
@@ -170,18 +246,15 @@ PRIVATE void VersionInfo (void)
 
 /*	terminate_handler
 **	-----------------
-**	This function is registered to handle the result of the request
+**	This function is registered to handle the result of the request.
+**	If no more requests are pending then terminate program
 */
 PRIVATE int terminate_handler (HTRequest * request, int status) 
 {
     Robot * mr = (Robot *) HTRequest_context(request);
-    if (status == HT_LOADED) {
-	if (mr->flags & MR_COUNT) {
-	    TTYPrint(OUTPUT, "Content Length found to be %ld\n",
-		     HTAnchor_length(mr->anchor));
-	}
-    }
     if (mr->logfile) HTLog_add(request, status);
+    Thread_delete(mr, request);
+    if (HTNet_idle()) Cleanup(mr, 0);
     return HT_OK;
 }
 
@@ -191,49 +264,16 @@ PRIVATE int terminate_handler (HTRequest * request, int status)
 */
 PRIVATE int timeout_handler (HTRequest * request)
 {
-    if (SHOW_MSG) TTYPrint(TDEST, "Request timeout...\n");
+    Robot * mr = (Robot *) HTRequest_context(request);
+    if (SHOW_MSG) TTYPrint(TDEST, "Robot....... Request timeout...\n");
     HTRequest_kill(request);
+    Thread_delete(mr, request);
     return 0;
 }
 
 /* ------------------------------------------------------------------------- */
 /*				HTEXT INTERFACE				     */
 /* ------------------------------------------------------------------------- */
-
-/*	Create a "HyperDoc" object
-**	--------------------------
-**	A HyperDoc object contains information about whether we have already
-**	started checking the anchor and the depth in our search
-*/
-PRIVATE HyperDoc * HyperDoc_new (HTParentAnchor * anchor, int depth)
-{
-    HyperDoc * hd;
-    if ((hd = (HyperDoc *) calloc(1, sizeof(HyperDoc))) == NULL)
-	outofmem(__FILE__, "HyperDoc_new");
-    hd->state = L_INVALID;
-    hd->depth = depth;
- 
-    /* Bind the HyperDoc object together with the Anchor Object */
-    hd->anchor = anchor;
-    HTAnchor_setDocument(anchor, (void *) hd);
-
-    if (SHOW_MSG)
-	TTYPrint(TDEST, "HyperDoc.... %p bound to anchor %p with depth %d\n",
-		 hd, anchor, depth);
-    return hd;
-}
-
-/*	Delete a "HyperDoc" object
-**	--------------------------
-*/
-PRIVATE BOOL HyperDoc_delete (HyperDoc * hd)
-{
-    if (hd) {
-	free (hd);
-	return YES;
-    }
-    return NO;
-}
 
 PUBLIC HText * HText_new2 (HTRequest * request, HTParentAnchor * anchor,
 			   HTStream * stream)
@@ -248,48 +288,69 @@ PUBLIC HText * HText_new2 (HTRequest * request, HTParentAnchor * anchor,
 PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
 {
     if (text && anchor) {
+	Robot * mr = (Robot *) HTRequest_context(text->request);
 	HTAnchor * dest = HTAnchor_followMainLink((HTAnchor *) anchor);
 	HTParentAnchor * dest_parent = HTAnchor_parent(dest);
 	HyperDoc * hd = HTAnchor_document(dest_parent);
 
-	/* Test whether we have already a hyperdoc for this document */
-	if (!hd) {
+	/* Test whether we already have a hyperdoc for this document */
+	if (mr->flags & MR_LINK && dest_parent && !hd) {
 	    HTParentAnchor * parent = HTRequest_parent(text->request);
 	    HyperDoc * last = HTAnchor_document(parent);
 	    int depth = last ? last->depth+1 : 0;
-	    HyperDoc_new(dest_parent, depth);
+	    HTRequest * newreq = Thread_new(mr, METHOD_GET);
+	    HyperDoc_new(mr, dest_parent, depth);
+	    if (SHOW_MSG) {
+		char * uri = HTAnchor_address((HTAnchor *) dest_parent);
+		TTYPrint(TDEST, "Robot....... Loading `%s\'\n", uri);
+		free(uri);
+	    }
+	    if (HTLoadAnchor((HTAnchor *) dest_parent, newreq) != YES) {
+		if (SHOW_MSG) TTYPrint(TDEST, "Robot...... URI Not tested!\n");
+		Thread_delete(mr, newreq);
+	    }
+	}
+    }
+}
 
-	    /* Create a new request object */
-	    if (dest_parent) {
-		Robot * mr = (Robot *) HTRequest_context(text->request);
-		HTRequest * newreq = HTRequest_new();
-		HTRequest_setContext (newreq, mr);
-		if (SHOW_MSG) {
-		    char * uri = HTAnchor_address((HTAnchor *) dest_parent);
-		    TTYPrint(TDEST, "Robot....... Loading `%s\'\n", uri);
-		    free(uri);
-		}
-		if (HTLoadAnchor((HTAnchor *) dest_parent, newreq) != YES)
-		    if (SHOW_MSG) TTYPrint(TDEST, "URI Not tested!\n");
+PUBLIC void HText_appendImage (HText * text, HTChildAnchor * anchor,
+			       CONST char *alt, CONST char * align, BOOL isMap)
+{
+    if (text && anchor) {
+	Robot * mr = (Robot *) HTRequest_context(text->request);
+	HTParentAnchor * dest = (HTParentAnchor *)
+	    HTAnchor_followMainLink((HTAnchor *) anchor);
+	HyperDoc * hd = HTAnchor_document(dest);
+
+	/* Test whether we already have a hyperdoc for this document */
+	if (mr->flags & MR_IMG && dest && !hd) {
+	    HTParentAnchor * parent = HTRequest_parent(text->request);
+	    HyperDoc * last = HTAnchor_document(parent);
+	    int depth = last ? last->depth+1 : 0;
+	    HTRequest * newreq = Thread_new(mr, METHOD_HEAD);
+	    HyperDoc_new(mr, dest, depth);
+	    if (SHOW_MSG) {
+		char * uri = HTAnchor_address((HTAnchor *) dest);
+		TTYPrint(TDEST, "Robot....... Checking Image `%s\'\n", uri);
+		free(uri);
+	    }
+	    if (HTLoadAnchor((HTAnchor *) dest, newreq) != YES) {
+		if (SHOW_MSG)
+		    TTYPrint(TDEST, "Robot....... Image not tested!\n");
+		Thread_delete(mr, newreq);
 	    }
 	}
     }
 }
 
 PUBLIC void HText_endAnchor (HText * text) {}
-PUBLIC void HText_appendImage (HText * text, HTChildAnchor * anchor,
-			       CONST char * alt, CONST char * alignment,
-			       BOOL isMap) {}
 PUBLIC void HText_appendText (HText * text, CONST char * str) {}
 PUBLIC void HText_appendCharacter (HText * text, char ch) {}
 PUBLIC void HText_endAppend (HText * text) {}
 PUBLIC void HText_setStyle (HText * text, HTStyle * style) {}
 PUBLIC void HText_beginAppend (HText * text) {}
 PUBLIC void HText_appendParagraph (HText * text) {}
-PUBLIC BOOL HText_delete (HText * me)
-{
-    return YES;
-}
+PUBLIC BOOL HText_delete (HText * me) { return YES; }
 
 /* ------------------------------------------------------------------------- */
 /*				  MAIN PROGRAM				     */
@@ -374,6 +435,20 @@ int main (int argc, char ** argv)
 	    /* preemtive or non-preemtive access */
 	    } else if (!strcmp(argv[arg], "-single")) {
 		HTRequest_setPreemtive(mr->request, YES);
+		mr->flags |= MR_PREEMTIVE;
+
+	    /* test inlined images */
+	    } else if (!strcmp(argv[arg], "-img")) {
+		mr->flags |= MR_IMG;
+
+	    /* load anchors */
+	    } else if (!strcmp(argv[arg], "-link")) {
+		mr->flags |= MR_LINK;
+
+	    /* preemtive or non-preemtive access */
+	    } else if (!strcmp(argv[arg], "-single")) {
+		HTRequest_setPreemtive(mr->request, YES);
+		mr->flags |= MR_PREEMTIVE;
 
 	    /* print version and exit */
 	    } else if (!strcmp(argv[arg], "-version")) { 
@@ -430,7 +505,7 @@ int main (int argc, char ** argv)
 #endif
 
     if (!keycnt) {
-	if (SHOW_MSG) TTYPrint(TDEST, "No URL specified\n");
+	if (SHOW_MSG) TTYPrint(TDEST, "Please specify URL to check.\n");
 	Cleanup(mr, -1);
     }
 

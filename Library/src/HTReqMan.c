@@ -72,7 +72,7 @@ PUBLIC HTRequest * HTRequest_new (void)
 
     /* Format of output */
     me->output_format	= WWW_PRESENT;	    /* default it to present to user */
-    me->debug_format	= WWW_HTML;	 /* default format of error messages */
+    me->debug_format	= WWW_DEBUG;	 /* default format of error messages */
 
     /* HTTP headers */
     me->GenMask		= DEFAULT_GENERAL_HEADERS;

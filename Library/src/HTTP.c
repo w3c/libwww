@@ -351,7 +351,7 @@ PRIVATE int stream_pipe (HTStream * me)
 	    *ptr = '\0';
 
 	/* Set up the streams */
-	if (me->status==200) {
+	if (me->status==200 && req->method==METHOD_GET) {
 	    HTStream *s;
 	    me->target = HTStreamStack(WWW_MIME, req->output_format,
 				       req->output_stream, req, NO);
