@@ -238,6 +238,15 @@ PRIVATE void HTML_start_element (HTStructured *	me,
 	}
 	break;
 
+    case HTML_FORM:
+	if (present[HTML_FORM_ACTION] && value[HTML_FORM_ACTION]) {
+	    address = HTAnchor_findChildAndLink(me->node_anchor, NULL,
+						value[HTML_FORM_ACTION], NULL);
+	    HTextImp_foundLink(me->text, element_number, HTML_FORM_ACTION,
+			       address, present, value);
+	}
+	break;
+
     case HTML_FRAME:
 	if (present[HTML_FRAME_SRC] && value[HTML_FRAME_SRC]) {
 	    address = HTAnchor_findChildAndLink(me->node_anchor, NULL,
@@ -249,6 +258,15 @@ PRIVATE void HTML_start_element (HTStructured *	me,
 	}
 	break;
 	
+    case HTML_INPUT:
+	if (present[HTML_INPUT_SRC] && value[HTML_INPUT_SRC]) {
+	    address = HTAnchor_findChildAndLink(me->node_anchor, NULL,
+						value[HTML_INPUT_SRC], NULL);
+	    HTextImp_foundLink(me->text, element_number, HTML_INPUT_SRC,
+			       address, present, value);
+	}
+	break;
+
     case HTML_IMG:
 	if (present[HTML_IMG_SRC] && value[HTML_IMG_SRC]) {
 	    address = HTAnchor_findChildAndLink(me->node_anchor, NULL,

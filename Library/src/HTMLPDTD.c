@@ -293,6 +293,11 @@ PRIVATE HTAttr glossary_attr[HTML_DL_ATTRIBUTES+1] = {
 	{ 0 }	/* Terminate list */
 };
 
+PRIVATE HTAttr map_attr[HTML_MAP_ATTRIBUTES+1] = {
+	{ "NAME"},
+	{ 0 }	/* Terminate list */
+};
+
 PRIVATE HTAttr meta_attr[HTML_META_ATTRIBUTES+1] = {
     { "CONTENT"},
     { "HTTP-EQUIV"},
@@ -394,8 +399,9 @@ PRIVATE HTTag tags[HTML_ELEMENTS] = {
     { "ADDRESS"	, no_attr,	0,			SGML_MIXED },
     { "AREA"	, area_attr,	HTML_AREA_ATTRIBUTES,	SGML_EMPTY },
     { "ARG"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
-    { "B"	, no_attr,	0,			SGML_MIXED },
+    { "B"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
     { "BASE"	, base_attr,	HTML_BASE_ATTRIBUTES,	SGML_EMPTY },
+    { "BIG"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
     { "BLOCKQUOTE", no_attr,	0,			SGML_MIXED },
     { "BODY"	, body_attr,	HTML_BODY_ATTRIBUTES,	SGML_MIXED },
     { "BOX"	, no_attr,	0,			SGML_MIXED },
@@ -410,6 +416,7 @@ PRIVATE HTTag tags[HTML_ELEMENTS] = {
     { "DD"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_EMPTY },
     { "DFN"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
     { "DIR"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
+    { "DIV"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
     { "DL"	, glossary_attr,HTML_DL_ATTRIBUTES,	SGML_MIXED },
     { "DT"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_EMPTY },
     { "EM"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
@@ -440,6 +447,7 @@ PRIVATE HTTag tags[HTML_ELEMENTS] = {
     { "LINK"	, link_attr,	HTML_LINK_ATTRIBUTES,	SGML_EMPTY },
     { "LISTING"	, no_attr,	0,			SGML_LITERAL },
     { "LIT"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
+    { "MAP"	, map_attr,	HTML_MAP_ATTRIBUTES,	SGML_MIXED },
     { "MARGIN"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
     { "MATH"	, id_attr,	HTML_ID_ATTRIBUTE,	SGML_MIXED },
     { "MENU"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
@@ -462,6 +470,8 @@ PRIVATE HTTag tags[HTML_ELEMENTS] = {
     { "S"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
     { "SAMP"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
     { "SELECT"	, select_attr,	HTML_SELECT_ATTRIBUTES,	SGML_MIXED },
+    { "SMALL"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
+    { "SPAN"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
     { "STRONG"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
     { "SUB"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
     { "SUP"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },

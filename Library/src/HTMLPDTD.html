@@ -57,6 +57,7 @@ typedef enum _HTMLElement {
 	HTML_ARG,
 	HTML_B,
 	HTML_BASE,
+	HTML_BIG,
 	HTML_BLOCKQUOTE,
 	HTML_BODY,
 	HTML_BOX,
@@ -71,6 +72,7 @@ typedef enum _HTMLElement {
 	HTML_DD,
  	HTML_DFN,
 	HTML_DIR,
+	HTML_DIV,
  	HTML_DL,
  	HTML_DT,
 	HTML_EM,
@@ -101,6 +103,7 @@ typedef enum _HTMLElement {
  	HTML_LINK,
 	HTML_LISTING,
 	HTML_LIT,
+	HTML_MAP,
 	HTML_MARGIN,
 	HTML_MATH,
 	HTML_MENU,
@@ -123,6 +126,8 @@ typedef enum _HTMLElement {
 	HTML_S,
 	HTML_SAMP,
 	HTML_SELECT,
+	HTML_SMALL,
+	HTML_SPAN,
 	HTML_STRONG,
 	HTML_SUB,
 	HTML_SUP,
@@ -330,6 +335,13 @@ Identifier is <TT>HTML_&lt;element&gt;_&lt;attribute&gt;</TT>. These
 </H3>
 <PRE>
 #define HTML_ID_ATTRIBUTE	1
+</PRE>
+<H3>
+  MAP
+</H3>
+<PRE>
+#define	HTML_MAP_NAME		0
+#define HTML_MAP_ATTRIBUTES	1
 </PRE>
 <H3>
   META
