@@ -1,27 +1,25 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Sample Code Library libwww LOCAL FILE</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
-<NEXTID N="z4">
+  <!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+  <NEXTID N="z4">
+  <TITLE>W3C Sample Code Library libwww Local File Access</TITLE>
 </HEAD>
 <BODY>
-
-<H1>File Access</H1>
-
+<H1>
+  Local File Access
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-These are routines for local file access used by WWW browsers and
-servers.<P>
-
-This module is implemented by <A HREF="HTFile.c">HTFile.c</A>, and it
-is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
-Sample Code Library</A>.
-
+<P>
+These are routines for local file access used by WWW browsers and servers.
+<P>
+This module is implemented by <A HREF="HTFile.c">HTFile.c</A>, and it is
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Sample Code
+Library</A>.
 <PRE>
 #ifndef HTFILE_H
 #define HTFILE_H
@@ -30,12 +28,12 @@ Sample Code Library</A>.
 
 extern HTProtCallback HTLoadFile;
 </PRE>
-
-<H2>Directory Access</H2>
-
-You can define the directory access for file URLs by using the
-following function.
-
+<H2>
+  Directory Access
+</H2>
+<P>
+You can define the directory access for file URLs by using the following
+function.
 <PRE>
 typedef enum _HTDirAccess {
     HT_DIR_FORBID,			/* Altogether forbidden */
@@ -48,12 +46,12 @@ typedef enum _HTDirAccess {
 extern HTDirAccess  HTFile_dirAccess	(void);
 extern BOOL HTFile_setDirAccess		(HTDirAccess mode);
 </PRE>
-
-<H2>Readme Files</H2>
-
-You can specify the module to look for a README file and to put into a
-directory listing. These are the possibilities:
-
+<H2>
+  Readme Files
+</H2>
+<P>
+You can specify the module to look for a README file and to put into a directory
+listing. These are the possibilities:
 <PRE>
 typedef enum _HTDirReadme {
     HT_DIR_README_NONE,
@@ -66,14 +64,27 @@ typedef enum _HTDirReadme {
 extern HTDirReadme  HTFile_dirReadme	(void);
 extern BOOL HTFile_setDirReadme		(HTDirReadme mode);
 </PRE>
-
+<H2>
+  Should we do Automatic File Suffix Binding?
+</H2>
+<P>
+By default, libwww uses the <A HREF="HTBind.html">file suffix bindings</A>
+to figure out the media type, natural language, charset, content encoding,
+etc and assign the values to the anchor of the local file.
+<P>
+However, in some situations, the application can either already have done
+this or isn't interested in using the libwww bindings. You can control whether
+libwww should do thi or not using the following methods:
+<PRE>
+extern BOOL HTFile_doFileSuffixBinding (BOOL mode);
+extern BOOL HTFile_fileSuffixBinding (void);
+</PRE>
 <PRE>
 #endif /* HTFILE_H */
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

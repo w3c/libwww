@@ -248,8 +248,9 @@ You can also assign a callback directly to the global list. In this case
 you do not need to worry about creating the list - it will be created
 automatically.
 <PRE>
-extern BOOL HTAlert_add		(HTAlertCallback * cbf, HTAlertOpcode opcode);
-extern BOOL HTAlert_delete	(HTAlertCallback * cbf);
+extern BOOL HTAlert_add	      (HTAlertCallback * cbf, HTAlertOpcode opcode);
+extern BOOL HTAlert_delete    (HTAlertCallback * cbf);
+extern BOOL HTAlert_deleteAll (void);
 extern HTAlertCallback * HTAlert_find (HTAlertOpcode opcode);
 </PRE>
 <PRE>

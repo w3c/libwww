@@ -108,7 +108,6 @@ PUBLIC BOOL HTAlertCall_deleteAll (HTList * list)
 	HTList *cur = list;
 	HTAlert *pres;
 	while ((pres = (HTAlert *) HTList_nextObject(cur))) {
-	    HTList_removeObject(list, (void *) pres);
 	    HT_FREE(pres);
 	}
 	HTList_delete(list);
@@ -159,6 +158,16 @@ PUBLIC BOOL HTAlert_delete (HTAlertCallback * cbf)
 {
     if (!HTMessages) HTMessages = HTList_new();
     return HTAlertCall_delete(HTMessages, cbf);
+}
+
+PUBLIC BOOL HTAlert_deleteAll (void)
+{
+    BOOL status = NO;
+    if (HTMessages) {
+	status = HTAlertCall_deleteAll(HTMessages);
+	HTMessages = NULL;
+    }
+    return status;
 }
 
 /*	HTAlert_find

@@ -11,7 +11,7 @@
 */
 
 /* Library include files */
-#include "sysdep.h"
+#include "wwwsys.h"
 #include "WWWUtil.h"
 #include "HTInet.h"
 #include "HTUser.h"					 /* Implemented here */

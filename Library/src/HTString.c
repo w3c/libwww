@@ -15,7 +15,7 @@
 */
 
 /* Library include files */
-#include "sysdep.h"
+#include "wwwsys.h"
 #include "HTUtils.h"
 #include "HTString.h"					 /* Implemented here */
 
@@ -114,6 +114,74 @@ PUBLIC char * HTSACat (char ** dest, const char * src)
     }
   }
   return *dest;
+}
+
+PUBLIC char * StrAllocMCopy (char ** dest, ...)
+{
+    va_list pArgs;
+    char * p, * argp;
+
+    /* How much space do we need? */
+    int needed = 0;
+    va_start(pArgs, dest);
+    while ((p = va_arg(pArgs, char *)) != NULL) 
+	needed += strlen(p);
+    va_end(pArgs);
+
+    if (*dest) HT_FREE(*dest);
+    if (needed) {
+
+	/* Allocate that amount of memory */
+	if ((*dest = (char *) HT_MALLOC(needed + 1)) == NULL)
+	    HT_OUTOFMEM("HTStrCpy");
+	p = *dest;
+
+	/* Fill the string */
+	va_start(pArgs, dest);
+	while ((argp = va_arg (pArgs, char *)) != NULL) {
+	    strcpy(p, argp);
+	    p += strlen(argp);
+	}
+	va_end (pArgs);
+    }
+    return *dest;
+}
+
+PUBLIC char * StrAllocMCat (char ** dest, ...)
+{
+    va_list pArgs;
+    char * p, * argp;
+
+    /* How much space do we need? */
+    int needed = 0;
+    va_start(pArgs, dest);
+    while ((p = va_arg(pArgs, char *)) != NULL) 
+	needed += strlen(p);
+    va_end(pArgs);
+
+    if (needed) {
+
+	/* (Re) Allocate the amount of memory needed */
+	if (*dest) {
+	    int dest_len = strlen(*dest);
+	    if ((*dest = (char *) HT_REALLOC(*dest, dest_len + needed + 1)) == NULL)
+		HT_OUTOFMEM("HTStrCat");
+	    p = *dest + dest_len;
+	} else {
+	    if ((*dest = (char  *) HT_MALLOC(needed + 1)) == NULL)
+		HT_OUTOFMEM("HTStrCat");
+	    p = *dest;
+	}
+
+	/* Fill the string */
+	va_start(pArgs, dest);
+	while ((argp = va_arg (pArgs, char *)) != NULL) {
+	    strcpy(p, argp);
+	    p += strlen(argp);
+	}
+	va_end (pArgs);
+    }
+    return *dest;
 }
 
 /*	String Matching

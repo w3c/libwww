@@ -70,6 +70,9 @@
    byte first (like Motorola and SPARC, unlike Intel and VAX).  */
 /* #undef WORDS_BIGENDIAN */
 
+/* Define to enable mysql access. */
+/* #undef HT_MYSQL */
+
 /* Define to enable Zlib compression / decompression support. */
 #define HT_ZLIB
 

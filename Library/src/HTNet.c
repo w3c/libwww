@@ -15,7 +15,7 @@
 */
 
 /* Implemention dependent include files */
-#include "sysdep.h"
+#include "wwwsys.h"
 
 /* Library include files */
 #include "WWWUtil.h"
@@ -33,7 +33,7 @@
 #include "HTNetMan.h"					 /* Implemented here */
 
 #ifndef HT_MAX_SOCKETS
-#define HT_MAX_SOCKETS	6
+#define HT_MAX_SOCKETS	25
 #endif
 
 #define HASH_SIZE	599

@@ -11,7 +11,7 @@
 */
 
 /* Library include files */
-#include "sysdep.h"
+#include "wwwsys.h"
 #include "WWWUtil.h"
 #include "HTParse.h"					 /* Implemented here */
 
@@ -428,8 +428,12 @@ PUBLIC char *HTSimplify (char ** url)
     /*
     **  Check for host/../.. kind of things
     */
-    if (*path=='/' && *(path+1)=='.' && *(path+2)=='.' && (!*(path+3) || *(path+3)=='/'))
-	*(path+1) = '\0';
+    while (*path=='/' && *(path+1)=='.' && *(path+2)=='.' &&
+	   (!*(path+3) || *(path+3)=='/')) {
+	char * orig = path;
+	char * dest = path+3;
+	while ((*orig++ = *dest++));
+    }
     if (URI_TRACE) HTTrace("into\n............ `%s'\n", *url);
     return *url;
 }
@@ -456,14 +460,14 @@ PUBLIC char * HTRelative (const char * aName, const char * relatedName)
     char * result = 0;
     const char *p = aName;
     const char *q = relatedName;
-    const char * after_access = 0;
+    const char * after_access = NULL;
     const char * path = 0;
     const char * last_slash = 0;
     int slashes = 0;
     
     for(;*p; p++, q++) {	/* Find extent of match */
     	if (*p!=*q) break;
-	if (*p==':') after_access = p+1;
+	if (*p==':') if (!after_access) after_access = p+1;
 	if (*p=='/') {
 	    last_slash = p;
 	    slashes++;
@@ -483,6 +487,7 @@ PUBLIC char * HTRelative (const char * aName, const char * relatedName)
 	if ((result = (char  *) HT_MALLOC(3*levels + strlen(last_slash) + 4)) == NULL)
 	    HT_OUTOFMEM("HTRelative");
 	*result = '\0';
+	if (!levels) strcat(result, "/");
 	for(;levels; levels--)strcat(result, "../");
 	strcat(result, last_slash+1);
 	if (!*result) strcat(result, "./");

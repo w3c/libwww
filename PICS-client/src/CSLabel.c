@@ -1,4 +1,4 @@
-#include "sysdep.h"
+#include "wwwsys.h"
 /*#include "HTUtils.h" */
 #include "HTList.h"
 #include "HTString.h"

@@ -37,10 +37,10 @@ extern "C" {
   System dependencies
 </H3>
 <P>
-The <A HREF="sysdep.html">sysdep.h</A> file includes system-specific include
+The <A HREF="wwwsys.html">wwwsys.h</A> file includes system-specific include
 files and flags for I/O to network and disk. The only reason for this file
 is that the Internet world is more complicated than Posix and ANSI.
-<PRE>#include "<A HREF="sysdep.html">sysdep.h</A>"
+<PRE>#include "<A HREF="wwwsys.html">wwwsys.h</A>"
 </PRE>
 <H3>
   Event Manager
@@ -136,6 +136,17 @@ either be the case if the application is a server or it can also be useful
 in a client application. This module provides a simple logging mechanism
 which can be enabled if needed.
 <PRE>#include "<A HREF="HTLog.html">HTLog.h</A>"
+</PRE>
+<H3>
+  SQL Log Module 
+</H3>
+This SQL based log class generates a SQL database and a set of tables
+storing the results of a request. The result is stored in different
+tables depending on whether it is information about the request or the
+resource returned.
+<P>
+<PRE>
+#include "<A HREF="HTSQLLog.html">HTSQLLog.h</A>"
 </PRE>
 <H3>
   History Management

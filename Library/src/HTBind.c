@@ -32,7 +32,7 @@
 */
 
 /* Library Includes */
-#include "sysdep.h"
+#include "wwwsys.h"
 #include "WWWUtil.h"
 #include "HTAnchor.h"
 #include "HTResponse.h"

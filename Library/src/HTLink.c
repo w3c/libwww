@@ -17,7 +17,7 @@
 */
 
 /* Library include files */
-#include "sysdep.h"
+#include "wwwsys.h"
 #include "WWWUtil.h"
 #include "HTFormat.h"
 #include "HTParse.h"

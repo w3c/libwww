@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-  <TITLE>Status of the W3C Libwww Mini Robot</TITLE>
+  <TITLE>Webbot - the W3C Libwww Mini Robot</TITLE>
   <LINK rel=STYLESHEET href="../StyleSheets/Area/Overview.css" type="text/css">
 </HEAD>
 <BODY BGCOLOR="#ffffff" TEXT="#000000">
@@ -8,22 +8,20 @@
 <A HREF="../"><IMG ALT="W3C" SRC="../Icons/WWW/w3c_home" BORDER="0" WIDTH="72"
     HEIGHT="48"></A> <IMG ALT="Robot" SRC="../Icons/WWW/robot48x">
 <H1>
-  The Libwww Mini Robot
+  Webbot - The Libwww Mini Robot
 </H1>
 <P>
 <DIV class="intro">
-  The W3C Mini Robot is a cross platform command line tool for accessing the
-  Web. It is developed in C and serves as an example of a client application
-  using the <A HREF="../Library/">W3C Sample Code Library</A> and as a test-tool
-  for quick access to the Web from scripts, cron jobs etc. It gives a variety
-  of possibilities for data format conversion, filtering etc. It is primarily
-  intended as a test-tool for quick access to the Web or used in scripts, cron
-  jobs etc.
+  The <B>webbot</B> is an example application that comes with libwww - the
+  <A HREF="../Library/">W3C Sample Code Library</A>. It is a very fast Web
+  walker with support for regular expressions and SQL logging facilities. It
+  can be used to check links, find bad HTML, map out a web site, download images,
+  etc.
   <UL>
     <LI>
-      A large set of <A HREF="#Features">features</A>
+      Check out the large set of cool <A HREF="#Features">features</A>
     <LI>
-      <A HREF="User/">Documentation Overview</A>
+      <A HREF="User/CommandLine.html">Command Line Options</A>
     <LI>
       <A HREF="../Library/User/ReleaseNotes.html">Release Notes</A>
     <LI>
@@ -31,8 +29,6 @@
       run</A> the robot
     <LI>
       <A HREF="../Library/User/Patch/">Known Bugs and Patches</A>
-    <LI>
-      <A HREF="User/CommandLine.html">Command Line Options</A>
   </UL>
 </DIV>
 <P>
@@ -42,51 +38,36 @@
 </H2>
 <DL>
   <DT>
-    Authors
+    Author(s)
   <DD>
     <A HREF="../People/Frystyk/">Henrik Frystyk Nielsen</A>
   <DT>
     Status
   <DD>
-    Used as an example application for the <A HREF="../Library/">W3C Sample Code
-    Library</A>. The robot is the primary tool used for the
-    <A HREF="../Protocols/HTTP/Performance/">HTTP performance measurements</A>.
-    Check for example <A HREF="../Protocols/HTTP/Performance/LAN/">the performance
-    on a LAN</A>.
+    An example application for <A HREF="../Library/">libwww</A>. The robot is
+    the primary tool used for the <A HREF="../Protocols/HTTP/Performance/">HTTP
+    performance measurements</A>. 
   <DT>
     Plans
   <DD>
-    New releases follows the releases of the <A HREF="../Library/">W3C Sample
-    Code Library</A> very closely.
+    New releases follow the releases of <A HREF="../Library/">libwww</A> with
+    no exception.
   <DT>
     Platforms
   <DD>
-    The application is known to compile on the following
-    <A HREF="../Library/User/Platform/">Platforms</A>. See also special notes
-    on <A HREF="../Library/User/Platform/WinDLL.html">Windows</A>
+    It runs on the <A HREF="../Library/User/Platform/">same platforms as libwww</A>
   <DT>
     Getting the Source Code
   <DD>
-    This application is part of the <A HREF="../Library/Distribution.html">libwww
-    distribution package</A> which you can get from the
-    <A HREF="../Library/">Library top page</A>. You can see how to unpack and
-    compile the software in the <A HREF="../README.html">README</A> file, and
-    you can find more information on how the W3C Sample Code Library is designed
-    in the <A HREF="../Library/User/Architecture/">Library Architecture</A> and
-    how to use it in the <A HREF="../Library/User/Using/">User's Guide</A>.
+    The webbot comes as an integral part of the
+    <A HREF="../Library/Distribution.html">libwww distribution package</A>.
   <DT>
-    Copyright
+    Forums
   <DD>
-    W3C Mini Robot is covered by the
-    <A HREF="../Consortium/Legal/copyright-software.html">W3C Copyright
-    Statement</A>, and with <A HREF="../CERN.html">acknowledgement to CERN</A>
-  <DT>
-    Patches, Bug fixes, etc..
-  <DD>
-    When you have <A HREF="../Library/User/Patch/">modifications or bug fixes</A>
-    and want them to go into our code base then please fill out the form for
-    <A HREF="../PATCHES.html">Corrections, Modifications, and Patches</A> and
-    send it to us. Otherwise we can not use the patch!
+    Discussions on libwww and its example applications take place on
+    <B>&lt;www-lib@w3.org</B>&gt;
+    (<A HREF="http://lists.w3.org/Archives/Public/www-lib/">archives</A>). See
+    the <A HREF="../Mail/Request.html">documentation for how to subscribe</A>.
 </DL>
 <H2>
   <A NAME="Features">Features</A>
@@ -94,17 +75,26 @@
 <UL>
   <LI>
     Really fast <A HREF="../Library/">libwww HTTP/1.1 engine</A> - uses
-    <A HREF="../Protocols/HTTP/Performance/">HTTP/1.1 pipelining</A> which speeds
-    up performance a lot
+    <A HREF="../Protocols/HTTP/Performance/">HTTP/1.1 pipelining</A> which
+    <A HREF="../Protocols/HTTP/Performance/">speeds up performance a lot</A>.
   <LI>
     Smart use of <CODE>GET</CODE> and <CODE>HEAD</CODE> - only downloads the
     strictly necessary
   <LI>
-    Support for regular expressions allows detailed Web traversal constraints
+    Check of <A HREF="User/CommandLine.html#Inlined">inlined images</A> as well
+    as hyperlinks
   <LI>
-    Support for traditional Common Log File formats and Referer log file formats
+    Support for <A HREF="User/CommandLine.html#regex">regular expressions</A>
+    allows detailed Web traversal constraints
   <LI>
-    A <A HREF="User/CommandLine.html">wealth of logging facilities</A> including:
+    Support for <A HREF="User/CommandLine.html#Logging">SQL based logging</A>
+    which allows for an open-ended set of thongs you can do with the logs
+  <LI>
+    Support for <A HREF="User/CommandLine.html#Regular">traditional file based
+    logging</A> using Common Log File formats and Referer log file formats
+  <LI>
+    A <A HREF="User/CommandLine.html#Stats">wealth of logging facilities</A>
+    including:
     <UL>
       <LI>
 	Missing or empty ALT tags in inlined images
@@ -123,7 +113,7 @@
     </UL>
 </UL>
 <H2>
-  <A NAME="How">How to Run</A>
+  <A NAME="How">How to Run It</A>
 </H2>
 <P>
 Be careful - this is a robot and hence can be used to traverse many links

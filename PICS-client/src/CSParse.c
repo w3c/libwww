@@ -14,7 +14,7 @@
 */
 
 /* Library include files */
-#include "sysdep.h"
+#include "wwwsys.h"
 #include "HTChunk.h"
 #include "HTString.h"
 #include "CSLUtils.h"

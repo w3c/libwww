@@ -17,24 +17,24 @@
 This file makes up for the differencies in the systems and platforms supported
 by libwww. On Unix, it is a question of <A HREF="../../INSTALL.html">using
 autoconf</A> to figure out what environment we are in. This is done by running
-the configure script which creates a <CODE>config.h</CODE> file. This
+the configure script which creates a <CODE>wwwconf.h</CODE> file. This
 configuration include file contains a large set of macro definitions telling
 what features we have and don't have. On platforms not supported by autoconf
 (Windows, Mac, VMS etc.) you will find the information normally contained
-in the <CODE>config.h</CODE> file directly included below. The
+in the <CODE>wwwconf.h</CODE> file directly included below. The
 <A HREF="#Platform">second part of this file </A>uses all the information
-that we either have from the config.h file or directly coded and actually
+that we either have from the wwwconf.h file or directly coded and actually
 does the includes etc.
 <P>
 <UL>
   <LI>
-    <A HREF="sysdep.html#Unix">Unix</A>
+    <A HREF="wwwsys.html#Unix">Unix</A>
   <LI>
-    <A HREF="sysdep.html#Microsoft">Microsoft Windows Win32 API</A>
+    <A HREF="wwwsys.html#Microsoft">Microsoft Windows Win32 API</A>
   <LI>
-    <A HREF="sysdep.html#Macintosh">Macintosh</A>
+    <A HREF="wwwsys.html#Macintosh">Macintosh</A>
   <LI>
-    <A HREF="sysdep.html#Macintosh">Vax VMS</A>
+    <A HREF="wwwsys.html#Macintosh">Vax VMS</A>
 </UL>
 <P>
 This module is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">
@@ -124,7 +124,7 @@ then please add them to the <A HREF="../../../INSTALL.html">configure
 script</A>
 <PRE>
 #ifdef HAVE_CONFIG_H
-#include &lt;config.h&gt;
+#include &lt;wwwconf.h&gt;
 #endif
 </PRE>
 <H2>

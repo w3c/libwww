@@ -43,7 +43,17 @@ extern char * HTSACopy (char **dest, const char *src);
 extern char * HTSACat  (char **dest, const char *src);
 </PRE>
 <P>
-<A NAME="strcasecomp"></A> <A NAME="strncasecomp"></A>
+The next two functions take a variable number of strings and cats them together
+using dynamic memory. This is basically like a simple form for sprintf where
+the only argument is <CODE>char *</CODE>. One day we should turn this into
+a real dynamic <CODE>sprintf()</CODE>.
+<PRE>
+extern char * StrAllocMCopy (char ** dest, ...);
+extern char * StrAllocMCat (char ** dest, ...);
+</PRE>
+<P>
+The last argument MUST be NULL as we otherwise don't know when the argument
+list stops.
 <H2>
   <A NAME="utils">Case-insensitive String Comparison</A>
 </H2>

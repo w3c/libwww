@@ -17,7 +17,7 @@
 */
 
 /* Library include files */
-#include "sysdep.h"
+#include "wwwsys.h"
 #include "WWWUtil.h"
 #include "WWWCore.h"
 #include "WWWMIME.h"
@@ -161,9 +161,11 @@ PRIVATE BOOL HTTPInformation (HTStream * me)
     switch (me->status) {
 
     case 100:
+#if 0
 	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_CONTINUE,
 			   me->reason, (int) strlen(me->reason),
 			   "HTTPInformation");
+#endif
 	return YES;
 	break;
 

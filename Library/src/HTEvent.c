@@ -16,7 +16,7 @@
 */
 
 /* Implementation dependent include files */
-#include "sysdep.h"
+#include "wwwsys.h"
 #include "WWWUtil.h"
 #include "HTEvent.h"					 /* Implemented here */
 

@@ -1,4 +1,4 @@
-/* config.h.in.  Generated automatically from configure.in by autoheader.  */
+/* wwwconf.h.in.  Generated automatically from configure.in by autoheader.  */
 
 /* Define if type char is unsigned and you are not using gcc.  */
 #ifndef __CHAR_UNSIGNED__
@@ -73,6 +73,9 @@
 
 /* Define to enable direct WAIS access. */
 #undef HT_DIRECT_WAIS
+
+/* Define to enable mysql access. */
+#undef HT_MYSQL
 
 /* Define to enable Zlib compression / decompression support. */
 #undef HT_ZLIB

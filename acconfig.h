@@ -1,6 +1,9 @@
 /* Define to enable direct WAIS access. */
 #undef HT_DIRECT_WAIS
 
+/* Define to enable mysql access. */
+#undef HT_MYSQL
+
 /* Define to enable Zlib compression / decompression support. */
 #undef HT_ZLIB
 

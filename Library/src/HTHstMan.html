@@ -85,7 +85,7 @@ struct _HTHost {
     /* Connection dependent stuff */
     HTdns *		dns;			       /* Link to DNS object */
     TCPState		tcpstate;		      /* State in connection */
-    SockA 		sock_addr;	     /* SockA is defined in sysdep.h */
+    SockA 		sock_addr;	     /* SockA is defined in wwwsys.h */
     int			retry;		     /* Counting attempts to connect */
     int 		home;			 /* Current home if multiple */
     ms_t		connecttime;	   /* Time in ms on multihomed hosts */

@@ -10,7 +10,7 @@
 */
 
 /* Library Include files */
-#include "sysdep.h"
+#include "wwwsys.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTParse.h"

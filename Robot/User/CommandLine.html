@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
   <TITLE>Command Line Syntax for the W3C Mini Robot</TITLE>
+  <LINK rel=STYLESHEET href="../../StyleSheets/Area/Overview.css" type="text/css">
 </HEAD>
 <BODY BGCOLOR="#ffffff" TEXT="#000000">
 <P>
@@ -12,9 +13,37 @@
   Command Line Syntax
 </H1>
 <P>
-The generic syntax is:
-<PRE> 	webbot [ <A HREF="#z19">options</A> ] [ <A HREF="#z16">URI</A> [ <A HREF="#z17">keywords</A> ] ]
+<DIV class="intro">
+  The generic syntax is:
+  <PRE> 	webbot [ <A HREF="#z19">options</A> ] [ <A HREF="#z16">URI</A> [ <A HREF="#z17">keywords</A> ] ]
 </PRE>
+  <P>
+  Check here the following options
+  <UL>
+    <LI>
+      <A HREF="#Help">Getting Help</A>
+    <LI>
+      <A HREF="#Constraints">Setting Basic Constraints for Traversal</A>
+    <LI>
+      <A HREF="#regex">Regular Expressions based Constraints</A>
+    <LI>
+      <A HREF="#Inlined">Checking Inlined Images</A>
+    <LI>
+      <A HREF="#Logging">SQL Based Logging using MySQL</A>
+    <LI>
+      <A HREF="#Regular">Regular Ascii Text Logging</A>
+    <LI>
+      <A HREF="#Stats">Distribution and Statistics Features</A>
+    <LI>
+      <A HREF="#Persistent">Persistent Cache</A>
+    <LI>
+      <A HREF="#Other">Other Options</A>
+  </UL>
+  <P>
+  Henrik Frystyk Nielsen
+</DIV>
+<P>
+  <HR>
 <H2>
   <A NAME="z19">Options</A>
 </H2>
@@ -23,7 +52,7 @@ The order of the options is not important and options can in fact be specified
 on either side of any <A HREF="#z16"NAME="z14">URI</A>. Currently available
 options are:-
 <H3>
-  Getting Help
+  <A NAME="Help">Getting Help</A>
 </H3>
 <DL>
   <DT>
@@ -62,8 +91,11 @@ options are:-
     and exits.
 </DL>
 <H3>
-  <A NAME="Constraints">Setting Constraints for Traversal</A>
+  <A NAME="Constraints">Setting Basic Constraints for Traversal</A>
 </H3>
+<P>
+These are some very simple constrants that can always be used when running
+the webbot.
 <DL>
   <DT>
     <B>-depth [ n ]</B>
@@ -79,11 +111,18 @@ options are:-
     are not checked. The rejected URIs can be <A HREF="#Logging">logged to a
     separate file</A>.
 </DL>
+<H3>
+  <A NAME="regex">Regular Expressions based Constraints</A>
+</H3>
 <P>
-The following options are only available if you have
-<A HREF="../../INSTALL.html#features">linked against a regex library</A>
-handling <A HREF="http://www.delorie.com/gnu/docs/rx/rx_3.html">regular
-expressions</A>.
+Using regular expressions reguires that you
+<A HREF="../../INSTALL.html#features">link against a regex library</A> handling
+<A HREF="http://www.delorie.com/gnu/docs/rx/rx_3.html">regular expressions</A>
+- see the <A href="../../INSTALL.html">installation instructions</A> for
+details. When using regular expressions, you can control the constraints
+much more efficiently - both to decide which URIs should be followed and
+to decide whether the webbot should use <CODE>HEAD</CODE> or <CODE>GET</CODE>
+when checking the links.
 <DL>
   <DT>
     <B>-exclude [ regex ] </B>
@@ -111,6 +150,9 @@ expressions</A>.
 <H3>
   <A NAME="Inlined">Checking Inlined Images</A>
 </H3>
+<P>
+The webbot can check inlined images as well as normal hyperlinks. You can
+control this using the following flags:
 <DL>
   <DT>
     <B>-img</B>
@@ -137,8 +179,98 @@ expressions</A>.
     <A HREF="#Logging">logged to a separate file</A>.
 </DL>
 <H3>
-  <A NAME="Logging">Logging Features</A>
+  <A NAME="Logging">SQL Based Logging using MySQL</A>
 </H3>
+<P>
+Using SQL based logging requires that you have linked against a
+<A href="http://www.tcx.se/">MySQL library</A>. See the
+<A href="../../INSTALL.html">installation instructions</A> for details. I
+like the Web interface provided by
+<A HREF="http://www.daa.com.au/~james/www-sql/">www-sql</A> which makes it
+easy to access the logged data. The data is stored in four tables within
+the same database (the default name is "<CODE>webbot</CODE>"):
+<DL>
+  <DT>
+    <B>uris</B>
+  <DD>
+    An index that maps URIs to integers so that they are easier to refer to
+  <DT>
+    <B>requests</B>
+  <DD>
+    Contains information from the request including the request-URI, the method,
+    and the resulting status code.
+  <DT>
+    <B>resources</B>
+  <DD>
+    Contains information of the resource like content-type, content-encoding,
+    expires, etc.
+  <DT>
+    <B>links</B>
+  <DD>
+    Contains information about which documents point to which dopuments, the
+    type of the link etc. The type can either be implicit like "<EM>referer</EM>"
+    or "<EM>image</EM>", or it can be explicit like "<EM>stylesheet</EM>",
+    "<EM>toc</EM>", etc.
+</DL>
+<P>
+The command line options for handling the SQL logging are as follows:
+<DL>
+  <DT>
+    <B>-sqlserver</B>
+  <DD>
+    Specify the mysql server. The default is <CODE>"localhost</CODE>".
+  <DT>
+    <B>-sqldb</B>
+  <DD>
+    Specify the database to use. The default is <CODE>webbot</CODE>. Note that
+    webbot creates its own set of tables for handling the logs.
+  <DT>
+    <B>-sqluser</B>
+  <DD>
+    Use this to specify the user that we are connection to the database as. The
+    default is <CODE>"webbot</CODE>".
+  <DT>
+    <B>-sqlpassword</B>
+  <DD>
+    Use this to specify the password needed to connect to the database. The default
+    is empty string.
+  <DT>
+    <B>-sqlrelative</B>
+  <DD>
+    If you want to make the URI entries in the database relative then you can
+    specify the root to which they should be made relative. This can for example
+    be used to built the database on another machine than is normally running
+    the service. On heavy loaded sites, it is often a good idea to have an internal
+    test server running which can be used to build the database as it does take
+    some resources.
+  <DT>
+    <B>-sqlexternals</B>
+  <DD>
+    Use this flag if you want all links that have been filtered because they
+    didn't fulfill the constraints to be logged as well in the same table as
+    all other URIs.
+  <DT>
+    <B>-sqlclearlinks</B>
+  <DD>
+    Clears the <B>links</B> table before starting the traversal.
+  <DT>
+    <B>-sqlclearrequests</B>
+  <DD>
+    Clears the <B>requests</B> table before starting the traversal.
+  <DT>
+    <B>-sqlclearresources</B>
+  <DD>
+    Clears the <B>resources</B> table before starting the traversal.
+  <DT>
+    <B>-sqlclearuris</B>
+  <DD>
+    Clears the <B>uris</B> table before starting the traversal.
+</DL>
+<H3>
+  <A NAME="Regular">Regular Ascii Text Logging</A>
+</H3>
+<P>
+This set of log files are dumped in normal ASCII format into local files
 <DL>
   <DT>
     <B>-404 [ file ]</B>
@@ -171,8 +303,11 @@ expressions</A>.
     <A HREF="#Constaints">constraints for traversal</A>.
 </DL>
 <H3>
-  Distribution and Statistics Features
+  <A NAME="Stats">Distribution and Statistics Features</A>
 </H3>
+<P>
+Note that if you are using SQL based logging then the set of statictics that
+can be drawn directly from the database is very high.
 <DL>
   <DT>
     <B>-format [ file ]</B>
@@ -217,8 +352,12 @@ expressions</A>.
     either as an HTTP header or in the HTML.
 </DL>
 <H3>
-  Persistent Cache
+  <A NAME="Persistent">Persistent Cache</A>
 </H3>
+<P>
+The webbot can use the persistent cache while travesing the web site which
+may casue a significant performance optimization. These are the command line
+options:
 <DL>
   <DT>
     <B>-cache</B>
@@ -241,7 +380,7 @@ expressions</A>.
     directive
 </DL>
 <H3>
-  Other Options
+  <A NAME="Other">Other Options</A>
 </H3>
 <DL>
   <DT>
@@ -305,9 +444,12 @@ address</A> of the document at which you want to start the robot.
   <A NAME="z17">keywords</A>
 </H2>
 <P>
-Any further command line arguments are taken as keywords. The first argument
-must refer to an index in this case. The index is searched for entries matching
-the keywords, and a list of matching entries is displayed.
+Any further command line arguments are taken as keywords. Keywords can be
+used as search tokens in an HTTP request-URI encoded so that all spaces are
+replaced with "<TT>+</TT>" and unsafe characters are encoded using the URI
+"<TT>%xx</TT>" escape mechanism. An example of a search query is
+<PRE>	webbot http://... "RECORD=ID" "par1=a" "par2=b" "par3=c" "par4=d"
+</PRE>
 <P>
   <HR>
 <ADDRESS>

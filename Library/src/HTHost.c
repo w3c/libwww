@@ -13,7 +13,7 @@
 */
 
 /* Library include files */
-#include "sysdep.h"
+#include "wwwsys.h"
 #include "WWWUtil.h"
 #include "HTParse.h"
 #include "HTAlert.h"
@@ -172,13 +172,8 @@ PRIVATE int HostEvent (SOCKET soc, void * pVoid, HTEventType type)
 			HTAnchor_physical(HTRequest_anchor(HTNet_request(targetNet))));
 	    return (*targetNet->event.cbf)(HTChannel_socket(host->channel), targetNet->event.param, type);
 	}
-#if 0
-	HTDebugBreak(__FILE__, __LINE__, "Host %p (%s) has no target\n",
-		     host, host->hostname ? host->hostname : "<none>");
+	HTTrace("Host Event.. Who wants to write to `%s\'?\n", host->hostname);
 	return HT_ERROR;
-#else
-	return HT_OK;
-#endif
     } else if (type == HTEvent_TIMEOUT) {
 
 	if (CORE_TRACE)
@@ -186,7 +181,8 @@ PRIVATE int HostEvent (SOCKET soc, void * pVoid, HTEventType type)
 		    host->hostname);
 
     } else {
-	HTDebugBreak(__FILE__, __LINE__, "Don't know how to handle OOB data from `%s\'?\n", host->hostname);
+	HTTrace("Don't know how to handle OOB data from `%s\'?\n", 
+		host->hostname);
     }
     return HT_OK;
 }
@@ -432,7 +428,7 @@ PUBLIC void HTHost_setVersion (HTHost * host, int version)
 }
 
 /*
-**	Get and set the cache timeout fHTor persistent entries.
+**	Get and set the cache timeout for persistent entries.
 **	The default value is TCP_TIMEOUT
 */
 PUBLIC void HTHost_setPersistTimeout (time_t timeout)
@@ -886,7 +882,6 @@ PUBLIC int HTHost_addNet (HTHost * host, HTNet * net)
     if (host && net) {
 	int status = HT_OK;
 	BOOL doit = (host->doit==net);
-	BOOL connector = (!host->lock || (host->lock && host->lock==net));
 
 	/*
 	**  If we don't have a socket already then check to see if we can get
@@ -901,9 +896,38 @@ PUBLIC int HTHost_addNet (HTHost * host, HTNet * net)
 	}
 
 	/*
+	 * First check whether the net object is already on either queue.
+	 * Do NOT add extra copies of the HTNet object to
+	 * the pipeline or pending list (if it's already on the list).
+	 */
+	if (HTList_indexOf(host->pipeline, net) >= 0)
+	  {
+           if (CORE_TRACE)
+	     HTTrace("Host info... The Net %p (request %p) is already on pipe,"
+		     " %d requests made, %d requests in pipe, %d pending\n",
+		     net, net->request, host->reqsMade,
+		     HTList_count(host->pipeline),
+		     HTList_count(host->pending));
+
+	   return HT_OK;
+	  }
+
+	if (HTList_indexOf(host->pending,  net) >= 0)
+	  {
+	   if (CORE_TRACE)
+	     HTTrace("Host info... The Net %p (request %p) already pending,"
+		     " %d requests made, %d requests in pipe, %d pending\n",
+		     net, net->request, host->reqsMade,
+		     HTList_count(host->pipeline),
+		     HTList_count(host->pending));
+
+	   return HT_PENDING;
+	  }
+
+	/*
 	**  Add net object to either active or pending queue.
 	*/
-	if (_roomInPipe(host) && (HTList_isEmpty(host->pending) || doit) && connector) {
+	if (_roomInPipe(host) && (HTList_isEmpty(host->pending) || doit)) {
 	    if (doit) host->doit = NULL;
 	    if (!host->pipeline) host->pipeline = HTList_new();
 	    HTList_addObject(host->pipeline, net);
@@ -928,7 +952,7 @@ PUBLIC int HTHost_addNet (HTHost * host, HTNet * net)
 
 	} else {
 	    if (!host->pending) host->pending = HTList_new();
-	    HTList_addObject(host->pending, net);
+	    HTList_addObject(host->pending, net);	    
 	    if (CORE_TRACE)
 		HTTrace("Host info... Add Net %p (request %p) to pending, %d requests made, %d requests in pipe, %d pending\n",
 			net, net->request, host->reqsMade, HTList_count(host->pipeline), HTList_count(host->pending));
@@ -994,7 +1018,6 @@ PUBLIC BOOL HTHost_free (HTHost * host, int status)
             return YES;
         } else {
             if (CORE_TRACE) HTTrace("Host Object. closing socket %d\n", HTChannel_socket(host->channel));
-	    HTChannel_setSemaphore(host->channel, 0);
 	    HTHost_clearChannel(host, status);
         }
     }
@@ -1004,9 +1027,9 @@ PUBLIC BOOL HTHost_free (HTHost * host, int status)
 PUBLIC BOOL HTHost_deleteNet (HTHost * host, HTNet * net)
 {
     if (host && net) {
-	HTList_removeObject(host->pipeline, net);
-	HTList_removeObject(host->pending, net); /* just to make sure */
-	if (CORE_TRACE) HTTrace("Host info... Removed %p from pipe\n", net);
+        if (CORE_TRACE) HTTrace("Host info... Remove %p from pipe\n", net);
+	HTList_removeObjectAll(host->pipeline, net);
+	HTList_removeObjectAll(host->pending, net); /* just to make sure */
 	return YES;
     }
     return NO;
@@ -1158,6 +1181,7 @@ PUBLIC HTNet * HTHost_firstNet (HTHost * host)
 */
 PUBLIC int HTHost_connect (HTHost * host, HTNet * net, char * url, HTProtocolId port)
 {
+#if 1
     HTRequest * request = HTNet_request(net);
     int status;
     if (!host) {
@@ -1188,6 +1212,14 @@ PUBLIC int HTHost_connect (HTHost * host, HTNet * net, char * url, HTProtocolId 
 	}
     }
     return HT_ERROR; /* @@@ - some more deletion and stuff here? */
+#else
+    int status;
+    status = HTDoConnect(net, url, port);
+    if (status == HT_OK) return HT_OK;
+    if (status == HT_WOULD_BLOCK || status == HT_PENDING)
+	return HT_WOULD_BLOCK;
+    return HT_ERROR; /* @@@ - some more deletion and stuff here? */
+#endif
 }
 
 /*
@@ -1300,11 +1332,11 @@ PUBLIC BOOL HTHost_setRetry (HTHost * host, int retry)
 
 PUBLIC BOOL HTHost_decreaseRetry (HTHost * host)
 {
-    if (!host) {
-	if (host->retry > 0) host->retry--;
-	return YES;
-    }
-    return NO;
+    if (!host) return NO;
+
+    if (host->retry > 0) host->retry--;
+    return YES;
+
 }
 
 PUBLIC int HTHost_retry (HTHost * host)
@@ -1508,7 +1540,7 @@ PRIVATE int HTHost_ActivateRequest (HTNet *net)
   HTRequest *request;
 
   if (!ActivateReqCBF) {
-    if (CORE_TRACE) HTTrace("HTHost...... No ActivateRequest "
+    if (CORE_TRACE) HTTrace("HTHost....... No ActivateRequest "
                             "callback handler registered\n");
     return -1;
   }

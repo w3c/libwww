@@ -61,6 +61,11 @@
 #define DEFAULT_DEPTH		0
 #define DEFAULT_DELAY		50			/* Write delay in ms */
 
+#define DEFAULT_SQL_SERVER	"localhost"
+#define DEFAULT_SQL_DB		"webbot"
+#define DEFAULT_SQL_USER	"webbot"
+#define DEFAULT_SQL_PW		""
+
 #if 0
 #define HT_MEMLOG		/* Is expensive in performance! */
 #endif
@@ -143,6 +148,17 @@ typedef struct _Robot {
     regex_t *		include;
     regex_t *		exclude;
     regex_t *		check;
+#endif
+
+#ifdef HT_MYSQL
+    HTSQLLog *		sqllog;
+    char *		sqlserver;
+    char *		sqldb;
+    char *		sqluser;
+    char *		sqlpw;
+    char *		sqlrelative;
+    BOOL		sqlexternals;
+    int			sqlflags;
 #endif
 
 } Robot;
@@ -290,40 +306,112 @@ PRIVATE int HitSort (const void * a, const void * b)
 PRIVATE BOOL calculate_linkRelations (Robot * mr, HTArray * array)
 {
     if (mr && array) {
-        HTLog * log = HTLog_open(mr->relfile, YES, YES);
-        if (log) {
-            void ** data = NULL;
-            HTParentAnchor * anchor = NULL;
-            anchor = (HTParentAnchor *) HTArray_firstObject(array, data);
-	    while (anchor) {
-                char * uri = HTAnchor_address((HTAnchor *) anchor);
-		if (uri) {
-		    /*
-		    **  If we have a specific relation to look for then use that.
-		    */
-		    if (mr->relation) {
-			HTLink * link = HTAnchor_findLinkType((HTAnchor *) anchor,
-							      mr->relation);
-			if (link) {
-			    HTParentAnchor * dest = HTAnchor_parent(HTLink_destination(link));
-			    char * dest_uri = HTAnchor_address((HTAnchor *) dest);
+        HTLog * log = mr->relfile ? HTLog_open(mr->relfile, YES, YES) : NULL;
+	void ** data = NULL;
+	HTParentAnchor * anchor = NULL;
+	anchor = (HTParentAnchor *) HTArray_firstObject(array, data);
+	while (anchor) {
+
+	    /*
+	    **  If we have a specific link relation to look for then do this.
+	    **  Otherwise look for all link relations.
+	    */
+	    if (mr->relation) {
+		HTLink * link = HTAnchor_findLinkType((HTAnchor *) anchor, mr->relation);
+		if (link) {
+		    HTParentAnchor * dest = HTAnchor_parent(HTLink_destination(link));
+		    char * src_uri = HTAnchor_address((HTAnchor *) anchor);
+		    char * dest_uri = HTAnchor_address((HTAnchor *) dest);
+		    if (src_uri && dest_uri) {
+#ifdef HT_MYSQL
+			if (mr->sqllog) {
+			    HTSQLLog_addLinkRelationship (mr->sqllog,
+							  src_uri, dest_uri,
+							  HTAtom_name(mr->relation),
+							  NULL);
+			}
+#endif
+			if (log) {
 			    HTFormat format = HTAnchor_format(dest);
-			    if (dest_uri) {
-				HTLog_addText(log, "%s %s %s --> %s\n",
-					      HTAtom_name(mr->relation),
-					      format != WWW_UNKNOWN ?
-					      HTAtom_name(format) : "<unknown>",
-					      uri, dest_uri);
+			    HTLog_addText(log, "%s %s %s --> %s\n",
+					  HTAtom_name(mr->relation),
+					  format != WWW_UNKNOWN ?
+					  HTAtom_name(format) : "<unknown>",
+					  src_uri, dest_uri);
+			}
+
+			/* Cleanup */
+			HT_FREE(src_uri);
+			HT_FREE(dest_uri);
+		    }
+		}
+	    } else {
+		HTLink * link = HTAnchor_mainLink((HTAnchor *) anchor);
+		HTList * sublinks = HTAnchor_subLinks((HTAnchor *) anchor);
+		char * src_uri = HTAnchor_address((HTAnchor *) anchor);
+		HTLinkType linktype;
+
+		/* First look in the main link */
+		if (link && (linktype = HTLink_type(link))) {		    
+		    HTParentAnchor * dest = HTAnchor_parent(HTLink_destination(link));
+		    char * dest_uri = HTAnchor_address((HTAnchor *) dest);
+		    if (src_uri && dest_uri) {
+#ifdef HT_MYSQL
+			if (mr->sqllog) {
+			    HTSQLLog_addLinkRelationship (mr->sqllog,
+							  src_uri, dest_uri,
+							  HTAtom_name(linktype),
+							  NULL);
+			}
+#endif
+			if (log) {
+			    HTFormat format = HTAnchor_format(dest);
+			    HTLog_addText(log, "%s %s %s --> %s\n",
+					  HTAtom_name(linktype),
+					  format != WWW_UNKNOWN ?
+					  HTAtom_name(format) : "<unknown>",
+					  src_uri, dest_uri);
+			}
+		    }
+		    HT_FREE(dest_uri);
+		}
+
+		/* and then in any sublinks */
+		if (sublinks) {
+		    HTLink * pres;
+		    while ((pres = (HTLink *) HTList_nextObject(sublinks))) {
+			if ((linktype = HTLink_type(pres))) {
+			    HTParentAnchor * dest = HTAnchor_parent(HTLink_destination(pres));
+			    char * dest_uri = HTAnchor_address((HTAnchor *) dest);
+			    if (src_uri && dest_uri) {
+#ifdef HT_MYSQL
+				if (mr->sqllog) {
+				    HTSQLLog_addLinkRelationship (mr->sqllog,
+								  src_uri, dest_uri,
+								  HTAtom_name(linktype),
+								  NULL);
+				}
+#endif
+				if (log) {
+				    HTFormat format = HTAnchor_format(dest);
+				    HTLog_addText(log, "%s %s %s --> %s\n",
+						  HTAtom_name(linktype),
+						  format != WWW_UNKNOWN ?
+						  HTAtom_name(format) : "<unknown>",
+						  src_uri, dest_uri);
+				}
 				HT_FREE(dest_uri);
 			    }
 			}
 		    }
-		    HT_FREE(uri);
 		}
-                anchor = (HTParentAnchor *) HTArray_nextObject(array, data);
-            }
+
+		/* Cleanup */
+		HT_FREE(src_uri);
+	    }
+	    anchor = (HTParentAnchor *) HTArray_nextObject(array, data);
 	}
-        HTLog_close(log);
+        if (log) HTLog_close(log);
         return YES;
     }
     return NO;
@@ -581,12 +669,14 @@ PRIVATE BOOL calculate_statistics (Robot * mr)
 	    }
 
             /* Sort after link relations */
-            if (mr->relfile) {
-		if (SHOW_REAL_QUIET(mr))
+#ifdef HT_MYSQL
+            if (mr->relfile || mr->sqllog) {
+		if (mr->relfile && SHOW_REAL_QUIET(mr))
 		    HTTrace("\tLogged link relationship distribution in file `%s\'\n",
 			    mr->relfile);
 		calculate_linkRelations(mr, array);
 	    }
+#endif
 
             /* Sort after modified date */
             if (mr->lmfile) {
@@ -744,6 +834,13 @@ PRIVATE BOOL Robot_delete (Robot * mr)
 	if (mr->check) {
 	    regfree(mr->check);
 	    HT_FREE(mr->check);
+	}
+#endif
+
+#ifdef HT_MYSQL
+	if (mr->sqllog) {
+	    HTSQLLog_close(mr->sqllog);
+	    mr->sqllog = NULL;
 	}
 #endif
 
@@ -905,6 +1002,10 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
     Robot * mr = finger->robot;
     if (SHOW_QUIET(mr)) HTTrace("Robot....... done with %s\n", HTAnchor_physical(finger->dest));
 
+#ifdef HT_MYSQL
+    if (mr->sqllog) HTSQLLog_addEntry(mr->sqllog, request, status);
+#endif
+
     /* Check if negotiated resource and whether we should log that*/
     if (mr->conneg) {
 	HTAssocList * cur = HTResponse_variant(response);
@@ -1031,6 +1132,16 @@ PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
         if (hd) {
 	    if (SHOW_QUIET(mr)) HTTrace("Already checked\n");
             hd->hits++;
+#ifdef HT_MYSQL
+	    if (mr->sqllog) {
+		char * ref_addr = HTAnchor_address((HTAnchor *) referer);
+		if (ref_addr) {
+		    HTSQLLog_addLinkRelationship(mr->sqllog, ref_addr, uri,
+						 "referer", NULL);
+		    HT_FREE(ref_addr);
+		}
+	    }
+#endif
 	    HT_FREE(uri);
 	    return;
 	}
@@ -1074,10 +1185,22 @@ PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
 	    }
 	} else {
 	    if (SHOW_QUIET(mr)) HTTrace("does not fulfill constraints\n");
+#ifdef HT_MYSQL
+	    if (mr->reject || mr->sqllog) {
+#else	
 	    if (mr->reject) {
+#endif
 		if (referer) {
 		    char * ref_addr = HTAnchor_address((HTAnchor *) referer);
-		    if (ref_addr) HTLog_addText(mr->reject, "%s --> %s\n", ref_addr, uri);
+		    if (mr->reject && ref_addr)
+			HTLog_addText(mr->reject, "%s --> %s\n", ref_addr, uri);
+#ifdef HT_MYSQL
+		    if (mr->sqllog && mr->sqlexternals && ref_addr)
+			HTSQLLog_addLinkRelationship(mr->sqllog,
+						     ref_addr, uri,
+						     "referer", NULL);
+#endif
+
 		    HT_FREE(ref_addr);
 		}
 	    }
@@ -1103,6 +1226,17 @@ PUBLIC void HText_appendImage (HText * text, HTChildAnchor * anchor,
 	    if (hd) {
 		if (SHOW_QUIET(mr)) HTTrace("Already checked\n");
 		hd->hits++;
+#ifdef HT_MYSQL
+		if (mr->sqllog) {
+		    char * ref_addr = HTAnchor_address((HTAnchor *) referer);
+		    if (ref_addr) {
+			HTSQLLog_addLinkRelationship(mr->sqllog,
+						     ref_addr, uri,
+						     "image", alt);
+			HT_FREE(ref_addr);
+		    }
+		}
+#endif
 		HT_FREE(uri);
 		return;
 	    }
@@ -1135,10 +1269,22 @@ PUBLIC void HText_appendImage (HText * text, HTChildAnchor * anchor,
 		}
 	    } else {
 		if (SHOW_QUIET(mr)) HTTrace("does not fulfill constraints\n");
+#ifdef HT_MYSQL
+		if (mr->reject || mr->sqllog) {
+#else	
 		if (mr->reject) {
+#endif
 		    if (referer) {
 			char * ref_addr = HTAnchor_address((HTAnchor *) referer);
-			if (ref_addr) HTLog_addText(mr->reject, "%s --> %s\n", ref_addr, uri);
+			if (mr->reject && ref_addr)
+			    HTLog_addText(mr->reject, "%s --> %s\n", ref_addr, uri);
+#ifdef HT_MYSQL
+			if (mr->sqllog && mr->sqlexternals && ref_addr)
+			    HTSQLLog_addLinkRelationship(mr->sqllog,
+							 ref_addr, uri,
+							 "image", alt);
+#endif
+
 			HT_FREE(ref_addr);
 		    }
 		}
@@ -1428,6 +1574,45 @@ int main (int argc, char ** argv)
 		}
 #endif
 
+#ifdef HT_MYSQL
+	    /* If we can link against a MYSQL database library */
+	    } else if (!strncmp(argv[arg], "-sqldb", 5)) {
+		mr->sqldb = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    argv[++arg] : DEFAULT_SQL_DB;
+
+	    } else if (!strncmp(argv[arg], "-sqlclearlinks", 10)) {
+		mr->sqlflags |= HTSQLLOG_CLEAR_LINKS_TABLE;
+
+	    } else if (!strncmp(argv[arg], "-sqlclearrequests", 12)) {
+		mr->sqlflags |= HTSQLLOG_CLEAR_REQUESTS_TABLE;
+
+	    } else if (!strncmp(argv[arg], "-sqlclearresources", 12)) {
+		mr->sqlflags |= HTSQLLOG_CLEAR_RESOURCES_TABLE;
+
+	    } else if (!strncmp(argv[arg], "-sqlclearuris", 10)) {
+		mr->sqlflags |= HTSQLLOG_CLEAR_URIS_TABLE;
+
+	    } else if (!strncmp(argv[arg], "-sqlexternals", 5)) {
+		mr->sqlexternals = YES;
+
+	    } else if (!strncmp(argv[arg], "-sqlpassword", 5)) {
+		mr->sqlpw = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    argv[++arg] : DEFAULT_SQL_PW;
+
+	    } else if (!strncmp(argv[arg], "-sqlrelative", 5)) {
+		mr->sqlrelative = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    argv[++arg] : NULL;
+
+	    } else if (!strncmp(argv[arg], "-sqlserver", 5)) {
+		mr->sqlserver = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    argv[++arg] : DEFAULT_SQL_SERVER;
+
+	    } else if (!strncmp(argv[arg], "-sqluser", 5)) {
+		mr->sqluser = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    argv[++arg] : DEFAULT_SQL_USER;
+
+#endif
+
 	    } else {
 		if (SHOW_REAL_QUIET(mr)) HTTrace("Bad Argument (%s)\n", argv[arg]);
 	    }
@@ -1502,6 +1687,20 @@ int main (int argc, char ** argv)
 	/* Should we start by flushing? */
 	if (flush) HTCache_flushAll();
     }
+
+    /* SQL Log specified? */
+#ifdef HT_MYSQL
+    if (mr->sqlserver) {
+	if ((mr->sqllog =
+	     HTSQLLog_connect(mr->sqlserver,
+			      mr->sqluser ? mr->sqluser : DEFAULT_SQL_USER,
+			      mr->sqlpw ? mr->sqlpw : DEFAULT_SQL_PW)) != NULL) {
+	    HTSQLLog_openDB(mr->sqllog, mr->sqldb ? mr->sqldb : DEFAULT_SQL_DB,
+			    mr->sqlflags);
+	    if (mr->sqlrelative) HTSQLLog_makeRelativeTo(mr->sqllog, mr->sqlrelative);
+	}
+    }
+#endif
 
     /* CLF Log file specified? */
     if (mr->logfile) {

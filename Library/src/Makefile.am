@@ -54,16 +54,18 @@ libwww_a_SOURCES = \
 	HTMuxCh.c	HTTimer.c	HTTrace.c \
 	HTMemLog.c
 
-libwww_a_LIBADD = @HTWAIS@ @HTZLIB@
+libwww_a_LIBADD = @HTWAIS@ @HTZLIB@ @HTSQL@
 
 EXTRA_libwww_a_SOURCES = \
-	HTWAIS.c HTZip.c
+	HTWAIS.c \
+	HTZip.c \
+	HTSQLLog.c
 
-libwww_a_DEPENDENCIES = @HTWAIS@ @HTZLIB@
+libwww_a_DEPENDENCIES = @HTWAIS@ @HTZLIB@ @HTSQL@
 
 INCLUDES = -I/usr/local/include
 
-BUILT_SOURCES = sysdep.h \
+BUILT_SOURCES = wwwsys.h \
 	WWWUtil.h 	WWWCore.h 	WWWLib.h \
 	WWWDir.h 	WWWFTP.h 	WWWFile.h \
 	WWWStream.h 	WWWHTML.h 	WWWHTTP.h \
@@ -110,7 +112,8 @@ BUILT_SOURCES = sysdep.h \
 	HTMerge.h	HTResponse.h 	HTMuxHeader.h \
 	HTMux.h		HTDemux.h	HTMuxTx.h \
 	HTMuxCh.h 	HTHstMan.h	HTMemLog.h \
-	HTTimer.h	HTWAIS.h	HTZip.h
+	HTTimer.h	HTWAIS.h	HTZip.h \
+	HTSQLLog.h
 
 pkginclude_HEADERS = $(BUILT_SOURCES)
 

@@ -21,7 +21,7 @@
 #define WORD_DELIMITERS ",;:[]()"
 
 /* Library include files */
-#include "sysdep.h"
+#include "wwwsys.h"
 #include "HTUtils.h"
 #include "HTTeXGen.h"
 #include "HTMLPDTD.h"

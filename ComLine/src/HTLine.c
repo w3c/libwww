@@ -34,7 +34,7 @@
 #define APP_VERSION		W3C_VERSION
 
 /* Default page for "-help" command line option */
-#define HELP	"http://www.w3.org/pub/WWW/ComLine/User/CommandLine.html"
+#define HELP	"http://www.w3.org/ComLine/User/CommandLine.html"
 
 #define DEFAULT_OUTPUT_FILE	"w3c.out"
 #define DEFAULT_RULE_FILE	"w3c.conf"

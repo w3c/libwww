@@ -17,7 +17,7 @@
 */
 
 /* Library include files */
-#include "sysdep.h"
+#include "wwwsys.h"
 #include "WWWUtil.h"
 #include "HTFormat.h"
 #include "HTParse.h"
@@ -1046,7 +1046,15 @@ PUBLIC const char * HTAnchor_title  (HTParentAnchor * me)
 
 PUBLIC void HTAnchor_setTitle (HTParentAnchor * me, const char * title)
 {
-    if (me && title) StrAllocCopy(me->title, title);
+    if (me && title) {
+	char * ptr;
+	StrAllocCopy(me->title, title);
+	ptr = me->title;
+	while (*ptr) {
+	    if (isspace((int) *ptr)) *ptr = ' ';		
+	    ptr++;
+	}
+    }
 }
 
 PUBLIC void HTAnchor_appendTitle (HTParentAnchor * me, const char * title)

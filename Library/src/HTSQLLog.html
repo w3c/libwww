@@ -1,0 +1,123 @@
+<HTML>
+<HEAD>
+  <TITLE>W3C Sample Code Library libwww SQL Log Class</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  SQL Log Class
+</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+<P>
+This SQL based log class generates a SQL database and a set of tables storing
+the results of a request. The result is stored in different tables depending
+on whether it is information about the request or the resource returned.
+<P>
+This requires that you have linked against a <A href="http://www.tcx.se/">MySQL
+library</A>. See the <A href="../../INSTALL.html">installation instructions</A>
+for details.
+<P>
+This module is implemented by <A HREF="HTSQL.c">HTSQL.c</A>, and it is a
+part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Sample Code
+Library</A>.
+<PRE>
+#ifndef HTSQLLOG_H
+#define HTSQLLOG_H
+
+#include "HTReq.h"
+</PRE>
+<H2>
+  Open and Close the Logs
+</H2>
+<H3>
+  Connect to the SQL Server
+</H3>
+<P>
+Create a new SQLLog object and connect to the SQL server.
+<PRE>
+typedef struct _HTSQLLog HTSQLLog;
+
+extern HTSQLLog * HTSQLLog_connect (const char * host,
+                                    const char * user, const char * pw);
+</PRE>
+<H3>
+  Close Connection to the SQL Server
+</H3>
+<P>
+Close the log file and delete the log object
+<PRE>
+extern BOOL HTSQLLog_close (HTSQLLog * me);
+</PRE>
+<H3>
+  Open the Log Database
+</H3>
+<P>
+This module creates its own database with a set of tables. If the database
+already exists then open it and make sure i has the right tables.
+<PRE>
+typedef enum _HTSQLLogFlags {
+    HTSQLLOG_CLEAR_URIS_TABLE 		= 0x1,
+    HTSQLLOG_CLEAR_LINKS_TABLE		= 0x2,
+    HTSQLLOG_CLEAR_REQUESTS_TABLE	= 0x4,
+    HTSQLLOG_CLEAR_RESOURCES_TABLE	= 0x8,
+    HTSQLLOG_DROP_URIS_TABLE 		= 0x10,
+    HTSQLLOG_DROP_LINKS_TABLE		= 0x20,
+    HTSQLLOG_DROP_REQUESTS_TABLE	= 0x40,
+    HTSQLLOG_DROP_RESOURCES_TABLE	= 0x80
+} HTSQLLogFlags; 
+
+extern BOOL HTSQLLog_openDB (HTSQLLog * me, const char * db, HTSQLLogFlags flags);
+</PRE>
+<H2>
+  Write Logdata to the Database
+</H2>
+<H3>
+  Add a Log Entry
+</H3>
+<PRE>
+extern BOOL HTSQLLog_addEntry (HTSQLLog * me, HTRequest * request, int status);
+</PRE>
+<H3>
+  Add a Link Relationship Entry
+</H3>
+<PRE>
+extern BOOL HTSQLLog_addLinkRelationship (HTSQLLog * me,
+					  const char * src_uri,
+					  const char * dst_uri,
+					  const char * link_type,
+                                          const char * comment);
+</PRE>
+<H2>
+  Options and Flags
+</H2>
+<H3>
+  Make URIs Relative to this Base
+</H3>
+<P>
+Instead of inserting the absolute URI then you can log relative URIs instead
+which often saves a lot of space. Set the base URI using this function
+<PRE>
+extern BOOL HTSQLLog_makeRelativeTo (HTSQLLog * me, const char * relative);
+</PRE>
+<H3>
+  How many times has this Log Object Been Accessed?
+</H3>
+<P>
+This has nothing to do with the SQL database but merely returns the access
+count number to the log or -1 if error.
+<PRE>
+extern int HTSQLLog_accessCount (HTSQLLog * me);
+</PRE>
+<PRE>
+#endif
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

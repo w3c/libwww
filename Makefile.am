@@ -51,7 +51,7 @@ dist-hook:
 # Tag before making distribution.  Also, don't make a distribution if
 # checks fail.
 CVSSTUFF = config Library PICS-client LineMode Robot ComLine Listen \
-Makefile.am acconfig.h acinclude.m4 aclocal.m4 config.h.in configure.in
+Makefile.am acconfig.h acinclude.m4 aclocal.m4 wwwconf.h.in configure.in
 
 # If not indicated otherwise then use this to make the CVS diff with
 PREVIOUS_VERSION = @PREVIOUS_VERSION@

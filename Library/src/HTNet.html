@@ -430,14 +430,12 @@ extern HTNet * HTNet_dup (HTNet * src);
 Start a Net obejct by calling the protocol module.
 <PRE>extern BOOL HTNet_start (HTNet * net);
 </PRE>
-
 <H3>
-Call a Net Event Handler 
+  Call a Net Event Handler
 </H3>
-
-This functions lets the caller play event manager as it can calls any
-event handler with the event type and context passed to the function
-
+<P>
+This functions lets the caller play event manager as it can calls any event
+handler with the event type and context passed to the function
 <PRE>
 extern BOOL HTNet_execute (HTNet * net, HTEventType type);
 
@@ -447,7 +445,6 @@ extern void * HTNet_eventParam (HTNet * net);
 extern BOOL HTNet_setEventCallback(HTNet * net, HTEventCallback * cbf);
 extern HTEventCallback * HTNet_eventCallback(HTNet * net);
 </PRE>
-
 <H3>
   Delete an Object
 </H3>
@@ -571,7 +568,6 @@ extern void * HTNet_context (HTNet * net);
 extern BOOL HTNet_setSocket (HTNet * net, SOCKET sockfd);
 extern SOCKET HTNet_socket (HTNet * net);
 </PRE>
-
 <H3>
   Preemptive or Non-preemptive Access
 </H3>
@@ -582,11 +578,9 @@ implementation of the protocol module itself. However, if non-blocking I/O
 is the default then some times it is nice to be able to set the mode to blocking
 instead. For example when loading the first document (the home page) then
 blocking can be used instead of non-blocking.
-
 <PRE>
 extern BOOL HTNet_preemptive (HTNet * net);
 </PRE>
-
 <H3>
   The Request Object
 </H3>
@@ -597,22 +591,19 @@ but can be changed at a later time.
 extern BOOL HTNet_setRequest (HTNet * net, HTRequest * request);
 extern HTRequest * HTNet_request (HTNet * net);
 </PRE>
-
 <H3>
-The Protocol Object
+  The Protocol Object
 </H3>
-
 <PRE>
 extern BOOL HTNet_setProtocol (HTNet * net, HTProtocol * protocol);
 extern HTProtocol * HTNet_protocol (HTNet * net);
 </PRE>
-
 <H3>
   The Transport Object
 </H3>
 <P>
-The <A HREF="HTTransport.html">transport object</A> is normally set up
-automatically but can be changed at a later time.
+The <A HREF="HTTrans.html">transport object</A> is normally set up automatically
+but can be changed at a later time.
 <PRE>
 extern BOOL HTNet_setTransport (HTNet * net, HTTransport * tp);
 extern HTTransport * HTNet_transport (HTNet * net);
@@ -642,16 +633,13 @@ extern BOOL HTNet_setDns (HTNet * net, HTdns * dns);
 extern HTdns * HTNet_dns (HTNet * net);
 </PRE>
 <P>
-
 <H3>
-Target for Input Read Stream
+  Target for Input Read Stream
 </H3>
-
 <PRE>
 extern HTStream * HTNet_readStream(HTNet * net);
 extern BOOL HTNet_setReadStream (HTNet * net, HTStream * stream);
 </PRE>
-
 <PRE>
 #endif /* HTNET_H */
 </PRE>

@@ -1,5 +1,5 @@
 #include "malloc.h"
-#include "sysdep.h"
+#include "wwwsys.h"
 #include "CSLUtils.h"
 #include "CSLL.h"	/* to define states in stateChange */
 #include "CSParse.h"

@@ -26,11 +26,11 @@ IMGROOT=$2
 LOG=$3
 FLAGS=$4
 
-ROBOT=/home/frystyk/w3c-lib/Robot/src/webbot
+ROBOT=./webbot
 
 ${ROBOT} ${FLAGS} -q -ss -n -depth 99 \
 -exclude "/ArchiveBrowser/|/History/|/member/|/team/" \
--check "\.gz$|\.Z$|\.zip$|\.ZIP$|\.tar$|\.ps$|\.doc$|\.pdf$|\.xplot$|\.java$|\.c$|\.h$|\.txt$|\.ppt$|\.gif$|\.GIF$|\.tiff$|\.png$|\.PNG$|\.jpeg$|\.jpg$|\.JPE$" \
+-check "\.gz$|\.tar$|\.tgz$|\.Z$|\.zip$|\.ZIP$|\.exe$|\.EXE$|\.ps$|\.doc$|\.pdf$|\.xplot$|\.java$|\.c$|\.h$|\.txt$|\.ppt$|\.gif$|\.GIF$|\.tiff$|\.png$|\.PNG$|\.jpeg$|\.jpg$|\.JPE$" \
 -prefix ${ROOT} \
 -img -imgprefix ${IMGROOT} \
 -l ${LOG}-log-clf.txt \

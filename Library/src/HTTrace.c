@@ -10,7 +10,7 @@
 */
 
 /* Library include files */
-#include "sysdep.h"
+#include "wwwsys.h"
 /*
 **	All the tracing facilities are prototyped in
 **	HTUtils.h because they are needed everywhere.

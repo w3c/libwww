@@ -160,8 +160,9 @@ PUBLIC BOOL HTLog_addText (HTLog * log, const char * fmt, ...)
 #ifdef HAVE_VPRINTF
 	log->accesses++;
 	(vfprintf(log->fp, fmt, pArgs));
-	return (fflush(log->fp) != EOF); /* Actually update it on disk */
+	va_end(pArgs);
 #endif
+	return (fflush(log->fp) != EOF); /* Actually update it on disk */
     }
     return NO;
 }

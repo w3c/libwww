@@ -27,7 +27,7 @@
 */
 
 /* Library Includes */
-#include "sysdep.h"
+#include "wwwsys.h"
 #include "WWWUtil.h"
 #include "WWWCore.h"
 #include "WWWDir.h"
@@ -67,14 +67,11 @@ struct _HTInputStream {
     const HTInputStreamClass *	isa;
 };
 
-#if 0
-PRIVATE BOOL		HTTakeBackup = YES;
-#endif
-
 PRIVATE HTDirReadme	dir_readme = HT_DIR_README_TOP;
 PRIVATE HTDirAccess	dir_access = HT_DIR_OK;
 PRIVATE HTDirShow	dir_show = HT_DS_SIZE+HT_DS_DATE+HT_DS_DES+HT_DS_ICON;
 PRIVATE HTDirKey	dir_key = HT_DK_CINS;
+PRIVATE BOOL		file_suffix_binding = YES;
 
 /* ------------------------------------------------------------------------- */
 
@@ -104,6 +101,21 @@ PUBLIC BOOL HTFile_setDirReadme (HTDirReadme mode)
 PUBLIC HTDirReadme HTFile_dirReadme (void)
 {
     return dir_readme;
+}
+
+/*
+**  Should we find the bindings between file suffixes and media types
+**  here or not?
+*/
+PUBLIC BOOL HTFile_doFileSuffixBinding (BOOL mode)
+{
+    file_suffix_binding = mode;
+    return YES;
+}
+
+PUBLIC BOOL HTFile_fileSuffixBinding (void)
+{
+    return file_suffix_binding;
 }
 
 /*	HTFile_readDir
@@ -469,7 +481,7 @@ PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    */
 	    {
 		BOOL editable = HTEditable(file->local, &file->stat_info);
-		HTBind_getAnchorBindings(anchor);
+		if (file_suffix_binding) HTBind_getAnchorBindings(anchor);
 		if (editable) HTAnchor_appendAllow(anchor, METHOD_PUT);
 		if (file->stat_info.st_size)
 		    HTAnchor_setLength(anchor, file->stat_info.st_size);

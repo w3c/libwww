@@ -1,8 +1,7 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 12-Feb-1996 -->
-  <NEXTID N="z29">
   <TITLE>Command Line Syntax for the W3C Command Line Tool</TITLE>
+  <LINK rel=STYLESHEET href="../../StyleSheets/Area/Overview.css" type="text/css">
 </HEAD>
 <BODY BGCOLOR="#ffffff">
 <P>
@@ -13,10 +12,33 @@
   Command Line Syntax
 </H1>
 <P>
-The generic syntax is:
-<PRE>
-	w3c [ <A HREF="#z19">options</A> ]  [ <A HREF="#z16">docaddress</A> [ <A HREF="#z17">keywords</A> ]]
+<DIV class="intro">
+  The generic syntax is:
+  <PRE>	w3c [ <A HREF="#z19">options</A> ]  [ <A HREF="#z16">URI</A> [ <A HREF="#z17">keywords</A> ]]
 </PRE>
+  <P>
+  Check here the following options
+  <UL>
+    <LI>
+      <A HREF="#Help">Getting Help</A>
+    <LI>
+      <A HREF="#Modes">Main Modes of execution</A>
+    <LI>
+      <A HREF="#Methods">Using Different HTTP Methods</A>
+    <LI>
+      <A HREF="#Format">Data Format Conversions</A>
+    <LI>
+      <A HREF="#Destination">Destination Address for PUT and POST</A>
+    <LI>
+      <A HREF="#Other">Other Options</A>
+    <LI>
+      <A HREF="#z17">Form Submission and Searching</A>
+  </UL>
+  <P>
+  Henrik Frystyk Nielsen
+</DIV>
+<P>
+  <HR>
 <H2>
   <A NAME="z19">Options</A>
 </H2>
@@ -25,7 +47,7 @@ The order of the options is not important and options can in fact be specified
 on either side of any <A HREF="#z16"NAME="z14">docaddress</A>. Currently
 available options are:-
 <H3>
-  Getting Help
+  <A NAME="Help">Getting Help</A>
 </H3>
 <DL>
   <DT>
@@ -72,14 +94,14 @@ available options are:-
     the WWW library, and exits.
 </DL>
 <H3>
-  Main Modes of execution
+  <A NAME="Modes">Main Modes of execution</A>
 </H3>
 <DL>
   <DT>
     <B>-</B>
   <DD>
     A minus sign with no trailing characters indicates that the program will
-    accept<A HREF="../../MarkUp/MarkUp.html"> HTML format</A> input from the
+    accept <A HREF="../../MarkUp/MarkUp.html">HTML format</A> input from the
     standard input. This allows www to be used as a filter from html to plain
     text for example. Relative links in the input are parsed as though the address
     of the document was that of the home page (or docaddress if specified). Implies
@@ -91,21 +113,16 @@ available options are:-
     counter stream to the output stream so that everything is counted. This works
     exactly like piping the output into <EM>wc</EM>.
   <DT>
-    <B>-h</B> host
-  <DD>
-    Establish a telnet connection to the remote host specified. This implies
-    a "secure mode" execution where all references to the local file system are
-    canceled.
-  <DT>
     <B>-n</B>
   <DD>
-    Non-interactive mode. Outputs the formatted document to the standard output,
-    then exits. Pages are delimited with form feed (FF) characters.
+    Non-interactive mode. Outputs the formatted document to the standard output
+    without ever asking for anything. Pages are delimited with form feed (FF)
+    characters.
   <DT>
     <B>-o</B> [ file ]
   <DD>
-    Redirects output to specified file. The default value is "www-out". This
-    mode forced non-interactive mode
+    Redirects output to specified file. The default value is
+    "<CODE>w3c.out</CODE>". This mode forced non-interactive mode
   <DT>
     <A NAME="single"><B>-single</B></A>
   <DD>
@@ -114,10 +131,10 @@ available options are:-
     blocking I/O.
 </DL>
 <H3>
-  <A NAME="Methods">HTTP methods</A>
+  <A NAME="Methods">Using Different HTTP Methods</A>
 </H3>
 <P>
-The Line Mode Browser supports several <A HREF="../../Protocols/">HTTP
+The Command Line Tool supports several <A HREF="../../Protocols/">HTTP
 methods</A>. The default value is "GET". These options imply non-interactive
 execution.
 <DL>
@@ -159,8 +176,11 @@ execution.
     with the additional <A HREF="#mf"><B>-maxforwards</B></A> command line option
 </DL>
 <H3>
-  Data format conversions (non-interactive)
+  <A NAME="Format">Data Format Conversions</A>
 </H3>
+<P>
+You can convert the outcome of a request to some other format by using the
+following flags:
 <DL>
   <DT>
     <B>-from</B> [ format ]
@@ -184,40 +204,7 @@ execution.
     of parsing it.
 </DL>
 <H3>
-  Directory Listings
-</H3>
-<DL>
-  <DT>
-    <B>-d</B> 1*( t | b | r | n | s | y )
-  <DD>
-    This directive can be used to modify the directory listing layout. More than
-    one option can be specified but they might be mutually exclusive. The following
-    options are available (withour space):
-    <UL>
-      <LI>
-	<B>t</B>: Place any readme file at the top of the list (default)
-      <LI>
-	<B>b</B>: Place any readme file at the bottom of the list
-      <LI>
-	<B>r</B>: Ignore any readme file
-      <LI>
-	<B>n</B>: Directory listings are not allowed
-      <LI>
-	<B>s</B>: Directory listings are only allowed in the directories where a
-	file ".www_browsable" is located. The content of the file is of no importance.
-      <LI>
-	<B>y</B>: Directory listings are always allowed (default)
-    </UL>
-    <P>
-    An example is
-    <PRE>
-	-dts
-</PRE>
-    <P>
-    makes selective directory listings and places a README file at the top
-</DL>
-<H3>
-  Destination URL
+  <A NAME="Destination">Destination Address for PUT and POST</A>
 </H3>
 <DL>
   <DT>
@@ -230,14 +217,14 @@ execution.
 </PRE>
 </DL>
 <H3>
-  Configuration Options
+  <A NAME="Other">Other Options</A>
 </H3>
 <DL>
   <DT>
     <B>-l</B> [ file ]
   <DD>
     Specifies a log file with a list of visited documents. The default value
-    is "www-log"
+    is "<CODE>w3c.log</CODE>"
   <DT>
     <A NAME="mf"><B>-maxforwards</B></A> &lt;n&gt;
   <DD>
@@ -255,7 +242,7 @@ execution.
     Timeout in seconds on sockets
 </DL>
 <H2>
-  <A NAME="z16">docaddress</A>
+  <A NAME="z16">URI</A>
 </H2>
 <P>
 If present, the next argument (docaddress) is the

@@ -16,7 +16,7 @@
 */
 
 /* Library include files */
-#include "sysdep.h"
+#include "wwwsys.h"
 #include "HTUtils.h"
 #include "HTStream.h"
 

@@ -21,7 +21,7 @@
 */
 
 /* Library include files */
-#include "sysdep.h"
+#include "wwwsys.h"
 #include "HTUtils.h"
 #include "HTMLPDTD.h"
 #include "HTStruct.h"

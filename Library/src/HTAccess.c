@@ -712,8 +712,8 @@ PRIVATE BOOL setup_anchors (HTRequest * request,
     {
 	char * addr = HTAnchor_address((HTAnchor *) source);
 	char * hostname = HTParse(addr, "", PARSE_HOST);
-	HTHost * host = HTHost_find(hostname);
 #if 0
+	HTHost * host = HTHost_find(hostname);
 	HTMethod public_methods = HTHost_publicMethods(host);
 	HTMethod private_methods = HTAnchor_allow(dest);
 #endif

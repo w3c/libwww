@@ -10,7 +10,7 @@
 */
 
 /* Library include files */
-#include "sysdep.h"
+#include "wwwsys.h"
 #include "WWWUtil.h"
 #include "HTHeader.h"
 #include "HTLib.h"
@@ -345,8 +345,10 @@ PUBLIC BOOL HTResponse_isCachable (HTResponse * me)
 	/* We may already have decided that this object is not cachable */
 	if (me->cachable == NO) return NO;
 
+#if 0
 	/*  We don't cache negotiated resources for the moment */
 	if (me->variants) return NO;
+#endif
 
 	/*
 	**  Check if we should cache this object or not. We are very liberale

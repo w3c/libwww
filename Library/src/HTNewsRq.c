@@ -13,7 +13,7 @@
 */
 
 /* Library Includes */
-#include "sysdep.h"
+#include "wwwsys.h"
 #include "WWWUtil.h"
 #include "WWWCore.h"
 
