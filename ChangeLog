@@ -1,0 +1,16 @@
+2000-08-08	Jens Meggers <jens@meggers.com>
+
+	* The cache garbage collector (HTCacheGarbage()) could go into an
+	  endless loop when it tried to removed locked entries. The problem
+	  was that it wasn't checking the return code of HTCache_remove().
+
+2000-08-07 	Wayne Davison <wayne@clari.net>
+
+	* Changed the macro argument from "data" to "dp" in 
+	  HTArray_firstObject() and HTArray_nextObject(). These macros
+	  are defined such that if the caller doesn't pass in a variable
+	  named exactly "data" as the second parameter, there will either be a
+	  syntax error generated during the compilation OR the wrong structure 
+	  element will get referenced.  This is because the macro argument 
+	  "data" was the same name as the HTArray structure element that was
+	  being referenced in the macro. 
