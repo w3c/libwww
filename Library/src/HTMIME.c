@@ -356,8 +356,8 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
                         }
 		    }
 	        } else {				/* EOL_LINE */
-		    HTChunk_clear(me->token);
-		    HTChunk_clear(me->value);
+		    HTChunk_truncate(me->token,0);
+		    HTChunk_truncate(me->value,0);
 		    me->haveToken = NO;
 		    me->hash = 0;
 		    value = NULL;

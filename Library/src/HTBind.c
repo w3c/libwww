@@ -228,7 +228,7 @@ PUBLIC BOOL HTBind_add (const char *	suffix,
 	    for (; *ptr; ptr++)
 		*ptr = TOLOWER(*ptr);
 	    suff->type = HTAtom_for(HTChunk_data(chunk));
-	    HTChunk_clear(chunk);
+	    HTChunk_truncate(chunk,0);
 	}
 	if (encoding) {
 	    HTChunk_puts(chunk, encoding);
@@ -236,7 +236,7 @@ PUBLIC BOOL HTBind_add (const char *	suffix,
 	    for (; *ptr; ptr++)
 		*ptr = TOLOWER(*ptr);
 	    suff->encoding = HTAtom_for(HTChunk_data(chunk));
-	    HTChunk_clear(chunk);
+	    HTChunk_truncate(chunk,0);
 	}
 	if (transfer) {
 	    HTChunk_puts(chunk, transfer);
@@ -244,7 +244,7 @@ PUBLIC BOOL HTBind_add (const char *	suffix,
 	    for (; *ptr; ptr++)
 		*ptr = TOLOWER(*ptr);
 	    suff->transfer = HTAtom_for(HTChunk_data(chunk));
-	    HTChunk_clear(chunk);
+	    HTChunk_truncate(chunk,0);
 	}
 	if (language) {
 	    HTChunk_puts(chunk, language);
@@ -252,7 +252,7 @@ PUBLIC BOOL HTBind_add (const char *	suffix,
 	    for (; *ptr; ptr++)
 		*ptr = TOLOWER(*ptr);
 	    suff->language = HTAtom_for(HTChunk_data(chunk));
-	    HTChunk_clear(chunk);
+	    HTChunk_truncate(chunk,0);
 	}
 	HTChunk_delete(chunk);
 	suff->quality = value;

@@ -387,8 +387,7 @@ PRIVATE int SendCommand (HTRequest *request, ftp_ctrl *ctrl,
 {
     int len = strlen(token) + (pars ? strlen(pars)+1:0) + 2;
     HTStream * input = HTRequest_inputStream(request);
-    HTChunk_clear(ctrl->cmd);
-    HTChunk_ensure(ctrl->cmd, len);
+    HTChunk_setSize(ctrl->cmd, len);
     if (pars && *pars)
 	sprintf(HTChunk_data(ctrl->cmd), "%s %s%c%c", token, pars, CR, LF);
     else

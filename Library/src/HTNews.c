@@ -308,8 +308,7 @@ PRIVATE int SendCommand (HTRequest *request, news_info *news,
 {
     HTStream * input = HTRequest_inputStream(request);
     int len = strlen(token) + (pars ? strlen(pars)+1:0) + 2;
-    HTChunk_clear(news->cmd);
-    HTChunk_ensure(news->cmd, len);
+    HTChunk_setSize(news->cmd, len);
     if (pars && *pars)
 	sprintf(HTChunk_data(news->cmd), "%s %s%c%c", token, pars, CR, LF);
     else

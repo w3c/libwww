@@ -74,11 +74,29 @@ PUBLIC int HTChunk_size (HTChunk * ch)
     return ch ? ch->size : -1;
 }
 
-PUBLIC BOOL HTChunk_truncate (HTChunk * ch, int position)
+PUBLIC BOOL HTChunk_truncate (HTChunk * ch, int length)
 {
-    if (ch && position>=0 && position < ch->size) {
-	ch->size = position;
-	if (ch->data) memset(ch->data+position, '\0', ch->allocated-position);
+    if (ch && length >= 0 && length < ch->size) {
+	memset(ch->data+length, '\0', ch->size-length);
+	ch->size = length;
+	return YES;
+    }
+    return NO;
+}
+
+/*      Set the "size" of the Chunk's data
+**      -----------------------------------
+** The actual allocated length must  be at least 1 byte longer to hold the
+** mandatory null terminator. 
+*/
+PUBLIC BOOL HTChunk_setSize (HTChunk * ch, int length)
+{
+    if (ch && length >= 0) {
+	if (length < ch->size)
+	    memset(ch->data+length, '\0', ch->size-length);
+	else if (length >= ch->allocated)
+	    HTChunk_ensure(ch, length - ch->size);
+	ch->size = length;
 	return YES;
     }
     return NO;
@@ -175,17 +193,17 @@ PUBLIC void HTChunk_terminate (HTChunk * ch)
 */
 PUBLIC void HTChunk_ensure (HTChunk * ch, int len)
 {
-    if (ch && len) {
+    if (ch && len > 0) {
 	int needed = ch->size+len;
 	if (needed >= ch->allocated) {
 	    ch->allocated = needed - needed%ch->growby + ch->growby;
 	    if (ch->data) {
 		if ((ch->data = (char  *) HT_REALLOC(ch->data, ch->allocated)) == NULL)
-		    HT_OUTOFMEM("HTChunk_putb");
+		    HT_OUTOFMEM("HTChunk_ensure");
 	        memset((void *) (ch->data + ch->size), '\0', ch->allocated-ch->size);
 	    } else {
 		if ((ch->data = (char  *) HT_CALLOC(1, ch->allocated)) == NULL)
-		    HT_OUTOFMEM("ch->data ");
+		    HT_OUTOFMEM("HTChunk_ensure");
 	    }
 	}
     }

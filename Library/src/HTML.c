@@ -420,7 +420,7 @@ PRIVATE void HTML_start_element (HTStructured *	me,
 	break;
 
     case HTML_TITLE:
-        HTChunk_clear(me->title);
+        HTChunk_truncate(me->title,0);
 	break;
     }
 

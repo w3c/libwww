@@ -16,8 +16,8 @@
 <P>
 The Chunk Class defines a way to automatically handle dynamic strings and
 other data types. You create a chunk with an initial size and it will then
-automatically grow to accomodate added data to the chunk. It is a general
-utility module. It is garanteed that the array is <CODE>'\0' </CODE>terminated
+automatically grow to accommodate added data to the chunk. It is a general
+utility module. It is guaranteed that the array is <CODE>'\0' </CODE>terminated
 at all times (and hence is a valid C type string). The method
 <A HREF="HTChunk.html#Terminate">HTChunkTerminate</A> can be used to explicitly
 add a terminating <CODE>'\0'</CODE> and then to include this character in
@@ -60,7 +60,10 @@ extern void HTChunk_delete (HTChunk * ch);
 <P>
 Keep the chunk in memory but clear all data kept inside. This can be used
 if you know that you can reuse the allocated memory instead of allocating
-new memory.
+new memory.  This zeros out all the allocated data (even data past the
+indicated size) and sets the size of the chunk to 0.  If you have not used
+any bytes past the indicated size, it is more efficient to truncate the
+chunk to 0 instead.
 <PRE>
 extern void HTChunk_clear (HTChunk * ch);
 </PRE>
@@ -68,11 +71,13 @@ extern void HTChunk_clear (HTChunk * ch);
   Ensure a Chunk has a Certain Amount of Free Space
 </H2>
 <P>
-Make sure that a chunk has a certain size. If this is not the case then the
-chunk is expanded. Nothing is done if the current size if bigger than the
-size requested.
+Make sure that a chunk has enough memory allocated to grow by the
+indicated extra size. If this is not the case, then the chunk is expanded
+(in multiples of the chunk's "growby" size).  Nothing is done if the
+current size plus the requested extra space fits within the chunk's
+currently allocated memory.
 <PRE>
-extern void HTChunk_ensure (HTChunk * ch, int s);
+extern void HTChunk_ensure (HTChunk * ch, int extra_size);
 </PRE>
 <H2>
   Append a character to a chunk
@@ -118,15 +123,19 @@ Returns the current size of the chunk
 extern int HTChunk_size (HTChunk * ch);
 </PRE>
 <H2>
-  Truncate Chunk
+  Setting the Size of a Chunk
 </H2>
 <P>
-If for some reason you want to cut off a piece of a chunk then you can
-use this function. It sets the size of the chunk to be
-<CODE>position</CODE>. Clearing the chunk is equivalent to a position
-of 0.
+If you want to cut off a piece of a chunk or extend it to make room
+for some direct buffer manipulation, then you can use one of these
+functions.  Both of these calls set the size of the chunk to be
+<CODE>size</CODE>, but the truncate call only allows you to make the
+string shorter. If the string is made shorter, the formerly-used bytes
+are cleared, so truncating a chunk to 0 is analogous to clearing it,
+but slightly more efficient.
 <PRE>
-extern BOOL HTChunk_truncate (HTChunk * ch, int position);
+extern BOOL HTChunk_truncate (HTChunk * ch, int size);
+extern BOOL HTChunk_setSize (HTChunk * ch, int size);
 </PRE>
 <H2>
   Zero Terminate a chunk
@@ -144,9 +153,9 @@ extern void HTChunk_terminate (HTChunk * ch);
 </H2>
 <P>
 A Chunk may be built from an allocated string. The chunk assumes control
-of the passed string, elminating the need for additional allocations and
+of the passed string, eliminating the need for additional allocations and
 string copies.<BR>
-Once a string is built, the chunk may be destroyed and the string kept around.
+When you take control of the CString from a chunk, it is destroyed.
 <PRE>
 extern HTChunk * HTChunk_fromCString	(char * str, int grow);
 extern char * HTChunk_toCString		(HTChunk * ch);

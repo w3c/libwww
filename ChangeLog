@@ -1,3 +1,41 @@
+2000-08-08 	Wayne Davison <wayne@clari.net>
+	
+	* New HTChunk_setSize function to allow to set the size of a
+	  chunk object upwards or downwards. (HTChunk_truncate() still
+          exists and still enforces the sizing of the string downwards.)
+          Both these string-sizing functions only zero the relevant bytes
+          in the "size" region (if the string is being shortened).  Note
+          that HTChunk_clear() was left unchanged -- it still clears all of
+          the Chunk's allocated memory.
+	
+        * Fixed the HT_OUTOFMEM() calls in HTChunk_ensure() to have the
+          proper location string.
+	
+        * Some code in HTBind.c was optimized to use HTChunk_truncate().
+	
+        * HTFTP.c and HTNews.c was optimized to use HTChunk_setSize()
+	  rather than using HTChunk_ensure() and writing data past the "size".
+
+        * Optimized the code in HTMIME.c and HTML.c to use
+	  HTChunk_truncate(chunk,0) rather than HTChunk_clear(chunk).
+
+	* Documented the new HTChunk_setSize() function.
+
+	* Improved the comments for HTChunk_clear().
+
+	* Fixed the comments for HTChunk_ensure() (it was describing the
+	  extra-size parameter incorrectly).
+
+	* Fixed the comments for HTChunk_toString() (to indicate that the
+	  function destroys the chunk when handing off the CString data).
+
+	* Fixed a few spelling errors in HTChunk.html.
+
+	* Note: There are probably other places in the code that could be
+	  optimized to use truncate rather than clear, but I didn't have 
+	  time to check each one to see if the chunk's data was properly 
+	  respecting the size indicator or not.
+
 2000-08-09	Jose Kahan <jose@w3.org>
 
 	* Updated the "how to bootstrap section" with instructions on what to
