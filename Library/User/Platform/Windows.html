@@ -1,72 +1,44 @@
 <HTML>
 <HEAD>
 <TITLE>Notes about Windows</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 13-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 20-Nov-1995 -->
 <NEXTID N="z10">
 </HEAD>
 <BODY>
 
-<A HREF="../../../"><IMG ALT="WWW" SRC="../../../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
 <A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
 <A HREF="../../../Daemon/"><IMG ALT="httpd" SRC="../../../Icons/WWW/httpd48x.gif"></A>
 <A HREF="../../../LineMode/"><IMG ALT="LMB" SRC="../../../Icons/WWW/LMB48x.gif"></A>
-<A HREF="./"><IMG SRC="../../../Icons/WWW/Platform48x.gif"></A>
+<A HREF="./"><IMG ALT="OS" SRC="../../../Icons/WWW/Platform48x.gif"></A>
 
 <H1>Notes About Windows</H1>
 
-These are the installation and user notes for the <A
-HREF="../../">W3C Reference Library</A> and the <A
-HREF="../../../LineMode/">Line Mode Browser</A>. Any
-comments and suggestions are welcome at
+These are the installation and user notes for the <A HREF="../../">W3C Reference Library</A> and the
+<A HREF="../../../LineMode/">Line Mode Browser</A>. Any comments and suggestions are welcome at
 <EM>libwww@w3.org</EM>. <P>
 
-As we only have some very old C compilers for the Windows platform,
-and many of the problems have been fixed in newer version. This port
-is still in a test phase so please comment! Special thanks to <EM>Paul
-Hounslow, P.M.Hounslow@reading.ac.uk</EM>. See also the notes on <A
-HREF="WindowsNT.html">Windows NT</A>
 
-<DL>
+<IMG ALT="SMILEY" SRC="../../../Icons/32x32/smiley.gif"> <A
+HREF="WinDLL.html">The Library now builds as a set of <B>DLLs</B>!</A>
+<P>
 
-<DT><A
-HREF="http://www.ncsa.uiuc.edu/SDG/Software/WinMosaic/winsocks.htm">WinSock
-DLL</A>
+Special thanks to the extraordinary help from:
 
-<DD>The socket interface is based on a <A
-HREF="http://www.ncsa.uiuc.edu/SDG/Software/WinMosaic/winsocks.htm">WinSock
-DLL</A>, preferably a version greater than 1.1.
+<UL>
 
-<DT>Dynamic Library (DLL)
+<LI><A HREF="mailto:eric@apocalypse.org">Eric Prud'Hommeaux</A> for creating DLLs and making it
+compile on all Windows platforms.
 
-<DD>The Library can't compile as a DLL out of the box. It requires
-some modifications and possibly some minor patches. Please remember to
-send the patches, so that we can put them in!
+<LI><A HREF="mailto:cbrooks@osf.org">Charlie Brooks</A> for implementing a new new tread model. See
+the <A HREF="../../../README-WinNT.html">documentation</A> on this for more
 
-<DT>Direct <A HREF="../../../Gateways/WAISGate.html">WAIS</A> access
-
-<DD>The normal possibility for linking with the WAIS library is not
-possible on the Windows NT platform. Therefore the WWW Library module
-<A HREF="../../Implementation/HTWAIS.c">HTWAIS</A> must be excluded in
-the make file.
-
-<DT>Memory Model
-
-<DD>The memory model used should be <EM>LARGE</EM>. This has the
-limitation that a single data object can't exceed 64K which might
-cause problems in some situations.
-
-<DT>Problem with 16 bit integers
-
-<DD>Unfortunately most of the code in the Library is based on 32 bit
-integers, so there will be overflow in some situations. One solution
-is to redefine the <CODE>int</CODE> as <CODE>long</CODE> using a
-<CODE>typedef</CODE> declaration.
-
-</DL>
+<LI><A HREF="mailto:P.M.Hounslow@reading.ac.uk">Paul Hounslow</A> for initial Windows port
+</UL>
 
 <P>
 <HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, July 1995</ADDRESS>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
 </BODY>
 </HTML>
 
