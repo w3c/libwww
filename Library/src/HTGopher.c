@@ -6,6 +6,9 @@
 **	29 Nov 91	Downgraded to C, for portable implementation.
 **	28 Apr 94	target no more global and icons implemented
 **			HF, frystyk@dxcern.cern.ch
+**	 2 May 94	Fixed possible security hole when the URL contains
+**			a newline, that could cause multiple commands to be
+**			sent to a Gopher server. AL, luotonen@www.cern.ch
 */
 
 /* Implements:
@@ -540,6 +543,7 @@ PRIVATE void display_index ARGS3 (HTStructured *,	target,
     char * t = NULL;
 
     HTUnEscape(decoded);
+    HTCleanTelnetString(decoded);	/* Prevent security holes */
     if (strlen(decoded) > 2) {
 	t = strchr(decoded+1,'/');
 	if (t) t++;

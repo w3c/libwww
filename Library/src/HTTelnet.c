@@ -11,6 +11,8 @@
 **	 6 Oct 92 Moved HTClientHost and logfile into here. (TBL)
 **	17 Dec 92 Tn3270 added, bug fix. (DD)
 **	 2 Feb 93 Split from HTAccess.c. Registration.(TBL)
+**	 2 May 94 Fixed security hole with illegal characters in host
+**		  and user names (code from Mosaic/Eric Bina).
 */
 
 /* Implements:
@@ -34,6 +36,53 @@
 #define HT_NO_DATA -9999
 
 
+/*	make a string secure for passage to the
+**	system() command.  Make it contain only alphanumneric
+**	characters, or the characters '.', '-', '_', '+'.
+**	Also remove leading '-' or '+'.
+**	-----------------------------------------------------
+**	Function taken from Mosaic's HTTelnet.c.
+*/
+PRIVATE void make_system_secure ARGS1(char *, str)
+{
+	char *ptr1, *ptr2;
+
+	if ((str == NULL)||(*str == '\0'))
+	{
+		return;
+	}
+
+	/*
+	 * remove leading '-' or '+' by making it into whitespace that
+	 * will be stripped later.
+	 */
+	if ((*str == '-')||(*str == '+'))
+	{
+		*str = ' ';
+	}
+
+	ptr1 = ptr2 = str;
+
+	while (*ptr1 != '\0')
+	{
+		if ((!isalpha((int)*ptr1))&&(!isdigit((int)*ptr1))&&
+			(*ptr1 != '.')&&(*ptr1 != '_')&&
+			(*ptr1 != '+')&&(*ptr1 != '-'))
+		{
+			ptr1++;
+		}
+		else
+		{
+			*ptr2 = *ptr1;
+			ptr2++;
+			ptr1++;
+		}
+	}
+	*ptr2 = *ptr1;
+}
+
+
+
 /*	Telnet or "rlogin" access
 **	-------------------------
 */
@@ -55,6 +104,12 @@ PRIVATE int remote_session ARGS2(char *, access, char *, host)
 	}
 	if (port) *port++ = 0;	/* Split */
 
+	/*
+	 * Make user and hostname secure by removing leading '-' or '+'.
+	 * and allowing only alphanumeric, '.', '_', '+', and '-'.
+	 */
+	make_system_secure(user);
+	make_system_secure(hostname);
 
 /* If the person is already telnetting etc, forbid hopping */
 /* This is a security precaution, for us and remote site */

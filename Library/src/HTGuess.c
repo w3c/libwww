@@ -161,13 +161,16 @@ PRIVATE void HTGuess_put_character ARGS2(HTStream *, me, char, c)
     if (me->output_stream) PUT_CHAR(c);
     else {
 	me->cnt++;
+#if 0
 	if	(c < 0)	  me->high_cnt++;
-	else if (c == LF) me->lf_cnt++;
+	else
+#endif
+	if (c == LF) me->lf_cnt++;
 	else if (c == CR) me->cr_cnt++;
 	else if (c == 12) me->pg_cnt++;
 	else if (c =='\t')me->text_cnt++;
-	else if (c < 32)  me->ctrl_cnt++;
-	else if (c < 128) me->text_cnt++;
+	else if ((unsigned char)c < 32)  me->ctrl_cnt++;
+	else if ((unsigned char)c < 128) me->text_cnt++;
 	else		  me->high_cnt++;
 	*me->write_ptr++ = c;
 	if (me->cnt >= SAMPLE_SIZE) header_and_flush(me);

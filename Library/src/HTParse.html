@@ -136,6 +136,32 @@ xy is the acsii hex code for character
 place, as it will never grow.
 <PRE>extern char * HTUnEscape PARAMS(( char * str));
 
+</PRE>
+
+
+<H2>Prevent Security Holes</H2>
+
+<CODE>HTCleanTelnetString()</CODE> makes sure that the given string
+doesn't contain characters that could cause security holes, such as
+newlines in ftp, gopher, news or telnet URLs; more specifically:
+allows everything between hexadesimal ASCII 20-7E, and also A0-FE,
+inclusive.
+<DL>
+<DT> <CODE>str</CODE>
+<DD> the string that is *modified* if necessary.  The string will be
+     truncated at the first illegal character that is encountered.
+<DT>returns
+<DD> YES, if the string was modified.
+     NO, otherwise.
+</DL>
+<PRE>
+
+PUBLIC BOOL HTCleanTelnetString PARAMS((char * str));
+
+</PRE>
+
+
+<PRE>
 
 #endif	/* HTPARSE_H */
 

@@ -49,7 +49,10 @@ struct _HTStream {
 extern char * HTAppName;	/* Application name: please supply */
 extern char * HTAppVersion;	/* Application version: please supply */
 
+#ifdef OLD_CODE
 PUBLIC long HTProxyBytes = 0;	/* Number of bytes transferred thru proxy */
+#endif
+
 extern BOOL using_proxy;	/* are we using a proxy gateway? */
 PUBLIC char * HTProxyHeaders = NULL;	/* Headers to pass as-is */
 
@@ -153,7 +156,9 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
     SockA * sin = &soc_address;
     BOOL extensions = YES;		/* Assume good HTTP server */
 
+#ifdef OLD_CODE
     if (HTImProxy) HTProxyBytes = 0;
+#endif
 
     arg = HTAnchor_physical(request->anchor);
 
@@ -395,7 +400,10 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	/*
 	** Load results directly to client
 	*/
-	HTProxyBytes = HTCopy(s, request->output_stream);
+#ifdef OLD_CODE
+	HTProxyBytes =
+#endif
+	HTCopy(s, request->output_stream);
 	(*request->output_stream->isa->free)(request->output_stream);
 
 	return HT_LOADED;

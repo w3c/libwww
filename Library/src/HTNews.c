@@ -4,7 +4,11 @@
 ** History:
 **	26 Sep 90	Written TBL
 **	29 Nov 91	Downgraded to C, for portable implementation.
-**	16 Feb 94	Added Lou Montulli's Lynx & LIST NEWSGROUPS diffs.
+**	16 Feb 94  AL	Added Lou Montulli's Lynx & LIST NEWSGROUPS diffs.
+**	 2 May 94  AL	Added HTUnEscape() to HTLoadNews(), and
+**			fixed a possible security hole when the URL contains
+**			a newline, that could cause multiple commands to be
+**			sent to an NNTP server.
 */
 /* Implements:
 */
@@ -218,6 +222,13 @@ PRIVATE int response ARGS1(CONST char *,command)
 	    *p++=0;				/* Terminate the string */
 	    if (TRACE) fprintf(stderr, "NNTP Response: %s\n", response_text);
 	    sscanf(response_text, "%d", &result);
+	    if (result >= 411 && result <= 430) { /* no such article/group */
+		char * msg = strchr(response_text,' ');
+		if (!msg) msg = response_text;
+		PUTS("<H1>News error</H1>\n");
+		PUTS(msg);
+		CTRACE(stderr, "News error.. %s", response_text);
+	    }
 	    return result;	    
 	} /* if end of line */
 	
@@ -930,7 +941,9 @@ PRIVATE void read_group ARGS3(
 	PUTS( "...)\n");
     }
 
-add_post:
+#ifdef POSTING
+  add_post:
+#endif
     {
 	char *href=0;
 	START(HTML_HR);
@@ -954,7 +967,7 @@ add_post:
 */
 PUBLIC int HTLoadNews ARGS1(HTRequest *,		request)
 {
-    CONST char * arg = HTAnchor_physical(request->anchor);
+    char * arg = HTAnchor_physical(request->anchor);
     char command[257];			/* The whole command */
     char groupName[GROUP_NAME_LENGTH];	/* Just the group name */
     int status;				/* tcp return */
@@ -971,7 +984,7 @@ PUBLIC int HTLoadNews ARGS1(HTRequest *,		request)
     if (!initialized) return -1;	/* FAIL */
     
     {
-        CONST char * p1=arg;
+        char * p1=arg;
 
 /*	We will ask for the document, omitting the host name & anchor.
 **
@@ -990,6 +1003,8 @@ PUBLIC int HTLoadNews ARGS1(HTRequest *,		request)
 	   the rest of it is lost -- JFG 10/7/92, from a bug report */
  	if (!strncasecomp (arg, "news:", 5))
 	  p1 = arg + 5;  /* Skip "news:" prefix */
+	HTUnEscape(p1);			/* AL May 2, 1994 */
+	HTCleanTelnetString(p1);	/* Prevent security holes */
 	if (list_wanted) {
 	    strcpy(command, "LIST NEWSGROUPS");
 	} else if (group_wanted) {
@@ -1072,6 +1087,7 @@ PUBLIC int HTLoadNews ARGS1(HTRequest *,		request)
 	
 	status = response(command);
 	if (status<0) break;
+	if (status >= 411 && status <= 430) break; /* no such article/group */
 	if ((status/ 100) !=2) {
 	    HTProgress(response_text);
 /*	    NXRunAlertPanel("News access", response_text,
@@ -1103,6 +1119,7 @@ PUBLIC int HTLoadNews ARGS1(HTRequest *,		request)
 /*    NXRunAlertPanel(NULL, "Sorry, could not load `%s'.",
 	    NULL,NULL,NULL, arg);No -- message earlier wil have covered it */
 
+    (*targetClass.free)(target);	/* AL May 2, 1994 */
     return HT_LOADED;
 }
 

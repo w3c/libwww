@@ -23,6 +23,7 @@
 **      LM      Lou Montulli <montulli@ukanaix.cc.ukans.edu>
 **      FM      Foteos Macrides <macrides@sci.wfeb.edu>
 **	HF	Henrik Frystyk <frystyk@dxcern.cern.ch>
+**	AL	Ari Luotonen <luotonen@www.cern.ch>
 **
 ** History:
 **	 2 May 91	Written TBL, as a part of the WorldWideWeb project.
@@ -42,6 +43,9 @@
 **	27 Apr 94 (HF)  The module is basically rewritten to conform with
 **			rfc 959, 1123 and 1579 and turned into a state 
 **			machine. New semantics of ftp URLs are supported.
+**	 2 May 94 (AL)	Fixed possible security hole when the URL contains
+**			a newline, that could cause multiple commands to be
+**			sent to an FTP server.
 **
 ** Options:
 **	LISTEN		The default way to open a dats connection is by using
@@ -1743,7 +1747,7 @@ PRIVATE int HTFTP_get_data_con ARGS2(ftp_data_info *, data, char *, url)
 	SENT_PASV,
 	SENT_PORT,
 	NEED_ACTIVE,
-	NEED_PASSIVE,
+	NEED_PASSIVE
     } state = BEGIN;
     int serv_port;
     int status;
@@ -2144,6 +2148,7 @@ PRIVATE int HTFTP_get_dir ARGS4(ftp_ctrl_info *, ctrl, HTRequest *, req,
     char *unescaped = NULL;
     StrAllocCopy(unescaped, relative);
     HTUnEscape(unescaped);
+    HTCleanTelnetString(unescaped);	/* Prevent security holes */
 
     /* This loop only stops if state is ERROR, FAILURE or SUCCESS */
     while (state > 0) {
@@ -2240,6 +2245,7 @@ PRIVATE int HTFTP_get_dir ARGS4(ftp_ctrl_info *, ctrl, HTRequest *, req,
 		segment = strtok(path, "/");
 		while (segment && *segment) {
 		    HTUnEscape(segment);
+		    HTCleanTelnetString(segment);  /* Prevent security holes */
 		    if (HTFTP_send_cmd(ctrl, "CWD", segment)) {
 			state = ERROR;
 			break;
@@ -2272,6 +2278,7 @@ PRIVATE int HTFTP_get_dir ARGS4(ftp_ctrl_info *, ctrl, HTRequest *, req,
 		char *url = HTAnchor_physical(req->anchor);
 		char *path = HTParse(url, "", PARSE_PATH+PARSE_PUNCTUATION);
 		HTUnEscape(path);
+		HTCleanTelnetString(path);  /* Prevent security holes */
 		if (TRACE)
 		    fprintf(stderr, "FTP......... Receiving directory `%s\'\n",
 			    path);
@@ -2353,6 +2360,7 @@ PRIVATE int HTFTP_get_file ARGS4(ftp_ctrl_info *, ctrl, HTRequest *, req,
     char *unescaped = NULL;
     StrAllocCopy(unescaped, relative);
     HTUnEscape(unescaped);
+    HTCleanTelnetString(unescaped);  /* Prevent security holes */
 
     /* Thsi loop only stops if state is ERROR, FAILURE or SUCCESS */
     while (state > 0) {
@@ -2424,6 +2432,7 @@ PRIVATE int HTFTP_get_file ARGS4(ftp_ctrl_info *, ctrl, HTRequest *, req,
 		segment = strtok(path, "/");
 		while (segment && *segment && segment != last_slash) {
 		    HTUnEscape(segment);
+		    HTCleanTelnetString(segment);  /* Prevent security holes */
 		    if (HTFTP_send_cmd(ctrl, "CWD", segment)) {
 			state = ERROR;
 			break;
@@ -2447,6 +2456,7 @@ PRIVATE int HTFTP_get_file ARGS4(ftp_ctrl_info *, ctrl, HTRequest *, req,
 		/* Now try to retrieve the last segment */
 		if (segment == last_slash) {
 		    HTUnEscape(segment);
+		    HTCleanTelnetString(segment);  /* Prevent security holes */
 		    if (!HTFTP_send_cmd(ctrl, "RETR", segment))
 			state = SENT_RETR;
 		    else
@@ -2669,9 +2679,13 @@ PUBLIC int HTFTPLoad ARGS1(HTRequest *, request)
 		break;
 
 	      case ERROR:
-		HTLoadError(request, 500, ctrl->reply->data);
-		HTFTP_abort_ctrl_con(ctrl);
-		return -1;				 /* Exit immediately */
+		{
+		    char * p = strchr(ctrl->reply->data,' ');
+		    if (!p) p = ctrl->reply->data;
+		    HTLoadError(request, 500, p);
+		    HTFTP_abort_ctrl_con(ctrl);
+		    return -1;				 /* Exit immediately */
+		}
 		break;
 
 	      default:
