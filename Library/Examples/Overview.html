@@ -1,14 +1,18 @@
 <HTML>
 <HEAD>
-  <TITLE>Libwww Ready to go Examples</TITLE>
+  <TITLE>Libwww Ready to go Samples</TITLE>
 </HEAD>
 <BODY BGCOLOR="#ffffff" TEXT="#000000">
 <P>
 <A HREF="../../"><IMG SRC="../../Icons/WWW/w3c_home" ALT="W3C" BORDER="0"></A>
 <A HREF="../"><IMG SRC="../../Icons/WWW/Lib48x" ALT="libwww" BORDER="0"></A>
 <H1>
-  Libwww Ready to go Examples
+  Libwww Ready to go Samples
 </H1>
+<P ALIGN=Center>
+<A HREF="#Initialization">Initialization</A> | <A HREF="#GET">GET Requests</A>
+| <A HREF="#HEAD">HEAD Requests</A> | <A HREF="#PUT">PUT Requests</A> |
+<A HREF="#POST">POST Requests</A> 
 <P>
 This is the list of small examples using the very basic features of the Library.
 If you have not already compiled the library then please read the
@@ -16,31 +20,14 @@ If you have not already compiled the library then please read the
 If you want more details of how to use the Library then please read the
 <A HREF="../User/Using/">User's Guide</A>.
 <P>
-In the example we assume that the compiler knows where to look for the Library
-include file <CODE>WWWLib.h</CODE> and also knows where to find the binary
-library, often called <CODE>libwww.a</CODE> on Unix platforms and
-<CODE>libwww.lib</CODE> on Windows. Again, the result might depend on the
-setup of the dynamic modules, but if no dynamic modules are enabled then
-the example will generate an executable file. If you are in doubt about how
-to set your compiler then you can often get some good ideas by looking into
-the <A HREF="../../../LineMode/">Line Mode Browser</A>, the
-<A HREF="../../ComLine/">Command Line Tool</A>, and the
-<A HREF="../../Robot/">Robot</A> which all run on both Unix and
-Win32.&nbsp;&nbsp;If you are using the GNU autoconf configure script then
-the examples are built as part of the overall package. On
-<A HREF="../User/Platform/">other platforms</A>, you must provide the make
-file on your own.
-<P>
-Some platforms require a socket library when building network applications.
-This is for example the case when building on Macintosh or Windows machines.
-The Library uses the
-<A HREF="http://err.ethz.ch/members/neeri/macintosh/gusiman/GUSI.html">GUSI
-socket</A> library on the Macintosh and the
-<A HREF="ftp://ftp.spry.com/ms-windows/winsock/docs/winsock.txt">WinSock
-library</A> on windows platforms. Please check the documentation on these
-libraries for how to install them and also if there are any specific requirements
-on your platform when building network applications.
-<P>
+In the example we assume that the compiler knows where to look for libwww
+include files and the binary library itself. &nbsp;If you are using the GNU
+autoconf configure script then the examples are built as part of the overall
+package. On <A HREF="../User/Platform/">other platforms</A>, you must provide
+the make file on your own.
+<H3>
+  <A NAME="Initialization">Initialization Samples</A>
+</H3>
 <DL>
   <DT>
     <A HREF="libapp_1.c">Start and Stop the Library</A>
@@ -55,53 +42,74 @@ on your platform when building network applications.
     <A HREF="libapp_2.c">Specialized Initialization of libwww</A>
   <DD>
     This example show how to register a protocol module and a stream converter
+</DL>
+<H3>
+  <A NAME="GET">Samples using GET Requests</A>
+</H3>
+<DL>
   <DT>
-    <A HREF="head.c">Issue a HEAD request</A>
-  <DD>
-    This small example sets up a request and performs a HEAD method on the URL
-    given on the command line
-  <DT>
-    <A HREF="chunk.c">Load a Document into Memory</A>
+    <A HREF="chunk.c">Load a document and headers into memory</A>
   <DD>
     A simple example of how you can create a memory buffer containing the contents
     of the URL <I>and</I> all the protocol headers.
   <DT>
-    <A HREF="chunkbody.c">Load a Document into Memory</A>
+    <A HREF="chunkbody.c">Load a document without headers into memory</A>
   <DD>
     This program shows how to load a URL into memory <I>without</I> getting the
     header information.
   <DT>
-    <A HREF="libapp_3.c">Load a URL and counnt the number of bytes in the body</A>
+    <A HREF="libapp_3.c">Load a document and count the number of bytes in the
+    body</A>
   <DD>
     This is an example of how you can add streams and then get the desired result.
     The example shows how to add a content length counter stream and get the
     result back.
   <DT>
-    Load a URL to local File
+    Load a document and dump to local File
   <DD>
-    We here show how to fetch a URL using HTTP and to save it to local file.
+    We here show how to fetch a document using HTTP and to save it to local file.
     You must specify a local file name on the command line. There are two versions
     of this program: The <A HREF="libapp_4.c">preemptive version</A> with
     <B>no</B> event loop and the <A HREF="LoadToFile.c">non-preemptive version</A>
     for <B>integration</B> with Windows' event&nbsp;and other event loops.
   <DT>
+    <A HREF="multichunk.c">Load the same document <TT>n</TT> times</A>
+  <DD>
+    You can use this (but be careful) to beat up a server with the same document
+    as fast as possible
+</DL>
+<H3>
+  <A NAME="HEAD">Samples using HEAD Requests</A>
+</H3>
+<DL>
+  <DT>
+    <A HREF="head.c">Issue a HEAD request</A>
+  <DD>
+    This small example sets up a request and performs a HEAD method on the resource
+    provided on the command line
+</DL>
+<H3>
+  <A NAME="PUT">Samples using PUT Requests</A>
+</H3>
+<DL>
+  <DT>
     <A HREF="put.c">Simple PUT program</A>
   <DD>
     Lets you save a document to an HTTP server. Note that both input and output
-    is a URI so you can save a URI from anywhere to anywhere.
+    is a Web address (URI) so you can save a document from anywhere to anywhere.
+</DL>
+<H3>
+  <A NAME="POST">Samples using POST Requests</A>
+</H3>
+<DL>
   <DT>
     <A HREF="postform.c">Post an HTML Form</A>
   <DD>
     Use this example to POST HTML form data to a server
-  <DT>
-    <A HREF="multichunk.c">Load the same URI n times</A>
-  <DD>
-    You can use this (but be careful) to beat up a server with the same URI as
-    fast as possible
 </DL>
 <P>
 You can also have a look at the more
-<A HREF="../User/Applications.html">complete example applications</A> which
+<A HREF="../User/Applications.html">complete sample applications</A> which
 are capable of doing more interesting things. If you have any example code
 that you would like to <A HREF="../../PATCHES.html">share with us </A>then
 please send us a mail so that we can add it to this page.

@@ -12,7 +12,8 @@
   Libwww Collaborators
 </H1>
 <P align="center">
-<A HREF="#How">Sign up</A> | <A HREF="#Collaborators">Collaborators</A> |
+<A HREF="#How">Sign up</A> | <A HREF="#Help">How can I help?</A>
+|&nbsp;<A HREF="#Collaborators">Collaborators</A> |
 <A HREF="#Alumni">Alumni</A>
 <P>
 <DIV class="intro">
@@ -32,11 +33,72 @@
 </H2>
 <P>
 We don't have a formal mechanism but the idea is that you have to prove your
-worth. The best way to so this is to start contributing patches based on
-the latest code base and to be active on the
+hacking ability. The best way to is to start contributing patches based on
+the <A HREF="cvs.html">latest code base</A> and to be active on the
 &lt;<A HREF="./#Forums">www-lib@w3.org</A>&gt; mailing list. Make sure that
 you have read the <A HREF="User/Style/">libwww style guide</A> before you
 start.
+<H2>
+  <A NAME="Help">How can I help?</A>
+</H2>
+<P>
+We have a very interesting set of things to do - <STRONG>your help is required
+to make timely progress</STRONG>!
+<DL>
+  <DT>
+    <A HREF="../Protocols/">HTTP Digest Authentication</A>
+  <DD>
+    Is becoming more and more important the and set of features is extremely
+    interesting. Libwww supports easy addition of
+    <A HREF="src/HTAAUtil.html">multiple authentication schemes</A> - there are
+    already some initial digest stuff.
+  <DT>
+    Regular expressions in URI mapping rules
+  <DD>
+    Libwww already supports URI mappings in the rules module but support for
+    sed like regular expressions would be extremely useful, especially for mirroring
+    done by the <A HREF="../Robot/">Webbot</A>. Libwww already uses
+    <A HREF="src/HTProxy.html">regular expressions for handling proxies</A> and
+    other things.
+  <DT>
+    <A HREF="http://info.webcrawler.com/mak/projects/robots/exclusion.html#robotstxt">Robot
+    txt file parser</A>
+  <DD>
+    The <A HREF="../Robot/">Webbot</A> already knows about the
+    <A HREF="http://info.webcrawler.com/mak/projects/robots/exclusion.html#meta">robot
+    META tags</A> - help turning it into a well-behaving robot by understanding
+    <A HREF="http://info.webcrawler.com/mak/projects/robots/exclusion.html#robotstxt">robot.txt
+    files</A> as well.
+  <DT>
+    Drag-and-drop &nbsp;support in <A HREF="../WinCom/">Web Commander</A>
+  <DD>
+    Would be cool to have as well as integration with the Explorer menu. It would
+    make it a lot easier to work with
+  <DT>
+    Provide an install shield for the <A HREF="../WinCom/">Web Commander</A>
+  <DD>
+    The Web Commander could really use an in install shield to get Windows people
+    up and going. It would be very nice if it could also support installing the
+    <A HREF="User/Guide/">libwww DLLs</A> in a suitable location.
+  <DT>
+    Provide better Windows Makefiles
+  <DD>
+    I&nbsp;am waiting (Setember 20, 1998) for autoconf and automake to be released
+    with support for Windows as I am happy about the way this works on Unix.
+    Any better ideas plan for improving Windows makefiles?
+  <DT>
+    Implementing the <A HREF="../Protocols/HTTP/ietf-http-ext/">HTTP Extension
+    Framework</A>
+  <DD>
+    We have many exiting HTTP extensions waiting for the
+    <A HREF="../Protocols/HTTP/ietf-http-ext/">HTTP Extension Framework</A>.
+    Your help is needed! The implementation can be based on the
+    <A HREF="src/HTPEP.html">PEP implementation</A>.
+</DL>
+<P>
+Don't forget to send mails to
+&lt;<A HREF="./#Forums">www-lib@w3.org</A>&gt; about what you are up to or
+to ask questions!
 <H2>
   <A NAME="Collaborators">Collaborator's Hall of Fame</A>
 </H2>
@@ -45,7 +107,13 @@ start.
     Bob Racko
   <DD>
     Added Frames support to HTML parser, fixed many bugs on NT, added support
-    for mirroring and improved caching and much more.
+    for mirroring and improved caching and much more
+  <DT>
+    John Punin
+  <DD>
+    Have been working a lot on the webbot, splitting up the code, introduced
+    Breadth First Search instead of Depth First Search and other very useful
+    things
   <DT>
     <A HREF="../People/#Kahan">Jose Kahan</A>
   <DD>
