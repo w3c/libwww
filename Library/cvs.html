@@ -164,11 +164,8 @@ command</A> like this
 </PRE>
 <P>
 It is important that you use the "<TT>-d</TT>" flag so that you get new
-directories as well as updated files. Remember that some of the automatically
-generated header files (<TT>*.h</TT>) or the Windows DLL files
-(<TT>*.dll</TT>) may have to be regenerated after a checkout - please
-<A HREF="#Easy">repeat the first step from the bootstrapping mechanism</A>
-in order to do this.
+directories as well as updated files. Now you <B>MUST</B>
+<A HREF="#Easy">repeat the compilation bootstrapping</A> procedure.
 <H2>
   <A NAME="Boot">Getting Bootstrapped</A>
 </H2>
@@ -182,13 +179,13 @@ these steps:
   <A NAME="Easy">Windows and Unix</A>
 </H3>
 <P>
-On both Windows and Unix you can generate the <TT>*.h</TT> files and the
-<TT>*.def</TT> files by running a <A HREF="http://www.perl.org">Perl</A>
-script provided by <A HREF="/People/Eric/">Eric Prud'hommeaux</A>. Never
-mind that it gives a few warnings when it runs - they are all OK. It requires
-that you have a recent version of <A HREF="http://www.perl.org">Perl</A>
-on your machine. Run the script like this (note the explicit use of the perl
-interpreter):
+On <EM>both</EM> Windows and Unix you can generate the <TT>*.h</TT> files
+and the <TT>*.def</TT> files by running a
+<A HREF="http://www.perl.org">Perl</A> script provided by
+<A HREF="/People/Eric/">Eric Prud'hommeaux</A>. Never mind that it gives
+a few warnings when it runs - they are all OK. It requires that you have
+a recent version of <A HREF="http://www.perl.org">Perl</A> on your machine.
+Run the script like this (note the explicit use of the perl interpreter):
 <PRE>% <B>cd libwww</B>
 % <B>perl config/winConfigure.pl</B>
 </PRE>
@@ -226,7 +223,9 @@ number:
     <B><A HREF="http://www.gnu.org/software/libtool/libtool.html">GNU libtool</A>
     (at least version 1.1)</B>
   <DD>
-    A tool for automatically handling generation of shared libraries
+    A tool for automatically handling generation of shared libraries. If you
+    upgrade libtool to a new version then you <B>MUST</B> rerun the configure
+    script as some files used by libtool have to be regenerated.
 </DL>
 <P>
 <B>Optionally</B> these tools are used by libwww if available
@@ -249,6 +248,9 @@ to use them. Don't worry about the
 produced by autoconf</A>&nbsp;- that's OK. Run them like this:
 <PRE>% <B>aclocal</B>; <B>autoheader; automake</B>; <B>autoconf</B>
 </PRE>
+<P>
+Now you <B>MUST</B> run the configure script as described in the
+<A HREF="#Compiling">installation instructions</A>.
 <H2>
   <A NAME="Compiling">Compiling libwww</A>
 </H2>
