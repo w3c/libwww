@@ -1,113 +1,94 @@
-<HTML>
-<HEAD>
-<TITLE>Internals - Protocol Modules</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  8-Oct-1995 -->
-<NEXTID N="z78">
-</HEAD>
-<BODY>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html">
+  <title>Internals - Protocol Modules</title>
+  <!-- Changed by: Henrik Frystyk Nielsen,  8-Oct-1995 -->
+  <NEXTID N="z78"></head>
 
-<A HREF="../../../"><IMG BORDER="0" ALT="W3C" SRC="../../../Icons/WWW/w3c_home"></A>
-<A HREF="../../"><IMG BORDER="0" ALT="libwww" SRC="../../../Icons/WWW/Lib48x"></A>
-<A HREF="./"><IMG BORDER="0" ALT="LibGuide" SRC="../../../Icons/WWW/internals48x"></A>
+<body>
+<a href="../../../"><img border="0" alt="W3C"
+src="../../../Icons/WWW/w3c_home"></a> <a href="../../"><img border="0"
+alt="libwww" src="../../../Icons/WWW/Lib48x"></a> <a href="./"><img
+border="0" alt="LibGuide" src="../../../Icons/WWW/internals48x"></a>
 
-<H1>Protocol Modules</H1>
+<h1>Protocol Modules</h1>
+A protocol module is invoked by the <a
+href="../../src/HTAccess.html">HTAccess module</a> in order to access a
+document. Each protocol module is responsible for handling the transmission
+of a data object either from the application to a remote server, or vice
+verse.
 
-A protocol module is invoked by the <A
-HREF="../../src/HTAccess.html">HTAccess module</A> in order
-to access a document. Each protocol module is responsible for handling
-the transmission of a data object either from the application to a
-remote server, or vice verse. <P>
+<p>The protocol modules are registered dynamically (using static linking) and
+the <a href="../Using/">User's Guide</a> describes how modules can be
+registered. Each protocol module is responsible for establishing the
+connection to the remote server (or the local file-system) and extract
+information using a specific access method. When data arrives from the
+network, it is passed on to the format manager.</p>
 
-The protocol modules are registered dynamically (using static linking)
-and the <A HREF="../Using/">User's Guide</A> describes how modules can
-be registered. Each protocol module is responsible for establishing
-the connection to the remote server (or the local file-system) and
-extract information using a specific access method. When data arrives
-from the network, it is passed on to the format manager.<P>
+<p>Most of the protocol modules are now implemented as state machines in
+order to support <a href="../Architecture/Threads.html">libwww Threads</a>.
+When the client parses a request to the library a <a
+href="../../src/HTAccess.html#z1">HTRequest Structure</a> is filled out and
+parsed to a load function in the access manager, for example <a
+href="../../src/HTAccess.html"> HTLoadAnchor</a>. HTRequest contains all
+information needed by the Library in order to fulfill a request.</p>
+<dl>
+  <dt><a name="z46" href="../../src/HTFile.html">File access</a></dt>
+    <dd>This module provides access to files on a local file system. Due to
+      general confusion of the "file://" access scheme in the <a
+      href="../../../Addressing/">URL Specifications</a> tries FTP access on
+      failure.</dd>
+  <dt><a name="z60" href="../../src/HTFTP.html">FTP access</a></dt>
+    <dd>This is a complete state based FTP client which is capable of
+      communicating with a lot of weird FTP servers. It uses
+      <code>PASV</code> as the default method for establishing the data
+      connection as <code>PORT</code> does not work if the application is run
+      from a firewall machine, as is often the case with <a
+      href="../../../Daemon/User/Proxies/Proxies.html">proxy server</a>.</dd>
+  <dt><a name="z45" href="../../src/HTTP.html">HTTP access</a></dt>
+    <dd>The <a name="25" href="../../src/HTTP.html">HTTP module</a> handles
+      document search and retrieve using the <a
+      href="../../../Protocols/">HTTP</a> protocol. See also information on
+      the <a href="../Architecture/HTTPFeatures.html"> current
+      implementation</a> of the HTTP client. The module is now a complete
+      state machine which is a required functionality in the <a
+      href="../Architecture/Threads.html">libwww thread model</a>. It uses
+      streams for both outgoing and incoming data, the outgoing stream is
+      implemented in <a href="../../src/HTTPReq.c"> HTTPReq.c</a> and the
+      incoming stream in <a href="../../src/HTTP.c">HTTP.c</a></dd>
+  <dt><a href="../../src/HTDAV.html" name="WebDAV">WebDAV access</a></dt>
+    <dd id="module">The DAV module implements all WebDAV specific methods and
+      headers. WebDAV (RFC 2518) is a set  of extensions  to  the  HTTP 
+      protocol,  which allows  users  to collaboratively  edit and  manage 
+      web resources. </dd>
+  <dt><a name="z40" href="../../src/HTNews.html">News access</a></dt>
+    <dd>The NNTP internet news protocol is handled by HTNews which builds a
+      hypertext object.
+      <p><img border="0" src="../../../Icons/WWW/construction"> This module
+      is under reconstruction!</p>
+    </dd>
+  <dt><a name="z44" href="../../src/HTGopher.html">Gopher access</a></dt>
+    <dd>The internet gopher access to menus and flat files (and links to
+      telnet nodes, WhoIs servers, CSO Name Server etc.) is handled by <a
+      name="26" href="../../src/HTGopher.html">HTGopher Module</a>.</dd>
+  <dt><a name="z72" href="../../src/HTTelnet.html">Telnet access</a></dt>
+    <dd>This module provides the possibility of running telnet sessions in a
+      subshell. It also provides functionality for rlogin and tn3270.</dd>
+  <dt><a name="z39" href="../../src/HTWAIS.html">WAIS access</a></dt>
+    <dd>WAIS access is not compiled into the Library by default as it
+      requires the freeWAIS library. This is easily changed in the platform
+      dependent <code>Makefile.include</code> in the
+      <pre>        WWW/All/&lt;platform&amp;it;</pre>
+      directory. However, if this library is present then the application can
+      communicate directly with a WAIS server. Otherwise it must go through a
+      <a href="../../../Gateways/WAISGate.html"> gateway program</a>.</dd>
+</dl>
 
-Most of the protocol modules are now implemented as state machines in
-order to support <A HREF="../Architecture/Threads.html">libwww
-Threads</A>.
-
-When the client parses a request to the library a <A
-HREF="../../src/HTAccess.html#z1">HTRequest Structure</A>
-is filled out and parsed to a load function in the access manager, for
-example <A HREF="../../src/HTAccess.html">
-HTLoadAnchor</A>. HTRequest contains all information needed by the
-Library in order to fulfill a request.
-
-<DL>
-
-<DT><A NAME="z46" HREF="../../src/HTFile.html">File access</A>
-
-<DD>This module provides access to files on a local file system. Due
-to general confusion of the "file://" access scheme in the <A
-HREF="../../../Addressing/">URL Specifications</A> tries FTP access on
-failure.
-
-<DT><A NAME="z60" HREF="../../src/HTFTP.html">FTP access</A>
-
-<DD>This is a complete state based FTP client which is capable of
-communicating with a lot of weird FTP servers. It uses
-<CODE>PASV</CODE> as the default method for establishing the data
-connection as <CODE>PORT</CODE> does not work if the application is
-run from a firewall machine, as is often the case with <A
-HREF="../../../Daemon/User/Proxies/Proxies.html">proxy server</A>.
-
-<DT><A NAME="z45" HREF="../../src/HTTP.html">HTTP access</A>
-
-<DD>The <A NAME="25" HREF="../../src/HTTP.html">HTTP
-module</A> handles document search and retrieve using the <A
-HREF="../../../Protocols/">HTTP</A> protocol. See also information on
-the <A HREF="../Architecture/HTTPFeatures.html"> current
-implementation</A> of the HTTP client. The module is now a complete
-state machine which is a required functionality in the <A
-HREF="../Architecture/Threads.html">libwww thread model</A>. It uses
-streams for both outgoing and incoming data, the outgoing stream is
-implemented in <A HREF="../../src/HTTPReq.c"> HTTPReq.c</A>
-and the incoming stream in <A
-HREF="../../src/HTTP.c">HTTP.c</A>
-
-<DT><A NAME="z40" HREF="../../src/HTNews.html">News access</A>
-
-<DD>The NNTP internet news protocol is handled by HTNews which builds a
-hypertext object. <P>
-
-<IMG BORDER="0" SRC="../../../Icons/WWW/construction"> This module is under
-reconstruction!
-
-<DT><A NAME="z44" HREF="../../src/HTGopher.html">Gopher access</A>
-
-<DD>The internet gopher access to menus and flat files (and links to telnet
-nodes, WhoIs servers, CSO Name Server etc.) is handled by <A NAME="26"
-HREF="../../src/HTGopher.html">HTGopher Module</A>.
-
-<DT><A NAME="z72" HREF="../../src/HTTelnet.html">Telnet access</A>
-
-<DD>This module provides the possibility of running telnet sessions in
-a subshell. It also provides functionality for rlogin and tn3270.
-
-<DT><A NAME="z39" HREF="../../src/HTWAIS.html">WAIS access</A>
-
-<DD>WAIS access is not compiled into the Library by default as it
-requires the freeWAIS library. This is easily changed in the platform
-dependent <CODE>Makefile.include</CODE> in the
-
-<PRE>
-	WWW/All/&lt;platform&it;
-</PRE>
-
-directory. However, if this library is present then the application
-can communicate directly with a WAIS server. Otherwise it must go
-through a <A HREF="../../../Gateways/WAISGate.html"> gateway
-program</A>.
-
-</DL>
-
-<P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-@(#) $Id$
-</ADDRESS>
-</BODY>
-</HTML>
+<p></p>
+<hr>
+<address>
+  Henrik Frystyk, <a href="mailto:libwww@w3.org">libwww@w3.org</a>, @(#) $Id:
+  Protocol.html,v 1.17 1996/12/09 03:21:43 jigsaw Exp $
+</address>
+</body>
+</html>
