@@ -25,6 +25,9 @@ webbot_SOURCES = \
 BUILT_SOURCES = \
 	HTRobot.h
 
+EXTRA_DIST = \
+	Robot.tcl
+
 PURIFY_CACHE = /home2/frystyk/purify-cache
 
 inc: $(BUILT_SOURCES)
