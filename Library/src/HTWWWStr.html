@@ -197,10 +197,12 @@ extern char * HTWWWToLocal (const char * url, const char * base,
   Convert a local file name into a URL
 </H3>
 <P>
-Generates a WWW URL name from a local file name or NULL if error. Returns
-URL (that must be freed by caller) if OK, else NULL.
+Generates a WWW URL name from a local file name or NULL if
+error. Returns URL (that must be freed by caller) if OK, else
+NULL. The access parameter can be used to indicate any special scheme
+used for local file access. If NULL then "<CODE>file:</CODE>" is used.
 <PRE>
-extern char * HTLocalToWWW (const char * local);
+extern char * HTLocalToWWW (const char * local, const char * access);
 </PRE>
 <PRE>
 #endif

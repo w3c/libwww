@@ -648,8 +648,7 @@ PUBLIC char * HTWWWToLocal (const char * url, const char * base,
 	if ((*access && strcmp(access, "file") && strcmp(access, "cache")) ||
 	     (*host && strcasecomp(host, "localhost") &&
 	      myhost && strcmp(host, myhost))) {
-	    if (PROT_TRACE)
-		HTTrace("LocalName... Not on local file system\n");
+	    if (CORE_TRACE) HTTrace("LocalName... Not on local file system\n");
 	    HT_FREE(access);
 	    HT_FREE(host);
 	    HT_FREE(path);
@@ -691,8 +690,8 @@ PUBLIC char * HTWWWToLocal (const char * url, const char * base,
 #endif
 	    
 	    HTUnEscape(path);		  /* Take out the escaped characters */
-	    if (PROT_TRACE)
-		HTTrace("Node........ `%s' means path `%s'\n",url,path);
+	    if (CORE_TRACE)
+		HTTrace("Node........ `%s' means path `%s'\n", url, path);
 	    HT_FREE(access);
 	    HT_FREE(host);
 	    return path;
@@ -708,15 +707,16 @@ PUBLIC char * HTWWWToLocal (const char * url, const char * base,
 **		OK:	local file (that must be freed by caller)
 **		Error:	NULL
 */
-PUBLIC char * HTLocalToWWW (const char * local)
+PUBLIC char * HTLocalToWWW (const char * local, const char * access)
 {
     char * escaped = NULL;
+    const char * scheme = (access && *access) ? access : "file:"; 
     if (local && *local) {
 #ifdef VMS 
         char * unescaped = NULL;
         if ((unescaped = (char *) HT_MALLOC(strlen(local) + 10)) == NULL)
             HT_OUTOFMEM("HTLocalToWWW");
-        strcpy(unescaped, "file:");	     /* We get an absolute file name */
+        strcpy(unescaped, scheme);	     /* We get an absolute file name */
 
 	/* convert directory name to Unix-style syntax */
 	{
@@ -744,7 +744,7 @@ PUBLIC char * HTLocalToWWW (const char * local)
         char * unescaped = NULL;
         if ((unescaped = (char *) HT_MALLOC(strlen(local) + 10)) == NULL)
             HT_OUTOFMEM("HTLocalToWWW");
-        strcpy(unescaped, "file:");	     /* We get an absolute file name */
+        strcpy(unescaped, scheme);	     /* We get an absolute file name */
         if (strchr(local, ':')) strcat(unescaped, "/");
         {
             const char *p = local;
@@ -763,7 +763,7 @@ PUBLIC char * HTLocalToWWW (const char * local)
 
 #else  /* Unix */
         char * escaped_path = HTEscape(local, URL_PATH);
-	escaped = StrAllocMCopy(&escaped, "file:", escaped_path, NULL);
+	escaped = StrAllocMCopy(&escaped, scheme, escaped_path, NULL);
         HT_FREE(escaped_path);
 
 #endif /* not WIN32 */
