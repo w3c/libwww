@@ -32,7 +32,7 @@ int main (int argc, char ** argv)
     HTFormat_setConversion(converters);
 
     /* Register the default set of transfer encoders and decoders */
-    HTEncoderInit(encodings);
+    HTTransferEncoderInit(encodings);
     HTFormat_setTransferCoding(encodings);
 
     /* Register the default set of MIME header parsers */

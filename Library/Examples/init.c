@@ -37,7 +37,7 @@ int main()
     /* HTMLInit(); */
 
     /* Register the default set of transfer encoders and decoders */
-    HTEncoderInit(encodings);
+    HTTransferEncoderInit(encodings);
     HTFormat_setTransferCoding(encodings);
 
     /* Register the default set of file suffix bindings */
