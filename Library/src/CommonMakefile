@@ -92,7 +92,7 @@ CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTTP.c $(CMN)HTFile.c \
 	$(CMN)HTNews.c  $(CMN)HTGopher.c $(CMN)HTTelnet.c \
 	$(CMN)HTWAIS.c  $(CMN)HTWSRC.c \
 	$(CMN)HTAAUtil.c $(CMN)HTAABrow.c $(CMN)HTAssoc.c \
-	$(CMN)HTUU.c $(CMN)HTTeXGen.c \ 
+	$(CMN)HTUU.c $(CMN)HTTeXGen.c \
 	$(CMN)HTDirBrw.c $(CMN)HTGuess.c
 
 HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h $(CMN)HTTP.h $(CMN)HTFile.h \

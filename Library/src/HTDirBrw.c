@@ -106,7 +106,7 @@ PRIVATE char *HTDirIcons[HT_MAX_ICON][2] = {
     {"/dir-icons/uu.xbm",		"[UU   ]"},	/* HT_ICON_UU */
     {"/dir-icons/sound.xbm",		"[AUDIO]"},	/* HT_ICON_AUDIO */
     {"/dir-icons/back.xbm",	 	"[UP   ]"},	/* HT_ICON_PARENT */
-    {"/dir-icons/blank.xbm", 		"[BLANK]"}	/* HT_ICON_BLANK */
+    {"/dir-icons/blank.xbm", 		"       "}	/* HT_ICON_BLANK */
 };
 
 typedef enum _HTShowLength {                        /* Width of each collumn */

@@ -566,11 +566,27 @@ PRIVATE void HTML_start_element ARGS4(
     case HTML_HEAD:
     case HTML_BODY:
     
-    case HTML_IMG:			/* Images -- ignore */
-	UPDATE_STYLE;			/* Henrik 23/03-94 */
-/*	HText_appendImage(me->text, ); */
-	break;
-
+    case HTML_IMG:			/* Images */
+	{
+	    HTChildAnchor *source;
+	    char *src = NULL;
+	    if (present[HTML_IMG_SRC]) {
+		StrAllocCopy(src, value[HTML_IMG_SRC]);
+		HTSimplify(src);
+	    }
+	    source = HTAnchor_findChildAndLink(
+					       me->node_anchor,	   /* parent */
+					       0,                     /* Tag */
+					       src ? src : 0,    /* Addresss */
+					       0);
+	    UPDATE_STYLE;
+	    HText_appendImage(me->text, source,
+		      present[HTML_IMG_ALT] ? value[HTML_IMG_ALT] : '\0',
+		      present[HTML_IMG_ALIGN] ? value[HTML_IMG_ALIGN] : '\0',
+		      present[HTML_IMG_ISMAP] ? value[HTML_IMG_ISMAP] : '\0');
+	    free(src);
+	    break;
+	}
     case HTML_TT:			/* Physical character highlighting */
     case HTML_B:			/* Currently ignored */
     case HTML_I:
