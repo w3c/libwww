@@ -13,7 +13,7 @@ CFG=Win32 Debug
 !MESSAGE You can specify a configuration when running NMAKE on this makefile
 !MESSAGE by defining the macro CFG on the command line.  For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "wwwnews.mak" CFG="Win32 Debug"
+!MESSAGE NMAKE /f "wwwhtml.mak" CFG="Win32 Debug"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
@@ -43,7 +43,7 @@ RSC=rc.exe
 OUTDIR=.\WinRel
 INTDIR=.\WinRel
 
-ALL : $(OUTDIR)/wwwnews.dll $(OUTDIR)/wwwnews.bsc
+ALL : .\WinRel\wwwhtml.dll .\WinRel\wwwhtml.bsc
 
 $(OUTDIR) : 
     if not exist $(OUTDIR)/nul mkdir $(OUTDIR)
@@ -54,22 +54,22 @@ MTL_PROJ=/nologo /D "NDEBUG" /win32
 # ADD BASE CPP /nologo /MT /W3 /GX /YX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /FR /c
 # ADD CPP /nologo /MT /W3 /GX /YX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /FR /c
 CPP_PROJ=/nologo /MT /W3 /GX /YX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D\
- "WWW_WIN_DLL" /FR$(INTDIR)/ /Fp$(OUTDIR)/"wwwnews.pch" /Fo$(INTDIR)/ /c 
+ "WWW_WIN_DLL" /FR$(INTDIR)/ /Fp$(OUTDIR)/"wwwhtml.pch" /Fo$(INTDIR)/ /c 
 CPP_OBJS=.\WinRel/
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
-BSC32_FLAGS=/nologo /o$(OUTDIR)/"wwwnews.bsc" 
+BSC32_FLAGS=/nologo /o$(OUTDIR)/"wwwhtml.bsc" 
 BSC32_SBRS= \
-	$(INTDIR)/windll.sbr \
-	$(INTDIR)/HTNewsRq.sbr \
-	$(INTDIR)/HTNews.sbr \
-	$(INTDIR)/HTNDir.sbr \
-	$(INTDIR)/HTNewsLs.sbr
+	.\WinRel\windll.sbr \
+	.\WinRel\HTMLPDTD.sbr \
+	.\WinRel\HTMLGen.sbr \
+	.\WinRel\SGML.sbr \
+	.\WinRel\HTTeXGen.sbr
 
-$(OUTDIR)/wwwnews.bsc : $(OUTDIR)  $(BSC32_SBRS)
+.\WinRel\wwwhtml.bsc : $(OUTDIR)  $(BSC32_SBRS)
     $(BSC32) @<<
   $(BSC32_FLAGS) $(BSC32_SBRS)
 <<
@@ -78,22 +78,20 @@ LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /MACHINE:I386
 # ADD LINK32 /NOLOGO /SUBSYSTEM:windows /DLL /MACHINE:I386
 LINK32_FLAGS=/NOLOGO /SUBSYSTEM:windows /DLL /INCREMENTAL:no\
- /PDB:$(OUTDIR)/"wwwnews.pdb" /MACHINE:I386 /DEF:".\wwwnews.def"\
- /OUT:$(OUTDIR)/"wwwnews.dll" /IMPLIB:$(OUTDIR)/"wwwnews.lib" 
-DEF_FILE=.\wwwnews.def
+ /PDB:$(OUTDIR)/"wwwhtml.pdb" /MACHINE:I386 /DEF:".\wwwhtml.def"\
+ /OUT:$(OUTDIR)/"wwwhtml.dll" /IMPLIB:$(OUTDIR)/"wwwhtml.lib" 
+DEF_FILE=.\wwwhtml.def
 LINK32_OBJS= \
-	$(INTDIR)/windll.obj \
-	$(INTDIR)/HTNewsRq.obj \
-	.\WinDebug\wwwmime.lib \
-	$(INTDIR)/HTNews.obj \
-	$(INTDIR)/HTNDir.obj \
-	$(INTDIR)/HTNewsLs.obj \
+	.\WinRel\windll.obj \
 	.\WinDebug\wwwdll.lib \
 	.\WinDebug\wwwutils.lib \
 	.\WinDebug\wwwcore.lib \
-	.\WinDebug\wwwhtml.lib
+	.\WinRel\HTMLPDTD.obj \
+	.\WinRel\HTMLGen.obj \
+	.\WinRel\SGML.obj \
+	.\WinRel\HTTeXGen.obj
 
-$(OUTDIR)/wwwnews.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
+.\WinRel\wwwhtml.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
   $(LINK32_FLAGS) $(LINK32_OBJS)
 <<
@@ -111,7 +109,7 @@ $(OUTDIR)/wwwnews.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
 OUTDIR=.\WinDebug
 INTDIR=.\WinDebug
 
-ALL : $(OUTDIR)/wwwnews.dll $(OUTDIR)/wwwnews.bsc
+ALL : .\WinDebug\wwwhtml.dll .\WinDebug\wwwhtml.bsc
 
 $(OUTDIR) : 
     if not exist $(OUTDIR)/nul mkdir $(OUTDIR)
@@ -122,23 +120,23 @@ MTL_PROJ=/nologo /D "_DEBUG" /win32
 # ADD BASE CPP /nologo /MT /W3 /GX /Zi /YX /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /FR /c
 # ADD CPP /nologo /MT /W3 /GX /Zi /YX /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "DEBUG" /FR /c
 CPP_PROJ=/nologo /MT /W3 /GX /Zi /YX /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS"\
- /D "WWW_WIN_DLL" /D "DEBUG" /FR$(INTDIR)/ /Fp$(OUTDIR)/"wwwnews.pch"\
- /Fo$(INTDIR)/ /Fd$(OUTDIR)/"wwwnews.pdb" /c 
+ /D "WWW_WIN_DLL" /D "DEBUG" /FR$(INTDIR)/ /Fp$(OUTDIR)/"wwwhtml.pch"\
+ /Fo$(INTDIR)/ /Fd$(OUTDIR)/"wwwhtml.pdb" /c 
 CPP_OBJS=.\WinDebug/
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
-BSC32_FLAGS=/nologo /o$(OUTDIR)/"wwwnews.bsc" 
+BSC32_FLAGS=/nologo /o$(OUTDIR)/"wwwhtml.bsc" 
 BSC32_SBRS= \
-	$(INTDIR)/windll.sbr \
-	$(INTDIR)/HTNewsRq.sbr \
-	$(INTDIR)/HTNews.sbr \
-	$(INTDIR)/HTNDir.sbr \
-	$(INTDIR)/HTNewsLs.sbr
+	.\WinDebug\windll.sbr \
+	.\WinDebug\HTMLPDTD.sbr \
+	.\WinDebug\HTMLGen.sbr \
+	.\WinDebug\SGML.sbr \
+	.\WinDebug\HTTeXGen.sbr
 
-$(OUTDIR)/wwwnews.bsc : $(OUTDIR)  $(BSC32_SBRS)
+.\WinDebug\wwwhtml.bsc : $(OUTDIR)  $(BSC32_SBRS)
     $(BSC32) @<<
   $(BSC32_FLAGS) $(BSC32_SBRS)
 <<
@@ -147,22 +145,20 @@ LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /DEBUG /MACHINE:I386
 # ADD LINK32 /NOLOGO /SUBSYSTEM:windows /DLL /DEBUG /MACHINE:I386
 LINK32_FLAGS=/NOLOGO /SUBSYSTEM:windows /DLL /INCREMENTAL:yes\
- /PDB:$(OUTDIR)/"wwwnews.pdb" /DEBUG /MACHINE:I386 /DEF:".\wwwnews.def"\
- /OUT:$(OUTDIR)/"wwwnews.dll" /IMPLIB:$(OUTDIR)/"wwwnews.lib" 
-DEF_FILE=.\wwwnews.def
+ /PDB:$(OUTDIR)/"wwwhtml.pdb" /DEBUG /MACHINE:I386 /DEF:".\wwwhtml.def"\
+ /OUT:$(OUTDIR)/"wwwhtml.dll" /IMPLIB:$(OUTDIR)/"wwwhtml.lib" 
+DEF_FILE=.\wwwhtml.def
 LINK32_OBJS= \
-	$(INTDIR)/windll.obj \
-	$(INTDIR)/HTNewsRq.obj \
-	$(INTDIR)/wwwmime.lib \
-	$(INTDIR)/HTNews.obj \
-	$(INTDIR)/HTNDir.obj \
-	$(INTDIR)/HTNewsLs.obj \
-	$(INTDIR)/wwwdll.lib \
-	$(INTDIR)/wwwutils.lib \
-	$(INTDIR)/wwwcore.lib \
-	$(INTDIR)/wwwhtml.lib
+	.\WinDebug\windll.obj \
+	.\WinDebug\wwwdll.lib \
+	.\WinDebug\wwwutils.lib \
+	.\WinDebug\wwwcore.lib \
+	.\WinDebug\HTMLPDTD.obj \
+	.\WinDebug\HTMLGen.obj \
+	.\WinDebug\SGML.obj \
+	.\WinDebug\HTTeXGen.obj
 
-$(OUTDIR)/wwwnews.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
+.\WinDebug\wwwhtml.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
   $(LINK32_FLAGS) $(LINK32_OBJS)
 <<
@@ -186,53 +182,15 @@ $(OUTDIR)/wwwnews.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
 
 SOURCE=.\windll.c
 
-$(INTDIR)/windll.obj :  $(SOURCE)  $(INTDIR)
+!IF  "$(CFG)" == "Win32 Release"
 
-# End Source File
-################################################################################
-# Begin Source File
+.\WinRel\windll.obj :  $(SOURCE)  $(INTDIR)
 
-SOURCE=.\wwwnews.def
-# End Source File
-################################################################################
-# Begin Source File
+!ELSEIF  "$(CFG)" == "Win32 Debug"
 
-SOURCE=..\HTNewsRq.c
+.\WinDebug\windll.obj :  $(SOURCE)  $(INTDIR)
 
-$(INTDIR)/HTNewsRq.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=.\WinDebug\wwwmime.lib
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\HTNews.c
-
-$(INTDIR)/HTNews.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\HTNDir.c
-
-$(INTDIR)/HTNDir.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\HTNewsLs.c
-
-$(INTDIR)/HTNewsLs.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
+!ENDIF 
 
 # End Source File
 ################################################################################
@@ -253,7 +211,79 @@ SOURCE=.\WinDebug\wwwcore.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=.\WinDebug\wwwhtml.lib
+SOURCE=..\HTMLPDTD.c
+
+!IF  "$(CFG)" == "Win32 Release"
+
+.\WinRel\HTMLPDTD.obj :  $(SOURCE)  $(INTDIR)
+   $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+!ELSEIF  "$(CFG)" == "Win32 Debug"
+
+.\WinDebug\HTMLPDTD.obj :  $(SOURCE)  $(INTDIR)
+   $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+!ENDIF 
+
+# End Source File
+################################################################################
+# Begin Source File
+
+SOURCE=..\HTMLGen.c
+
+!IF  "$(CFG)" == "Win32 Release"
+
+.\WinRel\HTMLGen.obj :  $(SOURCE)  $(INTDIR)
+   $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+!ELSEIF  "$(CFG)" == "Win32 Debug"
+
+.\WinDebug\HTMLGen.obj :  $(SOURCE)  $(INTDIR)
+   $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+!ENDIF 
+
+# End Source File
+################################################################################
+# Begin Source File
+
+SOURCE=.\wwwhtml.def
+# End Source File
+################################################################################
+# Begin Source File
+
+SOURCE=..\Implementation\SGML.c
+
+!IF  "$(CFG)" == "Win32 Release"
+
+.\WinRel\SGML.obj :  $(SOURCE)  $(INTDIR)
+   $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+!ELSEIF  "$(CFG)" == "Win32 Debug"
+
+.\WinDebug\SGML.obj :  $(SOURCE)  $(INTDIR)
+   $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+!ENDIF 
+
+# End Source File
+################################################################################
+# Begin Source File
+
+SOURCE=..\Implementation\HTTeXGen.c
+
+!IF  "$(CFG)" == "Win32 Release"
+
+.\WinRel\HTTeXGen.obj :  $(SOURCE)  $(INTDIR)
+   $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+!ELSEIF  "$(CFG)" == "Win32 Debug"
+
+.\WinDebug\HTTeXGen.obj :  $(SOURCE)  $(INTDIR)
+   $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+!ENDIF 
+
 # End Source File
 # End Group
 # End Project

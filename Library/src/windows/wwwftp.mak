@@ -13,7 +13,7 @@ CFG=Win32 Debug
 !MESSAGE You can specify a configuration when running NMAKE on this makefile
 !MESSAGE by defining the macro CFG on the command line.  For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "wwwnews.mak" CFG="Win32 Debug"
+!MESSAGE NMAKE /f "wwwftp.mak" CFG="Win32 Debug"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
@@ -43,7 +43,7 @@ RSC=rc.exe
 OUTDIR=.\WinRel
 INTDIR=.\WinRel
 
-ALL : $(OUTDIR)/wwwnews.dll $(OUTDIR)/wwwnews.bsc
+ALL : $(OUTDIR)/wwwftp.dll $(OUTDIR)/wwwftp.bsc
 
 $(OUTDIR) : 
     if not exist $(OUTDIR)/nul mkdir $(OUTDIR)
@@ -54,46 +54,44 @@ MTL_PROJ=/nologo /D "NDEBUG" /win32
 # ADD BASE CPP /nologo /MT /W3 /GX /YX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /FR /c
 # ADD CPP /nologo /MT /W3 /GX /YX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /FR /c
 CPP_PROJ=/nologo /MT /W3 /GX /YX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D\
- "WWW_WIN_DLL" /FR$(INTDIR)/ /Fp$(OUTDIR)/"wwwnews.pch" /Fo$(INTDIR)/ /c 
+ "WWW_WIN_DLL" /FR$(INTDIR)/ /Fp$(OUTDIR)/"wwwftp.pch" /Fo$(INTDIR)/ /c 
 CPP_OBJS=.\WinRel/
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
-BSC32_FLAGS=/nologo /o$(OUTDIR)/"wwwnews.bsc" 
+BSC32_FLAGS=/nologo /o$(OUTDIR)/"wwwftp.bsc" 
 BSC32_SBRS= \
 	$(INTDIR)/windll.sbr \
-	$(INTDIR)/HTNewsRq.sbr \
-	$(INTDIR)/HTNews.sbr \
-	$(INTDIR)/HTNDir.sbr \
-	$(INTDIR)/HTNewsLs.sbr
+	$(INTDIR)/HTFTPDir.sbr \
+	$(INTDIR)/HTFTP.sbr
 
-$(OUTDIR)/wwwnews.bsc : $(OUTDIR)  $(BSC32_SBRS)
+$(OUTDIR)/wwwftp.bsc : $(OUTDIR)  $(BSC32_SBRS)
     $(BSC32) @<<
   $(BSC32_FLAGS) $(BSC32_SBRS)
 <<
 
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /MACHINE:I386
-# ADD LINK32 /NOLOGO /SUBSYSTEM:windows /DLL /MACHINE:I386
-LINK32_FLAGS=/NOLOGO /SUBSYSTEM:windows /DLL /INCREMENTAL:no\
- /PDB:$(OUTDIR)/"wwwnews.pdb" /MACHINE:I386 /DEF:".\wwwnews.def"\
- /OUT:$(OUTDIR)/"wwwnews.dll" /IMPLIB:$(OUTDIR)/"wwwnews.lib" 
-DEF_FILE=.\wwwnews.def
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /MACHINE:I386
+LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
+ advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib\
+ odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /INCREMENTAL:no\
+ /PDB:$(OUTDIR)/"wwwftp.pdb" /MACHINE:I386 /DEF:".\wwwftp.def"\
+ /OUT:$(OUTDIR)/"wwwftp.dll" /IMPLIB:$(OUTDIR)/"wwwftp.lib" 
+DEF_FILE=.\wwwftp.def
 LINK32_OBJS= \
-	$(INTDIR)/windll.obj \
-	$(INTDIR)/HTNewsRq.obj \
-	.\WinDebug\wwwmime.lib \
-	$(INTDIR)/HTNews.obj \
-	$(INTDIR)/HTNDir.obj \
-	$(INTDIR)/HTNewsLs.obj \
-	.\WinDebug\wwwdll.lib \
 	.\WinDebug\wwwutils.lib \
 	.\WinDebug\wwwcore.lib \
-	.\WinDebug\wwwhtml.lib
+	.\WinDebug\wwwdll.lib \
+	$(INTDIR)/windll.obj \
+	.\WinDebug\wwwdir.lib \
+	\MSVC20\LIB\WSOCK32.LIB \
+	$(INTDIR)/HTFTPDir.obj \
+	$(INTDIR)/HTFTP.obj
 
-$(OUTDIR)/wwwnews.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
+$(OUTDIR)/wwwftp.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
   $(LINK32_FLAGS) $(LINK32_OBJS)
 <<
@@ -111,7 +109,7 @@ $(OUTDIR)/wwwnews.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
 OUTDIR=.\WinDebug
 INTDIR=.\WinDebug
 
-ALL : $(OUTDIR)/wwwnews.dll $(OUTDIR)/wwwnews.bsc
+ALL : $(OUTDIR)/wwwftp.dll $(OUTDIR)/wwwftp.bsc
 
 $(OUTDIR) : 
     if not exist $(OUTDIR)/nul mkdir $(OUTDIR)
@@ -120,49 +118,47 @@ $(OUTDIR) :
 # ADD MTL /nologo /D "_DEBUG" /win32
 MTL_PROJ=/nologo /D "_DEBUG" /win32 
 # ADD BASE CPP /nologo /MT /W3 /GX /Zi /YX /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /FR /c
-# ADD CPP /nologo /MT /W3 /GX /Zi /YX /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "DEBUG" /FR /c
+# ADD CPP /nologo /MT /W3 /GX /Zi /YX /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /FR /c
 CPP_PROJ=/nologo /MT /W3 /GX /Zi /YX /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS"\
- /D "WWW_WIN_DLL" /D "DEBUG" /FR$(INTDIR)/ /Fp$(OUTDIR)/"wwwnews.pch"\
- /Fo$(INTDIR)/ /Fd$(OUTDIR)/"wwwnews.pdb" /c 
+ /D "WWW_WIN_DLL" /FR$(INTDIR)/ /Fp$(OUTDIR)/"wwwftp.pch" /Fo$(INTDIR)/\
+ /Fd$(OUTDIR)/"wwwftp.pdb" /c 
 CPP_OBJS=.\WinDebug/
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
-BSC32_FLAGS=/nologo /o$(OUTDIR)/"wwwnews.bsc" 
+BSC32_FLAGS=/nologo /o$(OUTDIR)/"wwwftp.bsc" 
 BSC32_SBRS= \
 	$(INTDIR)/windll.sbr \
-	$(INTDIR)/HTNewsRq.sbr \
-	$(INTDIR)/HTNews.sbr \
-	$(INTDIR)/HTNDir.sbr \
-	$(INTDIR)/HTNewsLs.sbr
+	$(INTDIR)/HTFTPDir.sbr \
+	$(INTDIR)/HTFTP.sbr
 
-$(OUTDIR)/wwwnews.bsc : $(OUTDIR)  $(BSC32_SBRS)
+$(OUTDIR)/wwwftp.bsc : $(OUTDIR)  $(BSC32_SBRS)
     $(BSC32) @<<
   $(BSC32_FLAGS) $(BSC32_SBRS)
 <<
 
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /DEBUG /MACHINE:I386
-# ADD LINK32 /NOLOGO /SUBSYSTEM:windows /DLL /DEBUG /MACHINE:I386
-LINK32_FLAGS=/NOLOGO /SUBSYSTEM:windows /DLL /INCREMENTAL:yes\
- /PDB:$(OUTDIR)/"wwwnews.pdb" /DEBUG /MACHINE:I386 /DEF:".\wwwnews.def"\
- /OUT:$(OUTDIR)/"wwwnews.dll" /IMPLIB:$(OUTDIR)/"wwwnews.lib" 
-DEF_FILE=.\wwwnews.def
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /DEBUG /MACHINE:I386
+LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
+ advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib\
+ odbccp32.lib /NOLOGO /SUBSYSTEM:windows /DLL /INCREMENTAL:yes\
+ /PDB:$(OUTDIR)/"wwwftp.pdb" /DEBUG /MACHINE:I386 /DEF:".\wwwftp.def"\
+ /OUT:$(OUTDIR)/"wwwftp.dll" /IMPLIB:$(OUTDIR)/"wwwftp.lib" 
+DEF_FILE=.\wwwftp.def
 LINK32_OBJS= \
-	$(INTDIR)/windll.obj \
-	$(INTDIR)/HTNewsRq.obj \
-	$(INTDIR)/wwwmime.lib \
-	$(INTDIR)/HTNews.obj \
-	$(INTDIR)/HTNDir.obj \
-	$(INTDIR)/HTNewsLs.obj \
-	$(INTDIR)/wwwdll.lib \
 	$(INTDIR)/wwwutils.lib \
 	$(INTDIR)/wwwcore.lib \
-	$(INTDIR)/wwwhtml.lib
+	$(INTDIR)/wwwdll.lib \
+	$(INTDIR)/windll.obj \
+	$(INTDIR)/wwwdir.lib \
+	\MSVC20\LIB\WSOCK32.LIB \
+	$(INTDIR)/HTFTPDir.obj \
+	$(INTDIR)/HTFTP.obj
 
-$(OUTDIR)/wwwnews.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
+$(OUTDIR)/wwwftp.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
   $(LINK32_FLAGS) $(LINK32_OBJS)
 <<
@@ -184,65 +180,6 @@ $(OUTDIR)/wwwnews.dll : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
 ################################################################################
 # Begin Source File
 
-SOURCE=.\windll.c
-
-$(INTDIR)/windll.obj :  $(SOURCE)  $(INTDIR)
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=.\wwwnews.def
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\HTNewsRq.c
-
-$(INTDIR)/HTNewsRq.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=.\WinDebug\wwwmime.lib
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\HTNews.c
-
-$(INTDIR)/HTNews.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\HTNDir.c
-
-$(INTDIR)/HTNDir.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\HTNewsLs.c
-
-$(INTDIR)/HTNewsLs.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=.\WinDebug\wwwdll.lib
-# End Source File
-################################################################################
-# Begin Source File
-
 SOURCE=.\WinDebug\wwwutils.lib
 # End Source File
 ################################################################################
@@ -253,7 +190,48 @@ SOURCE=.\WinDebug\wwwcore.lib
 ################################################################################
 # Begin Source File
 
-SOURCE=.\WinDebug\wwwhtml.lib
+SOURCE=.\WinDebug\wwwdll.lib
+# End Source File
+################################################################################
+# Begin Source File
+
+SOURCE=.\windll.c
+
+$(INTDIR)/windll.obj :  $(SOURCE)  $(INTDIR)
+
+# End Source File
+################################################################################
+# Begin Source File
+
+SOURCE=.\WinDebug\wwwdir.lib
+# End Source File
+################################################################################
+# Begin Source File
+
+SOURCE=.\wwwftp.def
+# End Source File
+################################################################################
+# Begin Source File
+
+SOURCE=\MSVC20\LIB\WSOCK32.LIB
+# End Source File
+################################################################################
+# Begin Source File
+
+SOURCE=..\HTFTPDir.c
+
+$(INTDIR)/HTFTPDir.obj :  $(SOURCE)  $(INTDIR)
+   $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
+# End Source File
+################################################################################
+# Begin Source File
+
+SOURCE=..\HTFTP.c
+
+$(INTDIR)/HTFTP.obj :  $(SOURCE)  $(INTDIR)
+   $(CPP) $(CPP_PROJ)  $(SOURCE) 
+
 # End Source File
 # End Group
 # End Project
