@@ -279,6 +279,7 @@ PRIVATE void SetSignal (void)
     } else {
 	if (PROT_TRACE) HTTrace("HTSignal.... Ignoring SIGPIPE\n");
     }
+    HTMemLog_flush();
 }
 #endif /* CATCH_SIG */
 
@@ -449,7 +450,7 @@ int main (int argc, char ** argv)
     argc=ccommand(&argv);
 #endif
 
-    HTMemLog_open("/usr/local/src/WWW/the-dart/Robot/src/data.log", 8192, YES);
+    HTMemLog_open("data.log", 8192, YES);
     HTTraceData_setCallback(HTMemLog_callback);
     /* Initiate W3C Reference Library with a robot profile */
     HTProfile_newRobot(APP_NAME, APP_VERSION);

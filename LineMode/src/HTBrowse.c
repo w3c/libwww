@@ -1570,7 +1570,7 @@ int main (int argc, char ** argv)
     arc.locale=0; arc.encoding=0; arc.i_encoding=0; doinull();
 #endif
 
-    HTMemLog_open("/usr/local/src/WWW/the-dart/LineMode/src/data.log", 8192, YES);
+    HTMemLog_open("data.log", 8192, YES);
     HTTraceData_setCallback(HTMemLog_callback);
     /* Initiate W3C Reference Library with a client profile */
     HTProfile_newClient(APP_NAME, APP_VERSION);

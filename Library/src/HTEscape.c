@@ -112,8 +112,13 @@ PUBLIC char * HTUnEscape (char * str)
         if (*p == HEX_ESCAPE) {
 	    p++;
 	    if (*p) *q = from_hex(*p++) * 16;
+#ifdef UNTESTED /* suggestion from Markku Savela - I just copied it in - EGP */
+	    if (*p) *q = FROMASCII(*q + from_hex(*p)), ++p;
+	    q++;
+#else /* UNTESTED */
 	    if (*p) *q = FROMASCII(*q + from_hex(*p));
 	    p++, q++;
+#endif /* !UNTESTED */
 	} else {
 	    *q++ = *p++; 
 	}

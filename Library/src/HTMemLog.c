@@ -39,13 +39,15 @@ PUBLIC int HTMemLog_open (const char * logName, const size_t size, BOOL keepOpen
     return HT_OK;
 }
 
-PRIVATE int HTMemLog_flush(void)
+PUBLIC int HTMemLog_flush(void)
 {
-    if (!KeepOpen)
-	if ((LogFd = open(LogName, O_WRONLY|O_CREAT|O_TRUNC, 0666)) == -1)
-	    return HT_ERROR;
-    write(LogFd, LogBuff, LogLen);
-    LogLen = 0;
+    if (LogLen) {
+	if (!KeepOpen)
+	    if ((LogFd = open(LogName, O_WRONLY|O_CREAT|O_TRUNC, 0666)) == -1)
+		return HT_ERROR;
+	write(LogFd, LogBuff, LogLen);
+	LogLen = 0;
+    }
     if (!KeepOpen)
 	close(LogFd);
     return HT_OK;
@@ -101,8 +103,7 @@ PUBLIC void HTMemLog_close (void)
 #ifdef USE_SYSLOG
     closelog();
 #else /* USE_SYSLOG */
-    if (LogLen)
-	HTMemLog_flush();
+    HTMemLog_flush();
     if (LogFd > 2)
 	close(LogFd);
     if (LogBuff != NULL)

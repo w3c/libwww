@@ -41,44 +41,46 @@
 #define HT_EVENT_ORDER				  /* use event ordering code */
 #define EVENTS_TO_EXECUTE	5  /* how many to execute in one select loop */
 
-typedef struct rq_t RQ;
-struct rq_t {
-    SOCKET 	s ;	 	/* our socket */
-    BOOL 	unregister;	/* notify app when completely unregistered */
-    HTEvent * 	events[3];	/* event parameters for read, write, oob */
-    HTTimer *   timeouts[3];	/* timeout for each of the events */
-};
+#ifdef WWW_WIN_ASYNC
+#define TIMEOUT	1 /* WM_TIMER id */
+PRIVATE HWND HTSocketWin;
+PRIVATE unsigned long HTwinMsg;
+#else /* WWW_WIN_ASYNC */
+PRIVATE fd_set FdArray[HTEvent_TYPES];
+PRIVATE SOCKET MaxSock = 0 ;			  /* max socket value in use */
+#endif /* !WWW_WIN_ASYNC */
 
-typedef enum _RQ_action {
-    RQ_mayCreate,
-    RQ_find
-} RQ_action;
+typedef struct {
+    SOCKET 	s ;	 		/* our socket */
+    HTEvent * 	events[HTEvent_TYPES];	/* event parameters for read, write, oob */
+    HTTimer *   timeouts[HTEvent_TYPES];/* timeout for each of the events */
+} SockEvents;
+
+typedef enum {
+    SockEvents_mayCreate,
+    SockEvents_find
+} SockEvents_action;
 
 HTList * HashTable[PRIME_TABLE_SIZE]; 
-PRIVATE SOCKET max_sock = 0 ;			  /* max socket value in use */
-
-PRIVATE fd_set FdArray[HTEvent_TYPES];
-PRIVATE fd_set all_fds ;			    /* any descriptor at all */
-
 PRIVATE int HTEndLoop = 0;		       /* If !0 then exit event loop */
 
 /* ------------------------------------------------------------------------- */
 
-PRIVATE RQ * RQ_get (SOCKET s, RQ_action action)
+PRIVATE SockEvents * SockEvents_get (SOCKET s, SockEvents_action action)
 {
     long v = HASH(s);
     HTList* cur;
-    RQ * pres;
+    SockEvents * pres;
 
     if (HashTable[v] == NULL)
 	HashTable[v] = HTList_new();
     cur = HashTable[v];
-    while ((pres = (RQ *) HTList_nextObject(cur)))
+    while ((pres = (SockEvents *) HTList_nextObject(cur)))
 	if (pres->s == s)
 	    return pres;
 
-    if (action == RQ_mayCreate) {
-        if ((pres = (RQ *) HT_CALLOC(1, sizeof(RQ))) == NULL)
+    if (action == SockEvents_mayCreate) {
+        if ((pres = (SockEvents *) HT_CALLOC(1, sizeof(SockEvents))) == NULL)
 	    HT_OUTOFMEM("HTEventList_register");
 	pres->s = s;
 	HTList_addObject(HashTable[v], (void *)pres);
@@ -87,31 +89,79 @@ PRIVATE RQ * RQ_get (SOCKET s, RQ_action action)
     return NULL;
 }
 
+PUBLIC void HTEvent_traceHead(void)
+{
+    HTTrace("     event: pri millis  callback   param    request  ");
+}
+PUBLIC void HTEvent_trace(HTEvent * event)
+{
+    if (event == NULL)
+	return;
+    HTTrace("%8p: %3d %6d %8p %8p %8p", event, event->priority, event->millis, event->cbf, event->param, event->request);
+}
+PUBLIC void HTTimer_traceHead(void)
+{
+    HTTrace("     timer: millis expires ?   param   callback  ");
+}
+PRIVATE char * MyTime(unsigned long int time, int len)
+{
+static char space[100];
+    sprintf(space, "1234567");
+    return space;
+}
+struct _HTTimer {
+    HTTimer *	next;		/* The next guy in line */
+    ms_t	millis;		/* Relative value in millis */
+    ms_t	expires;	/* Absolute value in millis */
+    BOOL	relative;
+    void *	param;		/* Client supplied context */
+    HTTimerCallback * cbf;
+};
+
+PUBLIC void HTTimer_trace(HTTimer * timer)
+{
+    if (timer == NULL)
+	return;
+    HTTrace("%8p: %6d %7s %c %8p %8p", timer, timer->millis, MyTime(timer->expires, 7), 
+	    timer->relative == YES ? 'R' : 'A', timer->param, timer->cbf);
+}
 /*
 **  A simple debug function that dumps all the socket arrays
 **  as trace messages
 */
-PRIVATE void __DumpFDSet (fd_set * fdp, const char * str) 
+PRIVATE void EventList_dump (void)
 {
-    SOCKET s ;
-#ifdef _WINSOCKAPI_
-    unsigned ui ;
-#endif
-    if (THD_TRACE) {
-	HTTrace("Event....... Dumping %s file descriptor set\n", str);
-#ifdef _WINSOCKAPI_ 
-        for (ui = 0 ; ui < fdp->fd_count; ui++) { 
-            s = all_fds.fd_array[ui] ;
-#else 
-        for (s = 0 ; s <= max_sock; s++) { 
-            if (FD_ISSET(s, fdp))
-#endif
-	    {
-	        HTTrace("%4d\n", s);
-	    }
-        }	/* for */
-    }           /* if */
-    return ;
+    long v;
+    HTList* cur;
+    SockEvents * pres;
+
+    if (HashTable[v] == NULL) {
+	HTTrace("Event....... No sockets registered\n");
+	return;
+    }
+    HTTrace("Event....... Dumping socket events\n");
+    HTTrace("soc ");
+    HTEvent_traceHead();
+    HTTrace(" ");
+    HTTimer_traceHead();
+    HTTrace("\n");
+    for (v = 0; v < PRIME_TABLE_SIZE; v++) {
+	cur = HashTable[v];
+	while ((pres = (SockEvents *) HTList_nextObject(cur))) {
+	    int i;
+	    HTTrace("%3d \n", pres->s);
+	    for (i = 0; i < HTEvent_TYPES; i++)
+		if (pres->events[i]) {
+		    static char * names[HTEvent_TYPES] = {"read", "writ", "xcpt"};
+		    HTTrace("%s", names[i]);
+		    HTEvent_trace(pres->events[i]);
+		    HTTrace(" ");
+		    HTTimer_trace(pres->timeouts[i]);
+		    HTTrace(" ");
+		}
+	    HTTrace("\n");
+	}
+    }
 }
 
 /* ------------------------------------------------------------------------- */
@@ -218,22 +268,22 @@ PUBLIC BOOL EventOrder_deleteAll (void)
 /*		T I M E O U T   H A N D L E R				     */
 PRIVATE int EventListTimerHandler (HTTimer * timer, void * param)
 {
-    RQ * rqp = (RQ *)param;
+    SockEvents * sockp = (SockEvents *)param;
     HTEvent * event;
-    if (rqp->timeouts[HTEvent_INDEX(HTEvent_READ)] == timer) {
-	event = rqp->events[HTEvent_INDEX(HTEvent_READ)];
-	if (THD_TRACE) HTTrace("Event....... READ timed out on %d.\n", rqp->s);
-	return (*event->cbf) (rqp->s, event->param, HTEvent_TIMEOUT);
+    if (sockp->timeouts[HTEvent_INDEX(HTEvent_READ)] == timer) {
+	event = sockp->events[HTEvent_INDEX(HTEvent_READ)];
+	if (THD_TRACE) HTTrace("Event....... READ timed out on %d.\n", sockp->s);
+	return (*event->cbf) (sockp->s, event->param, HTEvent_TIMEOUT);
     }
-    if (rqp->timeouts[HTEvent_INDEX(HTEvent_WRITE)] == timer) {
-	event = rqp->events[HTEvent_INDEX(HTEvent_WRITE)];
-	if (THD_TRACE) HTTrace("Event....... WRITE timed out on %d.\n", rqp->s);
-	return (*event->cbf) (rqp->s, event->param, HTEvent_TIMEOUT);
+    if (sockp->timeouts[HTEvent_INDEX(HTEvent_WRITE)] == timer) {
+	event = sockp->events[HTEvent_INDEX(HTEvent_WRITE)];
+	if (THD_TRACE) HTTrace("Event....... WRITE timed out on %d.\n", sockp->s);
+	return (*event->cbf) (sockp->s, event->param, HTEvent_TIMEOUT);
     }
-    if (rqp->timeouts[HTEvent_INDEX(HTEvent_OOB)] == timer) {
-	event = rqp->events[HTEvent_INDEX(HTEvent_OOB)];
-	if (THD_TRACE) HTTrace("Event....... OOB timed out on %d.\n", rqp->s);
-	return (*event->cbf) (rqp->s, event->param, HTEvent_TIMEOUT);
+    if (sockp->timeouts[HTEvent_INDEX(HTEvent_OOB)] == timer) {
+	event = sockp->events[HTEvent_INDEX(HTEvent_OOB)];
+	if (THD_TRACE) HTTrace("Event....... OOB timed out on %d.\n", sockp->s);
+	return (*event->cbf) (sockp->s, event->param, HTEvent_TIMEOUT);
     }
     HTTrace("Event....... can't find event for timer %p.\n", timer);
     return HT_ERROR;
@@ -249,7 +299,7 @@ PRIVATE int EventListTimerHandler (HTTimer * timer, void * param)
 */
 PUBLIC int HTEventList_register (SOCKET s, HTEventType type, HTEvent * event)
 {
-    RQ * rqp;
+    SockEvents * sockp;
     if (THD_TRACE) 
 	HTTrace("Event....... Register socket %d, request %p handler %p type %x at priority %d\n",
 		s, (void *) event->request,
@@ -259,7 +309,7 @@ PUBLIC int HTEventList_register (SOCKET s, HTEventType type, HTEvent * event)
 	return 0;
 #if 0
     /*
-    ** Don't write down TIMEOUT events in the RQ list or the fd sets.
+    ** Don't write down TIMEOUT events in the SockEvents list or the fd sets.
     ** They just manifest in the HTTimer
     */
     if (type == HTEvent_TIMEOUT)
@@ -271,22 +321,35 @@ PUBLIC int HTEventList_register (SOCKET s, HTEventType type, HTEvent * event)
     ** that it is registered in the global set.
     */
     if (THD_TRACE) HTTrace("Event....... Registering socket for %d\n", type);
-    rqp = RQ_get(s, RQ_mayCreate);
-    rqp->s = s;
-    rqp->events[HTEvent_INDEX(type)] = event;
+    sockp = SockEvents_get(s, SockEvents_mayCreate);
+    sockp->s = s;
+    sockp->events[HTEvent_INDEX(type)] = event;
+#ifdef WWW_WIN_ASYNC
+    if (WSAAsyncSelect(s, HTSocketWin, HTwinMsg, HTEvent_INDEX(type)) < 0)
+	return HT_ERROR;
+#else /* WWW_WIN_ASYNC */
     FD_SET(s, FdArray+HTEvent_INDEX(type));
-    FD_SET(s, &all_fds);
-
+    if (s > MaxSock) MaxSock = s ;
+#endif /* !WWW_WIN_ASYNC */
     /*
     ** If the timeout has been set (relative in millis) then we register 
     ** a new timeout for this event
     */
     if (event->millis >= 0) {
-	rqp->timeouts[HTEvent_INDEX(type)] = HTTimer_new(NULL, EventListTimerHandler, rqp, event->millis, YES);
+	sockp->timeouts[HTEvent_INDEX(type)] = HTTimer_new(NULL, EventListTimerHandler, sockp, event->millis, YES);
     }
 
-    if (s > max_sock) max_sock = s ;
     return HT_OK;
+}
+
+PRIVATE int EventList_remaining(SockEvents * pres)
+{
+    int ret = 0;
+    int i;
+    for (i = 0; i < HTEvent_TYPES; i++)
+	if (pres->events[i] != NULL)
+	    ret |= 1<<i;
+    return ret;
 }
 
 /*
@@ -297,19 +360,19 @@ PUBLIC int HTEventList_register (SOCKET s, HTEventType type, HTEvent * event)
 */
 PUBLIC int HTEventList_unregister(SOCKET s, HTEventType type) 
 {
-    long v = HASH(s);
-    HTList * cur = HashTable[v];
-    HTList * last = cur;
-    RQ * pres;
+    long 		v = HASH(s);
+    HTList * 		cur = HashTable[v];
+    HTList * 		last = cur;
+    SockEvents *	pres;
 
-    while ((pres = (RQ *) HTList_nextObject(cur))) {
+    while ((pres = (SockEvents *) HTList_nextObject(cur))) {
         if (pres->s == s) {
+	    int		remaining;
 
 	    /*
 	    **  Unregister the event from this action
 	    */
 	    pres->events[HTEvent_INDEX(type)] = NULL;
-	    FD_CLR(s, FdArray+HTEvent_INDEX(type));
 
 	    /*
 	    **  Check to see of there was a timeout connected with the event.
@@ -324,17 +387,20 @@ PUBLIC int HTEventList_unregister(SOCKET s, HTEventType type)
 	    **  Check to see if we can delete the action completely. We do this
 	    **  if there are no more events registered.
 	    */
-	    if (pres->events[HTEvent_INDEX(HTEvent_READ)] == NULL && 
-		pres->events[HTEvent_INDEX(HTEvent_WRITE)] == NULL && 
-		pres->events[HTEvent_INDEX(HTEvent_OOB)] == NULL) {
+	    if ((remaining = EventList_remaining(pres)) == 0) {
 		if (THD_TRACE)
 		    HTTrace("Event....... No more events registered for socket %d\n", s);
 		HT_FREE(pres);
-		FD_CLR(s, &all_fds);
-		HTList_quickRemoveObject(cur, last);
+		HTList_quickRemoveElement(cur, last);
 	    } else
 		last = cur;  /* to set next pointer when creating new */
-	    if (THD_TRACE)
+#ifdef WWW_WIN_ASYNC
+	    if (WSAAsyncSelect(s, HTSocketWin, HTwinMsg, remaining) < 0)
+		return HT_ERROR;
+#else /* WWW_WIN_ASYNC */
+	    FD_CLR(s, FdArray+HTEvent_INDEX(type));
+#endif /* !WWW_WIN_ASYNC */
+      	    if (THD_TRACE)
 		HTTrace("Event....... Socket %d unregisterd for %x\n", s, type);
 	    return HT_OK;
 	}
@@ -354,17 +420,22 @@ PUBLIC int HTEventList_unregisterAll (void)
     if (THD_TRACE) HTTrace("Unregister.. all sockets\n");
     for (i = 0 ; i < PRIME_TABLE_SIZE; i++) {
 	HTList * cur = HashTable[i];
-	RQ * pres;
-	while ((pres = (RQ *) HTList_nextObject(cur)))
+	SockEvents * pres;
+	while ((pres = (SockEvents *) HTList_nextObject(cur))) {
+#ifdef WWW_WIN_ASYNC
+	    WSAAsyncSelect(pres->s, HTSocketWin, HTwinMsg, 0);
+#endif /* WWW_WIN_ASYNC */
 	    HT_FREE(pres);
+	}
 	HTList_delete(HashTable[i]);
 	HashTable[i] = NULL;
     }
-    max_sock = 0 ;
+#ifndef WWW_WIN_ASYNC
+    MaxSock = 0 ;
     FD_ZERO(FdArray+HTEvent_INDEX(HTEvent_READ));
     FD_ZERO(FdArray+HTEvent_INDEX(HTEvent_WRITE));
     FD_ZERO(FdArray+HTEvent_INDEX(HTEvent_OOB));
-    FD_ZERO(&all_fds);
+#endif /* !WWW_WIN_ASYNC */
 #ifdef HT_EVENT_ORDER
     EventOrder_deleteAll();
 #endif /* HT_EVENT_ORDER */
@@ -377,9 +448,9 @@ PUBLIC int HTEventList_unregisterAll (void)
 */
 PUBLIC int HTEventList_dispatch (SOCKET s, HTEventType type)
 {
-    RQ * rqp = RQ_get(s, RQ_find);
-    if (rqp) {
-	HTEvent * event = rqp->events[HTEvent_INDEX(type)];
+    SockEvents * sockp = SockEvents_get(s, SockEvents_find);
+    if (sockp) {
+	HTEvent * event = sockp->events[HTEvent_INDEX(type)];
 
 	/*
 	**  If we have found an event object for this event then see
@@ -387,7 +458,7 @@ PUBLIC int HTEventList_dispatch (SOCKET s, HTEventType type)
 	*/
 	if (event && event->priority!=HT_PRIORITY_OFF)
 	    return (*event->cbf) (s, event->param, type);
-	if (THD_TRACE) HTTrace("Dispatch.... Handler %p NOT called\n", rqp);
+	if (THD_TRACE) HTTrace("Dispatch.... Handler %p NOT called\n", sockp);
 	return HT_OK;
     }
     if (THD_TRACE) HTTrace("Dispatch.... Bad socket %d\n", s);
@@ -402,6 +473,104 @@ PUBLIC void HTEventList_stopLoop (void)
 {
     HTEndLoop = 1;
 }
+
+PUBLIC HTEvent * HTEventList_lookup (SOCKET s, HTEventType type)
+{
+    SockEvents * sockp = NULL;
+    if ((sockp = SockEvents_get(s, SockEvents_find)) == NULL)
+	return NULL;
+    return sockp->events[HTEvent_INDEX(type)];
+}
+
+/*	REGISTER DEFULT EVENT MANAGER
+**	-----------------------------
+**	Not done automaticly - may be done by application!
+*/
+PUBLIC BOOL HTEventInit (void)
+{
+    HTEvent_setRegisterCallback(HTEventList_register);
+    HTEvent_setUnregisterCallback(HTEventList_unregister);
+    return YES;
+}
+
+PUBLIC BOOL HTEventTerminate (void)
+{
+    return YES;
+}
+
+#ifdef WWW_WIN_ASYNC
+
+/*	HTEventrg_get/setWinHandle
+**	--------------------------
+**	Managing the windows handle on Windows
+*/
+PUBLIC BOOL HTEventList_setWinHandle (HWND window, unsigned long message)
+{
+    HTSocketWin = window;
+    HTwinMsg = message;
+    return YES;
+}
+
+PUBLIC HWND HTEventList_getWinHandle (unsigned long * pMessage)
+{
+    if (pMessage)
+        *pMessage = HTwinMsg;
+    return (HTSocketWin);
+}
+
+PUBLIC BOOL HTEventList_asyncWindowsTimer(HTTimer * timer, ms_t millis)
+{
+    if (SetTimer(HTSocketWin, (UINT)timer, millis) > 0)
+	return YES;
+    return NO;
+}
+
+/* only responsible for WM_TIMER and WSA_AsyncSelect */    	
+PUBLIC LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    WORD event;
+    SOCKET sock;
+
+    /* timeout stuff */
+    if (uMsg == WM_TIMER) {
+	HTTimer_dispatch((HTTimer *)lParam);
+	return (0);
+    }
+
+    if (uMsg != HTwinMsg)	/* not our async message */
+    	return (DefWindowProc(hwnd, uMsg, wParam, lParam));
+
+    event = LOWORD(lParam);
+    sock = (SOCKET)wParam;
+    if (event & (FD_READ | FD_ACCEPT | FD_CLOSE))
+    	if (HTEventrg_dispatch((int)sock, FD_READ) != HT_OK) {
+	    HTEndLoop = -1;
+	    return 0;
+	}
+    if (event & (FD_WRITE | FD_CONNECT))
+    	if (HTEventrg_dispatch((int)sock, FD_WRITE) != HT_OK) {
+	    HTEndLoop = -1;
+	    return 0;
+	}
+    if (event & FD_OOB)
+    	if (HTEventrg_dispatch((int)sock, FD_OOB) != HT_OK) {
+	    HTEndLoop = -1;
+	    return 0;
+	}
+    return (0);
+}
+
+PUBLIC int HTEventrg_loop (HTRequest * theRequest )
+{
+    MSG msg;
+    while (GetMessage(&msg,0,0,0)) {
+	    TranslateMessage(&msg);
+	    DispatchMessage(&msg);
+    }
+    return (HTEndLoop == 1 ? HT_OK : HT_ERROR);
+}
+
+#else /* WWW_WIN_ASYNC */
 
 /*
 **  We wait for activity from one of our registered 
@@ -429,7 +598,7 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
         treadset = FdArray[HTEvent_INDEX(HTEvent_READ)];
         twriteset = FdArray[HTEvent_INDEX(HTEvent_WRITE)];
         texceptset = FdArray[HTEvent_INDEX(HTEvent_OOB)];
-        maxfds = max_sock; 
+        maxfds = MaxSock; 
 
 	if (THD_TRACE) HTTrace("Event Loop.. calling select: maxfds is %d\n", maxfds);
 
@@ -465,9 +634,12 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 
         if (active_sockets == -1) {
 	    HTRequest_addSystemError( theRequest, ERR_FATAL, socerrno, NO, "select");
+	    EventList_dump();
+#if 0
 	    __DumpFDSet(FdArray+HTEvent_INDEX(HTEvent_READ), "Read");
 	    __DumpFDSet(FdArray+HTEvent_INDEX(HTEvent_WRITE), "Write") ;
 	    __DumpFDSet(FdArray+HTEvent_INDEX(HTEvent_OOB), "Exceptions");
+#endif /* 0 */
 	    return HT_ERROR;
         }
 
@@ -508,26 +680,4 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
     return HT_OK;
 }
 
-PUBLIC HTEvent * HTEventList_lookup (SOCKET s, HTEventType type)
-{
-    RQ * rqp = NULL;
-    if ((rqp = RQ_get(s, RQ_find)) == NULL)
-	return NULL;
-    return rqp->events[HTEvent_INDEX(type)];
-}
-
-/*	REGISTER DEFULT EVENT MANAGER
-**	-----------------------------
-**	Not done automaticly - may be done by application!
-*/
-PUBLIC BOOL HTEventInit (void)
-{
-    HTEvent_setRegisterCallback(HTEventList_register);
-    HTEvent_setUnregisterCallback(HTEventList_unregister);
-    return YES;
-}
-
-PUBLIC BOOL HTEventTerminate (void)
-{
-    return YES;
-}
+#endif /* !WWW_WIN_ASYNC */

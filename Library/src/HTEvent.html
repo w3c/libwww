@@ -62,19 +62,29 @@ typedef enum _HTPriority {
 } HTPriority; 
 
 typedef enum {
+#ifdef WWW_WIN_ASYNC
+    HTEvent_READ    = (0x001 | 0 &lt;&lt; 16),
+    HTEvent_WRITE   = (0x002 | 1 &lt;&lt; 16),
+    HTEvent_OOB     = (0x004 | 2 &lt;&lt; 16),
+    HTEvent_ACCEPT  = (0x008 | 3 &lt;&lt; 16),
+    HTEvent_CONNECT = (0x010 | 4 &lt;&lt; 16),
+    HTEvent_CLOSE   = (0x020 | 5 &lt;&lt; 16),
+    HTEvent_TYPES   = 6,	/* winsock has seperate events for all of these */
+#else /* WWW_WIN_ASYNC */
     HTEvent_READ    = (0x001 | 0 &lt;&lt; 16),
     HTEvent_ACCEPT  = (0x002 | 0 &lt;&lt; 16),
     HTEvent_CLOSE   = (0x004 | 0 &lt;&lt; 16),
     HTEvent_WRITE   = (0x008 | 1 &lt;&lt; 16),
     HTEvent_CONNECT = (0x010 | 1 &lt;&lt; 16),
     HTEvent_OOB     = (0x020 | 2 &lt;&lt; 16),
+    HTEvent_TYPES   = 3,	/* only READ, WRITE, and OOB are real types */
+#endif /* !WWW_WIN_ASYNC */
     HTEvent_TIMEOUT = (0x040 | 3 &lt;&lt; 16),
     HTEvent_BEGIN   = (0x000 | 3 &lt;&lt; 16),
     HTEvent_END     = (0x080 | 3 &lt;&lt; 16),
     HTEvent_FLUSH   = (0x100 | 3 &lt;&lt; 16),
     HTEvent_RESET   = (0x200 | 3 &lt;&lt; 16),
-    HTEvent_ALL     = 0xFFFF,
-    HTEvent_TYPES   = 3		/* only READ, WRITE, and OOB are real types */
+    HTEvent_ALL     = 0xFFFF
 } HTEventType;
 
 #define HTEvent_BITS(type) (type & 0xFFFF)

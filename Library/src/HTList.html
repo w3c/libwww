@@ -68,7 +68,7 @@ occurances of <CODE>oldObject</CODE>.
 
 <PRE>
 extern BOOL	HTList_removeObject		(HTList * me, void * oldObject);
-extern BOOL	HTList_quickRemoveObject	(HTList * me, HTList * last);
+extern BOOL	HTList_quickRemoveElement	(HTList * me, HTList * last);
 extern BOOL	HTList_removeObjectAll		(HTList * me, void * oldObject);
 
 extern void *	HTList_removeLastObject		(HTList * me);
@@ -79,7 +79,8 @@ extern void *	HTList_removeFirstObject	(HTList * me);
 </H2>
 <P>
 Two small function to ask for the size
-<PRE>#define 	HTList_isEmpty(me)		(me ? me-&gt;next == NULL : YES)
+<PRE>
+#define 	HTList_isEmpty(me)		(me ? me-&gt;next == NULL : YES)
 extern int	HTList_count			(HTList *me);
 </PRE>
 <H2>
@@ -89,8 +90,10 @@ extern int	HTList_count			(HTList *me);
 In some situations is is required to use an index in order to refer to a
 list element. This is for example the case if an element can be registered
 multiple times.
-<PRE>extern int	HTList_indexOf	(HTList *me, void *object);
-extern void *	HTList_objectAt	(HTList *me, int position);
+<PRE>extern int	HTList_indexOf	 (HTList * me, void * object);
+extern void *	HTList_objectAt	 (HTList * me, int position);
+extern HTList * HTList_elementOf (HTList * me, void * object, HTList ** pLast);
+#define 	HTList_objectOf(me)		(me ? me-&gt;object: NULL)
 </PRE>
 <H2>
   Find List Elements
@@ -98,7 +101,8 @@ extern void *	HTList_objectAt	(HTList *me, int position);
 <P>
 This method returns the <I>last</I> element to the list or NULL if list is
 empty
-<PRE>#define		HTList_lastObject(me) \
+<PRE>
+#define		HTList_lastObject(me) \
 		((me) &amp;&amp; (me)-&gt;next ? (me)-&gt;next-&gt;object : NULL)
 </PRE>
 <P>

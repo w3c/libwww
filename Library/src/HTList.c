@@ -65,7 +65,7 @@ PUBLIC BOOL HTList_appendObject (HTList * me, void * newObject)
     return NO;
 }
 
-PUBLIC BOOL HTList_removeObject (HTList *  me, void *  oldObject)
+PUBLIC BOOL HTList_removeObject (HTList * me, void * oldObject)
 {
     if (me) {
 	HTList *previous;
@@ -82,7 +82,7 @@ PUBLIC BOOL HTList_removeObject (HTList *  me, void *  oldObject)
     return NO;			/* object not found or NULL list */
 }
 
-PUBLIC BOOL HTList_quickRemoveObject (HTList *  me, HTList * last)
+PUBLIC BOOL HTList_quickRemoveElement (HTList * me, HTList * last)
 {
     if (me && last) {
 	last->next = me->next;
@@ -92,7 +92,7 @@ PUBLIC BOOL HTList_quickRemoveObject (HTList *  me, HTList * last)
     return NO;			/* object not found or NULL list */
 }
 
-PUBLIC BOOL HTList_removeObjectAll (HTList *  me, void *  oldObject)
+PUBLIC BOOL HTList_removeObjectAll (HTList * me, void * oldObject)
 {
     BOOL found = NO;
     if (me) {
@@ -172,6 +172,28 @@ PUBLIC int HTList_indexOf (HTList * me, void * object)
 	}
     }
     return -1;
+}
+
+PUBLIC HTList * HTList_elementOf (HTList * cur, void * object, HTList ** pLast)
+{
+    HTList * 	last = cur;
+    void *	pres;
+
+    while ((pres = HTList_nextObject(cur))) {
+        if (pres == object) {
+	    if (pLast)
+		*pLast = last;
+	    return cur;
+	}
+	last = cur;
+    }
+
+    /*
+    **	didn't find object, but return end of list so it is easy to append
+    */
+    if (pLast)
+	*pLast = last;
+    return NULL;
 }
 
 PUBLIC void * HTList_objectAt  (HTList * me, int position)
