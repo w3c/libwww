@@ -15,6 +15,9 @@
 **	Jul 94 HFN	Written on top of HTTP.c, Henrik Frystyk
 **      Fev 02 MKP      WebDAV status codes, Manuele Kirsch Pinheiro
 **                      (Manuele.Kirsch_Pinheiro@inrialpes.fr)
+**      Mar 29 MKP      Correcting WebDAV's 207 Multi-Status status code, that
+**                      was returning HT_LOADED (200), and the right code is
+**                      HT_MULTI_STATUS (207).
 **
 */
 
@@ -304,7 +307,7 @@ PRIVATE void HTTPNextState (HTStream * me)
 			       "HTTPNextState");
 	    http->next = HTTP_OK;
 #ifdef HT_DAV                                   /* WebDAV : Multistatus status code */
-            http->result = HT_LOADED;
+            http->result = HT_MULTI_STATUS;
 #else 
 	    http->result = HT_PARTIAL_CONTENT;
 #endif
