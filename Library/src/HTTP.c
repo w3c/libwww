@@ -749,6 +749,14 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		    HTHost_setClass(host, "http");
 		}
 
+		/*
+		**  For backwards compatibility with servers that understand
+		**  Connection: Keep-Alive, we send it along. However, we do
+		**  NOT send it to a proxy as it may confuse HTTP/1.0 proxies
+		*/
+		if (HTRequest_proxy(request) == NULL)
+		    HTRequest_addClientConnection(request, "Keep-Alive", "");
+
 		/* 
 		** Create the stream pipe FROM the channel to the application.
 		** The target for the input stream pipe is set up using the
