@@ -137,8 +137,9 @@ typedef struct _Robot {
 
     char *              furl;                              /* First url */
 
-
     MRFlags		flags;
+
+    int                 redir_code;     /* 0 means all, otherwise 301, 302, 305... */ 
 
     long		get_bytes;	/* Total number of bytes processed using GET*/
     long                get_docs;     	/* Total number of documents using GET */
@@ -223,17 +224,20 @@ PUBLIC Finger * Finger_new (Robot * robot, HTParentAnchor * dest, HTMethod metho
 PUBLIC BOOL Robot_registerHTMLParser (void);
 PUBLIC void Cleanup (Robot * me, int status);
 PUBLIC void VersionInfo (void);
+
 PUBLIC int terminate_handler (HTRequest * request, HTResponse * response,
 			       void * param, int status) ;
 
-PUBLIC int my_terminate_handler (HTRequest * request, HTResponse * response,
-			       void * param, int status) ;
+PUBLIC int bfs_terminate_handler (HTRequest * request, HTResponse * response,
+			          void * param, int status) ;
+
+PUBLIC int redirection_handler (HTRequest * request, HTResponse * response,
+			        void * param, int status) ;
 
 PUBLIC void Serving_queue(Robot *mr);
 
 PUBLIC char *get_robots_txt(char *uri);
 
-PUBLIC int check_before (HTRequest * request,void * param, int mode);
 #endif
 </PRE>
 <P>

@@ -55,7 +55,6 @@ int main (int argc, char ** argv)
     Robot *	mr = NULL;
     Finger *	finger = NULL;
     HTParentAnchor * startAnchor = NULL;
-    int redir_code = 0;	
 
     /* Starts Mac GUSI socket library */
 #ifdef GUSI
@@ -304,7 +303,7 @@ int main (int argc, char ** argv)
 	    /* run in redirection mode */
 	    } else if (!strcmp(argv[arg], "-redir")) { 
 		mr->flags |= MR_REDIR;
-		redir_code = (arg+1 < argc && *argv[arg+1] != '-') ?
+		mr->redir_code = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    atoi(argv[++arg]) : 0;
 
 #ifdef WWWTRACE
@@ -399,39 +398,6 @@ int main (int argc, char ** argv)
 	Cleanup(mr, 0);
     }
 
-    if(mr->flags & MR_REDIR) {
-      BOOL isredir = NO;
-
-      /* Adding redirection Filters */
-
-      if(redir_code == HT_PERM_REDIRECT || redir_code == 0) {
-	HTNet_addAfter(HTRedirectFilter,
-	       "http://*",NULL, HT_PERM_REDIRECT, HT_FILTER_MIDDLE); /* */
-	isredir = YES;
-      }
-      if(redir_code == HT_TEMP_REDIRECT || redir_code == 0) {
-	HTNet_addAfter(HTRedirectFilter, 	
-	       "http://*",	NULL, HT_TEMP_REDIRECT, HT_FILTER_MIDDLE);/* */
-	isredir = YES;
-      }
-      if(redir_code == HT_FOUND || redir_code == 0) {
-	HTNet_addAfter(HTRedirectFilter, 	
-	       "http://*",	NULL, HT_FOUND, HT_FILTER_MIDDLE); /* */
-	isredir = YES;
-      }
-      if(redir_code == HT_SEE_OTHER || redir_code == 0) {
-	HTNet_addAfter(HTRedirectFilter,	
-	       "http://*", NULL, HT_SEE_OTHER,  HT_FILTER_MIDDLE); /* */
-	isredir = YES;
-      }
-      if(!isredir)
-	{
-	  if (SHOW_REAL_QUIET(mr))
-	    HTTrace("%d is not redirection code\n", redir_code);
-	  Cleanup(mr, -1);
-	}
-    }
-
     if (mr->depth != DEFAULT_DEPTH && 
 	(mr->prefix == NULL || *mr->prefix == '*')) {
 	if (SHOW_REAL_QUIET(mr))
@@ -466,7 +432,7 @@ int main (int argc, char ** argv)
     }
 
     /* This is new */
-    if ((mr->cdepth = (int *) HT_CALLOC(mr->depth+1, sizeof(int)))==NULL)
+    if ((mr->cdepth = (int *) HT_CALLOC(mr->depth+2, sizeof(int)))==NULL)
 	HT_OUTOFMEM("main");
 
     /* Should we use persistent cache? */
@@ -511,6 +477,32 @@ int main (int argc, char ** argv)
 	    HTNet_addAfter(HTRefererFilter, NULL, mr->notfound, -404, HT_FILTER_LATE);
     }
 
+    /* Check that the redirection code is valid */
+    if (mr->flags & MR_REDIR) {
+	BOOL isredir = NO;
+	if (mr->redir_code == HT_PERM_REDIRECT || mr->redir_code == 0) {
+	    HTNet_addAfter(redirection_handler, "http://*" , NULL, HT_PERM_REDIRECT, HT_FILTER_LATE);
+	    isredir = YES;
+	}
+	if (mr->redir_code == HT_TEMP_REDIRECT || mr->redir_code == 0) {
+	    HTNet_addAfter(redirection_handler, "http://*", NULL, HT_TEMP_REDIRECT, HT_FILTER_LATE);
+	    isredir = YES;
+	}
+	if (mr->redir_code == HT_FOUND || mr->redir_code == 0) {
+	    HTNet_addAfter(redirection_handler, "http://*", NULL, HT_FOUND, HT_FILTER_LATE);
+	    isredir = YES;
+	}
+	if (mr->redir_code == HT_SEE_OTHER || mr->redir_code == 0) {
+	    HTNet_addAfter(redirection_handler, "http://*", NULL, HT_SEE_OTHER, HT_FILTER_LATE);
+	    isredir = YES;
+	}
+	if (!isredir) {
+	    if (SHOW_REAL_QUIET(mr))
+		HTPrint("%d is not a valid redirection code\n", mr->redir_code);
+	    Cleanup(mr, -1);
+	}
+    }
+
     /* Negotiated resource log specified? */
     if (mr->connegfile) mr->conneg = HTLog_open(mr->connegfile, YES, YES);
 
@@ -542,15 +534,12 @@ int main (int argc, char ** argv)
     /* Add our own HTML HText functions */
     Robot_registerHTMLParser();
 
-    if (mr->flags & MR_REDIR) 
-	HTNet_addBefore(check_before, NULL, NULL, HT_FILTER_FIRST);
-
     /* Register our own terminate filter */
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
 
     /* If doing breath first search */
     if (mr->flags & MR_BFS)
-	HTNet_addAfter(my_terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
+	HTNet_addAfter(bfs_terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
 
     /* Setting event timeout */
     HTHost_setEventTimeout(mr->timer);

@@ -781,11 +781,8 @@ PRIVATE BOOL Robot_delete (Robot * mr)
 	}
 
 	/* This is new */
-#if 0
-	if (mr->cdepth) FT_FREE(mr->cdepth);
-#endif
-
-	if(mr->furl) HT_FREE(mr->furl);
+	HT_FREE(mr->cdepth);
+	HT_FREE(mr->furl);
 
 #ifdef HT_POSIX_REGEX
 	if (mr->include) {
@@ -877,6 +874,30 @@ PRIVATE int Finger_delete (Finger * me)
     return YES;
 }
 
+PRIVATE BOOL check_constraints(Robot * mr, char *prefix, char *uri)
+{
+    BOOL match = YES;
+    /* Check for prefix match */
+    if (prefix) {
+	match = HTStrMatch(prefix, uri) ? YES : NO;
+    }
+  
+#ifdef HT_POSIX_REGEX
+    /* Check for any regular expression */
+    if (match && mr->include) {
+	match = regexec(mr->include, uri, 0, NULL, 0) ? NO : YES;
+    }
+    if (match && mr->exc_robot) {
+	match = regexec(mr->exc_robot, uri, 0, NULL, 0) ? YES : NO;
+    }
+    if (match && mr->exclude) {
+	match = regexec(mr->exclude, uri, 0, NULL, 0) ? YES : NO;
+    }
+  
+#endif
+    return match;
+}
+
 /*
 **  Cleanup and make sure we close all connections including the persistent
 **  ones
@@ -949,6 +970,95 @@ PUBLIC void VersionInfo (void)
     HTPrint("\tsee \"http://www.w3.org/Library/#Forums\" for details\n\n");
 }
 
+/*	redirection_handler
+**	-------------------
+**	If we are set up to handle redirections then handle it here.
+*/
+PUBLIC int redirection_handler (HTRequest * request, HTResponse * response,
+				void * param, int status) 
+{
+    Finger * finger = (Finger *) HTRequest_context(request);
+    Robot * mr = finger->robot;
+    HTParentAnchor * me = HTRequest_anchor(request);
+    HTAnchor * redirection = HTResponse_redirection(response);
+    HTParentAnchor * redirection_parent = HTAnchor_parent(redirection);
+    HyperDoc * redirection_hd = HTAnchor_document(redirection_parent);
+    char * uri = NULL;
+    char * redirection_parent_addr = NULL;
+    BOOL match = YES;
+    BOOL check = NO;
+
+    /* In case we didn't get any redirection destination */
+    if (!redirection) return HT_OK;
+
+    /* Get the addresses */
+    uri = HTAnchor_address((HTAnchor *) me);
+    redirection_parent_addr = HTAnchor_address((HTAnchor *) redirection_parent);
+    if (SHOW_QUIET(mr))
+	HTPrint("Robot....... Checking redirecting from `%s\' to `%s\'\n",
+		uri, redirection_parent_addr);
+
+    /* Log the event */
+#ifdef HT_MYSQL
+    if (mr->sqllog && redirection_parent_addr)
+	HTSQLLog_addLinkRelationship(mr->sqllog, redirection_parent_addr,
+				     uri, "redirection", NULL);
+#endif
+
+    /* Check our constraints matcher */
+    match = check_constraints(mr,mr->prefix, redirection_parent_addr);
+
+#ifdef HT_POSIX_REGEX
+    /* See if we should do a HEAD or a GET on this URI */
+    if (match && mr->check) {
+	check = regexec(mr->check, uri, 0, NULL, 0) ? NO : YES;
+    }
+#endif
+
+    /*
+    ** If we already have a HyperDoc for the redirected anchor
+    ** then update it
+    */
+    if (match) {
+	if ((redirection_hd = HTAnchor_document(redirection_parent)) != NULL) {
+	    if (SHOW_QUIET(mr)) HTPrint("............ Already checked\n");
+	    redirection_hd->hits++;
+	    HT_FREE(redirection_parent_addr);
+	    HT_FREE(uri);
+	    return HT_OK;
+	}
+
+	/* Now call the default libwww handler for actually carrying it out */
+	if (mr->redir_code==0 || mr->redir_code==status) {
+	    HyperDoc * me_hd = HTAnchor_document(me);
+	    HyperDoc_new(mr, redirection_parent, me_hd->depth);
+	    if (check) {
+		if (SHOW_QUIET(mr)) HTPrint("Checking redirection using HEAD\n");
+		HTRequest_setMethod(request, METHOD_HEAD);
+	    }
+	    HT_FREE(redirection_parent_addr);
+	    HT_FREE(uri);
+	    return HTRedirectFilter(request, response, param, status);
+	}
+    } else {
+	if (SHOW_QUIET(mr)) HTPrint("............ does not fulfill constraints\n");
+#ifdef HT_MYSQL
+	if (mr->reject || mr->sqllog)
+#else	
+	if (mr->reject)
+#endif
+	{
+	    if (mr->reject && redirection_parent_addr)
+		HTLog_addText(mr->reject, "%s --> %s\n", redirection_parent_addr, uri);
+	}
+    }
+
+    /* Just fall through */
+    HT_FREE(redirection_parent_addr);
+    HT_FREE(uri);
+    return HT_OK;
+}
+
 /*	terminate_handler
 **	-----------------
 **	This function is registered to handle the result of the request.
@@ -1012,8 +1122,11 @@ PUBLIC int terminate_handler (HTRequest * request, HTResponse * response,
     }
 
     if (!(mr->flags & MR_BFS)) {
+
+#if 0
         HyperDoc * hd = HTAnchor_document(finger->dest);
 	if (hd) set_error_state_hyperdoc(hd,request);
+#endif
 
 	/* Delete this thread */
 	Finger_delete(finger);
@@ -1029,8 +1142,9 @@ PUBLIC int terminate_handler (HTRequest * request, HTResponse * response,
     return HT_OK;
 
 }
-PUBLIC int my_terminate_handler (HTRequest * request, HTResponse * response,
-			       void * param, int status) 
+
+PUBLIC int bfs_terminate_handler (HTRequest * request, HTResponse * response,
+				  void * param, int status) 
 {
     Finger * finger = (Finger *) HTRequest_context(request);
     Robot * mr = finger->robot;
@@ -1054,7 +1168,6 @@ PUBLIC int my_terminate_handler (HTRequest * request, HTResponse * response,
 
     return HT_OK;
 }
-
 
 PUBLIC void Serving_queue(Robot *mr)
 {
@@ -1113,30 +1226,6 @@ PUBLIC void Serving_queue(Robot *mr)
 	if (SHOW_QUIET(mr)) HTPrint("             Everything is finished...\n");
 	Cleanup(mr, 0);			/* No way back from here */
       }
-}
-
-PRIVATE BOOL check_constraints(Robot * mr, char *prefix, char *uri)
-{
-    BOOL match = YES;
-    /* Check for prefix match */
-    if (prefix) {
-	match = HTStrMatch(prefix, uri) ? YES : NO;
-    }
-  
-#ifdef HT_POSIX_REGEX
-    /* Check for any regular expression */
-    if (match && mr->include) {
-	match = regexec(mr->include, uri, 0, NULL, 0) ? NO : YES;
-    }
-    if (match && mr->exc_robot) {
-	match = regexec(mr->exc_robot, uri, 0, NULL, 0) ? YES : NO;
-    }
-    if (match && mr->exclude) {
-	match = regexec(mr->exclude, uri, 0, NULL, 0) ? YES : NO;
-    }
-  
-#endif
-    return match;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1238,6 +1327,7 @@ PRIVATE void RHText_foundAnchor (HText * text, HTChildAnchor * anchor)
 	    return;
 	}
 
+	/* Check our constraints matcher */
 	match = check_constraints(mr,mr->prefix, uri);
 
 #ifdef HT_POSIX_REGEX
@@ -1257,11 +1347,10 @@ PRIVATE void RHText_foundAnchor (HText * text, HTChildAnchor * anchor)
 	  follow = NO;
 
 	/* Test whether we already have a hyperdoc for this document */
-	if(!hd && dest_parent)
-	  {
+	if (!hd && dest_parent) {
 	    nhd = HyperDoc_new(mr, dest_parent, depth);
 	    mr->cdepth[depth]++;
-	  }
+	}
 
 	/* Test whether we already have a hyperdoc for this document */
         if (mr->flags & MR_LINK && match && dest_parent && follow && !hd) {
@@ -1350,6 +1439,7 @@ PRIVATE void RHText_foundImage (HText * text, HTChildAnchor * anchor,
 		return;
 	    }
 
+	    /* Check our constraints matcher */
 	    match = check_constraints(mr, mr->img_prefix, uri);
 
 	    /* Test whether we already have a hyperdoc for this document */
@@ -1421,43 +1511,20 @@ PRIVATE void RHText_foundLink (HText * text,
 	    RHText_foundAnchor(text, anchor);
     }
 }
+
 PUBLIC char * get_robots_txt(char * uri)
 {
-  char *str = NULL;
-  HTChunk * chunk;
-  HTParentAnchor *anchor = HTAnchor_parent(HTAnchor_findAddress(uri));
-  HTRequest *request = HTRequest_new();
-  HTRequest_setOutputFormat(request, WWW_SOURCE);
-  HTRequest_setPreemptive(request, YES);
-  HTRequest_setMethod(request, METHOD_GET);
-  chunk = HTLoadAnchorToChunk ((HTAnchor *)anchor, request);
-  str = HTChunk_toCString(chunk);
-  HTRequest_delete(request);
-  return str;
-}
-
-PUBLIC int check_before (HTRequest * request,void * param, int mode)
-{
-    HTParentAnchor * dest = HTRequest_anchor(request);
-    Finger * finger = (Finger *) HTRequest_context(request);
-    Robot * mr = finger->robot;
-
-    if(dest) {
-	char *uri = HTAnchor_address((HTAnchor *)dest); 
-	/* Check for WRONG redirections */
-	BOOL match = check_constraints(mr,mr->prefix,uri);
-
-	HT_FREE(uri);
-	
-	if(match == YES) 
-	    return HT_OK;	
-	else
-	    return HT_ERROR;  
-
-    } else	
-	return HT_ERROR;
-
-    return HT_OK;  
+    char *str = NULL;
+    HTChunk * chunk;
+    HTParentAnchor *anchor = HTAnchor_parent(HTAnchor_findAddress(uri));
+    HTRequest *request = HTRequest_new();
+    HTRequest_setOutputFormat(request, WWW_SOURCE);
+    HTRequest_setPreemptive(request, YES);
+    HTRequest_setMethod(request, METHOD_GET);
+    chunk = HTLoadAnchorToChunk ((HTAnchor *)anchor, request);
+    str = HTChunk_toCString(chunk);
+    HTRequest_delete(request);
+    return str;
 }
 
 
