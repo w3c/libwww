@@ -266,7 +266,8 @@ PUBLIC int HTTimer_next (ms_t * pSoonest)
 	/*
 	**	First element in Timers is the next to expire.
 	*/
-	pres = (HTTimer *) HTList_nextObject(Timers);
+	HTList * cur = Timers;	/* for now */
+	pres = (HTTimer *) HTList_nextObject(cur);
 	*pSoonest = pres ? pres->expires - now : 0;
     }
     HTList_delete(head);

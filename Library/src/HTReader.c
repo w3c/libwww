@@ -98,7 +98,6 @@ char * strnstr(char * haystack, int *pLen, char * needle)
 
 int DebugBufferSize = INPUT_BUFFER_SIZE;
 
-#include "HTFakRed.c"
 PRIVATE int HTReader_read (HTInputStream * me)
 {
     HTHost * host = me->host;
