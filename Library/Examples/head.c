@@ -31,9 +31,34 @@ PRIVATE int tracer (const char * fmt, va_list pArgs)
     return (vfprintf(stderr, fmt, pArgs));
 }
 
+PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
+			       void * param, int status) 
+{
+    HTChunk * chunk = (HTChunk *) HTRequest_context(request);
+
+    /* Check for status */
+    HTPrint("Load resulted in status %d\n", status);
+
+#if 0
+    if (status == HT_LOADED && chunk && HTChunk_data(chunk))
+	HTPrint("%s", HTChunk_data(chunk));
+#endif
+
+    /* Remember to delete our chunk of data */
+    if (chunk) HTChunk_delete(chunk);
+	
+	/* we're not handling other requests */
+	HTEventList_stopLoop ();
+ 
+	/* stop here */
+    return HT_ERROR;
+}
+
 int main (int argc, char ** argv)
 {
     HTRequest * request;
+    int status; 
+
     HTProfile_newPreemptiveClient("HTTPHeadApplication", "1.0");
     request = HTRequest_new();
     if (argc >= 2) {
@@ -49,16 +74,27 @@ int main (int argc, char ** argv)
 	/* Set the output format to source and put output to stdout */
 	HTRequest_setOutputStream(request, HTFWriter_new(request, stdout, YES));
 
+	/* Add our own filter to handle termination */
+	HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
+
 	/* Start the load */
 	if (url && *url)
-	    HTHeadAbsolute(url, request);
+	    status = HTHeadAbsolute(url, request);
 	else
-	    HTPrint("Bad parameters - please try again\n");
+	  HTPrint("Bad parameters - please try again\n");
     } else {
 	HTPrint("Type the URL to perform a HEAD request on.\n");
 	HTPrint("\t%s <url> <trace>\n", argv[0]);
     }
-    HTRequest_delete(request);			/* Delete the request object */
-    HTProfile_delete();
+
+	/* Go into the event loop... */
+	if (status) HTEventList_loop(request);
+
+	/* We are done with this request */
+	HTRequest_delete(request);
+
+ 	/* Terminate libwww */
+	HTProfile_delete();
+
     return 0;
 }

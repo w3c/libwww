@@ -12,6 +12,19 @@ PRIVATE int tracer (const char * fmt, va_list pArgs)
     return (vfprintf(stderr, fmt, pArgs));
 }
 
+PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
+			       void * param, int status) 
+{
+    /* Check for status */
+    HTPrint("Load resulted in status %d\n", status);
+	
+	/* we're not handling other requests */
+	HTEventList_stopLoop ();
+ 
+	/* stop here */
+    return HT_ERROR;
+}
+
 int main (int argc, char ** argv)
 {
     HTRequest * request = HTRequest_new();
@@ -36,6 +49,9 @@ int main (int argc, char ** argv)
     /* Close connection immediately */
     HTRequest_addConnection(request, "close", "");
 
+    /* Add our own filter to handle termination */
+    HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
+
     if (url) {
 	char * cwd = HTGetCurrentDirectoryURL();
 	char * absolute_url = HTParse(url, cwd, PARSE_ALL);
@@ -45,14 +61,18 @@ int main (int argc, char ** argv)
 
 	/* If chunk != NULL then we have the data */
 	if (chunk) {
-	    char * string = HTChunk_toCString(chunk);
+	    char * string;
+	    /* Go into the event loop... */
+	    HTEventList_loop(request);
+	    /* print the chunk result */
+	    string = HTChunk_toCString(chunk);
 	    HTPrint("%s", string ? string : "no text");
 	    HT_FREE(string);
 	}
     } else {
 	HTPrint("Type the URL you want to accces on the command line\n");
     }
-
+	
     /* Clean up the request */
     HTRequest_delete(request);
 

@@ -58,13 +58,11 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 	}
     }
 
-    /* We are done with this request */
-    HTRequest_delete(request);
+	/* stop the event loop */
+	HTEventList_stopLoop ();
 
-    /* Terminate libwww */
-    HTProfile_delete();
-
-    exit(0);
+	/* stop here */
+	return HT_ERROR;
 }
 
 int main (int argc, char ** argv)
@@ -99,8 +97,11 @@ int main (int argc, char ** argv)
 	HTRequest_setOutputStream(request, HTFWriter_new(request, stdout, YES));
 
 	/* Start the load */
-	if (url && *url)
+	if (url && *url) {
 	    HTHeadAbsolute(url, request);
+		/* wait until the request has finished */
+		HTEventList_loop (request);
+	}
 	else
 	    HTPrint("Bad parameters - please try again\n");
     } else {
@@ -110,6 +111,7 @@ int main (int argc, char ** argv)
 	HTPrint("you want to see, for example 'content*. If no \'*\' is used'\n");
 	HTPrint("then an exact match is needed. Default value is all header fields'\n");
     }
+
     HTRequest_delete(request);			/* Delete the request object */
     HTProfile_delete();
     return 0;

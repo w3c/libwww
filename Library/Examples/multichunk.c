@@ -34,6 +34,19 @@ PRIVATE int tracer (const char * fmt, va_list pArgs)
     return (vfprintf(stderr, fmt, pArgs));
 }
 
+PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
+			       void * param, int status) 
+{
+    /* Check for status */
+    /* HTPrint("Load resulted in status %d\n", status); */
+	
+	/* we're not handling other requests */
+	HTEventList_stopLoop ();
+ 
+	/* stop here */
+    return HT_ERROR;
+}
+
 int main (int argc, char ** argv)
 {
     HTRequest * request = NULL;
@@ -85,12 +98,20 @@ int main (int argc, char ** argv)
 
 	    /* Set up the request and pass it to the Library */
 	    HTRequest_setOutputFormat(request, WWW_SOURCE);
+
+		/* Add our own filter to handle termination */
+	    HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
+
 	    if (uri) {
 		chunk = HTLoadToChunk(absolute_uri, request);
 
 		/* If chunk != NULL then we have the data */
 		if (chunk) {
-		    char * string = HTChunk_toCString(chunk);
+		    char * string;
+		    /* wait until the request has finished */
+		    HTEventList_loop (request);
+		    /* get the data */
+		    string = HTChunk_toCString(chunk);
 		    HT_FREE(string);
 		}
 	    }
