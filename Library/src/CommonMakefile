@@ -96,7 +96,7 @@ CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTFile.c \
 	$(CMN)HTUU.c $(CMN)HTTeXGen.c \
 	$(CMN)HTDirBrw.c $(CMN)HTDescript.c $(CMN)HTGuess.c \
 	$(CMN)HTIcons.c $(CMN)HTError.c $(CMN)HTErrorMsg.c \
-	$(CMN)/HTTP.c $(LOB)/HTThread.c $(LOB)/HTEvent.c \
+	$(CMN)/HTTP.c $(CMN)/HTThread.c $(CMN)/HTEvent.c \
 	$(CMN)/HTEscape.c
 
 HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h $(CMN)HTFile.h \
