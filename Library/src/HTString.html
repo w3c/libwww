@@ -28,16 +28,7 @@ of Common Code</A>. <P>
 extern CONST char * HTLibraryVersion;	/* String for help screen etc */
 </PRE>
 
-<H2>Strip white space off a string</H2>
-
-Return value points to first non-white character, or to '/0' if
-none. All trailing white space is OVERWRITTEN with zero.
-
-<PRE>
-extern char * HTStrip PARAMS((char * s));
-</PRE>
-
-<H2>Dynamic String Manipulation</H2>
+<H2><A NAME="dyn">Dynamic String Manipulation</A></H2>
 
 These two functions are dynamic versions of <CODE>strcpy</CODE> and
 <CODE>strcat</CODE>. They use <CODE>malloc</CODE> for allocating space
@@ -54,7 +45,7 @@ extern char * HTSACopy PARAMS ((char **dest, CONST char *src));
 extern char * HTSACat  PARAMS ((char **dest, CONST char *src));
 </PRE>
 
-<H2>Case-insensitive String Comparison</H2>
+<H2><A NAME="utils">Case-insensitive String Comparison</A></H2>
 
 The usual routines (comp instead of cmp) had some problem.
 
@@ -69,6 +60,15 @@ This works like <CODE>strstr()</CODE> but is not case-sensitive.
 
 <PRE>
 extern char * strcasestr PARAMS((char *	s1, char * s2));
+</PRE>
+
+<H2>Strip white space off a string</H2>
+
+Return value points to first non-white character, or to '/0' if
+none. All trailing white space is OVERWRITTEN with zero.
+
+<PRE>
+extern char * HTStrip PARAMS((char * s));
 </PRE>
 
 <H2>Next word or quoted string</H2>

@@ -3,16 +3,16 @@
 <HEAD>
 <TITLE>Using the Library of Common Code</TITLE>
 </HEAD>  
-<BODY><A HREF="../../../"><IMG SRC="../../../Icons/WWW/WWW48x.gif" ALT="WWW"
+<BODY><P><A HREF="../../../"><IMG SRC="../../../Icons/WWW/WWW48x.gif" ALT="WWW"
 ></A>
 <A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
-<IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Guide"> 
+<IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Guide"></P> 
 <ADDRESS><A HREF="../../../People.html#Frystyk">Henrik Frystyk</A>,<A HREF="../../../Consortium/"
 >World-Wide Web Consortium</A>, June 1995</ADDRESS> <H1>Using the
 Library of Common Code</H1> 
-<IMG SRC="../../../Icons/WWW/construction.gif" ALT="WIP"> This paper is
-still under construction. Comments are welcome at
-<EM>libwww@w3.org</EM> <H2>Abstract</H2>
+<P><IMG SRC="../../../Icons/WWW/construction.gif" ALT="WIP"> This
+paper is still under construction. Comments are welcome at
+<EM>libwww@w3.org</EM></P> <H2>Abstract</H2>
 <P>The architecture of the <A HREF="../../">Library of Common Code</A>
 is both flexible and open  which guarantees high usability for many
 different  purposes. This paper describes some important practical
@@ -72,7 +72,7 @@ where one or more object oriented APIs built on top of the Library
 provides the application programmer with a cleaner interface. However,
 the purpose of this document if to describe the current API with a large
 set of practical hints about using and modifying the behavior of the
-Library.</P><P>Many of the features of the Library is demonstrated in
+Library.</P><P>Many of the features of the Library are demonstrated in
 the <A HREF="../../../LineMode/">Line Mode Browser</A> which is a
 simple dumb terminal client built right on top of the Library. Even
 though this application is usable as an independent Web application, its
@@ -660,8 +660,7 @@ between media types and file name extensions but the difference is that
 the bindings are initialized at start up time in the <CODE>HTLibInit()</CODE>
 function, and hence does not have to be done explicitly by the
 application.  However, new bindings can be set up using the methods:</P><PRE
->
-	HTBind_setType()
+>	HTBind_setType()
 	HTBind_setEncoding()
 	HTBind_setLanguage()
 </PRE><P>If the Library is to handle a file that is not described by
@@ -1134,8 +1133,7 @@ two other environment variables:
 </P>
 <DL>
 <DT><CODE>WWW_HOME</CODE></DT>
-<DD>
-This variable is used by the help function
+<DD>This variable is used by the help function
 <CODE>HTHomeAnchor()</CODE> to find the address of the default document
 to load when a client application is started. If no <CODE>WWW_HOME</CODE>
 variable has been specified at run time, by default, the Library returns
@@ -1201,14 +1199,13 @@ of most of the functionality provided by the Library but as it contains
 almost 5000 lines of code, it is often difficult to extract the right
 examples. The following examples are not intended to be complete but to
 clarify the API needed to use the Library.</P><H3>Download a Document</H3><PRE
->	<B>	MORE</B></PRE><H3>Upload a Document</H3><PRE>	<B>	MORE</B></PRE><H3
->Convert Between Media Types</H3><PRE>	<B>	MORE</B></PRE><H2><A NAME="conclusion"
->Conclusions and Future Development</A></H2><PRE>	<B>	MORE</B></PRE><P>
-REMEMBER TO GIVE BACK CHANGES AND NEW FEATURES!</P><H2>Acknowledgments</H2><P
->I would like to thank the large group of contributors for having
-commented on the documentation on the Library, especially to Tim
-Berners-Lee, Dan Connolly, H&aring;kon W. Lie, Jim Miller, and Dave
-Raggett.
+>	<B>MORE</B></PRE><H3>Upload a Document</H3><PRE>	<B>MORE</B></PRE><H3>
+Convert Between Media Types</H3><PRE>	<B>MORE</B></PRE><H2><A NAME="conclusion"
+>Conclusions and Future Development</A></H2><PRE>	<B>MORE</B></PRE><P>REMEMBER
+TO GIVE BACK CHANGES AND NEW FEATURES!</P><H2>Acknowledgments</H2><P>I
+would like to thank the large group of contributors for having commented
+on the documentation on the Library, especially to Tim Berners-Lee, Dan
+Connolly, H&aring;kon W. Lie, Jim Miller, and Dave Raggett.
 </P><H2>Author</H2> 
 <DL>
 <DT><A HREF="../../../People.html#Frystyk">Henrik Frystyk Nielsen</A>,
