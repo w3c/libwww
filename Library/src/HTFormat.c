@@ -823,6 +823,7 @@ PUBLIC HTStream * HTStreamStack ARGS3(HTFormat,		rep_in,
     float best_quality = -1e30;		/* Pretty bad! */
     HTPresentation *pres, *match, *best_match=0;
     
+    request->error_block = YES;		   /* No more error output to stream */
     if (TRACE) fprintf(stderr,
     	"StreamStack. Constructing stream stack for %s to %s\n",
 	HTAtom_name(rep_in),	
@@ -830,12 +831,12 @@ PUBLIC HTStream * HTStreamStack ARGS3(HTFormat,		rep_in,
 
     if (guess  &&  rep_in == WWW_UNKNOWN) {
 	CTRACE(stderr, "Returning... guessing stream\n");
-	request->error_block = YES;	   /* No more error output to stream */
 	return HTGuess_new(request);
     }
 
-    if (rep_out == WWW_SOURCE || rep_out == rep_in)
+    if (rep_out == WWW_SOURCE || rep_out == rep_in) {
 	return request->output_stream;
+    }
 
     conversion[0] = request->conversions;
     conversion[1] = HTConversions;
@@ -859,7 +860,6 @@ PUBLIC HTStream * HTStreamStack ARGS3(HTFormat,		rep_in,
 
     match = best_match ? best_match : NULL;
     if (match) {
-	request->error_block = YES;	   /* No more error output to stream */
 	if (match->rep == WWW_SOURCE) {
 	    if (TRACE) fprintf(stderr, "StreamStack. Don't know how to handle this, so put out %s to %s\n",
 			       HTAtom_name(match->rep), 
@@ -879,6 +879,7 @@ PUBLIC HTStream * HTStreamStack ARGS3(HTFormat,		rep_in,
 		   (void *) msg, (int) strlen(msg), "HTStreamStack");
 	free(msg);
     }
+    request->error_block = NO;		 /* We didn't put up a stream anyway */
     return NULL;
 }
 	

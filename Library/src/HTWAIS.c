@@ -871,11 +871,8 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 				HTMaxWAISLines) == NULL) {
 	    if (PROT_TRACE)
 		fprintf(stderr, "WAIS Search. Too many lines in response\n");
-	    PUTS("WAIS server replies: too many lines in response");
-#if 0
 	    HTErrorAdd(request, ERR_WARNING, NO, HTERR_WAIS_OVERFLOW, 
 		       NULL, 0, "HTLoadWAIS");
-#endif
 	}
 
 	if(!interpret_message(request_message, 
@@ -887,11 +884,8 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 				)) {
 	    if (PROT_TRACE)
 		fprintf(stderr, "WAIS Search. Too many lines in response\n");
-	    PUTS("WAIS server replies: too many lines in response");
-#if 0
 	    HTErrorAdd(request, ERR_WARNING, NO, HTERR_WAIS_OVERFLOW, 
 		       NULL, 0, "HTLoadWAIS");
-#endif
         } else {	/* returned message ok */
 	    SearchResponseAPDU  *query_response = 0;
 	    readSearchResponseAPDU(&query_response,
@@ -988,6 +982,7 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 				   NULL, 0, "HTLoadWAIS");
 		    }
 		    (*target->isa->_free)(target);
+		    request->output_stream = NULL;
 		    free (docid->bytes);
 		    freeWAISSearchResponse(retrieval_response->DatabaseDiagnosticRecords); 
 		    freeSearchResponseAPDU( retrieval_response);
@@ -1003,6 +998,7 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 	} /* Loop over slices */
 
 	(*target->isa->_free)(target);
+	request->output_stream = NULL;
 	free (docid->bytes);
     } /* If document rather than search */
     status = HT_LOADED;
