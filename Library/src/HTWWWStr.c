@@ -22,7 +22,7 @@ PRIVATE char * months[12] = {
 
 #ifndef HAVE_STRFTIME
 PRIVATE char * wkdays[7] = {
-    "Mon","Tue","Wed","Thu","Fri","Sat","Sun"
+    "Sun","Mon","Tue","Wed","Thu","Fri","Sat"
 };
 #endif
 
