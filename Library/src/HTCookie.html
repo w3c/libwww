@@ -1,0 +1,152 @@
+<HTML>
+<HEAD>
+  <TITLE>W3C Sample Code Library libwww Simple Cookie Handler</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  Simple Cookie Handler
+</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1999.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+<P>
+This module provides a simple
+<A HREF="http://www.netscape.com/newsref/std/cookie_spec.html">HTTP Cookie
+handling mechanism</A>. It really also is an excersize in showing how libwww
+can be extended with something like cookies in a modular manner. An important
+thing to note about this implementation is that it does <EM>not</EM> provide
+storage for cookies - this is left to the application as normally cookies
+have to be kept under lock.
+<P>
+This module is implemented by <A HREF="HTCookie.c">HTCookie.c</A>, and it
+is a part of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code
+Library</A>.
+<PRE>
+#ifndef HTCOOKIE_H
+#define HTCOOKIE_H
+#include "WWWLib.h"
+</PRE>
+<H2>
+  <A NAME="Init">Initiate and Terminate Cookie Handling</A>
+</H2>
+<P>
+In order to start handling cookies, you need to initiate the module. Likewise,
+when you are done, you must terminate the module in order to clean up memory
+etc. Note that this cookie handler doesn't provide storage room for cookies
+- the application MUST do that by <A HREF="#Callbacks">registering cookie
+callbacks</A>. Initiation does three things:
+<OL>
+  <LI>
+    Register a <A HREF="HTHeader.html">MIME header parser</A> to parse the Set-Cookie
+    header field
+  <LI>
+    Register a <A HREF="HTNet.html">BEFORE filter</A> to see if a cookie should
+    be added to the request (uses the <A HREF="#Callbacks">"set" callback</A>)
+  <LI>
+    Register an <A HREF="HTNet.html">AFTER filter</A> to handle new cookies (uses
+    the <A HREF="#Callbacks">"find" callback</A>)
+</OL>
+<PRE>
+extern BOOL HTCookie_init (void);
+extern BOOL HTCookie_terminate (void);
+</PRE>
+<H2>
+  <A NAME="Cookie">The Cookie Class</A>
+</H2>
+<P>
+The cookie class is used to handle cookies in libwww and to hand them off
+to the application. The creation and deletion of cookie object is handled
+by this cookie module - the application is handed a cookie and can access
+the elements using the following methods:
+<PRE>
+typedef struct _HTCookie HTCookie;
+</PRE>
+<H3>
+  Cookie Name
+</H3>
+<PRE>
+extern BOOL HTCookie_setName (HTCookie * me, const char * name);
+extern char * HTCookie_name (HTCookie * me);
+</PRE>
+<H3>
+  Cookie Value
+</H3>
+<PRE>
+extern BOOL HTCookie_setValue (HTCookie * me, const char * value);
+extern char * HTCookie_value (HTCookie * me);
+</PRE>
+<H3>
+  Cookie Domain
+</H3>
+<PRE>
+extern BOOL HTCookie_setDomain (HTCookie * me, const char * domain);
+extern char * HTCookie_domain (HTCookie * me);
+</PRE>
+<H3>
+  Cookie Path
+</H3>
+<PRE>
+extern BOOL HTCookie_setPath (HTCookie * me, const char * path);
+extern char * HTCookie_path (HTCookie * me);
+</PRE>
+<H3>
+  Cookie Expiration
+</H3>
+<PRE>
+extern time_t HTCookie_setExpiration (HTCookie * me, time_t expiration);
+extern time_t HTCookie_expiration (HTCookie * me);
+</PRE>
+<H3>
+  Is Cookie Secure?
+</H3>
+<PRE>
+extern time_t HTCookie_setSecure (HTCookie * me, BOOL secure);
+extern BOOL HTCookie_isSecure (HTCookie * me);
+</PRE>
+<H2>
+  <A NAME="Callbacks">Cookie Callbacks</A>
+</H2>
+<P>
+The cookie callbacks are called before the request is shipped over the wire
+to see if any cookies should be included and after the response has been
+recieved if a new cookie is found in a response and before. Cookie callbacks
+can be registered with a context that is sent along with the callback when
+called.
+<PRE>
+typedef BOOL HTCookieSetCallback (HTRequest * request, HTCookie * cookie, void * param);
+typedef HTAssocList * HTCookieFindCallback (HTRequest * request, void * param);
+
+extern BOOL HTCookie_setCallbacks (HTCookieSetCallback *	setCookie,
+				   void * 			setCookieContext,
+				   HTCookieFindCallback *	findCookie,
+				   void * 			findCookieContext);
+extern BOOL HTCookie_deleteCallbacks (void);
+</PRE>
+<H2>
+  <A NAME="Mode">Cookie Handling Mode</A>
+</H2>
+<P>
+The application can decide how cookies are to be handled - should they be
+ignored, should the user be asked, etc.
+<PRE>
+typedef enum _HTCookieMode {
+    HT_COOKIE_TOSS = 0,
+    HT_COOKIE_PROMPT,
+    HT_COOKIE_ACCEPT_SAME_DOMAIN,
+    HT_COOKIE_ACCEPT_ALL
+} HTCookieMode;
+
+extern BOOL HTCookie_setCookieMode (HTCookieMode mode);
+</PRE>
+<PRE>
+#endif /* HTCOOKIE_H */
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

@@ -1,5 +1,6 @@
 HTAABrow.c
 HTAAUtil.c
+HTCookie.c
 HTDigest.c
 HTTChunk.c
 HTTP.c

@@ -94,7 +94,7 @@ to the response header is generated.
 <PRE>#include "<A HREF="HTTChunk.html">HTTChunk.h</A>"
 </PRE>
 <H3>
-  HTTP Extensions and PEP
+  HTTP Extensions
 </H3>
 <P>
 The <A HREF="HTPEP.html">PEP Manager</A> is a registry for <I>PEP Protocols</I>
@@ -124,8 +124,22 @@ of the following:
 <P>
 Contains code for parsing challenges and creating credentials for basic and
 digest authentication schemes. See also the <A HREF="HTAAUtil.html">HTAAUtil
-module</A> for how to handle other authentication schemes. 
+module</A> for how to handle other authentication schemes.
 <PRE>#include "<A HREF="HTAABrow.html">HTAABrow.h</A>"
+</PRE>
+<H3>
+  HTTP Cookies
+</H3>
+<P>
+The <A HREF="HTCookie.html">cookie module</A> provides a simple
+<A HREF="http://www.netscape.com/newsref/std/cookie_spec.html">HTTP Cookie
+handling mechanism</A>. It really also is an excersize in showing how libwww
+can be extended with something like cookies in a modular manner. An important
+thing to note about this implementation is that it does <EM>not</EM> provide
+storage for cookies - this is left to the application as normally cookies
+have to be kept under lock.
+<PRE>
+#include "<A HREF="HTCookie.html">HTCookie.h</A>"
 </PRE>
 <P>
 End of HTTP module

@@ -63,7 +63,7 @@ libwww_la_SOURCES = \
 	HTDemux.c	HTMuxTx.c	HTMuxCh.c \
 	HTTimer.c	HTTrace.c	HTMemLog.c \
 	HText.c		HTNoFree.c	HTDigest.c \
-	HTFSave.c
+	HTFSave.c	HTCookie.c
 
 EXTRA_libwww_la_SOURCES = \
 	HTWAIS.c \
@@ -136,7 +136,8 @@ BUILT_SOURCES = wwwsys.h \
 	HTHstMan.h	HTMemLog.h	HTTimer.h \
 	HTWAIS.h	HTZip.h		HTSQL.h \
 	HTSQLLog.h	HTextImp.h	HTDigest.h \
-	HTNoFree.h	HTXML.h		HTFSave.h
+	HTNoFree.h	HTXML.h		HTFSave.h \
+	HTCookie.h
 
 pkginclude_HEADERS = $(BUILT_SOURCES)
 
