@@ -414,3 +414,29 @@ PUBLIC HTStream * HTRules (HTRequest *	request,
     }
 }
 
+/*
+**  Parse a rule file - don't ask don't tell - be carefull with this one!
+*/
+PUBLIC HTStream * HTRules_parseAutomatically (HTRequest *	request,
+					      void *		param,
+					      HTFormat		input_format,
+					      HTFormat		output_format,
+					      HTStream *	output_stream)
+{
+    if (request) {
+	HTStream * me;
+	if (WWWTRACE) HTTrace("Rule file... Automatic parser object created\n");
+	if ((me = (HTStream *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
+	    HT_OUTOFMEM("HTRules");
+	me->isa = &HTRuleClass;
+	me->request = request;
+	me->buffer = HTChunk_new(512);
+	me->EOLstate = EOL_BEGIN;
+	if (!rules) rules = HTList_new();
+	return me;
+    } else {
+	HTRequest_addError(request, ERR_FATAL, NO, HTERR_NO_AUTO_RULES,
+			   NULL, 0, "HTRules");
+	return HTErrorStream();
+    }
+}

@@ -287,6 +287,40 @@ PUBLIC BOOL HTLoadRules (const char * url)
     return status;
 }
 
+/*
+**	Load a Rule File without asking the user 
+**	----------------------------------------
+**	Load a rule find with the URL specified and add the set of rules to
+**	the existing set. We don't ask the user as she would have to call this
+**	method explicitly anyway.
+*/
+PUBLIC BOOL HTLoadRulesAutomatically (const char * url)
+{
+    BOOL status = NO;
+    if (url) {
+	HTList * list = HTList_new();
+	HTRequest * request = HTRequest_new();
+
+	/*
+	**  Stop all other loads and concentrate on this one
+	*/
+	HTRequest_setPreemptive(request, YES);
+
+	/*
+	**  Add the rules parsing stream for this particular request only.
+	*/
+	HTConversion_add(list, "application/x-www-rules", "*/*",
+			 HTRules_parseAutomatically,
+			 1.0, 0.0, 0.0);
+
+	HTRequest_setConversion(request, list, YES);
+	status = HTLoadAbsolute(url, request);
+	HTConversion_deleteAll(list);
+	HTRequest_delete(request);
+    }
+    return status;
+}
+
 /* --------------------------------------------------------------------------*/
 /*			 GET WITH KEYWORDS (SEARCH)			     */
 /* --------------------------------------------------------------------------*/

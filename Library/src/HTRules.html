@@ -1,6 +1,5 @@
 <HTML>
 <HEAD>
-<!-- Changed by: Henrik Frystyk Nielsen, 12-Jul-1996 -->
   <TITLE>W3C Sample Code Library libwww Rule File Configuration manager</TITLE>
 </HEAD>
 <BODY>
@@ -33,18 +32,28 @@ Library</A>.
 #include "HTFormat.h"
 </PRE>
 <H2>
-  Parse a Whole Rule File
+  Parse a Rule File
 </H2>
 <P>
-Parsing a whole rule file is done using a converter stream. This means that
-a rule file can come from anywhere, even accross the network. We have defined
-a special content type for rule files called <CODE>WWW_RULES</CODE> in
-<A HREF="HTFormat.html">HTFormat</A>.
+Parsing a whole rule file is done using a converter stream. This means
+that a rule file can come from anywhere, even accross the network. We
+have defined a special content type for rule files called
+<CODE>WWW_RULES</CODE> in <A HREF="HTFormat.html">HTFormat</A> and
+made a file suffix binding for all files ending in
+<CODE>".conf"</CODE> in the <A HREF="HTBInit.html">default
+initialization</A> of the <A HREF="HTBind.html">file suffix bindings
+module</A>.
+<P>
+The rule file parser comes in two variants: one that asks the user and
+one that doesn't. Needless to say that you have to be carefull with
+the latter one. You can also define <CODE>HT_AUTOMATIC_RULES</CODE>
+when <A HREF="../../INSTALL.html">compiling libwww</A> to determine
+whether it is OK to parse a rule file without asking the user.
 <PRE>
-extern HTConverter HTRules;
+extern HTConverter HTRules, HTRules_parseAutomatically;
 </PRE>
 <H2>
-  Parse a single line from a Rules File
+  Parse a single line from a Rule File
 </H2>
 <P>
 This routine may be used for loading configuration information from sources
@@ -94,9 +103,9 @@ extern BOOL HTRule_deleteAll (HTList *list);
 Rules are handled as list as everything else that has to do with preferences.
 We provide two functions for getting and setting the global rules:
 <PRE>
-extern HTList * HTRule_global	(void);
-extern BOOL HTRule_setGlobal	(HTList * list);
-extern BOOL HTRule_addGlobal	(HTRuleOp op, const char * pattern, const char * replace);
+extern HTList * HTRule_global(void);
+extern BOOL HTRule_setGlobal (HTList * list);
+extern BOOL HTRule_addGlobal (HTRuleOp op, const char * pattern, const char * replace);
 </PRE>
 <H2>
   Translate by rules

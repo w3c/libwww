@@ -137,10 +137,21 @@ which also are referenced by a URL but which do have to be treated specially.
   Load a Rule File
 </H3>
 <P>
-Rule files can be loaded just like any other URL but yuou can also just use
-this function which does all the work for you :-) It loads a rule find with
-the URL specified and add the set of rules to the existing set.
-<PRE>extern BOOL HTLoadRules (const char * url);
+Rule files can be loaded just like any other URL but you can also just
+use these functions which do all the work for you: they load a rule
+find with the URL specified and add the set of rules to the existing
+set.
+<P>
+They come in two flavours - one that asks the user whether it is OK to
+add the rules and one that does it automatically without asking. As
+the app would have to call this method explicitly, it may have other
+ways of protecting the user.
+<P>
+Both functions use <A HREF="HTReq.html#preemptive">preemptive
+requests</A> so that everything else stops in the meantime.
+<PRE>
+extern BOOL HTLoadRules (const char * url);
+extern BOOL HTLoadRulesAutomatically (const char * url);
 </PRE>
 <H2>
   <A NAME="Search">Search a Document (Method = GET)</A>
