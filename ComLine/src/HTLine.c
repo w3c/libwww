@@ -45,6 +45,8 @@
 
 #define DEFAULT_TIMEOUT		10		       /* timeout in seconds */
 
+#define DEFAULT_HOPS		0
+
 #define DEFAULT_FORMAT		WWW_SOURCE
 
 #if defined(__svr4__)
@@ -290,6 +292,12 @@ int main (int argc, char ** argv)
 		cl->logfile = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    argv[++arg] : DEFAULT_LOG_FILE;
 
+	    /* Max forward hops in case of TRACE request */
+	    } else if (!strcmp(argv[arg], "-hops")) {
+		int hops = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    atoi(argv[++arg]) : DEFAULT_HOPS;
+		if (hops >= 0) HTRequest_setMaxForwards(cl->request, hops);
+
 	    /* rule file */
 	    } else if (!strcmp(argv[arg], "-r")) {
 		cl->rules = (arg+1 < argc && *argv[arg+1] != '-') ?
@@ -344,6 +352,14 @@ int main (int argc, char ** argv)
 	    /* PUT Method */
 	    } else if (!strcasecomp(argv[arg], "-put")) {
 		method = METHOD_PUT;
+
+	    /* OPTIONS Method */
+	    } else if (!strcasecomp(argv[arg], "-options")) {
+		method = METHOD_OPTIONS;
+
+	    /* TRACE Method */
+	    } else if (!strcasecomp(argv[arg], "-trace")) {
+		method = METHOD_TRACE;
 
 	    } else {
 		if (SHOW_MSG) HTTrace("Bad Argument (%s)\n", argv[arg]);
@@ -483,6 +499,14 @@ int main (int argc, char ** argv)
 	status = HTPutDocumentAnchor(cl->anchor, (HTAnchor *) cl->dest,
 				     cl->request);
 	break;
+
+    case METHOD_OPTIONS:
+	status = HTOptionsAnchor((HTAnchor *) cl->anchor, cl->request);
+	break;	
+
+    case METHOD_TRACE:
+	status = HTTraceAnchor((HTAnchor *) cl->anchor, cl->request);
+	break;	
 
     default:
 	if (SHOW_MSG) HTTrace("Don't know this method\n");

@@ -85,6 +85,9 @@ PUBLIC HTRequest * HTRequest_new (void)
     me->retry_after = -1;
     me->priority = HT_PRIORITY_MAX;
 
+    /* Default max forward value */
+    me->max_forwards = -1;
+
     /* Content negotiation */
     me->ContentNegotiation = YES;		       /* Do this by default */
 
@@ -729,6 +732,15 @@ PUBLIC char * HTRequest_proxy (HTRequest * request)
     return request ? request->proxy : NULL;
 }
 
+PUBLIC BOOL HTRequest_deleteProxy (HTRequest * request)
+{
+    if (request) {
+	HT_FREE(request->proxy);
+	return YES;
+    }
+    return NO;
+}
+
 /*
 **	Bytes read in this request
 */
@@ -854,6 +866,24 @@ PUBLIC int HTRequest_retrys (HTRequest * request)
 PUBLIC BOOL HTRequest_doRetry (HTRequest *request)
 {
     return (request && request->retrys < HTMaxRetry-1);
+}
+
+/*
+**	Handle the max forward header value
+*/
+PUBLIC BOOL HTRequest_setMaxForwards (HTRequest * request, int maxforwards)
+{
+    if (request && maxforwards >= 0) {
+	request->max_forwards = maxforwards;
+	HTRequest_addRqHd(request, HT_C_MAX_FORWARDS);	       /* Turn it on */
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC int HTRequest_maxForwards (HTRequest * request)
+{
+    return request ? request->max_forwards : -1;
 }
 
 /*

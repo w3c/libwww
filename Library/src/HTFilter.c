@@ -40,10 +40,13 @@ PUBLIC int HTProxyFilter (HTRequest * request, void * param, int status)
     char * addr = HTAnchor_physical(anchor);
     char * physical = NULL;
     if ((physical = HTProxy_find(addr))) {
+	HTRequest_setFullURI(request, YES);			  /* For now */
 	HTRequest_setProxy(request, physical);
-	HTRequest_setFullURI(request, YES);
+#if 0
+	/* Don't paste the URLs together anymore */
 	StrAllocCat(physical, addr);
 	HTAnchor_setPhysical(anchor, physical);	
+#endif
     } else if ((physical = HTGateway_find(addr))) {
 	/* 
 	** A gateway URL is crated by chopping off any leading "/" to make the
@@ -56,8 +59,10 @@ PUBLIC int HTProxyFilter (HTRequest * request, void * param, int status)
 	HT_FREE(path);
 	HT_FREE(gatewayed);
 	HTRequest_setFullURI(request, NO);
+	HTRequest_deleteProxy(request);
     } else {
-	HTRequest_setFullURI(request, NO);
+	HTRequest_setFullURI(request, NO);			  /* For now */
+	HTRequest_deleteProxy(request);
     }
     return HT_OK;
 }

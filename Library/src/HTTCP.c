@@ -58,16 +58,22 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 {
     int status;
     HTRequest * request = HTNet_request(net);
-    char *fullhost = HTParse(url, "", PARSE_HOST);
-    char *at_sign;
-    char *host;
+    char * proxy = HTRequest_proxy(request);
+    char * fullhost = NULL;
+    char * host = NULL;
 
-    /* if there's an @ then use the stuff after it as a hostname */
-    if ((at_sign = strchr(fullhost, '@')) != NULL)
-	host = at_sign+1;
-    else
-	host = fullhost;
-    if (!*host) {
+    /* Check to see whether we should connect directly or via a proxy */
+    fullhost = HTParse(proxy ? proxy : url, "", PARSE_HOST);
+
+    /* If there's an @ then use the stuff after it as a hostname */
+    if (fullhost) {
+	char * at_sign;
+	if ((at_sign = strchr(fullhost, '@')) != NULL)
+	    host = at_sign+1;
+	else
+	    host = fullhost;
+    }
+    if (!host || !*host) {
 	HTRequest_addError(request, ERR_FATAL, NO, HTERR_NO_HOST,
 		   NULL, 0, "HTDoConnect");
 	HT_FREE(fullhost);

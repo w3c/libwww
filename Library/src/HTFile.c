@@ -162,7 +162,7 @@ PRIVATE int HTFile_readDir (HTRequest * request, file_info *file)
 	HTFileMode mode;
 #ifdef HT_REENTRANT
 	struct dirent * result;				    /* For readdir_r */
-	while ((dirbuf = (dirent *) readdir_r(dp, &result)))
+	while ((dirbuf = (struct dirent *) readdir_r(dp, &result)))
 #else
 	while ((dirbuf = readdir(dp)))
 #endif /* HT_REENTRANT */

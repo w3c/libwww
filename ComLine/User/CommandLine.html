@@ -1,243 +1,273 @@
 <HTML>
 <HEAD>
-<TITLE>Command Line Syntax for the W3C Command Line Tool</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 12-Feb-1996 -->
-<NEXTID N="z29">
+  <!-- Changed by: Henrik Frystyk Nielsen, 12-Feb-1996 -->
+  <NEXTID N="z29">
+  <TITLE>Command Line Syntax for the W3C Command Line Tool</TITLE>
 </HEAD>
-
 <BODY>
-
+<P>
 <A HREF="../../"><IMG ALT="W3C" SRC="../../Icons/WWW/w3c_48x48.gif"></A>
 <A HREF="../"><IMG ALT="ComLine" SRC="../../Icons/WWW/lines48x.gif"></A>
 <IMG ALT="MANUAL" SRC="../../Icons/WWW/doc48x.gif">
-
-<H1>Command Line Syntax</H1>
-
+<H1>
+  Command Line Syntax
+</H1>
+<P>
 The generic syntax is:
-
 <PRE>
 	w3c [ <A HREF="#z19">options</A> ]  [ <A HREF="#z16">docaddress</A> [ <A HREF="#z17">keywords</A> ]]
 </PRE>
-
-<H2><A NAME="z19">Options</A></H2>
-
-The order of the options is not important and options can in fact be specified on either side of any
-<A HREF="#z16"NAME="z14">docaddress</A>. Currently available options are:-
-
-<H3>Getting Help</H3>
-
+<H2>
+  <A NAME="z19">Options</A>
+</H2>
+<P>
+The order of the options is not important and options can in fact be specified
+on either side of any <A HREF="#z16"NAME="z14">docaddress</A>. Currently
+available options are:-
+<H3>
+  Getting Help
+</H3>
 <DL>
-<DT><B>-help</B> or <B>-?</B>
-<DD>Load this file from directly into the browser
-<DT><B>-v [ a | b | c | g | p | s | t | u ] </B>
-<DD>Verbose mode: Gives a running commentary on the program's attempts to read data in various
-ways. As the amount of verbose output is substantial, the <CODE>-v</CODE> option can now be followed
-by zero, one or more of the following flags (without space) in order to differentiate the verbose
-output generated:
-
-<UL>
-<LI><B>a</B>: Anchor relevant information
-<LI><B>b</B>: Bindings to local file system
-<LI><B>c</B>: Cache trace
-<LI><B>g</B>: SGML trace
-<LI><B>p</B>: Protocol module information
-<LI><B>s</B>: SGML/HTML relevant information
-<LI><B>t</B>: Thread trace
-<LI><B>u</B>: URI relevant information
-</UL>
-
-The <CODE>-v</CODE> option without any appended options shows all
-trace messages. An example is
-
-<PRE>
+  <DT>
+    <B>-help</B> or <B>-?</B>
+  <DD>
+    Load this file from directly into the browser
+  <DT>
+    <B>-v [ a | b | c | g | p | s | t | u ] </B>
+  <DD>
+    Verbose mode: Gives a running commentary on the program's attempts to read
+    data in various ways. As the amount of verbose output is substantial, the
+    <CODE>-v</CODE> option can now be followed by zero, one or more of the following
+    flags (without space) in order to differentiate the verbose output generated:
+    <UL>
+      <LI>
+	<B>a</B>: Anchor relevant information
+      <LI>
+	<B>b</B>: Bindings to local file system
+      <LI>
+	<B>c</B>: Cache trace
+      <LI>
+	<B>g</B>: SGML trace
+      <LI>
+	<B>p</B>: Protocol module information
+      <LI>
+	<B>s</B>: SGML/HTML relevant information
+      <LI>
+	<B>t</B>: Thread trace
+      <LI>
+	<B>u</B>: URI relevant information
+    </UL>
+    <P>
+    The <CODE>-v</CODE> option without any appended options shows all trace messages.
+    An example is
+    <PRE>
 	-vpt
 </PRE>
-
-showing <EM>thread</EM> and <EM>protocol</EM> trace messages
-
-<DT><B>-version</B>
-<DD>Prints out the version number of the software, and the version
-number of the WWW library, and exits.
+    <P>
+    showing <EM>thread</EM> and <EM>protocol</EM> trace messages
+  <DT>
+    <B>-version</B>
+  <DD>
+    Prints out the version number of the software, and the version number of
+    the WWW library, and exits.
 </DL>
-
-<H3>Main Modes of execution</H3>
-
+<H3>
+  Main Modes of execution
+</H3>
 <DL>
-
-<DT><B>-</B>
-<DD>A minus sign with no trailing characters indicates that the
-program will accept<A HREF="../../MarkUp/MarkUp.html"> HTML format</A>
-input from the standard input. This allows www to be used as a filter
-from html to plain text for example. Relative links in the input are
-parsed as though the address of the document was that of the home page
-(or docaddress if specified). Implies non-interactive mode.
-
-<DT><B>-cl</B>
-
-<DD>Counting content length of the output. This flag appends the
-Content-Length counter stream to the output stream so that everything
-is counted. This works exactly like piping the output into
-<EM>wc</EM>.
-
-<DT><B>-h</B> host
-<DD>Establish a telnet connection to the remote host specified. This
-implies a "secure mode" execution where all references to the local
-file system are canceled.
-
-<DT><B>-n</B>
-<DD>Non-interactive mode. Outputs the formatted document to the
-standard output, then exits. Pages are delimited with form feed (FF)
-characters.
-
-<DT><B>-o</B> [ file ]
-<DD>Redirects output to specified file. The default value is
-"www-out". This mode forced non-interactive mode
-
-<DT><A NAME="single"><B>-single</B></A>
-<DD>Singlethreaded mode. If this flag is set then the browser uses
-blocking, non interruptible I/O in interactive mode. Non-interactive
-mode always uses blocking I/O.
-
+  <DT>
+    <B>-</B>
+  <DD>
+    A minus sign with no trailing characters indicates that the program will
+    accept<A HREF="../../MarkUp/MarkUp.html"> HTML format</A> input from the
+    standard input. This allows www to be used as a filter from html to plain
+    text for example. Relative links in the input are parsed as though the address
+    of the document was that of the home page (or docaddress if specified). Implies
+    non-interactive mode.
+  <DT>
+    <B>-cl</B>
+  <DD>
+    Counting content length of the output. This flag appends the Content-Length
+    counter stream to the output stream so that everything is counted. This works
+    exactly like piping the output into <EM>wc</EM>.
+  <DT>
+    <B>-h</B> host
+  <DD>
+    Establish a telnet connection to the remote host specified. This implies
+    a "secure mode" execution where all references to the local file system are
+    canceled.
+  <DT>
+    <B>-n</B>
+  <DD>
+    Non-interactive mode. Outputs the formatted document to the standard output,
+    then exits. Pages are delimited with form feed (FF) characters.
+  <DT>
+    <B>-o</B> [ file ]
+  <DD>
+    Redirects output to specified file. The default value is "www-out". This
+    mode forced non-interactive mode
+  <DT>
+    <A NAME="single"><B>-single</B></A>
+  <DD>
+    Singlethreaded mode. If this flag is set then the browser uses blocking,
+    non interruptible I/O in interactive mode. Non-interactive mode always uses
+    blocking I/O.
 </DL>
-
-<H3>HTTP methods</H3>
-
+<H3>
+  HTTP methods
+</H3>
+<P>
 The Line Mode Browser supports several <A HREF="../../Protocols/">HTTP
-methods</A>. The default value is "GET". These options imply
-non-interactive execution.
-
+methods</A>. The default value is "GET". These options imply non-interactive
+execution.
 <DL>
-<DT><B>-get</B> 
-<DD>Gets a document. This is the default operation!
-
-<DT><B>-head</B> 
-<DD>Returns the header information (if any) but not the document
-
-<DT><B>-delete</B> 
-<DD>Deletes a resource (or makes it unavailable) for future references.
-
-<DT><B>-put</B>
-<DD>Uploads a document from either the local file system or a remote HTTP server to a remote HTTP
-server (destination) using <B>PUT</B> method. You must indicate the destination using the
-<B>-dest</B> command line option.
-
-<DT><B>-post</B> 
-<DD>Uploads a document from either the local file system or a remote HTTP server to a remote HTTP
-server (destination) using <B>POST</B> method. You must indicate the destination using the
-<B>-dest</B> command line option.
-
-<DT><B>-link</B> 
-<DD>Being implemented
-
-<DT><B>-unlink</B> 
-<DD>Being implemented
-
+  <DT>
+    <B>-get</B>
+  <DD>
+    Gets a document. This is the default operation!
+  <DT>
+    <B>-head</B>
+  <DD>
+    Returns the header information (if any) but not the document
+  <DT>
+    <B>-delete</B>
+  <DD>
+    Deletes a resource (or makes it unavailable) for future references.
+  <DT>
+    <B>-put</B>
+  <DD>
+    Uploads a document from either the local file system or a remote HTTP server
+    to a remote HTTP server (destination) using <B>PUT</B> method. You must indicate
+    the destination using the <B>-dest</B> command line option.
+  <DT>
+    <B>-post</B>
+  <DD>
+    Uploads a document from either the local file system or a remote HTTP server
+    to a remote HTTP server (destination) using <B>POST</B> method. You must
+    indicate the destination using the <B>-dest</B> command line option.
+  <DT>
+    <B>-options</B>
+  <DD>
+    Ask for the available options for this URL
+  <DT>
+    <B>-trace</B>
+  <DD>
+    Ask for trace messages for this URL. You can supply the number of hop counts
+    with the additional <B>-hops</B> command line option
 </DL>
-
-<H3>Data format conversions (non-interactive)</H3>
-
+<H3>
+  Data format conversions (non-interactive)
+</H3>
 <DL>
-
-<DT><B>-from</B> [ format ]
-
-<DD>Only if the Line mode Browser is executed as a filter (using the
-"-" option), this option indicates the desired input format. The
-default value is "text/html".
-
-<DT><B>-to</B> [ format ]
-
-<DD>Format is the output format for www. Default value is
-"www/present" but may be changed according to the HTTP-specifications.
-Two common output formats are "www/source" that is the source without
-MIME-headers and "www/mime" that is the source with the MIME-header if
-any. Though also "text/latex" is possible which generates a LaTeX
-version of the (HTML) document. This can then be compiled using latex
-and put out as Postscript. Default value is presenting the output to
-the user.
-
-<DT><B>-source</B>
-
-<DD>Display the original source (without any MIME-headers) of a
-document instead of parsing it.
-
+  <DT>
+    <B>-from</B> [ format ]
+  <DD>
+    Only if the Line mode Browser is executed as a filter (using the "-" option),
+    this option indicates the desired input format. The default value is "text/html".
+  <DT>
+    <B>-to</B> [ format ]
+  <DD>
+    Format is the output format for www. Default value is "www/present" but may
+    be changed according to the HTTP-specifications. Two common output formats
+    are "www/source" that is the source without MIME-headers and "www/mime" that
+    is the source with the MIME-header if any. Though also "text/latex" is possible
+    which generates a LaTeX version of the (HTML) document. This can then be
+    compiled using latex and put out as Postscript. Default value is presenting
+    the output to the user.
+  <DT>
+    <B>-source</B>
+  <DD>
+    Display the original source (without any MIME-headers) of a document instead
+    of parsing it.
 </DL>
-
-<H3>Directory Listings</H3>
-
+<H3>
+  Directory Listings
+</H3>
 <DL>
-
-<DT><B>-d</B> 1*( t | b | r | n | s | y )
-
-<DD>This directive can be used to modify the directory listing
-layout. More than one option can be specified but they might be
-mutually exclusive. The following options are available (withour
-space):
-
-<UL>
-<LI><B>t</B>: Place any readme file at the top of the list (default)
-<LI><B>b</B>: Place any readme file at the bottom of the list
-<LI><B>r</B>: Ignore any readme file
-<LI><B>n</B>: Directory listings are not allowed
-<LI><B>s</B>: Directory listings are only allowed in the directories where a
-file ".www_browsable" is located. The content of the file
-is of no importance.
-<LI><B>y</B>: Directory listings are always allowed (default)
-</UL>
-
-An example is
-
-<PRE>
+  <DT>
+    <B>-d</B> 1*( t | b | r | n | s | y )
+  <DD>
+    This directive can be used to modify the directory listing layout. More than
+    one option can be specified but they might be mutually exclusive. The following
+    options are available (withour space):
+    <UL>
+      <LI>
+	<B>t</B>: Place any readme file at the top of the list (default)
+      <LI>
+	<B>b</B>: Place any readme file at the bottom of the list
+      <LI>
+	<B>r</B>: Ignore any readme file
+      <LI>
+	<B>n</B>: Directory listings are not allowed
+      <LI>
+	<B>s</B>: Directory listings are only allowed in the directories where a
+	file ".www_browsable" is located. The content of the file is of no importance.
+      <LI>
+	<B>y</B>: Directory listings are always allowed (default)
+    </UL>
+    <P>
+    An example is
+    <PRE>
 	-dts
 </PRE>
-
-makes selective directory listings and places a README file at the top
-
+    <P>
+    makes selective directory listings and places a README file at the top
 </DL>
-
-<H3>Destination URL</H3>
-
+<H3>
+  Destination URL
+</H3>
 <DL>
-<DT><B>-dest</B>
-<DD>You can specify a (relative) destination URL, for example for the operations <CODE>PUT</CODE>
-and <CODE>POST</CODE> using this flag. For example:
-
-<PRE>
+  <DT>
+    <B>-dest</B>
+  <DD>
+    You can specify a (relative) destination URL, for example for the operations
+    <CODE>PUT</CODE> and <CODE>POST</CODE> using this flag. For example:
+    <PRE>
 	-dest http://myserver/newfiles/foo.html
 </PRE>
-
 </DL>
-
-<H3>Configuration Options</H3>
-
+<H3>
+  Configuration Options
+</H3>
 <DL>
-
-<DT><B>-l</B> [ file ]
-<DD>Specifies a log file with a list of visited documents. The default
-value is "www-log"
-
-<DT><B>-r</B> &lt;file&gt;
-<DD>Rule file, a.k.a. configuration file. If this is specified, a rule file may be used to map URLs,
-and to set up other aspects of the behavior of the browser. Many rule files may be given with
-successive -r options, and a default rule file name may be given using the <B>WWW_CONFIG</B>
-environment variable.
-
-<DT><B>-timeout</B> &lt;n&gt;
-<DD>Timeout in seconds on sockets
-
+  <DT>
+    <B>-l</B> [ file ]
+  <DD>
+    Specifies a log file with a list of visited documents. The default value
+    is "www-log"
+  <DT>
+    <B>-r</B> &lt;file&gt;
+  <DD>
+    Rule file, a.k.a. configuration file. If this is specified, a rule file may
+    be used to map URLs, and to set up other aspects of the behavior of the browser.
+    Many rule files may be given with successive -r options, and a default rule
+    file name may be given using the <B>WWW_CONFIG</B> environment variable.
+  <DT>
+    <B>-timeout</B> &lt;n&gt;
+  <DD>
+    Timeout in seconds on sockets
 </DL>
-
-<H2><A NAME="z16">docaddress</A></H2>
-
-If present, the next argument (docaddress) is the <A HREF="../../Addressing/Addressing.html">
-hypertext address</A> , of the document at which you want to start browsing. You may want to define
-an alias for www followed by name of your favorite index. <H2><A NAME="z17">keywords</A></H2>Any
-further command line arguments are taken as keywords. The first argument must refer to an index in
-this case. The index is searched for entries matching the keywords, and a list of matching entries
-is displayed.
-
+<H2>
+  <A NAME="z16">docaddress</A>
+</H2>
 <P>
-<HR>
-<ADDRESS><A HREF="../../People.html#Frystyk">Henrik Frystyk</A>, <A
-HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
-</BODY>
-</HTML>
+If present, the next argument (docaddress) is the
+<A HREF="../../Addressing/Addressing.html"> hypertext address</A> , of the
+document at which you want to start browsing. You may want to define an alias
+for www followed by name of your favorite index.
+<H2>
+  <A NAME="z17">keywords</A>
+</H2>
+<P>
+Any further command line arguments are taken as keywords. The first argument
+must refer to an index in this case. The index is searched for entries matching
+the keywords, and a list of matching entries is displayed.
+<P>
+  <HR>
+<ADDRESS>
+  <A HREF="../../People.html#Frystyk">Henrik Frystyk</A>,
+  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
+  <P>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

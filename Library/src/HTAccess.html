@@ -612,10 +612,18 @@ extern BOOL HTPostAnchor (HTParentAnchor *	source,
 If you want to get information about a document then you can use the the
 <CODE>OPTIONS</CODE> method in your request. The <CODE>OPTIONS</CODE> method
 represents a request for information about the communication options available
-on the request/response chain identified by the Request-URI. This method
-allows the client to determine the options and/or requirements associated
-with a resource, or the capabilities of a server, without implying a resource
-action or initiating a resource retrieval.
+on the request/response chain identified by the <CODE>Request-URI</CODE>.
+This method allows the client to determine the options and/or requirements
+associated with a resource, or the capabilities of a server, without implying
+a resource action or initiating a resource retrieval.
+<P>
+A speciality about the <CODE>OPTIONS</CODE> method is that the client can
+issue a request with no pathinfo at all but only with a "<CODE>*</CODE>".
+That is, the request line can look like this "<CODE>OPTIONS * HTTP/1.1</CODE>".
+This means that we request information about the server as a whole and not
+only about a single URL. You can get this effect by using a URL containing
+the hostname alone with <B>NO</B> extra slash at the end, for example
+<CODE>http://www.w3.org</CODE>, <CODE>http://www.cern.ch</CODE>.
 <H3>
   Options Available for Document from Absolute URL
 </H3>
@@ -640,6 +648,53 @@ Here the URL is represented by an <A HREF="HTAnchor.html">Anchor object</A>.
 You can get an anchor object representing a URL by passing the URL to the
 appropriate method in the <A HREF="HTAnchor.html">Anchor class</A>.
 <PRE>extern BOOL HTOptionsAnchor (HTAnchor * anchor, HTRequest * request);
+</PRE>
+<H2>
+  Get Trace Loop back Information for a Document (Method = TRACE)
+</H2>
+<P>
+The TRACE method is used to invoke a remote, application-layer loop-back
+of the request message. The final recipient of the request SHOULD reflect
+the message received back to the client as the entity-body of a 200 (OK)
+response. The final recipient is either the origin server or the first proxy
+or gateway to receive a Max-Forwards value of zero (0) in the request (see
+section 14.31). A TRACE request MUST NOT include an entity.
+<P>
+TRACE allows the client to see what is being received at the other end of
+the request chain and use that data for testing or diagnostic information.
+The value of the Via header field (section 14.44) is of particular interest,
+since it acts as a trace of the request chain. Use of the Max-Forwards header
+field allows the client to limit the length of the request chain, which is
+useful for testing a chain of proxies forwarding messages in an infinite
+loop.
+<P>
+If successful, the response SHOULD contain the entire request message in
+the entity-body, with a Content-Type of <CODE>"message/http"</CODE>. Responses
+to this method MUST NOT be cached.
+<H3>
+  Traces Available for Document from Absolute URL
+</H3>
+<P>
+Request traces about a document referencd by an <I>absolute</I> URL.
+<PRE>extern BOOL HTTraceAbsolute (const char * url, HTRequest * request);
+</PRE>
+<H3>
+  Traces Available for Document from Relative URL
+</H3>
+<P>
+Request traces about a document referenced by a <I>relative</I> URL.
+<PRE>extern BOOL HTTraceRelative (const char * 	relative,
+			     HTParentAnchor *	base,
+			     HTRequest *	request);
+</PRE>
+<H3>
+  Traces Available for Document using an Anchor
+</H3>
+<P>
+Here the URL is represented by an <A HREF="HTAnchor.html">Anchor object</A>.
+You can get an anchor object representing a URL by passing the URL to the
+appropriate method in the <A HREF="HTAnchor.html">Anchor class</A>.
+<PRE>extern BOOL HTTraceAnchor (HTAnchor * anchor, HTRequest * request);
 </PRE>
 <H2>
   Save a URL To Multiple Destinations

@@ -69,15 +69,15 @@ PRIVATE int HTTP09Request (HTStream * me, HTRequest * request)
 */
 PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 {
-    char crlf[3];
-    char qstr[10];
+    HTMethod method = HTRequest_method(request);
     HTRqHd request_mask = HTRequest_rqHd(request);
     HTParentAnchor * anchor = HTRequest_anchor(request);
+    char crlf[3];
+    char qstr[10];
     *crlf = CR; *(crlf+1) = LF; *(crlf+2) = '\0';
 
     /* Generate the HTTP/1.0 RequestLine */
     if (me->state == 0) {
-	HTMethod method = HTRequest_method(request);
 	if (method != METHOD_INVALID) {
 	    PUTS(HTMethod_name(method));
 	    PUTC(' ');
@@ -86,15 +86,33 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 	me->state++;
     }
 
-    /* If we are using a proxy then only take the `path' info in the URL */
-    if (me->state == 1) {
+    /*
+    ** Generate the Request URI. If we are using full request URI then it's
+    ** easy. Otherwise we must filter out the path part of the URI.
+    ** In case it's a OPTIONS request then if there is no pathinfo then use
+    ** a * instead.
+    */
+    if (me->state == 1) {	
 	char * addr = HTAnchor_physical(anchor);
-	int status;
-	if (!me->url) me->url=HTParse(addr, "", PARSE_PATH|PARSE_PUNCTUATION);
+	int status = HT_OK;
 	if (HTRequest_fullURI(request)) {
-	    status = PUTS(me->url+1);
-	} else {
+	    me->url = addr;
 	    status = PUTS(me->url);
+	} else {
+	    if (method == METHOD_OPTIONS) {
+		/*
+		** We don't preserve the final slash or lack of same through
+		** out the code. This is mainly for optimization reasons
+		** but it gives a problem OPTIONS
+		*/
+		if (!me->url) me->url = HTParse(addr, "", PARSE_PATH);
+		if (!*me->url) StrAllocCopy(me->url, "*");
+		status = PUTS(me->url);
+	    } else {
+		if (!me->url)
+		    me->url = HTParse(addr, "", PARSE_PATH|PARSE_PUNCTUATION);
+		status = PUTS(me->url);
+	    }
 	}
 	if (status != HT_OK) return status;
 	me->state++;
@@ -247,6 +265,15 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 	PUTBLOCK(crlf, 2);
 	HT_FREE(orig);
 	HT_FREE(host);
+    }
+    if (request_mask & HT_C_MAX_FORWARDS) {
+	int hops = HTRequest_maxForwards(request);
+	if (hops >= 0) {
+	    sprintf(qstr, "%d", hops);
+	    PUTS("Max-Forwards: ");
+	    PUTS(qstr);
+	    PUTBLOCK(crlf, 2);
+	}
     }
     if (request_mask & HT_C_REFERER) {
 	HTParentAnchor * parent_anchor = HTRequest_parent(request);

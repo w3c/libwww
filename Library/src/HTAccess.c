@@ -683,7 +683,10 @@ PRIVATE BOOL setup_anchors (HTRequest * request,
 			HTParentAnchor * source, HTParentAnchor * dest)
 {
     /*
-    **  Check whether we know if it is possible to PUT to this destination
+    **  Check whether we know if it is possible to PUT to this destination.
+    **  We both check the local set of allowed methods in the anchor and any
+    **  site information that we may have about the location of the origin 
+    **  server.
     */
     {
 	HTMethod allowed = HTAnchor_methods(dest);
@@ -1491,3 +1494,64 @@ PUBLIC BOOL HTOptionsAnchor (HTAnchor * anchor, HTRequest * request)
     }
     return NO;
 }
+
+/* ------------------------------------------------------------------------- */
+/*				TRACE METHOD 				     */
+/* ------------------------------------------------------------------------- */
+
+/*	Traces available for document from absolute name
+**	------------------------------------------------
+**	Request a document referencd by an absolute URL.
+**	Returns YES if request accepted, else NO
+*/
+PUBLIC BOOL HTTraceAbsolute (const char * url, HTRequest * request)
+{
+    if (url && request) {
+	HTAnchor * anchor = HTAnchor_findAddress(url);
+	return HTTraceAnchor(anchor, request);
+    }
+    return NO;
+}
+
+/*	Traces available for document from relative name
+**	------------------------------------------------
+**	Request a document referenced by a relative URL. The relative URL is 
+**	made absolute by resolving it relative to the address of the 'base' 
+**	anchor.
+**	Returns YES if request accepted, else NO
+*/
+PUBLIC BOOL HTTraceRelative (const char * 	relative,
+			     HTParentAnchor *	base,
+			     HTRequest *	request)
+{
+    BOOL status = NO;
+    if (relative && base && request) {
+	char * rel = NULL;
+	char * full_url = NULL;
+	char * base_url = HTAnchor_address((HTAnchor *) base);
+	StrAllocCopy(rel, relative);
+	full_url = HTParse(HTStrip(rel), base_url,
+			 PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
+	status = HTTraceAbsolute(full_url, request);
+	HT_FREE(rel);
+	HT_FREE(full_url);
+	HT_FREE(base_url);
+    }
+    return status;
+}
+
+/*	Trace available for document using Anchor
+**	-------------------------------------------
+**	Request the document referenced by the anchor
+**	Returns YES if request accepted, else NO
+*/
+PUBLIC BOOL HTTraceAnchor (HTAnchor * anchor, HTRequest * request)
+{
+    if (anchor && request) {
+	HTRequest_setAnchor(request, anchor);
+	HTRequest_setMethod(request, METHOD_TRACE);
+	return launch_request(request, NO);
+    }
+    return NO;
+}
+

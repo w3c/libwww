@@ -283,6 +283,19 @@ extern int HTRequest_retrys (HTRequest * request);
 extern BOOL HTRequest_doRetry (HTRequest *request);
 </PRE>
 <H2>
+  Set Max Forwards for TRACE methods
+</H2>
+<P>
+The <CODE>TRACE</CODE> method is used to invoke a remote, application-layer
+loop-back of the request message. The final recipient of the request SHOULD
+reflect the message received back to the client as the entity-body of a 200
+(OK) response. The final recipient is either the origin server or the first
+proxy or gateway to receive a Max-Forwards value of zero (0) in the request.
+A <CODE>TRACE</CODE> request <I>MUST NOT</I> include an entity.
+<PRE>extern BOOL HTRequest_setMaxForwards (HTRequest * request, int maxforwards);
+extern int HTRequest_maxForwards (HTRequest * request);
+</PRE>
+<H2>
   Retry Request After
 </H2>
 <P>
@@ -408,7 +421,7 @@ typedef enum _HTRqHd {
     HT_C_ACCEPT_CHAR	= 0x2,
     HT_C_ACCEPT_ENC	= 0x4,
     HT_C_ACCEPT_LAN	= 0x8,
-    HT_C_AUTH		= 0x10,
+    HT_C_AUTH		= 0x10,             /* Includes proxy authentication */
     HT_C_FROM		= 0x20,
     HT_C_HOST		= 0x40,
     HT_C_IMS		= 0x80,
@@ -417,10 +430,9 @@ typedef enum _HTRqHd {
     HT_C_IF_RANGE	= 0x400,
     HT_C_IF_UNMOD_SINCE	= 0x800,
     HT_C_MAX_FORWARDS	= 0x1000,
-    HT_C_PROXY_AUTH	= 0x2000,
-    HT_C_RANGE		= 0x4000,
-    HT_C_REFERER	= 0x8000,
-    HT_C_USER_AGENT	= 0x10000
+    HT_C_RANGE		= 0x2000,
+    HT_C_REFERER	= 0x4000,
+    HT_C_USER_AGENT	= 0x8000
 } HTRqHd;
 
 #define DEFAULT_REQUEST_HEADERS	\
@@ -796,11 +808,12 @@ extern BOOL HTRequest_fullURI (HTRequest *request);
 In case we are using a proxy for this requst then we can register it together
 with the request object. That way we can find the proxy and look for
 authentication information, for example in the
-<A HREF="HTAAUtil.html">Authentication filter</A>. The string is freed by the
-Request object on deletion.
+<A HREF="HTAAUtil.html">Authentication filter</A>. The string is freed by
+the Request object on deletion.
 <PRE>
-extern BOOL HTRequest_setProxy (HTRequest * request, const char * proxy);
-extern char * HTRequest_proxy (HTRequest * request);
+extern BOOL HTRequest_setProxy    (HTRequest * request, const char * proxy);
+extern char * HTRequest_proxy     (HTRequest * request);
+extern BOOL HTRequest_deleteProxy (HTRequest * request);
 </PRE>
 <H2>
   <A NAME="Error">Error Object</A>
