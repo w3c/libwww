@@ -31,4 +31,4 @@ typedef long int HTLMFont;      /* For now */
 #endif /* HTFONT_H */
 /*
 
-   End of HTFont */
+   End of HTFont*/

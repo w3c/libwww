@@ -204,6 +204,13 @@ PUBLIC HTStream* HTSaveLocally (HTRequest *	request,
 	HTParentAnchor *anchor = (HTParentAnchor *) HTRequest_anchor(request);
 	char *suffix = HTBind_getSuffix(anchor);
 	char *deflt = get_filename(tmproot,HTAnchor_physical(anchor),suffix);
+
+	/*
+	**  If we found an alert handler for prompting the user then call it.
+	**  If not then either we are in non-interactive mode or no handler
+	**  has been registered. For now we then return a blackhole which may
+	**  not be the best thing to do.
+	*/
 	if (cbf) {
 	    HTAlertPar * reply = HTAlert_newReply();
 	    if ((*cbf)(request, HT_A_PROMPT, HT_MSG_FILENAME,deflt,NULL,reply))
@@ -212,8 +219,6 @@ PUBLIC HTStream* HTSaveLocally (HTRequest *	request,
 	}
 	HT_FREE(suffix);
 	HT_FREE(deflt);
-	if (cbf == NULL)
-	    return HTBlackHole();
 	if (filename) {
 	    if ((fp = fopen(filename, "wb")) == NULL) {
 		HTRequest_addError(request, ERR_NON_FATAL, NO, HTERR_NO_FILE,
@@ -221,9 +226,12 @@ PUBLIC HTStream* HTSaveLocally (HTRequest *	request,
 		HT_FREE(filename);
 		return HTErrorStream();
 	    }
-	} else {
-	    if (STREAM_TRACE) HTTrace("Save File... No file name\n");
+	} else if (cbf) {
+	    if (STREAM_TRACE) HTTrace("Save File... No file name - error stream\n");
 	    return HTErrorStream();
+	} else {
+	    if (STREAM_TRACE) HTTrace("Save File... No file name - black hole\n");
+	    return HTBlackHole();
 	}
     }
     

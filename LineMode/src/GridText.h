@@ -49,4 +49,4 @@ DELETE ALL DOCUMENTS IN MEMORY
 extern BOOL HText_freeAll (void);
 /*
 
-   End of declaration  */
+   End of declaration */

@@ -257,7 +257,10 @@ PRIVATE void Cleanup (Robot * me, int status)
 {
     Robot_delete(me);
     HTProfile_delete();
+#ifdef MEMLOG
     HTMemLog_close();
+#endif
+
 #ifdef VMS
     exit(status ? status : 1);
 #else
@@ -282,7 +285,11 @@ PRIVATE void SetSignal (void)
     } else {
 	if (PROT_TRACE) HTTrace("HTSignal.... Ignoring SIGPIPE\n");
     }
+
+#ifdef MEMLOG
     HTMemLog_flush();
+#endif
+
 }
 #endif /* CATCH_SIG */
 
@@ -455,8 +462,9 @@ int main (int argc, char ** argv)
     argc=ccommand(&argv);
 #endif
 
+#ifdef MEMLOG
     HTMemLog_open("data.log", 8192, YES);
-    /*    HTFakeReader_init ("readz", "elements", NO); */
+#endif
 
     /* Initiate W3C Reference Library with a robot profile */
     HTProfile_newRobot(APP_NAME, APP_VERSION);
@@ -571,7 +579,7 @@ int main (int argc, char ** argv)
     }
 
     /* Testing that HTTrace is working */
-    HTTrace ("Welcome to the W3C mini Robot\n");
+    if (SHOW_MSG) HTTrace ("Welcome to the W3C mini Robot\n");
 
     /* Rule file specified? */
     if (mr->rules) {

@@ -292,6 +292,7 @@ PUBLIC int EventOrder_executeAndDelete (void)
     while ((pres = (EventOrder *) HTList_removeLastObject(cur)) && i < EVENTS_TO_EXECUTE) {
 	HTEvent * event = pres->event;
 	int ret;
+	if (THD_TRACE)
 	HTTrace("EventList... calling socket %d, request %p handler %p type %s\n",
 		pres->s, (void *) event->request,
 		(void *) event->cbf, HTEvent_type2str(pres->type));
@@ -439,7 +440,7 @@ PUBLIC int HTEventList_unregister(SOCKET s, HTEventType type)
 		if(pres->s > MaxSock)
 		    MaxSock = pres->s;
 	    if (MaxSock  <= 0)
-		HTTrace("Event....... MaxSock: %d.\n", MaxSock);
+		if (THD_TRACE) HTTrace("Event....... MaxSock: %d.\n", MaxSock);
 	    return HT_OK;
 	} else if(pres->s > MaxSock)
 	    MaxSock = pres->s;
