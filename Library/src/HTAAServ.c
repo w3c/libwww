@@ -454,7 +454,20 @@ PUBLIC int HTAA_checkAuthorization ARGS4(CONST char *,	url,
 	HTAAFailReason = HTAA_DOTDOT;
     }
     else {
-	pathname = HTTranslate(local_copy);
+	pathname = HTTranslate(local_copy); /* Translate rules even if */
+	                                    /* a /htbin call to set up */
+	                                    /* protections.	       */
+	if (0 == strncmp(local_copy, "/htbin/", 7)) {
+	    char *end = strchr(local_copy+7, '/');
+	    if (end)
+		*end = (char)0;
+	    if (!HTBinDir)
+		StrAllocCopy(HTBinDir, HTBINDIR);
+	    FREE(pathname);
+	    pathname = (char*)malloc(strlen(HTBinDir)+strlen(local_copy)-4);
+	    strcpy(pathname, HTBinDir);
+	    strcat(pathname, local_copy+6);
+	}
 
 	if (!pathname) {		/* Forbidden by rule */
 	    if (TRACE) fprintf(stderr,
@@ -463,8 +476,8 @@ PUBLIC int HTAA_checkAuthorization ARGS4(CONST char *,	url,
 	}
 	else {	/* pathname != NULL */
 	    char *access = HTParse(pathname, "", PARSE_ACCESS);
-	    if (!*access  ||  0 == strcmp(access, "file")) {  /* Local file  */
-		if (!HTSecure) {			      /* so check AA */
+	    if (!*access  ||  0 == strcmp(access, "file")) { /*Local file, do AA*/
+		if (!HTSecure && 0 != strncmp(local_copy, "/htbin/", 7)) {
 		    char *localname = HTLocalName(pathname);
 		    free(pathname);
 		    pathname = localname;

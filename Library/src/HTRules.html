@@ -39,6 +39,11 @@ typedef enum _HTRuleOp {
 	HT_Protect
 } HTRuleOp;
 
+#ifndef HTBINDIR
+#define HTBINDIR "/htbin"	/* Default /htbin location */
+#endif
+extern char * HTBinDir;		/* Physical /htbin location */
+
 </PRE>
 <H2>HTAddRule:  Add rule to the list</H2>
 <H3>On entry,</H3>
