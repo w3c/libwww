@@ -112,7 +112,7 @@ if (@ARGV[0] =~ /^@(.*)/) {
     local($name) = $1;
     if ($name =~ /\w+/) {
 	if (!open(LIST, $name)) {
-	    die "Can't open \"$1\", $!";
+	    die "Can't open \"$name\", $!";
 	}
 	while (<LIST>) {
 	    chop;
