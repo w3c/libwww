@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Using the W3C Reference Library</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  7-Aug-1995 -->
 </HEAD>  
 <BODY>
 
@@ -65,13 +66,12 @@ graphic objects that can not be described by the <CODE>HyperDoc</CODE>,
 but  often it is binary objects, like images etc.</P>
 
 
-The file cache
-in the Library is a very simple implementation in the sense that no
-intelligent garbage collection has been defined. It has been the goal to
-collect experience from the file cache in the CERN proxy server before
-an intelligent  garbage collector  is implemented in the Library. 
-Currently the following functions can be used to control the cache,
-which is disabled by default:</P>
+The file cache in the Library is a very simple implementation in the
+sense that no intelligent garbage collection has been defined. It has
+been the goal to collect experience from the file cache in the W3C
+proxy server before an intelligent garbage collector is implemented in
+the Library.  Currently the following functions can be used to control
+the cache, which is disabled by default:</P>
 
 <DL>
 <DT><CODE>HTCache_enable()</CODE>, <CODE>HTCache_disable()</CODE>,
