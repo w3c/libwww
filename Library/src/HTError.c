@@ -105,7 +105,6 @@ PUBLIC BOOL HTError_addSystem (HTList *		list,
 	status = HTError_add(list, severity, ignore, HTERR_SYSTEM,
 			     errmsg, (int) strlen(errmsg),
 			     syscall ? syscall : "unknown");
-	HT_FREE(errsysmsg);
 	HT_FREE(errmsg);
     }
     return status;
