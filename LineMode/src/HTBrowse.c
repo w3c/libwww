@@ -1404,10 +1404,10 @@ int main ARGS2(int, argc, char **, argv)
 	    scrsize(&scr_height, &scr_width);
 	    HTScreenHeight = scr_height;
 #else
-	    HTScreenHeight = 999999;
+	    HTScreenHeight = SCREEN_HEIGHT;
 #endif
 	} else
-	    HTScreenHeight = SCREEN_HEIGHT;
+	    HTScreenHeight = 999999;
     }
 
     /* Enable local directory access */
