@@ -99,7 +99,7 @@ PUBLIC BOOL HTNetCall_add (HTList * list, HTNetCallback *cbf, int status)
 	TTYPrint(TDEST, "Call Add.... HTNetCallback %p\n", (void *) cbf);
     if (list && cbf) {
 	NetCall *me = (NetCall *) calloc(1, sizeof(NetCall));
-	if (!me) outofmem(__FILE__, "HTNet_register");
+	if (!me) outofmem(__FILE__, "HTNetCall_add");
 	me->cbf = cbf;
 	me->status = status;
 	return HTList_addObject(list, (void *) me);
@@ -247,13 +247,23 @@ PUBLIC HTList *HTNet_activeQueue (void)
     return HTNetActive;
 }
 
-/*	HTNet_activeCount
-**	----------------
-**	Returns the number of active requests
+/*	HTNet_idle
+**	----------
+**	Returns whether there are active requests
 */
 PUBLIC BOOL HTNet_idle (void)
 {
     return HTList_isEmpty(HTNetActive);
+}
+
+/*	HTNet_empty
+**	-----------
+**	Returns whether there are requests registered or not
+*/
+PUBLIC BOOL HTNet_isEmpty (void)
+{
+    return (HTList_isEmpty(HTNetActive) && HTList_isEmpty(HTNetPersistent) &&
+	    HTList_isEmpty(HTNetPending));
 }
 
 /*	HTNet_pendingQueue
@@ -474,6 +484,7 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
 /*	delete_object
 **	-------------
 **	Deletes an HTNet object
+**	Return YES if OK, else NO
 */
 PRIVATE BOOL delete_object (HTNet *net, int status)
 {
@@ -528,6 +539,7 @@ PRIVATE BOOL delete_object (HTNet *net, int status)
 **	up now when we have a socket free.
 **	The callback functions are called in the reverse order of which they
 **	were registered (last one first)
+**	Return YES if OK, else NO
 */
 PUBLIC BOOL HTNet_delete (HTNet * net, int status)
 {
@@ -538,7 +550,11 @@ PUBLIC BOOL HTNet_delete (HTNet * net, int status)
 
 	/* Remove object and call callback functions */
 	HTRequest *request = net->request;
-	HTList_removeObject(HTNetActive, (void *) net);
+	if (HTList_removeObject(HTNetActive, (void *) net) != YES) {
+	    if (WWWTRACE)
+		TTYPrint(TDEST, "HTNetDelete. Object not registered!\n");
+	    return NO;
+	}
  	delete_object(net, status);
 	HTNetCall_execute(HTAfter, request, status);
 
@@ -618,16 +634,22 @@ PUBLIC BOOL HTNet_deleteAll (void)
 **	----------
 **	Let a net object wait for a persistent socket. It will be launched
 **	from the HTNet_delete() function
+**	Return YES if OK, else NO
 */
 PUBLIC BOOL HTNet_wait (HTNet *net)
 {
     if (net) {
 	if (WWWTRACE)
-	    TTYPrint(TDEST,"HTNet_wait.. request %p is waiting for socket %d\n",
-		    net->request, net->sockfd);
+	    TTYPrint(TDEST,"HTNet_wait.. request %p is waiting for presistent socket %d\n",
+		     net->request, net->sockfd);
+
+	/* Take it out of the active queue and add it to persistent queue */
+	if (HTList_removeObject(HTNetActive, (void *) net) != YES) {
+	    if (WWWTRACE) TTYPrint(TDEST, "HTNet_wait.. not registered!\n");
+	    return NO;
+	}
 	if (!HTNetPersistent) HTNetPersistent = HTList_new();
-	HTList_addObject(HTNetPersistent, (void *) net);	
-	return YES;
+	return HTList_addObject(HTNetPersistent, (void *) net);	
     }
     return NO;
 }

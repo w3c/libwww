@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Asyncronous Socket Management</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  3-Dec-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  7-Dec-1995 -->
 </HEAD>
 <BODY>
 
@@ -177,12 +177,40 @@ extern int  HTNet_maxSocket (void);
 
 Returns the list of active requests that are currently having an open
 connection. Returns list of HTNet objects or NULL if
-error. <CODE>HTNet_idle()</CODE> returns YES if no active sockets are
-registered.
+error. 
 
 <PRE>
 extern HTList *HTNet_activeQueue (void);
 extern BOOL HTNet_idle (void);
+</PRE>
+
+<H3>Are we Active?</H3>
+
+We have some small functions that tell whether there are registered
+requests in the Net manager. There are tree queues: The
+<EM>active</EM>, the <EM>pending</EM>, and the
+<EM>persistent</EM>. The <EM>active</EM> queue is the set of requests
+that are actively sending or receiving data. The <EM>pending</EM> is
+the requests that we have registered but which are waiting for a free
+socket. The <EM>Persistent</EM> queue are requets that are waiting to
+use the same socket in order to save network resoures (if the server
+understands persistent connections). <P>
+
+<H4>Active Reqeusts?</H4>
+
+Returns whether there are requests in the <EM>active</EM> queue or not
+
+<PRE>
+extern BOOL HTNet_idle (void);
+</PRE>
+
+<H4>Registered Requests?</H4>
+
+Returns whether there are requests registered in any of the lists or
+not
+
+<PRE>
+extern BOOL HTNet_isEmpty (void);
 </PRE>
 
 <H3>List Pending Queue</H3>

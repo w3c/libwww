@@ -254,7 +254,7 @@ PRIVATE int terminate_handler (HTRequest * request, int status)
     Robot * mr = (Robot *) HTRequest_context(request);
     if (mr->logfile) HTLog_add(request, status);
     Thread_delete(mr, request);
-    if (HTNet_idle()) Cleanup(mr, 0);
+    if (HTNet_isEmpty()) Cleanup(mr, 0);
     return HT_OK;
 }
 
