@@ -330,8 +330,6 @@ PUBLIC int HTEventrg_register (SOCKET s, HTRequest * rq, SockOps ops,
 #ifndef WIN32	/* EGP */
 #define GetLastError WSAGetLastError
 #endif
-/*    if (rq->hwnd != 0) {
-        if (WSAAsyncSelect( s, rq->hwnd, rq->winMsg, ops) < 0) { */
         if (WSAAsyncSelect( s, HTSocketWin, HTwinMsg, ops) < 0) {
 	    HTRequest_addSystemError(rq, ERR_FATAL, GetLastError(), NO,
 				     "WSAAsyncSelect");
@@ -937,8 +935,7 @@ PRIVATE int __EventUnregister(register RQ *rqp, register RQ ** rqpp,
 	    	__ResetMaxSock();
 
 #ifdef WWW_WIN_ASYNC
-	if (ap->rq->hwnd) 
-	    (void) WSAAsyncSelect( rqp->s, ap->rq->hwnd, 0, 0);
+	WSAAsyncSelect(rqp->s, HTSocketWin, HTwinMsg, 0);
 #endif /* WWW_WIN_ASYNC */
         *rqpp = rqp->next ;
 
@@ -959,9 +956,7 @@ PRIVATE int __EventUnregister(register RQ *rqp, register RQ ** rqpp,
     }  /* if all unregistered */
     else { 
 #ifdef WWW_WIN_ASYNC
-	if (ap->rq->hwnd != 0) { 			      /* re-register */
-	    (void)WSAAsyncSelect(rqp->s, ap->rq->hwnd, ap->rq->winMsg,ap->ops);
-	}
+      WSAAsyncSelect(rqp->s, HTSocketWin, HTwinMsg, ap->ops);
 #endif /* WWW_WIN_ASYNC */
     }
     return 0 ;
