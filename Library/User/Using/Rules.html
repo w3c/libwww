@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>User Guide - Rule Files</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 16-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 21-Nov-1995 -->
 <NEXTID N="z78">
 </HEAD>
 <BODY>
@@ -16,11 +16,11 @@ The W3C Library provides this module for handling configuration files (a.k.a.  r
 files can be used to initialize as much as the application desires including setting up new protocol
 modules etc. Also the rules file do not have to be a file - it can be a database or any other way of
 storage information. This implementation is not used by the Library at all and is part of the <A
-HREF="WWWApp.html">WWWApp.h</A> interface. <P>
+HREF="../../Implementation/WWWApp.html">WWWApp.h</A> interface. <P>
 
 Parsing a whole rule file is done using a converter stream. This means that a rule file can come
 from anywhere, even across the network. We have defined a special content type for rule files
-called <CODE>WWW_RULES</CODE> in <A HREF="HTFormat.html">HTFormat</A>. <P>
+called <CODE>WWW_RULES</CODE> in <A HREF="../../Implementation/HTFormat.html">HTFormat</A>. <P>
 
 In some situations, a set of rules comes from a subset of a file or some other origin, for example
 INI files for X resources. In that case, you can also parse a single line from a rules file using

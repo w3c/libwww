@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Error Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 19-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 21-Nov-1995 -->
 <NEXTID N="z1">
 </HEAD>
 <BODY>
@@ -210,8 +210,9 @@ the core Libray. Only the definition of the Error object itself
 is. This object has an index number defined by the
 <CODE>HTErrorElement</CODE> above. The mapping from this index to an
 erro code and a message is for the application to do. The Library
-provides a default implementation in the <A HREF="HTMsg.html">HTMsg
-module</A>. These are the methods for accessing the error object:
+provides a default implementation in the <A HREF="HTDialog.html">
+HTDialog module</A>. These are the methods for accessing the error
+object:
 
 <PRE>
 extern int HTError_index		(HTError * info);
