@@ -188,6 +188,19 @@ cleanall : clean
 
 #		Distribution use only:
 #		----------------------
+
+#	Make a new branch (for main releases only)
+maindist : inc $(LEGAL) $(SOURCES)
+	(cd $(WWW)/.. && WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
+	-f WWW/LineMode/Implementation/Version.make \
+	-f WWW/LineMode/Implementation/CommonMakefile \
+	$(FTP)/$(PROD)_$(VL)_src.tar.Z)
+	(cd $(WWW); cvs tag -b \
+	    `sed -e 's/V. = /v/' LineMode/Implementation/Version.make | sed -e 's?\.?/?'` \
+	    LineMode)
+	@echo MAIN RELEASE of Line Mode version $(VL) up to date.
+
+#	Make a new CVS release
 distribute : inc $(LEGAL) $(SOURCES)
 	(cd $(WWW)/.. && WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 	-f WWW/LineMode/Implementation/Version.make \
@@ -198,7 +211,7 @@ distribute : inc $(LEGAL) $(SOURCES)
 	    LineMode)
 	@echo Distribution of Line Mode version $(VL) up to date.
 
-#	Source Snapshot
+#	Source Snapshot without CVS update
 snapshot : inc $(LEGAL) $(SOURCES)
 	(cd $(WWW)/.. && WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 	-f WWW/LineMode/Implementation/Version.make \

@@ -251,6 +251,11 @@ PRIVATE void Thread_deleteAll (LineMode * lm)
 /*	Create a Line Mode Object
 **	-------------------------
 */
+#ifdef _WINDOWS
+HTRequest * TTYReq = 0; /* The windowed version doesn't get the HTRequest* when
+                           it gets key events so save it in a global here       */
+#endif
+
 PRIVATE LineMode * LineMode_new (void)
 {
     LineMode * me;
@@ -262,7 +267,11 @@ PRIVATE LineMode * LineMode_new (void)
     me->active = HTList_new();
     me->request = HTRequest_new();
     me->tty = HTRequest_new();
+#ifdef _WINDOWS
+    TTYReq = me->tty;
+#endif
     Context_new(me, me->request);
+    Context_new(me, me->tty);
     return me;
 }
 
@@ -602,7 +611,7 @@ PRIVATE BOOL SaveOutputStream (HTRequest * req, char * This, char * Next)
 **			HT_OK		Call back was OK
 */
 PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
-{ 
+{
     char * the_choice=NULL;		           /* preserved user command */
     char * token=NULL;        	   	    	    /* First word of command */
     char * this_command;	       	              /* token and following */
@@ -612,8 +621,14 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
     BOOL found = YES;
     BOOL OutSource = NO;			    /* Output source, YES/NO */
     int status = YES;
-    Context * context = (Context *) HTRequest_context(req);
-    LineMode * lm = context->lm;
+    Context * context;
+    LineMode * lm;
+
+#ifdef _WINDOWS
+    req = TTYReq;
+#endif
+    context = (Context *) HTRequest_context(req);
+    lm = context->lm;
 
     StrAllocCopy (the_choice, choice);		       /* Remember it as is, */
     if (*the_choice && the_choice[strlen(the_choice)-1] == '\n') /* final \n */
@@ -1240,7 +1255,7 @@ int main (int argc, char ** argv)
     int		arg;			       		  /* Index into argv */
     HTChunk *	keywords = NULL;			/* From command line */
     int		keycnt = 0;
-    LineMode *	lm = LineMode_new();
+    LineMode *	lm;
 
     /* Starts Mac GUSI socket library */
 #ifdef GUSI
@@ -1266,6 +1281,7 @@ int main (int argc, char ** argv)
 
     /* Initiate W3C Reference Library */
     HTLibInit(APP_NAME, APP_VERSION);
+    lm = LineMode_new();
 
     /* Initialize the protocol modules */
     HTAccessInit();
@@ -1675,7 +1691,7 @@ int main (int argc, char ** argv)
 				scan_command, HT_PRIORITY_MAX);
 	}
 #else
-	HTEvent_RegisterTTY(0, lm->request, (SockOps)FD_READ, scan_command, 1);
+	HTEvent_RegisterTTY(0, lm->tty, (SockOps)FD_READ, scan_command, 1);
 #endif
     }
 

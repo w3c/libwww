@@ -24,7 +24,7 @@ HWND MonitorWindow = 0;
 char ScreenBuffer[MAXROWS * MAXCOLS] = "";
 ScrollInfo_t ScrollInfo = {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, MAXROWS, MAXCOLS, //int     xSize, ySize, xScroll, yScroll, xOffset, yOffset, nColumn, nRow, xChar, yChar, maxRows, maxCols;
-	Scroll_control_crBegetsLf|Scroll_control_autoWrap, //Scroll_control_t control;
+	Scroll_control_crBegetsLf|Scroll_control_lfBegetsCr|Scroll_control_autoWrap|Scroll_control_BSbegetsSpace, //Scroll_control_t control;
 	ScreenBuffer, //BYTE* abScreen;
 	0, //POINT maxTrackSize;
 	0 //WORD    wCursorState;
@@ -72,7 +72,7 @@ static int sized = 0;
 		case WM_CREATE:
 			{
 			HMENU hMenu = GetMenu(hWnd);
-			ScrollInfo.control = Scroll_control_autoWrap | Scroll_control_crBegetsLf | Scroll_control_lfBegetsCr;// | Scroll_control_literal;
+//			ScrollInfo.control = Scroll_control_autoWrap | Scroll_control_crBegetsLf | Scroll_control_lfBegetsCr | Scroll_control_BSbegetsSpace;// | Scroll_control_literal;
 			if (Font_SetupInfo(&FontInfo) || Scroll_SetupInfo(&ScrollInfo, MAXROWS, MAXCOLS))
 				return (-1);
 			Scroll_ResetScreen(hWnd, &ScrollInfo, &FontInfo);
@@ -105,7 +105,7 @@ static int sized = 0;
 					break;
 
 				case IDM_ABOUT:
-					while (MessageBox(hWnd, "It's a program, all right?", "About ExpoSrv.DLL", MB_OKCANCEL) != IDOK);
+					while (MessageBox(hWnd, "It's a program, all right?", "About LineMode", MB_OKCANCEL) != IDOK);
 					break;
 
 				case IDM_EXIT:
@@ -115,7 +115,7 @@ static int sized = 0;
 			break;
 
 		case WM_PAINT:
-			Scroll_Paint(&ScrollInfo, &FontInfo, hWnd, 1);
+			Scroll_Paint(&ScrollInfo, &FontInfo, hWnd, Scroll_cursorShow);
 			break ;
 
 		case WM_SIZE:
@@ -206,8 +206,8 @@ int PASCAL WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdL
 	0, //int         cbWndExtra
 	hInstance, //HINSTANCE	hInstance - fill in later
 	0, //HICON	hIcon
-	0, //HCURSOR	hCursor
-	0, //HBRUSH	hbrBackground
+	LoadCursor(NULL, IDC_ARROW), //HCURSOR	hCursor
+	(HBRUSH)(COLOR_WINDOW+1), //HBRUSH	hbrBackground
 	MAKEINTRESOURCE(IDM_SNP), //LPCSTR	lpszMenuName
 	WWWClassName}; //LPCSTR	lpszClassName
 	HInstance = hInstance;

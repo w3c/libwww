@@ -165,6 +165,19 @@ cleanall : clean
 
 #		Distribution use only:
 #		----------------------
+
+#	Make a new branch (for main releases only)
+maindist : inc $(LEGAL) $(SOURCES)
+	(cd $(WWW)/.. && WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
+	-f WWW/ComLine/Implementation/Version.make \
+	-f WWW/ComLine/Implementation/CommonMakefile \
+	$(FTP)/$(PROD)_$(VT)_src.tar.Z)
+	(cd $(WWW); cvs tag -b \
+	    `sed -e 's/V. = /v/' ComLine/Implementation/Version.make | sed -e 's?\.?/?'` \
+	    ComLine)
+	@echo MAIN RELEASE of Command Line Tool version $(VT) up to date.
+
+#	Make a new CVS release
 distribute : inc $(LEGAL) $(SOURCES)
 	(cd $(WWW)/.. && WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 	-f WWW/ComLine/Implementation/Version.make \
@@ -175,7 +188,7 @@ distribute : inc $(LEGAL) $(SOURCES)
 	    ComLine)
 	@echo Distribution of Command Line Tool version $(VT) up to date.
 
-#	Source Snapshot
+#	Source Snapshot without CVS update
 snapshot : inc $(LEGAL) $(SOURCES)
 	(cd $(WWW)/.. && WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 	-f WWW/ComLine/Implementation/Version.make \

@@ -1,33 +1,34 @@
-/* SCROLL.C - module to maintain a primative scroll window.
-*/
+/* scroll.c implements the Scroll library. See the header, scroll.h, for the app
+   interface. The Scroll library provides a simple tty interface to a Windows app. 
+   This app is similar to a console app except that it runs as a Windows program 
+   and has the full Windows API available to it.
+ */
+
+/* I, Eric Prud'hommeaux, grant unlimited use of this code to the WWW consortium.
+   I retain the copyright ownership and expect to be contacted for licencing if 
+   the Scroll library or the library interface are used in any commercial products 
+   or ventures.
+
+   Also, please contact me if for a CURSES version of this.
+   eric@apocalypse.org
+ */
+
 #include <windows.h>
 #include <string.h>
-//#include "ctrl.h"
-//#include "resource.h"
 #include "lib.h"
 #include "scroll.h"
 
-// cursor states
-#define CS_HIDE         0x00
-#define CS_SHOW         0x01
-// ascii definitions
-#define ASCII_BEL       0x07
-#define ASCII_BS        0x08
-#define ASCII_TAB       0x09
-#define ASCII_LF        0x0A
-#define ASCII_CR        0x0D
-
 //private functions
-int NEAR scroll_MoveCursor(ScrollInfo_t* pScroll)
-	{//	if (pXtra->app.fConnected && (pScroll->wCursorState & CS_SHOW))
-	if (pScroll->wCursorState & CS_SHOW)
+int scroll_MoveCursor(ScrollInfo_t* pScroll)
+	{
+	if (pScroll->cursorState & Scroll_cursorShow)
 		SetCaretPos((pScroll->nColumn * pScroll->xChar) - pScroll->xOffset,
 							  (pScroll->nRow * pScroll->yChar) - pScroll->yOffset);
 	return ( TRUE ) ;
 	}
 
 //public functions
-int NEAR Scroll_SetupInfo(ScrollInfo_t* pScroll, int maxRows, int maxCols)
+int Scroll_SetupInfo(ScrollInfo_t* pScroll, int maxRows, int maxCols)
 	{
 	pScroll->xSize			= 0;
 	pScroll->ySize			= 0;
@@ -39,22 +40,21 @@ int NEAR Scroll_SetupInfo(ScrollInfo_t* pScroll, int maxRows, int maxCols)
 	pScroll->nRow			  = 0;
 	pScroll->maxRows = maxRows;
 	pScroll->maxCols = maxCols;
-	pScroll->wCursorState	= CS_HIDE;
-	pScroll->maxTrackSize.x = (int)0x0;	//really big window
+	pScroll->cursorState	= Scroll_cursorHide;
+	pScroll->maxTrackSize.x = (int)0x0;
 	pScroll->maxTrackSize.y = (int)0x0;
-//	pScroll->maxTrackSize.y = (int)0x7FFFFFFF;
 	// clear screen space
 	// GPF here means no memory was allocated by caller
-	_fmemset(pScroll->abScreen, ' ', pScroll->maxRows * pScroll->maxCols);
+	_fmemset(pScroll->screenBuf, ' ', pScroll->maxRows * pScroll->maxCols);
 	return (0);
 	}
 
-void NEAR Scroll_DestroyInfo(ScrollInfo_t* pScroll)
+void Scroll_DestroyInfo(ScrollInfo_t* pScroll)
 	{
 	return;
 	}
 
-int NEAR Scroll_WriteControl(ScrollInfo_t* pScroll, HWND hWnd, Scroll_control2_t control, int x, int y)
+int Scroll_WriteControl(ScrollInfo_t* pScroll, HWND hWnd, Scroll_control2_t control, int x, int y)
 	{
 	switch (control)
 		{
@@ -67,8 +67,8 @@ int NEAR Scroll_WriteControl(ScrollInfo_t* pScroll, HWND hWnd, Scroll_control2_t
 		case Scroll_control_LF:
 			if (pScroll->nRow++ == pScroll->maxRows - 1)
 				{
-				memmove(pScroll->abScreen, pScroll->abScreen + pScroll->maxCols, (pScroll->maxRows - 1) * pScroll->maxCols);
-				memset(pScroll->abScreen + (pScroll->maxRows - 1) * pScroll->maxCols, ' ', pScroll->maxCols);
+				memmove(pScroll->screenBuf, pScroll->screenBuf + pScroll->maxCols, (pScroll->maxRows - 1) * pScroll->maxCols);
+				memset(pScroll->screenBuf + (pScroll->maxRows - 1) * pScroll->maxCols, ' ', pScroll->maxCols);
 				InvalidateRect(hWnd, 0, FALSE);
 				pScroll->nRow--;
 				}
@@ -77,6 +77,11 @@ int NEAR Scroll_WriteControl(ScrollInfo_t* pScroll, HWND hWnd, Scroll_control2_t
 		case Scroll_control_BS:
 			if (pScroll->nColumn > 0)
 				pScroll->nColumn--;
+            if (pScroll->control | Scroll_control_BSbegetsSpace)
+                {
+        		*(pScroll->screenBuf + pScroll->nRow * pScroll->maxCols + pScroll->nColumn) = ' ';
+				InvalidateRect(hWnd, 0, FALSE);
+                }
 			scroll_MoveCursor(pScroll);
 			return (0);
 		case Scroll_control_Bell:
@@ -98,7 +103,7 @@ int NEAR Scroll_WriteControl(ScrollInfo_t* pScroll, HWND hWnd, Scroll_control2_t
 			}
 			return (0);
 		case Scroll_control_clearEol:
-			memset(pScroll->abScreen + (pScroll->nRow)*pScroll->maxCols + pScroll->nColumn, ' ', pScroll->maxCols - pScroll->nColumn);
+			memset(pScroll->screenBuf + (pScroll->nRow)*pScroll->maxCols + pScroll->nColumn, ' ', pScroll->maxCols - pScroll->nColumn);
 			InvalidateRect(hWnd, 0, FALSE);
 			return (0);
 		case Scroll_control_goto:
@@ -117,15 +122,15 @@ int NEAR Scroll_WriteControl(ScrollInfo_t* pScroll, HWND hWnd, Scroll_control2_t
 		}
 	}
 
-int NEAR Scroll_writeLiteral(ScrollInfo_t* pScroll, HWND hWnd, LPSTR lpBlock, int nLength)
+int Scroll_writeLiteral(ScrollInfo_t* pScroll, HWND hWnd, LPSTR lpBlock, int nLength)
 	{
 	int		  i ;
 	RECT		 rect ;
-int NEAR Scroll_writeInterpreted(ScrollInfo_t* pScroll, HWND hWnd, LPSTR lpBlock, int nLength);
+int Scroll_writeInterpreted(ScrollInfo_t* pScroll, HWND hWnd, LPSTR lpBlock, int nLength);
 
 	for (i = 0 ; i < nLength; i++)
 		{
-		*(pScroll->abScreen + pScroll->nRow * pScroll->maxCols + pScroll->nColumn) = lpBlock[i];
+		*(pScroll->screenBuf + pScroll->nRow * pScroll->maxCols + pScroll->nColumn) = lpBlock[i];
 		rect.left = (pScroll->nColumn * pScroll->xChar) -	pScroll->xOffset;
 		rect.right = rect.left + pScroll->xChar;
 		rect.top = (pScroll->nRow * pScroll->yChar) -	pScroll->yOffset;
@@ -145,7 +150,14 @@ int NEAR Scroll_writeInterpreted(ScrollInfo_t* pScroll, HWND hWnd, LPSTR lpBlock
 	return (TRUE);
 	}
 
-int NEAR Scroll_writeInterpreted(ScrollInfo_t* pScroll, HWND hWnd, LPSTR lpBlock, int nLength)
+// interpretable keycodes
+#define SCROLL_BELL      0x07
+#define SCROLL_BS        0x08
+#define SCROLL_TAB       0x09
+#define SCROLL_LF        0x0A
+#define SCROLL_CR        0x0D
+
+int Scroll_writeInterpreted(ScrollInfo_t* pScroll, HWND hWnd, LPSTR lpBlock, int nLength)
 	{
 	int		  i ;
 
@@ -153,25 +165,25 @@ int NEAR Scroll_writeInterpreted(ScrollInfo_t* pScroll, HWND hWnd, LPSTR lpBlock
 		{
 		switch (lpBlock[i])
 			{
-			case ASCII_BEL:
+			case SCROLL_BELL:
 				Scroll_WriteControl(pScroll, hWnd, Scroll_control_Bell, 0, 0);
 				break ;
 
-			case ASCII_BS:
+			case SCROLL_BS:
 				Scroll_WriteControl(pScroll, hWnd, Scroll_control_BS, 0, 0);
 				break;
 
-			case ASCII_TAB:
+			case SCROLL_TAB:
 				Scroll_WriteControl(pScroll, hWnd, Scroll_control_Tab, 0, 0);
 				break;
 
-			case ASCII_CR:
+			case SCROLL_CR:
 				Scroll_WriteControl(pScroll, hWnd, Scroll_control_CR, 0, 0);
 				if (pScroll->control  & Scroll_control_crBegetsLf)
 					Scroll_WriteControl(pScroll, hWnd, Scroll_control_LF, 0, 0);
 				break;
 
-			case ASCII_LF:
+			case SCROLL_LF:
 				if (pScroll->control  & Scroll_control_lfBegetsCr)
 					Scroll_WriteControl(pScroll, hWnd, Scroll_control_CR, 0, 0);
 				Scroll_WriteControl(pScroll, hWnd, Scroll_control_LF, 0, 0);
@@ -185,7 +197,7 @@ int NEAR Scroll_writeInterpreted(ScrollInfo_t* pScroll, HWND hWnd, LPSTR lpBlock
 	return (TRUE);
 	} // end of Scroll_writeInterpreted()
 
-int NEAR Scroll_WriteBlock(ScrollInfo_t* pScroll, HWND hWnd, LPSTR lpBlock, int nLength)
+int Scroll_WriteBlock(ScrollInfo_t* pScroll, HWND hWnd, LPSTR lpBlock, int nLength)
 	{
 	if (pScroll->control & Scroll_control_literal)
 		return (Scroll_writeLiteral(pScroll, hWnd, lpBlock, nLength));
@@ -193,7 +205,7 @@ int NEAR Scroll_WriteBlock(ScrollInfo_t* pScroll, HWND hWnd, LPSTR lpBlock, int 
 		return (Scroll_writeInterpreted(pScroll, hWnd, lpBlock, nLength));
 	}
 
-int NEAR Scroll_SetSize(ScrollInfo_t* pScroll, HWND hWnd, WORD wVertSize, WORD wHorzSize)
+int Scroll_SetSize(ScrollInfo_t* pScroll, HWND hWnd, WORD wVertSize, WORD wHorzSize)
 	{
 	int		  nScrollAmt ;
 
@@ -220,7 +232,7 @@ int NEAR Scroll_SetSize(ScrollInfo_t* pScroll, HWND hWnd, WORD wVertSize, WORD w
 
 	} // end of Scroll_SetSize()
 
-int NEAR Scroll_SetVert(ScrollInfo_t* pScroll, HWND hWnd, WORD wScrollCmd, WORD wScrollPos)
+int Scroll_SetVert(ScrollInfo_t* pScroll, HWND hWnd, WORD wScrollCmd, WORD wScrollPos)
 	{
 	int		  nScrollAmt ;
 
@@ -269,7 +281,7 @@ int NEAR Scroll_SetVert(ScrollInfo_t* pScroll, HWND hWnd, WORD wScrollCmd, WORD 
 
 	} // end of Scroll_SetVert()
 
-int NEAR Scroll_SetHorz(ScrollInfo_t* pScroll, HWND hWnd, WORD wScrollCmd, WORD wScrollPos)
+int Scroll_SetHorz(ScrollInfo_t* pScroll, HWND hWnd, WORD wScrollCmd, WORD wScrollPos)
 	{
 	int		  nScrollAmt ;
 
@@ -317,30 +329,30 @@ int NEAR Scroll_SetHorz(ScrollInfo_t* pScroll, HWND hWnd, WORD wScrollCmd, WORD 
 	return ( TRUE ) ;
 	} // end of Scroll_SetHorz()
 
-int NEAR Scroll_SetFocus(HWND hWnd, ScrollInfo_t* pScroll)
+int Scroll_SetFocus(HWND hWnd, ScrollInfo_t* pScroll)
 	{
-	if (pScroll->wCursorState != CS_SHOW)
+	if (!(pScroll->cursorState & Scroll_cursorShow))
 		{
 		CreateCaret(hWnd, 0, pScroll->xChar, pScroll->yChar);
 		ShowCaret(hWnd);
-		pScroll->wCursorState = CS_SHOW;
+		pScroll->cursorState |= Scroll_cursorShow;
 		}
 	scroll_MoveCursor(pScroll);
 	return (TRUE);
 	} // end of Scroll_SetFocus()
 
-int NEAR Scroll_KillFocus(HWND hWnd, ScrollInfo_t* pScroll)
+int Scroll_KillFocus(HWND hWnd, ScrollInfo_t* pScroll)
 	{
-	if (pScroll->wCursorState != CS_HIDE)
+	if (pScroll->cursorState & Scroll_cursorShow)
 		{
 		HideCaret(hWnd);
 		DestroyCaret();
-		pScroll->wCursorState = CS_HIDE;
+		pScroll->cursorState &= ~Scroll_cursorShow;
 		}
 	return (TRUE);
 	} // end of Scroll_KillFocus()
 
-int NEAR Scroll_Paint(ScrollInfo_t* pScroll, FontInfo_t* pFont, HWND hWnd, int showCursor)
+int Scroll_Paint(ScrollInfo_t* pScroll, FontInfo_t* pFont, HWND hWnd, CursorState_t cursorState)
 	{
 	int			 nRow, nCol, nEndRow, nEndCol, nCount, nHorzPos, nVertPos ;
 	HDC			 hDC ;
@@ -368,17 +380,17 @@ int NEAR Scroll_Paint(ScrollInfo_t* pScroll, FontInfo_t* pFont, HWND hWnd, int s
 		rect.right = nHorzPos + pScroll->xChar * nCount ;
 		SetBkMode( hDC, OPAQUE ) ;
 		ExtTextOut( hDC, nHorzPos, nVertPos, ETO_OPAQUE | ETO_CLIPPED, &rect,
-						(LPSTR)( pScroll->abScreen + nRow * pScroll->maxCols + nCol ),
+						(LPSTR)( pScroll->screenBuf + nRow * pScroll->maxCols + nCol ),
 						nCount, 0 ) ;
 		}
 	SelectObject( hDC, hOldFont ) ;
 	EndPaint( hWnd, &ps ) ;
-	if (showCursor)
+	if (cursorState | Scroll_cursorShow)
 		scroll_MoveCursor(pScroll);
 	return ( TRUE ) ;
 	} // end of Scroll_Paint()
 
-int NEAR Scroll_ResetScreen(HWND hWnd, ScrollInfo_t* pScroll, FontInfo_t* pFont)
+int Scroll_ResetScreen(HWND hWnd, ScrollInfo_t* pScroll, FontInfo_t* pFont)
 	{
 	HDC			hDC ;
 	TEXTMETRIC  tm ;

@@ -235,7 +235,18 @@ $(FTP)/$(WWW_MACH)/$(PROD)_$(VC).a : $(PROD).a
 	-mkdir $(FTP)/$(WWW_MACH)
 	cp $(PROD).a $(FTP)/$(WWW_MACH)/$(PROD)_$(VC).a
 
-#	Source Distribution:
+#	Make a new branch (for main releases only)
+maindist : inc $(LEGAL) $(SOURCES)
+	(cd $(WWW)/..; WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
+	-f WWW/Library/Implementation/Version.make \
+	-f WWW/Library/Implementation/CommonMakefile \
+	$(FTP)/$(PROD)_$(VC)_src.tar.Z)
+	(cd $(WWW); cvs tag -b \
+	    `sed -e 's/VC = /v/' Library/Implementation/Version.make | sed -e 's?\.?/?'` \
+	    Library)
+	@echo MAIN RELEASE of Library version $(VC) up to date.
+
+#	Make a new CVS release
 distribute : inc $(LEGAL) $(SOURCES)
 	(cd $(WWW)/..; WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 	-f WWW/Library/Implementation/Version.make \
@@ -246,7 +257,7 @@ distribute : inc $(LEGAL) $(SOURCES)
 	    Library)
 	@echo Distribution of Library version $(VC) up to date.
 
-#	Source snapshot
+#	Source Snapshot without CVS update
 snapshot : inc $(LEGAL) $(SOURCES)
 	(cd $(WWW)/..; WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 	-f WWW/Library/Implementation/Version.make \
