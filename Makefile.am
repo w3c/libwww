@@ -96,35 +96,51 @@ inc:
 #	Hypertext supplied in text format
 #
 $(top_srcdir)/WELCOME : $(top_srcdir)/WELCOME.html
-	  $(WWW) -p -na $(top_srcdir)/WELCOME.html \
-		   -o $(top_srcdir)/WELCOME
+    ifdef WWW
+	  -$(WWW) -p -na $(top_srcdir)/WELCOME.html \
+		  -o $(top_srcdir)/WELCOME
+    endif
 
 $(top_srcdir)/README : $(top_srcdir)/README.html
-	  $(WWW) -p -na $(top_srcdir)/README.html \
-		   -o $(top_srcdir)/README
+    ifdef WWW
+	  -$(WWW) -p -na $(top_srcdir)/README.html \
+		  -o $(top_srcdir)/README
+    endif
 
 $(top_srcdir)/INSTALL : $(top_srcdir)/INSTALL.html
-	  $(WWW) -p -na $(top_srcdir)/INSTALL.html \
-		   -o $(top_srcdir)/INSTALL
+    ifdef WWW
+	  -$(WWW) -p -na $(top_srcdir)/INSTALL.html \
+		  -o $(top_srcdir)/INSTALL
+    endif
 
 $(top_srcdir)/TODO : $(top_srcdir)/Library/User/ToDo.html
+    ifdef WWW
 	  -$(CP) $(top_srcdir)/Library/User/ToDo.html $(top_srcdir)/TODO.html
-	  $(WWW) -p -na $(top_srcdir)/TODO.html \
-		   -o $(top_srcdir)/TODO
+	  -$(WWW) -p -na $(top_srcdir)/TODO.html \
+		  -o $(top_srcdir)/TODO
+    endif
 
 $(top_srcdir)/NEWS : $(top_srcdir)/Library/User/ReleaseNotes.html
+    ifdef WWW
 	  -$(CP) $(top_srcdir)/Library/User/ReleaseNotes.html $(top_srcdir)/NEWS.html
-	  $(WWW) -p -na $(top_srcdir)/NEWS.html \
-		   -o $(top_srcdir)/NEWS
+	  -$(WWW) -p -na $(top_srcdir)/NEWS.html \
+		  -o $(top_srcdir)/NEWS
+    endif
 
 $(top_srcdir)/COPYRIGH : $(top_srcdir)/COPYRIGHT.html
-	  $(WWW) -p -na $(top_srcdir)/COPYRIGHT.html \
-		   -o $(top_srcdir)/COPYRIGH
+    ifdef WWW
+	  -$(WWW) -p -na $(top_srcdir)/COPYRIGHT.html \
+		  -o $(top_srcdir)/COPYRIGH
+    endif
 
 $(top_srcdir)/PATCHES : $(top_srcdir)/PATCHES.html
-	  $(WWW) -p -na $(top_srcdir)/PATCHES.html \
-		   -o $(top_srcdir)/PATCHES
+    ifdef WWW
+	  -$(WWW) -p -na $(top_srcdir)/PATCHES.html \
+		  -o $(top_srcdir)/PATCHES
+    endif
 
 $(top_srcdir)/CERN : $(top_srcdir)/CERN.html
-	  $(WWW) -p -na $(top_srcdir)/CERN.html \
-		   -o $(top_srcdir)/CERN
+    ifdef WWW
+	  -$(WWW) -p -na $(top_srcdir)/CERN.html \
+		  -o $(top_srcdir)/CERN
+    endif

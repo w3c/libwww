@@ -9,7 +9,21 @@ SUBDIRS = windows vms
 #	self-documenting hypertext files.
 SUFFIXES = .h .html .txt
 .html.h:
-	www -w90 -na -p -to text/x-c $(srcdir)/$(*F).html > $(srcdir)/$(*F).h
+    ifdef WWW
+	$(WWW) -w90 -na -p -to text/x-c $(srcdir)/$(*F).html -o $(srcdir)/$(*F).h
+    else
+	@echo "**************************************************"
+	@echo "Need to regenerate one or more .h files but can't find the libwww"
+	@echo "Line Mode Browser (www). Please run the following command:"
+	@echo ""
+	@echo 
+	@echo "	perl $(top_srcdir)/config/winConfigure.pl $(srcdir)"
+	@echo ""
+	@echo "to generate the .h files and then retry make. Don't mind"
+	@echo "any warning messages coming from the winConfigure.pl script."
+	@echo "**************************************************"
+	@exit 1
+    endif
 
 icondir = @icondir@
 CPPFLAGS := $(CPPFLAGS) -DW3C_ICONS=\"$(icondir)\"
