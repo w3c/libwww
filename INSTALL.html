@@ -24,7 +24,7 @@ with <A HREF="http://www.delorie.com/gnu/docs/autoconf/">GNU Autoconf</A>.
 <P>
 The <I>configure</I> shell script attempts to guess correct values for various
 system-dependent variables used during compilation. It uses those values
-to create a `Makefile' and a `config.h' file containing system-dependent
+to create a `Makefile' and a `wwwconf.h' file containing system-dependent
 definitions. <B></B>Finally, it creates a shell script `config.status' that
 you can run in the future to recreate the current configuration, a file
 `config.cache' that saves the results of its tests to speed up reconfiguring,
@@ -103,6 +103,15 @@ library for Win32</A>.
     Copy <CODE>gnu_regex.dll</CODE> into a location where Windows can find it,
     for example <CODE>.\Bin\Debug\</CODE>
 </OL>
+<H3>
+  SQL Access
+</H3>
+<P>
+If <CODE>HT_MYSQL</CODE> is defined in the
+<A HREF="Library/src/windows/config.h">windows config.h file</A> then libwww
+can use a <A HREF="http://www.tcx.se/">MySQL database</A> for handling
+<A HREF="Robot/User/CommandLine.html#Logging">logging</A> instead of plain
+text files. This has a <A HREF="Robot/www-sql/">huge set of advantages</A>.
 <H3>
   Detailed Installation
 </H3>

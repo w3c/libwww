@@ -48,6 +48,23 @@ These are the things that are upcoming in the next release
 </H3>
 <UL>
   <LI>
+    Added support for building libwww as a shared library on Unix (it is already
+    using DLLs on Windows). If you have any problems with shared libraries on
+    your platform then <A HREF="../../INSTALL.html">run configure</A> with the
+    <CODE>--disable-shared</CODE> flag and you will only get the static version.
+    If you are using libwww as a shared library but do <EM>not</EM> use the
+    <A HREF="../src/WWWHTML.html">libwww HTML parser</A> then you MUST include
+    this <A HREF="../src/HTextImp.html">dummy implementation</A> of the
+    <A HREF="../src/HText.html">HText interface</A> somewhere in your code.
+  <LI>
+    Added support for <A HREF="http://www.tcx.se/">MySQL</A> access. Currently
+    I use this for <A HREF="../src/HTSQLLog.html">handling logging</A> in
+    <A HREF="../../Robot/User/CommandLine.html#Logging">the webbot </A>but many
+    other features like persistent caching, preferences, etc. can use this. You
+    can also see some cool examples of how to use the robot's logs when querying
+    <A HREF="http://www.tcx.se/">MySQL</A> through
+    <A HREF="http://www.daa.com.au/~james/www-sql/">www-sql</A>.
+  <LI>
     Changed the name of "<TT>config.h</TT>" to "<TT>wwwconf.h</TT>" as the
     <A HREF="http://lists.w3.org/Archives/Public/www-lib/1998JanMar/0039.html">first
     name caused conflicts with other packages</A>
