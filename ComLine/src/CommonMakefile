@@ -72,7 +72,7 @@ SOURCES=$(CFILES) $(HFILES) \
 	$(WWW)/BUILD.SH
 
 ICONS = $(ICON)/WWW/Bug48x.gif \
-	$(ICON)/WWW/LMB48x.gif \
+	$(ICON)/WWW/lines48x.gif \
 	$(ICON)/WWW/w3c_48x48.gif \
 	$(ICON)/WWW/doc48x.gif \
 	$(ICON)/WWW/guide48x.gif \

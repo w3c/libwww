@@ -211,7 +211,7 @@ PUBLIC HTStream* HTBufWriter_new (HTNet *net, BOOL leave_open, int buf_size)
 /*	Subclass-specific Methods
 **	-------------------------
 */
-#if defined (NOT_ASCII) || defined (WWW_WIN_DLL)
+#ifdef NOT_ASCII
 PUBLIC HTStream * HTASCIIWriter (HTNet *net, BOOL leave_open)
 {
     HTStream * me = (HTStream *) calloc(1, sizeof(*me));
@@ -223,4 +223,8 @@ PUBLIC HTStream * HTASCIIWriter (HTNet *net, BOOL leave_open)
     me->net = net;
     return me;
 }
-#endif
+#else
+#ifdef WWW_WIN_DLL
+PUBLIC HTStream * HTASCIIWriter (HTNet *net, BOOL leave_open) {}
+#endif /* WWW_WIN_DLL */
+#endif /* NOT_ASCII */

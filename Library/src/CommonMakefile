@@ -164,6 +164,7 @@ SPECIFIC = \
 	$(WWW)/All/Implementation/Makefile \
 	$(DOC)/Patch/*.fix \
 	$(WIN)/Makefile \
+	$(WIN)/*.bat \
 	$(WIN)/*.pl \
 	$(EXP)/*.c \
 	$(WIN)/*.mak \

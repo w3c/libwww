@@ -52,11 +52,11 @@ $(OUTDIR) :
 # ADD MTL /nologo /D "NDEBUG" /win32
 MTL_PROJ=/nologo /D "NDEBUG" /win32 
 # ADD BASE CPP /nologo /W3 /GX /YX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /FR /c
-# ADD CPP /nologo /W3 /GX /YX /O2 /I "..\..\..\Library\Implementation" /I "..\..\..\Pics\Implementation" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_ASYNC" /D "WWW_WIN_DLL" /D "WWW_PICS" /FR /c
+# ADD CPP /nologo /W3 /GX /YX /O2 /I "..\..\..\Library\Implementation" /I "..\..\..\Pics\Implementation" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_ASYNC" /D "WWW_WIN_DLL" /FR /c
 CPP_PROJ=/nologo /W3 /GX /YX /O2 /I "..\..\..\Library\Implementation" /I\
  "..\..\..\Pics\Implementation" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D\
- "WWW_WIN_ASYNC" /D "WWW_WIN_DLL" /D "WWW_PICS" /FR$(INTDIR)/\
- /Fp$(OUTDIR)/"www.pch" /Fo$(INTDIR)/ /c 
+ "WWW_WIN_ASYNC" /D "WWW_WIN_DLL" /FR$(INTDIR)/ /Fp$(OUTDIR)/"www.pch"\
+ /Fo$(INTDIR)/ /c 
 CPP_OBJS=.\WinRel/
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
@@ -91,8 +91,7 @@ BSC32_SBRS= \
 	.\WinRel\HTBrowse.sbr \
 	.\WinRel\DefaultStyles.sbr \
 	.\WinRel\HTMLPDTD.sbr \
-	.\WinRel\SGML.sbr \
-	.\WinRel\wwwpics.sbr
+	.\WinRel\SGML.sbr
 
 .\WinRel\www.bsc : $(OUTDIR)  $(BSC32_SBRS)
     $(BSC32) @<<
@@ -142,8 +141,7 @@ LINK32_OBJS= \
 	.\WinRel\DefaultStyles.obj \
 	.\WinRel\HTMLPDTD.obj \
 	.\WinRel\SGML.obj \
-	.\WinRel\www.res \
-	.\WinRel\wwwpics.obj
+	.\WinRel\www.res
 
 .\WinRel\www.exe : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -172,11 +170,11 @@ $(OUTDIR) :
 # ADD MTL /nologo /D "_DEBUG" /win32
 MTL_PROJ=/nologo /D "_DEBUG" /win32 
 # ADD BASE CPP /nologo /W3 /GX /Zi /YX /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /FR /c
-# ADD CPP /nologo /W3 /GX /Zi /YX /Od /I "..\..\..\Library\Implementation" /I "..\..\..\Pics\Implementation" /D "_DEBUG" /D "DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_ASYNC" /D "WWW_WIN_DLL" /D "WWW_PICS" /FR /c
+# ADD CPP /nologo /W3 /GX /Zi /YX /Od /I "..\..\..\Library\Implementation" /I "..\..\..\Pics\Implementation" /D "_DEBUG" /D "DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_ASYNC" /D "WWW_WIN_DLL" /FR /c
 CPP_PROJ=/nologo /W3 /GX /Zi /YX /Od /I "..\..\..\Library\Implementation" /I\
  "..\..\..\Pics\Implementation" /D "_DEBUG" /D "DEBUG" /D "WIN32" /D "_WINDOWS"\
- /D "WWW_WIN_ASYNC" /D "WWW_WIN_DLL" /D "WWW_PICS" /FR$(INTDIR)/\
- /Fp$(OUTDIR)/"www.pch" /Fo$(INTDIR)/ /Fd$(OUTDIR)/"www.pdb" /c 
+ /D "WWW_WIN_ASYNC" /D "WWW_WIN_DLL" /FR$(INTDIR)/ /Fp$(OUTDIR)/"www.pch"\
+ /Fo$(INTDIR)/ /Fd$(OUTDIR)/"www.pdb" /c 
 CPP_OBJS=.\WinDebug/
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
@@ -211,8 +209,7 @@ BSC32_SBRS= \
 	.\WinDebug\HTBrowse.sbr \
 	.\WinDebug\DefaultStyles.sbr \
 	.\WinDebug\HTMLPDTD.sbr \
-	.\WinDebug\SGML.sbr \
-	.\WinDebug\wwwpics.sbr
+	.\WinDebug\SGML.sbr
 
 .\WinDebug\www.bsc : $(OUTDIR)  $(BSC32_SBRS)
     $(BSC32) @<<
@@ -262,8 +259,7 @@ LINK32_OBJS= \
 	.\WinDebug\DefaultStyles.obj \
 	.\WinDebug\HTMLPDTD.obj \
 	.\WinDebug\SGML.obj \
-	.\WinDebug\www.res \
-	.\WinDebug\wwwpics.obj
+	.\WinDebug\www.res
 
 .\WinDebug\www.exe : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -816,26 +812,6 @@ DEP_WWW_R=\
 
 .\WinDebug\www.res :  $(SOURCE)  $(DEP_WWW_R) $(INTDIR)
    $(RSC) $(RSC_PROJ)  $(SOURCE) 
-
-!ENDIF 
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=\PROJECTS\LIBWWW\WWW\Pics\Implementation\wwwpics.c
-DEP_WWWPI=\
-	\PROJECTS\LIBWWW\WWW\Pics\Implementation\wwwpics.h
-
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\wwwpics.obj :  $(SOURCE)  $(DEP_WWWPI) $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\wwwpics.obj :  $(SOURCE)  $(DEP_WWWPI) $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
 
 !ENDIF 
 

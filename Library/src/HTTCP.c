@@ -155,7 +155,7 @@ PUBLIC unsigned int HTCardinal (int *		pstatus,
 /*	       		        SIGNAL HANDLING 			     */
 /* ------------------------------------------------------------------------- */
 
-#if defined(WWWLIB_SIG) || defined(WWW_WIN_DLL)
+#ifdef WWWLIB_SIG
 /*								    HTSetSignal
 **  This function sets up signal handlers. This might not be necessary to
 **  call if the application has its own handlers.
@@ -173,6 +173,10 @@ PUBLIC void HTSetSignal (void)
 	if (PROT_TRACE) TTYPrint(TDEST, "HTSignal.... Ignoring SIGPIPE\n");
     }
 }
+#else
+#ifdef WWW_WIN_DLL
+PUBLIC void HTSetSignal (void) {}
+#endif /* WWW_WIN_DLL */
 #endif /* WWWLIB_SIG */
 
 /* ------------------------------------------------------------------------- */

@@ -43,7 +43,7 @@
 **		Please see coding style guide before changing indentation etc!
 **     Mar 93:	Force on HTFile's HTDirAccess and HTDirReadme flags.
 **   3 Nov 93:	(MD) Changed vms into VMS
-**		(MD) Assigne output in main, not at initialize (VMS only)
+**		(MD) Assigne OUTPUT in main, not at initialize (VMS only)
 **
 ** Compilation-time macro options
 **
@@ -167,7 +167,9 @@ typedef struct _Context {
     LineMode *		lm;
 } Context;
 
+#ifndef _WINDOWS
 PRIVATE FILE *		output = STDOUT;
+#endif
  
 /* ------------------------------------------------------------------------- */
 
@@ -281,7 +283,9 @@ PRIVATE BOOL LineMode_delete (LineMode * lm)
 	HTHistory_delete(lm->history);
 	FREE(lm->cwd);
 	if (lm->logfile) HTLog_close();
-	if (output && output != STDOUT) fclose(output);
+#ifndef _WINDOWS
+	if (OUTPUT && OUTPUT != STDOUT) fclose(OUTPUT);
+#endif
 	free(lm);
 	return YES;
     }
@@ -304,7 +308,7 @@ PRIVATE void Cleanup (LineMode * me, int status)
 #ifdef GET_SCREEN_SIZE
 #include <sys/ioctl.h>
 /*
-** Get size of the output screen. Stolen from less.
+** Get size of the OUTPUT screen. Stolen from less.
 */
 PRIVATE void scrsize (int * p_height, int * p_width)
 {
@@ -366,10 +370,10 @@ PRIVATE void Reference_List (LineMode * lm, BOOL titles)
 {
     int refs = HText_sourceAnchors(HTMainText);
     if (refs <= 0) {
-	TTYPrint(output,"\n\nThere are no references from this document.\n\n");
+	TTYPrint(OUTPUT,"\n\nThere are no references from this document.\n\n");
     } else {
 	int cnt;
-	TTYPrint(output, "\n*** References from this document ***\n");
+	TTYPrint(OUTPUT, "\n*** References from this document ***\n");
 	for (cnt=1; cnt<=refs; cnt++) {
 	    HTAnchor *dest =
 		HTAnchor_followMainLink((HTAnchor *)
@@ -377,13 +381,15 @@ PRIVATE void Reference_List (LineMode * lm, BOOL titles)
 	    HTParentAnchor * parent = HTAnchor_parent(dest);
 	    char * address =  HTAnchor_address(dest);
 	    CONST char * title = titles ? HTAnchor_title(parent) : NULL;
-	    TTYPrint(output, reference_mark, cnt);
-	    TTYPrint(output, "%s%s\n",
+	    TTYPrint(OUTPUT, reference_mark, cnt);
+	    TTYPrint(OUTPUT, "%s%s\n",
 		    ((HTAnchor*)parent!=dest) && title ? "in " : "",
 		    (char *)(title ? title : address));
 	    free(address);
 	}
-	fflush(output);
+#ifndef _WINDOWS
+	fflush(OUTPUT);
+#endif
     }
 }      
 
@@ -396,25 +402,25 @@ PRIVATE void History_List (LineMode * lm)
     int current = HTHistory_position(lm->history);
     int max = HTHistory_count(lm->history);
     int cnt;
-    TTYPrint(output, "\n  Documents you have visited: ");
+    TTYPrint(OUTPUT, "\n  Documents you have visited: ");
     if (max > MAX_HISTORY) {
 	max = MAX_HISTORY;
-	TTYPrint(output, "(truncated)\n");
+	TTYPrint(OUTPUT, "(truncated)\n");
     } else
-	TTYPrint(output, "\n");
+	TTYPrint(OUTPUT, "\n");
     for (cnt=1; cnt<=max; cnt++) {
 	HTAnchor *anchor = HTHistory_list(lm->history, cnt);
     	char *address = HTAnchor_address(anchor);
 	HTParentAnchor *parent = HTAnchor_parent(anchor);
 	CONST char *title = HTAnchor_title(parent);
-	TTYPrint(output, "%s R %d\t%s%s\n",
+	TTYPrint(OUTPUT, "%s R %d\t%s%s\n",
 	       (cnt==current) ? "*" : " ",
 	       cnt,
 	       ((HTAnchor*)parent!=anchor) && title ? "in " : "",
 	       title ? title : address);
 	free(address);
     }
-    TTYPrint(output, "\n");
+    TTYPrint(OUTPUT, "\n");
 }
 
 /*	Prompt for answer and get text back. Reply text is either NULL on
@@ -473,28 +479,28 @@ PRIVATE void MakeCommandLine (LineMode * lm, BOOL is_index)
     if (HTAnchor_hasChildren(HTMainAnchor)) {
 	int refs = HText_sourceAnchors(HTMainText);
 	if (refs>1)
-	    TTYPrint(output, "1-%d, ", refs);
+	    TTYPrint(OUTPUT, "1-%d, ", refs);
 	else
-	    TTYPrint(output, "1, ");	
+	    TTYPrint(OUTPUT, "1, ");	
     }
     if (HText_canScrollUp(HTMainText)) {
-	TTYPrint(output, "Top, ");
-	TTYPrint(output, "Up, ");
+	TTYPrint(OUTPUT, "Top, ");
+	TTYPrint(OUTPUT, "Up, ");
     }
     if (HText_canScrollDown(HTMainText)) {
-	TTYPrint(output, "BOttom, ");
-	TTYPrint(output, "Down or <RETURN> for more,");
+	TTYPrint(OUTPUT, "BOttom, ");
+	TTYPrint(OUTPUT, "Down or <RETURN> for more,");
     }
 
     /* Second Line */
-    TTYPrint(output, "\n");
+    TTYPrint(OUTPUT, "\n");
     if (HTHistory_canBacktrack(lm->history))
-	TTYPrint(output, "Back, ");
+	TTYPrint(OUTPUT, "Back, ");
     if (HTHistory_canForward(lm->history))
-	TTYPrint(output, "Forward, ");
+	TTYPrint(OUTPUT, "Forward, ");
     if (is_index)
-	TTYPrint(output, "FIND <keywords>, ");
-    TTYPrint(output, "Quit, or Help: ");	
+	TTYPrint(OUTPUT, "FIND <keywords>, ");
+    TTYPrint(OUTPUT, "Quit, or Help: ");	
     fflush(stdout);  	           	  /* For use to flush out the prompt */
     return;
 }
@@ -1315,7 +1321,7 @@ int main (int argc, char ** argv)
 		lm->flags |= LM_REFS;
 		HTAlert_setInteractive(NO);
 
-	    /* original output */
+	    /* original OUTPUT */
 	    } else if (!strcmp(argv[arg], "-raw")) {
 		HTRequest_setOutputFormat(lm->request, WWW_RAW);
 		HTAlert_setInteractive(NO);
@@ -1331,7 +1337,7 @@ int main (int argc, char ** argv)
 		HTRequest_setOutputFormat(lm->request, WWW_MIME);
 		HTAlert_setInteractive(NO);
 
-	    /* output filename */
+	    /* OUTPUT filename */
 	    } else if (!strcmp(argv[arg], "-o")) { 
 		lm->outputfile = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    argv[++arg] : DEFAULT_OUTPUT_FILE;
@@ -1578,14 +1584,16 @@ int main (int argc, char ** argv)
 
     /* Open output file */
     if (!HTAlert_interactive()) {
+#ifndef _WINDOWS
 	if (lm->outputfile) {
-	    if ((output = fopen(lm->outputfile, "wb")) == NULL) {
+	    if ((OUTPUT = fopen(lm->outputfile, "wb")) == NULL) {
 		if (SHOW_MSG) TTYPrint(TDEST, "Can't open `%s'\\n",
 				       lm->outputfile);
-		output = OUTPUT;
+		OUTPUT = OUTPUT;
 	    }
 	}
-	HTRequest_setOutputStream(lm->request, HTFWriter_new(output, YES));
+	HTRequest_setOutputStream(lm->request, HTFWriter_new(OUTPUT, YES));
+#endif
 
 	/*
 	** To reformat HTML, just put it through a parser running
