@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>System dependencies in the W3 library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 13-Jul-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  8-Aug-1995 -->
 </HEAD>
 <BODY>
 
@@ -256,6 +256,7 @@ extern char asciitoebcdic[], ebcdictoascii[];
 #include &lt;string.h&gt;
 #define INCLUDES_DONE
 #define TCP_INCLUDES_DONE
+#define SIMPLE_TELNET
 #endif
 </PRE>
 
@@ -597,6 +598,10 @@ unix file descriptor less than 10.  It works.
 #endif  /* of Multinet or other TCP includes */
 
 #define TCP_INCLUDES_DONE
+
+#ifdef UCX
+#define SIMPLE_TELNET
+#endif
 </PRE>
 
 On VMS directory browsing is available through a separate
@@ -825,6 +830,7 @@ This is for NCR 3000 and Pyramid that also are SVR4 systems. Thanks to
 <PRE>
 #ifdef decstation
 #define NO_TIMEZONE					/* Ultrix has gmtoff */
+#define RLOGIN_USER
 #endif
 </PRE>
 
