@@ -83,9 +83,17 @@ PRIVATE char *HTCacheRoot = "/tmp/W3_Cache_";   /* Where to cache things */
 */
 
 PRIVATE HTList * HTSuffixes = 0;
+PRIVATE HTAtom * no_suffix_representation = NULL;
+PRIVATE HTAtom * unknown_suffix_representation = NULL;
+
 
 /*	Define the representation associated with a file suffix
 **	-------------------------------------------------------
+**
+**	Calling this with suffix set to "*" will set the default
+**	representation.
+**	Calling this with suffix set to "*.*" will set the default
+**	representation for unknown suffix files which contain a ".".
 */
 PUBLIC void HTSetSuffix ARGS3(
 	CONST char *,	suffix,
@@ -93,7 +101,19 @@ PUBLIC void HTSetSuffix ARGS3(
 	float,		value)
 {
     
-    HTSuffix * suff = (HTSuffix*) calloc(1, sizeof(HTSuffix));
+    HTSuffix * suff;
+    
+    if (strcmp(suffix, "*")==0) {
+        no_suffix_representation = HTAtom_for(representation);
+        return;
+    }
+    
+    if (strcmp(suffix, "*.*")==0) {
+        unknown_suffix_representation = HTAtom_for(representation);
+        return;
+    }
+    
+    suff = (HTSuffix*) calloc(1, sizeof(HTSuffix));
     if (suff == NULL) outofmem(__FILE__, "HTSetSuffix");
     
     if (!HTSuffixes) HTSuffixes = HTList_new();
@@ -401,7 +421,16 @@ PUBLIC HTFormat HTFileFormat ARGS1 (CONST char *,filename)
 	    return suff->rep;		/* OK -- found */
 	}
     }
-    return strchr(filename, '.') ? WWW_BINARY : WWW_PLAINTEXT;	/* Dunno */
+    
+    /* default tree */
+    
+    return strchr(filename, '.') ? 	/* Unknown suffix */
+    	 ( unknown_suffix_representation ? unknown_suffix_representation
+	   : no_suffix_representation ? no_suffix_representation
+	   : WWW_BINARY)
+	: 				/* No suffix */
+    	 ( no_suffix_representation ? no_suffix_representation
+	   : WWW_PLAINTEXT);
 }
 
 

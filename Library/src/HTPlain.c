@@ -64,7 +64,7 @@ PRIVATE void HTPlain_write ARGS3(HTStream *, me, CONST char*, s, int, l)
 {
     CONST char* p;
     CONST char* e = s+l;
-    for (p=s; s<e; p++) HText_appendCharacter(me->text, *p);
+    for (p=s; p<e; p++) HText_appendCharacter(me->text, *p);
 }
 
 
