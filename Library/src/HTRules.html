@@ -43,6 +43,8 @@ typedef enum _HTRuleOp {
 
 #ifdef SHORT_NAMES
 #define HTSearSc HTSearchScript
+#define HTPutScr HTPutScript
+#define HTPostSc HTPostScript
 #endif /*SHORT_NAMES*/
 
 </PRE>
@@ -60,6 +62,8 @@ in BinDir doing the actual search by <CODE>search</CODE> rule
 <PRE>
 extern char * HTBinDir;		/* Physical /htbin location */
 extern char * HTSearchScript;	/* Search script name */
+extern char * HTPutScript;	/* Script handling PUT */
+extern char * HTPostScript;	/* Script handling POST */
 
 </PRE>
 <H2>HTAddRule:  Add rule to the list</H2>

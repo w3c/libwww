@@ -930,7 +930,7 @@ PUBLIC int HTLoadNews ARGS1(HTRequest *,		request)
 		sprintf(message,
 "\nCould not access %s.\n\n (Check default WorldWideWeb NewsHost ?)\n",
 		    HTNewsHost);
-		return HTLoadError(request->output_stream, 500, message);
+		return HTLoadError(request, 500, message);
 	    } else {
 		if (TRACE) fprintf(stderr, "HTNews: Connected to news host %s.\n",
 				HTNewsHost);
@@ -943,7 +943,7 @@ PUBLIC int HTLoadNews ARGS1(HTRequest *,		request)
 			sprintf(message, 
 		  "Can't read news info. News host %.20s responded: %.200s",
 		  	    HTNewsHost, response_text);
-		        return HTLoadError(request->output_stream, 500, message);
+		        return HTLoadError(request, 500, message);
 		}
 	    }
 	} /* If needed opening */

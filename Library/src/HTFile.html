@@ -94,21 +94,37 @@ important (normally, yes!)
 <DD> is MIME-style <A
 NAME="z0" HREF="../../Protocols/rfc1341/5_Content-Transfer-Encoding.html#z0">content-transfer-encoding</A>
 (8bit, 7bit, etc)
+<DT>language
+<DD>is MIME-style content-language
 <DT>quality
 <DD> an a priori judgement of
 the quality of such files (0.0..1.0)
 </DL>
 
-<PRE>/* Example:   HTSetSuffix(".ps", "application/postscript", "8bit", 1.0);
-**
+<PRE>
+/*
+** Example:  HTSetSuffix(".ps", "application/postscript", "8bit", NULL, 1.0);
 */
 
-extern void HTSetSuffix PARAMS((
-	CONST char *	suffix,
-	CONST char *	representation,
-	CONST char *	encoding,
-	float		quality));
-	
+PUBLIC void HTSetSuffix PARAMS((CONST char *	suffix,
+			       CONST char *	representation,
+			       CONST char *	encoding,
+			       CONST char *	language,
+			       float		quality));
+
+PUBLIC void HTAddType PARAMS((CONST char *	suffix,
+			      CONST char *	representation,
+			      CONST char *	encoding,
+			      float		quality));
+
+PUBLIC void HTAddEncoding PARAMS((CONST char *	suffix,
+				  CONST char *	encoding,
+				  float		quality));
+
+PUBLIC void HTAddLanguage PARAMS((CONST char *	suffix,
+				  CONST char *	language,
+				  float		quality));
+
 
 </PRE>
 <H2>HTFileFormat: Get Representation

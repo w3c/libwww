@@ -606,7 +606,7 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
      }
      
      if (!ok)
-	 return HTLoadError(sink, 500, "Syntax error in WAIS URL");
+	 return HTLoadError(request, 500, "Syntax error in WAIS URL");
 
      if (TRACE) fprintf(stderr, "HTWAIS: Parsed OK\n");
      
@@ -624,7 +624,7 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 	     "%sCan't open connection to %s via service %s.\n",
 	     error_header, server_name, service);
 	 free(names);
-	 return HTLoadError(sink, 500, "Can't open connection to WAIS server");
+	 return HTLoadError(request, 500, "Can't open connection to WAIS server");
     }
 
     StrAllocCopy(wais_database,www_database);
@@ -770,7 +770,7 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 
 
 	target = HTStreamStack(format_in, request);
-	if (!target) return HTLoadError(sink, 500,
+	if (!target) return HTLoadError(request, 500,
 		"Can't convert format of WAIS document");
 /*	Decode hex or litteral format for document ID
 */	

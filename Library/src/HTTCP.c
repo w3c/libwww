@@ -18,6 +18,7 @@
 #define HTParseInet		HTPaInet
 #endif
 
+
 /*	Module-Wide variables
 */
 
@@ -209,7 +210,7 @@ PUBLIC int HTParseInet ARGS2(SockA *,sin, CONST char *,str)
 
 /*	Parse port number if present
 */    
-    if (port=strchr(host, ':')) {
+    if ((port=strchr(host, ':'))) {
     	*port++ = 0;		/* Chop off port */
         if (port[0]>='0' && port[0]<='9') {
 
@@ -281,15 +282,46 @@ PUBLIC int HTParseInet ARGS2(SockA *,sin, CONST char *,str)
 }
 
 
+/*
+**	Get host name of the machine on the other end of a socket.
+*/
+PUBLIC char * HTGetHostName ARGS1(int, soc)
+{
+    struct sockaddr addr;
+    int len = sizeof(struct sockaddr);
+    struct in_addr *iaddr;
+    struct hostent * phost;		/* Pointer to host -- See netdb.h */
+    char *name = NULL;
+
+#ifdef DECNET  /* Decnet ain't got no damn name server 8#OO */
+    return NULL;
+#else
+    if (getpeername(soc, &addr, &len) < 0)
+	return NULL;
+
+    iaddr = &(((struct sockaddr_in *)&addr)->sin_addr);
+    phost=gethostbyaddr((char*)iaddr,
+			sizeof(struct in_addr),
+			AF_INET);
+    if (!phost) {
+	if (TRACE) fprintf(stderr,
+			   "TCP: Can't find internet node name for peer!!\n");
+	return NULL;
+    }
+    StrAllocCopy(name, phost->h_name);
+    if (TRACE) fprintf(stderr, "TCP: Peer name is `%s'\n", name);
+
+    return name;
+
+#endif	/* not DECNET */
+}
+
+
 /*	Derive the name of the host on which we are
 **	-------------------------------------------
 **
 */
-#ifdef __STDC__
-PRIVATE void get_host_details(void)
-#else
-PRIVATE void get_host_details()
-#endif
+PRIVATE void get_host_details NOARGS
 
 #ifndef MAXHOSTNAMELEN
 #define MAXHOSTNAMELEN 64		/* Arbitrary limit */
@@ -297,9 +329,7 @@ PRIVATE void get_host_details()
 
 {
     char name[MAXHOSTNAMELEN+1];	/* The name of this host */
-#ifdef NEED_HOST_ADDRESS		/* no -- needs name server! */
     struct hostent * phost;		/* Pointer to host -- See netdb.h */
-#endif
     int namelength = sizeof(name);
     
     if (hostname) return;		/* Already done */
@@ -308,7 +338,6 @@ PRIVATE void get_host_details()
     StrAllocCopy(hostname, name);
 
 #ifndef DECNET  /* Decnet ain't got no damn name server 8#OO */
-#ifdef NEED_HOST_ADDRESS		/* no -- needs name server! */
     phost=gethostbyname(name);		/* See netdb.h */
     if (!phost) {
 	if (TRACE) fprintf(stderr, 
@@ -317,10 +346,13 @@ PRIVATE void get_host_details()
 	return;  /* Fail! */
     }
     StrAllocCopy(hostname, phost->h_name);
+    CTRACE(tfp, "TCP: Full local host name is %s\n", hostname);
+
+#ifdef NEED_HOST_ADDRESS		/* no -- needs name server! */
     memcpy(&HTHostAddress, &phost->h_addr, phost->h_length);
     if (TRACE) fprintf(stderr, "     Name server says that I am `%s' = %s\n",
 	    hostname, HTInetString(&HTHostAddress));
-#endif
+#endif /* NEED_HOST_ADDRESS */
 
 #endif /* not Decnet */
 }

@@ -23,7 +23,6 @@ NAME="z0" HREF="Overview.html">libwww library</A> .
 */
 #include "HTUtils.h"
 #include "tcp.h"
-#include "HTGroup.h"	/* HTAAFailReason */
 
 
 #ifdef SHORT_NAMES
@@ -48,8 +47,7 @@ typedef int (*HTRetryCallbackType) PARAMS((HTRequest * req));
 #include "HTAnchor.h"
 #include <A
 NAME="z3" HREF="HTFormat.html">"HTFormat.h"</A>
-#include "HTAAUtil.h"		/* HTAAScheme */
-#include "HTAuth.h"		/* HTAAUser */
+#include "HTAAUtil.h"		/* HTAAScheme, HTAAFailReason */
 #include "HTAABrow.h"		/* HTAASetup */
 
 
@@ -108,9 +106,12 @@ is also a <A
 NAME="z4" HREF="HTFormat.html#z17">global list of converters</A>
 .
 <PRE>struct _HTRequest {
-	HTList * 	<A
-NAME="z5">conversions</A> ;	/* conversions allowed in this case */
+	HTList * 	<A NAME="z5">conversions</A> ;
+					/* conversions allowed in this case */
+	HTList *	encodings;	/* allowed content-encodings	  */
+	HTList *	languages;	/* accepted content-languages	  */
 	char *		from;		/* On behalf of whom? */
+	char *		user_agent;	/* Browser software		  */
 	HTStream*	output_stream;	/* For non-interactive, set this */ 
 	HTAtom * 	output_format;	/* To convert on load, set this */
 	BOOL		(*callback) PARAMS((
@@ -121,21 +122,32 @@ NAME="z5">conversions</A> ;	/* conversions allowed in this case */
 	void *		using_cache;	/* pointer to cache element if cache hit */
 	HTAtom *	method;		/* HTTP method */
 	HTChildAnchor *	childAnchor;	/* For element within the object */
-	int		content_length;	/* MIME message Content-Length	  */
+	HTAtom *	content_type;	/* Content-Type:		  */
+	int		content_length;	/* Content-Length:		  */
+	char *		last_modified;	/* Last-Modified:		  */
+	char *		message_id;	/* Message-Id:			  */
+	HTList *	allowed;	/* Allowed: (list of HTAtoms)	  */
+	HTList *	public;		/* Public: (list of HTAtoms)	  */
 	int		status_code;	/* HTTP status code		  */
 	char *		reason_line;	/* Reason for failing		  */
 	/*
 	** Server side info about request
 	*/
+	int		soc;		/* Socket from which request came */
+	HTInputSocket *	isoc;		/* InputSocket object for reading */
 	char *		request;	/* First request line as received */
 	char *		argument;	/* Arg to HTTP method as given	  */
+	char *		access;		/* Access method		  */
 	char *		arg_path;	/* Pathinfo part of argument	  */
-	char *		arg_keywords;	/* ?keywords part of argument	  */
+	char *		arg_keywords;	/* keyword part of URL		  */
 	char *		simplified;	/* Simplified filename		  */
 	char *		translated;	/* Translated filename		  */
+	char *		localname;	/* Local filename		  */
 	char *		script;		/* Executable server script name  */
 	char *		script_pathinfo;/* Path info after script name	  */
+	char *		script_pathtrans;/* Path info translated	  */
 	BOOL		cgi_script;	/* If a CGI/1.0 script		  */
+	BOOL		nph_script;	/* If an nph- script		  */
 	char *		location;	/* Location for redirection	  */
 	char *		redir_on_fly;	/* Non-full URL location on local */
 	/*
@@ -144,12 +156,16 @@ NAME="z5">conversions</A> ;	/* conversions allowed in this case */
 	char *		authorization;	/* Authorization: field		  */
 	HTAAScheme	scheme;		/* Authentication scheme used	  */
 	char *		auth_string;	/* Authentication string	  */
+	char *		www_authenticate;/*WWW-Authenticate: (should be a */
+	                                /* a HTList *)			  */
 	/*
 	** Server side AA
 	*/
+#if 0
 	HTAAProt *	prot;		/* Protection (Protect rule)	  */
 	HTAAProt *	def_prot;	/* Default prot (DefProt rule)	  */
 	HTAAUser *	user;		/* Authenticated user		  */
+#endif
 	HTAAFailReason	reason;		/* Reason for failing		  */
 	/*
 	** Client side AA

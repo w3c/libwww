@@ -160,25 +160,31 @@ GLOBALREF  HTProtocol HTWAIS;
 **			HT_OK			Success
 **
 */
-PRIVATE int get_physical ARGS1(HTParentAnchor *,	anchor)
-{
+PRIVATE int get_physical ARGS1(HTRequest *, req)
+{    
     char * access=0;	/* Name of access method */
     char * physical = 0;
-    char * addr = HTAnchor_address((HTAnchor*)anchor);	/* free me */
+    char * addr = HTAnchor_address((HTAnchor*)req->anchor);	/* free me */
     
 #ifndef NO_RULES
-    physical = HTTranslate(addr);
-    if (!physical) {
-    	free(addr);
-	return HT_FORBIDDEN;
+    if (req->localname)
+	HTAnchor_setPhysical(req->anchor, req->localname);
+    else if (req->translated)
+	HTAnchor_setPhysical(req->anchor, req->translated);
+    else {
+	physical = HTTranslate(addr);
+	if (!physical) {
+	    free(addr);
+	    return HT_FORBIDDEN;
+	}
+	HTAnchor_setPhysical(req->anchor, physical);
+	free(physical);			/* free our copy */
     }
-    HTAnchor_setPhysical(anchor, physical);
-    free(physical);			/* free our copy */
 #else
-    HTAnchor_setPhysical(anchor, addr);
+    HTAnchor_setPhysical(req->anchor, addr);
 #endif
 
-    access =  HTParse(HTAnchor_physical(anchor),
+    access =  HTParse(HTAnchor_physical(req->anchor),
     		"file:", PARSE_ACCESS);
 
 /*	Check whether gateway access has been set up for this
@@ -208,11 +214,11 @@ PRIVATE int get_physical ARGS1(HTParentAnchor *,	anchor)
 		/* Chop leading / off to make host into part of path */
 	    char * gatewayed = HTParse(path+1, gateway, PARSE_ALL);
 	    free(path);
-            HTAnchor_setPhysical(anchor, gatewayed);
+            HTAnchor_setPhysical(req->anchor, gatewayed);
 	    free(gatewayed);
 	    free(access);
 	    
-    	    access =  HTParse(HTAnchor_physical(anchor),
+    	    access =  HTParse(HTAnchor_physical(req->anchor),
     		"http:", PARSE_ACCESS);
 	}
     }
@@ -232,7 +238,7 @@ PRIVATE int get_physical ARGS1(HTParentAnchor *,	anchor)
 	cur = protocols;
 	while ((p = (HTProtocol*)HTList_nextObject(cur))) {
 	    if (strcmp(p->name, access)==0) {
-		HTAnchor_setProtocol(anchor, p);
+		HTAnchor_setProtocol(req->anchor, p);
 		free(access);
 		return (HT_OK);
 	    }
@@ -270,11 +276,12 @@ PRIVATE int HTLoad ARGS2(
 {
     HTProtocol* p;
     int status;
-    request->method = HTAtom_for("GET");
-    status = get_physical(request->anchor);
+    if (!request->method)
+	request->method = HTAtom_for("GET");
+    status = get_physical(request);
     if (status == HT_FORBIDDEN) {
-        return HTLoadError(request->output_stream, 500,
-		"Access forbidden by rule");
+        return HTLoadError(request, 500,
+			   "Access forbidden by rule");
     }
     if (status < 0) return status;	/* Can't resolve or forbidden */
     
@@ -291,10 +298,10 @@ PUBLIC HTStream *HTSaveStream ARGS1(HTRequest *, request)
     HTProtocol * p;
     int status;
     request->method = HTAtom_for("PUT");
-    status = get_physical(request->anchor);
+    status = get_physical(request);
     if (status == HT_FORBIDDEN) {
-        HTLoadError(request->output_stream, 500,
-		"Access forbidden by rule");
+        HTLoadError(request, 500,
+		    "Access forbidden by rule");
 	return NULL;	/* should return error status? */
     }
     if (status < 0) return NULL; /* @@ error. Can't resolve or forbidden */
@@ -437,7 +444,7 @@ PRIVATE BOOL HTLoadDocument ARGS1(HTRequest *,		request)
 	if (TRACE) fprintf(stderr, 
 		"HTAccess: Can't access `%s'\n", full_address);
 #endif
-	HTLoadError(request->output_stream, 500, "Unable to access document.");
+	HTLoadError(request, 500, "Unable to access document.");
 	free(full_address);
 	return NO;
     }

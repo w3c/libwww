@@ -624,6 +624,13 @@ PUBLIC BOOL HTAA_composeAuth ARGS1(HTRequest *, req)
     if (!req  ||  !req->argument)
 	return NO;
 
+    if (req->authorization) {
+	CTRACE(stderr, "HTAA_composeAuth: forwarding auth.info from client\n\
+Authorization: %s\n",
+	       req->authorization);
+	return YES;
+    }
+
     docname = HTParse(req->argument, "", PARSE_PATH);
     hostname = HTParse((gate ? gate : req->argument), "", PARSE_HOST);
     if (hostname &&

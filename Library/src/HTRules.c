@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include "tcp.h"
 #include "HTFile.h"
-#include "HTAAServ.h"	/* Access Authorization */
+#include "HTParse.h"	/* HTParse() */
 
 #define LINE_LENGTH 256
 
@@ -37,12 +37,18 @@ typedef struct _rule {
 	char *		equiv;
 } rule;
 
-/*	Global variables (these will be obsolite once I put exec rule in)
+/*	Global variables
 **	----------------
 */
-PUBLIC char *HTBinDir = NULL;	/* Physical /htbin directory path.	*/
-                                /* In future this should not be global.	*/
-PUBLIC char *HTSearchScript = NULL;	/* Search script name.		*/
+PUBLIC char * HTBinDir = NULL;		/* Physical /htbin directory	*/
+                                        /* path (this is obsolite, and	*/
+                                        /* only used if HTSearchScript	*/
+                                        /* is given as non-absolute --	*/
+                                        /* and this is only for rule	*/
+                                        /* file backward-compatibility.	*/
+PUBLIC char * HTSearchScript = NULL;	/* Search script name.		*/
+PUBLIC char * HTPutScript = NULL;	/* Script to handle PUT		*/
+PUBLIC char * HTPostScript = NULL;	/* Script to handle POST	*/
 
 
 /*	Module-wide variables
@@ -94,9 +100,9 @@ PUBLIC int HTAddRule ARGS3(HTRuleOp,		op,
     strcpy(pPattern, pattern);
     if (TRACE) {
        if (equiv)
-          printf("Rule: For `%s' op %d `%s'\n", pattern, op, equiv);
+          fprintf(stderr, "Rule: For `%s' op %d `%s'\n", pattern, op, equiv);
        else
-          printf("Rule: For `%s' op %d\n", pattern, op);
+          fprintf(stderr, "Rule: For `%s' op %d\n", pattern, op);
     }
 
 #ifdef PUT_ON_HEAD
@@ -232,16 +238,15 @@ PUBLIC char * HTTranslate ARGS1(CONST char *, required)
 
 	case HT_Pass:				/* Authorised */
     		if (!r->equiv) {
-		    if (TRACE) printf("HTRule: Pass `%s'\n", current);
+		    CTRACE(stderr, "HTRule: Pass `%s'\n", current);
 		    return current;
 	        }
 		/* Else fall through ...to map and pass */
 		
 	case HT_Map:
 	    if (*p == *q) { /* End of both strings, no wildcard */
-    	          if (TRACE) printf(
-			       "For `%s' using `%s'\n", current, r->equiv);  
-	          StrAllocCopy(current, r->equiv); /* use entire translation */
+		CTRACE(stderr, "For `%s' using `%s'\n", current, r->equiv);  
+		StrAllocCopy(current, r->equiv); /* use entire translation */
 	    } else {
 		  char * ins = strchr(r->equiv, '*');	/* Insertion point */
 	          if (ins) {	/* Consistent rule!!! */
@@ -253,7 +258,7 @@ PUBLIC char * HTTranslate ARGS1(CONST char *, required)
 			/* Note: temp may be unterminated now! */
 			strncpy(temp+(ins-r->equiv), q, m);  /* Matched bit */
 			strcpy (temp+(ins-r->equiv)+m, ins+1);	/* Last bit */
-    			if (TRACE) printf("For `%s' using `%s'\n",
+    			CTRACE(stderr, "For `%s' using `%s'\n",
 						current, temp);
 			free(current);
 			current = temp;			/* Use this */
@@ -263,14 +268,13 @@ PUBLIC char * HTTranslate ARGS1(CONST char *, required)
 			if (temp==NULL) 
 			    outofmem(__FILE__, "HTTranslate"); /* NT & AS */
 			strcpy(temp, r->equiv);
-    			if (TRACE) printf("For `%s' using `%s'\n",
-						current, temp);
+    			CTRACE(stderr, "For `%s' using `%s'\n", current, temp);
 			free(current);
 			current = temp;			/* Use this */
 		    } /* If no insertion point exists */
 		}
 		if (r->op == HT_Pass) {
-		    if (TRACE) printf("HTRule: ...and pass `%s'\n", current);
+		    CTRACE(stderr, "HTRule: ...and pass `%s'\n", current);
 		    return current;
 		}
 		break;
@@ -279,8 +283,8 @@ PUBLIC char * HTTranslate ARGS1(CONST char *, required)
 	case HT_Invalid:
 	case HT_Fail:				/* Unauthorised */
 	default:
-    		    if (TRACE) printf("HTRule: *** FAIL `%s'\n", current);
-		    return (char *)0;
+	    CTRACE(stderr,"HTRule: *** FAIL `%s'\n", current);
+	    return (char *)0;
 		    		    
 	} /* if tail matches ... switch operation */
 
@@ -292,7 +296,7 @@ PUBLIC char * HTTranslate ARGS1(CONST char *, required)
 
 
 
-/*	Translate by rules					HTTranslate()
+/*	Translate by rules				HTTranslateReq()
 **	------------------
 **
 ** On entry,
@@ -318,30 +322,6 @@ PUBLIC BOOL HTTranslateReq ARGS1(HTRequest *, req)
 	return NO;
 
     StrAllocCopy(current, req->simplified);
-
-#ifdef OLD_CODE
-    if (0 == strncmp(current, "/htbin/", 7)) {
-	if (!HTBinDir) {
-	    req->reason = HTAA_HTBIN;
-	    return NO;
-	}
-	else {
-	    char *end = strchr(current + 7, '/');
-	    if (end)
-		*end = (char)0;
-	    req->script=(char*)malloc(strlen(HTBinDir)+strlen(current)+1);
-	    strcpy(req->script, HTBinDir);
-	    strcat(req->script, current + 6);
-	    if (end) {
-		*end = '/';	/* Reconstruct */
-		StrAllocCopy(req->script_pathinfo, end);/* @@@@ This should */
-		                                        /* be translated !! */
-	    }
-	    free(current);
-	    return YES;
-	}
-    }
-#endif /*OLD_CODE*/
 
     for(r = rules; r; r = r->next) {
         char * p = r->pattern;
@@ -425,9 +405,18 @@ PUBLIC BOOL HTTranslateReq ARGS1(HTRequest *, req)
 		     *pathinfo && *pathinfo != '/';
 		     pathinfo++)
 		    ;
+		FREE(req->script_pathinfo);
+		FREE(req->script_pathtrans);
 		if (*pathinfo) {
+		    char *tmp;
 		    StrAllocCopy(req->script_pathinfo, pathinfo);
 		    *pathinfo = 0;
+		    tmp = HTTranslate(req->script_pathinfo);
+		    if (tmp) {
+			req->script_pathtrans =
+			    HTParse(tmp, "", PARSE_PATH | PARSE_PUNCTUATION);
+			free(tmp);
+		    }
 		}
 		return YES;
 	    }
@@ -443,9 +432,8 @@ PUBLIC BOOL HTTranslateReq ARGS1(HTRequest *, req)
 		
 	case HT_Map:
 	    if (*p == *q) { /* End of both strings, no wildcard */
-    	          if (TRACE) printf(
-			       "For `%s' using `%s'\n", current, r->equiv);  
-	          StrAllocCopy(current, r->equiv); /* use entire translation */
+		CTRACE(stderr,"For `%s' using `%s'\n", current, r->equiv);  
+		StrAllocCopy(current, r->equiv); /* use entire translation */
 	    } else {
 		  char * ins = strchr(r->equiv, '*');	/* Insertion point */
 	          if (ins) {	/* Consistent rule!!! */
@@ -457,8 +445,7 @@ PUBLIC BOOL HTTranslateReq ARGS1(HTRequest *, req)
 			/* Note: temp may be unterminated now! */
 			strncpy(temp+(ins-r->equiv), q, m);  /* Matched bit */
 			strcpy (temp+(ins-r->equiv)+m, ins+1);	/* Last bit */
-    			if (TRACE) printf("For `%s' using `%s'\n",
-						current, temp);
+    			CTRACE(stderr,"For `%s' using `%s'\n", current, temp);
 			free(current);
 			current = temp;			/* Use this */
 
@@ -467,8 +454,7 @@ PUBLIC BOOL HTTranslateReq ARGS1(HTRequest *, req)
 			if (temp==NULL) 
 			    outofmem(__FILE__, "HTTranslate"); /* NT & AS */
 			strcpy(temp, r->equiv);
-    			if (TRACE) printf("For `%s' using `%s'\n",
-						current, temp);
+    			CTRACE(stderr, "For `%s' using `%s'\n", current, temp);
 			free(current);
 			current = temp;			/* Use this */
 		    } /* If no insertion point exists */
@@ -482,9 +468,9 @@ PUBLIC BOOL HTTranslateReq ARGS1(HTRequest *, req)
 
 	case HT_Invalid:
 	case HT_Fail:				/* Unauthorised */
-    		    if (TRACE) printf("HTRule: *** FAIL `%s'\n", current);
-		    return NO;
-	            break;
+	    CTRACE(stderr, "HTRule: *** FAIL `%s'\n", current);
+	    return NO;
+	    break;
 	} /* if tail matches ... switch operation */
 
     } /* loop over rules */
@@ -538,13 +524,30 @@ PUBLIC int HTSetConfiguration ARGS1(CONST char *, config)
 	return -2;	/*syntax error */
     }
 
-    if (0==strcasecomp(word1, "suffix")) {
+    if (0==strcasecomp(word1, "suffix") ||
+	0==strcasecomp(word1, "addtype")) {
         char * encoding = HTNextField(&pointer);
 	if (pointer) status = sscanf(pointer, "%f", &quality);
 	else status = 0;
-	HTSetSuffix(word2,	word3,
+	HTAddType(word2,	word3,
 				encoding ? encoding : "binary",
 				status >= 1? quality : 1.0);
+
+    } else if (0==strcasecomp(word1, "addencoding") ||
+	       0==strcasecomp(word1, "encoding")) {
+	if (pointer)
+	    status = sscanf(pointer, "%f", &quality);
+	else status = 0;
+	HTAddEncoding(word2, word3,
+		      status >= 1 ? quality : 1.0);
+
+    } else if (0==strcasecomp(word1, "addlanguage") ||
+	       0==strcasecomp(word1, "language")) {
+	if (pointer)
+	    status = sscanf(pointer, "%f", &quality);
+	else status = 0;
+	HTAddLanguage(word2, word3,
+		      status >= 1 ? quality : 1.0);
 
     } else if (0==strcasecomp(word1, "presentation")) {
         if (pointer) status = sscanf(pointer, "%f%f%f",
@@ -555,6 +558,14 @@ PUBLIC int HTSetConfiguration ARGS1(CONST char *, config)
 		    status >= 1? quality 		: 1.0,
 		    status >= 2 ? secs 			: 0.0,
 		    status >= 3 ? secs_per_byte 	: 0.0 );
+
+    } else if (0==strncasecomp(word1, "putscript", 9) ||
+	       0==strncasecomp(word1, "put-script", 10)) {
+	StrAllocCopy(HTPutScript, word2);
+
+    } else if (0==strncasecomp(word1, "postscript", 10) ||
+	       0==strncasecomp(word1, "post-script", 11)) {
+	StrAllocCopy(HTPostScript, word2);
 
     } else if (0==strncasecomp(word1, "htbin", 5) ||
 	       0==strncasecomp(word1, "bindir", 6)) {
@@ -594,11 +605,12 @@ PUBLIC int HTSetConfiguration ARGS1(CONST char *, config)
 	op =	0==strcasecomp(word1, "map")  ?	HT_Map
 	    :	0==strcasecomp(word1, "pass") ?	HT_Pass
 	    :	0==strcasecomp(word1, "fail") ?	HT_Fail
+	    :   0==strcasecomp(word1, "exec") ? HT_Exec
 	    :   0==strcasecomp(word1, "defprot") ? HT_DefProt
 	    :	0==strcasecomp(word1, "protect") ? HT_Protect
 	    :						HT_Invalid;
 	if (op==HT_Invalid) {
-	    fprintf(stderr, "HTRule: Bad rule `%s'\n", config);
+	    CTRACE(stderr, "HTRule: Bad rule `%s'\n", config);
 	} else {  
 	    HTAddRule(op, word2, word3);
 	} 
@@ -628,7 +640,7 @@ int HTLoadRules ARGS1(CONST char *, filename)
     char line[LINE_LENGTH+1];
     
     if (!fp) {
-        if (TRACE) printf("HTRules: Can't open rules file %s\n", filename);
+        CTRACE(stderr, "HTRules: Can't open rules file %s\n", filename);
 	return -1; /* File open error */
     }
     for(;;) {

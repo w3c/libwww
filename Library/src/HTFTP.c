@@ -854,6 +854,8 @@ ARGS6 (
 	BOOL binary;
 	HTAtom * encoding;
 	if (!*filename) StrAllocCopy(filename, "/");
+	HTUnEscape(filename);	/* Fix 25.1.94 -- thanks to Lou Montulli */
+	if (TRACE) fprintf(stderr, "FTP: UnEscaped %s\n", filename);
 	format = HTFileFormat(filename, &encoding);
 	binary = (encoding != HTAtom_for("8bit")
 		  && encoding != HTAtom_for("7bit"));
@@ -908,7 +910,7 @@ ARGS6 (
 	data_soc = -1;	/* invalidate it */
 	
 	status = response(NIL);		/* Pick up final reply */
-	if (status!=2) return HTLoadError(sink, 500, response_text);
+	if (status!=2) return HTLoadError(request, 500, response_text);
 
 	return HT_LOADED;
     }       

@@ -273,17 +273,11 @@ char * HTParse(aName, relatedName, wanted)
 //
 //	or	../../albert.html
 */
-#ifdef __STDC__
-void HTSimplify(char * filename)
-#else
-void HTSimplify(filename)
-    char * filename;
-#endif
-
+PUBLIC void HTSimplify ARGS1(char *, filename)
 {
     char * p;
     char * q;
-    if (filename[0] && filename[1])	/* Bug fix 12 Mar 93 TBL */
+    if (filename && filename[0] && filename[1])
      for(p=filename+2; *p; p++) {
 	if (*p=='/') {
 	    if ((p[1]=='.') && (p[2]=='.') && (p[3]=='/' || !p[3] )) {

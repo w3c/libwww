@@ -326,7 +326,7 @@ PUBLIC HTStream* HTMIMEConvert ARGS5(
 {
     HTStream* me;
     
-    me = malloc(sizeof(*me));
+    me = (HTStream*)malloc(sizeof(*me));
     if (me == NULL) outofmem(__FILE__, "HTML_new");
     me->isa = &HTMIME;       
 

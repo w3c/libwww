@@ -901,7 +901,7 @@ PUBLIC HTStream* HTMLPresent ARGS5(
 */
 
 PUBLIC int HTLoadError ARGS3(
-	HTStream *, 	sink,
+	HTRequest *, 	req,
 	int,		number,
 	CONST char *,	message)
 {

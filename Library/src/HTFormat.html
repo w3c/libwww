@@ -34,6 +34,50 @@ NAME="z7" HREF="HTStream.html">"HTStream.h"</A>
 #endif
 
 </PRE>
+<H2>HT<A
+NAME="z15"> Input Socket: Buffering for network
+in</A></H2>This routines provide simple character
+input from sockets. These are used
+for parsing input in arbitrary IP
+protocols (Gopher, NNTP, FTP).
+<PRE>#define INPUT_BUFFER_SIZE 4096		/* Tradeoff spped vs memory*/
+typedef struct _socket_buffer {
+	 char input_buffer[INPUT_BUFFER_SIZE];
+	char * input_pointer;
+	char * input_limit;
+	int input_file_number;
+} HTInputSocket;
+
+</PRE>
+<H3>Create input buffer and set file
+number</H3>
+<PRE>extern HTInputSocket* HTInputSocket_new PARAMS((int file_number));
+
+</PRE>
+<H3>Get next character from buffer</H3>
+<PRE>extern char HTInputSocket_getCharacter PARAMS((HTInputSocket* isoc));
+
+</PRE>
+<H3>Read block from input socket</H3>
+Read <CODE>*len</CODE> characters and return a buffer (don't free)
+containing <CODE>*len</CODE> characters (<CODE>*len</CODE> may have
+changed).  Buffer is not NULL-terminated.
+<PRE>extern char * HTInputSocket_getBlock PARAMS((HTInputSocket * isoc,
+						  int *           len));
+
+</PRE>
+
+<H3>Free input socket buffer</H3>
+<PRE>extern void HTInputSocket_free PARAMS((HTInputSocket * isoc));
+
+</PRE>
+<PRE>
+PUBLIC char * HTInputSocket_getLine PARAMS((HTInputSocket * isoc));
+PUBLIC char * HTInputSocket_getUnfoldedLine PARAMS((HTInputSocket * isoc));
+PUBLIC char * HTInputSocket_getStatusLine PARAMS((HTInputSocket * isoc));
+PUBLIC BOOL   HTInputSocket_seemsBinary PARAMS((HTInputSocket * isoc));
+
+</PRE>
 <H2>The HTFormat type</H2>We use the HTAtom object for holding
 representations. This allows faster
 manipulation (comparison and copying)
@@ -294,42 +338,6 @@ extern void HTCopyNoCR PARAMS((
 	int			file_number,
 	HTStream*		sink));
 
-
-</PRE>
-<H2>HT<A
-NAME="z15"> Input Socket: Buffering for network
-in</A></H2>This routines provide simple character
-input from sockets. These are used
-for parsing input in arbitrary IP
-protocols (Gopher, NNTP, FTP).
-<PRE>#define INPUT_BUFFER_SIZE 4096		/* Tradeoff spped vs memory*/
-typedef struct _socket_buffer {
-	 char input_buffer[INPUT_BUFFER_SIZE];
-	char * input_pointer;
-	char * input_limit;
-	int input_file_number;
-} HTInputSocket;
-
-
-</PRE>
-<H3>Create input buffer and set file
-number</H3>
-<PRE>extern HTInputSocket* HTInputSocket_new PARAMS((int file_number));
-
-</PRE>
-<H3>Get next character from buffer</H3>
-<PRE>extern char HTInputSocket_getCharacter PARAMS((HTInputSocket* isoc));
-
-</PRE>
-<H3>Free input socket buffer</H3>
-<PRE>extern void HTInputSocket_free PARAMS((HTInputSocket * isoc));
-
-</PRE>
-<PRE>
-PUBLIC char * HTInputSocket_getLine PARAMS((HTInputSocket * isoc));
-PUBLIC char * HTInputSocket_getUnfoldedLine PARAMS((HTInputSocket * isoc));
-PUBLIC char * HTInputSocket_getStatusLine PARAMS((HTInputSocket * isoc));
-PUBLIC BOOL   HTInputSocket_seemsBinary PARAMS((HTInputSocket * isoc));
 
 </PRE>
 <H2>HTParseSocket: Parse a socket given

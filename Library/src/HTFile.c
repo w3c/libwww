@@ -23,6 +23,14 @@
 
 #define INFINITY 512		/* file name length @@ FIXME */
 #define MULTI_SUFFIX ".multi"   /* Extension for scanning formats */
+#define MAX_SUFF 15		/* Maximum number of suffixes for a file */
+
+#ifdef VMS
+PRIVATE char * suffix_separators = "_,";
+#else
+PRIVATE char * suffix_separators = ".,";
+#endif
+
 
 #include "HTUtils.h"
 
@@ -45,10 +53,22 @@
 
 typedef struct _HTSuffix {
 	char *		suffix;
-	HTAtom *	rep;
-	HTAtom *	encoding;
+	HTAtom *	rep;		/* Content-Type */
+	HTAtom *	encoding;	/* Content-Encoding */
+	HTAtom *	language;	/* Content-Language */
 	float		quality;
 } HTSuffix;
+
+
+typedef struct _HTContentDescription {
+    char *	filename;
+    HTAtom *	content_type;
+    HTAtom *	content_language;
+    HTAtom *	content_encoding;
+    int		content_length;
+    float	quality;
+} HTContentDescription;
+
 
 
 #ifdef USE_DIRENT		/* Set this for Sys V systems */
@@ -92,8 +112,8 @@ PRIVATE char *HTCacheRoot = "/tmp/W3_Cache_";   /* Where to cache things */
 */
 
 PRIVATE HTList * HTSuffixes = 0;
-PRIVATE HTSuffix no_suffix = { "*", NULL, NULL, 1.0 };
-PRIVATE HTSuffix unknown_suffix = { "*.*", NULL, NULL, 1.0};
+PRIVATE HTSuffix no_suffix = { "*", NULL, NULL, NULL, 1.0 };
+PRIVATE HTSuffix unknown_suffix = { "*.*", NULL, NULL, NULL, 1.0};
 
 
 /*	Define the representation associated with a file suffix
@@ -107,13 +127,37 @@ PRIVATE HTSuffix unknown_suffix = { "*.*", NULL, NULL, 1.0};
 **	If filename suffix is already defined its previous
 **	definition is overridden.
 */
-PUBLIC void HTSetSuffix ARGS4(
-	CONST char *,	suffix,
-	CONST char *,	representation,
-	CONST char *,	encoding,
-	float,		value)
+PUBLIC void HTAddType ARGS4(CONST char *,	suffix,
+			    CONST char *,	representation,
+			    CONST char *,	encoding,
+			    float,		value)
 {
-    
+    HTSetSuffix(suffix, representation, encoding, NULL, value);
+}
+
+
+PUBLIC void HTAddEncoding ARGS3(CONST char *,	suffix,
+				CONST char *,	encoding,
+				float,		value)
+{
+    HTSetSuffix(suffix, NULL, encoding, NULL, value);
+}
+
+
+PUBLIC void HTAddLanguage ARGS3(CONST char *,	suffix,
+				CONST char *,	language,
+				float,		value)
+{
+    HTSetSuffix(suffix, NULL, NULL, language, value);
+}
+
+
+PUBLIC void HTSetSuffix ARGS5(CONST char *,	suffix,
+			      CONST char *,	representation,
+			      CONST char *,	encoding,
+			      CONST char *,	language,
+			      float,		value)
+{
     HTSuffix * suff;
 
     if (strcmp(suffix, "*")==0) suff = &no_suffix;
@@ -128,27 +172,416 @@ PUBLIC void HTSetSuffix ARGS4(
 	if (!suff) { /* Not found -- create a new node */
 	    suff = (HTSuffix*) calloc(1, sizeof(HTSuffix));
 	    if (suff == NULL) outofmem(__FILE__, "HTSetSuffix");
-	
+
 	    if (!HTSuffixes) HTSuffixes = HTList_new();
 	    HTList_addObject(HTSuffixes, suff);
-	
+
 	    StrAllocCopy(suff->suffix, suffix);
 	}
     }
 
-    suff->rep = HTAtom_for(representation);
-    
-    {
+    if (representation)
+	suff->rep = HTAtom_for(representation);
+    if (language)
+	suff->language = HTAtom_for(language);
+    if (encoding) {
     	char * enc = NULL;
 	char * p;
 	StrAllocCopy(enc, encoding);
 	for (p=enc; *p; p++) *p = TOLOWER(*p);
 	suff->encoding = HTAtom_for(encoding);
     }
-    
+
     suff->quality = value;
 }
 
+
+PRIVATE BOOL is_separator ARGS1(char, ch)
+{
+    if (strchr(suffix_separators, ch)) return YES;
+    else return NO;
+}
+
+
+/* PRIVATE						split_filename()
+**
+**	Split the filename to an array of suffixes.
+**	Return the number of parts placed to the array.
+**	Array should have MAX_SUFF+1 items.
+*/
+PRIVATE int split_filename ARGS2(char *,	s_str,
+				 char **,	s_arr)
+{
+    char * start = s_str;
+    char * end;
+    char save;
+    int i;
+
+    if (!s_str || !s_arr) return 0;
+
+    for (i=0; i < MAX_SUFF && *start; i++) {
+	for(end=start+1; *end && !is_separator(*end); end++);
+	save = *end;
+	*end = 0;
+	s_arr[i] = NULL;
+	StrAllocCopy(s_arr[i], start);
+	*end = save;
+	start = end;
+    }
+    FREE(s_arr[i]);	/* Terminating NULL */
+    return i;
+}
+
+
+/* PRIVATE						multi_match()
+**
+**	Check if actual filename (split in parts) fulfills
+**	the requirements.
+*/
+PRIVATE BOOL multi_match ARGS4(char **, required,
+			       int,	m,
+			       char **, actual,
+			       int,	n)
+{
+    int c;
+    int i,j;
+
+    for(c=0;  c<m && c<n && !strcmp(required[c], actual[c]);  c++);
+
+    if (!c) return NO;		/* Names differ rigth from start */
+
+    for(i=c; i<m; i++) {
+	BOOL found = NO;
+	for(j=c; j<n; j++) {
+	    if (!strcmp(required[i], actual[j])) {
+		found = YES;
+		break;
+	    }
+	}
+	if (!found) return NO;
+    }
+    return YES;
+}
+
+
+PRIVATE HTContentDescription * content_description ARGS2(char **, actual,
+							 int,	  n)
+{
+    HTContentDescription * cd;
+    int i;
+
+#ifndef NO_INIT    
+    if (!HTSuffixes) HTFileInit();
+#endif
+
+    cd = (HTContentDescription*)calloc(1, sizeof(HTContentDescription));
+    if (!cd) outofmem(__FILE__, "HTContentDescription");
+
+    cd->quality = 1.0;
+
+    for (i=n-1; i>0; i--) {
+	HTList * cur = HTSuffixes;
+	HTSuffix * suff;
+	BOOL found = NO;
+
+	CTRACE(stderr,
+	       " ** content_description: LOOKING FOR SUFFIX \"%s\"\n",
+	       actual[i]);
+
+	while ((suff = (HTSuffix*)HTList_nextObject(cur))) {
+	    if (!strcmp(suff->suffix, actual[i])) {
+
+		CTRACE(stderr, " ** SUFFIX FOUND\n");
+
+		if (!suff->rep && !suff->language && suff->encoding)
+		    cd->content_encoding = suff->encoding;
+		else if (suff->rep)
+		    cd->content_type = suff->rep;
+		else if (suff->language)
+		    cd->content_language = suff->language;
+		else if (suff->encoding)
+		    cd->content_encoding = suff->encoding;
+
+		if (suff->quality > 0.000001)
+		    cd->quality *= suff->quality;
+
+		if (!cd->content_type)
+		    cd->content_type = suff->rep;
+		if (!cd->content_encoding)
+		    cd->content_encoding = suff->encoding;
+		if (!cd->content_language)
+		    cd->content_language = suff->language;
+
+		found = YES;
+		break;
+	    }
+	}
+	if (!found) {
+	    if (i < n-1)
+		break;
+	    else {
+		free(cd);
+		return NULL;
+	    }
+	}
+    }
+    return cd;
+}
+
+
+
+PUBLIC BOOL HTGetBest ARGS1(HTRequest *, req)
+{
+    static char * required[MAX_SUFF+1];
+    static char * actual[MAX_SUFF+1];
+    int m,n;
+
+    char * dirname = NULL;
+    char * basename = NULL;
+    int baselen;
+    char * multi = NULL;
+    DIR * dp;
+    STRUCT_DIRENT * dirbuf;
+    HTList * poss = NULL;
+
+    if (!req || !req->localname || !*req->localname) return NO;
+
+    HTAddLanguage(".fin", "Finnish", 1.0);	/* These are just for @@@@ */
+    HTAddLanguage(".en",  "English", 1.0);	/* testing purposes.  @@@@ */
+    HTAddLanguage(".fr",  "French" , 1.0);
+    HTAddLanguage(".sw",  "Swedish", 1.0);
+
+    StrAllocCopy(dirname, req->localname);
+    basename = (strrchr(dirname, '/'));
+    if (!basename)
+	goto clean_multi;
+    *basename++ = 0;
+
+    multi = strrchr(basename, MULTI_SUFFIX[0]);
+    if (multi && !strcmp(multi, MULTI_SUFFIX))
+	*multi = 0;
+    baselen = strlen(basename);
+
+    m = split_filename(basename, required);
+
+    dp = opendir(dirname);
+    if (!dp) {
+	CTRACE(stderr,"Multi: Can't open directory %s\n", dirname);
+	goto clean_multi;
+    }
+
+    poss = HTList_new();
+    while ((dirbuf = readdir(dp))) {
+	if (!dirbuf->d_ino) continue;	/* Not in use */
+	if (dirbuf->d_namlen >= baselen) {
+	    n = split_filename(dirbuf->d_name, actual);
+	    if (multi_match(required, m, actual, n)) {
+		HTContentDescription * cd;
+		cd = content_description(actual, n);
+		if (cd) {
+		    if (cd->content_type) {
+			cd->quality = HTStackValue(req->conversions,
+						   cd->content_type,
+						   req->output_format,
+						   cd->quality,
+						   0.0);
+			if (cd->quality > NO_VALUE_FOUND) {
+			    StrAllocCopy(cd->filename, dirbuf->d_name);
+			    HTList_addObject(poss, (void*)cd);
+			    CTRACE(stderr,"HTFile: value of presenting %s is %f\n",
+				   cd->content_type ? HTAtom_name(cd->content_type) : "??",
+				   cd->quality);
+			}
+			else free(cd);
+		    }
+		    else free(cd);
+		}
+		else CTRACE(stderr, "HTGetPoss: couldn't get file description\n");
+	    }
+	    else CTRACE(stderr, "HTGetPoss: didn't match \"%s\"\n", basename);
+	}
+    }
+    closedir(dp);
+
+    {	/* BEGIN DEBUG */
+	HTList * cur = poss;
+	HTContentDescription * cd;
+
+	CTRACE(stderr, "POSSIBILITIES IN DIRECTORY \"%s\"\n", dirname);
+	CTRACE(stderr, "FOR \"%s\":\n", basename);
+	CTRACE(stderr,
+	       "%sContent-Type  Content-Language  Content-Encoding  Quality  File%s",
+	       "\n---------------------------------------------------------------\n",
+	       "\n---------------------------------------------------------------\n");
+	while ((cd = (HTContentDescription*)HTList_nextObject(cur))) {
+	    CTRACE(stderr, "%s\t%s\t\t%s\t\t  %.5f  %s\n",
+		   cd->content_type    ?HTAtom_name(cd->content_type)  :"-\t",
+		   cd->content_language?HTAtom_name(cd->content_language):"-",
+		   cd->content_encoding?HTAtom_name(cd->content_encoding):"-",
+		   cd->quality,
+		   cd->filename        ?cd->filename                     :"-");
+	}
+	CTRACE(stderr,
+	       "---------------------------------------------------------------\n");
+    }	/* END DEBUG */
+
+    {	/* Select best */
+	HTList * cur = poss;
+	HTContentDescription * cd;
+	HTContentDescription * best = NULL;
+	float best_value = -1;
+
+	/*
+	** This algorithm should be enhanced -- now it's very stupid.
+	*/
+	while ((cd = (HTContentDescription*)HTList_nextObject(cur))) {
+	    if (cd->quality > best_value) {
+		if (best) {
+		    CTRACE(stderr, " ## \"%s\" (%f) is no longer best\n",
+			   best->filename, best_value);
+		    if (best->filename) free(best->filename);
+		    free(best);
+		}
+		CTRACE(stderr, " ## \"%s\" (%f) is now best\n",
+		       cd->filename, cd->quality);
+		best_value = cd->quality;
+		best = cd;
+	    }
+	    else {
+		CTRACE(stderr, " ## \"%s\" (%f) causes no change\n",
+		       cd->filename, cd->quality);
+		if (cd->filename) free(cd->filename);
+		free(cd);
+	    }
+	}
+	if (best) {
+	    StrAllocCopy(req->localname, dirname);
+	    StrAllocCat(req->localname, "/");
+	    StrAllocCat(req->localname, best->filename);
+	    if (best->filename) free(best->filename);
+	    free(best);
+	    return YES;
+	}
+    }	/* Select best */
+
+  clean_multi:
+    free(dirname);
+    return NO;
+}
+
+
+PRIVATE char * weekday[7] =
+{
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday"
+};
+
+PRIVATE char * month[12] =
+{
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+};
+
+PUBLIC void HTSetAttributes ARGS2(HTRequest *,		req,
+				  struct stat *,	stat_info)
+{
+    struct tm * gmt;
+
+    if (!req || !stat_info) return;
+
+    req->content_length = stat_info->st_size;
+#ifndef VMS
+    gmt = gmtime(&stat_info->st_mtime);
+    req->last_modified = (char*)malloc(40);
+    sprintf(req->last_modified, "%s, %02d-%s-%02d %02d:%02d:%02d GMT",
+	    weekday[gmt->tm_wday],
+	    gmt->tm_mday,
+	    month[gmt->tm_mon],
+	    gmt->tm_year % 100,
+	    gmt->tm_hour,
+	    gmt->tm_min,
+	    gmt->tm_sec);
+#endif
+}
+
+
+PUBLIC BOOL HTGetAttributes ARGS1(HTRequest *, req)
+{
+    struct stat stat_info;
+
+    if (!req || !req->localname || stat(req->localname, &stat_info) == -1) {
+	if (!req)
+	    CTRACE(stderr, "HTGetAttributes bug: called with req==NULL\n");
+	else if (!req->localname)
+	    CTRACE(stderr, "HTGetAttributes bug: req->localname==NULL\n");
+	else CTRACE(stderr,
+		    "HTGetAttributes: stat(\"%s\") failed (errno %d)\n",
+		    req->localname, errno);
+	return NO;
+    }
+    HTSetAttributes(req, &stat_info);
+    return YES;
+}
+
+
+
+
+PUBLIC BOOL HTMulti ARGS1(HTRequest *, req)
+{
+    char * multi;
+    struct stat stat_info;
+    int stat_status = -1;
+
+    if (!req) {
+	CTRACE(stderr, "HTMulti bug: called with req==NULL\n");
+	return NO;
+    }
+    else if (!req->localname) {
+	CTRACE(stderr, "HTGetAttributes bug: req->localname==NULL\n");
+	return NO;
+    }
+
+#ifdef GOT_READ_DIR
+    multi = strrchr(req->localname, MULTI_SUFFIX[0]);
+    if (multi && !strcmp(multi, MULTI_SUFFIX)) {
+	CTRACE(stderr,
+	       "Filename ends in .multi, doing multiformat handling\n");
+	if (!HTGetBest(req)) {
+	    CTRACE(stderr, "Multi failed -- giving up\n");
+	    return NO;
+	}
+    }
+    else {
+	stat_status = stat(req->localname, &stat_info);
+	if (stat_status == -1) {
+	    CTRACE(stderr,
+		   "Couldn't stat \"%s\" (errno %d) - doing automatic multi\n",
+		   req->localname, errno);
+	    if (!HTGetBest(req)) {
+		CTRACE(stderr, "Automatic multi failed -- giving up\n");
+		return NO;
+	    }
+	}
+    }
+#endif /* GOT_READ_DIR */
+
+    if (stat_status == -1)
+	stat_status = stat(req->localname, &stat_info);
+    if (stat_status == -1) {
+	CTRACE(stderr, "Couldn't stat \"%s\" -- givin up (errno %d)\n",
+	       req->localname, errno);
+	return NO;
+    }
+    else {
+	HTSetAttributes(req, &stat_info);
+	return YES;
+    }
+}
 
 
 
@@ -260,7 +693,7 @@ PUBLIC char * HTLocalName ARGS1(CONST char *,name)
     char * path = HTParse(name, "", PARSE_PATH+PARSE_PUNCTUATION);
     
     HTUnEscape(path);	/* Interpret % signs */
-    
+
     if (0==strcmp(access, "file")) { /* local file */
         free(access);	
 	if ((0==strcasecomp(host, HTHostName())) ||
@@ -668,7 +1101,7 @@ PUBLIC void HTDirTitles ARGS2(HTStructured *, target,
 **			HTLOADED	OK 
 **
 */
-PUBLIC int HTLoadFile ARGS1 (HTRequest *,		request)
+PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 
 {
     CONST char * addr = HTAnchor_physical(request->anchor);
@@ -736,9 +1169,13 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *,		request)
     /*  Need protection here for telnet server but not httpd server */
 	 
     if (!HTSecure) {		/* try local file system */
-	char * localname = HTLocalName(addr);
 	struct stat dir_info;
-	
+	char * multi;
+
+	if (!request->localname)
+	    request->localname = HTLocalName(addr);
+
+
 #ifdef GOT_READ_DIR
 
 /*			  Multiformat handling
@@ -746,72 +1183,17 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *,		request)
 **	If needed, scan directory to find a good file.
 **  Bug:  we don't stat the file to find the length
 */
-	if ( (strlen(localname) > strlen(MULTI_SUFFIX))
-	   && (0==strcmp(localname + strlen(localname) - strlen(MULTI_SUFFIX),
-	                  MULTI_SUFFIX))) {
-	    DIR *dp;
-
-	    STRUCT_DIRENT * dirbuf;
-	    float best = NO_VALUE_FOUND;	/* So far best is bad */
-	    HTFormat best_rep = NULL;	/* Set when rep found */
-	    char * best_file_name = NULL;	/* Best dir entry so far */
-
-	    char * base = strrchr(localname, '/');
-	    int baselen;
-
-	    if (!base || base == localname) goto forget_multi;
-	    *base++ = 0;		/* Just got directory name */
-	    baselen = strlen(base)- strlen(MULTI_SUFFIX);
-	    base[baselen] = 0;	/* Chop off suffix */
-
-	    dp = opendir(localname);
-	    if (!dp) {
-forget_multi:
-		free(localname);
-		return HTLoadError(request->output_stream, 500,
-			"Multiformat: directory scan failed.");
-	    }
-	    
-	    while ((dirbuf = readdir(dp))!=0) {
-			/* while there are directory entries to be read */
-		if (dirbuf->d_ino == 0) continue;
-				/* if the entry is not being used, skip it */
-		
-		if (dirbuf->d_namlen > baselen &&      /* Match? */
-		    !strncmp(dirbuf->d_name, base, baselen)) {	
-		    HTFormat rep = HTFileFormat(dirbuf->d_name, &encoding);
-		    float value = HTStackValue(request->conversions,
-		    				rep, request->output_format,
-		    				HTFileValue(dirbuf->d_name),
-						0.0  /* @@@@@@ */);
-		    if (value != NO_VALUE_FOUND) {
-		        if (TRACE) fprintf(stderr,
-				"HTFile: value of presenting %s is %f\n",
-				HTAtom_name(rep), value);
-			if  (value > best) {
-			    best_rep = rep;
-			    best = value;
-			    StrAllocCopy(best_file_name, dirbuf->d_name);
-		       }
-		    }	/* if best so far */ 		    
-		 } /* if match */  
-		    
-	    } /* end while directory entries left to read */
-	    closedir(dp);
-	    
-	    if (best_rep) {
-		format = best_rep;
-		base[-1] = '/';		/* Restore directory name */
-		base[0] = 0;
-		localname = best_file_name;	/* freed later */
+	multi = strrchr(request->localname, MULTI_SUFFIX[0]);
+	if (multi && !strcmp(multi, MULTI_SUFFIX)) {
+	    if (HTGetBest(request)) {
+		format = HTFileFormat(request->localname, &encoding);
 		goto open_file;
-		
-	    } else { 			/* If not found suitable file */
-		free(localname);
-		return HTLoadError(request->output_stream, 403,	/* List formats? */
+	    }
+	    else { 			/* If not found suitable file */
+		FREE(request->localname);
+		return HTLoadError(request, 403,	/* List formats? */
 		   "Could not find suitable representation for transmission.");
 	    }
-	    /*NOTREACHED*/
 	} /* if multi suffix */
 /*
 **	Check to see if the 'localname' is in fact a directory.  If it is
@@ -824,15 +1206,15 @@ forget_multi:
 */
 	
 	
-	if (stat(localname,&dir_info) == -1) {     /* get file information */
+	if (stat(request->localname,&dir_info) == -1) {     /* get file information */
 	                               /* if can't read file information */
-	    if (TRACE) fprintf(stderr, "HTFile: can't stat %s\n", localname);
+	    if (TRACE) fprintf(stderr, "HTFile: can't stat %s\n", request->localname);
 
 	}  else {		/* Stat was OK */
 		
 
 	    if (((dir_info.st_mode) & S_IFMT) == S_IFDIR) {
-		/* if localname is a directory */	
+		/* if request->localname is a directory */	
 
 		HTStructured* target;		/* HTML object */
 		HTStructuredClass targetClass;
@@ -849,38 +1231,39 @@ forget_multi:
 		struct stat file_info;
 		
 		if (TRACE)
-		    fprintf(stderr,"%s is a directory\n",localname);
+		    fprintf(stderr,"%s is a directory\n",request->localname);
 			
 /*	Check directory access.
 **	Selective access means only those directories containing a
 **	marker file can be browsed
 */
 		if (HTDirAccess == HT_DIR_FORBID) {
-		    free(localname);
-		    return HTLoadError(request->output_stream, 403,
+		    FREE(request->localname);
+		    return HTLoadError(request, 403,
 		    "Directory browsing is not allowed.");
 		}
 
 
 		if (HTDirAccess == HT_DIR_SELECTIVE) {
 		    char * enable_file_name = 
-			malloc(strlen(localname)+ 1 +
+			malloc(strlen(request->localname)+ 1 +
 			 strlen(HT_DIR_ENABLE_FILE) + 1);
-		    strcpy(enable_file_name, localname);
+		    strcpy(enable_file_name, request->localname);
 		    strcat(enable_file_name, "/");
 		    strcat(enable_file_name, HT_DIR_ENABLE_FILE);
 		    if (stat(enable_file_name, &file_info) != 0) {
-			free(localname);
-			return HTLoadError(request->output_stream, 403,
+			FREE(request->localname);
+			return HTLoadError(request, 403,
 			"Selective access is not enabled for this directory");
 		    }
 		}
 
  
-		dp = opendir(localname);
+		dp = opendir(request->localname);
 		if (!dp) {
-		    free(localname);
-		    return HTLoadError(request->output_stream, 403, "This directory is not readable.");
+		    FREE(request->localname);
+		    return HTLoadError(request, 403,
+				       "This directory is not readable.");
 		}
 
 
@@ -888,7 +1271,13 @@ forget_multi:
  */
 		logical = HTAnchor_address((HTAnchor*)request->anchor);
 		tail = strrchr(logical, '/') +1;	/* last part or "" */
-		
+
+		/*
+		** Fix AL 26.1.94: make dir.indexing work also if
+		** there is a trailing slash:
+		*/
+		if (!*tail) tail = ".";
+
 		target = HTML_new(request, NULL, WWW_HTML, 
 			request->output_format, request->output_stream);
 		targetClass = *target->isa;	/* Copy routine entry points */
@@ -901,7 +1290,7 @@ forget_multi:
                 HTDirTitles(target, (HTAnchor *)request->anchor);
 
                 if (HTDirReadme == HT_DIR_README_TOP)
-		    do_readme(target, localname);
+		    do_readme(target, request->localname);
 		{
 		    HTBTree * bt = HTBTree_new((HTComparer)strcasecomp);
 
@@ -924,8 +1313,8 @@ forget_multi:
 			dirname = (HTBTElement *)malloc(
 					strlen(dirbuf->d_name) + 2);
 			if (dirname == NULL) outofmem(__FILE__,"DirRead");
-			StrAllocCopy(tmpfilename,localname);
-			if (strcmp(localname,"/")) 
+			StrAllocCopy(tmpfilename,request->localname);
+			if (strcmp(request->localname,"/")) 
 
 					/* if filename is not root directory */
 			    StrAllocCat(tmpfilename,"/"); 
@@ -954,8 +1343,8 @@ forget_multi:
 
 			while (next_element != NULL)
 		        {
-			    StrAllocCopy(tmpfilename,localname);
-			    if (strcmp(localname,"/")) 
+			    StrAllocCopy(tmpfilename,request->localname);
+			    if (strcmp(request->localname,"/")) 
 
 					/* if filename is not root directory */
 			        StrAllocCat(tmpfilename,"/"); 
@@ -1004,13 +1393,13 @@ forget_multi:
 		    HTBTreeAndObject_free(bt);
 
 		    if (HTDirReadme == HT_DIR_README_BOTTOM)
-			  do_readme(target, localname);
+			  do_readme(target, request->localname);
 		    FREE_TARGET;
-		    free(localname);
+		    FREE(request->localname);
 		    return HT_LOADED;	/* document loaded */
 		}
 
-	    } /* end if localname is directory */
+	    } /* end if request->localname is directory */
 	
 	} /* end if file stat worked */
 	
@@ -1019,19 +1408,19 @@ forget_multi:
 #endif
 open_file:
 	{
-	    FILE * fp = fopen(localname,"r");
+	    FILE * fp = fopen(request->localname,"r");
 
 	    if(TRACE) fprintf (stderr, "HTFile: Opening `%s' gives %p\n",
-				localname, (void*)fp);
+				request->localname, (void*)fp);
 	    if (fp) {		/* Good! */
-		if (HTEditable(localname)) {
+		if (HTEditable(request->localname)) {
 		    HTAtom * put = HTAtom_for("PUT");
 		    HTList * methods = HTAnchor_methods(request->anchor);
 		    if (HTList_indexOf(methods, put) == (-1)) {
 			HTList_addObject(methods, put);
 		    }
 		}
-		free(localname);
+		FREE(request->localname);
 		HTParseFile(format, fp, request);
 		fclose(fp);
 		return HT_LOADED;
@@ -1057,7 +1446,7 @@ open_file:
     	if (TRACE)
 	    printf("Can't open `%s', errno=%d\n", addr, errno);
 
-	return HTLoadError(request->output_stream, 403, "Can't access requested file.");
+	return HTLoadError(request, 403, "Can't access requested file.");
     }
     
  

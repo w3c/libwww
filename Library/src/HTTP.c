@@ -144,7 +144,7 @@ PRIVATE void parse_401_headers ARGS2(HTRequest *,	req,
 */
 PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 {
-    CONST char * arg = HTAnchor_physical(request->anchor);
+    CONST char * arg = NULL;
     int s;				/* Socket number for returned data */
     int status;				/* tcp return */
     char crlf[3];			/* A CR LF equivalent string */
@@ -154,6 +154,14 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
     SockA soc_address;			/* Binary network address */
     SockA * sin = &soc_address;
     BOOL extensions = YES;		/* Assume good HTTP server */
+
+    if (request->reason == HTAA_OK_GATEWAY) {
+	arg = request->translated;
+    }
+    else {
+	arg = HTAnchor_physical(request->anchor);
+	StrAllocCopy(request->argument, arg);
+    }
 
     if (!arg) return -3;		/* Bad if no name sepcified	*/
     if (!*arg) return -2;		/* Bad if name had zero length	*/
@@ -192,7 +200,6 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 ** from the user).				-- AL 13.10.93
 */
 #ifdef ACCESS_AUTH
-    StrAllocCopy(request->argument, arg);
     HTAA_composeAuth(request);
     if (TRACE) {
 	if (request->authorization)
@@ -239,7 +246,13 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	    char * p1 = HTParse(arg, "", PARSE_PATH|PARSE_PUNCTUATION);
 	    command = malloc(4 + strlen(p1)+ 2 + 31);
 	    if (command == NULL) outofmem(__FILE__, "HTLoadHTTP");
-	    strcpy(command, "GET ");
+	    if (request->method) {
+		strcpy(command, HTAtom_name(request->method));
+		strcat(command, " ");
+	    }
+	    else {
+		strcpy(command, "GET ");
+	    }
 	    strcat(command, p1);
 	    free(p1);
 	}
@@ -259,7 +272,10 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	    char line[256];    /*@@@@ */
 	    HTList *conversions[2];
 
-	    if (!HTConversions) HTFormatInit(HTConversions);
+	    if (!HTConversions) {
+		HTConversions = HTList_new();
+		HTFormatInit(HTConversions);
+	    }
 	    conversions[0] = HTConversions;
 	    conversions[1] = request->conversions;
 
@@ -281,13 +297,20 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		    }
 		}
 	    }
-	    
-	    sprintf(line, "User-Agent:  %s/%s  libwww/%s%c%c",
+
+	    sprintf(line, "User-Agent: %s%s %s/%s  libwww/%s%c%c",
+		    request->user_agent ? request->user_agent : "",
+		    request->user_agent ? "  VIA Gateway" : "",
 		    HTAppName ? HTAppName : "unknown",
 		    HTAppVersion ? HTAppVersion : "0.0",
 		    HTLibraryVersion, CR, LF);
 		    StrAllocCat(command, line);
     
+	    if (request->from) {
+		sprintf(line, "From: %s%c%c", request->from, CR, LF);
+		StrAllocCat(command, line);
+	    }
+
 #ifdef ACCESS_AUTH
 	    if (request->authorization != NULL) {
 		sprintf(line, "Authorization: %s%c%c",
@@ -295,6 +318,20 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		StrAllocCat(command, line);
 	    }
 #endif /* ACCESS_AUTH */
+
+	    if (request->content_type) {
+		sprintf(line, "Content-Type: %s%c%c",
+			HTAtom_name(request->content_type), CR, LF);
+		StrAllocCat(command, line);
+	    }
+
+	    if (request->content_length > 0) {
+		sprintf(line, "Content-Length: %d%c%c",
+			request->content_length, CR, LF);
+		StrAllocCat(command, line);
+	    }
+
+
 	}
     
 	StrAllocCat(command, crlf);	/* Blank line means "end" */
@@ -338,7 +375,34 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 **	out that we want the binary original.
 */
 
-    {	/* read response */
+    if (request->reason == HTAA_OK_GATEWAY) {
+	/*
+	** Server as a gateway -- send body of the message
+	** received from client (if any).
+	*/
+	if (request->isoc && request->content_length > 0) {
+	    int remain = request->content_length;
+	    int i = remain;
+	    char * buf;
+
+	    while (remain > 0  &&
+		   (buf = HTInputSocket_getBlock(request->isoc, &i))) {
+		int status = NETWRITE(s, buf, i);
+		if (status < 0) {
+		    CTRACE(stderr, "HTTPAccess: Unable to forward body\n");
+		    return HTInetStatus("send");
+		}
+		remain -= i;
+		i = remain;
+	    }
+	}
+	/*
+	** Load results directly to client
+	*/
+	HTCopy(s, request->output_stream);
+	return HT_LOADED;
+    }
+    else {	/* read response */
 
 	HTFormat format_in;		/* Format arriving in the message */
 	HTInputSocket *isoc = HTInputSocket_new(s);
@@ -423,8 +487,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 				((server_status == 401) 
 				 ? "Access Authorization package giving up.\n"
 				 : ""));
-			status = HTLoadError(request->output_stream,
-					     server_status, message);
+			status = HTLoadError(request, server_status, message);
 			free(message);
 			free(p1);
 			goto clean_up;
@@ -445,8 +508,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		    if (!message) outofmem(__FILE__, "HTTP 5xx status");
 		    sprintf(message,
 			    "HTTP server at %s replies:\n%s", p1, status_line);
-		    status = HTLoadError(request->output_stream,
-					 server_status, message);
+		    status = HTLoadError(request, server_status, message);
 		    free(message);
 		    free(p1);
 		    goto clean_up;
@@ -473,7 +535,7 @@ copy:
 	    sprintf(buffer, "Sorry, no known way of converting %s to %s.",
 		    HTAtom_name(format_in), HTAtom_name(request->output_format));
 	    fprintf(stderr, "HTTP: %s", buffer);
-	    status = HTLoadError(request->output_stream, 501, buffer);
+	    status = HTLoadError(request, 501, buffer);
 	    goto clean_up;
 	}
     

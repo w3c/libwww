@@ -206,6 +206,35 @@ PUBLIC void HTInputSocket_free(HTInputSocket * me)
 }
 
 
+PUBLIC char * HTInputSocket_getBlock ARGS2(HTInputSocket*,	isoc,
+					   int *,		len)
+{
+    if (isoc->input_pointer >= isoc->input_limit) {
+	int status = NETREAD(isoc->input_file_number,
+			     isoc->input_buffer,
+			     ((*len < INPUT_BUFFER_SIZE) ?
+			      *len : INPUT_BUFFER_SIZE));
+	if (status <= 0) {
+	    isoc->input_limit = isoc->input_buffer;
+	    if (status < 0)
+		CTRACE(stderr, "HTInputSocket: File read error %d\n", status);
+	    *len = 0;
+	    return NULL;
+	}
+	else {
+	    *len = status;
+	    return isoc->input_buffer;
+	}
+    }
+    else {
+	char * ret = isoc->input_pointer;
+	*len = isoc->input_limit - isoc->input_pointer;
+	isoc->input_pointer = isoc->input_limit;
+	return ret;
+    }
+}
+
+
 PRIVATE int fill_in_buffer ARGS1(HTInputSocket *, isoc)
 {
     if (isoc) {
@@ -729,7 +758,7 @@ PUBLIC int HTParseSocket ARGS3(
 	sprintf(buffer, "Sorry, can't convert from %s to %s.",
 		HTAtom_name(rep_in), HTAtom_name(request->output_format));
 	if (TRACE) fprintf(stderr, "HTFormat: %s\n", buffer);
-        return HTLoadError(request->output_stream, 501, buffer);
+        return HTLoadError(request, 501, buffer);
     }
     
 /*	Push the data, ignoring CRLF if necessary, down the stream
@@ -779,7 +808,7 @@ PUBLIC int HTParseFile ARGS3(
 	sprintf(buffer, "Sorry, can't convert from %s to %s.",
 		HTAtom_name(rep_in), HTAtom_name(request->output_format));
 	if (TRACE) fprintf(stderr, "HTFormat(in HTParseFile): %s\n", buffer);
-        return HTLoadError(request->output_stream, 501, buffer);
+        return HTLoadError(request, 501, buffer);
     }
     
 /*	Push the data down the stream

@@ -92,6 +92,12 @@ extern unsigned int HTCardinal PARAMS((int *pstatus,
 	extern int HTParseInet();
 #endif
 
+/*
+**	Get Name of a Machine on the Other Side of a Socket
+**	---------------------------------------------------
+*/
+PUBLIC char * HTGetHostName PARAMS((int soc));
+
 /*	Get Name of This Machine
 **	------------------------
 **
