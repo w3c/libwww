@@ -25,6 +25,9 @@
 **
 **	ANSI C only as written
 **
+** Bugs fixed
+**      NT Nathan Torkington (Nathan.Torkington@vuw.ac.nz)
+**
 ** WAIS comments:
 **
 **	1.	Separate directories for different system's .o would help
@@ -454,7 +457,9 @@ display_search_response ARGS4(
 		    head->Types ? head->Types[0] : "TEXT",
 		    (int)(head->DocumentLength),
 		    docname);
-		HTStartAnchor(target, NULL, line);
+		HTStartAnchor(target, NULL, ( (head->Types) 
+		      && (!strcmp(head->Types[0], "URL"))) ? 
+			      headline : line); /* NT, Sep 93 */
 		PUTS(headline);
 		END(HTML_A);
 		free(dbname);
@@ -755,7 +760,7 @@ PUBLIC int HTLoadWAIS ARGS4(
 	  !strcmp(doctype, "TEXT") ? HTAtom_for("text/plain") :
 	  !strcmp(doctype, "HTML") ? HTAtom_for("text/html") :
 	  !strcmp(doctype, "GIF")  ? HTAtom_for("image/gif") :
-	   		             HTAtom_for("application/binary");
+	   		             HTAtom_for("application/octet-stream");
 	binary = 
 	  0 != strcmp(doctype, "WSRC") &&
 	  0 != strcmp(doctype, "TEXT") &&
