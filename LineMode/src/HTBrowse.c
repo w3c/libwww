@@ -713,16 +713,17 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest *, actreq)
 	sscanf(this_word,"%d",&ref_num);
 	if (ref_num>0 && ref_num<=HText_sourceAnchors(HTMainText)) {
 	    HTAnchor *destination;
+	    HTRequest *newreq;
 	    HTChildAnchor *source = HText_childNumber(HTMainText, ref_num);
-	    HTRequest *newreq = Thread_new(YES);
-	    if (!source) {
-		status = EVENT_QUIT;				/* No anchor */
-	    } else {
+	    if (source) {
+		newreq = Thread_new(YES);
 		destination = HTAnchor_followMainLink((HTAnchor*) source);
-		HTMainAnchor = HTAnchor_parent((HTAnchor *) source);
+		newreq->parentAnchor = HTAnchor_parent((HTAnchor *) source);
 		HTLoadAnchor(destination, newreq);
 		free(the_choice);
 		return EVENT_OK;
+	    } else {
+		status = EVENT_QUIT;				/* No anchor */
 	    }
 	} else {
 	    if (TRACE || HTInteractive)
@@ -1103,7 +1104,6 @@ PUBLIC HTEventState HTEventRequestTerminate ARGS2(HTRequest *,	actreq,
 	    HTHistory_record((HTAnchor *) destination);
 	    actreq->parentAnchor = NULL;
 	}
-
 	/* Now generate the new prompt line as a function of the result */
 	if (!HText_canScrollDown(HTMainText) &&
 	    !HTAnchor_hasChildren(HTMainAnchor) && !is_index &&
@@ -1491,7 +1491,8 @@ int main ARGS2(int, argc, char **, argv)
 	user.sockfd = STDIN_FILENO;
 	user.callback = EventHandler;
 	HTList_addObject(reqlist, (void *) request);
-	HTEventRegister(&user);
+	HTEventRegister(&user);				   /* Register STDIN */
+	HTHistory_record((HTAnchor *) home_anchor);	    /* Setup history */
 	return_status = HTEventLoop(request, home_anchor,
 				    (keywords && *keywords) ? keywords : NULL);
     } else {
