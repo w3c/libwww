@@ -111,8 +111,8 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 			}
 		    }
 		}
-		if (!first) PUTBLOCK(crlf, 2);
 	    }
+	    if (!first) PUTBLOCK(crlf, 2);
 	}
     }
     if (request->RequestMask & HT_C_ACCEPT_CHAR) {
