@@ -47,7 +47,7 @@ PUBLIC HTAtom * HTAtom_for (const char * string)
     
     /*		Generate hash function
     */
-    for(p=string, hash=0; *p; p++) {
+    for (p=string, hash=0; *p; p++) {
         hash = (hash * 3 +(*(unsigned char *) p)) % HASH_SIZE;
     }
     

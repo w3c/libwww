@@ -1,28 +1,29 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww EXTRA HEADERS</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
-<NEXTID N="z11">
+  <!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+<!-- Changed by: Eric Prud'hommeaux, 28-May-1996 -->
+  <NEXTID N="z11">
+  <TITLE>W3C Reference Library libwww EXTRA HEADERS</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Extra Header Manager</H1>
-
+<H1>
+  Extra Header Manager
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This module handles lists of callback functions for generating and
-parsing protocol headers. This works exactly like the lists in <A
-HREF="HTFormat.html">HTFormat</A>.<P>
-
-This module is implemented by <A HREF="HTHeader.c">HTheader.c</A>, and
-it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
-Reference Library</A>. <P>
-
+<P>
+This module handles lists of callback functions for generating and parsing
+protocol headers. This works exactly like the lists in
+<A HREF="HTFormat.html">HTFormat</A>.
+<P>
+This module is implemented by <A HREF="HTHeader.c">HTheader.c</A>, and it
+is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>.
+<P>
 <PRE>
 #ifndef HTHEADER_H
 #define HTHEADER_H
@@ -30,118 +31,90 @@ Reference Library</A>. <P>
 #include "HTReq.h"
 #include "HTStream.h"
 </PRE>
-
-We have two call back functions: the first is for generating
-headers. This needs a stream to put down the extra headers. This one
-is defined in the <A HREF="HTReq.html">Request Manager</A>. The other
-one is for parsing. This needs the string to parse.
-
+<P>
+We have two call back functions: the first is for generating headers. This
+needs a stream to put down the extra headers. This one is defined in the
+<A HREF="HTReq.html">Request Manager</A>. The other one is for parsing. This
+needs the string to parse.
 <PRE>
-typedef int HTParserCallback (HTRequest * request, const char * token);
+typedef int HTParserCallback (HTRequest * request, char * token, char * value);
 </PRE>
-
-<H2>Header Parser Management</H3>
-
-Header Parsers can be registered to handle any header that is not part
-of the "default set" handled by the <A HREF="HTMIME.html">HTMIME
-module</A>. This is mainlu the set defined by HTTP/1.1.
-
-<H3>Add a Header Parser</H3>
-
-Register a Header parser to be called if we encounter the token in teh
-protocol response. Tokens can contain a wildcard '*' which will match
-zero or more arbritary chars.
-
-<PRE>
-extern BOOL HTParser_add (HTList *		parsers,
-			  const char *       	token,
-			  BOOL			case_sensitive,
-			  HTParserCallback *	callback);
-</PRE>
-
-<H3>Unregister a Header parser</H3>
-
-<PRE>
-extern BOOL HTParser_delete (HTList * parsers, const char * token);
-</PRE>
-
-<H3>Delete the list of registered header parsers.</H3>
-
-<PRE>
-extern BOOL HTParser_deleteAll (HTList * parsers);
-</PRE>
-
-<H3>Find a parser</H3>
-
-Search registered parsers to find suitable one for this token If a
-parser isn't found, the function returns NULL
-
-<PRE>
-extern HTParserCallback * HTParser_find (HTList *parsers, const char * token);
-</PRE>
-
-<H2>Header Generator Management</H2>
-
-Header Generators can be use to add additional information to
-aprotocol request. They will all be called.
-
-<H3>Add a Header Generator</H3>
-
+<H2>
+  Header Parser Management
+</H2>
+<P>
+Header Parsers can be registered to handle any header. The standard set of 
+HTTP/1.1 MIME parsers is registered by HTMIMEInit in the 
+<A HREF="HTInit.html">HTInit</A> module. The HTParserCallbacks are called by 
+the <A HREF="HTMIME.html">HTMIME</A> module.
+<P>
+HTParserCallbacks may be registered for known MIME headers (HTParser_*), or for
+regular expressions (HTRegexParser_*). To data the regex support is limited to
+the use of '*' for a wild card.
+<H2>
+  Header Generator Management
+</H2>
+<P>
+Header Generators can be use to add additional information to aprotocol request.
+They will all be called.
+<H3>
+  Add a Header Generator
+</H3>
 <PRE>
 extern BOOL HTGenerator_add (HTList * gens, HTPostCallback * callback);
 </PRE>
-
-<H3>Unregister a Header generator</H3>
-
+<H3>
+  Unregister a Header generator
+</H3>
 <PRE>
 extern BOOL HTGenerator_delete (HTList * gens, HTPostCallback * callback);
 </PRE>
-
-<H3>Delete the list of registered header generators.</H3>
-
+<H3>
+  Delete the list of registered header generators.
+</H3>
 <PRE>
 extern BOOL HTGenerator_deleteAll (HTList * gens);
 </PRE>
-
-
-<H2>Global List Of Parsers and Generators</H2>
-
-As in <A HREF="HTFormat.html">HTFormat module</A> you can register a
-list globally or locally as you like. The local registrations is
-managed by <A HREF="HTReq.html">Request Manager</A>
-
-<H3>Header Parsers</H3>
-
+<H2>
+  Global List Of Parsers and Generators
+</H2>
+<P>
+As in <A HREF="HTFormat.html">HTFormat module</A> you can register a list
+globally or locally as you like. The local registrations is managed by
+<A HREF="HTReq.html">Request Manager</A>
+<H3>
+  Header Parsers
+</H3>
 <PRE>
-extern void HTHeader_setParser (HTList * list);
+extern void HTHeader_setMIMEParseSet (HTMIMEParseSet * list);
+extern HTMIMEParseSet * HTHeader_MIMEParseSet (void);
 extern BOOL HTHeader_addParser (const char * token, BOOL case_sensitive,
 				HTParserCallback * callback);
+extern BOOL HTHeader_addRegexParser (const char * token, BOOL case_sensitive,
+				HTParserCallback * callback);
 extern BOOL HTHeader_deleteParser (const char * token);
-extern HTList * HTHeader_parser (void);
 </PRE>
-
-<H3>Header Generation</H3>
-
+<H3>
+  Header Generation
+</H3>
 <PRE>
 extern void HTHeader_setGenerator (HTList * list);
 extern BOOL HTHeader_addGenerator (HTPostCallback * callback);
 extern BOOL HTHeader_deleteGenerator (HTPostCallback * callback);
 extern HTList * HTHeader_generator (void);
 </PRE>
-
-<H3>Delete all Global Lists</H3>
-
+<H3>
+  Delete all Global Lists
+</H3>
 <PRE>
 extern void HTHeader_deleteAll (void);
 </PRE>
-
 <PRE>
 #endif /* HTHEADER_H */
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

@@ -14,6 +14,7 @@
 #include "HTFormat.h"
 #include "HTList.h"
 #include "HTProt.h"
+#include "HTReqMan.h"
 #include "HTInit.h"				         /* Implemented here */
 
 /* ------------------------------------------------------------------------- */
@@ -241,3 +242,52 @@ PUBLIC void HTEventInit (void)
     HTAddIcon(prefixed(p,"unknown.xbm"),	"TN",	"application/x-gopher-tn3270");
 }
 #endif
+
+/*	REGISTER ALL HTTP/1.1 MIME HEADERS
+**	--------------------------------------------
+**	Not done automaticly - may be done by application!
+*/
+#include "mimeFuncs.c"
+
+PUBLIC void HTMIMEInit()
+{
+    struct {
+        char * string;
+	HTParserCallback * pHandler;
+    } fixedHandlers[] = {
+	{"allow", &allow}, 
+	{"accept-language", NULL}, 
+	{"accept-charset", NULL}, 
+	{"accept", NULL}, 
+	{"accept-encoding", NULL}, 
+	{"connection", &connection}, 
+	{"content-encoding", &content_encoding}, 
+	{"content-language", &content_language}, 
+	{"content-length", &content_length}, 
+	{"content-transfer-encoding", &content_transfer_encoding}, 
+	{"content-type", &content_type},
+	{"date", &mime_date}, 
+	{"derived-from", &derived_from}, 
+	{"digest-MessageDigest", &message_digest}, 
+        {"expires", &expires}, 
+	{"keep-alive", NULL}, 
+	{"last-modified", &last_modified}, 
+/*	{"link", &link},  */
+	{"location", &location}, 
+	{"mime-version", NULL}, 
+	{"newsgroups", &newsgroups}, 
+	{"retry-after", &retry_after}, 
+	{"server", NULL}, 
+	{"title", &title}, 
+	{"transfer-encoding", &content_transfer_encoding}, 
+/*	{"uri", &uri_header},  */
+	{"version", &version}, 
+	{"www-authenticate", &authenticate}, 
+    };
+    int i;
+
+    for (i = 0; i < sizeof(fixedHandlers)/sizeof(fixedHandlers[0]); i++)
+        HTHeader_addParser(fixedHandlers[i].string, NO, 
+			   fixedHandlers[i].pHandler);
+}
+

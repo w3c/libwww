@@ -210,7 +210,7 @@ PUBLIC void HTAddDirIcon (char * url,
 
 
 PRIVATE BOOL match (char * templ,
-			 char * actual)
+		    const char * actual)
 {
     static char * c1 = NULL;
     static char * c2 = NULL;
@@ -288,8 +288,8 @@ PUBLIC HTIconNode * HTGetIcon (HTFileMode	mode,
 {
     if (!icon_unknown) icon_unknown = icon_blank;
     if (mode == HT_IS_FILE) {
-	char * ct = content_type ? HTAtom_name(content_type) : NULL;
-	char * ce = content_encoding ? HTAtom_name(content_encoding) : NULL;
+	const char * ct = content_type ? HTAtom_name(content_type) : NULL;
+	const char * ce = content_encoding ? HTAtom_name(content_encoding) : NULL;
 	HTList * cur = icons;
 	HTIconNode * node;
 

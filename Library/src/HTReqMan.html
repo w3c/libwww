@@ -35,6 +35,7 @@ Library</A>.
 #include "<A HREF="HTAABrow.html">HTAABrow.h</A>"
 #include "<A HREF="HTStream.html">HTStream.h</A>"
 #include "<A HREF="HTNet.html">HTNet.h</A>"
+#include "<A HREF="HTMIMPrs.html">HTMIMPrs.h</A>"
 </PRE>
 <P>
 When a request is handled, all kinds of things about it need to be passed
@@ -98,7 +99,7 @@ information about this host and the user issuing the request.
     HTRqHd		RequestMask;
     HTEnHd		EntityMask;
 
-    HTList *		parsers;
+    HTMIMEParseSet *	parseSet;
     BOOL		pars_local;
 
     HTList *		generators;

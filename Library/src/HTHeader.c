@@ -17,97 +17,13 @@
 #include "HTString.h"
 #include "HTReq.h"
 #include "HTHeader.h"					 /* Implemented here */
+#include "HTMIMPrs.h"
 
-typedef struct _HTParser {
-    char *		token;
-    BOOL		case_sensitive;
-    HTParserCallback	*Pcbf;
-} HTParser;
-
-PRIVATE HTList * HTParsers = NULL;
+#define MIME_HASH_SIZE 101
+HTMIMEParseSet * ParseSet = NULL;
 PRIVATE HTList * HTGenerators = NULL;
 
 /* --------------------------------------------------------------------------*/
-
-/*
-**	Register a Header parser to be called
-**	Tokens can contain a wildcard '*' which will match zero or more 
-**	arbritary chars.
-*/
-PUBLIC BOOL HTParser_add (HTList *		parsers,
-			  const char *       	token,
-			  BOOL			case_sensitive,
-			  HTParserCallback *	callback)
-{
-    if (token && callback) {
-	HTParser *me;
-	if ((me = (HTParser  *) HT_CALLOC(1, sizeof(HTParser))) == NULL)
-	    HT_OUTOFMEM("HTParser_add");
-	StrAllocCopy(me->token, token);
-	me->case_sensitive = case_sensitive;
-	me->Pcbf = callback;
-	return HTList_addObject(parsers, (void *) me);
-    }
-    return NO;
-}
-
-/*
-**	Unregister a Header parser
-*/
-PUBLIC BOOL HTParser_delete (HTList * parsers, const char * token)
-{
-    if (parsers) {
-	HTList *cur = parsers;
-	HTParser *pres;
-	while ((pres = (HTParser *) HTList_nextObject(cur))) {
-	    if (!strcmp(pres->token, token)) {
-		HT_FREE(pres->token);
-		HTList_removeObject(parsers, (void *) pres);
-		HT_FREE(pres);
-		return YES;
-	    }
-	}
-    }
-    return NO;
-}
-
-/*
-**	Delete the list of registered header parsers.
-*/
-PUBLIC BOOL HTParser_deleteAll (HTList * parsers)
-{
-    if (parsers) {
-	HTList *cur = parsers;
-	HTParser *pres;
-	while ((pres = (HTParser *) HTList_nextObject(cur))) {
-	    HT_FREE(pres->token);
-	    HT_FREE(pres);
-	}
-	HTList_delete(parsers);
-	parsers = NULL;
-	return YES;
-    }
-    return NO;
-}
-
-/*
-**	Search registered parsers to find suitable one for this token
-**	If a parser isn't found, the function returns NULL
-*/
-PUBLIC HTParserCallback * HTParser_find (HTList *parsers, const char * token)
-{
-    HTList * cur = parsers;
-    HTParser * pres;
-    if (token && cur) {
-	while ((pres = (HTParser *) HTList_nextObject(cur))) {
-	    char *match = pres->case_sensitive ?
-		HTStrCaseMatch(pres->token, token) : 
-		    HTStrMatch(pres->token, token);
-	    if (match) return pres->Pcbf;
-	}
-    }
-    return NULL;
-}
 
 /*
 **	Register a Header generator to be called when we make request
@@ -140,27 +56,33 @@ PUBLIC BOOL HTGenerator_deleteAll (HTList * gens)
 /*
 **	Global List of parsers. list can be NULL
 */
-PUBLIC void HTHeader_setParser (HTList * list)
+PUBLIC void HTHeader_setMIMEParseSet (HTMIMEParseSet * list)
 {
-    HTParsers = list;
+    ParseSet = list;
 }
 
-PUBLIC HTList * HTHeader_parser (void)
+PUBLIC HTMIMEParseSet * HTHeader_MIMEParseSet (void)
 {
-    return HTParsers;
+    return ParseSet;
 }
 
 PUBLIC BOOL HTHeader_addParser (const char * token, BOOL case_sensitive,
 				HTParserCallback * callback)
 {
-    if (!HTParsers) HTParsers = HTList_new();
-    return HTParser_add(HTParsers, token, case_sensitive, callback);
+    if (!ParseSet) ParseSet = HTMIMEParseSet_new(MIME_HASH_SIZE);
+    return (HTMIMEParseSet_add(ParseSet, token, case_sensitive, callback) != NULL);
+}
+
+PUBLIC BOOL HTHeader_addRegexParser (const char * token, BOOL case_sensitive,
+				     HTParserCallback * callback)
+{
+    if (!ParseSet) ParseSet = HTMIMEParseSet_new(MIME_HASH_SIZE);
+    return (HTMIMEParseSet_addRegex(ParseSet, token, case_sensitive, callback) != NULL);
 }
 
 PUBLIC BOOL HTHeader_deleteParser (const char * token)
 {
-    if (!HTParsers) return NO;
-    return HTParser_delete(HTParsers, token);
+    return HTMIMEParseSet_deleteToken(ParseSet, token);
 }
 
 /*
@@ -193,10 +115,7 @@ PUBLIC BOOL HTHeader_deleteGenerator (HTPostCallback  * callback)
 */
 PUBLIC void HTHeader_deleteAll (void)
 {
-    if (HTParsers) {
-	HTParser_deleteAll(HTParsers);
-	HTParsers = NULL;
-    }
+    HTMIMEParseSet_delete(ParseSet);
     if (HTGenerators) {
 	HTGenerator_deleteAll(HTGenerators);
 	HTGenerators = NULL;

@@ -51,7 +51,7 @@ PRIVATE void free_object (HTHost * me)
 	HT_FREE(me->hostname);
 	HT_FREE(me->type);
 	if (me->channel) {
-	    HTChannel_delete(me->channel);
+	    HTChannel_delete(me->channel, HT_OK);
 	    me->channel = NULL;
 	}
 	HT_FREE(me);
@@ -124,7 +124,7 @@ PUBLIC HTHost * HTHost_new (char * host)
 		if (CORE_TRACE)
 		    HTTrace("Host info... Persistent channel %p gotten cold\n",
 			    pres->channel);
-		HTChannel_delete(pres->channel);
+		HTChannel_delete(pres->channel, HT_OK);
 		pres->channel = NULL;
 	    } else {
 		if (CORE_TRACE)
@@ -284,7 +284,7 @@ PUBLIC HTChannel * HTHost_channel (HTHost * host)
 PUBLIC BOOL HTHost_clearChannel (HTHost * host)
 {
     if (host && host->channel) {
-	HTChannel_delete(host->channel);
+	HTChannel_delete(host->channel, HT_OK);
 	host->expires = 0;
 	host->channel = NULL;
 	if (CORE_TRACE)

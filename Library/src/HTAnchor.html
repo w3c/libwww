@@ -258,8 +258,8 @@ we really want typed links to the caller should also indicate what the type
 of the link is (see HTTP spec for more information). The link is
 <EM>relative</EM> to the address of the parent anchor.
 <PRE>
-extern HTChildAnchor * HTAnchor_findChildAndLink
-		(HTParentAnchor * parent,		/* May not be 0 */
+extern HTChildAnchor * HTAnchor_findChildAndLink (
+		HTParentAnchor * parent,		/* May not be 0 */
 		const char * tag,			/* May be "" or 0 */
 		const char * href,			/* May be "" or 0 */
 		HTLinkType ltype);			/* May be 0 */

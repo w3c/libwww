@@ -1620,7 +1620,8 @@ PRIVATE int timeout_handler (HTRequest * request)
 **	---------------
 **	This function is registered to handle unknown MIME headers
 */
-PRIVATE int header_handler (HTRequest * request, const char * token)
+PRIVATE int header_handler (HTRequest * request, const char * token, 
+			    const char * value)
 {
     if (SHOW_MSG) HTTrace("Parsing unknown header `%s\'\n", token);
     return HT_OK;
@@ -1639,6 +1640,16 @@ int main (int argc, char ** argv)
     HTRequest *	request = NULL;
     LineMode *	lm;
     char *      picsUser = NULL;
+
+    HTAtom *    atom11;
+    HTAtom *    atom12;
+    char *      str11;
+    char *      str12;
+    atom11 = HTAtom_for("atom11");
+    atom12 = HTAtom_for("atom12");
+    str11 = HTAtom_name(atom11);
+    str12 = HTAtom_name(atom12);
+
 /*    char *      picsUserList = NULL; */
 
     /* Starts Mac GUSI socket library */
@@ -1665,6 +1676,7 @@ int main (int argc, char ** argv)
 
     /* Initiate W3C Reference Library */
     HTLibInit(APP_NAME, APP_VERSION);    
+    HTMIMEInit();
 
     /* Create a new Line Mode object */
     lm = LineMode_new();

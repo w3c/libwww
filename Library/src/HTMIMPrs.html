@@ -1,0 +1,97 @@
+<HTML>
+<HEAD>
+  <!-- Changed by: Eric Prud'hommeaux, 30-May-1996 -->
+  <TITLE>W3C Reference Library libwww MIME header parser managment</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  HashList
+</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1996.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+<P>
+A <CODE>ParseSet</CODE> associates simple and regex MIME header tokens with 
+<A HREF="HTHeader.html">parsers</A>. Regex tokens are stored in a list, while
+simple tokens are stored in a hashed list for quick access.
+<P>
+This module is implemented by <A HREF="HTMIMPrs.c">HTMIMPrs.c</A>, and it is a
+part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>.
+<P>
+<PRE>
+#ifndef HTMIMPRS_H
+#define HTMIMPRS_H
+
+#include "HTHeader.h"
+
+</PRE>
+<H2>
+  Data Types
+</H2>
+<P>
+HTMIMEParseEl
+The HTMIMEParseSet contains all registered MIME parses. There are regex
+parsers, and a hashed array of lists of HTMIMEParseEl.
+<PRE>
+typedef struct _HTMIMEParseEl HTMIMEParseEl;
+
+struct _HTMIMEParseSet {
+    int size;
+    HTMIMEParseEl ** parsers;
+    HTMIMEParseEl * regexParsers;
+};
+
+#define MIMEParseSet_NULL {0, NULL, NULL}
+</PRE>
+<H2>
+  Public Functions
+</H2>
+<P>
+The following methods are available for this class:
+<H3>
+  Create and destroy<CODE>HashLists</CODE>
+</H3>
+<PRE>
+extern HTMIMEParseSet * HTMIMEParseSet_new(int hashSize);
+extern HTMIMEParseSet_delete (HTMIMEParseSet * me);
+</PRE>
+<H3>
+  Add and remove parsers
+</H3>
+Register a Header parser to be called if we encounter the token in the protocol
+response. Tokens can contain a wildcard '*' which will match zero or more
+arbritary chars.
+<P>
+<PRE>
+extern HTMIMEParseEl * HTMIMEParseSet_add (HTMIMEParseSet * me, 
+					   const char * token, 
+					   BOOL caseSensitive, 
+					   HTParserCallback * callback);
+extern HTMIMEParseEl * HTMIMEParseSet_addRegex (HTMIMEParseSet * me, 
+						const char * token, 
+						BOOL caseSensitive, 
+						HTParserCallback * callback);
+extern int HTMIMEParseSet_deleteToken (HTMIMEParseSet * me, const char * token);
+extern int HTMIMEParseSet_deleteAll (HTMIMEParseSet * me);
+</PRE>
+<H3>
+  Execute these parsers
+</H3>
+Find <CODE>HTParserCallback</CODE> which matches the string.
+<PRE>
+extern int HTMIMEParseSet_dispatch (HTMIMEParseSet * me, HTRequest * request, 
+				    char * token, char * value, BOOL * pFound);
+</PRE>
+<PRE>
+#endif /* HTMIMPRS_H */
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

@@ -394,7 +394,8 @@ PRIVATE BOOL better_match (HTFormat f, HTFormat g)
 
 PRIVATE BOOL wild_match (HTAtom * tmplate, HTAtom * actual)
 {
-    char *t, *a, *st, *sa;
+    const char *t, *a;
+    char *st, *sa;
     BOOL match = NO;
 
     if (tmplate && actual && (t = HTAtom_name(tmplate))) {
@@ -425,7 +426,8 @@ PRIVATE BOOL wild_match (HTAtom * tmplate, HTAtom * actual)
  */
 PRIVATE BOOL lang_match (HTAtom * tmplate, HTAtom * actual)
 {
-    char *t, *a, *st, *sa;
+    const char *t, *a;
+    char *st, *sa;
     BOOL match = NO;
 
     if (tmplate && actual &&
@@ -513,7 +515,7 @@ PRIVATE double encoding_value (HTAtom * encoding, HTList * accepted)
     HTList * cur = accepted;
     HTAcceptNode * node;
     HTAcceptNode * wild = NULL;
-    char * e;
+    const char * e;
 
     if (!encoding || !accepted || HTList_isEmpty(accepted))
 	return 1;
@@ -638,8 +640,8 @@ PUBLIC HTStream * HTStreamStack (HTFormat	rep_in,
 	return output_stream ? output_stream : HTErrorStream();
     }
     if (CORE_TRACE) {
-	char *p = HTAtom_name(rep_in);
-	char *q = HTAtom_name(rep_out); 
+	const char *p = HTAtom_name(rep_in);
+	const char *q = HTAtom_name(rep_out); 
 	HTTrace("StreamStack. Constructing stream stack for %s to %s\n",
 		 p ? p : "<NULL>", q ? q : "<NULL>");
     }

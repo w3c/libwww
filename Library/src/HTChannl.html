@@ -1,6 +1,9 @@
 <HTML>
 <HEAD>
-  <TITLE>W3C Reference Library libwww Channel Class</TITLE>
+<TITLE>W3C Reference Library libwww Channel Interface</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  8-Apr-1996 -->
+<!-- Changed by: Eric Prud'hommeaux, 27-May-1996 -->
+<NEXTID N="z18">
 </HEAD>
 <BODY>
 <H1>
@@ -67,7 +70,7 @@ extern HTChannel * HTChannel_new (HTNet * net, BOOL active);
   Deleting a Channel Object
 </H3>
 <PRE>
-extern BOOL HTChannel_delete (HTChannel * channel);
+extern BOOL HTChannel_delete (HTChannel * channel, int status);
 extern BOOL HTCannel_deleteAll (void);
 </PRE>
 <H3>

@@ -41,7 +41,7 @@ www_SOURCES = \
 	HTTP.c		HTTPServ.c	HTNewsRq.c \
 	HTTPGen.c 	HTTPReq.c 	HTTPRes.c \
 	HTNet.c 	HTEvntrg.c	HTNewsLs.c \
-	HTUser.c	HTEvent.c \
+	HTUser.c	HTMIMPrs.c	HTEvent.c \
 	HTMux.c		HTStream.c	HTTrans.c \
 	HTChannl.c	HTInet.c	HTHost.c \
 	HTLocal.c	HTReader.c	HTANSI.c \
@@ -64,7 +64,7 @@ BUILT_SOURCES = sysdep.h \
 	HTPlain.h	HTWriter.h	HTFile.h \
 	HTFWrite.h 	HTMLGen.h	HTTCP.h \
 	HTEvntrg.h 	HTArray.h  	HTChunk.h \
-	HTUser.h	HTEvent.h \
+	HTUser.h	HTMIMPrs.h	HTEvent.h \
 	HTStream.h 	HTStruct.h 	HTMulpar.h \
 	HTTee.h 	HTXParse.h 	HTEPtoCl.h \
 	HTAtom.h 	HTAnchor.h 	HTAncMan.h \

@@ -71,6 +71,7 @@ typedef struct _HTRequest HTRequest;
 #include "HTError.h"
 #include "HTNet.h"
 #include "HTUser.h"
+/* #include "HTMIMPrs.h" */
 </PRE>
 <H2>
   Issuing a Request
@@ -482,11 +483,24 @@ The text is sent as is so it must be preformatted with &lt;CRLF&gt; line
 terminators. This will get changed at some point so that you can register
 a header together with a handler in the MIME parser.
 <PRE>
-extern void HTRequest_setGenerator (HTRequest *request, HTList *gens, BOOL override);
+extern void HTRequest_setGenerator (HTRequest *request, HTList *gens, 
+				    BOOL override);
 extern HTList * HTRequest_generator (HTRequest *request, BOOL *override);
-
-extern void HTRequest_setParser (HTRequest *request, HTList *pars, BOOL override);
-extern HTList * HTRequest_parser (HTRequest *request, BOOL *override);
+</PRE>
+MIMEParsers get their own type which is optimized for static and regex
+parser strings.
+<PRE>
+typedef struct _HTMIMEParseSet HTMIMEParseSet;
+extern void HTRequest_setMIMEParseSet (HTRequest *request, 
+				       HTMIMEParseSet * parseSet, BOOL local);
+extern HTMIMEParseSet * HTRequest_MIMEParseSet (HTRequest *request,
+					      BOOL * pLocal);
+</PRE>
+HTRequest_dispatchMIMEParse calls the headers that you register with 
+HTRequest_setMIMEParseSet.
+<PRE>
+extern int HTRequest_dispatchMIMEParse (HTRequest * me, char * token, 
+					char * value);
 </PRE>
 <H2>
   Sending data to the Network

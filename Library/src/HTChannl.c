@@ -130,7 +130,7 @@ PUBLIC HTChannel * HTChannel_find (SOCKET sockfd)
 **	persistent connections then we register the channel in the Host cache
 **	and wait until the other end closes it or we get a time out on our side
 */
-PUBLIC BOOL HTChannel_delete (HTChannel * channel)
+PUBLIC BOOL HTChannel_delete (HTChannel * channel, int status)
 {
     if (channel) {
 	if (PROT_TRACE) HTTrace("Channel..... Delete %p with semaphore %d\n",
@@ -141,8 +141,16 @@ PUBLIC BOOL HTChannel_delete (HTChannel * channel)
 	**  this doesn't mean that we close the input stream and output stream
 	**  them selves - only the generic streams
 	*/
-	if (channel->input) (*channel->input->isa->_free)(channel->input);
-	if (channel->output) (*channel->output->isa->_free)(channel->output);
+	if (channel->input) 
+	    if (status == HT_INTERRUPTED)
+	        (*channel->input->isa->abort)(channel->input, NULL);
+	    else
+	        (*channel->input->isa->_free)(channel->input);
+	if (channel->output)
+	    if (status == HT_INTERRUPTED)
+	        (*channel->output->isa->abort)(channel->output, NULL);
+	    else
+	        (*channel->output->isa->_free)(channel->output);
 
 	/*
 	**  Check whether this channel is used by other objects or we can

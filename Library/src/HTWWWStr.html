@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
 <!-- Changed by: Henrik Frystyk Nielsen, 18-May-1996 -->
+<!-- Changed by: Eric Prud'hommeaux, 28-May-1996 -->
   <TITLE>W3C Reference Library libwww WWW String Utilities</TITLE>
 </HEAD>
 <BODY>
@@ -58,7 +59,11 @@ typedef enum _HTEOLState {
     EOL_FLF,
     EOL_DOT,
     EOL_SCR,
-    EOL_SLF
+    EOL_SLF,
+    /* intermediate states */
+    EOL_END,
+    EOL_FOLD,
+    EOL_LINE
 } HTEOLState;
 </PRE>
 <H2>

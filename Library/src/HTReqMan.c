@@ -42,6 +42,7 @@
 #include "HTEvent.h"
 #include "HTProt.h"
 #include "HTProxy.h"
+#include "HTHeader.h"
 #include "HTReqMan.h"					 /* Implemented here */
 
 #include "HTRules.h"
@@ -311,22 +312,54 @@ PUBLIC HTList * HTRequest_generator (HTRequest *request, BOOL *override)
 /*
 **	Extra Header Parsers. list can be NULL
 */
-PUBLIC void HTRequest_setParser (HTRequest *request, HTList *parser,
-				 BOOL override)
+PUBLIC void HTRequest_setMIMEParseSet (HTRequest * me, 
+				       HTMIMEParseSet * parseSet, BOOL local)
 {
-    if (request) {
-	request->parsers = parser;
-	request->pars_local = override;
+    if (me) {
+        me->parseSet = parseSet;
+	me->pars_local = local;
     }
 }
 
-PUBLIC HTList * HTRequest_parser (HTRequest *request, BOOL *override)
+PUBLIC HTMIMEParseSet * HTRequest_MIMEParseSet (HTRequest * me, BOOL * pLocal)
 {
-    if (request) {
-	*override = request->pars_local;
-	return request->parsers;
+    if (me) {
+        if (pLocal) *pLocal = me->pars_local;
+	return me->parseSet;
     }
     return NULL;
+}
+
+/* HTRequest_dispatchMIMEParse - call request's MIME header parser.
+** Use global parser if no appropriate one is found for request.
+*/
+PUBLIC int HTRequest_dispatchMIMEParse (HTRequest * me, char * token, 
+					 char * value)
+{
+    int status;
+    BOOL found;
+    HTMIMEParseSet * parseSet;
+
+    /* In case we get an empty header consisting of a CRLF, we fall thru */
+    if (STREAM_TRACE) HTTrace("checking MIME header %s: %s\n", token, value);
+
+    if (me->parseSet != NULL) {
+        status = HTMIMEParseSet_dispatch(me->parseSet, me, token, value, 
+					 &found);
+	if (found)
+	    return status;
+	if (me->pars_local)
+	    return HT_OK; /* not found, but that's OK */
+    }
+
+    if ((parseSet = HTHeader_MIMEParseSet()) == NULL)
+        return HT_OK;
+    status = HTMIMEParseSet_dispatch(parseSet, me, token, value, &found);
+    if (found)
+        return status;
+    if (STREAM_TRACE) HTTrace("Ignoring MIME header: %s: %s.\n", token, value);
+
+    return HT_OK;
 }
 
 /*
@@ -835,7 +868,7 @@ PUBLIC HTRequest * HTRequest_source (HTRequest * request)
 
 PUBLIC BOOL HTRequest_isPostWeb (HTRequest * request)
 {
-    return (request ? request->source : NO);
+    return (request ? request->source != NULL: NO);
 }
 
 /*

@@ -551,7 +551,7 @@ PRIVATE BOOL delete_object (HTNet *net, int status)
 	/* Close socket */
 	if (net->channel) {
 	    HTEvent_unregister(net->sockfd, (SockOps) FD_ALL);
-	    HTChannel_delete(net->channel);
+	    HTChannel_delete(net->channel, status);
 	    if (HTHost_channel(net->host) == NULL) {
 		if (CORE_TRACE)
 		    HTTrace("HTNet_delete closing %d\n", net->sockfd);
