@@ -10,6 +10,11 @@
 **			a newline, that could cause multiple commands to be
 **			sent to a Gopher server. AL, luotonen@www.cern.ch
 **	12 May 94	Checked and made ready for multi-threads, Frystyk
+**
+** NOTE:
+**	When parsing a gopher menu, we can't use the default HTParseSocket
+**	but we will hav eto take care of the stram ourselves :-(
+**
 */
 
 /* Implementation dependent include files */
@@ -174,9 +179,7 @@ PRIVATE int parse_menu ARGS3(HTRequest *,     	request,
     HTChunk *chunk = HTChunkCreate(128);
     char *message = NULL;			     /* For a gopher message */
     HTInputSocket *isoc = HTInputSocket_new(gopher->socket);
-    HTStructured *target = HTML_new(request, NULL, WWW_HTML,
-				    request->output_format,
-				    request->output_stream);
+    HTStructured *target = NULL;
     
     /* Output the list */
     while ((ch = HTInputSocket_getCharacter(isoc)) >= 0) {
@@ -220,10 +223,19 @@ PRIVATE int parse_menu ARGS3(HTRequest *,     	request,
 		    continue;
 		}
 
+		/* Stop listing if line with a dot by itself */
+		if (message && gtype=='.' && !*strptr) {
+		    status = -1;
+		    break;
+		}
+
 		/* Output title, maybe top message and list top  */
 		if (!files) {
 		    CONST char *title = HTAnchor_title(request->anchor);
 		    char *outstr = NULL;
+		    target = HTML_new(request, NULL, WWW_HTML,
+				      request->output_format,
+				      request->output_stream);
 		    if (title) {
 			StrAllocCopy(outstr, title);
 			HTUnEscape(outstr);
@@ -381,7 +393,7 @@ PRIVATE int parse_menu ARGS3(HTRequest *,     	request,
 		HTErrorAdd(request, ERR_FATAL, NO, HTERR_GOPHER_SERVER,
 			   chunk->data, chunk->size, "parse_menu");
 	    }
-	} else {
+	} else if (target) {
 	    char *outstr;
 	    if ((outstr = (char *) malloc(100)) == NULL)
 		outofmem(__FILE__, "parse_menu");
@@ -401,11 +413,14 @@ PRIVATE int parse_menu ARGS3(HTRequest *,     	request,
 		PUTS(message);
 		START(HTML_BR);
 	    }
+	    FREE_TARGET;
+	} else {
+	    if (TRACE)
+		fprintf(stderr, "HTGopher.... Interrupted before any stream was put up.\n");
 	}
     }
 
     /* Cleanup */
-    FREE_TARGET;
     FREE(message);
     HTInputSocket_free(isoc);
     HTChunkFree(chunk);
@@ -439,9 +454,7 @@ PRIVATE int parse_cso ARGS3(HTRequest *, 	request,
     char *cur_code = NULL;
     HTChunk *chunk = HTChunkCreate(128);
     HTInputSocket *isoc = HTInputSocket_new(gopher->socket);
-    HTStructured *target = HTML_new(request, NULL, WWW_HTML,
-				    request->output_format,
-				    request->output_stream);
+    HTStructured *target = NULL;
     
     /* Start grabbing chars from the network */
     while ((ch = HTInputSocket_getCharacter(isoc)) >= 0) {
@@ -456,6 +469,11 @@ PRIVATE int parse_cso ARGS3(HTRequest *, 	request,
 		   put out the title */
 		if (*strptr == '1' ||
 		    !strncmp(strptr, "501", 3) || !strncmp(strptr, "502", 3)) {
+
+		    /* Put up new stream */
+		    target = HTML_new(request, NULL, WWW_HTML,
+				      request->output_format,
+				      request->output_stream);
 		    START(HTML_H1);
 		    PUTS("CSO Search Results");
 		    END(HTML_H1);
@@ -570,24 +588,28 @@ PRIVATE int parse_cso ARGS3(HTRequest *, 	request,
 
     /* Put out the bottom line */
     if (status != HT_INTERRUPTED) {
-	char *outstr;
-        if ((outstr = (char *) malloc(100)) == NULL)
-            outofmem(__FILE__, "parse_menu");
-        if (!records)
-            sprintf(outstr, "No records");
-        else if (records == 1)
-            sprintf(outstr, "1 record");
-        else
-            sprintf(outstr, "%u records", records);
-	START(HTML_PRE);
-        START(HTML_HR);
-        PUTS(outstr);
-	END(HTML_PRE);
-        free(outstr);
+	if (target) {
+	    char *outstr;
+	    if ((outstr = (char *) malloc(100)) == NULL)
+		outofmem(__FILE__, "parse_menu");
+	    if (!records)
+		sprintf(outstr, "No records");
+	    else if (records == 1)
+		sprintf(outstr, "1 record");
+	    else
+		sprintf(outstr, "%u records", records);
+	    START(HTML_PRE);
+	    START(HTML_HR);
+	    PUTS(outstr);
+	    END(HTML_PRE);
+	    free(outstr);
+	    FREE_TARGET;
+	} else {
+	    if (TRACE) fprintf(stderr, "HTGopher.... Interrupted before any stream was put up.\n");
+	}
     }
 
     /* Clean up */
-    FREE_TARGET;
     HTInputSocket_free(isoc);
     HTChunkFree(chunk);
     FREE(cur_code);
@@ -678,7 +700,7 @@ PRIVATE int HTGopher_send_cmd ARGS3(HTRequest *, 	request,
 			  (int) strlen(gopher->command))) < 0) {
 	if (TRACE) fprintf(stderr, "Gopher...... Error sending command: %s\n",
 			   gopher->command);
-	HTInetStatus("write");
+	HTErrorSysAdd(request, ERR_FATAL, NO, "write");
     } else
 	status = 0;
     return status;
@@ -833,7 +855,7 @@ PUBLIC int HTLoadGopher ARGS1(HTRequest *, request)
 	if (TRACE) fprintf(stderr, "Gopher...... Closing socket %d\n",
 			   gopher->socket);
 	if (NETCLOSE(gopher->socket) < 0)
-	    status = HTInetStatus("close");
+	    status = HTErrorSysAdd(request, ERR_FATAL, NO, "close");
     }
     if (status == HT_INTERRUPTED) {
         HTErrorAdd(request, ERR_WARNING, NO, HTERR_INTERRUPTED, NULL, 0,
@@ -843,9 +865,13 @@ PUBLIC int HTLoadGopher ARGS1(HTRequest *, request)
     free(gopher);
 
     if (status < 0 && status != HT_INTERRUPTED) {
-        HTErrorAdd(request, ERR_FATAL, NO, HTERR_INTERNAL, NULL, 0,
-		   "HTLoadGopher");
+	char *unescaped = NULL;
+	StrAllocCopy(unescaped, url);
+	HTUnEscape(unescaped);
+        HTErrorAdd(request, ERR_FATAL, NO, HTERR_INTERNAL, (void *) unescaped,
+		   (int) strlen(unescaped), "HTLoadGopher");
 	HTAnchor_clearIndex(request->anchor);
+	free(unescaped);
     }
 
     /* TEMPORARY, SHOULD BE IN HTAccess */

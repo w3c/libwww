@@ -739,7 +739,6 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
     char *pathname = NULL;
     int  pathend;
     char *tail = NULL;
-    HTStructured *target;				      /* HTML object */
     DIR *dp;
     struct stat file_info;
     HTList * descriptions = NULL;
@@ -800,9 +799,6 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 
     if (HTDirDescriptions)
 	descriptions = HTReadDescriptions(directory);
-
-    target = HTML_new(req, NULL, WWW_HTML, req->output_format,
-		      req->output_stream);
     
     /* Now, generate the Btree and put it out to the output stream. */
     {
@@ -1017,16 +1013,25 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	    HTDirFileLength = HTDirMaxFileLength;
 	if (HTDirFileLength < HTDirMinFileLength)
 	    HTDirFileLength = HTDirMinFileLength;
-   
-	/* Put out the header for the HTML object */
-	HTDirOutTop(target, (HTAnchor *) req->anchor, topstr, directory, NULL);
 
-	/* Run through tree printing out in order, hopefully :-) */
-	if (filecnt) {
-	    HTDirOutList(target, bt, tail);
+	/* Now, put up the stream if no error has occured */
+	if (!req->error_stack) {
+	    HTStructured *target = HTML_new(req, NULL, WWW_HTML,
+					    req->output_format,
+					    req->output_stream);
+	    
+	    /* Put out the header for the HTML object */
+	    HTDirOutTop(target, (HTAnchor *) req->anchor, topstr, directory,
+			NULL);
+	    
+	    /* Run through tree printing out in order, hopefully :-) */
+	    if (filecnt) {
+		HTDirOutList(target, bt, tail);
+	    }
+	    
+	    HTDirOutBottom(target, filecnt, directory, NULL);
+	    FREE_TARGET;
 	}
-
-	HTDirOutBottom(target, filecnt, directory, NULL);
 
 cleanup:
 	if (descriptions)
@@ -1038,7 +1043,6 @@ cleanup:
 	HTBTree_free(bt);
 	closedir(dp);
     } /* End of two big loops */
-    FREE_TARGET;
     return HT_LOADED;
 } /* End of directory reading section */
 
@@ -1071,7 +1075,6 @@ PUBLIC int HTFTPBrowseDirectory ARGS4(HTRequest *, req, char *, directory,
 {
     int status;
     char *tail = NULL;
-    HTStructured *target;				      /* HTML object */
     
     if (TRACE) fprintf(stderr, "HTFTPBrowse. Browsing `%s\'\n", directory);
         
@@ -1095,9 +1098,6 @@ PUBLIC int HTFTPBrowseDirectory ARGS4(HTRequest *, req, char *, directory,
 	tail = HTEscape(tailstr, URL_PATH);
 	free(tailstr);
     }
-
-    target = HTML_new(req, NULL, WWW_HTML, req->output_format,
-		      req->output_stream);
     
     /* Now, generate the Btree and put it out to the output stream. */
     {
@@ -1251,15 +1251,23 @@ PUBLIC int HTFTPBrowseDirectory ARGS4(HTRequest *, req, char *, directory,
         if (HTDirFileLength < HTDirMinFileLength)
             HTDirFileLength = HTDirMinFileLength;
 
-	/* Put out the header for the HTML object */
-	HTDirOutTop(target, (HTAnchor *) req->anchor, topstr, directory,
-		    data->ctrl->welcome);
+	/* Now, put up the stream if no error has occured */
+	if (!req->error_stack) {
+	    HTStructured *target = HTML_new(req, NULL, WWW_HTML,
+					    req->output_format,
+					    req->output_stream);
 
-	/* Run through tree printing out in order, hopefully :-) */
-	if (filecnt) {
-	    HTDirOutList(target, bt, tail);
+	    /* Put out the header for the HTML object */
+	    HTDirOutTop(target, (HTAnchor *) req->anchor, topstr, directory,
+			data->ctrl->welcome);
+	    
+	    /* Run through tree printing out in order, hopefully :-) */
+	    if (filecnt) {
+		HTDirOutList(target, bt, tail);
+	    }
+	    HTDirOutBottom(target, filecnt, directory, data->ctrl->welcome);
+	    FREE_TARGET;
 	}
-	HTDirOutBottom(target, filecnt, directory, data->ctrl->welcome);
 
 cleanup:
 	FREE(HTDirSpace);
@@ -1270,6 +1278,5 @@ cleanup:
 	/* TEMPORARY */
 	HTDirDescriptions = old_descr;
     } /* End of two big loops */
-    FREE_TARGET;
     return status ? status : HT_LOADED;
 } /* End of FTP directory listing */

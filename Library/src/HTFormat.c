@@ -803,7 +803,10 @@ PRIVATE BOOL better_match ARGS2(HTFormat, f,
 **	be a lot neater.
 **
 **	The star/star format is special, in that if you can take
-**	that you can take anything. However, we
+**	that you can take anything.
+**
+**	On succes, request->error_block is set to YES so no more error
+**	messages to the stream as the stream might be of any format.
 */
 PUBLIC HTStream * HTStreamStack ARGS3(HTFormat,		rep_in,
 				      HTRequest *,	request,
@@ -822,6 +825,7 @@ PUBLIC HTStream * HTStreamStack ARGS3(HTFormat,		rep_in,
 
     if (guess  &&  rep_in == WWW_UNKNOWN) {
 	CTRACE(stderr, "Returning... guessing stream\n");
+	request->error_block = YES;	   /* No more error output to stream */
 	return HTGuess_new(request);
     }
 
@@ -860,6 +864,7 @@ PUBLIC HTStream * HTStreamStack ARGS3(HTFormat,		rep_in,
 
     match = best_match ? best_match : NULL;
     if (match) {
+	request->error_block = YES;	   /* No more error output to stream */
 	if (match->rep == WWW_SOURCE) {
 	    if (TRACE) fprintf(stderr, "StreamStack. Don't know how to handle this, so put out %s to %s\n",
 			       HTAtom_name(match->rep), 
@@ -1083,6 +1088,11 @@ PUBLIC int HTParseSocket ARGS3(
     HTStream * stream;
     HTStreamClass targetClass;    
 
+    if (request->error_stack) {
+	if (TRACE) fprintf(stderr, "ParseSocket. Called whith non-empty error stack, so I return right away!\n");
+	return -1;
+    }
+
     stream = HTStreamStack(rep_in, request, YES);
 
     if (!stream) {
@@ -1135,6 +1145,11 @@ PUBLIC int HTParseFile ARGS3(
 {
     HTStream * stream;
     HTStreamClass targetClass;    
+
+    if (request->error_stack) {
+	if (TRACE) fprintf(stderr, "ParseFile... Called whith non-empty error stack, so I return right away!\n");
+	return -1;
+    }
 
     stream = HTStreamStack(rep_in, request, YES);
     

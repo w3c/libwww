@@ -25,6 +25,7 @@
 #include "HTAlert.h"
 #include "HTMLGen.h"
 #include "HTParse.h"
+#include "HTError.h"				    /* Because of HTErrorMsg */
 
 extern HTStyleSheet * styleSheet;	/* Application-wide */
 
@@ -936,3 +937,99 @@ PUBLIC int HTLoadError ARGS3(
     return -number;
 } 
 
+
+/* ------------------------------------------------------------------------- */
+/* NOTE: THIS FUNCTION IS PLACED HEER AS THE HTML.C MODULE NORMALLY GETS
+**       OVERWRITTEN BY THE CLIENT OR SERVER
+**								HTErrorMsg
+**
+**	Creates an error message on standard output containing the 
+**	error_stack messages. The HTErr 
+**	Only if the global variable HTErrorInfoPath != NULL, an anchor
+**	will be created to an message help file. It is garanteed that
+**	NO STREAM has been put up or taken down in the library at this point.
+**	This function might be overwritten by a smart server or client.
+*/
+PUBLIC void HTErrorMsg ARGS1(HTRequest *, request)
+{
+    HTList *cur = request->error_stack;
+    BOOL highest = YES;
+    HTErrorInfo *pres;
+    if (!request) {
+	if (TRACE) fprintf(stderr, "HTErrorMsg.. Bad argument!\n");
+	return;
+    }
+    if (request->error_block) {
+	if (TRACE) fprintf(stderr, "HTErrorMsg.. Errors are not printed as no stream is available.\n");
+	return;
+    }
+
+    /* Output messages */
+    while ((pres = (HTErrorInfo *) HTList_nextObject(cur))) {
+
+	/* Check if we are going to show the message */
+	if ((!pres->ignore || HTErrorShowMask & HT_ERR_SHOW_IGNORE) && 
+	    (HTErrorShowMask & pres->severity)) {
+
+	    /* Output code number */
+	    if (highest) {			    /* If first time through */
+		if (TRACE)
+		    fprintf(stderr,
+			    "HTError..... Generating error message.\n");
+		
+		/* Output title */
+		fprintf(stderr, "\nError Message:\n");
+
+		if (pres->severity == ERR_WARNING)
+		    fprintf(stderr, "Warning ");
+		else if (pres->severity == ERR_NON_FATAL)
+		    fprintf(stderr, "Non Fatal Error ");
+		else if (pres->severity == ERR_FATAL)
+		    fprintf(stderr, "Fatal Error ");
+		else {
+		    fprintf(stderr, "Unknown Classification of Error...\n");
+		    return;
+		}
+
+		/* Only output error code if it is a real HTTP code */
+		if (pres->element < HTERR_HTTP_CODES_END)
+		    fprintf(stderr, "%d  ", error_info[pres->element].code);
+		highest = NO;
+	    } else
+		fprintf(stderr, "This occurred because: ");
+
+	    /* Output error message */
+	    fprintf(stderr, "%s\n", error_info[pres->element].msg);
+
+	    /* Output parameters */
+	    if (pres->par && HTErrorShowMask & HT_ERR_SHOW_PARS) {
+		int cnt;
+		char *tstr;
+		char *nptr;
+		if ((tstr = (char *) malloc(pres->par_length+1)) == NULL)
+		    outofmem(__FILE__, "HTErrorMsg");
+		nptr = tstr;
+		for (cnt=0; cnt<pres->par_length; cnt++) {
+		    if (*((char *)(pres->par)+cnt) < 0x20 ||
+			*((char *)(pres->par)+cnt) >= 0x7F)
+			*nptr++ = '#';
+		    else
+			*nptr++ = *((char *)(pres->par)+cnt);
+		}
+		*nptr = '\0';
+		fprintf(stderr, " (%s)\n", tstr);
+		free(tstr);
+	    }
+
+	    /* Output location */
+	    if (pres->where && HTErrorShowMask & HT_ERR_SHOW_LOCATION) {
+		fprintf(stderr, "This occured in %s\n", pres->where);
+	    }
+	    
+	    /* If we only are going to show the higest entry */
+	    if (HTErrorShowMask & HT_ERR_SHOW_FIRST)
+		break;
+	}
+    }
+    return;
+}

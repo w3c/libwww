@@ -6,31 +6,17 @@
 <BODY>
 <H1>Error reporting functions</H1>
 
+This module maintaines a list of error messages that might occur during load of a requested URL. The error list is put out to standard output by a simple function that easily can be overwritten by a smart server or client. It is garanteed that at the moment, HTErrorMsg() is called no stream has been put up or taken down in the library.
 <PRE>
 #ifndef HTERROR_H
 #define HTERROR_H
 </PRE>
 
-<PRE>
-typedef enum _HTErrorShow {
-    HT_ERR_SHOW_FATAL     = 0x1,
-    HT_ERR_SHOW_NON_FATAL = 0x3,
-    HT_ERR_SHOW_WARNING   = 0x7,
-    HT_ERR_SHOW_PARS	  = 0x8,
-    HT_ERR_SHOW_LOCATION  = 0x10,
-    HT_ERR_SHOW_IGNORE    = 0x20,
-    HT_ERR_SHOW_FIRST     = 0x40,
-    HT_ERR_SHOW_ALL	  = 0x3F
-} HTErrorShow;
+<H2>Data Structures</H2>
 
-typedef enum _HTErrSeverity {
-    ERR_FATAL		  = 0x1,
-    ERR_NON_FATAL	  = 0x3,
-    ERR_WARNING 	  = 0x7
-} HTErrSeverity;
-</PRE>
+The basic data structure is HTErrorInfo, but in addition the following types are used:
 
-<H2>Error Numbers</H2>
+<H3>Error Numbers</H3>
 
 <B>Note:</B> All non-HTTP error codes have index numbers &gt; HTERR_HTTP_CODES, and they will not be shown in the error-message generated.
 <PRE>
@@ -62,25 +48,62 @@ typedef enum _HTErrorElement {
 	HTERR_SYSTEM,
 	HTERR_ELEMENTS		            /* This MUST be the last element */
 } HTErrorElement;
+
+typedef enum _HTErrSeverity {
+    ERR_FATAL		  = 0x1,
+    ERR_NON_FATAL	  = 0x3,
+    ERR_WARNING 	  = 0x7
+} HTErrSeverity;
+
+typedef struct _HTErrorInfo {
+    HTErrorElement 	element;        /* Index number into HTErrorMsgInfo */
+    HTErrSeverity 	severity; 	/* A la VMS */
+    BOOL               	ignore;         /* YES if msg should not go to user */
+    void *  		par;          	/* Explanation, e.g. filename  */
+    unsigned int 	par_length;   	/* For copying by generic routine */
+    char *       	where;          /* Which function */
+} HTErrorInfo;
+</PRE>
+
+<H2>Controling Globals</H2>
+
+This variable dictates which errors should be put out.
+
+<PRE>
+typedef enum _HTErrorShow {
+    HT_ERR_SHOW_FATAL     = 0x1,
+    HT_ERR_SHOW_NON_FATAL = 0x3,
+    HT_ERR_SHOW_WARNING   = 0x7,
+    HT_ERR_SHOW_PARS	  = 0x8,
+    HT_ERR_SHOW_LOCATION  = 0x10,
+    HT_ERR_SHOW_IGNORE    = 0x20,
+    HT_ERR_SHOW_FIRST     = 0x40,
+    HT_ERR_SHOW_ALL	  = 0x3F
+} HTErrorShow;
+
+extern unsigned int HTErrorShowMask;
+</PRE>
+
+This is the table containing the actual error-messages and links for more information:
+
+<PRE>
+typedef struct _HTErrorMsgInfo {
+    int  	code;           	/* Error number */
+    char *	msg;          		/* Short explanation */
+    char *	url;			/* Explaning URL */
+} HTErrorMsgInfo;
+
+extern HTErrorMsgInfo error_info[];
 </PRE>
 
 <H2>Public Error Functions</H2>
 
-<H3>Initializing Help</H3>
-
-A path must be given in order to initialize the help pages, that refer to any further explanation of the error or warning. Furthermore, it is possible to sign any error message as, e.g., `CERN HTTP Server' and give a link to get more info on the signer.
-<PRE>
-extern void HTErrorInit PARAMS((char * pathname,
-				char * signature,
-				char * siglink));
-</PRE>
-
 <H3>Add an Error Message</H3>
 
 This function adds an error message to the error_stack list in the HTRequest
-structure.
+structure. It always returns a negative value.
 <PRE>
-extern void HTErrorAdd PARAMS((	HTRequest * 	request,
+extern int HTErrorAdd PARAMS((	HTRequest * 	request,
 			    	HTErrSeverity 	severity,
 			    	BOOL		ignore,
 			     	int		element,
@@ -91,9 +114,9 @@ extern void HTErrorAdd PARAMS((	HTRequest * 	request,
 
 <H3>Add a System Error Message</H3>
 
-This function adds an error from a system call that initializes errno or equivalent and adds it to the error_stack list in the HTRequest structure.
+This function adds an error from a system call that initializes errno or equivalent and adds it to the error_stack list in the HTRequest structure. It always returns a negative value.
 <PRE>
-extern void HTErrorSysAdd PARAMS((HTRequest * 	request,
+extern int HTErrorSysAdd PARAMS(( HTRequest * 	request,
 				  HTErrSeverity	severity,
 				  BOOL		ignore,
 				  char *	syscall));
@@ -106,9 +129,13 @@ If an error message is not to be send to the user, e.g., output to the stream, t
 extern void HTErrorIgnore PARAMS((HTRequest * request));
 </PRE>
 
-<H3>Generating an Error Message</H3>
+<H3>Generating an Error Message (default to standard output)</H3>
 
-This function writes to the outpu stream for the request.
+This function outputs the content of the error_stack to standard output (used in Line Mode Browser), but smart clients and servers might overwrite this function so that the error messages can be handled to the user in a nice way. That is the reason for putting the actual implementation in HTML.c, that normally gets overwritten by clients and servers apart from Line Mode Browser. <P>
+
+<NOTE>NOTE</NOTE>
+
+If a stream <EM>has</EM> been put up (and maybe taken down again) inside the Library, then request-&gt;error_block has been set to YES. This indicates that it is NOT possible any more to use the stream as output for the message.
 <PRE>
 extern void HTErrorMsg    PARAMS((HTRequest * request));
 </PRE>

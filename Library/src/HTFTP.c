@@ -1884,7 +1884,7 @@ PRIVATE int HTFTP_get_data_con ARGS3(HTRequest *, request,
 	    if (status < 0) {
 		if (TRACE) fprintf(stderr,
 				   "FTP......... Data connection failed using PASV, let's try PORT instead\n");
-		HTErrorIgnore(request);	     /* Don't generate error message */
+		HTErrorFree(request);	     /* Don't generate error message */
 		state = NEED_PASSIVE;
 	    } else if (status >= 0) {
 		if (TRACE) fprintf(stderr, "FTP......... Data connected using PASV, socket %d\n", data->socket);
@@ -1974,7 +1974,7 @@ PRIVATE int HTFTP_switch_to_port ARGS2(ftp_data_info *, data,
 	fprintf(stderr, "FTP Switch.. Closing PASV data connection number %d, and try to reopen it on the fly using PORT\n",
 		data->socket);
     if ((status = NETCLOSE(data->socket)) < 0) {
-	HTInetStatus("close data socket");
+        HTErrorSysAdd(req, ERR_FATAL, NO, "close");
     } else
 	data->socket = -1;	   /* Invalid socket */
     
@@ -2032,7 +2032,7 @@ PRIVATE int HTFTP_look_for_data ARGS2(HTRequest *, 	request,
     /* Now make the select */
     if ((status = select(maxfdpl, &read_socks, (fd_set *) NULL,
 			 (fd_set *) NULL, &max_wait)) < 0)
-	HTInetStatus("select");
+        HTErrorSysAdd(request, ERR_FATAL, NO, "select");
     else if (!status) {
 	if (TRACE) fprintf(stderr, "FTP Select.. Connections timed out\n");
 	status = -1;
@@ -2769,7 +2769,7 @@ PRIVATE int HTFTP_get_file ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 		}
 	    }
 
-	    /* Now, the browsing module can be called */
+	    /* Now, the net parse module can be called */
 	    if (TRACE) fprintf(stderr, "FTP......... Receiving file `%s\'\n",
 			       unescaped);
 	    status = HTParseSocket(data->fileformat, data->socket, req);
@@ -2918,7 +2918,7 @@ PUBLIC int HTLoadFTP ARGS1(HTRequest *, request)
     int retry;		       			    /* How many times tried? */
     ftp_ctrl_info *ctrl;
 
-    if (!request || !url || !*url) {
+    if (!request || !request->anchor || !url || !*url) {
 	if (TRACE) fprintf(stderr, "HTLoadFTP... Bad argument\n");
 	return -1;
     }
@@ -2927,10 +2927,6 @@ PUBLIC int HTLoadFTP ARGS1(HTRequest *, request)
        corresponding data connection */
     HTSimplify(url);
     if((ctrl = HTFTP_init_con(request, url)) == NULL) {
-#ifdef OLD_CODE
-	HTLoadError(request, 500,
-		    "Could not establish connection to FTP-server");
-#endif /* OLD_CODE */
 	goto endfunc;
     }
 
@@ -3054,15 +3050,19 @@ PUBLIC int HTLoadFTP ARGS1(HTRequest *, request)
     }
 
   endfunc:
-    if (status < 0 && status != HT_INTERRUPTED)
-	HTErrorAdd(request, ERR_FATAL, NO, HTERR_INTERNAL, NULL, 0, 
-		   "HTLoadFTP");
-#ifdef OLD_CODE
-	return HTLoadError(request, 500,
-              "Document not loaded due to strange behavior from FTP-server");
-#endif
+    if (status < 0 && status != HT_INTERRUPTED) {
+	char *unescaped = NULL;
+	StrAllocCopy(unescaped, url);
+	HTUnEscape(unescaped);
+	HTErrorAdd(request, ERR_FATAL, NO, HTERR_INTERNAL, (void *) unescaped,
+		   (int) strlen(unescaped), "HTLoadFTP");
+	free(unescaped);
+    }
+
+    /* TEMPORARY, SHOULD BE IN HTAccess */
     if (request->error_stack)
 	HTErrorMsg(request);
+    /* TEMPORARY */
     return status;
 }
 

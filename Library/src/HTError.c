@@ -17,49 +17,18 @@
 #include "HTMLPDTD.h"
 #include "HTUtils.h"
 #include "HTAccess.h"
-#include "HTML.h"
 #include "HTTCP.h"
 #include "HTError.h"					 /* Implemented here */
-
-/* Macros and other defines */
-#define PUTC(c) 	(*target->isa->put_character)(target, c)
-#define PUTS(s)		(*target->isa->put_string)(target, s)
-#define START(e)	(*target->isa->start_element)(target, e, 0, 0)
-#define END(e)		(*target->isa->end_element)(target, e)
-#define FREE_TARGET	(*target->isa->free)(target)
 
 /* Globals */
 PUBLIC unsigned int HTErrorShowMask = HT_ERR_SHOW_WARNING+HT_ERR_SHOW_PARS;
 
 /* Type definitions and global variables etc. local to this module */
-typedef struct _HTErrorInfo {
-    HTErrorElement 	element;        /* Index number into HTErrorMsgInfo */
-    HTErrSeverity 	severity; 	/* A la VMS */
-    BOOL               	ignore;         /* YES if msg should not go to user */
-    void *  		par;          	/* Explanation, e.g. filename  */
-    unsigned int 	par_length;   	/* For copying by generic routine */
-    char *       	where;          /* Which function */
-} HTErrorInfo;
-
-typedef struct _HTErrorMsgInfo {
-    int  	code;           	/* Error number */
-    char *	msg;          		/* Short explanation */
-    char *	url;			/* Explaning URL */
-} HTErrorMsgInfo;
-
-struct _HTStructured {
-    CONST HTStructuredClass *	isa;
-    /* ... */
-};
-
-PRIVATE char *HTErrorInfoPath  = NULL;
-PRIVATE char *HTErrorSignature = NULL;
-PRIVATE char *HTErrorSigLink   = NULL;
 
 /* All errors that are not strictly HTTP errors but originates from, e.g., 
    the FTP protocol all have element numbers > HTERR_HTTP_CODES_END, i.e.,
    they should be placed after the blank line */
-PRIVATE HTErrorMsgInfo error_info[HTERR_ELEMENTS] = {
+PUBLIC HTErrorMsgInfo error_info[HTERR_ELEMENTS] = {
     { 200, "OK", 			"ok.multi" },
     { 201, "Created", 			"created.multi" },
     { 202, "Accepted", 			"accepted.multi" },
@@ -96,20 +65,21 @@ PRIVATE HTErrorMsgInfo error_info[HTERR_ELEMENTS] = {
 **	par_length be unspecified, i.e., 0.
 **
 **	NOTE: See also HTErrorSysAdd for system errors
+**
+**	Returns always < 0
 */
-PUBLIC void HTErrorAdd ARGS7(HTRequest *, 	request,
-			     HTErrSeverity, 	severity,
-			     BOOL,		ignore,
-			     int,		element,
-			     void *,		par,
-			     unsigned int,	par_length,
-			     char *,		where)
-
+PUBLIC int HTErrorAdd ARGS7(HTRequest *, 	request,
+			    HTErrSeverity, 	severity,
+			    BOOL,		ignore,
+			    int,		element,
+			    void *,		par,
+			    unsigned int,	par_length,
+			    char *,		where)
 {
     HTErrorInfo *newError;
     if (!request) {
 	if (TRACE) fprintf(stderr, "HTErrorAdd.. Bad argument!\n");
-	return;
+	return -1;
     }
     if ((newError = (HTErrorInfo *) calloc(1, sizeof(HTErrorInfo))) == NULL)
 	outofmem(__FILE__, "HTErrorAdd");
@@ -139,7 +109,7 @@ PUBLIC void HTErrorAdd ARGS7(HTRequest *, 	request,
     if (!request->error_stack)
 	request->error_stack = HTList_new();
     HTList_addObject(request->error_stack, (void *) newError);
-    return;
+    return (-element);
 }
 
 
@@ -151,17 +121,19 @@ PUBLIC void HTErrorAdd ARGS7(HTRequest *, 	request,
 **	HTInetStatus, which is called from within.
 **
 **	See also HTErrorAdd.
+**
+**	Returns always < 0
 */
-PUBLIC void HTErrorSysAdd ARGS4(HTRequest *, 	request,
-				HTErrSeverity, 	severity,
-				BOOL,		ignore,
-				char *,		syscall)
+PUBLIC int HTErrorSysAdd ARGS4(HTRequest *, 	request,
+			       HTErrSeverity, 	severity,
+			       BOOL,		ignore,
+			       char *,		syscall)
 
 {
     HTErrorInfo *newError;
     if (!request) {
 	if (TRACE) fprintf(stderr, "HTErrorSys.. Bad argument!\n");
-	return;
+	return -1;
     }
     if ((newError = (HTErrorInfo *) calloc(1, sizeof(HTErrorInfo))) == NULL)
 	outofmem(__FILE__, "HTErrorAdd");
@@ -192,7 +164,7 @@ PUBLIC void HTErrorSysAdd ARGS4(HTRequest *, 	request,
     if (!request->error_stack)
 	request->error_stack = HTList_new();
     HTList_addObject(request->error_stack, (void *) newError);
-    return;
+    return (-HTERR_SYSTEM);
 }
 
 
@@ -243,156 +215,17 @@ PUBLIC void HTErrorIgnore ARGS1(HTRequest *, request)
 }
 
 
-/*								HTErrorInit
-**
-**	Initiates the external multi linguistic help files that appears 
-**	as anchors in the message, a `signature', e.g., "HTTPD Server",
-**	and a link to information on the signer.
-*/
-PUBLIC void HTErrorInit ARGS3(char *, pathname, char *, signature,
-			      char *, siglink)
-{
-    if (pathname) {
-	if (TRACE) fprintf(stderr, "HTErrorInit. Initializing path for info on error messages\n");
-	StrAllocCopy(HTErrorInfoPath, pathname);
-	if (*(HTErrorInfoPath+strlen(HTErrorInfoPath)-1) != '/')
-	    StrAllocCat(HTErrorInfoPath, "/");
-    }
-    if (signature) {
-	if (TRACE) fprintf(stderr, "HTErrorInit. Initializing signature\n");
-	StrAllocCopy(HTErrorSignature, signature);
-	if (siglink) {
-	    if (TRACE) fprintf(stderr, "HTErrorInit. Initializing info on signer\n");
-	    StrAllocCopy(HTErrorSigLink, siglink);
-	}
-    }
-    return;
-}
-
-
 /*								HTErrorMsg
 **
-**	Creates a HTML error message from using the whole error_stack.
+**	Creates an error message on standard output containing the 
+**	error_stack messages. The HTErr 
 **	Only if the global variable HTErrorInfoPath != NULL, an anchor
-**	will be created to an message help file.
+**	will be created to an message help file. It is garanteed that
+**	NO STREAM has been put up or taken down in the library at this point.
+**	This function might be overwritten by a smart server or client.
 */
-PUBLIC void HTErrorMsg ARGS1(HTRequest *, request)
-{
-    HTList *cur = request->error_stack;
-    BOOL highest = YES;
-    HTErrorInfo *pres;
-    HTStructured *target = NULL;
-    if (!request) {
-	if (TRACE) fprintf(stderr, "HTErrorMsg.. Bad argument!\n");
-	return;
-    }
 
-    /* Output messages */
-    while ((pres = (HTErrorInfo *) HTList_nextObject(cur))) {
-
-	/* Check if we are going to show the message */
-	if ((!pres->ignore || HTErrorShowMask & HT_ERR_SHOW_IGNORE) && 
-	    (HTErrorShowMask & pres->severity)) {
-
-	    /* Output code number */
-	    if (highest) {			    /* If first time through */
-		if (TRACE)
-		    fprintf(stderr,
-			    "HTError..... Generating error message.\n");
-		target = HTML_new(request, NULL, WWW_HTML,
-				  request->output_format,
-				  request->output_stream);
-		
-		/* Output title */
-		START(HTML_TITLE);
-		PUTS("Error Message");
-		END(HTML_TITLE);
-		START(HTML_H1);
-
-		if (pres->severity == ERR_WARNING)
-		    PUTS("Warning ");
-		else if (pres->severity == ERR_NON_FATAL)
-		    PUTS("Non Fatal Error ");
-		else if (pres->severity == ERR_FATAL)
-		    PUTS("Fatal Error ");
-		else {
-		    PUTS("Unknown Classification of Error");
-		    FREE_TARGET;
-		    return;
-		}
-
-		/* Only output error code if it is a real HTTP code */
-		if (pres->element < HTERR_HTTP_CODES_END) {
-		    char codestr[20];
-		    sprintf(codestr, "%d", error_info[pres->element].code);
-		    PUTS(codestr);
-		}
-		END(HTML_H1);
-		highest = NO;
-	    } else {
-		START(HTML_B);
-		PUTS("This occurred because: ");
-		END(HTML_B);
-	    }
-
-	    /* Output error message */
-	    PUTS(error_info[pres->element].msg);
-
-	    /* Output parameters */
-	    if (pres->par && HTErrorShowMask & HT_ERR_SHOW_PARS) {
-		int cnt;
-		PUTS(" (");
-		for (cnt=0; cnt<pres->par_length; cnt++) {
-		    if (*((char *)(pres->par)+cnt) < 0x20 ||
-			*((char *)(pres->par)+cnt) >= 0x7F)
-			PUTC('-');
-		    else
-			PUTC(*((char *)(pres->par)+cnt));
-		}
-		PUTC(')');
-	    }
-
-	    /* Make an anchor for further information */
-	    if (HTErrorInfoPath && error_info[pres->element].url) {
-		char *url = NULL;
-		START(HTML_BR);
-		StrAllocCopy(url, HTErrorInfoPath);
-		StrAllocCat(url, error_info[pres->element].url);
-		HTStartAnchor(target, NULL, url);
-		PUTS("Further information");
-		END(HTML_A);
-		free(url);
-	    }
-
-	    /* Output location */
-	    if (pres->where && HTErrorShowMask & HT_ERR_SHOW_LOCATION) {
-		START(HTML_BR);
-		PUTS("This occured in ");
-		PUTS(pres->where);
-	    }
-	    
-	    /* If we only are going to show the higest entry */
-	    if (HTErrorShowMask & HT_ERR_SHOW_FIRST)
-		break;
-	    START(HTML_P);
-	}
-    }
-
-    /* Put out any signature */
-    if (target) {
-	if (HTErrorSignature) {
-	    START(HTML_ADDRESS);
-	    if (HTErrorSigLink)
-		HTStartAnchor(target, NULL, HTErrorSigLink);
-	    PUTS(HTErrorSignature);
-	    if (HTErrorSigLink)
-		END(HTML_A);
-	    END(HTML_ADDRESS);
-	}
-	FREE_TARGET;
-    }
-    return;
-}
+/* *** LOOK IN HTML.C FOR ACTUAL IMPLEMENTATION OF THIS FUNCTION *** */
 
 /* END OF MODULE */
 
