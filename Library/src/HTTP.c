@@ -491,7 +491,9 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	HTTPCleanup(http);
 	return status;
     }
+
     http->isoc = HTInputSocket_new(http->sockfd);
+
     if (TRACE) fprintf(stderr, "HTTP........ Connected, socket %d\n",
 		       http->sockfd);
 

@@ -79,7 +79,12 @@ PRIVATE HTStream HTBlackHoleInstance =
 	NULL,
 	NO,				/* HENRIK 08/02-94 */
 	NULL,
+<<<<<<< HTFWriter.c
 	NO,
+
+=======
+	NO,
+>>>>>>> 2.32
 	NO,
 	NULL,
 	NULL,

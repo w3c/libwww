@@ -39,6 +39,7 @@ struct _HTStream {
 	HTStreamClass			targetClass;	/* COPY for speed */
 };
 
+#define MAX_CLEANNESS 10
 struct _HTStructured {
 	CONST HTStructuredClass *	isa;
 	HTStream * 			target;
@@ -48,9 +49,11 @@ struct _HTStructured {
 	
 	char				buffer[BUFFER_SIZE+1];
 	char *				write_pointer;
-	char *				line_break;
+	char *				line_break [MAX_CLEANNESS+1];
 	int				cleanness;
-	BOOL				delete_line_break_char;
+	BOOL				overflowed;
+	BOOL				delete_line_break_char
+						[MAX_CLEANNESS+1];
 	char				preformatted;
 };
 
@@ -63,15 +66,41 @@ struct _HTStructured {
 /*	Flush Buffer
 **	------------
 */
+
+PRIVATE void flush_breaks ARGS1(HTStructured *, me)
+{
+    int i;
+    for (i=0; i<= MAX_CLEANNESS; i++) {
+        me->line_break[i] = NULL;
+    }
+}
+
+
 PRIVATE void HTMLGen_flush ARGS1(HTStructured *, me)
 {
     (*me->targetClass.put_block)(me->target, 
     				me->buffer,
 				me->write_pointer - me->buffer);
     me->write_pointer = me->buffer;
-    me->line_break = me->buffer;
+    flush_breaks(me);
     me->cleanness = 0;
-    me->delete_line_break_char = NO;
+}
+
+
+/*	Weighted optional line break
+**
+**	We keep track of all the breaks for when we chop the line
+*/
+
+PRIVATE void allow_break ARGS3(HTStructured *, me, int, new_cleanness,
+		BOOL, dlbc)
+{
+    me->line_break[new_cleanness] = 
+			 dlbc ? me->write_pointer - 1 /* Point to space */
+			      : me->write_pointer ;   /* point to gap */
+    me->delete_line_break_char[new_cleanness] = dlbc;
+    if (new_cleanness >= me->cleanness)
+	me->cleanness = new_cleanness;
 }
 
 
@@ -88,44 +117,48 @@ PRIVATE void HTMLGen_flush ARGS1(HTStructured *, me)
 **	   This should make the source files easier to read and modify
 **	by hand, too, though this is not a primary design consideration. TBL
 */
+PRIVATE char delims[] = ",;:.";		/* @@ english bias */
 PRIVATE void HTMLGen_output_character ARGS2(HTStructured *, me, char, c)
 {
 
     *me->write_pointer++ = c;
     
-    if (c=='\n') {
-        HTMLGen_flush(me);
-	return;
+    if (c=='\n') {		/* Newlines */
+        if (me->preformatted) {
+	    HTMLGen_flush(me);
+	    return;
+	} else {
+	    me->write_pointer[-1] = c = ' ';	/* Treat same as space */
+	}
     }
     
+    /* Figure our whether we can break at this point
+    */
     if ((!me->preformatted  && c==' ')) {
         int new_cleanness = 1;
 	if (me->write_pointer > (me->buffer + 1)) {
-	    char delims[5];
 	    char * p;
-	    strcpy(delims, ",;:.");		/* @@ english bias */
 	    p = strchr(delims, me->write_pointer[-2]);
-	    if (p) new_cleanness = p - delims + 2;
+	    if (p) new_cleanness = p - delims + 4;
 	}
-	if (new_cleanness >= me->cleanness) {
-	    me->line_break = me->write_pointer - 1;  /* Point to space */
-	    me->cleanness = new_cleanness;
-	    me->delete_line_break_char = YES;
-	}
+	allow_break(me, new_cleanness, YES);
     }
     
-    /* Flush buffer out when full. If preformatted then don't wrap! */
-    if (me->write_pointer >= me->buffer + BUFFER_SIZE-1) {
-    	if (!me->preformatted && me->cleanness) {
-	    char line_break_char = me->line_break[0];
-	    char * saved = me->line_break;
+    /* Flush buffer out when full, or whenever the line is over
+       the nominal maximum and we can break at all
+    */
+    if (me->write_pointer >= me->buffer + BUFFER_SIZE-1
+        ||  (me->overflowed && me->cleanness)) {
+    	if (me->cleanness) {
+	    char line_break_char = me->line_break[me->cleanness][0];
+	    char * saved = me->line_break[me->cleanness];
 	    
-	    if (me->delete_line_break_char) saved++; 
-	    me->line_break[0] = '\n';
+	    if (me->delete_line_break_char[me->cleanness]) saved++; 
+	    me->line_break[me->cleanness][0] = '\n';
 	    (*me->targetClass.put_block)(me->target,
 	    				me->buffer,
-					me->line_break - me->buffer + 1);
-	    me->line_break[0] = line_break_char;
+					me->line_break[me->cleanness] - me->buffer + 1);
+	    me->line_break[me->cleanness][0] = line_break_char;
 	    {  /* move next line in */
 	    	char * p=saved;
 		char *q;
@@ -133,16 +166,33 @@ PRIVATE void HTMLGen_output_character ARGS2(HTStructured *, me, char, c)
 			*q++ = *p++;
 	    }
 	    me->cleanness = 0;
-	    me->delete_line_break_char = 0;
-	    me->write_pointer = me->write_pointer - (saved-me->buffer);
+	    /* Now we have to check whether ther are any perfectly good breaks
+	    ** which weren't good enough for the last line but may be
+	    **  good enough for the next
+	    */
+	    {
+	        int i;
+		for(i=0; i <= MAX_CLEANNESS; i++) {
+		    if (me->line_break[i] > saved) {
+		        me->line_break[i] = me->line_break[i] -
+						(saved-me->buffer);
+			me->cleanness = i;
+		    } else {
+		        me->line_break[i] = NULL;
+		    }
+		}
+	    }
 
-	} else {
+	    me->write_pointer = me->write_pointer - (saved-me->buffer);
+	    me->overflowed = NO;
+	} else {   /* No break- just output with no newline */
 	    (*me->targetClass.put_block)(me->target,
 					 me->buffer,
 					 me->write_pointer - me->buffer);
 	    me->write_pointer = me->buffer;
+	    flush_breaks(me);
+	    me->overflowed = YES;
 	}
-	me->line_break = me->buffer;
     }
 }
 
@@ -218,10 +268,8 @@ PRIVATE void HTMLGen_start_element ARGS4(
     HTMLGen_output_string(me, tag->name);
     if (present) for (i=0; i< tag->number_of_attributes; i++) {
         if (present[i]) {
-	    me->line_break = me->write_pointer;	/* Don't you hate SGML?  */
-	    me->cleanness = 1;	/* Can break between attributes */
-	    me->delete_line_break_char = YES;
 	    HTMLGen_output_character(me, ' ');
+	    allow_break(me, 1, YES);
 	    HTMLGen_output_string(me, tag->attributes[i].name);
 	    if (value[i]) {
 	 	HTMLGen_output_string(me, "=\"");
@@ -251,9 +299,7 @@ PRIVATE void HTMLGen_start_element ARGS4(
         HTMLGen_output_character(me, '\n');
     } else  if (!me->preformatted && 
     	 tag->contents != SGML_EMPTY) {  /* can break after element start */ 
-    	me->line_break = me->write_pointer;	/* Don't you hate SGML?  */
-	me->cleanness = 3;
-	me->delete_line_break_char = NO;
+    	allow_break(me, 3, NO);
     }
 }
 
@@ -271,9 +317,7 @@ PRIVATE void HTMLGen_end_element ARGS2(HTStructured *, me,
     if (element_number == HTML_PRE) {
         HTMLGen_output_character(me, '\n');
     } else  if (!me->preformatted) { /* can break before element end */ 
-    	me->line_break = me->write_pointer;	/* Don't you hate SGML?  */
-	me->cleanness = 1;
-	me->delete_line_break_char = NO;
+    	allow_break(me, 1, NO);
     }
     HTMLGen_output_string(me, "</");
     HTMLGen_output_string(me, me->dtd->tags[element_number].name);
@@ -303,8 +347,8 @@ PRIVATE void HTMLGen_put_entity ARGS2(HTStructured *, me, int, entity_number)
 */
 PRIVATE void HTMLGen_free ARGS1(HTStructured *, me)
 {
-    (*me->targetClass.put_character)(me->target, '\n');
     HTMLGen_flush(me);
+    (*me->targetClass.put_character)(me->target, '\n');
     (*me->targetClass.free)(me->target);	/* ripple through */
     free(me);
 }
@@ -362,7 +406,7 @@ PUBLIC HTStructured * HTMLGenerator ARGS1(HTStream *, output)
     me->targetClass = *me->target->isa; /* Copy pointers to routines for speed*/
     
     me->write_pointer = me->buffer;
-    me->line_break = 	me->buffer;
+    flush_breaks(me);
     return me;
 }
 
@@ -413,7 +457,7 @@ PUBLIC HTStream* HTPlainToHTML ARGS5(
     me->target = output_stream;
     me->targetClass = *me->target->isa;/* Copy pointers to routines for speed*/
     me->write_pointer = me->buffer;
-    me->line_break = 	me->buffer;
+    flush_breaks(me);
     
     HTMLGen_start_element(me, HTML_HTML, present, value);
     HTMLGen_start_element(me, HTML_BODY, present, value);

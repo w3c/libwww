@@ -246,7 +246,7 @@ PRIVATE char * prefixed ARGS2(char *,	prefix,
 }
 
 
-PUBLIC void HTStdIconInit ARGS1(char *, url_prefix)
+PUBLIC void HTStdIconInit ARGS1(CONST char *, url_prefix)
 {
     char * p = url_prefix ? url_prefix : "/internal-icon/";
 

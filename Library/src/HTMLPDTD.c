@@ -15,7 +15,8 @@
 **
 **	This table must be matched exactly with ALL the translation tables
 */
-static CONST char* entities[] = {
+#define HTML_ENTITIES 66
+static CONST char* entities[HTML_ENTITIES] = {
   "AElig",	/* capital AE diphthong (ligature) */ 
   "Aacute",	/* capital A, acute accent */ 
   "Acirc",	/* capital A, circumflex accent */ 
@@ -72,7 +73,8 @@ static CONST char* entities[] = {
   "ograve",	/* small o, grave accent */ 
   "oslash",	/* small o, slash */ 
   "otilde",	/* small o, tilde */ 
-  "ouml",	/* small o, dieresis or umlaut mark */ 
+  "ouml",	/* small o, dieresis or umlaut mark */
+  "quot",	/* double quote sign  - June 1994 */ 
   "szlig",	/* small sharp s, German (sz ligature) */ 
   "thorn",	/* small thorn, Icelandic */ 
   "uacute",	/* small u, acute accent */ 
@@ -83,7 +85,6 @@ static CONST char* entities[] = {
   "yuml",	/* small y, dieresis or umlaut mark */ 
 };
 
-#define HTML_ENTITIES 65
 
 
 /*		Attribute Lists
