@@ -56,7 +56,7 @@ LOB = $(WTMP)/Library/$(WWW_MACH)
 # include $(CMN)Version.make
 include $(ABS)$(WWW)/Library/Implementation/Version.make
 
-CFLAGS2 = $(CFLAGS) $(WAISCFLAGS) -I$(CMN) -DACCESS_AUTH $(SOCKS_FLAGS)
+CFLAGS2 = $(CFLAGS) $(WAISCFLAGS) -I$(CMN) $(SOCKS_FLAGS)
 
 CERNLIBBIN = $(WWW)/bin
 

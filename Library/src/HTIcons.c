@@ -30,6 +30,13 @@ PUBLIC HTIconNode * icon_dir = NULL;		/* Directory icon */
 PRIVATE HTList * icons = NULL;
 PRIVATE int alt_len = 0;			/* Longest ALT text */
 
+/* 
+ * Global variable for the AddHref nodes
+ * AddHref URL suff1 suff2 ...
+ */
+PRIVATE HTList * hrefs = NULL;
+
+
 /* ------------------------------------------------------------------------- */
 
 PRIVATE void alt_resize ARGS1(char *, alt)
@@ -97,6 +104,31 @@ PUBLIC void HTAddIcon ARGS3(char *,	url,
 	   "AddIcon..... %s => SRC=\"%s\" ALT=\"%s\"\n",type_templ,url,
 	   alt ? alt : "");
 }
+
+
+/*
+ * Put the AddHrefs in a list. It can be used for indexing to
+ * present special filetypes through a CGI.
+ */
+PUBLIC void HTAddHref ARGS2(char *,     url,
+                            char *,     type_templ)
+{
+    HTHrefNode * node;
+
+    if (!url || !type_templ) return;
+
+    node = (HTHrefNode*)calloc(1,sizeof(HTHrefNode));
+    if (!node) outofmem(__FILE__, "HTAddHref");
+
+    if (url) StrAllocCopy(node->href_url, url);
+    if (type_templ) StrAllocCopy(node->type_templ, type_templ);
+
+    if (!hrefs) hrefs = HTList_new();
+    HTList_addObject(hrefs, (void*)node);
+    CTRACE(stderr,
+           "AddHref..... %s => URL=\"%s\" \n",type_templ,url);
+}
+
 
 
 /*
@@ -270,6 +302,28 @@ PUBLIC HTIconNode * HTGetIcon ARGS3(mode_t,	mode,
     }
 
     return icon_unknown;
+}
+
+
+/*
+ * Find the URL for a given type. Called from HTDirBrw.c
+ */
+PUBLIC HTHrefNode * HTGetHref ARGS1( char *,	filename)
+{
+    HTHrefNode * node;
+    char *c;
+
+    HTList * cur = hrefs;
+
+    c = strrchr(filename, '.');
+    if (c) {
+	while ((node = (HTHrefNode*)HTList_nextObject(cur))) {
+	    if ((!strcmp(node->type_templ,c)) ) {
+		return node;
+	    }
+	}
+    }
+    return NULL;
 }
 
 /* END OF MODULE */

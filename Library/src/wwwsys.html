@@ -499,10 +499,27 @@ typedef mode_t		int;
 (And Linux, thanks to Rainer Klute)
 <PRE>
 #if defined(__svr4__) || defined(_POSIX_SOURCE) || defined(__hpux)
-#include &lt;unistd.h>
-#include &lt;sys/fcntl.h>
+#include &lt;unistd.h&gt;
+#ifdef AIX
+#include &lt;fcntl.h&gt;
+#else
+#include &lt;sys/fcntl.h&gt;
+#endif
 #endif
 </PRE>
+
+<H2>SCO</H2>
+(by Brian King)
+<PRE>
+#ifdef sco
+
+#include &lt;time.h&gt;
+
+#define NEED_INITGROUPS
+
+#endif
+</PRE>
+
 
 <H2>OSF/1</H2>
 <PRE>

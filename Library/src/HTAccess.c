@@ -711,10 +711,6 @@ PRIVATE BOOL HTLoadDocument ARGS1(HTRequest *,		request)
 		"HTAccess: Can't access `%s'\n", full_address);
 #endif
 	/* This is done in the specific load procedures... Henrik 07/03-94 */
-#ifdef OLD_CODE
-	if (request->old_error_stack)
-	    HTLoadError(request, 500, "Unable to access document.");
-#endif /* OLD_CODE */
 	if (request->error_stack)
 	    HTErrorMsg(request);
 	free(full_address);
@@ -1067,58 +1063,4 @@ PUBLIC BOOL HTBindAnchor ARGS2(HTAnchor*, anchor, HTRequest *, request)
 	
     return YES;
 } /* HTBindAnchor */
-
-
-
-/*
- *	Error diagnostics
- */
-PUBLIC void HTAddError ARGS2(HTRequest *,	req,
-			     CONST char *,	msg)
-{
-    HTAddError2(req,msg,NULL);
-}
-
-PUBLIC void HTAddError2 ARGS3(HTRequest *,	req,
-			      CONST char *,	msg,
-			      CONST char *,	param)
-{
-    int mlen = msg ? strlen(msg) : 0;
-    int plen = param ? strlen(param) : 0;
-    char * str;
-
-    if (!req) return;
-    if (!req->old_error_stack) req->old_error_stack = HTList_new();
-
-    str = (char*)malloc(mlen + plen + 2);
-    if (!str) outofmem(__FILE__,"HTAddError2");
-
-    if (msg) strcpy(str,msg);
-    strcpy(str+mlen," ");
-    if (param) strcpy(str+mlen+1,param);
-
-    HTList_addObject(req->old_error_stack, (void*)str);
-    CTRACE(stderr, "libwww error: %s\n", str);
-}
-
-PUBLIC void HTAddErrorN ARGS3(HTRequest *,	req,
-			      CONST char *,	msg,
-			      int,		num)
-{
-    char buf[20];
-    sprintf(buf,"%d",num);
-    HTAddError2(req,msg,buf);
-}
-
-PUBLIC void HTClearErrors ARGS1(HTRequest *,	req)
-{
-    if (req && req->old_error_stack) {
-	HTList * cur = req->old_error_stack;
-	char * str;
-	while ((str = (char*)HTList_nextObject(cur)))
-	    free(str);
-	HTList_delete(req->old_error_stack);
-	req->old_error_stack = NULL;
-    }
-}
 

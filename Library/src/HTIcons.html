@@ -30,6 +30,17 @@ typedef struct _HTIconNode {
     char *	icon_alt;
     char *	type_templ;
 } HTIconNode;
+
+/*
+ * The list element definition to bind a CGI to a filetyp for special
+ * presentation like looking in an archiv (AddHref /cgi-bin/unarch? .zip .tar)
+ */
+typedef struct _HTHrefNode {
+    char *      href_url;
+    char *      type_templ;
+} HTHrefNode;
+
+
 </PRE>
 
 <PRE>
@@ -56,6 +67,14 @@ PUBLIC char * HTIcon_alt_string PARAMS((char * alt,
 PUBLIC void HTAddIcon PARAMS((char *	url,
 			      char *	alt,
 			      char *	type_templ));
+
+
+/*
+ * Called from HTConfig.c to build the list of all the AddHref's
+ */
+PUBLIC void HTAddHref PARAMS((char *    url,
+                              char *    type_templ));
+
 
 /*
  * Icon for which no other icon can be used.
@@ -88,6 +107,12 @@ PUBLIC void HTAddDirIcon PARAMS((char * url,
 PUBLIC HTIconNode * HTGetIcon PARAMS((mode_t	mode,
 				      HTFormat	content_type,
 				      HTFormat	content_encoding));
+
+/*
+ * returns the HrefNode to get the URL for presentation of a file (indexing)
+ */
+PUBLIC HTHrefNode * HTGetHref PARAMS(( char *  filename));
+
 
 </PRE>
 

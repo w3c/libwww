@@ -97,6 +97,7 @@ typedef struct _HTDirKey {
     BOOL is_dir;                                           /* If a directory */
     char *body;			/* Contains all the stuff as date, size etc. */
     HTIconNode *icon;
+    HTHrefNode *href;
     char *symlink;
 } HTDirKey;
 
@@ -594,8 +595,8 @@ PRIVATE void HTDirOutTop ARGS5(HTStructured *, target,
 **	If filename is anchor and filename is longer than HTMaxFileLength,
 **	the body columns are shifted to the right
 */
-PRIVATE void HTDirOutList ARGS3(HTStructured *, target, HTBTree *, bt,
-				char *, pathtail)
+PRIVATE void HTDirOutList ARGS4(HTStructured *, target, HTBTree *, bt,
+				char *, pathtail, char *, directory)
 {
     char *escaped = NULL;	      		 	  /* Used for anchor */
     char *tail = NULL;
@@ -612,6 +613,7 @@ PRIVATE void HTDirOutList ARGS3(HTStructured *, target, HTBTree *, bt,
 	*(tail+tailend) = '\0';
 	StrAllocCat(tail, escaped);
 
+	if (TRACE) fprintf(stderr, "OutList: %s\n", tail);
 	if (HTDirShowMask & HT_DIR_ICON_ANCHOR  &&
 	    nkey->icon && nkey->icon->icon_url) {	/* Icon as anchor */
 	    HTStartAnchor(target, NULL, tail);
@@ -638,11 +640,23 @@ PRIVATE void HTDirOutList ARGS3(HTStructured *, target, HTBTree *, bt,
 	} else { 	      			   /* Use filename as anchor */
 	    if (HTDirShowMask & HT_DIR_SHOW_ICON  &&
 		nkey->icon && nkey->icon->icon_url) {
+ 		if (nkey->href) {
+		    char url[500];
+ 
+		    strcpy(url, nkey->href->href_url);
+		    strcat(url, directory);
+		    strcat(url,"/");
+		    strcat(url, nkey->filename); 
+		    if (TRACE) fprintf(stderr,"Href: %s\n", url);
+		    HTStartAnchor(target,NULL,url);
+ 		}
 		HTMLPutImg(target,
 			   nkey->icon->icon_url,
 			   HTIcon_alt_string(nkey->icon->icon_alt, YES),
 			   NULL);
 		PUTS(HTDirSpace);
+		if (nkey->href)
+		    END(HTML_A);
 	    }
 	    if (HTDirShowMask & HT_DIR_SHOW_SLINK && nkey->symlink)
 		START(HTML_I);
@@ -929,6 +943,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	    /* Get Icon type */
 	    if (HTDirShowMask & HT_DIR_SHOW_ICON) {
 		nodekey->icon = HTGetIcon(file_info.st_mode, format, encoding);
+		nodekey->href = HTGetHref(nodekey->filename);
 	    }
 
 	    /* Generate body entry in nodekey */
@@ -1046,7 +1061,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	    
 	    /* Run through tree printing out in order, hopefully :-) */
 	    if (filecnt) {
-		HTDirOutList(target, bt, tail);
+		HTDirOutList(target, bt, tail, directory);
 	    }
 	    
 	    HTDirOutBottom(target, filecnt, directory, NULL);
@@ -1194,6 +1209,7 @@ PUBLIC int HTFTPBrowseDirectory ARGS4(HTRequest *, req, char *, directory,
 	    /* Get Icon type */
 	    if (HTDirShowMask & HT_DIR_SHOW_ICON) {
 		nodekey->icon = HTGetIcon(file_info.f_mode, format, encoding);
+		nodekey->href = HTGetHref(nodekey->filename);
 	    }
 
 	    /* Generate body entry in nodekey */
@@ -1296,7 +1312,7 @@ PUBLIC int HTFTPBrowseDirectory ARGS4(HTRequest *, req, char *, directory,
 	    
 	    /* Run through tree printing out in order, hopefully :-) */
 	    if (filecnt) {
-		HTDirOutList(target, bt, tail);
+		HTDirOutList(target, bt, tail, directory);
 	    }
 	    HTDirOutBottom(target, filecnt, directory, data->ctrl->welcome);
 	    FREE_TARGET;

@@ -96,7 +96,7 @@ PUBLIC int HTErrorAdd ARGS7(HTRequest *, 	request,
 	if (!par_length)
 	    par_length = (int) strlen((char *) par);
 	if ((newError->par = malloc(par_length+1)) == NULL)
-	    outofmem(__FILE__, "HTAddError");
+	    outofmem(__FILE__, "HTErrorError");
 	memcpy(newError->par, par, par_length);
 	*(((char *) newError->par)+par_length) = '\0';
 	newError->par_length = par_length;
