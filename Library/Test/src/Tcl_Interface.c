@@ -22,8 +22,6 @@ typedef struct _Robot {
     HText *   	       	htext;
     struct timeval *    tv;                             /* Timeout on socket */
     char *              cwd;                              /* Current dir URL */
-    char *              rules;
-    char *              logfile;
     char *              outputfile;
     FILE *              output;
 } Robot;
@@ -40,25 +38,6 @@ struct _HText {
     TextAnchor *	last_anchor;
     int                 anchors;
 };
-
-HTRequest * Thread_new (Robot * mr, HTMethod method)
-{
-    HTRequest * newreq = HTRequest_new();
-    HTRequest_setContext (newreq, mr);
-    HTRequest_setPreemptive(newreq, YES);
-    HTRequest_addRqHd(newreq, HT_C_HOST);
-    HTRequest_setMethod(newreq, method);
-    return newreq;
-}
-
-BOOL Thread_delete (Robot * mr, HTRequest * request)
-{
-    if (mr && request) {
-        HTRequest_delete(request);
-        return YES;
-    }
-    return NO;
-}
 
 /* ------------------------------------------------------------------------- */
 /*                              HTEXT INTERFACE                              */
@@ -109,29 +88,14 @@ void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
 	HTParentAnchor * dest_parent = HTAnchor_parent(dest);
 	char * uri = HTAnchor_address((HTAnchor *) dest_parent);
 
+#if 0
 	if (SHOW_MSG) HTTrace("Robot....... Found `%s\' \n", uri ? uri : "NULL");
-	
-	if (uri && mr->count) {
-	    HTList_appendObject(mr->urilist, uri);
+#endif	
+	if (uri) {
+	    HTList_addObject(mr->urilist, (void *) uri);
+	    mr->count++;
 	}
-	if (!mr->count++) {
-	    HTList_addObject(mr->urilist, uri);
-	}
-#if 0        
-	/* Test whether we already have a hyperdoc for this document */
-	if (mr->flags & MR_LINK && dest_parent && !hd) {
-	    HTParentAnchor * parent = HTRequest_parent(text->request);
-	    HTRequest * newreq = Thread_new(mr, METHOD_GET);
-	    HTRequest_setParent(newreq, HTRequest_anchor(text->request));
 
-	    if (HTLoadAnchor((HTAnchor *) dest_parent, newreq) != YES) {
-		if (SHOW_MSG) HTTrace("not tested!\n");
-		Thread_delete(mr, newreq);
-	    }
-	} else {
-	    if (SHOW_MSG) HTTrace("duplicate or max depth reached\n");
-	} 
-#endif
 	if ((a = (TextAnchor  *) HT_MALLOC(sizeof(*a))) == NULL)
 	    HT_OUTOFMEM("HText_beginAnchor");
 	if (text->last_anchor) {
@@ -148,8 +112,6 @@ void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
 	} else {
 	    a->number = 0;
 	}
-
-	HT_FREE(uri);
     }
 }
 
@@ -163,26 +125,6 @@ void HText_appendImage (HText * text, HTChildAnchor * anchor,
 	    HTTrace("Image %s", uri);
 	}
 	HT_FREE(uri);
-
-        /* Test whether we already have a hyperdoc for this document */
-#if 0
-        Robot * mr = (Robot *) HTRequest_context(text->request);
-        if (mr->flags & MR_IMG && dest && !hd) {
-            HTParentAnchor * parent = HTRequest_parent(text->request);
-            HyperDoc * last = HTAnchor_document(parent);
-            HTRequest * newreq = Thread_new(mr, METHOD_HEAD);
-            if (SHOW_MSG) {
-                char * uri = HTAnchor_address((HTAnchor *) dest);
-                HTTrace("Robot....... Checking Image `%s\'\n", uri);
-                HT_FREE(uri);
-            }
-            if (HTLoadAnchor((HTAnchor *) dest, newreq) != YES) {
-                if (SHOW_MSG)
-                    HTTrace("Robot....... Image not tested!\n");
-                Thread_delete(mr, newreq);
-            }
-        }
-#endif
     }
 }
 
@@ -206,6 +148,7 @@ PRIVATE Robot * Robot_new (void)
     me->output = OUTPUT;
     me->urilist = HTList_new();
     me->count = 0;
+
     /* We keep an extra timeout request object for the timeout_handler */
     me->timeout = HTRequest_new();
 
@@ -237,15 +180,15 @@ PRIVATE BOOL Robot_delete (Robot * me)
 	if (me->htext) {
 	    HText_free(me->htext);
 	}
-	if (me->logfile) HTLog_close();
 	if (me->output && me->output != STDOUT) fclose(me->output);
 	    
 	HT_FREE(me->cwd);
 	HT_FREE(me->tv);
 
 	/* Delete the profile */
+#if 0
 	HTProfile_delete();
-
+#endif
 	HT_FREE(me);
 	return YES;
     }
@@ -292,35 +235,42 @@ char *Reference_List (Robot *mr)
     char *index = malloc(1000);
     int i = 1;
 
-    StrAllocCat(output, "List of references: \n");
-    sprintf(number, "%d total references\n", mr->count);
+    int refs = HText_sourceAnchors(mr->htext);
+    if (refs <= 0) {
+        return("\n\nThere are no references from this document.\n\n");
+    } else {
+	StrAllocCat(output, "List of references: \n");
+	sprintf(number, "%d total references\n", mr->count);
     
-    while ((index = (char *) HTList_nextObject(copy))) {
+	while ((index = (char *) HTList_nextObject(copy))) {
 
-	sprintf(number, "%d : ", i++);
-	StrAllocCat(output, number);
-	StrAllocCat(output, index);
-	StrAllocCat(output, "\n");
+	    sprintf(number, "[%d] : ", i++);
+	    StrAllocCat(output, number);
+	    StrAllocCat(output, index);
+	    StrAllocCat(output, "\n");
+	    HT_FREE(index);
+	}
+	HTList_delete(copy);
+	return(output);
     }
-    HTList_delete(copy);
-    return(output);
 }      
 #endif
 
-int GetURL_tcl(ClientData clientData, Tcl_Interp *interp, 
+int getURL_tcl(ClientData clientData, Tcl_Interp *interp, 
  	       int argc, char **argv)
 {
-    if ((argc >= 2)) {
-	char *url 	      = argv[1];
-	char * traceflags = argc==3 ? argv[2] : "";
+    if (argc >= 3) {
+	char *listcheck = argv[1];
+	char *url       = argv[2];
+	char * traceflags = argc==4 ? argv[3] : "";
     
-	if (url) {
+	if (url && (strcmp(listcheck, "listrefs")==0)) {
 
 	    /* Create a new robot object */
 	    Robot *robot = Robot_new();
 
 	    /* Turn on trace messages */
-	    if (traceflags) HTSetTraceMessageMask(traceflags);
+	    if (argc==4) HTSetTraceMessageMask(traceflags);
 
 	    /* Set up the HTML parser */
 	    {
@@ -339,14 +289,33 @@ int GetURL_tcl(ClientData clientData, Tcl_Interp *interp,
 	}
 	Tcl_AppendResult(interp, bad_vars, NULL);
 	return TCL_ERROR;
-    }	
-    else {
-	Tcl_AppendResult(interp, err_string, argv[0], " url traceflags", NULL);
+    } 
+    if (argc == 2) {
+	char *url = argv[1];
+    
+	if (url) {
+	    /* Create a new robot object */
+	    Robot *robot = Robot_new();
+	    HTChunk *chunk = 0;
+
+	    /* Find an anchor and load it */
+	    HTRequest_setOutputFormat(robot->request, WWW_SOURCE);
+	    chunk = HTLoadToChunk(url, robot->request);
+
+	    /* Update TcL return */
+	    Tcl_AppendResult(interp, HTChunkData(chunk), NULL);
+	    Robot_delete(robot);
+	    HTChunk_delete(chunk);
+	    return TCL_OK;
+	}
+	Tcl_AppendResult(interp, bad_vars, NULL);
 	return TCL_ERROR;
     }
+    Tcl_AppendResult(interp, err_string, argv[0], " [listrefs] url traceflags", NULL);
+    return TCL_ERROR;
 }	
 
-int PutURL_tcl(ClientData clientData, Tcl_Interp *interp, 
+int putURL_tcl(ClientData clientData, Tcl_Interp *interp, 
  	       int argc, char **argv) 
 {
     if (argc == 3) {
@@ -381,7 +350,7 @@ int PutURL_tcl(ClientData clientData, Tcl_Interp *interp,
     }
 }
 
-int DeleteURL_tcl(ClientData clientData, Tcl_Interp *interp, 
+int deleteURL_tcl(ClientData clientData, Tcl_Interp *interp, 
 		  int argc, char **argv) {
 
     if (argc == 2) {
@@ -414,7 +383,7 @@ int DeleteURL_tcl(ClientData clientData, Tcl_Interp *interp,
     }
 }
 
-int PostURL_tcl(ClientData clientData, Tcl_Interp *interp, 
+int postURL_tcl(ClientData clientData, Tcl_Interp *interp, 
 		int argc, char **argv) {
 
     if (argc == 3) {
@@ -449,7 +418,7 @@ int PostURL_tcl(ClientData clientData, Tcl_Interp *interp,
     }
 }
 
-int TraceURL_tcl(ClientData clientData, Tcl_Interp *interp, 
+int traceURL_tcl(ClientData clientData, Tcl_Interp *interp, 
 		 int argc, char **argv) {
 
     if (argc == 2) {
@@ -482,7 +451,7 @@ int TraceURL_tcl(ClientData clientData, Tcl_Interp *interp,
     }
 }
 
-int OptionsURL_tcl(ClientData clientData, Tcl_Interp *interp, 
+int optionsURL_tcl(ClientData clientData, Tcl_Interp *interp, 
 		   int argc, char **argv) {
 
     if (argc == 2) {

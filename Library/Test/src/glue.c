@@ -116,12 +116,12 @@ static LibraryFunction www_commands[] = {
 
   /* TCL INTERFACE */
   
-  { "GetURL",			GetURL_tcl,			NULL, 0 },
-  { "PutURL",			PutURL_tcl,			NULL, 0 },
-  { "DeleteURL",		DeleteURL_tcl,			NULL, 0 },
-  { "PostURL",			PostURL_tcl,			NULL, 0 },
-  { "OptionsURL",		OptionsURL_tcl,			NULL, 0 },
-  { "TraceURL",			TraceURL_tcl,			NULL, 0 },
+  { "getURL",			getURL_tcl,			NULL, 0 },
+  { "putURL",			putURL_tcl,			NULL, 0 },
+  { "deleteURL",		deleteURL_tcl,			NULL, 0 },
+  { "postURL",			postURL_tcl,			NULL, 0 },
+  { "optionsURL",		optionsURL_tcl,			NULL, 0 },
+  { "traceURL",			traceURL_tcl,			NULL, 0 },
 
   /* RANDOM GENERAL FUNCTIONS */
 

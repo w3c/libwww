@@ -1,3 +1,5 @@
+extern void init_strings(void);
+
 extern int random_tcl(ClientData, Tcl_Interp *, int, char **);
 
 extern int generate_char_tcl(ClientData, Tcl_Interp *, int, char **);

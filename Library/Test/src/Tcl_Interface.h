@@ -1,14 +1,14 @@
 #include "tcl.h"
 #include "WWWLib.h"
 
-extern int GetURL_tcl(ClientData, Tcl_Interp *, int, char **);
+extern int getURL_tcl(ClientData, Tcl_Interp *, int, char **);
 
-extern int PutURL_tcl(ClientData, Tcl_Interp *, int, char **);
+extern int putURL_tcl(ClientData, Tcl_Interp *, int, char **);
 
-extern int DeleteURL_tcl(ClientData, Tcl_Interp *, int, char **);
+extern int deleteURL_tcl(ClientData, Tcl_Interp *, int, char **);
 
-extern int PostURL_tcl(ClientData, Tcl_Interp *, int, char **);
+extern int postURL_tcl(ClientData, Tcl_Interp *, int, char **);
 
-extern int OptionsURL_tcl(ClientData, Tcl_Interp *, int, char **);
+extern int optionsURL_tcl(ClientData, Tcl_Interp *, int, char **);
 
-extern int TraceURL_tcl(ClientData, Tcl_Interp *, int, char **);
+extern int traceURL_tcl(ClientData, Tcl_Interp *, int, char **);
