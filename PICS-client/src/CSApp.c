@@ -27,7 +27,9 @@ switch to HTStrMatch
 /* ReqParms - list of pending HTRequests and their callbacks an' stuff */
 typedef struct {
     HTRequest * pReq;
-    HTRequest * pBureauReq;
+    enum {reqState_NEW, reqState_PROT_REQ, reqState_BUREAU_START, 
+	  reqState_BUREAU_MIDDLE, reqState_BUREAU_DONE, 
+	  reqState_BUREAU_ERR} reqState;
 
     CSDisposition_criteria criteria;/* if the criteria are met */
     CSDisposition_callback * pCallback;	/*  call pCallback */
@@ -35,9 +37,14 @@ typedef struct {
     CSLabel_t * pCSLabel;	/*   all */
     CSUser_t * pCSUser;		/*   these */
     void * pVoid;		/*   parameters */
+    HTParentAnchor * anchor;
+    HTFormat outputFormat;
+    HTStream * outputStream;
+    HTMethod method;
     } ReqParms_t;
 
-ReqParms_t DefaultReqParms = {0, 0, CSApp_neverCall, 0, CSError_APP, 0, 0, 0};
+ReqParms_t DefaultReqParms = {0, reqState_NEW, CSApp_neverCall, 
+			      0, CSError_APP, 0, 0, 0};
 
 /* handy strings */
 
@@ -46,17 +53,13 @@ PRIVATE char * S_machRead = "application/x-pics-machine-readable";
 PRIVATE char * S_label = "application/pics-label";
 PRIVATE char * S_user = "application/x-pics-user";
 PRIVATE char * S_URLList = "application/x-url-list";
+PRIVATE HTList * ListWithHeaderGenerator = NULL;
 
 /* LoadURLToConverter - load a URL and set the output to go to converter.
                         Useful for loading user list and profiles. */
-PRIVATE int CSApp_bureauError (HTRequest * pReq, void * context, int status);
-PRIVATE int CSApp_bureauAfter (HTRequest * pReq, void * context, int status);
-PRIVATE int CSApp_bureauBefore (HTRequest * pReq, void * context, int status);
-
 PRIVATE BOOL LoadURLToConverter(const char * url, const char * relatedName, 
 				const char * type, HTConverter * converter, 
-				const char * errMessage, HTRequest ** pPReq, 
-				void * context)
+				const char * errMessage)
 {
     BOOL ret;
     char * fullURL;
@@ -65,7 +68,6 @@ PRIVATE BOOL LoadURLToConverter(const char * url, const char * relatedName,
     HTList * conversions = HTList_new();
 
     pRequest = HTRequest_new();
-    HTRequest_setContext(pRequest, context);
     fullURL = HTParse(url, relatedName, PARSE_ALL);
     pParentAnchor = (HTParentAnchor *) HTAnchor_findAddress(fullURL);
     HTRequest_setPreemptive(pRequest, YES);
@@ -73,16 +75,8 @@ PRIVATE BOOL LoadURLToConverter(const char * url, const char * relatedName,
         HTConversion_add(conversions, type, "*/*", converter, 1.0, 0.0, 0.0);
 	HTRequest_setConversion(pRequest, conversions, YES);
     }
-    if (pPReq)
-        *pPReq = pRequest;
-    HTRequest_addBefore(pRequest, CSApp_bureauBefore, context, 0, YES);
-    HTRequest_addAfter(pRequest, CSApp_bureauAfter, context, HT_LOADED, YES);
-    HTRequest_addAfter(pRequest, CSApp_bureauError, context, HT_ERROR, YES);
     if ((ret = HTLoadAnchor((HTAnchor *) pParentAnchor, pRequest)) != YES)
         HTTrace("PICS: Can't access %s.\n", errMessage);
-    HTRequest_deleteBefore(pRequest, CSApp_bureauBefore);
-    HTRequest_deleteAfter(pRequest, CSApp_bureauAfter);
-    HTRequest_deleteAfter(pRequest, CSApp_bureauError);
     if (converter)
         HTConversion_deleteAll(conversions);
     else
@@ -98,7 +92,7 @@ PRIVATE BOOL LoadURLToConverter(const char * url, const char * relatedName,
 PUBLIC BOOL CSUserList_load(char * url, char * relatedName)
 {
     return LoadURLToConverter(url, relatedName, S_URLList, CSUserLists, 
-			      "PICS user list", 0, 0);
+			      "PICS user list");
 }
 
 /* L O A D E D U S E R */
@@ -238,7 +232,7 @@ PUBLIC CSUser_t * CSLoadedUser_load(char * url, char * relatedName)
     BOOL err = 0;
     char * fullURL = HTParse(url, relatedName, PARSE_ALL);
     CSLoadedUser_t * pCSLoadedUser;
-    if (!LoadURLToConverter(fullURL, 0, 0, 0, "PICS user file", 0, 0))
+    if (!LoadURLToConverter(fullURL, 0, 0, 0, "PICS user file"))
 /*    if (!LoadURLToConverter(fullURL, 0, S_user, CSParseUser, 
 			    "PICS user file", 0, 0, 0)) */
         err = 1;
@@ -258,7 +252,7 @@ PRIVATE ReqParms_t * ReqParms_new(HTRequest * pReq, CSUser_t * pCSUser, CSDispos
         HT_OUTOFMEM("ReqParms_t");
     me->pReq = pReq;
     me->disposition = CSError_APP;
-    me->pBureauReq = 0;
+    me->reqState = reqState_NEW;
     me->pCSUser = pCSUser;
     me->pCallback = pCallback;
     me->criteria = criteria;
@@ -271,6 +265,21 @@ PRIVATE void ReqParms_free(ReqParms_t * pReqParms)
     HT_FREE(pReqParms);
 }
 
+PRIVATE ReqParms_t * ReqParms_copy(ReqParms_t * old)
+{
+    ReqParms_t * me;
+    if ((me = (ReqParms_t *) HT_CALLOC(1, sizeof(ReqParms_t))) == NULL)
+        HT_OUTOFMEM("ReqParms_t");
+    me->pReq = old->pReq;
+    me->disposition = old->disposition;
+    me->reqState = old->reqState;
+    me->pCSUser = old->pCSUser;
+    me->pCallback = old->pCallback;
+    me->criteria = old->criteria;
+    me->pVoid = old->pVoid;
+    return me;
+}
+
 PRIVATE ReqParms_t * ReqParms_getReq(HTRequest * pReq)
 {
     HTList * cur = ReqParms;
@@ -280,7 +289,7 @@ PRIVATE ReqParms_t * ReqParms_getReq(HTRequest * pReq)
             return pReqParms;
     return 0;
 }
-
+/*
 PRIVATE ReqParms_t * ReqParms_getBureauReq(HTRequest * pBureauReq)
 {
     HTList * cur = ReqParms;
@@ -290,7 +299,7 @@ PRIVATE ReqParms_t * ReqParms_getBureauReq(HTRequest * pBureauReq)
             return pReqParms;
     return 0;
 }
-
+*/
 PRIVATE BOOL ReqParms_cache(ReqParms_t * pReqParms, CSLabel_t * pCSLabel)
 {
     return NO;
@@ -304,12 +313,16 @@ PRIVATE BOOL ReqParms_checkCache(ReqParms_t * pReqParms, int * pRet)
 PUBLIC BOOL CSApp_label(HTRequest * pReq, CSLabel_t * pCSLabel)
 {
     ReqParms_t * pReqParms;
+    if (!(pReqParms = ReqParms_getReq(pReq)))
+        pReqParms = &DefaultReqParms;
+/*
     if (!(pReqParms = ReqParms_getBureauReq(pReq)))
         pReqParms = &DefaultReqParms;
     if (pReqParms->pBureauReq != pReq) {
         HTTrace("PICS: Could not find original request\n");
 	return NO;
     }
+*/
     pReqParms->pCSLabel = pCSLabel;
     pReqParms->disposition = CSCheckLabel_checkLabelAndUser(pCSLabel, 
 							   pReqParms->pCSUser);
@@ -425,97 +438,90 @@ struct _HTStream {
 };
 
 /* HTNetCallbacks */
-PRIVATE int CSApp_netBefore (HTRequest * pReq, void * param, int status)
-{
-    ReqParms_t * pReqParms;
-    char * bureau;
-    char * ptr;
-    char * url;
-    int ret;
-
-    if (ReqParms_getBureauReq(pReq) || 
-	pReq == DefaultReqParms.pBureauReq)
-        return HT_OK;
-    if (!(pReqParms = ReqParms_getReq(pReq))) {
-        pReqParms = &DefaultReqParms;
-	DefaultReqParms.pReq = pReq;
-    }
-    if (!pReqParms->pCSUser)			/* PICS not set up */
-        return HT_OK;
-    if (!(bureau = CSUser_bureau(pReqParms->pCSUser)))
-        return HT_OK;				/* Header will handle it */
-    if (ReqParms_checkCache(pReqParms, &ret))
-        return ret;
-    url = HTAnchor_address((HTAnchor*)HTRequest_anchor(pReq));
-    ptr = CSUser_getLabels(pReqParms->pCSUser, url, CSOption_normal, 
-			   CSCompleteness_full);
-    if (PICS_TRACE) HTTrace("PICS: label request:\n%s\n", ptr);
-    /* get label and set disposition */
-    if (!(LoadURLToConverter(ptr, 0, S_label, CSParseLabel, "Label bureau", 
-			     &pReqParms->pBureauReq, (void *)pReqParms))) {
-        HT_FREE(ptr);
-	HTTrace("PICS: Couldn't load labels for \"%s\" at bureau \"%s\".\n", url, bureau);
-	HT_FREE(url);
-	return HT_OK;
-    }
-    HT_FREE(ptr);
-    if (pReqParms->disposition == CSError_APP) {
-        HTTrace("PICS: No labels for \"%s\" at bureau \"%s\".\n", url, bureau);
-	HT_FREE(url);
-	return HT_OK;
-    }
-    HT_FREE(url);
-    return ReqParms_checkDisposition(pReqParms);
-}
-
-PRIVATE int CSApp_netAfter (HTRequest * pReq, void * param, int status)
-{
-    ReqParms_t * pReqParms;
-
-    if (!(pReqParms = ReqParms_getReq(pReq)))
-        pReqParms = &DefaultReqParms;
-
-    if (pReqParms == &DefaultReqParms)
-        pReqParms->pReq = 0;
-    else
-        ReqParms_removeRequest(pReqParms);
-
-    return HT_OK;
-}
-
-/* will we need this? */
-PRIVATE int CSApp_bureauBefore (HTRequest * pReq, void * context, int status)
-{
-    ReqParms_t * pReqParms = (ReqParms_t *)context;
-    /* if (!(pReqParms = ReqParms_getBureauReq(pReq)))
-        pReqParms = &DefaultReqParms;
-    if (pReq != pReqParms->pBureauReq)
-        return HT_ERROR; */
-    return HT_OK;
-}
-
+PRIVATE int CSApp_bureauError (HTRequest * pReq, void * context, int status);
 PRIVATE int CSApp_bureauAfter (HTRequest * pReq, void * context, int status)
 {
     ReqParms_t * pReqParms = (ReqParms_t *)context;
-    /* if (!(pReqParms = ReqParms_getBureauReq(pReq)))
-        pReqParms = &DefaultReqParms;
-    if ((pReq != pReqParms->pBureauReq))
+    /*    if (!pReqParms || (pReq != pReqParms->pBureauReq))
         return HT_ERROR; */
-    if (!pReqParms)
-        return HT_OK;
+    pReqParms->reqState = reqState_BUREAU_DONE;
+    HTRequest_deleteAfter(pReq, CSApp_bureauAfter);
+    HTRequest_deleteAfter(pReq, CSApp_bureauError);
     if (PICS_TRACE) HTTrace("PICS: Load was %sOK\n", 
 			    pReqParms->disposition == CSError_OK ? "" : "!");
-    return HT_OK;
+    ReqParms_removeRequest(pReqParms);
+    if (pReqParms->disposition != CSError_OK)
+        return HT_OK;
+    /*    HTRequest_setAnchor(pReq, pReqParms->anchor); */
+    HTRequest_setOutputFormat(pReq, pReqParms->outputFormat);
+    HTRequest_setOutputStream(pReq, pReqParms->outputStream);
+    HTRequest_setMethod(pReq, pReqParms->method);
+    return HTLoadAnchor((HTAnchor *)pReqParms->anchor, pReq);
 }
 
 PRIVATE int CSApp_bureauError (HTRequest * pReq, void * context, int status)
 {
     ReqParms_t * pReqParms = (ReqParms_t *)context;
-    /* if (!(pReqParms = ReqParms_getBureauReq(pReq)))
-        pReqParms = &DefaultReqParms;
-    if ((pReq != pReqParms->pBureauReq))
+    /*    if (!pReqParms || (pReq != pReqParms->pBureauReq))
         return HT_ERROR; */
+    pReqParms->reqState = reqState_BUREAU_ERR;
     HTTrace("PICS: couldn't find label service.\n");
+    return HT_OK;
+}
+
+PRIVATE int CSApp_netBefore (HTRequest * pReq, void * param, int status)
+{
+    HTParentAnchor * pParentAnchor;
+    ReqParms_t * pReqParms;
+    char * bureau;
+    char * url;
+    char * ptr;
+    int ret;
+
+    /*    if (ReqParms_getBureauReq(pReq) || 
+	pReq == DefaultReqParms.pBureauReq)
+        return HT_OK;
+    if (!(pReqParms = ReqParms_getReq(pReq))) {
+        pReqParms = &DefaultReqParms;
+	DefaultReqParms.pReq = pReq;
+    } */
+    if ((pReqParms = ReqParms_getReq(pReq))) {
+        if (pReqParms->reqState == reqState_BUREAU_START) /* bureau req */
+	    return HT_OK;                                 /* so ignore  */
+    } else {
+        if (!DefaultReqParms.pCSUser)
+	    return HT_OK; /* no PICS user so no PICS */
+        pReqParms = ReqParms_copy(&DefaultReqParms);
+	pReqParms->pReq = pReq;
+    }
+    if (!(bureau = CSUser_bureau(pReqParms->pCSUser))) {
+        HTRequest_setGenerator(pReq, ListWithHeaderGenerator, NO);
+        return HT_OK;				/* Header will handle it */
+    }
+    if (ReqParms_checkCache(pReqParms, &ret))
+        return ret;
+    url = HTAnchor_address((HTAnchor*)HTRequest_anchor(pReq));
+    ptr = CSUser_getLabels(pReqParms->pCSUser, url, CSOption_normal, 
+			   CSCompleteness_full);
+    pReqParms->anchor = HTRequest_anchor(pReq);
+    pReqParms->outputFormat = HTRequest_outputFormat(pReq);
+    HTRequest_setOutputFormat(pReq, WWW_SOURCE);
+    pReqParms->outputStream = HTRequest_outputStream(pReq);
+    HTRequest_setOutputStream(pReq, CSParseLabel(pReq, 0, 0, 0, 0));
+    /*    pReqParms->pBureauReq = pReq; */
+    pReqParms->reqState = reqState_BUREAU_START; /* mark as a BUREAU req */
+    HTRequest_setPreemptive(pReq, YES);
+    if (PICS_TRACE) HTTrace("PICS: label request:\n%s\n", ptr);
+    /* get label and set disposition */
+
+    HTRequest_addAfter(pReq, CSApp_bureauAfter, 
+		       (void *)pReqParms, HT_LOADED, YES);
+    HTRequest_addAfter(pReq, CSApp_bureauError,  
+		       (void *)pReqParms, HT_ERROR, YES);
+
+    pParentAnchor = (HTParentAnchor *) HTAnchor_findAddress(ptr);
+    if ((ret = HTLoadAnchor((HTAnchor *) pParentAnchor, pReq)) != YES)
+        HTTrace("PICS: Can't access label bureau at %s.\n", ptr);
     return HT_OK;
 }
 
@@ -527,17 +533,21 @@ PRIVATE int CSApp_headerGenerator (HTRequest * pReq, HTStream * target)
     char * url;
     ReqParms_t * pReqParms = ReqParms_getReq(pReq);
 
-    if (!pReqParms) {
+    /*    if (!pReqParms) {
         if ((pReqParms = ReqParms_getBureauReq(pReq)))
 	    return HT_OK;
         pReqParms = &DefaultReqParms;
-    }
+    } */
+if (!pReqParms || pReqParms->reqState != reqState_NEW || !pReqParms->pCSUser)
+HTTrace("PICS: CSApp_headerGenerator prob\n");
+#if 0
     if (!pReqParms->pCSUser) {
         if (PICS_TRACE) HTTrace("PICS: No user selected\n");
 	return HT_OK;
     }
     if (CSUser_bureau(pReqParms->pCSUser)) /* handled by CSApp_netBefore */
         return HT_OK;
+#endif
     url = HTAnchor_address((HTAnchor *) anchor);
     if ((translated = CSUser_acceptLabels(pReqParms->pCSUser, CSCompleteness_full))) {
         if (PICS_TRACE) HTTrace("PICS: Accept \"%s\".\n", translated);
@@ -589,9 +599,11 @@ PUBLIC BOOL CSApp_registerApp(CSDisposition_callback * pCallback,
     DefaultReqParms.pVoid = pVoid;
 
     /* Tell HTMIME which headers we will deal with */
-    HTHeader_addGenerator(CSApp_headerGenerator);
+    if (!ListWithHeaderGenerator)
+        ListWithHeaderGenerator = HTList_new();
+    HTList_addObject(ListWithHeaderGenerator, (void *)CSApp_headerGenerator);
+    /*    HTHeader_addGenerator(CSApp_headerGenerator); */
     HTNetCall_addBefore(CSApp_netBefore, NULL, HT_ALL);
-    HTNetCall_addAfter(CSApp_netAfter, NULL, HT_ALL);
     HTHeader_addParser(S_mimeLabel, FALSE, CSApp_headerParser);
 
     /* set converters so pics profiles may be read */
@@ -627,12 +639,14 @@ PUBLIC BOOL CSApp_unregisterApp()
 PUBLIC BOOL CSApp_registerReq(HTRequest* pReq, CSUser_t * pCSUser, CSDisposition_callback pCallback, CSDisposition_criteria criteria, void * pVoid)
 {
     ReqParms_t * pReqParms;
-    if (!ReqParms)
-      ReqParms = HTList_new();
     if ((pReqParms = ReqParms_getReq(pReq))) {
         return NO;
     }
+    if (!pReq || !pCSUser)
+        return NO;
     pReqParms = ReqParms_new(pReq, pCSUser, pCallback, criteria, pVoid);
+    if (!ReqParms)
+      ReqParms = HTList_new();
     HTList_addObject(ReqParms, (void *)pReqParms);
     return YES;
 }
@@ -648,9 +662,20 @@ PUBLIC BOOL CSApp_unregisterReq(HTRequest* pReq)
     return YES;
 }
 
+extern HTRequest * CSApp_originalRequest(HTRequest* pReq)
+{
+  /*    ReqParms_t * pReqParms;
+    if ((pReqParms = ReqParms_getBureauReq(pReq)) == NULL) {
+        return NULL;
+    }
+    return pReqParms->pReq;
+    */
+    return pReq;
+}
+
 /* M I S C */
 PUBLIC char * CSApp_libraryVersion(void)
 {
-    return "1.0";
+    return "1.1";
 }
 

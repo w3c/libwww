@@ -74,7 +74,7 @@ PRIVATE StateToken_t User_stateTokens[] = {
      { "missing-service", SubState_B,  Punct_WHITE, 0,  "missing-service", 0, 0, &User_targetObject, SubState_C, 0, &User_setTarget},
      {   "missing-scale", SubState_B,  Punct_WHITE, 0,    "missing-scale", 0, 0, &User_targetObject, SubState_C, 0, &User_setTarget},
      {   "observe-dates", SubState_B,  Punct_WHITE, 0,    "observe-dates", 0, 0, &User_targetObject, SubState_C, 0, &User_setTarget},
-     {          "bureau", SubState_B,  Punct_WHITE, 0,           "bureau", 0, 0, &User_targetObject, SubState_C, 0, &User_setTarget},
+     {          "bureau", SubState_B,  Punct_WHITE,0,"bureau","label-bureau", 0, &User_targetObject, SubState_C, 0, &User_setTarget},
      {           "proxy", SubState_B,  Punct_WHITE, 0,            "proxy", 0, 0, &User_targetObject, SubState_D, 0, 0},
      {  "rating-service", SubState_B,  Punct_WHITE, 0,   "rating-service", 0, 0, &UserService_targetObject, SubState_N, 0, 0},
      {       "get value", SubState_C, Punct_RPAREN, &getValue,          0, 0, 0, &User_targetObject, SubState_A, 0, 0},
