@@ -1366,9 +1366,16 @@ PRIVATE int HTCacheCheckFilter (HTRequest * request, HTResponse * response,
 	    HTParentAnchor * anchor = HTRequest_anchor(request);
 	    HTCache * cache = HTCache_find(anchor);
 	    if (cache) {
-		if (status == 204)
+		/* 
+		** If we receive a 204 and the method is unsafe then we have
+		** to delete the cache body but not the header information
+		*/
+		if (status == 204) {
 		    HTCache_updateMeta(cache, request, response);
-		else
+		    cache->size = 0;
+		    cache->range = YES;
+		    REMOVE(cache->cachename);
+		} else
 		    HTCache_remove(cache);
 	    }
 	    HTCache_touch(request, response, anchor);
