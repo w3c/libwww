@@ -113,7 +113,11 @@ PRIVATE int HTReader_read (HTInputStream * me)
 					     NO, "NETREAD");
 		    return HT_ERROR;
 		}
+#ifdef ECONNRESET
 	    } else if (!b_read || socerrno==ECONNRESET) {
+#else
+	    } else if (!b_read) {
+#endif
 		HTAlertCallback *cbf = HTAlert_find(HT_PROG_DONE);
 		if (PROT_TRACE)
 		    HTTrace("Read Socket. FIN received on socket %d\n", soc);
