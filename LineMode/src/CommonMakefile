@@ -224,7 +224,7 @@ distribute :  /pub/www/README.txt /pub/www/Copyright.txt
 	    $(WWW)/LineMode/*/Makefile \
 	    $(VMS)descrip.mms $(VMS)setup.com \
             $(VMS)build_multinet.com $(VMS)build_multinet.com_alpha \
-            $(VMS)build_ucx.com_alpha
+            $(VMS)build_ucx.com $(VMS)build_ucx.com_alpha
 	compress /pub/www/src/WWWLineMode_$(VL).tar
 
 
