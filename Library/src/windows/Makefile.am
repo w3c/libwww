@@ -24,9 +24,9 @@ EXTRA_DIST = \
 	$(PL)
 
 .files.def:
-	./makedefs.pl @ < $(srcdir)/$(*F).files > $(srcdir)/$(*F).def
+	../../../config/makedefs.pl @ < $(srcdir)/$(*F).files > $(srcdir)/$(*F).def
 
 wwwlist.txt:
-	ls -1 ../*.c | sed -e s=\.\./==1 | ./makedefs.pl @ > wwwlist.txt
+	ls -1 ../*.c | sed -e s=\.\./==1 | ../../../config/makedefs.pl @ > wwwlist.txt
 
 
