@@ -1,16 +1,16 @@
 <HTML>
 <HEAD>
   <!-- Changed by: Henrik Frystyk Nielsen, 29-Jan-1996 -->
-  <TITLE>Proxies and Gateways</TITLE>
+  <TITLE>Libwww Proxies and Gateways Setup</TITLE>
 </HEAD>
 <BODY BGCOLOR="#ffffff">
 <P>
-<A HREF="../../../"><IMG BORDER="0" SRC="../../../Icons/WWW/w3c_home" ALT="W3C" WIDTH="72"
-    HEIGHT="48" BORDER="0"></A>
-<A HREF="../../"><IMG BORDER="0" SRC="../../../Icons/WWW/Lib48x" ALT="libwww" WIDTH="48"
-    HEIGHT="48" BORDER="0"></A>
-<A HREF="./"><IMG BORDER="0" SRC="../../../Icons/WWW/guide48x" ALT="Using" WIDTH="48"
-    HEIGHT="48" BORDER="0"></A>
+<A HREF="../../../"><IMG BORDER="0" SRC="../../../Icons/WWW/w3c_home" ALT="W3C"
+    WIDTH="72" HEIGHT="48" BORDER="0"></A>
+<A HREF="../../"><IMG BORDER="0" SRC="../../../Icons/WWW/Lib48x" ALT="libwww"
+    WIDTH="48" HEIGHT="48" BORDER="0"></A>
+<A HREF="./"><IMG BORDER="0" SRC="../../../Icons/WWW/guide48x" ALT="Using"
+    WIDTH="48" HEIGHT="48" BORDER="0"></A>
 <H1>
   Proxy Servers and Gateways
 </H1>
@@ -28,7 +28,7 @@ which then handle the communications with the remote server, for example
 using FTP about the document and return it to the application (proxy client)
 using HTTP.
 <P>
-The Library supports both proxies and gateways through the
+Libwww supports both proxies and gateways through the
 <A HREF="../../src/HTProxy.html">HTProxy module</A> and all requests can
 be redirected to a proxy or a gateway, even requests on the local file system.
 Of course, the Library can also be used in proxy or gateway applications
@@ -44,14 +44,40 @@ of the registration mechanism used, proxy servers are always rated higher
 than gateways so if both a proxy server and a gateway is registered for the
 same access method, the proxy server will be used.
 <P>
-<A HREF="../../src/HTProxy.html"><IMG BORDER="0" SRC="../../../Icons/WWW/doc48x" ALT="Documentation"
-    WIDTH="48" HEIGHT="48" BORDER="0" ALIGN="Middle">Constructors, Destructors
-and Methods</A>
+<A HREF="../../src/HTProxy.html"><IMG BORDER="0" SRC="../../../Icons/WWW/doc48x"
+    ALT="Documentation" WIDTH="48" HEIGHT="48" BORDER="0" ALIGN="Middle">Constructors,
+Destructors and Methods</A>
+<H2>
+  Proxy Setup Using Environment Variables
+</H2>
+<P>
+For backwards compatibility with most other Web clients, you can set up proxies
+and gateways using environment variables. This is generally discouraged as
+environment variables don't work on all platforms and they are only read
+at appplication startup. Using the
+<A HREF="../../src/HTProxy.html">HTProxy</A> API allow you to change proxies
+and gateways dynamically at any time.
+<P>
+On Unix, you can use a sh script like this to set up proxies and then start
+your application:
+<PRE>    #!/bin/sh
+    http_proxy="http://your.proxy.server:8080/";    export http_proxy
+    ftp_proxy="http://your.proxy.server:8080/";     export ftp_proxy
+    gopher_proxy="http://your.proxy.server:8080/";  export gopher_proxy
+    wais_proxy="http://your.proxy.server:8080/";    export wais_proxy
+    no_proxy="cern.ch,ncsa.uiuc.edu,some.host:8080" export no_proxy
+    exec webbot $@
+</PRE>
+<P>
+One way to do this under Win32 is to add the following lines to your system
+environment:
+<PRE>    set http_proxy=http://groucho.marx.edu:1028
+    set no_proxy=harpo.marx.edu zeppo.marx.edu chico.marx.edu
+</PRE>
 <P>
   <HR>
 <ADDRESS>
-  Henrik Frystyk Nielsen,
-  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
+  <A HREF="/People/Frystyk/">Henrik Frystyk Nielsen</A>,<BR>
   @(#) $Id$
 </ADDRESS>
 </BODY></HTML>
