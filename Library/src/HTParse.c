@@ -91,7 +91,7 @@ PRIVATE void scan ARGS2(char *, name, struct struct_parts *, parts)
 	    parts->absolute = p+1;		/* Root found but no host */
 	}	    
     } else {
-        parts->relative = (*after_access) ? after_access : 0;	/* zero for "" */
+        parts->relative = (*after_access) ? after_access : 0; /* zero for "" */
     }
 
 #ifdef OLD_CODE
@@ -229,28 +229,6 @@ char * HTParse ARGS3(CONST char *, aName, CONST char *, relatedName,
     free(result);
     return return_value;		/* exactly the right length */
 }
-
-
-#if 0  /* NOT USED FOR THE MOMENT */
-/*
-**	As strcpy() but guaranteed to work correctly
-**	with overlapping parameters.	AL 7 Feb 1994
-*/
-PRIVATE void ari_strcpy ARGS2(char *, to,
-			      char *, from)
-{
-    char * tmp;
-
-    if (!to || !from) return;
-
-    tmp = (char*)malloc(strlen(from)+1);
-    if (!tmp) outofmem(__FILE__, "my_strcpy");
-
-    strcpy(tmp, from);
-    strcpy(to, tmp);
-    free(tmp);
-}
-#endif
 
 
 /*	        Simplify a URI

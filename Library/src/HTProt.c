@@ -51,7 +51,7 @@ PUBLIC void HTProtocol_deleteAll NOARGS
 **	Search registered protocols to find suitable one.
 **	Return YES if found, else NO
 */
-PUBLIC BOOL HTProtocol_getScheme ARGS1(HTParentAnchor *, anchor)
+PUBLIC BOOL HTProtocol_get ARGS1(HTParentAnchor *, anchor)
 {
     if (anchor) {
 	char *access = HTParse(HTAnchor_physical(anchor), "", PARSE_ACCESS);

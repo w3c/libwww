@@ -7,8 +7,8 @@
 **      Please first read the full copyright statement in the file COPYRIGH.
 *//*
 
-   This module defines the HText functions referenced from the HTML module in the Library
-   of Common Code.
+   This module defines the HText functions referenced from the HTML module in the W3C
+   Reference Library.
    
  */
 #include "WWWLib.h"

@@ -607,7 +607,7 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
     FREE(addr);
 
     /* Set the access scheme on our way out */
-    return (HTProtocol_getScheme(req->anchor)==YES) ? HT_OK : HT_NO_ACCESS;
+    return (HTProtocol_get(req->anchor)==YES) ? HT_OK : HT_NO_ACCESS;
 }
 
 /* --------------------------------------------------------------------------*/

@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>System dependencies in the W3 library</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  9-Jul-1995 -->
 </HEAD>
 <BODY>
 
@@ -910,6 +911,18 @@ jim@jagubox.gsfc.nasa.gov</ADDRESS>
 #include &lt;time.h&gt;
 #define WEXITSTATUS(s) (((s).w_status &gt;&gt; 8) &amp; 0377)
 #define NO_STRFTIME
+#endif
+</PRE>
+
+<H2>Sony News</H2>
+
+Thanks to Isao SEKI, seki@tama.prug.or.jp
+
+<PRE>
+#ifdef sony_news
+#include &lt;sys/wait.h&gt;
+#define WEXITSTATUS(s) (((s).w_status &gt;&gt; 8) &amp; 0377)
+typedef int mode_t;
 #endif
 </PRE>
 
