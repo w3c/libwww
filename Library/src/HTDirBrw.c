@@ -782,7 +782,6 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
     int  pathend;
     char *tail = NULL;
     HTStructured *target;				      /* HTML object */
-    HTStructuredClass targetClass;
     DIR *dp;
     struct stat file_info;
     HTList * descriptions = NULL;
@@ -846,7 +845,6 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 
     target = HTML_new(req, NULL, WWW_HTML, req->output_format,
 		      req->output_stream);
-    targetClass = *target->isa;			/* Copy routine entry points */
     
     /* Now, generate the Btree and put it out to the output stream. */
     {
@@ -1118,7 +1116,6 @@ PUBLIC int HTFTPBrowseDirectory ARGS4(HTRequest *, req, char *, directory,
     int status;
     char *tail = NULL;
     HTStructured *target;				      /* HTML object */
-    HTStructuredClass targetClass;
     
     if (TRACE) fprintf(stderr, "HTFTPBrowse. Browsing `%s\'\n", directory);
         
@@ -1145,7 +1142,6 @@ PUBLIC int HTFTPBrowseDirectory ARGS4(HTRequest *, req, char *, directory,
 
     target = HTML_new(req, NULL, WWW_HTML, req->output_format,
 		      req->output_stream);
-    targetClass = *target->isa;			/* Copy routine entry points */
     
     /* Now, generate the Btree and put it out to the output stream. */
     {

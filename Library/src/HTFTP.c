@@ -1173,7 +1173,7 @@ PRIVATE BOOL HTFTP_parse_datatype ARGS2(char *, url, char **, datatype)
 **	are optional.
 **	If error, NULL is returned.
 */
-PRIVATE ftp_ctrl_info *HTFTP_init_con ARGS1(char *, url)
+PRIVATE ftp_ctrl_info *HTFTP_init_con ARGS2(HTRequest *, req, char *, url)
 {
     int status;
     BOOL use_url = NO;	   /* YES if uid and passwd are specified in the URL */
@@ -1219,6 +1219,7 @@ PRIVATE ftp_ctrl_info *HTFTP_init_con ARGS1(char *, url)
 		    if (TRACE)
 			fprintf(stderr, "FTP......... File is binary\n");
 		    StrAllocCopy(data->datatype, "I");
+		    req->content_encoding = HTAtom_for("binary");
 		}
 	    } else {
 		/* Chop off data type */
@@ -2576,7 +2577,7 @@ PUBLIC int HTFTPLoad ARGS1(HTRequest *, request)
     /* Initiate a (possibly already exsisting) control connection and a
        corresponding data connection */
     HTSimplify(url);
-    if((ctrl = HTFTP_init_con(url)) == NULL) {
+    if((ctrl = HTFTP_init_con(request, url)) == NULL) {
 	HTLoadError(request, 500,
 		    "Could not establish connection to FTP-server\n");
 	return -1;
