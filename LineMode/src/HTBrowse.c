@@ -1437,7 +1437,6 @@ lcd:	        if (!next_word) {                        /* Missing argument */
 	    }
 	    break;
 	
-#ifdef GOT_PIPE
 	  case '>':
 	    if (!HTClientHost) {
 		SaveOutputStream(this_word, next_word);
@@ -1445,6 +1444,7 @@ lcd:	        if (!next_word) {                        /* Missing argument */
 	    }
 	    break;
 	 
+#ifdef GOT_PIPE
 	  case '|':
 	    if (!HTClientHost) {	                   /* Local only!!!! */
 		char * address = HTAnchor_address((HTAnchor*) HTMainAnchor);
@@ -1557,9 +1557,7 @@ PRIVATE BOOL SaveOutputStream ARGS2(char *, This, char *, Next)
     }
 
     /* Now, file is open and OK: reload the text and put up a stream for it! */
-    printf("Put text from %s to file  %s, mode: %s\n",
-	   OutSource ? HTAtom_name(WWW_SOURCE) :
-	   HTAtom_name(WWW_HTML), fname, fmode);
+    ErrMsg("Save file", fname);
     {
 	BOOL ret = NO;
 	HTRequest *req = HTRequest_new(); 	     /* Set up a new request */
