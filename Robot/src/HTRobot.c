@@ -793,8 +793,18 @@ PRIVATE int Finger_delete (Finger * me)
 */
 PUBLIC void Cleanup (Robot * me, int status)
 {
-    HTProfile_delete();
+    /*
+    **  First we clean up the robot itself and calculate the various
+    **  statistics. This can actually take some time as a lot of data
+    **  has to be manipulated
+    */
     Robot_delete(me);
+
+    /*
+    **  Then we shut down libwww
+    */
+    HTProfile_delete();
+
 #ifdef HT_MEMLOG
     HTMemLog_close();
 #endif
