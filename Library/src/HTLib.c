@@ -158,6 +158,11 @@ PUBLIC BOOL HTLibInit (const char * AppName, const char * AppVersion)
     tzset();
 #endif
 
+    /* If we are using tempnam() then unset any TMPDIR env var */
+#ifdef HAVE_TEMPNAM
+    putenv("TMPDIR=");
+#endif
+
     /* Create a default user profile and initialize it */
     UserProfile = HTUserProfile_new(HT_DEFAULT_USER, NULL);
     HTUserProfile_localize(UserProfile);
