@@ -1,5 +1,10 @@
 Changes with libwww 5.40
 
+2003-04-14      Jose Kahan <jose@w3.org>
+
+        * The previous patch made a call to strcasecmp which isn't 
+          portable under Windows. Changed its call to libwww's strcasecomp.
+
 2003-04-10	Jose Kahan <jose@w3.org>
 
 	* The generation of a Digest Authentication answer didn't work

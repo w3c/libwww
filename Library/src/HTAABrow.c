@@ -771,7 +771,7 @@ PRIVATE BOOL digest_credentials (HTRequest * request, HTDigest * digest)
 	    add_param (&cleartext, "qop", "auth", NO);
 	    add_param (&cleartext, "nc", nc, NO);
 	    add_param (&cleartext, "cnonce", digest->cnonce, YES);
-	    if (strcasecmp (digest->qop, "auth")) {
+	    if (strcasecomp (digest->qop, "auth")) {
 	      /* we got some options, as we only know how to handle auth, we'll do so.
 	       We should split the options and see if it was a valid Qop here, though,
 	       to things correctly */
