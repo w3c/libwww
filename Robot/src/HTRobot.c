@@ -472,6 +472,7 @@ int main (int argc, char ** argv)
 
     /* Initiate W3C Reference Library */
     HTLibInit(APP_NAME, APP_VERSION);
+    HTMIMEInit();
 
     /* Build a new robot object */
     mr = Robot_new();

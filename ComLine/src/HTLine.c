@@ -313,6 +313,7 @@ int main (int argc, char ** argv)
 
     /* Initiate W3C Reference Library */
     HTLibInit(APP_NAME, APP_VERSION);
+    HTMIMEInit();
 
     /* Set up our event manager */
     HTEvent_setRegisterCallback(HTEventrg_register);
