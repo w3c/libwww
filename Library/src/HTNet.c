@@ -1012,8 +1012,10 @@ PUBLIC BOOL HTNet_killAll (void)
 	int cnt;
 	for (cnt=0; cnt<HT_XL_HASH_SIZE; cnt++) {
 	    if ((cur = NetTable[cnt])) { 
-		while ((pres = (HTNet *) HTList_lastObject(cur)) != NULL)
-    		    HTNet_kill(pres);
+		while ((pres = (HTNet *) HTList_lastObject(cur)) != NULL) {
+		    HTNet_kill(pres);
+		    cur = NetTable[cnt];
+		}
 	    }
 	}
 	return YES;
