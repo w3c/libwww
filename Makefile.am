@@ -16,7 +16,14 @@ SUFFIXES = .h .html .txt
 	www -w90 -na -p -to text/x-c $(srcdir)/$*.html > $(srcdir)/$*.h
 
 #	Some extra make directives
-inc : $(HEADERS)
+inc-recursive:
+	for subdir in $(SUBDIRS); do		\
+	  target=`echo $@ | sed s/-recursive//`; \
+	  echo making $$target in $$subdir;	\
+	  (cd $$subdir && $(MAKE) $$target)	\
+	   || case "$(MFLAGS)" in *k*) fail=yes;; *) exit 1;; esac; \
+	done && test -z "$$fail"
+inc : inc-recursive
 	@echo Include files generated from hypertext.
 
 all-local : inc legal

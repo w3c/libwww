@@ -199,6 +199,17 @@ maintainer-clean:  maintainer-clean-am maintainer-clean-recursive
     maintainer-clean-generic clean mostlyclean distclean \
     maintainer-clean
 
+
+#	Some extra make directives
+inc-recursive:
+	for subdir in $(SUBDIRS); do		\
+	  target=`echo $@ | sed s/-recursive//`; \
+	  echo making $$target in $$subdir;	\
+	  (cd $$subdir && $(MAKE) $$target)	\
+	   || case "$(MFLAGS)" in *k*) fail=yes;; *) exit 1;; esac; \
+	done && test -z "$$fail"
+inc : inc-recursive
+	@echo Include files generated from hypertext.
 .SUFFIXES:
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

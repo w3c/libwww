@@ -177,6 +177,7 @@ dist: $(DEP_DISTFILES)
 	  || ln $(srcdir)/$$file $(distdir)/$$file 2> /dev/null \
 	  || cp -p $(srcdir)/$$file $(distdir)/$$file; \
 	done
+
 info:
 
 dvi:
