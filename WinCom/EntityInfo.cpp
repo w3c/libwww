@@ -142,7 +142,10 @@ void CEntityInfo::OnGetInfo()
 		if (HTBind_getAnchorBindings(src_parent)) {
 		    char * mt = HTAtom_name(HTAnchor_format(src_parent));
 		    char * charset = HTAtom_name(HTAnchor_charset(src_parent));
-		    long length = HTAnchor_length(src_parent);
+                    HTAtom_name(HTAnchor_charset(src_parent));
+		    HTList * encodings = HTAnchor_encoding(src_parent);
+                    HTList * languages = HTAnchor_language(src_parent);
+                    long length = HTAnchor_length(src_parent);
 		    if (mt) {
 			m_mediaType = mt;
 			SetDlgItemText(IDC_MEDIA_TYPE, mt);
@@ -151,6 +154,18 @@ void CEntityInfo::OnGetInfo()
 			m_charset = charset;
 			SetDlgItemText(IDC_MEDIA_CHARSET, charset);
 		    }
+
+                    /* Just take the first language */
+                    if (languages) {
+                        HTLanguage lang = (HTLanguage) HTList_firstObject(languages);
+                        if (lang) m_language = HTAtom_name(lang);
+                    }
+
+                    /* Just take the first encoding */
+                    if (encodings) {
+                        HTEncoding enc = (HTEncoding) HTList_firstObject(encodings);
+                        if (enc) m_contentEncoding = HTAtom_name(enc);
+                    }
 		}
 	    }
 	}
