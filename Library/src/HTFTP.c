@@ -724,6 +724,10 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 		    ctrl->uid = HTAlert_replyMessage(reply);
 		    ctrl->passwd = HTAlert_replySecret(reply);
 		}
+		else {
+		  ctrl->uid = NULL;
+		  ctrl->passwd = NULL;
+		}
 		HTAlert_deleteReply(reply);
 		if (ctrl->uid && *ctrl->uid && ctrl->passwd && *ctrl->passwd)
 		    ctrl->substate = NEED_UID;
