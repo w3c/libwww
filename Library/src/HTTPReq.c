@@ -267,12 +267,18 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 		HTCoding * pres;
 		while ((pres = (HTCoding *) HTList_nextObject(cur))) {
 		    double quality = HTCoding_quality(pres);
+		    const char * coding = HTCoding_name(pres);
 		    if (first) {
 			PUTS("TE: ");
 			first = NO;
 		    } else
 			PUTC(',');
-		    PUTS(HTCoding_name(pres));
+
+		    /* Special check for "chunked" which is translated to "trailers" */
+		    if (!strcasecomp(coding, "chunked"))
+			PUTS("trailers");
+		    else
+			PUTS(coding);
 		    if (quality < 1.0 && quality >= 0.0) {
 			sprintf(qstr, ";q=%1.1f", quality);
 			PUTS(qstr);

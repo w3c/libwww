@@ -139,6 +139,9 @@ PUBLIC void HTFormatInit (HTList * c)
 */
 PUBLIC void HTTransferEncoderInit (HTList * c)
 {
+#ifdef HT_ZLIB
+    HTCoding_add(c, "deflate", NULL, HTZLib_inflate, 1.0);
+#endif
     HTCoding_add(c, "chunked", HTChunkedEncoder, HTChunkedDecoder, 1.0);
 }
 
