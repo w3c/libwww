@@ -52,6 +52,15 @@ path name</H2>
 
 
 </PRE>
+<H2>Output directory titles</H2>This is (like the next one) used
+by HTFTP. It is common code to generate
+the title and heading 1 and the parent
+directory link for any anchor.
+<PRE>extern void HTDirTitles PARAMS((
+	HTStructured * 	target,
+	HTAnchor * 	anchor));
+
+</PRE>
 <H2>Output a directory entry</H2>This is only used by HTFTP.c for
 example -- it is a common routine
 for generating a linked directory
