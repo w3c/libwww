@@ -13,9 +13,32 @@
 */
 </PRE>
 <P>
-The Timer class handles timer for libwww and the application. This works
+The Timer class handles timers for libwww and the application. This works
 exactly as in X where you create a timer object with a callback function
 and a timeout. The callback will be called every time the timer expires.
+There are several timeouts that can be set in libwww:
+<OL>
+  <LI>
+    The time we keep an idle persistent connection open. Here there are in fact
+    two mechanisms depending on whether you use blocking or non-blocking sockets.
+    The default is 60 secs. The timers can be accessed using the functions defined
+    in the <A HREF="HTHost.html#Persistent">HTHost object</A>
+  <LI>
+    The idle time we want to wait when receiving a response from a server, that
+    is, if it doesn't send anything in a number of secs. The default here is
+    no timeout. It can be accessed in the
+    <A HREF="HTHost.html#RequestTimeout">HTHost object</A> as well.
+  <LI>
+    The timeout before we flush pending requests in a pipeline, the default here
+    is 30 ms. It is also accessed in the <A HREF="HTHost.html#Delayed">HTHost
+    object</A>
+  <LI>
+    The timeout before we start sending the body of a <TT>PUT</TT> or
+    <TT>POST</TT> request. Normally we send the <TT>Expect: 100-continue</TT>
+    header field but if the server doesn't send back a <TT>100 Continue</TT>
+    code then we upload the body anyway. The default is 2 secs and can be accessed
+    in the <A HREF="HTTP.html">HTTP module</A>.
+</OL>
 <PRE>
 #ifndef HTTIMER_H
 #define HTTIMER_H
