@@ -61,6 +61,9 @@ HTSACat			@ 705
 HTStrMatch		@ 706
 HTStrCaseMatch		@ 707
 HTStrip			@ 708
+HTTrace_setCallback	@ 709
+HTTrace_getCallback	@ 710
+HTTrace			@ 711
 
 ;HTUU.c			@ 800
 HTUU_encode		@ 801

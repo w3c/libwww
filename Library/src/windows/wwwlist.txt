@@ -674,6 +674,9 @@ HTSACat			@ 5905
 HTStrMatch		@ 5906
 HTStrCaseMatch		@ 5907
 HTStrip			@ 5908
+HTTrace_setCallback	@ 5909
+HTTrace_getCallback	@ 5910
+HTTrace			@ 5911
 
 ;HTStyle.c		@ 6000
 HTStyleNew		@ 6001
