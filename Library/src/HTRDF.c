@@ -25,8 +25,6 @@
 #include "WWWXML.h"
 #include "HTRDF.h"
 
-static const char * FILE_SCHEME = "file://";
-
 struct _HTStream {
     const HTStreamClass *	isa;
     int 	 		state;
@@ -2515,6 +2513,15 @@ PUBLIC HTStream * HTRDFToTriples (HTRequest *		request,
     return HTXML_new(request, param, input_format, output_format, me);
 }
 
+/*	HTRDFParseFile
+**	---------------
+**      This function parses a file of RDF in a synchronous, non-blocking
+**      way.  In other words, the file is not asynchronously loaded.  If
+**      the file is successfully parsed, NULL is returned; otherwise a
+**      pointer to an error message is returned.  The caller must NOT 
+**      free the pointer returned by this function.
+*/
+
 PUBLIC char * HTRDFParseFile (const char *file_name, HTTripleCallback_new * new_triple_callback)
 {
     char buff[512]; /* the file input buffer */
@@ -2522,17 +2529,21 @@ PUBLIC char * HTRDFParseFile (const char *file_name, HTTripleCallback_new * new_
     XML_Parser xmlparser;
     HTRDF *rdfparser;
     HTStream * stream = NULL;
-    char *uri;
-    BOOL free_uri = YES;
+    char *uri = NULL;
 
     /* Sanity check */
-    if (!file_name)
-        return "RDFParseFile: file_name is NULL";
+    if (!file_name) {
+	HTTRACE(XML_TRACE, "RDFParseFile.. file name is NULL\n");
+	return "RDFParseFile: file_name is NULL";
+    }
+
 
     /* If the file does not exist, return now */
     fp = fopen (file_name, "r");
-    if (!fp)  /* annotation index file doesn't exist */
-        return "RDFParseFile: file open failed";
+    if (!fp)  { /* annotation index file doesn't exist */
+	HTTRACE(XML_TRACE, "RDFParseFile.. file open failed\n");
+	return "RDFParseFile: file open failed";
+    }
 
     /* We need an XML parser */
 #ifdef USE_NS
@@ -2542,8 +2553,9 @@ PUBLIC char * HTRDFParseFile (const char *file_name, HTTripleCallback_new * new_
 #endif /* USE_NS */
 
     if (!xmlparser) {
-        fclose (fp);
-        return "RDFParseFile: Could not create an XML parser";
+	fclose (fp);
+	HTTRACE(XML_TRACE, "RDFParseFile.. Could not create an XML parser\n");
+	return "RDFParseFile: Could not create an XML parser";
     }
 
     /* We need also need RDF parser to create the triples */
@@ -2555,18 +2567,7 @@ PUBLIC char * HTRDFParseFile (const char *file_name, HTTripleCallback_new * new_
     }
 
     /* Must construct a URI from file_name for the parser */
-    if (strncmp (file_name, FILE_SCHEME, 7)) {
-        uri = HT_MALLOC (strlen(FILE_SCHEME) + strlen(file_name) + 1);
-        if (!uri) {
-            fclose (fp);
-            XML_ParserFree(xmlparser);
-            HTRDF_delete(rdfparser);
-            return "RDFParseFile: memory allocation error";
-        }
-      (void) strcpy (uri, FILE_SCHEME);
-      (void) strcat (uri, file_name);
-      free_uri = YES;
-    }
+    uri = HTLocalToWWW (file_name, "file:");
 
     HTRDF_setSource(rdfparser, uri);
     HTRDF_createBags(rdfparser, NO); 
@@ -2581,7 +2582,7 @@ PUBLIC char * HTRDFParseFile (const char *file_name, HTTripleCallback_new * new_
 
     /* Create a stream to be used to process the triple output */
     if ((stream = (HTStream *) HT_CALLOC(1, sizeof(HTStream))) == NULL) {
-        if (free_uri) HT_FREE(uri);
+        HT_FREE(uri);
         fclose (fp);
         XML_ParserFree(xmlparser);
         HTRDF_delete(rdfparser);
@@ -2602,7 +2603,7 @@ PUBLIC char * HTRDFParseFile (const char *file_name, HTTripleCallback_new * new_
         int buff_len;
         fgets(buff, sizeof(buff), fp);
         if (ferror(fp)) {
-            if (free_uri) HT_FREE(uri);
+            HT_FREE(uri);
             fclose (fp);
             XML_ParserFree(xmlparser);
             HTRDF_delete(rdfparser);
@@ -2618,7 +2619,7 @@ PUBLIC char * HTRDFParseFile (const char *file_name, HTTripleCallback_new * new_
             fprintf (stderr, "Parse error at line %d:\n%s\n",
                      XML_GetCurrentLineNumber(xmlparser),
                      XML_ErrorString(XML_GetErrorCode(xmlparser)));
-            if (free_uri) HT_FREE(uri);
+            HT_FREE(uri);
             fclose(fp);
             XML_ParserFree(xmlparser);
             HTRDF_delete(rdfparser);
@@ -2633,7 +2634,7 @@ PUBLIC char * HTRDFParseFile (const char *file_name, HTTripleCallback_new * new_
     generate_triples(stream);
 
     /* Cleanup */
-    if (free_uri) HT_FREE(uri);
+    HT_FREE(uri);
     fclose (fp);
     XML_ParserFree(xmlparser);
     HTRDF_delete(rdfparser);
@@ -2641,3 +2642,10 @@ PUBLIC char * HTRDFParseFile (const char *file_name, HTTripleCallback_new * new_
 
     return NULL;
 }
+
+
+
+
+
+
+
