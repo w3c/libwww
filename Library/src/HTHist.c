@@ -31,8 +31,9 @@ struct _HTHistory {
 */
 PUBLIC HTHistory *HTHistory_new (void)
 {
-    HTHistory *element = (HTHistory *) calloc(1, (sizeof(HTHistory)));
-    if (element == NULL) outofmem(__FILE__, "HTHistory_new");
+    HTHistory *element;
+    if ((element = (HTHistory  *) HT_CALLOC(1, (sizeof(HTHistory)))) == NULL)
+        HT_OUTOFMEM("HTHistory_new");
     element->alist = HTList_new();
     return element;
 }
@@ -46,7 +47,7 @@ PUBLIC BOOL HTHistory_delete (HTHistory * hist)
 {
     if (hist) {
 	HTList_delete(hist->alist);
-	free(hist);
+	HT_FREE(hist);
 	return YES;
     }
     return NO;

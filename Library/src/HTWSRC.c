@@ -252,7 +252,7 @@ PRIVATE BOOL write_cache (HTStream * me)
 	me->par_value[PAR_IP_NAME],
 	me->par_value[PAR_TCP_PORT] ? me->par_value[PAR_TCP_PORT] : "210",
 	www_database);
-    free(www_database);
+    HT_FREE(www_database);
     fp = fopen(cache_file_name, "wb");
     if (!fp) return NO;
     
@@ -307,7 +307,7 @@ PRIVATE void WSRC_gen_html (HTStream * me, BOOL source_file)
 	PUTS(shortname);
 	PUTS(source_file ? " description" : " index");
 	END(HTML_H1);
-	free(shortname);				  /* memleak, henrik */
+	HT_FREE(shortname);				  /* memleak, henrik */
     }
     
     START(HTML_DL);		/* Definition list of details */
@@ -344,9 +344,9 @@ PRIVATE void WSRC_gen_html (HTStream * me, BOOL source_file)
 		PUTS("Through a gateway");
 		END(HTML_A);
 	    }
-	    FREE(gate);
-	    free(addr);
-	    free(www_database);
+	    HT_FREE(gate);
+	    HT_FREE(addr);
+	    HT_FREE(www_database);
 	    
 	} else {
 	    give_parameter(me, PAR_IP_NAME);
@@ -414,11 +414,11 @@ PRIVATE int WSRCParser_free (HTStream * me)
 	int p;
 	for(p=0; par_name[p]; p++) {	/* Clear out old values */
 	    if (me->par_value[p]) {
-		free(me->par_value[p]);
+		HT_FREE(me->par_value[p]);
 	    }
 	}
     }
-    free(me);
+    HT_FREE(me);
     return HT_OK;
 }
 
@@ -454,8 +454,9 @@ PUBLIC HTStream* HTWSRCConvert (HTRequest *	request,
 				HTFormat	output_format,
 				HTStream *	output_stream)
 {
-    HTStream * me = (HTStream *) calloc(1, sizeof(HTStream));
-    if (!me) outofmem(__FILE__, "HTWSRCConvert");
+    HTStream * me;
+    if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
+        HT_OUTOFMEM("HTWSRCConvert");
     me->isa = &WSRCParserClass;
     me->target = HTMLGenerator(request, param, input_format, output_format,
 			       output_stream);

@@ -224,14 +224,14 @@ PRIVATE int HTGuess_free (HTStream * me)
 	me->transparent = YES;
     if ((status = (*me->target->isa->_free)(me->target)) != HT_OK)
 	return status;
-    free(me);
+    HT_FREE(me);
     return HT_OK;
 }
 
 PRIVATE int HTGuess_abort (HTStream * me, HTList * e)
 {
     if (me->target) (*me->target->isa->abort)(me,e);
-    free(me);
+    HT_FREE(me);
     return HT_ERROR;
 }
 
@@ -256,8 +256,9 @@ PUBLIC HTStream * HTGuess_new (HTRequest *	req,
 			       HTFormat		output_format,
 			       HTStream *	output_stream)
 {
-    HTStream * me = (HTStream *) calloc(1,sizeof(HTStream));
-    if (!me) outofmem(__FILE__, "HTGuess_new");
+    HTStream * me;
+    if ((me = (HTStream  *) HT_CALLOC(1,sizeof(HTStream))) == NULL)
+        HT_OUTOFMEM("HTGuess_new");
     me->isa = &HTGuessClass;
     me->req = req;
     me->anchor = HTRequest_anchor(req);

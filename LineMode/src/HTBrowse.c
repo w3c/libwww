@@ -182,8 +182,9 @@ InputParser_t * PInputParser = &parse_command;
 */
 PRIVATE Context * Context_new (LineMode *lm, HTRequest *request, LMState state)
 {
-    Context * me = (Context *) calloc(1, sizeof (Context));
-    if (!me) outofmem(__FILE__, "Context_new");
+    Context * me;
+    if ((me = (Context  *) HT_CALLOC(1, sizeof (Context))) == NULL)
+        HT_OUTOFMEM("Context_new");
     me->state = state;
     me->request = request;
     me->lm = lm;
@@ -197,7 +198,7 @@ PRIVATE Context * Context_new (LineMode *lm, HTRequest *request, LMState state)
 */
 PRIVATE BOOL Context_delete (Context * old)
 {
-    FREE(old);
+    HT_FREE(old);
     return YES;
 }
 
@@ -266,9 +267,9 @@ HTRequest * TTYReq = 0; /* The windowed version doesn't get the HTRequest* when
 PRIVATE LineMode * LineMode_new (void)
 {
     LineMode * me;
-    if ((me = (LineMode *) calloc(1, sizeof(LineMode))) == NULL ||
-	(me->tv = (struct timeval*) calloc(1, sizeof(struct timeval))) == NULL)
-	outofmem(__FILE__, "LineMode_new");
+    if ((me = (LineMode *) HT_CALLOC(1, sizeof(LineMode))) == NULL ||
+	(me->tv = (struct timeval*) HT_CALLOC(1, sizeof(struct timeval))) == NULL)
+	HT_OUTOFMEM("LineMode_new");
     me->tv->tv_sec = -1;
     me->cwd = HTFindRelatedName();
     me->active = HTList_new();
@@ -287,17 +288,17 @@ PRIVATE LineMode * LineMode_new (void)
 PRIVATE BOOL LineMode_delete (LineMode * lm)
 {
     if (lm) {
-	free(lm->tv);
+	HT_FREE(lm->tv);
 	Thread_deleteAll(lm);
 	HTConversion_deleteAll(lm->converters);
 	HTPresentation_deleteAll(lm->presenters);
 	HTHistory_delete(lm->history);
-	FREE(lm->cwd);
+	HT_FREE(lm->cwd);
 	if (lm->logfile) HTLog_close();
 #ifndef WWW_WIN_WINDOW
 	if (OUTPUT && OUTPUT != STDOUT) fclose(OUTPUT);
 #endif
-	free(lm);
+	HT_FREE(lm);
 	return YES;
     }
     return NO;
@@ -396,7 +397,7 @@ PRIVATE void Reference_List (LineMode * lm, BOOL titles)
 	    TTYPrint(OUTPUT, "%s%s\n",
 		    ((HTAnchor*)parent!=dest) && title ? "in " : "",
 		    (char *)(title ? title : address));
-	    free(address);
+	    HT_FREE(address);
 	}
 #ifndef WWW_WIN_WINDOW
 	fflush(OUTPUT);
@@ -429,7 +430,7 @@ PRIVATE void History_List (LineMode * lm)
 	       cnt,
 	       ((HTAnchor*)parent!=anchor) && title ? "in " : "",
 	       title ? title : address);
-	free(address);
+	HT_FREE(address);
     }
     TTYPrint(OUTPUT, "\n");
 }
@@ -536,12 +537,13 @@ PRIVATE int EditAnchor (LineMode * lm, HTRequest * req, HTMethod method)
 	
 	/* Now link the two anchors together if not already done */
 	if (link) {
-	    char *msg = (char *) malloc(128);
-	    if (!msg) outofmem(__FILE__, "Upload");
+	    char *msg;
+	    if ((msg = (char  *) HT_MALLOC(128)) == NULL)
+	        HT_OUTOFMEM("Upload");
 	    sprintf(msg, "The destination is already related to the source with a %s method - result %d, continue?",
 		    HTMethod_name(HTLink_method(link)), HTLink_result(link));
 	    doit = confirm(req, msg);
-	    free(msg);
+	    HT_FREE(msg);
 	} else {
 	    HTAnchor_removeAllLinks((HTAnchor *) src);
 	    HTAnchor_link((HTAnchor *) src, (HTAnchor *) dest, NULL, method);
@@ -563,12 +565,12 @@ PRIVATE int EditAnchor (LineMode * lm, HTRequest * req, HTMethod method)
 	    status = HTUploadAnchor((HTAnchor *) src, new_request,
 				    HTUpload_callback);
 	}
-	free(fd);
-	free(fs);
+	HT_FREE(fd);
+	HT_FREE(fs);
     }
-    FREE(scr_url);
-    FREE(dest_url);
-    FREE(base);
+    HT_FREE(scr_url);
+    HT_FREE(dest_url);
+    HT_FREE(base);
     return status;
 }
 
@@ -594,12 +596,13 @@ PRIVATE int Upload (LineMode * lm, HTRequest * req, HTMethod method)
 	
 	/* Now link the two anchors together if not already done */
 	if (link) {
-	    char *msg = (char *) malloc(128);
-	    if (!msg) outofmem(__FILE__, "Upload");
+	    char *msg;
+	    if ((msg = (char  *) HT_MALLOC(128)) == NULL)
+	        HT_OUTOFMEM("Upload");
 	    sprintf(msg, "The destination is already related to the source with a %s method - result %d, continue?",
 		    HTMethod_name(HTLink_method(link)), HTLink_result(link));
 	    doit = confirm(req, msg);
-	    free(msg);
+	    HT_FREE(msg);
 	} else {
 	    HTAnchor_removeAllLinks((HTAnchor *) src);
 	    HTAnchor_link((HTAnchor *) src, (HTAnchor *) dest, NULL, method);
@@ -610,12 +613,12 @@ PRIVATE int Upload (LineMode * lm, HTRequest * req, HTMethod method)
 	    new_context->source = src;
 	    status = HTCopyAnchor((HTAnchor *) src, new_request);
 	}
-	free(fd);
-	free(fs);
+	HT_FREE(fd);
+	HT_FREE(fs);
     }
-    FREE(scr_url);
-    FREE(dest_url);
-    FREE(base);
+    HT_FREE(scr_url);
+    HT_FREE(dest_url);
+    HT_FREE(base);
     return status;
 }
 
@@ -633,10 +636,10 @@ PRIVATE int DeleteURL (LineMode * lm, HTRequest * request)
 	request = Thread_new(lm, YES, LM_UPDATE);
 	HTRequest_setMethod(request, METHOD_DELETE);
 	status = HTLoadAnchor((HTAnchor *) anchor, request);
-	free(full);
+	HT_FREE(full);
     }
-    FREE(base);
-    FREE(url);
+    HT_FREE(base);
+    HT_FREE(url);
     return status;
 }
 
@@ -925,11 +928,12 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	    int result;
 	    
 	    if (!tmplate) tmplate = "www -n -na -p66 '%s' | lpr";
-	    command = (char *) malloc(strlen(address)+strlen(tmplate)+20);
+	    if ((command = (char  *) HT_MALLOC(strlen(address)+strlen(tmplate)+20)) == NULL)
+	        HT_OUTOFMEM("command");
 	    sprintf(command, tmplate, address);
 	    result = system(command);
-	    free(address);
-	    free(command);
+	    HT_FREE(address);
+	    HT_FREE(command);
 	    if (result) TTYPrint(OUTPUT, "  %s\n  returns %d\n", command, result);
 	}
 #endif
@@ -1069,14 +1073,15 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	    char * address = HTAnchor_address((HTAnchor *) HTMainAnchor);
 	    char * command;
 	    int result;
-	    command = (char*) malloc(strlen(address) +strlen(this_command)+30);
+	    if ((command = (char *) HT_MALLOC(strlen(address) +strlen(this_command)+30)) == NULL)
+	        HT_OUTOFMEM("command");
 	    sprintf(command, "www %s \"%s\" %s", 
 		    OutSource ? "-source" : "-n -na -p", address,this_command);
 	    TTYPrint(OUTPUT, "Command: %s\n", command);
 	    result = system(command);
 	    if (result) TTYPrint(OUTPUT,"  %s  returns %d\n", command, result);
-	    free(command);
-     	    free(address);
+	    HT_FREE(command);
+     	    HT_FREE(address);
 	}
 	break;
 #endif
@@ -1108,7 +1113,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	}
     }
     MakeCommandLine(lm, is_index);
-    free (the_choice);
+    HT_FREE(the_choice);
 
     /* 
     ** If we have created a new Request and is to update the history list then
@@ -1138,7 +1143,7 @@ PUBLIC BOOL readConsole(HANDLE conIn, char* buf, int len, int* pRed)
     GetNumberOfConsoleInputEvents(conIn, &toRead);
     if (len < (int)toRead)	/* we'll get the rest on the next pass(es). */
     toRead = len;
-    if (!(pInput = (PINPUT_RECORD)malloc(toRead * sizeof(INPUT_RECORD))))	/* room for n input records */
+    if ((pInput = (PINPUT_RECORD) HT_MALLOC(toRead * sizeof(INPUT_RECORD))) == NULL)	/* room for n input records */
 	return (FALSE);
     ReadConsoleInput(conIn, pInput, toRead, &red);
 
@@ -1177,7 +1182,7 @@ PUBLIC BOOL readConsole(HANDLE conIn, char* buf, int len, int* pRed)
 
     }
 
-    free(pInput);
+    HT_FREE(pInput);
     *pRed = bufferIndex;		/* actual characters stuck into buffer */
     return (TRUE);
 }
@@ -1700,7 +1705,7 @@ int main (int argc, char ** argv)
 		char * ref = HTParse(argv[arg], lm->cwd, PARSE_ALL);
 		lm->anchor = (HTParentAnchor *) HTAnchor_findAddress(ref);
 		keycnt = 1;
-		FREE(ref);
+		HT_FREE(ref);
 	    } else {		   /* Check for successive keyword arguments */
 		char *escaped = HTEscape(argv[arg], URL_XALPHAS);
 		if (keycnt++ <= 1)
@@ -1708,7 +1713,7 @@ int main (int argc, char ** argv)
 		else
 		    HTChunk_putc(keywords, ' ');
 		HTChunk_puts(keywords, HTStrip(escaped));
-		free(escaped);
+		HT_FREE(escaped);
 	    }
 	}
     }
@@ -1808,7 +1813,7 @@ int main (int argc, char ** argv)
 	    if (SHOW_MSG) TTYPrint(TDEST, "Can't access rules\n");
 	HTConversion_deleteAll(list);
 	HTAlert_delete(HTConfirm);
-	FREE(rules);
+	HT_FREE(rules);
     }
 
     /* Register our User Prompts etc in the Alert Manager */
@@ -1890,3 +1895,4 @@ int main (int argc, char ** argv)
     Cleanup(lm, 0);
     return 0;
 }
+

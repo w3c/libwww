@@ -488,7 +488,7 @@ PRIVATE void HTML_start_element (
 	    }
 	    UPDATE_STYLE;
 	    HText_beginAnchor(me->text, source);
-	    FREE(href);				 /* Leak fix Henrik 17/02-94 */
+	    HT_FREE(href);		        /* Leak fix Henrik 17/02-94 */
 	}
     	break;
 	
@@ -586,7 +586,7 @@ PRIVATE void HTML_start_element (
 		      present[HTML_IMG_ALT] ? value[HTML_IMG_ALT] : NULL,
 		      present[HTML_IMG_ALIGN] ? value[HTML_IMG_ALIGN] : NULL,
 		      present[HTML_IMG_ISMAP] ? YES : NO);
-	    free(src);
+	    HT_FREE(src);
 	}	
 	break;
 
@@ -744,7 +744,7 @@ PUBLIC int HTML_free (HTStructured * me)
         (*me->targetClass._free)(me->target);
     }
     HTChunk_delete(me->title);
-    free(me);
+    HT_FREE(me);
     return HT_OK;
 }
 
@@ -756,7 +756,7 @@ PRIVATE int HTML_abort (HTStructured * me, HTList * e)
         (*me->targetClass.abort)(me->target, e);
     }
     HTChunk_delete(me->title);
-    free(me);
+    HT_FREE(me);
     return HT_ERROR;
 }
 
@@ -838,8 +838,8 @@ PRIVATE HTStructured* HTML_new (HTRequest *	request,
     }
 #endif
 
-    if ((me = (HTStructured*) calloc(1, sizeof(*me))) == NULL)
-	outofmem(__FILE__, "HTML_new");
+    if ((me = (HTStructured *) HT_CALLOC(1, sizeof(*me))) == NULL)
+        HT_OUTOFMEM("HTML_new");
 
     if (!got_styles) get_styles();
 

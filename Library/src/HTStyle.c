@@ -84,8 +84,9 @@ struct _HTStyle {
 */
 PUBLIC HTStyle* HTStyleNew (void)
 {
-    HTStyle *style = (HTStyle *) calloc(1, sizeof(HTStyle));
-    if (!style) outofmem(__FILE__, "HTStyleNew");
+    HTStyle *style;
+    if ((style = (HTStyle  *) HT_CALLOC(1, sizeof(HTStyle))) == NULL)
+        HT_OUTOFMEM("HTStyleNew");
     return style;
 }
 
@@ -103,9 +104,9 @@ PUBLIC HTStyle* HTStyleNewNamed  (CONST char *name)
 */
 PUBLIC HTStyle * HTStyleFree  (HTStyle *self)
 {
-    if (self->name) free(self->name);
-    if (self->SGMLTag) free(self->SGMLTag);
-    free(self);
+    if (self->name) HT_FREE(self->name);
+    if (self->SGMLTag) HT_FREE(self->SGMLTag);
+    HT_FREE(self);
     return 0;
 }
 
@@ -135,7 +136,8 @@ HTStyle * HTStyleRead (HTStyle * style, HTStream * stream)
 	&gotpara);
     if (gotpara) {
 	if (!style->paragraph) {
-	    style->paragraph = malloc(sizeof(*(style->paragraph)));
+	    if ((style->paragraph = HT_MALLOC(sizeof(*(style->paragraph)))) == NULL)
+		HT_OUTOFMEM("paragraph");
 	    style->paragraph->tabs = 0;
 	}
 	p = style->paragraph;
@@ -148,8 +150,9 @@ HTStyle * HTStyleRead (HTStyle * style, HTStream * stream)
 	    &style->spaceBefore,
 	    &style->spaceAfter,
 	    &p->numTabs);
-	if (p->tabs) free(p->tabs);
-	p->tabs = malloc(p->numTabs * sizeof(p->tabs[0]));
+	if (p->tabs) HT_FREE(p->tabs);
+	if ((p->tabs = HT_MALLOC(p->numTabs * sizeof(p->tabs[0]))) == NULL)
+	    HT_OUTOFMEM("tabs");
 	for (tab=0; tab < p->numTabs; tab++) {
 	    NXScanf(stream, "%hd%f",
 		    &p->tabs[tab].kind,
@@ -157,7 +160,7 @@ HTStyle * HTStyleRead (HTStyle * style, HTStream * stream)
 	}
     } else { /* No paragraph */
         if (style->paragraph) {
-    	    free(style->paragraph);
+    	    HT_FREE(style->paragraph);
     	    style->paragraph = 0;
 	}
     } /* if no paragraph */
@@ -355,8 +358,9 @@ HTStyleSheet * HTStyleSheetRemoveStyle
 
 HTStyleSheet * HTStyleSheetNew (void)
 {
-    HTStyleSheet * style = (HTStyleSheet *) calloc(1, sizeof(HTStyleSheet));
-    if (!style) outofmem(__FILE__, "HTStyleSheetNew");
+    HTStyleSheet * style;
+    if ((style = (HTStyleSheet  *) HT_CALLOC(1, sizeof(HTStyleSheet))) == NULL)
+        HT_OUTOFMEM("HTStyleSheetNew");
     return style;
 }
 
@@ -370,7 +374,7 @@ HTStyleSheet * HTStyleSheetFree  (HTStyleSheet *self)
         self->styles = style->next;
 	HTStyleFree(style);
     }
-    free(self);
+    HT_FREE(self);
     return 0;
 }
 

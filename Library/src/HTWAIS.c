@@ -165,7 +165,8 @@ char * WWW_from_archie  (char * file)
     char * result;
     char * colon;
     for(end=file; *end > ' '; end++);	/* assumes ASCII encoding*/
-    result = (char *)malloc(10 + (end-file));
+    if ((result = (char  *) HT_MALLOC(10 + (end-file))) == NULL)
+        HT_OUTOFMEM("result ");
     if (!result) return result;		/* Malloc error */
     strcpy(result, "file://");
     strncat(result, file, end-file);
@@ -273,8 +274,8 @@ PRIVATE char * WWW_from_WAIS (any * docid)
     if (PROT_TRACE) TTYPrint(TDEST, "HTLoadWAIS.. WWW form of id: %s\n", buf); 
     {
         char *result;
-	if ((result = (char *) malloc((int) strlen(buf)+1)) == NULL)
-	    outofmem(__FILE__, "WWW_from_WAIS");
+	if ((result = (char *) HT_MALLOC((int) strlen(buf)+1)) == NULL)
+	    HT_OUTOFMEM("WWW_from_WAIS");
 	strcpy(result, buf);
 	return result;
     }
@@ -309,7 +310,9 @@ PRIVATE any * WAIS_from_WWW  (any * docid, char * docname)
         docid->size = n;
     }
     
-    docid->bytes = (char *) malloc(docid->size+32); /* result record */
+    /* result record */
+    if ((docid->bytes = (char *) HT_MALLOC(docid->size+32)) == NULL)
+	HT_OUTOFMEM("docid->bytes");
     z = docid->bytes;
     
     for(p = docname; *p; ) {
@@ -531,7 +534,7 @@ void display_search_response (HTStructured *		target,
 		PUTS(headline);
 		
 		END(HTML_A);
-		free(www_name);
+		HT_FREE(www_name);
 	    } else {
 		 PUTS(headline);
 		 PUTS(" (bad file name)");
@@ -552,7 +555,7 @@ void display_search_response (HTStructured *		target,
 
                         type_escaped = HTEscape (head->Types[i], URL_XALPHAS);
                         strcat (types_array, type_escaped);
-                        free (type_escaped);
+                        HT_FREE(type_escaped);
                       }
                     if (PROT_TRACE)
                       TTYPrint(TDEST, "WAIS........ Types_array `%s\'\n",
@@ -577,8 +580,8 @@ void display_search_response (HTStructured *		target,
 			      headline : line); /* NT, Sep 93 */
 		PUTS(headline);
 		END(HTML_A);
-		free(dbname);
-		free(docname);
+		HT_FREE(dbname);
+		HT_FREE(docname);
 	    } else {
 		 PUTS("(bad doc id)");
 	    }
@@ -737,8 +740,8 @@ PUBLIC int HTLoadWAIS (SOCKET soc, HTRequest * request, SockOps ops)
 	HTRequest_addError(request, ERR_FATAL, NO, HTERR_BAD_REQUEST,
 		   (void *) unescaped, (int) strlen(unescaped),
 		   "HTLoadWAIS");
-	free(unescaped);
-	free(names);
+	HT_FREE(unescaped);
+	HT_FREE(names);
 	return -1;
     }
     
@@ -774,8 +777,10 @@ PUBLIC int HTLoadWAIS (SOCKET soc, HTRequest * request, SockOps ops)
     }
     
     /* This below fixed size stuff is terrible */
-    request_message = (char*)s_malloc((size_t)MAX_MESSAGE_LEN * sizeof(char));
-    response_message = (char*)s_malloc((size_t)MAX_MESSAGE_LEN * sizeof(char));
+    if ((request_message = (char*)s_malloc((size_t)MAX_MESSAGE_LEN * sizeof(char))) == NULL)
+	HT_OUTOFMEM("WAIS request message");
+    if ((response_message = (char*)s_malloc((size_t)MAX_MESSAGE_LEN * sizeof(char))) == NULL)
+	HT_OUTOFMEM("WAIS response message");
 
 /*	If keyword search is performed but there are no keywords,
 **	the user has followed a link to the index itself. It would be
@@ -957,7 +962,7 @@ PUBLIC int HTLoadWAIS (SOCKET soc, HTRequest * request, SockOps ops)
 		HTRequest_addError(request, ERR_WARN, NO, HTERR_WAIS_OVERFLOW, 
 			   NULL, 0, "HTLoadWAIS");
 	    }
-	    FREE(type);
+	    HT_FREE(type);
 	    
 	    /* Actually do the transaction given by request_message */   
 	    if (interpret_message(request_message, 
@@ -989,7 +994,7 @@ PUBLIC int HTLoadWAIS (SOCKET soc, HTRequest * request, SockOps ops)
 		    }
 		    (*target->isa->_free)(target);
 		    request->output_stream = NULL;
-		    free (docid->bytes);
+		    HT_FREE(docid->bytes);
 		    freeWAISSearchResponse(retrieval_response->DatabaseDiagnosticRecords); 
 		    freeSearchResponseAPDU( retrieval_response);
 		    goto cleanup;
@@ -1005,24 +1010,24 @@ PUBLIC int HTLoadWAIS (SOCKET soc, HTRequest * request, SockOps ops)
 
 	(*target->isa->_free)(target);
 	request->output_stream = NULL;
-	free (docid->bytes);
+	HT_FREE(docid->bytes);
     } /* If document rather than search */
     status = HT_LOADED;
 
   cleanup:
     if (connection) close_connection_to_server(connection);
-    if (wais_database) free(wais_database);
+    if (wais_database) HT_FREE(wais_database);
     if (request_message) s_free(request_message);
     if (response_message) s_free(response_message);
-    FREE(names);
-    FREE(basetitle);
+    HT_FREE(names);
+    HT_FREE(basetitle);
     if (status < 0) {
 	char *unescaped = NULL;
 	StrAllocCopy(unescaped, arg);
 	HTUnEscape(unescaped);
 	HTRequest_addError(request, ERR_FATAL, NO, HTERR_INTERNAL, (void *) unescaped,
 		   (int) strlen(unescaped), "HTLoadWAIS");
-	free(unescaped);
+	HT_FREE(unescaped);
     }
     return status;
 }

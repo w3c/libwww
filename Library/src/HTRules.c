@@ -86,8 +86,9 @@ PUBLIC BOOL HTRule_add (HTList * list, HTRuleOp op,
 			CONST char * pattern, CONST char * replace)
 {
     if (list && pattern) {
-	HTRule * me = (HTRule *) calloc(1, sizeof(HTRule));
-	if (!me) outofmem(__FILE__, "HTRule_add");
+	HTRule * me;
+	if ((me = (HTRule  *) HT_CALLOC(1, sizeof(HTRule))) == NULL)
+	    HT_OUTOFMEM("HTRule_add");
 	me->op = op;
 	StrAllocCopy(me->pattern, pattern);
 	if (replace) {
@@ -114,9 +115,9 @@ PUBLIC BOOL HTRule_deleteAll (HTList * list)
 	HTList *cur = list;
 	HTRule *pres;
 	while ((pres = (HTRule *) HTList_nextObject(cur))) {
-	    FREE(pres->pattern);
-	    FREE(pres->replace);
-	    free(pres);
+	    HT_FREE(pres->pattern);
+	    HT_FREE(pres->replace);
+	    HT_FREE(pres);
 	}
 	return HTList_delete(list);
     }
@@ -153,8 +154,8 @@ PUBLIC char * HTRule_translate (HTList * list, CONST char * token,
 		StrAllocCopy(replace, token);
 
 	    } else if (*rest && pres->insert >= 0) {
-		replace = (char *) malloc(strlen(pres->replace)+strlen(rest));
-		if (!replace) outofmem(__FILE__, "HTRule_translate");
+		if ((replace = (char  *) HT_MALLOC(strlen(pres->replace)+strlen(rest))) == NULL)
+		    HT_OUTOFMEM("HTRule_translate");
 		strcpy(replace, pres->replace);
 		strcpy(replace+pres->insert, rest);
 
@@ -196,13 +197,13 @@ PUBLIC BOOL HTRule_parseLine (HTList * list, CONST char * config)
     StrAllocCopy(line, config);				 /* Get our own copy */
     ptr = line;
     if ((word1 = HTNextField(&ptr)) == NULL) {		       /* Empty line */
-	free(line);
+	HT_FREE(line);
 	return YES;
     }
     if ((word2 = HTNextField(&ptr)) == NULL) {
 	if (APP_TRACE)
 	    TTYPrint(TDEST,"Rule Parse.. Insufficient operands: `%s\'\n",line);
-	free(line);
+	HT_FREE(line);
 	return NO;
     }
     word3 = HTNextField(&ptr);
@@ -259,7 +260,7 @@ PUBLIC BOOL HTRule_parseLine (HTList * list, CONST char * config)
 	} else
 	    HTRule_add(list, op, word2, word3);
     }
-    free(line);
+    HT_FREE(line);
     return YES;
 }
 
@@ -335,7 +336,7 @@ PRIVATE int HTRule_free (HTStream * me)
     if (APP_TRACE)
 	TTYPrint(TDEST, "Rules....... FREEING....\n");
     HTChunk_delete(me->buffer);
-    free(me);
+    HT_FREE(me);
     return status;
 }
 
@@ -345,7 +346,7 @@ PRIVATE int HTRule_abort (HTStream * me, HTList * e)
     if (me->target) status = (*me->target->isa->abort)(me->target, e);
     if (APP_TRACE) TTYPrint(TDEST, "Rules....... ABORTING...\n");
     HTChunk_delete(me->buffer);
-    free(me);
+    HT_FREE(me);
     return status;
 }
 
@@ -373,8 +374,8 @@ PUBLIC HTStream * HTRules (HTRequest *	request,
     HTStream * me;
     if (cbf && (*cbf)(request,HT_A_CONFIRM,HT_MSG_RULES,NULL,NULL,NULL)) {
 	if (WWWTRACE) TTYPrint(TDEST, "Rule file... Parser object created\n");
-	if ((me = (HTStream *) calloc(1, sizeof(HTStream))) == NULL)
-	    outofmem(__FILE__, "HTRules");
+	if ((me = (HTStream *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
+	    HT_OUTOFMEM("HTRules");
 	me->isa = &HTRuleClass;
 	me->request = request;
 	me->target = output_stream;

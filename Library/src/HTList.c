@@ -16,8 +16,9 @@
 
 PUBLIC HTList * HTList_new (void)
 {
-    HTList *newList = (HTList *) calloc(1, sizeof (HTList));
-    if (newList == NULL) outofmem(__FILE__, "HTList_new");
+    HTList *newList;
+    if ((newList = (HTList  *) HT_CALLOC(1, sizeof (HTList))) == NULL)
+        HT_OUTOFMEM("HTList_new");
     newList->object = NULL;
     newList->next = NULL;
     return newList;
@@ -29,7 +30,7 @@ PUBLIC BOOL HTList_delete (HTList * me)
 	HTList *current;
 	while ((current = me)) {
 	    me = me->next;
-	    free (current);
+	    HT_FREE(current);
 	}
 	return YES;
     }
@@ -39,8 +40,9 @@ PUBLIC BOOL HTList_delete (HTList * me)
 PUBLIC BOOL HTList_addObject (HTList * me, void * newObject)
 {
     if (me) {
-	HTList *newNode = (HTList *) calloc (1, sizeof(HTList));
-	if (newNode == NULL) outofmem(__FILE__, "HTList_addObject");
+	HTList *newNode;
+	if ((newNode = (HTList  *) HT_CALLOC(1, sizeof(HTList))) == NULL)
+	    HT_OUTOFMEM("HTList_addObject");
 	newNode->object = newObject;
 	newNode->next = me->next;
 	me->next = newNode;
@@ -72,7 +74,7 @@ PUBLIC BOOL HTList_removeObject (HTList *  me, void *  oldObject)
 	    me = me->next;
 	    if (me->object == oldObject) {
 		previous->next = me->next;
-		FREE(me);
+		HT_FREE(me);
 		return YES;	/* Success */
 	    }
 	}
@@ -86,7 +88,7 @@ PUBLIC void * HTList_removeLastObject  (HTList * me)
 	HTList *lastNode = me->next;
 	void * lastObject = lastNode->object;
 	me->next = lastNode->next;
-	free (lastNode);
+	HT_FREE(lastNode);
 	return lastObject;
     } else			/* Empty list */
 	return NULL;
@@ -103,7 +105,7 @@ PUBLIC void * HTList_removeFirstObject  (HTList * me)
 	}
 	firstObject = me->object;
 	prevNode->next = NULL;
-	free (me);
+	HT_FREE(me);
 	return firstObject;
     } else			/* Empty list */
 	return NULL;

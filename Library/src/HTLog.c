@@ -99,7 +99,7 @@ PUBLIC BOOL HTLog_add (HTRequest * request, int status)
 		uri,
 		status,
 		HTAnchor_length(anchor));
-	FREE(uri);
+	HT_FREE(uri);
 	return (fflush(HTLogFile)!=EOF);       /* Actually update it on disk */
     }
     return NO;

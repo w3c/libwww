@@ -18,7 +18,7 @@
 **	28 May 93 WAIS gateway explicit if no WAIS library linked in.
 **	   Dec 93 Bug change around, more reentrant, etc
 **	09 May 94 logfile renamed to HTlogfile to avoid clash with WAIS
-**	 8 Jul 94 Insulate free() from _free structure element.
+**	 8 Jul 94 Insulate HT_FREE();
 **	   Sep 95 Rewritten, HFN
 */
 
@@ -272,7 +272,7 @@ PRIVATE BOOL HTLoadDocument (HTRequest * request, BOOL recursive)
 	HTParentAnchor *anchor = HTRequest_anchor(request);
 	char * full_address = HTAnchor_address((HTAnchor *) anchor);
 	TTYPrint(TDEST, "HTAccess.... Accessing document %s\n", full_address);
-	free(full_address);
+	HT_FREE(full_address);
     }
     return HTLoad(request, recursive);
 }
@@ -328,9 +328,9 @@ PUBLIC BOOL HTLoadRelative (CONST char * 	relative,
 	full_url = HTParse(HTStrip(rel), base_url,
 			 PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
 	status = HTLoadAbsolute(full_url, request);
-	free(rel);
-	free(full_url);
-	free(base_url);
+	HT_FREE(rel);
+	HT_FREE(full_url);
+	HT_FREE(base_url);
     }
     return status;
 }
@@ -396,7 +396,7 @@ PUBLIC BOOL HTSearch (CONST char *	keywords,
 	    }
 	}
 	status = HTLoadAbsolute(base_url, request);
-	free(base_url);
+	HT_FREE(base_url);
     }
     return status;
 }

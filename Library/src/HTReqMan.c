@@ -64,8 +64,9 @@ struct _HTStream {
 */
 PUBLIC HTRequest * HTRequest_new (void)
 {
-    HTRequest * me = (HTRequest*) calloc(1, sizeof(HTRequest));
-    if (!me) outofmem(__FILE__, "HTRequest_new()");
+    HTRequest * me;
+    if ((me = (HTRequest *) HT_CALLOC(1, sizeof(HTRequest))) == NULL)
+        HT_OUTOFMEM("HTRequest_new()");
     
    /* Force Reload */
     me->reload = HT_ANY_VERSION;
@@ -126,8 +127,8 @@ PUBLIC HTRequest * HTRequest_dup (HTRequest * src)
 {
     HTRequest * me;
     if (!src) return NO;
-    if ((me = (HTRequest *) malloc(sizeof(HTRequest))) == NULL)
-	outofmem(__FILE__, "HTRequest_dup");
+    if ((me = (HTRequest  *) HT_MALLOC(sizeof(HTRequest))) == NULL)
+        HT_OUTOFMEM("HTRequest_dup");
     memcpy(me, src, sizeof(HTRequest));
     return me;
 }
@@ -144,8 +145,8 @@ PUBLIC HTRequest * HTRequest_dupInternal (HTRequest * src)
 {
     HTRequest * me;
     if (!src) return NO;
-    if ((me = (HTRequest *) malloc(sizeof(HTRequest))) == NULL)
-	outofmem(__FILE__, "HTRequest_dup");
+    if ((me = (HTRequest  *) HT_MALLOC(sizeof(HTRequest))) == NULL)
+        HT_OUTOFMEM("HTRequest_dup");
     memcpy(me, src, sizeof(HTRequest));
     HTRequest_clear(me);
     return me;
@@ -157,23 +158,23 @@ PUBLIC HTRequest * HTRequest_dupInternal (HTRequest * src)
 PUBLIC void HTRequest_delete (HTRequest * request)
 {
     if (request) {
-	FREE(request->boundary);
-	FREE(request->authenticate);
+	HT_FREE(request->boundary);
+	HT_FREE(request->authenticate);
 	if (request->error_stack) HTError_deleteAll(request->error_stack);
 
-	FREE(request->authorization);
-	FREE(request->prot_template);
-	FREE(request->dialog_msg);
+	HT_FREE(request->authorization);
+	HT_FREE(request->prot_template);
+	HT_FREE(request->dialog_msg);
 
 	if (request->net)			/* Break connection to HTNet */
 	    request->net->request = NULL;
 
 	/* These are temporary until we get a MIME thingy */
-	FREE(request->WWWAAScheme);
-	FREE(request->WWWAARealm);
-	FREE(request->WWWprotection);
+	HT_FREE(request->WWWAAScheme);
+	HT_FREE(request->WWWAARealm);
+	HT_FREE(request->WWWprotection);
 
-	FREE(request);
+	HT_FREE(request);
     }
 }
 
@@ -934,11 +935,11 @@ PRIVATE int get_physical (HTRequest *req)
     HTList *list = HTRule_global();
     char * physical = HTRule_translate(list, addr, NO);
     if (!physical) {
-	free(addr);
+	HT_FREE(addr);
 	return HT_FORBIDDEN;
     }
     HTAnchor_setPhysical(req->anchor, physical);
-    free(physical);
+    HT_FREE(physical);
 
     /*
     ** Check local Disk Cache (if we are not forced to reload), then
@@ -964,14 +965,14 @@ PRIVATE int get_physical (HTRequest *req)
 		/* Chop leading / off to make host into part of path */
 	    char * gatewayed = HTParse(path+1, newaddr, PARSE_ALL);
             HTAnchor_setPhysical(req->anchor, gatewayed);
-	    free(path);
-	    free(gatewayed);
+	    HT_FREE(path);
+	    HT_FREE(gatewayed);
 	} else {
 	    req->using_proxy = NO;     	    /* We don't use proxy or gateway */
 	}
-	FREE(newaddr);
+	HT_FREE(newaddr);
     }
-    FREE(addr);
+    HT_FREE(addr);
 
     /* Set the access scheme on our way out */
     return (HTProtocol_find(req, req->anchor)==YES) ? HT_OK : HT_NO_ACCESS;

@@ -39,9 +39,9 @@ PRIVATE HTList **adult_table=0;  /* Point to table of lists of all parents */
 */
 PRIVATE HTParentAnchor * HTParentAnchor_new (void)
 {
-    HTParentAnchor *newAnchor =
-	(HTParentAnchor *) calloc(1, sizeof (HTParentAnchor));
-    if (!newAnchor) outofmem(__FILE__, "HTParentAnchor_new");
+    HTParentAnchor *newAnchor;
+    if ((newAnchor =	(HTParentAnchor *) HT_CALLOC(1, sizeof (HTParentAnchor))) == NULL)
+	HT_OUTOFMEM("HTParentAnchor_new");
     newAnchor->parent = newAnchor;
     newAnchor->content_type = WWW_UNKNOWN;
     newAnchor->mainLink.method = METHOD_INVALID;
@@ -55,8 +55,9 @@ PRIVATE HTParentAnchor * HTParentAnchor_new (void)
 
 PRIVATE HTChildAnchor * HTChildAnchor_new (void)
 {
-    HTChildAnchor *child = (HTChildAnchor *) calloc (1, sizeof(HTChildAnchor));
-    if (!child) outofmem(__FILE__, "HTChildAnchor_new");
+    HTChildAnchor *child;
+    if ((child = (HTChildAnchor  *) HT_CALLOC(1, sizeof(HTChildAnchor))) == NULL)
+        HT_OUTOFMEM("HTChildAnchor_new");
     return child;
 }
 
@@ -128,8 +129,8 @@ PUBLIC HTAnchor * HTAnchor_findAddress (CONST char * address)
 			     PARSE_PATH | PARSE_PUNCTUATION);
 	HTParentAnchor * parent = (HTParentAnchor*) HTAnchor_findAddress(addr);
 	HTChildAnchor * child = HTAnchor_findChild(parent, tag);
-	free(addr);
-	free(tag);
+	HT_FREE(addr);
+	HT_FREE(tag);
 	return (HTAnchor *) child;
     } else {		       	     /* Else check whether we have this node */
 	int hash;
@@ -139,15 +140,15 @@ PUBLIC HTAnchor * HTAnchor_findAddress (CONST char * address)
 	HTParentAnchor * foundAnchor;
 	char *newaddr = NULL;
 	StrAllocCopy(newaddr, address);		         /* Get our own copy */
-	free(tag);
+	HT_FREE(tag);
 	newaddr = HTSimplify(&newaddr);
 
 	/* Select list from hash table */
 	for(p=newaddr, hash=0; *p; p++)
 	    hash = (int) ((hash * 3 + (*(unsigned char*)p)) % HASH_SIZE);
 	if (!adult_table) {
-	    adult_table = (HTList**) calloc(HASH_SIZE, sizeof(HTList*));
-	    if (!adult_table) outofmem(__FILE__, "HTAnchor_findAddress");
+	    if ((adult_table = (HTList* *) HT_CALLOC(HASH_SIZE, sizeof(HTList*))) == NULL)
+	        HT_OUTOFMEM("HTAnchor_findAddress");
 	}
 	if (!adult_table[hash]) adult_table[hash] = HTList_new();
 	adults = adult_table[hash];
@@ -159,7 +160,7 @@ PUBLIC HTAnchor * HTAnchor_findAddress (CONST char * address)
 		if (ANCH_TRACE)
 		    TTYPrint(TDEST, "Find Parent. %p with address `%s' already exists.\n",
 			    (void*) foundAnchor, newaddr);
-		free(newaddr);			       /* We already have it */
+		HT_FREE(newaddr);		       /* We already have it */
 		return (HTAnchor *) foundAnchor;
 	    }
 	}
@@ -191,8 +192,8 @@ PUBLIC HTChildAnchor * HTAnchor_findChildAndLink (HTParentAnchor *	parent,
 	char * parsed_address = HTParse(href, relative_to, PARSE_ALL);
 	HTAnchor * dest = HTAnchor_findAddress(parsed_address);
 	HTAnchor_link((HTAnchor *) child, dest, ltype, METHOD_INVALID);
-	free(parsed_address);
-	free(relative_to);
+	HT_FREE(parsed_address);
+	HT_FREE(relative_to);
     }
     return child;
 }
@@ -283,8 +284,9 @@ PUBLIC BOOL HTAnchor_link (HTAnchor *	source,
 	source->mainLink.type = type;
 	source->mainLink.method = method;
     } else {
-	HTLink * newLink = (HTLink *) calloc(1, sizeof (HTLink));
-	if (!newLink) outofmem(__FILE__, "HTAnchor_link");
+	HTLink * newLink;
+	if ((newLink = (HTLink  *) HT_CALLOC(1, sizeof (HTLink))) == NULL)
+	    HT_OUTOFMEM("HTAnchor_link");
 	newLink->dest = destination;
 	newLink->type = type;
 	newLink->method = method;
@@ -335,14 +337,15 @@ PUBLIC BOOL HTAnchor_setMainLink  (HTAnchor * me, HTLink * movingLink)
 	return NO;
     else {
 	/* First push current main link onto top of links list */
-	HTLink *newLink = (HTLink*) malloc (sizeof (HTLink));
-	if (newLink == NULL) outofmem(__FILE__, "HTAnchor_makeMainLink");
+	HTLink *newLink;
+	if ((newLink = (HTLink *) HT_MALLOC(sizeof (HTLink))) == NULL)
+	    HT_OUTOFMEM("HTAnchor_makeMainLink");
 	memcpy ((void *) newLink, & me->mainLink, sizeof (HTLink));
 	HTList_addObject (me->links, newLink);
 
 	/* Now make movingLink the new main link, and free it */
 	memcpy ((void *) &me->mainLink, movingLink, sizeof (HTLink));
-	free (movingLink);
+	HT_FREE(movingLink);
 	return YES;
     }
 }
@@ -409,7 +412,7 @@ PUBLIC BOOL HTAnchor_moveAllLinks (HTAnchor * src, HTAnchor * dest)
 	HTList *cur = dest->links;
 	HTLink *pres;
 	while ((pres = (HTLink *) HTList_nextObject(cur)))
-	    free(pres);
+	    HT_FREE(pres);
 	HTList_delete(dest->links);
     }
     dest->links = src->links;
@@ -445,7 +448,7 @@ PUBLIC BOOL HTAnchor_removeLink (HTAnchor * src, HTAnchor * dest)
 	while ((pres = (HTLink *) HTList_nextObject(cur))) {
 	    if (pres->dest == dest) {
 		HTList_removeObject(dest->links, pres);
-		free(pres);
+		HT_FREE(pres);
 		return YES;
 	    }
 	}
@@ -474,7 +477,7 @@ PUBLIC BOOL HTAnchor_removeAllLinks (HTAnchor * me)
 	HTList *cur = me->links;
 	HTLink *pres;
 	while ((pres = (HTLink *) HTList_nextObject(cur)))
-	    free(pres);
+	    HT_FREE(pres);
 	HTList_delete(me->links);
 	me->links = NULL;
     }
@@ -540,26 +543,26 @@ PRIVATE void * delete_parent (HTParentAnchor * me)
 	HTList *cur = me->links;
 	HTLink *pres;
 	while ((pres = (HTLink *) HTList_nextObject(cur)))
-	    free(pres);
+	    HT_FREE(pres);
 	HTList_delete(me->links);
     }
     HTList_delete (me->children);
     HTList_delete (me->sources);
-    FREE(me->physical);
-    FREE(me->address);
+    HT_FREE(me->physical);
+    HT_FREE(me->address);
 
     /* Then remove entity header information (metainformation) */
-    FREE(me->title);
-    FREE(me->derived_from);
-    FREE(me->version);
+    HT_FREE(me->title);
+    HT_FREE(me->derived_from);
+    HT_FREE(me->version);
     if (me->extra_headers) {
 	HTList *cur = me->extra_headers;
 	char *pres;
 	while ((pres = (char *) HTList_nextObject(cur)))
-	    free(pres);
+	    HT_FREE(pres);
 	HTList_delete(me->extra_headers);
     }
-    free(me);
+    HT_FREE(me);
     return doc;
 }
 
@@ -583,15 +586,15 @@ PRIVATE void * delete_family (HTAnchor * me)
 	HTChildAnchor *child;
 	while ((child = (HTChildAnchor *)
 		HTList_removeLastObject(parent->children))) {
-	    FREE(child->tag);
+	    HT_FREE(child->tag);
 	    if (child->links) {
 		HTList *cur = child->links;
 		HTLink *pres;
 		while ((pres = (HTLink *) HTList_nextObject(cur)))
-		    free(pres);
+		    HT_FREE(pres);
 		HTList_delete(child->links);
 	    }
-	    free(child);
+	    HT_FREE(child);
 	}
     }
     return delete_parent(parent);
@@ -621,7 +624,7 @@ PUBLIC BOOL HTAnchor_deleteAll (HTList * documents)
 	}
 	HTList_delete(adult_table[cnt]);
     }
-    FREE(adult_table);
+    HT_FREE(adult_table);
     return YES;
 }
 
@@ -672,8 +675,8 @@ PUBLIC BOOL HTAnchor_delete (HTParentAnchor * me)
   /* First, recursively delete children */
   while ((child = (HTChildAnchor *) HTList_removeLastObject (me->children))) {
     deleteLinks ((HTAnchor *) child);
-    free (child->tag);
-    free (child);
+    HT_FREE(child->tag);
+    HT_FREE(child);
   }
 
   /* Now kill myself */
@@ -709,9 +712,8 @@ PUBLIC char * HTAnchor_address  (HTAnchor * me)
 	    StrAllocCopy (addr, me->parent->address);
 	}
 	else {			/* it's a named child */
-	    addr = (char *) malloc (2 + strlen (me->parent->address)
-				    + strlen (((HTChildAnchor *) me)->tag));
-	    if (addr == NULL) outofmem(__FILE__, "HTAnchor_address");
+	    if ((addr = (char  *) HT_MALLOC(2 + strlen (me->parent->address) + strlen (((HTChildAnchor *) me)->tag))) == NULL)
+	        HT_OUTOFMEM("HTAnchor_address");
 	    sprintf (addr, "%s#%s", me->parent->address,
 		     ((HTChildAnchor *) me)->tag);
 	}
@@ -1027,14 +1029,14 @@ PUBLIC void HTAnchor_clearHeader (HTParentAnchor * me)
     me->expires = (time_t) -1;
     me->last_modified = (time_t) -1;
     
-    FREE(me->derived_from);
-    FREE(me->version);
+    HT_FREE(me->derived_from);
+    HT_FREE(me->version);
 
     if (me->extra_headers) {
 	HTList *cur = me->extra_headers;
 	char *pres;
 	while ((pres = (char *) HTList_nextObject(cur)))
-	    free(pres);
+	    HT_FREE(pres);
 	HTList_delete(me->extra_headers);
 	me->extra_headers = NULL;
     }

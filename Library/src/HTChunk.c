@@ -20,8 +20,9 @@
 */
 PUBLIC HTChunk * HTChunk_new (int grow)
 {
-    HTChunk * ch = (HTChunk *) calloc(1, sizeof(HTChunk));
-    if (ch == NULL) outofmem(__FILE__, "HTChunk_new");
+    HTChunk * ch;
+    if ((ch = (HTChunk  *) HT_CALLOC(1, sizeof(HTChunk))) == NULL)
+        HT_OUTOFMEM("HTChunk_new");
     ch->growby = grow;
     return ch;
 }
@@ -47,8 +48,8 @@ PUBLIC void HTChunk_clear (HTChunk * ch)
 PUBLIC void HTChunk_delete (HTChunk * ch)
 {
     if (ch) {
-	FREE(ch->data);
-    	free(ch);
+	HT_FREE(ch->data);
+    	HT_FREE(ch);
     }
 }
 
@@ -61,12 +62,12 @@ PUBLIC void HTChunk_putc (HTChunk * ch, char c)
     if (ch) {
 	if (ch->size >= ch->allocated-1) {
 	    if (ch->data) {
-		ch->data = (char *) realloc(ch->data,ch->allocated+ch->growby);
-	        if (!ch->data) outofmem(__FILE__, "HTChunk_putc");
+		if ((ch->data = (char  *) HT_REALLOC(ch->data,ch->allocated+ch->growby)) == NULL)
+		    HT_OUTOFMEM("HTChunk_putc");
 		memset((void *) (ch->data + ch->allocated), '\0', ch->growby);
 	    } else {
-		ch->data = (char *) calloc(1, ch->allocated+ch->growby);
-	        if (!ch->data) outofmem(__FILE__, "HTChunk_putc");
+		if ((ch->data = (char  *) HT_CALLOC(1, ch->allocated+ch->growby)) == NULL)
+		    HT_OUTOFMEM("HTChunk_putc");
 	    }
 	    ch->allocated += ch->growby;
 	}
@@ -93,12 +94,12 @@ PUBLIC void HTChunk_putb (HTChunk * ch, CONST char * block, int len)
 	if (needed >= ch->allocated) {
 	    ch->allocated = needed - needed%ch->growby + ch->growby;
 	    if (ch->data) {
-		if ((ch->data = (char *) realloc(ch->data, ch->allocated)) == NULL)
-		    outofmem(__FILE__, "HTChunk_putb");
+		if ((ch->data = (char *) HT_REALLOC(ch->data, ch->allocated)) == NULL)
+		    HT_OUTOFMEM("HTChunk_putb");
 	        memset((void *) (ch->data + needed), '\0', ch->allocated-needed);
 	    } else {
-		if ((ch->data = (char *) calloc(1, ch->allocated)) == NULL)
-	    	    outofmem(__FILE__, "HTChunk_putb");
+		if ((ch->data = (char *) HT_CALLOC(1, ch->allocated)) == NULL)
+		    HT_OUTOFMEM("HTChunk_putb");
 	    }
 	}
 	memcpy((void *) (ch->data+ch->size), block, len);
@@ -117,12 +118,12 @@ PUBLIC void HTChunk_ensure (HTChunk * ch, int len)
 	if (needed >= ch->allocated) {
 	    ch->allocated = needed - needed%ch->growby + ch->growby;
 	    if (ch->data) {
-		if ((ch->data = (char *) realloc(ch->data, ch->allocated)) == NULL)
-		    outofmem(__FILE__, "HTChunk_putb");
+		if ((ch->data = (char  *) HT_REALLOC(ch->data, ch->allocated)) == NULL)
+		    HT_OUTOFMEM("HTChunk_putb");
 	        memset((void *) (ch->data + ch->size), '\0', ch->allocated-ch->size);
 	    } else {
-		if ((ch->data = (char *) calloc(1, ch->allocated)) == NULL)
-	    	    outofmem(__FILE__, "HTChunk_putb");
+		if ((ch->data = (char  *) HT_CALLOC(1, ch->allocated)) == NULL)
+		    HT_OUTOFMEM("ch->data ");
 	    }
 	}
     }

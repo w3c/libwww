@@ -98,8 +98,9 @@ PUBLIC BOOL HTNetCall_add (HTList * list, HTNetCallback *cbf, int status)
     if (WWWTRACE) 
 	TTYPrint(TDEST, "Call Add.... HTNetCallback %p\n", (void *) cbf);
     if (list && cbf) {
-	NetCall *me = (NetCall *) calloc(1, sizeof(NetCall));
-	if (!me) outofmem(__FILE__, "HTNetCall_add");
+	NetCall *me;
+	if ((me = (NetCall  *) HT_CALLOC(1, sizeof(NetCall))) == NULL)
+	    HT_OUTOFMEM("HTNetCall_add");
 	me->cbf = cbf;
 	me->status = status;
 	return HTList_addObject(list, (void *) me);
@@ -121,7 +122,7 @@ PUBLIC BOOL HTNetCall_delete (HTList * list, HTNetCallback *cbf)
 	while ((pres = (NetCall *) HTList_nextObject(cur))) {
 	    if (pres->cbf == cbf) {
 		HTList_removeObject(list, (void *) pres);
-		free(pres);
+		HT_FREE(pres);
 		return YES;
 	    }
 	}
@@ -142,7 +143,7 @@ PUBLIC BOOL HTNetCall_deleteAll (HTList * list)
 	NetCall *pres;
 	while ((pres = (NetCall *) HTList_nextObject(cur))) {
 	    HTList_removeObject(list, (void *) pres);
-	    free(pres);
+	    HT_FREE(pres);
 	}
 	HTList_delete(list);
 	return YES;
@@ -290,8 +291,8 @@ PUBLIC HTNet * HTNet_dup (HTNet * src)
 {
     HTNet * me;
     if (!src) return NO;
-    if ((me = (HTNet *) malloc(sizeof(HTNet))) == NULL)
-	outofmem(__FILE__, "HTNet_dup");
+    if ((me = (HTNet *) HT_MALLOC(sizeof(HTNet))) == NULL)
+	HT_OUTOFMEM("HTNet_dup");
     memcpy((void *) me, src, sizeof(HTNet));
     return me;
 }
@@ -326,8 +327,8 @@ PUBLIC BOOL HTNet_setPriority (HTNet * net, HTPriority priority)
 PRIVATE HTNet * create_object (HTRequest * request)
 {
     HTNet * me;
-    if ((me = (HTNet *) calloc(1, sizeof(HTNet))) == NULL)
-	outofmem(__FILE__, "HTNet_new");
+    if ((me = (HTNet *) HT_CALLOC(1, sizeof(HTNet))) == NULL)
+        HT_OUTOFMEM("HTNet_new");
     me->request = request;
     request->net = me;
     me->tcpstate = TCP_BEGIN;
@@ -384,7 +385,7 @@ PUBLIC BOOL HTNet_newServer (HTRequest * request, SOCKET sockfd, char * access)
     me->sockfd = sockfd;
     if (!(me->cbf = HTProtocol_server(protocol))) {
 	if (WWWTRACE) TTYPrint(TDEST, "HTNet_new... NO CALL BACK FUNCTION!\n");
-	free(me);
+	HT_FREE(me);
 	return NO;
     }
     request->retrys++;
@@ -431,7 +432,7 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
 	if (WWWTRACE) TTYPrint(TDEST, "HTNet New... Using default address\n");
 	HTAnchor_setPhysical(request->anchor, addr);
 	physical = HTAnchor_physical(request->anchor);
-	FREE(addr);
+	HT_FREE(addr);
     }
 
     /* Find a protocol object for this access scheme */
@@ -439,10 +440,10 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
 	char * access = HTParse(physical, "", PARSE_ACCESS);
 	if ((protocol = HTProtocol_find(request, access)) == NULL) {
 	    if (WWWTRACE) TTYPrint(TDEST, "HTNet_new... NO PROTOCOL OBJECT\n");
-	    free(access);
+	    HT_FREE(access);
 	    return NO;
 	}
-	free(access);
+	HT_FREE(access);
     }
 	
     /* Create new net object and bind it to the request object */
@@ -452,7 +453,7 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
     me->sockfd = INVSOC;
     if (!(me->cbf = HTProtocol_client(protocol))) {
 	if (WWWTRACE) TTYPrint(TDEST, "HTNet_new... NO CALL BACK FUNCTION!\n");
-	free(me);
+	HT_FREE(me);
 	return NO;
     }
     request->retrys++;
@@ -523,7 +524,7 @@ PRIVATE BOOL delete_object (HTNet *net, int status)
 	    HTInputSocket_free(net->isoc);
 	if (net->request)
 	    net->request->net = NULL;		    /* Break link to request */
-	free(net);
+	HT_FREE(net);
 	return status ? NO : YES;
     }
     return NO;

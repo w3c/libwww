@@ -79,8 +79,8 @@ PRIVATE HTAAServer *HTAAServer_new (CONST char * hostname, int portnumber)
 {
     HTAAServer *server;
 
-    if (!(server = (HTAAServer *)malloc(sizeof(HTAAServer))))
-	outofmem(__FILE__, "HTAAServer_new");
+    if ((server = (HTAAServer *) HT_MALLOC(sizeof(HTAAServer))) == NULL)
+        HT_OUTOFMEM("HTAAServer_new");
 
     server->hostname	= NULL;
     server->portnumber	= (portnumber > 0 ? portnumber : 80);
@@ -222,8 +222,8 @@ PRIVATE HTAASetup *HTAASetup_new (HTAAServer *	server,
 
     if (!server || !tmplate || !*tmplate) return NULL;
 
-    if (!(setup = (HTAASetup*)malloc(sizeof(HTAASetup))))
-	outofmem(__FILE__, "HTAASetup_new");
+    if ((setup = (HTAASetup *) HT_MALLOC(sizeof(HTAASetup))) == NULL)
+        HT_OUTOFMEM("HTAASetup_new");
 
     setup->reprompt = NO;
     setup->server = server;
@@ -242,7 +242,7 @@ PRIVATE HTAASetup *HTAASetup_new (HTAAServer *	server,
 /* PRIVATE						HTAASetup_delete()
 **			FREE A HTAASetup STRUCTURE
 ** ON ENTRY:
-**	killme		is a pointer to the structure to free().
+**	killme		is a pointer to the structure to free;
 **
 ** ON EXIT:
 **	returns		nothing.
@@ -253,13 +253,13 @@ PRIVATE void HTAASetup_delete (HTAASetup * killme)
     int scheme;
 
     if (killme) {
-	if (killme->tmplate) free(killme->tmplate);
+	if (killme->tmplate) HT_FREE(killme->tmplate);
 	if (killme->valid_schemes)
 	    HTList_delete(killme->valid_schemes);
 	for (scheme=0; scheme < HTAA_MAX_SCHEMES; scheme++)
 	    if (killme->scheme_specifics[scheme])
 		HTAssocList_delete(killme->scheme_specifics[scheme]);
-	free(killme);
+	HT_FREE(killme);
     }
 }
 #endif /*NOT_NEEDED_IT_SEEMS*/
@@ -290,7 +290,7 @@ PRIVATE void HTAASetup_updateSpecifics (HTAASetup *	setup,
 		if (setup->scheme_specifics[scheme])
 		    HTAssocList_delete(setup->scheme_specifics[scheme]);
 	    }
-	    free(setup->scheme_specifics);
+	    HT_FREE(setup->scheme_specifics);
 	}
 	setup->scheme_specifics = specifics;
     }
@@ -352,8 +352,8 @@ PRIVATE HTAARealm *HTAARealm_new (HTList *	realm_table,
     realm = HTAARealm_lookup(realm_table, realmname);
 
     if (!realm) {
-	if (!(realm = (HTAARealm*)malloc(sizeof(HTAARealm))))
-	    outofmem(__FILE__, "HTAARealm_new");
+	if ((realm = (HTAARealm *) HT_MALLOC(sizeof(HTAARealm))) == NULL)
+	    HT_OUTOFMEM("HTAARealm_new");
 	realm->realmname = NULL;
 	realm->username = NULL;
 	realm->password = NULL;
@@ -394,7 +394,7 @@ PRIVATE char *compose_Basic_auth (HTRequest * req)
     char *cleartext = NULL;	/* Cleartext presentation */
     int len;
 
-    FREE(result);	/* From previous call */
+    HT_FREE(result);		/* from previous call */
 
     if (!req || req->scheme != HTAA_BASIC || !req->setup ||
 	!req->setup->server)
@@ -420,8 +420,8 @@ PRIVATE char *compose_Basic_auth (HTRequest * req)
     len = strlen(req->realm->username ? req->realm->username : "") +
 	  strlen(req->realm->password ? req->realm->password : "") + 3;
 
-    if (!(cleartext  = (char*)calloc(len, 1)))
-	outofmem(__FILE__, "compose_Basic_auth");
+    if ((cleartext = (char *) HT_CALLOC(len, 1)) == NULL)
+        HT_OUTOFMEM("compose_Basic_auth");
 
     if (req->realm->username) strcpy(cleartext, req->realm->username);
     else *cleartext = (char)0;
@@ -430,10 +430,10 @@ PRIVATE char *compose_Basic_auth (HTRequest * req)
 
     if (req->realm->password) strcat(cleartext, req->realm->password);
 
-    if (!(result = (char*)malloc(4 * ((len+2)/3) + 1)))
-	outofmem(__FILE__, "compose_Basic_auth");
+    if ((result = (char *) HT_MALLOC(4 * ((len+2)/3) + 1)) == NULL)
+        HT_OUTOFMEM("compose_Basic_auth");
     HTUU_encode((unsigned char *)cleartext, strlen(cleartext), result);
-    free(cleartext);
+    HT_FREE(cleartext);
 
     return result;
 }
@@ -502,8 +502,8 @@ PUBLIC BOOL HTAA_composeAuth (HTRequest * req)
     char *gate = NULL;	/* Obsolite? */
     char *arg = NULL;
 
-    FREE(hostname);	/* From previous call */
-    FREE(docname);	/*	- " -	      */
+    HT_FREE(hostname);	/* From previous call */
+    HT_FREE(docname);	/*	- " -	      */
 
     if (!req  ||  !req->anchor)
 	return NO;
@@ -534,10 +534,10 @@ PUBLIC BOOL HTAA_composeAuth (HTRequest * req)
 	current_portnumber = portnumber;
 	
 	if (hostname) StrAllocCopy(current_hostname, hostname);
-	else FREE(current_hostname);
+	else HT_FREE(current_hostname);
 
 	if (docname) StrAllocCopy(current_docname, docname);
-	else FREE(current_docname);
+	else HT_FREE(current_docname);
     }
     else retry = YES;
 #endif /*OLD_CODE*/
@@ -575,10 +575,9 @@ PUBLIC BOOL HTAA_composeAuth (HTRequest * req)
     if (!auth_string)
 	return NO;
     
-    FREE(req->authorization);	 /* Free from previous call, Henrik 14/03-94 */
-    if (!(req->authorization =
-	  (char*)malloc(sizeof(char) * (strlen(auth_string)+40))))
-	outofmem(__FILE__, "HTAA_composeAuth");
+    HT_FREE(req->authorization); /* Free from previous call, Henrik 14/03-94 */
+    if ((req->authorization = (char *) HT_MALLOC(sizeof(char) * (strlen(auth_string)+40))) == NULL)
+        HT_OUTOFMEM("HTAA_composeAuth");
 
     strcpy(req->authorization, HTAAScheme_name(req->scheme));
     strcat(req->authorization, " ");
@@ -622,8 +621,8 @@ PUBLIC BOOL HTPasswordDialog (HTRequest * req)
     }
     if (cbf) {
 	HTAlertPar * reply = HTAlert_newReply();
-	FREE(req->realm->username);
-	FREE(req->realm->password);
+	HT_FREE(req->realm->username);
+	HT_FREE(req->realm->password);
 	if (((*cbf)(req, HT_A_USER_PW, HT_MSG_NULL, NULL,
 		    req->realm->realmname, reply))) {
 	    req->realm->username = HTAlert_replyMessage(reply);
@@ -701,8 +700,8 @@ PUBLIC BOOL HTAA_retryWithAuth (HTRequest * req)
 	char *colon;
 	HTAAServer *server;
 
-	FREE(hostname);	/* From previous call */
-	FREE(docname);	/*	- " -	      */
+	HT_FREE(hostname);	/* From previous call */
+	HT_FREE(docname);	/*	- " -	      */
 
 	docname = HTParse(arg, "", PARSE_PATH);
 	hostname = HTParse(arg, "", PARSE_HOST);
@@ -751,9 +750,9 @@ PUBLIC BOOL HTAA_retryWithAuth (HTRequest * req)
     if (req->setup->server->hostname)
 	len += strlen(req->setup->server->hostname);
 
-    FREE(req->dialog_msg);	 /* Free from previous call, Henrik 14/03-94 */
-    if (!(req->dialog_msg = (char*)malloc(len)))
-	outofmem(__FILE__, "HTAA_retryWithAuth");
+    HT_FREE(req->dialog_msg);	 /* Free from previous call, Henrik 14/03-94 */
+    if ((req->dialog_msg = (char *) HT_MALLOC(len)) == NULL)
+        HT_OUTOFMEM("HTAA_retryWithAuth");
     if (!req->realm->username)
 	sprintf(req->dialog_msg, "\n%s %s at %s",
 		"Document is protected. Enter username for",
@@ -783,8 +782,7 @@ PUBLIC BOOL HTAA_authentication (HTRequest * request)
 	    HTList_addObject(valid_schemes, (void *) scheme);
 	    if (!scheme_specifics) {
 		int i;
-		scheme_specifics = (HTAssocList**)
-		    malloc(HTAA_MAX_SCHEMES * sizeof(HTAssocList*));
+		scheme_specifics = (HTAssocList**) HT_MALLOC(HTAA_MAX_SCHEMES * sizeof(HTAssocList*));
 		if (!scheme_specifics)
 		    outofmem(__FILE__, "HTTPAuthentication");
 		for (i=0; i < HTAA_MAX_SCHEMES; i++)

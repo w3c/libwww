@@ -703,7 +703,7 @@ PRIVATE int HTMIME_free (HTStream * me)
     if (PROT_TRACE)
 	TTYPrint(TDEST, "MIME........ FREEING....\n");
     HTChunk_delete(me->buffer);
-    free(me);
+    HT_FREE(me);
     return status;
 }
 
@@ -716,7 +716,7 @@ PRIVATE int HTMIME_abort (HTStream * me, HTList * e)
     if (PROT_TRACE)
 	TTYPrint(TDEST, "MIME........ ABORTING...\n");
     HTChunk_delete(me->buffer);
-    free(me);
+    HT_FREE(me);
     return status;
 }
 
@@ -750,8 +750,8 @@ PUBLIC HTStream* HTMIMEConvert (HTRequest *	request,
 				HTStream *	output_stream)
 {
     HTStream* me;
-    if ((me=(HTStream *) calloc(1, sizeof(* me))) == NULL)
-	outofmem(__FILE__, "HTMIMEConvert");
+    if ((me = (HTStream *) HT_CALLOC(1, sizeof(* me))) == NULL)
+        HT_OUTOFMEM("HTMIMEConvert");
     me->isa = &HTMIME;       
     me->request = request;
     me->anchor = request->anchor;
@@ -777,8 +777,8 @@ PUBLIC HTStream * HTMIMEHeader (HTRequest *	request,
 				HTStream *	output_stream)
 {
     HTStream * me;
-    if ((me = (HTStream *) calloc(1, sizeof(HTStream))) == NULL)
-	outofmem(__FILE__, "HTMIMEConvert");
+    if ((me = (HTStream *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
+        HT_OUTOFMEM("HTMIMEConvert");
     me->isa = &HTMIME;       
     me->request = request;
     me->anchor = request->anchor;

@@ -235,9 +235,9 @@ PRIVATE int HTFWriter_free (HTStream * me)
 #endif
 	if (me->remove_on_close) REMOVE(me->filename);
 	if (me->callback) (*me->callback)(me->request, me->filename);
-	FREE(me->end_command);
-	FREE(me->filename);
-	free(me);
+	HT_FREE(me->end_command);
+	HT_FREE(me->filename);
+	HT_FREE(me);
     }
     return HT_OK;
 }
@@ -248,9 +248,9 @@ PRIVATE int HTFWriter_abort (HTStream * me, HTList * e)
     if (me) {
 	if (me->leave_open != YES) fclose(me->fp);
 	if (me->remove_on_close) REMOVE(me->filename);
-	FREE(me->end_command);
-	FREE(me->filename);
-	free(me);
+	HT_FREE(me->end_command);
+	HT_FREE(me->filename);
+	HT_FREE(me);
     }
     return HT_ERROR;
 }
@@ -274,8 +274,8 @@ PUBLIC HTStream * HTFWriter_new (HTRequest * request, FILE * fp,
 	if (STREAM_TRACE)TTYPrint(TDEST, "FileWriter.. Bad file descriptor\n");
 	return HTErrorStream();
     }
-    if ((me = (HTStream *) calloc(1, sizeof(HTStream))) == NULL)
-	outofmem(__FILE__, "HTFWriter_new");
+    if ((me = (HTStream *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
+        HT_OUTOFMEM("HTFWriter_new");
     me->isa = &HTFWriter;       
     me->fp = fp;
     me->leave_open = leave_open;
@@ -317,7 +317,7 @@ PUBLIC CONST char * HTTmp_getRoot (void)
 */
 PUBLIC void HTTmp_freeRoot (void)
 {
-    FREE(HTTmpRoot);
+    HT_FREE(HTTmpRoot);
 }
 
 /*
@@ -395,13 +395,13 @@ PUBLIC HTStream* HTSaveLocally (HTRequest *	request,
 		filename = HTAlert_replyMessage(reply);
 	    HTAlert_deleteReply(reply);
 	}
-	FREE(suffix);
-	FREE(deflt);
+	HT_FREE(suffix);
+	HT_FREE(deflt);
 	if (filename) {
 	    if ((fp = fopen(filename, "wb")) == NULL) {
 		HTRequest_addError(request, ERR_NON_FATAL, NO, HTERR_NO_FILE,
 				   filename, strlen(filename),"HTSaveLocally");
-		FREE(filename);
+		HT_FREE(filename);
 		return HTErrorStream();
 	    }
 	} else {
@@ -416,7 +416,7 @@ PUBLIC HTStream* HTSaveLocally (HTRequest *	request,
 	me->filename = filename;
 	return me;
     }
-    FREE(filename);
+    HT_FREE(filename);
     return HTErrorStream();
 }
 
@@ -452,12 +452,12 @@ PUBLIC HTStream* HTSaveAndExecute (HTRequest *	request,
 	HTParentAnchor *anchor = (HTParentAnchor *) HTRequest_anchor(request);
 	char *suffix = HTBind_getSuffix(anchor);
 	filename = get_filename(HTTmpRoot, HTAnchor_physical(anchor), suffix);
-	FREE(suffix);
+	HT_FREE(suffix);
 	if (filename) {
 	    if ((fp = fopen(filename, "wb")) == NULL) {
 		HTRequest_addError(request, ERR_NON_FATAL, NO, HTERR_NO_FILE,
 				   filename, strlen(filename),"HTSaveAndExecute");
-		FREE(filename);
+		HT_FREE(filename);
 		return HTErrorStream();
 	    }
 	} else {
@@ -470,13 +470,12 @@ PUBLIC HTStream* HTSaveAndExecute (HTRequest *	request,
     if (fp) {
 	HTStream * me = HTFWriter_new(request, fp, NO);
 	me->filename = filename;
-	me->end_command = (char *) malloc((strlen((char *) param) + 10 +
-					   3*strlen(filename)));
-	if (me->end_command == NULL) outofmem(__FILE__, "SaveAndExecute");
+	if ((me->end_command = (char  *) HT_MALLOC((strlen((char *) param) + 10 + 3*strlen(filename)))) == NULL)
+	    HT_OUTOFMEM("SaveAndExecute");
         sprintf (me->end_command, (char *)param, filename, filename, filename);
 	return me;
     }
-    FREE(filename);
+    HT_FREE(filename);
     return HTErrorStream();
 }
 

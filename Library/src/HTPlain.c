@@ -93,7 +93,7 @@ PRIVATE int HTPlain_free (HTStream * me)
 {
     if (me) {
 	HText_endAppend(me->text);
-	free(me);
+	HT_FREE(me);
     }
     return HT_OK;
 }
@@ -133,8 +133,9 @@ PUBLIC HTStream* HTPlainPresent (HTRequest *	request,
 				 HTFormat	output_format,
 				 HTStream *	output_stream)
 {
-    HTStream* me = (HTStream*)malloc(sizeof(HTStream));
-    if (me == NULL) outofmem(__FILE__, "HTPlain_new");
+    HTStream* me;
+    if ((me = (HTStream *) HT_MALLOC(sizeof(HTStream))) == NULL)
+        HT_OUTOFMEM("HTPlain_new");
     me->isa = &HTPlain;       
     me->text = HText_new2(request, HTRequest_anchor(request), output_stream);
     HText_beginAppend(me->text);

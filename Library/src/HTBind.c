@@ -66,8 +66,8 @@ PRIVATE HTBind unknown_suffix = { "*.*", NULL, NULL, NULL, 0.5 };
 PUBLIC BOOL HTBind_init (void)
 {
     if (!HTBindings) {
-	HTBindings = (HTList**) calloc(HASH_SIZE, sizeof(HTList *));
-	if (!HTBindings) outofmem(__FILE__, "HTBind_init");
+	if ((HTBindings = (HTList* *) HT_CALLOC(HASH_SIZE, sizeof(HTList *))) == NULL)
+	    HT_OUTOFMEM("HTBind_init");
     }
     StrAllocCopy(HTDelimiters, DEFAULT_SUFFIXES);
     no_suffix.type = WWW_UNKNOWN;
@@ -93,14 +93,14 @@ PUBLIC BOOL HTBind_deleteAll (void)
 	if ((cur = HTBindings[cnt])) { 
 	    HTBind *pres;
 	    while ((pres = (HTBind *) HTList_nextObject(cur)) != NULL) {
-		FREE(pres->suffix);
-		free(pres);
+		HT_FREE(pres->suffix);
+		HT_FREE(pres);
 	    }
 	}
 	HTList_delete(HTBindings[cnt]);
 	HTBindings[cnt] = NULL;
     }
-    FREE(HTDelimiters);
+    HT_FREE(HTDelimiters);
     return YES;
 }
 
@@ -201,8 +201,8 @@ PUBLIC BOOL HTBind_add (CONST char *	suffix,
 
 	/* If not found -- create a new node */
 	if (!suff) {
-	    if ((suff = (HTBind *) calloc(1, sizeof(HTBind))) == NULL)
-		outofmem(__FILE__, "HTBind_add");
+	    if ((suff = (HTBind *) HT_CALLOC(1, sizeof(HTBind))) == NULL)
+	        HT_OUTOFMEM("HTBind_add");
 	    HTList_addObject(suflist, (void *) suff);
 	    StrAllocCopy(suff->suffix, suffix);
 	}
@@ -230,7 +230,7 @@ PUBLIC BOOL HTBind_add (CONST char *	suffix,
 		*ptr = TOLOWER(*ptr);
 	    suff->encoding = HTAtom_for(str);
 	}
-	FREE(str);
+	HT_FREE(str);
 	suff->quality = value;
     }
     return YES;
@@ -293,13 +293,13 @@ PUBLIC char * HTBind_getSuffix (HTParentAnchor * anchor)
 PUBLIC HTContentDescription * HTBind_getDescription (char * file)
 {
     HTContentDescription * cd;
-    cd = (HTContentDescription *) calloc(1, sizeof(HTContentDescription));
-    if (!cd) outofmem(__FILE__, "HTContentDescription");
+    if ((cd = (HTContentDescription  *) HT_CALLOC(1, sizeof(HTContentDescription))) == NULL)
+        HT_OUTOFMEM("HTContentDescription");
     if (HTBind_getFormat(file, &cd->content_type, &cd->content_encoding,
 			 &cd->content_language, &cd->quality))
 	return cd;
     else {
-	free(cd);
+	HT_FREE(cd);
 	return NULL;
     }
 }
@@ -334,7 +334,7 @@ PUBLIC BOOL HTBind_getBindings (HTParentAnchor * anchor)
 				      &anchor->content_language,
 				      &quality);
 	}
-	FREE(path);
+	HT_FREE(path);
     }
     return status;
 }
@@ -426,7 +426,7 @@ PUBLIC BOOL HTBind_getFormat (CONST char * filename, HTFormat * format,
 		(enc && *enc) ? HTAtom_name(*enc) : "unknown",
 		(lang && *lang) ? HTAtom_name(*lang) : "unknown",
 		*quality);
-    free(file);
+    HT_FREE(file);
     return YES;
 }
 

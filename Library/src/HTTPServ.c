@@ -88,8 +88,8 @@ PRIVATE int ServerCleanup (HTRequest * req, HTNet * net, int status)
 
     /* Remove the net object and our own context structure for http */
     HTNet_delete(net, req->internal ? HT_IGNORE : status);
-    FREE(http->version);
-    FREE(http);
+    HT_FREE(http->version);
+    HT_FREE(http);
     return YES;
 }
 
@@ -139,7 +139,7 @@ PRIVATE int MakeReplyPipe (HTStream *me, HTRequest *server, HTRequest *client)
 	/* Output the response */
 	if (response_line) {
 	    PUTS(response_line);
-	    free(response_line);
+	    HT_FREE(response_line);
 	} else {	
 	    PUTS("500 Internal");
 	    PUTC(CR);
@@ -212,7 +212,7 @@ PRIVATE int HTTPReply_free (HTStream * me)
 	HTRequest_delete(me->request);
 #endif
     }
-    free(me);
+    HT_FREE(me);
     return HT_OK;
 }
 
@@ -243,7 +243,7 @@ PRIVATE int HTTPReply_abort (HTStream * me, HTList * e)
     ServerCleanup(me->request, snet, HT_IGNORE);
     HTRequest_delete(me->request);
 #endif
-    free(me);
+    HT_FREE(me);
     return HT_ERROR;
 }
 
@@ -264,8 +264,9 @@ PRIVATE CONST HTStreamClass HTTPReplyClass =
 PRIVATE HTStream * HTTPReply_new (HTRequest * request, HTRequest * client,
 				  HTStream * target)
 {
-    HTStream * me = (HTStream *) calloc(1, sizeof(HTStream));
-    if (!me) outofmem(__FILE__, "HTTPReply_new");
+    HTStream * me;
+    if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
+        HT_OUTOFMEM("HTTPReply_new");
     me->isa = &HTTPReplyClass;
     me->target = target;
     me->request = request;
@@ -302,7 +303,7 @@ PRIVATE int ParseRequest (HTStream * me)
     if (request_uri) {
 	char * uri = HTParse(request_uri, "file:", PARSE_ALL);
 	request->anchor = (HTParentAnchor *) HTAnchor_findAddress(uri);
-	FREE(uri);
+	HT_FREE(uri);
     } else {
 	HTRequest_addError(request, ERR_FATAL, NO, HTERR_BAD_REQUEST,
 			   NULL, 0, "ParseRequest");
@@ -369,7 +370,7 @@ PRIVATE int HTTPReceive_free (HTStream * me)
 	    return HT_WOULD_BLOCK;
     }
     HTChunk_delete(me->buffer);
-    free(me);
+    HT_FREE(me);
     return status;
 }
 
@@ -377,7 +378,7 @@ PRIVATE int HTTPReceive_abort (HTStream * me, HTList * e)
 {
     if (me->target) ABORT_TARGET;
     HTChunk_delete(me->buffer);
-    free(me);
+    HT_FREE(me);
     if (PROT_TRACE) TTYPrint(TDEST, "HTTPReceive. ABORTING...\n");
     return HT_ERROR;
 }
@@ -398,8 +399,9 @@ PRIVATE CONST HTStreamClass HTTPReceiveClass =
 
 PRIVATE HTStream * HTTPReceive_new (HTRequest * request, https_info * http)
 {
-    HTStream * me = (HTStream *) calloc(1, sizeof(HTStream));
-    if (!me) outofmem(__FILE__, "HTTPReceive_new");
+    HTStream * me;
+    if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
+        HT_OUTOFMEM("HTTPReceive_new");
     me->isa = &HTTPReceiveClass;
     me->request = request;
     me->http = http;
@@ -430,8 +432,8 @@ PUBLIC int HTServHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	if (PROT_TRACE)
 	    TTYPrint(TDEST,"HTTP Serve.. request %p on socket %d\n",
 		     request, soc);
-	if ((http = (https_info *) calloc(1, sizeof(https_info))) == NULL)
-	    outofmem(__FILE__, "HTServHTTP");
+	if ((http = (https_info *) HT_CALLOC(1, sizeof(https_info))) == NULL)
+	    HT_OUTOFMEM("HTServHTTP");
 	http->state = HTTPS_BEGIN;
 	net->context = http;
     } else if (ops == FD_CLOSE) {			      /* Interrupted */

@@ -127,9 +127,8 @@ PUBLIC char * HTParse (CONST char *aName, CONST char *relatedName, int wanted)
     
     /* Make working copies of input strings to cut up: */
     len = strlen(aName)+strlen(relatedName)+10;
-    result=(char *)malloc(len);		/* Lots of space: more than enough */
-    if (result == NULL) outofmem(__FILE__, "HTParse");
-    
+    if ((result=(char *) HT_MALLOC(len)) == NULL) /* Lots of space: more than enough */
+	HT_OUTOFMEM("parse space");
     StrAllocCopy(name, aName);
     StrAllocCopy(rel, relatedName);
     
@@ -202,11 +201,11 @@ PUBLIC char * HTParse (CONST char *aName, CONST char *relatedName, int wanted)
 		strcat(result, given.anchor ? given.anchor : related.anchor); 
 	    }
 	}
-    free(rel);
-    free(name);
+    HT_FREE(rel);
+    HT_FREE(name);
     
     StrAllocCopy(return_value, result);
-    free(result);
+    HT_FREE(result);
     return return_value;		/* exactly the right length */
 }
 
@@ -254,9 +253,8 @@ PRIVATE char *HTCanon  (char ** filename, char * host)
 	strncasecomp(host, "localhost", 9)) {
 	CONST char *domain = HTGetDomainName();
 	if (domain && *domain) {
-	    if ((newname = (char *) calloc(1, strlen(*filename) +
-				       strlen(domain)+2)) == NULL)
-		outofmem(__FILE__, "HTCanon");
+	    if ((newname = (char *) HT_CALLOC(1, strlen(*filename) + strlen(domain)+2)) == NULL)
+		HT_OUTOFMEM("HTCanon");
 	    if (port)
 		strncpy(newname, *filename, (int) (port-*filename));
 	    else
@@ -299,7 +297,7 @@ PRIVATE char *HTCanon  (char ** filename, char * host)
 	char *newpath = newname+strlen(newname);
 	strcat(newname, path);
 	path = newpath;
-	free(*filename);				    /* Free old copy */
+	HT_FREE(*filename);				    /* Free old copy */
 	*filename = newname;
     }
     return path;
@@ -492,8 +490,8 @@ PUBLIC char * HTRelative (CONST char * aName, CONST char * relatedName)
     } else {					/* Some path in common */
         int levels= 0;
         for(; *q && (*q!='#'); q++)  if (*q=='/') levels++;
-	result = (char *)malloc(3*levels + strlen(last_slash) + 1);
-      if (result == NULL) outofmem(__FILE__, "HTRelative");
+	if ((result = (char  *) HT_MALLOC(3*levels + strlen(last_slash) + 1)) == NULL)
+	    HT_OUTOFMEM("HTRelative");
 	result[0]=0;
 	for(;levels; levels--)strcat(result, "../");
 	strcat(result, last_slash+1);

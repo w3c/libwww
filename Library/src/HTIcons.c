@@ -58,9 +58,9 @@ PUBLIC char * HTIcon_alt_string (char *	alt,
     char * p = NULL;
     int len = alt ? strlen(alt) : 0;
 
-    if (ret) free(ret);			/* From previous call */
-    p = ret = (char*)malloc(alt_len + 3);
-    if (!ret) outofmem(__FILE__, "HTIcon_alt_string");
+    if (ret) HT_FREE(ret);		/* from previous call */
+    if ((p = ret = (char*) HT_MALLOC(alt_len + 3)) == NULL)
+	HT_OUTOFMEM("HTIcon_alt_string");
 
     if (HTDirShowBrackets)
 	*p++ = brackets ? '[' : ' ';
@@ -93,8 +93,8 @@ PUBLIC void HTAddIcon (char *	url,
 
     if (!url || !type_templ) return;
 
-    node = (HTIconNode*)calloc(1,sizeof(HTIconNode));
-    if (!node) outofmem(__FILE__, "HTAddIcon");
+    if ((node = (HTIconNode *) HT_CALLOC(1,sizeof(HTIconNode))) == NULL)
+        HT_OUTOFMEM("HTAddIcon");
 
     if (url) StrAllocCopy(node->icon_url, url);
     if (alt) StrAllocCopy(node->icon_alt, alt);
@@ -120,8 +120,8 @@ PUBLIC void HTAddHref (char *     url,
 
     if (!url || !type_templ) return;
 
-    node = (HTHrefNode*)calloc(1,sizeof(HTHrefNode));
-    if (!node) outofmem(__FILE__, "HTAddHref");
+    if ((node = (HTHrefNode *) HT_CALLOC(1,sizeof(HTHrefNode))) == NULL)
+        HT_OUTOFMEM("HTAddHref");
 
     if (url) StrAllocCopy(node->href_url, url);
     if (type_templ) StrAllocCopy(node->type_templ, type_templ);
@@ -141,8 +141,8 @@ PUBLIC void HTAddHref (char *     url,
 PUBLIC void HTAddUnknownIcon (char * url,
 				   char * alt)
 {
-    icon_unknown = (HTIconNode*)calloc(1,sizeof(HTIconNode));
-    if (!icon_unknown) outofmem(__FILE__, "HTAddUnknownIcon");
+    if ((icon_unknown = (HTIconNode *) HT_CALLOC(1,sizeof(HTIconNode))) == NULL)
+        HT_OUTOFMEM("HTAddUnknownIcon");
 
     if (url) StrAllocCopy(icon_unknown->icon_url, url);
     if (alt) StrAllocCopy(icon_unknown->icon_alt, alt);
@@ -160,8 +160,8 @@ PUBLIC void HTAddUnknownIcon (char * url,
 PUBLIC void HTAddBlankIcon (char * url,
 				 char * alt)
 {
-    icon_blank = (HTIconNode*)calloc(1,sizeof(HTIconNode));
-    if (!icon_blank) outofmem(__FILE__, "HTAddBlankIcon");
+    if ((icon_blank = (HTIconNode *) HT_CALLOC(1,sizeof(HTIconNode))) == NULL)
+        HT_OUTOFMEM("HTAddBlankIcon");
 
     if (url) StrAllocCopy(icon_blank->icon_url, url);
     if (alt) StrAllocCopy(icon_blank->icon_alt, alt);
@@ -178,8 +178,8 @@ PUBLIC void HTAddBlankIcon (char * url,
 PUBLIC void HTAddParentIcon (char * url,
 				  char * alt)
 {
-    icon_parent = (HTIconNode*)calloc(1,sizeof(HTIconNode));
-    if (!icon_parent) outofmem(__FILE__, "HTAddBlankIcon");
+    if ((icon_parent = (HTIconNode *) HT_CALLOC(1,sizeof(HTIconNode))) == NULL)
+        HT_OUTOFMEM("HTAddBlankIcon");
 
     if (url) StrAllocCopy(icon_parent->icon_url, url);
     if (alt) StrAllocCopy(icon_parent->icon_alt, alt);
@@ -196,8 +196,8 @@ PUBLIC void HTAddParentIcon (char * url,
 PUBLIC void HTAddDirIcon (char * url,
 			       char * alt)
 {
-    icon_dir = (HTIconNode*)calloc(1,sizeof(HTIconNode));
-    if (!icon_dir) outofmem(__FILE__, "HTAddBlankIcon");
+    if ((icon_dir = (HTIconNode *) HT_CALLOC(1,sizeof(HTIconNode))) == NULL)
+        HT_OUTOFMEM("HTAddBlankIcon");
 
     if (url) StrAllocCopy(icon_dir->icon_url, url);
     if (alt) StrAllocCopy(icon_dir->icon_alt, alt);
@@ -238,10 +238,10 @@ PRIVATE char * prefixed (CONST char *	prefix,
 			      char *		name)
 {
     static char * ret = NULL;
-    FREE(ret);	/* From previous call */
+    HT_FREE(ret);		/* from previous call */
 
-    ret = (char *)malloc(strlen(prefix) + strlen(name) + 2);
-    if (!ret) outofmem(__FILE__, "prefixed");
+    if ((ret = (char  *) HT_MALLOC(strlen(prefix) + strlen(name) + 2)) == NULL)
+        HT_OUTOFMEM("prefixed");
 
     strcpy(ret,prefix);
     if (*prefix && prefix[strlen(prefix)-1] != '/')

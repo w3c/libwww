@@ -61,8 +61,8 @@ struct _HTStream {
 PRIVATE BOOL free_buf (HTBufItem * me)
 {
     if (me) {
-	FREE(me->buf);
-	free(me);
+	HT_FREE(me->buf);
+	HT_FREE(me);
 	return YES;
     }
     return NO;
@@ -74,7 +74,7 @@ PRIVATE void free_buf_all (HTStream * me)
     HTBufItem * killme;
     me->tmp_ind = 0;
     me->tmp_max = 0;
-    FREE(me->tmp_buf);
+    HT_FREE(me->tmp_buf);
     while (cur) {
 	killme = cur;
 	cur = cur->next;
@@ -85,8 +85,9 @@ PRIVATE void free_buf_all (HTStream * me)
 
 PRIVATE void append_buf (HTStream * me)
 {
-    HTBufItem * b = (HTBufItem *) calloc(1, sizeof(HTBufItem));
-    if (!b) outofmem(__FILE__, "append_buf");
+    HTBufItem * b;
+    if ((b = (HTBufItem  *) HT_CALLOC(1, sizeof(HTBufItem))) == NULL)
+        HT_OUTOFMEM("append_buf");
     b->len = me->tmp_ind;
     b->buf = me->tmp_buf;
     me->tmp_ind = 0;
@@ -109,8 +110,8 @@ PRIVATE BOOL alloc_new (HTStream * me, int size)
     } else if (size) {
 	me->tmp_ind = 0;
 	me->tmp_max = size;
-	me->tmp_buf = (char *) malloc(size);
-	if (!me->tmp_buf) outofmem(__FILE__, "buf_put_char");
+	if ((me->tmp_buf = (char  *) HT_MALLOC(size)) == NULL)
+	    HT_OUTOFMEM("buf_put_char");
 	if (STREAM_TRACE)
 	    TTYPrint(TDEST, "StreamBuffer created with len %d\n", size);
 	return YES;
@@ -184,7 +185,7 @@ PRIVATE int buf_free (HTStream * me)
 	return status;
     if ((status = (*me->target->isa->_free)(me->target)) != HT_OK)
 	return status;
-    free(me);
+    HT_FREE(me);
     return status;
 }
 
@@ -192,7 +193,7 @@ PRIVATE int buf_abort (HTStream * me, HTList * e)
 {
     if (me->target) (*me->target->isa->abort)(me->target,e);
     free_buf_all(me);
-    free(me);
+    HT_FREE(me);
     if (PROT_TRACE) TTYPrint(TDEST, "Length...... ABORTING...\n");
     return HT_ERROR;
 }
@@ -211,8 +212,9 @@ PUBLIC HTStream * HTContentCounter (HTStream *	target,
 				    HTRequest *	request,
 				    int		max_size)
 {
-    HTStream * me = (HTStream *) calloc(1, sizeof(HTStream));
-    if (!me) outofmem(__FILE__, "HTContentCounter");
+    HTStream * me;
+    if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
+        HT_OUTOFMEM("HTContentCounter");
     me->isa = &HTContentCounterClass;
     me->target = target;
     me->request = request;

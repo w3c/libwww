@@ -76,14 +76,14 @@ PRIVATE int HTTee_free (HTStream * me)
     int ret1 = (*me->s1->isa->_free)(me->s1);
     int ret2 = (*me->s2->isa->_free)(me->s2);
     return me->resolver(&ret1, &ret2);
-    free(me);
+    HT_FREE(me);
 }
 
 PRIVATE int HTTee_abort (HTStream * me, HTList * e)
 {
     (*me->s1->isa->abort)(me->s1, e);
     (*me->s2->isa->abort)(me->s2, e);
-    free(me);
+    HT_FREE(me);
     return HT_ERROR;
 }
 
@@ -114,8 +114,9 @@ PRIVATE CONST HTStreamClass HTTeeClass =
 */
 PUBLIC HTStream * HTTee(HTStream * s1, HTStream * s2, HTComparer * resolver)
 {
-    HTStream * me = (HTStream *) calloc(1, sizeof(*me));
-    if (!me) outofmem(__FILE__, "HTTee");
+    HTStream * me;
+    if ((me = (HTStream  *) HT_CALLOC(1, sizeof(*me))) == NULL)
+        HT_OUTOFMEM("HTTee");
     me->isa = &HTTeeClass;
     me->s1 = s1;
     me->s2 = s2;

@@ -137,7 +137,7 @@ PRIVATE int HTTPGen_free (HTStream * me)
     if (status != HT_WOULD_BLOCK) {
 	if ((status = (*me->target->isa->_free)(me->target)) == HT_WOULD_BLOCK)
 	    return HT_WOULD_BLOCK;
-	free(me);
+	HT_FREE(me);
     }
     return status;
 }
@@ -145,7 +145,7 @@ PRIVATE int HTTPGen_free (HTStream * me)
 PRIVATE int HTTPGen_abort (HTStream * me, HTList * e)
 {
     if (me->target) (*me->target->isa->abort)(me->target, e);
-    free(me);
+    HT_FREE(me);
     if (PROT_TRACE) TTYPrint(TDEST, "HTTPGen..... ABORTING...\n");
     return HT_ERROR;
 }
@@ -167,8 +167,9 @@ PRIVATE CONST HTStreamClass HTTPGenClass =
 PUBLIC HTStream * HTTPGen_new (HTRequest * request, HTStream * target,
 			       BOOL endHeader)
 {
-    HTStream * me = (HTStream *) calloc(1, sizeof(HTStream));
-    if (!me) outofmem(__FILE__, "HTTPGen_new");
+    HTStream * me;
+    if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
+        HT_OUTOFMEM("HTTPGen_new");
     me->isa = &HTTPGenClass;
     me->target = target;
     me->request = request;

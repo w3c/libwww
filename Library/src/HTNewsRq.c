@@ -74,9 +74,9 @@ PRIVATE BOOL NewsPost_start (HTStream * me, HTRequest * request)
 		HTUnEscape(newsgroup);
 		HTCleanTelnetString(newsgroup);
 		HTChunk_puts(header, newsgroup);
-		free(newsgroup);
+		HT_FREE(newsgroup);
 	    }
-	    free(access);
+	    HT_FREE(access);
 	}
 
 	/* DO FOR ALL SUB ANCHOR DESTINATION S AS WELL */
@@ -150,7 +150,7 @@ PRIVATE int NewsPost_free (HTStream * me)
 	(status = (*me->target->isa->_free)(me->target)) != HT_OK)
 	return status;
     HTChunk_delete(me->buffer);
-    free(me);
+    HT_FREE(me);
     return status;
 }
 
@@ -158,7 +158,7 @@ PRIVATE int NewsPost_abort (HTStream * me, HTList * e)
 {
     if (me->target) (*me->target->isa->abort)(me->target, e);
     HTChunk_delete(me->buffer);
-    free(me);
+    HT_FREE(me);
     if (PROT_TRACE) TTYPrint(TDEST, "NewsPost.... ABORTING...\n");
     return HT_ERROR;
 }
@@ -179,8 +179,9 @@ PRIVATE CONST HTStreamClass NewsPostClass =
 
 PUBLIC HTStream * HTNewsPost_new (HTRequest * request, HTStream * target)
 {
-    HTStream * me = (HTStream *) calloc(1, sizeof(HTStream));
-    if (!me) outofmem(__FILE__, "NewsPost_new");
+    HTStream * me;
+    if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
+        HT_OUTOFMEM("NewsPost_new");
     me->isa = &NewsPostClass;
     me->target = target;
     me->request = request;

@@ -73,8 +73,8 @@ PRIVATE int MaxLineW = DEFAULT_MAXW;
 PRIVATE HTNewsNode * HTNewsNode_new (void)
 {
     HTNewsNode *node;
-    if ((node = (HTNewsNode *) calloc(1, sizeof(HTNewsNode))) == NULL)
-	outofmem(__FILE__, "HTNewsNode_new");
+    if ((node = (HTNewsNode *) HT_CALLOC(1, sizeof(HTNewsNode))) == NULL)
+        HT_OUTOFMEM("HTNewsNode_new");
     return node;
 }
 
@@ -84,10 +84,10 @@ PRIVATE HTNewsNode * HTNewsNode_new (void)
 PRIVATE BOOL HTNewsNode_free (HTNewsNode *node)
 {
     if (node) {
-	FREE(node->name);
-	FREE(node->subject);
-	FREE(node->from);
-	free(node);
+	HT_FREE(node->name);
+	HT_FREE(node->subject);
+	HT_FREE(node->from);
+	HT_FREE(node);
 	return YES;
     }
     return NO;
@@ -108,7 +108,7 @@ PRIVATE BOOL HTNewsNode_print (HTNewsDir *dir, HTNewsNode *node)
 	HTStartAnchor(target, NULL, escaped);
 	PUTS(node->subject);
 	END(HTML_A);
-	free(escaped);
+	HT_FREE(escaped);
     }
 
     /* From field */
@@ -163,8 +163,8 @@ PUBLIC HTNewsDir * HTNewsDir_new (HTRequest * request, CONST char * title,
     if (!request) return NULL;
 
     /* Create object */
-    if ((dir = (HTNewsDir *) calloc(1, sizeof (HTNewsDir))) == NULL)
-	outofmem(__FILE__, "HTNewsDir_new");
+    if ((dir = (HTNewsDir *) HT_CALLOC(1, sizeof (HTNewsDir))) == NULL)
+        HT_OUTOFMEM("HTNewsDir_new");
     dir->target = HTMLGenerator(request, NULL, WWW_HTML,
 				HTRequest_outputFormat(request),
 				HTRequest_outputStream(request));
@@ -317,6 +317,6 @@ PUBLIC BOOL HTNewsDir_free (HTNewsDir * dir)
 	END(HTML_HTML);
 	FREE_TARGET;
     }
-    free(dir);
+    HT_FREE(dir);
     return YES;
 }

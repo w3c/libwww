@@ -92,12 +92,12 @@ PUBLIC char * strcasestr (char * s1, char * s2)
 */
 PUBLIC char * HTSACopy (char ** dest, CONST char * src)
 {
-  if (*dest) free(*dest);
+  if (*dest) HT_FREE(*dest);
   if (! src)
     *dest = NULL;
   else {
-    *dest = (char *) malloc (strlen(src) + 1);
-    if (*dest == NULL) outofmem(__FILE__, "HTSACopy");
+    if ((*dest  = (char  *) HT_MALLOC(strlen(src) + 1)) == NULL)
+        HT_OUTOFMEM("HTSACopy");
     strcpy (*dest, src);
   }
   return *dest;
@@ -110,12 +110,12 @@ PUBLIC char * HTSACat (char ** dest, CONST char * src)
   if (src && *src) {
     if (*dest) {
       int length = strlen (*dest);
-      *dest = (char *) realloc (*dest, length + strlen(src) + 1);
-      if (*dest == NULL) outofmem(__FILE__, "HTSACat");
+      if ((*dest  = (char  *) HT_REALLOC(*dest, length + strlen(src) + 1)) == NULL)
+          HT_OUTOFMEM("HTSACat");
       strcpy (*dest + length, src);
     } else {
-      *dest = (char *) malloc (strlen(src) + 1);
-      if (*dest == NULL) outofmem(__FILE__, "HTSACat");
+      if ((*dest  = (char  *) HT_MALLOC(strlen(src) + 1)) == NULL)
+          HT_OUTOFMEM("HTSACat");
       strcpy (*dest, src);
     }
   }

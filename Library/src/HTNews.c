@@ -218,7 +218,7 @@ PRIVATE int HTNewsStatus_free (HTStream * me)
 	if ((status = (*me->target->isa->_free)(me->target)) == HT_WOULD_BLOCK)
 	    return HT_WOULD_BLOCK;
     }
-    free(me);
+    HT_FREE(me);
     return status;
 }
 
@@ -226,7 +226,7 @@ PRIVATE int HTNewsStatus_abort (HTStream * me, HTList * e)
 {
     if (me->target)
         ABORT_TARGET;
-    free(me);
+    HT_FREE(me);
     if (PROT_TRACE) TTYPrint(TDEST, "NewsStatus.. ABORTING...\n");
     return HT_ERROR;
 }
@@ -244,8 +244,9 @@ PRIVATE CONST HTStreamClass HTNewsStatusClass =
 
 PUBLIC HTStream *HTNewsStatus_new (HTRequest * request, news_info * news)
 {
-    HTStream *me = (HTStream *) calloc(1, sizeof(HTStream));
-    if (!me) outofmem(__FILE__, "HTNewsStatus_new");
+    HTStream *me;
+    if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
+        HT_OUTOFMEM("HTNewsStatus_new");
     me->isa = &HTNewsStatusClass;
     me->request = request;
     me->news = news;
@@ -381,7 +382,7 @@ PUBLIC CONST char *HTNews_host (void)
 */
 PUBLIC void HTFreeNewsHost (void)
 {
-    FREE(HTNewsHost);
+    HT_FREE(HTNewsHost);
 }
 
 /*	HTNewsCleanup
@@ -405,9 +406,9 @@ PRIVATE int HTNewsCleanup (HTRequest * req, int status)
     /* Remove the request object and our own context structure for nntp */
     HTNet_delete(net, status);
     if (news) {
-	FREE(news->name);
+	HT_FREE(news->name);
 	HTChunk_delete(news->cmd);
-	FREE(news);
+	HT_FREE(news);
     }
     return YES;
 }
@@ -457,8 +458,8 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
     if (ops == FD_NONE) {
 	if (PROT_TRACE) 
 	    TTYPrint(TDEST, "NNTP........ Looking for `%s\'\n", url);
-	if ((news = (news_info *) calloc(1, sizeof(news_info))) == NULL)
-	    outofmem(__FILE__, "HTLoadNews");
+	if ((news = (news_info *) HT_CALLOC(1, sizeof(news_info))) == NULL)
+	    HT_OUTOFMEM("HTLoadNews");
 	news->cmd = HTChunk_new(128);
 	news->state = NEWS_BEGIN;
 	net->context = news;
@@ -492,7 +493,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		    StrAllocCopy(newshack, "news://");
 		    StrAllocCat(newshack, newshost);
 		    status = HTDoConnect(net, (char *) newshack, NEWS_PORT);
-		    free(newshack);
+		    HT_FREE(newshack);
 		} else
 		    news->state = NEWS_ERROR;
 	    } else if (!strncasecomp(url, "nntp:", 5)) {
@@ -568,10 +569,11 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 	    if (request->method == METHOD_GET) {
 		if (strchr(url, '@')) {				  /* ARTICLE */
 		    if (*(news->name) != '<') {		  /* Add '<' and '>' */
-			char *newart = (char *) malloc(strlen(news->name)+3);
-			if (!newart) outofmem(__FILE__, "HTLoadNews");
+			char *newart;
+			if ((newart = (char  *) HT_MALLOC(strlen(news->name)+3)) == NULL)
+			    HT_OUTOFMEM("HTLoadNews");
 			sprintf(newart, "<%s>", news->name);
-			free(news->name);
+			HT_FREE(news->name);
 			news->name = newart;
 		    }
 		    news->state = NEWS_NEED_ARTICLE;

@@ -59,8 +59,8 @@ PRIVATE BOOL add_object (HTList * list, CONST char * access, CONST char * url)
     HTProxy *me;
     if (!list || !access || !url || !*url)
 	return NO;
-    if ((me = (HTProxy *) calloc(1, sizeof(HTProxy))) == NULL)
-	outofmem(__FILE__, "add_object");
+    if ((me = (HTProxy *) HT_CALLOC(1, sizeof(HTProxy))) == NULL)
+	HT_OUTOFMEM("add_object");
     StrAllocCopy(me->access, access);		     	    /* Access method */
     {
 	char *ptr = me->access;
@@ -83,10 +83,10 @@ PRIVATE BOOL add_object (HTList * list, CONST char * access, CONST char * url)
 	    if (PROT_TRACE)
 		TTYPrint(TDEST, "HTProxy..... replacing for `%s\' access %s\n",
 			me->url, me->access);
-	    FREE(pres->access);
-	    FREE(pres->url);
+	    HT_FREE(pres->access);
+	    HT_FREE(pres->url);
 	    HTList_removeObject(list, (void *) pres);
-	    free(pres);
+	    HT_FREE(pres);
 	}
 	if (PROT_TRACE)
 	    TTYPrint(TDEST, "HTProxy..... adding for `%s\' access %s\n",
@@ -102,9 +102,9 @@ PRIVATE BOOL remove_allObjects (HTList * list)
 	HTList *cur = list;
 	HTProxy *pres;
 	while ((pres = (HTProxy *) HTList_nextObject(cur)) != NULL) {
-	    FREE(pres->access);
-	    FREE(pres->url);
-	    free(pres);
+	    HT_FREE(pres->access);
+	    HT_FREE(pres->url);
+	    HT_FREE(pres);
 	}
 	return YES;
     }
@@ -121,8 +121,8 @@ PRIVATE BOOL add_hostname (HTList * list, CONST char * host,
     HTHostList *me;
     if (!list || !host || !*host)
 	return NO;
-    if ((me = (HTHostList *) calloc(1, sizeof(HTHostList))) == NULL)
-	outofmem(__FILE__, "add_hostname");
+    if ((me = (HTHostList *) HT_CALLOC(1, sizeof(HTHostList))) == NULL)
+        HT_OUTOFMEM("add_hostname");
     if (access) {
 	char *ptr;
 	StrAllocCopy(me->access, access);      	     	    /* Access method */
@@ -147,9 +147,9 @@ PRIVATE BOOL remove_AllHostnames (HTList * list)
 	HTList *cur = list;
 	HTHostList *pres;
 	while ((pres = (HTHostList *) HTList_nextObject(cur)) != NULL) {
-	    FREE(pres->access);
-	    FREE(pres->host);
-	    free(pres);
+	    HT_FREE(pres->access);
+	    HT_FREE(pres->host);
+	    HT_FREE(pres);
 	}
 	return YES;
     }
@@ -285,14 +285,14 @@ PUBLIC char * HTProxy_find (CONST char * url)
 			if (np==pres->host-1 && (hp==host-1 || *hp=='.')) {
 			    if (PROT_TRACE)
 				TTYPrint(TDEST, "GetProxy.... No proxy directive found: `%s\'\n", pres->host);
-			    FREE(access);
+			    HT_FREE(access);
 			    return NULL;
 			}
 		    }
 		}
 	    }
 	}
-	FREE(host);
+	HT_FREE(host);
     }
 
     /* Now check if we have a proxy registered for this access method */
@@ -308,7 +308,7 @@ PUBLIC char * HTProxy_find (CONST char * url)
 	    }
 	}
     }
-    FREE(access);
+    HT_FREE(access);
     return proxy;
 #else
     return NULL
@@ -346,7 +346,7 @@ PUBLIC char * HTGateway_find (CONST char * url)
 	    }
 	}
     }
-    FREE(access);
+    HT_FREE(access);
     return gateway;
 #else
     return NULL
@@ -411,7 +411,7 @@ PUBLIC void HTProxy_getEnvVar (void)
 		/* Register it for all access methods */
 		HTNoProxy_add(name, NULL, port);
 	    }
-	    free(str);
+	    HT_FREE(str);
 	}
     }
 #endif /* !HT_NO_PROXY */

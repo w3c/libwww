@@ -65,8 +65,8 @@ PUBLIC char * HTEscape (CONST char * str, HTURIEncoding mask)
     for(p=str; *p; p++)
         if (!ACCEPTABLE((unsigned char)TOASCII(*p)))
 		unacceptable++;
-    result = (char *) malloc(p-str + unacceptable+ unacceptable + 1);
-    if (result == NULL) outofmem(__FILE__, "HTEscape");
+    if ((result = (char  *) HT_MALLOC(p-str + unacceptable+ unacceptable + 1)) == NULL)
+        HT_OUTOFMEM("HTEscape");
     for(q=result, p=str; *p; p++) {
     	unsigned char a = TOASCII(*p);
 	if (!ACCEPTABLE(a)) {

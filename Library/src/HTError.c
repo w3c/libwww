@@ -55,15 +55,15 @@ PUBLIC BOOL HTError_add (HTList * 	list,
 {
     HTError *newError;
     if (!list) return NO;
-    if ((newError = (HTError *) calloc(1, sizeof(HTError))) == NULL)
-	outofmem(__FILE__, "HTError_add");
+    if ((newError = (HTError *) HT_CALLOC(1, sizeof(HTError))) == NULL)
+        HT_OUTOFMEM("HTError_add");
     newError->element = (HTErrorElement) element;
     newError->severity = severity;
     newError->ignore = ignore;
     if (par) {
 	if (!length) length = (int) strlen((char *) par);
-	if ((newError->par = malloc(length+1)) == NULL)
-	    outofmem(__FILE__, "HTErrorError");
+	if ((newError->par = HT_MALLOC(length+1)) == NULL)
+	    HT_OUTOFMEM("HTErrorError");
 	memcpy(newError->par, par, length);
 	*(((char *) newError->par)+length) = '\0';
 	newError->length = length;
@@ -102,7 +102,7 @@ PUBLIC BOOL HTError_addSystem (HTList *		list,
 	StrAllocCat(errmsg, HTErrnoString(errornumber));
 	status = HTError_add(list, severity, ignore, HTERR_SYSTEM,
 			     errmsg, (int) strlen(errmsg), syscall);
-	free(errmsg);
+	HT_FREE(errmsg);
     }
     return status;
 }
@@ -117,8 +117,8 @@ PUBLIC BOOL HTError_deleteAll (HTList * list)
 	HTList *cur = list;
 	HTError *pres;
 	while ((pres = (HTError *) HTList_nextObject(cur))) {
-	    FREE(pres->par);
-	    free(pres);
+	    HT_FREE(pres->par);
+	    HT_FREE(pres);
 	}
 	HTList_delete(list);
 	return YES;
@@ -137,8 +137,8 @@ PUBLIC BOOL HTError_deleteLast (HTList * list)
 	HTError *old = HTList_removeLastObject(list);
 	if (old) {
 	    if (WWWTRACE) TTYPrint(TDEST, "Error.Delete %p\n", old);
-	    FREE(old->par);
-	    free(old);
+	    HT_FREE(old->par);
+	    HT_FREE(old);
 	    return YES;
 	}
     }

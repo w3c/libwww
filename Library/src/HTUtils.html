@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Utility macros</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 29-Jan-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  8-Feb-1996 -->
 </HEAD>
 <BODY>
 
@@ -209,12 +209,6 @@ performance difference. (Foteos Macrides).
 #endif
 </PRE>
 
-<H3>Safe Cleaning Memory</H3>
-
-<PRE>
-#define FREE(x)	if (x) {free(x); x=NULL;}
-</PRE>
-
 <A NAME="declaration"><H2>Macros for declarations</H2></A>
 
 <PRE>
@@ -371,6 +365,15 @@ as net ascii after translation.
 #define CR   FROMASCII('\015')  /* Will be converted to ^M for transmission */
 
 #endif /* HTUTILS_H */
+</PRE>
+
+<H2>Library Dynamic Memory Magement</H2>
+
+The Library has it's own dynamic memory API which is declared in <A
+HREF="HTMemory.html">memory management module</A>.
+
+<PRE>
+#include &lt;HTMemory.h&gt;
 </PRE>
 
 end of utilities

@@ -86,8 +86,8 @@ PRIVATE int remote_session (HTRequest * request, char * url)
     /* We must be in interactive mode */
     if (!HTAlert_interactive()) {
 	if (PROT_TRACE) TTYPrint(TDEST, "Telnet...... Not interactive\n");
-	free(access);
-	free(host);
+	HT_FREE(access);
+	HT_FREE(host);
 	HTChunk_delete(cmd);
 	return HT_ERROR;
     }
@@ -111,8 +111,8 @@ PRIVATE int remote_session (HTRequest * request, char * url)
     if (HTLib_secure()) {
 	HTRequest_addError(request, ERR_FATAL, NO,
 			   HTERR_ACCESS, NULL, 0, "HTLoadTelnet");
-	free(access);
-	free(host);
+	HT_FREE(access);
+	HT_FREE(host);
 	HTChunk_delete(cmd);
 	return HT_NO_DATA;
     }
@@ -239,8 +239,8 @@ PRIVATE int remote_session (HTRequest * request, char * url)
 #ifdef GOT_SYSTEM
     system(cmd->data);
 #endif
-    free(access);
-    free(host);
+    HT_FREE(access);
+    HT_FREE(host);
     HTChunk_delete(cmd);
     return status;
 

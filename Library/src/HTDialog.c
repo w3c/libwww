@@ -365,8 +365,9 @@ PUBLIC BOOL HTError_response (HTRequest * request, HTAlertOpcode op,
 		msg = HTChunk_new(128);
 		if ((code = HTErrors[index].code) > 0) {
 		    char * reason = HTErrors[index].msg;
-		    char * buf = (char *) malloc(20 + strlen(reason));
-		    if (!buf) outofmem(__FILE__, "HTError_response");
+		    char * buf;
+		    if ((buf = (char  *) HT_MALLOC(20 + strlen(reason))) == NULL)
+		        HT_OUTOFMEM("HTError_response");
 		    sprintf(buf,"%s %d %s%c%c",HTTP_VERSION,code,reason,CR,LF);
 		    HTAlert_assignReplyMessage(reply, buf);
 		}

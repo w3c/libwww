@@ -57,18 +57,18 @@ PRIVATE time_t	TCPTimeout = TCP_TIMEOUT;	   /* Timeout on TCP sockets */
 PRIVATE void free_object (HTdns * me)
 {
     if (me) {
-	FREE(me->hostname);
-	FREE(me->server);
+	HT_FREE(me->hostname);
+	HT_FREE(me->server);
  	if (me->sockfd != INVSOC && me->active <= 0) {
 	    NETCLOSE(me->sockfd);
 	    HTEvent_UnRegister(me->sockfd, (SockOps) FD_ALL);
 	    HTList_removeObject(PersSock, me);
 	}
 	if (*me->addrlist)
-	    free(*me->addrlist);
-	FREE(me->addrlist);
-	FREE(me->weight);
-	free(me);
+	    HT_FREE(*me->addrlist);
+	HT_FREE(me->addrlist);
+	HT_FREE(me->weight);
+	HT_FREE(me);
     }
 }
 
@@ -243,10 +243,10 @@ PRIVATE HTdns * HTDNS_add (HTList * list, struct hostent * element,
     int cnt = 1;
 
     while(*index++) cnt++;
-    if ((me = (HTdns *) calloc(1, sizeof(HTdns))) == NULL ||
-	(me->addrlist = (char **) calloc(1, cnt*sizeof(char*))) == NULL ||
-	(addr = (char *) calloc(1, cnt*element->h_length)) == NULL)
-	outofmem(__FILE__, "HTDNS_add");
+    if ((me = (HTdns *) HT_CALLOC(1, sizeof(HTdns))) == NULL ||
+	(me->addrlist = (char **) HT_CALLOC(1, cnt*sizeof(char*))) == NULL ||
+	(addr = (char *) HT_CALLOC(1, cnt*element->h_length)) == NULL)
+	HT_OUTOFMEM("HTDNS_add");
     StrAllocCopy(me->hostname, host);
     me->ntime = time(NULL);
     me->sockfd = INVSOC;
@@ -258,8 +258,8 @@ PRIVATE HTdns * HTDNS_add (HTList * list, struct hostent * element,
     }
     me->homes = cnt;
     *homes = cnt;
-    if ((me->weight = (double *) calloc(me->homes, sizeof(double))) == NULL)
-	outofmem(__FILE__, "HTDNS_add");
+    if ((me->weight = (double *) HT_CALLOC(me->homes, sizeof(double))) == NULL)
+        HT_OUTOFMEM("HTDNS_add");
     me->addrlength = element->h_length;
     if (PROT_TRACE)
 	TTYPrint(TDEST, "DNS Add..... `%s\' with %d home(s) to %p\n",
@@ -424,8 +424,8 @@ PUBLIC int HTGetHostByName (HTNet *net, char *host)
 	for(ptr=host; *ptr; ptr++)
 	    hash = (int) ((hash * 3 + (*(unsigned char *) ptr)) % HASH_SIZE);
 	if (!CacheTable) {
-	    CacheTable = (HTList**) calloc(HASH_SIZE, sizeof(HTList *));
-	    if (!CacheTable) outofmem(__FILE__, "HTDNS_init");
+	    if ((CacheTable = (HTList* *) HT_CALLOC(HASH_SIZE, sizeof(HTList *))) == NULL)
+	        HT_OUTOFMEM("HTDNS_init");
 	}
 	if (!CacheTable[hash]) CacheTable[hash] = HTList_new();
 	list = CacheTable[hash];

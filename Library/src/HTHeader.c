@@ -39,8 +39,9 @@ PUBLIC BOOL HTParser_add (HTList *		parsers,
 			  HTParserCallback *	callback)
 {
     if (token && callback) {
-	HTParser *me = (HTParser *) calloc(1, sizeof(HTParser));
-	if (me == NULL) outofmem(__FILE__, "HTParser_add");
+	HTParser *me;
+	if ((me = (HTParser  *) HT_CALLOC(1, sizeof(HTParser))) == NULL)
+	    HT_OUTOFMEM("HTParser_add");
 	StrAllocCopy(me->token, token);
 	me->case_sensitive = case_sensitive;
 	me->Pcbf = callback;
@@ -59,7 +60,7 @@ PUBLIC BOOL HTParser_delete (HTList * parsers, CONST char * token)
 	HTParser *pres;
 	while ((pres = (HTParser *) HTList_nextObject(cur))) {
 	    if (!strcmp(pres->token, token)) {
-		FREE(pres->token);
+		HT_FREE(pres->token);
 		return HTList_removeObject(parsers, (void *) pres);
 	    }
 	}
@@ -76,8 +77,8 @@ PUBLIC BOOL HTParser_deleteAll (HTList * parsers)
 	HTList *cur = parsers;
 	HTParser *pres;
 	while ((pres = (HTParser *) HTList_nextObject(cur))) {
-	    FREE(pres->token);
-	    free(pres);
+	    HT_FREE(pres->token);
+	    HT_FREE(pres);
 	}
 	HTList_delete(parsers);
 	parsers = NULL;

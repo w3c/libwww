@@ -62,10 +62,10 @@ PUBLIC HTAtom * HTAtom_for (CONST char * string)
     
     /*		Generate a new entry
     */
-    a = (HTAtom *)malloc(sizeof(*a));
-    if (a == NULL) outofmem(__FILE__, "HTAtom_for");
-    a->name = (char *)malloc(strlen(string)+1);
-    if (a->name == NULL) outofmem(__FILE__, "HTAtom_for");
+    if ((a = (HTAtom  *) HT_MALLOC(sizeof(*a))) == NULL)
+        HT_OUTOFMEM("HTAtom_for");
+    if ((a->name = (char  *) HT_MALLOC(strlen(string)+1)) == NULL)
+        HT_OUTOFMEM("HTAtom_for");
     strcpy(a->name, string);
     a->next = hash_table[hash];		/* Put onto the head of list */
     hash_table[hash] = a;
@@ -108,10 +108,10 @@ PUBLIC HTAtom * HTAtom_caseFor (CONST char * string)
     
     /*		Generate a new entry
     */
-    a = (HTAtom *)malloc(sizeof(*a));
-    if (a == NULL) outofmem(__FILE__, "HTAtom_for");
-    a->name = (char *)malloc(strlen(string)+1);
-    if (a->name == NULL) outofmem(__FILE__, "HTAtom_for");
+    if ((a = (HTAtom  *) HT_MALLOC(sizeof(*a))) == NULL)
+        HT_OUTOFMEM("HTAtom_for");
+    if ((a->name = (char  *) HT_MALLOC(strlen(string)+1)) == NULL)
+        HT_OUTOFMEM("HTAtom_for");
     strcpy(a->name, string);
     a->next = hash_table[hash];		/* Put onto the head of list */
     hash_table[hash] = a;
@@ -134,8 +134,8 @@ PUBLIC void HTAtom_deleteAll (void)
 	    cur = hash_table[i];
 	    while (cur) {
 		next = cur->next;
-		free(cur->name);
-		free(cur);
+		HT_FREE(cur->name);
+		HT_FREE(cur);
 		cur = next;	
 	    }	
 	}

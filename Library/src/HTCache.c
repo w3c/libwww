@@ -97,8 +97,8 @@ PRIVATE void HTCache_remove (HTCache * item)
 		}
 	    }
 	}
-	free(item->filename);
-	free(item);
+	HT_FREE(item->filename);
+	HT_FREE(item);
     }
 }
 
@@ -161,8 +161,8 @@ PUBLIC void HTCache_clearMem (void)
     HTCache *pres;
     if (cur) {
 	while ((pres = (HTCache *) HTList_nextObject(cur))) {
-	    FREE(pres->filename);
-	    free(pres);
+	    HT_FREE(pres->filename);
+	    HT_FREE(pres);
 	}
 	HTList_delete(HTCacheList);
 	HTCacheList = NULL;
@@ -206,7 +206,7 @@ PRIVATE char * cache_file_name (char * url)
 	 0 != strcmp(access, "ftp")  &&
 	 0 != strcmp(access, "gopher"))) {
 
-	if (access) free(access);
+	if (access) HT_FREE(access);
 
 	if (res && CACHE_TRACE)
 	    TTYPrint(TDEST,
@@ -220,18 +220,16 @@ PRIVATE char * cache_file_name (char * url)
     if (path && path[strlen(path)-1] == '/')
 	welcome = YES;
 
-    cfn = (char*)malloc(strlen(HTCacheRoot) +
-			strlen(access) +
-			(host ? strlen(host) : 0) +
-			(path ? strlen(path) : 0) +
-			(welcome ? strlen(WELCOME_FILE) : 0) + 3);
-    if (!cfn) outofmem(__FILE__, "cache_file_name");
+    if ((cfn = (char *) HT_MALLOC(strlen(HTCacheRoot) + strlen(access) + (host ? strlen(host) : 0) + (path ? strlen(path) : 0) + (welcome ? strlen(WELCOME_FILE) : 0) + 3)) == NULL)
+        HT_OUTOFMEM("cache_file_name");
 
     /* Removed extra slash - HF May2,95 */
     sprintf(cfn, "%s%s/%s%s%s", HTCacheRoot, access, host, path,
 	    (welcome ? WELCOME_FILE : ""));
 
-    FREE(access); FREE(host); FREE(path);
+    HT_FREE(access);
+    HT_FREE(host);
+    HT_FREE(path);
 
     /*
     ** This checks that the last component is not too long.
@@ -249,7 +247,7 @@ PRIVATE char * cache_file_name (char * url)
 	if ((int)strlen(last) > 64) {
 	    if (CACHE_TRACE)
 		TTYPrint(TDEST, "Too long.... cache file name \"%s\"\n", cfn);
-	    free(cfn);
+	    HT_FREE(cfn);
 	    cfn = NULL;
 	}
     }
@@ -291,8 +289,13 @@ PRIVATE BOOL create_cache_place (char * cfn)
 	} else {
 	    if (S_ISREG(stat_info.st_mode)) {
 		int len = strlen(cfn);
-		char * tmp1 = (char*)malloc(len + strlen(TMP_SUFFIX) + 1);
-		char * tmp2 = (char*)malloc(len + strlen(INDEX_FILE) + 2);
+		char * tmp1;
+		char * tmp2;
+		if ((tmp1 = (char *) HT_MALLOC(len + strlen(TMP_SUFFIX) + 1)) == NULL)
+		    HT_OUTOFMEM("tmp1");
+
+		if ((tmp2 = (char *) HT_MALLOC(len + strlen(INDEX_FILE) + 2)) == NULL)
+		    HT_OUTOFMEM("tmp2");
 		/* time_t t1,t2,t3,t4,t5; */
 
 
@@ -310,8 +313,8 @@ PRIVATE BOOL create_cache_place (char * cfn)
 		rename(cfn,tmp1);
 		(void) MKDIR(cfn, 0777);
 		rename(tmp1,tmp2);
-		free(tmp1);
-		free(tmp2);
+		HT_FREE(tmp1);
+		HT_FREE(tmp2);
 	    }
 	    else {
 		if (CACHE_TRACE)
@@ -467,7 +470,7 @@ PUBLIC CONST char * HTCache_getRoot (void)
 */
 PUBLIC void HTCache_freeRoot (void)
 {
-    FREE(HTCacheRoot);
+    HT_FREE(HTCacheRoot);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -539,10 +542,10 @@ PUBLIC char * HTCache_getReference (char * url)
 		fclose(fp);
 		if (CACHE_TRACE)
 		    TTYPrint(TDEST, "Cache....... Object found `%s\'\n", url);
-		free(fnam);
+		HT_FREE(fnam);
 		return url;
 	    } else
-		free(fnam);
+		HT_FREE(fnam);
 	}
     }
     return NULL;
@@ -591,7 +594,7 @@ PRIVATE int HTCache_free (HTStream * me)
 {
     me->cache->load_delay = time(NULL) - me->cache->start_time;
     fclose(me->fp);
-    free(me);
+    HT_FREE(me);
     return HT_OK;
 }
 
@@ -603,7 +606,7 @@ PRIVATE int HTCache_abort (HTStream * me, HTList * e)
 	fclose(me->fp);
     if (me->cache)
 	HTCache_remove(me->cache);
-    free(me);
+    HT_FREE(me);
     return HT_ERROR;
 }
 
@@ -641,22 +644,22 @@ PUBLIC HTStream* HTCacheWriter (HTRequest *	request,
 	return HTBlackHole();
 
     /* Set up the stream */
-    if ((me = (HTStream *) calloc(sizeof(*me), 1)) == NULL)
-	outofmem(__FILE__, "Cache");
+    if ((me = (HTStream *) HT_CALLOC(sizeof(*me), 1)) == NULL)
+        HT_OUTOFMEM("Cache");
     me->isa = &HTCacheClass;
     me->request = request;
     if ((me->fp = fopen(fnam, "wb")) == NULL) {
 	if (CACHE_TRACE)
 	    TTYPrint(TDEST, "Cache....... Can't open %s for writing\n", fnam);
-	free(fnam);
+	HT_FREE(fnam);
 	return HTBlackHole();
     } else
 	if (CACHE_TRACE)
 	    TTYPrint(TDEST, "Cache....... Creating file %s\n", fnam);
 
     /* Set up a cache record */
-    if ((me->cache = (HTCache *) calloc(sizeof(*me->cache), 1)) == NULL)
-	outofmem(__FILE__, "Cache");
+    if ((me->cache = (HTCache *) HT_CALLOC(sizeof(*me->cache), 1)) == NULL)
+        HT_OUTOFMEM("Cache");
     me->cache->filename = fnam;
     me->cache->start_time = time(NULL);
     me->cache->format = input_format;

@@ -121,7 +121,7 @@ PRIVATE int HTTPCleanup (HTRequest *req, int status)
 
     /* Remove the request object and our own context structure for http */
     HTNet_delete(net, req->internal ? HT_IGNORE : status);
-    FREE(http);
+    HT_FREE(http);
     return YES;
 }
 
@@ -437,7 +437,7 @@ PRIVATE int HTTPStatus_free (HTStream * me)
 	if ((status = (*me->target->isa->_free)(me->target))==HT_WOULD_BLOCK)
 	    return HT_WOULD_BLOCK;
     }
-    free(me);
+    HT_FREE(me);
     return status;
 }
 
@@ -445,7 +445,7 @@ PRIVATE int HTTPStatus_abort (HTStream * me, HTList * e)
 {
     if (me->target)
 	ABORT_TARGET;
-    free(me);
+    HT_FREE(me);
     if (PROT_TRACE)
 	TTYPrint(TDEST, "HTTPStatus.. ABORTING...\n");
     return HT_ERROR;
@@ -475,8 +475,9 @@ PUBLIC HTStream * HTTPStatus_new (HTRequest *	request,
 				  HTFormat	output_format,
 				  HTStream *	output_stream)
 {
-    HTStream * me = (HTStream *) calloc(1, sizeof(HTStream));
-    if (!me) outofmem(__FILE__, "HTTPStatus_new");
+    HTStream * me;
+    if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
+        HT_OUTOFMEM("HTTPStatus_new");
     me->isa = &HTTPStatusClass;
     if (request) {
 	HTNet * net = request->net;
@@ -517,8 +518,8 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
     if (ops == FD_NONE) {
 	if (PROT_TRACE) TTYPrint(TDEST, "HTTP........ Looking for `%s\'\n",
 				HTAnchor_physical(anchor));
-	if ((http = (http_info *) calloc(1, sizeof(http_info))) == NULL)
-	    outofmem(__FILE__, "HTLoadHTTP");
+	if ((http = (http_info *) HT_CALLOC(1, sizeof(http_info))) == NULL)
+	    HT_OUTOFMEM("HTLoadHTTP");
 	http->state = HTTP_BEGIN;
 	http->next = HTTP_GOT_DATA;
 	net->context = http;

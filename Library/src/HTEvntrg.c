@@ -396,8 +396,8 @@ PRIVATE int __HTEvent_addRequest(SOCKET s, HTRequest * rq, SockOps ops,
 
     if (!found) { 
         /* error if memory not allocated */
-        *rqpp = rqp = (RQ *) calloc(1, sizeof(RQ));
-	if (!rqp) outofmem(__FILE__, "__HTEvent_addRequest");
+        if ((*rqpp = rqp = (RQ *) HT_CALLOC(1, sizeof(RQ))) == NULL)
+	    HT_OUTOFMEM("__HTEvent_addRequest");
         __RequestInit( rqp, s, rq, ops, cbf, p) ;
     }
     return 0;
@@ -952,7 +952,7 @@ PRIVATE int __EventUnregister(register RQ *rqp, register RQ ** rqpp,
 	    if (socketsInUse-- == 0)
 	    	socketsInUse = 0;
 	}
-        free(rqp) ;
+        HT_FREE(rqp);
     }  /* if all unregistered */
     else { 
 #ifdef WWW_WIN_ASYNC

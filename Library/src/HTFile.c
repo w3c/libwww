@@ -144,9 +144,9 @@ PRIVATE int HTFile_readDir (HTRequest * request, file_info *file)
 	char *newurl = NULL;
 	StrAllocCopy(newurl, url);
 	StrAllocCat(newurl, "/");
-	FREE(file->local);
+	HT_FREE(file->local);
 	file->local = HTWWWToLocal(newurl, "");
-	free(newurl);
+	HT_FREE(newurl);
     }
     strcpy(fullname, file->local);
     name = fullname+strlen(fullname);		 /* Point to end of fullname */
@@ -309,8 +309,9 @@ PUBLIC HTStream * HTFileSaveStream (HTRequest * request)
 */        
     if (HTTakeBackup) {
 	char * p;
-    	char * backup_filename = (char *) malloc(strlen(filename)+2);
-	if (!backup_filename) outofmem(__FILE__, "taking backup");
+    	char * backup_filename;
+    	if ((backup_filename = (char  *) HT_MALLOC(strlen(filename)+2)) == NULL)
+    	    HT_OUTOFMEM("taking backup");
 	strcpy(backup_filename, filename);
 	for(p=backup_filename+strlen(backup_filename);; p--) {
 	    if ((*p=='/') || (p<backup_filename)) {
@@ -341,7 +342,7 @@ PUBLIC HTStream * HTFileSaveStream (HTRequest * request)
 			    backup_filename);
 	    }
 	}
-    	free(backup_filename);
+    	HT_FREE(backup_filename);
     } /* if take backup */    
     
     if ((fp = fopen(filename, "wb")) == NULL) {
@@ -381,8 +382,8 @@ PRIVATE int FileCleanup (HTRequest *req, int status)
 	    fclose(file->fp);
 	}
 #endif
-	FREE(file->local);
-	free(file);
+	HT_FREE(file->local);
+	HT_FREE(file);
     }
     HTNet_delete(net, req->internal ? HT_IGNORE : status);
     return YES;
@@ -413,8 +414,8 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
     if (ops == FD_NONE) {
 	if (PROT_TRACE) TTYPrint(TDEST, "HTLoadFile.. Looking for `%s\'\n",
 				HTAnchor_physical(anchor));
-	if ((file = (file_info *) calloc(1, sizeof(file_info))) == NULL)
-	    outofmem(__FILE__, "HTLoadFILE");
+	if ((file = (file_info *) HT_CALLOC(1, sizeof(file_info))) == NULL)
+	    HT_OUTOFMEM("HTLoadFILE");
 	file->state = FS_BEGIN;
 	net->context = file;
     } if (ops == FD_CLOSE) {				      /* Interrupted */
@@ -461,7 +462,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		if (request->ContentNegotiation) {
 		    char *new_path=HTMulti(request,file->local,&stat_info);
 		    if (new_path) {
-			FREE(file->local);
+			HT_FREE(file->local);
 			file->local = new_path;
 			HTAnchor_setPhysical(anchor, new_path);
 		    } else {
@@ -629,7 +630,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		    StrAllocCat(newname, url);
 		anchor = HTAnchor_findAddress(newname);
 		HTRequest_setAnchor(request, anchor);
-		free(newname);
+		HT_FREE(newname);
 		FileCleanup(request, HT_IGNORE);
 		return HTLoad(request, YES);
 	    }

@@ -84,7 +84,7 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 	} else {
 	    PUTS(fullurl);
 	}
-	free(fullurl);
+	HT_FREE(fullurl);
     }
     PUTC(' ');
     PUTS(HTTP_VERSION);
@@ -214,8 +214,8 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 	PUTS("Host: ");
 	PUTS(host);
 	PUTBLOCK(crlf, 2);
-	free(orig);
-	free(host);
+	HT_FREE(orig);
+	HT_FREE(host);
     }
     if (request->RequestMask & HT_C_REFERER && request->parentAnchor) {
 	char *act = HTAnchor_address((HTAnchor *) anchor);
@@ -227,9 +227,9 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 	    PUTS(parent);
 	    PUTBLOCK(crlf, 2);
 	}
-	FREE(act);
-	FREE(parent);
-	FREE(relative);
+	HT_FREE(act);
+	HT_FREE(parent);
+	HT_FREE(relative);
     }
     if (request->RequestMask & HT_C_USER_AGENT) {
 	PUTS("User-Agent: ");
@@ -292,7 +292,7 @@ PRIVATE int HTTPRequest_free (HTStream * me)
     if (status != HT_WOULD_BLOCK) {
 	if ((status = (*me->target->isa->_free)(me->target)) == HT_WOULD_BLOCK)
 	    return HT_WOULD_BLOCK;
-	free(me);
+	HT_FREE(me);
     }
     return status;
 }
@@ -300,7 +300,7 @@ PRIVATE int HTTPRequest_free (HTStream * me)
 PRIVATE int HTTPRequest_abort (HTStream * me, HTList * e)
 {
     if (me->target) (*me->target->isa->abort)(me->target, e);
-    free(me);
+    HT_FREE(me);
     if (PROT_TRACE) TTYPrint(TDEST, "HTTPRequest. ABORTING...\n");
     return HT_ERROR;
 }
@@ -322,9 +322,10 @@ PRIVATE CONST HTStreamClass HTTPRequestClass =
 PUBLIC HTStream * HTTPRequest_new (HTRequest * request, HTStream * target,
 				   BOOL endHeader)
 {
-    HTStream * me = (HTStream *) calloc(1, sizeof(HTStream));
     HTdns *dns = HTNet_dns(request->net);
-    if (!me) outofmem(__FILE__, "HTTPRequest_new");
+    HTStream * me;
+    if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
+        HT_OUTOFMEM("HTTPRequest_new");
     me->isa = &HTTPRequestClass;
     me->target = target;
     me->request = request;

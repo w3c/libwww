@@ -178,7 +178,7 @@ PRIVATE int HTNewsList_flush (HTStream * me)
 PRIVATE int HTNewsList_free (HTStream * me)
 {
     HTNewsDir_free(me->dir);
-    free(me);
+    HT_FREE(me);
     return HT_OK;
 }
 
@@ -206,13 +206,14 @@ PUBLIC HTStream *HTNewsList (HTRequest *	request,
 			     HTFormat		output_format,
 			     HTStream *		output_stream)
 {
-    HTStream *me = (HTStream *) calloc(1, sizeof(HTStream));
-    if (!me) outofmem(__FILE__, "HTNewsList_new");
+    HTStream *me;
+    if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
+        HT_OUTOFMEM("HTNewsList_new");
     me->isa = &HTNewsListClass;
     me->request = request;
     me->state = EOL_BEGIN;
     me->dir = HTNewsDir_new(request, "Newsgroups", HT_NDK_GROUP);
-    if (me->dir == NULL) FREE(me);
+    if (me->dir == NULL) HT_FREE(me);
     return me;
 }
 
@@ -224,8 +225,9 @@ PUBLIC HTStream *HTNewsGroup (HTRequest *	request,
 {
     char * url = HTAnchor_physical(HTRequest_anchor(request));
     char * title = NULL;
-    HTStream *me = (HTStream *) calloc(1, sizeof(HTStream));
-    if (!me) outofmem(__FILE__, "HTNewsList_new");
+    HTStream *me;
+    if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
+        HT_OUTOFMEM("HTNewsList_new");
     StrAllocCopy(title, "Newsgroup: ");
     if (!strncasecomp(url, "news:", 5))
 	StrAllocCat(title, url+5);
@@ -236,7 +238,7 @@ PUBLIC HTStream *HTNewsGroup (HTRequest *	request,
     me->state = EOL_BEGIN;
     me->group = YES;
     me->dir = HTNewsDir_new(request, title, dir_key);
-    if (me->dir == NULL) FREE(me);
-    free(title);
+    if (me->dir == NULL) HT_FREE(me);
+    HT_FREE(title);
     return me;
 }

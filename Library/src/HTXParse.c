@@ -30,7 +30,8 @@ PRIVATE int HTXParse_put_character (HTStream * me, char c)
     while ((me->eps->used + 1) > (me->eps->length + 1)) {
 	me->eps->length += INPUT_BUFFER_SIZE;
     }
-    me->eps->buffer = (char *) realloc(me->eps->buffer, (me->eps->length + 1));
+    if ((me->eps->buffer = (char  *) HT_REALLOC(me->eps->buffer, (me->eps->length + 1))) == NULL)
+        HT_OUTOFMEM("me->eps->buffer ");
     *(me->eps->buffer + me->eps->used) = c;
     me->eps->used++;
     me->eps->buffer[me->eps->used] = '\0'; /* null-terminate string */
@@ -46,7 +47,8 @@ PRIVATE int HTXParse_put_string (HTStream * me, CONST char * s)
     while ((me->eps->used + l) > (me->eps->length + 1)) {
 	me->eps->length += INPUT_BUFFER_SIZE;
     }
-    me->eps->buffer = (char *) realloc(me->eps->buffer, (me->eps->length + 1));
+    if ((me->eps->buffer = (char  *) HT_REALLOC(me->eps->buffer, (me->eps->length + 1))) == NULL)
+        HT_OUTOFMEM("me->eps->buffer ");
     memcpy( (me->eps->buffer + me->eps->used), s, l); 
     me->eps->used += l;
     me->eps->buffer[me->eps->used] = '\0'; /* null-terminate string */
@@ -58,7 +60,8 @@ PRIVATE int HTXParse_write (HTStream * me, CONST char * s, int l)
     while ((me->eps->used + l) > (me->eps->length + 1)) {
 	me->eps->length += INPUT_BUFFER_SIZE;
     }
-    me->eps->buffer = (char *) realloc(me->eps->buffer, (me->eps->length + 1));
+    if ((me->eps->buffer = (char  *) HT_REALLOC(me->eps->buffer, (me->eps->length + 1))) == NULL)
+        HT_OUTOFMEM("me->eps->buffer ");
     memcpy( (me->eps->buffer + me->eps->used), s, l); 
     me->eps->used += l;
     me->eps->buffer[me->eps->used] = '\0'; /* null-terminate string */
@@ -80,8 +83,8 @@ PRIVATE int HTXParse_free (HTStream * me)
     if (WWWTRACE) TTYPrint(TDEST, "HTXParse_free\n");
     me->eps->finished = YES;
     (*(me->eps->call_client))(me->eps);           /* client will free buffer */
-    free(me->eps);
-    free(me);
+    HT_FREE(me->eps);
+    HT_FREE(me);
     return HT_OK;
 }
 
@@ -127,17 +130,18 @@ PUBLIC HTStream* HTXParse (HTRequest *	request,
 	TTYPrint(TDEST, "\n");
     }
 
-    me = (HTStream*)calloc(1, sizeof(*me));
-    if (me == NULL) outofmem(__FILE__, "HTXConvert");
+    if ((me = (HTStream *) HT_CALLOC(1, sizeof(*me))) == NULL)
+        HT_OUTOFMEM("HTXConvert");
     me->isa = &HTXParseClass;
 
-    me->eps = (HTXParseStruct *) calloc(1, sizeof(HTXParseStruct));
-    if (me->eps == NULL) outofmem(__FILE__, "HTXConvert");
+    if ((me->eps = (HTXParseStruct  *) HT_CALLOC(1, sizeof(HTXParseStruct))) == NULL)
+        HT_OUTOFMEM("HTXConvert");
 
     if (input_format)
         me->eps->content_type = input_format->name;
     me->eps->call_client = HTCallClient;
-    me->eps->buffer = (char *)calloc(INPUT_BUFFER_SIZE,1);
+    if ((me->eps->buffer = (char  *) HT_CALLOC(INPUT_BUFFER_SIZE,1)) == NULL)
+        HT_OUTOFMEM("me->eps->buffer ");
     me->eps->used = 0;
     me->eps->finished = NO;
     me->eps->length = INPUT_BUFFER_SIZE;

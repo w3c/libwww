@@ -352,7 +352,7 @@ PUBLIC HTAssocList *HTAA_parseArgList (char * str)
 	HTAssocList_add(assoc_list, name, str);
 	str = cur;
     } /* while *str */
-    FREE(name);						  /* Henrik 14/03-94 */
+    HT_FREE(name);                                         /* Henrik 14/03-94 */
     return assoc_list;
 }
 

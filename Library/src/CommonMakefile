@@ -65,7 +65,7 @@ COMMON=	$(LOB)/HTList.o $(LOB)/HTString.o $(LOB)/HTAtom.o \
 	$(LOB)/HTPlain.o $(LOB)/HTWriter.o $(LOB)/HTFWrite.o \
 	$(LOB)/HTMLGen.o $(LOB)/HTTee.o $(LOB)/HTXParse.o $(LOB)/HTEPtoCl.o \
 	$(LOB)/HTAnchor.o $(LOB)/HTStyle.o $(LOB)/HTWWWStr.o \
-	$(LOB)/HTRules.o $(LOB)/HTFormat.o \
+	$(LOB)/HTRules.o $(LOB)/HTFormat.o $(LOB)/HTMemory.o \
 	$(LOB)/HTInit.o $(LOB)/HTBInit.o \
 	$(LOB)/HTMIME.o $(LOB)/HTMIMERq.o $(LOB)/HTBound.o \
 	$(LOB)/HTHist.o $(LOB)/HTSocket.o $(LOB)/HTEvntrg.o \
@@ -91,7 +91,7 @@ CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTProxy.c \
         $(CMN)HTMLGen.c	$(CMN)HTTee.c $(CMN)HTXParse.c $(CMN)HTEPtoCl.c \
 	$(CMN)HTChunk.c $(CMN)HTAtom.c   $(CMN)HTAnchor.c $(CMN)HTStyle.c \
 	$(CMN)HTList.c  $(CMN)HTString.c $(CMN)HTAlert.c $(CMN)HTRules.c \
-	$(CMN)HTFormat.c $(CMN)HTHist.c \
+	$(CMN)HTFormat.c $(CMN)HTHist.c $(CMN)HTMemory.c \
 	$(CMN)HTInit.c $(CMN)HTBInit.c \
 	$(CMN)HTMIME.c $(CMN)HTMIMERq.c $(CMN)HTBound.c \
 	$(CMN)HTConLen.c $(CMN)HTHeader.c \
@@ -120,7 +120,7 @@ HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h  $(CMN)HTProxy.h $(CMN)HTFile.h \
 	$(CMN)HTStream.h $(CMN)HTStruct.h $(CMN)HTMulpar.h \
 	$(CMN)HTTee.h $(CMN)HTXParse.h $(CMN)HTEPtoCl.h \
 	$(CMN)HTAtom.h $(CMN)HTAnchor.h $(CMN)HTAncMan.h $(CMN)HTStyle.h \
-	$(CMN)HTList.h $(CMN)HTWWWStr.h \
+	$(CMN)HTList.h $(CMN)HTWWWStr.h $(CMN)HTMemory.h \
 	$(CMN)HTString.h $(CMN)HTAlert.h $(CMN)HTRules.h \
 	$(CMN)HTFormat.h \
 	$(CMN)HTInit.h $(CMN)HTBInit.h \
@@ -340,6 +340,9 @@ $(OE) :
 
 $(LOB)/HTList.o : $(OE) $(CMN)HTList.c $(CMN)HTUtils.h $(CMN)HTList.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTList.c
+
+$(LOB)/HTMemory.o : $(OE) $(CMN)HTMemory.c $(CMN)HTUtils.h $(CMN)HTMemory.h
+	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTMemory.c
 
 $(LOB)/HTAtom.o : $(OE) $(CMN)HTAtom.c $(CMN)HTUtils.h $(CMN)HTList.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTAtom.c

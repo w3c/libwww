@@ -58,8 +58,9 @@ struct _HTStream {
 */
 PUBLIC HTInputSocket * HTInputSocket_new (SOCKET file_number)
 {
-    HTInputSocket *isoc = (HTInputSocket *)calloc(1, sizeof(*isoc));
-    if (!isoc) outofmem(__FILE__, "HTInputSocket_new");
+    HTInputSocket *isoc;
+    if ((isoc = (HTInputSocket  *) HT_CALLOC(1, sizeof(*isoc))) == NULL)
+        HT_OUTOFMEM("HTInputSocket_new");
     isoc->sockfd = file_number;
     isoc->write = isoc->read = isoc->buffer;
     return isoc;
@@ -67,7 +68,7 @@ PUBLIC HTInputSocket * HTInputSocket_new (SOCKET file_number)
 
 PUBLIC void HTInputSocket_free (HTInputSocket * me)
 {
-    if (me) free(me);
+    if (me) HT_FREE(me);
 }
 
 /*	Push data from a socket down a stream

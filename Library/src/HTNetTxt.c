@@ -89,7 +89,7 @@ PRIVATE int Net_free (HTStream * me)
 	if ((status = (*me->target->isa->_free)(me->target)) == HT_WOULD_BLOCK)
 	    return HT_WOULD_BLOCK;
     }
-    free(me);
+    HT_FREE(me);
     return status;
 }
 
@@ -97,7 +97,7 @@ PRIVATE int Net_abort (HTStream * me, HTList * e)
 {
     if (me->target)
 	(*me->target->isa->abort)(me->target, e);
-    free(me);
+    HT_FREE(me);
     return HT_ERROR;
 }
 
@@ -113,8 +113,9 @@ PRIVATE HTStreamClass NetToTextClass = {
 
 PUBLIC HTStream * HTNetToText (HTStream * target)
 {
-    HTStream* me = (HTStream *) calloc(1, sizeof(HTStream));
-    if (me == NULL) outofmem(__FILE__, "NetToText");
+    HTStream* me;
+    if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
+        HT_OUTOFMEM("NetToText");
     me->isa = &NetToTextClass;
     me->had_cr = NO;
     me->target = target;
@@ -179,8 +180,9 @@ PRIVATE HTStreamClass TextToNetClass = {
 
 PUBLIC HTStream * HTTextToNet (HTStream * target)
 {
-    HTStream* me = (HTStream *) calloc(1, sizeof(HTStream));
-    if (me == NULL) outofmem(__FILE__, "TextToNet");
+    HTStream* me;
+    if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
+        HT_OUTOFMEM("TextToNet");
     me->isa = &TextToNetClass;
     me->had_cr = NO;
     me->target = target;

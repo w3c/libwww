@@ -136,10 +136,11 @@ PUBLIC HTParentAnchor * HTHomeAnchor (void)
     	FILE * fp = fopen(REMOTE_POINTER, "r");
 	char * status;
 	if (fp) {
-	    my_home_document = (char*) malloc(HT_MAX_PATH);
+	    if ((my_home_document = (char *) HT_MALLOC(HT_MAX_PATH)) == NULL)
+	        HT_OUTOFMEM("my_home_document ");
 	    status = fgets(my_home_document, HT_MAX_PATH, fp);
 	    if (!status) {
-	        free(my_home_document);
+	        HT_FREE(my_home_document);
 		my_home_document = NULL;
 	    }
 	    fclose(fp);
@@ -152,9 +153,8 @@ PUBLIC HTParentAnchor * HTHomeAnchor (void)
 	FILE * fp = NULL;
 	char * home = (char *) getenv("HOME");
 	if (home) { 
-	    my_home_document = (char *)malloc(
-		strlen(home)+1+ strlen(PERSONAL_DEFAULT)+1);
-	    if (my_home_document == NULL) outofmem(__FILE__, "HTLocalName");
+	    if ((my_home_document = (char  *) HT_MALLOC(strlen(home)+1+ strlen(PERSONAL_DEFAULT)+1)) == NULL)
+	        HT_OUTOFMEM("HTLocalName");
 	    sprintf(my_home_document, "%s/%s", home, PERSONAL_DEFAULT);
 	    fp = fopen(my_home_document, "r");
 	}
@@ -170,7 +170,7 @@ PUBLIC HTParentAnchor * HTHomeAnchor (void)
 		TTYPrint(TDEST,
 			"HTBrowse: No local home document ~/%s or %s\n",
 			PERSONAL_DEFAULT, LOCAL_DEFAULT_FILE);
-	    free(my_home_document);
+	    HT_FREE(my_home_document);
 	    my_home_document = NULL;
 	}
     }
@@ -183,10 +183,10 @@ PUBLIC HTParentAnchor * HTHomeAnchor (void)
 	    TTYPrint(TDEST,
 		   "HTAccess.... `%s\' used for custom home page as\n`%s\'\n",
 		    my_home_document, ref);
-	free(my_home_document);
+	HT_FREE(my_home_document);
     }
     anchor = (HTParentAnchor*) HTAnchor_findAddress(ref);
-    free(ref);
+    HT_FREE(ref);
     return anchor;
 }
 
@@ -210,7 +210,7 @@ PUBLIC int HTLoadStart (HTRequest * request, int status)
     */
     if (mode != HT_FORCE_RELOAD) {
 	if (HTMemoryCache_check(request) == HT_LOADED) {
-	    free(addr);
+	    HT_FREE(addr);
 	    return HT_LOADED;
 	}
     } else {
@@ -234,12 +234,12 @@ PUBLIC int HTLoadStart (HTRequest * request, int status)
 		HTRequest_addError(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
 			   NULL, 0, "HTLoad");
 	    }
-	    free(addr);
-	    FREE(url);
+	    HT_FREE(addr);
+	    HT_FREE(url);
 	    return HT_ERROR;
 	}
 	HTAnchor_setPhysical(anchor, physical);
-	free(physical);
+	HT_FREE(physical);
     }
 
     /*
@@ -266,14 +266,14 @@ PUBLIC int HTLoadStart (HTRequest * request, int status)
 		/* Chop leading / off to make host into part of path */
 	    char * gatewayed = HTParse(path+1, newaddr, PARSE_ALL);
             HTAnchor_setPhysical(anchor, gatewayed);
-	    free(path);
-	    free(gatewayed);
+	    HT_FREE(path);
+	    HT_FREE(gatewayed);
 	} else {
 	    request->using_proxy = NO;      /* We don't use proxy or gateway */
 	}
-	FREE(newaddr);
+	HT_FREE(newaddr);
     }
-    FREE(addr);
+    HT_FREE(addr);
     return HT_OK;
 }
 
@@ -326,6 +326,6 @@ PUBLIC int HTLoadTerminate (HTRequest * request, int status)
 
     /* Should we do logging? */
     if (HTLog_isOpen()) HTLog_add(request, status);
-    free(uri);
+    HT_FREE(uri);
     return HT_OK;
 }

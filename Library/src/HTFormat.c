@@ -69,8 +69,9 @@ PUBLIC void HTPresentation_add (HTList *	conversions,
 				double		secs, 
 				double		secs_per_byte)
 {
-    HTPresentation * pres = (HTPresentation *)calloc(1,sizeof(HTPresentation));
-    if (pres == NULL) outofmem(__FILE__, "HTSetPresentation");
+    HTPresentation * pres;
+    if ((pres = (HTPresentation  *) HT_CALLOC(1,sizeof(HTPresentation))) == NULL)
+        HT_OUTOFMEM("HTSetPresentation");
     
     pres->rep = HTAtom_for(representation);
     pres->rep_out = WWW_PRESENT;		/* Fixed for now ... :-) */
@@ -92,8 +93,8 @@ PUBLIC void HTPresentation_deleteAll (HTList * list)
 	HTList *cur = list;
 	HTPresentation *pres;
 	while ((pres = (HTPresentation*) HTList_nextObject(cur))) {
-	    FREE(pres->command);
-	    free(pres);
+	    HT_FREE(pres->command);
+	    HT_FREE(pres);
 	}
 	HTList_delete(list);
     }
@@ -110,8 +111,9 @@ PUBLIC void HTConversion_add (HTList *		conversions,
 			      double		secs, 
 			      double		secs_per_byte)
 {
-    HTPresentation * pres = (HTPresentation *)calloc(1,sizeof(HTPresentation));
-    if (pres == NULL) outofmem(__FILE__, "HTSetPresentation");
+    HTPresentation * pres;
+    if ((pres = (HTPresentation  *) HT_CALLOC(1,sizeof(HTPresentation))) == NULL)
+        HT_OUTOFMEM("HTSetPresentation");
     
     pres->rep = HTAtom_for(representation_in);
     pres->rep_out = HTAtom_for(representation_out);
@@ -139,8 +141,8 @@ PUBLIC void HTEncoding_add (HTList * 		list,
 	    TTYPrint(TDEST, "Encodings... Bad argument\n");
 	return;
     }
-    node = (HTAcceptNode*)calloc(1, sizeof(HTAcceptNode));
-    if (!node) outofmem(__FILE__, "HTAcceptEncoding");
+    if ((node = (HTAcceptNode *) HT_CALLOC(1, sizeof(HTAcceptNode))) == NULL)
+        HT_OUTOFMEM("HTAcceptEncoding");
     HTList_addObject(list, (void*)node);
 
     node->atom = HTAtom_for(enc);
@@ -153,7 +155,7 @@ PUBLIC void HTEncoding_deleteAll (HTList * list)
 	HTList *cur = list;
 	HTAcceptNode *pres;
 	while ((pres = (HTAcceptNode *) HTList_nextObject(cur))) {
-	    free(pres);
+	    HT_FREE(pres);
 	}
 	HTList_delete(list);
     }
@@ -169,8 +171,8 @@ PUBLIC void HTLanguage_add (HTList *		list,
 	    TTYPrint(TDEST, "Languages... Bad argument\n");
 	return;
     }
-    node = (HTAcceptNode*)calloc(1, sizeof(HTAcceptNode));
-    if (!node) outofmem(__FILE__, "HTAcceptLanguage");
+    if ((node = (HTAcceptNode *) HT_CALLOC(1, sizeof(HTAcceptNode))) == NULL)
+        HT_OUTOFMEM("HTAcceptLanguage");
 
     HTList_addObject(list, (void*)node);
     node->atom = HTAtom_for(lang);
@@ -192,8 +194,8 @@ PUBLIC void HTCharset_add (HTList *		list,
 	    TTYPrint(TDEST, "Charset..... Bad argument\n");
 	return;
     }
-    node = (HTAcceptNode*)calloc(1, sizeof(HTAcceptNode));
-    if (!node) outofmem(__FILE__, "HTAcceptCharsetuage");
+    if ((node = (HTAcceptNode *) HT_CALLOC(1, sizeof(HTAcceptNode))) == NULL)
+        HT_OUTOFMEM("HTAcceptCharsetuage");
 
     HTList_addObject(list, (void*)node);
     node->atom = HTAtom_for(charset);
@@ -473,8 +475,8 @@ PUBLIC BOOL HTRank (HTList * possibilities,
 	    accepted_cnt++;
 	}
 	else {
-	    if (d->filename) free(d->filename);
-	    free(d);
+	    if (d->filename) HT_FREE(d->filename);
+	    HT_FREE(d);
 	}
     }
 

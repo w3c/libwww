@@ -186,14 +186,14 @@ PRIVATE int FTPCleanup (HTRequest * request, int status)
 	    HTNet * dnet = ctrl->dnet;
 	    ftp_data * data;
 	    HTChunk_delete(ctrl->cmd);
-	    FREE(ctrl->reply);
-	    FREE(ctrl->uid);
-	    FREE(ctrl->passwd);
-	    FREE(ctrl->account);
-	    FREE(ctrl);
+	    HT_FREE(ctrl->reply);
+	    HT_FREE(ctrl->uid);
+	    HT_FREE(ctrl->passwd);
+	    HT_FREE(ctrl->account);
+	    HT_FREE(ctrl);
 	    if (dnet && (data = (ftp_data *) dnet->context) != NULL) {
-		FREE(data->file);
-		FREE(data);
+		HT_FREE(data->file);
+		HT_FREE(data);
 	    }
 	    HTNet_delete(dnet, HT_IGNORE);
 	}
@@ -303,7 +303,7 @@ PRIVATE int FTPStatus_free (HTStream * me)
 	    return HT_WOULD_BLOCK;
     }
     HTChunk_delete(me->welcome);
-    free(me);
+    HT_FREE(me);
     return HT_OK;
 }
 
@@ -312,7 +312,7 @@ PRIVATE int FTPStatus_abort (HTStream * me, HTList * e)
     if (me->target)
 	(*me->target->isa->abort)(me->target, e);
     HTChunk_delete(me->welcome);
-    free(me);
+    HT_FREE(me);
     if (PROT_TRACE)
 	TTYPrint(TDEST, "FTPStatus... ABORTING...\n");
     return HT_ERROR;
@@ -334,8 +334,9 @@ PRIVATE CONST HTStreamClass FTPStatusClass =
 
 PRIVATE HTStream * FTPStatus_new (HTRequest * request, ftp_ctrl * ctrl)
 {
-    HTStream * me = (HTStream *) calloc(1, sizeof(HTStream));
-    if (!me) outofmem(__FILE__, "FTPStatus_new");
+    HTStream * me;
+    if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
+        HT_OUTOFMEM("FTPStatus_new");
     me->isa = &FTPStatusClass;
     me->request = request;
     me->first_line = YES;
@@ -414,8 +415,8 @@ PRIVATE BOOL HTFTPParseURL (char *url, ftp_ctrl *ctrl, ftp_data *data)
 	TTYPrint(TDEST, "FTPParse.... Datatype %c\n", data->type);	
     StrAllocCopy(data->file, path);
     data->offset = data->file;
-    free(login);
-    free(path);
+    HT_FREE(login);
+    HT_FREE(path);
     return YES;
 }
 
@@ -658,8 +659,8 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 	    {
 		HTAlertCallback *cbf = HTAlert_find(HT_A_USER_PW);
 		HTAlertPar * reply = HTAlert_newReply();
-		FREE(ctrl->uid);
-		FREE(ctrl->passwd);
+		HT_FREE(ctrl->uid);
+		HT_FREE(ctrl->passwd);
 		if (cbf &&
 		    (*cbf)(request, HT_A_USER_PW,HT_MSG_NULL,NULL,NULL,reply)){
 		    ctrl->uid = HTAlert_replyMessage(reply);
@@ -1038,7 +1039,7 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 		if (PROT_TRACE)
 		    TTYPrint(TDEST, "FTP......... Swap to PORT on the fly\n");
 		ctrl->substate = 0;
-		FREE(segment);
+		HT_FREE(segment);
 		return HT_OK;
 	    }
 	    break;
@@ -1071,7 +1072,7 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 		HTUnEscape(segment);
 		HTCleanTelnetString(segment);
 		status = SendCommand(request, ctrl, cmd, segment);
-		FREE(segment);
+		HT_FREE(segment);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_WOULD_BLOCK;
 		else if (status == HT_ERROR)
@@ -1100,7 +1101,8 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 		char *ptr;
 		if (data->offset == data->file) {
 		    if (ctrl->server == FTP_VMS) {	   /* Change to root */
-			segment = (char *) malloc(strlen(ctrl->uid)+3);
+			if ((segment = (char  *) HT_MALLOC(strlen(ctrl->uid)+3)) == NULL)
+			    HT_OUTOFMEM("segment ");
 			sprintf(segment, "[%s]", ctrl->uid);
 		    } else
 			StrAllocCopy(segment, "/");
@@ -1124,7 +1126,7 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 	  case NEED_CWD:
 	    if (!ctrl->sent) {
 		status = SendCommand(request, ctrl, "CWD", segment);
-		FREE(segment);
+		HT_FREE(segment);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_WOULD_BLOCK;
 		else if (status == HT_ERROR)
@@ -1200,7 +1202,7 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 	    if (PROT_TRACE)
 		TTYPrint(TDEST, "FTP......... Can't retrieve object\n");
 	    ctrl->substate = 0;
-	    FREE(segment);
+	    HT_FREE(segment);
 	    return HT_ERROR;
 	    break;
 
@@ -1208,7 +1210,7 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 	    if (PROT_TRACE)
 		TTYPrint(TDEST, "FTP......... Object is loaded\n");
 	    ctrl->substate = 0;
-	    FREE(segment);
+	    HT_FREE(segment);
 	    return HT_LOADED;
 	    break;
 	}
@@ -1241,9 +1243,9 @@ PUBLIC int HTLoadFTP (SOCKET soc, HTRequest * request, SockOps ops)
     */
     if (ops == FD_NONE) {
  	if (PROT_TRACE) TTYPrint(TDEST, "FTP......... Looking for `%s\'\n",url);
-	if ((ctrl = (ftp_ctrl *) calloc(1, sizeof(ftp_ctrl))) == NULL ||
-	    (data = (ftp_data *) calloc(1, sizeof(ftp_data))) == NULL)
-	    outofmem(__FILE__, "HTLoadFTP");
+	if ((ctrl = (ftp_ctrl *) HT_CALLOC(1, sizeof(ftp_ctrl))) == NULL ||
+	    (data = (ftp_data *) HT_CALLOC(1, sizeof(ftp_data))) == NULL)
+	    HT_OUTOFMEM("HTLoadFTP");
 	ctrl->cmd = HTChunk_new(128);
 	ctrl->state = FTP_BEGIN;
 	ctrl->server = FTP_UNSURE;

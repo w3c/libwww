@@ -254,7 +254,7 @@ PRIVATE int FTPDir_flush (HTStream * me)
 PRIVATE int FTPDir_free (HTStream * me)
 {
     HTDir_free(me->dir);
-    free(me);
+    HT_FREE(me);
     return HT_OK;
 }
 
@@ -283,8 +283,9 @@ PUBLIC HTStream * HTFTPDir_new (HTRequest *	request,
 				FTPServerType	server,
 				char		list)
 {
-    HTStream * me = (HTStream *) calloc(1, sizeof(HTStream));
-    if (!me) outofmem(__FILE__, "HTFTPDir");
+    HTStream * me;
+    if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
+        HT_OUTOFMEM("HTFTPDir");
     me->isa = &FTPDirClass;
     me->request = request;    
     me->server = server;
@@ -292,7 +293,7 @@ PUBLIC HTStream * HTFTPDir_new (HTRequest *	request,
     me->dir = HTDir_new(request, (list=='L' ? dir_show : 0), dir_key);
     me->first = YES;
     if (me->dir == NULL) {
-	FREE(me);
+	HT_FREE(me);
 	return HTErrorStream();
     }
     return me;

@@ -432,7 +432,7 @@ PRIVATE int HTTeXGen_free (HTStructured * me)
     (*me->targetClass.put_string)(me->target, "\n\\end{document}\n");
     HTTeXGen_flush(me);
     (*me->targetClass._free)(me->target);	/* ripple through */
-    free(me);
+    HT_FREE(me);
     return HT_OK;
 }
 
@@ -469,8 +469,9 @@ PUBLIC HTStream* HTMLToTeX (HTRequest *	request,
 			    HTFormat	output_format,
 			    HTStream *	output_stream)
 {
-    HTStructured* me = (HTStructured*) calloc(1, sizeof(*me));
-    if (me == NULL) outofmem(__FILE__, "HTMLToTeX");    
+    HTStructured* me;
+    if ((me = (HTStructured *) HT_CALLOC(1, sizeof(*me))) == NULL)
+        HT_OUTOFMEM("HTMLToTeX");
 
     me->isa = (HTStructuredClass*) &HTTeXGeneration;
     me->dtd = &HTMLP_dtd;

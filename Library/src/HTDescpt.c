@@ -40,15 +40,15 @@ PUBLIC HTList * HTReadDescriptions (char * dirname)
 
     if (!dirname) return NULL;
 
-    name = (char*)malloc(strlen(dirname) + strlen(HTDescriptionFile) + 2);
-    if (!name) outofmem(__FILE__, "HTReadDescriptions");
+    if ((name = (char *) HT_MALLOC(strlen(dirname) + strlen(HTDescriptionFile) + 2)) == NULL)
+        HT_OUTOFMEM("HTReadDescriptions");
 
     sprintf(name, "%s/%s", dirname, HTDescriptionFile);
     fp = fopen(name, "r");
     if (!fp) {
 	if (PROT_TRACE)
 	    TTYPrint(TDEST, "DirBrowse... No description file %s\n", name);
-	FREE(name);
+	HT_FREE(name);
 	return NULL;
     } else {
 	if (WWWTRACE)
@@ -83,8 +83,9 @@ PUBLIC HTList * HTReadDescriptions (char * dirname)
 	    }
 	}
 	if (t && d && *t && *d) {
-	    char * stuff = (char *) malloc(strlen(t) + strlen(d) + 2);
-	    if (!stuff) outofmem(__FILE__, "HTDirReadDescriptions");
+	    char * stuff;
+	    if ((stuff = (char  *) HT_MALLOC(strlen(t) + strlen(d) + 2)) == NULL)
+	        HT_OUTOFMEM("HTDirReadDescriptions");
 	    sprintf(stuff, "%s %s", t, d);
 	    HTList_addObject(list, (void*)stuff);
 	    if (PROT_TRACE)
@@ -92,7 +93,7 @@ PUBLIC HTList * HTReadDescriptions (char * dirname)
 	}
     }
     fclose(fp);
-    FREE(name);
+    HT_FREE(name);
     return list;
 }
 
@@ -104,7 +105,7 @@ PUBLIC void HTFreeDescriptions (HTList * descriptions)
 
     if (descriptions) {
 	while ((str = (char*)HTList_nextObject(cur)))
-	    free(str);
+	    HT_FREE(str);
 	HTList_delete(descriptions);
     }
 }
@@ -124,7 +125,7 @@ PRIVATE char * HTPeekTitle (char * dirname,
     char * p;
     BOOL space = YES;
 
-    FREE(ret);	/* From previous call */
+    HT_FREE(ret);	/* from previous call */
 
     if (PROT_TRACE)
 	TTYPrint(TDEST, "HTPeekTitle. called, dirname=%s filename=%s\n",
@@ -133,8 +134,8 @@ PRIVATE char * HTPeekTitle (char * dirname,
 
     if (!dirname || !filename) return NULL;
 
-    name = (char*)malloc(strlen(dirname) + strlen(filename) + 2);
-    if (!name) outofmem(__FILE__, "HTPeekTitle");
+    if ((name = (char *) HT_MALLOC(strlen(dirname) + strlen(filename) + 2)) == NULL)
+        HT_OUTOFMEM("HTPeekTitle");
     sprintf(name, "%s/%s", dirname, filename);
 
     fp = fopen(name, "r");
@@ -157,8 +158,8 @@ PRIVATE char * HTPeekTitle (char * dirname,
 	    while (end && strncasecomp(end+1, "/TITLE>", 7))
 		end = strchr(end+1, '<');
 	    if (end) *end = 0;
-	    p = ret = (char*)malloc(strlen(cur) + 1);
-	    if (!ret) outofmem(__FILE__, "HTPeekTitle");
+	    if ((p = ret = (char*) HT_MALLOC(strlen(cur) + 1)) == NULL)
+		HT_OUTOFMEM("HTPeekTitle");
 	    while (*cur) {
 		if (WHITE(*cur)) {
 		    if (!space) {
@@ -182,7 +183,7 @@ PRIVATE char * HTPeekTitle (char * dirname,
     if (PROT_TRACE)
 	TTYPrint(TDEST, "HTPeekTitle. returning %c%s%c\n",
 		ret ? '"' : '-',  ret ? ret : "null",  ret ? '"' : '-');
-    FREE(name);
+    HT_FREE(name);
     return ret;
 }
 

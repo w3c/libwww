@@ -428,7 +428,7 @@ PUBLIC CONST char * HTGetHostName (void)
 */
 PUBLIC void HTFreeHostName (void)
 {
-    FREE(hostname);
+    HT_FREE(hostname);
 }
 
 
@@ -544,7 +544,7 @@ PUBLIC CONST char * HTGetMailAddress (void)
 */
 PUBLIC void HTFreeMailAddress (void)
 {
-    FREE(mailaddress);
+    HT_FREE(mailaddress);
 }
 
 
@@ -577,7 +577,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
     if (!*host) {
 	HTRequest_addError(request, ERR_FATAL, NO, HTERR_NO_HOST,
 		   NULL, 0, "HTDoConnect");
-	free(fullhost);
+	HT_FREE(fullhost);
 	return HT_ERROR;
     }
 
@@ -628,7 +628,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	    */
 	    if (!status) {
 		net->tcpstate = TCP_NEED_CONNECT;
-		free(fullhost);
+		HT_FREE(fullhost);
 		HTNet_wait(net);
 		return HT_PERSISTENT;
 	    }
@@ -763,7 +763,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 			TTYPrint(TDEST,"HTDoConnect. WOULD BLOCK `%s'\n",host);
 		    HTEvent_Register(net->sockfd, request, (SockOps)FD_CONNECT,
 				     net->cbf, net->priority);
-		    free(fullhost);
+		    HT_FREE(fullhost);
 		    return HT_WOULD_BLOCK;
 		}
 		if (socerrno == EISCONN) {
@@ -810,7 +810,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 		HTDNS_updateWeigths(net->dns, net->home, net->connecttime);
 	    }
 	    net->retry = 0;
-	    free(fullhost);
+	    HT_FREE(fullhost);
 	    net->tcpstate = TCP_BEGIN;
 	    return HT_OK;
 	    break;
@@ -840,7 +840,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	    HTRequest_addSystemError(request, ERR_FATAL,socerrno,NO,"connect");
 	    HTDNS_delete(host);
 	    net->retry = 0;
-	    free (fullhost);
+	    HT_FREE(fullhost);
 	    net->tcpstate = TCP_BEGIN;
 	    return HT_ERROR;
 	    break;

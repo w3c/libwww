@@ -37,9 +37,9 @@ PUBLIC BOOL HTAssocList_delete (HTAssocList * alist)
 	HTAssocList *cur = alist;
 	HTAssoc *assoc;
 	while (NULL != (assoc = (HTAssoc*)HTList_nextObject(cur))) {
-	    if (assoc->name) free(assoc->name);
-	    if (assoc->value) free(assoc->value);
-	    free(assoc);
+	    if (assoc->name) HT_FREE(assoc->name);
+	    if (assoc->value) HT_FREE(assoc->value);
+	    HT_FREE(assoc);
 	}
 	return HTList_delete(alist);
     }
@@ -52,8 +52,8 @@ PUBLIC BOOL HTAssocList_add (HTAssocList * alist,
 {
     HTAssoc *assoc;
     if (alist) {
-	if ((assoc = (HTAssoc *) calloc(1, sizeof(HTAssoc))) == NULL)
-	    outofmem(__FILE__, "HTAssoc_add");
+	if ((assoc = (HTAssoc *) HT_CALLOC(1, sizeof(HTAssoc))) == NULL)
+	    HT_OUTOFMEM("HTAssoc_add");
 	if (name) StrAllocCopy(assoc->name, name);
 	if (value) StrAllocCopy(assoc->value, value);
 	return HTList_addObject(alist, (void *) assoc);

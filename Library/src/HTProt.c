@@ -40,8 +40,9 @@ PUBLIC BOOL HTProtocol_add (CONST char *       	name,
 			    HTEventCallback *	server)
 {
     if (name && (client || server)) {
-	HTProtocol *newProt = (HTProtocol *) calloc(1, sizeof(HTProtocol));
-	if (newProt == NULL) outofmem(__FILE__, "HTProtocol_add");
+	HTProtocol *newProt;
+	if ((newProt = (HTProtocol  *) HT_CALLOC(1, sizeof(HTProtocol))) == NULL)
+	    HT_OUTOFMEM("HTProtocol_add");
 	StrAllocCopy(newProt->name, name);
 	{
 	    char *ptr = newProt->name;
@@ -66,7 +67,7 @@ PUBLIC BOOL HTProtocol_delete (CONST char * name)
 	HTProtocol *pres;
 	while ((pres = (HTProtocol *) HTList_nextObject(cur))) {
 	    if (!strcmp(pres->name, name)) {
-		FREE(pres->name);
+		HT_FREE(pres->name);
 		return HTList_removeObject(protocols, (void *) pres);
 	    }
 	}
@@ -108,8 +109,8 @@ PUBLIC BOOL HTProtocol_deleteAll (void)
 	HTList *cur = protocols;
 	HTProtocol *pres;
 	while ((pres = (HTProtocol *) HTList_nextObject(cur))) {
-	    FREE(pres->name);
-	    free(pres);
+	    HT_FREE(pres->name);
+	    HT_FREE(pres);
 	}
 	HTList_delete(protocols);
 	protocols = NULL;

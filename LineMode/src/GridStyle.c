@@ -96,8 +96,9 @@ struct _HTStyle {
 */
 PUBLIC HTStyle* HTStyleNew (void)
 {
-    HTStyle *style = (HTStyle *) calloc(1, sizeof(HTStyle));
-    if (!style) outofmem(__FILE__, "HTStyleNew");
+    HTStyle *style;
+    if ((style = (HTStyle  *) HT_CALLOC(1, sizeof(HTStyle))) == NULL)
+        HT_OUTOFMEM("HTStyleNew");
     return style;
 }
 
@@ -115,9 +116,9 @@ PUBLIC HTStyle* HTStyleNewNamed (CONST char * name)
 */
 PUBLIC HTStyle * HTStyleFree (HTStyle * self)
 {
-    if (self->name) free(self->name);
-    if (self->SGMLTag) free(self->SGMLTag);
-    free(self);
+    if (self->name) HT_FREE(self->name);
+    if (self->SGMLTag) HT_FREE(self->SGMLTag);
+    HT_FREE(self);
     return 0;
 }
 
@@ -132,8 +133,8 @@ PUBLIC HTStyle * HTModfyStyle (HTStyle *  old, void *  nesting,
 
 {
     HTStyle * s;
-    s = (HTStyle*)malloc(sizeof(*s));
-    if (!s) outofmem(__FILE__, "new style");
+    if ((s = (HTStyle *) HT_MALLOC(sizeof(*s))) == NULL)
+        HT_OUTOFMEM("new style");
 
     *s = *old;
     switch(element_number) {
@@ -206,8 +207,9 @@ HTStyleSheet * HTStyleSheetRemoveStyle (HTStyleSheet * self, HTStyle * style)
 
 HTStyleSheet * HTStyleSheetNew (void)
 {
-    HTStyleSheet * style = (HTStyleSheet *) calloc(1, sizeof(HTStyleSheet));
-    if (!style) outofmem(__FILE__, "HTStyleSheetNew");
+    HTStyleSheet * style;
+    if ((style = (HTStyleSheet  *) HT_CALLOC(1, sizeof(HTStyleSheet))) == NULL)
+        HT_OUTOFMEM("HTStyleSheetNew");
     return style;
 }
 
@@ -221,7 +223,7 @@ HTStyleSheet * HTStyleSheetFree (HTStyleSheet * self)
         self->styles = style->next;
 	HTStyleFree(style);
     }
-    free(self);
+    HT_FREE(self);
     return 0;
 }
 

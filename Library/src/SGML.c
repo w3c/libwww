@@ -118,7 +118,7 @@ PRIVATE void handle_attribute_name (HTStream * context, CONST char * s)
 	context->current_attribute_number = i;
 	context->present[i] = YES;
 	if (context->value[i]) {
-	    free(context->value[i]);
+	    HT_FREE(context->value[i]);
 	    context->value[i] = NULL;
 	}
 	return;
@@ -231,7 +231,7 @@ PRIVATE void end_element (HTStream * context, HTTag * old_tag)
 	}
 	
 	context->element_stack = N->next;		/* Remove from stack */
-	free(N);
+	HT_FREE(N);
 	(*context->actions->end_element)(context->target,
 		 t - context->dtd->tags);
 	if (old_tag == t) return;  /* Correct sequence */
@@ -258,8 +258,9 @@ PRIVATE void start_element (HTStream * context)
 	context->present,
 	(CONST char**) context->value);  /* coerce type for think c */
     if (new_tag->contents != SGML_EMPTY) {		/* i.e. tag not empty */
-	HTElement * N = (HTElement *)malloc(sizeof(HTElement));
-        if (N == NULL) outofmem(__FILE__, "start_element");
+	HTElement * N;
+	if ((N = (HTElement  *) HT_MALLOC(sizeof(HTElement))) == NULL)
+	    HT_OUTOFMEM("start_element");
 	N->next = context->element_stack;
 	N->tag = new_tag;
 	context->element_stack = N;
@@ -308,7 +309,7 @@ PUBLIC int SGML_flush  (HTStream * context)
 	    TTYPrint(TDEST, "SGML........ Non-matched tag found: <%s>\n",
 		    context->element_stack->tag->name);
 	context->element_stack = ptr->next;
-	free(ptr);
+	HT_FREE(ptr);
     }
     return (*context->actions->flush)(context->target);
 }
@@ -324,15 +325,15 @@ PUBLIC int SGML_free  (HTStream * context)
 	    TTYPrint(TDEST, "SGML........ Non-matched tag found: <%s>\n",
 		    context->element_stack->tag->name);
 	context->element_stack = ptr->next;
-	free(ptr);
+	HT_FREE(ptr);
     }
     if ((status = (*context->actions->_free)(context->target)) != HT_OK)
 	return status;
     HTChunk_delete(context->string);
     for(cnt=0; cnt<MAX_ATTRIBUTES; cnt++)      	 /* Leak fix Henrik 18/02-94 */
 	if(context->value[cnt])
-	    free(context->value[cnt]);
-    free(context);
+	    HT_FREE(context->value[cnt]);
+    HT_FREE(context);
     return HT_OK;
 }
 
@@ -345,14 +346,14 @@ PUBLIC int SGML_abort  (HTStream * context, HTList * e)
 	    TTYPrint(TDEST, "SGML........ Non-matched tag found: <%s>\n",
 		    context->element_stack->tag->name);
 	context->element_stack = ptr->next;
-	free(ptr);
+	HT_FREE(ptr);
     }
     (*context->actions->abort)(context->target, e);
     HTChunk_delete(context->string);
     for(cnt=0; cnt<MAX_ATTRIBUTES; cnt++)      	/* Leak fix Henrik 18/02-94 */
 	if(context->value[cnt])
-	    free(context->value[cnt]);
-    free(context);
+	    HT_FREE(context->value[cnt]);
+    HT_FREE(context);
     return HT_ERROR;
 }
 
@@ -780,8 +781,9 @@ PRIVATE CONST HTStreamClass SGMLParser =
 PUBLIC HTStream * SGML_new (CONST SGML_dtd * dtd, HTStructured * target)
 {
     int i;
-    HTStream* context = (HTStream *) malloc(sizeof(*context));
-    if (!context) outofmem(__FILE__, "SGML_begin");
+    HTStream* context;
+    if ((context = (HTStream  *) HT_MALLOC(sizeof(*context))) == NULL)
+        HT_OUTOFMEM("SGML_begin");
 
     context->isa = &SGMLParser;
     context->string = HTChunk_new(128);	/* Grow by this much */

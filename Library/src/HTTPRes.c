@@ -158,8 +158,9 @@ PRIVATE CONST HTStreamClass HTTPResponseClass =
 PUBLIC HTStream * HTTPResponse_new (HTRequest *	request, HTStream * target,
 				    BOOL endHeader)
 {
-    HTStream * me = (HTStream *) calloc(1, sizeof(HTStream));
-    if (!me) outofmem(__FILE__, "HTTPResponse_new");
+    HTStream * me;
+    if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
+        HT_OUTOFMEM("HTTPResponse_new");
     me->isa = &HTTPResponseClass;
     me->target = target;
     me->request = request;

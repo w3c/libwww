@@ -213,7 +213,7 @@ PRIVATE BOOL GopherTitle (HTStream *me)
     START(HTML_H1);
     PUTS(str);
     END(HTML_H1);
-    free(str);
+    HT_FREE(str);
     return YES;
 }
 
@@ -293,7 +293,7 @@ PRIVATE BOOL GopherMenuLine (HTStream *me, char *line)
 	    HTStartAnchor(target, NULL, escaped);
 	    PUTS(name);
 	    END(HTML_A);
-	    free(escaped);
+	    HT_FREE(escaped);
 	} else if (port) {			    /* Other types need port */
 	    char *escaped = NULL;
 	    char *address = NULL;
@@ -306,8 +306,8 @@ PRIVATE BOOL GopherMenuLine (HTStream *me, char *line)
 	    } else {
 		addr_len = 15 + strlen(host) + 1;
 	    }
-	    if ((address = (char *) malloc(addr_len)) == NULL)
-		outofmem(__FILE__, "GopherMenuLine");
+	    if ((address = (char *) HT_MALLOC(addr_len)) == NULL)
+	        HT_OUTOFMEM("GopherMenuLine");
 	    *address = '\0';
 
 	    if (gtype == GT_TELNET) {
@@ -330,8 +330,8 @@ PRIVATE BOOL GopherMenuLine (HTStream *me, char *line)
 	    HTStartAnchor(target, NULL, address);
 	    PUTS(name);
 	    END(HTML_A);
-	    FREE(address);
-	    FREE(escaped);
+	    HT_FREE(address);
+	    HT_FREE(escaped);
 	    PUTC('\n');
 	} else {					   /* If parse error */
 	    if (PROT_TRACE)
@@ -483,14 +483,14 @@ PRIVATE int GopherMenu_free (HTStream * me)
     GopherBottom(me);
     if ((status = (*me->target->isa->_free)(me->target)) == HT_WOULD_BLOCK)
 	return HT_WOULD_BLOCK;
-    free(me);
+    HT_FREE(me);
     return HT_OK;
 }
 
 PRIVATE int GopherMenu_abort (HTStream * me, HTList * e)
 {
     (*me->target->isa->abort)(me->target, e);
-    free(me);
+    HT_FREE(me);
     if (PROT_TRACE)
 	TTYPrint(TDEST, "Gopher...... ABORTING...\n");
     return HT_ERROR;
@@ -515,8 +515,9 @@ PRIVATE CONST HTStreamClass GopherMenuClass =
 */
 PRIVATE HTStream * GopherMenu_new (HTRequest * request, char *url, BOOL CSO)
 {
-    HTStream * me = (HTStream *) calloc(1, sizeof(HTStream));
-    if (!me) outofmem(__FILE__, "GopherMenu_new");
+    HTStream * me;
+    if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
+        HT_OUTOFMEM("GopherMenu_new");
     me->isa = &GopherMenuClass;
     me->target = HTMLGenerator(request, NULL, WWW_HTML,
 			       request->output_format, request->output_stream);
@@ -554,8 +555,8 @@ PRIVATE BOOL GopherCleanup (HTRequest *req, int status)
     /* Remove the request object and our own context structure for gopher */
     HTNet_delete(net, status);
     if (gopher) {
-	FREE(gopher->cmd);
-	free(gopher);
+	HT_FREE(gopher->cmd);
+	HT_FREE(gopher);
     }
     return YES;
 }
@@ -648,8 +649,8 @@ PUBLIC int HTLoadGopher (SOCKET soc, HTRequest * request, SockOps ops)
     */
     if (ops == FD_NONE) {
 	if (PROT_TRACE) TTYPrint(TDEST, "Gopher...... Looking for `%s\'\n",url);
-	if ((gopher = (gopher_info *) calloc(1, sizeof(gopher_info))) == NULL)
-	    outofmem(__FILE__, "HTLoadGopher");
+	if ((gopher = (gopher_info *) HT_CALLOC(1, sizeof(gopher_info))) == NULL)
+	    HT_OUTOFMEM("HTLoadGopher");
 	gopher->type = GT_MENU;
 	gopher->state = GOPHER_BEGIN;
 	net->context = gopher;
@@ -678,7 +679,7 @@ PUBLIC int HTLoadGopher (SOCKET soc, HTRequest * request, SockOps ops)
 		    if (!query || !*(query+1)) {       /* No search required */
 			display_index(request);
 			gopher->state = GOPHER_GOT_DATA;
-			free(path);
+			HT_FREE(path);
 			break;
 		    } else {
 			*query++ = 0; 				 /* Skip '?' */
@@ -692,7 +693,7 @@ PUBLIC int HTLoadGopher (SOCKET soc, HTRequest * request, SockOps ops)
 		    if (!query || !*(query+1)) {       /* No search required */
 			display_cso(request);
 			gopher->state = GOPHER_GOT_DATA;
-			free(path);
+			HT_FREE(path);
 			break;
 		    } else {
 			*query++ = 0; 				 /* Skip '?' */
@@ -719,7 +720,7 @@ PUBLIC int HTLoadGopher (SOCKET soc, HTRequest * request, SockOps ops)
 		    *(crlf+2) = '\0';
 		    StrAllocCat(gopher->cmd, crlf);
 		}
-		free(path);
+		HT_FREE(path);
 		gopher->state = GOPHER_NEED_CONNECTION;
 	    }
 	    break;

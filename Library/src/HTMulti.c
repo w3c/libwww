@@ -46,7 +46,7 @@ PRIVATE int HTSplitFilename (char * s_str, char ** s_arr)
 	*end = save;
 	start = end;
     }
-    FREE(s_arr[i]);	/* Terminating NULL */
+    HT_FREE(s_arr[i]);       /* Terminating NULL */
     return i;
 }
 
@@ -176,14 +176,13 @@ PRIVATE HTList * dir_matches (char * path)
 		cd = HTBind_getDescription(dirbuf->d_name);
 		if (cd) {
 		    if (cd->content_type) {
-			cd->filename = (char*)malloc(strlen(dirname) + 2 +
-						     strlen(dirbuf->d_name));
-			if (!cd->filename) outofmem(__FILE__, "dir_matches");
+			if ((cd->filename = (char *) HT_MALLOC(strlen(dirname) + 2 + strlen(dirbuf->d_name))) == NULL)
+			    HT_OUTOFMEM("dir_matches");
 			sprintf(cd->filename, "%s/%s",
 				dirname, dirbuf->d_name);
 			HTList_addObject(matches, (void*)cd);
 		    }
-		    else free(cd);
+		    else HT_FREE(cd);
 		}
 	    }
 	}
@@ -191,7 +190,7 @@ PRIVATE HTList * dir_matches (char * path)
     closedir(dp);
 
   dir_match_failed:
-    free(dirname);
+    HT_FREE(dirname);
     return matches;
 }
 
@@ -262,8 +261,8 @@ PRIVATE char * HTGetBest (HTRequest * req, char * path)
 
     cur = matches;
     while ((cd = (HTContentDescription*)HTList_nextObject(cur))) {
-	if (cd->filename) free(cd->filename);
-	free(cd);
+	if (cd->filename) HT_FREE(cd->filename);
+	HT_FREE(cd);
     }
     HTList_delete(matches);
 
@@ -329,10 +328,11 @@ PRIVATE char * get_best_welcome (char * path)
     closedir(dp);
 
     if (best_welcome) {
-	char * welcome = (char*)malloc(strlen(path) + strlen(best_welcome)+2);
-	if (!welcome) outofmem(__FILE__, "get_best_welcome");
+	char * welcome;
+	if ((welcome = (char *) HT_MALLOC(strlen(path) + strlen(best_welcome)+2)) == NULL)
+	    HT_OUTOFMEM("get_best_welcome");
 	sprintf(welcome, "%s%s%s", path, last ? "" : "/", best_welcome);
-	free(best_welcome);
+	HT_FREE(best_welcome);
 	if (PROT_TRACE)
 	    TTYPrint(TDEST,"Welcome..... \"%s\"\n",welcome);
 	return welcome;

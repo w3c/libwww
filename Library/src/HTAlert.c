@@ -63,8 +63,9 @@ PUBLIC BOOL HTAlertCall_add (HTList * list, HTAlertCallback * cbf,
     if (WWWTRACE) 
 	TTYPrint(TDEST, "Alert Add... HTAlertCallback %p\n", (void *) cbf);
     if (list && cbf) {
-	HTAlert *me = (HTAlert *) calloc(1, sizeof(HTAlert));
-	if (!me) outofmem(__FILE__, "HTAlertCall_add");
+	HTAlert *me;
+	if ((me = (HTAlert  *) HT_CALLOC(1, sizeof(HTAlert))) == NULL)
+	    HT_OUTOFMEM("HTAlertCall_add");
 	me->cbf = cbf;
 	me->opcode = opcode;
 	return HTList_addObject(list, (void *) me);
@@ -86,7 +87,7 @@ PUBLIC BOOL HTAlertCall_delete (HTList * list, HTAlertCallback *cbf)
 	while ((pres = (HTAlert *) HTList_nextObject(cur))) {
 	    if (pres->cbf == cbf) {
 		HTList_removeObject(list, (void *) pres);
-		free(pres);
+		HT_FREE(pres);
 		return YES;
 	    }
 	}
@@ -107,7 +108,7 @@ PUBLIC BOOL HTAlertCall_deleteAll (HTList * list)
 	HTAlert *pres;
 	while ((pres = (HTAlert *) HTList_nextObject(cur))) {
 	    HTList_removeObject(list, (void *) pres);
-	    free(pres);
+	    HT_FREE(pres);
 	}
 	HTList_delete(list);
 	return YES;
@@ -170,8 +171,9 @@ PUBLIC HTAlertCallback * HTAlert_find (HTAlertOpcode opcode)
 
 PUBLIC HTAlertPar * HTAlert_newReply (void)
 {
-    HTAlertPar * me = (HTAlertPar *) calloc(1, sizeof(HTAlertPar));
-    if (!me) outofmem(__FILE__, "HTAlert_newReply");
+    HTAlertPar * me;
+    if ((me = (HTAlertPar  *) HT_CALLOC(1, sizeof(HTAlertPar))) == NULL)
+        HT_OUTOFMEM("HTAlert_newReply");
     return me;
 }
 
@@ -181,7 +183,7 @@ PUBLIC HTAlertPar * HTAlert_newReply (void)
 */
 PUBLIC void HTAlert_deleteReply (HTAlertPar * old)
 {
-    if (old) free(old);
+    if (old) HT_FREE(old);
 }
 
 PUBLIC char * HTAlert_replyMessage (HTAlertPar * me)

@@ -131,8 +131,10 @@ PRIVATE HTList * loaded_texts;	/* A list of all those in memory */
 PUBLIC HText *	HText_new (HTRequest * request, HTParentAnchor * anchor)
 {
     HTLine * line;
-    HText * self = (HText *) malloc(sizeof(*self));
-    if (!self) return self;
+    HText * self;
+    if ((self = (HText  *) HT_MALLOC(sizeof(*self))) == NULL)
+/*        HT_OUTOFMEM("HText"); */
+	return self;
     
     if (!loaded_texts) loaded_texts = HTList_new();
     HTList_addObject(loaded_texts, self);
@@ -142,8 +144,8 @@ PUBLIC HText *	HText_new (HTRequest * request, HTParentAnchor * anchor)
         HText_free((HText *)HTList_removeFirstObject(loaded_texts));
     }
     
-    line = self->last_line = (HTLine *)malloc(LINE_SIZE(MAX_LINE));
-    if (line == NULL) outofmem(__FILE__, "HText_New");
+    if ((line = self->last_line = (HTLine *) HT_MALLOC(LINE_SIZE(MAX_LINE))) == NULL)
+	HT_OUTOFMEM("HText_New");
     line->next = line->prev = line;
     line->offset = line->size = 0;
     self->lines = self->chars = 0;
@@ -167,8 +169,8 @@ PUBLIC HText *	HText_new (HTRequest * request, HTParentAnchor * anchor)
     
     if (!space_string) {	/* Make a blank line */
         char *p;
-	space_string = (char *)malloc(HTScreenWidth+1);
-	if (space_string == NULL) outofmem(__FILE__, "HText_New");
+	if ((space_string = (char  *) HT_MALLOC(HTScreenWidth+1)) == NULL)
+	    HT_OUTOFMEM("HText_New");
         for (p=space_string; p<space_string+HTScreenWidth; p++) 
             *p = ' '; 		/* Used for printfs later */
         space_string[HTScreenWidth] = '\0'; 
@@ -209,16 +211,16 @@ PUBLIC void hyperfree (HText *  self)
 	l->next->prev = l->prev;
 	l->prev->next = l->next;	/* Unlink l */
 	self->last_line = l->prev;
-	free(l);
+	HT_FREE(l);
 	if (l == self->last_line) break;	/* empty */
     };
     
     while(self->first_anchor) {		/* Free off anchor array */
         TextAnchor * l = self->first_anchor;
 	self->first_anchor = l->next;
-	free(l);
+	HT_FREE(l);
     }
-    free(self);
+    HT_FREE(self);
     if (self == HTMainText)                       	  /* Henrik 24/02-94 */
 	HTMainText = NULL;
 }
@@ -323,10 +325,12 @@ PRIVATE void display_title (HText * text)
 #else
     if (!text->target) TTYPrint(STDOUT, format, title, percent);
     else {
-    	char * line = (char*)malloc(HTScreenWidth+10);
+    	char * line;
+    	if ((line = (char *) HT_MALLOC(HTScreenWidth+10)) == NULL)
+    	    HT_OUTOFMEM("display_titile");
         sprintf(line, format, title, percent);
 	PUTS(line);
-	free(line);
+	HT_FREE(line);
     }
 #endif
 }
@@ -472,9 +476,10 @@ PRIVATE void split_line (HText * text, int split)
 /*	Make new line
 */
     HTLine * previous = text->last_line;
-    HTLine * line = (HTLine *) malloc(LINE_SIZE(MAX_LINE));
-    
-    if (line == NULL) outofmem(__FILE__, "split_line");
+    HTLine * line;
+    if ((line = (HTLine  *) HT_MALLOC(LINE_SIZE(MAX_LINE))) == NULL)
+        HT_OUTOFMEM("split_line");
+
     text->lines++;
     
     previous->next->prev = line;
@@ -507,8 +512,8 @@ PRIVATE void split_line (HText * text, int split)
     	(previous->data[previous->size-1] == ' '))	/* Strip trailers */
         previous->size--;
 
-    previous = (HTLine *) realloc (previous, LINE_SIZE(previous->size));
-    if (previous == NULL) outofmem(__FILE__, "split_line");
+    if ((previous = (HTLine  *) HT_REALLOC(previous, LINE_SIZE(previous->size))) == NULL)
+        HT_OUTOFMEM("split_line");
 #endif /* ultrix */
 #endif /* AIX */
 
@@ -725,8 +730,10 @@ PUBLIC void HText_appendCharacter (HText * text, char ch)
 */
 PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anc)
 {
-    TextAnchor * a = (TextAnchor *) malloc(sizeof(*a));
     char marker[100];
+    TextAnchor * a;
+    if ((a = (TextAnchor  *) HT_MALLOC(sizeof(*a))) == NULL)
+        HT_OUTOFMEM("HText_beginAnchor");
     
     if (a == NULL) outofmem(__FILE__, "HText_beginAnchor");
     a->start = text->chars + text->last_line->size;

@@ -342,7 +342,7 @@ PRIVATE int HTMLGen_free (HTStructured * me)
     HTMLGen_flush(me);
     PUT_CHAR('\n');
     (*me->target->isa->_free)(me->target);
-    free(me);
+    HT_FREE(me);
     return HT_OK;
 }
 
@@ -397,15 +397,16 @@ PUBLIC HTStructured* HTMLGenerator (HTRequest *	request,
 				    HTFormat	output_format,
 				    HTStream *	output_stream)
 {
-    HTStructured* me = (HTStructured *) calloc(1, sizeof(HTStructured));
-    if (me == NULL) outofmem(__FILE__, "HTMLGenerator");
+    HTStructured* me;
+    if ((me = (HTStructured  *) HT_CALLOC(1, sizeof(HTStructured))) == NULL)
+        HT_OUTOFMEM("HTMLGenerator");
     me->isa = &HTMLGeneration;       
     me->dtd = &HTMLP_dtd;
     if ((me->target = HTStreamStack(WWW_HTML, output_format, output_stream,
 				    request, YES)) == NULL) {
 	if (STREAM_TRACE)
 	    TTYPrint(TDEST, "HTMLGen..... Can't convert to media type\n");
-	free(me);
+	HT_FREE(me);
 	me->target = HTErrorStream();
     }
     me->write_pointer = me->buffer;
@@ -449,8 +450,9 @@ PUBLIC HTStream* HTPlainToHTML (HTRequest *	request,
 {
     BOOL present[MAX_ATTRIBUTES];	/* Flags: attribute is present? */
     CONST char *value[MAX_ATTRIBUTES];	/* malloc'd strings or NULL if none */
-    HTStructured* me = (HTStructured*)calloc(1,sizeof(*me));
-    if (me == NULL) outofmem(__FILE__, "PlainToHTML");
+    HTStructured* me;
+    if ((me = (HTStructured *) HT_CALLOC(1,sizeof(*me))) == NULL)
+        HT_OUTOFMEM("PlainToHTML");
     
     memset((void *) present, '\0', MAX_ATTRIBUTES);
     memset((void *) value, '\0', MAX_ATTRIBUTES*sizeof(char *));

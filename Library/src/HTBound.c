@@ -149,8 +149,8 @@ PRIVATE int HTBoundary_free (HTStream * me)
 	    return HT_WOULD_BLOCK;
     }
     if (PROT_TRACE) TTYPrint(TDEST, "Boundary.... FREEING....\n");
-    FREE(me->boundary);
-    free(me);
+    HT_FREE(me->boundary);
+    HT_FREE(me);
     return status;
 }
 
@@ -159,8 +159,8 @@ PRIVATE int HTBoundary_abort (HTStream * me, HTList * e)
     int status = HT_ERROR;
     if (me->target) status = (*me->target->isa->abort)(me->target, e);
     if (PROT_TRACE) TTYPrint(TDEST, "Boundary.... ABORTING...\n");
-    FREE(me->boundary);
-    free(me);
+    HT_FREE(me->boundary);
+    HT_FREE(me);
     return status;
 }
 
@@ -181,8 +181,9 @@ PUBLIC HTStream * HTBoundary   (HTRequest *	request,
 				HTFormat	output_format,
 				HTStream *	output_stream)
 {
-    HTStream * me = (HTStream *) calloc(1, sizeof(HTStream));
-    if (!me) outofmem(__FILE__, "HTBoundary");
+    HTStream * me;
+    if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
+        HT_OUTOFMEM("HTBoundary");
     me->isa = &HTBoundaryClass;
     me->request = request;
     me->format = output_format;
@@ -197,7 +198,7 @@ PUBLIC HTStream * HTBoundary   (HTRequest *	request,
 	return me;
     } else {
 	if (STREAM_TRACE) TTYPrint(TDEST, "Boundary.... <UNKNOWN>\n");
-	free(me);
+	HT_FREE(me);
 	return HTErrorStream();
     }
 }

@@ -471,9 +471,9 @@ PUBLIC char * HTWWWToLocal (CONST char * url, CONST char * base)
 	     myhost && strcmp(host, myhost))) {
 	    if (PROT_TRACE)
 		TTYPrint(TDEST, "LocalName... Not on local file system\n");
-	    free(access);
-	    free(host);
-	    free(path);
+	    HT_FREE(access);
+	    HT_FREE(host);
+	    HT_FREE(path);
 	    return NULL;
 	} else {
 	    char *ptr;
@@ -497,8 +497,8 @@ PUBLIC char * HTWWWToLocal (CONST char * url, CONST char * base)
 	    HTUnEscape(path);		  /* Take out the escaped characters */
 	    if (PROT_TRACE)
 		TTYPrint(TDEST, "Node........ `%s' means path `%s'\n",url,path);
-	    free(access);
-	    free(host);
+	    HT_FREE(access);
+	    HT_FREE(host);
 	    return path;
 	}
     }

@@ -123,8 +123,8 @@ PRIVATE void RightStr (char **outstr, char * instr, int l)
 PRIVATE HTDirNode * HTDirNode_new (void)
 {
     HTDirNode *node;
-    if ((node = (HTDirNode *) calloc(1, sizeof(HTDirNode))) == NULL)
-	outofmem(__FILE__, "HTDirNode_new");
+    if ((node = (HTDirNode *) HT_CALLOC(1, sizeof(HTDirNode))) == NULL)
+        HT_OUTOFMEM("HTDirNode_new");
     return node;
 }
 
@@ -134,11 +134,11 @@ PRIVATE HTDirNode * HTDirNode_new (void)
 PRIVATE BOOL HTDirNode_free (HTDirNode *node)
 {
     if (node) {
-	FREE(node->fname);
-	FREE(node->date);
-	FREE(node->size);
-	FREE(node->note);
-	free(node);
+	HT_FREE(node->fname);
+	HT_FREE(node->date);
+	HT_FREE(node->size);
+	HT_FREE(node->note);
+	HT_FREE(node);
 	return YES;
     }
     return NO;
@@ -175,17 +175,18 @@ PRIVATE BOOL HTDirNode_print (HTDir *dir, HTDirNode *node)
 	/* Start the anchor element */
 	if (dir->base) {
 	    char *escaped = HTEscape(node->fname, URL_XPALPHAS);
-	    char *full = malloc(strlen(escaped)+strlen(dir->base)+1);
-	    if (!full) outofmem(__FILE__, "HTDirNode_print");
+	    char *full;
+	    if ((full = HT_MALLOC(strlen(escaped)+strlen(dir->base)+1)) == NULL)
+		HT_OUTOFMEM("HTDirNode_print");
 	    strcpy(full, dir->base);
 	    strcat(full, escaped);
 	    HTStartAnchor(target, NULL, full);
-	    free(escaped);
-	    free(full);
+	    HT_FREE(escaped);
+	    HT_FREE(full);
 	} else {
 	    char *escaped = HTEscape(node->fname, URL_XPALPHAS);
 	    HTStartAnchor(target, NULL, escaped);
-	    free(escaped);
+	    HT_FREE(escaped);
 	}
 
 	if (dir->show & HT_DS_HOTI) {
@@ -196,17 +197,18 @@ PRIVATE BOOL HTDirNode_print (HTDir *dir, HTDirNode *node)
     } else {
 	if (dir->base) {
 	    char *escaped = HTEscape(node->fname, URL_XPALPHAS);
-	    char *full = malloc(strlen(escaped)+strlen(dir->base)+1);
-	    if (!full) outofmem(__FILE__, "HTDirNode_print");
+	    char *full;
+	    if ((full = HT_MALLOC(strlen(escaped)+strlen(dir->base)+1)) == NULL)
+		HT_OUTOFMEM("HTDirNode_print");
 	    strcpy(full, dir->base);
 	    strcat(full, escaped);
 	    HTStartAnchor(target, NULL, escaped);
-	    free(escaped);
-	    free(full);
+	    HT_FREE(escaped);
+	    HT_FREE(full);
 	} else {
 	    char *escaped = HTEscape(node->fname, URL_XPALPHAS);
 	    HTStartAnchor(target, NULL, escaped);
-	    free(escaped);
+	    HT_FREE(escaped);
 	}
     }
     
@@ -329,9 +331,9 @@ PUBLIC HTDir * HTDir_new (HTRequest * request, HTDirShow show, HTDirKey key)
     if (!request) return NULL;
 
     /* Create object */
-    if ((dir = (HTDir *) calloc(1, sizeof (HTDir))) == NULL ||
-	(dir->fnbuf = (char *) malloc(MaxFileW+HT_DLEN_SPACE)) == NULL)
-	outofmem(__FILE__, "HTDir_new");
+    if ((dir = (HTDir *) HT_CALLOC(1, sizeof (HTDir))) == NULL ||
+	(dir->fnbuf = (char *) HT_MALLOC(MaxFileW+HT_DLEN_SPACE)) == NULL)
+	HT_OUTOFMEM("HTDir_new");
     dir->target = HTMLGenerator(request, NULL, WWW_HTML,
 			       HTRequest_outputFormat(request),
 			       HTRequest_outputStream(request));
@@ -352,8 +354,8 @@ PUBLIC HTDir * HTDir_new (HTRequest * request, HTDirShow show, HTDirKey key)
 	if (show & HT_DS_SIZE) len += (HT_DLEN_SIZE+HT_DLEN_SPACE);
 	if (show & HT_DS_DATE) len += (HT_DLEN_DATE+HT_DLEN_SPACE);
 	if (show & HT_DS_DES) len += HT_DLEN_DES;
-	if ((dir->lnbuf = (char *) malloc(len)) == NULL)
-	    outofmem(__FILE__, "HTDir_new");
+	if ((dir->lnbuf = (char *) HT_MALLOC(len)) == NULL)
+	    HT_OUTOFMEM("HTDir_new");
     }
 
     /* Find the title and the base URL */
@@ -371,8 +373,8 @@ PUBLIC HTDir * HTDir_new (HTRequest * request, HTDirShow show, HTDirKey key)
 	}
 	if (PROT_TRACE) TTYPrint(TDEST, "HTDir_new... base is `%s\'\n",
 				dir->base ? dir->base : "");
-	free(addr);
-	free(path);
+	HT_FREE(addr);
+	HT_FREE(path);
     }
 
     /* Start the HTML stuff */
@@ -391,7 +393,7 @@ PUBLIC HTDir * HTDir_new (HTRequest * request, HTDirShow show, HTDirKey key)
 	PUTS(title);
 	END(HTML_H1);
     }
-    FREE(title);
+    HT_FREE(title);
     return dir;
 }
 
@@ -497,9 +499,9 @@ PUBLIC BOOL HTDir_free (HTDir * dir)
 	FREE_TARGET;
     }
 
-    FREE(dir->fnbuf);
-    FREE(dir->lnbuf);
-    FREE(dir->base);
-    free(dir);
+    HT_FREE(dir->fnbuf);
+    HT_FREE(dir->lnbuf);
+    HT_FREE(dir->base);
+    HT_FREE(dir);
     return YES;
 }

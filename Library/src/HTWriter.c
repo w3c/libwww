@@ -77,7 +77,8 @@ PRIVATE int HTWriter_write (HTStream * me, CONST char * buf, int len)
 	char *orig=buf;
 	char *dest;
 	int cnt;
-	me->ascbuf = (char *) malloc(len);
+	if ((me->ascbuf = (char  *) HT_MALLOC(len)) == NULL)
+	    HT_OUTOFMEM("me->ascbuf ");
 	dest = me->ascbuf;
 	for (cnt=0; cnt<len; cnt++) {
 	    *dest = TOASCII(*orig);
@@ -127,7 +128,7 @@ PRIVATE int HTWriter_write (HTStream * me, CONST char * buf, int len)
 	}
     }
 #ifdef NOT_ASCII
-    FREE(me->ascbuf);
+    HT_FREE(me->ascbuf);
 #else
     me->wptr = NULL;
 #endif
@@ -164,7 +165,7 @@ PRIVATE int HTWriter_free (HTStream * me)
 	if (NETCLOSE(me->sockfd) < 0)
 	    status = HT_ERROR;
     }
-    free(me);
+    HT_FREE(me);
     return status;
 }
 
@@ -172,7 +173,7 @@ PRIVATE int HTWriter_abort (HTStream * me, HTList * e)
 {
     if (!me->leave_open)
 	NETCLOSE(me->sockfd);
-    free(me);
+    HT_FREE(me);
     return HT_ERROR;
 }
 
@@ -197,8 +198,9 @@ PRIVATE CONST HTStreamClass HTWriter =
 */
 PUBLIC HTStream* HTWriter_new (HTNet *net, BOOL leave_open)
 {
-    HTStream* me = (HTStream *) calloc(1, sizeof(HTStream));
-    if (me == NULL) outofmem(__FILE__, "HTWriter_new");
+    HTStream* me;
+    if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
+        HT_OUTOFMEM("HTWriter_new");
     me->isa = &HTWriter;       
     me->leave_open = leave_open;
     me->sockfd = net->sockfd;
@@ -222,8 +224,9 @@ PUBLIC HTStream* HTBufWriter_new (HTNet *net, BOOL leave_open, int buf_size)
 #ifdef NOT_ASCII
 PUBLIC HTStream * HTASCIIWriter (HTNet *net, BOOL leave_open)
 {
-    HTStream * me = (HTStream *) calloc(1, sizeof(*me));
-    if (me == NULL) outofmem(__FILE__, "HTASCIIWriter_new");
+    HTStream * me;
+    if ((me = (HTStream  *) HT_CALLOC(1, sizeof(*me))) == NULL)
+        HT_OUTOFMEM("HTASCIIWriter_new");
     me->isa = &HTWriter;       
     me->leave_open = leave_open;
     me->make_ascii = YES;
