@@ -25,6 +25,27 @@ These are the things that are upcoming in the next release.
 </H3>
 <UL>
   <LI>
+    Added handler for unknown content encodings in the
+    <A HREF="../../ComLine/">Command Line tool</A> to be a through line (identity
+    decoding) using the <A HREF="#bestmatch">best matching mechanism</A>
+  <LI>
+    Added support for <A HREF="../src/HTProxy.html">regex handling of proxies</A>
+    so that you can now say something like this: all URIs matching this regex
+    goes to this proxy, all others go to this, etc.
+  <LI>
+    Better control of how much data is being sent in the
+    <A HREF="../src/HTReq.html" REQUEST OBJECT &lt; / A>. Now you can both get
+    the total number of bytes read and written as well as the number of entity
+    (body) bytes read and written. This uses features provided by the HTNet object
+    </A>
+  <LI>
+    The default implementation of <A HREF="../src/HTDialog.c">progress
+    notifications</A> now uses the new HTRequest bytes read/written methods.
+  <LI>
+    The mime parser in <A HREF="../src/HTMIME.c">HTMIME.c</A> and
+    <A HREF="../src/HTMIMERq.c">HTMIMERq.c</A> now uses the updated control of
+    bytes read/written.
+  <LI>
     Added support for version conflict detection in <A HREF="../../WinCom/">Web
     Commander</A> (update all of WinCom area)
   <LI>
@@ -35,6 +56,24 @@ These are the things that are upcoming in the next release.
   Bug Fixes
 </H3>
 <UL>
+  <LI>
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTAccess.c?r1=1.144&amp;r2=1.145">Remove
+    access authentication credentials</A> duplicates when doing the HTSaveFilter
+    on the same resource
+  <LI>
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTAnchor.c?r1=1.77&amp;r2=1.78">Checks
+    that etags are not the same when setting a new one</A>. This caused first
+    the old (which was also the new) to be deleted and then created again.
+  <LI>
+    Fixed HTTP POST problem where small post data didn't always get posted. This
+    affects several files including
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTMIME.c?r1=2.88&amp;r2=2.89">HTMIME.c</A>
+    and
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTMIMERq.c?r1=2.38&amp;r2=2.39">HTMIMERq.c</A>
+  <LI>
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTTP.c?r1=1.164&amp;r2=1.165">Fixed
+    HTTP PUT problem</A> when a 100 Continue code came more than 2 secs after
+    the request.
   <LI>
     <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTTP.c?r1=1.163&amp;r2=1.164">Added
     interrupt alert message</A> to <A HREF="../../src/HTTP.c">HTTP.c</A>
@@ -71,12 +110,12 @@ These are the things that are upcoming in the next release.
     <A HREF="../src/HTReq.html">HTReq.html</A> and
     <A HREF="../src/HTReqMan.html">HTReqMan.html</A>
   <LI>
-    Changed the <A HREF="../src/HTFormat.html#encoding">encoding streamstack
-    builder</A> to support <EM>best matching</EM> (wildcard matching) capabilities.
-    This means that you now can register a default decoder like this:
-    <CODE>HTFormat_addCoding("*", HTIdentityCoding, HTIdentityCoding, 0.3)</CODE>,
-    for example where <CODE>HTIdentityCoding</CODE> is a coder provided by libwww.
-    The quality indicates how much you like it (between 0.0 and 1.0)
+    Changed the <A NAME="bestmatch" HREF="../src/HTFormat.html#encoding">encoding
+    streamstack builder</A> to support <EM>best matching</EM> (wildcard matching)
+    capabilities. This means that you now can register a default decoder like
+    this: <CODE>HTFormat_addCoding("*", HTIdentityCoding, HTIdentityCoding,
+    0.3)</CODE>, for example where <CODE>HTIdentityCoding</CODE> is a coder provided
+    by libwww. The quality indicates how much you like it (between 0.0 and 1.0)
   <LI>
     <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTProxy.c?r1=2.15&amp;r2=2.16">Now
     also removes the after authentication filter is all proxies are
@@ -117,10 +156,10 @@ These are the things that are upcoming in the next release.
     <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTWWWStr.c?r1=2.26&amp;r2=2.27">Fixed
     bug in the conversion from URI to local Windows file in HTWWWToLocal()</A>
   <LI>
-    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTAABrow.c?r1=2.46&amp;r2=2.47">Fixed
-    problem in the template generation in the access authentication module</A>.
-    This can cause the authentication module to not find the credentials already
-    given.
+    <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTAABrow.c?r1=2.46&amp;r2=2.47"
+	NAME="Auth1">Fixed problem in the template generation in the access
+    authentication module</A>. This can cause the authentication module to not
+    find the credentials already given.
   <LI>
     <A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/src/HTHost.c?r1=2.46&amp;r2=2.47">Fixed
     strange deletion of semaphore control for non-persistent connections</A>
@@ -142,11 +181,10 @@ These are the things that are upcoming in the next release.
 </H3>
 <UL>
   <LI>
-    Changed the <A HREF="../src/HTFormat.html#encoding">encoding
-    streamstack builder</A> to support <EM>best matching</EM>
-    capabilities. This means that you now can register a default
-    decoder like this: <CODE>HTFormat_addCoding("*", HTIdentityCoding,
-    HTIdentityCoding, 0.3)</CODE>, for example where
+    Changed the <A HREF="../src/HTFormat.html#encoding">encoding streamstack
+    builder</A> to support <EM>best matching</EM> capabilities. This means that
+    you now can register a default decoder like this: <CODE>HTFormat_addCoding("*",
+    HTIdentityCoding, HTIdentityCoding, 0.3)</CODE>, for example where
     <CODE>HTIdentityCoding</CODE> is a coder provided by libwww.
   <LI>
     Added support for <A HREF="../src/HTMIMERq.html">writing out <TT>Link:</TT>

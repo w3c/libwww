@@ -1,0 +1,45 @@
+<HTML>
+<HEAD>
+  <TITLE>External Software Packages</TITLE>
+</HEAD>
+<BODY BGCOLOR="#ffffff">
+<P>
+<A HREF="../../"><IMG ALT="W3C" SRC="../../Icons/WWW/w3c_home" BORDER="0"></A>
+<A HREF="../"><IMG ALT="libwww" SRC="../../Icons/WWW/Lib48x" BORDER="0"></A>
+<H1>
+  External Software Packages
+</H1>
+<P>
+Libwww can work with a set of other freely available software packages which
+greatly can augmunt the capabilities of libwww and applications that you
+build on top.
+<P>
+On Unix, this is all handled very well by the
+<A HREF="../../INSTALL.html#Unix">autoconf configure script</A> but on Windows,
+the setup is somewhat more tricky as you need to manually edit the
+<A HREF="../src/windows/config.h">config.h</A> file and have the right DLLs
+in the right places. In order to make it easier for you to get bootstrapped
+on Windows, I have included
+<A HREF="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/External/">DLLs
+for some of these software packages</A> in the <A HREF="../cvs.html">libwww
+CVS tree</A>:
+<UL>
+  <LI>
+    <A HREF="http://people.delphi.com/gjc/gnu_regex.html">GNU Regular Expressions
+    DLLs</A>
+  <LI>
+    <A HREF="http://www.winimage.com/zLibDll/">ZLib Compression DLLs</A>
+</UL>
+<P>
+You should of course always check the web sites for these packages to get
+up to date information on the latest versions, etc. You can find the full
+set of supported packages in the <A HREF="../../INSTALL.html#Windows">detailed
+installation instructions</A> and also information for how to link libwww
+with these packages.
+<P>
+  <HR>
+<ADDRESS>
+  <A HREF="/People/Frystyk/">Henrik Frystyk Nielsen</A>,<BR>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>
