@@ -1,7 +1,7 @@
 /*							              HTWrite.c
 **	FILE WRITER BASED ON A SOCKFD
 **
-**	(c) COPYRIGHT CERN 1994.
+**	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	This is a try with a non-buffered output stream which remembers

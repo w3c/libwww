@@ -1,7 +1,7 @@
 /*								     HTMLPDTD.c
 **	STATIC DTD FOR HTML
 **
-**	(c) COPYRIGHT CERN 1994.
+**	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	 6 Nov 93	MD	Increased size of img_attr array to make space

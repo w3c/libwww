@@ -1,7 +1,7 @@
 /*									 SGML.c
 **	GENERAL SGML PARSER CODE
 **
-**	(c) COPYRIGHT CERN 1994.
+**	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	This module implements an HTStream object. To parse an

@@ -1,7 +1,7 @@
 /* 							       	      HTAssoc.c
 **	ASSOCIATION LIST FOR STORING NAME-VALUE PAIRS.
 **
-**	(c) COPYRIGHT CERN 1994.
+**	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	NAMES NOT CASE SENSITIVE, AND ONLY COMMON LENGTH

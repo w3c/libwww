@@ -1,6 +1,6 @@
 #	Makefile for WorldWideWeb    Line Mode browser (www)
 #
-#	(c) COPYRIGHT CERN 1994.
+#	(c) COPYRIGHT MIT 1995.
 #	Please first read the full copyright statement in the file COPYRIGH.
 #
 # This file should be invariant between systems.
@@ -71,6 +71,7 @@ SOURCES = $(LM)HTBrowse.c	$(LM)HTBrowse.h \
 	$(WWW)/README		$(WWW)/COPYRIGH \
 	$(WWW)/BUILD		$(WWW)/BUILD.SH \
 	$(WWW)/PATCHES		$(WWW)/Makefile \
+	$(WWW)/CERN \
  	$(LM)a_stdio.g		$(LM)a_stdio.h
 
 DISTRIBUTION = \
@@ -259,7 +260,7 @@ $(OBJ)/a_stdio.o : $(OE) $(LM)a_stdio.g $(LM)a_stdio.h
 # For W3 Administrative use only:
 
 #	Source Destribution
-distribute : $(WWW)/README $(WWW)/COPYRIGHT $(WWW)/PATCHES $(SOURCES)
+distribute : $(WWW)/README $(WWW)/COPYRIGHT $(WWW)/PATCHES $(WWW)/CERN $(SOURCES)
 	(cd $(WWW)/.. && WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 	-f WWW/LineMode/Implementation/Version.make \
 	-f WWW/LineMode/Implementation/CommonMakefile \
@@ -288,6 +289,9 @@ $(WWW)/COPYRIGHT : $(WWW)/../COPYRIGHT.html
 
 $(WWW)/PATCHES : $(WWW)/../PATCHES.html
 	www -p -na http://www.w3.org/hypertext/WWW/PATCHES.html -o $(WWW)/PATCHES
+
+$(WWW)/CERN : $(WWW)/../CERN.html
+	www -p -na http://www.w3.org/hypertext/WWW/CERN.html -o $(WWW)/CERN
 
 #	Line Mode Manual
 #

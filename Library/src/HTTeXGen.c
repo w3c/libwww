@@ -1,7 +1,7 @@
 /*								     HTTeXGen.c
 **	HTML -> LaTeX CONVERTER
 **
-**	(c) COPYRIGHT CERN 1994.
+**	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 **
 ** 	This version of the HTML object sends LaTeX to the output stream.

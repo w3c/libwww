@@ -1,7 +1,7 @@
 /*								     HTNetTxt.c
 **	NETWORK TELNET TO INTERNAL CHARACTER TEXT AND VISE VERSA
 **
-**	(c) COPYRIGHT CERN 1994.
+**	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	The input is assumed to be in local representation with lines

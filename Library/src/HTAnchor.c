@@ -1,7 +1,7 @@
 /*								     HTAnchor.c
 **	HYPERTEXT "ANCHOR" OBJECT
 **
-**	(c) COPYRIGHT CERN 1994.
+**	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	An anchor represents a region of a hypertext document which is

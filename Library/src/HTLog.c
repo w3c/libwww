@@ -1,7 +1,7 @@
 /*								   HTLog.c
 **	LOGGING MODULE
 **
-**	(c) COPYRIGHT CERN 1994.
+**	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	This module contains a simple logging mechanism for requests.

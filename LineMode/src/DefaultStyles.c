@@ -1,7 +1,7 @@
 /*							        DefaultStyles.c
 **	A REAL STYLE SHEET FOR THE CHARACTER GRID BROWSER
 **
-**	(c) COPYRIGHT CERN 1994.
+**	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	The dimensions are all in characters!

@@ -1,7 +1,7 @@
 /*									 HTTP.c
 **	MULTITHREADED IMPLEMENTATION OF HTTP CLIENT
 **
-**	(c) COPYRIGHT CERN 1994.
+**	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	This module implments the HTTP protocol as a state machine
