@@ -1,0 +1,56 @@
+===================================================================
+RCS file: /afs/w3.org/hypertext/WWW/Library/Repository/Implementation/HTTP.c,v
+retrieving revision 1.79
+diff -c -r1.79 HTTP.c
+*** 1.79	1995/03/21 20:44:20
+--- /Library/Implementation/HTTP.c	1995/07/10 03:19:05
+***************
+*** 492,498 ****
+  				     req->output_format, req->output_stream);
+  	    PUTBLOCK(me->buffer, me->cnt);
+  	} else {
+! 	    if (req->output_format == WWW_SOURCE) {
+  		me->target = HTMIMEConvert(req, NULL, WWW_MIME,
+  					   req->output_format,
+  					   req->output_stream);
+--- 492,521 ----
+  				     req->output_format, req->output_stream);
+  	    PUTBLOCK(me->buffer, me->cnt);
+  	} else {
+! 	    if (me->status==200) {
+! 		HTStream *s;
+! 		if (req->output_format == WWW_SOURCE) {
+! 		    me->target = HTMIMEConvert(req, NULL, WWW_MIME,
+! 					       req->output_format,
+! 					       req->output_stream);
+! 		} else {
+! 		    me->target = HTStreamStack(WWW_MIME, req->output_format,
+! 					       req->output_stream, req, NO);
+! 	    
+! 		    if (req->method==METHOD_GET && HTCacheDir &&
+! 			(s = HTCacheWriter(req, NULL, WWW_MIME,
+! 					   req->output_format,
+! 					   req->output_stream))) {
+! 			me->target = HTTee(me->target, s);
+! 		    }
+! 		}
+! 	    } else {
+! 		me->target = HTMIMEConvert(req,NULL, WWW_MIME, WWW_SOURCE,
+! 					   req->output_flush);
+! 	    }
+! 
+! #if 0
+!     if (req->output_format == WWW_SOURCE) {
+  		me->target = HTMIMEConvert(req, NULL, WWW_MIME,
+  					   req->output_format,
+  					   req->output_stream);
+***************
+*** 516,521 ****
+--- 539,545 ----
+  					   WWW_SOURCE, req->output_flush ?
+  					   req->output_flush : HTBlackHole());
+  	    }
++ #endif
+  	    if (!me->target)
+  		me->target = HTBlackHole();			/* What else */
+  	}

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Known Bugs in W3C Reference Library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 16-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 23-Oct-1995 -->
 </HEAD>
 <BODY>
 
@@ -68,12 +68,32 @@ in the Library doesn't know the timezone of the remote FTP server and
 hence doesn't know when DSR is enabled or disabled. This is fixed in
 the next version
 
-<DT>Bug if more than 20 nested HTML tags
+<DT><A HREF="../Patch/lib_3.1_1.fix">Problem with nested HTML tags in the HTML parser</A>
 
-<DD>A bug which makes the HTML parser crash. You can use the <A
-HREF="../Patch/lib-1.fix">following patch</A> for it.
+<DD>A bug which makes the HTML parser crash if is gets more than 20 nested HTML tags
 
 </UL>
+
+<H2>Library 3.0</H2>
+
+<DL>
+
+<DT><A HREF="../Patch/lib_3.0_1.fix">Problems with redicection</A>
+
+<DD>Until now all HTTP servers have sent back a small HTML document with a 
+redirection message going:
+
+<PRE>
+	If you can see this message then your browser
+	does not support automatic redirection.
+</PRE>
+
+However, new severs like Netscape and other servers don't send this
+and hence no stream should be set up. This confuses the Library and it
+dumps core.
+
+</DL>
+
 
 <P>
 <HR>

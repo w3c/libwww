@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Known Bugs in Line Mode Browser</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 16-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 23-Oct-1995 -->
 </HEAD>
 <BODY>
 
@@ -48,14 +48,13 @@ the <CODE>WWW</CODE> directory:
 <H2>Version 3.1</H2>
 
 <DL>
-<DT>Problem running from scripts or as a cron job
+<DT><A HREF="Patch/lmb_3.1_1.fix">Problem running from scripts or as a cron job</A>
 
 <DD>Version 3.1 of the Line Mode Browser registers STDIN as an channel
 for user input. If the browser is run as a cron job then STDIN comes
 from <CODE>/dev/null</CODE> which always returns ready for reading in
 a select call. Line Mode browser then thinks that the user has
-interrupted the request and exists. Apply <A
-HREF="Patch/lmb-1.fix">this patch</A> in order to avoid the problem.
+interrupted the request and exists.
 
 </DL>
 
