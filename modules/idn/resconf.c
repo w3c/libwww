@@ -18,6 +18,7 @@ static char *rcsid = "$Id$";
 
 /* changes: MJD 2003-03-20: removed call to getregistrystring
  *          MJD 2003-03-20: removed localencoding.h
+ *          MJD 2003-03-21: set WITHOUT_ICONV
  */
 
 /* Original sources are: */
@@ -62,6 +63,8 @@ static char *rcsid = "$Id$";
  *    OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  *    ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
+
+#define WITHOUT_ICONV
 
 #include <config.h>
 

@@ -17,7 +17,8 @@ static char *rcsid = "$Id$";
  */
 
 /* changes: MJD 2003-03-20: removed <race.h>
- * changes: MJD 2003-03-20: removed call to getregistrystring
+ *          MJD 2003-03-20: removed call to getregistrystring
+ *          MJD 2003-03-21: set WITHOUT_ICONV
  */
 
 /* Original sources are: */
@@ -72,6 +73,7 @@ static char *rcsid = "$Id$";
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
+#define WITHOUT_ICONV
 #ifndef WITHOUT_ICONV
 #include <iconv.h>
 #endif
