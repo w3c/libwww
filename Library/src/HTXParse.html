@@ -2,6 +2,7 @@
 <HEAD>
 <TITLE>ExtParse: Module to get unparsed stream from libwww</TITLE>
 <!-- Changed by: , 30-Nov-1994 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  2-Sep-1995 -->
 </HEAD>
 <BODY>
 
@@ -40,23 +41,18 @@ W3C Reference Library</A>.
 #include "HTAccess.h"
 
 typedef struct _HTExtParseStruct HTExtParseStruct;
-typedef void (*CallClient) PARAMS((struct _HTExtParseStruct *me));
+
+typedef void CallClient PARAMS((HTExtParseStruct *me));
+
 struct _HTExtParseStruct {
-	CallClient	call_client;
-#if 0
-	void            (*call_client)(struct _HTExtParseStruct *eps);
-#endif
-	int             used;         /* how much of the buffer is being used */
+	CallClient	*call_client;
+	int             used;         /* how much of the buffer is being used*/
 	BOOL            finished;     /* document loaded? */
         int             length;       /* how long the buffer is */
-	char *          buffer;       /* buffer to store in until client takes over*/
+	char *          buffer;       /* storage in until client takes over */
 	char *          content_type;
 	HTRequest *	request;      /* the request structure */
 };
-
-/*extern HTStream * HTExtParse PARAMS((void (*CallMeArg)()));*/
-
-/* extern void HTExtParse PARAMS((HTExtParseStruct * eps)); */
 
 extern HTStream* HTExtParse PARAMS((
 	HTRequest *		request,

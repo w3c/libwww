@@ -40,7 +40,7 @@ PUBLIC HTAtom * HTAtom_for ARGS1(CONST char *, string)
     /*		First time around, clear hash table
     */
     if (!initialised) {
-        memset(hash_table, '\0', sizeof(HTAtom *) * HASH_SIZE);
+        memset((void *) hash_table, '\0', sizeof(HTAtom *) * HASH_SIZE);
 	initialised = YES;
     }
     
@@ -88,7 +88,7 @@ PUBLIC HTAtom * HTAtom_caseFor ARGS1(CONST char *, string)
     /*		First time around, clear hash table
     */
     if (!initialised) {
-        memset(hash_table, '\0', sizeof(HTAtom *) * HASH_SIZE);
+        memset((void *) hash_table, '\0', sizeof(HTAtom *) * HASH_SIZE);
 	initialised = YES;
     }
     

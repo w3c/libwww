@@ -13,10 +13,8 @@
 #include "HTUtils.h"
 #include "HTFormat.h"			/* defines INPUT_BUFFER_SIZE */
 #include "HTXParse.h"                 /* defines HTStreamClass */
-#include "HTEPtoCl.h"               /* defines dummy routine for talking to client */
+#include "HTEPtoCl.h"         /* defines dummy routine for talking to client */
 #include "HTEvntrg.h"
-
-extern HTEventState HTCallClient PARAMS((struct _HTExtParseStruct *me));
 
 struct _HTStream {
 	CONST HTStreamClass *	isa;
@@ -57,8 +55,7 @@ PRIVATE int HTExtParse_write ARGS3(HTStream *, me, CONST char*, s, int, l)
     me->eps->buffer = (char *) realloc(me->eps->buffer, me->eps->length);
     memcpy( (me->eps->buffer + me->eps->used), s, l); 
     me->eps->used += l;
-    (*me->eps->call_client)(me->eps);         /* so that client can give status info */
-    
+    (*(me->eps->call_client))(me->eps);       /* client can give status info */
     if (TRACE)
 	fprintf(TDEST, "HTExtParse_write, l=%d, used = %d\n",l,me->eps->used);
     return HT_OK;
@@ -75,7 +72,7 @@ PRIVATE int HTExtParse_free ARGS1(HTStream *, me)
 {
     if (TRACE) fprintf(TDEST, "HTExtParse_free\n");
     me->eps->finished = YES;
-    (*me->eps->call_client)(me->eps);         /* client will free buffer */
+    (*(me->eps->call_client))(me->eps);           /* client will free buffer */
     free(me->eps);
     free(me);
     return HT_OK;

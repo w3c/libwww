@@ -231,36 +231,20 @@ PUBLIC void 	HText_free ARGS1(HText *,self)
 /*		Display Methods
 **		---------------
 */
+
 /*	Clear the screen (on screen-mode systems)
 **	----------------
 */
 PUBLIC void clear_screen NOARGS
 {
-
-    if (TRACE) return;     /* in trace mode, don't clear trace away */
+    if (TRACE)
+	return;     		    /* in trace mode, don't clear trace away */
 #ifdef CURSES
     if (w_text != NULL) {
-      wmove(w_text,0,0);
-      wclear(w_text);
+	wmove(w_text,0,0);
+	wclear(w_text);
     }
-#else
-#ifdef VM
-#ifdef NEWLIB
-    int newlib_ncmd = 2;
-    char newlib_cmd[2][80];
-
-    memset(newlib_cmd, ' ', sizeof(newlib_cmd));
-    strncpy(newlib_cmd[0], "clear", 5);		/* Clear screen */
-    strncpy(newlib_cmd[1], "quit", 4);		/* Leave newlib */
-    newlib(newlib_cmd, &newlib_ncmd);		/* Execute command */
-    
-#else		/* not NEWLIB - real VM */
-    system("CLRSCRN");				/* Clear screen */
-#endif		/* not NEWLIB */
-#else		/* Not VM */
-	/* Do nothing */
-#endif		/* Not VM */
-#endif                /* Not CURSES */
+#endif /* Not CURSES */
     if (HTMainText) HTMainText->stale = YES;
 }
 

@@ -24,15 +24,23 @@ PRIVATE HTList * protocols = NULL;           /* List of registered protocols */
 /* --------------------------------------------------------------------------*/
 
 /*
-**	Register a Protocol as an active access method
+**	Register a Protocol module as an active access method
 */
-PUBLIC BOOL HTProtocol_add ARGS1(HTProtocol *, protocol)
+PUBLIC BOOL HTProtocol_add ARGS1(HTProtocol *, prot)
 {
     if (!protocols) protocols = HTList_new();
-    HTList_addObject(protocols, (void *) protocol);
+    HTList_addObject(protocols, (void *) prot);
     return YES;
 }
 
+/*
+**	Deletes a Protocol module as an active access method
+*/
+PUBLIC BOOL HTProtocol_delete ARGS1(HTProtocol *, prot)
+{
+    return (protocols && prot) ?
+	HTList_removeObject(protocols, (void *) prot) : NO;
+}
 
 /*
 **	Delete the list of registered access methods. This is called from
@@ -51,7 +59,7 @@ PUBLIC void HTProtocol_deleteAll NOARGS
 **	Search registered protocols to find suitable one.
 **	Return YES if found, else NO
 */
-PUBLIC BOOL HTProtocol_get ARGS1(HTParentAnchor *, anchor)
+PUBLIC BOOL HTProtocol_find ARGS1(HTParentAnchor *, anchor)
 {
     if (anchor) {
 	char *access = HTParse(HTAnchor_physical(anchor), "", PARSE_ACCESS);

@@ -95,7 +95,9 @@ struct _HTStyle {
 */
 PUBLIC HTStyle* HTStyleNew NOARGS
 {
-    return (HTStyle *)calloc(1, sizeof(HTStyle));
+    HTStyle *style = (HTStyle *) calloc(1, sizeof(HTStyle));
+    if (!style) outofmem(__FILE__, "HTStyleNew");
+    return style;
 }
 
 /*	Create a new style with a name
@@ -207,14 +209,9 @@ HTStyleSheet * HTStyleSheetRemoveStyle ARGS2
 
 HTStyleSheet * HTStyleSheetNew NOARGS
 {
-    HTStyleSheet * self = (HTStyleSheet *)malloc(sizeof(*self));
-
-    memset((void*)self, 0, sizeof(*self));	/* ANSI */
-/* Harbison c ref man says (char*)self
-   but k&r ansii and abc books and Think_C say (void*) */
-    
-/*    bzero(self, sizeof(*self)); */		/* BSD */
-    return self;
+    HTStyleSheet * style = (HTStyleSheet *) calloc(1, sizeof(HTStyleSheet));
+    if (!style) outofmem(__FILE__, "HTStyleSheetNew");
+    return style;
 }
 
 
