@@ -3,7 +3,7 @@
 noinst_PROGRAMS = head libapp_1 libapp_2 libapp_3 libapp_4 init \
 	chunk chunkbody LoadToFile postform multichunk put post trace \
 	range tzcheck mget isredirected listen eventloop memput \
-	showlinks showtags showtext tiny showxml upgrade
+	showlinks showtags showtext tiny showxml upgrade cookie
 
 LDADD = \
 	-lm \
@@ -23,8 +23,13 @@ EXTRA_DIST = \
 
 PURIFY_CACHE = @PURIFY_CACHE@
 
-purify: $(tiny_OBJECTS) $(tiny_DEPENDENCIES)
+purify: $(cookie_OBJECTS) $(cookie_DEPENDENCIES)
 	-rm purify; \
 	purify -cache-dir=$(PURIFY_CACHE) \
-	$(CC) $(LDFLAGS) -o purify $(tiny_OBJECTS) \
-	../src/.libs/libwww.a -lm $(LIBS)
+	$(CC) $(LDFLAGS) -o purify $(cookie_OBJECTS) \
+	-lm \
+	../src/.libs/libwww.a \
+	../../modules/md5/.libs/libmd5.a \
+	../../modules/expat/xmlparse/.libs/libxmlparse.a \
+	../../modules/expat/xmltok/.libs/libxmltok.a \
+	$(LIBS)
