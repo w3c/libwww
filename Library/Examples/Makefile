@@ -20,8 +20,9 @@ LFLAGS2 = $(LFLAGS) -L$(LIB) -lwww $(SYSLIBS)
 EXP1 = libapp_1
 EXP2 = libapp_2
 EXP3 = libapp_3
+EXP4 = libapp_4
 
-all : $(EXP1) $(EXP2) $(EXP3)
+all : $(EXP1) $(EXP2) $(EXP3) $(EXP4)
 
 $(LIBWWW) :
 	@echo You must get and make the WWWLibrary product first!
@@ -36,6 +37,9 @@ $(EXP2) : libapp_2.o $(LIBWWW)
 $(EXP3) : libapp_3.o $(LIBWWW)
 	$(CC) -o $(EXP3) libapp_3.o $(LFLAGS2)
 
+$(EXP4) : libapp_4.o $(LIBWWW)
+	$(CC) -o $(EXP4) libapp_4.o $(LFLAGS2)
+
 libapp_1.o: libapp_1.c
 	$(CC) -c -o $@ $(CFLAGS2) libapp_1.c
 
@@ -45,6 +49,9 @@ libapp_2.o: libapp_2.c
 libapp_3.o: libapp_3.c
 	$(CC) -c -o $@ $(CFLAGS2) libapp_3.c
 
+libapp_4.o: libapp_4.c
+	$(CC) -c -o $@ $(CFLAGS2) libapp_4.c
+
 clean :
-	rm *.o $(EXP1) $(EXP2) $(EXP3)
+	rm *.o $(EXP1) $(EXP2) $(EXP3) $(EXP4)
 
