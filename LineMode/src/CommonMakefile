@@ -263,8 +263,8 @@ distribute : $(WWW)/README $(WWW)/COPYRIGHT $(WWW)/PATCHES $(WWW)/CERN $(SOURCES
 	-f WWW/LineMode/Implementation/Version.make \
 	-f WWW/LineMode/Implementation/CommonMakefile \
 	$(FTP)/src/WWWLineMode_$(VL).tar.Z)
-	(cd $(WWW); cvs tag \
-	    `sed -e 's/V. = /v/' WWW/LineMode/Implementation/Version.make | sed -e 's?\.?/?'` \
+	(cd ../Implementation; cvs tag \
+	    `sed -e 's/V. = /v/' Version.make | sed -e 's?\.?/?'` \
 	    LineMode)
 	@echo Distribution of Line Mode version $(VC) up to date.
 

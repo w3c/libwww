@@ -201,8 +201,8 @@ distribute : $(WWW)/README $(WWW)/COPYRIGHT $(WWW)/PATCHES $(WWW)/CERN $(SOURCES
 	-f WWW/Library/Implementation/Version.make \
 	-f WWW/Library/Implementation/CommonMakefile \
 	$(FTP)/src/WWWLibrary_$(VC).tar.Z)
-	(cd $(WWW); cvs tag \
-	    `sed -e 's/VC = /v/' WWW/Library/Implementation/Version.make | sed -e 's?\.?/?'` \
+	(cd ../Implementation; cvs tag \
+	    `sed -e 's/VC = /v/' Version.make | sed -e 's?\.?/?'` \
 	    Library)
 	@echo Distribution of Library version $(VC) up to date.
 
