@@ -308,6 +308,21 @@ PUBLIC BOOL HTNet_setPriority (HTNet * net, HTPriority priority)
     return NO;
 }
 
+/*	create_object
+**	-------------
+**	Creates an HTNet object
+*/
+PRIVATE HTNet * create_object (HTRequest * request)
+{
+    HTNet * me;
+    if ((me = (HTNet *) calloc(1, sizeof(HTNet))) == NULL)
+	outofmem(__FILE__, "HTNet_new");
+    me->request = request;
+    request->net = me;
+    return me;
+}
+
+
 /*	HTNet_new
 **	---------
 **	Create a new HTNet object as a new request to be handled. If we have
@@ -323,7 +338,6 @@ PUBLIC BOOL HTNet_new (HTRequest * request)
     HTProtocol *prot;
     char * physical;
     if (!request) return NO;
-
     /*
     ** First we do all the "BEFORE" callbacks in order to see if we are to
     ** continue with this request or not. If we receive a callback status
@@ -334,26 +348,28 @@ PUBLIC BOOL HTNet_new (HTRequest * request)
 	return YES;
     }
 
+    /*
+    ** If no translation was provided by the application then use the anchor
+    ** address directly
+    */
     if (!(physical = HTAnchor_physical(request->anchor)) || !*physical) {
-	if (WWWTRACE)
-	    TTYPrint(TDEST, "HTNet New... NO PHYSICAL ANCHOR ADDRESS. This is needed in order to load a document. Please read the User's Guide on how to set this up\n");
-	return NO;
+	char * addr = HTAnchor_address((HTAnchor *) request->anchor);
+	if (WWWTRACE) TTYPrint(TDEST, "HTNet New... USING DEFAULT ADDRESS!\n");
+	HTAnchor_setPhysical(request->anchor, addr);
+	HTProtocol_find(request, request->anchor);
+	FREE(addr);
     }
 
     if (!HTNetActive) HTNetActive = HTList_new();
     prot = (HTProtocol *) HTAnchor_protocol(request->anchor);
 
     /* Create new net object and bind it to the request object */
-    if ((me = (HTNet *) calloc(1, sizeof(HTNet))) == NULL)
-	outofmem(__FILE__, "HTNet_new");
-    me->request = request;
-    request->net = me;
+    if ((me = create_object(request)) == NULL) return NO;
     me->preemtive = (HTProtocol_preemtive(prot) || request->preemtive);
     me->priority = request->priority;
     me->sockfd = INVSOC;
     if (!(me->cbf = HTProtocol_callback(prot))) {
-	if (WWWTRACE)
-	    TTYPrint(TDEST, "HTNet_new... NO CALL BACK FUNCTION!\n");
+	if (WWWTRACE) TTYPrint(TDEST, "HTNet_new... NO CALL BACK FUNCTION!\n");
 	free(me);
 	return NO;
     }
@@ -379,6 +395,26 @@ PUBLIC BOOL HTNet_new (HTRequest * request)
 	if (cbf) (*cbf)(request, HT_PROG_WAIT, HT_MSG_NULL, NULL, NULL, NULL);
 	HTList_addObject(HTNetPending, (void *) me);	
     }
+    return YES;
+}
+
+/*	HTNet_create
+**	------------
+**	This function creates a new HTNet object and assigns the socket number
+**	to it. This is intended to be used when you are going to listen on a 
+**	socket using the HTDoListen() function in HTTCP.c. The function do NOT
+**	call any of the callback functions.
+**	Returns YES if OK, else NO
+*/
+PUBLIC BOOL HTNet_create (HTRequest * request, SOCKET sockfd)
+{
+    HTNet * me;
+    if (WWWTRACE) TTYPrint(TDEST, "HTNet_create empty Net object\n");
+    if (!request || sockfd==INVSOC) return NO;
+    if ((me = create_object(request)) == NULL) return NO;
+    me->preemtive = request->preemtive;
+    me->priority = request->priority;
+    me->sockfd = sockfd;
     return YES;
 }
 
@@ -445,7 +481,7 @@ PUBLIC BOOL HTNet_delete (HTNet * net, int status)
     if (WWWTRACE) 
 	TTYPrint(TDEST,"HTNetDelete. Object and call callback functions\n");
     if (HTNetActive && net) {
-	SOCKFD cs = net->sockfd;			   /* Current sockfd */
+	SOCKET cs = net->sockfd;			   /* Current sockfd */
 
 	/* Remove object and call callback functions */
 	HTRequest *request = net->request;

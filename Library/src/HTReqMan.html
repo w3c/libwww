@@ -1,8 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Request Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 21-Nov-1995 -->
-<NEXTID N="z11">
+<!-- Changed by: Henrik Frystyk Nielsen, 22-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -181,17 +180,6 @@ This will go into its own structure
     HWND		hwnd;		/* Windows handle for MSWindows   */
     unsigned long	winMsg;	        /* msg number of Windows eloop    */
 #endif /* WWW_WIN_ASYNC */
-</PRE>
-
-<H3>Temporary until we get a better server</H3>
-
-<PRE>
-#if 1
-	HTAtom *	content_type;	/* Content-Type:		  */
-	HTAtom *	content_language;/* Language			  */
-	HTAtom *	content_encoding;/* Encoding			  */
-	int		content_length;	/* Content-Length:		  */
-#endif
 </PRE>
 
 <PRE>

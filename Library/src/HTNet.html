@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Asyncronous Socket Management</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 16-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 22-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -209,6 +209,17 @@ NO
 
 <PRE>
 extern BOOL HTNet_new (HTRequest * request);
+</PRE>
+
+<H3>Create an Empty Object</H3>
+
+This function creates a new HTNet object and assigns the socket number
+to it. This is intended to be used when you are going to listen on a
+socket using the HTDoListen() function in HTTCP.c. The function do NOT
+call any of the callback functions.  Returns YES if OK, else NO
+
+<PRE>
+extern BOOL HTNet_create (HTRequest * request, SOCKET sockfd);
 </PRE>
 
 <H3>Duplicate an Existing Object</H3>

@@ -39,7 +39,7 @@ struct _HTdns {
 
     BOOL		active;				    /* Socket in use */
     time_t		expires;		      /* Socket expires time */
-    SOCKFD		sockfd;			    /* Persistent connection */
+    SOCKET		sockfd;			    /* Persistent connection */
 
     int			addrlength;	       /* Length of address in bytes */
     int			homes;	       /* Number of IP addresses on the host */
@@ -159,7 +159,7 @@ PUBLIC void HTDNS_setConnection (HTdns * dns, HTTCPType type)
 /*	Persistent Connections
 **	----------------------
 */
-PUBLIC SOCKFD HTDNS_socket(HTdns *dns)
+PUBLIC SOCKET HTDNS_socket(HTdns *dns)
 {
     return dns ? dns->sockfd : INVSOC;
 }
@@ -168,7 +168,7 @@ PUBLIC SOCKFD HTDNS_socket(HTdns *dns)
 **	We don't want more than MaxSockets-2 connections to be persistent in
 **	order to avoid deadlock.
 */
-PUBLIC BOOL HTDNS_setSocket(HTdns *dns, SOCKFD socket)
+PUBLIC BOOL HTDNS_setSocket(HTdns *dns, SOCKET socket)
 {
     if (!dns) return NO;
     if (!PersSock) PersSock = HTList_new();

@@ -1,5 +1,5 @@
 /*							              HTWrite.c
-**	FILE WRITER BASED ON A SOCKFD
+**	FILE WRITER BASED ON A SOCKET
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
@@ -22,7 +22,7 @@
 
 struct _HTStream {
 	CONST HTStreamClass *	isa;
-	SOCKFD			sockfd;
+	SOCKET			sockfd;
 	HTNet *			net;
 	char			*wptr;
 	BOOL			leave_open;

@@ -500,7 +500,11 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 	    break;
 
 	  case UNKNOWN:
+#if 0
 	    if ((value = HTNextField(&ptr)) != NULL) {
+#else
+	    {
+#endif
 		HTList * list;
 		HTParserCallback *cbf;
 		int status;
@@ -508,13 +512,13 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 		if (STREAM_TRACE)
 		    TTYPrint(TDEST,"MIMEParser.. Unknown `%s\'\n", header);
 		if ((list = HTRequest_parser(request, &override)) &&
-		    (cbf = HTParser_find(list, value)) &&
-		    (status = (*cbf)(request, value) != HT_OK)) {
+		    (cbf = HTParser_find(list, header)) &&
+		    (status = (*cbf)(request, header) != HT_OK)) {
 		    return status;
 		} else if (!override &&
 			   (list = HTHeader_parser()) &&
-			   (cbf = HTParser_find(list, value)) &&
-			   (status = (*cbf)(request, value) != HT_OK)) {
+			   (cbf = HTParser_find(list, header)) &&
+			   (status = (*cbf)(request, header) != HT_OK)) {
 		    return status;
 		}
 	    }

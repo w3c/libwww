@@ -30,7 +30,7 @@ struct _HTStream {
     CONST HTStreamClass *	isa;
     HTStream *		  	target;
     HTRequest *			request;
-    SOCKFD			sockfd;
+    SOCKET			sockfd;
     int				version;
     BOOL			transparent;
 };

@@ -72,7 +72,7 @@ between the tokens above.
 The string returned by the function must be freed by the caller.
 
 <PRE>
-extern char * HTParse  (const char * aName, const char * relatedName,
+extern char * HTParse  (CONST char * aName, CONST char * relatedName,
 			int wanted);
 </PRE>
 
@@ -92,7 +92,7 @@ will yield aName. The caller is responsible
 for freeing the resulting name later.
 
 <PRE>
-extern char * HTRelative (const char * aName, const char *relatedName);
+extern char * HTRelative (CONST char * aName, CONST char *relatedName);
 </PRE>
 
 <A NAME="canon"><H2>Canonicalization</H2></A>

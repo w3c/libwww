@@ -66,8 +66,8 @@ extern time_t HTDNS_timeout  (time_t timeout);
 <H3>Persistent Sockets</H3>
 
 <PRE>
-extern SOCKFD HTDNS_socket	(HTdns *dns);
-extern BOOL   HTDNS_setSocket	(HTdns *dns, SOCKFD socket);
+extern SOCKET HTDNS_socket	(HTdns *dns);
+extern BOOL   HTDNS_setSocket	(HTdns *dns, SOCKET socket);
 extern void   HTDNS_clearActive	(HTdns *dns);
 extern int    HTDNS_socketCount (void);
 </PRE>

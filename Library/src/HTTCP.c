@@ -45,21 +45,11 @@
 /* x seconds penalty on a multi-homed host if IP-address is timed out */
 #define TCP_DELAY		600
 
-/* Max number of non-blocking accepts */
-#define MAX_ACCEPT_POLL		30
-
 #ifndef RESOLV_CONF
 #define RESOLV_CONF "/etc/resolv.conf"
 #endif
 
-#ifdef __svr4__
-#define HT_BACKLOG 32		 /* Number of pending connect requests (TCP) */
-#else
-#define HT_BACKLOG 5		 /* Number of pending connect requests (TCP) */
-#endif /* __svr4__ */
-
 PRIVATE char *hostname = NULL;			    /* The name of this host */
-
 PRIVATE char *mailaddress = NULL;		     /* Current mail address */
 
 /* ------------------------------------------------------------------------- */
@@ -863,7 +853,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 **		HT_OK		if connected
 **		HT_WOULD_BLOCK  if operation would have blocked
 */
-PUBLIC int HTDoAccept (HTNet * net, SOCKFD * newfd)
+PUBLIC int HTDoAccept (HTNet * net, SOCKET * newfd)
 {
     int status;
     int size = sizeof(net->sock_addr);
@@ -922,7 +912,7 @@ PUBLIC int HTDoAccept (HTNet * net, SOCKFD * newfd)
 **	returns		HT_ERROR	Error has occured or interrupted
 **			HT_OK		if connected
 */
-PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKFD master)
+PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKET master, int backlog)
 {
     int status;
 
@@ -1040,7 +1030,7 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKFD master)
 	    break;
 
 	  case TCP_NEED_LISTEN:
-	    status = listen(net->sockfd, HT_BACKLOG);
+	    status = listen(net->sockfd, backlog);
 #ifdef _WINSOCKAPI_
 	    if (status == SOCKET_ERROR)
 #else

@@ -26,7 +26,7 @@ struct _HTStream {
     CONST HTStreamClass *	isa;
     HTStream *		  	target;
     HTRequest *			request;
-    SOCKFD			sockfd;
+    SOCKET			sockfd;
     HTChunk *  			buffer;
     int				version;
     BOOL			transparent;

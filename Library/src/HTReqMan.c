@@ -260,12 +260,6 @@ PUBLIC HTList * HTRequest_parser (HTRequest *request, BOOL *override)
     return NULL;
 }
 
-extern void HTRequest_setGenerator (HTRequest *request, HTList *gens, BOOL override);
-extern HTList * HTRequest_generator (HTRequest *request, BOOL *override);
-
-extern void HTRequest_setParser (HTRequest *request, HTList *pars, BOOL override);
-extern HTList * HTRequest_parser (HTRequest *request, BOOL *override);
-
 /*
 **	Set General Headers
 */

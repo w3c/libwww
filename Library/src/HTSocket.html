@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Socket I/O Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 16-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 22-Nov-1995 -->
 <NEXTID N="z18">
 </HEAD>
 <BODY>
@@ -31,6 +31,7 @@ Reference Library</A>.
 #include <A HREF="HTReq.html">"HTReq.h"</A>
 #include <A HREF="HTStream.html">"HTStream.h"</A>
 #include <A HREF="HTAnchor.html">"HTAnchor.h"</A>
+#include <A HREF="HTEvnttg.html">"HTEvntrg.h"</A>
 </PRE>
 
 <H2>Create an Input Buffer</H2>
@@ -47,13 +48,26 @@ memory. Here it is chosen as the default TCP High Water Mark
 
 typedef struct _HTInputSocket HTInputSocket;
 
-extern HTInputSocket* HTInputSocket_new (SOCKFD file_number);
+extern HTInputSocket* HTInputSocket_new (SOCKET file_number);
 </PRE>
 
 <H2>Free an Input Buffer</H2>
 
 <PRE>
 extern void HTInputSocket_free (HTInputSocket * isoc);
+</PRE>
+
+<H2>Load Data from a Socket</H2>
+
+This function is a wrapper around the <CODE>HTSocketRead()</CODE>
+declared below. It provides a callback function for the <A
+HREF="HTEvntrg.hmtl">event loop</A> so that a socket can be loaded
+using non-blocking I/O. The function requires an <B>open</B>
+socket. It will typically be used in server applications or in a
+client application that can read directly from <CODE>stdin</CODE>.
+
+<PRE>
+extern HTEventCallback HTLoadSocket;
 </PRE>
 
 <A NAME="Read"><H2>Read Data from a Socket</H2></A>
@@ -86,18 +100,6 @@ for read from an ANSI file descriptor.
 
 <PRE>
 extern int HTFileRead	(HTRequest * request, HTNet * net, FILE * fp);
-</PRE>
-
-<HR>
-
-<B><IMG ALIGN=middle
-SRC="http://www.w3.org/pub/WWW/Icons/32x32/caution.gif"> DON'T USE
-THESE FUNCTIONS - THEY ARE NOT REENTRANT. </B>
-
-<HR>
-
-<PRE>
-extern int HTParseSocket (HTFormat format, SOCKFD file_number, HTRequest * rq);
 </PRE>
 
 <PRE>

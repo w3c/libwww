@@ -539,14 +539,15 @@ PUBLIC char * HTLocalToWWW (CONST char * local)
 #else  /* not VMS */
 #ifdef WIN32
 	{
-	    char * p = local;					  /* a colon */
+	    char * p;
 	    StrAllocCat(result, "/");
-	    while( *p != 0 ) { 
+	    StrAllocCat(result, local);	    
+	    p = result;
+	    while (*p) { 
 		if (*p == '\\')		         /* change to one true slash */
-		    *p = '/' ;
+		    *p = '/';
 		p++;
 	    }
-	    StrAllocCat(result, local);
 	}
 #else /* not WIN32 */
 	StrAllocCat (result, local);

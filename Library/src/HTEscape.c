@@ -18,8 +18,8 @@
 #define ACCEPTABLE(a)	( a>=32 && a<128 && ((isAcceptable[a-32]) & mask))
 
 /*
-**  Not BOTH static AND const at the same time in gcc :-(, Henrik 18/03-94 
-**  code gen error in gcc when making random access to static const table(!!)
+**  Not BOTH static AND CONST at the same time in gcc :-(, Henrik 18/03-94 
+**  code gen error in gcc when making random access to static CONST table(!!)
 */
 
 /*

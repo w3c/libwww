@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>System dependencies in the W3 library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 22-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -329,7 +329,7 @@ Hounslow <P.M.Hounslow@reading.ac.uk>, and a lot of other PC people.
 #define INCLUDES_DONE
 #define TCP_INCLUDES_DONE
 
-#define SOCKFD SOCKET			/* WinSocks socket descriptor */
+#define SOCKET SOCKET			/* WinSocks socket descriptor */
 #define INVSOC INVALID_SOCKET		/* WinSocks invalid socket */
 
 #define DESIRED_WINSOCK_VERSION	0x0101  /* we'd like winsock ver 1.1... */
@@ -1128,10 +1128,16 @@ extern int sys_nerr;
 This is necessary in order to support Windows NT...
 
 <PRE>
-#ifndef SOCKFD
-#define SOCKFD int		/* Unix like socket descriptor */
-#define INVSOC -1		/* Unix invalid socket */
+#ifndef SOCKET
+#define SOCKET int		/* Unix like socket descriptor */
+#define INVSOC (-1)		/* Unix invalid socket */
 #endif
+
+#ifdef __svr4__
+#define HT_BACKLOG 32		 /* Number of pending connect requests (TCP) */
+#else
+#define HT_BACKLOG 5		 /* Number of pending connect requests (TCP) */
+#endif /* __svr4__ */
 </PRE>
 
 <H3>Additional Network variables for SOCKET, file access bits</h3>
@@ -1144,12 +1150,8 @@ This is necessary in order to support Windows NT...
 #define FD_ACCEPT       0x08
 #define FD_CONNECT      0x10
 #define FD_CLOSE        0x20
-
-typedef unsigned int SOCKET ;
-
 #endif /* _WINSOCKAPI_ */
 </PRE>
-
 
 <H3>Rough estimate of max path length</H3>
 

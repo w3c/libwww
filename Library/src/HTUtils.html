@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Utility macros</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 19-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 22-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -363,22 +363,6 @@ values
 #else
 #include &lt;varargs.h&gt;
 #endif
-
-#ifdef CURSES
-	/* htbrowse.c; */
-#ifdef ULTRIX      /* or DECSTATION */
-#include &lt;cursesX.h&gt; /* Extended curses under X. Only decent one :lou. */
-#else
-#include &lt;curses.h&gt;
-#endif /* ULTRIX */
-	extern        WINDOW  *w_top, *w_text, *w_prompt;
-	extern        void    user_message PARAMS((const char *fmt, ...));
-	extern        void    prompt_set PARAMS((CONST char * msg));
-	extern        void    prompt_count PARAMS((long kb));
-#else
-#define user_message printf
-#endif
-
 </PRE>
 
 <H2>Out Of Memory checking for malloc() return:</H2>

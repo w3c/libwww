@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Generic Network Communication</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 12-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 22-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -61,15 +61,21 @@ This function makes a non-blocking accept on a port and polls every second
 until MAX_ACCEPT_POLL is reached.
 
 <PRE>
-extern int HTDoAccept (HTNet * net, SOCKFD * newfd);
+extern int HTDoAccept (HTNet * net, SOCKET * newfd);
 </PRE>
 
 <H3>Listen on a Socket</H3>
 
-Listens on the specified port. 0 means that we chose it here
+Listens on the specified port. 0 means that we don't care and a
+temporary one will be assigned. If <CODE>master</CODE>==INVSOC then we
+listen on all local interfaces (using a wildcard). If !INVSOC then use
+this as the local interface. <CODE>backlog</CODE> is the number of
+connections that can be queued on the socket - you can use
+<CODE>HT_BACKLOG</CODE> for a platform dependent value (typically 5 on
+BSD and 32 on SVR4). Returns HT_ERROR or HT_OK.
 
 <PRE>
-extern int HTDoListen (HTNet * net, u_short port, SOCKFD master);
+extern int HTDoListen (HTNet * net, u_short port, SOCKET master, int backlog);
 </PRE>
 
 <A NAME="errormsg"><H2>System Description of Error Message</H2></A>

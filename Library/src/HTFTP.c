@@ -449,10 +449,10 @@ PRIVATE BOOL ListenSocket (HTNet *cnet, HTNet *dnet, ftp_data *data)
 	if (DataPort > LAST_TCP_PORT)
 	    DataPort = FIRST_TCP_PORT;
 	if (DataPort == old_DataPort) {
-	    if (PROT_TRACE) TTYPrint(TDEST,"FTP......... No data port found\n");
+	    if(PROT_TRACE) TTYPrint(TDEST,"FTP......... No data port found\n");
 	    return NO;
 	}
-	if (HTDoListen(dnet, DataPort) == HT_OK)
+	if (HTDoListen(dnet, DataPort, 1) == HT_OK)
 	    break;
 	if (dnet->sockfd != INVSOC) {
 	    NETCLOSE(dnet->sockfd);
@@ -460,7 +460,7 @@ PRIVATE BOOL ListenSocket (HTNet *cnet, HTNet *dnet, ftp_data *data)
 	}
     }
 #else
-    if (HTDoListen(dnet, 0, cnet->sockfd) != HT_OK) return NO;
+    if (HTDoListen(dnet, 0, cnet->sockfd, 1) != HT_OK) return NO;
 #endif /* POLL_PORTS */
 
     /* Now we must find out who we are to tell the other guy */
@@ -990,7 +990,7 @@ PRIVATE int HTFTPServerInfo (HTRequest *request, HTNet *cnet,
 **	directory.
 **	Returns HT_OK, HT_LOADED, HT_ERROR, or HT_WOULD_BLOCK
 */
-PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKFD sockfd,
+PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 			  ftp_ctrl *ctrl, ftp_data *data)
 {
     int status;
@@ -1038,7 +1038,7 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKFD sockfd,
 
 	  case NEED_ACCEPT:
 	    {
-		SOCKFD newfd = INVSOC;
+		SOCKET newfd = INVSOC;
 		status = HTDoAccept(dnet, &newfd);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_WOULD_BLOCK;
