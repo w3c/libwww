@@ -336,12 +336,6 @@ PUBLIC BOOL HTRank ARGS4(HTList *, possibilities,
 	float lv = lang_value(d->content_language, accepted_languages);
 	float ev = encoding_value(d->content_encoding, accepted_encodings);
 
-#ifdef ARI_DEBUG
-	CTRACE(stderr,
-	       " ## FOR FILE \"%s\" (%.3f) VALUES type %.3f enc %.3f lang %.3f\n",
-	       d->filename, d->quality, tv, ev, lv);
-#endif
-
 	if (tv > 0) {
 	    d->quality *= tv * lv * ev;
 	    HTList_addObject(accepted, d);
@@ -698,6 +692,20 @@ PUBLIC int HTOutputBinary ARGS3( HTInputSocket *, isoc,
 }
 
 
+PRIVATE BOOL better_match ARGS2(HTFormat, f,
+				HTFormat, g)
+{
+    CONST char *p, *q;
+
+    if (f && g  &&  (p = HTAtom_name(f))  &&  (q = HTAtom_name(g))) {
+	int i,j;
+	for(i=0 ; *p; p++) if (*p == '*') i++;
+	for(j=0 ; *q; q++) if (*q == '*') j++;
+	if (i < j) return YES;
+    }
+    return NO;
+}
+
 
 /*		Create a filter stack
 **		---------------------
@@ -737,13 +745,16 @@ PUBLIC HTStream * HTStreamStack ARGS2(
 	
 	while ((pres = (HTPresentation*)HTList_nextObject(cur))) {
 	    if	((pres->rep == rep_in || wild_match(pres->rep, rep_in)) &&
-		(pres->rep_out == rep_out || wild_match(pres->rep_out, rep_out))) {
-		if (pres->quality > best_quality) {
+		 (pres->rep_out == rep_out || wild_match(pres->rep_out, rep_out))) {
+		if (!best_match ||
+		    better_match(pres->rep, best_match->rep) ||
+		    (!better_match(best_match->rep, pres->rep) &&
+		     pres->quality > best_quality)) {
 		    best_match = pres;
 		    best_quality = pres->quality;
 		}
 	    }
-	    
+
 #ifdef OLD_CODE
 	    /* This case is now included in the best_match loop */
 	    /* Special case when input format is 'www/source' */ 
@@ -755,6 +766,7 @@ PUBLIC HTStream * HTStreamStack ARGS2(
 #endif
 	}
     }
+
     match = best_match ? best_match : NULL;
     if (match) {
 	if (match->rep == WWW_SOURCE) {
