@@ -1,17 +1,19 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen,  9-Nov-1995 -->
-  <TITLE>Modules</TITLE>
+  <!-- Changed by: Henrik Frystyk Nielsen, 27-May-1996 -->
+  <TITLE>libwww Modules</TITLE>
 </HEAD>
 <BODY>
 <P>
-<A HREF="../../"><IMG ALT="W3C" SRC="../../Icons/WWW/w3c_48x48"></A>
-<A HREF="./"><IMG ALT="C-Style" SRC="../../Icons/WWW/progstyle48x"></A>
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x" ALT="libwww"></A>
+<A HREF="./"><IMG ALT="C-Style" SRC="../../../Icons/WWW/progstyle48x"></A>
 <H1>
-  Modules
+  Libwww Modules and Documentation
 </H1>
 <P>
-A module consists normally of the following:
+A libwww module consists of the following:
+<P>
 <UL>
   <LI>
     A module definition file, for example <EM>foo.c</EM>
@@ -29,23 +31,30 @@ for accessing the data structures and only declare as little
 <CODE>PUBLIC</CODE> as possible of the internal structures.
 <P>
 Make sure that your file names are not <B>longer than 8 characters</B> as
-we support PCs as well. The declaration file is <B>automatically</B> generated
-from the description file. This ensures that the description of a module
-is done at the same time as the declaration of the module. The generation
-of the declaration files is done at compile time using the
-<A HREF="../../LineMode/">Line Mode Browser</A>, so be sure that you have
-a recent version of this.
+we support PCs as well. The declaration file is generated
+<B>automatically</B> from the description file using the
+<A HREF="../../../LineMode/">Line Mode browser</A>. This ensures that the
+description of a module is done at the same time as the declaration of the
+module. The generation of the declaration files is done at compile time using
+the <A HREF="../../../LineMode/">Line Mode Browser</A>, so be sure that you
+have a recent version of this.
 <P>
-<IMG SRC="../../Icons/32x32/caution" ALT="NOTE"> It is <EM>very</EM> important
-that all modifications to the modules declaration part is done in the description
-file as this is what we keep in CVS - NOT the declaration file itself!
+All documentation is written in HTML so that we can use hypertext links.
+To prevent the low level documentation from getting out of sync with the
+code, the .h files are extracted from the .html files. While this is only
+effective for API function documentation, it is better than nothing. 
 <P>
 The module header is the comment at the top of a definition file and description
-file. Remember - as other people are going to read this then fill it out
-carefully.
+file. Please remember to fill it out carefully! The misterious line <CODE>@(#)
+$Id$</CODE> makes CVS add the version information
+automatically. Just write it as is and CVS will do the rest.
 <PRE>
-/*				Foo Bar Module			foobar.c
-**				==============
+/*	
+**	FOO BAR MODULE
+**
+**	@(#) $Id$
+**
+**	This module can convert foos to bars
 **
 ** Authors:
 **	JB	J. Bloggs, ACME Widget Company, TX, USA
@@ -56,42 +65,12 @@ carefully.
 **	23 Nov 1986	Converted into mangle worzle sorter (JD)
 **	38 Dec 1992	Bug fix: Used to carsh on null worzles. (JD, JB)
 **
-** Copyright:
-**	MIT copyright -- See Copyright.html
-*/
-
-
-/*			Global Data
-**			-----------
 */
 </PRE>
-<DL>
-  <DT>
-    Heading
-  <DD>
-    To make it easy to spot the file in a long listing, put a header and the
-    file name in the top right-hand corner.
-  <DT>
-    Authors
-  <DD>
-    Just a list to make the initials intelligible. Use initials in the history
-    or in comments in the file.
-  <DT>
-    History
-  <DD>
-    A list of major changes of the file. You do not need to repeat information
-    carried by a code management system or in an accompanying hypertext file.
-  <DT>
-    Section headings
-  <DD>
-    Sections in the file such as public data, private module-wide data, etc should
-    be made visible. Two blank lines and a heading are useful for this.
-</DL>
 <P>
   <HR>
 <ADDRESS>
-  <A HREF="../../../TBL_Disclaimer.html">Tim BL</A>, and
-  <A HREF="../../People.html#Frystyk">Henrik Frystyk</A>
+  Tim BL, and <A HREF="../../../People.html#Frystyk">Henrik Frystyk</A>
 </ADDRESS>
 <ADDRESS>
   @(#) $Id$

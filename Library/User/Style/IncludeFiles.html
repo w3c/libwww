@@ -1,17 +1,20 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen,  9-Nov-1995 -->
-  <TITLE>Include Files</TITLE>
+  <!-- Changed by: Henrik Frystyk Nielsen, 27-May-1996 -->
+  <TITLE>Function Declarations</TITLE>
 </HEAD>
 <BODY>
 <P>
-<A HREF="../../"><IMG ALT="W3C" SRC="../../Icons/WWW/w3c_48x48"></A>
-<A HREF="./"><IMG ALT="C-Style" SRC="../../Icons/WWW/progstyle48x"></A>
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x" ALT="libwww"></A>
+<A HREF="./"><IMG ALT="C-Style" SRC="../../../Icons/WWW/progstyle48x"></A>
 <H1>
-  Include Files
+  Function Declarations
 </H1>
 <P>
-There are three kinds of include files:
+External functions are declared in include files. There are three kinds of
+include files:
+<P>
 <UL>
   <LI>
     Application include files
@@ -37,21 +40,21 @@ following directives:
 </PRE>
 <P>
 An interface which relies on other interfaces should include those interface
-files. An implemention file which uses other modules should include the .h
-file if it not already included by its own .h file.
+files. An implementation file which uses other modules should include the
+.h file if it not already included by its own .h file.
 <P>
-<IMG SRC="../../Icons/32x32/warning" ALT="WARNING"> The text format in
+<IMG SRC="../../../Icons/32x32/warning" ALT="WARNING"> The text format in
 description files which are converted into declaration files <EM>MUST NOT</EM>
 be more than 90 characters wide - otherwise it will get chopped off by the
-<A HREF="../../LineMode/">Line Mode Browser</A> the way the conversion is
-set up.
+<A HREF="../../../LineMode/">Line Mode Browser</A> the way the conversion
+is set up.
 <H2>
   Library Include Files
 </H2>
 <P>
-If you are making a <A HREF="../../Library/">Library</A> module then you
-need to include all the modules that you reference in your code. You will
-in all cases need the following:
+If you are making a <A HREF="../../">Library</A> module then you need to
+include all the modules that you reference in your code. You will in all
+cases need the following:
 <PRE>
 	#include "sysdep.h"
 	#include "WWWUtil.h"
@@ -71,8 +74,7 @@ files are very difficult to get portable over multiple platforms.
 <P>
   <HR>
 <ADDRESS>
-  <A HREF="../../../TBL_Disclaimer.html">Tim BL</A>, and
-  <A HREF="../../People.html#Frystyk">Henrik Frystyk</A>
+  Tim BL, and <A HREF="../../../People.html#Frystyk">Henrik Frystyk</A>
 </ADDRESS>
 <ADDRESS>
   @(#) $Id$

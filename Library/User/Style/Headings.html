@@ -1,38 +1,34 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 28-Nov-1995 -->
-  <TITLE>Include Files</TITLE>
+  <!-- Changed by: Henrik Frystyk Nielsen, 27-May-1996 -->
+  <TITLE>Function Definitions</TITLE>
 </HEAD>
 <BODY>
 <P>
-<A HREF="../../"><IMG ALT="W3C" SRC="../../Icons/WWW/w3c_48x48"></A>
-<A HREF="./"><IMG ALT="C-Style" SRC="../../Icons/WWW/progstyle48x"></A>
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x" ALT="libwww"></A>
+<A HREF="./"><IMG ALT="C-Style" SRC="../../../Icons/WWW/progstyle48x"></A>
 <H1>
-  Function Headings
+  Function Definitions
 </H1>
 <P>
-This style concerns the comments, and so is not essential to compilation.
-However, it helps readability of code written by a number of people. Some
-of these conventions may be arbitrary, but are none the less useful for that.
-<H2>
-  Format
-</H2>
-<P>
-A typical example of a function header looks like:
+This section concerns function definitions. Some of these conventions may
+be arbitrary, but are none the less useful for that. A typical example of
+a function definition looks like:
 <PRE>
 /*	Scan a line
 **	-----------
-**	This function scannes a string for ...
+**	This function scans a string for ...
 **
 ** On entry,
 **	l		points to the zero-terminated line to be scanned
 ** On exit,
-**	*l		The line has null termintors inserted after each
+**	*l		The line has null terminators inserted after each
 **			 word found.
 **	return value	is the number of words found, or -1 if error.
 **	lines		This global value is incremented.
 */	
-PRIVATE int scan_line (CONST char * line)
+PRIVATE int scan_line (const char * line)
 {
    /* Code here */
 }
@@ -51,11 +47,11 @@ PRIVATE int scan_line (CONST char * line)
     Function header
   <DD>
     The macros <CODE>PUBLIC</CODE> and <CODE>PRIVATE</CODE> (in
-    <A HREF="../../Library/src/HTUtils.html">HTUtils.h</A>) expand to
-    <CODE>NULL</CODE> and to <CODE>static</CODE> respectively. They show that
-    one has thought about whether visibility is required outside the module,
-    and they get over the overloading of the keyword "static" in C. Use one or
-    the other. (Use for top level variables too).
+    <A HREF="../../src/HTUtils.html">HTUtils.h</A>) expand to <CODE>NULL</CODE>
+    and to <CODE>static</CODE> respectively. They show that one has thought about
+    whether visibility is required outside the module, and they get over the
+    overloading of the keyword "static" in C. Use one or the other. (Use for
+    top level variables too).
   <DT>
     Entry and exit conditions
   <DD>
@@ -66,13 +62,12 @@ PRIVATE int scan_line (CONST char * line)
     any requirements on or changes to global data, the screen, disk files, etc.
 </DL>
 <P>
-<IMG SRC="../../Icons/32x32/caution" ALT="NOTE"> We have a set of predefined
-exit values in <A HREF="../../Library/src/HTUtils.html">HTUtils module</A>.
+<IMG SRC="../../../Icons/32x32/caution" ALT="NOTE"> We have a set of predefined
+exit values in <A HREF="../../src/HTUtils.html#return">HTUtils module</A>.
 <P>
   <HR>
 <ADDRESS>
-  <A HREF="../../../TBL_Disclaimer.html">Tim BL</A>, and
-  <A HREF="../../People.html#Frystyk">Henrik Frystyk</A>
+  Tim BL, and <A HREF="../../../People.html#Frystyk">Henrik Frystyk</A>
 </ADDRESS>
 <ADDRESS>
   @(#) $Id$

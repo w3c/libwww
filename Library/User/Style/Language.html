@@ -1,14 +1,15 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 28-Nov-1995 -->
-  <TITLE>House Style for C Programming</TITLE>
+  <!-- Changed by: Henrik Frystyk Nielsen, 27-May-1996 -->
+  <TITLE>Special Language Features</TITLE>
 </HEAD>
 <BODY>
 <P>
-<A HREF="../../"><IMG ALT="W3C" SRC="../../Icons/WWW/w3c_48x48"></A>
-<A HREF="./"><IMG ALT="C-Style" SRC="../../Icons/WWW/progstyle48x"></A>
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x" ALT="libwww"></A>
+<A HREF="./"><IMG ALT="C-Style" SRC="../../../Icons/WWW/progstyle48x"></A>
 <H1>
-  Language Features
+  Special Language Features
 </H1>
 <P>
 Let us first start with some general language rules for how to provide
@@ -18,31 +19,33 @@ portability. This means that we can not use (unfortunately!) neither objective
 C nor C++. However, we also want to support original Kernighan Ritchie C
 compilers and C++ compilers which brings in two important aspects in the
 coding style:
+<H2>
+  Reserved words
+</H2>
 <P>
-<DL>
-  <DT>
-    Reserved words
-  <DD>
-    It is important that there are no reserved words used as variable names,
-    function calls etc in our code. Some of the more common problem makes are
-    listed below but see also <A HREF="Identifiers.html">Identifiers</A>
-    <UL>
-      <LI>
-	<CODE>new</CODE>
-      <LI>
-	<CODE>this</CODE>
-      <LI>
-	<CODE>class</CODE>
-      <LI>
-	<CODE>template</CODE>
-      <LI>
-	<CODE>operator</CODE>
-      <LI>
-	<CODE>friend</CODE>
-      <LI>
-	<CODE>catch</CODE>
-    </UL>
-</DL>
+It is important that there are no reserved words used as variable names,
+function calls etc in our code. Some of the more common problem makes are
+listed below but see also <A HREF="Identifiers.html">Identifiers</A>
+<P>
+<UL>
+  <LI>
+    <CODE>new</CODE>
+  <LI>
+    <CODE>this</CODE>
+  <LI>
+    <CODE>class</CODE>
+  <LI>
+    <CODE>template</CODE>
+  <LI>
+    <CODE>operator</CODE>
+  <LI>
+    <CODE>friend</CODE>
+  <LI>
+    <CODE>catch</CODE>
+</UL>
+<H2>
+  Specific Problems
+</H2>
 <P>
 As the world is not ideal, there are some traps that often show up when coding
 after these standards. This sections gives an overview of the more serious
@@ -89,8 +92,7 @@ answer of an ANSI compiler.
 <P>
   <HR>
 <ADDRESS>
-  <A HREF="../../../TBL_Disclaimer.html">Tim BL</A>, and
-  <A HREF="../../People.html#Frystyk">Henrik Frystyk</A>
+  Tim BL, and <A HREF="../../../People.html#Frystyk">Henrik Frystyk</A>
 </ADDRESS>
 <ADDRESS>
   @(#) $Id$

@@ -1,12 +1,13 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 31-Mar-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 27-May-1996 -->
   <TITLE>Function Body Layout</TITLE>
 </HEAD>
 <BODY>
 <P>
-<A HREF="../../"><IMG ALT="W3C" SRC="../../Icons/WWW/w3c_48x48"></A>
-<A HREF="./"><IMG ALT="C-Style" SRC="../../Icons/WWW/progstyle48x"></A>
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x" ALT="libwww"></A>
+<A HREF="./"><IMG ALT="C-Style" SRC="../../../Icons/WWW/progstyle48x"></A>
 <H1>
   Function Body Layout
 </H1>
@@ -14,14 +15,10 @@
 With the body of functions, this is the way we aim to do it. We are not religious
 about it, but consistency helps. We use an indentation form that is known
 as the <EM>BSD c style</EM>. If you think your way is smarter, you may be
-right but this is the way we do it ;-). The format is pretty close to the
-one you find in <EM>The C Programming Language</EM> by Kernighan and Ritchie.
+right but this is the way we do it ;-). The format is also pretty close to
+the one you find in <EM>The C Programming Language</EM> by Kernighan and
+Ritchie.
 <P>
-Whatever you do, <B>NEVER</B> make global changes to the indentation etc.
-in a file - <B>THIS SCREWS UP DIFFS, CVS AS WELL AS PEOPLE!</B>
-<H2>
-  Indentation
-</H2>
 <UL>
   <LI>
     Put opening { at the end of the same line as the <CODE>if</CODE>,
@@ -29,10 +26,9 @@ in a file - <B>THIS SCREWS UP DIFFS, CVS AS WELL AS PEOPLE!</B>
   <LI>
     Align the closing brace with the <EM>START</EM> of that opening line
   <LI>
-    Indent everything between { and } by an extra 4 (FOUR) spaces, like the following
+    Indent everything between { and } by an extra 4 spaces, like the following
     example:
-    <PRE>
-        for (i=0; i<2; i++) { HTList *cur = conversions[i]; HTPresentation *pres; while ((pres =(HTPresentation *) HTList_nextObject(cur))) { if (pres->rep_out == WWW_PRESENT) {
+    <PRE>        for (i=0; i<2; i++) { HTList *cur = conversions[i]; HTPresentation *pres; while ((pres =(HTPresentation *) HTList_nextObject(cur))) { if (pres->rep_out == WWW_PRESENT) {
                     if (pres-&gt;quality != 1.0) {
                         sprintf(line, "Accept: %s; q=%.3f%c%c",
                                 HTAtom_name(pres-&gt;rep),
@@ -47,10 +43,9 @@ in a file - <B>THIS SCREWS UP DIFFS, CVS AS WELL AS PEOPLE!</B>
         }
 </PRE>
     <P>
-    You can get your emacs to do automatic indentation acording to those rules
+    You can get your emacs to do automatic indentation according to those rules
     by adding the following to your local <CODE>.emacs</CODE> file:
-    <PRE>
-;; C style indentation
+    <PRE>;; C style indentation
 ;; =====================
 (defun w3c-c-mode-common-hook ()
   ;; use BSD for all C, C++, and Objective-C code
@@ -59,39 +54,34 @@ in a file - <B>THIS SCREWS UP DIFFS, CVS AS WELL AS PEOPLE!</B>
   (setq c-tab-always-indent nil)
   )
 (add-hook 'c-mode-common-hook 'w3c-c-mode-common-hook)
+
 </PRE>
   <LI>
     Do not make lines wider than 80 characters. Otherwise it gets very difficult
     to read on a 80 character screen.
   <LI>
-    Never indent preprocessor instructions (#ifdef, etc), nor increase the
-    indentation level on account of preprocessor instructions (some preprocessors
+    <I>Never</I> indent preprocessor instructions (#ifdef, etc), nor increase
+    the indentation level on account of preprocessor instructions (many preprocessors
     do not understand indented directives)
   <LI>
     Block comments should start with /* in column 1, end end with */ in column
     1. In between, having ** in column 1 is conventional but not necessary for
     very large comments. A good example is:
-    <PRE>
-/*
+    <PRE>/*
 ** This is a comment that spans several lines. If you want to do this
 ** then please use the comment markers as indicated. Do <EM>not</EM> use
 ** C++ style comments - they are not portable
 */
 
 </PRE>
-  <LI>
-    Comment the closing braces of conditionals and other blocks with the type
-    of block, including the correct sense of the condition of the block being
-    closed if there was an "else", of the function name. For example,
 </UL>
 <P>
-<IMG SRC="../../Icons/32x32/warning" ALT="WARNING"> Remember to use comments
+<IMG SRC="../../../Icons/32x32/warning" ALT="WARNING"> Remember to use comments
 in the source code - it makes life easier for everybody
 <P>
   <HR>
 <ADDRESS>
-  <A HREF="../../../TBL_Disclaimer.html">Tim BL</A>, and
-  <A HREF="../../People.html#Frystyk">Henrik Frystyk</A>, @(#) $Id: Body.html,v
-  1.5 1996/03/31 18:21:29 frystyk Exp $
+  Tim BL, and <A HREF="../../../People.html#Frystyk">Henrik Frystyk</A>, @(#)
+  $Id$
 </ADDRESS>
 </BODY></HTML>
