@@ -1,0 +1,53 @@
+<HTML>
+<HEAD>
+  <TITLE>W3C Sample Code Library libwww SSL Transport Wrapper</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  SSL Transport Wrapper
+</H1>
+<P>
+This module declares a SSL (using the <A HREF="http://www.openssl.org">OpenSSL
+library</A>) transport wrapper so that libwww can use SSL as a
+<A HREF="../WWWTrans.html">transport </A>the same way it can use TCP and
+local host as transports. This module keeps a context of the application
+(<TT>SSL_CTX</TT>), Cipher negotiation, certificate directory path setting
+could be added here.
+<P>
+<EM>The module is contributed by Olga Antropova</EM>
+<PRE>
+#ifndef _HTSSL_H
+#define _HTSSL_H
+</PRE>
+<H2>
+  The HTSSL Class
+</H2>
+<P>
+The HTSSL Class is the libwww interface to the SSL layer.
+<PRE>
+typedef struct _HTSSL HTSSL;
+
+extern BOOL HTSSL_init (void);
+extern BOOL HTSSL_isInitialized (void);
+extern BOOL HTSSL_terminate (void);
+
+extern HTSSL * HTSSL_new (int sd);
+extern void HTSSL_free (HTSSL * htssl);
+
+extern BOOL HTSSL_open (HTSSL * htssl, int sd);
+extern BOOL HTSSL_close (HTSSL * htssl);
+extern BOOL HTSSL_isOpen (HTSSL * htssl);
+
+extern int HTSSL_read (HTSSL * htssl, int sd, char * buff, int len);
+extern int HTSSL_write (HTSSL * htssl, int sd, char * buff, int len);
+extern int HTSSL_getError (HTSSL * htssl, int status);
+</PRE>
+<PRE>
+#endif /* _HTSSL_H */
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

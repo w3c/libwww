@@ -1,0 +1,57 @@
+<HTML>
+<HEAD>
+  <TITLE>W3C Sample Code Library libwww Initializationg of SSL Transport As
+  https Access Scheme</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  Initializationg of SSL Transport As https Access Scheme
+</H1>
+<P>
+This module sets up the SSL transport for handling the <TT>https</TT> URI
+access scheme. In fact the SSL module itself is completely independent and
+could as well be negotiated instead of getting a new URI scheme.
+<P>
+<EM>The module is contributed by Olga Antropova</EM>
+<PRE>
+#ifndef _HTSSLHTTPS_H
+#define _HTSSLHTTPS_H
+</PRE>
+<P>
+The initialization function initialies the SSL transports by doing the following:
+<UL>
+  <LI>
+    Setting up a SSL application context
+  <LI>
+    Registering the transport in the libwww <A HREF="../HTTrans.html">HTTransport
+    Manager</A>
+  <LI>
+    Registering the <A HREF="../HTTP.html">HTTP protocol module</A> as a protocol
+    handler in the libwww <A HREF="../HTProt.html">HTProtocol Manager</A> for
+    the <TT>https:</TT> access scheme
+  <LI>
+    Registering a set of filters for handling HTTP caching, redirection, and
+    authentication
+</UL>
+<P>
+The termination function removes the application context, unregisteres the
+SSL transport in the libwww <A HREF="../HTTrans.html">HTTransport Manager</A>,
+and unregisteres the other things set up when initializing the SSL transport
+<PRE>
+#ifndef SSL_PORT
+#define SSL_PORT        443
+#endif
+
+extern BOOL HTSSLhttps_init (BOOL preemptive);
+extern BOOL HTSSLhttps_isInitialized (void);
+extern BOOL HTSSLhttps_terminate (void);
+</PRE>
+<PRE>
+#endif /* _HTSSLHTTPS_H */
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

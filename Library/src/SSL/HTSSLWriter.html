@@ -1,0 +1,50 @@
+<HTML>
+<HEAD>
+  <TITLE>W3C Sample Code Library libwww SSL Writer Stream</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  SSL Writer Stream
+</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+<P>
+The SSL Stream is an <A HREF="../HTIOStream.html">output stream</A> which
+knows how to write to a SSL socket layer, for example provided by the
+<A HREF="http://www.openssl.org">OpenSSL Library</A>. It is a libwww
+<A HREF="../WWWTrans.html">transport</A> and may be registered using the
+<A HREF="../HTTrans.html">Transport Manager</A>. The application
+can&nbsp;initialize this stream together with the
+<A HREF="HTSSLReader.html">HTSSLReader stream</A>, for example.
+<P>
+This module is implemented by <A HREF="HTSSLWriter.c">HTSSLWriter.c</A>,
+and it is a part of the <A HREF="http://www.w3.org/Library/">W3C Sample Code
+Library</A>.
+<P>
+<EM>The module is contributed by Olga Antropova</EM>
+<PRE>
+#ifndef HTSSLWRITE_H
+#define HTSSLWRITE_H
+
+#include "<A HREF="../HTIOStream.html">HTIOStream.h</A>"
+
+extern HTOutput_new HTSSLWriter_new;
+
+extern BOOL HTSSLWriter_set (HTOutputStream *      me,
+                             HTNet *               net,
+                             HTChannel *           ch,
+                             void *                param,
+                             int                   mode);
+
+#endif /* HTSSLWRITE_H */
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

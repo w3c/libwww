@@ -1,0 +1,89 @@
+<HTML>
+<HEAD>
+  <TITLE>W3C Sample Code Library libwww SSL Transport Wrapper</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  W3C Sample Code Library libwww SSL Transport Wrapper
+</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1999.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+<P>
+This module declares a SSL (using the <A HREF="http://www.openssl.org">OpenSSL
+library</A>, for example) transport wrapper so that libwww can use SSL as
+a <A HREF="../WWWTrans.html">transport </A>the same way it can use TCP and
+local host as transports.
+<P>
+<EM>The SSL module is contributed by Olga Antropova</EM>
+<PRE>
+#ifndef WWWSSL_H
+#define WWWSSL_H
+</PRE>
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
+<H3>
+  System dependencies
+</H3>
+<P>
+The <A HREF="../wwwsys.html">wwwsys.h</A> file includes system-specific include
+files and flags for I/O to network and disk. The only reason for this file
+is that the Internet world is more complicated than Posix and ANSI.
+<PRE>
+#include "wwwsys.h"
+</PRE>
+<H2>
+  The Main SSL Module
+</H2>
+<P>
+This module is the one that actually talks to the SSL library and handles
+the internal SSL mechanisms for verifying certificates etc.
+<PRE>
+#include "<A HREF="HTSSL.html">HTSSL.h</A>"
+</PRE>
+<H2>
+  Initializing the SSL Module for "https:"
+</H2>
+<P>
+This module registers the various parts in libwww required for handling the
+<TT>https:</TT> URI scheme.
+<PRE>
+#include "<A HREF="HTSSLhttps.html">HTSSLhttps.h</A>"
+</PRE>
+<H2>
+  SSL Read Transport Stream
+</H2>
+<P>
+The SSL read transport stream is responsible for reading from an SSL socket
+and pass the data to libwww
+<PRE>
+#include "<A HREF="HTSSLReader.html">HTSSLReader.h</A>"
+</PRE>
+<H2>
+  SSL Write Transport Stream
+</H2>
+<P>
+The SSL write transport stream is responsible for writing data to an SSL
+socket
+<PRE>
+#include "<A HREF="HTSSLWriter.html">HTSSLWriter.h</A>"
+</PRE>
+<PRE>
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
+
+#endif
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>
