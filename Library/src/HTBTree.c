@@ -567,7 +567,7 @@ main ()
     HTBTree * tree;
     HTBTElement * next_element;
     
-    tree = HTBTree_new((HTComparer)strcasecmp);
+    tree = HTBTree_new((HTComparer)strcasecomp);
     HTBTree_add(tree,"hypertext");
     HTBTree_add(tree,"Addressing");
     HTBTree_add(tree,"X11");

@@ -622,7 +622,7 @@ PRIVATE void DigestCalcHA1 (int algorithm, char * pszAlg, char * pszUserName,
     HTDigest_update (&MdCtx, ":", 1);
     HTDigest_update (&MdCtx, pszPassword, strlen(pszPassword));
     HTDigest_final (HA1, &MdCtx);
-    if (strcasecmp (pszAlg, "md5-sess") == 0) {
+    if (strcasecomp (pszAlg, "md5-sess") == 0) {
 	HTDigest_init (&MdCtx, algorithm);
 	HTDigest_update (&MdCtx, HA1, strlen (HA1));
 	HTDigest_update (&MdCtx, ":", 1);
@@ -659,7 +659,7 @@ PRIVATE void DigestCalcResponse (
     HTDigest_update (&MdCtx, pszMethod, strlen(pszMethod));
     HTDigest_update (&MdCtx, ":", 1);
     HTDigest_update (&MdCtx, pszDigestUri, strlen(pszDigestUri));
-    if (pszQop && strcasecmp (pszQop, "auth-int") == 0) {
+    if (pszQop && strcasecomp (pszQop, "auth-int") == 0) {
 	HTDigest_update (&MdCtx, ":", 1);
 	HTDigest_update (&MdCtx, HEntity, HASHHEXLEN);
     }
