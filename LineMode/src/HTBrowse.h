@@ -1,7 +1,8 @@
 /* 								HTBrowse.h
-**
-**		Declarations of things available from HTBrowse.c
-**		------------------------------------------------
+**	DECLARATIONS OF THINGS AVAILABLE FROM HTBrowse.c
+**	
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	HTBrowse.c, the main program of a line mode browser,  leaves various
 **	public variables atteh disposal of its submodules.
@@ -22,7 +23,6 @@
 #define reference_mark		HTReMark
 #endif
 
-/* extern  int  WWW_TraceFlag;          Off unless -v option given */
 extern  int  HTScreenWidth;		/* By default */
 extern  int  HTScreenHeight;		/* Undefined */
 extern  BOOL display_anchors;		/* anchor will be shown in text? */

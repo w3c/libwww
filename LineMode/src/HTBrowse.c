@@ -1,5 +1,8 @@
-/*    HyperText Browser for Dumb Terminals     		     HTBrowse.c
-**    ====================================
+/*         		    					     HTBrowse.c
+**	HYPERTEXT BROWSER FOR DUMB TERMINALS
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 **  Authors:
 **	NP:  Nicola Pellow  Tech.Student CERN 1990-91
@@ -8,8 +11,6 @@
 **	DR:  Dudu Rashty +972-2-584848 <RASHTY@hujivms.bitnet>
 **	MD:  Mark Donszelmann, DELPHI CERN, (duns@vxdeop.cern.ch)
 **	HFN: Henrik Frystyk Nielsen, CERN, (frystyk@dxcern.cern.ch)
-**
-**  Copyright CERN 1990-1992   See Copyright.html 
 **
 **  History:
 **
@@ -538,7 +539,7 @@ PRIVATE void MakeCommandLine ARGS1(BOOL, is_index)
                                                                  /* EQUAL 82 */
 #endif
 
-    printf("\n");  	           	  /* For use to flush out the prompt */
+    fflush(stdout);  	           	  /* For use to flush out the prompt */
     return;
 }
 
@@ -550,12 +551,8 @@ PRIVATE void MakeCommandLine ARGS1(BOOL, is_index)
 */
 PRIVATE void ErrMsg ARGS2(char *, Msg, char *, Str)
 {
-    if (TRACE) {
-	if (Str)	
-	    fprintf(stderr, "Line Mode Browser: %s (%s)\n", Msg, Str);
-	else
-	    fprintf(stderr, "Line Mode Browser: %s\n", Msg);
-    }
+    if (TRACE || HTInteractive)
+	fprintf(stderr, "Warning: %s (%s)\n", Msg, Str ? Str : "");
 }
 
 /* ------------------------------------------------------------------------- */
@@ -673,6 +670,7 @@ PRIVATE BOOL SaveOutputStream ARGS2(char *, This, char *, Next)
 PUBLIC HTEventState EventHandler ARGS1(HTRequest *, actreq)
 { 
     int  ref_num;
+    int  status = EVENT_OK;
     char * the_choice = 0;		           /* preserved user command */
     char * this_word = 0;        	   	    /* First word of command */
     char * this_command;	       	          /* this_word and following */
@@ -717,12 +715,21 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest *, actreq)
 	    HTAnchor *destination;
 	    HTChildAnchor *source = HText_childNumber(HTMainText, ref_num);
 	    HTRequest *newreq = Thread_new(YES);
-	    if (!source) return EVENT_QUIT;			/* No anchor */
-	    destination = HTAnchor_followMainLink((HTAnchor*) source);
-	    HTMainAnchor = HTAnchor_parent((HTAnchor *) source);
-	    HTLoadAnchor(destination, newreq);
-	    return EVENT_OK;
+	    if (!source) {
+		status = EVENT_QUIT;				/* No anchor */
+	    } else {
+		destination = HTAnchor_followMainLink((HTAnchor*) source);
+		HTMainAnchor = HTAnchor_parent((HTAnchor *) source);
+		HTLoadAnchor(destination, newreq);
+		free(the_choice);
+		return EVENT_OK;
+	    }
+	} else {
+	    if (TRACE || HTInteractive)
+		fprintf(stderr, "Warning: Invalid Reference Number: (%d)\n",
+			ref_num);
 	}
+	goto ret;
 	break;
 	
       case 'B':		
@@ -775,7 +782,7 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest *, actreq)
 	    if (next_word) {
 		HTRequest *newreq = Thread_new(YES);
 		HTLoadRelative(next_word, HTMainAnchor, newreq);
-		return EVENT_OK;
+		goto ret;
 	    }
 	}
 	break;
@@ -1009,7 +1016,10 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest *, actreq)
 	break;
 	
       case 'Z':
-	return EVENT_INTR_ALL;
+	HText_select(HTMainText);			   /* Refresh screen */
+	status = EVENT_INTR_ALL;
+	goto ret;
+	break;
 
       case '>':
 	if (!HTClientHost) {
@@ -1069,7 +1079,7 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest *, actreq)
   ret:
     MakeCommandLine(is_index);
     free (the_choice);
-    return EVENT_OK;
+    return status;
 	
   stop:
     free(the_choice);
@@ -1132,13 +1142,6 @@ int main ARGS2(int, argc, char **, argv)
        agl@glas2.glas.apc.org (Anton Tropashko) */
 #ifdef CYRILLIC
     arc.locale=0; arc.encoding=0; arc.i_encoding=0; doinull();
-#endif
-
-    /* On Solaris (and others?) we get a BROKEN PIPE signal when connecting
-       to a port where er should get `connection refused'. We ignore this 
-       using the following function call */
-#ifdef WWWLIB_SIG
-    HTSetSignal();
 #endif
 
 #ifdef VMS
@@ -1395,6 +1398,7 @@ int main ARGS2(int, argc, char **, argv)
     } /* End of argument loop */
 
     /* Initialization */
+    HTLibInit();
     if (HTClientHost) HTSecure = YES;		   /* Access to local files? */
     HTEnableFrom = YES;			     /* Send `From:' in the request? */
     if (HTScreenHeight == -1) {				/* Default page size */
@@ -1506,9 +1510,7 @@ int main ARGS2(int, argc, char **, argv)
     }
 
 endproc:
-
-    /* HERE WE SHOULD DO SOME CLEANUP SO THAT IT ALSO WORKS ON A PC! */
-
+    HTLibTerminate();
     Thread_deleteAll();
     if(default_default)
 	free(default_default);

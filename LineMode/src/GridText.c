@@ -1,9 +1,12 @@
-/*		Character grid hypertext object
-**		===============================
+/*								     GridText.c
+**	CHARACTER GRID HYPERTEXT OBJECT
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+**
 */
 
-/* Implements:
-*/
+/* Implements: */
 #include "HText.h"
 
 /* HWL 18/7/94: applied patch from agl@glas2.glas.apc.org (Anton Tropashko) */
@@ -928,13 +931,13 @@ PRIVATE int line_for_char ARGS2(HText *,text, int,char_num)
 
 PUBLIC BOOL HText_select ARGS1(HText *,text)
 {
-/*    if (text != HTMainText) {  	Do it anyway to refresh */
-    {				
+    if (text) {
         HTMainText = text;
 	HTMainAnchor = text->node_anchor;
 	display_page(text, text->top_of_screen);
+	return YES;
     }
-    return YES;
+    return NO;
 }
 
 PUBLIC BOOL HText_selectAnchor ARGS2(HText *,text, HTChildAnchor *,anchor)

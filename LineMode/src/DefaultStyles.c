@@ -1,4 +1,8 @@
-/*	A real style sheet for the Character Grid browser
+/*							        DefaultStyles.c
+**	A REAL STYLE SHEET FOR THE CHARACTER GRID BROWSER
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	The dimensions are all in characters!
 */

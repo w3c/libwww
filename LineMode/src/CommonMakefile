@@ -1,6 +1,7 @@
 #	Makefile for WorldWideWeb    Line Mode browser (www)
 #
-#	(c) CERN 1990, 1991 -- see Copyright.html for conditions
+#	(c) COPYRIGHT CERN 1994.
+#	Please first read the full copyright statement in the file COPYRIGH.
 #
 # This file should be invariant between systems.
 #	DEPENDENCIES NOT COMPLETE @@
@@ -28,19 +29,10 @@
 #  If this env var is set to something else Some makes will use that instead
 SHELL = /bin/sh
 
-# If this is actually run in a subdirectory.
-#
-# WWW = ../../..
-
-# If it is run in this directory:
-#
-# WWW = ../..	For [cernlib] build in this directory
-
 LM =  $(WWW)/LineMode/Implementation/
 LMD = $(WWW)/LineMode/Defaults
 CMN = $(WWW)/Library/Implementation/
 DEFAULTS = $(WWW)/LineMode/Defaults
-
 
 CFLAGS2 = $(CFLAGS) -I$(CMN) -I$(LM)
 
@@ -78,11 +70,17 @@ DISTRIBUTION = $(LM)DefaultStyles.c.classic \
 	$(LM)DefaultStyles.c.modern
 
 # $(LM)a_stdio.g $(LM)a_stdio.h were added to support -DCYRILLIC
+HTMLFILES = \
+	$(LM)GridStyle.h \
+	$(LM)GridText.h \
+	$(LM)HTFont.h \
+	$(LM)a_stdio.h
 
-INCLUDES = $(LM)GridStyle.h $(LM)a_stdio.h
+.SUFFIXES: .h .html
+.html.h:
+	www -w90 -na -to text/x-c $*.html > $*.h
 
 # $(LM)a_stdio.h was added to support -DCYRILLIC
-
 SPECIFIC =  \
 	$(LM)apollo_m68k/Makefile \
 	$(LM)decstation/Makefile \
@@ -108,27 +106,15 @@ SPECIFIC =  \
 # This is now done by cat in WWW/All/Implementation/Makefile
 # include $(ABS)$(LM)Version.make
 
-.html.h:
-	www -w90 -na -to text/x-c $*.html > $*.h
-
-
-
 PURIFY = purify \
 	-logfile=/home2/frystyk/purify-output \
 	-cache-dir=/home2/frystyk/purify-cache
-
 
 $(BIN)/$(PROD) : $(OBJS) $(USELIBDIR)/libwww.a
 	$(CC) -o $(BIN)/$(PROD)_$(VL)  $(OBJS) $(LFLAGS) $(WWWLIB) \
 	$(WAISLIB) $(MATHLIB)
 	-rm $(BIN)/$(PROD)
 	ln -s $(PROD)_$(VL) $(BIN)/$(PROD)
-
-
-
-$(LM)GridStyle.html : $(LM)GridStyle.h
-	www -w90 -na -to text/x-c $(LM)GridStyle.html > $(LM)GridStyle.h
-
 
 purify : $(OBJS) $(USELIBDIR)/libwww.a
 	$(PURIFY) $(CC) -o $(PROD)_$(VL) $(OBJS) $(LFLAGS) $(WWWLIB) \
@@ -142,8 +128,6 @@ cyrillic : $(OBJS-CYR) $(USELIBDIR)/libwww.a
 	-rm $(BIN)/$(PROD)
 	ln -s $(PROD)_$(VL) $(BIN)/$(PROD)
 	
-
-
 $(USELIBDIR)/libwww.a :
 	@echo You must get and make the WWWLibrary product first!
 	(cd $(WWW)/Library/$(WWW_MACH) && make)
@@ -151,9 +135,8 @@ $(USELIBDIR)/libwww.a :
 lib :
 	(cd $(WWW)/Library/$(WWW_MACH) && make)
 
-inc :	$(INLCUDES)
-	echo Line mode browser include files up to date from html's.
-	(cd $(WWW)/Library/Implementation && make inc)
+inc :	$(HTMLFILES)
+	echo "Include files generated from hypertext"
 
 #	Make a copy of the binary and documentation on this machine
 install :	$(PROD)

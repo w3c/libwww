@@ -1,6 +1,12 @@
 /*                                                       HTStyle: Style management for libwww
                               STYLE DEFINITION FOR HYPERTEXT
                                              
+ */
+/*
+**      (c) COPYRIGHT CERN 1994.
+**      Please first read the full copyright statement in the file COPYRIGH.
+*//*
+
    Styles allow the translation between a logical property of a piece of text and its
    physical representation.
    
@@ -29,7 +35,6 @@ Overriding this module
    case without problems, as no other moule needs to know it.
    
  */
-
 #ifndef GridStyle_H
 #define GridStyle_H
 
@@ -114,7 +119,6 @@ struct _HTStyle {
 };
 
 #ifdef NOT_IN_GRIDSTYLE
-
 /*
 
 Style Creation
@@ -128,8 +132,6 @@ Style Creation
    tree.
    
  */
-
-
 extern HTStyle * HTStyleModify PARAMS((
                 HTStyle *       style,
                 HTNesting*      nesting,
@@ -176,7 +178,6 @@ extern HTStyleSheet * HTStyleSheetWrite PARAMS((HTStyleSheet * self,
 
 #endif /* NOT IN GRIDSTYLE */
 #endif /* GRIDSTYLE_H */
-
 
 /*
 
