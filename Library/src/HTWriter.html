@@ -43,6 +43,11 @@ also a small buffer stream that can be used if this is not the case.
 
 <PRE>
 extern HTOutput_new HTWriter_new;
+extern BOOL HTWriter_set (HTOutputStream *	me,
+			  HTNet *		net,
+			  HTChannel *		ch,
+			  void *		param,
+			  int			mode);
 </PRE>
 
 <H2>Buffered Output</H2>

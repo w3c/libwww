@@ -865,9 +865,9 @@ CSError_t PICSCallback(HTRequest* pReq, CSLabel_t * pCSLabel,
             {
 	    char * labelStr = CSLabel_getRatingStr(pCSLabel);
 	    char * userStr = CSUser_getRatingStr(pCSUser);
+	    char * anchorStr = HTAnchor_address((HTAnchor*)HTRequest_anchor(pReq));
             OutputData(lm->pView, "PICS user %s is not allowed to see document: %s\n", 
-		       CSUser_name(pCSUser), 
-		       HTAnchor_address((HTAnchor*)HTRequest_anchor(pReq)));
+		       CSUser_name(pCSUser), anchorStr);
             OutputData(lm->pView, "  %s's \"%s\" rating for service %s (%s) did not include %s\n", 
 		       CSUser_name(pCSUser), 
 		       CSLabel_getRatingName(pCSLabel),
@@ -875,6 +875,7 @@ CSError_t PICSCallback(HTRequest* pReq, CSLabel_t * pCSLabel,
 		       userStr, labelStr);
 	    HT_FREE(userStr);
 	    HT_FREE(labelStr);
+	    HT_FREE(anchorStr);
 	    }
 	    return disposition;
         case CSError_BUREAU_NONE: mesg="label bureau was not contacted"; break;

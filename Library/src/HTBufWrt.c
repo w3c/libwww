@@ -165,7 +165,8 @@ PUBLIC HTOutputStream * HTBufferWriter_new (HTNet * net, HTChannel * ch,
 	    me->size = bufsize;
 	    me->target = HTWriter_new(net, ch, param, 0);
 	    me->ch = ch;
-	}
+	} else
+	    HTWriter_set(me->target, net, ch, param, 0);
 	me->net = net;
 	return me;
     }

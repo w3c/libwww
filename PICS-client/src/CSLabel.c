@@ -1510,12 +1510,18 @@ PUBLIC FVal_t CSLabel_ratingsIncludeRanges(CSLabel_t * pCSLabel, HTList * userRa
 {
     FVal_t ret;
     Range_t * pUserRange;
+    BOOL retInitialized = NO;
     while ((pUserRange = (Range_t *)HTList_nextObject(userRanges))) {
         FVal_t thisOne = CSLabel_ratingsIncludeRange(pCSLabel, pUserRange);
         if (FVal_isZero(&thisOne))
             return thisOne;
-        if (FVal_nearerZero(&thisOne, &ret))
-            ret = thisOne;
+	if (retInitialized) {
+	    if (FVal_nearerZero(&thisOne, &ret))
+	        ret = thisOne;
+	} else {
+	    ret = thisOne;
+	    retInitialized = YES;
+	}
     }
     return ret;
 }

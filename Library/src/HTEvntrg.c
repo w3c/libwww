@@ -334,7 +334,7 @@ PUBLIC int HTEvent_Register (SOCKET s, HTRequest * rq, SockOps ops,
 #endif
 /*    if (rq->hwnd != 0) {
         if (WSAAsyncSelect( s, rq->hwnd, rq->winMsg, ops) < 0) { */
-        if (WSAAsyncSelect( s, HTSocketWin, HTwinMsg, ops) < 0) {
+        if (WSAAsyncSelect( s, HTsocketWin, HTwinMsg, ops) < 0) {
 	    HTRequest_addSystemError(rq, ERR_FATAL, GetLastError(), NO,
 				     "WSAAsyncSelect");
 	    return HTERROR;
