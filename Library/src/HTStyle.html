@@ -65,6 +65,7 @@ typedef long int HTFont;	/* Dummy definition instead */
 #define HTStyleSheetWrite		HTStShWr
 #endif
 
+#ifdef DEFINE_STRUCT_HTSTYLE
 #ifdef NeXT_suppressed
 #include &lt;appkit/appkit.h>
 typedef NXCoord HTCoord;
@@ -86,21 +87,27 @@ typedef int HTColor;		/* Sorry about the US spelling! */
 
 #endif
 
-
-
-#define STYLE_NAME_LENGTH	80	/* @@@@@@@@@@@ */
-	 
 typedef struct {
     short           	kind;		/* only NX_LEFTTAB implemented*/
     HTCoord         	position;	/* x coordinate for stop */
 } HTTabStop;
 
+#else
+typedef struct _HTParagraphStyle HTParagraphStyle;
+#endif
+
+
+
+#define STYLE_NAME_LENGTH	80	/* @@@@@@@@@@@ */
+	 
 
 /*	The Style Structure
 **	-------------------
 */
 
-typedef struct _HTStyle {
+typedef struct _HTStyle
+#ifdef DEFINE_STRUCT_HTSTYLE
+ {
 
 /*	Style management information
 */
@@ -143,7 +150,9 @@ typedef struct _HTStyle {
 #define HT_RIGHT 2
 #define HT_CENTER 3
   
-} HTStyle;
+}
+#endif
+ HTStyle;
 
 
 /*	Style functions:

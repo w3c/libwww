@@ -1157,7 +1157,7 @@ PUBLIC int HTFTPBrowseDirectory ARGS4(HTRequest *, req, char *, directory,
 	HTBTree *bt;
 
 	/* TEMPORARY */
-	HTDirDescriptions = NULL;
+	HTDirDescriptions = NO;
 
 	/* Set up sort key and initialize BTree */
 	if (HTDirShowMask & HT_DIR_KEY_SIZE) {

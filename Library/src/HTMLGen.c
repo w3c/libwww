@@ -209,13 +209,8 @@ PRIVATE void HTMLGen_start_element ARGS4(
 /*		End Element
 **		-----------
 **
-*/
-/*	When we end an element, the style must be returned to that
-**	in effect before that element.  Note that anchors (etc?)
-**	don't have an associated style, so that we must scan down the
-**	stack for an element with a defined style. (In fact, the styles
-**	should be linked to the whole stack not just the top one.)
-**	TBL 921119
+**      The rules for insertring CR LF into SGML are weird, strict, and
+** 	nonintitive.
 */
 PRIVATE void HTMLGen_end_element ARGS2(HTStructured *, me,
 			int , element_number)
@@ -228,10 +223,14 @@ PRIVATE void HTMLGen_end_element ARGS2(HTStructured *, me,
     }
     HTMLGen_put_string(me, "</");
     HTMLGen_put_string(me, me->dtd->tags[element_number].name);
+#ifdef ILLEGAL
     if (me->preformatted)
 	HTMLGen_put_character(me, '>');		          /* Henrik 24/03-94 */
     else
 	HTMLGen_put_string(me, ">\n");
+#else
+	HTMLGen_put_character(me, '>');	   /* NO break after TBL 940501 */
+#endif
     if (element_number == HTML_PRE && me->preformatted)
 	me->preformatted--;
 }

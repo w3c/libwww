@@ -11,15 +11,73 @@
 #include "HTStyle.h"
 #include "HTUtils.h"
 
+
+/*	Local definition of style
+**	-------------------------
+*/
+/*      The Style Structure
+**      -------------------
+*/
+
+typedef float HTCoord;
+typedef int HTColor;
+
+typedef struct {
+    short               kind;           /* only NX_LEFTTAB implemented*/
+    HTCoord             position;       /* x coordinate for stop */
+} HTTabStop;
+
+
+struct _HTStyle {
+
+/*      Style management information
+*/
+    struct _HTStyle     *next;          /* Link for putting into stylesheet */
+    char *              name;           /* Style name */
+    char *              SGMLTag;        /* Tag name to start */
+
+
+/*      Character attributes    (a la NXRun)
+*/
+    HTFont              font;           /* Font id */
+    HTCoord             fontSize;       /* The size of font, not independent */
+    HTColor             color;  /* text gray of current run */
+    int                 superscript;    /* superscript (-sub) in points */
+
+    HTAnchor            *anchor;        /* Anchor id if any, else zero */
+
+/*      Paragraph Attribtes     (a la NXTextStyle)
+*/
+    HTCoord             indent1st;      /* how far first line in paragraph is
+                                 * indented */
+    HTCoord             leftIndent;     /* how far second line is indented */
+    HTCoord             rightIndent;    /* (Missing from NeXT version */
+    short               alignment;      /* quad justification */
+    HTCoord             lineHt;         /* line height */
+    HTCoord             descentLine;    /* descender bottom from baseline */
+    HTTabStop           *tabs;          /* array of tab stops, 0 terminated */
+
+    BOOL                wordWrap;       /* Yes means wrap at space not char */
+    BOOL                freeFormat;     /* Yes means \n is just white space */
+    HTCoord             spaceBefore;    /* Omissions from NXTextStyle */
+    HTCoord             spaceAfter;
+    int                 paraFlags;      /* Paragraph flags, bits as follows: */
+
+#define PARA_KEEP       1       /* Do not break page within this paragraph */
+#define PARA_WITH_NEXT  2       /* Do not break page after this paragraph */
+
+#define HT_JUSTIFY 0            /* For alignment */
+#define HT_LEFT 1
+#define HT_RIGHT 2
+#define HT_CENTER 3
+};
+
+
 /*	Create a new style
 */
 PUBLIC HTStyle* HTStyleNew NOARGS
 {
-    HTStyle * self = (HTStyle *)malloc(sizeof(*self));
-    memset(self, 0, sizeof(*self));
-    self->font = (HTFont) 0;
-    self->color = 0;
-    return self;
+    return (HTStyle *)calloc(1, sizeof(HTStyle));
 }
 
 /*	Create a new style with a name
