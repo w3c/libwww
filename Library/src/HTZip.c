@@ -14,6 +14,10 @@
 #include "WWWCore.h"
 #include "HTZip.h"					 /* Implemented here */
 
+#ifdef WWW_MSWINDOWS
+#define ZLIB_DLL
+#endif
+
 #include "zlib.h"
 
 #define OUTBUF_SIZE	8192

@@ -12,15 +12,8 @@
 /* Library include files */
 #include "sysdep.h"
 #include "WWWUtil.h"
-#include "HTError.h"
-#include "HTBind.h"
-#include "HTAlert.h"
-#include "HTParse.h"
-#include "HTReq.h"
-#include "HTChannl.h"
-#include "HTIOStream.h"
+#include "WWWCore.h"
 #include "HTNetMan.h"
-#include "HTHstMan.h"
 #include "HTANSI.h"					 /* Implemented here */
 
 struct _HTStream {
@@ -32,10 +25,9 @@ struct _HTInputStream {
     const HTInputStreamClass *	isa;    
     HTChannel *			ch;
     HTHost *			host;
-    FILE *			fp;
-    HTStream *			target;
     char *			write;			/* Last byte written */
     char *			read;			   /* Last byte read */
+    int				b_read;
     char			data [FILE_BUFFER_SIZE];
 };
 
@@ -52,14 +44,17 @@ struct _HTOutputStream {
 
 PRIVATE int HTANSIReader_flush (HTInputStream * me)
 {
-    return me->target ? (*me->target->isa->flush)(me->target) : HT_OK;
+    HTNet * net = HTHost_getReadNet(me->host);
+    return net && net->readStream ?
+	(*net->readStream->isa->flush)(net->readStream) : HT_OK;
 }
 
 PRIVATE int HTANSIReader_free (HTInputStream * me)
 {
-    if (me->target) {
-	int status = (*me->target->isa->_free)(me->target);
-	if (status != HT_WOULD_BLOCK) me->target = NULL;
+    HTNet * net = HTHost_getReadNet(me->host);
+    if (net && net->readStream) {
+	int status = (*net->readStream->isa->_free)(net->readStream);
+	if (status == HT_OK) net->readStream = NULL;
 	return status;
     }
     return HT_OK;
@@ -67,74 +62,66 @@ PRIVATE int HTANSIReader_free (HTInputStream * me)
 
 PRIVATE int HTANSIReader_abort (HTInputStream * me, HTList * e)
 {
-    if (me->target) {
-	(*me->target->isa->abort)(me->target, NULL);
-	me->target = NULL;
+    HTNet * net = HTHost_getReadNet(me->host);
+    if (net && net->readStream) {
+	int status = (*net->readStream->isa->abort)(net->readStream, NULL);
+	if (status != HT_IGNORE) net->readStream = NULL;
     }
     return HT_ERROR;
 }
 
 PRIVATE int HTANSIReader_read (HTInputStream * me)
 {
-    int b_read;
-    int status;
+    HTHost * host = me->host;
+    FILE * fp = HTChannel_file(me->ch);
     HTNet * net = HTHost_getReadNet(me->host);
-    FILE * fp = me->host->fp;
+    HTRequest * request = HTNet_request(net);
+    int status;
 
     /* Read the file desriptor */
     while (fp) {
-	if ((b_read = fread(me->data, 1, FILE_BUFFER_SIZE, fp)) == 0){
+	if ((me->b_read = fread(me->data, 1, FILE_BUFFER_SIZE, fp)) == 0){
 	    if (ferror(fp)) {
 		if (PROT_TRACE) HTTrace("ANSI read... READ ERROR\n");
 	    } else {
 		HTAlertCallback *cbf = HTAlert_find(HT_PROG_DONE);
-		if (PROT_TRACE)
-		    HTTrace("ANSI read... Finished loading file %p\n", fp);
-		if (cbf) (*cbf)(net->request, HT_PROG_DONE,
-				HT_MSG_NULL, NULL, NULL, NULL);
+		if (PROT_TRACE) HTTrace("ANSI read... Finished loading file %p\n", fp);
+		if (cbf) (*cbf)(net->request, HT_PROG_DONE, HT_MSG_NULL,NULL,NULL,NULL);
 		return HT_CLOSED;
 	    }
 	}
 
 	/* Remember how much we have read from the input socket */
+	HTTraceData(me->data, me->b_read, "HTANSIReader_read me->data:");
 	me->write = me->data;
-	me->read = me->data + b_read;
+	me->read = me->data + me->b_read;
 
-	if (PROT_TRACE)
-	    HTTrace("ANSI read... %d bytes read from file %p\n", b_read, fp);
 	{
 	    HTAlertCallback * cbf = HTAlert_find(HT_PROG_READ);
-	    net->bytesRead += b_read;
-	    if (cbf) (*cbf)(net->request, HT_PROG_READ,
-			    HT_MSG_NULL, NULL, NULL, NULL);
+	    net->bytesRead += me->b_read;
+	    if (cbf) (*cbf)(net->request, HT_PROG_READ, HT_MSG_NULL, NULL, NULL, NULL);
 	}
 
 	/* Now push the data down the stream */
-	if ((status = (*me->target->isa->put_block)
-	     (me->target, me->data, b_read)) != HT_OK) {
+	if ((status = (*net->readStream->isa->put_block)
+	     (net->readStream, me->data, me->b_read)) != HT_OK) {
 	    if (status == HT_WOULD_BLOCK) {
 		if (PROT_TRACE) HTTrace("ANSI read... Target WOULD BLOCK\n");
-#if 0
-		HTEvent_unregister(soc, HTEvent_READ);
-#endif
 		return HT_WOULD_BLOCK;
 	    } else if (status == HT_PAUSE) {
 		if (PROT_TRACE) HTTrace("ANSI read... Target PAUSED\n");
-#if 0
-		HTEvent_unregister(soc, HTEvent_READ);
-#endif
 		return HT_PAUSE;
 	    } else if (status > 0) {	      /* Stream specific return code */
 		if (PROT_TRACE)
 		    HTTrace("ANSI read... Target returns %d\n", status);
-		me->write = me->data + b_read;
+		me->write = me->data + me->b_read;
 		return status;
 	    } else {				     /* We have a real error */
 		if (PROT_TRACE) HTTrace("ANSI read... Target ERROR\n");
 		return status;
 	    }
 	}
-	me->write = me->data + b_read;
+	me->write = me->data + me->b_read;
     }
     if (PROT_TRACE) HTTrace("ANSI read... File descriptor is NULL...\n");
     return HT_ERROR;
@@ -183,7 +170,6 @@ PUBLIC HTInputStream * HTANSIReader_new (HTHost * host, HTChannel * ch,
 	    me->ch = ch;
 	}
 	me->host = host;
-	me->fp = host->fp;
 	return me;
     }
     return NULL;

@@ -69,7 +69,7 @@ PUBLIC int HTFileOpen (HTNet * net, char * local, HTLocalMode mode)
     /* #endif - HAVE_FCNTL <- wrong location, moved up JTD:5/30/96 */
 #else /* !NO_UNIX_IO */
 #ifdef VMS
-    if (!(net->fp = fopen(local, mode,"shr=put","shr=upd"))) {
+    if (!(net->host->fp = fopen(local, mode,"shr=put","shr=upd"))) {
 	HTRequest_addSystemError(request, ERR_FATAL, errno, NO, "fopen");
 	return HT_ERROR;
     }

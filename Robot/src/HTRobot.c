@@ -271,7 +271,7 @@ PRIVATE void Cleanup (Robot * me, int status)
 {
     Robot_delete(me);
     HTProfile_delete();
-#ifdef MEMLOG
+#ifdef HT_MEMLOG
     HTMemLog_close();
 #endif
 
@@ -300,7 +300,7 @@ PRIVATE void SetSignal (void)
 	if (PROT_TRACE) HTTrace("HTSignal.... Ignoring SIGPIPE\n");
     }
 
-#ifdef MEMLOG
+#ifdef HT_MEMLOG
     HTMemLog_flush();
 #endif
 
@@ -481,10 +481,10 @@ int main (int argc, char ** argv)
     InitCursor();
     SIOUXSettings.asktosaveonclose = false;
     argc=ccommand(&argv);
-#endif
+#endif /* __MWERKS__ */
 
-#ifdef MEMLOG
-    HTMemLog_open("/tmp/data.log", 8192, YES);
+#ifdef HT_MEMLOG
+    HTMemLog_open(HT_MEMLOG, 8192, YES);
 #endif
 
     /* Initiate W3C Reference Library with a robot profile */

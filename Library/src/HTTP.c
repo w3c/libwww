@@ -82,6 +82,7 @@ struct _HTStream {
     char *			reason;
     char 			buffer[MAX_STATUS_LEN+1];
     int				buflen;
+    int				startLen;/* buflen when put_block was called */
 };
 
 struct _HTInputStream {
@@ -521,7 +522,7 @@ PRIVATE int stream_pipe (HTStream * me)
 	HTResponse * response = HTRequest_response(request);
 	char *ptr = me->buffer+4;		       /* Skip the HTTP part */
 	me->version = HTNextField(&ptr);
-	HTHost_setConsumed(net->host, me->buflen);
+	HTHost_setConsumed(net->host, me->buflen - me->startLen);
 
 	/* Here we want to find out when to use persistent connection */
 	if (!strncasecomp(me->version, "/1.0", 4)) {
@@ -639,6 +640,7 @@ PRIVATE int stream_pipe (HTStream * me)
 */
 PRIVATE int HTTPStatus_put_block (HTStream * me, const char * b, int l)
 {
+    me->startLen = me->buflen;
     while (!me->transparent && l-- > 0) {
 	int status;
 	if (me->target) {

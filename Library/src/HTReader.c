@@ -13,7 +13,6 @@
 #include "sysdep.h"
 #include "WWWUtil.h"
 #include "WWWCore.h"
-#include "HTHost.h"
 #include "HTNetMan.h"
 #include "HTReader.h"					 /* Implemented here */
 

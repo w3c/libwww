@@ -11,7 +11,7 @@
 #define W3C_VERSION "5.1"
 
 /* Define to enable HT_ZLIB compression / decompression support. */
-#define HT_ZLIB 1
+/* #undef HT_ZLIB */
 
 /* Define to enable SOCKS firewall-breaching code. */
 /* #undef SOCKS */
@@ -42,5 +42,8 @@
 /* Define this to be the tn3270 program name. */
 /* #undef TN3270_PROGRAM */
 
+/* Define if your processor stores words with the most significant
+   byte first (like Motorola and SPARC, unlike Intel and VAX).  */
+/* #undef WORDS_BIGENDIAN */
 
 
