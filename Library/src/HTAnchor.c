@@ -1258,7 +1258,7 @@ PUBLIC char * HTAnchor_etag (HTParentAnchor * me)
 
 PUBLIC void HTAnchor_setEtag (HTParentAnchor * me, const char * etag)
 {
-    if (me && etag) StrAllocCopy(me->etag, etag);
+    if (me && etag && me->etag != etag) StrAllocCopy(me->etag, etag);
 }
 
 PUBLIC BOOL HTAnchor_isEtagWeak (HTParentAnchor * me)
