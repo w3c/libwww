@@ -604,7 +604,7 @@ PUBLIC HTStream * HTMIMEPartial (HTRequest *	request,
     **  Create the pipe buffer stream to buffer the data that we read
     **  from the network
     */
-    if ((pipe = HTPipeBuffer_new(me->target, request, 0))) me->target = pipe;
+    if ((pipe = HTPipeBuffer(me->target, 0))) me->target = pipe;
 
     /*
     **  Now start the second load from the cache. First we read this data from

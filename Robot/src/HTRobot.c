@@ -158,8 +158,7 @@ PRIVATE BOOL HyperDoc_delete (HyperDoc * hd)
 PRIVATE Robot * Robot_new (void)
 {
     Robot * me;
-    if ((me = (Robot *) HT_CALLOC(1, sizeof(Robot))) == NULL ||
-	(me->tv = (struct timeval*) HT_CALLOC(1, sizeof(struct timeval))) == NULL)
+    if ((me = (Robot *) HT_CALLOC(1, sizeof(Robot))) == NULL)
 	HT_OUTOFMEM("Robot_new");
     me->hyperdoc = HTList_new();
     me->htext = HTList_new();
@@ -199,7 +198,6 @@ PRIVATE BOOL Robot_delete (Robot * me)
 	    HTTrace("Robot terminated %s\n",HTDateTimeStr(&local,YES));
 	}
 	HT_FREE(me->cwd);
-	HT_FREE(me->tv);
 	HT_FREE(me);
 	return YES;
     }

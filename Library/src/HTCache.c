@@ -503,6 +503,7 @@ PUBLIC BOOL HTCacheIndex_read (const char * cache_root)
 	HTRequest_setAnchor(request, anchor);
 	HTAlert_setInteractive(NO);
 	status = HTLoad(request, NO);
+	HTAlert_setInteractive(YES);
 	HTRequest_delete(request);
 	HT_FREE(file);
 	HT_FREE(index);

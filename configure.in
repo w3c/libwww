@@ -53,9 +53,11 @@ icondir="/usr/local/share/w3c-icons"
 AC_SUBST(icondir)
 AC_DEFINE_UNQUOTED(W3C_ICONS, "$icondir")
 
-dnl Default location of TcL library
+dnl Default location of TcL library and include files
+tclinclude="/usr/local/include"
 libtcl="/usr/local/lib/libtcl7.5.a"
 AC_SUBST(libtcl)
+AC_SUBST(tclinclude)
 AC_DEFINE_UNQUOTED(W3C_TCL, "$libtcl")
 
 dnl Checks for configuration arguments

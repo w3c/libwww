@@ -5,18 +5,21 @@
 
 check_PROGRAMS = w3clib
 
+libtcl = @libtcl@
+tclinclude = @tclinclude@
+
 w3clib_LDADD = \
-	@libtcl@ \
+	$(libtcl) \
 	../../src/libwww.a -lm
 
 w3clib_DEPENDENCIES = \
-	@libtcl@ \
+	$(libtcl) \
 	../../src/libwww.a
 
 #	For easier use - NOT THE DEFAULT!
 AUTOMAKE_OPTIONS = foreign
 
-INCLUDES = -I$(srcdir)/../../src
+INCLUDES = -I$(srcdir)/../../src -I$(tclinclude)
 
 w3clib_SOURCES = \
 	HTAnchor_glue.c 	HTAnchor_glue.h \

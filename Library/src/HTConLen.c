@@ -244,7 +244,7 @@ PRIVATE int buf_free (HTStream * me)
     **  If the buffer has not been flushed explicit and we are a pipe buffer
     **  then we don't free it.
     */ 
-    if (me->pipe && me->state != HT_BUFFER_TRANSPARENT) {
+    if (me->mode & HT_BM_PIPE && me->state != HT_BS_TRANSPARENT) {
 	if (STREAM_TRACE) HTTrace("PipeBuffer Waiting to be flushed\n");
 	return HT_OK;
     }
