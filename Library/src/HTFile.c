@@ -531,7 +531,13 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 #ifdef HAVE_FCNTL
 	    if (!request->net->preemptive) {
 		if ((status = FCNTL(net->sockfd, F_GETFL, 0)) != -1) {
+#ifdef O_NONBLOCK
 		    status |= O_NONBLOCK;			    /* POSIX */
+#else
+#ifdef F_NDELAY
+		    status |= F_NDELAY;				      /* BSD */
+#endif /* F_NDELAY */
+#endif /* O_NONBLOCK */
 		    status = FCNTL(net->sockfd, F_SETFL, status);
 		}
 		if (PROT_TRACE) {

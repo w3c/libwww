@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww Authentication</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 20-Feb-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 11-Mar-1996 -->
 </HEAD>
 <BODY>
 
@@ -254,9 +254,8 @@ The template must follow normal URI syntax but can include a wildcard
 Return YES if added (or replaced), else NO
 
 <PRE>
-extern BOOL HTAuthInfo_add	(const char *	scheme,
-				 char *		url);
-
+extern BOOL HTAuthInfo_add (const char * scheme, char * url,
+			    char * realm, void * data);
 </PRE>
 
 <H3>Delete the Database</H3>

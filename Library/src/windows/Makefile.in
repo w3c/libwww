@@ -41,6 +41,7 @@ transform = @program_transform_name@
 SUFFIXES = .files .def .txt
 
 DIST_OTHER = \
+	$(SRC) \
 	$(DEF) \
 	$(MAK) \
 	$(PL)
@@ -127,6 +128,7 @@ maintainer-clean:  maintainer-clean-generic distclean
     mostlyclean distclean maintainer-clean
 
 
+SRC := $(wildcard *.c)
 DEF := $(wildcard *.def)
 MAK := $(wildcard *.mak)
 PL  := $(wildcard *.pl)

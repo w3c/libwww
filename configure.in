@@ -37,7 +37,7 @@ dnl Various compiler directives
 AC_PROG_CC_DEBUG
 
 dnl Checks for configuration arguments
-AC_ARG_WITH(wais, [  --with-wais	build in the WAIS searching code],
+AC_ARG_WITH(wais, [  --with-wais             build in the WAIS searching code],
   AC_PATH_WAIS(
     AC_DEFINE(HT_DIRECT_WAIS)
     HTWAIS="HTWAIS.o",
@@ -46,7 +46,7 @@ AC_ARG_WITH(wais, [  --with-wais	build in the WAIS searching code],
   HTWAIS="")
 AC_SUBST(HTWAIS)
 
-AC_ARG_WITH(socks, [  --with-socks	build in the firewall-breaching SOCKS code],
+AC_ARG_WITH(socks, [  --with-socks            build in the firewall-breaching SOCKS code],
   AC_PATH_SOCKS(
     AC_DEFINE(SOCKS),
     AC_MSG_WARN(Cannot find SOCKS; code will be built without it)
@@ -57,6 +57,12 @@ AC_ARG_ENABLE(cyrillic, [  --enable-cyrillic       build Cyrillic version],
   AC_DEFINE(CYRILLIC)
   A_STDIO="a_stdio.o", A_STDIO="")
 AC_SUBST(A_STDIO)
+
+AC_ARG_ENABLE(posix, [  --enable-posix          define _POSIX_SOURCE],
+  AC_DEFINE(_POSIX_SOURCE) [CFLAGS="$CFLAGS -D_POSIX_SOURCE"],)
+
+AC_ARG_ENABLE(reentrant, [  --enable-reentrant      define _REENTRANT],
+  AC_DEFINE(HT_REENTRANT) [CFLAGS="$CFLAGS -D_REENTRANT"],)
 
 dnl Checks for programs.
 AC_PROG_INSTALL

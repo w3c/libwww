@@ -7,6 +7,9 @@
 /* Define to build Cyrillic version. */
 #undef CYRILLIC
 
+/* Define to build using reentrant system calls. */
+#undef HT_REENTRANT
+
 /* Define to be the version. */
 #undef W3C_VERSION
 

@@ -685,7 +685,13 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 		}
 #else
 		if((status = FCNTL(net->sockfd, F_GETFL, 0)) != -1) {
-		    status |= O_NONBLOCK; /* POSIX */
+#ifdef O_NONBLOCK
+		    status |= O_NONBLOCK;			    /* POSIX */
+#else
+#ifdef F_NDELAY
+		    status |= F_NDELAY;				      /* BSD */
+#endif /* F_NDELAY */
+#endif /* O_NONBLOCK */
 		    status = FCNTL(net->sockfd, F_SETFL, status);
 		}
 #endif /* VMS */
@@ -994,7 +1000,13 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKET master, int backlog)
 		}
 #else
 		if((status = FCNTL(net->sockfd, F_GETFL, 0)) != -1) {
+#ifdef O_NONBLOCK
 		    status |= O_NONBLOCK;			    /* POSIX */
+#else
+#ifdef F_NDELAY
+		    status |= F_NDELAY;				      /* BSD */
+#endif /* F_NDELAY */
+#endif /* O_NONBLOCK */
 		    status = FCNTL(net->sockfd, F_SETFL, status);
 		}
 #endif /* VMS */

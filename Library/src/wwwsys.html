@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww SYSTEM DEPENDENCIES</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  1-Mar-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 11-Mar-1996 -->
 </HEAD>
 <BODY>
 
@@ -135,6 +135,7 @@ Help provided by Eric Prud'hommeaux, Susan C. Weber
 #define NO_GETWD
 #define NO_FCNTL
 #define HAVE_GETCWD
+#define BOOLEAN				/* Windows have BOOLEAN defined */
 
 #undef HAVE_GETDOMAINNAME
 
@@ -148,7 +149,7 @@ Help provided by Eric Prud'hommeaux, Susan C. Weber
 <H3>File and Directory Access</H3>
 
 These next defintions are because the UNIX stuff is not supplied with
-BC4 (Paul Hounslow <P.M.Hounslow@reading.ac.uk>
+BC4 (Paul Hounslow &lt;P.M.Hounslow@reading.ac.uk&gt;)
 
 <PRE>
 #define NO_UNIX_IO
@@ -803,10 +804,10 @@ exist.  Their existance is discovered by <CODE>configure</CODE>.
 
 /* appkit.h */
 #ifdef HAVE_APPKIT_APPKIT_H
-#include <appkit/appkit.h>
+#include &lt;appkit/appkit.h&gt;
 #else
 #ifdef HAVE_APPKIT_H
-#include <appkit.h>
+#include &lt;appkit.h&gt;
 #endif
 #endif
 
