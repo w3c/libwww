@@ -21,6 +21,8 @@
 **      HISTORY:
 **         June 15 2000 Jose Kahan (kahan@w3.org)
 **              Extended the API to be able to change the protocol method
+**         August 3 2000 Jose Kahan (kahan@w3.org)
+**              Extended the API to be able to change the verify depth.
 */
 
 /* System files */
@@ -144,6 +146,19 @@ PUBLIC void HTSSL_protMethod_set (HTSSL_PROTOCOL prot_method)
 PUBLIC HTSSL_PROTOCOL HTSSL_protMethod (void)
 {
   return ssl_prot_method;
+}
+
+/* 
+** Set or retrieve the certificate verify depth
+*/
+PUBLIC void HTSSL_verifyDepth_set (int depth)
+{
+  verify_depth = depth;
+}
+
+PUBLIC int HTSSL_verifyDepth (void)
+{
+  return verify_depth;
 }
 
 /*

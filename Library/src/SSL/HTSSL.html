@@ -34,7 +34,7 @@ extern BOOL HTSSL_terminate (void);
 <P>
 The following functions allow to set (or retrieve) the TSL/SSL protocol method
 we want to use when talking with the server. By default, we use the
-highest available protocol (TSLv1 in this version).
+highest available protocol (TLSv1 in this version).
 <PRE> 
 typedef enum _HTSSL_PROTOCOL {
 	      HTSSL_V2 = 0, 
@@ -46,6 +46,13 @@ typedef enum _HTSSL_PROTOCOL {
 
 extern void HTSSL_protMethod_set (HTSSL_PROTOCOL prot_method);
 extern HTSSL_PROTOCOL HTSSL_protMethod (void);
+</PRE>
+<P>
+The following functions allow to set (or retrieve) the certificate
+verification depth. By default, the verification depth has a value of 0.
+<PRE> 
+extern void HTSSL_verifyDepth_set (int depth);
+extern int HTSSL_verifyDepth (void);
 </PRE>
 
 <PRE>

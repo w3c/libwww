@@ -76,6 +76,16 @@ int main (int argc, char ** argv)
     HTSetTraceMessageMask("sop");
 #endif
 
+    /* Set the SSL protocol method. By default, it is the highest
+       available protocol. Setting it up to SSL_V23 allows the client
+       to negotiate with the server and set up either TSLv1, SSLv3, 
+       or SSLv2 */
+    HTSSL_protMethod_set (HTSSL_V23);
+
+    /* Set the certificate verification depth to 1 in order to be able to
+       validate self signed certificates */
+    HTSSL_verifyDepth_set (1);
+
     /* Register SSL stuff for handling ssl access */
     HTSSLhttps_init(YES);
 
@@ -123,3 +133,4 @@ int main (int argc, char ** argv)
 
     return 0;
 }
+
