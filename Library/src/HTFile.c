@@ -473,10 +473,17 @@ PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    }
 
 	    /*
-	    ** Check to see if the 'localname' is in fact a directory
+	    ** Check to see if the 'localname' is in fact a directory.
+	    ** Note that we can't do a HEAD on a directory
 	    */
 	    if (((file->stat_info.st_mode) & S_IFMT) == S_IFDIR) {
-		file->state = FS_PARSE_DIR;
+		if (HTRequest_method(request) == METHOD_GET)
+		    file->state = FS_PARSE_DIR;
+		else {
+		    HTRequest_addError(request, ERR_INFO, NO, HTERR_NO_CONTENT,
+				       NULL, 0, "HTLoadFile");
+		    file->state = FS_NO_DATA;
+		}
 		break;
 	    }
 
