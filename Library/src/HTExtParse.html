@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>ExtParse: Module to get unparsed stream from libwww</TITLE>
+<!-- Changed by: , 30-Nov-1994 -->
 </HEAD>
 <BODY>
 
@@ -39,10 +40,10 @@ Library of Common Code</A>.
 
 typedef struct _HTExtParseStruct HTExtParseStruct;
 
-typedef void (*CallClient) PARAMS((struct _HTExtParseStruct *me));
+/*typedef void (*CallClient) PARAMS((struct _HTExtParseStruct *me));*/
 
 struct _HTExtParseStruct {
-	CallClient	call_client;
+	void            (*call_client)(struct _HTExtParseStruct *eps);
 	int             used;         /* how much of the buffer is being used */
 	BOOL            finished;     /* document loaded? */
         int             length;       /* how long the buffer is */

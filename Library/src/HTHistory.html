@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>History module for libwww</TITLE>
+<!-- Changed by: , 28-Nov-1994 -->
 </HEAD>
 <BODY>
 
@@ -63,6 +64,12 @@ extern void HTHistory_record
 /*		Go back in history (find the last visited node)
 **		------------------
 */
+
+extern HTAnchor * HTHistory_back
+  ARGS1 (HTAnchor *,cur_anch);
+
+extern HTAnchor * HTHistory_forward
+  ARGS1 (HTAnchor *,cur_anch);
 
 extern HTAnchor * HTHistory_backtrack
   NOPARAMS;  /* FIXME: Should we add a `sticky' option ? */

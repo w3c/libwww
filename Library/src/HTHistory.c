@@ -28,6 +28,12 @@ void HTHistory_record
 **		------------------
 */
 
+BOOL HTHistory_canBacktrack
+  NOARGS
+{
+  return (HTList_objectAt (history, 1) != NULL);
+}
+
 HTAnchor * HTHistory_backtrack
   NOARGS  /* FIXME: Should we add a `sticky' option ? */
 {
@@ -37,11 +43,36 @@ HTAnchor * HTHistory_backtrack
   return (HTAnchor *) HTList_lastObject (history);
 }
 
+HTAnchor * HTHistory_back
+  ARGS1 (HTAnchor *,cur_anch)
+{
+  if (HTHistory_canBacktrack()) {
+    int pos = HTList_indexOf(history, cur_anch);
+    return (HTList_objectAt(history, pos + 1));
+  }
+  /* return NULL to indicate that browser should not redraw */
+  return NULL;
+}
+
+
+HTAnchor * HTHistory_forward
+  ARGS1 (HTAnchor *,cur_anch)
+{
+    int pos = HTList_indexOf(history, cur_anch);
+    if (pos <= 0)
+	return NULL;
+    else
+	return (HTList_objectAt(history, pos - 1));
+}
+
+/*
 BOOL HTHistory_canBacktrack
   NOARGS
 {
   return (HTList_objectAt (history, 1) != NULL);
 }
+*/
+
 
 /*		Browse through references in the same parent node
 **		-------------------------------------------------
