@@ -1053,11 +1053,16 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 		fprintf(stderr, "HTDoConnect. Created socket number %d\n",
 			net->sockfd);
 
-	    /* If non-blocking protocol then change socket status */
-	    /* I use FCNTL so that I can ask the status before I set it */
+	    /* If non-blocking protocol then change socket status
+	    ** I use FCNTL so that I can ask the status before I set it.
+	    ** See W. Richard Stevens (Advan. Prog. in UNIX environment, p.364)
+	    ** Be CAREFULL with the old `O_NDELAY' - it will not work as read()
+	    ** returns 0 when blocking and NOT -1. FNDELAY is ONLY for BSD and
+	    ** does NOT work on SVR4 systems. O_NONBLOCK is POSIX.
+	    */
 	    if (!HTProtocolBlocking(net->request)) {
 		if((status = FCNTL(net->sockfd, F_GETFL, 0)) != -1) {
-		    status |= FNDELAY;
+		    status |= O_NONBLOCK;			    /* POSIX */
 		    status = FCNTL(net->sockfd, F_SETFL, status);
 		}
 		if (status == -1) {

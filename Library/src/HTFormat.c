@@ -1140,13 +1140,12 @@ PUBLIC int HTInputSocket_read ARGS2(HTInputSocket *, isoc, HTStream *, target)
     for(;;) {
 	if (HTThreadIntr(isoc->input_file_number))	      /* Interrupted */
 	    return HT_INTERRUPTED;
-
 	if ((b_read = NETREAD(isoc->input_file_number, isoc->input_buffer,
 			      INPUT_BUFFER_SIZE)) < 0) {
 #ifdef EAGAIN
-	    if (errno == EAGAIN || errno == EWOULDBLOCK) 
+	    if (errno == EAGAIN || errno == EWOULDBLOCK)      /* POSIX, SVR4 */
 #else
-	    if (errno == EWOULDBLOCK)
+	    if (errno == EWOULDBLOCK)				      /* BSD */
 #endif
 	    {
 		if (THD_TRACE)
