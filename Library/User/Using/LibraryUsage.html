@@ -16,8 +16,7 @@
 Library of Common Code</H1> 
 <IMG SRC="../../../Icons/WWW/construction.gif" ALT="WIP"> This paper is
 still under construction. Comments are welcome at
-<EM>libwww@w3.org</EM> <P>
-</P><H2>Abstract</H2>
+<EM>libwww@w3.org</EM> <P></P><H2>Abstract</H2>
 <P>The architecture of the <A HREF="../../">Library of Common Code</A>
 is both flexible and open  which guarantees high usability for many
 different  purposes. This paper describes some important practical
@@ -419,9 +418,9 @@ provided by the Library is provided.<H2><A NAME="access">Access
 Methods</A></H2>The Library handles a wide set of Internet Protocols as
 well as access to the local file system. The current set of access
 methods supported are: HTTP, FTP, Gopher, telnet, rlogin, NNTP and WAIS.
-All protocol modules are dynamic modules and each module can be bound to
-an access scheme dynamically as described in section <A HREF="#arc">Architectural
-Overview</A>. As an example, the URL: 
+All protocol modules are dynamic modules and each module can be
+dynamically bound to an access scheme  as described in section <A HREF="#arc"
+>Architectural Overview</A>. As an example, the URL: 
 <PRE>	http://www.w3.org/
 </PRE><P>has the access scheme <EM>http</EM> and can be bound to the
 <A HREF="../../Implementation/HTTP.html">HTTP module</A>. The binding
