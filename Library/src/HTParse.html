@@ -35,7 +35,7 @@ Library</A>.
 #include "HTEscape.h"
 </PRE>
 <H2>
-  Parsing URIs
+  <A NAME="Parsing">Parsing URIs</A>
 </H2>
 <P>
 These functions can be used to get information in a URI.
@@ -96,7 +96,7 @@ is retured.
 extern char * HTRelative (const char * aName, const char *relatedName);
 </PRE>
 <H2>
-  Is a URL Relative or Absolute?
+  <A NAME="absrel">Is a URL Relative or Absolute?</A>
 </H2>
 <P>
 Search the URL and determine whether it is a relative or absolute URL. We
@@ -106,7 +106,7 @@ case then we say it is absolute. Otherwise we say it is relative.
 extern BOOL HTURL_isAbsolute (const char * url);
 </PRE>
 <H2>
-  URL Canonicalization
+  <A NAME="URL">URL Canonicalization</A>
 </H2>
 <P>
 Canonicalization of URIs is a difficult job, but it saves a lot of down loads
@@ -153,7 +153,7 @@ only the part after the last `://' is simplified.
 extern char *HTSimplify (char **filename);
 </PRE>
 <H2>
-  Prevent Security Holes
+  <A NAME="sec">Prevent Security Holes</A>
 </H2>
 <P>
 In many telnet like protocols, it can be very dangerous to allow a full ASCII
