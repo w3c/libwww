@@ -30,6 +30,7 @@
 
 /* SSL includes */
 #include <ssl.h>
+#include <rand.h>
 
 /* Library include files */
 #include "WWWUtil.h"
@@ -166,7 +167,7 @@ PUBLIC int HTSSL_verifyDepth (void)
 */
 PUBLIC BOOL HTSSL_init (void)
 {
-    char rnd_filename[_POSIX_PATH_MAX];
+    char rnd_filename[HT_MAX_PATH];
 
     /*
     ** Initialise OpenSSL 0.9.5 random number generator.
