@@ -13,9 +13,9 @@
 
 <PRE>
 typedef enum _HTErrorShow {
-    HT_ERR_SHOW_WARNING   = 0x1,
-    HT_ERR_SHOW_NON_FATAL = 0x2,
-    HT_ERR_SHOW_FATAL     = 0x4,
+    HT_ERR_SHOW_FATAL     = 0x1,
+    HT_ERR_SHOW_NON_FATAL = 0x3,
+    HT_ERR_SHOW_WARNING   = 0x7,
     HT_ERR_SHOW_PARS	  = 0x8,
     HT_ERR_SHOW_LOCATION  = 0x10,
     HT_ERR_SHOW_IGNORE    = 0x20,
@@ -24,9 +24,9 @@ typedef enum _HTErrorShow {
 } HTErrorShow;
 
 typedef enum _HTErrSeverity {
-    WARNING 		  = 0x1,
-    NON_FATAL		  = 0x2,
-    FATAL		  = 0x4
+    ERR_FATAL		  = 0x1,
+    ERR_NON_FATAL	  = 0x3,
+    ERR_WARNING 	  = 0x7
 } HTErrSeverity;
 </PRE>
 
@@ -56,17 +56,23 @@ typedef enum _HTErrorElement {
 	HTERR_FTP_SERVER,
 	HTERR_FTP_NO_RESPONSE,
 	HTERR_TIME_OUT,
+	HTERR_GOPHER_SERVER,
+	HTERR_INTERRUPTED,
+	HTERR_CSO_SERVER,
+	HTERR_SYSTEM,
 	HTERR_ELEMENTS		            /* This MUST be the last element */
 } HTErrorElement;
 </PRE>
 
 <H2>Public Error Functions</H2>
 
-<H3>Initializing Help Pages</H3>
+<H3>Initializing Help</H3>
 
-In order to initialize the help pages, that refer to any further explanation of the error or warning, a path must be given.
+A path must be given in order to initialize the help pages, that refer to any further explanation of the error or warning. Furthermore, it is possible to sign any error message as, e.g., `CERN HTTP Server' and give a link to get more info on the signer.
 <PRE>
-extern void HTErrorHelpInit PARAMS((char * pathname));
+extern void HTErrorInit PARAMS((char * pathname,
+				char * signature,
+				char * siglink));
 </PRE>
 
 <H3>Add an Error Message</H3>
@@ -81,6 +87,16 @@ extern void HTErrorAdd PARAMS((	HTRequest * 	request,
 			     	void *		par,
 			     	unsigned int	par_length,
 			     	char *		where));
+</PRE>
+
+<H3>Add a System Error Message</H3>
+
+This function adds an error from a system call that initializes errno or equivalent and adds it to the error_stack list in the HTRequest structure.
+<PRE>
+extern void HTErrorSysAdd PARAMS((HTRequest * 	request,
+				  HTErrSeverity	severity,
+				  BOOL		ignore,
+				  char *	syscall));
 </PRE>
 
 <H3>Ignoring an Error Message</H3>

@@ -474,16 +474,21 @@ PUBLIC int HTInputSocket_getCharacter ARGS1(HTInputSocket*, isoc)
 		   isoc->input_file_number,
 		   isoc->input_buffer, INPUT_BUFFER_SIZE);
 	    if (status <= 0) {
-		if (status == 0) return EOF;
-		if (TRACE) fprintf(stderr,
-		    "HTFormat: File read error %d\n", status);
-		return EOF; /* -1 is returned by UCX at end of HTTP link */
+		if (status == 0)
+		    return EOF;
+		if (status == HT_INTERRUPTED) {
+		    if (TRACE)
+			fprintf(stderr, "Get Char.... Interrupted in HTInputSocket_getCharacter\n");
+		    return HT_INTERRUPTED;
+		}
+		HTInetStatus("read");
+		return EOF; 	/* -1 is returned by UCX at end of HTTP link */
 	    }
 	    isoc->input_pointer = isoc->input_buffer;
 	    isoc->input_limit = isoc->input_buffer + status;
 	}
-	ch = (int) *isoc->input_pointer++;
-    } while (ch == 13); /* Ignore ASCII carriage return */
+	ch = (unsigned char) *isoc->input_pointer++;
+    } while (ch == 13);			     /* Ignore ASCII carriage return */
     
     return FROMASCII(ch);
 }
@@ -505,7 +510,7 @@ PUBLIC char * HTInputSocket_getBlock ARGS2(HTInputSocket*,	isoc,
 	if (status <= 0) {
 	    isoc->input_limit = isoc->input_buffer;
 	    if (status < 0)
-		CTRACE(stderr, "HTInputSocket: File read error %d\n", status);
+		HTInetStatus("read");
 	    *len = 0;
 	    return NULL;
 	}
@@ -535,9 +540,7 @@ PRIVATE int fill_in_buffer ARGS1(HTInputSocket *, isoc)
 	if (status <= 0) {
 	    isoc->input_limit = isoc->input_buffer;
 	    if (status < 0)
-		if (TRACE) fprintf(stderr,
-				   "HTInputSocket: File read error %d\n",
-				   status);
+		HTInetStatus("read");
 	}
 	else 
 	    isoc->input_limit = isoc->input_buffer + status;
@@ -728,7 +731,7 @@ PUBLIC int HTOutputBinary ARGS3(HTInputSocket *,isoc,
 	    if (status <= 0) {
 		if (status == 0) return 0;
 		if (TRACE) fprintf(stderr,
-		    "HTFormat: File read error %d\n", status);
+		    "Out Binary.. Socket read error %d\n", status);
 		return 2;			/* Error */
 	    }
 	    fwrite(isoc->input_buffer, sizeof(char), status, output);
@@ -813,7 +816,7 @@ PUBLIC HTStream * HTStreamStack ARGS3(HTFormat,		rep_in,
     HTPresentation *pres, *match, *best_match=0;
     
     if (TRACE) fprintf(stderr,
-    	"HTFormat: Constructing stream stack for %s to %s\n",
+    	"StreamStack. Constructing stream stack for %s to %s\n",
 	HTAtom_name(rep_in),	
 	HTAtom_name(rep_out));
 
@@ -858,8 +861,7 @@ PUBLIC HTStream * HTStreamStack ARGS3(HTFormat,		rep_in,
     match = best_match ? best_match : NULL;
     if (match) {
 	if (match->rep == WWW_SOURCE) {
-	    if (TRACE) fprintf(stderr,
-	    "HTFormat: Don't know how to handle this, so put out %s to %s\n",
+	    if (TRACE) fprintf(stderr, "StreamStack. Don't know how to handle this, so put out %s to %s\n",
 			       HTAtom_name(match->rep), 
 			       HTAtom_name(rep_out));
 	}
@@ -890,7 +892,7 @@ PUBLIC float HTStackValue ARGS5(
     HTList* conversion[2];
     
     if (TRACE) fprintf(stderr,
-    	"HTFormat: Evaluating stream stack for %s worth %.3f to %s\n",
+    	"StackValue.. Evaluating stream stack for %s worth %.3f to %s\n",
 	HTAtom_name(rep_in),	initial_value,
 	HTAtom_name(rep_out));
 		
@@ -961,7 +963,7 @@ PUBLIC int HTCopy ARGS2(
 	if (status <= 0) {
 	    if (status == 0) break;
 	    if (TRACE) fprintf(stderr,
-		"HTFormat: Read error, read returns %d with errno=%d\n",
+		"Socket Copy. Read error, read returns %d with errno=%d\n",
 		status, errno);
 	    break;
 	}
@@ -1014,7 +1016,7 @@ PUBLIC void HTFileCopy ARGS2(
 	if (status == 0) { /* EOF or error */
 	    if (ferror(fp) == 0) break;
 	    if (TRACE) fprintf(stderr,
-		"HTFormat: Read error, read returns %d\n", ferror(fp));
+		"File Copy... Read error, read returns %d\n", ferror(fp));
 	    break;
 	}
 	(*targetClass.put_block)(sink, input_buffer, status);
@@ -1087,7 +1089,7 @@ PUBLIC int HTParseSocket ARGS3(
 	char buffer[1024];	/* @@@@@@@@ */
 	sprintf(buffer, "Sorry, can't convert from %s to %s.",
 		HTAtom_name(rep_in), HTAtom_name(request->output_format));
-	if (TRACE) fprintf(stderr, "HTFormat(in HTParseSocket): %s\n", buffer);
+	if (TRACE) fprintf(stderr, "ParseSocket. %s\n", buffer);
         return HTLoadError(request, 501, buffer);
     }
     
@@ -1140,7 +1142,7 @@ PUBLIC int HTParseFile ARGS3(
 	char buffer[1024];	/* @@@@@@@@ */
 	sprintf(buffer, "Sorry, can't convert from %s to %s.",
 		HTAtom_name(rep_in), HTAtom_name(request->output_format));
-	if (TRACE) fprintf(stderr, "HTFormat(in HTParseFile): %s\n", buffer);
+	if (TRACE) fprintf(stderr, "ParseFile... %s\n", buffer);
 	return HTLoadError(request, 501, buffer);
     }
     

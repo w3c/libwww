@@ -469,14 +469,14 @@ extern int errno;
 <PRE>
 #if defined(__svr4__) || defined(_POSIX_SOURCE) || defined(__hpux)
 #include &lt;unistd.h>
+#include &lt;sys/fcntl.h>
 #endif
 </PRE>
+
 <H2>OSF/1</H2>
 <PRE>#ifdef __osf__
 #define USE_DIRENT
 #endif /* OSF1 AXP */
-
-
 </PRE>
 
 <H2>Regular BSD unix versions</H2>

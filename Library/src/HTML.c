@@ -460,13 +460,7 @@ PRIVATE void HTML_start_element ARGS4(
 	    char * href = NULL;
 	    if (present[HTML_A_HREF]) {
 	    	StrAllocCopy(href, value[HTML_A_HREF]);
-
-		/* If the reference is simplified to empty string then we
-		   must use the unsimplified version in order to recognize
-		   the anchor, Henrik May 9, 1994 */
 		HTSimplify(href);
-		if (!*href)
-		    StrAllocCopy(href, value[HTML_A_HREF]);
 	    }
 	    source = HTAnchor_findChildAndLink(
 		me->node_anchor,				/* parent */

@@ -3,23 +3,25 @@
 <TITLE>Gopher protocol module for libwww</TITLE></HEAD>
 <BODY>
 <H1>GOPHER ACCESS</H1>
+
+This module also cantains the CSO name server access via Gopher.
+
 <H3>History:</H3>
 <DL>
-<DT>8 Jan 92
-<DD>Adapted from HTTP TBL
+<DT> 8 Jan 92
+<DD> Adapted from HTTP TBL
+<DT> 18 May 94
+<DD> Made more consistent, added HTError and made provision for multi-threads, Henrik Frystyk, frystyk@dxcern.cern.ch
 </DL>
 
 <PRE>
-
 #ifndef HTGOPHER_H
 #define HTGOPHER_H
-
-#include "HTAccess.h"
-#include "HTAnchor.h"
 
 GLOBALREF HTProtocol HTGopher;
 
 #endif /* HTGOPHER_H */
-
-</PRE>end of gopher module</BODY>
+</PRE>
+end of gopher module
+</BODY>
 </HTML>

@@ -570,6 +570,7 @@ PRIVATE void HTDirOutTop ARGS5(HTStructured *, target,
     }
     free(logical);
     free(path);
+    free(title);
 }
 
 

@@ -234,20 +234,15 @@ extern HTFormat HTAnchor_format
   PARAMS(
      (HTParentAnchor *me)
      );
-
 </PRE>
+
 <H3>Is it searchable?</H3>
-<PRE>extern void HTAnchor_setIndex
-  PARAMS(
-     (HTParentAnchor *me)
-     );
-
-extern BOOL HTAnchor_isIndex
-  PARAMS(
-     (HTParentAnchor *me)
-     );
-
+<PRE>
+extern void HTAnchor_clearIndex PARAMS((HTParentAnchor *me));
+extern void HTAnchor_setIndex PARAMS((HTParentAnchor *me));
+extern BOOL HTAnchor_isIndex PARAMS((HTParentAnchor *me));
 </PRE>
+
 <H3>Does it have any anchors within it?</H3>
 <PRE>extern BOOL HTAnchor_hasChildren
   PARAMS(

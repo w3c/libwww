@@ -9,146 +9,82 @@
 **	 2 May 94	Fixed possible security hole when the URL contains
 **			a newline, that could cause multiple commands to be
 **			sent to a Gopher server. AL, luotonen@www.cern.ch
+**	12 May 94	Checked and made ready for multi-threads, Frystyk
 */
 
-/* Implements:
-*/
-#include "HTGopher.h"
-
-
-#define GOPHER_PORT 70		/* See protocol spec */
-#define BIG 1024		/* Bug */
-#define LINE_LENGTH 256		/* Bug */
-
-/*	Gopher entity types:
-*/
-#define GOPHER_TEXT		'0'
-#define GOPHER_MENU		'1'
-#define GOPHER_CSO		'2'
-#define GOPHER_ERROR		'3'
-#define GOPHER_MACBINHEX	'4'
-#define GOPHER_PCBINHEX		'5'
-#define GOPHER_UUENCODED	'6'
-#define GOPHER_INDEX		'7'
-#define GOPHER_TELNET		'8'
-#define GOPHER_BINARY           '9'
-#define GOPHER_GIF              'g'
-#define GOPHER_HTML		'h'	        /* HTML */
-#define GOPHER_SOUND            's'
-#define GOPHER_WWW		'w'		/* W3 address */
-#define GOPHER_IMAGE            'I'
-#define GOPHER_TN3270           'T'
-#define GOPHER_DUPLICATE	'+'
-
-#include <ctype.h>
-#include "HTUtils.h"		/* Coding convention macros */
+/* Implementation dependent include files */
 #include "tcp.h"
 
-#include "HTIcons.h"
+/* Library include files */
 #include "HTParse.h"
-#include "HTFormat.h"
+#include "HTUtils.h"
 #include "HTTCP.h"
-#include "HTFile.h"		/* HTFileFormat() */
-
-/*		Hypertext object building machinery
-*/
+#include "HTIcons.h"
+#include "HTAccess.h"
+#include "HTFormat.h"
+#include "HTError.h"
+#include "HTFile.h"
 #include "HTML.h"
+#include "HTMLPDTD.h"
+#include "HTDirBrw.h"
+#include "HTGopher.h"					 /* Implemented here */
 
+/* Macros and other defines */
+#ifndef GOPHER_PORT
+#define GOPHER_PORT 70					/* See protocol spec */
+#endif
+
+/* Hypertext object building machinery */
 #define PUTC(c) (*target->isa->put_character)(target, c)
 #define PUTS(s) (*target->isa->put_string)(target, s)
 #define START(e) (*target->isa->start_element)(target, e, 0, 0)
 #define END(e) (*target->isa->end_element)(target, e)
 #define FREE_TARGET (*target->isa->free)(target)
+
+/* Type definitions and global variables etc. local to this module */
+typedef enum _HTGopherType {
+    GOPHER_TEXT		= '0',
+    GOPHER_MENU		= '1',
+    GOPHER_CSO		= '2',
+    GOPHER_ERROR	= '3',
+    GOPHER_MACBINHEX	= '4',
+    GOPHER_PCBINHEX	= '5',
+    GOPHER_UUENCODED	= '6',
+    GOPHER_INDEX	= '7',
+    GOPHER_TELNET	= '8',
+    GOPHER_BINARY       = '9',
+    GOPHER_GIF          = 'g',
+    GOPHER_HTML		= 'h',        				     /* HTML */
+    GOPHER_SOUND        = 's',
+    GOPHER_WWW		= 'w',				       /* W3 address */
+    GOPHER_IMAGE        = 'I',
+    GOPHER_TN3270       = 'T',
+    GOPHER_DUPLICATE	= '+',
+    GOPHER_PLUS_IMAGE	= ':',			/* Addition from Gopher Plus */
+    GOPHER_PLUS_MOVIE	= ';',
+    GOPHER_PLUS_SOUND	= '<'
+} HTGopherType;
+
 struct _HTStructured {
 	CONST HTStructuredClass *	isa;
 	/* ... */
 };
 
-#ifdef OLD_CODE
-PRIVATE HTStructured *target;			/* the new hypertext */
-PRIVATE HTStructuredClass targetClass;		/* Its action routines */
-#endif /* OLD_CODE */
+/* ------------------------------------------------------------------------- */
+/* TEMPORARY STUFF */
 
-#define GOPHER_PROGRESS(foo) HTAlert(foo)
+typedef struct _gopher_info {
+    int                         socket;   /* Socket number for communication */
+    HTGopherType	        type; 	                 /* Gopher item type */
+    char *			command;		/* The whole command */
+} gopher_info;
 
+/* ------------------------------------------------------------------------- */
 
-#define NEXT_CHAR HTInputSocket_getCharacter(isoc) 
-
-
-
-/*	Module-wide variables
-*/
-PRIVATE int s;					/* Socket for GopherHost */
-
-
-
-/*	Matrix of allowed characters in filenames
-**	-----------------------------------------
-*/
-
-PRIVATE BOOL acceptable[256];
-PRIVATE BOOL acceptable_inited = NO;
-
-PRIVATE void init_acceptable NOARGS
-{
-    unsigned int i;
-    char * good = 
-      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789./-_$";
-    for(i=0; i<256; i++) acceptable[i] = NO;
-    for(;*good; good++) acceptable[(unsigned int)*good] = YES;
-    acceptable_inited = YES;
-}
-
-PRIVATE CONST char hex[17] = "0123456789abcdef";
-
-/*	Decdoe one hex character
-*/
-
-PRIVATE char from_hex ARGS1(char, c)
-{
-    return 		  (c>='0')&&(c<='9') ? c-'0'
-			: (c>='A')&&(c<='F') ? c-'A'+10
-			: (c>='a')&&(c<='f') ? c-'a'+10
-			:		       0;
-}
-
-
-
-/*	Paste in an Anchor
-**	------------------
+/*							      get_gopher_icon
 **
-**	The title of the destination is set, as there is no way
-**	of knowing what the title is when we arrive.
-**
-** On entry,
-**	HT 	is in append mode.
-**	text 	points to the text to be put into the file, 0 terminated.
-**	addr	points to the hypertext refernce address 0 terminated.
-*/
-PRIVATE void write_anchor ARGS3(HTStructured *, target,
-				CONST char *, text,
-				CONST char *, addr)
-{
-    BOOL present[HTML_A_ATTRIBUTES];
-    CONST char * value[HTML_A_ATTRIBUTES];
-    
-    int i;
-    
-    for (i=0; i<HTML_A_ATTRIBUTES; i++) present[i]=0;
-    present[HTML_A_HREF] = YES;
-    value[HTML_A_HREF] = addr;
-    present[HTML_A_TITLE] = YES;
-    value[HTML_A_TITLE] = text;
-    
-    (*target->isa->start_element)(target, HTML_A, present, value);
-	    
-    PUTS(text);
-    END(HTML_A);
-}
-
-
-/*	Find a icon
-**	===========
+**	This function finds an appopriate icon for the item in the gopher
+**	list. Actually it is only a shell build upon HTGetIcon().
 **
 */
 PRIVATE HTIconNode *get_gopher_icon ARGS2(CONST char *, filename,
@@ -164,20 +100,21 @@ PRIVATE HTIconNode *get_gopher_icon ARGS2(CONST char *, filename,
       case GOPHER_TEXT:
 	content_type = HTAtom_for("text/void");
 	break;
+      case GOPHER_IMAGE:
+      case GOPHER_PLUS_IMAGE:
       case GOPHER_GIF:
 	content_type = HTAtom_for("image/void");
 	break;
+      case GOPHER_WWW:
       case GOPHER_HTML:
 	content_type = HTAtom_for("text/void");
 	break;
       case GOPHER_SOUND:
+      case GOPHER_PLUS_SOUND:
 	content_type = HTAtom_for("audio/void");
 	break;
-      case GOPHER_WWW:
-	content_type = HTAtom_for("text/void");
-	break;
-      case GOPHER_IMAGE:
-	content_type = HTAtom_for("image/void");
+      case GOPHER_PLUS_MOVIE:
+	content_type = HTAtom_for("video/void");
 	break;
       case GOPHER_INDEX:
 	content_type = HTAtom_for("application/x-gopher-index");
@@ -214,354 +151,467 @@ PRIVATE HTIconNode *get_gopher_icon ARGS2(CONST char *, filename,
 }
 
 
-/*	Parse a Gopher Menu document
-**	============================
+/*							      parse_menu
 **
+**	This function parses a gopher menu and puts it into a iconized
+**	list.
+**
+**	Returns HT_LOADED on succed, HT_INTERRUPTED if interrupted and -1
+**	if other error.
+**
+**	BUG: The gopher type might be an illigal character, but it is NOT
+**	escaped :-(
 */
-
-PRIVATE void parse_menu ARGS4(HTStructured *,   target,
-			      int ,		s,
-			      CONST char *,	arg,
-			      HTParentAnchor *,	anAnchor)
-{
-    unsigned int files = 0;
-    char gtype;
-    int ch;
-    char line[BIG];
-    char address[BIG];
-    char *name = "";
-    char *selector = "";		/* Gopher menu fields */
-    char *host = "";
-    char *port;
-    char *p = line;
-    HTInputSocket * isoc = HTInputSocket_new(s);
-    
+PRIVATE int parse_menu ARGS3(HTRequest *,     	request,
+			     gopher_info *,	gopher,
+			     CONST char *,	url)
 #define TAB 		'\t'
 #define HEX_ESCAPE 	'%'
+{
+    int status = -1;
+    unsigned int files = 0;
+    int ch;
+    HTChunk *chunk = HTChunkCreate(128);
+    char *message = NULL;			     /* For a gopher message */
+    HTInputSocket *isoc = HTInputSocket_new(gopher->socket);
+    HTStructured *target = HTML_new(request, NULL, WWW_HTML,
+				    request->output_format,
+				    request->output_stream);
+    
+    /* Output the list */
+    while ((ch = HTInputSocket_getCharacter(isoc)) >= 0) {
+        if (ch == CR || ch == LF) {
+	    if (chunk->size) {				    /* Got some text */
+		char *name = NULL;		       /* Gopher menu fields */
+		char *selector = NULL;
+		char *host = NULL;
+		char *port = NULL;
+		char *strptr;
+		char *errptr;
+		char gtype;
+		HTChunkTerminate(chunk);
+		strptr = chunk->data;		      /* Scan it to parse it */
+		if (TRACE)
+		    fprintf(stderr, "HTGopher.... Menu item: `%s\'\n",
+			    chunk->data);
+		gtype = *strptr++;
 
-    /* Output title */
-    {
-        CONST char *title = HTAnchor_title(anAnchor);
-	char *outstr = NULL;
-	if (title)
-	    StrAllocCopy(outstr, title);
-	else
-	    StrAllocCopy(outstr, "Gopher Menu");
-
-        START(HTML_TITLE);
-	HTUnEscape(outstr);
-        PUTS(outstr);
-        END(HTML_TITLE);
-        START(HTML_H1);
-        PUTS(outstr);
-        END(HTML_H1);
-	free(outstr);
-    }
-
-    /* Make everything in list preformatted */
-    START(HTML_PRE);
-
-    /* Output the header line of the list */
-    if (!icon_blank) icon_blank = icon_unknown;
-    if (HTDirShowMask & HT_DIR_SHOW_ICON && icon_blank) {
-        HTMLPutImg(target, icon_blank->icon_url,
-                   HTIcon_alt_string(icon_blank->icon_alt, NO), NULL);
-    }
-    PUTC(' ');
-    PUTS("Name");
-    PUTC('\n');
-    START(HTML_HR);
-    PUTC('\n');
-
-    while ((ch = NEXT_CHAR) >= 0) {
-        if (ch != LF) {
-	    *p = ch;		/* Put character in line */
-	    if (p< &line[BIG-1]) p++;
-	    
-	} else {
-	    *p++ = 0;		/* Terminate line */
-	    p = line;		/* Scan it to parse it */
-	    port = 0;		/* Flag "not parsed" */
-	    if (TRACE)
-		fprintf(stderr, "HTGopher.... Menu item: `%s\'\n", line);
-	    gtype = *p++;
-	    
-	    /* Break on line with a dot by itself */
-	    if ((gtype=='.') && ((*p=='\r') || (*p==0))) break;
-
-	    if (gtype && *p) {
-	        name = p;
-		selector = strchr(name, TAB);
-		if (selector) {
-		    *selector++ = 0;	/* Terminate name */
-		    host = strchr(selector, TAB);
-		    if (host) {
-			*host++ = 0;	/* Terminate selector */
-			port = strchr(host, TAB);
-			if (port) {
-			    char *junk;
-			    port[0] = ':';	/* delimit host a la W3 */
-			    junk = strchr(port, TAB);
-			    if (junk) *junk++ = 0;	/* Chop port */
-			    if ((port[1]=='0') && (!port[2]))
-			        port[0] = 0;	/* 0 means none */
-			} /* no port */
-		    } /* host ok */
-		} /* selector ok */
-	    } /* gtype and name ok */
-
-	    /* Get Icon type and output the icon */
-	    if (HTDirShowMask & HT_DIR_SHOW_ICON) {
-		HTIconNode *icon = get_gopher_icon(arg, gtype);
-		if (icon && icon->icon_url) {
-		    HTMLPutImg(target, icon->icon_url,
-			       HTIcon_alt_string(icon->icon_alt, YES),
-			       NULL);
-		    PUTC(' ');
+		/* If first item is an error, then don't put any header out
+		   but wait and see if there is a next item in the list. If not
+		   then make error message, else use as list message. */
+		if (gtype == GOPHER_ERROR) {
+		    StrAllocCopy(message, chunk->data+1);
+		    break;
 		}
-	    }
-	    
-	    if (gtype == GOPHER_WWW) {	/* Gopher pointer to W3 */
-		write_anchor(target, name, selector);
 
-	    } else if (port) {		/* Other types need port */
-		if (gtype == GOPHER_TELNET) {
-		    if (*selector) sprintf(address, "telnet://%s@%s/",
-					   selector, host);
-		    else sprintf(address, "telnet://%s/", host);
+		if (!files && (strstr(chunk->data, "error.host") ||
+		    strstr(chunk->data, "errorhost"))) {
+
+		    /* If message is already initialized, then add this one. */
+		    /* We don't want the gopher type character */
+		    if ((errptr = strchr(chunk->data, '\t')) != NULL)
+			*errptr = '\0';
+		    if (message) {
+			StrAllocCat(message, "\n");
+			StrAllocCat(message, chunk->data+1);
+		    } else
+			StrAllocCopy(message, chunk->data+1);
+		    HTChunkClear(chunk);
+		    continue;
 		}
-		else if (gtype == GOPHER_TN3270) 
-		{
-		    if (*selector) 
-			sprintf(address, "tn3270://%s@%s/",
-				selector, host);
-		    else 
-			sprintf(address, "tn3270://%s/", host);
-		}
-		else {			/* If parsed ok */
-		    char *q;
-		    char *p;
-		    sprintf(address, "//%s/%c", host, gtype);
-		    q = address+ strlen(address);
-		    for(p=selector; *p; p++) {	/* Encode selector string */
-			if (acceptable[(int)*p]) *q++ = *p;
-			else {
-			    *q++ = HEX_ESCAPE;	/* Means hex coming */
-			    *q++ = hex[(TOASCII(*p)) >> 4];
-			    *q++ = hex[(TOASCII(*p)) & 15];
-			}
-		    }
-		    *q++ = 0;			/* terminate address */
-		}
+
+		/* Output title, maybe top message and list top  */
+		if (!files) {
+		    CONST char *title = HTAnchor_title(request->anchor);
+		    char *outstr = NULL;
+		    if (title) {
+			StrAllocCopy(outstr, title);
+			HTUnEscape(outstr);
+		    } else
+			StrAllocCopy(outstr, "Gopher Menu");
+		    START(HTML_TITLE);
+		    PUTS(outstr);
+		    END(HTML_TITLE);
+		    START(HTML_H1);
+		    PUTS(outstr);
+		    END(HTML_H1);
+		    FREE(outstr);
 		
-		/* Error response from Gopher doesn't deserve to
-		   be a hyperlink. */
-		if (strcmp (address, "gopher://error.host:1/0"))
-		    write_anchor(target, name, address);
-		else
+		    /* Output any message on top of list */
+		    if (message && HTDirInfo == HT_DIR_INFO_TOP) {
+			PUTS(message);
+			START(HTML_BR);
+		    }
+
+		    /* Make everything in list preformatted */
+		    START(HTML_PRE);
+
+		    /* Output the header line of the list */
+		    if (!icon_blank) icon_blank = icon_unknown;
+		    if (HTDirShowMask & HT_DIR_SHOW_ICON && icon_blank) {
+			HTMLPutImg(target, icon_blank->icon_url,
+				   HTIcon_alt_string(icon_blank->icon_alt, NO),
+				   NULL);
+		    }
+		    PUTC(' ');
+		    PUTS("Name");
+		    PUTC('\n');
+		    START(HTML_HR);
+		    PUTC('\n');
+		}
+
+		/* Stop listing if line with a dot by itself */
+		if (gtype=='.' && !*strptr) {
+		    status = (!files && message) ? -1 : HT_LOADED;
+		    break;
+		}
+
+		/* Parse menu item */
+		if (*strptr) {
+		    name = strptr;
+		    selector = strchr(name, TAB);
+		    if (selector) {
+			*selector++ = 0;		   /* Terminate name */
+			host = strchr(selector, TAB);
+			if (host) {
+			    *host++ = 0;	       /* Terminate selector */
+			    port = strchr(host, TAB);
+			    if (port) {
+				char *junk;
+				*port = ':';	     /* delimit host a la W3 */
+				if ((junk = strchr(port, TAB)) != NULL)
+				    *junk = '\0';		/* Chop port */
+				if (*(port+1) == '0' && !*(port+2))
+				    *port = '\0';
+			    } /* port */
+			} /* host */
+		    } /* selector */
+		} /* gtype and name */
+		
+		/* Get Icon type and output the icon */
+		if (HTDirShowMask & HT_DIR_SHOW_ICON) {
+		    HTIconNode *icon = get_gopher_icon(url, gtype);
+		    if (icon && icon->icon_url) {
+			HTMLPutImg(target, icon->icon_url,
+				   HTIcon_alt_string(icon->icon_alt, YES),
+				   NULL);
+			PUTC(' ');
+		    }
+		}
+
+		if (gtype == GOPHER_WWW) {	     /* Gopher pointer to W3 */
+		    char *escaped = NULL;
+		    escaped = HTEscape(selector, URL_PATH);
+		    HTStartAnchor(target, NULL, escaped);
 		    PUTS(name);
+		    END(HTML_A);
+		    free(escaped);
+		} else if (port) {     		    /* Other types need port */
+		    char *escaped = NULL;
+		    char *address = NULL;
+		    int addr_len;
+
+		    /* Calculate the length of the WWW-address */
+		    if (selector && *selector) {
+			escaped = HTEscape(selector, URL_PATH);
+			addr_len = 15 + strlen(escaped) + strlen(host) + 1;
+		    } else {
+			addr_len = 15 + strlen(host) + 1;
+		    }
+		    if ((address = (char *) malloc(addr_len)) == NULL)
+			outofmem(__FILE__, "Gopher ParseMenu");
+		    *address = '\0';
+
+		    if (gtype == GOPHER_TELNET) {
+			if (escaped)
+			    sprintf(address, "telnet://%s@%s/",
+				    escaped, host);
+			else
+			    sprintf(address, "telnet://%s/", host);
+		    }
+		    else if (gtype == GOPHER_TN3270) {
+			if (escaped)
+			    sprintf(address, "tn3270://%s@%s/",
+				    escaped, host);
+			else 
+			    sprintf(address, "tn3270://%s/", host);
+		    } else {
+			if (escaped)
+			    sprintf(address, "//%s/%c%s", host, gtype,
+				    escaped);
+			else
+			    sprintf(address, "//%s/%c", host, gtype);
+		    }
+
+		    /* Now output the anchor if not a Gopher error */
+		    if (gtype != GOPHER_ERROR &&
+			!strstr(address, "error.host") &&
+			!strstr(address, "errorhost")) {
+			HTStartAnchor(target, NULL, address);
+			PUTS(name);
+			END(HTML_A);
+		    } else 
+			PUTS(name+1);	   /* Just put it out, but skip type */
+		    FREE(address);
+		    FREE(escaped);
+		} else {				   /* If parse error */
+		    if (TRACE)
+			fprintf(stderr, "HTGopher.... Bad menu item, `%s\'\n",
+				chunk->data);
+		    PUTS(chunk->data);
+		}
 		PUTC('\n');
-	    } else { /* parse error */
-	        if (TRACE) fprintf(stderr, "HTGopher.... Bad menu item.\n");
-		PUTS(line);
+		HTChunkClear(chunk);
+		++files;			   /* Update number of files */
+	    }
+	} else
+	    HTChunkPutc(chunk, ch);
+    }
+    if (ch < 0)
+	status = ch;
 
-	    } /* parse error */
+    /* If no files and message is initialized then make error message,
+       else output the bottom part of the list*/
+    if (status != HT_INTERRUPTED) {
+	if (!files && status < 0) {
+	    if (message) {
+		HTErrorAdd(request, ERR_FATAL, NO, HTERR_GOPHER_SERVER,
+			   (void *) message, strlen(message), "parse_menu");
+	    } else {
+		HTErrorAdd(request, ERR_FATAL, NO, HTERR_GOPHER_SERVER,
+			   chunk->data, chunk->size, "parse_menu");
+	    }
+	} else {
+	    char *outstr;
+	    if ((outstr = (char *) malloc(100)) == NULL)
+		outofmem(__FILE__, "parse_menu");
+	    if (files == 0)
+		sprintf(outstr, "Empty directory");
+	    else if (files == 1)
+		sprintf(outstr, "1 file");
+	    else
+		sprintf(outstr, "%u files", files);
+	    START(HTML_HR);
+	    PUTS(outstr);
+	    free(outstr);
+	    END(HTML_PRE);
 	    
-	    p = line;	/* Start again at beginning of line */
-	    ++files;	/* Update number of files */
-
-	} /* if end of line */
-	
-    } /* Loop over characters */
-	
-    {
-	char *outstr;
-	
-	if ((outstr = (char *) malloc(100)) == NULL)
-	    outofmem(__FILE__, "parse_menu");
-	if (files == 0)
-	    sprintf(outstr, "Empty directory");
-	else if (files == 1)
-	    sprintf(outstr, "1 file");
-	else
-	    sprintf(outstr, "%u files", files);
-	START(HTML_HR);
-	PUTS(outstr);
-	free(outstr);
-	END(HTML_PRE);
+	    /* Put out any messages */
+	    if (message && HTDirInfo == HT_DIR_INFO_BOTTOM) {
+		PUTS(message);
+		START(HTML_BR);
+	    }
+	}
     }
 
+    /* Cleanup */
     FREE_TARGET;
+    FREE(message);
     HTInputSocket_free(isoc);
-    return;
+    HTChunkFree(chunk);
+    return status;
 }
 
 
 /*	Parse a Gopher CSO document
- **	============================
- **
- **   Accepts an open socket to a CSO server waiting to send us
- **   data and puts it on the screen in a reasonable manner.
- **
- **   Perhaps this data can be automatically linked to some
- **   other source as well???
- **
- **  Taken from hacking by Lou Montulli@ukanaix.cc.ukans.edu
- **  on XMosaic-1.1, and put on libwww 2.11 by Arthur Secret, 
- **  secret@dxcern.cern.ch .
- */
-
-PRIVATE void parse_cso ARGS4 (HTStructured *, target,
-			      int, s,
-			      CONST char *, arg,
-			      HTParentAnchor *,	anAnchor)
+**	============================
+**
+**	Accepts an open socket to a CSO server waiting to send us
+**	data and puts it on the screen in a reasonable manner.
+**
+**	Perhaps this data can be automatically linked to some
+**	other source as well???
+**
+**	Taken from hacking by Lou Montulli@ukanaix.cc.ukans.edu
+**	on XMosaic-1.1, and put on libwww 2.11 by Arthur Secret, 
+**	secret@dxcern.cern.ch.
+**
+**	Returns HT_LOADED on succed, HT_INTERRUPTED if interrupted and -1
+**	if other error.
+*/
+PRIVATE int parse_cso ARGS3(HTRequest *, 	request,
+			    gopher_info *, 	gopher,
+			    CONST char *, 	url)
 {
+    int status = -1;
+    unsigned int records = 0;
     int ch;
-    char line[BIG];
-    char *p = line;
-    char *second_colon, last_char='\0';
-    CONST char *title;
-    HTInputSocket * isoc = HTInputSocket_new(s);
+    char *cur_code = NULL;
+    HTChunk *chunk = HTChunkCreate(128);
+    HTInputSocket *isoc = HTInputSocket_new(gopher->socket);
+    HTStructured *target = HTML_new(request, NULL, WWW_HTML,
+				    request->output_format,
+				    request->output_stream);
     
-    title = HTAnchor_title(anAnchor);
-    START(HTML_H1);
-    PUTS("CSO Search Results");
-    END(HTML_H1);
-    START(HTML_PRE);
+    /* Start grabbing chars from the network */
+    while ((ch = HTInputSocket_getCharacter(isoc)) >= 0) {
+	if (ch == CR || ch == LF) {
+	    if (chunk->size) {		
+		/* OK we now have a line in 'p' lets parse it and print it */
+		char *strptr;
+		HTChunkTerminate(chunk);
+		strptr = chunk->data;
 
-    /* start grabbing chars from the network */
-    while ((ch = NEXT_CHAR) >= 0) 
-	{
-	    if (ch != '\n') 
-		{
-		    *p = ch;		/* Put character in line */
-		    if (p< &line[BIG-1]) p++;
-		} 
-	    else 
-		{
-		    *p++ = 0;		/* Terminate line */
-		    p = line;		/* Scan it to parse it */
-		    
-		    /* OK we now have a line in 'p' lets parse it and 
-		       print it */
-		    
-		    /* Break on line that begins with a 2. It's the end of
-		     * data.
-		     */
-		    if (*p == '2')
-			break;
-		    
-		    /*  lines beginning with 5 are errors, 
-		     *  print them and quit
-		     */
-		    if (*p == '5') {
-			START(HTML_H2);
-			PUTS(p+4);
-			END(HTML_H2);
-			break;
+		/* If line begins with a 1, then more data is coming, so we
+		   put out the title */
+		if (*strptr == '1' ||
+		    !strncmp(strptr, "501", 3) || !strncmp(strptr, "502", 3)) {
+		    START(HTML_H1);
+		    PUTS("CSO Search Results");
+		    END(HTML_H1);
+
+                    /* Output the header line of the list */
+                    START(HTML_PRE); /* To make it look as the other headers */
+                    if (!icon_blank) icon_blank = icon_unknown;
+                    if (HTDirShowMask & HT_DIR_SHOW_ICON && icon_blank) {
+                        HTMLPutImg(target, icon_blank->icon_url,
+                                   HTIcon_alt_string(icon_blank->icon_alt, NO),
+                                   NULL);
+                    }
+                    PUTC(' ');
+                    PUTS("Record");
+                    PUTC('\n');
+                    START(HTML_HR);
+                    PUTC('\n');
+		    END(HTML_PRE);
+		}
+
+		/* Break on line that begins with a 2. It's the end of data. */
+		if (*strptr == '2') {
+		    status = HT_LOADED;
+		    break;
+		}
+		
+		/* Lines beginning with 5 are errors, generate msg and quit */
+		if (*strptr == '5') {
+		    char *msgptr = strchr(chunk->data, ':');
+		    if (!msgptr)
+			msgptr = chunk->data;
+		    else
+			++msgptr;
+		    if (!strncmp(strptr, "501", 3))	       /* No entries */
+			status = HT_LOADED;
+		    else if (!strncmp(strptr, "502", 3)) {	 /* Too many */
+			status = HT_LOADED;
+			PUTS(msgptr);
+		    } else {
+			HTErrorAdd(request, ERR_FATAL, NO, HTERR_CSO_SERVER,
+				   (void *) msgptr,
+				   strlen(msgptr), "parse_cso");
 		    }
-		    
-		    if(*p == '-') {
-			/*  data lines look like  -200:#:
-			 *  where # is the search result number and can be  
-			 *  multiple digits (infinate?)
-			 *  find the second colon and check the digit to the
-			 *  left of it to see if they are diferent
-			 *  if they are then a different person is starting. 
-			 *  make this line an <h2>
+		    break;
+		}
+		
+		if(*strptr == '-') {
+		    /*  data lines look like  -200:#:
+		     *  where # is the search result number and can be  
+		     *  multiple digits (infinate?)
+		     *  find the second colon and check the digit to the
+		     *  left of it to see if they are diferent
+		     *  if they are then a different person is starting. 
+		     *  make this line an <h2>
+		     */
+		    char *code;	      	    /* format: -200:code:field:value */
+		    char *field;
+		    char *value;
+		    if ((code = strchr(strptr, ':')) != NULL &&
+			(field = strchr(++code, ':')) != NULL) {
+			*field++ = '\0';
+			
+			/* Let's do a strcmp instead of numbers */
+			if (!records) {		   /* Header of first record */
+			    records++;
+			    START(HTML_H2);
+			    PUTS("Record 1");
+			    END(HTML_H2);
+			    START(HTML_DL);
+			} else if (cur_code && strcmp(code, cur_code)) {
+			    char recstr[20];
+			    records++;
+			    END(HTML_DL);
+			    START(HTML_H3);
+			    PUTS("Record ");
+			    sprintf(recstr, "%d", records);
+			    PUTS(recstr);
+			    END(HTML_H3);
+			    START(HTML_DL);
+			} else
+			    START(HTML_DT);
+			
+			/* I'm not sure whether the name field comes in any
+			 *  special order or if its even required in a 
+			 *  record, so for now the first line is the header
+			 *  no matter what it is (it's almost always the
+			 *  alias)
 			 */
+			if ((value = strchr(field, ':')) == NULL)
+			    value = "Empty?";
+			else
+			    *value++ = '\0';
+			{
+			    char *strip = HTStrip(field);
+			    PUTS(strip);
+			    START(HTML_DD);
+			    strip = HTStrip(value);
+			    PUTS(strip);
+			}
 			
-			/* find the second_colon */
-			second_colon = strchr( strchr(p,':')+1, ':');
-			
-			if(second_colon != NULL) {  /* error check */
-			    
-			    if (*(second_colon-1) != last_char)   
-				/* print seperator */
-			    {
-				END(HTML_PRE);
-				START(HTML_H2);
-			    }
-				
-			    
-			    /* right now the record appears with the alias 
-			     * (first line)
-			     * as the header and the rest as <pre> text
-			     * It might look better with the name as the
-			     * header and the rest as a <ul> with <li> tags
-			     * I'm not sure whether the name field comes in any
-			     * special order or if its even required in a 
-			     * record,
-			     * so for now the first line is the header no 
-			     * matter
-			     * what it is (it's almost always the alias)
-			     * A <dl> with the first line as the <DT> and
-			     * the rest as some form of <DD> might good also?
-			     */
-			    
-			    /* print data */
-			    PUTS(second_colon+1);
-			    PUTS("\n");
-			    
-			    if (*(second_colon-1) != last_char)   
-				/* end seperator */
-			    {
-				END(HTML_H2);
-				START(HTML_PRE);
-			    }
-							    
-			    /* save the char before the second colon
-			     * for comparison on the next pass
-			     */
-			    last_char =  *(second_colon-1) ;
-			    
-			} /* end if second_colon */
-		    } /* end if *p == '-' */
-		} /* if end of line */
-	    
-	} /* Loop over characters */
-    
-    /* end the text block */
-    PUTS("\n");
-    END(HTML_PRE);
-    PUTS("\n");
+			/* save the code for comparison on the next pass */
+			StrAllocCopy(cur_code, code);
+		    }
+		} /* end data line */
+		HTChunkClear(chunk);
+	    } /* end new line */
+	} else
+	    HTChunkPutc(chunk, ch);
+    }
+    if (ch < 0)
+	status = ch;
+
+    /* Put out the bottom line */
+    if (status != HT_INTERRUPTED) {
+	char *outstr;
+        if ((outstr = (char *) malloc(100)) == NULL)
+            outofmem(__FILE__, "parse_menu");
+        if (!records)
+            sprintf(outstr, "No records");
+        else if (records == 1)
+            sprintf(outstr, "1 record");
+        else
+            sprintf(outstr, "%u records", records);
+	START(HTML_PRE);
+        START(HTML_HR);
+        PUTS(outstr);
+	END(HTML_PRE);
+        free(outstr);
+    }
+
+    /* Clean up */
     FREE_TARGET;
     HTInputSocket_free(isoc);
+    HTChunkFree(chunk);
+    FREE(cur_code);
+    return status;
+}
 
-    return;  /* all done */
-} /* end of procedure */
 
 /*	Display a Gopher Index document
- **	-------------------------------
- */
-
-PRIVATE void display_index ARGS3 (HTStructured *,	target,
-				  CONST char *,		arg,
-				  HTParentAnchor *,	anAnchor)
+**	-------------------------------
+*/
+PRIVATE void display_index ARGS2(HTRequest *, 		request,
+				 CONST char *,		url)
 {
-    char * decoded = HTParse(arg, "", PARSE_PATH | PARSE_PUNCTUATION);
-    char * t = NULL;
-
-    HTUnEscape(decoded);
-    HTCleanTelnetString(decoded);	/* Prevent security holes */
-    if (strlen(decoded) > 2) {
-	t = strchr(decoded+1,'/');
-	if (t) t++;
-    }
-    if (!t) t = decoded;
+    HTStructured *target = HTML_new(request, NULL, WWW_HTML,
+				    request->output_format,
+				    request->output_stream);
 
     START(HTML_H1);
-    PUTS(t);
+    PUTS("Searchable Gopher Index");
     END(HTML_H1);
     START(HTML_ISINDEX);
-    PUTS("\nThis is a searchable Gopher index.");
-    PUTS(" Please enter keywords to search for.\n");
-    
-    if (!HTAnchor_title(anAnchor))
-    	HTAnchor_setTitle(anAnchor, arg);
-    
+    if (!HTAnchor_title(request->anchor))
+    	HTAnchor_setTitle(request->anchor, url);    
     FREE_TARGET;
-    free(decoded);
     return;
 }
 
@@ -569,54 +619,69 @@ PRIVATE void display_index ARGS3 (HTStructured *,	target,
 /*      Display a CSO index document
 **      -------------------------------
 */
-
-PRIVATE void display_cso ARGS3(HTStructured *, target,
-			       CONST char *,   arg,
-			       HTParentAnchor *, anAnchor)
+PRIVATE void display_cso ARGS2(HTRequest *,		request,
+			       CONST char *,		url)
 {
+    HTStructured *target = HTML_new(request, NULL, WWW_HTML,
+				    request->output_format,
+				    request->output_stream);
     START(HTML_H1);
-    PUTS(arg);
-    PUTS(" index");
+    PUTS("Searchable Index of a CSO Name Server");
     END(HTML_H1);
     START(HTML_ISINDEX);
-    PUTS("\nThis is a searchable index of a CSO database.\n");
-    PUTS(" Please enter keywords to search for. The keywords that you enter");
-    PUTS(" will allow you to search on a person's name in the database.\n");
-
-    if (!HTAnchor_title(anAnchor))
-    	HTAnchor_setTitle(anAnchor, arg);
-    
+    if (!HTAnchor_title(request->anchor))
+    	HTAnchor_setTitle(request->anchor, url);
     FREE_TARGET;
     return;
 }
 
 
-/*		De-escape a selector into a command
-**		-----------------------------------
+
+/*                                                        HTGopher_send_cmd
 **
-**	The % hex escapes are converted. Otheriwse, the string is copied.
+**      This function creates a socket and writes the gopher command to it.
+**	The command must be terminated with <CRLF>
+**
+**      Returns 0 on OK, else <0 but does NOT close the connection
 */
-PRIVATE void de_escape ARGS2(char *, command, CONST char *, selector)
+PRIVATE int HTGopher_send_cmd ARGS3(HTRequest *, 	request,
+				    char *,		url,
+				    gopher_info *, 	gopher)
 {
-    CONST char * p = selector;
-    char * q = command;
-	if (command == NULL) outofmem(__FILE__, "HTLoadGopher");
-    while (*p) {		/* Decode hex */
-	if (*p == HEX_ESCAPE) {
-	    char c;
-	    unsigned int b;
-	    p++;
-	    c = *p++;
-	    b =   from_hex(c);
-	    c = *p++;
-	    if (!c) break;	/* Odd number of chars! */
-	    *q++ = FROMASCII((b<<4) + from_hex(c));
-	} else {
-	    *q++ = *p++;	/* Record */
+    int status = 0;
+    if (!gopher) {
+	if (TRACE)
+	    fprintf(stderr, "Gopher Tx... Bad argument!\n");
+	return -1;
+    }
+    if ((status = HTDoConnect(request, url, GOPHER_PORT,
+			      &gopher->socket, NULL)) < 0) {
+	if (TRACE)
+	    fprintf(stderr, "HTLoadGopher Connection not established!\n");
+	return status;
+    }	
+    if (TRACE)
+	fprintf(stderr, "Gopher...... Connected, socket %d\n", gopher->socket);
+    
+    /* Write the command to the socket */
+#ifdef NOT_ASCII
+    {
+	char * p;
+	for(p = command; *p; p++) {
+	    *p = TOASCII(*p);
 	}
     }
-    *q++ = 0;	/* Terminate command */
-
+#endif
+    if (TRACE)
+	fprintf(stderr, "Gopher Tx... %s", gopher->command);
+    if ((status = NETWRITE(gopher->socket, gopher->command,
+			  (int) strlen(gopher->command))) < 0) {
+	if (TRACE) fprintf(stderr, "Gopher...... Error sending command: %s\n",
+			   gopher->command);
+	HTInetStatus("write");
+    } else
+	status = 0;
+    return status;
 }
 
 
@@ -628,212 +693,166 @@ PRIVATE void de_escape ARGS2(char *, command, CONST char *, selector)
 */
 PUBLIC int HTLoadGopher ARGS1(HTRequest *, request)
 {
-    CONST char * arg = HTAnchor_physical(request->anchor);
-    char *command;			/* The whole command */
-    int status;				/* tcp return */
-    char gtype;				/* Gopher Node type */
-    char * selector;			/* Selector string */
-    struct sockaddr_in soc_address;	/* Binary network address */
-    struct sockaddr_in* sin = &soc_address;
-    HTStructured *target;                                     /* HTML object */
-    HTStructuredClass targetClass;
+    char *url = HTAnchor_physical(request->anchor);
+    int status = -1;
+    gopher_info *gopher;
     
-    if (!acceptable_inited) init_acceptable();
-    
-    if (!arg) return -3;		/* Bad if no name sepcified	*/
-    if (!*arg) return -2;		/* Bad if name had zero length	*/
-    
-    if (TRACE) fprintf(stderr, "HTGopher.... Looking for %s\n", arg);
-    
-    
-/*  Set up defaults:
-*/
-    sin->sin_family = AF_INET;	    		/* Family, host order  */
-    sin->sin_port = htons(GOPHER_PORT);	    	/* Default: new port,  */
-
-/* Get node name and optional port number:
-*/
-    {
-	char *p1 = HTParse(arg, "", PARSE_HOST);
-	int status = HTParseInet(sin, p1);
-        free(p1);
-        if (status) return status;   /* Bad */
+    if (!request || !url || !*url) {
+	if (TRACE) fprintf(stderr, "HTLoadGopher Bad argument\n");
+	return -1;
     }
-    
-/* Get entity type, and selector string.
-*/        
-    {
-	char * p1 = HTParse(arg, "", PARSE_PATH|PARSE_PUNCTUATION);
-        gtype = '1';		/* Default = menu */
-	selector = p1;
-	if ((*selector++=='/') && (*selector)) {	/* Skip first slash */
-	    gtype = *selector++;			/* Pick up gtype */
-	}
-	if (gtype == GOPHER_INDEX) {
-	    char * query;
-            HTAnchor_setIndex(request->anchor);	/* Search is allowed */
-	    query = strchr(selector, '?');	/* Look for search string */
-	    if (!query || !query[1]) {		/* No search required */
-		target = HTML_new(request, NULL, WWW_HTML,
-			request->output_format, request->output_stream);
-		targetClass = *target->isa;
-		/* Display "cover page" */
-		display_index(target, arg, request->anchor);
-		free(p1);		/* Leak fixed Henrik 27 Feb 94 */
-		return HT_LOADED;		/* Local function only */
-	    }
-	    *query++ = 0;			/* Skip '?' 	*/
-	    command = malloc(strlen(selector)+ 1 + strlen(query)+ 2 + 1);
-              if (command == NULL) outofmem(__FILE__, "HTLoadGopher");
-	      
-	    de_escape(command, selector);	/* Bug fix TBL 921208 */
+    if (TRACE) fprintf(stderr, "HTGopher.... Looking for `%s\'\n", url);
 
-	    strcat(command, "\t");
-	  
-	    {					/* Remove plus signs 921006 */
-	    	char *p;
-		for (p=query; *p; p++) {
+    /* Initiate a new gopher structure */
+    if ((gopher = (gopher_info *) calloc(1, sizeof(gopher_info))) == NULL)
+	outofmem(__FILE__, "HTLoadGopher");
+    gopher->socket = -1;
+    gopher->type = GOPHER_MENU;
+    
+    /* Get entity type, and selector string and generate command  */
+    {
+	char *path = HTParse(url, "", PARSE_PATH);
+	char *selector = path;
+	char *query = NULL;
+	char *separator = NULL;
+	if (*selector)
+	    gopher->type = *selector++;			    /* Pick up gtype */
+	if (gopher->type == GOPHER_INDEX) {
+            HTAnchor_setIndex(request->anchor);		/* Search is allowed */
+	    query = strchr(selector, '?');	   /* Look for search string */
+
+	    /* Display local "cover page" only if no search requested */
+	    if (!query || !*(query+1)) {	       /* No search required */
+		display_index(request, url);
+		status = HT_LOADED;		      /* Local function only */
+	    } else {
+		*query++ = 0;				   	 /* Skip '?' */
+		separator = "\t";
+	    }
+        } else if (gopher->type == GOPHER_CSO) {
+            HTAnchor_setIndex(request->anchor);         /* Search is allowed */
+            query = strchr(selector, '?');	   /* Look for search string */
+
+	    /* Display local "cover page" only if no search requested */
+            if (!query || !*(query+1)) {               /* No search required */
+                display_cso(request, url);
+                status = HT_LOADED;                   /* Local function only */
+            } else {
+		*query++ = 0;  		                     /* Skip '?'     */
+		separator = "query ";
+	    }
+	}
+
+	/* Now generate the final command */
+	if (status != HT_LOADED) {
+	    char telneteol[3];
+	    StrAllocCopy(gopher->command, selector);
+	    if (query) {
+		char *p;
+		for (p=query; *p; p++)           /* Remove plus signs 921006 */
 		    if (*p == '+') *p = ' ';
-		}
+		StrAllocCat(gopher->command, separator);
+		StrAllocCat(gopher->command, query);
 	    }
-	    strcat(command, query);
-        } else if (gtype == GOPHER_CSO) {
-            char * query;
-            HTAnchor_setIndex(request->anchor);        /* Search is allowed */
-            query = strchr(selector, '?');      /* Look for search string */
-            if (!query || !query[1]) {          /* No search required */
-		target = HTML_new(request, NULL, WWW_HTML,
-			request->output_format, request->output_stream);
-		targetClass = *target->isa;
-		/* Display "cover page" */
-                display_cso(target, arg, request->anchor);
-		free(p1);		/* Leak fixed Henrik 27 Feb 94 */
-                return HT_LOADED;                 /* Local function only */
-            }
-            *query++ = 0;                       /* Skip '?'     */
-            command = malloc(strlen("query")+ 1 + strlen(query)+ 2 + 1);
-              if (command == NULL) outofmem(__FILE__, "HTLoadGopher");
-
-            de_escape(command, selector);       /* Bug fix TBL 921208 */
-
-            strcpy(command, "query ");
-
-            {                                   /* Remove plus signs 921006 */
-                char *p;
-                for (p=query; *p; p++) {
-                    if (*p == '+') *p = ' ';
-                }
-            }
-            strcat(command, query);
-
+	    HTUnEscape(gopher->command);
+	    HTCleanTelnetString(gopher->command);  /* Prevent security holes */
+	    *telneteol = CR;			       /* Telnet termination */
+	    *(telneteol+1) = LF;
+	    *(telneteol+2) = '\0';
+	    StrAllocCat(gopher->command, telneteol);
+	} 
+	free(path);
+    }
+    
+    /* Now we must ask the server for real data :-( */
+    if (status != HT_LOADED) {
+	if ((status = HTGopher_send_cmd(request, url, gopher)) == 0) {
 	    
-	} else {				/* Not index */
-	    command = command = malloc(strlen(selector)+2+1);
-	    de_escape(command, selector);
-	}
-	free(p1);
-    }
-    
-    {
-	char * p = command + strlen(command);
-	*p++ = CR;		/* Macros to be correct on Mac */
-	*p++ = LF;
-	*p++ = 0;
-	/* strcat(command, "\r\n");	*/	/* CR LF, as in rfc 977 */
-    }
-
-/*	Set up a socket to the server for the data:
-*/      
-    s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    status = connect(s, (struct sockaddr*)&soc_address, sizeof(soc_address));
-    if (status<0){
-	if (TRACE) fprintf(stderr, "HTTPAccess: Unable to connect to remote host for `%s'.\n",
-	    arg);
-	free(command);
-	return HTInetStatus("connect");
-    }
-    
-    
-    if (TRACE) fprintf(stderr, "HTGopher: Connected, writing command `%s' to socket %d\n", command, s);
-    
-#ifdef NOT_ASCII
-    {
-    	char * p;
-	for(p = command; *p; p++) {
-	    *p = TOASCII(*p);
-	}
-    }
-#endif
-
-    status = NETWRITE(s, command, (int)strlen(command));
-    free(command);
-    if (status<0){
-	if (TRACE) fprintf(stderr, "HTGopher: Unable to send command.\n");
-	    return HTInetStatus("send");
-    }
-
-/*	Now read the data from the socket:
-*/    
-    switch (gtype) {
-    
-    case GOPHER_HTML :
-    	HTParseSocket(WWW_HTML,  s, request);
-	break;
-
-    case GOPHER_GIF:
-    case GOPHER_IMAGE:
-    	HTParseSocket(HTAtom_for("image/gif"), s, request);
-  	break;
-    case GOPHER_MENU :
-    case GOPHER_INDEX :
-	target = HTML_new(request, NULL, WWW_HTML,
-			request->output_format, request->output_stream);
-	targetClass = *target->isa;
-        parse_menu(target, s,arg, request->anchor);
-	break;
-	 
-    case GOPHER_CSO:
-	target = HTML_new(request, NULL, WWW_HTML,
-			request->output_format, request->output_stream);
-	targetClass = *target->isa;
-      	parse_cso(target, s, arg, request->anchor);
-	break;
-   	
-      case GOPHER_MACBINHEX:
-      case GOPHER_PCBINHEX:
-      case GOPHER_UUENCODED:
-      case GOPHER_BINARY:
-	{	/* Do our own filetyping -- maybe we get lucky */
-	    HTFormat format = HTFileFormat(arg,
-					   &request->content_encoding,
-					   &request->content_language);
-	    if (format) {
-		CTRACE(stderr,
-		       "Gopher...... figured out content-type myself: %s\n",
-		       HTAtom_name(format));
-		HTParseSocket(format, s, request);
-	    }
-	    else {
-		CTRACE(stderr,"Gopher...... using www/unknown\n");
-		/* Specifying WWW_UNKNOWN forces dump to local disk. */
-		HTParseSocket (WWW_UNKNOWN, s, request);
+	    /* Now read the data from the socket: */    
+	    switch (gopher->type) {
+	      case GOPHER_HTML:
+		status = HTParseSocket(WWW_HTML,  gopher->socket, request);
+		break;
+		
+	      case GOPHER_GIF:
+	      case GOPHER_IMAGE:
+	      case GOPHER_PLUS_IMAGE:
+		status = HTParseSocket(HTAtom_for("image/gif"), gopher->socket,
+				       request);
+		break;
+	      case GOPHER_MENU:
+	      case GOPHER_INDEX:
+		status = parse_menu(request, gopher, url);
+		break;
+		
+	      case GOPHER_CSO:
+		status = parse_cso(request, gopher, url);
+		break;
+		
+	      case GOPHER_MACBINHEX:
+	      case GOPHER_PCBINHEX:
+	      case GOPHER_UUENCODED:
+	      case GOPHER_BINARY:
+		{
+		    /* Do our own filetyping -- maybe we get lucky */
+		    HTFormat format;
+		    format = HTFileFormat(url, &request->content_encoding,
+					  &request->content_language);
+		    if (format) {
+			CTRACE(stderr,
+			       "Gopher...... Figured out content-type myself: %s\n",
+			       HTAtom_name(format));
+			status = HTParseSocket(format, gopher->socket,
+					       request);
+		    }
+		    else {
+			CTRACE(stderr,"Gopher...... using www/unknown\n");
+			/* Specifying WWW_UNKNOWN forces dump to local disk */
+			HTParseSocket(WWW_UNKNOWN, gopher->socket, request);
+		    }
+		}
+		break;
+		
+	      case GOPHER_SOUND:
+	      case GOPHER_PLUS_SOUND:
+		status = HTParseSocket(WWW_AUDIO,  gopher->socket, request);
+		break;
+		
+	      case GOPHER_PLUS_MOVIE:
+		status = HTParseSocket(WWW_VIDEO,  gopher->socket, request);
+		break;
+		
+	      case GOPHER_TEXT:
+	      default:			   /* @@ parse as plain text */
+		status = HTParseSocket(WWW_PLAINTEXT, gopher->socket, request);
+		break;
 	    }
 	}
-	break;
 
-    case GOPHER_TEXT :
-    default:			/* @@ parse as plain text */
-     	HTParseSocket(WWW_PLAINTEXT, s, request);
-	break;
+	/* Close the connection */
+	if (TRACE) fprintf(stderr, "Gopher...... Closing socket %d\n",
+			   gopher->socket);
+	if (NETCLOSE(gopher->socket) < 0)
+	    status = HTInetStatus("close");
+    }
+    if (status == HT_INTERRUPTED) {
+        HTErrorAdd(request, ERR_WARNING, NO, HTERR_INTERRUPTED, NULL, 0,
+		   "HTLoadGopher");
+    }
+    FREE(gopher->command);
+    free(gopher);
 
-      case GOPHER_SOUND :
-    	HTParseSocket(WWW_AUDIO,  s, request);
-	break;
-	
-    } /* switch(gtype) */
+    if (status < 0 && status != HT_INTERRUPTED) {
+        HTErrorAdd(request, ERR_FATAL, NO, HTERR_INTERNAL, NULL, 0,
+		   "HTLoadGopher");
+	HTAnchor_clearIndex(request->anchor);
+    }
 
-    NETCLOSE(s);
-    return HT_LOADED;
+    /* TEMPORARY, SHOULD BE IN HTAccess */
+    if (request->error_stack)
+        HTErrorMsg(request);
+    /* TEMPORARY */
+    return status;
 }
 
 GLOBALDEF PUBLIC HTProtocol HTGopher = { "gopher", HTLoadGopher, NULL, NULL };

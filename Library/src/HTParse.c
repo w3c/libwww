@@ -1,8 +1,13 @@
 /*		Parse HyperText Document Address		HTParse.c
 **		================================
+**
+** history:
+**	May 12 94	TAB added as legal char in HTCleanTelnetString
+**
 */
-
+#if 0
 #include "HTUtils.h"
+#endif
 #include "HTParse.h"
 #include "tcp.h"
 
@@ -305,6 +310,17 @@ PRIVATE void ari_strcpy ARGS2(char *, to,
 //		http://fred.xxx.edu/../..
 //
 //	or	../../albert.html
+//
+// In the same manner, the following prefixed are preserved:
+//
+//	./<etc>
+//	//<etc>
+//
+// In order to avoid empty URLs the following URLs become:
+//
+//		/fred/..		becomes /fred/..
+//		/fred/././..		becomes /fred/..
+//
 */
 PUBLIC void HTSimplify ARGS1(char *, filename)
 {
@@ -337,7 +353,11 @@ PUBLIC void HTSimplify ARGS1(char *, filename)
 	char *url = NULL;
 	char **tokptr;
 	char **tokstart;
+	char *first;	    /* Points to the first `real' segment in the URL */
 	StrAllocCopy(url, urlptr);
+	first = url;
+	while (*first && (*first == '/' ||  *first == '.'))
+	    first++;
 
 	/* Does the URL end with a slash? */
 	if(*(filename+strlen(filename)-1) == '/')
@@ -361,7 +381,8 @@ PUBLIC void HTSimplify ARGS1(char *, filename)
 	    } else if (!strcmp(*tokptr, "..")) {
 		char **pptr = tokptr-1;
 		while (pptr >= tokstart) {
-		    if (**pptr && strcmp(*pptr, "..") && strcmp(*pptr, ".")) {
+		    if (**pptr && strcmp(*pptr, "..") && strcmp(*pptr, ".") &&
+			strcmp(*pptr, first)) {
 			*pptr = empty;
 			*tokptr = empty;
 			break;
@@ -607,7 +628,7 @@ PUBLIC char * HTUnEscape ARGS1( char *, str)
  *	Make sure that the given string doesn't contain characters that
  *	could cause security holes, such as newlines in ftp, gopher,
  *	news or telnet URLs; more specifically: allows everything between
- *	ASCII 20-7E, and also A0-FE, inclusive.
+ *	ASCII 20-7E, and also A0-FE, inclusive. Also TAB ('\t') allowed!
  *
  * On entry,
  *	str	the string that is *modified* if necessary.  The
@@ -625,7 +646,7 @@ PUBLIC BOOL HTCleanTelnetString ARGS1(char *, str)
 
     while (*cur) {
 	int a = TOASCII(*cur);
-	if (a < 0x20 || (a > 0x7E && a < 0xA0) ||  a > 0xFE) {
+	if (a != 0x9 && (a < 0x20 || (a > 0x7E && a < 0xA0) ||  a > 0xFE)) {
 	    CTRACE(stderr, "Illegal..... character in URL: \"%s\"\n",str);
 	    *cur = 0;
 	    CTRACE(stderr, "Truncated... \"%s\"\n",str);

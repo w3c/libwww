@@ -18,8 +18,8 @@
 #include "HTUtils.h"
 #include "HTAccess.h"
 #include "HTML.h"
+#include "HTTCP.h"
 #include "HTError.h"					 /* Implemented here */
-
 
 /* Macros and other defines */
 #define PUTC(c) 	(*target->isa->put_character)(target, c)
@@ -29,8 +29,7 @@
 #define FREE_TARGET	(*target->isa->free)(target)
 
 /* Globals */
-PUBLIC unsigned int HTErrorShowMask = HT_ERR_SHOW_ALL;
-PUBLIC char *HTErrorInfoPath = NULL;
+PUBLIC unsigned int HTErrorShowMask = HT_ERR_SHOW_WARNING+HT_ERR_SHOW_PARS;
 
 /* Type definitions and global variables etc. local to this module */
 typedef struct _HTErrorInfo {
@@ -53,6 +52,9 @@ struct _HTStructured {
     /* ... */
 };
 
+PRIVATE char *HTErrorInfoPath  = NULL;
+PRIVATE char *HTErrorSignature = NULL;
+PRIVATE char *HTErrorSigLink   = NULL;
 
 /* All errors that are not strictly HTTP errors but originates from, e.g., 
    the FTP protocol all have element numbers > HTERR_HTTP_CODES_END, i.e.,
@@ -78,7 +80,11 @@ PRIVATE HTErrorMsgInfo error_info[HTERR_ELEMENTS] = {
     { 0,   "Can't locate remote host", 	"locate_host.multi" },
     { 0,   "FTP-server replies", 	"ftp.multi" },
     { 0,   "FTP-server doesn't reply", 	"no_server.multi" },
-    { 0,   "Server timed out", 		"time_out.multi" }
+    { 0,   "Server timed out", 		"time_out.multi" },
+    { 0,   "Gopher-server replies", 	"gopher.multi" },
+    { 0,   "Data transfer Interrupted", "interrupt.multi" },
+    { 0,   "CSO-server replies", 	"cso.multi" },
+    { 0,   "Message from System Call", 	"system.multi" }
 };
 
 /* ------------------------------------------------------------------------- */
@@ -86,8 +92,10 @@ PRIVATE HTErrorMsgInfo error_info[HTERR_ELEMENTS] = {
 /*								HTErrorAdd
 **
 **	Add an error message to the error list in HTRequest. `par' and `where'
-**	might be set to NULL. If par is a string, then pass strlen as
-**	par_length.
+**	might be set to NULL. If par is a string, it is sufficient to let
+**	par_length be unspecified, i.e., 0.
+**
+**	NOTE: See also HTErrorSysAdd for system errors
 */
 PUBLIC void HTErrorAdd ARGS7(HTRequest *, 	request,
 			     HTErrSeverity, 	severity,
@@ -105,10 +113,12 @@ PUBLIC void HTErrorAdd ARGS7(HTRequest *, 	request,
     }
     if ((newError = (HTErrorInfo *) calloc(1, sizeof(HTErrorInfo))) == NULL)
 	outofmem(__FILE__, "HTErrorAdd");
-    newError->ignore = ignore;
-    newError->severity = severity;
     newError->element = element;
-    if (par && par_length) {
+    newError->severity = severity;
+    newError->ignore = ignore;
+    if (par) {
+	if (!par_length)
+	    par_length = (int) strlen((char *) par);
 	if ((newError->par = malloc(par_length+1)) == NULL)
 	    outofmem(__FILE__, "HTAddError");
 	memcpy(newError->par, par, par_length);
@@ -122,6 +132,59 @@ PUBLIC void HTErrorAdd ARGS7(HTRequest *, 	request,
 		error_info[newError->element].msg,
 		newError->severity,
 		newError->par ? (char *) newError->par : "Unspecified",
+		newError->where ? newError->where : "Unspecified");
+    }
+
+    /* Add to the stack in the request structure */
+    if (!request->error_stack)
+	request->error_stack = HTList_new();
+    HTList_addObject(request->error_stack, (void *) newError);
+    return;
+}
+
+
+/*								HTErrorSysAdd
+**
+**	Add a system error message to the error list in HTRequest. syscall
+**	is the name of the system call, e.g. "close". The message put to the
+**	list is that corresponds to the errno. This function also replaces
+**	HTInetStatus, which is called from within.
+**
+**	See also HTErrorAdd.
+*/
+PUBLIC void HTErrorSysAdd ARGS4(HTRequest *, 	request,
+				HTErrSeverity, 	severity,
+				BOOL,		ignore,
+				char *,		syscall)
+
+{
+    HTErrorInfo *newError;
+    if (!request) {
+	if (TRACE) fprintf(stderr, "HTErrorSys.. Bad argument!\n");
+	return;
+    }
+    if ((newError = (HTErrorInfo *) calloc(1, sizeof(HTErrorInfo))) == NULL)
+	outofmem(__FILE__, "HTErrorAdd");
+    newError->element = HTERR_SYSTEM;
+    newError->severity = severity;
+    newError->ignore = ignore;
+    if (syscall) {
+	newError->where = syscall;
+	HTInetStatus(syscall);
+    } else
+	HTInetStatus("Unspecified System Call");
+    {
+	char *errmsg = NULL;
+	StrAllocCopy(errmsg, HTErrnoString());
+	newError->par = (void *) errmsg;
+    }
+    newError->par_length = (int) strlen(newError->par);
+    if (TRACE) {
+	fprintf(stderr, "System Error Code: %3d\tMessage: `%s\tSeverity: %d\tParameter: `%s\'\tWhere: `%s\'\n",
+		error_info[newError->element].code,
+		error_info[newError->element].msg,
+		newError->severity,
+		(char *) newError->par,
 		newError->where ? newError->where : "Unspecified");
     }
 
@@ -166,26 +229,43 @@ PUBLIC void HTErrorIgnore ARGS1(HTRequest *, request)
 	if (TRACE) fprintf(stderr, "HTErrorIgnore Bad argument!\n");
 	return;
     }
-    if (cur && (pres = (HTErrorInfo *) HTList_nextObject(cur)) != NULL)
+    if (cur && (pres = (HTErrorInfo *) HTList_nextObject(cur)) != NULL) {
+	if (TRACE)
+	    fprintf(stderr, "Error Ignore Code: %3d\tMessage: `%s\tSeverity: %d\tParameter: `%s\'\tWhere: `%s\'\n",
+		    error_info[pres->element].code,
+		    error_info[pres->element].msg,
+		    pres->severity,
+		    pres->par ? (char *) pres->par : "Unspecified",
+		    pres->where ? pres->where : "Unspecified");
 	pres->ignore = YES;
+    }
     return;
 }
 
 
-/*								HTErrorHelpInit
+/*								HTErrorInit
 **
 **	Initiates the external multi linguistic help files that appears 
-**	as anchors in the message.
+**	as anchors in the message, a `signature', e.g., "HTTPD Server",
+**	and a link to information on the signer.
 */
-PUBLIC void HTErrorHelpInit ARGS1(char *, pathname)
+PUBLIC void HTErrorInit ARGS3(char *, pathname, char *, signature,
+			      char *, siglink)
 {
-    if (!pathname) {
-	if (TRACE) fprintf(stderr, "HTErrorInit. Bad argument!\n");
-	return;
+    if (pathname) {
+	if (TRACE) fprintf(stderr, "HTErrorInit. Initializing path for info on error messages\n");
+	StrAllocCopy(HTErrorInfoPath, pathname);
+	if (*(HTErrorInfoPath+strlen(HTErrorInfoPath)-1) != '/')
+	    StrAllocCat(HTErrorInfoPath, "/");
     }
-    StrAllocCopy(HTErrorInfoPath, pathname);
-    if (*(HTErrorInfoPath+strlen(HTErrorInfoPath)-1) != '/')
-	StrAllocCat(HTErrorInfoPath, "/");
+    if (signature) {
+	if (TRACE) fprintf(stderr, "HTErrorInit. Initializing signature\n");
+	StrAllocCopy(HTErrorSignature, signature);
+	if (siglink) {
+	    if (TRACE) fprintf(stderr, "HTErrorInit. Initializing info on signer\n");
+	    StrAllocCopy(HTErrorSigLink, siglink);
+	}
+    }
     return;
 }
 
@@ -201,19 +281,11 @@ PUBLIC void HTErrorMsg ARGS1(HTRequest *, request)
     HTList *cur = request->error_stack;
     BOOL highest = YES;
     HTErrorInfo *pres;
-    HTStructured *target;
+    HTStructured *target = NULL;
     if (!request) {
 	if (TRACE) fprintf(stderr, "HTErrorMsg.. Bad argument!\n");
 	return;
     }
-    if (TRACE) fprintf(stderr, "HTError..... Generating error message.\n");
-    target = HTML_new(request, NULL, WWW_HTML, request->output_format,
-                      request->output_stream);
-    
-    /* Output title */
-    START(HTML_TITLE);
-    PUTS("Error Message");
-    END(HTML_TITLE);
 
     /* Output messages */
     while ((pres = (HTErrorInfo *) HTList_nextObject(cur))) {
@@ -224,12 +296,24 @@ PUBLIC void HTErrorMsg ARGS1(HTRequest *, request)
 
 	    /* Output code number */
 	    if (highest) {			    /* If first time through */
+		if (TRACE)
+		    fprintf(stderr,
+			    "HTError..... Generating error message.\n");
+		target = HTML_new(request, NULL, WWW_HTML,
+				  request->output_format,
+				  request->output_stream);
+		
+		/* Output title */
+		START(HTML_TITLE);
+		PUTS("Error Message");
+		END(HTML_TITLE);
 		START(HTML_H1);
-		if (pres->severity == WARNING)
+
+		if (pres->severity == ERR_WARNING)
 		    PUTS("Warning ");
-		else if (pres->severity == NON_FATAL)
+		else if (pres->severity == ERR_NON_FATAL)
 		    PUTS("Non Fatal Error ");
-		else if (pres->severity == FATAL)
+		else if (pres->severity == ERR_FATAL)
 		    PUTS("Fatal Error ");
 		else {
 		    PUTS("Unknown Classification of Error");
@@ -290,10 +374,23 @@ PUBLIC void HTErrorMsg ARGS1(HTRequest *, request)
 	    /* If we only are going to show the higest entry */
 	    if (HTErrorShowMask & HT_ERR_SHOW_FIRST)
 		break;
+	    START(HTML_P);
 	}
-	START(HTML_P);
     }
-    FREE_TARGET;
+
+    /* Put out any signature */
+    if (target) {
+	if (HTErrorSignature) {
+	    START(HTML_ADDRESS);
+	    if (HTErrorSigLink)
+		HTStartAnchor(target, NULL, HTErrorSigLink);
+	    PUTS(HTErrorSignature);
+	    if (HTErrorSigLink)
+		END(HTML_A);
+	    END(HTML_ADDRESS);
+	}
+	FREE_TARGET;
+    }
     return;
 }
 

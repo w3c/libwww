@@ -379,7 +379,12 @@ HTFormat HTAnchor_format
   return me ? me->format : NULL;
 }
 
-
+void HTAnchor_clearIndex
+  ARGS1 (HTParentAnchor *,me)
+{
+  if (me)
+    me->isIndex = NO;
+}
 
 void HTAnchor_setIndex
   ARGS1 (HTParentAnchor *,me)
@@ -541,5 +546,10 @@ PUBLIC char * HTAnchor_physical ARGS1(HTParentAnchor *, me)
 PUBLIC void HTAnchor_setPhysical ARGS2(HTParentAnchor *, me,
 	char *,	physical)
 {
+    if (!me || !physical) {
+	if (TRACE)
+	    fprintf(stderr, "HTAnchor.... setPhysical, called with null argument\n");
+	return;
+    }
     StrAllocCopy(me->physical, physical);
 }

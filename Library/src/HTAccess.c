@@ -47,6 +47,7 @@
 #include "HTAlert.h"
 #include "HTFWriter.h"	/* for cache stuff */
 #include "HTTee.h"
+#include "HTError.h"
 
 /*	These flags may be set to modify the operation of this module
 */
@@ -100,6 +101,7 @@ PUBLIC void HTRequest_delete ARGS1(HTRequest *, req)
 {
     if (req) {
 	HTFormatDelete(req->conversions);
+	HTErrorFree(req);
 	HTAACleanup(req);
 	FREE(req->from);
 	FREE(req);
@@ -656,8 +658,10 @@ PRIVATE BOOL HTLoadDocument ARGS1(HTRequest *,		request)
 		"HTAccess: Can't access `%s'\n", full_address);
 #endif
 	/* This is done in the specific load procedures... Henrik 07/03-94 */
+#if 0
 	if (request->error_stack)
 	    HTLoadError(request, 500, "Unable to access document.");
+#endif
 	free(full_address);
 	return NO;
     }
