@@ -1075,7 +1075,6 @@ PRIVATE int HTSaveFilter (HTRequest * request, HTResponse * response,
 	return HT_ERROR;
 
     } else {
-	HTRequest_deleteAfter(request, HTSaveFilter);
 	HTAnchor_setDocument(me->source, me->placeholder);
 	HTChunk_delete(me->document);
 	HT_FREE(me);

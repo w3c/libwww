@@ -168,8 +168,8 @@ PUBLIC void HTRequest_delete (HTRequest * me)
 	if (me->error_stack) HTError_deleteAll(me->error_stack);
 
 	/* Before and After Filters */
-	if (me->afters) HTList_delete(me->afters);
-	if (me->befores) HTList_delete(me->befores);
+	if (me->afters) HTNetCall_deleteAfterAll(me->afters);
+	if (me->befores) HTNetCall_deleteBeforeAll(me->befores);
 
 	/* Access Authentication */
 	HT_FREE(me->realm);
