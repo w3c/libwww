@@ -2,13 +2,14 @@
                       "http://www.w3.org/TR/REC-html40/loose.dtd">
 <html>
 <head>
+  <meta http-equiv="Content-Type" content="text/html">
   <title>Getting the W3C libwww Source</title>
   <link rel="STYLESHEET" href="/StyleSheets/libwww.css" type="text/css">
 </head>
 
 <body>
-<p><a href="../"><img src="../Icons/WWW/w3c_home" alt="W3C" border="0"></a> <a
-href="./"><img src="../Icons/WWW/Lib48x" alt="libwww" border="0"></a></p>
+<p><a href="../"><img src="../Icons/WWW/w3c_home" alt="W3C" border="0"></a>
+<a href="./"><img src="../Icons/WWW/Lib48x" alt="libwww" border="0"></a></p>
 
 <h1>Getting the Libwww Source</h1>
 
@@ -25,11 +26,11 @@ forms below.</p>
   <li><em>Looking for Win32 binaries?</em> Vladimir Kozlov most kindly
     provides <a href="http://www.idm.ru/libwww.htm">libwww binaries</a> from
     the <a href="http://www.idm.ru">IDM Web site</a>. We also mirror his
-    packages at our <a href="ftp://ftp.w3.org/pub/libwww/">ftp</a> and 
-    <a href="Distribution/">web</a> sites.</li>
+    packages at our <a href="ftp://ftp.w3.org/pub/libwww/">ftp</a> and <a
+    href="Distribution/">web</a> sites.</li>
   <li>Remember to <a
     href="mailto:www-lib-request@w3.org?subject=subscribe">subscribe to the
-    &lt;www-lib@w3.org></a> mailing list (<a
+    &lt;www-lib@w3.org&gt;</a> mailing list (<a
     href="http://www.findmail.com/list/www-lib/">findmail archives</a>)</li>
   <li><a href="Collaborators.html">How can I get involved in libwww
     development?</a></li>
@@ -41,34 +42,54 @@ forms below.</p>
 href="http://dev.w3.org/cgi-bin/cvsweb/libwww/">CVS repository</a> allows you
 to follow the development of libwww closely and to contribute much easier.
 Also, you will get a lot of bug fixes that are not in the distribution tar
-ball. In fact, if you intend to provide patches then you <b>should</b> use the
-CVS repository! If you intend to write code for libwww then have a look at the
-<a href="User/Style/">coding guide lines</a> before you begin.</p>
+ball. In fact, if you intend to provide patches then you <b>should</b> use
+the CVS repository! If you intend to write code for libwww then have a look
+at the <a href="User/Style/">coding guide lines</a> before you begin.</p>
 
 <h2><a name="Snapshot">CVS Repository Snapshot</a></h2>
 
 <p>For those who wish to keep up with the source development but do not have
 direct access to our CVS repository due to firewalls etc., we generate a
-snapshot tarball of the repository on a daily basis. You can copy this to your
-system, unpack it, and treat it as your working copy or alternatively you can
-use the <a href="http://www.cyclic.com/cvs/info.html">CVS import facility</a>
-into your own CVS repository.</p>
+snapshot tarball of the repository on a daily basis. You can copy this to
+your system, unpack it, and treat it as your working copy or alternatively
+you can use the <a href="http://www.cyclic.com/cvs/info.html">CVS import
+facility</a> into your own CVS repository.</p>
 <ul>
-  <li><a href="ftp://dev.w3.org/pub/libwww/cvs-snapshot.tar.gz">Get the latest
-    CVS snapshot as a gzipped tar file</a> - it is generated 4 times daily
-    around <a
+  <li><a href="ftp://dev.w3.org/pub/libwww/cvs-snapshot.tar.gz">Get the
+    latest CVS snapshot as a gzipped tar file</a> - it is generated 4 times
+    daily around <a
     href="http://www.timeanddate.com/worldclock/fixedform.html">2:30, 8:30,
     14:30, and 20:30 GMT</a></li>
 </ul>
 
 <p>We don't promise anything but there is a good chance that it compiles as
-long as you <a href="cvs.html#Boot">follow the same instructions</a> as if you
-did a normal CVS checkout.</p>
+long as you <a href="cvs.html#Boot">follow the same instructions</a> as if
+you did a normal CVS checkout.</p>
+
+<h2><a name="Tar">Latest Tar Ball Release (June 7, 2002)</a></h2>
+
+<p>Occasionally we wrap up the libwww code and produce a new revision,
+however, this happens <a href="cvs.html#Releases">much less frequently than
+updates are committed to the CVS repository</a>.</p>
+<ul>
+  <li><a
+  href="Distribution/w3c-libwww-5.4.0.tgz">w3c-libwww-5.4.0.tgz</a></li>
+  <li><a
+  href="Distribution/w3c-libwww-5.4.0.zip">w3c-libwww-5.4.0.zip</a></li>
+</ul>
+
+<p>When you have downloaded libwww, you are ready to <a
+href="../INSTALL.html">unpack and compile</a> the software. You can find more
+information on how libwww is designed in the <a
+href="User/Architecture/">libwww architecture</a> and how to use it in the <a
+href="User/Using/">User's Guide</a>.</p>
 
 <h2><a name="Source">RPMs (Apr 15, 1999)</a></h2>
 
 <p><em>These RPMs are out of date. We're now outsourcing their generation to
-other people. You can use <a href="http://www.rpmfind.net">rpmfind</a> to search for them.</em></p>
+other people. You can use <a href="http://www.rpmfind.net">rpmfind</a> to
+search for them.</em></p>
+
 <p>Thanks to Jim Gettys, we now provide RPMs for libwww. All RPM packages are
 signed with <a href="http://web.mit.edu/network/pgp.html">PGP</a> using <a
 href="/People/Frystyk/">my</a> own key with <a
@@ -79,8 +100,8 @@ file containing a valid PGP signature.</p>
   <li><a href="Distribution/SRPMS/w3c-libwww-5.2.8-3.src.rpm">Source RPM</a>
     (<a href="Distribution/SRPMS/w3c-libwww-5.2.8-3.src.rpm.sig">PGP
     signature</a>)</li>
-  <li><a href="Distribution/RPMS/i386/w3c-libwww-5.2.8-3.i386.rpm">i386 binary
-    RPM</a> (<a
+  <li><a href="Distribution/RPMS/i386/w3c-libwww-5.2.8-3.i386.rpm">i386
+    binary RPM</a> (<a
     href="Distribution/RPMS/i386/w3c-libwww-5.2.8-3.i386.rpm.sig">PGP
     signature</a>) containing the <a href="./">base library</a></li>
   <li><a href="Distribution/RPMS/i386/w3c-libwww-apps-5.2.8-3.i386.rpm">i386
@@ -93,25 +114,6 @@ file containing a valid PGP signature.</p>
     href="Distribution/RPMS/i386/w3c-libwww-devel-5.2.8-3.i386.rpm.sig">PGP
     signature</a>) containing the include files for development</li>
 </ul>
-
-<h2><a name="Tar">Latest Tar Ball Release (December 20, 2000)</a></h2>
-
-<p>Occasionally we wrap up the libwww code and produce a new revision,
-however, this happens <a href="cvs.html#Releases">much less frequently than
-updates are committed to the CVS repository</a>.</p>
-
-<ul>
-  <li><a
-    href="Distribution/w3c-libwww-5.3.2.tar.gz">w3c-libwww-5.3.2.tar.gz</a>
-  </li>
-  <li><a href="Distribution/w3c-libwww-5.3.2.zip">w3c-libwww-5.3.2.zip</a></li>
-</ul>
-
-<p>When you have downloaded libwww, you are ready to <a
-href="../INSTALL.html">unpack and compile</a> the software. You can find more
-information on how libwww is designed in the <a
-href="User/Architecture/">libwww architecture</a> and how to use it in the <a
-href="User/Using/">User's Guide</a>.</p>
 
 <h2><a name="Contributions">Contributions</a></h2>
 
@@ -126,10 +128,9 @@ href="Distribution/">distribution archives</a>.</p>
 
 <p></p>
 <hr>
-
 <address>
-  <A HREF="/People/Jose/">Jos&eacute; Kahan</A>,<br>
-  @(#) $Id$ 
+  <a href="/People/Jose/">José Kahan</a>,<br>
+  @(#) $Id$
 </address>
 </body>
 </html>
