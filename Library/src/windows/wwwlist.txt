@@ -435,6 +435,7 @@ HTLog_add		@ 3704
 
 ;HTMIME.c		@ 3800
 HTMIMEConvert		@ 3801
+HTMIMEHeader		@ 3802
 
 ;HTMIMERq.c		@ 3900
 HTMIMERequest_new	@ 3901

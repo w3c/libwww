@@ -22,6 +22,7 @@ HTHeader_deleteAll	@ 216
 
 ;HTMIME.c		@ 300
 HTMIMEConvert		@ 301
+HTMIMEHeader		@ 302
 
 ;HTMIMERq.c		@ 400
 HTMIMERequest_new	@ 401
