@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 19-May-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen,  1-Jul-1996 -->
   <TITLE>W3C Reference Library libwww User Profile Class</TITLE>
 </HEAD>
 <BODY>
@@ -38,11 +38,20 @@ typedef struct _HTUserProfile HTUserProfile;
 <P>
 The application may create any number of user profile objects. By default
 the Library creates a generic user which is the default value used to initialize
-a <A HREF="HTReq.html">Request object</A>.
+a <A HREF="HTReq.html">Request object</A>. This can be replaced by other
+user profiles at any point in time.
 <H3>
-  Add a User Profile
+  Create a User Profile
 </H3>
 <PRE>extern HTUserProfile * HTUserProfile_new (const char * name, void * context);
+</PRE>
+<H3>
+  Localize a User Profile
+</H3>
+<P>
+Localize a user profile by filling in all the information that we can figure
+out automatically, for example the email address, news server etc.
+<PRE>extern BOOL HTUserProfile_localize (HTUserProfile * up);
 </PRE>
 <H3>
   Delete a User Profile

@@ -2,6 +2,7 @@
 <HEAD>
   <!-- Changed by: Henrik Frystyk Nielsen, 13-Apr-1996 -->
   <!-- Changed by: Eric Prud'hommeaux, 14-May-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Jul-1996 -->
 <TITLE>W3C Reference Library libwww HTNet Class</TITLE>
 </HEAD>
 <BODY>
@@ -268,12 +269,12 @@ You can create a new HTNet object as a new request to be handled. If we have
 more than HTMaxActive connections already then return NO. Returns YES if
 OK, else NO
 <PRE>
-extern BOOL HTNet_newServer (HTRequest * request, SOCKET sockfd, char *access);
+extern BOOL HTNet_newServer (HTRequest * request, HTNet * net, char *access);
 </PRE>
 <P>
 And you can create a plain new HTNet object using the following method:
 <PRE>
-extern HTNet * HTNet_new (HTRequest * request, SOCKET sockfd);
+extern HTNet * HTNet_new (SOCKET sockfd, HTRequest * request);
 </PRE>
 <H3>
   Duplicate an existing Object
@@ -403,6 +404,16 @@ extern void * HTNet_context (HTNet * net);
 <PRE>
 extern BOOL HTNet_setSocket (HTNet * net, SOCKET sockfd);
 extern SOCKET HTNet_socket (HTNet * net);
+</PRE>
+<H3>
+  The Request Object
+</H3>
+<P>
+The <A HREF="HTReq.html">Request object</A> is normally set up
+automatically but can be changed at a later time.
+<PRE>
+extern BOOL HTNet_setRequest (HTNet * net, HTRequest * request);
+extern HTRequest * HTNet_request (HTNet * net);
 </PRE>
 <H3>
   The Transport Object

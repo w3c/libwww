@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 31-May-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Jul-1996 -->
   <TITLE>W3C Reference Library libwww System Dependencies</TITLE>
 </HEAD>
 <BODY>
@@ -335,21 +335,22 @@ Switzerland.
 <P>
 Compiles on PPC. Should compile on 68K.
 <P>
-August 31, 1995 by Steven T. Roussey &lt;sroussey@eng.uci.edu&gt; (STR)
+August 31, 1995 by Steven T. Roussey &lt;sroussey@eng.uci.edu&gt; (STR). and 
+jeff@macalot.com (Jeff Dripps). Thanks a bunch!
 <PRE>
 #ifdef __MWERKS__
-#include &lt;gusi.h&gt;
-#include &lt;dirent.h&gt;
-#include &lt;errno.h&gt;
-#include &lt;sys/errno.h&gt;
-#include &lt;sioux.h&gt;
+#include &lt;gusi.h>
+#include &lt;dirent.h>
+#include &lt;errno.h>
+#include &lt;sys/errno.h>
+#include &lt;sioux.h>
 
 #define INCLUDES_DONE
 #define TCP_INCLUDES_DONE
 
-#define GUSI			/* Identifies changes made for GUSI */
+#define GUSI                    /* Identifies changes made for GUSI */
 
-#undef  HAVE_GETDOMAINNAME	/* STR */
+#undef  HAVE_GETDOMAINNAME      /* STR */
 #undef  HAVE_GETPASS
 #undef  HAVE_GETWD
 
@@ -358,18 +359,27 @@ August 31, 1995 by Steven T. Roussey &lt;sroussey@eng.uci.edu&gt; (STR)
 #define NO_GROUPS
 #define GOT_READ_DIR
 
-#undef  HAVE_TIMEZONE		/* STR */
+#undef  HAVE_TIMEZONE           /* STR */
 #define NO_GMTOFF
 #define HAVE_STRERROR
+#define HAVE_GETHOSTNAME
 
-#ifndef DIR
-#define DIR		struct dirent
-#endif
 #define d_ino           d_fileno        /* backward compatibility */
 
-#define SLEEP(n)	GUSIDefaultSpin( SP_SLEEP, n/60)
+#define SLEEP(n)        GUSIDefaultSpin( SP_SLEEP, n/60)
 
 #define MKDIR(a,b)      mkdir(a)
+
+#define HAVE_STRFTIME           // added JTD:5/1/96
+#define HAVE_MKTIME             // added JTD:5/1/96
+#define HAVE_STRCHR             // added JTD:5/1/96
+#define STDC_HEADERS            // added JTD:5/1/96
+#define HAVE_MEMCPY             // added JTD:5/1/96
+#define TTY_IS_SELECTABLE       // added JTD:5/1/96
+#define HAVE_READDIR            // added JTD:5/1/96
+#define HAVE_DIRENT_INO         // added JTD:5/1/96
+#define HAVE_DIRENT_H           // added JTD:5/1/96
+
 #endif
 </PRE>
 <H3>

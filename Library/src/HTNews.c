@@ -417,6 +417,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		** stream stack.
 		*/
 		HTNet_getInput(net, HTNewsStatus_new(request, news), NULL, 0);
+		HTRequest_setOutputConnected(request, YES);
 
 		/*
 		** Create the stream pipe TO the channel from the application
@@ -699,7 +700,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		BOOL main = HTRequest_isMainDestination(request);
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link =
-			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+			HTLink_find((HTAnchor *) request->source->anchor,
 					  (HTAnchor *) request->anchor);
 		    HTLink_setResult(link, HT_LINK_OK);
 		}
@@ -717,7 +718,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		HTRequest_killPostWeb(request);
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link =
-			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+			HTLink_find((HTAnchor *) request->source->anchor,
 					  (HTAnchor *) request->anchor);
 		    HTLink_setResult(link, HT_LINK_ERROR);
 		}

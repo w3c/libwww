@@ -89,6 +89,8 @@ PUBLIC HTRequest * HTRequest_new (void)
     /* Content negotiation */
     me->ContentNegotiation = YES;		       /* Do this by default */
 
+    if (CORE_TRACE) HTTrace("Request..... Created %p\n", me);
+
 #if 0 /* WWW_WIN_ASYNC */
     HTEvent_winHandle(me);
 #endif
@@ -104,13 +106,13 @@ PUBLIC HTRequest * HTRequest_new (void)
 PUBLIC BOOL HTRequest_clear (HTRequest * me)
 {
     if (me) {
-	me->boundary = NULL;
 	me->error_stack = NULL;
 	me->net = NULL;
 	me->scheme = NULL;
 	me->realm = NULL;
 	me->challenge = NULL;
 	me->credentials = NULL;
+	me->connected = NO;
 	return YES;
     }
     return NO;
@@ -124,10 +126,11 @@ PUBLIC BOOL HTRequest_clear (HTRequest * me)
 PUBLIC HTRequest * HTRequest_dup (HTRequest * src)
 {
     HTRequest * me;
-    if (!src) return 0;
+    if (!src) return NULL;
     if ((me = (HTRequest  *) HT_MALLOC(sizeof(HTRequest))) == NULL)
         HT_OUTOFMEM("HTRequest_dup");
     memcpy(me, src, sizeof(HTRequest));
+    if (CORE_TRACE) HTTrace("Request..... Duplicated %p to %p\n", src, me);
     return me;
 }
 
@@ -156,9 +159,19 @@ PUBLIC HTRequest * HTRequest_dupInternal (HTRequest * src)
 PUBLIC void HTRequest_delete (HTRequest * request)
 {
     if (request) {
-	HT_FREE(request->boundary);
-	if (request->error_stack) HTError_deleteAll(request->error_stack);
+	if (CORE_TRACE) HTTrace("Request..... Delete %p\n", request);
 	if (request->net) request->net->request = NULL;
+
+	/* Should we delete the output stream? */
+	if (!request->connected && request->output_stream) {
+	    if (CORE_TRACE)
+		HTTrace("Request..... Deleting dangling output stream\n");
+	    (*request->output_stream->isa->_free)(request->output_stream);
+	    request->output_stream = NULL;
+	}
+
+	/* Clean up the error stack */
+	if (request->error_stack) HTError_deleteAll(request->error_stack);
 
 	HT_FREE(request->scheme);	    /* Current authentication scheme */
 	if (request->challenge) HTAssocList_delete(request->challenge);
@@ -602,6 +615,20 @@ PUBLIC void HTRequest_setPreemptive (HTRequest *request, BOOL mode)
 PUBLIC BOOL HTRequest_preemptive (HTRequest *request)
 {
     return request ? request->preemptive : NO;
+}
+
+/*
+**	Has output stream been connected to the channel? If not then we
+**	must free it explicitly when deleting the request object
+*/
+PUBLIC void HTRequest_setOutputConnected (HTRequest * request, BOOL mode)
+{
+    if (request) request->connected = mode;
+}
+
+PUBLIC BOOL HTRequest_outputConnected (HTRequest * request)
+{
+    return request ? request->connected : NO;
 }
 
 /*

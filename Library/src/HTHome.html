@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<!-- Changed by: Henrik Frystyk Nielsen, 28-Jun-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen,  2-Jul-1996 -->
   <TITLE>W3C Reference Library libwww Application Helper Functions</TITLE>
 </HEAD>
 <BODY>
@@ -92,6 +92,16 @@ from the Line Mode Browser and was moved here by <EM>howcome@w3.org</EM>
 in order for all clients to take advantage.
 <PRE>#define HTFindRelatedName HTGetCurrentDirectoryURL
 extern char *  HTGetCurrentDirectoryURL (void);
+</PRE>
+<H2>
+  Handle Library Trace Messages
+</H2>
+<P>
+Standard interface to libwww <A HREF="HTUtils.html#Debug">TRACE messages</A>.
+Pass this function a string of characters and it will set up the appropriate
+TRACE flags. The shortnames for the trace messages are not as intuitive as
+they could be :-(. The string must be null terminated
+<PRE>extern int HTSetTraceMessageMask (const char * shortnames);
 </PRE>
 <H2>
   Net Manager Callback Functions

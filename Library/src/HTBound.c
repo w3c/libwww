@@ -178,24 +178,26 @@ PUBLIC HTStream * HTBoundary   (HTRequest *	request,
 				HTFormat	output_format,
 				HTStream *	output_stream)
 {
-    HTStream * me;
-    if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
-        HT_OUTOFMEM("HTBoundary");
-    me->isa = &HTBoundaryClass;
-    me->request = request;
-    me->format = output_format;
-    me->orig_target = output_stream;
-    me->debug = HTRequest_debugStream(request);
-    me->state = EOL_FLF;
-    if (request->boundary) {
-	StrAllocCopy(me->boundary, request->boundary);	       /* Local copy */
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    HTAssocList * type_param = HTAnchor_formatParam(anchor);
+    char * boundary = HTAssocList_findObject(type_param, "boundary");
+    if (boundary) {
+	HTStream * me;
+	if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
+	    HT_OUTOFMEM("HTBoundary");
+	me->isa = &HTBoundaryClass;
+	me->request = request;
+	me->format = output_format;
+	me->orig_target = output_stream;
+	me->debug = HTRequest_debugStream(request);
+	me->state = EOL_FLF;
+	StrAllocCopy(me->boundary, boundary);		       /* Local copy */
 	me->bpos = me->boundary;
 	if (STREAM_TRACE)
 	    HTTrace("Boundary.... Stream created with boundary '%s\'\n", me->boundary);
 	return me;
     } else {
-	if (STREAM_TRACE) HTTrace("Boundary.... <UNKNOWN>\n");
-	HT_FREE(me);
+	if (STREAM_TRACE) HTTrace("Boundary.... UNKNOWN boundary!\n");
 	return HTErrorStream();
     }
 }

@@ -19,15 +19,11 @@
 
 /* Library include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
-#include "HTAtom.h"
-#include "HTChunk.h"
+#include "WWWUtil.h"
+#include "WWWCore.h"
+#include "WWWHTML.h"
 #include "HText.h"
 #include "HTStyle.h"
-#include "HTAlert.h"
-#include "HTMLGen.h"
-#include "HTParse.h"
 #include "HTML.h"
 
 extern HTStyleSheet * styleSheet;	/* Application-wide */
@@ -93,44 +89,6 @@ PRIVATE void change_paragraph_style (HTStructured * me, HTStyle * style);
 /*	Style buffering avoids dummy paragraph begin/ends.
 */
 #define UPDATE_STYLE if (me->style_change) { actually_set_style(me); }
-
-
-#ifdef OLD_CODE
-/* The following accented characters are from peter Flynn, curia project */
-
-/* these ifdefs don't solve the problem of a simple terminal emulator
-** with a different character set to the client machine. But nothing does,
-** except looking at the TERM setting */
-
-
-        { "ocus" , "&" },       /* for CURIA */
-#ifdef IBMPC
-        { "aacute" , "\240" },	/* For PC display */
-        { "eacute" , "\202" },
-        { "iacute" , "\241" },
-        { "oacute" , "\242" },
-        { "uacute" , "\243" },
-        { "Aacute" , "\101" },
-        { "Eacute" , "\220" },
-        { "Iacute" , "\111" },
-        { "Oacute" , "\117" },
-        { "Uacute" , "\125" },
-#else
-        { "aacute" , "\341" },	/* Works for openwindows -- Peter Flynn */
-        { "eacute" , "\351" },
-        { "iacute" , "\355" },
-        { "oacute" , "\363" },
-        { "uacute" , "\372" },
-        { "Aacute" , "\301" },
-        { "Eacute" , "\310" },
-        { "Iacute" , "\315" },
-        { "Oacute" , "\323" },
-        { "Uacute" , "\332" }, 
-#endif
-	{ 0,	0 }  /* Terminate list */
-};
-#endif
-
 
 /* 	Entity values -- for ISO Latin 1 local representation
 **
@@ -346,12 +304,10 @@ PRIVATE void change_paragraph_style (HTStructured * me, HTStyle *style)
 **			A C T I O N 	R O U T I N E S
 */
 
-/*	Character handling
-**	------------------
-*/
-PRIVATE int HTML_put_character (HTStructured * me, char c)
+PRIVATE int HTML_write (HTStructured * me, const char * b, int l)
 {
-
+    while (l-- > 0) {
+	char c = *b++;
     switch (me->sp[0].tag_number) {
     case HTML_COMMENT:
     	break;					/* Do Nothing */
@@ -387,76 +343,18 @@ PRIVATE int HTML_put_character (HTStructured * me, char c)
 	    me->in_word = YES;
 	}
     } /* end switch */
+    }
     return HT_OK;
 }
 
-
-
-/*	String handling
-**	---------------
-**
-**	This is written separately from put_character becuase the loop can
-**	in some cases be promoted to a higher function call level for speed.
-*/
 PRIVATE int HTML_put_string (HTStructured * me, const char* s)
 {
-
-    switch (me->sp[0].tag_number) {
-    case HTML_COMMENT:
-    	break;					/* Do Nothing */
-	
-    case HTML_TITLE:	
-    	HTChunk_putb(me->title, s, strlen(s));
-	break;
-
-	
-    case HTML_LISTING:				/* Litteral text */
-    case HTML_XMP:
-    case HTML_PLAINTEXT:
-    case HTML_PRE:
-
-/*	We guarrantee that the style is up-to-date in begin_litteral
-*/
-    	HText_appendText(me->text, s);
-	break;
-	
-    default:					/* Free format text */
-        {
-	    const char *p = s;
-	    if (me->style_change) {
-		for (; *p && ((*p=='\n') || (*p==' ')); p++)  ;  /* Ignore leaders */
-		if (!*p) return HT_OK;
-		UPDATE_STYLE;
-	    }
-	    for(; *p; p++) {
-		if (me->style_change) {
-		    if ((*p=='\n') || (*p==' ')) continue;  /* Ignore it */
-		    UPDATE_STYLE;
-		}
-		if (*p=='\n') {
-		    if (me->in_word) {
-			HText_appendCharacter(me->text, ' ');
-			me->in_word = NO;
-		    }
-		} else {
-		    HText_appendCharacter(me->text, *p);
-		    me->in_word = YES;
-		}
-	    } /* for */
-	}
-    } /* end switch */
-    return HT_OK;
+    return HTML_write(me, s, (int) strlen(s));
 }
 
-
-/*	Buffer write
-**	------------
-*/
-PRIVATE int HTML_write (HTStructured * me, const char* s, int l)
+PRIVATE int HTML_put_character (HTStructured * me, char c)
 {
-    while (l-- > 0)
-	HTML_put_character(me, *s++);
-    return HT_OK;
+    return HTML_write(me, &c, 1);
 }
 
 
@@ -484,11 +382,9 @@ PRIVATE void HTML_start_element (
 			(HTLinkType) HTAtom_for(value[HTML_A_REL])
 					       : 0);
 	    
-	    if (present[HTML_A_TITLE] && value[HTML_A_TITLE]) {
-	        HTParentAnchor * dest = 
-		    HTAnchor_parent(
-			HTAnchor_followMainLink((HTAnchor*)source)
-				    );
+	    if (present[HTML_A_TITLE] && value[HTML_A_TITLE]) {		
+		HTLink * link = HTAnchor_mainLink((HTAnchor *) source);
+	        HTParentAnchor *dest=HTAnchor_parent(HTLink_destination(link));
 		if (!HTAnchor_title(dest))
 			HTAnchor_setTitle(dest, value[HTML_A_TITLE]);
 	    }
@@ -498,6 +394,12 @@ PRIVATE void HTML_start_element (
 	}
     	break;
 	
+    case HTML_LINK:
+
+	/* MORE */
+
+	break;
+
     case HTML_TITLE:
         HTChunk_clear(me->title);
 	break;
@@ -596,6 +498,18 @@ PRIVATE void HTML_start_element (
 	}	
 	break;
 
+    case HTML_BASE:			/* Base header */
+      if (present[HTML_BASE_HREF]) {
+	  char * base = (char *) value[HTML_BASE_HREF];
+	  if (base) {
+	      HTAnchor_setBase(me->node_anchor, base);
+	      if (SGML_TRACE) HTTrace("HTML Parser. New base `%s\'\n", base);
+	  } else {
+	      if (SGML_TRACE) HTTrace("HTML Parser. No base found\n");
+	  }
+      }
+      break;
+
     case HTML_HTML:			/* Ignore these altogether */
     case HTML_HEAD:
     case HTML_BODY:
@@ -637,7 +551,7 @@ PRIVATE void HTML_start_element (
     if (me->dtd->tags[element_number].contents!= SGML_EMPTY) {
         if (me->sp == me->stack) {
 	    if (SGML_TRACE)
-		HTTrace("HTML........ Maximum nesting of %d exceded!\n",
+		HTTrace("HTML Parser. Maximum nesting of %d exceded!\n",
 			MAX_NESTING); 
 	    me->overflow++;
 	    return;
@@ -851,7 +765,7 @@ PRIVATE HTStructured* HTML_new (HTRequest *	request,
 						output_stream, request, NO);
 	if (intermediate) return HTMLGenerator(intermediate);
 	if (SGML_TRACE)
-	    HTTrace("HTML........ Can't parse HTML to %s\n",
+	    HTTrace("HTML Parser. Can't parse HTML to %s\n",
 		    HTAtom_name(output_format));
 	exit (-99);
     }

@@ -188,6 +188,44 @@ PUBLIC HTParentAnchor * HTHomeAnchor (void)
     return anchor;
 }
 
+/*
+**	Standard interface to libwww TRACE messages. Pass this function a
+**	string of characters and it will set up the appropriate TRACE flags.
+**	The shortnames for the trace messages are not as intuitive as they
+**	could be :-(. The string must be null terminated
+*/
+PUBLIC int HTSetTraceMessageMask (const char * shortnames)
+{
+#ifdef WWWTRACE
+    WWWTRACE = 0;
+    if (shortnames) {
+	char * ptr;
+	for(ptr=shortnames; *ptr; ptr++) {
+	    switch (*ptr) {
+	    case 'a': WWWTRACE |= SHOW_ANCHOR_TRACE; 	break;
+	    case 'b': WWWTRACE |= SHOW_BIND_TRACE; 	break;
+	    case 'c': WWWTRACE |= SHOW_CACHE_TRACE; 	break;
+	    case 'g': WWWTRACE |= SHOW_SGML_TRACE; 	break;
+	    case 'h': WWWTRACE |= SHOW_AUTH_TRACE; 	break;
+	    case 'i': WWWTRACE |= SHOW_PICS_TRACE; 	break;
+	    case 'l': WWWTRACE |= SHOW_APP_TRACE; 	break;
+	    case 'o': WWWTRACE |= SHOW_CORE_TRACE; 	break;
+	    case 'p': WWWTRACE |= SHOW_PROTOCOL_TRACE; 	break;
+	    case 's': WWWTRACE |= SHOW_STREAM_TRACE; 	break;
+	    case 't': WWWTRACE |= SHOW_THREAD_TRACE; 	break;
+	    case 'u': WWWTRACE |= SHOW_URI_TRACE; 	break;
+	    default:
+		if (WWWTRACE) HTTrace("Trace....... Bad argument\n");
+	    }
+	    if (!WWWTRACE) WWWTRACE = SHOW_ALL_TRACE;
+	}
+    }
+    return WWWTRACE;
+#else
+    return 0;
+#endif
+}
+
 /*	Application "BEFORE" Callback
 **	-----------------------------
 **	This function uses all the functionaly that the app part of the Library

@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 18-May-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 30-Jun-1996 -->
   <TITLE>W3C Reference Library libwww Core Interface</TITLE>
 </HEAD>
 <BODY>
@@ -79,8 +79,17 @@ An <A HREF="HTAnchor.html">anchor</A> represents a region of a hypertext
 document which is linked to another anchor in the same or a different document.
 Another name for anchors would be URLs as an anchor represents all we know
 about a URL - including where it points to and who points to it.
-<PRE>
-#include "<A HREF="HTAnchor.html">HTAnchor.h</A>"
+<PRE>#include "<A HREF="HTAnchor.html">HTAnchor.h</A>"
+</PRE>
+<H3>
+  The Link Class
+</H3>
+<P>
+A <A HREF="HTLink.html">Link</A> represents the link between anchor objects.
+By keeping the link as a object and not as part of the anchor we are capable
+of handling link semantics in a much more organized way. For example, we
+can then search for link types among all the link objects that we have created.
+<PRE>#include "<A HREF="HTLink.html">HTLink.h</A>"
 </PRE>
 <H3>
   Parsing URLs

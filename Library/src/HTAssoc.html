@@ -1,25 +1,27 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww Association Pairs</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen,  1-Jul-1996 -->
+  <TITLE>W3C Reference Library libwww Association Pairs</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Association List For Storing Name-Value Pairs</H1>
-
+<H1>
+  Association List For Storing Name-Value Pairs
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-Lookups from association list are not case-sensitive. <P>
-
-This module is implemented by <A HREF="HTAssoc.c">HTAssoc.c</A>, and
-it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
-Reference Library</A>.
-
+<P>
+This Assoctiation List class is closely related to the
+<A HREF="HTList.html">HTList Class</A> as it simply is a list of a specific
+list element containing a characters based name/value pair. Lookups from
+association list are <I>not case-sensitive</I>.
+<P>
+This module is implemented by <A HREF="HTAssoc.c">HTAssoc.c</A>, and it is
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>.
 <PRE>
 #ifndef HTASSOC_H
 #define HTASSOC_H
@@ -32,43 +34,70 @@ typedef struct {
     char * name;
     char * value;
 } HTAssoc;
-
-extern HTAssocList *HTAssocList_new (void);
-extern BOOL HTAssocList_delete	(HTAssocList * alist);
-
-extern BOOL HTAssocList_add	(HTAssocList * alist,
-				 const char * name, const char * value);
-
-extern char *HTAssocList_lookup	(HTAssocList * alist, const char * name);
 </PRE>
+<H3>
+  Creation and Deletetion Methods
+</H3>
+<P>
+These methods create and deletes and association list
+<PRE>extern HTAssocList * HTAssocList_new (void);
+extern BOOL 	     HTAssocList_delete (HTAssocList * alist);
+</PRE>
+<H3>
+  Add an Element to a List
+</H3>
+<P>
+We have two methods for adding new elements - you can either add unconditionally
+<I>or</I> replace any existing element with the same name but a new value.
+A new list element is added to the beginning of the list so that it is the
+first element just after the head element.
+<PRE>extern BOOL HTAssocList_addObject (HTAssocList * alist,
+				   const char * name, const char * value);
 
-<H3>Get Name and Values</H3>
-
+extern BOOL HTAssocList_replaceObject (HTAssocList * list,
+				       const char * name, const char * value);
+</PRE>
+<H3>
+  Remove an Element from a List
+</H3>
+<P>
+Remove the element with the given name from the list.
+<PRE>extern BOOL HTAssocList_removeObject (HTAssocList * list, const char * name);
+</PRE>
+<H3>
+  Search for Elements in a list
+</H3>
+<P>
+We have a small set of methods for searching a specific element within a
+list.
+<PRE>extern char * HTAssocList_findObject (HTAssocList * alist, const char * name);
+</PRE>
+<H3>
+  Get Name and Values
+</H3>
+<P>
 Use this to get the name and value of a assoc object
-
 <PRE>
-#define HTAssoc_name(me)	((me) ? (me)->name : NULL)
-#define HTAssoc_value(me)	((me) ? (me)->value : NULL)
+#define HTAssoc_name(me)	((me) ? (me)-&gt;name : NULL)
+#define HTAssoc_value(me)	((me) ? (me)-&gt;value : NULL)
 </PRE>
-
-<H3>Traverse list</H3>
-
-Fast macro to traverse the list. Call it first with copy of list
-header: it returns the first object and increments the passed list
-pointer.  Call it with the same variable until it returns NULL.
-
+<H3>
+  Traverse list
+</H3>
+<P>
+Fast macro to traverse the list. Call it first with copy of list header:
+it returns the first object and increments the passed list pointer. Call
+it with the same variable until it returns NULL.
 <PRE>
 #define	HTAssocList_nextObject(me) \
-	((me) &amp;&amp; ((me) = (me)->next) ? (me)->object : NULL)
+	((me) &amp;&amp; ((me) = (me)-&gt;next) ? (me)-&gt;object : NULL)
 </PRE>
-
 <PRE>
 #endif /* not HTASSOC_H */
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

@@ -167,7 +167,8 @@ typedef enum _LMState {
     LM_UPDATE	= 0x1,
     LM_NO_UPDATE= 0x2,
     LM_DONE	= 0x4,
-    LM_INACTIVE	= 0x8
+    LM_INACTIVE	= 0x8,
+    LM_IGNORE	= 0x10
 } LMState;
 
 typedef struct _Context {
@@ -447,9 +448,9 @@ PRIVATE void Reference_List (LineMode * lm, BOOL titles)
 	int cnt;
 	OutputData(lm->pView, "\n*** References from this document ***\n");
 	for (cnt=1; cnt<=refs; cnt++) {
-	    HTAnchor *dest =
-		HTAnchor_followMainLink((HTAnchor *)
-					HText_childNumber(HTMainText, cnt));
+	    HTLink * link =
+		HTAnchor_mainLink((HTAnchor*)HText_childNumber(HTMainText,cnt));
+	    HTAnchor * dest = HTLink_destination(link);
 	    HTParentAnchor * parent = HTAnchor_parent(dest);
 	    char * address =  HTAnchor_address(dest);
 	    const char * title = titles ? HTAnchor_title(parent) : NULL;
@@ -593,7 +594,7 @@ PRIVATE int EditAnchor (LineMode * lm, HTRequest * req, HTMethod method)
 	char * fs = HTParse(HTStrip(scr_url), base, PARSE_ALL);
 	HTParentAnchor * dest = (HTParentAnchor *) HTAnchor_findAddress(fd);
 	HTParentAnchor * src = (HTParentAnchor *) HTAnchor_findAddress(fs);
-	HTLink * link = HTAnchor_findLink((HTAnchor *) src, (HTAnchor *) dest);
+	HTLink * link = HTLink_find((HTAnchor *) src, (HTAnchor *) dest);
 	
 	/* Now link the two anchors together if not already done */
 	if (link) {
@@ -605,8 +606,8 @@ PRIVATE int EditAnchor (LineMode * lm, HTRequest * req, HTMethod method)
 	    doit = confirm(req, msg);
 	    HT_FREE(msg);
 	} else {
-	    HTAnchor_removeAllLinks((HTAnchor *) src);
-	    HTAnchor_link((HTAnchor *) src, (HTAnchor *) dest, NULL, method);
+	    HTLink_removeAll((HTAnchor *) src);
+	    HTLink_add((HTAnchor *) src, (HTAnchor *) dest, NULL, method);
 	}
 	if (doit) {
 	    char * data = NULL;
@@ -652,7 +653,7 @@ PRIVATE int Upload (LineMode * lm, HTRequest * req, HTMethod method)
 	char * fs = HTParse(HTStrip(scr_url), base, PARSE_ALL);
 	HTParentAnchor * dest = (HTParentAnchor *) HTAnchor_findAddress(fd);
 	HTParentAnchor * src = (HTParentAnchor *) HTAnchor_findAddress(fs);
-	HTLink * link = HTAnchor_findLink((HTAnchor *) src, (HTAnchor *) dest);
+	HTLink * link = HTLink_find((HTAnchor *) src, (HTAnchor *) dest);
 	
 	/* Now link the two anchors together if not already done */
 	if (link) {
@@ -664,8 +665,8 @@ PRIVATE int Upload (LineMode * lm, HTRequest * req, HTMethod method)
 	    doit = confirm(req, msg);
 	    HT_FREE(msg);
 	} else {
-	    HTAnchor_removeAllLinks((HTAnchor *) src);
-	    HTAnchor_link((HTAnchor *) src, (HTAnchor *) dest, NULL, method);
+	    HTLink_removeAll((HTAnchor *) src);
+	    HTLink_add((HTAnchor *) src, (HTAnchor *) dest, NULL, method);
 	}
 	if (doit) {
 	    HTRequest * new_request = Thread_new(lm, YES, LM_UPDATE);
@@ -955,11 +956,11 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	    int  ref_num;
 	    sscanf(token,"%d",&ref_num);
 	    if (ref_num>0 && ref_num<=HText_sourceAnchors(HTMainText)) {
-		HTAnchor *destination;
 		HTChildAnchor *source = HText_childNumber(HTMainText, ref_num);
 		if (source) {
-		    req = Thread_new(lm, YES, LM_UPDATE);
-		    destination = HTAnchor_followMainLink((HTAnchor*) source);
+		    HTLink * link = HTAnchor_mainLink((HTAnchor *) source);
+		    HTAnchor * destination = HTLink_destination(link);
+		    req = Thread_new(lm, YES, LM_UPDATE);		    
 
 		    /* Continous browsing, so we want Referer field */
 		    HTRequest_setParent(req,
@@ -1536,8 +1537,8 @@ PRIVATE int redirection_handler (HTRequest * request, void * param, int status)
 
     /* If destination specified then bind source anchor with new destination */
     if (HTMethod_hasEntity(method)) {
-	HTAnchor_removeAllLinks((HTAnchor *) context->source);
-	HTAnchor_link((HTAnchor *) context->source, new_anchor, NULL, method);
+	HTLink_removeAll((HTAnchor *) context->source);
+	HTLink_add((HTAnchor *) context->source, new_anchor, NULL, method);
     }
 
     /* Log current request */
@@ -1567,6 +1568,7 @@ PRIVATE int terminate_handler (HTRequest * request, void * param, int status)
     BOOL is_index;
 
     lm = context->lm;
+    if (context->state == LM_IGNORE) return HT_OK;
     if (CSApp_unregisterReq(request) == NO)
         HTTrace("PICS request not found\n");
     is_index = HTAnchor_isIndex(HTMainAnchor);
@@ -1894,31 +1896,8 @@ int main (int argc, char ** argv)
 #ifdef WWWTRACE
 	    /* trace flags */
 	    } else if (!strncmp(argv[arg], "-v", 2)) {
-	    	char *p = argv[arg]+2;
-		WWWTRACE = 0;
-		for(; *p; p++) {
-		    switch (*p) {
-		      case 'a': WWWTRACE |= SHOW_ANCHOR_TRACE; break;
-		      case 'b': WWWTRACE |= SHOW_BIND_TRACE; break;
-		      case 'c': WWWTRACE |= SHOW_CACHE_TRACE; break;
-		      case 'g':	WWWTRACE |= SHOW_SGML_TRACE; break;
-		      case 'h': WWWTRACE |= SHOW_AUTH_TRACE; break;
-		      case 'i': WWWTRACE |= SHOW_PICS_TRACE; break;
-		      case 'o': WWWTRACE |= SHOW_CORE_TRACE; break;
-		      case 'p':	WWWTRACE |= SHOW_PROTOCOL_TRACE; break;
-		      case 's':	WWWTRACE |= SHOW_STREAM_TRACE; break;
-		      case 't':	WWWTRACE |= SHOW_THREAD_TRACE; break;
-		      case 'u': WWWTRACE |= SHOW_URI_TRACE; break;
-		      default:
-			if (SHOW_MSG)
-			    HTTrace("Bad parameter (%s) in -v option\n",
-				    argv[arg]);
-		    }
-		}
-		if (!WWWTRACE) WWWTRACE = SHOW_ALL_TRACE;
-		lm->trace = WWWTRACE;			 /* Remember setting */
+		lm->trace = HTSetTraceMessageMask(argv[arg]+2);
 #endif
-	    
 	    } else {
 		if (SHOW_MSG) HTTrace("Bad Argument (%s)\n", argv[arg]);
 	    }
@@ -2042,22 +2021,6 @@ int main (int argc, char ** argv)
 	HTAlert_add(HTPromptUsernameAndPassword, HT_A_USER_PW);
     }
 
-    /* Rule file specified? */
-    if (lm->rules) {
-	HTList * list = HTList_new();
-	HTRequest * rr = Thread_new(lm, NO, LM_NO_UPDATE);
-	char * rules = HTParse(lm->rules, lm->cwd, PARSE_ALL);
-	HTParentAnchor * ra = (HTParentAnchor *) HTAnchor_findAddress(rules);
-	HTRequest_setPreemptive(rr, YES);
-	HTConversion_add(list, "application/x-www-rules", "*/*", HTRules,
-			 1.0, 0.0, 0.0);
-	HTRequest_setConversion(rr, list, YES);
-	if (HTLoadAnchor((HTAnchor *) ra, rr) != YES)
-	    if (SHOW_MSG) HTTrace("Can't access rules\n");
-	HTConversion_deleteAll(list);
-	HT_FREE(rules);
-    }
-
     /* Register a call back function for the Net Manager */
     HTNetCall_addBefore(HTLoadStart, NULL, 0);
     HTNetCall_addAfter(authentication_handler, NULL, HT_NO_ACCESS);
@@ -2082,6 +2045,24 @@ int main (int argc, char ** argv)
     /* Set the DNS cache timeout */
     HTDNS_setTimeout(3600);
 
+    /* Rule file specified? */
+    if (lm->rules) {
+	HTList * list = HTList_new();
+	HTRequest * rr = Thread_new(lm, NO, LM_IGNORE);
+	char * rules = HTParse(lm->rules, lm->cwd, PARSE_ALL);
+	HTParentAnchor * ra = (HTParentAnchor *) HTAnchor_findAddress(rules);
+	HTRequest_setPreemptive(rr, YES);
+	HTAlert_setInteractive(NO);
+	HTConversion_add(list, "application/x-www-rules", "*/*", HTRules,
+			 1.0, 0.0, 0.0);
+	HTRequest_setConversion(rr, list, YES);
+	if (HTLoadAnchor((HTAnchor *) ra, rr) != YES)
+	    if (SHOW_MSG) HTTrace("Can't access rules\n");
+	HTConversion_deleteAll(list);
+	HT_FREE(rules);
+    }
+
+    /* Set up PICS machinary */
     CSApp_registerApp(PICSCallback, CSApp_callOnBad, PICS_userCallback, 
 		      (void *)lm);
 /*    if (picsUserList && !CSUserList_load(picsUserList, lm->cwd))

@@ -24,7 +24,10 @@ PRIVATE char *method_names[] =
     "HEAD",
     "POST",
     "PUT",
+    "PATCH",
     "DELETE",
+    "TRACE",
+    "OPTIONS",
     "LINK",
     "UNLINK",
     NULL
@@ -47,10 +50,16 @@ PUBLIC HTMethod HTMethod_enum (const char * name)
 	else if (!strcasecomp(name, *(method_names+4)))
 	    return METHOD_PUT;
 	else if (!strcasecomp(name, *(method_names+5)))
-	    return METHOD_DELETE;
+	    return METHOD_PATCH;
 	else if (!strcasecomp(name, *(method_names+6)))
-	    return METHOD_LINK;
+	    return METHOD_DELETE;
 	else if (!strcasecomp(name, *(method_names+7)))
+	    return METHOD_TRACE;
+	else if (!strcasecomp(name, *(method_names+8)))
+	    return METHOD_OPTIONS;
+	else if (!strcasecomp(name, *(method_names+9)))
+	    return METHOD_LINK;
+	else if (!strcasecomp(name, *(method_names+10)))
 	    return METHOD_UNLINK;
     }
     return METHOD_INVALID;
@@ -71,12 +80,18 @@ PUBLIC const char * HTMethod_name (HTMethod method)
 	return *(method_names+3);
     else if (method == METHOD_PUT)
 	return *(method_names+4);
-    else if (method == METHOD_DELETE)
+    else if (method == METHOD_PATCH)
 	return *(method_names+5);
-    else if (method == METHOD_LINK)
+    else if (method == METHOD_DELETE)
 	return *(method_names+6);
-    else if (method == METHOD_UNLINK)
+    else if (method == METHOD_TRACE)
 	return *(method_names+7);
+    else if (method == METHOD_OPTIONS)
+	return *(method_names+8);
+    else if (method == METHOD_LINK)
+	return *(method_names+9);
+    else if (method == METHOD_UNLINK)
+	return *(method_names+10);
     else
 	return *method_names;
 }

@@ -128,9 +128,10 @@ PUBLIC BOOL HTLibInit (const char * AppName, const char * AppVersion)
 	}
     }
 
-    /* Create a default user profile */
+    /* Create a default user profile and initialize it */
     UserProfile = HTUserProfile_new(HT_DEFAULT_USER, NULL);
-    
+    HTUserProfile_localize(UserProfile);
+
     /* Initialize bindings */
     HTBind_init();
 

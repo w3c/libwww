@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<!-- Changed by: Henrik Frystyk Nielsen,  1-Jun-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  2-Jul-1996 -->
   <TITLE>W3C Reference Library libwww Private Request Definition</TITLE>
 </HEAD>
 <BODY>
@@ -50,7 +50,6 @@ struct _HTRequest {
     HTMethod		method;
     HTReload		reload;
 
-    char *		boundary;		  /* MIME multipart boundary */
     int			retrys;       	      /* Number of automatic reloads */
     time_t		retry_after;		 /* Absolut time for a retry */
     HTNet *		net;		    /* Information about socket etc. */
@@ -129,6 +128,7 @@ request to the application using this anchor.
 <PRE>
     HTStream *		output_stream; 
     HTFormat		output_format;
+    BOOL		connected;
 
     HTStream*		debug_stream;
     HTFormat		debug_format;

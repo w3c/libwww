@@ -47,6 +47,7 @@ www_SOURCES = \
 	HTLocal.c	HTReader.c	HTANSI.c \
 	HTBufWrt.c	HTTChunk.c	HTHInit.c \
 	HTMIMImp.c	HTSChunk.c	HTLib.c \
+	HTLink.c \
 	@HTWAIS@
 
 BUILT_SOURCES = sysdep.h \
@@ -91,7 +92,7 @@ BUILT_SOURCES = sysdep.h \
 	HTHost.h	HTLocal.h	HTReader.h \
 	HTANSI.h	HTBufWrt.h	HTTChunk.h \
 	HTHInit.h	HTMIMImp.h	HTSChunk.h \
-	HTLib.h
+	HTLib.h		HTLink.h
 
 EXTRA_HEADERS = \
 	HTWAIS.h

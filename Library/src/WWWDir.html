@@ -34,9 +34,20 @@ is that the Internet world is more complicated than Posix and ANSI.
 <PRE>
 #include "<A HREF="sysdep.html">sysdep.h</A>"
 </PRE>
-<H2>
+<H3>
+  Directory listings
+</H3>
+<P>
+The directory manager generates directory listings for FTP and HTTP requests.
+This module contains the protocol independent code and it produces the HTML
+object. It is only included if either the <A HREF="HTFTP.html">FTP</A> or
+the <A HREF="HTFile.html">File</A> module is included.
+<PRE>
+#include "<A HREF="HTDir.html">HTDir.h</A>"
+</PRE>
+<H3>
   Icons
-</H2>
+</H3>
 <P>
 No directory listings without icons! The WWWDir interface contains support
 for including references (URLs and ALT text tags) to icons in directory listings.
@@ -46,15 +57,16 @@ postscript files etc. There is also a small set of specific icons representing
 directories etc.
 <P>
 <B>Note</B>: Icons are not set up by default! You must enable them yourself.
-The Library distribution contains a small default set of icons which you
-can find at <CODE>$(datadir)/www-icons</CODE>, and they can be set up using
-the <A HREF="HTInit.html#icons">HTIconInit() initialization</A> function
-in the <A HREF="WWWInit.html">WWWInit startup interface</A>
+The Library distribution contains a <A HREF="../../Icons/internal/">small
+set of default icons</A> which you can find at
+<CODE>$(datadir)/www-icons</CODE>, and they can be set up using the
+<A HREF="HTInit.html#icons">HTIconInit() initialization</A> function in the
+<A HREF="WWWInit.html">WWWInit startup interface</A>
 <PRE>#include "<A HREF="HTIsonc.html">HTIcons.h</A>"
 </PRE>
-<H2>
+<H3>
   File Descriptions
-</H2>
+</H3>
 <P>
 Descriptions appearing in <A HREF="HTDir.html">directory listings</A> are
 produced by this module. This may be overridden by another module for those
@@ -63,17 +75,6 @@ listings that contain a description field (if enabled by the
 <A HREF="HTDir.html">Directory browsing module</A>.
 <PRE>
 #include "<A HREF="HTDescpt.html">HTDescpt</A>.h"
-</PRE>
-<H2>
-  Directory listings
-</H2>
-<P>
-The directory manager generates directory listings for FTP and HTTP requests.
-This module contains the protocol independent code and it produces the HTML
-object. It is only included if either the <A HREF="HTFTP.html">FTP</A> or
-the <A HREF="HTFile.html">File</A> module is included.
-<PRE>
-#include "<A HREF="HTDir.html">HTDir.h</A>"
 </PRE>
 <P>
 End of DIR module

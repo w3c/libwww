@@ -12,20 +12,18 @@
 
 /* Library Include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
-#include "HTReqMan.h"
-#include "HTProt.h"
-#include "HTIOStream.h"
-#include "HTChannl.h"
-#include "HTAlert.h"
-#include "HTFormat.h"
+#include "WWWUtil.h"
+#include "WWWCore.h"
+#include "WWWTrans.h"
 #include "HTNetMan.h"
-#include "HTError.h"
 #include "HTSocket.h"					 /* Implemented here */
 
 struct _HTStream {
     const HTStreamClass *	isa;
+};
+
+struct _HTInputStream {
+    const HTInputStreamClass *	isa;
 };
 
 /* ------------------------------------------------------------------------- */
@@ -42,43 +40,38 @@ struct _HTStream {
 */
 PUBLIC int HTLoadSocket (SOCKET soc, HTRequest * request, SockOps ops)
 {
-    HTNet * net = NULL;
-    if (!request) return HT_ERROR;
+    HTNet * net = HTRequest_net(request);
+    if (!net || !request) {
+	if (PROT_TRACE) HTTrace("Load Socket. invalid argument\n");
+	return HT_ERROR;
+    }
     if (ops == FD_NONE) {
-	HTNet * me;
 	if (soc==INVSOC) {
 	    if (PROT_TRACE) HTTrace("Load Socket. invalid socket\n");
 	    return HT_ERROR;
 	}
 	if (PROT_TRACE) HTTrace("Load Socket. Loading socket %d\n",soc);
-	me = HTNet_new(request, soc);
-	me->sockfd = soc;
-#if 0
-	me->target = request->output_stream;
-	HTChannel_new(net, HT_CH_UNBUFFERED, 0, NO);
-#endif
-	net = me;
+
+	/* 
+	** Create the stream pipe FROM the channel to the application.
+	** The target for the input stream pipe is set up using the
+	** stream stack.
+	*/
+	{
+	    HTStream * target = HTRequest_outputStream(request);
+	    if (!target) target = HTErrorStream();
+	    HTNet_getInput(net, target, NULL, 0);
+	    HTRequest_setOutputConnected(request, YES);
+	}
     } else if (ops == FD_CLOSE) {			      /* Interrupted */
-	HTNet_delete(request->net, HT_INTERRUPTED);
+	HTNet_delete(net, HT_INTERRUPTED);
 	return HT_OK;
-    } else
-	net = request->net;
-    if (!net) {
-	if (PROT_TRACE) HTTrace("Load Socket. invalid argument\n");
-	return HT_ERROR;
     }
 
     /* In this load function we only have one state: READ */
     {
-#if 0
-	int status = HTChannel_readSocket(request, net);
-	if (status == HT_WOULD_BLOCK)
-	    return HT_OK;
-	else if (status == HT_CLOSED)
-	    HTNet_delete(request->net, HT_LOADED);
-	else
-	    HTNet_delete(request->net, HT_ERROR);
-#endif
+	int status = (*net->input->isa->read)(net->input);
+	if (PROT_TRACE) HTTrace("Load Socket. Read returns %d\n", status);
     }
     return HT_OK;
 }

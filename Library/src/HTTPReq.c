@@ -181,7 +181,7 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 	}
 	if (!first) PUTBLOCK(crlf, 2);
     }
-    {
+    if (request_mask & HT_C_AUTH) {
 	HTAssocList * cur = HTRequest_credentials(request);
 	if (cur) {				    /* Access authentication */
 	    HTAssoc * pres;

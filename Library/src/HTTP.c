@@ -125,27 +125,43 @@ PRIVATE void HTTPNextState (HTStream * me)
 {
     switch (me->status) {
 
+      case 100:
+	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_CONTINUE,
+			   me->reason, (int) strlen(me->reason),
+			   "HTTPNextState");
+	/* here we should restart the PUT operation */
+	break;
+
+      case 101:
+	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_SWITCHING,
+			   me->reason, (int) strlen(me->reason),
+			   "HTTPNextState");
+	break;
+
       case 0:						     /* 0.9 response */
-      case 200:
+      case 200:							       /* OK */
+	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_OK,
+			   me->reason, (int) strlen(me->reason),
+			   "HTTPNextState");
 	me->http->next = HTTP_GOT_DATA;
 	break;
 
-      case 201:
+      case 201:							  /* Created */
 	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_CREATED,
 			   me->reason, (int) strlen(me->reason),
 			   "HTTPNextState");
 	me->http->next = HTTP_GOT_DATA;
 	break;
 
-      case 202:
+      case 202:							 /* Accepted */
 	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_ACCEPTED,
 			   me->reason, (int) strlen(me->reason),
 			   "HTTPNextState");
 	me->http->next = HTTP_GOT_DATA;
 	break;
 
-      case 203:
-	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_PARTIAL,
+      case 203:				    /* Non-authoritative information */
+	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_NON_AUTHORITATIVE,
 			   me->reason, (int) strlen(me->reason),
 			   "HTTPNextState");
 	me->http->next = HTTP_GOT_DATA;
@@ -229,7 +245,7 @@ PRIVATE void HTTPNextState (HTStream * me)
 	break;
 
       case 407:			       	    /* Proxy Authentication Required */
-	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_PROXY,
+	HTRequest_addError(me->request, ERR_FATAL, NO,HTERR_PROXY_UNAUTHORIZED,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
 	me->http->next = HTTP_ERROR;
 	break;
@@ -573,6 +589,8 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 					     HTRequest_outputFormat(request),
 					     HTRequest_outputStream(request),
 					     request, YES), NULL, 0);
+		HTRequest_setOutputConnected(request, YES);
+
 		/*
 		** Create the stream pipe TO the channel from the application
 		** and hook it up to the request object
@@ -657,7 +675,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		if (HTRequest_isDestination(request)) {
 		    HTRequest * source = HTRequest_source(request);
 		    HTLink * link =
-			HTAnchor_findLink((HTAnchor *)HTRequest_anchor(source),
+			HTLink_find((HTAnchor *)HTRequest_anchor(source),
 					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_ERROR);
 		}
@@ -673,7 +691,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		if (HTRequest_isDestination(request)) {
 		    HTRequest * source = HTRequest_source(request);
 		    HTLink *link =
-			HTAnchor_findLink((HTAnchor *)HTRequest_anchor(source),
+			HTLink_find((HTAnchor *)HTRequest_anchor(source),
 					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_ERROR);
 		}
@@ -688,7 +706,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		if (HTRequest_isDestination(request)) {
 		    HTRequest * source = HTRequest_source(request);
 		    HTLink *link =
-			HTAnchor_findLink((HTAnchor *)HTRequest_anchor(source),
+			HTLink_find((HTAnchor *)HTRequest_anchor(source),
 					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_ERROR);
 		}
@@ -703,7 +721,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		if (HTRequest_isDestination(request)) {
 		    HTRequest * source = HTRequest_source(request);
 		    HTLink *link =
-			HTAnchor_findLink((HTAnchor *)HTRequest_anchor(source),
+			HTLink_find((HTAnchor *)HTRequest_anchor(source),
 					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_OK);
 		}
@@ -717,7 +735,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		if (HTRequest_isDestination(request)) {
 		    HTRequest * source = HTRequest_source(request);
 		    HTLink *link =
-			HTAnchor_findLink((HTAnchor *)HTRequest_anchor(source),
+			HTLink_find((HTAnchor *)HTRequest_anchor(source),
 					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_OK);
 		}
@@ -731,7 +749,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		if (HTRequest_isDestination(request)) {
 		    HTRequest * source = HTRequest_source(request);
 		    HTLink *link = 
-			HTAnchor_findLink((HTAnchor *)HTRequest_anchor(source),
+			HTLink_find((HTAnchor *)HTRequest_anchor(source),
 					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_ERROR);
 		}
@@ -746,7 +764,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		if (HTRequest_isDestination(request)) {
 		    HTRequest * source = HTRequest_source(request);
 		    HTLink *link =
-			HTAnchor_findLink((HTAnchor *)HTRequest_anchor(source),
+			HTLink_find((HTAnchor *)HTRequest_anchor(source),
 					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_ERROR);
 		}

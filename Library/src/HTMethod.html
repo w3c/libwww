@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
   <TITLE>W3C Reference Library libwww Request Access Methods</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Jul-1996 -->
 </HEAD>
 <BODY>
 <H1>
@@ -35,10 +36,13 @@ typedef enum {
     METHOD_GET		= 0x1,
     METHOD_HEAD		= 0x2,    
     METHOD_POST		= 0x4,    
-    METHOD_PUT		= 0x8,    
-    METHOD_DELETE	= 0x10,
-    METHOD_LINK		= 0x20,
-    METHOD_UNLINK	= 0x40
+    METHOD_PUT		= 0x8,
+    METHOD_PATCH	= 0x10,
+    METHOD_DELETE	= 0x20,
+    METHOD_TRACE	= 0x40,
+    METHOD_OPTIONS	= 0x80,
+    METHOD_LINK		= 0x100,
+    METHOD_UNLINK	= 0x200
 } HTMethod;
 </PRE>
 <H3>

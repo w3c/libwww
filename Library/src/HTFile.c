@@ -32,8 +32,8 @@
 #include "WWWCore.h"
 #include "WWWDir.h"
 #include "WWWTrans.h"
-#include "HTReqMan.h"
 #include "HTNetMan.h"
+#include "HTReqMan.h"
 #include "HTMulti.h"
 #include "HTFile.h"		/* Implemented here */
 
@@ -276,70 +276,6 @@ PRIVATE BOOL HTEditable (const char * filename, struct stat * stat_info)
 #endif /* GETGROUPS_T */
 }
 
-#if 0
-/*	Make a save stream
-**	------------------
-**
-**	The stream must be used for writing back the file.
-**	@@@ no backup done
-*/
-PRIVATE HTStream * HTFileSaveStream (HTRequest * request)
-{
-    
-    const char * addr = HTAnchor_address((HTAnchor*)request->anchor);
-    char * filename = HTWWWToLocal(addr, "", HTRequest_userProfile(request));
-    FILE* fp;
-
-/*	@ Introduce CVS handling here one day
-*/
-/*	Take a backup before we do anything silly   931205
-*/        
-    if (HTTakeBackup) {
-	char * p;
-    	char * backup_filename;
-    	if ((backup_filename = (char  *) HT_MALLOC(strlen(filename)+2)) == NULL)
-    	    HT_OUTOFMEM("taking backup");
-	strcpy(backup_filename, filename);
-	for(p=backup_filename+strlen(backup_filename);; p--) {
-	    if ((*p=='/') || (p<backup_filename)) {
-	        p[1]=',';		/* Insert comma after slash */
-		break;
-	    }
-	    p[1] = p[0];	/* Move up everything to the right of it */
-	}
-	
-
-#ifdef VMS
-	if ((fp=fopen(filename, "r", "shr=put", "shr=upd"))) {	/* File exists */
-#else /* not VMS */
-	if ((fp=fopen(filename, "r"))) {		/* File exists */
-#endif /* not VMS */
-	    fclose(fp);
-	    if (PROT_TRACE) HTTrace("File `%s' exists\n", filename);
-	    if (REMOVE(backup_filename)) {
-		if (PROT_TRACE) HTTrace("Backup file `%s' removed\n",
-				   backup_filename);
-	    }
-	    if (rename(filename, backup_filename)) {	/* != 0 => Failure */
-		if (PROT_TRACE) HTTrace("Rename `%s' to `%s' FAILED!\n",
-				   filename, backup_filename);
-	    } else {					/* Success */
-		if (PROT_TRACE)
-		    HTTrace("Renamed `%s' to `%s'\n", filename,
-			    backup_filename);
-	    }
-	}
-    	HT_FREE(backup_filename);
-    } /* if take backup */    
-    
-    if ((fp = fopen(filename, "wb")) == NULL) {
-	HTRequest_addSystemError(request, ERR_FATAL, errno, NO, "fopen");
-	return NULL;
-    } else
-    	return HTFWriter_new(request, fp, NO);
-}
-#endif
-
 /*	FileCleanup
 **	-----------
 **      This function closes the connection and frees memory.
@@ -347,25 +283,26 @@ PRIVATE HTStream * HTFileSaveStream (HTRequest * request)
 */
 PRIVATE int FileCleanup (HTRequest *req, int status)
 {
-    HTNet *net = req->net;
-    file_info *file = (file_info *) net->context;
+    HTNet * net = HTRequest_net(req);
+    file_info * file = (file_info *) HTNet_context(net);
+    HTStream * input = HTRequest_inputStream(req);
 
     /* Free stream with data TO Local file system */
     if (HTRequest_isDestination(req))
 	HTRequest_removeDestination(req);
-    else  if (req->input_stream) {
+    else  if (input) {
 	if (status == HT_INTERRUPTED)
-	    (*req->input_stream->isa->abort)(req->input_stream, NULL);
+	    (*input->isa->abort)(input, NULL);
 	else
-	    (*req->input_stream->isa->_free)(req->input_stream);
-	req->input_stream = NULL;
+	    (*input->isa->_free)(input);
+	HTRequest_setInputStream(req, NULL);
     }
 
     if (file) {
 	HT_FREE(file->local);
 	HT_FREE(file);
     }
-    HTNet_delete(net, req->internal ? HT_IGNORE : status);
+    HTNet_delete(net, HTRequest_internal(req) ? HT_IGNORE : status);
     return YES;
 }
 
@@ -448,6 +385,8 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		} else {
 		    if (PROT_TRACE)
 			HTTrace("Load File... Not found - even tried content negotiation\n");
+		    HTRequest_addError(request, ERR_INFO, NO, HTERR_NOT_FOUND,
+				       NULL, 0, "HTLoadFile");
 		    file->state = FS_ERROR;
 		    break;
 		}
@@ -508,6 +447,8 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 					     HTRequest_outputFormat(request),
 					     HTRequest_outputStream(request),
 					     request, YES), NULL, 0);
+		HTRequest_setOutputConnected(request, YES);
+
 		/*
 		** Create the stream pipe TO the channel from the application
 		** and hook it up to the request object
@@ -531,7 +472,8 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		if (HTRequest_isSource(request) &&
 		    !HTRequest_destinationsReady(request))
 		    return HT_OK;
-
+		HTRequest_addError(request, ERR_INFO, NO, HTERR_OK,
+				   NULL, 0, "HTLoadFile");
 		file->state = FS_NEED_BODY;
 
 #ifndef NO_UNIX_IO
@@ -550,8 +492,11 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 #endif
 	    } else if (status == HT_WOULD_BLOCK || status == HT_PERSISTENT)
 		return HT_OK;
-	    else
+	    else {
+		HTRequest_addError(request, ERR_INFO, NO, HTERR_INTERNAL,
+				   NULL, 0, "HTLoadFile");
 		file->state = FS_ERROR;		       /* Error or interrupt */
+	    }
 	    break;
 
 	  case FS_NEED_BODY:
@@ -560,16 +505,22 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		return HT_OK;
 	    else if (status == HT_LOADED || status == HT_CLOSED) {
 		file->state = FS_GOT_DATA;
-	    } else
+	    } else {
+		HTRequest_addError(request, ERR_INFO, NO, HTERR_FORBIDDEN,
+				   NULL, 0, "HTLoadFile");
 		file->state = FS_ERROR;
+	    }
 	    break;
 
 	  case FS_PARSE_DIR:
 	    status = HTFile_readDir(request, file);
 	    if (status == HT_LOADED)
 		file->state = FS_GOT_DATA;
-	    else
+	    else {
+		HTRequest_addError(request, ERR_INFO, NO, HTERR_FORBIDDEN,
+				   NULL, 0, "HTLoadFile");
 		file->state = FS_ERROR;
+	    }
 	    break;
 
 	  case FS_TRY_FTP:
@@ -595,7 +546,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		if (HTRequest_isDestination(request)) {
 		    HTRequest * source = HTRequest_source(request);
 		    HTLink *link =
-			HTAnchor_findLink((HTAnchor *)HTRequest_anchor(source),
+			HTLink_find((HTAnchor *)HTRequest_anchor(source),
 					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_OK);
 		}
@@ -609,7 +560,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		if (HTRequest_isDestination(request)) {
 		    HTRequest * source = HTRequest_source(request);
 		    HTLink *link =
-			HTAnchor_findLink((HTAnchor *)HTRequest_anchor(source),
+			HTLink_find((HTAnchor *)HTRequest_anchor(source),
 					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_OK);
 		}
@@ -623,7 +574,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		if (HTRequest_isDestination(request)) {
 		    HTRequest * source = HTRequest_source(request);
 		    HTLink *link =
-			HTAnchor_findLink((HTAnchor *)HTRequest_anchor(source),
+			HTLink_find((HTAnchor *)HTRequest_anchor(source),
 					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_ERROR);
 		}
@@ -638,7 +589,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		if (HTRequest_isDestination(request)) {
 		    HTRequest * source = HTRequest_source(request);
 		    HTLink *link =
-			HTAnchor_findLink((HTAnchor *)HTRequest_anchor(source),
+			HTLink_find((HTAnchor *)HTRequest_anchor(source),
 					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_ERROR);
 		}

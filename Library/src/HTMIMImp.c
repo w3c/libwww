@@ -90,10 +90,14 @@ PUBLIC int HTMIME_connection (HTRequest * request, char * token, char * value)
 {
     char * field;
     if ((field = HTNextField(&value)) != NULL) {
-        if (!strcasecomp(field, "keep-alive")) {
+	if (!strcasecomp(field, "close")) {			 /* HTTP/1.1 */
+	    HTNet * net = HTRequest_net(request);
+	    HTNet_setPersistent(net, NO);
+	    if (STREAM_TRACE) HTTrace("MIMEParser.. Close negotiated\n");
+	} else if (!strcasecomp(field, "keep-alive")) {	         /* HTTP/1.0 */
 	    HTNet * net = HTRequest_net(request);
 	    HTNet_setPersistent(net, YES);
-	    if (STREAM_TRACE) HTTrace("MIMEParser.. Persistent Connection\n");
+	    if (STREAM_TRACE) HTTrace("MIMEParser.. HTTP/1.0 Keep Alive\n");
 	}
     }
     return HT_OK;
@@ -102,9 +106,7 @@ PUBLIC int HTMIME_connection (HTRequest * request, char * token, char * value)
 PUBLIC int HTMIME_contentBase (HTRequest * request, char * token, char * value)
 {
     HTParentAnchor * anchor = HTRequest_anchor(request);
-#if 0
     HTAnchor_setBase(anchor, HTStrip(value));
-#endif
     return HT_OK;
 }
 
@@ -141,15 +143,23 @@ PUBLIC int HTMIME_contentLength (HTRequest * request, char * token, char * value
     return HT_OK;
 }
 
+/*
+**	For content location we create a new anchor for the specific URL
+**	and then register this as a variant of that anchor
+*/
 PUBLIC int HTMIME_contentLocation (HTRequest * request, char * token, char * value)
 {
-
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    HTAnchor_setLocation(anchor, HTStrip(value));
     return HT_OK;
 }
 
 PUBLIC int HTMIME_contentMD5 (HTRequest * request, char * token, char * value)
 {
-
+    char * field;
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    if ((field = HTNextField(&value)) != NULL)
+        HTAnchor_setMd5(anchor, field);
     return HT_OK;
 }
 
@@ -176,26 +186,22 @@ PUBLIC int HTMIME_contentType (HTRequest * request, char * token, char * value)
     char * field;
     HTParentAnchor * anchor = HTRequest_anchor(request);
     if ((field = HTNextField(&value)) != NULL) {
+
+	/* Get the Content-Type */
         char *lc = field;
 	while ((*lc = TOLOWER(*lc))) lc++; 
 	HTAnchor_setFormat(anchor, HTAtom_for(field));
-	while ((field = HTNextField(&value)) != NULL) {
-	    if (!strcasecomp(field, "charset")) {
-	        if ((field = HTNextField(&value)) != NULL) {
-		    lc = field;
-		    while ((*lc = TOLOWER(*lc))) lc++;
-		    HTAnchor_setCharset(anchor, HTAtom_for(field));
-		}
-	    } else if (!strcasecomp(field, "level")) {
-	        if ((field = HTNextField(&value)) != NULL) {
-		    lc = field;
-		    while ((*lc = TOLOWER(*lc))) lc++;
-		    HTAnchor_setLevel(anchor, HTAtom_for(field));
-		}
-	    } else if (!strcasecomp(field, "boundary")) {
-	        if ((field = HTNextField(&value)) != NULL) {
-		    StrAllocCopy(request->boundary, field);
-	        }
+
+	/* Get all the parameters to the Content-Type */
+	{
+	    char * param;
+	    while ((field = HTNextField(&value)) != NULL &&
+		   (param = HTNextField(&value)) != NULL) {
+		lc = field;
+		while ((*lc = TOLOWER(*lc))) lc++;
+		lc = param;
+		while ((*lc = TOLOWER(*lc))) lc++;
+		HTAnchor_addFormatParam(anchor, field, param);
 	    }
 	}
     }
@@ -222,13 +228,16 @@ PUBLIC int HTMIME_derivedFrom (HTRequest * request, char * token, char * value)
 PUBLIC int HTMIME_messageDigest (HTRequest * request, char * token, char * value)
 {
     if (!request->challenge) request->challenge = HTAssocList_new();
-    HTAssocList_add(request->challenge, "Digest-MessageDigest", value);
+    HTAssocList_addObject(request->challenge, "Digest-MessageDigest", value);
     return HT_OK;
 }
 
 PUBLIC int HTMIME_etag (HTRequest * request, char * token, char * value)
 {
-
+    char * field;
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    if ((field = HTNextField(&value)) != NULL)
+        HTAnchor_setEtag(anchor, field);
     return HT_OK;
 }
 
@@ -240,9 +249,19 @@ PUBLIC int HTMIME_expires (HTRequest * request, char * token, char * value)
     return HT_OK;
 }
 
+/*
+**	We add the from information to the User object
+**	Create a new User Profile if we are using the global libwww one.
+*/
 PUBLIC int HTMIME_from (HTRequest * request, char * token, char * value)
 {
-
+    char * field;
+    if ((field = HTNextField(&value)) != NULL) {
+	HTUserProfile * up = HTRequest_userProfile(request);
+	if (up == HTLib_userProfile())
+	    up = HTUserProfile_new("server-profile", NULL);
+	HTUserProfile_setEmail(up, field);
+    }
     return HT_OK;
 }
 
@@ -300,18 +319,17 @@ PUBLIC int HTMIME_location (HTRequest * request, char * token, char * value)
 {
     HTAnchor * redirection = HTAnchor_findAddress(HTStrip(value));
     HTRequest_setRedirection(request, redirection);
+
+    /* 
+    ** If moved permanent then make a typed link between the old and the new
+    ** anchor
+    */
     return HT_OK;
 }
 
 PUBLIC int HTMIME_maxForwards (HTRequest * request, char * token, char * value)
 {
 
-    return HT_OK;
-}
-
-PUBLIC int HTMIME_newsGroups (HTRequest * request, char * token, char * value)
-{
-    /* HTRequest_net(request)->nntp = YES; */	       /* Due to news brain damage */
     return HT_OK;
 }
 
@@ -335,7 +353,18 @@ PUBLIC int HTMIME_proxyAuthorization (HTRequest * request, char * token, char * 
 
 PUBLIC int HTMIME_public (HTRequest * request, char * token, char * value)
 {
-
+    char * field;
+    HTNet * net = HTRequest_net(request);
+    HTHost * host = HTNet_host(net);
+    while ((field = HTNextField(&value)) != NULL) {
+        HTMethod new_method;
+	/* We treat them as case-insensitive! */
+	if ((new_method = HTMethod_enum(field)) != METHOD_INVALID)
+	    HTHost_appendPublicMethods(host, new_method);
+    }
+    if (STREAM_TRACE)
+        HTTrace("MIMEParser.. Public methods: %d\n",
+		HTHost_publicMethods(host));
     return HT_OK;
 }
 
@@ -355,6 +384,16 @@ PUBLIC int HTMIME_retryAfter (HTRequest * request, char * token, char * value)
 {
     request->retry_after =
 	HTParseTime(value, HTRequest_userProfile(request));
+    return HT_OK;
+}
+
+PUBLIC int HTMIME_server (HTRequest * request, char * token, char * value)
+{
+    char * field;
+    HTNet * net = HTRequest_net(request);
+    HTHost * host = HTNet_host(net);
+    if ((field = HTNextField(&value)) != NULL)
+        HTHost_setServer(host, field);
     return HT_OK;
 }
 
@@ -381,7 +420,11 @@ PUBLIC int HTMIME_uri (HTRequest * request, char * token, char * value)
 
 PUBLIC int HTMIME_userAgent (HTRequest * request, char * token, char * value)
 {
-
+    char * field;
+    HTNet * net = HTRequest_net(request);
+    HTHost * host = HTNet_host(net);
+    if ((field = HTNextField(&value)) != NULL)
+        HTHost_setUserAgent(host, field);
     return HT_OK;
 }
 
@@ -408,7 +451,27 @@ PUBLIC int HTMIME_via (HTRequest * request, char * token, char * value)
 
 PUBLIC int HTMIME_warning (HTRequest * request, char * token, char * value)
 {
-
+    char * codestr = HTNextField(&value);
+    char * agent = HTNextField(&value);
+    if (codestr && agent) {
+	int code = atoi(codestr);
+	int idx;
+	char * ptr;
+	if (code==10) idx=HTERR_STALE; else
+	    if (code==11) idx=HTERR_REVALIDATION_FAILED; else
+		if (code==12) idx=HTERR_DISCONNECTED_CACHE; else
+		    if (code==13) idx=HTERR_HEURISTIC_EXPIRATION; else
+			if (code==14) idx=HTERR_TRANSFORMED; else
+			    idx=HTERR_CACHE;
+	if ((ptr = strchr(agent, '\r')) != NULL)	  /* Strip \r and \n */
+	    *ptr = '\0';
+	else if ((ptr = strchr(agent, '\n')) != NULL)
+	    *ptr = '\0';
+	HTRequest_addError(request, ERR_WARN, NO, idx, agent,
+			   (int) strlen(agent), "HTMIME_warning");
+    } else {
+	if (STREAM_TRACE) HTTrace("MIMEParser.. Invalid warning\n");
+    }
     return HT_OK;
 }
 
@@ -416,7 +479,7 @@ PUBLIC int HTMIME_authenticate (HTRequest * request, char * token, char * value)
 {
     HTAssocList * challenge = HTRequest_challenge(request);
     if (!challenge) challenge = HTAssocList_new();
-    HTAssocList_add(challenge, "WWW-authenticate", value);
+    HTAssocList_addObject(challenge, "WWW-authenticate", value);
 
     StrAllocCopy(request->scheme, "basic");	/* @@@@@@@@@ */
 

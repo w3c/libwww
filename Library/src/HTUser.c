@@ -47,27 +47,42 @@ PUBLIC HTUserProfile * HTUserProfile_new (const char * name, void * context)
 	if (CORE_TRACE) HTTrace("User Profile Adding `%s\'\n", name);
 	StrAllocCopy(me->user, name);
 
-	/* Find the FQDN */
-	me->fqdn = HTGetHostName();
-
-	/* Find the user email address */
-	me->email = HTGetMailAddress();
-
-	/* Find the news server */
-	me->news = HTGetNewsServer();
-
-	/* Find the timezone offset */
-	me->timezone = HTGetTimeZoneOffset();
-
-	/* Find the default location for temporary files */
-	StrAllocCopy(me->tmp, HT_TMP_ROOT);
-	if (*(me->tmp+strlen(me->tmp)-1) != '/')
-	    StrAllocCat(me->tmp, "/");
-
 	/* Set the context */
 	me->context = context;
     }
     return me;
+}
+
+/*
+**	Localize a user profile by filling in all the information that we
+**	can figure out automatically, for example the email address, news
+**	server etc.
+*/
+PUBLIC BOOL HTUserProfile_localize (HTUserProfile * up)
+{
+    if (up) {
+	if (CORE_TRACE) HTTrace("User Profile Localizing %p\n", up);
+
+	/* Find the FQDN */
+	up->fqdn = HTGetHostName();
+
+	/* Find the user email address */
+	up->email = HTGetMailAddress();
+
+	/* Find the news server */
+	up->news = HTGetNewsServer();
+
+	/* Find the timezone offset */
+	up->timezone = HTGetTimeZoneOffset();
+
+	/* Find the default location for temporary files */
+	StrAllocCopy(up->tmp, HT_TMP_ROOT);
+	if (*(up->tmp+strlen(up->tmp)-1) != '/')
+	    StrAllocCat(up->tmp, "/");
+
+	return YES;
+    }
+    return NO;
 }
 
 /*

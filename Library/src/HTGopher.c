@@ -758,6 +758,7 @@ PUBLIC int HTLoadGopher (SOCKET soc, HTRequest * request, SockOps ops)
 					       HTRequest_outputStream(request),
 					       request, NO);
 		    HTNet_getInput(net, target, NULL, 0);
+		    HTRequest_setOutputConnected(request, YES);
 		}
 
 		/*

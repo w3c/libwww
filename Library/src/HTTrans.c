@@ -30,7 +30,7 @@ PUBLIC BOOL HTTransport_add (const char *		name,
 			     HTInput_new *		get_input,
 			     HTOutput_new *		get_output)
 {
-    if (name && get_input && get_output) {
+    if (name && (get_input || get_output)) {
 	HTTransport * tp;
 	if ((tp = (HTTransport *) HT_CALLOC(1, sizeof(HTTransport))) == NULL)
 	    HT_OUTOFMEM("HTTransport_add");
@@ -45,7 +45,7 @@ PUBLIC BOOL HTTransport_add (const char *		name,
 	if (!transports) transports = HTList_new();
 	if (CORE_TRACE) HTTrace("Transport... Adding `%s'\n", name);
 	return HTList_addObject(transports, (void *) tp);
-    }
+    } else if (CORE_TRACE) HTTrace("Transport... Can't add this...\n");
     return NO;
 }
 

@@ -562,25 +562,7 @@ int main (int argc, char ** argv)
 #ifdef WWWTRACE
 	    /* trace flags */
 	    } else if (!strncmp(argv[arg], "-v", 2)) {
-	    	char *p = argv[arg]+2;
-		WWWTRACE = 0;
-		for(; *p; p++) {
-		    switch (*p) {
-		      case 'a': WWWTRACE |= SHOW_ANCHOR_TRACE; break;
-		      case 'b': WWWTRACE |= SHOW_BIND_TRACE; break;
-		      case 'c': WWWTRACE |= SHOW_CACHE_TRACE; break;
-		      case 'g':	WWWTRACE |= SHOW_SGML_TRACE; break;
-		      case 'p':	WWWTRACE |= SHOW_PROTOCOL_TRACE; break;
-		      case 's':	WWWTRACE |= SHOW_STREAM_TRACE; break;
-		      case 't':	WWWTRACE |= SHOW_THREAD_TRACE; break;
-		      case 'u': WWWTRACE |= SHOW_URI_TRACE; break;
-		      default:
-			if (SHOW_MSG)
-			    HTTrace("Bad parameter (%s) in -v option\n",
-				     argv[arg]);
-		    }
-		}
-		if (!WWWTRACE) WWWTRACE = SHOW_ALL_TRACE;
+		HTSetTraceMessageMask(argv[arg]+2);
 #endif
 
 	    } else {
@@ -624,6 +606,7 @@ int main (int argc, char ** argv)
 	char * rules = HTParse(mr->rules, mr->cwd, PARSE_ALL);
 	HTParentAnchor * ra = (HTParentAnchor *) HTAnchor_findAddress(rules);
 	HTRequest_setPreemptive(rr, YES);
+	HTAlert_setInteractive(NO);
 	HTConversion_add(list, "application/x-www-rules", "*/*", HTRules,
 			 1.0, 0.0, 0.0);
 	HTRequest_setConversion(rr, list, YES);

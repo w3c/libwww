@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<!-- Changed by: Henrik Frystyk Nielsen, 17-Jun-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen,  2-Jul-1996 -->
   <TITLE>W3C Reference Library libwww Request Class</TITLE>
 </HEAD>
 <BODY>
@@ -393,16 +393,25 @@ typedef enum _HTRqHd {
     HT_C_ACCEPT_CHAR	= 0x2,
     HT_C_ACCEPT_ENC	= 0x4,
     HT_C_ACCEPT_LAN	= 0x8,
-    HT_C_FROM		= 0x10,
-    HT_C_IMS		= 0x20,
+    HT_C_AUTH		= 0x10,
+    HT_C_FROM		= 0x20,
     HT_C_HOST		= 0x40,
-    HT_C_REFERER	= 0x80,
-    HT_C_USER_AGENT	= 0x200
+    HT_C_IMS		= 0x80,
+    HT_C_IF_MATCH	= 0x100,
+    HT_C_IF_NONE_MATCH	= 0x200,
+    HT_C_IF_RANGE	= 0x400,
+    HT_C_IF_UNMOD_SINCE	= 0x800,
+    HT_C_MAX_FORWARDS	= 0x1000,
+    HT_C_PROXY_AUTH	= 0x2000,
+    HT_C_RANGE		= 0x4000,
+    HT_C_REFERER	= 0x8000,
+    HT_C_USER_AGENT	= 0x10000
 } HTRqHd;
 
 #define DEFAULT_REQUEST_HEADERS	\
-	HT_C_ACCEPT_TYPE+HT_C_ACCEPT_CHAR+ \
-	HT_C_ACCEPT_ENC+HT_C_ACCEPT_LAN+HT_C_REFERER+HT_C_USER_AGENT
+	HT_C_ACCEPT_TYPE + HT_C_ACCEPT_CHAR + \
+	HT_C_ACCEPT_ENC + HT_C_ACCEPT_LAN + HT_C_AUTH + \
+	HT_C_HOST + HT_C_REFERER + HT_C_USER_AGENT
 
 extern void HTRequest_setRqHd (HTRequest *request, HTRqHd rqhd);
 extern void HTRequest_addRqHd (HTRequest *request, HTRqHd rqhd);
@@ -417,12 +426,15 @@ about the response (and about the server itself) to the client. All headers
 are optional.
 <PRE>
 typedef enum _HTRsHd {
-    HT_S_LOCATION   	= 0x1,
-    HT_S_PROXY_AUTH 	= 0x2,
-    HT_S_PUBLIC    	= 0x4,
-    HT_S_RETRY_AFTER	= 0x8,
-    HT_S_SERVER		= 0x10,
-    HT_S_WWW_AUTH	= 0x20
+    HT_S_AGE		= 0x1,
+    HT_S_LOCATION   	= 0x2,
+    HT_S_PROXY_AUTH 	= 0x4,
+    HT_S_PUBLIC    	= 0x8,
+    HT_S_RETRY_AFTER	= 0x10,
+    HT_S_SERVER		= 0x20,
+    HT_S_VARY		= 0x40,
+    HT_S_WARNING	= 0x80,
+    HT_S_WWW_AUTH	= 0x100
 } HTRsHd;
 
 #define DEFAULT_RESPONSE_HEADERS HT_S_SERVER
@@ -442,19 +454,24 @@ together with an entity body. All headers are optional but the default value
 is <EM>ALL ENTITY HEADERS IF PRESENT</EM>
 <PRE>
 typedef enum _HTEnHd {
-    HT_E_ALLOW		= 0x1,
-    HT_E_CONTENT_ENCODING = 0x2,
-    HT_E_CONTENT_LANGUAGE = 0x4,
-    HT_E_CONTENT_LENGTH	= 0x8,
-    HT_E_CTE		= 0x10,			/* Content-Transfer-Encoding */
-    HT_E_CONTENT_TYPE	= 0x20,
-    HT_E_DERIVED_FROM	= 0x40,
-    HT_E_EXPIRES	= 0x80,
-    HT_E_LAST_MODIFIED	= 0x200,
-    HT_E_LINK		= 0x400,
-    HT_E_TITLE		= 0x800,
-    HT_E_URI		= 0x1000,
-    HT_E_VERSION	= 0x2000
+    HT_E_ALLOW			= 0x1,
+    HT_E_CONTENT_BASE		= 0x2,
+    HT_E_CONTENT_ENCODING	= 0x4,
+    HT_E_CONTENT_LANGUAGE	= 0x8,
+    HT_E_CONTENT_LENGTH		= 0x10,
+    HT_E_CONTENT_LOCATION	= 0x20,
+    HT_E_CONTENT_MD5		= 0x40,
+    HT_E_CONTENT_RANGE		= 0x80,
+    HT_E_CTE			= 0x100,	/* Content-Transfer-Encoding */
+    HT_E_CONTENT_TYPE		= 0x200,
+    HT_E_DERIVED_FROM		= 0x400,
+    HT_E_ETAG			= 0x800,
+    HT_E_EXPIRES		= 0x1000,
+    HT_E_LAST_MODIFIED		= 0x2000,
+    HT_E_LINK			= 0x4000,
+    HT_E_TITLE			= 0x8000,
+    HT_E_URI			= 0x10000,
+    HT_E_VERSION		= 0x20000
 } HTEnHd;
 
 #define DEFAULT_ENTITY_HEADERS		0xFFFF			      /* all */
@@ -488,8 +505,9 @@ extern void HTRequest_setGenerator (HTRequest *request, HTList *gens,
 				    BOOL override);
 extern HTList * HTRequest_generator (HTRequest *request, BOOL *override);
 </PRE>
-MIMEParsers get their own type which is optimized for static and regex
-parser strings.
+<P>
+MIMEParsers get their own type which is optimized for static and regex parser
+strings.
 <PRE>
 typedef struct _HTMIMEParseSet HTMIMEParseSet;
 extern void HTRequest_setMIMEParseSet (HTRequest *request, 
@@ -572,6 +590,15 @@ The output stream is to be used to put data down to as they come in
 <PRE>
 extern void HTRequest_setOutputStream (HTRequest *request, HTStream *output);
 extern HTStream *HTRequest_outputStream (HTRequest *request);
+</PRE>
+<H3>
+  Has Output Stream been Connected to Channel?
+</H3>
+<P>
+Has output stream been connected to the channel? If not then we must free
+it explicitly when deleting the request object
+<PRE>extern void HTRequest_setOutputConnected (HTRequest * request, BOOL mode);
+extern BOOL HTRequest_outputConnected	 (HTRequest * request);
 </PRE>
 <P>
 The desired format of the output stream. This can be used to get unconverted

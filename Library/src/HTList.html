@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen,  6-Apr-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen,  2-Jul-1996 -->
   <TITLE>W3C Reference Library libwww List Class</TITLE>
 </HEAD>
 <BODY>
@@ -47,34 +47,28 @@ extern BOOL	HTList_delete	(HTList *me);
 <P>
 A new list element is added to the beginning of the list so that it is first
 element just after the head element.
-<PRE>
-extern BOOL	HTList_addObject (HTList *me, void *newObject);
+<PRE>extern BOOL HTList_addObject (HTList *me, void *newObject);
 </PRE>
 <P>
 <A NAME="appendObject"></A> You can also append an element to the end of
 the list (the end is the first entered object) by using the following function:
-<PRE>
-extern BOOL HTList_appendObject (HTList * me, void * newObject);
+<PRE>extern BOOL HTList_appendObject (HTList * me, void * newObject);
 </PRE>
-<P>
-<A NAME="removeObject"></A> <A NAME="removeLastObject"></A>
 <H2>
   Remove List Elements
 </H2>
-<PRE>
-extern BOOL	HTList_removeObject		(HTList *me, void *oldObject);
+<P>
+You can delete elements in a list usin the following methods
+<PRE>extern BOOL	HTList_removeObject		(HTList *me, void *oldObject);
 extern void *	HTList_removeLastObject		(HTList *me);
 extern void *	HTList_removeFirstObject	(HTList *me);
 </PRE>
-<P>
-<A NAME="count"></A>
 <H2>
   Size of a List
 </H2>
 <P>
 Two small function to ask for the size
-<PRE>
-#define 	HTList_isEmpty(me)		(me ? me-&gt;next == NULL : YES)
+<PRE>#define 	HTList_isEmpty(me)		(me ? me-&gt;next == NULL : YES)
 extern int	HTList_count			(HTList *me);
 </PRE>
 <H2>
@@ -84,16 +78,22 @@ extern int	HTList_count			(HTList *me);
 In some situations is is required to use an index in order to refer to a
 list element. This is for example the case if an element can be registered
 multiple times.
-<PRE>
-extern int	HTList_indexOf	(HTList *me, void *object);
+<PRE>extern int	HTList_indexOf	(HTList *me, void *object);
 extern void *	HTList_objectAt	(HTList *me, int position);
 </PRE>
 <H2>
-  Find Last Element Added
+  Find List Elements
 </H2>
-<PRE>
-#define		HTList_lastObject(me) \
+<P>
+This method returns the <I>last</I> element to the list or NULL if list is
+empty
+<PRE>#define		HTList_lastObject(me) \
 		((me) &amp;&amp; (me)-&gt;next ? (me)-&gt;next-&gt;object : NULL)
+</PRE>
+<P>
+This method returns the <I>first</I> element to the list or NULL if list
+is empty
+<PRE>extern void * HTList_firstObject  (HTList * me);
 </PRE>
 <H2>
   Traverse list

@@ -1042,12 +1042,7 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 		HTChannel_setMode(dnet->channel, HT_CH_BATCH);
 		ctrl->substate = NEED_ACTION;
 	    } else {			 	  /* Swap to PORT on the fly */
-#if 0
-		NETCLOSE(dnet->sockfd);
-		dnet->sockfd = INVSOC;
-#else
 		HTDoClose(dnet);
-#endif
 		if (PROT_TRACE)
 		    HTTrace("FTP......... Swap to PORT on the fly\n");
 		ctrl->substate = 0;
@@ -1058,17 +1053,13 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 
 	  case NEED_ACCEPT:
 	    {
-		SOCKET oldsocket = dnet->sockfd;
-		status = HTDoAccept(dnet);
+		status = HTDoAccept(ctrl->dnet, &ctrl->dnet);
+		dnet = ctrl->dnet;
 		if (status == HT_WOULD_BLOCK)
 		    return HT_WOULD_BLOCK;
 		else if (status == HT_OK) {
 		    if (PROT_TRACE)
 			HTTrace("FTP Data.... Passive data socket %d\n",
-				 dnet->sockfd);
-		    NETCLOSE(oldsocket);        /* We only accept one socket */
-		    if (PROT_TRACE)
-			HTTrace("FTP Data.... New data socket %d\n",
 				dnet->sockfd);
 		    ctrl->substate = NEED_STREAM;
 		} else
@@ -1177,6 +1168,7 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 				       request, YES);
 	    }
 	    HTNet_getInput(dnet, target, NULL, 0);
+	    HTRequest_setOutputConnected(request, YES);
 	    sockfd = dnet->sockfd;	    /* Ensure that we try data first */
 	    ctrl->substate = NEED_BODY;
 #if 0
@@ -1433,7 +1425,7 @@ PUBLIC int HTLoadFTP (SOCKET soc, HTRequest * request, SockOps ops)
 		BOOL main = HTRequest_isMainDestination(request);
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link =
-			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+			HTLink_find((HTAnchor *) request->source->anchor,
 					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_OK);
 		}
@@ -1451,7 +1443,7 @@ PUBLIC int HTLoadFTP (SOCKET soc, HTRequest * request, SockOps ops)
 		HTRequest_killPostWeb(request);
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link =
-			HTAnchor_findLink((HTAnchor *) request->source->anchor,
+			HTLink_find((HTAnchor *) request->source->anchor,
 					  (HTAnchor *) anchor);
 		    HTLink_setResult(link, HT_LINK_ERROR);
 		}

@@ -266,6 +266,20 @@ PUBLIC void HTChannel_downSemaphore (HTChannel * channel)
 }
 
 /*
+**	Explicitly set the semaphore for this channel
+*/
+PUBLIC void HTChannel_setSemaphore (HTChannel * channel, int semaphore)
+{
+    if (channel) {
+	channel->semaphore = semaphore;
+	if (channel->semaphore <= 0) channel->semaphore = 0;
+	if (PROT_TRACE)
+	    HTTrace("Channel..... Semaphore set to %d for channel %p\n",
+		    channel->semaphore, channel);
+    }
+}
+
+/*
 **	Create the input stream and bind it to the channel
 **	Please read the description in the HTIOStream module on the parameters
 */

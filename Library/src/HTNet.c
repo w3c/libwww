@@ -347,13 +347,11 @@ PUBLIC BOOL HTNet_setPriority (HTNet * net, HTPriority priority)
 **	-------------
 **	Creates an HTNet object
 */
-PRIVATE HTNet * create_object (HTRequest * request)
+PRIVATE HTNet * create_object (void)
 {
     HTNet * me;
     if ((me = (HTNet *) HT_CALLOC(1, sizeof(HTNet))) == NULL)
         HT_OUTOFMEM("HTNet_new");
-    me->request = request;
-    request->net = me;
     me->tcpstate = TCP_BEGIN;
     if (!HTNetActive) HTNetActive = HTList_new();
     return me;
@@ -367,16 +365,22 @@ PRIVATE HTNet * create_object (HTRequest * request)
 **	call any of the callback functions.
 **	Returns new object or NULL on error
 */
-PUBLIC HTNet * HTNet_new (HTRequest * request, SOCKET sockfd)
+PUBLIC HTNet * HTNet_new (SOCKET sockfd, HTRequest * request)
 {
-    HTNet * me;
-    if (CORE_TRACE) HTTrace("HTNet_new... Create empty Net object\n");
-    if (!request || sockfd==INVSOC) return NULL;
-    if ((me = create_object(request)) == NULL) return NULL;
-    me->preemptive = request->preemptive;
-    me->priority = request->priority;
-    me->sockfd = sockfd;
-    return me;
+    if (sockfd != INVSOC) {
+	HTNet * me;
+	if ((me = create_object()) == NULL) return NULL;
+	if (CORE_TRACE)
+	    HTTrace("HTNet_new... Create empty Net object %p\n", me);
+	me->preemptive = HTRequest_preemptive(request);
+	me->priority = HTRequest_priority(request);
+	me->sockfd = sockfd;
+	me->request = request;
+	HTRequest_setNet(request, me);
+	return me;
+    }
+    if (CORE_TRACE) HTTrace("HTNet_new... Can't create empty Net object!\n");
+    return NULL;
 }
 
 /*      HTNet_newServer
@@ -385,19 +389,11 @@ PUBLIC HTNet * HTNet_new (HTRequest * request, SOCKET sockfd)
 **      more than HTMaxActive connections already then return NO.
 **      Returns YES if OK, else NO
 */
-PUBLIC BOOL HTNet_newServer (HTRequest * request, SOCKET sockfd, char * access)
+PUBLIC BOOL HTNet_newServer (HTRequest * request, HTNet * net, char * access)
 {
-    HTNet * me;
     HTProtocol * protocol;
     HTTransport * tp = NULL;    	/* added JTD:5/28/96 */
     if (!request) return NO;
-
-    /* Check if we can start the request, else return immediately */
-    if (HTList_count(HTNetActive) > HTMaxActive) {
-        if (CORE_TRACE) HTTrace("HTNet new... NO SOCKET AVAILABLE\n");
-        HTNet_callAfter(request, HT_RETRY);
-        return YES;
-    }
 
     /* Find a protocol object for this access scheme */
     protocol = HTProtocol_find(request, access);
@@ -411,25 +407,24 @@ PUBLIC BOOL HTNet_newServer (HTRequest * request, SOCKET sockfd, char * access)
     }
     /* end of additions - JTD:5/28/96 */
 
-    /* Create new net object and bind it to the request object */
-    if ((me = create_object(request)) == NULL) return NO;
-    me->preemptive = (HTProtocol_preemptive(protocol) || request->preemptive);
-    me->protocol = protocol;
-    me->transport = tp; 		/* added - JTD:5/28/96 */
-    me->priority = request->priority;
-    me->sockfd = sockfd;
-    if (!(me->cbf = HTProtocol_server(protocol))) {
+    /* Fill out the net object and bind it to the request object */
+    net->preemptive = (HTProtocol_preemptive(protocol) || request->preemptive);
+    net->protocol = protocol;
+    net->transport = tp; 		/* added - JTD:5/28/96 */
+    net->priority = HTRequest_priority(request);
+    net->request = request;
+    HTRequest_setNet(request, net);
+    if (!(net->cbf = HTProtocol_server(protocol))) {
         if (CORE_TRACE) HTTrace("HTNet_new... NO CALL BACK FUNCTION!\n");
-        HT_FREE(me);
         return NO;
     }
     request->retrys++;
 
     /* Start the server request */
-    HTList_addObject(HTNetActive, (void *) me);
+    HTList_addObject(HTNetActive, (void *) net);
     if (CORE_TRACE)
-        HTTrace("HTNet_new... starting SERVER request %p with net object %p\n", request, me);
-    (*(me->cbf))(me->sockfd, request, FD_NONE);
+        HTTrace("HTNet_new... starting SERVER request %p with net object %p\n", request, net);
+    (*(net->cbf))(net->sockfd, request, FD_NONE);
     return YES;
 }
 
@@ -490,12 +485,14 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
     }
 
     /* Create new net object and bind it to the request object */
-    if ((me = create_object(request)) == NULL) return NO;
+    if ((me = create_object()) == NULL) return NO;
     me->preemptive = (HTProtocol_preemptive(protocol) || request->preemptive);
-    me->priority = request->priority;
+    me->priority = HTRequest_priority(request);
     me->sockfd = INVSOC;
     me->protocol = protocol;
     me->transport = tp;
+    me->request = request;
+    HTRequest_setNet(request, me);
     if (!(me->cbf = HTProtocol_client(protocol))) {
 	if (CORE_TRACE) HTTrace("HTNet_new... NO CALL BACK FUNCTION!\n");
 	HT_FREE(me);
@@ -565,8 +562,7 @@ PRIVATE BOOL delete_object (HTNet *net, int status)
 	    HTChannel_downSemaphore(net->channel);
 	    net->channel = NULL;
 	}
-	if (net->request)
-	    net->request->net = NULL;		    /* Break link to request */
+	HTRequest_setNet(net->request, NULL); 	    /* Break link to request */
 	HT_FREE(net);
 	return status ? NO : YES;
     }
@@ -825,6 +821,23 @@ PUBLIC BOOL HTNet_setSocket (HTNet * net, SOCKET sockfd)
 PUBLIC SOCKET HTNet_socket (HTNet * net)
 {
     return (net ? net->sockfd : INVSOC);
+}
+
+/*
+**  Get and set the HTRequest object
+*/
+PUBLIC BOOL HTNet_setRequest (HTNet * net, HTRequest * request)
+{
+    if (net && request) {
+	net->request = request;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTRequest * HTNet_request (HTNet * net)
+{
+    return (net ? net->request : NULL);
 }
 
 /*

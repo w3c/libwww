@@ -60,10 +60,11 @@ PRIVATE int pumpData (HTStream * me)
     me->transparent = YES;		  /* Pump rest of data right through */
 
     /* If this request us a source in PostWeb then pause here */
-    if (me->head_only || HTRequest_isSource(request)) return HT_PAUSE;
+    if (HTRequest_isSource(request)) return HT_PAUSE;
 
     /* If HEAD method then we just stop here */
-    if (me->footer || request->method == METHOD_HEAD) return HT_LOADED;
+    if (me->head_only || me->footer ||
+	request->method == METHOD_HEAD) return HT_LOADED;
 
     /*
     ** Handle any Content Type
@@ -113,7 +114,10 @@ PRIVATE int _dispatchParsers (HTStream * me)
     HTMIMEParseSet * parseSet;
 
     /* In case we get an empty header consisting of a CRLF, we fall thru */
-    if (STREAM_TRACE) HTTrace("checking MIME header %s: %s\n", token, value);
+    if (STREAM_TRACE) HTTrace("MIME header. %s: %s\n",
+			      token ? token : "<null>",
+			      value ? value : "<null>");
+    if (!token) return HT_OK;			    /* Ignore noop token */
 
     if ((parseSet = HTRequest_MIMEParseSet(me->request, &local)) != NULL) {
         status = HTMIMEParseSet_dispatch(parseSet, me->request, 
@@ -248,11 +252,14 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
     ** Put the rest down the stream without touching the data but make sure
     ** that we get the correct content length of data
     */
-    if ((status = (*me->target->isa->put_block)(me->target, b, l)) != HT_OK)
-        return status;
-    /* Check if CL at all - thanks to jwei@hal.com (John Wei) */
-    cl = HTAnchor_length(me->anchor);
-    return (cl>=0 && HTNet_bytesRead(me->net)>=cl) ? HT_LOADED : HT_OK;
+    if (me->target) {
+	if ((status = (*me->target->isa->put_block)(me->target, b, l)) != HT_OK)
+	    return status;
+	/* Check if CL at all - thanks to jwei@hal.com (John Wei) */
+	cl = HTAnchor_length(me->anchor);
+	return (cl>=0 && HTNet_bytesRead(me->net)>=cl) ? HT_LOADED : HT_OK;
+    }
+    return HT_LOADED;
 }
 
 

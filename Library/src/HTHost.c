@@ -32,6 +32,9 @@ struct _HTHost {
     time_t		ntime;				    /* Creation time */
     char *		type;				        /* Peer type */
     int 		version;			     /* Peer version */
+    HTMethod		methods;	       	/* Public methods (bit-flag) */
+    char *		server;				      /* Server name */
+    char *		user_agent;			       /* User Agent */
     HTChannelMode	mode;	      			   /* Supported mode */
     HTChannel *		channel;		       /* Persistent channel */
     time_t		expires;	  /* Persistent channel expires time */
@@ -198,6 +201,58 @@ PUBLIC time_t HTHost_persistExpires (HTHost * host)
 }
 
 /*
+**	Public methods for this host
+*/
+PUBLIC HTMethod HTHost_publicMethods (HTHost * me)
+{
+    return me ? me->methods : METHOD_INVALID;
+}
+
+PUBLIC void HTHost_setPublicMethods (HTHost * me, HTMethod methodset)
+{
+    if (me) me->methods = methodset;
+}
+
+PUBLIC void HTHost_appendPublicMethods (HTHost * me, HTMethod methodset)
+{
+    if (me) me->methods |= methodset;
+}
+
+/*
+**	Get and set the server name of the remote host
+*/
+PUBLIC char * HTHost_server (HTHost * host)
+{
+     return host ? host->server : NULL;
+}
+
+PUBLIC BOOL HTHost_setServer (HTHost * host, const char * server)
+{
+    if (host && server) {
+	StrAllocCopy(host->server, server);
+	return YES;
+    }
+    return NO;
+}
+
+/*
+**	Get and set the userAgent name of the remote host
+*/
+PUBLIC char * HTHost_userAgent (HTHost * host)
+{
+     return host ? host->user_agent : NULL;
+}
+
+PUBLIC BOOL HTHost_setUserAgent (HTHost * host, const char * userAgent)
+{
+    if (host && userAgent) {
+	StrAllocCopy(host->user_agent, userAgent);
+	return YES;
+    }
+    return NO;
+}
+
+/*
 **	Searches the list of persistent connections for a host object
 **	associated with this channel
 */
@@ -246,7 +301,7 @@ PUBLIC int HTHost_catchClose (SOCKET soc, HTRequest * request, SockOps ops)
 */
 PUBLIC BOOL HTHost_setChannel (HTHost * host, HTChannel * channel)
 {
-    if (!host && !channel) return NO;
+    if (!host || !channel) return NO;
     if (host->channel) {
 	if (CORE_TRACE) HTTrace("Host info... %p already persistent\n", host);
 	return YES;

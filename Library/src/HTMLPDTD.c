@@ -115,7 +115,7 @@ PRIVATE attr a_attr[HTML_A_ATTRIBUTES+1] = {		/* Anchor attributes */
 	{ 0 }	/* Terminate list */
 };	
 
-PRIVATE attr base_attr[] = {		/* BASE attributes */
+PRIVATE attr base_attr[HTML_BASE_ATTRIBUTES+1] = {	/* BASE attributes */
 	{ "HREF"},
 	{ 0 }	/* Terminate list */
 };	
@@ -336,7 +336,7 @@ PRIVATE HTTag tags[HTMLP_ELEMENTS] = {
     { "ADDRESS"	, no_attr,	0,			SGML_MIXED },
     { "ARG"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
     { "B"	, no_attr,	0,			SGML_MIXED },
-    { "BASE"	, base_attr,	HTML_BASE_ATTRIBUTES,	SGML_MIXED },
+    { "BASE"	, base_attr,	HTML_BASE_ATTRIBUTES,	SGML_EMPTY },
     { "BLOCKQUOTE", no_attr,	0,			SGML_MIXED },
     { "BODY"	, no_attr,	0,			SGML_MIXED },
     { "BOX"	, no_attr,	0,			SGML_MIXED },

@@ -88,7 +88,8 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 	}
 	if (!first) PUTBLOCK(crlf, 2);
     }
-    if (request->EntityMask & HT_E_CONTENT_LENGTH) { /* Must be there!!! */
+    if (request->EntityMask & HT_E_CONTENT_LENGTH &&
+	entity->content_length >= 0) { 			/* Must be there!!! */
 	sprintf(linebuf, "Content-Length: %ld%c%c",
 		entity->content_length, CR, LF);
 	PUTBLOCK(linebuf, (int) strlen(linebuf));	
@@ -98,10 +99,26 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 		HTAtom_name(entity->transfer), CR, LF);
 	PUTBLOCK(linebuf, (int) strlen(linebuf));
     }
-    if (request->EntityMask & HT_E_CONTENT_TYPE && entity->content_type) {
-	int len;
-	sprintf(linebuf, "Content-Type: %s",
-		HTAtom_name(entity->content_type));
+    if (request->EntityMask & HT_E_CONTENT_TYPE && entity->content_type &&
+	entity->content_type != WWW_UNKNOWN) {
+	HTAssocList * parameters = HTAnchor_formatParam(entity);
+
+	/* Output the content type */
+	PUTS("Content-Type: ");
+	PUTS(HTAtom_name(entity->content_type));
+
+	/* Add all parameters */
+	if (parameters) {
+	    HTAssoc * pres;
+	    while ((pres = (HTAssoc *) HTAssocList_nextObject(parameters))) {
+		PUTS(";");
+		PUTS(HTAssoc_name(pres));
+		PUTS("=");
+		PUTS(HTAssoc_value(pres));
+	    }
+	}
+	PUTBLOCK(crlf, 2);
+#if 0
 	if (entity->charset) {
 	    strcat(linebuf, "; charset=");
 	    strcat(linebuf, HTAtom_name(entity->charset));
@@ -115,6 +132,7 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 	*(linebuf+len+1) = LF;
 	*(linebuf+len+2) = '\0';
 	PUTBLOCK(linebuf, (int) len+2);
+#endif
     }
     if (request->EntityMask & HT_E_DERIVED_FROM && entity->derived_from) {
 	sprintf(linebuf, "Derived-From: %s%c%c", entity->derived_from,

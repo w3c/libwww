@@ -111,7 +111,7 @@ PRIVATE HTAssocList * basic_credentials (HTRequest * request, HTBasic * basic)
 	    if (!cookie) HT_OUTOFMEM("basic_credentials");
 	    strcpy(cookie, "Basic ");
 	    strcat(cookie, cipher);
-	    HTAssocList_add(credentials, "Authorization", cookie);
+	    HTAssocList_addObject(credentials, "Authorization", cookie);
 	    HT_FREE(cookie);
 	}
 	HT_FREE(cleartext);
@@ -136,7 +136,7 @@ PRIVATE HTAssocList *digest_credentials (HTRequest * request, HTDigest *digest)
 
 	/* Do the generation */
 #if 0	
-	HTAssocList_add(credentials, "Authorization", cookie);
+	HTAssocList_addObject(credentials, "Authorization", cookie);
 #endif
 	HT_FREE(cleartext);
 	HT_FREE(cipher);
@@ -208,7 +208,7 @@ PUBLIC BOOL HTBasic_parse (HTRequest * request, const char * scheme)
 {
     HTAssocList * challenge;
     if (request && (challenge = HTRequest_challenge(request))) {
-	char * p = HTAssocList_lookup(challenge, "WWW-authenticate");
+	char * p = HTAssocList_findObject(challenge, "WWW-authenticate");
 	char * value = HTNextField(&p);
 	if (AUTH_TRACE)
 	    HTTrace("Auth........ Parsing %s challenge\n", value?value:"NULL");

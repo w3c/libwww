@@ -57,7 +57,7 @@
 PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 {
     int status;
-    HTRequest * request = net->request;
+    HTRequest * request = HTNet_request(net);
     char *fullhost = HTParse(url, "", PARSE_HOST);
     char *at_sign;
     char *host;
@@ -372,12 +372,12 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 **		HT_OK		if connected
 **		HT_WOULD_BLOCK  if operation would have blocked
 */
-PUBLIC int HTDoAccept (HTNet * net)
+PUBLIC int HTDoAccept (HTNet * net, HTNet ** accepted)
 {
     int status;
     int size = sizeof(net->sock_addr);
-    HTRequest *request = net->request;
-    if (net->sockfd==INVSOC) {
+    HTRequest * request = HTNet_request(net);
+    if (!request || net->sockfd==INVSOC) {
 	if (PROT_TRACE) HTTrace("HTDoAccept.. Invalid socket\n");
 	return HT_ERROR;
     }
@@ -415,14 +415,21 @@ PUBLIC int HTDoAccept (HTNet * net)
 	return HT_ERROR;
     }
 
-    /* Swap to new socket */
-    HTEvent_unregister(net->sockfd, (SockOps) FD_ACCEPT);
-    net->sockfd = status;
+    if (PROT_TRACE) HTTrace("Accepted.... socket %d\n", status);
+
+    /*
+    ** If accepted is the same as the net obejct then reuse it, else create
+    ** a new object and leave the original alone
+    */
+    if (*accepted == net)
+	HTDoClose(net);
+    else
+	*accepted = HTNet_dup(net);
+    (*accepted)->sockfd = status;	
 
     /* Create a channel for the new socket */
-    net->channel = HTChannel_new(net, NO);
+    (*accepted)->channel = HTChannel_new(*accepted, NO);
 
-    if (PROT_TRACE) HTTrace("Accepted.... socket %d\n", status);
     return HT_OK;
 }
 

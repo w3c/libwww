@@ -37,6 +37,8 @@ PUBLIC HTAtom * HTAtom_for (const char * string)
     int hash;
     const char * p;
     HTAtom * a;
+
+    if (!string) return NULL;			/* prevent core dumps */
     
     /*		First time around, clear hash table
     */
@@ -85,6 +87,8 @@ PUBLIC HTAtom * HTAtom_caseFor (const char * string)
     int hash;
     const char * p;
     HTAtom * a;
+
+    if (!string) return NULL;			/* prevent core dumps */
     
     /*		First time around, clear hash table
     */

@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen,  5-Apr-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen,  2-Jul-1996 -->
   <TITLE>W3C Reference Library libwww Host Class</TITLE>
 </HEAD>
 <BODY>
@@ -70,7 +70,7 @@ that we don't keep information around that is stale.
 <P>
 This is what we know about the remote host
 <H3>
-  Remote Host Class and Version
+  Remote Host Prococol Class and Version
 </H3>
 <P>
 Define the <EM>host class</EM> of the host at the other end. A class is a
@@ -87,6 +87,41 @@ extern void HTHost_setClass	(HTHost * host, char * s_class);
 
 extern int  HTHost_version	(HTHost * host);
 extern void HTHost_setVersion	(HTHost * host, int version);
+</PRE>
+<H3>
+  Remote host Options and Services
+</H3>
+<P>
+We keep track of the capabilities of the remote host. In many caces the
+information that we get is specific to servers but this doesn't <I>have</I>
+to be the case.
+<H4>
+  Public Methods
+</H4>
+<P>
+A server can inform a client about the supported methods using the
+<CODE>Public</CODE> header.
+<PRE>extern HTMethod HTHost_publicMethods 	(HTHost * me);
+extern void HTHost_setPublicMethods 	(HTHost * me, HTMethod methodset);
+extern void HTHost_appendPublicMethods	(HTHost * me, HTMethod methodset);
+</PRE>
+<H4>
+  Server Name of Remote Host
+</H4>
+<P>
+A server can send its server application name and version in a HTTP response.
+We pick up this information and add it to the Host object
+<PRE>extern char * HTHost_server	(HTHost * host);
+extern BOOL HTHost_setServer	(HTHost * host, const char * server);
+</PRE>
+<H4>
+  User Agent Name of Remote Host
+</H4>
+<P>
+A client can send the name of the client application in a HTTP request. We
+pick up this infomration and add it to the Host Object
+<PRE>extern char * HTHost_userAgent 	(HTHost * host);
+extern BOOL HTHost_setUserAgent	(HTHost * host, const char * userAgent);
 </PRE>
 <H3>
   Register a Persistent Channel

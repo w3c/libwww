@@ -36,7 +36,6 @@
 struct _HTStream {
     const HTStreamClass *	isa;
     HTRequest *			request;
-    HTStream *			target;
     HTChunk *			buffer;
     HTEOLState			EOLstate;
 };
@@ -325,31 +324,36 @@ PRIVATE int HTRule_put_string (HTStream * me, const char * s)
 
 PRIVATE int HTRule_flush (HTStream * me)
 {
-    return (*me->target->isa->flush)(me->target);
+    if (me) {
+	char * flush = HTChunk_data(me->buffer);
+	if (flush) HTRule_parseLine(rules, flush);
+	HTChunk_clear(me->buffer);
+    }
+    return HT_OK;
 }
 
 PRIVATE int HTRule_free (HTStream * me)
 {
-    int status = HT_OK;
-    if (me->target) {
-	if ((status = (*me->target->isa->_free)(me->target)) == HT_WOULD_BLOCK)
-	    return HT_WOULD_BLOCK;
+    if (me) {
+	int status = HTRule_flush(me);
+	if (APP_TRACE) HTTrace("Rules....... FREEING....\n");
+	HTChunk_delete(me->buffer);
+	HT_FREE(me);
+	return status;
     }
-    if (APP_TRACE)
-	HTTrace("Rules....... FREEING....\n");
-    HTChunk_delete(me->buffer);
-    HT_FREE(me);
-    return status;
+    return HT_ERROR;
 }
 
 PRIVATE int HTRule_abort (HTStream * me, HTList * e)
 {
-    int status = HT_ERROR;
-    if (me->target) status = (*me->target->isa->abort)(me->target, e);
-    if (APP_TRACE) HTTrace("Rules....... ABORTING...\n");
-    HTChunk_delete(me->buffer);
-    HT_FREE(me);
-    return status;
+    if (me) {
+	int status = HT_ERROR;
+	if (APP_TRACE) HTTrace("Rules....... ABORTING...\n");
+	HTChunk_delete(me->buffer);
+	HT_FREE(me);
+	return status;
+    }
+    return HT_ERROR;
 }
 
 /*	Structured Object Class
@@ -381,7 +385,6 @@ PUBLIC HTStream * HTRules (HTRequest *	request,
 	    HT_OUTOFMEM("HTRules");
 	me->isa = &HTRuleClass;
 	me->request = request;
-	me->target = output_stream;
 	me->buffer = HTChunk_new(512);
 	me->EOLstate = EOL_BEGIN;
 	if (!rules) rules = HTList_new();

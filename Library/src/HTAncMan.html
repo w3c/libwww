@@ -1,11 +1,11 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww Anchor Object</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 17-Jun-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Jul-1996 -->
 </HEAD>
 <BODY>
 
-<H1>The Anchor and Link Objects</H1>
+<H1>The Anchor Class Definition</H1>
 
 <PRE>
 /*
@@ -28,21 +28,6 @@ declarition in the <A HREF="HTAnchor.html">HTAnchorModule</A>.<P>
 #include "HTAtom.h"
 #include "HTMethod.h"
 </PRE>
-
-<H2>The Link Object</H2>
-
-Link Objects bind together anchor objects
-
-<PRE>
-struct _HTLink {
-    HTAnchor *		dest;		   /* The anchor to which this leads */
-    HTLinkType		type;		           /* Semantics of this link */
-    HTMethod		method;		   /* Method for this link, e.g. PUT */
-    HTLinkResult	result;    /* Result of any attempt to get this link */
-};
-</PRE>
-
-<H2>The Anchor Object</H2>
 
 We have a set of Anchor objects which of course should be sub classes
 - but - hey - this is C - what do you expect!
@@ -88,24 +73,29 @@ struct _HTParentAnchor {
 
   BOOL		header_parsed;	/* Are we done parsing? */
 
+  /* We keep a list of variants of this anchor, if any */
+  HTList *	variants;
+
   /* Entity header fields */
   char *	title;
   HTMethod	methods;	/* Allowed methods (bit-flag) */
+
+  HTFormat	content_type;	/* Content type */
+  HTAssocList *	type_parameters;/* Content type parameters (charset etc.) */
 
   char *	content_base;
   HTList *	content_encoding;
   HTList *	content_language;
   long int	content_length;
   char *	content_location;
+  char *	content_md5;
 
   HTEncoding	transfer;	/* Content-Transfer-Encoding */
-  HTFormat	content_type;
-  HTCharset	charset;	/* Parameter to content-type */
-  HTLevel	level;		/* Parameter to content-type `text/html' */
 
   time_t	date;		/* When was the request issued */  
   time_t	expires;	/* When does the copy expire */
-  time_t	last_modified;
+  time_t	last_modified;	/* When was this last modified */
+  char * 	etag;		/* entity tag */
 
   char *	derived_from;	/* Opaque string */
   char *	version;	/* Opaque string */
@@ -143,3 +133,6 @@ struct _HTChildAnchor {
 </ADDRESS>
 </BODY>
 </HTML>
+
+
+

@@ -3,6 +3,7 @@
 <TITLE>W3C Reference Library libwww Channel Interface</TITLE>
 <!-- Changed by: Henrik Frystyk Nielsen,  8-Apr-1996 -->
 <!-- Changed by: Eric Prud'hommeaux, 27-May-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  2-Jul-1996 -->
 <NEXTID N="z18">
 </HEAD>
 <BODY>
@@ -129,8 +130,9 @@ Adjust the semaphore on a channel. As many <A HREF="HTNet.html">Net objects
 know if we can delete a channel or if it is still in use. We do this by having
 a simple semaphore associated with each channel object
 <PRE>
-extern void HTChannel_upSemaphore (HTChannel * channel);
+extern void HTChannel_upSemaphore   (HTChannel * channel);
 extern void HTChannel_downSemaphore (HTChannel * channel);
+extern void HTChannel_setSemaphore  (HTChannel * channel, int semaphore);
 </PRE>
 <H3>
   Create Input and Output Streams

@@ -214,8 +214,8 @@ PRIVATE int redirection_handler (HTRequest * request, void * param, int status)
 
     /* If destination specified then bind together anchors */
     if (cl->dest) {
-	HTAnchor_removeAllLinks((HTAnchor *) cl->anchor);
-	HTAnchor_link((HTAnchor *) cl->anchor, new_anchor, NULL, cl->method);
+	HTLink_removeAll((HTAnchor *) cl->anchor);
+	HTLink_add((HTAnchor *) cl->anchor, new_anchor, NULL, cl->method);
     }
 
     /* Log current request */
@@ -314,10 +314,10 @@ int main (int argc, char ** argv)
     /* Register a transport */
     HTTransport_add("tcp", HT_CH_SINGLE, HTReader_new, HTWriter_new);
     HTTransport_add("buffered_tcp", HT_CH_SINGLE, HTReader_new, HTBufferWriter_new);
-    HTTransport_add("local", HT_CH_SINGLE, HTANSIReader_new, HTANSIWriter_new);
+    HTTransport_add("local", HT_CH_SINGLE, HTReader_new, HTWriter_new);
 
     /* Initialize the protocol modules */
-    HTProtocol_add("http", "tcp", NO, HTLoadHTTP, NULL);
+    HTProtocol_add("http", "buffered_tcp", NO, HTLoadHTTP, NULL);
     HTProtocol_add("file", "local", NO, HTLoadFile, NULL);
     HTProtocol_add("ftp", "tcp", NO, HTLoadFTP, NULL);
     HTProtocol_add("nntp", "tcp", NO, HTLoadNews, NULL);
@@ -427,26 +427,7 @@ int main (int argc, char ** argv)
 #ifdef WWWTRACE
 	    /* trace flags */
 	    } else if (!strncmp(argv[arg], "-v", 2)) {
-	    	char *p = argv[arg]+2;
-		WWWTRACE = 0;
-		for(; *p; p++) {
-		    switch (*p) {
-		      case 'a': WWWTRACE |= SHOW_ANCHOR_TRACE; break;
-		      case 'b': WWWTRACE |= SHOW_BIND_TRACE; break;
-		      case 'c': WWWTRACE |= SHOW_CACHE_TRACE; break;
-		      case 'g':	WWWTRACE |= SHOW_SGML_TRACE; break;
-		      case 'm':	WWWTRACE |= SHOW_MEM_TRACE; break;
-		      case 'p':	WWWTRACE |= SHOW_PROTOCOL_TRACE; break;
-		      case 's':	WWWTRACE |= SHOW_STREAM_TRACE; break;
-		      case 't':	WWWTRACE |= SHOW_THREAD_TRACE; break;
-		      case 'u': WWWTRACE |= SHOW_URI_TRACE; break;
-		      default:
-			if (SHOW_MSG)
-			    HTTrace("Bad parameter (%s) in -v option\n",
-				     argv[arg]);
-		    }
-		}
-		if (!WWWTRACE) WWWTRACE = SHOW_ALL_TRACE;
+		HTSetTraceMessageMask(argv[arg]+2);
 #endif
 
 	    /* GET method */
@@ -511,7 +492,7 @@ int main (int argc, char ** argv)
     }
 
     /* If destination specified then bind together anchors */
-    if (cl->dest) HTAnchor_link((HTAnchor*)cl->anchor,
+    if (cl->dest) HTLink_add((HTAnchor*)cl->anchor,
 				(HTAnchor*)cl->dest, NULL, cl->method);
 
     /* Output file specified? */
@@ -566,6 +547,7 @@ int main (int argc, char ** argv)
 	char * rules = HTParse(cl->rules, cl->cwd, PARSE_ALL);
 	HTParentAnchor * ra = (HTParentAnchor *) HTAnchor_findAddress(rules);
 	HTRequest_setPreemptive(rr, YES);
+	HTAlert_setInteractive(NO);
 	HTConversion_add(list, "application/x-www-rules", "*/*", HTRules,
 			 1.0, 0.0, 0.0);
 	HTRequest_setConversion(rr, list, YES);

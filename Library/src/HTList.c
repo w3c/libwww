@@ -112,6 +112,19 @@ PUBLIC void * HTList_removeFirstObject  (HTList * me)
 	return NULL;
 }
 
+PUBLIC void * HTList_firstObject  (HTList * me)
+{
+    if (me && me->next) {
+	HTList * prevNode;
+	while (me->next) {
+	    prevNode = me;
+	    me = me->next;
+	}
+	return me->object;
+    } else			/* Empty list */
+	return NULL;
+}
+
 PUBLIC int HTList_count  (HTList * me)
 {
     int count = 0;
