@@ -162,17 +162,60 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 	    PUTBLOCK(linebuf, (int) strlen(linebuf));
 	}
     }
-    if (EntityMask & HT_E_LINK) {		/* @@@@@@@@@@ */
+    if (EntityMask & HT_E_LINK) {
+	HTLink * link = HTAnchor_mainLink((HTAnchor *) entity);
+	HTList * sublinks = HTAnchor_subLinks((HTAnchor *) entity);
+	HTLinkType linktype = NULL;
 
+	/* First look in the main link */
+	if (link && (linktype = HTLink_type(link))) {		    
+	    char * src = HTAnchor_address((HTAnchor *) entity);
+	    HTParentAnchor * dest = HTAnchor_parent(HTLink_destination(link));
+	    char * dst = HTAnchor_address((HTAnchor *) dest);
+	    char * rel_dst = HTRelative(src, dst);
+	    if (rel_dst) {
+		PUTS("Link: <");
+		PUTS(rel_dst);
+		PUTS(">");
+		sprintf(linebuf, ";rel=\"%s\"", HTAtom_name(linktype));
+		PUTBLOCK(linebuf, (int) strlen(linebuf));
+		HT_FREE(rel_dst);
+		HT_FREE(dst);
+	    }
+
+	    /* ... and then in any sublinks */
+	    if (sublinks) {
+		HTLink * pres;
+		while ((pres = (HTLink *) HTList_nextObject(sublinks))) {
+		    if ((linktype = HTLink_type(pres))) {
+			dest = HTAnchor_parent(HTLink_destination(pres));
+			dst = HTAnchor_address((HTAnchor *) dest);
+			rel_dst = HTRelative(src, dst);
+			if (rel_dst) {
+			    PUTS(", <");
+			    PUTS(rel_dst);
+			    PUTS(">");
+			    sprintf(linebuf, ";rel=\"%s\"", HTAtom_name(linktype));
+			    PUTBLOCK(linebuf, (int) strlen(linebuf));
+			    HT_FREE(rel_dst);
+			    HT_FREE(dst);
+			}
+		    }
+		}
+	    }
+	    PUTBLOCK(crlf, 2);
+	    HT_FREE(src);
+	}
     }
-    if (EntityMask & HT_E_TITLE) {		/* @@@@@@@@@@ */
-
+    if (EntityMask & HT_E_TITLE && entity->title) {
+	sprintf(linebuf, "Title: %s%c%c", entity->title, CR, LF);
+	PUTBLOCK(linebuf, (int) strlen(linebuf));
     }
     if (EntityMask & HT_E_URI) {		/* @@@@@@@@@@ */
 
     }
     if (EntityMask & HT_E_VERSION && entity->version) {
-	sprintf(linebuf, "Version: %s%c%c", entity->version, CR, LF);
+	sprintf(linebuf, "Content-Version: %s%c%c", entity->version, CR, LF);
 	PUTBLOCK(linebuf, (int) strlen(linebuf));
     }
     if (me->endHeader) {

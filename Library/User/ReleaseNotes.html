@@ -47,8 +47,13 @@ These are the things that are upcoming in the next release
 </H3>
 <UL>
   <LI>
-    Changed HTEscape to deal with silly MSDos file type escaping of &nbsp;the
-    drive name (using ":").
+    Added support for <A HREF="../src/HTMIMERq.html">writing out <TT>Link:</TT>
+    header fields</A> when <A HREF="../src/HTAccess.html">uploading a document</A>.
+    The <TT>Link:</TT> header field is use to represent link relationship between
+    documents 
+  <LI>
+    Changed <A HREF="../src/HTEscape.html">HTEscape</A> to deal with silly MSDos
+    file type escaping of &nbsp;the drive name (using ":").
   <LI>
     Added support for <A
     HREF="../../ComLine/User/CommandLine.html#auth">automatic

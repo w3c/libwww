@@ -34,21 +34,17 @@ PUBLIC void HTFileInit (void)
 {
     /*		Suffix	C-T				C-E		C-T-E 		Lang	Quality */
 
-    HTBind_add("C",	"text/plain",			NULL,		"7bit",		NULL,	0.5);	/* C++ source		*/
-    HTBind_add("JPE",	"image/jpeg",			NULL,		"binary",	NULL,	1.0);
-    HTBind_add("JPEG",	"image/jpeg",			NULL,		"binary",	NULL,	1.0);
-    HTBind_add("JPG",	"image/jpeg",			NULL,		"binary",	NULL,	1.0);
-    HTBind_add("MPE",	"video/mpeg",			NULL,		"binary",	NULL,	1.0);
-    HTBind_add("MPEG",	"video/mpeg",			NULL,		"binary",	NULL,	1.0);
-    HTBind_add("MPG",	"video/mpeg",			NULL,		"binary",	NULL,	1.0);	/* MPEG			*/
     HTBind_add("ai",	"application/postscript",	NULL,		"8bit",		NULL,	0.5);	/* Adobe Illustrator	*/
     HTBind_add("aif",	"audio/x-aiff",			NULL,		"binary",	NULL,	1.0);
     HTBind_add("aifc",	"audio/x-aiff",			NULL,		"binary",	NULL,	1.0);
     HTBind_add("aiff",	"audio/x-aiff",			NULL,		"binary",	NULL,	1.0);
     HTBind_add("au",	"audio/basic",			NULL,		"binary",	NULL,	1.0);
+    HTBind_add("asf,	"video/x-ms-asf",		NULL,		"binary",	NULL,	1.0);	/* MS Active Streaming	*/
     HTBind_add("avi",	"video/x-msvideo",		NULL,		"binary",	NULL,	1.0);	/* MS Video for Windows	*/
+    HTBind_add("bat",	"application/octet-stream",	NULL,		"binary",	NULL,	1.0);	/* Uninterpreted binary	*/
     HTBind_add("bcpio",	"application/x-bcpio",		NULL,		"binary",	NULL,	1.0);	/* Old binary CPIO	*/
     HTBind_add("bin",	"application/octet-stream",	NULL,		"binary",	NULL,	1.0);	/* Uninterpreted binary	*/
+    HTBind_add("bmp",	"image/bmp",			NULL,		"binary",	NULL,	1.0);	/* MS Windows bitmap	*/
     HTBind_add("c",	"text/plain",			NULL,		"7bit",		NULL,	0.5);	/* C source		*/
     HTBind_add("cc",	"text/plain",			NULL,		"7bit",		NULL,	0.5);	/* C++ source		*/
     HTBind_add("cdf",	"application/x-netcdf",		NULL,		"binary",	NULL,	1.0);
@@ -56,9 +52,14 @@ PUBLIC void HTFileInit (void)
     HTBind_add("conf",	"application/x-www-rules",	NULL,		"8bit",		NULL,	1.0);	/* CONFIGURATION FILE	*/
     HTBind_add("cpio",	"application/x-cpio",		NULL,		"binary",	NULL,	1.0);	/* POSIX CPIO		*/
     HTBind_add("csh",	"application/x-csh",		NULL,		"7bit",		NULL,	0.5);	/* C-shell script	*/
+    HTBind_add("css",	"text/css",			NULL,		"8bit",		NULL,	1.0);	/* CSS Stylesheet	*/
+    HTBind_add("dll",	"application/octet-stream",	NULL,		"binary",	NULL,	1.0);	/* Uninterpreted binary	*/
+    HTBind_add("doc",	"application/msword",		NULL,		"binary",	NULL,	0.5);	/* MS Word format	*/
+    HTBind_add("dot",	"application/msword",		NULL,		"binary",	NULL,	0.5);	/* MS Word format	*/
     HTBind_add("dvi",	"application/x-dvi",		NULL,		"binary",	NULL,	1.0);	/* TeX DVI		*/
     HTBind_add("eps",	"application/postscript",	NULL,		"8bit",		NULL,	0.8);
     HTBind_add("etx",	"text/x-setext",		NULL,		"7bit",		NULL,	0.9);	/* Struct Enchanced Txt	*/
+    HTBind_add("exe",	"application/octet-stream",	NULL,		"binary",	NULL,	1.0);	/* Uninterpreted binary	*/
     HTBind_add("f90",	"text/plain",			NULL,		"7bit",		NULL,	0.5);	/* Fortran 90 source	*/
     HTBind_add("gif",	"image/gif",			NULL,		"binary",	NULL,	1.0);	/* GIF			*/
     HTBind_add("h",	"text/plain",			NULL,		"7bit",		NULL,	0.5);	/* C headers		*/
@@ -74,6 +75,8 @@ PUBLIC void HTFileInit (void)
     HTBind_add("m",	"text/plain",			NULL,		"7bit",		NULL,	0.5);	/* Objective-C source	*/
     HTBind_add("man",	"application/x-troff-man",	NULL,		"7bit",		NULL,	0.5);	/* Troff with man macros*/
     HTBind_add("me",	"application/x-troff-me",	NULL,		"7bit",		NULL,	0.5);	/* Troff with me macros	*/
+    HTBind_add("mht",	"message/rfc822",		NULL,		"8bit",		NULL,	1.0);	/* MHTML format	*/
+    HTBind_add("mhtml",	"message/rfc822",		NULL,		"8bit",		NULL,	1.0);	/* MHTML format	*/
     HTBind_add("mime",	"message/rfc822",		NULL,		"8bit",		NULL,	1.0);
     HTBind_add("mov",	"video/quicktime",		NULL,		"binary",	NULL,	1.0);
     HTBind_add("movie",	"video/x-sgi-movie",		NULL,		"binary",	NULL,	1.0);	/* SGI "moviepalyer"	*/
@@ -89,7 +92,7 @@ PUBLIC void HTFileInit (void)
     HTBind_add("pgm",	"image/x-portable-graymap",	NULL,		"binary",	NULL,	1.0);	/* PBM Graymap format	*/
     HTBind_add("png",	"image/png",			NULL,		"binary",	NULL,	1.0);	/* PNG			*/
     HTBind_add("pnm",	"image/x-portable-anymap",	NULL,		"binary",	NULL,	1.0);	/* PBM Anymap format	*/
-    HTBind_add("ppm",	"image/x-portable-pixmap",	NULL,		"binary",	NULL,	1.0);	/* PBM Pixmap format	*/
+    HTBind_add("ppt",	"application/vnd.ms-powerpoint",NULL,		"binary",	NULL,	0.5);	/* MS Powerpoint	*/
     HTBind_add("ps",	"application/postscript",	NULL,		"8bit",		NULL,	0.8);
     HTBind_add("qt",	"video/quicktime",		NULL,		"binary",	NULL,	1.0);	/* QuickTime		*/
     HTBind_add("ras",	"image/cmu-raster",		NULL,		"binary",	NULL,	1.0);
@@ -116,6 +119,7 @@ PUBLIC void HTFileInit (void)
     HTBind_add("ustar",	"application/x-ustar",		NULL,		"binary",	NULL,	1.0);	/* POSIX tar		*/
     HTBind_add("wav",	"audio/x-wav",			NULL,		"binary",	NULL,	1.0);	/* Windows+ WAVE format	*/
     HTBind_add("xbm",	"image/x-xbitmap",		NULL,		"binary",	NULL,	1.0);	/* X bitmap		*/
+    HTBind_add("xls",	"application/vnd.ms-excel",	NULL,		"binary",	NULL,	0.5);	/* MS Excel 		*/
     HTBind_add("xpm",	"image/x-xpixmap",		NULL,		"binary",	NULL,	1.0);	/* X pixmap format	*/
     HTBind_add("xwd",	"image/x-xwindowdump",		NULL,		"binary",	NULL,	1.0);	/* X window dump (xwd)	*/
 
