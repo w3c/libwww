@@ -372,6 +372,9 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 **	conversion from ASCII may lose information) in case it turns
 **	out that we want the binary original.
 */
+
+    CTRACE(stderr, "Waiting..... for response\n");
+
     if (HTImProxy) {
 
 	/*

@@ -862,8 +862,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 		if (TRACE) fprintf(stderr,
 		"HTBrowse.... OUPS, lstat failed on %s (errno: %d)\n",
 				   pathname, errno);
-		DirAbort(bt);
-		goto cleanup;
+		continue;
 	    }
 	    if ((nodekey = (HTDirKey *) calloc(1, sizeof(HTDirKey))) == NULL)
 		outofmem(__FILE__, "HTFileBrowseDirectory");
