@@ -611,7 +611,11 @@ PUBLIC char * HTGetTmpFileName (const char * dir)
 */
 PUBLIC ms_t HTGetTimeInMillis (void)
 {
+#ifdef WWW_MSWINDOWS
+    return GetTickCount();
+#else /* WWW_MSWINDOWS */
     struct timeval tp;
     gettimeofday(&tp, NULL);
     return(tp.tv_sec * 1000) + (tp.tv_usec / 1000);
+#endif /* !WWW_MSWINDOWS */
 }

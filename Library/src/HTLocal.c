@@ -74,13 +74,13 @@ PUBLIC int HTFileOpen (HTNet * net, char * local, HTLocalMode mode)
 	return HT_ERROR;
     }
 #else
-    if ((net->fp = fopen(local, mode)) == NULL) {
+    if ((net->host->fp = fopen(local, mode)) == NULL) {
         HTRequest_addSystemError(request, ERR_FATAL, errno, NO, "fopen");
         return HT_ERROR;
     }
 #endif /* VMS */
     if (PROT_TRACE)
-        HTTrace("HTDoOpen.... `%s\' opened using FILE %p\n",local, net->fp);
+        HTTrace("HTDoOpen.... `%s\' opened using FILE %p\n",local, net->host->fp);
 #endif /* !NO_UNIX_IO */
 
     /*
@@ -107,7 +107,7 @@ PUBLIC int HTFileClose (HTNet * net)
 {
     int status = -1;
     if (net) {
-#ifndef NO_UNIX_IO
+#ifdef NO_UNIX_IO
 	if (net->host->fp) {
 	    if (PROT_TRACE) HTTrace("Closing..... ANSI file %p\n", net->host->fp);
 	    status = fclose(net->host->fp);
@@ -117,7 +117,7 @@ PUBLIC int HTFileClose (HTNet * net)
 	if (HTNet_socket(net) != INVSOC) {
 	    if (PROT_TRACE) HTTrace("Closing..... fd %d\n", HTNet_socket(net));
 	    status = NETCLOSE(HTNet_socket(net));
-	    HTNet_socket(net) = INVSOC;
+	    HTNet_setSocket(net, INVSOC);
 	}
 #endif /* NO_UNIX_IO */
     }

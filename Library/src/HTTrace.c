@@ -73,9 +73,13 @@ PUBLIC int HTTraceData (const char * data, const size_t len, const char * fmt, .
 
 PUBLIC void HTDebugBreak (void)
 {
+#ifdef WWW_MSWINDOWS
+    DebugBreak();
+#else /* WWW_MSWINDOWS */
     int i;
     i = 1/0;
     i = 1/1;
+#endif /* !WWW_MSWINDOWS */
     return;
 }
 

@@ -83,7 +83,7 @@ struct _HTHost {
     time_t		connecttime;		 /* Used on multihomed hosts */
 
     /* Event Management */
-    HTEvent *		events[2];	   /* reading and writing may differ */
+    HTEvent *		events[HTEvent_TYPES];/* reading and writing may differ */
     HTEventType	        registeredFor;	  /* Which actions are we blocked on */
     size_t		remainingRead;	 /* Tells HostEvent to call next net */
 

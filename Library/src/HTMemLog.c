@@ -53,7 +53,7 @@ PUBLIC int HTMemLog_flush(void)
     return HT_OK;
 }
 
-PUBLIC int HTMemLog_add(const char * buf, const size_t len)
+PUBLIC int HTMemLog_add(char * buf, size_t len)
 {
     if (LogBuff) {
 	/*
@@ -89,6 +89,9 @@ PRIVATE int HTMemLog_addTime(void)
     char buff[20];
     int len;
     struct timeval tp;
+#ifdef WWW_MSWINDOWS
+    return GetTickCount();
+#else /* WWW_MSWINDOWS */
     struct timezone tz = {300, DST_USA};
 
     gettimeofday(&tp, &tz);
@@ -96,6 +99,7 @@ PRIVATE int HTMemLog_addTime(void)
     len = sprintf(buff, "%02d:%02d:%02d.%d", tp.tv_sec/3600, (tp.tv_sec%3600)/60, tp.tv_sec%60, tp.tv_usec);
     HTMemLog_add(buff, len);
     return tp.tv_sec;
+#endif /* !WWW_MSWINDOWS */
 }
 
 PUBLIC void HTMemLog_close (void)

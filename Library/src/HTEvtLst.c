@@ -1,4 +1,4 @@
-/*				    				     HTEvntrg.c
+/*				    				     HTEvtLst.c
 **	EVENT MANAGER
 **
 **	(c) COPYRIGHT MIT 1995.
@@ -227,17 +227,11 @@ int EventOrder_add (SOCKET s, HTEventType type)
 
 PUBLIC int EventOrder_executeAndDelete (void) 
 {
-    HTList * cur;
+    HTList * cur = EventOrderList;
     EventOrder * pres;
     int i = 0;
-
-    if (cur == NULL)
-	return NO;
-#if 0
-    HTList_insertionSort(EventOrderList, EventOrderComparer);
-#endif
-    cur = EventOrderList;
     if (THD_TRACE) HTTrace("EventOrder.. execute ordered events\n");
+    if (cur == NULL) return NO;
     while ((pres = (EventOrder *) HTList_removeLastObject(cur)) && i < EVENTS_TO_EXECUTE) {
 	int ret = (*pres->event->cbf)(pres->s, pres->event->param, pres->type);
 	HT_FREE(pres);
@@ -252,10 +246,8 @@ PUBLIC BOOL EventOrder_deleteAll (void)
 {
     HTList * cur = EventOrderList;
     EventOrder * pres;
-
-    if (cur == NULL)
-	return NO;
     if (THD_TRACE) HTTrace("EventOrder.. all ordered events\n");
+    if (cur == NULL) return NO;
     while ((pres = (EventOrder *) HTList_nextObject(cur)))
 	HT_FREE(pres);
     HTList_delete(EventOrderList);
@@ -305,7 +297,7 @@ PUBLIC int HTEventList_register (SOCKET s, HTEventType type, HTEvent * event)
 		s, (void *) event->request,
 		(void *) event->cbf, (unsigned) type,
 		(unsigned) event->priority);
-    if (s==INVSOC || HTEvent_INDEX(type) > 2)
+    if (s==INVSOC || HTEvent_INDEX(type) >= HTEvent_TYPES)
 	return 0;
 #if 0
     /*
@@ -325,7 +317,7 @@ PUBLIC int HTEventList_register (SOCKET s, HTEventType type, HTEvent * event)
     sockp->s = s;
     sockp->events[HTEvent_INDEX(type)] = event;
 #ifdef WWW_WIN_ASYNC
-    if (WSAAsyncSelect(s, HTSocketWin, HTwinMsg, HTEvent_INDEX(type)) < 0)
+    if (WSAAsyncSelect(s, HTSocketWin, HTwinMsg, HTEvent_BITS(type)) < 0)
 	return HT_ERROR;
 #else /* WWW_WIN_ASYNC */
     FD_SET(s, FdArray+HTEvent_INDEX(type));
@@ -488,6 +480,71 @@ PUBLIC HTEvent * HTEventList_lookup (SOCKET s, HTEventType type)
 */
 PUBLIC BOOL HTEventInit (void)
 {
+#ifdef WWW_WIN_ASYNC
+    /*
+    **	We are here starting a hidden window to take care of events from
+    **  the async select() call in the async version of the event loop in
+    **	the Internal event manager (HTEvtLst.c)
+    */
+    static char className[] = "AsyncWindowClass";
+    WNDCLASS wc;
+    OSVERSIONINFO osInfo;
+    
+    wc.style=0;
+    wc.lpfnWndProc=(WNDPROC)AsyncWindowProc;
+    wc.cbClsExtra=0;
+    wc.cbWndExtra=0;
+    wc.hIcon=0;
+    wc.hCursor=0;
+    wc.hbrBackground=0;
+    wc.lpszMenuName=(LPSTR)0;
+    wc.lpszClassName=className;
+
+    osInfo.dwOSVersionInfoSize = sizeof(osInfo);
+    GetVersionEx(&osInfo);
+    if (osInfo.dwPlatformId == VER_PLATFORM_WIN32s || osInfo.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS)
+	wc.hInstance=GetModuleHandle(NULL); /* 95 and non threaded platforms */
+    else
+	wc.hInstance=GetCurrentProcess(); /* NT and hopefully everything following */
+    if (!RegisterClass(&wc)) {
+    	HTTrace("HTLibInit.. Can't RegisterClass \"%s\"\n", className);
+	    return NO;
+    }
+    if (!(HTSocketWin = CreateWindow(className, "WWW_WIN_ASYNC", WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, 
+                                     CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, wc.hInstance,0))) {
+	char space[50];
+       	HTTrace("HTLibInit.. Can't CreateWindow \"WWW_WIN_ASYNC\" - error:");
+	sprintf(space, "%ld\n", GetLastError());
+	HTTrace(space);
+    	return NO;
+    }
+    HTwinMsg = WM_USER;  /* use first available message since app uses none */
+#endif /* WWW_WIN_ASYNC */
+
+#ifdef _WINSOCKAPI_
+    /*
+    ** Initialise WinSock DLL. This must also be shut down! PMH
+    */
+    {
+        WSADATA            wsadata;
+	if (WSAStartup(DESIRED_WINSOCK_VERSION, &wsadata)) {
+	    if (WWWTRACE)
+		HTTrace("HTEventInit. Can't initialize WinSoc\n");
+            WSACleanup();
+            return NO;
+        }
+        if (wsadata.wVersion < MINIMUM_WINSOCK_VERSION) {
+            if (WWWTRACE)
+		HTTrace("HTEventInit. Bad version of WinSoc\n");
+            WSACleanup();
+            return NO;
+        }
+	if (APP_TRACE)
+	    HTTrace("HTEventInit. Using WinSoc version \"%s\".\n", 
+		    wsadata.szDescription);
+    }
+#endif /* _WINSOCKAPI_ */
+
     HTEvent_setRegisterCallback(HTEventList_register);
     HTEvent_setUnregisterCallback(HTEventList_unregister);
     return YES;
@@ -500,7 +557,7 @@ PUBLIC BOOL HTEventTerminate (void)
 
 #ifdef WWW_WIN_ASYNC
 
-/*	HTEventrg_get/setWinHandle
+/*	HTEventList_get/setWinHandle
 **	--------------------------
 **	Managing the windows handle on Windows
 */
@@ -518,22 +575,16 @@ PUBLIC HWND HTEventList_getWinHandle (unsigned long * pMessage)
     return (HTSocketWin);
 }
 
-PUBLIC BOOL HTEventList_asyncWindowsTimer(HTTimer * timer, ms_t millis)
-{
-    if (SetTimer(HTSocketWin, (UINT)timer, millis) > 0)
-	return YES;
-    return NO;
-}
-
 /* only responsible for WM_TIMER and WSA_AsyncSelect */    	
 PUBLIC LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     WORD event;
     SOCKET sock;
+    HTEventType type;
 
     /* timeout stuff */
     if (uMsg == WM_TIMER) {
-	HTTimer_dispatch((HTTimer *)lParam);
+	HTTimer_dispatch((HTTimer *)wParam);
 	return (0);
     }
 
@@ -542,25 +593,21 @@ PUBLIC LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 
     event = LOWORD(lParam);
     sock = (SOCKET)wParam;
-    if (event & (FD_READ | FD_ACCEPT | FD_CLOSE))
-    	if (HTEventrg_dispatch((int)sock, FD_READ) != HT_OK) {
-	    HTEndLoop = -1;
-	    return 0;
-	}
-    if (event & (FD_WRITE | FD_CONNECT))
-    	if (HTEventrg_dispatch((int)sock, FD_WRITE) != HT_OK) {
-	    HTEndLoop = -1;
-	    return 0;
-	}
-    if (event & FD_OOB)
-    	if (HTEventrg_dispatch((int)sock, FD_OOB) != HT_OK) {
-	    HTEndLoop = -1;
-	    return 0;
-	}
+    switch (event) {
+    case FD_READ: type = HTEvent_READ; break;
+    case FD_WRITE: type = HTEvent_WRITE; break;
+    case FD_ACCEPT: type = HTEvent_ACCEPT; break;
+    case FD_CONNECT: type = HTEvent_CONNECT; break;
+    case FD_OOB: type = HTEvent_OOB; break;
+    case FD_CLOSE: type = HTEvent_CLOSE; break;
+    default: HTDebugBreak();
+    }
+    if (HTEventList_dispatch((int)sock, type) != HT_OK)
+	HTEndLoop = -1;
     return (0);
 }
 
-PUBLIC int HTEventrg_loop (HTRequest * theRequest )
+PUBLIC int HTEventList_loop (HTRequest * theRequest )
 {
     MSG msg;
     while (GetMessage(&msg,0,0,0)) {

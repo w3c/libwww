@@ -44,7 +44,7 @@ PRIVATE int Timer_setWindowsTimer(HTTimer * timer)
 {
     HWND hwnd;
     UINT id;
-    hwnd HTEventList_getWinHAndle(&id);
+    hwnd = HTEventList_getWinHandle(&id);
     return SetTimer(hwnd, (UINT)timer, (UINT)timer->millis, NULL) != 0;
 }
 
@@ -52,7 +52,7 @@ PRIVATE int Timer_deleteWindowsTimer(HTTimer * timer)
 {
     HWND hwnd;
     UINT id;
-    hwnd HTEventList_getWinHAndle(&id);
+    hwnd = HTEventList_getWinHandle(&id);
     return KillTimer(hwnd, (UINT)timer) != 0;
 }
 
@@ -106,7 +106,7 @@ PUBLIC HTTimer * HTTimer_new (HTTimer * timer, HTTimerCallback * cbf,
 
 	/*	sort new element into list
 	 */
-	for (cur = Timers; 
+	for (last = cur = Timers; 
 	     (pres = (HTTimer *) HTList_nextObject(cur)) != NULL && pres->expires < expires; 
 	     last = cur);
 	if (THD_TRACE)
@@ -132,11 +132,18 @@ PUBLIC HTTimer * HTTimer_new (HTTimer * timer, HTTimerCallback * cbf,
 	}
     }
 
+#if 0
+    for (prev = &timers;
+	 *prev && millis > (*prev)->millis;
+	 prev = &(*prev)->next);
+    timer->next = *prev;
+    *prev = timer;
+#endif
+
     /*
     **	add to list if timer is new
     */
-    if (cur == NULL)
-	HTList_appendObject(Timers, (void *)timer);
+    if (cur == NULL) HTList_addObject(last, (void *)timer);
     SET_PLATFORM_TIMER(timer);
     return timer;
 }
@@ -175,7 +182,7 @@ PRIVATE int Timer_dispatch (HTList * cur, HTList * last, int now)
     else
 	HTList_quickRemoveElement(cur, last);
     if (THD_TRACE) HTTrace("Timer....... Dispatch timer %p\n", timer);
-    ret = (*timer->cbf) (timer, timer->param);
+    ret = (*timer->cbf) (timer, timer->param, HTEvent_TIMEOUT);
     if (!timer->relative)
 	HT_FREE(timer);
     return ret;
