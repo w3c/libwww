@@ -13,6 +13,7 @@
 #include "HTBind_glue.h"
 #include "HTHost_glue.h"
 #include "URLgen.h"
+#include "HTFormat_glue.h"
 #include "HTProt_glue.h"
 
 #define appname     "WWWtest"
@@ -37,6 +38,8 @@ Tcl_HashTable   HTableHost;
 Tcl_HashTable   HTableChannel;
 Tcl_HashTable   HTableChunk;
 Tcl_HashTable   HTableProt;
+Tcl_HashTable   HTableConverter;
+Tcl_HashTable   HTableCoder;
 
 typedef struct{
     char           *name;
@@ -482,7 +485,38 @@ static LibraryFunction www_commands[] = {
   { "HTProtocol_preemptive",  HTProtocol_preemptive_tcl,      NULL, 0 },
   { "HTProtocol_setTransport",HTProtocol_setTransport_tcl,    NULL, 0 },
   { "HTProtocol_transport",   HTProtocol_transport_tcl,       NULL, 0 },
-  
+  /*HTFormat*/
+  { "HTPresentation_add",     HTPresentation_add_tcl,         NULL, 0 },
+  { "HTPresentation_deleteAll",HTPresentation_deleteAll_tcl,  NULL, 0 },
+  { "HTConversion_add",       HTConversion_add_tcl,           NULL, 0 },
+  { "HTConversion_deleteAll", HTConversion_deleteAll_tcl,     NULL, 0 },
+  { "HTCoding_add",           HTCoding_add_tcl,               NULL, 0 },
+  { "HTCoding_deleteAll",     HTCoding_deleteAll_tcl,         NULL, 0 },
+  { "HTCharset_add",          HTCharset_add_tcl,              NULL, 0 },
+  { "HTCharset_deleteAll",    HTCharset_deleteAll_tcl,        NULL, 0 },
+  { "HTLanguage_add",         HTLanguage_add_tcl,             NULL, 0 },
+  { "HTLanguage_deleteAll",   HTLanguage_deleteAll_tcl,       NULL, 0 },
+  { "HTFormat_setConversion", HTFormat_setConversion_tcl,     NULL, 0 },
+  { "HTFormat_conversion",    HTFormat_conversion_tcl,        NULL, 0 },
+  { "HTFormat_addConversion", HTFormat_addConversion_tcl,     NULL, 0 },
+  { "HTFormat_setContentCoding",HTFormat_setContentCoding_tcl,NULL, 0 },
+  { "HTFormat_contentCoding", HTFormat_contentCoding_tcl,     NULL, 0 },
+  { "HTFormat_addCoding",     HTFormat_addCoding_tcl,         NULL, 0 },
+  { "HTFormat_setTransferCoding",HTFormat_setTransferCoding_tcl, NULL, 0},
+  { "HTFormat_transferCoding",HTFormat_transferCoding_tcl,    NULL, 0 },
+  { "HTFormat_addTransferCoding", HTFormat_addTransferCoding_tcl, NULL, 0},
+  { "HTFormat_setLanguage",   HTFormat_setLanguage_tcl,       NULL, 0 },
+  { "HTFormat_language",      HTFormat_language_tcl,          NULL, 0 },
+  { "HTFormat_setCharset",    HTFormat_setCharset_tcl,        NULL, 0 },
+  { "HTFormat_charset",       HTFormat_charset_tcl,           NULL, 0 },
+  { "HTFormat_deleteAll",     HTFormat_deleteAll_tcl,         NULL, 0 },
+  { "HTStreamStack",          HTStreamStack_tcl,              NULL, 0 },
+  { "HTStackValue",           HTStackValue_tcl,               NULL, 0 },
+  { "HTContentCodingStack",   HTContentCodingStack_tcl,       NULL, 0 },
+  { "HTContentEncodingStack", HTContentEncodingStack_tcl,     NULL, 0 },
+  { "HTContentDecodingStack", HTContentDecodingStack_tcl,     NULL, 0 },
+  { "HTTransferCodingStack",  HTTransferCodingStack_tcl,      NULL, 0 },
+
     { 0 }
 };
 
@@ -502,6 +536,8 @@ int WWWLib_Init(Tcl_Interp *interp) {
   Tcl_InitHashTable(&HTableHost, TCL_STRING_KEYS);
   Tcl_InitHashTable(&HTableChunk, TCL_STRING_KEYS);
   Tcl_InitHashTable(&HTableProt,  TCL_STRING_KEYS);
+  Tcl_InitHashTable(&HTableConverter, TCL_STRING_KEYS);
+  Tcl_InitHashTable(&HTableCoder, TCL_STRING_KEYS);
 
   /*added by xing, not sure if needed? */
 
@@ -530,6 +566,7 @@ void WWWLib_Terminate() {
     Tcl_DeleteHashTable(&HTableChannel);
     Tcl_DeleteHashTable(&HTableChunk);
     Tcl_DeleteHashTable(&HTableProt);
+    Tcl_DeleteHashTable(&HTableCoder);
 }
 
 /*=================================================*/
