@@ -5,9 +5,9 @@
 </HEAD>  
 <BODY>
 
-<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48.gif" ALT="W3C"></A>
-<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
-<A HREF="./"><IMG SRC="../../../Icons/WWW/design48x.gif" ALT="Architecture"></A>
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48" ALT="W3C"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x" ALT="Lib"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/design48x" ALT="Architecture"></A>
 
 <H1>Data Transportation using Streams</H1>
 
@@ -55,7 +55,7 @@ provides a uniform interface to all stream objects regardless of what
 stream sub-class they originate from. The generic stream class is
 defined with the following set of methods.
 
-<P><A NAME="Stream"><IMG ALT="Stream" SRC="../Paper/Stream.gif"></A><P>
+<P><A NAME="Stream"><IMG ALT="Stream" SRC="../Paper/Stream"></A><P>
 
 <H2>The Structured Stream Class</H2>
 
@@ -65,7 +65,7 @@ element", and "put entity". The conversion from a generic stream to a
 structured stream is done by the SGML tokenizer which recognizes basic
 SGML mark up like "&lt;", "&gt;", entities etc.
 
-<P><A NAME="StrucStream"><IMG SRC="../Paper/StrucStream.gif" ALT="StrucStream"></A><P>
+<P><A NAME="StrucStream"><IMG SRC="../Paper/StrucStream" ALT="StrucStream"></A><P>
 
 A structured stream therefore represents a structured document. The
 elements and entities in the stream are referred to by numbers, rather
@@ -115,7 +115,7 @@ stream chain which is indicated in the the figure below. Here two
 typical stream pipes are shown for data flowing from the network to
 the application and vise verse:
 
-<P><IMG SRC="InOutPipe.gif" ALT="Stream Chains"><P>
+<P><IMG SRC="InOutPipe" ALT="Stream Chains"><P>
 
 As a more specific example, the figure below shows how streams are
 cascaded when data from a remote HTTP server is handled by the
@@ -127,7 +127,7 @@ header part is parsed and so forth. In other situations the stream
 chain can be setup before data arrives if the format is known a priori
 to the data acquisition.
 
-<P><IMG SRC="InputStream.gif"> <P>
+<P><IMG SRC="InputStream"> <P>
 
 The ground symbol symbolizes that all data goes into a black hole
 where nothing is radiated from. The two stream outputs going to the

@@ -5,9 +5,9 @@
 </HEAD>
 <BODY>
 
-<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
-<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
-<A HREF="./"><IMG SRC="../../../Icons/WWW/design48x.gif" ALT="Architecture"></A>
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/design48x" ALT="Architecture"></A>
 
 <H1>DNS Cache and Host Name Canonicalization</H1>
 
@@ -30,11 +30,11 @@ made to the host, the time-to-connect is measured and a weight
 function is calculated to indicate how fast the IP-address was. The
 weight function used is
 
-<P><IMG ALT="Weight function" SRC="../Paper/Equation.gif"><P>
+<P><IMG ALT="Weight function" SRC="../Paper/Equation"><P>
 
-where <IMG ALT=alpha" SRC="../Paper/alpha.gif"> indicates the
+where <IMG ALT=alpha" SRC="../Paper/alpha"> indicates the
 sensitivity of the function and <IMG ALT="Delta"
-SRC="../Paper/Delta.gif"> is the connect time. If one IP-address is
+SRC="../Paper/Delta"> is the connect time. If one IP-address is
 not reachable a penalty of x seconds is added to the weight where the
 penalty is a function of the error returned from the "connect"
 call. The next time a request is initiated to the remote host, the

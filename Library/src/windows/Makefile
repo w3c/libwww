@@ -1,5 +1,5 @@
 # Generated automatically from Makefile.in by configure.
-# Makefile.in generated automatically by automake 0.31 from Makefile.am
+# Makefile.in generated automatically by automake 0.32 from Makefile.am
 
 # Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -32,7 +32,7 @@ pkgincludedir = $(includedir)/w3c-libwww
 
 top_builddir = ../../..
 
-INSTALL = /usr/local/bin/ginstall -c
+INSTALL = ../../../config/install-sh -c
 INSTALL_PROGRAM = ${INSTALL}
 INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_SCRIPT = ${INSTALL} -m 755
@@ -56,6 +56,7 @@ EXTRA_DIST = \
 	$(SRC) \
 	$(MAK) \
 	$(PL)
+mkinstalldirs = $(top_srcdir)/config/mkinstalldirs
 CONFIG_HEADER = ../../../config.h
 DIST_COMMON = README Makefile.am Makefile.in README
 
@@ -67,6 +68,8 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(BUILT_SOURCES) $(HEADERS) \
 	$(TEXINFOS) $(INFOS) $(MANS) $(EXTRA_DIST) $(DATA)
 DEP_DISTFILES = $(DIST_COMMON) $(SOURCES) $(BUILT_SOURCES) $(HEADERS) \
 	$(TEXINFOS) $(INFO_DEPS) $(MANS) $(EXTRA_DIST) $(DATA)
+
+TAR = tar
 default: all
 
 
@@ -81,7 +84,7 @@ TAGS:
 
 subdir = Library/src/windows
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
-dist: $(DEP_DISTFILES)
+distdir: $(DEP_DISTFILES)
 	@for file in `cd $(srcdir) && echo $(DISTFILES)`; do \
 	  test -f $(distdir)/$$file \
 	  || ln $(srcdir)/$$file $(distdir)/$$file 2> /dev/null \
@@ -99,7 +102,7 @@ install-exec:
 
 install-data: 
 
-install: install-exec install-data
+install: install-exec install-data all
 	@:
 
 uninstall: 
@@ -135,7 +138,7 @@ maintainer-clean:  maintainer-clean-generic distclean
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
 
-.PHONY: default tags dist info dvi check installcheck install-exec \
+.PHONY: default tags distdir info dvi check installcheck install-exec \
 install-data install uninstall all installdirs mostlyclean-generic \
 distclean-generic clean-generic maintainer-clean-generic clean \
 mostlyclean distclean maintainer-clean

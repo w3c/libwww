@@ -5,9 +5,9 @@
 </HEAD>  
 <BODY>
 
-<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48.gif" ALT="W3C"></A>
-<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
-<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48" ALT="W3C"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x" ALT="Lib"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x" ALT="Using"></A>
 
 <H1>Request Preferences</H1>
 
@@ -251,7 +251,7 @@ we capable of handling an image in <EM>png</EM> format inline but rely on an ext
 presenting postscript, we might set up the following list:
 
 <PRE>
-HTConversion_add (converters, "image/gif", "www/present", GifPresenter, <B>1.0</B>, 0.0, 0.0);
+HTConversion_add (converters, "image", "www/present", GifPresenter, <B>1.0</B>, 0.0, 0.0);
 
 HTPresentation_add (presenters, "application/postscript", "ghostview %s", NULL, <B>0.5</B>, 0.0, 0.0);
 </PRE>

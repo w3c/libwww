@@ -1,81 +1,52 @@
 <HTML>
 <HEAD>
-<TITLE>Platforms supported by the Library, HTTP Server and Line Mode Browser</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  8-Jan-1996 -->
-<NEXTID N="z10">
+  <!-- Changed by: Henrik Frystyk Nielsen,  8-Jan-1996 -->
+  <TITLE>Supported platforms</TITLE>
 </HEAD>
-
 <BODY>
-
-<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
-<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
-<IMG SRC="../../../Icons/WWW/Platform48x.gif">
-
-<H1>Platforms Supported</H1>
-
-This list gives an overview of the platforms where the <A HREF="../../">W3C Reference Library</A>,
-the <A HREF="../../../Daemon/">HTTP Server</A>, and the <A HREF="../../../LineMode/">Line Mode
-Browser</A> are known to compile. The Server and Line Mode Browser are both available in precompiled
-binaries from out <A HREF="../../../../Dist/">destribution archives</A> for all the platforms marked
-<CODE>binary=YES</CODE>. <P>
-
-Thanks a lot to the big group of creative contributors for the long list of hints, patches and
-additions to the make files and system dependent code! <P>
-
-<IMG SRC="../../../Icons/32x32/caution.gif" ALT="NOTE"> If your platform is <EM>not</EM> mentioned
-below then have a look at how to <A HREF="Porting.html">port the source code to your
-platform</A>. You can also have a look at the <A
-HREF="http://www.yahoo.com/Computers/Operating_Systems/">YAHOO overview of operating
-systems</A>. <P>
-
-<PRE>
-Platform	OS		Version	       Binary	Note
-<HR>
-* IBM		AIX		3.2		YES
-* HP		HP-UX/Snake	9.0		YES	<A HREF="HP.html">Shared Libraries, UserID, and GroupID</A>
-* SGI		IRIX		5.2		YES
-* PC		Linux		1.2.10		YES
-* PC		NetBSD		-		NO
-* NeXT, PC, HP	NeXTSTEP	3.3		YES
-* DEC		OSF/1		3.0		YES	<A HREF="OSF.html">Integration into inetd</A>
-* Sun		Solaris		2.3		YES	<A HREF="Solaris.html">TCP Optimizations</A>
-* Intel		Solaris		2.4		YES	<A HREF="sun_x86_5.4.html">Provided by Harm L&uuml;bben</A>
-* Sun		SunOS		4.1.3		YES	<A HREF="SunOS.html">DNS Resolution using resolver</A>
-* DEC		ULTRIX		4.3		YES
-* PC		Windows		NT, 95, 3.1	NO	<A HREF="Windows.html">See the special notes</A>
-
-  Mac		MacOS		-		NO	Uses <A HREF="http://dev.info.apple.com/mdg/Metrowerks.html">Code Warrior</A> and the <A HREF="http://err.ethz.ch/members/neeri/macintosh/gusiman/GUSI.html">GUSI socket library</A>
-
-  PC		DELL		SVR4.0 Rev 2	NO
-  PC		FreeBSD		-		NO
-  PC		BSDI BSD/386	-		NO
-  PC		SCO		3.0/3.2		YES	<A HREF="SCO.html">Provided directly by SCO</A>
-
-  PC		OS/2		-		NO	<A HREF="http://w3.ag.uiuc.edu/DLM/HTTPDforOS2.html">Provided by Thomas Seeling</A>
-
-  Amdahl UTS	UTS		2.1 and 4.2	NO
-  Apple		A/UX		3.1		NO
-  Intergraph	Clipper		C300/C400	YES
-  NCR 3000	NCR		2.01.01		NO
-  Pyramid	DC/OSx		1.1		NO
-  Unisys	Unisys		SVR4		NO
-
-  DEC		VMS		-		-	<A HREF="http://delonline.cern.ch/DISK$USER/duns/doc/vms/distribution.html">Independent Distribution</A>
-
-<HR>
-</PRE>
-
-The platforms marked with a "*" are known to compile the latest version of the source code - sorry
-but we don't have the other platforms in house! Therefor the latter might be slightly out of
-synchronization with the current versions. VMS has it's own distribution.<P>
-
-If you have any additional information on other platforms, or problems on the ones listed, please
-contact <EM>libwww@w3.org</EM> <P>
-
 <P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-@(#) $Id$
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x"></A>
+<IMG SRC="../../../Icons/WWW/Platform48x">
+<H1>
+  Platforms Supported for libwww
+</H1>
+<P>
+This list gives an overview of the platforms where the <A HREF="../../">W3C
+Reference Library</A> is known to compile. Thanks a lot to the big group
+of creative contributors for the long list of hints, patches and additions
+to the make files and system dependent code! If you have any problems or
+questions then send a mail to
+<A HREF="mailto:libwww@w3.org">libwww@w3.org</A> or to the
+<A HREF="mailto:www-lib@w3.org">www-lib@w3.org </A>mailing list
+<P>
+<PRE><TABLE BORDER CELLPADDING="2"><CAPTION ALIGN=Bottom>Platform Specific Notes
+</CAPTION><TR><TH WIDTH=75>Platform
+</TH><TH WIDTH=200>OS
+</TH><TH WIDTH=50>Version
+</TH><TH WIDTH=300>Note
+</TH></TR><TR><TD>Unix
+</TD><TD>any
+</TD><TD><P ALIGN=Center>-
+</TD><TD>Build the library using <A HREF="../../../INSTALL.html">GNU Autoconf's configure script</A>
+</TD></TR><TR><TD>Windows
+</TD><TD>Win 95, Win NT, and Win 3.1 (32 bit)
+</TD><TD><P ALIGN=Center>-
+</TD><TD>See the <A HREF="WinDLL.html">special notes for building on Windows</A> 
+</TD></TR><TR><TD>Macintosh
+</TD><TD>MacOS
+</TD><TD><P ALIGN=Center>-
+</TD><TD>Uses Code Warrior from <A HREF="http://www.metrowerks.com">Metrowerks</A> and <A HREF="http://err.ethz.ch/members/neeri/macintosh/gusiman/GUSI.html">GUSI socket library</A>
+</TD></TR><TR><TD>VAX
+</TD><TD>VMS
+</TD><TD><P ALIGN=Center>-
+</TD><TD><A HREF="http://delonline.cern.ch/DISK$USER/duns/doc/vms/distribution.html">Independent Distribution</A>
+</TD></TR></TABLE>
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  Henrik Frystyk Nielsen, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

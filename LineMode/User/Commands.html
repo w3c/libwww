@@ -1,226 +1,239 @@
 <HTML>
 <HEAD>
-<TITLE>Line Mode Browser Commands</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 19-Jan-1996 -->
-<NEXTID N="z17">
+  <TITLE>Line Mode Browser Commands</TITLE>
 </HEAD>
 <BODY>
-
-<A HREF="../../"><IMG ALT="W3C" SRC="../../Icons/WWW/w3c_48x48.gif"></A>
-<A HREF="../"><IMG ALT="LMB" SRC="../../Icons/WWW/LMB48x.gif"></A>
-<IMG ALT="MANUAL" SRC="../../Icons/WWW/doc48x.gif">
-
-<H1>Line Mode Browser Commands</H1>
-
-The following commands are available at the prompt within <A
-HREF="../">WWW Line Mode Browser</A> when used in
-interactive mode. Not all of them are applicable at all times, but the
-online help shows which commands can be used at a particular
-moment. All commands may be abbreviated and case is not
-significant. As an example, you can type "<A HREF="#put">put</A>"
-as:
-
+<P>
+<A HREF="../../"><IMG ALT="W3C" SRC="../../Icons/WWW/w3c_48x48"></A>
+<A HREF="../"><IMG ALT="LMB" SRC="../../Icons/WWW/LMB48x"></A>
+<IMG ALT="MANUAL" SRC="../../Icons/WWW/doc48x">
+<H1>
+  Line Mode Browser Commands
+</H1>
+<P>
+The following commands are available at the prompt within <A HREF="../">WWW
+Line Mode Browser</A> when used in interactive mode. Not all of them are
+applicable at all times, but the online help shows which commands can be
+used at a particular moment. All commands may be abbreviated and case is
+not significant. As an example, you can type "<A HREF="#put">put</A>" as:
 <PRE>
 	pu, put, Put, PUT, etc.
 </PRE>
-
-If the browser is run in "multi threaded" mode, then you can type in a
-new command at all times. You do not have to wait until a command is
-terminated. All requests can be interrupted by hitting 'z' (or 'Z')
-and then return:
-
+<P>
+If the browser is run in "multi threaded" mode, then you can type in a new
+command at all times. You do not have to wait until a command is terminated.
+All requests can be interrupted by hitting 'z' (or 'Z') and then return:
 <PRE>
 	<B>z</B> &lt;RETURN&gt;
 </PRE>
-
-When run in single threaded mode using the <A
-HREF="CommandLine.html#single">-single</A> command line option, it is
+<P>
+When run in single threaded mode using the
+<A HREF="CommandLine.html#single">-single</A> command line option, it is
 not possible to interrupt a request.
-
-<H3>Getting Help</H3>
-
+<H3>
+  Getting Help
+</H3>
 <DL>
-<DT><B>help</B>, <B>?</B>
-<DD>Gives a list of available commands depending on the context, the
-version number of the www program, and the <A
-HREF="../../Addressing/Addressing.html">hypertext address</A>, (or
-URL) of the document you are reading.
-<DT><B>manual</B>
-<DD>Jumps directly to the master document of the online manual.
-<DT><B>verbose</B>
-<DD>Toggles verbose mode (for maintenance purposes).
+  <DT>
+    <B>help</B>, <B>?</B>
+  <DD>
+    Gives a list of available commands depending on the context, the version
+    number of the www program, and the
+    <A HREF="../../Addressing/Addressing.html">hypertext address</A>, (or URL)
+    of the document you are reading.
+  <DT>
+    <B>manual</B>
+  <DD>
+    Jumps directly to the master document of the online manual.
+  <DT>
+    <B>verbose</B>
+  <DD>
+    Toggles verbose mode (for maintenance purposes).
 </DL>
-
-<H3>Getting around in a document</H3>
-
+<H3>
+  Getting around in a document
+</H3>
 <DL>
-<DT><B>&lt;return&gt;</B>
-<DD>Just hitting Return displays the next page (if any) of the current document.
-<DT><B>top</B>, <B>bottom</B>
-<DD>Goes to the top or the bottom of the current document
-<DT><B>up</B>, <B>down</B>
-<DD>Scrolls up or down one page in the current document.
+  <DT>
+    <B>&lt;return&gt;</B>
+  <DD>
+    Just hitting Return displays the next page (if any) of the current document.
+  <DT>
+    <B>top</B>, <B>bottom</B>
+  <DD>
+    Goes to the top or the bottom of the current document
+  <DT>
+    <B>up</B>, <B>down</B>
+  <DD>
+    Scrolls up or down one page in the current document.
 </DL>
-
-<H3>Load a Document</H3>
-
+<H3>
+  Load a Document
+</H3>
 <DL>
-<DT><B>&lt;number&gt;</B>
-<DD>Typing a number by itself follows the corresponding reference from the currently displayed document.
-
-<DT><B>back</B>
-<DD>Goes back to the document you were reading before.
-
-<DT><B>forward</B>
-<DD>Goes to the next document in the history list if any.
-
-<DT><B>goto</B> &lt;address&gt;
-
-<DD>Goes to the document represented by the given hypertext address,
-which is interpreted relatively to the current document.
-
-<DT><B>home</B>
-
-<DD>Goes back to the first document you were reading.
-
+  <DT>
+    <B>&lt;number&gt;</B>
+  <DD>
+    Typing a number by itself follows the corresponding reference from the currently
+    displayed document.
+  <DT>
+    <B>back</B>
+  <DD>
+    Goes back to the document you were reading before.
+  <DT>
+    <B>forward</B>
+  <DD>
+    Goes to the next document in the history list if any.
+  <DT>
+    <B>goto</B> &lt;address&gt;
+  <DD>
+    Goes to the document represented by the given hypertext address, which is
+    interpreted relatively to the current document.
+  <DT>
+    <B>home</B>
+  <DD>
+    Goes back to the first document you were reading.
 </DL>
-
-<H3>Search a Document</H3>
-
+<H3>
+  Search a Document
+</H3>
 <DL>
-<DT><B>find</B>, <B>keyword</B> &lt;keywords&gt;
-
-<DD> Queries the current index with the supplied keywords (separated
-by blanks). The interpretation of the keywords depends on the
-particular information server you're looking at. In most cases, it
-will search a database for entries matching the keywords, and will
-display the results with possibly links to further details. For more
-complex queries, instructions should be present in the cover page. The
-"Find" (or "Keywords") command can be omitted if the first keyword
-does not conflict with another www command.
+  <DT>
+    <B>find</B>, <B>keyword</B> &lt;keywords&gt;
+  <DD>
+    Queries the current index with the supplied keywords (separated by blanks).
+    The interpretation of the keywords depends on the particular information
+    server you're looking at. In most cases, it will search a database for entries
+    matching the keywords, and will display the results with possibly links to
+    further details. For more complex queries, instructions should be present
+    in the cover page. The "Find" (or "Keywords") command can be omitted if the
+    first keyword does not conflict with another www command.
 </DL>
-
-<H3>Upload a Document to a remote server</H3>
-
-In version 3.1 and later of the Line Mode Browser you can send a
-document to a remote HTTP server using PUT or POST. 
-
+<H3>
+  Upload a Document to a remote server
+</H3>
+<P>
+In version 3.1 and later of the Line Mode Browser you can send a document
+to a remote HTTP server using PUT or POST.
 <DL>
-<DT><A NAME="put"><B>put</B></A>
-<DD>Put a document (PUT) to remote HTTP server. You can either put a
-file on your local file system, or from a remote HTTP server. An example is:
-
-<PRE>
+  <DT>
+    <A NAME="put"><B>put</B></A>
+  <DD>
+    Put a document (PUT) to remote HTTP server. You can either put a file on
+    your local file system, or from a remote HTTP server. An example is:
+    <PRE>
 	put
 	Source: http://www.w3.org
 	Destination: http://www.my.server
 </PRE>
-
-<DT><A NAME="post"><B>post</B></A>
-<DD>Post a document (POST) to remote HTTP server. As for PUT you can
-either post a file on your local file system, or from a remote HTTP
-server. The syntax is the same as for PUT.
-
+  <DT>
+    <A NAME="post"><B>post</B></A>
+  <DD>
+    Post a document (POST) to remote HTTP server. As for PUT you can either post
+    a file on your local file system, or from a remote HTTP server. The syntax
+    is the same as for PUT.
 </DL>
-
-<H3>Delete a Document on a remote server</H3>
-
-You can also use the DELETE method i the Line Mode browser to remove a
-document on a remote HTTP server.
-
+<H3>
+  Delete a Document on a remote server
+</H3>
+<P>
+You can also use the DELETE method in the Line Mode browser to remove a document
+on a remote HTTP server.
 <DL>
-<DT><A NAME="delete"><B>delete</B></A>
-
-<DD>Deletes a document (DELETE) on remote HTTP server. Example
-
-<PRE>
+  <DT>
+    <A NAME="delete"><B>delete</B></A>
+  <DD>
+    Deletes a document (DELETE) on remote HTTP server. Example
+    <PRE>
 	delete
 	URL to delete: http://www.w3.org
 </PRE>
-
-<H3>Killer Features</H3>
-
-<DL>
-
-<DT><B>clear</B>
-
-<DD>Clears the history list
-
-<DT><B>list</B>
-
-<DD>Gives a numbered list of the links from the current document,
-giving the title of the target documents if it is known otherwise the
-URL To follow a link, type the number by itself as above. By using <A
-NAME="z9" HREF="#z11">source</A>, only the URL's are displayed.
-
-<DT><B>quit</B>, <B>exit</B>
-<DD>Leaves the application.
-
-<DT><B>recall</B> [ n ]
-<DD>Without a parameter (n), "recall" gives a numbered list of the
-documents you have visited.  To select one, type "recall" followed by
-the number.
-
-<DT><B>refresh</B>
-<DD>Refresh the screen
-
-<DT><B>reload</B>
-<DD>Forces a full reload of the document regardless of whether the
-object might already be in either the memory cache or in the local
-file cache.
-
-<DT><A NAME="z11"><B>source</B></A>
-
-<DD> Followed by another command, causes raw source to be generated
-for that command but without any MIME headers wrapped around it. This
-is useful for printing postscript files without formatting, with
-SOURCE PRINT.
-
 </DL>
-
-<H3>On Unix versions, the following extra commands are available:</H3>
-
+<H3>
+  Killer Features
+</H3>
 <DL>
-
-<DT><B>print</B>
-
-<DD> Prints the current document, without the numbered document
-references.  A background www is launched to do that, and its output
-is piped to the command defined by the environment variable
-WWW_PRINT_COMMAND ("lpr" by default). Can be used with <A NAME="z12"
-HREF="#z11">source</A> .
-
-<DT><B>&gt;</B> &lt;file&gt;
-
-<DD> Saves the current document to the given file, without the
-numbered document references. A background www is launched to do
-that. If the file exists, a ">!" will overwrite it. Can be used with
-<A NAME="z13" HREF="#z11">source</A> .
-
-<DT><B>&gt;&gt;</B> &lt;file&gt;
-
-<DD> Appends the current document to the given file without the
-numbered links. Can be used with <A NAME="z14" HREF="#z11">source</A>.
-
-<DT><B>|</B> &lt;command&gt;
-
-<DD>Pipes the current document to the given command, without the
-numbered document references. A background www is launched to do
-that. Can be used with <A NAME="z15" HREF="#z11">source</A> .
-
-<DT><B>!</B> &lt;command&gt;
-
-<DD>Executes the given shell command without leaving www.
-
-<DT><B>cd</B>, <B>lcd</B> &lt;directory&gt;
-
-<DD>Changes the local working directory. "! cd directory" won't do
-this because it applies to a subshell.
+  <DT>
+    <B>clear</B>
+  <DD>
+    Clears the history list
+  <DT>
+    <B>list</B>
+  <DD>
+    Gives a numbered list of the links from the current document, giving the
+    title of the target documents if it is known otherwise the URL To follow
+    a link, type the number by itself as above. By using
+    <A NAME="z9" HREF="#z11">source</A>, only the URL's are displayed.
+  <DT>
+    <B>quit</B>, <B>exit</B>
+  <DD>
+    Leaves the application.
+  <DT>
+    <B>recall</B> [ n ]
+  <DD>
+    Without a parameter (n), "recall" gives a numbered list of the documents
+    you have visited. To select one, type "recall" followed by the number.
+  <DT>
+    <B>refresh</B>
+  <DD>
+    Refresh the screen
+  <DT>
+    <B>reload</B>
+  <DD>
+    Forces a full reload of the document regardless of whether the object might
+    already be in either the memory cache or in the local file cache.
+  <DT>
+    <A NAME="z11"><B>source</B></A>
+  <DD>
+    Followed by another command, causes raw source to be generated for that command
+    but without any MIME headers wrapped around it. This is useful for printing
+    postscript files without formatting, with SOURCE PRINT.
 </DL>
-
+<H3>
+  On Unix versions, the following extra commands are available:
+</H3>
+<DL>
+  <DT>
+    <B>print</B>
+  <DD>
+    Prints the current document, without the numbered document references. A
+    background www is launched to do that, and its output is piped to the command
+    defined by the environment variable WWW_PRINT_COMMAND ("lpr" by default).
+    Can be used with <A NAME="z12" HREF="#z11">source</A> .
+  <DT>
+    <B>&gt;</B> &lt;file&gt;
+  <DD>
+    Saves the current document to the given file, without the numbered document
+    references. A background www is launched to do that. If the file exists,
+    a "&gt;!" will overwrite it. Can be used with
+    <A NAME="z13" HREF="#z11">source</A> .
+  <DT>
+    <B>&gt;&gt;</B> &lt;file&gt;
+  <DD>
+    Appends the current document to the given file without the numbered links.
+    Can be used with <A NAME="z14" HREF="#z11">source</A>.
+  <DT>
+    <B>|</B> &lt;command&gt;
+  <DD>
+    Pipes the current document to the given command, without the numbered document
+    references. A background www is launched to do that. Can be used with
+    <A NAME="z15" HREF="#z11">source</A> .
+  <DT>
+    <B>!</B> &lt;command&gt;
+  <DD>
+    Executes the given shell command without leaving www.
+  <DT>
+    <B>cd</B>, <B>lcd</B> &lt;directory&gt;
+  <DD>
+    Changes the local working directory. "! cd directory" won't do this because
+    it applies to a subshell.
+</DL>
 <P>
-<HR>
-<ADDRESS><A HREF="../../People.html#BernersLee">Tim BL</A>, and <A HREF="../../People.html#Frystyk">Henrik Frystyk</A>,
-<A HREF="mailto:www-bug@w3.org">www-bug@w3.org</A>, November 1995</ADDRESS>
-</BODY>
-</HTML>
+  <HR>
+<ADDRESS>
+  <A HREF="../../People.html#BernersLee">Tim BL</A>, and
+  <A HREF="../../People.html#Frystyk">Henrik Frystyk</A>,
+  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, @(#) $Id: Date Author State
+  $
+</ADDRESS>
+</BODY></HTML>

@@ -1,109 +1,131 @@
 <HTML>
 <HEAD>
-<TITLE>Status of the W3C Line Mode Browser</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 22-Nov-1995 -->
-<NEXTID N="z15">
+  <TITLE>Status of the W3C Line Mode Browser</TITLE>
 </HEAD>
 <BODY>
-
-<A HREF="../"><IMG ALT="W3C" SRC="../Icons/WWW/w3c_48x48.gif"></A>
-<IMG ALT="LMB" SRC="../Icons/WWW/LMB48x.gif">
-
-<H1>W3C Line Mode Browser</H1>
-
-The Line Mode Browser (www) is a character based Web browser developed
-for use on terminals. It is developed in C and serves as an example of
-a client application using the <A HREF="../Library/">W3C Reference
-Library</A> and as a test-tool for quick access to the Web from
-scripts, cron jobs etc. It can be run in interactive mode,
-non-interactive mode, as a proxy client, and it gives a variety of
-possibilities for data format conversion, filtering etc. It is
-primarily intended as a test-tool for quick access to the Web or used
-in scripts, cron jobs etc.<P>
-
-<DL>
-
-<DT>Authors
-<DD><A HREF="../People.html#Frystyk">Henrik Frystyk Nielsen</A>,
-<A HREF="../People.html#BernersLee">Tim Berners-Lee</A>, and
-<A HREF="../People.html#Pellow">Nicola Pellow</A>
-
-<DT>Status
-<DD>Stable current version used as test tool for the <A HREF="../Library/">W3C Reference Library</A>
-
-<DT>Plans
-<DD>New releases of the Line Mode Browser follows the releases of the <A HREF="../Library/">W3C
-Reference Library</A> very closely.
-
-<DT>Platforms
-
-<DD>The browser is known to compile on the following <A HREF="../Library/User/Platform/">
-Platforms</A>.  See also the <A
-HREF="http://delonline.cern.ch/disk$user/duns/doc/vms/distribution.html">VMS version</A>.
-
-<DT>Getting the Source Code
-<DD>The latest source code is available in the following formats:
-
-<UL>
-<LI><A HREF="../../Dist/linemode/www_src.tar.Z">compressed tar file (ca. 137k)</A>
-<LI><A HREF="../../Dist/linemode/www_src.tar.gz">gzip'ed tar file (ca. 87k)</A>
-<LI><A HREF="../../Dist/linemode/www_src.zip">zip file (ca. 125k)</A>
-</UL>
-
-Please note that you also need the <A HREF="../Library/">W3C Reference Library</A> in order to
-compile the browser. You can find <A HREF="../../Dist/linemode/old">old versions</A> of the source
-code in our <A HREF="../../Dist/">distribution archives</A> and you can browse through the <A
-HREF="src/">latest source files</A> on our server! A packet contains the following
-components:
-
-<UL>
-<LI>Installation guide
-<LI>Source code
-<LI>Platform dependent make files
-<LI>Hypertext documentation
-<LI>Copyright statements and other legal mumbo jumbo
-</UL>
-
-You can see how to unpack and compile the software in the <A HREF="../README.html">README</A> file,
-and you can find more information on the arthitecture in the <A
-HREF="User/Internals.html">Internals</A> and how to use it in the <A
-HREF="User/QuickGuide.html">User's Guide</A>.
-
-<DT>Copyright
-<DD>W3C Line Mode Browser is covered by the <A HREF="../COPYRIGHT.html">MIT Copyright Statement</A>,
-and with <A HREF="../CERN.html">acknowledgement to CERN</A>
-
-<DT>Patches, Bug fixes, etc..
-<DD>When you have modifications and want them to go into our code base then please fill out the form
-for <A HREF="../PATCHES.html">Corrections, Modifications, and Patches</A> and send it to
-us. Otherwise we can not use the patch!
-
-</DL>
-
-<HR>
-
-<H2>More information</H2>
-
-<UL>
-
-<LI><A HREF="User/">Documentation Overview</A>
-<LI><A HREF="../Library/User/ReleaseNotes.html">Release Notes</A>
-<LI><A HREF="../INSTALL.html">Installation Guide</A>
-<LI><A HREF="User/Patch/">Known Bugs and Patches</A> 
-<LI><A HREF="User/Customisation.html">Customization</A><P>
-
-<LI><A HREF="User/QuickGuide.html">Quick User Guide</A>
-<LI><A HREF="User/Commands.html">Commands</A>
-<LI><A HREF="User/CommandLine.html">Command Line Options</A> <P>
-
-<LI><A HREF="User/Features.html">Change History</A>
-<LI><A HREF="User/Internals.html">Internals</A>
-<LI><A HREF="../Gateways/WAISGate.html">Compiling for WAIS access</A>
-</UL>
-
 <P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:www-bug@w3.org">www-bug@w3.org</A>, November 1995</ADDRESS>
-
-</BODY>
-</HTML>
+<A HREF="../"><IMG ALT="W3C" SRC="../Icons/WWW/w3c_48x48"></A>
+<IMG ALT="LMB" SRC="../Icons/WWW/LMB48x">
+<H1>
+  W3C Line Mode Browser
+</H1>
+<P>
+The Line Mode Browser (www) is a character based Web browser developed for
+use on terminals. It is developed in C and serves as an example of a client
+application using the <A HREF="../Library/">W3C Reference Library</A> and
+as a test-tool for quick access to the Web from scripts, cron jobs etc. It
+can be run in interactive mode, non-interactive mode, as a proxy client,
+and it gives a variety of possibilities for data format conversion, filtering
+etc. It is primarily intended as a test-tool for quick access to the Web
+or used in scripts, cron jobs etc.
+<P>
+<DL>
+  <DT>
+    Authors
+  <DD>
+    <A HREF="../People.html#Frystyk">Henrik Frystyk Nielsen</A>,
+    <A HREF="../People.html#BernersLee">Tim Berners-Lee</A>, and
+    <A HREF="../People.html#Pellow">Nicola Pellow</A>
+  <DT>
+    Status
+  <DD>
+    Stable current version used as test tool for the <A HREF="../Library/">W3C
+    Reference Library</A>
+  <DT>
+    Plans
+  <DD>
+    New releases of the Line Mode Browser follows the releases of the
+    <A HREF="../Library/">W3C Reference Library</A> very closely.
+  <DT>
+    Platforms
+  <DD>
+    The browser is known to compile on the following
+    <A HREF="../Library/User/Platform/">Platforms</A>. See also the
+    <A HREF="http://delonline.cern.ch/disk$user/duns/doc/vms/distribution.html">VMS
+    version</A>.
+  <DT>
+    Getting the Source Code
+  <DD>
+    The latest source code is available in the following formats:
+    <UL>
+      <LI>
+	<A HREF="../../Dist/linemode/www_src.tar.Z">compressed tar file (ca. 137k)</A>
+      <LI>
+	<A HREF="../../Dist/linemode/www_src.tar.gz">gzip'ed tar file (ca. 87k)</A>
+      <LI>
+	<A HREF="../../Dist/linemode/www_src.zip">zip file (ca. 125k)</A>
+    </UL>
+    <P>
+    Please note that you also need the <A HREF="../Library/">W3C Reference
+    Library</A> in order to compile the browser. You can find
+    <A HREF="../../Dist/linemode/old">old versions</A> of the source code in
+    our <A HREF="../../Dist/">distribution archives</A> and you can browse through
+    the <A HREF="src/">latest source files</A> on our server! A packet contains
+    the following components:
+    <UL>
+      <LI>
+	Installation guide
+      <LI>
+	Source code
+      <LI>
+	Platform dependent make files
+      <LI>
+	Hypertext documentation
+      <LI>
+	Copyright statements and other legal mumbo jumbo
+    </UL>
+    <P>
+    You can see how to unpack and compile the software in the
+    <A HREF="../README.html">README</A> file, and you can find more information
+    on the arthitecture in the <A HREF="User/Internals.html">Internals</A> and
+    how to use it in the <A HREF="User/QuickGuide.html">User's Guide</A>.
+  <DT>
+    Copyright
+  <DD>
+    W3C Line Mode Browser is covered by the <A HREF="../COPYRIGHT.html">MIT Copyright
+    Statement</A>, and with <A HREF="../CERN.html">acknowledgement to CERN</A>
+  <DT>
+    Patches, Bug fixes, etc..
+  <DD>
+    When you have modifications and want them to go into our code base then please
+    fill out the form for <A HREF="../PATCHES.html">Corrections, Modifications,
+    and Patches</A> and send it to us. Otherwise we can not use the patch!
+</DL>
+<P>
+  <HR>
+<H2>
+  More information
+</H2>
+<UL>
+  <LI>
+    <A HREF="User/">Documentation Overview</A>
+  <LI>
+    <A HREF="../Library/User/ReleaseNotes.html">Release Notes</A>
+  <LI>
+    <A HREF="../INSTALL.html">Installation Guide</A>
+  <LI>
+    <A HREF="User/Patch/">Known Bugs and Patches</A>
+  <LI>
+    <A HREF="User/Customisation.html">Customization</A>
+    <P>
+  <LI>
+    <A HREF="User/QuickGuide.html">Quick User Guide</A>
+  <LI>
+    <A HREF="User/Commands.html">Commands</A>
+  <LI>
+    <A HREF="User/CommandLine.html">Command Line Options</A>
+    <P>
+  <LI>
+    <A HREF="User/Features.html">Change History</A>
+  <LI>
+    <A HREF="User/Internals.html">Internals</A>
+  <LI>
+    <A HREF="../Gateways/WAISGate.html">Compiling for WAIS access</A>
+</UL>
+<P>
+  <HR>
+<ADDRESS>
+  Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, @(#) $Id:Date
+  Author State $
+</ADDRESS>
+</BODY></HTML>

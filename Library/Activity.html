@@ -1,161 +1,121 @@
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<HTML>
 <HEAD>
-<TITLE>Library: Activity</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  2-Apr-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen,  2-Apr-1996 -->
+  <TITLE>W3C Reference Library Activities</TITLE>
 </HEAD>
 <BODY>
-
-<A HREF="../"><IMG alt="W3C" SRC="../Icons/WWW/w3c_48x48"></A>
-<a href="./"><img alt="Library" src="../Icons/WWW/Lib48x.gif"></a>
-
-<H1>Library: Activity</H1>
-
-This is the W3C statement of direction concerning <A HREF="./">Reference Code</A>. It is part of the
-<A HREF="../Consortium/Prospectus/ActivityList">W3C activity list</A>. <P>
-
-The <A HREF="./">W3C Reference Library</A>, a.k.a. libwww has been part of the World-Wide Web almost
-from the beginning. Tim Berners-Lee designed and implemented the first version back in November 1992
-in order to demonstrate the Web model. The purpose of the Library has always been to demonstrate new
-features and to make it easy to build new Web applications and to spread the Web. <P>
-
-Many people have picked up the Library and used it in a variety of contexts. Applications such as
-Lou Montulli's Lynx character based client, Mosaic Web browser by Marc Andreesen and Eric Bena, and
-the CERN server by Ari Luotonen were all based on later versions of libwww. Later on, applications
-like the Arena browser by Dave Raggett and H&aring;kon W. have been added to the list. <P>
-
-I started working on libwww as part of my Master's Project at <A HREF="http://www.cern.ch">CERN</A>
-in February 1994 just when Mosaic started to be known by a fast growing community. In February 1996,
-exactly 2 years later, version 4.0 was released. Much has changed since the first version: The
-libwww has found a new home at <A HREF="../">W3C</A> and the functionality has evolved, but the
-spirit is still the same - the purpose of libwww is to provide an easy interface for writing Web
-applications so that the Web community can explore the potential of the Web and the Internet. <P>
-
-<H2>Status of libwww version 4.0</H2>
-
-The Library was first developed on Unix machines but the user profile of the Web has changed
-dramatically since then. One of the main goals for the 4.0 version was to integrate libwww with MS
-Windows and the Mac environments in order to provide a freely available set of Web APIs for building
-applications on MS Windows and Macintosh machines as well as Unix.<P>
-
-The second main goal was to stabilize the APIs so that people could rely on the same features being
-there from version to version. This goal was also fulfilled as libwww is now a highly modular package
-consisting of a small core to which the application provider can hook exactly the functionality
-needed for a particular application. <P>
-
-On the other hand, the documentation is still less than ideal. Though it has shown recent
-improvement, it is still far from the standards known from many popular software packages, for
-example the X library. I truly believe that this is one of the main obstacles that prevents many
-people from getting started using libwww for building Web applications. That is a shame as the
-interest is there - in the period from January 12 to February 12, Version 4.0 of the Library was
-down loaded from our FTP server more than 5000 times. Also, the discussions on the <A
-HREF="http://lists.w3.org/Archives/Public/www-lib/">libwww mailing list</A> show that people are in
-fact using it but find it difficult to extract many of the details.
-
-<H3>Current Documentation</H3>
-
-All of the <A HREF="User/">current documentation</A> is written as HTML pages, as hypertext provides
-a good way of integrating the <A HREF="src/">C based source code</A> itself into the
-documentation. As an example, all the include files are generated from HTML so that the
-documentation automatically is kept up to date.
-
-<DL>
-
-<DT><A HREF="User/Architecture/"><IMG ALT="Architecture"
-SRC="../Icons/WWW/design48x.gif"></A> <B>Library Architecture</B>
-
-<DD>This document describes the architecture of the Library in generic terms without referring
-directly to the code itself. It is meant to give an overview of the design which is required if you
-intend to enhance the Library.
-
-<DT><A HREF="User/Using/"><IMG SRC="../Icons/WWW/guide48x.gif"
-ALT="Using"></A> <B>User's Guide</B>
-
-<DD>This guide describes the "user's view" of the W3C Reference Library. It concentrates on
-describing the API and how the application programmer can use the Library. It also describes who is
-responsible for memory management, how to initialize modules, etc. Reading this guide should be
-sufficient in order to use the Library without being aware of exactly what is going on underneath
-the interface.
-
-<DT><A HREF="Guide/"><IMG ALT="Internals"
-SRC="../Icons/WWW/internals48x.gif"></A> <B>Internals</B>
-
-<DD>This is the overall set of interfaces in the W3C Reference Library. An interface can cover
-multiple related C modules and it is defined by a <B>WWW*.h</B> include file, for example <A
-HREF="src/WWWCore.html">WWWCore.h</A>. On <A
-HREF="User/Platform/WinDLL.html">Windows platforms</A>, each interface corresponds
-to a DLL with a DLL definition file defining all exported methods and data objects.
-</DL>
-
-<H3>Example Applications</H3>
-
-We have a small set of example applications to show how to use libwww and how to
-build applications on top of it.
-
-<DL>
-
-<DT><A HREF="Examples/">A set of really simple examples</A>
-<DD>The very basics for starting libwww and loading a URL etc.
-
-<DT><A HREF="../LineMode/"><IMG SRC="../Icons/WWW/LMB48x.gif" ALT="LMB"></A> <B>Line
-Mode Browser</B>
-
-<DD>The Line Mode Browser is a character-based Web browser developed for use on terminals. It is an
-example of a client application using the <A HREF="./">libwww</A>. It is also useful as a test tool
-for quick access to the Web from scripts, cron jobs etc.
-
-<DT><A HREF="../ComLine/"><IMG SRC="../Icons/WWW/lines48x.gif" ALT="ComLine"></A>
-<B>Command Line Tool</B>
-
-<DD>This application which shows how to use the W3C Reference Library for building simple batch mode
-tools for accessing the Web.
-
-<DT><A HREF="../Robot/"><IMG SRC="../Icons/WWW/robot48x.gif" ALT="Robot"></A> <B>Mini Robot</B>
-<DD>A simple application which shows how to use the W3C Reference Library for building robots
-
-<DT><A HREF="../MiniServ/"><IMG SRC="../Icons/WWW/serv48x.gif" ALT="MiniServ"></A> <B>Mini Server</B>
-<DD>A small example application showing how to implement a server or a proxy using the W3C
-Reference Library.
-
-<DT><A HREF="../Listen/"><IMG SRC="../Icons/WWW/listen48x.gif" ALT="Listen"></A> <B>Listen</B>
-<DD>A small tool that can listen on a socket. Good for debugging clients.
-
-</DL>
-
-<H2>Plans for Version 4.1</H2>
-
-The next version of the Library and the example application will be release by <B>June 1996</B> as
-part of the biaanual releases that W3C are commited to do. As a general rule we try to put as much
-new featues in as possible and therefore the following list is to be considered a subset :-)
-
-<DL>
-
-<DT>Autoconf
-<DD>The next version will support autoconf
-
-<DT>Memory Resource Handler
-<DD>The Library needs a mechanism to allow to get around situations when memory is exhausted.
-
-<DT>Better debug and trace messages facilities
-<DD>Currently all debug messages are included in all versions of the Library. In order to
-distinguish between debug versions and release versions, the debug messages should only be included
-in the debug version.
-
-<DT>Experimenting with HTTP protocol implementations including HTTP/1.x, PEP and <A HREF="../../../Protocols/HTTP-NG/">HTTP-NG</A>
-<DD>An important part of the W3C software is to provide reference implementations of the Web
-protocols. The next release will provide important new features in this area.
-
-<DT>Integration with <A HREF="ftp://ftp.parc.xerox.com/pub/ilu/ilu.html">ILU</A> from Xerox Parc
-<DD>Integrating ILU and libwww is part of the experiments with HTTP-NG and it also allows for better
-integration between various programming languages.
-
-</DL>
-
-
 <P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-@(#) $Id$
+<A HREF="../"><IMG alt="W3C" SRC="../Icons/WWW/w3c_48x48"></A>
+<A HREF="../Consortium/Prospectus/ActivityList"><IMG alt="Activities" src="../Icons/WWW/activity_48x48"></A>
+<A href="./"><IMG alt="Library" src="../Icons/WWW/Lib48x"></A>
+<H1>
+  W3C Reference Library Activities
+</H1>
+<P>
+The W3C Reference Library provides a basic, application independent API for
+building Web applications. The purpose of the Library is to demonstrate new
+features, act as a reference implementation for W3C specifications and to
+make it easy to build new Web applications. This is the W3C statement of
+direction concerning <A HREF="./">W3C Reference Library</A> and it is part
+of the <A HREF="../Consortium/Prospectus/ActivityList">W3C activity list</A>.
+<H2>
+  Background
+</H2>
+<P>
+The <A HREF="./">W3C Reference Library</A>, a.k.a. libwww has been part of
+the World Wide Web almost from the beginning. Tim Berners-Lee designed and
+implemented the first version back in November 1992 in order to demonstrate
+the Web model. Many people have picked up the Library and used it in a variety
+of contexts. Applications such as Lou Montulli's Lynx character based client,
+Mosaic Web browser by Marc Andreesen and Eric Bena, and the CERN server by
+Ari Luotonen were all based on later versions of libwww. Later on, applications
+like the Arena browser by Dave Raggett and H&aring;kon W. have been added
+to the list.
+<H2>
+  Current Status
+</H2>
+<P>
+The Library was first developed on Unix machines but the user profile of
+the Web has changed dramatically since then. One of the main goals for the
+4.0 version was to integrate libwww with MS Windows and the Mac environments
+in order to provide a freely available set of Web APIs for building applications
+on MS Windows and Macintosh machines as well as Unix.
+<P>
+The second main goal was to stabilize the APIs so that people could rely
+on the same features being there from version to version. This goal was also
+fulfilled as libwww is now a highly modular package consisting of a small
+core to which the application provider can hook exactly the functionality
+needed for a particular application.
+<H2>
+  Example Applications
+</H2>
+<P>
+We maintain a number of small example applications in order to guarantee
+diversity in the libwww architecture and to show how to use libwww and how
+to build applications on top of it.
+<P>
+<DL>
+  <DT>
+    <A HREF="../LineMode/"><IMG SRC="../Icons/WWW/LMB48x" ALT="LMB"></A> <B>Line
+    Mode Browser</B>
+  <DD>
+    The Line Mode Browser is a character-based Web browser developed for use
+    on terminals. It is an example of a client application using the
+    <A HREF="./">libwww</A>. It is also useful as a test tool for quick access
+    to the Web from scripts, cron jobs etc.
+  <DT>
+    <A HREF="../ComLine/"><IMG SRC="../Icons/WWW/lines48x" ALT="ComLine"></A>
+    <B>Command Line Tool</B>
+  <DD>
+    This application which shows how to use the W3C Reference Library for building
+    simple batch mode tools for accessing the Web.
+  <DT>
+    <A HREF="../Robot/"><IMG SRC="../Icons/WWW/robot48x" ALT="Robot"></A> <B>Mini
+    Robot</B>
+  <DD>
+    A simple application which shows how to use the W3C Reference Library for
+    building robots
+  <DT>
+    <A HREF="../MiniServ/"><IMG SRC="../Icons/WWW/serv48x" ALT="MiniServ"></A>
+    <B>Mini Server</B>
+  <DD>
+    A small example application showing how to implement a server or a proxy
+    using the W3C Reference Library.
+  <DT>
+    <A HREF="../Listen/"><IMG SRC="../Icons/WWW/listen48x" ALT="Listen"></A>
+    <B>Listen</B>
+  <DD>
+    A small tool that can listen on a socket. Good for debugging clients.
+</DL>
+<H2>
+  Next Step
+</H2>
+<P>
+We are actively looking into how the experiences from building the libwww
+API fits into the paradigm of <A HREF="../MobileCode/">mobile code</A> being
+an important part of the Web model. Especially, we are looking to integration
+between libwww and
+<A HREF="ftp://parcftp.parc.xerox.com/pub/ilu/ilu.html">ILU</A> and also
+how we can integrate libwww with other languages such as Tcl and Java.
+<P>
+For a more specific list of new features, please look at the
+<A HREF="User/Features/Workinglist.html">Library work list </A>for the next
+release
+<P>
+  <HR>
+<FORM action="http://www.netmind.com/cgi-bin/uncgi/url-mind/URL-minder/URL-minder.txt">
+  Enter your e-mail address to receive e-mail (courtesy of
+  <A href="http://www.netmind.com/">NetMind</A>) when this page is updated:
+  <INPUT name="required-email">
+  <INPUT type=hidden value="http://www.w3.org/pub/WWW/Library/Activity.html"
+      name=url> 
+  <INPUT type=submit value="Register">
+</FORM>
+<P>
+<A href="../"><IMG SRC="../Icons/WWW/w3c_48x48" ALT="W3C"></A>
+<ADDRESS>
+  Henrik Frystyk Nielsen, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
-
+</BODY></HTML>

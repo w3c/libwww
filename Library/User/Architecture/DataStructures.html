@@ -6,9 +6,9 @@
 </HEAD>
 <BODY>
 
-<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
-<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
-<A HREF="./"><IMG SRC="../../../Icons/WWW/design48x.gif" ALT="Architecture"></A>
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/design48x" ALT="Architecture"></A>
 
 <H1>Core Objects and Managers</H1>
 
@@ -20,11 +20,11 @@ objects <EM>and</EM> the relationship between the core objects themselves. <P>
 The figure below is very similar to the one in section "<A HREF="ControlFlow.html">Control and Data
 Flow</A>", but it also introduces the core objects associated.
 
-<P><IMG SRC="ModStruc.gif" ALT="Structures"><P>
+<P><IMG SRC="ModStruc" ALT="Structures"><P>
 
 <DL>
 
-<DT><IMG ALIGN=BOTTOM SRC="R.gif" ALT="R"> <A NAME="request" HREF="../../src/HTReq.html">HTRequest</A>
+<DT><IMG ALIGN=BOTTOM SRC="R" ALT="R"> <A NAME="request" HREF="../../src/HTReq.html">HTRequest</A>
 
 <DD>The <EM>HTRequest</EM> object contains information necessary to handle a request issued by the
 application. It contains information about the method to be used (for example "GET" and "PUT"), user
@@ -35,7 +35,7 @@ application, but the Library is capable of creating them on its own under certai
 example is when the Library creates a "Post Web" as explained in section "<A
 HREF="PostWeb.html">Building a POST Web, an API for PUT and POST</A>".
 
-<DT><IMG ALIGN=BOTTOM SRC="A.gif" ALT="A"> <A NAME="anchor" HREF="../../src/HTAnchor.html#anchor">HTAnchor</A> 
+<DT><IMG ALIGN=BOTTOM SRC="A" ALT="A"> <A NAME="anchor" HREF="../../src/HTAnchor.html#anchor">HTAnchor</A> 
 
 <DD><EM>HTAnchor</EM> objects represent any document which may be the source or destination of
 hypertext links. The HTAnchor object contains all information about the object, whether it has been
@@ -45,7 +45,7 @@ information about whole data objects and the latter contains about subparts of a
 HTAnchor object is a generic superclass of both parent anchors and child anchors. Section "<A
 HREF="Anchors.html">Anchor Objects</A>" describes anchors and their relations in more detail.
 
-<DT><IMG ALIGN=BOTTOM SRC="N.gif" ALT="N"> <A NAME="net" HREF="../../src/HTNet.html">HTNet</A>
+<DT><IMG ALIGN=BOTTOM SRC="N" ALT="N"> <A NAME="net" HREF="../../src/HTNet.html">HTNet</A>
 
 <DD>The <EM>HTNet</EM> is a network object which contains all information required to read and write
 from the network. It contains the current socket descriptor (or ANSI C file descriptor) used for
@@ -56,14 +56,14 @@ to optimize access on multi homed hosts. The HTNet object is also a key element 
 model where it is used to identify a "thread". The libwww thread model is explained in "<A
 HREF="Threads.html">Description of libwww Threads</A>".
 
-<DT><IMG ALIGN=BOTTOM SRC="E.gif" ALT="E"> <A NAME="error" HREF="../../src/HTError.html">HTError</A>
+<DT><IMG ALIGN=BOTTOM SRC="E" ALT="E"> <A NAME="error" HREF="../../src/HTError.html">HTError</A>
 
 <DD>The <EM>HTError</EM> object contains information about errors occured along the way when a
 request is handled by the Library. Errors can be nested and the object is independent of the natural
 langue used to pass information to the User. The definition of the messages may be handled by the
 application - or it can ignore it all together.
 
-<DT><IMG ALIGN=BOTTOM SRC="S.gif" ALT="S"> <A NAME="stream" HREF="../../src/HTStream.html">HTStream</A> 
+<DT><IMG ALIGN=BOTTOM SRC="S" ALT="S"> <A NAME="stream" HREF="../../src/HTStream.html">HTStream</A> 
 
 <DD>The <A HREF="../../src/HTStream.html">stream</A> object accepts sequences of
 characters. It is a destination of data which can be thought of much like an output stream in C++ or
@@ -77,7 +77,7 @@ the two classes is described in detail in section "<A HREF="Streams.html">Stream
 
 The following figure illustrates the relations between the core objects themselves.
 
-<P><IMG SRC="DataStruc.gif" ALT="Structures"><P>
+<P><IMG SRC="DataStruc" ALT="Structures"><P>
 
 <OL>
 
