@@ -106,7 +106,9 @@ SPECIFIC = \
 	$(DOC)/Patch/*.fix \
 	$(LM)DefaultStyles.c.classic \
 	$(LM)DefaultStyles.c.modern \
-	$(WIN)/WWW* \
+	$(WIN)/*.ico \
+	$(WIN)/*.mak \
+	$(WIN)/*.def \
 	$(WIN)/*.c \
 	$(WIN)/*.h \
 	$(VMS)/descrip.mms \
