@@ -258,7 +258,7 @@ PUBLIC BOOL HTBind_setBinding ARGS5(CONST char *,	suffix,
 **  concatenated using the first delimiter in HTDelimiters.
 **  If no suffix is found, NULL is returned.
 */
-PUBLIC CONST char * HTBind_getSuffix ARGS1(HTParentAnchor *, anchor)
+PUBLIC char * HTBind_getSuffix ARGS1(HTParentAnchor *, anchor)
 {
     int cnt;
     HTList *cur;

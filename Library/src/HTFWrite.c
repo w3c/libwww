@@ -770,10 +770,10 @@ PUBLIC HTStream* HTSaveAndExecute ARGS5(
 	
     /* Let's find a hash name for this file */
     {
-	CONST char *suffix = HTBind_getSuffix(request->anchor);
+	char *suffix = HTBind_getSuffix(request->anchor);
 	fnam = get_filename(HTTmpRoot, HTAnchor_physical(request->anchor),
 			    suffix);
-	FREE((char *) suffix);
+	FREE(suffix);
 	if (!fnam) {
 	    HTAlert("Can't find a suitable file name");
 	    return HTBlackHole();
@@ -843,7 +843,7 @@ PUBLIC HTStream* HTSaveLocally ARGS5(
 	
     /* Let's find a file name for this file */
     {
-	CONST char *suffix = HTBind_getSuffix(request->anchor);
+	char *suffix = HTBind_getSuffix(request->anchor);
 	fnam = get_filename(HTTmpRoot, HTAnchor_physical(request->anchor),
 			    suffix);
 	answer = HTPrompt("Give name of file to save in", fnam ? fnam : "");
@@ -851,7 +851,7 @@ PUBLIC HTStream* HTSaveLocally ARGS5(
 	    FREE(fnam);
 	    return HTBlackHole();
 	}
-	FREE((char *) suffix);
+	FREE(suffix);
 	FREE(fnam);
     }
     
