@@ -738,7 +738,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		}
 		HTRequest_killPostWeb(request);
 	    }
-	    HTTPCleanup(request, HT_ERROR);
+	    HTTPCleanup(request, status);
 	    return HT_OK;
 	    break;
 	}

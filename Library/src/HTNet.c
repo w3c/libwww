@@ -491,7 +491,6 @@ PRIVATE BOOL delete_object (HTNet *net, int status)
     if (WWWTRACE)
 	HTTrace("HTNet_delete Remove net object %p\n", net);
     if (net) {
-	int status = 0;
 
 	/* Free stream with data FROM network to application */
 	if (net->target) {

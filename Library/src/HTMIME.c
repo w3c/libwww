@@ -556,12 +556,12 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 		    HTTrace("MIMEParser.. Unknown `%s\'\n", header);
 		if ((list = HTRequest_parser(request, &override)) &&
 		    (cbf = HTParser_find(list, header)) &&
-		    (status = (*cbf)(request, header) != HT_OK)) {
+		    ((status = (*cbf)(request, header)) != HT_OK)) {
 		    return status;
 		} else if (!override &&
 			   (list = HTHeader_parser()) &&
 			   (cbf = HTParser_find(list, header)) &&
-			   (status = (*cbf)(request, header) != HT_OK)) {
+			   ((status = (*cbf)(request, header)) != HT_OK)) {
 		    return status;
 		}
 	    }

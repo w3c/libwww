@@ -91,6 +91,7 @@ typedef enum _HTSocketEOL {
 } HTSocketEOL;
 
 extern FILE * HTSocket_DLLHackFopen (const char * filename, const char * mode);
+extern int HTSocket_DLLHackFclose (FILE * file);
 extern int HTSocketRead	(HTRequest * request, HTNet * net);
 </PRE>
 

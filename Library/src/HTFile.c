@@ -374,7 +374,11 @@ PRIVATE int FileCleanup (HTRequest *req, int status)
 	if (file->fp) {
 	    if (PROT_TRACE)
 		HTTrace("FileCleanup. Closing file %p\n", file->fp);
-	    fclose(file->fp);
+#ifdef WWW_WIN_DLL
+	    HTSocket_DLLHackFclose(file->fp);
+#else
+	    close(file->fp);
+#endif
 	}
 #endif
 	HT_FREE(file->local);

@@ -195,8 +195,8 @@ PUBLIC int HTSocketRead (HTRequest * request, HTNet * net)
     return HT_WOULD_BLOCK;
 }
 
-/*	HTSocket_DLLHackFopen
-**	---------------------
+/*	HTSocket_DLLHackFopen and close
+**	-------------------------------
 ** 	Work around the problem that an app can't open a file and have a dll
 ** 	read from it!
 */
@@ -204,6 +204,11 @@ PUBLIC int HTSocketRead (HTRequest * request, HTNet * net)
 PUBLIC FILE * HTSocket_DLLHackFopen (const char * filename, const char * mode)
 {
     return (fopen(filename, mode));
+}
+
+PUBLIC int HTSocket_DLLHackFclose (FILE * file)
+{
+    return (fclose(file));
 }
 #endif /* WWW_WIN_DLL */
 
