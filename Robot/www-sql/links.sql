@@ -26,7 +26,7 @@ These are some useful hints for handling wildcard matching:
 </DL>
 
 <! SQL connect >
-<! SQL database w3c >
+<! SQL database webbot >
 <! SQL set root "http://www.w3.org">
 
 <H2>

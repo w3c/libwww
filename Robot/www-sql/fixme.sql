@@ -1,3 +1,4 @@
+
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
  <HEAD>
@@ -15,9 +16,9 @@
 
 What's wrong on our web site and where to find it :)
 
-<! SQL set root "http://www.w3.org">
 <! SQL connect >
-<! SQL database w3c >
+<! SQL database webbot >
+<! SQL set root "http://www.w3.org">
 
 <H2>
   <A NAME="t1">Search for Images WITH NO ALT Text

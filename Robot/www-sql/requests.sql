@@ -16,9 +16,10 @@
 <P>
 
 <! SQL connect >
-<! SQL database w3c >
-<! SQL set root "http://www.w3.org">
+<! SQL database webbot >
 <! SQL setdefault sort requests.request_time >
+<! SQL set root "http://www.w3.org">
+
 
 <H2>
   <A NAME="t1">Search for Broken Links</A>

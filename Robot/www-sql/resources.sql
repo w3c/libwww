@@ -15,9 +15,9 @@
 
 Here you can search for information about our documents including titles, last modified dates, etc.
 
-<! SQL set root "http://www.w3.org">
 <! SQL connect >
-<! SQL database w3c >
+<! SQL database webbot >
+<! SQL set root "http://www.w3.org">
 
 <H2>
   <A NAME="title">Search for Document Titles</A>
