@@ -21,11 +21,11 @@ DEPENDENCIES = \
 
 Extrnals.html:
 	(cd $(srcdir) && \
-	perl $(top_srcdir)/config/makeindx.pl ../src/ ../src/WWW*.html \
-		> $(srcdir)/Extrnals.html)
+	perl ../../config/makeindx.pl ../src/ ../src/WWW*.html \
+		> Extrnals.html)
 
 export: Extrnals.html
 	-rm $(srcdir)/Extrnals.html;
 	(cd $(srcdir) && \
-	perl $(top_srcdir)/config/makeindx.pl ../src/ ../src/WWW*.html \
-		> $(srcdir)/Extrnals.html)
+	perl ../../config/makeindx.pl ../src/ ../src/WWW*.html \
+		> Extrnals.html)
