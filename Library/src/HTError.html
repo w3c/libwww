@@ -58,7 +58,8 @@ typedef enum _HTErrorElement {
 typedef enum _HTErrSeverity {
     ERR_FATAL		  = 0x1,
     ERR_NON_FATAL	  = 0x3,
-    ERR_WARNING 	  = 0x7
+    ERR_WARNING 	  = 0x7,
+    ERR_INFO	 	  = 0xF
 } HTErrSeverity;
 
 typedef struct _HTErrorInfo {
@@ -80,11 +81,12 @@ typedef enum _HTErrorShow {
     HT_ERR_SHOW_FATAL     = 0x1,
     HT_ERR_SHOW_NON_FATAL = 0x3,
     HT_ERR_SHOW_WARNING   = 0x7,
-    HT_ERR_SHOW_PARS	  = 0x8,
-    HT_ERR_SHOW_LOCATION  = 0x10,
-    HT_ERR_SHOW_IGNORE    = 0x20,
-    HT_ERR_SHOW_FIRST     = 0x40,
-    HT_ERR_SHOW_ALL	  = 0x3F
+    HT_ERR_SHOW_INFO 	  = 0xF,
+    HT_ERR_SHOW_PARS	  = 0x10,
+    HT_ERR_SHOW_LOCATION  = 0x20,
+    HT_ERR_SHOW_IGNORE    = 0x40,
+    HT_ERR_SHOW_FIRST     = 0x80,
+    HT_ERR_SHOW_ALL	  = 0x6F	/* All bits except HT_ERR_SHOW_FIRST */
 } HTErrorShow;
 
 extern unsigned int HTErrorShowMask;

@@ -382,11 +382,11 @@ PRIVATE HTAnchor *HTTPRedirect ARGS3(HTRequest *, request,
 		if ((comment = strchr(url, ' ')) != NULL)
 		    *comment = '\0';			/* Skip any comments */
 		if (code == 301)
-		    HTErrorAdd(request, ERR_WARNING, NO, HTERR_MOVED,
+		    HTErrorAdd(request, ERR_INFO, NO, HTERR_MOVED,
 			       (void *) url, (int) strlen(url),
 			       "HTTPRedirect");
 		else if (code == 302)
-		    HTErrorAdd(request, ERR_WARNING, NO, HTERR_FOUND,
+		    HTErrorAdd(request, ERR_INFO, NO, HTERR_FOUND,
 			       (void *) url, (int) strlen(url),
 			       "HTTPRedirect");
 		else {
@@ -625,7 +625,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 			char *unescaped = NULL;
 			StrAllocCopy(unescaped, url);
 			HTUnEscape(unescaped);
-			HTErrorAdd(request, ERR_WARNING, NO,
+			HTErrorAdd(request, ERR_INFO, NO,
 				   HTERR_NOT_MODIFIED, (void *) unescaped,
 				   (int) strlen(unescaped), "HTLoadHTTP");
 			free(unescaped);

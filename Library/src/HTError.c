@@ -103,7 +103,7 @@ PUBLIC int HTErrorAdd ARGS7(HTRequest *, 	request,
     }
     newError->where = where;
     if (TRACE) {
-	fprintf(stderr, "Error....... Code: %3d\tMessage: `%s\tSeverity: %d\tParameter: `%s\'\tWhere: `%s\'\n",
+	fprintf(stderr, "Message..... Code: %3d\tMessage: `%s\'\tSeverity: %d\tParameter: `%s\'\tWhere: `%s\'\n",
 		error_info[newError->element].code,
 		error_info[newError->element].msg,
 		newError->severity,

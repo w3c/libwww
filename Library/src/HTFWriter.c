@@ -113,9 +113,9 @@ PUBLIC HTStream * HTBlackHole NOARGS
    Returns NULL if no filename could be found.
    Henrik 10/03-94
    ------------------------------------------------------------------------- */
-PRIVATE char *HTFWriter_filename ARGS4(char *, path, char *, url,
-				       CONST char *, suffix,
-				       unsigned int, limit)
+PUBLIC char *HTFWriter_filename ARGS4(char *, path, char *, url,
+				      CONST char *, suffix,
+				      unsigned int, limit)
 {
 #define HASHTRY 5			   /* Keep this less than 10, please */
     static int primes[HASHTRY] = {31, 37, 41, 43, 47};	      /* Some primes */

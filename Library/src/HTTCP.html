@@ -49,12 +49,15 @@ until MAX_ACCEPT_POLL or interrupted by user.
 extern int HTDoAccept PARAMS((HTRequest *request, int sockfd));
 </PRE>
 
-<H2>Caching Hosts</H2>
+<H2>Caching Hosts Names</H2>
 
 This is mainly an internal matter to the HTTCP.c module but it keeps a
 cache of all visited hosts so that we don't have to consult the DNS every
 time. One public function is HTTCPAddrWeights(). It updates the calculated
-weights on the time it takes to sestablish a connection.
+weights on the time it takes to sestablish a connection. <P>
+
+The cache also supports multihomed hosts in that it measures the time to do
+a connection on the chosen IP-address and then next time chooses the one with the lowest connect time.
 
 <PRE>
 extern void HTTCPAddrWeights PARAMS((char * host, time_t deltatime));
