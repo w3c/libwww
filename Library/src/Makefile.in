@@ -1,311 +1,357 @@
-#       Makefile input file for W3 Library Code
-#       ---------------------------------------
-#
-#       Copyright CERN 1990, 1991, 1994 -- see Copyright.html for conditions
-#
+# Makefile.in generated automatically by automake 0.30 from Makefile.am
+
+# Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
+# This Makefile.in is free software; the Free Software Foundation
+# gives unlimited permission to copy, distribute and modify it.
+
+
 SHELL = /bin/sh
 
-.SUFFIXES :
-.SUFFIXES : .c .o .h .html .txt
-.DEFAULT  : all
-
-# Import configuration information
-VC = @VC@
-
-CC = @CC@
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
 VPATH = @srcdir@
-
-INSTALL = @INSTALL@
-INSTALL_DATA = @INSTALL_DATA@
-
-CFLAGS = @CFLAGS@ @DEFS@ -I@srcdir@ -I.
-
 prefix = @prefix@
 exec_prefix = @exec_prefix@
-top_srcdir = @top_srcdir@
-srcdir = @srcdir@
+
+bindir = @bindir@
+sbindir = @sbindir@
+libexecdir = @libexecdir@
+datadir = @datadir@
+sysconfdir = @sysconfdir@
+sharedstatedir = @sharedstatedir@
+localstatedir = @localstatedir@
+libdir = @libdir@
+infodir = @infodir@
+mandir = @mandir@
+includedir = @includedir@
+oldincludedir = /usr/include
+
+pkgdatadir = $(datadir)/@PACKAGE@
+pkglibdir = $(libdir)/@PACKAGE@
+pkgincludedir = $(includedir)/@PACKAGE@
+
+top_builddir = ../..
+
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
 
-LIBDIR = @exec_prefix@/lib
-BINDIR = @exec_prefix@/bin
-HTWAIS = @HTWAIS@
+VMS = $(srcdir)/vms
+WIN = $(srcdir)/windows
+FTP = /afs/w3.org/devel/Dist/$(PROD)
 
-LN_S = @LN_S@
+lib_LIBRARIES = www
+
+#	.h files are distributed but originally are made from the
+#	self-documenting hypertext files.
+SUFFIXES = .h .html .txt
+
+www_SOURCES = \
+	HTParse.c	HTAccess.c 	HTProxy.c \
+	HTMethod.c 	HTProt.c 	HTCache.c \
+	HTReqMan.c 	HTDNS.c 	HTArray.c \
+        HTFile.c 	HTBTree.c 	HTMulti.c \
+	HTFTP.c 	HTTCP.c     	SGML.c \
+	HTML.c		HTMLPDTD.c 	HTDir.c \
+	HTFTPDir.c	HTEPtoCl.c	HTStyle.c \
+	HTPlain.c	HTWriter.c  	HTFWrite.c \
+        HTMLGen.c	HTTee.c 	HTXParse.c \
+	HTChunk.c 	HTAtom.c   	HTAnchor.c \
+	HTList.c  	HTString.c 	HTAlert.c \
+	HTFormat.c 	HTHist.c 	HTMemory.c \
+	HTInit.c 	HTBInit.c  	HTRules.c \
+	HTMIME.c 	HTMIMERq.c 	HTBound.c \
+	HTConLen.c 	HTHeader.c	HTBind.c \
+	HTGopher.c 	HTTelnet.c	HTNetTxt.c \
+	HTNews.c  	HTWSRC.c 	HTSocket.c \
+	HTAAUtil.c 	HTAABrow.c 	HTAssoc.c \
+	HTUU.c		HTTeXGen.c	HTEscape.c \
+	HTDescpt.c 	HTGuess.c 	HTWWWStr.c \
+	HTIcons.c 	HTError.c 	HTLog.c \
+	HTHome.c 	HTDialog.c	HTNDir.c \
+	HTTP.c		HTTPServ.c	HTNewsRq.c \
+	HTTPGen.c 	HTTPReq.c 	HTTPRes.c \
+	HTNet.c 	HTEvntrg.c	HTNewsLs.c \
+	@HTWAIS@
+
+include_HEADERS = \
+	WWWUtil.h 	WWWCore.h 	WWWLib.h \
+	WWWDir.h 	WWWFTP.h 	WWWFile.h \
+	WWWGuess.h 	WWWHTML.h 	WWWHTTP.h \
+	WWWNews.h 	WWWRules.h 	WWWTelnt.h \
+	WWWCache.h 	WWWApp.h 	WWWInit.h \
+	WWWGophe.h	WWWMIME.h	WWWWAIS.h
+
+noinst_HEADERS = sysdep.h \
+	HTParse.h 	HTAccess.h  	HTProxy.h \
+	HTMethod.h 	HTProt.h 	HTCache.h \
+	HTReqMan.h 	HTReq.h  	HTDNS.h \
+	HTMulti.h 	HTBTree.h 	HTFTP.h \
+	SGML.h		HTML.h		HTMLPDTD.h \
+	HTNet.h 	HTNetMan.h 	HTFTPDir.h \
+	HTPlain.h	HTWriter.h	HTFile.h \
+	HTFWrite.h 	HTMLGen.h	HTTCP.h \
+	HTEvntrg.h 	HTArray.h  	HTChunk.h \
+	HTStream.h 	HTStruct.h 	HTMulpar.h \
+	HTTee.h 	HTXParse.h 	HTEPtoCl.h \
+	HTAtom.h 	HTAnchor.h 	HTAncMan.h \
+	HTList.h 	HTWWWStr.h 	HTMemory.h \
+	HTString.h 	HTAlert.h 	HTRules.h \
+	HTFormat.h  	HTStyle.h	HTNewsLs.h \
+	HTInit.h 	HTBInit.h	HTBind.h \
+	HTMIME.h 	HTMIMERq.h 	HTBound.h \
+	HTConLen.h 	HTHeader.h	HTHist.h \
+	HTGopher.h 	HTDir.h		HTUtils.h \
+ 	HTNewsRq.h	HText.h 	HTTelnet.h \
+	HTNDir.h  	HTWSRC.h 	HTSocket.h \
+	HTAAUtil.h 	HTAABrow.h 	HTAssoc.h \
+	HTUU.h		HTTeXGen.h	HTDescpt.h \
+	HTGuess.h	HTNetTxt.h 	HTBind.h \
+	HTIcons.h 	HTError.h 	HTLog.h \
+	HTHome.h 	HTDialog.h 	HTEscape.h \
+	HTTP.h		HTTPServ.h	HTNews.h \
+	HTTPGen.h 	HTTPReq.h 	HTTPRes.h \
+	HTTPUtil.h	
+
+EXTRA_HEADERS = \
+	HTWAIS.h
+
+DIST_OTHER = \
+	$(WIN)/Makefile \
+	$(WIN)/*.bat \
+	$(WIN)/*.pl \
+	$(WIN)/*.mak \
+	$(WIN)/*.def \
+	$(WIN)/*.c \
+	$(WIN)/*.h \
+	$(WIN)/*.txt \
+	$(VMS)/descrip.mms  $(VMS)/COPYING.LIB \
+ 	$(VMS)/build_multinet.com $(VMS)/build_multinet.com_alpha \
+	$(VMS)/multinet.opt $(VMS)/multinet.opt_alpha \
+	$(VMS)/build_ucx.com $(VMS)/build_ucx.com_alpha \
+	$(VMS)/ucx.opt $(VMS)/ucx.opt_alpha \
+	$(VMS)/patchlevel.h $(VMS)/ufc-crypt.h \
+	$(VMS)/crypt.c $(VMS)/crypt_util.c \
+	$(VMS)/getline.c $(VMS)/getpass.c \
+	$(VMS)/HTVMSUtils.h $(VMS)/HTVMSUtils.c \
+	$(VMS)/dirent.h $(VMS)/dirent.c $(VMS)/sys_dirent.h
+CONFIG_HEADER = ../../config.h
+LIBRARIES = $(lib_LIBRARIES)
+
+lib_LIBFILES = libwww.a
+
+CC = @CC@
+LEX = @LEX@
+YACC = @YACC@
+
+DEFS = @DEFS@ -I. -I$(srcdir) -I../..
+CPPFLAGS = @CPPFLAGS@
+CFLAGS = @CFLAGS@
+LDFLAGS = @LDFLAGS@
+LIBS = @LIBS@
+
+COMPILE = $(CC) -c $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+LINK = $(CC) $(LDFLAGS) -o $@
+X_CFLAGS = @X_CFLAGS@
+X_LIBS = @X_LIBS@
+X_EXTRA_LIBS = @X_EXTRA_LIBS@
+X_PRE_LIBS = @X_PRE_LIBS@
+www_LIBADD =
+www_OBJECTS = HTParse.o HTAccess.o HTProxy.o HTMethod.o HTProt.o \
+    HTCache.o HTReqMan.o HTDNS.o HTArray.o HTFile.o HTBTree.o HTMulti.o \
+    HTFTP.o HTTCP.o SGML.o HTML.o HTMLPDTD.o HTDir.o HTFTPDir.o \
+    HTEPtoCl.o HTStyle.o HTPlain.o HTWriter.o HTFWrite.o HTMLGen.o \
+    HTTee.o HTXParse.o HTChunk.o HTAtom.o HTAnchor.o HTList.o \
+    HTString.o HTAlert.o HTFormat.o HTHist.o HTMemory.o HTInit.o \
+    HTBInit.o HTRules.o HTMIME.o HTMIMERq.o HTBound.o HTConLen.o \
+    HTHeader.o HTBind.o HTGopher.o HTTelnet.o HTNetTxt.o HTNews.o \
+    HTWSRC.o HTSocket.o HTAAUtil.o HTAABrow.o HTAssoc.o HTUU.o \
+    HTTeXGen.o HTEscape.o HTDescpt.o HTGuess.o HTWWWStr.o HTIcons.o \
+    HTError.o HTLog.o HTHome.o HTDialog.o HTNDir.o HTTP.o HTTPServ.o \
+    HTNewsRq.o HTTPGen.o HTTPReq.o HTTPRes.o HTNet.o HTEvntrg.o \
+    HTNewsLs.o
+LIBFILES =  libwww.a
+
+AR = ar
 RANLIB = @RANLIB@
-CHMOD = @CHMOD@
-MKDIR = @MKDIR@
-RM = @RM@
-AR = @AR@
-CP = @CP@
-TAR = @TAR@
-CVS = @CVS@
-SED = @SED@
-COMPRESS = @COMPRESS@
+HEADERS = $(include_HEADERS) $(noinst_HEADERS)
 
-VMS = @srcdir@/vms
+DIST_COMMON = README Makefile.am Makefile.in README
 
-# Conversion rules
-.html.h:
-	-$(CHMOD) +w $@
-	$(BINDIR)/www -w90 -na -p -to text/x-c $< > $@
-	-$(CHMOD) -w $@
 
-.html.txt:
-	$(BINDIR)/www -n -p66 $< > $@
+PACKAGE = @PACKAGE@
+VERSION = @VERSION@
+
+DISTFILES = $(DIST_COMMON) $(SOURCES) $(BUILT_SOURCES) $(HEADERS) \
+	$(TEXINFOS) $(INFOS) $(MANS) $(DIST_OTHER) $(DATA)
+DEP_DISTFILES = $(DIST_COMMON) $(SOURCES) $(BUILT_SOURCES) $(HEADERS) \
+	$(TEXINFOS) $(INFO_DEPS) $(MANS) $(DIST_OTHER) $(DATA)
+SOURCES = $(www_SOURCES)
+OBJECTS = $(www_OBJECTS)
+
+default: all
+
+
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in
+	cd $(top_srcdir) && automake $(subdir)/Makefile
+
+Makefile: $(top_builddir)/config.status Makefile.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= ./config.status
+
+mostlyclean-libLIBRARIES:
+
+clean-libLIBRARIES:
+	rm -f $(lib_LIBFILES)
+
+distclean-libLIBRARIES:
+
+maintainer-clean-libLIBRARIES:
+
+install-libLIBRARIES: $(lib_LIBFILES)
+	$(top_srcdir)/mkinstalldirs $(libdir)
+	for p in $(lib_LIBFILES); do		\
+	  if test -f $$p; then			\
+	    $(INSTALL_DATA) $$p $(libdir)/$$p; \
+	    $(RANLIB) $(libdir)/$$p;		\
+	  else :; fi;				\
+	done
+
+uninstall-libLIBRARIES:
+	for p in $(lib_LIBFILES); do		\
+	  rm -f $(libdir)/$$p;		\
+	done
 
 .c.o:
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ -c $<
+	$(COMPILE) $<
 
-COMMON = HTParse.o    HTAccess.o   HTTP.o         HTFile.o    HTBTree.o  \
-         HTFTP.o      HTTCP.o      SGML.o         HTML.o      HTMLPDTD.o \
-         HTChunk.o    HTPlain.o    HTWriter.o     HTFWriter.o HTMLGen.o  \
-         HTTee.o      HTExtParse.o HTEPtoClient.o HTAtom.o    HTAnchor.o \
-         HTStyle.o    HTList.o     HTString.o     HTAlert.o   HTRules.o  \
-         HTFormat.o   HTInit.o     HTMIME.o       HTHistory.o HTNews.o   \
-         HTGopher.o   HTTelnet.o   HTWSRC.o       $(HTWAIS)   HTAAUtil.o \
-         HTAABrow.o   HTAssoc.o    HTUU.o         HTMulti.o   HTTeXGen.o \
-         HTDirBrw.o   HTDescript.o HTGuess.o      HTIcons.o   HTError.o  \
-         HTErrorMsg.o HTEscape.o   HTThread.o     HTEvent.o
+mostlyclean-compile:
+	rm -f *.o core
 
-HFILES = HTParse.h    HTAccess.h   HTTP.h         HTFile.h    HTBTree.h  \
-         HTFTP.h      HTTCP.h      SGML.h         HTML.h      HTMLPDTD.h \
-         HTChunk.h    HTPlain.h    HTWriter.h     HTFWriter.h HTMLGen.h  \
-         HTTee.h      HTExtParse.h HTEPtoClient.h HTAtom.h    HTAnchor.h \
-         HTStyle.h    HTList.h     HTString.h     HTAlert.h   HTRules.h  \
-         HTFormat.h   HTInit.h     HTMIME.h       HTHistory.h HTNews.h   \
-         HTGopher.h   HTTelnet.h   HTWSRC.h       HTWAIS.h    HTAAUtil.h \
-         HTAABrow.h   HTAssoc.h    HTUU.h         HTMulti.h   HTTeXGen.h \
-         HTDirBrw.h   HTDescript.h HTGuess.h      HTIcons.h   HTError.h  \
-         HTStream.h   HTUtils.h    HText.h        HTEscape.h  HTThread.h \
-         HTEvent.h    sysdep.h
+clean-compile:
 
-# Standard targets:
+distclean-compile:
+	rm -f *.tab.c
 
-all : ./libwww.a
+maintainer-clean-compile:
+$(www_OBJECTS): ../../config.h
 
-./libwww.a : $(COMMON)
-	-$(RM) -f ./libwww_$(VC).a
-	$(AR) r ./libwww_$(VC).a $(COMMON)
-	$(RANLIB) ./libwww_$(VC).a
-	-$(RM) -f ./libwww.a
-	$(LN_S) ./libwww_$(VC).a ./libwww.a
+libwww.a: $(www_OBJECTS) $(www_LIBADD)
+	rm -f libwww.a
+	$(AR) cru libwww.a $(www_OBJECTS) $(www_LIBADD)
+	$(RANLIB) libwww.a
 
-install : ./libwww.a
-	$(INSTALL_DATA) ./libwww.a $(LIBDIR)/`echo libwww_$(VC).a | $(SED) '$(transform)'`
-# There's no way to do this right: INSTALL would copy the file, not the link;
-# but linking won't set the perms right..
-	( cd $(LIBDIR) ; $(LN_S) `echo libwww_$(VC).a | $(SED) '$(transform)'` `echo libwww.a | $(SED) '$(transform)'` )
+install-includeHEADERS: $(include_HEADERS)
+	$(top_srcdir)/mkinstalldirs $(includedir)
+	for p in $(include_HEADERS); do		\
+	  $(INSTALL_DATA) $(srcdir)/$$p $(includedir)/$$p; \
+	done
+
+uninstall-includeHEADERS:
+	for p in $(include_HEADERS); do		\
+	  rm -f $(includedir)/$$p;		\
+	done
+
+ID: $(HEADERS) $(SOURCES)
+	here=`pwd` && cd $(srcdir) && mkid -f $$here/ID $(SOURCES) $(HEADERS)
+
+tags: TAGS
+
+TAGS:
+	here=`pwd` && cd $(srcdir) && etags $(ETAGS_ARGS) $(SOURCES) $(HEADERS) -o $$here/TAGS
+
+mostlyclean-tags:
+
+clean-tags:
+
+distclean-tags:
+	rm -f TAGS ID
+
+maintainer-clean-tags:
+
+subdir = Library/src
+distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
+dist: $(DEP_DISTFILES)
+	@for file in `cd $(srcdir) && echo $(DISTFILES)`; do \
+	  test -f $(distdir)/$$file \
+	  || ln $(srcdir)/$$file $(distdir)/$$file 2> /dev/null \
+	  || cp -p $(srcdir)/$$file $(distdir)/$$file; \
+	done
+info:
+
+dvi:
+
+check: all
+
+installcheck:
+
+install-exec: install-libLIBRARIES
+
+install-data: install-includeHEADERS
+
+install: install-exec install-data
+	@:
+
+uninstall: uninstall-libLIBRARIES uninstall-includeHEADERS
+
+all: $(LIBFILES) $(HEADERS) Makefile all-local
+
+installdirs:
+	$(top_srcdir)/mkinstalldirs  $(libdir) $(includedir)
 
 
-uninstall :
-	-$(RM) -f $(LIBDIR)/`echo libwww_$(VC).a | $(SED) '$(transform)'`
-	-$(RM) -f $(LIBDIR)/`echo libwww.a | $(SED) '$(transform)'`
+mostlyclean-generic:
+	test -z "$(MOSTLYCLEANFILES)" || rm -f $(MOSTLYCLEANFILES)
 
-mostlyclean :
-	-$(RM) -f $(COMMON)
+clean-generic:
+	test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 
-clean : mostlyclean
-	-$(RM) -f ./libwww_$(VC).a ./libwww.a
+distclean-generic:
+	rm -f Makefile $(DISTCLEANFILES)
+	rm -f config.cache config.log $(CONFIG_HEADER) stamp-h
 
-distclean : clean
-	-$(RM) -f ./Makefile ./config.h ./config.cache ./config.status
-	-$(RM) -f ./config.log
+maintainer-clean-generic:
+	test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
+	test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
+mostlyclean:  mostlyclean-libLIBRARIES mostlyclean-compile \
+		mostlyclean-tags mostlyclean-generic
 
-realclean : clean
-	-$(RM) -f ./Makefile ./config.h
-	( cd $(srcdir) ; $(CHMOD) +w $(HFILES) ; $(RM) -f $(HFILES) )
+clean:  clean-libLIBRARIES clean-compile clean-tags clean-generic \
+		mostlyclean 
 
-dist : $(HFILES) README COPYRIGH
-	-$(MKDIR) ./../WWWLibrary_$(VC)
-	( cd ./.. ; $(LN_S) ./WWWLibrary_$(VC) ./Library )
-	$(CP) -pr $(srcdir) ./../WWWLibrary_$(VC)
-	$(CP) -p README COPYRIGH ./../WWWLibrary_$(VC)
-	$(CP) -pr $(VMS) ./../WWWLibrary_$(VC)
-	( cd ./.. ; $(TAR) cvf ./../WWWLibrary_$(VC).tar ./WWWLibrary_$(VC) ./Library )
-	$(COMPRESS) ./../../WWWLibrary_$(VC).tar
-# 	( cd $(srcdir) ; $(CVS) tag v`echo $(VC) | $(SED) 's?\.?/?'` )
-	-$(RM) -rf ./../WWWLibrary_$(VC)
-	echo Distribution of Library version $(VC) ready.
+distclean:  distclean-libLIBRARIES distclean-compile distclean-tags \
+		distclean-generic clean 
+	rm -f config.status
 
-# Rebuild configuration files: see Autoconf documentation
+maintainer-clean:  maintainer-clean-libLIBRARIES \
+		maintainer-clean-compile maintainer-clean-tags \
+		maintainer-clean-generic distclean 
+	@echo "This command is intended for maintainers to use;"
+	@echo "it deletes files that may require special tools to rebuild."
 
-$(srcdir)/configure: configure.in ../../Implementation/aclocal.m4
-	( cd $(srcdir) && autoconf --localdir=../../Implementation )
+.PHONY: default mostlyclean-libLIBRARIES distclean-libLIBRARIES \
+    clean-libLIBRARIES maintainer-clean-libLIBRARIES \
+    uninstall-libLIBRARIES install-libLIBRARIES mostlyclean-compile \
+    distclean-compile clean-compile maintainer-clean-compile \
+    uninstall-includeHEADERS install-includeHEADERS tags \
+    mostlyclean-tags distclean-tags clean-tags maintainer-clean-tags \
+    dist info dvi check installcheck install-exec install-data install \
+    uninstall all installdirs mostlyclean-generic distclean-generic \
+    clean-generic maintainer-clean-generic clean mostlyclean distclean \
+    maintainer-clean
 
-$(srcdir)/config.h.in: stamp-h.in
-$(srcdir)/stamp-h.in: configure.in ../../Implementation/aclocal.m4 acconfig.h
-	( cd $(srcdir) && autoheader )
-	date > $(srcdir)/stamp-h.in
+.html.h:
+	www -w90 -na -p -to text/x-c $(srcdir)/$(*F).html > $(srcdir)/$(*F).h
 
-config.h: stamp-h
-stamp-h: config.h.in config.status
-	./config.status
+#	Some extra make directives
+inc : $(HEADERS)
+	@echo Include files generated from hypertext.
 
-Makefile: Makefile.in config.status
-	./config.status
+all-local : inc
+.SUFFIXES:
+.SUFFIXES: .c .o $(SUFFIXES)
 
-config.status: configure
-	./config.status --recheck
-
-# Other targets
-distribute : dist
-inc : $(HFILES)
-
-# Other dependancies
-
-$(COMMON) : sysdep.h
-sysdep.h : config.h
-
-HTParse.o      : HTParse.h      HTUtils.h  HTTCP.h        HTEscape.h
-HTAccess.o     : HTAccess.h     HTUtils.h  HTParse.h      HTML.h     \
-                 HTRules.h      HTList.h   HText.h        HTAlert.h  \
-                 HTFWriter.h    HTTee.h    HTError.h      HTTCP.h    \
-                 HTThread.h
-HTTP.o         : HTTP.h         HTUtils.h  HTParse.h      HTTCP.h    \
-                 HTFormat.h     HTAlert.h  HTMIME.h       HTML.h     \
-                 HTInit.h       HTAccess.h HTAABrow.h     HTTee.h    \
-                 HTFWriter.h    HTError.h  HTChunk.h      HTThread.h
-HTFile.o       : HTFile.h       HTUtils.h  HTParse.h      HTTCP.h    \
-                 HTFTP.h        HTAnchor.h HTAtom.h       HTWriter.h \
-                 HTFWriter.h    HTInit.h   HTBTree.h      HTFormat.h \
-                 HTMulti.h      HTError.h
-HTBTree.o      : HTBTree.h      HTUtils.h
-HTFTP.o        : HTFTP.h        HTUtils.h  HTParse.h      HTTCP.h    \
-                 HTAnchor.h     HTFile.h   HTBTree.h      HTChunk.h  \
-                 HTAlert.h      HTDirBrw.h HTError.h
-HTTCP.o        : HTTCP.h        HTUtils.h  HTAtom.h       HTList.h   \
-                 HTParse.h      HTAccess.h HTError.h      HTThread.h
-SGML.o         : SGML.h         HTUtils.h  HTChunk.h
-HTML.o         : HTML.h         HTAtom.h   HTChunk.h      HText.h    \
-                 HTStyle.h      HTAlert.h  HTMLGen.h      HTParse.h
-HTMLPDTD.o     : HTMLPDTD.h
-HTChunk.o      : HTChunk.h      HTUtils.h
-HTPlain.o      : HTPlain.h      HTUtils.h  HText.h        HTStyle.h
-HTWriter.o     : HTWriter.h     HTUtils.h
-HTFWriter.o    : HTFWriter.h    HTFormat.h HTAlert.h      HTFile.h  \
-                 HTList.h       HTParse.h
-HTMLGen.o      : HTMLGen.h      HTMLPDTD.h HTStream.h     SGML.h    \
-                 HTFormat.h
-HTTee.o        : HTTee.h
-HTExtParse.o   : HTExtParse.h   HTFormat.h HTEPtoClient.h
-HTEPtoClient.o : HTEPtoClient.h HTFormat.h
-HTAtom.o       : HTAtom.h       HTUtils.h  HTList.h
-HTAnchor.o     : HTAnchor.h     HTUtils.h  HTFormat.h     HTParse.h \
-                 HTFWriter.h
-HTStyle.o      : HTStyle.h      HTUtils.h
-HTList.o       : HTList.h
-HTString.o     : HTString.h     HTUtils.h
-HTAlert.o      : HTAlert.h
-HTRules.o      : HTRules.h      HTFile.h   HTParse.h      HTAAUtil.h
-HTFormat.o     : HTFormat.h     HTUtils.h  HTML.h         HTMLPDTD.h \
-                 HTAlert.h      HTList.h   HTFWriter.h    HTPlain.h  \
-                 SGML.h         HTML.h     HTMLGen.h      HTTCP.h    \
-                 HTGuess.h      HTError.h  HTThread.h
-HTInit.o       : HTInit.h       HTML.h     HTList.h       HTPlain.h  \
-                 HTMLGen.h      HTFile.h   HTFormat.h     HTMIME.h   \
-                 HTWSRC.h       HTNews.h   HTFWriter.h
-HTMIME.o       : HTMIME.h       HTFormat.h HTAlert.h
-HTHistory.o    : HTHistory.h
-HTNews.o       : HTNews.h       HTUtils.h  HTML.h         HTParse.h  \
-                 HTFormat.h     HTAlert.h  HTError.h
-HTGopher.o     : HTGopher.h     HTUtils.h  HTParse.h      HTTCP.h    \
-                 HTIcons.h      HTAccess.h HTFormat.h     HTError.h  \
-                 HTFile.h       HTML.h     HTMLPDTD.h     HTDirBrw.h
-HTTelnet.o     : HTTelnet.h     HTUtils.h  HTParse.h      HTAnchor.h \
-                 HTTP.h         HTFile.h   HTAccess.h     HTAlert.h
-HTWSRC.o       : HTWSRC.h       HTUtils.h  HTML.h         HTParse.h
-HTWAIS.o       : HTWAIS.h       HTUtils.h  HTParse.h      HTAccess.h \
-                 HTError.h      HTML.h     HTFormat.h     HTTCP.h    \
-                 HTML.h
-HTAAUtil.o     : HTAAUtil.h     HTUtils.h  HTAssoc.h
-HTAABrow.o     : HTAABrow.h     HTUtils.h  HTAAUtil.h     HTUU.h     \
-                                HTString.h HTParse.h      HTList.h   \
-                                HTAlert.h  HTAssoc.h      HTAccess.h
-HTAssoc.o      : HTAssoc.h      HTAAUtil.h HTString.h
-HTUU.o         : HTUU.h         HTUtils.h
-HTMulti.o      : HTMulti.h      HTFile.h   HTList.h
-HTTeXGen.o     : HTTeXGen.h     HTMLPDTD.h HTStream.h     SGML.h     \
-                 HTFormat.h
-HTDirBrw.o     : HTDirBrw.h     HTUtils.h  HTMLPDTD.h     HTFile.h   \
-                 HTAnchor.h     HTParse.h  HTFWriter.h    HTInit.h   \
-                 HTBTree.h      HTFormat.h HTChunk.h      HTIcons.h  \
-                 HTDescript.h   HTError.h
-HTDescript.o   : HTDescript.h   HTUtils.h  HTList.h       HTAAUtil.h \
-                 HTAccess.h     HTFile.h
-HTGuess.o      : HTGuess.h      HTFormat.h HTAlert.h      HTList.h
-HTIcons.o      : HTIcons.h      HTUtils.h  HTMLPDTD.h     HTAnchor.h \
-                 HTParse.h      HTFile.h   HTFormat.h     HTChunk.h
-HTError.o      : HTError.h      HTUtils.h  HTTCP.h
-HTErrorMsg.o   : HTUtils.h      HTAccess.h HTAlert.h      HTTCP.h    \
-                 HTChunk.h      HTError.h
-HTEvent.o      : HTUtils.h      HTAccess.h HTError.h      HTThread.h \
-                 HTList.h       HTEvent.h
-HTThread.o     : HTUtils.h      HTAccess.h HTError.h      HTThread.h
-HTAABrow.h     : sysdep.h       HTUtils.h  HTAAUtil.h     HTList.h   \
-                 HTAssoc.h      HTAccess.h
-HTAAUtil.h     : sysdep.h       HTUtils.h  HTList.h
-HTAccess.h     : sysdep.h       HTList.h   HTAnchor.h     HTAAUtil.h \
-                 HTAABrow.h
-HTAlert.h      : sysdep.h
-HTAnchor.h     : sysdep.h       HTList.h   HTAtom.h       HTFormat.h
-HTAssoc.h      : sysdep.h       HTUtils.h  HTList.h
-HTAtom.h       : sysdep.h       HTUtils.h  HTList.h
-HTBtree.h      : sysdep.h
-HTChunk.h      : sysdep.h
-HTDescript.h   : sysdep.h
-HTDirBrw.h     : sysdep.h       HTFTP.h
-HTEPtoClient.h : sysdep.h       HTStream.h
-HTError.h      : sysdep.h       HTAccess.h
-HTExtParse.h   : sysdep.h       HTStream.h
-HTFTP.h        : sysdep.h       HTChunk.h
-HTFWriter.h    : sysdep.h       HTStream.h HTFormat.h
-HTFile.h       : sysdep.h       HTFormat.h HTAccess.h    HTML.h     \
-                 HTDirBrw.h
-HTFormat.h     : sysdep.h       HTUtils.h  HTAtom.h      HTList.h   \
-                 HTAnchor.h
-HTGopher.h     : sysdep.h
-HTGuess.h      : sysdep.h       HTStream.h HTFormat.h
-HTHistory.h    : sysdep.h       HTFormat.h HTAnchor.h
-HTIcons.h      : sysdep.h       HTFormat.h
-HTInit.h       : sysdep.h       HTUtils.h  HTList.h
-HTList.h       : sysdep.h       HTUtils.h
-HTMIME.h       : sysdep.h       HTStream.h HTAnchor.h
-HTML.h         : sysdep.h       HTUtils.h  HTFormat.h    HTAnchor.h \
-                 HTMLPDTD.h
-HTMLDTD.h      : sysdep.h       HTUtils.h
-HTMLGen.h      : sysdep.h       HTML.h     HTStream.h
-HTMLPDTD.h     : sysdep.h       HTUtils.h  SGML.h
-HTMulti.h      : sysdep.h       HTFile.h
-HTNews.h       : sysdep.h       HTAccess.h HTAnchor.h
-HTParse.h      : sysdep.h       HTUtils.h
-HTPlain.h      : sysdep.h       HTFormat.h
-HTRules.h      : sysdep.h       HTUtils.h  HTAccess.h
-HTStream.h     : sysdep.h       HTUtils.h
-HTString.h     : sysdep.h       HTUtils.h
-HTStyle.h      : sysdep.h       HTUtils.h  HTFormat.h    HTAnchor.h \
-                 HTML.h
-HTTCP.h        : sysdep.h       HTUtils.h  HTAccess.h
-HTTP.h         : sysdep.h       HTAccess.h
-HTTeXGen.h     : sysdep.h       HTML.h     HTStream.h
-HTTee.h        : sysdep.h       HTStream.h
-HTTelnet.h     : sysdep.h       HTAccess.h
-HTUU.h         : sysdep.h       HTUtils.h
-HTUtils.h      : sysdep.h       HTString.h
-HTWAIS.h       : sysdep.h       HTUtils.h  HTAccess.h
-HTWSRC.h       : sysdep.h       HTUtils.h  HTFormat.h
-HTWriter.h     : sysdep.h       HTStream.h
-HText.h        : sysdep.h       HTAnchor.h HTStyle.h     HTStream.h \
-                 SGML.h
-SGML.h         : sysdep.h       HTUtils.h  HTStream.h
-
-# Other common tags, unused here:
-
-TAGS :
-info :
-dvi :
-check :
-installcheck :
-installdirs :
-
-depend :
-
+# Tell versions [3.59,3.63) of GNU make to not export all variables.
+# Otherwise a system limit (for SysV at least) may be exceeded.
+.NOEXPORT:
