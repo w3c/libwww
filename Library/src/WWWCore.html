@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww CORE</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  4-Apr-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 16-Apr-1996 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -35,18 +35,21 @@ application is to use all the functionality of the Library.
 #define WWWCORE_H
 </PRE>
 
-<H2>System dependencies</H2>
-
-<PRE>
-#include "sysdep.h"
-</PRE>
-
-<H2>Library Includes</H2>
-
 <PRE>
 #ifdef __cplusplus
 extern "C" { 
 #endif
+</PRE>
+
+<H2>System dependencies</H2>
+
+The <A HREF="sysdep.html">sysdep.h</A> file includes system-specific include
+files and flags for I/O to network and disk. The only reason for this
+file is that the Internet world is more complicated than Posix and
+ANSI.
+
+<PRE>
+#include "sysdep.h"
 </PRE>
 
 <H2>Higher Level Access Methods</H2>

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww UTILITIES</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 16-Apr-1996 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -29,6 +29,12 @@ Library.
 #define WWWUTIL_H
 </PRE>
 
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
+
 <H2>System dependencies</H2>
 
 The <A HREF="sysdep.html">sysdep.h</A> file includes system-specific include
@@ -41,12 +47,6 @@ ANSI.
 </PRE>
 
 <H2>Library Includes</H2>
-
-<PRE>
-#ifdef __cplusplus
-extern "C" { 
-#endif
-</PRE>
 
 <H3>Basic Macros etc</H3>
 

@@ -15,7 +15,7 @@ BUILT_SOURCES = \
 	wwwstream.def	wwwhtml.def	wwwhttp.def \
 	wwwmime.def	wwwnews.def	wwwrules.def \
 	wwwtelnt.def	wwwutils.def	wwwwais.def \
-	wwwlist.txt
+	wwwtrans.def	wwwlist.txt
 
 EXTRA_DIST = \
 	wwwdll.def \

@@ -13,7 +13,7 @@ SUFFIXES = .h .html .txt
 inc: $(BUILT_SOURCES)
 	@echo Generated built sources
 
-AUTOMAKE_OPTIONS = foreign no-dependencies
+AUTOMAKE_OPTIONS = foreign
 
 www_SOURCES = \
 	HTParse.c	HTAccess.c 	HTProxy.c \

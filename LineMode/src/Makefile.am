@@ -9,7 +9,7 @@ www_DEPENDENCIES = \
 	../../Library/src/libwww.a ../../PICS/src/libpics.a
 
 #	For easier use - NOT THE DEFAULT!
-AUTOMAKE_OPTIONS = foreign no-dependencies
+AUTOMAKE_OPTIONS = foreign
 
 SUBDIRS = windows vms
 
