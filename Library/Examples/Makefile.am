@@ -5,12 +5,16 @@ noinst_PROGRAMS = head libapp_1 libapp_2 libapp_3 libapp_4 init \
 	range tzcheck mget isredirected listen eventloop memput \
 	showlinks showtags showtext tiny
 
-LDADD = ../src/libwww.la -lm
+LDADD = \
+	-lm \
+	../src/libwww.la \
+	../../modules/md5/libmd5.la \
+	../../modules/expat/xmlparse/libxmlparse.la \
+	../../modules/expat/xmltok/libxmltok.la
 
-DEPENDENCIES = \
-	../src/libwww.la
-
-INCLUDES = -I$(srcdir)/../src
+INCLUDES = \
+	-I$(srcdir)/../src \
+	-I$(top_srcdir)/modules/expat/xmlparse
 
 PURIFY_CACHE = @PURIFY_CACHE@
 

@@ -2,14 +2,18 @@
 
 bin_PROGRAMS = webbot
 
-webbot_LDADD = ../../Library/src/libwww.la -lm
-
-webbot_DEPENDENCIES = \
-	../../Library/src/libwww.la
+webbot_LDADD = \
+	-lm \
+	../../Library/src/libwww.la \
+	../../modules/md5/libmd5.la \
+	../../modules/expat/xmlparse/libxmlparse.la \
+	../../modules/expat/xmltok/libxmltok.la
 
 SUBDIRS = windows
 
-INCLUDES = -I$(srcdir)/../../Library/src
+INCLUDES = \
+	-I$(srcdir)/../../Library/src \
+	-I$(top_srcdir)/modules/expat/xmlparse
 
 #	.h files are distributed but originally are made from the
 #	self-documenting hypertext files.

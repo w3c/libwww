@@ -111,6 +111,7 @@ typedef struct {
 extern HTTag * SGML_findTag (SGML_dtd * dtd, int element_number);
 extern char * SGML_findTagName (SGML_dtd * dtd, int element_number);
 extern SGMLContent SGML_findTagContents (SGML_dtd * dtd, int element_number);
+extern int SGML_findElementNumber(SGML_dtd *dtd, char *name_element);
 </PRE>
 <H2>
   Create an SGML Parser Instance

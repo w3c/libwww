@@ -847,6 +847,20 @@ PUBLIC SGMLContent SGML_findTagContents (SGML_dtd * dtd, int element_number)
 	(dtd->tags+element_number)->contents : SGML_ELEMENT;
 }
 
+PUBLIC int SGML_findElementNumber (SGML_dtd * dtd, char * name_element)
+{
+    if (dtd && name_element) {
+	int i;
+	HTTag *ct;
+	for (i = 0; i< dtd->number_of_tags; i++) {
+	    ct = &(dtd->tags[i]);
+	    if (!strcasecomp(ct->name,name_element))
+		return i;
+	}
+    }
+    return -1;
+}
+
 PUBLIC char * HTTag_name (HTTag * tag)
 {
     return tag ? tag->name : NULL;
@@ -872,3 +886,6 @@ PUBLIC char * HTAttr_name (HTAttr * attr)
 {
     return attr ? attr->name : NULL;
 }
+
+
+

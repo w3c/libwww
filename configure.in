@@ -425,8 +425,9 @@ AC_ARG_WITH(expat,
     HTXML="HTXML.lo"
     ;;
   esac ],
-  AC_MSG_RESULT(no)
-  HTXML=""
+  AC_MSG_RESULT(yes)
+  AC_DEFINE(HT_EXPAT)
+  HTXML="HTXML.lo"
 )
 AC_SUBST(HTXML)
 
@@ -542,6 +543,9 @@ AC_SUBST(A_STDIO)
 dnl Create output files
 AC_OUTPUT([Makefile libwww-config
 config/Makefile
+modules/Makefile
+modules/expat/Makefile modules/expat/xmltok/Makefile modules/expat/xmlparse/Makefile
+modules/md5/Makefile
 Library/Makefile Library/User/Makefile Library/User/Patch/Makefile
 Library/User/Architecture/Makefile Library/User/Using/Makefile Library/User/Guide/Makefile
 Library/User/Style/Makefile Library/User/Platform/Makefile

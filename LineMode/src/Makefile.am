@@ -13,16 +13,17 @@ EXTRA_PROGRAMS = www		# Should be www_PROGRAMS
 www_LDADD = \
 	../../Library/src/libwww.la \
 	../../PICS-client/src/libpics.a \
+	../../modules/md5/libmd5.la \
+	../../modules/expat/xmltok/libxmltok.la \
+	../../modules/expat/xmlparse/libxmlparse.la \
 	-lm @A_STDIO@
-
-www_DEPENDENCIES = \
-	../../Library/src/libwww.la \
-	../../PICS-client/src/libpics.a \
-	@A_STDIO@
 
 SUBDIRS = windows vms
 
-INCLUDES = -I$(srcdir)/../../Library/src -I$(srcdir)/../../PICS-client/src
+INCLUDES = \
+	-I$(srcdir)/../../Library/src \
+	-I$(top_srcdir)/modules/expat/xmlparse \
+	-I$(srcdir)/../../PICS-client/src
 
 #	.h files are distributed but originally are made from the
 #	self-documenting hypertext files.

@@ -11,9 +11,3 @@ libxmlparse_la_SOURCES = \
 	xmlparse.h \
 	xmlparse.c
 
-libxmlparse_la_LIBADD = \
-	../xmltok/libxmltok.la
-
-libxmlparse_la_DEPENDENCIES = \
-	../xmltok/libxmltok.la
-

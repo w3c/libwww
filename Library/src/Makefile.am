@@ -63,9 +63,7 @@ libwww_la_SOURCES = \
 	HTDemux.c	HTMuxTx.c	HTMuxCh.c \
 	HTTimer.c	HTTrace.c	HTMemLog.c \
 	HText.c		HTNoFree.c	HTDigest.c \
-	HTFSave.c	md5.c
-
-libwww_la_LIBADD = @HTWAIS@ @HTZLIB@ @HTSQL@ @HTSQLLOG@ @HTXML@
+	HTFSave.c
 
 EXTRA_libwww_la_SOURCES = \
 	HTWAIS.c \
@@ -74,9 +72,19 @@ EXTRA_libwww_la_SOURCES = \
 	HTSQLLog.c \
 	HTXML.c
 
-libwww_la_DEPENDENCIES = @HTWAIS@ @HTZLIB@ @HTSQL@ @HTSQLLOG@ @HTXML@
+libwww_la_LIBADD = \
+	@HTWAIS@ @HTZLIB@ @HTSQL@ @HTSQLLOG@ @HTXML@
 
-INCLUDES = -I/usr/local/include
+libwww_la_DEPENDENCIES = \
+	@HTWAIS@ @HTZLIB@ @HTSQL@ @HTSQLLOG@ @HTXML@ \
+	../../modules/md5/libmd5.la \
+	../../modules/expat/xmltok/libxmltok.la \
+	../../modules/expat/xmlparse/libxmlparse.la
+
+INCLUDES = \
+	-I/usr/local/include \
+	-I${top_srcdir}/modules/md5 \
+	-I${top_srcdir}/modules/expat/xmlparse
 
 BUILT_SOURCES = wwwsys.h \
 	WWWUtil.h 	WWWCore.h 	WWWLib.h \
@@ -127,8 +135,7 @@ BUILT_SOURCES = wwwsys.h \
 	HTHstMan.h	HTMemLog.h	HTTimer.h \
 	HTWAIS.h	HTZip.h		HTSQL.h \
 	HTSQLLog.h	HTextImp.h	HTDigest.h \
-	HTNoFree.h	HTXML.h		HTFSave.h \
-	md5.h
+	HTNoFree.h	HTXML.h		HTFSave.h
 
 pkginclude_HEADERS = $(BUILT_SOURCES)
 
