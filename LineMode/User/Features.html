@@ -5,9 +5,8 @@
 </HEAD>
 <BODY>
 
-<A HREF="../../"><IMG ALT="WWW"
-SRC="../../Icons/WWW/WWW48x.gif"></A> <A HREF="../Status.html"><IMG
-ALT="LMB" SRC="../../Icons/WWW/LMB48x.gif"></A>
+<A HREF="../../"><IMG ALT="WWW" SRC="../../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../Status.html"><IMG ALT="LMB" SRC="../../Icons/WWW/LMB48x.gif"></A>
 
 <H1>Change History of Line Mode Browser</H1>
 
@@ -129,12 +128,10 @@ HREF="../../Library/CannonicalHTML.html" NAME="z2">cannonical form</A>
 for running diffs, putting into code managemenst systems, etc.
 
 <LI> The Browser now understands the "ALT" tag in <A
-HREF="http://www.w3.org/hypertext/WWW/MarkUp/HTMLPlus/htmlplus_21.html">HTML
-Inlined Images</A>
+HREF="../../MarkUp/HTMLPlus/htmlplus_21.html">HTML Inlined Images</A>
 
-<LI> Loads the <A
-HREF="http://www.w3.org/hypertext/WWW/LineMode/Defaults/CommandLine.html">
-Command Line Help</A> if called with the parameter "-?" or "-help".
+<LI> Loads the <A HREF="CommandLine.html"> Command Line Help</A> if
+called with the parameter "-?" or "-help".
 
 <LI> Bug in understanding "-p" and "-w" with and without spaces
 between the number fixed.
@@ -145,244 +142,210 @@ between the number fixed.
 
 <H2>2.13</H2>
 
-<UL>
-<LI>This release of the Line Mode Browser is mainly a debugged version that is
-brought up to date with the WWW library version 2.15.
+<UL> <LI>This release of the Line Mode Browser is mainly a debugged
+version that is brought up to date with the WWW library version 2.15.
 For the changes in the Client side of the Library, see <A
-HREF="http://www.w3.org/hypertext/WWW/Library/User/Features/Features.html"
-NAME="z16">Changes to W3 Common Library</A> . See also <A
-HREF="http://www.w3.org/hypertext/WWW/LineMode/Defaults/Commands.html"
-NAME="z17">existing commands</A> and <A
-HREF="http://www.w3.org/hypertext/WWW/LineMode/Defaults/CommandLine.html"
-NAME="z18">command line syntax</A> .
-<LI>Using the save function ">" now checks if file exists.
-Use "!>" to overwrite it.
-All save functions now put up an output stream instead of making a system
-call.
-<LI>The -from command line option can be used in filter mode (using a "-") in
-order to specify the input format.
-<LI>In Non-interactive mode, no third party programs are called through "save
-&amp; execute".
-If the Browser finds gets an unknown format, the result is put onto standard
-output.</UL><H2>2.10</H2><UL>
-<LI>Millions of things which seem to have slipped past this list in versions
-2.x to s.09, inclduing the rule file,
-firing off X applications for graphics files, etc etc.
-See the library change list.</UL><H2>1.4a</H2><UL>
-<LI>REFRESH command refreshes current document</UL><H2>11 Dec 92: 1.4</H2><UL>
-<LI><A HREF="CommandLine.html#z8" NAME="z14">
--version command line option included</A> .
-<LI>Compiled for many machines with <A HREF="../../Library/Features.html#z4"
-NAME="z13">library version 1.1</A> .</UL><H2>Dec 92 1.3c</H2><UL>
-<LI>Makefile for rs6000 fixed. (rs6000 cc does not have good -o flag).
-Binary available for rs6000 again.
-<LI>-version option on command line for quick version check</UL><H2>16 Oct 92:
-Version 1.3a</H2><UL><LI><A HREF="Commands.html#6" NAME="12">SOURCE</A>
-command prefix allows printing,
-pipiping etc postscript source without formatting.
-SOURCE PRINT prints a postscript file.
-SOURCE > allows the original source to be saved. <LI><A
-HREF="CommandLine.html#7" NAME="11">-listrefs</A> option allow noninteractive
-output to be followed by lists of addresses of documents referred to.
-<LI>MANUAL command takes a hypertext jump straight to the latest version of
-the online manual. (HELP is still local slightly context-sensitive help).	
+HREF="../../Library/User/Features/Features.html" NAME="z16">Changes to
+W3 Common Library</A> . See also <A HREF="Commands.html"
+NAME="z17">existing commands</A> and <A HREF="CommandLine.html"
+NAME="z18">command line syntax</A> .  <LI>Using the save function ">"
+now checks if file exists.  Use "!>" to overwrite it.  All save
+functions now put up an output stream instead of making a system call.
+<LI>The -from command line option can be used in filter mode (using a
+"-") in order to specify the input format.  <LI>In Non-interactive
+mode, no third party programs are called through "save &amp; execute".
+If the Browser finds gets an unknown format, the result is put onto
+standard output.</UL><H2>2.10</H2><UL> <LI>Millions of things which
+seem to have slipped past this list in versions 2.x to s.09, inclduing
+the rule file, firing off X applications for graphics files, etc etc.
+See the library change list.</UL><H2>1.4a</H2><UL> <LI>REFRESH command
+refreshes current document</UL><H2>11 Dec 92: 1.4</H2><UL> <LI><A
+HREF="CommandLine.html#z8" NAME="z14"> -version command line option
+included</A> .  <LI>Compiled for many machines with <A
+HREF="../../Library/Features.html#z4" NAME="z13">library version
+1.1</A> .</UL><H2>Dec 92 1.3c</H2><UL> <LI>Makefile for rs6000
+fixed. (rs6000 cc does not have good -o flag).  Binary available for
+rs6000 again.  <LI>-version option on command line for quick version
+check</UL><H2>16 Oct 92: Version 1.3a</H2><UL><LI><A
+HREF="Commands.html#6" NAME="12">SOURCE</A> command prefix allows
+printing, pipiping etc postscript source without formatting.  SOURCE
+PRINT prints a postscript file.  SOURCE > allows the original source
+to be saved. <LI><A HREF="CommandLine.html#7" NAME="11">-listrefs</A>
+option allow noninteractive output to be followed by lists of
+addresses of documents referred to.  <LI>MANUAL command takes a
+hypertext jump straight to the latest version of the online
+manual. (HELP is still local slightly context-sensitive help).
 </UL><H2>Oct 92 version 1.2l</H2><UL><LI>Bug in Gopher access removed.
 <LI>Now uses common code library</UL><H2>version 1.2k</H2><UL>
-<LI>Default port number changed to 80 ****. </UL><H2>18 May 92 version 1.2h
-</H2><UL>
-<LI>PS command added to print document on local printer attached to a terminal.
-Special compilation flag SLAVE_PRINTER.
-<LI>BUG FIX: Crashes on some machines only fixed (malloc length error on
-HTTP.c.)</UL><H2>version 1.2f</H2><UL><LI>Bug fix: telnet under unix:
--l option was put AFTER the host name. Fixed 27-Mar-92.</UL><H2>Version 1.2e
-</H2><UL><LI>New command:
-'Verbose' toggles verbose mode on/off as per '-v' command switch.
-<LI>New command:
-for Unix, 'cd' or 'lcd' changes the local working directory (as in FTP
-clients). <LI>Command input handled more efficiently.
+<LI>Default port number changed to 80 ****. </UL><H2>18 May 92 version
+1.2h </H2><UL> <LI>PS command added to print document on local printer
+attached to a terminal.  Special compilation flag SLAVE_PRINTER.
+<LI>BUG FIX: Crashes on some machines only fixed (malloc length error
+on HTTP.c.)</UL><H2>version 1.2f</H2><UL><LI>Bug fix: telnet under
+unix: -l option was put AFTER the host name. Fixed
+27-Mar-92.</UL><H2>Version 1.2e </H2><UL><LI>New command: 'Verbose'
+toggles verbose mode on/off as per '-v' command switch.  <LI>New
+command: for Unix, 'cd' or 'lcd' changes the local working directory
+(as in FTP clients). <LI>Command input handled more efficiently.
 Should use readline() in the future, with completion on anchor names..
-<LI>Some minor bug fixes.</UL><H2>Version 1.2d</H2><UL>
-<LI>COMMENT tag introduced for future use only.
-<LI>Speed improvement: Use of a hash table for document names improves load
-time especially of documents with many links.</UL><H2>Version 1.2c</H2><UL>
-<LI>Bug fix:
-unknown tags without attributes caused text to be skipped until the end of the
-next tag.
-This lead to missing information (like phone numbers! ) in CERN yellow pages
-listing and a strange format for the xfind server.</UL><H2>Version 1.2b
-</H2>Release includes a few strict C bug fixes for the Mac,
-and adds makefile for pc-nfs. <H2>Version 1.2a</H2><UL><LI>Feature:
-the -source option makes www load the unparsed source from HTML servers.
-See <A HREF="CommandLine.html#5" NAME="9">details</A> ...
-<LI>Tags MENU and DIR introduced for future use.
-<LI>Bug fix: The style was not set until a style change occured:
-therefore, formatting of any text before a heading etc was wrong (no paragraph
-spacing, indents, etc).
-<LI>Bug fix: Newlines in HTML source are not taken as blanks if they follow
-other white space.
-This caused initial blanks on some paragraphs when a newline followed a tag.
-</UL><H2>Feb 12 1992: Version 1.2</H2><UL>
-<LI>Binaries generated for unix and vms hosts, for general announcement.
-Code fixes for compilation on the various platforms.</UL><H2>Version 1.1c
-</H2><UL><LI>www can be used as a filter:
-The - option (a dash by itself) makes it take HTML data from stdin. See<A
-HREF="CommandLine.html#4" NAME="8">details</A> <LI>FTP directories contain
-pointers back to their parent directory.
-<LI>Bug fix: News access didn't work on little-endian machines (VAX etc).
-<LI>Bug fix: VMS descrip.mms file was not complete.</UL><H2>Version 1.1b
-</H2><UL><LI>Bug fix:
-when using the ">" and "|" commands in www on a document whose name contained
-shell metacharacters, it failed.
-<LI>Bug fix: HTBrowse.h missing from source release.</UL><H2>Version 1.1a
-</H2><UL><LI>Bug fix: news server address always taken as "cernvax" : see <A
-HREF="NewsServer.html" NAME="6">documentation</A></UL><H2>
-January 1992 Version 1.1</H2><UL>
-<LI>"Gopher" protocol added to allow access to those campus-wide systems using
-that protocol.
-<LI>"Telnet:" access added for information system which don't have a server at
-all;
-<LI>Allows gateways to be defined for arbitrary new (or old) naming schemes,
-eg setenv WWW_wais_GATEWAY //node:port/ <LI>Bug fixes:
-the -n option didn't work properly in v1.0</UL><H2>
-Version 1.0 (released as alpha test only)</H2><UL>
-<LI>New archiecture, more modularity.
-<LI>"News" access added: picks up news using NNTP as the NeXT W3 browser does.
-<LI>Forward and reverse scrolling.
-<LI>"Next" and "Previous" commands added to allow to move to next article in a
-list. <LI>Bug fix: Searches are now only allowed on indexes.</UL><H2>
-Version 14a</H2><UL>
-<LI>Logfile option -l, and -h allows remote usage to be logged.
-(Existed in version 14,
-but bug in that log file was all one line!) <LI>If telnet used,
-default logfile /usr/adm/www-log- is used even though no -l logfileroot is
-specified.</UL><H2>November 1991 version 0.14</H2><UL>
-<LI>The `Recall' command now displays references as `R 1', `R 2', etc.
-instead of just `1', `2', etc.
-so the user is reminded to type `R &lt;number>'.
-<LI>An out-of-range reference number will launch a keyword search if
-applicable.
-For instance, in the phone book, you can now type directly `3755' instead of
-`K 3755'.
-<LI>New command : `(G)OTO &lt;address>' jumps to the document specified by its
-hypertext address.
-The address may be absolute or relative to the current node.
-<LI>Clear screen after user input for NEWLIB and VM.
-NEWLIB-special source put in.
-VM version defaults to home page on //info.cern.ch. <LI>Entity handling ., .
-and . put in for text and TITLE fields.
-<LI>Bug fix: CR now ignored in remote FTP files which used to be displayed
-double-spaced.
-<LI>Bug fix: tabs in plain text were displayed as newlines! Now to next
-multiple of 8 columns.</UL><H2>version 0.12</H2><UL><LI>-a xxx <A
-HREF="CommandLine.html#2" NAME="5">option</A> now allows the anchor format to
-be specified. The old -a option for anchor supression is renamed -na.
-<LI>Bug fix: occasional crash when going "back".
-<LI>Bug fix with the -n command line option.
-In non interactive mode the prompt was still produced.
-<LI>Now treats '\r' characters as '\n' characters.
-<LI>Reproduces last line of page at the top of the next page if a paragraph is
-split between them. <LI>Bug fix in FTP handling <A
-HREF="../../NeXT/Implementation/Features.html#9" NAME="4">
-as for NeXTStep editor</A> . (Could not access some sites).
-<LI>HTTP host addresses may now contain a port number after a colon to
-override the default.</UL><H2>15 August 1991 version 0.11</H2><UL>
-<LI>You can read the address of the current document in the HELP information.
-<LI>MVS and VM only: Line width reduced to 78 characters.</UL><H2>
-July 91 version 0.10</H2><UL><LI>Bug fix for TOP commmand.
-Now functions correctly,
-and data is only buffered and formatted when the user requires more text,
-hence saving time.
-<LI>Can pick up on the users home environment, to display a certain intial
-page.
-Set variable (on VMS, logical name) WWW_HOME to the full hypertext of the file
-or index you want to start with. <LI>Keyword search accepts longer strings.
-<LI>On VMS, VMS files may be accessed.
-The WWW address is still unix-like, with slashes,
-and is converted into VMS syntax by the browser.
-VMS users can now write their own hypertext and keep it on VMS,
-though it will only be readable (at the moment) from VMS machines.</UL><H2>
-June 91 version 0.9</H2><UL><LI>Bug fix in anonymous FTP.
-The first version with a-ftp access.</UL><H2>24 May 91 version 0.8</H2><UL>
-<LI>Page size selection now works with -p (bug in version 0.7) <LI>Styles have
-been made more compact, plain text uses all 80 columns.
-<LI>Bug fix: Missing loop end condidtion caused crash when listing some
-documents <LI>Files with suffixes other than .HTML are treated as plain text.
-</UL><H2>21 May 91 version 0.7</H2><UL>
-<LI>Parameters avaliable on the command line :-</UL><DL>
-<DT>-v <DD>Shows trace comments,
-including the pathways taken to locate a file.
-<DT>-n <DD>Makes the program non interactive with the user.
-No prompts are shown,
-and after the node is displayed it exits the program <DT>-p <DD>Turns off the
-paging.
-The page size can be selected by adding the value immediately after the 'p'.
-<DT>-a <DD>Stops positions of anchors being shown in the text.</DL><UL>
-<LI>These options are particulary useful when redirecting the input into
-either a file or to the printer.
-They can also be used in any order on the command line,
-as long as 'WWW' is the first arguement.
-<LI>When the recall command is used to view what files have been visited,
-the titles of the files are used, rather than the file name.
-If there is no title then the file name is used.</UL><H2>14 May 91</H2><UL>
-<LI>The function HTOpen() called from HTAccess has been changed so that it
-takes two parameters instead of one.
-This extra one being a pointer to an address where the format style is stored
-as an integer.
-The translations of the integers to the formats can be seen in WWW.h.
-At the momment this extra parameter is not used but will be in the near future
-so that more files can be accessed.</UL><H2>10 May 91</H2><UL>
-<LI>WWW now reads the formatted text into a double linked buffer one screen
-full at a time and then produces it on the screen.
-This enables checking of documents so that splitting of small paragraphs or
-titles does not occur at the bottom of the screen.
-<LI>An option is offered to return to the top of the present document being
-viewed.
-<LI>Tim added the necessary code so that WWW can now access remote files using
-anonymous FTP.</UL><H2>17 April 91</H2><UL>
-<LI>Modified WWW so that it is also executable on the SUN machines., i.e.
-using ordinary C.
-<LI>First version realeased on PRIAM, for testing by a few users,
-to gain feedback. <LI>Accepts keywords with the execute command. </UL><H2>
-8 April 91</H2><UL><LI>Keywords can be entered on the command line.
-<LI>The input file is copied into a buffer as soon as it is opened,
-so that the input channel is closed as soon as possible and the server freed.
-The first 23 lines of the document are read into the buffer and produced onto
-the screen.
-As soon as this is done, the remaining file is read into the buffer so the
-input channel is closed. </UL><H2>7 March 91</H2><UL>
-<LI>Created an array called 'string_space' which is filled with blank spaces
-to be used for printing out margins etc.
-This method of printing a string was found to be faster than individually
-printing spaces.
-<LI>A history mechanism has been included so that a list of all the documents
-viewed are stored so that the user can refer back to them using the BACK,
-HOME and RECALL commands.
-<LI>Changed code so that the browser can handle text which contains long words
-which exceed the allowed line length on their own.
-This is just done by continuing the word on the following line.
-<LI>Read titles and headings into a buffer before outputting so that in cases
-where the title has a word longer than the allowed line length can be dealt
-with (for example above).This could also be useful in helping to solve the
-above problem. Maybe extend the length of headings.</UL><H2>5 March 91
-</H2><UL>
-<LI>Handles a "LISTING" tag by treating it in the same way as an "XMP" tag.
-This is because, in the case of the line mode browser,
-the screen is limited to 80 columns and so the browser is unable to work with
-the 132 columns which the "LISTING" tag normally expects.
-<LI>Handles an "ADDRESS" tag, which left justifies the text.</UL><H2>27 Feb 91
+<LI>Some minor bug fixes.</UL><H2>Version 1.2d</H2><UL> <LI>COMMENT
+tag introduced for future use only.  <LI>Speed improvement: Use of a
+hash table for document names improves load time especially of
+documents with many links.</UL><H2>Version 1.2c</H2><UL> <LI>Bug fix:
+unknown tags without attributes caused text to be skipped until the
+end of the next tag.  This lead to missing information (like phone
+numbers! ) in CERN yellow pages listing and a strange format for the
+xfind server.</UL><H2>Version 1.2b </H2>Release includes a few strict
+C bug fixes for the Mac, and adds makefile for pc-nfs. <H2>Version
+1.2a</H2><UL><LI>Feature: the -source option makes www load the
+unparsed source from HTML servers.  See <A HREF="CommandLine.html#5"
+NAME="9">details</A> ...  <LI>Tags MENU and DIR introduced for future
+use.  <LI>Bug fix: The style was not set until a style change occured:
+therefore, formatting of any text before a heading etc was wrong (no
+paragraph spacing, indents, etc).  <LI>Bug fix: Newlines in HTML
+source are not taken as blanks if they follow other white space.  This
+caused initial blanks on some paragraphs when a newline followed a
+tag.  </UL><H2>Feb 12 1992: Version 1.2</H2><UL> <LI>Binaries
+generated for unix and vms hosts, for general announcement.  Code
+fixes for compilation on the various platforms.</UL><H2>Version 1.1c
+</H2><UL><LI>www can be used as a filter: The - option (a dash by
+itself) makes it take HTML data from stdin. See<A
+HREF="CommandLine.html#4" NAME="8">details</A> <LI>FTP directories
+contain pointers back to their parent directory.  <LI>Bug fix: News
+access didn't work on little-endian machines (VAX etc).  <LI>Bug fix:
+VMS descrip.mms file was not complete.</UL><H2>Version 1.1b
+</H2><UL><LI>Bug fix: when using the ">" and "|" commands in www on a
+document whose name contained shell metacharacters, it failed.
+<LI>Bug fix: HTBrowse.h missing from source release.</UL><H2>Version
+1.1a </H2><UL><LI>Bug fix: news server address always taken as
+"cernvax" : see <A HREF="NewsServer.html"
+NAME="6">documentation</A></UL><H2> January 1992 Version 1.1</H2><UL>
+<LI>"Gopher" protocol added to allow access to those campus-wide
+systems using that protocol.  <LI>"Telnet:" access added for
+information system which don't have a server at all; <LI>Allows
+gateways to be defined for arbitrary new (or old) naming schemes, eg
+setenv WWW_wais_GATEWAY //node:port/ <LI>Bug fixes: the -n option
+didn't work properly in v1.0</UL><H2> Version 1.0 (released as alpha
+test only)</H2><UL> <LI>New archiecture, more modularity.  <LI>"News"
+access added: picks up news using NNTP as the NeXT W3 browser does.
+<LI>Forward and reverse scrolling.  <LI>"Next" and "Previous" commands
+added to allow to move to next article in a list. <LI>Bug fix:
+Searches are now only allowed on indexes.</UL><H2> Version
+14a</H2><UL> <LI>Logfile option -l, and -h allows remote usage to be
+logged.  (Existed in version 14, but bug in that log file was all one
+line!) <LI>If telnet used, default logfile /usr/adm/www-log- is used
+even though no -l logfileroot is specified.</UL><H2>November 1991
+version 0.14</H2><UL> <LI>The `Recall' command now displays references
+as `R 1', `R 2', etc.  instead of just `1', `2', etc.  so the user is
+reminded to type `R &lt;number>'.  <LI>An out-of-range reference
+number will launch a keyword search if applicable.  For instance, in
+the phone book, you can now type directly `3755' instead of `K 3755'.
+<LI>New command : `(G)OTO &lt;address>' jumps to the document
+specified by its hypertext address.  The address may be absolute or
+relative to the current node.  <LI>Clear screen after user input for
+NEWLIB and VM.  NEWLIB-special source put in.  VM version defaults to
+home page on //info.cern.ch. <LI>Entity handling ., .  and . put in
+for text and TITLE fields.  <LI>Bug fix: CR now ignored in remote FTP
+files which used to be displayed double-spaced.  <LI>Bug fix: tabs in
+plain text were displayed as newlines! Now to next multiple of 8
+columns.</UL><H2>version 0.12</H2><UL><LI>-a xxx <A
+HREF="CommandLine.html#2" NAME="5">option</A> now allows the anchor
+format to be specified. The old -a option for anchor supression is
+renamed -na.  <LI>Bug fix: occasional crash when going "back".
+<LI>Bug fix with the -n command line option.  In non interactive mode
+the prompt was still produced.  <LI>Now treats '\r' characters as '\n'
+characters.  <LI>Reproduces last line of page at the top of the next
+page if a paragraph is split between them. <LI>Bug fix in FTP handling
+<A HREF="../../NeXT/Implementation/Features.html#9" NAME="4"> as for
+NeXTStep editor</A> . (Could not access some sites).  <LI>HTTP host
+addresses may now contain a port number after a colon to override the
+default.</UL><H2>15 August 1991 version 0.11</H2><UL> <LI>You can read
+the address of the current document in the HELP information.  <LI>MVS
+and VM only: Line width reduced to 78 characters.</UL><H2> July 91
+version 0.10</H2><UL><LI>Bug fix for TOP commmand.  Now functions
+correctly, and data is only buffered and formatted when the user
+requires more text, hence saving time.  <LI>Can pick up on the users
+home environment, to display a certain intial page.  Set variable (on
+VMS, logical name) WWW_HOME to the full hypertext of the file or index
+you want to start with. <LI>Keyword search accepts longer strings.
+<LI>On VMS, VMS files may be accessed.  The WWW address is still
+unix-like, with slashes, and is converted into VMS syntax by the
+browser.  VMS users can now write their own hypertext and keep it on
+VMS, though it will only be readable (at the moment) from VMS
+machines.</UL><H2> June 91 version 0.9</H2><UL><LI>Bug fix in
+anonymous FTP.  The first version with a-ftp access.</UL><H2>24 May 91
+version 0.8</H2><UL> <LI>Page size selection now works with -p (bug in
+version 0.7) <LI>Styles have been made more compact, plain text uses
+all 80 columns.  <LI>Bug fix: Missing loop end condidtion caused crash
+when listing some documents <LI>Files with suffixes other than .HTML
+are treated as plain text.  </UL><H2>21 May 91 version 0.7</H2><UL>
+<LI>Parameters avaliable on the command line :-</UL><DL> <DT>-v
+<DD>Shows trace comments, including the pathways taken to locate a
+file.  <DT>-n <DD>Makes the program non interactive with the user.  No
+prompts are shown, and after the node is displayed it exits the
+program <DT>-p <DD>Turns off the paging.  The page size can be
+selected by adding the value immediately after the 'p'.  <DT>-a
+<DD>Stops positions of anchors being shown in the text.</DL><UL>
+<LI>These options are particulary useful when redirecting the input
+into either a file or to the printer.  They can also be used in any
+order on the command line, as long as 'WWW' is the first arguement.
+<LI>When the recall command is used to view what files have been
+visited, the titles of the files are used, rather than the file name.
+If there is no title then the file name is used.</UL><H2>14 May
+91</H2><UL> <LI>The function HTOpen() called from HTAccess has been
+changed so that it takes two parameters instead of one.  This extra
+one being a pointer to an address where the format style is stored as
+an integer.  The translations of the integers to the formats can be
+seen in WWW.h.  At the momment this extra parameter is not used but
+will be in the near future so that more files can be
+accessed.</UL><H2>10 May 91</H2><UL> <LI>WWW now reads the formatted
+text into a double linked buffer one screen full at a time and then
+produces it on the screen.  This enables checking of documents so that
+splitting of small paragraphs or titles does not occur at the bottom
+of the screen.  <LI>An option is offered to return to the top of the
+present document being viewed.  <LI>Tim added the necessary code so
+that WWW can now access remote files using anonymous FTP.</UL><H2>17
+April 91</H2><UL> <LI>Modified WWW so that it is also executable on
+the SUN machines., i.e.  using ordinary C.  <LI>First version
+realeased on PRIAM, for testing by a few users, to gain
+feedback. <LI>Accepts keywords with the execute command. </UL><H2> 8
+April 91</H2><UL><LI>Keywords can be entered on the command line.
+<LI>The input file is copied into a buffer as soon as it is opened, so
+that the input channel is closed as soon as possible and the server
+freed.  The first 23 lines of the document are read into the buffer
+and produced onto the screen.  As soon as this is done, the remaining
+file is read into the buffer so the input channel is
+closed. </UL><H2>7 March 91</H2><UL> <LI>Created an array called
+'string_space' which is filled with blank spaces to be used for
+printing out margins etc.  This method of printing a string was found
+to be faster than individually printing spaces.  <LI>A history
+mechanism has been included so that a list of all the documents viewed
+are stored so that the user can refer back to them using the BACK,
+HOME and RECALL commands.  <LI>Changed code so that the browser can
+handle text which contains long words which exceed the allowed line
+length on their own.  This is just done by continuing the word on the
+following line.  <LI>Read titles and headings into a buffer before
+outputting so that in cases where the title has a word longer than the
+allowed line length can be dealt with (for example above).This could
+also be useful in helping to solve the above problem. Maybe extend the
+length of headings.</UL><H2>5 March 91 </H2><UL> <LI>Handles a
+"LISTING" tag by treating it in the same way as an "XMP" tag.  This is
+because, in the case of the line mode browser, the screen is limited
+to 80 columns and so the browser is unable to work with the 132
+columns which the "LISTING" tag normally expects.  <LI>Handles an
+"ADDRESS" tag, which left justifies the text.</UL><H2>27 Feb 91
 </H2><UL><LI>Lists and the help menu are not so spread out, as before.
 <LI>The browser works with file numbers rather than the file pointers.
-<LI>Tidied up paging, with the last line of a page repeated at top of next.
-<LI>Deals with tags within anchors.</UL><H2>11 Feb 91</H2><UL>
+<LI>Tidied up paging, with the last line of a page repeated at top of
+next.  <LI>Deals with tags within anchors.</UL><H2>11 Feb 91</H2><UL>
 <LI>HTTP access to cernvm server, including FIND and NEWS tested.
 <LI>Browser can be executed by 'WWW' , 'YP' (yellow pages), 'XNEWS',
-or 'FIND'. <LI>"PLAINTEXT" tag added.
-Prints out the node exactly as it finds it in the file.
-<LI>Prompt only contains appropriate options, as does the help message.
-<LI>Keyword search option added.</UL><H2>Before Feb 91</H2><UL>
-<LI>Text formatting and line wrapping completed to a reasonable standard.
-<LI>Removed section of program where 'r' has to be entered in order to select
-a reference.
+or 'FIND'. <LI>"PLAINTEXT" tag added.  Prints out the node exactly as
+it finds it in the file.  <LI>Prompt only contains appropriate
+options, as does the help message.  <LI>Keyword search option
+added.</UL><H2>Before Feb 91</H2><UL> <LI>Text formatting and line
+wrapping completed to a reasonable standard.  <LI>Removed section of
+program where 'r' has to be entered in order to select a reference.
 
 <LI>When no hypertext references have been found, the browser informs the
 user, and doesn't offer the list option in the help menu.
@@ -402,12 +365,10 @@ so this causes an error in the 'C' run time.
 
 <HR>
 
-<ADDRESS>www-bug@info.cern.ch <A
-HREF="http://www.w3.org/hypertext/WWW/People.html#Pellow">Nicola P
-</A> ,<A HREF="http://www.w3.org/hypertext/TBL_Disclaimer.html">Tim
-BL</A> ,<A HREF="http://www.w3.org/hypertext/WWW/People.html#Groff"
-NAME="10"> JFG</A>, <A
-HREF="http://www.w3.org/hypertext/WWW/People.html#Frystyk">Henrik
-Frystyk</A>, September 1994</ADDRESS>
+<ADDRESS>www-bug@w3.org <A HREF="../../People.html#Pellow">Nicola P
+</A> ,<A HREF="../../TBL_Disclaimer.html">Tim BL</A> ,<A
+HREF="../../People.html#Groff" NAME="10"> JFG</A>, <A
+HREF="../../People.html#Frystyk">Henrik Frystyk</A>, May
+1995</ADDRESS>
 
 </BODY></HTML>
