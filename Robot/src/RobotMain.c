@@ -25,6 +25,7 @@
 
 #include "HTRobMan.h"
 #include "RobotTxt.h"
+#include "HTSSL.h" 
 
 #define SHOW_QUIET(mr)		((mr) && !((mr)->flags & MR_QUIET))
 #define SHOW_REAL_QUIET(mr)	((mr) && !((mr)->flags & MR_REAL_QUIET))
