@@ -111,17 +111,6 @@ This will not be public in the next release so <B>DON'T USE IT ;-)</B>
 } HTCacheItem;
 </PRE>
 
-<H3>The Cache Itself</H3>
-
-There is one global cache. No, it's not reentrant code then.  If we
-find a use for >1 cache then we can change it. Currently the obvious
-advantage is when all things which could gain from caching use the
-same one.
-
-<PRE>
-extern HTList * HTCache;	/* made up of HTCacheItem items */
-</PRE>
-
 <H3>The Cache Limit</H3>
 
 The cache limit is the number of files which are kept. Yes, I know,
