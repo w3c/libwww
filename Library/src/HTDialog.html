@@ -1,134 +1,154 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Sample Code Library libwww messages and dialogs</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
-<NEXTID N="z11">
+  <TITLE>W3C Sample Code Library libwww messages and dialogs</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Application side Error Messages And the like</H1>
-
+<H1>
+  Application side Error Messages And the like
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This module provides some "make life easier" functions in order to get
-the application going. The functionality of this module was originally
-in <A HREF="HTAccess.html">HTAccess</A>, but now It is part of the <A
-HREF="WWWApp.html">application interface</A> which the application
-<EM>may</EM> use it if desired.<P>
-
-This module is implemented by <A HREF="HTHome.c">HTHome.c</A>, and it
-is a part of the <A HREF="http://www.w3.org/Library/"> W3C
-Sample Code Library</A>. <P>
-
+<P>
+This module provides some "make life easier" functions in order to get the
+application going. The functionality of this module was originally in
+<A HREF="HTAccess.html">HTAccess</A>, but now It is part of the
+<A HREF="WWWApp.html">application interface</A> which the application
+<EM>may</EM> use it if desired.
+<P>
+This module is implemented by <A HREF="HTHome.c">HTHome.c</A>, and it is
+a part of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code
+Library</A>.
 <PRE>
 #ifndef HTMSG_H
 #define HTMSG_H
 #include "WWWLib.h"
 </PRE>
-
-You can register a set of callback functions to handle user prompting,
-error messages, confimations etc. Here we give a set of functions that
-can be used on almost anu thinkable platform. If you want to provide
-your own platform dependent inoplementation then fine :-)
-
-<H3>Display a message, then wait for 'YES' or 'NO'</H3>
-
-This function prompts the user for a confirmation on the message
-passed as a parameter. If the user reacts in the affirmative, returns
-<EM>TRUE</EM>, returns <EM>FALSE</EM> otherwise.
-
+<H2>
+  English Error Messages and Progress Notifications
+</H2>
+<P>
+This function provides an unformatted English string containing the possibly
+nested status message that explains the result of a request. This is essentially
+"flattening out" the information provided in the <A HREF="HTReq.html">request
+error strack</A>. The string must be freed by the caller.
+<PRE>
+extern char * HTDialog_errorMessage (HTRequest * request, HTAlertOpcode op,
+			             int msgnum, const char * dfault,
+				     void * input);
+</PRE>
+<P>
+This function provides a string containin an English progress message that
+the application can present to the user if desired. The string must be freed
+by the caller.
+<PRE>
+extern char * HTDialog_progressMessage (HTRequest * request, HTAlertOpcode op,
+			                int msgnum, const char * dfault,
+				        void * input);
+</PRE>
+<H2>
+  Default User Interaction Handlers
+</H2>
+<P>
+You can register a set of callback functions to handle user prompting, error
+messages, confimations etc. Here we give a set of functions that can be used
+on almost anu thinkable platform. If you want to provide your own platform
+dependent implementation then fine :-)
+<H3>
+  Display a message, then wait for 'YES' or 'NO'
+</H3>
+<P>
+This function prompts the user for a confirmation on the message passed as
+a parameter. If the user reacts in the affirmative, returns <EM>TRUE</EM>,
+returns <EM>FALSE</EM> otherwise.
 <PRE>
 extern HTAlertCallback HTConfirm;
 </PRE>
-
-<H3>Prompt the User a Question</H3>
-
-Prompt for answer and get text back. Reply text is either NULL on
-error or a dynamic string which the caller must free.
-
+<H3>
+  Prompt the User a Question
+</H3>
+<P>
+Prompt for answer and get text back. Reply text is either NULL on error or
+a dynamic string which the caller must free.
 <PRE>		
 extern HTAlertCallback HTPrompt;
 </PRE>
-
-<H3>Prompt for a Password</H3>
-
-Prompt for password without echoing the reply. Reply text is weither
-NULL on error or a dynamic string which the caller must free. <P>
-
-<B>NOTE:</B> The current version uses <EM>getpass</EM> which on many
-systems returns a string of 8 or 16 bytes.
-
+<H3>
+  Prompt for a Password
+</H3>
+<P>
+Prompt for password without echoing the reply. Reply text is weither NULL
+on error or a dynamic string which the caller must free.
+<P>
+<B>NOTE:</B> The current version uses <EM>getpass</EM> which on many systems
+returns a string of 8 or 16 bytes.
 <PRE>
 extern HTAlertCallback HTPromptPassword;
 </PRE>
-
-<H3>Prompt for a UserID and a Password</H3>
-
+<H3>
+  Prompt for a UserID and a Password
+</H3>
+<P>
 This is just a composite function using <EM>HTPrompt</EM> and
-<EM>HTPromptPassword</EM>. The strings returned must be freed by
-caller.
-
+<EM>HTPromptPassword</EM>. The strings returned must be freed by caller.
 <PRE>
 extern HTAlertCallback HTPromptUsernameAndPassword;
 </PRE>
-
-<H3>Display a Message</H3>
-
+<H3>
+  Display a Message
+</H3>
+<P>
 This function simply puts out the message passed.
-
 <PRE>
 extern HTAlertCallback HTAlert;
 </PRE>
-
-<H3>Progress Notification</H3>
-
-This function can be used to indicate the current status of a certain
-action. In order to avoid having strings directly in the core parts of
-the Library, this function is passed a "state" argument from which the
-message can be generated in this module. The "param" argument is for
-additional information to be passed.
-
+<H3>
+  Progress Notification
+</H3>
+<P>
+This function can be used to indicate the current status of a certain action.
+In order to avoid having strings directly in the core parts of the Library,
+this function is passed a "state" argument from which the message can be
+generated in this module. The "param" argument is for additional information
+to be passed.
 <PRE>
 extern HTAlertCallback HTProgress;
 </PRE>
-
-<H3>Generating a User Error Message of a request</H3>
-
-This function outputs the content of the error list to standard output
-(used in Line Mode Browser), but smart clients and servers might
-overwrite this function so that the error messages can be handled to
-the user in a nice(r) way. That is the reason for putting the actual
-implementation in <A HREF="HTAlert.c">HTAlert.c</A>.<P>
-
+<H3>
+  Generating a User Error Message of a request
+</H3>
+<P>
+This function outputs the content of the error list to standard output (used
+in Line Mode Browser), but smart clients and servers might overwrite this
+function so that the error messages can be handled to the user in a nice(r)
+way. That is the reason for putting the actual implementation in
+<A HREF="HTAlert.c">HTAlert.c</A>.
+<P>
 <PRE>
 extern HTAlertCallback HTError_print;
 </PRE>
-
-<H3>Generating a Server Error Message of a request</H3>
-
-Default function that creates an error message using HTAlert() to
-put out the contents of the error_stack messages. Furthermore, the
-error_info structure contains a name of a help file that might be put
-up as a link. This file can then be multi-linguistic.
-
+<H3>
+  Generating a Server Error Message of a request
+</H3>
+<P>
+Default function that creates an error message using HTAlert() to put out
+the contents of the error_stack messages. Furthermore, the error_info structure
+contains a name of a help file that might be put up as a link. This file
+can then be multi-linguistic.
 <PRE>
 extern BOOL HTError_response (HTRequest * request, HTAlertOpcode op,
 			      int msgnum, const char * dfault, void * input,
 			      HTAlertPar * reply);
 </PRE>
-
 <PRE>
 #endif /* HTHOME_H */
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

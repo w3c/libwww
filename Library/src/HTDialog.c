@@ -33,23 +33,30 @@ PRIVATE const char * HTDialogs[HT_MSG_ELEMENTS] = {HT_MSG_ENGLISH_INITIALIZER};
 PRIVATE HTErrorMessage HTErrors[HTERR_ELEMENTS] = {HTERR_ENGLISH_INITIALIZER};
 
 /* ------------------------------------------------------------------------- */
+/*			Functions for generating messages		     */
+/* ------------------------------------------------------------------------- */
 
-PUBLIC BOOL HTProgress (HTRequest * request, HTAlertOpcode op,
-			int msgnum, const char * dfault, void * input,
-			HTAlertPar * reply)
+PUBLIC char * HTDialog_progressMessage (HTRequest * request, HTAlertOpcode op,
+			                int msgnum, const char * dfault,
+					void * input)
 {
-    if (request && HTRequest_internal(request)) return NO;
+    char * result = NULL;
+    if (request && HTRequest_internal(request)) return NULL;
     switch (op) {
       case HT_PROG_DNS:
-	HTTrace("Looking up %s\n", input ? (char *) input : "");
+	StrAllocMCopy(&result, "Looking up ",
+		      input ? (char *) input : "",
+		      NULL);
 	break;
 
       case HT_PROG_CONNECT:
-	HTTrace("Contacting %s\n", input ? (char *) input : "");
+	StrAllocMCopy(&result, "Contacting ",
+		      input ? (char *) input : "",
+		      NULL);
 	break;
 
       case HT_PROG_ACCEPT:
-	HTTrace("Waiting for connection...\n");
+	StrAllocCopy(result, "Waiting for connection...");
 	break;
 
       case HT_PROG_READ:
@@ -59,10 +66,16 @@ PUBLIC BOOL HTProgress (HTRequest * request, HTAlertOpcode op,
 		long b_read = HTRequest_bodyRead(request);
 		double pro = (double) b_read/cl*100;
 		char buf[10];
+		char pct[10];
 		HTNumToStr((unsigned long) cl, buf, 10);
-		HTTrace("Read (%d%% of %s)\n", (int) pro, buf);
-	    } else
-		HTTrace("Reading...\n");
+		sprintf(pct, "%d%%", (int) pro);
+		StrAllocMCopy(&result, "Read (", pct, "of ", buf, ")", NULL);
+	    } else {
+		long b_read = HTRequest_bytesRead(request);
+		char buf[10];
+		HTNumToStr(b_read>0 ? b_read : 0, buf, 10);
+		StrAllocMCopy(&result, "Read ", buf, "bytes", NULL);
+	    }    
 	}
 	break;
 
@@ -74,32 +87,153 @@ PUBLIC BOOL HTProgress (HTRequest * request, HTAlertOpcode op,
 		long b_write = HTRequest_bodyWritten(request);
 		double pro = (double) b_write/cl*100;
 		char buf[10];
+		char pct[10];
 		HTNumToStr((unsigned long) cl, buf, 10);
-		HTTrace("Written (%d%% of %s)\n", (int) pro, buf);
-	    } else
-		HTTrace("Writing...\n");
-	}
+		sprintf(pct, "%d%%", (int) pro);
+		StrAllocMCopy(&result, "Writing (", pct, "of ", buf, ")", NULL);
+	    } else {
+		long b_written = HTRequest_bytesWritten(request);
+		char buf[10];
+		HTNumToStr(b_written>0 ? b_written : 0, buf, 10);
+		StrAllocMCopy(&result, "Writing ", buf, "bytes", NULL);
+	    }
+        }
 	break;
 
       case HT_PROG_DONE:
-	HTTrace("Done!\n");
+	StrAllocCopy(result, "Done!");
 	break;
 
       case HT_PROG_INTERRUPT:
-	HTTrace("Interrupted!\n");
+	StrAllocCopy(result, "Interrupted!");
 	break;
 
       case HT_PROG_OTHER:
-	HTTrace("Working - please wait...\n");
+	StrAllocCopy(result, "Working - please wait...");
 	break;
 
       case HT_PROG_TIMEOUT:
-	HTTrace("Request timeout - server did not respond.\n");
+	StrAllocCopy(result, "Request timeout - server did not respond.");
 	break;
 
       default:
-	HTTrace("UNKNOWN PROGRESS STATE\n");
+	StrAllocCopy(result, "UNKNOWN PROGRESS STATE");
 	break;
+    }
+    return result;
+}
+
+PUBLIC char * HTDialog_errorMessage (HTRequest * request, HTAlertOpcode op,
+			             int msgnum, const char * dfault,
+				     void * input)
+{
+    HTList * cur = (HTList *) input;
+    HTError * pres;
+    HTErrorShow showmask = HTError_show();
+    HTChunk * msg = NULL;
+    int code;
+    if (!request || !cur) return NULL;
+    while ((pres = (HTError *) HTList_nextObject(cur))) {
+	int index = HTError_index(pres);
+	if (HTError_doShow(pres)) {
+	    if (!msg) {
+		HTSeverity severity = HTError_severity(pres);
+		msg = HTChunk_new(128);
+		if (severity == ERR_WARN)
+		    HTChunk_puts(msg, "Warning: ");
+		else if (severity == ERR_NON_FATAL)
+		    HTChunk_puts(msg, "Non Fatal Error: ");
+		else if (severity == ERR_FATAL)
+		    HTChunk_puts(msg, "Fatal Error: ");
+		else if (severity == ERR_INFO)
+		    HTChunk_puts(msg, "Information: ");
+		else {
+		    HTChunk_puts(msg, "UNKNOWN ERROR TYPE");
+		    return HTChunk_toCString(msg);
+		}
+
+		/* Error number */
+		if ((code = HTErrors[index].code) > 0) {
+		    char buf[10];
+		    sprintf(buf, "%d ", code);
+		    HTChunk_puts(msg, buf);
+		}
+	    } else
+		HTChunk_puts(msg, "\nReason: ");
+
+	    if (index == HTERR_SYSTEM) {
+		int length = 0;
+		char * pars = (char *) HTError_parameter(pres, &length);
+		HTChunk_puts(msg, HTError_location(pres));
+		HTChunk_puts(msg, " ");
+		HTChunk_puts(msg, HTErrors[index].msg);
+		if (length && pars) {
+		    HTChunk_puts(msg, " (");
+		    HTChunk_puts(msg, pars);
+		    HTChunk_puts(msg, ")");
+		}
+		
+	    } else {
+
+		/* Error message */
+		HTChunk_puts(msg, HTErrors[index].msg);
+
+		/* Error parameters */
+		if (showmask & HT_ERR_SHOW_PARS) {
+		    int length;
+		    int cnt;		
+		    char *pars = (char *) HTError_parameter(pres, &length);
+		    if (length && pars) {
+			HTChunk_puts(msg, " (");
+			for (cnt=0; cnt<length; cnt++) {
+			    char ch = *(pars+cnt);
+			    if (ch < 0x20 || ch >= 0x7F)
+				HTChunk_putc(msg, '#');
+			    else
+				HTChunk_putc(msg, ch);
+			}
+			HTChunk_puts(msg, ") ");
+		    }
+		}
+		
+		/* Error Location */
+		if (showmask & HT_ERR_SHOW_LOCATION) {
+		    HTChunk_puts(msg, "This occured in ");
+		    HTChunk_puts(msg, HTError_location(pres));
+		    HTChunk_putc(msg, '\n');
+		}
+	    }
+
+	    /*
+	    ** Make sure that we don't get this error more than once even
+	    ** if we are keeping the error stack from one request to another
+	    */
+	    HTError_setIgnore(pres);
+	    
+	    /* If we only are show the most recent entry then break here */
+	    if (showmask & HT_ERR_SHOW_FIRST)
+		break;
+	}
+    }
+    return HTChunk_toCString(msg);
+}
+
+/* ------------------------------------------------------------------------- */
+
+/*
+**  Functions for providing user interactions registered in the
+**  HTAlert module. These functions are the default set of user
+**  inteactions that are provided by libwww. You are likely to want to generate your own versions
+**  that can be registered instead.
+*/
+PUBLIC BOOL HTProgress (HTRequest * request, HTAlertOpcode op,
+			int msgnum, const char * dfault, void * input,
+			HTAlertPar * reply)
+{
+    char * msg = HTDialog_progressMessage(request, op, msgnum, dfault, input);
+    if (msg) {
+	HTTrace("%s\n", msg);
+	HT_FREE(msg);
     }
     return YES;
 }
@@ -213,88 +347,16 @@ PUBLIC BOOL HTError_print (HTRequest * request, HTAlertOpcode op,
 			   int msgnum, const char * dfault, void * input,
 			   HTAlertPar * reply)
 {
-    HTList *cur = (HTList *) input;
-    HTError *pres;
-    HTErrorShow showmask = HTError_show();
-    HTChunk *msg = NULL;
-    int code;
-    if (WWWTRACE) HTTrace("HTError..... Generating message\n");
-    if (!request || !cur) return NO;
-    while ((pres = (HTError *) HTList_nextObject(cur))) {
-	int index = HTError_index(pres);
-	if (HTError_doShow(pres)) {
-	    if (!msg) {
-		HTSeverity severity = HTError_severity(pres);
-		msg = HTChunk_new(128);
-		if (severity == ERR_WARN)
-		    HTChunk_puts(msg, "Warning: ");
-		else if (severity == ERR_NON_FATAL)
-		    HTChunk_puts(msg, "Non Fatal Error: ");
-		else if (severity == ERR_FATAL)
-		    HTChunk_puts(msg, "Fatal Error: ");
-		else if (severity == ERR_INFO)
-		    HTChunk_puts(msg, "Information: ");
-		else {
-		    if (WWWTRACE)
-			HTTrace("HTError..... Unknown Classification of Error (%d)...\n", severity);
-		    HTChunk_delete(msg);
-		    return NO;
-		}
-
-		/* Error number */
-		if ((code = HTErrors[index].code) > 0) {
-		    char buf[10];
-		    sprintf(buf, "%d ", code);
-		    HTChunk_puts(msg, buf);
-		}
-	    } else
-		HTChunk_puts(msg, "\nReason: ");
-	    HTChunk_puts(msg, HTErrors[index].msg);	    /* Error message */
-
-	    if (showmask & HT_ERR_SHOW_PARS) {		 /* Error parameters */
-		int length;
-		int cnt;		
-		char *pars = (char *) HTError_parameter(pres, &length);
-		if (length && pars) {
-		    HTChunk_puts(msg, " (");
-		    for (cnt=0; cnt<length; cnt++) {
-			char ch = *(pars+cnt);
-			if (ch < 0x20 || ch >= 0x7F)
-			    HTChunk_putc(msg, '#');
-			else
-			    HTChunk_putc(msg, ch);
-		    }
-		    HTChunk_puts(msg, ") ");
-		}
-	    }
-
-	    if (showmask & HT_ERR_SHOW_LOCATION) {	   /* Error Location */
-		HTChunk_puts(msg, "This occured in ");
-		HTChunk_puts(msg, HTError_location(pres));
-		HTChunk_putc(msg, '\n');
-	    }
-
-	    /*
-	    ** Make sure that we don't get this error more than once even
-	    ** if we are keeping the error stack from one request to another
-	    */
-	    HTError_setIgnore(pres);
-	    
-	    /* If we only are show the most recent entry then break here */
-	    if (showmask & HT_ERR_SHOW_FIRST)
-		break;
-	}
-    }
+    char * msg = HTDialog_errorMessage(request, op, msgnum, dfault, input);
     if (msg) {
-	HTChunk_putc(msg, '\n');
-	HTTrace("WARNING: %s\n", HTChunk_data(msg));
-	HTChunk_delete(msg);
+	HTTrace("%s\n", msg);
+	HT_FREE(msg);
     }
     return YES;
 }
 
-/*	HTError_response
-**	----------------
+/*	NOT USED - HTError_response - NOT USED!!!
+**	-----------------------------------------
 **	Default function that creates an error message using HTAlert() to
 **	put out the contents of the error_stack messages. Furthermore, the
 **	error_info structure contains a name of a help file that might be put
@@ -304,71 +366,5 @@ PUBLIC BOOL HTError_response (HTRequest * request, HTAlertOpcode op,
 			      int msgnum, const char * dfault, void * input,
 			      HTAlertPar * reply)
 {
-    HTList * cur = (HTList *) input;
-    HTError * pres;
-    HTErrorShow showmask = HTError_show();
-    HTChunk * msg = NULL;
-    int code;
-    if (WWWTRACE) HTTrace("HTError..... Generating HTTP response\n");
-    if (!request || !cur || !reply) return NO;
-    while ((pres = (HTError *) HTList_nextObject(cur))) {
-	int index = HTError_index(pres);
-	if (HTError_doShow(pres)) {
-	    if (!msg) {
-		msg = HTChunk_new(128);
-		if ((code = HTErrors[index].code) > 0) {
-		    char * reason = HTErrors[index].msg;
-		    char * buf;
-		    if ((buf = (char  *) HT_MALLOC(20 + strlen(reason))) == NULL)
-		        HT_OUTOFMEM("HTError_response");
-		    sprintf(buf,"%s %d %s%c%c",HTTP_VERSION,code,reason,CR,LF);
-		    HTAlert_assignReplyMessage(reply, buf);
-		}
-	    } else {
-		HTChunk_puts(msg, "\nReason: ");
-		HTChunk_puts(msg, HTErrors[index].msg);	    /* Error message */
-	    }
-
-	    if (showmask & HT_ERR_SHOW_PARS) {		 /* Error parameters */
-		int length;
-		int cnt;		
-		char *pars = (char *) HTError_parameter(pres, &length);
-		if (length && pars) {
-		    HTChunk_puts(msg, " (");
-		    for (cnt=0; cnt<length; cnt++) {
-			char ch = *(pars+cnt);
-			if (ch < 0x20 || ch >= 0x7F)
-			    HTChunk_putc(msg, '#');
-			else
-			    HTChunk_putc(msg, ch);
-		    }
-		    HTChunk_puts(msg, ") ");
-		}
-	    }
-
-	    if (showmask & HT_ERR_SHOW_LOCATION) {	   /* Error Location */
-		HTChunk_puts(msg, "This occured in ");
-		HTChunk_puts(msg, HTError_location(pres));
-		HTChunk_putc(msg, '\n');
-	    }
-
-	    /*
-	    ** Make sure that we don't get this error more than once even
-	    ** if we are keeping the error stack from one request to another
-	    */
-	    HTError_setIgnore(pres);
-	    
-	    /* If we only are show the most recent entry then break here */
-	    if (showmask & HT_ERR_SHOW_FIRST)
-		break;
-	}
-    }
-    if (msg) {
-	HTChunk_putc(msg, '\n');
-#if 0
-	HTTrace("WARNING: %s\n", HTChunk_data(msg));
-#endif
-	HTChunk_delete(msg);
-    }
-    return YES;
+    return NO;
 }
