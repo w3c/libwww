@@ -14,8 +14,6 @@
 **	FTP: Cannot access VMS files from a unix machine.
 **      How can we know that the
 **	target machine runs VMS?
-**
-**	DIRECTORIES are NOT SORTED.. alphabetically etc.
 */
 
 #include "HTFile.h"		/* Implemented here */
@@ -37,6 +35,7 @@
 #include "HTWriter.h"
 #include "HTFWriter.h"
 #include "HTInit.h"
+#include "HTBTree.h"
 
 typedef struct _HTSuffix {
 	char *		suffix;
@@ -771,107 +770,179 @@ forget_multi:
 		
                 if (HTDirReadme == HT_DIR_README_TOP)
 		    do_readme(target, localname);
-		
+		{
+		    HTBTree * bt = HTBTree_new((HTComparer)strcasecmp);
 
-#ifdef SORT
-		HTBTree * bt = HTBTree_new(strcasecomp);
-#endif
-		START(HTML_DIR);		
+		    while (dirbuf = readdir(dp))
+		    {
+		        HTBTElement * dirname = NULL;
 
-		while (dirbuf = readdir(dp)) {
 			    /* while there are directory entries to be read */
-		    if (dirbuf->d_ino == 0)
-				    /* if the entry is not being used, skip it */
-			continue;
+		        if (dirbuf->d_ino == 0)
+				  /* if the entry is not being used, skip it */
+			    continue;
 		    
-		    if (!strcmp(dirbuf->d_name,"."))
-			continue;      /* skip the entry for this directory */
+		        if (!strcmp(dirbuf->d_name,"."))
+			    continue;   /* skip the entry for this directory */
 			
-		    if (strcmp(dirbuf->d_name,"..") != 0) {
+			if (strcmp(dirbuf->d_name,"..") != 0) 
+			{
 				/* if the current entry is parent directory */
-			if ((*(dirbuf->d_name)=='.') ||
-			    (*(dirbuf->d_name)==','))
+			    if ((*(dirbuf->d_name)=='.') ||
+				(*(dirbuf->d_name)==','))
 			    continue;    /* skip those files whose name begins
 					    with '.' or ',' */
-		    } else {
-		        if (!*tail) continue; /* No up from top level */
-		    }
-		    StrAllocCopy(tmpfilename,localname);
-		    if (strcmp(localname,"/")) 
+			} 
+			else 
+			{
+			    if (!*tail) continue; /* No up from top level */
+		        }
+			dirname = malloc(strlen(dirbuf->d_name) + 2);
+			if (dirname == NULL) outofmem(__FILE__,"DirRead");
+			StrAllocCopy(tmpfilename,localname);
+			if (strcmp(localname,"/")) 
+
 					/* if filename is not root directory */
-			StrAllocCat(tmpfilename,"/"); 
-		    else
-			if (!strcmp(dirbuf->d_name,".."))
-			    continue;
-	    /* if root directory and current entry is parent
+			    StrAllocCat(tmpfilename,"/"); 
+			else
+			    if (!strcmp(dirbuf->d_name,".."))
+			        continue;
+			        /* if root directory and current entry is parent
 				    directory, skip the current entry */
-		    
-		    StrAllocCat(tmpfilename,dirbuf->d_name);
-		    /* append the current entry's filename to the path */
-		    HTSimplify(tmpfilename);
-		    
-		    /* Output the directory entry */
-	    
-		    START(HTML_LI);
+
+			StrAllocCat(tmpfilename,dirbuf->d_name);
+			stat(tmpfilename, &file_info);
+			if (((file_info.st_mode) & S_IFMT) == S_IFDIR)
+		                sprintf((char *)dirname,"D%s",dirbuf->d_name);
+			else sprintf((char *)dirname,"F%s",dirbuf->d_name);
+			    /* D & F to have first directories, then files */
+			HTBTree_add(bt,dirname); /* Sort dirname in the tree bt */
+		    }
+
+		    /*    Run through tree printing out in order
+		     */
 		    {
-			char * relative;
-			char * escaped = HTEscape(
-				dirbuf->d_name, URL_XPALPHAS);
-			/* If empty tail, gives absolute ref below */
-			relative = (char*) malloc(
-			    strlen(tail) + strlen(escaped)+2);
-			if (relative == NULL) outofmem(__FILE__, "DirRead");
-			sprintf(relative, "%s/%s", tail, escaped);
-			value[HTML_A_HREF] = relative;
-			(*targetClass.start_element)(
+		        HTBTElement * next_element = HTBTree_next(bt,NULL);
+			    /* pick up the first element of the list */
+		        BOOL up_directory, first_of_directories, 
+			      list_of_directories_begun, 
+			      list_of_files_begun, first_of_files;
+
+			up_directory = YES;
+			first_of_directories = YES;
+			first_of_files = YES;
+			list_of_directories_begun = NO;
+			list_of_files_begun = NO;
+			while (next_element != NULL)
+		        {
+			    StrAllocCopy(tmpfilename,localname);
+			    if (strcmp(localname,"/")) 
+
+					/* if filename is not root directory */
+			        StrAllocCat(tmpfilename,"/"); 
+			    else
+			        if (!strcmp((char *)
+				       (1 + HTBTree_object(next_element)),".."))
+			            continue;
+			        /* if root directory and current entry is parent
+				    directory, skip the current entry */
+
+			    StrAllocCat(tmpfilename,(char *)
+					(1 + HTBTree_object(next_element)));
+			    /* append the current entry's filename to the path */
+			    HTSimplify(tmpfilename);
+			    /* Output the directory entry */
+			    if ( *(char *)(HTBTree_object(next_element))=='D')
+			    {
+				if (up_directory && !strcmp((char *)
+					       (HTBTree_object(next_element)),"D.."))   
+				    up_directory = NO;
+				else
+				{
+				    if (first_of_directories)
+				    {
+				        up_directory = NO; 
+					      /* to avoid problems with root directory */
+				        first_of_directories = NO;
+					START(HTML_H2);
+					PUTS("Subdirectories:");
+					END(HTML_H2);
+					START(HTML_DIR);
+					list_of_directories_begun = YES;
+				    }
+				    START(HTML_LI);
+				}
+			    }
+			    if ( *(char *)(HTBTree_object(next_element))=='F')
+			    {
+			        if (first_of_files && list_of_directories_begun)
+				    END(HTML_DIR);
+				if (first_of_files)
+				{
+				    first_of_files = NO;
+				    START(HTML_H2);
+				    PUTS("Files:");
+				    END(HTML_H2);
+				    START(HTML_DIR);
+				    list_of_files_begun = YES;
+				}
+				START(HTML_LI);
+			    }
+			    {
+			        char * relative;
+				char * escaped = HTEscape((char *)(1 + 
+						    HTBTree_object(next_element)),
+								   URL_XPALPHAS);
+				/* If empty tail, gives absolute ref below */
+				relative = (char*) malloc(
+				       strlen(tail) + strlen(escaped)+2);
+				if (relative == NULL) outofmem(__FILE__, "DirRead");
+				sprintf(relative, "%s/%s", tail, escaped);
+				value[HTML_A_HREF] = relative;
+				(*targetClass.start_element)(
 				    target,HTML_A, present, value);
-			free(escaped);
-			free(relative);
+				free(escaped);
+				free(relative);
+			    }
+
+	     		    if (strcmp((char *)
+				       (1 + HTBTree_object(next_element)),".."))
+			    {
+
+				  /* if the current entry is not the parent 
+				     directory then use the file name */
+				  PUTS((char *)(1 + HTBTree_object(next_element)));
+
+			    }		        
+			    else 
+			    {
+			      /* use name of parent directory */
+			        char * endbit = strrchr(tmpfilename, '/');
+				PUTS("Up to ");
+				PUTS(*endbit ? endbit+1:tmpfilename);
+			    }	
+			    END(HTML_A);
+			    next_element = HTBTree_next(bt,next_element);
+			        /* pick up the next element of the list; 
+				 if none, return NULL*/
+			}
+			if (list_of_files_begun)
+			    END(HTML_DIR);
 		    }
-		    stat(tmpfilename, &file_info);
-		    
-		    if (strcmp(dirbuf->d_name,"..")) {
-/* if the current entry is not the parent directory then use the file name */
-			PUTS(dirbuf->d_name);
-			if (((file_info.st_mode) & S_IFMT) == S_IFDIR) 
-			    PUTC('/'); 
-		    }		        
-		    else {
-		    /* use name of parent directory */
-			char * endbit = strrchr(tmpfilename, '/');
-			PUTS("Up to ");
-			PUTS(endbit?endbit+1:tmpfilename);
-		    }	
-		    END(HTML_A);
-			
-		} /* end while directory entries left to read */
-		
-		closedir(dp);
-		free(logical);
-		free(tmpfilename);
-		
-#ifdef SORT
-		{		/* Read out sorted filenames */
-		    void * ele = NULL;
-		    while ( (ele=HTBTree_next(bt, ele) != 0) {
-		       if (TRACE) fprintf(stderr,
-		       	"Sorted: %s\n", HTBTree_object(ele);
-			/* @@@@@@@@@@@@@@@@@ */
-		    }
-		    HTBTree_free(bt);
+		        /* end while directory entries left to read */
+		    closedir(dp);
+		    free(logical);
+		    free(tmpfilename);
+		    HTBTreeAndObject_free(bt);
+
+		    if (HTDirReadme == HT_DIR_README_BOTTOM)
+			  do_readme(target, localname);
+		    END_TARGET;
+		    FREE_TARGET;
+		    free(localname);
+		    return HT_LOADED;	/* document loaded */
 		}
-#endif		
-		END(HTML_DIR);
 
-		if (HTDirReadme == HT_DIR_README_BOTTOM)
-		    do_readme(target, localname);
-
-		END_TARGET;
-		FREE_TARGET;
-		    
-		free(localname);
-		return HT_LOADED;	/* document loaded */
-		
 	    } /* end if localname is directory */
 	
 	} /* end if file stat worked */
@@ -927,4 +998,3 @@ open_file:
 */
 PUBLIC HTProtocol HTFTP  = { "ftp", HTLoadFile, 0 };
 PUBLIC HTProtocol HTFile = { "file", HTLoadFile, HTFileSaveStream };
-
