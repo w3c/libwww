@@ -75,7 +75,7 @@ PRIVATE BOOL Timer_setWindowsTimer (HTTimer * timer)
     HWND hwnd;
     UINT id;
     hwnd = HTEventList_getWinHandle(&id);
-    return SetTimer(hwnd, (UINT)timer, (UINT)timer->millis, NULL) != 0;
+    return SetTimer(hwnd, (UINT)timer, (UINT)HTTimer_getTime(timer), NULL) != 0;
 }
 
 PRIVATE BOOL Timer_deleteWindowsTimer (HTTimer * timer)
@@ -193,7 +193,7 @@ PRIVATE int EventListTimerHandler (HTTimer * timer, void * param, HTEventType ty
 {
     SockEvents * sockp = (SockEvents *)param;
     HTEvent * event;
-    HTMemLog_flush();
+    /* HTMemLog_flush(); keep around - very useful for debugging crashes - EGP */
 #ifdef IN_EVENT
     if (sockp->events[HTEvent_INDEX(HTEvent_READ)]->timer == timer)
 #else /* IN_EVENT */
@@ -408,9 +408,12 @@ PUBLIC int HTEventList_unregister(SOCKET s, HTEventType type)
     HTList * 		cur = HashTable[v];
     HTList * 		last = cur;
     SockEvents *	pres;
+    int			ret = HT_ERROR;
 
+#ifndef WWW_WIN_ASYNC
     MaxSock = -1;	/* re-find maximum in-use socket */
-    while ((pres = (SockEvents *) HTList_nextObject(cur))) {
+#endif /* !WWW_WIN_ASYNC */
+    while (cur && (pres = (SockEvents *) HTList_nextObject(cur))) {
         if (pres->s == s) {
 	    int		remaining;
 
@@ -437,34 +440,38 @@ PUBLIC int HTEventList_unregister(SOCKET s, HTEventType type)
 	    **  if there are no more events registered.
 	    */
 	    if ((remaining = EventList_remaining(pres)) == 0) {
+		HTList * doomed = cur;
 		if (THD_TRACE)
 		    HTTrace("Event....... No more events registered for socket %d\n", s);
 		HT_FREE(pres);
-		HTList_quickRemoveElement(cur, last);
-	    } else
-		last = cur;  /* to set next pointer when creating new */
+		pres = (SockEvents *) HTList_nextObject(cur);
+		HTList_quickRemoveElement(doomed, last);
+	    }
+	    ret = HT_OK;
 #ifdef WWW_WIN_ASYNC
 	    if (WSAAsyncSelect(s, HTSocketWin, HTwinMsg, remaining) < 0)
-		return HT_ERROR;
+		ret = HT_ERROR;
+	    cur = NULL; /* we don't have to finish list to look for MaxSock in WWW_WIN_ASYNC */
 #else /* WWW_WIN_ASYNC */
 	    FD_CLR(s, FdArray+HTEvent_INDEX(type));
 #endif /* !WWW_WIN_ASYNC */
       	    if (THD_TRACE)
 		HTTrace("Event....... Socket %d unregisterd for %s\n", s, HTEvent_type2str(type));
 	    /*
-	    **	finish checking list for max socket
+	    **	stay in loop to finish checking list for max socket
 	    */
-	    while ((pres = (SockEvents *) HTList_nextObject(cur)))
-		if(pres->s > MaxSock)
-		    MaxSock = pres->s;
-	    if (MaxSock  <= 0)
-		if (THD_TRACE) HTTrace("Event....... MaxSock: %d.\n", MaxSock);
-	    return HT_OK;
-	} else if(pres->s > MaxSock)
+	}
+	last = cur;
+#ifndef WWW_WIN_ASYNC
+	if(pres->s > MaxSock)
 	    MaxSock = pres->s;
+#endif /* !WWW_WIN_ASYNC */
     }
-    if (THD_TRACE) HTTrace("Event....... Couldn't find socket %d.\n", s);
-    return HT_ERROR;
+    if (ret == HT_ERROR && THD_TRACE) HTTrace("Event....... Couldn't find socket %d.\n", s);
+#ifndef WWW_WIN_ASYNC
+    if (MaxSock <= 0 && THD_TRACE) HTTrace("Event....... MaxSock: %d.\n", MaxSock);
+#endif /* !WWW_WIN_ASYNC */
+    return ret;
 }
 
 /*

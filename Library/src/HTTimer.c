@@ -72,6 +72,13 @@ PUBLIC BOOL HTTimer_registerDeleteTimerCallback (HTTimerSetCallback * cbf)
     return NO;
 }
 
+PUBLIC ms_t HTTimer_getTime(HTTimer * timer)
+{
+    if (timer)
+	return timer->millis;
+    return 0;
+}
+
 PUBLIC BOOL HTTimer_delete (HTTimer * timer)
 {
     HTList * last;
