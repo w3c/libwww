@@ -807,6 +807,7 @@ PUBLIC CONST char * HTGetHostName NOARGS
     }
 
     /* If everything else has failed then try getdomainname */
+#ifndef sco
     if (!got_it) {
 	if (getdomainname(name, MAXHOSTNAMELEN)) {
 	    if (TRACE)
@@ -821,9 +822,11 @@ PUBLIC CONST char * HTGetHostName NOARGS
 	    char *domain = strchr(name, '.');
 	    if (!domain)
 		domain = name;
+	    StrAllocCat(hostname, ".");
 	    StrAllocCat(hostname, domain);
 	}
     }
+#endif /* not sco */
 #endif /* not VMS */
 
     {

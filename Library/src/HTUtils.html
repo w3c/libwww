@@ -163,7 +163,11 @@ Macrides).
 #define PRIVATE static		/* Accessible only within this module */
 
 #ifdef _STANDARD_CODE_
+
+#ifndef sco			/* The sco CC compiler does not know const */
 #define CONST const		/* "const" only exists in STDC */
+#endif
+
 #define NOPARAMS (void)
 #define PARAMS(parameter_list) parameter_list
 #define NOARGS (void)
