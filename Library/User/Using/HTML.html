@@ -1,0 +1,72 @@
+<HTML>
+<HEAD>
+<TITLE>Using the W3C Reference Library</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
+</HEAD>  
+<BODY>
+
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/WWW48x.gif" ALT="WWW"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<A HREF="Overview.html"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
+
+<H1>The HTML Parser</H1>
+
+The HTML parser has three different levels of APIs in order to make
+the implementation as flexible as possible.  Depending on which API is
+used by the application, the output can be a stream, a structured stream
+or a set of callback functions as indicated in the figure below:
+
+<P><IMG SRC="../Guide/Interfaces.gif" ALT="HTMLParser"><P>
+
+<DL>
+
+<DT>SGML Stream Interface
+
+<DD>This interface provides the most basic API consisting of the
+output from a stream without any form for structure imposed on the
+data. The internal <A HREF="../../Implementation/SGML.html">SGML
+parser</A> parses the data sequence, identifies SGML markup tags, and
+passes the information on the the <A
+HREF="../../Implementation/HTML.html">HTML parser</A>. However, if the
+application has its own SGML parser and HTML parser, the internal
+parsers can be disabled by removing the internal HTML converter called
+<CODE>HTMLPresent()</CODE> used to present a graphic object on the
+screen from both the global and the local list of converters and
+presenters.
+
+<DT>HTML Structured Stream Interface
+
+<DD>If the application has its own HTML parser that understands the
+structured output from the internal SGML parser then the second API
+can be used. The current HTML parser in the Library is very basic and
+does not understand many of the new features in HTML 2 and 3.
+
+<DT>HText Call Back Interface
+
+<DD>The last API can be in case the application prefers to use the
+internal HTML parser and only wants to provide a platform dependent
+definition of the callback functions defined in the <A
+HREF="../../Implementation/HText.html" >HText module</A>.  Now, the
+parsing is all done internally in the Library and the application is
+only called with segments of fully parsed HTML. The callback functions
+are all defined as prototypes in the <A
+HREF="../../Implementation/HText.html" >HText module</A> but the
+client must provide the actual code that defines the presentation
+method used for a specific HTML tag.
+
+</DL>
+
+Due to the limited functionality of the internal HTML parsing module,
+many applications have chosen to implement their own HTML
+parser. Therefore many regard the HTML parser module as being an
+<EM>application specific module</EM> instead of a <EM>dynamic
+module</EM>. This will be alleviated in the next version of the
+Library, which hopefully will ease the use of the internal HTML
+parser. The current parser can be overriding as described in section
+<A HREF="#override">Application Specific Modules</A>.
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, June 1995</ADDRESS>
+</BODY>
+</HTML> 

@@ -1,0 +1,69 @@
+<HTML>
+
+<HEAD>
+<TITLE>The HTTP/MIME Parser</TITLE>
+</HEAD>  
+<BODY>
+
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/WWW48x.gif" ALT="WWW"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<A HREF="Overview.html"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
+
+<H1>The HTTP/MIME Parser</H1>
+
+In version 3.1 of the Library, the HTTP header parser has been made
+significantly more flexible and does support all HTTP headers included
+in the <A HREF="../../../Protocols/" >HTTP/1.0 specification</A> as
+defined by the latest draft plus allows management of unknown
+headers. Together with the support for extra headers as described in
+section <A HREF="#request">The Request Object </A> this allows
+applications more easily to experiment with HTTP.  All metainformation
+relevant to the actual communication between the client and the server
+is stored in the request object whereas the metainformation describing
+the entity body is stored in the anchor object. It is important to
+note that this information can be used both when requesting a document
+on a remote server and when describing an entity that is to be sent to
+a remote server using a method like <CODE>PUT</CODE> or
+<CODE>POST</CODE>. Some of the more special headers are: </P>
+
+<DL>
+<DT><CODE>Allow</CODE></DT>
+<DD>Builds a list of allowed methods for this entity
+
+<DT><CODE>ContentEncoding</CODE></DT>
+<DD>
+
+<DT><CODE>ContentLanguage</CODE></DT>
+<DD>Builds a list of natural languages
+
+<DT><CODE>ContentLength</CODE></DT>
+<DD>This parameter is now passed
+
+<DT><CODE>ContentType</CODE></DT>
+<DD>The <CODE>ContentType</CODE> header now support the <CODE>charset</CODE>
+parameter and the <CODE>level</CODE> parameter, however none of them
+are used by the <A HREF="#HTML">HTML parser</A> 
+
+<DT><CODE>Date</CODE>, <CODE>Expires</CODE>, <CODE>RetryAfter</CODE>,
+ and <CODE>LastModified</CODE></DT>
+<DD>All date and time headers are parsed understanding the following
+formats: RFC 1123, RFC 850, ANSI C's asctime(), and delta time. The
+latter is a non-negative integer indicating seconds after the message
+was received.  Note, that it is <EM>always</EM> for the application to
+issue a new request as a function of any of the date and time headers..
+
+<DT><CODE>DerivedFrom, Version</CODE></DT>
+<DD>For handling version control when managing collaborative works
+using HTTP.
+
+<DT>Unknown Headers</DT>
+<DD>Unknown headers are put into a separate list which the application
+can accesss. 
+ 
+</DL>  
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, June 1995</ADDRESS>
+</BODY>
+</HTML> 

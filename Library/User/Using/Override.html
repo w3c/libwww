@@ -1,0 +1,124 @@
+<HTML>
+<HEAD>
+<TITLE>Using the W3C Reference Library</TITLE>
+</HEAD>  
+<BODY>
+
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/WWW48x.gif" ALT="WWW"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<A HREF="Overview.html"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
+
+<H1>Application Specific Modules</H1>
+
+As explained in the section <A HREF="#start">Get Started</A>, the
+<EM>application specific modules</EM> are often implemented to support
+a simple interface as provided by the Line Mode Browser. However,
+these and other modules can be overridden by more complex
+applications, for example using a GUI window manager. A Library module
+is overriding by redefining all external references (normally declared
+in the include file) by new definitions in an application module. By
+doing this the linker takes the new definition of the module instead
+of the Library version and links it into the final executable file.
+The declaration (the include file) stays the same, but the definition
+has changed. The application module does not need to be called the
+same as the Library module, only the external references.  External
+references are both global variables and public functions visible to
+other modules. As an example, the following module:</P>
+
+<PRE>	/* Library.c */
+	char GlobalFlag;
+	int GlobalFunction(void)
+	{
+		/* Library Implementation */
+	}
+</PRE>
+
+ with the declaration file:</P>
+
+<PRE>	/* Library.h */
+	extern char GlobalFlag;
+	extern int GlobalFunction(void);
+</PRE>
+
+ can get a new definition module</P>
+
+<PRE>	/* Application.c */
+	char GlobalFlag;
+	int GlobalFunction(void)
+	{
+		/* Application Implementation */
+	}
+</PRE>
+
+which will then be linked into the executable program. The
+following paragraphs describe the </P>
+
+
+<H3><A NAME="history">Keeping
+Track of History</A></H3>
+
+The Library has a simple method to keep
+track of which locations the user has visited while browsing the Web.
+The internal history list is implemented in the <A HREF="../../Implementation/HTHist.html"
+>HTHist module</A>, and is based on a linear list of visited documents
+with a destructive backtrack. The <A HREF="../../Implementation/HTHist.html"
+>HTHist module</A> is completely autonomous as it is not used by any
+other modules in the Library so if it is not referred to in the
+application code then it will not be linked into the linked application.
+This means that if the application does not need recording of history
+then no action is required at all. </P>
+
+
+<H3><A NAME="alert">User
+Prompts and Confirmations</A></H3>
+
+The <A HREF="../../Implementation/HTAlert.html"
+>HTAlert module</A> contains the functionality for prompting the user
+for confirmations, questions, input etc. and to pass information like
+warnings, error etc. back to the user. The internal definition is based
+on highly portable code using ANSI C functions for input and output so
+it is required to override this module when implementing a GUI client.
+The functions are divided into two groups:</P>
+
+<UL>
+<LI>A user interactive part requiring an action (confirmation etc) by
+the user.
+<LI>A part for sending messages to the user requiring no explicit
+confirmation
+</UL>
+
+The main difference from the history module is that this module
+is always linked into the application as it is used by other modules in
+the Library. Hence the definition of the module must be provided either
+by the internal or an external definition. The internal implementation
+uses the global variable <EM>HTInteractive</EM> to define whether any
+interaction should be directed to the user or not. If no interaction is
+desired, like for example when running an application in batch mode,
+then this flag prevents the application to prompt the user for any
+confirmations. </P>
+
+
+<H3>The External event loop</H3>
+
+In case the
+application has its own event loop, and wants to use the Library in <B>Passive
+mode</B> then the internal <A HREF="../../Implementation/HTEvent.html">HTEvent
+module</A> must be replaced by a new definition in the application.
+</P>
+
+<PRE>	<B>	MORE</B></PRE>
+
+<H3>The Binding Module</H3>
+
+As
+mentioned in the section <A HREF="#bind">Bindings to the local file
+system</A> the bindings between a data object and its content types,
+languages etc. is by default done using file suffixes. However, this can
+be replaces by, for example a database interface by overriding the <A HREF="../../Implementation/HTBind.html"
+>HTBind module</A>.</P>
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, June 1995</ADDRESS>
+</BODY>
+</HTML> 

@@ -1,0 +1,50 @@
+<HTML>
+<HEAD>
+<TITLE>Bindings to the local File system</TITLE>
+</HEAD>  
+<BODY>
+
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/WWW48x.gif" ALT="WWW"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<A HREF="Overview.html"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
+
+<H1>Bindings to the local File system</H1>
+
+Client applications have access to the local filesystem using
+<EM>file</EM> URLs and server applications has inherently a close
+connection to the local file system from which it is serving files to
+the requesting parties. The binding betweeen a file and its
+representation internally in the Library, that is the content-type,
+natural language, and encoding is maintained by the <A
+HREF="../../Implementation/HTBind.html">HTBind module</A>. The current
+implementation of this module bases the binding on file suffixes, but
+the module is separated so that other kind of bindings can be
+implemented, for example using a database. The set of suffix
+delimiters is normally a function of the current platform, but can at
+any time be modified, so that for example the characters ".", "_", and
+"+" can be defined as delimiters. </P>
+
+
+As for the converters and presenters, the Library has a default set of
+bindings between media types and file name extensions but the
+difference is that the bindings are initialized at start up time in
+the <CODE>HTLibInit()</CODE> function, and hence does not have to be
+done explicitly by the application.  However, new bindings can be set
+up using the methods:</P>
+
+<PRE>
+	HTBind_setType()
+	HTBind_setEncoding()
+	HTBind_setLanguage()
+</PRE>
+
+If the Library is to handle a file that is not described by
+the binding rules, it reads the first part of the data object and try
+and guess the media type. This is an internal operation in the Library
+and does not require any interaction with the application.</P>
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, June 1995</ADDRESS>
+</BODY>
+</HTML> 

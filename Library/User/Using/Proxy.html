@@ -1,0 +1,100 @@
+<HTML>
+<HEAD>
+<TITLE>User's Guide - Proxies and Gateways</TITLE>
+</HEAD>  
+<BODY>
+
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/WWW48x.gif" ALT="WWW"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<A HREF="Overview.html"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
+
+<H1>Registering Proxy Servers and Gateways</H1>
+
+An application can indirectly support an access method by redirecting
+the request to either a proxy or a gateway. The difference between a
+proxy server and a gateway is subtle and is described in <A
+HREF="../Guide/Config.html#proxy">Internals and Programmer's
+Guide</A>, but it does not affect the application using the Library
+and the redirection is normally transparent to the user. The Library
+supports both proxies and gateways through the <A
+HREF="../../Implementation/HTProxy.html" >HTProxy module</A> and all
+requests can be redirected to a proxy or a gateway, even requests on
+the local file system. Of course, the Library can also be used in
+proxy or gateway applications which in terms can use other proxies or
+gateways so that a single request can be passed through a series of
+intermediate agents.<P>
+
+The set of public function to registere a gateway or a proxy are as
+follows:
+
+<PRE>
+	BOOL HTProxy_setProxy(const char *access,const char *proxy);
+	BOOL HTProxy_setNoProxy(const char *host, CONST char *access, unsigned port);
+	BOOL HTProxy_setGateway(const char *access, const char *gate);
+</PRE>
+
+The <EM>no_proxy</EM> can be used to avoid contactinga proxy server
+for a particular host name or domain name. The access method and port
+number is optional. The behavior of the Library can be modified using
+the preprocessor defines <CODE>HT_NO_RULES</CODE> and
+<CODE>HT_NO_PROXY</CODE> as explained in section <A
+HREF="#flags">Global Flags</A>
+
+<H2>Using Environment Variables</H2>
+
+Version 3.1 is the first version of the Library where proxies ans
+gateways are not handled directly via environment variables, and for
+backwards compatibility, there is a function in the <A
+HREF="../../Implementation/HTProxy.html">HTProxy module</A> that reads
+the environment variables:
+
+<PRE>
+	HTProxy_getEnvVar()
+</PRE>
+
+The format of the environmanet variables is as follows:
+
+<DL>
+
+<DT><CODE>WWW_&lt;access&gt;_GATEWAY</CODE>
+
+<DD>Definition of a gateway. Note that a WAIS gateway can be defined
+this way to change the default gateway at <A
+HREF="wais://www.w3.org:8001/"> wais://www.w3.org:8001/</A>.
+
+<DT><CODE>&lt;access&gt;_proxy</CODE>
+
+<DD>Definition of a proxy server
+
+<DT><CODE>no_proxy</CODE>
+
+<DD>This is a comma separated list of remote servers where a proxy
+server should <EM>not</EM> be consulted for handling the request. An
+example is
+
+<PRE>
+	no_proxy="cern.ch,ncsa.uiuc.edu,some.host:8080"
+	export no_proxy
+</PRE>
+
+</DL>
+
+<CODE>&lt;access&gt;</CODE> is the specific access scheme and it is
+case sensitive as access schemes in URIs are case sensitive. Proxy
+servers have precedence over gateways, so if both a proxy server and a
+gateway has been defined for a specific access scheme, the proxy
+server is selected to handle the request.<P>
+
+It is important to note that the usage of proxy servers or gateways is
+an extension to the binding between an access scheme and a protocol
+module. An application can be set up to redirect all URLs with a
+specific access scheme without knowing about the semantics of this
+access scheme or how to access the information directly. That way,
+powerful client applications can be built having direct support for,
+for example, HTTP only.
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, June 1995</ADDRESS>
+</BODY>
+</HTML> 

@@ -1,0 +1,96 @@
+<HTML>
+<HEAD>
+<TITLE>Using the W3C Reference Library</TITLE>
+</HEAD>  
+<BODY>
+
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/WWW48x.gif" ALT="WWW"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<A HREF="Overview.html"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
+
+<H1>The Access Manager</H1>
+
+At this point most of the design issues have been addressed and the
+Library it is now possible to use the Library to exchange information
+between the application an the Internet. The Library provides a set of
+functions that can be used to request a URI either on a remote server or
+on the local file system. The access method binds the URL with a
+specific protocol module as described in section
+<A HREF="#access">Access Methods</A> and the stream chains defines the
+data flow for incoming and outgoing data.</P>
+
+
+<H3>Searching a URL</H3>
+<PRE>	<B>	MORE</B></PRE>
+
+<H3>Receiving an Entity</H3><PRE>	<B>	MORE</B></PRE>
+
+<H3
+>Sending an Entity</H3>
+<PRE>	<B>	MORE</B></PRE>
+
+<H3>Return Codes from the Access manager</H3>
+
+The access manager has a standard set of return codes that the
+application can use for diagnostics. They should only be used as
+indications of the result as a more detailed description of any error
+situation is registered  in the error handler. The set of codes are:</P>
+
+<DL>
+
+<DT><CODE>HT_LOADED</CODE></DT>
+<DD>A generic success code that indicates that the request has been
+fulfilled
+
+<DT><CODE>HT_NO_DATA</CODE>
+</DT>
+<DD>Partly a success code, but no document has been retrieved and a
+client application is encouraged to maintain the previous document view
+as the current view. A <CODE>HT_NO_DATA</CODE> code might be the result
+when a  telnet session is started etc.
+
+<DT><CODE>HT_ERROR</CODE>
+</DT>
+<DD>An error has occured and the request could not be fulfilled
+
+<DT><CODE>HT_RETRY</CODE>
+</DT>
+<DD>The remote server is temporarily unavailable and no more requests
+should be issued to the server before the calendar time indicated in
+<CODE>HTRequest-&gt;retry_after</CODE> field. No action is taken by the
+Library to automatically retry the request, this is uniquely for the
+application to decide. 
+
+<DT><CODE>HT_WOULD_BLOCK</CODE></DT>
+<DD>An I/O operation would block and the request must pause. As the
+request is not yet terminated, the operation will continue at a later
+time when the blocking situation has ceased  to exist.
+
+</DL>
+
+<H3>Logging a Request</H3>
+
+The Library provides functionality
+for  logging a request. The log format is defined as follows:
+</P>
+
+<PRE>	&lt;HOST> &lt;DATE> &lt;METHOD> &lt;URI> &lt;CONTENT LENGTH>
+</PRE>
+
+where the date and time stamp can be either in local time or
+GMT. Logging is turned off but the application can enable it a t any
+time.However, it is also for the application to disable the logging in
+order to close any open file descriptors etc. The log is opened and
+closes using the following functions:</P>
+
+<PRE>	HTLog_enable()
+	HTLog_disable()
+</PRE>
+
+where the log file name can be defined by the application.
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, June 1995</ADDRESS>
+</BODY>
+</HTML> 

@@ -1,0 +1,77 @@
+<HTML>
+<HEAD>
+<TITLE>Getting Started</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 24-Jun-1995 -->
+</HEAD>  
+<BODY>
+
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/WWW48x.gif" ALT="WWW"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<A HREF="Overview.html"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
+
+<H1>Getting Started</H1>
+
+The Library distribution package can be obtained from the <A
+HREF="../../">Library status page</A> and it includes all source files
+and some <A HREF="../../../README.html">README</A> files describing
+what the package contains. There is also an online "<A
+HREF="../Installation.html">Installation Guide</A>" explaining how to
+unpack and compile the Library. As new versions of the Library are
+released frequently, it is recommended that you verify that the
+version is up to date by looking into the "Version.Make" file in the
+"Implementation" directory of the Library and compare it with the
+information given at the <A HREF="../../">Library status page</A>.<P>
+
+From version 3.0, the include file "<A
+HREF="../../Implementation/WWWLib.html">WWWLib.h</A>" is the only
+include file which is required in order to use the Library.  This file
+contains all the functionality that is publicly available, but as the
+architecture is currently very exposed, this includes most of the
+modules in the Library itself.  Apart from this, only two functions
+are necessary in order to initialize and cleanup the Library
+respectively:
+
+<DL>
+
+<DT><CODE>BOOL HTLibInit()</CODE>
+
+<DD>This function initializes memory, file descriptors, interrupt
+handlers etc. By default it also calls initialization functions for
+all the dynamic modules in the Library. The dynamic modules are
+described in "<A HREF="../Architecture/DesignModel.html">Libwww
+Architecture</A>". A major part of the User's Guide is to describe how
+the Library can be configured, both at run time and at compile time,
+and the dynamic modules are an important part of the Library
+configuration.
+
+<DT><CODE>BOOL HTLibTerminate()</CODE>
+
+<DD>Cleans up the memory and closes open file descriptors.
+
+</DL>
+
+It is essential that <CODE>HTLibInit()</CODE> is the first call to the
+Library and <CODE>HTLibTerminate()</CODE> is the last as the behavior
+otherwise is undefined. As an example, a minimal application will look
+like this:
+
+<PRE>
+	#include &lt;WWWLib.h>
+	/* Other initializations */
+
+	int main()
+	{
+		HTLibInit();
+
+		/* Application stuff */
+
+		HTLibTerminate();
+		return 0;
+	}
+</PRE>
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, June 1995</ADDRESS>
+</BODY>
+</HTML> 

@@ -1,0 +1,158 @@
+<HTML>
+<HEAD>
+<TITLE>User's Guide - Preferences</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 10-Jul-1995 -->
+</HEAD>  
+<BODY>
+
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/WWW48x.gif" ALT="WWW"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<A HREF="Overview.html"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
+
+<H1>Request Preferences</H1>
+
+This section describes how to setup preferences for the representation
+of a data object when requesting it from the network. The
+representation of a data object is closely related to the format
+negotiation in the <A HREF="../../../Protocols/">HTTP protocol</A> as
+each dimension can be expressed as an "accept-*" header in an HTTP
+request. The Library supports the following dimensions:
+
+<UL>
+<LI>The preferred natural langauge of the data object
+<LI>The media type in which a data object should be rendered
+<LI>The preferred content encodings (or supported)
+<LI>The preferred character set
+</UL>
+
+Preferences can be registered in two ways: As a <EM>global</EM> list
+which applies to all requests and a <EM>local</EM> list which is bound
+to a specific request. The global and local lists are simply added
+when the preferences for a request are converted to a set of
+"accept-*" headers. There is currently no means or overriding global
+preferences with the local preferences.</P>
+
+It is important to note that <EM>none</EM> of the preferences are
+enabled automatically by the Library - it is for the application to
+specify as the preferences can change from request to
+request. However, the Library has a set of default initialization
+functions that make it easy for the application to set the preferences
+that are directly supported by the Library. These are all located in
+the <A HREF="../../Implementation/HTInit.html">HTInit module</A> and
+can be modified to suit a particular application.</P>
+
+<H3>Natural Languages</H3>
+
+The user's preferences of natural languages can as converters and
+presenters be registered both globally for all requests and locally
+for a single request. The global list is called
+<CODE>HTLanguages</CODE>, and the local list is a part of the <A
+HREF="../../Implementation/HTAccess.html#z1">HTRequest structure
+</A>as described in section <A HREF="#request">Issue an Request</A>
+but in contrast to the converters there is no initialization function
+in the <A HREF="../../Implementation/HTInit.html">HTInit module</A>.
+Preferences for natural languages can be added individually to both
+the local and global list using the functions:</P>
+
+<PRE>
+	HTAcceptLanguage()
+</PRE>
+
+<H3>Setting up the Media Types</H3>
+
+The media types are handled by a set of converters and presenters. A
+converter is a stream that can convert the rendition of a data object
+from one format to another. A presenter is a stream that calls an
+external program, for example a post script viewer or an audio program
+for presenting the data obejct. Converters and presenters are special in that they both describe the preferred set of media types to be requested in a HTTP request and how a 
+
+
+Both converters and presenters take
+part in the stream stack algorithm that finds the best conversion of
+the media type of a data object. The difference is that presenters
+depend on external viewers for the presentation of the graphic object
+whereas converters use internal modules in the Library and they do not
+necessarily have to present the graphic object to the user. The
+Library has two initialization functions which are defined in the <A
+HREF="../../Implementation/HTInit.html" >HTInit module</A> as
+described in the section <A HREF="#start">Get Started</A> The two
+functions for setting up a list of default converters and presenters
+respectively are: </P>
+
+<PRE>
+	void HTConverterInit(HTList *list);
+	void HTPresenterInit(HTList *list);
+</PRE>
+
+Converters and presenters can be registered both globally for all
+requests and locally for a single request. The global list is called
+<CODE>HTConversions</CODE>, and the local list is a part of the <A
+HREF="../../Implementation/HTAccess.html#z1">HTRequest structure
+</A>as described in section <A HREF="#request">Issue an Request</A>.
+This can be used to set up a global set of basic converters and a
+local set of additional converters or presenters for a single
+request. In the Line Mode Browser this is used to distinguish between
+running in interactive mode or non-interactive mode. In the latter
+mode, no external presenters are allowed, whereas this is a normal
+part of the interactive mode. Hence the global set is the list of
+converters and the local list is the list of presenters if running in
+interactive mode:</P>
+
+<PRE>
+	HTConverterInit(HTConversions);			/* Set up global list */
+	if (HTInteractive)
+		HTPresenterInit(request->conversions);	/* Local list */
+</PRE>
+
+Converters and presenters can both be added individually to both the
+local and global list using the functions:</P>
+
+<PRE>
+	HTSetPresentation()
+	HTSetConversion()
+</PRE> 
+
+The initialization functions are in fact only a compiled list of calls
+to these function.</P>
+
+<H3>Encodings</H3>
+
+The set of encoding and decoding streams are in the same category as
+converters and presenters, but the Library does currently not provide
+any encoders or decoders. Therefore there is no initialization
+function in the <A HREF="../../Implementation/HTInit.html" >HTInit
+module</A>. However, as for converters and presenters encodings and
+decodings capabilities can be registered both globally for all
+requests and locally for a single request. The global list is called
+<CODE>HTEncodings</CODE>, and the local list is a part of the <A
+HREF="../../Implementation/HTAccess.html#z1">HTRequest structure</A>
+as described in section <A HREF="#request">Issue an Request</A>.
+Encoders can be added individually to both the local and global list
+using the functions:
+
+<PRE>
+	HTAcceptEncoding()</PRE>
+
+<H3>Charsets</H3>
+
+The user's preferences of chracter sets (a parameter on the content
+type) can as converters and presenters be registered both globally for
+all requests and locally for a single request. The global list is
+called <CODE>HTCharsets</CODE>, and the local list is a part of the <A
+HREF="../../Implementation/HTAccess.html#z1">HTRequest structure
+</A>as described in section <A HREF="#request">Issue an
+Request</A>. As for the list of natural languages there is no
+initialization function in the <A
+HREF="../../Implementation/HTInit.html">HTInit module</A>.
+Preferences for charsets can be added individually to both the local
+and global list using the functions:</P>
+
+<PRE>
+	void HTAcceptCharset(HTList *list, const char *charset, double quality);
+</PRE>
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, June 1995</ADDRESS>
+</BODY>
+</HTML> 

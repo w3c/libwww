@@ -1,0 +1,114 @@
+<HTML>
+<HEAD>
+<TITLE>Using the W3C Reference Library</TITLE>
+</HEAD>  
+<BODY>
+
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/WWW48x.gif" ALT="WWW"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<A HREF="Overview.html"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
+
+<H1>Managing the Cache</H2>
+
+Caching is a required part of any efficient Internet access
+applications as it saves bandwidth and improves access performance
+significantly in almost all types of accesses.  The Library supports
+two different types of cache: The memory cache and the file cache. The
+two types differ in several ways which reflects their two main
+purposes: The memory cache is for short term storage of graphic
+objects whereas the file cache is for intermediate term storage of
+data objects. Often it is desirable to have both a memory and a file
+version of a cached document, so the two types do not exclude each
+other. The following paragraphs explains how the two caches can be
+maintained in the Library.</P>
+
+
+<H3><A NAME="memcache">Memory
+Cache</A></H3>
+
+The memory cache is largely managed by the application
+as it simply consists of keeping the graphic objects described by the
+<CODE>HyperDoc</CODE> structure in memory as the user keeps requesting
+new documents. The <CODE>HyperDoc</CODE> structure is only declared in
+the Library - the real definition is left to the  application as it is
+for the application to handle graphic objects. The Line Mode Browser has
+its own definition of the <CODE>HyperDoc</CODE> structure called <A HREF="../../../LineMode/Implementation/GridText.html"
+><CODE>HText</CODE></A>. Before a request is processed over the net, 
+the anchor object is searched for a
+<CODE>HyperDoc</CODE> structure and a  new request is issued only if
+this is not present or the Library explicitly has been asked to reload
+the document, which is described in the section <A HREF="#reload">Short
+Circuiting the Cache</A></P>
+
+
+As the management of the graphic object
+is handled by the application, it is also for the application to handle
+the garbage collection of the memory cache. The
+<A HREF="../../../LineMode/">Line Mode Browser</A> has a very simple
+memory management of how long graphic objects stay around in memory. It
+is determined by a constant in the <A HREF="../../../LineMode/Implementation/GridText.c"
+>GridText</A> module and is by default set to 5 documents. This approach
+can be much more advanced and the memory garbage collection can be
+determined by the size of the graphic objects, when they expire etc.,
+but the API is the same no matter how the garbage collector is
+implemented. </P>
+
+
+<H3>File Cache</H3>
+
+The file cache is intended for
+intermediate term storage of documents or data objects that can not be
+represented by the <CODE>HyperDoc</CODE> structure which is referenced
+by the <CODE>HTAnchor</CODE> object. As the definition of the <CODE>HyperDoc</CODE>
+structure is done by the application there is no explicit rule of what
+graphic objects that can not be described by the <CODE>HyperDoc</CODE>,
+but  often it is binary objects, like images etc.</P>
+
+
+The file cache
+in the Library is a very simple implementation in the sense that no
+intelligent garbage collection has been defined. It has been the goal to
+collect experience from the file cache in the CERN proxy server before
+an intelligent  garbage collector  is implemented in the Library. 
+Currently the following functions can be used to control the cache,
+which is disabled by default:</P>
+
+<DL>
+<DT><CODE>HTCache_enable()</CODE>, <CODE>HTCache_disable()</CODE>,
+and <CODE>HTCache_isEnabled()</CODE></DT>
+<DD>Use these functions to enable and disable the cache
+
+<DT><CODE>HTCache_setRoot()</CODE> and <CODE>HTCache_getRoot()</CODE></DT>
+<DD>Use these functions to set and get the value of the cache root
+
+</DL>
+
+An important difference between the memory cache and the file
+cache is the format of the data. In the memory cache, the cached objects
+are graphic objects ready to be displayed to the user. In the file cache
+the data objects are stored along with their metainformation so that
+important header information like Expires, Last-Modified, Language etc.
+is a part of the stored object.   </P>
+
+
+<H3><A NAME="reload">Short Circuiting the Cache</A></H3>
+
+In situations where a cached document is known to be stale it is
+desired to flush any existent version of a document in either the
+memory cache or the file cache and perform a reload from the
+authoritative server. This can for example be the case if an expires
+header has been defined for the document when returned from the origin
+server. Short circuiting the cache can be done by calling the
+following function
+
+<PRE>	int HTRequest_SetForceReload(HTRequest *request)
+</PRE>
+
+In case the access module immediately issues the request instead of
+searching the memory cache and the file cache.
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, June 1995</ADDRESS>
+</BODY>
+</HTML> 

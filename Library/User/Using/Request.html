@@ -1,0 +1,160 @@
+<HTML>
+<HEAD>
+<TITLE>Using the W3C Reference Library</TITLE>
+</HEAD>  
+<BODY>
+
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/WWW48x.gif" ALT="WWW"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<A HREF="Overview.html"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
+
+<H1>The Request Object</H1>
+
+Before issuing a request to the Library, the application must create a
+<A HREF="../../Implementation/HTRequest.html">HTRequest structure</A>.
+This structure is one of the main structures in the Library and
+contains all information required to request a URL. A part of the
+information can be modified by the user, and this section describes
+how to do this. The most important parts of the management of the
+request structure consist of the following methods (unfortunately not
+all methods are functions yet but require a direct assignment of a
+field in the) structure:
+
+<H3>Creating a Request Structure</H3>
+
+First a new structure must be created using the function
+
+<PRE>
+	HTRequest_new()
+</PRE>
+
+The request structure is created with a set of default values that in
+most cases are sufficient to issue a request. The most important
+defaults are:
+
+<UL>
+<LI>The method used is <CODE>GET</CODE>
+<LI>By default, all natural languages are accepted
+<LI>No explicit converters or presenters are initialized apart from the
+ones already  set up in the global list as described in section <A HREF="#stream"
+>The Stream Object</A>
+<LI>When the data arrives as a result of the request a graphic object
+is created and presented to the user. 
+<LI>The HTTP module uses non-blocking I/O, that is either <B>Passive
+mode</B> or <B>Active Mode</B>.
+</UL>
+
+It is normally not advisable to reuse a request structure, and
+it is impossible if a multithreaded model is used where several requests
+can be issued simultaneously. 
+
+<H3>Deleting a Request Structure</H3>
+
+A request structure is removed from memory by using the function
+
+<PRE>
+	HTRequest_delete()</PRE>
+
+Note that the anchor does still exist and
+any cached version of the object  is still accessible. The request
+structure does not explicitly contain information about graphic objects,
+only what is required to access the information.
+
+
+<H3>Selecting the Method</H3>
+
+The method used in the request (<CODE> GET</CODE>, <CODE>HEAD</CODE>,
+<CODE>PUT</CODE>, <CODE>POST</CODE> etc) can be changed explicitly but
+not independently of which action is to be performed. This requires a
+basic understanding of what methods are similar in behavior. Currently
+the following methods can be used with the same set of methods:
+
+<UL>
+<LI><CODE>GET</CODE> and <CODE>HEAD</CODE>
+<LI><CODE>PUT</CODE> and <CODE>POST</CODE>
+</UL>
+
+These are also the methods that are directly supported by the
+Library. Other methods will be supported in future versions.  Two
+functions can be used to manage the method for a request:
+
+
+<PRE>	HTRequest_setMethod()
+	HTRequest_getMethod()
+</PRE>
+
+<H3>Changing Destination of a Data Object</H3>
+
+When data is retrieved by the network, either via the network or the
+local file system it is passed over to the client via the stream chain
+as described in section <A HREF="#stream">Stream, Converters, and
+Media Types</A>. The default destination for a data object is to be
+presented to the user dependent on which interface the application is
+using to the HTML parser. However, both the destination and the media
+type for the data object can be changed by assigning values to the
+Request structure.  The Library distinguishes between two
+situations:
+
+<OL>
+<LI>If a request results in a success response from the remote server
+or local file system then  the data object is sent down the <CODE>output_stream</CODE>,
+which by default is going to the screen. 
+<LI>A data object following a error response. In case an error message
+is followed by an explanatory data object, often in HTML format, then
+this object is sent down the <CODE>error_stream</CODE> instead of the
+<CODE>output_stream</CODE>. This information can for example be
+presented to the user in a special debug window. By default ,
+information going to the <CODE>error_stream</CODE> ends in a <EM>black
+hole</EM> which means that the data is ignored.
+</OL>
+
+The format of the data object can be changed to any media type
+known by the Library by assigning a value to the output_format field in
+the request structure. This can be used to see the source code before
+the object is parsed, metainformation
+
+<H3>Exploiting the HTTP Module</H3>
+
+The Library is designed to conform to the HTTP specification but at
+the same time to leave room for experiments with new headers etc. By
+default the Library only sends the headers required to fulfill a
+request depending on the method, but the application can affect the
+HTTP request sent to the remote server by specifying which headers
+should be included in the request. This is done using the following
+bitmasks:
+
+<DL>
+<DT><CODE>GenMask</CODE></DT>
+<DD>Defines all the general HTTP headers that can be a part of any
+request and response</DD>
+<DT><CODE>RequestMask</CODE></DT>
+<DD>Defines the request headers that describes the clients (and users)
+preferences for the requested data obejct</DD>
+<DT><CODE>EntityMask</CODE></DT>
+<DD>Defines the entity headers that describes the entity sent in either
+a request (PUT and POST) or a response.</DD>
+</DL>
+
+Experimental headers can be added to any request by using the
+<CODE>ExtraHeaders</CODE>. The field is included in the request as is
+so it must contain the appropriate &lt;CRLF&gt; line terminators as
+described by the <A HREF="../../../Protocols/">HTTP specification</A>.
+
+<P>It is highly recommended that the application uses the available
+HTTP headers when appropriate, especially the specification of natural
+languages and versioning headers when using <CODE>PUT</CODE> and
+<CODE>POST</CODE>.
+
+<H3>Error Handling</H3>
+
+The Library error handler delivers detailed messages to the
+application about any error situation occured while handling a request.
+
+
+<PRE><B>	MORE</B></PRE>
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, June 1995</ADDRESS>
+</BODY>
+</HTML> 
