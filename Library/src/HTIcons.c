@@ -16,7 +16,6 @@
 #include "tcp.h"
 #include "HTUtils.h"
 #include "HTString.h"
-#include "HTAAUtil.h"
 #include "HTAnchor.h"
 #include "HTParse.h"
 #include "HTFormat.h"
@@ -226,10 +225,10 @@ PRIVATE BOOL match (char * templ,
     if (slash1 && slash2) {
 	*slash1++ = 0;
 	*slash2++ = 0;
-	return HTAA_templateMatch(c1,c2) && HTAA_templateMatch(slash1,slash2);
+	return HTStrMatch(c1,c2) && HTStrMatch(slash1,slash2);
     }
     else if (!slash1 && !slash2)
-	return HTAA_templateMatch(c1,c2);
+	return HTStrMatch(c1,c2) ? YES : NO;
     else
 	return NO;
 }
@@ -296,7 +295,7 @@ PUBLIC HTIconNode * HTGetIcon (HTFileMode	mode,
 	while ((node = (HTIconNode*)HTList_nextObject(cur))) {
 	    char * slash = strchr(node->type_templ,'/');
 	    if ((ct && slash && match(node->type_templ,ct)) ||
-		(ce && !slash && HTAA_templateMatch(node->type_templ,ce))) {
+		(ce && !slash && HTStrMatch(node->type_templ,ce))) {
 		return node;
 	    }
 	}

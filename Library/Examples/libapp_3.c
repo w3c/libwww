@@ -1,5 +1,6 @@
 #include "WWWLib.h"
 #include "HTTP.h"
+#include "WWWMIME.h"
 #include "HTDialog.h"
 
 int main (int argc, char ** argv)
@@ -9,7 +10,11 @@ int main (int argc, char ** argv)
     WWWTRACE = SHOW_ALL_TRACE;
     HTLibInit("TestApp", "1.0");
     HTProtocol_add("http", YES, HTLoadHTTP, NULL);
-    HTConversion_add(converters, "*/*", "www/present", HTSaveLocally, 1.0, 0.0, 0.0);
+
+    HTConversion_add(converters, "message/rfc822", "*/*", HTMIMEConvert,
+		     1.0, 0.0, 0.0);
+    HTConversion_add(converters, "*/*", "www/present", HTSaveLocally,
+		     1.0, 0.0, 0.0);
     HTFormat_setConversion(converters);
     HTAlert_add(HTPrompt, HT_A_PROMPT);
     if (argc == 2) {

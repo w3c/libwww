@@ -171,6 +171,9 @@ PUBLIC HWND HTEvent_getWinHandle (unsigned long * pMessage)
 }
 #else
 #ifdef WWW_WIN_DLL
+/*
+**	By having these dummy definitions we can keep the same def file
+*/
 PUBLIC BOOL HTEvent_winHandle (HTRequest * request)
 {
     return YES;
@@ -178,6 +181,10 @@ PUBLIC BOOL HTEvent_winHandle (HTRequest * request)
 PUBLIC BOOL HTEvent_setWinHandle (HWND window, unsigned long message)
 {
     return YES;
+}
+PUBLIC HWND HTEvent_getWinHandle (unsigned long * pMessage)
+{
+    return (HWND) 0;
 }
 #endif /* WWW_WIN_DLL */
 #endif /* WWW_WIN_ASYNC */
@@ -618,6 +625,14 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 }
 
 #else /* WWW_WIN_ASYNC  - Unix HTEvent_Loop */
+
+#ifdef WWW_WIN_DLL
+PUBLIC LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
+					LPARAM lParam)
+{
+    return (LRESULT) 0;
+}
+#endif
 
 PUBLIC int HTEvent_Loop( HTRequest * theRequest ) 
 {

@@ -19,7 +19,6 @@
 #include "HTString.h"
 #include "HTFormat.h"
 #include "HTList.h"
-#include "HTAAUtil.h"
 
 #define MAX_LINE_LEN 256
 
@@ -211,7 +210,11 @@ PUBLIC char * HTGetDescription (HTList *	descriptions,
 	char * d = strchr(t,' ');
 	if (!d) continue;
 	*d = 0;
+#if 0
 	if (HTAA_templateMatch(t,filename)) {
+#else
+	if (HTStrMatch(t, filename)) {
+#endif
 	    *d = ' ';
 	    return d+1;
 	}
