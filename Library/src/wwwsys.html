@@ -629,7 +629,9 @@ These are a default unix where not already defined specifically.
 #ifdef unix                    	  /* if this is to compile on a UNIX machine */
 #define GOT_READ_DIR 1       /* if directory reading functions are available */
 
+#ifndef NeXT
 #define USE_DIRENT		  /* Try this all the time, Henrik May 29 94 */
+#endif
 #ifdef USE_DIRENT             			 	    /* sys v version */
 #include &lt;dirent.h>
 #define STRUCT_DIRENT struct dirent
