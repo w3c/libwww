@@ -918,7 +918,8 @@ PRIVATE int FlushPutEvent (HTTimer * timer, void * param, HTEventType type)
     HTStream * input = HTRequest_inputStream(http->request);
     HTPostCallback * pcbf = HTRequest_postCallback(http->request);
 
-    if (timer != http->timer) HTDebugBreak();
+    if (timer != http->timer)
+	HTDebugBreak(__FILE__, __LINE__, "HTTP timer %p not in sync\n", timer);
     if (PROT_TRACE) HTTrace("Uploading... Flushing %p with timer %p\n", http, timer);
 
     /*
@@ -1191,8 +1192,7 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 	      break;
 
 	default:
-	    HTTrace("bad http state %d.\n", http->state);
-	    HTDebugBreak();
+	    HTDebugBreak(__FILE__, __LINE__, "Bad http state %d\n", http->state);
 	}
     } /* End of while(1) */
 }    

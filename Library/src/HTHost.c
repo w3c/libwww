@@ -172,8 +172,13 @@ PRIVATE int HostEvent (SOCKET soc, void * pVoid, HTEventType type)
 			HTAnchor_physical(HTRequest_anchor(HTNet_request(targetNet))));
 	    return (*targetNet->event.cbf)(HTChannel_socket(host->channel), targetNet->event.param, type);
 	}
-	HTTrace("Host Event.. Who wants to write to `%s\'?\n", host->hostname);
+#if 0
+	HTDebugBreak(__FILE__, __LINE__, "Host %p (%s) has no target\n",
+		     host, host->hostname ? host->hostname : "<none>");
 	return HT_ERROR;
+#else
+	return HT_OK;
+#endif
     } else if (type == HTEvent_TIMEOUT) {
 
 	if (CORE_TRACE)
@@ -181,8 +186,7 @@ PRIVATE int HostEvent (SOCKET soc, void * pVoid, HTEventType type)
 		    host->hostname);
 
     } else {
-	HTTrace("Don't know how to handle OOB data from `%s\'?\n", 
-		host->hostname);
+	HTDebugBreak(__FILE__, __LINE__, "Don't know how to handle OOB data from `%s\'?\n", host->hostname);
     }
     return HT_OK;
 }
@@ -428,7 +432,7 @@ PUBLIC void HTHost_setVersion (HTHost * host, int version)
 }
 
 /*
-**	Get and set the cache timeout for persistent entries.
+**	Get and set the cache timeout fHTor persistent entries.
 **	The default value is TCP_TIMEOUT
 */
 PUBLIC void HTHost_setPersistTimeout (time_t timeout)
@@ -990,6 +994,7 @@ PUBLIC BOOL HTHost_free (HTHost * host, int status)
             return YES;
         } else {
             if (CORE_TRACE) HTTrace("Host Object. closing socket %d\n", HTChannel_socket(host->channel));
+	    HTChannel_setSemaphore(host->channel, 0);
 	    HTHost_clearChannel(host, status);
         }
     }
@@ -999,9 +1004,9 @@ PUBLIC BOOL HTHost_free (HTHost * host, int status)
 PUBLIC BOOL HTHost_deleteNet (HTHost * host, HTNet * net)
 {
     if (host && net) {
-        if (CORE_TRACE) HTTrace("Host info... Remove %p from pipe\n", net);
 	HTList_removeObject(host->pipeline, net);
 	HTList_removeObject(host->pending, net); /* just to make sure */
+	if (CORE_TRACE) HTTrace("Host info... Removed %p from pipe\n", net);
 	return YES;
     }
     return NO;

@@ -39,8 +39,8 @@ PRIVATE HTTimerSetCallback * DeletePlatformTimer = NULL;
 #if 0 /* WATCH_RECURSION */
 
 PRIVATE HTTimer * InTimer = NULL;
-#define CHECKME(timer) if (InTimer != NULL) HTDebugBreak(); InTimer = timer;
-#define CLEARME(timer) if (InTimer != timer) HTDebugBreak(); InTimer = NULL;
+#define CHECKME(timer) if (InTimer != NULL) HTDebugBreak(__FILE__, __LINE__, "\n"); InTimer = timer;
+#define CLEARME(timer) if (InTimer != timer) HTDebugBreak(__FILE, __LINE__, "\n"); InTimer = NULL;
 #define SETME(timer) InTimer = timer;
 
 #else /* WATCH_RECURSION */
@@ -128,7 +128,7 @@ PUBLIC HTTimer * HTTimer_new (HTTimer * timer, HTTimerCallback * cbf,
 	/*	if a timer is specified, it should already exist
 	 */
 	if ((cur = HTList_elementOf(Timers, (void *)timer, &last)) == NULL) {
-	    HTDebugBreak();
+	    HTDebugBreak(__FILE__, __LINE__, "Timer %p not found\n", timer);
 	    CLEARME(timer);
 	    return NULL;
 	}
@@ -237,7 +237,7 @@ PRIVATE int Timer_dispatch (HTList * cur, HTList * last, int now)
 
     timer = (HTTimer *)HTList_objectOf(cur);
     if (timer == NULL) {
-	HTDebugBreak();
+	HTDebugBreak(__FILE__, __LINE__, "Timer dispatch couldn't find a timer\n");
 	CLEARME(timer);
 	return HT_ERROR;
     }

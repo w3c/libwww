@@ -636,6 +636,23 @@ PUBLIC BOOL HTAnchor_hasChildren  (HTParentAnchor * me)
     return (me && me->children);
 }
 
+/*
+** Fix up a simple routine to see if this anchor is a (ChildAnchor *)
+** Seem to be doing it all over the place, so simplify!
+*/
+PUBLIC BOOL HTAnchor_isChild (HTAnchor * me)
+{
+    return (me && (HTParentAnchor *) me != me->parent);
+}
+
+PUBLIC char * HTAnchor_view (HTAnchor * me)
+{
+    char * view = NULL;
+    if (me && (HTParentAnchor *) me != me->parent && ((HTChildAnchor *) me)->tag)
+	StrAllocCopy(view, ((HTChildAnchor *) me)->tag);
+    return view;
+}
+
 /* ------------------------------------------------------------------------- */
 /*			      Entity Header Information			     */
 /* ------------------------------------------------------------------------- */

@@ -227,6 +227,26 @@ For parent anchors this returns the anchor itself
 Does this parent anchor have any children
 <PRE>extern BOOL HTAnchor_hasChildren	(HTParentAnchor *me);
 </PRE>
+<H3>
+  Is this anchor a Child?
+</H3>
+<PRE>
+extern BOOL HTAnchor_isChild (HTAnchor * me);
+</PRE>
+
+<H3>
+  Get the Tag/Fragment/View of this anchor
+</H3>
+
+If this is a child anchor then it has a tag (often also called a "fragment"), which
+is essentially a specific <B>view</B> of a document. This is why I like to call it
+a view instead of a fragment. The string returned (if non-NULL) must be freed by the
+caller.
+
+<PRE>
+extern char * HTAnchor_view (HTAnchor * me);
+</PRE>
+
 <H2>
   Anchor Addresses
 </H2>

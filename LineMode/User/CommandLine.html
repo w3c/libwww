@@ -242,9 +242,20 @@ available options are:-
     makes selective directory listings and places a README file at the top
 </DL>
 <H3>
-  Configuration Options
+  Persistent Cache
 </H3>
+
 <DL>
+  <DT>
+    <B>-nocache</B>
+  <DD>
+    Disables the persistent cache. By default the cache is used so use this flag
+    if you really don't want it.
+  <DT>
+    <B>-disconnected</B>
+  <DD>
+    Sets the persistent cache to run in disconnected mode. That is, if the object
+    is not already cached then we don't go get it.
   <DT>
     <B>-x</B> 1*( i | n | a )
   <DD>
@@ -252,6 +263,25 @@ available options are:-
     or in a local cache. Either it can be <B>I</B>gnored all together, the user
     can be <B>N</B>otified with a warning, or the document can be reloaded
     <B>A</B>utomatically. The default action is to ignore expired documents.
+  <DT>
+    <B>-r</B> &lt;file&gt;
+  <DD>
+    Rule file, a.k.a.
+    <A HREF="../../Library/User/Using/RuleSyntax.html">configuration file</A>.
+    If this is specified, a rule file may be used to map URLs, and to set up
+    other aspects of the behavior of the browser. Many rule files may be given
+    with successive -r options, and a default rule file name may be given using
+    the <B>WWW_CONFIG</B> environment variable.
+  <DT>
+    <B>-timeout</B> &lt;n&gt;
+  <DD>
+    Timeout in milli-seconds on sockets
+</DL>
+
+<H3>
+  Configuration Options
+</H3>
+<DL>
   <DT>
     <B>-l</B> [ file ]
   <DD>

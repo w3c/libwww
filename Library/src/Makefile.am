@@ -112,6 +112,8 @@ BUILT_SOURCES = sysdep.h \
 	HTMuxCh.h 	HTHstMan.h	HTMemLog.h \
 	HTTimer.h	HTWAIS.h	HTZip.h
 
+pkginclude_HEADERS = $(BUILT_SOURCES)
+
 DOCS :=	$(wildcard *.html)
 
 EXTRA_DIST = \

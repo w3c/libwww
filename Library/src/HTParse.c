@@ -45,13 +45,20 @@ PRIVATE void scan (char * name, HTURI * parts)
 	parts->fragment = p;
     }
     
-    /* 
-    ** Look for any spaces. This is very bad for pipelining as it
-    ** makes the request invalid
-    */
-    if ((p = strchr(name, ' ')) != NULL) *p++ = '\0';
+    
+    if ((p = strchr(name, ' ')) != NULL) *p++ = '\0';    
     
     for(p=name; *p; p++) {
+
+	/* 
+	** Look for any whitespace. This is very bad for pipelining as it
+	** makes the request invalid
+	*/
+	if (isspace(*p)) {
+	    char *orig=p, *dest=p+1;
+	    while ((*orig++ = *dest++));
+	    p = p-1;
+	}
 	if (*p=='/' || *p=='#' || *p=='?')
 	    break;
 	if (*p==':') {

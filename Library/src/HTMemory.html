@@ -41,6 +41,8 @@ Library</A>.
 <PRE>
 #ifndef HTMEMORY_H
 #define HTMEMORY_H
+
+#include "<A HREF="HTUtils.html">HTUtils.h</A>"
 </PRE>
 <H2>
   <A NAME="Allocation">Allocation, Reallocation and De-allocation</A>
@@ -64,14 +66,6 @@ a set of C style macros. If you don't wany any memory management beyond normal
 malloc and alloc then you can just use that instead of the HTMemory_* function.
 You can of course also provide your own methods as well.
 <PRE>
-#ifndef __FILE__
-#define __FILE__ ""
-#endif
-
-#ifndef __LINE__
-#define __LINE__ 0L
-#endif
-
 #define HT_MALLOC(size)		HTMemory_malloc((size))
 #define HT_CALLOC(count, size)	HTMemory_calloc((count), (size))
 #define HT_REALLOC(ptr, size)	HTMemory_realloc((ptr), (size))

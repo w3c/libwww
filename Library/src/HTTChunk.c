@@ -51,10 +51,8 @@ PRIVATE BOOL HTChunkDecode_header (HTStream * me)
 	char *errstr = NULL;
 	me->left = strtol(line, &errstr, 16);    /* hex! */
 	if (STREAM_TRACE) HTTrace("Chunked..... `%s\' chunk size: %X\n", line, me->left);
-	if (errstr == line) {
-	    HTTrace("Chunked..... Received illigal chunk size: `%s\'\n", line);
-	    return NO;
-	}
+	if (errstr == line)
+	    HTDebugBreak(__FILE__, __LINE__, "Chunk decoder received illigal chunk size: `%s\'\n", line);
 	if (me->left > 0) {
 	    me->total += me->left;
 

@@ -21,10 +21,13 @@ VERSION=5.1k
 AC_SUBST(VERSION)
 AC_DEFINE_UNQUOTED(W3C_VERSION, "$VERSION")
 
-AM_INIT_AUTOMAKE($PACKAGE, $VERSION) 
-AM_CONFIG_HEADER(config.h)
+#dnl for CVS to be able to make a release diff
+PREVIOUS_VERSION=5.1j
+AC_SUBST(PREVIOUS_VERSION)
 
-AC_SUBST(PURIFY_CACHE)
+AM_INIT_AUTOMAKE($PACKAGE, $VERSION) 
+
+AM_CONFIG_HEADER(config.h)
 
 dnl Regular configure...
 AC_PROG_CC
@@ -38,7 +41,7 @@ AC_PATH_X
 dnl AC_PATH_XTRA 	Causes problems...
 
 dnl Default location of icons
-icondir=$datadir/w3c-icons
+icondir=$datadir/$PACKAGE
 AC_SUBST(icondir)
 
 dnl Location for purify cache

@@ -1814,6 +1814,10 @@ int main (int argc, char ** argv)
 	    } else if (!strncmp(argv[arg], "-discon", 7)) {
 		HTCacheMode_setDisconnected(HT_DISCONNECT_NORMAL);
 
+	    /* Disable the cache */
+	    } else if (!strncmp(argv[arg], "-nocache", 8)) {
+		HTCacheMode_setEnabled(NO);
+
 	    /* Handling of Expire (cache) */
 	    } else if (!strncmp(argv[arg], "-x", 2)) { 
 	    	  char *p = argv[arg]+2;

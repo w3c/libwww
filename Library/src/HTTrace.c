@@ -71,14 +71,16 @@ PUBLIC int HTTraceData (char * data, size_t len, char * fmt, ...)
     return (0);
 }
 
-PUBLIC void HTDebugBreak (void)
+PUBLIC void HTDebugBreak (char * file, unsigned long line, const char * fmt, ...)
 {
+    va_list pArgs;
+    va_start(pArgs, fmt);
+    HTTrace("%s:%ld ", file ? file : "", line);
+    HTTrace(fmt, pArgs);
 #ifdef WWW_MSWINDOWS
     DebugBreak();
 #else /* WWW_MSWINDOWS */
-    int i;
-    i = 1/0;
-    i = 1/1;
+    abort();
 #endif /* !WWW_MSWINDOWS */
     return;
 }

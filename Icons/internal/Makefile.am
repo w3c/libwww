@@ -1,8 +1,6 @@
 ## Process this file with Automake to create Makefile.in.
 
-AUTOMAKE_OPTIONS = foreign
-
-ICONS := $(wildcard *.xbm)
+ICONS := $(notdir $(wildcard $(srcdir)/*.xbm))
 
 icondir = @icondir@
 datadir = $(icondir)

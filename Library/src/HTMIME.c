@@ -200,6 +200,11 @@ PRIVATE int pumpData (HTStream * me)
 	    me->target = target;
     }
 
+
+    /*
+    ** If we for some reason couldn't find a target stream
+    */
+    if (!me->target) me->target = HTBlackHole();
     return HT_OK;
 }
 

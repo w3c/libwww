@@ -351,7 +351,8 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request)
 PRIVATE int ReturnEvent (HTTimer * timer, void * param, HTEventType type)
 {
     file_info * file = (file_info *) param;
-    if (timer != file->timer) HTDebugBreak();
+    if (timer != file->timer)
+	HTDebugBreak(__FILE__, __LINE__, "File timer %p not in sync\n", timer);
     if (PROT_TRACE) HTTrace("HTLoadFile.. Continuing %p with timer %p\n", file, timer);
 
     /*

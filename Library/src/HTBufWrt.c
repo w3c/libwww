@@ -59,7 +59,8 @@ PRIVATE int HTBufferWriter_flush (HTOutputStream * me)
 PRIVATE int FlushEvent (HTTimer * timer, void * param, HTEventType type)
 {
     HTOutputStream * me = (HTOutputStream *) param;
-    if (timer != me->timer) HTDebugBreak();
+    if (timer != me->timer)
+	HTDebugBreak(__FILE__, __LINE__, "Buffer Writer timer %p not in sync\n", timer);
     if (PROT_TRACE) HTTrace("Buffer...... Timeout flushing %p with timer %p\n", me, timer);
 
     /*

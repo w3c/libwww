@@ -1,6 +1,5 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen,  6-Apr-1996 -->
   <TITLE>W3C Sample Code Library libwww General Purpose Macros</TITLE>
 </HEAD>
 <BODY>
@@ -31,7 +30,9 @@ possible to see parts of the output messages.
 <PRE>
 #ifndef DEBUG
 #define DEBUG	/* No one ever turns this off as trace is too important */
-extern void HTDebugBreak(void);
+
+/* Call this function and the program halts */
+extern void HTDebugBreak (char * file, unsigned long line, const char * fmt, ...);
 #endif
 </PRE>
 <H3>
@@ -244,6 +245,22 @@ or BDSI platforms. For safefy, we make them mandatory.
 #define TOUPPER(c) toupper(c)
 #endif
 </PRE>
+<H2>
+  C Preprocessor defines
+</H2>
+
+Make sure that the following macros are defined
+
+<PRE>
+#ifndef __FILE__
+#define __FILE__ ""
+#endif
+
+#ifndef __LINE__
+#define __LINE__ 0L
+#endif
+</PRE>
+
 <H2>
   Max and Min values for Integers and Floating Point
 </H2>

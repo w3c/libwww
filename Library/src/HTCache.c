@@ -641,7 +641,7 @@ PRIVATE BOOL HTCache_getSingleUserLock (const char * root)
 	strcat(location, HT_CACHE_LOCK);
 	if ((fp = fopen(location, "r")) != NULL) {
 	    HTAlertCallback *cbf = HTAlert_find(HT_A_CONFIRM);
-	    HTTrace("Cache....... Is already in use\n");
+	    HTTrace("Cache....... In `%s\' is already in use\n", root);
     	    if (cbf) (*cbf)(NULL, HT_A_CONFIRM, HT_MSG_CACHE_LOCK,NULL,location,NULL);
 	    fclose(fp);
 	    HT_FREE(location);

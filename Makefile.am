@@ -29,17 +29,19 @@ EXTRA_DIST = \
 	PATCHES.html \
 	CERN.html
 
-#
-#	We do not have _all_ GNU files so add this to avoid warnings
-#
+# We need to install the config.h header file as well
+install-exec-local:
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(pkgincludedir)
+	$(INSTALL_DATA) $(top_builddir)/$(CONFIG_HEADER) $(pkgincludedir)/$(CONFIG_HEADER);
+
+# We do not have _all_ GNU files so add this to avoid warnings
 AUTOMAKE_OPTIONS = foreign
 
-#
-#	These are the sub directories
-#
+# These are the sub directories
 SUBDIRS = config Library PICS-client LineMode Robot ComLine Listen Icons
 
-#	Extra distribution files in zip format and in compress
+# Extra distribution files in zip format and in compress
 dist-hook:
 	chmod -R a+r $(distdir)
 	zip -rq $(distdir).zip $(distdir)
@@ -47,13 +49,18 @@ dist-hook:
 	compress -f $(distdir).tar
 
 # Tag before making distribution.  Also, don't make a distribution if
-# checks fail.  Also, make sure the NEWS file is up-to-date.
-CVSDIRS = Library LineMode Robot ComLine MiniServ Listen
+# checks fail.
+CVSSTUFF = config Library PICS-client LineMode Robot ComLine Listen \
+Makefile.am acconfig.h acinclude.m4 aclocal.m4 config.h.in configure.in
+
+# If not indicated otherwise then use this to make the CVS diff with
+PREVIOUS_VERSION = @PREVIOUS_VERSION@
+
 cvs-tag:
-	cvs -q tag -F `echo "Release-$(VERSION)" | sed 's/\./-/g'` $(CVSDIRS)
+	cvs -q tag -F `echo "Release-$(VERSION)" | sed 's/\./-/g'` $(CVSSTUFF)
 
 cvs-export-member:
-	for subdir in $(CVSDIRS); do \
+	for subdir in $(SUBDIRS); do \
 	  target=`echo $@ | sed s/-recursive//`; \
 	  echo making $$target in $$subdir;	\
 	  rm -rf $$subdir/member;	\
@@ -62,7 +69,7 @@ cvs-export-member:
 	done && test -z "$$fail"
 
 cvs-export-pub:
-	for subdir in $(CVSDIRS); do \
+	for subdir in $(SUBDIRS); do \
 	  target=`echo $@ | sed s/-recursive//`; \
 	  echo making $$target in $$subdir;	\
 	  rm -rf $$subdir/pub;	\
@@ -72,14 +79,13 @@ cvs-export-pub:
 
 cvs-diff:
 	thisver=`echo "Release-$(VERSION)" | sed 's/\./-/g'`; \
-	prevno=`echo "$(VERSION)" - 0.01 | bc | sed 's/^\./0./'`; \
-	prevver=Release-`echo $$prevno | sed 's/\./-/g'`; \
-	cvs -f rdiff -c -r $$prevver -r $$thisver $(PACKAGE) \
-	    > $(PACKAGE)-$$prevno-$(VERSION).diff
+	prevver=`echo "Release-$(PREVIOUS_VERSION)" | sed 's/\./-/g'`; \
+	cvs -f diff -w -c -r $$prevver -r $$thisver $(CVSSTUFF) \
+	    > $(PACKAGE)-$(PREVIOUS_VERSION)-$(VERSION).diff
 
-FULLDIRS = $(CVSDIRS) PICS-client
+# Generate the include files (normally done automaticly)
 inc:
-	for subdir in $(FULLDIRS); do		\
+	for subdir in $(SUBDIRS); do		\
 	  target=`echo $@ | sed s/-recursive//`; \
 	  echo making $$target in $$subdir;	\
 	  (cd $$subdir/src && $(MAKE) $$target)	\

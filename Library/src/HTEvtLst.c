@@ -738,7 +738,7 @@ PUBLIC LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
     case FD_CONNECT: type = HTEvent_CONNECT; break;
     case FD_OOB: type = HTEvent_OOB; break;
     case FD_CLOSE: type = HTEvent_CLOSE; break;
-    default: HTDebugBreak();
+    default: HTDebugBreak(__FILE__, __LINE__, "Unknown event %d\n", event);
     }
     if (HTEventList_dispatch((int)sock, type, now) != HT_OK)
 	HTEndLoop = -1;
@@ -828,7 +828,23 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 	if (THD_TRACE) HTTrace("Event Loop.. select returns %d\n", active_sockets);
 
         if (active_sockets == -1) {
-	    HTRequest_addSystemError( theRequest, ERR_FATAL, socerrno, NO, "select");
+#ifdef EINTR
+	    if (socerrno == EINTR) {
+		/*
+		** EINTR     The select() function was interrupted  before  any
+		**           of  the  selected  events  occurred and before the
+		**           timeout interval expired.
+		**
+		**           If SA_RESTART has been set  for  the  interrupting
+		**           signal,  it  is  implementation-dependent  whether
+		**	     select() restarts or returns with EINTR.
+		*/
+		if (THD_TRACE)
+		    HTTrace("Event Loop.. select was interruted - try again\n");
+		continue;
+	    }
+#endif /* EINTR */
+	    HTRequest_addSystemError(theRequest, ERR_FATAL, socerrno, NO, "select");
 	    EventList_dump();
 	    return HT_ERROR;
         }
@@ -877,8 +893,7 @@ PUBLIC void CheckSockEvent(HTTimer * timer, HTTimerCallback * cbf, void * param)
 	sockp->timeouts[0] != timer && 
 	sockp->timeouts[1] != timer && 
 	sockp->timeouts[2] != timer) {
-	if (THD_TRACE) HTTrace("Timer....... bad timer %p.\n", timer);
-	HTDebugBreak();
+	HTDebugBreak(__FILE__, __LINE__, "Bad timer %p\n", timer);
     }
 }
 
