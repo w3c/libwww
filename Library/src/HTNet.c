@@ -1176,3 +1176,22 @@ PUBLIC BOOL HTNet_setReadStream (HTNet * net, HTStream * stream)
     }
     return NO;
 }
+
+/*
+**	Should we do raw byte count at the network or later?
+**	Normally it is later but in cases like FTP we need it
+**	in the raw form
+*/
+PUBLIC BOOL HTNet_setRawBytesCount (HTNet * net, BOOL mode)
+{
+    if (net) {
+	net->countRawBytes = mode;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC BOOL HTNet_rawBytesCount (HTNet * net)
+{
+    return (net && net->countRawBytes);
+}

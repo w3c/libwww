@@ -43,6 +43,7 @@ struct _HTNet {
     int                 session;
 
     /* For progress notifications */
+    BOOL		countRawBytes;	     /* If we should count raw bytes */
     long		bytesRead;			    /* Bytes in body */
     long		headerBytesRead;	     /* Bytes read in header */
     long		bytesWritten;		 /* Bytes written to network */

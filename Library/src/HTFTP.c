@@ -67,6 +67,7 @@
 #include "WWWStream.h"
 #include "WWWTrans.h"
 #include "HTReqMan.h"
+#include "HTNetMan.h"
 #include "HTFTPDir.h"
 #include "HTFTP.h"					 /* Implemented here */
 
@@ -179,7 +180,21 @@ PRIVATE int FTPCleanup (HTRequest * request, int status)
 	HTNet * cnet = HTRequest_net(request);
 	ftp_ctrl * ctrl = (ftp_ctrl *) HTNet_context(cnet);
 	HTStream * input = HTRequest_inputStream(request);
-	
+
+        if (status == HT_INTERRUPTED) {
+            HTAlertCallback * cbf = HTAlert_find(HT_PROG_INTERRUPT);
+            if (cbf) (*cbf)(request, HT_PROG_INTERRUPT,
+                HT_MSG_NULL, NULL, NULL, NULL);
+	} else if (status == HT_TIMEOUT) {
+            HTAlertCallback * cbf = HTAlert_find(HT_PROG_TIMEOUT);
+            if (cbf) (*cbf)(request, HT_PROG_TIMEOUT,
+                HT_MSG_NULL, NULL, NULL, NULL);
+	} else if (status == HT_LOADED) {
+            HTAlertCallback * cbf = HTAlert_find(HT_PROG_DONE);
+            if (cbf) (*cbf)(request, HT_PROG_DONE,
+                HT_MSG_NULL, NULL, NULL, NULL);
+        }	        
+
 	/* Free control stream with data TO network */
 	if (!HTRequest_isDestination(request) && input) {
 	    if (status == HT_INTERRUPTED)
@@ -205,7 +220,11 @@ PRIVATE int FTPCleanup (HTRequest * request, int status)
 #if 0
 	    HTNet_setPersistent(dnet, NO, HT_TP_SINGLE);
 #endif
-	    HTNet_delete(dnet, HT_IGNORE);
+	    /* See if we got a content length */
+            if (status == HT_LOADED)
+                HTAnchor_setLength(HTRequest_anchor(request), HTNet_bytesRead(dnet));
+
+            HTNet_delete(dnet, HT_IGNORE);
 	}
 	HTNet_delete(cnet, status);
 	return YES;
@@ -1368,7 +1387,7 @@ PUBLIC int HTLoadFTP (SOCKET soc, HTRequest * request)
     HTNet_setContext(cnet, ctrl);
     HTNet_setEventCallback(cnet, FTPEvent);
     HTNet_setEventParam(cnet, ctrl);
-
+    HTNet_setRawBytesCount(ctrl->dnet, YES);
 
     /* for now, the dnet comes back to the same place
     ** - vestigial from when the callback was from the request object
@@ -1393,11 +1412,17 @@ PRIVATE int FTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 
 
     if (type == HTEvent_CLOSE) {			      /* Interrupted */
-	if(HTRequest_isPostWeb(request)&&!HTRequest_isMainDestination(request))
-	    FTPCleanup(request, HT_IGNORE);
-	else
+        if (soc == HTNet_socket(cnet))
 	    FTPCleanup(request, HT_INTERRUPTED);
+	else
+	    FTPCleanup(request, HT_LOADED);
 	return HT_OK;
+    } else if (type == HTEvent_TIMEOUT) {
+	HTRequest_addError(request, ERR_FATAL, NO, HTERR_TIME_OUT,
+			   NULL, 0, "HTLoadHTTP");
+	FTPCleanup(request, HT_TIMEOUT);
+	return HT_OK;
+
     } else {
 	ctrl = (ftp_ctrl *) HTNet_context(cnet);	/* Get existing copy */
 	data = (ftp_data *) HTNet_context(ctrl->dnet);
@@ -1445,6 +1470,10 @@ PRIVATE int FTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 	      **  See if we can get any hints to what we might expect content wise.
 	      */
 	      if (!FTP_DIR(data)) HTBind_getAnchorBindings(anchor);
+
+              /* Ready for next state */
+              ctrl->state = FTP_NEED_CCON;
+              break;
 
 	case FTP_NEED_CCON:
 	    if (PROT_TRACE) HTTrace("FTP Event... now in state FTP_NEED_CONN\n");

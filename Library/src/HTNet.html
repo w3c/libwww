@@ -34,8 +34,7 @@ You can find more information about the libwww pseudo thread model in the
 <A HREF="../User/Architecture/"> Multithread Specifications</A>.
 <P>
 This module is implemented by <A HREF="HTNet.c">HTNet.c</A>, and it is a
-part of the <A HREF="http://www.w3.org/Library/">W3C Sample Code
-Library</A>.
+part of the <A HREF="http://www.w3.org/Library/">W3C Sample Code Library</A>.
 <PRE>
 #ifndef HTNET_H
 #define HTNET_H
@@ -632,13 +631,23 @@ out.
 extern BOOL HTNet_setDns (HTNet * net, HTdns * dns);
 extern HTdns * HTNet_dns (HTNet * net);
 </PRE>
-<P>
 <H3>
   Target for Input Read Stream
 </H3>
 <PRE>
 extern HTStream * HTNet_readStream(HTNet * net);
 extern BOOL HTNet_setReadStream (HTNet * net, HTStream * stream);
+</PRE>
+<H3>
+  Should we count Raw bytes?
+</H3>
+<P>
+This functions can be used to determine whether bytes count should be managed
+at the low level read stream or at a higher level. If the data transfer equals
+the lifetime of a single document like for example in FTP or HTTP/1.0 then
+this may be a reasonable thing to do.
+<PRE>extern BOOL HTNet_setRawBytesCount (HTNet * net, BOOL mode);
+extern BOOL HTNet_rawBytesCount (HTNet * net);
 </PRE>
 <PRE>
 #endif /* HTNET_H */
