@@ -62,7 +62,31 @@ for the file <I>Overview</I> can result in any of the files (or directories)
 algorithm is based on the values of the preferences for language, media type,
 encoding, etc. - exactly like a server would do with the <CODE>accept</CODE>
 headers.
-<PRE>#include "<A HREF="HTMulti.html">HTMulti.h</A>"
+<PRE>
+#include "<A HREF="HTMulti.html">HTMulti.h</A>"
+</PRE>
+<H3>
+  File Suffix Binding
+</H3>
+<P>
+This module sets up the binding between a file suffix and a media type, language,
+encoding etc. In a client application the suffixes are used in protocols
+that does not directly support media types etc., like FTP, and in server
+applications they are used to make the bindings between the server and the
+local file store that the server can serve to the rest of the world (well
+almost)
+<PRE>
+#include "<A HREF="HTBind.html">HTBind.h</A>"
+</PRE>
+<H2>
+  Default File Suffix Bindings
+</H2>
+<P>
+Register the default set of bindings between file suffixes and media types.
+This is used for example to guess the media type of a FTP URL of a local
+file URL.
+<PRE>
+#include "<A HREF="HTBInit.html">HTBInit.h</A>"
 </PRE>
 <P>
 End of FILE module

@@ -15,7 +15,6 @@
 
 /* Library include files */
 #include "WWWUtil.h"
-#include "HTBind.h"
 #include "HTAnchor.h"
 #include "HTProt.h"
 #include "HTDNS.h"
@@ -167,9 +166,6 @@ PUBLIC BOOL HTLibInit (const char * AppName, const char * AppVersion)
     UserProfile = HTUserProfile_new(HT_DEFAULT_USER, NULL);
     HTUserProfile_localize(UserProfile);
 
-    /* Initialize bindings */
-    HTBind_init();
-
 #ifdef WWWLIB_SIG
     /* On Solaris (and others?) we get a BROKEN PIPE signal when connecting
     ** to a port where we should get `connection refused'. We ignore this 
@@ -203,7 +199,6 @@ PUBLIC BOOL HTLibTerminate (void)
     HTAnchor_deleteAll(NULL);		/* Delete anchors and drop hyperdocs */
 
     HTProtocol_deleteAll();  /* Remove bindings between access and protocols */
-    HTBind_deleteAll();	    /* Remove bindings between suffixes, media types */
 
     HTUserProfile_delete(UserProfile);	    /* Free our default User profile */
 

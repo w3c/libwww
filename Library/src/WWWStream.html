@@ -42,7 +42,21 @@ is that the Internet world is more complicated than Posix and ANSI.
 This stream also buffers the result to find out the content length. If a
 maximum buffer limit is reached Content-Length is calculated for logs but
 it is not sent to the client -- rather the buffer is flushed right away.
-<PRE>#include "<A HREF="HTConLen.html">HTConLen.h</A>"			/* Content Length Counter */
+<PRE>
+#include "<A HREF="HTConLen.html">HTConLen.h</A>"			/* Content Length Counter */
+</PRE>
+<H3>
+  File Writer Streams
+</H3>
+<P>
+This module contains a set of basic file writer streams that are used to
+dump data objects to disk at various places within the Library core. Most
+notably, we use these streams in the <A HREF="HTFWrite.html">Format Manager</A>
+in order to handle external presenters, for example post script viewers etc.
+These streams can of course also be used in other contexts by the application.
+<PRE>
+#include "<A HREF="HTFWrite.html">HTFWrite.h</A>"
+#include "<A HREF="HTFWrite.html">HTFSave.h</A>"
 </PRE>
 <H3>
   Content Guess Stream
@@ -79,17 +93,6 @@ abort methods can be called <B>n</B> times where <B>n</B> equals the number
 of <I>feeds</I> that put data to the stream.
 <PRE>
 #include "<A HREF="HTMerge.html">HTMerge.h</A>"
-</PRE>
-<H3>
-  No Free Stream
-</H3>
-<P>
-This stream is a throughline for all methods except FREE and
-ABORT. This means that it can be use to put ahead of streams that you
-don't want to be freed or aborted until you are redy to do it
-yourself.
-<PRE>
-#include "<A HREF="HTNoFree.html">HTNoFree.h</A>"
 </PRE>
 <H3>
   Stream to Chunk Conversion

@@ -13,6 +13,7 @@
 #include "WWWUtil.h"
 #include "WWWCore.h"
 #include "WWWCache.h"
+#include "WWWStream.h"
 #include "HTProfil.h"				         /* Implemented here */
 
 PRIVATE HTList * converters = NULL;
@@ -33,10 +34,13 @@ PUBLIC void HTProfile_delete (void)
 	/* Clean up all the global preferences */
 	HTFormat_deleteAll();
 
-      /* The following lists have been cleaned up by HTFormat_deleteAll */
-      transfer_encodings = 0;
-      content_encodings = 0;
-      converters = 0;
+	/* The following lists have been cleaned up by HTFormat_deleteAll */
+	transfer_encodings = 0;
+	content_encodings = 0;
+	converters = 0;
+
+	/* Remove bindings between suffixes, media types */
+	HTBind_deleteAll();
 
 	/* Terminate libwww */
 	HTLibTerminate();
@@ -65,6 +69,9 @@ PRIVATE void client_profile (const char * AppName, const char * AppVersion,
 	HTProtocolPreemptiveInit();
     else
 	HTProtocolInit();
+
+    /* Initialize suffix bindings for local files */
+    HTBind_init();
 
     /* Set max number of sockets we want open simultanously */ 
     HTNet_setMaxSocket(32);
@@ -175,6 +182,9 @@ PRIVATE void robot_profile (const char * AppName, const char * AppVersion)
 
     /* Register the default set of application protocol modules */
     HTProtocolInit();
+
+    /* Initialize suffix bindings for local files */
+    HTBind_init();
 
     /* Set max number of sockets we want open simultanously */ 
     HTNet_setMaxSocket(32);
