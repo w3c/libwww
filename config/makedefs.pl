@@ -1,32 +1,50 @@
 #!/usr/local/bin/perl
+# 
+# syntax: makedefs.pl [options] [files | @[filelist]]
+#   where options are 
+#     -d<directory>: look for files in <directory>.
+#     -header<text>: add <text> to top of file.
+#     -e: no more options (like grep -e). Allows access to files with
+#         a leading - in their name.
+#     <files> is one or more files in the form <filename[@<offset>]>
+#       where <filename> is a file in which to look for functions.
+#     <offset> is the desired offset for the first functions. The <offset> 
+#       directive will be ignored if it will cause a conflict with a 
+#       function offset already defined in the def file.
+#     [filelist] is a file containing these lists. If ommited, makedefs
+#       looks to stdin for a filelist.
+#
+# example call: ../../../config/makedefs.pl -headerEXPORTS -d.. @wwwcore.files
+#   read the list of files from wwwcore.files, grep these files for 'PUBLIC',
+#   and send the output to stdout.
+#
+# EGP July 5 96
+#
 
+$NumberDefs'granularity = 100;  # how much the index changes for each file
 $NumberDefs'at = 24;            # target at sign column
 $NumberDefs'tab = 8;            # how wide a tab looks in your editor
 $NumberDefs'offset = 0;         # starting number
 $NumberDefs'index;
+$WorkDir = '';
 
 sub NumberDefs'numberEach
 {
     package NumberDefs;
-    local($name) = @_;
+    local($name, $passedOffset) = @_;
     if ($name eq "") {
 	print "\n";
 	next;
     }
-    if ($offset == 0) {
-	print "EXPORTS\n";
+
+    if ($passedOffset && $passedOffset > $offset) {
+	$index = $offset = $passedOffset;
+    } elsif ($name =~ /^;/) {
+	$index = $offset = (int($index / $granularity) +1) * $granularity;
     }
+
     print $name;
-    if ($name =~ /^;/) {
-	($module, $atsign, $start) = split(" ", $_);
-#	print "\"", $module, "\" ", $start;
-	if ($start && $start > $offset) {
-	    $offset = $start;
-	} else {
-	    $offset += 200;
-	}
-	$index = $offset;
-    }
+
     $len = length($name);
     if ($len >= $at) {
 	print " ";
@@ -54,12 +72,12 @@ sub NumberDefs'numberAll
 
 sub GrepPublic
 {
-    local($source) = @_;
-    if (!open (SOURCE, "../".$source)) {
-	warn "Can't open ../$source: $!\n"; 
+    local($source, $offset) = split('@', @_[0]);
+    if (!open (SOURCE, $WorkDir.$source)) {
+	warn "Can't open $WorkDir$source: $!\n"; 
 	return;
     }
-    &NumberDefs'numberEach(';'.$source); # add source file as a source
+    &NumberDefs'numberEach(';'.$source, $offset); # add source file as a source
     while (<SOURCE>) {
 	if (!/^PUBLIC\s/) {
             next;
@@ -74,7 +92,23 @@ sub GrepPublic
     }
 }
 
-if (@ARGV[0] =~ /@(.*)/) {
+sub ReadArg
+{
+    local($arg) = substr(@_[0], 1);
+    return 0 if ($arg eq 'e');
+    if (substr($arg, 0, 6) eq 'header') {
+	print substr($arg, 6), "\n";
+    } elsif (substr($arg, 0, 1) eq 'd') {
+	$WorkDir = substr($arg, 1);
+	$WorkDir .= '/' if (!($WorkDir =~ /\/$/));
+    } else {
+	print "unknown argument \"$arg\".\n";
+    }
+    return 1;
+}
+
+while (@ARGV[0] =~ /^-/ && &ReadArg(shift(@ARGV))) {}
+if (@ARGV[0] =~ /^@(.*)/) {
     local($name) = $1;
     if ($name =~ /\w+/) {
 	if (!open(LIST, $name)) {

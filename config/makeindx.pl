@@ -1,14 +1,24 @@
 #!/usr/local/bin/perl
 #<PRE> netscape <B>insists</B> on interperting this as html
 #
-# makeindx.pl <html directory | html file list> <@list of docs files|docs file>
+# makeindx.pl <html directory|html file list> <@header files list|header file>
 #
 # for example, from the Library/User directory:
-#   ../../config/makeindx.pl ../src ../src/windows/*.docs >FuncIndx.html
-#   what it does:
-#   check ../src/*.html, classify by ../src/windows/*.docs and send generate
-#     FuncIndx.html
+#   ../../config/makeindx.pl ../src ../src/WWW*.html
+# what it does:
+#   1. get a list of all the html files in ../src.
+#   2. read each DLL definition (../src/WWW*.html) and associate it with 
+#      each of its embedded files (included header files).
+#   3. read all the html files from 1 and scan for functions.
+#   4. print these sorted by function name,
+#   5. DLL name,
+#   6. and module name
+#
+# EGP July 5 96
+#
 
+# output an HTML pointer to $source[#$naneTag] labeled $name
+# also output and optional extra pointer to $dll named $dll
 sub numberEach
 {
     local($source, $name, $nameTag, $dll) = @_;
@@ -28,6 +38,7 @@ sub numberEach
     print "\n";
 }
 
+# find functions in a module
 sub findFunctions
 {
     local($source, $nameTag) = @_;
@@ -43,6 +54,7 @@ sub findFunctions
 	{
             $nameTag = $1;
         }
+	s/<[^>]*>//g;
 	if (!/^extern\s/) {
             next;
         }
@@ -71,7 +83,7 @@ sub findFunctions
 		warn "likely line wrap for list ($source,$.): \"$_\"?\n";
 	    }
 	} else {
-	    warn "skippint ($source,$.)g: \"$_\"?\n";
+	    warn "skipping ($source,$.)g: \"$_\"?\n";
 	    next;
 	}
         $Functions{$func} = $source.'#'.$nameTag;
@@ -80,20 +92,42 @@ sub findFunctions
     }
 }
 
+#sub getDLLs
+#{
+#    local($list) = @_;
+#    open(LIST, $list) || die "Couldn't open list file \"$list\":$!\n";
+#    $list =~ s/.*\/(\w+\.docs)/$1/;
+#     $list =~ s/\.docs//;
+#    push(@DLLList, $list);
+#    while (<LIST>) {
+#	 chop;
+#	 if (defined($Modules{$_})) {
+#	     $Modules{$_} .= "#$list";
+#	     $DLLS{$_} .= "$list";
+#	 } else {
+#	     warn "unknown file \"$_\".\n";
+#	 }
+#    }
+#}
+
+# reads include file for a DLL and looks for included modules
 sub getDLLs
 {
     local($list) = @_;
-    open(LIST, $list) || die "Couldn't open list file \"$list\":$!\n";
-    $list =~ s/.*\/(\w+\.docs)/$1/;
-    $list =~ s/\.docs//;
+    open(LIST, "grep \"#include\" $list|grep -v sysdep|") || die "Couldn't open list file \"$list\":$!\n";
+    $list =~ s/.*\/(\w+\.html)/$1/;
+    $list =~ s/\.html//;
     push(@DLLList, $list);
     while (<LIST>) {
 	chop;
+	s/<[^>]*>//g;
+	s/#include\s+\"//;
+	s/\.h\".*/.html/;
 	if (defined($Modules{$_})) {
 	    $Modules{$_} .= "#$list";
 	    $DLLS{$_} .= "$list";
 	} else {
-	    warn "unknown file \"$_\".\n";
+	    warn "unknown file \"$_\" in \"$list\".\n";
 	}
     }
 }
@@ -199,6 +233,8 @@ EndOfFooter
 sub readModules
 {
     local($check, $line) = @_;
+
+    # get a list of the modules
     if (-d $check) {
 	open(CHECK, "ls -1 $check/*.html |")
 	    || die "Can open ls -1 $check/*.html |: $!\n";
@@ -208,17 +244,21 @@ sub readModules
 	open(CHECK, $check) || die "Can open $check: $!\n";
 	$Dir = $check =~ /(.*\/)\w+\.html$/;
     }
+
+    # put this list into %Modules and @ModuleList
     while ($line = <CHECK>) {
 	chop($line);
-	$line =~ s/.*\/(\w+\.html)/$1/;
+	$line =~ s/.*\/(\w+\.html)/$1/;  # get name from path
 	next if($line =~ /^WWW/);
 	next if($line eq 'sysdep.html');
-	$Modules{$line} .= ' 1st';
-	push(@ModuleList, $line);
+	$Modules{$line} .= ' 1st';       # Define $Modules{$module}
+	push(@ModuleList, $line);        # add to ModuleList
     }
 }
 
-&readModules(shift(@ARGV));
+&readModules(shift(@ARGV)); # step 1
+
+# 2. find out in what DLLs these modules reside (eg HTReqMan is in wwwcore)
 if (@ARGV[0] =~ /@(.*)/) {
     local($name) = $1;
     if ($name =~ /\w+/) {
@@ -243,11 +283,14 @@ if (@ARGV[0] =~ /@(.*)/) {
 &printHeader;
 @ModuleList = sort @ModuleList;
 @DLLList = sort @DLLList;
+
+# 3. scan for funtions in these modules
 foreach $file (@ModuleList) {
     &findFunctions($Dir.$file);
 }
 @FunctionList = sort @FunctionList;
 
+# 4. output sorted by function name
 &printByFunction;
 foreach $func (@FunctionList) {
     local($source, $nameTag) = split('#', $Functions{$func});
@@ -256,6 +299,7 @@ foreach $func (@FunctionList) {
     &numberEach($source, $func, $nameTag, $dll);
 }
 
+# 5. output sorted by DLL name
 &printByDLL;
 foreach $checkDll (@DLLList) {
     printDLLName($checkDll);
@@ -268,6 +312,7 @@ foreach $checkDll (@DLLList) {
     }
 }
 
+# 6. output sorted by module name
 &printByModule;
 foreach $module (@ModuleList) {
     local($dll) = $DLLS{$module};

@@ -4,7 +4,6 @@ SUFFIXES = .files .def
 
 SRC := $(wildcard *.c)
 MAK := $(wildcard *.mak)
-# PL  := $(wildcard *.pl) I don't think we need this anymore - EGP
 
 AUTOMAKE_OPTIONS = foreign
 
@@ -21,12 +20,11 @@ EXTRA_DIST = \
 	wwwdll.def \
 	$(SRC) \
 	$(MAK)
-#	$(PL) - EGP
 
 def:  maintainer-clean-generic $(BUILT_SOURCES)
 	
 .files.def:
-	$(top_srcdir)/config/makedefs.pl @ < $(srcdir)/$(*F).files > $(srcdir)/$(*F).def
+	$(top_srcdir)/config/makedefs.pl -headerEXPORTS -d.. @$(srcdir)/$(*F).files > $(srcdir)/$(*F).def
 
 
 
