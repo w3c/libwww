@@ -186,7 +186,7 @@ PUBLIC HText *	HText_new ARGS1(HTParentAnchor *,anchor)
 /*			Creation Method 2
 **			---------------
 **
-**	Non-interative
+**	Non-interative  OR interactive if stream is NULL
 **	Stream is assumed open and left open.
 */
 PUBLIC HText *	HText_new2 ARGS2(
@@ -199,8 +199,8 @@ PUBLIC HText *	HText_new2 ARGS2(
     if (stream) {
         me->target = stream;
 	me->targetClass = *stream->isa;	/* copy action procedures */
+	me->all_pages = YES;	/* Display whole file on the fly */    
     }
-    me->all_pages = YES;	/* Display whole file on the fly */    
     return me;
 }
 
