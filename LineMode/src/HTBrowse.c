@@ -1400,10 +1400,15 @@ int main ARGS2(int, argc, char **, argv)
 	/* Register our own memory cache handler (implemented in GridText.c) */
 	HTMemoryCache_register(HTMemoryCache);
 
-	/* Register STDIN as the user socket */
+	/*
+	** Register STDIN as the user socket IF not STDIN is connected to
+	** /dev/null or other non-terminal devices
+	*/
 #ifdef STDIN_FILENO
-	HTEvent_RegisterTTY(STDIN_FILENO, request, (SockOps)FD_READ,
-			    scan_command, 1);
+	if (isatty(STDIN_FILENO)) {
+	    HTEvent_RegisterTTY(STDIN_FILENO, request, (SockOps)FD_READ,
+				scan_command, 1);
+	}
 #else
 	HTEvent_RegisterTTY(0, request, (SockOps)FD_READ, scan_command, 1);
 #endif
