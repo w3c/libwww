@@ -1,6 +1,5 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 14-Jul-1996 -->
   <TITLE>W3C Sample Code Library libwww Access Authentication</TITLE>
 </HEAD>
 <BODY>
@@ -143,7 +142,7 @@ and port number, they control. For example, a server with interfaces
 "<CODE>www.foo.com</CODE>" and "<CODE>internal.foo.com</CODE>" can have different
 protection setups for each interface.
 <H3>
-  Add new or Update Existng information to the Database
+  Add new or Update a Note in the UTree
 </H3>
 <P>
 Add an access authentication information node to the database or update an
@@ -154,6 +153,16 @@ Return YES if added (or replaced), else NO
                                char const * scheme,
 			       const char * realm, const char * url,
 			       void * context);
+</PRE>
+<H3>
+  Delete a Node from the UTree
+</H3>
+<P>
+This is called if an already entered node has to be deleted, for example
+if it is not used (the user cancelled entering a username and password),
+or for some reason has expired.
+<PRE>extern BOOL HTAA_deleteNode (BOOL proxy_access, char const * scheme,
+                             const char * realm, const char * url);
 </PRE>
 <H2>
   The Authentication Manager Filters

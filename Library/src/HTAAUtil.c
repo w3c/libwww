@@ -327,6 +327,56 @@ PUBLIC void * HTAA_updateNode (BOOL proxy_access, char const * scheme,
     }
 }
 
+/*	Delete a AA context from the URL tree
+**	-------------------------------------
+**	Each node in the AA URL tree is a list of the modules we must call
+**	for this particular node.
+*/
+PUBLIC BOOL HTAA_deleteNode (BOOL proxy_access, char const * scheme,
+			     const char * realm, const char * url)
+{
+    HTUTree * tree = NULL;
+    HTAAModule * module = NULL;
+    if (!scheme || !url) {
+	if (AUTH_TRACE) HTTrace("Auth Engine. Bad argument\n");
+	return NO;
+    }
+    if (AUTH_TRACE) HTTrace("Auth Engine. Deleting info for `%s'\n", url);
+
+    /* Find the AA module with this name */
+    if ((module = HTAA_findModule(scheme)) == NULL) {
+	if (AUTH_TRACE) HTTrace("Auth Engine. Module `%s\' not registered\n",
+			       scheme ? scheme : "<null>");
+	return NO;
+    }
+
+    /* Find an existing URL Tree or create a new one */
+    {
+	char * host = HTParse(url, "", PARSE_HOST);
+	char * colon = strchr(host, ':');
+	int port = DEFAULT_PORT;
+	if (colon ) {
+	    *(colon++) = '\0';			     /* Chop off port number */
+	    port = atoi(colon);
+	}
+	tree = HTUTree_new(proxy_access ? AA_PROXY_TREE : AA_TREE,
+			   host, port, HTAA_deleteElement);
+	HT_FREE(host);
+	if (!tree) {
+	    if (AUTH_TRACE) HTTrace("Auth Engine. Can't create tree\n");
+	    return NO;
+	}
+    }
+
+    /* Delete any existing node */
+    {
+	char * path = HTParse(url, "", PARSE_PATH | PARSE_PUNCTUATION);
+	BOOL status = HTUTree_deleteNode(tree, realm, path);
+	HT_FREE(path);
+	return status;
+    }
+}
+
 /* ------------------------------------------------------------------------- */
 /*			       AUTHENTICATION ENGINE 			     */
 /* ------------------------------------------------------------------------- */

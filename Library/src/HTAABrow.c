@@ -249,8 +249,12 @@ PUBLIC int HTBasic_generate (HTRequest * request, void * context, int mode)
 	    (!basic->retry && basic->uid)) {
 	    basic->retry = NO;
 	    return basic_credentials(request, basic);
-	} else
+	} else {
+	    char * url = HTAnchor_address((HTAnchor*)HTRequest_anchor(request));
+	    HTAA_deleteNode(proxy, BASIC_AUTH, realm, url);
+	    HT_FREE(url);
 	    return HT_ERROR;
+	}
     }
     return HT_OK;
 }
