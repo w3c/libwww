@@ -206,7 +206,7 @@ PRIVATE char *HTFWriter_filename ARGS4(char *, path, char *, url,
 
 PRIVATE void HTFWriter_put_character ARGS2(HTStream *, me, char, c)
 {
-    putc(c, me->fp);
+    fputc(c, me->fp);
 }
 
 
@@ -218,7 +218,8 @@ PRIVATE void HTFWriter_put_character ARGS2(HTStream *, me, char, c)
 */
 PRIVATE void HTFWriter_put_string ARGS2(HTStream *, me, CONST char*, s)
 {
-    fputs(s, me->fp);
+    if (*s)				             /* For vms :-( 10/04-94 */
+	fputs(s, me->fp);
 }
 
 
