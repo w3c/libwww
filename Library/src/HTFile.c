@@ -923,15 +923,13 @@ forget_multi:
 		    {
 		        HTBTElement * next_element = HTBTree_next(bt,NULL);
 			    /* pick up the first element of the list */
-		        BOOL up_directory, first_of_directories, 
-			      list_of_directories_begun, 
-			      list_of_files_begun, first_of_files;
+			char state;
+			    /* I for initial (.. file),
+			       D for directory file,
+			       F for file */
+			
+			state = 'I';
 
-			up_directory = YES;
-			first_of_directories = YES;
-			first_of_files = YES;
-			list_of_directories_begun = NO;
-			list_of_files_begun = NO;
 			while (next_element != NULL)
 		        {
 			    StrAllocCopy(tmpfilename,localname);
@@ -940,45 +938,26 @@ forget_multi:
 					/* if filename is not root directory */
 			        StrAllocCat(tmpfilename,"/"); 
 
-			    StrAllocCat(tmpfilename,(char *)HTBTree_object(next_element)+1);
+			    StrAllocCat(tmpfilename,
+					(char *)HTBTree_object(next_element)+1);
 			    /* append the current entry's filename to the path */
 			    HTSimplify(tmpfilename);
 			    /* Output the directory entry */
-			    if ( *(char *)(HTBTree_object(next_element))=='D')
-			    {
-				if (up_directory && !strcmp((char *)
-					       (HTBTree_object(next_element)),"D.."))   
-				    up_directory = NO;
-				else
+			    if (strcmp((char *)
+					     (HTBTree_object(next_element)),"D.."))
+			    {			    
+				if (state != *(char *)(HTBTree_object(next_element))) 
 				{
-				    if (first_of_directories)
-				    {
-				        up_directory = NO; 
-			  /* to avoid problems with root directory */
-				        first_of_directories = NO;
-					START(HTML_H2);
-					PUTS("Subdirectories:");
-					END(HTML_H2);
-					START(HTML_DIR);
-					list_of_directories_begun = YES;
-				    }
-				    START(HTML_LI);
-				}
-			    }
-			    if ( *(char *)(HTBTree_object(next_element))=='F')
-			    {
-			        if (first_of_files && list_of_directories_begun)
-				    END(HTML_DIR);
-				if (first_of_files)
-				{
-				    first_of_files = NO;
+				    if (state == 'D')
+				        END(HTML_DIR);
+				    state = *(char *)
+				        (HTBTree_object(next_element))=='D'?'D':'F';
 				    START(HTML_H2);
-				    PUTS("Files:");
+				    PUTS(state == 'D'?"Subdirectories:":"Files");
 				    END(HTML_H2);
 				    START(HTML_DIR);
-				    list_of_files_begun = YES;
 				}
-				START(HTML_LI);
+			        START(HTML_LI);
 			    }
 			    HTDirEntry(target, tail,
 				       (char*)HTBTree_object(next_element) +1);
@@ -987,7 +966,12 @@ forget_multi:
 			        /* pick up the next element of the list; 
 				 if none, return NULL*/
 			}
-			if (list_of_files_begun)
+			if (state == 'I')
+			{
+			    START(HTML_P);
+			    PUTS("Empty Directory");
+			}
+			else
 			    END(HTML_DIR);
 		    }
 		        /* end while directory entries left to read */
