@@ -478,7 +478,7 @@ int main (int argc, char ** argv)
     mr = Robot_new();
 
     /* Set up our event manager */
-    HTEventInit();
+    HTEventrgInit();
 
     /* Register a transport */
     HTTransportInit();
