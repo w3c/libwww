@@ -581,6 +581,7 @@ PRIVATE int stream_pipe (HTStream * me)
 	    **  200, 203 and 300 are all fully cacheable responses. No byte 
 	    **  ranges or anything else make life hard in this case.
 	    */
+	    HTAnchor_clearHeader(HTRequest_anchor(request));
 	    HTResponse_setCachable(response, YES);
 	    me->target = HTStreamStack(WWW_MIME,
 				       HTRequest_outputFormat(request),

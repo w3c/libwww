@@ -87,6 +87,10 @@ available options are:-
     Enable the <A HREF="../../Library/src/WWWCache.html">libwww persistent
     cache</A>
   <DT>
+    <B>-cacheroot [ dir ]</B>
+  <DD>
+    Where should the cache be located? The default is <CODE>/tmp/w3c-cache</CODE>
+  <DT>
     <B>-validate</B>
   <DD>
     Force validation using either the <CODE>etag</CODE> or the <CODE>last-modified
@@ -133,7 +137,7 @@ available options are:-
     <B>-delay [ n]</B>
   <DD>
     Specify the write delay in ms for how long we can wait until we flush the
-    output buffer when using pipelining. The default value is 200 ms. The longer
+    output buffer when using pipelining. The default value is 50 ms. The longer
     delay, the bigger TCP packets but also longer response time.
   <DT>
     <B>-r</B> &lt;file&gt;

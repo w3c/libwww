@@ -915,9 +915,13 @@ PRIVATE HTCache * HTCache_new (HTRequest * request, HTResponse * response,
 	HT_FREE(url);
 
     if (HTCache_hasLock(pres)) {
-	if (CACHE_TRACE) HTTrace("Cache....... Entry %p locked\n");
-	return pres;
+	if (HTCache_breakLock(pres, request) == NO) {
+	    if (CACHE_TRACE) HTTrace("Cache....... Entry %p already in use\n");
+	    return pres;
+	}
     }
+    HTCache_getLock(pres, request);
+
 
     /* Calculate the various times */
     calculate_time(pres, request, response);
@@ -1157,7 +1161,6 @@ PRIVATE BOOL meta_write (FILE * fp, HTRequest * request, HTResponse * response)
 PUBLIC BOOL HTCache_writeMeta (HTCache * cache, HTRequest * request,
 			       HTResponse * response)
 {
-    return YES;
     if (cache && request && response) {
 	BOOL status;
 	FILE * fp;

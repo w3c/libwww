@@ -37,14 +37,14 @@ PRIVATE int CompressionLevel = Z_DEFAULT_COMPRESSION;
 
 PRIVATE BOOL Zlib_init (HTStream * me, int level)
 {
-    if (STREAM_TRACE) HTTrace("ZLib........ Initializing stream %p\n", me);
     if (me && me->zstream &&
 	(level == Z_DEFAULT_COMPRESSION ||
 	 (level >= Z_BEST_SPEED && level <= Z_BEST_COMPRESSION))) {
 	int status;
-	if (STREAM_TRACE) HTTrace("ZLib init... Compression level %d\n", level);
+	if (STREAM_TRACE)
+	    HTTrace("Zlib Inflate Init stream %p with compression level %d\n", me, level);
 	if ((status = inflateInit(me->zstream)) != Z_OK) {
-	    if (STREAM_TRACE) HTTrace("ZLib........ Failed with status %d\n", status);
+	    if (STREAM_TRACE) HTTrace("Zlib........ Failed with status %d\n", status);
 	    return NO;
 	}
 	return YES;
@@ -54,16 +54,16 @@ PRIVATE BOOL Zlib_init (HTStream * me, int level)
 
 PRIVATE BOOL ZLib_terminate (HTStream * me)
 {
-    if (STREAM_TRACE) HTTrace("ZLib........ Terminating stream %p\n", me);
+    if (STREAM_TRACE) HTTrace("Zlib Inflate Terminating stream %p\n", me);
     if (me) {
 	int status;
 	if (STREAM_TRACE)
-	    HTTrace("Results..... Compress incoming: raw data %lu, compressed %lu, factor %.2f\n",
-		    me->zstream->total_out, me->zstream->total_in,
-		    me->zstream->total_out == 0 ? 0.0 :
-		    (double) me->zstream->total_in / me->zstream->total_out);
+	    HTTrace("Results..... Inflated incoming data: deflated %lu, inflated %lu, factor %.2f\n",
+		    me->zstream->total_in, me->zstream->total_out,
+		    me->zstream->total_in == 0 ? 0.0 :
+		    (double) me->zstream->total_out / me->zstream->total_in);
 	if ((status = inflateEnd(me->zstream)) != Z_OK) {
-	    if (STREAM_TRACE) HTTrace("ZLib........ Failed with status %d\n", status);
+	    if (STREAM_TRACE) HTTrace("Zlib........ Failed with status %d\n", status);
 	    return NO;
 	}
 	return YES;
@@ -82,7 +82,7 @@ PRIVATE int HTZLibInflate_free (HTStream * me)
     ZLib_terminate(me);
     if ((status = (*me->target->isa->_free)(me->target)) == HT_WOULD_BLOCK)
 	return HT_WOULD_BLOCK;
-    if (STREAM_TRACE) HTTrace("Inflate..... FREEING...\n");
+    if (STREAM_TRACE) HTTrace("Zlib Inflate FREEING...\n");
     HT_FREE(me->zstream);
     HT_FREE(me);
     return status;
@@ -90,7 +90,7 @@ PRIVATE int HTZLibInflate_free (HTStream * me)
 
 PRIVATE int HTZLibInflate_abort (HTStream * me, HTList * e)
 {
-    if (STREAM_TRACE) HTTrace("Inflate..... ABORTING...\n");
+    if (STREAM_TRACE) HTTrace("Zlib Inflate ABORTING...\n");
     ZLib_terminate(me);
     (*me->target->isa->abort)(me->target, NULL);
     HT_FREE(me->zstream);
@@ -149,7 +149,7 @@ PRIVATE int HTZLibInflate_write (HTStream * me, const char * buf, int len)
 	    return HT_OK;
 
 	default:
-	    if (STREAM_TRACE) HTTrace("Inflate..... Inflate returned %d\n", status);
+	    if (STREAM_TRACE) HTTrace("Zlib Inflate Inflate returned %d\n", status);
 	    return HT_ERROR;
 	}
     }
@@ -181,7 +181,7 @@ PUBLIC BOOL HTZLib_setCompressionLevel (int level)
 {
     if (level >= Z_BEST_SPEED && level <= Z_BEST_COMPRESSION) {
 	CompressionLevel = level;
-	if (STREAM_TRACE) HTTrace("zlib........ Compression level set to %d\n", level);
+	if (STREAM_TRACE) HTTrace("Zlib........ Compression level set to %d\n", level);
     }
     return NO;
 }
@@ -208,6 +208,6 @@ PUBLIC HTStream * HTZLib_inflate (HTRequest *	request,
 	HT_FREE(me);
 	return HTErrorStream();
     }
-    if (STREAM_TRACE) HTTrace("zlib Inflate Stream created\n");
+    if (STREAM_TRACE) HTTrace("Zlib Inflate Stream created\n");
     return me;
 }

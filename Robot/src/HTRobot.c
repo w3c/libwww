@@ -465,6 +465,7 @@ int main (int argc, char ** argv)
     int		arg;
     BOOL	cache = NO;			     /* Use persistent cache */
     BOOL	flush = NO;		       /* flush the persistent cache */
+    char *	cache_root = NULL;
     HTChunk *	keywords = NULL;			/* From command line */
     int		keycnt = 0;
     Robot *	mr = NULL;
@@ -534,13 +535,18 @@ int main (int argc, char ** argv)
 		    atoi(argv[++arg]) : DEFAULT_TIMEOUT;
 		if (timeout > 0) mr->timer = timeout;
 
+	    /* Force no pipelined requests */
+	    } else if (!strcmp(argv[arg], "-nopipe")) {
+		HTTP_setConnectionMode(HTTP_NO_PIPELINING);
+
 	    /* Start the persistent cache */
 	    } else if (!strcmp(argv[arg], "-cache")) {
 		cache = YES;
 
-	    /* Force no pipelined requests */
-	    } else if (!strcmp(argv[arg], "-nopipe")) {
-		HTTP_setConnectionMode(HTTP_NO_PIPELINING);
+	    /* Determine the cache root */
+	    } else if (!strcmp(argv[arg], "-cacheroot")) { 
+		cache_root = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    argv[++arg] : NULL;
 
 	    /* Stream write flush delay in ms */
 	    } else if (!strcmp(argv[arg], "-delay")) {
@@ -652,7 +658,7 @@ int main (int argc, char ** argv)
 
     /* Should we use persistent cache? */
     if (cache) {
-	HTCacheInit(NULL, 20);
+	HTCacheInit(cache_root, 20);
 	HTNet_addBefore(HTCacheFilter, "http://*", NULL, HT_FILTER_MIDDLE);
 	HTNet_addAfter(HTCacheUpdateFilter, "http://*", NULL,
 		       HT_NOT_MODIFIED, HT_FILTER_MIDDLE);

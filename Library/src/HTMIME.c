@@ -113,17 +113,6 @@ PRIVATE int pumpData (HTStream * me)
     }
 
     /*
-    **  Handle any Content Encoding
-    */
-    {
-	HTList * cc = HTResponse_encoding(response);
-	if (cc) {
-	    if (STREAM_TRACE) HTTrace("Building.... C-E stack\n");
-	    me->target = HTContentDecodingStack(cc, me->target, request, NULL);
-	}
-    }
-
-    /*
     **  Can we cache the data object? If so then create a T stream and hook it 
     **  into the stream pipe. We do it before the transfer decoding so that we
     **  don't have to deal with that when we retrieve the object from cache.
@@ -145,6 +134,17 @@ PRIVATE int pumpData (HTStream * me)
 	    HTStream * cache = HTStreamStack(WWW_CACHE, me->target_format,
 					     me->target, request, NO);
 	    if (cache) me->target = HTTee(me->target, cache, NULL);
+	}
+    }
+
+    /*
+    **  Handle any Content Encoding
+    */
+    {
+	HTList * cc = HTResponse_encoding(response);
+	if (cc) {
+	    if (STREAM_TRACE) HTTrace("Building.... C-E stack\n");
+	    me->target = HTContentDecodingStack(cc, me->target, request, NULL);
 	}
     }
 
