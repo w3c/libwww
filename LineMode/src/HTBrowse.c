@@ -147,6 +147,10 @@ extern HTStyleSheet * styleSheet;
 **	================
 */
 
+PUBLIC char * HTAppName = "CERN-LineMode";	/* Application name */
+PUBLIC char * HTAppVersion = VL; 	/* Application version */
+
+
 PUBLIC  int  HTScreenWidth   = SCREEN_WIDTH;	/* By default */
 PUBLIC  int  HTScreenHeight  = -1;	         /* Undefined */
 PUBLIC  BOOL display_anchors = YES;	         /* anchor will be shown in text? */
@@ -356,6 +360,30 @@ int main
 	    } else if (0==strcmp(argv[arg], "-na")) { 
 		    display_anchors = NO;
 
+#ifndef NO_RULES
+	    } else if (0==strcmp(argv[arg], "-r")) {
+	        if (++arg<argc) { 
+		    if (HTLoadRules(argv[arg]) < 0) exit(-1);
+		}
+#endif
+#ifndef NO_DIR_OPTIONS
+	    } else if (0==strncmp(argv[arg], "-d", 2)) {
+	    	char *p = argv[arg]+2;
+		for(;*p;p++) {
+		    switch (argv[arg][2]) {
+		    case 'b':	HTDirReadme = HT_DIR_README_BOTTOM; break;
+		    case 'n':	HTDirAccess = HT_DIR_FORBID; break;
+		    case 'r':	HTDirReadme = HT_DIR_README_NONE; break;
+		    case 's':   HTDirAccess = HT_DIR_SELECTIVE; break;
+		    case 't':	HTDirReadme = HT_DIR_README_TOP; break;
+		    case 'y':	HTDirAccess = HT_DIR_OK; break;
+		    default:
+			fprintf(stderr, 
+			   "HTDaemon: bad -d option %s\n", argv[arg]);
+			exit(-4);
+		    }
+		} /* loop over characters */
+#endif
 	    /* Source please */
 	    } else if (0==strcmp(argv[arg], "-source")) {
 		    HTOutputFormat = WWW_SOURCE;

@@ -25,6 +25,9 @@
 # BINDIR	Directory for installed binary
 #______________________________________________________________________
 
+#  If this env var is set to something else Some makes will use that instead
+SHELL = /bin/sh
+
 # If this is actually run in a subdirectory.
 #
 # WWW = ../../..
@@ -61,7 +64,7 @@ PROD = www
 SOURCES = $(LM)HTBrowse.c	$(LM)HTBrowse.h \
 	$(LM)GridText.c		$(LM)GridText.h \
 	$(LM)HTFont.h 		$(LM)Version.make\
-	$(LM)DefaultStyles.c	$(LM)CommonMakefile	$(LM)Makefile
+	$(LM)DefaultStyles.c	$(LM)CommonMakefile
 
 SPECIFIC =  \
 	$(LM)apollo_m68k/Makefile \

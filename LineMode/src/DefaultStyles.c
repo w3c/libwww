@@ -16,10 +16,16 @@ PRIVATE HTTabStop tabs_8[] = {
 	{0, 168}, {0, 176},
 	{0, 0 }		/* Terminate */
 };
-
+#ifdef NOT_USED
 PRIVATE HTTabStop tabs_16[] = {
 	{ 0, 16 }, {0, 32}, {0, 48}, {0, 64}, {0, 80},
 	{0, 96}, {0, 112},
+	{0, 0 }		/* Terminate */
+};
+#endif
+
+PRIVATE HTTabStop tabs_24[] = {
+	{0, 24}, {0, 48},		/* 3 columns */
 	{0, 0 }		/* Terminate */
 };
 
@@ -50,7 +56,7 @@ PRIVATE HTStyle HTStyleMenu = {
 PRIVATE HTStyle HTStyleDirect = {
 	&HTStyleMenu,  "Dir", "DIR",
 	HT_FONT, 1.0, HT_BLACK,		0, 0,
-	0, 0, 0, HT_LEFT,		1, 0,	tabs_16,
+	0, 0, 0, HT_LEFT,		1, 0,	tabs_24,
 	YES, YES, 0, 0,			0
 };	
 
