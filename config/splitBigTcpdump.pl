@@ -1,22 +1,35 @@
 #!/usr/local/bin/perl -w
 
-$InPrefix = 'ppptest.www26.tcpdump.';
+@Locations = ('BIG');
 
-@Locations = ('pppsniff',
-	      'www26');
+$InPrefix = 'BIG.www26.tcpdump.aps.';
 
-@OutTemplates = ('"A1-LH-http-11/" . $location . "-ft-" . $run . ".txt"',
-		 '"A1-LH-http-11/" . $location . "-cv-" . $run . ".txt"',
-		 '"J5-LH-http-11/" . $location . "-ft-" . $run . ".txt"',
-		 '"J5-LH-http-11/" . $location . "-cv-" . $run . ".txt"',
-                 '"A1-LH-http-11-pl/" . $location . "-ft-" . $run . ".txt"',
-		 '"A1-LH-http-11-pl/" . $location . "-cv-" . $run . ".txt"',
-		 '"J5-LH-http-11-pl/" . $location . "-ft-" . $run . ".txt"',
-		 '"J5-LH-http-11-pl/" . $location . "-cv-" . $run . ".txt"',
-		 '"J5-LH-http-11-pl-zip/" . $location . "-ft-" . $run . ".txt"',
-		 '"J5-LH-http-11-pl-zip/" . $location . "-cv-" . $run . ".txt"');
+@OutTemplates = ('"A1-LH-netscape-10/" . $location . "-ft-" . $run . ".txt"',
+		  '"A1-LH-netscape-10/" . $location . "-cv-" . $run . ".txt"',
+                 '"J5-LH-netscape-10/" . $location . "-ft-" . $run . ".txt"',
+                 '"J5-LH-netscape-10/" . $location . "-cv-" . $run . ".txt"',
+		  '"A1-LH-iexplore-10/" . $location . "-ft-" . $run . ".txt"',
+		  '"J5-LH-iexplore-10/" . $location . "-ft-" . $run . ".txt"');
 
-@PingChecks = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+@PingChecks = (1, 2, 3, 4, 5, 6);
+
+#$InPrefix = 'BIG.www26.tcpdump.robot.';
+
+#@OutTemplates = ('"A1-LH-http-11/" . $location . "-ft-" . $run . ".txt"',
+#		 '"A1-LH-http-11/" . $location . "-cv-" . $run . ".txt"',
+#		 '"J5-LH-http-11/" . $location . "-ft-" . $run . ".txt"',
+#		 '"J5-LH-http-11/" . $location . "-cv-" . $run . ".txt"',
+#		 '"A1-LH-http-11-pl/" . $location . "-ft-" . $run . ".txt"',
+#		 '"A1-LH-http-11-pl/" . $location . "-cv-" . $run . ".txt"',
+#		 '"J5-LH-http-11-pl/" . $location . "-ft-" . $run . ".txt"',
+#		 '"J5-LH-http-11-pl/" . $location . "-cv-" . $run . ".txt"',
+#		 '"J5-LH-http-11-pl-zip/" . $location . "-ft-" . $run . ".txt"',
+#		 '"J5-LH-http-11-pl-zip/" . $location . "-cv-" . $run . ".txt"');
+
+#@PingChecks = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+
+$Client = 'BIG';
+$Server = 'www26';
 
 $Runs = 5;
 
@@ -27,7 +40,7 @@ sub main
 #	print "location: \"$location\".\n";
 	local ($input) = $InPrefix . $location;
 	open (INPUT, "<$input") || die "Can't open \"$input\": $!.\n";
-	local ($lineNo) = 0;
+	local ($lineNo, $pass) = (0, '');
 	local ($run);
 	for ($run = 1; $run <= $Runs; $run++) {
 #	    print "run: \"$run\".\n";
@@ -39,27 +52,47 @@ sub main
 		local ($outFile, $otherFile);
 		$outFile = eval $outTemplate;
 		$otherFile = $outFile . '.other';
-		print "post - outFile: \"$outFile\" otherFile: \"$otherFile\".\n";
+		print "$input:$lineNo: starting \"$outFile\"\n";
 		open (OUTFILE, ">$outFile") || die "Can't open \"$outFile\": $!.\n";
 		open (OTHERFILE, ">$otherFile") || die "Can't open \"$otherFile\": $!.\n";
 		local ($ignoreOthers, $echo) = (1, 0);
+		goto havePass if ($pass ne '');
 		while (<INPUT>) {
 		    $lineNo++;
+		  havePass:
+		    if ($pass ne '') {
+			$_ = $pass;
+			$pass = '';
+		    }
 		    /[\d.]+\s+(\S+)\s>\s(\S+):/;
 		    local ($from, $to) = ($1, $2);
-		    if (($from =~ /www26/ && $to =~ /the-dart/) || ($from =~ /the-dart/ && $to =~ /www26/)) {
+		    if (!defined $from || !defined $to) {
+			warn "$input:$lineNo: couldn't parse \"$_\".\n" if (!/ arp /);
+			$from = '-' if (!defined $from);
+			$to = '-' if (!defined $to);
+		    }
+		    if (($from =~ /$Client/ && $to =~ /$Server/) || ($from =~ /$Server/ && $to =~ /$Client/)) {
 			if (/echo/) {
 			    if (/echo request/) {
 				$ignoreOthers = 1;
 			    } else {
 				$echo++;
-				print "$input:$lineNo: echo: $echo pingCheck: $pingCheck.\n";
+				#print "$input:$lineNo: echo: $echo pingCheck: $pingCheck.\n";
 				last if ($echo == $pingCheck);
 			    }
 			} else {
-			    die "$input:$lineNo: not enough pings.\n" if ($echo);
-			    $ignoreOthers = 0;
-			    print OUTFILE $_;
+			    if ($echo) {
+				if (/: R /) {
+				    warn "$input:$lineNo: reset ignored.\n";
+				} elsif (/: S /) {
+				    warn "$input:$lineNo: not enough pings.\n";
+				    $pass = $_;
+				    last;
+				}
+			    } else {
+				$ignoreOthers = 0;
+				print OUTFILE $_;
+			    }
 			}
 		    } else {
 			if (!$ignoreOthers) {

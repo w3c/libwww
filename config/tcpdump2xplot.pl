@@ -83,7 +83,7 @@ sub ReadArg
 	$Plotwindow = 1;
     } elsif ($arg eq 's') {
 	$BreakOnSyns = 1;
-    } elsif ($arg =~ /f(\d*)/) {
+    } elsif ($arg =~ /^f(\d*)/) {
 	$EndOnFins = 1;
 	$FinThreshold = $1 if ($1 ne '');
     } elsif ($arg eq 'c') {

@@ -13,17 +13,61 @@ sub showBody
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
 <HTML>
 <HEAD>
-   <TITLE>xplots</TITLE>
+   <TITLE>Summary of Test Runs with Automatic Generated Xplots</TITLE>
    <META NAME="GENERATOR" CONTENT="Iter/0.9Lead (perl; I; Linux 2.0.18 i586) [iter.pl]">
 </HEAD>
 <BODY>
 
-<H1><A NAME="xplots">xplots</A></H1>
+<H1><A NAME="xplots">Summary of Test Runs with Automatic Generated Xplots</A></H1>
 The following data is a compilation of tcpdumps taken with different client/server 
-combinations. Most combinations were comfounded by operating the the client in two
-modes, ft (first time - grabbing documents and headers) and cv (cash validation - 
-just getting the headers). This data is furthur <A HREF="#summary">summarized</A>.
+combinations. Each testrun generates three data sets: HTTP/1.0, HTTP/1.1, and HTTP pipelining.<P>
+
+<H2>Naming Scheme</H2>
+
+The names of the runs are named as follows:
+
+<PRE>
+    &lt;SERVER&gt; - &lt;BANDWIDTH&gt; - &lt;LATENCY&gt; - &lt;HTTP CLIENT VERSION&gt;
+</PRE>
+
+<DL>
+<DT><I>SERVER</I>
+<DD><B>J</B> stands for jigsaw and <B>A</B> stands for Apache. The number is for us to keep track of which version of each we are trying.
+<DT><I>BANDWIDTH</I>
+<DD><B>H</B> stands for high (for example a LAN) and <B>L</B> stands for low, for example PPP
+<DT><I>LATENCY</I>
+<DD><B>H</B> stands for high latency, for example WAN) and <B>L</B> stands for low, for example LAN
+<DT><I>HTTP CLIENT VERSION</I>
+<DD>These are the suffixes used: <B>http-10</B> is plain HTTP/1.0, <B>http-11</B> is without pipelining, <B>http-11-pl</B> is with pipelining, and <B>http-11-pl-zip</B> is HTTP/1.1 with pipelining and deflate content encoding.
+</DL>
+
+Each combination is run 5 times and each run consists of a first time retrieval followed by a cache validation. That is in all 10 times pr combination. We use this for naming the results:
+
 <UL>
+<LI><B>ft</B> (first time - grabbing documents and headers)
+<LI><B>cv</B> (cash validation - just getting the headers)
+</UL>
+
+As an example, take the following name:
+
+<PRE>
+    A1-LH-http-11
+</PRE>
+
+<UL>
+<LI>The server is <I>Apache</I>
+<LI>The bandwidth is <I>low</I>
+<LI>The latency is <I>high</I>
+<LI>The requests are <I>non-pipelined HTTP/1.1</I>
+</UL>
+
+<H2>Data Summary</H2>
+
+The data is furthur <A HREF="#summary">summarized</A> at the end of this file.
+
+<P>
+<HR>
+<P>
 END_OF_HEAD
 }
 
@@ -32,13 +76,13 @@ sub endBody
     local($output) = @_;
     print $output "</UL>\n<HR>\n";
     print $output "<H1><A NAME=\"summary\">summaries</A></H1>\n";
-    print $output "<TABLE ALIGN=ABSCENTER BORDER=1 CELLSPACING=0 CELLPADDING=0 >\n<TR>\n<TD>id</TD>\n";
+    print $output "<TABLE ALIGN=CENTER BORDER=1 CELLSPACING=0 CELLPADDING=2 >\n<TR>\n<TH>id</TH>\n";
     foreach $method (@Methods) {
 	print $output <<"END_OF_SUMMARY_HEAD";
-<TD ALIGN=CENTER><B>$method</B>\npackets</TD>
-<TD ALIGN=CENTER>bytes</TD>
-<TD>time</TD>
-<TD>effic</TD>
+<TH ALIGN=CENTER WIDTH><B>$method</B>\npackets</TH>
+<TH ALIGN=CENTER>bytes</TH>
+<TH>time</TH>
+<TH>effic</TH>
 END_OF_SUMMARY_HEAD
     }
     print $output "</TR>\n";
@@ -106,7 +150,7 @@ sub showRun
     print $output <<"END_OF_RUN";
 
 <LI><A NAME="$protocol-$method-$run"></A><H3>run-$run:</H3></LI>
-<TABLE ALIGN=ABSCENTER BORDER=1 CELLSPACING=0 CELLPADDING=0 >
+<TABLE ALIGN=ABSCENTER BORDER=1 CELLSPACING=0 CELLPADDING=2 >
 <TR>
 <TD ALIGN=CENTER>id</TD>
 <TD ALIGN=CENTER>packets</TD>
@@ -134,7 +178,7 @@ sub showLine
     print $output "\n</TD>\n<TD ALIGN=CENTER>$packets</TD>\n";
     print $output "<TD ALIGN=CENTER>$bytes</TD>\n";
     printf $output "<TD>%.3f</TD>\n", $time;
-    printf "$line, $run, $method, $protocol, $effic\n" if (!defined $effic);
+    warn "$protocol $method $run: can't parse \"$line\".\n" if (!defined $effic);
     printf $output "<TD>%.3f</TD>\n", $effic;
     print $output "</TR>\n";
 }
@@ -184,7 +228,8 @@ foreach $dir (@ARGV) {
 	&showMethod('HTML', $method, $dir);
 	foreach $run (1 .. $Runs) {
 	    substr($file, $i, 1) = $run;
-	    $command = "cd $dir && ../tcpdump2xplot.pl -q -s -f -c -listlist -plot'\$from[0].\":\".\$fromPort.\"-\".\$to[0].\":\".\$toPort.\".$method-$run.\".xplot' $file";
+	    local ($base) = substr($file, 0, index($file, '-'));
+	    $command = "cd $dir && ../tcpdump2xplot.pl -q -s -f -c -listlist -plot'\"".$base."-\".\$from[0].\":\".\$fromPort.\"-\".\$to[0].\":\".\$toPort.\".$method-$run.\".xplot' $file";
 	    if ($Debug) {
 		print $command, "\n";
 		next;
