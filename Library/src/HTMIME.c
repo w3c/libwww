@@ -132,7 +132,7 @@ PRIVATE int pumpData (HTStream * me)
 	    } else {
                 HTAlertCallback * cbf = HTAlert_find(HT_PROG_DONE);
                 if (cbf) (*cbf)(request, HT_PROG_DONE, HT_MSG_NULL, NULL, NULL, NULL);
-		HTTRACE(STREAM_TRACE, "MIME Parser. No body in this messsage\n");
+		HTTRACE(STREAM_TRACE, "MIME Parser. No body in this message\n");
 		return HT_LOADED;
 	    }
 	}
