@@ -3,7 +3,6 @@ HTDialog.c
 HTEvtLst.c
 HTFilter.c
 HTHist.c
-HTInit.c
 HTHome.c
 HTLog.c
 HTProxy.c
