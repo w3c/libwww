@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww APPLICATION</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 13-Apr-1996 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -103,7 +103,7 @@ Library gives for URL translations BEFORE a request is isseued.  It
 checks for Cache, proxy, and gateway (in that order)
 
 <PRE>
-extern int HTLoadStart (HTRequest * request, int status);
+extern HTNetCallback HTLoadStart;
 </PRE>
 
 <H3>AFTER Request Callback</H3>
@@ -112,7 +112,7 @@ This function uses all the functionaly that the app part of the Library
 gives for handling AFTER a request.
 
 <PRE>
-extern int HTLoadTerminate (HTRequest * request, int status);
+extern HTNetCallback HTLoadTerminate;
 </PRE>
 
 <PRE>

@@ -8,17 +8,14 @@
 **	This is a try with a non-buffered output stream which remembers
 **	state using the write_pointer. As normally we have a big buffer
 **	somewhere else in the stream chain an extra output buffer will often
-**	not be needed. There is also a small buffer stream that can be used
-**	if athis is not the case.
+**	not be needed.
 */
 
 /* Library include files */
 #include "sysdep.h"
 #include "WWWUtil.h"
-#include "HTReq.h"
+#include "WWWCore.h"
 #include "HTNetMan.h"
-#include "HTConLen.h"
-#include "HTAlert.h"
 #include "HTWriter.h"					 /* Implemented here */
 
 struct _HTStream {
@@ -32,10 +29,8 @@ struct _HTOutputStream {
     HTNet *			net;
     char *			write;
 #ifdef NOT_ASCII
-    BOOL			make_ascii;    /* Are we writing to the net? */
     char *			ascbuf;	    /* Buffer for TOASCII conversion */
 #endif
-    BOOL			leave_open;
 };
 
 /* ------------------------------------------------------------------------- */
@@ -93,12 +88,12 @@ PRIVATE int HTWriter_write (HTOutputStream * me, const char * buf, int len)
     const char *limit = buf+len;
 
 #ifdef NOT_ASCII
-    if (me->make_ascii && len && !me->ascbuf) {	      /* Generate new buffer */
-	char *orig=buf;
+    if (len && !me->ascbuf) {			      /* Generate new buffer */
+	const char *orig = buf;
 	char *dest;
 	int cnt;
 	if ((me->ascbuf = (char  *) HT_MALLOC(len)) == NULL)
-	    HT_OUTOFMEM("me->ascbuf ");
+	    HT_OUTOFMEM("HTWriter_write");
 	dest = me->ascbuf;
 	for (cnt=0; cnt<len; cnt++) {
 	    *dest = TOASCII(*orig);
@@ -214,43 +209,3 @@ PUBLIC HTOutputStream * HTWriter_new (HTNet * net, HTChannel * ch,
     }
     return NULL;
 }
-
-/*
-**	Set up stream to write to a socket. If buf_size > 0 then we set up
-**	buffered output used for at most buf_size bytes. From that point we 
-**	switch to unbuffered mode. Otherwise we'll use nonbuffered output.
-*/
-PUBLIC HTStream* HTBufWriter_new (HTNet *net, BOOL leave_open, int buf_size)
-{
-#if 0
-    return HTBuffer_new(HTWriter_new(net, leave_open), net->request, buf_size);
-#else
-    return HTErrorStream();
-#endif
-}
-
-
-/*	Subclass-specific Methods
-**	-------------------------
-*/
-#ifdef NOT_ASCII
-PUBLIC HTStream * HTASCIIWriter (HTNet *net, BOOL leave_open)
-{
-    HTStream * me;
-    if ((me = (HTStream  *) HT_CALLOC(1, sizeof(*me))) == NULL)
-        HT_OUTOFMEM("HTASCIIWriter_new");
-    me->isa = &HTWriter;       
-    me->leave_open = leave_open;
-    me->make_ascii = YES;
-    me->sockfd = net->sockfd;
-    me->net = net;
-    return me;
-}
-#else
-#ifdef WWW_WIN_DLL
-PUBLIC HTStream * HTASCIIWriter (HTNet *net, BOOL leave_open)
-{
-    return NULL;
-}
-#endif /* WWW_WIN_DLL */
-#endif /* NOT_ASCII */

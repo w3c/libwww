@@ -1,0 +1,62 @@
+<HTML>
+<HEAD>
+<TITLE>W3C Reference Library libwww Buffered transport writer stream</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 13-Apr-1996 -->
+<NEXTID N="z18">
+</HEAD>
+<BODY>
+
+<H1>Buffered Transport Writer Stream</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+A buffered output stream. This stream lets you write characters to a
+stream without causing a write every time. The data is first written
+into a buffer. Data is written to the actual stream only when the
+buffer is full, or when the stream is flushed.<P>
+
+This module is implemented by <A HREF="HTBufWrt.c">HTBufWrt.c</A>, and
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
+
+<PRE>
+#ifndef HTBUFWRT_H
+#define HTBUFWRT_H
+
+#include <A HREF="HTIOStream.html">"HTIOStream.h"</A>
+</PRE>
+
+<H2>Default Output Buffering</H2>
+
+In order to optimize reading a channel, we bind a buffer to each
+channel object. The size of this buffer is a compromise between speed
+and memory. By default, we have chosen a value frequently used in TCP
+connections. In the stream creation method you can pass any other
+buffer size. In the case of 0, we take the default size.
+
+<PRE>
+#define OUTPUT_BUFFER_SIZE 512
+</PRE>
+
+<H2>Buffered Write Stream</H2>
+
+<PRE>
+extern HTOutput_new HTBufferWriter_new;
+</PRE>
+
+<PRE>
+#endif
+</PRE>
+
+<P>
+<HR>
+<ADDRESS>
+@(#) $Id$
+</ADDRESS>
+</BODY>
+</HTML>

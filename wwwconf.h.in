@@ -368,6 +368,9 @@
 /* Define if you have the <unixlib.h> header file.  */
 #undef HAVE_UNIXLIB_H
 
+/* Define if you have the ICE library (-lICE).  */
+#undef HAVE_LIBICE
+
 /* Define if you have the inet library (-linet).  */
 #undef HAVE_LIBINET
 

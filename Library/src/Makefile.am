@@ -43,8 +43,8 @@ www_SOURCES = \
 	HTNet.c 	HTEvntrg.c	HTNewsLs.c \
 	HTMux.c		HTStream.c	HTTrans.c \
 	HTChannl.c	HTInet.c	HTHost.c \
-	HTLocal.c	HTReader.c	HTANSI.c\
-	@HTWAIS@
+	HTLocal.c	HTReader.c	HTANSI.c \
+	HTBufWrt.c	@HTWAIS@
 
 BUILT_SOURCES = sysdep.h \
 	WWWUtil.h 	WWWCore.h 	WWWLib.h \
@@ -84,7 +84,7 @@ BUILT_SOURCES = sysdep.h \
 	HTTPUtil.h	HTMux.h		HTTrans.h \
 	HTIOStream.h	HTChannl.h	HTInet.h \
 	HTHost.h	HTLocal.h	HTReader.h \
-	HTANSI.h
+	HTANSI.h	HTBufWrt.h
 
 EXTRA_HEADERS = \
 	HTWAIS.h

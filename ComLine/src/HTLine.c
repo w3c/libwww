@@ -171,13 +171,13 @@ PRIVATE void VersionInfo (void)
 **	This function is registered to handle access authentication,
 **	for example for HTTP
 */
-PRIVATE int authentication_handler (HTRequest * request, int status)
+PRIVATE int authentication_handler (HTRequest * request, void * param,
+				    int status)
 {
     ComLine * cl = (ComLine *) HTRequest_context(request);
 
     /* Ask the authentication module for getting credentials */
     if (HTAuth_parse(request)) {
-	HTMethod method = HTRequest_method(request);
 
 	/* Make sure we do a reload from cache */
 	HTRequest_setReloadMode(request, HT_FORCE_RELOAD);
@@ -202,7 +202,7 @@ PRIVATE int authentication_handler (HTRequest * request, int status)
 **	This function is registered to handle permanent and temporary
 **	redirections
 */
-PRIVATE int redirection_handler (HTRequest * request, int status)
+PRIVATE int redirection_handler (HTRequest * request, void * param, int status)
 {
     BOOL result = YES;
     ComLine * cl = (ComLine *) HTRequest_context(request);
@@ -237,7 +237,7 @@ PRIVATE int redirection_handler (HTRequest * request, int status)
 **	-----------------
 **	This function is registered to handle the result of the request
 */
-PRIVATE int terminate_handler (HTRequest * request, int status) 
+PRIVATE int terminate_handler (HTRequest * request, void * param, int status) 
 {
     ComLine * cl = (ComLine *) HTRequest_context(request);
     if (status == HT_LOADED) {
@@ -577,11 +577,11 @@ int main (int argc, char ** argv)
     }
 
     /* Register a call back function for the Net Manager */
-    HTNetCall_addBefore(HTLoadStart, 0);
-    HTNetCall_addAfter(authentication_handler, HT_NO_ACCESS);
-    HTNetCall_addAfter(redirection_handler, HT_PERM_REDIRECT);
-    HTNetCall_addAfter(redirection_handler, HT_TEMP_REDIRECT);
-    HTNetCall_addAfter(terminate_handler, HT_ALL);
+    HTNetCall_addBefore(HTLoadStart, NULL, 0);
+    HTNetCall_addAfter(authentication_handler, NULL, HT_NO_ACCESS);
+    HTNetCall_addAfter(redirection_handler, NULL, HT_PERM_REDIRECT);
+    HTNetCall_addAfter(redirection_handler, NULL, HT_TEMP_REDIRECT);
+    HTNetCall_addAfter(terminate_handler, NULL, HT_ALL);
     
     /* Register our own MIME header handler for extra headers */
     HTHeader_addParser("*", NO, header_handler);

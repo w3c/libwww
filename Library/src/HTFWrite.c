@@ -340,7 +340,7 @@ PUBLIC HTStream* HTSaveAndExecute (HTRequest *	request,
 
 /*	Save and Call Back
 **	------------------
-**	This stream works exactly like the TSaveAndExecute
+**	This stream works exactly like the HTSaveAndExecute
 **	stream but in addition when EOF has been reached, it checks whether a
 **	callback function has been associated with the request object in which
 **	case, this callback is being called. This can be use by the

@@ -197,7 +197,7 @@ PUBLIC HTParentAnchor * HTHomeAnchor (void)
 **			HT_ERROR		We can't load this
 **			HT_OK			Success
 */
-PUBLIC int HTLoadStart (HTRequest * request, int status)
+PUBLIC int HTLoadStart (HTRequest * request, void * param, int status)
 {    
     HTParentAnchor *anchor = HTRequest_anchor(request);
     char * addr = HTAnchor_address((HTAnchor *) anchor);
@@ -280,7 +280,7 @@ PUBLIC int HTLoadStart (HTRequest * request, int status)
 **	This function uses all the functionaly that the app part of the Library
 **	gives for handling AFTER a request.
 */
-PUBLIC int HTLoadTerminate (HTRequest * request, int status)
+PUBLIC int HTLoadTerminate (HTRequest * request, void * param, int status)
 {
     char * uri = HTAnchor_address((HTAnchor*)request->anchor);
     switch (status) {

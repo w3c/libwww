@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww NET OBJECT</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  5-Apr-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 13-Apr-1996 -->
 </HEAD>
 <BODY>
 
@@ -100,9 +100,10 @@ Any callback function any code it likes, but <B>IF NOT</B> the code is
 <B>passing</B> the last return code from the <EM>before</EM> loop.
 
 <PRE>
-typedef int HTNetCallback (HTRequest * request, int status);
+typedef int HTNetCallback (HTRequest * request, void * param, int status);
 
-extern BOOL HTNetCall_add (HTList * list, HTNetCallback *cbf, int status);
+extern BOOL HTNetCall_add (HTList * list, HTNetCallback *cbf,
+			  void * param, int status);
 </PRE>
 
 <H3>Delete a single Callbak</H3>
@@ -139,7 +140,7 @@ Global set of callback functions BEFORE the request is issued. The
 list can be NULL.
 
 <PRE>
-extern BOOL HTNetCall_addBefore	(HTNetCallback *cbf, int status);
+extern BOOL HTNetCall_addBefore	(HTNetCallback *cbf, void * param, int status);
 extern BOOL HTNet_setBefore	(HTList * list);
 extern HTList * HTNet_before	(void);
 extern int HTNet_callBefore	(HTRequest *request, int status);
@@ -150,7 +151,7 @@ extern int HTNet_callBefore	(HTRequest *request, int status);
 Global set of callback functions AFTER the request is issued. The list can be NULL
 
 <PRE>
-extern BOOL HTNetCall_addAfter	(HTNetCallback *cbf, int status);
+extern BOOL HTNetCall_addAfter	(HTNetCallback *cbf, void * param, int status);
 extern BOOL HTNet_setAfter	(HTList * list);
 extern HTList * HTNet_after	(void);
 extern int HTNet_callAfter	(HTRequest *request, int status);

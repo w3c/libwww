@@ -23,8 +23,7 @@ SUFFIXES = .h .html
 
 www_SOURCES = \
 	HTBrowse.c	GridText.c	ConView.c \
-	GridStyle.c	DefaultStyles.c \
-	HTZip.c
+	GridStyle.c	DefaultStyles.c
 
 BUILT_SOURCES = \
 	HTBrowse.h	GridStyle.h	GridText.h \

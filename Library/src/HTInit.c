@@ -130,8 +130,8 @@ PUBLIC void HTFormatInit (HTList * c)
 */
 PUBLIC void HTNetInit (void)
 {
-    HTNetCall_addBefore(HTLoadStart, 0);
-    HTNetCall_addAfter(HTLoadTerminate, HT_ALL);
+    HTNetCall_addBefore(HTLoadStart, NULL, 0);
+    HTNetCall_addAfter(HTLoadTerminate, NULL, HT_ALL);
 }
 
 
@@ -150,16 +150,20 @@ PUBLIC void HTAlertInit (void)
     HTAlert_add(HTPromptUsernameAndPassword, HT_A_USER_PW);
 }
 
-#if 0
 /*	REGISTER ALL KNOWN TRANSPORTS IN THE LIBRARY
 **	--------------------------------------------
 **	Not done automaticly - may be done by application!
 */
 PUBLIC void HTTransportInit (void)
 {
-    HTTransport_add("tcp_buffered", NO, HTLoadFTP, NULL);
-}
+    HTTransport_add("tcp", HT_CH_SINGLE, HTReader_new, HTWriter_new);
+    HTTransport_add("buffered_tcp", HT_CH_SINGLE, HTReader_new, HTBufferWriter_new);
+#ifndef NO_UNIX_IO
+    HTTransport_add("local", HT_CH_SINGLE, HTReader_new, HTWriter_new);
+#else
+    HTTransport_add("local", HT_CH_SINGLE, HTANSIReader_new, HTANSIWriter_new);
 #endif
+}
 
 /*	REGISTER ALL KNOWN PROTOCOLS IN THE LIBRARY
 **	-------------------------------------------
@@ -177,7 +181,7 @@ PUBLIC void HTAccessInit (void)
 #endif
 #endif /* DECNET */
 
-    HTProtocol_add("http", "tcp", NO, HTLoadHTTP, NULL);
+    HTProtocol_add("http", "buffered_tcp", NO, HTLoadHTTP, NULL);
     HTProtocol_add("file", "local", NO, HTLoadFile, NULL);
     HTProtocol_add("telnet", "", YES, HTLoadTelnet, NULL);
     HTProtocol_add("tn3270", "", YES, HTLoadTelnet, NULL);

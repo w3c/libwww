@@ -134,7 +134,7 @@ PUBLIC HTChannel * HTChannel_find (SOCKET sockfd)
 PUBLIC BOOL HTChannel_delete (HTChannel * channel)
 {
     if (channel) {
-	if (PROT_TRACE) HTTrace("Channel..... Delete % with semaphore %d\n",
+	if (PROT_TRACE) HTTrace("Channel..... Delete %p with semaphore %d\n",
 				channel, channel->semaphore);
 	/*
 	**  We call the free methods on both the input stream and the output

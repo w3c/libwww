@@ -83,14 +83,17 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 		char *port = strchr(host, ':');
 		SockA *sin = &net->sock_addr;
 		memset((void *) sin, '\0', sizeof(SockA));
-		if (port++ && isdigit(*port)) {
+		if (port) {
+		    *port++ = '\0';
+		    if (*port && isdigit(*port)) {
 #ifdef DECNET
-		    sin->sdn_family = AF_DECnet;
-		    sin->sdn_objnum=(unsigned char)(strtol(port,(char**)0,10));
+			sin->sdn_family = AF_DECnet;
+			sin->sdn_objnum=(unsigned char)(strtol(port,(char**)0,10));
 #else
-		    sin->sin_family = AF_INET;
-		    sin->sin_port = htons(atol(port));
+			sin->sin_family = AF_INET;
+			sin->sin_port = htons(atol(port));
 #endif
+		    }
 		} else {
 #ifdef DECNET
 		    sin->sdn_family = AF_DECnet;

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww Socket Write Stream</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  5-Apr-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 12-Apr-1996 -->
 </HEAD>
 <BODY>
 
@@ -59,16 +59,7 @@ extern HTStream * HTBufWriter_new (HTNet *net, BOOL leave_open, int buf_size);
 #endif
 </PRE>
 
-<H2>ASCII Stream Converter</H2>
-
-If you are on a non-ASCII machine then this stream converts to ASCII
-before data is written to the socket.
-
 <PRE>
-#ifdef NOT_ASCII
-extern HTStream * HTASCIIWriter (HTNet *net, BOOL leave_open);
-#endif
-
 #endif
 </PRE>
 

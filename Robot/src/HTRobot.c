@@ -282,7 +282,7 @@ PRIVATE void VersionInfo (void)
 **	This function is registered to handle the result of the request.
 **	If no more requests are pending then terminate program
 */
-PRIVATE int terminate_handler (HTRequest * request, int status) 
+PRIVATE int terminate_handler (HTRequest * request, void * param, int status) 
 {
     Robot * mr = (Robot *) HTRequest_context(request);
     if (mr->logfile) HTLog_add(request, status);
@@ -318,7 +318,7 @@ PRIVATE int timeout_handler (HTRequest * request)
 **			HT_ERROR		We can't load this
 **			HT_OK			Success
 */
-PRIVATE int proxy_handler (HTRequest * request, int status)
+PRIVATE int proxy_handler (HTRequest * request, void * param, int status)
 {
     HTParentAnchor *anchor = HTRequest_anchor(request);
     char * addr = HTAnchor_address((HTAnchor *) anchor);
@@ -653,8 +653,8 @@ int main (int argc, char ** argv)
     }
 
     /* Register a call back function for the Net Manager */
-    HTNetCall_addBefore(proxy_handler, 0);
-    HTNetCall_addAfter(terminate_handler, HT_ALL);
+    HTNetCall_addBefore(proxy_handler, NULL, 0);
+    HTNetCall_addAfter(terminate_handler, NULL, HT_ALL);
     
     /* Set timeout on sockets */
     HTEvent_registerTimeout(mr->tv, mr->timeout, timeout_handler, NO);

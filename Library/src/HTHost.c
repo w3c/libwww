@@ -57,7 +57,7 @@ PRIVATE void free_object (HTHost * me)
 
 PRIVATE BOOL delete_object (HTList * list, HTHost * me)
 {
-    if (PROT_TRACE) HTTrace("Host info... object %p from list %p\n", me, list);
+    if (CORE_TRACE) HTTrace("Host info... object %p from list %p\n", me, list);
     HTList_removeObject(list, (void *) me);
     free_object(me);
     return YES;
@@ -79,7 +79,7 @@ PUBLIC HTHost * HTHost_new (char * host)
     HTList * list = NULL;			    /* Current list in cache */
     HTHost * pres = NULL;
     if (!host) {
-	if (PROT_TRACE) HTTrace("Host info... Bad argument\n");
+	if (CORE_TRACE) HTTrace("Host info... Bad argument\n");
 	return NULL;
     }
     
@@ -104,7 +104,7 @@ PUBLIC HTHost * HTHost_new (char * host)
 	while ((pres = (HTHost *) HTList_nextObject(cur))) {
 	    if (!strcmp(pres->hostname, host)) {
 		if (time(NULL) > pres->ntime + HostTimeout) {
-		    if (PROT_TRACE)
+		    if (CORE_TRACE)
 			HTTrace("Host info... Collecting host info %p\n",pres);
 		    delete_object(list, pres);
 		    pres = NULL;
@@ -118,13 +118,13 @@ PUBLIC HTHost * HTHost_new (char * host)
     if (pres) {
 	if (pres->channel) {
 	    if (pres->expires < time(NULL)) {	   /* Cached channel is cold */
-		if (PROT_TRACE)
+		if (CORE_TRACE)
 		    HTTrace("Host info... Persistent channel %p gotten cold\n",
 			    pres->channel);
 		HTChannel_delete(pres->channel);
 		pres->channel = NULL;
 	    } else {
-		if (PROT_TRACE)
+		if (CORE_TRACE)
 		    HTTrace("Host info... REUSING CHANNEL %p\n",pres->channel);
 	    }
 	}
@@ -133,7 +133,7 @@ PUBLIC HTHost * HTHost_new (char * host)
 	    HT_OUTOFMEM("HTHost_add");
 	StrAllocCopy(pres->hostname, host);
 	pres->ntime = time(NULL);
-	if (PROT_TRACE) 
+	if (CORE_TRACE) 
 	    HTTrace("Host info... added `%s\' to list %p\n", host, list);
 	HTList_addObject(list, (void *) pres);
     }
@@ -218,17 +218,17 @@ PRIVATE HTHost * HTHost_findPersistent (HTChannel * ch)
 */
 PUBLIC int HTHost_catchClose (SOCKET soc, HTRequest * request, SockOps ops)
 {
-    if (PROT_TRACE)
+    if (CORE_TRACE)
 	HTTrace("Catch Close. called with socket %d with ops %x\n",
 		soc, (unsigned) ops);
     if (ops == FD_READ) {
 	HTChannel * ch = HTChannel_find(soc);	  /* Find associated channel */
 	HTHost * host = HTHost_findPersistent(ch);
 	if (ch && host) {	    
-	    if (PROT_TRACE) HTTrace("Catch Close. CLOSING socket %d\n", soc);
+	    if (CORE_TRACE) HTTrace("Catch Close. CLOSING socket %d\n", soc);
 	    HTHost_clearChannel(host);
 	} else {
-	    if (PROT_TRACE) HTTrace("Catch Close. socket %d NOT FOUND!\n",soc);
+	    if (CORE_TRACE) HTTrace("Catch Close. socket %d NOT FOUND!\n",soc);
 	}
     }
     HTEvent_UnRegister(soc, (SockOps) FD_ALL);
@@ -243,19 +243,23 @@ PUBLIC int HTHost_catchClose (SOCKET soc, HTRequest * request, SockOps ops)
 */
 PUBLIC BOOL HTHost_setChannel (HTHost * host, HTChannel * channel)
 {
-    if (host && channel) {
+    if (!host && !channel) return NO;
+    if (host->channel) {
+	if (CORE_TRACE) HTTrace("Host info... %p already persistent\n", host);
+	return YES;
+    } else {
 	SOCKET sockfd = HTChannel_socket(channel);
 	if (!Persistent) Persistent = HTList_new();
 	if (sockfd != INVSOC && HTList_count(Persistent)<HTNet_maxSocket()-2) {
 	    host->channel = channel;
 	    host->expires = time(NULL) + TCPTimeout;	  /* Default timeout */
 	    HTList_addObject(Persistent, host);
-	    if (PROT_TRACE)
+	    if (CORE_TRACE)
 		HTTrace("Host info... added host %p as persistent\n", host);
 	    return YES;
 	} else {
-	    if (PROT_TRACE)
-		HTTrace("Host info... no room for persistent cocket %d\n",
+	    if (CORE_TRACE)
+		HTTrace("Host info... no room for persistent socket %d\n",
 			socket);
 	}
     }
@@ -280,6 +284,8 @@ PUBLIC BOOL HTHost_clearChannel (HTHost * host)
 	HTChannel_delete(host->channel);
 	host->expires = 0;
 	host->channel = NULL;
+	if (CORE_TRACE)
+	    HTTrace("Host info... removed host %p as persistent\n", host);
 	HTList_removeObject(Persistent, host);
 	return YES;
     }

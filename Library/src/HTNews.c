@@ -18,8 +18,8 @@
 #include "sysdep.h"
 #include "WWWUtil.h"
 #include "WWWCore.h"
+#include "WWWStream.h"
 #include "HTTCP.h"
-#include "HTConLen.h"
 #include "HTReqMan.h"				/* @@@ */
 #include "HTNetMan.h"				/* @@@ */
 #include "HTNewsRq.h" 

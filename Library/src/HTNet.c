@@ -35,6 +35,7 @@
 
 typedef struct _NetCall {
     HTNetCallback *	cbf;
+    void *		param;				    /* Local context */
     int 		status;	     /* Status associated with this callback */
 } NetCall;
 
@@ -91,15 +92,18 @@ PUBLIC int HTNet_maxSocket (void)
 **		HT_RETRY	Retry request after at a later time
 **		HT_ALL		All of above
 */
-PUBLIC BOOL HTNetCall_add (HTList * list, HTNetCallback *cbf, int status)
+PUBLIC BOOL HTNetCall_add (HTList * list, HTNetCallback * cbf,
+			   void * param, int status)
 {
     if (CORE_TRACE) 
-	HTTrace("Call Add.... HTNetCallback %p\n", (void *) cbf);
+	HTTrace("Call Add.... HTNetCallback %p with context %p\n",
+		(void *) cbf, param);
     if (list && cbf) {
 	NetCall *me;
 	if ((me = (NetCall  *) HT_CALLOC(1, sizeof(NetCall))) == NULL)
 	    HT_OUTOFMEM("HTNetCall_add");
 	me->cbf = cbf;
+	me->param = param;
 	me->status = status;
 	return HTList_addObject(list, (void *) me);
     }
@@ -170,7 +174,8 @@ PUBLIC int HTNetCall_execute (HTList * list, HTRequest * request, int status)
 		if (CORE_TRACE)
 		    HTTrace("Net callback %p (request=%p, status=%d)\n",
 			    (void *) pres->cbf, request, status);
-		if ((ret = (*(pres->cbf))(request, status)) != HT_OK) break;
+		if ((ret=(*(pres->cbf))(request, pres->param,status)) != HT_OK)
+		    break;
 	    }
 	}
     }
@@ -208,10 +213,10 @@ PUBLIC int HTNet_callBefore (HTRequest *request, int status)
     return HTNetCall_execute(HTBefore, request, status);
 }
 
-PUBLIC BOOL HTNetCall_addBefore (HTNetCallback *cbf, int status)
+PUBLIC BOOL HTNetCall_addBefore (HTNetCallback * cbf, void * param, int status)
 {
     if (!HTBefore) HTBefore = HTList_new();
-    return HTNetCall_add(HTBefore, cbf, status);
+    return HTNetCall_add(HTBefore, cbf, param, status);
 }
 
 /*
@@ -245,10 +250,10 @@ PUBLIC int HTNet_callAfter (HTRequest *request, int status)
     return HTNetCall_execute(HTAfter, request, status);
 }
 
-PUBLIC BOOL HTNetCall_addAfter (HTNetCallback *cbf, int status)
+PUBLIC BOOL HTNetCall_addAfter (HTNetCallback * cbf, void * param, int status)
 {
     if (!HTAfter) HTAfter = HTList_new();
-    return HTNetCall_add(HTAfter, cbf, status);
+    return HTNetCall_add(HTAfter, cbf, param, status);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -388,7 +393,7 @@ PUBLIC BOOL HTNet_newServer (HTRequest * request, SOCKET sockfd, char * access)
 
     /* Check if we can start the request, else return immediately */
     if (HTList_count(HTNetActive) > HTMaxActive) {
-	if (PROT_TRACE) HTTrace("HTNet new... NO SOCKET AVAILABLE\n");
+	if (CORE_TRACE) HTTrace("HTNet new... NO SOCKET AVAILABLE\n");
 	HTNetCall_execute(HTAfter, request, HT_RETRY);
 	return YES;
     }
@@ -469,7 +474,7 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
     /* Find a transport object for this protocol */
     tp = HTTransport_find(request, HTProtocol_transport(protocol));
     if (tp == NULL) {
-	if (PROT_TRACE) HTTrace("HTNet....... NO TRANSPORT OBJECT\n");
+	if (CORE_TRACE) HTTrace("HTNet....... NO TRANSPORT OBJECT\n");
 	return NO;
     }
 
@@ -762,7 +767,7 @@ PUBLIC BOOL HTNet_persistent (HTNet * net)
 PUBLIC BOOL HTNet_setPersistent (HTNet * net, BOOL persistent)
 {
     if (net) {
-	if (PROT_TRACE) HTTrace("Net......... Persistent connection set %s\n",
+	if (CORE_TRACE) HTTrace("Net......... Persistent connection set %s\n",
 				persistent ? "ON" : "OFF");
 	if (persistent)
 	    HTHost_setChannel(net->host, net->channel);
@@ -775,6 +780,23 @@ PUBLIC BOOL HTNet_setPersistent (HTNet * net, BOOL persistent)
 /* ------------------------------------------------------------------------- */
 /*			      Data Access Methods  			     */
 /* ------------------------------------------------------------------------- */
+
+/*
+**  Get and set the socket number
+*/
+PUBLIC BOOL HTNet_setSocket (HTNet * net, SOCKET sockfd)
+{
+    if (net) {
+	net->sockfd = sockfd;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC SOCKET HTNet_socket (HTNet * net)
+{
+    return (net ? net->sockfd : INVSOC);
+}
 
 /*
 **  Get and set the HTTransport object
@@ -859,7 +881,7 @@ PUBLIC HTInputStream * HTNet_getInput (HTNet * net, HTStream * target,
 	HTChannel_setInput(ch, net->input, tp->mode);
 	return net->input;
     }
-    if (WWWTRACE) HTTrace("Net......... Can't create input stream\n");
+    if (CORE_TRACE) HTTrace("Net......... Can't create input stream\n");
     return NULL;
 }
 
@@ -876,6 +898,6 @@ PUBLIC HTOutputStream * HTNet_getOutput (HTNet * net, void * param, int mode)
 	HTChannel_setOutput(ch, output, tp->mode);
 	return output;
     }
-    if (WWWTRACE) HTTrace("Net......... Can't create output stream\n");
+    if (CORE_TRACE) HTTrace("Net......... Can't create output stream\n");
     return NULL;
 }

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww INITIALIZATION</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 13-Apr-1996 -->
 </HEAD>
 <BODY>
 <H1>Initialization Module</H1>
@@ -44,6 +44,39 @@ FILE EXTENSIONS AND MEDIA TYPES.</B>
 #include "WWWLib.h"
 </PRE>
 
+<H2>Transport Protocol Modules</H2>
+
+Register the default set of transport protocols.
+
+<PRE>
+#include "HTReader.h"
+#include "HTWriter.h"
+#include "HTANSI.h"
+#include "HTBufWrt.h"
+
+extern void HTTransportInit (void);
+</PRE>
+
+<H2>Protocol Modules</H2>
+
+Set up default bindings between access schemes and the set of protocol
+modules in the Library.
+
+<PRE>
+#include "WWWHTTP.h"
+#include "WWWFile.h"
+#include "WWWFTP.h"
+#include "WWWGophe.h"
+#include "WWWTelnt.h"
+#include "WWWNews.h"
+
+#ifdef HT_DIRECT_WAIS
+#include "WWWWAIS.h"
+#endif
+
+extern void HTAccessInit (void);
+</PRE>
+
 <H2>Media Type Conversions</H2>
 
 The <EM>Converters</EM> are used to convert a media type to another
@@ -55,20 +88,16 @@ are initialized separately.
 #include "HTML.h"			/* Uses HTML/HText interface */
 #include "HTPlain.h"			/* Uses HTML/HText interface */
 
-#include "HTTeXGen.h"
-#include "HTMLGen.h"
-#include "HTMIME.h"
-#include "HTBound.h"
-#include "HTGuess.h"
-#include "HTRules.h"
-#include "HTWSRC.h"
-#include "HTFWrite.h"
-#include "HTNewsLs.h"
+#include "WWWMIME.h"
+#include "WWWHTML.h"
+#include "WWWStream.h"
+#include "WWWDir.h"
+#include "WWWRules.h"
 
 extern void HTConverterInit	(HTList * conversions);
 </PRE>
 
-<H2>Presenters</H2>
+<H3>Presenters</H3>
 
 The <EM>Presenters</EM> are used to present a media type to the use by
 calling an external program, for example a post script viewer. This is
@@ -79,34 +108,13 @@ the stream stack, but are initialized separately.
 extern void HTPresenterInit	(HTList * conversions);
 </PRE>
 
-<H2>Converters and Presenters</H2>
+<H3>Converters and Presenters</H3>
 
 This function is only defined in order to preserve backward
 compatibility.
 
 <PRE>
 extern void HTFormatInit	(HTList * conversions);
-</PRE>
-
-<H2>Protocol Modules</H2>
-
-Set up default bindings between access schemes and the set of protocol
-modules in the Library.
-
-<PRE>
-#include "HTIcons.h"
-#include "WWWHTTP.h"
-#include "HTFile.h"
-#include "HTFTP.h"
-#include "HTGopher.h"
-#include "HTTelnet.h"
-#include "HTNews.h"
-
-#ifdef HT_DIRECT_WAIS
-#include "HTWAIS.h"
-#endif
-
-extern void HTAccessInit (void);
 </PRE>
 
 <H2>File Suffix Setup</H2>
@@ -124,8 +132,6 @@ We register two often used callback functions: a BEFORE and a AFTER
 callback Not done automaticly - may be done by application!
 
 <PRE>
-#include "HTHome.h"
-
 extern void HTNetInit (void);
 </PRE>
 
@@ -135,7 +141,7 @@ We register a set of alert messages Not done automaticly - may be done
 by application!
 
 <PRE>
-#include "HTDialog.h"
+#include "WWWApp.h"
 
 extern void HTAlertInit (void);
 </PRE>

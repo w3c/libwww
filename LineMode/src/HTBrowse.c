@@ -3,6 +3,7 @@
 **
 **	(c) COPRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**	@(#) $Id$
 **
 **  Authors:
 **	NP:  Nicola Pellow  Tech.Student CERN 1990-91
@@ -184,8 +185,10 @@ PRIVATE FILE *		OUTPUT = stdout;
 PRIVATE InputParser_t parse_command;
 InputParser_t * PInputParser = &parse_command;
 
-#include "HTZip.h"
-PRIVATE HTList * encoders = NULL;
+/* Net callback handlers */
+PRIVATE HTNetCallback terminate_handler;
+PRIVATE HTNetCallback authentication_handler;
+PRIVATE HTNetCallback redirection_handler;
 
 /* ------------------------------------------------------------------------- */
 
@@ -1477,7 +1480,8 @@ PRIVATE int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 **	This function is registered to handle access authentication,
 **	for example for HTTP
 */
-PRIVATE int authentication_handler (HTRequest * request, int status)
+PRIVATE int authentication_handler (HTRequest * request, void * param,
+				    int status)
 {
     Context * context = (Context *) HTRequest_context(request);
     LineMode * lm = context->lm;
@@ -1509,7 +1513,7 @@ PRIVATE int authentication_handler (HTRequest * request, int status)
 **	This function is registered to handle permanent and temporary
 **	redirections
 */
-PRIVATE int redirection_handler (HTRequest * request, int status)
+PRIVATE int redirection_handler (HTRequest * request, void * param, int status)
 {
     Context * context = (Context *) HTRequest_context(request);
     HTMethod method = HTRequest_method(request);
@@ -1545,7 +1549,7 @@ PRIVATE int redirection_handler (HTRequest * request, int status)
 **	-----------------
 **	This function is registered to handle the result of the request
 */
-PRIVATE int terminate_handler (HTRequest * request, int status) 
+PRIVATE int terminate_handler (HTRequest * request, void * param, int status) 
 {
     Context * context = (Context *) HTRequest_context(request);
     LineMode * lm;
@@ -1945,9 +1949,11 @@ int main (int argc, char ** argv)
     HTFormat_setConversion(lm->converters);
 
     /* Set up encoders and decoders */
+#if 0
     encoders = HTList_new();
     HTContentCoding_add(encoders, "zip", HTZip_new, HTZip_new, 1.0);
     HTFormat_setEncoding(encoders);
+#endif
 
     /* Initialize bindings between file suffixes and media types */
     HTFileInit();
@@ -2045,16 +2051,15 @@ int main (int argc, char ** argv)
     }
 
     /* Register a call back function for the Net Manager */
-    HTNetCall_addBefore(HTLoadStart, 0);
-    HTNetCall_addAfter(authentication_handler, HT_NO_ACCESS);
-    HTNetCall_addAfter(redirection_handler, HT_PERM_REDIRECT);
-    HTNetCall_addAfter(redirection_handler, HT_TEMP_REDIRECT);
-    HTNetCall_addAfter(HTLoadTerminate, HT_ALL);
-    HTNetCall_addAfter(terminate_handler, HT_ALL);
+    HTNetCall_addBefore(HTLoadStart, NULL, 0);
+    HTNetCall_addAfter(authentication_handler, NULL, HT_NO_ACCESS);
+    HTNetCall_addAfter(redirection_handler, NULL, HT_PERM_REDIRECT);
+    HTNetCall_addAfter(redirection_handler, NULL, HT_TEMP_REDIRECT);
+    HTNetCall_addAfter(HTLoadTerminate, NULL, HT_ALL);
+    HTNetCall_addAfter(terminate_handler, NULL, HT_ALL);
 
     /* Register a transport */
-    HTTransport_add("tcp", HT_CH_SINGLE, HTReader_new, HTWriter_new);
-    HTTransport_add("local", HT_CH_SINGLE, HTANSIReader_new, HTANSIWriter_new);
+    HTTransportInit();
 
     /* Register our own MIME header handler for extra headers */
 /*    HTHeader_addParser("*", NO, header_handler);

@@ -193,8 +193,7 @@ PUBLIC const char * HTInetString (SockA * sin)
 **	-------------------------------------
 ** 	It is assumed that any portnumber and numeric host address
 **	is given in decimal notation. Separation character is '.'
-**	Any port number given in host name overrides all other values.
-**	'host' might be modified.
+**	Any port number gets chopped off
 **      Returns:
 **	       	>0	Number of homes
 **		 0	Wait for persistent socket
@@ -233,9 +232,11 @@ PUBLIC int HTParseInet (HTNet * net, char * host)
 #else
 	    sin->sin_addr.s_addr = inet_addr(host);	  /* See arpa/inet.h */
 #endif
-	} else
+	} else {
+	    char * port = strchr(host, ':');			/* Chop port */
+	    if (port) *port = '\0';
 	    status = HTGetHostByName(net, host);
-
+	}
 	if (PROT_TRACE) {
 	    if (status > 0)
 		HTTrace("ParseInet... as port %d on %s with %d homes\n",
