@@ -1320,7 +1320,8 @@ PRIVATE void RHText_foundLink (HText * text,
 	    HTPrint("Robot....... Received element %d, attribute %d with anchor %p\n",
 		    element_number, attribute_number, anchor);
 	if ((element_number==HTML_IMG && attribute_number==HTML_IMG_SRC) || 
-	    (element_number==HTML_BODY && attribute_number==HTML_BODY_BACKGROUND))
+	    (element_number==HTML_BODY && attribute_number==HTML_BODY_BACKGROUND) ||
+	    (element_number==HTML_INPUT && attribute_number==HTML_INPUT_SRC))
 	    RHText_foundImage(text, anchor, NULL, NULL, NO);
 	else
 	    RHText_foundAnchor(text, anchor);
