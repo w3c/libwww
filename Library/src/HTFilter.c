@@ -97,34 +97,6 @@ PUBLIC int HTRuleFilter (HTRequest * request, void * param, int mode)
 }
 
 /*
-**	A small BEFORE filter that just finds a cache entry unconditionally
-**	and loads the entry. All freshness and any other constraints are 
-**	ignored.
-*/
-PUBLIC int HTCacheLoadFilter (HTRequest * request, void * param, int mode)
-{
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    HTCache * cache = HTCache_find(anchor);
-    if (cache) {
-	char * name = HTCache_name(cache);
-	HTAnchor_setPhysical(anchor, name);
-	HTCache_addHit(cache);
-	HT_FREE(name);
-
-	/*
-	**  Start request directly from the cache. As with the redirection
-	**  filter we reuse the same request object which means that we must
-	**  keep this around until the cache load request has terminated
-	*/
-	{
-	    HTLoad(request, NO);
-	    return HT_ERROR;
-	}
-    }
-    return HT_OK;
-}
-
-/*
 **	Check the Memory Cache (History list) BEFORE filter
 **	---------------------------------------------------
 **	Check if document is already loaded. The user can define whether
