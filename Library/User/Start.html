@@ -1,0 +1,170 @@
+<HTML>
+<HEAD>
+  <TITLE>Libwww Quick Overview</TITLE>
+</HEAD>
+<BODY>
+<P>
+<A HREF="../../"><IMG SRC="../../Icons/WWW/w3c_48x48" ALT="W3C"></A>
+<A HREF="../"><IMG SRC="../../Icons/WWW/Lib48x" ALT="libwww"></A>
+<A HREF="./"><IMG SRC="../../Icons/WWW/doc48x"></A>
+<H1>
+  Libwww Quick Overview
+</H1>
+<P>
+The <A HREF="../src/WWWCore.html">libwww core</A> is the central part of
+<A HREF="../">libwww</A>. By itself it doesn't do much - it is not capable
+of accessing any local files, HTTP servers, &nbsp;or any other Internet service.
+Also, it does not know about authentication, redirection, caching or any
+other often used feature. The reason for this is&nbsp;that not all applications
+need the same amount of functionality and also they do not need it to be
+done in the same order. Therefore, in order to accommodate the various needs
+of different types of applications, libwww has a set of application profiles
+which initialize the libwww core with a standard set of features provided
+as a part of the W3C Library distribution-file.
+<H2>
+  Application Profiles
+</H2>
+<P>
+The Library comes with a large set of default functions, for example for
+accessing HTTP and FTP servers, parsing
+<A HREF="http://info.internet.isi.edu:80/in-notes/rfc/files/rfc822.txt">RFC
+822</A> headers etc. but it must all be registered by the application before
+the core knows about it. You can either register the parts directly through
+the many initialization functions in the Initialization Interface or you
+can use these "precompiled" profiles which are set up to contain the features
+often used by the a specific type of application, for example a client, a
+server, a robot etc.
+<H3>
+  Client Profile
+</H3>
+<P>
+The <A HREF="../src/HTProf.html#Client">Client profile</A> initializes a
+large set of features often used in client applications. These include
+<UL>
+  <LI>
+    HTTP, FTP, Gopher, News, Telnet Access , local file access and optionally
+    WAIS access
+  <LI>
+    MIME parser
+  <LI>
+    Access authentication and Automatic redirection
+  <LI>
+    Rule file management, proxy server and gateway support
+  <LI>
+    Chunked Encoders and decoders
+  <LI>
+    Request Log Manager
+  <LI>
+    History Manager
+</UL>
+<H3>
+  Robot Profile
+</H3>
+<H3>
+  Proxy Profile
+</H3>
+<H3>
+  Server Profile
+</H3>
+<P>
+The server application profile can be used as a basis for building a server
+using libwww. It contains the following set of default features
+<H2>
+  Issuing a Request
+</H2>
+<P>
+When you want to load a URL, or perform some other method, for example sending
+a document to a remote server, you must create a Request object -fill it
+out with your preferences, and pass it to the Library. In the application
+interface, there is already a large set of functions that help you set up
+the request in order to perform the operation you want. For example, there
+are functions that download a document into a memory buffer, save a document
+to local file, or to POST form data to&nbsp;a remote HTTP server.
+<P>
+When a request is passed to the Library, libwww calls a set of filters that
+can modify the request in&nbsp;various ways before it is passed on to the
+network layers of libwww. Also, after a request has terminated, libwww calls
+a set of AFTER filters that interpret the result and can perform
+variousoperations based on this result. If the request succeeds and we start
+receiving data from the other end of the connection, the Library creates
+a stream pipe which feeds data from the network layers back to
+the&nbsp;application. In the request object you can specify the final destination
+for your data, for example presenting it to a user, save it to a file, or
+to send it over the network.
+<H2>
+  Filters
+</H2>
+<P>
+Libwww has a concept of filters that can be called when a request object
+has been passed to the Library and when the request has terminated.These
+filters handle a lot of the functionality enabled by the application profiles.
+For &nbsp;example, access authentication, redirection, logging,cache validation,
+proxy support and much more are implemented as filters.Filters can be registered
+either locally to a single request of globally for all requests. Global filters
+is useful if the filter is to be performed very often and local filters can
+either add to or override the global set of filters.
+<P>
+All filters are registered at run-time, and filters can be cascaded so that
+one filter can call other filters and so on. Filters can also start new requests
+or terminate existing requests, so the set of possibilities is very big.
+Normally, filters do only handle metainformation about a resource.For example,
+the authentication filters looks to see if we have been asked to provide
+some&nbsp;credentials in order to access a URL. If so then it adds a protocol
+defined header to the&nbsp;request, and if not&nbsp;then the request just
+proceeds.
+<H2>
+  Streams
+</H2>
+<P>
+One thing filters can not do is to add a document to the request- for example
+if you are using a PUT method in order to send a document &nbsp;to a remote
+HTTP server. Instead, the Library uses streams to transport data objects
+from the application over the network, or&nbsp;the other way. Streams are
+advantageous as they handle data as&nbsp;soon as it arrives and they can
+be cascaded into stream pipes. Each stream element in a stream pipe can do
+some operation on the data object. Streams can be used for many things: they
+can convert data object from one data type to another, or they can apply
+a compression algorithm or a transport encoding, for example base 64.
+However,streams can also be used for calculating the content length, or to
+generate an MD5 hash of the data object.
+<P>
+Stream pipes are generated by looking at the <I>content-type</I>, the<I>
+content-encoding</I>, and the <I>transport-encoding</I> of a data object.That
+is, if the Library receives a document encoded using chunked transfer-encoding,
+then it looks to see if it has a stream object which can decode this encoding
+and pass it to the next stream in the stream pipe.
+<P>
+Another feature of streams is that they can be forked into multiple streams
+and then do different operations on each branch of the stream. This is for
+example how we cache a document while we are presenting it to the user, or
+you can also preserve the original HTML text in one branch while parsing
+the document in another.
+<H2>
+  Request a URL
+</H2>
+<P>
+The <A HREF="../src/WWWApp.html">application interface</A> provides many
+helper functions that make the Library core easier to use. This is particular
+the case for accessing URLs where you can find a large set of functions in
+the <A HREF="../src/HTAccess.html">HTAccess module</A>. If these functions
+for some reason are not what you are looking for then you can of course go
+ahead and write your own additions but you should find what is needed at
+least to get started!
+<H2>
+  Getting Started
+</H2>
+<P>
+For a more detailed description of libwww, you can read the Architecture
+document, the Library Interface overview describing the various modules of
+libwww, and finally the User's Guide describing how to set up preferences
+and lots of other stuff. There are also many example application as part
+of the Library distribution file that you may have a look. These will often
+help you understand how to use libwww in practice.
+<P>
+  <HR>
+<ADDRESS>
+  Henrik Frystyk Nielsen, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
+  <P>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>
