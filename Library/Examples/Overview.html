@@ -1,14 +1,13 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 29-Nov-1995 -->
-  <TITLE>Ready to go Examples</TITLE>
+  <TITLE>Libwww Ready to go Examples</TITLE>
 </HEAD>
-<BODY BGCOLOR="#ffffff">
+<BODY BGCOLOR="#ffffff" TEXT="#000000">
 <P>
 <A HREF="../../"><IMG SRC="../../Icons/WWW/w3c_home" ALT="W3C" BORDER="0"></A>
 <A HREF="../"><IMG SRC="../../Icons/WWW/Lib48x" ALT="libwww" BORDER="0"></A>
 <H1>
-  Ready to go Examples
+  Libwww Ready to go Examples
 </H1>
 <P>
 This is the list of small examples using the very basic features of the Library.
@@ -24,10 +23,13 @@ library, often called <CODE>libwww.a</CODE> on Unix platforms and
 setup of the dynamic modules, but if no dynamic modules are enabled then
 the example will generate an executable file. If you are in doubt about how
 to set your compiler then you can often get some good ideas by looking into
-the <A HREF="../../../LineMode/">Line Mode Browser</A>. &nbsp;If you are
-using the GNU autoconf configure script then the examples are built as part
-of the overall package. On other platforms, you must provide the make file
-on your own.
+the <A HREF="../../../LineMode/">Line Mode Browser</A>, the
+<A HREF="../../ComLine/">Command Line Tool</A>, and the
+<A HREF="../../Robot/">Robot</A> which all run on both Unix and
+Win32.&nbsp;&nbsp;If you are using the GNU autoconf configure script then
+the examples are built as part of the overall package. On
+<A HREF="../User/Platform/">other platforms</A>, you must provide the make
+file on your own.
 <P>
 Some platforms require a socket library when building network applications.
 This is for example the case when building on Macintosh or Windows machines.
@@ -75,11 +77,13 @@ on your platform when building network applications.
     The example shows how to add a content length counter stream and get the
     result back.
   <DT>
-    <A HREF="libapp_4.c">Load a URL to local File without Asking for a File
-    Name</A>
+    Load a URL to local File
   <DD>
     We here show how to fetch a URL using HTTP and to save it to local file.
-    You must specify a local file name on the command line.
+    You must specify a local file name on the command line. There are two versions
+    of this program: The <A HREF="libapp_4.c">preemptive version</A> with
+    <B>no</B> event loop and the <A HREF="LoadToFile.c">non-preemptive version</A>
+    for <B>integration</B> with Windows' event&nbsp;and other event loops.
 </DL>
 <P>
 You can also have a look at the more
@@ -90,8 +94,7 @@ please send us a mail so that we can add it to this page.
 <P>
   <HR>
 <ADDRESS>
-  Henrik Frystyk Nielsen,
-  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
+  <A HREF="/People/Frystyk/">Henrik Frystyk Nielsen</A>,<BR>
   @(#) $Id$
 </ADDRESS>
 </BODY></HTML>
