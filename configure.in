@@ -17,12 +17,12 @@ PACKAGE=w3c-libwww
 AC_SUBST(PACKAGE)
 AC_DEFINE_UNQUOTED(W3C_PACKAGE, "$PACKAGE")
  
-VERSION=5.2.6
+VERSION=5.2.8
 AC_SUBST(VERSION)
 AC_DEFINE_UNQUOTED(W3C_VERSION, "$VERSION")
 
 #dnl for CVS to be able to make a release diff
-PREVIOUS_VERSION=5.2.2
+PREVIOUS_VERSION=5.2.6
 AC_SUBST(PREVIOUS_VERSION)
 
 AM_INIT_AUTOMAKE($PACKAGE, $VERSION) 
@@ -208,10 +208,6 @@ AC_CHECK_FUNCS(getcwd gethostname getdomainname getwd  \
 		gettimeofday mktime timegm tzset)
 AC_CHECK_FUNC(unlink, , AC_CHECK_FUNC(remove, AC_DEFINE(unlink, remove)))
 
-dnl THINGS TO CONSIDER
-dnl ******************
-AC_DEFINE(TTY_IS_SELECTABLE)
-
 dnl Checks for configuration arguments
 AC_MSG_CHECKING(whether to support direct WAIS access.)
 AC_ARG_WITH(wais,
@@ -220,6 +216,9 @@ AC_ARG_WITH(wais,
   no)
     AC_MSG_RESULT(no)
     HTWAIS=""
+    WWWWAIS=""
+    LWWWWAIS=""
+    LIBWWWWAIS=""
     ;;
   *)
     AC_MSG_RESULT(yes)
@@ -233,12 +232,21 @@ AC_ARG_WITH(wais,
 		[],
 		[ AC_MSG_ERROR(Could not find one or more of the $withval libraries.  You must first install WAIS.) ])
     HTWAIS="HTWAIS.lo"
+    WWWWAIS="libwwwwais.la"
+    LWWWWAIS="-lwwwwais.la"
+    LIBWWWWAIS='${top_builddir}/Library/src/libwwwwais.la'
     ;;
   esac ],
   AC_MSG_RESULT(no)
   HTWAIS=""
+  WWWWAIS=""
+  LWWWWAIS=""
+  LIBWWWWAIS=""
 )
 AC_SUBST(HTWAIS)
+AC_SUBST(WWWWAIS)
+AC_SUBST(LWWWWAIS)
+AC_SUBST(LIBWWWWAIS)
 
 AC_MSG_CHECKING(whether to support zlib compress/decompress)
 AC_ARG_WITH(zlib,
@@ -247,6 +255,9 @@ AC_ARG_WITH(zlib,
   no)
     AC_MSG_RESULT(no)
     HTZLIB=""
+    WWWZIP=""
+    LWWWZIP=""
+    LIBWWWZIP=""
     ;;
   *)
     AC_MSG_RESULT(yes)
@@ -262,12 +273,21 @@ AC_ARG_WITH(zlib,
 		[],
 		[ AC_MSG_ERROR(Could not find the $withval library.  You must first install zlib.) ])
     HTZLIB="HTZip.lo"
+    WWWZIP="libwwwzip.la"
+    LWWWZIP="-lwwwzip"
+    LIBWWWZIP='${top_builddir}/Library/src/libwwwzip.la'
     ;;
   esac ],
   AC_MSG_RESULT(no)
   HTZLIB=""
+  WWWZIP=""
+  LWWWZIP=""
+  LIBWWWZIP=""
 )
 AC_SUBST(HTZLIB)
+AC_SUBST(WWWZIP)
+AC_SUBST(LWWWZIP)
+AC_SUBST(LIBWWWZIP)
 
 AC_MSG_CHECKING(whether to support POSIX regex)
 AC_ARG_WITH(regex,
@@ -387,49 +407,119 @@ AC_ARG_WITH(mysql,
     AC_MSG_RESULT(no)
     HTSQL=""
     HTSQLLOG=""
+    WWWSQL=""
+    LWWWSQL=""
+    LIBWWWSQL=""
     CVS2SQL=""
     ;;
   *)
     AC_MSG_RESULT(yes)
     if test "x$withval" = "xyes"; then
-      AC_ADDLIB("/usr/local/lib/mysql/libmysqlclient.a")
+      if test -f '/usr/local/lib/mysql/libmysqlclient.a'; then
+         AC_ADDLIB("/usr/local/lib/mysql/libmysqlclient.a")
+      elif test -f '/usr/lib/mysql/libmysqlclient.a'; then
+         AC_ADDLIB("/usr/lib/mysql/libmysqlclient.a")
+      else
+         AC_MSG_ERROR(Could not find the mysql client library.)
+      fi
     else
       AC_ADDLIB($withval)
     fi
     AC_DEFINE(HT_MYSQL)
     HTSQL="HTSQL.lo"
     HTSQLLOG="HTSQLLog.lo"
+    WWWSQL="libwwwsql.la"
+    LWWWSQL="-lwwwsql"
+    LIBWWWSQL='${top_builddir}/Library/src/libwwwsql.la'
     CVS2SQL="cvs2sql"
     ;;
   esac ],
   AC_MSG_RESULT(no)
   HTSQL=""
   HTSQLLOG=""
+  WWWSQL=""
+  LWWWSQL=""
+  LIBWWWSQL=""
   CVS2SQL=""
 )
 AC_SUBST(HTSQL)
 AC_SUBST(HTSQLLOG)
+AC_SUBST(WWWSQL)
+AC_SUBST(LWWWSQL)
+AC_SUBST(LIBWWWSQL)
 AC_SUBST(CVS2SQL)
 
 AC_MSG_CHECKING(whether we include the Expat XML parser.)
 AC_ARG_WITH(expat,
-[  --with-expat[=PATH]      Compile with support for expat access.],
+[  --with-expat[=PATH]      Compile with support for expat.],
 [ case "$withval" in
   no)
     AC_MSG_RESULT(no)
     HTXML=""
+    XMLTOK=""
+    XMLPARSE=""
+    WWWXML=""
+    LWWWXML=""
+    LIBWWWXML=""
+    SHOWXML=""
     ;;
   *)
     AC_MSG_RESULT(yes)
     AC_DEFINE(HT_EXPAT)
     HTXML="HTXML.lo"
+    XMLTOK="libxmltok.la"
+    XMLPARSE="libxmlparse.la"
+    WWWXML="libwwwxml.la"
+    LWWWXML="-lwwwxml -lxmltok -lxmlparse"
+    LIBWWWXML='${top_builddir}/Library/src/libwwwxml.la ${top_builddir}/modules/expat/xmlparse/libxmlparse.la ${top_builddir}/modules/expat/xmltok/libxmltok.la'
+    SHOWXML="showxml"
     ;;
   esac ],
   AC_MSG_RESULT(yes)
   AC_DEFINE(HT_EXPAT)
   HTXML="HTXML.lo"
+  XMLTOK="libxmltok.la"
+  XMLPARSE="libxmlparse.la"
+  WWWXML="libwwwxml.la"
+  LWWWXML="-lwwwxml -lxmltok -lxmlparse"
+  LIBWWWXML='${top_builddir}/Library/src/libwwwxml.la ${top_builddir}/modules/expat/xmlparse/libxmlparse.la ${top_builddir}/modules/expat/xmltok/libxmltok.la'
+  SHOWXML="showxml"
 )
 AC_SUBST(HTXML)
+AC_SUBST(XMLTOK)
+AC_SUBST(XMLPARSE)
+AC_SUBST(WWWXML)
+AC_SUBST(LWWWXML)
+AC_SUBST(LIBWWWXML)
+AC_SUBST(SHOWXML)
+
+AC_MSG_CHECKING(whether we include MD5 support for HTTP Digest Authentication.)
+AC_ARG_WITH(md5,
+[  --with-md5[=PATH]      Compile with support for md5.],
+[ case "$withval" in
+  no)
+    AC_MSG_RESULT(no)
+    WWWMD5=""
+    LWWWMD5=""
+    LIBWWWMD5=""
+    ;;
+  *)
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(HT_MD5)
+    WWWMD5="libmd5.la"
+    LWWWMD5="-lmd5"
+    LIBWWWMD5='${top_builddir}/modules/md5/libmd5.la'
+    ;;
+  esac ],
+  AC_MSG_RESULT(yes)
+  AC_DEFINE(HT_MD5)
+  WWWMD5="libmd5.la"
+  LWWWMD5="-lmd5"
+  LIBWWWMD5='${top_builddir}/modules/md5/libmd5.la'
+)
+AC_SUBST(WWWMD5)
+AC_SUBST(LWWWMD5)
+AC_SUBST(LIBWWWMD5)
 
 AC_MSG_CHECKING(whether to use internal signal handlers)
 AC_ARG_ENABLE(signals, [  --enable-signals        use internal libwww signal handler.],
