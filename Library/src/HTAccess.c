@@ -727,8 +727,9 @@ PUBLIC BOOL HTSearch ARGS3(
     BOOL result;
     char * escaped = malloc(strlen(keywords)*3+1);
 
-    static CONST BOOL isAcceptable[96] =
-
+    /* static CONST BOOL isAcceptable[96] = */
+    /* static AND const is not good for a gnu compiler! Frystyk 25/02-94 */
+    BOOL isAcceptable[96] =
     /*   0 1 2 3 4 5 6 7 8 9 A B C D E F */
     {    0,0,0,0,0,0,0,0,0,0,1,0,0,1,1,0,	/* 2x   !"#$%&'()*+,-./	 */
          1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,	/* 3x  0123456789:;<=>?	 */
@@ -739,16 +740,15 @@ PUBLIC BOOL HTSearch ARGS3(
 
     if (escaped == NULL) outofmem(__FILE__, "HTSearch");
     
+/* Convert spaces to + and hex escape unacceptable characters */
 
-/*	Convert spaces to + and hex escape unacceptable characters
-*/
-    for(s=keywords; *s && WHITE(*s); s++) /*scan */ ;	/* Skip white space */
-    for(e = s + strlen(s); e>s && WHITE(*(e-1)) ; e--); /* Skip trailers */
-    for(q=escaped, p=s; p<e; p++) {			/* scan stripped field */
+    for(s=keywords; *s && WHITE(*s); s++); /*scan */ 	 /* Skip white space */
+    for(e = s + strlen(s); e>s && WHITE(*(e-1)) ; e--);     /* Skip trailers */
+    for(q=escaped, p=s; p<e; p++) {		      /* scan stripped field */
         int c = (int)TOASCII(*p);
         if (WHITE(*p)) {
 	    *q++ = '+';
-	} else if (c>=32 && c<=(char)127 && isAcceptable[c-32]) {
+	} else if (c>=32 && c<=127 && isAcceptable[c-32] != 0) {
 	    *q++ = *p;			/* 930706 TBL for MVS bug */
 	} else {
 	    *q++ = '%';
@@ -906,5 +906,6 @@ PUBLIC BOOL HTBindAnchor ARGS2(HTAnchor*, anchor, HTRequest *, request)
     request->childAnchor = ((HTAnchor*)request->anchor == anchor) ? NULL
     					: (HTChildAnchor*) anchor;
 	
+    return YES;
 } /* HTBindAnchor */
 

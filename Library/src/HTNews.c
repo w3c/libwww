@@ -729,7 +729,7 @@ PRIVATE void read_group ARGS3(
     if (last_required-first_required+1 > MAX_CHUNK) {	/* Trim this block */
         first_required = last_required-CHUNK_SIZE+1;
     }
-    if (TRACE) printf (stderr, "    Chunk will be (%d-%d)\n",
+    if (TRACE) fprintf (stderr, "    Chunk will be (%d-%d)\n",
 		       first_required, last_required);
 
 /*	Set window title
