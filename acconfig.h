@@ -7,6 +7,9 @@
 /* Define to enable mysql access. */
 #undef HT_MYSQL
 
+/* Define to enable expat XML parser. */
+#undef HT_EXPAT
+
 /* Define to enable Zlib compression / decompression support. */
 #undef HT_ZLIB
 
