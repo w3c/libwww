@@ -775,7 +775,6 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
     ms_t now;
     SOCKET s;
     int status = HT_OK;
-    HTEndLoop = 0;
 
     EventOrderList = HTList_new();	/* is kept around until EventOrder_deleteAll */
 
