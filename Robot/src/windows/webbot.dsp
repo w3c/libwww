@@ -89,34 +89,6 @@ SOURCE=..\..\..\Library\External\gnu_regex.lib
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\Library\src\HTBInit.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\Library\src\HTHInit.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\Library\src\HTInit.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\Library\src\HTML.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\Library\src\HTMLPDTD.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\Library\src\HTPlain.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\Library\src\HTProfil.c
-# End Source File
-# Begin Source File
-
 SOURCE=..\HTQueue.c
 # End Source File
 # Begin Source File
@@ -125,19 +97,11 @@ SOURCE=..\HTRobot.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\Library\src\HTStyle.c
-# End Source File
-# Begin Source File
-
 SOURCE=..\RobotMain.c
 # End Source File
 # Begin Source File
 
 SOURCE=..\RobotTxt.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\Library\src\SGML.c
 # End Source File
 # Begin Source File
 

@@ -105,18 +105,6 @@ SOURCE=.\EntityInfo.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\Library\src\HTBInit.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\Library\src\HTInit.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\Library\src\HTProfil.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\Links.cpp
 # End Source File
 # Begin Source File
@@ -184,13 +172,6 @@ USERDEP__WINCO="$(ProjDir)\hlp\AfxCore.rtf"	"$(ProjDir)\hlp\AfxPrint.rtf"
 # Begin Source File
 
 SOURCE=.\WinCom.rc
-
-!IF  "$(CFG)" == "WinCom - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "WinCom - Win32 Debug"
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 

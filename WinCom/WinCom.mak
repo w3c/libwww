@@ -1,7 +1,7 @@
 # Microsoft Developer Studio Generated NMAKE File, Based on WinCom.dsp
 !IF "$(CFG)" == ""
-CFG=WinCom - Win32 Release
-!MESSAGE No configuration specified. Defaulting to WinCom - Win32 Release.
+CFG=WinCom - Win32 Debug
+!MESSAGE No configuration specified. Defaulting to WinCom - Win32 Debug.
 !ENDIF 
 
 !IF "$(CFG)" != "WinCom - Win32 Release" && "$(CFG)" != "WinCom - Win32 Debug"
@@ -48,11 +48,9 @@ ALL : "$(OUTDIR)\WinCom.exe" ".\Release\WinCom.pch"
 !ENDIF 
 
 CLEAN :
+	-@erase "$(INTDIR)\CacheSetup.obj"
 	-@erase "$(INTDIR)\Delete.obj"
 	-@erase "$(INTDIR)\EntityInfo.obj"
-	-@erase "$(INTDIR)\HTBInit.obj"
-	-@erase "$(INTDIR)\HTInit.obj"
-	-@erase "$(INTDIR)\HTProfil.obj"
 	-@erase "$(INTDIR)\Links.obj"
 	-@erase "$(INTDIR)\LinkView.obj"
 	-@erase "$(INTDIR)\Listvwex.obj"
@@ -95,11 +93,9 @@ LINK32=link.exe
 LINK32_FLAGS=/nologo /subsystem:windows /incremental:no\
  /pdb:"$(OUTDIR)\WinCom.pdb" /machine:I386 /out:"$(OUTDIR)\WinCom.exe" 
 LINK32_OBJS= \
+	"$(INTDIR)\CacheSetup.obj" \
 	"$(INTDIR)\Delete.obj" \
 	"$(INTDIR)\EntityInfo.obj" \
-	"$(INTDIR)\HTBInit.obj" \
-	"$(INTDIR)\HTInit.obj" \
-	"$(INTDIR)\HTProfil.obj" \
 	"$(INTDIR)\Links.obj" \
 	"$(INTDIR)\LinkView.obj" \
 	"$(INTDIR)\Listvwex.obj" \
@@ -158,11 +154,9 @@ ALL : "$(OUTDIR)\WinCom.exe" ".\Debug\WinCom.pch"
 !ENDIF 
 
 CLEAN :
+	-@erase "$(INTDIR)\CacheSetup.obj"
 	-@erase "$(INTDIR)\Delete.obj"
 	-@erase "$(INTDIR)\EntityInfo.obj"
-	-@erase "$(INTDIR)\HTBInit.obj"
-	-@erase "$(INTDIR)\HTInit.obj"
-	-@erase "$(INTDIR)\HTProfil.obj"
 	-@erase "$(INTDIR)\Links.obj"
 	-@erase "$(INTDIR)\LinkView.obj"
 	-@erase "$(INTDIR)\Listvwex.obj"
@@ -209,11 +203,9 @@ LINK32_FLAGS=/nologo /subsystem:windows /incremental:yes\
  /pdb:"$(OUTDIR)\WinCom.pdb" /debug /machine:I386 /out:"$(OUTDIR)\WinCom.exe"\
  /pdbtype:sept 
 LINK32_OBJS= \
+	"$(INTDIR)\CacheSetup.obj" \
 	"$(INTDIR)\Delete.obj" \
 	"$(INTDIR)\EntityInfo.obj" \
-	"$(INTDIR)\HTBInit.obj" \
-	"$(INTDIR)\HTInit.obj" \
-	"$(INTDIR)\HTProfil.obj" \
 	"$(INTDIR)\Links.obj" \
 	"$(INTDIR)\LinkView.obj" \
 	"$(INTDIR)\Listvwex.obj" \
@@ -287,53 +279,125 @@ LINK32_OBJS= \
 
 
 !IF "$(CFG)" == "WinCom - Win32 Release" || "$(CFG)" == "WinCom - Win32 Debug"
+SOURCE=.\CacheSetup.cpp
+DEP_CPP_CACHE=\
+	"..\library\external\regex.h"\
+	"..\library\src\htalert.h"\
+	"..\library\src\htanchor.h"\
+	"..\library\src\htarray.h"\
+	"..\library\src\htassoc.h"\
+	"..\library\src\htatom.h"\
+	"..\library\src\htbind.h"\
+	"..\library\src\htcache.h"\
+	"..\library\src\htchannl.h"\
+	"..\library\src\htchunk.h"\
+	"..\library\src\htdns.h"\
+	"..\library\src\hterror.h"\
+	"..\library\src\htescape.h"\
+	"..\library\src\htevent.h"\
+	"..\library\src\htformat.h"\
+	"..\library\src\htfwrite.h"\
+	"..\library\src\hthost.h"\
+	"..\library\src\hthstman.h"\
+	"..\library\src\htinet.h"\
+	"..\library\src\htiostream.h"\
+	"..\library\src\htlib.h"\
+	"..\library\src\htlink.h"\
+	"..\library\src\htlist.h"\
+	"..\library\src\htmemlog.h"\
+	"..\library\src\htmemory.h"\
+	"..\library\src\htmethod.h"\
+	"..\library\src\htnet.h"\
+	"..\library\src\htparse.h"\
+	"..\library\src\htprot.h"\
+	"..\library\src\htreq.h"\
+	"..\library\src\htresponse.h"\
+	"..\library\src\htstream.h"\
+	"..\library\src\htstring.h"\
+	"..\library\src\htstruct.h"\
+	"..\library\src\httimer.h"\
+	"..\library\src\httrans.h"\
+	"..\library\src\htuser.h"\
+	"..\library\src\htutils.h"\
+	"..\library\src\htutree.h"\
+	"..\library\src\htuu.h"\
+	"..\library\src\htwwwstr.h"\
+	"..\library\src\windows\config.h"\
+	"..\library\src\wwwcache.h"\
+	"..\library\src\wwwcore.h"\
+	"..\library\src\wwwlib.h"\
+	"..\library\src\wwwsys.h"\
+	"..\library\src\wwwutil.h"\
+	".\CacheSetup.h"\
+	".\EntityInfo.h"\
+	".\Links.h"\
+	".\LinkView.h"\
+	".\Listvwex.h"\
+	".\Location.h"\
+	".\Progress.h"\
+	".\ProxySetup.h"\
+	".\Request.h"\
+	".\StdAfx.h"\
+	".\WinCom.h"\
+	".\WinComDoc.h"\
+	{$(INCLUDE)}"sys\stat.h"\
+	{$(INCLUDE)}"sys\types.h"\
+	
+NODEP_CPP_CACHE=\
+	"..\library\src\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\CacheSetup.obj" : $(SOURCE) $(DEP_CPP_CACHE) "$(INTDIR)"
+
+
 SOURCE=.\Delete.cpp
 DEP_CPP_DELET=\
-	"..\Library\External\regex.h"\
-	"..\Library\src\HTAlert.h"\
-	"..\Library\src\HTAnchor.h"\
-	"..\Library\src\HTArray.h"\
-	"..\Library\src\HTAssoc.h"\
-	"..\Library\src\HTAtom.h"\
-	"..\Library\src\HTBind.h"\
-	"..\Library\src\HTChannl.h"\
-	"..\Library\src\HTChunk.h"\
-	"..\Library\src\HTDNS.h"\
-	"..\Library\src\HTError.h"\
-	"..\Library\src\HTEscape.h"\
-	"..\Library\src\HTEvent.h"\
-	"..\Library\src\HTFormat.h"\
-	"..\Library\src\HTFWrite.h"\
-	"..\Library\src\HTHost.h"\
-	"..\Library\src\HTHstMan.h"\
-	"..\Library\src\HTInet.h"\
-	"..\Library\src\HTIOStream.h"\
-	"..\Library\src\HTLib.h"\
-	"..\Library\src\HTLink.h"\
-	"..\Library\src\HTList.h"\
-	"..\Library\src\HTMemLog.h"\
-	"..\Library\src\HTMemory.h"\
-	"..\Library\src\HTMethod.h"\
-	"..\Library\src\HTNet.h"\
-	"..\Library\src\HTParse.h"\
-	"..\Library\src\HTProt.h"\
-	"..\Library\src\HTReq.h"\
-	"..\Library\src\HTResponse.h"\
-	"..\Library\src\HTStream.h"\
-	"..\Library\src\HTString.h"\
-	"..\Library\src\HTStruct.h"\
-	"..\Library\src\HTTimer.h"\
-	"..\Library\src\HTTrans.h"\
-	"..\Library\src\HTUser.h"\
-	"..\Library\src\HTUtils.h"\
-	"..\Library\src\HTUTree.h"\
-	"..\Library\src\HTUU.h"\
-	"..\Library\src\HTWWWStr.h"\
-	"..\Library\src\windows\config.h"\
-	"..\Library\src\WWWCore.h"\
-	"..\Library\src\WWWLib.h"\
-	"..\Library\src\wwwsys.h"\
-	"..\Library\src\WWWUtil.h"\
+	"..\library\external\regex.h"\
+	"..\library\src\htalert.h"\
+	"..\library\src\htanchor.h"\
+	"..\library\src\htarray.h"\
+	"..\library\src\htassoc.h"\
+	"..\library\src\htatom.h"\
+	"..\library\src\htbind.h"\
+	"..\library\src\htchannl.h"\
+	"..\library\src\htchunk.h"\
+	"..\library\src\htdns.h"\
+	"..\library\src\hterror.h"\
+	"..\library\src\htescape.h"\
+	"..\library\src\htevent.h"\
+	"..\library\src\htformat.h"\
+	"..\library\src\htfwrite.h"\
+	"..\library\src\hthost.h"\
+	"..\library\src\hthstman.h"\
+	"..\library\src\htinet.h"\
+	"..\library\src\htiostream.h"\
+	"..\library\src\htlib.h"\
+	"..\library\src\htlink.h"\
+	"..\library\src\htlist.h"\
+	"..\library\src\htmemlog.h"\
+	"..\library\src\htmemory.h"\
+	"..\library\src\htmethod.h"\
+	"..\library\src\htnet.h"\
+	"..\library\src\htparse.h"\
+	"..\library\src\htprot.h"\
+	"..\library\src\htreq.h"\
+	"..\library\src\htresponse.h"\
+	"..\library\src\htstream.h"\
+	"..\library\src\htstring.h"\
+	"..\library\src\htstruct.h"\
+	"..\library\src\httimer.h"\
+	"..\library\src\httrans.h"\
+	"..\library\src\htuser.h"\
+	"..\library\src\htutils.h"\
+	"..\library\src\htutree.h"\
+	"..\library\src\htuu.h"\
+	"..\library\src\htwwwstr.h"\
+	"..\library\src\windows\config.h"\
+	"..\library\src\wwwcore.h"\
+	"..\library\src\wwwlib.h"\
+	"..\library\src\wwwsys.h"\
+	"..\library\src\wwwutil.h"\
+	".\CacheSetup.h"\
 	".\Delete.h"\
 	".\EntityInfo.h"\
 	".\Links.h"\
@@ -350,7 +414,7 @@ DEP_CPP_DELET=\
 	{$(INCLUDE)}"sys\types.h"\
 	
 NODEP_CPP_DELET=\
-	"..\Library\src\HTVMSUtils.h"\
+	"..\library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\Delete.obj" : $(SOURCE) $(DEP_CPP_DELET) "$(INTDIR)"
@@ -358,54 +422,55 @@ NODEP_CPP_DELET=\
 
 SOURCE=.\EntityInfo.cpp
 DEP_CPP_ENTIT=\
-	"..\Library\External\regex.h"\
-	"..\Library\src\HTAlert.h"\
-	"..\Library\src\HTAnchor.h"\
-	"..\Library\src\HTArray.h"\
-	"..\Library\src\HTAssoc.h"\
-	"..\Library\src\HTAtom.h"\
-	"..\Library\src\HTBind.h"\
-	"..\Library\src\HTChannl.h"\
-	"..\Library\src\HTChunk.h"\
-	"..\Library\src\HTDNS.h"\
-	"..\Library\src\HTError.h"\
-	"..\Library\src\HTEscape.h"\
-	"..\Library\src\HTEvent.h"\
-	"..\Library\src\HTFile.h"\
-	"..\Library\src\HTFormat.h"\
-	"..\Library\src\HTFWrite.h"\
-	"..\Library\src\HTHost.h"\
-	"..\Library\src\HTHstMan.h"\
-	"..\Library\src\HTInet.h"\
-	"..\Library\src\HTIOStream.h"\
-	"..\Library\src\HTLib.h"\
-	"..\Library\src\HTLink.h"\
-	"..\Library\src\HTList.h"\
-	"..\Library\src\HTMemLog.h"\
-	"..\Library\src\HTMemory.h"\
-	"..\Library\src\HTMethod.h"\
-	"..\Library\src\HTMulti.h"\
-	"..\Library\src\HTNet.h"\
-	"..\Library\src\HTParse.h"\
-	"..\Library\src\HTProt.h"\
-	"..\Library\src\HTReq.h"\
-	"..\Library\src\HTResponse.h"\
-	"..\Library\src\HTStream.h"\
-	"..\Library\src\HTString.h"\
-	"..\Library\src\HTStruct.h"\
-	"..\Library\src\HTTimer.h"\
-	"..\Library\src\HTTrans.h"\
-	"..\Library\src\HTUser.h"\
-	"..\Library\src\HTUtils.h"\
-	"..\Library\src\HTUTree.h"\
-	"..\Library\src\HTUU.h"\
-	"..\Library\src\HTWWWStr.h"\
-	"..\Library\src\windows\config.h"\
-	"..\Library\src\WWWCore.h"\
-	"..\Library\src\WWWFile.h"\
-	"..\Library\src\WWWLib.h"\
-	"..\Library\src\wwwsys.h"\
-	"..\Library\src\WWWUtil.h"\
+	"..\library\external\regex.h"\
+	"..\library\src\htalert.h"\
+	"..\library\src\htanchor.h"\
+	"..\library\src\htarray.h"\
+	"..\library\src\htassoc.h"\
+	"..\library\src\htatom.h"\
+	"..\library\src\htbind.h"\
+	"..\library\src\htchannl.h"\
+	"..\library\src\htchunk.h"\
+	"..\library\src\htdns.h"\
+	"..\library\src\hterror.h"\
+	"..\library\src\htescape.h"\
+	"..\library\src\htevent.h"\
+	"..\library\src\htfile.h"\
+	"..\library\src\htformat.h"\
+	"..\library\src\htfwrite.h"\
+	"..\library\src\hthost.h"\
+	"..\library\src\hthstman.h"\
+	"..\library\src\htinet.h"\
+	"..\library\src\htiostream.h"\
+	"..\library\src\htlib.h"\
+	"..\library\src\htlink.h"\
+	"..\library\src\htlist.h"\
+	"..\library\src\htmemlog.h"\
+	"..\library\src\htmemory.h"\
+	"..\library\src\htmethod.h"\
+	"..\library\src\htmulti.h"\
+	"..\library\src\htnet.h"\
+	"..\library\src\htparse.h"\
+	"..\library\src\htprot.h"\
+	"..\library\src\htreq.h"\
+	"..\library\src\htresponse.h"\
+	"..\library\src\htstream.h"\
+	"..\library\src\htstring.h"\
+	"..\library\src\htstruct.h"\
+	"..\library\src\httimer.h"\
+	"..\library\src\httrans.h"\
+	"..\library\src\htuser.h"\
+	"..\library\src\htutils.h"\
+	"..\library\src\htutree.h"\
+	"..\library\src\htuu.h"\
+	"..\library\src\htwwwstr.h"\
+	"..\library\src\windows\config.h"\
+	"..\library\src\wwwcore.h"\
+	"..\library\src\wwwfile.h"\
+	"..\library\src\wwwlib.h"\
+	"..\library\src\wwwsys.h"\
+	"..\library\src\wwwutil.h"\
+	".\CacheSetup.h"\
 	".\EntityInfo.h"\
 	".\Links.h"\
 	".\LinkView.h"\
@@ -422,392 +487,60 @@ DEP_CPP_ENTIT=\
 	{$(INCLUDE)}"sys\types.h"\
 	
 NODEP_CPP_ENTIT=\
-	"..\Library\src\HTVMSUtils.h"\
+	"..\library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\EntityInfo.obj" : $(SOURCE) $(DEP_CPP_ENTIT) "$(INTDIR)"
 
 
-SOURCE=..\Library\src\HTBInit.c
-DEP_CPP_HTBIN=\
-	"..\Library\External\regex.h"\
-	"..\Library\src\HTAlert.h"\
-	"..\Library\src\HTAnchor.h"\
-	"..\Library\src\HTArray.h"\
-	"..\Library\src\HTAssoc.h"\
-	"..\Library\src\HTAtom.h"\
-	"..\Library\src\HTBind.h"\
-	"..\Library\src\HTBInit.h"\
-	"..\Library\src\HTChannl.h"\
-	"..\Library\src\HTChunk.h"\
-	"..\Library\src\HTDNS.h"\
-	"..\Library\src\HTError.h"\
-	"..\Library\src\HTEscape.h"\
-	"..\Library\src\HTEvent.h"\
-	"..\Library\src\HTFormat.h"\
-	"..\Library\src\HTFWrite.h"\
-	"..\Library\src\HTHost.h"\
-	"..\Library\src\HTHstMan.h"\
-	"..\Library\src\HTInet.h"\
-	"..\Library\src\HTIOStream.h"\
-	"..\Library\src\HTLib.h"\
-	"..\Library\src\HTLink.h"\
-	"..\Library\src\HTList.h"\
-	"..\Library\src\HTMemLog.h"\
-	"..\Library\src\HTMemory.h"\
-	"..\Library\src\HTMethod.h"\
-	"..\Library\src\HTNet.h"\
-	"..\Library\src\HTParse.h"\
-	"..\Library\src\HTProt.h"\
-	"..\Library\src\HTReq.h"\
-	"..\Library\src\HTResponse.h"\
-	"..\Library\src\HTStream.h"\
-	"..\Library\src\HTString.h"\
-	"..\Library\src\HTStruct.h"\
-	"..\Library\src\HTTimer.h"\
-	"..\Library\src\HTTrans.h"\
-	"..\Library\src\HTUser.h"\
-	"..\Library\src\HTUtils.h"\
-	"..\Library\src\HTUTree.h"\
-	"..\Library\src\HTUU.h"\
-	"..\Library\src\HTWWWStr.h"\
-	"..\Library\src\windows\config.h"\
-	"..\Library\src\WWWCore.h"\
-	"..\Library\src\wwwsys.h"\
-	"..\Library\src\WWWUtil.h"\
-	{$(INCLUDE)}"sys\stat.h"\
-	{$(INCLUDE)}"sys\types.h"\
-	
-NODEP_CPP_HTBIN=\
-	"..\Library\src\HTVMSUtils.h"\
-	
-
-"$(INTDIR)\HTBInit.obj" : $(SOURCE) $(DEP_CPP_HTBIN) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-SOURCE=..\Library\src\HTInit.c
-DEP_CPP_HTINI=\
-	"..\Library\External\regex.h"\
-	"..\Library\src\HTAABrow.h"\
-	"..\Library\src\HTAAUtil.h"\
-	"..\Library\src\HTAccess.h"\
-	"..\Library\src\HTAlert.h"\
-	"..\Library\src\HTAnchor.h"\
-	"..\Library\src\HTANSI.h"\
-	"..\Library\src\HTArray.h"\
-	"..\Library\src\HTAssoc.h"\
-	"..\Library\src\HTAtom.h"\
-	"..\Library\src\HTBind.h"\
-	"..\Library\src\HTBound.h"\
-	"..\Library\src\HTBufWrt.h"\
-	"..\Library\src\HTCache.h"\
-	"..\Library\src\HTChannl.h"\
-	"..\Library\src\HTChunk.h"\
-	"..\Library\src\HTConLen.h"\
-	"..\Library\src\HTDemux.h"\
-	"..\Library\src\HTDescpt.h"\
-	"..\Library\src\HTDialog.h"\
-	"..\Library\src\HTDir.h"\
-	"..\Library\src\HTDNS.h"\
-	"..\Library\src\HTError.h"\
-	"..\Library\src\HTEscape.h"\
-	"..\Library\src\HTEvent.h"\
-	"..\Library\src\HTEvtLst.h"\
-	"..\Library\src\HTFile.h"\
-	"..\Library\src\HTFilter.h"\
-	"..\Library\src\HTFormat.h"\
-	"..\Library\src\HTFTP.h"\
-	"..\Library\src\HTFTPDir.h"\
-	"..\Library\src\HTFWrite.h"\
-	"..\Library\src\HTGopher.h"\
-	"..\Library\src\HTGuess.h"\
-	"..\Library\src\HTHeader.h"\
-	"..\Library\src\HTHist.h"\
-	"..\Library\src\HTHome.h"\
-	"..\Library\src\HTHost.h"\
-	"..\Library\src\HTHstMan.h"\
-	"..\Library\src\HTIcons.h"\
-	"..\Library\src\HTInet.h"\
-	"..\Library\src\HTInit.h"\
-	"..\Library\src\HTIOStream.h"\
-	"..\Library\src\HTLib.h"\
-	"..\Library\src\HTLink.h"\
-	"..\Library\src\HTList.h"\
-	"..\Library\src\HTLocal.h"\
-	"..\Library\src\HTLog.h"\
-	"..\Library\src\HTMemLog.h"\
-	"..\Library\src\HTMemory.h"\
-	"..\Library\src\HTMerge.h"\
-	"..\Library\src\HTMethod.h"\
-	"..\Library\src\HTMIME.h"\
-	"..\Library\src\HTMIMERq.h"\
-	"..\Library\src\HTMIMImp.h"\
-	"..\Library\src\HTMLGen.h"\
-	"..\Library\src\HTMLPDTD.h"\
-	"..\Library\src\HTMulpar.h"\
-	"..\Library\src\HTMulti.h"\
-	"..\Library\src\HTMuxCh.h"\
-	"..\Library\src\HTMuxHeader.h"\
-	"..\Library\src\HTMuxTx.h"\
-	"..\Library\src\HTNDir.h"\
-	"..\Library\src\HTNet.h"\
-	"..\Library\src\HTNews.h"\
-	"..\Library\src\HTNewsLs.h"\
-	"..\Library\src\HTNewsRq.h"\
-	"..\Library\src\HTParse.h"\
-	"..\Library\src\HTPEP.h"\
-	"..\Library\src\HTProt.h"\
-	"..\Library\src\HTProxy.h"\
-	"..\Library\src\HTReader.h"\
-	"..\Library\src\HTReq.h"\
-	"..\Library\src\HTResponse.h"\
-	"..\Library\src\HTRules.h"\
-	"..\Library\src\HTSChunk.h"\
-	"..\Library\src\HTSocket.h"\
-	"..\Library\src\HTStream.h"\
-	"..\Library\src\HTString.h"\
-	"..\Library\src\HTStruct.h"\
-	"..\Library\src\HTTChunk.h"\
-	"..\Library\src\HTTCP.h"\
-	"..\Library\src\HTTee.h"\
-	"..\Library\src\HTTelnet.h"\
-	"..\Library\src\HTTeXGen.h"\
-	"..\Library\src\HTTimer.h"\
-	"..\Library\src\HTTP.h"\
-	"..\Library\src\HTTPGen.h"\
-	"..\Library\src\HTTPReq.h"\
-	"..\Library\src\HTTPRes.h"\
-	"..\Library\src\HTTPServ.h"\
-	"..\Library\src\HTTPUtil.h"\
-	"..\Library\src\HTTrans.h"\
-	"..\Library\src\HTUser.h"\
-	"..\Library\src\HTUtils.h"\
-	"..\Library\src\HTUTree.h"\
-	"..\Library\src\HTUU.h"\
-	"..\Library\src\HTWAIS.h"\
-	"..\Library\src\HTWriter.h"\
-	"..\Library\src\HTWWWStr.h"\
-	"..\Library\src\HTXParse.h"\
-	"..\Library\src\HTZip.h"\
-	"..\Library\src\SGML.h"\
-	"..\Library\src\windows\config.h"\
-	"..\Library\src\WWWApp.h"\
-	"..\Library\src\WWWCache.h"\
-	"..\Library\src\WWWCore.h"\
-	"..\Library\src\WWWDir.h"\
-	"..\Library\src\WWWFile.h"\
-	"..\Library\src\WWWFTP.h"\
-	"..\Library\src\WWWGophe.h"\
-	"..\Library\src\WWWHTML.h"\
-	"..\Library\src\WWWHTTP.h"\
-	"..\Library\src\WWWLib.h"\
-	"..\Library\src\WWWMIME.h"\
-	"..\Library\src\WWWMux.h"\
-	"..\Library\src\WWWNews.h"\
-	"..\Library\src\WWWStream.h"\
-	"..\Library\src\wwwsys.h"\
-	"..\Library\src\WWWTelnt.h"\
-	"..\Library\src\WWWTrans.h"\
-	"..\Library\src\WWWUtil.h"\
-	"..\Library\src\WWWWAIS.h"\
-	"..\Library\src\WWWZip.h"\
-	{$(INCLUDE)}"sys\stat.h"\
-	{$(INCLUDE)}"sys\types.h"\
-	
-NODEP_CPP_HTINI=\
-	"..\Library\src\HTVMSUtils.h"\
-	
-
-"$(INTDIR)\HTInit.obj" : $(SOURCE) $(DEP_CPP_HTINI) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-SOURCE=..\Library\src\HTProfil.c
-DEP_CPP_HTPRO=\
-	"..\Library\External\regex.h"\
-	"..\Library\src\HTAABrow.h"\
-	"..\Library\src\HTAAUtil.h"\
-	"..\Library\src\HTAccess.h"\
-	"..\Library\src\HTAlert.h"\
-	"..\Library\src\HTAnchor.h"\
-	"..\Library\src\HTANSI.h"\
-	"..\Library\src\HTArray.h"\
-	"..\Library\src\HTAssoc.h"\
-	"..\Library\src\HTAtom.h"\
-	"..\Library\src\HTBind.h"\
-	"..\Library\src\HTBInit.h"\
-	"..\Library\src\HTBound.h"\
-	"..\Library\src\HTBufWrt.h"\
-	"..\Library\src\HTCache.h"\
-	"..\Library\src\HTChannl.h"\
-	"..\Library\src\HTChunk.h"\
-	"..\Library\src\HTConLen.h"\
-	"..\Library\src\HTDescpt.h"\
-	"..\Library\src\HTDialog.h"\
-	"..\Library\src\HTDir.h"\
-	"..\Library\src\HTDNS.h"\
-	"..\Library\src\HTError.h"\
-	"..\Library\src\HTEscape.h"\
-	"..\Library\src\HTEvent.h"\
-	"..\Library\src\HTEvtLst.h"\
-	"..\Library\src\HTFile.h"\
-	"..\Library\src\HTFilter.h"\
-	"..\Library\src\HTFormat.h"\
-	"..\Library\src\HTFTP.h"\
-	"..\Library\src\HTFTPDir.h"\
-	"..\Library\src\HTFWrite.h"\
-	"..\Library\src\HTGopher.h"\
-	"..\Library\src\HTGuess.h"\
-	"..\Library\src\HTHeader.h"\
-	"..\Library\src\HTHInit.h"\
-	"..\Library\src\HTHist.h"\
-	"..\Library\src\HTHome.h"\
-	"..\Library\src\HTHost.h"\
-	"..\Library\src\HTHstMan.h"\
-	"..\Library\src\HTIcons.h"\
-	"..\Library\src\HTInet.h"\
-	"..\Library\src\HTInit.h"\
-	"..\Library\src\HTIOStream.h"\
-	"..\Library\src\HTLib.h"\
-	"..\Library\src\HTLink.h"\
-	"..\Library\src\HTList.h"\
-	"..\Library\src\HTLocal.h"\
-	"..\Library\src\HTLog.h"\
-	"..\Library\src\HTMemLog.h"\
-	"..\Library\src\HTMemory.h"\
-	"..\Library\src\HTMerge.h"\
-	"..\Library\src\HTMethod.h"\
-	"..\Library\src\HTMIME.h"\
-	"..\Library\src\HTMIMERq.h"\
-	"..\Library\src\HTMIMImp.h"\
-	"..\Library\src\HTML.h"\
-	"..\Library\src\HTMLGen.h"\
-	"..\Library\src\HTMLPDTD.h"\
-	"..\Library\src\HTMulpar.h"\
-	"..\Library\src\HTMulti.h"\
-	"..\Library\src\HTNDir.h"\
-	"..\Library\src\HTNet.h"\
-	"..\Library\src\HTNews.h"\
-	"..\Library\src\HTNewsLs.h"\
-	"..\Library\src\HTNewsRq.h"\
-	"..\Library\src\HTParse.h"\
-	"..\Library\src\HTPEP.h"\
-	"..\Library\src\HTPlain.h"\
-	"..\Library\src\HTProfil.h"\
-	"..\Library\src\HTProt.h"\
-	"..\Library\src\HTProxy.h"\
-	"..\Library\src\HTReader.h"\
-	"..\Library\src\HTReq.h"\
-	"..\Library\src\HTResponse.h"\
-	"..\Library\src\HTRules.h"\
-	"..\Library\src\HTSChunk.h"\
-	"..\Library\src\HTSocket.h"\
-	"..\Library\src\HTStream.h"\
-	"..\Library\src\HTString.h"\
-	"..\Library\src\HTStruct.h"\
-	"..\Library\src\HTTChunk.h"\
-	"..\Library\src\HTTCP.h"\
-	"..\Library\src\HTTee.h"\
-	"..\Library\src\HTTelnet.h"\
-	"..\Library\src\HTTeXGen.h"\
-	"..\Library\src\HTTimer.h"\
-	"..\Library\src\HTTP.h"\
-	"..\Library\src\HTTPGen.h"\
-	"..\Library\src\HTTPReq.h"\
-	"..\Library\src\HTTPRes.h"\
-	"..\Library\src\HTTPServ.h"\
-	"..\Library\src\HTTPUtil.h"\
-	"..\Library\src\HTTrans.h"\
-	"..\Library\src\HTUser.h"\
-	"..\Library\src\HTUtils.h"\
-	"..\Library\src\HTUTree.h"\
-	"..\Library\src\HTUU.h"\
-	"..\Library\src\HTWAIS.h"\
-	"..\Library\src\HTWriter.h"\
-	"..\Library\src\HTWWWStr.h"\
-	"..\Library\src\HTXParse.h"\
-	"..\Library\src\HTZip.h"\
-	"..\Library\src\SGML.h"\
-	"..\Library\src\windows\config.h"\
-	"..\Library\src\WWWApp.h"\
-	"..\Library\src\WWWCache.h"\
-	"..\Library\src\WWWCore.h"\
-	"..\Library\src\WWWDir.h"\
-	"..\Library\src\WWWFile.h"\
-	"..\Library\src\WWWFTP.h"\
-	"..\Library\src\WWWGophe.h"\
-	"..\Library\src\WWWHTML.h"\
-	"..\Library\src\WWWHTTP.h"\
-	"..\Library\src\WWWInit.h"\
-	"..\Library\src\WWWLib.h"\
-	"..\Library\src\WWWMIME.h"\
-	"..\Library\src\WWWNews.h"\
-	"..\Library\src\WWWStream.h"\
-	"..\Library\src\wwwsys.h"\
-	"..\Library\src\WWWTelnt.h"\
-	"..\Library\src\WWWTrans.h"\
-	"..\Library\src\WWWUtil.h"\
-	"..\Library\src\WWWWAIS.h"\
-	"..\Library\src\WWWZip.h"\
-	{$(INCLUDE)}"sys\stat.h"\
-	{$(INCLUDE)}"sys\types.h"\
-	
-NODEP_CPP_HTPRO=\
-	"..\Library\src\HTVMSUtils.h"\
-	
-
-"$(INTDIR)\HTProfil.obj" : $(SOURCE) $(DEP_CPP_HTPRO) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
 SOURCE=.\Links.cpp
 DEP_CPP_LINKS=\
-	"..\Library\External\regex.h"\
-	"..\Library\src\HTAlert.h"\
-	"..\Library\src\HTAnchor.h"\
-	"..\Library\src\HTArray.h"\
-	"..\Library\src\HTAssoc.h"\
-	"..\Library\src\HTAtom.h"\
-	"..\Library\src\HTBind.h"\
-	"..\Library\src\HTChannl.h"\
-	"..\Library\src\HTChunk.h"\
-	"..\Library\src\HTDNS.h"\
-	"..\Library\src\HTError.h"\
-	"..\Library\src\HTEscape.h"\
-	"..\Library\src\HTEvent.h"\
-	"..\Library\src\HTFormat.h"\
-	"..\Library\src\HTFWrite.h"\
-	"..\Library\src\HTHost.h"\
-	"..\Library\src\HTHstMan.h"\
-	"..\Library\src\HTInet.h"\
-	"..\Library\src\HTIOStream.h"\
-	"..\Library\src\HTLib.h"\
-	"..\Library\src\HTLink.h"\
-	"..\Library\src\HTList.h"\
-	"..\Library\src\HTMemLog.h"\
-	"..\Library\src\HTMemory.h"\
-	"..\Library\src\HTMethod.h"\
-	"..\Library\src\HTNet.h"\
-	"..\Library\src\HTParse.h"\
-	"..\Library\src\HTProt.h"\
-	"..\Library\src\HTReq.h"\
-	"..\Library\src\HTResponse.h"\
-	"..\Library\src\HTStream.h"\
-	"..\Library\src\HTString.h"\
-	"..\Library\src\HTStruct.h"\
-	"..\Library\src\HTTimer.h"\
-	"..\Library\src\HTTrans.h"\
-	"..\Library\src\HTUser.h"\
-	"..\Library\src\HTUtils.h"\
-	"..\Library\src\HTUTree.h"\
-	"..\Library\src\HTUU.h"\
-	"..\Library\src\HTWWWStr.h"\
-	"..\Library\src\windows\config.h"\
-	"..\Library\src\WWWCore.h"\
-	"..\Library\src\WWWLib.h"\
-	"..\Library\src\wwwsys.h"\
-	"..\Library\src\WWWUtil.h"\
+	"..\library\external\regex.h"\
+	"..\library\src\htalert.h"\
+	"..\library\src\htanchor.h"\
+	"..\library\src\htarray.h"\
+	"..\library\src\htassoc.h"\
+	"..\library\src\htatom.h"\
+	"..\library\src\htbind.h"\
+	"..\library\src\htchannl.h"\
+	"..\library\src\htchunk.h"\
+	"..\library\src\htdns.h"\
+	"..\library\src\hterror.h"\
+	"..\library\src\htescape.h"\
+	"..\library\src\htevent.h"\
+	"..\library\src\htformat.h"\
+	"..\library\src\htfwrite.h"\
+	"..\library\src\hthost.h"\
+	"..\library\src\hthstman.h"\
+	"..\library\src\htinet.h"\
+	"..\library\src\htiostream.h"\
+	"..\library\src\htlib.h"\
+	"..\library\src\htlink.h"\
+	"..\library\src\htlist.h"\
+	"..\library\src\htmemlog.h"\
+	"..\library\src\htmemory.h"\
+	"..\library\src\htmethod.h"\
+	"..\library\src\htnet.h"\
+	"..\library\src\htparse.h"\
+	"..\library\src\htprot.h"\
+	"..\library\src\htreq.h"\
+	"..\library\src\htresponse.h"\
+	"..\library\src\htstream.h"\
+	"..\library\src\htstring.h"\
+	"..\library\src\htstruct.h"\
+	"..\library\src\httimer.h"\
+	"..\library\src\httrans.h"\
+	"..\library\src\htuser.h"\
+	"..\library\src\htutils.h"\
+	"..\library\src\htutree.h"\
+	"..\library\src\htuu.h"\
+	"..\library\src\htwwwstr.h"\
+	"..\library\src\windows\config.h"\
+	"..\library\src\wwwcore.h"\
+	"..\library\src\wwwlib.h"\
+	"..\library\src\wwwsys.h"\
+	"..\library\src\wwwutil.h"\
+	".\CacheSetup.h"\
 	".\EntityInfo.h"\
 	".\Links.h"\
 	".\LinkView.h"\
@@ -823,7 +556,7 @@ DEP_CPP_LINKS=\
 	{$(INCLUDE)}"sys\types.h"\
 	
 NODEP_CPP_LINKS=\
-	"..\Library\src\HTVMSUtils.h"\
+	"..\library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\Links.obj" : $(SOURCE) $(DEP_CPP_LINKS) "$(INTDIR)"
@@ -831,51 +564,52 @@ NODEP_CPP_LINKS=\
 
 SOURCE=.\LinkView.cpp
 DEP_CPP_LINKV=\
-	"..\Library\External\regex.h"\
-	"..\Library\src\HTAlert.h"\
-	"..\Library\src\HTAnchor.h"\
-	"..\Library\src\HTArray.h"\
-	"..\Library\src\HTAssoc.h"\
-	"..\Library\src\HTAtom.h"\
-	"..\Library\src\HTBind.h"\
-	"..\Library\src\HTChannl.h"\
-	"..\Library\src\HTChunk.h"\
-	"..\Library\src\HTDNS.h"\
-	"..\Library\src\HTError.h"\
-	"..\Library\src\HTEscape.h"\
-	"..\Library\src\HTEvent.h"\
-	"..\Library\src\HTFormat.h"\
-	"..\Library\src\HTFWrite.h"\
-	"..\Library\src\HTHost.h"\
-	"..\Library\src\HTHstMan.h"\
-	"..\Library\src\HTInet.h"\
-	"..\Library\src\HTIOStream.h"\
-	"..\Library\src\HTLib.h"\
-	"..\Library\src\HTLink.h"\
-	"..\Library\src\HTList.h"\
-	"..\Library\src\HTMemLog.h"\
-	"..\Library\src\HTMemory.h"\
-	"..\Library\src\HTMethod.h"\
-	"..\Library\src\HTNet.h"\
-	"..\Library\src\HTParse.h"\
-	"..\Library\src\HTProt.h"\
-	"..\Library\src\HTReq.h"\
-	"..\Library\src\HTResponse.h"\
-	"..\Library\src\HTStream.h"\
-	"..\Library\src\HTString.h"\
-	"..\Library\src\HTStruct.h"\
-	"..\Library\src\HTTimer.h"\
-	"..\Library\src\HTTrans.h"\
-	"..\Library\src\HTUser.h"\
-	"..\Library\src\HTUtils.h"\
-	"..\Library\src\HTUTree.h"\
-	"..\Library\src\HTUU.h"\
-	"..\Library\src\HTWWWStr.h"\
-	"..\Library\src\windows\config.h"\
-	"..\Library\src\WWWCore.h"\
-	"..\Library\src\WWWLib.h"\
-	"..\Library\src\wwwsys.h"\
-	"..\Library\src\WWWUtil.h"\
+	"..\library\external\regex.h"\
+	"..\library\src\htalert.h"\
+	"..\library\src\htanchor.h"\
+	"..\library\src\htarray.h"\
+	"..\library\src\htassoc.h"\
+	"..\library\src\htatom.h"\
+	"..\library\src\htbind.h"\
+	"..\library\src\htchannl.h"\
+	"..\library\src\htchunk.h"\
+	"..\library\src\htdns.h"\
+	"..\library\src\hterror.h"\
+	"..\library\src\htescape.h"\
+	"..\library\src\htevent.h"\
+	"..\library\src\htformat.h"\
+	"..\library\src\htfwrite.h"\
+	"..\library\src\hthost.h"\
+	"..\library\src\hthstman.h"\
+	"..\library\src\htinet.h"\
+	"..\library\src\htiostream.h"\
+	"..\library\src\htlib.h"\
+	"..\library\src\htlink.h"\
+	"..\library\src\htlist.h"\
+	"..\library\src\htmemlog.h"\
+	"..\library\src\htmemory.h"\
+	"..\library\src\htmethod.h"\
+	"..\library\src\htnet.h"\
+	"..\library\src\htparse.h"\
+	"..\library\src\htprot.h"\
+	"..\library\src\htreq.h"\
+	"..\library\src\htresponse.h"\
+	"..\library\src\htstream.h"\
+	"..\library\src\htstring.h"\
+	"..\library\src\htstruct.h"\
+	"..\library\src\httimer.h"\
+	"..\library\src\httrans.h"\
+	"..\library\src\htuser.h"\
+	"..\library\src\htutils.h"\
+	"..\library\src\htutree.h"\
+	"..\library\src\htuu.h"\
+	"..\library\src\htwwwstr.h"\
+	"..\library\src\windows\config.h"\
+	"..\library\src\wwwcore.h"\
+	"..\library\src\wwwlib.h"\
+	"..\library\src\wwwsys.h"\
+	"..\library\src\wwwutil.h"\
+	".\CacheSetup.h"\
 	".\EntityInfo.h"\
 	".\Links.h"\
 	".\LinkView.h"\
@@ -891,7 +625,7 @@ DEP_CPP_LINKV=\
 	{$(INCLUDE)}"sys\types.h"\
 	
 NODEP_CPP_LINKV=\
-	"..\Library\src\HTVMSUtils.h"\
+	"..\library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\LinkView.obj" : $(SOURCE) $(DEP_CPP_LINKV) "$(INTDIR)"
@@ -899,50 +633,50 @@ NODEP_CPP_LINKV=\
 
 SOURCE=.\Listvwex.cpp
 DEP_CPP_LISTV=\
-	"..\Library\External\regex.h"\
-	"..\Library\src\HTAlert.h"\
-	"..\Library\src\HTAnchor.h"\
-	"..\Library\src\HTArray.h"\
-	"..\Library\src\HTAssoc.h"\
-	"..\Library\src\HTAtom.h"\
-	"..\Library\src\HTBind.h"\
-	"..\Library\src\HTChannl.h"\
-	"..\Library\src\HTChunk.h"\
-	"..\Library\src\HTDNS.h"\
-	"..\Library\src\HTError.h"\
-	"..\Library\src\HTEscape.h"\
-	"..\Library\src\HTEvent.h"\
-	"..\Library\src\HTFormat.h"\
-	"..\Library\src\HTFWrite.h"\
-	"..\Library\src\HTHost.h"\
-	"..\Library\src\HTHstMan.h"\
-	"..\Library\src\HTInet.h"\
-	"..\Library\src\HTIOStream.h"\
-	"..\Library\src\HTLib.h"\
-	"..\Library\src\HTLink.h"\
-	"..\Library\src\HTList.h"\
-	"..\Library\src\HTMemLog.h"\
-	"..\Library\src\HTMemory.h"\
-	"..\Library\src\HTMethod.h"\
-	"..\Library\src\HTNet.h"\
-	"..\Library\src\HTParse.h"\
-	"..\Library\src\HTProt.h"\
-	"..\Library\src\HTReq.h"\
-	"..\Library\src\HTResponse.h"\
-	"..\Library\src\HTStream.h"\
-	"..\Library\src\HTString.h"\
-	"..\Library\src\HTStruct.h"\
-	"..\Library\src\HTTimer.h"\
-	"..\Library\src\HTTrans.h"\
-	"..\Library\src\HTUser.h"\
-	"..\Library\src\HTUtils.h"\
-	"..\Library\src\HTUTree.h"\
-	"..\Library\src\HTUU.h"\
-	"..\Library\src\HTWWWStr.h"\
-	"..\Library\src\windows\config.h"\
-	"..\Library\src\WWWCore.h"\
-	"..\Library\src\wwwsys.h"\
-	"..\Library\src\WWWUtil.h"\
+	"..\library\external\regex.h"\
+	"..\library\src\htalert.h"\
+	"..\library\src\htanchor.h"\
+	"..\library\src\htarray.h"\
+	"..\library\src\htassoc.h"\
+	"..\library\src\htatom.h"\
+	"..\library\src\htbind.h"\
+	"..\library\src\htchannl.h"\
+	"..\library\src\htchunk.h"\
+	"..\library\src\htdns.h"\
+	"..\library\src\hterror.h"\
+	"..\library\src\htescape.h"\
+	"..\library\src\htevent.h"\
+	"..\library\src\htformat.h"\
+	"..\library\src\htfwrite.h"\
+	"..\library\src\hthost.h"\
+	"..\library\src\hthstman.h"\
+	"..\library\src\htinet.h"\
+	"..\library\src\htiostream.h"\
+	"..\library\src\htlib.h"\
+	"..\library\src\htlink.h"\
+	"..\library\src\htlist.h"\
+	"..\library\src\htmemlog.h"\
+	"..\library\src\htmemory.h"\
+	"..\library\src\htmethod.h"\
+	"..\library\src\htnet.h"\
+	"..\library\src\htparse.h"\
+	"..\library\src\htprot.h"\
+	"..\library\src\htreq.h"\
+	"..\library\src\htresponse.h"\
+	"..\library\src\htstream.h"\
+	"..\library\src\htstring.h"\
+	"..\library\src\htstruct.h"\
+	"..\library\src\httimer.h"\
+	"..\library\src\httrans.h"\
+	"..\library\src\htuser.h"\
+	"..\library\src\htutils.h"\
+	"..\library\src\htutree.h"\
+	"..\library\src\htuu.h"\
+	"..\library\src\htwwwstr.h"\
+	"..\library\src\windows\config.h"\
+	"..\library\src\wwwcore.h"\
+	"..\library\src\wwwsys.h"\
+	"..\library\src\wwwutil.h"\
 	".\Links.h"\
 	".\LinkView.h"\
 	".\Listvwex.h"\
@@ -951,7 +685,7 @@ DEP_CPP_LISTV=\
 	{$(INCLUDE)}"sys\types.h"\
 	
 NODEP_CPP_LISTV=\
-	"..\Library\src\HTVMSUtils.h"\
+	"..\library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\Listvwex.obj" : $(SOURCE) $(DEP_CPP_LISTV) "$(INTDIR)"
@@ -959,51 +693,52 @@ NODEP_CPP_LISTV=\
 
 SOURCE=.\Load.cpp
 DEP_CPP_LOAD_=\
-	"..\Library\External\regex.h"\
-	"..\Library\src\HTAlert.h"\
-	"..\Library\src\HTAnchor.h"\
-	"..\Library\src\HTArray.h"\
-	"..\Library\src\HTAssoc.h"\
-	"..\Library\src\HTAtom.h"\
-	"..\Library\src\HTBind.h"\
-	"..\Library\src\HTChannl.h"\
-	"..\Library\src\HTChunk.h"\
-	"..\Library\src\HTDNS.h"\
-	"..\Library\src\HTError.h"\
-	"..\Library\src\HTEscape.h"\
-	"..\Library\src\HTEvent.h"\
-	"..\Library\src\HTFormat.h"\
-	"..\Library\src\HTFWrite.h"\
-	"..\Library\src\HTHost.h"\
-	"..\Library\src\HTHstMan.h"\
-	"..\Library\src\HTInet.h"\
-	"..\Library\src\HTIOStream.h"\
-	"..\Library\src\HTLib.h"\
-	"..\Library\src\HTLink.h"\
-	"..\Library\src\HTList.h"\
-	"..\Library\src\HTMemLog.h"\
-	"..\Library\src\HTMemory.h"\
-	"..\Library\src\HTMethod.h"\
-	"..\Library\src\HTNet.h"\
-	"..\Library\src\HTParse.h"\
-	"..\Library\src\HTProt.h"\
-	"..\Library\src\HTReq.h"\
-	"..\Library\src\HTResponse.h"\
-	"..\Library\src\HTStream.h"\
-	"..\Library\src\HTString.h"\
-	"..\Library\src\HTStruct.h"\
-	"..\Library\src\HTTimer.h"\
-	"..\Library\src\HTTrans.h"\
-	"..\Library\src\HTUser.h"\
-	"..\Library\src\HTUtils.h"\
-	"..\Library\src\HTUTree.h"\
-	"..\Library\src\HTUU.h"\
-	"..\Library\src\HTWWWStr.h"\
-	"..\Library\src\windows\config.h"\
-	"..\Library\src\WWWCore.h"\
-	"..\Library\src\WWWLib.h"\
-	"..\Library\src\wwwsys.h"\
-	"..\Library\src\WWWUtil.h"\
+	"..\library\external\regex.h"\
+	"..\library\src\htalert.h"\
+	"..\library\src\htanchor.h"\
+	"..\library\src\htarray.h"\
+	"..\library\src\htassoc.h"\
+	"..\library\src\htatom.h"\
+	"..\library\src\htbind.h"\
+	"..\library\src\htchannl.h"\
+	"..\library\src\htchunk.h"\
+	"..\library\src\htdns.h"\
+	"..\library\src\hterror.h"\
+	"..\library\src\htescape.h"\
+	"..\library\src\htevent.h"\
+	"..\library\src\htformat.h"\
+	"..\library\src\htfwrite.h"\
+	"..\library\src\hthost.h"\
+	"..\library\src\hthstman.h"\
+	"..\library\src\htinet.h"\
+	"..\library\src\htiostream.h"\
+	"..\library\src\htlib.h"\
+	"..\library\src\htlink.h"\
+	"..\library\src\htlist.h"\
+	"..\library\src\htmemlog.h"\
+	"..\library\src\htmemory.h"\
+	"..\library\src\htmethod.h"\
+	"..\library\src\htnet.h"\
+	"..\library\src\htparse.h"\
+	"..\library\src\htprot.h"\
+	"..\library\src\htreq.h"\
+	"..\library\src\htresponse.h"\
+	"..\library\src\htstream.h"\
+	"..\library\src\htstring.h"\
+	"..\library\src\htstruct.h"\
+	"..\library\src\httimer.h"\
+	"..\library\src\httrans.h"\
+	"..\library\src\htuser.h"\
+	"..\library\src\htutils.h"\
+	"..\library\src\htutree.h"\
+	"..\library\src\htuu.h"\
+	"..\library\src\htwwwstr.h"\
+	"..\library\src\windows\config.h"\
+	"..\library\src\wwwcore.h"\
+	"..\library\src\wwwlib.h"\
+	"..\library\src\wwwsys.h"\
+	"..\library\src\wwwutil.h"\
+	".\CacheSetup.h"\
 	".\EntityInfo.h"\
 	".\Links.h"\
 	".\LinkView.h"\
@@ -1021,7 +756,7 @@ DEP_CPP_LOAD_=\
 	{$(INCLUDE)}"sys\types.h"\
 	
 NODEP_CPP_LOAD_=\
-	"..\Library\src\HTVMSUtils.h"\
+	"..\library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\Load.obj" : $(SOURCE) $(DEP_CPP_LOAD_) "$(INTDIR)"
@@ -1029,51 +764,52 @@ NODEP_CPP_LOAD_=\
 
 SOURCE=.\Location.cpp
 DEP_CPP_LOCAT=\
-	"..\Library\External\regex.h"\
-	"..\Library\src\HTAlert.h"\
-	"..\Library\src\HTAnchor.h"\
-	"..\Library\src\HTArray.h"\
-	"..\Library\src\HTAssoc.h"\
-	"..\Library\src\HTAtom.h"\
-	"..\Library\src\HTBind.h"\
-	"..\Library\src\HTChannl.h"\
-	"..\Library\src\HTChunk.h"\
-	"..\Library\src\HTDNS.h"\
-	"..\Library\src\HTError.h"\
-	"..\Library\src\HTEscape.h"\
-	"..\Library\src\HTEvent.h"\
-	"..\Library\src\HTFormat.h"\
-	"..\Library\src\HTFWrite.h"\
-	"..\Library\src\HTHost.h"\
-	"..\Library\src\HTHstMan.h"\
-	"..\Library\src\HTInet.h"\
-	"..\Library\src\HTIOStream.h"\
-	"..\Library\src\HTLib.h"\
-	"..\Library\src\HTLink.h"\
-	"..\Library\src\HTList.h"\
-	"..\Library\src\HTMemLog.h"\
-	"..\Library\src\HTMemory.h"\
-	"..\Library\src\HTMethod.h"\
-	"..\Library\src\HTNet.h"\
-	"..\Library\src\HTParse.h"\
-	"..\Library\src\HTProt.h"\
-	"..\Library\src\HTReq.h"\
-	"..\Library\src\HTResponse.h"\
-	"..\Library\src\HTStream.h"\
-	"..\Library\src\HTString.h"\
-	"..\Library\src\HTStruct.h"\
-	"..\Library\src\HTTimer.h"\
-	"..\Library\src\HTTrans.h"\
-	"..\Library\src\HTUser.h"\
-	"..\Library\src\HTUtils.h"\
-	"..\Library\src\HTUTree.h"\
-	"..\Library\src\HTUU.h"\
-	"..\Library\src\HTWWWStr.h"\
-	"..\Library\src\windows\config.h"\
-	"..\Library\src\WWWCore.h"\
-	"..\Library\src\WWWLib.h"\
-	"..\Library\src\wwwsys.h"\
-	"..\Library\src\WWWUtil.h"\
+	"..\library\external\regex.h"\
+	"..\library\src\htalert.h"\
+	"..\library\src\htanchor.h"\
+	"..\library\src\htarray.h"\
+	"..\library\src\htassoc.h"\
+	"..\library\src\htatom.h"\
+	"..\library\src\htbind.h"\
+	"..\library\src\htchannl.h"\
+	"..\library\src\htchunk.h"\
+	"..\library\src\htdns.h"\
+	"..\library\src\hterror.h"\
+	"..\library\src\htescape.h"\
+	"..\library\src\htevent.h"\
+	"..\library\src\htformat.h"\
+	"..\library\src\htfwrite.h"\
+	"..\library\src\hthost.h"\
+	"..\library\src\hthstman.h"\
+	"..\library\src\htinet.h"\
+	"..\library\src\htiostream.h"\
+	"..\library\src\htlib.h"\
+	"..\library\src\htlink.h"\
+	"..\library\src\htlist.h"\
+	"..\library\src\htmemlog.h"\
+	"..\library\src\htmemory.h"\
+	"..\library\src\htmethod.h"\
+	"..\library\src\htnet.h"\
+	"..\library\src\htparse.h"\
+	"..\library\src\htprot.h"\
+	"..\library\src\htreq.h"\
+	"..\library\src\htresponse.h"\
+	"..\library\src\htstream.h"\
+	"..\library\src\htstring.h"\
+	"..\library\src\htstruct.h"\
+	"..\library\src\httimer.h"\
+	"..\library\src\httrans.h"\
+	"..\library\src\htuser.h"\
+	"..\library\src\htutils.h"\
+	"..\library\src\htutree.h"\
+	"..\library\src\htuu.h"\
+	"..\library\src\htwwwstr.h"\
+	"..\library\src\windows\config.h"\
+	"..\library\src\wwwcore.h"\
+	"..\library\src\wwwlib.h"\
+	"..\library\src\wwwsys.h"\
+	"..\library\src\wwwutil.h"\
+	".\CacheSetup.h"\
 	".\EntityInfo.h"\
 	".\Links.h"\
 	".\LinkView.h"\
@@ -1091,7 +827,7 @@ DEP_CPP_LOCAT=\
 	{$(INCLUDE)}"sys\types.h"\
 	
 NODEP_CPP_LOCAT=\
-	"..\Library\src\HTVMSUtils.h"\
+	"..\library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\Location.obj" : $(SOURCE) $(DEP_CPP_LOCAT) "$(INTDIR)"
@@ -1099,51 +835,52 @@ NODEP_CPP_LOCAT=\
 
 SOURCE=.\MainFrm.cpp
 DEP_CPP_MAINF=\
-	"..\Library\External\regex.h"\
-	"..\Library\src\HTAlert.h"\
-	"..\Library\src\HTAnchor.h"\
-	"..\Library\src\HTArray.h"\
-	"..\Library\src\HTAssoc.h"\
-	"..\Library\src\HTAtom.h"\
-	"..\Library\src\HTBind.h"\
-	"..\Library\src\HTChannl.h"\
-	"..\Library\src\HTChunk.h"\
-	"..\Library\src\HTDNS.h"\
-	"..\Library\src\HTError.h"\
-	"..\Library\src\HTEscape.h"\
-	"..\Library\src\HTEvent.h"\
-	"..\Library\src\HTFormat.h"\
-	"..\Library\src\HTFWrite.h"\
-	"..\Library\src\HTHost.h"\
-	"..\Library\src\HTHstMan.h"\
-	"..\Library\src\HTInet.h"\
-	"..\Library\src\HTIOStream.h"\
-	"..\Library\src\HTLib.h"\
-	"..\Library\src\HTLink.h"\
-	"..\Library\src\HTList.h"\
-	"..\Library\src\HTMemLog.h"\
-	"..\Library\src\HTMemory.h"\
-	"..\Library\src\HTMethod.h"\
-	"..\Library\src\HTNet.h"\
-	"..\Library\src\HTParse.h"\
-	"..\Library\src\HTProt.h"\
-	"..\Library\src\HTReq.h"\
-	"..\Library\src\HTResponse.h"\
-	"..\Library\src\HTStream.h"\
-	"..\Library\src\HTString.h"\
-	"..\Library\src\HTStruct.h"\
-	"..\Library\src\HTTimer.h"\
-	"..\Library\src\HTTrans.h"\
-	"..\Library\src\HTUser.h"\
-	"..\Library\src\HTUtils.h"\
-	"..\Library\src\HTUTree.h"\
-	"..\Library\src\HTUU.h"\
-	"..\Library\src\HTWWWStr.h"\
-	"..\Library\src\windows\config.h"\
-	"..\Library\src\WWWCore.h"\
-	"..\Library\src\WWWLib.h"\
-	"..\Library\src\wwwsys.h"\
-	"..\Library\src\WWWUtil.h"\
+	"..\library\external\regex.h"\
+	"..\library\src\htalert.h"\
+	"..\library\src\htanchor.h"\
+	"..\library\src\htarray.h"\
+	"..\library\src\htassoc.h"\
+	"..\library\src\htatom.h"\
+	"..\library\src\htbind.h"\
+	"..\library\src\htchannl.h"\
+	"..\library\src\htchunk.h"\
+	"..\library\src\htdns.h"\
+	"..\library\src\hterror.h"\
+	"..\library\src\htescape.h"\
+	"..\library\src\htevent.h"\
+	"..\library\src\htformat.h"\
+	"..\library\src\htfwrite.h"\
+	"..\library\src\hthost.h"\
+	"..\library\src\hthstman.h"\
+	"..\library\src\htinet.h"\
+	"..\library\src\htiostream.h"\
+	"..\library\src\htlib.h"\
+	"..\library\src\htlink.h"\
+	"..\library\src\htlist.h"\
+	"..\library\src\htmemlog.h"\
+	"..\library\src\htmemory.h"\
+	"..\library\src\htmethod.h"\
+	"..\library\src\htnet.h"\
+	"..\library\src\htparse.h"\
+	"..\library\src\htprot.h"\
+	"..\library\src\htreq.h"\
+	"..\library\src\htresponse.h"\
+	"..\library\src\htstream.h"\
+	"..\library\src\htstring.h"\
+	"..\library\src\htstruct.h"\
+	"..\library\src\httimer.h"\
+	"..\library\src\httrans.h"\
+	"..\library\src\htuser.h"\
+	"..\library\src\htutils.h"\
+	"..\library\src\htutree.h"\
+	"..\library\src\htuu.h"\
+	"..\library\src\htwwwstr.h"\
+	"..\library\src\windows\config.h"\
+	"..\library\src\wwwcore.h"\
+	"..\library\src\wwwlib.h"\
+	"..\library\src\wwwsys.h"\
+	"..\library\src\wwwutil.h"\
+	".\CacheSetup.h"\
 	".\EntityInfo.h"\
 	".\Links.h"\
 	".\LinkView.h"\
@@ -1160,7 +897,7 @@ DEP_CPP_MAINF=\
 	{$(INCLUDE)}"sys\types.h"\
 	
 NODEP_CPP_MAINF=\
-	"..\Library\src\HTVMSUtils.h"\
+	"..\library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\MainFrm.obj" : $(SOURCE) $(DEP_CPP_MAINF) "$(INTDIR)"
@@ -1168,51 +905,52 @@ NODEP_CPP_MAINF=\
 
 SOURCE=.\Password.cpp
 DEP_CPP_PASSW=\
-	"..\Library\External\regex.h"\
-	"..\Library\src\HTAlert.h"\
-	"..\Library\src\HTAnchor.h"\
-	"..\Library\src\HTArray.h"\
-	"..\Library\src\HTAssoc.h"\
-	"..\Library\src\HTAtom.h"\
-	"..\Library\src\HTBind.h"\
-	"..\Library\src\HTChannl.h"\
-	"..\Library\src\HTChunk.h"\
-	"..\Library\src\HTDNS.h"\
-	"..\Library\src\HTError.h"\
-	"..\Library\src\HTEscape.h"\
-	"..\Library\src\HTEvent.h"\
-	"..\Library\src\HTFormat.h"\
-	"..\Library\src\HTFWrite.h"\
-	"..\Library\src\HTHost.h"\
-	"..\Library\src\HTHstMan.h"\
-	"..\Library\src\HTInet.h"\
-	"..\Library\src\HTIOStream.h"\
-	"..\Library\src\HTLib.h"\
-	"..\Library\src\HTLink.h"\
-	"..\Library\src\HTList.h"\
-	"..\Library\src\HTMemLog.h"\
-	"..\Library\src\HTMemory.h"\
-	"..\Library\src\HTMethod.h"\
-	"..\Library\src\HTNet.h"\
-	"..\Library\src\HTParse.h"\
-	"..\Library\src\HTProt.h"\
-	"..\Library\src\HTReq.h"\
-	"..\Library\src\HTResponse.h"\
-	"..\Library\src\HTStream.h"\
-	"..\Library\src\HTString.h"\
-	"..\Library\src\HTStruct.h"\
-	"..\Library\src\HTTimer.h"\
-	"..\Library\src\HTTrans.h"\
-	"..\Library\src\HTUser.h"\
-	"..\Library\src\HTUtils.h"\
-	"..\Library\src\HTUTree.h"\
-	"..\Library\src\HTUU.h"\
-	"..\Library\src\HTWWWStr.h"\
-	"..\Library\src\windows\config.h"\
-	"..\Library\src\WWWCore.h"\
-	"..\Library\src\WWWLib.h"\
-	"..\Library\src\wwwsys.h"\
-	"..\Library\src\WWWUtil.h"\
+	"..\library\external\regex.h"\
+	"..\library\src\htalert.h"\
+	"..\library\src\htanchor.h"\
+	"..\library\src\htarray.h"\
+	"..\library\src\htassoc.h"\
+	"..\library\src\htatom.h"\
+	"..\library\src\htbind.h"\
+	"..\library\src\htchannl.h"\
+	"..\library\src\htchunk.h"\
+	"..\library\src\htdns.h"\
+	"..\library\src\hterror.h"\
+	"..\library\src\htescape.h"\
+	"..\library\src\htevent.h"\
+	"..\library\src\htformat.h"\
+	"..\library\src\htfwrite.h"\
+	"..\library\src\hthost.h"\
+	"..\library\src\hthstman.h"\
+	"..\library\src\htinet.h"\
+	"..\library\src\htiostream.h"\
+	"..\library\src\htlib.h"\
+	"..\library\src\htlink.h"\
+	"..\library\src\htlist.h"\
+	"..\library\src\htmemlog.h"\
+	"..\library\src\htmemory.h"\
+	"..\library\src\htmethod.h"\
+	"..\library\src\htnet.h"\
+	"..\library\src\htparse.h"\
+	"..\library\src\htprot.h"\
+	"..\library\src\htreq.h"\
+	"..\library\src\htresponse.h"\
+	"..\library\src\htstream.h"\
+	"..\library\src\htstring.h"\
+	"..\library\src\htstruct.h"\
+	"..\library\src\httimer.h"\
+	"..\library\src\httrans.h"\
+	"..\library\src\htuser.h"\
+	"..\library\src\htutils.h"\
+	"..\library\src\htutree.h"\
+	"..\library\src\htuu.h"\
+	"..\library\src\htwwwstr.h"\
+	"..\library\src\windows\config.h"\
+	"..\library\src\wwwcore.h"\
+	"..\library\src\wwwlib.h"\
+	"..\library\src\wwwsys.h"\
+	"..\library\src\wwwutil.h"\
+	".\CacheSetup.h"\
 	".\EntityInfo.h"\
 	".\Links.h"\
 	".\LinkView.h"\
@@ -1230,7 +968,7 @@ DEP_CPP_PASSW=\
 	{$(INCLUDE)}"sys\types.h"\
 	
 NODEP_CPP_PASSW=\
-	"..\Library\src\HTVMSUtils.h"\
+	"..\library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\Password.obj" : $(SOURCE) $(DEP_CPP_PASSW) "$(INTDIR)"
@@ -1238,51 +976,52 @@ NODEP_CPP_PASSW=\
 
 SOURCE=.\Progress.cpp
 DEP_CPP_PROGR=\
-	"..\Library\External\regex.h"\
-	"..\Library\src\HTAlert.h"\
-	"..\Library\src\HTAnchor.h"\
-	"..\Library\src\HTArray.h"\
-	"..\Library\src\HTAssoc.h"\
-	"..\Library\src\HTAtom.h"\
-	"..\Library\src\HTBind.h"\
-	"..\Library\src\HTChannl.h"\
-	"..\Library\src\HTChunk.h"\
-	"..\Library\src\HTDNS.h"\
-	"..\Library\src\HTError.h"\
-	"..\Library\src\HTEscape.h"\
-	"..\Library\src\HTEvent.h"\
-	"..\Library\src\HTFormat.h"\
-	"..\Library\src\HTFWrite.h"\
-	"..\Library\src\HTHost.h"\
-	"..\Library\src\HTHstMan.h"\
-	"..\Library\src\HTInet.h"\
-	"..\Library\src\HTIOStream.h"\
-	"..\Library\src\HTLib.h"\
-	"..\Library\src\HTLink.h"\
-	"..\Library\src\HTList.h"\
-	"..\Library\src\HTMemLog.h"\
-	"..\Library\src\HTMemory.h"\
-	"..\Library\src\HTMethod.h"\
-	"..\Library\src\HTNet.h"\
-	"..\Library\src\HTParse.h"\
-	"..\Library\src\HTProt.h"\
-	"..\Library\src\HTReq.h"\
-	"..\Library\src\HTResponse.h"\
-	"..\Library\src\HTStream.h"\
-	"..\Library\src\HTString.h"\
-	"..\Library\src\HTStruct.h"\
-	"..\Library\src\HTTimer.h"\
-	"..\Library\src\HTTrans.h"\
-	"..\Library\src\HTUser.h"\
-	"..\Library\src\HTUtils.h"\
-	"..\Library\src\HTUTree.h"\
-	"..\Library\src\HTUU.h"\
-	"..\Library\src\HTWWWStr.h"\
-	"..\Library\src\windows\config.h"\
-	"..\Library\src\WWWCore.h"\
-	"..\Library\src\WWWLib.h"\
-	"..\Library\src\wwwsys.h"\
-	"..\Library\src\WWWUtil.h"\
+	"..\library\external\regex.h"\
+	"..\library\src\htalert.h"\
+	"..\library\src\htanchor.h"\
+	"..\library\src\htarray.h"\
+	"..\library\src\htassoc.h"\
+	"..\library\src\htatom.h"\
+	"..\library\src\htbind.h"\
+	"..\library\src\htchannl.h"\
+	"..\library\src\htchunk.h"\
+	"..\library\src\htdns.h"\
+	"..\library\src\hterror.h"\
+	"..\library\src\htescape.h"\
+	"..\library\src\htevent.h"\
+	"..\library\src\htformat.h"\
+	"..\library\src\htfwrite.h"\
+	"..\library\src\hthost.h"\
+	"..\library\src\hthstman.h"\
+	"..\library\src\htinet.h"\
+	"..\library\src\htiostream.h"\
+	"..\library\src\htlib.h"\
+	"..\library\src\htlink.h"\
+	"..\library\src\htlist.h"\
+	"..\library\src\htmemlog.h"\
+	"..\library\src\htmemory.h"\
+	"..\library\src\htmethod.h"\
+	"..\library\src\htnet.h"\
+	"..\library\src\htparse.h"\
+	"..\library\src\htprot.h"\
+	"..\library\src\htreq.h"\
+	"..\library\src\htresponse.h"\
+	"..\library\src\htstream.h"\
+	"..\library\src\htstring.h"\
+	"..\library\src\htstruct.h"\
+	"..\library\src\httimer.h"\
+	"..\library\src\httrans.h"\
+	"..\library\src\htuser.h"\
+	"..\library\src\htutils.h"\
+	"..\library\src\htutree.h"\
+	"..\library\src\htuu.h"\
+	"..\library\src\htwwwstr.h"\
+	"..\library\src\windows\config.h"\
+	"..\library\src\wwwcore.h"\
+	"..\library\src\wwwlib.h"\
+	"..\library\src\wwwsys.h"\
+	"..\library\src\wwwutil.h"\
+	".\CacheSetup.h"\
 	".\EntityInfo.h"\
 	".\Links.h"\
 	".\LinkView.h"\
@@ -1298,7 +1037,7 @@ DEP_CPP_PROGR=\
 	{$(INCLUDE)}"sys\types.h"\
 	
 NODEP_CPP_PROGR=\
-	"..\Library\src\HTVMSUtils.h"\
+	"..\library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\Progress.obj" : $(SOURCE) $(DEP_CPP_PROGR) "$(INTDIR)"
@@ -1306,61 +1045,62 @@ NODEP_CPP_PROGR=\
 
 SOURCE=.\ProxySetup.cpp
 DEP_CPP_PROXY=\
-	"..\Library\External\regex.h"\
-	"..\Library\src\HTAccess.h"\
-	"..\Library\src\HTAlert.h"\
-	"..\Library\src\HTAnchor.h"\
-	"..\Library\src\HTArray.h"\
-	"..\Library\src\HTAssoc.h"\
-	"..\Library\src\HTAtom.h"\
-	"..\Library\src\HTBind.h"\
-	"..\Library\src\HTChannl.h"\
-	"..\Library\src\HTChunk.h"\
-	"..\Library\src\HTDialog.h"\
-	"..\Library\src\HTDNS.h"\
-	"..\Library\src\HTError.h"\
-	"..\Library\src\HTEscape.h"\
-	"..\Library\src\HTEvent.h"\
-	"..\Library\src\HTEvtLst.h"\
-	"..\Library\src\HTFilter.h"\
-	"..\Library\src\HTFormat.h"\
-	"..\Library\src\HTFWrite.h"\
-	"..\Library\src\HTHist.h"\
-	"..\Library\src\HTHome.h"\
-	"..\Library\src\HTHost.h"\
-	"..\Library\src\HTHstMan.h"\
-	"..\Library\src\HTInet.h"\
-	"..\Library\src\HTIOStream.h"\
-	"..\Library\src\HTLib.h"\
-	"..\Library\src\HTLink.h"\
-	"..\Library\src\HTList.h"\
-	"..\Library\src\HTLog.h"\
-	"..\Library\src\HTMemLog.h"\
-	"..\Library\src\HTMemory.h"\
-	"..\Library\src\HTMethod.h"\
-	"..\Library\src\HTNet.h"\
-	"..\Library\src\HTParse.h"\
-	"..\Library\src\HTProt.h"\
-	"..\Library\src\HTProxy.h"\
-	"..\Library\src\HTReq.h"\
-	"..\Library\src\HTResponse.h"\
-	"..\Library\src\HTRules.h"\
-	"..\Library\src\HTStream.h"\
-	"..\Library\src\HTString.h"\
-	"..\Library\src\HTStruct.h"\
-	"..\Library\src\HTTimer.h"\
-	"..\Library\src\HTTrans.h"\
-	"..\Library\src\HTUser.h"\
-	"..\Library\src\HTUtils.h"\
-	"..\Library\src\HTUTree.h"\
-	"..\Library\src\HTUU.h"\
-	"..\Library\src\HTWWWStr.h"\
-	"..\Library\src\windows\config.h"\
-	"..\Library\src\WWWApp.h"\
-	"..\Library\src\WWWCore.h"\
-	"..\Library\src\WWWLib.h"\
-	"..\Library\src\wwwsys.h"\
-	"..\Library\src\WWWUtil.h"\
+	"..\library\external\regex.h"\
+	"..\library\src\htaccess.h"\
+	"..\library\src\htalert.h"\
+	"..\library\src\htanchor.h"\
+	"..\library\src\htarray.h"\
+	"..\library\src\htassoc.h"\
+	"..\library\src\htatom.h"\
+	"..\library\src\htbind.h"\
+	"..\library\src\htchannl.h"\
+	"..\library\src\htchunk.h"\
+	"..\library\src\htdialog.h"\
+	"..\library\src\htdns.h"\
+	"..\library\src\hterror.h"\
+	"..\library\src\htescape.h"\
+	"..\library\src\htevent.h"\
+	"..\library\src\htevtlst.h"\
+	"..\library\src\htfilter.h"\
+	"..\library\src\htformat.h"\
+	"..\library\src\htfwrite.h"\
+	"..\library\src\hthist.h"\
+	"..\library\src\hthome.h"\
+	"..\library\src\hthost.h"\
+	"..\library\src\hthstman.h"\
+	"..\library\src\htinet.h"\
+	"..\library\src\htiostream.h"\
+	"..\library\src\htlib.h"\
+	"..\library\src\htlink.h"\
+	"..\library\src\htlist.h"\
+	"..\library\src\htlog.h"\
+	"..\library\src\htmemlog.h"\
+	"..\library\src\htmemory.h"\
+	"..\library\src\htmethod.h"\
+	"..\library\src\htnet.h"\
+	"..\library\src\htparse.h"\
+	"..\library\src\htprot.h"\
+	"..\library\src\htproxy.h"\
+	"..\library\src\htreq.h"\
+	"..\library\src\htresponse.h"\
+	"..\library\src\htrules.h"\
+	"..\library\src\htstream.h"\
+	"..\library\src\htstring.h"\
+	"..\library\src\htstruct.h"\
+	"..\library\src\httimer.h"\
+	"..\library\src\httrans.h"\
+	"..\library\src\htuser.h"\
+	"..\library\src\htutils.h"\
+	"..\library\src\htutree.h"\
+	"..\library\src\htuu.h"\
+	"..\library\src\htwwwstr.h"\
+	"..\library\src\windows\config.h"\
+	"..\library\src\wwwapp.h"\
+	"..\library\src\wwwcore.h"\
+	"..\library\src\wwwlib.h"\
+	"..\library\src\wwwsys.h"\
+	"..\library\src\wwwutil.h"\
+	".\CacheSetup.h"\
 	".\EntityInfo.h"\
 	".\Links.h"\
 	".\LinkView.h"\
@@ -1376,7 +1116,7 @@ DEP_CPP_PROXY=\
 	{$(INCLUDE)}"sys\types.h"\
 	
 NODEP_CPP_PROXY=\
-	"..\Library\src\HTVMSUtils.h"\
+	"..\library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\ProxySetup.obj" : $(SOURCE) $(DEP_CPP_PROXY) "$(INTDIR)"
@@ -1384,61 +1124,62 @@ NODEP_CPP_PROXY=\
 
 SOURCE=.\Request.cpp
 DEP_CPP_REQUE=\
-	"..\Library\External\regex.h"\
-	"..\Library\src\HTAccess.h"\
-	"..\Library\src\HTAlert.h"\
-	"..\Library\src\HTAnchor.h"\
-	"..\Library\src\HTArray.h"\
-	"..\Library\src\HTAssoc.h"\
-	"..\Library\src\HTAtom.h"\
-	"..\Library\src\HTBind.h"\
-	"..\Library\src\HTChannl.h"\
-	"..\Library\src\HTChunk.h"\
-	"..\Library\src\HTDialog.h"\
-	"..\Library\src\HTDNS.h"\
-	"..\Library\src\HTError.h"\
-	"..\Library\src\HTEscape.h"\
-	"..\Library\src\HTEvent.h"\
-	"..\Library\src\HTEvtLst.h"\
-	"..\Library\src\HTFilter.h"\
-	"..\Library\src\HTFormat.h"\
-	"..\Library\src\HTFWrite.h"\
-	"..\Library\src\HTHist.h"\
-	"..\Library\src\HTHome.h"\
-	"..\Library\src\HTHost.h"\
-	"..\Library\src\HTHstMan.h"\
-	"..\Library\src\HTInet.h"\
-	"..\Library\src\HTIOStream.h"\
-	"..\Library\src\HTLib.h"\
-	"..\Library\src\HTLink.h"\
-	"..\Library\src\HTList.h"\
-	"..\Library\src\HTLog.h"\
-	"..\Library\src\HTMemLog.h"\
-	"..\Library\src\HTMemory.h"\
-	"..\Library\src\HTMethod.h"\
-	"..\Library\src\HTNet.h"\
-	"..\Library\src\HTParse.h"\
-	"..\Library\src\HTProt.h"\
-	"..\Library\src\HTProxy.h"\
-	"..\Library\src\HTReq.h"\
-	"..\Library\src\HTResponse.h"\
-	"..\Library\src\HTRules.h"\
-	"..\Library\src\HTStream.h"\
-	"..\Library\src\HTString.h"\
-	"..\Library\src\HTStruct.h"\
-	"..\Library\src\HTTimer.h"\
-	"..\Library\src\HTTrans.h"\
-	"..\Library\src\HTUser.h"\
-	"..\Library\src\HTUtils.h"\
-	"..\Library\src\HTUTree.h"\
-	"..\Library\src\HTUU.h"\
-	"..\Library\src\HTWWWStr.h"\
-	"..\Library\src\windows\config.h"\
-	"..\Library\src\WWWApp.h"\
-	"..\Library\src\WWWCore.h"\
-	"..\Library\src\WWWLib.h"\
-	"..\Library\src\wwwsys.h"\
-	"..\Library\src\WWWUtil.h"\
+	"..\library\external\regex.h"\
+	"..\library\src\htaccess.h"\
+	"..\library\src\htalert.h"\
+	"..\library\src\htanchor.h"\
+	"..\library\src\htarray.h"\
+	"..\library\src\htassoc.h"\
+	"..\library\src\htatom.h"\
+	"..\library\src\htbind.h"\
+	"..\library\src\htchannl.h"\
+	"..\library\src\htchunk.h"\
+	"..\library\src\htdialog.h"\
+	"..\library\src\htdns.h"\
+	"..\library\src\hterror.h"\
+	"..\library\src\htescape.h"\
+	"..\library\src\htevent.h"\
+	"..\library\src\htevtlst.h"\
+	"..\library\src\htfilter.h"\
+	"..\library\src\htformat.h"\
+	"..\library\src\htfwrite.h"\
+	"..\library\src\hthist.h"\
+	"..\library\src\hthome.h"\
+	"..\library\src\hthost.h"\
+	"..\library\src\hthstman.h"\
+	"..\library\src\htinet.h"\
+	"..\library\src\htiostream.h"\
+	"..\library\src\htlib.h"\
+	"..\library\src\htlink.h"\
+	"..\library\src\htlist.h"\
+	"..\library\src\htlog.h"\
+	"..\library\src\htmemlog.h"\
+	"..\library\src\htmemory.h"\
+	"..\library\src\htmethod.h"\
+	"..\library\src\htnet.h"\
+	"..\library\src\htparse.h"\
+	"..\library\src\htprot.h"\
+	"..\library\src\htproxy.h"\
+	"..\library\src\htreq.h"\
+	"..\library\src\htresponse.h"\
+	"..\library\src\htrules.h"\
+	"..\library\src\htstream.h"\
+	"..\library\src\htstring.h"\
+	"..\library\src\htstruct.h"\
+	"..\library\src\httimer.h"\
+	"..\library\src\httrans.h"\
+	"..\library\src\htuser.h"\
+	"..\library\src\htutils.h"\
+	"..\library\src\htutree.h"\
+	"..\library\src\htuu.h"\
+	"..\library\src\htwwwstr.h"\
+	"..\library\src\windows\config.h"\
+	"..\library\src\wwwapp.h"\
+	"..\library\src\wwwcore.h"\
+	"..\library\src\wwwlib.h"\
+	"..\library\src\wwwsys.h"\
+	"..\library\src\wwwutil.h"\
+	".\CacheSetup.h"\
 	".\EntityInfo.h"\
 	".\Links.h"\
 	".\LinkView.h"\
@@ -1455,7 +1196,7 @@ DEP_CPP_REQUE=\
 	{$(INCLUDE)}"sys\types.h"\
 	
 NODEP_CPP_REQUE=\
-	"..\Library\src\HTVMSUtils.h"\
+	"..\library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\Request.obj" : $(SOURCE) $(DEP_CPP_REQUE) "$(INTDIR)"
@@ -1498,51 +1239,52 @@ CPP_SWITCHES=/nologo /MDd /W3 /Gm /GX /Zi /Od /I "..\Library\src" /I\
 
 SOURCE=.\TabsView.cpp
 DEP_CPP_TABSV=\
-	"..\Library\External\regex.h"\
-	"..\Library\src\HTAlert.h"\
-	"..\Library\src\HTAnchor.h"\
-	"..\Library\src\HTArray.h"\
-	"..\Library\src\HTAssoc.h"\
-	"..\Library\src\HTAtom.h"\
-	"..\Library\src\HTBind.h"\
-	"..\Library\src\HTChannl.h"\
-	"..\Library\src\HTChunk.h"\
-	"..\Library\src\HTDNS.h"\
-	"..\Library\src\HTError.h"\
-	"..\Library\src\HTEscape.h"\
-	"..\Library\src\HTEvent.h"\
-	"..\Library\src\HTFormat.h"\
-	"..\Library\src\HTFWrite.h"\
-	"..\Library\src\HTHost.h"\
-	"..\Library\src\HTHstMan.h"\
-	"..\Library\src\HTInet.h"\
-	"..\Library\src\HTIOStream.h"\
-	"..\Library\src\HTLib.h"\
-	"..\Library\src\HTLink.h"\
-	"..\Library\src\HTList.h"\
-	"..\Library\src\HTMemLog.h"\
-	"..\Library\src\HTMemory.h"\
-	"..\Library\src\HTMethod.h"\
-	"..\Library\src\HTNet.h"\
-	"..\Library\src\HTParse.h"\
-	"..\Library\src\HTProt.h"\
-	"..\Library\src\HTReq.h"\
-	"..\Library\src\HTResponse.h"\
-	"..\Library\src\HTStream.h"\
-	"..\Library\src\HTString.h"\
-	"..\Library\src\HTStruct.h"\
-	"..\Library\src\HTTimer.h"\
-	"..\Library\src\HTTrans.h"\
-	"..\Library\src\HTUser.h"\
-	"..\Library\src\HTUtils.h"\
-	"..\Library\src\HTUTree.h"\
-	"..\Library\src\HTUU.h"\
-	"..\Library\src\HTWWWStr.h"\
-	"..\Library\src\windows\config.h"\
-	"..\Library\src\WWWCore.h"\
-	"..\Library\src\WWWLib.h"\
-	"..\Library\src\wwwsys.h"\
-	"..\Library\src\WWWUtil.h"\
+	"..\library\external\regex.h"\
+	"..\library\src\htalert.h"\
+	"..\library\src\htanchor.h"\
+	"..\library\src\htarray.h"\
+	"..\library\src\htassoc.h"\
+	"..\library\src\htatom.h"\
+	"..\library\src\htbind.h"\
+	"..\library\src\htchannl.h"\
+	"..\library\src\htchunk.h"\
+	"..\library\src\htdns.h"\
+	"..\library\src\hterror.h"\
+	"..\library\src\htescape.h"\
+	"..\library\src\htevent.h"\
+	"..\library\src\htformat.h"\
+	"..\library\src\htfwrite.h"\
+	"..\library\src\hthost.h"\
+	"..\library\src\hthstman.h"\
+	"..\library\src\htinet.h"\
+	"..\library\src\htiostream.h"\
+	"..\library\src\htlib.h"\
+	"..\library\src\htlink.h"\
+	"..\library\src\htlist.h"\
+	"..\library\src\htmemlog.h"\
+	"..\library\src\htmemory.h"\
+	"..\library\src\htmethod.h"\
+	"..\library\src\htnet.h"\
+	"..\library\src\htparse.h"\
+	"..\library\src\htprot.h"\
+	"..\library\src\htreq.h"\
+	"..\library\src\htresponse.h"\
+	"..\library\src\htstream.h"\
+	"..\library\src\htstring.h"\
+	"..\library\src\htstruct.h"\
+	"..\library\src\httimer.h"\
+	"..\library\src\httrans.h"\
+	"..\library\src\htuser.h"\
+	"..\library\src\htutils.h"\
+	"..\library\src\htutree.h"\
+	"..\library\src\htuu.h"\
+	"..\library\src\htwwwstr.h"\
+	"..\library\src\windows\config.h"\
+	"..\library\src\wwwcore.h"\
+	"..\library\src\wwwlib.h"\
+	"..\library\src\wwwsys.h"\
+	"..\library\src\wwwutil.h"\
+	".\CacheSetup.h"\
 	".\EntityInfo.h"\
 	".\Links.h"\
 	".\LinkView.h"\
@@ -1559,7 +1301,7 @@ DEP_CPP_TABSV=\
 	{$(INCLUDE)}"sys\types.h"\
 	
 NODEP_CPP_TABSV=\
-	"..\Library\src\HTVMSUtils.h"\
+	"..\library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\TabsView.obj" : $(SOURCE) $(DEP_CPP_TABSV) "$(INTDIR)"
@@ -1567,61 +1309,62 @@ NODEP_CPP_TABSV=\
 
 SOURCE=.\UserParameters.cpp
 DEP_CPP_USERP=\
-	"..\Library\External\regex.h"\
-	"..\Library\src\HTAccess.h"\
-	"..\Library\src\HTAlert.h"\
-	"..\Library\src\HTAnchor.h"\
-	"..\Library\src\HTArray.h"\
-	"..\Library\src\HTAssoc.h"\
-	"..\Library\src\HTAtom.h"\
-	"..\Library\src\HTBind.h"\
-	"..\Library\src\HTChannl.h"\
-	"..\Library\src\HTChunk.h"\
-	"..\Library\src\HTDialog.h"\
-	"..\Library\src\HTDNS.h"\
-	"..\Library\src\HTError.h"\
-	"..\Library\src\HTEscape.h"\
-	"..\Library\src\HTEvent.h"\
-	"..\Library\src\HTEvtLst.h"\
-	"..\Library\src\HTFilter.h"\
-	"..\Library\src\HTFormat.h"\
-	"..\Library\src\HTFWrite.h"\
-	"..\Library\src\HTHist.h"\
-	"..\Library\src\HTHome.h"\
-	"..\Library\src\HTHost.h"\
-	"..\Library\src\HTHstMan.h"\
-	"..\Library\src\HTInet.h"\
-	"..\Library\src\HTIOStream.h"\
-	"..\Library\src\HTLib.h"\
-	"..\Library\src\HTLink.h"\
-	"..\Library\src\HTList.h"\
-	"..\Library\src\HTLog.h"\
-	"..\Library\src\HTMemLog.h"\
-	"..\Library\src\HTMemory.h"\
-	"..\Library\src\HTMethod.h"\
-	"..\Library\src\HTNet.h"\
-	"..\Library\src\HTParse.h"\
-	"..\Library\src\HTProt.h"\
-	"..\Library\src\HTProxy.h"\
-	"..\Library\src\HTReq.h"\
-	"..\Library\src\HTResponse.h"\
-	"..\Library\src\HTRules.h"\
-	"..\Library\src\HTStream.h"\
-	"..\Library\src\HTString.h"\
-	"..\Library\src\HTStruct.h"\
-	"..\Library\src\HTTimer.h"\
-	"..\Library\src\HTTrans.h"\
-	"..\Library\src\HTUser.h"\
-	"..\Library\src\HTUtils.h"\
-	"..\Library\src\HTUTree.h"\
-	"..\Library\src\HTUU.h"\
-	"..\Library\src\HTWWWStr.h"\
-	"..\Library\src\windows\config.h"\
-	"..\Library\src\WWWApp.h"\
-	"..\Library\src\WWWCore.h"\
-	"..\Library\src\WWWLib.h"\
-	"..\Library\src\wwwsys.h"\
-	"..\Library\src\WWWUtil.h"\
+	"..\library\external\regex.h"\
+	"..\library\src\htaccess.h"\
+	"..\library\src\htalert.h"\
+	"..\library\src\htanchor.h"\
+	"..\library\src\htarray.h"\
+	"..\library\src\htassoc.h"\
+	"..\library\src\htatom.h"\
+	"..\library\src\htbind.h"\
+	"..\library\src\htchannl.h"\
+	"..\library\src\htchunk.h"\
+	"..\library\src\htdialog.h"\
+	"..\library\src\htdns.h"\
+	"..\library\src\hterror.h"\
+	"..\library\src\htescape.h"\
+	"..\library\src\htevent.h"\
+	"..\library\src\htevtlst.h"\
+	"..\library\src\htfilter.h"\
+	"..\library\src\htformat.h"\
+	"..\library\src\htfwrite.h"\
+	"..\library\src\hthist.h"\
+	"..\library\src\hthome.h"\
+	"..\library\src\hthost.h"\
+	"..\library\src\hthstman.h"\
+	"..\library\src\htinet.h"\
+	"..\library\src\htiostream.h"\
+	"..\library\src\htlib.h"\
+	"..\library\src\htlink.h"\
+	"..\library\src\htlist.h"\
+	"..\library\src\htlog.h"\
+	"..\library\src\htmemlog.h"\
+	"..\library\src\htmemory.h"\
+	"..\library\src\htmethod.h"\
+	"..\library\src\htnet.h"\
+	"..\library\src\htparse.h"\
+	"..\library\src\htprot.h"\
+	"..\library\src\htproxy.h"\
+	"..\library\src\htreq.h"\
+	"..\library\src\htresponse.h"\
+	"..\library\src\htrules.h"\
+	"..\library\src\htstream.h"\
+	"..\library\src\htstring.h"\
+	"..\library\src\htstruct.h"\
+	"..\library\src\httimer.h"\
+	"..\library\src\httrans.h"\
+	"..\library\src\htuser.h"\
+	"..\library\src\htutils.h"\
+	"..\library\src\htutree.h"\
+	"..\library\src\htuu.h"\
+	"..\library\src\htwwwstr.h"\
+	"..\library\src\windows\config.h"\
+	"..\library\src\wwwapp.h"\
+	"..\library\src\wwwcore.h"\
+	"..\library\src\wwwlib.h"\
+	"..\library\src\wwwsys.h"\
+	"..\library\src\wwwutil.h"\
+	".\CacheSetup.h"\
 	".\EntityInfo.h"\
 	".\Links.h"\
 	".\LinkView.h"\
@@ -1640,7 +1383,7 @@ DEP_CPP_USERP=\
 	{$(INCLUDE)}"sys\types.h"\
 	
 NODEP_CPP_USERP=\
-	"..\Library\src\HTVMSUtils.h"\
+	"..\library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\UserParameters.obj" : $(SOURCE) $(DEP_CPP_USERP) "$(INTDIR)"
@@ -1648,51 +1391,52 @@ NODEP_CPP_USERP=\
 
 SOURCE=.\VersionConflict.cpp
 DEP_CPP_VERSI=\
-	"..\Library\External\regex.h"\
-	"..\Library\src\HTAlert.h"\
-	"..\Library\src\HTAnchor.h"\
-	"..\Library\src\HTArray.h"\
-	"..\Library\src\HTAssoc.h"\
-	"..\Library\src\HTAtom.h"\
-	"..\Library\src\HTBind.h"\
-	"..\Library\src\HTChannl.h"\
-	"..\Library\src\HTChunk.h"\
-	"..\Library\src\HTDNS.h"\
-	"..\Library\src\HTError.h"\
-	"..\Library\src\HTEscape.h"\
-	"..\Library\src\HTEvent.h"\
-	"..\Library\src\HTFormat.h"\
-	"..\Library\src\HTFWrite.h"\
-	"..\Library\src\HTHost.h"\
-	"..\Library\src\HTHstMan.h"\
-	"..\Library\src\HTInet.h"\
-	"..\Library\src\HTIOStream.h"\
-	"..\Library\src\HTLib.h"\
-	"..\Library\src\HTLink.h"\
-	"..\Library\src\HTList.h"\
-	"..\Library\src\HTMemLog.h"\
-	"..\Library\src\HTMemory.h"\
-	"..\Library\src\HTMethod.h"\
-	"..\Library\src\HTNet.h"\
-	"..\Library\src\HTParse.h"\
-	"..\Library\src\HTProt.h"\
-	"..\Library\src\HTReq.h"\
-	"..\Library\src\HTResponse.h"\
-	"..\Library\src\HTStream.h"\
-	"..\Library\src\HTString.h"\
-	"..\Library\src\HTStruct.h"\
-	"..\Library\src\HTTimer.h"\
-	"..\Library\src\HTTrans.h"\
-	"..\Library\src\HTUser.h"\
-	"..\Library\src\HTUtils.h"\
-	"..\Library\src\HTUTree.h"\
-	"..\Library\src\HTUU.h"\
-	"..\Library\src\HTWWWStr.h"\
-	"..\Library\src\windows\config.h"\
-	"..\Library\src\WWWCore.h"\
-	"..\Library\src\WWWLib.h"\
-	"..\Library\src\wwwsys.h"\
-	"..\Library\src\WWWUtil.h"\
+	"..\library\external\regex.h"\
+	"..\library\src\htalert.h"\
+	"..\library\src\htanchor.h"\
+	"..\library\src\htarray.h"\
+	"..\library\src\htassoc.h"\
+	"..\library\src\htatom.h"\
+	"..\library\src\htbind.h"\
+	"..\library\src\htchannl.h"\
+	"..\library\src\htchunk.h"\
+	"..\library\src\htdns.h"\
+	"..\library\src\hterror.h"\
+	"..\library\src\htescape.h"\
+	"..\library\src\htevent.h"\
+	"..\library\src\htformat.h"\
+	"..\library\src\htfwrite.h"\
+	"..\library\src\hthost.h"\
+	"..\library\src\hthstman.h"\
+	"..\library\src\htinet.h"\
+	"..\library\src\htiostream.h"\
+	"..\library\src\htlib.h"\
+	"..\library\src\htlink.h"\
+	"..\library\src\htlist.h"\
+	"..\library\src\htmemlog.h"\
+	"..\library\src\htmemory.h"\
+	"..\library\src\htmethod.h"\
+	"..\library\src\htnet.h"\
+	"..\library\src\htparse.h"\
+	"..\library\src\htprot.h"\
+	"..\library\src\htreq.h"\
+	"..\library\src\htresponse.h"\
+	"..\library\src\htstream.h"\
+	"..\library\src\htstring.h"\
+	"..\library\src\htstruct.h"\
+	"..\library\src\httimer.h"\
+	"..\library\src\httrans.h"\
+	"..\library\src\htuser.h"\
+	"..\library\src\htutils.h"\
+	"..\library\src\htutree.h"\
+	"..\library\src\htuu.h"\
+	"..\library\src\htwwwstr.h"\
+	"..\library\src\windows\config.h"\
+	"..\library\src\wwwcore.h"\
+	"..\library\src\wwwlib.h"\
+	"..\library\src\wwwsys.h"\
+	"..\library\src\wwwutil.h"\
+	".\CacheSetup.h"\
 	".\EntityInfo.h"\
 	".\Links.h"\
 	".\LinkView.h"\
@@ -1709,7 +1453,7 @@ DEP_CPP_VERSI=\
 	{$(INCLUDE)}"sys\types.h"\
 	
 NODEP_CPP_VERSI=\
-	"..\Library\src\HTVMSUtils.h"\
+	"..\library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\VersionConflict.obj" : $(SOURCE) $(DEP_CPP_VERSI) "$(INTDIR)"
@@ -1717,131 +1461,135 @@ NODEP_CPP_VERSI=\
 
 SOURCE=.\WinCom.cpp
 DEP_CPP_WINCO=\
-	"..\Library\External\regex.h"\
-	"..\Library\src\HTAABrow.h"\
-	"..\Library\src\HTAAUtil.h"\
-	"..\Library\src\HTAccess.h"\
-	"..\Library\src\HTAlert.h"\
-	"..\Library\src\HTAnchor.h"\
-	"..\Library\src\HTANSI.h"\
-	"..\Library\src\HTArray.h"\
-	"..\Library\src\HTAssoc.h"\
-	"..\Library\src\HTAtom.h"\
-	"..\Library\src\HTBind.h"\
-	"..\Library\src\HTBInit.h"\
-	"..\Library\src\HTBound.h"\
-	"..\Library\src\HTBufWrt.h"\
-	"..\Library\src\HTCache.h"\
-	"..\Library\src\HTChannl.h"\
-	"..\Library\src\HTChunk.h"\
-	"..\Library\src\HTConLen.h"\
-	"..\Library\src\HTDescpt.h"\
-	"..\Library\src\HTDialog.h"\
-	"..\Library\src\HTDir.h"\
-	"..\Library\src\HTDNS.h"\
-	"..\Library\src\HTError.h"\
-	"..\Library\src\HTEscape.h"\
-	"..\Library\src\HTEvent.h"\
-	"..\Library\src\HTEvtLst.h"\
-	"..\Library\src\HTFile.h"\
-	"..\Library\src\HTFilter.h"\
-	"..\Library\src\HTFormat.h"\
-	"..\Library\src\HTFTP.h"\
-	"..\Library\src\HTFTPDir.h"\
-	"..\Library\src\HTFWrite.h"\
-	"..\Library\src\HTGopher.h"\
-	"..\Library\src\HTGuess.h"\
-	"..\Library\src\HTHeader.h"\
-	"..\Library\src\HTHInit.h"\
-	"..\Library\src\HTHist.h"\
-	"..\Library\src\HTHome.h"\
-	"..\Library\src\HTHost.h"\
-	"..\Library\src\HTHstMan.h"\
-	"..\Library\src\HTIcons.h"\
-	"..\Library\src\HTInet.h"\
-	"..\Library\src\HTInit.h"\
-	"..\Library\src\HTIOStream.h"\
-	"..\Library\src\HTLib.h"\
-	"..\Library\src\HTLink.h"\
-	"..\Library\src\HTList.h"\
-	"..\Library\src\HTLocal.h"\
-	"..\Library\src\HTLog.h"\
-	"..\Library\src\HTMemLog.h"\
-	"..\Library\src\HTMemory.h"\
-	"..\Library\src\HTMerge.h"\
-	"..\Library\src\HTMethod.h"\
-	"..\Library\src\HTMIME.h"\
-	"..\Library\src\HTMIMERq.h"\
-	"..\Library\src\HTMIMImp.h"\
-	"..\Library\src\HTML.h"\
-	"..\Library\src\HTMLGen.h"\
-	"..\Library\src\HTMLPDTD.h"\
-	"..\Library\src\HTMulpar.h"\
-	"..\Library\src\HTMulti.h"\
-	"..\Library\src\HTNDir.h"\
-	"..\Library\src\HTNet.h"\
-	"..\Library\src\HTNews.h"\
-	"..\Library\src\HTNewsLs.h"\
-	"..\Library\src\HTNewsRq.h"\
-	"..\Library\src\HTParse.h"\
-	"..\Library\src\HTPEP.h"\
-	"..\Library\src\HTPlain.h"\
-	"..\Library\src\HTProfil.h"\
-	"..\Library\src\HTProt.h"\
-	"..\Library\src\HTProxy.h"\
-	"..\Library\src\HTReader.h"\
-	"..\Library\src\HTReq.h"\
-	"..\Library\src\HTResponse.h"\
-	"..\Library\src\HTRules.h"\
-	"..\Library\src\HTSChunk.h"\
-	"..\Library\src\HTSocket.h"\
-	"..\Library\src\HTStream.h"\
-	"..\Library\src\HTString.h"\
-	"..\Library\src\HTStruct.h"\
-	"..\Library\src\HTTChunk.h"\
-	"..\Library\src\HTTCP.h"\
-	"..\Library\src\HTTee.h"\
-	"..\Library\src\HTTelnet.h"\
-	"..\Library\src\HTTeXGen.h"\
-	"..\Library\src\HTTimer.h"\
-	"..\Library\src\HTTP.h"\
-	"..\Library\src\HTTPGen.h"\
-	"..\Library\src\HTTPReq.h"\
-	"..\Library\src\HTTPRes.h"\
-	"..\Library\src\HTTPServ.h"\
-	"..\Library\src\HTTPUtil.h"\
-	"..\Library\src\HTTrans.h"\
-	"..\Library\src\HTUser.h"\
-	"..\Library\src\HTUtils.h"\
-	"..\Library\src\HTUTree.h"\
-	"..\Library\src\HTUU.h"\
-	"..\Library\src\HTWAIS.h"\
-	"..\Library\src\HTWriter.h"\
-	"..\Library\src\HTWWWStr.h"\
-	"..\Library\src\HTXParse.h"\
-	"..\Library\src\HTZip.h"\
-	"..\Library\src\SGML.h"\
-	"..\Library\src\windows\config.h"\
-	"..\Library\src\WWWApp.h"\
-	"..\Library\src\WWWCache.h"\
-	"..\Library\src\WWWCore.h"\
-	"..\Library\src\WWWDir.h"\
-	"..\Library\src\WWWFile.h"\
-	"..\Library\src\WWWFTP.h"\
-	"..\Library\src\WWWGophe.h"\
-	"..\Library\src\WWWHTML.h"\
-	"..\Library\src\WWWHTTP.h"\
-	"..\Library\src\WWWInit.h"\
-	"..\Library\src\WWWLib.h"\
-	"..\Library\src\WWWMIME.h"\
-	"..\Library\src\WWWNews.h"\
-	"..\Library\src\WWWStream.h"\
-	"..\Library\src\wwwsys.h"\
-	"..\Library\src\WWWTelnt.h"\
-	"..\Library\src\WWWTrans.h"\
-	"..\Library\src\WWWUtil.h"\
-	"..\Library\src\WWWWAIS.h"\
-	"..\Library\src\WWWZip.h"\
+	"..\library\external\regex.h"\
+	"..\library\src\htaabrow.h"\
+	"..\library\src\htaautil.h"\
+	"..\library\src\htaccess.h"\
+	"..\library\src\htalert.h"\
+	"..\library\src\htanchor.h"\
+	"..\library\src\htansi.h"\
+	"..\library\src\htarray.h"\
+	"..\library\src\htassoc.h"\
+	"..\library\src\htatom.h"\
+	"..\library\src\htbind.h"\
+	"..\library\src\htbinit.h"\
+	"..\library\src\htbound.h"\
+	"..\library\src\htbufwrt.h"\
+	"..\library\src\htcache.h"\
+	"..\library\src\htchannl.h"\
+	"..\library\src\htchunk.h"\
+	"..\library\src\htconlen.h"\
+	"..\library\src\htdescpt.h"\
+	"..\library\src\htdialog.h"\
+	"..\library\src\htdir.h"\
+	"..\library\src\htdns.h"\
+	"..\library\src\hterror.h"\
+	"..\library\src\htescape.h"\
+	"..\library\src\htevent.h"\
+	"..\library\src\htevtlst.h"\
+	"..\library\src\htext.h"\
+	"..\library\src\htfile.h"\
+	"..\library\src\htfilter.h"\
+	"..\library\src\htformat.h"\
+	"..\library\src\htftp.h"\
+	"..\library\src\htftpdir.h"\
+	"..\library\src\htfwrite.h"\
+	"..\library\src\htgopher.h"\
+	"..\library\src\htguess.h"\
+	"..\library\src\htheader.h"\
+	"..\library\src\hthinit.h"\
+	"..\library\src\hthist.h"\
+	"..\library\src\hthome.h"\
+	"..\library\src\hthost.h"\
+	"..\library\src\hthstman.h"\
+	"..\library\src\hticons.h"\
+	"..\library\src\htinet.h"\
+	"..\library\src\htinit.h"\
+	"..\library\src\htiostream.h"\
+	"..\library\src\htlib.h"\
+	"..\library\src\htlink.h"\
+	"..\library\src\htlist.h"\
+	"..\library\src\htlocal.h"\
+	"..\library\src\htlog.h"\
+	"..\library\src\htmemlog.h"\
+	"..\library\src\htmemory.h"\
+	"..\library\src\htmerge.h"\
+	"..\library\src\htmethod.h"\
+	"..\library\src\htmime.h"\
+	"..\library\src\htmimerq.h"\
+	"..\library\src\htmimimp.h"\
+	"..\library\src\html.h"\
+	"..\library\src\htmlgen.h"\
+	"..\library\src\htmlpdtd.h"\
+	"..\library\src\htmulpar.h"\
+	"..\library\src\htmulti.h"\
+	"..\library\src\htndir.h"\
+	"..\library\src\htnet.h"\
+	"..\library\src\htnews.h"\
+	"..\library\src\htnewsls.h"\
+	"..\library\src\htnewsrq.h"\
+	"..\library\src\htnofree.h"\
+	"..\library\src\htparse.h"\
+	"..\library\src\htpep.h"\
+	"..\library\src\htplain.h"\
+	"..\library\src\htprofil.h"\
+	"..\library\src\htprot.h"\
+	"..\library\src\htproxy.h"\
+	"..\library\src\htreader.h"\
+	"..\library\src\htreq.h"\
+	"..\library\src\htresponse.h"\
+	"..\library\src\htrules.h"\
+	"..\library\src\htschunk.h"\
+	"..\library\src\htsocket.h"\
+	"..\library\src\htstream.h"\
+	"..\library\src\htstring.h"\
+	"..\library\src\htstruct.h"\
+	"..\library\src\httchunk.h"\
+	"..\library\src\httcp.h"\
+	"..\library\src\httee.h"\
+	"..\library\src\httelnet.h"\
+	"..\library\src\httexgen.h"\
+	"..\library\src\httimer.h"\
+	"..\library\src\http.h"\
+	"..\library\src\httpgen.h"\
+	"..\library\src\httpreq.h"\
+	"..\library\src\httpres.h"\
+	"..\library\src\httpserv.h"\
+	"..\library\src\httputil.h"\
+	"..\library\src\httrans.h"\
+	"..\library\src\htuser.h"\
+	"..\library\src\htutils.h"\
+	"..\library\src\htutree.h"\
+	"..\library\src\htuu.h"\
+	"..\library\src\HTWAIS.h"\
+	"..\library\src\htwriter.h"\
+	"..\library\src\htwwwstr.h"\
+	"..\library\src\HTXML.h"\
+	"..\library\src\htxparse.h"\
+	"..\library\src\htzip.h"\
+	"..\library\src\sgml.h"\
+	"..\library\src\windows\config.h"\
+	"..\library\src\wwwapp.h"\
+	"..\library\src\wwwcache.h"\
+	"..\library\src\wwwcore.h"\
+	"..\library\src\wwwdir.h"\
+	"..\library\src\wwwfile.h"\
+	"..\library\src\wwwftp.h"\
+	"..\library\src\wwwgophe.h"\
+	"..\library\src\wwwhtml.h"\
+	"..\library\src\wwwhttp.h"\
+	"..\library\src\wwwinit.h"\
+	"..\library\src\wwwlib.h"\
+	"..\library\src\wwwmime.h"\
+	"..\library\src\wwwnews.h"\
+	"..\library\src\wwwstream.h"\
+	"..\library\src\wwwsys.h"\
+	"..\library\src\wwwtelnt.h"\
+	"..\library\src\wwwtrans.h"\
+	"..\library\src\wwwutil.h"\
+	"..\library\src\WWWWAIS.h"\
+	"..\library\src\wwwzip.h"\
+	".\CacheSetup.h"\
 	".\EntityInfo.h"\
 	".\Links.h"\
 	".\LinkView.h"\
@@ -1862,7 +1610,7 @@ DEP_CPP_WINCO=\
 	{$(INCLUDE)}"sys\types.h"\
 	
 NODEP_CPP_WINCO=\
-	"..\Library\src\HTVMSUtils.h"\
+	"..\library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\WinCom.obj" : $(SOURCE) $(DEP_CPP_WINCO) "$(INTDIR)"
@@ -1899,61 +1647,62 @@ DEP_RSC_WINCOM_=\
 
 SOURCE=.\WinComDoc.cpp
 DEP_CPP_WINCOMD=\
-	"..\Library\External\regex.h"\
-	"..\Library\src\HTAccess.h"\
-	"..\Library\src\HTAlert.h"\
-	"..\Library\src\HTAnchor.h"\
-	"..\Library\src\HTArray.h"\
-	"..\Library\src\HTAssoc.h"\
-	"..\Library\src\HTAtom.h"\
-	"..\Library\src\HTBind.h"\
-	"..\Library\src\HTChannl.h"\
-	"..\Library\src\HTChunk.h"\
-	"..\Library\src\HTDialog.h"\
-	"..\Library\src\HTDNS.h"\
-	"..\Library\src\HTError.h"\
-	"..\Library\src\HTEscape.h"\
-	"..\Library\src\HTEvent.h"\
-	"..\Library\src\HTEvtLst.h"\
-	"..\Library\src\HTFilter.h"\
-	"..\Library\src\HTFormat.h"\
-	"..\Library\src\HTFWrite.h"\
-	"..\Library\src\HTHist.h"\
-	"..\Library\src\HTHome.h"\
-	"..\Library\src\HTHost.h"\
-	"..\Library\src\HTHstMan.h"\
-	"..\Library\src\HTInet.h"\
-	"..\Library\src\HTIOStream.h"\
-	"..\Library\src\HTLib.h"\
-	"..\Library\src\HTLink.h"\
-	"..\Library\src\HTList.h"\
-	"..\Library\src\HTLog.h"\
-	"..\Library\src\HTMemLog.h"\
-	"..\Library\src\HTMemory.h"\
-	"..\Library\src\HTMethod.h"\
-	"..\Library\src\HTNet.h"\
-	"..\Library\src\HTParse.h"\
-	"..\Library\src\HTProt.h"\
-	"..\Library\src\HTProxy.h"\
-	"..\Library\src\HTReq.h"\
-	"..\Library\src\HTResponse.h"\
-	"..\Library\src\HTRules.h"\
-	"..\Library\src\HTStream.h"\
-	"..\Library\src\HTString.h"\
-	"..\Library\src\HTStruct.h"\
-	"..\Library\src\HTTimer.h"\
-	"..\Library\src\HTTrans.h"\
-	"..\Library\src\HTUser.h"\
-	"..\Library\src\HTUtils.h"\
-	"..\Library\src\HTUTree.h"\
-	"..\Library\src\HTUU.h"\
-	"..\Library\src\HTWWWStr.h"\
-	"..\Library\src\windows\config.h"\
-	"..\Library\src\WWWApp.h"\
-	"..\Library\src\WWWCore.h"\
-	"..\Library\src\WWWLib.h"\
-	"..\Library\src\wwwsys.h"\
-	"..\Library\src\WWWUtil.h"\
+	"..\library\external\regex.h"\
+	"..\library\src\htaccess.h"\
+	"..\library\src\htalert.h"\
+	"..\library\src\htanchor.h"\
+	"..\library\src\htarray.h"\
+	"..\library\src\htassoc.h"\
+	"..\library\src\htatom.h"\
+	"..\library\src\htbind.h"\
+	"..\library\src\htchannl.h"\
+	"..\library\src\htchunk.h"\
+	"..\library\src\htdialog.h"\
+	"..\library\src\htdns.h"\
+	"..\library\src\hterror.h"\
+	"..\library\src\htescape.h"\
+	"..\library\src\htevent.h"\
+	"..\library\src\htevtlst.h"\
+	"..\library\src\htfilter.h"\
+	"..\library\src\htformat.h"\
+	"..\library\src\htfwrite.h"\
+	"..\library\src\hthist.h"\
+	"..\library\src\hthome.h"\
+	"..\library\src\hthost.h"\
+	"..\library\src\hthstman.h"\
+	"..\library\src\htinet.h"\
+	"..\library\src\htiostream.h"\
+	"..\library\src\htlib.h"\
+	"..\library\src\htlink.h"\
+	"..\library\src\htlist.h"\
+	"..\library\src\htlog.h"\
+	"..\library\src\htmemlog.h"\
+	"..\library\src\htmemory.h"\
+	"..\library\src\htmethod.h"\
+	"..\library\src\htnet.h"\
+	"..\library\src\htparse.h"\
+	"..\library\src\htprot.h"\
+	"..\library\src\htproxy.h"\
+	"..\library\src\htreq.h"\
+	"..\library\src\htresponse.h"\
+	"..\library\src\htrules.h"\
+	"..\library\src\htstream.h"\
+	"..\library\src\htstring.h"\
+	"..\library\src\htstruct.h"\
+	"..\library\src\httimer.h"\
+	"..\library\src\httrans.h"\
+	"..\library\src\htuser.h"\
+	"..\library\src\htutils.h"\
+	"..\library\src\htutree.h"\
+	"..\library\src\htuu.h"\
+	"..\library\src\htwwwstr.h"\
+	"..\library\src\windows\config.h"\
+	"..\library\src\wwwapp.h"\
+	"..\library\src\wwwcore.h"\
+	"..\library\src\wwwlib.h"\
+	"..\library\src\wwwsys.h"\
+	"..\library\src\wwwutil.h"\
+	".\CacheSetup.h"\
 	".\Delete.h"\
 	".\EntityInfo.h"\
 	".\Links.h"\
@@ -1971,7 +1720,7 @@ DEP_CPP_WINCOMD=\
 	{$(INCLUDE)}"sys\types.h"\
 	
 NODEP_CPP_WINCOMD=\
-	"..\Library\src\HTVMSUtils.h"\
+	"..\library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\WinComDoc.obj" : $(SOURCE) $(DEP_CPP_WINCOMD) "$(INTDIR)"

@@ -84,23 +84,7 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;hpj;bat;for;f90"
 # Begin Source File
 
-SOURCE=..\..\..\Library\src\HTBInit.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\Library\src\HTInit.c
-# End Source File
-# Begin Source File
-
 SOURCE=..\HTLine.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\Library\src\HTMLPDTD.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\Library\src\HTProfil.c
 # End Source File
 # Begin Source File
 
