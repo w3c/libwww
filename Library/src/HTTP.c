@@ -579,12 +579,23 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	    
     
 /*	Set up the stream stack to handle the body of the message
+**
+**	In the special case of user asking for source and the message
+**	being in MIME, we force the MIME decoding to occur, as it is really
+**	HTTP decoding.  If the user really wants the HTTP headers, he
+**	can ask for them as www/mime.
 */
 
 copy:
 
-	target = HTStreamStack(format_in, request);
-
+	if ((format_in == HTAtom_for("www/mime"))
+	    && (request->output_format == HTAtom_for("www/source"))) {
+	    target = HTMIMEConvert(request, NULL, format_in,
+	    request->output_format, request->output_stream);
+	} else {
+	    target = HTStreamStack(format_in, request);
+	}
+	
 	if (!target) {
 	    char buffer[1024];	/* @@@@@@@@ */
 	    sprintf(buffer, "Sorry, no known way of converting %s to %s.",
