@@ -62,7 +62,7 @@ PRIVATE void client_profile (const char * AppName, const char * AppVersion,
 	HTProtocolInit();
 
     /* Set max number of sockets we want open simultanously */ 
-    HTNet_setMaxSocket(60);
+    HTNet_setMaxSocket(32);
 
     /* The persistent cache does not work in preemptive mode */
     if (cache) HTCacheInit(NULL, 20);
@@ -172,7 +172,7 @@ PRIVATE void robot_profile (const char * AppName, const char * AppVersion)
     HTProtocolInit();
 
     /* Set max number of sockets we want open simultanously */ 
-    HTNet_setMaxSocket(60);
+    HTNet_setMaxSocket(32);
 
     /* Register some default set of BEFORE and AFTER filters */
     HTNet_addBefore(HTRuleFilter, NULL, NULL, HT_FILTER_MIDDLE); 
