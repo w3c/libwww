@@ -46,21 +46,6 @@ PRIVATE HText_foundLink	RHText_foundLink;
 
 /* ------------------------------------------------------------------------- */
 
-/*	Standard (non-error) Output
-**	---------------------------
-*/
-PUBLIC int OutputData(const char  * fmt, ...)
-{
-    int ret;
-    va_list pArgs;
-    va_start(pArgs, fmt);
-    ret = vfprintf(stdout, fmt, pArgs);
-    va_end(pArgs);
-    return ret;
-}
-
-/* ------------------------------------------------------------------------- */
-
 /*	Create a "HyperDoc" object
 **	--------------------------
 **	A HyperDoc object contains information about whether we have already
@@ -468,17 +453,17 @@ PRIVATE BOOL calculate_statistics (Robot * mr)
 	    double secs = t / 1000.0;
             char bytes[50];
 	    if (SHOW_REAL_QUIET(mr))
-		HTTrace("\nAccessed %ld documents in %.2f seconds (%.2f requests pr sec)\n",
+		HTPrint("\nAccessed %ld documents in %.2f seconds (%.2f requests pr sec)\n",
 			total_docs, secs, reqprsec);
 
             HTNumToStr(mr->get_bytes, bytes, 50);
 	    if (SHOW_REAL_QUIET(mr))
-		HTTrace("\tDid a GET on %ld document(s) and downloaded %s bytes of document bodies (%2.1f bytes/sec)\n",
+		HTPrint("\tDid a GET on %ld document(s) and downloaded %s bytes of document bodies (%2.1f bytes/sec)\n",
 			mr->get_docs, bytes, loadfactor);
 
             HTNumToStr(mr->head_bytes, bytes, 50);
 	    if (SHOW_REAL_QUIET(mr))
-		HTTrace("\tDid a HEAD on %ld document(s) with a total of %s bytes\n",
+		HTPrint("\tDid a HEAD on %ld document(s) with a total of %s bytes\n",
 			mr->head_docs, bytes);
 	}
     }
@@ -490,13 +475,13 @@ PRIVATE BOOL calculate_statistics (Robot * mr)
 
 	    /* Distributions */
 	    if (mr->flags & MR_DISTRIBUTIONS) {
-		if (SHOW_REAL_QUIET(mr)) HTTrace("\nDistributions:\n");
+		if (SHOW_REAL_QUIET(mr)) HTPrint("\nDistributions:\n");
 	    }
 
             /* Sort after hit counts */
             if (mr->hitfile) {
 		if (SHOW_REAL_QUIET(mr))
-		    HTTrace("\tLogged hit count distribution in file `%s\'\n",
+		    HTPrint("\tLogged hit count distribution in file `%s\'\n",
 			    mr->hitfile);
 		calculate_hits(mr, array);
 	    }
@@ -508,7 +493,7 @@ PRIVATE BOOL calculate_statistics (Robot * mr)
             if (mr->relfile) {
 #endif
 		if (mr->relfile && SHOW_REAL_QUIET(mr))
-		    HTTrace("\tLogged link relationship distribution in file `%s\'\n",
+		    HTPrint("\tLogged link relationship distribution in file `%s\'\n",
 			    mr->relfile);
 		calculate_linkRelations(mr, array);
 	    }
@@ -516,7 +501,7 @@ PRIVATE BOOL calculate_statistics (Robot * mr)
             /* Sort after modified date */
             if (mr->lmfile) {
 		if (SHOW_REAL_QUIET(mr))
-		    HTTrace("\tLogged last modified distribution in file `%s\'\n",
+		    HTPrint("\tLogged last modified distribution in file `%s\'\n",
 			    mr->lmfile);
 		calculate_lm(mr, array);
 	    }
@@ -524,7 +509,7 @@ PRIVATE BOOL calculate_statistics (Robot * mr)
             /* Sort after title */
             if (mr->titlefile) {
 		if (SHOW_REAL_QUIET(mr))
-		    HTTrace("\tLogged title distribution in file `%s\'\n",
+		    HTPrint("\tLogged title distribution in file `%s\'\n",
 			    mr->titlefile);
 		calculate_title(mr, array);
 	    }
@@ -534,7 +519,7 @@ PRIVATE BOOL calculate_statistics (Robot * mr)
 		HTList * mtdist = mediatype_distribution(array);
 		if (mtdist) {
 		    if (SHOW_REAL_QUIET(mr))
-			HTTrace("\tLogged media type distribution in file `%s\'\n",
+			HTPrint("\tLogged media type distribution in file `%s\'\n",
 				mr->mtfile);
 		    log_meta_distribution(mr->mtfile, mtdist);
 		    delete_meta_distribution(mtdist);
@@ -546,7 +531,7 @@ PRIVATE BOOL calculate_statistics (Robot * mr)
 		HTList * charsetdist = charset_distribution(array);
 		if (charsetdist) {
 		    if (SHOW_REAL_QUIET(mr))
-			HTTrace("\tLogged charset distribution in file `%s\'\n",
+			HTPrint("\tLogged charset distribution in file `%s\'\n",
 				mr->charsetfile);
 		    log_meta_distribution(mr->charsetfile, charsetdist);
 		    delete_meta_distribution(charsetdist);
@@ -657,42 +642,42 @@ PRIVATE BOOL Robot_delete (Robot * mr)
 
 	/* Close all the log files */
 	if (mr->flags & MR_LOGGING) {
-	    if (SHOW_REAL_QUIET(mr)) HTTrace("\nRaw Log files:\n");
+	    if (SHOW_REAL_QUIET(mr)) HTPrint("\nRaw Log files:\n");
 	}
 
 	if (mr->log) {
 	    if (SHOW_REAL_QUIET(mr))
-		HTTrace("\tLogged %5d entries in general log file `%s\'\n",
+		HTPrint("\tLogged %5d entries in general log file `%s\'\n",
 			HTLog_accessCount(mr->log), mr->logfile);
 	    HTLog_close(mr->log);
 	}
 	if (mr->ref) {
 	    if (SHOW_REAL_QUIET(mr))
-		HTTrace("\tLogged %5d entries in referer log file `%s\'\n",
+		HTPrint("\tLogged %5d entries in referer log file `%s\'\n",
 			HTLog_accessCount(mr->ref), mr->reffile);
 	    HTLog_close(mr->ref);
 	}
 	if (mr->reject) {
 	    if (SHOW_REAL_QUIET(mr))
-		HTTrace("\tLogged %5d entries in rejected log file `%s\'\n",
+		HTPrint("\tLogged %5d entries in rejected log file `%s\'\n",
 			HTLog_accessCount(mr->reject), mr->rejectfile);
 	    HTLog_close(mr->reject);
 	}
 	if (mr->notfound) {
 	    if (SHOW_REAL_QUIET(mr))
-		HTTrace("\tLogged %5d entries in not found log file `%s\'\n",
+		HTPrint("\tLogged %5d entries in not found log file `%s\'\n",
 			HTLog_accessCount(mr->notfound), mr->notfoundfile);
 	    HTLog_close(mr->notfound);
 	}
 	if (mr->conneg) {
 	    if (SHOW_REAL_QUIET(mr))
-		HTTrace("\tLogged %5d entries in content negotiation log file `%s\'\n",
+		HTPrint("\tLogged %5d entries in content negotiation log file `%s\'\n",
 			HTLog_accessCount(mr->conneg), mr->connegfile);
 	    HTLog_close(mr->conneg);
 	}
 	if (mr->noalttag) {
 	    if (SHOW_REAL_QUIET(mr))
-		HTTrace("\tLogged %5d entries in missing alt tag log file `%s\'\n",
+		HTPrint("\tLogged %5d entries in missing alt tag log file `%s\'\n",
 			HTLog_accessCount(mr->noalttag), mr->noalttagfile);
 	    HTLog_close(mr->noalttag);
 	}
@@ -702,7 +687,7 @@ PRIVATE BOOL Robot_delete (Robot * mr)
 	if (mr->flags & MR_TIME) {
 	    time_t local = time(NULL);
 	    if (SHOW_REAL_QUIET(mr))
-		HTTrace("\nRobot terminated %s\n", HTDateTimeStr(&local, YES));
+		HTPrint("\nRobot terminated %s\n", HTDateTimeStr(&local, YES));
 	}
 
 	/* This is new */
@@ -819,31 +804,6 @@ PUBLIC void Cleanup (Robot * me, int status)
 #endif
 }
 
-#ifdef CATCH_SIG
-#include <signal.h>
-/*								    SetSignal
-**  This function sets up signal handlers. This might not be necessary to
-**  call if the application has its own handlers (lossage on SVR4)
-*/
-PUBLIC void SetSignal (void)
-{
-    /* On some systems (SYSV) it is necessary to catch the SIGPIPE signal
-    ** when attemting to connect to a remote host where you normally should
-    ** get `connection refused' back
-    */
-    if (signal(SIGPIPE, SIG_IGN) == SIG_ERR) {
-	if (PROT_TRACE) HTTrace("HTSignal.... Can't catch SIGPIPE\n");
-    } else {
-	if (PROT_TRACE) HTTrace("HTSignal.... Ignoring SIGPIPE\n");
-    }
-
-#ifdef HT_MEMLOG
-    HTMemLog_flush();
-#endif
-
-}
-#endif /* CATCH_SIG */
-
 #ifdef HT_POSIX_REGEX
 PRIVATE char * get_regerror (int errcode, regex_t * compiled)
 {
@@ -865,7 +825,7 @@ PUBLIC regex_t * get_regtype (Robot * mr, const char * regex_str, int cflags)
 	if ((status = regcomp(regex, regex_str, cflags))) {
 	    char * err_msg = get_regerror(status, regex);
 	    if (SHOW_REAL_QUIET(mr))
-		HTTrace("Regular expression error: %s\n", err_msg);
+		HTPrint("Regular expression error: %s\n", err_msg);
 	    HT_FREE(err_msg);
 	    Cleanup(mr, -1);
 	}
@@ -876,15 +836,15 @@ PUBLIC regex_t * get_regtype (Robot * mr, const char * regex_str, int cflags)
 
 PUBLIC void VersionInfo (void)
 {
-    OutputData("\nW3C OpenSource Software");
-    OutputData("\n-----------------------\n\n");
-    OutputData("\tWebbot version %s\n", APP_VERSION);
-    OutputData("\tusing the W3C libwww library version %s.\n\n",HTLib_version());
-    OutputData("\tSee \"%s\" for help\n", COMMAND_LINE);
-    OutputData("\tSee \"http://www.w3.org/Robot/User/\" for user information\n");
-    OutputData("\tSee \"http://www.w3.org/Robot/\" for general information\n\n");
-    OutputData("\tPlease send feedback to the <www-lib@w3.org> mailing list,\n");
-    OutputData("\tsee \"http://www.w3.org/Library/#Forums\" for details\n\n");
+    HTPrint("\nW3C OpenSource Software");
+    HTPrint("\n-----------------------\n\n");
+    HTPrint("\tWebbot version %s\n", APP_VERSION);
+    HTPrint("\tusing the W3C libwww library version %s.\n\n",HTLib_version());
+    HTPrint("\tSee \"%s\" for help\n", COMMAND_LINE);
+    HTPrint("\tSee \"http://www.w3.org/Robot/User/\" for user information\n");
+    HTPrint("\tSee \"http://www.w3.org/Robot/\" for general information\n\n");
+    HTPrint("\tPlease send feedback to the <www-lib@w3.org> mailing list,\n");
+    HTPrint("\tsee \"http://www.w3.org/Library/#Forums\" for details\n\n");
 }
 
 /*	terminate_handler
@@ -897,7 +857,7 @@ PUBLIC int terminate_handler (HTRequest * request, HTResponse * response,
 {
     Finger * finger = (Finger *) HTRequest_context(request);
     Robot * mr = finger->robot;
-    if (SHOW_QUIET(mr)) HTTrace("Robot....... done with %s\n", HTAnchor_physical(finger->dest));
+    if (SHOW_QUIET(mr)) HTPrint("Robot....... done with %s\n", HTAnchor_physical(finger->dest));
 
 #ifdef HT_MYSQL
     if (mr->sqllog) HTSQLLog_addEntry(mr->sqllog, request, status);
@@ -956,12 +916,12 @@ PUBLIC int terminate_handler (HTRequest * request, HTResponse * response,
 
 	/* Should we stop? */
 	if (mr->cnt <= 0) {
-	    if (SHOW_QUIET(mr)) HTTrace("             Everything is finished...\n");
+	    if (SHOW_QUIET(mr)) HTPrint("             Everything is finished...\n");
 	    Cleanup(mr, 0);			/* No way back from here */
 	}
     }
 
-    if (SHOW_QUIET(mr)) HTTrace("             %d outstanding request%s\n", mr->cnt, mr->cnt == 1 ? "" : "s");
+    if (SHOW_QUIET(mr)) HTPrint("             %d outstanding request%s\n", mr->cnt, mr->cnt == 1 ? "" : "s");
     return HT_OK;
 
 }
@@ -1014,9 +974,9 @@ PUBLIC void Serving_queue(Robot *mr)
 	      
 	      newreq = nfinger->request;
 
-	      if(SHOW_QUIET(mr))  HTTrace("Request from QUEUE  %s\n",uri);
+	      if(SHOW_QUIET(mr))  HTPrint("Request from QUEUE  %s\n",uri);
 	      HT_FREE(uri);
-	      if(SHOW_QUIET(mr)) HTTrace("%d elements in queue \n", mr->cq);
+	      if(SHOW_QUIET(mr)) HTPrint("%d elements in queue \n", mr->cq);
 
 	      HTRequest_setParent(newreq,get_last_parent(nhd->anchor));
 
@@ -1028,7 +988,7 @@ PUBLIC void Serving_queue(Robot *mr)
 	      
 	      if (HTLoadAnchor((HTAnchor *)nhd->anchor , newreq) != YES) 
 		{
-		  if (SHOW_QUIET(mr)) HTTrace("not tested!\n");
+		  if (SHOW_QUIET(mr)) HTPrint("not tested!\n");
 		  Finger_delete(nfinger);
 		}
 	    }
@@ -1039,14 +999,14 @@ PUBLIC void Serving_queue(Robot *mr)
 	abort = YES;
     }
 
-  if(SHOW_QUIET(mr)) HTTrace("Queue size: %d \n", mr->cq);
+  if(SHOW_QUIET(mr)) HTPrint("Queue size: %d \n", mr->cq);
 
     if (mr->cnt <= 0 || (abort && (mr->flags & MR_PREEMPTIVE)))
       {
 	if(mr->cnt > 0)
-	  if(SHOW_QUIET(mr)) HTTrace("%d requests were not served\n", mr->cnt);
+	  if(SHOW_QUIET(mr)) HTPrint("%d requests were not served\n", mr->cnt);
 
-	if (SHOW_QUIET(mr)) HTTrace("             Everything is finished...\n");
+	if (SHOW_QUIET(mr)) HTPrint("             Everything is finished...\n");
 	Cleanup(mr, 0);			/* No way back from here */
       }
 }
@@ -1131,10 +1091,10 @@ PRIVATE void RHText_foundAnchor (HText * text, HTChildAnchor * anchor)
 	int depth = last_doc ? last_doc->depth+1 : 0;
 
 	if (!uri) return;
-	if (SHOW_QUIET(mr)) HTTrace("Robot....... Found `%s\' - \n", uri ? uri : "NULL\n");
+	if (SHOW_QUIET(mr)) HTPrint("Robot....... Found `%s\' - \n", uri ? uri : "NULL\n");
 
         if (hd) {
-	    if (SHOW_QUIET(mr)) HTTrace("............ Already checked\n");
+	    if (SHOW_QUIET(mr)) HTPrint("............ Already checked\n");
             hd->hits++;
 #ifdef HT_MYSQL
 	    if (mr->sqllog) {
@@ -1197,19 +1157,19 @@ PRIVATE void RHText_foundAnchor (HText * text, HTChildAnchor * anchor)
 		HTRequest * newreq = newfinger->request;
 		HTRequest_setParent(newreq, referer);
 		if (check || depth >= mr->depth) {
-		    if (SHOW_QUIET(mr)) HTTrace("loading at depth %d using HEAD\n", depth);
+		    if (SHOW_QUIET(mr)) HTPrint("loading at depth %d using HEAD\n", depth);
 		    HTRequest_setMethod(newreq, METHOD_HEAD);
 		} else {
-		    if (SHOW_QUIET(mr)) HTTrace("loading at depth %d\n", depth);
+		    if (SHOW_QUIET(mr)) HTPrint("loading at depth %d\n", depth);
 		}
 		if (HTLoadAnchor((HTAnchor *) dest_parent, newreq) != YES) {
-		    if (SHOW_QUIET(mr)) HTTrace("not tested!\n");
+		    if (SHOW_QUIET(mr)) HTPrint("not tested!\n");
 		    Finger_delete(newfinger);
 		}
 	    }
 
 	} else {
-	    if (SHOW_QUIET(mr)) HTTrace("............ does not fulfill constraints\n");
+	    if (SHOW_QUIET(mr)) HTPrint("............ does not fulfill constraints\n");
 #ifdef HT_MYSQL
 	    if (mr->reject || mr->sqllog) {
 #else	
@@ -1251,7 +1211,7 @@ PRIVATE void RHText_foundImage (HText * text, HTChildAnchor * anchor,
 
 	    if (!uri) return;
 	    if (hd) {
-		if (SHOW_QUIET(mr)) HTTrace("............ Already checked\n");
+		if (SHOW_QUIET(mr)) HTPrint("............ Already checked\n");
 		hd->hits++;
 #ifdef HT_MYSQL
 		if (mr->sqllog) {
@@ -1304,13 +1264,13 @@ PRIVATE void RHText_foundImage (HText * text, HTChildAnchor * anchor,
 		    }
 		}
 		
-		if (SHOW_QUIET(mr)) HTTrace("Robot....... Checking Image `%s\'\n", uri);
+		if (SHOW_QUIET(mr)) HTPrint("Robot....... Checking Image `%s\'\n", uri);
 		if (HTLoadAnchor((HTAnchor *) dest, newreq) != YES) {
-		    if (SHOW_QUIET(mr)) HTTrace("Robot....... Image not tested!\n");
+		    if (SHOW_QUIET(mr)) HTPrint("Robot....... Image not tested!\n");
 		    Finger_delete(newfinger);
 		}
 	    } else {
-		if (SHOW_QUIET(mr)) HTTrace("............ does not fulfill constraints\n");
+		if (SHOW_QUIET(mr)) HTPrint("............ does not fulfill constraints\n");
 #ifdef HT_MYSQL
 		if (mr->reject || mr->sqllog) {
 #else	
@@ -1345,7 +1305,7 @@ PRIVATE void RHText_foundLink (HText * text,
 	Finger * finger = (Finger *) HTRequest_context(text->request);
 	Robot * mr = finger->robot;
 	if (SHOW_QUIET(mr))
-	    HTTrace("Robot....... Received element %d, attribute %d with anchor %p\n",
+	    HTPrint("Robot....... Received element %d, attribute %d with anchor %p\n",
 		    element_number, attribute_number, anchor);
 	if ((element_number==HTML_IMG && attribute_number==HTML_IMG_SRC) || 
 	    (element_number==HTML_BODY && attribute_number==HTML_BODY_BACKGROUND))

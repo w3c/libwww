@@ -141,9 +141,9 @@ PUBLIC void print_user_agent(UserAgent *ua)
 {
   HTList *cur = ua->disallow;
   char *pres;
-  HTTrace("User Agent : %s \n", ua->name);
+  HTTRACE(APP_TRACE, "User Agent : %s \n" _ ua->name);
   while ((pres = (char*) HTList_nextObject(cur)))
-    HTTrace("Disallow : %s \n", pres);
+      HTTRACE(APP_TRACE, "Disallow : %s \n" _ pres);
 }
 
 PUBLIC void print_all_user_agents(HTList * user_agents)
@@ -152,7 +152,7 @@ PUBLIC void print_all_user_agents(HTList * user_agents)
     UserAgent *pres;
     while ((pres = (UserAgent *) HTList_nextObject(cur)))
     {
-	HTTrace("\nNew User Agent\n");
+	HTTRACE(APP_TRACE, "\nNew User Agent\n");
 	print_user_agent(pres);
     }
 }
@@ -171,7 +171,7 @@ PUBLIC HTList * get_all_user_agents(char * rob_str)
 	ptr = skip_comments(ptr);
 
 	if(!get_user_agents(ptr,user_agents))
-	    HTTrace("Something is wrong in robots.txt\n");
+	    HTTRACE(APP_TRACE, "Something is wrong in robots.txt\n");
 
 	return user_agents;
     }
@@ -309,18 +309,18 @@ main(int argc, char *argv[])
       if((statb.st_mode & S_IFMT) == S_IFREG)
 	perror(filename);
       else
-	HTTrace("%s : not a regular file \n", filename);
+	HTTRACE(ALL_TRACE, "%s : not a regular file \n" _ filename);
       return 1;
     }
 
   if(!(text = malloc((unsigned)(statb.st_size +1))))
     {
-      HTTrace("Can't alloc enough space for %s", filename);
+      HTTRACE(ALL_TRACE, "Can't alloc enough space for %s" _ filename);
       fclose(fp);
       return;
     }
   if(!fread(text,sizeof(char), statb.st_size + 1, fp))
-    HTTrace("Warning: may not have read entire file!\n");
+    HTTRACE(APP_TRACE, "Warning: may not have read entire file!\n");
   text[statb.st_size] = 0; /* be sure to NULL-terminate */
   fclose(fp);
   if(argc > 2)
@@ -328,7 +328,7 @@ main(int argc, char *argv[])
       reg_exp = scan_robots_txt(text,argv[2]);
       if(reg_exp)
 	{
-	  HTTrace("REG EXP : %s \n",reg_exp);
+	  HTTRACE(ALL_TRACE, "REG EXP : %s \n" _ reg_exp);
 	  free(reg_exp);
 	}
     }

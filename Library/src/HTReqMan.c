@@ -88,7 +88,7 @@ PUBLIC HTRequest * HTRequest_new (void)
     /* Content negotiation */
     me->ContentNegotiation = YES;		       /* Do this by default */
 
-    if (CORE_TRACE) HTTrace("Request..... Created %p\n", me);
+    HTTRACE(CORE_TRACE, "Request..... Created %p\n" _ me);
 
     return me;
 }
@@ -128,7 +128,7 @@ PUBLIC HTRequest * HTRequest_dup (HTRequest * src)
     if ((me = (HTRequest  *) HT_MALLOC(sizeof(HTRequest))) == NULL)
         HT_OUTOFMEM("HTRequest_dup");
     memcpy(me, src, sizeof(HTRequest));
-    if (CORE_TRACE) HTTrace("Request..... Duplicated %p to %p\n", src, me);
+    HTTRACE(CORE_TRACE, "Request..... Duplicated %p to %p\n" _ src _ me);
     return me;
 }
 
@@ -154,12 +154,12 @@ PUBLIC HTRequest * HTRequest_dupInternal (HTRequest * src)
 PUBLIC void HTRequest_delete (HTRequest * me)
 {
     if (me) {
-	if (CORE_TRACE) HTTrace("Request..... Delete %p\n", me);
+	HTTRACE(CORE_TRACE, "Request..... Delete %p\n" _ me);
 	if (me->net) HTNet_setRequest(me->net, NULL);
 
 	/* Should we delete the output stream? */
 	if (me->orig_output_stream) {
-	    if (CORE_TRACE) HTTrace("Request..... Deleting dangling output stream\n");
+	    HTTRACE(CORE_TRACE, "Request..... Deleting dangling output stream\n");
 	    (*me->orig_output_stream->isa->_free)(me->orig_output_stream);
 	    me->orig_output_stream = NULL;
 	    HTNoFreeStream_delete(me->output_stream);
@@ -168,7 +168,7 @@ PUBLIC void HTRequest_delete (HTRequest * me)
 
 	/* Should we delete the debug stream? */
 	if (me->orig_debug_stream) {
-	    if (CORE_TRACE) HTTrace("Request..... Deleting dangling debug stream\n");
+	    HTTRACE(CORE_TRACE, "Request..... Deleting dangling debug stream\n");
 	    (*me->orig_debug_stream->isa->_free)(me->orig_debug_stream);
 	    me->orig_debug_stream = NULL;
 	    HTNoFreeStream_delete(me->debug_stream);
@@ -1387,17 +1387,15 @@ PUBLIC BOOL HTRequest_addDestination (HTRequest * src, HTRequest * dest)
 	if (!src->mainDestination) {
 	    src->mainDestination = dest;
 	    src->destRequests = 1;
-	    if (CORE_TRACE)
-		HTTrace("POSTWeb..... Adding dest %p to src %p\n",
-			 dest, src);
+	    HTTRACE(CORE_TRACE, "POSTWeb..... Adding dest %p to src %p\n" _ 
+			 dest _ src);
 	    return YES;
 	} else {
 	    if (!src->destinations) src->destinations = HTList_new();
 	    if (HTList_addObject(src->destinations, (void *) dest)==YES) {
 		src->destRequests++;
-		if (CORE_TRACE)
-		    HTTrace("POSTWeb..... Adding dest %p to src %p\n",
-			     dest, src);
+		HTTRACE(CORE_TRACE, "POSTWeb..... Adding dest %p to src %p\n" _ 
+			     dest _ src);
 		return YES;
 	    }
 	}
@@ -1429,13 +1427,11 @@ PUBLIC BOOL HTRequest_removeDestination (HTRequest * dest)
 	}
 	if (found) {
 	    if (dest->internal) HTRequest_delete(dest);
-	    if (CORE_TRACE)
-	    	HTTrace("POSTWeb..... Deleting dest %p from src %p\n",
-			 dest, src);
+	    HTTRACE(CORE_TRACE, "POSTWeb..... Deleting dest %p from src %p\n" _ 
+			 dest _ src);
 	}
 	if (src->destRequests <= 0) {
-	    if (CORE_TRACE)
-		HTTrace("POSTWeb..... terminated\n");
+	    HTTRACE(CORE_TRACE, "POSTWeb..... terminated\n");
 	    if (src->internal) HTRequest_delete(src);
 	}
     }
@@ -1453,8 +1449,7 @@ PUBLIC BOOL HTRequest_destinationsReady (HTRequest * me)
     if (source) {
 	if (source->destStreams == source->destRequests) {
 	    HTNet * net = source->net;
-	    if (CORE_TRACE)
-		HTTrace("POSTWeb..... All destinations are ready!\n");
+	    HTTRACE(CORE_TRACE, "POSTWeb..... All destinations are ready!\n");
 	    if (net)			      /* Might already have finished */
 		HTEvent_register(HTNet_socket(net), HTEvent_READ, &net->event);
 	    return YES;
@@ -1486,13 +1481,11 @@ PUBLIC BOOL HTRequest_linkDestination (HTRequest *dest)
 	    (*source->output_stream->isa->_free)(source->output_stream);
 	source->output_stream = pipe ? pipe : dest->input_stream;
 
-	if (CORE_TRACE)
-	    HTTrace("POSTWeb..... Linking dest %p to src %p\n",
-		     dest, source);
+	HTTRACE(CORE_TRACE, "POSTWeb..... Linking dest %p to src %p\n" _ 
+		     dest _ source);
 	if (++source->destStreams == source->destRequests) {
 	    HTNet *net = source->net;
-	    if (CORE_TRACE)
-		HTTrace("POSTWeb..... All destinations ready!\n");
+	    HTTRACE(CORE_TRACE, "POSTWeb..... All destinations ready!\n");
 	    if (net)			      /* Might already have finished */
 		HTEvent_register(HTNet_socket(net), HTEvent_READ, &net->event);
 	    return YES;
@@ -1524,9 +1517,8 @@ PUBLIC BOOL HTRequest_unlinkDestination (HTRequest *dest)
 	}	
 	if (found) {
 	    src->destStreams--;
-	    if (CORE_TRACE)
-		HTTrace("POSTWeb..... Unlinking dest %p from src %p\n",
-			 dest, src);
+	    HTTRACE(CORE_TRACE, "POSTWeb..... Unlinking dest %p from src %p\n" _ 
+			 dest _ src);
 	    return YES;
 	}
     }
@@ -1571,7 +1563,7 @@ PUBLIC BOOL HTRequest_killPostWeb (HTRequest *me)
 {
     if (me && me->source) {
 	HTRequest *source = me->source;
-	if (CORE_TRACE) HTTrace("POSTWeb..... Killing\n");
+	HTTRACE(CORE_TRACE, "POSTWeb..... Killing\n");
 
 	/*
 	** Kill source. The stream tree is now freed so we have to build
@@ -1620,7 +1612,7 @@ PUBLIC int HTRequest_forceFlush (HTRequest * request)
 PUBLIC BOOL HTLoad (HTRequest * me, BOOL recursive)
 {
     if (!me || !me->anchor) {
-        if (CORE_TRACE) HTTrace("Load Start.. Bad argument\n");
+        HTTRACE(CORE_TRACE, "Load Start.. Bad argument\n");
         return NO;
     }
 
@@ -1655,7 +1647,7 @@ PUBLIC BOOL HTLoad (HTRequest * me, BOOL recursive)
 PUBLIC BOOL HTServe (HTRequest * me, BOOL recursive)
 {
     if (!me || !me->anchor) {
-        if (CORE_TRACE) HTTrace("Serve Start. Bad argument\n");
+        HTTRACE(CORE_TRACE, "Serve Start. Bad argument\n");
         return NO;
     }
 

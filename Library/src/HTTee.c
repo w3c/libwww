@@ -133,9 +133,8 @@ PUBLIC HTStream * HTTee(HTStream * s1, HTStream * s2, HTComparer * resolver)
     me->s1 = s1 ? s1 : HTBlackHole();
     me->s2 = s2 ? s2 : HTBlackHole();
     me->resolver = resolver ? resolver : default_resolver;
-    if (STREAM_TRACE)
-	HTTrace("Tee......... Created stream %p with resolver %p\n",
-		me, me->resolver);
+    HTTRACE(STREAM_TRACE, "Tee......... Created stream %p with resolver %p\n" _ 
+		me _ me->resolver);
     return me;
 }
 

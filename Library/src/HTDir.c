@@ -379,8 +379,7 @@ PUBLIC HTDir * HTDir_new (HTRequest * request, HTDirShow show, HTDirKey key)
 	    StrAllocCopy(dir->base, ++ptr);
 	    StrAllocCat(dir->base, "/");
 	}
-	if (PROT_TRACE)
-	    HTTrace("HTDir_new... base is `%s\'\n", dir->base ? dir->base : "");
+	HTTRACE(PROT_TRACE, "HTDir_new... base is `%s\'\n" _ dir->base ? dir->base : "");
 	HT_FREE(addr);
 	HT_FREE(path);
     }

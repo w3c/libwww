@@ -114,9 +114,8 @@ PUBLIC BOOL HTNetCall_addBefore (HTList * list, HTNetBefore * before,
 	if (tmplate) StrAllocCopy(me->tmplate, tmplate);
 	me->order = check_order(order);
 	me->param = param;
-	if (CORE_TRACE)
-	    HTTrace("Net Before.. Add %p with order %d tmplate `%s\' context %p\n",
-		    before, me->order, tmplate ? tmplate : "<null>", param);
+	HTTRACE(CORE_TRACE, "Net Before.. Add %p with order %d tmplate `%s\' context %p\n" _ 
+		    before _ me->order _ tmplate ? tmplate : "<null>" _ param);
 	return (HTList_addObject(list, me) &&
 		HTList_insertionSort(list, HTBeforeOrder));
     }
@@ -128,7 +127,7 @@ PUBLIC BOOL HTNetCall_addBefore (HTList * list, HTNetBefore * before,
 */
 PUBLIC BOOL HTNetCall_deleteBefore (HTList * list, HTNetBefore * before)
 {
-    if (CORE_TRACE) HTTrace("Net Before.. Delete %p\n", before);
+    HTTRACE(CORE_TRACE, "Net Before.. Delete %p\n" _ before);
     if (list && before) {
 	HTList * cur = list;
 	BeforeFilter * pres;
@@ -149,7 +148,7 @@ PUBLIC BOOL HTNetCall_deleteBefore (HTList * list, HTNetBefore * before)
 */
 PUBLIC BOOL HTNetCall_deleteBeforeAll (HTList * list)
 {
-    if (CORE_TRACE) HTTrace("Net Before. Delete All filters\n");
+    HTTRACE(CORE_TRACE, "Net Before. Delete All filters\n");
     if (list) {
 	HTList * cur = list;
 	BeforeFilter * pres;
@@ -181,9 +180,9 @@ PUBLIC int HTNetCall_executeBefore (HTList * list, HTRequest * request)
 	while ((pres = (BeforeFilter *) HTList_nextObject(list))) {
 	    if (!pres->tmplate ||
 		(pres->tmplate && HTStrMatch(pres->tmplate, addr))) {
-		if (CORE_TRACE) HTTrace("Net Before.. calling %p (request %p, context %p)\n",
-					pres->before,
-					request, pres->param);
+		HTTRACE(CORE_TRACE, "Net Before.. calling %p (request %p, context %p)\n" _ 
+					pres->before _ 
+					request _ pres->param);
 		ret = (*pres->before)(request, pres->param, mode);
 		if (ret != HT_OK) break;
 
@@ -217,9 +216,8 @@ PUBLIC BOOL HTNetCall_addAfter (HTList * list, HTNetAfter * after,
 	me->order = check_order(order);
 	me->param = param;
 	me->status = status;
-	if (CORE_TRACE)
-	    HTTrace("Net After... Add %p with order %d tmplate `%s\' code %d context %p\n",
-		    after, me->order, tmplate ? tmplate : "<null>", status, param);
+	HTTRACE(CORE_TRACE, "Net After... Add %p with order %d tmplate `%s\' code %d context %p\n" _ 
+		    after _ me->order _ tmplate ? tmplate : "<null>" _ status _ param);
 	return (HTList_addObject(list, me) &&
 		HTList_insertionSort(list, HTAfterOrder));
     }
@@ -231,7 +229,7 @@ PUBLIC BOOL HTNetCall_addAfter (HTList * list, HTNetAfter * after,
 */
 PUBLIC BOOL HTNetCall_deleteAfter (HTList * list, HTNetAfter * after)
 {
-    if (CORE_TRACE) HTTrace("Net After... Delete %p\n", after);
+    HTTRACE(CORE_TRACE, "Net After... Delete %p\n" _ after);
     if (list && after) {
 	HTList * cur = list;
 	AfterFilter * pres;
@@ -252,7 +250,7 @@ PUBLIC BOOL HTNetCall_deleteAfter (HTList * list, HTNetAfter * after)
 */
 PUBLIC BOOL HTNetCall_deleteAfterStatus (HTList * list, int status)
 {
-    if (CORE_TRACE) HTTrace("Net After... Delete all with status %d\n",status);
+    HTTRACE(CORE_TRACE, "Net After... Delete all with status %d\n" _ status);
     if (list) {
 	HTList * cur = list;
 	AfterFilter * pres;
@@ -274,7 +272,7 @@ PUBLIC BOOL HTNetCall_deleteAfterStatus (HTList * list, int status)
 */
 PUBLIC BOOL HTNetCall_deleteAfterAll (HTList * list)
 {
-    if (CORE_TRACE) HTTrace("Net After. Delete All filters\n");
+    HTTRACE(CORE_TRACE, "Net After. Delete All filters\n");
     if (list) {
 	HTList * cur = list;
 	AfterFilter * pres;
@@ -310,10 +308,9 @@ PUBLIC int HTNetCall_executeAfter (HTList * list, HTRequest * request,
 		if ((pres->status == status || pres->status == HT_ALL) &&
 		    (!pres->tmplate ||
 		     (pres->tmplate && HTStrMatch(pres->tmplate, addr)))) {
-		    if (CORE_TRACE)
-			HTTrace("Net After... calling %p (request %p, response %p, status %d, context %p)\n",
-				pres->after, request, response,
-				status, pres->param);
+		    HTTRACE(CORE_TRACE, "Net After... calling %p (request %p, response %p, status %d, context %p)\n" _ 
+				pres->after _ request _ response _ 
+				status _ pres->param);
 		    ret = (*pres->after)(request, response, pres->param, status);
 		    if (ret != HT_OK) break;
 
@@ -444,17 +441,15 @@ PUBLIC BOOL HTNet_setMaxSocket (int newmax)
 PUBLIC void HTNet_increaseSocket (void)
 {
     Active++;
-    if (CORE_TRACE)
-	HTTrace("Net Manager. Increasing active sockets to %d, %d persistent sockets\n",
-		Active, Persistent);
+    HTTRACE(CORE_TRACE, "Net Manager. Increasing active sockets to %d, %d persistent sockets\n" _ 
+		Active _ Persistent);
 }
 
 PUBLIC void HTNet_decreaseSocket (void)
 {
     if (--Active < 0) Active = 0;
-    if (CORE_TRACE)
-	HTTrace("Net Manager. Decreasing active sockets to %d, %d persistent sockets\n",
-		Active, Persistent);
+    HTTRACE(CORE_TRACE, "Net Manager. Decreasing active sockets to %d, %d persistent sockets\n" _ 
+		Active _ Persistent);
 }
 
 PUBLIC int HTNet_availableSockets (void)
@@ -466,17 +461,15 @@ PUBLIC int HTNet_availableSockets (void)
 PUBLIC void HTNet_increasePersistentSocket (void)
 {
     Persistent++;
-    if (CORE_TRACE)
-	HTTrace("Net Manager. %d active sockets, increasing persistent sockets to %d\n",
-		Active, Persistent);
+    HTTRACE(CORE_TRACE, "Net Manager. %d active sockets, increasing persistent sockets to %d\n" _ 
+		Active _ Persistent);
 }
 
 PUBLIC void HTNet_decreasePersistentSocket (void)
 {
     if (--Persistent < 0) Persistent = 0;
-    if (CORE_TRACE)
-	HTTrace("Net Manager. %d active sockets, decreasing persistent sockets to %d\n",
-		Active, Persistent);
+    HTTRACE(CORE_TRACE, "Net Manager. %d active sockets, decreasing persistent sockets to %d\n" _ 
+		Active _ Persistent);
 }
 
 PUBLIC int HTNet_availablePersistentSockets (void)
@@ -514,10 +507,9 @@ PRIVATE int AfterFilterEvent (HTTimer * timer, void * param, HTEventType type)
 	HTRequest * request = fe->request;
 	int status = fe->status;
 	if (timer != fe->timer)
-	    HTDebugBreak(__FILE__, __LINE__, "Net timer. %p not in sync\n", timer);
-	if (CORE_TRACE) 
-	    HTTrace("HTNet....... Continuing calling AFTER filters %p with timer %p\n",
-		    fe, timer);
+	    HTDEBUGBREAK("Net timer. %p not in sync\n" _ timer);
+	HTTRACE(CORE_TRACE, "HTNet....... Continuing calling AFTER filters %p with timer %p\n" _ 
+		    fe _ timer);
 
 	/* Delete the event context */
 	HT_FREE(fe);
@@ -557,8 +549,7 @@ PRIVATE HTNet * create_object (void)
     if (!NetTable[me->hash]) NetTable[me->hash] = HTList_new();
     HTList_addObject(NetTable[me->hash], (void *) me);
     HTNetCount++;
-    if (CORE_TRACE)
-	HTTrace("Net Object.. %p created with hash %d\n",me, me->hash);
+    HTTRACE(CORE_TRACE, "Net Object.. %p created with hash %d\n" _ me _ me->hash);
     return me;
 }
 
@@ -575,7 +566,7 @@ PUBLIC HTNet * HTNet_dup (HTNet * src)
 	int hash;
 	if ((me = create_object()) == NULL) return NULL;
 	hash = me->hash;
-	if (CORE_TRACE) HTTrace("Net Object.. Duplicated %p\n", src);
+	HTTRACE(CORE_TRACE, "Net Object.. Duplicated %p\n" _ src);
         memcpy((void *) me, src, sizeof(HTNet));
 	me->hash = hash;			/* Carry over hash entry */
 	return me;
@@ -586,9 +577,8 @@ PUBLIC HTNet * HTNet_dup (HTNet * src)
 PUBLIC BOOL HTNet_execute (HTNet * net, HTEventType type)
 {
     if (net && net->event.cbf && net->request) {
-	if (CORE_TRACE)
-	    HTTrace("Net Object.. %p calling %p with event type %d and context %p\n",
-		    net, net->event.cbf, type, net->event.param);
+	HTTRACE(CORE_TRACE, "Net Object.. %p calling %p with event type %d and context %p\n" _ 
+		    net _ net->event.cbf _ type _ net->event.param);
 	(*(net->event.cbf))(HTNet_socket(net), net->event.param, type);
 	return YES;
     }
@@ -601,7 +591,7 @@ PUBLIC BOOL HTNet_execute (HTNet * net, HTEventType type)
 PUBLIC BOOL HTNet_start (HTNet * net)
 {
     if (net && net->event.cbf && net->request) {
-	if (CORE_TRACE) HTTrace("Net Object.. Launching %p\n", net);
+	HTTRACE(CORE_TRACE, "Net Object.. Launching %p\n" _ net);
 	(*(net->event.cbf))(HTNet_socket(net), net->event.param, HTEvent_BEGIN);
 	return YES;
     }
@@ -671,7 +661,7 @@ PUBLIC BOOL HTNet_newServer (HTRequest * request)
     */
     if (!(physical = HTAnchor_physical(anchor))) {
 	char * addr = HTAnchor_address((HTAnchor *) anchor);
-	if (CORE_TRACE) HTTrace("Net Object.. Using default address\n");
+	HTTRACE(CORE_TRACE, "Net Object.. Using default address\n");
 	HTAnchor_setPhysical(anchor, addr);
 	physical = HTAnchor_physical(anchor);
 	HT_FREE(addr);
@@ -681,12 +671,12 @@ PUBLIC BOOL HTNet_newServer (HTRequest * request)
     {
 	char * access = HTParse(physical, "", PARSE_ACCESS);      
 	if ((protocol = HTProtocol_find(request, access)) == NULL) {
-	    if (CORE_TRACE) HTTrace("Net Object.. NO PROTOCOL Object found for URI scheme `%s\'\n", access);
+	    HTTRACE(CORE_TRACE, "Net Object.. NO PROTOCOL Object found for URI scheme `%s\'\n" _ access);
 	    HT_FREE(access);
 	    return NO;
 	}
 	if (!(cbf = HTProtocol_server(protocol))) {
-	    if (CORE_TRACE) HTTrace("Net Object.. NO SERVER HANDLER for URI scheme `%s\'\n", access);
+	    HTTRACE(CORE_TRACE, "Net Object.. NO SERVER HANDLER for URI scheme `%s\'\n" _ access);
 	    HT_FREE(access);
 	    HT_FREE(me);
 	    return NO;
@@ -696,7 +686,7 @@ PUBLIC BOOL HTNet_newServer (HTRequest * request)
 
     /* Find a transport object for this protocol */
     if ((tp = HTTransport_find(request, HTProtocol_transport(protocol))) == NULL) {
-        if (CORE_TRACE) HTTrace("Net Object.. NO TRANSPORT found for protocol `%s\'\n", HTProtocol_name(protocol));
+        HTTRACE(CORE_TRACE, "Net Object.. NO TRANSPORT found for protocol `%s\'\n" _ HTProtocol_name(protocol));
         return NO;
     }
 
@@ -710,8 +700,7 @@ PUBLIC BOOL HTNet_newServer (HTRequest * request)
     HTRequest_setNet(request, me);
 
     /* Start the server request */
-    if (CORE_TRACE)
-        HTTrace("Net Object.. starting SERVER request %p and net object %p\n", request, me);
+    HTTRACE(CORE_TRACE, "Net Object.. starting SERVER request %p and net object %p\n" _ request _ me);
     (*(cbf))(INVSOC, request);
     return YES;
 }
@@ -762,7 +751,7 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
     */
     if (!(physical = HTAnchor_physical(anchor))) {
 	char * addr = HTAnchor_address((HTAnchor *) anchor);
-	if (CORE_TRACE) HTTrace("Net Object.. Using default address\n");
+	HTTRACE(CORE_TRACE, "Net Object.. Using default address\n");
 	HTAnchor_setPhysical(anchor, addr);
 	physical = HTAnchor_physical(anchor);
 	HT_FREE(addr);
@@ -773,12 +762,12 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
 	char * proxy = HTRequest_proxy(request);
 	char * access = HTParse(proxy ? proxy : physical, "", PARSE_ACCESS);      
 	if ((protocol = HTProtocol_find(request, access)) == NULL) {
-	    if (CORE_TRACE) HTTrace("Net Object.. NO PROTOCOL Object found for URI scheme `%s\'\n", access);
+	    HTTRACE(CORE_TRACE, "Net Object.. NO PROTOCOL Object found for URI scheme `%s\'\n" _ access);
 	    HT_FREE(access);
 	    return NO;
 	}
 	if (!(cbf = HTProtocol_client(protocol))) {
-	    if (CORE_TRACE) HTTrace("Net Object.. NO CLIENT HANDLER for URI scheme `%s\'\n", access);
+	    HTTRACE(CORE_TRACE, "Net Object.. NO CLIENT HANDLER for URI scheme `%s\'\n" _ access);
 	    HT_FREE(access);
 	    HT_FREE(me);
 	    return NO;
@@ -789,7 +778,7 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
     /* Find a transport object for this protocol */
     tp = HTTransport_find(request, HTProtocol_transport(protocol));
     if (tp == NULL) {
-	if (CORE_TRACE) HTTrace("Net Object.. NO TRANSPORT found for protocol `%s\'\n", HTProtocol_name(protocol));
+	HTTRACE(CORE_TRACE, "Net Object.. NO TRANSPORT found for protocol `%s\'\n" _ HTProtocol_name(protocol));
 	return NO;
     }
 
@@ -813,9 +802,8 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
     ** If so then call the call back function associated with the anchor.
     ** We use the INVSOC as we don't have a valid socket yet!
     */
-    if (CORE_TRACE)
-        HTTrace("Net Object.. starting request %p (retry=%d) with net object %p\n",
-	        request, HTRequest_retrys(request), me);
+    HTTRACE(CORE_TRACE, "Net Object.. starting request %p (retry=%d) with net object %p\n" _ 
+	        request _ HTRequest_retrys(request) _ me);
     (*(cbf))(INVSOC, request);
     return YES;
 }
@@ -827,7 +815,7 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
 */
 PRIVATE BOOL check_pending (HTNet * net)
 {
-    if (CORE_TRACE) HTTrace("Net Object.. Check for pending Net objects\n");
+    HTTRACE(CORE_TRACE, "Net Object.. Check for pending Net objects\n");
     if (net) {
 
 	/*
@@ -844,7 +832,7 @@ PRIVATE BOOL check_pending (HTNet * net)
 
 PRIVATE BOOL free_net (HTNet * net)
 {
-    if (CORE_TRACE) HTTrace("Net Object.. Freeing object %p\n", net);
+    HTTRACE(CORE_TRACE, "Net Object.. Freeing object %p\n" _ net);
     if (net) {
         HTRequest_setNet(net->request, NULL);
         HT_FREE(net);
@@ -901,8 +889,7 @@ PUBLIC BOOL HTNet_clear (HTNet * net)
 */
 PUBLIC BOOL HTNet_delete (HTNet * net, int status)
 {
-    if (CORE_TRACE) 
-	HTTrace("Net Object.. Delete %p and call AFTER filters\n", net);
+    HTTRACE(CORE_TRACE, "Net Object.. Delete %p and call AFTER filters\n" _ net);
     if (net) {
 	HTRequest * request = net->request;
 
@@ -916,9 +903,8 @@ PUBLIC BOOL HTNet_delete (HTNet * net, int status)
 	    HTHost_unregister (net->host, net, HTEvent_WRITE);
 	    if (status == HT_RECOVER_PIPE) {
 		HTNet_clear(net);
-		if (CORE_TRACE)
-		    HTTrace("Net Object.. Restarting request %p (retry=%d) with net object %p\n",
-			    request, HTRequest_retrys(request), net);
+		HTTRACE(CORE_TRACE, "Net Object.. Restarting request %p (retry=%d) with net object %p\n" _ 
+			    request _ HTRequest_retrys(request) _ net);
 		return YES;
 	    }
             HTHost_deleteNet(net->host, net, status);
@@ -955,8 +941,7 @@ PUBLIC BOOL HTNet_deleteDup (HTNet * dup)
 */
 PUBLIC BOOL HTNet_deleteAll (void)
 {
-    if (CORE_TRACE) 
-	HTTrace("Net Object.. Remove all Net objects, NO filters\n"); 
+    HTTRACE(CORE_TRACE, "Net Object.. Remove all Net objects, NO filters\n"); 
     if (NetTable) {
 	HTList * cur = NULL;
         HTNet * pres = NULL;
@@ -999,14 +984,14 @@ PUBLIC BOOL HTNet_kill (HTNet * net)
     if (net) {
         HTAlertCallback * cbf = HTAlert_find(HT_PROG_INTERRUPT);
         if (cbf) (*cbf)(net->request, HT_PROG_INTERRUPT, HT_MSG_NULL, NULL, NULL, NULL);
-	if (CORE_TRACE) HTTrace("Net Object.. Killing %p\n", net);
+	HTTRACE(CORE_TRACE, "Net Object.. Killing %p\n" _ net);
 	if (net->event.cbf) {
 	    (*(net->event.cbf))(HTNet_socket(net), net->event.param, HTEvent_CLOSE);
 	    return YES;
 	}
 	return unregister_net(net) && free_net(net);
     }
-    if (CORE_TRACE) HTTrace("Net Object.. No object to kill\n");
+    HTTRACE(CORE_TRACE, "Net Object.. No object to kill\n");
     return NO;
 }
 
@@ -1019,7 +1004,7 @@ PUBLIC BOOL HTNet_kill (HTNet * net)
 */
 PUBLIC BOOL HTNet_killAll (void)
 {
-    if (CORE_TRACE) HTTrace("Net Object.. Kill ALL Net objects!!!\n"); 
+    HTTRACE(CORE_TRACE, "Net Object.. Kill ALL Net objects!!!\n"); 
     if (NetTable) {
 	HTList * cur = NULL;
         HTNet * pres = NULL;
@@ -1032,7 +1017,7 @@ PUBLIC BOOL HTNet_killAll (void)
 	}
 	return YES;
     }
-    if (CORE_TRACE) HTTrace("Net Object.. No objects to kill\n");
+    HTTRACE(CORE_TRACE, "Net Object.. No objects to kill\n");
     return NO;
 }
 
@@ -1084,9 +1069,8 @@ PUBLIC BOOL HTNet_setPersistent (HTNet *		net,
 {
     if (net) {
 	BOOL result = HTHost_setPersistent(net->host, persistent, mode);
-	if (CORE_TRACE)
-	    HTTrace("Net Object.. Persistent connection set %s %s\n",
-		    persistent ? "ON" : "OFF",
+	HTTRACE(CORE_TRACE, "Net Object.. Persistent connection set %s %s\n" _ 
+		    persistent ? "ON" : "OFF" _ 
 		    result ? "succeeded" : "failed");
 	return result;
     }
@@ -1237,7 +1221,7 @@ PUBLIC HTOutputStream * HTNet_getOutput (HTNet * me, void * param, int mode)
 	HTChannel_setOutput(ch, output);
 	return output;
     }
-    if (CORE_TRACE) HTTrace("Host Object.. Can't create output stream\n");
+    HTTRACE(CORE_TRACE, "Host Object.. Can't create output stream\n");
     return NULL;
 }
 

@@ -79,7 +79,7 @@ PRIVATE int HTFileSave_free (HTStream * me)
 
 PRIVATE int HTFileSave_abort (HTStream * me, HTList * e)
 {
-    if (STREAM_TRACE) HTTrace("Save File.. ABORTING...\n");
+    HTTRACE(STREAM_TRACE, "Save File.. ABORTING...\n");
     if (me) {
 	(*me->target->isa->abort)(me->target, e);
 	if (me->remove_on_close) REMOVE(me->filename);
@@ -143,8 +143,7 @@ PRIVATE char * get_filename (char * base, const char * uri,
         if (path && suffix) StrAllocCat(path, suffix);
     }
 
-    if (STREAM_TRACE)
-	HTTrace("Save file... Temporaray file `%s\'\n", path ? path : "<null>");
+    HTTRACE(STREAM_TRACE, "Save file... Temporaray file `%s\'\n" _ path ? path : "<null>");
     return path;
 }
 
@@ -170,7 +169,7 @@ PUBLIC HTStream* HTSaveLocally (HTRequest *	request,
 	return HTErrorStream();
     }
     if (!tmproot) {
-	if (STREAM_TRACE) HTTrace("Save File... turned off\n");
+	HTTRACE(STREAM_TRACE, "Save File... turned off\n");
 	return HTErrorStream();
     }
 	
@@ -203,10 +202,10 @@ PUBLIC HTStream* HTSaveLocally (HTRequest *	request,
 		return HTErrorStream();
 	    }
 	} else if (cbf) {
-	    if (STREAM_TRACE) HTTrace("Save File... No file name - error stream\n");
+	    HTTRACE(STREAM_TRACE, "Save File... No file name - error stream\n");
 	    return HTErrorStream();
 	} else {
-	    if (STREAM_TRACE) HTTrace("Save File... No file name - black hole\n");
+	    HTTRACE(STREAM_TRACE, "Save File... No file name - black hole\n");
 	    return HTBlackHole();
 	}
     }
@@ -245,7 +244,7 @@ PUBLIC HTStream* HTSaveAndExecute (HTRequest *	request,
 	return HTErrorStream();
     }
     if (!tmproot) {
-	if (STREAM_TRACE) HTTrace("Save File... turned off");
+	HTTRACE(STREAM_TRACE, "Save File... turned off");
 	return HTErrorStream();
     }
 	
@@ -263,7 +262,7 @@ PUBLIC HTStream* HTSaveAndExecute (HTRequest *	request,
 		return HTErrorStream();
 	    }
 	} else {
-	    if (STREAM_TRACE) HTTrace("Save File... No file name\n");
+	    HTTRACE(STREAM_TRACE, "Save File... No file name\n");
 	    return HTErrorStream();
 	}
     }

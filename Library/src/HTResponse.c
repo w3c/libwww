@@ -37,14 +37,14 @@ PUBLIC HTResponse * HTResponse_new (void)
     /* By default a response is not cachable */
     me->cachable = NO;
 
-    if (CORE_TRACE) HTTrace("Response.... Created %p\n", me);
+    HTTRACE(CORE_TRACE, "Response.... Created %p\n" _ me);
     return me;
 }
 
 PUBLIC BOOL HTResponse_delete (HTResponse * me)
 {
     if (me) {
-	if (CORE_TRACE) HTTrace("Response.... Delete %p\n", me);
+	HTTRACE(CORE_TRACE, "Response.... Delete %p\n" _ me);
 
 	/* Access Authentication */
 	HT_FREE(me->realm);

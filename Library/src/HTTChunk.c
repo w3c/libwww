@@ -50,9 +50,9 @@ PRIVATE BOOL HTChunkDecode_header (HTStream * me)
     if (line) {
 	char *errstr = NULL;
 	me->left = strtol(line, &errstr, 16);    /* hex! */
-	if (STREAM_TRACE) HTTrace("Chunked..... `%s\' chunk size: %X\n", line, me->left);
+	HTTRACE(STREAM_TRACE, "Chunked..... `%s\' chunk size: %X\n" _ line _ me->left);
 	if (errstr == line)
-	    HTDebugBreak(__FILE__, __LINE__, "Chunk decoder received illigal chunk size: `%s\'\n", line);
+	    HTDEBUGBREAK("Chunk decoder received illigal chunk size: `%s\'\n" _ line);
 	if (me->left > 0) {
 	    me->total += me->left;
 
@@ -160,7 +160,7 @@ PRIVATE int HTChunkDecode_free (HTStream * me)
 	if ((status = (*me->target->isa->_free)(me->target)) == HT_WOULD_BLOCK)
 	    return HT_WOULD_BLOCK;
     }
-    if (PROT_TRACE) HTTrace("Chunked..... FREEING....\n");
+    HTTRACE(PROT_TRACE, "Chunked..... FREEING....\n");
     HTChunk_delete(me->buf);
     HT_FREE(me);
     return status;
@@ -170,7 +170,7 @@ PRIVATE int HTChunkDecode_abort (HTStream * me, HTList * e)
 {
     int status = HT_ERROR;
     if (me->target) status = (*me->target->isa->abort)(me->target, e);
-    if (PROT_TRACE) HTTrace("Chunked..... ABORTING...\n");
+    HTTRACE(PROT_TRACE, "Chunked..... ABORTING...\n");
     HTChunk_delete(me->buf);
     HT_FREE(me);
     return status;
@@ -207,7 +207,7 @@ PUBLIC HTStream * HTChunkedDecoder   (HTRequest *	request,
     /* Adjust information in anchor */
     HTAnchor_setLength(anchor, -1);
 
-    if (STREAM_TRACE) HTTrace("Chunked..... Decoder stream created\n");
+    HTTRACE(STREAM_TRACE, "Chunked..... Decoder stream created\n");
     return me;
 }
 
@@ -231,7 +231,7 @@ PRIVATE int HTChunkEncode_block (HTStream * me, const char * b, int l)
     }
     me->total += l;
     PUTBLOCK(chunky, (int) strlen(chunky));
-    if (STREAM_TRACE) HTTrace("Chunked..... chunk size 0x%X\n", l);
+    HTTRACE(STREAM_TRACE, "Chunked..... chunk size 0x%X\n" _ l);
     if (l > 0) return PUTBLOCK(b, l);
 
     /* Here we should provide a footer */
@@ -279,7 +279,7 @@ PRIVATE int HTChunkEncode_abort (HTStream * me, HTList * e)
 {
     int status = HT_ERROR;
     if (me->target) status = (*me->target->isa->_free)(me->target);
-    if (PROT_TRACE) HTTrace("Chunked..... ABORTING...\n");
+    HTTRACE(PROT_TRACE, "Chunked..... ABORTING...\n");
     HT_FREE(me);
     return status;
 }
@@ -316,7 +316,7 @@ PUBLIC HTStream * HTChunkedEncoder   (HTRequest *	request,
 	HTChunk_ensure(me->buf, length);
     }
 
-    if (STREAM_TRACE) HTTrace("Chunked..... Encoder stream created\n");
+    HTTRACE(STREAM_TRACE, "Chunked..... Encoder stream created\n");
     return me;
 }
 

@@ -105,8 +105,7 @@ PRIVATE int HTReader_read (HTInputStream * me)
     HTRequest * request = HTNet_request(net);
     int status;
     if (!net->readStream) {
-	if (STREAM_TRACE)
-	    HTTrace("Read Socket. No read stream for net object %p\n", net);
+	HTTRACE(STREAM_TRACE, "Read Socket. No read stream for net object %p\n" _ net);
         return HT_ERROR;
     }
         
@@ -122,8 +121,7 @@ PRIVATE int HTReader_read (HTInputStream * me)
 		if (socerrno==EWOULDBLOCK) 			      /* BSD */
 #endif	
 		{
-		    if (STREAM_TRACE)
-			HTTrace("Read Socket. WOULD BLOCK fd %d\n",soc);
+		    HTTRACE(STREAM_TRACE, "Read Socket. WOULD BLOCK fd %d\n" _ soc);
 		    HTHost_register(host, net, HTEvent_READ);
 		    return HT_WOULD_BLOCK;
 #ifdef __svr4__
@@ -138,12 +136,12 @@ PRIVATE int HTReader_read (HTInputStream * me)
 #endif /* __svr4__ */
 #ifdef EPIPE
 		} else if (socerrno == EPIPE) {
-		    if (STREAM_TRACE) HTTrace("Read Socket. got EPIPE\n", soc);
+		    HTTRACE(STREAM_TRACE, "Read Socket. got EPIPE\n" _ soc);
 		    goto socketClosed;
 #endif /* EPIPE */
 #ifdef ECONNRESET
 		} else if (socerrno == ECONNRESET) {
-		    if (STREAM_TRACE) HTTrace("Read Socket. got ECONNRESET\n", soc);
+		    HTTRACE(STREAM_TRACE, "Read Socket. got ECONNRESET\n" _ soc);
 		    goto socketClosed;
 #endif /* ECONNRESET */
 		} else { 			     /* We have a real error */
@@ -156,15 +154,14 @@ PRIVATE int HTReader_read (HTInputStream * me)
 	    } else if (!me->b_read) {
 
 	    socketClosed:
-		if (STREAM_TRACE)
-		    HTTrace("Read Socket. FIN received on socket %d\n", soc);
+		HTTRACE(STREAM_TRACE, "Read Socket. FIN received on socket %d\n" _ soc);
 		HTHost_unregister(host, net, HTEvent_READ);
 		HTHost_register(host, net, HTEvent_CLOSE);
 		return HT_CLOSED;
 	    }
 
 	    /* Remember how much we have read from the input socket */
-	    HTTraceData(me->data, me->b_read, "Reading from socket %d", soc);
+	    HTTRACEDATA(me->data, me->b_read, "Reading from socket %d" _ soc);
 	    me->write = me->data;
 	    me->read = me->data + me->b_read;
 #ifdef FIND_SIGNATURES
@@ -172,8 +169,7 @@ PRIVATE int HTReader_read (HTInputStream * me)
 		char * ptr = me->data;
 		int len = me->b_read;
 		while ((ptr = strnstr(ptr, &len, "HTTP/1.1 200 OK")) != NULL) {
-		    if (STREAM_TRACE)
-			HTTrace("Read Socket. Signature found at 0x%x of 0x%x.\n", ptr - me->data, me->b_read);
+		    HTTRACE(STREAM_TRACE, "Read Socket. Signature found at 0x%x of 0x%x.\n" _ ptr - me->data _ me->b_read);
 		    ptr++;
 		    len--;
 		}
@@ -189,9 +185,8 @@ PRIVATE int HTReader_read (HTInputStream * me)
 	    }
 #endif /* NOT_ASCII */
 
-	    if (STREAM_TRACE)
-		HTTrace("Read Socket. %d bytes read from socket %d\n",
-			me->b_read, soc);
+	    HTTRACE(STREAM_TRACE, "Read Socket. %d bytes read from socket %d\n" _ 
+			me->b_read _ soc);
 	    if (request) {
 		HTAlertCallback * cbf = HTAlert_find(HT_PROG_READ);
 		if (HTNet_rawBytesCount(net))
@@ -207,24 +202,23 @@ PRIVATE int HTReader_read (HTInputStream * me)
 	if ((status = (*net->readStream->isa->put_block)
 	     (net->readStream, me->write, me->b_read)) != HT_OK) {
 	    if (status == HT_WOULD_BLOCK) {
-		if (STREAM_TRACE) HTTrace("Read Socket. Target WOULD BLOCK\n");
+		HTTRACE(STREAM_TRACE, "Read Socket. Target WOULD BLOCK\n");
 		HTHost_unregister(host, net, HTEvent_READ);
 		return HT_WOULD_BLOCK;
 	    } else if (status == HT_PAUSE) {
-		if (STREAM_TRACE) HTTrace("Read Socket. Target PAUSED\n");
+		HTTRACE(STREAM_TRACE, "Read Socket. Target PAUSED\n");
 		HTHost_unregister(host, net, HTEvent_READ);
 		return HT_PAUSE;
 	    /* CONTINUE code or stream code means data was consumed */
 	    } else if (status == HT_CONTINUE || status > 0) {
 		if (status == HT_CONTINUE) {
-		    if (STREAM_TRACE) HTTrace("Read Socket. CONTINUE\n");
+		    HTTRACE(STREAM_TRACE, "Read Socket. CONTINUE\n");
 		} else
-		    if (STREAM_TRACE)
-			HTTrace("Read Socket. Target returns %d\n", status);
+		    HTTRACE(STREAM_TRACE, "Read Socket. Target returns %d\n" _ status);
 /*		me->write = me->read; */
 		return status;
 	    } else {				     /* We have a real error */
-		if (STREAM_TRACE) HTTrace("Read Socket. Target ERROR %d\n", status);
+		HTTRACE(STREAM_TRACE, "Read Socket. Target ERROR %d\n" _ status);
 		return status;
 	    }
 	}
@@ -232,9 +226,8 @@ PRIVATE int HTReader_read (HTInputStream * me)
 	{
 	    int remaining = HTHost_remainingRead(host);
 	    if (remaining > 0) {
-		if (STREAM_TRACE)
-		    HTTrace("Read Socket. DIDN'T CONSUME %d BYTES: `%s\'\n",
-			    remaining, me->read);
+		HTTRACE(STREAM_TRACE, "Read Socket. DIDN'T CONSUME %d BYTES: `%s\'\n" _ 
+			    remaining _ me->read);
 		HTHost_setConsumed(host, remaining);
 	    }
 	}
@@ -258,7 +251,7 @@ PRIVATE int HTReader_close (HTInputStream * me)
 	    return HT_WOULD_BLOCK;
 	net->readStream = NULL;
     }
-    if (STREAM_TRACE) HTTrace("Socket read. FREEING....\n");
+    HTTRACE(STREAM_TRACE, "Socket read. FREEING....\n");
     HT_FREE(me);
     return status;
 }
@@ -299,7 +292,7 @@ PUBLIC HTInputStream * HTReader_new (HTHost * host, HTChannel * ch,
 	    me->isa = &HTReader;
 	    me->ch = ch;
 	    me->host = host;
-	    if (STREAM_TRACE) HTTrace("Reader...... Created reader stream %p\n", me);
+	    HTTRACE(STREAM_TRACE, "Reader...... Created reader stream %p\n" _ me);
 	}
 	return me;
     }

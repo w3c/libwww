@@ -69,11 +69,6 @@ struct _HTStream
 #define PUTC(ch) ((*context->actions->put_character)(context->target, ch))
 #define PUTB(b,l) ((*context->actions->put_block)(context->target, b, l))
 
-#define TRACE1(f,a) \
-	do {if (SGML_TRACE) HTTrace((f),(a)); } while(0)
-#define TRACE2(f,a,b) \
-	do {if (SGML_TRACE) HTTrace((f),(a),(b)); } while(0)
-
 /*	Find Attribute Number
 **	---------------------
 */
@@ -114,8 +109,8 @@ PRIVATE void handle_attribute_name (HTStream * context, const char * s)
 			context->present[i] = YES;
 			return;
 		    }
-		TRACE2("Unknown attribute %s for tag %s\n",
-		       s, context->current_tag->name);
+		HTTRACE(SGML_TRACE, "Unknown attribute %s for tag %s\n" _
+			s _ context->current_tag->name);
 	    }
 	context->current_attribute_number = INVALID;	/* Invalid */
     }
@@ -136,7 +131,7 @@ PRIVATE void handle_attribute_value (HTStream * context)
 				context->token;
 		else {
 		    char * data = HTChunk_data(context->string);
-		    TRACE1("Attribute value %s ignored\n",
+		    HTTRACE(SGML_TRACE, "Attribute value %s ignored\n" _
 			   data ? data+context->token : "<null>");
 		}
 	    }
@@ -169,7 +164,7 @@ PRIVATE void handle_entity (HTStream * context)
 	    }
 
 	/* If entity string not found */
-	TRACE1("Unknown entity %s\n", s);
+	HTTRACE(SGML_TRACE, "Unknown entity %s\n" _ s);
 	(*context->actions->unparsed_entity)
 	    (context->target, HTChunk_data(context->string), HTChunk_size(context->string));
     }
@@ -179,7 +174,7 @@ PRIVATE void handle_entity (HTStream * context)
 */
 PRIVATE void end_element (HTStream * context, HTTag *tag)
     {
-	TRACE1("End   </%s>\n", tag->name);
+	HTTRACE(SGML_TRACE, "End   </%s>\n" _ tag->name);
 	(*context->actions->end_element)
 		(context->target, tag - context->dtd->tags);
     }
@@ -193,7 +188,7 @@ PRIVATE void start_element (HTStream * context)
 	char *value[MAX_ATTRIBUTES];
 	HTTag *tag = context->current_tag;
 
-	TRACE1("Start <%s>\n", tag->name);
+	HTTRACE(SGML_TRACE, "Start <%s>\n" _ tag->name);
 	context->contents = tag->contents;
 
 	/*
@@ -515,19 +510,19 @@ PRIVATE int SGML_write (HTStream * context, const char * b, int l)
 			    int i;
 			    if (c == '/') {
 				if (HTChunk_size(string) > 0)
-				    TRACE1("`<%s/' found!\n", HTChunk_data(string));
+				    HTTRACE(SGML_TRACE, "`<%s/' found!\n" _ HTChunk_data(string));
 				context->state = S_end;
 				break;
 			    } else if (c == '!') {
 				if (HTChunk_size(string) > 0)
-				    TRACE1(" `<%s!' found!\n", HTChunk_data(string));
+				    HTTRACE(SGML_TRACE, " `<%s!' found!\n" _ HTChunk_data(string));
 				context->state = S_md;
 				break;
 			    }
 			    HTChunk_terminate(string);
 			    context->current_tag  = SGMLFindTag(dtd, HTChunk_data(string));
 			    if (context->current_tag == NULL) {
-				TRACE1("*** Unknown element %s\n", HTChunk_data(string));
+				HTTRACE(SGML_TRACE, "*** Unknown element %s\n" _ HTChunk_data(string));
 				(*context->actions->unparsed_begin_element)
 				    (context->target, HTChunk_data(string), HTChunk_size(string));
 			    } else {
@@ -597,7 +592,7 @@ PRIVATE int SGML_write (HTStream * context, const char * b, int l)
 
 			if (c == '>')
 			    {		/* End of tag */
-				TRACE1("found = but no value\n", NULL);
+				HTTRACE(SGML_TRACE, "found = but no value\n");
 				goto got_element_open;
 			    }
 			else if (c == '\'')
@@ -665,7 +660,7 @@ PRIVATE int SGML_write (HTStream * context, const char * b, int l)
 					   stack back... -- msa */
 					t = NULL;
 				if (!t) {
-				    TRACE1("Unknown end tag </%s>\n", HTChunk_data(string));
+				    HTTRACE(SGML_TRACE, "Unknown end tag </%s>\n" _ HTChunk_data(string));
 				    (*context->actions->unparsed_end_element)
 					(context->target, HTChunk_data(string), HTChunk_size(string));
 				} else {
@@ -677,8 +672,7 @@ PRIVATE int SGML_write (HTStream * context, const char * b, int l)
 				if (c != '>')
 				    {
 					if (!isspace((int) c))
-						TRACE2("`</%s%c' found!\n",
-						       HTChunk_data(string), c);
+					    HTTRACE(SGML_TRACE, "`</%s%c' found!\n" _ HTChunk_data(string) _ c);
 					context->state = S_junk_tag;
 				    }
 				else

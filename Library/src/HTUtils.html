@@ -1,10 +1,11 @@
 <HTML>
 <HEAD>
-  <TITLE>W3C Sample Code Library libwww General Purpose Macros</TITLE>
+  <TITLE>W3C Sample Code Library libwww Debug Information and General Purpose
+  Macros</TITLE>
 </HEAD>
 <BODY>
 <H1>
-  General Purpose Macros
+  Debug Information and General Purpose Macros
 </H1>
 <PRE>
 /*
@@ -13,26 +14,61 @@
 */
 </PRE>
 <P>
-This module is a part of the <A HREF="http://www.w3.org/Library/">
-W3C Sample Code Library</A>. See also the system dependent file
+This module is a part of the <A HREF="http://www.w3.org/Library/"> W3C Sample
+Code Library</A>. See also the system dependent file
 <A HREF="wwwsys.html">sysdep module</A> for system specific information.
 <PRE>
 #ifndef HTUTILS_H
 #define HTUTILS_H
 </PRE>
 <H2>
+  Destination for User Print Messages
+</H2>
+<P>
+You can send print messages to the user to various destinations
+depending on the type of your application. By default, on Unix the
+messages are sent to <CODE>stdout</CODE> using
+<CODE>fprintf</CODE>. If we are on MSWindows and have a windows
+applications then register a <CODE>HTPrintCallback</CODE>
+function. This is done with <CODE>HTPrint_setCallback</CODE>. It tells
+<CODE>HTPrint</CODE> to call a <CODE>HTPrintCallback</CODE>. If
+<CODE>HTDEBUG</CODE>
+is not defined then don't do any of the above.
+<PRE>
+typedef int HTPrintCallback(const char * fmt, va_list pArgs);
+extern void HTPrint_setCallback(HTPrintCallback * pCall);
+extern HTPrintCallback * HTPrint_getCallback(void);
+
+extern int HTPrint(const char * fmt, ...);
+</PRE>
+<H2>
   <A NAME="Debug">Debug Message Control</A>
 </H2>
 <P>
-This is the global flag for setting the <CODE>WWWTRACE</CODE> options. The
-verbose mode is no longer a simple boolean but a bit field so that it is
-possible to see parts of the output messages.
+This is the global flag for setting the <CODE><EM>WWWTRACE</EM></CODE> options.
+The verbose mode is no longer a simple boolean but a bit field so that it
+is possible to see parts of the output messages.
 <PRE>
-#ifndef DEBUG
-#define DEBUG	/* No one ever turns this off as trace is too important */
+#if defined(NODEBUG) || defined(NDEBUG) || defined(_NDEBUG)
+#undef HTDEBUG
+#else
+#ifndef HTDEBUG
+#define HTDEBUG		1
+#endif /* HTDEBUG */
+#endif
+</PRE>
+<H3>
+  C Preprocessor defines
+</H3>
+<P>
+Make sure that the following macros are defined
+<PRE>
+#ifndef __FILE__
+#define __FILE__	""
+#endif
 
-/* Call this function and the program halts */
-extern void HTDebugBreak (char * file, unsigned long line, const char * fmt, ...);
+#ifndef __LINE__
+#define __LINE__	0L
 #endif
 </PRE>
 <H3>
@@ -41,7 +77,7 @@ extern void HTDebugBreak (char * file, unsigned long line, const char * fmt, ...
 <P>
 The global trace flag variable is available everywhere.
 <PRE>
-#ifdef DEBUG
+#ifdef HTDEBUG
 #ifdef WWW_WIN_DLL
 extern int *		WWW_TraceFlag;	 /* In DLLs, we need the indirection */
 #define WWWTRACE	(*WWW_TraceFlag) 
@@ -51,11 +87,18 @@ extern unsigned int	WWW_TraceFlag;	     /* Global flag for all W3 trace */
 #endif /* WWW_WIN_DLL */
 #else
 #define WWWTRACE	0
-#endif /* DEBUG */
+#endif /* HTDEBUG */
 </PRE>
+<H3>
+  Select which Trace Messages to show
+</H3>
 <P>
-The <EM><CODE>WWWTRACE</CODE></EM> define outputs messages if verbose mode
-is active according to the following rules:
+Libwww has a huge set of trace messages and it is therefor a good idea to
+be able to select which ones to see for any particular trace. An easy way
+to set this is using the funtion
+<A HREF="HTHome.html#Trace">HTSetTraceMessageMask</A>. The <EM>WWWTRACE</EM>
+define outputs messages if verbose mode is active according to the following
+rules:
 <PRE>
 typedef enum _HTTraceFlags {
     SHOW_UTIL_TRACE	= 0x1,
@@ -74,6 +117,7 @@ typedef enum _HTTraceFlags {
     SHOW_CORE_TRACE	= 0x2000,
     SHOW_MUX_TRACE      = 0x4000,
     SHOW_SQL_TRACE      = 0x8000,
+    SHOW_XML_TRACE      = 0x10000,
     SHOW_ALL_TRACE	= 0xFFFFFFFF
 } HTTraceFlags;
 </PRE>
@@ -97,57 +141,86 @@ trace messages, e.g. showing messages for SGML and HTML at the same time.
 #define CORE_TRACE	(WWWTRACE &amp; SHOW_CORE_TRACE)
 #define MUX_TRACE	(WWWTRACE &amp; SHOW_MUX_TRACE)
 #define SQL_TRACE	(WWWTRACE &amp; SHOW_SQL_TRACE)
+#define XML_TRACE	(WWWTRACE &amp; SHOW_XML_TRACE)
+#define ALL_TRACE	(WWWTRACE &amp; SHOW_ALL_TRACE)
 </PRE>
 <H3>
   Destination for Trace Messages
 </H3>
 <P>
 You can send trace messages to various destinations depending on the type
-of your application. By default, on Unix the messages are sent to stderr
-using fprintf() and if we are on Windows and have a windows applications
-then register a HTTraceCallback function. This is done with HTTrace_setCallback.
-It tells HTTrace to call a HTTraceCallback. If your compiler has problems
-with va_list, then you may forget about registering the callback and instead
-macro HTTrace as follows: #define HTTrace MyAppSpecificTrace
-<A NAME="HTTrace"></A>
+of your application. By default, on Unix the messages are sent to
+<CODE>stderr</CODE> using <CODE>fprintf</CODE>. If we are on MSWindows and
+have a windows applications then register a <CODE>HTTraceCallback</CODE>
+function. This is done with <CODE>HTTrace_setCallback</CODE>. It tells
+<CODE>HTTrace</CODE> to call a <CODE>HTTraceCallback</CODE>. If 
+<CODE>HTDEBUG</CODE> is not defined then don't do any of the above.
 <PRE>
 typedef int HTTraceCallback(const char * fmt, va_list pArgs);
-
 extern void HTTrace_setCallback(HTTraceCallback * pCall);
 extern HTTraceCallback * HTTrace_getCallback(void);
-
+</PRE>
+<P>
+The <CODE>HTTRACE</CODE> macro uses "<CODE>_</CODE>" as parameter separater
+instead of "<CODE>,</CODE>". This enables us to use a single macro instead
+of a macro for each number of arguments which we consider a more elegant
+and flexible solution. The implication is, however, that we can't have variables
+that start or end with an "<CODE>_</CODE>" if they are to be used in a trace
+message.
+<PRE>
+#ifdef HTDEBUG
+#define _ ,
+#define HTTRACE(TYPE, FMT) \
+	do { if (TYPE) HTTrace(FMT); } while (0);
 extern int HTTrace(const char * fmt, ...);
+#else
+#define HTTRACE(TYPE, FMT)		/* empty */
+#endif /* HTDEBUG */
 </PRE>
 <H3>
-  Trace Data Logging
+  Data Trace Logging
 </H3>
 <P>
-A similare mechanism exists for logging data, except that is adds a
-data and length argument to the trace call.
+A similar mechanism exists for logging data, except that is adds a data and
+length argument to the trace call. Again, you can register your own callbacks
+if need be.
 <PRE>
-typedef int HTTraceDataCallback(char * data, size_t len, 
-				char * fmt, va_list pArgs);
-
+typedef int HTTraceDataCallback(char * data, size_t len, char * fmt, va_list pArgs);
 extern void HTTraceData_setCallback(HTTraceDataCallback * pCall);
 extern HTTraceDataCallback * HTTraceData_getCallback(void);
-
+</PRE>
+<P>
+Again we use the same macro expansion mechanism as for <CODE>HTTrace</CODE>
+<PRE>
+#ifdef HTDEBUG
+#define HTTRACEDATA(DATA, LEN, FMT) HTTraceData((DATA), (LEN), FMT)
 extern int HTTraceData(char * data, size_t len, char * fmt, ...);
+#else
+#define HTTRACEDATA(DATA, LEN, FMT)	/* empty */
+#endif /* HTDEBUG */
 </PRE>
 <H3>
-  Hiding Extraneous Logging Messages
+  Debug Breaks
 </H3>
 <P>
-Many of the long logging strings are wrapped with the HTHIDE
-macro. This is usually defined to pass its parameter to the loggin
-functions. However, if your application doesn't use the logging, you
-may define HTHIDE to pass only a 0 to eliminate the strings from the
-executable image.
+Call this function and the program halts. We use the same macro expansion
+mechanism as for <CODE>HTTrace</CODE>
 <PRE>
-#define HTHIDE(A)	A
+extern void HTDebugBreak(char * file, unsigned long line, const char * fmt, ...);
+
+#ifdef HTDEBUG
+#define HTDEBUGBREAK(FMT) HTDebugBreak(__FILE__, __LINE__, FMT)
+#else
+#define HTDEBUGBREAK(FMT)		/* empty */
+#endif /* HTDEBUG */
 </PRE>
 <H2>
   Macros for Function Declarations
 </H2>
+<P>
+These function prefixes are used by scripts and other tools and helps figuring
+out which functions are exported and which are not. See also the
+<A HREF="../User/Style/Macros.html">libwww style guide</A>.
 <PRE>
 #define PUBLIC			/* Accessible outside this module     */
 #define PRIVATE static		/* Accessible only within this module */
@@ -250,22 +323,6 @@ or BDSI platforms. For safefy, we make them mandatory.
 #define TOUPPER(c) toupper((int) (c))
 #endif
 </PRE>
-<H2>
-  C Preprocessor defines
-</H2>
-
-Make sure that the following macros are defined
-
-<PRE>
-#ifndef __FILE__
-#define __FILE__ ""
-#endif
-
-#ifndef __LINE__
-#define __LINE__ 0L
-#endif
-</PRE>
-
 <H2>
   Max and Min values for Integers and Floating Point
 </H2>

@@ -136,7 +136,7 @@ PRIVATE int HTFile_readDir (HTRequest * request, file_info *file)
     char *url = HTAnchor_physical(anchor);
     char fullname[HT_MAX_PATH+1];
     char *name;
-    if (PROT_TRACE) HTTrace("Reading..... directory\n");
+    HTTRACE(PROT_TRACE, "Reading..... directory\n");
     if (dir_access == HT_DIR_FORBID) {
 	HTRequest_addError(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
 		   NULL, 0, "HTFile_readDir");
@@ -159,9 +159,7 @@ PRIVATE int HTFile_readDir (HTRequest * request, file_info *file)
     if (dir_access == HT_DIR_SELECTIVE) {
 	strcpy(name, DEFAULT_DIR_FILE);
 	if (HT_STAT(fullname, &file_info)) {
-	    if (PROT_TRACE)
-		HTTrace(
-			"Read dir.... `%s\' not found\n", DEFAULT_DIR_FILE);
+	    HTTRACE(PROT_TRACE, "Read dir.... `%s\' not found\n" _ DEFAULT_DIR_FILE);
 	    HTRequest_addError(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
 		       NULL, 0, "HTFile_readDir");
 	    return HT_FORBIDDEN;
@@ -193,8 +191,7 @@ PRIVATE int HTFile_readDir (HTRequest * request, file_info *file)
 	    /* Make a lstat on the file */
 	    strcpy(name, dirbuf->d_name);
 	    if (HT_LSTAT(fullname, &file_info)) {
-		if (PROT_TRACE)
-		    HTTrace("Read dir.... lstat failed: %s\n",fullname);
+		HTTRACE(PROT_TRACE, "Read dir.... lstat failed: %s\n" _ fullname);
 		continue;
 	    }
 
@@ -257,15 +254,18 @@ PRIVATE BOOL HTEditable (const char * filename, struct stat * stat_info)
     ngroups = getgroups(NGROUPS, groups);	/* Groups to which I belong  */
     myUid = geteuid();				/* Get my user identifier */
 
+#ifdef HTDEBUG
     if (PROT_TRACE) {
         int i;
-	HTTrace(
-	    "File mode is 0%o, uid=%d, gid=%d. My uid=%d, %d groups (",
-    	    (unsigned int) fileptr->st_mode, (int) fileptr->st_uid,
-	    (int) fileptr->st_gid, (int) myUid, ngroups);
-	for (i=0; i<ngroups; i++) HTTrace(" %d", (int) groups[i]);
-	HTTrace(")\n");
+	HTTRACE(PROT_TRACE,
+		"File mode is 0%o, uid=%d, gid=%d. My uid=%d, %d groups (" _
+		(unsigned int) fileptr->st_mode _
+		(int) fileptr->st_uid _ (int) fileptr->st_gid _
+		(int) myUid _ ngroups);
+	for (i=0; i<ngroups; i++) HTTRACE(PROT_TRACE, " %d" _ (int) groups[i]);
+	HTTRACE(PROT_TRACE, ")\n");
     }
+#endif /* HTDEBUG */
     
     if (fileptr->st_mode & 0002)		/* I can write anyway? */
     	return YES;
@@ -281,7 +281,7 @@ PRIVATE BOOL HTEditable (const char * filename, struct stat * stat_info)
 	        return YES;
 	}
     }
-    if (PROT_TRACE) HTTrace("\tFile is not editable.\n");
+    HTTRACE(PROT_TRACE, "\tFile is not editable.\n");
     return NO;					/* If no excuse, can't do */
 #else
     /*
@@ -346,7 +346,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request)
     HTNet * net = HTRequest_net(request);
     HTParentAnchor * anchor = HTRequest_anchor(request);
 
-    if (PROT_TRACE) HTTrace("HTLoadFile.. Looking for `%s\'\n",
+    HTTRACE(PROT_TRACE, "HTLoadFile.. Looking for `%s\'\n" _ 
 			    HTAnchor_physical(anchor));
     if ((file = (file_info *) HT_CALLOC(1, sizeof(file_info))) == NULL)
 	HT_OUTOFMEM("HTLoadFILE");
@@ -363,8 +363,8 @@ PRIVATE int ReturnEvent (HTTimer * timer, void * param, HTEventType type)
 {
     file_info * file = (file_info *) param;
     if (timer != file->timer)
-	HTDebugBreak(__FILE__, __LINE__, "File timer %p not in sync\n", timer);
-    if (PROT_TRACE) HTTrace("HTLoadFile.. Continuing %p with timer %p\n", file, timer);
+	HTDEBUGBREAK("File timer %p not in sync\n" _ timer);
+    HTTRACE(PROT_TRACE, "HTLoadFile.. Continuing %p with timer %p\n" _ file _ timer);
 
     /*
     **  Delete the timer
@@ -415,8 +415,7 @@ PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
 
 	    /* Check whether we have access to local disk at all */
 	    if (HTLib_secure()) {
-		if (PROT_TRACE)
-		    HTTrace("LoadFile.... No access to local file system\n");
+		HTTRACE(PROT_TRACE, "LoadFile.... No access to local file system\n");
 		file->state = FS_TRY_FTP;
 		break;
 	    }
@@ -433,7 +432,7 @@ PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
 		if ((host = HTHost_new("localhost", 0)) == NULL) return HT_ERROR;
 		HTNet_setHost(net, host);
 		if (HTHost_addNet(host, net) == HT_PENDING)
-		    if (PROT_TRACE) HTTrace("HTLoadFile.. Pending...\n");
+		    HTTRACE(PROT_TRACE, "HTLoadFile.. Pending...\n");
 	    }
 	    file->state = FS_DO_CN;
 	    break;
@@ -455,10 +454,9 @@ PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
 		    HT_FREE(file->local);
 		    file->local = conneg;
 		    HTAnchor_setPhysical(anchor, conneg);
-		    if (PROT_TRACE) HTTrace("Load File... Found `%s\'\n", conneg);
+		    HTTRACE(PROT_TRACE, "Load File... Found `%s\'\n" _ conneg);
 		} else {
-		    if (PROT_TRACE)
-			HTTrace("Load File... Not found - even tried content negotiation\n");
+		    HTTRACE(PROT_TRACE, "Load File... Not found - even tried content negotiation\n");
 		    HTRequest_addError(request, ERR_FATAL, NO, HTERR_NOT_FOUND,
 				       NULL, 0, "HTLoadFile");
 		    file->state = FS_ERROR;
@@ -466,8 +464,7 @@ PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
 		}
 	    } else {
 		if (HT_STAT(file->local, &file->stat_info) == -1) {
-		    if (PROT_TRACE)
-			HTTrace("Load File... Not found `%s\'\n", file->local);
+		    HTTRACE(PROT_TRACE, "Load File... Not found `%s\'\n" _ file->local);
 		    HTRequest_addError(request, ERR_FATAL, NO, HTERR_NOT_FOUND,
 				       NULL, 0, "HTLoadFile");
 		    file->state = FS_ERROR;
@@ -559,10 +556,10 @@ PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
 		if (HTEvent_isCallbacksRegistered()) {
 		    if (!HTRequest_preemptive(request)) {
 			if (!HTNet_preemptive(net)) {
-			    if (PROT_TRACE) HTTrace("HTLoadFile.. Returning\n");
+			    HTTRACE(PROT_TRACE, "HTLoadFile.. Returning\n");
 			    HTHost_register(HTNet_host(net), net, HTEvent_READ);
 			} else if (!file->timer) {
-			    if (PROT_TRACE) HTTrace("HTLoadFile.. Returning\n");
+			    HTTRACE(PROT_TRACE, "HTLoadFile.. Returning\n");
 			    file->timer =
 				HTTimer_new(NULL, ReturnEvent, file, 1, YES, NO);
 			}

@@ -44,7 +44,7 @@ PUBLIC HTUserProfile * HTUserProfile_new (const char * name, void * context)
 	if ((me = (HTUserProfile *) HT_CALLOC(1, sizeof(HTUserProfile)))==NULL)
 	    HT_OUTOFMEM("HTUserProfile_new");
 
-	if (CORE_TRACE) HTTrace("User Profile Adding `%s\'\n", name);
+	HTTRACE(CORE_TRACE, "User Profile Adding `%s\'\n" _ name);
 	StrAllocCopy(me->user, name);
 
 	/* Set the context */
@@ -61,7 +61,7 @@ PUBLIC HTUserProfile * HTUserProfile_new (const char * name, void * context)
 PUBLIC BOOL HTUserProfile_localize (HTUserProfile * up)
 {
     if (up) {
-	if (CORE_TRACE) HTTrace("User Profile Localizing %p\n", up);
+	HTTRACE(CORE_TRACE, "User Profile Localizing %p\n" _ up);
 
 	/* Find the FQDN */
 	up->fqdn = HTGetHostName();

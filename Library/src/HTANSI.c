@@ -82,17 +82,17 @@ PRIVATE int HTANSIReader_read (HTInputStream * me)
     while (fp) {
 	if ((me->b_read = fread(me->data, 1, FILE_BUFFER_SIZE, fp)) == 0){
 	    if (ferror(fp)) {
-		if (PROT_TRACE) HTTrace("ANSI read... READ ERROR\n");
+		HTTRACE(PROT_TRACE, "ANSI read... READ ERROR\n");
 	    } else {
 		HTAlertCallback *cbf = HTAlert_find(HT_PROG_DONE);
-		if (PROT_TRACE) HTTrace("ANSI read... Finished loading file %p\n", fp);
+		HTTRACE(PROT_TRACE, "ANSI read... Finished loading file %p\n" _ fp);
 		if (cbf) (*cbf)(net->request, HT_PROG_DONE, HT_MSG_NULL,NULL,NULL,NULL);
 		return HT_CLOSED;
 	    }
 	}
 
 	/* Remember how much we have read from the input socket */
-	HTTraceData(me->data, me->b_read, "HTANSIReader_read me->data:");
+	HTTRACEDATA(me->data, me->b_read, "HTANSIReader_read me->data:");
 	me->write = me->data;
 	me->read = me->data + me->b_read;
 
@@ -109,24 +109,23 @@ PRIVATE int HTANSIReader_read (HTInputStream * me)
 	if ((status = (*net->readStream->isa->put_block)
 	     (net->readStream, me->data, me->b_read)) != HT_OK) {
 	    if (status == HT_WOULD_BLOCK) {
-		if (PROT_TRACE) HTTrace("ANSI read... Target WOULD BLOCK\n");
+		HTTRACE(PROT_TRACE, "ANSI read... Target WOULD BLOCK\n");
 		return HT_WOULD_BLOCK;
 	    } else if (status == HT_PAUSE) {
-		if (PROT_TRACE) HTTrace("ANSI read... Target PAUSED\n");
+		HTTRACE(PROT_TRACE, "ANSI read... Target PAUSED\n");
 		return HT_PAUSE;
 	    } else if (status > 0) {	      /* Stream specific return code */
-		if (PROT_TRACE)
-		    HTTrace("ANSI read... Target returns %d\n", status);
+		HTTRACE(PROT_TRACE, "ANSI read... Target returns %d\n" _ status);
 		me->write = me->data + me->b_read;
 		return status;
 	    } else {				     /* We have a real error */
-		if (PROT_TRACE) HTTrace("ANSI read... Target ERROR\n");
+		HTTRACE(PROT_TRACE, "ANSI read... Target ERROR\n");
 		return status;
 	    }
 	}
 	me->write = me->data + me->b_read;
     }
-    if (PROT_TRACE) HTTrace("ANSI read... File descriptor is NULL...\n");
+    HTTRACE(PROT_TRACE, "ANSI read... File descriptor is NULL...\n");
     return HT_ERROR;
 }
 
@@ -138,14 +137,14 @@ PRIVATE int HTANSIReader_read (HTInputStream * me)
 */
 PRIVATE int HTANSIReader_close (HTInputStream * me)
 {
-    if (PROT_TRACE) HTTrace("ANSI read... FREEING...\n");
+    HTTRACE(PROT_TRACE, "ANSI read... FREEING...\n");
     HT_FREE(me);
     return HT_OK;
 }
 
 PRIVATE int HTANSIReader_consumed (HTInputStream * me, size_t bytes)
 {
-    if (PROT_TRACE) HTTrace("ANSI read... consumed %d bytes\n", bytes);
+    HTTRACE(PROT_TRACE, "ANSI read... consumed %d bytes\n" _ bytes);
     return HT_OK;
 }
 
@@ -194,7 +193,7 @@ PRIVATE int HTANSIWriter_free (HTOutputStream * me)
 
 PRIVATE int HTANSIWriter_abort (HTOutputStream * me, HTList * e)
 {
-    if (PROT_TRACE) HTTrace("ANSI write.. ABORTING...\n");
+    HTTRACE(PROT_TRACE, "ANSI write.. ABORTING...\n");
     return HT_ERROR;
 }
 
@@ -226,7 +225,7 @@ PRIVATE int HTANSIWriter_block (HTOutputStream * me, const char* s, int l)
 */
 PRIVATE int HTANSIWriter_close (HTOutputStream * me)
 {
-    if (PROT_TRACE) HTTrace("ANSI write.. FREEING...\n");
+    HTTRACE(PROT_TRACE, "ANSI write.. FREEING...\n");
     HT_FREE(me);
     return HT_OK;
 }

@@ -357,7 +357,7 @@ PUBLIC BOOL HTBind_getAnchorBindings (HTParentAnchor * anchor)
 	    HTEncoding encoding = NULL;
 	    HTEncoding transfer = NULL;
 	    HTLanguage language = NULL;
- 	    if (BIND_TRACE) HTTrace("Anchor...... Get bindings for `%s\'\n", path);
+ 	    HTTRACE(BIND_TRACE, "Anchor...... Get bindings for `%s\'\n" _ path);
 	    status = HTBind_getFormat(file, &format, &encoding, &transfer,
 				      &language, &quality);
 	    if (status) {
@@ -393,7 +393,7 @@ PUBLIC BOOL HTBind_getResponseBindings (HTResponse * response, const char * url)
 	    HTEncoding encoding = NULL;
 	    HTEncoding transfer = NULL;
 	    HTLanguage language = NULL;
- 	    if (BIND_TRACE) HTTrace("Response.... Get Bindings for `%s\'\n", path);
+ 	    HTTRACE(BIND_TRACE, "Response.... Get Bindings for `%s\'\n" _ path);
 	    status = HTBind_getFormat(file, &format, &encoding, &transfer,
 				      &language, &quality);
 	    if (status) {
@@ -450,7 +450,7 @@ PUBLIC BOOL HTBind_getFormat (const char *	filename,
 	    HTBind *suff=NULL;
 	    int hash;
 	    unsigned char * p;
-	    if (BIND_TRACE) HTTrace("Get Binding. Look for '%s\' ", suffix);
+	    HTTRACE(BIND_TRACE, "Get Binding. Look for '%s\' " _ suffix);
 	    sufcnt++;
 
 	    /* Select list from hash table */
@@ -464,7 +464,7 @@ PUBLIC BOOL HTBind_getFormat (const char *	filename,
 		while ((suff = (HTBind *) HTList_nextObject(cur))) {
 		    if ((HTCaseSen && !strcmp(suff->suffix, suffix)) ||
 			!strcasecomp(suff->suffix, suffix)) {
-			if (BIND_TRACE) HTTrace("Found!\n");
+			HTTRACE(BIND_TRACE, "Found!\n");
 			if (suff->type && format) *format = suff->type;
 			if (suff->encoding && enc) *enc = suff->encoding;
 			if (suff->transfer && cte) *cte = suff->transfer;
@@ -476,8 +476,7 @@ PUBLIC BOOL HTBind_getFormat (const char *	filename,
 		}
 	    }
 	    if (!suff) {	/* We don't have this suffix - use default */
-		if (BIND_TRACE)
-		    HTTrace("Not found - use default for \'*.*\'\n");
+		HTTRACE(BIND_TRACE, "Not found - use default for \'*.*\'\n");
 		if (format) *format = unknown_suffix.type;
 		if (enc) *enc = unknown_suffix.encoding;
 		if (cte) *cte = unknown_suffix.transfer;
@@ -487,21 +486,19 @@ PUBLIC BOOL HTBind_getFormat (const char *	filename,
 	} /* while we still have suffixes */
     }
     if (!sufcnt) {		/* No suffix so use default value */
-	if (BIND_TRACE)
-	    HTTrace("Get Binding. No suffix found - using default '%s\'\n", filename);
+	HTTRACE(BIND_TRACE, "Get Binding. No suffix found - using default '%s\'\n" _ filename);
 	if (format) *format = no_suffix.type;
 	if (enc) *enc = no_suffix.encoding;
 	if (cte) *cte = no_suffix.transfer;
 	if (lang) *lang = no_suffix.language;
 	*quality = no_suffix.quality;
     }
-    if (BIND_TRACE)
-	HTTrace("Get Binding. Result for '%s\' is: type='%s\', encoding='%s\', cte='%s\', language='%s\' with quality %.2f\n",
-		filename,
-		(format && *format) ? HTAtom_name(*format) : "unknown",
-		(enc && *enc) ? HTAtom_name(*enc) : "unknown",
-		(cte && *cte) ? HTAtom_name(*cte) : "unknown",
-		(lang && *lang) ? HTAtom_name(*lang) : "unknown",
+    HTTRACE(BIND_TRACE, "Get Binding. Result for '%s\' is: type='%s\', encoding='%s\', cte='%s\', language='%s\' with quality %.2f\n" _ 
+		filename _ 
+		(format && *format) ? HTAtom_name(*format) : "unknown" _ 
+		(enc && *enc) ? HTAtom_name(*enc) : "unknown" _ 
+		(cte && *cte) ? HTAtom_name(*cte) : "unknown" _ 
+		(lang && *lang) ? HTAtom_name(*lang) : "unknown" _ 
 		*quality);
     HT_FREE(file);
     return YES;

@@ -48,10 +48,6 @@
 
 #define DEFAULT_FORMAT		WWW_SOURCE
 
-#if defined(__svr4__)
-#define CATCH_SIG
-#endif
-
 typedef enum _CLFlags {
     CL_FILTER		= 0x1,
     CL_COUNT		= 0x2,
@@ -84,21 +80,6 @@ typedef struct _ComLine {
 
 HTChunk * post_result = NULL;
 	
-/* ------------------------------------------------------------------------- */
-
-/*	Standard (non-error) Output
-**	---------------------------
-*/
-PUBLIC int OutputData(const char  * fmt, ...)
-{
-    int ret;
-    va_list pArgs;
-    va_start(pArgs, fmt);
-    ret = vfprintf(stdout, fmt, pArgs);
-    va_end(pArgs);
-    return ret;
-}
-
 /* ------------------------------------------------------------------------- */
 
 /*	Create a Command Line Object
@@ -148,37 +129,17 @@ PRIVATE void Cleanup (ComLine * me, int status)
 #endif
 }
 
-#ifdef CATCH_SIG
-#include <signal.h>
-/*								    SetSignal
-**  This function sets up signal handlers. This might not be necessary to
-**  call if the application has its own handlers (lossage on SVR4)
-*/
-PRIVATE void SetSignal (void)
-{
-    /* On some systems (SYSV) it is necessary to catch the SIGPIPE signal
-    ** when attemting to connect to a remote host where you normally should
-    ** get `connection refused' back
-    */
-    if (signal(SIGPIPE, SIG_IGN) == SIG_ERR) {
-	if (PROT_TRACE) HTTrace("HTSignal.... Can't catch SIGPIPE\n");
-    } else {
-	if (PROT_TRACE) HTTrace("HTSignal.... Ignoring SIGPIPE\n");
-    }
-}
-#endif /* CATCH_SIG */
-
 PRIVATE void VersionInfo (const char * name)
 {
-    OutputData("\nW3C OpenSource Software");
-    OutputData("\n-----------------------\n\n");
-    OutputData("\tWebCon version %s\n", APP_VERSION);
-    OutputData("\tusing the W3C libwww library version %s.\n\n",HTLib_version());
-    OutputData("\tTry \"%s -help\" for help\n\n", name ? name : APP_NAME);
-    OutputData("\tSee \"http://www.w3.org/ComLine/User/\" for user information\n");
-    OutputData("\tSee \"http://www.w3.org/ComLine/\" for general information\n\n");
-    OutputData("\tPlease send feedback to the <www-lib@w3.org> mailing list,\n");
-    OutputData("\tsee \"http://www.w3.org/Library/#Forums\" for details\n\n");
+    HTPrint("\nW3C OpenSource Software");
+    HTPrint("\n-----------------------\n\n");
+    HTPrint("\tWebCon version %s\n", APP_VERSION);
+    HTPrint("\tusing the W3C libwww library version %s.\n\n",HTLib_version());
+    HTPrint("\tTry \"%s -help\" for help\n\n", name ? name : APP_NAME);
+    HTPrint("\tSee \"http://www.w3.org/ComLine/User/\" for user information\n");
+    HTPrint("\tSee \"http://www.w3.org/ComLine/\" for general information\n\n");
+    HTPrint("\tPlease send feedback to the <www-lib@w3.org> mailing list,\n");
+    HTPrint("\tsee \"http://www.w3.org/Library/#Forums\" for details\n\n");
 }
 
 /*	terminate_handler
@@ -192,7 +153,7 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
     if (status == HT_LOADED) {
 	if (cl) {
 	    if (cl->flags & CL_COUNT) {
-		OutputData("Content Length found to be %ld\n",
+		HTPrint("Content Length found to be %ld\n",
 			 HTAnchor_length(cl->anchor));
 	    }
 	}
@@ -203,11 +164,6 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
     }
     Cleanup(cl, (status/100 == 2) ? 0 : -1);
     return HT_OK;
-}
-
-PRIVATE int LineTrace (const char * fmt, va_list pArgs)
-{
-    return (vfprintf(stderr, fmt, pArgs));
 }
 
 PRIVATE BOOL PromptUsernameAndPassword (HTRequest * request, HTAlertOpcode op,
@@ -303,7 +259,6 @@ int main (int argc, char ** argv)
 
     /* Initiate W3C Reference Library with a client profile */
     HTProfile_newNoCacheClient(APP_NAME, APP_VERSION);
-    HTTrace_setCallback(LineTrace);
 
     /*
     ** Delete the default Username/password handler so that we can handle
@@ -470,7 +425,7 @@ int main (int argc, char ** argv)
 		method = METHOD_TRACE;
 
 	    } else {
-		if (SHOW_MSG) HTTrace("Bad Argument (%s)\n", argv[arg]);
+		if (SHOW_MSG) HTPrint("Bad Argument (%s)\n", argv[arg]);
 	    }
 	} else {	 /* If no leading `-' then check for URL or keywords */
     	    if (!tokencount) {
@@ -493,10 +448,6 @@ int main (int argc, char ** argv)
 	    }
 	}
     }
-
-#ifdef CATCH_SIG
-    SetSignal();
-#endif
 
     if (!tokencount && !cl->flags & CL_FILTER) {
 	VersionInfo(argv[0]);
@@ -526,7 +477,7 @@ int main (int argc, char ** argv)
     /* Output file specified? */
     if (cl->outputfile) {
 	if ((cl->output = fopen(cl->outputfile, "wb")) == NULL) {
-	    if (SHOW_MSG) HTTrace("Can't open `%s'\\n",cl->outputfile);
+	    if (SHOW_MSG) HTPrint("Can't open `%s'\\n",cl->outputfile);
 	    cl->output = OUTPUT;
 	}
     }
@@ -575,7 +526,7 @@ int main (int argc, char ** argv)
     if (cl->rules) {
 	char * rules = HTParse(cl->rules, cl->cwd, PARSE_ALL);
 	if (!HTLoadRulesAutomatically(rules))
-	    if (SHOW_MSG) HTTrace("Can't access rules\n");
+	    if (SHOW_MSG) HTPrint("Can't access rules\n");
 	HT_FREE(rules);
     }
 
@@ -627,7 +578,7 @@ int main (int argc, char ** argv)
 	    status = post_result ? YES : NO;
 #endif
 	} else {
-	    if (SHOW_MSG) HTTrace("Nothing to post to this address\n");
+	    if (SHOW_MSG) HTPrint("Nothing to post to this address\n");
 	    status = NO;	    
 	}
 	break;
@@ -646,14 +597,14 @@ int main (int argc, char ** argv)
 	break;	
 
     default:
-	if (SHOW_MSG) HTTrace("Don't know this method\n");
+	if (SHOW_MSG) HTPrint("Don't know this method\n");
 	break;
     }
 
     if (keywords) HTChunk_delete(keywords);
     if (formfields) HTAssocList_delete(formfields);
     if (status != YES) {
-	if (SHOW_MSG) HTTrace("Sorry, can't access resource\n");
+	if (SHOW_MSG) HTPrint("Sorry, can't access resource\n");
 	Cleanup(cl, -1);
     }
 

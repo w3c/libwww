@@ -141,8 +141,7 @@ PUBLIC HText *	HText_new (HTRequest * request, HTParentAnchor * anchor)
     if (!loaded_texts) loaded_texts = HTList_new();
     HTList_addObject(loaded_texts, self);
     if (HTList_count(loaded_texts) >= LOADED_LIMIT) {
-        if (CACHE_TRACE)
-	    HTTrace("MemoryCache. Freeing off cached doc.\n"); 
+        HTTRACE(CACHE_TRACE, "MemoryCache. Freeing off cached doc.\n"); 
         HText_free((HText *)HTList_removeFirstObject(loaded_texts));
     }
     
@@ -636,8 +635,7 @@ PUBLIC void HText_setStyle (HText * text, HTStyle * style)
     if (!style) return;				/* Safety */
     after = (int) text->style->spaceAfter;
     before = (int) style->spaceBefore;
-    if (SGML_TRACE)
-	HTTrace("Rendering... Change to style %s\n", style->name);
+    HTTRACE(SGML_TRACE, "Rendering... Change to style %s\n" _ style->name);
     blank_lines (text, after>before ? after : before);
     text->style = style;
 }
@@ -830,14 +828,6 @@ PUBLIC void HText_appendLink (HText * text, HTChildAnchor * anchor,
 {
 }
 
-/* 	Dump diagnostics to TDEST
-*/
-PUBLIC void HText_dump (HText * text)
-{
-    HTTrace("Rendering... Dump called\n");
-}
-	
-
 /*	Return the anchor associated with this node
 */
 PUBLIC HTParentAnchor * HText_nodeAnchor (HText * text)
@@ -941,8 +931,7 @@ PUBLIC BOOL HText_select (HText * text)
 	display_page(text, text->top_of_screen);
 	return YES;
     }
-    if (SGML_TRACE)
-	HTTrace("Rendering... Nothing to select!\n");
+    HTTRACE(SGML_TRACE, "Rendering... Nothing to select!\n");
     return NO;
 }
 
@@ -954,8 +943,7 @@ PUBLIC BOOL HText_selectAnchor (HText * text, HTChildAnchor * anchor)
         if (a->anchor == anchor) break;
     }
     if (!a) {
-        if (SGML_TRACE)
-	    HTTrace("Rendering... No such anchor in this text!\n");
+        HTTRACE(SGML_TRACE, "Rendering... No such anchor in this text!\n");
         return NO;
     }
 
@@ -966,9 +954,8 @@ PUBLIC BOOL HText_selectAnchor (HText * text, HTChildAnchor * anchor)
 
     {
 	int l = line_for_char(text, a->start);
-	if (SGML_TRACE)
-	    HTTrace("Rendering... Selecting anchor [%d] at char %d, line %d\n",
-		    a->number, a->start, l);
+	HTTRACE(SGML_TRACE, "Rendering... Selecting anchor [%d] at char %d, line %d\n" _ 
+		    a->number _ a->start _ l);
 
 	if ( !text->stale &&
 	    (l >= text->top_of_screen) &&

@@ -238,7 +238,7 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
     if (transfer_coding) {
 	HTStream * target = HTTransferCodingStack(WWW_CODING_CHUNKED,
 						  me->target, request, NULL, YES);
-	if (STREAM_TRACE) HTTrace("Building.... Transfer-Encoding stack\n");
+	HTTRACE(STREAM_TRACE, "Building.... Transfer-Encoding stack\n");
 	if (target == HTBlackHole()) {
 	    if (me->target) (*me->target->isa->abort)(me->target, NULL);
 	    me->target = HTErrorStream();
@@ -256,7 +256,7 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
     {
 	HTEncoding cte = HTAnchor_contentTransferEncoding(entity);
 	if (!HTFormat_isUnityTransfer(cte)) {
-	    if (STREAM_TRACE) HTTrace("Building.... C-T-E stack\n");
+	    HTTRACE(STREAM_TRACE, "Building.... C-T-E stack\n");
 	    me->target = HTContentTransferCodingStack(cte, me->target,
 						      request, NULL, YES);
 	}
@@ -266,13 +266,13 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
     {
 	HTList * cc = HTAnchor_encoding(entity);
 	if (cc) {
-	    if (STREAM_TRACE) HTTrace("Building.... C-E stack\n");
+	    HTTRACE(STREAM_TRACE, "Building.... C-E stack\n");
 	    me->target = HTContentEncodingStack(cc, me->target, request, NULL);
 	}
     }
 #endif
 
-    if (PROT_TRACE) HTTrace("MIME........ Generating Entity Headers\n");
+    HTTRACE(PROT_TRACE, "MIME........ Generating Entity Headers\n");
     return HT_OK;
 }
 
@@ -344,7 +344,7 @@ PRIVATE int MIMERequest_abort (HTStream * me, HTList * e)
 {
     if (me->target) (*me->target->isa->abort)(me->target, e);
     HT_FREE(me);
-    if (PROT_TRACE) HTTrace("MIMERequest. ABORTING...\n");
+    HTTRACE(PROT_TRACE, "MIMERequest. ABORTING...\n");
     return HT_ERROR;
 }
 

@@ -73,7 +73,7 @@ PRIVATE int HTTPMakeResponse (HTStream * me, HTRequest * request)
     if (response_mask & HT_S_WWW_AUTH) {		/* @@@ */
 
     }
-    if(PROT_TRACE)HTTrace("HTTP........ Generating Response Headers\n");
+    HTTRACE(PROT_TRACE, "HTTP........ Generating Response Headers\n");
     return HT_OK;
 }
 
@@ -132,7 +132,7 @@ PRIVATE int HTTPResponse_free (HTStream * me)
 PRIVATE int HTTPResponse_abort (HTStream * me, HTList * e)
 {
     if (me->target) (*me->target->isa->abort)(me->target, e);
-    if (PROT_TRACE) HTTrace("HTTPResponse ABORTING...\n");
+    HTTRACE(PROT_TRACE, "HTTPResponse ABORTING...\n");
     return HT_ERROR;
 }
 

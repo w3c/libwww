@@ -143,9 +143,8 @@ PRIVATE char * make_template (const char * docname)
 	tmplate = host;
     } else
 	StrAllocCopy(tmplate, "*");
-    if (AUTH_TRACE)
-	HTTrace("Template.... Made template `%s' for file `%s'\n",
-		tmplate, docname ? docname : "<null>");
+    HTTRACE(AUTH_TRACE, "Template.... Made template `%s' for file `%s'\n" _ 
+		tmplate _ docname ? docname : "<null>");
     return tmplate;
 }
 
@@ -243,7 +242,7 @@ PRIVATE BOOL basic_credentials (HTRequest * request, HTBasic * basic)
 	    if (!cookie) HT_OUTOFMEM("basic_credentials");
 	    strcpy(cookie, "Basic ");
 	    strcat(cookie, cipher);
-	    if (AUTH_TRACE) HTTrace("Basic Cookie `%s\'\n", cookie);
+	    HTTRACE(AUTH_TRACE, "Basic Cookie `%s\'\n" _ cookie);
 
 	    /* Check whether it is proxy or normal credentials */
 	    if (basic->proxy)
@@ -339,7 +338,7 @@ PUBLIC int HTBasic_parse (HTRequest * request, HTResponse * response,
 	** store this information in our authentication URL Tree
 	*/
 	if (realm && !strcasecomp(realm, "realm") && rm) {
-	    if (AUTH_TRACE) HTTrace("Basic Parse. Realm `%s\' found\n", rm);
+	    HTTRACE(AUTH_TRACE, "Basic Parse. Realm `%s\' found\n" _ rm);
 	    HTRequest_setRealm(request, rm);
 
 	    /*
@@ -347,7 +346,7 @@ PUBLIC int HTBasic_parse (HTRequest * request, HTResponse * response,
 	    */
 	    if (proxy) {
 		char * url = HTRequest_proxy(request);
-		if (AUTH_TRACE) HTTrace("Basic Parse. Proxy authentication\n");
+		HTTRACE(AUTH_TRACE, "Basic Parse. Proxy authentication\n");
 		basic = (HTBasic *) HTAA_updateNode(proxy, BASIC_AUTH, rm,
 						    url, NULL);
 		/* if the previous authentication failed, then try again */
@@ -391,7 +390,7 @@ PUBLIC int HTBasic_parse (HTRequest * request, HTResponse * response,
 	}
 	return HT_OK;
     }
-    if (AUTH_TRACE) HTTrace("Auth........ No challenges found\n");
+    HTTRACE(AUTH_TRACE, "Auth........ No challenges found\n");
     return HT_ERROR;
 }
 
@@ -515,16 +514,14 @@ PUBLIC int HTDigest_updateInfo (HTRequest *request, HTResponse *response,
 	/*
 	** try to find the magic string in the challenge 
 	*/
-	if (AUTH_TRACE)
-	    HTTrace("Digest Update.. Processing authentication-info\n");
+	HTTRACE(AUTH_TRACE, "Digest Update.. Processing authentication-info\n");
 	if ((auth_info = HTAssocList_findObject(challenge, DIGEST_AI)))
 	    proxy = 0;
 	else if ((auth_info = HTAssocList_findObject(challenge, 
 						     PROXY_DIGEST_AI)))
 	    proxy = 1;
 	else {
-	    if (AUTH_TRACE)
-		HTTrace("Digest Update.. Didn't find any authentication-info\n");
+	    HTTRACE(AUTH_TRACE, "Digest Update.. Didn't find any authentication-info\n");
 	    return HT_OK;
 	}
     
@@ -542,8 +539,7 @@ PUBLIC int HTDigest_updateInfo (HTRequest *request, HTResponse *response,
 						   url, NULL);
 	}
 	if (!digest) {
-	    if (AUTH_TRACE)
-		HTTrace("Digest Update.. Error: received authentication-info without having a local digest\n");	
+	    HTTRACE(AUTH_TRACE, "Digest Update.. Error: received authentication-info without having a local digest\n");	
 	    return HT_ERROR;
 	}
 
@@ -776,7 +772,7 @@ PRIVATE BOOL digest_credentials (HTRequest * request, HTDigest * digest)
 	    if (!cookie) HT_OUTOFMEM("digest_credentials");
 	    strcpy(cookie, "Digest ");
 	    strcat (cookie, cleartext);
-	    if (AUTH_TRACE) HTTrace("Digest Cookie `%s\'\n", cookie);
+	    HTTRACE(AUTH_TRACE, "Digest Cookie `%s\'\n" _ cookie);
 
 	    /* Check whether it is proxy or normal credentials */
 	    if (digest->proxy)
@@ -881,7 +877,7 @@ PUBLIC int HTDigest_parse (HTRequest * request, HTResponse * response,
 	** store this information in our authentication URL Tree
 	*/
 	if (realm && !strcasecomp(realm, "realm") && rm) {
-	    if (AUTH_TRACE) HTTrace("Digest Parse. Realm `%s\' found\n", rm);
+	    HTTRACE(AUTH_TRACE, "Digest Parse. Realm `%s\' found\n" _ rm);
 	    HTRequest_setRealm(request, rm);
 
 	    /*
@@ -889,7 +885,7 @@ PUBLIC int HTDigest_parse (HTRequest * request, HTResponse * response,
 	    */
 	    if (proxy) {
 		char * url = HTRequest_proxy(request);
-		if (AUTH_TRACE) HTTrace("Digest Parse. Proxy authentication\n");
+		HTTRACE(AUTH_TRACE, "Digest Parse. Proxy authentication\n");
 		digest = (HTDigest *) HTAA_updateNode(proxy, DIGEST_AUTH, rm,
 						      url, NULL);
 		/* if the previous authentication failed, then try again */
@@ -910,7 +906,7 @@ PUBLIC int HTDigest_parse (HTRequest * request, HTResponse * response,
 		HT_FREE(url);
 	    }
 	} else {
-	    if (AUTH_TRACE) HTTrace("Digest Parse. Missing or incomplete realm\n");
+	    HTTRACE(AUTH_TRACE, "Digest Parse. Missing or incomplete realm\n");
 	    return HT_ERROR;
 	}
 
@@ -961,8 +957,7 @@ PUBLIC int HTDigest_parse (HTRequest * request, HTResponse * response,
 		    /*
 		    **  We only support MD5 for the moment
 		    */
-		    if (AUTH_TRACE)
-			HTTrace("Digest Parse Unknown algorithm `%s\'\n", value);
+		    HTTRACE(AUTH_TRACE, "Digest Parse Unknown algorithm `%s\'\n" _ value);
 		    HTDigest_delete(digest);
 		    return HT_ERROR;
 		} else
@@ -1004,7 +999,7 @@ PUBLIC int HTDigest_parse (HTRequest * request, HTResponse * response,
 	    if (proxy) {
 		/* we ignore the domain */
 		char * location = HTRequest_proxy(request);
-		if (AUTH_TRACE) HTTrace("Digest Parse Proxy authentication\n");
+		HTTRACE(AUTH_TRACE, "Digest Parse Proxy authentication\n");
 		HTAA_updateNode(proxy, DIGEST_AUTH, rm, location, digest);
 	    } else {
 		char * url = HTAnchor_address((HTAnchor *) HTRequest_anchor(request));
@@ -1024,7 +1019,7 @@ PUBLIC int HTDigest_parse (HTRequest * request, HTResponse * response,
 		full_url = HTParse (domain_url, base_url, PARSE_ALL);
 		digest->references++;
 		if (proxy) {
-		    if (AUTH_TRACE) HTTrace("Digest Parse Proxy authentication\n");
+		    HTTRACE(AUTH_TRACE, "Digest Parse Proxy authentication\n");
 		    HTAA_updateNode(proxy, DIGEST_AUTH, rm, full_url, digest);
 		} else {
 		    char * tmplate = make_template(full_url);
@@ -1037,7 +1032,7 @@ PUBLIC int HTDigest_parse (HTRequest * request, HTResponse * response,
 	}
 	return HT_OK;
     }	
-    if (AUTH_TRACE) HTTrace("Auth........ No challenges found\n");
+    HTTRACE(AUTH_TRACE, "Auth........ No challenges found\n");
     return HT_ERROR;
 }
 

@@ -265,7 +265,7 @@ PRIVATE void Thread_cleanup (LineMode * lm)
 	while ((pres = (Context *) HTList_nextObject(cur))) {
 	    if (pres->state&LM_DONE && pres->state&LM_INACTIVE) {
 		if ((HTList_removeObject(lm->active, pres)) == NO)
-		    if (APP_TRACE) HTTrace("NOT FOUND\n");
+		    HTTRACE(APP_TRACE, "NOT FOUND\n");
 		HTRequest_delete(pres->request);
 		Context_delete(pres);
 		cur = lm->active;
@@ -425,9 +425,9 @@ PRIVATE void SetSignal (void)
     ** get `connection refused' back
     */
     if (signal(SIGPIPE, SIG_IGN) == SIG_ERR) {
-	if (APP_TRACE) HTTrace("HTSignal.... Can't catch SIGPIPE\n");
+	HTTRACE(APP_TRACE, "HTSignal.... Can't catch SIGPIPE\n");
     } else {
-	if (APP_TRACE) HTTrace("HTSignal.... Ignoring SIGPIPE\n");
+	HTTRACE(APP_TRACE, "HTSignal.... Ignoring SIGPIPE\n");
     }
 
 #ifdef HT_MEMLOG
@@ -518,9 +518,9 @@ PRIVATE char * AskUser (HTRequest * request, const char * Msg,
 {
     char buffer[200];
     char *reply = NULL;
-    HTTrace("%s ", Msg ? Msg : "UNKNOWN");
+    HTPrint("%s ", Msg ? Msg : "UNKNOWN");
     if (deflt)
-	HTTrace("(RETURN for [%s]) ", deflt);
+	HTPrint("(RETURN for [%s]) ", deflt);
 
 #ifndef NO_STDIO
     if (!fgets(buffer, 200, stdin))
@@ -537,7 +537,7 @@ PRIVATE char * AskUser (HTRequest * request, const char * Msg,
 PRIVATE BOOL confirm (HTRequest * request, const char * Msg)
 {
     char response[4];
-    HTTrace("%s (y/n) ", Msg ? Msg : "UNKNOWN");
+    HTPrint("%s (y/n) ", Msg ? Msg : "UNKNOWN");
 #ifndef NO_STDIO
     if (fgets(response, 4, stdin)) 		   /* get reply, max 3 chars */
 #endif
@@ -658,11 +658,11 @@ PRIVATE BOOL SaveOutputStream (HTRequest * req, char * This, char * Next)
     if (!fname)					       /* No file name given */
 	return NO;
     if ((fp = fopen(fname, fmode)) == NULL) {
-	if (SHOW_MSG) HTTrace("Can't access file (%s)\n", fname);
+	if (SHOW_MSG) HTPrint("Can't access file (%s)\n", fname);
 	return NO;
     }
     HTRequest_setOutputStream(req, HTFWriter_new(req, fp, NO));
-    if (SHOW_MSG) HTTrace("Saving to file `%s\'\n", fname);
+    if (SHOW_MSG) HTPrint("Saving to file `%s\'\n", fname);
     return (HTLoadAnchor((HTAnchor*) HTMainAnchor, req) != HT_WOULD_BLOCK);
 }
 
@@ -713,14 +713,14 @@ PRIVATE int PICS_userCallback(CSUser_t * pCSUser, void * pVoid)
     }
     HTAlert_deleteReply(reply);
     if (!ret) {
-        HTTrace("PICS set user *canceled*.\n");
+        HTPrint("PICS set user *canceled*.\n");
 	return -1;
     }
     ret = -1;
     if (!userName)
-	HTTrace("PICS cannot set to no name.\n");
+	HTPrint("PICS cannot set to no name.\n");
     else if (CSUser_checkPassword(pCSUser, password) == NO)
-        HTTrace("PICS password was not valid.\n");
+        HTPrint("PICS password was not valid.\n");
     else {
         ret = 0;
 	lm->pCSUser = pCSUser;
@@ -747,22 +747,22 @@ PRIVATE BOOL SetPICSUser(LineMode * lm, char * userName)
     }
     HTAlert_deleteReply(reply);
     if (!ret) {
-        HTTrace("PICS set user *canceled*.\n");
+        HTPrint("PICS set user *canceled*.\n");
 	return NO;
     }
     ret = NO;
     if (!userName)
-	HTTrace("Canceled.\n");
+	HTPrint("Canceled.\n");
     else if (!(lm->pCSUser = CSApp_registerUserByName(userName, password))) {
         char * url;
         if ((url = CSUserList_findURL(userName)) == NULL)
-	    HTTrace("PICS user \"%s\" is unknown.\n", userName);
+	    HTPrint("PICS user \"%s\" is unknown.\n", userName);
 	else if (!CSLoadedUser_load(url, lm->cwd))
-	    HTTrace("Can't load PICS user \"%s\".\n", userName);
+	    HTPrint("Can't load PICS user \"%s\".\n", userName);
 	else if ((CSLoadedUser_find(userName)) == NO)
-	    HTTrace("PICS user \"%s\" not found in \"%s\".\n", userName, url);
+	    HTPrint("PICS user \"%s\" not found in \"%s\".\n", userName, url);
 	else if (!(lm->pCSUser = CSApp_registerUserByName(userName, password)))
-	    HTTrace("Failed to set PICS user to \"%s\".\n", userName);
+	    HTPrint("Failed to set PICS user to \"%s\".\n", userName);
 	ret = YES;
 	HT_FREE(url);
     }
@@ -811,7 +811,7 @@ CSError_t PICSCallback(HTRequest* pReq, CSLabel_t * pCSLabel,
         case CSError_SERVICE_NONE: mesg="no services available for document"; break;
         case CSError_RATING_NONE: mesg="no ratings in a service"; break;
         case CSError_BAD_DATE: mesg="labels were out of date"; break;
-        default:HTTrace("PICSCallback: odd error code: %d\n", disposition); return disposition;
+        default:HTPrint("PICSCallback: odd error code: %d\n", disposition); return disposition;
     }
     OutputData(lm->pView, "PICS disallowed document: %s\n", mesg);
     return disposition;
@@ -893,7 +893,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, HTEventType t
 		}
 	    } else {
 		if (SHOW_MSG)
-		    HTTrace("Warning: Invalid Reference Number: (%d)\n",
+		    HTPrint("Warning: Invalid Reference Number: (%d)\n",
 			    ref_num);
 	    }
 	}
@@ -1030,7 +1030,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, HTEventType t
 #else
 #error "This platform doesn't support getwd or getcwd"
 		if (SHOW_MSG)
-		    HTTrace("This platform doesn't support getwd or getcwd\n");
+		    HTPrint("This platform doesn't support getwd or getcwd\n");
 #endif /* HAVE_GETWD */
 #endif /* HAVE_GETCWD */
 	    }
@@ -1040,7 +1040,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, HTEventType t
 	    if (next_word) {
 	        LoadPICSUser(lm, next_word);
 	    } else {
-	        HTTrace("URL needed\n");
+	        HTPrint("URL needed\n");
 	    }
 	} else
 	    found = NO;
@@ -1140,7 +1140,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, HTEventType t
 			status = HTLoadAnchor(HTHistory_find(lm->history,cnt), req);
 		    } else {
 			if (SHOW_MSG)
-			    HTTrace("Bad command (%s), for list of commands type help\n", this_command);
+			    HTPrint("Bad command (%s), for list of commands type help\n", this_command);
 		    }
 		} else {
 		    History_List(lm);
@@ -1285,7 +1285,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, HTEventType t
       case '!':
 	if (!lm->host) {				      /* Local only! */
 	    int result;
-	    if (SHOW_MSG) HTTrace("Executing `%s\'\n", this_command);
+	    if (SHOW_MSG) HTPrint("Executing `%s\'\n", this_command);
 	    result = system(strchr(this_command, '!') + 1);
 	    if (result) OutputData(lm->pView, "  %s  returns %d\n",
 				 strchr(this_command, '!') + 1, result);
@@ -1304,7 +1304,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, HTEventType t
 	    goto find;
 	} else {             
 	    if (SHOW_MSG)
-		HTTrace("Bad command (%s), for list of commands type help\n", this_command);
+		HTPrint("Bad command (%s), for list of commands type help\n", this_command);
 	}
     }
     MakeCommandLine(lm, is_index);
@@ -1415,7 +1415,7 @@ PUBLIC int bufferInput (char* buf, int len, SOCKET s, HTRequest * req, HTEventTy
 		    stat[iStat++] = buf[iBuf];
 	}
 	if (iStat == sizeof(stat)) {
-	    HTTrace("Read Console... BUFFER OVERRUN\n");
+	    HTPrint("Read Console... BUFFER OVERRUN\n");
 	    iStat = 0;
 	    ignoreNext = 1;
 	}
@@ -1433,12 +1433,12 @@ PRIVATE int timeout_handler (SOCKET s, void * param, HTEventType type)
 	HTRequest * req = (HTRequest *) param;
 	Context * context = (Context *) HTRequest_context(req);
 	LineMode * lm = context->lm;
-	if (SHOW_MSG) HTTrace("Request timed out");
+	if (SHOW_MSG) HTPrint("Request timed out");
 	HTNet_killAll();
 	Cleanup(lm, -1);
     }
     if (HTNet_count() > 0)
-	if (SHOW_MSG) HTTrace(".");
+	if (SHOW_MSG) HTPrint(".");
     return 0;
 }
 
@@ -1459,7 +1459,7 @@ PRIVATE int scan_command (SOCKET s, void * param, HTEventType type)
     while(1) {
 #ifdef WWW_WIN_CONSOLE
 	if (!readConsole((HANDLE)s, buf, sizeof(buf), &red)) {
-        if (PROT_TRACE) HTTrace("Read Console... READ ERROR\n");
+        HTTRACE(PROT_TRACE, "Read Console... READ ERROR\n");
 	    return HT_ERROR;
 	}
 #endif /* WWW_WIN_CONSOLE */
@@ -1490,7 +1490,7 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
     lm = context->lm;
     if (context->state == LM_IGNORE) return HT_OK;
     if (CSApp_unregisterReq(request) == NO && lm->pCSUser)
-        HTTrace("PICS request not found\n");
+        HTPrint("PICS request not found\n");
     is_index = HTAnchor_isIndex(HTMainAnchor);
     if (status == HT_LOADED) {
 
@@ -1553,7 +1553,7 @@ PRIVATE int MemoryCacheFilter (HTRequest * request, void * param, int mode)
     **  We only check the memory cache if it's a GET method
     */
     if (HTRequest_method(request) != METHOD_GET) {
-	if (APP_TRACE) HTTrace("Mem Cache... We only check GET methods\n");
+	HTTRACE(APP_TRACE, "Mem Cache... We only check GET methods\n");
 	return HT_OK;
     }
 
@@ -1563,7 +1563,7 @@ PRIVATE int MemoryCacheFilter (HTRequest * request, void * param, int mode)
     **  then just exit from this filter.
     */
     if (!document || validation > HT_CACHE_FLUSH_MEM) {
-	if (APP_TRACE) HTTrace("Mem Cache... No fresh document...\n");
+	HTTRACE(APP_TRACE, "Mem Cache... No fresh document...\n");
 	return HT_OK;
     }
 
@@ -1576,8 +1576,7 @@ PRIVATE int MemoryCacheFilter (HTRequest * request, void * param, int mode)
 	HTParentAnchor * parent = HTRequest_anchor(request);
 	HTChildAnchor * child = HTRequest_childAnchor(request);
 	HText * document =  HTAnchor_document(parent);
-	if (APP_TRACE)
-	    HTTrace("Mem Cache... Document %p already in memory\n", document);
+	HTTRACE(APP_TRACE, "Mem Cache... Document %p already in memory\n" _ document);
 
 	/*
 	**  Make sure that we have selected the HText object. This is normally
@@ -1838,7 +1837,7 @@ int main (int argc, char ** argv)
 			  break;
 		      default:
 			  if (SHOW_MSG)
-			      HTTrace("Bad parameter (%s) for option -x\n", argv[arg]);
+			      HTPrint("Bad parameter (%s) for option -x\n", argv[arg]);
 			  break;
 		      }
 		  }
@@ -1875,7 +1874,7 @@ int main (int argc, char ** argv)
 		      case 'y':HTFile_setDirAccess(HT_DIR_OK); break;
 		      default:
 			if (SHOW_MSG)
-			    HTTrace("Bad parameter (%s) in -d option\n",
+			    HTPrint("Bad parameter (%s) in -d option\n",
 				    argv[arg]);
 		    }
 		}
@@ -1887,7 +1886,7 @@ int main (int argc, char ** argv)
 		lm->trace = HTSetTraceMessageMask(argv[arg]+2);
 #endif
 	    } else {
-		if (SHOW_MSG) HTTrace("Bad Argument (%s)\n", argv[arg]);
+		if (SHOW_MSG) HTPrint("Bad Argument (%s)\n", argv[arg]);
 	    }
 	} else {	   /* If no leading `-' then check for main argument */
     	    if (!keycnt) {
@@ -1945,7 +1944,7 @@ int main (int argc, char ** argv)
 #ifndef WWW_WIN_WINDOW
 	if (lm->outputfile) {
 	    if ((OUTPUT = fopen(lm->outputfile, "wb")) == NULL) {
-		if (SHOW_MSG) HTTrace("Can't open `%s'\\n",
+		if (SHOW_MSG) HTPrint("Can't open `%s'\\n",
 				       lm->outputfile);
 		OUTPUT = stdout;
 	    }
@@ -1995,7 +1994,7 @@ int main (int argc, char ** argv)
     if (lm->rules) {
 	char * rules = HTParse(lm->rules, lm->cwd, PARSE_ALL);
 	if (!HTLoadRules(rules))
-	    if (SHOW_MSG) HTTrace("Can't access rules\n");
+	    if (SHOW_MSG) HTPrint("Can't access rules\n");
 	HT_FREE(rules);
     }
 
@@ -2008,7 +2007,7 @@ int main (int argc, char ** argv)
 
     /* Should we load a PICS user profile? */
     if (picsUser && !LoadPICSUser(lm, picsUser))
-        HTTrace("Unable to load PICS user \"%s\".\n", picsUser);
+        HTPrint("Unable to load PICS user \"%s\".\n", picsUser);
 
     /* PICS user list specified? */
     if (lm->userList)
@@ -2028,7 +2027,7 @@ int main (int argc, char ** argv)
 
     if (keywords) HTChunk_delete(keywords);
     if (status != YES) {
-	if (SHOW_MSG) HTTrace("Couldn't load home page\n");
+	if (SHOW_MSG) HTPrint("Couldn't load home page\n");
 	CSApp_unregisterDefaultUser();
 	CSApp_unregisterApp();
 	Cleanup(lm, -1);

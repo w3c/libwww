@@ -77,7 +77,7 @@ PRIVATE BOOL LoadURLToConverter(const char * url, const char * relatedName,
 	HTRequest_setConversion(pRequest, conversions, YES);
     }
     if ((ret = HTLoadAnchor((HTAnchor *) pParentAnchor, pRequest)) != YES)
-        HTTrace("PICS: Can't access %s.\n", errMessage);
+        HTPrint("PICS: Can't access %s.\n", errMessage);
     if (converter)
         HTConversion_deleteAll(conversions);
     else
@@ -182,20 +182,20 @@ PUBLIC BOOL CSLoadedUser_add(CSUser_t * pCSUser, char * url)
     switch (callBackRet) {
         case 1:
             DefaultReqParms.pCSUser = pCSUser;
-	    if (PICS_TRACE) HTTrace("PICS: Setting default user to \"%s\".\n", CSUser_name(pCSUser));
+	    HTTRACE(PICS_TRACE, "PICS: Setting default user to \"%s\".\n" _ CSUser_name(pCSUser));
             break;
 	case 0:
-	    if (PICS_TRACE) HTTrace("PICS: Loaded user \"%s\".\n", CSUser_name(pCSUser));
+	    HTTRACE(PICS_TRACE, "PICS: Loaded user \"%s\".\n" _ CSUser_name(pCSUser));
 	    break;
 	case -1:
-	    if (PICS_TRACE) HTTrace("PICS: User \"%s\" not loaded.\n", CSUser_name(pCSUser));
+	    HTTRACE(PICS_TRACE, "PICS: User \"%s\" not loaded.\n" _ CSUser_name(pCSUser));
 	    return YES;
 	default:
-	    if (PICS_TRACE) HTTrace("PICS: Aborting load user \"%s\".\n", CSUser_name(pCSUser));
+	    HTTRACE(PICS_TRACE, "PICS: Aborting load user \"%s\".\n" _ CSUser_name(pCSUser));
 	    return NO;
     }
     if ((pCSLoadedUser = CSLoadedUser_findName(CSUser_name(pCSUser)))) {
-        HTTrace("PICS: Replacing previous user \"%s\".\n", 
+        HTPrint("PICS: Replacing previous user \"%s\".\n", 
 		CSUser_name(pCSUser));
 	HTList_removeObject(LoadedUsers, (void *)pCSLoadedUser);
     }
@@ -320,7 +320,7 @@ PUBLIC BOOL CSApp_label(HTRequest * pReq, CSLabel_t * pCSLabel)
     if (!(pReqParms = ReqParms_getBureauReq(pReq)))
         pReqParms = &DefaultReqParms;
     if (pReqParms->pBureauReq != pReq) {
-        HTTrace("PICS: Could not find original request\n");
+        HTPrint("PICS: Could not find original request\n");
 	return NO;
     }
 */
@@ -379,13 +379,12 @@ PUBLIC BOOL CSApp_registerDefaultUserByName(char * user, char * password)
     CSUser_t * pCSUser;
     CSLoadedUser_t * pCSLoadedUser;
     if (!(pCSLoadedUser = CSLoadedUser_findName(user))) {
-        if (PICS_TRACE) HTTrace("PICS: User \"%s\" not found.\n", 
-				CSUser_name(pCSUser));
+        HTTRACE(PICS_TRACE, "PICS: User \"%s\" not found.\n" _ CSUser_name(pCSUser));
         return NO;
     }
     pCSUser = pCSLoadedUser->pCSUser;
     if (CSUser_checkPassword(pCSUser, password) == NO) {
-        HTTrace("PICS: Bad password for user \"%s\".\n", CSUser_name(pCSUser));
+        HTPrint("PICS: Bad password for user \"%s\".\n", CSUser_name(pCSUser));
         return NO;
     }
     DefaultReqParms.pCSUser = pCSUser;
@@ -398,7 +397,7 @@ PUBLIC CSUser_t * CSApp_registerUserByName(char* user, char* password)
     if (!(pCSLoadedUser = CSLoadedUser_findName(user)))
         return 0;
     if (CSUser_checkPassword(pCSLoadedUser->pCSUser, password) == NO) {
-        HTTrace("PICS: Bad password for user \"%s\"\n", 
+        HTPrint("PICS: Bad password for user \"%s\"\n", 
 		CSUser_name(pCSLoadedUser->pCSUser));
         return 0;
     }
@@ -449,7 +448,7 @@ PRIVATE int CSApp_bureauAfter (HTRequest * pReq, HTResponse * response,
     pReqParms->reqState = reqState_BUREAU_DONE;
     HTRequest_deleteAfter(pReq, CSApp_bureauAfter);
     HTRequest_deleteAfter(pReq, CSApp_bureauError);
-    if (PICS_TRACE) HTTrace("PICS: Load was %sOK\n", 
+    HTTRACE(PICS_TRACE, "PICS: Load was %sOK\n" _ 
 			    pReqParms->disposition == CSError_OK ? "" : "!");
     ReqParms_removeRequest(pReqParms);
     if (pReqParms->disposition != CSError_OK)
@@ -468,7 +467,7 @@ PRIVATE int CSApp_bureauError (HTRequest * pReq, HTResponse * response,
     /*    if (!pReqParms || (pReq != pReqParms->pBureauReq))
         return HT_ERROR; */
     pReqParms->reqState = reqState_BUREAU_ERR;
-    HTTrace("PICS: couldn't find label service.\n");
+    HTPrint("PICS: couldn't find label service.\n");
     return HT_OK;
 }
 
@@ -514,7 +513,7 @@ PRIVATE int CSApp_netBefore (HTRequest * pReq, void * param, int mode)
     /*    pReqParms->pBureauReq = pReq; */
     pReqParms->reqState = reqState_BUREAU_START; /* mark as a BUREAU req */
     HTRequest_setPreemptive(pReq, YES);
-    if (PICS_TRACE) HTTrace("PICS: label request:\n%s\n", ptr);
+    HTTRACE(PICS_TRACE, "PICS: label request:\n%s\n" _ ptr);
     /* get label and set disposition */
 
     HTRequest_addAfter(pReq, CSApp_bureauAfter, NULL, (void *) pReqParms, HT_LOADED,
@@ -524,7 +523,7 @@ PRIVATE int CSApp_netBefore (HTRequest * pReq, void * param, int mode)
 
     pParentAnchor = (HTParentAnchor *) HTAnchor_findAddress(ptr);
     if ((ret = HTLoadAnchor((HTAnchor *) pParentAnchor, pReq)) != YES)
-        HTTrace("PICS: Can't access label bureau at %s.\n", ptr);
+        HTPrint("PICS: Can't access label bureau at %s.\n", ptr);
     return HT_OK;
 }
 
@@ -542,10 +541,10 @@ PRIVATE int CSApp_headerGenerator (HTRequest * pReq, HTStream * target)
         pReqParms = &DefaultReqParms;
     } */
 if (!pReqParms || pReqParms->reqState != reqState_NEW || !pReqParms->pCSUser)
-HTTrace("PICS: CSApp_headerGenerator prob\n");
+HTPrint("PICS: CSApp_headerGenerator prob\n");
 #if 0
     if (!pReqParms->pCSUser) {
-        if (PICS_TRACE) HTTrace("PICS: No user selected\n");
+        HTTRACE(PICS_TRACE, "PICS: No user selected\n");
 	return HT_OK;
     }
     if (CSUser_bureau(pReqParms->pCSUser)) /* handled by CSApp_netBefore */
@@ -553,7 +552,7 @@ HTTrace("PICS: CSApp_headerGenerator prob\n");
 #endif
     url = HTAnchor_address((HTAnchor *) anchor);
     if ((translated = CSUser_acceptLabels(pReqParms->pCSUser, CSCompleteness_full))) {
-        if (PICS_TRACE) HTTrace("PICS: Accept \"%s\".\n", translated);
+        HTTRACE(PICS_TRACE, "PICS: Accept \"%s\".\n" _ translated);
         PUTBLOCK(translated, strlen(translated));
         HT_FREE(translated);
     }
@@ -584,7 +583,7 @@ PRIVATE int CSApp_headerParser (HTRequest * pReq, HTResponse * response,
 
     pReqParms->pCSLabel = CSParse_getLabel(pCSParse);
     CSParse_delete(pCSParse);
-    if (PICS_TRACE) HTTrace("PICS: PICS mime header \"%s\" got %d.\n", value, pReqParms->disposition);
+    HTTRACE(PICS_TRACE, "PICS: PICS mime header \"%s\" got %d.\n" _ value _ pReqParms->disposition);
     return ReqParms_checkDisposition(pReqParms);
 }
 

@@ -157,8 +157,7 @@ PUBLIC HTSQL * HTSQL_new (const char * host,
 {
     HTSQL * me = NULL;
     if (!host || !user || !pw) {
-	if (SQL_TRACE)
-	    HTTrace("SQL new..... Missing host, user, or password\n");
+	HTTRACE(SQL_TRACE, "SQL new..... Missing host, user, or password\n");
 	return NULL;
     }
     if ((me = (HTSQL *) HT_CALLOC(1, sizeof(HTSQL))) == NULL)
@@ -182,14 +181,12 @@ PUBLIC BOOL HTSQL_delete (HTSQL * me)
 PUBLIC BOOL HTSQL_connect (HTSQL * me)
 {
     if (me && me->host) {
-	if (SQL_TRACE)
-	    HTTrace("SQL connect. Open a link to server `%s\'\n", me->host);
+	HTTRACE(SQL_TRACE, "SQL connect. Open a link to server `%s\'\n" _ me->host);
 	if ((me->psvr = mysql_connect(&(me->server), me->host,
 				      me->user ? me->user : "",
 				      me->password ? me->password : "")) == NULL) {
-	    if (SQL_TRACE)
-		HTTrace("SQL connect. `%s\' errno %d\n",
-			mysql_error(&me->server), mysql_errno(&me->server));
+	    HTTRACE(SQL_TRACE, "SQL connect. `%s\' errno %d\n" _ 
+			mysql_error(&me->server) _ mysql_errno(&me->server));
 	    return NO;
 	}
 	return YES;
@@ -205,8 +202,7 @@ PUBLIC MYSQL * HTSQL_getMysql (HTSQL * me)
 PUBLIC BOOL HTSQL_close (HTSQL * me)
 {
     if (me && me->psvr) {
-	if (SQL_TRACE)
-	    HTTrace("SQL close... Link to host `%s\'\n", me->host);
+	HTTRACE(SQL_TRACE, "SQL close... Link to host `%s\'\n" _ me->host);
 	mysql_close(me->psvr);
 	me->psvr = NULL;
 	me->db = NULL;
@@ -235,19 +231,18 @@ PUBLIC BOOL HTSQL_selectDB (HTSQL * me, const char * db)
 {
     BOOL created = NO;
     if (me && me->psvr && db) {
-	if (SQL_TRACE)
-	    HTTrace("SQL select.. Database `%s\'\n", db);
+	HTTRACE(SQL_TRACE, "SQL select.. Database `%s\'\n" _ db);
 	me->db = NULL;
 	if (mysql_select_db(me->psvr, db) < 0) {
 	    int err = mysql_errno(me->psvr);
-	    if (SQL_TRACE) HTTrace("SQL select.. `%s\', errno %d\n",
-				   mysql_error(me->psvr), err);
+	    HTTRACE(SQL_TRACE, "SQL select.. `%s\', errno %d\n" _ 
+				   mysql_error(me->psvr) _ err);
 
 	    /* If the database couldn't be found then create a new one */
 	    if (err == 1049) {
 		if (mysql_create_db(me->psvr, db) < 0) {
-		    if (SQL_TRACE) HTTrace("SQL error... `%s\', errno %d\n",
-					   mysql_error(me->psvr), err);
+		    HTTRACE(SQL_TRACE, "SQL error... `%s\', errno %d\n" _ 
+					   mysql_error(me->psvr) _ err);
 		    return NO;
 		}
 		created = YES;
@@ -258,8 +253,8 @@ PUBLIC BOOL HTSQL_selectDB (HTSQL * me, const char * db)
 	if (created) {
 	    if (mysql_select_db(me->psvr, db) < 0) {
 		int err = mysql_errno(me->psvr);
-		if (SQL_TRACE) HTTrace("SQL select.. `%s\', errno %d\n",
-				       mysql_error(me->psvr), err);
+		HTTRACE(SQL_TRACE, "SQL select.. `%s\', errno %d\n" _ 
+				       mysql_error(me->psvr) _ err);
 		return NO;
 	    }
 	}
@@ -273,14 +268,12 @@ PUBLIC BOOL HTSQL_selectDB (HTSQL * me, const char * db)
 
 PUBLIC BOOL HTSQL_query (HTSQL * me, const char * query)
 {
-    if (SQL_TRACE)
-	HTTrace("SQL query... `%s\'\n", query ? query : "<null>");
+    HTTRACE(SQL_TRACE, "SQL query... `%s\'\n" _ query ? query : "<null>");
     if (me && me->psvr && query) {
 	if (mysql_query(me->psvr, query) < 0) {
 	    int status = mysql_errno(me->psvr);
-	    if (SQL_TRACE)
-		HTTrace("SQL query... `%s\' on query `%s\' with errno %d\n",
-			mysql_error(me->psvr), query, status);
+	    HTTRACE(SQL_TRACE, "SQL query... `%s\' on query `%s\' with errno %d\n" _ 
+			mysql_error(me->psvr) _ query _ status);
 
 	    /* Check to see if we should try and reconnect */
 	    if (status==CR_SERVER_GONE_ERROR || status==CR_SERVER_LOST) {
@@ -312,9 +305,8 @@ PUBLIC MYSQL_RES * HTSQL_storeResult (HTSQL * me)
     if (me && me->psvr) {
 	if ((result = mysql_store_result(me->psvr)) == NULL) {
 	    int status = mysql_errno(me->psvr);
-	    if (SQL_TRACE)
-		HTTrace("SQL store... `%s\' with errno %d\n",
-			mysql_error(me->psvr), status);
+	    HTTRACE(SQL_TRACE, "SQL store... `%s\' with errno %d\n" _ 
+			mysql_error(me->psvr) _ status);
 	}
     }
     return result;

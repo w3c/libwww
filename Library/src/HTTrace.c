@@ -26,6 +26,10 @@ PUBLIC unsigned int WWW_TraceFlag = 0;		/* Global trace flag for ALL W3 code */
 #endif
 
 PRIVATE HTTraceCallback * PHTTraceCallback = NULL;
+PRIVATE HTPrintCallback * PHTPrintCallback = NULL;
+PRIVATE HTTraceDataCallback * PHTTraceDataCallback = NULL;
+
+/* ------------------------------------------------------------------------- */
 
 PUBLIC void HTTrace_setCallback (HTTraceCallback * pCall)
 {
@@ -50,8 +54,6 @@ PUBLIC int HTTrace (const char * fmt, ...)
 #endif
 }
 
-PRIVATE HTTraceDataCallback * PHTTraceDataCallback = NULL;
-
 PUBLIC void HTTraceData_setCallback (HTTraceDataCallback * pCall)
 {
     PHTTraceDataCallback = pCall;
@@ -71,6 +73,29 @@ PUBLIC int HTTraceData (char * data, size_t len, char * fmt, ...)
     return (0);
 }
 
+PUBLIC void HTPrint_setCallback (HTPrintCallback * pCall)
+{
+    PHTPrintCallback = pCall;
+}
+
+PUBLIC HTPrintCallback * HTPrint_getCallback (void)
+{
+    return PHTPrintCallback;
+}
+
+PUBLIC int HTPrint (const char * fmt, ...)
+{
+    va_list pArgs;
+    va_start(pArgs, fmt);
+    if (PHTPrintCallback)
+	return (*PHTPrintCallback)(fmt, pArgs);
+#ifdef WWW_WIN_WINDOW
+    return (0);
+#else
+    return (vfprintf(stdout, fmt, pArgs));
+#endif
+}
+ 
 PUBLIC void HTDebugBreak (char * file, unsigned long line, const char * fmt, ...)
 {
     va_list pArgs;

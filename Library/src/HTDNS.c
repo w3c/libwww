@@ -54,8 +54,7 @@ PRIVATE void free_object (HTdns * me)
 
 PRIVATE BOOL delete_object (HTList * list, HTdns * me)
 {
-    if (PROT_TRACE)
-	HTTrace("DNS Delete.. object %p from list %p\n", me, list);
+    HTTRACE(PROT_TRACE, "DNS Delete.. object %p from list %p\n" _ me _ list);
     HTList_removeObject(list, (void *) me);
     free_object(me);
     return YES;
@@ -113,9 +112,8 @@ PUBLIC HTdns * HTDNS_add (HTList * list, struct hostent * element,
     if ((me->weight = (double *) HT_CALLOC(me->homes, sizeof(double))) == NULL)
         HT_OUTOFMEM("HTDNS_add");
     me->addrlength = element->h_length;
-    if (PROT_TRACE)
-	HTTrace("DNS Add..... `%s\' with %d home(s) to %p\n",
-		host, *homes, list);
+    HTTRACE(PROT_TRACE, "DNS Add..... `%s\' with %d home(s) to %p\n" _ 
+		host _ *homes _ list);
     HTList_addObject(list, (void *) me);
     return me;
 }
@@ -153,14 +151,12 @@ PUBLIC BOOL HTDNS_updateWeigths(HTdns *dns, int current, ms_t deltatime)
 	    } else {
 		*(dns->weight+cnt) = *(dns->weight+cnt) * passive;
 	    }
-	    if (PROT_TRACE)
-		HTTrace("DNS weight.. Home %d has weight %4.2f\n", cnt,
+	    HTTRACE(PROT_TRACE, "DNS weight.. Home %d has weight %4.2f\n" _ cnt _ 
 			*(dns->weight+cnt));
 	}
 	return YES;
     }
-    if (PROT_TRACE)
-	HTTrace("DNS weight.. Object %p not found'\n", dns);
+    HTTRACE(PROT_TRACE, "DNS weight.. Object %p not found'\n" _ dns);
     return NO;
 }
 
@@ -226,8 +222,7 @@ PUBLIC int HTGetHostByName (HTHost * host, char *hostname, HTRequest* request)
     HTList *list;				    /* Current list in cache */
     HTdns *pres = NULL;
     if (!host || !hostname) {
-	if (PROT_TRACE)
-	    HTTrace("HostByName.. Bad argument\n");
+	HTTRACE(PROT_TRACE, "HostByName.. Bad argument\n");
 	return -1;
     }
     HTHost_setHome(host, 0);
@@ -252,8 +247,7 @@ PUBLIC int HTGetHostByName (HTHost * host, char *hostname, HTRequest* request)
 	while ((pres = (HTdns *) HTList_nextObject(cur))) {
 	    if (!strcmp(pres->hostname, hostname)) {
 		if (time(NULL) > pres->ntime + DNSTimeout) {
-		    if (PROT_TRACE)
-			HTTrace("HostByName.. Refreshing cache\n");
+		    HTTRACE(PROT_TRACE, "HostByName.. Refreshing cache\n");
 		    delete_object(list, pres);
 		    pres = NULL;
 		}
@@ -339,12 +333,11 @@ PUBLIC char * HTGetHostBySock (int soc)
     phost = gethostbyaddr((char *) iaddr, sizeof(struct in_addr), AF_INET);
 #endif
     if (!phost) {
-	if (PROT_TRACE)
-	    HTTrace("TCP......... Can't find internet node name for peer!!\n");
+	HTTRACE(PROT_TRACE, "TCP......... Can't find internet node name for peer!!\n");
 	return NULL;
     }
     StrAllocCopy(name, phost->h_name);
-    if (PROT_TRACE) HTTrace("TCP......... Peer name is `%s'\n", name);
+    HTTRACE(PROT_TRACE, "TCP......... Peer name is `%s'\n" _ name);
     return name;
 
 #endif	/* not DECNET */

@@ -23,11 +23,10 @@ PRIVATE CSError_t CSCheckLabel_checkRatings(CSLabel_t * pCSLabel, State_Parms_t 
     FVal_t fVal;
     fVal = CSLabel_ratingsIncludeRanges(pCSLabel, pUserServiceRating->ranges);
     ret = FVal_isZero(&fVal) ? CSError_OK : CSError_RATING_RANGE;
-/*    HTTrace(ret == CSError_OK ? "good\n" : "bad\n"); */
-    if (ret != CSError_OK && PICS_TRACE)
-        HTTrace("PICS: Access denial - service:\"%s\" label number:%d rating identifier:\"%s\"\n", 
-		CSLabel_getServiceName(pCSLabel), 
-		CSLabel_getLabelNumber(pCSLabel), 
+    if (ret != CSError_OK)
+        HTTRACE(PICS_TRACE, "PICS: Access denial - service:\"%s\" label number:%d rating identifier:\"%s\"\n" _
+		CSLabel_getServiceName(pCSLabel) _
+		CSLabel_getLabelNumber(pCSLabel) _
 		CSLabel_getRatingName(pCSLabel));
     return ret;
 }
@@ -37,7 +36,6 @@ PRIVATE CSError_t CSCheckLabel_findLabelServiceRating(CSUser_t * pCSUser, State_
 {
     UserServiceRating_t * pUserServiceRating = CSUser_getUserServiceRating(pParms->pCSUser);
     CSError_t ret;
-/*    HTTrace("     CSCheckLabel_findLabelServiceRating: CSLabel_iterateLabelRatings \"%s\" ", SVal_value(&pUserServiceRating->identifier)); */
     if ((ret = CSLabel_iterateLabelRatings(pParms->pCSLabel, CSCheckLabel_checkRatings, pParms, SVal_value(&pUserServiceRating->identifier), 0)) != CSError_SERVICE_MISSING)
         pParms->matchedRatings++;
     else
@@ -49,21 +47,18 @@ PRIVATE CSError_t CSCheckLabel_findLabelServiceRating(CSUser_t * pCSUser, State_
 PRIVATE CSLabel_callback_t CSCheckLabel_checkSingleLabel;
 PRIVATE CSError_t CSCheckLabel_checkSingleLabel(CSLabel_t * pCSLabel, State_Parms_t * pParms, const char * identifier, void * pVoid)
 {
-/*    HTTrace("    CSCheckLabel_checkSingleLabel: CSUser_iterateServiceRatings\n"); */
     return CSUser_iterateServiceRatings(pParms->pCSUser, CSCheckLabel_findLabelServiceRating, pParms, 0, 0);
 }
 
 PRIVATE CSLabel_callback_t CSCheckLabel_checkLabel;
 PRIVATE CSError_t CSCheckLabel_checkLabel(CSLabel_t * pCSLabel, State_Parms_t * pParms, const char * identifier, void * pVoid)
 {
-/*    HTTrace("   CSCheckLabel_checkLabel: CSLabel_iterateSingleLabels\n"); */
     return CSLabel_iterateSingleLabels(pParms->pCSLabel, CSCheckLabel_checkSingleLabel, pParms, 0, 0);
 }
 
 PRIVATE CSLabel_callback_t CSCheckLabel_checkService;
 PRIVATE CSError_t CSCheckLabel_checkService(CSLabel_t * pCSLabel, State_Parms_t * pParms, const char * identifier, void * pVoid)
 {
-/*    HTTrace("  CSCheckLabel_checkService: CSLabel_iterateLabels\n"); */
     return CSLabel_iterateLabels(pParms->pCSLabel, CSCheckLabel_checkLabel, pParms, 0, 0);
 }
 
@@ -72,7 +67,6 @@ PRIVATE CSError_t CSCheckLabel_findLabelService(CSUser_t * pCSUser, State_Parms_
 {
     UserService_t * pUserService = CSUser_getUserService(pParms->pCSUser);
     CSError_t ret;
-/*    HTTrace(" CSCheckLabel_findLabelService: CSLabel_iterateServices \"%s\"\n", SVal_value(&pUserService->rating_service)); */
     if ((ret = CSLabel_iterateServices(pParms->pCSLabel, CSCheckLabel_checkService, pParms, SVal_value(&pUserService->rating_service), 0)) == CSError_SERVICE_MISSING)
         return BVal_value(&pUserService->missing_service) ? CSError_SERVICE_MISSING : CSError_OK;
     if (ret == CSError_OK)

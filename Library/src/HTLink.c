@@ -50,10 +50,9 @@ PUBLIC BOOL HTLink_add (HTAnchor *	source,
 			HTMethod	method)
 {
     if (source && destination) {
-	if (ANCH_TRACE)
-	    HTTrace("Link create. from anchor %p to %p with type %s, method %s\n",
-		    (void *) source, (void *) destination,
-		    type ? HTAtom_name(type) : "NONE",
+	HTTRACE(ANCH_TRACE, "Link create. from anchor %p to %p with type %s, method %s\n" _ 
+		    (void *) source _ (void *) destination _ 
+		    type ? HTAtom_name(type) : "NONE" _ 
 		    method != METHOD_INVALID ? HTMethod_name(method) : "NONE");
 	if (!source->mainLink.dest) {
 	    source->mainLink.dest = destination;
@@ -72,7 +71,7 @@ PUBLIC BOOL HTLink_add (HTAnchor *	source,
 	HTList_addObject (destination->parent->sources, source);
 	return YES;
     } else
-	if (ANCH_TRACE) HTTrace("Link........ Bad argument\n");
+	HTTRACE(ANCH_TRACE, "Link........ Bad argument\n");
     return NO;
 }
 
@@ -83,9 +82,8 @@ PUBLIC BOOL HTLink_add (HTAnchor *	source,
 PUBLIC BOOL HTLink_remove (HTAnchor * source, HTAnchor * destination)
 {
     if (!source || !destination) return NO;
-    if (ANCH_TRACE)
-	HTTrace("Link delete. from anchor %p to anchor %p\n",
-		(void *) source, (void *) destination);
+    HTTRACE(ANCH_TRACE, "Link delete. from anchor %p to anchor %p\n" _ 
+		(void *) source _ (void *) destination);
 
     /* Remove if dest is the main link */
     if (source->mainLink.dest == destination) {
@@ -118,7 +116,7 @@ PUBLIC BOOL HTLink_remove (HTAnchor * source, HTAnchor * destination)
 PUBLIC BOOL HTLink_removeAll (HTAnchor * me)
 {
     if (!me) return NO;
-    if (ANCH_TRACE) HTTrace("Link delete. from anchor %p\n", (void *) me);
+    HTTRACE(ANCH_TRACE, "Link delete. from anchor %p\n" _ (void *) me);
 
     /* Remove if dest is the main link */
     me->mainLink.dest = NULL;
@@ -146,9 +144,8 @@ PUBLIC BOOL HTLink_removeAll (HTAnchor * me)
 PUBLIC BOOL HTLink_moveAll (HTAnchor * src, HTAnchor * dest)
 {
     if (!src || !dest) return NO;
-    if (ANCH_TRACE)
-	HTTrace("Link move... all from anchor %p to anchor %p\n",
-		(void *) src, (void *) dest);
+    HTTRACE(ANCH_TRACE, "Link move... all from anchor %p to anchor %p\n" _ 
+		(void *) src _ (void *) dest);
 
     /* Move main link information */
     dest->mainLink.dest = src->mainLink.dest;

@@ -41,7 +41,7 @@ PRIVATE int HTSC_flush (HTStream * me)
 */
 PRIVATE int HTSC_free (HTStream * me)
 {
-    if (STREAM_TRACE) HTTrace("Chunkstream. FREEING...\n");
+    HTTRACE(STREAM_TRACE, "Chunkstream. FREEING...\n");
     HT_FREE(me);
     return HT_OK;
 }
@@ -51,7 +51,7 @@ PRIVATE int HTSC_free (HTStream * me)
 */
 PRIVATE int HTSC_abort (HTStream * me, HTList * errorlist)
 {
-    if (STREAM_TRACE) HTTrace("Chunkstream. ABORTING...\n");
+    HTTRACE(STREAM_TRACE, "Chunkstream. ABORTING...\n");
     HT_FREE(me);
     return HT_ERROR;
 }
@@ -126,9 +126,8 @@ PUBLIC HTStream * HTStreamToChunk (HTRequest * 	request,
 	me->chunk = *chunk = HTChunk_new(me->max_size > 0 ?
 					 HTMIN(me->max_size, HT_MAXGROWSIZE) :
 					 HT_MAXGROWSIZE);
-	if (STREAM_TRACE)
-	    HTTrace("ChunkStream. Chunk %p created with max size %d\n",
-		    me->chunk, me->max_size);
+	HTTRACE(STREAM_TRACE, "ChunkStream. Chunk %p created with max size %d\n" _ 
+		    me->chunk _ me->max_size);
 	return me;
     }
     return HTErrorStream();

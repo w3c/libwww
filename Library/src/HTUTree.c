@@ -101,8 +101,7 @@ PRIVATE HTURealm * HTUTree_findRealm (HTUTree * tree, const char * realm)
 	HTURealm * pres;
 	while ((pres = (HTURealm *) HTList_nextObject(cur))) {
 	    if (!strcmp(pres->realm, realm)) {
-		if (CORE_TRACE)
-		    HTTrace("URL Node.... Realm `%s\' found\n", realm);
+		HTTRACE(CORE_TRACE, "URL Node.... Realm `%s\' found\n" _ realm);
 		return pres;
 	    }
 	}
@@ -152,9 +151,8 @@ PRIVATE HTUTemplate * HTUTree_findTemplate (HTUTree * tree, const char * path)
 	HTList * cur = tree->templates;
 	while ((pres = (HTUTemplate *) HTList_nextObject(cur))) {
 	    if (HTStrMatch(pres->tmplate, path)) {
-		if (CORE_TRACE)
-		    HTTrace("URL Node.... Found template `%s\' for for `%s\'\n",
-			    pres->tmplate, path);
+		HTTRACE(CORE_TRACE, "URL Node.... Found template `%s\' for for `%s\'\n" _ 
+			    pres->tmplate _ path);
 		return pres;
 	    }
 	}
@@ -178,7 +176,7 @@ PUBLIC void * HTUTree_findNode (HTUTree * tree,
 	HTUTemplate * tm = HTUTree_findTemplate(tree, path);
 	if (tm) return tm->rm_ptr ? tm->rm_ptr->context : NULL;
     }
-    if (CORE_TRACE) HTTrace("URL Node.... Not found\n");
+    HTTRACE(CORE_TRACE, "URL Node.... Not found\n");
     return NULL;
 }
 
@@ -200,8 +198,7 @@ PUBLIC BOOL HTUTree_addNode (HTUTree * tree,
 	    HTUTree_newRealm(tree, realm, context);
 	    return YES;
 	}
-	if (CORE_TRACE)
-	    HTTrace("URL Node.... At least realm must be present\n");
+	HTTRACE(CORE_TRACE, "URL Node.... At least realm must be present\n");
     }
     return NO;
 }
@@ -223,7 +220,7 @@ PUBLIC BOOL HTUTree_replaceNode (HTUTree * tree,
 	rm->context = context;
 	return YES;
     }
-    if (CORE_TRACE) HTTrace("URL Node.... Not found\n");
+    HTTRACE(CORE_TRACE, "URL Node.... Not found\n");
     return NO;
 }
 
@@ -286,7 +283,7 @@ PRIVATE HTUTree * find_tree (const char * 	name,
     HTUTree * pres = NULL;
     *hashlist = NULL;
     if (!name || !host) {
-	if (CORE_TRACE) HTTrace("URL Tree.... Bad argument\n");
+	HTTRACE(CORE_TRACE, "URL Tree.... Bad argument\n");
 	return NULL;
     }
 
@@ -315,8 +312,7 @@ PRIVATE HTUTree * find_tree (const char * 	name,
 	    if (!strcmp(pres->name, name) && !strcmp(pres->host, host) &&
 		pres->port==port) {
 		if (time(NULL) > pres->created + UTreeTimeout) {
-		    if (CORE_TRACE)
-			HTTrace("URL Tree.... Collecting URL Tree %p\n", pres);
+		    HTTRACE(CORE_TRACE, "URL Tree.... Collecting URL Tree %p\n" _ pres);
 		    HTList_removeObject(*hashlist, pres);
 		    delete_tree(pres);
 		    pres = NULL;
@@ -355,15 +351,15 @@ PUBLIC HTUTree * HTUTree_new (const char * 		name,
 
 	    /* Add the new URL tree to the hash table */
 	    HTList_addObject(hashlist, (void *) pres);
-	    if (CORE_TRACE)HTTrace("URL Tree.... Created %p with name `%s\'\n",
-				   pres, pres->name);
+	    HTTRACE(CORE_TRACE, "URL Tree.... Created %p with name `%s\'\n" _ 
+				   pres _ pres->name);
 	} else {
-	    if (CORE_TRACE) HTTrace("URL Tree.... Found %p with name `%s\'\n",
-				    pres, pres->name);
+	    HTTRACE(CORE_TRACE, "URL Tree.... Found %p with name `%s\'\n" _ 
+				    pres _ pres->name);
 	}
 	return pres;
     } else {
-	if (CORE_TRACE) HTTrace("URL Tree.... Bad argument\n");
+	HTTRACE(CORE_TRACE, "URL Tree.... Bad argument\n");
 	return NULL;
     }
 }
@@ -378,11 +374,11 @@ PUBLIC HTUTree * HTUTree_find (const char *	name,
     if (name && host) {
 	HTList * hashlist = NULL;
 	HTUTree * pres = find_tree(name, host, port, &hashlist);
-	if (CORE_TRACE) HTTrace("URL Tree.... did %sfind `%s\'\n",
-				pres ? "" : "NOT ", name);
+	HTTRACE(CORE_TRACE, "URL Tree.... did %sfind `%s\'\n" _ 
+				pres ? "" : "NOT " _ name);
 	return pres;
     } else {
-	if (CORE_TRACE) HTTrace("URL Tree.... Bad augument\n");
+	HTTRACE(CORE_TRACE, "URL Tree.... Bad augument\n");
     }
     return NULL;
 }
@@ -401,7 +397,7 @@ PUBLIC BOOL HTUTree_delete (const char * 	name,
 	if (pres) {
 	    HTList_removeObject(hashlist, pres);
 	    delete_tree(pres);
-	    if (CORE_TRACE) HTTrace("URL Tree.... deleted %p\n", pres);
+	    HTTRACE(CORE_TRACE, "URL Tree.... deleted %p\n" _ pres);
 	    return YES;
 	}
     }

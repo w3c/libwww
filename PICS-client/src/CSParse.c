@@ -486,8 +486,7 @@ PUBLIC CSDoMore_t CSParse_parseChunk (CSParse_t * pCSParse, const char * ptr, in
                 return CSDoMore_error;
                 break;
             default:
-/*                if (warn(pCSParse, message_INTERNAL_ERROR, "bad nowIn")) pCSParse->nowIn = NowIn_ERROR; */
-		HTTrace("PICS: Internal error in parser - bad nowIn:%d.\n", 
+		HTTRACE(PICS_TRACE, "PICS: Internal error in parser - bad nowIn:%d.\n" _
 			pCSParse->nowIn);
 		return CSDoMore_error;
         }
@@ -506,14 +505,6 @@ PUBLIC BOOL Punct_badDemark(Punct_t validPunctuation, char demark)
     return YES;
 }
 
-#if 0
-PRIVATE void Input_dump(char * token, char demark)
-{
-    char space[256];
-    sprintf(space, " %s |%c|\n", token, demark);
-    HTTrace(space);
-}
-#endif
 PUBLIC char * CSParse_subState2str(SubState_t subState)
 {
     static char space[33];
@@ -556,7 +547,6 @@ static NowIn_t lastRet = NowIn_END;
         HTChunk_terminate(pCSParse->token);
         token = HTChunk_data(pCSParse->token);
     }
-/*Input_dump(token, demark);*/
     for (i = 0; i < pTargetObject->stateTokenCount; i++) {
         StateToken_t * pStateToken = pTargetObject->stateTokens + i;
         pCSParse->pStateToken = pStateToken;
@@ -621,10 +611,6 @@ static NowIn_t lastRet = NowIn_END;
             pCSParse->pTargetObject = pStateToken->pNextTargetObject;
         if (pStateToken->nextSubState != SubState_X)
             pCSParse->currentSubState = pStateToken->nextSubState;
-/*
-CSLabel_dump(pCSLabel);
-HTTrace(pCSParse->pTargetObject->note);
-*/
         ParseTrace("%10s - %s", pCSParse->pTargetObject->note, CSParse_subState2str(pCSParse->currentSubState));
         if (pStateToken->command & Command_CHAIN) {
 	    ParseTrace(" -O-O-");

@@ -116,12 +116,12 @@ PRIVATE int pumpData (HTStream * me)
 	if (length<0 && te==NULL &&
 	    HTHost_isPersistent(host) && !HTHost_closeNotification(host)) {
 	    if (format != WWW_UNKNOWN) {
-		if (STREAM_TRACE) HTTrace("MIME Parser. BAD - there seems to be a body but no length. This must be an HTTP/1.0 server pretending that it is HTTP/1.1\n");
+		HTTRACE(STREAM_TRACE, "MIME Parser. BAD - there seems to be a body but no length. This must be an HTTP/1.0 server pretending that it is HTTP/1.1\n");
 		HTHost_setCloseNotification(host, YES);
 	    } else {
                 HTAlertCallback * cbf = HTAlert_find(HT_PROG_DONE);
                 if (cbf) (*cbf)(request, HT_PROG_DONE, HT_MSG_NULL, NULL, NULL, NULL);
-		if (STREAM_TRACE) HTTrace("MIME Parser. No body in this messsage\n");
+		HTTRACE(STREAM_TRACE, "MIME Parser. No body in this messsage\n");
 		return HT_LOADED;
 	    }
 	}
@@ -138,8 +138,8 @@ PRIVATE int pumpData (HTStream * me)
     if (!(me->mode & HT_MIME_PARTIAL) &&
 	(format != WWW_UNKNOWN || length > 0 || te)) {
 	HTStream * target;
-	if (STREAM_TRACE) HTTrace("Building.... C-T stack from %s to %s\n",
-				  HTAtom_name(format),
+	HTTRACE(STREAM_TRACE, "Building.... C-T stack from %s to %s\n" _ 
+				  HTAtom_name(format) _ 
 				  HTAtom_name(me->target_format));
 	if ((target = HTStreamStack(format, me->target_format,
 				    me->target, request, YES))==BlackHole) {
@@ -156,7 +156,7 @@ PRIVATE int pumpData (HTStream * me)
     /*
     **  Handle any Content Encodings
     */
-    if (STREAM_TRACE) HTTrace("Building.... Content-Decoding stack\n");
+    HTTRACE(STREAM_TRACE, "Building.... Content-Decoding stack\n");
     if (ce) {
 	HTStream * target = HTContentDecodingStack(ce, me->target, request, NULL);
 	if (target == BlackHole) {
@@ -195,7 +195,7 @@ PRIVATE int pumpData (HTStream * me)
     /*
     **  Handle any Transfer Encodings
     */
-    if (STREAM_TRACE) HTTrace("Building.... Transfer-Decoding stack\n");
+    HTTRACE(STREAM_TRACE, "Building.... Transfer-Decoding stack\n");
     if (te) {
 	HTStream * target = HTTransferDecodingStack(te, me->target, request, NULL);
 	if (target == BlackHole) {
@@ -230,8 +230,8 @@ PRIVATE int _dispatchParsers (HTStream * me)
     HTMIMEParseSet * parseSet;
 
     /* In case we get an empty header consisting of a CRLF, we fall thru */
-    if (STREAM_TRACE) HTTrace("MIME header. %s: %s\n",
-			      token ? token : "<null>",
+    HTTRACE(STREAM_TRACE, "MIME header. %s: %s\n" _ 
+			      token ? token : "<null>" _ 
 			      value ? value : "<null>");
     if (!token) return HT_OK;			    /* Ignore noop token */
 
@@ -465,8 +465,7 @@ PRIVATE int HTMIME_free (HTStream * me)
 	if ((status = (*me->target->isa->_free)(me->target))==HT_WOULD_BLOCK)
 	    return HT_WOULD_BLOCK;
     }
-    if (PROT_TRACE)
-	HTTrace("MIME........ FREEING....\n");
+    HTTRACE(PROT_TRACE, "MIME........ FREEING....\n");
     HTChunk_delete(me->token);
     HTChunk_delete(me->value);
     HT_FREE(me);
@@ -479,8 +478,7 @@ PRIVATE int HTMIME_abort (HTStream * me, HTList * e)
 {
     int status = HT_ERROR;
     if (me->target) status = (*me->target->isa->abort)(me->target, e);
-    if (PROT_TRACE)
-	HTTrace("MIME........ ABORTING...\n");
+    HTTRACE(PROT_TRACE, "MIME........ ABORTING...\n");
     HTChunk_delete(me->token);
     HTChunk_delete(me->value);
     HT_FREE(me);
@@ -591,7 +589,7 @@ PRIVATE int HTCacheLoadFilter (HTRequest * request, void * param, int mode)
 {
     HTParentAnchor * anchor = HTRequest_anchor(request);
     HTCache * cache = HTCache_find(anchor);
-    if (STREAM_TRACE) HTTrace("Cache Load.. loading partial cache entry\n");
+    HTTRACE(STREAM_TRACE, "Cache Load.. loading partial cache entry\n");
     if (cache) {
 	char * name = HTCache_name(cache);
 	HTAnchor_setPhysical(anchor, name);
@@ -610,7 +608,7 @@ PRIVATE int HTCacheFlushFilter (HTRequest * request, HTResponse * response,
 {
     HTStream * pipe = (HTStream *) param;    
     if (pipe) {
-	if (STREAM_TRACE) HTTrace("Cache Flush. Flushing and freeing PIPE buffer\n");
+	HTTRACE(STREAM_TRACE, "Cache Flush. Flushing and freeing PIPE buffer\n");
 	(*pipe->isa->flush)(pipe);
 	(*pipe->isa->_free)(pipe);
     }
@@ -706,7 +704,7 @@ PUBLIC HTStream * HTMIMEPartial (HTRequest *	request,
 	HTRequest_addAfter(cache_request, HTCacheFlushFilter, NULL, pipe,
 			   HT_ALL, HT_FILTER_FIRST, YES);
 
-	if (STREAM_TRACE) HTTrace("Partial..... Starting cache load\n");
+	HTTRACE(STREAM_TRACE, "Partial..... Starting cache load\n");
 	HTLoad(cache_request, NO);
     }
     return me;

@@ -146,8 +146,7 @@ PRIVATE int CSUserList_free (HTStream * me)
 	if ((status = (*me->target->isa->_free)(me->target)) == HT_WOULD_BLOCK)
 	    return HT_WOULD_BLOCK;
     }
-    if (APP_TRACE)
-	HTTrace("Rules....... FREEING....\n");
+    HTTRACE(APP_TRACE, "Rules....... FREEING....\n");
     HTChunkFree(me->buffer);
 /*    HTList_delete(me->URLs); */
    HT_FREE(me);
@@ -158,7 +157,7 @@ PRIVATE int CSUserList_abort (HTStream * me, HTList * e)
 {
     int status = HT_ERROR;
     if (me->target) status = (*me->target->isa->abort)(me->target, e);
-    if (APP_TRACE) HTTrace("Rules....... ABORTING...\n");
+    HTTRACE(APP_TRACE, "Rules....... ABORTING...\n");
     HTChunkFree(me->buffer);
 /*    HTList_delete(me->URLs); */
    HT_FREE(me);

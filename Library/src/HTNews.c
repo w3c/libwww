@@ -109,7 +109,7 @@ PRIVATE int ScanResponse (HTStream * me)
     if (isdigit((int) *(me->buffer))) sscanf(me->buffer, "%d", &news->repcode);
     me->buflen = 0;
     news->reply = me->buffer+4;
-    if (PROT_TRACE) HTTrace("News Rx..... `%s\'\n", news->reply);
+    HTTRACE(PROT_TRACE, "News Rx..... `%s\'\n" _ news->reply);
 
     /* If 2xx code and we expect data then go into semi-transparent mode */
     if (me->news->format && news->repcode/100 == 2) {
@@ -149,8 +149,7 @@ PRIVATE int HTNewsStatus_put_block (HTStream * me, const char * b, int l)
 	} else {
 	    *(me->buffer+me->buflen++) = *b;
 	    if (me->buflen >= MAX_NEWS_LINE) {
-		if (PROT_TRACE)
-		    HTTrace("News Status. Line too long - chopped\n");
+		HTTRACE(PROT_TRACE, "News Status. Line too long - chopped\n");
 		me->junk = YES;
 		if ((status = ScanResponse(me)) != HT_LOADED) return status;
 	    }
@@ -218,7 +217,7 @@ PRIVATE int HTNewsStatus_abort (HTStream * me, HTList * e)
     if (me->target)
         ABORT_TARGET;
     HT_FREE(me);
-    if (PROT_TRACE) HTTrace("NewsStatus.. ABORTING...\n");
+    HTTRACE(PROT_TRACE, "NewsStatus.. ABORTING...\n");
     return HT_ERROR;
 }
 
@@ -315,7 +314,7 @@ PRIVATE int SendCommand (HTRequest *request, news_info *news,
 	sprintf(HTChunk_data(news->cmd), "%s %s%c%c", token, pars, CR, LF);
     else
 	sprintf(HTChunk_data(news->cmd), "%s%c%c", token, CR, LF);
-    if (PROT_TRACE) HTTrace("News Tx..... %s", HTChunk_data(news->cmd));
+    HTTRACE(PROT_TRACE, "News Tx..... %s" _ HTChunk_data(news->cmd));
     return (*input->isa->put_block)(input, HTChunk_data(news->cmd), len);
 }
 
@@ -342,8 +341,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request)
     HTNet * net = HTRequest_net(request);
     char * url = HTAnchor_physical(anchor);
 
-    if (PROT_TRACE) 
-	HTTrace("NNTP........ Looking for `%s\'\n", url);
+    HTTRACE(PROT_TRACE, "NNTP........ Looking for `%s\'\n" _ url);
     if ((news = (news_info *) HT_CALLOC(1, sizeof(news_info))) == NULL)
 	HT_OUTOFMEM("HTLoadNews");
     news->cmd = HTChunk_new(128);
@@ -413,7 +411,7 @@ PRIVATE int NewsEvent (SOCKET soc, void * pVoid, HTEventType type)
 		status = HTHost_connect(host, net, url, NEWS_PORT);
 		host = HTNet_host(net);
 	    } else {
-		if (PROT_TRACE) HTTrace("News........ Huh?");
+		HTTRACE(PROT_TRACE, "News........ Huh?");
 		news->state = NEWS_ERROR;
             }
             if (status == HT_OK) {

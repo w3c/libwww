@@ -38,8 +38,8 @@ PRIVATE HTTimerSetCallback * DeletePlatformTimer = NULL;
 #ifdef WATCH_RECURSION
 
 PRIVATE HTTimer * InTimer = NULL;
-#define CHECKME(timer) if (InTimer != NULL) HTDebugBreak(__FILE__, __LINE__, "\n"); InTimer = timer;
-#define CLEARME(timer) if (InTimer != timer) HTDebugBreak(__FILE, __LINE__, "\n"); InTimer = NULL;
+#define CHECKME(timer) if (InTimer != NULL) HTDEBUGBREAK("check timer\n"); InTimer = timer;
+#define CLEARME(timer) if (InTimer != timer) HTDEBUGBREAK("clear timer\n"); InTimer = NULL;
 #define SETME(timer) InTimer = timer;
 
 #else /* WATCH_RECURSION */
@@ -97,7 +97,7 @@ PRIVATE int Timer_dispatch (HTList * cur, HTList * last)
     timer = (HTTimer *)HTList_objectOf(cur);
     if (timer == NULL) {
 #if 0
-        HTDebugBreak(__FILE__, __LINE__, "Timer dispatch couldn't find a timer\n");
+        HTDEBUGBREAK("Timer dispatch couldn't find a timer\n");
 #endif
         CLEARME(timer);
 	return HT_ERROR;
@@ -106,14 +106,14 @@ PRIVATE int Timer_dispatch (HTList * cur, HTList * last)
 	HTTimer_new(timer, timer->cbf, timer->param, timer->millis, YES, YES);
     else
 	HTList_quickRemoveElement(cur, last);
-    if (THD_TRACE) HTTrace("Timer....... Dispatch timer %p\n", timer);
+    HTTRACE(THD_TRACE, "Timer....... Dispatch timer %p\n" _ timer);
     ret = (*timer->cbf) (timer, timer->param, HTEvent_TIMEOUT);
     return ret;
 }
 
 PUBLIC BOOL HTTimer_registerSetTimerCallback (HTTimerSetCallback * cbf)
 {
-    if (CORE_TRACE) HTTrace("Timer....... registering %p as timer set cbf\n", cbf);
+    HTTRACE(CORE_TRACE, "Timer....... registering %p as timer set cbf\n" _ cbf);
     if (cbf) {
 	SetPlatformTimer = cbf;
 	return YES;
@@ -123,7 +123,7 @@ PUBLIC BOOL HTTimer_registerSetTimerCallback (HTTimerSetCallback * cbf)
 
 PUBLIC BOOL HTTimer_registerDeleteTimerCallback (HTTimerSetCallback * cbf)
 {
-    if (CORE_TRACE) HTTrace("Timer....... registering %p as timer delete cbf\n", cbf);
+    HTTRACE(CORE_TRACE, "Timer....... registering %p as timer delete cbf\n" _ cbf);
     if (cbf) {
 	DeletePlatformTimer = cbf;
 	return YES;
@@ -158,9 +158,9 @@ PUBLIC BOOL HTTimer_delete (HTTimer * timer)
     CHECKME(timer);
     if ((cur = HTList_elementOf(Timers, (void *)timer, &last)) == NULL) CLEARME(timer);
     if (HTList_quickRemoveElement(cur, last)) {
-	if (THD_TRACE) HTTrace("Timer....... Deleted active timer %p\n", timer);
+	HTTRACE(THD_TRACE, "Timer....... Deleted active timer %p\n" _ timer);
     } else { 
-	if (THD_TRACE) HTTrace("Timer....... Deleted expired timer %p\n", timer);
+	HTTRACE(THD_TRACE, "Timer....... Deleted expired timer %p\n" _ timer);
     }
 
     /*
@@ -198,14 +198,13 @@ PUBLIC HTTimer * HTTimer_new (HTTimer * timer, HTTimerCallback * cbf,
 	/*	if a timer is specified, it should already exist
 	 */
 	if ((cur = HTList_elementOf(Timers, (void *)timer, &last)) == NULL) {
-	    HTDebugBreak(__FILE__, __LINE__, "Timer %p not found\n", timer);
+	    HTDEBUGBREAK("Timer %p not found\n" _ timer);
 	    CLEARME(timer);
 	    return NULL;
 	}
 	HTList_quickRemoveElement(cur, last);
-	if (THD_TRACE)
-	    HTTrace("Timer....... Found timer %p with callback %p, context %p, and %s timeout %d\n",
-		    timer, cbf, param, relative ? "relative" : "absolute", millis);
+	HTTRACE(THD_TRACE, "Timer....... Found timer %p with callback %p, context %p, and %s timeout %d\n" _ 
+		    timer _ cbf _ param _ relative ? "relative" : "absolute" _ millis);
 	/* could optimize by sorting from last when ((HTList *)(last->object))->expires < expires (most common case) */
     } else {
 
@@ -214,11 +213,10 @@ PUBLIC HTTimer * HTTimer_new (HTTimer * timer, HTTimerCallback * cbf,
 	if ((timer = (HTTimer *) HT_CALLOC(1, sizeof(HTTimer))) == NULL)
 	    HT_OUTOFMEM("HTTimer_new");
 	last = Timers;
-	if (THD_TRACE)
-	    HTTrace("Timer....... Created %s timer %p with callback %p, context %p, and %s timeout %d\n",
-		    repetitive ? "repetitive" : "one shot",
-		    timer, cbf, param,
-		    relative ? "relative" : "absolute", millis);
+	HTTRACE(THD_TRACE, "Timer....... Created %s timer %p with callback %p, context %p, and %s timeout %d\n" _ 
+		    repetitive ? "repetitive" : "one shot" _ 
+		    timer _ cbf _ param _ 
+		    relative ? "relative" : "absolute" _ millis);
     }
 
     /*
@@ -231,7 +229,7 @@ PUBLIC HTTimer * HTTimer_new (HTTimer * timer, HTTimerCallback * cbf,
     /*
     **  If the expiration is 0 then we still register it but dispatch it immediately.
     */
-    if (!millis) if (THD_TRACE) HTTrace("Timer....... Timeout is 0 - expires NOW\n");
+    if (!millis) HTTRACE(THD_TRACE, "Timer....... Timeout is 0 - expires NOW\n");
 
     timer->expires = expires;
     timer->cbf = cbf;

@@ -184,13 +184,13 @@ PRIVATE int HTTPReply_flush (HTStream * me)
 PRIVATE int HTTPReply_free (HTStream * me)
 {
     int status = HTTPReply_put_block(me, NULL, 0);
-    if (STREAM_TRACE) HTTrace("HTTPReply... Freeing server stream\n");
+    HTTRACE(STREAM_TRACE, "HTTPReply... Freeing server stream\n");
     return status==HT_OK ? (*me->target->isa->_free)(me->target) : status;
 }
 
 PRIVATE int HTTPReply_abort (HTStream * me, HTList * e)
 {
-    if (STREAM_TRACE) HTTrace("HTTPReply... ABORTING\n");
+    HTTRACE(STREAM_TRACE, "HTTPReply... ABORTING\n");
     if (me->target) (*me->target->isa->abort)(me->target, e);
     HT_FREE(me);
     return HT_ERROR;
@@ -220,7 +220,7 @@ PRIVATE HTStream * HTTPReply_new (HTRequest * request, https_info * http,
     me->request = request;
     me->http = http;
     me->target = target;
-    if (STREAM_TRACE) HTTrace("HTTP Reply.. Stream %p created\n", me);
+    HTTRACE(STREAM_TRACE, "HTTP Reply.. Stream %p created\n" _ me);
     return me;
 }
 
@@ -333,7 +333,7 @@ PRIVATE int HTTPReceive_abort (HTStream * me, HTList * e)
     if (me->target) (*me->target->isa->abort)(me->target, e);
     HTChunk_delete(me->buffer);
     HT_FREE(me);
-    if (PROT_TRACE) HTTrace("HTTPReceive. ABORTING...\n");
+    HTTRACE(PROT_TRACE, "HTTPReceive. ABORTING...\n");
     return HT_ERROR;
 }
 
@@ -361,7 +361,7 @@ PRIVATE HTStream * HTTPReceive_new (HTRequest * request, https_info * http)
     me->http = http;
     me->state = EOL_BEGIN;    
     me->buffer = HTChunk_new(128);		 /* Sufficiant for most URLs */
-    if (STREAM_TRACE) HTTrace("HTTP Request Stream %p created\n", me);
+    HTTRACE(STREAM_TRACE, "HTTP Request Stream %p created\n" _ me);
     return me;
 }
 
@@ -384,7 +384,7 @@ PUBLIC int HTServHTTP (SOCKET soc, HTRequest * request)
     ** This is actually state HTTPS_BEGIN, but it can't be in the state
     ** machine as we need the object first (chicken and egg problem).
     */
-    if (PROT_TRACE) HTTrace("Serv HTTP... on socket %d\n", soc);
+    HTTRACE(PROT_TRACE, "Serv HTTP... on socket %d\n" _ soc);
     if ((http = (https_info *) HT_CALLOC(1, sizeof(https_info))) == NULL)
 	HT_OUTOFMEM("HTServHTTP");
     http->server = request;
@@ -413,7 +413,7 @@ PRIVATE int ServEvent (SOCKET soc, void * pVoid, HTEventType type)
     HTRequest * request = HTNet_request(net);
 
     if (!net || !request) {
-	if (PROT_TRACE) HTTrace("Serv HTTP... Invalid argument\n");
+	HTTRACE(PROT_TRACE, "Serv HTTP... Invalid argument\n");
 	return HT_ERROR;
     }
 

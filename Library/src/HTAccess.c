@@ -66,12 +66,14 @@ typedef struct _HTPutContext {
 */
 PRIVATE BOOL launch_request (HTRequest * request, BOOL recursive)
 {
+#ifdef HTDEBUG
     if (PROT_TRACE) {
 	HTParentAnchor *anchor = HTRequest_anchor(request);
 	char * full_address = HTAnchor_address((HTAnchor *) anchor);
-	HTTrace("HTAccess.... Accessing document %s\n", full_address);
+	HTTRACE(PROT_TRACE, "HTAccess.... Accessing document %s\n" _ full_address);
 	HT_FREE(full_address);
     }
+#endif / * HTDEBUG */
     return HTLoad(request, recursive);
 }
 
@@ -574,7 +576,7 @@ PUBLIC BOOL HTGetFormAnchor (HTAssocList *	formdata,
 PRIVATE int HTEntity_callback (HTRequest * request, HTStream * target)
 {
     HTParentAnchor * entity = HTRequest_entityAnchor(request);
-    if (APP_TRACE) HTTrace("Posting Data from callback function\n");
+    HTTRACE(APP_TRACE, "Posting Data from callback function\n");
     if (!request || !entity || !target) return HT_ERROR;
     {
 	BOOL chunking = NO;
@@ -582,7 +584,7 @@ PRIVATE int HTEntity_callback (HTRequest * request, HTStream * target)
 	char * document = (char *) HTAnchor_document(entity);
 	int len = HTAnchor_length(entity);
 	if (!document) {
-	    if (PROT_TRACE) HTTrace("Posting Data No document\n");
+	    HTTRACE(PROT_TRACE, "Posting Data No document\n");
 	    return HT_ERROR;
 	}
 
@@ -598,8 +600,7 @@ PRIVATE int HTEntity_callback (HTRequest * request, HTStream * target)
 		len = strlen(document);			/* Naive! */
 		chunking = YES;
 	    } else {
-		if (PROT_TRACE)
-		    HTTrace("Posting Data Must know the length of document %p\n",
+		HTTRACE(PROT_TRACE, "Posting Data Must know the length of document %p\n" _ 
 			    document);
 		return HT_ERROR;
 	    }
@@ -608,23 +609,23 @@ PRIVATE int HTEntity_callback (HTRequest * request, HTStream * target)
 	/* Send the data down the pipe */
 	status = (*target->isa->put_block)(target, document, len);
 	if (status == HT_WOULD_BLOCK) {
-	    if (PROT_TRACE)HTTrace("Posting Data Target WOULD BLOCK\n");
+	    HTTRACE(PROT_TRACE, "Posting Data Target WOULD BLOCK\n");
 	    return HT_WOULD_BLOCK;
 	} else if (status == HT_PAUSE) {
-	    if (PROT_TRACE) HTTrace("Posting Data Target PAUSED\n");
+	    HTTRACE(PROT_TRACE, "Posting Data Target PAUSED\n");
 	    return HT_PAUSE;
 	} else if (chunking && status == HT_OK) {
-	    if (PROT_TRACE) HTTrace("Posting Data Target is SAVED using chunked\n");
+	    HTTRACE(PROT_TRACE, "Posting Data Target is SAVED using chunked\n");
 	    return (*target->isa->put_block)(target, "", 0);
 	} else if (status == HT_LOADED || status == HT_OK) {
-	    if (PROT_TRACE) HTTrace("Posting Data Target is SAVED\n");
+	    HTTRACE(PROT_TRACE, "Posting Data Target is SAVED\n");
 	    (*target->isa->flush)(target);
 	    return HT_LOADED;
         } else if (status > 0) {	      /* Stream specific return code */
-	    if (PROT_TRACE) HTTrace("Posting Data. Target returns %d\n", status);
+	    HTTRACE(PROT_TRACE, "Posting Data. Target returns %d\n" _ status);
 	    return status;
 	} else {				     /* we have a real error */
-	    if (PROT_TRACE) HTTrace("Posting Data Target ERROR %d\n", status);
+	    HTTRACE(PROT_TRACE, "Posting Data Target ERROR %d\n" _ status);
 	    return status;
 	}
     }
@@ -798,7 +799,7 @@ PRIVATE BOOL set_preconditions (HTRequest * request)
 	    break;
 
 	default:
-	    if (APP_TRACE) HTTrace("Precondition %d not understood\n", precons);
+	    HTTRACE(APP_TRACE, "Precondition %d not understood\n" _ precons);
 
 	}
 
@@ -815,7 +816,7 @@ PRIVATE BOOL setup_anchors (HTRequest * request,
 			    HTMethod method)
 {
     if (!(method & (METHOD_PUT | METHOD_POST))) {
-	if (APP_TRACE) HTTrace("Posting..... Bad method\n");
+	HTTRACE(APP_TRACE, "Posting..... Bad method\n");
 	return NO;
     }
 
@@ -1113,9 +1114,8 @@ PRIVATE int HTSaveFilter (HTRequest * request, HTResponse * response,
 			  void * param, int status)
 {
     HTPutContext * me = (HTPutContext *) param;
-    if (APP_TRACE)
-	HTTrace("Save Filter. Using context %p with state %c\n",
-		me, me->state+0x30);
+    HTTRACE(APP_TRACE, "Save Filter. Using context %p with state %c\n" _ 
+		me _ me->state+0x30);
 
     /*
     **  Just ignore authentication in the hope that some other filter will
@@ -1123,7 +1123,7 @@ PRIVATE int HTSaveFilter (HTRequest * request, HTResponse * response,
     */
     if (status == HT_NO_ACCESS || status == HT_NO_PROXY_ACCESS ||
         status == HT_REAUTH || status == HT_PROXY_REAUTH) {
-	if (APP_TRACE) HTTrace("Save Filter. Waiting for authentication\n");
+	HTTRACE(APP_TRACE, "Save Filter. Waiting for authentication\n");
 	return HT_OK;
     }
 
@@ -1162,7 +1162,7 @@ PRIVATE int HTSaveFilter (HTRequest * request, HTResponse * response,
 		    me->state = HT_ABORT_SAVE;
 		}
 #else
-		if (APP_TRACE) HTTrace("Save Filter. Destination hae moved!\n");
+		HTTRACE(APP_TRACE, "Save Filter. Destination hae moved!\n");
 		me->destination = redirection;
 #endif
 	    }
@@ -1328,7 +1328,7 @@ PUBLIC BOOL HTPutDocumentAnchor (HTParentAnchor *	source,
 	    HTRequest_setOutputFormat(request, WWW_SOURCE);
 	    context->document = HTLoadAnchorToChunk((HTAnchor*)source,request);
 	    if (context->document == NULL) {
-		if (APP_TRACE) HTTrace("Put Document No source\n");
+		HTTRACE(APP_TRACE, "Put Document No source\n");
 		HT_FREE(context);
 		return NO;
 	    }
@@ -1355,7 +1355,7 @@ PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_dest)
     HTRequest * src_req;
     HTList * cur;
     if (!src_anchor || !main_dest) {
-	if (APP_TRACE) HTTrace("Copy........ BAD ARGUMENT\n");
+	HTTRACE(APP_TRACE, "Copy........ BAD ARGUMENT\n");
 	return NO;
     }
 
@@ -1377,8 +1377,7 @@ PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_dest)
 	    HTAnchor *main_anchor = HTLink_destination(main_link);
 	    HTMethod method = HTLink_method(main_link);
 	    if (!main_link || method==METHOD_INVALID) {
-		if (APP_TRACE)
-		    HTTrace("Copy Anchor. No destination found or unspecified method\n");
+		HTTRACE(APP_TRACE, "Copy Anchor. No destination found or unspecified method\n");
 		HTRequest_delete(src_req);
 		return NO;
 	    }
@@ -1399,8 +1398,7 @@ PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_dest)
 		HTMethod method = HTLink_method(pres);
 		HTRequest *dest_req;
 		if (!dest || method==METHOD_INVALID) {
-		    if (APP_TRACE)
-			HTTrace("Copy Anchor. Bad anchor setup %p\n",
+		    HTTRACE(APP_TRACE, "Copy Anchor. Bad anchor setup %p\n" _ 
 				dest);
 		    return NO;
 		}
@@ -1461,8 +1459,7 @@ PUBLIC BOOL HTUploadAnchor (HTAnchor *		source_anchor,
     HTAnchor * dest_anchor = HTLink_destination(link);
     HTMethod method = HTLink_method(link);
     if (!link || method==METHOD_INVALID || !callback) {
-	if (APP_TRACE)
-	    HTTrace("Upload...... No destination found or unspecified method\n");
+	HTTRACE(APP_TRACE, "Upload...... No destination found or unspecified method\n");
 	return NO;
     }
     request->GenMask |= HT_G_DATE;			 /* Send date header */
@@ -1484,7 +1481,7 @@ PUBLIC BOOL HTUploadAnchor (HTAnchor *		source_anchor,
 */
 PUBLIC int HTUpload_callback (HTRequest * request, HTStream * target)
 {
-    if (APP_TRACE) HTTrace("Uploading... from callback function\n");
+    HTTRACE(APP_TRACE, "Uploading... from callback function\n");
     if (!request || !request->source_anchor || !target) return HT_ERROR;
     {
 	int status;
@@ -1499,17 +1496,16 @@ PUBLIC int HTUpload_callback (HTRequest * request, HTStream * target)
 	if (status == HT_OK)
 	    return (*target->isa->flush)(target);
 	if (status == HT_WOULD_BLOCK) {
-	    if (PROT_TRACE)HTTrace("POST Anchor. Target WOULD BLOCK\n");
+	    HTTRACE(PROT_TRACE, "POST Anchor. Target WOULD BLOCK\n");
 	    return HT_WOULD_BLOCK;
 	} else if (status == HT_PAUSE) {
-	    if (PROT_TRACE) HTTrace("POST Anchor. Target PAUSED\n");
+	    HTTRACE(PROT_TRACE, "POST Anchor. Target PAUSED\n");
 	    return HT_PAUSE;
 	} else if (status > 0) {	      /* Stream specific return code */
-	    if (PROT_TRACE)
-		HTTrace("POST Anchor. Target returns %d\n", status);
+	    HTTRACE(PROT_TRACE, "POST Anchor. Target returns %d\n" _ status);
 	    return status;
 	} else {				     /* we have a real error */
-	    if (PROT_TRACE) HTTrace("POST Anchor. Target ERROR\n");
+	    HTTRACE(PROT_TRACE, "POST Anchor. Target ERROR\n");
 	    return status;
 	}
     }
@@ -1762,12 +1758,14 @@ PUBLIC BOOL HTTraceAnchor (HTAnchor * anchor, HTRequest * request)
 
 PRIVATE BOOL launch_server (HTRequest * request, BOOL recursive)
 {
+#ifdef HTDEBUG
     if (PROT_TRACE) {
 	HTParentAnchor *anchor = HTRequest_anchor(request);
 	char * full_address = HTAnchor_address((HTAnchor *) anchor);
-	HTTrace("HTAccess.... Serving %s\n", full_address);
+	HTTRACE(PROT_TRACE, "HTAccess.... Serving %s\n" _ full_address);
 	HT_FREE(full_address);
     }
+#endif /* HTDEBUG */
     return HTServe(request, recursive);
 }
 

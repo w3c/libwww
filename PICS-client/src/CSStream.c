@@ -37,7 +37,7 @@ PRIVATE int CSParse_put_block (HTStream * me, const char * b, int l)
 	    HT_OUTOFMEM("diagnostic buffer");
 	strncpy(ptr, b, l);
 	ptr[l] = 0;
-	HTTrace("PICS: parser %p parsing block \"%s\"\n", me->pCSParse, ptr);
+	HTTRACE(PICS_TRACE, "PICS: parser %p parsing block \"%s\"\n" _ me->pCSParse _ ptr);
 	HT_FREE(ptr);
     }
     if (CSParse_parseChunk(me->pCSParse, b, l, 0) == CSDoMore_error)
@@ -67,9 +67,8 @@ PRIVATE int CSParse_free (HTStream * me)
 	if ((status = (*me->target->isa->_free)(me->target)) == HT_WOULD_BLOCK)
 	    return HT_WOULD_BLOCK;
     }
-    if (APP_TRACE)
-	HTTrace("Parser....... FREEING....\n");
-    if (PICS_TRACE) HTTrace("PICS: freeing parser %p.\n", me->pCSParse);
+    HTTRACE(APP_TRACE, "Parser....... FREEING....\n");
+    HTTRACE(PICS_TRACE, "PICS: freeing parser %p.\n" _ me->pCSParse);
     CSParse_delete(me->pCSParse);
     return status;
 }
@@ -78,7 +77,7 @@ PRIVATE int CSParse_abort (HTStream * me, HTList * e)
 {
     int status = HT_ERROR;
     if (me->target) status = (*me->target->isa->abort)(me->target, e);
-    if (APP_TRACE) HTTrace("Rules....... ABORTING...\n");
+    HTTRACE(APP_TRACE, "Rules....... ABORTING...\n");
     HT_FREE(me);
     return status;
 }
@@ -139,7 +138,7 @@ PUBLIC HTStream * CSParseMachRead (HTRequest *	request,
     HTStream * me = CSParseConverter_new(request, output_stream);
     me->isa = &CSParseClass_machRead;
     me->pCSParse = CSParse_newMachRead(0, 0);
-    if (PICS_TRACE) HTTrace("PICS: creating MachRead parser %p.\n", me->pCSParse);
+    HTTRACE(PICS_TRACE, "PICS: creating MachRead parser %p.\n" _ me->pCSParse);
     return me;
 }
 
@@ -186,7 +185,7 @@ PUBLIC HTStream * CSParseUser (HTRequest *  request,
     if (HTRequest_context(request))
         *((CSUser_t **)HTRequest_context(request)) = CSParse_getUser(me->pCSParse);
 */
-    if (PICS_TRACE) HTTrace("PICS: creating user parser %p.\n", me->pCSParse);
+    HTTRACE(PICS_TRACE, "PICS: creating user parser %p.\n" _ me->pCSParse);
     return me;
 }
 
@@ -261,12 +260,8 @@ if (PICS_TRACE)
 		    demark, token);
             break;
     }
-    HTTrace("%s", space); /* make sure %s don't get interpretted */
-/*
-    CSLabel_dump(pCSMR);
-    HTTrace(pParseState->note);
-*/
-  return errorCode;
+    HTTRACE(PICS_TRACE, "%s" _ space); /* make sure %s don't get interpretted */
+    return errorCode;
 }
 
 PUBLIC HTStream * CSParseLabel (HTRequest *	request,
@@ -278,7 +273,7 @@ PUBLIC HTStream * CSParseLabel (HTRequest *	request,
     HTStream * me = CSParseConverter_new(request, output_stream);
     me->isa = &CSParseClass_label;
     me->pCSParse = CSParse_newLabel(0, &parseErrorHandler);
-    if (PICS_TRACE) HTTrace("PICS: creating label parser %p.\n", me->pCSParse);
+    HTTRACE(PICS_TRACE, "PICS: creating label parser %p.\n" _ me->pCSParse);
     return me;
 }
 

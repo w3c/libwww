@@ -55,8 +55,7 @@ PUBLIC HTAtom * HTAtom_for (const char * string)
     */
     for (a=hash_table[hash]; a; a=a->next) {
 	if (0==strcmp(a->name, string)) {
-    	    /* if (UTIL_TRACE) HTTrace(
-	    	"HTAtom: Old atom %p for `%s'\n", a, string); */
+    	    /* HTTRACE(UTIL_TRACE, "HTAtom: Old atom %p for `%s'\n" _ a _ string); */
 	    return a;				/* Found: return it */
 	}
     }
@@ -70,7 +69,7 @@ PUBLIC HTAtom * HTAtom_for (const char * string)
     strcpy(a->name, string);
     a->next = hash_table[hash];		/* Put onto the head of list */
     hash_table[hash] = a;
-/*    if (UTIL_TRACE) HTTrace("HTAtom: New atom %p for `%s'\n", a, string); */
+/*    HTTRACE(UTIL_TRACE, "HTAtom: New atom %p for `%s'\n" _ a _ string); */
     return a;
 }
 

@@ -58,8 +58,7 @@ PUBLIC BOOL HTAssocList_addObject (HTAssocList * list,
 	if (value) StrAllocCopy(assoc->value, value);
 	return HTList_addObject(list, (void *) assoc);
     } else {
-	if (UTIL_TRACE)
-	    HTTrace("HTAssoc_add: ERROR: assoc list NULL!!\n");
+	HTTRACE(UTIL_TRACE, "HTAssoc_add: ERROR: assoc list NULL!!\n");
     }
     return NO;
 }

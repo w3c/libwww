@@ -61,7 +61,7 @@ PRIVATE int HTTP09Request (HTStream * me, HTRequest * request)
     }
     PUTC(CR);
     PUTC(LF);
-    if (PROT_TRACE)HTTrace("HTTP........ Generating HTTP/0.9 Request\n");
+    HTTRACE(PROT_TRACE, "HTTP........ Generating HTTP/0.9 Request\n");
     return HT_OK;
 }
 
@@ -402,25 +402,24 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 	PUTS(etag);
 	PUTC('"');
 	PUTBLOCK(crlf, 2);
-	if (PROT_TRACE) HTTrace("HTTP........ If-Range using etag `%s\'\n", etag);
+	HTTRACE(PROT_TRACE, "HTTP........ If-Range using etag `%s\'\n" _ etag);
     } else if (request_mask & HT_C_IF_MATCH_ANY) {
 	PUTS("If-Match: *");
 	PUTBLOCK(crlf, 2);
-	if (PROT_TRACE) HTTrace("HTTP........ If-Match using `*\'\n");
+	HTTRACE(PROT_TRACE, "HTTP........ If-Match using `*\'\n");
     } else if (request_mask & HT_C_IF_MATCH && etag) {
 	PUTS("If-Match: \"");
 	PUTS(etag);
 	PUTC('"');
 	PUTBLOCK(crlf, 2);
-	if (PROT_TRACE) HTTrace("HTTP........ If-Match using etag `%s\'\n", etag);
+	HTTRACE(PROT_TRACE, "HTTP........ If-Match using etag `%s\'\n" _ etag);
     } else if (request_mask & HT_C_IF_UNMOD_SINCE) {
 	time_t lm = HTAnchor_lastModified(anchor);
 	if (lm > 0) {
 	    PUTS("If-Unmodified-Since: ");
 	    PUTS(HTDateTimeStr(&lm, NO));
 	    PUTBLOCK(crlf, 2);
-	    if (PROT_TRACE)
-		HTTrace("HTTP........ If-Unmodified-Since `%s\'\n", HTDateTimeStr(&lm, NO));
+	    HTTRACE(PROT_TRACE, "HTTP........ If-Unmodified-Since `%s\'\n" _ HTDateTimeStr(&lm, NO));
 	}
     }
 
@@ -432,13 +431,13 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
     if (request_mask & HT_C_IF_NONE_MATCH_ANY) {
 	PUTS("If-None-Match: *");
 	PUTBLOCK(crlf, 2);
-	if (PROT_TRACE) HTTrace("HTTP........ If-None-Match using `*\'\n");
+	HTTRACE(PROT_TRACE, "HTTP........ If-None-Match using `*\'\n");
     } else if (request_mask & HT_C_IF_NONE_MATCH && etag) {
 	PUTS("If-None-Match: \"");
 	PUTS(etag);
 	PUTC('"');
 	PUTBLOCK(crlf, 2);
-	if (PROT_TRACE) HTTrace("HTTP........ If-None-Match `%s\'\n", etag);
+	HTTRACE(PROT_TRACE, "HTTP........ If-None-Match `%s\'\n" _ etag);
     }
     if (request_mask & HT_C_IMS) {
 	time_t lm = HTAnchor_lastModified(anchor);
@@ -446,8 +445,7 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 	    PUTS("If-Modified-Since: ");
 	    PUTS(HTDateTimeStr(&lm, NO));
 	    PUTBLOCK(crlf, 2);
-	    if (PROT_TRACE)
-		HTTrace("HTTP........ If-Modified-Since `%s\'\n",HTDateTimeStr(&lm, NO));
+	    HTTRACE(PROT_TRACE, "HTTP........ If-Modified-Since `%s\'\n" _ HTDateTimeStr(&lm, NO));
 	}
     }
 
@@ -516,7 +514,7 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 	PUTS(HTLib_version());
 	PUTBLOCK(crlf, 2);
     }
-    if (PROT_TRACE) HTTrace("HTTP........ Generating HTTP/1.x Request Headers\n");
+    HTTRACE(PROT_TRACE, "HTTP........ Generating HTTP/1.x Request Headers\n");
     return HT_OK;
 }
 
@@ -577,7 +575,7 @@ PRIVATE int HTTPRequest_free (HTStream * me)
 
 PRIVATE int HTTPRequest_abort (HTStream * me, HTList * e)
 {
-    if (PROT_TRACE) HTTrace("HTTPRequest. ABORTING...\n");
+    HTTRACE(PROT_TRACE, "HTTPRequest. ABORTING...\n");
     /* JK: Added protection against NULL pointers */
     if (me) {
 	if (me->target && me->target->isa)

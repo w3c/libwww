@@ -65,7 +65,7 @@ PRIVATE int HTDemux_write (HTStream * me, const char * buf, int len)
 	    }
 	    length = HTMIN(len, me->next);
 	    sid = MUX_GET_SID(header[0]);
-	    if (MUX_TRACE) HTTrace("Demux stream Header: %x, sid %d, length %d\n", header[0], length, sid);
+	    HTTRACE(MUX_TRACE, "Demux stream Header: %x, sid %d, length %d\n" _ header[0] _ length _ sid);
 
 	    /*
 	    **  If this is a control message then handle it here

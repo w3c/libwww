@@ -793,7 +793,7 @@ PUBLIC BOOL HTNewsDir_free (HTNewsDir * dir)
             HTNewsDir_setRefInfo (dir);
             comp = NDirRefThreadSort;
         } else {
-    	    if (STREAM_TRACE) HTTrace("NewsListing. Invalid sortkey\n");
+    	    HTTRACE(STREAM_TRACE, "NewsListing. Invalid sortkey\n");
     	    return NO;
     	}
 

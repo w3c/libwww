@@ -130,7 +130,7 @@ PUBLIC int HTMIME_connection (HTRequest * request, HTResponse * response,
 	    HTNet * net = HTRequest_net(request);
 	    HTHost * host = HTNet_host(net);
 	    if (!strcasecomp(name, "close")) {			 /* HTTP/1.1 */
-		if (STREAM_TRACE) HTTrace("MIMEParser.. Close received...\n");
+		HTTRACE(STREAM_TRACE, "MIMEParser.. Close received...\n");
 		HTHost_setCloseNotification(host, YES);
 	    } else if (!strcasecomp(name, "keep-alive")) {       /* HTTP/1.0 */
 
@@ -140,9 +140,9 @@ PUBLIC int HTMIME_connection (HTRequest * request, HTResponse * response,
 		*/
 		if (HTHost_version(host) < HTTP_11) {
 		    HTNet_setPersistent(net, YES, HT_TP_SINGLE);
-		    if (STREAM_TRACE) HTTrace("MIMEParser.. HTTP/1.0 Keep Alive\n");
+		    HTTRACE(STREAM_TRACE, "MIMEParser.. HTTP/1.0 Keep Alive\n");
 		} else 
-		    if (STREAM_TRACE) HTTrace("MIMEParser.. HTTP/1.0 Keep Alive ignored\n");
+		    HTTRACE(STREAM_TRACE, "MIMEParser.. HTTP/1.0 Keep Alive ignored\n");
 	    } else
 		HTResponse_addConnection(response, name, val ? val : "");
 	}
@@ -252,11 +252,11 @@ PUBLIC int HTMIME_keepAlive (HTRequest * request, HTResponse * response,
 	char * val = HTNextField(&name_val);
 	if (!strcasecomp(name, "max") && val) {
 	    int max = atoi(val);
-	    if (STREAM_TRACE) HTTrace("MIMEParser.. Max %d requests pr connection\n", max);
+	    HTTRACE(STREAM_TRACE, "MIMEParser.. Max %d requests pr connection\n" _ max);
 	    HTHost_setReqsPerConnection(host, max);
 	} else if (!strcasecomp(name, "timeout") && val) {
 	    int timeout = atoi(val);
-	    if (STREAM_TRACE) HTTrace("MIMEParser.. Timeout after %d secs\n", timeout);
+	    HTTRACE(STREAM_TRACE, "MIMEParser.. Timeout after %d secs\n" _ timeout);
 	}
     }
     return HT_OK;
@@ -279,27 +279,24 @@ PUBLIC int HTMIME_link (HTRequest * request, HTResponse * response,
 		char * val = HTNextField(&param_pair);
 		if (name) {
 		    if (!strcasecomp(name, "rel") && val && *val) {
-			if (STREAM_TRACE)
-			    HTTrace("MIMEParser.. Link forward relationship `%s\'\n",
+			HTTRACE(STREAM_TRACE, "MIMEParser.. Link forward relationship `%s\'\n" _ 
 				    val);
 			HTLink_add((HTAnchor *) me, (HTAnchor *) parent_dest,
 				   (HTLinkType) HTAtom_caseFor(val),
 				   METHOD_INVALID);
 		    } else if (!strcasecomp(name, "rev") && val && *val) {
-			if (STREAM_TRACE)
-			    HTTrace("MIMEParser.. Link reverse relationship `%s\'\n",
+			HTTRACE(STREAM_TRACE, "MIMEParser.. Link reverse relationship `%s\'\n" _ 
 				    val);
 			HTLink_add((HTAnchor *) parent_dest, (HTAnchor *) me,
 				   (HTLinkType) HTAtom_caseFor(val),
 				   METHOD_INVALID);
 		    } else if (!strcasecomp(name, "type") && val && *val) {
-			if (STREAM_TRACE) HTTrace("MIMEParser.. Link type `%s\'\n", val);
+			HTTRACE(STREAM_TRACE, "MIMEParser.. Link type `%s\'\n" _ val);
 			if (HTAnchor_format(parent_dest) == WWW_UNKNOWN)
 			    HTAnchor_setFormat(parent_dest, (HTFormat) HTAtom_caseFor(val));
 		    } else
-			if (STREAM_TRACE)
-			    HTTrace("MIMEParser.. Link unknown `%s\' with value `%s\'\n",
-				    name, val ? val : "<null>");
+			HTTRACE(STREAM_TRACE, "MIMEParser.. Link unknown `%s\' with value `%s\'\n" _ 
+				    name _ val ? val : "<null>");
 		}
 	    }
 	}
@@ -356,7 +353,7 @@ PUBLIC int HTMIME_pragma (HTRequest * request, HTResponse * response,
 	if (name) {
 	    if (!strcasecomp(name, "no-cache")) {
 		HTResponse_setCachable(response, HT_NO_CACHE);
-		if (STREAM_TRACE) HTTrace("MIMEParser.. No-Cache Pragma\n");
+		HTTRACE(STREAM_TRACE, "MIMEParser.. No-Cache Pragma\n");
 	    }
 	}
     }
@@ -369,9 +366,8 @@ PUBLIC int HTMIME_protocol (HTRequest * request, HTResponse * response,
     char * param = NULL;
     char * protocol = HTNextSExp(&value, &param);
     if (protocol) {
-	if (PROT_TRACE)
-	    HTTrace("Protocol.... Name: `%s\', value: `%s\'\n",
-		    protocol, param);
+	HTTRACE(PROT_TRACE, "Protocol.... Name: `%s\', value: `%s\'\n" _ 
+		    protocol _ param);
 	HTResponse_addProtocol(response, protocol, param);
     }
     return HT_OK;
@@ -383,9 +379,8 @@ PUBLIC int HTMIME_protocolInfo (HTRequest * request, HTResponse * response,
     char * param = NULL;
     char * info = HTNextSExp(&value, &param);
     if (info) {
-	if (PROT_TRACE)
-	    HTTrace("Protocol.... Info: `%s\', value: `%s\'\n",
-		    info, param);
+	HTTRACE(PROT_TRACE, "Protocol.... Info: `%s\', value: `%s\'\n" _ 
+		    info _ param);
 	HTResponse_addProtocolInfo(response, info, param);
     }
     return HT_OK;
@@ -397,9 +392,8 @@ PUBLIC int HTMIME_protocolRequest (HTRequest * request, HTResponse * response,
     char * param = NULL;
     char * preq = HTNextSExp(&value, &param);
     if (preq) {
-	if (PROT_TRACE)
-	    HTTrace("Protocol.... Request: `%s\', value: `%s\'\n",
-		    preq, param);
+	HTTRACE(PROT_TRACE, "Protocol.... Request: `%s\', value: `%s\'\n" _ 
+		    preq _ param);
 	HTResponse_addProtocolRequest(response, preq, param);
     }
     return HT_OK;
@@ -437,8 +431,7 @@ PUBLIC int HTMIME_public (HTRequest * request, HTResponse * response,
 	if ((new_method = HTMethod_enum(field)) != METHOD_INVALID)
 	    HTHost_appendPublicMethods(host, new_method);
     }
-    if (STREAM_TRACE)
-        HTTrace("MIMEParser.. Public methods: %d\n",
+    HTTRACE(STREAM_TRACE, "MIMEParser.. Public methods: %d\n" _ 
 		HTHost_publicMethods(host));
     return HT_OK;
 }
@@ -568,7 +561,7 @@ PUBLIC int HTMIME_warning (HTRequest * request, HTResponse * response,
 	HTRequest_addError(request, ERR_WARN, NO, idx, agent,
 			   (int) strlen(agent), "HTMIME_warning");
     } else {
-	if (STREAM_TRACE) HTTrace("MIMEParser.. Invalid warning\n");
+	HTTRACE(STREAM_TRACE, "MIMEParser.. Invalid warning\n");
     }
     return HT_OK;
 }

@@ -136,7 +136,7 @@ PUBLIC BOOL HTMLUseCharacterSet (HTMLCharacterSet i)
 	CurrentEntityValues = ISO_Latin1;
 	return YES;
     } else {
-	if (SGML_TRACE) HTTrace("HTML Parser. Doesn't support this character set\n");
+	HTTRACE(SGML_TRACE, "HTML Parser. Doesn't support this character set\n");
 	return NO;
     }
 }
@@ -203,8 +203,7 @@ PRIVATE void HTML_start_element (HTStructured *	me,
 	    }
 	    HTextImp_foundLink(me->text, element_number, HTML_A_HREF,
 			       address, present, value);
-	    if (SGML_TRACE)
-		HTTrace("HTML Parser. Anchor `%s\'\n", value[HTML_A_HREF]);
+	    HTTRACE(SGML_TRACE, "HTML Parser. Anchor `%s\'\n" _ value[HTML_A_HREF]);
 	}
 	break;
 
@@ -214,16 +213,14 @@ PRIVATE void HTML_start_element (HTStructured *	me,
 						value[HTML_AREA_HREF], NULL);
 	    HTextImp_foundLink(me->text, element_number, HTML_AREA_HREF,
 			       address, present, value);
-	    if (SGML_TRACE)
-		HTTrace("HTML Parser. Image map area `%s\'\n", value[HTML_AREA_HREF]);
+	    HTTRACE(SGML_TRACE, "HTML Parser. Image map area `%s\'\n" _ value[HTML_AREA_HREF]);
 	}
 	break;
 
     case HTML_BASE:
 	if (present[HTML_BASE_HREF] && value[HTML_BASE_HREF]) {
 	    HTAnchor_setBase(me->node_anchor, (char *) value[HTML_BASE_HREF]);
-	    if (SGML_TRACE)
-		HTTrace("HTML Parser. New base `%s\'\n", value[HTML_BASE_HREF]);
+	    HTTRACE(SGML_TRACE, "HTML Parser. New base `%s\'\n" _ value[HTML_BASE_HREF]);
 	}
 	break;
 
@@ -233,8 +230,7 @@ PRIVATE void HTML_start_element (HTStructured *	me,
 						value[HTML_BODY_BACKGROUND], NULL);
 	    HTextImp_foundLink(me->text, element_number, HTML_BODY_BACKGROUND,
 			       address, present, value);
-	    if (SGML_TRACE)
-		HTTrace("HTML Parser. Background `%s\'\n", value[HTML_BODY_BACKGROUND]);
+	    HTTRACE(SGML_TRACE, "HTML Parser. Background `%s\'\n" _ value[HTML_BODY_BACKGROUND]);
 	}
 	break;
 
@@ -253,8 +249,7 @@ PRIVATE void HTML_start_element (HTStructured *	me,
 						value[HTML_FRAME_SRC], NULL);
 	    HTextImp_foundLink(me->text, element_number, HTML_FRAME_SRC,
 			       address, present, value);
-	    if (SGML_TRACE)
-		HTTrace("HTML Parser. Frame `%s\'\n", value[HTML_FRAME_SRC]);
+	    HTTRACE(SGML_TRACE, "HTML Parser. Frame `%s\'\n" _ value[HTML_FRAME_SRC]);
 	}
 	break;
 	
@@ -392,8 +387,7 @@ PRIVATE void HTML_start_element (HTStructured *	me,
     /* Update our parse stack */
     if (SGML_findTagContents(me->dtd, element_number) != SGML_EMPTY) {
         if (me->sp == me->stack) {
-	    if (SGML_TRACE)
-		HTTrace("HTML Parser. Maximum nesting of %d exceded!\n", MAX_NESTING); 
+	    HTTRACE(SGML_TRACE, "HTML Parser. Maximum nesting of %d exceded!\n" _ MAX_NESTING); 
 	    me->overflow++;
 	    return;
 	}
@@ -419,7 +413,7 @@ PRIVATE void HTML_end_element (HTStructured * me, int element_number)
     }
     me->sp++;
     if (me->sp > me->stack + MAX_NESTING - 1) {
-	if (SGML_TRACE) HTTrace("HTML Parser. Bottom of parse stack reached\n");
+	HTTRACE(SGML_TRACE, "HTML Parser. Bottom of parse stack reached\n");
 	me->sp = me->stack + MAX_NESTING - 1;
     }
 

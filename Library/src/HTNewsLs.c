@@ -179,7 +179,7 @@ PRIVATE int HTNewsCache_delete (void * context)
 	    HTArray_delete(me->cache);
 	}
 	HT_FREE(me->host);
-	if (PROT_TRACE) HTTrace("News Cache.. Deleted cache %p\n", me);
+	HTTRACE(PROT_TRACE, "News Cache.. Deleted cache %p\n" _ me);
 	HT_FREE(me);
 	return YES;
     }
@@ -215,8 +215,7 @@ PRIVATE HTNewsCache * HTNewsCache_find (HTRequest * request, const char * url)
 	    tree = HTUTree_find(NEWS_TREE, newshost, port);
 	    HT_FREE(newshost);
 	    if (!tree) {
-		if (PROT_TRACE)
-		    HTTrace("News Cache.. No information for `%s\'\n", url);
+		HTTRACE(PROT_TRACE, "News Cache.. No information for `%s\'\n" _ url);
 		return NULL;
 	    }
 
@@ -255,7 +254,7 @@ PRIVATE BOOL HTNewsCache_update (HTRequest * request,
 	    tree = HTUTree_new(NEWS_TREE, newshost, port, HTNewsCache_delete);
 	    HT_FREE(newshost);
 	    if (!tree) {
-		if (PROT_TRACE)HTTrace("News Cache.. Can't create tree\n");
+		HTTRACE(PROT_TRACE, "News Cache.. Can't create tree\n");
 		return NO;
 	    }
 
@@ -316,7 +315,7 @@ PUBLIC int HTNewsCache_after (HTRequest * request, HTResponse * response,
 			      void * context, int status)
 {
     HTArray * array = (HTArray *) context;
-    if (PROT_TRACE) HTTrace("News Cache.. AFTER filter\n");
+    HTTRACE(PROT_TRACE, "News Cache.. AFTER filter\n");
     if (request && array) {
 	char * url = HTAnchor_address((HTAnchor *) HTRequest_anchor(request));
 	HTNewsCache_update(request, url, array);
@@ -358,8 +357,7 @@ PRIVATE int HTNewsList_put_block (HTStream * me, const char * b, int l)
 	} else {
 	    *(me->buffer+me->buflen++) = *b;
 	    if (me->buflen >= MAX_NEWS_LINE) {
-		if (PROT_TRACE)
-		    HTTrace("News Dir.... Line too long - chopped\n");
+		HTTRACE(PROT_TRACE, "News Dir.... Line too long - chopped\n");
 		*(me->buffer+me->buflen) = '\0';
 		me->group ? ParseGroup(me->request, me->dir, me->buffer) :
 		    ParseList(me->dir, me->buffer);
@@ -397,7 +395,7 @@ PRIVATE int HTNewsList_free (HTStream * me)
 
 PRIVATE int HTNewsList_abort (HTStream * me, HTList * e)
 {
-    if (PROT_TRACE) HTTrace("News Dir.... ABORTING...\n");
+    HTTRACE(PROT_TRACE, "News Dir.... ABORTING...\n");
     HTNewsList_free(me);
     return HT_ERROR;
 }

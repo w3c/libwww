@@ -277,21 +277,24 @@ PRIVATE char * WWW_from_WAIS (any * docid)
     unsigned char * q = buf;
     char * p = (docid->bytes);
     int i, l;
+
+#ifdef HTDEBUG
     if (PROT_TRACE) {
 	char *p;
-	HTTrace("HTLoadWAIS.. id (%d bytes) is ", (int)docid->size);
+	HTTRACE(PROT_TRACE, "HTLoadWAIS.. id (%d bytes) is " _ (int)docid->size);
 	for(p=docid->bytes; p<docid->bytes+docid->size; p++) {
 	    if ((*p >= ' ') && (*p<= '~')) /* Assume ASCII! */
-		HTTrace("%c", *p);
+		HTTRACE(PROT_TRACE, "%c" _ *p);
 	    else
-		HTTrace("<%x>", (unsigned)*p);
+		HTTRACE(PROT_TRACE, "<%x>" _ (unsigned)*p);
 	}
-	HTTrace("\n");
+	HTTRACE(PROT_TRACE, "\n");
     }	 
+#endif /* HTDEBUG */
+
     for (p=docid->bytes; (p<docid->bytes+docid->size) && (q<&buf[BIG]);) {
-	if (PROT_TRACE)
-	    HTTrace("............ Record type %d, length %d\n",
-		    (unsigned char) p[0], (unsigned char) p[1]);
+	HTTRACE(PROT_TRACE, "............ Record type %d, length %d\n" _ 
+		    (unsigned char) p[0] _ (unsigned char) p[1]);
 	sprintf(num, "%d", (int)*p);
 	memcpy(q, num, strlen(num));
 	q += strlen(num);
@@ -319,8 +322,7 @@ PRIVATE char * WWW_from_WAIS (any * docid)
 	*q++= ';';		/* Terminate field */
 #ifdef OLD_CODE
         if (*p>10) {
-	    if (PROT_TRACE)
-		HTTrace("WAIS........ DOCID record type of %d!\n", *p);
+	    HTTRACE(PROT_TRACE, "WAIS........ DOCID record type of %d!\n" _ *p);
 	    return 0;
 	}
 	{	/* Bug fix -- allow any byte value 15 Apr 93 */
@@ -350,7 +352,7 @@ PRIVATE char * WWW_from_WAIS (any * docid)
 #endif /* OLD_CODE */
     }
     *q++ = 0;			/* Terminate string */
-    if (PROT_TRACE) HTTrace("HTLoadWAIS.. WWW form of id: %s\n", buf); 
+    HTTRACE(PROT_TRACE, "HTLoadWAIS.. WWW form of id: %s\n" _ buf); 
     {
         char *result;
 	if ((result = (char *) HT_MALLOC((int) strlen((char *) buf)+1))==NULL)
@@ -379,8 +381,7 @@ PRIVATE any * WAIS_from_WWW  (any * docid, char * docname)
     char *q; 	/* Poisition of "=" */
     char *s; 	/* Position of semicolon */
     int n;	/* size */
-    if (PROT_TRACE)
-	HTTrace("HTLoadWAIS.. WWW id (to become WAIS id): %s\n",
+    HTTRACE(PROT_TRACE, "HTLoadWAIS.. WWW id (to become WAIS id): %s\n" _ 
 		docname); 
     for(n=0, p = docname; *p; p++) {	/* Count sizes of strings */
         n++;
@@ -496,17 +497,21 @@ PRIVATE any * WAIS_from_WWW  (any * docid, char * docname)
 	p++;			/* After semicolon: start of next record */
     }
 #endif /* OLD_CODE */
+
+#ifdef HTDEBUG
     if (PROT_TRACE) {
 	char *p;
-	HTTrace("WAIS........ id (%d bytes) is ", (int)docid->size);
+	HTTRACE(PROT_TRACE, "WAIS........ id (%d bytes) is " _ (int)docid->size);
 	for(p=docid->bytes; p<docid->bytes+docid->size; p++) {
 	    if ((*p >= ' ') && (*p<= '~')) /* Assume ASCII! */
-		HTTrace("%c", *p);
+		HTTRACE(PROT_TRACE, "%c" _ *p);
 	    else
-		HTTrace("<%x>", (unsigned)*p);
+		HTTRACE(PROT_TRACE, "<%x>" _ (unsigned)*p);
 	}
-	HTTrace("\n");
-    }	 
+	HTTRACE(PROT_TRACE, "\n");
+    }
+#endif /* HTDEBUG */
+
     return docid;		/* Ok */
     
 } /* WAIS_from_WWW */
@@ -567,7 +572,7 @@ void display_search_response (HTStructured *		target,
   BOOL archie =  strstr(database, "archie")!=0;	/* Specical handling */
 
   
-  if (PROT_TRACE) HTTrace("WAIS........ Displaying search response\n");
+  HTTRACE(PROT_TRACE, "WAIS........ Displaying search response\n");
   sprintf(line,
 	  "Index %s contains the following %d item%s relevant to '%s'.\n",
 	  database,
@@ -596,10 +601,9 @@ void display_search_response (HTStructured *		target,
 
 /*	Make a printable string out of the document id.
 */
-	if (PROT_TRACE)
-	    HTTrace("HTWAIS:  %2ld: Score: %4ld, lines:%4ld '%s'\n", i,
-		    (long int)(info->DocHeaders[k]->Score),
-		    (long int)(info->DocHeaders[k]->Lines),
+	HTTRACE(PROT_TRACE, "HTWAIS:  %2ld: Score: %4ld, lines:%4ld '%s'\n" _ i _ 
+		    (long int)(info->DocHeaders[k]->Score) _ 
+		    (long int)(info->DocHeaders[k]->Lines) _ 
 		    headline);
 
 	START(HTML_LI);
@@ -638,8 +642,7 @@ void display_search_response (HTStructured *		target,
                         strcat (types_array, type_escaped);
                         HT_FREE(type_escaped);
                       }
-                    if (PROT_TRACE)
-                      HTTrace("WAIS........ Types_array `%s\'\n",
+                    HTTRACE(PROT_TRACE, "WAIS........ Types_array `%s\'\n" _ 
 			       types_array);
 		} else {
                     strcat (types_array, "TEXT");
@@ -922,7 +925,7 @@ PRIVATE int HTWAISEvent(SOCKET soc, void * pVoid, HTEventType type)
 
  if (!acceptable_inited) init_acceptable();
  theWAISinfo->state = HTWAIS_PARSING_URL;
- if (PROT_TRACE) HTTrace("HTLoadWAIS.. Looking for \"%s\"\n", arg);
+ HTTRACE(PROT_TRACE, "HTLoadWAIS.. Looking for \"%s\"\n" _ arg);
 
  theWAISinfo->names = HTParse(arg, "",
 			      PARSE_HOST | PARSE_PATH | PARSE_PUNCTUATION);
@@ -996,7 +999,7 @@ PRIVATE int HTWAISEvent(SOCKET soc, void * pVoid, HTEventType type)
     return -1;
    }
     
- if (PROT_TRACE) HTTrace("HTLoadWAIS.. URL Parsed OK\n");
+ HTTRACE(PROT_TRACE, "HTLoadWAIS.. URL Parsed OK\n");
  theWAISinfo->state = HTWAIS_NEED_CONNECTION;
 
  if ((service = strchr(theWAISinfo->names, ':')))
@@ -1018,10 +1021,9 @@ PRIVATE int HTWAISEvent(SOCKET soc, void * pVoid, HTEventType type)
 	 {
 	  char* host = HTParse(arg, "", PARSE_HOST);
 
-	  if (PROT_TRACE)
-	    HTTrace("HTLoadWAIS.."
-		    " Can't open connection to %s via service %s.\n",
-		    server_name, service);
+	  HTTRACE(PROT_TRACE, "HTLoadWAIS.."
+		    " Can't open connection to %s via service %s.\n" _ 
+		    server_name _ service);
 
 	  HTRequest_addError(request, ERR_FATAL, NO, HTERR_WAIS_NO_CONNECT,
 			     (void *) host, (int) strlen(host), "HTLoadWAIS");
@@ -1104,17 +1106,15 @@ PRIVATE int HTWAISEvent(SOCKET soc, void * pVoid, HTEventType type)
        START(HTML_ISINDEX);
 
        request_buffer_length = MAX_MESSAGE_LEN; /* Amount left */
-       if (PROT_TRACE)
-	 HTTrace("HTLoadWAIS.. Search for `%s' in `%s'\n",
-		 keywords, theWAISinfo->wais_database);
+       HTTRACE(PROT_TRACE, "HTLoadWAIS.. Search for `%s' in `%s'\n" _ 
+		 keywords _ theWAISinfo->wais_database);
 
        if (generate_search_apdu(theWAISinfo->request_message + HEADER_LENGTH, 
 				&request_buffer_length, 
 				keywords, theWAISinfo->wais_database, NULL,
 				HTMaxWAISLines) == NULL)
 	 {
-	  if (PROT_TRACE)
-	    HTTrace("WAIS Search. Too many lines in response\n");
+	  HTTRACE(PROT_TRACE, "WAIS Search. Too many lines in response\n");
 
 	  HTRequest_addError(request, ERR_WARN, NO, HTERR_WAIS_OVERFLOW, 
 			     NULL, 0, "HTLoadWAIS");
@@ -1128,8 +1128,7 @@ PRIVATE int HTWAISEvent(SOCKET soc, void * pVoid, HTEventType type)
 			      false	/* true verbose */
 			      ))
 	 {
-	  if (PROT_TRACE)
-	    HTTrace("WAIS Search. Too many lines in response\n");
+	  HTTRACE(PROT_TRACE, "WAIS Search. Too many lines in response\n");
 
 	  HTRequest_addError(request, ERR_WARN, NO, HTERR_WAIS_OVERFLOW, 
 			     NULL, 0, "HTLoadWAIS");
@@ -1198,9 +1197,8 @@ PRIVATE int HTWAISEvent(SOCKET soc, void * pVoid, HTEventType type)
 	       server_name, service, theWAISinfo->www_database);
 
        fp = fopen(filename, "r");	/* Have we found this already? */
-       if (PROT_TRACE)
-	 HTTrace("HTLoadWAIS.. Description of server %s %s.\n",
-		 filename,
+       HTTRACE(PROT_TRACE, "HTLoadWAIS.. Description of server %s %s.\n" _ 
+		 filename _ 
 		 fp ? "exists already" : "does NOT exist!");
 
        if (fp)
@@ -1236,11 +1234,10 @@ PRIVATE int HTWAISEvent(SOCKET soc, void * pVoid, HTEventType type)
     any * docid = &doc_chunk;
 
     theWAISinfo->state = HTWAIS_FETCH_DOCUMENT;
-    if (PROT_TRACE)
-      HTTrace("HTLoadWAIS.. Retrieve document `%s'\n"
-	      "............ type `%s' length %ld\n",
-	      (docname ? docname : "unknown"),
-	      (doctype ? doctype : "unknown"),
+    HTTRACE(PROT_TRACE, "HTLoadWAIS.. Retrieve document `%s'\n"
+	      "............ type `%s' length %ld\n" _ 
+	      (docname ? docname : "unknown") _ 
+	      (doctype ? doctype : "unknown") _ 
 	      document_length);
 
     if (doctype)
@@ -1290,7 +1287,7 @@ PRIVATE int HTWAISEvent(SOCKET soc, void * pVoid, HTEventType type)
        char *type = s_strdup(doctype);
 
        request_buffer_length = MAX_MESSAGE_LEN;	      /* Amount left */
-       if (PROT_TRACE) HTTrace("HTLoadWAIS.. Slice number %ld\n", count);
+       HTTRACE(PROT_TRACE, "HTLoadWAIS.. Slice number %ld\n" _ count);
        if (generate_retrieval_apdu(theWAISinfo->request_message + HEADER_LENGTH,
 				   &request_buffer_length, 
 				   docid, CT_byte,
@@ -1397,8 +1394,7 @@ PUBLIC int HTLoadWAIS (SOCKET soc, HTRequest* request)
   else
    return HT_ERROR;
 
- if (PROT_TRACE)
-   HTTrace("HTWAIS...... Looking for `%s\'\n", HTAnchor_physical(anchor));
+ HTTRACE(PROT_TRACE, "HTWAIS...... Looking for `%s\'\n" _ HTAnchor_physical(anchor));
 
                      /* Get existing copy */
  if ((theWAISinfo = (wais_info*)HTNet_context(net)) == NULL)

@@ -41,9 +41,7 @@
 
 #define EVENTS_TO_EXECUTE	10 /* how many to execute in one select loop */
 
-#ifdef EVENT_TRACE
 #define HT_FS_BYTES(a)		((((a)/16)+1) * 4)
-#endif
 
 typedef struct {
     SOCKET 	s ;	 		/* our socket */
@@ -82,35 +80,36 @@ PRIVATE SOCKET MaxSock = 0;			  /* max socket value in use */
 /* 				DEBUG FUNCTIONS	    		             */
 /* ------------------------------------------------------------------------- */
 
+#ifdef HTDEBUG
 PRIVATE void Event_trace (HTEvent * event)
 {
     if (event) {
-	HTTrace("%8p: %3d %6d %8p %8p %8p",
-		event, event->priority, event->millis, event->cbf,
-		event->param, event->request);
+	HTTRACE(ALL_TRACE, "%8p: %3d %6d %8p %8p %8p" _
+		event _ event->priority _ event->millis _ event->cbf _
+		event->param _ event->request);
     }
 }
 
 PRIVATE void Event_traceHead (void)
 {
-    HTTrace("     event: pri millis  callback   param    request  ");
+    HTTRACE(ALL_TRACE, "     event: pri millis  callback   param    request  ");
 }
 
 PRIVATE void Timer_trace (HTTimer * timer)
 {
     if (timer) {
-	HTTrace("%8p: %6d %ld %c %8p",
-		timer,
-		HTTimer_expiresAbsolute(timer),
-		HTTimer_expiresRelative(timer), 
-		HTTimer_isRelative(timer) ? 'R' : 'A',
+	HTTRACE(ALL_TRACE, "%8p: %6d %ld %c %8p" _
+		timer _
+		HTTimer_expiresAbsolute(timer) _
+		HTTimer_expiresRelative(timer) _
+		HTTimer_isRelative(timer) ? 'R' : 'A' _
 		HTTimer_callback(timer));
     }
 }
 
 PRIVATE void Timer_traceHead (void)
 {
-    HTTrace("     timer: millis expires ?   param   callback  ");
+    HTTRACE(ALL_TRACE, "     timer: millis expires ?   param   callback  ");
 }
 
 /*
@@ -122,30 +121,31 @@ PRIVATE void EventList_dump (void)
     int v = 0;
     HTList* cur;
     SockEvents * pres;
-    HTTrace("Event....... Dumping socket events\n");
-    HTTrace("soc ");
+    HTTRACE(ALL_TRACE, "Event....... Dumping socket events\n");
+    HTTRACE(ALL_TRACE, "soc ");
     Event_traceHead();
-    HTTrace(" ");
+    HTTRACE(ALL_TRACE, " ");
     Timer_traceHead();
-    HTTrace("\n");
+    HTTRACE(ALL_TRACE, "\n");
     for (v = 0; v < HT_M_HASH_SIZE; v++) {
 	cur = HashTable[v];
 	while ((pres = (SockEvents *) HTList_nextObject(cur))) {
 	    int i;
-	    HTTrace("%3d \n", pres->s);
+	    HTTRACE(ALL_TRACE, "%3d \n" _ pres->s);
 	    for (i = 0; i < HTEvent_TYPES; i++)
 		if (pres->events[i]) {
 		    static char * names[HTEvent_TYPES] = {"read", "writ", "xcpt"};
-		    HTTrace("%s ", names[i]);
+		    HTTRACE(ALL_TRACE, "%s " _ names[i]);
 		    Event_trace(pres->events[i]);
-		    HTTrace(" ");
+		    HTTRACE(ALL_TRACE, " ");
 		    Timer_trace(pres->timeouts[i]);
-		    HTTrace(" ");
+		    HTTRACE(ALL_TRACE, " ");
 		}
-	    HTTrace("\n");
+	    HTTRACE(ALL_TRACE, "\n");
 	}
     }
 }
+#endif /* HTDEBUG */
 
 /* ------------------------------------------------------------------------- */
 /*		           EVENT TIMING FUNCTIONS			     */
@@ -182,25 +182,24 @@ PRIVATE int EventListTimerHandler (HTTimer * timer, void * param, HTEventType ty
     /* Check for read timeout */
     if (sockp->timeouts[HTEvent_INDEX(HTEvent_READ)] == timer) {
 	event = sockp->events[HTEvent_INDEX(HTEvent_READ)];
-	if (THD_TRACE) HTTrace("Event....... READ timed out on %d.\n", sockp->s);
+	HTTRACE(THD_TRACE, "Event....... READ timed out on %d.\n" _ sockp->s);
 	return (*event->cbf) (sockp->s, event->param, HTEvent_TIMEOUT);
     }
 
     /* Check for write timeout */
     if (sockp->timeouts[HTEvent_INDEX(HTEvent_WRITE)] == timer) {
 	event = sockp->events[HTEvent_INDEX(HTEvent_WRITE)];
-	if (THD_TRACE) HTTrace("Event....... WRITE timed out on %d.\n", sockp->s);
+	HTTRACE(THD_TRACE, "Event....... WRITE timed out on %d.\n" _ sockp->s);
 	return (*event->cbf) (sockp->s, event->param, HTEvent_TIMEOUT);
     }
 
     /* Check for out-of-band data timeout */
     if (sockp->timeouts[HTEvent_INDEX(HTEvent_OOB)] == timer) {
 	event = sockp->events[HTEvent_INDEX(HTEvent_OOB)];
-	if (THD_TRACE) HTTrace("Event....... OOB timed out on %d.\n", sockp->s);
+	HTTRACE(THD_TRACE, "Event....... OOB timed out on %d.\n" _ sockp->s);
 	return (*event->cbf) (sockp->s, event->param, HTEvent_TIMEOUT);
     }
-    if (THD_TRACE)
-	HTTrace("Event....... No event for timer %p with context %p\n", timer, param);
+    HTTRACE(THD_TRACE, "Event....... No event for timer %p with context %p\n" _ timer _ param);
     return HT_ERROR;
 }
 
@@ -211,7 +210,7 @@ PUBLIC void CheckSockEvent (HTTimer * timer, HTTimerCallback * cbf, void * param
 	sockp->timeouts[0] != timer && 
 	sockp->timeouts[1] != timer && 
 	sockp->timeouts[2] != timer) {
-	HTDebugBreak(__FILE__, __LINE__, "Bad timer %p\n", timer);
+	HTDEBUGBREAK("Bad timer %p\n" _ timer);
     }
 }
 
@@ -248,8 +247,8 @@ PRIVATE int EventOrder_add (SOCKET s, HTEventType type, ms_t now)
     HTEvent * event;
 
     if (sockp == NULL || (event = sockp->events[HTEvent_INDEX(type)]) == NULL) {
-	HTTrace("EventOrder.. no event found for socket %d, type %s.\n",
-		s, HTEvent_type2str(type));
+	HTTRACE(THD_TRACE, "EventOrder.. no event found for socket %d, type %s.\n" _
+		s _ HTEvent_type2str(type));
 	return HT_ERROR;
     }
 
@@ -282,15 +281,14 @@ PUBLIC int EventOrder_executeAndDelete (void)
     HTList * cur = EventOrderList;
     EventOrder * pres;
     int i = 0;
-    if (THD_TRACE) HTTrace("EventOrder.. execute ordered events\n");
+    HTTRACE(THD_TRACE, "EventOrder.. execute ordered events\n");
     if (cur == NULL) return NO;
     while ((pres=(EventOrder *) HTList_removeLastObject(cur)) && i<EVENTS_TO_EXECUTE) {
 	HTEvent * event = pres->event;
 	int ret;
-	if (THD_TRACE)
-	    HTTrace("EventList... calling socket %d, request %p handler %p type %s\n",
-		    pres->s, (void *) event->request,
-		    (void *) event->cbf, HTEvent_type2str(pres->type));
+	HTTRACE(THD_TRACE, "EventList... calling socket %d, request %p handler %p type %s\n" _ 
+		    pres->s _ (void *) event->request _ 
+		    (void *) event->cbf _ HTEvent_type2str(pres->type));
 	ret = (*pres->event->cbf)(pres->s, pres->event->param, pres->type);
 	HT_FREE(pres);
 	if (ret != HT_OK) return ret;
@@ -303,7 +301,7 @@ PUBLIC BOOL EventOrder_deleteAll (void)
 {
     HTList * cur = EventOrderList;
     EventOrder * pres;
-    if (THD_TRACE) HTTrace("EventOrder.. all ordered events\n");
+    HTTRACE(THD_TRACE, "EventOrder.. all ordered events\n");
     if (cur == NULL) return NO;
     while ((pres = (EventOrder *) HTList_nextObject(cur)))
 	HT_FREE(pres);
@@ -332,8 +330,7 @@ PRIVATE void __ResetMaxSock (void)
   	    if (cnt > t_max) t_max = cnt;
     }
     MaxSock = t_max+1;
-    if (THD_TRACE)
-	HTTrace("Event....... Reset MaxSock from %u to %u\n", old_max, MaxSock);
+    HTTRACE(THD_TRACE, "Event....... Reset MaxSock from %u to %u\n" _ old_max _ MaxSock);
     return;
 }  
 #endif /* !WWW_WIN_ASYNC */
@@ -358,10 +355,9 @@ PUBLIC int HTEventList_register (SOCKET s, HTEventType type, HTEvent * event)
 {
     int newset = 0;
     SockEvents * sockp;
-    if (THD_TRACE) 
-	HTTrace("Event....... Register socket %d, request %p handler %p type %s at priority %d\n",
-		s, (void *) event->request,
-		(void *) event->cbf, HTEvent_type2str(type),
+    HTTRACE(THD_TRACE, "Event....... Register socket %d, request %p handler %p type %s at priority %d\n" _ 
+		s _ (void *) event->request _ 
+		(void *) event->cbf _ HTEvent_type2str(type) _ 
 		(unsigned) event->priority);
     if (s==INVSOC || HTEvent_INDEX(type) >= HTEvent_TYPES)
 	return 0;
@@ -370,26 +366,24 @@ PUBLIC int HTEventList_register (SOCKET s, HTEventType type, HTEvent * event)
     ** Insert socket into appropriate file descriptor set. We also make sure
     ** that it is registered in the global set.
     */
-    if (THD_TRACE)
-	HTTrace("Event....... Registering socket for %s\n", HTEvent_type2str(type));
+    HTTRACE(THD_TRACE, "Event....... Registering socket for %s\n" _ HTEvent_type2str(type));
     sockp = SockEvents_get(s, SockEvents_mayCreate);
     sockp->s = s;
     sockp->events[HTEvent_INDEX(type)] = event;
     newset = EventList_remaining(sockp);
 #ifdef WWW_WIN_ASYNC
     if (WSAAsyncSelect(s, HTSocketWin, HTwinMsg, HTEvent_BITS(newset)) < 0) {
-        if (THD_TRACE)
-	    HTTrace("Event....... WSAAsyncSelect returned `%s'!", HTErrnoString(socerrno));
+        HTTRACE(THD_TRACE, "Event....... WSAAsyncSelect returned `%s'!" _ HTErrnoString(socerrno));
 	return HT_ERROR;
     }
 #else /* WWW_WIN_ASYNC */
     FD_SET(s, FdArray+HTEvent_INDEX(type));
-#ifdef EVENT_TRACE
-    HTTraceData((char *) FdArray+HTEvent_INDEX(type), 8, "HTEventList_register: (s:%d)", s);
-#endif /* EVENT_TRACE */
+
+    HTTRACEDATA((char *) FdArray+HTEvent_INDEX(type), 8, "HTEventList_register: (s:%d)" _ s);
+
     if (s > MaxSock) {
 	MaxSock = s ;
-	if (THD_TRACE) HTTrace("Event....... New value for MaxSock is %d\n", MaxSock);
+	HTTRACE(THD_TRACE, "Event....... New value for MaxSock is %d\n" _ MaxSock);
     }
 #endif /* !WWW_WIN_ASYNC */
 
@@ -445,9 +439,9 @@ PUBLIC int HTEventList_unregister (SOCKET s, HTEventType type)
 		ret = HT_ERROR;
 #else /* WWW_WIN_ASYNC */
 	    FD_CLR(s, FdArray+HTEvent_INDEX(type));
-#ifdef EVENT_TRACE
-	    HTTraceData((char*)FdArray+HTEvent_INDEX(type), 8, "HTEventList_unregister: (s:%d)", s);
-#endif /* EVENT_TRACE */
+
+	    HTTRACEDATA((char*)FdArray+HTEvent_INDEX(type), 8, "HTEventList_unregister: (s:%d)" _ s);
+
 #endif /* !WWW_WIN_ASYNC */
 
 	    /*
@@ -456,8 +450,7 @@ PUBLIC int HTEventList_unregister (SOCKET s, HTEventType type)
 	    */
 	    if (remaining == 0) {
 		HTList * doomed = cur;
-		if (THD_TRACE)
-		    HTTrace("Event....... No more events registered for socket %d\n", s);
+		HTTRACE(THD_TRACE, "Event....... No more events registered for socket %d\n" _ s);
 
 #ifndef WWW_WIN_ASYNC
 		/* Check to see if we have to update MaxSock */
@@ -470,7 +463,7 @@ PUBLIC int HTEventList_unregister (SOCKET s, HTEventType type)
 	    }
 	    ret = HT_OK;
 
-      	    if (THD_TRACE) HTTrace("Event....... Socket %d unregistered for %s\n", s,
+      	    HTTRACE(THD_TRACE, "Event....... Socket %d unregistered for %s\n" _ s _ 
 				   HTEvent_type2str(type));
 
 	    /* We found the socket and can break */
@@ -480,8 +473,8 @@ PUBLIC int HTEventList_unregister (SOCKET s, HTEventType type)
     }
     if (THD_TRACE) {
 	if (ret == HT_ERROR)
-	    HTTrace("Event....... Couldn't find socket %d. Can't unregister type %s\n",
-		    s, HTEvent_type2str(type));
+	    HTTRACE(THD_TRACE, "Event....... Couldn't find socket %d. Can't unregister type %s\n" _
+		    s _ HTEvent_type2str(type));
     }
     return ret;
 }
@@ -494,7 +487,7 @@ PUBLIC int HTEventList_unregister (SOCKET s, HTEventType type)
 PUBLIC int HTEventList_unregisterAll (void) 
 {
     int i;
-    if (THD_TRACE) HTTrace("Unregister.. all sockets\n");
+    HTTRACE(THD_TRACE, "Unregister.. all sockets\n");
     for (i = 0 ; i < HT_M_HASH_SIZE; i++) {
 	HTList * cur = HashTable[i];
 	SockEvents * pres;
@@ -510,7 +503,7 @@ PUBLIC int HTEventList_unregisterAll (void)
 
 #ifndef WWW_WIN_ASYNC
     MaxSock = 0 ;
-    if (THD_TRACE) HTTrace("Event....... New value for MaxSock is %d\n", MaxSock);
+    HTTRACE(THD_TRACE, "Event....... New value for MaxSock is %d\n" _ MaxSock);
     FD_ZERO(FdArray+HTEvent_INDEX(HTEvent_READ));
     FD_ZERO(FdArray+HTEvent_INDEX(HTEvent_WRITE));
     FD_ZERO(FdArray+HTEvent_INDEX(HTEvent_OOB));
@@ -540,10 +533,10 @@ PUBLIC int HTEventList_dispatch (SOCKET s, HTEventType type, ms_t now)
 	*/
 	if (event && event->priority!=HT_PRIORITY_OFF)
 	    return (*event->cbf) (s, event->param, type);
-	if (THD_TRACE) HTTrace("Dispatch.... Handler %p NOT called\n", sockp);
+	HTTRACE(THD_TRACE, "Dispatch.... Handler %p NOT called\n" _ sockp);
 	return HT_OK;
     }
-    if (THD_TRACE) HTTrace("Dispatch.... Bad socket %d\n", s);
+    HTTRACE(THD_TRACE, "Dispatch.... Bad socket %d\n" _ s);
     return NO;
 }
 
@@ -634,13 +627,14 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 	}
 
         maxfds = MaxSock; 
-	if (THD_TRACE) HTTrace("Event Loop.. calling select: maxfds is %d\n", maxfds);
 
-#ifdef EVENT_TRACE
-	HTTraceData((char*)&treadset, HT_FS_BYTES(maxfds), "HTEventList_loop pre treadset: (maxfd:%d)", maxfds);
-	HTTraceData((char*)&twriteset, HT_FS_BYTES(maxfds), "HTEventList_loop pre twriteset:");
-	HTTraceData((char*)&texceptset, HT_FS_BYTES(maxfds), "HTEventList_loop pre texceptset:");
-#endif /* EVENT_TRACE */
+	HTTRACEDATA((char*)&treadset, HT_FS_BYTES(maxfds),
+		    "HTEventList_loop pre treadset: (maxfd:%d)" _ maxfds);
+	HTTRACEDATA((char*)&twriteset, HT_FS_BYTES(maxfds),
+		    "HTEventList_loop pre twriteset:");
+	HTTRACEDATA((char*)&texceptset, HT_FS_BYTES(maxfds),
+		    "HTEventList_loop pre texceptset:");
+	HTTRACE(THD_TRACE, "Event Loop.. calling select: maxfds is %d\n" _ maxfds);
 
 #ifdef __hpux 
         active_sockets = select(maxfds+1, (int *)&treadset, (int *)&twriteset,
@@ -651,13 +645,13 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 
 	now = HTGetTimeInMillis();
 
-#ifdef EVENT_TRACE
-	HTTraceData((char*)&treadset, HT_FS_BYTES(maxfds), "HTEventList_loop post treadset: (active_sockets:%d)", active_sockets);
-	HTTraceData((char*)&twriteset, HT_FS_BYTES(maxfds), "HTEventList_loop post twriteset: (errno:%d)", errno);
-	HTTraceData((char*)&texceptset, HT_FS_BYTES(maxfds), "HTEventList_loop post texceptset:");
-#endif /* EVENT_TRACE */
-
-	if (THD_TRACE) HTTrace("Event Loop.. select returns %d\n", active_sockets);
+	HTTRACEDATA((char*)&treadset, HT_FS_BYTES(maxfds),
+		    "HTEventList_loop post treadset: (active_sockets:%d)" _ active_sockets);
+	HTTRACEDATA((char*)&twriteset, HT_FS_BYTES(maxfds),
+		    "HTEventList_loop post twriteset: (errno:%d)" _ errno);
+	HTTRACEDATA((char*)&texceptset, HT_FS_BYTES(maxfds),
+		    "HTEventList_loop post texceptset:");
+	HTTRACE(THD_TRACE, "Event Loop.. select returns %d\n" _ active_sockets);
 
         if (active_sockets == -1) {
 #ifdef EINTR
@@ -671,8 +665,7 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 		**           signal,  it  is  implementation-dependent  whether
 		**	     select() restarts or returns with EINTR.
 		*/
-		if (THD_TRACE)
-		    HTTrace("Event Loop.. select was interruted - try again\n");
+		HTTRACE(THD_TRACE, "Event Loop.. select was interruted - try again\n");
 		continue;
 	    }
 #endif /* EINTR */
@@ -683,13 +676,16 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 		**           a  file  descriptor  that is not a valid open file
 		**           descriptor.
 		*/
-		if (THD_TRACE)
-		    HTTrace("Event Loop.. One or more sockets were not through their connect phase - try again\n");
+		HTTRACE(THD_TRACE, "Event Loop.. One or more sockets were not through their connect phase - try again\n");
 		continue;
 	    }
 #endif
-	    if (THD_TRACE) HTTrace("Event Loop.. select returned error %d\n", socerrno);
+	    HTTRACE(THD_TRACE, "Event Loop.. select returned error %d\n" _ socerrno);
+
+#ifdef HTDEBUG
 	    EventList_dump();
+#endif /* HTDEBUG */
+
 	    return HT_ERROR;
         }
 
@@ -753,7 +749,7 @@ PRIVATE LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
     case FD_CONNECT: type = HTEvent_CONNECT; break;
     case FD_OOB: type = HTEvent_OOB; break;
     case FD_CLOSE: type = HTEvent_CLOSE; break;
-    default: HTDebugBreak(__FILE__, __LINE__, "Unknown event %d\n", event);
+    default: HTDEBUGBREAK("Unknown event %d\n" _ event);
     }
     if (HTEventList_dispatch((int)sock, type, now) != HT_OK)
 	HTEndLoop = -1;
@@ -810,15 +806,17 @@ PUBLIC BOOL HTEventInit (void)
     HTinstance = wc.hInstance;
     HTclass = RegisterClass(&wc);
     if (!HTclass) {
-    	HTTrace("HTLibInit.. Can't RegisterClass \"%s\"\n", className);
-	    return NO;
+	HTTRACE(THD_TRACE, "HTLibInit.. Can't RegisterClass \"%s\"\n" _ className);
+	return NO;
     }
     if (!(HTSocketWin = CreateWindow(className, "WWW_WIN_ASYNC", WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, 
                                      CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, wc.hInstance,0))) {
+#ifdef HTDEBUG
 	char space[50];
-       	HTTrace("HTLibInit.. Can't CreateWindow \"WWW_WIN_ASYNC\" - error:");
+       	HTTRACE(THD_TRACE, "HTLibInit.. Can't Create Window \"WWW_WIN_ASYNC\" - error:");
 	sprintf(space, "%ld\n", GetLastError());
-	HTTrace(space);
+	HTTRACE(THD_TRACE, space);
+#endif /* HTDEBUG */
     	return NO;
     }
     HTwinMsg = WM_USER;  /* use first available message since app uses none */
@@ -836,19 +834,16 @@ PUBLIC BOOL HTEventInit (void)
     {
         WSADATA            wsadata;
 	if (WSAStartup(DESIRED_WINSOCK_VERSION, &wsadata)) {
-	    if (THD_TRACE)
-		HTTrace("HTEventInit. Can't initialize WinSoc\n");
+	    HTTRACE(THD_TRACE, "HTEventInit. Can't initialize WinSoc\n");
             WSACleanup();
             return NO;
         }
         if (wsadata.wVersion < MINIMUM_WINSOCK_VERSION) {
-            if (THD_TRACE)
-		HTTrace("HTEventInit. Bad version of WinSoc\n");
+            HTTRACE(THD_TRACE, "HTEventInit. Bad version of WinSoc\n");
             WSACleanup();
             return NO;
         }
-	if (APP_TRACE)
-	    HTTrace("HTEventInit. Using WinSoc version \"%s\".\n", 
+	HTTRACE(APP_TRACE, "HTEventInit. Using WinSoc version \"%s\".\n" _ 
 		    wsadata.szDescription);
     }
 #endif /* _WINSOCKAPI_ */

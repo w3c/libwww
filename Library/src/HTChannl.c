@@ -132,16 +132,14 @@ PRIVATE void free_channel (HTChannel * ch)
 	if (ch->sockfd != INVSOC) {
 	    NETCLOSE(ch->sockfd);
    	    HTNet_decreaseSocket();
-	    if (PROT_TRACE)
-		HTTrace("Channel..... Deleted %p, socket %d\n", ch,ch->sockfd);
+	    HTTRACE(PROT_TRACE, "Channel..... Deleted %p, socket %d\n" _ ch _ ch->sockfd);
 	    ch->sockfd = INVSOC;
 	}
 
 	/* Close the file */
 	if (ch->fp) {
 	    fclose(ch->fp);
-	    if (PROT_TRACE)
-		HTTrace("Channel..... Deleted %p, file %p\n", ch, ch->fp);
+	    HTTRACE(PROT_TRACE, "Channel..... Deleted %p, file %p\n" _ ch _ ch->fp);
 	    ch->fp = NULL;
 	}
 	HT_FREE(ch);
@@ -161,7 +159,7 @@ PUBLIC HTChannel * HTChannel_new (SOCKET sockfd, FILE * fp, BOOL active)
     HTList * list = NULL;
     HTChannel * ch = NULL;
     int hash = sockfd < 0 ? 0 : HASH(sockfd);
-    if (PROT_TRACE) HTTrace("Channel..... Hash value is %d\n", hash);
+    HTTRACE(PROT_TRACE, "Channel..... Hash value is %d\n" _ hash);
     if (!channels) {
 	if (!(channels = (HTList **) HT_CALLOC(HT_M_HASH_SIZE,sizeof(HTList*))))
 	    HT_OUTOFMEM("HTChannel_new");
@@ -192,7 +190,7 @@ PUBLIC HTChannel * HTChannel_new (SOCKET sockfd, FILE * fp, BOOL active)
 	    }
 #endif /* HT_MUX */
 
-    if (PROT_TRACE) HTTrace("Channel..... Added %p to list %p\n", ch,list);
+    HTTRACE(PROT_TRACE, "Channel..... Added %p to list %p\n" _ ch _ list);
     return ch;
 }
 
@@ -223,8 +221,8 @@ PUBLIC HTChannel * HTChannel_find (SOCKET sockfd)
 PUBLIC BOOL HTChannel_delete (HTChannel * channel, int status)
 {
     if (channel) {
-	if (PROT_TRACE) HTTrace("Channel..... Delete %p with semaphore %d\n",
-				channel, channel->semaphore);
+	HTTRACE(PROT_TRACE, "Channel..... Delete %p with semaphore %d\n" _ 
+				channel _ channel->semaphore);
 	/*
 	**  We call the free methods on both the input stream and the output
 	**  stream so that we can free up the stream pipes. However, note that
@@ -370,9 +368,8 @@ PUBLIC void HTChannel_upSemaphore (HTChannel * channel)
 {
     if (channel) {
 	channel->semaphore++;
-	if (PROT_TRACE)
-	    HTTrace("Channel..... Semaphore increased to %d for channel %p\n",
-		    channel->semaphore, channel);
+	HTTRACE(PROT_TRACE, "Channel..... Semaphore increased to %d for channel %p\n" _ 
+		    channel->semaphore _ channel);
 #ifdef HT_MUX
 		HTMuxChannel * muxch = HTMuxChannel_find(me);
 		HTProtocol * protocol = HTNet_protocol(net);
@@ -390,9 +387,8 @@ PUBLIC void HTChannel_downSemaphore (HTChannel * channel)
     if (channel) {
 	channel->semaphore--;
 	if (channel->semaphore <= 0) channel->semaphore = 0;
-	if (PROT_TRACE)
-	    HTTrace("Channel..... Semaphore decreased to %d for channel %p\n",
-		    channel->semaphore, channel);
+	HTTRACE(PROT_TRACE, "Channel..... Semaphore decreased to %d for channel %p\n" _ 
+		    channel->semaphore _ channel);
     }
 }
 
@@ -404,9 +400,8 @@ PUBLIC void HTChannel_setSemaphore (HTChannel * channel, int semaphore)
     if (channel) {
 	channel->semaphore = semaphore;
 	if (channel->semaphore <= 0) channel->semaphore = 0;
-	if (PROT_TRACE)
-	    HTTrace("Channel..... Semaphore set to %d for channel %p\n",
-		    channel->semaphore, channel);
+	HTTRACE(PROT_TRACE, "Channel..... Semaphore set to %d for channel %p\n" _ 
+		    channel->semaphore _ channel);
     }
 }
 

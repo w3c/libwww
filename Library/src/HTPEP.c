@@ -58,7 +58,7 @@ PRIVATE HTPEPModule * find_module (const char * name, HTList ** hashlist)
     HTPEPModule * pres = NULL;
     *hashlist = NULL;
     if (!name) {
-	if (APP_TRACE) HTTrace("PEP Engine.. Bad argument\n");
+	HTTRACE(APP_TRACE, "PEP Engine.. Bad argument\n");
 	return NULL;
     }
 
@@ -110,13 +110,13 @@ PUBLIC HTPEPModule * HTPEP_newModule (const char *	name,
 
 	    /* Add the new PEP Module to the hash table */
 	    HTList_addObject(hashlist, (void *) pres);
-	    if (APP_TRACE) HTTrace("PEP Engine.. Created module %p\n", pres);
+	    HTTRACE(APP_TRACE, "PEP Engine.. Created module %p\n" _ pres);
 	} else {
-	    if (APP_TRACE) HTTrace("PEP Engine.. Found module %p\n", pres);
+	    HTTRACE(APP_TRACE, "PEP Engine.. Found module %p\n" _ pres);
 	}
 	return pres;
     } else {
-	if (APP_TRACE) HTTrace("PEP Engine.. Bad argument\n");
+	HTTRACE(APP_TRACE, "PEP Engine.. Bad argument\n");
 	return NULL;
     }
 }
@@ -126,11 +126,10 @@ PUBLIC HTPEPModule * HTPEP_findModule (const char * name)
     if (name) {
 	HTList * hashlist = NULL;
 	HTPEPModule * pres = find_module(name, &hashlist);
-	if (APP_TRACE)
-	    HTTrace("PEP Engine.. did %sfind %s\n", pres ? "" : "NOT ", name);
+	HTTRACE(APP_TRACE, "PEP Engine.. did %sfind %s\n" _ pres ? "" : "NOT " _ name);
 	return pres;
     } else {
-	if (APP_TRACE) HTTrace("PEP Engine.. Bad augument\n");
+	HTTRACE(APP_TRACE, "PEP Engine.. Bad augument\n");
     }
     return NULL;
 }
@@ -142,7 +141,7 @@ PUBLIC BOOL HTPEP_deleteModule (const char * name)
 	HTPEPModule * pres = find_module(name, &hashlist);
 	if (pres) {
 	    HTList_removeObject(hashlist, pres);
-	    if (APP_TRACE) HTTrace("PEP Engine.. deleted %p\n", pres);
+	    HTTRACE(APP_TRACE, "PEP Engine.. deleted %p\n" _ pres);
 	    delete_module(pres);
 	    return YES;
 	}
@@ -187,7 +186,7 @@ PRIVATE HTPEPElement * HTPEP_newElement (const char * name, void * context)
 	    HT_OUTOFMEM("HTPEPElement_new");
 	StrAllocCopy(me->name, name);
 	me->context = context;
-	if (APP_TRACE) HTTrace("PEP Engine.. Created element %p\n", me);
+	HTTRACE(APP_TRACE, "PEP Engine.. Created element %p\n" _ me);
 	return me;
     }
     return NULL;
@@ -196,7 +195,7 @@ PRIVATE HTPEPElement * HTPEP_newElement (const char * name, void * context)
 PRIVATE BOOL HTPEP_deleteElement (HTPEPElement * me)
 {
     if (me) {
-	if (APP_TRACE) HTTrace("PEP Engine.. Deleted element %p\n", me);
+	HTTRACE(APP_TRACE, "PEP Engine.. Deleted element %p\n" _ me);
 	HT_FREE(me->name);
 	HT_FREE(me);
 	return YES;
@@ -211,7 +210,7 @@ PRIVATE BOOL HTPEP_deleteElement (HTPEPElement * me)
 PRIVATE HTList * HTPEP_newList (void)
 {
     HTList * me = HTList_new();
-    if (APP_TRACE) HTTrace("PEP Engine.. Created list %p\n", me);
+    HTTRACE(APP_TRACE, "PEP Engine.. Created list %p\n" _ me);
     return me;
 }
 
@@ -222,7 +221,7 @@ PRIVATE int HTPEP_deleteList (void * context)
 	HTPEPElement * pres;
 	while ((pres = (HTPEPElement *) HTList_nextObject(list)))
 	    HTPEP_deleteElement(pres);
-	if (APP_TRACE) HTTrace("PEP Engine.. Deleted list %p\n", list);
+	HTTRACE(APP_TRACE, "PEP Engine.. Deleted list %p\n" _ list);
 	HTList_delete(list);
 	return YES;
     }
@@ -245,10 +244,10 @@ PRIVATE HTList * HTPEP_findList (const char * realm, const char * url)
 {
     HTUTree * tree;
     if (!url) {
-	if (APP_TRACE) HTTrace("PEP Engine.. Bad argument\n");
+	HTTRACE(APP_TRACE, "PEP Engine.. Bad argument\n");
 	return NULL;
     }
-    if (APP_TRACE) HTTrace("PEP Engine.. Looking for info on `%s'\n", url);
+    HTTRACE(APP_TRACE, "PEP Engine.. Looking for info on `%s'\n" _ url);
 
     /* Find a URLTree for this URL (if any) */
     {
@@ -262,7 +261,7 @@ PRIVATE HTList * HTPEP_findList (const char * realm, const char * url)
 	tree = HTUTree_find(PEP_NAME, host, port);
 	HT_FREE(host);
 	if (!tree) {
-	    if (APP_TRACE) HTTrace("PEP Engine.. No information\n");
+	    HTTRACE(APP_TRACE, "PEP Engine.. No information\n");
 	    return NULL;
 	}
     }
@@ -288,14 +287,14 @@ PUBLIC BOOL HTPEP_addNode (const char * protocol,
     HTUTree * tree = NULL;
     HTPEPModule * module = NULL;
     if (!protocol || !url) {
-	if (APP_TRACE) HTTrace("PEP Engine.. Bad argument\n");
+	HTTRACE(APP_TRACE, "PEP Engine.. Bad argument\n");
 	return NO;
     }
-    if (APP_TRACE) HTTrace("PEP Engine.. Adding info for `%s'\n", url);
+    HTTRACE(APP_TRACE, "PEP Engine.. Adding info for `%s'\n" _ url);
 
     /* Find the PEP module with this name */
     if ((module = HTPEP_findModule(protocol)) == NULL) {
-	if (APP_TRACE) HTTrace("PEP Engine.. Module `%s\' not registered\n",
+	HTTRACE(APP_TRACE, "PEP Engine.. Module `%s\' not registered\n" _ 
 			       protocol ? protocol : "<null>");
 	return NO;
     }
@@ -312,7 +311,7 @@ PUBLIC BOOL HTPEP_addNode (const char * protocol,
 	tree = HTUTree_new(PEP_NAME, host, port, HTPEP_deleteList);
 	HT_FREE(host);
 	if (!tree) {
-	    if (APP_TRACE) HTTrace("PEP Engine.. Can't create tree\n");
+	    HTTRACE(APP_TRACE, "PEP Engine.. Can't create tree\n");
 	    return NO;
 	}
     }
@@ -354,8 +353,7 @@ PUBLIC int HTPEP_beforeFilter (HTRequest * request, void * param, int mode)
     HTList * list = HTPEP_findList(realm, url);
     if (list) {
 	HTPEPElement * pres;
-	if (APP_TRACE)
-	    HTTrace("PEP Engine.. Calling BEFORE protocols %p\n", list);
+	HTTRACE(APP_TRACE, "PEP Engine.. Calling BEFORE protocols %p\n" _ list);
 	while ((pres = (HTPEPElement *) HTList_nextObject(list))) {
 	    HTPEPModule * module = HTPEP_findModule(pres->name);
 	    if (module) {
@@ -378,8 +376,7 @@ PUBLIC int HTPEP_afterFilter (HTRequest * request, HTResponse * response,
     HTAssocList * protocols = HTResponse_protocol(response);
     if (protocols) {
 	HTPEPElement * pres;
-	if (APP_TRACE)
-	    HTTrace("PEP Engine.. Calling AFTER protocols %p\n", protocols);
+	HTTRACE(APP_TRACE, "PEP Engine.. Calling AFTER protocols %p\n" _ protocols);
 	while ((pres = (HTPEPElement *) HTList_nextObject(protocols))) {
 	    HTPEPModule * module = HTPEP_findModule(pres->name);
 	    if (module) {

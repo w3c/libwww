@@ -57,15 +57,14 @@ PRIVATE int HTXML_free (HTStream * me)
       if ((status = (*me->actions->_free)(me->starget)) == HT_WOULD_BLOCK)
 	    return HT_WOULD_BLOCK;
     }
-
-    if (STREAM_TRACE) HTTrace("XML Parser.. FREEING...\n");
+    HTTRACE(XML_TRACE, "XML Parser.. FREEING...\n");
     HT_FREE(me);
     return status;
 }
 
 PRIVATE int HTXML_abort (HTStream * me, HTList * e)
 {
-    if (STREAM_TRACE) HTTrace("XML Parser.. ABORTING...\n");
+    HTTRACE(XML_TRACE, "XML Parser.. ABORTING...\n");
     XML_ParserFree(me->xmlstream);
     if (me->target)	
 	(*me->target->isa->abort)(me->target, NULL);
@@ -80,7 +79,7 @@ PRIVATE int HTXML_write (HTStream * me, const char * buf, int len)
     if (me->state == HT_OK) {
 	int status = XML_Parse(me->xmlstream, buf, len, 0);
 	if (!status) {
-	    HTTrace("XML Parser..  `%s\'\n",
+	    HTTRACE(XML_TRACE, "XML Parser..  `%s\'\n" _
 		    (char *)XML_ErrorString(XML_GetErrorCode(me->xmlstream)));
 	    me->state = HT_ERROR;
 	}
@@ -196,8 +195,7 @@ PUBLIC HTStream * HTXML_new (HTRequest *	request,
 	HT_FREE(me);
 	return HTErrorStream();
     }
-
-    if (STREAM_TRACE) HTTrace("XML Parser.. Stream created\n");
+    HTTRACE(XML_TRACE, "XML Parser.. Stream created\n");
     
     /* Call the stream callback handler (if any) with this new stream */
     if (newInstance)
@@ -237,7 +235,7 @@ PUBLIC HTStream * HTXMLStructured_new (const SGML_dtd * dtd, HTStructured * star
     XML_SetDefaultHandler(me->xmlstream,
 			  (XML_DefaultHandler)default_handler);
 
-    if (STREAM_TRACE) HTTrace("XML Parser.. Stream created\n");
+    HTTRACE(XML_TRACE, "XML Parser.. Stream created\n");
     return me;
 }
 

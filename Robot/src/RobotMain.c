@@ -29,11 +29,6 @@
 #define SHOW_QUIET(mr)		((mr) && !((mr)->flags & MR_QUIET))
 #define SHOW_REAL_QUIET(mr)	((mr) && !((mr)->flags & MR_REAL_QUIET))
 
-PRIVATE int RobotTrace (const char * fmt, va_list pArgs)
-{
-    return (vfprintf(stderr, fmt, pArgs));
-}
-
 /* ------------------------------------------------------------------------- */
 /*				  MAIN PROGRAM				     */
 /* ------------------------------------------------------------------------- */
@@ -74,8 +69,6 @@ int main (int argc, char ** argv)
 
     /* Initiate W3C Reference Library with a robot profile */
     HTProfile_newRobot(APP_NAME, APP_VERSION);
-
-    HTTrace_setCallback(RobotTrace);
 
     /* Build a new robot object */
     mr = Robot_new();
@@ -353,7 +346,7 @@ int main (int argc, char ** argv)
 #endif
 
 	    } else {
-		if (SHOW_REAL_QUIET(mr)) HTTrace("Bad Argument (%s)\n", argv[arg]);
+		if (SHOW_REAL_QUIET(mr)) HTPrint("Bad Argument (%s)\n", argv[arg]);
 	    }
        } else {	 /* If no leading `-' then check for URL or keywords */
     	    if (!keycnt) {
@@ -388,16 +381,16 @@ int main (int argc, char ** argv)
     if (mr->depth != DEFAULT_DEPTH && 
 	(mr->prefix == NULL || *mr->prefix == '*')) {
 	if (SHOW_REAL_QUIET(mr))
-	    HTTrace("A depth of more than 0 requires that you also specify a URI prefix.\n",
+	    HTPrint("A depth of more than 0 requires that you also specify a URI prefix.\n",
 		    mr->depth);
 	Cleanup(mr, -1);
     }
 
-    /* Testing that HTTrace is working */
+    /* Testing that HTPrint is working */
     if (mr->flags & MR_TIME) {
 	if (SHOW_REAL_QUIET(mr)) {
 	    time_t local = time(NULL);
-	    HTTrace("Welcome to the W3C mini Robot version %s - started on %s\n",
+	    HTPrint("Welcome to the W3C mini Robot version %s - started on %s\n",
 		    APP_VERSION, HTDateTimeStr(&local, YES));
 	}
     }
@@ -406,14 +399,14 @@ int main (int argc, char ** argv)
     if (mr->rules) {
 	char * rules = HTParse(mr->rules, mr->cwd, PARSE_ALL);
 	if (!HTLoadRulesAutomatically(rules))
-	    if (SHOW_REAL_QUIET(mr)) HTTrace("Can't access rules\n");
+	    if (SHOW_REAL_QUIET(mr)) HTPrint("Can't access rules\n");
 	HT_FREE(rules);
     }
 
     /* Output file specified? */
     if (mr->outputfile) {
 	if ((mr->output = fopen(mr->outputfile, "wb")) == NULL) {
-	    if (SHOW_REAL_QUIET(mr)) HTTrace("Can't open `%s'\n", mr->outputfile);
+	    if (SHOW_REAL_QUIET(mr)) HTPrint("Can't open `%s'\n", mr->outputfile);
 	    mr->output = OUTPUT;
 	}
     }
@@ -480,7 +473,7 @@ int main (int argc, char ** argv)
       char *robot_str = get_robots_txt(ruri);
       char *reg_exp_robot = robot_str ? 
 	scan_robots_txt(robot_str,APP_NAME) : NULL;
-      if (SHOW_REAL_QUIET(mr)) HTTrace("robots.txt uri is `%s'\n", ruri);
+      if (SHOW_REAL_QUIET(mr)) HTPrint("robots.txt uri is `%s'\n", ruri);
       if(robot_str)
 	  HT_FREE(robot_str);
       if(reg_exp_robot)
@@ -538,7 +531,7 @@ int main (int argc, char ** argv)
 
     if (keywords) HTChunk_delete(keywords);
     if (status != YES) {
-	if (SHOW_REAL_QUIET(mr)) HTTrace("Can't access resource\n");
+	if (SHOW_REAL_QUIET(mr)) HTPrint("Can't access resource\n");
 	Cleanup(mr, -1);
     }
 

@@ -15,7 +15,7 @@ int main()
     HTLibInit("TestApp", "1.0");
 
     /* Turn on TRACE so we can see what is going on */
-    WWWTRACE = SHOW_CORE_TRACE;
+    HTSetTraceMessageMask("sop");
 
     /* Register the default set of transport protocols */
     HTTransportInit();

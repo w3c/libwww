@@ -120,9 +120,8 @@ PUBLIC HTParentAnchor * HTHomeAnchor (void)
 	if (fp) {
 	    fclose(fp);
 	} else {
-	    if (APP_TRACE)
-		HTTrace("Home Anchor. No local home document in ~/%s or %s\n",
-			PERSONAL_DEFAULT, LOCAL_DEFAULT_FILE);
+	    HTTRACE(APP_TRACE, "Home Anchor. No local home document in ~/%s or %s\n" _ 
+			PERSONAL_DEFAULT _ LOCAL_DEFAULT_FILE);
 	    HT_FREE(my_home_document);
 	    my_home_document = NULL;
 	}
@@ -132,9 +131,8 @@ PUBLIC HTParentAnchor * HTHomeAnchor (void)
 		  HTLib_secure() ? REMOTE_ADDRESS : LAST_RESORT, "file:",
 		  PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
     if (my_home_document) {
-	if (APP_TRACE)
-	    HTTrace("Home Anchor. `%s\' used for custom home page as\n`%s\'\n",
-		    my_home_document, ref);
+	HTTRACE(APP_TRACE, "Home Anchor. `%s\' used for custom home page as\n`%s\'\n" _ 
+		    my_home_document _ ref);
 	HT_FREE(my_home_document);
     }
     anchor = (HTParentAnchor*) HTAnchor_findAddress(ref);
@@ -160,7 +158,7 @@ PUBLIC HTParentAnchor * HTTmpAnchor (HTUserProfile * up)
 #else
 	sprintf(result, "%s.%d.%d", tmpurl, t, offset++);
 #endif
-	if (APP_TRACE) HTTrace("Tmp Anchor.. With location `%s\'\n", result);
+	HTTRACE(APP_TRACE, "Tmp Anchor.. With location `%s\'\n" _ result);
 	return HTAnchor_parent(HTAnchor_findAddress(result));
 	HT_FREE(result);
     }
@@ -193,9 +191,8 @@ PUBLIC BOOL HTParseFormInput (HTAssocList * list, const char * str)
 	if (name) {
 	    char * escaped_name = HTEscape(name, URL_XALPHAS);
 	    char * escaped_value = HTEscape(value, URL_XALPHAS);
-	    if (APP_TRACE)
-		HTTrace("Form data... Adding name `%s\' with value `%s\' to %p\n",
-			escaped_name, escaped_value, list);
+	    HTTRACE(APP_TRACE, "Form data... Adding name `%s\' with value `%s\' to %p\n" _ 
+			escaped_name _ escaped_value _ list);
 	    HTAssocList_addObject(list, escaped_name, escaped_value);
 	    HT_FREE(escaped_name);
 	    HT_FREE(escaped_value);
@@ -214,7 +211,7 @@ PUBLIC BOOL HTParseFormInput (HTAssocList * list, const char * str)
 */
 PUBLIC int HTSetTraceMessageMask (const char * shortnames)
 {
-#ifdef WWWTRACE
+#if defined(DEBUG) && defined(WWWTRACE)
     WWWTRACE = 0;
     if (shortnames && *shortnames) {
 	char * ptr = (char *) shortnames;
@@ -238,7 +235,7 @@ PUBLIC int HTSetTraceMessageMask (const char * shortnames)
 	    case 'x': WWWTRACE |= SHOW_MUX_TRACE; 	break;
 	    case '*': WWWTRACE |= SHOW_ALL_TRACE; 	break;
 	    default:
-		if (WWWTRACE) HTTrace("Trace....... Bad argument\n");
+		if (WWWTRACE) HTTRACE(APP_TRACE, "Trace....... Bad argument\n");
 	    }
 	}
 	if (!WWWTRACE) WWWTRACE = SHOW_ALL_TRACE;

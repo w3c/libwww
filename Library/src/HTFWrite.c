@@ -72,7 +72,7 @@ PRIVATE int HTFWriter_free (HTStream * me)
 
 PRIVATE int HTFWriter_abort (HTStream * me, HTList * e)
 {
-    if (STREAM_TRACE) HTTrace("FileWriter.. ABORTING...\n");
+    HTTRACE(STREAM_TRACE, "FileWriter.. ABORTING...\n");
     if (me) {
 	if (me->leave_open != YES) fclose(me->fp);
 	HT_FREE(me);
@@ -96,7 +96,7 @@ PUBLIC HTStream * HTFWriter_new (HTRequest * request, FILE * fp,
 {
     HTStream * me = NULL;
     if (!fp) {
-	if (STREAM_TRACE)HTTrace("FileWriter.. Bad file descriptor\n");
+	HTTRACE(STREAM_TRACE, "FileWriter.. Bad file descriptor\n");
 	return HTErrorStream();
     }
     if ((me = (HTStream *) HT_CALLOC(1, sizeof(HTStream))) == NULL)

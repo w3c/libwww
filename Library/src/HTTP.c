@@ -38,7 +38,7 @@
 #define FREE_TARGET	(*me->target->isa->_free)(me->target)
 #define ABORT_TARGET	(*me->target->isa->abort)(me->target, e)
 
-#ifdef DEBUG
+#ifdef HTDEBUG
 #include "WWWStream.h"
 #define HTTP_OUTPUT     "w3chttp.out"
 PRIVATE FILE * htfp = NULL;
@@ -128,8 +128,7 @@ PRIVATE int HTTPCleanup (HTRequest *req, int status)
     http_info * http = (http_info *) HTNet_context(net);
     HTStream * input = HTRequest_inputStream(req);
 
-    if (PROT_TRACE)
-	HTTrace("HTTP Clean.. Called with status %d, net %p\n", status, net);
+    HTTRACE(PROT_TRACE, "HTTP Clean.. Called with status %d, net %p\n" _ status _ net);
 
     if (status == HT_INTERRUPTED) {
     	HTAlertCallback * cbf = HTAlert_find(HT_PROG_INTERRUPT);
@@ -631,8 +630,7 @@ PRIVATE int stream_pipe (HTStream * me, int length)
 	    me->transparent = YES;
 	HTHost_setVersion(host, HTTP_09);
 	if (length > 0) HTHost_setConsumed(host, length);
-	if (PROT_TRACE)
-	    HTTrace("HTTP Status. `%s\' is probably a broken 1.0 server that doesn't understand HEAD\n",
+	HTTRACE(PROT_TRACE, "HTTP Status. `%s\' is probably a broken 1.0 server that doesn't understand HEAD\n" _ 
 		    HTHost_name(host));
 	return HT_ERROR;
     } else {
@@ -649,32 +647,30 @@ PRIVATE int stream_pipe (HTStream * me, int length)
 
 	/* Here we want to find out when to use persistent connection */
 	if (major > 1 && major < 100) {
-	    if (PROT_TRACE)HTTrace("HTTP Status. Major version number is %d\n", major);
+	    HTTRACE(PROT_TRACE, "HTTP Status. Major version number is %d\n" _ major);
 	    me->target = HTErrorStream();
 	    me->status = 9999;
 	    HTTPNextState(me);					   /* Get next state */
 	    return HT_ERROR;
 	} else if (minor <= 0) {
 	    if (major > 100) {
-		if (PROT_TRACE) HTTrace("HTTP Status. This is a *BROKEN* HTTP/1.0 server\n");
+		HTTRACE(PROT_TRACE, "HTTP Status. This is a *BROKEN* HTTP/1.0 server\n");
 		me->status = 200;
 	    } else {
-		if (PROT_TRACE)HTTrace("HTTP Status. This is an HTTP/1.0 server\n");
+		HTTRACE(PROT_TRACE, "HTTP Status. This is an HTTP/1.0 server\n");
 		me->status = atoi(HTNextField(&ptr));
 	    }
 	    HTHost_setVersion(host, HTTP_10);
 	} else {					/* 1.x, x>0 family */
 	    HTHost_setVersion(host, HTTP_11);		/* Best we can do */
 	    if (ConnectionMode & HTTP_11_NO_PIPELINING) {
-		if (PROT_TRACE)
-		    HTTrace("HTTP........ Mode is HTTP/1.1 with NO PIPELINING\n");
+		HTTRACE(PROT_TRACE, "HTTP........ Mode is HTTP/1.1 with NO PIPELINING\n");
 		HTNet_setPersistent(net, YES, HT_TP_SINGLE);
 	    } else if (ConnectionMode & HTTP_11_MUX) {
-		if (PROT_TRACE)
-		    HTTrace("HTTP........ Mode is HTTP/1.1 with MUXING\n");
+		HTTRACE(PROT_TRACE, "HTTP........ Mode is HTTP/1.1 with MUXING\n");
 		HTNet_setPersistent(net, YES, HT_TP_INTERLEAVE);
 	    } else if (ConnectionMode & HTTP_FORCE_10) {
-		if (PROT_TRACE) HTTrace("HTTP........ Mode is FORCE HTTP/1.0\n");
+		HTTRACE(PROT_TRACE, "HTTP........ Mode is FORCE HTTP/1.0\n");
 		HTHost_setVersion(host, HTTP_10);
 		HTNet_setPersistent(net, NO, HT_TP_SINGLE);
 	    } else
@@ -871,8 +867,7 @@ PRIVATE int HTTPStatus_abort (HTStream * me, HTList * e)
     if (me->target)
 	ABORT_TARGET;
     HT_FREE(me);
-    if (PROT_TRACE)
-	HTTrace("HTTPStatus.. ABORTING...\n");
+    HTTRACE(PROT_TRACE, "HTTPStatus.. ABORTING...\n");
     return HT_ERROR;
 }
 
@@ -938,7 +933,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request)
     ** This is actually state HTTP_BEGIN, but it can't be in the state
     ** machine as we need the structure first.
     */
-    if (PROT_TRACE) HTTrace("HTTP........ Looking for `%s\'\n",
+    HTTRACE(PROT_TRACE, "HTTP........ Looking for `%s\'\n" _ 
 			    HTAnchor_physical(anchor));
     if ((http = (http_info *) HT_CALLOC(1, sizeof(http_info))) == NULL)
       HT_OUTOFMEM("HTLoadHTTP");
@@ -959,8 +954,8 @@ PRIVATE int FlushPutEvent (HTTimer * timer, void * param, HTEventType type)
 
     http->usedTimer = YES;
     if (timer != http->timer)
-	HTDebugBreak(__FILE__, __LINE__, "HTTP timer %p not in sync\n", timer);
-    if (PROT_TRACE) HTTrace("Uploading... Flushing %p with timer %p\n", http, timer);
+	HTDEBUGBREAK("HTTP timer %p not in sync\n" _ timer);
+    HTTRACE(PROT_TRACE, "Uploading... Flushing %p with timer %p\n" _ http _ timer);
 
     /*
     **  We ignore the return code here which we shouldn't!!!
@@ -1041,15 +1036,15 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 		}
 
 		if (ConnectionMode & HTTP_11_NO_PIPELINING) {
-		    if (PROT_TRACE) HTTrace("HTTP........ Mode is HTTP/1.1 WITH NO PIPELINING\n");
+		    HTTRACE(PROT_TRACE, "HTTP........ Mode is HTTP/1.1 WITH NO PIPELINING\n");
 		    HTRequest_setFlush(request, YES);
 		} else if (ConnectionMode & HTTP_FORCE_10) {
-		    if (PROT_TRACE) HTTrace("HTTP........ Mode is FORCE HTTP/1.0\n");
+		    HTTRACE(PROT_TRACE, "HTTP........ Mode is FORCE HTTP/1.0\n");
 		    HTHost_setVersion(host, HTTP_10);
 		}
 
 		if (HTNet_preemptive(net)) {
-		    if (PROT_TRACE) HTTrace("HTTP........ Force flush on preemptive load\n");
+		    HTTRACE(PROT_TRACE, "HTTP........ Force flush on preemptive load\n");
 		    HTRequest_setFlush(request, YES);
 		}
 
@@ -1082,15 +1077,15 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 				   HTRequest_outputFormat(request),
 				   HTRequest_outputStream(request),
 				   request, YES);
-#ifdef DEBUG
+#ifdef HTDEBUG
 		if (PROT_TRACE) {
 		    if (!htfp) htfp = fopen(HTTP_OUTPUT, "ab");
 		    if (htfp) {
 			me = HTTee(me, HTFWriter_new(request, htfp, YES), NULL);
-			HTTrace("HTTP........ Dumping response to `%s\'\n", HTTP_OUTPUT);
+			HTTRACE(PROT_TRACE, "HTTP........ Dumping response to `%s\'\n" _ HTTP_OUTPUT);
 		    }
 		}
-#endif /* DEBUG */
+#endif /* HTDEBUG */
 
 		HTNet_setReadStream(net, me);
             }
@@ -1107,16 +1102,16 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 		int version = HTHost_version(host);
 		HTStream * app = NULL;
 		
-#ifdef DEBUG
+#ifdef HTDEBUG
 		if (PROT_TRACE) {
 		    if (!htfp) htfp = fopen(HTTP_OUTPUT, "ab");
 		    if (htfp) {
 			output = (HTOutputStream *)
 			    HTTee((HTStream *) output, HTFWriter_new(request, htfp, YES), NULL);
-			HTTrace("HTTP........ Dumping request to `%s\'\n", HTTP_OUTPUT);
+			HTTRACE(PROT_TRACE, "HTTP........ Dumping request to `%s\'\n" _ HTTP_OUTPUT);
 		    }
 		}	
-#endif /* DEBUG */
+#endif /* HTDEBUG */
 		app = HTMethod_hasEntity(HTRequest_method(request)) ?
 		    HTMIMERequest_new(request,
 				      HTTPRequest_new(request, (HTStream *) output, NO,
@@ -1159,9 +1154,8 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 			  if (!http->timer && !http->usedTimer) {
 			      http->timer = HTTimer_new(NULL, FlushPutEvent,
 							http, delay, YES, NO);
-			      if (PROT_TRACE)
-				  HTTrace("Uploading... Holding %p for %lu ms using time %p\n",
-					  http, delay, http->timer);
+			      HTTRACE(PROT_TRACE, "Uploading... Holding %p for %lu ms using time %p\n" _ 
+					  http _ delay _ http->timer);
 			      HTHost_register(host, net, HTEvent_READ);
 			  }
 			  http->lock = YES;
@@ -1194,7 +1188,7 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 		  if (status == HT_WOULD_BLOCK)
 		      return HT_OK;
 		  else if (status == HT_CONTINUE) {
-		      if (PROT_TRACE) HTTrace("HTTP........ Continuing\n");
+		      HTTRACE(PROT_TRACE, "HTTP........ Continuing\n");
 		      http->lock = NO;
 		      continue;
 		  } else if (status==HT_LOADED)
@@ -1244,7 +1238,7 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 	      break;
 
 	default:
-	    HTDebugBreak(__FILE__, __LINE__, "Bad http state %d\n", http->state);
+	    HTDEBUGBREAK("Bad http state %d\n" _ http->state);
 	}
     } /* End of while(1) */
 }    

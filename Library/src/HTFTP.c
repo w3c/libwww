@@ -251,7 +251,7 @@ PRIVATE int ScanResponse (HTStream * me)
 /* end _GM_ */
     if (isdigit((int) *(me->buffer))) sscanf(me->buffer, "%d%c", &reply, &cont);
     if (me->first_line) {
-	if (PROT_TRACE) HTTrace("FTP Rx...... `%s\'\n", me->buffer);
+	HTTRACE(PROT_TRACE, "FTP Rx...... `%s\'\n" _ me->buffer);
 	if (!reply) return HT_ERROR;
 	me->first_line = NO;
 	me->ctrl->repcode = reply;
@@ -307,7 +307,7 @@ PRIVATE int FTPStatus_put_block (HTStream * me, const char * b, int l)
 	} else {
 	    *(me->buffer+me->buflen++) = *b;
 	    if (me->buflen >= MAX_FTP_LINE) {
-		if (PROT_TRACE) HTTrace("FTP Status.. Line too long - chopped\n");
+		HTTRACE(PROT_TRACE, "FTP Status.. Line too long - chopped\n");
 		me->junk = YES;
 		if ((status = ScanResponse(me)) != HT_OK) {
 		    me->junk = NO;
@@ -353,8 +353,7 @@ PRIVATE int FTPStatus_abort (HTStream * me, HTList * e)
 	(*me->target->isa->abort)(me->target, e);
     HTChunk_delete(me->welcome);
     HT_FREE(me);
-    if (PROT_TRACE)
-	HTTrace("FTPStatus... ABORTING...\n");
+    HTTRACE(PROT_TRACE, "FTPStatus... ABORTING...\n");
     return HT_ERROR;
 }
 
@@ -402,7 +401,7 @@ PRIVATE int SendCommand (HTRequest *request, ftp_ctrl *ctrl,
 	sprintf(HTChunk_data(ctrl->cmd), "%s %s%c%c", token, pars, CR, LF);
     else
 	sprintf(HTChunk_data(ctrl->cmd), "%s%c%c", token, CR, LF);
-    if (PROT_TRACE) HTTrace("FTP Tx...... %s", HTChunk_data(ctrl->cmd));
+    HTTRACE(PROT_TRACE, "FTP Tx...... %s" _ HTChunk_data(ctrl->cmd));
     return (*input->isa->put_block)(input, HTChunk_data(ctrl->cmd), len);
 }
 
@@ -452,9 +451,8 @@ PRIVATE BOOL HTFTPParseURL (HTRequest * request,
 			   tempParams, strlen(tempParams), "HTFTPParseURL");
 */  }
 /* end _GM_ */
-    if (PROT_TRACE)
-	HTTrace("FTPParse.... uid `%s\' pw `%s\'\n",
-		ctrl->uid ? ctrl->uid : "<null>",
+    HTTRACE(PROT_TRACE, "FTPParse.... uid `%s\' pw `%s\'\n" _ 
+		ctrl->uid ? ctrl->uid : "<null>" _ 
 		ctrl->passwd ? ctrl->passwd : "<null>");	
 
     ptr = strchr(path, ';');
@@ -468,8 +466,7 @@ PRIVATE BOOL HTFTPParseURL (HTRequest * request,
 	*(path+strlen(path)-1) = '\0';
 	data->type = 'N';
     }
-    if (data->type && PROT_TRACE)
-	HTTrace("FTPParse.... Datatype %c\n", data->type);	
+    HTTRACE(PROT_TRACE, "FTPParse.... Datatype %c\n" _ data->type ? data->type : '?');
     StrAllocCopy(data->file, path);
     data->offset = data->file;
     HT_FREE(login);
@@ -514,7 +511,7 @@ PRIVATE BOOL ListenSocket (HTNet *cnet, HTNet *dnet, ftp_data *data)
 	if (DataPort > LAST_TCP_PORT)
 	    DataPort = FIRST_TCP_PORT;
 	if (DataPort == old_DataPort) {
-	    if(PROT_TRACE) HTTrace("FTP......... No data port found\n");
+	    HTTRACE(PROT_TRACE, "FTP......... No data port found\n");
 	    return NO;
 	}
 	if (HTDoListen(dnet, DataPort, 1) == HT_OK)
@@ -543,7 +540,7 @@ PRIVATE BOOL ListenSocket (HTNet *cnet, HTNet *dnet, ftp_data *data)
 				     NO, "getsockname");
 	    return NO;
 	}
-	if (PROT_TRACE) HTTrace("FTP......... This host is `%s\'\n",
+	HTTRACE(PROT_TRACE, "FTP......... This host is `%s\'\n" _ 
 				HTInetString(&local_addr));
 	{
 	    u_long addr = local_addr.sin_addr.s_addr;
@@ -589,13 +586,13 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 	    {
 		HTAlertCallback * cbf = HTAlert_find(HT_PROG_LOGIN);
 		if (cbf) (*cbf)(request, HT_PROG_LOGIN, HT_MSG_NULL, NULL, NULL, NULL);
-		if (PROT_TRACE) HTTrace("FTP Login.. now in state NEED_SELECT\n");
+		HTTRACE(PROT_TRACE, "FTP Login.. now in state NEED_SELECT\n");
 		ctrl->substate = ctrl->reset ? NEED_REIN : NEED_GREETING;
 	    }
 	    break;
 
 	  case NEED_GREETING:
-	    if (PROT_TRACE) HTTrace("FTP Login.. now in state NEED_GREETING\n");
+	    HTTRACE(PROT_TRACE, "FTP Login.. now in state NEED_GREETING\n");
 	    status = HTHost_read(HTNet_host(cnet), cnet);
 	    if (status == HT_WOULD_BLOCK)
 		return HT_WOULD_BLOCK;
@@ -612,7 +609,7 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 	    break;
 
 	  case NEED_REIN:
-	    if (PROT_TRACE) HTTrace("FTP Login.. now in state NEED_REIN\n");
+	    HTTRACE(PROT_TRACE, "FTP Login.. now in state NEED_REIN\n");
 	    if (!ctrl->sent) {
 		status = SendCommand(request, ctrl, "REIN", NULL);
 		if (status == HT_WOULD_BLOCK)
@@ -645,7 +642,7 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 	    break;
 
 	  case NEED_UID:
-	    if (PROT_TRACE) HTTrace("FTP Login.. now in state NEED_UID\n");
+	    HTTRACE(PROT_TRACE, "FTP Login.. now in state NEED_UID\n");
 	    if (!ctrl->sent) {
 		status = SendCommand(request, ctrl, "USER", ctrl->uid);
 		if (status == HT_WOULD_BLOCK)
@@ -671,10 +668,10 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 		    } else if (ctrl->repcode == 530) {
 			if (ctrl->alreadyLoggedIn == YES) {
 			    ctrl->substate = SUB_SUCCESS;
-			    if (PROT_TRACE) HTTrace("FTP Login.. Already logged in\n");
+			    HTTRACE(PROT_TRACE, "FTP Login.. Already logged in\n");
 			} else {
 			    ctrl->substate = PROMPT_USER;
-			    if (PROT_TRACE) HTTrace("FTP Login.. User Unknown\n");
+			    HTTRACE(PROT_TRACE, "FTP Login.. User Unknown\n");
 			}
 		    }
 /* end _GM_ */
@@ -687,7 +684,7 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 	    break;
 
 	  case NEED_PASSWD:
-	    if (PROT_TRACE) HTTrace("FTP Login.. now in state NEED_PASSWD\n");
+	    HTTRACE(PROT_TRACE, "FTP Login.. now in state NEED_PASSWD\n");
 	    if (!ctrl->sent) {
 		status = SendCommand(request, ctrl, "PASS", ctrl->passwd);
 		if (status == HT_WOULD_BLOCK)
@@ -724,7 +721,7 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 	    break;
 
 	  case NEED_ACCOUNT:
-	    if (PROT_TRACE) HTTrace("FTP Login.. now in state NEED_ACCOUNT\n");
+	    HTTRACE(PROT_TRACE, "FTP Login.. now in state NEED_ACCOUNT\n");
 	    if (!ctrl->sent) {
 		status = SendCommand(request, ctrl, "ACCT", ctrl->account);
 		if (status == HT_WOULD_BLOCK)
@@ -749,7 +746,7 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 	    break;
 
 	  case PROMPT_USER:
-	    if (PROT_TRACE) HTTrace("FTP Login.. now in state PROMPT_USER\n");
+	    HTTRACE(PROT_TRACE, "FTP Login.. now in state PROMPT_USER\n");
 	    {
 		HTAlertCallback *cbf = HTAlert_find(HT_A_USER_PW);
 		HTAlertPar * reply = HTAlert_newReply();
@@ -769,17 +766,17 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 	    break;
 
 	  case SUB_ERROR:
-	    if (PROT_TRACE) HTTrace("FTP Login.. now in state SUB_ERROR\n");
+	    HTTRACE(PROT_TRACE, "FTP Login.. now in state SUB_ERROR\n");
 	    HTRequest_addError(request, ERR_FATAL, NO,
 			       HTERR_FTP_LOGIN_FAILURE, NULL, 0, "HTFTPLogin");
-	    if (PROT_TRACE) HTTrace("FTP......... Login failed\n");
+	    HTTRACE(PROT_TRACE, "FTP......... Login failed\n");
 	    ctrl->substate = 0;
 	    return HT_ERROR;
 	    break;
 
 	  case SUB_SUCCESS:
-	    if (PROT_TRACE) HTTrace("FTP Login.. now in state SUB_SUCCESS\n");
-	    if (PROT_TRACE) HTTrace("FTP......... Logged in as `%s\'\n", ctrl->uid);
+	    HTTRACE(PROT_TRACE, "FTP Login.. now in state SUB_SUCCESS\n");
+	    HTTRACE(PROT_TRACE, "FTP......... Logged in as `%s\'\n" _ ctrl->uid);
 	    ctrl->substate = 0;
 	    return HT_OK;
 	    break;
@@ -811,7 +808,7 @@ PRIVATE int HTFTPDataConnection (HTRequest * request, HTNet *cnet,
     while (1) {
 	switch ((state) ctrl->substate) {
 	  case NEED_TYPE:
-	    if (PROT_TRACE) HTTrace("FTP Data.... now in state NEED_TYPE\n");
+	    HTTRACE(PROT_TRACE, "FTP Data.... now in state NEED_TYPE\n");
 	    if(!data->type|| data->pasv || data->type=='N' || data->type=='L'){
 		ctrl->substate = NEED_SELECT;
 		break;
@@ -842,7 +839,7 @@ PRIVATE int HTFTPDataConnection (HTRequest * request, HTNet *cnet,
 	    break;
 	    
 	  case NEED_SELECT:
-	    if (PROT_TRACE) HTTrace("FTP Data.... now in state NEED_SELECT\n");
+	    HTTRACE(PROT_TRACE, "FTP Data.... now in state NEED_SELECT\n");
 	    if (FTPMode & FTP_DATA_PASV && !data->pasv)
 		ctrl->substate = NEED_PASV;
 	    else if (ListenSocket(cnet, dnet, data))
@@ -852,7 +849,7 @@ PRIVATE int HTFTPDataConnection (HTRequest * request, HTNet *cnet,
 	    break;
 
 	  case NEED_PASV:
-	    if (PROT_TRACE) HTTrace("FTP Data.... now in state NEED_PASV\n");
+	    HTTRACE(PROT_TRACE, "FTP Data.... now in state NEED_PASV\n");
 	    if (!ctrl->sent) {
 		status = SendCommand(request, ctrl, "PASV", NULL);
 		if (status == HT_WOULD_BLOCK)
@@ -877,8 +874,7 @@ PRIVATE int HTFTPDataConnection (HTRequest * request, HTNet *cnet,
 			while (*host && !isdigit((int) *host++));
 			if (!*host || sscanf(--host, "%d,%d,%d,%d,%d,%d",
 					     &h0,&h1,&h2,&h3,&p0,&p1) < 6) {
-			    if (PROT_TRACE)
-				HTTrace("FTP Data.... PASV No addr\n");
+			    HTTRACE(PROT_TRACE, "FTP Data.... PASV No addr\n");
 			    ctrl->substate = SUB_ERROR;
 			    break;
 			} else {
@@ -899,7 +895,7 @@ PRIVATE int HTFTPDataConnection (HTRequest * request, HTNet *cnet,
 	    break;
 
 	  case NEED_PORT:
-	    if (PROT_TRACE) HTTrace("FTP Data.... now in state NEED_PORT\n");
+	    HTTRACE(PROT_TRACE, "FTP Data.... now in state NEED_PORT\n");
 	    if (!ctrl->sent) {
 		status = SendCommand(request, ctrl, "PORT", data->host);
 		if (status == HT_WOULD_BLOCK)
@@ -922,17 +918,15 @@ PRIVATE int HTFTPDataConnection (HTRequest * request, HTNet *cnet,
 	    break;
 
 	  case SUB_ERROR:
-	    if (PROT_TRACE) HTTrace("FTP Data.... now in state SUB_ERROR\n");
-	    if (PROT_TRACE)
-		HTTrace("FTP Data.... Can't setup data connection\n");
+	    HTTRACE(PROT_TRACE, "FTP Data.... now in state SUB_ERROR\n");
+	    HTTRACE(PROT_TRACE, "FTP Data.... Can't setup data connection\n");
 	    ctrl->substate = 0;
 	    return HT_ERROR;
 	    break;
 
 	  case SUB_SUCCESS:
-	    if (PROT_TRACE) HTTrace("FTP Data.... now in state SUB_SUCCESS\n");
-	    if (PROT_TRACE)
-		HTTrace("FTP Data.... Data connection negotiated\n");
+	    HTTRACE(PROT_TRACE, "FTP Data.... now in state SUB_SUCCESS\n");
+	    HTTRACE(PROT_TRACE, "FTP Data.... Data connection negotiated\n");
 	    ctrl->substate = 0;
 	    return HT_OK;
 	    break;
@@ -966,7 +960,7 @@ PRIVATE int HTFTPServerInfo (HTRequest *request, HTNet *cnet,
     while (1) {
 	switch ((state) ctrl->substate) {
 	  case NEED_SYST:
-	    if (PROT_TRACE) HTTrace("FTP Server.. now in state NEED_SYST\n");
+	    HTTRACE(PROT_TRACE, "FTP Server.. now in state NEED_SYST\n");
 	    if (!ctrl->sent) {		
 		if (ctrl->server != FTP_UNSURE) {
 		    FTPListType(data, ctrl->server);
@@ -991,12 +985,11 @@ PRIVATE int HTFTPServerInfo (HTRequest *request, HTNet *cnet,
 	    break;
 
 	  case CHECK_SYST:
-	    if (PROT_TRACE) HTTrace("FTP Server.. now in state CHECK_SYST\n");
+	    HTTRACE(PROT_TRACE, "FTP Server.. now in state CHECK_SYST\n");
 	    {
 		char *reply = ctrl->reply;
 		if (!*reply) {
-		    if (PROT_TRACE)
-			HTTrace("FTP Server.. No server info?\n");
+		    HTTRACE(PROT_TRACE, "FTP Server.. No server info?\n");
 		    ctrl->substate = NEED_PWD;
 		    break;
 		}
@@ -1029,7 +1022,7 @@ PRIVATE int HTFTPServerInfo (HTRequest *request, HTNet *cnet,
 	    break;
 
 	  case NEED_PWD:
-	    if (PROT_TRACE) HTTrace("FTP Server.. now in state NEED_PWD\n");
+	    HTTRACE(PROT_TRACE, "FTP Server.. now in state NEED_PWD\n");
 	    if (!ctrl->sent) {
 		status = SendCommand(request, ctrl, "PWD", NULL);
 		if (status == HT_WOULD_BLOCK)
@@ -1051,13 +1044,12 @@ PRIVATE int HTFTPServerInfo (HTRequest *request, HTNet *cnet,
 	    break;
 
 	  case CHECK_PWD:
-	    if (PROT_TRACE) HTTrace("FTP Server.. now in state CHECK_PWD\n");
+	    HTTRACE(PROT_TRACE, "FTP Server.. now in state CHECK_PWD\n");
 	    {
 		char *start = strchr(ctrl->reply, '"');
 		char *end;
 		if (!start || (end = strchr(++start, '"')) == NULL) {
-		    if (PROT_TRACE)
-			HTTrace("FTP Server.. No current directory?\n");
+		    HTTRACE(PROT_TRACE, "FTP Server.. No current directory?\n");
 		    ctrl->server = FTP_GENERIC;
 		} else {
 		    *end = '\0';
@@ -1077,20 +1069,18 @@ PRIVATE int HTFTPServerInfo (HTRequest *request, HTNet *cnet,
 	    break;
 
 	  case SUB_ERROR:
-	    if (PROT_TRACE) HTTrace("FTP Server.. now in state SUB_ERROR\n");
-	    if (PROT_TRACE)
-		HTTrace("FTP Server.. Can't get server information\n");
+	    HTTRACE(PROT_TRACE, "FTP Server.. now in state SUB_ERROR\n");
+	    HTTRACE(PROT_TRACE, "FTP Server.. Can't get server information\n");
 	    ctrl->substate = 0;
 	    ctrl->server = FTP_GENERIC;
 	    return HT_ERROR;
 	    break;
 
 	  case SUB_SUCCESS:
-	    if (PROT_TRACE) HTTrace("FTP Server.. now in state SUB_SUCCESS\n");
+	    HTTRACE(PROT_TRACE, "FTP Server.. now in state SUB_SUCCESS\n");
 	    {
 	      HTHost * host = HTNet_host(cnet);
-	      if (PROT_TRACE)
-		  HTTrace("FTP Server.. Guessed type %d\n", ctrl->server);
+	      HTTRACE(PROT_TRACE, "FTP Server.. Guessed type %d\n" _ ctrl->server);
 	      HTHost_setVersion(host, ctrl->server);
 	      FTPListType(data, ctrl->server);
 	      ctrl->substate = 0;
@@ -1133,18 +1123,17 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
     while (1) {
 	switch ((state) ctrl->substate) {
 	  case NEED_SELECT:
-	    if (PROT_TRACE) HTTrace("FTP Get Data now in state NEED_SELECT\n");
+	    HTTRACE(PROT_TRACE, "FTP Get Data now in state NEED_SELECT\n");
 	    ctrl->substate = data->pasv ? NEED_CONNECT : NEED_ACTION;
 	    break;
 
 	  case NEED_CONNECT:
-	    if (PROT_TRACE) HTTrace("FTP Get Data now in state NEED_CONNECT\n");
+	    HTTRACE(PROT_TRACE, "FTP Get Data now in state NEED_CONNECT\n");
 	    status = HTHost_connect(HTNet_host(dnet), dnet, data->host, FTP_DATA);
 	    if (status == HT_WOULD_BLOCK)
 		return HT_WOULD_BLOCK;
 	    else if (status == HT_OK) {
-		if (PROT_TRACE)
-		    HTTrace("FTP Get Data.... Active data socket %d\n",
+		HTTRACE(PROT_TRACE, "FTP Get Data.... Active data socket %d\n" _ 
 			    HTNet_socket(dnet));
 #if 0
 		/*		HTNet_setPersistent(dnet, YES, HT_TP_INTERLEAVE); */
@@ -1154,8 +1143,7 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 	    } else {			 	  /* Swap to PORT on the fly */
 		NETCLOSE(HTNet_socket(dnet));
 		HTNet_setSocket(dnet, INVSOC);
-		if (PROT_TRACE)
-		    HTTrace("FTP Get Data Swap to PORT on the fly\n");
+		HTTRACE(PROT_TRACE, "FTP Get Data Swap to PORT on the fly\n");
 		ctrl->substate = NEED_SELECT;
 		HT_FREE(segment);
 		return HT_OK;
@@ -1163,15 +1151,14 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 	    break;
 
 	  case NEED_ACCEPT:
-	    if (PROT_TRACE) HTTrace("FTP Get Data now in state NEED_ACCEPT\n");
+	    HTTRACE(PROT_TRACE, "FTP Get Data now in state NEED_ACCEPT\n");
 	    {
 		status = HTDoAccept(ctrl->dnet, &ctrl->dnet);
 		dnet = ctrl->dnet;
 		if (status == HT_WOULD_BLOCK)
 		    return HT_WOULD_BLOCK;
 		else if (status == HT_OK) {
-		    if (PROT_TRACE)
-			HTTrace("FTP Get Data.... Passive data socket %d\n",
+		    HTTRACE(PROT_TRACE, "FTP Get Data.... Passive data socket %d\n" _ 
 				HTNet_socket(dnet));
 		    ctrl->substate = NEED_STREAM;
 		} else
@@ -1180,7 +1167,7 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 	    break;
 
 	  case NEED_ACTION:
-	    if (PROT_TRACE) HTTrace("FTP Get Data now in state NEED_ACTION\n");
+	    HTTRACE(PROT_TRACE, "FTP Get Data now in state NEED_ACTION\n");
 	    if (!ctrl->sent) {
 		char *cmd = (data->type=='L') ? "LIST" :
 		    (data->type=='N') ? "NLST" : "RETR";
@@ -1210,7 +1197,7 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 		    /* 	ctrl->substate = SUB_ERROR; */
 		    else {
 			if (ctrl->repcode == 550) {
-			    if (PROT_TRACE) HTTrace("FTP Get Data no such file or directory\n");
+			    HTTRACE(PROT_TRACE, "FTP Get Data no such file or directory\n");
 			    data->stream_error = YES;
 			}
 		    	ctrl->substate = SUB_ERROR;
@@ -1223,7 +1210,7 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 	    break;
 
 	  case NEED_SEGMENT:
-	    if (PROT_TRACE) HTTrace("FTP Get Data now in state NEED_SEGMENT\n");
+	    HTTRACE(PROT_TRACE, "FTP Get Data now in state NEED_SEGMENT\n");
 	    {
 		char *ptr;
 		if (data->offset == data->file) {
@@ -1251,7 +1238,7 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 	    break;
 
 	  case NEED_CWD:
-	    if (PROT_TRACE) HTTrace("FTP Get Data now in state NEED_CWD\n");
+	    HTTRACE(PROT_TRACE, "FTP Get Data now in state NEED_CWD\n");
 	    if (!ctrl->sent) {
 		status = SendCommand(request, ctrl, "CWD", segment);
 		HT_FREE(segment);
@@ -1277,7 +1264,7 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 	    break;
 
 	case NEED_STREAM:
-	    if (PROT_TRACE) HTTrace("FTP Get Data now in state NEED_STREAM\n");
+	    HTTRACE(PROT_TRACE, "FTP Get Data now in state NEED_STREAM\n");
 	    /* 
 	    ** Create the stream pipe FROM the channel to the application.
 	    ** The target for the input stream pipe is set up using the
@@ -1298,7 +1285,7 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 	    break;
 
 	  case NEED_BODY:
-	      if (PROT_TRACE) HTTrace("FTP Get Data now in state NEED_BODY\n");
+	      HTTRACE(PROT_TRACE, "FTP Get Data now in state NEED_BODY\n");
 	      if (data_is_active) {
 		  status = HTHost_read(HTNet_host(dnet), dnet);
 		  if (status == HT_WOULD_BLOCK)
@@ -1332,7 +1319,7 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 	      break;
 
 	  case SUB_ERROR:
-	    if (PROT_TRACE) HTTrace("FTP Get Data now in state SUB_ERROR\n");
+	    HTTRACE(PROT_TRACE, "FTP Get Data now in state SUB_ERROR\n");
 	    HTRequest_addError(request, ERR_FATAL, NO, HTERR_NOT_FOUND,
 			       NULL, 0, "HTFTPGetData");
 	    ctrl->substate = 0;
@@ -1341,7 +1328,7 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 	    break;
 
 	  case SUB_SUCCESS:
-	    if (PROT_TRACE) HTTrace("FTP Get Data now in state SUB_SUCCESS\n");
+	    HTTRACE(PROT_TRACE, "FTP Get Data now in state SUB_SUCCESS\n");
 	    ctrl->substate = 0;
 	    HT_FREE(segment);
 	    return HT_LOADED;
@@ -1377,7 +1364,7 @@ PUBLIC int HTLoadFTP (SOCKET soc, HTRequest * request)
     ** This is actually state FTP_BEGIN, but it can't be in the state
     ** machine as we need the structure first.
     */
-    if (PROT_TRACE) HTTrace("FTP......... Looking for `%s\'\n",url);
+    HTTRACE(PROT_TRACE, "FTP......... Looking for `%s\'\n" _ url);
     if ((ctrl = (ftp_ctrl *) HT_CALLOC(1, sizeof(ftp_ctrl))) == NULL ||
 	(data = (ftp_data *) HT_CALLOC(1, sizeof(ftp_data))) == NULL)
 	HT_OUTOFMEM("HTLoadFTP");
@@ -1434,12 +1421,11 @@ PRIVATE int FTPEvent (SOCKET soc, void * pVoid, HTEventType type)
     while (1) {
 	switch (ctrl->state) {
 	  case FTP_BEGIN:
-	      if (PROT_TRACE) HTTrace("FTP Event... now in state FTP_BEGIN\n");
+	      HTTRACE(PROT_TRACE, "FTP Event... now in state FTP_BEGIN\n");
 
 	      /* Only handle GET requests for now */
 	      if (HTRequest_method(request) != METHOD_GET) {
-		  if (PROT_TRACE)
-		      HTTrace("FTP Event... This module only supports the GET method\n");
+		  HTTRACE(PROT_TRACE, "FTP Event... This module only supports the GET method\n");
 		  ctrl->state = FTP_ERROR;
 		  break;
 	      }
@@ -1473,8 +1459,7 @@ PRIVATE int FTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 		  }
 	      }
 
-	      if (PROT_TRACE)
-		  HTTrace("FTP Event... Transfer mode set to '%c'\n", data->type);
+	      HTTRACE(PROT_TRACE, "FTP Event... Transfer mode set to '%c'\n" _ data->type);
 
 	      /*
 	      **  See if we can get any hints to what we might expect content wise.
@@ -1486,7 +1471,7 @@ PRIVATE int FTPEvent (SOCKET soc, void * pVoid, HTEventType type)
               break;
 
 	case FTP_NEED_CCON:
-	    if (PROT_TRACE) HTTrace("FTP Event... now in state FTP_NEED_CONN\n");
+	    HTTRACE(PROT_TRACE, "FTP Event... now in state FTP_NEED_CONN\n");
 	    status = HTHost_connect(host, cnet, url, FTP_PORT);
 	    host = HTNet_host(cnet);
 	    if (status == HT_OK) {
@@ -1509,8 +1494,7 @@ PRIVATE int FTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 		/* Check persistent connection */
 		if (HTNet_persistent(cnet)) {
 		    ctrl->server = HTHost_version(host);
-		    if (PROT_TRACE)
-			HTTrace("FTP Server.. Cache says type %d server\n",
+		    HTTRACE(PROT_TRACE, "FTP Server.. Cache says type %d server\n" _ 
 				ctrl->server);
 		    ctrl->reset = 1;
 		} else
@@ -1555,14 +1539,14 @@ PRIVATE int FTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    break;
 
 	  case FTP_NEED_LOGIN:
-	    if (PROT_TRACE) HTTrace("FTP Event... now in state FTP_NEED_LOGIN\n");
+	    HTTRACE(PROT_TRACE, "FTP Event... now in state FTP_NEED_LOGIN\n");
 	    status = HTFTPLogin(request, cnet, ctrl);
  	    if (status == HT_WOULD_BLOCK) return HT_OK;
 	    ctrl->state = (status == HT_OK) ? FTP_NEED_DCON : FTP_ERROR;
 	    break;
 
 	  case FTP_NEED_DCON:
-	    if (PROT_TRACE) HTTrace("FTP Event... now in state FTP_NEED_DCON\n");
+	    HTTRACE(PROT_TRACE, "FTP Event... now in state FTP_NEED_DCON\n");
 	    status = HTFTPDataConnection(request, cnet, ctrl, data);
 	    if (status == HT_WOULD_BLOCK) return HT_OK;
 	    if (status == HT_OK)
@@ -1573,7 +1557,7 @@ PRIVATE int FTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    break;
 
 	  case FTP_NEED_DATA:
-	    if (PROT_TRACE) HTTrace("FTP Event... now in state FTP_NEED_DATA\n");
+	    HTTRACE(PROT_TRACE, "FTP Event... now in state FTP_NEED_DATA\n");
 	    status = HTFTPGetData(request, cnet, soc, ctrl, data);
  	    if (status == HT_WOULD_BLOCK) return HT_OK;
 	    if (status == HT_LOADED)
@@ -1588,20 +1572,20 @@ PRIVATE int FTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    break;
 
 	  case FTP_NEED_SERVER:
-	    if (PROT_TRACE) HTTrace("FTP Event... now in state FTP_NEED_SERVER\n");
+	    HTTRACE(PROT_TRACE, "FTP Event... now in state FTP_NEED_SERVER\n");
 	    status = HTFTPServerInfo(request, cnet, ctrl, data);
 	    if (status == HT_WOULD_BLOCK) return HT_OK;
 	    ctrl->state = FTP_NEED_DATA;
 	    break;
 
 	  case FTP_SUCCESS:
-	    if (PROT_TRACE) HTTrace("FTP Event... now in state FTP_SUCCESS\n");
+	    HTTRACE(PROT_TRACE, "FTP Event... now in state FTP_SUCCESS\n");
 	    FTPCleanup(request, HT_LOADED);
 	    return HT_OK;
 	    break;
 	    
 	  case FTP_ERROR:
-	    if (PROT_TRACE) HTTrace("FTP Event... now in state FTP_ERROR\n");
+	    HTTRACE(PROT_TRACE, "FTP Event... now in state FTP_ERROR\n");
 	    FTPCleanup(request, HT_ERROR);
 	    return HT_OK;
 	    break;

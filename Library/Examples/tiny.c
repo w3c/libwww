@@ -15,6 +15,12 @@
 **
 **      A very simple event loop demo showing how to write an event driven
 **	libwww app and also how to use various contexts and the HTML parser
+**
+**	Compile libwww with these flags:
+**		CFLAGS='-DLIBWWW_SMALL -DNODEBUG -O2'
+**	if you want to use the persistent cache and
+**		CFLAGS='-DLIBWWW_SMALL -DNODEBUG -O2 -DNO_CACHE'
+**	if not
 */
 
 #include "WWWLib.h"

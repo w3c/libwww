@@ -49,8 +49,7 @@ PUBLIC BOOL HTList_addObject (HTList * me, void * newObject)
 	me->next = newNode;
 	return YES;
     } else {
-	if (CORE_TRACE)
-	    HTTrace("HTList...... Can not add object %p to nonexisting list\n",
+	HTTRACE(CORE_TRACE, "HTList...... Can not add object %p to nonexisting list\n" _ 
 		    newObject);
     }
     return NO;
@@ -296,7 +295,7 @@ PUBLIC BOOL HTList_insertionSort (HTList * head, HTComparer * comp)
 	}
 	return YES;
     } else {
-	if (CORE_TRACE) HTTrace("List........ Empty list or no sort algorithm\n");
+	HTTRACE(CORE_TRACE, "List........ Empty list or no sort algorithm\n");
     }
     return NO;
 }

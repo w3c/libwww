@@ -105,13 +105,12 @@ PUBLIC HTMuxSession * HTMuxSession_register (HTMuxChannel * muxch,
 	    session->sid = sid;
 	    session->pid = pid;
 	    muxch->sessions[sid] = session;
-	    if (MUX_TRACE)
-		HTTrace("Mux Channel. Registered session %d on channel %p\n",
-			sid, muxch);
+	    HTTRACE(MUX_TRACE, "Mux Channel. Registered session %d on channel %p\n" _ 
+			sid _ muxch);
 	}
 	return session;
     }
-    if (MUX_TRACE) HTTrace("Mux Channel. Can't register new session\n");
+    HTTRACE(MUX_TRACE, "Mux Channel. Can't register new session\n");
     return NULL;
 }
 
@@ -124,14 +123,13 @@ PUBLIC HTMuxSessionId HTMuxSession_accept (HTMuxChannel * muxch, HTNet * net,
 	for (; sid<MAX_SESSIONS; sid+=2) {
 	    if ((session = muxch->sessions[sid]) &&
 		session->net == NULL && session->pid == pid) {
-		if (MUX_TRACE)
-		    HTTrace("Mux Channel. Accepting session %d on channel %p\n",
-			    sid, muxch);
+		HTTRACE(MUX_TRACE, "Mux Channel. Accepting session %d on channel %p\n" _ 
+			    sid _ muxch);
 		return sid;
 	    }
 	}
     }
-    if (MUX_TRACE) HTTrace("Mux Channel. Can't accept new session\n");
+    HTTRACE(MUX_TRACE, "Mux Channel. Can't accept new session\n");
     return INVSID;
 }
 
@@ -147,14 +145,13 @@ PUBLIC HTMuxSessionId HTMuxSession_connect (HTMuxChannel * muxch, HTNet * net,
 		session->pid = pid;
 		session->net = net;		
 		muxch->sessions[sid] = session;
-		if (MUX_TRACE)
-		    HTTrace("Mux Channel. Creating session %d on channel %p\n",
-			    sid, muxch);
+		HTTRACE(MUX_TRACE, "Mux Channel. Creating session %d on channel %p\n" _ 
+			    sid _ muxch);
 		return sid;
 	    }
 	}
     }
-    if (MUX_TRACE) HTTrace("Mux Channel. Can't create new session\n");
+    HTTRACE(MUX_TRACE, "Mux Channel. Can't create new session\n");
     return INVSID;
 }
 
@@ -194,9 +191,8 @@ PUBLIC BOOL HTMuxSession_setClose (HTMuxChannel * muxch,
 	**  to sleep.
 	*/
 	if (session->close == MUX_S_END) {
-	    if (MUX_TRACE)
-		HTTrace("Mux Channel. Closing session %d on channel %p\n",
-			session->sid, muxch);
+	    HTTRACE(MUX_TRACE, "Mux Channel. Closing session %d on channel %p\n" _ 
+			session->sid _ muxch);
 	    muxch->sessions[session->sid] = NULL;
 	    session_delete(session);
 	}
@@ -246,8 +242,7 @@ PUBLIC BOOL HTMuxSession_setFragment (HTMuxChannel * muxch,
 */
 PUBLIC int HTMuxSession_disposeData (HTMuxSession * me, const char * buf, int len)
 {
-    if (MUX_TRACE)
-	HTTrace("Mux Channel. Writing %d bytes to session %p\n", len, me);
+    HTTRACE(MUX_TRACE, "Mux Channel. Writing %d bytes to session %p\n" _ len _ me);
 
     /*
     **  There are two situations that can occur: Either we have an accepted session
@@ -268,13 +263,13 @@ PUBLIC int HTMuxSession_disposeData (HTMuxSession * me, const char * buf, int le
 	    */
 	    if (me->buffer && me->buffering) {
 		if ((*me->buffer->isa->flush)(me->buffer) == HT_OK) {
-		    if (MUX_TRACE) HTTrace("Mux Channel. Flushed buffered data\n");
+		    HTTRACE(MUX_TRACE, "Mux Channel. Flushed buffered data\n");
 		    me->buffering = NO;
 		} else if ((*me->buffer->isa->put_block)(me->buffer, buf, len) >= 0) {
-		    if (MUX_TRACE) HTTrace("Mux Channel. Buffer accepted data\n");
+		    HTTRACE(MUX_TRACE, "Mux Channel. Buffer accepted data\n");
 		    return 0;
 		}
-		if (MUX_TRACE) HTTrace("Mux Channel. Can't buffer data\n");
+		HTTRACE(MUX_TRACE, "Mux Channel. Can't buffer data\n");
 		return (-1);		    
 	    }
 
@@ -284,7 +279,7 @@ PUBLIC int HTMuxSession_disposeData (HTMuxSession * me, const char * buf, int le
 	    **  from the stream means that we got rid of the data successfully.
 	    */
 	    if ((status = (*sink->isa->put_block)(sink, buf, len)) >= 0) {
-		if (MUX_TRACE) HTTrace("Mux Channel. Stream returned %d\n", status);
+		HTTRACE(MUX_TRACE, "Mux Channel. Stream returned %d\n" _ status);
 		
 		/*
 		**  If we get back a HT_LOADED then we have all the data we need
@@ -318,10 +313,10 @@ PUBLIC int HTMuxSession_disposeData (HTMuxSession * me, const char * buf, int le
 	}
 	status = (*me->buffer->isa->put_block)(me->buffer, buf, len);
 	if (status >= 0) {
-	    if (MUX_TRACE) HTTrace("Mux Channel. Buffer accepted data\n");
+	    HTTRACE(MUX_TRACE, "Mux Channel. Buffer accepted data\n");
 	    return 0;
 	}
-	if (MUX_TRACE) HTTrace("Mux Channel. Buffer returned %d\n", status);
+	HTTRACE(MUX_TRACE, "Mux Channel. Buffer returned %d\n" _ status);
     }
     return (-1);
 }
@@ -367,8 +362,7 @@ PUBLIC HTMuxChannel * HTMuxChannel_new (HTHost * host)
 	}
 	if (!muxchs[me->hash]) muxchs[me->hash] = HTList_new();
 	HTList_addObject(muxchs[me->hash], (void *) me);
-	if (MUX_TRACE)
-	    HTTrace("Mux Channel. %p created with hash %d\n",me, me->hash);
+	HTTRACE(MUX_TRACE, "Mux Channel. %p created with hash %d\n" _ me _ me->hash);
 	return me;
     }
     return NULL;
@@ -392,7 +386,7 @@ PUBLIC BOOL HTMuxChannel_delete (HTMuxChannel * me)
 {
     if (me) {
 	HTList * list = NULL;
-	if (MUX_TRACE) HTTrace("Mux Channel. Deleting %p\n", me);
+	HTTRACE(MUX_TRACE, "Mux Channel. Deleting %p\n" _ me);
 	if (muxchs && (list = muxchs[me->hash])) {
 	    HTList_removeObject(list, (void *) me);
 	    channel_delete(me);
@@ -484,7 +478,7 @@ PUBLIC int HTMuxChannel_sendControl (HTMuxChannel * muxch, HTMuxSessionId sid,
 	    PUTBLOCK((const char *) header, 8);
 	    break;
 	default:
-	    if (MUX_TRACE) HTTrace("Mux Channel. UNKNOWN OPCODE %d\n", opcode);
+	    HTTRACE(MUX_TRACE, "Mux Channel. UNKNOWN OPCODE %d\n" _ opcode);
 	    return HT_ERROR;
 	}
 

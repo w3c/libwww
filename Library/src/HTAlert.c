@@ -61,8 +61,7 @@ PUBLIC BOOL HTAlert_interactive (void)
 PUBLIC BOOL HTAlertCall_add (HTList * list, HTAlertCallback * cbf,
 			     HTAlertOpcode opcode)
 {
-    if (CORE_TRACE) 
-	HTTrace("Alert Call.. Add Alert Handler %p\n", (void *) cbf);
+    HTTRACE(CORE_TRACE, "Alert Call.. Add Alert Handler %p\n" _ (void *) cbf);
     if (list && cbf) {
 	HTAlert *me;
 	if ((me = (HTAlert  *) HT_CALLOC(1, sizeof(HTAlert))) == NULL)
@@ -80,8 +79,7 @@ PUBLIC BOOL HTAlertCall_add (HTList * list, HTAlertCallback * cbf,
 */
 PUBLIC BOOL HTAlertCall_delete (HTList * list, HTAlertCallback *cbf)
 {
-    if (CORE_TRACE) 
-	HTTrace("Alert Call..  Delete Alert Handler %p\n", (void *) cbf);
+    HTTRACE(CORE_TRACE, "Alert Call..  Delete Alert Handler %p\n" _ (void *) cbf);
     if (list && cbf) {
 	HTList *cur = list;
 	HTAlert *pres;
@@ -102,8 +100,7 @@ PUBLIC BOOL HTAlertCall_delete (HTList * list, HTAlertCallback *cbf)
 */
 PUBLIC BOOL HTAlertCall_deleteOpcode (HTList * list, HTAlertOpcode opcode)
 {
-    if (CORE_TRACE)
-	HTTrace("Alert Call.. Delete all handlers with opcode %d\n", opcode);
+    HTTRACE(CORE_TRACE, "Alert Call.. Delete all handlers with opcode %d\n" _ opcode);
     if (list) {
 	HTList * cur = list;
 	HTAlert * pres;
@@ -125,8 +122,7 @@ PUBLIC BOOL HTAlertCall_deleteOpcode (HTList * list, HTAlertOpcode opcode)
 */
 PUBLIC BOOL HTAlertCall_deleteAll (HTList * list)
 {
-    if (CORE_TRACE) 
-	HTTrace("Alert Call.. Delete All callback functions\n");
+    HTTRACE(CORE_TRACE, "Alert Call.. Delete All callback functions\n");
     if (list) {
 	HTList *cur = list;
 	HTAlert *pres;
@@ -152,8 +148,7 @@ PUBLIC HTAlertCallback * HTAlertCall_find (HTList * list, HTAlertOpcode opcode)
 	    if (pres->opcode & opcode)
 		return pres->cbf;
 	}
-	if (CORE_TRACE)
-	    HTTrace("Alert Call.. No entry found for opcode %d\n",opcode);
+	HTTRACE(CORE_TRACE, "Alert Call.. No entry found for opcode %d\n" _ opcode);
     }
     return NULL;
 }

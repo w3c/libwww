@@ -103,11 +103,10 @@ PUBLIC BOOL HTRule_add (HTList * list, HTRuleOp op,
 	    char *ptr = strchr(replace, '*');
 	    StrAllocCopy(me->replace, replace);
 	    me->insert = ptr ? ptr-replace : -1;
-	    if (APP_TRACE)
-		HTTrace("Rule Add.... For `%s\' op %d `%s\'\n",
-			 pattern, op, replace);
+	    HTTRACE(APP_TRACE, "Rule Add.... For `%s\' op %d `%s\'\n" _ 
+			 pattern _ op _ replace);
 	} else {
-	    if (APP_TRACE) HTTrace("Rule Add.... For `%s\' op %d\n", pattern, op);
+	    HTTRACE(APP_TRACE, "Rule Add.... For `%s\' op %d\n" _ pattern _ op);
 	}
 	return HTList_appendObject(list, (void *) me);
     }
@@ -148,7 +147,7 @@ PUBLIC char * HTRule_translate (HTList * list, const char * token,
     HTRule * pres;
     char * replace = NULL;
     if (!token || !list) return NULL;
-    if (APP_TRACE) HTTrace("Check rules. for `%s\'\n", token);
+    HTTRACE(APP_TRACE, "Check rules. for `%s\'\n" _ token);
     while ((pres = (HTRule *) HTList_nextObject(list))) {
 	char * rest = ignore_case ? HTStrCaseMatch(pres->pattern, token) :
 	    HTStrMatch(pres->pattern, token);
@@ -173,8 +172,7 @@ PUBLIC char * HTRule_translate (HTList * list, const char * token,
 	    }
 
 	    if (pres->op == HT_Pass) {
-		if (APP_TRACE)
-		    HTTrace("............ map into `%s'\n", replace);
+		HTTRACE(APP_TRACE, "............ map into `%s'\n" _ replace);
 		return replace;
 	    }
 	    break;
@@ -182,7 +180,7 @@ PUBLIC char * HTRule_translate (HTList * list, const char * token,
 	  case HT_Fail:
 
 	  default:
-	    if (APP_TRACE) HTTrace("............ FAIL `%s'\n", token);
+	    HTTRACE(APP_TRACE, "............ FAIL `%s'\n" _ token);
 	    return NULL;
 	}
     }
@@ -206,14 +204,13 @@ PUBLIC BOOL HTRule_parseLine (HTList * list, const char * config)
     if ((ptr = strchr(config, '#'))) *ptr = '\0';
     StrAllocCopy(line, config);				 /* Get our own copy */
     ptr = line;
-    if (APP_TRACE) HTTrace("Rule Parse.. `%s\'\n", config ? config : "<null>");
+    HTTRACE(APP_TRACE, "Rule Parse.. `%s\'\n" _ config ? config : "<null>");
     if ((word1 = HTNextField(&ptr)) == NULL) {		       /* Empty line */
 	HT_FREE(line);
 	return YES;
     }
     if ((word2 = HTNextField(&ptr)) == NULL) {
-	if (APP_TRACE)
-	    HTTrace("Rule Parse.. Insufficient operands: `%s\'\n",line);
+	HTTRACE(APP_TRACE, "Rule Parse.. Insufficient operands: `%s\'\n" _ line);
 	HT_FREE(line);
 	return NO;
     }
@@ -267,8 +264,7 @@ PUBLIC BOOL HTRule_parseLine (HTList * list, const char * config)
 	    :	0==strcasecomp(word1, "fail") ?	HT_Fail
 	    :					HT_Invalid;
 	if (op == HT_Invalid) {
-	    if (APP_TRACE)
-		HTTrace("Rule Parse.. Bad or unknown: `%s'\n", config);
+	    HTTRACE(APP_TRACE, "Rule Parse.. Bad or unknown: `%s'\n" _ config);
 	} else
 	    HTRule_add(list, op, word2, word3);
     }
@@ -347,7 +343,7 @@ PRIVATE int HTRule_free (HTStream * me)
 {
     if (me) {
 	int status = HTRule_flush(me);
-	if (APP_TRACE) HTTrace("Rules....... FREEING....\n");
+	HTTRACE(APP_TRACE, "Rules....... FREEING....\n");
 	HTChunk_delete(me->buffer);
 	HT_FREE(me);
 	return status;
@@ -359,7 +355,7 @@ PRIVATE int HTRule_abort (HTStream * me, HTList * e)
 {
     if (me) {
 	int status = HT_ERROR;
-	if (APP_TRACE) HTTrace("Rules....... ABORTING...\n");
+	HTTRACE(APP_TRACE, "Rules....... ABORTING...\n");
 	HTChunk_delete(me->buffer);
 	HT_FREE(me);
 	return status;
@@ -399,7 +395,7 @@ PUBLIC HTStream * HTRules (HTRequest *	request,
     if ((cbf && (*cbf)(request,HT_A_CONFIRM, HT_MSG_RULES, NULL,NULL,NULL))) {
 #endif
 	HTStream * me;
-	if (APP_TRACE) HTTrace("Rule file... Parser object created\n");
+	HTTRACE(APP_TRACE, "Rule file... Parser object created\n");
 	if ((me = (HTStream *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
 	    HT_OUTOFMEM("HTRules");
 	me->isa = &HTRuleClass;
@@ -426,7 +422,7 @@ PUBLIC HTStream * HTRules_parseAutomatically (HTRequest *	request,
 {
     if (request) {
 	HTStream * me;
-	if (APP_TRACE) HTTrace("Rule file... Automatic parser object created\n");
+	HTTRACE(APP_TRACE, "Rule file... Automatic parser object created\n");
 	if ((me = (HTStream *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
 	    HT_OUTOFMEM("HTRules");
 	me->isa = &HTRuleClass;

@@ -41,7 +41,7 @@ PRIVATE int HTXParse_put_string (HTStream * me, const char * s)
 {
     int l = strlen(s);
 
-    if (STREAM_TRACE) HTTrace("HTXParse_put_string, %s\n",s);
+    HTTRACE(STREAM_TRACE, "HTXParse_put_string, %s\n" _ s);
 
     while ((me->eps->used + l) > (me->eps->length + 1)) {
 	me->eps->length += INPUT_BUFFER_SIZE;
@@ -65,21 +65,20 @@ PRIVATE int HTXParse_write (HTStream * me, const char * s, int l)
     me->eps->used += l;
     me->eps->buffer[me->eps->used] = '\0'; /* null-terminate string */
     (*(me->eps->call_client))(me->eps);       /* client can give status info */
-    if (STREAM_TRACE)
-	HTTrace("HTXParse_write, l=%d, used = %d\n",l,me->eps->used);
+    HTTRACE(STREAM_TRACE, "HTXParse_write, l=%d, used = %d\n" _ l _ me->eps->used);
     return HT_OK;
 }
 
 
 PRIVATE int HTXParse_flush (HTStream * me)
 {
-    if (STREAM_TRACE) HTTrace("HTXParse_flush\n");
+    HTTRACE(STREAM_TRACE, "HTXParse_flush\n");
     return HT_OK;
 }
 
 PRIVATE int HTXParse_free (HTStream * me)
 {
-    if (STREAM_TRACE) HTTrace("HTXParse_free\n");
+    HTTRACE(STREAM_TRACE, "HTXParse_free\n");
     me->eps->finished = YES;
     (*(me->eps->call_client))(me->eps);           /* client will free buffer */
     HT_FREE(me->eps);
@@ -89,8 +88,7 @@ PRIVATE int HTXParse_free (HTStream * me)
 
 PRIVATE int HTXParse_abort (HTStream * me, HTList * e)
 {
-    if (STREAM_TRACE)
-	HTTrace("HTXParse_abort\n");
+    HTTRACE(STREAM_TRACE, "HTXParse_abort\n");
     HTXParse_free(me);				  /* Henrik Nov 2 94 */
     return HT_ERROR;
 }
@@ -120,14 +118,16 @@ PUBLIC HTStream* HTXParse (HTRequest *	request,
 {
     HTStream* me;
   
+#ifdef HTDEBUG
     if (STREAM_TRACE) {
-	HTTrace("HTXConvert..");
+	HTTRACE(STREAM_TRACE, "HTXConvert..");
 	if (input_format && input_format->name)
-            HTTrace(".. input format is %s",input_format->name);
+            HTTRACE(STREAM_TRACE, ".. input format is %s" _ input_format->name);
 	if (output_format && output_format->name)
-            HTTrace(".. output format is %s",output_format->name);
-	HTTrace("\n");
+            HTTRACE(STREAM_TRACE, ".. output format is %s" _ output_format->name);
+	HTTRACE(STREAM_TRACE, "\n");
     }
+#endif /* HTDEBUG */
 
     if ((me = (HTStream *) HT_CALLOC(1, sizeof(*me))) == NULL)
         HT_OUTOFMEM("HTXConvert");

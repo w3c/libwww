@@ -138,9 +138,8 @@ PUBLIC BOOL HTIcon_add (const char * url, const char * prefix,
 	if (!icons) icons = HTList_new();
 	HTList_addObject(icons, (void *) node);
 	alt_resize(alt);
-	if (PROT_TRACE)
-	    HTTrace("AddIcon..... %s => SRC=\"%s\" ALT=\"%s\"\n",
-		    type_templ,url, alt ? alt : "");
+	HTTRACE(PROT_TRACE, "AddIcon..... %s => SRC=\"%s\" ALT=\"%s\"\n" _ 
+		    type_templ _ url _ alt ? alt : "");
 	return YES;
     }
     return NO;
@@ -158,8 +157,7 @@ PUBLIC BOOL HTIcon_addUnknown (const char * url, const char * prefix,
     if (url) icon_unknown->icon_url = prefixed(url, prefix);
     if (alt) StrAllocCopy(icon_unknown->icon_alt, alt);
     alt_resize(alt);
-    if (PROT_TRACE)
-	HTTrace("Icon add.... UNKNOWN => SRC=\"%s\" ALT=\"%s\"\n",url,
+    HTTRACE(PROT_TRACE, "Icon add.... UNKNOWN => SRC=\"%s\" ALT=\"%s\"\n" _ url _ 
 		alt ? alt : "");
     return YES;
 }
@@ -175,8 +173,7 @@ PUBLIC BOOL HTIcon_addBlank (const char * url, const char * prefix, char * alt)
     if (url) icon_blank->icon_url = prefixed(url, prefix);
     if (alt) StrAllocCopy(icon_blank->icon_alt, alt);
     alt_resize(alt);
-    if (PROT_TRACE)
-	HTTrace("Icon add.... BLANK => SRC=\"%s\" ALT=\"%s\"\n",url,
+    HTTRACE(PROT_TRACE, "Icon add.... BLANK => SRC=\"%s\" ALT=\"%s\"\n" _ url _ 
 		alt ? alt : "");
     return YES;
 }
@@ -192,8 +189,7 @@ PUBLIC BOOL HTIcon_addParent (const char * url, const char * prefix, char * alt)
     if (url) icon_parent->icon_url = prefixed(url, prefix);
     if (alt) StrAllocCopy(icon_parent->icon_alt, alt);
     alt_resize(alt);
-    if (PROT_TRACE)
-	HTTrace("Icon add.... PARENT => SRC=\"%s\" ALT=\"%s\"\n",url,
+    HTTRACE(PROT_TRACE, "Icon add.... PARENT => SRC=\"%s\" ALT=\"%s\"\n" _ url _ 
 		alt ? alt : "");
     return YES;
 }
@@ -209,8 +205,7 @@ PUBLIC BOOL HTIcon_addDir (const char * url, const char * prefix, char * alt)
     if (url) icon_dir->icon_url = prefixed(url, prefix);
     if (alt) StrAllocCopy(icon_dir->icon_alt, alt);
     alt_resize(alt);
-    if (PROT_TRACE)
-	HTTrace("Icon add.... DIRECTORY => SRC=\"%s\" ALT=\"%s\"\n",url,
+    HTTRACE(PROT_TRACE, "Icon add.... DIRECTORY => SRC=\"%s\" ALT=\"%s\"\n" _ url _ 
 		alt ? alt : "");
     return YES;
 }

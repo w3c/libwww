@@ -38,17 +38,17 @@ PUBLIC HTLog * HTLog_open (const char * filename, BOOL local, BOOL append)
 {
     HTLog * log;
     if (!filename || !*filename) {
-	if (APP_TRACE) HTTrace("Log......... No log file given\n");
+	HTTRACE(APP_TRACE, "Log......... No log file given\n");
 	return NULL;
     }
 
     if ((log = (HTLog *) HT_CALLOC(1, sizeof(HTLog))) == NULL)
         HT_OUTOFMEM("HTLog_open");
 
-    if (APP_TRACE) HTTrace("Log......... Open log file `%s\'\n", filename);
+    HTTRACE(APP_TRACE, "Log......... Open log file `%s\'\n" _ filename);
     log->fp = fopen(filename, append ? "a" : "w");
     if (!log->fp) {
-	if (APP_TRACE) HTTrace("Log......... Can't open log file `%s\'\n", filename);
+	HTTRACE(APP_TRACE, "Log......... Can't open log file `%s\'\n" _ filename);
 	HT_FREE(log);
 	return NULL;
     }
@@ -65,7 +65,7 @@ PUBLIC BOOL HTLog_close (HTLog * log)
 {
     if (log && log->fp) {
 	int status;
-	if (APP_TRACE) HTTrace("Log......... Closing log file %p\n", log->fp);
+	HTTRACE(APP_TRACE, "Log......... Closing log file %p\n" _ log->fp);
 	status = fclose(log->fp);
 	HT_FREE(log);
 	return (status != EOF);
@@ -94,7 +94,7 @@ PUBLIC BOOL HTLog_addCLF (HTLog * log, HTRequest * request, int status)
 	time_t now = time(NULL);	
 	HTParentAnchor * anchor = HTRequest_anchor(request);
 	char * uri = HTAnchor_address((HTAnchor *) anchor);
-	if (APP_TRACE) HTTrace("Log......... Writing CLF log\n");
+	HTTRACE(APP_TRACE, "Log......... Writing CLF log\n");
 	fprintf(log->fp, "localhost - - [%s] %s %s %d %ld\n",
 		HTDateTimeStr(&now, log->localtime),
 		HTMethod_name(HTRequest_method(request)),
@@ -123,7 +123,7 @@ PUBLIC BOOL HTLog_addReferer (HTLog * log, HTRequest * request, int status)
 	if (parent_anchor) {
 	    char * me = HTAnchor_address((HTAnchor *) HTRequest_anchor(request));
 	    char * parent = HTAnchor_address((HTAnchor *) parent_anchor);
-	    if (APP_TRACE) HTTrace("Log......... Writing Referer log\n");
+	    HTTRACE(APP_TRACE, "Log......... Writing Referer log\n");
 	    if (me && parent && *parent) {
 		fprintf(log->fp, "%s -> %s\n", parent, me);
 	    }

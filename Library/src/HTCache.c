@@ -153,7 +153,7 @@ PRIVATE BOOL startGC (void)
 PRIVATE BOOL HTCacheGarbage (void)
 {
     long old_size = HTCacheContentSize;
-    if (CACHE_TRACE) HTTrace("Cache....... Garbage collecting\n");
+    HTTRACE(CACHE_TRACE, "Cache....... Garbage collecting\n");
     if (CacheTable) {
 	time_t cur_time = time(NULL);
 	HTList * cur;
@@ -175,7 +175,7 @@ PRIVATE BOOL HTCacheGarbage (void)
 	**  the size and also the pain it took to get the document in the first
 	**  case. It could also include max_stale.
 	*/
-	if (CACHE_TRACE) HTTrace("Cache....... Collecting Stale entries\n");
+	HTTRACE(CACHE_TRACE, "Cache....... Collecting Stale entries\n");
 	for (cnt=0; cnt<HT_XL_HASH_SIZE; cnt++) {
 	    if ((cur = CacheTable[cnt])) { 
 		HTList * old_cur = cur;
@@ -200,12 +200,11 @@ PRIVATE BOOL HTCacheGarbage (void)
 	**  dead lock ourselves. We start from the bottom up by taking
 	**  all the documents with 0 hits, 1 hits, 2 hits, etc.
 	*/
-	if (CACHE_TRACE) HTTrace("Cache....... Collecting least used entries\n");
+	HTTRACE(CACHE_TRACE, "Cache....... Collecting least used entries\n");
 	hits = 0;
 	while (startGC()) {
 	    BOOL removed = NO;
-	    if (CACHE_TRACE)
-		HTTrace("Cache....... Collecting entries with %d hits\n",hits);
+	    HTTRACE(CACHE_TRACE, "Cache....... Collecting entries with %d hits\n" _ hits);
 	    for (cnt=0; cnt<HT_XL_HASH_SIZE; cnt++) {
 		if ((cur = CacheTable[cnt])) { 
 		    HTList * old_cur = cur;
@@ -225,9 +224,8 @@ PRIVATE BOOL HTCacheGarbage (void)
 	    if (!removed) break;
 	    hits++;
 	}
-	if (CACHE_TRACE)
-	    HTTrace("Cache....... Size reduced from %ld to %ld\n",
-		    old_size, HTCacheContentSize);
+	HTTRACE(CACHE_TRACE, "Cache....... Size reduced from %ld to %ld\n" _ 
+		    old_size _ HTCacheContentSize);
 	/*
 	**  Dump the new content to the index file
 	*/
@@ -280,7 +278,7 @@ PUBLIC BOOL HTCacheIndex_write (const char * cache_root)
     if (cache_root && CacheTable) {
 	char * index = cache_index_name(cache_root);
 	FILE * fp = NULL;
-	if (CACHE_TRACE) HTTrace("Cache Index. Writing index `%s\'\n", index);
+	HTTRACE(CACHE_TRACE, "Cache Index. Writing index `%s\'\n" _ index);
 
 	/*
 	**  Open the file for writing. Note - we don't take a backup!
@@ -288,8 +286,7 @@ PUBLIC BOOL HTCacheIndex_write (const char * cache_root)
 	*/
 	if (!index) return NO;
 	if ((fp = fopen(index, "wb")) == NULL) {
-	    if (CACHE_TRACE)
-		HTTrace("Cache Index. Can't open `%s\' for writing\n", index);
+	    HTTRACE(CACHE_TRACE, "Cache Index. Can't open `%s\' for writing\n" _ index);
 	    HT_FREE(index);
 	    return NO;
 	}
@@ -319,8 +316,7 @@ PUBLIC BOOL HTCacheIndex_write (const char * cache_root)
 				    (long) (pres->response_time),
 				    (long) (pres->corrected_initial_age),
 				    pres->must_revalidate+0x30) < 0) {
-			    if (CACHE_TRACE)
-				HTTrace("Cache Index. Error writing cache index\n");
+			    HTTRACE(CACHE_TRACE, "Cache Index. Error writing cache index\n");
 			    return NO;
 			}
 		    }
@@ -380,7 +376,7 @@ PRIVATE BOOL HTCacheIndex_parseLine (char * line)
 		   &cache->response_time,
 		   &cache->corrected_initial_age,
 		   &validate) < 0) {
-	    if (CACHE_TRACE) HTTrace("Cache Index. Error reading cache index\n");
+	    HTTRACE(CACHE_TRACE, "Cache Index. Error reading cache index\n");
 	    return NO;
 	}
 	cache->range = range-0x30;
@@ -492,7 +488,7 @@ PRIVATE int HTCacheIndex_free (HTStream * me)
 {
     if (me) {
 	int status = HTCacheIndex_flush(me);
-	if (APP_TRACE) HTTrace("Cache Index. FREEING....\n");
+	HTTRACE(APP_TRACE, "Cache Index. FREEING....\n");
 	HTChunk_delete(me->buffer);
 	HT_FREE(me);
 	return status;
@@ -504,7 +500,7 @@ PRIVATE int HTCacheIndex_abort (HTStream * me, HTList * e)
 {
     if (me) {
 	int status = HT_ERROR;
-	if (APP_TRACE) HTTrace("Cache Index. ABORTING...\n");
+	HTTRACE(APP_TRACE, "Cache Index. ABORTING...\n");
 	HTChunk_delete(me->buffer);
 	HT_FREE(me);
 	return status;
@@ -595,15 +591,14 @@ PRIVATE BOOL create_cache_root (const char * cache_root)
 	*cur = '\0';
 	if (create || HT_STAT(loc, &stat_info) == -1) {
 	    create = YES;		   /* To avoid doing stat()s in vain */
-	    if (CACHE_TRACE) HTTrace("Cache....... Creating dir `%s\'\n", loc);
+	    HTTRACE(CACHE_TRACE, "Cache....... Creating dir `%s\'\n" _ loc);
 	    if (MKDIR(loc, 0777) < 0) {
-		if (CACHE_TRACE) HTTrace("Cache....... can't create\n");
+		HTTRACE(CACHE_TRACE, "Cache....... can't create\n");
 		HT_FREE(loc);
 		return NO;
 	    }
 	} else {
-	    if (CACHE_TRACE)
-		HTTrace("Cache....... dir `%s\' already exists\n", loc);
+	    HTTRACE(CACHE_TRACE, "Cache....... dir `%s\' already exists\n" _ loc);
 	}
 	*cur++ = DIR_SEPARATOR_CHAR;
     }
@@ -645,7 +640,7 @@ PRIVATE BOOL HTCacheMode_setRoot (const char * cache_root)
         HT_FREE(addr);
     }
     if (create_cache_root(HTCacheRoot) == NO) return NO;
-    if (CACHE_TRACE) HTTrace("Cache Root.. Local root set to `%s\'\n", HTCacheRoot);
+    HTTRACE(CACHE_TRACE, "Cache Root.. Local root set to `%s\'\n" _ HTCacheRoot);
     return YES;
 }
 
@@ -675,7 +670,7 @@ PRIVATE BOOL HTCache_getSingleUserLock (const char * root)
 	strcat(location, HT_CACHE_LOCK);
 	if ((fp = fopen(location, "r")) != NULL) {
 	    HTAlertCallback *cbf = HTAlert_find(HT_A_CONFIRM);
-	    HTTrace("Cache....... In `%s\' is already in use\n", root);
+	    HTTRACE(CACHE_TRACE, "Cache....... In `%s\' is already in use\n" _ root);
 	    fclose(fp);
             if (cbf) {
                 BOOL result = (*cbf)(NULL, HT_A_CONFIRM,
@@ -692,7 +687,7 @@ PRIVATE BOOL HTCache_getSingleUserLock (const char * root)
             }
 	}
 	if ((fp = fopen(location, "w")) == NULL) {
-	    HTTrace("Cache....... Can't open `%s\' for writing\n", location);
+	    HTTRACE(CACHE_TRACE, "Cache....... Can't open `%s\' for writing\n" _ location);
 	    HT_FREE(location);
 	    return NO;
 	}
@@ -902,9 +897,8 @@ PUBLIC BOOL HTCacheMode_setMaxSize (int size)
     HTCacheFolderSize = HTCacheTotalSize/HT_CACHE_FOLDER_PCT;
     HTCacheGCBuffer = HTCacheTotalSize/HT_CACHE_GC_PCT;
     if (new_size < old_size) HTCacheGarbage();
-    if (CACHE_TRACE)
-	HTTrace("Cache....... Total cache size: %ld with %ld bytes for metainformation and folders and at least %ld bytes free after every gc\n",
-		HTCacheTotalSize, HTCacheFolderSize, HTCacheGCBuffer);
+    HTTRACE(CACHE_TRACE, "Cache....... Total cache size: %ld with %ld bytes for metainformation and folders and at least %ld bytes free after every gc\n" _ 
+		HTCacheTotalSize _ HTCacheFolderSize _ HTCacheGCBuffer);
     return YES;
 }
 
@@ -924,11 +918,10 @@ PUBLIC BOOL HTCacheMode_setMaxCacheEntrySize (int size)
 	long old_size = HTCacheMaxEntrySize;
 	HTCacheMaxEntrySize = new_size;
 	if (new_size < old_size) HTCacheGarbage();
-	if (CACHE_TRACE)
-	    HTTrace("Cache...... Max entry cache size is %ld\n", HTCacheMaxEntrySize);
+	HTTRACE(CACHE_TRACE, "Cache...... Max entry cache size is %ld\n" _ HTCacheMaxEntrySize);
 	return YES;
     }
-    if (CACHE_TRACE) HTTrace("Cache...... Max entry cache size is unchanged\n");
+    HTTRACE(CACHE_TRACE, "Cache...... Max entry cache size is unchanged\n");
     return NO;
 }
 
@@ -952,7 +945,7 @@ PRIVATE BOOL free_object (HTCache * me)
 
 PRIVATE BOOL delete_object (HTList * list, HTCache * me)
 {
-    if (CACHE_TRACE) HTTrace("Cache....... delete %p from list %p\n",me, list);
+    HTTRACE(CACHE_TRACE, "Cache....... delete %p from list %p\n" _ me _ list);
     HTList_removeObject(list, (void *) me);
     HTCacheContentSize -= me->size;
     free_object(me);
@@ -982,14 +975,13 @@ PRIVATE BOOL HTCache_createLocation (HTCache * me)
 	*/
 	sprintf(path, "%s%d", HTCacheRoot, me->hash);
 	if (HT_STAT(path, &stat_info) == -1) {
-	    if (CACHE_TRACE) HTTrace("Cache....... Create dir `%s\'\n", path);
+	    HTTRACE(CACHE_TRACE, "Cache....... Create dir `%s\'\n" _ path);
 	    if (MKDIR(path, 0777) < 0) {
-		if (CACHE_TRACE) HTTrace("Cache....... Can't create...\n");
+		HTTRACE(CACHE_TRACE, "Cache....... Can't create...\n");
 		status = NO;
 	    }
 	} else {
-	    if (CACHE_TRACE)
-		HTTrace("Cache....... Directory `%s\' already exists\n", path);
+	    HTTRACE(CACHE_TRACE, "Cache....... Directory `%s\' already exists\n" _ path);
 	}
 
 	/*
@@ -1067,12 +1059,8 @@ PRIVATE BOOL calculate_time (HTCache * me, HTRequest * request,
 	    }
 	    me->freshness_lifetime = HTMAX(0, freshness_lifetime);
 	}
-	if (CACHE_TRACE) {
-	    HTTrace("Cache....... Received Age %d, corrected %d, freshness lifetime %d\n",
-		    HTAnchor_age(anchor),
-		    me->corrected_initial_age,
-		    me->freshness_lifetime);
-	}
+	HTTRACE(CACHE_TRACE, "Cache....... Received Age %d, corrected %d, freshness lifetime %d\n" _
+		HTAnchor_age(anchor) _ me->corrected_initial_age _ me->freshness_lifetime);
 	return YES;
     }
     return NO;
@@ -1089,7 +1077,7 @@ PRIVATE HTCache * HTCache_new (HTRequest * request, HTResponse * response,
     int hash = 0;
     char * url = NULL;
     if (!request || !response || !anchor) {
-	if (CORE_TRACE) HTTrace("Cache....... Bad argument\n");
+	HTTRACE(CORE_TRACE, "Cache....... Bad argument\n");
 	return NULL;
     }
     
@@ -1131,7 +1119,7 @@ PRIVATE HTCache * HTCache_new (HTRequest * request, HTResponse * response,
 
     if (HTCache_hasLock(pres)) {
 	if (HTCache_breakLock(pres, request) == NO) {
-	    if (CACHE_TRACE) HTTrace("Cache....... Entry %p already in use\n");
+	    HTTRACE(CACHE_TRACE, "Cache....... Entry %p already in use\n");
 	    return pres;
 	}
     }
@@ -1165,7 +1153,7 @@ PUBLIC HTCache * HTCache_touch (HTRequest * request, HTResponse * response,
 
     /* Get a new cache entry */
     if ((cache = HTCache_new(request, response, anchor)) == NULL) {
-	if (CACHE_TRACE) HTTrace("Cache....... Can't get a cache object\n");
+	HTTRACE(CACHE_TRACE, "Cache....... Can't get a cache object\n");
 	return NULL;
     }
 
@@ -1200,13 +1188,13 @@ PRIVATE int HTCacheFilter (HTRequest * request, void * param, int mode)
     **  If the cache is disabled all together then it won't help looking, huh?
     */
     if (!HTCacheMode_enabled()) return HT_OK;
-    if (CACHE_TRACE) HTTrace("Cachefilter. Checking persistent cache\n");
+    HTTRACE(CACHE_TRACE, "Cachefilter. Checking persistent cache\n");
 
     /*
     **  Now check the cache...
     */
     if (method != METHOD_GET) {
-	if (CACHE_TRACE) HTTrace("Cachefilter. We only check GET methods\n");
+	HTTRACE(CACHE_TRACE, "Cachefilter. We only check GET methods\n");
     } else if (reload == HT_CACHE_FLUSH) {
 	/*
 	** If the mode if "Force Reload" then don't even bother to check the
@@ -1329,7 +1317,7 @@ PRIVATE int  HTCacheUpdateFilter (HTRequest * request, HTResponse * response,
 	**  told us that we can't cache the entity anymore. If this is the
 	**  case then flush it now. Otherwise prepare for a cache read
 	*/
-	if (CACHE_TRACE) HTTrace("Cache....... Merging metainformation\n");
+	HTTRACE(CACHE_TRACE, "Cache....... Merging metainformation\n");
 	if (HTResponse_isCachable(response) == HT_NO_CACHE) {
 	    HTCache_remove(cache);
 	} else {
@@ -1411,7 +1399,7 @@ PRIVATE BOOL HTCache_setSize (HTCache * cache, long written, BOOL append)
 	**  Now add the new size to the total cache size. If the new size is
 	**  bigger than the legal cache size then start the gc.
 	*/
-	if (CACHE_TRACE) HTTrace("Cache....... Total size %ld\n", HTCacheContentSize);
+	HTTRACE(CACHE_TRACE, "Cache....... Total size %ld\n" _ HTCacheContentSize);
 	if (startGC()) HTCacheGarbage();
 	return YES;
     }
@@ -1449,8 +1437,8 @@ PUBLIC HTCache * HTCache_find (HTParentAnchor * anchor)
 	    HTList * cur = list;
 	    while ((pres = (HTCache *) HTList_nextObject(cur))) {
 		if (!strcmp(pres->url, url)) {
-		    if (CACHE_TRACE) HTTrace("Cache....... Found %p hits %d\n",
-					     pres, pres->hits);
+		    HTTRACE(CACHE_TRACE, "Cache....... Found %p hits %d\n" _ 
+					     pres _ pres->hits);
 		    break;
 		}
 	    }
@@ -1587,7 +1575,7 @@ PRIVATE BOOL meta_write (FILE * fp, HTRequest * request, HTResponse * response)
 		    strcasecomp(name, "transfer-encoding") &&
 		    strcasecomp(name, "upgrade")) {
 		    if (fprintf(fp, "%s: %s\n", name, HTAssoc_value(pres)) < 0) {
-			if (CACHE_TRACE) HTTrace("Cache....... Error writing metainfo\n");
+			HTTRACE(CACHE_TRACE, "Cache....... Error writing metainfo\n");
 			return NO;
 		    }
 		}
@@ -1598,7 +1586,7 @@ PRIVATE BOOL meta_write (FILE * fp, HTRequest * request, HTResponse * response)
 	**  Terminate the header with a newline
 	*/
 	if (fprintf(fp, "\n") < 0) {
-	    if (CACHE_TRACE) HTTrace("Cache....... Error writing metainfo\n");
+	    HTTRACE(CACHE_TRACE, "Cache....... Error writing metainfo\n");
 	    return NO;
 	}
 	return YES;
@@ -1618,13 +1606,12 @@ PUBLIC BOOL HTCache_writeMeta (HTCache * cache, HTRequest * request,
 	FILE * fp;
 	char * name = HTCache_metaLocation(cache);
 	if (!name) {
-	    if (CACHE_TRACE) HTTrace("Cache....... Invalid cache entry\n");
+	    HTTRACE(CACHE_TRACE, "Cache....... Invalid cache entry\n");
 	    HTCache_remove(cache);
 	    return NO;
 	}
 	if ((fp = fopen(name, "wb")) == NULL) {
-	    if (CACHE_TRACE)
-		HTTrace("Cache....... Can't open `%s\' for writing\n", name);
+	    HTTRACE(CACHE_TRACE, "Cache....... Can't open `%s\' for writing\n" _ name);
 	    HTCache_remove(cache);
 	    HT_FREE(name);	    
 	    return NO;
@@ -1644,7 +1631,7 @@ PRIVATE BOOL meta_read (FILE * fp, HTRequest * request, HTStream * target)
 	char buffer[512];
 	while (1) {
 	    if ((status = fread(buffer, 1, 512, fp)) <= 0) {
-		if (PROT_TRACE) HTTrace("Cache....... Meta information loaded\n");
+		HTTRACE(PROT_TRACE, "Cache....... Meta information loaded\n");
 		return YES;
 	    }
 	
@@ -1658,7 +1645,7 @@ PRIVATE BOOL meta_read (FILE * fp, HTRequest * request, HTStream * target)
 		return YES;
 	    }
 	    if (status < 0) {
-		if (PROT_TRACE) HTTrace("Cache....... Target ERROR %d\n", status);
+		HTTRACE(PROT_TRACE, "Cache....... Target ERROR %d\n" _ status);
 		break;
 	    }
 	}
@@ -1678,14 +1665,13 @@ PRIVATE BOOL HTCache_readMeta (HTCache * cache, HTRequest * request)
 	FILE * fp;
 	char * name = HTCache_metaLocation(cache);
 	if (!name) {
-	    if (CACHE_TRACE) HTTrace("Cache....... Invalid meta name\n", name);
+	    HTTRACE(CACHE_TRACE, "Cache....... Invalid meta name\n" _ name);
 	    HTCache_remove(cache);
 	    return NO;
 	}
-	if (CACHE_TRACE) HTTrace("Cache....... Looking for `%s\'\n", name);
+	HTTRACE(CACHE_TRACE, "Cache....... Looking for `%s\'\n" _ name);
 	if ((fp = fopen(name, "rb")) == NULL) {
-	    if (CACHE_TRACE)
-		HTTrace("Cache....... Can't open `%s\' for reading\n", name);
+	    HTTRACE(CACHE_TRACE, "Cache....... Can't open `%s\' for reading\n" _ name);
 	    HTCache_remove(cache);
 	    HT_FREE(name);	    
 	} else {
@@ -1817,7 +1803,7 @@ PUBLIC HTReload HTCache_isFresh (HTCache * cache, HTRequest * request)
 	if (cache->range) {
 	    char buf[20];
 	    sprintf(buf, "%ld-", cache->size);
-	    if (CACHE_TRACE) HTTrace("Cache....... Asking for range `%s\'\n", buf);
+	    HTTRACE(CACHE_TRACE, "Cache....... Asking for range `%s\'\n" _ buf);
 	    HTRequest_addRange(request, "bytes", buf);
 	    HTRequest_addRqHd(request, HT_C_RANGE);	    
 	    return HT_CACHE_RANGE_VALIDATE;
@@ -1855,12 +1841,12 @@ PUBLIC HTReload HTCache_isFresh (HTCache * cache, HTRequest * request)
 	    ** given in the request cache control header is followed.
 	    */
 	    if (max_age >= 0 && current_age > max_age) {
-		if (CACHE_TRACE) HTTrace("Cache....... Max-age validation\n");
+		HTTRACE(CACHE_TRACE, "Cache....... Max-age validation\n");
 		return HT_CACHE_VALIDATE;
 	    }
 	    if (min_fresh >= 0 &&
 		cache->freshness_lifetime < current_age + min_fresh) {
-		if (CACHE_TRACE) HTTrace("Cache....... Min-fresh validation\n");
+		HTTRACE(CACHE_TRACE, "Cache....... Min-fresh validation\n");
 		return HT_CACHE_VALIDATE;
 	    }
 
@@ -1880,7 +1866,7 @@ PUBLIC HTReload HTCache_isFresh (HTCache * cache, HTRequest * request)
 PUBLIC BOOL HTCache_getLock (HTCache * cache, HTRequest * request)
 {
     if (cache && request) {
-	if (CACHE_TRACE) HTTrace("Cache....... Locking cache entry %p\n", cache);
+	HTTRACE(CACHE_TRACE, "Cache....... Locking cache entry %p\n" _ cache);
 	cache->lock = request;
 	return YES;
     }
@@ -1890,7 +1876,7 @@ PUBLIC BOOL HTCache_getLock (HTCache * cache, HTRequest * request)
 PUBLIC BOOL HTCache_releaseLock (HTCache * cache)
 {
     if (cache) {
-	if (CACHE_TRACE) HTTrace("Cache....... Unlocking cache entry %p\n", cache);
+	HTTRACE(CACHE_TRACE, "Cache....... Unlocking cache entry %p\n" _ cache);
 	cache->lock = NULL;
 	return YES;
     }
@@ -1906,8 +1892,7 @@ PUBLIC BOOL HTCache_breakLock (HTCache * cache, HTRequest * request)
 {
     if (cache && cache->lock) {
 	if (cache->lock == request) {
-	    if (CACHE_TRACE)
-		HTTrace("Cache....... Breaking lock on entry %p\n", cache);
+	    HTTRACE(CACHE_TRACE, "Cache....... Breaking lock on entry %p\n" _ cache);
 	    cache->lock = NULL;
 	    return YES;
 	}
@@ -1945,8 +1930,8 @@ PUBLIC BOOL HTCache_addHit (HTCache * cache)
 {
     if (cache) {
 	cache->hits++;
-	if (CACHE_TRACE) HTTrace("Cache....... Hits for %p is %d\n",
-				 cache, cache->hits);
+	HTTRACE(CACHE_TRACE, "Cache....... Hits for %p is %d\n" _ 
+				 cache _ cache->hits);
 	return YES;
     }
     return NO;
@@ -2015,7 +2000,7 @@ PRIVATE int HTCache_free (HTStream * me)
 
 PRIVATE int HTCache_abort (HTStream * me, HTList * e)
 {
-    if (CACHE_TRACE) HTTrace("Cache....... ABORTING\n");
+    HTTRACE(CACHE_TRACE, "Cache....... ABORTING\n");
     free_stream(me, YES);
     return HT_ERROR;
 }
@@ -2065,14 +2050,14 @@ PRIVATE HTStream * HTCacheStream (HTRequest * request, BOOL append)
 
     /* If cache is not enabled then exit now */
     if (!HTCacheEnable || !HTCacheInitialized) {
-	if (CACHE_TRACE) HTTrace("Cache....... Not enabled\n");
+	HTTRACE(CACHE_TRACE, "Cache....... Not enabled\n");
 	return NULL;
     }
 
     /* don't cache protected documents */
     if (HTRequest_credentials (request) && !HTCacheProtected) {
-      if (CACHE_TRACE) HTTrace("Cache....... won't cache protected objects\n");
-      return NULL;
+	HTTRACE(CACHE_TRACE, "Cache....... won't cache protected objects\n");
+	return NULL;
     }
 
     /*
@@ -2080,20 +2065,20 @@ PRIVATE HTStream * HTCacheStream (HTRequest * request, BOOL append)
     ** to be too big.
     */
     if (HTAnchor_length(anchor) > HTCacheMaxEntrySize) {
-	if (CACHE_TRACE) HTTrace("Cache....... Entry is too big - won't cache\n");
+	HTTRACE(CACHE_TRACE, "Cache....... Entry is too big - won't cache\n");
 	return NULL;
     }
 
     /* Get a new cache entry */
     if ((cache = HTCache_new(request, response, anchor)) == NULL) {
-	if (CACHE_TRACE) HTTrace("Cache....... Can't get a cache object\n");
+	HTTRACE(CACHE_TRACE, "Cache....... Can't get a cache object\n");
 	return NULL;
     }
 
     /* Test that the cached object is not locked */
     if (HTCache_hasLock(cache)) {
 	if (HTCache_breakLock(cache, request) == NO) {
-	    if (CACHE_TRACE) HTTrace("Cache....... Entry already in use\n");
+	    HTTRACE(CACHE_TRACE, "Cache....... Entry already in use\n");
 	    return NULL;
 	}
     }
@@ -2104,14 +2089,12 @@ PRIVATE HTStream * HTCacheStream (HTRequest * request, BOOL append)
     ** existed then it will be overridden with the new data.
     */
     if ((fp = fopen(cache->cachename, append ? "ab" : "wb")) == NULL) {
-	if (CACHE_TRACE)
-	    HTTrace("Cache....... Can't open `%s\' for writing\n", cache->cachename);
+	HTTRACE(CACHE_TRACE, "Cache....... Can't open `%s\' for writing\n" _ cache->cachename);
 	HTCache_delete(cache);
 	return NULL;
     } else {
-	if (CACHE_TRACE)
-	    HTTrace("Cache....... %s file `%s\'\n",
-		    append ? "Append to" : "Creating", cache->cachename);
+	HTTRACE(CACHE_TRACE, "Cache....... %s file `%s\'\n" _ 
+		    append ? "Append to" : "Creating" _ cache->cachename);
     }
 
     /* Set up the stream */
@@ -2209,7 +2192,7 @@ PUBLIC int HTLoadCache (SOCKET soc, HTRequest * request)
     ** This is actually state CACHE_BEGIN, but it can't be in the state
     ** machine as we need the structure first.
     */
-    if (PROT_TRACE) HTTrace("Load Cache.. Looking for `%s\'\n",
+    HTTRACE(PROT_TRACE, "Load Cache.. Looking for `%s\'\n" _ 
 			    HTAnchor_physical(anchor));
     if ((cache = (cache_info *) HT_CALLOC(1, sizeof(cache_info))) == NULL)
 	HT_OUTOFMEM("HTLoadCACHE");
@@ -2226,8 +2209,8 @@ PRIVATE int ReturnEvent (HTTimer * timer, void * param, HTEventType type)
 {
     cache_info * cache = (cache_info *) param;
     if (timer != cache->timer)
-	HTDebugBreak(__FILE__, __LINE__, "File timer %p not in sync\n", timer);
-    if (PROT_TRACE) HTTrace("HTLoadCache. Continuing %p with timer %p\n", cache, timer);
+	HTDEBUGBREAK("File timer %p not in sync\n" _ timer);
+    HTTRACE(PROT_TRACE, "HTLoadCache. Continuing %p with timer %p\n" _ cache _ timer);
 
     /*
     **  Delete the timer
@@ -2270,8 +2253,7 @@ PRIVATE int CacheEvent (SOCKET soc, void * pVoid, HTEventType type)
 
 	case CL_BEGIN:
 	    if (HTLib_secure()) {
-		if (PROT_TRACE)
-		    HTTrace("Load Cache.. No access to local file system\n");
+		HTTRACE(PROT_TRACE, "Load Cache.. No access to local file system\n");
 		cache->state = CL_ERROR;
 		break;
 	    }
@@ -2290,15 +2272,14 @@ PRIVATE int CacheEvent (SOCKET soc, void * pVoid, HTEventType type)
 		if ((host = HTHost_new("cache", 0)) == NULL) return HT_ERROR;
 		HTNet_setHost(net, host);
 		if (HTHost_addNet(host, net) == HT_PENDING)
-		    if (PROT_TRACE) HTTrace("HTLoadCache. Pending...\n");
+		    HTTRACE(PROT_TRACE, "HTLoadCache. Pending...\n");
 	    }
 	    cache->state = CL_NEED_BODY;
 	    break;
 
 	case CL_NEED_BODY:
 	    if (HT_STAT(cache->local, &cache->stat_info) == -1) {
-		if (PROT_TRACE)
-		    HTTrace("Load Cache.. Not found `%s\'\n", cache->local);
+		HTTRACE(PROT_TRACE, "Load Cache.. Not found `%s\'\n" _ cache->local);
 		HTRequest_addError(request, ERR_FATAL, NO, HTERR_NOT_FOUND,
 				   NULL, 0, "HTLoadCache");
 		cache->state = CL_ERROR;
@@ -2347,10 +2328,10 @@ PRIVATE int CacheEvent (SOCKET soc, void * pVoid, HTEventType type)
 		if (HTEvent_isCallbacksRegistered()) {
 		    if (!HTRequest_preemptive(request)) {
 			if (!HTNet_preemptive(net)) {
-			    if (PROT_TRACE) HTTrace("HTLoadCache. Returning\n");
+			    HTTRACE(PROT_TRACE, "HTLoadCache. Returning\n");
 			    HTHost_register(HTNet_host(net), net, HTEvent_READ);
 			} else if (!cache->timer) {
-			    if (PROT_TRACE) HTTrace("HTLoadCache. Returning\n");
+			    HTTRACE(PROT_TRACE, "HTLoadCache. Returning\n");
 			    cache->timer = HTTimer_new(NULL, ReturnEvent, cache, 1, YES, NO);
 			}
 			return HT_OK;

@@ -143,7 +143,7 @@ PUBLIC int HTMemoryCacheFilter (HTRequest * request, void * param, int mode)
     **  We only check the memory cache if it's a GET method
     */
     if (HTRequest_method(request) != METHOD_GET) {
-	if (CACHE_TRACE) HTTrace("Mem Cache... We only check GET methods\n");
+	HTTRACE(CACHE_TRACE, "Mem Cache... We only check GET methods\n");
 	return HT_OK;
     }
 
@@ -153,7 +153,7 @@ PUBLIC int HTMemoryCacheFilter (HTRequest * request, void * param, int mode)
     **  then just exit from this filter.
     */
     if (!document || validation > HT_CACHE_FLUSH_MEM) {
-	if (CACHE_TRACE) HTTrace("Mem Cache... No fresh document...\n");
+	HTTRACE(CACHE_TRACE, "Mem Cache... No fresh document...\n");
 	return HT_OK;
     }
 
@@ -163,7 +163,7 @@ PUBLIC int HTMemoryCacheFilter (HTRequest * request, void * param, int mode)
     **  we can add a cache validator
     */
     if (document && validation != HT_CACHE_FLUSH_MEM) {
-	if (CACHE_TRACE) HTTrace("Mem Cache... Document already in memory\n");
+	HTTRACE(CACHE_TRACE, "Mem Cache... Document already in memory\n");
 	return HT_LOADED;
     }
     return HT_OK;
@@ -185,8 +185,7 @@ PUBLIC int HTInfoFilter (HTRequest * request, HTResponse * response,
         HTAlertCallback *cbf = HTAlert_find(HT_A_MESSAGE);
 	if (cbf) (*cbf)(request, HT_A_MESSAGE, HT_MSG_NULL, NULL,
 			HTRequest_error(request), NULL);
-	if (PROT_TRACE)
-	    HTTrace("Load End.... NOT AVAILABLE, RETRY AT %ld\n",
+	HTTRACE(PROT_TRACE, "Load End.... NOT AVAILABLE, RETRY AT %ld\n" _ 
 		    HTResponse_retryTime(response));
         }
         break;
@@ -199,14 +198,13 @@ PUBLIC int HTInfoFilter (HTRequest * request, HTResponse * response,
 	HTAlertCallback *cbf = HTAlert_find(HT_A_MESSAGE);
 	if (cbf) (*cbf)(request, HT_A_MESSAGE, HT_MSG_NULL, NULL,
 			HTRequest_error(request), NULL);
-	if (PROT_TRACE)
-	    HTTrace("Load End.... EMPTY: No content `%s\'\n",
+	HTTRACE(PROT_TRACE, "Load End.... EMPTY: No content `%s\'\n" _ 
 		    uri ? uri : "<UNKNOWN>");
 	break;
     }    
 
     case HT_LOADED:
-	if (PROT_TRACE) HTTrace("Load End.... OK: `%s\'\n", uri);
+	HTTRACE(PROT_TRACE, "Load End.... OK: `%s\'\n" _ uri);
 	break;
 
     default:
@@ -218,8 +216,7 @@ PUBLIC int HTInfoFilter (HTRequest * request, HTResponse * response,
 	HTAlertCallback *cbf = HTAlert_find(HT_A_MESSAGE);
 	if (cbf) (*cbf)(request, HT_A_MESSAGE, HT_MSG_NULL, NULL,
 			HTRequest_error(request), NULL);
-	if (PROT_TRACE)
-	    HTTrace("Load End.... Request ended with code %d\n", status);
+	HTTRACE(PROT_TRACE, "Load End.... Request ended with code %d\n" _ status);
 	break;
     }
     }
@@ -239,7 +236,7 @@ PUBLIC int HTRedirectFilter (HTRequest * request, HTResponse * response,
     HTMethod method = HTRequest_method(request); 
     HTAnchor * new_anchor = HTResponse_redirection(response); 
     if (!new_anchor) {
-	if (PROT_TRACE) HTTrace("Redirection. No destination\n");
+	HTTRACE(PROT_TRACE, "Redirection. No destination\n");
 	return HT_OK;
     }
 
@@ -254,8 +251,7 @@ PUBLIC int HTRedirectFilter (HTRequest * request, HTResponse * response,
 	** Otherwise ask the user whether we should continue.
 	*/
 	if (status == HT_SEE_OTHER) {
-	    if (PROT_TRACE)
-		HTTrace("Redirection. Changing method from %s to GET\n",
+	    HTTRACE(PROT_TRACE, "Redirection. Changing method from %s to GET\n" _ 
 			HTMethod_name(method));
 	    HTRequest_setMethod(request, METHOD_GET);
 	} else {
@@ -305,7 +301,7 @@ PUBLIC int HTUseProxyFilter (HTRequest * request, HTResponse * response,
     HTAlertCallback * cbf = HTAlert_find(HT_A_CONFIRM);
     HTAnchor * proxy_anchor = HTResponse_redirection(response); 
     if (!proxy_anchor) {
-	if (PROT_TRACE) HTTrace("Use Proxy... No proxy location\n");
+	HTTRACE(PROT_TRACE, "Use Proxy... No proxy location\n");
 	return HT_OK;
     }
 
@@ -359,7 +355,7 @@ PUBLIC int HTCredentialsFilter (HTRequest * request, void * param, int mode)
     ** that understands this scheme
     */
     if (HTAA_beforeFilter(request, param, mode) == HT_OK) {
-	if (PROT_TRACE) HTTrace("Credentials. verified\n");
+	HTTRACE(PROT_TRACE, "Credentials. verified\n");
 	return HT_OK;
     } else {
 	HTRequest_addError(request, ERR_FATAL, NO, HTERR_UNAUTHORIZED,

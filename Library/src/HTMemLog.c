@@ -21,6 +21,14 @@
 #define OPEN_FLAGS	O_WRONLY|O_CREAT|O_TRUNC
 #endif
 
+#ifdef HTDEBUG
+
+#ifdef USE_SYSLOG
+#define PRINT_BUFF_SIZE	8200
+#else /* USE_SYSLOG */
+#define PRINT_BUFF_SIZE	200
+#endif /* !USE_SYSLOG */
+
 PRIVATE size_t		LogBuffSize = 1024; /* default size is 1k */
 PRIVATE int		LogFd = 2;
 PRIVATE const char *	LogName = NULL;
@@ -29,24 +37,45 @@ PRIVATE size_t		LogLen = 0;
 PRIVATE BOOL		KeepOpen = YES;
 PRIVATE HTTimer *	Timer = NULL;
 
+#ifdef USE_EXCLUDES
+typedef struct {char * str; int len;} StrIndexIndex;
+
+PRIVATE StrIndexIndex Excludes[] = {{"HTReader_read", 13}, {"HTWriter_write", 14}, {"HTEventList_loop", 16}};
+
+PRIVATE int StrIndex (char * str, StrIndexIndex element[], int elements)
+{
+    int i;
+    for (i = 0; i < elements; i++)
+	if (!strncmp(element[i].str, str, element[i].len))
+	    return i + 1;
+    return 0;
+}
+#endif /* USE_EXCLUDES */
+
 PRIVATE int MemLogTimeout (HTTimer * timer, void * param, HTEventType type)
 {
     int ret;
- 
-    if (CORE_TRACE) HTTrace("MemLog...... flushing on timeout\n");
+    HTTRACE(CORE_TRACE, "MemLog...... flushing on timeout\n");
     ret = HTMemLog_flush();
-
-#if 0
-    /*	Force flush */
-    if (close(LogFd) == -1 || (LogFd = open(LogName, OPEN_FLAGS, 0666)) == -1)
-	return HT_ERROR;
-#endif
-
     return ret;
 }
 
+PRIVATE ms_t HTMemLog_addTime(void)
+{
+    char buff[20];
+    ms_t ms = HTGetTimeInMillis();
+    int len = sprintf(buff, "%lu", ms);
+    HTMemLog_add(buff, len);
+    return ms;
+}
+
+#endif /* HTDEBUG */
+
+/* ------------------------------------------------------------------------- */
+
 PUBLIC int HTMemLog_open (char * logName, size_t size, BOOL keepOpen)
 {
+#ifdef HTDEBUG
 #ifdef USE_SYSLOG
     openlog(LogName, LOG_NDELAY, LOG_USER);
 #else /* USE_SYSLOG */
@@ -63,11 +92,13 @@ PUBLIC int HTMemLog_open (char * logName, size_t size, BOOL keepOpen)
 #endif /* !USE_SYSLOG */
     HTTraceData_setCallback(HTMemLog_callback);
     Timer = HTTimer_new(NULL, MemLogTimeout, NULL, 10000, YES, YES);
+#endif /* HTDEBUG */
     return HT_OK;
 }
 
 PUBLIC int HTMemLog_flush(void)
 {
+#ifdef HTDEBUG
     if (LogLen) {
 	if (!KeepOpen)
 	    if ((LogFd = open(LogName, O_WRONLY|O_CREAT|O_APPEND, 0666)) == -1)
@@ -75,13 +106,14 @@ PUBLIC int HTMemLog_flush(void)
 	write(LogFd, LogBuff, LogLen);
 	LogLen = 0;
     }
-    if (!KeepOpen)
-	close(LogFd);
+    if (!KeepOpen) close(LogFd);
+#endif /* HTDEBUG */
     return HT_OK;
 }
 
 PUBLIC int HTMemLog_add(char * buf, size_t len)
 {
+#ifdef HTDEBUG
     if (LogBuff) {
 	/*
 	**	Dump everything that won't fit in buffer
@@ -99,54 +131,28 @@ PUBLIC int HTMemLog_add(char * buf, size_t len)
 	return HT_OK;
     }
     return HT_ERROR;
-}
-
-PRIVATE ms_t HTMemLog_addTime(void)
-{
-    char buff[20];
-    ms_t ms = HTGetTimeInMillis();
-    int len = sprintf(buff, "%lu", ms);
-    HTMemLog_add(buff, len);
-    return ms;
+#else
+    return HT_OK;
+#endif /* HTDEBUG */
 }
 
 PUBLIC void HTMemLog_close (void)
 {
+#ifdef HTDEBUG
 #ifdef USE_SYSLOG
     closelog();
 #else /* USE_SYSLOG */
     HTMemLog_flush();
-    if (LogFd > 2)
-	close(LogFd);
-    if (LogBuff != NULL)
-	HT_FREE(LogBuff);
+    if (LogFd > 2) close(LogFd);
+    if (LogBuff != NULL) HT_FREE(LogBuff);
 #endif /* !USE_SYSLOG */
+#endif
 }
 
-#ifdef USE_SYSLOG
-#define PRINT_BUFF_SIZE	8200
-#else /* USE_SYSLOG */
-#define PRINT_BUFF_SIZE	200
-#endif /* !USE_SYSLOG */
-
-#ifdef USE_EXCLUDES
-typedef struct {char * str; int len;} StrIndexIndex;
-
-PRIVATE int StrIndex (char * str, StrIndexIndex element[], int elements)
-{
-    int i;
-    for (i = 0; i < elements; i++)
-	if (!strncmp(element[i].str, str, element[i].len))
-	    return i + 1;
-    return 0;
-}
-
-PRIVATE StrIndexIndex Excludes[] = {{"HTReader_read", 13}, {"HTWriter_write", 14}, {"HTEventList_loop", 16}};
-
-#endif /* USE_EXCLUDES */
 
 PUBLIC int HTMemLog_callback (char * data, size_t len, char * fmt, va_list pArgs)
 {
+#ifdef HTDEBUG
     char buff[PRINT_BUFF_SIZE];
     int ret;
 #ifdef USE_EXCLUDES
@@ -180,5 +186,8 @@ PUBLIC int HTMemLog_callback (char * data, size_t len, char * fmt, va_list pArgs
     HTMemLog_add("\n", 1);
 #endif /* !USE_SYSLOG */
     return ret;
+#else
+    return 0;
+#endif /* HTDEBUG */
 }
 

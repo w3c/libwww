@@ -11,7 +11,7 @@ PRIVATE int Kwik_put_block (HTStream * me, const char * b, int l)
 	if ((space = (char *) HT_CALLOC(l+1, sizeof(char))) == NULL)
 	    HT_OUTOFMEM("char");
     memcpy(space, b, l);
-    HTTrace(space);
+    HTPrint(space);
     HT_FREE(space);
     return HT_OK;
 }
@@ -23,7 +23,7 @@ PRIVATE int Kwik_put_character (HTStream * me, char c)
 
 PRIVATE int Kwik_put_string (HTStream * me, const char * s)
 {
-    HTTrace(s);
+    HTPrint(s);
     return HT_OK;
 }
 

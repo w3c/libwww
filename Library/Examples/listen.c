@@ -76,14 +76,14 @@ PRIVATE void Cleanup (ListenTool * me, int status)
 
 PRIVATE void VersionInfo (const char * name)
 {
-    HTTrace("\nW3C OpenSource Software");
-    HTTrace("\n-----------------------\n\n");
-    HTTrace("\tListen tool version %s\n", APP_VERSION);
-    HTTrace("\tusing the W3C libwww library version %s.\n\n",HTLib_version());
-    HTTrace("Format\n\n");
-    HTTrace("\t%s -port n [-v[sopt]] [-version]\n\n", name ? name : "listen");
-    HTTrace("Please send feedback to the <www-lib@w3.org> mailing list,\n");
-    HTTrace("see \"http://www.w3.org/Library/#Forums\" for details\n\n");
+    HTPrint("\nW3C OpenSource Software");
+    HTPrint("\n-----------------------\n\n");
+    HTPrint("\tListen tool version %s\n", APP_VERSION);
+    HTPrint("\tusing the W3C libwww library version %s.\n\n",HTLib_version());
+    HTPrint("Format\n\n");
+    HTPrint("\t%s -port n [-v[sopt]] [-version]\n\n", name ? name : "listen");
+    HTPrint("Please send feedback to the <www-lib@w3.org> mailing list,\n");
+    HTPrint("see \"http://www.w3.org/Library/#Forums\" for details\n\n");
 }
 
 PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
@@ -92,7 +92,7 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
     /* We are done with this request */
     HTRequest_delete(request);
 
-    if (status == HT_ERROR) HTTrace("Can't listen on this port\n");
+    if (status == HT_ERROR) HTPrint("Can't listen on this port\n");
 
     /* Terminate libwww */
     HTProfile_delete();
@@ -175,9 +175,9 @@ int main (int argc, char ** argv)
 				  HTFWriter_new(ms->request, OUTPUT, YES));
 
 	/* Start listening on the socket */
-	HTTrace("Listening on port %d\n", ms->port);
+	HTPrint("Listening on port %d\n", ms->port);
 	if ((status = HTServeAbsolute("noop://localhost", ms->request)) == NO) {
-	    HTTrace("Can't listen on port %d\n", ms->port);
+	    HTPrint("Can't listen on port %d\n", ms->port);
 	    Cleanup(ms, -1);
 	}
 

@@ -122,7 +122,7 @@ PRIVATE int HTMuxBuffer_free (HTOutputStream * me)
 PRIVATE int HTMuxBuffer_abort (HTOutputStream * me, HTList * e)
 {
     if (me->target) (*me->target->isa->abort)(me->target, e);
-    if (PROT_TRACE) HTTrace("MUX Tx...... ABORTING...\n");
+    HTTRACE(PROT_TRACE, "MUX Tx...... ABORTING...\n");
     return HT_ERROR;
 }
 

@@ -198,8 +198,7 @@ PUBLIC HTSQLLog * HTSQLLog_open (const char * 	host,
 {
     HTSQLLog * me = NULL;
     if (!host || !user || !pw || !db) {
-	if (SQL_TRACE)
-	    HTTrace("SQLLog...... Missing SQLLog host, user, password, or db\n");
+	HTTRACE(SQL_TRACE, "SQLLog...... Missing SQLLog host, user, password, or db\n");
 	return NULL;
     }
     if ((me = (HTSQLLog *) HT_CALLOC(1, sizeof(HTSQLLog))) == NULL)

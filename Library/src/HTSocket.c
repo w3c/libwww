@@ -54,8 +54,7 @@ PRIVATE int RawCleanup (HTRequest * request, int status)
     HTNet * listen = HTRequest_net(request);
     raw_info * raw = (raw_info *) HTNet_context(listen);
 
-    if (PROT_TRACE)
-	HTTrace("Raw clean... Called with status %d, net %p\n", status, raw->accepted);
+    HTTRACE(PROT_TRACE, "Raw clean... Called with status %d, net %p\n" _ status _ raw->accepted);
 
     if (status == HT_INTERRUPTED) {
     	HTAlertCallback * cbf = HTAlert_find(HT_PROG_INTERRUPT);
@@ -95,7 +94,7 @@ PUBLIC int HTLoadSocket (SOCKET soc, HTRequest * request)
 {
     raw_info * raw;			    /* Specific protocol information */
     HTNet * net = HTRequest_net(request);
-    if (PROT_TRACE) HTTrace("Load socket. Setting up socket for accept\n");
+    HTTRACE(PROT_TRACE, "Load socket. Setting up socket for accept\n");
     if ((raw = (raw_info *) HT_CALLOC(1, sizeof(raw_info))) == NULL)
       HT_OUTOFMEM("HTLoadSocket");
     raw->state = RAW_BEGIN;
@@ -190,7 +189,7 @@ PRIVATE int SocketEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    break;
 
 	default:
-	    HTDebugBreak(__FILE__, __LINE__, "Bad raw state %d\n", raw->state);
+	    HTDEBUGBREAK("Bad raw state %d\n" _ raw->state);
 	}
     }
     return HT_OK;
