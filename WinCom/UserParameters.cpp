@@ -82,12 +82,6 @@ PUBLIC BOOL UserProgress (HTRequest * request, HTAlertOpcode op,
         sprintf(space, "UNKNOWN PROGRESS STATE\n");
         break;
     }
-#if 0
-    if (inside) return YES;
-    inside = 1;
-    MessageBox(pView->hWnd, space, "HTProgress", MB_OK);
-    inside = 0;
-#endif
     return YES;
 }
 

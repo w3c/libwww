@@ -1261,7 +1261,14 @@ PUBLIC int HTHost_register (HTHost * host, HTNet * net, HTEventType type)
 	    if (host->registeredFor & HTEvent_BITS(type))
 		return YES;
 	    host->registeredFor ^= HTEvent_BITS(type);
-	    /* JK:  register a request in the event structure */
+
+#ifdef WWW_WIN_ASYNC
+            /* Make sure we are registered for CLOSE on windows */
+	    event =  *(host->events+HTEvent_INDEX(HTEvent_CLOSE));
+	    HTEvent_register(HTChannel_socket(host->channel), HTEvent_CLOSE, event);
+#endif /* WWW_WIN_ASYNC */
+            
+            /* JK:  register a request in the event structure */
 	    event =  *(host->events+HTEvent_INDEX(type));
 	    event->request = HTNet_request (net);
 	    return HTEvent_register(HTChannel_socket(host->channel),
