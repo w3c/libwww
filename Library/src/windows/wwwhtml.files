@@ -2,3 +2,7 @@ HTMLPDTD.c
 SGML.c
 HTMLGen.c
 HTTeXGen.c
+HTPlain.c
+HTML.c
+HText.c
+HTHInit.c

@@ -27,9 +27,9 @@ def-clean:
 	test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 
 def: $(BUILT_SOURCES)
-	
+
 .files.def:
-	$(top_srcdir)/config/makedefs.pl -headerEXPORTS -d$(srcdir)/.. @$(srcdir)/$(*F).files > $(srcdir)/$(*F).def
+	perl $(top_srcdir)/config/makedefs.pl -headerEXPORTS -d$(srcdir)/.. @$(srcdir)/$(*F).files > $(srcdir)/$(*F).def
 
 
 
