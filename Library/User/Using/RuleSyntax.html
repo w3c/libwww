@@ -1,0 +1,249 @@
+<HTML>
+<HEAD>
+<TITLE>User Guide - Rule File Syntax</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 21-Nov-1995 -->
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
+
+<H1>Rule File Syntax</H1>
+
+This section described the syntax of a rule file as supported by the <A
+HREF="../../Implementation/HTRules.html">Rule File manager</A> in the Library. Please read the
+section on <A HREF="Rules.html">Rule Files</A> for a full description of the rule file API.
+
+<H2>File Suffix Bindings</H2>
+
+The W3C Reference Library can use suffixes to discover the content-type, content-encoding and
+content-language of a file. The Library contains a <A HREF="../../Implementation/HTBInit.html">long
+list of commonly used file suffix types</A> but the application doesn't have to use this. In any
+case, the following configuration directives can be used to add new suffix bindings and override
+existing defaults:
+
+<UL>
+<LI><A HREF="#AddType"><CODE>AddType</CODE></A> - Filename suffix mappings to MIME Content-Types
+<LI><A HREF="#AddEncoding"><CODE>AddEncoding</CODE></A> - Filename suffix mappings to MIME Content-Encodings
+<LI><A HREF="#AddLanguage"><CODE>AddLanguage</CODE></A> - Multi language support, suffix mappings to different Content-Languages
+</UL>
+
+<A NAME="AddType"><H3>Binding Suffixes to MIME Content-Types</H3></A>
+
+As well as any mapping lines in the rule file, the rule file may be used to define the data types of
+files with particular suffixes. The Library has an extensive set of <A
+HREF="../../Implementation/HTBInit.c">predefined suffixes</A>, but applications do not need to use
+this. The syntax is:
+
+<PRE>
+	AddType <I>.suffix representation encoding</I> [<I>quality</I>]
+</PRE>
+
+The parameters are as follows:
+
+<DL>
+<DT><I>suffix</I>
+<DD>The last part of the filename.  There are two special cases.  <CODE>*.*</CODE> matches to all
+files which have not been matched by any explicit suffixes but do contain a file suffix delimiter. A
+file suffix delimiter is often a dot &lt;.&gt; but it can be defined as an arbitrary character,
+please see the <A HREF="../../Implementation/HTBind.html">Suffix Binding Module</A> for
+details. <CODE>*</CODE> by itself matches to any file which does not match any other suffix. <P>
+
+<DT><I>representation</I>
+<DD>A MIME Content-Type style description of the representation in fact in use in the file.  See the
+HTTP spec.  This need not be a real MIME type - it will only be used if it matches a type given by a
+client. <P>
+
+<DT><I>encoding</I>
+<DD>A MIME content transfer encoding type.  Much more limited in variety than representations,
+basically whether the file is ASCII (7bit or 8bit) or binary. A few other encodings are allowed, and
+maybe extension to compression. <P>
+
+<DT><I>quality</I>
+<DD>Optional. A floating point number between 0.0 and 1.0 which determines the relative merits of
+files <CODE>xxx.*</CODE> which differ in their suffix only, when a link to <CODE>xxx.multi</CODE> is being
+resolved.  Defaults to 1.0. <P>
+
+</DL> 
+
+<H4>Examples</H4>
+<PRE>
+	AddType	.html	text/html		8bit	1.0
+	AddType	.text	text/plain		7bit	0.9
+	AddType	.ps	application/postscript	8bit	1.0
+	AddType	*.*	application/binary	binary	0.1
+	AddType	*	text/plain		7bit
+</PRE>
+
+<A NAME="AddEncoding"><H3>Binding Suffixes to MIME Content-Encodings</H3></A>
+
+Suffixes are also used to determine the Content-Encoding of a file (<CODE>.Z</CODE> suffix for
+<CODE>x-compressed</CODE>, for example).  Syntax is:
+
+<PRE>
+	AddEncoding <I>.suffix  encoding</I>
+</PRE>
+
+<H4>Example</H4>
+
+<PRE>
+	AddEncoding .Z  x-compress
+</PRE>
+
+<A NAME="AddLanguage"><H3>Multi language Support</H3></A>
+
+Multi language support is also built on using suffixes to determine the language of a document.
+Suffix is bound to a language by <CODE>AddLanguage</CODE> rule (<CODE>.en</CODE> suffix for English,
+for example). Syntax is:
+
+<PRE>
+	AddLanguage <I>.suffix  encoding</I>
+</PRE>
+
+<H4>Examples</H4>
+
+<PRE>
+	AddLanguage	.en	en
+	AddLanguage	.dk	dk
+</PRE>
+
+<H2>External Viewers and Presenters</H3>
+
+In order to expand the set of content types that can be handled by an application, you can specify a
+set of external viewers which can handle specific content types. This is for example often the case
+for postscript viewers etc. This is quite similar to a mail cap file, but the Library doesn't have a
+real Mail cap file parser.
+
+<PRE>
+	Presentation <I>representation command</I> [<I>quality</I>]
+</PRE>
+
+<H4>Example</H4>
+
+<PRE>
+	Presentation application/postscript	ghostview	0.5
+</PRE>
+
+<H2>Proxy Servers and Gateways</H2>
+
+You can also specify proxies and gateway using the Library rule file. You can read more about how
+the Library handles proxies and gateways in the <A HREF="Proxy.html">User's Guide</A>.
+
+<H3>Proxies</H3>
+
+Proxies can be set up as follows:
+
+<PRE>
+	Proxy		<I>scheme	proxy</I>
+</PRE>
+
+And the parameters are:
+
+<DL>
+<DT><I>scheme</I>
+
+<DD>The first part of a URL, for example <B>http</B>, <B>ftp</B>, or <B>gopher</B>. Remember that
+access schemes are case sensitive!
+
+<DT><I>proxy</I> <DD>A <B>full</B> URL specifying where the application can go in order to access
+the resource. When saying a full URL, it means that you must use the normal URL syntax as specified
+by RFC 1831. Note in the example below that the access scheme differs from the scheme we want to
+proxy!
+
+</DL> 
+
+<H4>Examples</H4>
+
+<PRE>
+	Proxy	http	http://proxy.foo.com:8000/
+	Proxy	ftp	http://proxy.foo.com:8000/
+	Proxy	gopher	http://proxy.foo.com:8000/
+</PRE>
+
+You can also specify a set of domains where we shouldn't go via a proxy server even though the rules
+indicated by the <CODE>proxy</CODE> directive above indicates that we should. Often you want to be
+able to handle a few exceptions from the proxy rule - especially if the remote host is either very
+close or on a high bandwidth connection.
+
+<PRE>
+	NoProxy		<I>hostname	scheme	port</I>
+</PRE>
+
+Registers a host name or a domain as a place where no proxy should be contacted - for example a very
+fast link. If <CODE>port</CODE> is not indicated then it applies to all ports.
+
+<H3>Gateways</H3>
+
+Gateways can be set much like proxies:
+
+<PRE>
+	Gateway		<I>scheme	gateway</I>
+</PRE>
+
+<H4>Examples</H4>
+
+<PRE>
+	Gateway	wais	http://www.w3.org:8001/
+</PRE>
+
+<H2>URL Mapping Rules</H2>
+
+Rules define the mapping between virtual URLs and physical file names. Currently the following rules
+are understood:
+
+<UL>
+
+<LI><A HREF="#Map"><CODE>Map</CODE></A> - Map URLs to actual files
+<LI><A HREF="#Pass"><CODE>Pass</CODE></A> - Accept a request
+<LI><A HREF="#Fail"><CODE>Fail</CODE></A> - Fail a request
+</UL>
+
+<H3>Mapping, Passing and Failing</H3>
+
+There are three main rules: <CODE>Map,</CODE> <CODE>Pass</CODE> and <CODE>Fail.</CODE> The server
+uses the top rule first, then <STRONG>each successive rule</STRONG> unless told otherwise by a
+<CODE>Pass</CODE> or a <CODE>Fail</CODE> rule. <P>
+
+<DL>
+
+<DT><A NAME="Map"><CODE>Map </CODE> <I>template result</I></A>
+<DD>If the address matches the <I>template</I>, use the <I>result</I> string from now on for future
+rules.
+
+<DT><A NAME="Pass"><CODE>Pass </CODE> <I>template</I></A>
+<DD>If the address matches the <I>template</I>, use it as it is, processing no further rules.
+
+<DT><CODE>Pass </CODE> <I>template result</I>
+<DD>If the string matches the <I>template</I>, use the <I>result</I> string as it is, processing no
+further rules.
+
+<DT><A NAME="Fail"><CODE>Fail </CODE> <I>template</I></A>
+<DD>If the address matches the <I>template</I>, prohibit access, processing no further rules.
+
+</DL>
+
+When matching,
+<UL>
+
+<LI>Rules are scanned from the top of the file to the bottom.
+
+<LI>If a request matches a <CODE>Map</CODE> template exactly, the result string is used instead of
+the original string and applied to successive rules.
+
+<LI>If the request matches a <CODE>Map</CODE> <I>template</I> with wild card, then the text of the
+request which matches the wild card is inserted in place of the wild card in the <I>result</I> string
+to form the translated request. If the result string has no wild card, it is used as it is.
+
+<LI>When a <CODE>Map</CODE> substitution takes place, the rule scan continues with the next rule
+using the new string in place of the request.  This is not the case if a <CODE>Pass</CODE> or
+<CODE>Fail</CODE> is matched: they terminate the rule scan.
+
+</UL>
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, January 1996</ADDRESS>
+</BODY>
+</HTML>
