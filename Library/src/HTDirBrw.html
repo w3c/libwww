@@ -67,8 +67,6 @@ typedef enum _HTDirShow {
 } HTDirShow;
 </PRE>
 
-The icon filenames are defined in the module.
-
 <H3>How long can filenames be</H3>
 The filename column varies within the boundaries specified as global
 variables in HTDirBrw.c; filenames greated than
@@ -78,7 +76,6 @@ extern int HTDirMaxFileLength;
 extern int HTDirMinFileLength;
 </PRE>
 
-
 <H3>Show byte count for small files</H3>
 By default the size for files smaller than 1K will be shown as 1K.
 If the global variable <CODE>HTDirShowBytes</CODE> is set to true,
@@ -86,16 +83,6 @@ they will be shown as bytes.
 <PRE>
 extern BOOL HTDirShowBytes;
 </PRE>
-
-
-<H3>Show brackets around alternative text</H3>
-By default alternative text is bracketed by square brackets (the
-<CODE>ALT</CODE> tag to <CODE>IMG</CODE> element).  Setting the global
-<CODE>HTDirShowBrackets</CODE> to false will turn this feature off.
-<PRE>
-extern BOOL HTDirShowBrackets;
-</PRE>
-
 
 <H3>Descriptions</H3>
 
@@ -169,73 +156,9 @@ extern int HTFTPBrowseDirectory PARAMS((
 		HTDirLineInput  input));
 </PRE>
 
-<H2>Icons</H2>
-
-Icons are bound to MIME content-types and encoding.  These functions
-bind icon URLs to given content-type or encoding templates.  Templates
-containing a slash are taken to be content-type templates, other are
-encoding templates. <P>
-
-All of these functions take an absolute URL and alternate text to use. <P>
-
-<PRE>
-/*
- * General icon binding.  Use this icon if content-type or encoding
- * matches template.
- */
-PUBLIC void HTAddIcon PARAMS((char *	url,
-			      char *	alt,
-			      char *	type_templ));
-
-/*
- * Icon for which no other icon can be used.
- */
-PUBLIC void HTAddUnknownIcon PARAMS((char * url,
-				     char * alt));
-
-/*
- * Invisible icon for the listing header field to make it aligned
- * with the rest of the listing (this doesn't have to be blank).
- */
-PUBLIC void HTAddBlankIcon PARAMS((char * url,
-				   char * alt));
-
-/*
- * Icon to use for parent directory.
- */
-PUBLIC void HTAddParentIcon PARAMS((char * url,
-				    char * alt));
-
-/*
- * Icon to use for a directory.
- */
-PUBLIC void HTAddDirIcon PARAMS((char * url,
-			         char * alt));
-</PRE>
-
-
-<H4>A Predifined Set of Icons</H4>
-The function <CODE>HTStdIconInit(url_prefix)</CODE> can be used to
-initialize a standard icon set:
-<UL>
-<LI> <CODE>blank.xbm</CODE> for the blank icon
-<LI> <CODE>directory.xbm</CODE> for directory icon
-<LI> <CODE>back.xbm</CODE> for parent directory
-<LI> <CODE>unknown.xbm</CODE> for unknown icon
-<LI> <CODE>binary.xbm</CODE> for binary files
-<LI> <CODE>text.xbm</CODE> for ascii files
-<LI> <CODE>image.xbm</CODE> for image files
-<LI> <CODE>movie.xbm</CODE> for video files
-<LI> <CODE>sound.xbm</CODE> for audio files
-<LI> <CODE>tar.xbm</CODE> for tar and gtar files
-<LI> <CODE>compressed.xbm</CODE> for compressed and gzipped files
-</UL>
-<PRE>
-PUBLIC void HTStdIconInit PARAMS((char * url_prefix));
-</PRE>
-
 <PRE>
 #endif /* HTDIRBRW */
 </PRE>
+end
 </BODY>
 </HTML>

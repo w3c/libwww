@@ -1,0 +1,120 @@
+<HTML>
+<HEAD>
+<TITLE>Icon Management</TITLE>
+</HEAD>
+<BODY>
+<H1>Icon Management</H1>
+<PRE>
+#ifndef HTICONS_H
+#define HTICONS_H
+</PRE>
+
+<H2>Icons</H2>
+
+Icons are bound to MIME content-types and encoding.  These functions
+bind icon URLs to given content-type or encoding templates.  Templates
+containing a slash are taken to be content-type templates, other are
+encoding templates. <P>
+ 
+<H2>Controlling globals</H2>
+
+<H3>Show brackets around alternative text</H3>
+By default alternative text is bracketed by square brackets (the
+<CODE>ALT</CODE> tag to <CODE>IMG</CODE> element).  Setting the global
+<CODE>HTDirShowBrackets</CODE> to false will turn this feature off.
+
+<PRE>
+typedef struct _HTIconNode {
+    char *	icon_url;
+    char *	icon_alt;
+    char *	type_templ;
+} HTIconNode;
+</PRE>
+
+<PRE>
+extern BOOL HTDirShowBrackets;
+extern HTIconNode * icon_unknown; 		/* Unknown file type */
+extern HTIconNode * icon_blank;			/* Blank icon in heading */
+extern HTIconNode * icon_parent;	        /* Parent directory icon */
+extern HTIconNode * icon_dir;                   /* Directory icon */
+</PRE>
+
+<H2>Public functions</H2>
+
+All of these functions take an absolute URL and alternate text to use. <P>
+
+<PRE>
+/* Generates the alt-tag */
+PUBLIC char * HTIcon_alt_string PARAMS((char * alt,
+				        BOOL   brackets));
+
+/*
+ * General icon binding.  Use this icon if content-type or encoding
+ * matches template.
+ */
+PUBLIC void HTAddIcon PARAMS((char *	url,
+			      char *	alt,
+			      char *	type_templ));
+
+/*
+ * Icon for which no other icon can be used.
+ */
+PUBLIC void HTAddUnknownIcon PARAMS((char * url,
+				     char * alt));
+
+/*
+ * Invisible icon for the listing header field to make it aligned
+ * with the rest of the listing (this doesn't have to be blank).
+ */
+PUBLIC void HTAddBlankIcon PARAMS((char * url,
+				   char * alt));
+
+/*
+ * Icon to use for parent directory.
+ */
+PUBLIC void HTAddParentIcon PARAMS((char * url,
+				    char * alt));
+
+/*
+ * Icon to use for a directory.
+ */
+PUBLIC void HTAddDirIcon PARAMS((char * url,
+			         char * alt));
+
+/*								 HTGetIcon()
+** returns the icon corresponding to content_type or content_encoding.
+*/
+PUBLIC HTIconNode * HTGetIcon PARAMS((mode_t	mode,
+				      HTFormat	content_type,
+				      HTFormat	content_encoding));
+
+</PRE>
+
+
+<H4>A Predifined Set of Icons</H4>
+The function <CODE>HTStdIconInit(url_prefix)</CODE> can be used to
+initialize a standard icon set:
+<UL>
+<LI> <CODE>blank.xbm</CODE> for the blank icon
+<LI> <CODE>directory.xbm</CODE> for directory icon
+<LI> <CODE>back.xbm</CODE> for parent directory
+<LI> <CODE>unknown.xbm</CODE> for unknown icon
+<LI> <CODE>binary.xbm</CODE> for binary files
+<LI> <CODE>text.xbm</CODE> for ascii files
+<LI> <CODE>image.xbm</CODE> for image files
+<LI> <CODE>movie.xbm</CODE> for video files
+<LI> <CODE>sound.xbm</CODE> for audio files
+<LI> <CODE>tar.xbm</CODE> for tar and gtar files
+<LI> <CODE>compressed.xbm</CODE> for compressed and gzipped files
+</UL>
+<PRE>
+PUBLIC void HTStdIconInit PARAMS((char * url_prefix));
+</PRE>
+
+<PRE>
+#endif /* HTICONS */
+</PRE>
+end
+</BODY>
+</HTML>
+

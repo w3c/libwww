@@ -4,6 +4,8 @@
 ** History:
 **	26 Sep 90	Adapted from other accesses (News, HTTP) TBL
 **	29 Nov 91	Downgraded to C, for portable implementation.
+**	28 Apr 94	target no more global and icons implemented
+**			HF, frystyk@dxcern.cern.ch
 */
 
 /* Implements:
@@ -39,7 +41,7 @@
 #include "HTUtils.h"		/* Coding convention macros */
 #include "tcp.h"
 
-
+#include "HTIcons.h"
 #include "HTParse.h"
 #include "HTFormat.h"
 #include "HTTCP.h"
@@ -49,19 +51,20 @@
 */
 #include "HTML.h"
 
-#define PUTC(c) (*targetClass.put_character)(target, c)
-#define PUTS(s) (*targetClass.put_string)(target, s)
-#define START(e) (*targetClass.start_element)(target, e, 0, 0)
-#define END(e) (*targetClass.end_element)(target, e)
-#define FREE_TARGET (*targetClass.free)(target)
+#define PUTC(c) (*target->isa->put_character)(target, c)
+#define PUTS(s) (*target->isa->put_string)(target, s)
+#define START(e) (*target->isa->start_element)(target, e, 0, 0)
+#define END(e) (*target->isa->end_element)(target, e)
+#define FREE_TARGET (*target->isa->free)(target)
 struct _HTStructured {
 	CONST HTStructuredClass *	isa;
 	/* ... */
 };
 
+#ifdef OLD_CODE
 PRIVATE HTStructured *target;			/* the new hypertext */
 PRIVATE HTStructuredClass targetClass;		/* Its action routines */
-
+#endif /* OLD_CODE */
 
 #define GOPHER_PROGRESS(foo) HTAlert(foo)
 
@@ -119,11 +122,10 @@ PRIVATE char from_hex ARGS1(char, c)
 **	text 	points to the text to be put into the file, 0 terminated.
 **	addr	points to the hypertext refernce address 0 terminated.
 */
-PRIVATE void write_anchor ARGS2(CONST char *,text, CONST char *,addr)
+PRIVATE void write_anchor ARGS3(HTStructured *, target,
+				CONST char *, text,
+				CONST char *, addr)
 {
-
-
-    
     BOOL present[HTML_A_ATTRIBUTES];
     CONST char * value[HTML_A_ATTRIBUTES];
     
@@ -135,10 +137,77 @@ PRIVATE void write_anchor ARGS2(CONST char *,text, CONST char *,addr)
     present[HTML_A_TITLE] = YES;
     value[HTML_A_TITLE] = text;
     
-    (*targetClass.start_element)(target, HTML_A, present, value);
+    (*target->isa->start_element)(target, HTML_A, present, value);
 	    
     PUTS(text);
     END(HTML_A);
+}
+
+
+/*	Find a icon
+**	===========
+**
+*/
+PRIVATE HTIconNode *get_gopher_icon ARGS2(CONST char *, filename,
+					  int, gopher_type)
+{
+    HTFormat content_type = NULL;
+    HTAtom *content_encoding = NULL;
+
+    if (gopher_type == GOPHER_MENU)
+	return icon_dir ? icon_dir : icon_unknown;
+
+    switch(gopher_type) {
+      case GOPHER_TEXT:
+	content_type = HTAtom_for("text/void");
+	break;
+      case GOPHER_GIF:
+	content_type = HTAtom_for("image/void");
+	break;
+      case GOPHER_HTML:
+	content_type = HTAtom_for("text/void");
+	break;
+      case GOPHER_SOUND:
+	content_type = HTAtom_for("audio/void");
+	break;
+      case GOPHER_WWW:
+	content_type = HTAtom_for("text/void");
+	break;
+      case GOPHER_IMAGE:
+	content_type = HTAtom_for("image/void");
+	break;
+      case GOPHER_INDEX:
+	content_type = HTAtom_for("application/x-gopher-index");
+	break;
+      case GOPHER_CSO:
+	content_type = HTAtom_for("application/x-gopher-cso");
+	break;
+      case GOPHER_TELNET:
+	content_type = HTAtom_for("application/x-gopher-telnet");
+	break;
+      case GOPHER_TN3270:
+	content_type = HTAtom_for("application/x-gopher-tn3270");
+	break;
+      case GOPHER_DUPLICATE:
+	content_type = HTAtom_for("application/x-gopher-duplicate");
+	break;
+      case GOPHER_ERROR:
+	content_type = HTAtom_for("www/unknown");
+	break;
+      case GOPHER_MACBINHEX:
+      case GOPHER_PCBINHEX:
+      case GOPHER_UUENCODED:
+      case GOPHER_BINARY:
+	{       /* Do our own filetyping -- maybe we get lucky */
+            HTAtom *language;
+            content_type = HTFileFormat(filename, &content_encoding,
+					&language);
+	}
+      default:
+	content_type = HTAtom_for("www/unknown");
+	break;
+    }
+    return HTGetIcon(S_IFMT & S_IFREG, content_type, content_encoding);
 }
 
 
@@ -147,13 +216,14 @@ PRIVATE void write_anchor ARGS2(CONST char *,text, CONST char *,addr)
 **
 */
 
-PRIVATE void parse_menu ARGS3 (
-	int ,			s,
-	CONST char *,		arg,
-	HTParentAnchor *,	anAnchor)
+PRIVATE void parse_menu ARGS4(HTStructured *,   target,
+			      int ,		s,
+			      CONST char *,	arg,
+			      HTParentAnchor *,	anAnchor)
 {
+    unsigned int files = 0;
     char gtype;
-    char ch;
+    int ch;
     char line[BIG];
     char address[BIG];
     char *name = "";
@@ -161,23 +231,47 @@ PRIVATE void parse_menu ARGS3 (
     char *host = "";
     char *port;
     char *p = line;
-    CONST char *title;
     HTInputSocket * isoc = HTInputSocket_new(s);
     
 #define TAB 		'\t'
 #define HEX_ESCAPE 	'%'
 
-    
-    title = HTAnchor_title(anAnchor);
-    if (title) {
+    /* Output title */
+    {
+        CONST char *title = HTAnchor_title(anAnchor);
+	char *outstr = NULL;
+	if (title)
+	    StrAllocCopy(outstr, title);
+	else
+	    StrAllocCopy(outstr, "Menu");
+        START(HTML_TITLE);
+        PUTS("Index of ");
+	HTUnEscape(outstr);
+        PUTS(outstr);
+        END(HTML_TITLE);
         START(HTML_H1);
-	PUTS(title);
-	END(HTML_H1);
-    } else
-        PUTS("Select one of:\n\n");
-    
-    START(HTML_MENU);
-    while ((ch=NEXT_CHAR) != (char)EOF) {
+        PUTS("Index of ");
+        PUTS(outstr);
+        END(HTML_H1);
+	free(outstr);
+    }
+
+    /* Make everything in list preformatted */
+    START(HTML_PRE);
+
+    /* Output the header line of the list */
+    if (!icon_blank) icon_blank = icon_unknown;
+    if (HTDirShowMask & HT_DIR_SHOW_ICON && icon_blank) {
+        HTMLPutImg(target, icon_blank->icon_url,
+                   HTIcon_alt_string(icon_blank->icon_alt, NO), NULL);
+    }
+    PUTC(' ');
+    PUTS("Name");
+    PUTC('\n');
+    START(HTML_HR);
+    PUTC('\n');
+
+    while ((ch = NEXT_CHAR) >= 0) {
         if (ch != LF) {
 	    *p = ch;		/* Put character in line */
 	    if (p< &line[BIG-1]) p++;
@@ -186,7 +280,8 @@ PRIVATE void parse_menu ARGS3 (
 	    *p++ = 0;		/* Terminate line */
 	    p = line;		/* Scan it to parse it */
 	    port = 0;		/* Flag "not parsed" */
-	    if (TRACE) fprintf(stderr, "HTGopher: Menu item: %s\n", line);
+	    if (TRACE)
+		fprintf(stderr, "HTGopher.... Menu item: `%s\'\n", line);
 	    gtype = *p++;
 	    
 	    /* Break on line with a dot by itself */
@@ -195,7 +290,6 @@ PRIVATE void parse_menu ARGS3 (
 	    if (gtype && *p) {
 	        name = p;
 		selector = strchr(name, TAB);
-		START(HTML_LI);
 		if (selector) {
 		    *selector++ = 0;	/* Terminate name */
 		    host = strchr(selector, TAB);
@@ -213,10 +307,21 @@ PRIVATE void parse_menu ARGS3 (
 		    } /* host ok */
 		} /* selector ok */
 	    } /* gtype and name ok */
+
+	    /* Get Icon type and output the icon */
+	    if (HTDirShowMask & HT_DIR_SHOW_ICON) {
+		HTIconNode *icon = get_gopher_icon(arg, gtype);
+		if (icon && icon->icon_url) {
+		    HTMLPutImg(target, icon->icon_url,
+			       HTIcon_alt_string(icon->icon_alt, YES),
+			       NULL);
+		    PUTC(' ');
+		}
+	    }
 	    
 	    if (gtype == GOPHER_WWW) {	/* Gopher pointer to W3 */
-		write_anchor(name, selector);
-		
+		write_anchor(target, name, selector);
+
 	    } else if (port) {		/* Other types need port */
 		if (gtype == GOPHER_TELNET) {
 		    if (*selector) sprintf(address, "telnet://%s@%s/",
@@ -246,30 +351,45 @@ PRIVATE void parse_menu ARGS3 (
 		    }
 		    *q++ = 0;			/* terminate address */
 		}
-		PUTS("        "); /* Prettier JW/TBL */
+		
 		/* Error response from Gopher doesn't deserve to
 		   be a hyperlink. */
 		if (strcmp (address, "gopher://error.host:1/0"))
-		    write_anchor(name, address);
+		    write_anchor(target, name, address);
 		else
 		    PUTS(name);
-		PUTS("\n");
+		PUTC('\n');
 	    } else { /* parse error */
-	        if (TRACE) fprintf(stderr,
-			"HTGopher: Bad menu item.\n");
+	        if (TRACE) fprintf(stderr, "HTGopher.... Bad menu item.\n");
 		PUTS(line);
 
 	    } /* parse error */
 	    
 	    p = line;	/* Start again at beginning of line */
-	    
+	    ++files;	/* Update number of files */
+
 	} /* if end of line */
 	
     } /* Loop over characters */
 	
-    END(HTML_MENU);
+    {
+	char *outstr;
+	
+	if ((outstr = (char *) malloc(100)) == NULL)
+	    outofmem(__FILE__, "parse_menu");
+	if (files == 0)
+	    sprintf(outstr, "Empty directory");
+	else if (files == 1)
+	    sprintf(outstr, "1 file");
+	else
+	    sprintf(outstr, "%u files", files);
+	START(HTML_HR);
+	PUTS(outstr);
+	free(outstr);
+	END(HTML_PRE);
+    }
+
     FREE_TARGET;
-    
     HTInputSocket_free(isoc);
     return;
 }
@@ -289,12 +409,12 @@ PRIVATE void parse_menu ARGS3 (
  **  secret@dxcern.cern.ch .
  */
 
-PRIVATE void parse_cso ARGS3 (
-			int,	s,
-			CONST char *,		arg,
-			HTParentAnchor *,	anAnchor)
+PRIVATE void parse_cso ARGS4 (HTStructured *, target,
+			      int, s,
+			      CONST char *, arg,
+			      HTParentAnchor *,	anAnchor)
 {
-    char ch;
+    int ch;
     char line[BIG];
     char *p = line;
     char *second_colon, last_char='\0';
@@ -308,7 +428,7 @@ PRIVATE void parse_cso ARGS3 (
     START(HTML_PRE);
 
     /* start grabbing chars from the network */
-    while ((ch=NEXT_CHAR) != (char)EOF) 
+    while ((ch = NEXT_CHAR) >= 0) 
 	{
 	    if (ch != '\n') 
 		{
@@ -413,9 +533,9 @@ PRIVATE void parse_cso ARGS3 (
  **	-------------------------------
  */
 
-PRIVATE void display_index ARGS2 (
-				  CONST char *,	arg,
-				  HTParentAnchor *,anAnchor)
+PRIVATE void display_index ARGS3 (HTStructured *,	target,
+				  CONST char *,		arg,
+				  HTParentAnchor *,	anAnchor)
 {
     
     START(HTML_H1);
@@ -438,9 +558,9 @@ PRIVATE void display_index ARGS2 (
 **      -------------------------------
 */
 
-PRIVATE void display_cso ARGS2 (
-        CONST char *,   arg,
-        HTParentAnchor *,anAnchor)
+PRIVATE void display_cso ARGS3(HTStructured *, target,
+			       CONST char *,   arg,
+			       HTParentAnchor *, anAnchor)
 {
     START(HTML_H1);
     PUTS(arg);
@@ -503,13 +623,15 @@ PUBLIC int HTLoadGopher ARGS1(HTRequest *, request)
     char * selector;			/* Selector string */
     struct sockaddr_in soc_address;	/* Binary network address */
     struct sockaddr_in* sin = &soc_address;
+    HTStructured *target;                                     /* HTML object */
+    HTStructuredClass targetClass;
     
     if (!acceptable_inited) init_acceptable();
     
     if (!arg) return -3;		/* Bad if no name sepcified	*/
     if (!*arg) return -2;		/* Bad if name had zero length	*/
     
-    if (TRACE) fprintf(stderr, "HTGopher: Looking for %s\n", arg);
+    if (TRACE) fprintf(stderr, "HTGopher.... Looking for %s\n", arg);
     
     
 /*  Set up defaults:
@@ -543,7 +665,8 @@ PUBLIC int HTLoadGopher ARGS1(HTRequest *, request)
 		target = HTML_new(request, NULL, WWW_HTML,
 			request->output_format, request->output_stream);
 		targetClass = *target->isa;
-		display_index(arg, request->anchor);	/* Display "cover page" */
+		/* Display "cover page" */
+		display_index(target, arg, request->anchor);
 		free(p1);		/* Leak fixed Henrik 27 Feb 94 */
 		return HT_LOADED;		/* Local function only */
 	    }
@@ -570,7 +693,8 @@ PUBLIC int HTLoadGopher ARGS1(HTRequest *, request)
 		target = HTML_new(request, NULL, WWW_HTML,
 			request->output_format, request->output_stream);
 		targetClass = *target->isa;
-                display_cso(arg, request->anchor);     /* Display "cover page" */
+		/* Display "cover page" */
+                display_cso(target, arg, request->anchor);
 		free(p1);		/* Leak fixed Henrik 27 Feb 94 */
                 return HT_LOADED;                 /* Local function only */
             }
@@ -653,14 +777,14 @@ PUBLIC int HTLoadGopher ARGS1(HTRequest *, request)
 	target = HTML_new(request, NULL, WWW_HTML,
 			request->output_format, request->output_stream);
 	targetClass = *target->isa;
-        parse_menu(s,arg, request->anchor);
+        parse_menu(target, s,arg, request->anchor);
 	break;
 	 
     case GOPHER_CSO:
 	target = HTML_new(request, NULL, WWW_HTML,
 			request->output_format, request->output_stream);
 	targetClass = *target->isa;
-      	parse_cso(s, arg, request->anchor);
+      	parse_cso(target, s, arg, request->anchor);
 	break;
    	
       case GOPHER_MACBINHEX:
