@@ -18,7 +18,7 @@
 /*	Create a chunk with a certain allocation unit
 **	--------------
 */
-PUBLIC HTChunk * HTChunkCreate ARGS1 (int,grow)
+PUBLIC HTChunk * HTChunkCreate (int grow)
 {
     HTChunk * ch = (HTChunk *) calloc(1, sizeof(HTChunk));
     if (ch == NULL) outofmem(__FILE__, "cretion of chunk");
@@ -30,7 +30,7 @@ PUBLIC HTChunk * HTChunkCreate ARGS1 (int,grow)
 /*	Clear a chunk of all data
 **	--------------------------
 */
-PUBLIC void HTChunkClear ARGS1 (HTChunk *,ch)
+PUBLIC void HTChunkClear (HTChunk * ch)
 {
     if (ch->data) {
 	free(ch->data);
@@ -44,7 +44,7 @@ PUBLIC void HTChunkClear ARGS1 (HTChunk *,ch)
 /*	Free a chunk
 **	------------
 */
-PUBLIC void HTChunkFree ARGS1 (HTChunk *,ch)
+PUBLIC void HTChunkFree (HTChunk * ch)
 {
     if (ch->data) free(ch->data);
     free(ch);
@@ -54,17 +54,8 @@ PUBLIC void HTChunkFree ARGS1 (HTChunk *,ch)
 /*	Append a character
 **	------------------
 */
-PUBLIC void HTChunkPutc ARGS2 (HTChunk *,ch, char,c)
+PUBLIC void HTChunkPutc (HTChunk * ch, char c)
 {
-#ifdef OLD_CODE
-    if (ch->size >= ch->allocated) {
-        ch->allocated = ch->allocated + ch->growby;
-        ch->data = ch->data ? (char *)realloc(ch->data, ch->allocated)
-	    : (char *)malloc(ch->allocated);
-      if (!ch->data) outofmem(__FILE__, "HTChunkPutc");
-    }
-    ch->data[ch->size++] = c;
-#endif
     if (ch->size >= ch->allocated-1) {
 	if (ch->data) {
 	    ch->data = (char *) realloc(ch->data, ch->allocated + ch->growby);
@@ -82,7 +73,7 @@ PUBLIC void HTChunkPutc ARGS2 (HTChunk *,ch, char,c)
 /*	Ensure a certain size
 **	---------------------
 */
-PUBLIC void HTChunkEnsure ARGS2 (HTChunk *,ch, int,needed)
+PUBLIC void HTChunkEnsure (HTChunk * ch, int needed)
 {
     if (needed <= ch->allocated) return;
     ch->allocated = needed-1 - ((needed-1) % ch->growby)
@@ -96,7 +87,7 @@ PUBLIC void HTChunkEnsure ARGS2 (HTChunk *,ch, int,needed)
 /*	Terminate a chunk
 **	-----------------
 */
-PUBLIC void HTChunkTerminate ARGS1 (HTChunk *,ch)
+PUBLIC void HTChunkTerminate (HTChunk * ch)
 {
     HTChunkPutc(ch, (char)0);
 }
@@ -105,7 +96,7 @@ PUBLIC void HTChunkTerminate ARGS1 (HTChunk *,ch)
 /*	Append a string
 **	---------------
 */
-PUBLIC void HTChunkPuts ARGS2 (HTChunk *,ch, CONST char *,s)
+PUBLIC void HTChunkPuts (HTChunk * ch, CONST char * s)
 {
     CONST char * p;
     for (p=s; *p; p++)

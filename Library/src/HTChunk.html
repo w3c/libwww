@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Dynamic Array Class</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 19-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 14-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -24,9 +24,8 @@ to adjust the size in the chunk structure (the <B>'\0'</B> counts as a
 character when counting the size of the chunk. <P>
 
 This module is implemented by <A HREF="HTChunk.c">HTChunk.c</A>, and
-it is a part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>.
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
 
 <PRE>
 #ifndef HTCHUNK_H
@@ -54,7 +53,7 @@ time when the chunk is later extended. Arbitrary but normally a
 trade-off time vs. memory
 
 <PRE>
-extern HTChunk * HTChunkCreate PARAMS((int growby));
+extern HTChunk * HTChunkCreate (int growby);
 </PRE>
 
 <H2>Free a chunk</H2>
@@ -62,7 +61,7 @@ extern HTChunk * HTChunkCreate PARAMS((int growby));
 Free a chunk created by <CODE>HTChunkCreate</CODE>from memory
 
 <PRE>
-extern void HTChunkFree PARAMS((HTChunk * ch));
+extern void HTChunkFree (HTChunk * ch);
 </PRE>
 
 <H2>Clear a chunk</H2>
@@ -70,7 +69,7 @@ extern void HTChunkFree PARAMS((HTChunk * ch));
 Keep the chunk in memory but clear all data kept inside.
 
 <PRE>
-extern void HTChunkClear PARAMS((HTChunk * ch));
+extern void HTChunkClear (HTChunk * ch);
 </PRE>
 
 <H2>Ensure a chunk has a certain space in</H2>
@@ -80,7 +79,7 @@ then the chunk is expanded. Nothing is done if the current size if
 bigger than the size requested.
 
 <PRE>
-extern void HTChunkEnsure PARAMS((HTChunk * ch, int s));
+extern void HTChunkEnsure (HTChunk * ch, int s);
 </PRE>
 
 <H2>Append a character to a chunk</H2>
@@ -88,7 +87,7 @@ extern void HTChunkEnsure PARAMS((HTChunk * ch, int s));
 Add the character and increment the size of the chunk by one character
 
 <PRE>
-extern void HTChunkPutc PARAMS((HTChunk * ch, char c));
+extern void HTChunkPutc (HTChunk * ch, char c);
 </PRE>
 
 <H2>Append a string to a  chunk</H2>
@@ -97,7 +96,7 @@ Add the string and increment the size of the chunk by the length of
 the string (without the trailing zero)
 
 <PRE>
-extern void HTChunkPuts PARAMS((HTChunk * ch, const char *str));
+extern void HTChunkPuts (HTChunk * ch, const char *str);
 </PRE>
 
 <A NAME="Terminate"><H2>Zero Terminate a chunk</H2></A>
@@ -109,7 +108,7 @@ function is to increment the size counter with one corresponding to
 the zero.
 
 <PRE>
-extern void HTChunkTerminate PARAMS((HTChunk * ch));
+extern void HTChunkTerminate (HTChunk * ch);
 </PRE>
 
 <H2>Return Pointer to Data</H2>
