@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Bindings to the local File system</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 31-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  5-Nov-1995 -->
 </HEAD>  
 <BODY>
 
@@ -61,11 +61,9 @@ Examples of a list of suffixes are
 
 Note that the suffixes chosen do not have to be connected with what is available on a particular
 platform. However, a certain coupling will probably make maintenance of the file system easier for
-all parties. There are three types of bindings which we will describe below:
-
-<H2>Add Binding to a Content Type</H2>
-
-The first makes a binding between a file suffix and a 
+all parties. In the following we will show the API for adding bindings between the preferences and
+the file system. You can add a binding between a Content type and a suffix by using the following
+function:
 
 <PRE>
 extern BOOL HTBind_addType	(CONST char *	suffix,
@@ -75,13 +73,9 @@ extern BOOL HTBind_addType	(CONST char *	suffix,
 
 Calling this with <EM>suffix</EM> set to "*" will set the default representation which is used in
 case no other suffix fits the actual file. Using a suffix set to "*.*" will set the default
-representation for unknown suffix files which contain a "." <P>
-
-The <EM>format</EM> argument is exactly like described in the section <A HREF="Prefs.html">Request
-Preferences</A>.
-
-<H2>Add Binding to an Encoding</H2>
-
+representation for unknown suffix files which contain a "."  The <EM>format</EM> argument is exactly
+like described in the section <A HREF="Prefs.html">Request Preferences</A>. In exactly the same way
+you can add a binding between an encoding anda file suffix using the following function:
 
 <PRE>
 extern BOOL HTBind_addEncoding	(CONST char *	suffix,
@@ -89,7 +83,7 @@ extern BOOL HTBind_addEncoding	(CONST char *	suffix,
 				 double		value);
 </PRE>
 
-<H2>Add Binding to a Language</H2>
+Bindings can also be made between a file suffix and a specific natural language:
 
 <PRE>
 extern BOOL HTBind_addLanguage	(CONST char *	suffix,
@@ -97,8 +91,9 @@ extern BOOL HTBind_addLanguage	(CONST char *	suffix,
 				 double		value);
 </PRE>
 
-<B>NOTE:</B> The suffixes <EM>can</EM> contain characters that must be escaped in a URL. However,
-they should <EM>not</EM> be encoded when parsed as the <CODE>suffix</CODE> parameter.
+In all cases, it should be mentioned, that any of the suffixes <EM>can</EM> contain characters that
+normally must be escaped in a URL, for example space &lt; &gt;. However, they should <EM>not</EM> be
+encoded when parsed as the <CODE>suffix</CODE> parameter but left as is.
 
 <P>
 <HR>

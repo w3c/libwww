@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>User's Guide - Preferences</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  2-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  3-Nov-1995 -->
 </HEAD>  
 <BODY>
 
@@ -301,37 +301,6 @@ extern void HTFormat_setCharset		(HTList *list);
 extern HTList * HTFormat_charset	(void);
 </PRE>
 
-<H2>Getting Help on Initialization Converters and Presenters</H2>
-
-The Library has a special module called <A HREF="../../Implementation/HTInit.html">HTInit</A> which
-helps the application doing the initialization of all the converters and other preferences supported
-internally by the Library. This module is not called directly from the Library and must explicitly
-be invoked by the application. <A HREF="../../Implementation/HTInit.html">HTInit</A> is a part of
-the <A HREF="../../Implementation/WWWApp.html">WWWApp.h</A> include file described in the previous
-section, so if you include this in your application then you have direct access to the following
-functions:
-
-The following function initializes all the converters supported natively by modules in the Library
-distribution file:
-
-<PRE>
-extern void HTConverterInit	(HTList * conversions);
-</PRE>
-
-There is a similar function for registering a common set of presenters that can be found on many
-(especially Unix) platforms:
-
-<PRE>
-extern void HTPresenterInit	(HTList * conversions);
-</PRE>
-
-In order to show the similarity between how converters and presenters are handled in the Library,
-there is also a single function that does the work of the two previous functions at once:
-
-<PRE>
-extern void HTFormatInit	(HTList * conversions);
-</PRE>
-
 <H2>Cleaning up Preferences</H2>
 
 As the application is responsible for setting up the sets of preferences, it is also responsible for
@@ -385,6 +354,37 @@ need to start all over again and create a new list object.
 
 <PRE>
 extern void HTFormat_deleteAll		(void);
+</PRE>
+
+<H2>Getting Help on Initialization Converters and Presenters</H2>
+
+The Library has a special module called <A HREF="../../Implementation/HTInit.html">HTInit</A> which
+helps the application doing the initialization of all the converters and other preferences supported
+internally by the Library. This module is not called directly from the Library and must explicitly
+be invoked by the application. <A HREF="../../Implementation/HTInit.html">HTInit</A> is a part of
+the <A HREF="../../Implementation/WWWApp.html">WWWApp.h</A> include file described in the previous
+section, so if you include this in your application then you have direct access to the following
+functions:
+
+The following function initializes all the converters supported natively by modules in the Library
+distribution file:
+
+<PRE>
+extern void HTConverterInit	(HTList * conversions);
+</PRE>
+
+There is a similar function for registering a common set of presenters that can be found on many
+(especially Unix) platforms:
+
+<PRE>
+extern void HTPresenterInit	(HTList * conversions);
+</PRE>
+
+In order to show the similarity between how converters and presenters are handled in the Library,
+there is also a single function that does the work of the two previous functions at once:
+
+<PRE>
+extern void HTFormatInit	(HTList * conversions);
 </PRE>
 
 <H2>Summary</H2>
