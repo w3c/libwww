@@ -38,7 +38,7 @@ Overriding this module
 #ifndef GridStyle_H
 #define GridStyle_H
 
-typedef float HTCoord;
+typedef double HTCoord;
 
 #ifdef OLD_CODE
 typedef struct _HTParagraphStyle {

@@ -22,7 +22,7 @@
 **      -------------------
 */
 
-typedef float HTCoord;
+typedef double HTCoord;
 typedef int HTColor;
 
 typedef struct {
