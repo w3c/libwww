@@ -37,7 +37,7 @@ PRIVATE int HTExtParse_put_string ARGS2(HTStream *, me, CONST char*, s)
 {
     int l = strlen(s);
 
-    if (TRACE) fprintf(TDEST, "HTExtParse_put_string, %s\n",s);
+    if (WWWTRACE) fprintf(TDEST, "HTExtParse_put_string, %s\n",s);
 
     while ((me->eps->used + l) > me->eps->length) {
 	me->eps->length += INPUT_BUFFER_SIZE;
@@ -57,7 +57,7 @@ PRIVATE int HTExtParse_write ARGS3(HTStream *, me, CONST char*, s, int, l)
     memcpy( (me->eps->buffer + me->eps->used), s, l); 
     me->eps->used += l;
     (*(me->eps->call_client))(me->eps);       /* client can give status info */
-    if (TRACE)
+    if (WWWTRACE)
 	fprintf(TDEST, "HTExtParse_write, l=%d, used = %d\n",l,me->eps->used);
     return HT_OK;
 }
@@ -65,13 +65,13 @@ PRIVATE int HTExtParse_write ARGS3(HTStream *, me, CONST char*, s, int, l)
 
 PRIVATE int HTExtParse_flush ARGS1(HTStream *, me)
 {
-    if (TRACE) fprintf(TDEST, "HTExtParse_flush\n");
+    if (WWWTRACE) fprintf(TDEST, "HTExtParse_flush\n");
     return HT_OK;
 }
 
 PRIVATE int HTExtParse_free ARGS1(HTStream *, me)
 {
-    if (TRACE) fprintf(TDEST, "HTExtParse_free\n");
+    if (WWWTRACE) fprintf(TDEST, "HTExtParse_free\n");
     me->eps->finished = YES;
     (*(me->eps->call_client))(me->eps);           /* client will free buffer */
     free(me->eps);
@@ -81,7 +81,7 @@ PRIVATE int HTExtParse_free ARGS1(HTStream *, me)
 
 PRIVATE int HTExtParse_abort ARGS2(HTStream *, me, HTError, e)
 {
-    if (TRACE)
+    if (WWWTRACE)
 	fprintf(TDEST, "HTExtParse_abort\n");
     HTExtParse_free(me);				  /* Henrik Nov 2 94 */
     return HT_ERROR;
@@ -118,7 +118,7 @@ PUBLIC HTStream* HTExtParse ARGS5(
 {
     HTStream* me;
   
-    if (TRACE) {
+    if (WWWTRACE) {
 	fprintf(TDEST, "HTExtConvert..");
 	if (input_format && input_format->name)
             fprintf(TDEST, ".. input format is %s",input_format->name);

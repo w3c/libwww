@@ -455,7 +455,7 @@ PUBLIC void HTSetMailAddress ARGS1(char *, address)
 	StrAllocCopy(mailaddress, "");
     else
 	StrAllocCopy(mailaddress, address);
-    if (TRACE)
+    if (WWWTRACE)
 	fprintf(TDEST, "SetMailAdr.. Set mail address to `%s\'\n",
 		mailaddress);
 }
@@ -782,7 +782,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 		    break;
 		}
 #ifdef _WINSOCKAPI_
-		if (socerrno == WSAEEBADF)  	       /* We lost the socket */
+		if (socerrno == WSAEBADF)  	       /* We lost the socket */
 #else
 		if (socerrno == EBADF)  	       /* We lost the socket */
 #endif

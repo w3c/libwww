@@ -9,6 +9,7 @@
 **	02-Dec-91 (JFG) Added stralloccopy and stralloccat
 **	23 Jan 92 (TBL) Changed strallocc* to 8 char HTSAC* for VM and suchlike
 **	 6 Oct 92 (TBL) Moved WWW_TraceFlag in here to be in library
+**       9 Oct 95 (KR)  fixed problem with double quotes in HTNextField
 */
 
 /* Library include files */
@@ -100,7 +101,7 @@ PUBLIC char * strcasestr ARGS2(char *,	s1,
 		cur2++;
 	    }
 	    if (!*cur2) {
-		if (TRACE)
+		if (WWWTRACE)
 		    fprintf(TDEST, "Debug....... strcasestr(s1 = \"%s\", s2 = \"%s\") => \"%s\"\n",
 			    s1,s2,ptr);
 		return ptr;
@@ -108,7 +109,7 @@ PUBLIC char * strcasestr ARGS2(char *,	s1,
 	}
 	ptr++;
     }
-    if (TRACE)
+    if (WWWTRACE)
 	fprintf(TDEST,
 		"Debug....... strcasestr(s1=\"%s\", s2=\"%s\") => No match\n",
 		s1,s2);
@@ -173,7 +174,7 @@ PUBLIC char * HTSACat
 PUBLIC char * HTNextField ARGS1(char **, pstr)
 {
     char * p = *pstr;
-    char * start;
+    char * start = NULL;
 
     while (1) {
 	/* Strip white space and other delimiters */
@@ -187,9 +188,12 @@ PUBLIC char * HTNextField ARGS1(char **, pstr)
 	    start = ++p;
 	    for(;*p && *p!='"'; p++)
 		if (*p == '\\' && *(p+1)) p++;	       /* Skip escaped chars */
+	    break;			    /* kr95-10-9: needs to stop here */
 	} else if (*p == '<') {				     /* quoted field */
+	    start = ++p;
 	    for(;*p && *p!='>'; p++)
 		if (*p == '\\' && *(p+1)) p++;	       /* Skip escaped chars */
+	    break;			    /* kr95-10-9: needs to stop here */
 	} else if (*p == '(') {					  /* Comment */
 	    for(;*p && *p!=')'; p++)
 		if (*p == '\\' && *(p+1)) p++;	       /* Skip escaped chars */
@@ -229,7 +233,7 @@ PUBLIC CONST char *HTMessageIdStr NOARGS
 #endif /* NO_GETPID */
     if (!address) address = tmpnam(NULL);
     if ((!address || !*address) && sectime < 0) {
-	if (TRACE)
+	if (WWWTRACE)
 	    fprintf(TDEST, "MessageID...  Can't make a unique MessageID\n");
 	return "";
     }
@@ -292,7 +296,7 @@ PUBLIC long HTGetTimeZoneOffset NOARGS
 	    HTTimeZone = timezone;
 	}
 	HTTimeZone = -HTTimeZone;
-	if (TRACE)
+	if (WWWTRACE)
 	    fprintf(TDEST,"TimeZone.... GMT + (%02d) hours (including DST)\n",
 		    (int) HTTimeZone/3600);
     }
@@ -307,12 +311,12 @@ PUBLIC long HTGetTimeZoneOffset NOARGS
 	struct tm * local = localtime(&cur_t);
 #endif /* HT_REENTRANT */
 	HTTimeZone = local->tm_gmtoff;
-	if (TRACE)
+	if (WWWTRACE)
 	    fprintf(TDEST,"TimeZone.... GMT + (%02d) hours (including DST)\n",
 		    (int)local->tm_gmtoff / 3600);
     }
 #else
-    if (TRACE) fprintf(TDEST,"TimeZone.... Not defined\n");
+    if (WWWTRACE) fprintf(TDEST,"TimeZone.... Not defined\n");
 #endif /* !NO_TIMEZONE */
 #endif /* !NO_GMTOFF */
     return HTTimeZone;
@@ -339,10 +343,10 @@ PUBLIC time_t HTParseTime ARGS1(CONST char *, str)
 	s++;				/* or: Thu, 10 Jan 1993 01:29:59 GMT */
 	while (*s && *s==' ') s++;
 	if (strchr(s,'-')) {				     /* First format */
-	    if (TRACE)
+	    if (WWWTRACE)
 		fprintf(TDEST, "Format...... Weekday, 00-Mon-00 00:00:00 GMT\n");
 	    if ((int)strlen(s) < 18) {
-		if (TRACE)
+		if (WWWTRACE)
 		    fprintf(TDEST,
 			    "ERROR....... Not a valid time format \"%s\"\n",s);
 		return 0;
@@ -354,10 +358,10 @@ PUBLIC time_t HTParseTime ARGS1(CONST char *, str)
 	    tm.tm_min = make_num(s+13);
 	    tm.tm_sec = make_num(s+16);
 	} else {					    /* Second format */
-	    if (TRACE)
+	    if (WWWTRACE)
 		fprintf(TDEST, "Format...... Wkd, 00 Mon 0000 00:00:00 GMT\n");
 	    if ((int)strlen(s) < 20) {
-		if (TRACE)
+		if (WWWTRACE)
 		    fprintf(TDEST,
 			    "ERROR....... Not a valid time format \"%s\"\n",s);
 		return 0;
@@ -372,7 +376,7 @@ PUBLIC time_t HTParseTime ARGS1(CONST char *, str)
 	}
     } else if (isdigit(*str)) {				    /* delta seconds */
 	t = time(NULL) + atol(str);	      /* Current local calendar time */
-	if (TRACE) {
+	if (WWWTRACE) {
 #ifdef HT_REENTRANT
 	    char buffer[CTIME_MAX];
 	    fprintf(TDEST, "Time string. Delta-time %s parsed to %ld seconds, or in local time: %s", str, (long) t, (char *) ctime_r(&t, buffer, CTIME_MAX));
@@ -383,14 +387,14 @@ PUBLIC time_t HTParseTime ARGS1(CONST char *, str)
 	return t;
 
     } else {	      /* Try the other format:  Wed Jun  9 01:29:59 1993 GMT */
-	if (TRACE)
+	if (WWWTRACE)
 	    fprintf(TDEST, "Format...... Wkd Mon 00 00:00:00 0000 GMT\n");
 	s = str;
 	while (*s && *s==' ') s++;
-	if (TRACE)
+	if (WWWTRACE)
 	    fprintf(TDEST, "Trying...... The Wrong time format: %s\n", s);
 	if ((int)strlen(s) < 24) {
-	    if (TRACE)
+	    if (WWWTRACE)
 		fprintf(TDEST, "ERROR....... Not a valid time format \"%s\"\n",s);
 	    return 0;
 	}
@@ -407,7 +411,7 @@ PUBLIC time_t HTParseTime ARGS1(CONST char *, str)
 	tm.tm_mday < 1  ||  tm.tm_mday > 31  ||
 	tm.tm_mon  < 0  ||  tm.tm_mon  > 11  ||
 	tm.tm_year <70  ||  tm.tm_year >120) {
-	if (TRACE) fprintf(TDEST,
+	if (WWWTRACE) fprintf(TDEST,
 	"ERROR....... Parsed illegal time: %02d.%02d.%02d %02d:%02d:%02d\n",
 	       tm.tm_mday, tm.tm_mon+1, tm.tm_year,
 	       tm.tm_hour, tm.tm_min, tm.tm_sec);
@@ -427,11 +431,11 @@ PUBLIC time_t HTParseTime ARGS1(CONST char *, str)
 #ifndef NO_TIMEGM
     t = timegm(&tm);
 #else
-    if (TRACE) fprintf(TDEST,"Time String. Can not be parsed\n");
+    if (WWWTRACE) fprintf(TDEST,"Time String. Can not be parsed\n");
 #endif /* !NO_TIMEGM */
 #endif /* !NO_MKTIME */
 
-    if (TRACE)
+    if (WWWTRACE)
 	fprintf(TDEST,
 		"Time string. %s parsed to %ld seconds, or in local time: %s",
 		str, (long) t, ctime(&t));

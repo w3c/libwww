@@ -111,7 +111,7 @@ PRIVATE CONST HTStreamClass HTBlackHoleClass =
 
 PUBLIC HTStream * HTBlackHole NOARGS
 {
-    if (TRACE)
+    if (STREAM_TRACE)
 	fprintf(TDEST, "BlackHole... Created\n");
     HTBlackHoleInstance.isa = &HTBlackHoleClass;       /* The rest is random */
     return &HTBlackHoleInstance;
@@ -192,7 +192,7 @@ PRIVATE int HTFWriter_abort ARGS2(HTStream *, me, HTError, e)
 {
     if (me->leave_open != YES) fclose(me->fp);
     if (me->end_command) {		/* Temp file */
-	if (TRACE)
+	if (STREAM_TRACE)
 	    fprintf(TDEST,"FileWriter.. Aborting: file %s not executed.\n",
 		    me->filename ? me->filename : "???" );
 	free (me->end_command);
@@ -222,7 +222,7 @@ PUBLIC HTStream* HTFWriter_new ARGS2(FILE *, fp, BOOL, leave_open)
     HTStream* me;
     
     if (!fp) {
-	if (TRACE)
+	if (STREAM_TRACE)
 	    fprintf(TDEST, "FileWriter.. Bad file descriptor\n");
 	return NULL;
     }
@@ -252,7 +252,7 @@ PUBLIC BOOL HTTmp_setRoot ARGS1(CONST char *, tmp_root)
     StrAllocCopy(HTTmpRoot, tmp_root ? tmp_root : HT_TMP_ROOT);
     if (*(HTTmpRoot+strlen(HTTmpRoot)-1) != '/')
 	StrAllocCat(HTTmpRoot, "/");
-    if (TRACE)
+    if (STREAM_TRACE)
 	fprintf(TDEST, "Tmp Root.... Root set to `%s\'\n", HTTmpRoot);
     return YES;
 }
@@ -340,7 +340,7 @@ PUBLIC HTStream* HTSaveAndExecute ARGS5(
     }
     
     if (!HTTmpRoot) {
-	if (TRACE) fprintf(TDEST, "Save and execute turned off");
+	if (STREAM_TRACE) fprintf(TDEST, "Save and execute turned off");
 	return HTBlackHole();
     }
 	
@@ -407,7 +407,7 @@ PUBLIC HTStream* HTSaveLocally ARGS5(
     }
 
     if (!HTTmpRoot) {
-	if (TRACE) fprintf(TDEST, "Save locally turned off");
+	if (STREAM_TRACE) fprintf(TDEST, "Save locally turned off");
 	return HTBlackHole();
     }
 	

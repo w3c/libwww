@@ -119,7 +119,7 @@ PRIVATE BOOL initialize NOARGS
 #else
     if (getenv("NNTPSERVER")) {
         StrAllocCopy(HTNewsHost, (char *)getenv("NNTPSERVER"));
-	if (TRACE) fprintf(TDEST, "HTNews: NNTPSERVER defined as `%s'\n",
+	if (WWWTRACE) fprintf(TDEST, "HTNews: NNTPSERVER defined as `%s'\n",
 		HTNewsHost);
     } else {
         char server_name[256];
@@ -127,7 +127,7 @@ PRIVATE BOOL initialize NOARGS
         if (fp) {
 	    if (fscanf(fp, "%s", server_name)==1) {
 	        StrAllocCopy(HTNewsHost, server_name);
-		if (TRACE) fprintf(TDEST,
+		if (WWWTRACE) fprintf(TDEST,
 		"HTNews: File %s defines news host as `%s'\n",
 		        SERVER_FILE, HTNewsHost);
 	    }
@@ -158,7 +158,7 @@ PRIVATE BOOL initialize NOARGS
 	memcpy(&sin->sin_addr, phost->h_addr, phost->h_length);
     }
 
-    if (TRACE) fprintf(TDEST,  
+    if (WWWTRACE) fprintf(TDEST,  
 	"HTNews: Parsed address as port %4x, inet %d.%d.%d.%d\n",
 		(unsigned int)ntohs(sin->sin_port),
 		(int)*((unsigned char *)(&sin->sin_addr)+0),
@@ -192,7 +192,7 @@ PRIVATE int response ARGS1(CONST char *,command)
     if (command) {
         int status;
 	int length = strlen(command);
-	if (TRACE) fprintf(TDEST, "NNTP command to be sent: %s", command);
+	if (WWWTRACE) fprintf(TDEST, "NNTP command to be sent: %s", command);
 #ifdef NOT_ASCII
 	{
 	    CONST char  * p;
@@ -207,7 +207,7 @@ PRIVATE int response ARGS1(CONST char *,command)
         status = NETWRITE(s, command, length);
 #endif
 	if (status<0){
-	    if (TRACE) fprintf(TDEST,
+	    if (WWWTRACE) fprintf(TDEST,
 	        "HTNews: Unable to send command. Disconnecting.\n");
 	    NETCLOSE(s);
 	    HTInputSocket_free(isoc);
@@ -220,7 +220,7 @@ PRIVATE int response ARGS1(CONST char *,command)
 	if (((*p++=NEXT_CHAR) == LF)
 	                || (p == &response_text[LINE_LENGTH])) {
 	    *p++=0;				/* Terminate the string */
-	    if (TRACE) fprintf(TDEST, "NNTP Response: %s\n", response_text);
+	    if (WWWTRACE) fprintf(TDEST, "NNTP Response: %s\n", response_text);
 	    sscanf(response_text, "%d", &result);
 	    if (result >= 411 && result <= 430) { /* no such article/group */
 		char * msg = strchr(response_text,' ');
@@ -234,7 +234,7 @@ PRIVATE int response ARGS1(CONST char *,command)
 	} /* if end of line */
 	
 	if (*(p-1) < 0) {
-	    if (TRACE) fprintf(TDEST,
+	    if (WWWTRACE) fprintf(TDEST,
 	    	"HTNews: EOF on read, closing socket %d\n", s);
 	    NETCLOSE(s);	/* End of file, close socket */
 	    HTInputSocket_free(isoc);
@@ -396,7 +396,7 @@ PRIVATE void write_anchors ARGS1 (char *,text)
 */
 PRIVATE void abort_socket NOARGS
 {
-    if (TRACE) fprintf(TDEST,
+    if (WWWTRACE) fprintf(TDEST,
 	    "HTNews: EOF on read, closing socket %d\n", s);
     NETCLOSE(s);	/* End of file, close socket */
     HTInputSocket_free(isoc);
@@ -442,7 +442,7 @@ PRIVATE void read_article NOARGS
 	    }
 	    if ((ch == LF) || (p == &line[LINE_LENGTH])) {
 		*--p=0;				/* Terminate the string */
-		if (TRACE) fprintf(TDEST, "H %s\n", line);
+		if (WWWTRACE) fprintf(TDEST, "H %s\n", line);
 
 		if (line[0]=='.') {	
 		    if (line[1]<' ') {		/* End of article? */
@@ -565,7 +565,7 @@ PRIVATE void read_article NOARGS
 	}
 	if ((ch == LF) || (p == &line[LINE_LENGTH])) {
 	    *p++=0;				/* Terminate the string */
-	    if (TRACE) fprintf(TDEST, "B %s", line);
+	    if (WWWTRACE) fprintf(TDEST, "B %s", line);
 	    if (line[0]=='.') {
 		if (line[1]<' ') {		/* End of article? */
 		    done = YES;
@@ -641,7 +641,7 @@ PRIVATE void read_list NOARGS
 	}
 	if ((ch == LF) || (p == &line[LINE_LENGTH])) {
 	    *p++=0;				/* Terminate the string */
-	    if (TRACE) fprintf(TDEST, "B %s", line);
+	    if (WWWTRACE) fprintf(TDEST, "B %s", line);
     	    (*targetClass.start_element)(target, HTML_DT , 0, 0);
 	    if (line[0]=='.') {
 		if (line[1]<' ') {		/* End of article? */
@@ -712,7 +712,7 @@ PRIVATE void read_group ARGS3(
 					/* count is only an upper limit */
 
     sscanf(response_text, " %d %d %d %d", &status, &count, &first, &last);
-    if(TRACE)
+    if(WWWTRACE)
 	fprintf(TDEST, 
 		"Newsgroup status=%d, count=%d, (%d-%d) required:(%d-%d)\n",
 		status, count, first, last, first_required, last_required);
@@ -741,7 +741,7 @@ PRIVATE void read_group ARGS3(
     if (last_required-first_required+1 > MAX_CHUNK) {	/* Trim this block */
         first_required = last_required-CHUNK_SIZE+1;
     }
-    if (TRACE) fprintf (TDEST, "    Chunk will be (%d-%d)\n",
+    if (WWWTRACE) fprintf (TDEST, "    Chunk will be (%d-%d)\n",
 		       first_required, last_required);
 
 /*	Set window title
@@ -759,7 +759,7 @@ PRIVATE void read_group ARGS3(
 	if (first_required-MAX_CHUNK <= first) before = first;
 	else before = first_required-CHUNK_SIZE;
     	sprintf(buffer, "%s/%d-%d", groupName, before, first_required-1);
-	if (TRACE) fprintf(TDEST, "    Block before is %s\n", buffer);
+	if (WWWTRACE) fprintf(TDEST, "    Block before is %s\n", buffer);
 	PUTS( " (");
 	start_anchor(buffer);
 	PUTS("Earlier articles");
@@ -789,7 +789,7 @@ PRIVATE void read_group ARGS3(
 		}
 		if ((ch == '\n') || (p == &line[LINE_LENGTH])) {
 		    *p++=0;				/* Terminate the string */
-		    if (TRACE) fprintf(TDEST, "X %s", line);
+		    if (WWWTRACE) fprintf(TDEST, "X %s", line);
 		    if (line[0]=='.') {
 			if (line[1]<' ') {		/* End of article? */
 			    done = YES;
@@ -868,7 +868,7 @@ PRIVATE void read_group ARGS3(
 		    
 			*--p=0;		/* Terminate  & chop LF*/
 			p = line;		/* Restart at beginning */
-			if (TRACE) fprintf(TDEST, "G %s\n", line);
+			if (WWWTRACE) fprintf(TDEST, "G %s\n", line);
 			switch(line[0]) {
     
 			case '.':
@@ -934,7 +934,7 @@ PRIVATE void read_group ARGS3(
 	after = last_required+CHUNK_SIZE;
     	if (after==last) sprintf(buffer, "news:%s", groupName);	/* original group */
     	else sprintf(buffer, "news:%s/%d-%d", groupName, last_required+1, after);
-	if (TRACE) fprintf(TDEST, "    Block after is %s\n", buffer);
+	if (WWWTRACE) fprintf(TDEST, "    Block after is %s\n", buffer);
 	PUTS( "(");
 	start_anchor(buffer);
 	PUTS( "Later articles");
@@ -1073,7 +1073,7 @@ PUBLIC int HTLoadNews ARGS3(SOCKET, soc, HTRequest *, request, SockOps, ops)
 		s = INVSOC;
 #ifdef OLD_CODE
 		char message[256];
-		if (TRACE) fprintf(TDEST, "HTNews: Unable to connect to news host.\n");
+		if (WWWTRACE) fprintf(TDEST, "HTNews: Unable to connect to news host.\n");
 /*		if (retries<=1) continue;   WHY TRY AGAIN ? 	*/
 		sprintf(message,
 "\nCould not access %s.\n\n (Check default WorldWideWeb NewsHost ?)\n",
@@ -1091,7 +1091,7 @@ PUBLIC int HTLoadNews ARGS3(SOCKET, soc, HTRequest *, request, SockOps, ops)
 		    return HT_OK;
 		}
 	    } else {
-		if (TRACE) fprintf(TDEST, "HTNews: Connected to news host %s.\n",
+		if (WWWTRACE) fprintf(TDEST, "HTNews: Connected to news host %s.\n",
 				HTNewsHost);
 		isoc = HTInputSocket_new(s);	/* set up buffering */
 		if ((response(NULL) / 100) !=2) {

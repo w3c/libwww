@@ -556,12 +556,12 @@ PUBLIC BOOL HTRequest_removeDestination (HTRequest *dest)
 	    }
 	}
 	if (found) {
-	    if (TRACE)
+	    if (WWWTRACE)
 		fprintf(TDEST, "Destination. %p removed from %p\n",
 			dest, src);
 	}
 	if (!src->destRequests) {
-	    if (TRACE)
+	    if (WWWTRACE)
 		fprintf(TDEST, "Destination. PostWeb terminated\n");
 	    HTRequest_delete(src);
 	}

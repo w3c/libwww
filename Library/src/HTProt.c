@@ -115,7 +115,7 @@ PUBLIC BOOL HTProtocol_bind ARGS1(HTParentAnchor *, anchor)
 	HTList *cur = protocols;
 	HTProtocol *p;
 	if (!cur) {
-	    if (TRACE)
+	    if (WWWTRACE)
 		fprintf(TDEST, "HTProtocol.. NO PROTOCOL MODULES INITIATED\n");
 	} else {
 	    while ((p = (HTProtocol *) HTList_nextObject(cur))) {

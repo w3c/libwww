@@ -56,7 +56,7 @@ PUBLIC BOOL HTLibInit (void)
 	WWW_TraceFlag = 0;
 #endif
 
-    if (TRACE)
+    if (WWWTRACE)
 	fprintf(TDEST, "WWWLibInit.. INITIALIZING LIBRARY OF COMMON CODE\n");
 
     /* Set up User preferences, but leave initialization to the application */
@@ -99,13 +99,13 @@ PUBLIC BOOL HTLibInit (void)
     {
         WSADATA            wsadata;
 	if (WSAStartup(DESIRED_WINSOCK_VERSION, &wsadata)) {
-	    if (TRACE)
+	    if (WWWTRACE)
 		fprintf(TDEST, "WWWLibInit.. Can't initialize WinSoc\n");
             WSACleanup();
             return NO;
         }
         if (wsadata.wVersion < MINIMUM_WINSOCK_VERSION) {
-            if (TRACE)
+            if (WWWTRACE)
 		fprintf(TDEST, "WWWLibInit.. Bad version of WinSoc\n");
             WSACleanup();
             return NO;
@@ -128,7 +128,7 @@ PUBLIC BOOL HTLibInit (void)
 */
 PUBLIC BOOL HTLibTerminate NOARGS
 {
-    if (TRACE)
+    if (WWWTRACE)
 	fprintf(TDEST, "WWWLibTerm.. Cleaning up LIBRARY OF COMMON CODE\n");
     HTAtom_deleteAll();
     HTDisposeConversions();
@@ -357,7 +357,7 @@ PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_req)
 	    HTAnchor *main_anchor = HTAnchor_linkDest(main_link);
 	    HTMethod method = HTAnchor_linkMethod(main_link);
 	    if (!main_link || method==METHOD_INVALID) {
-		if (TRACE)
+		if (WWWTRACE)
 		    fprintf(TDEST, "Copy Anchor. No destination found or unspecified method");
 		HTRequest_delete(src_req);
 		return NO;
@@ -384,7 +384,7 @@ PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_req)
 		HTMethod method = HTAnchor_linkMethod(pres);
 		HTRequest *dest_req;
 		if (!dest || method==METHOD_INVALID) {
-		    if (TRACE)
+		    if (WWWTRACE)
 			fprintf(TDEST, "Copy Anchor. Bad anchor setup %p\n",
 				dest);
 		    return NO;
@@ -584,7 +584,7 @@ PUBLIC HTParentAnchor * HTHomeAnchor NOARGS
 	if (fp) {
 	    fclose(fp);
 	} else {
-	    if (TRACE)
+	    if (WWWTRACE)
 		fprintf(TDEST,
 			"HTBrowse: No local home document ~/%s or %s\n",
 			PERSONAL_DEFAULT, LOCAL_DEFAULT_FILE);
@@ -597,7 +597,7 @@ PUBLIC HTParentAnchor * HTHomeAnchor NOARGS
 		  HTClientHost ? REMOTE_ADDRESS : LAST_RESORT, "file:",
 		  PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
     if (my_home_document) {
-	if (TRACE)
+	if (WWWTRACE)
 	    fprintf(TDEST,
 		   "HTAccess.... `%s\' used for custom home page as\n`%s\'\n",
 		    my_home_document, ref);

@@ -42,7 +42,7 @@ BOOL HTList_addObject ARGS2(HTList *,me, void *,newObject)
 	me->next = newNode;
 	return YES;
     } else {
-	if (TRACE)
+	if (WWWTRACE)
 	    fprintf(TDEST,
 		    "HTList...... Can not add object %p to nonexisting list\n",
 		    newObject);

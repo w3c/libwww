@@ -107,7 +107,7 @@ PUBLIC int HTErrorAdd ARGS7(HTRequest *, 	request,
 {
     HTErrorInfo *newError;
     if (!request) {
-	if (TRACE) fprintf(TDEST, "HTErrorAdd.. Bad argument!\n");
+	if (WWWTRACE) fprintf(TDEST, "HTErrorAdd.. Bad argument!\n");
 	return HT_ERROR;
     }
     if ((newError = (HTErrorInfo *) calloc(1, sizeof(HTErrorInfo))) == NULL)
@@ -135,7 +135,7 @@ PUBLIC int HTErrorAdd ARGS7(HTRequest *, 	request,
 	if (pres != NULL)
 	    newError->handle = pres->handle+1;
     }
-    if (TRACE) {
+    if (WWWTRACE) {
 	fprintf(TDEST, "Message..... Handle: %d\tCode: %3d\tMessage: `%s\'\tSeverity: %d\tParameter: `%s\'\tWhere: `%s\'\n",
 		newError->handle,
 		error_info[newError->element].code,
@@ -166,7 +166,7 @@ PUBLIC int HTErrorSysAdd ARGS5(HTRequest *, 	request,
 			       char *,		syscall)
 {
     if (!request) {
-	if (TRACE) fprintf(TDEST, "HTErrorSys.. Bad argument!\n");
+	if (WWWTRACE) fprintf(TDEST, "HTErrorSys.. Bad argument!\n");
 	return HT_ERROR;
     }
     {
@@ -214,7 +214,7 @@ PUBLIC void HTErrorIgnore ARGS2(HTRequest *, request, int, handle)
     HTList *cur;
     HTErrorInfo *pres;
     if (!request) {
-	if (TRACE) fprintf(TDEST, "HTErrorIgnore Bad argument!\n");
+	if (WWWTRACE) fprintf(TDEST, "HTErrorIgnore Bad argument!\n");
 	return;
     }
     cur = request->error_stack;
@@ -226,7 +226,7 @@ PUBLIC void HTErrorIgnore ARGS2(HTRequest *, request, int, handle)
 	}
     }
 
-    if (TRACE) {
+    if (WWWTRACE) {
 	if (found) {
 	    fprintf(TDEST, "Error Ignore Handle: %d\tCode: %3d\tMessage: `%s\tSeverity: %d\tParameter: `%s\'\tWhere: `%s\'\n",
 		    pres->handle,
@@ -253,12 +253,12 @@ PUBLIC void HTErrorIgnoreLast ARGS1(HTRequest *, request)
     HTList *cur;
     HTErrorInfo *pres;
     if (!request) {
-	if (TRACE) fprintf(TDEST, "HTErrorIgnore Bad argument!\n");
+	if (WWWTRACE) fprintf(TDEST, "HTErrorIgnore Bad argument!\n");
 	return;
     }
     cur = request->error_stack;
     if (cur && (pres = (HTErrorInfo *) HTList_nextObject(cur)) != NULL) {
-	if (TRACE)
+	if (WWWTRACE)
 	    fprintf(TDEST, "Error Ignore Code: %3d\tMessage: `%s\tSeverity: %d\tParameter: `%s\'\tWhere: `%s\'\n",
 		    error_info[pres->element].code,
 		    error_info[pres->element].msg,

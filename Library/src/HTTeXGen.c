@@ -350,7 +350,7 @@ PRIVATE void HTTeXGen_start_element ARGS4(
 {
     me->startup = YES;			        /* Now, let's get down to it */
     if (me->preformatted == YES) {	       /* Don't start markup in here */
-	if (TRACE)
+	if (WWWTRACE)
 	    fprintf(TDEST, "LaTeX....... No Markup in verbatim mode\n");
 	return;
     }
@@ -385,7 +385,7 @@ PRIVATE void HTTeXGen_end_element ARGS2(HTStructured *, me,
 				       int , element_number)
 {
     if (me->preformatted && element_number != HTML_PRE) {
-	if (TRACE)
+	if (WWWTRACE)
 	    fprintf(TDEST, "LaTeX....... No markup in verbatim mode\n");
 	return;
     }

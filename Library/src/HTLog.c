@@ -34,19 +34,19 @@ PUBLIC BOOL HTLog_enable ARGS3(CONST char *, filename, BOOL, local,
 			       BOOL, append)
 {
     if (!filename || !*filename) {
-	if (TRACE) fprintf(TDEST, "Log......... No log file given\n");
+	if (WWWTRACE) fprintf(TDEST, "Log......... No log file given\n");
 	return NO;
     }
-    if (TRACE)
+    if (WWWTRACE)
 	fprintf(TDEST, "Log......... Open log file `%s\'\n", filename);
     if (HTlogfile) {
-	if (TRACE)
+	if (WWWTRACE)
 	    fprintf(TDEST, "Log......... Already open\n");
 	return NO;
     }
     HTlogfile = fopen(filename, append ? "a" : "w");
     if (!HTlogfile) {
-	if (TRACE)
+	if (WWWTRACE)
 	    fprintf(TDEST, "Log......... Can't open log file `%s\'\n",
 		    filename);
 	return NO;
@@ -62,7 +62,7 @@ PUBLIC BOOL HTLog_enable ARGS3(CONST char *, filename, BOOL, local,
 */
 PUBLIC BOOL HTLog_disable NOARGS
 {
-    if (TRACE)
+    if (WWWTRACE)
 	fprintf(TDEST, "Log......... Closing log file\n");
     if (HTlogfile) {
 	int status = fclose(HTlogfile);
@@ -89,7 +89,7 @@ PUBLIC BOOL HTLog_request ARGS2(HTRequest *, request, int, status)
 	time_t now = time(NULL);	
 	HTParentAnchor *anchor = HTRequest_anchor(request);
 	char * uri = HTAnchor_address((HTAnchor *) anchor);
-	if (TRACE) fprintf(TDEST, "Log......... Writing log\n");
+	if (WWWTRACE) fprintf(TDEST, "Log......... Writing log\n");
 	fprintf(HTlogfile, "%s - - [%s] %s %s %d %ld\n",
 		HTClientHost ? HTClientHost : "localhost",
 		HTDateTimeStr(&now, HTloglocal),

@@ -86,7 +86,7 @@ PUBLIC int HTAddRule ARGS3(HTRuleOp,		op,
     temp->op = op;
 
     strcpy(pPattern, pattern);
-    if (TRACE) {
+    if (WWWTRACE) {
        if (equiv)
           fprintf(TDEST, "Rule: For `%s' op %d `%s'\n", pattern, op, equiv);
        else

@@ -40,10 +40,10 @@ PUBLIC void HTProgress ARGS3(HTRequest *, request, HTProgressState, state,
 			     void *, param)
 {
     /* This is just to avoid that we get a lot of progress messages in LMB */
-    if (!TRACE) return;
+    if (!(WWWTRACE)) return;
 
     if (!request) {
-	if (TRACE)
+	if (WWWTRACE)
 	    fprintf(TDEST, "HTProgress.. Bad argument\n");
 	return;
     }
@@ -230,7 +230,7 @@ PUBLIC void HTErrorMsg ARGS1(HTRequest *, request)
 
 	    /* Output code number */
 	    if (highest) {			    /* If first time through */
-		if (TRACE)
+		if (WWWTRACE)
 		    fprintf(TDEST,
 			    "HTError..... Generating message.\n");
 		
@@ -244,7 +244,7 @@ PUBLIC void HTErrorMsg ARGS1(HTRequest *, request)
 		else if (pres->severity == ERR_INFO)
 		    HTChunkPuts(chunk, "Information ");
 		else {
-		    if (TRACE)
+		    if (WWWTRACE)
 			fprintf(TDEST, "HTError..... Unknown Classification of Error (%d)...\n", pres->severity);
 		    HTChunkFree(chunk);
 		    return;

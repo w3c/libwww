@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Utility macros</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  9-Oct-1995 -->
 </HEAD>
 <BODY>
 
@@ -32,7 +32,7 @@ for system specific information. <P>
 
 <H2>Debug message control</H2>
 
-This is the global flag for setting the TRACE options.
+This is the global flag for setting the WWWTRACE options.
 
 <PRE>
 #ifndef DEBUG
@@ -42,10 +42,10 @@ This is the global flag for setting the TRACE options.
 extern int WWW_TraceFlag;		     /* Global flag for all W3 trace */
 </PRE>
 
-The verbose mode is no longer a simple boolean but a bit field so that it is
-possible to see parts of the output messages. The <EM>TRACE</EM> define still
-outputs all messages if verbose mode is active, but in addition the following
-TRACE defines have been made:
+The verbose mode is no longer a simple boolean but a bit field so that
+it is possible to see parts of the output messages. The
+<EM>WWWTRACE</EM> define still outputs all messages if verbose mode is
+active, but in addition the following WWWTRACE defines have been made:
 
 <PRE>
 #ifdef NO_STDIO
@@ -76,7 +76,7 @@ trace messages, e.g. showing messages for SGML and HTML at the same time.
 
 <PRE>
 #ifdef DEBUG
-#define TRACE		(WWW_TraceFlag)
+#define WWWTRACE	(WWW_TraceFlag)
 #define CACHE_TRACE	(WWW_TraceFlag & SHOW_CACHE_TRACE)
 #define SGML_TRACE	(WWW_TraceFlag & SHOW_SGML_TRACE)
 #define BIND_TRACE	(WWW_TraceFlag & SHOW_BIND_TRACE)
@@ -86,7 +86,7 @@ trace messages, e.g. showing messages for SGML and HTML at the same time.
 #define URI_TRACE	(WWW_TraceFlag & SHOW_URI_TRACE)
 #define ANCH_TRACE	(WWW_TraceFlag & SHOW_ANCHOR_TRACE)
 #else
-#define TRACE		0
+#define WWWTRACE	0
 #define CACHE_TRACE	0
 #define SGML_TRACE	0
 #define BIND_TRACE	0
@@ -96,14 +96,6 @@ trace messages, e.g. showing messages for SGML and HTML at the same time.
 #define URI_TRACE	0
 #define ANCH_TRACE	0
 #endif
-</PRE>
-
-<EM><B>Note: </B> The CTRACE flag might interfere with other if ()
-else constructions in the code. IT SHOULD NOT BE USED BUT REPLACED BY
-TRACE</EM>
-
-<PRE>
-#define CTRACE if(TRACE) fprintf
 </PRE>
 
 <H2>Error type</H2>

@@ -238,7 +238,7 @@ PUBLIC void HTAcceptEncoding ARGS3(HTList *,	list,
 {
     HTAcceptNode * node;
     if (!list || !enc || !*enc) {
-	if (TRACE)
+	if (WWWTRACE)
 	    fprintf(TDEST, "Encodings... Bad argument\n");
 	return;
     }
@@ -257,7 +257,7 @@ PUBLIC void HTAcceptLanguage ARGS3(HTList *,	list,
 {
     HTAcceptNode * node;
     if (!list || !lang || !*lang)  {
-	if (TRACE)
+	if (WWWTRACE)
 	    fprintf(TDEST, "Languages... Bad argument\n");
 	return;
     }
@@ -276,7 +276,7 @@ PUBLIC void HTAcceptCharset ARGS3(HTList *,	list,
 {
     HTAcceptNode * node;
     if (!list || !charset || !*charset)  {
-	if (TRACE)
+	if (WWWTRACE)
 	    fprintf(TDEST, "Charset..... Bad argument\n");
 	return;
     }

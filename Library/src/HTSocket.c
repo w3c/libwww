@@ -56,7 +56,7 @@ struct _HTStream {
 **	many parsers, and on PCs and Macs we should not duplicate
 **	the static buffer area.
 */
-PUBLIC HTInputSocket * HTInputSocket_new ARGS1 (SOCKFD, file_number)
+PUBLIC HTInputSocket * HTInputSocket_new (SOCKFD file_number)
 {
     HTInputSocket *isoc = (HTInputSocket *)calloc(1, sizeof(*isoc));
     if (!isoc) outofmem(__FILE__, "HTInputSocket_new");
@@ -64,6 +64,13 @@ PUBLIC HTInputSocket * HTInputSocket_new ARGS1 (SOCKFD, file_number)
     isoc->write = isoc->read = isoc->buffer;
     return isoc;
 }
+
+PUBLIC void HTInputSocket_free (HTInputSocket * me)
+{
+    if (me) free(me);
+}
+
+/* ------------------------------------------------------------------------- */
 
 /* This should return HT_INTERRUPTED if interrupted BUT the connection
    MUST not be closed */ 
@@ -88,12 +95,6 @@ PUBLIC int HTInputSocket_getCharacter ARGS1(HTInputSocket*, isoc)
     
     return FROMASCII(ch);
 }
-
-PUBLIC void HTInputSocket_free ARGS1(HTInputSocket *, me)
-{
-    if (me) free(me);
-}
-
 
 PUBLIC char * HTInputSocket_getBlock ARGS2(HTInputSocket*,	isoc,
 					   int *,		len)
@@ -264,7 +265,7 @@ PUBLIC char * HTInputSocket_getUnfoldedLine ARGS1(HTInputSocket *, isoc)
 **   RETURNS the number of bytes transferred.
 **
 */
-PUBLIC int HTCopy ARGS2(
+PRIVATE int HTCopy ARGS2(
 	SOCKFD,			file_number,
 	HTStream*,		sink)
 {
@@ -287,7 +288,7 @@ PUBLIC int HTCopy ARGS2(
 		file_number, isoc->buffer, INPUT_BUFFER_SIZE);
 	if (status <= 0) {
 	    if (status == 0) break;
-	    if (TRACE) fprintf(TDEST,
+	    if (WWWTRACE) fprintf(TDEST,
 		"Socket Copy. Read error, read returns %d with errno=%d\n",
 		status, socerrno);
 	    break;
@@ -321,7 +322,7 @@ PUBLIC int HTCopy ARGS2(
 **
 **
 */
-PUBLIC void HTFileCopy ARGS2(
+PRIVATE void HTFileCopy ARGS2(
 	FILE *,			fp,
 	HTStream*,		sink)
 {
@@ -340,7 +341,7 @@ PUBLIC void HTFileCopy ARGS2(
 	       buffer, 1, INPUT_BUFFER_SIZE, fp);
 	if (status == 0) { /* EOF or error */
 	    if (ferror(fp) == 0) break;
-	    if (TRACE) fprintf(TDEST,
+	    if (WWWTRACE) fprintf(TDEST,
 		"File Copy... Read error, read returns %d\n", ferror(fp));
 	    break;
 	}
@@ -363,7 +364,7 @@ PUBLIC void HTFileCopy ARGS2(
 **	
 **	Character handling is now of type int, Henrik, May 09-94
 */
-PUBLIC void HTCopyNoCR ARGS2(
+PRIVATE void HTCopyNoCR ARGS2(
 	SOCKFD,			file_number,
 	HTStream*,		sink)
 {
@@ -411,7 +412,7 @@ PUBLIC int HTParseSocket ARGS3(
     HTStreamClass targetClass;    
 
     if (request->error_stack) {
-	if (TRACE) fprintf(TDEST, "ParseSocket. Called whith non-empty error stack, so I return right away!\n");
+	if (WWWTRACE) fprintf(TDEST, "ParseSocket. Called whith non-empty error stack, so I return right away!\n");
 	return -1;
     }
 
@@ -443,7 +444,7 @@ PUBLIC int HTParseSocket ARGS3(
 }
 
 
-
+#if 0
 /*	Parse a file given format and file pointer
 **
 **   This routine is responsible for creating and PRESENTING any
@@ -463,7 +464,7 @@ PRIVATE int HTParseFile ARGS3(
     HTStreamClass targetClass;    
 
     if (request->error_stack) {
-	if (TRACE) fprintf(TDEST, "ParseFile... Called whith non-empty error stack, so I return right away!\n");
+	if (WWWTRACE) fprintf(TDEST, "ParseFile... Called whith non-empty error stack, so I return right away!\n");
 	return -1;
     }
 
@@ -485,7 +486,7 @@ PRIVATE int HTParseFile ARGS3(
     
     return HT_LOADED;
 }
-
+#endif
 
 /* ------------------------------------------------------------------------- */
 /*			MULTI THREADED IMPLEMENTATIONS			     */
