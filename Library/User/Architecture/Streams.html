@@ -1,149 +1,150 @@
-<HTML>
-<HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen,  6-Sep-1995 -->
-  <TITLE>Data Flow Using Streams</TITLE>
-</HEAD>
-<BODY BGCOLOR="#ffffff">
-<P>
-<A HREF="../../../"><IMG BORDER="0" SRC="../../../Icons/WWW/w3c_home" ALT="W3C" WIDTH="72"
-    HEIGHT="48" BORDER="0"></A>
-<A HREF="../../"><IMG BORDER="0" SRC="../../../Icons/WWW/Lib48x" ALT="libwww" WIDTH="48"
-    HEIGHT="48" BORDER="0"></A>
-<A HREF="./"><IMG BORDER="0" SRC="../../../Icons/WWW/design48x" ALT="Architecture" WIDTH="48"
-    HEIGHT="48" BORDER="0"></A>
-<H1>
-  Data Flow using Streams
-</H1>
-<P>
-A <A HREF="../../src/HTStream.html">stream</A> is an object which accepts
-sequences of characters. It is a destination of data which can be thought
-of much like an output stream in C++ or an ANSI C-file stream for writing
-data to a disk or another peripheral device. It can be anything that accepts
-data, for example another stream, ANSI C-file stream, or even a black hole
-which absorbs data without ever sending it out again. Streams are used to
-transport data internally in the Library between the application, the network,
-and the local file system. Streams can be cascaded into a stream chain by
-directing the output of a stream which often is called the sink or target
-into another stream. This means that the processing of data can be done as
-the total effect of several cascaded streams.
-<P>
-Streams are both used to transport data from the application to the network
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+   "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+<title>Data Flow Using Streams</title>
+<link rel="STYLESHEET" href="/StyleSheets/libwww.css" type="text/css">
+</head>
+<body>
+
+<p><a href="../../../"><img border="0" src="../../../Icons/WWW/w3c_home"
+alt="W3C" width="72" height="0"></a> <a href="../../"><img border="0"
+src="../../../Icons/WWW/Lib48x" alt="libwww" width="48" height="48"></a> <a
+href="./"><img border="0" src="../../../Icons/WWW/design48x"
+alt="Architecture" width="48" height="48"></a></p>
+
+<h1>Data Flow using Streams</h1>
+
+<p>A <a href="../../src/HTStream.html">stream</a> is an object which accepts
+sequences of characters. It is a destination of data which can be thought of
+much like an output stream in C++ or an ANSI C-file stream for writing data to
+a disk or another peripheral device. It can be anything that accepts data, for
+example another stream, ANSI C-file stream, or even a black hole which absorbs
+data without ever sending it out again. Streams are used to transport data
+internally in the Library between the application, the network, and the local
+file system. Streams can be cascaded into a stream chain by directing the
+output of a stream which often is called the sink or target into another
+stream. This means that the processing of data can be done as the total effect
+of several cascaded streams.</p>
+
+<p>Streams are both used to transport data from the application to the network
 and vice verse which enables applications to send data objects to the remote
-server which is a requirement for doing collaborative work using HTTP as
-the transport carrier. The stream-based architecture allows the Library to
-be event driven in the sense that data is put down a stream as it gets ready,
-for example from the network, and any necessary actions then cascade off
-this event. An event can also be data arriving from the application which
-would be the case when an application is posting a data object to a remote
-server.
-<P>
-Many stream modules have their own subclass definitions of either the generic
-stream class or the structured class which we will describe below. These
-definitions can be found in the individual stream modules.
-<H2>
-  The Generic Stream Class
-</H2>
-<P>
-The generic stream class is a superclass of all other streams and it provides
-a uniform interface to all stream objects regardless of what stream sub-class
-they originate from. The generic stream class is defined with the following
-set of methods.
-<P>
-<A NAME="Stream"><IMG BORDER="0" SRC="Stream.gif" ALT="Stream" WIDTH="393" HEIGHT="102"
-    BORDER="0"></A>
-<P>
-<H2>
-  The Structured Stream Class
-</H2>
-<P>
-A structured stream is a subclass of a stream, but instead of just accepting
-data, it also accepts the SGML "begin element", "end element", and "put entity".
-The conversion from a generic stream to a structured stream is done by the
-SGML tokenizer which recognizes basic SGML mark up like "&lt;", "&gt;", entities
-etc.
-<P>
-<A NAME="StrucStream"><IMG BORDER="0" SRC="StrucStream.gif" ALT="Structured Stream"
-    WIDTH="379" HEIGHT="130" BORDER="0"></A>
-<P>
-A structured stream therefore represents a structured document. The elements
-and entities in the stream are referred to by numbers, rather than strings.
-A DTD contains the mapping between element names and numbers, so each instance
-of a structured stream is associated with a corresponding DTD. The only DTD
-which is currently in the Library is an extended version of the HTML DTD
-level 1, but current work is done to update this to comply with the emerging
-HTML level 3 specification.
-<P>
-As for generic streams, it is not required that the stream actually has a
-output - it can for example be a stream writing to a file where no output
-is required.
-<H2>
-  Cascaded Streams
-</H2>
-<P>
-Streams are often cascaded into a stream chain but before explaining why
-a stream chain is a flexible construction for data transportation, let's
-have a look at what kind of streams, the Library provides. The stream modules
-be divided into groups depending on their behavior:
-<DL>
-  <DT>
-    Protocol Streams
-  <DD>
-    Internal streams that parses or generates protocol specific information to
-    communicate with remote servers.
-  <DT>
-    Converters
-  <DD>
-    Streams that can be used to convert data from one media type to another or
-    create a data object and present it to the user.
-  <DT>
-    Presenters
-  <DD>
-    These are streams that save the data to a local file and calls an external
-    program, for example a postscript viewer.
-  <DT>
-    I/O Streams
-  <DD>
-    Streams that can write data to a socket or an ANSI C FILE object. This can
-    be used when redirecting a request to a local file of when saving a document
-    in the cache
-  <DT>
-    Basic Streams
-  <DD>
-    A set of basic utility streams with no or little internal contents but required
-    in order to cascade streams.
-</DL>
-<P>
-The first four stream classes often fall into a natural order in a stream
+server which is a requirement for doing collaborative work using HTTP as the
+transport carrier. The stream-based architecture allows the Library to be
+event driven in the sense that data is put down a stream as it gets ready, for
+example from the network, and any necessary actions then cascade off this
+event. An event can also be data arriving from the application which would be
+the case when an application is posting a data object to a remote server.</p>
+
+<p>Many stream modules have their own subclass definitions of either the
+generic stream class or the structured class which we will describe below.
+These definitions can be found in the individual stream modules.</p>
+
+<h2><a name="Stream">The Generic Stream Class</a></h2>
+
+<p>The <a href="../../src/HTStream.html">generic stream</a> class is a
+superclass of all other streams and it provides a uniform interface to all
+stream objects regardless of what stream sub-class they originate from. The
+generic stream class is defined with the following set of methods.</p>
+
+<p style="text-align: center"><img border="0" src="Stream.gif" alt="Stream"
+width="393" height="102"></p>
+
+<p></p>
+
+<h2><a name="StrucStream">The Structured Stream Class</a></h2>
+
+<p>A <a href="../../src/HTStruct.html">structured stream</a> is a subclass of
+a stream, but instead of just accepting data, it also accepts the SGML "begin
+element", "end element", and "put entity". The conversion from a generic
+stream to a structured stream is done by the SGML tokenizer which recognizes
+basic SGML mark up like "&lt;", ">", entities etc.</p>
+
+<p style="text-align: center"><img border="0" src="StrucStream.gif"
+alt="Structured Stream" width="379" height="130"></p>
+
+<p>A structured stream therefore represents a structured document. The
+elements and entities in the stream are referred to by numbers, rather than
+strings. A DTD contains the mapping between element names and numbers, so each
+instance of a structured stream is associated with a corresponding DTD. The
+only DTD which is currently in the Library is an extended version of the HTML
+DTD level 1, but current work is done to update this to comply with the
+emerging HTML level 3 specification.</p>
+
+<p>As for generic streams, it is not required that the stream actually has a
+output - it can for example be a stream writing to a file where no output is
+required.</p>
+
+<h2><a name="Cascaded">Cascaded Streams</a></h2>
+
+<p>Streams are often cascaded into a stream chain but before explaining why a
+stream chain is a flexible construction for data transportation, let's have a
+look at what kind of streams, the Library provides. The stream modules be
+divided into groups depending on their behavior:</p>
+<dl>
+<dt>Protocol Streams</dt>
+<dd>
+Internal streams that parses or generates protocol specific information to
+communicate with remote servers.
+</dd>
+<dt>Converters</dt>
+<dd>
+Streams that can be used to convert data from one media type to another or
+create a data object and present it to the user.
+</dd>
+<dt>Presenters</dt>
+<dd>
+These are streams that save the data to a local file and calls an external
+program, for example a postscript viewer.
+</dd>
+<dt>I/O Streams</dt>
+<dd>
+Streams that can write data to a socket or an ANSI C FILE object. This can be
+used when redirecting a request to a local file of when saving a document in
+the cache
+</dd>
+<dt>Basic Streams</dt>
+<dd>
+A set of basic utility streams with no or little internal contents but
+required in order to cascade streams.
+</dd>
+</dl>
+
+<p>The first four stream classes often fall into a natural order in a stream
 chain which is indicated in the the figure below. Here two typical stream
-pipes are shown for data flowing from the network to the application and
-vise verse:
-<P>
-<IMG BORDER="0" SRC="InOutPipe.gif" ALT="Stream Chains" WIDTH="602" HEIGHT="235">
-<P>
-As a more specific example, the figure below shows how streams are cascaded
+pipes are shown for data flowing from the network to the application and vise
+verse:</p>
+
+<p style="text-align: center"><img border="0" src="InOutPipe.gif" alt="Stream
+Chains" width="602" height="235"></p>
+
+<p>As a more specific example, the figure below shows how streams are cascaded
 when data from a remote HTTP server is handled by the Library. In this case,
-the stream chain is built as data arrives to the Library from the network:
-The first stream can decide whether it is a 0.9 or a 1.0 response from the
-first line in the response; The HTTP header parser stream can decide the
-format of the body when the header part is parsed and so forth. In other
-situations the stream chain can be setup before data arrives if the format
-is known a priori to the data acquisition.
-<P>
-<IMG BORDER="0" SRC="InputStream.gif" ALT="Input Stream" WIDTH="516" HEIGHT="384">
-<P>
-The ground symbol symbolizes that all data goes into a black hole where nothing
-is radiated from. The two stream outputs going to the application from each
-of the converters symbolizes that error information is separated from other
-data objects. This allows the application to direct any body part in an error
-message, for example from a <CODE>"401 Unauthorized"</CODE> HTTP status,
-code to a separate "<B>debug</B>" window where it can be displayed without
-affecting the current document view.
-<P>
-  <HR>
-<ADDRESS>
-  Henrik Frystyk Nielsen,
-  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
-  @(#) $Id$
-</ADDRESS>
-<P>
-</BODY></HTML>
+the stream chain is built as data arrives to the Library from the network: The
+first stream can decide whether it is a 0.9 or a 1.0 response from the first
+line in the response; The HTTP header parser stream can decide the format of
+the body when the header part is parsed and so forth. In other situations the
+stream chain can be setup before data arrives if the format is known a priori
+to the data acquisition.</p>
+
+<p style="text-align: center"><img border="0" src="InputStream.gif" alt="Input
+Stream" width="516" height="384"></p>
+
+<p>The ground symbol symbolizes that all data goes into a black hole where
+nothing is radiated from. The two stream outputs going to the application from
+each of the converters symbolizes that error information is separated from
+other data objects. This allows the application to direct any body part in an
+error message, for example from a <code>"401 Unauthorized"</code> HTTP status,
+code to a separate "<b>debug</b>" window where it can be displayed without
+affecting the current document view.</p>
+
+<p></p>
+<hr>
+
+<address>
+<a href="/People/Frystyk/">Henrik Frystyk Nielsen</a>,<br>
+@(#) $Id$ </address>
+
+<p></p>
+</body>
+</html>

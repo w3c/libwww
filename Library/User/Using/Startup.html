@@ -1,320 +1,106 @@
-<HTML>
-<HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 13-Mar-1996 -->
-  <TITLE>Getting Started</TITLE>
-</HEAD>
-<BODY>
-<P>
-<A HREF="../../../"><IMG BORDER="0" SRC="../../../Icons/WWW/w3c_home" ALT="W3C"></A>
-<A HREF="../../"><IMG BORDER="0" SRC="../../../Icons/WWW/Lib48x" ALT="libwww"></A>
-<A HREF="./"><IMG BORDER="0" SRC="../../../Icons/WWW/guide48x" ALT="Using"></A>
-<H1>
-  Getting Started
-</H1>
-<P>
-This guide assumes that you have already compiled the Library and are ready
-to use it building an application. If this is not the case then please read
-the <A HREF="../../../INSTALL.html">Installation guide</A> before you continue
-reading this document. One thing to note is that as new versions of the Library
-are released frequently, it is recommended that you verify that the version
-is up to date. You can compare your version of the code with the current
-version which is available from the online documentation from our WWW server.
-<P>
-The Library functionality is divided into a set of <I>interfaces</I> defined
-by each their own include file. They all have a name starting with
-<EM>WWW</EM>, and as they will be referenced throughout this guide, we might
-as well introduce the two basic ones from the beginning. The rest are explained
-in detail in <A HREF="../Guide/Overview.html">Library Interfaces</A>
-<DL>
-  <DT>
-    <A HREF="../../src/WWWUtil.html">WWWUtil</A>
-  <DD>
-    The WWW Utility module contains a lot of the functionality that makes it
-    possible to make applications, that is container modules for data objects,
-    basic string functionality etc. This module is the basis for all of the following
-    modules and is used extensively.
-  <DT>
-    <A HREF="../../src/WWWCore.html">WWWCore</A>
-  <DD>
-    The WWW Core module is a set of registration modules that glues an application
-    together. It contains no real functionality in itself; it is for example
-    not capable of loading a HTML document. It only provides a large set of hooks
-    which can be used to add functionality to the Library and to give an application
-    real life. We will here a lot more to the structure of the core, and much
-    of this guide is actually describing how to add functionality to the core.
-  <DT>
-    <A HREF="../../src/WWWLib.html">WWWLib</A>
-  <DD>
-    This include is the main include file for the Library. It basically consists
-    of the <A HREF="../../src/WWWUtil.html">WWWUtil</A> and the
-    <A HREF="../../src/WWWCore.html">WWWCore</A> so that the application only
-    needs to include this one instead of two.
-</DL>
-<P>
-As mentioned, in order to use the core public functions of the Library, your
-application needs to include the file <A HREF="../../src/WWWLib.html">WWWLib
-interface</A>. This file is a container for all the Library include files
-that together define the public API of the core of the Library. As described
-in the document <A HREF="../Architecture/">Library Architecture</A> the core
-is a frame work for other modules that provide the actual functionality,
-for example for parsing HTML documents or getting a document via HTTP or
-FTP. We will explain later how this functionality can be enabled and used
-by an application.
-<P>
-The application must explicitly initialize the Library before it can start
-using it so that the internal file descriptors, and variables can be set
-to their respective values. This only has to be done once while the application
-is running and is typically done when the application is started. The application
-also should close down the Library when it has stopped using it - typically
-when the application is closing down. The Library will then return resources
-like file descriptors and dynamic memory to the operating system. In practice
-the initialization and termination is done using the following two functions:
-<PRE>
-BOOL HTLibInit(const char * AppName, const char * AppVersion)
-</PRE>
-<P>
-This function initializes memory, file descriptors, and interrupt handlers
-etc. By default it also calls initialization functions for all the dynamic
-modules in the Library. The dynamic modules are described in
-"<A HREF="../Architecture/DesignModel.html">Libwww Architecture</A>". A major
-part of the User's Guide is devoted to describing how the Library can be
-configured, both at run time and at compile time, and the dynamic modules
-are an important part of the Library configuration.
-<P>
-The two arguments to the function are the name of the application and the
-version number respectively. It is not a requirement that these values are
-unique and they can both be the empty string (""). However, as the strings
-are used in the <A HREF="../../src/HTTP.html">HTTP protocol module</A> when
-communicating with other WWW applications it is strongly recommended that
-the values are chosen carefully according to the
-<A HREF="../../../Protocols/">HTTP specifications</A>. The most important
-requirement is to use normal ASCII characters without any form for space
-as we will see in the example below.
-<PRE>
-BOOL HTLibTerminate()
-</PRE>
-<P>
-This function cleans up the memory, closes open file descriptors, and returns
-all resources to the operating system. It is essential that
-<CODE>HTLibInit(...)</CODE> is the first call to the Library and
-<CODE>HTLibTerminate()</CODE> is the last as the behavior otherwise is undefined.
-<H2>
-  Building your first Application
-</H2>
-<P>
-We have now explained the first few steps in how to initialize the core of
-the Library. We can now write our first minimal application which will do
-absolutely nothing but initializing and terminating the Library. In the example
-we assume that the compiler knows where to look for the Library include file
-<CODE>WWWLib.h</CODE> and also knows where to find the binary library, often
-called <CODE>libwww.a</CODE> on Unix platforms and <CODE>libwww.lib</CODE>
-on Windows. Again, the result might depend on the setup of the dynamic modules,
-but if no dynamic modules are enabled then the example will generate an
-executable file. If you are in doubt about how to set your compiler then
-you can often get some good ideas by looking into the
-<A HREF="../../../LineMode/">Line Mode Browser</A>.
-<P>
-PS: You can find the examples directly in form of C files in our
-<A HREF="../../Examples/">example area</A>
-<PRE>
-#include "WWWLib.h"
-int main()
-{
-    HTLibInit("TestApp", "1.0");
-    HTLibTerminate();
-    return 0;
-}
-</PRE>
-<P>
-Some platforms require a socket library when building network applications.
-This is for example the case when building on Macintosh or Windows machines.
-The Library uses the
-<A HREF="http://err.ethz.ch/members/neeri/macintosh/gusiman/GUSI.html">GUSI
-socket</A> library on the Macintosh and the
-<A HREF="ftp://ftp.spry.com/ms-windows/winsock/docs/winsock.txt">WinSock
-library</A> on windows platforms. Please check the documentation on these
-libraries for how to install them and also if there are any specific requirements
-on your platform when building network applications.
-<P>
-<H2>
-  Adding Functionality
-</H2>
-<P>
-The core parts of the Library can be thought of as a framework with hooks
-for adding functionality depending on what the applications needs. The core
-can not do anything on its own but when hooking in modules, the Library suddenly
-can start doing useful stuff. In the Library distribution file there is already
-a large set of specific protocol modules and stream modules for handling
-many common Internet protocols and data formats. We will explain protocol
-modules and streams in much more detail later, but for the moment it is
-sufficient to know that protocol modules knows how to communicate with remote
-servers on the Internet and that streams are used to pass documents back
-and forth between the Internet and the application with the Library as an
-intermediary part.
-<P>
-While the previous application wasn't capable of doing anything we will now
-add functionality so that we can request a URL from a remote Web server and
-save the result to a file. To do this we need to register two additional
-modules after initializing the Library: A protocol module that handles HTTP
-and a stream that can save data to a local file. Both these modules are already
-in the distribution file and in this example we show how to enable them.
-It is also possible to write your own versions of these modules and then
-register them instead of the ones provided with the Library. This makes no
-difference to the core part of the Library and is an example of how the
-functionality can be extended or changed by adding new modules as needed.
-<P>
-<PRE>
-#include "WWWLib.h"
-#include "HTTP.h"
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+   "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+<title>Getting Started</title>
+<link rel="STYLESHEET" href="/StyleSheets/libwww.css" type="text/css">
+</head>
+<body>
 
-int main()
-{
-    HTList *converters = HTList_new();		     /* Create a list object */
+<p><a href="../../../"><img border="0" src="../../../Icons/WWW/w3c_home"
+alt="W3C"></a> <a href="../../"><img border="0"
+src="../../../Icons/WWW/Lib48x" alt="libwww"></a> <a href="./"><img border="0"
+src="../../../Icons/WWW/guide48x" alt="Using"></a></p>
 
-    /* Initialize the Library */
-    HTLibInit("TestApp", "1.0");
+<h1>Getting Started</h1>
 
-    /* Register the HTTP Module */
-    HTProtocol_add("http", YES, HTLoadHTTP, NULL);
+<p>This guide assumes that you have already <a
+href="../../../INSTALL.html">compiled libwww</a> and are ready to <a
+href="../../libwww-config.html">use it building an application</a>. Libwww is
+divided into a set of <i><a href="../Guide/">packages</a></i> containing
+various part of functionality. They all have a name starting with <em>WWW</em>
+- two of them are required to use in all libwww applications, <a
+href="../Guide/">the rest</a> is optional:</p>
+<dl>
+<dt><a href="../../src/WWWUtil.html">WWWUtil</a></dt>
+<dd>
+The WWW Utility module contains a lot of the functionality that makes it
+possible to make applications, that is container modules for data objects,
+basic string functionality etc. This module is the basis for all of the
+following modules and is used extensively.
+</dd>
+<dt><a href="../../src/WWWCore.html">WWWCore</a></dt>
+<dd>
+The WWW Core module is a set of registration modules that glues an application
+together. It contains no real functionality in itself; it is for example not
+capable of loading an HTML document. It only provides a large set of hooks
+which can be used to add functionality to libwww and to give an application
+"real life". We will here a lot more to the structure of the core, and much of
+this guide is actually describing how to add functionality to the core.
+</dd>
+</dl>
 
-    /* Add a conversion to our empty list */
-    HTConversion_add(converters, "*/*", "www/present", HTSaveLocally, 1.0, 0.0, 0.0);
+<p>The application must explicitly initialize libwww before it can start using
+it so that the internal file descriptors, and variables can be set to their
+respective values. This only has to be done once while the application is
+running and is typically done when the application is started. The application
+also should close down libwww when it has stopped using it - typically when
+the application is closing down. Libwww will then return resources like file
+descriptors and dynamic memory to the operating system.</p>
+<ul>
+<li>
+<a href="../../Examples/libapp_1.c">See the starup/shutdown sample app for how
+to initialize/terminate libwww</a>
+</li>
+</ul>
 
-    /* Register our list with one conversion */
-    HTFormat_setConversion(converters);
+<h2>Building your first Application</h2>
 
-    /* Delete the list with one conversion */
-    HTConversion_deleteAll(converters);
+<p><em>Note: If you are on Unix and you have installed libwww then you can use
+the </em><a href="../../libwww-config.html"><em>libwww-config
+script</em></a><em> to make linking against libwww easier. In Windows MSVC you
+have to include the DLLs in your application project.</em></p>
 
-    /* Terminate the Library */
-    HTLibTerminate();
-    return 0;
-}
-</PRE>
-<P>
-The two new things in this example is that we now have two registration
-functions. We will explain more about these functions as we go along; for
-now we will only introduce the functions and their arguments. The interesting
-part about the two registration functions is that they represent the two
-ways of registration in the Library: Some things are registered directly
-like the protocol module and other things are registered as lists of objects
-like the list of converters. The reason for this is to make the registration
-process easier for the application to handle; protocol modules are often
-initialized only once while the application is running. Therefore it is easier
-to register them directly. As we will see later in this guide, converters,
-however, can be enabled and disabled depending on a regular basis depending
-on what the application is trying to do. It is therefore easier to keep the
-converters in lists so that they can be enabled and disabled in batch.
-<P>
-Now, let's take a closer look at the two registration functions. The first
-registers the HTTP protocol module which enables the Library of accessing
-documents using HTTP from any server on the Internet.
-<PRE>
-extern BOOL HTProtocol_add (const char *       	name,
-			    BOOL		preemptive,
-			    HTEventCallBack *	callback);
-</PRE>
-<P>
-The first argument is a name equivalent to the scheme part in a URL, for
-example <B>http</B>://www.w3.org, where <B>http</B> is the scheme part. When
-a request is issued to the Library using a URL, it looks at the URL scheme
-and sees if it knows how to handle it. If not then an error is issued. The
-second argument describes whether the protocol module supports non-blocking
-sockets or not. This is a decision to be made when the module is first designed
-and can normally not be changed. In the example we register HTTP for using
-blocking sockets, but all native Library protocol modules including HTTP,
-FTP, News, Gopher, and access to the local file system supports non-blocking
-sockets. The third argument is the name of the protocol function to be called
-when the Library is about to hand off the request to the module.
-<P>
-<PRE>
-extern void HTConversion_add   (HTList *	conversions,
-				const char * 	rep_in,
-				const char * 	rep_out,
-				HTConverter *	converter,
-				double		quality,
-				double		secs, 
-				double		secs_per_byte);
-</PRE>
-<P>
-This function has many arguments and we will not go into details at this
-point. The important thing to note is that we build a list of converters.
-Each call to the <CODE>HTConversion_add</CODE> creates a new converter object
-and adds it to the list. A converter object is described by an input format
-(<CODE>rep_in</CODE>), an output format (<CODE>rep_out</CODE>), the function
-name of the converter, and a quality factor describing how good the conversion
-is. The last two arguments are currently not used but are reserved for future
-use. The quality factor later where we will see how it can be used to distinguish
-between multiple conversions in order to pick the best one.
-<P>
-Even though we now have initialized a protocol module and a converter, the
-program example is still not actively doing anything. It only starts the
-Library, registers two modules and then terminates the Library again. Our
-third and last example in this section does the same amount of initialization
-but does also issue a request to the Library for fetching a URL.
-<H2>
-  Fetching a URL
-</H2>
-<P>
-We now want to create an example which is capable of issuing a request to
-the Library to fetch a URL. When doing this we must create a request object
-that contains all information that is necessary in order to handle the request.
-Then we pass this object to the Library and if the request is valid and the
-document does exist we get the data back. In the example we read the URL
-to fetch from the command line. As in the other examples we are not too worried
-about error checking and error messaging. In a real application you must
-of course do this, but here we want to keep the examples simple.
-<PRE>
-#include "WWWLib.h"
-#include "HTTP.h"
-#include "HTDialog.h"
+<p>The sample app above doesn't do anything whatsoever. There are now two ways
+you can go for intializing the features you need in libwww:</p>
+<ul>
+<li>
+Use <a href="../../src/HTProfil.html">libwww profiles</a> which sets up a long
+list of often used features for you. See for example the libwww <a
+href="../../Examples/LoadToFile.c">'load to file</a>' sample app
+</li>
+<li>
+Go through the <a href="../../src/HTInit.html">initialization routines</a>
+yourself. See for example the <a href="../../Examples/tiny.c">tiny browser</a>
+sample app
+</li>
+</ul>
 
-int main (int argc, char ** argv)
-{
-    HTList * converters = HTList_new();
-    HTRequest * request = HTRequest_new();	  /* Create a request object */
-    WWWTRACE = SHOW_ALL_TRACE;
-    HTLibInit("TestApp", "1.0");
-    HTProtocol_add("http", YES, HTLoadHTTP, NULL);
-    HTConversion_add(converters, "*/*", "www/present", HTSaveLocally, 1.0, 0.0, 0.0);
-    HTFormat_setConversion(converters);
-    HTAlert_add(HTPrompt, HT_A_PROMPT);
-    if (argc == 2) {
-	HTLoadAbsolute(argv[1], request);
-    } else
-	printf("Type the URL to fetch\n");
-    HTRequest_delete(request);			/* Delete the request object */
-    HTConversion_deleteAll(converters);
-    HTLibTerminate();
-    return 0;
-}
-</PRE>
-<P>
-When this program is run, it will take the argument and call the Library
-to fetch it. As we haven't given any name for the file which we are creating
-on our local disk, the Library will prompt the user for a file name. Automatic
-redirection and access authentication is handled by the HTTP module but might
-require the user to type in a user name and a password. An example on how
-to run this program is:
-<PRE>
-./fetch_url http://www.w3.org/pub/WWW/
-</PRE>
-<P>
-The results stored in the file contains the whole message returned by the
-remote HTTP server except for the status line. This means that if we ask
-a HTTP/1.0 compliant server then we receive a header and a body where the
-header contains metainformation about the object, for example content type,
-content language etc. We shall later see how the MIME parser stream can strip
-out the header information so that we end up with the body of the response
-message.
-<P>
-In the next chapters we shall see that protocol modules and converters only
-is a part of what can be registered in the Library and that the application
-can specify many other types of preferences and capabilities.
-<P>
-  <HR>
-<ADDRESS>
-  <A HREF="../../../People/Frystyk/">Henrik Frystyk Nielsen</A>,<BR>
-  @(#) $Id$
-</ADDRESS>
-</BODY></HTML>
+<p>Which method is right for you depends on your application and how much you
+want to get your feet wet. If you are in doubt then I would recommend using
+profiles.</p>
+
+<h2>Adding Functionality</h2>
+
+<p>Sometimes, profiles are not enough - you may need a combination of features
+that is not supported by a default profile. In this case, you may be able to
+take one of the profiles and then edit it to suit your needs. You can also
+have a look at the <a href="../../Examples/">sample applications</a> to get a
+better idea about which profiles can be used for what purposes.</p>
+
+<h2>Fetching a Document from the Web</h2>
+
+<p>Some operations that are often used is to get or save a document on the
+Web. There are already several sample applications that do this kind of thing
+- I recommend that you have a look at the <a
+href="../Applications.html">libwww applications </a>and see whether you can
+not start from there.</p>
+
+<p></p>
+<hr>
+
+<address>
+<a href="../../../People/Frystyk/">Henrik Frystyk Nielsen</a>,<br>
+@(#) $Id$ </address>
+</body>
+</html>

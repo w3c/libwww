@@ -16,8 +16,8 @@ border="0"></a></p>
 href="#GET">GET</a> | <a href="#HEAD">HEAD</a> | <a href="#PUT">PUT</a> | <a
 href="#POST">POST</a> | <a href="#TRACE">TRACE</a> | <a
 href="#OPTIONS">OPTIONS</a> | <a href="#HTML">HTML Parsing</a> | <a
-href="#XML">XML Parsing</a> |&nbsp;<a href="#serve">Serving Requests</a> | <a
-href="#event">Eventloop</a> | <a href="#Big">Big sample apps</a></p>
+href="#XML">XML/RDF Parsing</a> |&nbsp;<a href="#serve">Serving Requests</a> |
+<a href="#event">Eventloop</a> | <a href="#Big">Big sample apps</a></p>
 
 <p>This is the list of small examples using the very basic features of the
 Library. If you have not already compiled the library then please read the <a
@@ -113,6 +113,11 @@ cookies with the <a href="../src/HTCookie.html">HTTP Cookie module.</a>
 
 <h3><a name="HEAD">Samples using HEAD Requests</a></h3>
 <dl>
+<dt><a href="getheaders.c">Get the header fields of a response</a></dt>
+<dd>
+Prints out and potentially filters the response header fields you are
+interested
+</dd>
 <dt><a href="head.c">Issue a HEAD request</a></dt>
 <dd>
 This small example sets up a request and performs a HEAD method on the
@@ -197,15 +202,26 @@ It's main feature is that it is small (&lt;200K when stripped on linux).
 </dd>
 </dl>
 
-<h2><a name="XML">XML Parsing</a></h2>
+<h2><a name="XML">XML/RDF Parsing</a></h2>
 
 <p>Here are some sample apps that show how to use libwww together with <a
-href="http://www.jclark.com/xml/expat.html">James Clark's expat XML
-parser</a></p>
+href="http://www.jclark.com/xml/expat.html">James Clark's expat XML parser</a>
+and John Punin's integration of the SiRPAC RDF parser in libwww. See the <a
+href="../User/Guide/#Expat">XML module</a> for more information</p>
 <dl>
 <dt><a href="showxml.c">showxml.c</a></dt>
 <dd>
 A simple program that shows all XML start and end tags and nothing else
+</dd>
+<dt><a href="stri.c">stri.c</a></dt>
+<dd>
+This sample app uses the <a href="../src/HTRDF.html">RDF parser</a> to
+generate a set of triples and send them to stdout.
+</dd>
+<dt><a href="ptri.c">ptri.c</a></dt>
+<dd>
+A sample application using the <a href="../src/HTRDF.html">RDF parser</a> more
+directly as we control where the triples are sent ourselves
 </dd>
 </dl>
 
