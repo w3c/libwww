@@ -29,7 +29,7 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 			       void * param, int status) 
 {
     if (result && HTChunk_data(result)) {
-	fprintf(stderr, "%s", HTChunk_data(result));
+	fprintf(stdout, "%s", HTChunk_data(result));
 	HTChunk_delete(result);
     }
 
