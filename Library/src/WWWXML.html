@@ -1,24 +1,26 @@
 <HTML>
 <HEAD>
-  <TITLE>W3C Sample Code Library libwww XML Expat Parser Wrapper</TITLE>
+  <TITLE>W3C Sample Code Library libwww XML/RDF Module</TITLE>
 </HEAD>
 <BODY>
 <H1>
-  Declaration of W3C Sample Code XML Expat Parser Module
+  Declaration of W3C Sample Code XML/RDF Module
 </H1>
 <PRE>
 /*
-**	(c) COPYRIGHT MIT 1995.
+**	(c) COPYRIGHT MIT 1999.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
+<P>
+<STRONG>Thanks so much to John Punin for writing this code!</STRONG>
 <P>
 We use <A href="http://www.jclark.com/xml/expat.html">James Clark's expat
 XML parser</A> which is very neat indeed. As the code doesn't come as a separate
 library, I included it in the libwww CVS code base where I compile is as
 two libraries: <CODE>libxmltok.a</CODE> and <CODE>libxmlparse.a</CODE>. See
 the <A HREF="../External/">external modules that libwww works</A> with for
-details. Thanks so much to John Punin for writing this code!
+details.
 <PRE>
 #ifndef WWWXML_H
 #define WWWXML_H
@@ -38,13 +40,26 @@ is that the Internet world is more complicated than Posix and ANSI.
 <PRE>
 #include "wwwsys.h"
 </PRE>
-<H2>
-  Library Includes
-</H2>
+<H3>
+  The Libwww Expat Wrapper Stream
+</H3>
 <PRE>
 #ifdef HT_EXPAT
 #include "<A HREF="HTXML.html">HTXML.h</A>"
-#endif
+#endif /* HT_EXPAT */
+</PRE>
+<H3>
+  The RDF Parser Using The XML Parser
+</H3>
+<P>
+This RDF parser is based on Janne Saarela's Java based
+<A href="/RDF/Implementations/SiRPAC/">SiRPAC</A> and
+<A href="http://www.jclark.com/xml/expat.html">James Clark's expat XML
+parser</A>
+<PRE>
+#ifdef HT_EXPAT
+#include "<A HREF="HTRDF.html">HTRDF.h</A>"
+#endif /* HT_EXPAT */
 </PRE>
 <P>
 End of XML module
