@@ -2,7 +2,7 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-ICONS = w3c_48x48.gif \
+ICONS = w3c_home.gif \
 	Lib48x.gif \
 	LMB48x.gif \
 	listen48x.gif \
