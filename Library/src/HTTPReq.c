@@ -172,7 +172,7 @@ PRIVATE void HTTPMakeRequest ARGS2(HTStream *, me, HTRequest *, request)
     ** anchor directly.
     */
     if (request->method==METHOD_PUT || request->method==METHOD_POST) {
-	if (request->EntityMask & HT_ALLOW) {
+	if (request->EntityMask & HT_ALLOW) {		/* @@@@@@@@@@ */
 
 	}
 	if (request->EntityMask & HT_CONTENT_ENCODING &&
@@ -181,7 +181,7 @@ PRIVATE void HTTPMakeRequest ARGS2(HTStream *, me, HTRequest *, request)
 		    HTAtom_name(entity->content_encoding), CR, LF);
 	    HTChunkPuts(header, linebuf);
 	}
-	if (request->EntityMask & HT_CONTENT_LANGUAGE) {
+	if (request->EntityMask & HT_CONTENT_LANGUAGE) {/* @@@@@@@@@@ */
 
 	}
 	if (request->EntityMask & HT_CONTENT_LENGTH) {   /* Must be there!!! */
@@ -195,28 +195,38 @@ PRIVATE void HTTPMakeRequest ARGS2(HTStream *, me, HTRequest *, request)
 	    HTChunkPuts(header, linebuf);
 	}
 	if (request->EntityMask & HT_CONTENT_TYPE && entity->content_type) {
-	    sprintf(linebuf, "Content-Type: %s%c%c",
-		    HTAtom_name(entity->content_type), CR, LF);
+	    sprintf(linebuf, "Content-Type: %s",
+		    HTAtom_name(entity->content_type));
+	    if (entity->charset) {
+		strcat(linebuf, "; charset=");
+		strcat(linebuf, HTAtom_name(entity->charset));
+	    }
+	    if (entity->level) {
+		strcat(linebuf, "; level=");
+		strcat(linebuf, HTAtom_name(entity->level));
+	    }
 	    HTChunkPuts(header, linebuf);
+	    HTChunkPutc(header, CR);
+	    HTChunkPutc(header, LF);
 	}
 	if (request->EntityMask & HT_DERIVED_FROM && entity->derived_from) {
 	    sprintf(linebuf, "Derived-From: %s%c%c", entity->derived_from,
 		    CR, LF);
 	    HTChunkPuts(header, linebuf);
 	}
-	if (request->EntityMask & HT_EXPIRES) {
+	if (request->EntityMask & HT_EXPIRES) {		/* @@@@@@@@@@ */
 
 	}
-	if (request->EntityMask & HT_LAST_MODIFIED) {
+	if (request->EntityMask & HT_LAST_MODIFIED) {	/* @@@@@@@@@@ */
 
 	}
-	if (request->EntityMask & HT_LINK) {
+	if (request->EntityMask & HT_LINK) {		/* @@@@@@@@@@ */
 
 	}
-	if (request->EntityMask & HT_TITLE) {
+	if (request->EntityMask & HT_TITLE) {		/* @@@@@@@@@@ */
 
 	}
-	if (request->EntityMask & HT_URI) {
+	if (request->EntityMask & HT_URI) {		/* @@@@@@@@@@ */
 
 	}
 	if (request->EntityMask & HT_VERSION && entity->version) {

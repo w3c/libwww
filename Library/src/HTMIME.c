@@ -298,14 +298,12 @@ PRIVATE void parseheader ARGS3(HTStream *, me, HTRequest *, request,
 	    break;
 
 	  case ALLOW:	    
-	    {
-		while ((value = HTNextField(&ptr)) != NULL) {
-		    char *lc = value;
-		    HTMethod new_method;
-		    while ((*lc = TOUPPER(*lc))) lc++;; 
-		    if ((new_method = HTMethod_enum(value)) != METHOD_INVALID)
-			anchor->methods += new_method;
-		}
+	    while ((value = HTNextField(&ptr)) != NULL) {
+		char *lc = value;
+		HTMethod new_method;
+		while ((*lc = TOUPPER(*lc))) lc++; 
+		if ((new_method = HTMethod_enum(value)) != METHOD_INVALID)
+		    anchor->methods += new_method;
 	    }
 	    if (STREAM_TRACE)
 		fprintf(TDEST, "MIMEParser.. Methods allowed: %d\n",
@@ -316,9 +314,9 @@ PRIVATE void parseheader ARGS3(HTStream *, me, HTRequest *, request,
 	  case AUTHENTICATE:
 	    if ((value = HTNextField(&ptr)) != NULL) {
 		StrAllocCopy(request->WWWAAScheme, value);
-		if ((value = HTNextField(&ptr)) != NULL) {
-		    StrAllocCopy(request->WWWAARealm, value);
-		}
+
+		/* The parsing is done in HTSSUtils.c for the moment */
+		if (*ptr) StrAllocCopy(request->WWWAARealm, ptr);
 	    }
 	    state = JUNK_LINE;
 	    break;
@@ -326,14 +324,14 @@ PRIVATE void parseheader ARGS3(HTStream *, me, HTRequest *, request,
 	  case CONTENT_ENCODING:
 	    if ((value = HTNextField(&ptr)) != NULL) {
 		char *lc = value;
-		while ((*lc = TOLOWER(*lc))) lc++;; 
+		while ((*lc = TOLOWER(*lc))) lc++;
 		anchor->content_encoding = HTAtom_for(value);
 	    }
 	    state = JUNK_LINE;
 	    break;
 
 	  case CONTENT_LANGUAGE:
-	    state = UNKNOWN;
+	    state = UNKNOWN;				/* @@@@@@@@@@@ */
 	    break;
 
 	  case CONTENT_LENGTH:
@@ -345,7 +343,7 @@ PRIVATE void parseheader ARGS3(HTStream *, me, HTRequest *, request,
 	  case CONTENT_TRANSFER_ENCODING:
 	    if ((value = HTNextField(&ptr)) != NULL) {
 		char *lc = value;
-		while ((*lc = TOLOWER(*lc))) lc++;; 
+		while ((*lc = TOLOWER(*lc))) lc++;
 		anchor->cte = HTAtom_for(value);
 	    }
 	    state = JUNK_LINE;
@@ -356,8 +354,23 @@ PRIVATE void parseheader ARGS3(HTStream *, me, HTRequest *, request,
 		char *lc = value;
 		while ((*lc = TOLOWER(*lc))) lc++; 
 		anchor->content_type = HTAtom_for(value);
+		while ((value = HTNextField(&ptr)) != NULL) {	  /* Charset */
+		    if (!strcasecomp(value, "charset")) {
+			if ((value = HTNextField(&ptr)) != NULL) {
+			    lc = value;
+			    while ((*lc = TOLOWER(*lc))) lc++;
+			    anchor->charset = HTAtom_for(value);
+			}
+		    } else if (!strcasecomp(value, "level")) {	    /* Level */
+			if ((value = HTNextField(&ptr)) != NULL) {
+			    lc = value;
+			    while ((*lc = TOLOWER(*lc))) lc++;
+			    anchor->level = HTAtom_for(value);
+			}
+		    }
+		}
 	    }
-	    state = JUNK_LINE;				 /* Skip charset :-( */
+	    state = JUNK_LINE;
 	    break;
 
 	  case DATE:
@@ -382,7 +395,7 @@ PRIVATE void parseheader ARGS3(HTStream *, me, HTRequest *, request,
 	    break;
 
 	  case LINK:
-	    state = UNKNOWN;
+	    state = UNKNOWN;				/* @@@@@@@@@@@ */
 	    break;
 
 	  case LOCATION:
@@ -392,7 +405,7 @@ PRIVATE void parseheader ARGS3(HTStream *, me, HTRequest *, request,
 	    break;
 
 	  case PUBLIC_METHODS:
-	    state = UNKNOWN;
+	    state = UNKNOWN;				/* @@@@@@@@@@@ */
 	    break;
 
 	  case RETRY_AFTER:

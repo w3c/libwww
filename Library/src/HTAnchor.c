@@ -49,7 +49,6 @@ PRIVATE HTParentAnchor * HTParentAnchor_new NOARGS
 	(HTParentAnchor *) calloc(1, sizeof (HTParentAnchor));
     newAnchor->parent = newAnchor;
     newAnchor->content_type = WWW_UNKNOWN;
-    newAnchor->level = HTML_INVALID;
     return newAnchor;
 }
 
@@ -599,6 +598,19 @@ PUBLIC void HTAnchor_setCharset ARGS2(HTParentAnchor *,me, HTCharset, charset)
 }
 
 /*
+**	Level parameter to Content-Type
+*/
+PUBLIC HTLevel HTAnchor_level ARGS1(HTParentAnchor *, me)
+{
+    return me ? me->level : NULL;
+}
+
+PUBLIC void HTAnchor_setLevel ARGS2(HTParentAnchor *,me, HTLevel, level)
+{
+    if (me) me->level = level;
+}
+
+/*
 **	Content Encoding
 */
 PUBLIC HTEncoding HTAnchor_encoding ARGS1(HTParentAnchor *,me)
@@ -745,7 +757,7 @@ PUBLIC void HTAnchor_clearHeader ARGS1(HTParentAnchor *, me)
     me->cte = NULL;
     me->content_type = WWW_UNKNOWN;
     me->charset = NULL;
-    me->level = HTML_INVALID;
+    me->level = NULL;
     
     me->date = (time_t) 0;
     me->expires = (time_t) 0;

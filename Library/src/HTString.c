@@ -149,7 +149,7 @@ PUBLIC char * HTSACat
 **
 ** On entry,
 **	*pstr	points to a string containing a word separated
-**		by white space, comma or semi-colon. The word
+**		by white white space "," ";" or "=". The word
 **		can optionally be quoted using <"> or "<" ">"
 **		Comments surrrounded by '(' ')' are filtered out
 **
@@ -166,11 +166,13 @@ PUBLIC char * HTNextField ARGS1(char **, pstr)
     char * start;
 
     while (1) {
-	while (*p && WHITE(*p)) p++;			/* Strip white space */
+	/* Strip white space and other delimiters */
+	while (*p && (WHITE(*p) || *p==',' || *p==';' || *p=='=')) p++;
 	if (!*p) {
 	    *pstr = p;
 	    return NULL;				   	 /* No field */
 	}
+
 	if (*p == '"') {				     /* quoted field */
 	    start = ++p;
 	    for(;*p && *p!='"'; p++)
@@ -182,9 +184,9 @@ PUBLIC char * HTNextField ARGS1(char **, pstr)
 	    for(;*p && *p!=')'; p++)
 		if (*p == '\\' && *(p+1)) p++;	       /* Skip escaped chars */
 	    p++;
-	} else {
+	} else {					      /* Spool field */
 	    start = p;
-	    while(*p && !WHITE(*p) && *p!=',' && *p!=';')     /* Spool field */
+	    while(*p && !WHITE(*p) && *p!=',' && *p!=';' && *p!='=')
 		p++;
 	    break;						   /* Got it */
 	}

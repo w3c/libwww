@@ -23,7 +23,7 @@ find:
 <LI><A HREF="#parent">Definition of parent anchor class</A>
 <LI><A HREF="#child">Definition of child anchor class</A>
 <LI><A HREF="#creation">Creation and deletion methods</A>
-<LI><A HREF="#links">Typed Links Methods</A>
+<LI><A HREF="#links">Manipulation of Links</A>
 <LI><A HREF="#access">Access Methods for information</A>
 </UL>
 
@@ -92,18 +92,9 @@ struct _HTAnchor {
 These anchors points to the whole contents of a graphic object
 (document). The parent anchor of a parent anchor is itself. The parent
 anchor now contains all meta information about the object. This is
-largely the entity headers in the HTTP specification. First we define
-a small enum structure to keep track of the HTML version that we are
-parsing:
+largely the entity headers in the HTTP specification.
 
 <PRE>
-typedef enum _HTMLVersion {
-    HTML_INVALID,
-    HTML_1,
-    HTML_2,
-    HTML_3
-} HTMLVersion;
-
 struct _HTParentAnchor {
   /* Common part from the generic anchor structure */
   HTLink	mainLink;	/* Main (or default) destination of this */
@@ -133,7 +124,7 @@ struct _HTParentAnchor {
   HTCte		cte;		/* Content-Transfer-Encoding */
   HTFormat	content_type;
   HTCharset	charset;	/* Parameter to content-type */
-  HTMLVersion	level;		/* Parameter to content-type `text/html' */
+  HTLevel	level;		/* Parameter to content-type `text/html' */
 
   time_t	date;		/* When was the request issued */  
   time_t	expires;	/* When does the copy expire */
@@ -168,10 +159,8 @@ struct _HTChildAnchor {
 <A NAME="creation"><H2>Creation and Deletion Methods</H2></A>
 
 After we have defined the data structures we must define the methods
-that can be used on them. All anchors are kept in a hash table so that
-they are easier to find again. We do not normally delete any anchors
-before termination of the application. This is taken care of by the
-library.
+that can be used on them. All anchors are kept in an internal hash
+table so that they are easier to find again.
 
 <H3>Find/Create a Parent Anchor</H3>
 
@@ -214,15 +203,10 @@ extern HTChildAnchor * HTAnchor_findChildAndLink
 
 <H3>Delete an Anchor</H3>
 
-Also possibly delete related things (auto garbage collection). If
-<CODE>objects</CODE> is a valid list != NULL, then all existing
-<CODE>HyperDoc</CODE>s are put into this list. If <CODE>objects</CODE>
-is NULL then don't delete anchors with a <CODE>HyperDoc</CODE> hanging
-of. It is for the application to delete any
-<CODE>HyperDoc</CODE>s. All outgoing links from parent and children
-are deleted, and this anchor is removed from the sources list of all
-its targets. We also delete the targets. If this anchor's source list
-is empty, we delete it and its children.
+All outgoing links from parent and children are deleted, and this
+anchor is removed from the sources list of all its targets. We also
+delete the targets. If this anchor's source list is empty, we delete
+it and its children.
 
 <PRE>
 extern BOOL HTAnchor_delete	PARAMS((HTParentAnchor *me));
@@ -230,16 +214,61 @@ extern BOOL HTAnchor_delete	PARAMS((HTParentAnchor *me));
 
 <H3>Delete all Anchors</H3>
 
-Delete <EM>all</EM> anchors registered in the Library. This functions
-walks through the whole web of anchors and deletes them all. Any
-<CODE>HyperDoc</CODE>s are put into the <CODE>obejts</CODE> list as it
-is for the application to delete them. Note, that this function is
-different from cleaning up the history list!
+Deletes <EM>all</EM> anchors and return a list of all the
+<CODE>HyperDoc</CODE>s found while doing it. The application may keep
+its own list of <CODE>HyperDoc</CODE>s, but this function returns it
+anyway.  It is <EM>always</EM> for the application to delete any
+<CODE>HyperDoc</CODE>s. Return YES if OK, else NO. <P>
+
+<B>Note:</B> This function is different from cleaning up the history
+list!
 
 <PRE>
 extern BOOL HTAnchor_deleteAll	PARAMS((HTList * objects));
 </PRE>
 
+
+<A NAME="links"><H2>Manipulation of Links</H2></A>
+
+We really should be using typed links all of us :-)
+
+<H3>Link this Anchor to another given one</H3>
+
+A single anchor may have many outgoing links of which the default is
+the <EM>main link</EM>. If one already exists then this new link is
+simply added to the list.
+
+<PRE>
+extern BOOL HTAnchor_link		PARAMS((HTAnchor *source,
+						HTAnchor *destination,
+						HTLinkType *type));
+</PRE>
+
+<H3>Find destination of link</H3>
+
+FInd the anchor which is the main target of this anchor.
+
+<PRE>
+extern HTAnchor * HTAnchor_followMainLink	PARAMS((HTAnchor *me));
+</PRE>
+
+<H3>Find destination with given relationship</H3>
+
+Return the anchor with a given typed link.
+
+<PRE>
+extern HTAnchor * HTAnchor_followTypedLink	PARAMS((HTAnchor *me,
+							HTLinkType *type));
+</PRE>
+
+<H3>Make a particular link the main link</H3>
+
+Any outgoing link can at any time be the main destination.
+
+<PRE>
+extern BOOL HTAnchor_makeMainLink		PARAMS((HTAnchor *me,
+							HTLink *movingLink));
+</PRE>
 
 <H3>Move a child anchor to the head of the list of its siblings</H3>
 
@@ -365,6 +394,14 @@ extern void HTAnchor_setCharset		PARAMS((HTParentAnchor *me,
 						HTCharset	charset));
 </PRE>
 
+<H3>Level parameter to Content-Type</H3>
+
+<PRE>
+extern HTLevel HTAnchor_level		PARAMS((HTParentAnchor * me));
+extern void HTAnchor_setLevel		PARAMS((HTParentAnchor * me,
+						HTLevel		level));
+</PRE>
+
 <H3>Content Encoding</H3>
 
 <PRE>
@@ -440,38 +477,6 @@ extern BOOL HTAnchor_headerParsed	PARAMS((HTParentAnchor *me));
 
 <PRE>
 extern void HTAnchor_clearHeader	PARAMS((HTParentAnchor *me));
-</PRE>
-
-<A NAME="links"><H2>Manipulation of Links</H2></A>
-
-We really should be using typed links all of us :-)
-
-<H3>Link this Anchor to another given one</H3>
-
-<PRE>
-extern BOOL HTAnchor_link		PARAMS((HTAnchor *source,
-						HTAnchor *destination,
-						HTLinkType *type));
-</PRE>
-
-<H3>Find destination of link</H3>
-
-<PRE>
-extern HTAnchor * HTAnchor_followMainLink	PARAMS((HTAnchor *me));
-</PRE>
-
-<H3>Find destination with given relationship</H3>
-
-<PRE>
-extern HTAnchor * HTAnchor_followTypedLink	PARAMS((HTAnchor *me,
-							HTLinkType *type));
-</PRE>
-
-<H3>Make a particular link the main link</H3>
-
-<PRE>
-extern BOOL HTAnchor_makeMainLink		PARAMS((HTAnchor *me,
-							HTLink *movingLink));
 
 #endif /* HTANCHOR_H */
 </PRE>
