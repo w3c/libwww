@@ -263,7 +263,7 @@ PUBLIC char * HTBind_getSuffix ARGS1(HTParentAnchor *, anchor)
     int cnt;
     HTList *cur;
     char *suffix = NULL;
-    char delimiter = *HTDelimiters;
+    char delimiter[] = { *HTDelimiters, '\0' };
     if (anchor) {
 	for (cnt=0; cnt<HASH_SIZE; cnt++) {
 	    if ((cur = HTBindings[cnt])) { 
@@ -277,7 +277,7 @@ PUBLIC char * HTBind_getSuffix ARGS1(HTParentAnchor *, anchor)
 			 pres->encoding==anchor->content_encoding) ||
 			(pres->language &&
 			 pres->language == anchor->content_language)) {
-			StrAllocCat(suffix, &delimiter);
+			StrAllocCat(suffix, delimiter);
 			StrAllocCat(suffix, pres->suffix);
 		    }
 		}
