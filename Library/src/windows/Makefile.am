@@ -2,11 +2,13 @@
 
 SUFFIXES = .files .def .txt
 
+SRC := $(wildcard *.c)
 DEF := $(wildcard *.def)
 MAK := $(wildcard *.mak)
 PL  := $(wildcard *.pl)
 
 DIST_OTHER = \
+	$(SRC) \
 	$(DEF) \
 	$(MAK) \
 	$(PL)

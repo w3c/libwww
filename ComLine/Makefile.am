@@ -1,10 +1,5 @@
 ## Process this file with Automake to create Makefile.in.
 
-DOCS :=	$(wildcard *.html *.gif)
-
-DIST_OTHER = \
-	$(DOCS)
-
 SUBDIRS = src User
 
 #	Some extra make directives
