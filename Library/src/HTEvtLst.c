@@ -390,6 +390,7 @@ PUBLIC int HTEventList_unregister(SOCKET s, HTEventType type)
     HTList * 		last = cur;
     SockEvents *	pres;
 
+    MaxSock = -1;	/* re-find maximum in-use socket */
     while ((pres = (SockEvents *) HTList_nextObject(cur))) {
         if (pres->s == s) {
 	    int		remaining;
@@ -431,8 +432,17 @@ PUBLIC int HTEventList_unregister(SOCKET s, HTEventType type)
 #endif /* !WWW_WIN_ASYNC */
       	    if (THD_TRACE)
 		HTTrace("Event....... Socket %d unregisterd for %s\n", s, HTEvent_type2str(type));
+	    /*
+	    **	finish checking list for max socket
+	    */
+	    while ((pres = (SockEvents *) HTList_nextObject(cur)))
+		if(pres->s > MaxSock)
+		    MaxSock = pres->s;
+	    if (MaxSock  <= 0)
+		HTTrace("Event....... MaxSock: %d.\n", MaxSock);
 	    return HT_OK;
-	}
+	} else if(pres->s > MaxSock)
+	    MaxSock = pres->s;
     }
     if (THD_TRACE) HTTrace("Event....... Couldn't find socket %d.\n", s);
     return HT_ERROR;

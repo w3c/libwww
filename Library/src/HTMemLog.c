@@ -14,6 +14,8 @@
 #include "HTMemLog.h"
 #include "HTTimer.h"
 
+#define OPEN_FLAGS	O_WRONLY|O_CREAT|O_TRUNC|O_SYNC
+
 PRIVATE size_t		LogBuffSize = 1024; /* default size is 1k */
 PRIVATE int		LogFd = 2;
 PRIVATE const char *	LogName = NULL;
@@ -24,8 +26,18 @@ PRIVATE HTTimer *	Timer = NULL;
 
 PRIVATE int MemLogTimeout (HTTimer * timer, void * param, HTEventType type)
 {
+    int ret;
+ 
     HTTrace("MemLog...... flushing on timeout\n");
-    return HTMemLog_flush();
+    ret = HTMemLog_flush();
+
+#if 0
+    /*	Force flush */
+    if (close(LogFd) == -1 || (LogFd = open(LogName, OPEN_FLAGS, 0666)) == -1)
+	return HT_ERROR;
+#endif
+
+    return ret;
 }
 
 PUBLIC int HTMemLog_open (char * logName, size_t size, BOOL keepOpen)
@@ -35,7 +47,7 @@ PUBLIC int HTMemLog_open (char * logName, size_t size, BOOL keepOpen)
 #else /* USE_SYSLOG */
     LogName = logName;
     KeepOpen = keepOpen;
-    if ((LogFd = open(LogName, O_WRONLY|O_CREAT|O_TRUNC, 0666)) == -1)
+    if ((LogFd = open(LogName, OPEN_FLAGS, 0666)) == -1)
 	return HT_ERROR;
     if (!KeepOpen)
 	close(LogFd);
@@ -53,7 +65,7 @@ PUBLIC int HTMemLog_flush(void)
 {
     if (LogLen) {
 	if (!KeepOpen)
-	    if ((LogFd = open(LogName, O_WRONLY|O_CREAT|O_TRUNC, 0666)) == -1)
+	    if ((LogFd = open(LogName, O_WRONLY|O_CREAT|O_APPEND, 0666)) == -1)
 		return HT_ERROR;
 	write(LogFd, LogBuff, LogLen);
 	LogLen = 0;
