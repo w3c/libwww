@@ -119,9 +119,9 @@ PRIVATE char *	this_addr;				    /* Local address */
 #define FCNTL(r, s, t) fcntl(r, s, t)
 
 
-PRIVATE int HTDoConnect ARGS5(char *, url, char *, protocol,
-			      u_short, default_port, int *, s,
-			      u_long *, addr)
+PUBLIC int HTDoConnect ARGS5(char *, url, char *, protocol,
+			     u_short, default_port, int *, s,
+			     u_long *, addr)
 {
     int status;
     struct sockaddr_in sock_addr;
@@ -915,11 +915,11 @@ PRIVATE int HTFTP_get_response ARGS2(ftp_ctrl_info *, ctrl_info,
 	    char cont;
 	    if (first_line == YES) {
 		if (sscanf(chunk->data, "%d%c", &result, &cont) < 2) {
-		    HTChunkFree(chunk);
 		    if (TRACE)
 			fprintf(stderr,
 				"FTP Rx...... `%s\' - no code found?\n",
 				chunk->data);
+		    HTChunkFree(chunk);
 		    return -1;
 		}
 		if (cont == '-') {
@@ -945,8 +945,8 @@ PRIVATE int HTFTP_get_response ARGS2(ftp_ctrl_info *, ctrl_info,
 	    HTChunkPutc(chunk, (char) ch);
     }
     if (!chunk->size || ch < 0) {		        /* No response read? */
-	HTChunkFree(chunk);
 	if (TRACE) fprintf(stderr, "FTP Rx...... No response?\n");
+	HTChunkFree(chunk);
 	return -1;
     }
     if (TRACE) fprintf(stderr, "FTP Rx...... %s\n", chunk->data);
@@ -1314,7 +1314,7 @@ PRIVATE ftp_ctrl_info *HTFTP_init_con ARGS2(HTRequest *, req, char *, url)
     ctrl->server = UNKNOWN;
     ctrl->unsure_type = YES;
     ctrl->use_list = NO;
-    ctrl->state = IDLE;
+    ctrl->state = FTP_IDLE;
     if (session)
 	HTList_addObject(session, (void *) ctrl);
     data->ctrl = ctrl;				       /* Link them together */
@@ -2204,6 +2204,8 @@ PRIVATE int HTFTP_get_dir ARGS4(ftp_ctrl_info *, ctrl, HTRequest *, req,
 			fprintf(stderr, "FTP......... New data socket: %d\n",
 				data->socket);
 		} else {
+		    HTChunkClear(ctrl->reply);
+		    HTChunkPuts(ctrl->reply, "Server stopped sending?\n");
 		    state = ERROR;
 		    break;
 		}
@@ -2396,6 +2398,8 @@ PRIVATE int HTFTP_get_file ARGS4(ftp_ctrl_info *, ctrl, HTRequest *, req,
 			fprintf(stderr, "FTP......... New data socket: %d\n",
 				data->socket);
 		} else {
+		    HTChunkClear(ctrl->reply);
+		    HTChunkPuts(ctrl->reply, "Server stopped sending?\n");
 		    state = ERROR;
 		    break;
 		}
@@ -2525,7 +2529,7 @@ PRIVATE int HTFTP_get_file ARGS4(ftp_ctrl_info *, ctrl, HTRequest *, req,
 **
 **    	This function makes it possible to reuse the same control connections
 **	until they are either timed out by the server, or that the session
-**	is closed by HTFTP_end_session. Note that HTFTPLoad can run
+**	is closed by HTFTP_end_session. Note that HTLoadFTP can run
 **	independently of start and end session, and then each load runs like
 **	an atomic action.
 */
@@ -2577,7 +2581,7 @@ PUBLIC BOOL HTFTP_disable_session NOARGS
 **	returns		<0		Error has occured
 **			HT_LOADED	OK
 */
-PUBLIC int HTFTPLoad ARGS1(HTRequest *, request)
+PUBLIC int HTLoadFTP ARGS1(HTRequest *, request)
 {
     char *url = HTAnchor_physical(request->anchor);
     int status = -1;
@@ -2597,34 +2601,34 @@ PUBLIC int HTFTPLoad ARGS1(HTRequest *, request)
        transfer can be started. The control connection can be in another
        mode if (session), and then the request is getting queued in
        ctrl->data_cons. */
-    if (ctrl->state == IDLE || (session && ctrl->state == LOGGED_IN)) {
+    if (ctrl->state == FTP_IDLE || (session && ctrl->state == FTP_LOGGED_IN)) {
 	ftp_data_info *data = ctrl->data_cons->next->object;
-	if (ctrl->state == IDLE)
-	    ctrl->state = BEGIN;
-	while (ctrl->state != IDLE) {		       	/* Do until finished */
+	if (ctrl->state == FTP_IDLE)
+	    ctrl->state = FTP_BEGIN;
+	while (ctrl->state != FTP_IDLE) {	       	/* Do until finished */
 	    switch (ctrl->state) {
-	      case BEGIN:
+	      case FTP_BEGIN:
 		if (!HTFTP_login(ctrl))
-		    ctrl->state = LOGGED_IN;
+		    ctrl->state = FTP_LOGGED_IN;
 		else
-		    ctrl->state = ERROR;
+		    ctrl->state = FTP_ERROR;
 		break;
 
-	      case LOGGED_IN:
+	      case FTP_LOGGED_IN:
 		if (!HTFTP_get_data_con(data, url))
-		    ctrl->state = GOT_DATA_CON;
+		    ctrl->state = FTP_GOT_DATA_CON;
 		else
-		    ctrl->state = ERROR;
+		    ctrl->state = FTP_ERROR;
 		break;
 
-	      case GOT_DATA_CON:
+	      case FTP_GOT_DATA_CON:
 		{
 		    /* Now we must ask for the URL requested. If FAILURE, then
 		       we try twice to see, if it helps */
 		    char *rel;
 		    for (retry=0; retry<2; retry++) {
 			if ((rel = HTFTPLocation(ctrl, url)) == NULL) {
-			    ctrl->state = ERROR;
+			    ctrl->state = FTP_ERROR;
 			    break;
 			}
 			if (retry == 1 && TRACE) fprintf(stderr,
@@ -2634,7 +2638,7 @@ PUBLIC int HTFTPLoad ARGS1(HTRequest *, request)
 			    /* If we haven't already got server-info */
 			    if (ctrl->server == UNKNOWN) {
 				if (HTFTPServerInfo(ctrl)) {
-				    ctrl->state = ERROR;
+				    ctrl->state = FTP_ERROR;
 				    break;
 				}
 			    }
@@ -2643,42 +2647,42 @@ PUBLIC int HTFTPLoad ARGS1(HTRequest *, request)
 			else
 			    status = HTFTP_get_file(ctrl, request, rel, retry);
 			if (!status) {
-			    ctrl->state = GOT_DATA;
+			    ctrl->state = FTP_GOT_DATA;
 			    break;
 			} else if (status == -2) {		    /* Error */
-			    ctrl->state = ERROR;
+			    ctrl->state = FTP_ERROR;
 			    break;
 			} else {
 			    free(rel);
-			    ctrl->state = FAILURE;		/* Try twice */
+			    ctrl->state = FTP_FAILURE;		/* Try twice */
 			}
 		    }
 		    free(rel);
 		}
-		if (retry == 2 && ctrl->state == FAILURE)
-		    ctrl->state = ERROR;
+		if (retry == 2 && ctrl->state == FTP_FAILURE)
+		    ctrl->state = FTP_ERROR;
 		break;
 
-	      case GOT_DATA:
+	      case FTP_GOT_DATA:
 		if (HTFTP_close_data_con(data))
-		    ctrl->state = ERROR;
+		    ctrl->state = FTP_ERROR;
 		else {
 		    HTList_removeLastObject(ctrl->data_cons);
 		    if (!session) {
 			if (!HTFTP_logout(ctrl)) {
-			    ctrl->state = IDLE;
+			    ctrl->state = FTP_IDLE;
 			    status = HT_LOADED;
 			} else
-			    ctrl->state = ERROR;
+			    ctrl->state = FTP_ERROR;
 		    } else {
-			ctrl->state = LOGGED_IN;   /* Ready for next request */
+			ctrl->state = FTP_LOGGED_IN; /*Ready for next request*/
 			return HT_LOADED;
 		    }
 		    break;
 		}
 		break;
 
-	      case ERROR:
+	      case FTP_ERROR:
 		{
 		    char * p = strchr(ctrl->reply->data,' ');
 		    if (!p) p = ctrl->reply->data;
@@ -2703,6 +2707,9 @@ PUBLIC int HTFTPLoad ARGS1(HTRequest *, request)
               "Document not loaded due to strange behavior from FTP-server\n");
     return status;
 }
+
+/* Protocol descriptors */
+GLOBALDEF PUBLIC HTProtocol HTFTP  = { "ftp", HTLoadFTP, 0 , 0 };
 
 /* END OF MODULE */
 

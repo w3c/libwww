@@ -1210,7 +1210,7 @@ open_file:
     {
 	if (nodename && *nodename && strcmp(nodename, HTHostName())!=0) {
 #ifdef OLD_CODE
-	    return HTFTPLoad(request, NULL, addr,
+	    return HTLoadFTP(request, NULL, addr,
 	    request->anchor, request->output_format, request->output_stream);
 #endif
 	    char * newname = NULL;
@@ -1239,6 +1239,5 @@ open_file:
 
 /*		Protocol descriptors
 */
-GLOBALDEF PUBLIC HTProtocol HTFTP  = { "ftp", HTFTPLoad, 0 , 0 };
 GLOBALDEF PUBLIC HTProtocol HTFile = { "file", HTLoadFile,
 					HTFileSaveStream, 0 };

@@ -904,7 +904,6 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 		if (TRACE) fprintf(stderr,
 		"HTBrowse.... OUPS, lstat failed on %s (errno: %d)\n",
 				   pathname, errno);
-		KeyFree(nodekey);
 		DirAbort(bt);
 		goto cleanup;
 	    }

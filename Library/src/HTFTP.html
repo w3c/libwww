@@ -26,7 +26,7 @@ This is the FTP load module. It works as the other load modules as an
 indenpendent module. It does a login and 
 
 <PRE>
-extern int  HTFTPLoad PARAMS((HTRequest * request));
+extern int  HTLoadFTP PARAMS((HTRequest * request));
 </PRE>
 
 The next two functions are for enabling and disabling reuse og control
@@ -56,14 +56,14 @@ typedef enum _HTFTPServerType {
 } HTFTPServerType;
 
 typedef enum _HTFTPMainState {
-    ERROR = -2,
-    FAILURE = -1,
-    IDLE = 0,
-    BEGIN,
-    LOGGED_IN,
-    GOT_DATA_CON,
-    GOT_SERVER_INFO,
-    GOT_DATA
+    FTP_ERROR = -2,
+    FTP_FAILURE = -1,
+    FTP_IDLE = 0,
+    FTP_BEGIN,
+    FTP_LOGGED_IN,
+    FTP_GOT_DATA_CON,
+    FTP_GOT_SERVER_INFO,
+    FTP_GOT_DATA
 } HTFTPState;
 
 typedef struct _user_info {
