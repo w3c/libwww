@@ -303,18 +303,16 @@ PRIVATE int FileCleanup (HTRequest *req, int status)
     HTStream * input = HTRequest_inputStream(req);
 
     /* Free stream with data TO Local file system */
-    if (HTRequest_isDestination(req))
-	HTRequest_removeDestination(req);
-    else  if (input) {
-	if (status == HT_INTERRUPTED)
-	    (*input->isa->abort)(input, NULL);
-	else
-	    (*input->isa->_free)(input);
-	HTRequest_setInputStream(req, NULL);
+    if (input) {
+        if (status == HT_INTERRUPTED)
+            (*input->isa->abort)(input, NULL);
+        else
+            (*input->isa->_free)(input);
+        HTRequest_setInputStream(req, NULL);
     }
 
     /*
-    **  Remove if we have registered an upload function as a callback
+    **  Remove if we have registered a timer function as a callback
     */
     if (file->timer) {
 	HTTimer_delete(file->timer);
