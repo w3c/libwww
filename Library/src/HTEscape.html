@@ -1,7 +1,5 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
-  <NEXTID N="1">
   <TITLE>W3C Sample Code Library libwww URIs</TITLE>
 </HEAD>
 <BODY>
@@ -41,9 +39,10 @@ and returns a malloced string containing the same infromation but with all
 <CODE>x</CODE> and <CODE>y</CODE> are two hex digits.
 <PRE>
 typedef enum _HTURIEncoding {
-    URL_XALPHAS		= 0x1,
-    URL_XPALPHAS	= 0x2,
-    URL_PATH		= 0x4
+    URL_DOSFILE         = 0x1,     /* Escape all unsafe characters except ':' */
+    URL_XALPHAS		= 0x2,     /* Escape all unsafe characters */
+    URL_XPALPHAS	= 0x4,     /* As URL_XALPHAS but also escape '+' */
+    URL_PATH		= 0x8      /* As URL_XPALPHAS but also escape '/' */
 } HTURIEncoding;
 
 extern char * HTEscape (const char * str, HTURIEncoding mask);
