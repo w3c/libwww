@@ -28,6 +28,7 @@ www_LDADD = \
 	$(top_builddir)/Library/src/libwwwtrans.la \
 	$(top_builddir)/Library/src/libwwwcore.la \
 	$(top_builddir)/Library/src/libwwwutils.la \
+	$(top_builddir)/PICS-client/src/libpics.la \
 	-lm @LIBWWWXML@ @LIBWWWZIP@ @LIBWWWWAIS@ @LIBWWWSQL@ @LIBWWWMD5@ @A_STDIO@
 
 SUBDIRS = windows vms
