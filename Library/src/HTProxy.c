@@ -50,6 +50,7 @@ typedef struct _HTHostlist {
 PRIVATE HTList * proxies = NULL;		    /* List of proxy servers */
 PRIVATE HTList * gateways = NULL;			 /* List of gateways */
 PRIVATE HTList * noproxy = NULL;   /* Don't proxy on these hosts and domains */
+PRIVATE int      noproxy_is_onlyproxy = 0; /* Interpret the noproxy list as an onlyproxy one */
 
 #if 0
 PRIVATE HTList * onlyproxy = NULL;  /* Proxy only on these hosts and domains */
@@ -380,6 +381,24 @@ PUBLIC BOOL HTNoProxy_deleteAll (void)
     return NO;
 }
 
+/*      HTNProxy_noProxyIsOnlyProxy
+**     `----------------------------
+**      Returns the state of the noproxy_is_onlyproxy flag
+*/
+PUBLIC int HTProxy_NoProxyIsOnlyProxy (void)
+{
+  return noproxy_is_onlyproxy;
+}
+
+/*      HTNProxy_setNoProxyisOnlyProxy
+**      --------------------------
+**      Sets the state of the noproxy_is_onlyproxy flag
+*/
+PUBLIC void HTProxy_setNoProxyIsOnlyProxy (int value)
+{
+  noproxy_is_onlyproxy = value;
+}
+
 /*	HTProxy_find
 **	------------
 **	This function evaluates the lists of registered proxies and if
@@ -394,6 +413,8 @@ PUBLIC char * HTProxy_find (const char * url)
 {
     char * access;
     char * proxy = NULL;
+    int no_proxy_found = 0;
+
     if (!url || !proxies)
 	return NULL;
     access = HTParse(url, "", PARSE_ACCESS);
@@ -416,8 +437,8 @@ PUBLIC char * HTProxy_find (const char * url)
 		    BOOL match = regexec(pres->regex, url, 0, NULL, 0) ? NO : YES;
 		    if (match) {
 			HTTRACE(PROT_TRACE, "GetProxy.... No proxy directive found: `%s\'\n" _ pres->host);
-			HT_FREE(access);
-			return NULL;
+			no_proxy_found = 1;
+			break;
 		    }
 		} else
 #endif
@@ -429,14 +450,20 @@ PUBLIC char * HTProxy_find (const char * url)
 			while (np>=pres->host && hp>=host && (*np--==*hp--));
 			if (np==pres->host-1 && (hp==host-1 || *hp=='.')) {
 			    HTTRACE(PROT_TRACE, "GetProxy.... No proxy directive found: `%s\'\n" _ pres->host);
-			    HT_FREE(access);
-			    return NULL;
+			    no_proxy_found = 1;
+			    break;
 			}
 		    }
 		}
 	    }
 	}
 	HT_FREE(host);
+    }
+
+    if ((no_proxy_found && !noproxy_is_onlyproxy)
+        || (!no_proxy_found && noproxy_is_onlyproxy)) {
+      HT_FREE(access);
+      return NULL;
     }
 
     /* Now check if we have a proxy registered for this access method */

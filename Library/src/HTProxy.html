@@ -109,6 +109,16 @@ extern BOOL HTNoProxy_deleteAll	(void);
 <P>
 The remove function removes all entries in the list. This is automatically
 done in <A HREF="HTLib.html"> HTLibTerminate()</A>
+<H3>
+  Inverse the meaning of the NoProxy list
+</H3>
+<P>
+Allows to change the value of a flag so that the NoProxy list is interpreted
+as if it were an OnlyProxy list.
+<PRE>
+extern int  HTProxy_NoProxyIsOnlyProxy (void);
+extern void HTProxy_setNoProxyIsOnlyProxy (int value);
+</PRE>
 <H2>
   Look for a Proxy server
 </H2>
