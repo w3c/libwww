@@ -3,7 +3,7 @@
 <TITLE>Utility macros</TITLE>
 <!-- Changed by: Henrik Frystyk Nielsen, 12-Feb-1996 -->
 <!-- Changed by: Eric Prud'hommeaux, 13-Feb-1996 -->
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Feb-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Feb-1996 -->
 </HEAD>
 <BODY>
 
@@ -47,6 +47,20 @@ very often doesn't work. If you are going to use it then watch out!
 #include &lt;stdarg.h&gt;
 #else
 #include &lt;varargs.h&gt;
+#endif
+</PRE>
+
+<H3>Const Declarations</H3>
+
+<PRE>
+#ifdef _STANDARD_CODE_
+#if defined(sco) && !defined(_SCO_DS)
+#define CONST		  /* The pre SCO 5.0 CC compiler does not know const */
+#else
+#define CONST const			      /* "const" only exists in STDC */
+#endif
+#else
+#define CONST
 #endif
 </PRE>
 
@@ -198,20 +212,6 @@ HREF="HTMemory.html">Dynamic Memory Module</A> for how to handle
 <PRE>
 #define PUBLIC			/* Accessible outside this module     */
 #define PRIVATE static		/* Accessible only within this module */
-
-#ifdef _STANDARD_CODE_
-
-#if defined(sco) && !defined(_SCO_DS)
-#define CONST		  /* The pre SCO 5.0 CC compiler does not know const */
-#else
-#define CONST const			      /* "const" only exists in STDC */
-#endif
-
-#else
-
-#define CONST
-
-#endif /* _STANDARD_CODE_ (ANSI) */
 </PRE>
 
 <H2>Booleans</H2>
