@@ -3,8 +3,9 @@
 <html>
 <head>
 <title>W3C Sample Code Library Release Notes</title>
+<link rel="STYLESHEET" href="/StyleSheets/libwww.css" type="text/css">
 </head>
-<body bgcolor="#ffffff">
+<body>
 <p>
 <a href="../../"><img alt="W3C" src="../../Icons/WWW/w3c_home" border="0"></a>
 <a href="../"><img alt="libwww" src="../../Icons/WWW/Lib48x" border="0"></a>
@@ -17,7 +18,43 @@ href="../cvs.html">committed to and available from CVS </a>but not yet <a
 href="../cvs.html#Releases">in a release</a>. See also the <a
 href="History.html">full libwww release history</a>.</p>
 
-<h2>Release 5.2.6, Feb 24, 1998</h2>
+<h2><a name="5.2.8">Release 5.2.8, Apr 14, 1999</a></h2>
+<p>
+For this release, special thanks go to the <a
+href="Collaborators.html#Collaborators">libwww hackers</a> Olga
+Antropova, Vladimir Kozlov, John Punin Olga Antropova, Jose Kahan,
+Vladimir Kozlov, John Punin, Bob Racko, and Raffaele Sena for all
+their hard work and cool new features including:
+
+<ul>
+<li><a href="http://lists.w3.org/Archives/Public/www-lib/1999AprJun/0046.html">Split up the Unix library into many small libraries</a> as is the case for wintel DLLs. This allows for more modular use of libwww on Unix.</li>
+
+<li><a href="http://lists.w3.org/Archives/Public/www-lib/1999AprJun/0015.html">HTML/4 support</a> in the <a
+href="../src/WWWHTML.html">libwww HTML parser</a></li>
+
+<li><a href="http://lists.w3.org/Archives/Public/www-lib/1999JanMar/0352.html">Support for HTTP redirections</a> in the robot</li>
+
+<li><a href="http://lists.w3.org/Archives/Public/www-lib/1999JanMar/0410.html">Updated documentation on the various libwww modules</a></li>
+
+<li><a href="http://lists.w3.org/Archives/Public/www-lib/1999JanMar/0400.html">HTTP cookies</a> and small <a href="http://lists.w3.org/Archives/Public/www-lib/1999AprJun/0003.html">cookie sample app</a></li>
+
+<li><a href="http://lists.w3.org/Archives/Public/www-lib/1999JanMar/0388.html">Easier handling of adding new header fields</a> to HTTP requests</li>
+
+<li><a href="http://lists.w3.org/Archives/Public/www-lib/1999AprJun/0000.html">SSL transport</a> - this code is not part of the libwww distribution because of US export restrictions on glue code for cryptographic code. We hope to make them available shortly</li>
+
+<li><a href="http://lists.w3.org/Archives/Public/www-lib/1999JanMar/0310.html">Support for HTTP/1.1 Upgrade header</a> which allows for "hot-swapping" changing protocols</li>
+
+<li><a href="http://lists.w3.org/Archives/Public/www-lib/1999JanMar/0423.html">Support for writing multiple times</a> when doing PUT/POST type operations</li>
+
+</ul>
+
+Also <a href="ToDo.html">in progress</a> is work on
+<ul>
+<li><a href="http://lists.w3.org/Archives/Public/www-lib/1999AprJun/0040.html">Proposal for moving slowly to C++</a></li>
+<li>RDF parser</li>
+</ul>
+
+<h2>Release 5.2.6, Feb 24, 1999</h2>
 <p>
 This release is the has a lot of bug fixes and new features - primarily as a
 result of lots of really cool work done by people hacking away on libwww
