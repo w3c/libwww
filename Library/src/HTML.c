@@ -57,8 +57,8 @@ struct _HTStructured {
 ** 	Entity values -- for ISO Latin 1 local representation
 **	This MUST match exactly the table referred to in the DTD!
 */
-#define ENTITY_SIZE	67
-static char * ISO_Latin1[ENTITY_SIZE] = {
+static char * ISO_Latin1[HTML_ENTITIES] = {
+/* 00 */
   	"\306",	/* capital AE diphthong (ligature) */ 
   	"\301",	/* capital A, acute accent */ 
   	"\302",	/* capital A, circumflex accent */ 
@@ -69,6 +69,7 @@ static char * ISO_Latin1[ENTITY_SIZE] = {
   	"\307",	/* capital C, cedilla */ 
   	"\320",	/* capital Eth, Icelandic */ 
   	"\311",	/* capital E, acute accent */ 
+/* 10 */
   	"\312",	/* capital E, circumflex accent */ 
   	"\310",	/* capital E, grave accent */ 
   	"\313",	/* capital E, dieresis or umlaut mark */ 
@@ -79,6 +80,7 @@ static char * ISO_Latin1[ENTITY_SIZE] = {
   	"\321",	/* capital N, tilde */ 
   	"\323",	/* capital O, acute accent */ 
   	"\324",	/* capital O, circumflex accent */ 
+/* 20 */
   	"\322",	/* capital O, grave accent */ 
   	"\330",	/* capital O, slash */ 
   	"\325",	/* capital O, tilde */ 
@@ -89,43 +91,84 @@ static char * ISO_Latin1[ENTITY_SIZE] = {
   	"\331",	/* capital U, grave accent */ 
   	"\334",	/* capital U, dieresis or umlaut mark */ 
   	"\335",	/* capital Y, acute accent */ 
+/* 30 */
   	"\341",	/* small a, acute accent */ 
   	"\342",	/* small a, circumflex accent */ 
+  	"\264",	/* acute accent */
   	"\346",	/* small ae diphthong (ligature) */ 
   	"\340",	/* small a, grave accent */ 
   	"\046",	/* ampersand */ 
   	"\345",	/* small a, ring */ 
   	"\343",	/* small a, tilde */ 
   	"\344",	/* small a, dieresis or umlaut mark */ 
+        "\246",	/* broken vertical bar */
+/* 40 */
   	"\347",	/* small c, cedilla */ 
+	"\270",	/* cedilla */
+	"\242", /* cent sign */
+        "\251",	/* copyright */
+        "\244",	/* general currency sign */
+  	"\260",	/* degree sign */
+  	"\367",	/* division sign */
   	"\351",	/* small e, acute accent */ 
   	"\352",	/* small e, circumflex accent */ 
   	"\350",	/* small e, grave accent */ 
+/* 50 */
   	"\360",	/* small eth, Icelandic */ 
   	"\353",	/* small e, dieresis or umlaut mark */ 
+  	"\275",	/* fraction one-half */
+  	"\274",	/* fraction one-fourth */
+  	"\276",	/* fraction three-fourth */
   	"\076",	/* greater than */ 
   	"\355",	/* small i, acute accent */ 
   	"\356",	/* small i, circumflex accent */ 
+	"\241", /* inverted exclamation */
   	"\354",	/* small i, grave accent */ 
+/* 60 */
+  	"\277",	/* inverted question mark */
   	"\357",	/* small i, dieresis or umlaut mark */ 
+  	"\253",	/* left angle quote */
   	"\074",	/* less than */ 
+  	"\257",	/* macron accent */
+  	"\265",	/* micro sign (greek mu) */
+  	"\267",	/* middle dot */
 	"\040", /* non-breaking space */
+  	"\254",	/* not sign */
   	"\361",	/* small n, tilde */ 
+/* 70 */
   	"\363",	/* small o, acute accent */ 
   	"\364",	/* small o, circumflex accent */ 
   	"\362",	/* small o, grave accent */ 
+  	"\252",	/* feminine ordinal */
+  	"\272",	/* masculine ordinal */
   	"\370",	/* small o, slash */ 
   	"\365",	/* small o, tilde */ 
   	"\366",	/* small o, dieresis or umlaut mark */ 
+  	"\266",	/* paragraph sign */
+  	"\261",	/* plus or minus */
+/* 80 */
+	"\243", /* pound sign */
         "\042", /* double quote sign - June 94 */
+	"\273",	/* right angle quote */
+  	"\256",	/* registered trademark */
+	"\247", /* section sign */
+  	"\255",	/* soft hyphen */
+  	"\271",	/* superscript 1 */
+  	"\262",	/* superscript 2 */
+  	"\263",	/* superscript 3 */
   	"\337",	/* small sharp s, German (sz ligature) */ 
+/* 90 */
   	"\376",	/* small thorn, Icelandic */ 
+  	"\327",	/* multiply sign */
   	"\372",	/* small u, acute accent */ 
   	"\373",	/* small u, circumflex accent */ 
   	"\371",	/* small u, grave accent */ 
+        "\250",	/* dieresis or umlaut mark */
   	"\374",	/* small u, dieresis or umlaut mark */ 
   	"\375",	/* small y, acute accent */ 
-  	"\377",	/* small y, dieresis or umlaut mark */ 
+	"\245", /* yen sign */
+  	"\377"	/* small y, dieresis or umlaut mark */ 
+/* 100 */
 };
 
 PRIVATE char ** CurrentEntityValues = ISO_Latin1;
@@ -436,7 +479,7 @@ PRIVATE void HTML_put_entity (HTStructured * me, int entity_number)
 	HTextImp_build(me->text, HTEXT_BEGIN);
 	me->started = YES;
     }
-    if (entity_number>=0 && entity_number<ENTITY_SIZE)
+    if (entity_number>=0 && entity_number<HTML_ENTITIES)
 	HTML_put_string(me, *(CurrentEntityValues+entity_number));
 }
 

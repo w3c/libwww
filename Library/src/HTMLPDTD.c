@@ -25,6 +25,7 @@ struct _HTStructured {
 **	This table must be matched exactly with ALL the translation tables
 */
 PRIVATE const char* entities[HTML_ENTITIES] = {
+/* 00 */
   "AElig",	/* capital AE diphthong (ligature) */ 
   "Aacute",	/* capital A, acute accent */ 
   "Acirc",	/* capital A, circumflex accent */ 
@@ -35,6 +36,7 @@ PRIVATE const char* entities[HTML_ENTITIES] = {
   "Ccedil",	/* capital C, cedilla */ 
   "ETH",	/* capital Eth, Icelandic */ 
   "Eacute",	/* capital E, acute accent */ 
+/* 10 */
   "Ecirc",	/* capital E, circumflex accent */ 
   "Egrave",	/* capital E, grave accent */ 
   "Euml",	/* capital E, dieresis or umlaut mark */ 
@@ -45,6 +47,7 @@ PRIVATE const char* entities[HTML_ENTITIES] = {
   "Ntilde",	/* capital N, tilde */ 
   "Oacute",	/* capital O, acute accent */ 
   "Ocirc",	/* capital O, circumflex accent */ 
+/* 20 */
   "Ograve",	/* capital O, grave accent */ 
   "Oslash",	/* capital O, slash */ 
   "Otilde",	/* capital O, tilde */ 
@@ -55,43 +58,84 @@ PRIVATE const char* entities[HTML_ENTITIES] = {
   "Ugrave",	/* capital U, grave accent */ 
   "Uuml",	/* capital U, dieresis or umlaut mark */ 
   "Yacute",	/* capital Y, acute accent */ 
+/* 30 */
   "aacute",	/* small a, acute accent */ 
   "acirc",	/* small a, circumflex accent */ 
+  "acute",	/* acute accent */
   "aelig",	/* small ae diphthong (ligature) */ 
   "agrave",	/* small a, grave accent */ 
   "amp",	/* ampersand */ 
   "aring",	/* small a, ring */ 
   "atilde",	/* small a, tilde */ 
   "auml",	/* small a, dieresis or umlaut mark */ 
+  "brvbar",	/* broken vertical bar */
+/* 40 */
   "ccedil",	/* small c, cedilla */ 
+  "cedil",	/* cedilla */
+  "cent",	/* cent sign */
+  "copy",	/* copyright */
+  "curren",	/* general currency sign */
+  "deg",	/* degree sign */
+  "divide",	/* division sign */
   "eacute",	/* small e, acute accent */ 
   "ecirc",	/* small e, circumflex accent */ 
   "egrave",	/* small e, grave accent */ 
+/* 50 */
   "eth",	/* small eth, Icelandic */ 
   "euml",	/* small e, dieresis or umlaut mark */ 
+  "frac12",	/* fraction one-half */
+  "frac14",	/* fraction one-fourth */
+  "frac34",	/* fraction three-fourth */
   "gt",		/* greater than */ 
   "iacute",	/* small i, acute accent */ 
   "icirc",	/* small i, circumflex accent */ 
+  "iexcl",	/* inverted exclamation */
   "igrave",	/* small i, grave accent */ 
+/* 60 */
+  "iquest",	/* inverted question mark */
   "iuml",	/* small i, dieresis or umlaut mark */ 
+  "laquo",	/* left angle quote */
   "lt",		/* less than */ 
+  "macr",	/* macron accent */
+  "micro",	/* micro sign (greek mu) */
+  "middot",	/* middle dot */
   "nbsp",	/* non breaking space */
+  "not",	/* not sign */
   "ntilde",	/* small n, tilde */ 
+/* 70 */
   "oacute",	/* small o, acute accent */ 
   "ocirc",	/* small o, circumflex accent */ 
   "ograve",	/* small o, grave accent */ 
+  "ordf",	/* feminine ordinal */
+  "ordm",	/* masculine ordinal */
   "oslash",	/* small o, slash */ 
   "otilde",	/* small o, tilde */ 
   "ouml",	/* small o, dieresis or umlaut mark */
+  "para",	/* paragraph sign */
+  "plusmn",	/* plus or minus */
+/* 80 */
+  "pound",	/* pound sign */
   "quot",	/* double quote sign  - June 1994 */ 
+  "raquo",	/* right angle quote */
+  "reg",	/* registered trademark */
+  "sect",	/* section sign */
+  "shi",	/* soft hyphen */
+  "sup1",	/* superscript 1 */
+  "sup2",	/* superscript 2 */
+  "sup3",	/* superscript 3 */
   "szlig",	/* small sharp s, German (sz ligature) */ 
+/* 90 */
   "thorn",	/* small thorn, Icelandic */ 
+  "times",	/* multiply sign */
   "uacute",	/* small u, acute accent */ 
   "ucirc",	/* small u, circumflex accent */ 
   "ugrave",	/* small u, grave accent */ 
+  "uml",	/* dieresis or umlaut mark */
   "uuml",	/* small u, dieresis or umlaut mark */ 
   "yacute",	/* small y, acute accent */ 
-  "yuml",	/* small y, dieresis or umlaut mark */ 
+  "yen",	/* yen sign */
+  "yuml"	/* small y, dieresis or umlaut mark */ 
+/* 100 */
 };
 
 /*
