@@ -938,7 +938,7 @@ PUBLIC HTStream * HTFileSaveStream ARGS1(HTRequest *, request)
         fp = fopen(filename, "w");
         if (!fp) return NULL;
     
-    	return HTFWriter_new(fp);
+    	return HTFWriter_new(fp, NO);
     }
 }
 

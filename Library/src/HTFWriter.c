@@ -24,6 +24,7 @@ struct _HTStream {
 	CONST HTStreamClass *	isa;
 	
 	FILE *			fp;
+	BOOL			leave_open;	/* Close file on exit? HFN 08/02-94 */
 	char * 			end_command;
 	char * 			remove_command;
 	BOOL			announce;
@@ -70,6 +71,7 @@ PRIVATE HTStream HTBlackHoleInstance =
 {
 	&HTBlackHoleClass,
 	NULL,
+	NO,				/* HENRIK 08/02-94 */
 	NULL,
 	NULL,
 
@@ -79,8 +81,7 @@ PRIVATE HTStream HTBlackHoleInstance =
 	NULL,
 };
 
-/*	Black hole creation
-*/
+/* Black hole creation */
 PUBLIC HTStream * HTBlackHole NOARGS
 {
     return &HTBlackHoleInstance;
@@ -143,7 +144,8 @@ PRIVATE void HTFWriter_free ARGS1(HTStream *, me)
 	/* Actually, ought to use draft ANSI-C difftime() */
 	/* But that I bet is more portable in real life  (@@?) */
     }
-    fclose(me->fp);
+    /* Must not close stdout! (HENRIK) */
+    if (me->filename && me->leave_open != YES) fclose(me->fp);
     if (me->end_command) {		/* Temp file */
         HTProgress(me->end_command);	/* Tell user what's happening */
 	system(me->end_command);
@@ -165,7 +167,8 @@ PRIVATE void HTFWriter_free ARGS1(HTStream *, me)
 
 PRIVATE void HTFWriter_abort ARGS2(HTStream *, me, HTError, e)
 {
-    fclose(me->fp);
+    /* Must not close stdout! (HENRIK) */
+    if (me->filename && me->leave_open != YES) fclose(me->fp);
     if (me->end_command) {		/* Temp file */
 	if (TRACE) fprintf(stderr,
 		"HTFWriter: Aborting: file %s not executed.\n",
@@ -200,7 +203,8 @@ PRIVATE CONST HTStreamClass HTFWriter = /* As opposed to print etc */
 **	-------------------------
 */
 
-PUBLIC HTStream* HTFWriter_new ARGS1(FILE *, fp)
+/* PUBLIC HTStream* HTFWriter_new ARGS1(FILE *, fp) HENRIK 08/02-94 */
+PUBLIC HTStream* HTFWriter_new ARGS2(FILE *, fp, BOOL, leave_open)
 {
     HTStream* me;
     
@@ -211,6 +215,7 @@ PUBLIC HTStream* HTFWriter_new ARGS1(FILE *, fp)
     me->isa = &HTFWriter;       
 
     me->fp = fp;
+    me->leave_open = leave_open;		/* HENRIK 08/02-94 */
     me->end_command = NULL;
     me->remove_command = NULL;
     me->announce = NO;

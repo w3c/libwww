@@ -437,7 +437,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 
 	    if (cache_file) {
 		request->output_stream = HTTee(request->output_stream,
-					       HTFWriter_new(cache_file));
+					       HTFWriter_new(cache_file, NO));
 		CTRACE(stderr, "Gateway..... writing to cache file\n");
 	    }
 	    else {

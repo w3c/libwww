@@ -23,10 +23,11 @@ NAME="z0" HREF="HTFWriter.c">HTFWriter.c</A>
 
 </PRE>
 <H2>Stream given file</H2>
-<PRE>extern HTStream * HTFWriter_new PARAMS((FILE * fp));
-
-</PRE>
-<H2>Converters</H2>HTSaveAndCallBack will save to a
+<PRE>extern HTStream * HTFWriter_new ARGS2(FILE *, fp, BOOL, leave_open);
+</PRE>OLD: (HENRIK 08/02-94) extern HTStream
+* HTFWriter_new PARAMS((FILE * fp));<P>
+Converters<P>
+HTSaveAndCallBack will save to a
 cache file and call the request->callback
 function with the filename as parameter.
 <PRE>extern HTConverter HTSaveAndExecute, HTSaveLocally, HTSaveAndCallBack;
