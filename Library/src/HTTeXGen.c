@@ -58,34 +58,36 @@ struct _HTStructured {
 
 PRIVATE char *TeX_names[HTML_ELEMENTS][2] = {
     { "",       	""		},	/* HTML_A		*/
-    { "",		""		},	/* HTML_ABBREV		*/
-    { "\n\\begin{abstract}\n","\n\\end{abstract}\n"},  /* HTML_ABSTRACT	*/
+    { "",		""		},	/* HTML_ABBR		*/
     { "",		""		},	/* HTML_ACRONYM		*/
-    { "",		""		},	/* HTML_ADDED		*/
     { "{\\it ",		"}"		},	/* HTML_ADDRESS		*/
+    { "",       	""		},	/* HTML_APPLET		*/
     { "",       	""		},	/* HTML_AREA		*/
-    { "",		""		},	/* HTML_ARG		*/
     { "{\\bf ",		"}"		},	/* HTML_B		*/
     { "",		""		},	/* HTML_BASE		*/
+    { "",       	""		},	/* HTML_BASEFONT	*/
+    { "",       	""		},	/* HTML_BDO		*/
+    { "",       	""		},	/* HTML_BIG		*/
     { "{\\sf ",		"}"		},	/* HTML_BLOCKQUOTE 	*/
     { "", 		""		},	/* HTML_BODY     	*/
-    { "",		""		},	/* HTML_BOX		*/
     { "",		""		},	/* HTML_BR		*/
-    { "",		""		},	/* HTML_BYLINE		*/
+    { "",       	""		},	/* HTML_BUTTON		*/
     { "",		""		},	/* HTML_CAPTION		*/
-    { "",		""		},	/* HTML_CHANGED		*/
+    { "",		""		},	/* HTML_CENTER		*/
     { "\\cite{",      	"}"		},	/* HTML_CITE		*/
-    { "",		""		},	/* HTML_CMD		*/
     { "{\\tt ",		"}"		},	/* HTML_CODE		*/
-    { "\n\\typeout{",	"}\n"		},	/* HTML_COMMENT		*/
+    { "",		""		},	/* HTML_COL		*/
+    { "",		""		},	/* HTML_COLGROUP	*/
     { "]",		""		},	/* HTML_DD		*/
+    { "",		""		},	/* HTML_DEL		*/
     { "",		""		},	/* HTML_DFN		*/
     { "",		""		},	/* HTML_DIR		*/
+    { "",		""		},	/* HTML_DIV		*/
     { "\n\\begin{description}","\n\\end{description}\n"}, /* HTML_DL 	*/
     { "\n\\item[",	""		},	/* HTML_DT		*/
     { "{\\em ",		"}"		},	/* HTML_EM		*/
-    { "",	""			},	/* HTML_FIG		*/
-    { "\n\\footnote{",	"}\n"	       	},	/* HTML_FOOTNOTE	*/
+    { "",		""		},	/* HTML_FIELDSET	*/
+    { "",		""		},	/* HTML_FONT		*/
     { "",	"" 			},	/* HTML_FORM		*/
     { "",       	""		},	/* HTML_FRAME		*/
     { "",       	""		},	/* HTML_FRAMESET	*/
@@ -95,57 +97,58 @@ PRIVATE char *TeX_names[HTML_ELEMENTS][2] = {
     { "\n\\subsubsection{","}\n"	},	/* HTML_H4		*/
     { "\n\\paragraph{",	"}\n"		},	/* HTML_H5		*/
     { "\n\\subparagraph{","}\n"		},	/* HTML_H6		*/
-    { "",		"\n"		},	/* HTML_H7		*/
     { "",		""		},	/* HTML_HEAD		*/
     { "",		""		},	/* HTML_HR		*/
     { "",		""		}, 	/* HTML_HTML		*/
-    { "",		""		},    	/* HTML_HTMLPLUS	*/
     { "{\\it ",		"}"		},	/* HTML_I		*/
-    { "",		""		},	/* HTML_IMAGE		*/
+    { "",		""		},	/* HTML_IFRAME		*/
     { "_FIGUR_",	""		},	/* HTML_IMG		*/
     { "",		""		},	/* HTML_INPUT		*/
+    { "",		""		},	/* HTML_INS		*/
     { "",		""		},	/* HTML_ISINDEX		*/
     { "{\\tt ",		"}"		},	/* HTML_KBD		*/
-    { "",		""		},	/* HTML_L		*/
+    { "",		""		},	/* HTML_LABEL		*/
+    { "",		""		},	/* HTML_LEGEND		*/
     { "\n\\item ",      "" 	        },	/* HTML_LI		*/
     { "",		""		},	/* HTML_LINK		*/
-    { "",		""		},	/* HTML_LISTING		*/
-    { "",		""		},	/* HTML_LIT		*/
-    { "",		""		},	/* HTML_MARGIN		*/
-    { "",		""		},	/* HTML_MATH		*/
+    { "",		""		},	/* HTML_MAP		*/
     { "",		""		},	/* HTML_MENU		*/
+    { "",		""		},	/* HTML_META		*/
     { "",		""		},	/* HTML_NEXTID		*/
-    { "",		""		},	/* HTML_NOTE		*/
+    { "",		""		},	/* HTML_NOFRAME		*/
+    { "",		""		},	/* HTML_NOSCRIPT	*/
     { "",       	""		},	/* HTML_OBJECT		*/
     { "\n\\begin{enumerate}\n","\n\\end{enumerate}\n"}, /* HTML_OL     	*/
+    { "",		""		},	/* HTML_OPTGROUP	*/
     { "",		""		},	/* HTML_OPTION		*/
-    { "",		""		},	/* HTML_OVER		*/
     { "\n\n",		""		},	/* HTML_P		*/
-    { "",		""		},	/* HTML_PERSON		*/
-    { "",		""		},	/* HTML_PLAINTEXT	*/
+    { "",		""		},	/* HTML_PARAM		*/
     { "\n\\begin{verbatim}"," \\end{verbatim}\n"},  /* HTML_PRE        */
     { "",		""		},	/* HTML_Q		*/
-    { "\\begin{quote}",	"\\end{quote}"}, 	/* HTML_QUOTE		*/
-    { "",		""		},	/* HTML_RENDER		*/
-    { "",		""		},	/* HTML_REMOVED		*/
     { "",		""		},	/* HTML_S		*/
     { "",		""		},	/* HTML_SAMP		*/
+    { "",		""		},	/* HTML_SCRIPT		*/
     { "", 		""		},	/* HTML_SELECT		*/
+    { "",		""		},	/* HTML_SMALL		*/
+    { "",		""		},	/* HTML_SPAN		*/
+    { "",		""		},	/* HTML_STRIKE		*/
     { "{\\bf ",		"}"		},	/* HTML_STRONG		*/
+    { "", 		""		},	/* HTML_STYLE		*/
     { "", 		""		},	/* HTML_SUB		*/
     { "",		""		},	/* HTML_SUP		*/
-    { "",		""		},	/* HTML_TAB		*/
     { "",		""		},	/* HTML_TABLE		*/
+    { "",		""		},	/* HTML_TBODY		*/
     { "",		""		},	/* HTML_TD		*/
     { "",		""		},	/* HTML_TEXTAREA	*/
+    { "",		""		},	/* HTML_TFOOT		*/
     { "",		""		},	/* HTML_TH		*/
+    { "",		""		},	/* HTML_THEAD		*/
     { "\n\\title{",	"}\n\\author{}\n\\maketitle\n"},  /* HTML_TITLE */
     { "",		""		},	/* HTML_TR		*/
     { "",		""		},	/* HTML_TT		*/
     { "",		""		},	/* HTML_U		*/
     { "\n\\begin{itemize}","\n\\end{itemize}\n"},   /* HTML_UL		*/
-    { "",		""		},	/* HTML_VAR		*/
-    { "{\\sf ",		"}"		}	/* HTML_XMP		*/
+    { "",		""		}	/* HTML_VAR		*/
 };
 
 PRIVATE char *TeX_entities[HTML_ENTITIES] = {
@@ -367,7 +370,6 @@ PRIVATE void HTTeXGen_start_element (HTStructured * 	me,
 	element_number == HTML_H4 ||
 	element_number == HTML_H5 ||
 	element_number == HTML_H6 ||
-	element_number == HTML_H7 ||
 	element_number == HTML_TITLE)
 	me->sensitive = YES;
     else if (element_number == HTML_DD)         /* Only way to turn <DT> off */
@@ -402,7 +404,6 @@ PRIVATE void HTTeXGen_end_element (HTStructured * me, int element_number)
 	element_number == HTML_H4 ||
 	element_number == HTML_H5 ||
 	element_number == HTML_H6 ||
-	element_number == HTML_H7 ||
 	element_number == HTML_TITLE)
 	me->sensitive = NO;
 }

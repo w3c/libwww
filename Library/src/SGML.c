@@ -17,6 +17,8 @@
 **			use pointers to the string chunk instead.
 */
 
+#include <assert.h>
+
 /* Library include files */
 #include "wwwsys.h"
 #include "HTUtils.h"
@@ -77,6 +79,9 @@ PRIVATE int SGMLFindAttribute  (HTTag* tag, const char * s)
 	HTAttr* attributes = tag->attributes;
 
 	int high, low, i, diff;		/* Binary search for attribute name */
+
+	assert(tag->number_of_attributes <= MAX_ATTRIBUTES);
+
 	for(low=0, high=tag->number_of_attributes;
 	    high > low ;
 	    diff < 0 ? (low = i+1) : (high = i) )

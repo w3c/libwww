@@ -151,9 +151,6 @@ PRIVATE int HTML_write (HTStructured * me, const char * b, int l)
     /* Look at what we got */
     switch (me->sp[0]) {
 
-    case HTML_COMMENT:
-	break;					/* Do Nothing */
-		
     case HTML_TITLE:
 	HTChunk_putb(me->title, b, l);
 	/* Fall through */
