@@ -901,25 +901,25 @@ extern BOOL HTRequest_deleteProxy (HTRequest * request);</pre>
 
 <p>An application may use these functions to set and manipulate the request
 message body.  This message body is specially indicate for methods that use
-small XML message bodies. Once the application define it, this message body
+small XML message bodies. Once the application defines it, this message body
 will be send just after the headers. It <strong> does not</strong> use
 "<strong>Expect: 100-continue</strong>" header, and the application
 <strong>should not</strong> try to use both.  It's important to remark that
 "Expect: 100-continue" header is a very importante feature defined in HTTP.
-It's prevents that, for example, the server must read  many unnecessary bytes
+It's prevents that, for example, the server must read many unnecessary bytes
 from request body. Using "Expect: 100-continue" header, your application
 safes time and network (see <a
 href="http://www.ietf.org/rfc/rfc2616.txt">RFC2616</a>, section 8.2.3).
 Please, if possible, use always HTRequest Entity and entity callback, leave
 this only for small XML bodies in extension methods (see <a
-href="HTMethod.html">HTMethod</a>), and when using it,  <strong>be very
+href="HTMethod.html">HTMethod</a>), and when using it, <strong>be very
 careful</strong>!</p>
 
 <p>When using a message body, the application may define its length and
-format.  If the message body is set and its length is also set and it greater
-than 0, a Content-Lenght header will be added to the request, and  if the
-message body and its type are set. Otherwise, those header will not be
-included, a Content-Type header will be added to the request too.</p>
+format. If the message body is set and its length is also set and it greater
+than 0, a Content-Lenght header will be added to the request. Similarly, if 
+the message body and its type are set, a Content-Type header will be added 
+to the request too. Otherwise, those headers will not be included.</p>
 
 <p><strong>Note</strong>: The caller should free the string returned by
 HTRequest_messageBody function!</p>

@@ -1,20 +1,31 @@
 /*
 ** WebDAV MANAGER
 **
-**	(c) COPYRIGHT MIT 1995.
-**	Please first read the full copyright statement in the file COPYRIGH.
+**      (c) COPYRIGHT MIT 1995.
+**      Please first read the full copyright statement in the file COPYRIGH.
 **
 ** Authors
-**	MKP	Manuele Kirsch Pinheiro, Manuele.Kirsch_Pinheiro@inrialpes.fr 
-**		                         manuele@inf.ufrgs.br
+**      MKP     Manuele Kirsch Pinheiro, Manuele.Kirsch_Pinheiro@inrialpes.fr 
+**                                       manuele@inf.ufrgs.br
 **
 ** History
-**	15 Fev 02 Writen
-**	15 Mar 02 Changed - All methods will use entity callback and not the
-**	          message body functions. This modification was demanded by
-**	          Jose Kahan.
+**      15 Fev 02 Writen
+**      15 Mar 02 Changed - All methods will use entity callback and not the
+**                message body functions. This modification was demanded by
+**                Jose Kahan.
+**      30 May 02 Changed - wwwsys.h becames the first include file
 **
 **      $Log$
+**      Revision 1.2  2002/05/29 16:09:13  kirschpi
+**
+**      Fixes for windows plataform concerning WebDAV and Extension
+**      methods. In HTMethod and HTRequest, functions defined for
+**      the Extension Methods are now defined always, but return
+**      fail values when HT_EXT is not defined. In addition, the
+**      files "Library/src/WWWDAV.html" and "Library/src/windows/wwwdav.files"
+**      have been added. These files and modifications were needed
+**      to produce the correct "*.def" files, for windows plataform.
+**
 **      Revision 1.1  2002/03/21 14:16:27  kirschpi
 **      Missing files
 **      Manuele Kirsch
@@ -30,17 +41,17 @@
 #include "WWWInit.h"
 #include "WWWUtil.h"
 #include "WWWStream.h"
-#include "HTDAV.h"		/* implemented here */
+#include "HTDAV.h"              /* implemented here */
 
 #ifdef HT_DAV
 
 struct _HTStream {
-    const HTStreamClass *	isa;
-    HTStream *		  	target;
-    HTRequest *			request;
-    int				version;
-    BOOL			endHeader;
-    BOOL			transparent;
+    const HTStreamClass *       isa;
+    HTStream *                  target;
+    HTRequest *                 request;
+    int                         version;
+    BOOL                        endHeader;
+    BOOL                        transparent;
 };
 
 
@@ -164,7 +175,7 @@ PUBLIC BOOL HTDAV_setDepthHeader (HTDAVHeaders *me, const char *Depth) {
 */
 PUBLIC BOOL HTDAV_deleteDepthHeader (HTDAVHeaders * me) {
     if (me && me->Depth) {
-        HT_FREE(me->Depth);
+        HT_FREE (me->Depth);
         me->Depth = NULL;
         return YES;
     }
@@ -203,7 +214,7 @@ PUBLIC BOOL HTDAV_setLockTokenHeader (HTDAVHeaders *me, const char *LockToken) {
 */
 PUBLIC BOOL HTDAV_deleteLockTokenHeader (HTDAVHeaders * me) {
     if (me && me->LockToken) {
-        HT_FREE(me->LockToken);
+        HT_FREE (me->LockToken);
         me->LockToken = NULL;
         return YES;
     }
@@ -242,7 +253,7 @@ PUBLIC BOOL HTDAV_setDestinationHeader (HTDAVHeaders *me, const char *Destinatio
 */
 PUBLIC BOOL HTDAV_deleteDestinationHeader (HTDAVHeaders * me) {
     if (me && me->Destination) {
-        HT_FREE(me->Destination);
+        HT_FREE (me->Destination);
         me->Destination = NULL;
         return YES;
     }
@@ -282,7 +293,7 @@ PUBLIC BOOL HTDAV_setTimeoutHeader (HTDAVHeaders *me, const char *Timeout) {
 */
 PUBLIC BOOL HTDAV_deleteTimeoutHeader (HTDAVHeaders * me) {
     if (me && me->Timeout) {
-        HT_FREE(me->Timeout);
+        HT_FREE (me->Timeout);
         me->Timeout = NULL;
         return YES;
     }
@@ -372,7 +383,7 @@ PRIVATE int HTEntity_callback (HTRequest * request, HTStream * target)
             HTFormat actual = HTAnchor_format(entity);
             HTFormat tmplate = HTAtom_for("text/*");
             if (HTMIMEMatch(tmplate, actual)) {
-                len = strlen(document);			/* Naive! */
+                len = strlen(document);                 /* Naive! */
                 chunking = YES;
             } else {
                 HTTRACE(PROT_TRACE, "Posting Data Must know the length of document %p\n" _ 
@@ -396,10 +407,10 @@ PRIVATE int HTEntity_callback (HTRequest * request, HTStream * target)
             HTTRACE(PROT_TRACE, "Posting Data Target is SAVED\n");
             (*target->isa->flush)(target);
             return HT_LOADED;
-        } else if (status > 0) {	      /* Stream specific return code */
+        } else if (status > 0) {              /* Stream specific return code */
             HTTRACE(PROT_TRACE, "Posting Data. Target returns %d\n" _ status);
             return status;
-        } else {				     /* we have a real error */
+        } else {                                     /* we have a real error */
             HTTRACE(PROT_TRACE, "Posting Data Target ERROR %d\n" _ status);
             return status;
         }
@@ -421,9 +432,9 @@ PRIVATE int HTEntity_callback (HTRequest * request, HTStream * target)
 ** which contains "owner" XML element, or the request should be a lock
 ** refresh request.
 ** Headers:
-**	If header is mandatory for lock refresh request
-**	Depth header may be "0" or "infinity" (default: infinity)
-**	Timeout header may be used
+**      If header is mandatory for lock refresh request
+**      Depth header may be "0" or "infinity" (default: infinity)
+**      Timeout header may be used
 */
 
 PUBLIC BOOL HTLOCKDocumentAnchor (HTRequest * request, 
@@ -553,7 +564,7 @@ PUBLIC BOOL HTLOCKRelative (HTRequest * request,
 ** UNLOCK request removes the lock identified by Lock-Token header from
 ** the Request-URI.
 ** Headers:
-** 	Lock-Token header must be present
+**      Lock-Token header must be present
 */
 PUBLIC BOOL HTUNLOCKAnchor (HTRequest * request,
                             HTAnchor * dst,
@@ -613,7 +624,7 @@ PUBLIC BOOL HTUNLOCKRelative (HTRequest * request,
     BOOL status = NO;
     if (request && relative && base) {
          char * base_uri = HTAnchor_address ((HTAnchor *)base);
-         char * full_uri = HTParse(relative,base_uri,PARSE_ACCESS|PARSE_HOST| \
+         char * full_uri = HTParse (relative,base_uri,PARSE_ACCESS|PARSE_HOST| \
                                                  PARSE_PATH|PARSE_PUNCTUATION);
 
          status = HTUNLOCKAbsolute (request,full_uri,headers);
@@ -637,7 +648,7 @@ PUBLIC BOOL HTUNLOCKRelative (HTRequest * request,
 ** "propname" element (the name of all properties defined), and a "prop"
 ** element containing the desired properties.
 ** Headers:
-**	Depth header may be "0", "1" or "infinity".
+**      Depth header may be "0", "1" or "infinity".
 */
 PUBLIC BOOL HTPROPFINDDocumentAnchor (HTRequest * request,
                                       HTAnchor * dst,
@@ -751,13 +762,13 @@ PUBLIC BOOL HTPROPFINDRelative (HTRequest * request,
 ** which may include an "set" element (to set the properties value) or
 ** a "remove" element (to remove the properties).
 ** Headers: (the RFC is not very clair about it)
-**	If header, indicating a state token for the resource.
+**      If header, indicating a state token for the resource.
 */
 PUBLIC BOOL HTPROPPATCHDocumentAnchor (HTRequest * request,
                                       HTAnchor * dst,
                                       HTParentAnchor * xmlbody,
                                       HTDAVHeaders * headers) {
-	
+        
     if (request && dst && xmlbody) {
 
         /* set method and request-URI */
@@ -795,10 +806,10 @@ PUBLIC BOOL HTPROPPATCHAnchor (HTRequest * request,
                                HTDAVHeaders * headers) {
     if (request && dst && xmlbody) {
        HTParentAnchor * body = HTTmpAnchor(NULL);
-       HTAnchor_setDocument(body, (void *)xmlbody);
-       HTAnchor_setFormat(body, HTAtom_for ("text/xml"));
-       HTAnchor_setLength(body, strlen(xmlbody));
-	       
+       HTAnchor_setDocument (body, (void *)xmlbody);
+       HTAnchor_setFormat (body, HTAtom_for ("text/xml"));
+       HTAnchor_setLength (body, strlen(xmlbody));
+               
        return HTPROPPATCHDocumentAnchor (request,dst,body,headers);
     }
     return NO;
@@ -834,7 +845,7 @@ PUBLIC BOOL HTPROPPATCHRelative (HTRequest * request,
     BOOL status = NO;
     if (request && relative && base && xmlbody && *xmlbody) {
          char * base_uri = HTAnchor_address ((HTAnchor *)base);
-         char * full_uri = HTParse(relative,base_uri,PARSE_ACCESS|PARSE_HOST| \
+         char * full_uri = HTParse (relative,base_uri,PARSE_ACCESS|PARSE_HOST| \
                                                  PARSE_PATH|PARSE_PUNCTUATION);
 
          status = HTPROPPATCHAbsolute (request,full_uri,xmlbody,headers);
@@ -856,7 +867,7 @@ PUBLIC BOOL HTPROPPATCHRelative (HTRequest * request,
 ** dst parameter must not be a "non-null" resource, but all it ancestors
 ** must exist.
 ** Headers:
-**	If header may be used.
+**      If header may be used.
 */
 PUBLIC BOOL HTMKCOLAnchor (HTRequest * request, 
                            HTAnchor * dst,
@@ -875,7 +886,7 @@ PUBLIC BOOL HTMKCOLAnchor (HTRequest * request,
         if (headers) { /* WebDAV specific headers */
             HTTRACE (PROT_TRACE,"HTDAV.... Setting WebDAV headers \n");
             if (headers->If) /* only IF header may be used */
-                HTRequest_addExtraHeader(request,"If",headers->If);
+                HTRequest_addExtraHeader (request,"If",headers->If);
         }
 
         return HTLoad (request,NO);
@@ -913,7 +924,7 @@ PUBLIC BOOL HTMKCOLRelative (HTRequest * request,
     BOOL status = NO;
     if (request && relative && base) {
          char * base_uri = HTAnchor_address ((HTAnchor *)base);
-         char * full_uri = HTParse(relative,base_uri,PARSE_ACCESS|PARSE_HOST| \
+         char * full_uri = HTParse (relative,base_uri,PARSE_ACCESS|PARSE_HOST| \
                                                  PARSE_PATH|PARSE_PUNCTUATION);
 
          status = HTMKCOLAbsolute (request,full_uri,headers);
@@ -939,16 +950,16 @@ PUBLIC BOOL HTMKCOLRelative (HTRequest * request,
 ** which indicates what should be the server behavior when copying the resouce
 ** properties.
 ** Headers:
-** 	Destination header is mandatory!
-**	If header may be used.
-**	Depth header may be "0" or "infinity"
-**	Overwrite header may be used
+**      Destination header is mandatory!
+**      If header may be used.
+**      Depth header may be "0" or "infinity"
+**      Overwrite header may be used
 */
 PUBLIC BOOL HTCOPYDocumentAnchor (HTRequest * request,
                                   HTAnchor * src,
                                   HTParentAnchor * xmlbody,
                                   HTDAVHeaders * headers) {
-	
+        
     if (request && src && headers) {
 
         /* set method and request-URI */
@@ -964,20 +975,20 @@ PUBLIC BOOL HTCOPYDocumentAnchor (HTRequest * request,
          /* WebDAV specific headers - Destination is mandatory! */
         if (headers->Destination && *headers->Destination) { 
             HTTRACE (PROT_TRACE,"HTDAV.... Setting WebDAV headers \n");
-            HTRequest_addExtraHeader(request,"Destination",headers->Destination);
+            HTRequest_addExtraHeader (request,"Destination",headers->Destination);
 
             if (headers->If) /* If header may be used */
-                HTRequest_addExtraHeader(request,"If",headers->If);
+                HTRequest_addExtraHeader (request,"If",headers->If);
 
             if (headers->Overwrite != ' ') {
                 char over[] = { headers->Overwrite, '\0' };
-                HTRequest_addExtraHeader(request,"Overwirte", over );
+                HTRequest_addExtraHeader (request,"Overwirte", over );
              }
 
             if (headers->Depth) {
-                if (!strcasecomp(headers->Depth,"0") || 
-                    !strcasecomp(headers->Depth,"infinity")) 
-                      HTRequest_addExtraHeader(request,"Depth",headers->Depth);
+                if (!strcasecomp (headers->Depth,"0") || 
+                    !strcasecomp (headers->Depth,"infinity")) 
+                      HTRequest_addExtraHeader (request,"Depth",headers->Depth);
             }
         } 
         else return NO;
@@ -1005,9 +1016,9 @@ PUBLIC BOOL HTCOPYAnchor (HTRequest * request,
         HTParentAnchor * body = NULL;
         if (xmlbody) {
             body = HTTmpAnchor(NULL);
-            HTAnchor_setDocument(body, (void *)xmlbody);
-            HTAnchor_setFormat(body, HTAtom_for ("text/xml"));
-            HTAnchor_setLength(body, strlen(xmlbody));
+            HTAnchor_setDocument (body, (void *)xmlbody);
+            HTAnchor_setFormat (body, HTAtom_for ("text/xml"));
+            HTAnchor_setLength (body, strlen(xmlbody));
         }
         return HTCOPYDocumentAnchor (request,src,body,headers);  
     }
@@ -1043,7 +1054,7 @@ PUBLIC BOOL HTCOPYRelative (HTRequest * request,
     BOOL status = NO;
     if (request && relative && base && headers) {
          char * base_uri = HTAnchor_address ((HTAnchor *)base);
-         char * full_uri = HTParse(relative,base_uri,PARSE_ACCESS|PARSE_HOST| \
+         char * full_uri = HTParse (relative,base_uri,PARSE_ACCESS|PARSE_HOST| \
                                                  PARSE_PATH|PARSE_PUNCTUATION);
 
          status = HTCOPYAbsolute (request,full_uri,xmlbody,headers);
@@ -1069,10 +1080,10 @@ PUBLIC BOOL HTCOPYRelative (HTRequest * request,
 ** which indicates what should be the server behavior when copying the resouce
 ** properties.
 ** Headers:
-** 	Destination header is mandatory!
-**	If header may be used.
-**	Depth header may be "0" or "infinity" (for collections, it MUST be "infinity")
-**	Overwrite header may be used
+**      Destination header is mandatory!
+**      If header may be used.
+**      Depth header may be "0" or "infinity" (for collections, it MUST be "infinity")
+**      Overwrite header may be used
 */
 PUBLIC BOOL HTMOVEDocumentAnchor (HTRequest * request,
                                   HTAnchor * src,
@@ -1094,19 +1105,19 @@ PUBLIC BOOL HTMOVEDocumentAnchor (HTRequest * request,
          /* WebDAV specific headers - Destination is mandatory! */
         if (headers->Destination && *headers->Destination) { 
             HTTRACE (PROT_TRACE,"HTDAV.... Setting WebDAV headers \n");
-            HTRequest_addExtraHeader(request,"Destination",headers->Destination);
+            HTRequest_addExtraHeader (request,"Destination",headers->Destination);
 
             if (headers->If) /* If header may be used */
-                HTRequest_addExtraHeader(request,"If",headers->If);
+                HTRequest_addExtraHeader (request,"If",headers->If);
 
             if (headers->Overwrite != ' ') {
                 char over[] = { headers->Overwrite, '\0' };
-                HTRequest_addExtraHeader(request,"Overwirte", over );
+                HTRequest_addExtraHeader (request,"Overwirte", over );
              }
 
-            if (headers->Depth)	{
-                if (!strcasecomp(headers->Depth,"0") || 
-                    !strcasecomp(headers->Depth,"infinity")) 
+            if (headers->Depth) {
+                if (!strcasecomp (headers->Depth,"0") || 
+                    !strcasecomp (headers->Depth,"infinity")) 
                      HTRequest_addExtraHeader(request,"Depth",headers->Depth);
             }
         } 
@@ -1116,12 +1127,12 @@ PUBLIC BOOL HTMOVEDocumentAnchor (HTRequest * request,
         if (xmlbody) {
             HTTRACE (PROT_TRACE,"HTDAV.... Setting Entity Body \n");
             HTRequest_setEntityAnchor (request,xmlbody); 
-            HTRequest_setPostCallback (request,HTEntity_callback);		
-        }	
+            HTRequest_setPostCallback (request,HTEntity_callback);              
+        }       
         return HTLoad (request,NO);
     }
 
-    return NO;	
+    return NO;  
 }
 
 
@@ -1134,10 +1145,10 @@ PUBLIC BOOL HTMOVEAnchor (HTRequest * request,
     if (request && src && headers) {
         HTParentAnchor * body = NULL;
         if (xmlbody) {
-            body = HTTmpAnchor(NULL);
+            body = HTTmpAnchor (NULL);
             HTAnchor_setDocument(body, (void *) xmlbody);
-            HTAnchor_setFormat(body, HTAtom_for ("text/xml"));
-            HTAnchor_setLength(body, strlen(xmlbody));
+            HTAnchor_setFormat (body, HTAtom_for ("text/xml"));
+            HTAnchor_setLength (body, strlen(xmlbody));
         }    
         return HTMOVEDocumentAnchor (request,src,body,headers);
     }
@@ -1173,7 +1184,7 @@ PUBLIC BOOL HTMOVERelative (HTRequest * request,
     BOOL status = NO;
     if (request && relative && base && headers) {
          char * base_uri = HTAnchor_address ((HTAnchor *)base);
-         char * full_uri = HTParse(relative,base_uri,PARSE_ACCESS|PARSE_HOST| \
+         char * full_uri = HTParse (relative,base_uri,PARSE_ACCESS|PARSE_HOST| \
                                                  PARSE_PATH|PARSE_PUNCTUATION);
 
          status = HTMOVEAbsolute (request,full_uri,xmlbody,headers);

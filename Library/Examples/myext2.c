@@ -7,27 +7,27 @@
 ** unknown for the Libwww, and use them for its request. See HTMethod.html for
 ** details.
 **
-**	More libwww samples can be found at "http://www.w3.org/Library/Examples/"
-**	
-**	Copyright © 1995-1998 World Wide Web Consortium, (Massachusetts
-**	Institute of Technology, Institut National de Recherche en
-**	Informatique et en Automatique, Keio University). All Rights
-**	Reserved. This program is distributed under the W3C's Software
-**	Intellectual Property License. This program is distributed in the hope
-**	that it will be useful, but WITHOUT ANY WARRANTY; without even the
-**	implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-**	PURPOSE. See W3C License http://www.w3.org/Consortium/Legal/ for more
-**	details.
+**      More libwww samples can be found at "http://www.w3.org/Library/Examples/"
+**      
+**      Copyright © 1995-1998 World Wide Web Consortium, (Massachusetts
+**      Institute of Technology, Institut National de Recherche en
+**      Informatique et en Automatique, Keio University). All Rights
+**      Reserved. This program is distributed under the W3C's Software
+**      Intellectual Property License. This program is distributed in the hope
+**      that it will be useful, but WITHOUT ANY WARRANTY; without even the
+**      implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+**      PURPOSE. See W3C License http://www.w3.org/Consortium/Legal/ for more
+**      details.
 **
 **
 ** Authors: 
-**	MKP  	Manuele Kirsch Pinheiro (Manuele.Kirsch_Pinheiro@inrialpes.fr, 
+**      MKP     Manuele Kirsch Pinheiro (Manuele.Kirsch_Pinheiro@inrialpes.fr, 
 **                                       manuele@inf.ufrgs.br)
-**		_ Project CEMT  (INRIA Rhone-Alpes,France / UFRGS-II,Brazil) _
+**              _ Project CEMT  (INRIA Rhone-Alpes,France / UFRGS-II,Brazil) _
 **
 ** History:
-**	fev, 2002	created		MKP
-**				
+**      fev, 2002       created         MKP
+**                              
 ** $Id$
 */
 
@@ -39,40 +39,54 @@
 
 
 #ifndef W3C_VERSION
-#define W3C_VERSION		"Unspecified"
+#define W3C_VERSION             "Unspecified"
 #endif
 
-#define APP_NAME		"MyExt"
-#define APP_VERSION		"4.0"
+#define APP_NAME                "MyExt"
+#define APP_VERSION             "4.0"
 
 #if defined(__svr4__)
 #define CATCH_SIG
 #endif
 
-#define ERR_UNKNOWN   		0x0	/* error codes for use in  */
-#define ERR_FATAL 		0x1	/* "error_callback" filter */
-#define ERR_NON_FATAL	  	0x2
-#define ERR_WARN 		0x4
-#define ERR_INFO		0x8
+/*
+** error codes for use in error_callback filter
+*/
+#define ERR_UNKNOWN             0x0
+#define ERR_FATAL               0x1
+#define ERR_NON_FATAL           0x2
+#define ERR_WARN                0x4
+#define ERR_INFO                0x8
 
-#define VIEW	1	/* commands */
-#define SET	2
-#define DEL	3
 
-#define PROPPATCH	METHOD_EXT_0
-#define PROPFIND	METHOD_EXT_1
+/*
+** Some compilers, like MSVC, doesn't know STDIN_FILENO
+*/
+#ifndef STDIN_FILENO
+#define STDIN_FILENO           fileno(stdin)
+#endif
+
+
+/* commands */
+#define VIEW    1
+#define SET     2
+#define DEL     3
+
+
+#define PROPPATCH       METHOD_EXT_0
+#define PROPFIND        METHOD_EXT_1
 
 
 /*
 ** Our stream
 */
 struct _HTStream {
-    const HTStreamClass *	isa;
-    HTStream *		  	target;
-    HTRequest *			request;
-    int				version;
-    BOOL			endHeader;
-    BOOL			transparent;
+    const HTStreamClass *       isa;
+    HTStream *                  target;
+    HTRequest *                 request;
+    int                         version;
+    BOOL                        endHeader;
+    BOOL                        transparent;
 };
 
 
@@ -81,11 +95,11 @@ struct _HTStream {
 ** Command line structure
 */
 typedef struct _CmdLine {
-    int cmd; 	/* command */
-    char *url; 	/* url */
-    char *prop;	/* property name */
-    char *ns;	/* property namespace */
-    char *val;	/* property val */
+    int cmd;    /* command */
+    char *url;  /* url */
+    char *prop; /* property name */
+    char *ns;   /* property namespace */
+    char *val;  /* property val */
 } CmdLine;
 
 
@@ -101,9 +115,9 @@ typedef struct _Context {
 ** Application context
 */ 
 typedef struct _App {
-    HTRequest *		console_request;
-    HTEvent *		console_event;
-    HTList *		active;			  /* List of active contexts */
+    HTRequest *         console_request;
+    HTEvent *           console_event;
+    HTList *            active;                   /* List of active contexts */
 } App;
 
 
@@ -133,10 +147,10 @@ PRIVATE HTRequest * Request_new (App * app,HTMethod method);
 PRIVATE BOOL Request_delete (App * app, HTRequest * request);
 
 PRIVATE int request_terminater (HTRequest * request, HTResponse * response,
-				void * param, int status); 
+                                void * param, int status); 
 PRIVATE int console_parser (SOCKET s, void * param, HTEventType type);
 PRIVATE int error_callback (HTRequest * request, HTResponse * response,
-	            	              void * param, int status); 
+                                      void * param, int status); 
 
 PRIVATE int mypcbf (HTRequest * request, HTStream * target);
 
@@ -149,16 +163,17 @@ PRIVATE char * create_body (CmdLine *line);
 
 
 /* ------------------------------------------------------------------------- */
-/*				EXPAT HANDLERS				     */
+/*                              EXPAT HANDLERS                               */
 /* ------------------------------------------------------------------------- */
 
 PRIVATE void XML_startElement (void * userData,
-	   	    	       const XML_Char *	name, const XML_Char ** atts)
+                               const XML_Char * name, 
+                               const XML_Char ** atts)
 {
     int *depth = (int *)userData;
     int i=0;
     if (name) {
-	HTPrint ("\n");
+        HTPrint ("\n");
         for (i=0;i<(*depth);i++) 
             HTPrint (" ");
         HTPrint("%s ", name);
@@ -169,81 +184,83 @@ PRIVATE void XML_startElement (void * userData,
 }
 
 PRIVATE void XML_endElement (void * userData,
-			     const XML_Char * name)
+                             const XML_Char * name)
 {
     int *depth = (int *)userData;
     *depth -= 1;
 }
 
 PRIVATE void XML_characterData (void * userData,
-				const XML_Char * s, int len)
+                                const XML_Char * s, 
+                                int len)
 {
     int i=0;
 
     if (len>1) {
-        HTPrint (": "); 	    
+        HTPrint (": ");             
         for (i=0;i<len;i++) HTPrint ("%c",s[i]);
         if (s[i-2]!='\n') HTPrint ("\n");
     }
     else {
-	if (s[0]!='\n' && s[0]!=' ') HTPrint (": %c\n",s[0]);    
+        if (s[0]!='\n' && s[0]!=' ') HTPrint (": %c\n",s[0]);    
     }
     return;
 }
 
 
 PRIVATE void XML_processingInstruction (void * userData,
-					const XML_Char * target,
-					const XML_Char * data)
+                                        const XML_Char * target,
+                                        const XML_Char * data)
 {
     return;
 }
 
 
 PRIVATE void XML_default (void * userData,
-			  const XML_Char * s, int len)
+                          const XML_Char * s, 
+                          int len)
 {   
     return;
 }
 
 
 PRIVATE void XML_unparsedEntityDecl (void * userData,
-				     const XML_Char * entityName,
-				     const XML_Char * base,
-				     const XML_Char * systemId,
-				     const XML_Char * publicId,
-				     const XML_Char * notationName)
+                                     const XML_Char * entityName,
+                                     const XML_Char * base,
+                                     const XML_Char * systemId,
+                                     const XML_Char * publicId,
+                                     const XML_Char * notationName)
 {
     return;
 }
 
 PRIVATE void XML_notationDecl (void * userData,
-			       const XML_Char * notationName,
-			       const XML_Char * base,
-			       const XML_Char * systemId,
-			       const XML_Char * publicId)
+                               const XML_Char * notationName,
+                               const XML_Char * base,
+                               const XML_Char * systemId,
+                               const XML_Char * publicId)
 {
     return;
 }
 
 PRIVATE int XML_externalEntityRef (XML_Parser parser,
-				   const XML_Char * openEntityNames,
-				   const XML_Char * base,
-				   const XML_Char * systemId,
-				   const XML_Char * publicId)
+                                   const XML_Char * openEntityNames,
+                                   const XML_Char * base,
+                                   const XML_Char * systemId,
+                                   const XML_Char * publicId)
 {
     return 0;
 }
 
 PRIVATE int XML_unknownEncoding (void * encodingHandlerData,
-				 const XML_Char * name,
-				 XML_Encoding * info)
+                                 const XML_Char * name,
+                                 XML_Encoding * info)
 {
     return 0;
 }
 
 /* ------------------------------------------------------------------------- */
-/*			     HTXML STREAM HANDLERS			     */
+/*                           HTXML STREAM HANDLERS                           */
 /* ------------------------------------------------------------------------- */
 
 PRIVATE void HTXML_setHandlers (XML_Parser me, HTRequest *request)
@@ -262,12 +279,12 @@ PRIVATE void HTXML_setHandlers (XML_Parser me, HTRequest *request)
     }
 }
 
-PRIVATE void HTXML_newInstance (HTStream *		me,
-				HTRequest *		request,
-				HTFormat 		target_format,
-				HTStream *		target_stream,
-				XML_Parser              xmlparser,
-				void * 			context)
+PRIVATE void HTXML_newInstance (HTStream  *             me,
+                                HTRequest *             request,
+                                HTFormat                target_format,
+                                HTStream  *             target_stream,
+                                XML_Parser              xmlparser,
+                                void *                  context)
 {
     /*HTPrint ("MyExt: HTXML_newInstance\n");*/
     if (me && xmlparser) {
@@ -338,7 +355,7 @@ PRIVATE CmdLine * CmdLine_new (const char *buffer) {
     else status = NO;
    
     if (status && cmd!=VIEW) {
-	    
+            
         /*--- get property name ---*/
         while (line[i]==' ' && i<len) i++;    
         if (status && i<len) prop = &line[i]; 
@@ -354,7 +371,7 @@ PRIVATE CmdLine * CmdLine_new (const char *buffer) {
         }
         else status = NO;
 
-	
+        
         /*--- get property namespace ---*/
         i++;    
         if (status && i<len)  
@@ -362,7 +379,7 @@ PRIVATE CmdLine * CmdLine_new (const char *buffer) {
         else status = NO; /* no property namespace - error */
 
         j = i; /* search ns ending position */
-       	while (status && line[i]!=' ' && line[i]!='=' && line[i]!='\n' && i<len) i++;
+        while (status && line[i]!=' ' && line[i]!='=' && line[i]!='\n' && i<len) i++;
 
         /* alloc ns return string */
         if (status && (rns = HT_CALLOC ((i-j+1),sizeof(char)))!=NULL) {
@@ -382,7 +399,7 @@ PRIVATE CmdLine * CmdLine_new (const char *buffer) {
            else status = NO; /* no property value - error */
 
            j = i; /* search val ending position */
-       	   while (status && line[i]!='\n' && i<len) i++;
+           while (status && line[i]!='\n' && i<len) i++;
 
            /* alloc val return string */
            if (status && (rval = HT_CALLOC ((i-j+1),sizeof(char)))!=NULL) {
@@ -390,7 +407,7 @@ PRIVATE CmdLine * CmdLine_new (const char *buffer) {
                rval[i-j]='\0';
            }
            else status = NO;
-	   
+           
        }
     }
 
@@ -430,12 +447,12 @@ PRIVATE BOOL CmdLine_delete (CmdLine * me) {
 
 /*
 ** App_new : creates a new application context
-** Returns : App *	application context
+** Returns : App *      application context
 */ 
 PRIVATE App * App_new (void) {
     App * me = NULL;
     
-    if ((me = (App *) HT_CALLOC(1, sizeof(App))) == NULL)	
+    if ((me = (App *) HT_CALLOC(1, sizeof(App))) == NULL)       
         HT_OUTOFMEM("App_new");
 
     /* setting everybody */
@@ -468,7 +485,9 @@ PRIVATE App * App_new (void) {
     HTPrint ("Enter: <command>  <url> [propname:namespace][= valor]\n");
     HTPrint ("   or  Q to exit  \n");
     HTPrint ("command := v (view), s (set) or d (delete)\n");
-    HTPrint ("example : s http://foo.bar/ name:http://host/mydtd.dtd = my_file\n");
+    HTPrint ("examples : s http://foo.bar/ propertyname:http://foo.bar/foodtd.dtd = property_value\n");
+    HTPrint ("           d http://foo.bar/ propertyname:http://foo.bar/foodtd.dtd \n");
+    HTPrint ("           v http://foo.bar/\n");
     HTPrint (">\n ");
    
     return me;
@@ -478,45 +497,45 @@ PRIVATE App * App_new (void) {
 
 /*
 ** App_delete : removes an application context object
-** Parameter : App * app	application context to be removed
-** Returns : BOOL	YES - operation succed
-**               	NO - operation failed
-*/               	 
+** Parameter : App * app        application context to be removed
+** Returns : BOOL       YES - operation succed
+**                      NO - operation failed
+*/                       
 PRIVATE BOOL App_delete (App * me) {
-    HTRequest * req = NULL;	
+    HTRequest * req = NULL;     
 
     HTPrint ("MyExt: Removing application context\n");
 
     if (me) {
-	    
-	/* killing any remaining active requests */
-	HTNet_killAll();
+            
+        /* killing any remaining active requests */
+        HTNet_killAll();
 
-	/* freeing all remaining request objects */
-	while (!HTList_isEmpty(me->active)) {
-	    req = (HTRequest *) HTList_nextObject (me->active);
-	    if (req)  Request_delete (me,req);
-	}
+        /* freeing all remaining request objects */
+        while (!HTList_isEmpty(me->active)) {
+            req = (HTRequest *) HTList_nextObject (me->active);
+            if (req)  Request_delete (me,req);
+        }
 
-	/* clean up everything */
-	HTRequest_delete(me->console_request);
-	HTEvent_delete (me->console_event);
-	HTList_free (me->active);
-	
-	/* clean up extension method */
-        HTPrint ("Removing extension methods\n");	
-	if (HTMethod_deleteExtensionMethod (PROPPATCH) && HTMethod_deleteExtensionMethod (PROPFIND))
-	    HTPrint ("MyExt: Extension methods deleted \n");
-	
-	HT_FREE(me);
+        /* clean up everything */
+        HTRequest_delete(me->console_request);
+        HTEvent_delete (me->console_event);
+        HTList_free (me->active);
+        
+        /* clean up extension method */
+        HTPrint ("Removing extension methods\n");       
+        if (HTMethod_deleteExtensionMethod (PROPPATCH) && HTMethod_deleteExtensionMethod (PROPFIND))
+            HTPrint ("MyExt: Extension methods deleted \n");
+        
+        HT_FREE(me);
 
-	/* stopping event loop */    
+        /* stopping event loop */    
         HTEventList_stopLoop();
-	
-	/* Terminate libwww */
-	HTProfile_delete();
+        
+        /* Terminate libwww */
+        HTProfile_delete();
 
-	return YES;
+        return YES;
     }
     return NO;
 }
@@ -532,7 +551,7 @@ PRIVATE void Context_new (HTRequest * request, App * app) {
 
     if ( (ctx = (Context *) HT_CALLOC(1, sizeof(Context))) == NULL ) {
         App_delete (app);
-	HT_OUTOFMEM("Contect_new");
+        HT_OUTOFMEM("Contect_new");
     }
 
     /*HTPrint ("MyExt: Setting request context...\n");*/
@@ -548,19 +567,19 @@ PRIVATE void Context_new (HTRequest * request, App * app) {
 PRIVATE void Context_delete (Context * ctx) {
     if (ctx) {
         /*HTPrint ("MyExt: Removing request context...\n");*/
-	HT_FREE (ctx);
+        HT_FREE (ctx);
     }
 }
 
 
 /*
 ** Request_new : creates a new request 
-** Parameters : App * app 	application context
+** Parameters : App * app       application context
 ** Returns : HTRequest *
 */ 
 PRIVATE HTRequest * Request_new (App * app, HTMethod method)
 {
-  	
+        
     HTRequest * request = HTRequest_new();
 
     HTPrint ("MyExt: creating a new request\n");
@@ -584,7 +603,7 @@ PRIVATE HTRequest * Request_new (App * app, HTMethod method)
     
     /* set local filters */
     HTRequest_addAfter (request,error_callback, NULL, app, \
-		         HT_ERROR, HT_FILTER_LAST, NO); 
+                         HT_ERROR, HT_FILTER_LAST, NO); 
 
     
     if (!app->active) app->active = HTList_new();
@@ -601,21 +620,21 @@ PRIVATE HTRequest * Request_new (App * app, HTMethod method)
 
 /*
 ** Request_delete : removes a request 
-** Parameters : App * app	application context
-** 		 HTRequest * request
-** Returns : BOOL	YES if operation succeed
-**               	NO if operation failed
+** Parameters : App * app       application context
+**               HTRequest * request
+** Returns : BOOL       YES if operation succeed
+**                      NO if operation failed
 */
 PRIVATE BOOL Request_delete (App * app, HTRequest * request)
 {
    /* HTPrint ("MyExt: removing request\n"); */
     
     if (app && app->active && request) {
-        HTPrint ("MyExt: Request deleted \n");	
-	HTList_removeObject(app->active, request);
-	
-	HTRequest_delete(request);
-	return YES;
+        HTPrint ("MyExt: Request deleted \n");  
+        HTList_removeObject(app->active, request);
+        
+        HTRequest_delete(request);
+        return YES;
     }
     return NO;
 }
@@ -654,22 +673,22 @@ PRIVATE int console_parser (SOCKET s, void * param, HTEventType type)
     /* reading console */
     if (!fgets(buf, sizeof(buf), stdin)) {
         HTPrint ("Error reading stdin\n");
-	return HT_ERROR;
+        return HT_ERROR;
     }
 
-    if (toupper(buf[0]) == 'Q') {	/* Quit the program */
+    if (toupper(buf[0]) == 'Q') {       /* Quit the program */
         App_delete(app);
-	exit (0);
+        exit (0);
     }
     else { /* take the target address */
-	
+        
         HTPrint ("MyExt: Console readed **%s**\n",buf);
         if ( (line = CmdLine_new (buf))==NULL ) {
             HTPrint ("Wrong command line\n");
             return HT_ERROR;
         }
 
-	my_get_document (app,line);		
+        my_get_document (app,line);             
     }
 
     return HT_OK;
@@ -681,7 +700,7 @@ PRIVATE int console_parser (SOCKET s, void * param, HTEventType type)
 ** Funtion's type : HTNetAfter
 */ 
 PRIVATE int request_terminater (HTRequest * request, HTResponse * response,
-				void * param, int status) 
+                                void * param, int status) 
 {
     App * app = (App *) param;
     Context * ctx = NULL;
@@ -715,38 +734,38 @@ PRIVATE int request_terminater (HTRequest * request, HTResponse * response,
 ** Function's type : HTNetAfter
 */
 PRIVATE int error_callback (HTRequest * request, HTResponse * response,
-	            	              void * param, int status) {
+                                      void * param, int status) {
 
     App * app = (App *) param;
     HTList * error_list = NULL;
     HTError * error = NULL;
-	
+        
     HTPrint ("MyExt: ERROR CALLBACK\n");
     HTPrint ("\tapp %s \n\trequest %s \n\tresponse %s \n\tstatus %d\n", \
                      (app)?"OK":"NULL",(request)?"OK":"NULL",\
                      (response)?"OK":"NULL",status);
-	
+        
     if (request) {
         error_list = HTRequest_error (request);
         while (error_list && (error = (HTError *) HTList_nextObject(error_list))) {
             HTPrint ("\tError location %s\n",HTError_location(error));
-	    switch (HTError_severity(error)) {
+            switch (HTError_severity(error)) {
                 case ERR_UNKNOWN :
-		        HTPrint ("\tSeverity : UNKNOWN\n");
-			break;
-			
+                        HTPrint ("\tSeverity : UNKNOWN\n");
+                        break;
+                        
                 case ERR_FATAL :
                         HTPrint ("\tSeverity : FATAL\n");
                         break;
-			
+                        
                 case ERR_NON_FATAL :
                         HTPrint ("\tSeverity : NON FATAL\n");
                         break;
-			
+                        
                 case ERR_WARN :
                         HTPrint ("\tSeverity : WARN\n");
                         break;
-			
+                        
                 case ERR_INFO :
                         HTPrint ("\tSeverity : INFO\n");
                         break;
@@ -754,7 +773,7 @@ PRIVATE int error_callback (HTRequest * request, HTResponse * response,
                 default :
                         HTPrint ("\tSeverity : %Xd\n",HTError_severity(error));
                         break;
-            }	
+            }   
         }
     }
 
@@ -777,55 +796,55 @@ PRIVATE int mypcbf (HTRequest * request, HTStream * target)
     HTTRACE(APP_TRACE, "Posting Data from MY callback function\n");
     if (!request || !entity || !target) return HT_ERROR;
     {
-	BOOL chunking = NO;
-	int status;
-	char * document = (char *) HTAnchor_document(entity);
-	int len = HTAnchor_length(entity);
-	if (!document) {
-	    HTTRACE(PROT_TRACE, "Posting Data No document\n");
-	    return HT_ERROR;
-	}
+        BOOL chunking = NO;
+        int status;
+        char * document = (char *) HTAnchor_document(entity);
+        int len = HTAnchor_length(entity);
+        if (!document) {
+            HTTRACE(PROT_TRACE, "Posting Data No document\n");
+            return HT_ERROR;
+        }
 
-	/*
-	** If the length is unknown (-1) then see if the document is a text
-	** type and in that case take the strlen. If not then we don't know
-	** how much data we can write and must stop
-	*/
-	if (len < 0) {
-	    HTFormat actual = HTAnchor_format(entity);
-	    HTFormat tmplate = HTAtom_for("text/*");
-	    if (HTMIMEMatch(tmplate, actual)) {
-		len = strlen(document);			/* Naive! */
-		chunking = YES;
-	    } else {
-		HTTRACE(PROT_TRACE, "Posting Data Must know the length of document %p\n" _ 
-			    document);
-		return HT_ERROR;
-	    }
-	}
+        /*
+        ** If the length is unknown (-1) then see if the document is a text
+        ** type and in that case take the strlen. If not then we don't know
+        ** how much data we can write and must stop
+        */
+        if (len < 0) {
+            HTFormat actual = HTAnchor_format(entity);
+            HTFormat tmplate = HTAtom_for("text/*");
+            if (HTMIMEMatch(tmplate, actual)) {
+                len = strlen(document);                 /* Naive! */
+                chunking = YES;
+            } else {
+                HTTRACE(PROT_TRACE, "Posting Data Must know the length of document %p\n" _ 
+                            document);
+                return HT_ERROR;
+            }
+        }
 
-	/* Send the data down the pipe */
-	status = (*target->isa->put_block)(target, document, len);
-	if (status == HT_WOULD_BLOCK) {
-	    HTTRACE(PROT_TRACE, "Posting Data Target WOULD BLOCK\n");
-	    return HT_WOULD_BLOCK;
-	} else if (status == HT_PAUSE) {
-	    HTTRACE(PROT_TRACE, "Posting Data Target PAUSED\n");
-	    return HT_PAUSE;
-	} else if (chunking && status == HT_OK) {
-	    HTTRACE(PROT_TRACE, "Posting Data Target is SAVED using chunked\n");
-	    return (*target->isa->put_block)(target, "", 0);
-	} else if (status == HT_LOADED || status == HT_OK) {
-	    HTTRACE(PROT_TRACE, "Posting Data Target is SAVED\n");
-	    (*target->isa->flush)(target);
-	    return HT_LOADED;
-        } else if (status > 0) {	      /* Stream specific return code */
-	    HTTRACE(PROT_TRACE, "Posting Data. Target returns %d\n" _ status);
-	    return status;
-	} else {				     /* we have a real error */
-	    HTTRACE(PROT_TRACE, "Posting Data Target ERROR %d\n" _ status);
-	    return status;
-	}
+        /* Send the data down the pipe */
+        status = (*target->isa->put_block)(target, document, len);
+        if (status == HT_WOULD_BLOCK) {
+            HTTRACE(PROT_TRACE, "Posting Data Target WOULD BLOCK\n");
+            return HT_WOULD_BLOCK;
+        } else if (status == HT_PAUSE) {
+            HTTRACE(PROT_TRACE, "Posting Data Target PAUSED\n");
+            return HT_PAUSE;
+        } else if (chunking && status == HT_OK) {
+            HTTRACE(PROT_TRACE, "Posting Data Target is SAVED using chunked\n");
+            return (*target->isa->put_block)(target, "", 0);
+        } else if (status == HT_LOADED || status == HT_OK) {
+            HTTRACE(PROT_TRACE, "Posting Data Target is SAVED\n");
+            (*target->isa->flush)(target);
+            return HT_LOADED;
+        } else if (status > 0) {              /* Stream specific return code */
+            HTTRACE(PROT_TRACE, "Posting Data. Target returns %d\n" _ status);
+            return status;
+        } else {                                     /* we have a real error */
+            HTTRACE(PROT_TRACE, "Posting Data Target ERROR %d\n" _ status);
+            return status;
+        }
     }
 }
 
@@ -840,7 +859,7 @@ PRIVATE int mypcbf (HTRequest * request, HTStream * target)
 
 /*
 ** Init : application initialization 
-** Returns : App * 	application context
+** Returns : App *      application context
 */ 
 PRIVATE App * Init (void) {
     App * app = NULL;
@@ -869,8 +888,8 @@ PRIVATE App * Init (void) {
 
 /*
 ** my_get_document: retrives the document
-** Parameters: App * app	application context
-**             char * dst	URL destiny
+** Parameters: App * app        application context
+**             char * dst       URL destiny
 */             
 PRIVATE void my_get_document (App *app, CmdLine * line) {
     HTRequest * request = NULL;
@@ -879,7 +898,7 @@ PRIVATE void my_get_document (App *app, CmdLine * line) {
     char * cwd;
     char * body = create_body(line);
 
-    cwd =  HTGetCurrentDirectoryURL();	
+    cwd =  HTGetCurrentDirectoryURL();  
     full_dst = HTParse (line->url,cwd,PARSE_ALL);    
     dst = HTAnchor_findAddress (full_dst);
     
@@ -903,18 +922,18 @@ PRIVATE void my_get_document (App *app, CmdLine * line) {
             HTAnchor_setLength(entity, strlen(body));
             HTRequest_setEntityAnchor (request,entity);
 
-	   /* HTPrint ("MyExt: Entity format %s length %d\n", \
+           /* HTPrint ("MyExt: Entity format %s length %d\n", \
                                     HTAtom_name(HTAnchor_format(entity)), \
                                     HTAnchor_length(entity));
-	   */			    
+           */                       
             /* if we do not register our own PostCallback, libwww will not
-	     * send the request entity body */
-            HTRequest_setPostCallback(request, mypcbf);	
+             * send the request entity body */
+            HTRequest_setPostCallback(request, mypcbf); 
         }
     }
     
     
-    if ( request && (HTLoad (request,NO))) {	
+    if ( request && (HTLoad (request,NO))) {    
         /* HTPrint ("MyExt: setting context\n");*/
         Context_new (request,app);        
     }
@@ -935,7 +954,7 @@ PRIVATE char * create_body (CmdLine * line) {
     if (line) { 
         strcpy (buf,"<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n");    
         if (line->cmd==VIEW) {
-            strcat (buf,"<D:propfind xmlns:D=\"DAV:\"> ");	
+            strcat (buf,"<D:propfind xmlns:D=\"DAV:\"> ");      
             strcat (buf,"<D:allprop/> </D:propfind>");
         }
         else {
@@ -954,10 +973,10 @@ PRIVATE char * create_body (CmdLine * line) {
                 strcat (buf,"\">");
             }
             else return NULL; /* no property or property namespace */
-		
+                
             if (line->cmd==SET) {
                 strcat (buf,(line->val)?line->val:"");
-            }	
+            }   
 
             strcat (buf,"</ns:");
             strcat (buf,line->prop);
@@ -966,7 +985,7 @@ PRIVATE char * create_body (CmdLine * line) {
             strcat (buf,"    </D:prop>\n");
             strcat (buf,(line->cmd==SET)?"  </D:set>\n":"  </D:remove>\n");
             strcat (buf,"</D:propertyupdate>");
-	}
+        }
         StrAllocCopy (body,buf);
     }
     return body;

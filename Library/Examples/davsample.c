@@ -5,11 +5,11 @@
 ** in libwww, and also test your webserver, if you want. 
 **
 ** Authors: 
-**	MKP	Manuele Kirsch Pinheiro (Manuele.Kirsch_Pinheiro@inrialpes.fr, manuele@inf.ufrgs.br)
-**	   	_ Project CEMT  (INRIA Rhone-Alpes,France / UFRGS-II,Brazil) _
+**      MKP     Manuele Kirsch Pinheiro (Manuele.Kirsch_Pinheiro@inrialpes.fr, manuele@inf.ufrgs.br)
+**              _ Project CEMT  (INRIA Rhone-Alpes,France / UFRGS-II,Brazil) _
 **
 ** History:
-** 	fev, 2002	created			MKP
+**      fev, 2002       created                 MKP
 **                                
 ** $Id$
 */
@@ -759,31 +759,41 @@ int main (int argc, char ** argv)
         HTPrint ("\t-O <'T' | 'F'>             (for Overwrite header)\n\n");
         HTPrint ("function_arguments are: \n");
         HTPrint ("for LOCK: %s -l -<[1-3]> [options] <dest-uri> <owner|\"REFRESH\"> \n",argv[0]);
-        HTPrint ("\t %s -l -4 [options] <relative-uri> <base_uri> <owner|\"REFRESH\">\n\n",argv[0]);
+        HTPrint ("\t %s -l -4 [options] <relative-uri> <base_uri> <owner|\"REFRESH\">\n",argv[0]);
+        HTPrint ("\t example: %s -l -4 -D 0 /dav_collection/myfile.html http://foo.bar/ mailto:myself@foo.bar\n\n",argv[0]);
        
         HTPrint ("for UNLOCK: %s -u -<[1-2]> [options] <dest-uri> <lock-token>\n",argv[0]);
-        HTPrint ("\t %s -u -3 [options] <relative-uri> <base-uri> <lock-token> \n\n",argv[0]);
+        HTPrint ("\t %s -u -3 [options] <relative-uri> <base-uri> <lock-token> \n",argv[0]);
+        HTPrint ("\t example: %s -u -3 /dav_collection/myfile.html http://foo.bar/ <opaquelocken:blablabla>\n\n",argv[0]);
        
         HTPrint ("for PROPFIND:%s -f -<[1-3]> [options] <dest-uri> [\"allprop\"|\"propname\"|xml body]\n",\
                                                                                             argv[0]);
-        HTPrint ("\t %s -f -4 [options] <relative-uri> <base-uri> [\"allprop\"|\"propname\"|xml body]\n\n",\
+        HTPrint ("\t %s -f -4 [options] <relative-uri> <base-uri> [\"allprop\"|\"propname\"|xml body]\n",\
                                                                                                 argv[0]);
+        HTPrint ("\t example: %s -f -4 -D 0 /dav_collection/myfile.html http://foo.bar/ allprop\n\n",argv[0]);
             
         HTPrint ("for PROPPATCH:%s -p -<[1-4]> [options] <dest-uri> <xml body>\n",argv[0]);
-        HTPrint ("\t %s -p -4 [options] <relative-uri> <base-uri> <xml body>\n\n",argv[0]);
+        HTPrint ("\t %s -p -4 [options] <relative-uri> <base-uri> <xml body>\n",argv[0]);
+        HTPrint ("\t example: %s -p -4 -I <opaquelock:blablabla> /dav_collection/myfile.html http://foo.bar/\\ \n "
+                 "\"<?xml version='1.0'?>\n <D:propertyupdate xmlns:D='DAV:' xmlns:Z='http://foo.bar/propertydtd/'>\n"
+                 "  <D:set>\n   <D:prop>\n    <Z:author> MyName </Z:author>\n   </D:prop>\n  <D:set>\n"
+                 "</D:propertyupdate>\" \n\n",argv[0]);
             
         HTPrint ("for MKCOL: %s -k -<[1-2]> [options] <dest-uri>\n",argv[0]);
-        HTPrint ("\t %s -k -3 [options] <relative-uri> <base-uri>\n\n",argv[0]);
+        HTPrint ("\t %s -k -3 [options] <relative-uri> <base-uri>\n",argv[0]);
+        HTPrint ("\t example: %s -k -3 /dav_collection/newcollection http://foo.bar/\n\n",argv[0]);
 
         HTPrint ("for COPY: %s -c -<[1-3]> [options] <src-uri> <dst-uri> <xml body|\"NOBODY\">\n",\
                                                                                             argv[0]);
-        HTPrint ("\t %s -c -4 [options] <relative-uri> <base-uri> <dst-uri> <xml body|\"NOBODY\">\n\n",\
+        HTPrint ("\t %s -c -4 [options] <relative-uri> <base-uri> <dst-uri> <xml body|\"NOBODY\">\n",\
                                                                                             argv[0]);
+        HTPrint ("\t example: %s -c -4 /dav_collection/myfile.html http://foo.bar/ http://foo.bar/copyfile.html NOBODY\n\n",argv[0]);
         
         HTPrint ("for MOVE: %s -m -<[1-3]> [options] <src-uri> <dst-uri> <xml body|\"NOBODY\">\n",
                                                                                             argv[0]);
-        HTPrint ("\t %s -m -4 [options] <relative-uri> <base-uri> <dst-uri> <xml body|\"NOBODY\">\n\n",\
+        HTPrint ("\t %s -m -4 [options] <relative-uri> <base-uri> <dst-uri> <xml body|\"NOBODY\">\n",\
                                                                                             argv[0]);
+        HTPrint ("\t example: %s -m -4 /dav_collection/myfile.html http://foo.bar/ http://foo.bar/movefile.html NOBODY\n\n",argv[0]);
             
 
         HTPrint ("If, Depth and Timeout headers as defined in RFC2518 section 9\n");
@@ -798,12 +808,12 @@ int main (int argc, char ** argv)
         switch (arg->method) {
           case 'l':        
             HTPrint ("LOCK REQUEST\n");   
-	    if (arg->arg1) {
+            if (arg->arg1) {
                 arg->arg1 = (!strcasecomp(arg->arg1,"REFRESH"))?NULL:arg->arg1;
                 status = lock_request (arg);
-	    }
-	    else
-	        HTPrint ("Bad argument! Please, execute %s for help\n",argv[0]);
+            }
+            else
+                HTPrint ("Bad argument! Please, execute %s for help\n",argv[0]);
             break;
        
           case 'u': 
@@ -831,20 +841,20 @@ int main (int argc, char ** argv)
             if (arg->arg1) {
                 arg->arg2 = (!strcasecomp(arg->arg2,"NOBODY"))?NULL:arg->arg2;
                 status = copy_request (arg);
-	    }
-	    else
-	        HTPrint ("Bad argument! Please, execute %s for help\n",argv[0]);
+            }
+            else
+                HTPrint ("Bad argument! Please, execute %s for help\n",argv[0]);
 
             break;
           
           case 'm':        
             HTPrint ("MOVE REQUEST\n");    
-	    if (arg->arg1) {
+            if (arg->arg1) {
                 arg->arg2 = (!strcasecomp(arg->arg2,"NOBODY"))?NULL:arg->arg2;
                 status = move_request (arg);
-	    }
-	    else
-	        HTPrint ("Bad argument! Please, execute %s for help...\n",argv[0]);
+            }
+            else
+                HTPrint ("Bad argument! Please, execute %s for help...\n",argv[0]);
             break;
              
         }

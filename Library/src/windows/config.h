@@ -494,7 +494,7 @@
 /* #undef NEED_SYS_NERR_DECLARED */
 
 /* Define this if you want WebDAV methods from HTDAV module */
-#define HT_DAV 1
+/*#undef HT_DAV */
 
 /* Define this if you want enable the "extension methods" */
-#define HT_EXT 1
+/*#undef HT_EXT */

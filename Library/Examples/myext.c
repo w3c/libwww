@@ -7,26 +7,28 @@
 ** unknown for the Libwww, and use them for its request. See HTMethod.html for
 ** details.
 **
-**	More libwww samples can be found at "http://www.w3.org/Library/Examples/"
-**	
-**	Copyright © 1995-1998 World Wide Web Consortium, (Massachusetts
-**	Institute of Technology, Institut National de Recherche en
-**	Informatique et en Automatique, Keio University). All Rights
-**	Reserved. This program is distributed under the W3C's Software
-**	Intellectual Property License. This program is distributed in the hope
-**	that it will be useful, but WITHOUT ANY WARRANTY; without even the
-**	implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-**	PURPOSE. See W3C License http://www.w3.org/Consortium/Legal/ for more
-**	details.
+**        More libwww samples can be found at "http://www.w3.org/Library/Examples/"
+**        
+**        Copyright © 1995-1998 World Wide Web Consortium, (Massachusetts
+**        Institute of Technology, Institut National de Recherche en
+**        Informatique et en Automatique, Keio University). All Rights
+**        Reserved. This program is distributed under the W3C's Software
+**        Intellectual Property License. This program is distributed in the hope
+**        that it will be useful, but WITHOUT ANY WARRANTY; without even the
+**        implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+**        PURPOSE. See W3C License http://www.w3.org/Consortium/Legal/ for more
+**        details.
 **
 **
 ** Authors: 
-**	MKP  	Manuele Kirsch Pinheiro (Manuele.Kirsch_Pinheiro@inrialpes.fr, manuele@inf.ufrgs.br)
-**		_ Project CEMT  (INRIA Rhone-Alpes,France / UFRGS-II,Brazil) _
+**        MKP     Manuele Kirsch Pinheiro (Manuele.Kirsch_Pinheiro@inrialpes.fr, manuele@inf.ufrgs.br)
+**                _ Project CEMT  (INRIA Rhone-Alpes,France / UFRGS-II,Brazil) _
 **
 ** History:
-**	fev, 2002	created		MKP
-**				
+**        fev, 2002        created                MKP
+**        may, 2002        modifications for      MKP
+**                         windows plataform.         
+**                                
 ** $Id$
 */
 
@@ -38,21 +40,33 @@
 
 
 #ifndef W3C_VERSION
-#define W3C_VERSION		"Unspecified"
+#define W3C_VERSION             "Unspecified"
 #endif
 
-#define APP_NAME		"MyExt"
-#define APP_VERSION		"3.0"
+#define APP_NAME                "MyExt"
+#define APP_VERSION             "3.0"
 
 #if defined(__svr4__)
 #define CATCH_SIG
 #endif
 
-#define ERR_UNKNOWN   		0x0	/* error codes for use in  */
-#define ERR_FATAL 		0x1	/* "error_callback" filter */
-#define ERR_NON_FATAL	  	0x2
-#define ERR_WARN 		0x4
-#define ERR_INFO		0x8
+
+/*
+** error codes for use in error_callback filter
+*/
+#define ERR_UNKNOWN             0x0
+#define ERR_FATAL               0x1
+#define ERR_NON_FATAL           0x2
+#define ERR_WARN                0x4
+#define ERR_INFO                0x8
+
+
+/*
+** Some compilers, like MSVC, doesn't know STDIN_FILENO
+*/
+#ifndef STDIN_FILENO
+#define STDIN_FILENO           fileno(stdin)
+#endif
 
 /*
 ** Request context
@@ -67,10 +81,10 @@ typedef struct _Context {
 ** Application context
 */ 
 typedef struct _App {
-    HTRequest *		console_request;
-    HTEvent *		console_event;
-    HTList *		active;			  /* List of active contexts */
-    HTMethod		method;  
+    HTRequest *             console_request;
+    HTEvent *               console_event;
+    HTList *                active;                          /* List of active contexts */
+    HTMethod                method;  
 } App;
 
 
@@ -96,14 +110,14 @@ PRIVATE void Context_delete (Context * ctx);
 PRIVATE HTRequest * Request_new (App * app);
 PRIVATE BOOL Request_delete (App * app, HTRequest * request);
 PRIVATE int request_terminater (HTRequest * request, HTResponse * response,
-				void * param, int status); 
+                                void * param, int status); 
 PRIVATE int console_parser (SOCKET s, void * param, HTEventType type);
 PRIVATE int local_request_terminater (HTRequest * request, HTResponse * response,
-	            	              void * param, int status); 
+                                          void * param, int status); 
 PRIVATE int local_request_first (HTRequest * request, HTResponse * response,
-	            	              void * param, int status); 
+                                          void * param, int status); 
 PRIVATE int error_callback (HTRequest * request, HTResponse * response,
-	            	              void * param, int status); 
+                                          void * param, int status); 
 
 PRIVATE App * Init (void);
 PRIVATE void my_headers (HTRequest *request);
@@ -115,11 +129,12 @@ PRIVATE char * create_body (void);
 
 
 /* ------------------------------------------------------------------------- */
-/*				EXPAT HANDLERS				     */
+/*                                EXPAT HANDLERS                             */
 /* ------------------------------------------------------------------------- */
 
 PRIVATE void XML_startElement (void * userData,
-	   	    	       const XML_Char *	name, const XML_Char ** atts)
+                                      const XML_Char *name, 
+                                      const XML_Char ** atts)
 {
     int *depth = (int *)userData;
     int i=0;
@@ -129,20 +144,21 @@ PRIVATE void XML_startElement (void * userData,
         HTPrint("%s: ", name);
         for (i = 0; atts[i]; i += 2)
             HTPrint(" %s='%s'", atts[i], atts[i + 1]);
-	HTPrint ("\n");
+        HTPrint ("\n");
     }
     *depth += 1;
 }
 
 PRIVATE void XML_endElement (void * userData,
-			     const XML_Char * name)
+                             const XML_Char * name)
 {
     int *depth = (int *)userData;
     *depth -= 1;
 }
 
 PRIVATE void XML_characterData (void * userData,
-				const XML_Char * s, int len)
+                                const XML_Char * s, 
+                                int len)
 {
     int *depth = (int *) userData;
     int i=0;
@@ -156,64 +172,66 @@ PRIVATE void XML_characterData (void * userData,
     else {
         for (i=-1;i<(*depth);i++) 
             HTPrint (" ");        
-	if (s[0]!='\n' && s[0]!=' ')HTPrint ("%c\n",s[0]);    
+        if (s[0]!='\n' && s[0]!=' ')
+            HTPrint ("%c\n",s[0]);    
     }
     return;
 }
 
 
 PRIVATE void XML_processingInstruction (void * userData,
-					const XML_Char * target,
-					const XML_Char * data)
+                                        const XML_Char * target,
+                                        const XML_Char * data)
 {
     return;
 }
 
 
 PRIVATE void XML_default (void * userData,
-			  const XML_Char * s, int len)
+                          const XML_Char * s, 
+                          int len)
 {   
     return;
 }
 
 
 PRIVATE void XML_unparsedEntityDecl (void * userData,
-				     const XML_Char * entityName,
-				     const XML_Char * base,
-				     const XML_Char * systemId,
-				     const XML_Char * publicId,
-				     const XML_Char * notationName)
+                                     const XML_Char * entityName,
+                                     const XML_Char * base,
+                                     const XML_Char * systemId,
+                                     const XML_Char * publicId,
+                                     const XML_Char * notationName)
 {
     return;
 }
 
 PRIVATE void XML_notationDecl (void * userData,
-			       const XML_Char * notationName,
-			       const XML_Char * base,
-			       const XML_Char * systemId,
-			       const XML_Char * publicId)
+                               const XML_Char * notationName,
+                               const XML_Char * base,
+                               const XML_Char * systemId,
+                               const XML_Char * publicId)
 {
     return;
 }
 
 PRIVATE int XML_externalEntityRef (XML_Parser parser,
-				   const XML_Char * openEntityNames,
-				   const XML_Char * base,
-				   const XML_Char * systemId,
-				   const XML_Char * publicId)
+                                   const XML_Char * openEntityNames,
+                                   const XML_Char * base,
+                                   const XML_Char * systemId,
+                                   const XML_Char * publicId)
 {
     return 0;
 }
 
 PRIVATE int XML_unknownEncoding (void * encodingHandlerData,
-				 const XML_Char * name,
-				 XML_Encoding * info)
+                                 const XML_Char * name,
+                                 XML_Encoding * info)
 {
     return 0;
 }
 
 /* ------------------------------------------------------------------------- */
-/*			     HTXML STREAM HANDLERS			     */
+/*                             HTXML STREAM HANDLERS                             */
 /* ------------------------------------------------------------------------- */
 
 PRIVATE void HTXML_setHandlers (XML_Parser me, HTRequest *request)
@@ -232,12 +250,12 @@ PRIVATE void HTXML_setHandlers (XML_Parser me, HTRequest *request)
     }
 }
 
-PRIVATE void HTXML_newInstance (HTStream *		me,
-				HTRequest *		request,
-				HTFormat 		target_format,
-				HTStream *		target_stream,
-				XML_Parser              xmlparser,
-				void * 			context)
+PRIVATE void HTXML_newInstance (HTStream  * me,
+                                HTRequest * request,
+                                HTFormat    target_format,
+                                HTStream  * target_stream,
+                                XML_Parser  xmlparser,
+                                void *      context)
 {
     HTPrint ("MyExt: HTXML_newInstance\n");
     if (me && xmlparser) HTXML_setHandlers(xmlparser,request);
@@ -250,14 +268,18 @@ PRIVATE void HTXML_newInstance (HTStream *		me,
 ** CRCLCleanUp: removes CR, LF and CRLF characters from the string
 */
 PUBLIC void CRLFCleanUp (char *buf,int size) {
-    int i;	
-    if(buf && *buf) {	    
-	for (i=0;i<size;i++)
-	    if (buf[i]=='\n' ||  \	  /*default C character for line break */
-	        buf[i]=='\010' || buf[i]=='\013' || \ /*line break from HTTP RFC */
-		buf[i]==CR || buf[i]==LF ) /*local representation defined in HTUtils.h */
-	         buf[i]=' ';	    
-    }	
+    int i;        
+    if(buf && *buf) {            
+        for (i=0;i<size;i++)
+            /* \n = default C character for line break 
+             * \010 \013 = line break from HTTP RFC
+             * CR LF = local representation defined in HTUtils.h 
+             * */
+            if (buf[i]=='\n' ||  
+                buf[i]=='\010' || buf[i]=='\013' || 
+                buf[i]==CR || buf[i]==LF ) 
+                 buf[i]=' ';            
+    }        
 }
 
 
@@ -279,12 +301,12 @@ PRIVATE int tracer (const char * fmt, va_list pArgs) {
 
 /*
 ** App_new : creates a new application context
-** Returns : App *	application context
+** Returns : App *        application context
 */ 
 PRIVATE App * App_new (void) {
     App * me = NULL;
     
-    if ((me = (App *) HT_CALLOC(1, sizeof(App))) == NULL)	
+    if ((me = (App *) HT_CALLOC(1, sizeof(App))) == NULL)        
         HT_OUTOFMEM("App_new");
 
     /* setting everybody */
@@ -307,7 +329,7 @@ PRIVATE App * App_new (void) {
         me->method = METHOD_EXT_0;
     else {
         HTPrint ("MyExt: Extension method FAILED - using GET\n");
-	me->method = METHOD_GET;
+        me->method = METHOD_GET;
     }   
    
     HTPrint ("ENTER A URL: \n");
@@ -318,45 +340,45 @@ PRIVATE App * App_new (void) {
 
 /*
 ** App_delete : removes an application context object
-** Parameter : App * app	application context to be removed
-** Returns : BOOL	YES - operation succed
-**               	NO - operation failed
-*/               	 
+** Parameter : App * app   application context to be removed
+** Returns : BOOL          YES - operation succed
+**                         NO - operation failed
+*/                        
 PRIVATE BOOL App_delete (App * me) {
-    HTRequest * req = NULL;	
+    HTRequest * req = NULL;        
 
     HTPrint ("MyExt: Removing application context\n");
 
     if (me) {
-	    
-	/* killing any remaining active requests */
-	HTNet_killAll();
+            
+        /* killing any remaining active requests */
+        HTNet_killAll();
 
-	/* freeing all remaining request objects */
-	while (!HTList_isEmpty(me->active)) {
-	    req = (HTRequest *) HTList_nextObject (me->active);
-	    if (req)  Request_delete (me,req);
-	}
+        /* freeing all remaining request objects */
+        while (!HTList_isEmpty(me->active)) {
+            req = (HTRequest *) HTList_nextObject (me->active);
+            if (req)  Request_delete (me,req);
+        }
 
-	/* clean up everything */
-	HTRequest_delete(me->console_request);
-	HTEvent_delete (me->console_event);
-	HTList_free (me->active);
-	
-	/* clean up extension method */
-        HTPrint ("Removing extension method\n");	
-	if (HTMethod_deleteExtensionMethod (METHOD_EXT_0))
-	    HTPrint ("MyExt: Extension method deleted \n");
-	
-	HT_FREE(me);
+        /* clean up everything */
+        HTRequest_delete(me->console_request);
+        HTEvent_delete (me->console_event);
+        HTList_free (me->active);
+        
+        /* clean up extension method */
+        HTPrint ("Removing extension method\n");        
+        if (HTMethod_deleteExtensionMethod (METHOD_EXT_0))
+            HTPrint ("MyExt: Extension method deleted \n");
+        
+        HT_FREE(me);
 
-	/* stopping event loop */    
+        /* stopping event loop */    
         HTEventList_stopLoop();
-	
-	/* Terminate libwww */
-	HTProfile_delete();
+        
+        /* Terminate libwww */
+        HTProfile_delete();
 
-	return YES;
+        return YES;
     }
     return NO;
 }
@@ -373,7 +395,7 @@ PRIVATE void Context_new (HTRequest * request, HTChunk * chunk, App * app) {
 
     if ( (ctx = (Context *) HT_CALLOC(1, sizeof(Context))) == NULL ) {
         App_delete (app);
-	HT_OUTOFMEM("Contect_new");
+        HT_OUTOFMEM("Contect_new");
     }
 
     HTPrint ("MyExt: Setting request context...\n");
@@ -390,20 +412,20 @@ PRIVATE void Context_new (HTRequest * request, HTChunk * chunk, App * app) {
 PRIVATE void Context_delete (Context * ctx) {
     if (ctx && ctx->chunk) {
         HTPrint ("MyExt: Removing request context...\n");
-	HTChunk_delete (ctx->chunk);
-	HT_FREE (ctx);
+        HTChunk_delete (ctx->chunk);
+        HT_FREE (ctx);
     }
 }
 
 
 /*
 ** Request_new : creates a new request 
-** Parameters : App * app 	application context
+** Parameters : App * app         application context
 ** Returns : HTRequest *
 */ 
 PRIVATE HTRequest * Request_new (App * app)
 {
-  	
+          
     HTRequest * request = HTRequest_new();
 
     HTPrint ("MyExt: creating a new request\n");
@@ -420,7 +442,7 @@ PRIVATE HTRequest * Request_new (App * app)
         HTRequest_setMethod (request,app->method);
     else {
         HTPrint ("MyExt: No App, using default method\n");
-	HTRequest_setMethod (request,METHOD_GET);
+        HTRequest_setMethod (request,METHOD_GET);
     }
     
    
@@ -433,12 +455,12 @@ PRIVATE HTRequest * Request_new (App * app)
 
     /* set some local filters */
     HTRequest_addAfter (request, local_request_terminater, NULL, app, \
-		        HT_ALL ,HT_FILTER_LAST , NO);
+                        HT_ALL ,HT_FILTER_LAST , NO);
     HTRequest_addAfter (request, local_request_first, NULL, app, \
-		        HT_ALL ,HT_FILTER_FIRST , NO);
+                        HT_ALL ,HT_FILTER_FIRST , NO);
 
     HTRequest_addAfter (request,error_callback, NULL, app, \
-		         HT_ERROR, HT_FILTER_LAST, NO); 
+                         HT_ERROR, HT_FILTER_LAST, NO); 
 
     
     if (!app->active) app->active = HTList_new();
@@ -456,21 +478,21 @@ PRIVATE HTRequest * Request_new (App * app)
 
 /*
 ** Request_delete : removes a request 
-** Parameters : App * app	application context
-** 		 HTRequest * request
-** Returns : BOOL	YES if operation succeed
-**               	NO if operation failed
+** Parameters : App * app        application context
+**                  HTRequest * request
+** Returns : BOOL        YES if operation succeed
+**                       NO if operation failed
 */
 PRIVATE BOOL Request_delete (App * app, HTRequest * request)
 {
     HTPrint ("MyExt: removing request\n");
     
     if (app && app->active && request) {
-        HTPrint ("MyExt: Request deleted \n");	
-	HTList_removeObject(app->active, request);
-	
-	HTRequest_delete(request);
-	return YES;
+        HTPrint ("MyExt: Request deleted \n");        
+        HTList_removeObject(app->active, request);
+        
+        HTRequest_delete(request);
+        return YES;
     }
     return NO;
 }
@@ -491,22 +513,22 @@ PRIVATE int console_parser (SOCKET s, void * param, HTEventType type)
     /* reading console */
     if (!fgets(buf, sizeof(buf), stdin)) return HT_ERROR;
 
-    if (toupper(buf[0]) == 'Q') {	/* Quit the program */
+    if (toupper(buf[0]) == 'Q') {        /* Quit the program */
         App_delete(app);
-	exit (0);
+        exit (0);
     }
     else { /* take the target address */
-	CRLFCleanUp (buf,strlen(buf));
+        CRLFCleanUp (buf,strlen(buf));
         HTPrint ("MyExt: Console readed **%s**\n",buf);
 
-	cwd =  HTGetCurrentDirectoryURL();	
-	full_dst = HTParse (buf,cwd,PARSE_ALL);    
+        cwd =  HTGetCurrentDirectoryURL();        
+        full_dst = HTParse (buf,cwd,PARSE_ALL);    
 
-	HTPrint ("Getting %s\n",full_dst);	/* load the document */
-	my_get_document (app,full_dst);		
+        HTPrint ("Getting %s\n",full_dst);        /* load the document */
+        my_get_document (app,full_dst);                
 
-	HT_FREE (full_dst);
-	HT_FREE (cwd);
+        HT_FREE (full_dst);
+        HT_FREE (cwd);
     }
 
 
@@ -519,7 +541,7 @@ PRIVATE int console_parser (SOCKET s, void * param, HTEventType type)
 ** Funtion's type : HTNetAfter
 */ 
 PRIVATE int request_terminater (HTRequest * request, HTResponse * response,
-				void * param, int status) 
+                                void * param, int status) 
 {
     App * app = (App *) param;
     Context * ctx = NULL;
@@ -544,9 +566,9 @@ PRIVATE int request_terminater (HTRequest * request, HTResponse * response,
 ** Function's type : HTNetAfter
 */
 PRIVATE int local_request_terminater (HTRequest * request, HTResponse * response,
-				void * param, int status) 
+                                void * param, int status) 
 {
-    Context * ctx = NULL;	
+    Context * ctx = NULL;        
     
     HTPrint ("\tstatus: %d\n",status);
     
@@ -563,10 +585,10 @@ PRIVATE int local_request_terminater (HTRequest * request, HTResponse * response
    
     ctx = (Context *) HTRequest_context(request);
     if ( ctx && ctx->chunk && HTChunk_data(ctx->chunk))    
-        HTPrint ("MyExt: Loaded: \n%s\n",HTChunk_data(ctx->chunk));	    
+        HTPrint ("MyExt: Loaded: \n%s\n",HTChunk_data(ctx->chunk));            
     else
         HTPrint ("MyExt: No text/xml data available at Chunk\n");
-	
+        
     return HT_OK;
 }
 
@@ -576,7 +598,7 @@ PRIVATE int local_request_terminater (HTRequest * request, HTResponse * response
 ** Function's type : HTNetAfter
 */
 PRIVATE int local_request_first (HTRequest * request, HTResponse * response,
-	            	              void * param, int status) {
+                                          void * param, int status) {
     my_headers (request);
     return HT_OK;
 }
@@ -587,38 +609,38 @@ PRIVATE int local_request_first (HTRequest * request, HTResponse * response,
 ** Function's type : HTNetAfter
 */
 PRIVATE int error_callback (HTRequest * request, HTResponse * response,
-	            	              void * param, int status) {
+                                          void * param, int status) {
 
     App * app = (App *) param;
     HTList * error_list = NULL;
     HTError * error = NULL;
-	
+        
     HTPrint ("MyExt: ERROR CALLBACK\n");
     HTPrint ("\tapp %s \n\trequest %s \n\tresponse %s \n\tstatus %d\n", \
                      (app)?"OK":"NULL",(request)?"OK":"NULL",\
                      (response)?"OK":"NULL",status);
-	
+        
     if (request) {
         error_list = HTRequest_error (request);
         while (error_list && (error = (HTError *) HTList_nextObject(error_list))) {
             HTPrint ("\tError location %s\n",HTError_location(error));
-	    switch (HTError_severity(error)) {
+            switch (HTError_severity(error)) {
                 case ERR_UNKNOWN :
-		        HTPrint ("\tSeverity : UNKNOWN\n");
-			break;
-			
+                        HTPrint ("\tSeverity : UNKNOWN\n");
+                        break;
+                        
                 case ERR_FATAL :
                         HTPrint ("\tSeverity : FATAL\n");
                         break;
-			
+                        
                 case ERR_NON_FATAL :
                         HTPrint ("\tSeverity : NON FATAL\n");
                         break;
-			
+                        
                 case ERR_WARN :
                         HTPrint ("\tSeverity : WARN\n");
                         break;
-			
+                        
                 case ERR_INFO :
                         HTPrint ("\tSeverity : INFO\n");
                         break;
@@ -626,7 +648,7 @@ PRIVATE int error_callback (HTRequest * request, HTResponse * response,
                 default :
                         HTPrint ("\tSeverity : %Xd\n",HTError_severity(error));
                         break;
-            }	
+            }        
         }
     }
 
@@ -636,7 +658,7 @@ PRIVATE int error_callback (HTRequest * request, HTResponse * response,
 
 /*
 ** Init : application initialization 
-** Returns : App * 	application context
+** Returns : App *         application context
 */ 
 PRIVATE App * Init (void) {
     App * app = NULL;
@@ -674,7 +696,7 @@ PRIVATE void my_headers (HTRequest *request) {
     HTAssocList * headers = NULL; 
     HTParentAnchor * anchor = NULL;
 
-    HTPrint ("MyExt: Searching headers...\n");  	
+    HTPrint ("MyExt: Searching headers...\n");          
     
     anchor = HTRequest_anchor (request);
     headers = HTAnchor_header(anchor);
@@ -689,11 +711,11 @@ PRIVATE void my_headers (HTRequest *request) {
 
 /*
 ** my_get_document: retrives the document
-** Parameters: App * app	application context
-**             char * dst	URL destiny
+** Parameters: App * app        application context
+**             char * dst        URL destiny
 */             
 PRIVATE void my_get_document (App *app, char *dst) {
-    char * body = create_body();	
+    char * body = create_body();        
     HTRequest * request = NULL;
     HTChunk * chunk = NULL;
 
@@ -706,7 +728,7 @@ PRIVATE void my_get_document (App *app, char *dst) {
     HTRequest_setMessageBodyFormat (request,HTAtom_for("text/xml"));
     HTRequest_setMessageBodyLength (request,strlen(body));
     
-    if ( request && (chunk = HTLoadToChunk (dst,request))) {	
+    if ( request && (chunk = HTLoadToChunk (dst,request))) {        
         HTPrint ("MyExt: setting context\n");
         Context_new (request,chunk,app);        
     }
@@ -722,9 +744,9 @@ PRIVATE char * create_body (void) {
      char tmp[4096];
      char * body = NULL;
      char nl[3];
-	     
+             
      sprintf (nl,"%c%c",CR,LF);     
-		    
+                    
      sprintf (tmp,"<?xml version=\"1.0\" encoding=\"utf-8\" ?>");
      strcat (tmp,nl);
      strcat (tmp,"<D:propfind xmlns:D=\"DAV:\">");
@@ -736,7 +758,7 @@ PRIVATE char * create_body (void) {
      if ( (body = HT_MALLOC (strlen(tmp)+4)) != NULL)
          sprintf (body,"%s%c",tmp,'\0');
      
-     return body;	
+     return body;        
 }
 
 
