@@ -341,8 +341,7 @@ PUBLIC int HTDoConnect (HTNet * net)
 		 */
 		if (NETCALL_INVAL(socerrno)) {
 		    host->tcpstate = TCP_CONNECTED;
-		    HTTRACE(PROT_TRACE, "Connection to HTHost %p is already in
-progress.\n" _ host);
+		    HTTRACE(PROT_TRACE, "Connection to HTHost %p is already in progress.\n" _ host);
 		    break;
 		}
 #endif /* _WINSOCKAPI_ */
