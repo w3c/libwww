@@ -233,16 +233,16 @@ $(FTP)/src/WWWLibrary_$(VC).zip : $(SOURCES)
 #	Hypertext supplied in text format
 #	---------------------------------
 
-$(WWW)/README : $(WWW)/../README.html
+$(WWW)/README : $(WWW)/README.html
 	www -p -na http://www.w3.org/member/WWW/README.html -o $(WWW)/README
 
-$(WWW)/COPYRIGHT : $(WWW)/../COPYRIGHT.html
+$(WWW)/COPYRIGHT : $(WWW)/COPYRIGHT.html
 	www -p -na http://www.w3.org/member/WWW/COPYRIGHT.html -o $(WWW)/COPYRIGH
 
-$(WWW)/PATCHES : $(WWW)/../PATCHES.html
+$(WWW)/PATCHES : $(WWW)/PATCHES.html
 	www -p -na http://www.w3.org/member/WWW/PATCHES.html -o $(WWW)/PATCHES
 
-$(WWW)/CERN : $(WWW)/../CERN.html
+$(WWW)/CERN : $(WWW)/CERN.html
 	www -p -na http://www.w3.org/member/WWW/CERN.html -o $(WWW)/CERN
 
 # 			Common code
