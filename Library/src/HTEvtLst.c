@@ -45,6 +45,8 @@
 #ifdef WWW_WIN_ASYNC
 #define TIMEOUT	1 /* WM_TIMER id */
 PRIVATE HWND HTSocketWin;
+PRIVATE ATOM HTclass;
+PRIVATE HINSTANCE HTinstance;
 PRIVATE unsigned long HTwinMsg;
 #else /* WWW_WIN_ASYNC */
 PRIVATE fd_set FdArray[HTEvent_TYPES];
@@ -128,7 +130,7 @@ PUBLIC void HTTimer_traceHead(void)
 }
 PRIVATE char * MyTime(unsigned long int time, int len)
 {
-static char space[100];
+    static char space[100];
     sprintf(space, "1234567");
     return space;
 }
@@ -634,7 +636,9 @@ PUBLIC BOOL HTEventInit (void)
 	wc.hInstance=GetModuleHandle(NULL); /* 95 and non threaded platforms */
     else
 	wc.hInstance=GetCurrentProcess(); /* NT and hopefully everything following */
-    if (!RegisterClass(&wc)) {
+    HTinstance = wc.hInstance;
+    HTclass = RegisterClass(&wc);
+    if (!HTclass) {
     	HTTrace("HTLibInit.. Can't RegisterClass \"%s\"\n", className);
 	    return NO;
     }
@@ -690,6 +694,12 @@ PUBLIC BOOL HTEventTerminate (void)
 #ifdef _WINSOCKAPI_
     WSACleanup();
 #endif /* _WINSOCKAPI_ */
+
+#ifdef WWW_WIN_ASYNC
+    DestroyWindow(HTSocketWin);
+    UnregisterClass((LPCTSTR)HTclass, HTinstance);
+#endif /* WWW_WIN_ASYNC */
+
     return YES;
 }
 
