@@ -696,14 +696,14 @@ PRIVATE BOOL SaveOutputStream (HTRequest * req, char * This, char * Next)
     return (HTLoadAnchor((HTAnchor*) HTMainAnchor, req) != HT_WOULD_BLOCK);
 }
 
-Pics_error LoadedUsersCallback(CSUser_t * pCSUser, int index, void * pVoid)
+CSApp_error LoadedUsersCallback(CSUser_t * pCSUser, int index, void * pVoid)
 {
     LineMode * lm = (LineMode *)pVoid;
     OutputData(lm->pView, "%d: %s\n", index, CSUser_getName(pCSUser));
     return 0;
 }
 
-Pics_error UserListCallback(char * username, char * url, int index, void * pVoid)
+CSApp_error UserListCallback(char * username, char * url, int index, void * pVoid)
 {
     LineMode * lm = (LineMode *)pVoid;
     OutputData(lm->pView, "%d: %s %s\n", index, username, url);
@@ -736,7 +736,7 @@ PRIVATE BOOL SetPICSUser(HTRequest * req, char * userName)
 	    password = HTAlert_replySecret(reply);
 	}
 	HTAlert_deleteReply(reply);
-	ret = Pics_registerDefaultUserByName(username, password);
+	ret = CSApp_registerDefaultUserByName(username, password);
 	HT_FREE(username);
 	HT_FREE(password);
 	return ret;
@@ -1475,8 +1475,8 @@ PRIVATE int header_handler (HTRequest * request, const char * token)
 
 /* ------------------------------------------------------------------------- */
 /*				  MAIN PROGRAM				     */
-Pics_callback Pics_appCallback; /* forward reference for strong typechecking */
-Pics_error Pics_appCallback(HTRequest* pReq, Pics_error disposition, void * pVoid)
+CSApp_callback CSApp_appCallback; /* forward reference for strong typechecking */
+CSApp_error CSApp_appCallback(HTRequest* pReq, CSApp_error disposition, void * pVoid)
 {
     LineMode * lm = (LineMode *)pVoid;
     switch (disposition) {
@@ -1925,7 +1925,7 @@ int main (int argc, char ** argv)
     /* Set the DNS cache timeout */
     HTDNS_setTimeout(3600);
 
-    Pics_registerApp(Pics_appCallback, Pics_callOnBad|Pics_callOnGood, (void *)lm);
+    CSApp_registerApp(CSApp_appCallback, CSApp_callOnBad|CSApp_callOnGood, (void *)lm);
     if (picsUser)
         SetPICSUser(lm->console, picsUser);
 
@@ -1939,8 +1939,8 @@ int main (int argc, char ** argv)
     if (status != YES) {
 	if (SHOW_MSG) HTTrace("Couldn't load home page\n");
 #ifdef WWW_PICS
-    Pics_unregisterDefaultUser();
-    Pics_unregisterApp();
+    CSApp_unregisterDefaultUser();
+    CSApp_unregisterApp();
 #endif /* WWW_PICS */
 	Cleanup(lm, -1);
     }
