@@ -1,5 +1,11 @@
 Changes with libwww 5.40
 
+2003-11-17      Jose Kahan <jose@w3.org>
+        * Added a public patch to expat that kept if from compiling 
+          under C++ (misplaced enum). 
+          http://downloads.linuxfromscratch.org/blfs-patches/
+             expat-1.95.6.patch
+
 2003-04-18      Jose Kahan <jose@w3.org>
 
 	* Richard Atterer: HTHost_killpipe() didn't behave correctly:
