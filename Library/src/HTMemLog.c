@@ -15,11 +15,11 @@
 #include "HTMemLog.h"
 #include "HTTimer.h"
 
-#ifdef WWW_MSWINDOWS
-#define OPEN_FLAGS	O_WRONLY|O_CREAT|O_TRUNC
-#else /* WWW_MSWINDOWS */
+#ifdef O_SYNC
 #define OPEN_FLAGS	O_WRONLY|O_CREAT|O_TRUNC|O_SYNC
-#endif /* !WWW_MSWINDOWS */
+#else
+#define OPEN_FLAGS	O_WRONLY|O_CREAT|O_TRUNC
+#endif
 
 PRIVATE size_t		LogBuffSize = 1024; /* default size is 1k */
 PRIVATE int		LogFd = 2;
