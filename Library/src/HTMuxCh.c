@@ -253,7 +253,7 @@ PUBLIC int HTMuxSession_disposeData (HTMuxSession * me, const char * buf, int le
     */
     if (me) {	
 	HTNet * net;
-	HTStream * sink;
+	HTStream * sink = NULL;
 	int status;
 	if ((net = me->net) && (sink = HTNet_readStream(net))) {
 

@@ -291,7 +291,7 @@ PUBLIC int HTNewsCache_before (HTRequest * request, void * context, int mode)
     if (element) {
 	char * title = GetNewsGroupTitle(request);
 	HTNewsDir * dir = HTNewsDir_new(request, title, list_key, NO);
-	void ** data;
+	void ** data = NULL;
 	char * line = (char *) HTArray_firstObject(element->cache, data);
 	while (line) {
 	    HTNewsDir_addGroupElement(dir, line, NO);

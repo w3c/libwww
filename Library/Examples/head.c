@@ -57,7 +57,7 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 int main (int argc, char ** argv)
 {
     HTRequest * request;
-    int status; 
+    int status = 0; 
 
     HTProfile_newPreemptiveClient("HTTPHeadApplication", "1.0");
     request = HTRequest_new();

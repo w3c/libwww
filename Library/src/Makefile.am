@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in.
 
-LDFLAGS = -version-info "1:0:1"
+AM_LDFLAGS = -version-info "1:0:1"
 
 lib_LTLIBRARIES = \
 	libwwwutils.la \
@@ -50,7 +50,7 @@ SUFFIXES = .h .html .txt
     endif
 
 icondir = @icondir@
-CPPFLAGS := $(CPPFLAGS) -DW3C_ICONS=\"$(icondir)\"
+AM_CPPFLAGS := @CPPFLAGS@ -DW3C_ICONS=\"$(icondir)\"
 
 inc: $(BUILT_SOURCES)
 	@echo Generated built sources
@@ -363,8 +363,7 @@ libwwwxml_la_SOURCES = \
 	HTXML.c
 
 libwwwxml_la_DEPENDENCIES = \
-	../../modules/expat/xmltok/libxmltok.la \
-	../../modules/expat/xmlparse/libxmlparse.la
+	../../modules/expat/libexpat.la
 
 libwwwxml_la_LDFLAGS = -rpath $(libdir)
 
@@ -389,7 +388,7 @@ libwwwsql_la_LDFLAGS = -rpath $(libdir)
 INCLUDES = \
 	-I/usr/local/include \
 	-I${top_srcdir}/modules/md5 \
-	-I${top_srcdir}/modules/expat/xmlparse
+	-I${top_srcdir}/modules/expat/lib
 
 BUILT_SOURCES = \
 	wwwsys.h \

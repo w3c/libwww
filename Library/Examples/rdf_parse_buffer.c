@@ -101,6 +101,8 @@ PRIVATE char * parse_buffer(const char *file_name, char **ret_buff, int *ret_len
 
     /* Cleanup */
     (void) fclose (fp);
+
+    return NULL;
 }
 
 /*

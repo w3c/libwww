@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in.
 
-LDFLAGS = -version-info "1:0:1"
+AM_LDFLAGS = -version-info "1:0:1"
 
 lib_LTLIBRARIES = @WWWSSL@
 

@@ -368,7 +368,7 @@ PRIVATE StateRet_t callErrorHandler(CSParse_t * pCSParse,
 				    char demark, StateRet_t errorCode)
 {
     char * token = HTChunk_data(pCSParse->token);
-    pCSParse->pParseContext->pTokenError = errorLocation;
+    pCSParse->pParseContext->pTokenError = (char *)  errorLocation;
     return (*pCSParse->pParseContext->pParseErrorHandler)(pCSParse, token, 
 					      demark, StateRet_ERROR_BAD_CHAR);
 }

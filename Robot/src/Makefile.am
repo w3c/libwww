@@ -26,7 +26,7 @@ SUBDIRS = windows
 
 INCLUDES = \
 	-I$(srcdir)/../../Library/src \
-	-I$(top_srcdir)/modules/expat/xmlparse
+	-I$(top_srcdir)/modules/expat/lib
 
 #	.h files are distributed but originally are made from the
 #	self-documenting hypertext files.
@@ -68,8 +68,7 @@ purify: $(webbot_OBJECTS) $(webbot_DEPENDENCIES)
 	-lm \
 	../../Library/src/.libs/libwww.a \
 	../../modules/md5/.libs/libmd5.a \
-	../../modules/expat/xmlparse/.libs/libxmlparse.a \
-	../../modules/expat/xmltok/.libs/libxmltok.a \
+	../../modules/expat/.libs/libexpat.a
 	$(LIBS)
 
 

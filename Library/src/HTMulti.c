@@ -430,7 +430,7 @@ PRIVATE char * HTGetBest (HTRequest * req, char * path)
     ** Finally get the best variant which is readable
     */
     if (HTRank(req, variants)) {
-	void ** data;
+	void ** data = NULL;
 	HTContentDescription * cd = HTArray_firstObject(variants, data);
 	while (cd) {
 	    if (cd->filename) {

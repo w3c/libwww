@@ -481,7 +481,7 @@ PUBLIC BOOL HTDir_free (HTDir * dir)
     if (!dir) return NO;
     if (dir->key != HT_DK_NONE) {
 	HTArray *array = dir->array;
-	void **data;
+	void **data = NULL;
 	HTDirNode *node;
 	HTDir_headLine(dir);	
 	HTArray_sort(array, (dir->key==HT_DK_CINS ? DirCaseSort : DirSort));

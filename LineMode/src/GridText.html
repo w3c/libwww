@@ -37,6 +37,9 @@ extern void HText_scrollDown (HText * text);	/* One page */
 extern void HText_scrollTop (HText * text);
 extern void HText_scrollBottom (HText * text);
 
+extern BOOL HText_select (HText * text);
+extern BOOL HText_selectAnchor (HText * text, HTChildAnchor * anchor);
+
 extern int HText_sourceAnchors (HText * text);
 extern void HText_setStale (HText * text);
 extern void HText_refresh (HText * text);

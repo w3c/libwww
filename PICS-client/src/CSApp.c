@@ -232,7 +232,7 @@ PUBLIC CSUser_t * CSLoadedUser_load(char * url, char * relatedName)
 {
     BOOL err = 0;
     char * fullURL = HTParse(url, relatedName, PARSE_ALL);
-    CSLoadedUser_t * pCSLoadedUser;
+    CSLoadedUser_t * pCSLoadedUser = NULL;
     if (!LoadURLToConverter(fullURL, 0, 0, 0, "PICS user file"))
 /*    if (!LoadURLToConverter(fullURL, 0, S_user, CSParseUser, 
 			    "PICS user file", 0, 0, 0)) */
@@ -376,7 +376,7 @@ PRIVATE CSUser_t * ReqParms_getUser(HTRequest * pReq)
 /* U S E R */
 PUBLIC BOOL CSApp_registerDefaultUserByName(char * user, char * password)
 {
-    CSUser_t * pCSUser;
+  CSUser_t * pCSUser = NULL;
     CSLoadedUser_t * pCSLoadedUser;
     if (!(pCSLoadedUser = CSLoadedUser_findName(user))) {
         HTTRACE(PICS_TRACE, "PICS: User \"%s\" not found.\n" _ CSUser_name(pCSUser));

@@ -4,22 +4,23 @@ dnl Please first read the full copyright statement in the file COPYRIGH.
 dnl @(#) $Id$
 
 AC_REVISION([$Id$])
-AC_PREREQ(2.13)
-AC_INIT(Library)
+AC_PREREQ(2.53)
+AC_INIT
+AC_CONFIG_SRCDIR([Library])
 
 AC_CONFIG_AUX_DIR(config)
 
-AC_CANONICAL_SYSTEM
+AC_CANONICAL_TARGET([])
 AC_ARG_PROGRAM
 
 dnl Initialize Automake.
 PACKAGE=w3c-libwww
 AC_SUBST(PACKAGE)
-AC_DEFINE_UNQUOTED(W3C_PACKAGE, "$PACKAGE")
+AC_DEFINE_UNQUOTED([W3C_PACKAGE], "$PACKAGE", [Define to be the package name.])
  
 VERSION=5.4.0
 AC_SUBST(VERSION)
-AC_DEFINE_UNQUOTED(W3C_VERSION, "$VERSION")
+AC_DEFINE_UNQUOTED([W3C_VERSION], "$VERSION", [Define to be the version.])
 
 #dnl for CVS to be able to make a release diff
 PREVIOUS_VERSION=5.3.2
@@ -29,14 +30,80 @@ AM_INIT_AUTOMAKE($PACKAGE, $VERSION)
 
 AM_CONFIG_HEADER(wwwconf.h)
 
+dnl our own functions
+
+AC_DEFUN(AC_ADDLIB,[
+  LIBS="$LIBS $1"
+])
+
+dnl taken from the DDD configure.in
+AC_DEFUN(AC_STRUCT_WINSIZE,
+[AC_MSG_CHECKING(for struct winsize in sys/ioctl.h and termios.h)
+AC_CACHE_VAL(libwww_cv_struct_winsize_header,
+[AC_TRY_COMPILE([#include <sys/types.h>
+#include <sys/ioctl.h>], [struct winsize x;],
+  libwww_cv_struct_winsize_header=ioctl_h,
+  [AC_TRY_COMPILE([#include <sys/types.h>
+#include <termios.h>], [struct winsize x;],
+  libwww_cv_struct_winsize_header=termios_h, libwww_cv_struct_winsize_header=other)
+])])
+if test $libwww_cv_struct_winsize_header = ioctl_h; then
+  AC_MSG_RESULT(sys/ioctl.h)
+  AC_DEFINE(HAVE_WINSIZE)
+else
+  AC_MSG_RESULT(not found)
+fi
+])
+
+dnl Check if time_t is long
+
+AC_DEFUN([AC_TIME_T_IS_LONG],
+     [AC_RUN_IFELSE([AC_LANG_SOURCE([[ 
+#include <stdio.h>
+#if TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# if HAVE_SYS_TIME_H
+# include <sys/time.h>
+# else
+# include <time.h>
+# endif
+#endif
+
+int main()
+{
+  return !(sizeof (time_t) == sizeof (long));
+}
+          ]])],
+          [AC_DEFINE(HAVE_LONG_TIME_T)])])
+
+AC_DEFUN([AC_SIZE_T_IS_LONG],
+     [AC_RUN_IFELSE([AC_LANG_SOURCE([[ 
+#include <stdio.h>
+
+int main()
+{
+  return !(sizeof (size_t) == sizeof (long) && sizeof (int) != sizeof (long));
+}
+          ]])],
+          [AC_DEFINE(HAVE_LONG_SIZE_T)])])
+
+dnl
 dnl Regular configure...
+dnl
 AC_PROG_CC
 if test "$GCC" = "yes"; then CFLAGS="$CFLAGS -Wall"; fi
 AC_ISC_POSIX
 dnl AC_PROG_CXX		Caused problems and is not needed...
 dnl You should probably use all three of these for maximum portability
-AC_CYGWIN
-AC_MINGW32
+
+case $host_os in
+  *cygwin* ) CYGWIN=yes MINGW32=no ;;
+  *mingw32* ) MINGW32=yes CYGWIN=no ;;
+          * ) MINGW32=no CYGWIN=no;;
+esac
+
 AC_EXEEXT
 if test "$MINGW32" = "yes"; then
     # With MinGW, need to explicitly link against winsock2
@@ -92,15 +159,15 @@ esac
 dnl Checks for programs.
 AC_CHECK_PROGS(have_telnet, telnet)
 if test -n "$have_telnet" ; then
-  AC_DEFINE_UNQUOTED(TELNET_PROGRAM, "$have_telnet")
+  AC_DEFINE_UNQUOTED(TELNET_PROGRAM, "$have_telnet", [Define this to be the telnet program name.])
 fi
 AC_CHECK_PROGS(have_rlogin, rlogin)
 if test -n "$have_rlogin" ; then
-  AC_DEFINE_UNQUOTED(RLOGIN_PROGRAM, "$have_rlogin")
+  AC_DEFINE_UNQUOTED(RLOGIN_PROGRAM, "$have_rlogin", [Define this to be the rlogin program name.])
 fi
 AC_CHECK_PROGS(have_tn3270, tn3270 x3270)
 if test -n "$have_tn3270" ; then
-  AC_DEFINE_UNQUOTED(TN3270_PROGRAM, "$have_tn3270")
+  AC_DEFINE_UNQUOTED(TN3270_PROGRAM, "$have_tn3270", 1, [Define this to be the tn3270 program name.])
 fi
 AC_CHECK_PROGS(have_perl, perl)
 if test ! -n "$have_perl" ; then
@@ -125,11 +192,11 @@ dnl Checks for misc files
 dnl Resolv.conf
 AC_PATH_PROG(have_resolv_conf, resolv.conf, , /etc, /usr/etc)
 if test -n "$have_resolv_conf" ; then
-  AC_DEFINE_UNQUOTED(RESOLV_CONF, "$have_resolv_conf")
+  AC_DEFINE_UNQUOTED(RESOLV_CONF, "$have_resolv_conf", [Define this to be the location of the resolver configuration file.])
 fi
 
 dnl This is the standard UNIX value
-AC_DEFINE(CACHE_FILE_PREFIX, "/usr/wsrc/")
+AC_DEFINE(CACHE_FILE_PREFIX, "/usr/wsrc/", [Define this to be the prefix for cache files.])
 
 dnl Checks for libraries:
 dnl AC_CHECK_LIB(ICE, IceConnectionNumber)
@@ -206,8 +273,11 @@ AC_CHECK_SIZEOF(char,1)
 AC_CHECK_SIZEOF(char *)
 AC_CHECK_SIZEOF(int,4)
 AC_CHECK_SIZEOF(long,4)
-AC_CHECK_SIZEOF_TIME_T
-AC_CHECK_SIZEOF_SIZE_T
+AC_CHECK_SIZEOF(time_t,long)
+AC_CHECK_SIZEOF(size_t,long)
+AC_TIME_T_IS_LONG
+AC_SIZE_T_IS_LONG
+
 
 AC_C_CONST
 AC_C_BIGENDIAN
@@ -215,7 +285,7 @@ AC_C_CHAR_UNSIGNED
 AC_C_LONG_DOUBLE 
 
 AC_STRUCT_TM
-AC_STRUCT_GMTOFF
+AC_CHECK_MEMBER(struct tm.tm_gmtoff, HAVE_TM_GMTOFF)
 AC_STRUCT_TIMEZONE
 AC_STRUCT_WINSIZE
 
@@ -233,7 +303,7 @@ AC_CHECK_FUNC(unlink)
   if test "$ac_cv_func_unlink" != yes ; then
      AC_CHECK_FUNC(remove)
      if test "$ac_cv_func_remove" == yes ; then
-        AC_DEFINE(unlink, remove)
+        AC_DEFINE(unlink, remove, [What to use for unlink])
      fi
 fi
 
@@ -255,11 +325,8 @@ AC_ARG_WITH(wais,
       withval="/usr/local/lib/wais/wais.a /usr/local/lib/wais/client.a"
     fi
     LIBS="$withval -lm $LIBS"
-    AC_DEFINE(HT_DIRECT_WAIS)
-    AC_TRY_LINK([],
-                [ makeDocID(); ],
-		[],
-		[ AC_MSG_ERROR(Could not find one or more of the $withval libraries.  You must first install WAIS.) ])
+    AC_DEFINE(HT_DIRECT_WAIS, 1, [Define to enable direct WAIS access.])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[ makeDocID(); ]])],[],[ AC_MSG_ERROR(Could not find one or more of the $withval libraries.  You must first install WAIS.) ])
     HTWAIS="HTWAIS.lo"
     WWWWAIS="libwwwwais.la"
     LWWWWAIS="-lwwwwais.la"
@@ -296,11 +363,8 @@ AC_ARG_WITH(zlib,
     else
       AC_ADDLIB($withval)
     fi
-    AC_DEFINE(HT_ZLIB)
-    AC_TRY_LINK([],
-                [ zlibVersion(); ],
-		[],
-		[ AC_MSG_ERROR(Could not find the $withval library.  You must first install zlib.) ])
+    AC_DEFINE(HT_ZLIB, 1, [Define to enable Zlib compression / decompression support.])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[ zlibVersion(); ]])],[],[ AC_MSG_ERROR(Could not find the $withval library.  You must first install zlib.) ])
     HTZLIB="HTZip.lo"
     WWWZIP="libwwwzip.la"
     LWWWZIP="-lwwwzip"
@@ -327,15 +391,12 @@ AC_ARG_WITH(regex,
     ;;
   *)
     AC_MSG_RESULT(yes)
-    AC_DEFINE(HT_POSIX_REGEX)
+    AC_DEFINE(HT_POSIX_REGEX, 1, [Define to enable POSIX RegEx support.])
     if test "x$withval" = "xyes"; then
       AC_CHECK_LIB(rx, regexec, [ LIBS="-lrx $LIBS" ] )
     else
       AC_ADDLIB($withval)
-      AC_TRY_LINK([],
-	          [ regexec(); ],
-		  [],
-		  [ AC_MSG_ERROR(Could not find the $withval library.  You must first install regex.) ] )
+      AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[ regexec(); ]])],[],[ AC_MSG_ERROR(Could not find the $withval library.  You must first install regex.)  ])
     fi
     ;;
   esac ],
@@ -381,10 +442,7 @@ if test "x$socks" = "x"; then
 	    else
       	      AC_ADDLIB($withval)
 	    fi
-	    AC_TRY_LINK([],
-	                [ SOCKSconnect(); ],
-			[],
-			[ AC_MSG_ERROR(Could not find the $withval library.  You must first install socks5.) ])
+	    AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[ SOCKSconnect(); ]])],[],[ AC_MSG_ERROR(Could not find the $withval library.  You must first install socks5.) ])
 	    ;;
 	  esac ],
 	  AC_MSG_RESULT(no)
@@ -408,10 +466,7 @@ if test "x$socks" = "x"; then
             else
       	      AC_ADDLIB($withval)
 	    fi
-	    AC_TRY_LINK([],
-	                [ Rconnect(); ],
-			[],
-			[ AC_MSG_ERROR(Could not find the $withval library.  You must first install socks.) ])
+	    AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[ Rconnect(); ]])],[],[ AC_MSG_ERROR(Could not find the $withval library.  You must first install socks.) ])
 	    ;;
 	  esac ],
 	  AC_MSG_RESULT(no)
@@ -419,13 +474,13 @@ if test "x$socks" = "x"; then
 fi
 
 if test "x$socks" = "x4"; then
-    AC_DEFINE(SOCKS)
-    AC_DEFINE(SOCKS4)
+    AC_DEFINE(SOCKS, 1, [Define to enable SOCKS firewall-breaching code.])
+    AC_DEFINE(SOCKS4, 1, [Define to enable SOCKS4 firewall-breaching code.])
 fi
 
 if test "x$socks" = "x5"; then
-    AC_DEFINE(SOCKS)
-    AC_DEFINE(SOCKS5)
+    AC_DEFINE(SOCKS, 1, [Define to enable SOCKS firewall-breaching code.])
+    AC_DEFINE(SOCKS5, 1, [Define to enable SOCKS5 firewall-breaching code.])
 fi
 
 AC_MSG_CHECKING(whether to support mysql access.)
@@ -454,7 +509,7 @@ AC_ARG_WITH(mysql,
     else
       AC_ADDLIB($withval)
     fi
-    AC_DEFINE(HT_MYSQL)
+    AC_DEFINE(HT_MYSQL, 1, [Define to enable mysql access.])
     HTSQL="HTSQL.lo"
     HTSQLLOG="HTSQLLog.lo"
     WWWSQL="libwwwsql.la"
@@ -486,8 +541,6 @@ AC_ARG_WITH(expat,
     AC_MSG_RESULT(no)
     HTXML=""
     HTLIBXML=""
-    XMLTOK=""
-    XMLPARSE=""
     WWWXML=""
     LWWWXML=""
     LIBWWWXML=""
@@ -495,32 +548,29 @@ AC_ARG_WITH(expat,
     ;;
   *)
     AC_MSG_RESULT(yes)
-    AC_DEFINE(HT_EXPAT)
+    AC_DEFINE(HT_EXPAT, 1, [Define to enable expat XML parser.])
     HTXML="HTXML.lo"
-    HTLIBXML='${top_builddir}/modules/expat/xmlparse/libxmlparse.la ${top_builddir}/modules/expat/xmltok/libxmltok.la'
-    XMLTOK="libxmltok.la"
-    XMLPARSE="libxmlparse.la"
+    HTLIBXML='${top_builddir}/modules/expat/libexpat.la'
     WWWXML="libwwwxml.la"
-    LWWWXML="-lwwwxml -lxmltok -lxmlparse"
-    LIBWWWXML='${top_builddir}/Library/src/libwwwxml.la ${top_builddir}/modules/expat/xmlparse/libxmlparse.la ${top_builddir}/modules/expat/xmltok/libxmltok.la'
+    LWWWXML="-lwwwxml -lexpat"
+    LIBWWWXML='${top_builddir}/Library/src/libwwwxml.la ${top_builddir}/modules/expat/libexpat.la'
     SHOWXML='showxml$(EXEEXT) ptri$(EXEEXT) stri$(EXEEXT) rdf_parse_file$(EXEEXT) rdf_parse_buffer$(EXEEXT)'
     ;;
   esac ],
   AC_MSG_RESULT(yes)
   AC_DEFINE(HT_EXPAT)
   HTXML="HTXML.lo"
-  HTLIBXML='${top_builddir}/modules/expat/xmlparse/libxmlparse.la ${top_builddir}/modules/expat/xmltok/libxmltok.la'
-  XMLTOK="libxmltok.la"
-  XMLPARSE="libxmlparse.la"
+  HTLIBXML='${top_builddir}/modules/expat/libexpat.la'
   WWWXML="libwwwxml.la"
-  LWWWXML="-lwwwxml -lxmltok -lxmlparse"
-  LIBWWWXML='${top_builddir}/Library/src/libwwwxml.la ${top_builddir}/modules/expat/xmlparse/libxmlparse.la ${top_builddir}/modules/expat/xmltok/libxmltok.la'
+  LWWWXML="-lwwwxml -lexpat"
+  LIBWWWXML='${top_builddir}/Library/src/libwwwxml.la ${top_builddir}/modules/expat/libexpat.la'
   SHOWXML='showxml$(EXEEXT) ptri$(EXEEXT) stri$(EXEEXT) rdf_parse_file$(EXEEXT) rdf_parse_buffer$(EXEEXT)'
 )
+
+dnl @@ JK: add something like (if test, then do this config)
+AC_CONFIG_SUBDIRS(modules/expat)
 AC_SUBST(HTXML)		# for old style big library
 AC_SUBST(HTLIBXML)	# for old style big library
-AC_SUBST(XMLTOK)
-AC_SUBST(XMLPARSE)
 AC_SUBST(WWWXML)
 AC_SUBST(LWWWXML)
 AC_SUBST(LIBWWWXML)
@@ -538,7 +588,7 @@ AC_ARG_WITH(md5,
     ;;
   *)
     AC_MSG_RESULT(yes)
-    AC_DEFINE(HT_MD5)
+    AC_DEFINE(HT_MD5, 1, [Define to enable MD5 for HTTP access authentication.])
     WWWMD5="libmd5.la"
     LWWWMD5="-lmd5"
     LIBWWWMD5='${top_builddir}/modules/md5/libmd5.la'
@@ -568,7 +618,7 @@ AC_ARG_WITH(dav,
     ;;
   *)
     AC_MSG_RESULT(yes)
-    AC_DEFINE(HT_DAV)
+    AC_DEFINE(HT_DAV, 1, [Define to enable WebDAV protocol.])
     HTDAV="HTDAV.lo"
     WWWDAV="libwwwdav.la"
     LWWWDAV="-lwwwdav"
@@ -598,7 +648,7 @@ AC_ARG_WITH(extension,
     ;;
   *)
     AC_MSG_RESULT(yes)
-    AC_DEFINE(HT_EXT)
+    AC_DEFINE(HT_EXT, 1, [Define to enable extension methods.])
     MYEXT="myext myext2"
     ;;
   esac ],
@@ -649,10 +699,7 @@ AC_ARG_WITH(ssl,
       SSLINC=$sslinc
     fi
     LIBS="$LIBS $withval"
-    AC_TRY_LINK([],
-		[ SSL_library_init(); ],
-		[],
-		[ AC_MSG_ERROR(Could not find the $withval libraries.  You must first install openSSL.) ])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[ SSL_library_init(); ]])],[],[ AC_MSG_ERROR(Could not find the $withval libraries.  You must first install openSSL.) ])
     AC_MSG_RESULT(yes)
     WWWSSL="libwwwssl.la"
     LWWWSSL="-lwwwssl" 
@@ -675,7 +722,7 @@ AC_ARG_ENABLE(signals, [  --enable-signals        use internal libwww signal han
     ;;
   *)
     AC_MSG_RESULT(yes)
-    AC_DEFINE(WWWLIB_SIG)
+    AC_DEFINE(WWWLIB_SIG, 1, [Define to use internal signal handler])
     ;;
   esac ],
   AC_MSG_RESULT(no)
@@ -687,14 +734,14 @@ AC_ARG_ENABLE(nagle,
 [ case "${enableval}" in
   no)
     AC_MSG_RESULT(yes)
-    AC_DEFINE(HT_NO_NAGLE)
+    AC_DEFINE(HT_NO_NAGLE, 1, [Define to disable Nagle's algorithm])
     ;;
   *) 
     AC_MSG_RESULT(no)
     ;;
   esac ],
   AC_MSG_RESULT(yes)
-  AC_DEFINE(HT_NO_NAGLE)
+  AC_DEFINE(HT_NO_NAGLE, 1, [Define to disable Nagle's algorithm])
 )
 
 AC_MSG_CHECKING(whether to accept new rule files without asking an end user.)
@@ -703,7 +750,7 @@ AC_ARG_ENABLE(autorules,
 [ case "${enableval}" in
   yes)
     AC_MSG_RESULT(yes)
-    AC_DEFINE(HT_AUTOMATIC_RULES)
+    AC_DEFINE(HT_AUTOMATIC_RULES, 1, [Define to enable support for enabling a rules file w/o user interaction.])
     ;;
   *) 
     AC_MSG_RESULT(no)
@@ -718,7 +765,7 @@ AC_ARG_ENABLE(pipelining,
 [ case "${enableval}" in
   no)
     AC_MSG_RESULT(yes)
-    AC_DEFINE(HT_NO_PIPELINING)
+    AC_DEFINE(HT_NO_PIPELINING, 1, [Define to disable HTTP/1.1 pipelining])
     ;;
   *) 
     AC_MSG_RESULT(no)
@@ -734,7 +781,7 @@ AC_ARG_ENABLE(mux,
 [ case "${enableval}" in
   yes)
     AC_MSG_RESULT(yes)
-    AC_DEFINE(HT_MUX)
+    AC_DEFINE(HT_MUX, 1, [Define to enable MUX as HTTP transport])
     ;;
   *) 
     AC_MSG_RESULT(no)
@@ -752,7 +799,7 @@ AC_ARG_ENABLE(reentrant, [  --enable-reentrant      define _REENTRANT to enable 
     ;;
   *) 
     AC_MSG_RESULT(yes)
-    AC_DEFINE(HT_REENTRANT) [CFLAGS="$CFLAGS -D_REENTRANT"]
+    AC_DEFINE(HT_REENTRANT, 1, [Define to build using reentrant system calls.]) [CFLAGS="$CFLAGS -D_REENTRANT"]
     ac_cv_reentrant=yes
     ;;
   esac ],
@@ -763,39 +810,34 @@ if test "$ac_cv_reentrant" = "yes"; then
 
     AC_MSG_CHECKING(for ctime_r)
     if test -z "$ac_cv_ctime_args"; then
-        AC_TRY_COMPILE(
-        [#include <time.h>],
-        [
+        AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <time.h>]], [[
             time_t clock;
             char buf[26];
             ctime_r(&clock, buf);
-        ], ac_cv_ctime_args=2)
+        ]])],[ac_cv_ctime_args=2],[])
     fi
     if test -z "$ac_cv_ctime_args" ; then
-        AC_TRY_COMPILE(
-        [#include <time.h>],
-        [
+        AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <time.h>]], [[
             time_t clock;
             char buf[26];
             ctime_r(&clock, buf, 26);
-        ], ac_cv_ctime_args=3)
+        ]])],[ac_cv_ctime_args=3],[])
     fi
     if test -z "$ac_cv_ctime_args"; then
         AC_MSG_RESULT(no)
         have_missing_r_funcs="$have_missing_r_funcs ctime_r"
     else
         if test "$ac_cv_ctime_args" = 2; then
-            AC_DEFINE(HAVE_CTIME_R_2)
+            AC_DEFINE(HAVE_CTIME_R_2, 1, [Define to use the two-argument variant of ctime_r])
         elif test "$ac_cv_ctime_args" = 3; then
-            AC_DEFINE(HAVE_CTIME_R_3)
+            AC_DEFINE(HAVE_CTIME_R_3, 1, [Define to use the three-argument variant of ctime_r])
         fi
         AC_MSG_RESULT([yes, and it takes $ac_cv_ctime_args arguments])
     fi
 
     AC_MSG_CHECKING(for readdir_r)
     if test -z "$ac_cv_readdir_args"; then
-        AC_TRY_COMPILE(
-	[
+        AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <sys/types.h>
 
 #if defined(HAVE_DIRENT_H)
@@ -813,17 +855,15 @@ if test "$ac_cv_reentrant" = "yes"; then
 #   if defined(HAVE_NDIR_H)
 #       include <ndir.h>
 #   endif
-#endif  ],
-        [
+#endif  ]], [[
         struct dirent dir, *dirp;
         DIR *mydir;
         dirp = readdir_r(mydir, &dir);
-	], ac_cv_readdir_args=2)
+	]])],[ac_cv_readdir_args=2],[])
     fi
     if test -z "$ac_cv_readdir_args"; then
 	
-        AC_TRY_COMPILE(
-        [
+        AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <sys/types.h>
 #if defined(HAVE_DIRENT_H)
 #   include <dirent.h>
@@ -840,13 +880,12 @@ if test "$ac_cv_reentrant" = "yes"; then
 #   if defined(HAVE_NDIR_H)
 #       include <ndir.h>
 #   endif
-#endif  ],
-        [
+#endif  ]], [[
         struct dirent dir, *dirp;
         DIR *mydir;
         int rc;
         rc = readdir_r(mydir, &dir, &dirp);
-        ], ac_cv_readdir_args=3)
+        ]])],[ac_cv_readdir_args=3],[])
     fi
 
     if test -z "$ac_cv_readdir_args"; then
@@ -854,47 +893,39 @@ if test "$ac_cv_reentrant" = "yes"; then
         have_missing_r_funcs="$have_missing_r_funcs readdir_r"
     else
         if test "$ac_cv_readdir_args" = 2; then
-            AC_DEFINE(HAVE_READDIR_R_2)
+            AC_DEFINE(HAVE_READDIR_R_2, 1, [Define to use the two-argument variant of readdir_r])
         elif test "$ac_cv_readdir_args" = 3; then
-            AC_DEFINE(HAVE_READDIR_R_3)
+            AC_DEFINE(HAVE_READDIR_R_3, 1, [Define to use the three-argument variant of gethostbyname_r])
         fi
         AC_MSG_RESULT([yes, and it takes $ac_cv_readdir_args arguments])
     fi
 
     AC_MSG_CHECKING(for gethostbyname_r)
     if test -z "$ac_cv_gethostbyname_args"; then
-        AC_TRY_COMPILE(
-	    [
+        AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <sys/types.h>
-#include <netdb.h>],
-	    [
+#include <netdb.h>]], [[
 struct hostent *hp;
 struct hostent h;
 char *name;
 char buffer[10];
 int  h_errno;
-hp = gethostbyname_r(name, &h, buffer, 10, &h_errno);],
-            ac_cv_gethostbyname_args=5)
+hp = gethostbyname_r(name, &h, buffer, 10, &h_errno);]])],[ac_cv_gethostbyname_args=5],[])
     fi
     if test -z "$ac_cv_gethostbyname_args"; then
-        AC_TRY_COMPILE(
-	    [
+        AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <sys/types.h>
-#include <netdb.h>],
-	    [
+#include <netdb.h>]], [[
 struct hostent h;
 struct hostent_data hdata;
 char *name;
 int  rc;
-rc = gethostbyname_r(name, &h, &hdata);],
-            ac_cv_gethostbyname_args=3)
+rc = gethostbyname_r(name, &h, &hdata);]])],[ac_cv_gethostbyname_args=3],[])
     fi
     if test -z "$ac_cv_gethostbyname_args"; then
-        AC_TRY_COMPILE(
-	    [
+        AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <sys/types.h>
-#include <netdb.h>],
-	    [
+#include <netdb.h>]], [[
 struct hostent h;
 struct hostent *hp;
 char *name;
@@ -903,30 +934,27 @@ int rc;
 int h_errno;
 
 rc = gethostbyname_r(name, &h, buf, 10, &hp, &h_errno);
-	    ],
-	    ac_cv_gethostbyname_args=6)
+	    ]])],[ac_cv_gethostbyname_args=6],[])
     fi
     if test -z "$ac_cv_gethostbyname_args"; then
         AC_MSG_RESULT(no)
         have_missing_r_funcs="$have_missing_r_funcs gethostbyname_r"
     else
         if test "$ac_cv_gethostbyname_args" = 3; then
-            AC_DEFINE(HAVE_GETHOSTBYNAME_R_3)
+            AC_DEFINE(HAVE_GETHOSTBYNAME_R_3, 1, [Define to use the three-argument variant of gethostbyname_r])
         elif test "$ac_cv_gethostbyname_args" = 5; then
-            AC_DEFINE(HAVE_GETHOSTBYNAME_R_5)
+            AC_DEFINE(HAVE_GETHOSTBYNAME_R_5, 1, [Define to use the five-argument variant of gethostbyname_r])
         elif test "$ac_cv_gethostbyname_args" = 6; then
-            AC_DEFINE(HAVE_GETHOSTBYNAME_R_6)
+            AC_DEFINE(HAVE_GETHOSTBYNAME_R_6, 1, [Define to use the six-argument variant of gethostbyname_r])
         fi
         AC_MSG_RESULT([yes, and it takes $ac_cv_gethostbyname_args arguments])
     fi
 
     AC_MSG_CHECKING(for gethostbyaddr_r)
     if test -z "$ac_cv_gethostbyaddr_args"; then
-	AC_TRY_COMPILE(
-	    [
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <sys/types.h>
-#include <netdb.h>],
-	    [
+#include <netdb.h>]], [[
                 char * address;
                 int length;
                 int type;
@@ -934,16 +962,13 @@ rc = gethostbyname_r(name, &h, buf, 10, &hp, &h_errno);
                 struct hostent_data hdata;
                 int rc;
                 rc = gethostbyaddr_r(address, length, type, &h, &hdata);
-	    ],
-	    ac_cv_gethostbyaddr_args=5)
+	    ]])],[ac_cv_gethostbyaddr_args=5],[])
 	
     fi
     if test -z "$ac_cv_gethostbyaddr_args"; then
-	AC_TRY_COMPILE(
-	    [
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <sys/types.h>
-#include <netdb.h>],
-	    [
+#include <netdb.h>]], [[
                 char * address;
                 int length;
                 int type;
@@ -955,16 +980,13 @@ rc = gethostbyname_r(name, &h, buf, 10, &hp, &h_errno);
 
 		hp = gethostbyaddr_r(address, length, type, &h,
 				     buffer, buflen, &h_errnop);
-	    ],
-	    ac_cv_gethostbyaddr_args=7)
+	    ]])],[ac_cv_gethostbyaddr_args=7],[])
     fi
 
     if test -z "$ac_cv_gethostbyaddr_args"; then
-	AC_TRY_COMPILE(
-	    [
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <sys/types.h>
-#include <netdb.h>],
-	    [
+#include <netdb.h>]], [[
                 char * address;
                 int length;
                 int type;
@@ -977,27 +999,25 @@ rc = gethostbyname_r(name, &h, buf, 10, &hp, &h_errno);
 
 		rc = gethostbyaddr_r(address, length, type, &h,
 				     buffer, buflen, &hp, &h_errnop);
-	    ],
-	    ac_cv_gethostbyaddr_args=8)
+	    ]])],[ac_cv_gethostbyaddr_args=8],[])
     fi
     if test -z "$ac_cv_gethostbyaddr_args"; then
         AC_MSG_RESULT(no)
         have_missing_r_funcs="$have_missing_r_funcs gethostbyaddr_r"
     else
         if test "$ac_cv_gethostbyaddr_args" = 5; then
-            AC_DEFINE(HAVE_GETHOSTBYADDR_R_5)
+            AC_DEFINE(HAVE_GETHOSTBYADDR_R_5, 1, [Define to use the five-argument variant of gethostbyaddr_r])
         elif test "$ac_cv_gethostbyaddr_args" = 7; then
-            AC_DEFINE(HAVE_GETHOSTBYADDR_R_7)
+            AC_DEFINE(HAVE_GETHOSTBYADDR_R_7, 1, [Define to use the seven-argument variant of gethostbyaddr_r])
         elif test "$ac_cv_gethostbyaddr_args" = 8; then
-            AC_DEFINE(HAVE_GETHOSTBYADDR_R_8)
+            AC_DEFINE(HAVE_GETHOSTBYADDR_R_8, 1, [Define to use the eight-argument variant of gethostbyaddr_r])
         fi
         AC_MSG_RESULT([yes, and it takes $ac_cv_gethostbyaddr_args arguments])
     fi
 
     AC_MSG_CHECKING(for getlogin_r)
     if test -z "$ac_cv_getlogin_r_style"; then
-	AC_TRY_RUN(
-	    [
+	AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #include <unistd.h>
 
 int main()
@@ -1027,14 +1047,11 @@ int main()
 	return 1; /* returns pointer on success */
     }
 }
-	    ],
-	    [
+	    ]])],[
 		ac_cv_getlogin_r_style=1
-	    ],
-	    [
+	    ],[
 		ac_cv_getlogin_r_style=2
-	    ],
-	    [
+	    ],[
 		ac_cv_getlogin_r_style=
 	    ])
     fi
@@ -1043,10 +1060,10 @@ int main()
         have_missing_r_funcs="$have_missing_r_funcs getlogin_r"
     else
 	if test $ac_cv_getlogin_r_style = 1; then
-	    AC_DEFINE(GETLOGIN_R_RETURNS_INT)
+	    AC_DEFINE(GETLOGIN_R_RETURNS_INT, 1, [Define if getlogin_r returns an integer])
 	    AC_MSG_RESULT([yes, and it returns an int])
 	elif test $ac_cv_getlogin_r_style = 2; then
-	    AC_DEFINE(GETLOGIN_R_RETURNS_POINTER)
+	    AC_DEFINE(GETLOGIN_R_RETURNS_POINTER, 1, [Define if getlogin_r returns a pointer])
 	    AC_MSG_RESULT([yes, and it returns a pointer])
 	else
 	    AC_MSG_RESULT(no: result is $ac_cv_getlogin_r_style)
@@ -1066,22 +1083,54 @@ AC_ARG_ENABLE(posix, [  --enable-posix          define _POSIX_SOURCE],
     ;;
   *) 
     AC_MSG_RESULT(yes)
-    AC_DEFINE(_POSIX_SOURCE) [CFLAGS="$CFLAGS -D_POSIX_SOURCE"]
+    AC_DEFINE(_POSIX_SOURCE,1,[Enable POSIX]) [CFLAGS="$CFLAGS -D_POSIX_SOURCE"]
     ;;
   esac ],
   AC_MSG_RESULT(no)
 )
 
 AC_ARG_ENABLE(cyrillic, [  --enable-cyrillic       include support for Cyrillic in line mode browser],
-  AC_DEFINE(CYRILLIC)
+  AC_DEFINE(CYRILLIC, 1, [Define to build Cyrillic version.])
   A_STDIO="a_stdio.o", A_STDIO="")
 AC_SUBST(A_STDIO)
 
+dnl The following corresponds to the deprecated @BOTTOM@ section of acconfig.h
+
+AH_TEMPLATE([HAVE_SOCKET_ERRNO],
+	[Define this if you have the external variable 'socket_errno'.])
+AH_TEMPLATE([HAVE_SYS_ERRLIST],
+	[Define this if you have the external variable 'sys_errlist'.])
+AH_TEMPLATE([HAVE_SYS_NERR],
+	[Define this if you have the external variable 'sys_nerr'.])
+AH_TEMPLATE([HAVE_TIMEZONE],
+	[Define this if you have the external variable 'timezone'])
+AH_TEMPLATE([HAVE_ALTZONE],
+	[Define this if you have the external variable 'altzone'])
+AH_TEMPLATE([HAVE_DAYLIGHT],
+	[Define this if you have the external variable 'daylight'])
+AH_TEMPLATE([Define this if you have the uxc$inetdef.h header file.],
+	[HAVE_UXC_INETDEF_H])
+AH_TEMPLATE([HAVE_DIRENT_INO],
+	[Define this if directory entries have inodes.])
+AH_TEMPLATE([HAVE_TM_GMTOFF],
+	[Define this if tm structure includes a tm_gmtoff entry.])
+AH_TEMPLATE([HAVE_WINSIZE],
+	[Define this if your ioctl understands the winsize structure.])
+AH_TEMPLATE([NEGATIVE_TIMEZONE],
+	[Define this if the extern timezone is negative.])
+AH_TEMPLATE([NEED_SYS_ERRLIST_DECLARED],
+	[Define this if sys_errlist must be declared (if it exists).])
+AH_TEMPLATE([NEED_SYS_NERR_DECLARED],
+	[Define this if sys_nerr must be declared (if it exists).])
+AH_TEMPLATE([HAVE_LONG_TIME_T],
+	[Define if time_t is of type long])
+AH_TEMPLATE([HAVE_LONG_SIZE_T],
+	[Define if size_t is of type long])
+
 dnl Create output files
-AC_OUTPUT([Makefile libwww-config w3c-libwww.spec
+AC_CONFIG_FILES([Makefile libwww-config w3c-libwww.spec
 config/Makefile
 modules/Makefile
-modules/expat/Makefile modules/expat/xmltok/Makefile modules/expat/xmlparse/Makefile
 modules/md5/Makefile
 Library/Makefile Library/User/Makefile Library/User/Patch/Makefile
 Library/User/Architecture/Makefile Library/User/Using/Makefile Library/User/Guide/Makefile
@@ -1098,4 +1147,6 @@ Robot/Makefile Robot/User/Makefile Robot/src/Makefile Robot/tcl/Makefile Robot/s
 ComLine/Makefile ComLine/User/Makefile ComLine/src/Makefile ComLine/src/windows/Makefile
 WinCom/Makefile WinCom/hlp/Makefile WinCom/res/Makefile
 Icons/Makefile Icons/WWW/Makefile Icons/32x32/Makefile Icons/internal/Makefile
-], date>stamp-h)
+])
+AC_CONFIG_COMMANDS([default],[[date>stamp-h]],[[]])
+AC_OUTPUT

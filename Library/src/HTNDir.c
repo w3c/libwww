@@ -358,8 +358,8 @@ PRIVATE int HTNewsNode_compareRefThread (HTNewsNode* node1, HTNewsNode* node2)
     int level2 = node2->refLevel;
     int level = HTMAX(level1, level2);
     int i;
-    HTNewsNode* parent1;
-    HTNewsNode* parent2;
+    HTNewsNode* parent1 = NULL;
+    HTNewsNode* parent2 = NULL;
     int diff = 0;
     for (i = level; i >= 0; i--)
     {
@@ -391,7 +391,7 @@ PRIVATE BOOL HTNewsNode_print (HTNewsDir * dir, HTNewsNode * node)
 {
     if (node && node->show) {
 	HTStructured *target = dir->target;
-	char  * escaped;
+	char  * escaped = NULL;
     
 	HTNewsDir_addLevelTags (dir, node->refLevel);  /* Added by MP. */
 	START(HTML_LI);
@@ -818,7 +818,7 @@ PUBLIC BOOL HTNewsDir_free (HTNewsDir * dir)
 	** free the array.
 	*/
     	{
-    	    void ** data;
+    	    void ** data = NULL;
     	    HTNewsNode *node = (HTNewsNode *) HTArray_firstObject(array, data);
     	    while (node) {
 		HTNewsNode_print(dir, node);

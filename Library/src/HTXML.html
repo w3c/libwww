@@ -19,7 +19,7 @@ of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code Library</A>.
 We use <A href="http://www.jclark.com/xml/expat.html">James Clark's expat
 XML parser</A> which is very neat indeed. As the code doesn't come as a separate
 library, I included it in the libwww CVS code base where I compile is as
-two libraries: <CODE>libxmltok.a</CODE> and <CODE>libxmlparse.a</CODE>. See
+one library: <CODE>libexpat.a</CODE>. See
 the <A HREF="../External/">external modules that libwww works</A> with for
 details. Thanks so much to John Punin for writing this code!
 <PRE>
@@ -33,7 +33,7 @@ details. Thanks so much to John Punin for writing this code!
 #include "<A HREF="SGML.html">SGML.h</A>"
 #endif /* HT_STRUCT_XML_STREAM */
 
-#include &lt;xmlparse.h&gt;
+#include &lt;expat.h&gt;
 </PRE>
 <H2>
   <A NAME="converter">Libwww Stream Converter</A>
