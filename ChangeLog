@@ -1,4 +1,16 @@
-Changes with libwww 5.3.3
+Changes with libwww 5.3.2
+
+2002-06-05	Jose Kahan <jose@w3.org>
+
+        * Updated the auto-tools files in ~/libwww and ~/libwww/config
+	  to the latest version.
+
+2002-06-05	Richard Atterer <libwww@list02.atterer.net>
+
+	* Patched configure.in and wwwsys.html for building libwww
+          on mingw32 (a version of GCC that doesn't make produced 
+          binaries depend on the Cygwin DLL).
+          See http://lists.w3.org/Archives/Public/www-lib/2002AprJun/0053.html.
 
 2002-06-04      Thurog <thurog@gmx.de>
 

@@ -31,11 +31,23 @@ AM_CONFIG_HEADER(wwwconf.h)
 
 dnl Regular configure...
 AC_PROG_CC
+if test "$GCC" = "yes"; then CFLAGS="$CFLAGS -Wall"; fi
 AC_ISC_POSIX
 dnl AC_PROG_CXX		Caused problems and is not needed...
-AC_CYGWIN 	dnl   You should probably
-AC_MINGW32  	dnl   use all three of these
-AC_EXEEXT   	dnl   for maximum portability
+dnl You should probably use all three of these for maximum portability
+AC_CYGWIN
+AC_MINGW32
+AC_EXEEXT
+if test "$MINGW32" = "yes"; then
+    # With MinGW, need to explicitly link against winsock2
+    LIBS="$LIBS -lws2_32"
+    # LIBS="$LIBS -no-unused" for DLL building, but doesn't work ATM,
+    # so completely disable shared libs (speeds up compilation because
+    # the .c files are not compiled twice):
+    AC_DISABLE_SHARED
+fi
+
+AC_LIBTOOL_WIN32_DLL
 AM_PROG_LIBTOOL
 AC_PROG_MAKE_SET
 AC_PROG_INSTALL
@@ -183,12 +195,14 @@ AC_TYPE_MODE_T
 AC_TYPE_SIZE_T
 AC_TYPE_SIGNAL
 
-AC_CHECK_TYPE(BOOLEAN, char)
-AC_CHECK_TYPE(u_char, unsigned char)
-AC_CHECK_TYPE(u_short, unsigned short)
-AC_CHECK_TYPE(u_long, unsigned long)
+if test "$MINGW32" != "yes"; then
+    AC_CHECK_TYPE(BOOLEAN, char)
+    AC_CHECK_TYPE(u_char, unsigned char)
+    AC_CHECK_TYPE(u_short, unsigned short)
+    AC_CHECK_TYPE(u_long, unsigned long)
+fi
 
-AC_CHECK_SIZEOF(char)
+AC_CHECK_SIZEOF(char,1)
 AC_CHECK_SIZEOF(char *)
 AC_CHECK_SIZEOF(int,4)
 AC_CHECK_SIZEOF(long,4)
@@ -489,7 +503,7 @@ AC_ARG_WITH(expat,
     WWWXML="libwwwxml.la"
     LWWWXML="-lwwwxml -lxmltok -lxmlparse"
     LIBWWWXML='${top_builddir}/Library/src/libwwwxml.la ${top_builddir}/modules/expat/xmlparse/libxmlparse.la ${top_builddir}/modules/expat/xmltok/libxmltok.la'
-    SHOWXML="showxml ptri stri rdf_parse_file rdf_parse_buffer"
+    SHOWXML='showxml$(EXEEXT) ptri$(EXEEXT) stri$(EXEEXT) rdf_parse_file$(EXEEXT) rdf_parse_buffer$(EXEEXT)'
     ;;
   esac ],
   AC_MSG_RESULT(yes)
@@ -501,7 +515,7 @@ AC_ARG_WITH(expat,
   WWWXML="libwwwxml.la"
   LWWWXML="-lwwwxml -lxmltok -lxmlparse"
   LIBWWWXML='${top_builddir}/Library/src/libwwwxml.la ${top_builddir}/modules/expat/xmlparse/libxmlparse.la ${top_builddir}/modules/expat/xmltok/libxmltok.la'
-  SHOWXML="showxml ptri stri rdf_parse_file rdf_parse_buffer"
+  SHOWXML='showxml$(EXEEXT) ptri$(EXEEXT) stri$(EXEEXT) rdf_parse_file$(EXEEXT) rdf_parse_buffer$(EXEEXT)'
 )
 AC_SUBST(HTXML)		# for old style big library
 AC_SUBST(HTLIBXML)	# for old style big library
@@ -643,7 +657,7 @@ AC_ARG_WITH(ssl,
     WWWSSL="libwwwssl.la"
     LWWWSSL="-lwwwssl" 
     LIBWWWSSL='${top_builddir}/Library/src/SSL/libwwwssl.la'
-    WWWSSLEX="wwwssl"
+    WWWSSLEX='wwwssl$(EXEEXT)'
     ;;
   esac ],
 [ AC_MSG_RESULT(no) ])

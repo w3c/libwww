@@ -11,7 +11,6 @@ EXTRA_DIST = \
 	install-sh \
 	mkinstalldirs \
 	missing \
-	ltconfig \
 	ltmain.sh \
 	$(PERL) \
 	$(SRC)
