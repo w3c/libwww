@@ -126,6 +126,8 @@ PRIVATE	HTList *	reqlist = NULL;		  /* List of active requests */
 PRIVATE HTParentAnchor*	home_anchor = NULL;	    /* First document anchor */
 PRIVATE int		OldTraceFlag = SHOW_ALL_TRACE;
 PRIVATE FILE *	        output = stdout;	   /* Destination for output */
+PRIVATE BOOL		update_history;		   /* If inside history list */
+PRIVATE int		hist_pos = -1;		    /* Current history entry */
 
 #ifdef VMS
 #ifdef __DECC
@@ -295,7 +297,7 @@ PRIVATE void History_List NOARGS {
     
 	char * address;
 	CONST char * title;
-	HTAnchor * anchor = HTHistory_read(history_number);
+	HTAnchor * anchor = HTHistory_findPos(history_number);
 	HTParentAnchor * parent;
 	
 	if (!anchor) break;
@@ -321,39 +323,26 @@ PRIVATE void History_List NOARGS {
 */
 PRIVATE void MakeCommandLine ARGS1(BOOL, is_index)
 {
-    int length_of_prompt = 0;
-    if (is_index){	
+    if (is_index)
 	printf("FIND <keywords>, ");
-	length_of_prompt = length_of_prompt + 14;
-    }
-    if (HTAnchor_hasChildren(HTMainAnchor)!=0){
+
+    if (HTAnchor_hasChildren(HTMainAnchor)) {
 	int refs = HText_sourceAnchors(HTMainText);
-	if (refs>1) {
+	if (refs>1)
 	    printf("1-%d, ", refs);
-	    length_of_prompt = length_of_prompt + 6;		  /* Roughly */
-	}
-	else {
+	else
 	    printf("1, ");	
-	    length_of_prompt = length_of_prompt + 3;
-	}
     }
-    if (HTHistory_canBacktrack()){
+    if (HTHistory_canBacktrack((HTAnchor *) HTMainAnchor))
 	printf(PROMPT, "Recall"); printf(", ");
-	length_of_prompt = length_of_prompt + 6;
-    }
-    if (HText_canScrollUp(HTMainText)){ 
+
+    if (HText_canScrollUp(HTMainText))
 	printf(PROMPT,"Up"); printf(", ");
-	length_of_prompt = length_of_prompt + 4;
-    }
-    if (HText_canScrollDown(HTMainText)) {
+
+    if (HText_canScrollDown(HTMainText))
 	printf("<RETURN> for more, ");
-	length_of_prompt = length_of_prompt + 19;
-    }
-    if (length_of_prompt <= 47) {
-	printf(PROMPT, "Quit"); printf(", ");
-    }
-    
-    printf("or Help: ");	
+
+    printf("Quit, or Help: ");	
     fflush(stdout);  	           	  /* For use to flush out the prompt */
     return;
 }
@@ -492,6 +481,7 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 
     if (!fgets(choice, RESPONSE_LENGTH, stdin))		  /* Read User Input */
 	return EVENT_QUIT;				      /* Exit if EOF */
+    update_history = YES;			      /* Add to history list */
     
     StrAllocCopy (the_choice, choice);		       /* Remember it as is, */
     if (the_choice[strlen(the_choice)-1] == '\n')            /* The final \n */
@@ -528,6 +518,8 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 		if (source) {
 		    req = Thread_new(YES);
 		    destination = HTAnchor_followMainLink((HTAnchor*) source);
+
+		    /* Continous browsing, so we want Referer field */
 		    req->parentAnchor=HTAnchor_parent((HTAnchor*)source);
 		    loadstat = HTLoadAnchor(destination, req);
 		} else {
@@ -543,11 +535,14 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 	
       case 'B':		
 	if (CHECK_INPUT("BACK", token)) {	  /* Return to previous node */
-	    if (HTHistory_canBacktrack()) {
+	    if (HTHistory_canBacktrack((HTAnchor *) HTMainAnchor)) {
 		req = Thread_new(YES);
-		loadstat = HTLoadAnchor(HTHistory_backtrack(), req);
+		update_history = NO;
+		hist_pos = HTHistory_count()-1;
+		loadstat = HTLoadAnchor(HTHistory_back((HTAnchor *)
+						       HTMainAnchor), req);
 	    } else {
-		printf("\nNo previous documents in history list.\n");
+		printf("\nThis is the first document in history list\n");
 	    }
 	} else if (CHECK_INPUT("BOTTOM", token)) {	/* Scroll to bottom  */
 	    HText_scrollBottom(HTMainText);
@@ -561,6 +556,9 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 	    goto lcd;
 	} else
 #endif
+	if (CHECK_INPUT("CLEAR", token)) {	       /* Clear History list */
+	    HTHistory_clearFromPos(1);
+	} else
 	    found = NO;
 	break;
 	
@@ -593,6 +591,15 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 		    loadstat = HTSearch(other_words, HTMainAnchor, req);
 		}
 	    }
+	} else if (CHECK_INPUT("FORWARD", token)) {
+	    if (HTHistory_canForward((HTAnchor *) HTMainAnchor)) {
+		req = Thread_new(YES);
+		update_history = NO;
+		loadstat = HTLoadAnchor(HTHistory_forward((HTAnchor *)
+							  HTMainAnchor), req);
+	    } else {
+		printf("\nThis is the last document in history list.\n");
+	    }
 	} else
 	    found = NO;
 	break;
@@ -610,6 +617,7 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
       case '?':
 	req = Thread_new(YES);
 	req->BlockingIO = YES;
+	update_history = NO;
 	loadstat = HTLoadRelative(C_HELP, HTMainAnchor, req);
 	break;
 	
@@ -617,12 +625,14 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 	if (CHECK_INPUT("HELP", token)) {		     /* help menu, ..*/
 	    req = Thread_new(YES);
 	    req->BlockingIO = YES;
+	    update_history = NO;
 	    loadstat = HTLoadRelative(C_HELP, HTMainAnchor, req);
 	} else if (CHECK_INPUT("HOME", token)) {		/* back HOME */
-	    if (!HTHistory_canBacktrack()) {
+	    if (!HTHistory_canBacktrack((HTAnchor *) HTMainAnchor)) {
 		HText_scrollTop(HTMainText);
 	    } else {
 		req = Thread_new(YES);
+		update_history = NO;
 		loadstat = HTLoadAnchor(HTHistory_recall(1), req);
 	    }
 	} else
@@ -674,6 +684,7 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 	if (CHECK_INPUT("MANUAL", token)) {		 /* Read User manual */
 	    req = Thread_new(YES);
 	    req->BlockingIO = YES;
+	    update_history = NO;
 	    loadstat = HTLoadRelative(MANUAL, HTMainAnchor,req);
 	} else
 	    found = NO;
@@ -683,11 +694,12 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 	if (CHECK_INPUT("NEXT", token)) {
 	    if (!HTHistory_canMoveBy(1)) {	 /* No nodes to jump back to */
 		printf("\n  Can't take the NEXT link from the last");
-		if (!HTHistory_canBacktrack())
+		if (!HTHistory_canBacktrack((HTAnchor *) HTMainAnchor))
 		    printf(" document as there is no last");
 		printf(" document.\n");
 	    } else {
 		req = Thread_new(YES);
+		update_history = NO;
 		loadstat = HTLoadAnchor(HTHistory_moveBy(1),req);
 	    }
 	} else
@@ -700,11 +712,12 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 	} else if (CHECK_INPUT("PREVIOUS", token)) {
 	    if (!HTHistory_canMoveBy(-1)){ 
 		printf("\n  Can't take the PREVIOUS link from the last");
-		if (!HTHistory_canBacktrack())
+		if (!HTHistory_canBacktrack((HTAnchor *) HTMainAnchor))
 		    printf(" document as there is no last");
 		printf(" document.\n");
 	    } else {
 		req = Thread_new(YES);
+		update_history = NO;
 		loadstat = HTLoadAnchor(HTHistory_moveBy(-1), req);
 	    }
 	}
@@ -765,19 +778,18 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 	
       case 'R':	
 	if (CHECK_INPUT("RECALL", token)) {
-	    int  recall_node_num;
-	    
-	    if (!HTHistory_canBacktrack()) {	       /* No nodes to recall */
+	    if (HTHistory_count() <= 1) {
 		printf("\n  No other documents to recall.\n");
 	    } else {
 		/* Previous node number exists, or does the user just */
 		/* require a list of nodes visited? */
-		if (next_word) {
-		    if ((recall_node_num = atoi(next_word)) > 0) {
+		if (next_word) {	
+		    int cnt;
+		    if ((cnt = atoi(next_word)) > 0) {
 			req = Thread_new(YES);
-			loadstat =
-			    HTLoadAnchor(HTHistory_recall(recall_node_num),
-					 req);
+			hist_pos = cnt;
+			update_history = NO;
+			loadstat = HTLoadAnchor(HTHistory_findPos(cnt), req);
 		    } else {
 			if (SHOW_MSG)
 			    fprintf(stdout, "Bad command (%s), for list of commands type help\n", this_command);
@@ -792,6 +804,7 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 	} else if (CHECK_INPUT("RELOAD", token)) {
 	    req = Thread_new(YES);
 	    req->reload = HT_FORCE_RELOAD;	/* Force full reload */
+	    update_history = NO;
 	    loadstat = HTLoadAnchor((HTAnchor*) HTMainAnchor, req);
 	} else
 	    found = NO;
@@ -919,17 +932,25 @@ PUBLIC HTEventState HTEventRequestTerminate ARGS2(HTRequest *,	actreq,
     BOOL is_index = HTAnchor_isIndex(HTMainAnchor);
     if (!HTPrompt_interactive()) return EVENT_QUIT;
     if (status == HT_LOADED) {
-	if (actreq->parentAnchor) {
-	    HTParentAnchor *parent = actreq->parentAnchor;
-	    HTParentAnchor *destination = actreq->anchor;
-	    HTHistory_leavingFrom((HTAnchor *) parent);
-	    HTHistory_record((HTAnchor *) destination);
-	    actreq->parentAnchor = NULL;
+
+	/* Record new history if we have not moved around in the old one */
+	if (update_history) {
+	    HTAnchor *anchor = actreq->childAnchor ?
+		(HTAnchor *) actreq->childAnchor : (HTAnchor *) actreq->anchor;
+
+	    /* If current position is not the last then remove from the current
+	       position and forward */
+	    if (hist_pos >= 0) {
+		HTHistory_clearFromPos(hist_pos);
+		hist_pos = -1;
+	    }
+	    HTHistory_record(anchor);
 	}
+
 	/* Now generate the new prompt line as a function of the result */
 	if (!HText_canScrollDown(HTMainText) &&
 	    !HTAnchor_hasChildren(HTMainAnchor) && !is_index &&
-	    (!HTHistory_canBacktrack())) {
+	    (!HTHistory_canBacktrack((HTAnchor *) HTMainAnchor))) {
 	    if (SHOW_MSG)
 		fprintf(stdout, "No way out of here, so I exit!\n");
 	    return EVENT_QUIT;	                 /* Exit if no other options */
@@ -938,30 +959,13 @@ PUBLIC HTEventState HTEventRequestTerminate ARGS2(HTRequest *,	actreq,
 	MakeCommandLine(is_index);
     } else if (!HTMainText)	 				   /* Failed */
 	return EVENT_QUIT;
-    else
+    else {
+	hist_pos = -1;
 	MakeCommandLine(is_index);
+    }
     Thread_delete(actreq);
     return EVENT_OK;
 }
-
-#if 0
-int NewEventHandler (SOCKET s, HTRequest * rqp, SockOps ops)
-{
-    HTRequest * newrqp = 0;
-    HTEventState theEventState ;
-
-    if (THD_TRACE)
-        fprintf(TDEST, "EventHandler called with option %ld\n", ops);
-
-    theEventState = scan_command( &newrqp);
-    if (theEventState == EVENT_TERM)
-    	theEventState = HTEventRequestTerminate( newrqp, loadstat);
-    if (!HTEventCheckState( newrqp, theEventState))   /* returned EVENT_QUIT */
-  	return HT_OK;
-    else 
-    	return HT_WOULD_BLOCK; 
-}
-#endif
 
 /* ------------------------------------------------------------------------- */
 /*				  MAIN PROGRAM				     */
@@ -1325,18 +1329,17 @@ int main ARGS2(int, argc, char **, argv)
 
     /* Load the first page. This is done using blocking I/O */
     request->BlockingIO = YES;
-    if (keywords ?
-	HTSearch(HTChunkData(keywords), home_anchor, request) :
-	HTLoadAnchor((HTAnchor*) home_anchor, request)) {
-    	HTHistory_record((HTAnchor *) home_anchor);
- 	MakeCommandLine(HTAnchor_isIndex(home_anchor));
-   } else
+    if (HT_LOADED != (keywords ?
+		      HTSearch(HTChunkData(keywords), home_anchor, request) :
+		      HTLoadAnchor((HTAnchor*) home_anchor, request)))
 	goto endproc;
 
     /* If in interactive mode then start the event loop which will run until
        the program terminates */
     if (HTPrompt_interactive()) {
 	reqlist = HTList_new();
+    	HTHistory_record((HTAnchor *) home_anchor);
+ 	MakeCommandLine(HTAnchor_isIndex(home_anchor));
 	HTEvent_RegisterTTY(STDIN_FILENO, request, (SockOps)FD_READ,
 			    scan_command, 1);
 	status = HTEvent_Loop(request);
@@ -1349,6 +1352,7 @@ endproc:
     if (output && output!=stdout)
 	fclose(output);
     Thread_deleteAll();
+    HTRequest_delete(request);
     if (abs_home)
 	free(abs_home);
     if (logfile)

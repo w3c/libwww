@@ -552,7 +552,7 @@ PUBLIC BOOL HTAnchor_deleteAll ARGS1(HTList *, documents)
 {
     int cnt;
     HTList *cur;
-    if (!documents)
+    if (!documents || !adult_table)
 	return NO;
     for (cnt=0; cnt<HASH_SIZE; cnt++) {
 	if ((cur = adult_table[cnt])) { 
