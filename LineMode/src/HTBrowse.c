@@ -225,9 +225,6 @@ CSDisposition_callback PICSCallback;
 PRIVATE HTRequest * Thread_new (LineMode * lm, BOOL Interactive, LMState state)
 {
     HTRequest * newreq = HTRequest_new();
-#ifdef WWW_WIN_ASYNC
-    HTEventrg_winHandle(newreq);
-#endif
     if (!lm) return NULL;
     Context_new(lm, newreq, state);
     if (Interactive) HTRequest_setConversion(newreq, lm->presenters, NO);

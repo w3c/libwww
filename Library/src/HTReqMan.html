@@ -247,15 +247,6 @@ header which works pretty much the same way but is somewhat simpler in use.
     HTAssocList *       client_extension;
     HTAssocList *       server_extension;
 </PRE>
-<H3>
-  Windows Specific Information
-</H3>
-<PRE>
-#ifdef WWW_WIN_ASYNC
-    HWND		hwnd;		/* Windows handle for MSWindows   */
-    unsigned long	winMsg;	        /* msg number of Windows eloop    */
-#endif /* WWW_WIN_ASYNC */
-</PRE>
 <PRE>
 };
 </PRE>

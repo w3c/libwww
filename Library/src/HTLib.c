@@ -154,27 +154,6 @@ PUBLIC BOOL HTLibInit (const char * AppName, const char * AppVersion)
     HTSetSignal();				   /* Set signals in library */
 #endif
 
-
-#ifdef _WINSOCKAPI_
-    /*
-    ** Initialise WinSock DLL. This must also be shut down! PMH
-    */
-    {
-        WSADATA            wsadata;
-	if (WSAStartup(DESIRED_WINSOCK_VERSION, &wsadata)) {
-	    if (WWWTRACE)
-		HTTrace("WWWLibInit.. Can't initialize WinSoc\n");
-            WSACleanup();
-            return NO;
-        }
-        if (wsadata.wVersion < MINIMUM_WINSOCK_VERSION) {
-            if (WWWTRACE)
-		HTTrace("WWWLibInit.. Bad version of WinSoc\n");
-            WSACleanup();
-            return NO;
-        }
-    }
-#endif /* _WINSOCKAPI_ */
     initialized = YES;
     return YES;
 }
@@ -207,9 +186,6 @@ PUBLIC BOOL HTLibTerminate (void)
 
     HTChannel_deleteAll();			/* Delete remaining channels */
 
-#ifdef _WINSOCKAPI_
-    WSACleanup();
-#endif
     initialized = NO;
     return YES;
 }

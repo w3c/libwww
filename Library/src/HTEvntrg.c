@@ -52,7 +52,6 @@ PRIVATE int HTEndLoop = 0;		       /* If !0 then exit event loop */
 PRIVATE const int SecondsToWait = 5 ;
 
 PRIVATE void __ResetMaxSock( void ) ;
-PUBLIC int HTEventrg_dispatch( SOCKET, SockOps);
 PRIVATE void __DumpFDSet( fd_set *, const char *);
 
 typedef unsigned long DWORD;
@@ -142,20 +141,10 @@ PRIVATE int __EventUnregister(RQ * , RQ **, SockOps );
 /* ------------------------------------------------------------------------- */
 
 #ifdef WWW_WIN_ASYNC
-/*	HTEventrg_winHandle
-**	-----------------
+/*	HTEventrg_get/setWinHandle
+**	--------------------------
 **	Managing the windows handle on Windows
 */
-PUBLIC BOOL HTEventrg_winHandle (HTRequest * request)
-{
-    if (request) {
-	request->hwnd = HTSocketWin;
-	request->winMsg = HTwinMsg;
-	return YES;
-    }
-    return NO;
-}
-
 PUBLIC BOOL HTEventrg_setWinHandle (HWND window, unsigned long message)
 {
     HTSocketWin = window;
@@ -174,14 +163,11 @@ PUBLIC HWND HTEventrg_getWinHandle (unsigned long * pMessage)
 /*
 **	By having these dummy definitions we can keep the same def file
 */
-PUBLIC BOOL HTEventrg_winHandle (HTRequest * request)
-{
-    return YES;
-}
 PUBLIC BOOL HTEventrg_setWinHandle (HWND window, unsigned long message)
 {
     return YES;
 }
+
 PUBLIC HWND HTEventrg_getWinHandle (unsigned long * pMessage)
 {
     return (HWND) 0;
@@ -732,10 +718,7 @@ PUBLIC int HTEventrg_loop( HTRequest * theRequest )
 
         switch(active_sockets)  {
             case 0:         /* no activity - timeout - allowed */
-#ifndef _WIN32
-	    
-#endif /* WIN32 */
-	    break;
+		break;
             
             case -1:        /* error has occurred */
 	    	HTRequest_addSystemError( theRequest, ERR_FATAL, socerrno, NO, "select");
@@ -1031,6 +1014,31 @@ PUBLIC BOOL HTEventInit (void)
     }
     HTwinMsg = WM_USER;  /* use first available message since app uses none */
 #endif /* WWW_WIN_ASYNC */
+
+#ifdef _WINSOCKAPI_
+    /*
+    ** Initialise WinSock DLL. This must also be shut down! PMH
+    */
+    {
+        WSADATA            wsadata;
+	if (WSAStartup(DESIRED_WINSOCK_VERSION, &wsadata)) {
+	    if (WWWTRACE)
+		HTTrace("HTEventInit. Can't initialize WinSoc\n");
+            WSACleanup();
+            return NO;
+        }
+        if (wsadata.wVersion < MINIMUM_WINSOCK_VERSION) {
+            if (WWWTRACE)
+		HTTrace("HTEventInit. Bad version of WinSoc\n");
+            WSACleanup();
+            return NO;
+        }
+	if (APP_TRACE)
+	    HTTrace("HTEventInit. Using WinSoc version \"%s\".\n", 
+		    wsadata.szDescription);
+    }
+#endif /* _WINSOCKAPI_ */
+
     HTEvent_setRegisterCallback(HTEventrg_register);
     HTEvent_setUnregisterCallback(HTEventrg_unregister);
     return YES;
@@ -1038,8 +1046,13 @@ PUBLIC BOOL HTEventInit (void)
 
 PUBLIC BOOL HTEventTerminate (void)
 {
+#ifdef _WINSOCKAPI_
+    WSACleanup();
+#endif
+
 #ifdef WWW_WIN_ASYNC
     DestroyWindow(HTSocketWin);
 #endif
     return YES;
 }
+

@@ -41,9 +41,108 @@
 /* x seconds penalty on a multi-homed host if IP-address is timed out */
 #define TCP_DELAY		600
 
+/* imperical study in socket call error codes
+ */
+#ifdef _WINSOCKAPI_					/* windows */
+#define NETCALL_ERROR(ret)	(ret == SOCKET_ERROR)
+#define NETCALL_DEADSOCKET(err)	(err == WSAEBADF)
+#define NETCALL_WOULDBLOCK(err)	(err == WSAEWOULDBLOCK)
+#else /* _WINSOCKAPI_ 					   unix    */
+#define NETCALL_ERROR(ret)	(ret < 0)
+#define NETCALL_DEADSOCKET(err)	(err == EBADF)
+#if defined(EAGAIN) && defined(EALREADY)
+#define NETCALL_WOULDBLOCK(err)	(err == EINPROGRESS || \
+				 err == EALREADY || \
+				 err == EAGAIN)
+#else /* (EAGAIN && EALREADY) */
+#ifdef EALREADY
+#define NETCALL_WOULDBLOCK(err)	(err == EINPROGRESS || err == EALREADY)
+#else /* EALREADY */
+#ifdef EAGAIN
+#define NETCALL_WOULDBLOCK(err)	(err == EINPROGRESS || err == EAGAIN)
+#else /* EAGAIN */
+#define NETCALL_WOULDBLOCK(err)	(err == EINPROGRESS)
+#endif /* !EAGAIN */
+#endif /* !EALREADY */
+#endif /* !(EAGAIN && EALREADY) */
+#endif /* !_WINSOCKAPI_ 				   done */
 /* ------------------------------------------------------------------------- */
 /*	       	      CONNECTION ESTABLISHMENT MANAGEMENT 		     */
 /* ------------------------------------------------------------------------- */
+
+/* _makeSocket - create a socket, if !net->preemptive, set FIONBIO
+ * returns 1: blocking
+ *	   0: non-blocking
+ *	  -1: creation error
+ */
+int _makeSocket(HTNet * net)
+{
+    int status;
+#ifdef DECNET
+	    if ((net->sockfd=socket(AF_DECnet, SOCK_STREAM, 0))==INVSOC)
+#else
+	    if ((net->sockfd=socket(AF_INET, SOCK_STREAM,IPPROTO_TCP))==INVSOC)
+#endif
+	    {
+		HTRequest_addSystemError(net->request, ERR_FATAL, socerrno, 
+					 NO, "socket");
+		net->tcpstate = TCP_ERROR;
+		return -1;
+	    }
+	    if (PROT_TRACE)
+		HTTrace("Socket...... Created %d\n", net->sockfd);
+
+	    /* Increase the number of sockets by one */
+	    HTNet_increaseSocket();
+
+	    /* If non-blocking protocol then change socket status
+	    ** I use fcntl() so that I can ask the status before I set it.
+	    ** See W. Richard Stevens (Advan. Prog. in UNIX environment, p.364)
+	    ** Be CAREFULL with the old `O_NDELAY' - it will not work as read()
+	    ** returns 0 when blocking and NOT -1. FNDELAY is ONLY for BSD and
+	    ** does NOT work on SVR4 systems. O_NONBLOCK is POSIX.
+	    */
+	    if (!net->preemptive) {
+#ifdef _WINSOCKAPI_
+		{		/* begin windows scope  */
+		    long levents = FD_READ | FD_WRITE | FD_ACCEPT | 
+			FD_CONNECT | FD_CLOSE ;
+		    int rv = 0 ;
+		    u_long one = 1;
+				    
+		    status = ioctlsocket(net->sockfd, FIONBIO, &one) == 
+			     SOCKET_ERROR ? -1 : 0;
+		} /* end scope */
+#else /* _WINSOCKAPI_ */
+#if defined(VMS)
+		{
+		    int enable = 1;
+		    status = IOCTL(net->sockfd, FIONBIO, &enable);
+		}
+#else /* VMS */
+		if((status = fcntl(net->sockfd, F_GETFL, 0)) != -1) {
+#ifdef O_NONBLOCK
+		    status |= O_NONBLOCK;			    /* POSIX */
+#else /* O_NONBLOCK */
+#ifdef F_NDELAY
+		    status |= F_NDELAY;				      /* BSD */
+#endif /* F_NDELAY */
+#endif /* !O_NONBLOCK */
+		    status = fcntl(net->sockfd, F_SETFL, status);
+		}
+#endif /* !VMS */
+#endif /* !_WINSOCKAPI_ */
+		if (PROT_TRACE) {
+		    if (status == -1)
+			HTTrace("Sockrt...... Blocking socket\n");
+		    else
+			HTTrace("Socket...... Non-blocking socket\n");
+		}
+	    } else if (PROT_TRACE)
+		HTTrace("Socket...... Blocking socket\n");
+
+    return status == -1 ? 1 : 0;
+}
 
 /*								HTDoConnect()
 **
@@ -144,7 +243,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	    **  The next state depends on whether we have a connection
 	    **  or not - if so then we can jump directly to connect() to
 	    **  test it - otherwise we must around DNS to get the name
-	    **  resolved
+	    **  Resolved
 	    */
 	    if ((net->channel = HTHost_channel(net->host)) != NULL) {
 		net->sockfd = HTChannel_socket(net->channel);
@@ -172,80 +271,8 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	    break;
 
 	  case TCP_NEED_SOCKET:
-#ifdef DECNET
-	    if ((net->sockfd=socket(AF_DECnet, SOCK_STREAM, 0))==INVSOC)
-#else
-	    if ((net->sockfd=socket(AF_INET, SOCK_STREAM,IPPROTO_TCP))==INVSOC)
-#endif
-	    {
-		HTRequest_addSystemError(request, ERR_FATAL, socerrno, NO, "socket");
-		net->tcpstate = TCP_ERROR;
+	    if (_makeSocket(net) == -1)
 		break;
-	    }
-	    if (PROT_TRACE)
-		HTTrace("HTDoConnect. Created socket %d\n",net->sockfd);
-
-	    /* Increase the number of sockets by one */
-	    HTNet_increaseSocket();
-
-	    /* If non-blocking protocol then change socket status
-	    ** I use fcntl() so that I can ask the status before I set it.
-	    ** See W. Richard Stevens (Advan. Prog. in UNIX environment, p.364)
-	    ** Be CAREFULL with the old `O_NDELAY' - it will not work as read()
-	    ** returns 0 when blocking and NOT -1. FNDELAY is ONLY for BSD and
-	    ** does NOT work on SVR4 systems. O_NONBLOCK is POSIX.
-	    */
-	    if (!net->preemptive) {
-#ifdef _WINSOCKAPI_
-		{		/* begin windows scope  */
-		    HTRequest * rq = request;
-		    long levents = FD_READ | FD_WRITE | FD_ACCEPT | 
-			FD_CONNECT | FD_CLOSE ;
-		    int rv = 0 ;
-				    
-#ifdef WWW_WIN_ASYNC
-		    /* N.B WSAAsyncSelect() turns on non-blocking I/O */
-		    rv = WSAAsyncSelect( net->sockfd, rq->hwnd, 
-					rq->winMsg, levents);
-		    if (rv == SOCKET_ERROR) {
-			status = -1 ;
-			if (PROT_TRACE) 
-			    HTTrace("HTDoConnect. WSAAsyncSelect() fails: %d\n", 
-				     WSAGetLastError());
-		    } /* error returns */
-#else
-		    int enable = 1;
-		    status = IOCTL(net->sockfd, FIONBIO, &enable);
-#endif
-		} /* end scope */
-#else 
-#if defined(VMS)
-		{
-		    int enable = 1;
-		    status = IOCTL(net->sockfd, FIONBIO, &enable);
-		}
-#else
-		if((status = fcntl(net->sockfd, F_GETFL, 0)) != -1) {
-#ifdef O_NONBLOCK
-		    status |= O_NONBLOCK;			    /* POSIX */
-#else
-#ifdef F_NDELAY
-		    status |= F_NDELAY;				      /* BSD */
-#endif /* F_NDELAY */
-#endif /* O_NONBLOCK */
-		    status = fcntl(net->sockfd, F_SETFL, status);
-		}
-#endif /* VMS */
-#endif /* WINDOW */
-		if (PROT_TRACE) {
-		    if (status == -1)
-			HTTrace("HTDoConnect. Only blocking works\n");
-		    else
-			HTTrace("HTDoConnect. Non-blocking socket\n");
-		}
-	    } else if (PROT_TRACE)
-		HTTrace("HTDoConnect. Blocking socket\n");
-
 	    /* Create a channel for this socket */
 	    net->channel = HTChannel_new(net, YES);
 
@@ -255,12 +282,11 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	    /* Progress */
 	    {
 		HTAlertCallback *cbf = HTAlert_find(HT_PROG_CONNECT);
-		if (cbf) (*cbf)(request, HT_PROG_CONNECT, HT_MSG_NULL,
+		if (cbf) (*cbf)(net->request, HT_PROG_CONNECT, HT_MSG_NULL,
 				NULL, hostname, NULL);
 	    }
 	    net->tcpstate = TCP_NEED_CONNECT;
 	    break;
-
 	  case TCP_NEED_CONNECT:
 	    status = connect(net->sockfd, (struct sockaddr *) &net->sock_addr,
 			     sizeof(net->sock_addr));
@@ -282,30 +308,9 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	     *                         write  service  procedure.  This will be
 	     *                         the normal case.
 	     */
-#ifdef _WINSOCKAPI_
-	    if (status == SOCKET_ERROR)
-#else
-	    if (status < 0) 
-#endif
+	    if (NETCALL_ERROR(status))
 	    {
-#ifdef _WINSOCKAPI_
-		if (socerrno==WSAEWOULDBLOCK)
-#else
-#if defined(EAGAIN) && defined(EALREADY)
-		if (socerrno==EINPROGRESS ||
-		    socerrno==EALREADY || socerrno==EAGAIN)
-#else
-#ifdef EALREADY
-		if (socerrno==EINPROGRESS || socerrno==EALREADY)
-#else
-#ifdef EAGAIN
-		if (socerrno==EINPROGRESS || socerrno==EAGAIN)
-#else
-		if (socerrno==EINPROGRESS)
-#endif /* EAGAIN */
-#endif /* EALREADY */
-#endif /* EAGAIN && EALREADY */
-#endif /* _WINSOCKAPI_ */
+		if (NETCALL_WOULDBLOCK(socerrno))
 		{
 		    if (PROT_TRACE)
 			HTTrace("HTDoConnect. WOULD BLOCK `%s'\n", hostname);
@@ -317,11 +322,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 		    net->tcpstate = TCP_CONNECTED;
 		    break;
 		}
-#ifdef _WINSOCKAPI_
-		if (socerrno == WSAEBADF)  	       /* We lost the socket */
-#else
-		if (socerrno == EBADF)  	       /* We lost the socket */
-#endif
+		if (NETCALL_DEADSOCKET(socerrno))     /* We lost the socket */
 		{
 		    net->tcpstate = TCP_NEED_SOCKET;
 		    break;
@@ -419,25 +420,9 @@ PUBLIC int HTDoAccept (HTNet * net, HTNet ** accepted)
 	if (cbf) (*cbf)(request, HT_PROG_ACCEPT, HT_MSG_NULL,NULL, NULL, NULL);
     }
     status = accept(net->sockfd, (struct sockaddr *) &net->sock_addr, &size);
-#ifdef _WINSOCKAPI_
-    if (status == SOCKET_ERROR)
-#else
-    if (status < 0) 
-#endif
+    if (NETCALL_ERROR(status))
     {
-#ifdef EALREADY
-		if (socerrno==EINPROGRESS || socerrno==EALREADY)
-#else
-#ifdef EAGAIN
-		if (socerrno==EINPROGRESS || socerrno==EAGAIN)
-#else
-#ifdef _WINSOCKAPI_
-		if (socerrno==WSAEWOULDBLOCK)
-#else
-		if (socerrno==EINPROGRESS)
-#endif /* _WINSOCKAPI_ */
-#endif /* EAGAIN */
-#endif /* EALREADY */
+	if (NETCALL_WOULDBLOCK(socerrno))
 	{
 	    if (PROT_TRACE)
 		HTTrace("HTDoAccept.. WOULD BLOCK %d\n", net->sockfd);
@@ -512,89 +497,15 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKET master, int backlog)
 	    break;
 
 	  case TCP_NEED_SOCKET:
-#ifdef DECNET
-	    if ((net->sockfd=socket(AF_DECnet, SOCK_STREAM, 0))==INVSOC)
-#else
-	    if ((net->sockfd=socket(AF_INET, SOCK_STREAM,IPPROTO_TCP))==INVSOC)
-#endif
-	    {
-		HTRequest_addSystemError(net->request, ERR_FATAL, socerrno,
-					 NO, "socket");
-		net->tcpstate = TCP_ERROR;
-		break;
-	    }
-	    if (PROT_TRACE)
-		HTTrace("Socket...... Created %d\n", net->sockfd);
-
-	    /* Increase the number of sockets by one */
-	    HTNet_increaseSocket();
-
-	    /* If non-blocking protocol then change socket status
-	    ** I use fcntl() so that I can ask the status before I set it.
-	    ** See W. Richard Stevens (Advan. Prog. in UNIX environment, p.364)
-	    ** Be CAREFULL with the old `O_NDELAY' - it will not work as read()
-	    ** returns 0 when blocking and NOT -1. FNDELAY is ONLY for BSD and
-	    ** does NOT work on SVR4 systems. O_NONBLOCK is POSIX.
-	    */
-	    if (!net->preemptive) {
-#ifdef _WINSOCKAPI_ 
-		{		/* begin windows scope  */
-		    long levents = FD_READ | FD_WRITE | FD_ACCEPT | 
-			FD_CONNECT | FD_CLOSE ;
-		    int rv = 0 ;
-				    
-#ifdef WWW_WIN_ASYNC
-		    /* N.B WSAAsyncSelect() turns on non-blocking I/O */
-		    rv = WSAAsyncSelect(net->sockfd, net->request->hwnd, 
-					net->request->winMsg, levents);
-		    if (rv == SOCKET_ERROR) {
-			status = -1 ;
-			if (PROT_TRACE) 
-			    HTTrace("Socket...... WSAAsyncSelect() fails: %d\n", 
-				     WSAGetLastError());
-			} /* error returns */
-#else
-		    int enable = 1 ;
-		    status = IOCTL(net->sockfd, FIONBIO, &enable);
-#endif
-		} /* end scope */
-#else 
-#if defined(VMS)
-		{
-		    int enable = 1;
-		    status = IOCTL(net->sockfd, FIONBIO, &enable);
-		}
-#else
-		if((status = fcntl(net->sockfd, F_GETFL, 0)) != -1) {
-#ifdef O_NONBLOCK
-		    status |= O_NONBLOCK;			    /* POSIX */
-#else
-#ifdef F_NDELAY
-		    status |= F_NDELAY;				      /* BSD */
-#endif /* F_NDELAY */
-#endif /* O_NONBLOCK */
-		    status = fcntl(net->sockfd, F_SETFL, status);
-		}
-#endif /* VMS */
-#endif /* WINDOW */
-		if (PROT_TRACE) {
-		    if (status == -1)
-			HTTrace("Sockrt...... Blocking socket\n");
-		    else
-			HTTrace("Socket...... Non-blocking socket\n");
-		}
-	    }
+	    if (_makeSocket(net) == -1)
+	        break;
 	    net->tcpstate = TCP_NEED_BIND;
 	    break;
 
 	  case TCP_NEED_BIND:
 	    status = bind(net->sockfd, (struct sockaddr *) &net->sock_addr,
 			  sizeof(net->sock_addr));
-#ifdef _WINSOCKAPI_
-	    if (status == SOCKET_ERROR)
-#else
-	    if (status < 0) 
-#endif
+	    if (NETCALL_ERROR(status))
 	    {
 		if (PROT_TRACE)
 		    HTTrace("Socket...... Bind failed %d\n", socerrno);
@@ -605,11 +516,7 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKET master, int backlog)
 
 	  case TCP_NEED_LISTEN:
 	    status = listen(net->sockfd, backlog);
-#ifdef _WINSOCKAPI_
-	    if (status == SOCKET_ERROR)
-#else
-	    if (status < 0) 
-#endif
+	    if (NETCALL_ERROR(status))
 		net->tcpstate = TCP_ERROR;		
 	    else
 		net->tcpstate = TCP_CONNECTED;
