@@ -1,16 +1,3 @@
-/* N O T E S - to be removed before release
-executable
-l:\projects\libwww\www\linemode\pics\windows\windebug\wwwpics.exe
-working dir
-l:\projects\libwww\www\library\implementation\windows\windebug
-args
-
-dlls
-l:\projects\libwww\www\pics\implementation\windows\windebug\wwwpics.dll
-
-switch to HTStrMatch
-*/
-
 #include <stdio.h>
 #include <string.h>
 #include "WWWLib.h"
@@ -233,8 +220,6 @@ PUBLIC CSUser_t * CSLoadedUser_load(char * url, char * relatedName)
     char * fullURL = HTParse(url, relatedName, PARSE_ALL);
     CSLoadedUser_t * pCSLoadedUser;
     if (!LoadURLToConverter(fullURL, 0, 0, 0, "PICS user file"))
-/*    if (!LoadURLToConverter(fullURL, 0, S_user, CSParseUser, 
-			    "PICS user file", 0, 0, 0)) */
         err = 1;
     else if ((pCSLoadedUser = CSLoadedUser_findUrl(fullURL)) == NULL)
         err = 1;
@@ -257,6 +242,9 @@ PRIVATE ReqParms_t * ReqParms_new(HTRequest * pReq, CSUser_t * pCSUser, CSDispos
     me->pCallback = pCallback;
     me->criteria = criteria;
     me->pVoid = pVoid;
+    if (!ReqParms)
+      ReqParms = HTList_new();
+    HTList_addObject(ReqParms, (void *)me);
     return me;
 }
 
@@ -315,14 +303,6 @@ PUBLIC BOOL CSApp_label(HTRequest * pReq, CSLabel_t * pCSLabel)
     ReqParms_t * pReqParms;
     if (!(pReqParms = ReqParms_getReq(pReq)))
         pReqParms = &DefaultReqParms;
-/*
-    if (!(pReqParms = ReqParms_getBureauReq(pReq)))
-        pReqParms = &DefaultReqParms;
-    if (pReqParms->pBureauReq != pReq) {
-        HTTrace("PICS: Could not find original request\n");
-	return NO;
-    }
-*/
     pReqParms->pCSLabel = pCSLabel;
     pReqParms->disposition = CSCheckLabel_checkLabelAndUser(pCSLabel, 
 							   pReqParms->pCSUser);
@@ -442,28 +422,29 @@ PRIVATE int CSApp_bureauError (HTRequest * pReq, void * context, int status);
 PRIVATE int CSApp_bureauAfter (HTRequest * pReq, void * context, int status)
 {
     ReqParms_t * pReqParms = (ReqParms_t *)context;
-    /*    if (!pReqParms || (pReq != pReqParms->pBureauReq))
-        return HT_ERROR; */
+
     pReqParms->reqState = reqState_BUREAU_DONE;
     HTRequest_deleteAfter(pReq, CSApp_bureauAfter);
     HTRequest_deleteAfter(pReq, CSApp_bureauError);
     if (PICS_TRACE) HTTrace("PICS: Load was %sOK\n", 
 			    pReqParms->disposition == CSError_OK ? "" : "!");
     ReqParms_removeRequest(pReqParms);
-    if (pReqParms->disposition != CSError_OK)
+    if (pReqParms->disposition != CSError_OK) {
+        HTRequest_kill(pReq);
         return HT_OK;
-    /*    HTRequest_setAnchor(pReq, pReqParms->anchor); */
+    }
+
+    HTRequest_setAnchor(pReq, pReqParms->anchor);
     HTRequest_setOutputFormat(pReq, pReqParms->outputFormat);
     HTRequest_setOutputStream(pReq, pReqParms->outputStream);
     HTRequest_setMethod(pReq, pReqParms->method);
-    return HTLoadAnchor((HTAnchor *)pReqParms->anchor, pReq);
+    return HTLoad(pReq, NO);
 }
 
 PRIVATE int CSApp_bureauError (HTRequest * pReq, void * context, int status)
 {
     ReqParms_t * pReqParms = (ReqParms_t *)context;
-    /*    if (!pReqParms || (pReq != pReqParms->pBureauReq))
-        return HT_ERROR; */
+
     pReqParms->reqState = reqState_BUREAU_ERR;
     HTTrace("PICS: couldn't find label service.\n");
     return HT_OK;
@@ -478,15 +459,8 @@ PRIVATE int CSApp_netBefore (HTRequest * pReq, void * param, int status)
     char * ptr;
     int ret;
 
-    /*    if (ReqParms_getBureauReq(pReq) || 
-	pReq == DefaultReqParms.pBureauReq)
-        return HT_OK;
-    if (!(pReqParms = ReqParms_getReq(pReq))) {
-        pReqParms = &DefaultReqParms;
-	DefaultReqParms.pReq = pReq;
-    } */
     if ((pReqParms = ReqParms_getReq(pReq))) {
-        if (pReqParms->reqState == reqState_BUREAU_START) /* bureau req */
+        if (pReqParms->reqState != reqState_BUREAU_START) /* bureau req */
 	    return HT_OK;                                 /* so ignore  */
     } else {
         if (!DefaultReqParms.pCSUser)
@@ -533,21 +507,8 @@ PRIVATE int CSApp_headerGenerator (HTRequest * pReq, HTStream * target)
     char * url;
     ReqParms_t * pReqParms = ReqParms_getReq(pReq);
 
-    /*    if (!pReqParms) {
-        if ((pReqParms = ReqParms_getBureauReq(pReq)))
-	    return HT_OK;
-        pReqParms = &DefaultReqParms;
-    } */
 if (!pReqParms || pReqParms->reqState != reqState_NEW || !pReqParms->pCSUser)
 HTTrace("PICS: CSApp_headerGenerator prob\n");
-#if 0
-    if (!pReqParms->pCSUser) {
-        if (PICS_TRACE) HTTrace("PICS: No user selected\n");
-	return HT_OK;
-    }
-    if (CSUser_bureau(pReqParms->pCSUser)) /* handled by CSApp_netBefore */
-        return HT_OK;
-#endif
     url = HTAnchor_address((HTAnchor *) anchor);
     if ((translated = CSUser_acceptLabels(pReqParms->pCSUser, CSCompleteness_full))) {
         if (PICS_TRACE) HTTrace("PICS: Accept \"%s\".\n", translated);
@@ -570,7 +531,6 @@ PRIVATE int CSApp_headerParser (HTRequest * pReq, char * token, char * value)
     }
     if (!pReqParms->pCSUser) /* if there is no user */
        	return HT_OK;             /* send the document on its way */
- /*   pReqParms->disposition = CSCheckLabel_parseAndValidateLabelStr(value, pReqParms->pCSUser); */
     pCSParse = CSParse_newLabel(0, 0);
 
     CSParse_parseChunk(pCSParse, value, (int) strlen(value), 0);
@@ -645,9 +605,6 @@ PUBLIC BOOL CSApp_registerReq(HTRequest* pReq, CSUser_t * pCSUser, CSDisposition
     if (!pReq || !pCSUser)
         return NO;
     pReqParms = ReqParms_new(pReq, pCSUser, pCallback, criteria, pVoid);
-    if (!ReqParms)
-      ReqParms = HTList_new();
-    HTList_addObject(ReqParms, (void *)pReqParms);
     return YES;
 }
 
@@ -657,8 +614,7 @@ PUBLIC BOOL CSApp_unregisterReq(HTRequest* pReq)
     if ((pReqParms = ReqParms_getReq(pReq)) == NULL) {
         return NO;
     }
-    HTList_removeObject(ReqParms, (void *)pReqParms);
-    ReqParms_free(pReqParms);
+    ReqParms_removeRequest(pReqParms);
     return YES;
 }
 

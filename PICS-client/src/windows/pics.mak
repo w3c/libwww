@@ -44,10 +44,10 @@ MTL=mktyplib.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "Release"
+# PROP Output_Dir "..\..\..\Bin"
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
-OUTDIR=.\Release
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\Release
 
 ALL : "$(OUTDIR)\pics.dll"
@@ -66,11 +66,14 @@ CLEAN :
 	-@erase ".\Release\CSLLOut.obj"
 	-@erase ".\Release\CSLabel.obj"
 	-@erase ".\Release\CSUsrLst.obj"
-	-@erase ".\Release\pics.lib"
-	-@erase ".\Release\pics.exp"
+	-@erase "..\..\..\Bin\pics.lib"
+	-@erase "..\..\..\Bin\pics.exp"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
+
+"$(INTDIR)" :
+    if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /c
 # ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\Library\src" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
@@ -96,7 +99,7 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
  advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib\
  odbccp32.lib /nologo /subsystem:windows /dll /incremental:no\
  /pdb:"$(OUTDIR)/pics.pdb" /machine:I386 /def:".\pics.def"\
- /out:"../../../Bin/Release/pics.dll" /implib:"$(OUTDIR)/pics.lib" 
+ /out:"$(OUTDIR)/Release\pics.dll" /implib:"$(OUTDIR)/pics.lib" 
 DEF_FILE= \
 	".\pics.def"
 LINK32_OBJS= \
@@ -112,11 +115,11 @@ LINK32_OBJS= \
 	".\Release\CSLLOut.obj" \
 	".\Release\CSLabel.obj" \
 	".\Release\CSUsrLst.obj" \
-	"..\..\..\Library\src\windows\wwwutils\Debug\wwwutils.lib" \
-	"..\..\..\Library\src\windows\wwwmime\Debug\wwwmime.lib" \
-	"..\..\..\Library\src\windows\wwwdll\Debug\wwwdll.lib" \
-	"..\..\..\Library\src\windows\wwwcore\Debug\wwwcore.lib" \
-	"..\..\..\Library\src\windows\wwwapp\Debug\wwwapp.lib"
+	"..\..\..\Bin\wwwutils.lib" \
+	"..\..\..\Bin\wwwmime.lib" \
+	"..\..\..\Bin\wwwdll.lib" \
+	"..\..\..\Bin\wwwcore.lib" \
+	"..\..\..\Bin\wwwapp.lib"
 
 "$(OUTDIR)\pics.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -132,13 +135,13 @@ LINK32_OBJS= \
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "Debug"
+# PROP Output_Dir "..\..\..\Bin"
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
-OUTDIR=.\Debug
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\Debug
 
-ALL : "$(OUTDIR)\pics.dll"
+ALL : "..\..\..\Bin\Debug\pics.dll"
 
 CLEAN : 
 	-@erase ".\Debug\vc40.pdb"
@@ -157,12 +160,15 @@ CLEAN :
 	-@erase ".\Debug\CSLabel.obj"
 	-@erase ".\Debug\CSChkLab.obj"
 	-@erase "..\..\..\Bin\Debug\pics.ilk"
-	-@erase ".\Debug\pics.lib"
-	-@erase ".\Debug\pics.exp"
-	-@erase ".\Debug\pics.pdb"
+	-@erase "..\..\..\Bin\pics.lib"
+	-@erase "..\..\..\Bin\pics.exp"
+	-@erase "..\..\..\Bin\pics.pdb"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
+
+"$(INTDIR)" :
+    if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /c
 # ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "..\..\..\Library\src" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /YX /c
@@ -188,7 +194,7 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
  advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib\
  odbccp32.lib /nologo /subsystem:windows /dll /incremental:yes\
  /pdb:"$(OUTDIR)/pics.pdb" /debug /machine:I386 /def:".\pics.def"\
- /out:"../../../Bin/Debug/pics.dll" /implib:"$(OUTDIR)/pics.lib" 
+ /out:"$(OUTDIR)/Debug\pics.dll" /implib:"$(OUTDIR)/pics.lib" 
 DEF_FILE= \
 	".\pics.def"
 LINK32_OBJS= \
@@ -204,13 +210,13 @@ LINK32_OBJS= \
 	".\Debug\CSStream.obj" \
 	".\Debug\CSLabel.obj" \
 	".\Debug\CSChkLab.obj" \
-	"..\..\..\Library\src\windows\wwwutils\Debug\wwwutils.lib" \
-	"..\..\..\Library\src\windows\wwwmime\Debug\wwwmime.lib" \
-	"..\..\..\Library\src\windows\wwwdll\Debug\wwwdll.lib" \
-	"..\..\..\Library\src\windows\wwwcore\Debug\wwwcore.lib" \
-	"..\..\..\Library\src\windows\wwwapp\Debug\wwwapp.lib"
+	"..\..\..\Bin\wwwutils.lib" \
+	"..\..\..\Bin\wwwmime.lib" \
+	"..\..\..\Bin\wwwdll.lib" \
+	"..\..\..\Bin\wwwcore.lib" \
+	"..\..\..\Bin\wwwapp.lib"
 
-"$(OUTDIR)\pics.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
+"..\..\..\Bin\Debug\pics.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
   $(LINK32_FLAGS) $(LINK32_OBJS)
 <<
@@ -250,34 +256,34 @@ LINK32_OBJS= \
 ################################################################################
 # Begin Source File
 
-SOURCE="\PROJECTS\LIBWWW\w3c-libwww-4.1b2\PICS-client\src\CSUsrLst.c"
+SOURCE="..\..\..\PICS-client\src\CSUsrLst.c"
 DEP_CPP_CSUSR=\
 	".\..\..\..\Library\src\WWWLib.h"\
 	".\..\CSLApp.h"\
 	".\..\..\..\Library\src\sysdep.h"\
-	"..\..\..\Library\src\WWWUtil.h"\
+	".\..\..\..\Library\src\WWWUtil.h"\
 	".\..\..\..\Library\src\WWWCore.h"\
-	{$(INCLUDE)}"\sys\types.h"\
-	{$(INCLUDE)}"\sys\stat.h"\
+	{$(INCLUDE)}"\sys\TYPES.H"\
+	{$(INCLUDE)}"\sys\STAT.H"\
 	".\..\..\..\Library\src\HTUtils.h"\
-	"..\..\..\Library\src\HTArray.h"\
+	".\..\..\..\Library\src\HTArray.h"\
 	".\..\..\..\Library\src\HTAssoc.h"\
 	".\..\..\..\Library\src\HTAtom.h"\
 	".\..\..\..\Library\src\HTChunk.h"\
 	".\..\..\..\Library\src\HTList.h"\
 	".\..\..\..\Library\src\HTMemory.h"\
 	".\..\..\..\Library\src\HTString.h"\
-	"..\..\..\Library\src\HTUU.h"\
-	"..\..\..\Library\src\HTLib.h"\
+	".\..\..\..\Library\src\HTUU.h"\
+	".\..\..\..\Library\src\HTLib.h"\
 	".\..\..\..\Library\src\HTReq.h"\
 	".\..\..\..\Library\src\HTMethod.h"\
 	".\..\..\..\Library\src\HTAnchor.h"\
-	"..\..\..\Library\src\HTLink.h"\
+	".\..\..\..\Library\src\HTLink.h"\
 	".\..\..\..\Library\src\HTParse.h"\
 	".\..\..\..\Library\src\HTEscape.h"\
-	"..\..\..\Library\src\HTUTree.h"\
+	".\..\..\..\Library\src\HTUTree.h"\
 	".\..\..\..\Library\src\HTWWWStr.h"\
-	"..\..\..\Library\src\HTUser.h"\
+	".\..\..\..\Library\src\HTUser.h"\
 	".\..\..\..\Library\src\HTEvent.h"\
 	".\..\..\..\Library\src\HTError.h"\
 	".\..\..\..\Library\src\HTAlert.h"\
@@ -296,30 +302,18 @@ DEP_CPP_CSUSR=\
 	".\..\CSLUtils.h"\
 	
 NODEP_CPP_CSUSR=\
-	"..\..\..\Library\src\HTVMSUtils.h"\
+	".\..\..\..\Library\src\HTVMSUtils.h"\
 	
 
-!IF  "$(CFG)" == "pics - Win32 Release"
-
-
 "$(INTDIR)\CSUsrLst.obj" : $(SOURCE) $(DEP_CPP_CSUSR) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
-
-!ELSEIF  "$(CFG)" == "pics - Win32 Debug"
-
-
-"$(INTDIR)\CSUsrLst.obj" : $(SOURCE) $(DEP_CPP_CSUSR) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ENDIF 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE="\PROJECTS\LIBWWW\w3c-libwww-4.1b2\PICS-client\src\CSChkLab.c"
+SOURCE="..\..\..\PICS-client\src\CSChkLab.c"
 DEP_CPP_CSCHK=\
 	".\..\..\..\Library\src\WWWLib.h"\
 	".\..\CSLUtils.h"\
@@ -328,29 +322,29 @@ DEP_CPP_CSCHK=\
 	".\..\CSLL.h"\
 	".\..\CSLLSt.h"\
 	".\..\..\..\Library\src\sysdep.h"\
-	"..\..\..\Library\src\WWWUtil.h"\
+	".\..\..\..\Library\src\WWWUtil.h"\
 	".\..\..\..\Library\src\WWWCore.h"\
-	{$(INCLUDE)}"\sys\types.h"\
-	{$(INCLUDE)}"\sys\stat.h"\
+	{$(INCLUDE)}"\sys\TYPES.H"\
+	{$(INCLUDE)}"\sys\STAT.H"\
 	".\..\..\..\Library\src\HTUtils.h"\
-	"..\..\..\Library\src\HTArray.h"\
+	".\..\..\..\Library\src\HTArray.h"\
 	".\..\..\..\Library\src\HTAssoc.h"\
 	".\..\..\..\Library\src\HTAtom.h"\
 	".\..\..\..\Library\src\HTChunk.h"\
 	".\..\..\..\Library\src\HTList.h"\
 	".\..\..\..\Library\src\HTMemory.h"\
 	".\..\..\..\Library\src\HTString.h"\
-	"..\..\..\Library\src\HTUU.h"\
-	"..\..\..\Library\src\HTLib.h"\
+	".\..\..\..\Library\src\HTUU.h"\
+	".\..\..\..\Library\src\HTLib.h"\
 	".\..\..\..\Library\src\HTReq.h"\
 	".\..\..\..\Library\src\HTMethod.h"\
 	".\..\..\..\Library\src\HTAnchor.h"\
-	"..\..\..\Library\src\HTLink.h"\
+	".\..\..\..\Library\src\HTLink.h"\
 	".\..\..\..\Library\src\HTParse.h"\
 	".\..\..\..\Library\src\HTEscape.h"\
-	"..\..\..\Library\src\HTUTree.h"\
+	".\..\..\..\Library\src\HTUTree.h"\
 	".\..\..\..\Library\src\HTWWWStr.h"\
-	"..\..\..\Library\src\HTUser.h"\
+	".\..\..\..\Library\src\HTUser.h"\
 	".\..\..\..\Library\src\HTEvent.h"\
 	".\..\..\..\Library\src\HTError.h"\
 	".\..\..\..\Library\src\HTAlert.h"\
@@ -368,7 +362,7 @@ DEP_CPP_CSCHK=\
 	".\..\..\..\Library\src\HTChannl.h"\
 	
 NODEP_CPP_CSCHK=\
-	"..\..\..\Library\src\HTVMSUtils.h"\
+	".\..\..\..\Library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\CSChkLab.obj" : $(SOURCE) $(DEP_CPP_CSCHK) "$(INTDIR)"
@@ -379,33 +373,33 @@ NODEP_CPP_CSCHK=\
 ################################################################################
 # Begin Source File
 
-SOURCE="\PROJECTS\LIBWWW\w3c-libwww-4.1b2\PICS-client\src\CSKwik.c"
+SOURCE="..\..\..\PICS-client\src\CSKwik.c"
 DEP_CPP_CSKWI=\
 	".\..\..\..\Library\src\WWWLib.h"\
 	".\..\..\..\Library\src\sysdep.h"\
-	"..\..\..\Library\src\WWWUtil.h"\
+	".\..\..\..\Library\src\WWWUtil.h"\
 	".\..\..\..\Library\src\WWWCore.h"\
-	{$(INCLUDE)}"\sys\types.h"\
-	{$(INCLUDE)}"\sys\stat.h"\
+	{$(INCLUDE)}"\sys\TYPES.H"\
+	{$(INCLUDE)}"\sys\STAT.H"\
 	".\..\..\..\Library\src\HTUtils.h"\
-	"..\..\..\Library\src\HTArray.h"\
+	".\..\..\..\Library\src\HTArray.h"\
 	".\..\..\..\Library\src\HTAssoc.h"\
 	".\..\..\..\Library\src\HTAtom.h"\
 	".\..\..\..\Library\src\HTChunk.h"\
 	".\..\..\..\Library\src\HTList.h"\
 	".\..\..\..\Library\src\HTMemory.h"\
 	".\..\..\..\Library\src\HTString.h"\
-	"..\..\..\Library\src\HTUU.h"\
-	"..\..\..\Library\src\HTLib.h"\
+	".\..\..\..\Library\src\HTUU.h"\
+	".\..\..\..\Library\src\HTLib.h"\
 	".\..\..\..\Library\src\HTReq.h"\
 	".\..\..\..\Library\src\HTMethod.h"\
 	".\..\..\..\Library\src\HTAnchor.h"\
-	"..\..\..\Library\src\HTLink.h"\
+	".\..\..\..\Library\src\HTLink.h"\
 	".\..\..\..\Library\src\HTParse.h"\
 	".\..\..\..\Library\src\HTEscape.h"\
-	"..\..\..\Library\src\HTUTree.h"\
+	".\..\..\..\Library\src\HTUTree.h"\
 	".\..\..\..\Library\src\HTWWWStr.h"\
-	"..\..\..\Library\src\HTUser.h"\
+	".\..\..\..\Library\src\HTUser.h"\
 	".\..\..\..\Library\src\HTEvent.h"\
 	".\..\..\..\Library\src\HTError.h"\
 	".\..\..\..\Library\src\HTAlert.h"\
@@ -423,7 +417,7 @@ DEP_CPP_CSKWI=\
 	".\..\..\..\Library\src\HTChannl.h"\
 	
 NODEP_CPP_CSKWI=\
-	"..\..\..\Library\src\HTVMSUtils.h"\
+	".\..\..\..\Library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\CSKwik.obj" : $(SOURCE) $(DEP_CPP_CSKWI) "$(INTDIR)"
@@ -434,7 +428,7 @@ NODEP_CPP_CSKWI=\
 ################################################################################
 # Begin Source File
 
-SOURCE="\PROJECTS\LIBWWW\w3c-libwww-4.1b2\PICS-client\src\CSLabel.c"
+SOURCE="..\..\..\PICS-client\src\CSLabel.c"
 DEP_CPP_CSLAB=\
 	".\..\..\..\Library\src\sysdep.h"\
 	".\..\..\..\Library\src\HTList.h"\
@@ -442,15 +436,15 @@ DEP_CPP_CSLAB=\
 	".\..\CSParse.h"\
 	".\..\CSLL.h"\
 	".\..\CSLLSt.h"\
-	{$(INCLUDE)}"\sys\types.h"\
-	{$(INCLUDE)}"\sys\stat.h"\
+	{$(INCLUDE)}"\sys\TYPES.H"\
+	{$(INCLUDE)}"\sys\STAT.H"\
 	".\..\CSLUtils.h"\
 	".\..\..\..\Library\src\HTChunk.h"\
 	".\..\..\..\Library\src\HTUtils.h"\
 	".\..\..\..\Library\src\HTMemory.h"\
 	
 NODEP_CPP_CSLAB=\
-	"..\..\..\Library\src\HTVMSUtils.h"\
+	".\..\..\..\Library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\CSLabel.obj" : $(SOURCE) $(DEP_CPP_CSLAB) "$(INTDIR)"
@@ -461,36 +455,36 @@ NODEP_CPP_CSLAB=\
 ################################################################################
 # Begin Source File
 
-SOURCE="\PROJECTS\LIBWWW\w3c-libwww-4.1b2\PICS-client\src\CSLLOut.c"
+SOURCE="..\..\..\PICS-client\src\CSLLOut.c"
 DEP_CPP_CSLLO=\
 	".\..\..\..\Library\src\WWWLib.h"\
 	".\..\CSLUtils.h"\
 	".\..\CSLL.h"\
 	".\..\CSLLSt.h"\
 	".\..\..\..\Library\src\sysdep.h"\
-	"..\..\..\Library\src\WWWUtil.h"\
+	".\..\..\..\Library\src\WWWUtil.h"\
 	".\..\..\..\Library\src\WWWCore.h"\
-	{$(INCLUDE)}"\sys\types.h"\
-	{$(INCLUDE)}"\sys\stat.h"\
+	{$(INCLUDE)}"\sys\TYPES.H"\
+	{$(INCLUDE)}"\sys\STAT.H"\
 	".\..\..\..\Library\src\HTUtils.h"\
-	"..\..\..\Library\src\HTArray.h"\
+	".\..\..\..\Library\src\HTArray.h"\
 	".\..\..\..\Library\src\HTAssoc.h"\
 	".\..\..\..\Library\src\HTAtom.h"\
 	".\..\..\..\Library\src\HTChunk.h"\
 	".\..\..\..\Library\src\HTList.h"\
 	".\..\..\..\Library\src\HTMemory.h"\
 	".\..\..\..\Library\src\HTString.h"\
-	"..\..\..\Library\src\HTUU.h"\
-	"..\..\..\Library\src\HTLib.h"\
+	".\..\..\..\Library\src\HTUU.h"\
+	".\..\..\..\Library\src\HTLib.h"\
 	".\..\..\..\Library\src\HTReq.h"\
 	".\..\..\..\Library\src\HTMethod.h"\
 	".\..\..\..\Library\src\HTAnchor.h"\
-	"..\..\..\Library\src\HTLink.h"\
+	".\..\..\..\Library\src\HTLink.h"\
 	".\..\..\..\Library\src\HTParse.h"\
 	".\..\..\..\Library\src\HTEscape.h"\
-	"..\..\..\Library\src\HTUTree.h"\
+	".\..\..\..\Library\src\HTUTree.h"\
 	".\..\..\..\Library\src\HTWWWStr.h"\
-	"..\..\..\Library\src\HTUser.h"\
+	".\..\..\..\Library\src\HTUser.h"\
 	".\..\..\..\Library\src\HTEvent.h"\
 	".\..\..\..\Library\src\HTError.h"\
 	".\..\..\..\Library\src\HTAlert.h"\
@@ -508,7 +502,7 @@ DEP_CPP_CSLLO=\
 	".\..\..\..\Library\src\HTChannl.h"\
 	
 NODEP_CPP_CSLLO=\
-	"..\..\..\Library\src\HTVMSUtils.h"\
+	".\..\..\..\Library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\CSLLOut.obj" : $(SOURCE) $(DEP_CPP_CSLLO) "$(INTDIR)"
@@ -519,36 +513,36 @@ NODEP_CPP_CSLLO=\
 ################################################################################
 # Begin Source File
 
-SOURCE="\PROJECTS\LIBWWW\w3c-libwww-4.1b2\PICS-client\src\CSLLURLs.c"
+SOURCE="..\..\..\PICS-client\src\CSLLURLs.c"
 DEP_CPP_CSLLU=\
 	".\..\..\..\Library\src\WWWLib.h"\
 	".\..\CSLUtils.h"\
 	".\..\CSLL.h"\
 	".\..\CSLLSt.h"\
 	".\..\..\..\Library\src\sysdep.h"\
-	"..\..\..\Library\src\WWWUtil.h"\
+	".\..\..\..\Library\src\WWWUtil.h"\
 	".\..\..\..\Library\src\WWWCore.h"\
-	{$(INCLUDE)}"\sys\types.h"\
-	{$(INCLUDE)}"\sys\stat.h"\
+	{$(INCLUDE)}"\sys\TYPES.H"\
+	{$(INCLUDE)}"\sys\STAT.H"\
 	".\..\..\..\Library\src\HTUtils.h"\
-	"..\..\..\Library\src\HTArray.h"\
+	".\..\..\..\Library\src\HTArray.h"\
 	".\..\..\..\Library\src\HTAssoc.h"\
 	".\..\..\..\Library\src\HTAtom.h"\
 	".\..\..\..\Library\src\HTChunk.h"\
 	".\..\..\..\Library\src\HTList.h"\
 	".\..\..\..\Library\src\HTMemory.h"\
 	".\..\..\..\Library\src\HTString.h"\
-	"..\..\..\Library\src\HTUU.h"\
-	"..\..\..\Library\src\HTLib.h"\
+	".\..\..\..\Library\src\HTUU.h"\
+	".\..\..\..\Library\src\HTLib.h"\
 	".\..\..\..\Library\src\HTReq.h"\
 	".\..\..\..\Library\src\HTMethod.h"\
 	".\..\..\..\Library\src\HTAnchor.h"\
-	"..\..\..\Library\src\HTLink.h"\
+	".\..\..\..\Library\src\HTLink.h"\
 	".\..\..\..\Library\src\HTParse.h"\
 	".\..\..\..\Library\src\HTEscape.h"\
-	"..\..\..\Library\src\HTUTree.h"\
+	".\..\..\..\Library\src\HTUTree.h"\
 	".\..\..\..\Library\src\HTWWWStr.h"\
-	"..\..\..\Library\src\HTUser.h"\
+	".\..\..\..\Library\src\HTUser.h"\
 	".\..\..\..\Library\src\HTEvent.h"\
 	".\..\..\..\Library\src\HTError.h"\
 	".\..\..\..\Library\src\HTAlert.h"\
@@ -566,7 +560,7 @@ DEP_CPP_CSLLU=\
 	".\..\..\..\Library\src\HTChannl.h"\
 	
 NODEP_CPP_CSLLU=\
-	"..\..\..\Library\src\HTVMSUtils.h"\
+	".\..\..\..\Library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\CSLLURLs.obj" : $(SOURCE) $(DEP_CPP_CSLLU) "$(INTDIR)"
@@ -577,7 +571,7 @@ NODEP_CPP_CSLLU=\
 ################################################################################
 # Begin Source File
 
-SOURCE="\PROJECTS\LIBWWW\w3c-libwww-4.1b2\PICS-client\src\CSMacRed.c"
+SOURCE="..\..\..\PICS-client\src\CSMacRed.c"
 DEP_CPP_CSMAC=\
 	".\..\..\..\Library\src\sysdep.h"\
 	".\..\..\..\Library\src\HTUtils.h"\
@@ -585,15 +579,15 @@ DEP_CPP_CSMAC=\
 	".\..\CSParse.h"\
 	".\..\CSMR.h"\
 	".\..\CSMRSt.h"\
-	{$(INCLUDE)}"\sys\types.h"\
-	{$(INCLUDE)}"\sys\stat.h"\
+	{$(INCLUDE)}"\sys\TYPES.H"\
+	{$(INCLUDE)}"\sys\STAT.H"\
 	".\..\..\..\Library\src\HTMemory.h"\
 	".\..\CSLUtils.h"\
 	".\..\..\..\Library\src\HTChunk.h"\
 	".\..\..\..\Library\src\HTList.h"\
 	
 NODEP_CPP_CSMAC=\
-	"..\..\..\Library\src\HTVMSUtils.h"\
+	".\..\..\..\Library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\CSMacRed.obj" : $(SOURCE) $(DEP_CPP_CSMAC) "$(INTDIR)"
@@ -604,34 +598,34 @@ NODEP_CPP_CSMAC=\
 ################################################################################
 # Begin Source File
 
-SOURCE="\PROJECTS\LIBWWW\w3c-libwww-4.1b2\PICS-client\src\CSMem.c"
+SOURCE="..\..\..\PICS-client\src\CSMem.c"
 DEP_CPP_CSMEM=\
 	".\..\..\..\Library\src\WWWLib.h"\
 	".\..\CSLUtils.h"\
 	".\..\..\..\Library\src\sysdep.h"\
-	"..\..\..\Library\src\WWWUtil.h"\
+	".\..\..\..\Library\src\WWWUtil.h"\
 	".\..\..\..\Library\src\WWWCore.h"\
-	{$(INCLUDE)}"\sys\types.h"\
-	{$(INCLUDE)}"\sys\stat.h"\
+	{$(INCLUDE)}"\sys\TYPES.H"\
+	{$(INCLUDE)}"\sys\STAT.H"\
 	".\..\..\..\Library\src\HTUtils.h"\
-	"..\..\..\Library\src\HTArray.h"\
+	".\..\..\..\Library\src\HTArray.h"\
 	".\..\..\..\Library\src\HTAssoc.h"\
 	".\..\..\..\Library\src\HTAtom.h"\
 	".\..\..\..\Library\src\HTChunk.h"\
 	".\..\..\..\Library\src\HTList.h"\
 	".\..\..\..\Library\src\HTMemory.h"\
 	".\..\..\..\Library\src\HTString.h"\
-	"..\..\..\Library\src\HTUU.h"\
-	"..\..\..\Library\src\HTLib.h"\
+	".\..\..\..\Library\src\HTUU.h"\
+	".\..\..\..\Library\src\HTLib.h"\
 	".\..\..\..\Library\src\HTReq.h"\
 	".\..\..\..\Library\src\HTMethod.h"\
 	".\..\..\..\Library\src\HTAnchor.h"\
-	"..\..\..\Library\src\HTLink.h"\
+	".\..\..\..\Library\src\HTLink.h"\
 	".\..\..\..\Library\src\HTParse.h"\
 	".\..\..\..\Library\src\HTEscape.h"\
-	"..\..\..\Library\src\HTUTree.h"\
+	".\..\..\..\Library\src\HTUTree.h"\
 	".\..\..\..\Library\src\HTWWWStr.h"\
-	"..\..\..\Library\src\HTUser.h"\
+	".\..\..\..\Library\src\HTUser.h"\
 	".\..\..\..\Library\src\HTEvent.h"\
 	".\..\..\..\Library\src\HTError.h"\
 	".\..\..\..\Library\src\HTAlert.h"\
@@ -649,7 +643,7 @@ DEP_CPP_CSMEM=\
 	".\..\..\..\Library\src\HTChannl.h"\
 	
 NODEP_CPP_CSMEM=\
-	"..\..\..\Library\src\HTVMSUtils.h"\
+	".\..\..\..\Library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\CSMem.obj" : $(SOURCE) $(DEP_CPP_CSMEM) "$(INTDIR)"
@@ -660,21 +654,21 @@ NODEP_CPP_CSMEM=\
 ################################################################################
 # Begin Source File
 
-SOURCE="\PROJECTS\LIBWWW\w3c-libwww-4.1b2\PICS-client\src\CSParse.c"
+SOURCE="..\..\..\PICS-client\src\CSParse.c"
 DEP_CPP_CSPAR=\
 	".\..\..\..\Library\src\sysdep.h"\
 	".\..\..\..\Library\src\HTChunk.h"\
 	".\..\..\..\Library\src\HTString.h"\
 	".\..\CSLUtils.h"\
 	".\..\CSParse.h"\
-	{$(INCLUDE)}"\sys\types.h"\
-	{$(INCLUDE)}"\sys\stat.h"\
+	{$(INCLUDE)}"\sys\TYPES.H"\
+	{$(INCLUDE)}"\sys\STAT.H"\
 	".\..\..\..\Library\src\HTUtils.h"\
 	".\..\..\..\Library\src\HTList.h"\
 	".\..\..\..\Library\src\HTMemory.h"\
 	
 NODEP_CPP_CSPAR=\
-	"..\..\..\Library\src\HTVMSUtils.h"\
+	".\..\..\..\Library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\CSParse.obj" : $(SOURCE) $(DEP_CPP_CSPAR) "$(INTDIR)"
@@ -685,7 +679,7 @@ NODEP_CPP_CSPAR=\
 ################################################################################
 # Begin Source File
 
-SOURCE="\PROJECTS\LIBWWW\w3c-libwww-4.1b2\PICS-client\src\CSStream.c"
+SOURCE="..\..\..\PICS-client\src\CSStream.c"
 DEP_CPP_CSSTR=\
 	".\..\..\..\Library\src\WWWLib.h"\
 	".\..\..\..\Library\src\HTProxy.h"\
@@ -696,29 +690,29 @@ DEP_CPP_CSSTR=\
 	".\..\CSLApp.h"\
 	".\..\CSParse.h"\
 	".\..\..\..\Library\src\sysdep.h"\
-	"..\..\..\Library\src\WWWUtil.h"\
+	".\..\..\..\Library\src\WWWUtil.h"\
 	".\..\..\..\Library\src\WWWCore.h"\
-	{$(INCLUDE)}"\sys\types.h"\
-	{$(INCLUDE)}"\sys\stat.h"\
+	{$(INCLUDE)}"\sys\TYPES.H"\
+	{$(INCLUDE)}"\sys\STAT.H"\
 	".\..\..\..\Library\src\HTUtils.h"\
-	"..\..\..\Library\src\HTArray.h"\
+	".\..\..\..\Library\src\HTArray.h"\
 	".\..\..\..\Library\src\HTAssoc.h"\
 	".\..\..\..\Library\src\HTAtom.h"\
 	".\..\..\..\Library\src\HTChunk.h"\
 	".\..\..\..\Library\src\HTList.h"\
 	".\..\..\..\Library\src\HTMemory.h"\
 	".\..\..\..\Library\src\HTString.h"\
-	"..\..\..\Library\src\HTUU.h"\
-	"..\..\..\Library\src\HTLib.h"\
+	".\..\..\..\Library\src\HTUU.h"\
+	".\..\..\..\Library\src\HTLib.h"\
 	".\..\..\..\Library\src\HTReq.h"\
 	".\..\..\..\Library\src\HTMethod.h"\
 	".\..\..\..\Library\src\HTAnchor.h"\
-	"..\..\..\Library\src\HTLink.h"\
+	".\..\..\..\Library\src\HTLink.h"\
 	".\..\..\..\Library\src\HTParse.h"\
 	".\..\..\..\Library\src\HTEscape.h"\
-	"..\..\..\Library\src\HTUTree.h"\
+	".\..\..\..\Library\src\HTUTree.h"\
 	".\..\..\..\Library\src\HTWWWStr.h"\
-	"..\..\..\Library\src\HTUser.h"\
+	".\..\..\..\Library\src\HTUser.h"\
 	".\..\..\..\Library\src\HTEvent.h"\
 	".\..\..\..\Library\src\HTError.h"\
 	".\..\..\..\Library\src\HTAlert.h"\
@@ -736,7 +730,7 @@ DEP_CPP_CSSTR=\
 	".\..\..\..\Library\src\HTChannl.h"\
 	
 NODEP_CPP_CSSTR=\
-	"..\..\..\Library\src\HTVMSUtils.h"\
+	".\..\..\..\Library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\CSStream.obj" : $(SOURCE) $(DEP_CPP_CSSTR) "$(INTDIR)"
@@ -747,7 +741,7 @@ NODEP_CPP_CSSTR=\
 ################################################################################
 # Begin Source File
 
-SOURCE="\PROJECTS\LIBWWW\w3c-libwww-4.1b2\PICS-client\src\CSUser.c"
+SOURCE="..\..\..\PICS-client\src\CSUser.c"
 DEP_CPP_CSUSE=\
 	".\..\..\..\Library\src\sysdep.h"\
 	".\..\..\..\Library\src\HTUtils.h"\
@@ -757,15 +751,15 @@ DEP_CPP_CSUSE=\
 	".\..\CSParse.h"\
 	".\..\CSUser.h"\
 	".\..\CSUserSt.h"\
-	{$(INCLUDE)}"\sys\types.h"\
-	{$(INCLUDE)}"\sys\stat.h"\
+	{$(INCLUDE)}"\sys\TYPES.H"\
+	{$(INCLUDE)}"\sys\STAT.H"\
 	".\..\..\..\Library\src\HTMemory.h"\
 	".\..\CSLUtils.h"\
 	".\..\..\..\Library\src\HTChunk.h"\
 	".\..\..\..\Library\src\HTList.h"\
 	
 NODEP_CPP_CSUSE=\
-	"..\..\..\Library\src\HTVMSUtils.h"\
+	".\..\..\..\Library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\CSUser.obj" : $(SOURCE) $(DEP_CPP_CSUSE) "$(INTDIR)"
@@ -776,7 +770,7 @@ NODEP_CPP_CSUSE=\
 ################################################################################
 # Begin Source File
 
-SOURCE="\PROJECTS\LIBWWW\w3c-libwww-4.1b2\PICS-client\src\CSApp.c"
+SOURCE="..\..\..\PICS-client\src\CSApp.c"
 DEP_CPP_CSAPP=\
 	".\..\..\..\Library\src\WWWLib.h"\
 	".\..\..\..\Library\src\WWWApp.h"\
@@ -789,29 +783,29 @@ DEP_CPP_CSAPP=\
 	".\..\CSUserSt.h"\
 	".\..\CSUsrLst.h"\
 	".\..\..\..\Library\src\sysdep.h"\
-	"..\..\..\Library\src\WWWUtil.h"\
+	".\..\..\..\Library\src\WWWUtil.h"\
 	".\..\..\..\Library\src\WWWCore.h"\
-	{$(INCLUDE)}"\sys\types.h"\
-	{$(INCLUDE)}"\sys\stat.h"\
+	{$(INCLUDE)}"\sys\TYPES.H"\
+	{$(INCLUDE)}"\sys\STAT.H"\
 	".\..\..\..\Library\src\HTUtils.h"\
-	"..\..\..\Library\src\HTArray.h"\
+	".\..\..\..\Library\src\HTArray.h"\
 	".\..\..\..\Library\src\HTAssoc.h"\
 	".\..\..\..\Library\src\HTAtom.h"\
 	".\..\..\..\Library\src\HTChunk.h"\
 	".\..\..\..\Library\src\HTList.h"\
 	".\..\..\..\Library\src\HTMemory.h"\
 	".\..\..\..\Library\src\HTString.h"\
-	"..\..\..\Library\src\HTUU.h"\
-	"..\..\..\Library\src\HTLib.h"\
+	".\..\..\..\Library\src\HTUU.h"\
+	".\..\..\..\Library\src\HTLib.h"\
 	".\..\..\..\Library\src\HTReq.h"\
 	".\..\..\..\Library\src\HTMethod.h"\
 	".\..\..\..\Library\src\HTAnchor.h"\
-	"..\..\..\Library\src\HTLink.h"\
+	".\..\..\..\Library\src\HTLink.h"\
 	".\..\..\..\Library\src\HTParse.h"\
 	".\..\..\..\Library\src\HTEscape.h"\
-	"..\..\..\Library\src\HTUTree.h"\
+	".\..\..\..\Library\src\HTUTree.h"\
 	".\..\..\..\Library\src\HTWWWStr.h"\
-	"..\..\..\Library\src\HTUser.h"\
+	".\..\..\..\Library\src\HTUser.h"\
 	".\..\..\..\Library\src\HTEvent.h"\
 	".\..\..\..\Library\src\HTError.h"\
 	".\..\..\..\Library\src\HTAlert.h"\
@@ -831,12 +825,12 @@ DEP_CPP_CSAPP=\
 	".\..\..\..\Library\src\HTHome.h"\
 	".\..\..\..\Library\src\HTDialog.h"\
 	".\..\..\..\Library\src\HTAccess.h"\
-	"..\..\..\Library\src\HTFilter.h"\
+	".\..\..\..\Library\src\HTFilter.h"\
 	".\..\..\..\Library\src\HTLog.h"\
 	".\..\..\..\Library\src\HTHist.h"\
 	
 NODEP_CPP_CSAPP=\
-	"..\..\..\Library\src\HTVMSUtils.h"\
+	".\..\..\..\Library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\CSApp.obj" : $(SOURCE) $(DEP_CPP_CSAPP) "$(INTDIR)"
@@ -859,8 +853,7 @@ SOURCE=.\pics.def
 ################################################################################
 # Begin Source File
 
-SOURCE=\
-"\PROJECTS\LIBWWW\w3c-libwww-4.1b2\Library\src\windows\wwwcore\Debug\wwwcore.lib"
+SOURCE="..\..\..\Bin\wwwutils.lib"
 
 !IF  "$(CFG)" == "pics - Win32 Release"
 
@@ -872,8 +865,7 @@ SOURCE=\
 ################################################################################
 # Begin Source File
 
-SOURCE=\
-"\PROJECTS\LIBWWW\w3c-libwww-4.1b2\Library\src\windows\wwwdll\Debug\wwwdll.lib"
+SOURCE="..\..\..\Bin\wwwmime.lib"
 
 !IF  "$(CFG)" == "pics - Win32 Release"
 
@@ -885,8 +877,7 @@ SOURCE=\
 ################################################################################
 # Begin Source File
 
-SOURCE=\
-"\PROJECTS\LIBWWW\w3c-libwww-4.1b2\Library\src\windows\wwwutils\Debug\wwwutils.lib"
+SOURCE="..\..\..\Bin\wwwdll.lib"
 
 !IF  "$(CFG)" == "pics - Win32 Release"
 
@@ -898,8 +889,7 @@ SOURCE=\
 ################################################################################
 # Begin Source File
 
-SOURCE=\
-"\PROJECTS\LIBWWW\w3c-libwww-4.1b2\Library\src\windows\wwwmime\Debug\wwwmime.lib"
+SOURCE="..\..\..\Bin\wwwcore.lib"
 
 !IF  "$(CFG)" == "pics - Win32 Release"
 
@@ -911,8 +901,7 @@ SOURCE=\
 ################################################################################
 # Begin Source File
 
-SOURCE=\
-"\PROJECTS\LIBWWW\w3c-libwww-4.1b2\Library\src\windows\wwwapp\Debug\wwwapp.lib"
+SOURCE="..\..\..\Bin\wwwapp.lib"
 
 !IF  "$(CFG)" == "pics - Win32 Release"
 
