@@ -376,6 +376,20 @@ print them out to stdout etc.
 <PRE>
 extern HTConverter HTRDFToTriples;
 </PRE>
+<H3>
+  Parse a file of RDF
+</H3>
+<P>
+This function parses a file of RDF in a synchronous, non-blocking
+way.  In other words, the file is not asynchronously loaded.  If
+the file is successfully parsed, NULL is returned; otherwise a
+pointer to an error message is returned.  The caller must NOT 
+free the pointer returned by this function.
+<PRE>
+extern char * HTRDFParseFile (const char *file_name, 
+                              HTTripleCallback_new * new_triple_callback);
+</PRE>
+
 <PRE>
 #endif
 </PRE>
