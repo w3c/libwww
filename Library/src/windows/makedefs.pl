@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!perl
 
 $NumberDefs'at = 24;            # target at sign column
 $NumberDefs'tab = 8;            # how wide a tab looks in your editor

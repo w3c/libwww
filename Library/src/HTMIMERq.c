@@ -93,9 +93,9 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 		entity->content_length, CR, LF);
 	PUTBLOCK(linebuf, (int) strlen(linebuf));	
     }
-    if (request->EntityMask & HT_E_CTE && entity->cte) {
+    if (request->EntityMask & HT_E_CTE && entity->transfer) {
 	sprintf(linebuf, "Content-Transfer-Encoding: %s%c%c",
-		HTAtom_name(entity->cte), CR, LF);
+		HTAtom_name(entity->transfer), CR, LF);
 	PUTBLOCK(linebuf, (int) strlen(linebuf));
     }
     if (request->EntityMask & HT_E_CONTENT_TYPE && entity->content_type) {

@@ -139,16 +139,16 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 	HTList *cur;
 	BOOL first=YES;
 	for (list=0; list<2; list++) {
-	    if ((!list && ((cur = HTFormat_encoding()) != NULL)) ||
+	    if ((!list && ((cur = HTFormat_contentCoding()) != NULL)) ||
 		(list && ((cur = HTRequest_encoding(request)) != NULL))) {
-		HTContentCoding * pres;
-		while ((pres = (HTContentCoding *) HTList_nextObject(cur))) {
+		HTCoding * pres;
+		while ((pres = (HTCoding *) HTList_nextObject(cur))) {
 		    if (first) {
 			PUTS("Accept-Encoding: ");
 			first = NO;
 		    } else
 			PUTC(',');
-		    PUTS(HTContentCoding_name(pres));
+		    PUTS(HTCoding_name(pres));
 		}
 	    }
 	}

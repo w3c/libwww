@@ -1,4 +1,4 @@
-/*								     HTBind.c
+/*								     Htbind.c
 **	FILE SUFFIX BIND MANAGER
 **
 **	(c) COPYRIGHT MIT 1995
@@ -42,7 +42,7 @@ typedef struct _HTBind {
     char *	suffix;
     HTFormat	type;			/* Content-Type */
     HTEncoding	encoding;		/* Content-Encoding */
-    HTCte	transfer;		/* Content-Transfer-Encoding */
+    HTEncoding	transfer;		/* Content-Transfer-Encoding */
     HTLanguage	language;		/* Content-Language */
     double	quality;
 } HTBind;
@@ -354,14 +354,14 @@ PUBLIC BOOL HTBind_getBindings (HTParentAnchor * anchor)
 	if ((file = strrchr(path, '/'))) {
 	    HTFormat format = NULL;
 	    HTEncoding encoding = NULL;
-	    HTCte cte = NULL;
+	    HTEncoding transfer = NULL;
 	    HTLanguage language = NULL;
  	    if (BIND_TRACE) HTTrace("Get Binding. for file: `%s\'\n", path);
-	    status = HTBind_getFormat(file, &format, &encoding, &cte,
+	    status = HTBind_getFormat(file, &format, &encoding, &transfer,
 				      &language, &quality);
 	    if (status) {
 		HTAnchor_setFormat(anchor, format);
-		HTAnchor_setCte(anchor, cte);
+		HTAnchor_setTransfer(anchor, transfer);
 		HTAnchor_addEncoding(anchor, encoding);
 		HTAnchor_addLanguage(anchor, language);
 	    }
@@ -384,7 +384,7 @@ PUBLIC BOOL HTBind_getBindings (HTParentAnchor * anchor)
 PUBLIC BOOL HTBind_getFormat (const char *	filename,
 			      HTFormat *	format,
 			      HTEncoding *	enc,
-			      HTCte *		cte,
+			      HTEncoding *	cte,
 			      HTLanguage *	lang,
 			      double *		quality)
 {
@@ -428,7 +428,7 @@ PUBLIC BOOL HTBind_getFormat (const char *	filename,
 			if (BIND_TRACE) HTTrace("Found!\n");
 			if (suff->type && format) *format = suff->type;
 			if (suff->encoding && enc) *enc = suff->encoding;
-			if (suff->transfer && cte) *enc = suff->transfer;
+			if (suff->transfer && cte) *cte = suff->transfer;
 			if (suff->language && lang) *lang = suff->language;
 			if (suff->quality > HT_EPSILON)
 			    *quality *= suff->quality;

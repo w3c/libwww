@@ -856,14 +856,14 @@ PUBLIC BOOL HTAnchor_addLanguage (HTParentAnchor * me, HTLanguage  language)
 /*
 **	Content Transfer Encoding
 */
-PUBLIC HTCte HTAnchor_cte (HTParentAnchor * me)
+PUBLIC HTEncoding HTAnchor_transfer (HTParentAnchor * me)
 {
-    return me ? me->cte : NULL;
+    return me ? me->transfer : NULL;
 }
 
-PUBLIC void HTAnchor_setCte (HTParentAnchor * me, HTCte cte)
+PUBLIC void HTAnchor_setTransfer (HTParentAnchor * me, HTEncoding transfer)
 {
-    if (me) me->cte = cte;
+    if (me) me->transfer = transfer;
 }
 
 /*
@@ -1018,18 +1018,16 @@ PUBLIC void HTAnchor_setHeaderParsed (HTParentAnchor * me)
 PUBLIC void HTAnchor_clearHeader (HTParentAnchor * me)
 {
     me->methods = METHOD_INVALID;
-    me->content_encoding = NULL;
-#ifdef NEW_CODE
-    /* WAIT UNTIL WE HANDLE LANGUAGE AS A LIST */
+    if (me->content_encoding) {
+	HTList_delete(me->content_encoding);
+	me->content_encoding = HTList_new();
+    }
     if (me->content_language) {
 	HTList_delete(me->content_language);
 	me->content_language = HTList_new();
     }
-#else
-    me->content_language = NULL;
-#endif
     me->content_length = -1;					  /* Invalid */
-    me->cte = NULL;
+    me->transfer = NULL;
     me->content_type = WWW_UNKNOWN;
     me->charset = NULL;
     me->level = NULL;

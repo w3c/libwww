@@ -96,9 +96,9 @@ PRIVATE int HTGuess_flush (HTStream * me)
 	    *me->write_ptr = 0;	/* terminate buffer */
 	    
 	    if (me->high_cnt > 0)
-		HTAnchor_setCte(anchor, WWW_CTE_8BIT);
+		HTAnchor_setTransfer(anchor, WWW_CTE_8BIT);
 	    else
-		HTAnchor_setCte(anchor, WWW_CTE_7BIT);
+		HTAnchor_setTransfer(anchor, WWW_CTE_7BIT);
 	    
 	    if (is_html(me->buffer))
 		HTAnchor_setFormat(anchor, HTAtom_for("text/html"));
@@ -112,10 +112,10 @@ PRIVATE int HTGuess_flush (HTStream * me)
 		HTAnchor_setFormat(anchor, HTAtom_for("image/x-xbitmap"));
 	    
 	    else if ((ptr = strstr(me->buffer, "converted with BinHex"))!=NULL)
-		HTAnchor_setCte(anchor, WWW_CTE_MACBINHEX);
+		HTAnchor_setTransfer(anchor, WWW_CTE_MACBINHEX);
 
 	    else if (!strncmp(me->buffer, "begin ", 6))
-		HTAnchor_setCte(anchor, WWW_CTE_BASE64);
+		HTAnchor_setTransfer(anchor, WWW_CTE_BASE64);
 
 	    else
 		HTAnchor_setFormat(anchor, WWW_PLAINTEXT);
@@ -149,7 +149,7 @@ PRIVATE int HTGuess_flush (HTStream * me)
 	if (anchor->content_type == WWW_UNKNOWN)
 	    HTAnchor_setFormat(anchor, WWW_BINARY);
 	if (!anchor->content_encoding)
-	    HTAnchor_setCte(anchor, WWW_CTE_BINARY);
+	    HTAnchor_setTransfer(anchor, WWW_CTE_BINARY);
 	
 	if (STREAM_TRACE) {
 	    HTTrace("Guessed..... C-T  : %s\n",

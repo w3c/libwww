@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww Anchor Object</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 11-Apr-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Apr-1996 -->
 </HEAD>
 <BODY>
 
@@ -48,8 +48,7 @@ typedef struct _HTLink		HTLink;
 
 typedef HTAtom * HTFormat;
 typedef HTAtom * HTLevel;		       /* Used to specify HTML level */
-typedef HTAtom * HTEncoding;				 /* Content Encoding */
-typedef HTAtom * HTCte;				/* Content transfer encoding */
+typedef HTAtom * HTEncoding;				    /* C-E and C-T-E */
 typedef HTAtom * HTCharset;
 typedef HTAtom * HTLanguage;
 
@@ -427,9 +426,9 @@ extern BOOL HTAnchor_addEncoding	(HTParentAnchor * me, HTEncoding enc);
 <H3>Content Transfer Encoding</H3>
 
 <PRE>
-extern HTCte HTAnchor_cte		(HTParentAnchor *me);
-extern void HTAnchor_setCte		(HTParentAnchor *me,
-					 HTCte		cte);
+extern HTEncoding HTAnchor_transfer	(HTParentAnchor *me);
+extern void HTAnchor_setTransfer	(HTParentAnchor *me,
+					 HTEncoding		transfer);
 </PRE>
 
 <H3>Content Length</H3>

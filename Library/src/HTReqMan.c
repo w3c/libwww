@@ -230,6 +230,24 @@ PUBLIC HTList * HTRequest_encoding (HTRequest *request)
 }
 
 /*
+**	Accept Transfer Encoding 
+**	list can be NULL
+*/
+PUBLIC void HTRequest_setTransfer (HTRequest * request,
+				   HTList * cte, BOOL override)
+{
+    if (request) {
+	request->ctes = cte;
+	request->cte_local = override;
+    }
+}
+
+PUBLIC HTList * HTRequest_transfer (HTRequest * request)
+{
+    return request ? request->ctes : NULL;
+}
+
+/*
 **	Accept Language
 **	list can be NULL
 */

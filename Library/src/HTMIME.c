@@ -21,16 +21,10 @@
 /* Library include files */
 #include "sysdep.h"
 #include "WWWUtil.h"
-#include "HTFormat.h"
-#include "HTCache.h"
-#include "HTAlert.h"
-#include "HTAncMan.h"
-#include "HTMethod.h"
-#include "HTHeader.h"
-#include "HTSocket.h"
-#include "HTWWWStr.h"
-#include "HTNetMan.h"
+#include "WWWCore.h"
 #include "HTReqMan.h"
+#include "HTNetMan.h"
+#include "HTHeader.h"
 #include "HTMIME.h"					 /* Implemented here */
 
 /*		MIME Object
@@ -393,11 +387,11 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 		HTMethod new_method;
 		/* We treat them as case-insensitive! */
 		if ((new_method = HTMethod_enum(value)) != METHOD_INVALID)
-		    anchor->methods += new_method;
+		    HTAnchor_appendMethods(anchor, new_method);
 	    }
 	    if (STREAM_TRACE)
 		HTTrace("MIMEParser.. Methods allowed: %d\n",
-			anchor->methods);
+			HTAnchor_methods(anchor));
 	    state = JUNK_LINE;
 	    break;
 
@@ -441,7 +435,7 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 
 	  case CONTENT_LENGTH:
 	    if ((value = HTNextField(&ptr)) != NULL)
-		anchor->content_length = atol(value);
+		HTAnchor_setLength(anchor, atol(value));
 	    state = JUNK_LINE;
 	    break;
 
@@ -449,7 +443,7 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 	    if ((value = HTNextField(&ptr)) != NULL) {
 		char *lc = value;
 		while ((*lc = TOLOWER(*lc))) lc++;
-		anchor->cte = HTAtom_for(value);
+		HTAnchor_setTransfer(anchor, HTAtom_for(value));
 	    }
 	    state = JUNK_LINE;
 	    break;
@@ -458,19 +452,19 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 	    if ((value = HTNextField(&ptr)) != NULL) {
 		char *lc = value;
 		while ((*lc = TOLOWER(*lc))) lc++; 
-		anchor->content_type = HTAtom_for(value);
+		HTAnchor_setFormat(anchor, HTAtom_for(value));
 		while ((value = HTNextField(&ptr)) != NULL) {
 		    if (!strcasecomp(value, "charset")) {
 			if ((value = HTNextField(&ptr)) != NULL) {
 			    lc = value;
 			    while ((*lc = TOLOWER(*lc))) lc++;
-			    anchor->charset = HTAtom_for(value);
+			    HTAnchor_setCharset(anchor, HTAtom_for(value));
 			}
 		    } else if (!strcasecomp(value, "level")) {
 			if ((value = HTNextField(&ptr)) != NULL) {
 			    lc = value;
 			    while ((*lc = TOLOWER(*lc))) lc++;
-			    anchor->level = HTAtom_for(value);
+			    HTAnchor_setLevel(anchor, HTAtom_for(value));
 			}
 		    } else if (!strcasecomp(value, "boundary")) {
 			if ((value = HTNextField(&ptr)) != NULL) {
@@ -489,23 +483,23 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 	    break;
 
 	  case MIME_DATE:
-	    anchor->date = HTParseTime(ptr);
+	    HTAnchor_setDate(anchor, HTParseTime(ptr));
 	    state = JUNK_LINE;
 	    break;
 
 	  case DERIVED_FROM:
 	    if ((value = HTNextField(&ptr)) != NULL)
-		StrAllocCopy(anchor->derived_from, value);
+		HTAnchor_setDerived(anchor, value);
 	    state = JUNK_LINE;
 	    break;
 
 	  case EXPIRES:
-	    anchor->expires = HTParseTime(ptr);
+	    HTAnchor_setExpires(anchor, HTParseTime(ptr));
 	    state = JUNK_LINE;
 	    break;
 
 	  case LAST_MODIFIED:
-	    anchor->last_modified = HTParseTime(ptr);
+	    HTAnchor_setLastModified(anchor, HTParseTime(ptr));
 	    state = JUNK_LINE;
 	    break;
 
@@ -529,7 +523,7 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 
 	  case TITLE:	  /* Can't reuse buffer as HTML version might differ */
 	    if ((value = HTNextField(&ptr)) != NULL)
-		StrAllocCopy(anchor->title, value);
+		HTAnchor_setTitle(anchor, value);
 	    state = JUNK_LINE;
 	    break;
 
@@ -539,7 +533,7 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 
 	  case VERSION:
 	    if ((value = HTNextField(&ptr)) != NULL)
-		StrAllocCopy(anchor->version, value);
+		HTAnchor_setVersion(anchor, value);
 	    state = JUNK_LINE;
 	    break;
 
@@ -584,27 +578,37 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
     ** Handle any Content Type
     ** News server almost never send content type or content length
     */
-    if (anchor->content_type != WWW_UNKNOWN || me->nntp) {
-	if (STREAM_TRACE) HTTrace("Building.... C-T stack from %s to %s\n",
-				   HTAtom_name(anchor->content_type),
-				   HTAtom_name(me->target_format));
-	me->target = HTStreamStack(anchor->content_type, me->target_format,
-				   me->target, request, YES);
+    {
+	HTFormat format = HTAnchor_format(anchor);
+	if (format != WWW_UNKNOWN || me->nntp) {
+	    if (STREAM_TRACE) HTTrace("Building.... C-T stack from %s to %s\n",
+				      HTAtom_name(format),
+				      HTAtom_name(me->target_format));
+	    me->target = HTStreamStack(format, me->target_format,
+				       me->target, request, YES);
+	}
     }
 
     /* Handle any Content Encoding */
-    if (anchor->content_encoding) {
-	if (STREAM_TRACE) HTTrace("Building.... C-E stack\n");
-	me->target = HTDecodingStack(anchor->content_encoding,
-				     me->target, request, NULL);
+    {
+	HTList * cc = HTAnchor_encoding(anchor);
+	if (cc) {
+	    if (STREAM_TRACE) HTTrace("Building.... C-E stack\n");
+	    me->target = HTContentDecodingStack(cc, me->target, request, NULL);
+	}
     }
 
     /* Handle any Transfer encoding */
-    /* @@@ */
-
+    {
+	HTEncoding transfer = HTAnchor_transfer(anchor);
+	if (!HTFormat_isUnityTransfer(transfer)) {
+	    if (STREAM_TRACE) HTTrace("Building.... C-T-E stack\n");
+	    me->target = HTTransferCodingStack(transfer, me->target,
+					       request, NULL, NO);
+	}
+    }
     return HT_OK;
 }
-
 
 /*
 **	Header is terminated by CRCR, LFLF, CRLFLF, CRLFCRLF

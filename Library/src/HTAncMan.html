@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww Anchor Object</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 10-Apr-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Apr-1996 -->
 </HEAD>
 <BODY>
 
@@ -96,7 +96,7 @@ struct _HTParentAnchor {
   HTList *	content_language;
 
   long int	content_length;
-  HTCte		cte;		/* Content-Transfer-Encoding */
+  HTEncoding	transfer;	/* Content-Transfer-Encoding */
   HTFormat	content_type;
   HTCharset	charset;	/* Parameter to content-type */
   HTLevel	level;		/* Parameter to content-type `text/html' */

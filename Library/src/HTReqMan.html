@@ -6,7 +6,7 @@
 =======
 <!-- Changed by: Henrik Frystyk Nielsen, 20-Feb-1996 -->
 <!-- Changed by: Eric Prud'hommeaux, 21-Mar-1996 -->
-<!-- Changed by: Henrik Frystyk Nielsen,  9-Apr-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Apr-1996 -->
 >>>>>>> 2.20
 </HEAD>
 <BODY>
@@ -77,8 +77,8 @@ struct _HTRequest {
     HTList *		encodings;
     BOOL		enc_local;
 
-    HTList *		decodings;
-    BOOL		dec_local;
+    HTList *		ctes;
+    BOOL		cte_local;
 
     HTList *		languages;
     BOOL		lang_local;
