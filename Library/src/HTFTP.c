@@ -153,7 +153,7 @@ typedef struct _ftp_data {
     char 		type;		     /* 'A', 'I', 'L'(IST), 'N'(LST) */
 } ftp_data;
 
-#define MAX_STATUS_LEN		100   /* Max nb of chars to check StatusLine */
+#define MAX_STATUS_LEN		256   /* Max nb of chars to check StatusLine */
 
 struct _HTStream {
     CONST HTStreamClass *	isa;
