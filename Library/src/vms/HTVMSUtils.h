@@ -51,7 +51,7 @@ PUBLIC void HTVMS_disableSysPrv NOPARAMS;
 PUBLIC BOOL HTVMS_checkAccess PARAMS((
 	CONST char * FileName,
 	CONST char * UserName,
-	CONST char *Method));
+	HTMethod Method));
 
 
 /* PUBLIC							HTVMS_wwwName()
@@ -97,7 +97,72 @@ PUBLIC char * HTVMS_name PARAMS((
 	CONST char * nn, 
 	CONST char * fn));
 
+/* PUBLIC							HTVMS_putenv()
+**		Create logical name
+** ON ENTRY:
+**	string		name value pair separated by equal sign. 
+**			"name=value"
+**	
+**
+** ON EXIT:
+**	
+*/
+PUBLIC int HTVMS_putenv PARAMS((
+	CONST char * string));
+
+/* PUBLIC							HTVMS_start_timer()
+**		Starts a timer
+** ON ENTRY:
+**	n		A number to recognise the timer. 0 may be used to 
+**			say that recognision is not needed
+**	fun		ptr to a function to be called asynchronously
+**	sec		number of seconds to wait before firing.
+**	
+**
+** ON EXIT:
+**	
+*/
+PUBLIC void HTVMS_start_timer PARAMS((
+	CONST int n,
+	CONST (*fun)(),
+	CONST int sec));
+
+
+/* PUBLIC							HTVMS_cancel_timer()
+**		Cancel a specific or all timers
+** ON ENTRY:
+**	n		timer number (0 to cancel all timers)
+**	
+**
+** ON EXIT:
+**	
+*/
+PUBLIC void HTVMS_cancel_timer PARAMS((
+	CONST int n));
+
+
+
+#define getpwnam HTVMS_getpwnam
+struct passwd
+{
+   char *pw_dir;		/* Home Directory */
+};
+
+
+/* PUBLIC							HTVMS_getpwnam()
+**		getpwnam routine
+** ON ENTRY:
+**	username	Username specification
+**	
+**
+** ON EXIT:
+**	NULL		error
+**	
+*/
+PUBLIC struct passwd *HTVMS_getpwnam PARAMS((
+	CONST char *, username));
+
+
 #endif /* not HTVMSUTIL_H */
 /*
-
    End of file HTVMSUtil.h.  */

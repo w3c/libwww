@@ -11,6 +11,7 @@
 **			Fixed access bug for relative names on VMS.
 **	   Sep 93 (MD)  Access to VMS files allows sharing.
 **	15 Nov 93 (MD)	Moved HTVMSname to HTVMSUTILS.C
+**	22 Feb 94 (MD)  Excluded two routines if we are not READING directories
 **
 ** Bugs:
 **	FTP: Cannot access VMS files from a unix machine.
@@ -20,13 +21,12 @@
 
 #include "HTFile.h"		/* Implemented here */
 
-
 #define INFINITY 512		/* file name length @@ FIXME */
 #define MULTI_SUFFIX ".multi"   /* Extension for scanning formats */
 #define MAX_SUFF 15		/* Maximum number of suffixes for a file */
 
 #ifdef VMS
-PRIVATE char * suffix_separators = "_,";
+PRIVATE char * suffix_separators = "._";
 #else
 PRIVATE char * suffix_separators = ".,_";
 #endif
@@ -50,6 +50,7 @@ PRIVATE char * suffix_separators = ".,_";
 #include "HTFWriter.h"
 #include "HTInit.h"
 #include "HTBTree.h"
+#include "HTFormat.h"
 
 typedef struct _HTSuffix {
 	char *		suffix;
@@ -308,7 +309,7 @@ PRIVATE HTContentDescription * content_description ARGS2(char **, actual,
     return cd;
 }
 
-
+#ifdef GOT_READ_DIR
 /*
 **	Get multi-match possibilities for a given file
 **	----------------------------------------------
@@ -383,8 +384,9 @@ PRIVATE HTList * dir_matches ARGS1(char *, path)
     free(dirname);
     return matches;
 }
+#endif /* GOT_READ_DIR */
 
-
+#ifdef GOT_READ_DIR
 /*
 **	Get the best match for a given file
 **	-----------------------------------
@@ -457,6 +459,7 @@ PRIVATE char * HTGetBest ARGS2(HTRequest *,	req,
     return best_path;
 }
 
+#endif /* GOT_READ_DIR */
 
 
 
@@ -1163,7 +1166,7 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 	   	    HTList_addObject(methods, put);
 	        }
 	    }
-	    HTParseFile(format, request->output_format, request->anchor, fp, request->output_stream);
+	    HTParseFile(format, fp, request);
 	    fclose(fp);
             return HT_LOADED;
         }  /* If successfull open */

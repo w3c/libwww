@@ -1,3 +1,4 @@
+!
 !	Make WorldWideWeb LIBRARY under VMS
 !       =======================================================
 !
@@ -5,570 +6,768 @@
 !  14 Aug 91 (TBL)	Reconstituted
 !  25 Jun 92 (JFG)	Added TCP socket emulation over DECnet
 !  07 Sep 93 (MD)	Remade for version 2.09a
+!  02 Nov 93 (MD)	Added new modules for AA 2.12 including VMS specific
+!  14 Nov 93 (MD)	Added HTVMSUtils.c and .h
+!  22 Feb 94 (MD)	Changed for version 2.15
+!			- took out modules
+!			- (WG) added DECC, LIST flags
+!			- added ALPHA flag
+!			- generates obj directory structure...
 !
 ! Bugs:
 !	The dependencies are anything but complete - they were
 !	just enough to allow the files to be compiled.
 !
 ! Instructions:
-! 	Copy [WWW.LIBRARY.VMS]DESCRIP.MMS into [WWW.LIBRARY.IMPLEMENTATION]
 !	Use the correct command line for your TCP/IP implementation,
-!	inside the IMPLEMENTATION directory:
-!
-!	$ MMS/MACRO=(MULTINET=1)	for Multinet
-!	$ MMS/MACRO=(WIN_TCP=1)		for Wollongong TCP/IP
-!	$ MMS/MACRO=(UCX=1)		for DEC/UCX
-!	$ MMS/MACRO=(DECNET=1)		for socket emulation over DECnet
+!	inside the VMS directory:
+!                                                                       target dir
+!	$ MMS/MACRO=(MULTINET=1)	for Multinet,Vax 		[.VAX.MULTINET]
+!	$ MMS/MACRO=(WIN_TCP=1)		for Wollongong TCP/IP           [.VAX.WIN_TCP]
+!	$ MMS/MACRO=(UCX=1)		for DEC/UCX                     [.VAX.UCX]
+!	$ MMS/MACRO=(DECNET=1)		for socket emul over DECnet	[.VAX.DECNET]
 !
 ! To compile with debug mode:
 !	
-!	$ MMS/MACRO=(MULTINET=1, DEBUG=1)	for Multinet
+!	$ MMS/MACRO=(DEBUG=1)       	Debug Flag on
+!	$ MMS/MACRO=(LIST=1)       	Produce Listing Files
 !
+! To compile for DECC use:
+!
+!	$ MMS/MACRO=(DECC=1)		for DECC only. Generates .OLB
+!
+! But to compile for ALPHA use:
+!                                                                       target dir
+!	$ MMS/MACRO=(ALPHA=1)		on ALPHA (implies DECC) 	[.ALPHA.MULTINET]
 !
 ! If you are on HEP net and want to build using the really latest sources on
-! PRIAM:: then define an extra macro U=PRIAM::, e.g.
+! DXCERN:: then define an extra macro U=DXCERN::, e.g.
 !
-!	$ MMS/MACRO=(MULTINET=1, U=PRIAM::)	for Multinet
+!	$ MMS/MACRO=(MULTINET=1, U=DXCERN::)	for Multinet
 !
-! This will copy the sources from PRIAM as necessary. You can also try
+! This will copy the sources from DXCERN as necessary. You can also try
 !
-!	$ MMS/MACRO=(U=PRIAM::) descrip.mms
+!	$ MMS/MACRO=(U=DXCERN::) descrip.mms
 !
 ! to update this file.
 !
 !
 
+SRC = [-]
+VMS = []
 
 ! debug flags
 .IFDEF DEBUG
 DEBUGFLAGS = /DEBUG/NOOPT
 .ENDIF
 
+.IFDEF ALPHA
+ALPHA_EXT=_ALPHA
+MACH=ALPHA
+DECC=1
+.ELSE
+ALPHA_EXT= 
+MACH=VAX
+.ENDIF
+
+.IFDEF DECC
+CQUALDECC=/Standard=VAXC
+.ELSE
+CQUALDECC=
+.ENDIF
+
+.IFDEF LIST
+CLIST=/LIST/SHOW=ALL
+.ELSE
+CLIST=
+.ENDIF
+
 ! defines valid for all compilations
-EXTRADEFINES = DEBUG,XMOSAIC_HACK_REMOVED_NOW
+EXTRADEFINES = DEBUG,ACCESS_AUTH
 
 .IFDEF UCX
-LIBS = sys$library:ucx$ipc/lib		! For UCX
-OPTION_FILE = 
-CFLAGS = $(DEBUGFLAGS)/DEFINE=($(EXTRADEFINES))
 TCP=UCX
 .ENDIF
 .IFDEF MULTINET
-LIBS = multinet.opt/opt			! For Multinet
-OPTION_FILE = multinet.opt
-CFLAGS = $(DEBUGFLAGS)/DEFINE=($(EXTRADEFINES),MULTINET)
-TCP=MULTINET                   
+TCP=MULTINET
 .ENDIF
 .IFDEF WIN_TCP
-LIBS = win_tcp.opt/opt			! For Wollongong TCP
-OPTION_FILE = win_tcp.opt
-CFLAGS = $(DEBUGFLAGS)/DEFINE=($(EXTRADEFINES),WIN_TCP)
 TCP=WIN_TCP
 .ENDIF
 .IFDEF DECNET
-LIBS =  disk$c3:[hemmer.unix.usr.lib]libc.opt/opt	! TCP socket library over DECnet
-OPTION_FILE = disk$c3:[hemmer.unix.usr.lib]libc.opt
-CFLAGS = $(DEBUGFLAGS)/DEFINE=($(EXTRADEFINES),DECNET)
 TCP=DECNET
 .ENDIF
 
-.IFDEF LIBS
+.IFDEF TCP
 .ELSE
-LIBS = multinet.opt/opt			! (Default to multinet)
-OPTION_FILE = multinet.opt
-CFLAGS = $(DEBUGFLAGS)/DEFINE=($(EXTRADEFINES),MULTINET)
 TCP=MULTINET
 .ENDIF
 
-.INCLUDE Version.make
+! now lib points at [--.machine.tcp layer]
+LIB=[--.$(MACH).$(TCP)]
+CFLAGS = $(DEBUGFLAGS)$(CQUALDECC)$(CLIST)/DEFINE=($(EXTRADEFINES),$(TCP))/INC=($(VMS),$(SRC))
 
-.IFDEF DECNET  ! Strip FTP, Gopher, News, WAIS
-HEADERS = HTUtils.h, HTStream.h, tcp.h, HText.h -
-        HTParse.h, HTAccess.h, HTTP.h, HTFile.h, - 
-	HTBTree.h, HTTCP.h, SGML.h, -
-	HTML.h, HTMLDTD.h, HTChunk.h, HTPlain.h, -
-	HTWriter.h, HTFwriter.h,HTMLGen.h, -
-	HTAtom.h, HTAnchor.h, HTStyle.h, -
-	HTList.h, HTString.h, HTAlert.h, -
-	HTRules.h, HTFormat.h, HTInit.h, -
-	HTMIME.h, HTHistory.h, HTTelnet.h
+.INCLUDE $(SRC)Version.make
 
-MODULES = HTParse, HTAccess, HTTP, HTFile, - 
-	HTBTree, HTTCP, SGML, -
-	HTML, HTMLDTD, HTChunk, HTPlain, -
-	HTWriter, HTFwriter,HTMLGen, -
-	HTAtom, HTAnchor, HTStyle, -
-	HTList, HTString, HTAlert, -
-	HTRules, HTFormat, HTInit, -
-	HTMIME, HTHistory, HTTelnet
 
-.ELSE
-HEADERS = HTUtils.h, HTStream.h, tcp.h, HText.h -
-        HTParse.h, HTAccess.h, HTTP.h, HTFile.h, - 
-	HTBTree.h, HTTCP.h, SGML.h, -
-	HTML.h, HTMLDTD.h, HTChunk.h, HTPlain.h, -
-	HTWriter.h, HTFwriter.h,HTMLGen.h, -
-	HTAtom.h, HTAnchor.h, HTStyle.h, -
-	HTList.h, HTString.h, HTAlert.h, -
-	HTRules.h, HTFormat.h, HTInit.h, -
-	HTMIME.h, HTHistory.h, HTTelnet.h, -         
-	HTFTP.h, HTGopher.h, HTNews.h, HTWSRC.h, HTWAIS.h
+SETUP_FILES = $(LIB)www_lib.opt
 
-MODULES = HTParse, HTAccess, HTTP, HTFile, - 
-	HTBTree, HTTCP, SGML, -
-	HTML, HTMLDTD, HTChunk, HTPlain, -
-	HTWriter, HTFwriter,HTMLGen, -
-	HTAtom, HTAnchor, HTStyle, -
-	HTList, HTString, HTAlert, -
-	HTRules, HTFormat, HTInit, -
-	HTMIME, HTHistory, HTTelnet, -         
-	HTFTP, HTGopher, HTNews, HTWSRC
+VMS_FILES = $(VMS)COPYING.LIB $(VMS)descrip.mms -
+	    $(VMS)multinet.opt $(VMS)multinet.opt_alpha
 
+HEADERS = $(SRC)HTParse.h, $(SRC)HTAccess.h, $(SRC)HTTP.h, $(SRC)HTFile.h, - 
+	$(SRC)HTBTree.h, $(SRC)HTFTP.h, $(SRC)HTTCP.h, -
+	$(SRC)SGML.h, $(SRC)HTML.h, $(SRC)HTMLPDTD.h, $(SRC)HTChunk.h, -
+	$(SRC)HTPlain.h, $(SRC)HTWriter.h, -
+	$(SRC)HTFwriter.h, $(SRC)HTMLGen.h, -
+	$(SRC)HTStream.h, $(SRC)HTTee.h, -
+	$(SRC)HTAtom.h, $(SRC)HTAnchor.h, $(SRC)HTStyle.h, -
+	$(SRC)HTList.h, -
+ 	$(SRC)HTString.h, $(SRC)HTAlert.h, $(SRC)HTRules.h, -
+	$(SRC)HTFormat.h, $(SRC)HTInit.h, -
+	$(SRC)HTMIME.h, $(SRC)HTHistory.h, $(SRC)HTNews.h, -
+	$(SRC)HTGopher.h, -
+        $(SRC)HTUtils.h, $(SRC)tcp.h, $(SRC)HText.h, -
+	$(SRC)HTTelnet.h, -
+	$(SRC)HTWAIS.h, $(SRC)HTWSRC.h, -
+        $(SRC)HTAAUtil.h, $(SRC)HTAABrow.h, $(SRC)HTAssoc.h, -
+	$(SRC)HTUU.h, -
+	$(VMS)HTVMSUtils.h, -
+	$(VMS)ufc-crypt.h, $(VMS)patchlevel.h
+
+.IFDEF DECNET  ! Strip FTP, Gopher, News, (WAIS)
+MODULES = HTParse=$(LIB)HTParse.obj, HTAccess=$(LIB)HTAccess.obj, HTTP=$(LIB)HTTP.obj, -
+	HTFile=$(LIB)HTFile.obj, HTBTree=$(LIB)HTBTree.obj, HTTCP=$(LIB)HTTCP.obj, -
+	SGML=$(LIB)SGML.obj, HTML=$(LIB)HTML.obj, HTMLPDTD=$(LIB)HTMLPDTD.obj, HTChunk=$(LIB)HTChunk.obj, -
+	HTPlain=$(LIB)HTPlain.obj, HTWriter=$(LIB)HTWriter.obj, HTFwriter=$(LIB)HTFwriter.obj, -
+	HTMLGen=$(LIB)HTMLGen.obj, HTTee=$(LIB)HTTee.obj, -
+	HTAtom=$(LIB)HTAtom.obj, HTAnchor=$(LIB)HTAnchor.obj, HTStyle=$(LIB)HTStyle.obj, -
+	HTList=$(LIB)HTList.obj, HTString=$(LIB)HTString.obj, HTAlert=$(LIB)HTAlert.obj, -
+	HTRules=$(LIB)HTRules.obj, HTFormat=$(LIB)HTFormat.obj, HTInit=$(LIB)HTInit.obj, HTMIME=$(LIB)HTMIME.obj, -
+	HTHistory=$(LIB)HTHistory.obj, -         
+	HTTelnet=$(LIB)HTTelnet.obj, HTWSRC=$(LIB)HTWSRC.obj, -
+        HTAAUtil=$(LIB)HTAAUtil.obj, HTAABrow=$(LIB)HTAABrow.obj, HTAssoc=$(LIB)HTAssoc.obj, - 
+	HTUU=$(LIB)HTUU.obj, -
+	HTVMSUtils=$(LIB)HTVMSUtils.obj, -
+ 	getpass=$(LIB)getpass.obj, getline=$(LIB)getline.obj, -
+	crypt=$(LIB)crypt.obj, crypt_util=$(LIB)crypt_util.obj
+.ELSE                   
+MODULES = HTParse=$(LIB)HTParse.obj, HTAccess=$(LIB)HTAccess.obj, HTTP=$(LIB)HTTP.obj, -
+	HTFile=$(LIB)HTFile.obj, HTBTree=$(LIB)HTBTree.obj, HTFTP=$(LIB)HTFTP.obj, HTTCP=$(LIB)HTTCP.obj, -
+	SGML=$(LIB)SGML.obj, HTML=$(LIB)HTML.obj, HTMLPDTD=$(LIB)HTMLPDTD.obj, HTChunk=$(LIB)HTChunk.obj, -
+	HTPlain=$(LIB)HTPlain.obj, HTWriter=$(LIB)HTWriter.obj, HTFwriter=$(LIB)HTFwriter.obj, -
+	HTMLGen=$(LIB)HTMLGen.obj, HTTee=$(LIB)HTTee.obj, -
+	HTAtom=$(LIB)HTAtom.obj, HTAnchor=$(LIB)HTAnchor.obj, HTStyle=$(LIB)HTStyle.obj, -
+	HTList=$(LIB)HTList.obj, HTString=$(LIB)HTString.obj, HTAlert=$(LIB)HTAlert.obj, -
+	HTRules=$(LIB)HTRules.obj, HTFormat=$(LIB)HTFormat.obj, HTInit=$(LIB)HTInit.obj, HTMIME=$(LIB)HTMIME.obj, -
+	HTHistory=$(LIB)HTHistory.obj, HTNews=$(LIB)HTNews.obj, HTGopher=$(LIB)HTGopher.obj, -         
+	HTTelnet=$(LIB)HTTelnet.obj, HTWSRC=$(LIB)HTWSRC.obj, -
+        HTAAUtil=$(LIB)HTAAUtil.obj, HTAABrow=$(LIB)HTAABrow.obj, HTAssoc=$(LIB)HTAssoc.obj, - 
+	HTUU=$(LIB)HTUU.obj, -
+	HTVMSUtils=$(LIB)HTVMSUtils.obj, -
+ 	getpass=$(LIB)getpass.obj, getline=$(LIB)getline.obj, -
+	crypt=$(LIB)crypt.obj, crypt_util=$(LIB)crypt_util.obj
 .ENDIF
 
+!___________________________________________________________________
+!.obj.olb
+!	IF "''F$SEARCH("$(MMS$TARGET)")'" .EQS. "" -
+!	   THEN $(LIBR)/CREATE $(MMS$TARGET)
+!	$(LIBR) $(LIBRFLAGS) $(MMS$TARGET) $(LIB)$(MMS$SOURCE)
+!
+!___________________________________________________________________
+.FIRST
+	@ WRITE SYS$OUTPUT "Creating WWWLIB for "$(TCP)" on "$(MACH)"." 
+	@ WRITE SYS$OUTPUT "=================================================" 
+	@ IF "''F$SEARCH("$(LIB)*.*")'" .EQS. "" -
+	   THEN CREATE/DIR $(LIB)
 !___________________________________________________________________
 ! WWW Library
 
-lib : $(HEADERS)  wwwlib_$(TCP)($(MODULES))  build_$(TCP).com
+lib : $(SRC)Version.make $(VMS_FILES) $(HEADERS) $(LIB)www_lib.opt $(LIB)wwwlib.olb($(MODULES)) $(VMS)build_$(TCP).com$(ALPHA_EXT)
  	@ continue
 
-build_$(TCP).com : descrip.mms
-	mms/noaction/from_sources/out=build_$(TCP).com/macro=($(tcp)=1) 
+lib_only : $(SRC)Version.make $(LIB)www_lib.opt $(LIB)wwwlib.olb($(MODULES))
+ 	@ continue
+
+$(VMS)build_$(TCP).com$(ALPHA_EXT) : $(VMS)descrip.mms
+	mms/noaction/from_sources/out=$(VMS)build_$(TCP).com$(ALPHA_EXT)/macro=($(TCP)=1,$(MACH)=1) lib_only
+
+$(LIB)www_lib.opt : $(VMS)$(TCP).opt$(ALPHA_EXT)
+	copy $(VMS)$(TCP).opt$(ALPHA_EXT) $(LIB)www_lib.opt
 !___________________________________________________________________
 ! BASIC modules
 
-!_____________________________	HTAtom
-
-HTAtom.obj   : HTAtom.c HTAtom.h HTUtils.h HTString.h
-        cc $(CFLAGS)/obj=$*.obj HTAtom.c
-.IFDEF U
-HTAtom.c : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTAtom.c"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTAtom.c" - 
-             HTAtom.c
-HTAtom.h : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTAtom.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTAtom.h" -
-             HTAtom.h
-.ENDIF
-!_____________________________	HTChunk
-
-HTChunk.obj   : HTChunk.c HTChunk.h HTUtils.h
-        cc $(CFLAGS)/obj=$*.obj HTChunk.c
-.IFDEF U
-HTChunk.c : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTChunk.c"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTChunk.c" - 
-             HTChunk.c
-HTChunk.h : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTChunk.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTChunk.h" -
-             HTChunk.h
-.ENDIF
-!_____________________________	HTList
-
-HTList.obj   : HTList.c HTList.h HTUtils.h
-        cc $(CFLAGS)/obj=$*.obj HTList.c
-.IFDEF U
-HTList.c : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTList.c"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTList.c" - 
-             HTList.c
-HTList.h : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTList.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTList.h" -
-             HTList.h
-.ENDIF
-!_____________________________	HTString
-
-HTString.obj   : HTString.c HTString.h tcp.h Version.make HTUtils.h
-        cc $(CFLAGS)/obj=$*.obj /define=(VC="""$(VC)""") HTString.c
-.IFDEF U
-HTString.c : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTString.c"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTString.c" - 
-             HTString.c
-HTString.h : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTString.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTString.h" -
-             HTString.h
-.ENDIF
 
 !    C O M M O N	M O D U L E S
 
-!_____________________________	HTBTree
+!_____________________________	HTList
 
-HTBTree.obj   : HTBTree.c HTBTree.h HTUtils.h
-        cc $(CFLAGS)/obj=$*.obj HTBTree.c
+$(LIB)HTList.obj   : $(SRC)HTList.c $(SRC)HTList.h $(SRC)HTUtils.h
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTList.c
 .IFDEF U
-HTBTree.c : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTBTree.c"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTBTree.c" - 
-             HTBTree.c
-HTBTree.h : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTBTree.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTBTree.h" -
-             HTBTree.h
+$(SRC)HTList.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTList.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTList.c" - 
+             $(SRC)HTList.c
+$(SRC)HTList.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTList.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTList.h" -
+             $(SRC)HTList.h
 .ENDIF
-!_____________________________	HTMLDTD
+!_____________________________	HTAnchor
 
-HTMLDTD.obj   : HTMLDTD.c HTMLDTD.h SGML.h
-        cc $(CFLAGS)/obj=$*.obj HTMLDTD.c
+$(LIB)HTAnchor.obj   : $(SRC)HTAnchor.c $(SRC)HTAnchor.h $(SRC)HTUtils.h $(SRC)HTList.h
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTAnchor.c
 .IFDEF U
-HTMLDTD.c : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTMLDTD.c"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTMLDTD.c" - 
-             HTMLDTD.c
-HTMLDTD.h : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTMLDTD.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTMLDTD.h" -
-             HTMLDTD.h
+$(SRC)HTAnchor.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTAnchor.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTAnchor.c" - 
+             $(SRC)HTAnchor.c
+$(SRC)HTAnchor.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTAnchor.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTAnchor.h" -
+             $(SRC)HTAnchor.h
 .ENDIF
-!_____________________________	HTPlain
 
-HTPlain.obj   : HTPlain.c HTPlain.h HTStream.h
-        cc $(CFLAGS)/obj=$*.obj HTPlain.c
-.IFDEF U
-HTPlain.c : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTPlain.c"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTPlain.c" - 
-             HTPlain.c
-HTPlain.h : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTPlain.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTPlain.h" -
-             HTPlain.h
-.ENDIF
-!_____________________________	HTWriter
+!_____________________________	HTFormat
 
-HTWriter.obj   : HTWriter.c HTWriter.h HTStream.h
-        cc $(CFLAGS)/obj=$*.obj HTWriter.c
+$(LIB)HTFormat.obj   : $(SRC)HTFormat.c $(SRC)HTFormat.h $(SRC)HTUtils.h $(SRC)HTML.h $(SRC)SGML.h $(SRC)HTPlain.h $(SRC)HTMLGen.h $(SRC)HTList.h
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTFormat.c
 .IFDEF U
-HTWriter.c : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTWriter.c"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTWriter.c" - 
-             HTWriter.c
-HTWriter.h : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTWriter.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTWriter.h" -
-             HTWriter.h
-.ENDIF
-!_____________________________	HTFWriter
-
-HTFWriter.obj   : HTFWriter.c HTFWriter.h HTStream.h
-        cc $(CFLAGS)/obj=$*.obj HTFWriter.c
-.IFDEF U
-HTFWriter.c : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTFWriter.c"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTFWriter.c" - 
-             HTFWriter.c
-HTFWriter.h : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTFWriter.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTFWriter.h" -
-             HTFWriter.h
-.ENDIF
-!_____________________________	HTMLGen
-
-HTMLGen.obj   : HTMLGen.c HTMLGen.h HTUtils.h HTMLDTD.h
-        cc $(CFLAGS)/obj=$*.obj HTMLGen.c
-.IFDEF U
-HTMLGen.c : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTMLGen.c"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTMLGen.c" - 
-             HTMLGen.c
-HTMLGen.h : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTMLGen.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTMLGen.h" -
-             HTMLGen.h
-.ENDIF
-!_____________________________	HTAlert
-
-HTAlert.obj   : HTAlert.c HTAlert.h HTUtils.h Version.make
-        cc $(CFLAGS)/obj=$*.obj HTAlert.c
-.IFDEF U
-HTAlert.c : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTAlert.c"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTAlert.c" - 
-             HTAlert.c
-HTAlert.h : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTAlert.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTAlert.h" -
-             HTAlert.h
-.ENDIF
-!_____________________________	HTRules
-
-HTRules.obj   : HTRules.c HTRules.h HTUtils.h Version.make
-        cc $(CFLAGS)/obj=$*.obj HTRules.c
-.IFDEF U
-HTRules.c : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTRules.c"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTRules.c" - 
-             HTRules.c
-HTRules.h : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTRules.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTRules.h" -
-             HTRules.h
+$(SRC)HTFormat.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTFormat.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTFormat.c" - 
+             $(SRC)HTFormat.c
+$(SRC)HTFormat.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTFormat.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTFormat.h" -
+             $(SRC)HTFormat.h
 .ENDIF
 !_____________________________	HTInit
 
-HTInit.obj   : HTInit.c HTInit.h HTUtils.h HTList.h
-        cc $(CFLAGS)/obj=$*.obj HTInit.c
+$(LIB)HTInit.obj   : $(SRC)HTInit.c $(SRC)HTInit.h $(SRC)HTUtils.h $(SRC)HTList.h
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTInit.c
 .IFDEF U
-HTInit.c : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTInit.c"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTInit.c" - 
-             HTInit.c
-HTInit.h : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTInit.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTInit.h" -
-             HTInit.h
+$(SRC)HTInit.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTInit.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTInit.c" - 
+             $(SRC)HTInit.c
+$(SRC)HTInit.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTInit.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTInit.h" -
+             $(SRC)HTInit.h
 .ENDIF
 !_____________________________	HTMIME
 
-HTMIME.obj   : HTMIME.c HTMIME.h HTUtils.h HTList.h
-        cc $(CFLAGS)/obj=$*.obj HTMIME.c
+$(LIB)HTMIME.obj   : $(SRC)HTMIME.c $(SRC)HTMIME.h $(SRC)HTUtils.h $(SRC)HTList.h
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTMIME.c
 .IFDEF U
-HTMIME.c : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTMIME.c"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTMIME.c" - 
-             HTMIME.c
-HTMIME.h : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTMIME.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTMIME.h" -
-             HTMIME.h
+$(SRC)HTMIME.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTMIME.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTMIME.c" - 
+             $(SRC)HTMIME.c
+$(SRC)HTMIME.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTMIME.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTMIME.h" -
+             $(SRC)HTMIME.h
+.ENDIF
+!_____________________________	HTHistory
+
+$(LIB)HTHistory.obj   : $(SRC)HTHistory.c $(SRC)HTHistory.h $(SRC)HTUtils.h $(SRC)HTList.h
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTHistory.c
+.IFDEF U
+$(SRC)HTHistory.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTHistory.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTHistory.c" - 
+             $(SRC)HTHistory.c
+$(SRC)HTHistory.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTHistory.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTHistory.h" -
+             $(SRC)HTHistory.h
+.ENDIF
+!_____________________________	HTNews
+.IFDEF DECNET
+.ELSE
+$(LIB)HTNews.obj   : $(SRC)HTNews.c $(SRC)HTNews.h $(SRC)HTUtils.h $(SRC)HTList.h
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTNews.c
+.IFDEF U
+$(SRC)HTNews.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTNews.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTNews.c" - 
+             $(SRC)HTNews.c
+$(SRC)HTNews.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTNews.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTNews.h" -
+             $(SRC)HTNews.h
+.ENDIF
+.ENDIF
+!_____________________________	HTGopher
+.IFDEF DECNET
+.ELSE
+$(LIB)HTGopher.obj   : $(SRC)HTGopher.c $(SRC)HTGopher.h $(SRC)HTUtils.h $(SRC)HTList.h
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTGopher.c
+.IFDEF U
+$(SRC)HTGopher.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTGopher.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTGopher.c" - 
+             $(SRC)HTGopher.c
+$(SRC)HTGopher.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTGopher.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTGopher.h" -
+             $(SRC)HTGopher.h
+.ENDIF
 .ENDIF
 !_____________________________	HTTelnet
 
-HTTelnet.obj   : HTTelnet.c HTTelnet.h HTUtils.h
-        cc $(CFLAGS)/obj=$*.obj HTTelnet.c
+$(LIB)HTTelnet.obj   : $(SRC)HTTelnet.c $(SRC)HTTelnet.h $(SRC)HTUtils.h
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTTelnet.c
 .IFDEF U
-HTTelnet.c : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTTelnet.c"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTTelnet.c" - 
-             HTTelnet.c
-HTTelnet.h : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTTelnet.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTTelnet.h" -
-             HTTelnet.h
+$(SRC)HTTelnet.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTTelnet.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTTelnet.c" - 
+             $(SRC)HTTelnet.c
+$(SRC)HTTelnet.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTTelnet.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTTelnet.h" -
+             $(SRC)HTTelnet.h
+.ENDIF
+!_____________________________	HTStyle
+
+$(LIB)HTStyle.obj   : $(SRC)HTStyle.c $(SRC)HTStyle.h $(SRC)HTUtils.h 
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTStyle.c
+.IFDEF U
+$(SRC)HTStyle.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTStyle.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTStyle.c" - 
+             $(SRC)HTStyle.c
+$(SRC)HTStyle.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTStyle.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTStyle.h" -
+             $(SRC)HTStyle.h
+.ENDIF
+!_____________________________	HTAtom
+
+$(LIB)HTAtom.obj   : $(SRC)HTAtom.c $(SRC)HTAtom.h $(SRC)HTUtils.h $(SRC)HTString.h
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTAtom.c
+.IFDEF U
+$(SRC)HTAtom.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTAtom.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTAtom.c" - 
+             $(SRC)HTAtom.c
+$(SRC)HTAtom.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTAtom.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTAtom.h" -
+             $(SRC)HTAtom.h
+.ENDIF
+!_____________________________	HTChunk
+
+$(LIB)HTChunk.obj   : $(SRC)HTChunk.c $(SRC)HTChunk.h $(SRC)HTUtils.h
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTChunk.c
+.IFDEF U
+$(SRC)HTChunk.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTChunk.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTChunk.c" - 
+             $(SRC)HTChunk.c
+$(SRC)HTChunk.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTChunk.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTChunk.h" -
+             $(SRC)HTChunk.h
+.ENDIF
+!_____________________________	HTString
+
+$(LIB)HTString.obj   : $(SRC)HTString.c $(SRC)HTString.h $(SRC)tcp.h $(SRC)Version.make $(SRC)HTUtils.h
+        cc $(CFLAGS)/obj=$*.obj /define=(VC="""$(VC)""") $(SRC)HTString.c
+.IFDEF U
+$(SRC)HTString.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTString.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTString.c" - 
+             $(SRC)HTString.c
+$(SRC)HTString.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTString.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTString.h" -
+             $(SRC)HTString.h
+.ENDIF
+!_____________________________	HTAlert
+
+$(LIB)HTAlert.obj   : $(SRC)HTAlert.c $(SRC)HTAlert.h $(SRC)HTUtils.h $(SRC)Version.make
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTAlert.c
+.IFDEF U
+$(SRC)HTAlert.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTAlert.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTAlert.c" - 
+             $(SRC)HTAlert.c
+$(SRC)HTAlert.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTAlert.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTAlert.h" -
+             $(SRC)HTAlert.h
+.ENDIF
+!_____________________________	HTRules
+
+$(LIB)HTRules.obj   : $(SRC)HTRules.c $(SRC)HTRules.h $(SRC)HTUtils.h $(SRC)Version.make
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTRules.c
+.IFDEF U
+$(SRC)HTRules.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTRules.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTRules.c" - 
+             $(SRC)HTRules.c
+$(SRC)HTRules.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTRules.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTRules.h" -
+             $(SRC)HTRules.h
+.ENDIF
+!_____________________________	SGML
+
+$(LIB)SGML.obj   : $(SRC)SGML.c $(SRC)SGML.h $(SRC)HTUtils.h
+        cc $(CFLAGS)/obj=$*.obj $(SRC)SGML.c
+.IFDEF U
+$(SRC)SGML.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/SGML.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/SGML.c" - 
+             $(SRC)SGML.c
+$(SRC)SGML.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/SGML.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/SGML.h" -
+             $(SRC)SGML.h
+.ENDIF
+!_____________________________	HTML
+
+$(LIB)HTML.obj   : $(SRC)HTML.c $(SRC)HTML.h $(SRC)HTUtils.h $(SRC)HTMLPDTD.h
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTML.c
+.IFDEF U
+$(SRC)HTML.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTML.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTML.c" - 
+             $(SRC)HTML.c
+$(SRC)HTML.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTML.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTML.h" -
+             $(SRC)HTML.h
+.ENDIF
+!_____________________________	HTMLGen
+
+$(LIB)HTMLGen.obj   : $(SRC)HTMLGen.c $(SRC)HTMLGen.h $(SRC)HTUtils.h $(SRC)HTMLPDTD.h
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTMLGen.c
+.IFDEF U
+$(SRC)HTMLGen.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTMLGen.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTMLGen.c" - 
+             $(SRC)HTMLGen.c
+$(SRC)HTMLGen.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTMLGen.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTMLGen.h" -
+             $(SRC)HTMLGen.h
+.ENDIF
+!_____________________________	HTMLPDTD
+
+$(LIB)HTMLPDTD.obj   : $(SRC)HTMLPDTD.c $(SRC)HTMLPDTD.h $(SRC)SGML.h
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTMLPDTD.c
+.IFDEF U
+$(SRC)HTMLPDTD.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTMLPDTD.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTMLPDTD.c" - 
+             $(SRC)HTMLPDTD.c
+$(SRC)HTMLPDTD.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTMLPDTD.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTMLPDTD.h" -
+             $(SRC)HTMLPDTD.h
+.ENDIF
+!_____________________________	HTPlain
+
+$(LIB)HTPlain.obj   : $(SRC)HTPlain.c $(SRC)HTPlain.h $(SRC)HTStream.h
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTPlain.c
+.IFDEF U
+$(SRC)HTPlain.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTPlain.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTPlain.c" - 
+             $(SRC)HTPlain.c
+$(SRC)HTPlain.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTPlain.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTPlain.h" -
+             $(SRC)HTPlain.h
+.ENDIF
+!_____________________________	HTTee
+
+$(LIB)HTTee.obj   : $(SRC)HTTee.c $(SRC)HTTee.h $(SRC)HTStream.h 
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTTee.c
+.IFDEF U
+$(SRC)HTTee.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTTee.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTTee.c" - 
+             $(SRC)HTTee.c
+$(SRC)HTTee.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTTee.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTTee.h" -
+             $(SRC)HTTee.h
 .ENDIF
 !_____________________________	HTWAIS
 .IFDEF DECNET
 .ELSE
-HTWAIS.obj   : HTWAIS.c HTWAIS.h HTUtils.h HTList.h
-        cc $(CFLAGS)/obj=$*.obj HTWAIS.c
+$(LIB)HTWAIS.obj   : $(SRC)HTWAIS.c $(SRC)HTWAIS.h $(SRC)HTUtils.h $(SRC)HTList.h
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTWAIS.c
 .IFDEF U
-HTWAIS.c : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTWAIS.c"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTWAIS.c" - 
-             HTWAIS.c
-HTWAIS.h : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTWAIS.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTWAIS.h" -
-             HTWAIS.h
+$(SRC)HTWAIS.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTWAIS.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTWAIS.c" - 
+             $(SRC)HTWAIS.c
+$(SRC)HTWAIS.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTWAIS.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTWAIS.h" -
+             $(SRC)HTWAIS.h
 .ENDIF
 .ENDIF
 !_____________________________	HTWSRC
 .IFDEF DECNET
 .ELSE
-HTWSRC.obj   : HTWSRC.c HTWSRC.h HTUtils.h HTList.h
-        cc $(CFLAGS)/obj=$*.obj HTWSRC.c
+$(LIB)HTWSRC.obj   : $(SRC)HTWSRC.c $(SRC)HTWSRC.h $(SRC)HTUtils.h $(SRC)HTList.h
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTWSRC.c
 .IFDEF U
-HTWSRC.c : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTWSRC.c"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTWSRC.c" - 
-             HTWSRC.c
-HTWSRC.h : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTWSRC.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTWSRC.h" -
-             HTWSRC.h
+$(SRC)HTWSRC.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTWSRC.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTWSRC.c" - 
+             $(SRC)HTWSRC.c
+$(SRC)HTWSRC.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTWSRC.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTWSRC.h" -
+             $(SRC)HTWSRC.h
 .ENDIF
 .ENDIF
-!_____________________________	HTAccess
+!_____________________________	HTWriter
 
-HTAccess.obj   : HTAccess.c HTAccess.h HTUtils.h
-        cc $(CFLAGS)/obj=$*.obj HTAccess.c
+$(LIB)HTWriter.obj   : $(SRC)HTWriter.c $(SRC)HTWriter.h $(SRC)HTStream.h
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTWriter.c
 .IFDEF U
-HTAccess.c : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTAccess.c"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTAccess.c" - 
-             HTAccess.c
-HTAccess.h : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTAccess.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTAccess.h" -
-             HTAccess.h
+$(SRC)HTWriter.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTWriter.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTWriter.c" - 
+             $(SRC)HTWriter.c
+$(SRC)HTWriter.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTWriter.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTWriter.h" -
+             $(SRC)HTWriter.h
 .ENDIF
-!_____________________________	HTAnchor
+!_____________________________	HTFWriter
 
-HTAnchor.obj   : HTAnchor.c HTAnchor.h HTUtils.h HTList.h
-        cc $(CFLAGS)/obj=$*.obj HTAnchor.c
+$(LIB)HTFWriter.obj   : $(SRC)HTFWriter.c $(SRC)HTFWriter.h $(SRC)HTStream.h
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTFWriter.c
 .IFDEF U
-HTAnchor.c : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTAnchor.c"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTAnchor.c" - 
-             HTAnchor.c
-HTAnchor.h : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTAnchor.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTAnchor.h" -
-             HTAnchor.h
+$(SRC)HTFWriter.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTFWriter.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTFWriter.c" - 
+             $(SRC)HTFWriter.c
+$(SRC)HTFWriter.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTFWriter.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTFWriter.h" -
+             $(SRC)HTFWriter.h
 .ENDIF
 
+! Access Authorisation Code
+
+
+!_____________________________	HTAAUtil
+
+$(LIB)HTAAUtil.obj   : $(SRC)HTAAUtil.c $(SRC)HTAAUtil.h $(SRC)HTUtils.h $(SRC)HTString.h
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTAAUtil.c
+.IFDEF U
+$(SRC)HTAAUtil.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTAAUtil.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTAAUtil.c" - 
+             $(SRC)HTAAUtil.c
+$(SRC)HTAAUtil.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTAAUtil.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTAAUtil.h" -
+             $(SRC)HTAAUtil.h
+.ENDIF
+!_____________________________	HTAABrow
+
+$(LIB)HTAABrow.obj   : $(SRC)HTAABrow.c $(SRC)HTAABrow.h $(SRC)HTAAUtil.h $(SRC)HTUU.h $(SRC)HTUtils.h $(SRC)HTString.h $(SRC)HTParse.h $(SRC)HTList.h $(SRC)HTAlert.h $(SRC)HTAssoc.h
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTAABrow.c
+.IFDEF U
+$(SRC)HTAABrow.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTAABrow.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTAABrow.c" - 
+             $(SRC)HTAABrow.c
+$(SRC)HTAABrow.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTAABrow.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTAABrow.h" -
+             $(SRC)HTAABrow.h
+.ENDIF
+!_____________________________	HTAssoc
+
+$(LIB)HTAssoc.obj   : $(SRC)HTAssoc.c $(SRC)HTAssoc.h $(SRC)HTUtils.h $(SRC)HTString.h $(SRC)HTList.h
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTAssoc.c
+.IFDEF U
+$(SRC)HTAssoc.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTAssoc.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTAssoc.c" - 
+             $(SRC)HTAssoc.c
+$(SRC)HTAssoc.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTAssoc.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTAssoc.h" -
+             $(SRC)HTAssoc.h
+.ENDIF
+!_____________________________	HTUU
+
+$(LIB)HTUU.obj   : $(SRC)HTUU.c $(SRC)HTUU.h $(SRC)HTUtils.h
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTUU.c
+.IFDEF U
+$(SRC)HTUU.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTUU.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTUU.c" - 
+             $(SRC)HTUU.c
+$(SRC)HTUU.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTUU.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTUU.h" -
+             $(SRC)HTUU.h
+.ENDIF
+
+! Communication and Files
+
+!________________________________ HTTP
+
+$(LIB)HTTP.obj   : $(SRC)HTTP.c $(SRC)HTTP.h $(SRC)HTUtils.h
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTTP.c
+.IFDEF U
+$(SRC)HTTP.c     : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTTP.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTTP.c" -
+             $(SRC)HTTP.c
+$(SRC)HTTP.h     : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTTP.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTTP.h" -
+             $(SRC)HTTP.h 
+.ENDIF
+
+! _________________________________ HTTCP
+
+$(LIB)HTTCP.obj : $(SRC)HTTCP.c $(SRC)HTTCP.h $(SRC)HTUtils.h $(SRC)tcp.h
+         cc $(CFLAGS)/obj=$*.obj $(SRC)HTTCP.c
+.IFDEF U
+$(SRC)HTTCP.c    : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTTCP.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTTCP.c" - 
+             $(SRC)HTTCP.c
+$(SRC)HTTCP.h    : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTTCP.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTTCP.h" - 
+             $(SRC)HTTCP.h
+.ENDIF
 !_________________________________ HTFile
 
-HTFile.obj   : HTFile.c HTFile.h HTUtils.h 
-         cc $(CFLAGS)/obj=$*.obj HTFile.c
+$(LIB)HTFile.obj : $(SRC)HTFile.c $(SRC)HTFile.h $(SRC)HTUtils.h 
+         cc $(CFLAGS)/obj=$*.obj $(SRC)HTFile.c
 .IFDEF U
-HTFile.c   : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTFile.c"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTFile.c" - 
-             HTFile.c
-HTFile.h   : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTFile.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTFile.h" -
-             HTFile.h
+$(SRC)HTFile.c   : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTFile.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTFile.c" - 
+             $(SRC)HTFile.c
+$(SRC)HTFile.h   : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTFile.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTFile.h" -
+             $(SRC)HTFile.h
+.ENDIF
+!_____________________________	HTBTree
+
+$(LIB)HTBTree.obj   : $(SRC)HTBTree.c $(SRC)HTBTree.h $(SRC)HTUtils.h
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTBTree.c
+.IFDEF U
+$(SRC)HTBTree.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTBTree.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTBTree.c" - 
+             $(SRC)HTBTree.c
+$(SRC)HTBTree.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTBTree.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTBTree.h" -
+             $(SRC)HTBTree.h
 .ENDIF
 
-!_____________________________	HTFormat
-
-HTFormat.obj   : HTFormat.c HTFormat.h HTUtils.h HTML.h SGML.h HTPlain.h HTMLGen.h HTList.h
-        cc $(CFLAGS)/obj=$*.obj HTFormat.c
-.IFDEF U
-HTFormat.c : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTFormat.c"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTFormat.c" - 
-             HTFormat.c
-HTFormat.h : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTFormat.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTFormat.h" -
-             HTFormat.h
-.ENDIF
 !__________________________________ HTFTP
 .IFDEF DECNET
 .ELSE
-HTFTP.obj   : HTFTP.c HTFTP.h HTUtils.h 
-        cc $(CFLAGS)/obj=$*.obj HTFTP.c
+$(LIB)HTFTP.obj   : $(SRC)HTFTP.c $(SRC)HTFTP.h $(SRC)HTUtils.h 
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTFTP.c
 .IFDEF U
-HTFTP.c    : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTFTP.c"
-             copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTFTP.c" -
-             HTFTP.c
-HTFTP.h    : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTFTP.h"
-             copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTFTP.h" - 
-             HTFTP.h
+$(SRC)HTFTP.c    : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTFTP.c"
+             copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTFTP.c" -
+             $(SRC)HTFTP.c
+$(SRC)HTFTP.h    : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTFTP.h"
+             copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTFTP.h" - 
+             $(SRC)HTFTP.h
 .ENDIF
 .ENDIF
 
-!_____________________________	HTGopher
-.IFDEF DECNET
-.ELSE
-HTGopher.obj   : HTGopher.c HTGopher.h HTUtils.h HTList.h
-        cc $(CFLAGS)/obj=$*.obj HTGopher.c
-.IFDEF U
-HTGopher.c : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTGopher.c"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTGopher.c" - 
-             HTGopher.c
-HTGopher.h : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTGopher.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTGopher.h" -
-             HTGopher.h
-.ENDIF
-.ENDIF
-!_____________________________	HTHistory
+!_____________________________	HTAccess
 
-HTHistory.obj   : HTHistory.c HTHistory.h HTUtils.h HTList.h
-        cc $(CFLAGS)/obj=$*.obj HTHistory.c
+$(LIB)HTAccess.obj   : $(SRC)HTAccess.c $(SRC)HTAccess.h $(SRC)HTUtils.h
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTAccess.c
 .IFDEF U
-HTHistory.c : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTHistory.c"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTHistory.c" - 
-             HTHistory.c
-HTHistory.h : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTHistory.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTHistory.h" -
-             HTHistory.h
+$(SRC)HTAccess.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTAccess.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTAccess.c" - 
+             $(SRC)HTAccess.c
+$(SRC)HTAccess.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTAccess.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTAccess.h" -
+             $(SRC)HTAccess.h
 .ENDIF
-!_____________________________	HTNews
-.IFDEF DECNET
-.ELSE
-HTNews.obj   : HTNews.c HTNews.h HTUtils.h HTList.h
-        cc $(CFLAGS)/obj=$*.obj HTNews.c
-.IFDEF U
-HTNews.c : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTNews.c"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTNews.c" - 
-             HTNews.c
-HTNews.h : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTNews.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTNews.h" -
-             HTNews.h
-.ENDIF
-.ENDIF
-!_____________________________	HTML
 
-HTML.obj   : HTML.c HTML.h HTUtils.h HTMLDTD.h
-        cc $(CFLAGS)/obj=$*.obj HTML.c
-.IFDEF U
-HTML.c : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTML.c"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTML.c" - 
-             HTML.c
-HTML.h : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTML.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTML.h" -
-             HTML.h
-.ENDIF
 !________________________________ HTParse
 
-HTParse.obj   : HTParse.c HTParse.h HTUtils.h 
-        cc $(CFLAGS)/obj=$*.obj HTParse.c
+$(LIB)HTParse.obj   : $(SRC)HTParse.c $(SRC)HTParse.h $(SRC)HTUtils.h 
+        cc $(CFLAGS)/obj=$*.obj $(SRC)HTParse.c
 .IFDEF U
-HTParse.c  : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTParse.c"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTParse.c" - 
-             HTParse.c
-HTParse.h  : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTParse.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTParse.h" -
-             HTParse.h
+$(SRC)HTParse.c  : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTParse.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTParse.c" - 
+             $(SRC)HTParse.c
+$(SRC)HTParse.h  : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTParse.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTParse.h" -
+             $(SRC)HTParse.h
 .ENDIF
 
-!_____________________________	HTStyle
-
-HTStyle.obj   : HTStyle.c HTStyle.h HTUtils.h 
-        cc $(CFLAGS)/obj=$*.obj HTStyle.c
-.IFDEF U
-HTStyle.c : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTStyle.c"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTStyle.c" - 
-             HTStyle.c
-HTStyle.h : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTStyle.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTStyle.h" -
-             HTStyle.h
-.ENDIF
-! _________________________________ HTTCP
-
-HTTCP.obj : HTTCP.c HTTCP.h HTUtils.h tcp.h
-         cc $(CFLAGS)/obj=$*.obj HTTCP.c
-.IFDEF U
-HTTCP.c    : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTTCP.c"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTTCP.c" - 
-             HTTCP.c
-HTTCP.h    : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTTCP.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTTCP.h" - 
-             HTTCP.h
-.ENDIF
-!________________________________ HTTP
-
-HTTP.obj   : HTTP.c HTTP.h HTUtils.h
-        cc $(CFLAGS)/obj=$*.obj HTTP.c
-.IFDEF U
-HTTP.c     : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTTP.c"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTTP.c" -
-             HTTP.c
-HTTP.h     : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTTP.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTTP.h" -
-             HTTP.h 
-.ENDIF
-!_____________________________	SGML
-
-SGML.obj   : SGML.c SGML.h HTUtils.h
-        cc $(CFLAGS)/obj=$*.obj SGML.c
-.IFDEF U
-SGML.c : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/SGML.c"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/SGML.c" - 
-             SGML.c
-SGML.h : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/SGML.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/SGML.h" -
-             SGML.h
-.ENDIF
 !_________________________________ include files only:
 
 .IFDEF U
-HTUtils.h  : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTUtils.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTUtils.h" -
-             HTUtils.h
-HTStream.h : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTStream.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HTStream.h" -
-             HTStream.h
-tcp.h      : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/tcp.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/tcp.h" - 
-             tcp.h
-HText.h      : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HText.h"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/HText.h" - 
-             HText.h
-README      : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/README"
-	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/README" - 
-             README
-!WWW.h      : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/WWW.h"
-!	     copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/WWW.h" -
-!             WWW.h
+$(SRC)HTUtils.h  : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTUtils.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTUtils.h" -
+             $(SRC)HTUtils.h
+$(SRC)HTStream.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTStream.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HTStream.h" -
+             $(SRC)HTStream.h
+$(SRC)tcp.h      : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/tcp.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/tcp.h" - 
+             $(SRC)tcp.h
+$(SRC)HText.h      : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HText.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/HText.h" - 
+             $(SRC)HText.h
+$(SRC)README      : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/README"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/README" - 
+             $(SRC)README
 .ENDIF
  
 ! ______________________________  The version file
 
 .IFDEF U
-Version.make :  $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/Version.make"
-	copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/Version.make" - 
-             Version.make
-	write sys$output: "Please rebuild with new Version file"
-	exit 2	! Error
+$(SRC)Version.make :  $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/Version.make"
+	copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/Version.make" - 
+             $(SRC)Version.make
+	@- write sys$output "Please rebuild with new Version file"
+	@- exit 2	! Error
 .ENDIF
 
-! _____________________________VMS SPECIAL FILES:
+! _____________________________VMS SPECIFIC FILES:
 ! latest version of this one:
 
 .IFDEF U
-descrip.mms : $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/vms/descrip.mms"
-	copy $(U)"/userd/tbl/hypertext/WWW/Library/Implementation/vms/descrip.mms" -
-	descrip.mms
-	write sys$output: "Please rebuild with new MMS file"
-	exit 2	! Error
+$(VMS)descrip.mms : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/descrip.mms"
+	copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/descrip.mms" -
+	$(VMS)descrip.mms
+	@- write sys$output "Please rebuild with new MMS file"
+	@- exit 2	! Error
 
+$(VMS)COPYING.LIB : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/COPYING.LIB"
+	copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/COPYING.LIB" -
+	$(VMS)COPYING.LIB
+                    
+$(VMS)multinet.opt : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/multinet.opt"
+	copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/multinet.opt" -
+	$(VMS)multinet.opt
+                    
+$(VMS)multinet.opt_alpha : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/multinet.opt_alpha"
+	copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/multinet.opt_alpha" -
+	$(VMS)multinet.opt_alpha
+                    
 .ENDIF
+!_____________________________	VMS/HTVMSUTILS
+
+$(LIB)HTVMSUtils.obj   : $(VMS)HTVMSUtils.c $(VMS)HTVMSUtils.h $(SRC)HTUtils.h $(SRC)HTAccess.h
+        cc $(CFLAGS)/obj=$*.obj $(VMS)HTVMSUtils.c
+.IFDEF U
+$(VMS)HTVMSUtils.c : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/HTVMSUtils.c"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/HTVMSUtils.c" - 
+             $(VMS)HTVMSUtils.c
+$(VMS)HTVMSUtils.h : $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/HTVMSUtils.h"
+	     copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/HTVMSUtils.h" -
+             $(VMS)HTVMSUtils.h
+.ENDIF
+
+!_____________________________	VMS/GETPASS
+
+$(LIB)GETPASS.obj   : $(VMS)GETPASS.c
+        cc $(CFLAGS)/obj=$*.obj $(VMS)GETPASS.c
+.IFDEF U
+$(VMS)GETPASS.c : 	$(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/getpass.c"
+	            	copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/getpass.c" - 
+             		$(VMS)GETPASS.c
+.ENDIF
+!_____________________________	VMS/GETLINE
+
+$(LIB)GETLINE.obj   : $(VMS)GETLINE.c
+        cc $(CFLAGS)/obj=$*.obj $(VMS)GETLINE.c
+.IFDEF U
+$(VMS)GETLINE.c : 	$(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/getline.c"
+	            	copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/getline.c" - 
+             		$(VMS)GETLINE.c
+.ENDIF
+!_____________________________	VMS/CRYPT
+
+$(LIB)CRYPT.obj   : $(VMS)CRYPT.c $(VMS)UFC-CRYPT.h
+        cc $(CFLAGS)/obj=$*.obj $(VMS)CRYPT.c
+.IFDEF U
+$(VMS)CRYPT.c : 	$(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/crypt.c"
+	            	copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/crypt.c" - 
+             		$(VMS)CRYPT.c
+.ENDIF
+!_____________________________	VMS/CRYPT_UTIL
+
+$(LIB)CRYPT_UTIL.obj   : $(VMS)CRYPT_UTIL.c $(VMS)UFC-CRYPT.h $(VMS)PATCHLEVEL.h
+        cc $(CFLAGS)/obj=$*.obj $(VMS)CRYPT_UTIL.c
+.IFDEF U
+$(VMS)CRYPT_UTIL.c : 	$(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/crypt_util.c"
+	            	copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/crypt_util.c" - 
+             		$(VMS)CRYPT_UTIL.c
+.ENDIF
+!_________________________________ VMS include files only:
+
+.IFDEF U
+$(VMS)UFC-CRYPT.h : 	$(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/ufc-crypt.h"
+	            	copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/ufc-crypt.h" - 
+             		$(VMS)UFC-CRYPT.h
+$(VMS)PATCHLEVEL.h : 	$(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/patchlevel.h"
+	            	copy $(U)"/userd/tbl/hypertext/WWW-duns/Library/Implementation/vms/patchlevel.h" - 
+             		$(VMS)PATCHLEVEL.h
+.ENDIF
+
 
 

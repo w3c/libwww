@@ -43,11 +43,13 @@ PRIVATE char *hostname=0;		/* The name of this host */
 */
 #ifndef PCNFS
 #ifdef VMS
+#ifndef __DECC
 extern int uerrno;	/* Deposit of error info (as per errno.h) */
 extern volatile noshare int socket_errno; /* socket VMS error info 
                                              (used for translation of vmserrno) */
 extern volatile noshare int vmserrno;	/* Deposit of VMS error info */
 extern volatile noshare int errno;  /* noshare to avoid PSECT conflict */
+#endif /* not DECC */
 #else /* VMS */
 #ifndef errno
 extern int errno;

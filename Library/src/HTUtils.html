@@ -80,6 +80,11 @@ for something more sophisticated.
 #else	/* VMS */
 #include &lt;stdio.h>
 #include &lt;ctype.h>
+#define unlink remove
+#include &lt;stat.h>
+#define S_ISDIR(m)      (((m)&S_IFMT) == S_IFDIR)
+#define S_ISREG(m)      (((m)&S_IFMT) == S_IFREG)
+#define putenv HTVMS_putenv
 #endif
 
 </PRE>
