@@ -1091,7 +1091,9 @@ PUBLIC void LMHText_endElement (HText * text, int elem_num)
 {
     switch (elem_num) {
     case HTML_A:
+#if 0
 	LMHText_endAnchor (text);
+#endif
 	break;
     default:
 	break;
