@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Using the W3C Reference Library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 29-Jan-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  9-Feb-1996 -->
 </HEAD>  
 <BODY>
 
@@ -34,7 +34,8 @@ all links in this version work!<P>
 <LI><A HREF="Bind.html">Make Bindings to the local File system</A>
 <LI><A HREF="MIME.html">Registering Protocol Headers</A>
 <LI><A HREF="Net.html">Request Callback functions</A>
-<LI><A HREF="Error.html">Errors Messages and Dialogs</A><P>
+<LI><A HREF="Error.html">Errors Messages</A>
+<LI><A HREF="Dialogs.html">User Dialogs and Progress Notifications</A><P>
 
 <LI><A HREF="Streams.html">Stream Objects</A>
 <LI><A HREF="Anchors.html">Anchor Objects</A>
@@ -56,6 +57,7 @@ all links in this version work!<P>
 
 <LI><A HREF="Utils.html">Utility Modules</A>
 <UL>
+<LI><A HREF="Memory.html">Dynamic Memory Management</A>
 <LI><A HREF="Flags.html">Trace Messages and Preprocessor Defines</A>
 </UL>
 </OL>
@@ -70,7 +72,7 @@ all links in this version work!<P>
 <HTML>
 <HEAD>
 <TITLE>Getting Started</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 29-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  7-Feb-1996 -->
 </HEAD>  
 <BODY>
 
@@ -183,7 +185,10 @@ called <CODE>libwww.a</CODE> on Unix platforms and <CODE>libwww.lib</CODE> on Wi
 result might depend on the setup of the dynamic modules, but if no dynamic modules are enabled then
 the example will generate an executable file. If you are in doubt about how to set your compiler
 then you can often get some good ideas by looking into the <A HREF="../../../LineMode/">Line Mode
-Browser</A>.
+Browser</A>. <P>
+
+PS: You can find the examples directly in form of C files in our <A
+HREF="../../Examples/">example area</A>
 
 <PRE>
 #include "WWWLib.h"
@@ -1485,8 +1490,8 @@ extern BOOL HTNetCall_addBefore (HTNetCallback *cbf, int status);
 </HTML>
 <HTML>
 <HEAD>
-<TITLE>User Guide - Error Messages and Dialogs</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  6-Dec-1995 -->
+<TITLE>User Guide - Error Messages</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  7-Feb-1996 -->
 <NEXTID N="z78">
 </HEAD>
 <BODY>
@@ -1495,7 +1500,7 @@ extern BOOL HTNetCall_addBefore (HTNetCallback *cbf, int status);
 <A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
 <A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
 
-<H1>Error Messages and Dialogs</H1>
+<H1>Error Messages</H1>
 
 The Library deals with two categories of errors: user errors and application errors. The former are
 all the errors that can occur when the Library is used in a "real" environment where network
@@ -1740,6 +1745,9 @@ anything. The generic interface for cleaning up looks like:
 extern BOOL HTError_deleteAll (HTList * list);
 extern BOOL HTError_deleteLast (HTList * list);
 </PRE>
+
+In the next section, we will see how to display errors in the application along with other user
+information such as progress reports etc.
 
 <P>
 <HR>
@@ -2335,7 +2343,7 @@ function. <P>
 <HTML>
 <HEAD>
 <TITLE>User Guide - Event Handling</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 16-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  9-Feb-1996 -->
 <NEXTID N="z78">
 </HEAD>
 <BODY>
@@ -2351,9 +2359,101 @@ style. In this section we will havea look at how to enable this functionality an
 for applications to use it. We will not describe the underlying design model as thsi is described in
 detail in the <A HREF="../Architecture/Events.html">Library Architecture</A> documentation.<P>
 
-<B>MORE</B>
+If you are working on a MSWindows platform then you have the possibility of using asynchronous
+socket management (<EM>proactive mode</EM>) instead of typical Unix select based I/O (<EM>reactive
+mode</EM>). Please read the <A HREF="../Platform/WinDLL.html">Windows documentation</A> for more
+details.
 
-<P>
+<H2>Event Handlers</H2>
+
+The appplication registers a set of event handlers to be used on a specified set of sockets. An
+event handler is a function of type
+
+<PRE>
+typedef int HTEventCallback (SOCKET, HTRequest *, SockOps);
+</PRE>
+
+<H3>Register a TTY Event Handler</H3>
+
+Register the tty (console) as having events. If the TTY is select()-able (as is true under Unix),
+then we treat it as just another socket. Otherwise, take steps depending on the platform. This is
+the function to use to register user events!
+
+<PRE>
+extern int HTEvent_RegisterTTY	(SOCKET, HTRequest *, SockOps, HTEventCallback *, HTPriority);
+</PRE>
+
+<H3>Unregister a TTY Event Handler</H3>
+
+Unregisters TTY I/O channel. If the TTY is select()-able (as is true under Unix), then we treat it
+as just another socket.
+
+<PRE>
+extern int HTEvent_UnRegisterTTY (SOCKET, SockOps);
+</PRE>
+
+<H3>Register an Event Handler</H3>
+
+For a given socket, reqister a request structure, a set of operations, a HTEventCallback function,
+and a priority. For this implementation, we allow only a single HTEventCallback function for all
+operations.  and the priority field is ignored.
+
+<PRE>
+extern int HTEvent_Register	(SOCKET, HTRequest *, SockOps, HTEventCallback *, HTPriority);
+</PRE>
+
+<H3>Unregister an Event Handler</H3>
+
+Remove the registered information for the specified socket for the actions specified in ops. if no
+actions remain after the unregister, the registered info is deleted, and, if the socket has been
+registered for notification, the HTEventCallback will be invoked.
+
+<PRE>
+extern int HTEvent_UnRegister	(SOCKET, SockOps);
+</PRE>
+
+<H3>Unregister ALL Event Handlers</H3>
+
+Unregister all sockets. N.B. we just remove them for our internal data structures: it is up to the
+application to actually close the socket.
+
+<PRE>
+extern int HTEvent_UnregisterAll (void);
+</PRE>
+
+<H2>Handler for Timeout on Sockets</H2>
+
+This function sets the timeout for sockets in the <CODE>select()</CODE> call and registers a timeout
+function that is called if select times out. This does only works on NON windows platforms as we
+need to poll for the console on windows If <CODE>tv = NULL</CODE> then timeout is disabled. Default
+is no timeout. If <EM>always=YES</EM> then the callback is called at all times, if NO then only when
+Library sockets are active. Returns YES if OK else NO.
+
+<PRE>
+typedef int HTEventTimeout (HTRequest *);
+
+extern BOOL HTEvent_registerTimeout (struct timeval *tp, HTRequest * request,
+				     HTEventTimeout *tcbf, BOOL always);
+</PRE>
+
+<H2>Start the Event Loop</H2>
+
+That is, we wait for activity from one of our registered channels, and dispatch on that. Under
+Windows/NT, we must treat the console and sockets as distinct.  That means we can't avoid a busy
+wait, but we do our best.
+
+<PRE>
+extern int HTEvent_Loop (HTRequest * request);
+</PRE>
+
+<H2>Stop the Event Loop</H2>
+
+Stops the (select based) event loop. The function does not guarantee that all requests have
+terminated. This is for the app to do
+
+<PRE>
+extern void HTEvent_stopLoop (void);
+</PRE>
 
 <P>
 <HR>
@@ -2969,6 +3069,84 @@ the <A HREF="../Guide/Utils.html">Library Internals</A>
 <ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, December 1995</ADDRESS>
 </BODY>
 </HTML>
+<HTML>
+<HEAD>
+<TITLE>Using - Dynamic Memory management</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 17-Jan-1996 -->
+</HEAD>  
+<BODY>
+
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/w3c_48x48.gif" ALT="W3C"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
+
+<H1>Dynamic Memory Management</H1>
+
+The Library makes use of a dynamic memory manager which handles allocation and deallocation of
+dynamic memory. The methods used for allocation and deallocation are wrapper functions around the
+native <CODE>malloc</CODE>, <CODE>calloc</CODE>, <CODE>realloc</CODE>, and <CODE>free</CODE>
+methods. Hence, the functionality of teh module is very similar to the native C interface but it
+allows for structured error recovery and application termination in case of failure.  It covers
+especially the following three situations:
+
+<UL>
+<LI>Handling of allocation and deallocation of dynamic memory
+<LI>Recovering from temporary lack of available memory
+<LI>Panic handling in case a new allocation fails
+</UL>
+
+<H2>Memory Freer Functions</H2>
+
+The dynamic memory freer functions are typically functions that are capable of freeing large chunks
+of memory. In case a new allocation fails, the allocation method looks for any freer functions to
+call. There can be multriple freer functions and after each call, the allocation method tries again
+to allocate the desired amount of dynamic memory. The freer functions are called in <EM>reverse</EM>
+order meaning that the <EM>last</EM> one registered gets called <EM>first</EM>. That way, it is easy
+to add temporary free functions which then are guaranteed to be called first if a methods fails.
+
+<H3>Add a Freer Function</H3>
+
+You can add a freer function by using the following method. The Library itself registeres a set of
+free functions during initialization. If the application does not register any freer functions then
+the Library looks how it can free internal memory.
+
+<PRE>
+typedef void HTMemoryCallback(size_t size);
+
+extern BOOL HTMemoryCall_add (HTMemoryCallback * cbf);
+</PRE>
+
+<H3>Delete a Freer Function</H3>
+
+Freer functions can be deleted at any time in which case they are not called anymore.
+
+<PRE>
+extern BOOL HTMemoryCall_delete (HTMemoryCallback * cbf);
+extern BOOL HTMemoryCall_deleteAll (void);
+</PRE>
+
+<H2>Panic Handling</H2>
+
+If the freer functions are not capable of deallocation enough memory then the application must have
+an organized way of closing down. This is done using the panic handler. In the libwww, each
+allocation is tested and HT_OUTOFMEM is called if a NULL was returned. HT_OUTOFMEM is a macro which
+calls HTMemory_outofmem. This function calls an exit function defined by the app in a call to
+HTMemory_setExit. If the app has not defined this function, HTMemory_outofmem TTYPrints the error
+message and calls exit(1).
+
+<PRE>
+typedef void HTMemoryExitCallback(char * name, char * file, unsigned long line);
+
+extern void HTMemory_setExit(HTMemoryExitCallback * pExit);
+
+extern HTMemoryExitCallback * HTMemory_exit(void);
+</PRE>
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, December 1995</ADDRESS>
+</BODY>
+</HTML> 
 <HTML>
 <HEAD>
 <TITLE>Using - Global Flags</TITLE>

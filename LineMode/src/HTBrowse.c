@@ -1445,12 +1445,12 @@ int main (int argc, char ** argv)
     arc.locale=0; arc.encoding=0; arc.i_encoding=0; doinull();
 #endif
 
+    /* Initiate W3C Reference Library */
+    HTLibInit(APP_NAME, APP_VERSION);
+
     /* Create a new Line Mode object */
     lm = LineMode_new();
     request = Thread_new(lm, NO, LM_UPDATE);
-
-    /* Initiate W3C Reference Library */
-    HTLibInit(APP_NAME, APP_VERSION);
 
     /* Initialize the protocol modules */
     HTAccessInit();

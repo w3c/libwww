@@ -1,7 +1,7 @@
 <Html>
 <HEAD>
 <TITLE>How to Build the WWW Libraries for Windows</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  1-Feb-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  7-Feb-1996 -->
 </HEAD>
 
 <BODY>
@@ -47,8 +47,9 @@ active sockets and passes them to a <CODE>select()</CODE> call which then proces
 sockets. When <CODE>select()</CODE> returns the Event Manager dispatches the appropriate handlers as
 the sockets get ready. <P>
 
-<IMG SRC="../../../Icons/WWW/bullet.gif"> <B>What to do:</B> This is the default mode and you don't
-have to do anything
+<IMG SRC="../../../Icons/WWW/bullet.gif"> <B>What to do:</B> <EM>Undefine</EM> <B>WWW_WIN_ASYNC</B>
+as a preprocessor directive when generating the project for the Library. Please make sure that
+<EM>all</EM> DLLs are compiled without this flag.
 
 <A NAME="async"><H3>Asynchronous I/O based using Signals</H3></A>
 
@@ -61,9 +62,8 @@ HREF="../../Implementation/HTAccess.html#Library">Library initialization functio
 is <EM>not</EM> to be used explicitly by the application and the Library closes the window when
 exiting.<P>
 
-<IMG SRC="../../../Icons/WWW/bullet.gif"> <B>What to do:</B> Define <B>WWW_WIN_ASYNC</B> as a
-preprocessor directive when generating the project for the Library. Please make sure that
-<EM>all</EM> DLLs are compiled with this flag.
+<IMG SRC="../../../Icons/WWW/bullet.gif"> <B>What to do:</B> This is the default mode and you don't
+have to do anything
 
 <A NAME="io"><H2>Console vs Windows Application</H2></A>
 

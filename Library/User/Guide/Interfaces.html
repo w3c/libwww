@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Internals - Library Interfaces</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  1-Feb-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  2-Feb-1996 -->
 <NEXTID N="z78">
 </HEAD>
 <BODY>
@@ -172,13 +172,13 @@ The core parts of the Library is a framework for adding functionality. It has ho
 protocol modules, like for example HTTP, FTP, and also for adding streams that can convert from one
 media type to some other type, or presenting the result to the user. In the distribution file of the
 Library you will find a large set of protocol modules and streams already implemented. However, in
-order to use these you need to initialize them. This can be done by using the files in the <A
-HREF="HTInit.html">HTInit</A> module. You can modify these modules as you like to fit your
-particular needs. They are <B>not</B> part of any DLL and so must be included directly if desired.
+order to use these you need to initialize them. This can be done by using the methods in the <A
+HREF="WWWInit.html">WWWInit</A> module. You can modify these modules as you like to fit your
+particular needs. The modules in this interface are <B>not</B> part of any DLL and so must be
+included directly if desired.
 
 <UL>
-<LI><A HREF="../../Implementation/HTInit.html">HTInit Interface include file</A>
-<LI><A HREF="../../Implementation/HTBInit.html">HTBInit Interface include file</A>
+<LI><A HREF="../../Implementation/WWWInit.html">WWWInit Interface include file</A>
 </UL>
 
 <H2>Protocol Interfaces</H2>

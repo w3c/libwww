@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
-<TITLE>User Guide - Error Messages and Dialogs</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  6-Dec-1995 -->
+<TITLE>User Guide - Error Messages</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  7-Feb-1996 -->
 <NEXTID N="z78">
 </HEAD>
 <BODY>
@@ -10,7 +10,7 @@
 <A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
 <A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
 
-<H1>Error Messages and Dialogs</H1>
+<H1>Error Messages</H1>
 
 The Library deals with two categories of errors: user errors and application errors. The former are
 all the errors that can occur when the Library is used in a "real" environment where network
@@ -255,6 +255,9 @@ anything. The generic interface for cleaning up looks like:
 extern BOOL HTError_deleteAll (HTList * list);
 extern BOOL HTError_deleteLast (HTList * list);
 </PRE>
+
+In the next section, we will see how to display errors in the application along with other user
+information such as progress reports etc.
 
 <P>
 <HR>

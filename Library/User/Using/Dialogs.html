@@ -1,0 +1,82 @@
+<HTML>
+<HEAD>
+<TITLE>User Guide - User Messages and Dialogs</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  7-Feb-1996 -->
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
+
+<H1>User Messages and Dialogs</H1>
+
+The Core part of the Library is completely natural language independent. All messages and dialogs
+are handled through enumerations defined by the <A HREF="../../Implementation/HTAlert.html">User
+Message Manager</A>. The task of converting this set of enumerations to dialog boxes, progress
+notifications etc. is completely for the application to provide. The advantage of having this model
+is of course that the core part of the Library remains platform independent and if the application
+is not interested in having a user interface then the Library does not require it.
+
+<H2>Handling of Dialog Callback Functions</H2>
+
+The registration of callback functions is handled by the <A
+HREF="../../Implementation/HTAlert.html">User Message Manager Manager</A> and it is (of course)
+based on lists as we have seen so many times before. A callback function can be added to a list by
+using the following function:
+
+<PRE>
+extern BOOL HTAlertCall_add (HTList * list, HTAlertCallback * cbf, HTAlertOpcode opcode);
+</PRE>
+
+The <CODE>opcode</CODE> parameter signifies which call back function to call depending of the type
+of the message. <CODE>opcode</CODE> can be any combination of the bit-flags defined by
+<CODE>HTAlertOpcode</CODE> which is defined as
+
+<PRE>
+typedef enum _HTAlertOpcode {
+    HT_PROG_DNS		= 0x1,		/* Doing DNS resolution */
+    HT_PROG_CONNECT	= 0x2,		/* Connecting Active */
+    HT_PROG_ACCEPT	= 0x4,		/* Connecting Passive */
+    HT_PROG_READ	= 0x8,		/* Read data */
+    HT_PROG_WRITE	= 0x10,		/* Write data */
+    HT_PROG_DONE	= 0x20,		/* Request finished */
+    HT_PROG_WAIT	= 0x40,		/* Wait for socket */
+    HT_A_PROGRESS	= 0xFF,		/* Send a progress report - no reply */
+
+    /* First word are reserved for progress notifications */
+
+    HT_A_MESSAGE	= 0x1&lt;&lt;8,	/* Send a message - no reply */
+    HT_A_CONFIRM	= 0x2&lt;&lt;8,	/* Want YES or NO back */
+    HT_A_PROMPT		= 0x4&lt;&lt;8,	/* Want full dialog */
+    HT_A_SECRET		= 0x8&lt;&lt;8,	/* Secret dialog (e.g. password) */
+    HT_A_USER_PW	= 0x10&lt;&lt;8	/* Atomic userid and password */
+} HTAlertOpcode;
+</PRE>
+
+If you register one callback for <CODE>HT_A_PROGRESS</CODE> then this will get called on all
+progress notifications. The callback functions are defined as a generic callback where the caller
+can pass a set of input parameters and the callee can return a set of output parameters. The
+callback function must be of the form:
+
+<PRE>
+typedef BOOL HTAlertCallback   (HTRequest * request, HTAlertOpcode op,
+				int msgnum, CONST char * dfault, void * input,
+				HTAlertPar * reply);
+</PRE>
+
+Likewise, a callback function can be removed from a list using the following function: 
+
+<PRE>
+extern BOOL HTAlertCall_delete (HTList * list, HTAlertCallback * cbf);
+</PRE>
+
+The Library provides sample implementations of all these Callback functions. Yon can find this in
+the <A HREF="../../Implementation/WWWApp.html">Application Interface description</A>
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, December 1995</ADDRESS>
+</BODY>
+</HTML>

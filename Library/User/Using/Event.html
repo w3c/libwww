@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>User Guide - Event Handling</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 16-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  9-Feb-1996 -->
 <NEXTID N="z78">
 </HEAD>
 <BODY>
@@ -17,9 +17,101 @@ style. In this section we will havea look at how to enable this functionality an
 for applications to use it. We will not describe the underlying design model as thsi is described in
 detail in the <A HREF="../Architecture/Events.html">Library Architecture</A> documentation.<P>
 
-<B>MORE</B>
+If you are working on a MSWindows platform then you have the possibility of using asynchronous
+socket management (<EM>proactive mode</EM>) instead of typical Unix select based I/O (<EM>reactive
+mode</EM>). Please read the <A HREF="../Platform/WinDLL.html">Windows documentation</A> for more
+details.
 
-<P>
+<H2>Event Handlers</H2>
+
+The appplication registers a set of event handlers to be used on a specified set of sockets. An
+event handler is a function of type
+
+<PRE>
+typedef int HTEventCallback (SOCKET, HTRequest *, SockOps);
+</PRE>
+
+<H3>Register a TTY Event Handler</H3>
+
+Register the tty (console) as having events. If the TTY is select()-able (as is true under Unix),
+then we treat it as just another socket. Otherwise, take steps depending on the platform. This is
+the function to use to register user events!
+
+<PRE>
+extern int HTEvent_RegisterTTY	(SOCKET, HTRequest *, SockOps, HTEventCallback *, HTPriority);
+</PRE>
+
+<H3>Unregister a TTY Event Handler</H3>
+
+Unregisters TTY I/O channel. If the TTY is select()-able (as is true under Unix), then we treat it
+as just another socket.
+
+<PRE>
+extern int HTEvent_UnRegisterTTY (SOCKET, SockOps);
+</PRE>
+
+<H3>Register an Event Handler</H3>
+
+For a given socket, reqister a request structure, a set of operations, a HTEventCallback function,
+and a priority. For this implementation, we allow only a single HTEventCallback function for all
+operations.  and the priority field is ignored.
+
+<PRE>
+extern int HTEvent_Register	(SOCKET, HTRequest *, SockOps, HTEventCallback *, HTPriority);
+</PRE>
+
+<H3>Unregister an Event Handler</H3>
+
+Remove the registered information for the specified socket for the actions specified in ops. if no
+actions remain after the unregister, the registered info is deleted, and, if the socket has been
+registered for notification, the HTEventCallback will be invoked.
+
+<PRE>
+extern int HTEvent_UnRegister	(SOCKET, SockOps);
+</PRE>
+
+<H3>Unregister ALL Event Handlers</H3>
+
+Unregister all sockets. N.B. we just remove them for our internal data structures: it is up to the
+application to actually close the socket.
+
+<PRE>
+extern int HTEvent_UnregisterAll (void);
+</PRE>
+
+<H2>Handler for Timeout on Sockets</H2>
+
+This function sets the timeout for sockets in the <CODE>select()</CODE> call and registers a timeout
+function that is called if select times out. This does only works on NON windows platforms as we
+need to poll for the console on windows If <CODE>tv = NULL</CODE> then timeout is disabled. Default
+is no timeout. If <EM>always=YES</EM> then the callback is called at all times, if NO then only when
+Library sockets are active. Returns YES if OK else NO.
+
+<PRE>
+typedef int HTEventTimeout (HTRequest *);
+
+extern BOOL HTEvent_registerTimeout (struct timeval *tp, HTRequest * request,
+				     HTEventTimeout *tcbf, BOOL always);
+</PRE>
+
+<H2>Start the Event Loop</H2>
+
+That is, we wait for activity from one of our registered channels, and dispatch on that. Under
+Windows/NT, we must treat the console and sockets as distinct.  That means we can't avoid a busy
+wait, but we do our best.
+
+<PRE>
+extern int HTEvent_Loop (HTRequest * request);
+</PRE>
+
+<H2>Stop the Event Loop</H2>
+
+Stops the (select based) event loop. The function does not guarantee that all requests have
+terminated. This is for the app to do
+
+<PRE>
+extern void HTEvent_stopLoop (void);
+</PRE>
 
 <P>
 <HR>

@@ -31,7 +31,7 @@
 <LI>WOODWARD, Jennifer
 </UL>
 
-<H2>Release 4.0D Febuary 1 1996</H2>
+<H2>Release 4.0D February 1 1996</H2>
 
 This upgrade release fixes some bugs and it adds functionality for posting data from memory. This is
 the full list of changes:
@@ -68,7 +68,7 @@ function to resolve conflicts between the return codes of the two streams.
 
 <LI>The request object as been added as a calling parameter to the <A
 HREF="../Implementation/HTFWrite.html">HTFWrite stream creation method</A>. This allows errors from
-writing to a file to propagate back to the requst object.
+writing to a file to propagate back to the request object.
 
 <LI>The three streams <CODE>HTSaveLocally</CODE>, <CODE>HTSaveAndExecute</CODE> and
 <CODE>HTSaveAndCallBack</CODE> have been optimized and they now all use the <A
@@ -82,7 +82,7 @@ we can use the MIME header as a generic MIME entity header generator.
 HT_ERROR. It replaces the <A HREF="../Implementation/HTFWrite.html">HTBlackHole</A> has been replace
 with HTErrorStream in many places in order to speed up performance
 
-<LI>Made HTTP response stream (which parses the reponse line only) into a converter so that we can
+<LI>Made HTTP response stream (which parses the response line only) into a converter so that we can
 forward the output exactly as received from the remote HTTP server. This is important for proxy
 applications and other applications that want to see the output untouched.
 
@@ -91,8 +91,8 @@ limited.
 
 <LI>Memory cleanup fixed in content length counter stream and FTP module
 
-<LI>Introcing HT_CLOSED and HT_PAUSE for handling streams. This was required, especially after HTTP
-supports persistent connections where a document is not delimied by a closed connection.
+<LI>Introducing HT_CLOSED and HT_PAUSE for handling streams. This was required, especially after HTTP
+supports persistent connections where a document is not delimited by a closed connection.
 
 </UL>
 

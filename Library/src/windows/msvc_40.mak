@@ -98,9 +98,9 @@ NULL=nul
 ################################################################################
 # Begin Project
 # PROP Target_Last_Scanned "wwwwais - Win32 Debug"
-MTL=mktyplib.exe
-CPP=cl.exe
 RSC=rc.exe
+CPP=cl.exe
+MTL=mktyplib.exe
 
 !IF  "$(CFG)" == "msvc_40 - Win32 Release"
 
@@ -160,7 +160,7 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
  /pdb:"$(OUTDIR)/msvc_40.pdb" /machine:I386 /out:"$(OUTDIR)/msvc_40.dll"\
  /implib:"$(OUTDIR)/msvc_40.lib" 
 LINK32_OBJS= \
-	"$(INTDIR)/windll.obj" \
+	".\Release\windll.obj" \
 	".\wwwdll\Release\wwwdll.lib" \
 	".\wwwutils\Release\wwwutils.lib" \
 	".\wwwcore\Release\wwwcore.lib" \
@@ -207,14 +207,14 @@ ALL : "wwwwais - Win32 Debug" "wwwguess - Win32 Debug" "wwwapp - Win32 Debug"\
  "wwwutils - Win32 Debug" "wwwdll - Win32 Debug" "$(OUTDIR)\msvc_40.dll"
 
 CLEAN : 
+	-@erase ".\Debug\vc40.pdb"
+	-@erase ".\Debug\vc40.idb"
 	-@erase ".\Debug\msvc_40.dll"
 	-@erase ".\Debug\windll.obj"
 	-@erase ".\Debug\msvc_40.ilk"
 	-@erase ".\Debug\msvc_40.lib"
 	-@erase ".\Debug\msvc_40.exp"
 	-@erase ".\Debug\msvc_40.pdb"
-	-@erase ".\Debug\vc40.pdb"
-	-@erase ".\Debug\vc40.idb"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
@@ -245,7 +245,7 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
  /pdb:"$(OUTDIR)/msvc_40.pdb" /debug /machine:I386 /out:"$(OUTDIR)/msvc_40.dll"\
  /implib:"$(OUTDIR)/msvc_40.lib" 
 LINK32_OBJS= \
-	"$(INTDIR)/windll.obj" \
+	".\Debug\windll.obj" \
 	".\wwwdll\Debug\wwwdll.lib" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwcore\Debug\wwwcore.lib" \
@@ -324,8 +324,8 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwdll.def"
 LINK32_OBJS= \
-	"$(INTDIR)/windll.obj" \
-	"$(INTDIR)/wwwdll.obj"
+	".\wwwdll\Release\windll.obj" \
+	".\wwwdll\Release\wwwdll.obj"
 
 "$(OUTDIR)\wwwdll.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -391,8 +391,8 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwdll.def"
 LINK32_OBJS= \
-	"$(INTDIR)/windll.obj" \
-	"$(INTDIR)/wwwdll.obj"
+	".\wwwdll\Debug\windll.obj" \
+	".\wwwdll\Debug\wwwdll.obj"
 
 "$(OUTDIR)\wwwdll.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -426,6 +426,7 @@ CLEAN :
 	-@erase ".\wwwutils\Release\HTChunk.obj"
 	-@erase ".\wwwutils\Release\HTUU.obj"
 	-@erase ".\wwwutils\Release\HTList.obj"
+	-@erase ".\wwwutils\Release\HTMemory.obj"
 	-@erase ".\wwwutils\Release\wwwutils.lib"
 	-@erase ".\wwwutils\Release\wwwutils.exp"
 
@@ -460,14 +461,15 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwutils.def"
 LINK32_OBJS= \
-	"$(INTDIR)/HTArray.obj" \
-	"$(INTDIR)/HTAssoc.obj" \
-	"$(INTDIR)/windll.obj" \
-	"$(INTDIR)/HTString.obj" \
-	"$(INTDIR)/HTAtom.obj" \
-	"$(INTDIR)/HTChunk.obj" \
-	"$(INTDIR)/HTUU.obj" \
-	"$(INTDIR)/HTList.obj" \
+	".\wwwutils\Release\HTArray.obj" \
+	".\wwwutils\Release\HTAssoc.obj" \
+	".\wwwutils\Release\windll.obj" \
+	".\wwwutils\Release\HTString.obj" \
+	".\wwwutils\Release\HTAtom.obj" \
+	".\wwwutils\Release\HTChunk.obj" \
+	".\wwwutils\Release\HTUU.obj" \
+	".\wwwutils\Release\HTList.obj" \
+	".\wwwutils\Release\HTMemory.obj" \
 	".\wwwdll\Debug\wwwdll.lib"
 
 "$(OUTDIR)\wwwutils.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
@@ -496,6 +498,7 @@ CLEAN :
 	-@erase ".\wwwutils\Debug\vc40.pdb"
 	-@erase ".\wwwutils\Debug\vc40.idb"
 	-@erase ".\Debug\wwwutils.dll"
+	-@erase ".\wwwutils\Debug\HTMemory.obj"
 	-@erase ".\wwwutils\Debug\HTString.obj"
 	-@erase ".\wwwutils\Debug\HTAtom.obj"
 	-@erase ".\wwwutils\Debug\windll.obj"
@@ -540,14 +543,15 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwutils.def"
 LINK32_OBJS= \
-	"$(INTDIR)/HTString.obj" \
-	"$(INTDIR)/HTAtom.obj" \
-	"$(INTDIR)/windll.obj" \
-	"$(INTDIR)/HTAssoc.obj" \
-	"$(INTDIR)/HTArray.obj" \
-	"$(INTDIR)/HTUU.obj" \
-	"$(INTDIR)/HTChunk.obj" \
-	"$(INTDIR)/HTList.obj" \
+	".\wwwutils\Debug\HTMemory.obj" \
+	".\wwwutils\Debug\HTString.obj" \
+	".\wwwutils\Debug\HTAtom.obj" \
+	".\wwwutils\Debug\windll.obj" \
+	".\wwwutils\Debug\HTAssoc.obj" \
+	".\wwwutils\Debug\HTArray.obj" \
+	".\wwwutils\Debug\HTUU.obj" \
+	".\wwwutils\Debug\HTChunk.obj" \
+	".\wwwutils\Debug\HTList.obj" \
 	".\wwwdll\Debug\wwwdll.lib"
 
 "$(OUTDIR)\wwwutils.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
@@ -630,28 +634,28 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwcore.def"
 LINK32_OBJS= \
-	"$(INTDIR)/HTAlert.obj" \
-	"$(INTDIR)/HTWriter.obj" \
-	"$(INTDIR)/HTSocket.obj" \
-	"$(INTDIR)/HTBind.obj" \
-	"$(INTDIR)/HTEscape.obj" \
-	"$(INTDIR)/HTConLen.obj" \
-	"$(INTDIR)/HTDNS.obj" \
-	"$(INTDIR)/HTAccess.obj" \
-	"$(INTDIR)/HTNet.obj" \
-	"$(INTDIR)/HTWWWStr.obj" \
-	"$(INTDIR)/HTEvntrg.obj" \
-	"$(INTDIR)/HTFormat.obj" \
-	"$(INTDIR)/HTError.obj" \
-	"$(INTDIR)/HTTee.obj" \
-	"$(INTDIR)/HTProt.obj" \
-	"$(INTDIR)/HTAnchor.obj" \
-	"$(INTDIR)/windll.obj" \
-	"$(INTDIR)/HTTCP.obj" \
-	"$(INTDIR)/HTReqMan.obj" \
-	"$(INTDIR)/HTFWrite.obj" \
-	"$(INTDIR)/HTParse.obj" \
-	"$(INTDIR)/HTMethod.obj" \
+	".\wwwcore\Release\HTAlert.obj" \
+	".\wwwcore\Release\HTWriter.obj" \
+	".\wwwcore\Release\HTSocket.obj" \
+	".\wwwcore\Release\HTBind.obj" \
+	".\wwwcore\Release\HTEscape.obj" \
+	".\wwwcore\Release\HTConLen.obj" \
+	".\wwwcore\Release\HTDNS.obj" \
+	".\wwwcore\Release\HTAccess.obj" \
+	".\wwwcore\Release\HTNet.obj" \
+	".\wwwcore\Release\HTWWWStr.obj" \
+	".\wwwcore\Release\HTEvntrg.obj" \
+	".\wwwcore\Release\HTFormat.obj" \
+	".\wwwcore\Release\HTError.obj" \
+	".\wwwcore\Release\HTTee.obj" \
+	".\wwwcore\Release\HTProt.obj" \
+	".\wwwcore\Release\HTAnchor.obj" \
+	".\wwwcore\Release\windll.obj" \
+	".\wwwcore\Release\HTTCP.obj" \
+	".\wwwcore\Release\HTReqMan.obj" \
+	".\wwwcore\Release\HTFWrite.obj" \
+	".\wwwcore\Release\HTParse.obj" \
+	".\wwwcore\Release\HTMethod.obj" \
 	"..\..\..\..\..\..\Msdev\Lib\Wsock32.lib" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwdll\Debug\wwwdll.lib"
@@ -740,28 +744,28 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwcore.def"
 LINK32_OBJS= \
-	"$(INTDIR)/HTTCP.obj" \
-	"$(INTDIR)/HTAccess.obj" \
-	"$(INTDIR)/HTParse.obj" \
-	"$(INTDIR)/HTNet.obj" \
-	"$(INTDIR)/HTAlert.obj" \
-	"$(INTDIR)/HTBind.obj" \
-	"$(INTDIR)/HTEvntrg.obj" \
-	"$(INTDIR)/HTFormat.obj" \
-	"$(INTDIR)/HTEscape.obj" \
-	"$(INTDIR)/HTAnchor.obj" \
-	"$(INTDIR)/HTReqMan.obj" \
-	"$(INTDIR)/HTFWrite.obj" \
-	"$(INTDIR)/HTWWWStr.obj" \
-	"$(INTDIR)/HTMethod.obj" \
-	"$(INTDIR)/HTError.obj" \
-	"$(INTDIR)/HTProt.obj" \
-	"$(INTDIR)/HTWriter.obj" \
-	"$(INTDIR)/windll.obj" \
-	"$(INTDIR)/HTDNS.obj" \
-	"$(INTDIR)/HTSocket.obj" \
-	"$(INTDIR)/HTTee.obj" \
-	"$(INTDIR)/HTConLen.obj" \
+	".\wwwcore\Debug\HTTCP.obj" \
+	".\wwwcore\Debug\HTAccess.obj" \
+	".\wwwcore\Debug\HTParse.obj" \
+	".\wwwcore\Debug\HTNet.obj" \
+	".\wwwcore\Debug\HTAlert.obj" \
+	".\wwwcore\Debug\HTBind.obj" \
+	".\wwwcore\Debug\HTEvntrg.obj" \
+	".\wwwcore\Debug\HTFormat.obj" \
+	".\wwwcore\Debug\HTEscape.obj" \
+	".\wwwcore\Debug\HTAnchor.obj" \
+	".\wwwcore\Debug\HTReqMan.obj" \
+	".\wwwcore\Debug\HTFWrite.obj" \
+	".\wwwcore\Debug\HTWWWStr.obj" \
+	".\wwwcore\Debug\HTMethod.obj" \
+	".\wwwcore\Debug\HTError.obj" \
+	".\wwwcore\Debug\HTProt.obj" \
+	".\wwwcore\Debug\HTWriter.obj" \
+	".\wwwcore\Debug\windll.obj" \
+	".\wwwcore\Debug\HTDNS.obj" \
+	".\wwwcore\Debug\HTSocket.obj" \
+	".\wwwcore\Debug\HTTee.obj" \
+	".\wwwcore\Debug\HTConLen.obj" \
 	"..\..\..\..\..\..\Msdev\Lib\Wsock32.lib" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwdll\Debug\wwwdll.lib"
@@ -826,8 +830,8 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwcache.def"
 LINK32_OBJS= \
-	"$(INTDIR)/HTCache.obj" \
-	"$(INTDIR)/windll.obj" \
+	".\wwwcache\Release\HTCache.obj" \
+	".\wwwcache\Release\windll.obj" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwdll\Debug\wwwdll.lib" \
 	".\wwwcore\Debug\wwwcore.lib"
@@ -896,8 +900,8 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwcache.def"
 LINK32_OBJS= \
-	"$(INTDIR)/windll.obj" \
-	"$(INTDIR)/HTCache.obj" \
+	".\wwwcache\Debug\windll.obj" \
+	".\wwwcache\Debug\HTCache.obj" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwdll\Debug\wwwdll.lib" \
 	".\wwwcore\Debug\wwwcore.lib"
@@ -965,11 +969,11 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwmime.def"
 LINK32_OBJS= \
-	"$(INTDIR)/HTBound.obj" \
-	"$(INTDIR)/HTMIMERq.obj" \
-	"$(INTDIR)/HTHeader.obj" \
-	"$(INTDIR)/windll.obj" \
-	"$(INTDIR)/HTMIME.obj" \
+	".\wwwmime\Release\HTBound.obj" \
+	".\wwwmime\Release\HTMIMERq.obj" \
+	".\wwwmime\Release\HTHeader.obj" \
+	".\wwwmime\Release\windll.obj" \
+	".\wwwmime\Release\HTMIME.obj" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwdll\Debug\wwwdll.lib" \
 	".\wwwcore\Debug\wwwcore.lib"
@@ -1041,11 +1045,11 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwmime.def"
 LINK32_OBJS= \
-	"$(INTDIR)/windll.obj" \
-	"$(INTDIR)/HTMIMERq.obj" \
-	"$(INTDIR)/HTMIME.obj" \
-	"$(INTDIR)/HTBound.obj" \
-	"$(INTDIR)/HTHeader.obj" \
+	".\wwwmime\Debug\windll.obj" \
+	".\wwwmime\Debug\HTMIMERq.obj" \
+	".\wwwmime\Debug\HTMIME.obj" \
+	".\wwwmime\Debug\HTBound.obj" \
+	".\wwwmime\Debug\HTHeader.obj" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwdll\Debug\wwwdll.lib" \
 	".\wwwcore\Debug\wwwcore.lib"
@@ -1116,14 +1120,14 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwhttp.def"
 LINK32_OBJS= \
-	"$(INTDIR)/HTTPGen.obj" \
-	"$(INTDIR)/HTTPReq.obj" \
-	"$(INTDIR)/HTTP.obj" \
-	"$(INTDIR)/HTAAUtil.obj" \
-	"$(INTDIR)/windll.obj" \
-	"$(INTDIR)/HTAABrow.obj" \
-	"$(INTDIR)/HTTPRes.obj" \
-	"$(INTDIR)/HTTPServ.obj" \
+	".\wwwhttp\Release\HTTPGen.obj" \
+	".\wwwhttp\Release\HTTPReq.obj" \
+	".\wwwhttp\Release\HTTP.obj" \
+	".\wwwhttp\Release\HTAAUtil.obj" \
+	".\wwwhttp\Release\windll.obj" \
+	".\wwwhttp\Release\HTAABrow.obj" \
+	".\wwwhttp\Release\HTTPRes.obj" \
+	".\wwwhttp\Release\HTTPServ.obj" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwcache\Debug\wwwcache.lib" \
 	".\wwwmime\Debug\wwwmime.lib" \
@@ -1200,14 +1204,14 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwhttp.def"
 LINK32_OBJS= \
-	"$(INTDIR)/HTTPServ.obj" \
-	"$(INTDIR)/HTTP.obj" \
-	"$(INTDIR)/HTTPRes.obj" \
-	"$(INTDIR)/HTAAUtil.obj" \
-	"$(INTDIR)/HTTPGen.obj" \
-	"$(INTDIR)/HTTPReq.obj" \
-	"$(INTDIR)/HTAABrow.obj" \
-	"$(INTDIR)/windll.obj" \
+	".\wwwhttp\Debug\HTTPServ.obj" \
+	".\wwwhttp\Debug\HTTP.obj" \
+	".\wwwhttp\Debug\HTTPRes.obj" \
+	".\wwwhttp\Debug\HTAAUtil.obj" \
+	".\wwwhttp\Debug\HTTPGen.obj" \
+	".\wwwhttp\Debug\HTTPReq.obj" \
+	".\wwwhttp\Debug\HTAABrow.obj" \
+	".\wwwhttp\Debug\windll.obj" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwcache\Debug\wwwcache.lib" \
 	".\wwwmime\Debug\wwwmime.lib" \
@@ -1275,9 +1279,9 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwrules.def"
 LINK32_OBJS= \
-	"$(INTDIR)/windll.obj" \
-	"$(INTDIR)/HTRules.obj" \
-	"$(INTDIR)/HTProxy.obj" \
+	".\wwwrules\Release\windll.obj" \
+	".\wwwrules\Release\HTRules.obj" \
+	".\wwwrules\Release\HTProxy.obj" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwdll\Debug\wwwdll.lib" \
 	".\wwwcore\Debug\wwwcore.lib"
@@ -1347,9 +1351,9 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwrules.def"
 LINK32_OBJS= \
-	"$(INTDIR)/HTRules.obj" \
-	"$(INTDIR)/HTProxy.obj" \
-	"$(INTDIR)/windll.obj" \
+	".\wwwrules\Debug\HTRules.obj" \
+	".\wwwrules\Debug\HTProxy.obj" \
+	".\wwwrules\Debug\windll.obj" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwdll\Debug\wwwdll.lib" \
 	".\wwwcore\Debug\wwwcore.lib"
@@ -1417,11 +1421,11 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwnews.def"
 LINK32_OBJS= \
-	"$(INTDIR)/HTNewsLs.obj" \
-	"$(INTDIR)/HTNDir.obj" \
-	"$(INTDIR)/windll.obj" \
-	"$(INTDIR)/HTNews.obj" \
-	"$(INTDIR)/HTNewsRq.obj" \
+	".\wwwnews\Release\HTNewsLs.obj" \
+	".\wwwnews\Release\HTNDir.obj" \
+	".\wwwnews\Release\windll.obj" \
+	".\wwwnews\Release\HTNews.obj" \
+	".\wwwnews\Release\HTNewsRq.obj" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwhtml\Debug\wwwhtml.lib" \
 	".\wwwmime\Debug\wwwmime.lib" \
@@ -1496,11 +1500,11 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwnews.def"
 LINK32_OBJS= \
-	"$(INTDIR)/windll.obj" \
-	"$(INTDIR)/HTNewsRq.obj" \
-	"$(INTDIR)/HTNews.obj" \
-	"$(INTDIR)/HTNewsLs.obj" \
-	"$(INTDIR)/HTNDir.obj" \
+	".\wwwnews\Debug\windll.obj" \
+	".\wwwnews\Debug\HTNewsRq.obj" \
+	".\wwwnews\Debug\HTNews.obj" \
+	".\wwwnews\Debug\HTNewsLs.obj" \
+	".\wwwnews\Debug\HTNDir.obj" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwhtml\Debug\wwwhtml.lib" \
 	".\wwwmime\Debug\wwwmime.lib" \
@@ -1567,8 +1571,8 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwgophe.def"
 LINK32_OBJS= \
-	"$(INTDIR)/HTGopher.obj" \
-	"$(INTDIR)/windll.obj" \
+	".\wwwgophe\Release\HTGopher.obj" \
+	".\wwwgophe\Release\windll.obj" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwdir\Debug\wwwdir.lib" \
 	".\wwwhtml\Debug\wwwhtml.lib" \
@@ -1640,8 +1644,8 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwgophe.def"
 LINK32_OBJS= \
-	"$(INTDIR)/windll.obj" \
-	"$(INTDIR)/HTGopher.obj" \
+	".\wwwgophe\Debug\windll.obj" \
+	".\wwwgophe\Debug\HTGopher.obj" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwdir\Debug\wwwdir.lib" \
 	".\wwwhtml\Debug\wwwhtml.lib" \
@@ -1709,9 +1713,9 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwftp.def"
 LINK32_OBJS= \
-	"$(INTDIR)/HTFTPDir.obj" \
-	"$(INTDIR)/HTFTP.obj" \
-	"$(INTDIR)/windll.obj" \
+	".\wwwftp\Release\HTFTPDir.obj" \
+	".\wwwftp\Release\HTFTP.obj" \
+	".\wwwftp\Release\windll.obj" \
 	"..\..\..\..\..\..\Msdev\Lib\Wsock32.lib" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwdir\Debug\wwwdir.lib" \
@@ -1783,9 +1787,9 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwftp.def"
 LINK32_OBJS= \
-	"$(INTDIR)/windll.obj" \
-	"$(INTDIR)/HTFTPDir.obj" \
-	"$(INTDIR)/HTFTP.obj" \
+	".\wwwftp\Debug\windll.obj" \
+	".\wwwftp\Debug\HTFTPDir.obj" \
+	".\wwwftp\Debug\HTFTP.obj" \
 	"..\..\..\..\..\..\Msdev\Lib\Wsock32.lib" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwdir\Debug\wwwdir.lib" \
@@ -1854,10 +1858,10 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwdir.def"
 LINK32_OBJS= \
-	"$(INTDIR)/HTDescpt.obj" \
-	"$(INTDIR)/HTDir.obj" \
-	"$(INTDIR)/windll.obj" \
-	"$(INTDIR)/HTIcons.obj" \
+	".\wwwdir\Release\HTDescpt.obj" \
+	".\wwwdir\Release\HTDir.obj" \
+	".\wwwdir\Release\windll.obj" \
+	".\wwwdir\Release\HTIcons.obj" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwhtml\Debug\wwwhtml.lib" \
 	".\wwwdll\Debug\wwwdll.lib" \
@@ -1929,10 +1933,10 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwdir.def"
 LINK32_OBJS= \
-	"$(INTDIR)/HTIcons.obj" \
-	"$(INTDIR)/HTDescpt.obj" \
-	"$(INTDIR)/HTDir.obj" \
-	"$(INTDIR)/windll.obj" \
+	".\wwwdir\Debug\HTIcons.obj" \
+	".\wwwdir\Debug\HTDescpt.obj" \
+	".\wwwdir\Debug\HTDir.obj" \
+	".\wwwdir\Debug\windll.obj" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwhtml\Debug\wwwhtml.lib" \
 	".\wwwdll\Debug\wwwdll.lib" \
@@ -1999,9 +2003,9 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwfile.def"
 LINK32_OBJS= \
-	"$(INTDIR)/HTFile.obj" \
-	"$(INTDIR)/windll.obj" \
-	"$(INTDIR)/HTMulti.obj" \
+	".\wwwfile\Release\HTFile.obj" \
+	".\wwwfile\Release\windll.obj" \
+	".\wwwfile\Release\HTMulti.obj" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwdir\Debug\wwwdir.lib" \
 	".\wwwdll\Debug\wwwdll.lib" \
@@ -2072,9 +2076,9 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwfile.def"
 LINK32_OBJS= \
-	"$(INTDIR)/HTMulti.obj" \
-	"$(INTDIR)/HTFile.obj" \
-	"$(INTDIR)/windll.obj" \
+	".\wwwfile\Debug\HTMulti.obj" \
+	".\wwwfile\Debug\HTFile.obj" \
+	".\wwwfile\Debug\windll.obj" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwdir\Debug\wwwdir.lib" \
 	".\wwwdll\Debug\wwwdll.lib" \
@@ -2140,8 +2144,8 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwtelnt.def"
 LINK32_OBJS= \
-	"$(INTDIR)/windll.obj" \
-	"$(INTDIR)/HTTelnet.obj" \
+	".\wwwtelnt\Release\windll.obj" \
+	".\wwwtelnt\Release\HTTelnet.obj" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwdir\Debug\wwwdir.lib" \
 	".\wwwdll\Debug\wwwdll.lib" \
@@ -2211,8 +2215,8 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwtelnt.def"
 LINK32_OBJS= \
-	"$(INTDIR)/windll.obj" \
-	"$(INTDIR)/HTTelnet.obj" \
+	".\wwwtelnt\Debug\windll.obj" \
+	".\wwwtelnt\Debug\HTTelnet.obj" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwdir\Debug\wwwdir.lib" \
 	".\wwwdll\Debug\wwwdll.lib" \
@@ -2281,11 +2285,11 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwhtml.def"
 LINK32_OBJS= \
-	"$(INTDIR)/SGML.obj" \
-	"$(INTDIR)/HTTeXGen.obj" \
-	"$(INTDIR)/HTMLGen.obj" \
-	"$(INTDIR)/windll.obj" \
-	"$(INTDIR)/HTMLPDTD.obj" \
+	".\wwwhtml\Release\SGML.obj" \
+	".\wwwhtml\Release\HTTeXGen.obj" \
+	".\wwwhtml\Release\HTMLGen.obj" \
+	".\wwwhtml\Release\windll.obj" \
+	".\wwwhtml\Release\HTMLPDTD.obj" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwdll\Debug\wwwdll.lib" \
 	".\wwwcore\Debug\wwwcore.lib"
@@ -2357,11 +2361,11 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwhtml.def"
 LINK32_OBJS= \
-	"$(INTDIR)/SGML.obj" \
-	"$(INTDIR)/HTMLPDTD.obj" \
-	"$(INTDIR)/HTMLGen.obj" \
-	"$(INTDIR)/windll.obj" \
-	"$(INTDIR)/HTTeXGen.obj" \
+	".\wwwhtml\Debug\SGML.obj" \
+	".\wwwhtml\Debug\HTMLPDTD.obj" \
+	".\wwwhtml\Debug\HTMLGen.obj" \
+	".\wwwhtml\Debug\windll.obj" \
+	".\wwwhtml\Debug\HTTeXGen.obj" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwdll\Debug\wwwdll.lib" \
 	".\wwwcore\Debug\wwwcore.lib"
@@ -2429,11 +2433,11 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwapp.def"
 LINK32_OBJS= \
-	"$(INTDIR)/HTHist.obj" \
-	"$(INTDIR)/HTLog.obj" \
-	"$(INTDIR)/HTDialog.obj" \
-	"$(INTDIR)/windll.obj" \
-	"$(INTDIR)/HTHome.obj" \
+	".\wwwapp\Release\HTHist.obj" \
+	".\wwwapp\Release\HTLog.obj" \
+	".\wwwapp\Release\HTDialog.obj" \
+	".\wwwapp\Release\windll.obj" \
+	".\wwwapp\Release\HTHome.obj" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwcache\Debug\wwwcache.lib" \
 	".\wwwrules\Debug\wwwrules.lib" \
@@ -2507,11 +2511,11 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwapp.def"
 LINK32_OBJS= \
-	"$(INTDIR)/HTHist.obj" \
-	"$(INTDIR)/windll.obj" \
-	"$(INTDIR)/HTDialog.obj" \
-	"$(INTDIR)/HTLog.obj" \
-	"$(INTDIR)/HTHome.obj" \
+	".\wwwapp\Debug\HTHist.obj" \
+	".\wwwapp\Debug\windll.obj" \
+	".\wwwapp\Debug\HTDialog.obj" \
+	".\wwwapp\Debug\HTLog.obj" \
+	".\wwwapp\Debug\HTHome.obj" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwcache\Debug\wwwcache.lib" \
 	".\wwwrules\Debug\wwwrules.lib" \
@@ -2578,8 +2582,8 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwguess.def"
 LINK32_OBJS= \
-	"$(INTDIR)/HTGuess.obj" \
-	"$(INTDIR)/windll.obj" \
+	".\wwwguess\Release\HTGuess.obj" \
+	".\wwwguess\Release\windll.obj" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwdll\Debug\wwwdll.lib" \
 	".\wwwcore\Debug\wwwcore.lib"
@@ -2648,8 +2652,8 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwguess.def"
 LINK32_OBJS= \
-	"$(INTDIR)/HTGuess.obj" \
-	"$(INTDIR)/windll.obj" \
+	".\wwwguess\Debug\HTGuess.obj" \
+	".\wwwguess\Debug\windll.obj" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwdll\Debug\wwwdll.lib" \
 	".\wwwcore\Debug\wwwcore.lib"
@@ -2714,8 +2718,8 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwwais.def"
 LINK32_OBJS= \
-	"$(INTDIR)/HTWSRC.obj" \
-	"$(INTDIR)/windll.obj" \
+	".\wwwwais\Release\HTWSRC.obj" \
+	".\wwwwais\Release\windll.obj" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwhtml\Debug\wwwhtml.lib" \
 	".\wwwrules\Debug\wwwrules.lib" \
@@ -2786,8 +2790,8 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\wwwwais.def"
 LINK32_OBJS= \
-	"$(INTDIR)/windll.obj" \
-	"$(INTDIR)/HTWSRC.obj" \
+	".\wwwwais\Debug\windll.obj" \
+	".\wwwwais\Debug\HTWSRC.obj" \
 	".\wwwutils\Debug\wwwutils.lib" \
 	".\wwwhtml\Debug\wwwhtml.lib" \
 	".\wwwrules\Debug\wwwrules.lib" \
@@ -3142,19 +3146,8 @@ LINK32_OBJS= \
 
 SOURCE=.\windll.c
 
-!IF  "$(CFG)" == "msvc_40 - Win32 Release"
-
-
 "$(INTDIR)\windll.obj" : $(SOURCE) "$(INTDIR)"
 
-
-!ELSEIF  "$(CFG)" == "msvc_40 - Win32 Debug"
-
-
-"$(INTDIR)\windll.obj" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
 
 # End Source File
 # End Target
@@ -3390,6 +3383,27 @@ SOURCE=.\wwwdll\Debug\wwwdll.lib
 !ENDIF 
 
 # End Source File
+################################################################################
+# Begin Source File
+
+SOURCE=..\HTMemory.c
+DEP_CPP_HTMEM=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTList.h"\
+	".\..\HTMemory.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	
+NODEP_CPP_HTMEM=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTMemory.obj" : $(SOURCE) $(DEP_CPP_HTMEM) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+# End Source File
 # End Target
 ################################################################################
 # Begin Target
@@ -3452,6 +3466,9 @@ SOURCE=.\wwwcore.def
 # Begin Source File
 
 SOURCE=..\HTWWWStr.c
+
+!IF  "$(CFG)" == "wwwcore - Win32 Release"
+
 DEP_CPP_HTWWW=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -3481,11 +3498,48 @@ NODEP_CPP_HTWWW=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+!ELSEIF  "$(CFG)" == "wwwcore - Win32 Debug"
+
+DEP_CPP_HTWWW=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTString.h"\
+	".\..\HTTCP.h"\
+	".\..\HTParse.h"\
+	".\..\HTWWWStr.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTMemory.h"\
+	".\..\HTReq.h"\
+	".\..\HTNet.h"\
+	".\..\HTList.h"\
+	".\..\HTFormat.h"\
+	".\..\HTStream.h"\
+	".\..\HTEvntrg.h"\
+	".\..\HTError.h"\
+	".\..\HTAtom.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTMethod.h"\
+	".\..\HTEscape.h"\
+	
+NODEP_CPP_HTWWW=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTWWWStr.obj" : $(SOURCE) $(DEP_CPP_HTWWW) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=..\HTWriter.c
+
+!IF  "$(CFG)" == "wwwcore - Win32 Release"
+
 DEP_CPP_HTWRI=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -3517,11 +3571,50 @@ NODEP_CPP_HTWRI=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+!ELSEIF  "$(CFG)" == "wwwcore - Win32 Debug"
+
+DEP_CPP_HTWRI=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTString.h"\
+	".\..\HTReq.h"\
+	".\..\HTNetMan.h"\
+	".\..\HTConLen.h"\
+	".\..\HTAlert.h"\
+	".\..\HTWriter.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTMemory.h"\
+	".\..\HTList.h"\
+	".\..\HTFormat.h"\
+	".\..\HTStream.h"\
+	".\..\HTEvntrg.h"\
+	".\..\HTError.h"\
+	".\..\HTNet.h"\
+	".\..\HTAtom.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTMethod.h"\
+	".\..\HTDNS.h"\
+	".\..\HTSocket.h"\
+	
+NODEP_CPP_HTWRI=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTWriter.obj" : $(SOURCE) $(DEP_CPP_HTWRI) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=..\HTTee.c
+
+!IF  "$(CFG)" == "wwwcore - Win32 Release"
+
 DEP_CPP_HTTEE=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -3540,11 +3633,37 @@ NODEP_CPP_HTTEE=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+!ELSEIF  "$(CFG)" == "wwwcore - Win32 Debug"
+
+DEP_CPP_HTTEE=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTArray.h"\
+	".\..\HTTee.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTMemory.h"\
+	".\..\HTStream.h"\
+	".\..\HTList.h"\
+	
+NODEP_CPP_HTTEE=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTTee.obj" : $(SOURCE) $(DEP_CPP_HTTEE) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=..\HTTCP.c
+
+!IF  "$(CFG)" == "wwwcore - Win32 Release"
+
 DEP_CPP_HTTCP=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -3581,11 +3700,55 @@ NODEP_CPP_HTTCP=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+!ELSEIF  "$(CFG)" == "wwwcore - Win32 Debug"
+
+DEP_CPP_HTTCP=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTString.h"\
+	".\..\HTAtom.h"\
+	".\..\HTList.h"\
+	".\..\HTParse.h"\
+	".\..\HTAlert.h"\
+	".\..\HTError.h"\
+	".\..\HTReqMan.h"\
+	".\..\HTNetMan.h"\
+	".\..\HTDNS.h"\
+	".\..\HTTCP.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTMemory.h"\
+	".\..\HTEscape.h"\
+	".\..\HTReq.h"\
+	".\..\HTFormat.h"\
+	".\..\HTStream.h"\
+	".\..\HTEvntrg.h"\
+	".\..\HTNet.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTMethod.h"\
+	".\..\HTAABrow.h"\
+	".\..\HTSocket.h"\
+	".\..\HTAAUtil.h"\
+	".\..\HTAssoc.h"\
+	
+NODEP_CPP_HTTCP=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTTCP.obj" : $(SOURCE) $(DEP_CPP_HTTCP) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=..\HTSocket.c
+
+!IF  "$(CFG)" == "wwwcore - Win32 Release"
+
 DEP_CPP_HTSOC=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -3621,11 +3784,54 @@ NODEP_CPP_HTSOC=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+!ELSEIF  "$(CFG)" == "wwwcore - Win32 Debug"
+
+DEP_CPP_HTSOC=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTString.h"\
+	".\..\HTReqMan.h"\
+	".\..\HTProt.h"\
+	".\..\HTTCP.h"\
+	".\..\HTStream.h"\
+	".\..\HTAlert.h"\
+	".\..\HTFormat.h"\
+	".\..\HTNetMan.h"\
+	".\..\HTError.h"\
+	".\..\HTSocket.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTMemory.h"\
+	".\..\HTReq.h"\
+	".\..\HTList.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTMethod.h"\
+	".\..\HTAABrow.h"\
+	".\..\HTNet.h"\
+	".\..\HTEvntrg.h"\
+	".\..\HTAtom.h"\
+	".\..\HTAAUtil.h"\
+	".\..\HTAssoc.h"\
+	".\..\HTDNS.h"\
+	
+NODEP_CPP_HTSOC=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTSocket.obj" : $(SOURCE) $(DEP_CPP_HTSOC) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=..\HTReqMan.c
+
+!IF  "$(CFG)" == "wwwcore - Win32 Release"
+
 DEP_CPP_HTREQ=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -3665,11 +3871,58 @@ NODEP_CPP_HTREQ=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+!ELSEIF  "$(CFG)" == "wwwcore - Win32 Debug"
+
+DEP_CPP_HTREQ=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTString.h"\
+	".\..\HTParse.h"\
+	".\..\HTAlert.h"\
+	".\..\HTError.h"\
+	".\..\HTList.h"\
+	".\..\HTCache.h"\
+	".\..\HTNetMan.h"\
+	".\..\HTEvntrg.h"\
+	".\..\HTProt.h"\
+	".\..\HTProxy.h"\
+	".\..\HTReqMan.h"\
+	".\..\HTRules.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTMemory.h"\
+	".\..\HTEscape.h"\
+	".\..\HTReq.h"\
+	".\..\HTFormat.h"\
+	".\..\HTStream.h"\
+	".\..\HTNet.h"\
+	".\..\HTAtom.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTMethod.h"\
+	".\..\HTDNS.h"\
+	".\..\HTSocket.h"\
+	".\..\HTAABrow.h"\
+	".\..\HTAAUtil.h"\
+	".\..\HTAssoc.h"\
+	
+NODEP_CPP_HTREQ=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTReqMan.obj" : $(SOURCE) $(DEP_CPP_HTREQ) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=..\HTProt.c
+
+!IF  "$(CFG)" == "wwwcore - Win32 Release"
+
 DEP_CPP_HTPRO=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -3698,11 +3951,47 @@ NODEP_CPP_HTPRO=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+!ELSEIF  "$(CFG)" == "wwwcore - Win32 Debug"
+
+DEP_CPP_HTPRO=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTString.h"\
+	".\..\HTParse.h"\
+	".\..\HTProt.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTMemory.h"\
+	".\..\HTEscape.h"\
+	".\..\HTReq.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTEvntrg.h"\
+	".\..\HTList.h"\
+	".\..\HTFormat.h"\
+	".\..\HTStream.h"\
+	".\..\HTError.h"\
+	".\..\HTNet.h"\
+	".\..\HTAtom.h"\
+	".\..\HTMethod.h"\
+	
+NODEP_CPP_HTPRO=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTProt.obj" : $(SOURCE) $(DEP_CPP_HTPRO) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=..\HTParse.c
+
+!IF  "$(CFG)" == "wwwcore - Win32 Release"
+
 DEP_CPP_HTPAR=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -3731,11 +4020,47 @@ NODEP_CPP_HTPAR=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+!ELSEIF  "$(CFG)" == "wwwcore - Win32 Debug"
+
+DEP_CPP_HTPAR=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTParse.h"\
+	".\..\HTString.h"\
+	".\..\HTTCP.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTMemory.h"\
+	".\..\HTEscape.h"\
+	".\..\HTReq.h"\
+	".\..\HTNet.h"\
+	".\..\HTList.h"\
+	".\..\HTFormat.h"\
+	".\..\HTStream.h"\
+	".\..\HTEvntrg.h"\
+	".\..\HTError.h"\
+	".\..\HTAtom.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTMethod.h"\
+	
+NODEP_CPP_HTPAR=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTParse.obj" : $(SOURCE) $(DEP_CPP_HTPAR) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=..\HTNet.c
+
+!IF  "$(CFG)" == "wwwcore - Win32 Release"
+
 DEP_CPP_HTNET=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -3771,11 +4096,54 @@ NODEP_CPP_HTNET=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+!ELSEIF  "$(CFG)" == "wwwcore - Win32 Debug"
+
+DEP_CPP_HTNET=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTProt.h"\
+	".\..\HTError.h"\
+	".\..\HTAlert.h"\
+	".\..\HTParse.h"\
+	".\..\HTReqMan.h"\
+	".\..\HTEvntrg.h"\
+	".\..\HTStream.h"\
+	".\..\HTNetMan.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTMemory.h"\
+	".\..\HTReq.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTList.h"\
+	".\..\HTFormat.h"\
+	".\..\HTNet.h"\
+	".\..\HTAtom.h"\
+	".\..\HTMethod.h"\
+	".\..\HTEscape.h"\
+	".\..\HTAABrow.h"\
+	".\..\HTSocket.h"\
+	".\..\HTAAUtil.h"\
+	".\..\HTAssoc.h"\
+	".\..\HTDNS.h"\
+	
+NODEP_CPP_HTNET=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTNet.obj" : $(SOURCE) $(DEP_CPP_HTNET) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=..\HTMethod.c
+
+!IF  "$(CFG)" == "wwwcore - Win32 Release"
+
 DEP_CPP_HTMET=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -3792,11 +4160,35 @@ NODEP_CPP_HTMET=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+!ELSEIF  "$(CFG)" == "wwwcore - Win32 Debug"
+
+DEP_CPP_HTMET=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTString.h"\
+	".\..\HTMethod.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTMemory.h"\
+	
+NODEP_CPP_HTMET=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTMethod.obj" : $(SOURCE) $(DEP_CPP_HTMET) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=..\HTFWrite.c
+
+!IF  "$(CFG)" == "wwwcore - Win32 Release"
+
 DEP_CPP_HTFWR=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -3828,11 +4220,50 @@ NODEP_CPP_HTFWR=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+!ELSEIF  "$(CFG)" == "wwwcore - Win32 Debug"
+
+DEP_CPP_HTFWR=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTString.h"\
+	".\..\HTFormat.h"\
+	".\..\HTError.h"\
+	".\..\HTAlert.h"\
+	".\..\HTAccess.h"\
+	".\..\HTBind.h"\
+	".\..\HTList.h"\
+	".\..\HTParse.h"\
+	".\..\HTReq.h"\
+	".\..\HTFWrite.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTMemory.h"\
+	".\..\HTStream.h"\
+	".\..\HTAtom.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTMethod.h"\
+	".\..\HTEscape.h"\
+	".\..\HTEvntrg.h"\
+	".\..\HTNet.h"\
+	
+NODEP_CPP_HTFWR=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTFWrite.obj" : $(SOURCE) $(DEP_CPP_HTFWR) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=..\HTFormat.c
+
+!IF  "$(CFG)" == "wwwcore - Win32 Release"
+
 DEP_CPP_HTFOR=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -3867,11 +4298,53 @@ NODEP_CPP_HTFOR=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+!ELSEIF  "$(CFG)" == "wwwcore - Win32 Debug"
+
+DEP_CPP_HTFOR=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTString.h"\
+	".\..\HTTCP.h"\
+	".\..\HTFWrite.h"\
+	".\..\HTNetMan.h"\
+	".\..\HTError.h"\
+	".\..\HTReqMan.h"\
+	".\..\HTFormat.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTMemory.h"\
+	".\..\HTReq.h"\
+	".\..\HTNet.h"\
+	".\..\HTList.h"\
+	".\..\HTStream.h"\
+	".\..\HTEvntrg.h"\
+	".\..\HTDNS.h"\
+	".\..\HTSocket.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTAtom.h"\
+	".\..\HTMethod.h"\
+	".\..\HTAABrow.h"\
+	".\..\HTAAUtil.h"\
+	".\..\HTAssoc.h"\
+	
+NODEP_CPP_HTFOR=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTFormat.obj" : $(SOURCE) $(DEP_CPP_HTFOR) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=..\HTEvntrg.c
+
+!IF  "$(CFG)" == "wwwcore - Win32 Release"
+
 DEP_CPP_HTEVN=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -3903,11 +4376,50 @@ NODEP_CPP_HTEVN=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+!ELSEIF  "$(CFG)" == "wwwcore - Win32 Debug"
+
+DEP_CPP_HTEVN=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTString.h"\
+	".\..\HTReqMan.h"\
+	".\..\HTError.h"\
+	".\..\HTDNS.h"\
+	".\..\HTEvntrg.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTMemory.h"\
+	".\..\HTReq.h"\
+	".\..\HTList.h"\
+	".\..\HTFormat.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTMethod.h"\
+	".\..\HTAABrow.h"\
+	".\..\HTStream.h"\
+	".\..\HTSocket.h"\
+	".\..\HTNet.h"\
+	".\..\HTAtom.h"\
+	".\..\HTAAUtil.h"\
+	".\..\HTAssoc.h"\
+	
+NODEP_CPP_HTEVN=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTEvntrg.obj" : $(SOURCE) $(DEP_CPP_HTEVN) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=..\HTEscape.c
+
+!IF  "$(CFG)" == "wwwcore - Win32 Release"
+
 DEP_CPP_HTESC=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -3923,11 +4435,34 @@ NODEP_CPP_HTESC=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+!ELSEIF  "$(CFG)" == "wwwcore - Win32 Debug"
+
+DEP_CPP_HTESC=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTEscape.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTMemory.h"\
+	
+NODEP_CPP_HTESC=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTEscape.obj" : $(SOURCE) $(DEP_CPP_HTESC) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=..\HTError.c
+
+!IF  "$(CFG)" == "wwwcore - Win32 Release"
+
 DEP_CPP_HTERR=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -3954,11 +4489,45 @@ NODEP_CPP_HTERR=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+!ELSEIF  "$(CFG)" == "wwwcore - Win32 Debug"
+
+DEP_CPP_HTERR=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTString.h"\
+	".\..\HTTCP.h"\
+	".\..\HTList.h"\
+	".\..\HTError.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTMemory.h"\
+	".\..\HTReq.h"\
+	".\..\HTNet.h"\
+	".\..\HTFormat.h"\
+	".\..\HTStream.h"\
+	".\..\HTEvntrg.h"\
+	".\..\HTAtom.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTMethod.h"\
+	
+NODEP_CPP_HTERR=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTError.obj" : $(SOURCE) $(DEP_CPP_HTERR) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=..\HTDNS.c
+
+!IF  "$(CFG)" == "wwwcore - Win32 Release"
+
 DEP_CPP_HTDNS=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -3990,11 +4559,50 @@ NODEP_CPP_HTDNS=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+!ELSEIF  "$(CFG)" == "wwwcore - Win32 Debug"
+
+DEP_CPP_HTDNS=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTString.h"\
+	".\..\HTAtom.h"\
+	".\..\HTList.h"\
+	".\..\HTParse.h"\
+	".\..\HTAlert.h"\
+	".\..\HTError.h"\
+	".\..\HTNetMan.h"\
+	".\..\HTDNS.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTMemory.h"\
+	".\..\HTEscape.h"\
+	".\..\HTReq.h"\
+	".\..\HTFormat.h"\
+	".\..\HTStream.h"\
+	".\..\HTEvntrg.h"\
+	".\..\HTNet.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTMethod.h"\
+	".\..\HTSocket.h"\
+	
+NODEP_CPP_HTDNS=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTDNS.obj" : $(SOURCE) $(DEP_CPP_HTDNS) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=..\HTConLen.c
+
+!IF  "$(CFG)" == "wwwcore - Win32 Release"
+
 DEP_CPP_HTCON=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -4021,11 +4629,45 @@ NODEP_CPP_HTCON=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+!ELSEIF  "$(CFG)" == "wwwcore - Win32 Debug"
+
+DEP_CPP_HTCON=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTString.h"\
+	".\..\HTReq.h"\
+	".\..\HTConLen.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTMemory.h"\
+	".\..\HTList.h"\
+	".\..\HTFormat.h"\
+	".\..\HTStream.h"\
+	".\..\HTEvntrg.h"\
+	".\..\HTError.h"\
+	".\..\HTNet.h"\
+	".\..\HTAtom.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTMethod.h"\
+	
+NODEP_CPP_HTCON=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTConLen.obj" : $(SOURCE) $(DEP_CPP_HTCON) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=..\HTBind.c
+
+!IF  "$(CFG)" == "wwwcore - Win32 Release"
+
 DEP_CPP_HTBIN=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -4055,11 +4697,48 @@ NODEP_CPP_HTBIN=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+!ELSEIF  "$(CFG)" == "wwwcore - Win32 Debug"
+
+DEP_CPP_HTBIN=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTString.h"\
+	".\..\HTAncMan.h"\
+	".\..\HTAtom.h"\
+	".\..\HTParse.h"\
+	".\..\HTBind.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTMemory.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTList.h"\
+	".\..\HTMethod.h"\
+	".\..\HTEscape.h"\
+	".\..\HTFormat.h"\
+	".\..\HTStream.h"\
+	".\..\HTReq.h"\
+	".\..\HTEvntrg.h"\
+	".\..\HTError.h"\
+	".\..\HTNet.h"\
+	
+NODEP_CPP_HTBIN=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTBind.obj" : $(SOURCE) $(DEP_CPP_HTBIN) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=..\HTAnchor.c
+
+!IF  "$(CFG)" == "wwwcore - Win32 Release"
+
 DEP_CPP_HTANC=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -4089,11 +4768,48 @@ NODEP_CPP_HTANC=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+!ELSEIF  "$(CFG)" == "wwwcore - Win32 Debug"
+
+DEP_CPP_HTANC=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTString.h"\
+	".\..\HTFormat.h"\
+	".\..\HTParse.h"\
+	".\..\HTMethod.h"\
+	".\..\HTFWrite.h"\
+	".\..\HTAncMan.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTMemory.h"\
+	".\..\HTStream.h"\
+	".\..\HTAtom.h"\
+	".\..\HTList.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTReq.h"\
+	".\..\HTEvntrg.h"\
+	".\..\HTError.h"\
+	".\..\HTNet.h"\
+	".\..\HTEscape.h"\
+	
+NODEP_CPP_HTANC=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTAnchor.obj" : $(SOURCE) $(DEP_CPP_HTANC) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=..\HTAlert.c
+
+!IF  "$(CFG)" == "wwwcore - Win32 Release"
+
 DEP_CPP_HTALE=\
 	".\..\WWWLib.h"\
 	".\..\HTError.h"\
@@ -4140,11 +4856,65 @@ NODEP_CPP_HTALE=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+!ELSEIF  "$(CFG)" == "wwwcore - Win32 Debug"
+
+DEP_CPP_HTALE=\
+	".\..\WWWLib.h"\
+	".\..\HTError.h"\
+	".\..\HTAlert.h"\
+	".\..\WWWUtil.h"\
+	".\..\WWWCore.h"\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTArray.h"\
+	".\..\HTAssoc.h"\
+	".\..\HTAtom.h"\
+	".\..\HTChunk.h"\
+	".\..\HTList.h"\
+	".\..\HTMemory.h"\
+	".\..\HTString.h"\
+	".\..\HTUU.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTAccess.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTBind.h"\
+	".\..\HTConLen.h"\
+	".\..\HTDNS.h"\
+	".\..\HTEscape.h"\
+	".\..\HTEvntrg.h"\
+	".\..\HTFWrite.h"\
+	".\..\HTFormat.h"\
+	".\..\HTMethod.h"\
+	".\..\HTNet.h"\
+	".\..\HTParse.h"\
+	".\..\HTProt.h"\
+	".\..\HTReq.h"\
+	".\..\HTSocket.h"\
+	".\..\HTTCP.h"\
+	".\..\HTTee.h"\
+	".\..\HTWWWStr.h"\
+	".\..\HTWriter.h"\
+	".\..\HTStream.h"\
+	
+NODEP_CPP_HTALE=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTAlert.obj" : $(SOURCE) $(DEP_CPP_HTALE) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=..\HTAccess.c
+
+!IF  "$(CFG)" == "wwwcore - Win32 Release"
+
 DEP_CPP_HTACC=\
 	".\..\WWWLib.h"\
 	".\..\HTReqMan.h"\
@@ -4193,6 +4963,60 @@ NODEP_CPP_HTACC=\
 "$(INTDIR)\HTAccess.obj" : $(SOURCE) $(DEP_CPP_HTACC) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
+
+!ELSEIF  "$(CFG)" == "wwwcore - Win32 Debug"
+
+DEP_CPP_HTACC=\
+	".\..\WWWLib.h"\
+	".\..\HTReqMan.h"\
+	".\..\HTAccess.h"\
+	".\..\WWWUtil.h"\
+	".\..\WWWCore.h"\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTArray.h"\
+	".\..\HTAssoc.h"\
+	".\..\HTAtom.h"\
+	".\..\HTChunk.h"\
+	".\..\HTList.h"\
+	".\..\HTMemory.h"\
+	".\..\HTString.h"\
+	".\..\HTUU.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTAlert.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTBind.h"\
+	".\..\HTConLen.h"\
+	".\..\HTDNS.h"\
+	".\..\HTError.h"\
+	".\..\HTEscape.h"\
+	".\..\HTEvntrg.h"\
+	".\..\HTFWrite.h"\
+	".\..\HTFormat.h"\
+	".\..\HTMethod.h"\
+	".\..\HTNet.h"\
+	".\..\HTParse.h"\
+	".\..\HTProt.h"\
+	".\..\HTReq.h"\
+	".\..\HTSocket.h"\
+	".\..\HTTCP.h"\
+	".\..\HTTee.h"\
+	".\..\HTWWWStr.h"\
+	".\..\HTWriter.h"\
+	".\..\HTStream.h"\
+	".\..\HTAABrow.h"\
+	".\..\HTAAUtil.h"\
+	
+NODEP_CPP_HTACC=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTAccess.obj" : $(SOURCE) $(DEP_CPP_HTACC) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
 
 # End Source File
 ################################################################################
@@ -4269,6 +5093,9 @@ SOURCE=.\wwwcache.def
 # Begin Source File
 
 SOURCE=..\HTCache.c
+
+!IF  "$(CFG)" == "wwwcache - Win32 Release"
+
 DEP_CPP_HTCAC=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -4304,6 +5131,47 @@ NODEP_CPP_HTCAC=\
 "$(INTDIR)\HTCache.obj" : $(SOURCE) $(DEP_CPP_HTCAC) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
+
+!ELSEIF  "$(CFG)" == "wwwcache - Win32 Debug"
+
+DEP_CPP_HTCAC=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTString.h"\
+	".\..\HTFormat.h"\
+	".\..\HTFWrite.h"\
+	".\..\HTAccess.h"\
+	".\..\HTBind.h"\
+	".\..\HTList.h"\
+	".\..\HTReqMan.h"\
+	".\..\HTParse.h"\
+	".\..\HTCache.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTMemory.h"\
+	".\..\HTStream.h"\
+	".\..\HTAtom.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTReq.h"\
+	".\..\HTMethod.h"\
+	".\..\HTEvntrg.h"\
+	".\..\HTError.h"\
+	".\..\HTNet.h"\
+	".\..\HTAABrow.h"\
+	".\..\HTSocket.h"\
+	".\..\HTAAUtil.h"\
+	".\..\HTAssoc.h"\
+	".\..\HTEscape.h"\
+	
+NODEP_CPP_HTCAC=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTCache.obj" : $(SOURCE) $(DEP_CPP_HTCAC) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
 
 # End Source File
 ################################################################################
@@ -5786,19 +6654,8 @@ SOURCE=.\wwwcore\Debug\wwwcore.lib
 
 SOURCE=.\windll.c
 
-!IF  "$(CFG)" == "wwwdir - Win32 Release"
-
-
 "$(INTDIR)\windll.obj" : $(SOURCE) "$(INTDIR)"
 
-
-!ELSEIF  "$(CFG)" == "wwwdir - Win32 Debug"
-
-
-"$(INTDIR)\windll.obj" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
 
 # End Source File
 ################################################################################
@@ -5831,6 +6688,7 @@ DEP_CPP_HTICO=\
 	".\..\HTIcons.h"\
 	{$(INCLUDE)}"\sys\Types.h"\
 	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTMemory.h"\
 	".\..\HTList.h"\
 	".\..\HTAtom.h"\
 	".\..\HTMethod.h"\
@@ -5909,6 +6767,7 @@ DEP_CPP_HTDIR=\
 	".\..\HTDir.h"\
 	{$(INCLUDE)}"\sys\Types.h"\
 	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTMemory.h"\
 	".\..\SGML.h"\
 	".\..\HTStream.h"\
 	".\..\HTList.h"\
@@ -5982,6 +6841,7 @@ DEP_CPP_HTDES=\
 	".\..\HTList.h"\
 	{$(INCLUDE)}"\sys\Types.h"\
 	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTMemory.h"\
 	".\..\HTStream.h"\
 	".\..\HTAtom.h"\
 	".\..\HTAnchor.h"\
@@ -6348,6 +7208,9 @@ DEP_CPP_HTTEL=\
 	".\..\HTReqMan.h"\
 	".\..\HTAlert.h"\
 	".\..\HTTelnet.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTMemory.h"\
 	".\..\HTEscape.h"\
 	".\..\HTReq.h"\
 	".\..\HTList.h"\
@@ -6362,6 +7225,9 @@ DEP_CPP_HTTEL=\
 	".\..\HTSocket.h"\
 	".\..\HTAAUtil.h"\
 	".\..\HTAssoc.h"\
+	
+NODEP_CPP_HTTEL=\
+	".\..\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\HTTelnet.obj" : $(SOURCE) $(DEP_CPP_HTTEL) "$(INTDIR)"
@@ -6388,9 +7254,6 @@ DEP_CPP_HTTEL=\
 # Begin Source File
 
 SOURCE=..\HTMLGen.c
-
-!IF  "$(CFG)" == "wwwhtml - Win32 Release"
-
 DEP_CPP_HTMLG=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -6419,48 +7282,12 @@ NODEP_CPP_HTMLG=\
 "$(INTDIR)\HTMLGen.obj" : $(SOURCE) $(DEP_CPP_HTMLG) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
-
-!ELSEIF  "$(CFG)" == "wwwhtml - Win32 Debug"
-
-DEP_CPP_HTMLG=\
-	".\..\tcp.h"\
-	".\..\HTUtils.h"\
-	".\..\HTMLPDTD.h"\
-	".\..\HTStruct.h"\
-	".\..\HTFormat.h"\
-	".\..\HTFWrite.h"\
-	".\..\HTMLGen.h"\
-	{$(INCLUDE)}"\sys\Types.h"\
-	{$(INCLUDE)}"\sys\Stat.h"\
-	".\..\SGML.h"\
-	".\..\HTStream.h"\
-	".\..\HTList.h"\
-	".\..\HTAtom.h"\
-	".\..\HTAnchor.h"\
-	".\..\HTReq.h"\
-	".\..\HTMethod.h"\
-	".\..\HTEvntrg.h"\
-	".\..\HTError.h"\
-	".\..\HTNet.h"\
-	
-NODEP_CPP_HTMLG=\
-	".\..\HTVMSUtils.h"\
-	
-
-"$(INTDIR)\HTMLGen.obj" : $(SOURCE) $(DEP_CPP_HTMLG) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ENDIF 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=..\HTMLPDTD.c
-
-!IF  "$(CFG)" == "wwwhtml - Win32 Release"
-
 DEP_CPP_HTMLP=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -6479,29 +7306,6 @@ NODEP_CPP_HTMLP=\
 "$(INTDIR)\HTMLPDTD.obj" : $(SOURCE) $(DEP_CPP_HTMLP) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
-
-!ELSEIF  "$(CFG)" == "wwwhtml - Win32 Debug"
-
-DEP_CPP_HTMLP=\
-	".\..\tcp.h"\
-	".\..\HTUtils.h"\
-	".\..\HTMLPDTD.h"\
-	{$(INCLUDE)}"\sys\Types.h"\
-	{$(INCLUDE)}"\sys\Stat.h"\
-	".\..\HTStruct.h"\
-	".\..\SGML.h"\
-	".\..\HTStream.h"\
-	".\..\HTList.h"\
-	
-NODEP_CPP_HTMLP=\
-	".\..\HTVMSUtils.h"\
-	
-
-"$(INTDIR)\HTMLPDTD.obj" : $(SOURCE) $(DEP_CPP_HTMLP) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ENDIF 
 
 # End Source File
 ################################################################################
@@ -6509,19 +7313,8 @@ NODEP_CPP_HTMLP=\
 
 SOURCE=.\windll.c
 
-!IF  "$(CFG)" == "wwwhtml - Win32 Release"
-
-
 "$(INTDIR)\windll.obj" : $(SOURCE) "$(INTDIR)"
 
-
-!ELSEIF  "$(CFG)" == "wwwhtml - Win32 Debug"
-
-
-"$(INTDIR)\windll.obj" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
 
 # End Source File
 ################################################################################
@@ -6564,9 +7357,6 @@ SOURCE=.\wwwutils\Debug\wwwutils.lib
 # Begin Source File
 
 SOURCE=..\HTTeXGen.c
-
-!IF  "$(CFG)" == "wwwhtml - Win32 Release"
-
 DEP_CPP_HTTEX=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -6594,47 +7384,12 @@ NODEP_CPP_HTTEX=\
 "$(INTDIR)\HTTeXGen.obj" : $(SOURCE) $(DEP_CPP_HTTEX) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
-
-!ELSEIF  "$(CFG)" == "wwwhtml - Win32 Debug"
-
-DEP_CPP_HTTEX=\
-	".\..\tcp.h"\
-	".\..\HTUtils.h"\
-	".\..\HTTeXGen.h"\
-	".\..\HTMLPDTD.h"\
-	".\..\HTStruct.h"\
-	".\..\HTFormat.h"\
-	{$(INCLUDE)}"\sys\Types.h"\
-	{$(INCLUDE)}"\sys\Stat.h"\
-	".\..\SGML.h"\
-	".\..\HTStream.h"\
-	".\..\HTList.h"\
-	".\..\HTAtom.h"\
-	".\..\HTAnchor.h"\
-	".\..\HTReq.h"\
-	".\..\HTMethod.h"\
-	".\..\HTEvntrg.h"\
-	".\..\HTError.h"\
-	".\..\HTNet.h"\
-	
-NODEP_CPP_HTTEX=\
-	".\..\HTVMSUtils.h"\
-	
-
-"$(INTDIR)\HTTeXGen.obj" : $(SOURCE) $(DEP_CPP_HTTEX) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ENDIF 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=..\SGML.c
-
-!IF  "$(CFG)" == "wwwhtml - Win32 Release"
-
 DEP_CPP_SGML_=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -6654,30 +7409,6 @@ NODEP_CPP_SGML_=\
 "$(INTDIR)\SGML.obj" : $(SOURCE) $(DEP_CPP_SGML_) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
-
-!ELSEIF  "$(CFG)" == "wwwhtml - Win32 Debug"
-
-DEP_CPP_SGML_=\
-	".\..\tcp.h"\
-	".\..\HTUtils.h"\
-	".\..\HTString.h"\
-	".\..\HTChunk.h"\
-	".\..\SGML.h"\
-	{$(INCLUDE)}"\sys\Types.h"\
-	{$(INCLUDE)}"\sys\Stat.h"\
-	".\..\HTStream.h"\
-	".\..\HTStruct.h"\
-	".\..\HTList.h"\
-	
-NODEP_CPP_SGML_=\
-	".\..\HTVMSUtils.h"\
-	
-
-"$(INTDIR)\SGML.obj" : $(SOURCE) $(DEP_CPP_SGML_) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ENDIF 
 
 # End Source File
 ################################################################################
@@ -6746,19 +7477,8 @@ SOURCE=.\wwwcore\Debug\wwwcore.lib
 
 SOURCE=.\windll.c
 
-!IF  "$(CFG)" == "wwwapp - Win32 Release"
-
-
 "$(INTDIR)\windll.obj" : $(SOURCE) "$(INTDIR)"
 
-
-!ELSEIF  "$(CFG)" == "wwwapp - Win32 Debug"
-
-
-"$(INTDIR)\windll.obj" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
 
 # End Source File
 ################################################################################
@@ -6777,6 +7497,59 @@ SOURCE=.\wwwapp.def
 # Begin Source File
 
 SOURCE=..\HTLog.c
+
+!IF  "$(CFG)" == "wwwapp - Win32 Release"
+
+DEP_CPP_HTLOG=\
+	".\..\WWWLib.h"\
+	".\..\HTLog.h"\
+	".\..\WWWUtil.h"\
+	".\..\WWWCore.h"\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTArray.h"\
+	".\..\HTAssoc.h"\
+	".\..\HTAtom.h"\
+	".\..\HTChunk.h"\
+	".\..\HTList.h"\
+	".\..\HTMemory.h"\
+	".\..\HTString.h"\
+	".\..\HTUU.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTAccess.h"\
+	".\..\HTAlert.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTBind.h"\
+	".\..\HTConLen.h"\
+	".\..\HTDNS.h"\
+	".\..\HTError.h"\
+	".\..\HTEscape.h"\
+	".\..\HTEvntrg.h"\
+	".\..\HTFWrite.h"\
+	".\..\HTFormat.h"\
+	".\..\HTMethod.h"\
+	".\..\HTNet.h"\
+	".\..\HTParse.h"\
+	".\..\HTProt.h"\
+	".\..\HTReq.h"\
+	".\..\HTSocket.h"\
+	".\..\HTTCP.h"\
+	".\..\HTTee.h"\
+	".\..\HTWWWStr.h"\
+	".\..\HTWriter.h"\
+	".\..\HTStream.h"\
+	
+NODEP_CPP_HTLOG=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTLog.obj" : $(SOURCE) $(DEP_CPP_HTLOG) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "wwwapp - Win32 Debug"
+
 DEP_CPP_HTLOG=\
 	".\..\WWWLib.h"\
 	".\..\HTLog.h"\
@@ -6824,11 +7597,78 @@ NODEP_CPP_HTLOG=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+!ENDIF 
+
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=..\HTHome.c
+
+!IF  "$(CFG)" == "wwwapp - Win32 Release"
+
+DEP_CPP_HTHOM=\
+	".\..\WWWLib.h"\
+	".\..\WWWApp.h"\
+	".\..\WWWCache.h"\
+	".\..\WWWRules.h"\
+	".\..\HTReqMan.h"\
+	".\..\HTHome.h"\
+	".\..\WWWUtil.h"\
+	".\..\WWWCore.h"\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTArray.h"\
+	".\..\HTAssoc.h"\
+	".\..\HTAtom.h"\
+	".\..\HTChunk.h"\
+	".\..\HTList.h"\
+	".\..\HTMemory.h"\
+	".\..\HTString.h"\
+	".\..\HTUU.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTAccess.h"\
+	".\..\HTAlert.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTBind.h"\
+	".\..\HTConLen.h"\
+	".\..\HTDNS.h"\
+	".\..\HTError.h"\
+	".\..\HTEscape.h"\
+	".\..\HTEvntrg.h"\
+	".\..\HTFWrite.h"\
+	".\..\HTFormat.h"\
+	".\..\HTMethod.h"\
+	".\..\HTNet.h"\
+	".\..\HTParse.h"\
+	".\..\HTProt.h"\
+	".\..\HTReq.h"\
+	".\..\HTSocket.h"\
+	".\..\HTTCP.h"\
+	".\..\HTTee.h"\
+	".\..\HTWWWStr.h"\
+	".\..\HTWriter.h"\
+	".\..\HTStream.h"\
+	".\..\HTDialog.h"\
+	".\..\HTLog.h"\
+	".\..\HTHist.h"\
+	".\..\HTCache.h"\
+	".\..\HTRules.h"\
+	".\..\HTProxy.h"\
+	".\..\HTAABrow.h"\
+	".\..\HTAAUtil.h"\
+	
+NODEP_CPP_HTHOM=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTHome.obj" : $(SOURCE) $(DEP_CPP_HTHOM) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "wwwapp - Win32 Debug"
+
 DEP_CPP_HTHOM=\
 	".\..\WWWLib.h"\
 	".\..\WWWApp.h"\
@@ -6888,11 +7728,38 @@ NODEP_CPP_HTHOM=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+!ENDIF 
+
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=..\HTHist.c
+
+!IF  "$(CFG)" == "wwwapp - Win32 Release"
+
+DEP_CPP_HTHIS=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTHist.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTMemory.h"\
+	".\..\HTList.h"\
+	".\..\HTAtom.h"\
+	".\..\HTMethod.h"\
+	
+NODEP_CPP_HTHIS=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTHist.obj" : $(SOURCE) $(DEP_CPP_HTHIS) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "wwwapp - Win32 Debug"
+
 DEP_CPP_HTHIS=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -6911,6 +7778,8 @@ NODEP_CPP_HTHIS=\
 "$(INTDIR)\HTHist.obj" : $(SOURCE) $(DEP_CPP_HTHIS) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
+
+!ENDIF 
 
 # End Source File
 ################################################################################
@@ -6941,6 +7810,73 @@ SOURCE=.\wwwrules\Debug\wwwrules.lib
 # Begin Source File
 
 SOURCE=..\HTDialog.c
+
+!IF  "$(CFG)" == "wwwapp - Win32 Release"
+
+DEP_CPP_HTDIA=\
+	".\..\WWWLib.h"\
+	".\..\WWWApp.h"\
+	".\..\WWWHTTP.h"\
+	".\..\HTReqMan.h"\
+	".\..\HTDialog.h"\
+	".\..\WWWUtil.h"\
+	".\..\WWWCore.h"\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTArray.h"\
+	".\..\HTAssoc.h"\
+	".\..\HTAtom.h"\
+	".\..\HTChunk.h"\
+	".\..\HTList.h"\
+	".\..\HTMemory.h"\
+	".\..\HTString.h"\
+	".\..\HTUU.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTAccess.h"\
+	".\..\HTAlert.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTBind.h"\
+	".\..\HTConLen.h"\
+	".\..\HTDNS.h"\
+	".\..\HTError.h"\
+	".\..\HTEscape.h"\
+	".\..\HTEvntrg.h"\
+	".\..\HTFWrite.h"\
+	".\..\HTFormat.h"\
+	".\..\HTMethod.h"\
+	".\..\HTNet.h"\
+	".\..\HTParse.h"\
+	".\..\HTProt.h"\
+	".\..\HTReq.h"\
+	".\..\HTSocket.h"\
+	".\..\HTTCP.h"\
+	".\..\HTTee.h"\
+	".\..\HTWWWStr.h"\
+	".\..\HTWriter.h"\
+	".\..\HTStream.h"\
+	".\..\HTHome.h"\
+	".\..\HTLog.h"\
+	".\..\HTHist.h"\
+	".\..\HTTPUtil.h"\
+	".\..\HTTP.h"\
+	".\..\HTTPServ.h"\
+	".\..\HTTPGen.h"\
+	".\..\HTTPReq.h"\
+	".\..\HTTPRes.h"\
+	".\..\HTAAUtil.h"\
+	".\..\HTAABrow.h"\
+	
+NODEP_CPP_HTDIA=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTDialog.obj" : $(SOURCE) $(DEP_CPP_HTDIA) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "wwwapp - Win32 Debug"
+
 DEP_CPP_HTDIA=\
 	".\..\WWWLib.h"\
 	".\..\WWWApp.h"\
@@ -6994,6 +7930,8 @@ NODEP_CPP_HTDIA=\
 "$(INTDIR)\HTDialog.obj" : $(SOURCE) $(DEP_CPP_HTDIA) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
+
+!ENDIF 
 
 # End Source File
 # End Target
@@ -7070,6 +8008,41 @@ SOURCE=.\wwwguess.def
 # Begin Source File
 
 SOURCE=..\HTGuess.c
+
+!IF  "$(CFG)" == "wwwguess - Win32 Release"
+
+DEP_CPP_HTGUE=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTString.h"\
+	".\..\HTFormat.h"\
+	".\..\HTAlert.h"\
+	".\..\HTAncMan.h"\
+	".\..\HTList.h"\
+	".\..\HTFWrite.h"\
+	".\..\HTGuess.h"\
+	{$(INCLUDE)}"\sys\Types.h"\
+	{$(INCLUDE)}"\sys\Stat.h"\
+	".\..\HTMemory.h"\
+	".\..\HTStream.h"\
+	".\..\HTAtom.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTReq.h"\
+	".\..\HTMethod.h"\
+	".\..\HTEvntrg.h"\
+	".\..\HTError.h"\
+	".\..\HTNet.h"\
+	
+NODEP_CPP_HTGUE=\
+	".\..\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTGuess.obj" : $(SOURCE) $(DEP_CPP_HTGUE) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "wwwguess - Win32 Debug"
+
 DEP_CPP_HTGUE=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
@@ -7098,6 +8071,8 @@ NODEP_CPP_HTGUE=\
 "$(INTDIR)\HTGuess.obj" : $(SOURCE) $(DEP_CPP_HTGUE) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
+
+!ENDIF 
 
 # End Source File
 # End Target
@@ -7157,7 +8132,15 @@ SOURCE=.\windll.c
 "$(INTDIR)\windll.obj" : $(SOURCE) "$(INTDIR)"
 
 
-# End Source Debug"
+# End Source File
+################################################################################
+# Begin Source File
+
+SOURCE=.\wwwwais.def
+
+!IF  "$(CFG)" == "wwwwais - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "wwwwais - Win32 Debug"
 
 !ENDIF 
 
@@ -7165,85 +8148,112 @@ SOURCE=.\windll.c
 ################################################################################
 # Begin Source File
 
-SOURCE=..\HTLog.c
-DEP_CPP_HTLOG=\
-	".\..\WWWLib.h"\
-	".\..\HTLog.h"\
-	".\..\WWWUtil.h"\
-	".\..\WWWCore.h"\
+SOURCE=..\HTWSRC.c
+
+!IF  "$(CFG)" == "wwwwais - Win32 Release"
+
+DEP_CPP_HTWSR=\
 	".\..\tcp.h"\
 	".\..\HTUtils.h"\
-	".\..\HTArray.h"\
-	".\..\HTAssoc.h"\
-	".\..\HTAtom.h"\
-	".\..\HTChunk.h"\
-	".\..\HTList.h"\
 	".\..\HTString.h"\
-	".\..\HTUU.h"\
+	".\..\HTMLPDTD.h"\
+	".\..\HTMLGen.h"\
+	".\..\HTParse.h"\
+	".\..\HTReqMan.h"\
+	".\..\HTProxy.h"\
+	".\..\HTWSRC.h"\
 	{$(INCLUDE)}"\sys\Types.h"\
 	{$(INCLUDE)}"\sys\Stat.h"\
-	".\..\HTAccess.h"\
-	".\..\HTAlert.h"\
-	".\..\HTAnchor.h"\
-	".\..\HTBind.h"\
-	".\..\HTConLen.h"\
-	".\..\HTDNS.h"\
-	".\..\HTError.h"\
-	".\..\HTEscape.h"\
-	".\..\HTEvntrg.h"\
-	".\..\HTFWrite.h"\
-	".\..\HTFormat.h"\
-	".\..\HTMethod.h"\
-	".\..\HTNet.h"\
-	".\..\HTParse.h"\
-	".\..\HTProt.h"\
-	".\..\HTReq.h"\
-	".\..\HTSocket.h"\
-	".\..\HTTCP.h"\
-	".\..\HTTee.h"\
-	".\..\HTWWWStr.h"\
-	".\..\HTWriter.h"\
+	".\..\HTMemory.h"\
+	".\..\HTStruct.h"\
+	".\..\SGML.h"\
 	".\..\HTStream.h"\
+	".\..\HTList.h"\
+	".\..\HTFormat.h"\
+	".\..\HTAtom.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTReq.h"\
+	".\..\HTMethod.h"\
+	".\..\HTEvntrg.h"\
+	".\..\HTError.h"\
+	".\..\HTNet.h"\
+	".\..\HTEscape.h"\
+	".\..\HTAABrow.h"\
+	".\..\HTSocket.h"\
+	".\..\HTAAUtil.h"\
+	".\..\HTAssoc.h"\
 	
-NODEP_CPP_HTLOG=\
+NODEP_CPP_HTWSR=\
 	".\..\HTVMSUtils.h"\
 	
 
-"$(INTDIR)\HTLog.obj" : $(SOURCE) $(DEP_CPP_HTLOG) "$(INTDIR)"
+"$(INTDIR)\HTWSRC.obj" : $(SOURCE) $(DEP_CPP_HTWSR) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
+
+!ELSEIF  "$(CFG)" == "wwwwais - Win32 Debug"
+
+DEP_CPP_HTWSR=\
+	".\..\tcp.h"\
+	".\..\HTUtils.h"\
+	".\..\HTString.h"\
+	".\..\HTMLPDTD.h"\
+	".\..\HTMLGen.h"\
+	".\..\HTParse.h"\
+	".\..\HTReqMan.h"\
+	".\..\HTProxy.h"\
+	".\..\HTWSRC.h"\
+	".\..\HTMemory.h"\
+	".\..\HTStruct.h"\
+	".\..\SGML.h"\
+	".\..\HTStream.h"\
+	".\..\HTList.h"\
+	".\..\HTFormat.h"\
+	".\..\HTAtom.h"\
+	".\..\HTAnchor.h"\
+	".\..\HTReq.h"\
+	".\..\HTMethod.h"\
+	".\..\HTEvntrg.h"\
+	".\..\HTError.h"\
+	".\..\HTNet.h"\
+	".\..\HTEscape.h"\
+	".\..\HTAABrow.h"\
+	".\..\HTSocket.h"\
+	".\..\HTAAUtil.h"\
+	".\..\HTAssoc.h"\
+	
+
+"$(INTDIR)\HTWSRC.obj" : $(SOURCE) $(DEP_CPP_HTWSR) "$(INTDIR)"
+   $(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=..\HTHome.c
-DEP_CPP_HTHOM=\
-	".\..\WWWLib.h"\
-	".\..\WWWApp.h"\
-	".\..\WWWCache.h"\
-	".\..\WWWRules.h"\
-	".\..\HTReqMan.h"\
-	".\..\HTHome.h"\
-	".\..\WWWUtil.h"\
-	".\..\WWWCore.h"\
-	".\..\tcp.h"\
-	".\..\HTUtils.h"\
-	".\..\HTArray.h"\
-	".\..\HTAssoc.h"\
-	".\..\HTAtom.h"\
-	".\..\HTChunk.h"\
-	".\..\HTList.h"\
-	".\..\HTString.h"\
-	".\..\HTUU.h"\
-	{$(INCLUDE)}"\sys\Types.h"\
-	{$(INCLUDE)}"\sys\Stat.h"\
-	".\..\HTAccess.h"\
-	".\..\HTAlert.h"\
-	".\..\HTAnchor.h"\
-	".\..\HTBind.h"\
-	".\..\HTConLen.h"\
-	".\..\HTDNS.h"\
-	".\..\HTError.h"\
-	".\..\HTEscape.h"\
-	".\
+SOURCE=.\wwwhtml\Debug\wwwhtml.lib
+
+!IF  "$(CFG)" == "wwwwais - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "wwwwais - Win32 Debug"
+
+!ENDIF 
+
+# End Source File
+################################################################################
+# Begin Source File
+
+SOURCE=.\wwwrules\Debug\wwwrules.lib
+
+!IF  "$(CFG)" == "wwwwais - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "wwwwais - Win32 Debug"
+
+!ENDIF 
+
+# End Source File
+# End Target
+# End Project
+################################################################################

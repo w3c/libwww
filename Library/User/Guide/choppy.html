@@ -1,28 +1,53 @@
 <HTML>
 <HEAD>
-<TITLE>Internals - Library Interfaces</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  1-Feb-1996 -->
+<TITLE>W3C Library Interfaces</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  9-Feb-1996 -->
 <NEXTID N="z78">
 </HEAD>
 <BODY>
 
 <A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
 <A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
-<A HREF="./"><IMG ALT="LibGuide" SRC="../../../Icons/WWW/internals48x.gif"></A>
+<IMG ALT="LibGuide" SRC="../../../Icons/WWW/internals48x.gif">
 
-<H1>Library Interfaces</H1>
+<H1>W3C Library Interfaces</H1>
+
+<IMG SRC="../../../Icons/WWW/construction.gif"> Any suggestions or ideas are welcome at <A
+HREF="mailto:libwww@w3.org">libwww@w3.org</A>. <P>
 
 This is the overall set of interfaces in the W3C Reference Library. An interface can cover multiple
 related C modules and it is defined by a <B>WWW*.h</B> include file, for example <A
 HREF="../../Implementation/WWWCore.html">WWWCore.h</A>. On <A HREF="../Platform/WinDLL.html">Windows
 platforms</A>, each interface corresponds to a DLL with a DLL definition file defining all exported
-methods and data objects.
+methods and data objects. You can also have a look at the <A
+HREF="../../Implementation/windows/wwwlist.txt">complete list of all public functions</A>.<P>
+
+Every module in the Library has a HTML document associated with it containing a detailed description
+of the functionality and interface to other modules. This page is the top node for the
+implementation specific documentation and contains links to all the modules in the Library.  The
+documentation is dynamically kept up to date as the actual include files (.h) are generated from the
+HTML documents using the <A HREF="../../../LineMode/">Line Mode Browser</A>. <P>
+
+When compiling the Library please make sure that you have a relatively new version of the <A
+HREF="../../../LineMode/">Line Mode Browser</A> that parses the HTML documents correctly (2.13 and
+newer versions). Find out what version of the Line Mode Browser you are using by typing
+
+<PRE>
+	./www -version
+</PRE>
+
+Also remember that when editing the module interfaces or adding functionality then always use the
+HTML files and not the .h files! <P>
+
+<IMG ALIGN=BOTTOM SRC="../../../Icons/32x32/caution.gif" ALT="NOTE"> This document is also available
+as <A HREF="choppy.html"><B>one big HTML file</B></A> intended for printout. Please note that not
+all links in this version work!<P>
 
 <H2>Core Interfaces</H2>
 
 The core interfaces must be included in all applications.
 
-<A NAME="dll"><H3>wwwdll.dll</H3>
+<A NAME="dll"><H3>Windows Specifics</H3></A>
 
 The wwwdll library is a tiny library that contains a pointer to the <A
 HREF="../../Implementation/TTYPrint.html">TTYPrint</A> function. When Windows loads a DLL, the
@@ -36,10 +61,11 @@ HREF="#dll">wwwdll.dll </A> also contains the WWW_TraceFlag to the same end of m
 indirection.
 
 <UL>
+<LI>Name of DLL: <B>wwwdll.dll</B>
 <LI><A HREF="../../Implementation/windows/wwwdll.def">Definition list of exported API</A>
 </UL>
 
-<A NAME="utils"><H3>wwwutils.dll</H3>
+<A HREF="../../Implementation/WWWUtil.html"><H3>Basic Utilities</H3></A>
 
 The Utility modules are mostly container modules, dynamic strings and other stuff that you can't
 live without when building applications. The modules are used by the core part of the W3C Reference
@@ -49,11 +75,12 @@ modules known to the Library. You can include this one if the application is to 
 functionality of the Library.
 
 <UL>
+<LI>Name of DLL: <B>wwwutil.dll</B>
 <LI><A HREF="../../Implementation/windows/wwwutils.def">Definition list of exported API</A>
 <LI><A HREF="../../Implementation/WWWUtil.html">Interface include file</A>
 </UL>
 
-<A NAME="core"><H3>wwwcore.dll</H3>
+<A HREF="../../Implementation/WWWCore.html"><H3>Core Interface</H3></A>
 
 This is the basic include file for the core of the W3C Reference Library. Together with the <A
 HREF="../../Implementation/WWWUtil.html">WWWUtil module</A> it contains all core specific modules
@@ -65,22 +92,24 @@ HREF="../../Implementation/WWWApp.html">WWWApp.h</A> which a lot of application 
 makes it easier to use the core.
 
 <UL>
+<LI>Name of DLL: <B>wwwcode.dll</B>
 <LI><A HREF="../../Implementation/windows/wwwcore.def">Definition list of exported API</A>
 <LI><A HREF="../../Implementation/WWWCore.html">Interface include file</A>
 </UL>
 
 <H2>Stream Interfaces</H2>
 
-<H3>wwwcache.dll</H3>
+<A HREF="../../Implementation/WWWCache.html"><H3>Persistent Cache</H3></A>
 
 The cache contains details of temporary disk files which contain the contents of remote documents.
 
 <UL>
+<LI>Name of DLL: <B>wwwcache.dll</B>
 <LI><A HREF="../../Implementation/windows/wwwcache.def">Definition list of exported API</A>
 <LI><A HREF="../../Implementation/WWWCache.html">Interface include file</A>
 </UL>
 
-<H3>wwwhtml.dll</H3>
+<A HREF="../../Implementation/WWWHTML.html"><H3>HTML Parser and Generator</H3></A>
 
 This is the include file for the basic HTML module that can be used together with the core of the
 W3C Reference Library. It contains all HTML specific modules which are required to compile and build
@@ -90,11 +119,12 @@ the Library but must be defined by the application. Therefore it can not be part
 be included directly in the application.<P>
 
 <UL>
+<LI>Name of DLL: <B>wwwhtml.dll</B>
 <LI><A HREF="../../Implementation/windows/wwwhtml.def">Definition list of exported API</A>
 <LI><A HREF="../../Implementation/WWWHTML.html">Interface include file</A>
 </UL>
 
-<H3>wwwdir.dll</H3>
+<A HREF="../../Implementation/WWWDir.html"><H3>Directory Browsing</H3></A>
 
 This is the include file for the directory handling modules that can
 be used together with the core of the W3C Reference Library. It
@@ -102,11 +132,12 @@ contains all Directory specific modules which are required to compile
 and build the DIRECTORY DLL.<P>
 
 <UL>
+<LI>Name of DLL: <B>wwwdir.dll</B>
 <LI><A HREF="../../Implementation/windows/wwwdir.def">Definition list of exported API</A>
 <LI><A HREF="../../Implementation/WWWDir.html">Interface include file</A>
 </UL>
 
-<H3>wwwguess.dll</H3>
+<A HREF="../../Implementation/WWWGuess.html"><H3>Content Type Guessing Stream</H3></A>
 
 This interface provides functionality for guessing unknown media types from magic words. The stream
 is a one that reads first a chunk of stuff, tries to figure out the format, and calls
@@ -115,24 +146,26 @@ is a one that reads first a chunk of stuff, tries to figure out the format, and 
 formats in the world, if someone only had time to do it. <P>
 
 <UL>
+<LI>Name of DLL: <B>wwwguess.dll</B>
 <LI><A HREF="../../Implementation/windows/wwwguess.def">Definition list of exported API</A>
 <LI><A HREF="../../Implementation/WWWGuess.html">Interface include file</A>
 </UL>
 
-<H3>wwwmime.dll</H3>
+<A HREF="../../Implementation/WWWMIME.html"><H3>MIME Parser and Generator</H3></A>
 
 This is the module for basic RFC822/MIME parsing that can be used together with the core of the W3C
 Reference Library. It contains all MIME specific modules which are required to compile and build the
 MIME DLL.<P>
 
 <UL>
+<LI>Name of DLL: <B>wwwmime.dll</B>
 <LI><A HREF="../../Implementation/windows/wwwmime.def">Definition list of exported API</A>
 <LI><A HREF="../../Implementation/WWWMIME.html">Interface include file</A>
 </UL>
 
 <H2>Application Interfaces</H2>
 
-<H3>wwwrules.dll</H3>
+<A HREF="../../Implementation/WWWRules.html"><H3>Rule File Management</H3></A>
 
 A way to initialize applications is to use a rule file, also known as a configuration file. This is
 for example the case with the W3C httpd and the W3C Line Mode Browser. This module provides basic
@@ -151,17 +184,19 @@ which then handle the communications with the remote server, for example using F
 document and return it to the application (proxy client) using HTTP.
 
 <UL>
+<LI>Name of DLL: <B>wwwrules.dll</B>
 <LI><A HREF="../../Implementation/windows/wwwrules.def">Definition list of exported API</A>
 <LI><A HREF="../../Implementation/WWWRules.html">Interface include file</A>
 </UL>
 
-<H3>wwwapp.dll</H3>
+<A HREF="../../Implementation/WWWApp.html"><H3>Application Specific</H3></A>
 
 This module provides some "make life easier" functions in order to get the application going. They
 help you generate the first anchor, also called the <EM>home anchor</EM>. It also contains a nice
 set of default WWW addresses.
 
 <UL>
+<LI>Name of DLL: <B>wwwapp.dll</B>
 <LI><A HREF="../../Implementation/windows/wwwapp.def">Definition list of exported API</A>
 <LI><A HREF="../../Implementation/WWWApp.html">Interface include file</A>
 </UL>
@@ -172,1168 +207,1362 @@ The core parts of the Library is a framework for adding functionality. It has ho
 protocol modules, like for example HTTP, FTP, and also for adding streams that can convert from one
 media type to some other type, or presenting the result to the user. In the distribution file of the
 Library you will find a large set of protocol modules and streams already implemented. However, in
-order to use these you need to initialize them. This can be done by using the files in the <A
-HREF="HTInit.html">HTInit</A> module. You can modify these modules as you like to fit your
-particular needs. They are <B>not</B> part of any DLL and so must be included directly if desired.
+order to use these you need to initialize them. This can be done by using the methods in the <A
+HREF="WWWInit.html">WWWInit</A> module. You can modify these modules as you like to fit your
+particular needs. The modules in this interface are <B>not</B> part of any DLL and so must be
+included directly if desired.
 
 <UL>
-<LI><A HREF="../../Implementation/HTInit.html">HTInit Interface include file</A>
-<LI><A HREF="../../Implementation/HTBInit.html">HTBInit Interface include file</A>
+<LI><A HREF="../../Implementation/WWWInit.html">WWWInit Interface include file</A>
 </UL>
 
 <H2>Protocol Interfaces</H2>
 
-<H3>wwwfile.dll</H3>
+<A HREF="../../Implementation/WWWFile.html"><H3>Local File Access</H3></A>
 
 This is the include file for local file handling modules that can be used together with the core of
 the W3C Reference Library. It contains modules which are required to compile and build the FILE
 DLL.<P>
 
 <UL>
+<LI>Name of DLL: <B>wwwfile.dll</B>
 <LI><A HREF="../../Implementation/windows/wwwfile.def">Definition list of exported API</A>
 <LI><A HREF="../../Implementation/WWWFile.html">Interface include file</A>
 </UL>
 
-<H3>wwwftp.dll</H3>
+<A HREF="../../Implementation/WWWFTP.html"><H3>FTP Access</H3></A>
 
 This is the include file for the basic FTP module that can be used together with the core of the W3C
 Reference Library. It contains all FTP specific modules which are required to compile and build the
 FTP DLL.<P>
 
 <UL>
+<LI>Name of DLL: <B>wwwftp.dll</B>
 <LI><A HREF="../../Implementation/windows/wwwftp.def">Definition list of exported API</A>
 <LI><A HREF="../../Implementation/WWWFTP.html">Interface include file</A>
 </UL>
 
-<H3>wwwgophe.dll</H3>
+<A HREF="../../Implementation/WWWGophe.html"><H3>Gopher Access</H3></A>
 
 This is the include file for the basic GOPHER module that can be used together with the core of the
 W3C Reference Library. It contains all GOPHER specific modules which are required to compile and
 build the GOPHER DLL.<P>
 
 <UL>
+<LI>Name of DLL: <B>wwwgophe.dll</B>
 <LI><A HREF="../../Implementation/windows/wwwgophe.def">Definition list of exported API</A>
 <LI><A HREF="../../Implementation/WWWGophe.html">Interface include file</A>
 </UL>
 
-<H3>wwwhttp.dll</H3>
+<A HREF="../../Implementation/WWWHTTP.html"><H3>HTTP Access</H3></A>
 
 This is the include file for all HTTP access including the server side and the client side. It can
 be used together with the core of the W3C Reference Library. It contains all HTTP specific modules
 which are required to compile and build the HTTP DLL.
 
 <UL>
+<LI>Name of DLL: <B>wwwhttp.dll</B>
 <LI><A HREF="../../Implementation/windows/wwwhttp.def">Definition list of exported API</A>
 <LI><A HREF="../../Implementation/WWWHTTP.html">Interface include file</A>
 </UL>
 
-<H3>wwwnews.dll</H3>
+<A HREF="../../Implementation/WWWNews.html"><H3>News Access</H3></A>
 
 This is the include file for the basic NNTP module that can be used together with the core of the
 W3C Reference Library. It contains all News specific modules which are required to compile and build
 the News DLL.<P>
 
 <UL>
+<LI>Name of DLL: <B>wwwnews.dll</B>
 <LI><A HREF="../../Implementation/windows/wwwnews.def">Definition list of exported API</A>
 <LI><A HREF="../../Implementation/WWWNews.html">Interface include file</A>
 </UL>
 
-<H3>wwwtelnt.dll</H3>
+<A HREF="../../Implementation/WWWTelnt.html"><H3>Telnet Access</H3></A>
 
 This is the include file for the basic Telnet, rlogin, and TN3270 module that can be used together
 with the core of the W3C Reference Library. It contains all Telnet, rlogin, and TN3270 specific
 modules which are required to compile and build the Telnet, rlogin, and TN3270 DLL.<P>
 
 <UL>
+<LI>Name of DLL: <B>wwwtelnt.dll</B>
 <LI><A HREF="../../Implementation/windows/wwwtelnt.def">Definition list of exported API</A>
 <LI><A HREF="../../Implementation/WWWTelnt.html">Interface include file</A>
 </UL>
 
-<H3>wwwwais.dll</H3>
+<A HREF="../../Implementation/WWWWAIS.html"><H3>WAIS Access</H3></A>
 
 This is the include file for the basic WAIS module that can be used together with the core of the
 W3C Reference Library. It contains all WAIS specific modules which are required to compile and build
 the WAIS DLL.<P>
 
 <UL>
+<LI>Name of DLL: <B>wwwwais.dll</B>
 <LI><A HREF="../../Implementation/windows/wwwwais.def">Definition list of exported API</A>
 <LI><A HREF="../../Implementation/WWWWAIS.html">Interface include file</A>
 </UL>
 
 <P>
 <HR>
-<ADDRESS>Eric Prud'hommeaux and Henrik frystyk, <A HREF="mailto:libwww.w3.org">libwww@w3.org</A> January 1996</ADDRESS>
-
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, February 1996</ADDRESS>
 </BODY>
 </HTML>
 <HTML>
 <HEAD>
-<TITLE>W3C Library Internals</TITLE>
+<TITLE>Non-Mandatory Application Include File</TITLE>
 <!-- Changed by: Henrik Frystyk Nielsen,  1-Feb-1996 -->
-<NEXTID N="z78">
+<NEXTID N="z11">
 </HEAD>
 <BODY>
 
-<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
-<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
-<IMG ALT="LibGuide" SRC="../../../Icons/WWW/internals48x.gif">
-
-<H1>W3C Library Internals</H1>
-
-<IMG SRC="../../../Icons/WWW/construction.gif"> Any suggestions or
-ideas are welcome at <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>. <P>
-
-This guide describes the modules and their internal relations in the
-<A HREF="../../">W3C Reference Library</A>. Every module in the
-Library has a HTML document associated with it containing a detailed
-description of the functionality and interface to other modules. This
-page is the top node for the implementation specific documentation and
-contains links to all the modules in the Library.  The documentation
-is dynamically kept up to date as the actual include files (.h) are
-generated from the HTML documents using the <A
-HREF="../../../LineMode/">Line Mode Browser</A>. <P>
-
-<IMG ALIGN=BOTTOM SRC="../../../Icons/32x32/caution.gif" ALT="NOTE">
-This document is also available as <A HREF="choppy.html"><B>one big
-HTML file</B></A> intended for printout. Please note that not all
-links in this version work!<P>
-
-<H2>Table of Contents</H2> 
-
-<OL>
-
-<LI><A HREF="Interfaces.html">List of all Library Interfaces</A>
-<LI><A HREF="../../Implementation/windows/wwwlist.txt">List of all exported Library Methods</A><P>
-
-<LI><A HREF="Core.html">Core Modules</A>
-<LI><A HREF="Prefs.html">Application Preferences</A>
-<LI><A HREF="App.html">Application Specific Implementations</A><P>
-
-<LI><A HREF="Network.html">Network Specific Modules</A>
-<LI><A HREF="Protocol.html">Protocol Modules</A>
-<LI><A HREF="ProtocolUtils.html">Protocol Utility Modules</A>
-<LI><A HREF="Threads.html">Libwww Thread Modules</A><P>
-
-<LI><A HREF="Central.html">Central Data Structures</A>
-<LI><A HREF="Streams.html">Generic Streams</A>
-<LI><A HREF="StrucStreams.html">Structured Streams</A>
-<LI><A HREF="Presentation.html">HTML Presentation Modules</A>
-<LI><A HREF="Styles.html">Style Sheets</A><P>
-
-<LI><A HREF="URI.html">URI Management</A>
-<LI><A HREF="Utils.html">Generic Programming Utilities</A>
-
-</OL>
-
-When compiling the Library please make sure that you have a relatively
-new version of the <A HREF="../../../LineMode/">Line Mode Browser</A>
-that parses the HTML documents correctly (2.13 and newer
-versions). Find out what version of the Line Mode Browser you are
-using by typing
+<H1>Non-Mandatory Application Include File</H1>
 
 <PRE>
-	./www -version
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
 </PRE>
 
-Also remember that when editing the module interfaces or adding
-functionality then always use the HTML files and not the .h
-files! <P>
-
-<HR>
-
-<ADDRESS>Henrik Frystyk, <A
-HREF="mailto:libwww@w3.org">libwww@w3.org</A>, December 1995</ADDRESS>
-
-</BODY>
-</HTML>
-<HTML>
-<HEAD>
-<TITLE>Internals - Core Modules</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  8-Oct-1995 -->
-<NEXTID N="z78">
-</HEAD>
-<BODY>
-
-<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
-<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
-<A HREF="./"><IMG SRC="../../../Icons/WWW/internals48x.gif" ALT="Internals"></A>
-
-<H1>Core Modules</H1>
-
-The "<A HREF="../Architecture/DesignModel.html">core modules</A>" are
-the fundamental part of the Library. The core entity contains hooks
-for the dynamic modules and provides the major access points for
-applications issuing requests, for example to access a data object.
-
-<DL>
-
-<DT><A HREF="../../Implementation/WWWLib.html">WWWLib Include</A>
-<DD>This is not really a core module, but an important part as this is
-the only include file you need to use the Library.
-
-<DT><A HREF="../../Implementation/HTAccess.html">Access Manager</A>
-<DD>The access manager is the main entry point for requesting a data
-object pointed to by a URI. It has a set of methods that allows the
-application to request different services, for example to get a URI,
-post a URI, or to search a URI.
-
-<DT><A HREF="../../Implementation/HTProt.html">Protocol Manager</A>
-<DD>The protocol manager is invoked by the access manager in order to
-access a document not found in memory or in file cache. The manager
-consists of a set of protocol modules handling the access schemes
-HTTP, FTP, NNTP, Gopher, WAIS, Telnet, and access to the local file
-system. The protocol modules are registered dynamically (using static
-linking) and the <A HREF="../Using/">User's Guide</A> describes how
-modules can be registered. Each protocol module is responsible for
-establishing the connection to the remote server (or the local
-file-system) and extract information using a specific access
-method. When data arrives from the network, it is passed on to the
-format manager.
-
-<DT><A HREF="../../Implementation/HTFormat.html">Format Manager</A>
-<DD>The stream format manager takes care of data format conversion
-requested based on a set of registered format converters and a simple
-algorithm for selecting the best conversion.
-
-<DT><A HREF="../../Implementation/HTFWrite.html#z3">Cache Manager</A>
-<DD>The cache manager is used to save data objects once they have been
-down loaded from the network. The cache uses the hierarchy indicated
-in the URLs as a way to identify items in the cache but is still under
-construction and requires a lot of work to be a highly efficient cache
-manager!
-
-<DT><A HREF="../../Implementation/HTError.html">Error Manager</A>
-<DD>This module manages an information stack which contains
-information of all errors occurred during the communication with a
-remote server or simply information about the current state. Using a
-stack for this kind of information provides the possibility of nested
-error messages where each message can be classified and filtered
-according to its impact on the current request, for example "Fatal",
-"Non-Fatal", "Warning" etc. The filtering can be used to decide which
-level of messages will be passed back to the user.
- 
-<DT><A HREF="../../Implementation/HTEvntrg.html">Event Manager</A>
-<DD>The event manager is a "session layer" handling which thread
-should be the active thread. A thread can either be an internal libwww
-thread or an external thread, for example a Posix thread, and the
-event manager can itself be either the internal Library manager or an
-external event manager. Currently the internal event manager uses a
-select function call to decide which thread should be made the active
-one, however an external event manager can use another decision
-model. The event manager is described together with the internal
-thread model in the section "<A
-HREF="../Architecture/Threads.html">Libwww Threads</A>", and more
-modules are described in the section <A HREF="Threads.html">Libwww
-thread Modules</A>
-
-</DL>
-
-<P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, December 1995</ADDRESS>
-</BODY>
-</HTML>
-<HTML>
-<HEAD>
-<TITLE>Internals - Application Preferences</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
-</HEAD>
-<BODY>
-
-<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
-<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
-<A HREF="./"><IMG ALT="LibGuide" SRC="../../../Icons/WWW/internals48x.gif"></A>
-
-<H1>Application Preferences</H1>
-
-These modules handles all the modules that can be registered either
-dynamically (using static binding) or statically by the application. 
-
-<H2>Default Initializations</H2>
-
-The <A HREF="../../Implementation/HTInit.html">HTInit module</A>
-defines a <A HREF="../../Implementation/HTInit.c">standard set of
-initializations</A> where all protocol modules and converters are
-setup at startup time of the application in the <A
-HREF="../../Implementation/HTAccess.html#Library">HTLibInit()</A>. Often
-you can take this module and just override it with your own
-preferences.
-
-<H2>Handling a Configuration File</H2>
-
-Bindings can also be set up by a rule file that is handled by the <A
-HREF="../../Implementation/HTRules.html">Configuration File
-Manager</A>. The format of the rule file is yet to be specified and it
-does still need some work.
-
-<H2>Bindings to the local file system</H2>
-
-The <A HREF="../../Implementation/HTBind.html">Bind Module</A> makes
-bindings between file suffixes and content-type, content-language,
-charset etc. As an application this is used when talking to, for
-example FTP servers that do not support media types, and servers use
-it when performing format negotiation between multiple representations
-of a document.
-
-<H2>Registering of Methods</H2>
-
-The idea behind this module is to allow dynamic registration of HTTP
-methods, for example PUT, POST, GET etc. and then also allow new
-methods to be registered. This has not yet been implemented but the
-structure is there :-)
-
-<H2>Registration of Access Schemes</H2>
-
-Access schemes like HTTP, FTP etc. can be registered dynamically
-(using static binding) and the <A
-HREF="../../Implementation/HTProt.html">HTProt module</A> provides the
-support for this.
-
-
-<H2>Registration of Proxies and Gateways</H2>
-
-The <A HREF="../../Implementation/HTProxy.html">HTProxy Module</A>
-provides functionality for registering proxies and gateways
-dynamically. This has traditionally been handled by environment
-variables, but is now a registration module just like the registration
-of access schemes.
-
-<P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, December 1995</ADDRESS>
-</BODY>
-</HTML>
-<HTML>
-<HEAD>
-<TITLE>Internals - Application Specific Modules</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  6-Oct-1995 -->
-</HEAD>
-<BODY>
-
-<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
-<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
-<A HREF="./"><IMG ALT="LibGuide" SRC="../../../Icons/WWW/internals48x.gif"></A>
-
-<H1>Application Specific Modules</H1>
-
-When all public functions and variables within a module are
-overwritten by module other than the one in the Library, the linker
-takes the new version and ignores the module in the Library. The
-following modules are implemented in the Library in order to support
-the <A HREF="../../../LineMode/">Line Mode Browser</A> but can be
-overwritten by GUI clients etc.
-
-<H2>Displaying and Prompting User Messages</H2>
-
-The <A HREF="../../Implementation/HTAlert.html">HTAlert module</A>
-contains the code for prompting the user for file names, userid,
-password etc. Furthermore, it presents messages containing status
-information, error messages etc. to the user. The implementation in
-the library is meant for the Line Mode Browser (i.e. it writes to
-stderr) but can easily be overwritten by GUI browsers.
-
-<H2>History Manager</H2>
-
-The <A HREF="../../Implementation/HTHist.html">HTHist module</A>
-records and replays on request the documents which the user
-visits. There are no calls to this module within the Library so if the
-application does not use it then it is not linked in at all. If the
-application wants a more advanced history management, then this should
-be overwritten.
-
-<H2>Internal Event loop</H2>
-
-The internal event loop in the <A
-HREF="../../Implementation/HTEvntrg.html">HTEvtrg module</A> is made to
-support <A HREF="../Architecture/Threads.html">libwww threads</A> If
-an application wants its own event loop, then this module must be
-overwritten.
-
-<H2>Default Initializations</H2>
-
-The <A HREF="../../Implementation/HTInit.html">HTInit module</A>
-defines a standard set of initializations where all protocol modules
-and converters are setup at startup time of the application in the <A
-HREF="../../Implementation/HTAccess.html#Library">HTLibInit()</A>. Often
-you can take this module and just override it with your own
-preferences.
-
-<P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, December 1995</ADDRESS>
-</BODY>
-</HTML>
-<HTML>
-<HEAD>
-<TITLE>Internals - Network Modules</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
-<NEXTID N="z78">
-</HEAD>
-<BODY>
-
-<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
-<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
-<A HREF="./"><IMG ALT="LibGuide" SRC="../../../Icons/WWW/internals48x.gif"></A>
-
-<H1>Network Modules</H1>
-
-Network modules handles all the network access including DNS access,
-reading and writing to the and from the network etc. Most of these
-modules are internal to the Library, however some applications might
-use some of them directly.
-
-<H2>TCP Communication</H2>
-
-The functionality of the <A HREF="../../Implementation/HTTCP.html">
-HTTCP Module</A> covers several topics but they are all related to
-TCP/IP communication. All active and passive connection establishment
-from the <A HREF="Protocol.html">Protocol Modules</A> goes through
-this module. Furthermore, the module manages a local host cache of
-visited hosts so that the Domain Name Server is only consulted when
-necessary.<P>
-
-Other topics includes:
-
-<UL>
-<LI>I/O status indication (errno etc.)
-<LI>Information on remote hosts
-<LI>Information on local host (domain name etc.)
-<LI>Information on current user (mail address)
-</UL>
-
-<H2>Reading Data from a Socket</H2>
-
-The <A HREF="../../Implementation/HTSocket.html">HTSocket Module</A>
-controls all the functionality for reading information from a socket
-and from the local file system using either a socket or a ANSI C file
-descriptor. <P>
-
-The module is currently being transformed into a completely reentrant
-version, but the old non-reentrant interface is still needed for some
-functions. However, it will be taken out as soon as possible.
-
-<P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, December 1995</ADDRESS>
-</BODY>
-</HTML>
-<HTML>
-<HEAD>
-<TITLE>Internals - Protocol Modules</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  8-Oct-1995 -->
-<NEXTID N="z78">
-</HEAD>
-<BODY>
-
-<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
-<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
-<A HREF="./"><IMG ALT="LibGuide" SRC="../../../Icons/WWW/internals48x.gif"></A>
-
-<H1>Protocol Modules</H1>
-
-A protocol module is invoked by the <A
-HREF="../../Implementation/HTAccess.html">HTAccess module</A> in order
-to access a document. Each protocol module is responsible for handling
-the transmission of a data object either from the application to a
-remote server, or vice verse. <P>
-
-The protocol modules are registered dynamically (using static linking)
-and the <A HREF="../Using/">User's Guide</A> describes how modules can
-be registered. Each protocol module is responsible for establishing
-the connection to the remote server (or the local file-system) and
-extract information using a specific access method. When data arrives
-from the network, it is passed on to the format manager.<P>
-
-Most of the protocol modules are now implemented as state machines in
-order to support <A HREF="../Architecture/Threads.html">libwww
-Threads</A>.
-
-When the client parses a request to the library a <A
-HREF="../../Implementation/HTAccess.html#z1">HTRequest Structure</A>
-is filled out and parsed to a load function in the access manager, for
-example <A HREF="../../Implementation/HTAccess.html">
-HTLoadAnchor</A>. HTRequest contains all information needed by the
-Library in order to fulfill a request.
-
-<DL>
-
-<DT><A NAME="z46" HREF="../../Implementation/HTFile.html">File access</A>
-
-<DD>This module provides access to files on a local file system. Due
-to general confusion of the "file://" access scheme in the <A
-HREF="../../../Addressing/">URL Specifications</A> tries FTP access on
-failure.
-
-<DT><A NAME="z60" HREF="../../Implementation/HTFTP.html">FTP access</A>
-
-<DD>This is a complete state based FTP client which is capable of
-communicating with a lot of weird FTP servers. It uses
-<CODE>PASV</CODE> as the default method for establishing the data
-connection as <CODE>PORT</CODE> does not work if the application is
-run from a firewall machine, as is often the case with <A
-HREF="../../../Daemon/User/Proxies/Proxies.html">proxy server</A>.
-
-<DT><A NAME="z45" HREF="../../Implementation/HTTP.html">HTTP access</A>
-
-<DD>The <A NAME="25" HREF="../../Implementation/HTTP.html">HTTP
-module</A> handles document search and retrieve using the <A
-HREF="../../../Protocols/">HTTP</A> protocol. See also information on
-the <A HREF="../Architecture/HTTPFeatures.html"> current
-implementation</A> of the HTTP client. The module is now a complete
-state machine which is a required functionality in the <A
-HREF="../Architecture/Threads.html">libwww thread model</A>. It uses
-streams for both outgoing and incoming data, the outgoing stream is
-implemented in <A HREF="../../Implementation/HTTPReq.c"> HTTPReq.c</A>
-and the incoming stream in <A
-HREF="../../Implementation/HTTP.c">HTTP.c</A>
-
-<DT><A NAME="z40" HREF="../../Implementation/HTNews.html">News access</A>
-
-<DD>The NNTP internet news protocol is handled by HTNews which builds a
-hypertext object. <P>
-
-<IMG SRC="../../../Icons/WWW/construction.gif"> This module is under
-reconstruction!
-
-<DT><A NAME="z44" HREF="../../Implementation/HTGopher.html">Gopher access</A>
-
-<DD>The internet gopher access to menus and flat files (and links to telnet
-nodes, WhoIs servers, CSO Name Server etc.) is handled by <A NAME="26"
-HREF="../../Implementation/HTGopher.html">HTGopher Module</A>.
-
-<DT><A NAME="z72" HREF="../../Implementation/HTTelnet.html">Telnet access</A>
-
-<DD>This module provides the possibility of running telnet sessions in
-a subshell. It also provides functionality for rlogin and tn3270.
-
-<DT><A NAME="z39" HREF="../../Implementation/HTWAIS.html">WAIS access</A>
-
-<DD>WAIS access is not compiled into the Library by default as it
-requires the freeWAIS library. This is easily changed in the platform
-dependent <CODE>Makefile.include</CODE> in the
+In addition top the basic W3C Reference Library include file called <A
+HREF="WWWLib.html">WWWLib.h</A> you <EM>can</EM> also include this
+file called WWWApp.h depending on the needs of your
+application. However, it is not required and none of the files
+included below are ever used in the core part of the Library
+itself. Only if this file is included, the extra modules will get
+included in the linked object code. It is also possible to include
+only a subset of the files below if the functionality you are after is
+covered by them.
 
 <PRE>
-	WWW/All/&lt;platform&it;
+#ifndef WWWAPP_H
+#define WWWAPP_H
 </PRE>
 
-directory. However, if this library is present then the application
-can communicate directly with a WAIS server. Otherwise it must go
-through a <A HREF="../../../Gateways/WAISGate.html"> gateway
-program</A>.
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
 
-</DL>
+<H2>Generating the First Anchor</H2>
 
-<P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, December 1995</ADDRESS>
+This module provides some "make life easier" functions in order to get
+the application going. They help you generate the first anchor, also
+called the <EM>home anchor</EM>. It also contains a nice set of
+default WWW addresses.
+
+<PRE>
+#include "<A HREF="HTHome.html">HTHome.h</A>"
+</PRE>
+
+<H2>User Dialogs and Messages</H2>
+
+You can register a set of callback functions to handle user prompting,
+error messages, confimations etc. Here we give a set of functions that
+can be used on almost anu thinkable platform. If you want to provide
+your own platform dependent implementation then fine :-)
+
+<PRE>
+#include "<A HREF="HTDialog.html">HTDialog.h</A>"
+</PRE>
+
+<H2>After Terminating a Request</H2>
+
+When a request is terminated, the application often has to do some
+action as a result of the request (and of the result of the
+request). The Application part of the Library provides two following
+modules to handle <EM>logging</EM> and <EM>history
+management</EM>. You can register a <EM>POST request handler</EM> in
+the <A HREF="HTNet.html">Net Manager</A> as described in the <A
+HREF="../User/Using/Overview.html">User's Guide</A>. <P>
+
+You can find a function called <CODE>HTLoadTerminate</CODE> in the <A
+HREF="HTHome.html">HTHome module</A> that enables all the functionality
+for handling a request result.
+
+<H3>Logging</H3>
+
+Often it is required to log the requests issued to the Library. This
+can either be the case if the application is a server or it can also
+be useful in a client application. This module provides a simple
+logging mechanism which can be enabled if needed.
+
+<PRE>
+#include "<A HREF="HTLog.html">HTLog.h</A>"
+</PRE>
+
+<H3>History Management</H3>
+
+Another type of logging is keeping track of which documents a user has
+visited when browsing along on the Web. The Library history manager
+provides a basic set of functionality to keep track of a linear
+history list.
+
+<PRE>
+#include "<A HREF="HTHist.html">HTHist.h</A>"
+</PRE>
+
+End of application specific modules
+
+<PRE>
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
+
+#endif
+</PRE>
+
+End of WWWAPP definition
+
 </BODY>
 </HTML>
 <HTML>
 <HEAD>
-<TITLE>Internals - Protocol Utility Modules</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 18-Oct-1995 -->
-<NEXTID N="z78">
+<TITLE>Declaration of W3C Reference PERSISTENT CACHE MODULE</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Feb-1996 -->
+<NEXTID N="z11">
 </HEAD>
 <BODY>
 
-<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
-<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
-<A HREF="./"><IMG ALT="LibGuide" SRC="../../../Icons/WWW/internals48x.gif"></A>
+<H1>Declaration of W3C Reference PERSISTENT CACHE MODULE</H1>
 
-<H1>Protocol Utility Modules</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
 
-The protocol modules themselves can be registered dynamically (using
-static binding) but some of the functionality used by the modules are
-kept in a set of protocol utility modules that are described in this
-section.
+<H3>Cache Manager</H3>
 
-<H2>Access Authorization</H2>
+Caching is a required part of any efficient Internet access
+applications as it saves bandwidth and improves access performance
+significantly in almost all types of accesses.  The Library supports
+two different types of cache: The memory cache and the file cache. The
+two types differ in several ways which reflects their two main
+purposes: The memory cache is for short term storage of graphic
+objects whereas the file cache is for intermediate term storage of
+data objects. Often it is desirable to have both a memory and a file
+version of a cached document, so the two types do not exclude each
+other. <P>
 
-In order to prevent unauthorized access on a Web server, a basic
-authorization scheme has been developed, see <A
-HREF="../../../Protocols/"> Access
-Authorization</A> for more details on the scheme. The access
-authorization is implemented in the following modules:
+The cache contains details of temporary disk files which contain the
+contents of remote documents.  There is also a <A
+HREF="HTAnchor.html#z1">list of cache items for each URL</A> in its
+anchor object. <P>
 
-<DL>
+There are various ways of handling Expires header when met in a
+history list. Either it can be ignored all together, the user can be
+notified with a warning, or the document can be reloaded
+automatically. This flag decides what action to be taken. The default
+action is HT_EXPIRES_IGNORE. In HT_EXPIRES_NOTIFY mode you can specify
+a message to tell the user (NULL is valid in which case my own message
+pops up - watch out it might be in Danish ;-)) <P>
 
-<DT><A HREF="../../Implementation/HTAABrow.html">HTAABrow</A>
+The Library has two notions of a local cache: a file cache and a
+memory cache. The memory cache is handled by the client and the file
+cache is handled by the Library. Often the format of a object cached
+in memory is in the form of a hypertext object ready to be displayed
+(that is, it's already parsed).
 
-<DD>This module contains WWW Browser specific code, that is composing
-the HTTP Authorization Header, recording users information etc.
+<PRE>
+#ifndef WWWCACHE_H
+#define WWWCACHE_H
+</PRE>
 
-<DT><A HREF="../../Implementation/HTAAUtil.html">HTAAUtil</A>
+<H2>Library Includes</H2>
 
-<DD>This module contains the authorization code that is common to both the
-servers and clients, e.g., handling information on different authentication
-etc.
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
 
-<DT><A HREF="../../Implementation/HTUU.html">UU Encoding and Decoding</A>
+<PRE>
+#include "HTCache.h"
+</PRE>
 
-<DD>Provides functions to encode and decode a data buffer according to
-the <A
-HREF="http://info.internet.isi.edu/in-notes/rfc/files/rfc1421.txt">RFC
-1421</A> "Privacy Enhancement for Internet Electronic Mail".
+End of CACHE module
 
-</DL>
+<PRE>
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
 
-<H2>Presenting Directory Listings and other Listings</H2>
+#endif
+</PRE>
 
-When listings return from the protocol modules they are converted into HTML
-and parsed to the client. Listings might be HTTP directory listings, Gopher
-menus, FTP directory listings, CSO Name server etc. The modules providing this
-functionality are:
+End of WWWCACHE API definition
 
-<DL>
-
-<DT><A HREF="../../Implementation/HTDir.html">HTDir</A>
-
-<DD>This is a very configurable module to actually present the listings
-
-<DT><A HREF="../../Implementation/HTDescpt.html">HTDescript</A>
-
-<DD>This module handles the description field in a HTTP directory listing.
-For a HTML file, the default action is to peek the title of the document.
-
-<DT><A HREF="../../Implementation/HTIcons.html">HTIcons</A>
-
-<DD>This module handles the set of icons used in the listings (HTTP, Gopher,
-FTP etc.).
-
-</DL>
-
-<H2>Logging Requests</H2>
-
-The <A HREF="../../Implementation/HTLog.html">HTLog Module</A> is a
-simple log manager that can log the result of a request to the access
-manager.
-
-<P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, December 1995</ADDRESS>
 </BODY>
 </HTML>
 <HTML>
 <HEAD>
-<TITLE>Internals - Thread Modules</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 12-Oct-1995 -->
-<NEXTID N="z78">
+<TITLE>Declaration of W3C Reference Library CORE</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 20-Nov-1995 -->
+<NEXTID N="z11">
 </HEAD>
 <BODY>
 
-<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
-<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
-<A HREF="./"><IMG ALT="LibGuide" SRC="../../../Icons/WWW/internals48x.gif"></A>
+<H1>Declaration of W3C Reference Library CORE</H1>
 
-<H1>Thread Modules</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
 
-From version 3.0 (unreleased) of the W3C Reference Library, support
-for <A HREF="../Architecture/Threads.html">libwww threads</A> and
-other thread models has been implemented multi threaded functionality
-has been added as an extra set of modules. For the moment, only the
-HTTP module can take full advantage of libwww threads but both FTP and
-Gopher are foreseen for the same functionality. The modules included
-are: <P>
+This is the basic include file for the core of the W3C Reference
+Library. Togrther with the <A HREF="WWWUtil.html">WWWUtil module</A>
+it contains all core specific modules which are required to compile
+and build the Library. <P>
 
-<H2>Net	Manager</H2>
+The core part of the Library is designed as a set of registration
+modules with no real functionality in itself. Instead all the
+functionality comes when the applciation registeres the modules that
+provides a desired functionaly, for example accessing HTTP servers or
+the local file system. The Library has a special include file called
+<A HREF="WWWApp.html">WWWApp.h</A> which contains all converters,
+protocol modules, and a lot of other "sugar" modules that can make the
+core a very powerful Web interface. You can include this one if the
+application is to use all the functionality of the Library.
 
-The <A HREF="../../Implementation/HTNet.html">HTNet module</A>
-registers sockets as ready for read or write (this includes the
-connect statement that is basically a write request). It is an
-internal module to the Library.
+<PRE>
+#ifndef WWWCORE_H
+#define WWWCORE_H
+</PRE>
 
-<H2>Internal Event Loop</H2>
+<H2>System dependencies</H2>
 
-The <A HREF="../../Implementation/HTEvntrg.html">HTEvent module</A> is
-the Library's own version of the event-loop serving the HTTP client,
-and it is the application interface to the multi threaded
-Library. Clients can either use this module as is or they can
-overwrite it with their own even-loop. Note, that GUI-clients
-<EM>can</EM> use the current implementation! <P> The module is now
-ported to Windows NT thanks to <A
-HREF="mailto:cbrooks@osf.org">Charlie Brooks</A>
+<PRE>
+#include "tcp.h"
+</PRE>
 
-<P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, December 1995</ADDRESS>
+<H2>Library Includes</H2>
+
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
+
+<H2>Core Modules</H2>
+
+<PRE>
+#include "HTAccess.h"			/* Document access network code */
+#include "HTAlert.h"			/* User Messages and Dialogs */
+#include "HTAnchor.h"			/* Anchor class Definition */
+#include "HTBind.h"			/* Binding to file suffixes */
+#include "HTConLen.h"			/* Content Length Counter */
+#include "HTDNS.h"			/* Host name cache */
+#include "HTError.h"			/* Error manager */
+#include "HTEscape.h"			/* Escape and unescape URLs */
+#include "HTEvntrg.h"			/* Event manager */
+#include "HTFWrite.h"			/* Write to an ANSI file descriptor */
+#include "HTFormat.h"			/* Stream Stack and content neg. */
+#include "HTMethod.h"			/* Request methods like PUT, GET */
+#include "HTNet.h"			/* public part of Net Manager */
+#include "HTParse.h"			/* Parse URLs */
+#include "HTProt.h"			/* Protocol Manager */
+#include "HTReq.h"			/* public part of Request Manager */
+#include "HTSocket.h"			/* public part of Net Manager */
+#include "HTTCP.h"			/* GetXbyY functions */
+#include "HTTee.h"			/* T streem for splitting a stream */
+#include "HTWWWStr.h"			/* Web Related String Functions */
+#include "HTWriter.h"			/* Write to a unix file descriptor */
+</PRE>
+
+End of Core modules
+
+<PRE>
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
+
+#endif
+</PRE>
+
+End of WWWCore API definition
+
 </BODY>
 </HTML>
 <HTML>
 <HEAD>
-<TITLE>Internals - Core Objects</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
+<TITLE>Declaration of W3C Reference DIRECTORY MODULE</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Feb-1996 -->
+<NEXTID N="z11">
 </HEAD>
 <BODY>
 
-<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
-<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
-<A HREF="./"><IMG ALT="LibGuide" SRC="../../../Icons/WWW/internals48x.gif"></A>
+<H1>Declaration of W3C Reference DIRECTORY MODULE</H1>
 
-<H1>Core Objects</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
 
-The core objects are the structures that are a part of the core
-entity. Each of the core modules as explained in section "<A
-HREF="../Architecture/ControlFlow.html">Control and Data Flow</A>"are
-relying on one or more of the core objects. This section describes the
-relationship between the core objects<P>
+This is the include file for the directory handling modules that can
+be used together with the core of the W3C Reference Library. It
+contains all Directory specific modules which are required to compile
+and build the DIRECTORY DLL.<P>
 
-<H2>Anchor Objects</H2>
+<PRE>
+#ifndef WWWDIR_H
+#define WWWDIR_H
+</PRE>
 
-All anchor management is handled by the <A
-HREF="../../Implementation/HTAnchor.html#anchor">HTAnchor module</A>. You
-should normally not have to look directly into the HTAnchor structure,
-but use the methods provided by the anchor manager.
+<H2>Library Includes</H2>
 
-<H2>Request Objects</H2>
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
 
-The <A HREF="../../Implementation/HTReq.html">HTRequest object</A>
-contains all information neccessary in order to handle a request.
+<PRE>
+#include "HTIcons.h"
+#include "HTDescpt.h"
+#include "HTDir.h"
+</PRE>
 
-<H2>Stream Objects</H2>
+End of DIR module
 
-Almost each stream module has its specific implementation of the
-stream structure, but the generic one is defined in the <A
-HREF="../../Implementation/HTStream.html">HTStream Module</A>. The
-structured stream definition is placed in the <A
-HREF="../../Implementation/HTStruct.html">HTStruct module</A>. None of
-these modules have any code directly associated with - this is left to
-the specific stream modules, for example the <A
-HREF="../../Implementation/HTFWrite.html">HTFWrite stream</A>.
+<PRE>
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
 
-<P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, December 1995</ADDRESS>
+#endif
+</PRE>
+
+End of WWWDir API definition
+
 </BODY>
 </HTML>
 <HTML>
 <HEAD>
-<TITLE>Internals - Stream Modules</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
-<NEXTID N="z78">
+<TITLE>Declaration of W3C Reference FTP MODULE</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 20-Nov-1995 -->
+<NEXTID N="z11">
 </HEAD>
 <BODY>
 
-<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
-<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
-<A HREF="./"><IMG SRC="../../../Icons/WWW/internals48x.gif" ALT="Internals"></A>
+<H1>Declaration of W3C Reference FTP MODULE</H1>
 
-<H1>Stream Modules</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
 
-A <A HREF="../../Implementation/HTStream.html">stream</A> is an object
-which accepts sequences of characters. It is a destination of data
-which can be thought of much like an output stream in C++ or an ANSI
-C-file stream for writing data to a disk or another peripheral
-device. The Library defines a generic stream class in the <A
-HREF="../../Implementation/HTStream.html">HTStream module</A>, but
-almost all stream modules define their own sub class definition of the
-stream object.
+This is the include file for the basic FTP module that can be used
+together with the core of the W3C Reference Library. It contains all
+FTP specific modules which are required to compile and build the FTP
+DLL.<P>
 
-<H2>Protocol Streams</H2>
+<PRE>
+#ifndef WWWFTP_H
+#define WWWFTP_H
+</PRE>
 
-These are normally internal streams that parses or generates protocol
-specific information to communicate with remote servers.
+<H2>Library Includes</H2>
 
-<DL>
-<DT><A HREF="../../Implementation/HTTPReq.html">HTTP Request Stream</A>
-<DD>This stream is one of the first real protocol streams - more are to come!
-</DL>
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
 
-<H2>Converters and Presenters</H2>
+<PRE>
+#include "HTFTP.h"			/* FTP client state machine */
+#include "HTFTPDir.h"			/* Streams for parsing FTP output */
+</PRE>
 
-Streams that can be used to convert data from one media type to
-another or create a graphic object and present it to the user. These
-are streams that save the data to a local file and then calls an
-external program, for example a postscript viewer. These are normally
-initialized as a <A HREF="Prefs.html">application preference</A>.
+End of FTP module
 
-<DL>
+<PRE>
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
 
-<DT><A HREF="../../Implementation/SGML.html">SGML Tokenizer</A>
-<DD>Parses the data and generates a <A HREF="StrucStreams.html">
-structured stream</A>. Each parser instance is created with reference
-to a particular DTD structure.
+#endif
+</PRE>
 
-<DT><A HREF="../../Implementation/HTMLGen.html">Plain to HTML Converter</A>
-<DD>This stream takes a plain file and converts it into HTML. Like the
-SGML tokenizer, it also converts a generic stream into a structured
-stream.
+End of WWWFTP API definition
 
-<DT><A HREF="../../Implementation/HTPlain.html">Plain Text Presentation</A>
-<DD>Takes plain ASCII text and presents it to the user as preformatted text.
-
-<DT><A HREF="../../Implementation/HTMIME.html">HTTP/MIME header parser</A>
-<DD>Parse a MIME format message and puts all the information in an <A
-HREF="../../Implementation/HTAnchor.html">Anchor object</A>
-
-<DT><A HREF="../../Implementation/HTWSRC.html">WAIS source file Stream</A>
-<DD>Parses a <EM>WAIS source</EM> description file. By default, this
-is enabled even if direct WAIS access is not present (no linking with
-the freeWAIS library).
-
-<DT><A HREF="../../Implementation/HTGuess.html">Guessing Stream</A>
-<DD>If the input format is unknown at the time when putting up a
-stream stack, then this module scans a part of the stream and on a
-statistical basis determines the type of stream needed from the <A
-HREF="../../../Protocols/">content-type</A>.
-
-<DT><A HREF="../../Implementation/HTXParse.html">External Parser with Call back</A>
-<DD>This is a call back stream module where the implementation is
-defined in the application and not in the Library.
-
-<DT><A HREF="../../Implementation/HTFWrite.html">Save Locally</A>
-<DD>The <EM>HTSaveLocally</EM> stream saves the data object to a local file.
-
-<DT><A HREF="../../Implementation/HTFWrite.html">Save Locally and Execute Application</A>
-<DD>The <EM>HTSaveAndExecute</EM> stream saves the data object to a
-local file and calls an external application, for example a post
-script viewer.
-
-<DT><A HREF="../../Implementation/HTFWrite.html">Save Locally and Execute Application</A>
-<DD>The <EM>HTSaveAndCallBack</EM> stream saves the data object to a
-local file, calls an external application and when the stream is
-freed, the libwww application gets called with a specified call back
-function.
-
-</DL>
-
-<H2>I/O Streams</H2>
-
-Streams that can write data to a socket or an ANSI C FILE object.
-This can be used when redirecting a request to a local file of when
-saving a document in the cache.
-
-<DL>
-
-<DT><A HREF="../../Implementation/HTFWrite.html">ANSI C File Writer stream</A>
-<DD>Writes to an ANSI C FILE * object, as opened by fopen, etc.
-
-<DT><A HREF="../../Implementation/HTFWrite.html#cache">Cache Writer Stream</A>
-<DD>This is the stream that's used by the <A
-HREF="../../Implementation/HTFWrite.html#cache">cache manager</A>
-
-<DT><A HREF="../../Implementation/HTWriter.html">Socket Writer Stream</A>
-<DD>Writes to a socket or something opened with the UNIX file I/O open
-function.
-
-<DT><A HREF="../../Implementation/HTNetTxt.html">Net to Text Converter</A>
-<DD>Converts "Net ASCII" line terminators <CODE>&lt;CRLF&gt;</CODE>
-into the equivalent C representation which is a '\n'.
-
-</DL>
-
-<H2>Basic Streams</H2>
-
-A set of basic utility streams with no or little internal contents
-but required in order to cascade streams.
-
-<DL>
-
-<DT><A NAME="z75" HREF="../../Implementation/HTTee.html">Tee Stream</A>
-<DD>Just writes into two streams at once. Useful for taking a copy for a cache.
-
-<DT><A HREF="../../Implementation/HTFWrite.html">Black Hole</A>
-<DD>A quite expensive way of piping data into a hole for then to be forgotten forever.
-
-<DT><A HREF="../../Implementation/HTFWrite.html">Through Line</A>
-<DD>A short circuited stream that returns the same output sink as it is called with.
-
-</DL>
-
-<P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, December 1995</ADDRESS>
 </BODY>
 </HTML>
 <HTML>
 <HEAD>
-<TITLE>Internals - Structured Stream Modules</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
-<NEXTID N="z78">
+<TITLE>Declaration of W3C Reference FILE MODULE</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Feb-1996 -->
+<NEXTID N="z11">
 </HEAD>
 <BODY>
 
-<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
-<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
-<A HREF="./"><IMG SRC="../../../Icons/WWW/internals48x.gif" ALT="Internals"></A>
+<H1>Declaration of W3C Reference FILE MODULE</H1>
 
-<H1>Structured Stream Modules</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
 
-The <A HREF="../../Implementation/SGML.html">SGML stream</A> generates
-a structured stream that is sub class of a <A
-HREF="Streams.html">generic stream</A>. The Library defines a
-structured stream class in the <A
-HREF="../../Implementation/HTStruct.html">HTStruct module</A>, but
-almost all stream modules define their own sub class definition of the
-stream object. <P>
+This is the include file for local file handling modules that can be
+used together with the core of the W3C Reference Library. It contains
+modules which are required to compile and build the FILE DLL.<P>
 
-A structured stream uses a DTD definition expressed in a C data
-structure - no, it doesn't not understand a real DTD (yet). The
-definition of the HTML DTD is placed in the <A
-HREF="../../Implementation/HTMLPDTD.html">HTMLPDTD module</A>.
+<PRE>
+#ifndef WWWFILE_H
+#define WWWFILE_H
+</PRE>
 
-<DL>
+<H2>Library Includes</H2>
 
-<DT><A HREF="../../Implementation/HTML.html">HTML Presentation</A>
-<DD>The <EM>HTMLPresent</EM> stream presents a HTML object to the user
-using the "HText API" as explained in the section on <A
-HREF="Presentation.html">HTML Presentation</A>.
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
 
-<DT><A HREF="../../Implementation/HTMLGen.html">HTML Generation</A>
-<DD>The <EM>HTMLGenerator</EM> stream generates a HTML object which
-for example can be written to a file.
+<PRE>
+#include "HTMulti.h"
+#include "HTFile.h"
+</PRE>
 
-<DT><A HREF="../../Implementation/HTMLGen.html">HTML to C conversion</A>
-<DD>The <EM>HTMLToC</EM> stream converts an HTML object into a C
-compliant text object. This is for example used by the <A
-HREF="../../../LineMode/">Line Mode Browser</A> in order to generate C
-like include files from the HTML files that you have been reading
-throughout this document.
+End of FILE module
 
-<DT><A HREF="../../Implementation/HTTeXGen.html">HTML to LaTeX Conversion</A>
-<DD>The <EM>HTMLToTeX</EM> stream is a very simple HTML to LaTeX
-converter. It is not error free but a start.
+<PRE>
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
 
-<DT><A HREF="../../Implementation/HTMLGen.html">HTML to Plain Text Converter</A>
-<DD>The <EM>HTMLToPlain</EM> stream takes a HTML object and converts
-it into plain text using the styles in the "HText API"
+#endif
+</PRE>
 
-</DL>
+End of WWWFile API definition
 
-<P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, December 1995</ADDRESS>
 </BODY>
 </HTML>
 <HTML>
 <HEAD>
-<TITLE>Internals - Presentation Modules</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
-<NEXTID N="z78">
+<TITLE>Declaration of W3C Reference GOPHER MODULE</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 20-Nov-1995 -->
+<NEXTID N="z11">
 </HEAD>
 <BODY>
 
-<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
-<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
-<A HREF="./"><IMG ALT="LibGuide" SRC="../../../Icons/WWW/internals48x.gif"></A>
+<H1>Declaration of W3C Reference GOPHER MODULE</H1>
 
-<H1>Presentation Modules</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
 
-<H2>Generating a Graphic Object</H2>
+This is the include file for the basic GOPHER module that can be used
+together with the core of the W3C Reference Library. It contains all
+GOPHER specific modules which are required to compile and build the
+GOPHER DLL.<P>
 
-This document describes the methods provided for presentation a <A
-HREF="./#GraphicObject">graphic object</A> to the user. The
-implementation in the Library is made for a text oriented browser, so
-more advanced GUI clients must overwrite some of these modules. See
-more information on which <A HREF="./#Overwrite">modules to
-overwrite</A>.
+<PRE>
+#ifndef WWWGOPHER_H
+#define WWWGOPHER_H
+</PRE>
 
-As mentioned in the <A HREF="../Using.html">how to get started
-guide</A>, the definition of a graphic object is free for the
-application. Some graphic objects work by storing the whole document.
-Others work by converting the nested structure into a linear sequence
-of styled text for display. <P>
+<H2>Library Includes</H2>
 
-Generally, a new platform has a new implementation of the hypertext
-object. A GUI client must overwrite the graphic object modules in the
-Library in order to take advantage of a more advanced
-user-interface. The graphic object as defined in the Library has two
-interfaces, depending on how much of the Library code the client wants
-to handle on its own:
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
 
-<P><IMG SRC="Interfaces.gif"><P>
+<PRE>
+#include "HTGopher.h"			      /* GOPHER client state machine */
+</PRE>
 
-<DL>
+End of GOPHER module
 
-<DT>SGML Level
+<PRE>
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
 
-<DD>If the client has its own HTML parser then the interface is
-between the client HTML parser and the Library SGML parser. The SGML
-parser is a general SGML parser which can be setup with a specific DTD
-and it feeds the HTML parser with structured data. In this case, you
-will be emulating the <A HREF="../../Implementation/HTML.c">HTML
-module</A>, and generating a hypertext object from the structured
-stream. The actual structured stream definition is in the <A
-HREF="../../Implementation/SGML.html">SGML module</A>.
+#endif
+</PRE>
 
-<DT>HTML Level
+End of WWWGophe API definition
 
-<DD>If the client wants to use the HTML parser in the Library then
-this is the second interface to the Library. The hypertext object is
-parsed and the communication with the client is based on a set of
-call-back functions in the HTML parser. The call-back functions are
-all defined as prototypes in the <A
-HREF="../../Implementation/HText.html">HText module</A> but the client
-must provide the actual code that defines the presentation method used
-for a specific HTML tag. If you wish to maintain the structure of the
-SGML file within your object, then the SGML interface will be a better
-place to connect your code.
-
-</DL>
-
-You are free to define the structure of the hypertext object declared
-in the <A HREF="../../Implementation/HText.html">HText module</A>. You
-may want to define your own styles and font definitions. <P>
-
-</DL>
-
-<P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, December 1995</ADDRESS>
 </BODY>
 </HTML>
 <HTML>
 <HEAD>
-<TITLE>Internals - Style Sheets</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
-<NEXTID N="z78">
+<TITLE>Declaration of W3C Reference Content Guess MODULE</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Feb-1996 -->
+<NEXTID N="z11">
 </HEAD>
 <BODY>
 
-<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
-<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
-<A HREF="./"><IMG ALT="LibGuide" SRC="../../../Icons/WWW/internals48x.gif"></A>
+<H1>Declaration of W3C Reference CONTENT GUESS MODULE</H1>
 
-<H1>Style Sheets</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
 
-<IMG SRC="../../../Icons/32x32/caution.gif"> We are currently working
-on implementing a <A HREF="../../../MarkUp/./">HTML level
-3</A> parser in the Library, so the following description will soon be
-out of date. <P>
+This interface provides functionality for guessing unknown media types
+from magic words. The stream is a one that reads first a chunk of
+stuff, tries to figure out the format, and calls
+<CODE>HTStreamStack()</CODE>. This is a kind of lazy-evaluation of
+<CODE>HTStreamStack()</CODE>. This could be extended arbitrarily to
+recognize all the possible file formats in the world, if someone only
+had time to do it. <P>
 
-The <A HREF="../../Implementation/HTStyle.html">Style module</A> in
-the Library currently only handles a flat style structure with no
-functionality for nested styles. You don't have to use this module, as
-you can replace the entry points in the <A
-HREF="../../Implementation/HTML.html">HTML module</A> with your own,
-to prevent the library version from being loaded.<P>
+<PRE>
+#ifndef WWWGUESS_H
+#define WWWGUESS_H
+</PRE>
 
-</DL>
+<H2>Library Includes</H2>
 
-<P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, December 1995</ADDRESS>
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
+
+<PRE>
+#include "HTGuess.h"
+</PRE>
+
+End of GUESS module
+
+<PRE>
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
+
+#endif
+</PRE>
+
+End of WWWGUESS API definition
+
 </BODY>
 </HTML>
 <HTML>
 <HEAD>
-<TITLE>Internals - URI Management</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
-<NEXTID N="z78">
+<TITLE>Declaration of W3C Reference HTML MODULE</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Feb-1996 -->
+<NEXTID N="z11">
 </HEAD>
 <BODY>
 
-<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
-<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
-<A HREF="./"><IMG ALT="LibGuide" SRC="../../../Icons/WWW/internals48x.gif"></A>
+<H1>Declaration of W3C Reference HTML MODULE</H1>
 
-<H1>URI Management</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
 
-The functionality for handling URIs is placed in the following modules:
+This is the include file for the basic HTML module that can be used
+together with the core of the W3C Reference Library. It contains all
+HTML specific modules which are required to compile and build the HTML
+DLL.  Please note that as the HText is <B>not</B> included in this
+interface. The reason is that the HText interface only is declared by
+the Library but must be defined by the application. Therefore it can
+not be part of a DLL but must be included directly in the
+application.<P>
 
-<H2>Parsing URIs</H2>
+<PRE>
+#ifndef WWWHTML_H
+#define WWWHTML_H
+</PRE>
 
-The <A HREF="../../Implementation/HTParse.html">HTParse module</A>
-provides functions for parsing URIs, simplify them by removing
-redundant information. This is automatically called by the <A
-HREF="../../Implementation/HTAnchor.html">Anchor manager</A> every
-time an anchor is created in order to minimize the number of redundant
-anchors.
+<H2>Library Includes</H2>
 
-<H2>URI Encoding and Decoding</H2>
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
 
-The <A HREF="../../Implementation/HTEscape.html">HTEscape module</A>
-can search a URI for unsafe characteres and escape and unescape them
-according to the <A HREF="../../../Addressing/">URI
-Specifications</A>.
+<PRE>
+#include "HTMLPDTD.h"
+#include "SGML.h"
+#include "HTMLGen.h"
+#include "HTTeXGen.h"
+</PRE>
 
-</DL>
+End of HTML module
 
-<P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, December 1995</ADDRESS>
+<PRE>
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
+
+#endif
+</PRE>
+
+End of WWWHTML API definition
+
 </BODY>
 </HTML>
 <HTML>
 <HEAD>
-<TITLE>Internals - Utilities</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
-<NEXTID N="z78">
+<TITLE>Declaration of W3C Reference HTTP MODULE</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  6-Feb-1996 -->
+<NEXTID N="z11">
 </HEAD>
 <BODY>
 
-<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
-<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
-<A HREF="./"><IMG ALT="LibGuide" SRC="../../../Icons/WWW/internals48x.gif"></A>
+<H1>Declaration of W3C Reference HTTP MODULE</H1>
 
-<H1>Utilities</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
 
-This document covers the basic programming utilities that can be used
-in the client or server to make life easier.
+This is the include file for all HTTP access including the server side
+and the client side. It can be used together with the core of the W3C
+Reference Library. It contains all HTTP specific modules which are
+required to compile and build the HTTP DLL.<P>
 
-<H2>Container Modules</H2>
+<PRE>
+#ifndef WWWHTTP_H
+#define WWWHTTP_H
+</PRE>
 
-These modules are generic data object storage modules that might be
-used wherever convenient. The general rule for freeing memory from
-these modules is that free methods handles data object generated
-within the modules whereas user data is for the caller to free. The
-modules consist of:<P>
+<H2>Library Includes</H2>
 
-<DL>
-<DT><A NAME="z59" HREF="../../Implementation/HTBTree.html">Binary Trees</A>
-<DD>This is a complete balanced binary tree that might be used for storage
-and sort of a large number of data objects, e.g. filenames in directory
-listings etc.
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
 
-<DT><A NAME="z50" HREF="../../Implementation/HTChunk.html">Dynamic Strings</A>
-<DD>A Chunk is a block wise expandable array of type (char *) and is a sort of
+<PRE>
+#include "HTTPUtil.h"			/* Basic things */
+#include "HTTP.h"			/* HTTP client state machine */
+#include "HTTPServ.h"			/* HTTP server state machine */
+
+#include "HTTPGen.h"			/* General HTTP Header Stream */
+#include "HTTPReq.h"			/* Stream for generating requests */
+#include "HTTPRes.h"			/* Stream for gererating responses */
+
+#include "HTAAUtil.h"			/* Access authentication */
+#include "HTAABrow.h"			/* Access authentication */
+</PRE>
+
+End of HTTP module
+
+<PRE>
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
+
+#endif
+</PRE>
+
+End of WWWHTTP API definition
+
+</BODY>
+</HTML>
+<HTML>
+<HEAD>
+<TITLE>Non-Mandatory Initialization Module</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  8-Dec-1995 -->
+<NEXTID N="z11">
+</HEAD>
+<BODY>
+
+<H1>Non-Mandatory Initialization Module</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+<PRE>
+#ifndef WWWINIT_H
+#define WWWINIT_H
+</PRE>
+
+The core parts of the Library is a framework for adding
+functionality. It has hooks for adding protocol modules, like for
+example HTTP, FTP, and also for adding streams that can convert from
+one media type to some other type, or presenting the result to the
+user. In the distribution file of the Library you will find a large
+set of protocol modules and streams already implemented. However, in
+order to use these you need to initialize them. This can be done by
+using the files in the <A HREF="HTInit.html">HTInit</A> module. You
+can modify this module as you like to fit your particular needs.
+
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
+
+<PRE>
+#include "<A HREF="HTInit.html">HTInit.h</A>"
+#include "<A HREF="HTInit.html">HTBInit.h</A>"
+</PRE>
+
+<PRE>
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
+
+#endif
+</PRE>
+
+End of WWWINIT declaration
+
+</BODY>
+</HTML>
+<HTML>
+<HEAD>
+<TITLE>Include file for W3C Reference Library</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 13-Nov-1995 -->
+<NEXTID N="z11">
+</HEAD>
+<BODY>
+
+<H1>Include file for W3C Reference Library</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This is the basic include files and the core include files necessary
+in order to use the W3C Reference Library. It contains all core
+specific modules which are required to compile and build the
+Library. No converter streams or protocol modules are included in this
+file as they are for the application to set up. The Library has a
+special include file called <A HREF="WWWApp.html">WWWApp.h</A> which
+contains all converters and protocol modules known to the Library. You
+can include this one if the application is to use all the
+functionality of the Library.
+
+<PRE>
+#ifndef WWWLIB_H
+#define WWWLIB_H
+</PRE>
+
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
+
+<H2>General Utilities</H2>
+
+<PRE>
+#include "WWWUtil.h"			/* Basic utility modules */
+</PRE>
+
+<H2>Core Modules</H2>
+
+<PRE>
+#include "WWWCore.h"			/* Core modules */
+</PRE>
+
+<PRE>
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
+
+#endif
+</PRE>
+
+End of WWWLib API definition
+
+</BODY>
+</HTML>
+<HTML>
+<HEAD>
+<TITLE>Declaration of W3C Reference MIME MODULE</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Feb-1996 -->
+<NEXTID N="z11">
+</HEAD>
+<BODY>
+
+<H1>Declaration of W3C Reference MIME MODULE</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This is the module for basic RFC822/MIME parsing that can be used
+together with the core of the W3C Reference Library. It contains all
+MIME specific modules which are required to compile and build the MIME
+DLL.<P>
+
+<PRE>
+#ifndef WWWMIME_H
+#define WWWMIME_H
+</PRE>
+
+<H2>Library Includes</H2>
+
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
+
+<PRE>
+#include "HTMIME.h"			/* MIME response parser */
+#include "HTMIMERq.h"			/* MIME request generator */
+#include "HTBound.h"			/* Multipart MIME parser */
+#include "HTMulpar.h"			/* Multipart MIME generator stream */
+#include "HTHeader.h"			/* Extra Header parser and generator */
+</PRE>
+
+End of MIME module
+
+<PRE>
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
+
+#endif
+</PRE>
+
+End of WWWMIME API definition
+
+</BODY>
+</HTML>
+<HTML>
+<HEAD>
+<TITLE>Declaration of W3C Reference NEWS MODULE</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 20-Nov-1995 -->
+<NEXTID N="z11">
+</HEAD>
+<BODY>
+
+<H1>Declaration of W3C Reference NEWS MODULE</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This is the include file for the basic NNTP module that can be used
+together with the core of the W3C Reference Library. It contains all
+News specific modules which are required to compile and build the News
+DLL.<P>
+
+<PRE>
+#ifndef WWWNEWS_H
+#define WWWNEWS_H
+</PRE>
+
+<H2>Library Includes</H2>
+
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
+
+<PRE>
+#include "HTNews.h"			/* NNTP client state machine */
+#include "HTNewsLs.h"			/* Streams for parsing News output */
+#include "HTNDir.h"			/* HTML Generator */
+</PRE>
+
+End of News module
+
+<PRE>
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
+
+#endif
+</PRE>
+
+End of WWWNews API definition
+
+</BODY>
+</HTML>
+<HTML>
+<HEAD>
+<TITLE>Rule Files and Proxies</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  8-Dec-1995 -->
+<NEXTID N="z11">
+</HEAD>
+<BODY>
+
+<H1>Rule Files and Proxies</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+In addition top the basic W3C Reference Library include file called <A
+HREF="WWWLib.html">WWWLib.h</A> you <EM>can</EM> also include this
+file depending on the needs of your application. However, it is not
+required and none of the files included below are ever used in the
+core part of the Library itself. Only if this file is included, the
+extra modules will get included in the linked object code. It is also
+possible to include only a subset of the files below if the
+functionality you are after is covered by them.
+
+<PRE>
+#ifndef WWWRULES_H
+#define WWWRULES_H
+</PRE>
+
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
+
+<H3>Rule File Management</H3>
+
+Another way to initialize applications is to use a rule file, also
+known as a configuration file. This is for example the case with the
+W3C httpd and the W3C Line Mode Browser. This module provides basic
+support for configuration file management and the application can use
+this is desired. The module is not referred to by the Library. Reading
+a rule file is implemented as a stream converter so that a rule file
+can come from anywhere, even across the network!
+
+<PRE>
+#include "<A HREF="HTRules.html">HTRules.h</A>"
+</PRE>
+
+<H3>Proxies and Gateways</H3>
+
+Applications do not have to provide native support for all protocols,
+they can in many situations rely on the support of proxies and
+gateways to help doing the job. Proxy servers are often used to carry
+client requests through a firewall where they can provide services
+like corporate caching and other network optimizations. Both Proxy
+servers and gateways can serve as "protocol translators" which can
+convert a request in the main Web protocol, HTTP, to an equivalent
+request in another protocol, for example NNTP, FTP, or Gopher. In case
+a proxy server or a gateway is available to the application, it can
+therefore by use of HTTP forward all requests to for example a proxy
+server which then handle the communications with the remote server,
+for example using FTP about the document and return it to the
+application (proxy client) using HTTP.
+
+<PRE>
+#include "<A HREF="HTProxy.html">HTProxy.h</A>"
+</PRE>
+
+End of application specific modules
+
+<PRE>
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
+
+#endif
+</PRE>
+
+End of WWWRules declaration
+
+</BODY>
+</HTML>
+<HTML>
+<HEAD>
+<TITLE>Declaration of W3C Reference Telnet, rlogin, and TN3270 MODULE</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 20-Nov-1995 -->
+<NEXTID N="z11">
+</HEAD>
+<BODY>
+
+<H1>Declaration of W3C Reference Telnet, rlogin, and TN3270 MODULE</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This is the include file for the basic Telnet, rlogin, and TN3270
+module that can be used together with the core of the W3C Reference
+Library. It contains all Telnet, rlogin, and TN3270 specific modules
+which are required to compile and build the Telnet, rlogin, and TN3270
+DLL.<P>
+
+<PRE>
+#ifndef WWWTELNET_H
+#define WWWTELNET_H
+</PRE>
+
+<H2>Library Includes</H2>
+
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
+
+<PRE>
+#include "HTTelnet.h"			      /* TELNET client state machine */
+</PRE>
+
+End of TELNET module
+
+<PRE>
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
+
+#endif
+</PRE>
+
+End of WWWTelnet API definition
+
+</BODY>
+</HTML>
+<HTML>
+<HEAD>
+<TITLE>Declaration of W3C Reference Library UTILITIES</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  9-Feb-1996 -->
+<NEXTID N="z11">
+</HEAD>
+<BODY>
+
+<H1>Declaration of W3C Reference Library UTILITIES</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+The Utility modules are mostly container modules, dynamic strings and
+otherstuff that you can't live without when building applications. The
+modules are used by the core part of the W3C Reference Library but can
+also be used by the application. See also the main Library include
+file called <A HREF="WWWLib.html">WWWLib.h</A> which contains all
+converters and protocol modules known to the Library. You can include
+this one if the application is to use all the functionality of the
+Library.
+
+<PRE>
+#ifndef WWWUTIL_H
+#define WWWUTIL_H
+</PRE>
+
+<H2>System dependencies</H2>
+
+The <A HREF="tcp.html">tcp.h</A> file includes system-specific include
+files and flags for I/O to network and disk. The only reason for this
+file is that the Internet world is more complicated than Posix and
+ANSI.
+
+<PRE>
+#include "tcp.h"
+</PRE>
+
+<H2>Library Includes</H2>
+
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
+
+<H3>Basic Macros etc</H3>
+
+This module includes file contains things we need everywhere,
+generally macros for declarations, booleans, etc.
+
+<PRE>
+#include "<A HREF="HTUtils.html">HTUtils.h</A>"
+</PRE>
+
+<H3>Dynamic Arrays</H3>
+
+This module implements a flexible array of pointers. It is a general
+utility module.  An array is a structure which may be extended.  These
+routines create and append data to arrays, automatically reallocating
+them as necessary.  It is garanteed that the last entry in an array is
+<B>NULL</B>
+
+<PRE>
+#include "<A HREF="HTArray.html">HTArray.h</A>"
+</PRE>
+
+<H3>Association Lists</H3>
+
+This is a small module build on top of the <A
+HREF="HTList.html">HTList module</A> that provides a way to store
+<EM>Name-Value</EM> pairs in an easy way.
+
+<PRE>
+#include "<A HREF="HTAssoc.html">HTAssoc.h</A>"
+</PRE>
+
+<H3>Atoms</H3>
+
+Atoms are strings which are given representative pointer values so
+that they can be stored more efficiently, and comparisons for equality
+done more efficiently. The pointer values are in fact entries into a
+hash table.
+
+<PRE>
+#include "<A HREF="HTAtom.html">HTAtom.h</A>"
+</PRE>
+
+<H3>Dynamic Strings</H3>
+
+A Chunk is a block wise expandable array of type (char *) and is a sort of
 apology for real strings in C. Chunks make it easier to handle dynamic strings
 of unknown size. It is often faster than using the String Copy Routines</A>.
 
-<DT><A NAME="z77" HREF="../../Implementation/HTList.html">Linked Lists</A>
-<DD>This module provides the functionality for managing a generic list of data
-objects. The module is implemented as a single linked list using the scheme
-<EM>first in - last out (FILO)</EM>.
+<PRE>
+#include "<A HREF="HTChunk.html">HTChunk.h</A>"
+</PRE>
 
-<DT><A HREF="../../Implementation/HTAssoc.html">Association Lists</A>
-<DD>This is a small module build on top of HTList that provides a way to
-store <EM>Name-Value</EM> pairs in an easy way.
+<H3>Linked Lists</H3>
 
-<DT><A HREF="../../Implementation/HTString.html">Strings</A>
+This module provides the functionality for managing a generic list of
+data objects. The module is implemented as a single linked list using
+the scheme <EM>first in - last out (FILO)</EM>.
 
-<DD>Routines for dynamic arrays of characters include string copy,
-case insensitive comparison etc. It also contains functions for
-generating <B>date and time stamps</B>, <B>MessageID</B> etc.
+<PRE>
+#include "<A HREF="HTList.html">HTList.h</A>"
+</PRE>
 
-<DT><A HREF="../../Implementation/HTAtom.html">Atoms</A>
-<DD>Atoms are strings which are given representative pointer values so that
-they can be stored more efficiently, and comparisons for equality done more
-efficiently. The pointer values are in fact entries into a hash table.
+<H3>Dymamic Memory Management</H3>
 
-</DL>
+This module implements a dynamic memory API that is used throughout
+the Library. The API covers three types of functionality:
 
-<H2>Basic Utilities</H2>
+<UL>
+<LI><A HREF="#d">Handling of allocation and deallocation of dynamic memory</A>
+<LI><A HREF="#r">Recovering from temporary lack of available memory</A>
+<LI><A HREF="#p">Panic handling in case a new allocation fails</A>
+</UL>
 
-<IMG SRC="../../../Icons/32x32/caution.gif"> Look into these modules
-before you start defining system dependent stuff. Most things are
-already defined here! The list of basic utility modules are currently
-as follows
+<PRE>
+#include "<A HREF="HTMemory.html">HTMemory.h</A>"
+</PRE>
 
-<DL>
-<DT><A HREF="../../Implementation/tcp.html">System specifics</A>
-<DD>The <A HREF="../../Implementation/tcp.html">tcp.h</A> file
-includes system-specific include files and flags for I/O to network
-and disk. The only reason for this file is that the Internet world is
-more complicated than Posix and ANSI.
+<H3>String Utilities</H3>
 
-<DT><A HREF="../../Implementation/HTUtils.html">Platform Independent macros</A>
-<DD>The <A HREF="../../Implementation/HTUtils.html">HTUtil.h</A>
-include file contains things we need everywhere, generally macros for
-declarations, booleans, etc.
+Routines for dynamic arrays of characters include string copy,
+case insensitive comparison etc.
 
-</DL>
+<PRE>
+#include "<A HREF="HTString.html">HTString.h</A>"
+</PRE>
 
-<P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, December 1995</ADDRESS>
+<H3>UU encode and decode</H3>
+
+File module provides functions functions for uuencode and decode
+strings which convert a buffer of bytes to/from RFC 1113 printable
+encoding format. This technique is similar to the familiar Unix
+uuencode format in that it maps 6 binary bits to one ASCII character
+(or more aptly, 3 binary bytes to 4 ASCII characters).  However, RFC
+1113 does not use the same mapping to printable characters as
+uuencode.
+
+<PRE>
+#include "<A HREF="HTUU.html">HTUU.h</A>"
+</PRE>
+
+End of utility modules
+
+<PRE>
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
+
+#endif
+</PRE>
+
+End of WWWUtil.h declaration
+
+</BODY>
+</HTML>
+<HTML>
+<HEAD>
+<TITLE>Declaration of W3C Reference WAIS MODULE</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 20-Nov-1995 -->
+<NEXTID N="z11">
+</HEAD>
+<BODY>
+
+<H1>Declaration of W3C Reference WAIS MODULE</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This is the include file for the basic WAIS module that can be used
+together with the core of the W3C Reference Library. It contains all
+WAIS specific modules which are required to compile and build the WAIS
+DLL.<P>
+
+<PRE>
+#ifndef WWWWAIS_H
+#define WWWWAIS_H
+</PRE>
+
+<H2>Library Includes</H2>
+
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
+
+<PRE>
+#include "HTWais.h"			        /* WAIS client state machine */
+</PRE>
+
+End of WAIS module
+
+<PRE>
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
+
+#endif
+</PRE>
+
+End of WWWWais API definition
+
 </BODY>
 </HTML>
