@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
-<TITLE>Architecture - Central Data Structures</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 29-Jun-1995 -->
+<TITLE>Architecture - Core Objects and Managers</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  9-Sep-1995 -->
 <NEXTID N="z78">
 </HEAD>
 <BODY>
@@ -10,7 +10,7 @@
 <A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
 <A HREF="./"><IMG SRC="../../../Icons/WWW/Spec48x.gif" ALT="Architecture"></A>
 
-<H1>Central Data Structures</H1>
+<H1>Core Objects and Managers</H1>
 
 The central data structures are the structures that are a part of the
 core entity. Each of the core modules as explained in section "<A
@@ -80,9 +80,9 @@ model where a thread is identified by this structure. The libwww
 thread model is explained in "<A HREF="Threads.html">Description of
 libwww Threads</A>".
 
-<DT><IMG ALIGN=BOTTOM SRC="C.gif" ALT="C"> <A NAME="cache" HREF="../../Implementation/HTFWrite.html#cacheitem">HTCacheInfo</A>
+<DT><IMG ALIGN=BOTTOM SRC="C.gif" ALT="C"> <A NAME="cache" HREF="../../Implementation/HTFWrite.html#cacheitem">HTCache</A>
 
-<DD>The <EM>HTCacheInfo</EM> structure contains metainformation about
+<DD>The <EM>HTCache</EM> structure contains metainformation about
 every cached object like the amount of times it has been requested from
 the cache, the content type, the size, and how long it took to obtain
 the data from the network. As the cache manager is yet to be fully

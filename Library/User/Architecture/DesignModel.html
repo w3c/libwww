@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Architecture - Design Model</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  6-Jul-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  9-Sep-1995 -->
 </HEAD>  
 <BODY>
 
@@ -9,14 +9,20 @@
 <A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
 <A HREF="./"><IMG SRC="../../../Icons/WWW/Spec48x.gif" ALT="Architecture"></A>
 
-<H1>Design Model</H1>
+<H1>Basic Design Model</H1>
 
-The Library is designed to be easily extended with new functionality
-as new Internet standards evolve for transportation and representation
-of data objects. This means that most of the functionality is placed
-in separate modules that can be hooked onto a basic set of modules
-called the "core entity". This design model is illustrated in the
-figure below:
+The main criteria behind the design of the W3C Reference Library was
+to make it easily extendable as new Internet standards evolve for
+transportation and representation of data objects. The philosofi was
+to make it possible to dynamically "plug-in" new modules without
+touching the inner parts of the Library. On platforms that support
+dynamic linking this can be used to change the functionality of an
+application completely at runtime and eventually the Library can be
+extended to support some of the new concepts of mobile code where new
+modules can be down loaded from the network at runtime as they are
+needed in the application. The result of this concept was a Library
+architecture consisting of 5 main parts as illustrated in the figure
+below:
 
 <P><IMG SRC="Design.gif" ALT="Design"><P>
 
@@ -26,58 +32,58 @@ in the Library where the "layering" is as follows:
 
 <DL>
 
-<DT>Generic tools
+<DT>Generic Tools
 
 <DD>The Library provides a large set of generic utility modules such
-as various container classes, string utilities etc. They have the
-important function to separate the upper layer code from platform
-specific implementations using a large set of macros that makes the
-Library more portable. The modules are used throughout the Library
-itself and can easily be employed in many applications.
+as container classes, string utilities, network utilities etc. They
+have the important function to separate the upper layer code from
+platform specific implementations using a large set of macros that
+makes the Library more portable. The modules are used throughout the
+Library itself and can easily be employed in many applications.
 
-<DT>Core entity
+<DT>Core
 
-<DD>The fundamental part of the Library is actually quite small. The
-core entity is not a closed entity but an open frame construction that
-provides hooks for the dynamic modules. The core entity also contains
-the major access points for applications issuing requests, for example
-to access a data object. Many of the sections in this paper contain
-references to the core entity and explain the interaction between the
-core entity and an application.
+<DD>This part is the fundamental part of the Library. The size of the
+core is deliberately kept small and it is important to note that it
+can do nothing on its own; all the functionality for accessing the
+network, parsing data objects, handling user interaction, logging
+etc. is part of the upper modules in the figure. The core provides a
+standard interface to the application program for requesting a service
+but most often the handling of the request itself takes place outside
+the core.
 
-<DT>Access and stream modules
+<DT>Stream Modules
 
-<DD>These modules are often referred to as "dynamic modules" as they
-can be enabled or disabled dynamically during execution of an
-application (using static linking). There are several ways to
-initialize the dynamic modules:
+<DD>All data is transported back and forth from the application to the
+network and vice verse using streams. Streams are objects that accept
+blocks of characters, pretty much as ANSI C FILE strems accept blocks
+of characters. A block can be as small as one character but large
+blocks are normally preferred for better performance. Often, even
+though not required, a stream has an output to which it directs
+outgoing data. An example of a stream with no output is a stream that
+acts like a black hole - it absorbs data without ever sending it out
+again. However, the typical situation for a stream is to have an
+output and to perform some kind of data conversion on the incoming
+data before it is redirected to the output.
 
-<OL>
+<DT>Access Modules
 
-<LI>Through a configuration file (often called a rule file) which is
-parsed, for example at start up time;
-
-<LI>Using static initialization functions which are set up at compile
-time;
-
-<LI>By initializing the modules during execution as the application
-requires it.
-
-</OL>The Library has a set of default, static initialization functions
-which can be found in the <A HREF="../../Implementation/HTInit.html">
-HTInit module</A>. By default they enable all the dynamic modules in
-the Library, but this can be changed as described later.
+<DD>The Access modules are protocol specific modules that makes the
+application capable of communicating with a wide range of Internet
+services. The Library comes with a wide set of protocol access modules
+such as HTTP, FTP, Gopher, WAIS, NNTP, Telnet, rlogin, TN3270, and the
+local file system, but new ones can easily be added to the list.
 
 <DT>Application Modules
 
 <DD>The application modules are often specific for client applications
 including functions that require user interaction, management of
-history lists etc. The reference implementation of these modules in
-the reference code is mainly intended for character based applications
-like the <A HREF="../../../LineMode/">Line Mode Browser</A>. More
-advanced clients will often have to override them, that is, a module
-with an identical interface is provided by the application, and the
-loading of the default module suppressed.  </DL>
+history lists, call back functions, logging etc. The reference
+implementation of these modules are often intended for character based
+applications like the <A HREF="../../../LineMode/">Line Mode
+Browser</A>. More advanced clients can override them, that is, a
+module with an identical interface is provided by the application, and
+the loading of the default module suppressed. </DL>
 
 When writing an application most of the code interacting with the
 Library will consist of access modules, stream modules, and
@@ -85,7 +91,13 @@ application modules. These modules can either provide additional
 functionality or override existing functionality in the Library in
 order to make use of more platform dependent implementations. The
 latter will typically be the case with the application modules which
-must be adjusted to a given graphic platform.
+must be adjusted to a given graphic platform. <P>
+
+The <A HREF="../Using/">User's Guide</A> explains more on how to set
+up and use the Access modules and the Stream modules in an application
+and how to use the application modules. The rest of this document on
+the architecture of the W3C Reference Library is devoted to describing
+the Core of the Library.
 
 <P>
 <HR>

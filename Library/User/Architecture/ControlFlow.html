@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
-<TITLE>Architecture - Control and Data Flow</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 15-Aug-1995 -->
+<TITLE>Architecture - Overview of the Core</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  9-Sep-1995 -->
 <NEXTID N="z78">
 </HEAD>
 <BODY>
@@ -10,7 +10,7 @@
 <A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
 <A HREF="./"><IMG SRC="../../../Icons/WWW/Spec48x.gif" ALT="Architecture"></A>
 
-<H1>Control and Data Flow</H1>
+<H1>Overview of the Core</H1>
 
 The main concept in the Library is a "request/response" model where an
 application issues a request for a URI (URL). The Library then tries
@@ -138,9 +138,9 @@ verifies that access to local files is allowed. This might not always
 be the case, as is the case when the <A HREF="../../../LineMode/">Line
 Mode Browser</A> is used as a login shell for telnet sessions.
 
-<LI>Then the file cache manager is contacted to see if the object
+<LI>Then the cache manager is contacted to see if the object
 already has been accessed. The application might administer a memory
-cache in which cache this is consulted before the file cache.
+cache in which cache this is consulted before the cache.
 
 <LI>If the data object is not cached then the protocol module is
 called to actually perform the access to the network.
@@ -154,7 +154,7 @@ be reconstructed.
 <DT><A HREF="../../Implementation/HTProt.html">Protocol Manager</A>
 
 <DD>The protocol manager is invoked by the access manager in order to
-access a document not found in memory or in file cache. The manager
+access a document not found in memory or in cache. The manager
 consists of a set of protocol modules handling the access schemes
 HTTP, FTP, NNTP, Gopher, WAIS, Telnet, and access to the local file
 system. The protocol modules are registered dynamically (using static
@@ -175,7 +175,7 @@ selecting the best conversion. As the protocol modules, data format
 converters can be registered dynamically, and the current set of
 streams includes among others: MIME, SGML, HTML, and LaTeX.
 
-<DT><A HREF="../../Implementation/HTCache.html">File Cache Manager</A>
+<DT><A HREF="../../Implementation/HTCache.html">Cache Manager</A>
 
 <DD>The cache manager is used to save data objects once they have been
 down loaded from the network. The cache uses the hierarchy indicated
@@ -193,6 +193,11 @@ error messages where each message can be classified and filtered
 according to its impact on the current request, for example "Fatal",
 "Non-Fatal", "Warning" etc. The filtering can be used to decide which
 level of messages will be passed back to the user.
+
+<DT><A HREF="../../Implementation/HTNet.html">Net Manager</A>
+
+<DD>The net manager provides an interface for handling asynchronous
+sockets which is an integral part of the Library.
 
 <DT><A HREF="../../Implementation/HTEvntrg.html">Event Manager </A>
 

@@ -5,7 +5,8 @@
 /*
 **      (c) COPYRIGHT MIT 1995.
 **      Please first read the full copyright statement in the file COPYRIGH.
-*//*
+*/
+/*
 
    This module defines the global variables etc. for the Line Mode Browser. The module is
    implemented by HTBrowse.c, and it is a part of the Line Mode Browser.
@@ -25,7 +26,7 @@ extern char *   reference_mark;                       /* for reference lists */
 extern char *   end_mark;                         /* Format string for [End] */
 
 #endif /* HTBROWSE_H */
+
 /*
 
    End of HTBrowse Declaration */
-

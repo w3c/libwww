@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Libwww Architecture</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 11-Jul-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  9-Sep-1995 -->
 </HEAD>
 <BODY>
 
@@ -63,20 +63,25 @@ released July 1995.<P>
 <H2>Table of Contents</H2>
 
 <DL>
-<LI><A HREF="Introduction.html">Introduction</A> <P>
+<LI><A HREF="Introduction.html">Introduction</A>
+<LI><A HREF="DesignModel.html">Basic Design Model</A>
+<LI><A HREF="ControlFlow.html">Overview of the Core</A>
+<LI><A HREF="DataStructures.html">Core Objects and Managers</A>
+<UL>
+<LI><A HREF="Anchors.html">The Anchor Object</A>
+<LI><A HREF="Protocol.html">The Protocol Manager</A>
+<LI><A HREF="Threads.html">The Net Manager</A>
+<LI><A HREF="Events.html">Internal and External Events</A>
+<LI><A HREF="Cache.html">The Cache Manager</A>
+<LI><A HREF="Streams.html">The Stream Object</A>
+<LI><A HREF="Multiformat.html">The Data Format Manager</A>
+<LI><A HREF="Errors.html">The Error Manager</A>
+<LI><A HREF="Request.html">The Request Manager</A>
+</UL>
 
-<LI><A HREF="DesignModel.html">Design Model</A>
-<LI><A HREF="ControlFlow.html">Control and Data Flow</A>
-
-<LI><A HREF="DataStructures.html">Central Data Structures</A>
-<LI><A HREF="Anchors.html">Anchor Objects</A>
-<LI><A HREF="Streams.html">Stream Objects</A> <P>
-
-<LI><A HREF="Threads.html">Description of libwww Threads</A>
-<LI><A HREF="HTTPFeatures.html">Usage of State machines</A>
-<LI><A HREF="PostWeb.html">Post Webs - a Generic Model for Posting on the Web</A>
+<LI><A HREF="HTTPFeatures.html">Protocol Modules as State machines</A>
+<LI><A HREF="PostWeb.html">Post Web - a Generic Model for Posting on the Web</A>
 <LI><A HREF="DNSCache.html">DNS Cache and Host Name Canonicalization</A>
-<LI><A HREF="Multiformat.html">Format Negotiation</A>
 </UL>
 
 <P>
