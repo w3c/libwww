@@ -18,9 +18,9 @@
 #define ZLIB_DLL
 #endif
 
-#include "zlib.h"
+#include <zlib.h>
 
-#define OUTBUF_SIZE	8192
+#define OUTBUF_SIZE		32768
 
 struct _HTStream {
     const HTStreamClass *	isa;

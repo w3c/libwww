@@ -1051,7 +1051,7 @@ int main (int argc, char ** argv)
 		char * prefix = NULL;
 		prefix = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    argv[++arg] : DEFAULT_PREFIX;
-		if (*prefix) {
+		if (*prefix && *prefix != "*") {
 		    StrAllocCopy(mr->prefix, prefix);
 		    StrAllocCat(mr->prefix, "*");
 		}
@@ -1110,7 +1110,7 @@ int main (int argc, char ** argv)
 		char * prefix = NULL;
 		prefix = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    argv[++arg] : DEFAULT_IMG_PREFIX;
-		if (*prefix) {
+		if (*prefix && *prefix!="*") {
 		    StrAllocCopy(mr->img_prefix, prefix);
 		    StrAllocCat(mr->img_prefix, "*");
 		}
@@ -1188,6 +1188,14 @@ int main (int argc, char ** argv)
 
     if (!keycnt) {
 	if (SHOW_MSG) HTTrace("Please specify URL to check.\n");
+	Cleanup(mr, -1);
+    }
+
+    if (mr->depth != DEFAULT_DEPTH && 
+	(mr->prefix == NULL || *mr->prefix == '*')) {
+	if (SHOW_MSG)
+	    HTTrace("A depth of more than 0 requires that you also specify a URI prefix.\n",
+		    mr->depth);
 	Cleanup(mr, -1);
     }
 
