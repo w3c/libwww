@@ -108,7 +108,7 @@ PRIVATE void HTMLGen_put_character ARGS2(HTStructured *, me, char, c)
     }
     
     /* Flush buffer out when full. If preformetted then don't wrap! */
-    if (me->write_pointer == me->buffer + BUFFER_SIZE) {
+    if (me->write_pointer >= me->buffer + BUFFER_SIZE-1) {
     	if (!me->preformatted && me->cleanness) {
 	    char line_break_char = me->line_break[0];
 	    char * saved = me->line_break;
@@ -132,7 +132,7 @@ PRIVATE void HTMLGen_put_character ARGS2(HTStructured *, me, char, c)
 	} else {
 	    (*me->targetClass.put_block)(me->target,
 					 me->buffer,
-					 BUFFER_SIZE);
+					 me->write_pointer - me->buffer);
 	    me->write_pointer = me->buffer;
 	}
 	me->line_break = me->buffer;

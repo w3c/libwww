@@ -243,14 +243,13 @@ PRIVATE void parse_menu ARGS4(HTStructured *,   target,
 	if (title)
 	    StrAllocCopy(outstr, title);
 	else
-	    StrAllocCopy(outstr, "Menu");
+	    StrAllocCopy(outstr, "Gopher Menu");
+
         START(HTML_TITLE);
-        PUTS("Index of ");
 	HTUnEscape(outstr);
         PUTS(outstr);
         END(HTML_TITLE);
         START(HTML_H1);
-        PUTS("Index of ");
         PUTS(outstr);
         END(HTML_H1);
 	free(outstr);
@@ -537,10 +536,18 @@ PRIVATE void display_index ARGS3 (HTStructured *,	target,
 				  CONST char *,		arg,
 				  HTParentAnchor *,	anAnchor)
 {
-    
+    char * decoded = HTParse(arg, "", PARSE_PATH | PARSE_PUNCTUATION);
+    char * t = NULL;
+
+    HTUnEscape(decoded);
+    if (strlen(decoded) > 2) {
+	t = strchr(decoded+1,'/');
+	if (t) t++;
+    }
+    if (!t) t = decoded;
+
     START(HTML_H1);
-    PUTS(arg);
-    PUTS(" index");
+    PUTS(t);
     END(HTML_H1);
     START(HTML_ISINDEX);
     PUTS("\nThis is a searchable Gopher index.");
@@ -550,6 +557,7 @@ PRIVATE void display_index ARGS3 (HTStructured *,	target,
     	HTAnchor_setTitle(anAnchor, arg);
     
     FREE_TARGET;
+    free(decoded);
     return;
 }
 
