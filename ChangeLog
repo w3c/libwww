@@ -1,3 +1,18 @@
+2000-08-30 	Arthur Barstow <barstow@w3.org>
+
+	* HTRDF.c: BUG FIX: nested typedNode constructs with
+	  attributes caused re-using a free'd pointer.
+
+	* HTRDF.c: per a request from the Redland RDF project, added 
+	  a void * context parameter to HTRDF_parse{File,Buffer}.  
+	  The application-specific context will be available in the 
+	  triple callback handler.
+	
+        * HTRDF.html - updated to API changes mentioned above
+
+	* Library/Examples/ updated rdf_parse_{file,buffer} programs
+	  to reflect the above API changes.
+
 2000-08-29 	Jose Kahan <jose@w3.org>
 
 	* Temporarily commented the XML structured stream in HTXML.c
