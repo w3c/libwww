@@ -250,6 +250,11 @@ include, or exclude them:
   Options for Handling Shared/Static Linking
 </H4>
 <P>
+<IMG SRC="Icons/32x32/caution" ALT="NOTE" BORDER="0" WIDTH="32" HEIGHT="32"><EM>
+Solaris 2.5.x has serious problems handling shared libraries (the linker
+dumps core) and therefore you <STRONG>MUST</STRONG> use the
+<CODE>--disable-shared</CODE> when compiling on this platform.</EM>
+<P>
 Libwww uses <A HREF="http://www.gnu.org/software/libtool/libtool.html">GNU
 Libtool</A> to build shared libraries on a variety of systems. While this
 is very nice for making usable binaries, it can be a pain when trying to
