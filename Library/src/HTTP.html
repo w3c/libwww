@@ -44,6 +44,27 @@ extern void HTTP_setConnectionMode (HTTPConnectionMode mode);
 extern HTTPConnectionMode HTTP_connectionMode (void);
 </PRE>
 <H3>
+  HTTP Write Delay of Content Bodies
+</H3>
+<P>
+Because of the differences between HTTP/1.0 and HTTP/1.1, HTTP <TT>PUT</TT>
+and <TT>POST</TT> requests can not be dealt with in non-preemptive mode -
+they have to use timers and hence must be in preemptive mode.
+<P>
+The default write mechanism used is first to write the headers and then wait
+for a period of time before writing the body. This often allows the server
+to respond before we start sending data accross the wire. If the write for
+some reason fails in a bad way then we try again, waiting a little bit longer
+this time as this may give the server enough time to think.
+<P>
+The default wait periods are 2000ms for the first wait and 3000ms if that
+fails. These are rather conservative values but can be changed by using these
+functions. The second try value must be larger (or equal) to the first try
+value and the first try value must be larger than 20 ms.
+<PRE>extern BOOL HTTP_setBodyWriteDelay (ms_t first_try, ms_t second_try);
+extern void HTTP_bodyWriteDelay (ms_t * first_try, ms_t * second_try);
+</PRE>
+<H3>
   HTTP Event Handler
 </H3>
 <P>

@@ -93,6 +93,13 @@ struct _HTInputStream {
     const HTInputStreamClass *	isa;
 };
 
+/* How long to wait before writing the body in PUT and POST requests */
+#define DEFAULT_FIRST_WRITE_DELAY	2000
+#define DEFAULT_SECOND_WRITE_DELAY	3000
+
+PRIVATE ms_t HTFirstWriteDelay = DEFAULT_FIRST_WRITE_DELAY;
+PRIVATE ms_t HTSecondWriteDelay = DEFAULT_SECOND_WRITE_DELAY;
+
 #ifdef HT_NO_PIPELINING
 PRIVATE HTTPConnectionMode ConnectionMode = HTTP_11_NO_PIPELINING;
 #else
@@ -1115,7 +1122,7 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 		  if (pcbf) {
 		      if (http->lock == NO) {
 			  int retrys = HTRequest_retrys(request);
-			  ms_t delay = retrys > 3 ? 3000 : 2000;
+			  ms_t delay = retrys > 3 ? HTSecondWriteDelay : HTFirstWriteDelay;
 			  if (!http->timer && !http->usedTimer) {
 			      http->timer = HTTimer_new(NULL, FlushPutEvent,
 							http, delay, YES, NO);
@@ -1219,3 +1226,18 @@ PUBLIC HTTPConnectionMode HTTP_connectionMode (void)
     return ConnectionMode;
 }
 
+PUBLIC BOOL HTTP_setBodyWriteDelay (ms_t first_try, ms_t second_try)
+{
+	if (first_try > 20 && second_try >= first_try) {
+	    HTFirstWriteDelay = first_try;
+		HTSecondWriteDelay = second_try;
+		return YES;
+	}
+	return NO;
+}
+
+PUBLIC void HTTP_bodyWriteDelay (ms_t * first_try, ms_t * second_try)
+{
+	*first_try = HTFirstWriteDelay;
+	*second_try = HTSecondWriteDelay;
+}
