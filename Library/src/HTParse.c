@@ -9,7 +9,7 @@
 #define HEX_ESCAPE '%'
 
 struct struct_parts {
-	char * access;
+	char * access;		/* Now known as "scheme" */
 	char * host;
 	char * absolute;
 	char * relative;
@@ -60,6 +60,7 @@ PRIVATE void scan(name, parts)
 #endif
 {
     char * after_access;
+    char * start = name;
     char * p;
     int length = strlen(name);
     
@@ -73,10 +74,13 @@ PRIVATE void scan(name, parts)
     for(p=name; *p; p++) {
 	if (*p==':') {
 		*p = 0;
-		parts->access = name;	/* Access name has been specified */
+		parts->access = after_access; /* Scheme has been specified */
 		after_access = p+1;
+		if (0==strcasecmp("URL", parts->access)) {
+		    parts->access = NULL;  /* Ignore IETF's URL: pre-prefix */
+		} else break;
 	}
-	if (*p=='/') break;
+	if (*p=='/') break;		/* Access has not been specified */
 	if (*p=='#') break;
     }
     
@@ -283,12 +287,13 @@ PRIVATE void ari_strcpy ARGS2(char *, to,
     strcpy(to, tmp);
     free(tmp);
 }
-/*	        Simplify a filename
-//		-------------------
+
+/*	        Simplify a URI
+//		--------------
 //
-// A unix-style file is allowed to contain the seqeunce xxx/../ which may be
+// A URI is allowed to contain the seqeunce xxx/../ which may be
 // replaced by "" , and the seqeunce "/./" which may be replaced by "/".
-// Simplification helps us recognize duplicate filenames.
+// Simplification helps us recognize duplicate URIs. 
 //
 //	Thus, 	/etc/junk/../fred 	becomes	/etc/fred
 //		/etc/junk/./fred	becomes	/etc/junk/fred
@@ -492,16 +497,25 @@ char * HTRelative(aName, relatedName)
 **	It returns a string which has these characters
 **	represented by a '%' character followed by two hex digits.
 **
+**	In the tradition of being conservative in what you do and liberal
+**	in what you accept, we encode some characters which in fact are
+**	allowed in URLs unencoded -- so DON'T use the table below for
+**	parsing! 
+**
 **	Unlike HTUnEscape(), this routine returns a malloced string.
+**
 */
 
-/* Not BOTH static AND const at the same time in gcc :-(, Henrik 18/03-94 */
+/* Not BOTH static AND const at the same time in gcc :-(, Henrik 18/03-94 
+**  code gen error in gcc when making random access to
+**  static const table(!!)  */
 /* PRIVATE CONST unsigned char isAcceptable[96] = */
 PRIVATE unsigned char isAcceptable[96] =
 
+/* Overencodes */
 /*	Bit 0		xalpha		-- see HTFile.h
 **	Bit 1		xpalpha		-- as xalpha but with plus.
-**	Bit 2 ...	path		-- as xpalphas but with /
+**	Bit 2 ...	path		-- as xpalpha but with /
 */
     /*   0 1 2 3 4 5 6 7 8 9 A B C D E F */
     {    0,0,0,0,0,0,0,0,0,0,7,6,0,7,7,4,	/* 2x   !"#$%&'()*+,-./	 */
