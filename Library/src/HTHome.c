@@ -43,64 +43,20 @@
 */
 PUBLIC char * HTGetCurrentDirectoryURL (void)
 {
-    char* default_default = NULL;	      /* Parse home relative to this */
-    char * host = HTGetHostName(); 
-    StrAllocCopy(default_default, "file://");
-    if (host) {
-	StrAllocCat(default_default, host);
-	HT_FREE(host);
-    } else
-	StrAllocCat(default_default, "localhost");
-    {
-	char wd[HT_MAX_PATH+1];
+    char wd[HT_MAX_PATH+1];
 
 #ifdef HAVE_GETCWD	      /* System V variant SIGN CHANGED TBL 921006 !! */
-	char *result = (char *) getcwd(wd, sizeof(wd)); 
+    char * result = (char *) getcwd(wd, sizeof(wd)); 
 #else
 #ifdef HAVE_GETWD
-	char *result = (char *) getwd(wd);
+    char * result = (char *) getwd(wd);
 #else
 #error "This platform does not support neither getwd nor getcwd\n"
-	char *result = NULL;
+    char * result = NULL;
 #endif /* HAVE_GETWD */
 #endif /* HAVE_GETCWD */
-	*(wd+HT_MAX_PATH) = '\0';
-	if (result) {
-#ifdef VMS 
-            /* convert directory name to Unix-style syntax */
-	    char * disk = strchr (wd, ':');
-	    char * dir = strchr (wd, '[');
-	    if (disk) {
-	        *disk = '\0';
-		StrAllocCat (default_default, "/");  /* needs delimiter */
-		StrAllocCat (default_default, wd);
-	    }
-	    if (dir) {
-		char *p;
-		*dir = '/';  /* Convert leading '[' */
-		for (p = dir ; *p != ']'; ++p)
-			if (*p == '.') *p = '/';
-		*p = '\0';  /* Cut on final ']' */
-		StrAllocCat (default_default, dir);
-	    }
-#else  /* not VMS */
-#ifdef WIN32
-	    char * p = wd ;	/* a colon */
-	    StrAllocCat(default_default, "/");
-	    while( *p != 0 ) { 
-		if (*p == '\\')		         /* change to one true slash */
-		    *p = '/' ;
-		p++;
-	    }
-	    StrAllocCat( default_default, wd);
-#else /* not WIN32 */
-	    StrAllocCat (default_default, wd);
-#endif /* not WIN32 */
-#endif /* not VMS */
-	}
-    }
-    StrAllocCat(default_default, "/default.html");
-    return default_default;
+    *(wd+HT_MAX_PATH) = '\0';
+    return result ? HTLocalToWWW(result) : NULL;
 }
 
 

@@ -64,6 +64,7 @@ PUBLIC void HTFileInit (void)
     HTBind_add("h",	"text/plain",			NULL,		"7bit",		NULL,	0.5);	/* C headers		*/
     HTBind_add("hdf",	"application/x-hdf",		NULL,		"binary",	NULL,	1.0);	/* NCSA HDF data file	*/
     HTBind_add("hh",	"text/plain",			NULL,		"7bit",		NULL,	0.5);	/* C++ headers		*/
+    HTBind_add("htm",	"text/html",			NULL,		"8bit",		NULL,	1.0);	/* HTML			*/
     HTBind_add("html",	"text/html",			NULL,		"8bit",		NULL,	1.0);	/* HTML			*/
     HTBind_add("ief",	"image/ief",			NULL,		"binary",	NULL,	1.0);	/* Image Exchange fmt	*/
     HTBind_add("jpe",	"image/jpeg",			NULL,		"binary",	NULL,	1.0);

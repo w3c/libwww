@@ -664,9 +664,17 @@ PUBLIC char * HTWWWToLocal (const char * url, const char * base,
 #endif
 #ifdef WWW_MSWINDOWS
 	    /* an absolute pathname with logical drive */
-	    if (*path == '/' && path[2] == ':')    
-		/* NB. need memmove because overlaps */
-		memmove( path, path+1, strlen(path) + 1);
+            if (*path == '/' && path[2] == ':') {
+		char *orig=path, *dest=path+3;
+		while((*orig++ = *dest++));
+
+	    /* A network host */
+            } else if (*host && strcasecomp(host, "localhost")) {
+		char * newpath = NULL;
+		StrAllocMCopy(&newpath, "//", host, path, NULL);
+		HT_FREE(path);
+		path = newpath;
+	    }
 #endif
 	    
 	    HTUnEscape(path);		  /* Take out the escaped characters */
@@ -689,9 +697,12 @@ PUBLIC char * HTWWWToLocal (const char * url, const char * base,
 */
 PUBLIC char * HTLocalToWWW (const char * local)
 {
-    char * result = NULL;
+    char * escaped = NULL;
     if (local && *local) {
-	StrAllocCopy(result, "file:");	     /* We get an absolute file name */
+        char * unescaped = NULL;
+        if ((unescaped = (char *) HT_MALLOC(strlen(local) + 10)) == NULL)
+            HT_OUTOFMEM("HTLocalToWWW");
+        strcpy(unescaped, "file:");	     /* We get an absolute file name */
 #ifdef VMS 
 	/* convert directory name to Unix-style syntax */
 	{
@@ -699,8 +710,8 @@ PUBLIC char * HTLocalToWWW (const char * local)
 	    char * dir = strchr (local, '[');
 	    if (disk) {
 		*disk = '\0';
-		StrAllocCat(result, "/"); /* needs delimiter */
-		StrAllocCat(result, local);
+		strcat(unescaped, "/");
+		strcat(unescaped, local);
 	    }
 	    if (dir) {
 		char *p;
@@ -708,27 +719,37 @@ PUBLIC char * HTLocalToWWW (const char * local)
 		for (p = dir ; *p != ']'; ++p)
 		    if (*p == '.') *p = '/';
 		*p = '\0';	/* Cut on final ']' */
-		StrAllocCat(result, dir);
+		strcat(unescaped, dir);
 	    }
 	}
+        escaped = HTEscape(unescaped, URL_PATH);
+        HT_FREE(unescaped);
+
 #else  /* not VMS */
 #ifdef WIN32
-	{
-	    char * p = NULL;
-	    StrAllocCopy(p, local);
-	    /* StrAllocCat(result, "/");  */	/* extra slash removed */
-	    while (*p) { 
-		if (*p == '\\')		         /* change to one true slash */
-		    *p = '/';
-		p++;
-	    }	
-	    StrAllocCat(result, p);
-	    HT_FREE(p);
+        if (strchr(local, ':')) strcat(unescaped, "/");
+        {
+            const char *p = local;
+            char *q = unescaped+strlen(unescaped);
+            while (*p) {
+                if (*p=='\\') {
+                    *q++='/';
+                } else
+                    *q++=*p;
+                p++;
+            }
+            *q = '\0';
 	}
-#else /* not WIN32 */
-	StrAllocCat (result, local);
+        escaped = HTEscape(unescaped, URL_DOSFILE);
+        HT_FREE(unescaped);
+
+#else  /* Unix */
+        strcat(unescaped, local);
+        escaped = HTEscape(unescaped, URL_PATH);
+        HT_FREE(unescaped);
+
 #endif /* not WIN32 */
 #endif /* not VMS */
     }
-    return result;
+    return escaped;
 }
