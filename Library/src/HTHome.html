@@ -88,6 +88,9 @@ create a new anchor which can contain the document while it is created. This
 can also be the location for backups and for security "auto-save" functionality.
 This functions creates a new anchor with a URL pointing to the temporary
 location defined by this user profile and returns that anchor.
+Andy Levine: I additionally found that calling HTTmpAnchor repeatedly without
+freeing the newly allocated anchor will cause the anchor hash table to
+continue to grow.
 <PRE>
 extern HTParentAnchor * HTTmpAnchor (HTUserProfile * up);
 </PRE>
