@@ -4,6 +4,8 @@
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 **
+**	This is the definition of the HyperDoc object and the HText interface
+**	which is used in the current Library HTML parser
 */
 
 #include <assert.h>

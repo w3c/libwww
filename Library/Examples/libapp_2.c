@@ -9,7 +9,7 @@ int main()
     HTLibInit("TestApp", "1.0");
 
     /* Register the HTTP Module */
-    HTProtocol_add("http", YES, HTLoadHTTP);     
+    HTProtocol_add("http", YES, HTLoadHTTP, NULL);
 
     /* Add a conversion to our empty list */
     HTConversion_add(converters, "*/*", "www/present", HTSaveLocally, 1.0, 0.0, 0.0);

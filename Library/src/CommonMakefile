@@ -44,6 +44,7 @@ SHELL = /bin/sh
 LOB = $(WTMP)/Library/$(WWW_MACH)
 CMN = $(WWW)/Library/Implementation/
 DOC = $(WWW)/Library/User
+EXP = $(WWW)/Library/Examples
 ICON= $(WWW)/Icons
 VMS = $(CMN)vms
 WIN = $(CMN)windows
@@ -162,6 +163,7 @@ SPECIFIC = \
 	$(WWW)/All/*/Makefile.include \
 	$(WWW)/All/Implementation/Makefile \
 	$(DOC)/Patch/*.fix \
+	$(EXP)/*.c
 	$(WIN)/*.pl \
 	$(WIN)/*.mak \
 	$(WIN)/*.def \

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Event Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 28-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -33,7 +33,7 @@ Reference Library</A>. <P>
 <H2>Windows Specific Handles</H2>
 
 <PRE>
-#ifdef WWW_WIN_ASYNC
+#if defined(WWW_WIN_ASYNC) || defined(WWW_WIN_DLL)
 extern BOOL HTEvent_winHandle (HTRequest * request);
 extern BOOL HTEvent_setWinHandle (HWND window, unsigned long message);
 #endif

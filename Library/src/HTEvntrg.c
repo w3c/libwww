@@ -162,6 +162,17 @@ PUBLIC BOOL HTEvent_setWinHandle (HWND window, unsigned long message)
     HTwinMsg = message;
     return YES;
 }
+#else
+#ifdef WWW_WIN_DLL
+PUBLIC BOOL HTEvent_winHandle (HTRequest * request)
+{
+    return YES;
+}
+PUBLIC BOOL HTEvent_setWinHandle (HWND window, unsigned long message)
+{
+    return YES;
+}
+#endif /* WWW_WIN_DLL */
 #endif /* WWW_WIN_ASYNC */
 
 /*	HTEvent_registerTimeout 
@@ -595,7 +606,7 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 	    if (toRead) {
 		if (THD_TRACE) 
 		    TTYPrint(TDEST,"Event Loop.. console ready, invoke callback\n");
-		status = __DoUserCallBack((SOCKET) console_handle, FD_READ);
+		status = __DoUserCallback((SOCKET) console_handle, FD_READ);
 		if (status != HT_OK)
 		    return status;
 	    }
