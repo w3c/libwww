@@ -117,6 +117,7 @@ PRIVATE ComLine * ComLine_new (void)
     me->request = HTRequest_new();
     HTRequest_setOutputFormat(me->request, DEFAULT_FORMAT);
     HTRequest_setContext (me->request, me);
+
     return me;
 }
 
@@ -505,9 +506,6 @@ int main (int argc, char ** argv)
     /* Should we use persistent cache? */
     if (cache) {
 	HTCacheInit(cache_root, 20);
-	HTNet_addBefore(HTCacheFilter, "http://*", NULL, HT_FILTER_MIDDLE);
-	HTNet_addAfter(HTCacheUpdateFilter, "http://*", NULL,
-		       HT_NOT_MODIFIED, HT_FILTER_MIDDLE);
 
 	/* Should we start by flushing? */
 	if (flush) HTCache_flushAll();
