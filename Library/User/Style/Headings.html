@@ -1,6 +1,6 @@
 <HEAD>
 <TITLE>Include Files</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  9-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 28-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -19,7 +19,7 @@ useful for that.
 A typical example of a function header looks like:
 
 <PRE>
-/*	Scan a line						scan_line()
+/*	Scan a line
 **	-----------
 **	This function scannes a string for ...
 **
@@ -31,11 +31,9 @@ A typical example of a function header looks like:
 **	return value	is the number of words found, or -1 if error.
 **	lines		This global value is incremented.
 */	
-PRIVATE int scan_line ARGS1(const char *, l)
+PRIVATE int scan_line (CONST char * line)
 {
    /* Code here */
-
-
 }
 </PRE>
 
