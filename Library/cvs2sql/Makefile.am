@@ -3,9 +3,13 @@
 noinst_PROGRAMS = @CVS2SQL@
 EXTRA_PROGRAMS = cvs2sql
 
-LDADD = ../../Library/src/libwww.la -lm
+LDADD = \
+	-lm \
+	../src/libwww.la \
+	../../modules/md5/libmd5.la \
+	../../modules/expat/xmlparse/libxmlparse.la \
+	../../modules/expat/xmltok/libxmltok.la
 
-DEPENDENCIES = \
-	../../Library/src/libwww.la
 
-INCLUDES = -I$(srcdir)/../../Library/src
+INCLUDES = \
+	-I$(srcdir)/../../Library/src
