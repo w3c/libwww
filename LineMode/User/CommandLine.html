@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Command Line Syntax for the Line Mode browser</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 26-Oct-1995 -->
 <NEXTID N="z29">
 </HEAD>
 
@@ -86,6 +86,13 @@ input from the standard input. This allows www to be used as a filter
 from html to plain text for example. Relative links in the input are
 parsed as though the address of the document was that of the home page
 (or docaddress if specified). Implies non-interactive mode.
+
+<DT><B>-cl</B>
+
+<DD>Counting content length of the output. This flag appends the
+Content-Length counter stream to the output stream so that everything
+is counted. This works exactly like piping the output into
+<EM>wc</EM>.
 
 <DT><B>-h</B> host
 <DD>Establish a telnet connection to the remote host specified. This
@@ -257,9 +264,7 @@ makes selective directory listings and places a README file at the top
 cache system. If the option is not specified, no local file cache is
 generated. The default cache is "/tmp".
 
-
 <DT><B>-x</B> 1*( i | n | a ) 
-
 <DD> There are various ways of handling Expires header when met in a
 history list or in a local cache. Either it can be <B>I</B>gnored all
 together, the user can be <B>N</B>otified with a warning, or the
@@ -276,6 +281,14 @@ this is specified, a rule file may be used to map URLs, and to set up
 other aspects of the behavior of the browser. Many rule files may be
 given with successive -r options, and a default rule file name may be
 given using the <B>WWW_CONFIG</B> environment variable.
+
+<DT><B>-nt</B>
+
+<DD>In interactive mode the default behavior is to register a timeout
+function so that the user can see if a the Library actively is
+handling a request. The timeout handler is called every second and
+prints out a "." on the command line. If you don't want this feature
+then use the <B>-nt</B> (no timeout) flag.
 
 </DL>
 

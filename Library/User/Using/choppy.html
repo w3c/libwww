@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Using the W3C Reference Library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 15-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 31-Oct-1995 -->
 </HEAD>  
 <BODY>
 
@@ -15,25 +15,23 @@
 is still under construction. Comments are welcome at <A
 HREF="mailto:libwww@w3.org">libwww@w3.org</A></P>
 
-This guide describes the "user's view" of the W3C Reference
-Library. It concentrates on describing the API and how the application
-programmer can use the Library. It also describes who is responsible
-for memory management, how to initialize modules etc. Reading this
-guide should be sufficient in order to use the Library without being
-aware of exactly what is going on underneeth the interface. <P>
+This guide describes the "user's view" of the W3C Reference Library. It concentrates on describing
+the API and how the application programmer can use the Library. It also describes who is responsible
+for memory management, how to initialize modules etc. Reading this guide should be sufficient in
+order to use the Library without being aware of exactly what is going on underneath the
+interface. <P>
 
-<IMG ALIGN=BOTTOM SRC="../../../Icons/32x32/caution.gif" ALT="NOTE">
-This document is also available as <A HREF="choppy.html"><B>one big
-HTML file</B></A> intended for printout. Please note that not all
-links in this version work!<P>
+<IMG ALIGN=BOTTOM SRC="../../../Icons/32x32/caution.gif" ALT="NOTE"> This document is also available
+as <A HREF="choppy.html"><B>one big HTML file</B></A> intended for printout. Please note that not
+all links in this version work!<P>
 
 <H2>Table of Contents</H2> 
 <OL>
 <LI><A HREF="Startup.html">Getting Started</A>
 <LI><A HREF="Prefs.html">Setting Up Preferences for Language, Charset etc.</A>
-<LI><A HREF="Bind.html">Make Bindings to the local File system</A>
 <LI><A HREF="Methods.html">Registering Access Schemes</A>
-<LI><A HREF="Proxy.html">Registering Proxy Servers and Gateways</A> <P>
+<LI><A HREF="Proxy.html">Registering Proxy Servers and Gateways</A>
+<LI><A HREF="Bind.html">Make Bindings to the local File system</A><P>
 
 <LI><A HREF="Anchors.html">Anchor Objects</A>
 <LI><A HREF="Request.html">Request Objects</A>
@@ -69,391 +67,785 @@ following command
 
 assuming that you are at the top of the WWW tree created when unpacking the distribution file. You
 can compare your version of the code with the current version which is available from the online
-documentation from out WWW server.<P>
+documentation from our WWW server.<P>
 
-In order to use the public functions of the Library, your application needs to include the file "<A
-HREF="../../Implementation/WWWLib.html">WWWLib.h</A>". This file is a container for all the Library
-include files that together define the public API of the core of the Library. As described in the
-document <A HREF="../Architecture">Library Architecture</A> the core is a frame work for other
-modules that provide the actual functionality, for example for parsing HTML documents or getting a
-document via HTTP or FTP. We will explain later how this functionality can be enabled and used by an
-application. <P>
+In order to use the core public functions of the Library, your application needs to include the file
+"<A HREF="../../Implementation/WWWLib.html">WWWLib.h</A>". This file is a container for all the
+Library include files that together define the public API of the core of the Library. As described
+in the document <A HREF="../Architecture/">Library Architecture</A> the core is a frame work for
+other modules that provide the actual functionality, for example for parsing HTML documents or
+getting a document via HTTP or FTP. We will explain later how this functionality can be enabled and
+used by an application. The Library has a second important include file called <A
+HREF="../../Implementation/WWWApp.html">WWWApp.h</A>. In contrast to <A
+HREF="../../Implementation/WWWLib.html">WWWLib.h</A>, this file not required in order to use the
+Library, but it includes functionality which many applications might find useful such as management
+of history lists, logging of requests etc. Later chapters are devoted to describing these features,
+for now we only have to know that this file exists and that it contains application relevant
+modules.<P>
 
 The application must explicitly initialize the Library before it can start using it so that the
 internal file descriptors, and variables can be set to their respective values. This only has to be
-done once while the application is running and is typically done when the application is stated
-up. The application also should close down the Library when it has stopped using it - typically when
-the application is closing down. The Library will then return resources like file descriptors and
-dynamic memory to the operating system. In practice the initialization and termination is done using
-the following two functions:
+done once while the application is running and is typically done when the application is
+started. The application also should close down the Library when it has stopped using it - typically
+when the application is closing down. The Library will then return resources like file descriptors
+and dynamic memory to the operating system. In practice the initialization and termination is done
+using the following two functions:
 
-<DL>
+<PRE>
+BOOL HTLibInit(const char * AppName, const char * AppVersion)
+</PRE>
 
-<DT><CODE>BOOL HTLibInit()</CODE>
-
-<DD>This function initializes memory, file descriptors, and interrupt handlers etc. By default it
+This function initializes memory, file descriptors, and interrupt handlers etc. By default it
 also calls initialization functions for all the dynamic modules in the Library. The dynamic modules
 are described in "<A HREF="../Architecture/DesignModel.html">Libwww Architecture</A>". A major part
 of the User's Guide is devoted to describing how the Library can be configured, both at run time and
-at compile time, and the dynamic modules are an important part of the Library configuration.
+at compile time, and the dynamic modules are an important part of the Library configuration. <P>
 
-<DT><CODE>BOOL HTLibTerminate()</CODE>
+The two arguments to the function are the name of the application and the version number
+respectively. It is not a requirement that these values are unique and they can both be the empty
+string (""). However, as the strings are used in the <A HREF="../../Implementation/HTTP.html/">HTTP
+protocol module</A> when communicating with other WWW applications it is strongly recommended that
+the values are chosen carefully according to the <A HREF="../../../Protocols/">HTTP
+specifications</A>. The most important requirement is to use normal ASCII characters without any
+form for space as we will see in the example below.
 
-<DD>Cleans up the memory, closes open file descriptors, and returns all resources to the operating
-system.
+<PRE>
+BOOL HTLibTerminate()
+</PRE>
+
+This function cleans up the memory, closes open file descriptors, and returns all resources to
+the operating system.
 
 </DL>
 
-It is essential that <CODE>HTLibInit()</CODE> is the first call to the Library and
-<CODE>HTLibTerminate()</CODE> is the last as the behavior otherwise is undefined. <P>
+It is essential that <CODE>HTLibInit(...)</CODE> is the first call to the Library and
+<CODE>HTLibTerminate()</CODE> is the last as the behavior otherwise is undefined.
 
-Before the application can successfully link to the Library it must provide two global strings
-(<EM>HTAppName</EM> and <EM>HTAppVersion</EM>) used for identifying the name and the version number
-of the application. It is not a requirement that these values are unique and they can both be the
-empty string (""). However, as the strings are used in the <A
-HREF="../../Implementation/HTTP.html/">HTTP protocol module</A> when communicating with other WWW
-applications it is strongly recommended that the values are chosen carefully according to the <A
-HREF="../../../Protocols/">HTTP specifications</A>. The most important requirement is to use normal
-ASCII characters without any form for space, for example:
+<H2>Building your first Application</H2>
+
+We have now explained the first few steps in how to initialize the core of the Library. We can now
+write our first minimal application which will do absolutely nothing but initializing and
+terminating the Library. In the example we assume that the compiler knows where to look for the
+Library include file <CODE>WWWLib.h</CODE> and also knows where to find the binary library, often
+called <CODE>libwww.a</CODE> on Unix platforms and <CODE>libwww.lib</CODE> on Windows. Again, the
+result might depend on the setup of the dynamic modules, but if no dynamic modules are enabled then
+the example will generate an executable file. If you are in doubt about how to set your compiler
+then you can often get some good ideas by looking into the <A HREF="../../../LineMode/">Line Mode
+Browser</A>.
 
 <PRE>
-	char * HTAppName = "W3CLineMode";
-	char * HTAppVersion = "4.0";
+#include "WWWLib.h"
+int main()
+{
+    HTLibInit("TestApp", "1.0");
+    HTLibTerminate();
+    return 0;
+}
 </PRE>
 
-As explained in the next section, the <CODE>HTLibInit()</CODE> function uses the information in the
-Library <A HREF="../../Implementation/HTInit.html">HTInit module</A> when initializing the
-Library. The result of the setup of dynamic modules might require additional definitions of
-variables and functions in the application before the linker can create an executable file. <P>
-
-Also, some platforms require a socket library when building network applications. This is for
-example the case when building on Macintosh or Windows machines. The Library uses the <A
+Some platforms require a socket library when building network applications. This is for example the
+case when building on Macintosh or Windows machines. The Library uses the <A
 HREF="http://err.ethz.ch/members/neeri/macintosh/gusiman/GUSI.html">GUSI socket</A> library on the
 Macintosh and the <A HREF="ftp://ftp.spry.com/ms-windows/winsock/docs/winsock.txt">WinSock
 library</A> on windows platforms. Please check the documentation on these libraries for how to
 install them and also if there are any specific requirements on your platform when building network
 applications.<P>
 
-We have now explained the first few steps in how to use the core of the Library. As a summary we
-will write a minimal application that does nothing but initializes and terminates the Library. In
-the example we assume that the compiler knows where to look for the Library include file
-<CODE>WWWLib.h</CODE> and also knows where to find the binary library, often called
-<CODE>libwww.a</CODE>. Again, the result might depend on the setup of the dynamic modules, but if no
-dynamic modules are enabled then the example will generate an executable file. If you are in doubt
-about how to set your compiler then you can often get some good ideas by looking into the <A
-HREF="../../../LineMode/">Line Mode Browser</A>.
+<H2>Adding Functionality</H2>
+
+The core parts of the Library can be thought of as a framework with hooks for adding functionality
+depending on what the applications needs. The core can not do anything on its own but when hooking
+in modules, the Library suddenly can start doing useful stuff. In the Library distribution file
+there is already a large set of specific protocol modules and stream modules for handling many
+common Internet protocols and data formats. We will explain protocol modules and streams in much
+more detail later, but for the moment it is sufficient to know that protocol modules knows how to
+communicate with remote servers on the Internet and that streams are used to pass documents back and
+forth between the Internet and the application with the Library as an intermediary part. <P>
+
+While the previous application wasn't capable of doing anything we will now add functionality so
+that we can request a URL from a remote Web server and save the result to a file. To do this we need
+to register two additional modules after initializing the Library: A protocol module that handles
+HTTP and a stream that can save data to a local file. Both these modules are already in the
+distribution file and in this example we show how to enable them. It is also possible to write your
+own versions of these modules and then register them instead of the ones provided with the
+Library. This makes no difference to the core part of the Library and is an example of how the
+functionality can be extended or changed by adding new modules as needed. <P>
 
 <PRE>
-	#include "WWWLib.h"
-	char * HTAppName = "TestApp";
-	char * HTAppVersion = "1.0";
-	int main()
-	{
-	    HTLibInit();
-	    HTLibTerminate();
-	    return 0;
-	}
+#include "WWWLib.h"
+#include "HTTP.h"
+
+int main()
+{
+    HTList *converters = HTList_new();		     /* Create a list object */
+
+    /* Initialize the Library */
+    HTLibInit("TestApp", "1.0");
+
+    /* Register the HTTP Module */
+    HTProtocol_add("http", YES, HTLoadHTTP);     
+
+    /* Add a conversion to our empty list */
+    HTConversion_add(converters, "*/*", "www/present", HTSaveLocally, 1.0, 0.0, 0.0);
+
+    /* Register our list with one conversion */
+    HTFormat_setConversion(converters);
+
+    /* Delete the list with one conversion */
+    HTConversion_deleteAll(converters);
+
+    /* Terminate the Library */
+    HTLibTerminate();
+    return 0;
+}
 </PRE>
+
+The two new things in this example is that we now have two registration functions. We will explain
+more about these functions as we go along; for now we will only introduce the functions and their
+arguments. The interesting part about the two registration functions is that they represent the two
+ways of registration in the Library: Some things are registered directly like the protocol module
+and other things are registered as lists of objects like the list of converters. The reason for this
+is to make the registration process easier for the application to handle; protocol modules are often
+initialized only once while the application is running. Therefore it is easier to register them
+directly. As we will see later in this guide, converters, however, can be enabled and disabled
+depending on a regular basis depending on what the application is trying to do. It is therefore
+easier to keep the converters in lists so that they can be enabled and disabled in batch. <P>
+
+Now, let's take a closer look at the two registration functions. The first registers the HTTP
+protocol module which enables the Library of accessing documents using HTTP from any server on the
+Internet.
+
+<PRE>
+extern BOOL HTProtocol_add (const char *       	name,
+			    BOOL		preemtive,
+			    HTEventCallBack *	callback);
+</PRE>
+
+The first argument is a name equivalent to the scheme part in a URL, for example
+<B>http</B>://www.w3.org, where <B>http</B> is the scheme part. When a request is issued to the
+Library using a URL, it looks at the URL scheme and sees if it knows how to handle it. If not then
+an error is issued. The second argument describes whether the protocol module supports non-blocking
+sockets or not. This is a decision to be made when the module is first designed and can normally not
+be changed. In the example we register HTTP for using blocking sockets, but all native Library
+protocol modules including HTTP, FTP, News, Gopher, and access to the local file system supports
+non-blocking sockets. The third argument is the name of the protocol function to be called when the
+Library is about to hand off the request to the module.<P>
+
+<PRE>
+extern void HTConversion_add   (HTList *	conversions,
+				CONST char * 	rep_in,
+				CONST char * 	rep_out,
+				HTConverter *	converter,
+				double		quality,
+				double		secs, 
+				double		secs_per_byte);
+</PRE>
+
+This function has many arguments and we will not go into details at this point. The important thing
+to note is that we build a list of converters. Each call to the <CODE>HTConversion_add</CODE>
+creates a new converter object and adds it to the list. A converter object is described by an input
+format (<CODE>rep_in</CODE>), an output format (<CODE>rep_out</CODE>), the function name of the
+converter, and a quality factor describing how good the conversion is. The last two arguments are
+currently not used but are reserved for future use. The quality factor later where we will see how
+it can be used to distinguish between multiple conversions in order to pick the best one. <P>
+
+Even though we now have initialized a protocol module and a converter, the program example is still
+not actively doing anything. It only starts the Library, registers two modules and then terminates
+the Library again. Our third and last example in this section does the same amount of initialization
+but does also issue a request to the Library for fetching a URL.
+
+<H2>Fetching a URL</H2>
+
+We now want to create an example which is capable of issuing a request to the Library to fetch a
+URL. When doing this we must create a request object that contains all information that is
+necessary in order to handle the request. Then we pass this object to the Library and if the
+request is valid and the document does exist we get the data back. In the example we read the URL to
+fetch from the command line. As in the other examples we are not too worried about error checking
+and error messaging. In a real application you must of course do this, but here we want to keep the
+examples simple.
+
+<PRE>
+#include "WWWLib.h"
+#include "HTTP.h"
+
+int main (int argc, char ** argv)
+{
+    HTList *converters = HTList_new();
+    HTRequest *request = HTRequest_new();	  /* Create a request object */
+    HTLibInit("TestApp", "1.0");
+    HTProtocol_add("http", YES, HTLoadHTTP);     
+    HTConversion_add(converters, "*/*", "www/present", HTSaveLocally, 1.0, 0.0, 0.0);
+    HTFormat_setConversion(converters);
+    if (argc == 2) {
+	HTLoadAbsolute(argv[1], request);
+    } else
+	printf("Type the URL to fetch\n");
+    HTRequest_delete(request);			/* Delete the request object */
+    HTConversion_deleteAll(converters);
+    HTLibTerminate();
+    return 0;
+}
+</PRE>
+
+When this program is run, it will take the argument and call the Library to fetch it. As we haven't
+given any name for the file which we are creating on our local disk, the Library will prompt the
+user for a file name. Automatic redirection and access authentication is handled by the HTTP module
+but might require the user to type in a user name and a password. An example on how to run this
+program is:
+
+<PRE>
+./fetch_url http://www.w3.org/pub/WWW/
+</PRE>
+
+The results stored in the file contains the whole message returned by the remote HTTP server except
+for the status line. This means that if we ask a HTTP/1.0 compliant server then we receive a header
+and a body where the header contains metainformation about the object, for example content type,
+content language etc. We shall later see how the MIME parser stream can strip out the header
+information so that we end up with the body of the response message. <P>
+
+In the next chapters we shall see that protocol modules and converters only is a part of what can be
+registered in the Library and that the application can specify many other types of preferences and
+capabilities.
 
 <H1>Request Preferences</H1>
 
-This section describes how to setup preferences for the representation
-of a data object when requesting it from the network. The
-representation of a data object is closely related to the format
-negotiation in the <A HREF="../../../Protocols/">HTTP protocol</A> as
-each dimension can be expressed as an "accept-*" header in an HTTP
-request. The Library supports the following dimensions:
+The previous chapter introduced converters and how they can be set up. Converters are a part or a
+family of preferences in the Library that can be configured by applications and this chapter
+explains in more detail how to use these features. The family of preferences includes the following
+members:
 
 <UL>
-<LI>The preferred natural langauge of the data object
-<LI>The media type in which a data object should be rendered
-<LI>The preferred content encodings (or supported)
-<LI>The preferred character set
+<LI>Format converters
+<LI>Natural languages
+<LI>Content encodings
+<LI>Character sets
 </UL>
 
-Preferences can be registered in two ways: As a <EM>global</EM> list
-which applies to all requests and a <EM>local</EM> list which is bound
-to a specific request. The global and local lists are simply added
-when the preferences for a request are converted to a set of
-"accept-*" headers. There is currently no means or overriding global
-preferences with the local preferences.</P>
+As mentioned in the previous chapter, when the Library is first initialized, it knows nothing about
+these preferences. By specifying preferences, the application can tailor the Library to fit the
+features supported by the application and by the end user. In the following section we will describe
+how the application can set up the various preferences. All preferences described in this chapter
+use lists to group the sets together. As we will see later in this chapter, the reason for this is
+that lists are an easy way of assigning specific preferences to various requests. <P>
 
-It is important to note that <EM>none</EM> of the preferences are
-enabled automatically by the Library - it is for the application to
-specify as the preferences can change from request to
-request. However, the Library has a set of default initialization
-functions that make it easy for the application to set the preferences
-that are directly supported by the Library. These are all located in
-the <A HREF="../../Implementation/HTInit.html">HTInit module</A> and
-can be modified to suit a particular application.</P>
+<H2>Format Converters</H2>
 
-<H3>Natural Languages</H3>
-
-The user's preferences of natural languages can as converters and
-presenters be registered both globally for all requests and locally
-for a single request. The global list is called
-<CODE>HTLanguages</CODE>, and the local list is a part of the <A
-HREF="../../Implementation/HTAccess.html#z1">HTRequest structure
-</A>as described in section <A HREF="#request">Issue an Request</A>
-but in contrast to the converters there is no initialization function
-in the <A HREF="../../Implementation/HTInit.html">HTInit module</A>.
-Preferences for natural languages can be added individually to both
-the local and global list using the functions:</P>
+We have already seen an example on how a converter can be set up. Let's take a step back and look at
+the declaration of the function that adds a converter, <CODE>HTConversion_add(...)</CODE>:
 
 <PRE>
-	HTAcceptLanguage()
+extern void HTConversion_add   (HTList *	conversions,
+				CONST char * 	rep_in,
+				CONST char * 	rep_out,
+				HTConverter *	converter,
+				double		quality,
+				double		secs, 
+				double		secs_per_byte);
 </PRE>
 
-<H3>Setting up the Media Types</H3>
-
-The media types are handled by a set of converters and presenters. A
-converter is a stream that can convert the rendition of a data object
-from one format to another. A presenter is a stream that calls an
-external program, for example a post script viewer or an audio program
-for presenting the data obejct. Converters and presenters are special in that they both describe the preferred set of media types to be requested in a HTTP request and how a 
-
-
-Both converters and presenters take
-part in the stream stack algorithm that finds the best conversion of
-the media type of a data object. The difference is that presenters
-depend on external viewers for the presentation of the graphic object
-whereas converters use internal modules in the Library and they do not
-necessarily have to present the graphic object to the user. The
-Library has two initialization functions which are defined in the <A
-HREF="../../Implementation/HTInit.html" >HTInit module</A> as
-described in the section <A HREF="#start">Get Started</A> The two
-functions for setting up a list of default converters and presenters
-respectively are: </P>
+The first argument is a <A HREF="../../Implementation/HTList.html">list object</A>. List objects are
+one of the several container objects in the Library and they are explained in more details in the <A
+HREF="../Guide/">W3C Library Internals</A>. All we have to know at this point is to create a list
+object:
 
 <PRE>
-	void HTConverterInit(HTList *list);
-	void HTPresenterInit(HTList *list);
+extern HTList *	HTList_new (void);
 </PRE>
 
-Converters and presenters can be registered both globally for all
-requests and locally for a single request. The global list is called
-<CODE>HTConversions</CODE>, and the local list is a part of the <A
-HREF="../../Implementation/HTAccess.html#z1">HTRequest structure
-</A>as described in section <A HREF="#request">Issue an Request</A>.
-This can be used to set up a global set of basic converters and a
-local set of additional converters or presenters for a single
-request. In the Line Mode Browser this is used to distinguish between
-running in interactive mode or non-interactive mode. In the latter
-mode, no external presenters are allowed, whereas this is a normal
-part of the interactive mode. Hence the global set is the list of
-converters and the local list is the list of presenters if running in
-interactive mode:</P>
+The two next arguments describes the input format and the output format of the data that is entering
+and leaving the converter respectively. The syntax for these formats follow the syntax defined by
+the <A HREF="../../../Protocols/">HTTP Protocol</A> and the <A
+HREF="http://info.internet.isi.edu:80/in-notes/rfc/files/rfc1521.txt">MIME specification</A> which
+has a <EM>type</EM> string and a <EM>subtype</EM> string separated by a slash "/"
 
 <PRE>
-	HTConverterInit(HTConversions);			/* Set up global list */
-	if (HTInteractive)
-		HTPresenterInit(request->conversions);	/* Local list */
+	&lt;type&gt; "/" &lt;subtype&gt;
 </PRE>
 
-Converters and presenters can both be added individually to both the
-local and global list using the functions:</P>
+Some of the most common examples are
 
 <PRE>
-	HTSetPresentation()
-	HTSetConversion()
-</PRE> 
-
-The initialization functions are in fact only a compiled list of calls
-to these function.</P>
-
-<H3>Encodings</H3>
-
-The set of encoding and decoding streams are in the same category as
-converters and presenters, but the Library does currently not provide
-any encoders or decoders. Therefore there is no initialization
-function in the <A HREF="../../Implementation/HTInit.html" >HTInit
-module</A>. However, as for converters and presenters encodings and
-decodings capabilities can be registered both globally for all
-requests and locally for a single request. The global list is called
-<CODE>HTEncodings</CODE>, and the local list is a part of the <A
-HREF="../../Implementation/HTAccess.html#z1">HTRequest structure</A>
-as described in section <A HREF="#request">Issue an Request</A>.
-Encoders can be added individually to both the local and global list
-using the functions:
-
-<PRE>
-	HTAcceptEncoding()</PRE>
-
-<H3>Charsets</H3>
-
-The user's preferences of chracter sets (a parameter on the content
-type) can as converters and presenters be registered both globally for
-all requests and locally for a single request. The global list is
-called <CODE>HTCharsets</CODE>, and the local list is a part of the <A
-HREF="../../Implementation/HTAccess.html#z1">HTRequest structure
-</A>as described in section <A HREF="#request">Issue an
-Request</A>. As for the list of natural languages there is no
-initialization function in the <A
-HREF="../../Implementation/HTInit.html">HTInit module</A>.
-Preferences for charsets can be added individually to both the local
-and global list using the functions:</P>
-
-<PRE>
-	void HTAcceptCharset(HTList *list, const char *charset, double quality);
+	text/plain
+	text/html
+	image/gif
+	audio/basic
+	*/*
 </PRE>
 
-<H1>Bindings to the local File system</H1>
-
-Client applications have access to the local filesystem using
-<EM>file</EM> URLs and server applications has inherently a close
-connection to the local file system from which it is serving files to
-the requesting parties. The binding betweeen a file and its
-representation internally in the Library, that is the content-type,
-natural language, and encoding is maintained by the <A
-HREF="../../Implementation/HTBind.html">HTBind module</A>. The current
-implementation of this module bases the binding on file suffixes, but
-the module is separated so that other kind of bindings can be
-implemented, for example using a database. The set of suffix
-delimiters is normally a function of the current platform, but can at
-any time be modified, so that for example the characters ".", "_", and
-"+" can be defined as delimiters. </P>
-
-
-As for the converters and presenters, the Library has a default set of
-bindings between media types and file name extensions but the
-difference is that the bindings are initialized at start up time in
-the <CODE>HTLibInit()</CODE> function, and hence does not have to be
-done explicitly by the application.  However, new bindings can be set
-up using the methods:</P>
+In addition to these "official" MIME types, the Library has a small set of internal representations
+that uniquely exist within the Library. They are used to describe data formats that are not really
+formats but an intermediate state of the document. The two most used formats of this type are
 
 <PRE>
-	HTBind_setType()
-	HTBind_setEncoding()
-	HTBind_setLanguage()
+	www/present
+	www/unknown
 </PRE>
 
-If the Library is to handle a file that is not described by
-the binding rules, it reads the first part of the data object and try
-and guess the media type. This is an internal operation in the Library
-and does not require any interaction with the application.</P>
+The internal formats are characterized by having the type <EM>www</EM> which doesn't exist anywhere
+but in the Library. The first of the two subtypes shown represent the rendered document as presented
+to the user and the second subtype represents an unknown data format. <P>
 
-<H1><A NAME="methods">Enabling Access Methods</A></H1>
+The <CODE>converter</CODE> argument is a pointer to the function that is to be called in order to
+create a converter object capable of handling the conversion from the input type to the output
+type. By registering a pointer pointing to the converter, the converter can be set up dynamically.
+This allows the Library to evaluate the set of registered converters each time a conversion is
+requested and then chose the best suitable converter on the fly. <P>
 
-The Library handles a wide set of Internet Protocols as well as access
-to the local file system. The current set of access methods supported
-are: HTTP, FTP, Gopher, telnet, rlogin, NNTP and WAIS. All protocol
-modules are dynamic modules and each module can be dynamically bound
-to an access scheme as described in section <A HREF="#arc"
->Architectural Overview</A>. As an example, the URL:
+The next argument is the <EM>quality factor</EM> which we will describe in a separate paragraph
+later in this chapter. The last two arguments are not currently used but are reserved for future
+use. For now, using a value of 0 is perfectly valid. <P>
+
+Converters are intended to be used when we have our own module to handle the data coming from the
+remote server. The module can either be one provided by the Library or one made by the
+application. However, in some cases we would rather hand off the data to an external application for
+presenting the data. Often external applications are viewers of some sort, for example a postscript
+viewer or a mpeg viewer. The Library lets us register external applications as <EM>presenters</EM>
+very much like converters. This will become obvious if we take a look at how we register presenters:
 
 <PRE>
-	http://www.w3.org/
+extern void HTPresentation_add (HTList *	conversions,
+				CONST char * 	representation,
+				CONST char * 	command,
+				CONST char * 	test_command,
+				double		quality,
+				double		secs, 
+				double		secs_per_byte);
 </PRE>
 
-has the access scheme <EM>http</EM> and can be bound to the
-<A HREF="../../Implementation/HTTP.html">HTTP module</A>. The binding
-between a protocol module and an access method is by default done at
-start up time in the <CODE>HTLibInit()</CODE> where the Library enables
-all the access schemes that it provides services for. The application
-can change the default behavior by providing its own initialization of
-the binding between protocol modules and access methods. This can be
-done in order to make applications with a limited set of Internet access
-methods available or to add new protocol modules to the Library. There
-are two ways of doing this:
+As was the case with converters, the first argument is a list which we create in exactly the same
+way as shown before. Presenters only need a input format as we hand off the data to the external
+application and never sees it again. A special thing about presenters and converters is that as they
+are very similar they are also treated very much alike internally in the Library. Therefore a list
+object can contain both converters and presenters at the same time. This makes often the management
+easier for the application instead of having to deal with two separate lists.<P>
 
-<UL>
+The next field is reserved to be used in connection with mail cap parsers as the <EM>test field</EM>
+of a mail cap file. The Library does not yet directly support <A
+HREF="http://info.internet.isi.edu:80/in-notes/rfc/files/rfc1524.txt">Mail Cap files</A> but the
+registration of presenters is foreseen to be able to work with mail cap files. The <A
+HREF="../../../../Arena/">Arena browser</A> is an example of an application having its own Mail Cap
+file parser while using the Library. The description of the test field in <A
+HREF="http://info.internet.isi.edu:80/in-notes/rfc/files/rfc1524.txt">RFC 1524</A> is included
+below: <P>
 
-<LI>Disabling any initialization of the protocol modules in the
-<CODE>HTLibInit()</CODE> function by using the <CODE>HT_NO_INIT</CODE>
-preprocessor define as described in <A HREF="Flags.html">Global Flags</A>
+<EM>The "test" field may be used to test some external condition (e.g., the machine architecture, or
+the window system in use) to determine whether or not the mail cap line applies. It specifies a
+program to be run to test some condition. The semantics of execution and of the value returned by
+the test program are operating system dependent, with UNIX semantics specified in Appendix A. If the
+test fails, a subsequent mail cap entry should be sought. Multiple test fields are not permitted --
+since a test can call a program, it can already be arbitrarily complex.  </EM> <P>
 
-<LI>Overriding the <A HREF="../../Implementation/HTInit.html">HTInit
-module</A> by providing a new definition as described in <A
-HREF="#override">Application Specific Modules</A>
+The last three arguments are exactly identical to the conversion registration so there is no need to
+describe them any more here. Again, the quality factor will be described in details later in this
+chapter.<P>
 
-</UL>
+<H2>Natural Languages</H2>
 
-A single protocol module can be initialized using the function</P>
+The preferred natural language or languages is in almost all situations dependent on the individual
+user and an application should therefore give the user the opportunity to change the setup. When
+specifying a natural language preference, the Library will send this preference along with all HTTP
+requests. The remote server will then (it if supports this feature) look for a version in the
+language or languages mentioned. If it finds a matching document then it returns this one, otherwise
+it uses the best alternative. If no language is specified the remote server may whatever version it
+finds. You can add an element to the list of natural languages by using the following function:
 
 <PRE>
-	HTRegisterProtocol()
+extern void HTLanguage_add (HTList *		list,
+			    CONST char *	lang,
+			    double		quality);
 </PRE>
 
-One special case is the support for access to <A
-HREF="../../../../Products/WAIS/">WAIS</A> databases. If native
-support for access to a WAIS database is desired, the application must
-be linked with a <A HREF="http://www.cnidr.org/" >WAIS library</A> in
-which case the <A HREF="../../Implementation/HTWAIS.c"> HTWAIS</A>
-module will be compiled into the Library as the interface between the
-W3C Reference Library and the WAIS library. This can be done by
-enabling the following lines in the <A
-HREF="../Platform/Porting.html"> <EM>Makefile.include</EM></A> which
-is the platform specific part of the <EM>Makefile</EM> created by the
-<EM>BUILD</EM> script:
+The list object containing the set of natural languages is similar to the list elements containing
+the converters and the presenters. However, in contrast to the former two which actually can be one
+list, the list of natural languages must be a list on its own. <P>
+
+The semantics of the language argument follows closely the <EM>Language</EM> tag of the <A
+HREF="../../../Protocols/">HTTP protocol</A> which in terms is based on the <A
+HREF="http://info.internet.isi.edu:80/in-notes/rfc/files/rfc1766.txt">RFC 1766</A>. Some example
+tags are
 
 <PRE>
-	WAIS = ../../../freeWAIS-0.3
-	WAISLIB =  $(WAIS)/bin/client.a $(WAIS)/bin/wais.a
-	MATHLIB = -lm
-	WAISINC = -I$(WAIS)/ir
-	WAISCFLAGS = -DDIRECT_WAIS
-	HTWAIS = $(WTMP)/Library/$(WWW_MACH)/HTWAIS.o
+	en
+	en-US
+	en-cockney
+	i-cherokee
+	x-pig-latin
 </PRE>
 
-It is important that the whole Library is rebuilt when doing this. In
-case direct WAIS support is not present, the Library looks for a <A
-HREF="../../../Gateways/WAISGate.html">WAIS gateway</A> in order to
-handle the request and if no WAIS gateway is specified, the default
-destination is defined as <A
-HREF="wais://www.w3.org:8001/">wais://www.w3.org:8001/</A> where a
-WAIS gateway is accepting connections.
+where any two-letter primary tag is n <A HREF="http://www.iso.ch">ISO</A> 639 language abbreviation
+and any two-letter initial subtag in an ISO 3166 country code.
+
+<H2>Content Encodings</H2>
+
+Some documents are not send in their original data obejct but is encoded in some way. On the Web
+this is mostly some kind of compression but other encodings for example base 64 can be encountered
+when talking to NNTP servers etc. Just as for the other preferences, an application can register a
+supported encoders or decodes as a list. Encoders and decoders are registered in the same way with
+no differentiation whether it is a encoder or a decoder:
+
+<PRE>
+extern void HTEncoding_add (HTList * 		list,
+			    CONST char *	encoding,
+			    double		quality);
+</PRE>
+
+The list argument is the now well-known way of handling these preferences and we will see this many
+more times throughout the guide. The "encoding" argument is a constant string just like the data
+format descriptions in the registration of converters and presenters. The values are also inspired
+strongly by the <A HREF="../../../Protocols/">HTTP Protocol</A> and the <A
+HREF="http://info.internet.isi.edu:80/in-notes/rfc/files/rfc1521.txt">MIME specification</A> and
+some of the most common examples are:
+
+<PRE>
+	base64
+	compress
+	gzip
+</PRE>
+
+As the list of natural languages, the list of encoders and decoder must be a separate list.
+
+<H2>Character Sets</H2>
+
+As the Web reaches all parts of the Internet there are more and more documents written in languages
+which contains characters not included in the ISO-8859-1 character set. A consequence of this the
+set of characters sets is often tightly connected with the natural language. The Library does not
+directly support other character sets but in case an application is capable of handling alternative
+sets it can register these as preferred character sets along with a quality factor just as all the
+other preferences in this section.
+
+<PRE>
+extern void HTCharset_add (HTList *		list,
+			   CONST char *		charset,
+			   double		quality);
+</PRE>
+
+Also the <EM>charset</EM> argument is inspired by the <A HREF="../../../Protocols/">HTTP
+Protocol</A> and the <A HREF="http://info.internet.isi.edu:80/in-notes/rfc/files/rfc1521.txt">MIME
+specification</A>. Some of the most common examples of the charset parameter is:
+
+<PRE>
+	US-ASCII
+	ISO-8859-1
+	UNICODE-1-1
+</PRE>
+
+Again, the list of preferred character sets must be a separate list.
+
+<H2>The Quality Factor</H2>
+
+Characteristic for all the preferences above is that there is a quality factor associated with each
+member. The quality factor is a real number between 0 and 1 with 0 meaning "very bad" and 1 means
+"perfect". By registering a natural language or any or other preference in this group together with
+a quality factor you can specify "how well the preference is handled" either by the application or
+by the user. In the case of the user the quality factor of a natural language is how well the user
+understands the language. In my case, the quality factors for, for example Greek would be close to
+zero and 1 for Danish (nothing bad said about Greek!). <P>
+
+It is a bit different for converters where it is often the application's ability of handling the
+data format rather than the user's perception. As an example it is often faster to use a converter
+than a presenter as it takes time to launch the external application and the Library can not use
+progressive display mechanisms which is often the case for converters. Therefore, as an example, if
+we capable of handling an image in <EM>png</EM> format inline but rely on an external viewer for
+presenting postscript, we might set up the following list:
+
+<PRE>
+HTConversion_add (converters, "image/gif", "www/present", GifPresenter, <B>1.0</B>, 0.0, 0.0);
+
+HTPresentation_add (presenters, "application/postscript", "ghostview %s", NULL, <B>0.5</B>, 0.0, 0.0);
+</PRE>
+
+where the gif converter is registered with a quality factor of <B>1.0</B> and the postscript
+presenter with a quality factor of <B>0.5</B>.
+
+<H2>Enabling Preferences</H2>
+
+All we have done until now is to show how we can register sets of preferences. However, we still
+need to define where and when to actually let the Library use the preferences. This can be done in
+two ways: Globally or locally. When assigning a set of preferences, for example the set of natural
+languages, it can either be assigned to <EM>all</EM> future requests (globally) or to a specific
+request (locally). The preferences can also partly be assigned globally and partly locally so that
+the most common preferences are registered globally and only some preferences specific to a single
+request is then added by registering the sets locally. <P>
+
+Here we will only show how to enable the preferences globally. Later when we have discussed how to
+create a request object we will see how to enable the preferences locally and also if they are to
+be added to the global list or completely override the global list for a particular request.
+
+<H3>Converters and Presenters</H3>
+
+<PRE>
+extern void HTFormat_setConversion	(HTList *list);
+extern HTList * HTFormat_conversion	(void);
+</PRE>
+
+<H3>Content Encodings</H3>
+
+<PRE>
+extern void HTFormat_setEncoding	(HTList *list);
+extern HTList * HTFormat_encoding	(void);
+</PRE>
+
+<H3>Content Encodings</H3>
+
+<PRE>
+extern void HTFormat_setLanguage	(HTList *list);
+extern HTList * HTFormat_language	(void);
+</PRE>
+
+<H3>Character Sets</H3>
+
+<PRE>
+extern void HTFormat_setCharset		(HTList *list);
+extern HTList * HTFormat_charset	(void);
+</PRE>
+
+<H2>Getting Help on Initialization Converters and Presenters</H2>
+
+The Library has a special module called <A HREF="../../Implementation/HTInit.html">HTInit</A> which
+helps the application doing the initialization of all the converters and other preferences supported
+internally by the Library. This module is not called directly from the Library and must explicitly
+be invoked by the application. <A HREF="../../Implementation/HTInit.html">HTInit</A> is a part of
+the <A HREF="../../Implementation/WWWApp.html">WWWApp.h</A> include file described in the previous
+section, so if you include this in your application then you have direct access to the following
+functions:
+
+The following function initializes all the converters supported natively by modules in the Library
+distribution file:
+
+<PRE>
+extern void HTConverterInit	(HTList * conversions);
+</PRE>
+
+There is a similar function for registering a common set of presenters that can be found on many
+(especially Unix) platforms:
+
+<PRE>
+extern void HTPresenterInit	(HTList * conversions);
+</PRE>
+
+In order to show the similarity between how converters and presenters are handled in the Library,
+there is also a single function that does the work of the two previous functions at once:
+
+<PRE>
+extern void HTFormatInit	(HTList * conversions);
+</PRE>
+
+<H2>Cleaning up Preferences</H2>
+
+As the application is responsible for setting up the sets of preferences, it is also responsible for
+deleting them once they are not needed anymore, for example when the application i s closing down,
+or the user has changed them. The Library provides two mechanisms for cleaning up old lists: It can
+either be done by invoking separate methods on each set of preferences, or it can be done in a batch
+of all globally registered preferences or all locally registered preferences relative to a single
+request. In this context, a batch is the total set of registered converters, encoder, charsets, and
+languages. Here we will only show how to cleanup preferences set-wise and as a globally batch of
+preferences. We leave the local cleanup until we have described the request object later in this
+guide. <P>
+
+Common for the cleanup methods is that when they have been called you can nor more use the lists as
+they are not pointing to valid places in the memory. The first mechanism for cleaning up lists is by
+calling the cleanup method of each preference as indicated below:
+
+<H3>Converters</H3>
+
+<PRE>
+extern void HTConversion_deleteAll	(HTList * list);
+</PRE>
+
+<H3>Presenters</H3>
+
+<PRE>
+extern void HTPresentation_deleteAll	(HTList * list);
+</PRE>
+
+<H3>Content Encodings</H3>
+
+<PRE>
+extern void HTEncoding_deleteAll	(HTList * list);
+</PRE>
+
+<H3>Content Languages</H3>
+
+<PRE>
+extern void HTLanguage_deleteAll	(HTList * list);
+</PRE>
+
+<H3>Character Sets</H3>
+
+<PRE>
+extern void HTCharset_deleteAll		(HTList * list);
+</PRE>
+
+The second mechanism which at once cleans up all globally registered preferences can often be used
+in order to simplify the management done by the application. Note, however, that all globally lists
+become inaccessible for future reference. In you want to define new sets of preferences then you
+need to start all over again and create a new list object.
+
+<PRE>
+extern void HTFormat_deleteAll		(void);
+</PRE>
+
+<H2>Summary</H2>
+
+We have now seen how to enable multiple sets of preferences using a very similar naming scheme and
+registration process. As mentioned in the beginning, lists are easy to handle when the preferences
+are likely to be changed often as the application is executed. In the next section, we will take a
+look at a slightly different registration mechanism which is more suited for topics that only rarely
+are registered multiple times during the execution of an application.
+
+<H1><A NAME="methods">Enabling Access Modules</A></H1>
+
+The Library comes with a wide set of access modules that gives access to most popular Internet
+protocols including HTTP, FTP, Gopher, telnet, rlogin, NNTP and WAIS. However, as mentioned in the
+beginning, when the Library is first initialized it knows nothing about how to access the
+Internet. In fact it doesn't even know how to access the local file system. It is for the
+application to tell the Library what it can handle and where to go find the functionality. This is
+very much the same mechanism as we saw described in the previous chapter, so a lot of what is going
+on will hopefully become clear as we go along.<P>
+
+All protocol modules are dynamically bound to an access scheme. Take for example the following URL:
+
+<PRE>
+	<B>http</B>://www.w3.org/
+</PRE>
+
+It has the access scheme <B>http</B> and if we have a protocol module capable of handling HTTP then
+we can make the binding between <B>http</B> and this module. As mentioned in the introduction to
+this chapter, the Library already comes with a large set of protocol module, including HTTP so all
+we have to do in this case is to register the HTTP module to the Library as being capable of
+handling <B>http</B> URLs. <P>
+
+Let's see how we can register a protocol module. The support for this is provided by the <A
+HREF="../../Implementation/HTProt.html">protocol manager</A> which exports the following function:
+
+<PRE>
+extern BOOL HTProtocol_add (CONST char *       	scheme,
+			    BOOL		preemtive,
+			    HTEventCallBack *	callback);
+</PRE>
+
+This function follows exactly the same naming scheme as we have seen many times before. The first
+argument the access scheme which the protocol module is capable of handling. This can for example be
+<B>http</B>, but it can also be non-existent schemes which can be used for experimental protocol
+implementations, for example <B>whois</B> etc. In case a protocol module is capable of handling more
+than one access scheme, it can be registered multiple time with different schemes. This is the case
+with the <A HREF="../../Implementation/HTTelnet.html">Telnet access module</A> which also can handle
+<B>rlogin</B> and <B>tn3270</B> terminal sessions. <P>
+
+The next argument describes to the Library whether it is capable of handling non-blocking sockets or
+not. This is normally a design decision when implementing the protocol module, and we will not
+stretch this argument anymore in this guide. The <A HREF="../Architecture/">Library Architecture</A>
+document discusses in more detail how a protocol module can be designed to support non-blocking
+sockets. <P>
+
+The last argument is the actual function name to call when a request has been issued and a protocol
+module has been found associated with the access scheme used. Even though it is not clear at this
+point the <CODE>HTEventCallBack</CODE> type is a function that the event handler uses in order to
+initiate requests in the Library. <P>
+
+A protocol module can be disabled at any time during execution. In most cases this is not uses very
+often but the dynamic nature of the binding leaves this choice free to the application. In case it
+is desired, you can do so by calling the following function:
+
+<PRE>
+extern BOOL HTProtocol_delete (CONST char * scheme);
+</PRE>
+
+The argument is exactly the same scheme as described above.
+
+One special case is the support for access to <A HREF="../../../../Products/WAIS/">WAIS</A>
+databases. WAIS has its own code Library called <A HREF="http://www.cnidr.org/" >freeWAIS</A> which
+is required in order to directly access wais URLs. We shall not describe in describe in detail here
+how this can be enabled as it is described in the <A HREF="../../../Gateways/WAISGate.html">the
+WWW-WAIS gateway</A>.
 
 <H1>Registering Proxy Servers and Gateways</H1>
 
-An application can indirectly support an access method by redirecting
-the request to either a proxy or a gateway. The difference between a
-proxy server and a gateway is not important here as it does not affect
-the application using the Library and the redirection is normally
-transparent to the user. The Library supports both proxies and
-gateways through the <A HREF="../../Implementation/HTProxy.html"
->HTProxy module</A> and all requests can be redirected to a proxy or a
-gateway, even requests on the local file system. Of course, the
-Library can also be used in proxy or gateway applications which in
-terms can use other proxies or gateways so that a single request can
-be passed through a series of intermediate agents.<P>
+Applications do not have to provide native support for all protocols, they can in many situations
+rely on the support of proxies and gateways to help doing the job. Proxy servers are often used to
+carry client requests through a firewall where they can provide services like corporate caching and
+other network optimizations. Both Proxy servers and gateways can serve as "protocol translators"
+which can convert a request in the main Web protocol, HTTP, to an equivalent request in another
+protocol, for example NNTP, FTP, or Gopher. In case a proxy server or a gateway is available to the
+application, it can therefore by use of HTTP forward all requests to for example a proxy server
+which then handle the communications with the remote server, for example using FTP about the
+document and return it to the application (proxy client) using HTTP. <P>
 
-The set of public function to registere a gateway or a proxy are as
-follows:
+The Library supports both proxies and gateways through the <A
+HREF="../../Implementation/HTProxy.html">HTProxy module</A> and all requests can be redirected to a
+proxy or a gateway, even requests on the local file system. Of course, the Library can also be used
+in proxy or gateway applications which in terms can use other proxies or gateways so that a single
+request can be passed through a series of intermediate agents.<P>
 
-<PRE>
-	BOOL HTProxy_setProxy(const char *access,const char *proxy);
-	BOOL HTProxy_setNoProxy(const char *host, CONST char *access, unsigned port);
-	BOOL HTProxy_setGateway(const char *access, const char *gate);
-</PRE>
+There is one main mechanism for registering both proxies and gateways but there are two different
+APIs to follow. It is free to the application to chose which one suits it the best, the
+functionality provided by the Library is the same in both cases. The first API is based on a set of
+registration functions as we have seen it so often through out this guide. Regardless of the
+registration mechanism used, proxy servers are always rated higher than gateways so if both a proxy
+server and a gateway is registered for the same access method, the proxy server will be used.<P>
 
-The <EM>no_proxy</EM> can be used to avoid contactinga proxy server
-for a particular host name or domain name. The access method and port
-number is optional. The behavior of the Library can be modified using
-the preprocessor defines <CODE>HT_NO_RULES</CODE> and
-<CODE>HT_NO_PROXY</CODE> as explained in section <A
-HREF="#flags">Global Flags</A>
+<H2>Registration of Proxies</H2>
 
-<H2>Using Environment Variables</H2>
-
-Version 3.1 is the first version of the Library where proxies ans
-gateways are not handled directly via environment variables, and for
-backwards compatibility, there is a function in the <A
-HREF="../../Implementation/HTProxy.html">HTProxy module</A> that reads
-the environment variables:
+A proxy server is registered with a corresponding access method, for example <EM>http</EM>,
+<EM>ftp</EM> etc. The `proxy' parameter should be a fully valid name, like
+<CODE>http://proxy.w3.org:8001</CODE> but domain name is not required. If an entry exists for this
+access then delete it and use the new one.
 
 <PRE>
-	HTProxy_getEnvVar()
+extern BOOL HTProxy_add		(CONST char * access, CONST char * proxy);
 </PRE>
 
-The format of the environmanet variables is as follows:
+In addition to the proxy list, the Library supports a list of servers for which a proxy should
+<EM>not</EM> be consulted. This can be an advantage if a server is known to be either as well
+connected as the proxy or the remote server is in fact itself a proxy server.
+
+<PRE>
+extern BOOL HTNoProxy_add	(CONST char * host, CONST char * access, unsigned port);
+</PRE>
+
+The set of server registered using this function are host names and domain names where we don't
+contact a proxy even though a proxy is in fact registered for this particular access method. When
+registering a server as a <EM>noproxy</EM> element, you can specify a specific port for this access
+method in which case it is valid only for requests to this port. If `port' is '0' then it applies to
+all ports and if `access' is NULL then it applies to to all access methods. Examples of host names
+are:
+
+<PRE>
+	w3.org
+	www.fastlink.com
+</PRE>
+
+<H2>Registration of Gateways</H2>
+
+Gateways are registered exactly like proxy servers: it is registered with a corresponding access
+method, for example <EM>http</EM>, <EM>ftp</EM> etc. The `gate' parameter should be a fully valid
+name, like <CODE>http://gateway.w3.org:8001</CODE> but domain name is not required. If an entry
+exists for this access then delete it and use the new one.
+
+<PRE>
+extern BOOL HTGateway_add	(CONST char * access, CONST char * gate);
+</PRE>
+
+<H2>Backwards Compatibility with Environment Variables</H2>
+
+Proxy servers and gateways have historically been registered environment variables which is a
+Unix'ism and not especially portable. However, in order to support this way of registration, the
+Library provides the following function to read the environment variables that defines proxy severs
+and gateways.
+
+<PRE>
+extern void HTProxy_getEnvVar	(void);
+</PRE>
+
+There is no standard for the format of the environment variables, but the most accepted convention
+is the format described here:
 
 <DL>
 
 <DT><CODE>WWW_&lt;access&gt;_GATEWAY</CODE>
 
-<DD>Definition of a gateway. Note that a WAIS gateway can be defined
-this way to change the default gateway at <A
-HREF="wais://www.w3.org:8001/"> wais://www.w3.org:8001/</A>.
+<DD>Definition of a gateway. Note that a WAIS gateway can be defined this way to change the default
+gateway at <A HREF="wais://www.w3.org:8001/">wais://www.w3.org:8001/</A>.
 
 <DT><CODE>&lt;access&gt;_proxy</CODE>
 
@@ -461,9 +853,8 @@ HREF="wais://www.w3.org:8001/"> wais://www.w3.org:8001/</A>.
 
 <DT><CODE>no_proxy</CODE>
 
-<DD>This is a comma separated list of remote servers where a proxy
-server should <EM>not</EM> be consulted for handling the request. An
-example is
+<DD>This is a comma separated list of remote servers where a proxy server should <EM>not</EM> be
+consulted for handling the request. An example is
 
 <PRE>
 	no_proxy="cern.ch,ncsa.uiuc.edu,some.host:8080"
@@ -472,19 +863,107 @@ example is
 
 </DL>
 
-<CODE>&lt;access&gt;</CODE> is the specific access scheme and it is
-case sensitive as access schemes in URIs are case sensitive. Proxy
-servers have precedence over gateways, so if both a proxy server and a
-gateway has been defined for a specific access scheme, the proxy
-server is selected to handle the request.<P>
+<CODE>&lt;access&gt;</CODE> is the specific access scheme and it is case sensitive as access schemes
+in URIs are case sensitive. Proxy servers have precedence over gateways, so if both a proxy server
+and a gateway has been defined for a specific access scheme, the proxy server is selected to handle
+the request.<P>
 
-It is important to note that the usage of proxy servers or gateways is
-an extension to the binding between an access scheme and a protocol
-module. An application can be set up to redirect all URLs with a
-specific access scheme without knowing about the semantics of this
-access scheme or how to access the information directly. That way,
-powerful client applications can be built having direct support for,
-for example, HTTP only.
+It is important to note that the usage of proxy servers or gateways is an extension to the binding
+between an access scheme and a protocol module. An application can be set up to redirect all URLs
+with a specific access scheme without knowing about the semantics of this access scheme or how to
+access the information directly. That way, powerful client applications can be built having direct
+support for, for example, HTTP only.
+
+<H1>Bindings to the local File system</H1>
+
+The preferences that we described in section <A HREF="Prefs.html">Request Preferences</A> did not
+mention what the Library should do if it doesn't know the data format of a document. In many
+protocols this information is provided by the remote server. Typical examples are MIME like
+protocols where the metainformation such as the <EM>Content-Type</EM> and the
+<EM>Content-Language</EM> is provided together with the document. However, applications often have
+access to the local file system using <B>file</B> URLs which in general do not keep any or at least
+very little information of the file type. It is therefore required to have some kind of binding
+between the file system and the preferences registered in the Library which provides this
+mateinformation about the object. <P>
+
+Often files in a file system is classified by some sort of a suffix, for example GIF files are often
+ending in <EM>.gif</EM>, text files in <EM>.txt</EM> etc. This binding is not static and it is
+therefore required to have a dynamic binding just like the preferences themselves. An example of the
+latter is HTML files which on most Unix systems end in <EM>.html</EM> whereas they on many MS-DOS
+based systems end in <EM>.htm</EM>. <P>
+
+The <A HREF="../../Implementation/HTBind.html">HTBind module</A> provides a generic binding
+mechanism between a file and its representation internally in the Library. It is not limited to
+simple file suffix classification but can also be used in more advanced environments using data
+bases etc. However, at this point we are interested in how we can register bindings between file
+suffixes and for example content types, content languages etc. <P>
+
+Before starting a more detailed description of how to register file suffixes, it might be required
+to define what actually is a file suffix and what is the set of delimiters separating them on a
+particular platform. The Bind manager is born with a certain knowledge about the set of delimiters
+but more can be added to provide the functionality desired. This can be done using the following
+function:
+
+<PRE>
+extern void HTBind_caseSensitive	(BOOL sensitive);
+</PRE>
+
+where <EM>sensitive</EM> can either be <EM>YES</EM> or <EM>NO</EM>. Also the set of delimiters can
+be defined using the following function:
+
+<PRE>
+extern CONST char *HTBind_delimiters	(void);
+extern void HTBind_setDelimiters	(CONST char * new_suffixes);
+</PRE>
+
+Examples of a list of suffixes are
+
+<PRE>
+	"._"
+	"."
+	"._-"
+</PRE>
+
+Note that the suffixes chosen do not have to be connected with what is available on a particular
+platform. However, a certain coupling will probably make maintenance of the file system easier for
+all parties. There are three types of bindings which we will describe below:
+
+<H2>Add Binding to a Content Type</H2>
+
+The first makes a binding between a file suffix and a 
+
+<PRE>
+extern BOOL HTBind_addType	(CONST char *	suffix,
+				 CONST char *	format,
+				 double		value);
+</PRE>
+
+Calling this with <EM>suffix</EM> set to "*" will set the default representation which is used in
+case no other suffix fits the actual file. Using a suffix set to "*.*" will set the default
+representation for unknown suffix files which contain a "." <P>
+
+The <EM>format</EM> argument is exactly like described in the section <A HREF="Prefs.html">Request
+Preferences</A>.
+
+<H2>Add Binding to an Encoding</H2>
+
+
+<PRE>
+extern BOOL HTBind_addEncoding	(CONST char *	suffix,
+				 CONST char *	encoding,
+				 double		value);
+</PRE>
+
+<H2>Add Binding to a Language</H2>
+
+<PRE>
+extern BOOL HTBind_addLanguage	(CONST char *	suffix,
+				 CONST char *	language,
+				 double		value);
+</PRE>
+
+<B>NOTE:</B> The suffixes <EM>can</EM> contain characters that must be escaped in a URL. However,
+they should <EM>not</EM> be encoded when parsed as the <CODE>suffix</CODE> parameter.
 
 <H1>Using Anchors</H1>
 
@@ -1020,7 +1499,9 @@ function. <P>
 <LI>setting up request streams
 <LI>memory management
 <LI>examples
+<LI>explain why converters have an input and an output format: chains
 </UL>
+
 
 <H1>The Cache Manager</H2>
 
@@ -1190,6 +1671,7 @@ where <CODE>HTExpiresMode</CODE> can take any of the values:
 <H1>The Event Manager</H1>
 
 <B>MORE</B>
+
 
 <H1>The Log Module</H1>
 
@@ -1457,6 +1939,22 @@ languages etc. is by default done using file suffixes. However, this can
 be replaces by, for example a database interface by overriding the <A HREF="../../Implementation/HTBind.html"
 >HTBind module</A>.</P>
 
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, July 1995</ADDRESS>
+</BODY>
+</HTML> 
+<HTML>
+<HEAD>
+<TITLE>Using - Global Flags</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 28-Oct-1995 -->
+</HEAD>  
+<BODY>
+
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/WWW48x.gif" ALT="WWW"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
+
 <H1>Global Flags</H1>
 
 The global flags consist of global variables, environment variables,
@@ -1482,19 +1980,6 @@ the library, and they <EM>must</EM> be assigned values with specific
 semantics.
 
 <DL>
-
-<DT><CODE>HTAppName</CODE>
-
-<DD>A string defining the name of the application. This value is used
-in the <EM>User-Agent</EM> field in the <A
-HREF="../../../Protocols/">HTTP Protocol</A> and it must obey the
-semantics for this field.
-
-<DT><CODE>HTAppVersion</CODE>
-
-<DD>A string defining the version of the application. The value is also
-used in the <CODE>User-Agent</CODE> field and must obey the general
-semantics for this field. 
 
 <DT><CODE>HTSecure</CODE>
 <DD>If this flag is enabled then the application has no access to the
@@ -1577,13 +2062,6 @@ then <CODE>PORT</CODE> is normally not allowed as a firewall does not
 accept incoming connections on arbitrary ports. This define will
 disable the use of <CODE>PORT</CODE>. The default value is to
 <EM>use</EM> <CODE>PORT</CODE> if <CODE>PASV</CODE> fails.
-
-<DT><CODE>HT_NO_INIT</CODE>
-
-<DD>If this flag is defined then the Library will not initialize any
-access methods or media types in the <CODE>HTLibInit()</CODE>
-function, but leaves this to the application. By default, the flag is
-<EM>not</EM> defined.
 
 <DT><CODE>WWWLIB_SIG</CODE>
 

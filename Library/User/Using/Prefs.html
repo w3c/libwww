@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>User's Guide - Preferences</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 10-Jul-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 31-Oct-1995 -->
 </HEAD>  
 <BODY>
 
@@ -11,148 +11,392 @@
 
 <H1>Request Preferences</H1>
 
-This section describes how to setup preferences for the representation
-of a data object when requesting it from the network. The
-representation of a data object is closely related to the format
-negotiation in the <A HREF="../../../Protocols/">HTTP protocol</A> as
-each dimension can be expressed as an "accept-*" header in an HTTP
-request. The Library supports the following dimensions:
+The previous chapter introduced converters and how they can be set up. Converters are a part or a
+family of preferences in the Library that can be configured by applications and this chapter
+explains in more detail how to use these features. The family of preferences includes the following
+members:
 
 <UL>
-<LI>The preferred natural langauge of the data object
-<LI>The media type in which a data object should be rendered
-<LI>The preferred content encodings (or supported)
-<LI>The preferred character set
+<LI>Format converters
+<LI>Natural languages
+<LI>Content encodings
+<LI>Character sets
 </UL>
 
-Preferences can be registered in two ways: As a <EM>global</EM> list
-which applies to all requests and a <EM>local</EM> list which is bound
-to a specific request. The global and local lists are simply added
-when the preferences for a request are converted to a set of
-"accept-*" headers. There is currently no means or overriding global
-preferences with the local preferences.</P>
+As mentioned in the previous chapter, when the Library is first initialized, it knows nothing about
+these preferences. By specifying preferences, the application can tailor the Library to fit the
+features supported by the application and by the end user. In the following section we will describe
+how the application can set up the various preferences. All preferences described in this chapter
+use lists to group the sets together. As we will see later in this chapter, the reason for this is
+that lists are an easy way of assigning specific preferences to various requests. <P>
 
-It is important to note that <EM>none</EM> of the preferences are
-enabled automatically by the Library - it is for the application to
-specify as the preferences can change from request to
-request. However, the Library has a set of default initialization
-functions that make it easy for the application to set the preferences
-that are directly supported by the Library. These are all located in
-the <A HREF="../../Implementation/HTInit.html">HTInit module</A> and
-can be modified to suit a particular application.</P>
+<H2>Format Converters</H2>
 
-<H3>Natural Languages</H3>
-
-The user's preferences of natural languages can as converters and
-presenters be registered both globally for all requests and locally
-for a single request. The global list is called
-<CODE>HTLanguages</CODE>, and the local list is a part of the <A
-HREF="../../Implementation/HTAccess.html#z1">HTRequest structure
-</A>as described in section <A HREF="#request">Issue an Request</A>
-but in contrast to the converters there is no initialization function
-in the <A HREF="../../Implementation/HTInit.html">HTInit module</A>.
-Preferences for natural languages can be added individually to both
-the local and global list using the functions:</P>
+We have already seen an example on how a converter can be set up. Let's take a step back and look at
+the declaration of the function that adds a converter, <CODE>HTConversion_add(...)</CODE>:
 
 <PRE>
-	HTAcceptLanguage()
+extern void HTConversion_add   (HTList *	conversions,
+				CONST char * 	rep_in,
+				CONST char * 	rep_out,
+				HTConverter *	converter,
+				double		quality,
+				double		secs, 
+				double		secs_per_byte);
 </PRE>
 
-<H3>Setting up the Media Types</H3>
-
-The media types are handled by a set of converters and presenters. A
-converter is a stream that can convert the rendition of a data object
-from one format to another. A presenter is a stream that calls an
-external program, for example a post script viewer or an audio program
-for presenting the data obejct. Converters and presenters are special in that they both describe the preferred set of media types to be requested in a HTTP request and how a 
-
-
-Both converters and presenters take
-part in the stream stack algorithm that finds the best conversion of
-the media type of a data object. The difference is that presenters
-depend on external viewers for the presentation of the graphic object
-whereas converters use internal modules in the Library and they do not
-necessarily have to present the graphic object to the user. The
-Library has two initialization functions which are defined in the <A
-HREF="../../Implementation/HTInit.html" >HTInit module</A> as
-described in the section <A HREF="#start">Get Started</A> The two
-functions for setting up a list of default converters and presenters
-respectively are: </P>
+The first argument is a <A HREF="../../Implementation/HTList.html">list object</A>. List objects are
+one of the several container objects in the Library and they are explained in more details in the <A
+HREF="../Guide/">W3C Library Internals</A>. All we have to know at this point is to create a list
+object:
 
 <PRE>
-	void HTConverterInit(HTList *list);
-	void HTPresenterInit(HTList *list);
+extern HTList *	HTList_new (void);
 </PRE>
 
-Converters and presenters can be registered both globally for all
-requests and locally for a single request. The global list is called
-<CODE>HTConversions</CODE>, and the local list is a part of the <A
-HREF="../../Implementation/HTAccess.html#z1">HTRequest structure
-</A>as described in section <A HREF="#request">Issue an Request</A>.
-This can be used to set up a global set of basic converters and a
-local set of additional converters or presenters for a single
-request. In the Line Mode Browser this is used to distinguish between
-running in interactive mode or non-interactive mode. In the latter
-mode, no external presenters are allowed, whereas this is a normal
-part of the interactive mode. Hence the global set is the list of
-converters and the local list is the list of presenters if running in
-interactive mode:</P>
+The two next arguments describes the input format and the output format of the data that is entering
+and leaving the converter respectively. The syntax for these formats follow the syntax defined by
+the <A HREF="../../../Protocols/">HTTP Protocol</A> and the <A
+HREF="http://info.internet.isi.edu:80/in-notes/rfc/files/rfc1521.txt">MIME specification</A> which
+has a <EM>type</EM> string and a <EM>subtype</EM> string separated by a slash "/"
 
 <PRE>
-	HTConverterInit(HTConversions);			/* Set up global list */
-	if (HTInteractive)
-		HTPresenterInit(request->conversions);	/* Local list */
+	&lt;type&gt; "/" &lt;subtype&gt;
 </PRE>
 
-Converters and presenters can both be added individually to both the
-local and global list using the functions:</P>
+Some of the most common examples are
 
 <PRE>
-	HTSetPresentation()
-	HTSetConversion()
-</PRE> 
-
-The initialization functions are in fact only a compiled list of calls
-to these function.</P>
-
-<H3>Encodings</H3>
-
-The set of encoding and decoding streams are in the same category as
-converters and presenters, but the Library does currently not provide
-any encoders or decoders. Therefore there is no initialization
-function in the <A HREF="../../Implementation/HTInit.html" >HTInit
-module</A>. However, as for converters and presenters encodings and
-decodings capabilities can be registered both globally for all
-requests and locally for a single request. The global list is called
-<CODE>HTEncodings</CODE>, and the local list is a part of the <A
-HREF="../../Implementation/HTAccess.html#z1">HTRequest structure</A>
-as described in section <A HREF="#request">Issue an Request</A>.
-Encoders can be added individually to both the local and global list
-using the functions:
-
-<PRE>
-	HTAcceptEncoding()</PRE>
-
-<H3>Charsets</H3>
-
-The user's preferences of chracter sets (a parameter on the content
-type) can as converters and presenters be registered both globally for
-all requests and locally for a single request. The global list is
-called <CODE>HTCharsets</CODE>, and the local list is a part of the <A
-HREF="../../Implementation/HTAccess.html#z1">HTRequest structure
-</A>as described in section <A HREF="#request">Issue an
-Request</A>. As for the list of natural languages there is no
-initialization function in the <A
-HREF="../../Implementation/HTInit.html">HTInit module</A>.
-Preferences for charsets can be added individually to both the local
-and global list using the functions:</P>
-
-<PRE>
-	void HTAcceptCharset(HTList *list, const char *charset, double quality);
+	text/plain
+	text/html
+	image/gif
+	audio/basic
+	*/*
 </PRE>
+
+In addition to these "official" MIME types, the Library has a small set of internal representations
+that uniquely exist within the Library. They are used to describe data formats that are not really
+formats but an intermediate state of the document. The two most used formats of this type are
+
+<PRE>
+	www/present
+	www/unknown
+</PRE>
+
+The internal formats are characterized by having the type <EM>www</EM> which doesn't exist anywhere
+but in the Library. The first of the two subtypes shown represent the rendered document as presented
+to the user and the second subtype represents an unknown data format. <P>
+
+The <CODE>converter</CODE> argument is a pointer to the function that is to be called in order to
+create a converter object capable of handling the conversion from the input type to the output
+type. By registering a pointer pointing to the converter, the converter can be set up dynamically.
+This allows the Library to evaluate the set of registered converters each time a conversion is
+requested and then chose the best suitable converter on the fly. <P>
+
+The next argument is the <EM>quality factor</EM> which we will describe in a separate paragraph
+later in this chapter. The last two arguments are not currently used but are reserved for future
+use. For now, using a value of 0 is perfectly valid. <P>
+
+Converters are intended to be used when we have our own module to handle the data coming from the
+remote server. The module can either be one provided by the Library or one made by the
+application. However, in some cases we would rather hand off the data to an external application for
+presenting the data. Often external applications are viewers of some sort, for example a postscript
+viewer or a mpeg viewer. The Library lets us register external applications as <EM>presenters</EM>
+very much like converters. This will become obvious if we take a look at how we register presenters:
+
+<PRE>
+extern void HTPresentation_add (HTList *	conversions,
+				CONST char * 	representation,
+				CONST char * 	command,
+				CONST char * 	test_command,
+				double		quality,
+				double		secs, 
+				double		secs_per_byte);
+</PRE>
+
+As was the case with converters, the first argument is a list which we create in exactly the same
+way as shown before. Presenters only need a input format as we hand off the data to the external
+application and never sees it again. A special thing about presenters and converters is that as they
+are very similar they are also treated very much alike internally in the Library. Therefore a list
+object can contain both converters and presenters at the same time. This makes often the management
+easier for the application instead of having to deal with two separate lists.<P>
+
+The next field is reserved to be used in connection with mail cap parsers as the <EM>test field</EM>
+of a mail cap file. The Library does not yet directly support <A
+HREF="http://info.internet.isi.edu:80/in-notes/rfc/files/rfc1524.txt">Mail Cap files</A> but the
+registration of presenters is foreseen to be able to work with mail cap files. The <A
+HREF="../../../../Arena/">Arena browser</A> is an example of an application having its own Mail Cap
+file parser while using the Library. The description of the test field in <A
+HREF="http://info.internet.isi.edu:80/in-notes/rfc/files/rfc1524.txt">RFC 1524</A> is included
+below: <P>
+
+<EM>The "test" field may be used to test some external condition (e.g., the machine architecture, or
+the window system in use) to determine whether or not the mail cap line applies. It specifies a
+program to be run to test some condition. The semantics of execution and of the value returned by
+the test program are operating system dependent, with UNIX semantics specified in Appendix A. If the
+test fails, a subsequent mail cap entry should be sought. Multiple test fields are not permitted --
+since a test can call a program, it can already be arbitrarily complex.  </EM> <P>
+
+The last three arguments are exactly identical to the conversion registration so there is no need to
+describe them any more here. Again, the quality factor will be described in details later in this
+chapter.<P>
+
+<H2>Natural Languages</H2>
+
+The preferred natural language or languages is in almost all situations dependent on the individual
+user and an application should therefore give the user the opportunity to change the setup. When
+specifying a natural language preference, the Library will send this preference along with all HTTP
+requests. The remote server will then (it if supports this feature) look for a version in the
+language or languages mentioned. If it finds a matching document then it returns this one, otherwise
+it uses the best alternative. If no language is specified the remote server may whatever version it
+finds. You can add an element to the list of natural languages by using the following function:
+
+<PRE>
+extern void HTLanguage_add (HTList *		list,
+			    CONST char *	lang,
+			    double		quality);
+</PRE>
+
+The list object containing the set of natural languages is similar to the list elements containing
+the converters and the presenters. However, in contrast to the former two which actually can be one
+list, the list of natural languages must be a list on its own. <P>
+
+The semantics of the language argument follows closely the <EM>Language</EM> tag of the <A
+HREF="../../../Protocols/">HTTP protocol</A> which in terms is based on the <A
+HREF="http://info.internet.isi.edu:80/in-notes/rfc/files/rfc1766.txt">RFC 1766</A>. Some example
+tags are
+
+<PRE>
+	en
+	en-US
+	en-cockney
+	i-cherokee
+	x-pig-latin
+</PRE>
+
+where any two-letter primary tag is n <A HREF="http://www.iso.ch">ISO</A> 639 language abbreviation
+and any two-letter initial subtag in an ISO 3166 country code.
+
+<H2>Content Encodings</H2>
+
+Some documents are not send in their original data obejct but is encoded in some way. On the Web
+this is mostly some kind of compression but other encodings for example base 64 can be encountered
+when talking to NNTP servers etc. Just as for the other preferences, an application can register a
+supported encoders or decodes as a list. Encoders and decoders are registered in the same way with
+no differentiation whether it is a encoder or a decoder:
+
+<PRE>
+extern void HTEncoding_add (HTList * 		list,
+			    CONST char *	encoding,
+			    double		quality);
+</PRE>
+
+The list argument is the now well-known way of handling these preferences and we will see this many
+more times throughout the guide. The "encoding" argument is a constant string just like the data
+format descriptions in the registration of converters and presenters. The values are also inspired
+strongly by the <A HREF="../../../Protocols/">HTTP Protocol</A> and the <A
+HREF="http://info.internet.isi.edu:80/in-notes/rfc/files/rfc1521.txt">MIME specification</A> and
+some of the most common examples are:
+
+<PRE>
+	base64
+	compress
+	gzip
+</PRE>
+
+As the list of natural languages, the list of encoders and decoder must be a separate list.
+
+<H2>Character Sets</H2>
+
+As the Web reaches all parts of the Internet there are more and more documents written in languages
+which contains characters not included in the ISO-8859-1 character set. A consequence of this the
+set of characters sets is often tightly connected with the natural language. The Library does not
+directly support other character sets but in case an application is capable of handling alternative
+sets it can register these as preferred character sets along with a quality factor just as all the
+other preferences in this section.
+
+<PRE>
+extern void HTCharset_add (HTList *		list,
+			   CONST char *		charset,
+			   double		quality);
+</PRE>
+
+Also the <EM>charset</EM> argument is inspired by the <A HREF="../../../Protocols/">HTTP
+Protocol</A> and the <A HREF="http://info.internet.isi.edu:80/in-notes/rfc/files/rfc1521.txt">MIME
+specification</A>. Some of the most common examples of the charset parameter is:
+
+<PRE>
+	US-ASCII
+	ISO-8859-1
+	UNICODE-1-1
+</PRE>
+
+Again, the list of preferred character sets must be a separate list.
+
+<H2>The Quality Factor</H2>
+
+Characteristic for all the preferences above is that there is a quality factor associated with each
+member. The quality factor is a real number between 0 and 1 with 0 meaning "very bad" and 1 means
+"perfect". By registering a natural language or any or other preference in this group together with
+a quality factor you can specify "how well the preference is handled" either by the application or
+by the user. In the case of the user the quality factor of a natural language is how well the user
+understands the language. In my case, the quality factors for, for example Greek would be close to
+zero and 1 for Danish (nothing bad said about Greek!). <P>
+
+It is a bit different for converters where it is often the application's ability of handling the
+data format rather than the user's perception. As an example it is often faster to use a converter
+than a presenter as it takes time to launch the external application and the Library can not use
+progressive display mechanisms which is often the case for converters. Therefore, as an example, if
+we capable of handling an image in <EM>png</EM> format inline but rely on an external viewer for
+presenting postscript, we might set up the following list:
+
+<PRE>
+HTConversion_add (converters, "image/gif", "www/present", GifPresenter, <B>1.0</B>, 0.0, 0.0);
+
+HTPresentation_add (presenters, "application/postscript", "ghostview %s", NULL, <B>0.5</B>, 0.0, 0.0);
+</PRE>
+
+where the gif converter is registered with a quality factor of <B>1.0</B> and the postscript
+presenter with a quality factor of <B>0.5</B>.
+
+<H2>Enabling Preferences</H2>
+
+All we have done until now is to show how we can register sets of preferences. However, we still
+need to define where and when to actually let the Library use the preferences. This can be done in
+two ways: Globally or locally. When assigning a set of preferences, for example the set of natural
+languages, it can either be assigned to <EM>all</EM> future requests (globally) or to a specific
+request (locally). The preferences can also partly be assigned globally and partly locally so that
+the most common preferences are registered globally and only some preferences specific to a single
+request is then added by registering the sets locally. <P>
+
+Here we will only show how to enable the preferences globally. Later when we have discussed how to
+create a request object we will see how to enable the preferences locally and also if they are to
+be added to the global list or completely override the global list for a particular request.
+
+<H3>Converters and Presenters</H3>
+
+<PRE>
+extern void HTFormat_setConversion	(HTList *list);
+extern HTList * HTFormat_conversion	(void);
+</PRE>
+
+<H3>Content Encodings</H3>
+
+<PRE>
+extern void HTFormat_setEncoding	(HTList *list);
+extern HTList * HTFormat_encoding	(void);
+</PRE>
+
+<H3>Content Encodings</H3>
+
+<PRE>
+extern void HTFormat_setLanguage	(HTList *list);
+extern HTList * HTFormat_language	(void);
+</PRE>
+
+<H3>Character Sets</H3>
+
+<PRE>
+extern void HTFormat_setCharset		(HTList *list);
+extern HTList * HTFormat_charset	(void);
+</PRE>
+
+<H2>Getting Help on Initialization Converters and Presenters</H2>
+
+The Library has a special module called <A HREF="../../Implementation/HTInit.html">HTInit</A> which
+helps the application doing the initialization of all the converters and other preferences supported
+internally by the Library. This module is not called directly from the Library and must explicitly
+be invoked by the application. <A HREF="../../Implementation/HTInit.html">HTInit</A> is a part of
+the <A HREF="../../Implementation/WWWApp.html">WWWApp.h</A> include file described in the previous
+section, so if you include this in your application then you have direct access to the following
+functions:
+
+The following function initializes all the converters supported natively by modules in the Library
+distribution file:
+
+<PRE>
+extern void HTConverterInit	(HTList * conversions);
+</PRE>
+
+There is a similar function for registering a common set of presenters that can be found on many
+(especially Unix) platforms:
+
+<PRE>
+extern void HTPresenterInit	(HTList * conversions);
+</PRE>
+
+In order to show the similarity between how converters and presenters are handled in the Library,
+there is also a single function that does the work of the two previous functions at once:
+
+<PRE>
+extern void HTFormatInit	(HTList * conversions);
+</PRE>
+
+<H2>Cleaning up Preferences</H2>
+
+As the application is responsible for setting up the sets of preferences, it is also responsible for
+deleting them once they are not needed anymore, for example when the application i s closing down,
+or the user has changed them. The Library provides two mechanisms for cleaning up old lists: It can
+either be done by invoking separate methods on each set of preferences, or it can be done in a batch
+of all globally registered preferences or all locally registered preferences relative to a single
+request. In this context, a batch is the total set of registered converters, encoder, charsets, and
+languages. Here we will only show how to cleanup preferences set-wise and as a globally batch of
+preferences. We leave the local cleanup until we have described the request object later in this
+guide. <P>
+
+Common for the cleanup methods is that when they have been called you can nor more use the lists as
+they are not pointing to valid places in the memory. The first mechanism for cleaning up lists is by
+calling the cleanup method of each preference as indicated below:
+
+<H3>Converters</H3>
+
+<PRE>
+extern void HTConversion_deleteAll	(HTList * list);
+</PRE>
+
+<H3>Presenters</H3>
+
+<PRE>
+extern void HTPresentation_deleteAll	(HTList * list);
+</PRE>
+
+<H3>Content Encodings</H3>
+
+<PRE>
+extern void HTEncoding_deleteAll	(HTList * list);
+</PRE>
+
+<H3>Content Languages</H3>
+
+<PRE>
+extern void HTLanguage_deleteAll	(HTList * list);
+</PRE>
+
+<H3>Character Sets</H3>
+
+<PRE>
+extern void HTCharset_deleteAll		(HTList * list);
+</PRE>
+
+The second mechanism which at once cleans up all globally registered preferences can often be used
+in order to simplify the management done by the application. Note, however, that all globally lists
+become inaccessible for future reference. In you want to define new sets of preferences then you
+need to start all over again and create a new list object.
+
+<PRE>
+extern void HTFormat_deleteAll		(void);
+</PRE>
+
+<H2>Summary</H2>
+
+We have now seen how to enable multiple sets of preferences using a very similar naming scheme and
+registration process. As mentioned in the beginning, lists are easy to handle when the preferences
+are likely to be changed often as the application is executed. In the next section, we will take a
+look at a slightly different registration mechanism which is more suited for topics that only rarely
+are registered multiple times during the execution of an application.
 
 <P>
 <HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, July 1995</ADDRESS>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, October 1995</ADDRESS>
 </BODY>
 </HTML> 

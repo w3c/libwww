@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Using - Global Flags</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 12-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 28-Oct-1995 -->
 </HEAD>  
 <BODY>
 
@@ -34,19 +34,6 @@ the library, and they <EM>must</EM> be assigned values with specific
 semantics.
 
 <DL>
-
-<DT><CODE>HTAppName</CODE>
-
-<DD>A string defining the name of the application. This value is used
-in the <EM>User-Agent</EM> field in the <A
-HREF="../../../Protocols/">HTTP Protocol</A> and it must obey the
-semantics for this field.
-
-<DT><CODE>HTAppVersion</CODE>
-
-<DD>A string defining the version of the application. The value is also
-used in the <CODE>User-Agent</CODE> field and must obey the general
-semantics for this field. 
 
 <DT><CODE>HTSecure</CODE>
 <DD>If this flag is enabled then the application has no access to the
@@ -129,13 +116,6 @@ then <CODE>PORT</CODE> is normally not allowed as a firewall does not
 accept incoming connections on arbitrary ports. This define will
 disable the use of <CODE>PORT</CODE>. The default value is to
 <EM>use</EM> <CODE>PORT</CODE> if <CODE>PASV</CODE> fails.
-
-<DT><CODE>HT_NO_INIT</CODE>
-
-<DD>If this flag is defined then the Library will not initialize any
-access methods or media types in the <CODE>HTLibInit()</CODE>
-function, but leaves this to the application. By default, the flag is
-<EM>not</EM> defined.
 
 <DT><CODE>WWWLIB_SIG</CODE>
 

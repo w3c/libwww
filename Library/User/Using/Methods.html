@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
-<TITLE>Using - Access Methods</TITLE>
+<TITLE>Using - Access Modules</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 31-Oct-1995 -->
 </HEAD>  
 <BODY>
 
@@ -8,76 +9,71 @@
 <A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
 <A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
 
-<H1><A NAME="methods">Enabling Access Methods</A></H1>
+<H1><A NAME="methods">Enabling Access Modules</A></H1>
 
-The Library handles a wide set of Internet Protocols as well as access
-to the local file system. The current set of access methods supported
-are: HTTP, FTP, Gopher, telnet, rlogin, NNTP and WAIS. All protocol
-modules are dynamic modules and each module can be dynamically bound
-to an access scheme as described in section <A HREF="#arc"
->Architectural Overview</A>. As an example, the URL:
+The Library comes with a wide set of access modules that gives access to most popular Internet
+protocols including HTTP, FTP, Gopher, telnet, rlogin, NNTP and WAIS. However, as mentioned in the
+beginning, when the Library is first initialized it knows nothing about how to access the
+Internet. In fact it doesn't even know how to access the local file system. It is for the
+application to tell the Library what it can handle and where to go find the functionality. This is
+very much the same mechanism as we saw described in the previous chapter, so a lot of what is going
+on will hopefully become clear as we go along.<P>
 
-<PRE>
-	http://www.w3.org/
-</PRE>
-
-has the access scheme <EM>http</EM> and can be bound to the
-<A HREF="../../Implementation/HTTP.html">HTTP module</A>. The binding
-between a protocol module and an access method is by default done at
-start up time in the <CODE>HTLibInit()</CODE> where the Library enables
-all the access schemes that it provides services for. The application
-can change the default behavior by providing its own initialization of
-the binding between protocol modules and access methods. This can be
-done in order to make applications with a limited set of Internet access
-methods available or to add new protocol modules to the Library. There
-are two ways of doing this:
-
-<UL>
-
-<LI>Disabling any initialization of the protocol modules in the
-<CODE>HTLibInit()</CODE> function by using the <CODE>HT_NO_INIT</CODE>
-preprocessor define as described in <A HREF="Flags.html">Global Flags</A>
-
-<LI>Overriding the <A HREF="../../Implementation/HTInit.html">HTInit
-module</A> by providing a new definition as described in <A
-HREF="#override">Application Specific Modules</A>
-
-</UL>
-
-A single protocol module can be initialized using the function</P>
+All protocol modules are dynamically bound to an access scheme. Take for example the following URL:
 
 <PRE>
-	HTRegisterProtocol()
+	<B>http</B>://www.w3.org/
 </PRE>
 
-One special case is the support for access to <A
-HREF="../../../../Products/WAIS/">WAIS</A> databases. If native
-support for access to a WAIS database is desired, the application must
-be linked with a <A HREF="http://www.cnidr.org/" >WAIS library</A> in
-which case the <A HREF="../../Implementation/HTWAIS.c"> HTWAIS</A>
-module will be compiled into the Library as the interface between the
-W3C Reference Library and the WAIS library. This can be done by
-enabling the following lines in the <A
-HREF="../Platform/Porting.html"> <EM>Makefile.include</EM></A> which
-is the platform specific part of the <EM>Makefile</EM> created by the
-<EM>BUILD</EM> script:
+It has the access scheme <B>http</B> and if we have a protocol module capable of handling HTTP then
+we can make the binding between <B>http</B> and this module. As mentioned in the introduction to
+this chapter, the Library already comes with a large set of protocol module, including HTTP so all
+we have to do in this case is to register the HTTP module to the Library as being capable of
+handling <B>http</B> URLs. <P>
+
+Let's see how we can register a protocol module. The support for this is provided by the <A
+HREF="../../Implementation/HTProt.html">protocol manager</A> which exports the following function:
 
 <PRE>
-	WAIS = ../../../freeWAIS-0.3
-	WAISLIB =  $(WAIS)/bin/client.a $(WAIS)/bin/wais.a
-	MATHLIB = -lm
-	WAISINC = -I$(WAIS)/ir
-	WAISCFLAGS = -DDIRECT_WAIS
-	HTWAIS = $(WTMP)/Library/$(WWW_MACH)/HTWAIS.o
+extern BOOL HTProtocol_add (CONST char *       	scheme,
+			    BOOL		preemtive,
+			    HTEventCallBack *	callback);
 </PRE>
 
-It is important that the whole Library is rebuilt when doing this. In
-case direct WAIS support is not present, the Library looks for a <A
-HREF="../../../Gateways/WAISGate.html">WAIS gateway</A> in order to
-handle the request and if no WAIS gateway is specified, the default
-destination is defined as <A
-HREF="wais://www.w3.org:8001/">wais://www.w3.org:8001/</A> where a
-WAIS gateway is accepting connections.
+This function follows exactly the same naming scheme as we have seen many times before. The first
+argument the access scheme which the protocol module is capable of handling. This can for example be
+<B>http</B>, but it can also be non-existent schemes which can be used for experimental protocol
+implementations, for example <B>whois</B> etc. In case a protocol module is capable of handling more
+than one access scheme, it can be registered multiple time with different schemes. This is the case
+with the <A HREF="../../Implementation/HTTelnet.html">Telnet access module</A> which also can handle
+<B>rlogin</B> and <B>tn3270</B> terminal sessions. <P>
+
+The next argument describes to the Library whether it is capable of handling non-blocking sockets or
+not. This is normally a design decision when implementing the protocol module, and we will not
+stretch this argument anymore in this guide. The <A HREF="../Architecture/">Library Architecture</A>
+document discusses in more detail how a protocol module can be designed to support non-blocking
+sockets. <P>
+
+The last argument is the actual function name to call when a request has been issued and a protocol
+module has been found associated with the access scheme used. Even though it is not clear at this
+point the <CODE>HTEventCallBack</CODE> type is a function that the event handler uses in order to
+initiate requests in the Library. <P>
+
+A protocol module can be disabled at any time during execution. In most cases this is not uses very
+often but the dynamic nature of the binding leaves this choice free to the application. In case it
+is desired, you can do so by calling the following function:
+
+<PRE>
+extern BOOL HTProtocol_delete (CONST char * scheme);
+</PRE>
+
+The argument is exactly the same scheme as described above.
+
+One special case is the support for access to <A HREF="../../../../Products/WAIS/">WAIS</A>
+databases. WAIS has its own code Library called <A HREF="http://www.cnidr.org/" >freeWAIS</A> which
+is required in order to directly access wais URLs. We shall not describe in describe in detail here
+how this can be enabled as it is described in the <A HREF="../../../Gateways/WAISGate.html">the
+WWW-WAIS gateway</A>.
 
 <P>
 <HR>

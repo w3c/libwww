@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library Release Notes</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 15-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 31-Oct-1995 -->
 </HEAD>
 <BODY>
 
@@ -11,7 +11,10 @@
 
 <H1>Library 4.0 Release Notes</H1>
 
-<H2>Alpha Release 3A, October 15 1995</H2>
+<IMG SRC="../../Icons/32x32/caution.gif"> Thanks to all the good work done by the alpha testers!
+
+
+<H2>Alpha Release 4, October 31 1995</H2>
 
 The Library has now undergone a major restructuring in order to define the APIs between the various
 parts and to make it more modular. The new architecture is described in the <A
@@ -22,6 +25,18 @@ Request manager where the HTRequest structure is an opaque object.
 <H3>Core Modules</H3>
 
 <UL>
+
+<LI>Changed <EM>HTAppName</EM> and <EM>HTAppVersion</EM> to parameters to HTLibInit() instead of as
+global parameters.
+
+<LI>Introduced a new main include file called <A HREF="../Implementation/WWWApp.html">WWWApp.h</A>
+which contains applications specific modules. None of these modules are actually required to compile
+and link the Library, but the application can use them if needed.
+
+<LI>None of the access modules (HTTP, FTP, NNTP, etc.) are set up by default anymore. This is now
+for the applications to do.
+
+<LI>Changed <EM>TRACE</EM> to <EM>WWWTRACE</EM> as it interferes with macro on NT
 
 <LI>The balanced binary tree in <A HREF="../Implementation/HTBTree.html">HTBtree</A> is not used
 anymore. The functionality is now provided by the new <A HREF="../Implementation/HTArray.html">
@@ -134,6 +149,9 @@ mielke" &lt;davem@bnr.ca&gt;
 
 <UL>
 
+<LI>We have a first version of a new <A HREF="../Implementation/HTNews.html">News module</A> which
+supports POST, persistent connections and a lot of more efficient NNTP commands.
+
 <LI>Re-implemented long directory listings for FILE and FTP access using streams. The HTML machinery is
 now separated into the new <A HREF="../Implementation/HTDir.html">HTDir module</A>. It provides long
 directory listings for Unix, NT, and VMS.
@@ -176,6 +194,12 @@ didn't understand automatic redirect.
 <H3>Stream Modules</H3>
 
 <UL>
+
+<LI>We have added a content counter stream and a buffer stream in <A
+HREF="../Implementation/HTConLen.html">HTConLen module</A>.
+
+<LI>We have also added a new <A HREF="../Implementation/HTMIMERq.html">HTMIMERq module</A> which is
+responsible for creatin MIME metainformation when sending requests.
 
 <LI>For the first time, it is <EM>not</EM> required to define dummy definitions of the external
 declared function in the <A HREF="../Implementation/HText.html">HText Interface</A>. It is now only
