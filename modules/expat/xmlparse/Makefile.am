@@ -2,6 +2,8 @@
 
 LDFLAGS = -version-info "1:0:1"
 
+CFLAGS = @CFLAGS@ -DXML_NS
+
 lib_LTLIBRARIES = \
 	@XMLPARSE@
 
