@@ -1,35 +1,28 @@
 <HTML>
 <HEAD>
-<TITLE>PICS library utilities</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  1-Feb-1996 -->
-<!-- Changed by: Eric Prud'hommeaux, 20-Apr-1996 -->
-<NEXTID N="z11">
+  <TITLE>PICS library utilities</TITLE>
 </HEAD>
 <BODY>
-
-<H1>PICS library utilities</H1>
-
+<H1>
+  PICS library utilities
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1996.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-</PRE>
-
 <PRE>
 #ifndef CSLAPP_H
 #define CSLAPP_H
-</PRE>
-
-<PRE>
 #include "<A HREF="../../Library/src/WWWCore.html">WWWCore.h</A>"
 #include "<A HREF="CSLUtils.html">CSLUtils.h</A>"
 </PRE>
-
-<H3>CSApp_error</H3> - return codes for those functions which do not return a 
-pointer.
+<H3>
+  CSApp_error
+</H3>
+<P>
+Return codes for those functions which do not return a pointer.
 <PRE>
 /*
 typedef enum {
@@ -39,16 +32,22 @@ typedef enum {
 } CSApp_error;
 */
 </PRE>
-
-<H3>CSDisposition_callback</H3> - function to be called by the when Pics receives 
-ratings for a requested document. The callback is called afer the PICS library
-has decided whether the user should be permitted access to the document.
-<LI>CSDisposition_criteria - when to call the app
-<LI>pReq - HTRequest which told libwww to load the document
-<LI>disposition - CSApp_OK if user should see document, CSApp_denied otherwise
-<LI>pVoid - void pointer passed to <A HREF="#CSApp_registerApp">CSApp_registerApp
+<H3>
+  CSDisposition_callback
+</H3>
+<P>
+- function to be called by the when Pics receives ratings for a requested
+document. The callback is called afer the PICS library has decided whether
+the user should be permitted access to the document.
+<P>
+CSDisposition_criteria - when to call the app
+<P>
+pReq - HTRequest which told libwww to load the document
+<P>
+disposition - CSApp_OK if user should see document, CSApp_denied otherwise
+<P>
+pVoid - void pointer passed to <A HREF="#CSApp_registerApp">CSApp_registerApp
 </A> or <A HREF="#CSApp_registerReq">CSApp_registerReq</A>.
-
 <PRE>
 typedef enum {
   CSApp_neverCall = 0, CSApp_callOnBad = 1, CSApp_callOnGood = 2
@@ -57,11 +56,10 @@ typedef CSError_t (CSDisposition_callback)(HTRequest* pReq, CSLabel_t * pCSLabel
 				   CSUser_t * pCSUser, CSError_t disposition, 
 				   void * pVoid);
 </PRE>
-
-<A HREF="CSApp.c">CSApp.c</A> maintains a list of LoadedUsers. More than one
-may be loaded at a time as different requests may be associated with different
-users.
-
+<P>
+<A HREF="CSApp.c">CSApp.c</A> maintains a list of LoadedUsers. More than
+one may be loaded at a time as different requests may be associated with
+different users.
 <PRE>
 extern CSUser_t * CSLoadedUser_load(char * url, char * relatedName);
 extern BOOL CSLoadedUser_add(CSUser_t * pCSUser, char * url);
@@ -69,43 +67,57 @@ extern BOOL CSLoadedUser_remove(CSUser_t * pCSUser);
 extern BOOL CSLoadedUser_find(char * name);
 extern BOOL CSLoadedUser_deleteAll (void);
 </PRE>
-
+<P>
 CSLoadedUser_enum - used to iterate through the loaded users
-<LI>pCallback - application callback to call with each user
-<LI>pVoid - passed through to callback
-
+<P>
+pCallback - application callback to call with each user
+<P>
+pVoid - passed through to callback
 <PRE>
 typedef CSError_t (CSLoadedUserCallback)(CSUser_t * pCSUser, 
 					 int index, void * pVoid);
 extern int CSLoadedUser_enum(CSLoadedUserCallback * pCallback, 
 			     void * pVoid);
 </PRE>
-
-<A NAME="CSUserList"><H2>CSUserList</H2></A>
-
+<P>
+<A NAME="CSUserList"></A>
+<H2>
+  CSUserList
+</H2>
+<P>
 stores a list of PICS users and the URLs to their descritpion files
-
-<A NAME="CSUserList_load"><H3>CSUserList_load</H3>
+<A NAME="CSUserList_load"></A>
+<H3>
+  CSUserList_load
+</H3>
 <PRE>
 extern BOOL CSUserList_load(char * url, char * relatedName);
 </PRE>
-
-<A NAME="CSUserList_enum"><H3>CSUserList_enum</H3>
+<P>
+<A NAME="CSUserList_enum"></A>
+<H3>
+  CSUserList_enum
+</H3>
+<P>
 used to iterate through the known users
-<LI>pCallback - application callback to call with each user
-<LI>pVoid - passed through to callback
-<LI>username
-<LI>url - where to find this user's profile
-<LI>index
-
+<P>
+pCallback - application callback to call with each user
+<P>
+pVoid - passed through to callback
+<P>
+username
+<P>
+url - where to find this user's profile
+<P>
+index
 <PRE>
 typedef CSError_t (CSUserListCallback)(char * username, char * url, 
 		   int index, void * pVoid);
 extern int CSUserList_enum(CSUserListCallback * pCallback, void * pVoid);
 </PRE>
-
-<H1>Registering Users</H1>
-
+<H1>
+  Registering Users
+</H1>
 <PRE>
 extern BOOL CSApp_registerDefaultUserByName(char * user, char * password);
 extern CSUser_t * CSApp_registerUserByName(char * user, char * password);
@@ -114,22 +126,34 @@ extern BOOL CSApp_checkUser(CSUser_t * pCSUser);
 extern BOOL CSApp_unregisterDefaultUser(void);
 extern BOOL CSApp_unregisterUser(CSUser_t * pCSUser);
 </PRE>
-<H1>application functions</H1>
-
-<A NAME="CSApp_registerApp"><H3>CSApp_registerApp</H3></A>
- - register defaults for an application
-<LI>pCallback - callback to tell app the disposition of header check
-<LI>criteria - when the app wants the callback
-<LI>pUserCallback - called when a new user is loaded. It returns:
+<H1>
+  application functions
+</H1>
+<P>
+<A NAME="CSApp_registerApp"></A>
+<H3>
+  CSApp_registerApp
+</H3>
+<P>
+- register defaults for an application
+<P>
+pCallback - callback to tell app the disposition of header check
+<P>
+criteria - when the app wants the callback
+<P>
+pUserCallback - called when a new user is loaded. It returns:
 <UL>
-	<LI>1: load this user and set as default
-	<LI>0: load this user
-	<LI>-1: get rid of it
+  <LI>
+    1: load this user and set as default
+  <LI>
+    0: load this user
+  <LI>
+    -1: get rid of it
 </UL>
-<LI>pVoid - passed through to callback
+<P>
+pVoid - passed through to callback
 <P>
 CSApp_unregisterApp - unregister defaults and free associated memory
-
 <PRE>
 typedef int (CSApp_userCallback)(CSUser_t * pCSUser, void * pVoid);
 extern BOOL CSApp_registerApp(CSDisposition_callback * pCallback, 
@@ -138,14 +162,18 @@ extern BOOL CSApp_registerApp(CSDisposition_callback * pCallback,
 			      void * pVoid);
 extern BOOL CSApp_unregisterApp();
 </PRE>
-
-<A NAME="CSApp_registerReq"><H3>CSApp_registerReq</H3></A>
- - override defaults for a particular request. It is advisable to use 
-this function, rather than relying on the defaults as it eliminates
-many problems associated with multiple clients using the same
-dynamic library. Use CSApp_UnregisterReq for every call to CSApp_RegisterReq.
-<LI>pReq - pointer to request about to be sent. 
-<LI>rest - see parameters for CSApp_RegisterApp()
+<H3>
+  CSApp_registerReq
+</H3>
+<P>
+- override defaults for a particular request. It is advisable to use this
+function, rather than relying on the defaults as it eliminates many problems
+associated with multiple clients using the same dynamic library. Use
+CSApp_UnregisterReq for every call to CSApp_RegisterReq.
+<P>
+pReq - pointer to request about to be sent.
+<P>
+rest - see parameters for CSApp_RegisterApp()
 <P>
 CSApp_UnregisterReq - free memory associated with call to CSApp_registerReq
 <PRE>
@@ -159,16 +187,19 @@ extern BOOL CSApp_unregisterReq(HTRequest* pReq);
 extern HTRequest * CSApp_originalRequest(HTRequest* pReq);
 
 </PRE>
-
-<H1>MISC</H1>
+<H1>
+  MISC
+</H1>
+<P>
 CSApp_disposition - tell PICS if a request is allowd
 <PRE>
 extern BOOL CSApp_label(HTRequest * pReq, CSLabel_t * pCSLabel);
 </PRE>
+<P>
 CSApp_libraryVersion - get current version
 <P>
-CSParseMachRead, CSParseUser, CSParseLabel - HTConverters for parsing to these
-objects
+CSParseMachRead, CSParseUser, CSParseLabel - HTConverters for parsing to
+these objects
 <P>
 CSLabel_output - spew canonical form of pCSLabel out to pStream
 <PRE>
@@ -180,11 +211,9 @@ extern HTConverter CSParseLabel;
 
 extern int CSLabel_output(CSLabel_t * pCSLabel, HTStream * pStream);
 </PRE>
-
 <PRE>
 #endif /* CSLAPP_H */
 </PRE>
-
+<P>
 End of Declaration
-</BODY>
-</HTML>
+</BODY></HTML>
