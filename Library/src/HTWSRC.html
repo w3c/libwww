@@ -1,0 +1,43 @@
+<HEADER>
+<TITLE>A parser for WAIS source files</TITLE>
+<NEXTID N="4">
+</HEADER>
+<BODY>
+<H1>WAIS Source file parser</H1>This converter returns a <A
+NAME=z1 HREF="Overview.html#z37">stream</A> object
+into which a <A
+NAME=z3 HREF="../../../Products/WAIS/Overview.html">WAIS</A> source file can
+be written.  The result is put via
+a <A
+NAME=z2 HREF="Overview.html#z38">structured stream</A> into whatever
+format was required for the output
+stream.
+<PRE>#ifndef HTWSRC_H
+#define HTWSRC_H
+#include "HTUtils.h"
+
+#include "HTFormat.h"
+
+extern  HTStream* HTWSRCConvert PARAMS((
+	HTPresentation *	pres,
+	HTParentAnchor *	anchor,	
+	HTStream *		sink));
+
+</PRE>
+<H2>Escaping Strings</H2>HTDeSlash takes out the invlaid characters
+in a URL path ELEMENT by converting
+them into hex-escaped characters.
+HTEnSlash does the reverse.<P>
+Each returns a pointer to a newly
+allocated string which must eventually
+be freed by the caller.
+<PRE>extern char * HTDeSlash PARAMS((CONST char * str));
+
+extern char * HTEnSlash PARAMS((CONST char * str));
+
+#endif
+
+</PRE>
+<ADDRESS><A
+NAME=0 HREF="http://info.cern.ch./hypertext/TBL_Disclaimer.html">Tim BL</A></A>
+</ADDRESS></BODY>
