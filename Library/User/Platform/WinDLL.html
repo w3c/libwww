@@ -1,7 +1,7 @@
 <Html>
 <HEAD>
 <TITLE>How to Build the WWW Libraries for Windows</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 15-Jan-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Feb-1996 -->
 </HEAD>
 
 <BODY>
@@ -47,17 +47,23 @@ active sockets and passes them to a <CODE>select()</CODE> call which then proces
 sockets. When <CODE>select()</CODE> returns the Event Manager dispatches the appropriate handlers as
 the sockets get ready. <P>
 
-<IMG SRC="../../../Icons/WWW/bullet.gif"> <B>What to do:</B> This is the default mode and you don't have to do anything
+<IMG SRC="../../../Icons/WWW/bullet.gif"> <B>What to do:</B> This is the default mode and you don't
+have to do anything
 
 <A NAME="async"><H3>Asynchronous I/O based using Signals</H3></A>
 
 Here the <A HREF="../../Implementation/HTEvntrg.html">Event Manager</A> registers all active sockets
 using <CODE>WSAAsyncSelect</CODE> which is part of the WinSock API. When <CODE>AsyncSelect()</CODE>
 which is the asynchronous equivalent to the <CODE>select()</CODE> returns, the Event Manager
-dispatches the results of the <CODE>AsyncSelect()</CODE>. <P>
+dispatches the results of the <CODE>AsyncSelect()</CODE>. As the asynchronous select call needs a
+windows handle, the Library creates a <EM>hidden window</EM> in the <A
+HREF="../../Implementation/HTAccess.html#Library">Library initialization function</A>. This window
+is <EM>not</EM> to be used explicitly by the application and the Library closes the window when
+exiting.<P>
 
-<IMG SRC="../../../Icons/WWW/bullet.gif"> <B>What to do:</B> Define <B>WWW_WIN_ASYNC</B> as a preprocessor directive when generating the
-project for the Library.
+<IMG SRC="../../../Icons/WWW/bullet.gif"> <B>What to do:</B> Define <B>WWW_WIN_ASYNC</B> as a
+preprocessor directive when generating the project for the Library. Please make sure that
+<EM>all</EM> DLLs are compiled with this flag.
 
 <A NAME="io"><H2>Console vs Windows Application</H2></A>
 
@@ -174,7 +180,7 @@ Internals</A>.
 You can also find a set of Microsoft 2.0 make files in the <A
 HREF="../../Implementation/windows/">windows directory</A> of the distribution file. However, as
 version 2.0 does not support having one single Make file, you must compile the set described by the
-<A HREF="../Guide/Modules.html">following list of DLLs</A>
+<A HREF="../Guide/Interfaces.html">following list of DLLs</A> in the order they are listed.
 
 <H3>Other Compilers</H3>
 

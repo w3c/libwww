@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>User Guide - Request Callback functions</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 21-Jan-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 29-Jan-1996 -->
 <NEXTID N="z78">
 </HEAD>
 <BODY>
@@ -93,7 +93,7 @@ or if you simply want to remove all functions from a list then you can use
 extern BOOL HTNetCall_deleteAll (HTList * list);
 </PRE>
 
-<H2>Pre-Request Callbacks</H2>
+<A NAME="pre"><H2>Pre-Request Callbacks</H2></A>
 
 When a request has been issued there are a number of things that an application might want to do
 with the request before it actually goes on the wire, for example to talk to a remote HTTP
@@ -112,7 +112,7 @@ file management and the application can use this is desired. The module is not r
 Library. Reading a rule file is implemented as a stream converter so that a rule file can come from
 anywhere, even across the network!
 
-<H3>Proxies and Gateways</H3>
+<A NAME="proxying"><H3>Proxies and Gateways</H3></A>
 
 Applications do not have to provide native support for all protocols, they can in many situations
 rely on the support of proxies and gateways to help doing the job. Proxy servers are often used to
@@ -120,7 +120,16 @@ carry client requests through a firewall where they can provide services like co
 other network optimizations. Both Proxy servers and gateways can serve as "protocol translators"
 which can convert a request in the main Web protocol, HTTP, to an equivalent request in another
 protocol, for example NNTP, FTP, or Gopher. In a later section we will see how to set up the Proxy
-servers and gateways using the <A HREF="../../Implementation/HTProxy.html">Proxy module</A>.
+servers and gateways using the <A HREF="../../Implementation/HTProxy.html">Proxy module</A>. <P>
+
+As a HTTP request looks different when it is directed to a proxy server than to a origin server, the
+HTTP module needs to know whether it is talking to a proxy for this particular request or not. You
+can specify in a request object whether a proxy is being used or not by using the following methods:
+
+<PRE>
+extern void HTRequest_setProxing (HTRequest * request, BOOL proxying);
+extern BOOL HTRequest_proxying (HTRequest * request);
+</PRE>
 
 <H3>Cache Manager</H3>
 

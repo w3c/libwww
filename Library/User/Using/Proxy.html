@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>User's Guide - Proxies and Gateways</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  7-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 29-Jan-1996 -->
 </HEAD>  
 <BODY>
 
@@ -124,6 +124,15 @@ between an access scheme and a protocol module. An application can be set up to 
 with a specific access scheme without knowing about the semantics of this access scheme or how to
 access the information directly. That way, powerful client applications can be built having direct
 support for, for example, HTTP only.
+
+<H2>Finding Proxies and Gateways</H2>
+
+Registering a proxy server or a gateway does not mean that the request automatically is redirected
+to the new location instead of the origin server. In order to actually redirect a request, you can
+register a <A HREF="Net.html#pre">Pre-Request Callback function</A> which will bet called before a
+request is actually sent over the wire. You can find more information on how to actually redirect a
+request to for example a proxy server in the section <A HREF="Net.html#proxying">Proxies and
+Gateways</A>
 
 <P>
 <HR>

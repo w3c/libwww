@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Known Bugs in W3C Reference Library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 18-Jan-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 25-Jan-1996 -->
 </HEAD>
 <BODY>
 
@@ -36,7 +36,56 @@ order to apply a patch, do the following in the <CODE>WWW</CODE> directory:
 </PRE>
 </OL>
 
+You should only apply patches under the section with <B>same</B> version number as your current
+version. You can see the current version of this software by looking into the <A
+HREF="../../Implementation/Version.make">version file</A>.
+
 <HR>
+
+<H2>Library 4.0C</H2>
+
+<DL>
+<DT><A HREF="lib_4.0C_1.fix">Patch for PUT and POST</A>
+
+<DD>This patch is rather big but it contains some fixes and modifications that enables PUT and POST
+to work reliably. If you download the 4.0C version of the distribution then the patch has already
+been applied. It is basically the difference between versions 4.0B and 4.0C. The main set of differences are:
+
+<UL>
+
+<LI>Automatic redirection and Access authentication has been take n out of the HTTP module. Instead
+the new mechanism with request callback functions are used so that the application can register
+handlers to handle these situations. The reason for this change is that not all applications are
+interested in having this functionality performed automatically.
+
+<LI>Authentication handler and redirection handler added to both the Line Mode Browser and the Command Line Tool
+
+<LI>Added three possible return codes on which a request callback function can be called:
+
+<UL>
+<LI>HT_PERM_REDIRECT for permanently moved objects
+<LI>HT_TEMP_REDIRECT for temporarily moved objects
+<LI>HT_NO_ACCESS for insufficient credentials
+</UL>
+
+<LI>PUT and POST do now work reliably in the Line Mode Browser and the Command Line Tool. Both can
+PUT or POST a document <B>from</B> either a remote HTTP server <EM>or</EM> the local file system
+<B>to</B> a remote HTTP server.
+
+<LI>An important bug-fix in the internal event manager that prevented a socket to be registered for
+multiple events at the same time.
+
+<LI>Cleanup of the POSTWeb management in the file module and the HTTP module
+
+<LI>In addition to progress notification on READ we now support progress notification when sending a data object
+
+<LI>Spelling mistake fixed. <EM>preemtive</EM> is changed to <EM>preemptive</EM>
+
+<LI>The W3C Mini Robot has now the ability to stop at a certain depth while traversing the Web.
+
+</UL>
+
+</DL>
 
 <H2>Library 4.0</H2>
 
@@ -50,7 +99,7 @@ order to apply a patch, do the following in the <CODE>WWW</CODE> directory:
 
 <LI>Bug in <A HREF="lib_4.0_bug_1.html"><EM>no-proxy</EM> directive</A>
 
-<LI>HTML Machinary is still missing a great deal. However this part is now isolated into the
+<LI>HTML Machinery is still missing a great deal. However this part is now isolated into the
 SGML-HTML-HText stream pipe and will be replaced by a new parser as soon as possible in connection
 with the development of Arena.
 
@@ -67,8 +116,8 @@ with the development of Arena.
 <DD>The Library supports "long" directory listings for FTP Unix, VMS
 and Windows NT servers with file type, size, time and date
 etc. However, the time stamp is wrong by one hour for files created
-when dayligt savingtime is enabled. The reason is that the FTP module
-in the Library doesn't know the timezone of the remote FTP server and
+when daylight saving time is enabled. The reason is that the FTP module
+in the Library doesn't know the time-zone of the remote FTP server and
 hence doesn't know when DSR is enabled or disabled. This is fixed in
 the next version
 
@@ -84,7 +133,7 @@ out!
 
 <DL>
 
-<DT><A HREF="lib_3.0_1.fix">Problems with redicection</A>
+<DT><A HREF="lib_3.0_1.fix">Problems with redirection</A>
 
 <DD>Until now all HTTP servers have sent back a small HTML document with a 
 redirection message going:

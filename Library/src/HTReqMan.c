@@ -375,21 +375,6 @@ PUBLIC HTEnHd HTRequest_enHd (HTRequest *request)
     return request ? request->EntityMask : 0;
 }
 
-#if 0
-/*
-**	Access scheme for server
-*/
-PUBLIC void HTRequest_setServerSocket (HTRequest * request, char * access)
-{
-    if (request && access) StrAllocCopy(request->access, access);
-}
-
-PUBLIC CONST char * HTRequest_serverSocket (HTRequest * request)
-{
-    return request ? request->access : NULL;
-}
-#endif
-
 /*
 **	Anchor
 */

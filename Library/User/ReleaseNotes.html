@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library Release Notes</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 11-Dec-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 30-Jan-1996 -->
 </HEAD>
 <BODY>
 
@@ -29,6 +29,42 @@
 <LI>REAGEN, Jeff
 <LI>WEI, John
 <LI>WOODWARD, Jennifer
+</UL>
+
+<H2>Release 4.0C January 23 1996</H2>
+
+<UL>
+
+<LI>Automatic redirection and Access authentication has been take n out of the HTTP module. Instead
+the new mechanism with request callback functions are used so that the application can register
+handlers to handle these situations. The reason for this change is that not all applications are
+interested in having this functionality performed automatically.
+
+<LI>Authentication handler and redirection handler added to both the Line Mode Browser and the Command Line Tool
+
+<LI>Added three possible return codes on which a request callback function can be called:
+
+<UL>
+<LI>HT_PERM_REDIRECT for permanently moved objects
+<LI>HT_TEMP_REDIRECT for temporarily moved objects
+<LI>HT_NO_ACCESS for insufficient credentials
+</UL>
+
+<LI>PUT and POST do now work reliably in the Line Mode Browser and the Command Line Tool. Both can
+PUT or POST a document <B>from</B> either a remote HTTP server <EM>or</EM> the local file system
+<B>to</B> a remote HTTP server.
+
+<LI>An important bug-fix in the internal event manager that prevented a socket to be registered for
+multiple events at the same time.
+
+<LI>Cleanup of the POSTWeb management in the file module and the HTTP module
+
+<LI>In addition to progress notification on READ we now support progress notification when sending a data object
+
+<LI>Spelling mistake fixed. <EM>preemtive</EM> is changed to <EM>preemptive</EM>
+
+<LI>The W3C Mini Robot has now the ability to stop at a certain depth while traversing the Web.
+
 </UL>
 
 <H2>Release 4.0A December 11 1995</H2>
