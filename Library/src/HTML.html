@@ -92,8 +92,99 @@ exists else &lt; 0
 	int		number,
 	CONST char *	message));
 
-#endif
+
+</PRE>
+<h2>White Space Treatment</h2>
+There is a small number of different ways of treating white
+space in SGML, in mapping from a text object to HTML.
+These have to be programmed it seems.
+<pre>
+/*
+In text object	\n\n		\n	tab	\n\n\t
+--------------	-------------	-----	-----	-------
+in Address,
+Blockquote,
+Normal,		<P>		<BR>	-		NORMAL
+H1-6:		close+open	<BR>	-		HEADING
+Glossary	<DT>		<DT>	<DD>	<P>	GLOSSARY
+List,				
+Menu		<LI>		<LI>	-	<P>	LIST
+Dir		<LI>		<LI>	<LI>		DIR
+Pre etc		\n\n		\n	\t		PRE
+
+*/
+
+typedef enum _white_space_treatment {
+	WS_NORMAL,
+	WS_HEADING,
+	WS_GLOSSARY,
+	WS_LIST,
+	WS_DIR,
+	WS_PRE
+} white_space_treatment;
+
+</pre>
+<h2>Nesting State</h2>
+These elements form tree with an item for each nesting state: that
+is, each unique combination of nested elements which has a
+specific style.
+<pre>
+typedef struct _HTNesting {
+    void *			style;  /* HTStyle *: Platform dependent */
+    white_space_treatment	wst;
+    struct _HTNesting *		parent;
+    int				element_number;
+    int				item_number;	/* only for ordered lists */
+    int				list_level;	/* how deep nested */
+    HTList *			children;
+    BOOL			paragraph_break;
+    int				magic;
+    BOOL			object_gens_HTML; /* we don't generate HTML */
+} HTNesting;
 
 
-</PRE>end</BODY>
+</pre>
+<H2>Nesting functions</H2>
+These functions were new with HTML2.c.  They allow the tree
+of SGML nesting states to be manipulated, and SGML regenerated from the
+style sequence.
+<PRE>
+
+extern void HTRegenInit NOPARAMS;
+
+extern void HTRegenCharacter PARAMS((
+	char			c,
+	HTNesting *		nesting,
+	HTStructured *		target));
+
+extern	void HTNestingChange PARAMS((
+	HTStructured* 	s, 
+	HTNesting*		old, 
+	HTNesting *		new,
+	HTChildAnchor *		info,
+	CONST char *		aName));
+
+extern HTNesting * HTMLCommonality PARAMS((
+	HTNesting * 	s1,
+	HTNesting *	s2));
+
+extern HTNesting * HTNestElement PARAMS((HTNesting * p, int ele));
+extern /* HTStyle * */ void * HTStyleForNesting PARAMS((HTNesting * n));
+
+extern HTNesting* HTMLAncestor PARAMS((HTNesting * old, int depth));
+extern HTNesting* CopyBranch PARAMS((HTNesting * old, HTNesting * new, int depth));
+extern HTNesting * HTInsertLevel PARAMS((HTNesting * old,
+		int	element_number,
+		int	level));
+extern HTNesting * HTDeleteLevel PARAMS((HTNesting * old,
+		int	level));
+extern int HTMLElementNumber PARAMS((HTNesting * s));
+extern int HTMLLevel PARAMS(( HTNesting * s));
+extern HTNesting* HTMLAncestor PARAMS((HTNesting * old, int depth));
+
+#endif		/* end HTML_H */
+
+</PRE>
+
+end</BODY>
 </HTML>

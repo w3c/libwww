@@ -9,7 +9,7 @@
 **
 **	It is not obvious to me right now whether the HEAD should be generated
 **	from the incomming data or the anchor.  Currently it is from the former
-**	which is cleanest.
+**	which is cleanest. TBL
 */
 
 #define BUFFER_SIZE	80	/* Line buffer attempts to make neat breaks */
@@ -44,6 +44,7 @@ struct _HTStructured {
 	HTStream * 			target;
 	HTStreamClass			targetClass;	/* COPY for speed */
 	CONST SGML_dtd *		dtd;
+	BOOL				seven_bit;	/* restrict output*/
 	
 	char				buffer[BUFFER_SIZE+1];
 	char *				write_pointer;
@@ -52,6 +53,12 @@ struct _HTStructured {
 	BOOL				delete_line_break_char;
 	char				preformatted;
 };
+
+/*			OUTPUT FUNCTIONS
+**
+**	These function output the finished SGML stream doing the
+**	line wrap
+*/
 
 /*	Flush Buffer
 **	------------
@@ -79,9 +86,9 @@ PRIVATE void HTMLGen_flush ARGS1(HTStructured *, me)
 **	file. We give extra "cleanness" to spaces appearing directly
 **	after periods (full stops), [semi]colons and commas.
 **	   This should make the source files easier to read and modify
-**	by hand, too, though this is not a primary design consideration.
+**	by hand, too, though this is not a primary design consideration. TBL
 */
-PRIVATE void HTMLGen_put_character ARGS2(HTStructured *, me, char, c)
+PRIVATE void HTMLGen_output_character ARGS2(HTStructured *, me, char, c)
 {
 
     *me->write_pointer++ = c;
@@ -144,6 +151,37 @@ PRIVATE void HTMLGen_put_character ARGS2(HTStructured *, me, char, c)
 /*	String handling
 **	---------------
 */
+PRIVATE void HTMLGen_output_string ARGS2(HTStructured *, me, CONST char*, s)
+{
+    CONST char * p;
+    for(p=s; *p; p++) HTMLGen_output_character(me, *p);
+}
+
+
+
+
+/*			INPUT FUNCTIONS
+**
+**	These take data from the structured stream.  In the input
+**	stream, entities are in raw form.  The seven_bit flag controls
+**	whether the ISO Latin-1 charactrs are represented in SGML entity
+**	form.  This is only recommended for viewing on older non-latin-1
+**	capable equipment, or for mailing for example. 
+**
+** Bug: assumes local encoding is ISO!
+*/	
+PRIVATE void HTMLGen_put_character ARGS2(HTStructured *, me, char, c)
+{
+    if (c=='&') HTMLGen_output_string(me, "&amp;");
+    else if (c=='<') HTMLGen_output_string(me, "&lt;");
+    else if (me->seven_bit && ((unsigned char)c > 127)) {
+        char temp[8];
+	sprintf(temp, "&%d;", c);
+	HTMLGen_output_string(me, temp);
+    }
+    else HTMLGen_output_character(me, c);
+}
+
 PRIVATE void HTMLGen_put_string ARGS2(HTStructured *, me, CONST char*, s)
 {
     CONST char * p;
@@ -177,16 +215,16 @@ PRIVATE void HTMLGen_start_element ARGS4(
     BOOL was_preformatted = me->preformatted;
     me->preformatted = NO;	/* free text within tags NO!, henrik */
 #endif
-    HTMLGen_put_character(me, '<');
-    HTMLGen_put_string(me, tag->name);
+    HTMLGen_output_character(me, '<');
+    HTMLGen_output_string(me, tag->name);
     if (present) for (i=0; i< tag->number_of_attributes; i++) {
         if (present[i]) {
-	    HTMLGen_put_character(me, ' ');
-	    HTMLGen_put_string(me, tag->attributes[i].name);
+	    HTMLGen_output_character(me, ' ');
+	    HTMLGen_output_string(me, tag->attributes[i].name);
 	    if (value[i]) {
-	 	HTMLGen_put_string(me, "=\"");
-		HTMLGen_put_string(me, value[i]);
-		HTMLGen_put_character(me, '"');
+	 	HTMLGen_output_string(me, "=\"");
+		HTMLGen_output_string(me, value[i]);
+		HTMLGen_output_character(me, '"');
 	    }
 	}
     }
@@ -194,9 +232,9 @@ PRIVATE void HTMLGen_start_element ARGS4(
     if (element_number == HTML_PRE)
 	me->preformatted++;
     if(me->preformatted)
-	HTMLGen_put_character(me, '>');
+	HTMLGen_output_character(me, '>');
     else
-	HTMLGen_put_string(me, ">\n");
+	HTMLGen_output_string(me, ">\n");
     
     if (tag->contents != SGML_EMPTY) {  /* can break after element start */ 
     	me->line_break = me->write_pointer;	/* Don't you hate SGML?  */
@@ -206,8 +244,8 @@ PRIVATE void HTMLGen_start_element ARGS4(
 }
 
 
-/*		End Element
-**		-----------
+/*	End Element
+**	-----------
 **
 **      The rules for insertring CR LF into SGML are weird, strict, and
 ** 	nonintitive.
@@ -221,37 +259,30 @@ PRIVATE void HTMLGen_end_element ARGS2(HTStructured *, me,
 	me->cleanness = 1;
 	me->delete_line_break_char = NO;
     }
-    HTMLGen_put_string(me, "</");
-    HTMLGen_put_string(me, me->dtd->tags[element_number].name);
-#ifdef ILLEGAL
-    if (me->preformatted)
-	HTMLGen_put_character(me, '>');		          /* Henrik 24/03-94 */
-    else
-	HTMLGen_put_string(me, ">\n");
-#else
-	HTMLGen_put_character(me, '>');	   /* NO break after TBL 940501 */
-#endif
+    HTMLGen_output_string(me, "</");
+    HTMLGen_output_string(me, me->dtd->tags[element_number].name);
+    HTMLGen_output_character(me, '>');	   /* NO break after. TBL 940501 */
     if (element_number == HTML_PRE && me->preformatted)
 	me->preformatted--;
 }
 
 
-/*		Expanding entities
-**		------------------
+/*	Expanding entities
+**	------------------
 **
 */
 
 PRIVATE void HTMLGen_put_entity ARGS2(HTStructured *, me, int, entity_number)
 {
-    HTMLGen_put_character(me, '&');
-    HTMLGen_put_string(me, me->dtd->entity_names[entity_number]);
-    HTMLGen_put_character(me, ';');
+    HTMLGen_output_character(me, '&');
+    HTMLGen_output_string(me, me->dtd->entity_names[entity_number]);
+    HTMLGen_output_character(me, ';');
 }
 
 
 
-/*	Free an HTML object
-**	-------------------
+/*	Free an object
+**	--------------
 **
 */
 PRIVATE void HTMLGen_free ARGS1(HTStructured *, me)
@@ -368,6 +399,7 @@ PUBLIC HTStream* HTPlainToHTML ARGS5(
     me->dtd = &HTMLP_dtd;
     me->target = output_stream;
     me->targetClass = *me->target->isa;/* Copy pointers to routines for speed*/
+    me->seven_bit = NO;		/* Allow 8-bit codes in output */
     me->write_pointer = me->buffer;
     me->line_break = 	me->buffer;
     me->cleanness = 	0;
@@ -382,7 +414,24 @@ PUBLIC HTStream* HTPlainToHTML ARGS5(
 }
 
 
+/* 	A safe version for making 7-bit restricted HTML
+**	Beware that thsi makes it horrible for the Scandinavians
+**	to actually read it.
+*/
 
+PUBLIC HTStream* HTPlainTo7BitHTML ARGS5(
+	HTRequest *,		request,
+	void *,			param,
+	HTFormat,		input_format,
+	HTFormat,		output_format,
+	HTStream *,		output_stream)
+
+{
+    HTStream* me = HTPlainToHTML(request,param,input_format,
+    		output_format, output_stream);
+    ((HTStructured*)me)->seven_bit = YES;
+    return me;
+}
 
 
 

@@ -39,14 +39,18 @@ loaded.  You will be able to redefine
 your style structure in this case
 without problems, as no other moule
 needs to know it.
-<PRE>#ifndef HTStyle_H
+<PRE>
+#ifndef HTStyle_H
 #define HTStyle_H
 
 #include "HTUtils.h"
 #include "HTFormat.h"
 #include "HTAnchor.h"
+#include "HTML.h"
 
 typedef long int HTFont;	/* Dummy definition instead */
+
+
 
 #ifdef SHORT_NAMES
 #define HTStyleNew			HTStNew
@@ -106,7 +110,7 @@ typedef struct _HTParagraphStyle HTParagraphStyle;
 */
 
 typedef struct _HTStyle
-#ifdef DEFINE_STRUCT_HTSTYLE
+#ifdef DEFINE_STRUCT_HTSTYLE		/* Don't */
  {
 
 /*	Style management information
@@ -154,6 +158,23 @@ typedef struct _HTStyle
 #endif
  HTStyle;
 
+</pre>
+<h2>Style Creation</h2>
+<h3>HtStyleModify</h3>
+This routine is passed the style for a particular SGML nesting state,
+and the element number of a new element whithin that state.
+The routine returns a suitable style for text within the new element.
+It is passed a popinter tothe nesting state so that it can link
+the style back to the nesting state for later manipulation
+of the SGML nesting tree.
+<pre>
+
+extern HTStyle * HTStyleModify PARAMS((
+		HTStyle * 	style, 
+		HTNesting* 	nesting,
+                int 		element_number));
+
+
 
 /*	Style functions:
 */
@@ -178,8 +199,6 @@ typedef struct _HTStyleSheet {
 extern HTStyleSheet * HTStyleSheetNew NOPARAMS;
 extern HTStyleSheet * HTStyleSheetFree PARAMS((HTStyleSheet * self));
 extern HTStyle * HTStyleNamed PARAMS((HTStyleSheet * self, CONST char * name));
-extern HTStyle * HTStyleForParagraph PARAMS((HTStyleSheet * self,
-	HTParagraphStyle * paraStyle));
 extern HTStyle * HTStyleMatching PARAMS((HTStyleSheet *self, HTStyle * style));
 /* extern HTStyle * HTStyleForRun PARAMS((HTStyleSheet *self, NXRun * run)); */
 extern HTStyleSheet * HTStyleSheetAddStyle PARAMS((HTStyleSheet * self,
