@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Domain Name Service Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 16-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 18-Sep-1995 -->
 </HEAD>
 <BODY>
 
@@ -37,6 +37,7 @@ Reference Library</A>.
 #ifndef HTDNS_H
 #define HTDNS_H
 #include "tcp.h"
+#include "HTEvntrg.h"
 </PRE>
 
 <H2>The DNS Object</H2>
@@ -66,7 +67,7 @@ extern time_t HTDNS_timeout  (time_t timeout);
 
 <PRE>
 extern SOCKFD HTDNS_socket	(HTdns *dns);
-extern void HTDNS_setSocket	(HTdns *dns, SOCKFD socket);
+extern BOOL HTDNS_setSocket	(HTdns *dns, SOCKFD socket);
 extern void HTDNS_clearActive	(HTdns *dns);
 </PRE>
 
@@ -85,6 +86,8 @@ Absolute value of when this socket will expire. Default value can be
 set with the function HTDNS_setSockTimeout and is normally 1 h.
 
 <PRE>
+extern HTEventCallBack HTDNS_closeSocket;
+
 extern void HTDNS_setSockExpires (HTdns * dns, time_t expires);
 extern time_t HTDNS_sockExpires (HTdns * dns);
 </PRE>

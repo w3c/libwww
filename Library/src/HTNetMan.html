@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Asyncronous Socket Management</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 16-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 17-Sep-1995 -->
 </HEAD>
 <BODY>
 
@@ -43,9 +43,19 @@ descriptor, the input read buffer etc. required to identify and
 service a request. <P>
 
 <PRE>
+typedef enum _TCPState {
+    TCP_ERROR		= -2,
+    TCP_CONNECTED	= -1,
+    TCP_BEGIN		= 0,
+    TCP_DNS,
+    TCP_NEED_SOCKET,
+    TCP_NEED_CONNECTION
+} TCPState;
+
 struct _HTNet {
     SOCKFD		sockfd;				/* Socket descripter */
     SockA 		sock_addr;		/* SockA is defined in tcp.h */
+    TCPState		tcpstate;		      /* State in connection */
     HTInputSocket *	isoc;				     /* Input buffer */
     HTdns *		dns;			       /* Entry in DNS table */
     HTStream *		target;				    /* Target stream */

@@ -78,6 +78,10 @@ PUBLIC void HTProgress ARGS3(HTRequest *, request, HTProgressState, state,
 	fprintf(TDEST, "Finished\n");
 	break;
 
+      case HT_PROG_WAIT:
+	fprintf(TDEST, "Waiting for free socket...\n");
+	break;
+
       default:
 	fprintf(TDEST, "UNKNOWN PROGRESS STATE\n");
 	break;

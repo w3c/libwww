@@ -568,83 +568,98 @@ PUBLIC void HTFreeMailAddress NOARGS
 PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 {
     int status;
-    char *p1 = HTParse(url, "", PARSE_HOST);
+    char *fullhost = HTParse(url, "", PARSE_HOST);
     char *at_sign;
     char *host;
 
     /* if there's an @ then use the stuff after it as a hostname */
-    if ((at_sign = strchr(p1, '@')) != NULL)
+    if ((at_sign = strchr(fullhost, '@')) != NULL)
 	host = at_sign+1;
     else
-	host = p1;
+	host = fullhost;
     if (!*host) {
 	HTErrorAdd(net->request, ERR_FATAL, NO, HTERR_NO_HOST,
 		   NULL, 0, "HTDoConnect");
-	free(p1);
+	free(fullhost);
 	return HT_ERROR;
     }
 
-    /* Look for a port number, else use default port */
-    if (net->sockfd == INVSOC) {
-	char *port = strchr(host, ':');
-	SockA *sin = &net->sock_addr;
-	memset((void *) sin, '\0', sizeof(SockA));
-	if (port++ && isdigit(*port)) {
+    /* Jump into the state machine */
+    while (1) {
+	switch (net->tcpstate) {
+	  case TCP_BEGIN:
+	    {
+		char *port = strchr(host, ':');
+		SockA *sin = &net->sock_addr;
+		memset((void *) sin, '\0', sizeof(SockA));
+		if (port++ && isdigit(*port)) {
 #ifdef DECNET
-	    sin->sdn_family = AF_DECnet;      /* Family = DECnet, host order */
-	    sin->sdn_objnum = (unsigned char)(strtol(port, (char**)0, 10));
-#else /* Internet */
-	    sin->sin_family = AF_INET;
-	    sin->sin_port = htons(atol(port));
+		    sin->sdn_family = AF_DECnet;
+		    sin->sdn_objnum=(unsigned char)(strtol(port,(char**)0,10));
+#else
+		    sin->sin_family = AF_INET;
+		    sin->sin_port = htons(atol(port));
 #endif
-	} else {
+		} else {
 #ifdef DECNET
-	    sin->sdn_family = AF_DECnet;      /* Family = DECnet, host order */
-	    net->sock_addr.sdn_objnum = DNP_OBJ; /* Default: http object num */
+		    sin->sdn_family = AF_DECnet;
+		    net->sock_addr.sdn_objnum = DNP_OBJ;
 #else  /* Internet */
-	    sin->sin_family = AF_INET;
-	    sin->sin_port = htons(default_port);
+		    sin->sin_family = AF_INET;
+		    sin->sin_port = htons(default_port);
 #endif
-	}
-    }
-
-    /* If we are trying to connect to a multi-homed host then loop here until
-       success or we have tried all IP-addresses */
-    do {
-	BOOL reuse = NO;
-	if (net->sockfd==INVSOC) {
-	    int homes;
+		}
+	    }
 	    if (PROT_TRACE)
 		fprintf(TDEST, "HTDoConnect. Looking up `%s\'\n", host);
-	    if ((homes = HTParseInet(net, host)) < 0) {
+	    net->tcpstate = TCP_DNS;
+	    break;
+
+	  case TCP_DNS:
+	    if ((status = HTParseInet(net, host)) < 0) {
 		if (PROT_TRACE)
-		    fprintf(TDEST, "HTDoConnect. Can't locate remote host `%s\'\n", host);
+		    fprintf(TDEST, "HTDoConnect. Can't locate `%s\'\n", host);
 		HTErrorAdd(net->request, ERR_FATAL, NO, HTERR_NO_REMOTE_HOST,
 			   (void *) host, strlen(host), "HTDoConnect");
+		net->tcpstate = TCP_ERROR;
 		break;
-	    } else if (!homes)
-		return HT_PERSISTENT;
-
-	    if (net->sockfd != INVSOC) {
-		reuse = YES;
-		if (PROT_TRACE)
-		    fprintf(TDEST, "HTDoConnect. REUSING SOCKET %d\n", net->sockfd);
-		goto connect;
 	    }
-	    if (!net->retry && homes > 1)
-		net->retry = homes;
+
+	    /*
+	    ** Wait for a persistent connection. When we return, we check
+	    ** that the socket hasn't been closed in the meantime
+	    */
+	    if (!status) {
+		net->tcpstate = TCP_NEED_CONNECTION;
+		free(fullhost);
+		HTNet_wait(net);
+		return HT_PERSISTENT;
+	    }
+
+	    if (!net->retry && status > 1)		/* If multiple homes */
+		net->retry = status;
+	    if (net->sockfd != INVSOC) {		   /* Reusing socket */
+		if (PROT_TRACE)
+		    fprintf(TDEST, "HTDoConnect. REUSING SOCKET %d\n",
+			    net->sockfd);
+		net->tcpstate = TCP_CONNECTED;
+	    } else
+		net->tcpstate = TCP_NEED_SOCKET;
+	    break;
+
+	  case TCP_NEED_SOCKET:
 #ifdef DECNET
 	    if ((net->sockfd=socket(AF_DECnet, SOCK_STREAM, 0))==INVSOC)
 #else
-	    if ((net->sockfd=socket(AF_INET,SOCK_STREAM,IPPROTO_TCP))==INVSOC)
+	    if ((net->sockfd=socket(AF_INET, SOCK_STREAM,IPPROTO_TCP))==INVSOC)
 #endif
 	    {
 		HTErrorSysAdd(net->request, ERR_FATAL, socerrno, NO, "socket");
+		net->tcpstate = TCP_ERROR;
 		break;
 	    }
 	    if (PROT_TRACE)
-		fprintf(TDEST, "HTDoConnect. Created socket number %d\n",
-			net->sockfd);
+		fprintf(TDEST, "HTDoConnect. Created socket %d\n",net->sockfd);
 
 	    /* If non-blocking protocol then change socket status
 	    ** I use FCNTL so that I can ask the status before I set it.
@@ -675,7 +690,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 			    status = -1 ;
 			    if (PROT_TRACE) 
 				fprintf(TDEST, 
-					"HTDoConnect: WSAAsyncSelect() fails: %d\n", 
+					"HTDoConnect. WSAAsyncSelect() fails: %d\n", 
 					WSAGetLastError());
 			} /* error returns */
 		    } else {
@@ -698,135 +713,135 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 #endif /* WINDOW */
 		if (PROT_TRACE) {
 		    if (status == -1)
-			fprintf(TDEST, "HTDoConnect. Can't make socket non-blocking\n");
+			fprintf(TDEST, "HTDoConnect. Blocking socket\n");
 		    else
-			fprintf(TDEST, "HTDoConnect. Using NON_BLOCKING I/O\n");
+			fprintf(TDEST, "HTDoConnect. Non-blocking socket\n");
 		}
 	    }
-	    
 	    /* If multi-homed host then start timer on connection */
-	    if (net->retry)
-		net->connecttime = time(NULL);
-
-	    /* Update progress state */
+	    if (net->retry) net->connecttime = time(NULL);
 	    HTProgress(net->request, HT_PROG_CONNECT, NULL);
-	}
+	    net->tcpstate = TCP_NEED_CONNECTION;
+	    break;
 
-	/* Do a connect */
-      connect:
-	status = connect(net->sockfd, (struct sockaddr *) &net->sock_addr,
-			 sizeof(net->sock_addr));
-	/*
-	 * According to the Sun man page for connect:
-	 *     EINPROGRESS         The socket is non-blocking and the  con-
-	 *                         nection cannot be completed immediately.
-	 *                         It is possible to select(2) for  comple-
-	 *                         tion  by  selecting the socket for writ-
-	 *                         ing.
-	 * According to the Motorola SVR4 man page for connect:
-	 *     EAGAIN              The socket is non-blocking and the  con-
-	 *                         nection cannot be completed immediately.
-	 *                         It is possible to select for  completion
-	 *                         by  selecting  the  socket  for writing.
-	 *                         However, this is only  possible  if  the
-	 *                         socket  STREAMS  module  is  the topmost
-	 *                         module on  the  protocol  stack  with  a
-	 *                         write  service  procedure.  This will be
-	 *                         the normal case.
-	 */
-	
-#ifdef EAGAIN
-	if ((status < 0) && ((socerrno==EINPROGRESS) || (socerrno==EAGAIN)))
-#else 
-#ifdef WSAEWOULDBLOCK 	   /* WinSock API */
-	if ((status == SOCKET_ERROR) && (socerrno == WSAEWOULDBLOCK))
+	  case TCP_NEED_CONNECTION:
+	    status = connect(net->sockfd, (struct sockaddr *) &net->sock_addr,
+			     sizeof(net->sock_addr));
+	    /*
+	     * According to the Sun man page for connect:
+	     *     EINPROGRESS         The socket is non-blocking and the  con-
+	     *                         nection cannot be completed immediately.
+	     *                         It is possible to select(2) for  comple-
+	     *                         tion  by  selecting the socket for writ-
+	     *                         ing.
+	     * According to the Motorola SVR4 man page for connect:
+	     *     EAGAIN              The socket is non-blocking and the  con-
+	     *                         nection cannot be completed immediately.
+	     *                         It is possible to select for  completion
+	     *                         by  selecting  the  socket  for writing.
+	     *                         However, this is only  possible  if  the
+	     *                         socket  STREAMS  module  is  the topmost
+	     *                         module on  the  protocol  stack  with  a
+	     *                         write  service  procedure.  This will be
+	     *                         the normal case.
+	     */
+#ifdef _WINSOCKAPI_
+	    if (status == SOCKET_ERROR)
 #else
-	if ((status < 0) && (socerrno == EINPROGRESS))
-#endif /* WSAEWOULDBLOCK */
+	    if (status < 0) 
+#endif
+	    {
+#ifdef EAGAIN
+		if (socerrno==EINPROGRESS || socerrno==EAGAIN)
+#else 
+#ifdef _WINSOCKAPI_
+		if (socerrno==WSAEWOULDBLOCK)
+#else
+		if (socerrno==EINPROGRESS)
+#endif /* _WINSOCKAPI_ */
 #endif /* EAGAIN */
-	{
-	    if (PROT_TRACE)
-		fprintf(TDEST, "HTDoConnect. WOULD BLOCK `%s'\n", host);
-	    HTEvent_Register(net->sockfd, net->request, (SockOps) FD_CONNECT,
-			     net->cbf, net->priority);
-	    free(p1);
-	    return HT_WOULD_BLOCK;
-	}
-	
-	/* We have 4 situations: single OK, Pb and multi OK, pb */
-	if (net->retry) {
-	    net->connecttime = time(NULL) - net->connecttime;
-	    if (status < 0) {					 /* multi PB */
-		if (socerrno == EISCONN) { /* connect multi after would block*/
-		    HTEvent_UnRegister(net->sockfd, (SockOps) FD_CONNECT);
-		    HTDNS_updateWeigths(net->dns, net->home, net->connecttime);
-		    net->retry = 0;
-		    free(p1);
-		    return HT_OK;
+		{
+		    if (PROT_TRACE)
+			fprintf(TDEST,"HTDoConnect. WOULD BLOCK `%s'\n", host);
+		    HTEvent_Register(net->sockfd, net->request, (SockOps) FD_CONNECT,
+				     net->cbf, net->priority);
+		    free(fullhost);
+		    return HT_WOULD_BLOCK;
 		}
-		if (reuse)
-		    HTDNS_setSocket(net->dns, INVSOC);
-		else  {
-		    HTErrorSysAdd(net->request, ERR_NON_FATAL, socerrno, NO,
-				  "connect");
-		    
+		if (socerrno == EISCONN) {
+		    net->tcpstate = TCP_CONNECTED;
+		    break;
+		}
+		if (socerrno == EBADF) {	       /* We lost the socket */
+		    net->tcpstate = TCP_NEED_SOCKET;
+		    break;
+		}
+		if (net->retry) {
+		    net->connecttime -= time(NULL);
 		    /* Added EINVAL `invalid argument' as this is what I 
 		       get back from a non-blocking connect where I should 
 		       get `connection refused' on BSD. SVR4 gives SIG_PIPE */
+#ifdef __srv4__
 		    if (socerrno==ECONNREFUSED || socerrno==ETIMEDOUT ||
 			socerrno==ENETUNREACH || socerrno==EHOSTUNREACH ||
-#ifdef __srv4__
-			socerrno==EHOSTDOWN || socerrno==EINVAL)
-#else
 			socerrno==EHOSTDOWN)
+#else
+		    if (socerrno==ECONNREFUSED || socerrno==ETIMEDOUT ||
+			socerrno==ENETUNREACH || socerrno==EHOSTUNREACH ||
+			socerrno==EHOSTDOWN || socerrno==EINVAL)
 #endif
 		        net->connecttime += TCP_DELAY;
 		    else
 		        net->connecttime += TCP_PENALTY;
-	        }
-	        if (NETCLOSE(net->sockfd) < 0)
-		    HTErrorSysAdd(net->request, ERR_FATAL, socerrno, NO, 
-				  "NETCLOSE");
-	        HTEvent_UnRegister(net->sockfd, (SockOps) FD_ALL);
-	        net->sockfd = INVSOC;
-	        HTDNS_updateWeigths(net->dns, net->home, net->connecttime);
-	    } else {						 /* multi OK */
+		    HTDNS_updateWeigths(net->dns, net->home, net->connecttime);
+		}
+		net->tcpstate = TCP_ERROR;		
+	    } else
+		net->tcpstate = TCP_CONNECTED;
+	    break;
+
+	  case TCP_CONNECTED:
+	    HTEvent_UnRegister(net->sockfd, (SockOps) FD_CONNECT);
+	    if (net->retry) {
+		net->connecttime -= time(NULL);
 		HTDNS_updateWeigths(net->dns, net->home, net->connecttime);
-		net->retry = 0;
-		free(p1);
-		return HT_OK;
 	    }
-        } else if (status < 0) {				/* single PB */
-	    if (socerrno==EISCONN) { 	 /* Connect single after would block */
-		HTEvent_UnRegister(net->sockfd, (SockOps) FD_CONNECT);
-		net->retry = 0;
-		free(p1);
-		return HT_OK;
-	    } else {
-		HTErrorSysAdd(net->request, ERR_FATAL, socerrno, NO,
-			  "connect");
-		HTDNS_delete(host);
-		if (NETCLOSE(net->sockfd) < 0)
-		    HTErrorSysAdd(net->request, ERR_FATAL, socerrno, NO,
-				  "NETCLOSE");
+	    net->retry = 0;
+	    free(fullhost);
+	    net->tcpstate = TCP_BEGIN;
+	    return HT_OK;
+	    break;
+
+	  case TCP_ERROR:
+	    if (PROT_TRACE) fprintf(TDEST, "HTDoConnect. Connect failed\n");
+	    if (net->sockfd != INVSOC) {
 	        HTEvent_UnRegister(net->sockfd, (SockOps) FD_ALL);
+		NETCLOSE(net->sockfd);
+		net->sockfd = INVSOC;
+		if (HTDNS_socket(net->dns) != INVSOC) {	 /* Inherited socket */
+		    HTDNS_setSocket(net->dns, INVSOC);
+		    net->tcpstate = TCP_NEED_SOCKET;
+		    break;
+		}
+	    }
+
+	    /* Do we have more homes to try? */
+	    if (--net->retry > 0) {
+	        HTErrorSysAdd(net->request, ERR_NON_FATAL, socerrno, NO,
+			      "connect");
+		net->tcpstate = TCP_DNS;
 		break;
 	    }
-	} else {				  		/* single OK */
-	    free(p1);
+	    HTErrorSysAdd(net->request, ERR_FATAL, socerrno,NO, "connect");
+	    HTDNS_delete(host);
 	    net->retry = 0;
-	    return HT_OK;
+	    free (fullhost);
+	    net->tcpstate = TCP_BEGIN;
+	    return HT_ERROR;
+	    break;
 	}
-    } while (--net->retry);				 /* End of mega loop */
-
-    if (PROT_TRACE)
-        fprintf(TDEST, "HTDoConnect. Connect failed\n");
-    free (p1);
-    net->retry = 0;
-    net->sockfd = INVSOC;
-    return HT_ERROR;
+    }
 }
-
 
 /*								HTDoAccept()
 **

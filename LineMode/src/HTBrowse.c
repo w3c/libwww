@@ -986,7 +986,6 @@ int main ARGS2(int, argc, char **, argv)
     HTLibInit();			   /* Start up W3C Reference Library */
     HTStdIconInit(NULL);				 /* Initialize icons */
     HTProxy_getEnvVar();		   /* Read the environment variables */
-    HTNet_setMaxSocket (2);
 
 #ifdef GUSI				   /* Starts Mac GUSI socket library */
     GUSISetup(GUSIwithSIOUXSockets);
@@ -1347,6 +1346,9 @@ int main ARGS2(int, argc, char **, argv)
     if (HTPrompt_interactive())
 	HTNet_register(terminate_handler, HT_ALL);
     
+    /* Register our own "unknwon" header handler (see GridText.c) */
+    HTMIME_register(HTHeaderParser);
+
     /* Load the first page. This is done using blocking I/O */
     request->preemtive = YES;
     if ((keywords ?
@@ -1362,6 +1364,9 @@ int main ARGS2(int, argc, char **, argv)
        the program terminates */
     if (HTPrompt_interactive()) {
 
+	/* Set max number of sockets we want open simultanously */
+	HTNet_setMaxSocket(6);
+
 	/* Start own list of pending requests */
 	reqlist = HTList_new();
 
@@ -1372,9 +1377,6 @@ int main ARGS2(int, argc, char **, argv)
 	/* Register our own memory cache handler (implemented in GridText.c) */
 	HTMemoryCache_register(HTMemoryCache);
 
-	/* Register our own "unknwon" header handler (see GridText.c) */
-	HTMIME_register(HTHeaderParser);
-
 	/* Make first command line */
  	MakeCommandLine(HTAnchor_isIndex(home_anchor));
 
@@ -1383,7 +1385,7 @@ int main ARGS2(int, argc, char **, argv)
 			    scan_command, 1);
 
 	/* Set the DNS timeout */
-	HTDNS_setTimeout(30);
+	HTDNS_setTimeout(300);
 
 	/* Go into the event loop... */
 	HTEvent_Loop(request);

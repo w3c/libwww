@@ -589,10 +589,8 @@ PUBLIC int HTSocketRead ARGS2(HTRequest *, request, HTStream *, target)
 	    }
 	}
 	isoc->write = isoc->buffer + b_read;
-#if 0
         HTEvent_Register(isoc->sockfd, request, (SockOps) FD_READ,
 			 net->cbf, net->priority);
-#endif
     } while (net->preemtive);
     return HT_WOULD_BLOCK;
 }

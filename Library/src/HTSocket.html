@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Socket I/O Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  5-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 17-Sep-1995 -->
 <NEXTID N="z18">
 </HEAD>
 <BODY>
@@ -39,7 +39,8 @@ W3C Reference Library</A>.
 This function allocates a input buffer and binds it to the socket
 descriptor given as parameter. The size of the buffer,
 <CODE>INPUT_BUFFER_SIZE</CODE>, is a compromis between speed and
-memory.
+memory. Here it is chosen as the default TCP High Water Mark
+(sb_hiwat) for receiving data.
 
 <PRE>
 

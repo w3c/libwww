@@ -588,10 +588,8 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		    request->output_stream : HTTPStatus_new(request, http);
 
 		http->state = HTTP_NEED_REQUEST;
-	    } else if (status == HT_WOULD_BLOCK)
+	    } else if (status == HT_WOULD_BLOCK || status == HT_PERSISTENT)
 		return HT_OK;
-	    else if (status == HT_PERSISTENT)
-		return HT_OK;				/* @@@@@@@@@@@ */
 	    else
 		http->state = HTTP_ERROR;	       /* Error or interrupt */
 	    break;

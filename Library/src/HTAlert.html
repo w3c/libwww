@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Displaying and Promting User Messages</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  6-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 17-Sep-1995 -->
 <NEXTID N="z3">
 </HEAD>
 <BODY>
@@ -127,11 +127,12 @@ additional information to be passed.
 
 <PRE>
 typedef enum _HTProgressState {
-    HT_PROG_DNS = 0,
-    HT_PROG_CONNECT,
-    HT_PROG_READ,
-    HT_PROG_WRITE,
-    HT_PROG_DONE
+    HT_PROG_DNS = 0,			/* Doing DNS resolution */
+    HT_PROG_CONNECT,			/* Connecting */
+    HT_PROG_READ,			/* Read data */
+    HT_PROG_WRITE,			/* Write data */
+    HT_PROG_DONE,			/* Request finished */
+    HT_PROG_WAIT			/* Wait for socket */
 } HTProgressState;
 
 extern void HTProgress	PARAMS((HTRequest *request, HTProgressState state,

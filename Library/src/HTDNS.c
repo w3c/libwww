@@ -47,9 +47,10 @@ struct _HTdns {
     double *		weight;			   /* Weight on each address */
 };
 
-PRIVATE HTList **CacheTable = NULL;
-PRIVATE time_t DNSTimeout = DNS_TIMEOUT;	   /* Timeout on DNS entries */
-PRIVATE time_t TCPTimeout = TCP_TIMEOUT;	   /* Timeout on TCP sockets */
+PRIVATE HTList	**CacheTable = NULL;
+PRIVATE HTList	*PersSock = NULL;	       /* List of persistent sockets */
+PRIVATE time_t	DNSTimeout = DNS_TIMEOUT;	   /* Timeout on DNS entries */
+PRIVATE time_t	TCPTimeout = TCP_TIMEOUT;	   /* Timeout on TCP sockets */
 
 /* ------------------------------------------------------------------------- */
 
@@ -58,8 +59,11 @@ PRIVATE void free_object (HTdns * me)
     if (me) {
 	FREE(me->hostname);
 	FREE(me->server);
-	if (me->sockfd != INVSOC && !me->active)
+ 	if (me->sockfd != INVSOC && !me->active) {
 	    NETCLOSE(me->sockfd);
+	    HTEvent_UnRegister(me->sockfd, (SockOps) FD_ALL);
+	    HTList_removeObject(PersSock, me);
+	}
 	if (*me->addrlist)
 	    free(*me->addrlist);
 	FREE(me->addrlist);
@@ -150,23 +154,43 @@ PUBLIC SOCKFD HTDNS_socket(HTdns *dns)
     return dns ? dns->sockfd : INVSOC;
 }
 
-PUBLIC void HTDNS_setSocket(HTdns *dns, SOCKFD socket)
+/*
+**	We don't want more than MaxSockets-2 connections to be persistent in
+**	order to avoid deadlock.
+*/
+PUBLIC BOOL HTDNS_setSocket(HTdns *dns, SOCKFD socket)
 {
-    if (dns) {
+    if (!dns) return NO;
+    if (!PersSock) PersSock = HTList_new();
+    if (socket == INVSOC) {
+	dns->sockfd = socket;
+	dns->active = NO;
+	dns->expires = 0;
+	HTList_removeObject(PersSock, dns);
+	return YES;
+    } else if (HTList_count(PersSock) < HTNet_maxSocket()-2) {
 	dns->sockfd = socket;
 	dns->active = YES;
 	dns->expires = time(NULL) + TCPTimeout;		  /* Default timeout */
+	HTList_addObject(PersSock, dns);
+	return YES;
     }
+    return NO;
 }
 
 PUBLIC void HTDNS_clearActive (HTdns *dns)
 {
-    if (dns) dns->active = NO;
+    if (dns) {
+	if (PROT_TRACE)
+	    fprintf(TDEST, "DNS Clear... Active bit for socket %d\n",
+		    dns->sockfd);
+	dns->active = NO;
+    }
 }
 
 /*	Persistent Connection Expiration
 **	--------------------------------
-**	Absolute value
+**	Should normally not be used. If, then use calendar time.
 */
 PUBLIC void HTDNS_setSockExpires (HTdns * dns, time_t expires)
 {
@@ -306,9 +330,41 @@ PUBLIC BOOL HTDNS_deleteAll (void)
 	}
 	HTList_delete(CacheTable[cnt]);
 	CacheTable[cnt] = NULL;
-
+    }
+    if (PersSock) {		     /* Remove list of persistent connection */
+	HTList_delete(PersSock);
+	PersSock = NULL;
     }
     return YES;
+}
+
+/*	HTDNS_closeSocket
+**	-----------------
+**	This function is registered when the socket is idle so that we get
+**	a notification if the socket closes at the other end. At this point
+**	we can't use the request object as it might have been freed a long
+**	time ago.
+*/
+PUBLIC int HTDNS_closeSocket(SOCKET soc, HTRequest * request, SockOps ops)
+{
+    if (PROT_TRACE)
+	fprintf(TDEST, "DNS Close... called with socket %d with ops %x\n",
+		soc, (unsigned) ops);
+    if (ops == FD_READ && PersSock) {
+	HTList *cur = PersSock;
+	HTdns *pres;
+	while ((pres = (HTdns *) HTList_nextObject(cur))) {
+	    if (pres->sockfd == soc) {
+		fprintf(TDEST, "DNS Close... socket\n");
+		NETCLOSE(soc);
+		HTDNS_setSocket(pres, INVSOC);
+		break;
+	    }
+	}
+	if (!pres) fprintf(TDEST, "DNS Close... socket NOT FOUND!\n");
+    }
+    HTEvent_UnRegister(soc, (SockOps) FD_ALL);
+    return HT_OK;
 }
 
 /*	HTGetHostByName
@@ -371,7 +427,7 @@ PUBLIC int HTGetHostByName (HTNet *net, char *host)
 	/* See if we have an open connection already */
 	if (pres->sockfd != INVSOC) {
 	    if (pres->active) {			   /* Warm connection in use */
-		net->sockfd = pres->sockfd;
+		net->sockfd = pres->sockfd;		    /* Assign always */
 		if (!(pres->type & HT_TCP_INTERLEAVE)) {
 		    if (PROT_TRACE)
 			fprintf(TDEST, "HostByName.. waiting for socket\n");
@@ -381,11 +437,12 @@ PUBLIC int HTGetHostByName (HTNet *net, char *host)
 		if (PROT_TRACE)
 		    fprintf(TDEST, "HostByName.. Closing %d\n", pres->sockfd);
 		NETCLOSE(pres->sockfd);
-		pres->sockfd = INVSOC;
-		pres->expires = 0;
-	    } else {			     /* Warm connection is ready :-) */
+		HTEvent_UnRegister(pres->sockfd, (SockOps) FD_ALL);
+		HTDNS_setSocket(pres, INVSOC);
+	    } else {		    /* Warm connection is idle and ready :-) */
+		HTEvent_UnRegister(pres->sockfd, (SockOps) FD_ALL);
+		pres->active = YES;		
 		net->sockfd = pres->sockfd;
-		pres->active = YES;
 	    }
  	}
 
@@ -477,6 +534,3 @@ PUBLIC char * HTGetHostBySock ARGS1(int, soc)
 
 #endif	/* not DECNET */
 }
-
-
-

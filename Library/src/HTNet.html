@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Asyncronous Socket Management</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 18-Sep-1995 -->
 </HEAD>
 <BODY>
 
@@ -110,7 +110,12 @@ sockets become free.
 <H3>Number of Simultanous open TCP connections</H3>
 
 Set the max number of simultanous sockets. The default value is
-HT_MAX_SOCKETS which is 6.
+HT_MAX_SOCKETS which is 6. The number of persistent connections depend
+on this value as a deadlock can occur if all available sockets a
+persistent (see the <A HREF="HTDNS.html">DNS Manager</A> for more
+information on setting the number of persistent connections). The
+number of persistent connections can never be more than the max number
+of sockets-2, so letting newmax=2 prevents persistent sockets.
 
 <PRE>
 extern BOOL HTNet_setMaxSocket (int newmax);
@@ -153,6 +158,15 @@ NO
 extern BOOL HTNet_new (HTRequest * request, HTPriority priority);
 </PRE>
 
+<H2>Make an Object Wait</H2>
+
+Let a net object wait for a persistent socket. It will be launched
+from the HTNet_delete() function when the socket gets free.
+
+<PRE>
+extern BOOL HTNet_wait (HTNet *net);
+</PRE>
+
 <H3>Delete an Object</H3>
 
 Deletes the HTNet object from the list of active requests and calls
@@ -169,8 +183,7 @@ extern BOOL HTNet_delete (HTNet * me, int status);
 <H3>Delete ALL HTNet Objects</H3>
 
 Deletes all HTNet object that might either be active or pending We DO
-NOT call the call back functions and we don't care about open socket
-descriptors. A crude way of saying goodbye!
+NOT call the call back functions - A crude way of saying goodbye!
 
 <PRE>
 extern BOOL HTNet_deleteAll (void);

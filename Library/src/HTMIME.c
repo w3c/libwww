@@ -57,7 +57,6 @@ typedef enum _MIME_state {
     CONTENT_LENGTH,
     CONTENT_TRANSFER_ENCODING,
     CONTENT_TYPE,
-    KEEP_ALIVE,
     MIME_DATE,
     DERIVED_FROM,
     EXPIRES,
@@ -154,7 +153,9 @@ PRIVATE int parseheader ARGS3(HTStream *, me, HTRequest *, request,
 		break;
 
 	      case 'k':
-		state = KEEP_ALIVE;
+		check_pointer = "eep-alive";
+		ok_state = JUNK_LINE;  /* We don't use this but recognize it */
+		state = CHECK;
 		break;
 
 	      case 'l':
@@ -165,9 +166,6 @@ PRIVATE int parseheader ARGS3(HTStream *, me, HTRequest *, request,
 		check_pointer = "ime-version";
 		ok_state = JUNK_LINE;  /* We don't use this but recognize it */
 		state = CHECK;
-		break;
-
-	      case 'p':
 		break;
 
 	      case 'r':
@@ -448,21 +446,6 @@ PRIVATE int parseheader ARGS3(HTStream *, me, HTRequest *, request,
 	    state = JUNK_LINE;
 	    break;
 
-	  case KEEP_ALIVE:
-	    while ((value = HTNextField(&ptr)) != NULL) {
-		if (!strcasecomp(value, "timeout")) {
-		    if ((value = HTNextField(&ptr)) != NULL) {
-			int delta = atoi(value);
-			if (STREAM_TRACE)
-			    fprintf(TDEST, "MIMEParser.. Socket expires: %d\n",
-				    delta);
-			HTDNS_setSockExpires(me->net->dns, time(NULL)+delta);
-		    }
-		}
-	    }
-	    state = JUNK_LINE;
-	    break;
-	    
 	  case MIME_DATE:
 	    anchor->date = HTParseTime(ptr);
 	    state = JUNK_LINE;
@@ -663,7 +646,6 @@ PRIVATE int HTMIME_put_block ARGS3(HTStream *, me, CONST char *, b, int, l)
     if (me->target && l > 0) {
 	int status = (*me->target->isa->put_block)(me->target, b, l);
 	if (status==HT_OK && me->net->bytes_read >=me->anchor->content_length){
-	    HTDNS_clearActive(me->net->dns);
 	    return HT_LOADED;
 	}
     }
