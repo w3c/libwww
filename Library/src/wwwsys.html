@@ -1336,6 +1336,17 @@ These are some constants setting the size of buffers used by thread safe
 versions of some system calls.
 <PRE>
 #ifdef HT_REENTRANT
+
+#ifdef _POSIX_LOGIN_NAME_MAX
+#define HT_LOGNAME_MAX  _POSIX_LOGIN_NAME_MAX
+#else
+#ifdef LOGNAME_MAX
+#define HT_LOGNAME_MAX  (LOGNAME_MAX+1)
+#else
+#define HT_LOGNAME_MAX  64
+#endif
+#endif
+
 #define HOSTENT_MAX	128
 #define CTIME_MAX	26
 #endif /* HT_REENTRANT */
