@@ -436,8 +436,13 @@ int main
 #endif
 	    
 	    /* Page size */
-	    } else if (!strcmp(argv[arg], "-p")) {
-		if(arg+1 >= argc || *argv[arg+1] == '-' ||
+	    } else if (!strncmp(argv[arg], "-p", 2)) {
+		if (*(argv[arg]+2) &&
+		    sscanf(argv[arg]+2, "%d", &HTScreenHeight) < 1) {
+		    HTScreenHeight = -1;
+		}
+#if 0
+	        else if (arg+1 >= argc || *argv[arg+1] == '-' ||
 		    sscanf(argv[arg+1], "%d", &HTScreenHeight) < 1)
 		    HTScreenHeight = -1;		/* undefined */
 		else {
@@ -446,11 +451,17 @@ int main
 			HTScreenHeight = MIN_SCREEN_HEIGHT;
 		    if(HTScreenHeight > MAX_SCREEN_HEIGHT)
 			HTScreenHeight = MAX_SCREEN_HEIGHT;
-		}  
+		}
+#endif
 
 	    /* Page width */
-	    } else if (!strcmp(argv[arg], "-w")) {
-		if(arg+1 >= argc || *argv[arg+1] == '-' ||
+	    } else if (!strncmp(argv[arg], "-w", 2)) {
+		if (*(argv[arg]+2) &&
+		    sscanf(argv[arg]+2, "%d", &HTScreenWidth) < 1) {
+		    HTScreenWidth = SCREEN_WIDTH;    	/* undefined */
+		}
+#if 0
+                else if (arg+1 >= argc || *argv[arg+1] == '-' ||
 		    sscanf(argv[arg+1], "%d", &HTScreenWidth) < 1)
 		    HTScreenWidth = SCREEN_WIDTH;    	/* undefined */
 		else {
@@ -460,6 +471,7 @@ int main
 		    if(HTScreenWidth > MAX_SCREEN_WIDTH)
 		        HTScreenWidth = MAX_SCREEN_WIDTH;
 	        }
+#endif
 		    
 	    /* to -- Final represntation */
 	    } else if (!strcmp(argv[arg], "-to")) {
