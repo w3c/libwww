@@ -123,6 +123,13 @@ char *HTURIEncoding_names[] =
   NULL
 };
 
+char *HTTransportMode_names[] = 
+{
+  "HT_TP_SINGLE",
+  "HT_TP_PIPELINE",
+  "HT_TP_INTERLEAVE", 
+  NULL
+};
 
 /* ------------------------------------------------------------------ */
 /* ------------------------------------------------------------------ */
@@ -390,5 +397,36 @@ HTURIEncoding HTURIEncoding_enum(char *name) {
   }
   return URL_XALPHAS;
 }
+
+HTTransportMode HTTransportMode_enum(char *name) {
+  if (name) {
+    if (!strcasecomp(name, *(HTTransportMode_names+1)))
+      return HT_TP_PIPELINE;
+    else if (!strcasecomp(name, *(HTTransportMode_names+2)))
+      return HT_TP_INTERLEAVE;
+  }
+  return HT_TP_SINGLE;
+}
+
+
+
+char *HTTransportMode_name(HTTransportMode mode) {
+  if (mode ==  HT_TP_PIPELINE)
+    return *(HTTransportMode_names+1);
+  else if (mode == HT_TP_INTERLEAVE)
+    return *(HTTransportMode_names+2);
+  else
+    return *HTTransportMode_names;
+}
+
+
+
+
+
+
+
+
+
+
 
 

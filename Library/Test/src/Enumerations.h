@@ -31,6 +31,9 @@ extern HTAlertOpcode HTAlertOpcode_enum(char *name);
 
 extern HTURIEncoding HTURIEncoding_enum(char *name);
 
+extern HTTransportMode HTTransportMode_enum(char *name);
+
+extern char * HTTransportMode_name(HTTransportMode);
 
 
 

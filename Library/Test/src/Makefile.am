@@ -21,7 +21,8 @@ w3clib_SOURCES = \
 	HTUser_glue.c HTLink_glue.c HTAccess_glue.c HTParse_glue.c \
 	Tcl_Interface.c \
 	glue.c Libdata.c Enumerations.c tclAppInit.c URLgen.c HTFormat_glue.c\
-	HTError_glue.c HTAlert_glue.c
+	HTError_glue.c HTAlert_glue.c HTDNS_glue.c HTUTree_glue.c\
+	HTTrans_glue.c HTNet_glue.c HTInet_glue.c
 
 
 

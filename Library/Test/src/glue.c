@@ -20,6 +20,11 @@
 #include "HTLog_glue.h"
 #include "HTError_glue.h"
 #include "HTAlert_glue.h"
+#include "HTDNS_glue.h"
+#include "HTUTree_glue.h"
+#include "HTTrans_glue.h"
+#include "HTNet_glue.h"
+#include "HTInet_glue.h"
 
 #define CMDLINE 1
 
@@ -53,6 +58,8 @@ Tcl_HashTable   HTableError;
 Tcl_HashTable	HTableMIMEParseSet;
 Tcl_HashTable	HTableCallback;
 Tcl_HashTable	HTableNet;
+Tcl_HashTable   HTableDNS;
+Tcl_HashTable   HTableTrans;
 
 typedef struct{
     char           *name;
@@ -583,6 +590,92 @@ static LibraryFunction www_commands[] = {
   { "HTError_hasSeverity",    HTError_hasSeverity_tcl,        NULL, 0 },
   { "HTError_parameter",      HTError_parameter_tcl,          NULL, 0 },
   { "HTError_location",       HTError_location_tcl,           NULL, 0 },
+  /*HTDNS*/
+  { "HTDNS_setTimeout",       HTDNS_setTimeout_tcl,           NULL, 0 },
+  { "HTDNS_timeout",          HTDNS_timeout_tcl,              NULL, 0 },
+  { "HTDNS_add",              HTDNS_add_tcl,                  NULL, 0 },
+  { "HTDNS_delete",           HTDNS_delete_tcl,               NULL, 0 },
+  { "HTDNS_deleteAll",        HTDNS_deleteAll_tcl,            NULL, 0 },
+  { "HTDNS_updateWeigths",    HTDNS_updateWeigths_tcl,       NULL, 0 },
+  { "HTGetHostBySock",        HTGetHostBySock_tcl,            NULL, 0 },
+  { "HTGetHostByName",        HTGetHostByName_tcl,            NULL, 0 },
+  /*HTUTree*/
+  { "HTUTree_delete",         HTUTree_delete_tcl,             NULL, 0 },
+  { "HTUTree_deleteAll",      HTUTree_deleteAll_tcl,          NULL, 0 },
+  { "HTUTree_find",           HTUTree_find_tcl,               NULL, 0 },
+  { "HTUTree_findNode",       HTUTree_findNode_tcl,           NULL, 0 },
+  { "HTUTree_addNode",        HTUTree_addNode_tcl,            NULL, 0 },
+  { "HTUTree_replaceNode",    HTUTree_replaceNode_tcl,        NULL, 0 },
+  { "HTUTree_deleteNode",     HTUTree_deleteNode_tcl,         NULL, 0 },
+  /*HTTrans*/
+  { "HTTransport_delete",     HTTransport_delete_tcl,         NULL, 0 },
+  { "HTTransport_deleteAll",  HTTransport_deleteAll_tcl,      NULL, 0 },
+  { "HTTransport_find",       HTTransport_find_tcl,           NULL, 0 },
+  { "HTTransport_mode",       HTTransport_mode_tcl,           NULL, 0 },
+  { "HTTransport_setMode",    HTTransport_setMode_tcl,        NULL, 0 },
+  /*HTNet*/
+  { "HTNetCall_deleteAll",    HTNetCall_deleteAll_tcl,        NULL, 0 },
+  { "HTNetCall_execute",      HTNetCall_execute_tcl,          NULL, 0 },
+  { "HTNet_setBefore",        HTNet_setBefore_tcl,            NULL, 0 },
+  { "HTNet_before",           HTNet_before_tcl,               NULL, 0 },
+  { "HTNet_callBefore",       HTNet_callBefore_tcl,           NULL, 0 },
+  { "HTNet_setAfter",         HTNet_setAfter_tcl,             NULL, 0 },
+  { "HTNet_after",            HTNet_after_tcl,                NULL, 0 },
+  { "HTNet_callAfter",        HTNet_callAfter_tcl,            NULL, 0 },
+  { "HTNet_setMaxSocket",     HTNet_setMaxSocket_tcl,         NULL, 0 },
+  { "HTNet_maxSocket",        HTNet_maxSocket_tcl,            NULL, 0 },
+  { "HTNet_increaseSocket",   HTNet_increaseSocket_tcl,       NULL, 0 },
+  { "HTNet_decreaseSocket",   HTNet_decreaseSocket_tcl,       NULL, 0 },
+  { "HTNet_availableSockets", HTNet_availableSockets_tcl,     NULL, 0 },
+  { "HTNet_increasePersistentSocket",HTNet_increasePersistentSocket_tcl,
+    NULL, 0 },
+  { "HTNet_decreasePersistentSocket",   HTNet_decreasePersistentSocket_tcl,   
+    NULL, 0 },
+  { "HTNet_availablePersistentSockets",  HTNet_availablePersistentSockets_tcl, 
+    NULL, 0 },
+  { "HTNet_isIdle",           HTNet_isIdle_tcl,               NULL, 0 },
+  { "HTNet_activeQueue",      HTNet_activeQueue_tcl,          NULL, 0 },
+  { "HTNet_idle",             HTNet_idle_tcl,                 NULL, 0 },
+  { "HTNet_isEmpty",          HTNet_isEmpty_tcl,              NULL, 0 },
+  { "HTNet_pendingQueue",     HTNet_pendingQueue_tcl,         NULL, 0 },
+  { "HTNet_newClient",        HTNet_newClient_tcl,            NULL, 0 },
+  { "HTNet_newServer",         HTNet_newServer_tcl,             NULL, 0 },
+  { "HTNet_new",              HTNet_new_tcl,                  NULL, 0 },
+  { "HTNet_dup",              HTNet_dup_tcl,                  NULL, 0 },
+  { "HTNet_start",            HTNet_start_tcl,                NULL, 0 },
+  { "HTNet_delete",           HTNet_delete_tcl,               NULL, 0 },
+  { "HTNet_deleteAll",        HTNet_deleteAll_tcl,            NULL, 0 },
+  { "HTNet_wait",             HTNet_wait_tcl,                 NULL, 0 },
+  { "HTNet_priority",         HTNet_priority_tcl,             NULL, 0 },
+  { "HTNet_setPriority",      HTNet_setPriority_tcl,          NULL, 0 },
+  { "HTNet_persistent",       HTNet_persistent_tcl,           NULL, 0 },
+  { "HTNet_setPersistent",    HTNet_setPersistent_tcl,        NULL, 0 },
+  { "HTNet_kill",             HTNet_kill_tcl,                 NULL, 0 },
+  { "HTNet_killAll",          HTNet_killAll_tcl,              NULL, 0 },
+  { "HTNet_setContext",       HTNet_setContext_tcl,           NULL, 0 },
+  { "HTNet_context",          HTNet_context_tcl,               NULL, 0 },
+  { "HTNet_setSocket",        HTNet_setSocket_tcl,            NULL, 0 },
+  { "HTNet_socket",           HTNet_socket_tcl,               NULL, 0 },
+  { "HTNet_setRequest",       HTNet_setRequest_tcl,           NULL, 0 },
+  { "HTNet_request",          HTNet_request_tcl,              NULL, 0 },
+  { "HTNet_setTransport",     HTNet_setTransport_tcl,         NULL, 0 },
+  { "HTNet_transport",        HTNet_transport_tcl,            NULL, 0 },
+  { "HTNet_setChannel",       HTNet_setChannel_tcl,           NULL, 0 },
+  { "HTNet_channel",          HTNet_channel_tcl,              NULL, 0 },
+  { "HTNet_setHost",          HTNet_setHost_tcl,              NULL, 0 },
+  { "HTNet_host",             HTNet_host_tcl,                 NULL, 0 },
+  { "HTNet_setDns",           HTNet_setDns_tcl,               NULL, 0 },
+  { "HTNet_dns",              HTNet_dns_tcl,                  NULL, 0 },
+  { "HTNet_home",             HTNet_home_tcl,                 NULL, 0 },
+  /*HTInet*/
+  { "HTErrnoString",          HTErrnoString_tcl,              NULL, 0 },
+  { "HTInetStatus",           HTInetStatus_tcl,               NULL, 0 },
+  { "HTParseInet",            HTParseInet_tcl,                NULL, 0 },
+  { "HTGetTimeZoneOffset",    HTGetTimeZoneOffset_tcl,        NULL, 0 },
+  { "HTGetHostName",          HTGetHostName_tcl,              NULL, 0 },
+  { "HTGetMailAddress",       HTGetMailAddress_tcl,           NULL, 0 },
+  { "HTGetNewsServer",        HTGetNewsServer_tcl,            NULL, 0 },
+  { "HTGetTmpFileName",       HTGetTmpFileName_tcl,           NULL, 0 },
     { 0 }
 };
 
@@ -616,9 +709,8 @@ int WWWLib_Init(Tcl_Interp *interp)
     Tcl_InitHashTable(&HTableMIMEParseSet, TCL_STRING_KEYS);
     Tcl_InitHashTable(&HTableCallback, TCL_STRING_KEYS);
     Tcl_InitHashTable(&HTableNet, TCL_STRING_KEYS);
-
-    /*added by xing, not sure if needed? */
-
+    Tcl_InitHashTable(&HTableDNS, TCL_STRING_KEYS);
+    Tcl_InitHashTable(&HTableTrans, TCL_STRING_KEYS);
     Tcl_InitHashTable(&HTableChannel, TCL_STRING_KEYS);
 
     random_seed();
@@ -653,6 +745,8 @@ void WWWLib_Terminate()
     Tcl_DeleteHashTable(&HTableMIMEParseSet);
     Tcl_DeleteHashTable(&HTableCallback);
     Tcl_DeleteHashTable(&HTableNet);
+    Tcl_DeleteHashTable(&HTableDNS);
+    Tcl_DeleteHashTable(&HTableTrans);
 }
 
 /*=================================================*/
