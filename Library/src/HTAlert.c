@@ -26,18 +26,18 @@ PRIVATE BOOL HTInteractive=YES;		    /* Any prompts from the Library? */
 
 /* ------------------------------------------------------------------------- */
 
-PUBLIC void HTPrompt_setInteractive ARGS1(BOOL, interactive)
+PUBLIC void HTPrompt_setInteractive (BOOL interactive)
 {
     HTInteractive = interactive;
 }
 
-PUBLIC BOOL HTPrompt_interactive NOARGS
+PUBLIC BOOL HTPrompt_interactive (void)
 {
     return HTInteractive;
 }
 
-PUBLIC void HTProgress ARGS3(HTRequest *, request, HTProgressState, state,
-			     void *, param)
+PUBLIC void HTProgress (HTRequest * request, HTProgressState state,
+			void * param)
 {
     /* This is just to avoid that we get a lot of progress messages in LMB */
     if (!(WWWTRACE)) return;
@@ -93,7 +93,7 @@ PUBLIC void HTProgress ARGS3(HTRequest *, request, HTProgressState, state,
 }
 
 
-PUBLIC void HTAlert ARGS2(HTRequest *, request, CONST char *, Msg)
+PUBLIC void HTAlert (HTRequest * request, CONST char * Msg)
 {
 #ifdef NeXTStep
     NXRunAlertPanel(NULL, "%s", NULL, NULL, NULL, Msg);
@@ -102,7 +102,7 @@ PUBLIC void HTAlert ARGS2(HTRequest *, request, CONST char *, Msg)
 #endif
 }
 
-PUBLIC BOOL HTConfirm ARGS2(HTRequest *, request, CONST char *, Msg)
+PUBLIC BOOL HTConfirm (HTRequest * request, CONST char * Msg)
 {
   char Reply[4];	/* One more for terminating NULL -- AL */
   char *URep;
@@ -133,8 +133,8 @@ PUBLIC BOOL HTConfirm ARGS2(HTRequest *, request, CONST char *, Msg)
 /*	Prompt for answer and get text back. Reply text is either NULL on
 **	error or a dynamic string which the caller must free.
 */
-PUBLIC char * HTPrompt ARGS3(HTRequest *, request, CONST char *, Msg,
-			     CONST char *, deflt)
+PUBLIC char * HTPrompt (HTRequest * request, CONST char * Msg,
+			CONST char * deflt)
 {
     char buffer[200];
     char *reply = NULL;
@@ -160,7 +160,7 @@ PUBLIC char * HTPrompt ARGS3(HTRequest *, request, CONST char *, Msg,
 /*	Prompt for password without echoing the reply. Reply text is
 **	either NULL on error or a dynamic string which the caller must free.
 */
-PUBLIC char * HTPromptPassword ARGS2(HTRequest *, request, CONST char *, Msg)
+PUBLIC char * HTPromptPassword (HTRequest * request, CONST char * Msg)
 {
     char *reply = NULL;
     if (HTInteractive) {
@@ -193,10 +193,10 @@ PUBLIC char * HTPromptPassword ARGS2(HTRequest *, request, CONST char *, Msg)
 **	are NOT freed.
 **	
 */
-PUBLIC void HTPromptUsernameAndPassword ARGS4(HTRequest *,	request,
-					      CONST char *,	Msg,
-					      char **,		username,
-					      char **,		password)
+PUBLIC void HTPromptUsernameAndPassword (HTRequest *	request,
+					 CONST char *	Msg,
+					 char **	username,
+					 char **	password)
 {
     fprintf(TDEST, "%s\n", Msg ? Msg : "UNKNOWN");
     *username = HTPrompt(request, "Username:", *username);
@@ -213,7 +213,7 @@ PUBLIC void HTPromptUsernameAndPassword ARGS4(HTRequest *,	request,
 **
 **	This function might be overwritten by a smart server or client.
 */
-PUBLIC void HTErrorMsg ARGS1(HTRequest *, request)
+PUBLIC void HTErrorMsg (HTRequest * request)
 {
     HTList *cur = HTRequest_errorStack(request);
     BOOL highest = YES;

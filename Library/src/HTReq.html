@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Public Declaration of Request Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 28-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  3-Nov-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -80,7 +80,7 @@ This is an internal routine, which has an address AND a matching
 anchor.  (The public routines are called with one OR the other.)
 
 <PRE>
-extern BOOL HTLoad (HTRequest * request, HTPriority priority, BOOL recursive);
+extern BOOL HTLoad (HTRequest * request, BOOL recursive);
 </PRE>
 
 <H2>Request Terminate Call Back Function</H2>
@@ -90,7 +90,7 @@ probably terminate a request to the Library. The application can
 register addtional call back functions in the same manner:
 
 <PRE>
-extern HTNetCallBack HTLoad_terminate;
+extern HTNetCallback HTLoad_terminate;
 </PRE>
 
 <H2>Creation and Deletion Methods</H2>
@@ -370,6 +370,17 @@ extern void HTRequest_setParent (HTRequest *request, HTParentAnchor *parent);
 extern HTParentAnchor * HTRequest_parent (HTRequest *request);
 </PRE>
 
+<H3>Sending data to the Network</H3>
+
+There are two ways to send (post) information to the network: It can
+be included as part of the body and/or as extra metainformation. In
+the latter case you need to register a callback function of the
+following type using the methods provided in the next section.
+
+<PRE>
+typedef int HTPostCallback (HTRequest *request, HTStream * target);
+</PRE>
+
 <H3>Extra Headers</H3>
 
 Extra header information can be send along with a request using this
@@ -379,8 +390,11 @@ that you can register a header together with a handler in the MIME
 parser.
 
 <PRE>
-extern void HTRequest_setExtra (HTRequest *request, char *extra);
-extern char *HTRequest_extra (HTRequest *request);
+extern void HTRequest_setGenerator (HTRequest *request, HTList *gens, BOOL override);
+extern HTList * HTRequest_generator (HTRequest *request, BOOL *override);
+
+extern void HTRequest_setParser (HTRequest *request, HTList *pars, BOOL override);
+extern HTList * HTRequest_parser (HTRequest *request, BOOL *override);
 </PRE>
 
 <H2>Streams From Network to Application</H2>
@@ -468,6 +482,19 @@ extern void HTRequest_setPreemtive (HTRequest *request, BOOL mode);
 extern BOOL HTRequest_preemtive (HTRequest *request);
 </PRE>
 
+<H2>Priority Management</H2>
+
+The request can be assigned an initial priority which then gets
+inherited by all HTNet objects and other requests objects created as a
+result of this one. You can also assign a separate priority to an
+indicidual HTNet obejct by using the methods in the <A
+HREF="HTNet.html">Net manager</A>.
+
+<PRE>
+extern HTPriority HTRequest_priority (HTRequest * request);
+extern BOOL HTRequest_setPriority (HTRequest * request, HTPriority priority);
+</PRE>
+
 <H2>Format Negotiation</H2>
 
 When accessing the local file system, the Library is capable of
@@ -506,8 +533,8 @@ extern long HTRequest_bytesRead(HTRequest * request);
 
 <H2>Kill a Request</H2>
 
-This function kills this particular request, see HTNet module for a
-function that kills them all.
+This function kills this particular request, see <A
+HREF="HTNet.html">HTNet module</A> for a function that kills them all.
 
 <PRE>
 extern BOOL HTRequest_kill(HTRequest * request);

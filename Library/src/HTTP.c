@@ -603,8 +603,8 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 				     srcnet->cbf, srcnet->priority);
 		    return HT_OK;
 		}
-		status = request->PostCallBack ?
-		    request->PostCallBack(request, request->input_stream) :
+		status = request->PostCallback ?
+		    request->PostCallback(request, request->input_stream) :
 			(*request->input_stream->isa->flush)(request->input_stream);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
@@ -677,7 +677,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 			}
 			free(msg);
 			return HT_OK;
-		    } if (request->PostCallBack) {
+		    } if (request->PostCallback) {
 #if 0
 			return HTUploadAnchor((HTAnchor*) anchor, request) ?
 			    HT_OK : HT_ERROR;
@@ -724,7 +724,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		    HTAnchor_appendMethods(request->anchor, request->method);
 		    ret=HTCopyAnchor((HTAnchor*)request->source->anchor, dest);
 		    return ret ? HT_OK : HT_ERROR;
-		} else if (request->PostCallBack) {
+		} else if (request->PostCallback) {
 #if 0
 		    ret = HTUploadAnchor((HTAnchor*) request->anchor,request);
 		    return ret ? HT_OK : HT_ERROR;

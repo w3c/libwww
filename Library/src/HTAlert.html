@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Displaying and Promting User Messages</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  2-Nov-1995 -->
 <NEXTID N="z3">
 </HEAD>
 <BODY>
@@ -32,9 +32,8 @@ stdio :-(. It contain two parts:
 </UL>
 
 This module is implemented by <A HREF="HTAlert.c">HTAlert.c</A>, and
-it is a part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>.
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
 
 <PRE>
 #ifndef HTALERT_H
@@ -55,8 +54,8 @@ functions returning a <EM>string</EM> return a dynamic string which
 must be freed by the caller.
 
 <PRE>
-extern void HTPrompt_setInteractive	PARAMS((BOOL interative));
-extern BOOL HTPrompt_interactive	NOPARAMS;
+extern void HTPrompt_setInteractive	(BOOL interative);
+extern BOOL HTPrompt_interactive	(void);
 </PRE>
 
 <H3>Display a message, then wait for 'YES' or 'NO'</H3>
@@ -66,7 +65,7 @@ passed as a parameter. If the user reacts in the affirmative, returns
 <EM>TRUE</EM>, returns <EM>FALSE</EM> otherwise.
 
 <PRE>
-extern BOOL HTConfirm	PARAMS((HTRequest *request, CONST char * Msg));
+extern BOOL HTConfirm	(HTRequest *request, CONST char * Msg);
 </PRE>
 
 <H3>Prompt the User a Question</H3>
@@ -75,8 +74,8 @@ Prompt for answer and get text back. Reply text is either NULL on
 error or a dynamic string which the caller must free.
 
 <PRE>		
-extern char * HTPrompt	PARAMS((HTRequest *request, CONST char * Msg,
-				CONST char * deflt));
+extern char * HTPrompt	(HTRequest *request, CONST char * Msg,
+			CONST char * deflt);
 </PRE>
 
 <H3>Prompt for a Password</H3>
@@ -88,7 +87,7 @@ NULL on error or a dynamic string which the caller must free. <P>
 systems returns a string of 8 or 16 bytes.
 
 <PRE>
-extern char * HTPromptPassword PARAMS((HTRequest *request, CONST char * Msg));
+extern char * HTPromptPassword (HTRequest *request, CONST char * Msg);
 </PRE>
 
 <H3>Prompt for a UserID and a Password</H3>
@@ -98,10 +97,10 @@ This is just a composite function using <EM>HTPrompt</EM> and
 caller.
 
 <PRE>
-extern void HTPromptUsernameAndPassword PARAMS((HTRequest *request,
-						CONST char *	Msg,
-						char **		username,
-						char **		password));
+extern void HTPromptUsernameAndPassword (HTRequest *	request,
+					 CONST char *	Msg,
+					 char **	username,
+					 char **	password);
 </PRE>
 
 <A NAME="NonInteractive"><H2>Messages, Warnings, and Errors</H2></A>
@@ -114,7 +113,7 @@ no response form the user.
 This function simply puts out the message passed.
 
 <PRE>
-extern void HTAlert	PARAMS((HTRequest *request, CONST char * Msg));
+extern void HTAlert	(HTRequest *request, CONST char * Msg);
 </PRE>
 
 <H3>Progress Notification</H3>
@@ -136,8 +135,8 @@ typedef enum _HTProgressState {
     HT_PROG_WAIT			/* Wait for socket */
 } HTProgressState;
 
-extern void HTProgress	PARAMS((HTRequest *request, HTProgressState state,
-				void * param));
+extern void HTProgress	(HTRequest *request, HTProgressState state,
+			 void * param);
 </PRE>
 
 <H3>Generating an Error Message of a request</H3>
@@ -149,7 +148,7 @@ handled to the user in a nice(r) way. That is the reason for putting
 the actual implementation in <A HREF="HTAlert.c">HTAlert.c</A>.<P>
 
 <PRE>
-extern void HTErrorMsg	PARAMS((HTRequest * request));
+extern void HTErrorMsg	(HTRequest * request);
 
 #endif
 </PRE>

@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Structured Stream Definition</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  2-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -50,21 +51,17 @@ typedef struct _HTStructuredClass {
 
     char * name;
 
-    int (*flush)		PARAMS((HTStructured *	me));
+    int (*flush)	(HTStructured * me);
 
-    int (*_free)		PARAMS((HTStructured *	me));
+    int (*_free)	(HTStructured *	me);
 
-    int (*abort)		PARAMS((HTStructured *	me, HTError e));
+    int (*abort)	(HTStructured *	me, HTError e);
 
-    int (*put_character)	PARAMS((HTStructured *	me,
-					char		ch));
+    int (*put_character)(HTStructured *	me, char ch);
 
-    int (*put_string)		PARAMS((HTStructured *	me,
-					CONST char *	str));
+    int (*put_string)	(HTStructured *	me, CONST char * str);
 
-    int (*put_block)		PARAMS((HTStructured *	me,
-					CONST char *	str,
-					int		len));
+    int (*put_block)	(HTStructured * me, CONST char * str, int len);
 </PRE>
 
 See the <A HREF="HTStream.html">Generic Stream Definition</A> for an
@@ -73,16 +70,14 @@ explanation of these methods. Note that they all have a
 stream. This is to avoid <EM>incompatible pointer</EM> warnings
 
 <PRE>
-    void (*start_element)	PARAMS((HTStructured *	me,
-					int		element_number,
-					CONST BOOL *	attribute_present,
-					CONST char **	attribute_value));
+    void (*start_element)(HTStructured *me,
+			  int		element_number,
+			  CONST BOOL *	attribute_present,
+			  CONST char **	attribute_value);
 
-    void (*end_element)		PARAMS((HTStructured *	me,
-					int		element_number));
+    void (*end_element)	(HTStructured *	me, int element_number);
 
-    void (*put_entity)		PARAMS((HTStructured *	me,
-					int		entity_number));
+    void (*put_entity)	(HTStructured *	me, int entity_number);
 		
 } HTStructuredClass;
 

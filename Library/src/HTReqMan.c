@@ -234,6 +234,54 @@ PUBLIC HTList * HTRequest_charset (HTRequest *request)
 }
 
 /*
+**	Extra Header Generators. list can be NULL
+*/
+PUBLIC void HTRequest_setGenerator (HTRequest *request, HTList *generator,
+				    BOOL override)
+{
+    if (request) {
+	request->generators = generator;
+	request->gens_local = override;
+    }
+}
+
+PUBLIC HTList * HTRequest_generator (HTRequest *request, BOOL *override)
+{
+    if (request) {
+	*override = request->gens_local;
+	return request->generators;
+    }
+    return NULL;
+}
+
+/*
+**	Extra Header Parsers. list can be NULL
+*/
+PUBLIC void HTRequest_setParser (HTRequest *request, HTList *parser,
+				 BOOL override)
+{
+    if (request) {
+	request->parsers = parser;
+	request->pars_local = override;
+    }
+}
+
+PUBLIC HTList * HTRequest_parser (HTRequest *request, BOOL *override)
+{
+    if (request) {
+	*override = request->pars_local;
+	return request->parsers;
+    }
+    return NULL;
+}
+
+extern void HTRequest_setGenerator (HTRequest *request, HTList *gens, BOOL override);
+extern HTList * HTRequest_generator (HTRequest *request, BOOL *override);
+
+extern void HTRequest_setParser (HTRequest *request, HTList *pars, BOOL override);
+extern HTList * HTRequest_parser (HTRequest *request, BOOL *override);
+
+/*
 **	Set General Headers
 */
 PUBLIC void HTRequest_setGnHd (HTRequest *request, HTGnHd gnhd)
@@ -315,19 +363,6 @@ PUBLIC void HTRequest_setParent (HTRequest *request, HTParentAnchor *parent)
 PUBLIC HTParentAnchor * HTRequest_parent (HTRequest *request)
 {
     return request ? request->parentAnchor : NULL;
-}
-
-/*
-**	Extra headers to be sent
-*/
-PUBLIC void HTRequest_setExtra (HTRequest *request, char *extra)
-{
-    if (request) request->ExtraHeaders = extra;
-}
-
-PUBLIC char *HTRequest_extra (HTRequest *request)
-{
-    return request ? request->ExtraHeaders : NULL;
 }
 
 /*
@@ -495,6 +530,24 @@ PUBLIC int HTRequest_maxRetry (void)
 PUBLIC BOOL HTRequest_retry (HTRequest *request)
 {
     return (request && request->retrys < HTMaxRetry-1);
+}
+
+/*
+**  Priority to be inherited by all HTNet object hanging off this request
+**  The priority can later be chaned by calling the HTNet object directly
+*/
+PUBLIC BOOL HTRequest_setPriority (HTRequest * request, HTPriority priority)
+{
+    if (request) {
+	request->priority = priority;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTPriority HTRequest_priority (HTRequest * request)
+{
+    return (request ? request->priority : -1);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -763,7 +816,7 @@ PRIVATE int get_physical (HTRequest *req)
     FREE(addr);
 
     /* Set the access scheme on our way out */
-    return (HTProtocol_bind(req->anchor)==YES) ? HT_OK : HT_NO_ACCESS;
+    return (HTProtocol_find(req->anchor)==YES) ? HT_OK : HT_NO_ACCESS;
 }
 
 /* --------------------------------------------------------------------------*/
@@ -778,7 +831,7 @@ PRIVATE int get_physical (HTRequest *req)
 **		YES	if request has been registered (success)
 **		NO	an error occured
 */
-PUBLIC BOOL HTLoad (HTRequest * request, HTPriority priority, BOOL recursive)
+PUBLIC BOOL HTLoad (HTRequest * request, BOOL recursive)
 {
     char *arg = NULL;
     int status;
@@ -823,7 +876,7 @@ PUBLIC BOOL HTLoad (HTRequest * request, HTPriority priority, BOOL recursive)
     }
     if (!(arg = HTAnchor_physical(request->anchor)) || !*arg)
 	return NO;
-    return HTNet_new(request, priority);
+    return HTNet_new(request);
 }
 
 

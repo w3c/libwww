@@ -313,7 +313,7 @@ PRIVATE int HTCopy ARGS2(
 }
 
 
-
+#if 0
 /*	Push data from a file pointer down a stream
 **	-------------------------------------
 **
@@ -349,7 +349,7 @@ PRIVATE void HTFileCopy ARGS2(
     } /* next bufferload */	
 }
 
-
+#endif
 
 
 /*	Push data from a socket down a stream STRIPPING CR

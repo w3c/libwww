@@ -23,13 +23,17 @@ HTList * HTList_new (void)
   return newList;
 }
 
-void HTList_delete (HTList * me)
+BOOL HTList_delete (HTList * me)
 {
-  HTList *current;
-  while ((current = me)) {
-    me = me->next;
-    free (current);
-  }
+    if (me) {
+	HTList *current;
+	while ((current = me)) {
+	    me = me->next;
+	    free (current);
+	}
+	return YES;
+    }
+    return NO;
 }
 
 BOOL HTList_addObject (HTList * me, void * newObject)

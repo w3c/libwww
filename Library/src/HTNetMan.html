@@ -67,7 +67,7 @@ struct _HTNet {
     long		bytes_read;		  /* Bytes read from network */
     BOOL		preemtive;   /* Eff result from Request and Protocol */
     HTPriority		priority;	 /* Priority of this request (event) */
-    HTEventCallBack *	cbf;			     /* Library load routine */
+    HTEventCallback *	cbf;			     /* Library load routine */
     HTRequest *		request;	   /* Link back to request structure */
     void *		context;		/* Protocol Specific context */
 };

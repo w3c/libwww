@@ -198,7 +198,7 @@ PRIVATE BOOL HTLoadDocument ARGS2(HTRequest *, request, BOOL, recursive)
 	fprintf (TDEST, "HTAccess.... Accessing document %s\n", full_address);
 	free(full_address);
     }
-    return HTLoad(request, recursive, 0);	       /* @@@@ PRIORITY @@@@ */
+    return HTLoad(request, recursive);
 }
 
 

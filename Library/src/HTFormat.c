@@ -549,17 +549,19 @@ PUBLIC HTStream * HTStreamStack ARGS5(HTFormat,		rep_in,
     double best_quality = -1e30;		/* Pretty bad! */
     HTPresentation *pres, *best_match=NULL;
     
+    if (guess && rep_in == WWW_UNKNOWN) {
+	if (STREAM_TRACE)fprintf(TDEST,"StreamStack. Using guessing stream\n");
+	return HTGuess_new(request, NULL, rep_in, rep_out, output_stream);
+    }
+    if (rep_out == WWW_SOURCE || rep_out == rep_in) {
+	if (STREAM_TRACE)
+	    fprintf(TDEST,"StreamStack. Identical in/out format: %s\n",
+		    HTAtom_name(rep_in));
+	return output_stream ? output_stream : HTBlackHole();
+    }
     if (STREAM_TRACE) {
 	fprintf(TDEST, "StreamStack. Constructing stream stack for %s to %s\n",
 		HTAtom_name(rep_in), HTAtom_name(rep_out));
-    }
-    if (guess  &&  rep_in == WWW_UNKNOWN) {
-	if (PROT_TRACE) fprintf(TDEST, "Returning... guessing stream\n");
-	return HTGuess_new(request, NULL, rep_in, rep_out, output_stream);
-    }
-
-    if (rep_out == WWW_SOURCE || rep_out == rep_in) {
-	return output_stream ? output_stream : HTBlackHole();
     }
 
     conversion[0] = request->conversions;

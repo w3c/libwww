@@ -769,8 +769,8 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 				     HTLoadNews, srcnet->priority);
 		    return HT_OK;
 		}
-		status = request->PostCallBack ?
-                    request->PostCallBack(request, request->input_stream) :
+		status = request->PostCallback ?
+                    request->PostCallback(request, request->input_stream) :
 			(*request->input_stream->isa->flush)(request->input_stream);
  		if (status == HT_WOULD_BLOCK)
                     return HT_OK;

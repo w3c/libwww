@@ -23,10 +23,6 @@
 #include "HTChunk.h"
 #include "HTIcons.h"					 /* Implemented here */
 
-#ifdef VMS
-#include "HTVMSUtils.h"
-#endif /* VMS */
-
 /* Globals */
 PUBLIC BOOL HTDirShowBrackets = YES;
 PRIVATE HTIconNode * icon_unknown = NULL;	/* Unknown file type */

@@ -677,14 +677,12 @@ PUBLIC BOOL HTAnchor_hasChildren  (HTParentAnchor * me)
 
 PUBLIC void HTAnchor_clearIndex  (HTParentAnchor * me)
 {
-    if (me)
-	me->isIndex = NO;
+    if (me) me->isIndex = NO;
 }
 
 PUBLIC void HTAnchor_setIndex  (HTParentAnchor * me)
 {
-  if (me)
-    me->isIndex = YES;
+  if (me) me->isIndex = YES;
 }
 
 PUBLIC BOOL HTAnchor_isIndex  (HTParentAnchor * me)
@@ -698,13 +696,13 @@ PUBLIC BOOL HTAnchor_isIndex  (HTParentAnchor * me)
 
 PUBLIC void * HTAnchor_protocol (HTParentAnchor * me)
 {
-    return me->protocol;
+    return me ? me->protocol : NULL;
 }
 
 PUBLIC void HTAnchor_setProtocol (HTParentAnchor * me,
 	void* 	protocol)
 {
-    me->protocol = protocol;
+    if (me) me->protocol = protocol;
 }
 
 /*	Physical Address
@@ -713,7 +711,7 @@ PUBLIC void HTAnchor_setProtocol (HTParentAnchor * me,
 
 PUBLIC char * HTAnchor_physical (HTParentAnchor * me)
 {
-    return me->physical;
+    return me ? me->physical : NULL;
 }
 
 PUBLIC void HTAnchor_setPhysical (HTParentAnchor * me,
@@ -732,12 +730,12 @@ PUBLIC void HTAnchor_setPhysical (HTParentAnchor * me,
 */
 PUBLIC BOOL HTAnchor_cacheHit (HTParentAnchor * me)
 {
-    return me->cacheHit;
+    return me ? me->cacheHit : NO;
 }
 
 PUBLIC void HTAnchor_setCacheHit (HTParentAnchor * me, BOOL cacheHit)
 {
-    me->cacheHit = cacheHit;
+    if (me) me->cacheHit = cacheHit;
 }
 
 /* ------------------------------------------------------------------------- */

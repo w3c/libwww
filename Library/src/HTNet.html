@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Asyncronous Socket Management</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  6-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  2-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -76,9 +76,9 @@ request. This can be
 </DL>
 
 <PRE>
-typedef int HTNetCallBack (HTRequest * request, int status);
+typedef int HTNetCallback (HTRequest * request, int status);
 
-extern BOOL HTNet_register (HTNetCallBack *cbf, int status);
+extern BOOL HTNet_register (HTNetCallback *cbf, int status);
 </PRE>
 
 <H3>Unregister</H3>
@@ -86,11 +86,11 @@ extern BOOL HTNet_register (HTNetCallBack *cbf, int status);
 Unregister call back functions
 
 <PRE>
-extern BOOL HTNet_unregister (HTNetCallBack *cbf);
+extern BOOL HTNet_unregister (HTNetCallback *cbf);
 extern BOOL HTNet_unregisterAll (void);
 </PRE>
 
-<H2>Call the Call Back Functions</H2>
+<H3>Call the Call Back Functions</H3>
 
 Call all the call back functions registered in the list IF not the
 status is HT_IGNORE. The callback functions are called in the reverse
@@ -123,7 +123,7 @@ extern BOOL HTNet_setMaxSocket (int newmax);
 extern int  HTNet_maxSocket (void);
 </PRE>
 
-<H2>List Active Queue</H2>
+<H3>List Active Queue</H3>
 
 Returns the list of active requests that are currently having an open
 connection. Returns list of HTNet objects or NULL if
@@ -135,7 +135,7 @@ extern HTList *HTNet_activeQueue (void);
 extern BOOL HTNet_idle (void);
 </PRE>
 
-<H2>List Pending Queue</H2>
+<H3>List Pending Queue</H3>
 
 Returns the list of pending requests that are waiting to become
 active. Returns list of HTNet objects or NULL if error
@@ -144,7 +144,7 @@ active. Returns list of HTNet objects or NULL if error
 extern HTList *HTNet_pendingQueue (void);
 </PRE>
 
-<H2>HTNet Object Creation and deletion methods</H2>
+<H2>HTNet Object Methods</H2>
 
 These methods are used from within the Request Manager and are not
 normally to be used outside the Library kernel.
@@ -158,7 +158,7 @@ function registered with this access method.  Returns YES if OK, else
 NO
 
 <PRE>
-extern BOOL HTNet_new (HTRequest * request, HTPriority priority);
+extern BOOL HTNet_new (HTRequest * request);
 </PRE>
 
 <H3>Duplicate an Existing Object</H3>
@@ -170,13 +170,29 @@ Returns YES if OK, else NO.
 extern BOOL HTNet_dup (HTNet *src, HTNet **dest);
 </PRE>
 
-<H2>Make an Object Wait</H2>
+<H3>Make an Object Wait</H3>
 
 Let a net object wait for a persistent socket. It will be launched
 from the HTNet_delete() function when the socket gets free.
 
 <PRE>
 extern BOOL HTNet_wait (HTNet *net);
+</PRE>
+
+<H3>Priority Management</H3>
+
+Each HTNet object is created with a priority which it inherits from
+the <A HREF="HTReq.html">Request manager</A>. However, in some
+stuations it is useful to be to change the current priority after the
+request has been started. These two functions allow you to do
+this. The effect will show up the first time (which might be
+imidiately) the socket blocks and control returns to the event loop.
+Also have a look at how you can do this before the request is issued
+in the <A HREF="HTReq.html">request manager</A>.
+
+<PRE>
+extern HTPriority HTNet_priority (HTNet * net);
+extern BOOL HTNet_setPriority (HTNet * net, HTPriority priority);
 </PRE>
 
 <H3>Delete an Object</H3>
@@ -200,10 +216,6 @@ NOT call the call back functions - A crude way of saying goodbye!
 <PRE>
 extern BOOL HTNet_deleteAll (void);
 </PRE>
-
-<H2>Killing requests</H2>
-
-For those who can't help it ;-)
 
 <H3>Kill a Request</H3>
 

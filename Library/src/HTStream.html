@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>The Generic Stream Class Definition</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  9-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  2-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -66,7 +66,7 @@ typedef struct _HTStreamClass {
 This field is for diagnostics only
 		
 <PRE>
-    int (*flush)		PARAMS((HTStream * me));
+    int (*flush)	(HTStream * me);
 </PRE>
 
 The <CODE>flush</CODE> method is introduced in order to allow the
@@ -77,7 +77,7 @@ want to send buffered data down the target as the date might be
 relevant for this stream only.
 
 <PRE>
-    int (*_free)		PARAMS((HTStream * me));
+    int (*_free)	(HTStream * me);
 </PRE>
 
 The <CODE>free</CODE> method is like the <CODE>flush</CODE> method but
@@ -87,22 +87,18 @@ stream. When the <CODE>free</CODE> method has been called, the
 any more data.
 
 <PRE>
-    int (*abort)		PARAMS((HTStream * me, HTError e));
+    int (*abort)	(HTStream * me, HTError e);
 </PRE>
 
 The <CODE>abort</CODE> method should only be used if a stream is
 interrupted, for example by the user, or an error occurs.
 
 <PRE>
-    int (*put_character)	PARAMS((HTStream *	me,
-					char		ch));
+    int (*put_character)(HTStream * me, char ch);
 				
-    int (*put_string)		PARAMS((HTStream *	me,
-					CONST char *	str));
+    int (*put_string)	(HTStream * me, CONST char * str);
 
-    int (*put_block)		PARAMS((HTStream *	me,
-					CONST char *	str,
-					int		len));
+    int (*put_block)	(HTStream * me, CONST char * str, int len);
 </PRE>
 
 These methods are for actually putting data down the stream. It is

@@ -65,32 +65,32 @@ PRIVATE char *		HTTmpRoot = NULL;   	       /* Dest for tmp files */
 **	who wants a black hole.  These black holes don't radiate,
 **	they just absorb data.
 */
-PRIVATE int HTBlackHole_put_character ARGS2(HTStream *, me, char, c)
+PRIVATE int HTBlackHole_put_character (HTStream * me, char c)
 {
     return HT_OK;
 }
 
-PRIVATE int HTBlackHole_put_string ARGS2(HTStream *, me, CONST char*, s)
+PRIVATE int HTBlackHole_put_string (HTStream * me, CONST char * s)
 {
     return HT_OK;
 }
 
-PRIVATE int HTBlackHole_write ARGS3(HTStream *, me, CONST char*, s, int, l)
+PRIVATE int HTBlackHole_write (HTStream * me, CONST char * s, int l)
 {
     return HT_OK;
 }
 
-PRIVATE int HTBlackHole_flush ARGS1(HTStream *, me)
+PRIVATE int HTBlackHole_flush (HTStream * me)
 {
     return HT_OK;
 }
 
-PRIVATE int HTBlackHole_free ARGS1(HTStream *, me)
+PRIVATE int HTBlackHole_free (HTStream * me)
 {
     return HT_OK;
 }
 
-PRIVATE int HTBlackHole_abort ARGS2(HTStream *, me, HTError, e)
+PRIVATE int HTBlackHole_abort (HTStream * me, HTError e)
 {
     return HT_ERROR;
 }
@@ -110,7 +110,7 @@ PRIVATE CONST HTStreamClass HTBlackHoleClass =
     HTBlackHole_write
 }; 
 
-PUBLIC HTStream * HTBlackHole NOARGS
+PUBLIC HTStream * HTBlackHole (void)
 {
     if (STREAM_TRACE)
 	fprintf(TDEST, "BlackHole... Created\n");
@@ -125,12 +125,11 @@ PUBLIC HTStream * HTBlackHole NOARGS
 ** This function is a dummy function that returns the same output stream
 ** as given as a parameter. Henrik 01/03-94
 */
-PUBLIC HTStream* HTThroughLine ARGS5(
-	HTRequest *,		request,
-	void *,			param,
-	HTFormat,		input_format,
-	HTFormat,		output_format,
-	HTStream *,		output_stream)	            /* Only one used */
+PUBLIC HTStream* HTThroughLine (HTRequest *	request,
+				void *		param,
+				HTFormat	input_format,
+				HTFormat	output_format,
+				HTStream *	output_stream)
 {
     return output_stream;
 }
@@ -139,25 +138,25 @@ PUBLIC HTStream* HTThroughLine ARGS5(
 /*  			     SOCKET WRITER STREAM			     */
 /* ------------------------------------------------------------------------- */
 
-PRIVATE int HTFWriter_put_character ARGS2(HTStream *, me, char, c)
+PRIVATE int HTFWriter_put_character (HTStream * me, char c)
 {
     return (fputc(c, me->fp) == EOF) ? HT_ERROR : HT_OK;
 }
 
-PRIVATE int HTFWriter_put_string ARGS2(HTStream *, me, CONST char*, s)
+PRIVATE int HTFWriter_put_string (HTStream * me, CONST char* s)
 {
     if (*s)				             /* For vms :-( 10/04-94 */
 	return (fputs(s, me->fp) == EOF) ? HT_ERROR : HT_OK;
     return HT_OK;
 }
 
-PRIVATE int HTFWriter_flush ARGS1(HTStream *, me)
+PRIVATE int HTFWriter_flush (HTStream * me)
 {
     return (fflush(me->fp) == EOF) ? HT_ERROR : HT_OK;
 }
 
 
-PRIVATE int HTFWriter_write ARGS3(HTStream *, me, CONST char*, s, int, l)
+PRIVATE int HTFWriter_write (HTStream * me, CONST char* s, int l)
 {
     int status ;
     status = (fwrite(s, 1, l, me->fp) != l) ? HT_ERROR : HT_OK ;
@@ -170,7 +169,7 @@ PRIVATE int HTFWriter_write ARGS3(HTStream *, me, CONST char*, s, int, l)
 }
 
 
-PRIVATE int HTFWriter_free ARGS1(HTStream *, me)
+PRIVATE int HTFWriter_free (HTStream * me)
 {
     if (me->leave_open != YES) fclose(me->fp);
 
@@ -189,7 +188,7 @@ PRIVATE int HTFWriter_free ARGS1(HTStream *, me)
     return HT_OK;
 }
 
-PRIVATE int HTFWriter_abort ARGS2(HTStream *, me, HTError, e)
+PRIVATE int HTFWriter_abort (HTStream * me, HTError e)
 {
     if (me->leave_open != YES) fclose(me->fp);
     if (me->end_command) {		/* Temp file */
@@ -218,7 +217,7 @@ PRIVATE CONST HTStreamClass HTFWriter = /* As opposed to print etc */
     HTFWriter_write
 };
 
-PUBLIC HTStream* HTFWriter_new ARGS2(FILE *, fp, BOOL, leave_open)
+PUBLIC HTStream* HTFWriter_new (FILE * fp, BOOL leave_open)
 {
     HTStream* me;
     
@@ -248,7 +247,7 @@ PUBLIC HTStream* HTFWriter_new ARGS2(FILE *, fp, BOOL, leave_open)
 **	--------------
 **	If `tmp_root' is NULL use the current value (might be a define)
 */
-PUBLIC BOOL HTTmp_setRoot ARGS1(CONST char *, tmp_root)
+PUBLIC BOOL HTTmp_setRoot (CONST char * tmp_root)
 {
     StrAllocCopy(HTTmpRoot, tmp_root ? tmp_root : HT_TMP_ROOT);
     if (*(HTTmpRoot+strlen(HTTmpRoot)-1) != '/')
@@ -262,7 +261,7 @@ PUBLIC BOOL HTTmp_setRoot ARGS1(CONST char *, tmp_root)
 /*	Get Tmp Root
 **	--------------
 */
-PUBLIC CONST char * HTTmp_getRoot NOARGS
+PUBLIC CONST char * HTTmp_getRoot (void)
 {
     return HTTmpRoot;
 }
@@ -272,7 +271,7 @@ PUBLIC CONST char * HTTmp_getRoot NOARGS
 **	--------------
 **	For clean up memory
 */
-PUBLIC void HTTmp_freeRoot NOARGS
+PUBLIC void HTTmp_freeRoot (void)
 {
     FREE(HTTmpRoot);
 }
@@ -282,8 +281,7 @@ PUBLIC void HTTmp_freeRoot NOARGS
 **   to the path given. Returns a string that must be freed by the caller or
 **   NULL on error. The base must be '/' terminated which!
 */
-PRIVATE char *get_filename ARGS3(char *, base, CONST char *, url,
-				 CONST char *, suffix)
+PRIVATE char *get_filename (char * base, CONST char * url, CONST char * suffix)
 {
     char *path=NULL;
     char filename[40];
@@ -325,12 +323,11 @@ PRIVATE char *get_filename ARGS3(char *, base, CONST char *, url,
 **	in case the application is fussy, or so that a generic opener can
 **	be used.
 */
-PUBLIC HTStream* HTSaveAndExecute ARGS5(
-	HTRequest *,		request,
-	void *,			param,
-	HTFormat,		input_format,
-	HTFormat,		output_format,
-	HTStream *,		output_stream)
+PUBLIC HTStream* HTSaveAndExecute (HTRequest *	request,
+				   void *	param,
+				   HTFormat	input_format,
+				   HTFormat	output_format,
+				   HTStream *	output_stream)
 {
     char *fnam;
     HTStream* me;
@@ -390,13 +387,11 @@ PUBLIC HTStream* HTSaveAndExecute ARGS5(
 **	GUI Apps should open local Save panel here really.
 **
 */
-PUBLIC HTStream* HTSaveLocally ARGS5(
-	HTRequest *,		request,
-	void *,			param,
-	HTFormat,		input_format,
-	HTFormat,		output_format,
-	HTStream *,		output_stream)	/* Not used */
-
+PUBLIC HTStream* HTSaveLocally (HTRequest *	request,
+				void *		param,
+				HTFormat	input_format,
+				HTFormat	output_format,
+				HTStream *	output_stream)
 {
     char *fnam = NULL;
     char *answer = NULL;
@@ -453,12 +448,11 @@ PUBLIC HTStream* HTSaveLocally ARGS5(
 **	The special case is a kludge. Better is everything uses streams
 **	and nothing uses files.  Then this routine will go too. :-))
 */
-PUBLIC HTStream* HTSaveAndCallBack ARGS5(
-	HTRequest *,		request,
-	void *,			param,
-	HTFormat,		input_format,
-	HTFormat,		output_format,
-	HTStream *,		output_stream)
+PUBLIC HTStream* HTSaveAndCallback (HTRequest *		request,
+				    void *		param,
+				    HTFormat		input_format,
+				    HTFormat		output_format,
+				    HTStream *		output_stream)
 {
    HTStream * me;
    

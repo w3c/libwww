@@ -36,8 +36,8 @@ PRIVATE fd_set all_fds ;			    /* any descriptor at all */
 PRIVATE CONST int SecondsToWait = 5 ;
 
 PRIVATE void __ResetMaxSock( void ) ;
-PRIVATE int __DoCallBack( SOCKET, SockOps);
-PRIVATE int __DoUserCallBack( SOCKET, SockOps);
+PRIVATE int __DoCallback( SOCKET, SockOps);
+PRIVATE int __DoUserCallback( SOCKET, SockOps);
 PRIVATE void __DumpFDSet( fd_set *, CONST char *);
 
 typedef unsigned long DWORD;
@@ -51,14 +51,14 @@ typedef struct rq_t RQ;
 
 /*
 ** an action consists of a request, a set of requested operations 
-** a HTEventCallBack function, and a priority (priority is not used in this
+** a HTEventCallback function, and a priority (priority is not used in this
 ** version)
 */
 
 typedef struct action_t  { 
     HTRequest * rq ;    				/* request structure */
     SockOps ops ;         			     /* requested operations */
-    HTEventCallBack *cbf;      		     /* callback function to execute */
+    HTEventCallback *cbf;      		     /* callback function to execute */
     HTPriority p;         	     /* priority associated with this socket */
 } ACTION ;
 
@@ -116,10 +116,10 @@ PRIVATE CONST SockOps ExceptBits = FD_OOB ;
 /*
 ** Local functions 
 */
-PRIVATE int __HTEvent_addRequest( SOCKET, HTRequest *, SockOps, HTEventCallBack *, HTPriority); 
-PRIVATE void __RequestInit( RQ *, SOCKET, HTRequest *, SockOps, HTEventCallBack *, HTPriority);
+PRIVATE int __HTEvent_addRequest( SOCKET, HTRequest *, SockOps, HTEventCallback *, HTPriority); 
+PRIVATE void __RequestInit( RQ *, SOCKET, HTRequest *, SockOps, HTEventCallback *, HTPriority);
 PRIVATE int __ProcessFds( fd_set *, SockOps, CONST char *);
-PRIVATE void __RequestUpdate( RQ *, SOCKET, HTRequest *, SockOps, HTEventCallBack *, HTPriority);
+PRIVATE void __RequestUpdate( RQ *, SOCKET, HTRequest *, SockOps, HTEventCallback *, HTPriority);
 PRIVATE int __EventUnregister(RQ * , RQ **, SockOps );
 
 /* ------------------------------------------------------------------------- */
@@ -175,7 +175,7 @@ PUBLIC BOOL HTEvent_unregisterTimeout (void)
 ** it as just another socket. Otherwise, take steps depending on the platform
 */
 PUBLIC int HTEvent_RegisterTTY( SOCKET fd, HTRequest * rq, SockOps ops, 
-			       HTEventCallBack *cbf, HTPriority p) 
+			       HTEventCallback *cbf, HTPriority p) 
 {
     assert(rq != 0);
     console_in_use = YES;
@@ -183,7 +183,7 @@ PUBLIC int HTEvent_RegisterTTY( SOCKET fd, HTRequest * rq, SockOps ops,
 
     if (THD_TRACE) 
 	fprintf(TDEST, 
-		"RegisterTTY. socket %d, request %p HTEventCallBack %p SockOps %x at priority %d\n",
+		"RegisterTTY. socket %d, request %p HTEventCallback %p SockOps %x at priority %d\n",
 		fd, (void *)rq,  (void *)cbf, (unsigned) ops, (unsigned) p);
 	
 #ifdef TTY_IS_SELECTABLE 
@@ -234,15 +234,15 @@ PUBLIC int HTEvent_UnRegisterTTY(SOCKET s, SockOps ops)
 /*
 **  HTEvent_Register
 **  for a given socket, reqister a request structure, a set of operations, 
-**  a HTEventCallBack function, and a priority. For this implementation, 
-**  we allow only a single HTEventCallBack function for all operations.
+**  a HTEventCallback function, and a priority. For this implementation, 
+**  we allow only a single HTEventCallback function for all operations.
 **  and the priority field is ignored.
 */
 PUBLIC int HTEvent_Register (SOCKET s, HTRequest * rq, SockOps ops,
-			     HTEventCallBack *cbf, HTPriority p) 
+			     HTEventCallback *cbf, HTPriority p) 
 {
     if (THD_TRACE) 
-	fprintf(TDEST, "Register.... socket %d, request %p HTEventCallBack %p SockOps %x at priority %d\n",
+	fprintf(TDEST, "Register.... socket %d, request %p HTEventCallback %p SockOps %x at priority %d\n",
 		s, (void *)rq,  (void *)cbf, (unsigned) ops, (unsigned) p) ;
 
 
@@ -291,11 +291,11 @@ PUBLIC int HTEvent_Register (SOCKET s, HTRequest * rq, SockOps ops,
 
 /*
 **  HTEvent_addRequst - add the given socket and its associated Request
-**  when socket has activity, the registered HTEventCallBack function will
+**  when socket has activity, the registered HTEventCallback function will
 **  invoked  
 */
 PRIVATE int __HTEvent_addRequest(SOCKET s, HTRequest * rq, SockOps ops,
-				 HTEventCallBack *cbf, HTPriority p)
+				 HTEventCallback *cbf, HTPriority p)
 {
     RQ * rqp = 0 , **rqpp = 0 ;
     long v = HASH(s);
@@ -327,7 +327,7 @@ PRIVATE int __HTEvent_addRequest(SOCKET s, HTRequest * rq, SockOps ops,
 ** a set of inputs. N.B. This initializes the entire registration structure 
 */
 PRIVATE void __RequestInit(RQ * rqp, SOCKET s, HTRequest * rq, 
-			   SockOps ops, HTEventCallBack *cbf, HTPriority p) 
+			   SockOps ops, HTEventCallback *cbf, HTPriority p) 
 {
     if( THD_TRACE)
     	fprintf(TDEST,"RequestInit. initializing RQ entry for socket %d\n", s);
@@ -344,7 +344,7 @@ PRIVATE void __RequestInit(RQ * rqp, SOCKET s, HTRequest * rq,
 ** the socket _or_ the next pointer
 */
 PRIVATE void __RequestUpdate( RQ * rqp, SOCKET s, HTRequest * rq,
-			     SockOps ops, HTEventCallBack * cbf, HTPriority p)
+			     SockOps ops, HTEventCallback * cbf, HTPriority p)
 {
     if (THD_TRACE) 
     	fprintf(TDEST, "Req Update.. updating for socket %u\n", s) ;
@@ -361,7 +361,7 @@ PRIVATE void __RequestUpdate( RQ * rqp, SOCKET s, HTRequest * rq,
 ** remove the registered information for the specified socket for the actions 
 ** specified in ops. if no actions remain after the unregister, the registered
 ** info is deleted, and, if the socket has been registered for notification, 
-** the HTEventCallBack will be invoked.
+** the HTEventCallback will be invoked.
 */
 PUBLIC int HTEvent_UnRegister( SOCKET s, SockOps ops) 
 {
@@ -389,11 +389,11 @@ PUBLIC int HTEvent_UnRegister( SOCKET s, SockOps ops)
 
 /*
 ** HTEvent_Retrieve 
-** given a socket, return the HTEventCallBack function registered for it
+** given a socket, return the HTEventCallback function registered for it
 ** and return the HTRequest pointer associated with it.
 ** If the socket isn't found, the function returns NULL
 */
-PUBLIC HTEventCallBack *HTEvent_Retrieve(SOCKET s, SockOps ops,HTRequest **arp)
+PUBLIC HTEventCallback *HTEvent_Retrieve(SOCKET s, SockOps ops,HTRequest **arp)
 {
     long value = HASH(s);
     register RQ * rqp = 0, **rqpp = 0 ;
@@ -412,7 +412,7 @@ PUBLIC HTEventCallBack *HTEvent_Retrieve(SOCKET s, SockOps ops,HTRequest **arp)
     	fprintf(TDEST, "Retrieve.... %s socket %d\n", found ? "Found" : "Didn't find", s) ;
 
     if (!found) 
-        return (HTEventCallBack *) NULL;
+        return (HTEventCallback *) NULL;
     else {
     	*arp = rqp->actions[0].rq;
         return rqp->actions[0].cbf;
@@ -569,7 +569,7 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 	if (console_in_use && consoleReady) {
 	    if (THD_TRACE) 
 	    	fprintf(TDEST,"Event Loop.. console ready, invoke callback\n");
-	    status = __DoUserCallBack((SOCKET) console_handle, FD_READ);
+	    status = __DoUserCallback((SOCKET) console_handle, FD_READ);
 	    if (status != HT_OK)
 		return status;
 
@@ -631,7 +631,7 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 
 /*
 ** ProcessFds 
-** preform the associated HTEventCallBack function for each FD in a given set  
+** preform the associated HTEventCallback function for each FD in a given set  
 */
 PRIVATE int __ProcessFds( fd_set * fdsp, SockOps ops, CONST char * str) 
 {
@@ -648,34 +648,34 @@ PRIVATE int __ProcessFds( fd_set * fdsp, SockOps ops, CONST char * str)
     for (s = 0 ; s <= max_sock; s++) {
         if (FD_ISSET( s, fdsp)) 
 #endif 
-	return __DoCallBack( s, ops);
+	return __DoCallback( s, ops);
     }
     return HT_OK;
 }
 
 /*
-** __DoCallBack( SOCKET, SockOps ) 
+** __DoCallback( SOCKET, SockOps ) 
 **
-** a  little function that just invokes the HTEventCallBack routine associated
+** a  little function that just invokes the HTEventCallback routine associated
 ** with the given socket. 
 **
 */
-PRIVATE int __DoCallBack( SOCKET s, SockOps ops)
+PRIVATE int __DoCallback( SOCKET s, SockOps ops)
 {
     HTRequest * rqp = NULL;
-    HTEventCallBack *cbf = HTEvent_Retrieve( s, ops, &rqp);
+    HTEventCallback *cbf = HTEvent_Retrieve( s, ops, &rqp);
     /* although it makes no sense, callbacks can be null */
     return cbf ? cbf(s, rqp, ops) : 0;
 }
 
 /*
-** __DoUserCallBack - invoke the callback function that the user requested. 
+** __DoUserCallback - invoke the callback function that the user requested. 
 **
 */
-PRIVATE int __DoUserCallBack( SOCKET s, SockOps ops)
+PRIVATE int __DoUserCallback( SOCKET s, SockOps ops)
 {
     HTRequest * rqp = NULL;
-    HTEventCallBack *cbf = HTEvent_Retrieve( s, ops, &rqp);
+    HTEventCallback *cbf = HTEvent_Retrieve( s, ops, &rqp);
     /* although it makes no sense, callbacks can be null*/
     return cbf ? cbf(s, rqp, ops) : 0;
 }
@@ -737,7 +737,7 @@ PRIVATE int __EventUnregister(register RQ *rqp, register RQ ** rqpp,
 
     /* if all actions are clear we are free to delete our request structure */
     if (ap->ops == 0)  {
-        if (rqp->unregister) /* requested HTEventCallBack */
+        if (rqp->unregister) /* requested HTEventCallback */
             rv = ap->cbf( s, ap->rq, FD_UNREGISTER); 
 	FD_CLR(rqp->s, &all_fds) ;
 	if (rqp->s == max_sock) 

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Request Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 27-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  3-Nov-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -49,8 +49,6 @@ terminated. Only the anchor object stays around after the request
 itself is terminated.
 
 <PRE>
-typedef int HTPostCbf (HTRequest *request, HTStream * target);
-
 struct _HTRequest {
     HTMethod		method;
     HTReload		reload;
@@ -59,6 +57,7 @@ struct _HTRequest {
     int			retrys;       	      /* Number of automatic reloads */
     time_t		retry_after;		 /* Absolut time for a retry */
     HTNet *		net;		    /* Information about socket etc. */
+    HTPriority		priority;		/* Priority for this request */
 </PRE>
 
 <H3>Accept headers</H3>
@@ -83,7 +82,12 @@ struct _HTRequest {
     HTGnHd		GenMask;
     HTRqHd		RequestMask;
     HTEnHd		EntityMask;
-    char *		ExtraHeaders;
+
+    HTList *		parsers;
+    BOOL		pars_local;
+
+    HTList *		generators;
+    BOOL		gens_local;
 </PRE>
 
 <H3>Anchors</H3>
@@ -114,7 +118,7 @@ struct _HTRequest {
 <H3>Callback Function for getting data down the Input Stream</H3>
 
 <PRE>
-    HTPostCbf *		PostCallBack;
+    HTPostCallback *	PostCallback;
 </PRE>
 
 <H3>Context Swapping</H3>

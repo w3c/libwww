@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>String Handling</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  2-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  2-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -42,8 +42,9 @@ then it is equivalent to <CODE>StrAllocCopy</CODE>.
 <PRE>
 #define StrAllocCopy(dest, src) HTSACopy (&amp;(dest), src)
 #define StrAllocCat(dest, src)  HTSACat  (&amp;(dest), src)
-extern char * HTSACopy PARAMS ((char **dest, CONST char *src));
-extern char * HTSACat  PARAMS ((char **dest, CONST char *src));
+
+extern char * HTSACopy (char **dest, CONST char *src);
+extern char * HTSACat  (char **dest, CONST char *src);
 </PRE>
 
 <H2><A NAME="utils">Case-insensitive String Comparison</A></H2>
@@ -55,12 +56,33 @@ extern int strcasecomp  (CONST char *a, CONST char *b);
 extern int strncasecomp (CONST char *a, CONST char *b, int n);
 </PRE>
 
+<H2>String Comparison with Wild Card Match</H2>
+
+String comparison function for file names with one wildcard * in the
+template. Arguments are:
+
+<DL>
+<DT>tmpl
+<DD>is a template string to match the name against.  agaist, may
+contain a single wildcard character * which matches zero or more
+arbitrary characters.
+<DT>name
+<DD>is the name to be matched agaist the template.
+</DL>
+
+returns	 YES, if filename matches the template, else NO
+
+<PRE>
+extern BOOL HTStringMatch (CONST char * tmpl, CONST char * name);
+extern BOOL HTStringCaseMatch (CONST char * tmpl, CONST char * name);
+</PRE>
+
 <H2>Case-insensitive strstr</H2>
 
 This works like <CODE>strstr()</CODE> but is not case-sensitive.
 
 <PRE>
-extern char * strcasestr PARAMS((char *	s1, char * s2));
+extern char * strcasestr (char * s1, char * s2);
 </PRE>
 
 <H2>Strip white space off a string</H2>
@@ -69,7 +91,7 @@ Return value points to first non-white character, or to '/0' if
 none. All trailing white space is OVERWRITTEN with zero.
 
 <PRE>
-extern char * HTStrip PARAMS((char * s));
+extern char * HTStrip (char * s);
 </PRE>
 
 <H2>Next word or quoted string</H2>
@@ -78,7 +100,7 @@ This function returns a RFC822 word separated by space, comma, or
 semi-colons.
 
 <PRE>
-extern char * HTNextField PARAMS ((char** pstr));
+extern char * HTNextField (char** pstr);
 </PRE>
 
 <H2>RFC1123 Date/Time Stamp String</H2>
@@ -86,13 +108,13 @@ extern char * HTNextField PARAMS ((char** pstr));
 Returns a pointer to a static area!
 
 <PRE>
-extern CONST char *HTDateTimeStr	(time_t *calendar, BOOL local);
+extern CONST char *HTDateTimeStr (time_t *calendar, BOOL local);
 </PRE>
 
 <H2>Date used for directory listings</H2>
 
 <PRE>
-extern BOOL HTDateDirStr		(time_t * time, char * str, int len);
+extern BOOL HTDateDirStr (time_t * time, char * str, int len);
 </PRE>
 
 <H2>Timezone Offset</H2>
@@ -101,7 +123,7 @@ Calculates the offset from GMT in seconds. This is called from <A
 HREF="HTReq.html#Library">HTLibInit()</A>.
 
 <PRE>
-extern long HTGetTimeZoneOffset NOPARAMS;
+extern long HTGetTimeZoneOffset (void);
 </PRE>
 
 <H2>Parse a Date/Time String</H2>
@@ -110,14 +132,14 @@ Converts a string representation in GMT to a local representation of
 localtime <CODE>time_t</CODE>.
 
 <PRE>
-extern time_t HTParseTime PARAMS((CONST char * str));
+extern time_t HTParseTime (CONST char * str);
 </PRE>
 
 
 <H2>Unique Message-ID String</H2>
 
 <PRE>
-extern CONST char *HTMessageIdStr NOPARAMS;
+extern CONST char *HTMessageIdStr (void);
 #endif
 </PRE>
 

@@ -617,7 +617,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		anchor = HTAnchor_findAddress(newname);
 		free(newname);
 		FileCleanup(request, HT_IGNORE);
-		return HTLoad(request, net->priority, YES);
+		return HTLoad(request, YES);
 	    }
 	    break;
 

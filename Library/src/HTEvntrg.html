@@ -43,7 +43,7 @@ typedef u_long HTPriority;
 #define FD_ALL (FD_READ | FD_WRITE | FD_OOB | FD_ACCEPT | FD_CONNECT |FD_CLOSE)
 #define FD_UNREGISTER (((FD_ALL) &lt;&lt; 1) & (~(FD_ALL)))
 
-typedef int HTEventCallBack (SOCKET, HTRequest *, SockOps);
+typedef int HTEventCallback (SOCKET, HTRequest *, SockOps);
 </PRE>
 
 <H3>Register a TTY Event Handler</H3>
@@ -55,7 +55,7 @@ is the function to use to register user events!
 
 <PRE>
 extern int HTEvent_RegisterTTY	(SOCKET, HTRequest *, SockOps,
-				 HTEventCallBack *, HTPriority);
+				 HTEventCallback *, HTPriority);
 </PRE>
 
 <H3>Unregister a TTY Event Handler</H3>
@@ -70,13 +70,13 @@ extern int HTEvent_UnRegisterTTY (SOCKET, SockOps);
 <H3>Register an Event Handler</H3>
 
 For a given socket, reqister a request structure, a set of operations,
-a HTEventCallBack function, and a priority. For this implementation,
-we allow only a single HTEventCallBack function for all operations.
+a HTEventCallback function, and a priority. For this implementation,
+we allow only a single HTEventCallback function for all operations.
 and the priority field is ignored.
 
 <PRE>
 extern int HTEvent_Register	(SOCKET, HTRequest *,
-				 SockOps, HTEventCallBack *,
+				 SockOps, HTEventCallback *,
 				 HTPriority);
 </PRE>
 
@@ -85,7 +85,7 @@ extern int HTEvent_Register	(SOCKET, HTRequest *,
 Remove the registered information for the specified socket for the
 actions specified in ops. if no actions remain after the unregister,
 the registered info is deleted, and, if the socket has been registered
-for notification, the HTEventCallBack will be invoked.
+for notification, the HTEventCallback will be invoked.
 
 <PRE>
 extern int HTEvent_UnRegister	(SOCKET, SockOps);

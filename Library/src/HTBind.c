@@ -37,11 +37,6 @@
 #include "HTAnchor.h"
 #include "HTAtom.h"
 #include "HTParse.h"
-
-#ifdef VMS
-#include "HTVMSUtils.h"
-#endif
-
 #include "HTBind.h"					 /* Implemented here */
 
 typedef struct _HTBind {

@@ -29,10 +29,6 @@
 #include "HTDNS.h"
 #include "HTTCP.h"					 /* Implemented here */
 
-#ifdef VMS 
-#include "HTVMSUtils.h"
-#endif /* VMS */
-
 /* VMS stuff */
 #ifdef VMS
 #ifndef MULTINET

@@ -18,8 +18,8 @@
 #include "HTDNS.h"
 #include "HTTCP.h"
 #include "HTWriter.h"
+#include "HTHeader.h"
 #include "HTReqMan.h"
-#include "HTChunk.h"
 #include "HTTPReq.h"					       /* Implements */
 
 #define MIME_VERSION	"MIME/1.0"
@@ -30,7 +30,6 @@ struct _HTStream {
     HTStream *		  	target;
     HTRequest *			request;
     SOCKFD			sockfd;
-    HTChunk *  			buffer;
     int				version;
     BOOL			transparent;
 };
@@ -43,10 +42,9 @@ struct _HTStream {
 **	---------------
 **	Makes a MIME/1.0 request header.
 */
-PRIVATE void MIMEMakeRequest (HTStream * me, HTRequest * request)
+PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 {
     char linebuf[256];
-    HTChunk *header = me->buffer;
     HTParentAnchor *entity = (request->source && request->source->anchor) ?
 	request->source->anchor : request->anchor;
 
@@ -54,7 +52,7 @@ PRIVATE void MIMEMakeRequest (HTStream * me, HTRequest * request)
     if (request->GenMask & HT_DATE) {
 	time_t local = time(NULL);
 	sprintf(linebuf, "Date: %s%c%c", HTDateTimeStr(&local, NO), CR,LF);
-	HTChunkPuts(header, linebuf);
+	PUTBLOCK(linebuf, (int) strlen(linebuf));
     }
     if (request->GenMask & HT_FORWARDED) {
 	/* @@@@@@ */
@@ -63,20 +61,20 @@ PRIVATE void MIMEMakeRequest (HTStream * me, HTRequest * request)
 	CONST char *msgid = HTMessageIdStr();
 	if (msgid) {
 	    sprintf(linebuf, "Message-ID: %s%c%c", msgid, CR, LF);
-	    HTChunkPuts(header, linebuf);
+	    PUTBLOCK(linebuf, (int) strlen(linebuf));
 	}
     }
     if (request->GenMask & HT_MIME) {
 	sprintf(linebuf, "MIME-Version: %s%c%c", MIME_VERSION, CR, LF);
-	HTChunkPuts(header, linebuf);
+	PUTBLOCK(linebuf, (int) strlen(linebuf));
     }
     if (request->GenMask & HT_CONNECTION) {
 	sprintf(linebuf, "Connection: Keep-Alive%c%c", CR, LF);
-	HTChunkPuts(header, linebuf);
+	PUTBLOCK(linebuf, (int) strlen(linebuf));
     }
     if (request->RequestMask & HT_NO_CACHE) {
 	sprintf(linebuf, "Pragma: %s%c%c", "no-cache", CR, LF);
-	HTChunkPuts(header, linebuf);
+	PUTBLOCK(linebuf, (int) strlen(linebuf));
     }
 
     /* Now put out entity headers if we are using PUT or POST. If we have a
@@ -93,7 +91,7 @@ PRIVATE void MIMEMakeRequest (HTStream * me, HTRequest * request)
 	    entity->content_encoding) {
 	    sprintf(linebuf, "Content-Encoding: %s%c%c",
 		    HTAtom_name(entity->content_encoding), CR, LF);
-	    HTChunkPuts(header, linebuf);
+	    PUTBLOCK(linebuf, (int) strlen(linebuf));
 	}
 
 	/* @@@ SHOULD BE A LIST @@@ */
@@ -101,19 +99,20 @@ PRIVATE void MIMEMakeRequest (HTStream * me, HTRequest * request)
 	    entity->content_language) {
 	    sprintf(linebuf, "Content-Language: %s%c%c",
 		    HTAtom_name(entity->content_language), CR, LF);
-	    HTChunkPuts(header, linebuf);
+	    PUTBLOCK(linebuf, (int) strlen(linebuf));
 	}
 	if (request->EntityMask & HT_CONTENT_LENGTH) {   /* Must be there!!! */
 	    sprintf(linebuf, "Content-Length: %ld%c%c",
 		    entity->content_length, CR, LF);
-	    HTChunkPuts(header, linebuf);	
+	    PUTBLOCK(linebuf, (int) strlen(linebuf));	
 	}
 	if (request->EntityMask & HT_CTE && entity->cte) {
 	    sprintf(linebuf, "Content-Transfer-Encoding: %s%c%c",
 		    HTAtom_name(entity->cte), CR, LF);
-	    HTChunkPuts(header, linebuf);
+	    PUTBLOCK(linebuf, (int) strlen(linebuf));
 	}
 	if (request->EntityMask & HT_CONTENT_TYPE && entity->content_type) {
+	    int len;
 	    sprintf(linebuf, "Content-Type: %s",
 		    HTAtom_name(entity->content_type));
 	    if (entity->charset) {
@@ -124,27 +123,29 @@ PRIVATE void MIMEMakeRequest (HTStream * me, HTRequest * request)
 		strcat(linebuf, "; level=");
 		strcat(linebuf, HTAtom_name(entity->level));
 	    }
-	    HTChunkPuts(header, linebuf);
-	    HTChunkPutc(header, CR);
-	    HTChunkPutc(header, LF);
+	    len = strlen(linebuf);
+	    *(linebuf+len) = CR;
+	    *(linebuf+len+1) = LF;
+	    *(linebuf+len+2) = '\0';
+	    PUTBLOCK(linebuf, (int) len+2);
 	}
 	if (request->EntityMask & HT_DERIVED_FROM && entity->derived_from) {
 	    sprintf(linebuf, "Derived-From: %s%c%c", entity->derived_from,
 		    CR, LF);
-	    HTChunkPuts(header, linebuf);
+	    PUTBLOCK(linebuf, (int) strlen(linebuf));
 	}
 	if (request->EntityMask & HT_EXPIRES) {
 	    if (entity->expires != -1) {
 		sprintf(linebuf, "Expires: %s%c%c",
 			HTDateTimeStr(&entity->expires, NO), CR,LF);
-		HTChunkPuts(header, linebuf);
+		PUTBLOCK(linebuf, (int) strlen(linebuf));
 	    }
 	}
 	if (request->EntityMask & HT_LAST_MODIFIED) {
 	    if (entity->last_modified != -1) {
 		sprintf(linebuf, "Last-Modified: %s%c%c",
 			HTDateTimeStr(&entity->last_modified, NO), CR,LF);
-		HTChunkPuts(header, linebuf);
+		PUTBLOCK(linebuf, (int) strlen(linebuf));
 	    }
 	}
 	if (request->EntityMask & HT_LINK) {		/* @@@@@@@@@@ */
@@ -158,17 +159,33 @@ PRIVATE void MIMEMakeRequest (HTStream * me, HTRequest * request)
 	}
 	if (request->EntityMask & HT_VERSION && entity->version) {
 	    sprintf(linebuf, "Version: %s%c%c", entity->version, CR, LF);
-	    HTChunkPuts(header, linebuf);
+	    PUTBLOCK(linebuf, (int) strlen(linebuf));
 	}
     }
 
     /* Put out extra information if any */
-    if (request->ExtraHeaders) HTChunkPuts(header, request->ExtraHeaders);
+    {
+	HTList * list;
+	BOOL override;
+	if ((list = HTRequest_generator(request, &override))) {
+	    HTList *local = list;
+	    HTPostCallback *pres;
+	    if (STREAM_TRACE) fprintf(TDEST,"MIMEGen..... Extra local\n");
+	    while ((pres = (HTPostCallback *) HTList_nextObject(local)))
+		(*pres)(request, me->target);
+	} else if (!override && (list = HTHeader_generator())) {
+	    HTList *global = list;
+	    HTPostCallback *pres;
+	    if (STREAM_TRACE) fprintf(TDEST,"MIMEGen..... Extra global\n");
+	    while ((pres = (HTPostCallback *) HTList_nextObject(global)))
+		(*pres)(request, me->target);
+	}
+    }
 
     /* Blank line means "end" */
-    HTChunkPutc(header, CR);
-    HTChunkPutc(header, LF);
-    if (PROT_TRACE) fprintf(TDEST, "MIME Tx..... %s", header->data);
+    sprintf(linebuf, "%c%c", CR, LF);
+    PUTBLOCK(linebuf, (int) strlen(linebuf));
+    return HT_OK;
 }
 
 PRIVATE int MIMERequest_put_block (HTStream * me, CONST char * b, int l)
@@ -176,14 +193,16 @@ PRIVATE int MIMERequest_put_block (HTStream * me, CONST char * b, int l)
     if (me->transparent)
 	return b ? PUTBLOCK(b, l) : HT_OK;
     else {
-	int status;
 	MIMEMakeRequest(me, me->request);
+#if 0
 	if ((status = PUTBLOCK(HTChunkData(me->buffer),
 			       HTChunkSize(me->buffer))) == HT_OK) {
 	    me->transparent = YES;
 	    return b ? PUTBLOCK(b, l) : HT_OK;
 	}
-	return status;
+#endif
+	me->transparent = YES;
+	return b ? PUTBLOCK(b, l) : HT_OK;
     }
 }
 
@@ -215,7 +234,6 @@ PRIVATE int MIMERequest_free (HTStream * me)
     if (status != HT_WOULD_BLOCK) {
 	if ((status = (*me->target->isa->_free)(me->target)) == HT_WOULD_BLOCK)
 	    return HT_WOULD_BLOCK;
-	HTChunkFree(me->buffer);
 	free(me);
     }
     return status;
@@ -224,7 +242,6 @@ PRIVATE int MIMERequest_free (HTStream * me)
 PRIVATE int MIMERequest_abort (HTStream * me, HTError e)
 {
     if (me->target) (*me->target->isa->abort)(me->target, e);
-    HTChunkFree(me->buffer);
     free(me);
     if (PROT_TRACE) fprintf(TDEST, "MIMERequest. ABORTING...\n");
     return HT_ERROR;
@@ -251,7 +268,6 @@ PUBLIC HTStream * HTMIMERequest_new (HTRequest * request, HTStream * target)
     me->isa = &MIMERequestClass;
     me->target = target;
     me->request = request;
-    me->buffer = HTChunkCreate(256);
     me->transparent = NO;
     return me;
 }

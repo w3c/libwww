@@ -142,6 +142,7 @@ PRIVATE FILE *	        output = stdout;	   /* Destination for output */
 
 PRIVATE HTList *	converters = NULL;
 PRIVATE HTList *	presenters = NULL;
+PRIVATE HTList *	parsers = NULL;
 
 /* History Management */
 PRIVATE HTHistory *	hist = NULL;			     /* History list */
@@ -1144,8 +1145,9 @@ int main ARGS2(int, argc, char **, argv)
 		HTPrompt_setInteractive(NO);
 
 	    } else if (!strcasecomp(argv[arg], "-head")) {    /* HEAD Method */
-		request->method = METHOD_HEAD;
-		request->output_format = WWW_MIME;
+		HTRequest_setMethod(request, METHOD_HEAD);
+		HTRequest_setOutputFormat(request, WWW_MIME);
+		HTRequest_setOutputStream(request, HTFWriter_new(output, YES));
 		HTPrompt_setInteractive(NO);
 
 	    /* @@@ NOT FINISHED @@@ */
@@ -1395,7 +1397,11 @@ int main ARGS2(int, argc, char **, argv)
 	HTNet_register(terminate_handler, HT_ALL);
     
     /* Register our own "unknwon" header handler (see GridText.c) */
+#if 0
+    parsers = HTList_new();
+    HTParser_add (parsers, "*", YES, HTParserCallback *	callback);
     HTMIME_register(HTHeaderParser);
+#endif
 
     /* Load the first page. This is done using blocking I/O */
     HTRequest_setPreemtive(request, YES);

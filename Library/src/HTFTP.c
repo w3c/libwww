@@ -78,10 +78,6 @@
 #include "HTFTPDir.h"
 #include "HTFTP.h"					 /* Implemented here */
 
-#ifdef VMS
-#include "HTVMSUtils.h"
-#endif /* VMS */
-
 /* Macros and other defines */
 #if 0
 /* Only use this if ABSOLUTELY necessary! */
@@ -392,8 +388,10 @@ PRIVATE BOOL HTFTPParseURL (char *url, ftp_ctrl *ctrl, ftp_data *data)
 	else
 	    StrAllocCopy(ctrl->passwd, WWW_FTP_CLIENT);
     }
-    if (PROT_TRACE) fprintf(TDEST, "FTPParse.... uid `%s\' pw `%s\'\n",
-			    ctrl->uid, ctrl->passwd);	
+    if (PROT_TRACE)
+	fprintf(TDEST, "FTPParse.... uid `%s\' pw `%s\'\n",
+		ctrl->uid ? ctrl->uid : "<null>",
+		ctrl->passwd ? ctrl->passwd : "<null>");	
 
     ptr = strchr(path, ';');
     if (ptr) {
@@ -527,9 +525,10 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 	    if (status == HT_WOULD_BLOCK)
 		return HT_WOULD_BLOCK;
 	    else if (status == HT_LOADED) {
-		if (ctrl->repcode/100 == 2)
-		    ctrl->substate = NEED_UID;
-		else
+		if (ctrl->repcode/100 == 2) {
+		    ctrl->substate = (ctrl->uid && *ctrl->uid) ?
+			NEED_UID : PROMPT_USER;
+		} else
 		    ctrl->substate = SUB_ERROR;
 	    } else
 		ctrl->substate = SUB_ERROR;
@@ -548,9 +547,10 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 		if (status == HT_WOULD_BLOCK)
 		    return HT_WOULD_BLOCK;
 		else if (status == HT_LOADED) {
-		    if (ctrl->repcode/100 == 2)
-			ctrl->substate = NEED_UID;
-		    else
+		    if (ctrl->repcode/100 == 2) {
+			ctrl->substate = (ctrl->uid && *ctrl->uid) ?
+			    NEED_UID : PROMPT_USER;
+		    } else
 			ctrl->substate = SUB_SUCCESS;	    /* hope the best */
 		} else
 		    ctrl->substate = SUB_ERROR;
@@ -574,9 +574,10 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 		    int code = ctrl->repcode/100;
 		    if (code == 2) 		    /* Logged in w/o passwd! */
 			ctrl->substate = SUB_SUCCESS;
-		    else if (code == 3)		 	/* Password demanded */
-			ctrl->substate = NEED_PASSWD;
-		    else if (ctrl->repcode == 530)
+		    else if (code == 3) {	 	/* Password demanded */
+			ctrl->substate = (ctrl->passwd && *ctrl->passwd) ?
+			    NEED_PASSWD : PROMPT_USER;
+		    } else if (ctrl->repcode == 530)
 			ctrl->substate = PROMPT_USER;        /* User unknown */
 		    else
 			ctrl->substate = SUB_ERROR;
@@ -652,7 +653,7 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 		FREE(ctrl->passwd);
 		HTPromptUsernameAndPassword(request, prompt,
 					    &ctrl->uid, &ctrl->passwd);
-		if (ctrl->uid && ctrl->passwd)
+		if (ctrl->uid && *ctrl->uid && ctrl->passwd && *ctrl->passwd)
 		    ctrl->substate = NEED_UID;
 		else
 		    ctrl->substate = SUB_ERROR;

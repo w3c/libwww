@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>ANSI C FILE Stream</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  6-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  2-Nov-1995 -->
 <NEXTID N="z4">
 </HEAD>
 <BODY>
@@ -45,7 +45,7 @@ W3C Reference Library</A>.
 This stream simply absorbs data without doing anything what so ever.
 
 <PRE>
-extern HTStream * HTBlackHole NOPARAMS;
+extern HTStream * HTBlackHole (void);
 </PRE>
 
 <A NAME="converters"><H2>Converters</H2></A>
@@ -54,27 +54,26 @@ This is the set of functions that can be registered as
 converters.
 
 <PRE>
-extern HTConverter HTSaveAndExecute, HTSaveLocally, HTSaveAndCallBack,
+extern HTConverter HTSaveAndExecute, HTSaveLocally, HTSaveAndCallback,
        HTThroughLine;
 </PRE>
 
 <A NAME="tmp"><H2>Location of Temporary Files</H2></A>
 
-<CODE>HTSaveAndCallBack</CODE> will save to a cache file and call the
+<CODE>HTSaveAndCallback</CODE> will save to a cache file and call the
 request-&gt;callback function with the filename as parameter. The
 destination for temporary files can be managed by the following
 functions:
 
 <PRE>
-extern BOOL  HTTmp_setRoot		PARAMS((CONST char * tmp_root));
-extern CONST char * HTTmp_getRoot	NOPARAMS;
-extern void  HTTmp_freeRoot		NOPARAMS;
+extern BOOL  HTTmp_setRoot		(CONST char * tmp_root);
+extern CONST char * HTTmp_getRoot	(void);
+extern void  HTTmp_freeRoot		(void);
 </PRE>
 
 The <CODE>HTTmp_freeRoot</CODE> is called by the <A
 HREF="HTReq.html#Library">HTLibTerminate</A> function. The default
-value is defined in <A
-HREF="HTReq.html#Addresses">HTReq.html</A>
+value is defined in <A HREF="HTAccess.html#Addresses">HTReq.html</A>
 
 <H2><A NAME="write">Set up a Stream to a File</A></H2>
 
@@ -82,8 +81,7 @@ This function puts up a new stream given an open file descripter. If the file
 is not to be closed afterwards, then set leave_open = NO.
 
 <PRE>
-extern HTStream * HTFWriter_new PARAMS((FILE *	fp,
-					     BOOL	leave_open));
+extern HTStream * HTFWriter_new	(FILE *	fp, BOOL leave_open);
 
 #endif
 </PRE>

@@ -21,7 +21,7 @@
 struct _HTProtocol {
     char *		name;
     BOOL		preemtive;
-    HTEventCallBack	*callback;
+    HTEventCallback	*callback;
 };
 
 PRIVATE HTList * protocols = NULL;           /* List of registered protocols */
@@ -35,7 +35,7 @@ PRIVATE HTList * protocols = NULL;           /* List of registered protocols */
 */
 PUBLIC BOOL HTProtocol_add (CONST char *       	name,
 			    BOOL		preemtive,
-			    HTEventCallBack *	callback)
+			    HTEventCallback *	callback)
 {
     if (name && callback) {
 	HTProtocol *newProt = (HTProtocol *) calloc(1, sizeof(HTProtocol));
@@ -70,7 +70,7 @@ PUBLIC BOOL HTProtocol_delete (CONST char * name)
 /*
 **	Returns the callback function
 */
-PUBLIC HTEventCallBack *HTProtocol_callback (HTProtocol * protocol)
+PUBLIC HTEventCallback *HTProtocol_callback (HTProtocol * protocol)
 {
     return protocol ? protocol->callback : NULL;
 }
@@ -108,7 +108,7 @@ PUBLIC BOOL HTProtocol_deleteAll (void)
 **	Search registered protocols to find suitable one.
 **	Return YES if found, else NO
 */
-PUBLIC BOOL HTProtocol_bind ARGS1(HTParentAnchor *, anchor)
+PUBLIC BOOL HTProtocol_find (HTParentAnchor * anchor)
 {
     if (anchor) {
 	char *access = HTParse(HTAnchor_physical(anchor), "", PARSE_ACCESS);

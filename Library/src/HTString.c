@@ -44,12 +44,10 @@ PRIVATE char * wkdays[7] = {
 
 /* ------------------------------------------------------------------------- */
 
-#ifndef VM		/* VM has these already it seems */
-	
 /*	Strings of any length
 **	---------------------
 */
-PUBLIC int strcasecomp ARGS2 (CONST char*,a, CONST char *,b)
+PUBLIC int strcasecomp (CONST char * a, CONST char * b)
 {
     int diff;
     for( ; *a && *b; a++, b++) {
@@ -65,7 +63,7 @@ PUBLIC int strcasecomp ARGS2 (CONST char*,a, CONST char *,b)
 /*	With count limit
 **	----------------
 */
-PUBLIC int strncasecomp ARGS3(CONST char*,a, CONST char *,b, int,n)
+PUBLIC int strncasecomp (CONST char * a, CONST char * b, int n)
 {
 	CONST char *p =a;
 	CONST char *q =b;
@@ -79,14 +77,12 @@ PUBLIC int strncasecomp ARGS3(CONST char*,a, CONST char *,b, int,n)
 	}
 	/*NOTREACHED*/
 }
-#endif
 
 
 /*
- * strcasestr(s1,s2) -- like strstr(s1,s2) but case-insensitive.
- */
-PUBLIC char * strcasestr ARGS2(char *,	s1,
-			       char *,	s2)
+** strcasestr(s1,s2) -- like strstr(s1,s2) but case-insensitive.
+*/
+PUBLIC char * strcasestr (char * s1, char * s2)
 {
     char * ptr = s1;
 
@@ -100,19 +96,10 @@ PUBLIC char * strcasestr ARGS2(char *,	s1,
 		cur1++;
 		cur2++;
 	    }
-	    if (!*cur2) {
-		if (WWWTRACE)
-		    fprintf(TDEST, "Debug....... strcasestr(s1 = \"%s\", s2 = \"%s\") => \"%s\"\n",
-			    s1,s2,ptr);
-		return ptr;
-	    }
+	    if (!*cur2)	return ptr;
 	}
 	ptr++;
     }
-    if (WWWTRACE)
-	fprintf(TDEST,
-		"Debug....... strcasestr(s1=\"%s\", s2=\"%s\") => No match\n",
-		s1,s2);
     return NULL;
 }
 
@@ -120,8 +107,7 @@ PUBLIC char * strcasestr ARGS2(char *,	s1,
 
 /*	Allocate a new copy of a string, and returns it
 */
-PUBLIC char * HTSACopy
-  ARGS2 (char **,dest, CONST char *,src)
+PUBLIC char * HTSACopy (char ** dest, CONST char * src)
 {
   if (*dest) free(*dest);
   if (! src)
@@ -136,8 +122,7 @@ PUBLIC char * HTSACopy
 
 /*	String Allocate and Concatenate
 */
-PUBLIC char * HTSACat
-  ARGS2 (char **,dest, CONST char *,src)
+PUBLIC char * HTSACat (char ** dest, CONST char * src)
 {
   if (src && *src) {
     if (*dest) {
@@ -171,7 +156,7 @@ PUBLIC char * HTSACat
 **
 **	Returns	a pointer to the first word or NULL on error
 */
-PUBLIC char * HTNextField ARGS1(char **, pstr)
+PUBLIC char * HTNextField (char ** pstr)
 {
     char * p = *pstr;
     char * start = NULL;
@@ -210,6 +195,30 @@ PUBLIC char * HTNextField ARGS1(char **, pstr)
     return start;
 }
 
+/*	HTStringMatch
+**	-------------
+**	String comparison function for file names with one wildcard * in the
+**	template. Arguments are:
+**
+**	tmpl	is a template string to match the name against.
+**		agaist, may contain a single wildcard character * which
+**		matches zero or more arbitrary characters.
+**	name	is the name to be matched agaist the template.
+**
+**	returns	 YES, if filename matches the template, else NO
+*/
+PUBLIC BOOL HTStringMatch (CONST char * tmpl, CONST char * name)
+{
+    while (*tmpl && *name && *tmpl==*name) tmpl++, name++;
+    return ((!*tmpl && !*name) || (*tmpl=='*')) ? YES : NO;
+}    
+
+PUBLIC BOOL HTStringCaseMatch (CONST char * tmpl, CONST char * name)
+{
+    while (*tmpl && *name && TOUPPER(*tmpl)==TOUPPER(*name)) tmpl++, name++;
+    return ((!*tmpl && !*name) || (*tmpl=='*')) ? YES : NO;
+}    
+
 /*
 **	Returns a Message-ID string including the open '<' and the closing '>'.
 **	The format of the string is:
@@ -222,7 +231,7 @@ PUBLIC char * HTNextField ARGS1(char **, pstr)
 **
 **	Returns a pointer to the MessageID
 */
-PUBLIC CONST char *HTMessageIdStr NOARGS
+PUBLIC CONST char *HTMessageIdStr (void)
 {
     static char buf[80];
     time_t sectime = time(NULL);
@@ -253,7 +262,7 @@ PUBLIC CONST char *HTMessageIdStr NOARGS
 **	These functions are taken from the server written by Ari Luotonen
 */
 
-PRIVATE int make_num ARGS1(CONST char *, s)
+PRIVATE int make_num (CONST char *  s)
 {
     if (*s >= '0' && *s <= '9')
 	return 10 * (*s - '0') + *(s+1) - '0';
@@ -261,7 +270,7 @@ PRIVATE int make_num ARGS1(CONST char *, s)
 	return *(s+1) - '0';
 }
 
-PRIVATE int make_month ARGS1(CONST char *, s)
+PRIVATE int make_month (CONST char *  s)
 {
     int i;
     for (i=0; i<12; i++)
@@ -274,7 +283,7 @@ PRIVATE int make_month ARGS1(CONST char *, s)
 **	---------------
 **	Calculates the offset from GMT in seconds
 */
-PUBLIC long HTGetTimeZoneOffset NOARGS
+PUBLIC long HTGetTimeZoneOffset (void)
 {
 #ifndef NO_TIMEZONE
     {
@@ -331,7 +340,7 @@ PUBLIC long HTGetTimeZoneOffset NOARGS
 **		Wkd Mon 00 00:00:00 0000 GMT		(ctime)
 **		1*DIGIT					(delta-seconds)
 */
-PUBLIC time_t HTParseTime ARGS1(CONST char *, str)
+PUBLIC time_t HTParseTime (CONST char *  str)
 {
     CONST char * s;
     struct tm tm;
@@ -552,7 +561,7 @@ PUBLIC BOOL HTDateDirStr (time_t * time, char * str, int len)
 **	Return value points to first non-white character, or to 0 if none.
 **	All trailing white space is OVERWRITTEN with zero.
 */
-PUBLIC char * HTStrip ARGS1(char *, s)
+PUBLIC char * HTStrip (char * s)
 {
 #define SPACE(c) ((c==' ')||(c=='\t')||(c=='\n')) 
     char * p=s;

@@ -35,7 +35,7 @@
 #endif
 
 typedef struct _CBFInfo {
-    HTNetCallBack *	cbf;
+    HTNetCallback *	cbf;
     int 		status;	     /* Status associated with this callback */
 } CBFInfo;
 
@@ -90,10 +90,10 @@ PUBLIC int HTNet_maxSocket (void)
 **		HT_RETRY	Retry request after at a later time
 **		HT_ALL		All of above
 */
-PUBLIC BOOL HTNet_register (HTNetCallBack *cbf, int status)
+PUBLIC BOOL HTNet_register (HTNetCallback *cbf, int status)
 {
     if (THD_TRACE) 
-	fprintf(TDEST, "Net register HTNetCallBack %p\n", (void *) cbf);
+	fprintf(TDEST, "Net register HTNetCallback %p\n", (void *) cbf);
     if (cbf) {
 	CBFInfo *cbfinfo = (CBFInfo *) calloc(1, sizeof(CBFInfo));
 	if (!cbfinfo) outofmem(__FILE__, "HTNet_register");
@@ -110,10 +110,10 @@ PUBLIC BOOL HTNet_register (HTNetCallBack *cbf, int status)
 **	Unregister a call back function that is to be called on every
 **	termination of a request.
 */
-PUBLIC BOOL HTNet_unregister (HTNetCallBack *cbf)
+PUBLIC BOOL HTNet_unregister (HTNetCallback *cbf)
 {
     if (THD_TRACE) 
-	fprintf(TDEST, "Net unreg.. HTNetCallBack %p\n", (void *) cbf);
+	fprintf(TDEST, "Net unreg.. HTNetCallback %p\n", (void *) cbf);
     if (HTNetCBF && cbf) {
 	HTList *cur = HTNetCBF;
 	CBFInfo *pres;
@@ -232,15 +232,38 @@ PUBLIC BOOL HTNet_dup (HTNet *src, HTNet **dest)
     return YES;
 }
 
-/*							     	   HTNet_new
-**
+/*	HTNet_priority
+**	--------------
+**	Get the current priority of the Net object
+*/
+PUBLIC HTPriority HTNet_priority (HTNet * net)
+{
+    return (net ? net->priority : -1);
+}
+
+/*	HTNet_setPriority
+**	-----------------
+**	Set the current priority of the Net object
+**	This will change the priority next time the thread is blocked
+*/
+PUBLIC BOOL HTNet_setPriority (HTNet * net, HTPriority priority)
+{
+    if (net) {
+	net->priority = priority;
+	return YES;
+    }
+    return NO;
+}
+
+/*	HTNet_new
+**	---------
 **	Create a new HTNet object as a new request to be handled. If we have
 **	more than HTMaxActive connections already then put this into the
 **	pending queue, else start the request by calling the call back
 **	function registered with this access method. 
 **	Returns YES if OK, else NO
 */
-PUBLIC BOOL HTNet_new (HTRequest * request, HTPriority priority)
+PUBLIC BOOL HTNet_new (HTRequest * request)
 {
     HTNet *me;
     HTProtocol *prot;
@@ -254,7 +277,7 @@ PUBLIC BOOL HTNet_new (HTRequest * request, HTPriority priority)
     me->request = request;
     request->net = me;
     me->preemtive = (HTProtocol_preemtive(prot) || request->preemtive);
-    me->priority = priority;
+    me->priority = request->priority;
     me->sockfd = INVSOC;
     if (!(me->cbf = HTProtocol_callback(prot))) {
 	if (THD_TRACE)

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Access Scheme Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 31-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  2-Nov-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -35,7 +35,7 @@ Reference Library</A>. <P>
 After the new architecture based on call back functions managed by an
 eventloop and protocol state machines, the protocol structure has been
 modified to reflect this call back structure. The
-<CODE>HTEventCallBack</CODE> is defined in <A
+<CODE>HTEventCallback</CODE> is defined in <A
 HREF="HTEvntrg.html">HTEvntrg module</A>. <P>
 
 All the access schemes supported in the Library can be initiated using
@@ -64,7 +64,7 @@ event loop when used in non-preemtive mode.
 <PRE>
 extern BOOL HTProtocol_add (CONST char *       	name,
 			    BOOL		preemtive,
-			    HTEventCallBack *	callback);
+			    HTEventCallback *	callback);
 </PRE>
 
 <H3>Delete an Access Scheme</H3>
@@ -91,7 +91,7 @@ This function finds the access scheme that is bound to the anchor's
 type of URL. Returns YES if found, else NO
 
 <PRE>
-extern BOOL HTProtocol_bind		PARAMS((HTParentAnchor * anchor));
+extern BOOL HTProtocol_find		(HTParentAnchor * anchor);
 </PRE>
 
 <H3Finds the Callback Function</H3>
@@ -99,7 +99,7 @@ extern BOOL HTProtocol_bind		PARAMS((HTParentAnchor * anchor));
 Returns the callback function registered with this access scheme if any.
 
 <PRE>
-extern HTEventCallBack *HTProtocol_callback (HTProtocol * protocol);
+extern HTEventCallback *HTProtocol_callback (HTProtocol * protocol);
 </PRE>
 
 <H3>Is Access Scheme Preemtive</H3>
