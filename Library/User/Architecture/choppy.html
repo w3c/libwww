@@ -68,7 +68,7 @@ released June 1995.<P>
 
 <LI><A HREF="Threads.html">Description of libwww Threads</A>
 <LI><A HREF="HTTPFeatures.html">Usage of State machines</A>
-<LI><A HREF="PostWeb.html">Building a POST Web, an API for PUT and POST</A>
+<LI><A HREF="PostWeb.html">Post Webs - a Generic Model for Posting on the Web</A>
 <LI><A HREF="DNSCache.html">DNS Cache and Host Name Canonicalization</A>
 <LI><A HREF="Multiformat.html">Format Negotiation</A>
 </UL>
@@ -1207,7 +1207,7 @@ HREF="#initial">initial state</A>.
 
 </DL>
 
-<H1>Post Webs - an API for PUT and POST</H1>
+<H1>Post Webs - a Generic Model for Posting on the Web</H1>
 
 The <A HREF="../../../Protocols/">HTTP</A> PUT and POST are required
 features when extending the <A HREF="http://www.w3.org">Web</A> to a
@@ -1229,13 +1229,11 @@ the <A HREF="../../../MarkUp/">HTML</A> form definition. <P>
 A "Post Web" is used as an abstraction mechanism for enabling the user
 to perform multiple operations (methods) on a data object rendered in
 multiple representations determined for multiple destinations. This
-may seem complicated but the Post Web is in fact a very simple model as
-will become clear in the following sections. <P>
-
-The purpose of the Post Web is to take a set of common situations from
-the world of email and news; merge it with the features of HTTP, and
-put the result into the Web model. This leads to the following set of
-requirements:
+may seem complicated but the Post Web is in fact a very simple model
+as will become clear in the following sections. The purpose of the
+Post Web is to take a set of common situations from the world of email
+and news; merge it with the features of HTTP, and put the result into
+the Web model. This leads to the following set of requirements:
 
 <UL>
 
@@ -1263,19 +1261,23 @@ any of the destinations, for example "Written by". This is equivalent
 to the "&lt;LINK&gt;" element in HTML and the "Link:" header in HTTP
 and is used to incorporate semantics into the Web topology.
  
-<LI>It must be possible to specify individual methods used for each
-destination, for example, if three destinations are specified then one
-can use PUT, another POST, and the third can use LINK.
+<LI>It must be possible to specify individual operations used for each
+destination where an operation can be any non-idempotent operation (or
+method) defined by <A HREF="../../../Protocols/">HTTP/1.0</A>. For
+example, if three destinations are specified then one can use PUT,
+another POST, and the third can use LINK. In the following, post
+written in lower case refers to any non-idempotent HTTP method whereas
+POST written in uppercase refers to a specific HTTP method.
 
 </UL>
 
-The Post Web model provides a homogeneous interface to the posting
-operation regardless of the destination, the method, and the data
-format as this conceptually is the same operation. It describes the
-full operation from defining the source and destinations to actually
-transfer the data over the network. This process involves there
-players: the user, the application, and the Library. Each of these
-uses the Post Web model but on different levels of abstraction:
+The Post Web model provides a homogeneous interface to a post
+operation regardless of the destination, the specific method, and the
+data format used. It describes the full operation from defining the
+source and destinations to actually transfer the data over the
+network. This process involves there players: the user, the
+application, and the W3C Reference Library. Each of these uses the
+Post Web model but on different levels of abstraction:
 
 <DL>
 <DT><A HREF="#user">The user</A>
@@ -1283,7 +1285,7 @@ uses the Post Web model but on different levels of abstraction:
 <DD>To the user, the Post Web is a way of defining a source object and
 one or more destinations to where the object is to be posted. The
 model allows the user to describe relations between the source and any
-of the destinations and also what (method) operation should be used.
+of the destinations and also what method should be used.
 
 <DT><A HREF="#client">The application</A>
 
@@ -1299,10 +1301,18 @@ specifying the access scheme, the operation to be done, the data flow
 between them, and the data formats in this data flow.
 </DL>
 
-The following paragraphs describe the three layers of abstraction and
-how they are interconnected and thus defining the Post Web model.
+The following paragraphs describe the three layers of abstraction, how
+they are interconnected and thus defining the Post Web model.
 
 <H2><A NAME="user">The User Builds a Post Web</A></H2>
+
+For all the possible destinations in a Post Web, the user can specify
+what method should be applied, any relations between the source and
+any of the destinations, and if any data for conversion should be
+performed. The relations are semantically identical to the <A
+HREF="../../../MarkUp/">HTML</A> "Link" tag and the <A
+HREF="../../../Protocols/">HTTP</A> "Link" header, and it can for
+example describe authorship, relations to other data objects etc.<P>
 
 The description of the Post Web model includes a basic example in
 which a user wants to post the same data object or variations thereof
@@ -1322,28 +1332,30 @@ collection of icons representing commonly used recipients and then let
 the user drag lines between the data object to be posted and the
 recipients. <P>
 
-On each of the four destinations, the user can specify what method
-should be applied and any relations between the source and any of the
-destinations. The relations are identical to the <A
-HREF="../../../MarkUp/">HTML</A> "Link" tag and the <A
-HREF="../../../Protocols/">HTTP</A> "Link" header, and it can for
-example describe authorship, relations to other data objects etc.<P>
-
 When the user has finished specifying the source, the destinations,
-the methods, and any relations between them, the application can take
-this information and convert it to a lower abstraction level.
+the methods, and any relations between them, the user's version of the
+Post Web is ready to be submitted and the application can take the
+information and convert it to a lower abstraction level.
 
 <H2><A NAME="application">The Application Generates a Request</A></H2>
 
-To the application, the Post Web is a request for change in the
-topology of the Web. The application can describe this change in the
-internal Library representation of the Web based on the <A
-HREF="../../Implementation/HTAnchor.html#anchor">HTAnchor</A> object
-as described in section "<A HREF="Anchors.html">Anchor
-Objects</A>". In the figure below, any of the addresses or data
-objects may or may not exist when the Post Web is submitted by the
-application. Depending on whether it is on the source side or on the
-destination this may or may not be an error situation.
+While the description of the user's view of a Post Web is fairly
+abstract, an actual application must transform the information into a
+specific representation supported by the Library. To the application,
+the Post Web is a request for change in the topology of the Web. The
+application can describe this change using <A
+HREF="../../Implementation/HTAnchor.html#anchor">anchor objects</A>
+which is the Library's representation of the Web where each node
+represents a data object or a subpart of a data object that the
+application has been in contact with while browsing on the Web. <P>
+
+In the figure below, each of the four anchors has a data object and a
+URL related to it. Any of the addresses or data objects may or may not
+exist when the Post Web is submitted by the application. If the source
+does not exist then this will result in an error, but if a destination
+data object does exist then the post operation is committed then might
+result in replacement, deletion, update, or any other outcome as a
+result of the method applied.
 
 <P><IMG SRC="PostWebApp.gif" ALT="Application's View"><P>
 
@@ -1467,7 +1479,13 @@ used. As an example, an immediate result from a post transaction is
 available using NNTP or HTTP whereas the result from SMTP might be
 delayed several days. In practice there is no way that the application
 can await a response for that amount of time, and it should therefore
-be treated as "Accepted" with no guarantee of completeness.
+be treated as "Accepted" with no guarantee of completeness. <P>
+
+The Library handles the update of the internal anchor representation
+of the Web by registering the outcome of each post operation and bind
+that to the link between the source and the destination. This allows
+the application to query how two anchors are related and what the
+outcome of the operation was that caused the link to be established.
 
 <H1>DNS Cache and Host Name Canonicalization</H1>
 

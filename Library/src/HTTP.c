@@ -379,7 +379,7 @@ PRIVATE int stream_pipe ARGS1(HTStream *, me)
 				       req->output_stream))) {
 		    me->target = HTTee(me->target, s);
 		}
-	    }
+	      }
 	} else {
 	    me->target = HTMIMEConvert(req, NULL, WWW_MIME, req->error_format,
 				       req->error_stream);
