@@ -136,6 +136,7 @@ typedef enum _LMFlags {
 
 typedef struct _LineMode {
     HTRequest *		request;
+    HTRequest *		tty;
     HTParentAnchor *	anchor;
     HTParentAnchor *	dest;			 /* Destination for PUT etc. */
     struct timeval *	tv;				/* Timeout on socket */
@@ -258,6 +259,7 @@ PRIVATE LineMode * LineMode_new (void)
     me->cwd = HTFindRelatedName();
     me->active = HTList_new();
     me->request = HTRequest_new();
+    me->tty = HTRequest_new();
     Context_new(me, me->request);
     return me;
 }
@@ -270,6 +272,7 @@ PRIVATE BOOL LineMode_delete (LineMode * lm)
     if (lm) {
 	Context * context = (Context *) HTRequest_context(lm->request);
 	HTRequest_delete(lm->request);
+	HTRequest_delete(lm->tty);
 	Context_delete(context);
 	free(lm->tv);
 	Thread_deleteAll(lm);
@@ -1660,7 +1663,7 @@ int main (int argc, char ** argv)
 	*/
 #ifdef STDIN_FILENO
 	if (isatty(STDIN_FILENO)) {
-	    HTEvent_RegisterTTY(STDIN_FILENO, lm->request, (SockOps)FD_READ,
+	    HTEvent_RegisterTTY(STDIN_FILENO, lm->tty, (SockOps)FD_READ,
 				scan_command, HT_PRIORITY_MAX);
 	}
 #else
