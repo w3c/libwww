@@ -1485,8 +1485,6 @@ int main ARGS2(int, argc, char **, argv)
 	    goto endproc;
     }
 
-    request->HeaderMask += HT_DATE;
-
     if (HTInteractive) {
 	reqlist = HTList_new();
 	user.sockfd = STDIN_FILENO;
@@ -1519,7 +1517,7 @@ endproc:
     if (logfilename)
 	HTLog_disable();
     {
-	HTList *hyperdocs = HTList_new();
+	HTList *hyperdocs = HTList_new();	/* @@@ These are not deleted */
 	HTAnchor_deleteAll(hyperdocs);
     }
     HTLibTerminate();
