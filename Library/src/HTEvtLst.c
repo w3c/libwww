@@ -336,12 +336,15 @@ PRIVATE BOOL EventOrder_clearAll (void)
     HTList * cur = EventOrderList;
     EventOrder * pres;
     HTTRACE(THD_TRACE, "EventOrder.. Clearing all ordered events\n");
-    if (cur) {
-	while ((pres = (EventOrder *) HTList_nextObject(cur)))
-	    HT_FREE(pres);
-	return YES;
+    /* PATCH INFOVISTA */
+    if (!cur) return NO;
+    while ((pres = (EventOrder *) HTList_nextObject(cur))) {
+      HTList_quickRemoveElement(cur, EventOrderList);
+      HT_FREE (pres);
+      cur = EventOrderList;
     }
-    return NO;
+    return YES;
+    /* PATCH INFOVISTA */
 }
 
 PUBLIC BOOL EventOrder_deleteAll (void) 
@@ -442,6 +445,26 @@ PUBLIC int HTEventList_register (SOCKET s, HTEventType type, HTEvent * event)
     return HT_OK;
 }
 
+/* PATCH INFOVISTA */
+PRIVATE void EventOrder_clean (SOCKET s, HTEventType type) 
+{
+    HTList * cur = EventOrderList;
+    HTList * last = EventOrderList;
+    EventOrder * pres;
+    HTTRACE(THD_TRACE, "EventOrder.. Clearing ordered events of type %s for socket %d\n" _ HTEvent_type2str(type) _ s);
+    /* Look to see if it's already here from before */
+    while ((pres = (EventOrder *) HTList_nextObject(cur))) {
+	if (pres->s == s && pres->type == type) {
+	  HTList_quickRemoveElement(cur, last);
+	  HT_FREE (pres);
+	  cur = last;
+	} else {
+	  last  = (HTList *) cur;
+	}
+    }
+}
+/* PATCH INFOVISTA */
+
 /*
 ** Remove the registered information for the specified socket for the actions 
 ** specified in ops. if no actions remain after the unregister, the registered
@@ -450,15 +473,20 @@ PUBLIC int HTEventList_register (SOCKET s, HTEventType type, HTEvent * event)
 */
 PUBLIC int HTEventList_unregister (SOCKET s, HTEventType type) 
 {
-    long 		v = HASH(s);
-    HTList * 		cur = HashTable[v];
-    HTList * 		last = cur;
+    long 		v;
+    HTList * 		cur;
+    HTList * 		last;
     SockEvents *	pres;
     int			ret = HT_ERROR;
 
-    /* if the socket doesn't exists, don't do anything */
-    if (s == INVSOC)
-      return HT_OK;
+    /* PATCH INFOVISTA */
+    if (s == INVSOC || HTEvent_INDEX (type) >= HTEvent_TYPES)
+       return HT_ERROR;
+
+    last = cur = HashTable[v = HASH(s)];
+
+    EventOrder_clean (s, type);
+    /* PATCH INFOVISTA */
 
     while (cur && (pres = (SockEvents *) HTList_nextObject(cur))) {
         if (pres->s == s) {
