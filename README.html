@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Read Me</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 25-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 14-Oct-1995 -->
 </HEAD>
 <BODY>
 
@@ -21,9 +21,8 @@ it contains the source code for the following modules:
 
 <UL>
 <LI><A HREF="Library/">W3C Reference Library</A>
-<LI><A HREF="Daemon/">CERN HTTPD</A>
-<LI><A HREF="LineMode/">Line Mode Browser</A>
-<LI><A HREF="NextStep/Status.html">Next Browser/Editor</A>
+<LI><A HREF="Daemon/">W3C httpd</A>
+<LI><A HREF="LineMode/">W3C Line Mode Browser</A>
 </UL>
 
 At the bottom of this file, you will find pointers to more information.
@@ -32,8 +31,8 @@ At the bottom of this file, you will find pointers to more information.
 
 All distribution files contain the source code for each of the
 modules. W3C also provides a wide set of precompiled binaries which
-are available either <A HREF="../Dist">directly via HTTP</A> or via
-anonymous FTP from <A HREF="ftp://ftp.w3.org/pub">ftp.w3.org</A>.<P>
+are available either <A HREF="../Dist/">directly via HTTP</A> or via
+anonymous FTP from <A HREF="ftp://ftp.w3.org/pub/">ftp.w3.org</A>.<P>
 
 All of the distribution packets are available as compressed tar files,
 and some are also available as zip files. For the compressed tar
@@ -74,25 +73,23 @@ follows (directories):
 
 	WWW/Library			W3C Reference Library
 	WWW/Library/Implementation	Source Code
+	WWW/Library/User		Documentation
 	WWW/Library/&lt;platform&gt;/*	Platform dependent object files
 
-	WWW/Daemon			CERN HTTPD
+	WWW/Daemon			W3C httpd
 	WWW/Daemon/Implementation	Source Code
 	WWW/Daemon/&lt;platform&gt;/*		Platform dependent object files
 
-	WWW/LineMode			LineMode Browser
+	WWW/LineMode			W3C LineMode Browser
 	WWW/LineMode/Implementation	Source Code
+	WWW/LineMode/Defaults/		Documentation
 	WWW/LineMode/&lt;platform&gt;/*	Platform dependent object files
-
-	WWW/Next			Next Browser/Editor
-	WWW/Next/Implementation		Source Code
-	WWW/Next/&lt;platform&gt;/*		Platform dependent object files
 </PRE>
 
 Some or more of these directories might not be there. This depends on
 the number of distribution files. In general there is one distribution
-file pr. module (Library, LineMode Browser, and Daemon). The Library
-distribution file is required for all the other module.
+file pr. module (Library, Line Mode Browser, and Daemon). Please note
+that the Library distribution file is required for all other modules.
 
 <H2>Compilation</H2>
 
@@ -145,14 +142,19 @@ HREF="TheProject.html">World-Wide Web</A> applications and all the W3C
 software is build on top of it. The Library is a required part of all
 other W3C applications in this distribution. <P>
 
-You can get more information from the <A HREF="Library/">online
-documentation</A> <B>[2]</B> and if you don't have a WWW client then
-telnet to <CODE>telnet.w3.org</CODE> (no userid or password required)
-and you will get the Line Mode Browser.
+The Library documentation is included in the distribution file and you
+can find the top page at
 
-<H2>LineMode Browser</H2>
+<PRE>
+	Library/User/Overview.html
+</PRE>
 
-The Line Mode Browser is a character based World-Wide Web Browser.  It
+You can also use the <A HREF="Library/">online documentation</A>
+<B>[2]</B>
+
+<H2>W3C LineMode Browser</H2>
+
+The W3C Line Mode Browser is a character based World-Wide Web Browser.  It
 is developed for use on dumb terminals and as a test tool for the
 Common Code Library. It can be run in interactive mode, non-
 interactive mode and as a proxy client. Furthermore it gives a variety
@@ -161,19 +163,24 @@ primarily intended as a test-tool for quick access to the Web or used
 in batch jobs.<P>
 
 Installation is very simple as the application can run without any
-particular seup. You can specify your own <EM>HOME PAGE</EM> using the
-<CODE>WWW_HOME</CODE> environment variable. Remember toy setup a
+particular setup. You can specify your own <EM>HOME PAGE</EM> using
+the <CODE>WWW_HOME</CODE> environment variable. Remember toy setup a
 <CODE>NNTPSERVER</CODE> environment variable before you try to access
 a news server. <P>
 
-You can get more information from the is available at <A
-HREF="LineMode/">online documentation</A> <B>[3]</B> and if you don't
-have a WWW client then telnet to <CODE>telnet.w3.org</CODE> (no userid
-or password required) and you will get the Line Mode Browser.
+The Line Mode Browser documentation is included in the distribution
+file and you can find the top page at
+
+<PRE>
+	LineMode/Defaults/Overview.html
+</PRE>
+
+You can also use the <A HREF="LineMode/">online documentation</A>
+<B>[3]</B>
 
 <H2>Server</H2>
 
-CERN httpd is a generic public domain full-featured hypertext server
+W3C httpd is a generic public domain full-featured hypertext server
 which can be used as a regular HTTP server. The running typically on
 port 80 to serve hypertext and other documents, and also as a proxy --
 a server on a firewall machine -- that provides access for people
@@ -183,37 +190,8 @@ response times. <P>
 
 Follow instructions above for compiling and then go on to "<A
 NAME="z9" HREF="Daemon/User/Installation/Installation.html">
-Installing the basic W3 server</A>". <P>
-
-You can get more information from the is available at <A
-HREF="Daemon/">online documentation</A> <B>[4]</B> and if you don't
-have a WWW client then telnet to <CODE>telnet.w3.org</CODE> (no userid
-or password required) and you will get the Line Mode Browser.
-
-<H2>NeXTStep Browser/Editor</H2>
-
-The browser for the NeXT is those files contained in the application
-directory WWW/Next/Implementation/WorldWideWeb.app and is
-compiled. When you install the app, you may want to configure the
-default page, WorldWideWeb.app/default.html. These must point to some
-useful information! You should keep it up to date with pointers to
-info on your site and elsewhere. If you use the W3C home page note
-there is a link at the bottom to the master copy on our server. You
-should set up the address of your local news server with
-
-<PRE>
-	dwrite WorldWideWeb NewsHost news
-</PRE>
-
-replacing the last word with the actual address of your news host.
-See <A NAME="6" HREF="NextStep/Installation.html">Installation
-instructions</A>. <P>
-
-You can get more information from the is available at is available at
-<A HREF="NextStep/Status.html">online documentation</A> <B>[5]</B> and
-if you don't have a WWW client then telnet to
-<CODE>telnet.w3.org</CODE> (no userid or password required) and you
-will get the Line Mode Browser.
+Installing the basic W3 server</A>". You can also use the <A
+HREF="Daemon/">online documentation</A> <B>[4]</B>
 
 <H2>Places to contact</H2>
 
@@ -222,9 +200,8 @@ ideas etc. then please contact the following addresses:
 
 <UL>
 <LI><B><A HREF="mailto:libwww@w3.org">libwww@w3.org</A></B> regarding the W3C Reference Library
-<LI><B><A HREF="mailto:httpd@w3.org">httpd@w3.org</A></B> regarding the CERN HTTPD
-<LI><B><A HREF="mailto:www-bug@w3.org">www-bug@w3.org</A></B> regarding the Line Mode Browser
-<LI><B><A HREF="mailto:www-bug@w3.org">www-bug@w3.org</A></B> regarding the Next Browser/Editor
+<LI><B><A HREF="mailto:httpd@w3.org">httpd@w3.org</A></B> regarding the W3C httpd
+<LI><B><A HREF="mailto:www-bug@w3.org">www-bug@w3.org</A></B> regarding the W3C Line Mode Browser
 </UL>
 
 <H2>Useful Pointers</H2>
@@ -238,7 +215,6 @@ These are the locations where you can get more information.
 <LI><A HREF="http://www.w3.org/member/WWW/Library/">http://www.w3.org/member/WWW/Library/</A>
 <LI><A HREF="http://www.w3.org/member/WWW/LineMode/">http://www.w3.org/member/WWW/LineMode/</A>
 <LI><A HREF="http://www.w3.org/member/WWW/Daemon/">http://www.w3.org/member/WWW/Daemon/</A>
-<LI><A HREF="http://www.w3.org/member/WWW/NextStep/Status.html">http://www.w3.org/member/WWW/NextStep/Status.html</A>
 </OL>
 
 <H3>Other</H3>
@@ -248,7 +224,6 @@ These are the locations where you can get more information.
 <LI><A HREF="http://www.w3.org/hypertext/WWW/Library/">http://www.w3.org/hypertext/WWW/Library/</A>
 <LI><A HREF="http://www.w3.org/hypertext/WWW/LineMode/">http://www.w3.org/hypertext/WWW/LineMode/</A>
 <LI><A HREF="http://www.w3.org/hypertext/WWW/Daemon/">http://www.w3.org/hypertext/WWW/Daemon/</A>
-<LI><A HREF="http://www.w3.org/hypertext/WWW/NextStep/Status.html">http://www.w3.org/hypertext/WWW/NextStep/Status.html</A>
 </OL>
 
 <EM>Have fun!</EM>
@@ -256,7 +231,7 @@ These are the locations where you can get more information.
 <P>
 <HR>
 
-<ADDRESS>Henrik Frystyk, May 1995</ADDRESS>
+<ADDRESS>Henrik Frystyk, October 1995</ADDRESS>
 
 </BODY>
 </HTML>
