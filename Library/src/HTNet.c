@@ -428,13 +428,17 @@ PUBLIC BOOL HTNet_setMaxSocket (int newmax)
 PUBLIC void HTNet_increaseSocket (void)
 {
     Active++;
-    if (CORE_TRACE) HTTrace("Net Manager. %d open sockets\n", Active);
+    if (CORE_TRACE)
+	HTTrace("Net Manager. Increasing active sockets to %d, %d persistent sockets\n",
+		Active, Persistent);
 }
 
 PUBLIC void HTNet_decreaseSocket (void)
 {
     if (--Active < 0) Active = 0;
-    if (CORE_TRACE) HTTrace("Net Manager. %d open sockets\n", Active);
+    if (CORE_TRACE)
+	HTTrace("Net Manager. Decreasing active sockets to %d, %d persistent sockets\n",
+		Active, Persistent);
 }
 
 PUBLIC int HTNet_availableSockets (void)
@@ -446,13 +450,17 @@ PUBLIC int HTNet_availableSockets (void)
 PUBLIC void HTNet_increasePersistentSocket (void)
 {
     Persistent++;
-    if (CORE_TRACE) HTTrace("Net Manager. %d persistent sockets\n", Persistent);
+    if (CORE_TRACE)
+	HTTrace("Net Manager. %d active sockets, increasing persistent sockets to %d\n",
+		Active, Persistent);
 }
 
 PUBLIC void HTNet_decreasePersistentSocket (void)
 {
     if (--Persistent < 0) Persistent = 0;
-    if (CORE_TRACE) HTTrace("Net Manager. %d persistent sockets\n", Persistent);
+    if (CORE_TRACE)
+	HTTrace("Net Manager. %d active sockets, decreasing persistent sockets to %d\n",
+		Active, Persistent);
 }
 
 PUBLIC int HTNet_availablePersistentSockets (void)
@@ -1099,15 +1107,20 @@ PUBLIC HTOutputStream * HTNet_getOutput (HTNet * me, void * param, int mode)
     return NULL;
 }
 
-PUBLIC BOOL HTNet_setEventParam(HTNet * net, void * eventParam)
+PUBLIC HTEvent * HTNet_event (HTNet * net)
+{
+    return net ? &net->event : NULL;
+}
+
+PUBLIC BOOL HTNet_setEventParam (HTNet * net, void * eventParam)
 {
     if (net) return HTEvent_setParam(&net->event, eventParam);
     return NO;
 }
 
-PUBLIC void* HTNet_eventParam(HTNet * net)
+PUBLIC void * HTNet_eventParam (HTNet * net)
 {
-    return net->event.param;
+    return net ? net->event.param : NULL;
 }
 
 PUBLIC BOOL HTNet_setEventCallback(HTNet * net, HTEventCallback * cbf)

@@ -813,6 +813,12 @@ PUBLIC BOOL HTAnchor_addEncoding (HTParentAnchor * me, HTEncoding encoding)
     return NO;
 }
 
+PUBLIC BOOL HTAnchor_removeEncoding (HTParentAnchor * me, HTEncoding encoding)
+{
+    return (me && me->content_encoding && encoding) ?
+	HTList_removeObject(me->content_encoding, encoding) : NO;
+}
+
 /*
 **	Content Language
 */

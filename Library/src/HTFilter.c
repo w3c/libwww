@@ -371,7 +371,8 @@ PUBLIC int HTCacheUpdateFilter (HTRequest * request, HTResponse * response,
 	**  keep this around until the cache load request has terminated
 	**  In the case of a 
 	*/
-#if 0 /* FIX ME!!! */
+#define SINGLE_CACHE_LOAD
+#ifdef SINGLE_CACHE_LOAD
 	{
 	    static BOOL done = NO;
 	    if (!done) {	
@@ -383,7 +384,7 @@ PUBLIC int HTCacheUpdateFilter (HTRequest * request, HTResponse * response,
 #else
 	HTLoad(request, YES);
 	return HT_ERROR;
-#endif
+#endif /* SINGLE_CACHE_LOAD */
     }
     return HT_OK;
 }

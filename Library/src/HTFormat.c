@@ -586,12 +586,12 @@ PUBLIC HTStream * HTContentCodingStack (HTEncoding	encoding,
     coders[0] = HTRequest_encoding(request);
     coders[1] = HTContentCoders;
     if (CORE_TRACE)
-	HTTrace("Codings..... Looking for %s\n", HTAtom_name(encoding));
+	HTTrace("C-E......... Looking for `%s\'\n", HTAtom_name(encoding));
     for (cnt=0; cnt < 2; cnt++) {
 	HTList * cur = coders[cnt];
 	while ((pres = (HTCoding *) HTList_nextObject(cur))) {
 	    if (pres->encoding == encoding) {
-		if (CORE_TRACE) HTTrace("Codings..... Found...\n");
+		if (CORE_TRACE) HTTrace("C-E......... Found...\n");
 		if (encode) {
 		    if (pres->encoder)
 			top = (*pres->encoder)(request, param, encoding, top);
@@ -601,6 +601,24 @@ PUBLIC HTStream * HTContentCodingStack (HTEncoding	encoding,
 		    break;
 		}
 	    }
+	}
+    }
+
+    /*
+    **  If this is not a unity coding and we didn't find any coders
+    **  that could handle it then put in a local file save stream
+    **  instead of the stream that we got.
+    */
+    if (!HTFormat_isUnityContent(encoding) && target==top) {
+	if (encode) {	    
+	    if (CORE_TRACE) HTTrace("C-E......... NOT FOUND - removing encoding!\n");
+	    HTAnchor_removeEncoding(HTRequest_anchor(request), encoding);
+	} else {
+	    if (CORE_TRACE) HTTrace("C-E......... NOT FOUND - inserting save stream!\n");
+	    (*top->isa->abort)(top, NULL);
+	    top = HTSaveLocally(request, NULL, NULL,
+				HTRequest_outputFormat(request),
+				HTRequest_outputStream(request));
 	}
     }
     return top;
@@ -688,6 +706,24 @@ PUBLIC HTStream * HTTransferCodingStack (HTEncoding	encoding,
 		    break;
 		}
 	    }
+	}
+    }
+
+    /*
+    **  If this is not a unity coding and we didn't find any coders
+    **  that could handle it then put in a local file save stream
+    **  instead of the stream that we got.
+    */
+    if (!HTFormat_isUnityTransfer(encoding) && target==top) {
+	if (encode) {	    
+	    if (CORE_TRACE) HTTrace("C-T-E....... NOT FOUND - removing encoding!\n");
+	    HTAnchor_setTransfer(HTRequest_anchor(request), NULL);
+	} else {
+	    if (CORE_TRACE) HTTrace("C-T-E....... NOT FOUND - inserting save stream!\n");
+	    (*top->isa->abort)(top, NULL);
+	    top = HTSaveLocally(request, NULL, NULL,
+				HTRequest_outputFormat(request),
+				HTRequest_outputStream(request));
 	}
     }
     return top;

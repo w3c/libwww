@@ -24,7 +24,6 @@
 #include "WWWStream.h"
 #include "WWWTrans.h"
 #include "HTReqMan.h"
-#include "HTNetMan.h"
 #include "HTTPUtil.h"
 #include "HTTPReq.h"
 #include "HTTP.h"					       /* Implements */
@@ -519,7 +518,7 @@ PRIVATE int stream_pipe (HTStream * me)
 	HTResponse * response = HTRequest_response(request);
 	char *ptr = me->buffer+4;		       /* Skip the HTTP part */
 	me->version = HTNextField(&ptr);
-	HTHost_setConsumed(net->host, me->buflen - me->startLen);
+	HTHost_setConsumed(HTNet_host(net), me->buflen - me->startLen);
 
 	/* Here we want to find out when to use persistent connection */
 	if (!strncasecomp(me->version, "/1.0", 4)) {
@@ -603,6 +602,7 @@ PRIVATE int stream_pipe (HTStream * me)
 					   HTRequest_outputStream(request),
 					   request, NO);
 	    } else {
+		HTAnchor_clearHeader(HTRequest_anchor(request));
 		me->target = HTStreamStack(WWW_MIME,
 					   HTRequest_outputFormat(request),
 					   HTRequest_outputStream(request),
@@ -936,8 +936,8 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 		     HTRequest * source = HTRequest_source(request);
 		     HTNet * srcnet = HTRequest_net(source);
 		     if (srcnet) {
-			 HTHost_register(srcnet->host, srcnet, HTEvent_READ);
-			 HTHost_unregister(srcnet->host, srcnet, HTEvent_WRITE);
+			 HTHost_register(HTNet_host(srcnet), srcnet, HTEvent_READ);
+			 HTHost_unregister(HTNet_host(srcnet), srcnet, HTEvent_WRITE);
 		     }
 		     return HT_OK;
 		 }

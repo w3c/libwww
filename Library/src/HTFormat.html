@@ -445,6 +445,13 @@ extern BOOL HTFormat_addCoding ( char *		encoding,
 				 HTCoder *	decoder,
 				 double		quality);
 </PRE>
+<P>
+We also define a macro to find out whether a content encoding is really
+an encoding or whether it is a unity encoder.
+<PRE>
+#define HTFormat_isUnityContent(me) \
+	((me)==NULL)
+</PRE>
 <H3>
   Global Content Transfer Codings
 </H3>

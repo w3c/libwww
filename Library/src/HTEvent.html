@@ -114,11 +114,8 @@ typedef enum {
     {HTEvent_RESET, "HTEvent_RESET"}
 
 extern char * HTEvent_type2str(HTEventType type);
-
-/* Avoid circular include for HTReq->HTNet->HTHost: HTEvent blah */
-typedef struct _HTEvent HTEvent;
-#include "HTReq.h"
 </PRE>
+
 <H2>
   <A NAME="eventHandlers">Event Handlers</A>
 </H2>
@@ -128,6 +125,10 @@ and called at a later point in time in order to continue an operation. All
 locations must be of type &nbsp;<CODE>HTEventCallback</CODE> as defined here:
 <PRE>
 typedef int HTEventCallback (SOCKET, void *, HTEventType);
+typedef struct _HTEvent HTEvent;
+
+/* Avoid circular include for HTReq->HTNet->HTHost: HTEvent blah */
+#include "HTReq.h"
 </PRE>
 <P>
 There are many default event handlers provided with the Library. For example,

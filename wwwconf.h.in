@@ -376,6 +376,9 @@
 /* Define if you have the <tcp.h> header file.  */
 #undef HAVE_TCP_H
 
+/* Define if you have the <termios.h> header file.  */
+#undef HAVE_TERMIOS_H
+
 /* Define if you have the <time.h> header file.  */
 #undef HAVE_TIME_H
 

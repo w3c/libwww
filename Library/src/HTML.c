@@ -614,8 +614,20 @@ PRIVATE void HTML_end_element (HTStructured * me, int element_number)
     case HTML_I:
     case HTML_U:
 	UPDATE_STYLE;
+#if 0
 	HText_appendCharacter(me->text, '_');
+#endif
 	break;
+
+    case HTML_EM:			/* Logical character highlighting */
+    case HTML_STRONG:			/* Currently ignored */
+    case HTML_CODE:
+    case HTML_SAMP:
+    case HTML_KBD:
+    case HTML_VAR:
+    case HTML_DFN:
+    case HTML_CITE:
+    	break;
     
     case HTML_LISTING:				/* Litteral text */
     case HTML_XMP:

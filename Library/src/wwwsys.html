@@ -761,6 +761,11 @@ Their existance is discovered by <CODE>configure</CODE>.
 #include &lt;sys/ioctl.h&gt;
 #endif
 
+/* termios.h */
+#ifdef HAVE_TERMIOS_H
+#include &lt;termios.h&gt;
+#endif
+
 /* time.h */
 #ifdef TIME_WITH_SYS_TIME
 #include &lt;sys/time.h&gt;

@@ -252,18 +252,9 @@ PUBLIC BOOL HTList_insertionSort (HTList * head, HTComparer * comp)
 {
     HTList *tail, *q, *r, *p;
     if (head && head->next && comp) {
-#if 0
-	HTList * tail = head->next;	          /* Tail of the sorted list */
-#else
 	tail = head->next;
-#endif
-
 	while (tail->next) {
-#if 0
-	    HTList * q = tail->next;		    /* Head of unsorted list */
-#else
 	    q = tail->next;
-#endif
 
 	    /*
 	    **  Depending on the return status of the comparer we either move
@@ -275,13 +266,8 @@ PUBLIC BOOL HTList_insertionSort (HTList * head, HTComparer * comp)
 		q->next = head->next;
 		head->next = q;
 	    } else {
-#if 0
-		HTList * r = head->next;
-		HTList * p = r->next;
-#else
 		r = head->next;
 		p = r->next;
-#endif
 		while (comp(q->object, p->object) < 0) {
 		    r = p;
 		    p = r->next;
@@ -302,8 +288,7 @@ PUBLIC BOOL HTList_insertionSort (HTList * head, HTComparer * comp)
 	}
 	return YES;
     } else {
-	if (CORE_TRACE)
-	    HTTrace("List........ Empty list or no sort algorithm\n");
+	if (CORE_TRACE) HTTrace("List........ Empty list or no sort algorithm\n");
     }
     return NO;
 }

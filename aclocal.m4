@@ -648,7 +648,15 @@ AC_DEFUN(AC_STRUCT_DIRENT_INO,
 dnl AC_STRUCT_WINSIZE
 AC_DEFUN(AC_STRUCT_WINSIZE, 
 [ AC_CACHE_CHECK(for winsize structure, ac_cv_struct_winsize,
-  [ AC_TRY_COMPILE([#include <sys/ioctl.h>], [struct winsize foo;], 
+  [ AC_TRY_COMPILE(
+    [ #ifdef HAVE_TERMIOS_H
+      #include <termios.h>
+      #else
+      #ifdef HAVE_SYS_IOCTL_H
+      #include <sys/ioctl.h>
+      #endif
+      #endif
+    ], [struct winsize foo;], 
     ac_cv_struct_winsize=yes, ac_cv_struct_winsize=no)])
   if test $ac_cv_struct_winsize = yes ; then
     AC_DEFINE(HAVE_WINSIZE)

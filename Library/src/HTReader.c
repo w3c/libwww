@@ -158,6 +158,7 @@ PRIVATE int HTReader_read (HTInputStream * me)
 					HT_MSG_NULL, NULL, NULL, NULL);
 		}
 		HTHost_unregister(host, net, HTEvent_READ);
+		HTHost_register(host, net, HTEvent_CLOSE);
 		return HT_CLOSED;
 	    }
 

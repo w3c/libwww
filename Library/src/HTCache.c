@@ -44,7 +44,7 @@
 #define WARN_HEURISTICS		24*3600		/* When to issue a warning */
 
 #define HASH_SIZE 	67
-#define DUMP_FREQUENCY	50			/* Dump index after 10 loads */
+#define DUMP_FREQUENCY	20			/* Dump index after 20 loads */
 
 #define MEGA		0x100000L
 #define CACHE_SIZE	(20*MEGA)		/* Default cache size is 20M */

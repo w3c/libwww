@@ -93,7 +93,7 @@ PRIVATE int _makeSocket(HTHost * host, HTRequest * request, int preemptive, HTTr
 	host->tcpstate = TCP_ERROR;
 	return -1;
 	}
-    if (PROT_TRACE) HTTrace(HTHIDE("Socket...... Created %d\n"), sockfd);
+    if (PROT_TRACE) HTTrace("Socket...... Created %d\n", sockfd);
 
     /* Increase the number of sockets by one */
     HTNet_increaseSocket();
@@ -154,9 +154,10 @@ PRIVATE int _makeSocket(HTHost * host, HTRequest * request, int preemptive, HTTr
 	}
 #endif /* !VMS */
 #endif /* !_WINSOCKAPI_ */
-	if (PROT_TRACE) HTTrace(HTHIDE("Socket...... %slocking socket\n"), status == -1 ? "B" : "Non-b");
+	if (PROT_TRACE)
+	    HTTrace("Socket...... %slocking socket\n", status == -1 ? "B" : "Non-b");
     } else
-	if (PROT_TRACE) HTTrace(HTHIDE("Socket...... Blocking socket\n"));
+	if (PROT_TRACE) HTTrace("Socket...... Blocking socket\n");
 
     /*
     **  Associate the channel with the host and create an input and and output stream
@@ -215,7 +216,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	      ** which is setting up a channel
 	      */
 	      me->tcpstate = TCP_CHANNEL;
-	      if (PROT_TRACE) HTTrace(HTHIDE("HTHost %p going to state TCP_CHANNEL.\n"), me);
+	      if (PROT_TRACE) HTTrace("HTHost %p going to state TCP_CHANNEL.\n", me);
 	      if (status == HT_PENDING) return HT_PENDING;
 	  }
 	  break;
@@ -229,7 +230,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	    */
 	    if (HTHost_channel(me) == NULL) {
 		me->tcpstate = TCP_DNS;
-		if (PROT_TRACE) HTTrace(HTHIDE("HTHost %p going to state TCP_DNS.\n"), me);
+		if (PROT_TRACE) HTTrace("HTHost %p going to state TCP_DNS.\n", me);
 	    } else {
 
 		/*
@@ -251,26 +252,26 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 		**  We are now all set and can jump to connected mode
 		*/
 		me->tcpstate = TCP_CONNECTED;
-		if (PROT_TRACE) HTTrace(HTHIDE("HTHost %p going to state TCP_CONNECTED.\n"), me);
+		if (PROT_TRACE) HTTrace("HTHost %p going to state TCP_CONNECTED.\n", me);
 	    }
 	    hostname = HTHost_name(me);
 	    break;
 
 	case TCP_DNS:
 	    if ((status = HTParseInet(me, hostname, request)) < 0) {
-		if (PROT_TRACE) HTTrace(HTHIDE("HTDoConnect. Can't locate `%s\'\n"), hostname);
+		if (PROT_TRACE) HTTrace("HTDoConnect. Can't locate `%s\'\n", hostname);
 		HTRequest_addError(request, ERR_FATAL, NO,
 				   HTERR_NO_REMOTE_HOST,
 				   (void *) hostname, strlen(hostname),
 				   "HTDoConnect");
 		me->tcpstate = TCP_ERROR;
-		if (PROT_TRACE) HTTrace(HTHIDE("HTHost %p going to state TCP_ERROR.\n"), me);
+		if (PROT_TRACE) HTTrace("HTHost %p going to state TCP_ERROR.\n", me);
 		break;
 	    }
 	    if (!HTHost_retry(me) && status > 1)		/* If multiple homes */
 		HTHost_setRetry(me, status);
 	    me->tcpstate = TCP_NEED_SOCKET;
-	    if (PROT_TRACE) HTTrace(HTHIDE("HTHost %p going to state TCP_NEED_SOCKET.\n"), me);
+	    if (PROT_TRACE) HTTrace("HTHost %p going to state TCP_NEED_SOCKET.\n", me);
 	    break;
 
 	  case TCP_NEED_SOCKET:
@@ -299,7 +300,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 				NULL, hostname, NULL);
 	    }
 	    me->tcpstate = TCP_NEED_CONNECT;
-	    if (PROT_TRACE) HTTrace(HTHIDE("HTHost %p going to state TCP_NEED_CONNECT.\n"), me);
+	    if (PROT_TRACE) HTTrace("HTHost %p going to state TCP_NEED_CONNECT.\n", me);
 	    break;
 	  case TCP_NEED_CONNECT:
 	    status = connect(HTChannel_socket(me->channel), (struct sockaddr *) &me->sock_addr,
@@ -326,19 +327,19 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	    {
 		if (NETCALL_WOULDBLOCK(socerrno))
 		{
-		    if (PROT_TRACE) HTTrace(HTHIDE("HTDoConnect. WOULD BLOCK `%s'\n"), hostname);
+		    if (PROT_TRACE) HTTrace("HTDoConnect. WOULD BLOCK `%s'\n", hostname);
 		    HTHost_register(me, net, HTEvent_CONNECT);
 		    return HT_WOULD_BLOCK;
 		}
 		if (socerrno == EISCONN) {
 		    me->tcpstate = TCP_CONNECTED;
-		    if (PROT_TRACE) HTTrace(HTHIDE("HTHost %p going to state TCP_CONNECTED.\n"), me);
+		    if (PROT_TRACE) HTTrace("HTHost %p going to state TCP_CONNECTED.\n", me);
 		    break;
 		}
 		if (NETCALL_DEADSOCKET(socerrno))     /* We lost the socket */
 		{
 		    me->tcpstate = TCP_NEED_SOCKET;
-		    if (PROT_TRACE) HTTrace(HTHIDE("HTHost %p going to state TCP_NEED_SOCKET.\n"), me);
+		    if (PROT_TRACE) HTTrace("HTHost %p going to state TCP_NEED_SOCKET.\n", me);
 		    break;
 		}
 		if (HTHost_retry(me)) {
@@ -361,10 +362,10 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 		    HTDNS_updateWeigths(me->dns, HTHost_home(me), me->connecttime);
 		}
 		me->tcpstate = TCP_ERROR;		
-		if (PROT_TRACE) HTTrace(HTHIDE("HTHost %p going to state TCP_ERROR.\n"), me);
+		if (PROT_TRACE) HTTrace("HTHost %p going to state TCP_ERROR.\n", me);
 	    } else {
 		me->tcpstate = TCP_CONNECTED;
-		if (PROT_TRACE) HTTrace(HTHIDE("HTHost %p going to state TCP_CONNECTED.\n"), me);
+		if (PROT_TRACE) HTTrace("HTHost %p going to state TCP_CONNECTED.\n", me);
 	    }
 	    break;
 
@@ -376,7 +377,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	    }
 	    HTHost_setRetry(me, 0);
 	    me->tcpstate = TCP_IN_USE;
-	    if (PROT_TRACE) HTTrace(HTHIDE("HTHost %p connected.\n"), me);
+	    if (PROT_TRACE) HTTrace("HTHost %p connected.\n", me);
 	    return HT_OK;
 	    break;
 
@@ -393,7 +394,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	  case TCP_NEED_BIND:
 	  case TCP_NEED_LISTEN:
 	  case TCP_ERROR:
-	    HTTrace(HTHIDE("HTDoConnect. Connect failed %d\n"), socerrno);
+	    HTTrace("HTDoConnect. Connect failed %d\n", socerrno);
 	    if (HTChannel_socket(me->channel) != INVSOC) {
 	      /*	        HTEvent_unregister(HTChannel_socket(me->channel), (SockOps) FD_ALL); */
 		NETCLOSE(HTChannel_socket(me->channel));
@@ -402,7 +403,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 		if (HTHost_isPersistent(me)) {	 /* Inherited socket */
 		    HTHost_setPersistent(me, NO, HT_TP_SINGLE);
 		    me->tcpstate = TCP_NEED_SOCKET;
-		    if (PROT_TRACE) HTTrace(HTHIDE("HTHost %p going to state TCP_NEED_SOCKET.\n"), me);
+		    if (PROT_TRACE) HTTrace("HTHost %p going to state TCP_NEED_SOCKET.\n", me);
 		    break;
 		}
 #endif
@@ -414,14 +415,14 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	        HTRequest_addSystemError(request, ERR_NON_FATAL, socerrno, NO,
 			      "connect");
 		me->tcpstate = TCP_DNS;
-		if (PROT_TRACE) HTTrace(HTHIDE("HTHost %p going to state TCP_DNS.\n"), me);
+		if (PROT_TRACE) HTTrace("HTHost %p going to state TCP_DNS.\n", me);
 		break;
 	    }
 	    HTRequest_addSystemError(request, ERR_FATAL,socerrno,NO,"connect");
 	    HTDNS_delete(hostname);
 	    HTHost_setRetry(me, 0);
 	    me->tcpstate = TCP_BEGIN;
-	    if (PROT_TRACE) HTTrace(HTHIDE("HTHost %p going to state TCP_BEGIN.\n"), me);
+	    if (PROT_TRACE) HTTrace("HTHost %p going to state TCP_BEGIN.\n", me);
 	    return HT_ERROR;
 	    break;
 	}

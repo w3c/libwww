@@ -105,8 +105,8 @@ PRIVATE int HostEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    targetNet = (HTNet *)HTList_firstObject(host->pipeline);
 	    if (targetNet) {
 		if (CORE_TRACE)
-		    HTTrace(HTHIDE("Host Event.. READ passed to %s.\n"), 
-			    HTHIDE(HTAnchor_physical(HTRequest_anchor(HTNet_request(targetNet)))));
+		    HTTrace("Host Event.. READ passed to `%s\'\n", 
+			    HTAnchor_physical(HTRequest_anchor(HTNet_request(targetNet))));
 		if ((ret = (*targetNet->event.cbf)(HTChannel_socket(host->channel), 
 						  targetNet->event.param, type)) != HT_OK)
 		    return ret;
@@ -126,28 +126,34 @@ PRIVATE int HostEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    return HT_OK;
 
 	/* If there was notargetNet, it should be a close */
-	HTTrace(HTHIDE("Host Event.. host %s closed connection.\n"), 
-		host->hostname);
+	if (CORE_TRACE)
+	    HTTrace("Host Event.. host %p `%s\' closed connection.\n", 
+		    host, host->hostname);
 
 	/* Is there garbage in the channel? Let's check: */
 	{
 	    char buf[256];
 	    int ret;
-	    while ((ret = NETREAD(HTChannel_socket(host->channel), buf, sizeof(buf))) > 0)
-		HTTrace(HTHIDE("Host Event.. Host %s had %d extraneous bytes.\n"), host->hostname, ret);
+	    memset(buf, '\0', sizeof(buf));
+	    while ((ret = NETREAD(HTChannel_socket(host->channel), buf, sizeof(buf))) > 0) {
+		if (CORE_TRACE)
+		    HTTrace("Host Event.. Host %p `%s\' had %d extraneous bytes: `%s\'\n",
+			    host, host->hostname, ret, buf);
+		memset(buf, '\0', sizeof(buf));		
+	    }	    
 	}
 	HTHost_clearChannel(host, HT_OK);
-	return HT_OK; /* extra garbage does not constitute an application error */
+	return HT_OK; 	     /* extra garbage does not constitute an application error */
 	
     } else if (type == HTEvent_WRITE || type == HTEvent_CONNECT) {
 	HTNet * targetNet = (HTNet *)HTList_lastObject(host->pipeline);
 	if (targetNet) {
 	    if (CORE_TRACE)
-		HTTrace(HTHIDE("Host Event.. WRITE passed to %s.\n"), 
-			HTHIDE(HTAnchor_physical(HTRequest_anchor(HTNet_request(targetNet)))));
+		HTTrace("Host Event.. WRITE passed to `%s\'\n", 
+			HTAnchor_physical(HTRequest_anchor(HTNet_request(targetNet))));
 	    return (*targetNet->event.cbf)(HTChannel_socket(host->channel), targetNet->event.param, type);
 	}
-	HTTrace(HTHIDE("Host Event.. Who wants to write to %s?\n"), host->hostname);
+	HTTrace("Host Event.. Who wants to write to `%s\'?\n", host->hostname);
 	return HT_ERROR;
     } else if (type == HTEvent_TIMEOUT) {
 
@@ -156,7 +162,7 @@ PRIVATE int HostEvent (SOCKET soc, void * pVoid, HTEventType type)
 		    host->hostname);
 
     } else {
-	HTTrace(HTHIDE("Don't know how to handle OOB data from %s?\n"), 
+	HTTrace("Don't know how to handle OOB data from `%s\'?\n", 
 		host->hostname);
     }
     return HT_OK;
@@ -649,9 +655,8 @@ PUBLIC BOOL HTHost_clearChannel (HTHost * host, int status)
 	host->channel = NULL;
 	host->tcpstate = TCP_BEGIN;
 	host->reqsMade = 0;
-	HTNet_decreasePersistentSocket();
-	if (CORE_TRACE)
-	    HTTrace("Host info... removed host %p as persistent\n", host);
+	if (HTHost_isPersistent(host)) HTNet_decreasePersistentSocket();
+	if (CORE_TRACE) HTTrace("Host info... removed host %p as persistent\n", host);
 	return YES;
     }
     return NO;
@@ -1034,16 +1039,30 @@ PUBLIC int HTHost_register (HTHost * host, HTNet * net, HTEventType type)
 {
     if (host && net) {
 
-	/* net object may already be registered */
-	if (HTEvent_BITS(type) & net->registeredFor)
-	    return NO;
-	net->registeredFor ^= HTEvent_BITS(type);
+	if (type == HTEvent_CLOSE) {
 
-	/* host object may already be registered */
-	if (host->registeredFor & HTEvent_BITS(type))
+	    /*
+	    **  Unregister this host for all events
+	    */
+	    HTEvent_unregister(HTChannel_socket(host->channel), HTEvent_READ);
+	    HTEvent_unregister(HTChannel_socket(host->channel), HTEvent_WRITE);
+	    host->registeredFor = 0;
 	    return YES;
-	host->registeredFor ^= HTEvent_BITS(type);
-	return HTEvent_register(HTChannel_socket(host->channel), type, *(host->events+HTEvent_INDEX(type)));
+
+	} else {
+
+	    /* net object may already be registered */
+	    if (HTEvent_BITS(type) & net->registeredFor)
+		return NO;
+	    net->registeredFor ^= HTEvent_BITS(type);
+
+	    /* host object may already be registered */
+	    if (host->registeredFor & HTEvent_BITS(type))
+		return YES;
+	    host->registeredFor ^= HTEvent_BITS(type);
+	    return HTEvent_register(HTChannel_socket(host->channel),
+				    type, *(host->events+HTEvent_INDEX(type)));
+	}
     }
     return NO;
 }
@@ -1052,12 +1071,12 @@ PUBLIC int HTHost_unregister (HTHost * host, HTNet * net, HTEventType type)
 {
     if (host && net) {
 
-	/* net object may no be registered */
+	/* net object may not be registered */
 	if (!(HTEvent_BITS(type) & net->registeredFor))
 	    return NO;
 	net->registeredFor ^= HTEvent_BITS(type);
 
-	/* host object may no be registered */
+	/* host object may not be registered */
 	if (!(host->registeredFor & HTEvent_BITS(type)))
 	    return YES;
 	host->registeredFor ^= HTEvent_BITS(type);
@@ -1294,8 +1313,8 @@ PUBLIC int HTHost_forceFlush(HTHost * host)
     if (targetNet == NULL)
 	return HT_ERROR;
     if (CORE_TRACE)
-	HTTrace(HTHIDE("Host Event.. FLUSH passed to %s.\n"), 
-		HTHIDE(HTAnchor_physical(HTRequest_anchor(HTNet_request(targetNet)))));
+	HTTrace("Host Event.. FLUSH passed to `%s\'\n", 
+		HTAnchor_physical(HTRequest_anchor(HTNet_request(targetNet))));
     host->forceWriteFlush = YES;
     ret = (*targetNet->event.cbf)(HTChannel_socket(host->channel), targetNet->event.param, HTEvent_FLUSH);
     host->forceWriteFlush = wasForced;

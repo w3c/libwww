@@ -1592,9 +1592,6 @@ int main (int argc, char ** argv)
     /* Initiate W3C Reference Library with a client profile */
     HTProfile_newClient(APP_NAME, APP_VERSION);
     
-    /* FOR THE MOMENT */
-    HTCacheMode_setEnabled(NO);
-    
     /* It's confusing to have progress notofications in linemode browser */
     HTAlert_delete(HTProgress);
 

@@ -440,6 +440,12 @@ event handler with the event type and context passed to the function
 
 <PRE>
 extern BOOL HTNet_execute (HTNet * net, HTEventType type);
+
+extern HTEvent * HTNet_event (HTNet * net);
+extern BOOL HTNet_setEventParam (HTNet * net, void * eventParam);
+extern void * HTNet_eventParam (HTNet * net);
+extern BOOL HTNet_setEventCallback(HTNet * net, HTEventCallback * cbf);
+extern HTEventCallback * HTNet_eventCallback(HTNet * net);
 </PRE>
 
 <H3>
