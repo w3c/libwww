@@ -76,7 +76,7 @@ href="Library/src/windows/config.h">windows config.h file</a> then libwww can
 use the <a href="http://www.webdav.org/">WebDAV</a> familiy of protocols for
 collaborative work on the web. <a
 href="Library/Examples/davsample.c">davsample</a> is a sample C program
-showing showing how to use the DAV module.</p>
+showing how to use the DAV module.</p>
 <ol>
   <li>Define <code>HT_DAV</code> in <a
     href="Library/src/windows/config.h">windows config.h file</a></li>
@@ -87,7 +87,7 @@ showing showing how to use the DAV module.</p>
 <p>If <code>HT_EXPAT</code> is defined in the <a
 href="Library/src/windows/config.h">windows config.h file</a> then libwww can
 use the <a href="http://sourceforge.net/projects/expat/">expat library</a>
-for parsing XML files. In particular, this is necessary for using the XML. 
+for parsing XML files. In particular, this is necessary for using the XML.
 RDF and DAV libwww modules. A version of the precompiled <a
 href="http://www.winimage.com/zLibDll/">expat DLLs for Win32</a> is already
 included in the w3c-libwww distribution file.</p>
@@ -312,6 +312,16 @@ href="Library/User/Applications.html">libwww applications</a></p>
   <dt><code>--with-wais[=PATH]</code></dt>
     <dd>Compile with support for <a href="Library/User/WAIS.html">direct WAIS
       access</a>.</dd>
+  <dt>--with-dav</dt>
+    <dd>Compile with <a href="http://www.webdav.org/">WebDAV</a> support.
+      WebDAV is a set  of  extensions  to  the  HTTP  protocol,  which 
+      allows  users  to  collaboratively  edit and  manage  web resources.
+    </dd>
+  <dt>--with-extension</dt>
+    <dd>Compile with extension methods. Extension methods are methods that
+      can be defined by the application. They allow an easy support to new
+      methods proposed by protocols such as <a
+      href="http://www.webdav.org/deltav/">Delta-V</a> and others.  </dd>
 </dl>
 
 <h4>Less Used Libwww Configuration Options</h4>
