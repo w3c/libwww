@@ -1071,7 +1071,9 @@ PUBLIC void HTAnchor_setHeaderParsed (HTParentAnchor * me)
 	/*
 	**  If we don't get a Last-Modified header then set it to date
 	*/
+#if 0
 	if (me->last_modified < 0) me->last_modified = me->date;
+#endif
 	me->header_parsed = YES;
     }
 }
