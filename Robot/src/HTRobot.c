@@ -17,9 +17,8 @@
 #include "WWWApp.h"				        /* Application stuff */
 #include "WWWRules.h"
 #include "WWWApp.h"
+#include "WWWInit.h"
 
-#include "HTInit.c"
-#include "HTBInit.c"
 #include "HText.h"
 
 #include "HTRobot.h"			     		 /* Implemented here */

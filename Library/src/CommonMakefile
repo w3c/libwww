@@ -145,7 +145,7 @@ HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h  $(CMN)HTProxy.h $(CMN)HTFile.h \
 	$(CMN)WWWDir.h $(CMN)WWWFTP.h $(CMN)WWWFile.h $(CMN)WWWGophe.h \
 	$(CMN)WWWGuess.h $(CMN)WWWHTML.h $(CMN)WWWHTTP.h $(CMN)WWWMIME.h \
 	$(CMN)WWWNews.h $(CMN)WWWRules.h $(CMN)WWWTelnt.h $(CMN)WWWWAIS.h \
-	$(CMN)WWWCache.h $(CMN)WWWApp.h
+	$(CMN)WWWCache.h $(CMN)WWWApp.h $(CMN)WWWInit.h
 
 SOURCES = $(CFILES) $(HFILES) \
 	$(CMN)Version.make \

@@ -57,8 +57,7 @@
 #include "WWWRules.h"
 #include "WWWCache.h"
 #include "WWWApp.h"
-#include "HTInit.c"
-#include "HTBInit.c"
+#include "WWWInit.h"
 
 #include "GridText.h"				     /* Hypertext definition */
 #include "HTBrowse.h"			     /* Things exported, short names */
