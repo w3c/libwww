@@ -38,6 +38,7 @@ PUBLIC BOOL UserProgress (HTRequest * request, HTAlertOpcode op,
     static int inside = 0;
     char space[256];
     if (!request) return NO;
+
     switch (op) {
     case HT_PROG_DNS:
         sprintf(space, "Looking up %s\n", (char *) input);
@@ -177,7 +178,7 @@ PUBLIC BOOL UserConfirm (HTRequest * request, HTAlertOpcode op,
 {
     WPARAM wParam = 0;
     CUserParameters UserParams(request, op, msgnum, dfault, input, reply);
-    return wParam == IDOK;
+    return YES;
 }
 
 PUBLIC BOOL UserPrompt (HTRequest * request, HTAlertOpcode op,
@@ -186,7 +187,7 @@ PUBLIC BOOL UserPrompt (HTRequest * request, HTAlertOpcode op,
 {
     WPARAM wParam = 0;
     CUserParameters UserParams(request, op, msgnum, dfault, input, reply);
-    return wParam == IDOK;
+    return NO;
 }
 
 PUBLIC BOOL UserPassword (HTRequest * request, HTAlertOpcode op,
@@ -195,7 +196,7 @@ PUBLIC BOOL UserPassword (HTRequest * request, HTAlertOpcode op,
 {
     WPARAM wParam = 0;
     CUserParameters UserParams(request, op, msgnum, dfault, input, reply);
-    return wParam == IDOK;
+    return NO;
 }
 
 PUBLIC BOOL UserNameAndPassword (HTRequest * request, HTAlertOpcode op,

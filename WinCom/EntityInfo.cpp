@@ -6,6 +6,7 @@
 
 // From libwww
 #include "WWWLib.h"
+#include "WWWFile.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -134,7 +135,11 @@ BOOL CEntityInfo::OnSetActive()
 		}
 	    }
 	    m_statFile = TRUE;
-	    HT_FREE(uri);
+
+           /* Now don't use the qutomatic file suffix bindings */
+            HTFile_doFileSuffixBinding(NO);
+
+            HT_FREE(uri);
 	    HT_FREE(access);
 	}
     }

@@ -47,7 +47,10 @@ static char THIS_FILE[] = __FILE__;
 PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 			       void * param, int status) 
 {
-    CRequest * www_request = (CRequest *) HTRequest_context(request);
+    CRequest * Request = (CRequest *) HTRequest_context(request);
+
+    Request->m_pApp->ExitInstance();
+    
     exit(0);
     return HT_OK;
 }
@@ -119,9 +122,6 @@ BOOL CWinComApp::InitInstance()
 
         /* Add our own filter to update the history list */
         HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
-
-        /* We do our own local file suffix bindings */
-        HTFile_doFileSuffixBinding(NO);
 
         /* We don't care about case sensitivity when matching local files */
         HTBind_caseSensitive(NO);
