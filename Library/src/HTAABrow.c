@@ -1034,7 +1034,6 @@ PUBLIC int HTDigest_parse (HTRequest * request, HTResponse * response,
 		HT_FREE (full_url);
 	    }
 	    HT_FREE (base_url);
-	    HT_FREE (uris);
 	}
 	return HT_OK;
     }	

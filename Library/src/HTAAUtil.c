@@ -322,7 +322,8 @@ PUBLIC void * HTAA_updateNode (BOOL proxy_access, char const * scheme,
 	char * path = HTParse(url, "", PARSE_PATH | PARSE_PUNCTUATION);
 	HTAAElement * element = NULL;
 	BOOL status;
-	if ((element = (HTAAElement *) HTUTree_findNode(tree, realm, path)))
+	if ((element = (HTAAElement *) HTUTree_findNode(tree, realm, path))
+		&& element->scheme && !strcasecomp (element->scheme, scheme))
 	    status = HTAA_updateElement(element, scheme, context);
 	else {
   	  /* create the new element */
