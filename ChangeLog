@@ -1,4 +1,6 @@
-2000-13-12	Jose Kahan <jose@w3.org>
+Changes with libwww 5.3.2
+
+2000-12-13	Jose Kahan <jose@w3.org>
 
 	* Bug fix: When objects were retrieved from the cache, the
 	  response object didn't have a copy of the request headers.
@@ -11,7 +13,7 @@
           from the cache. Result, you can now use the response object 
           in both cases.
 
-2000-30-10	Jose Kahan <jose@w3.org>
+2000-10-30	Jose Kahan <jose@w3.org>
 	
 	* Enhancement, added a new field to the HTResponse object to
 	  store the HTTP reason sent by the server. Two new functions to 
@@ -206,3 +208,7 @@
 	  element will get referenced.  This is because the macro argument 
 	  "data" was the same name as the HTArray structure element that was
 	  being referenced in the macro.
+
+Changes with previous versions
+
+	* No info available (this log was started with version 5.3.2)
