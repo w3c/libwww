@@ -10,6 +10,7 @@
 **	JFG	Jean-Francois Groff jfg@dxcern.cern.ch
 **	DD	Denis DeLaRoca (310) 825-4580  <CSP1DWD@mvs.oac.ucla.edu>
 **	HFN	Henrik Frystyk, frystyk@w3.org
+**      JK      Jose Kahan, kahan@w3.org
 ** History
 **       8 Jun 92 Telnet hopping prohibited as telnet is not secure TBL
 **	26 Jun 92 When over DECnet, suppressed FTP, Gopher and News. JFG
@@ -22,6 +23,8 @@
 **	09 May 94 logfile renamed to HTlogfile to avoid clash with WAIS
 **	 8 Jul 94 Insulate HT_FREE();
 **	   Sep 95 Rewritten, HFN
+**      21 Jun 00 Added a Cache-Control: no-cache when doing PUT, as some
+**                proxies do cache PUT requests, JK
 */
 
 /* Library include files */
@@ -1323,6 +1326,15 @@ PUBLIC BOOL HTPutDocumentAnchor (HTParentAnchor *	source,
 	    **  It's OK to use a file cached element!
 	    */
 	    HTRequest_setReloadMode(request, HT_CACHE_FLUSH_MEM);
+
+	    /*
+	    **  Some proxy servers don't clean up their cache
+	    **  when receiving a PUT, specially if this PUT is
+	    **  redirected. We remove this problem by adding 
+	    **  an explicit Cache-Control: no-cache header to
+	    **  all PUT requests.
+	    */
+	    HTRequest_addCacheControl(request, "no-cache", "");
 
 	    /*
 	    ** Now we load the source document into a chunk. We specify that
