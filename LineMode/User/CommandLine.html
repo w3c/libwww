@@ -11,20 +11,20 @@
 
 <H1>Command Line Syntax</H1>
 
-The syntax is:
+The generic syntax is:
 
 <PRE>
 	www [ <A HREF="#z19" NAME="z20">options</A> ]  [ <A HREF="#z16"NAME="z14">docaddress</A> [ <A HREF="#z17" NAME="z18">keywords</A> ]]
 </PRE>
 
-With no arguments, and if the <A HREF="../Status.html" >Line Mode
+With no arguments, and if the <A HREF="../" >Line Mode
 Browser</A> has not been <A HREF="Customisation.html">customized</A>
 then it automatically tries the following locations:
 
 <OL>
 <LI>~/WWW/default.html
 <LI>/usr/local/lib/WWW/default.html
-<LI>http://www.w3.org/default.html
+<LI>http://www.w3.org/
 </OL>
 
 <H2><A NAME="z19">Options</A></H2>
@@ -98,7 +98,7 @@ file system are canceled.
 standard output, then exits. Pages are delimited with form feed (FF)
 characters.
 
-<DT><B>-single</B>
+<DT><A NAME="single"><B>-single</B></A>
 
 <DD>Singlethreaded mode. If this flag is set then the browser uses
 blocking, non interruptible I/O in interactive mode. Non-interactive
