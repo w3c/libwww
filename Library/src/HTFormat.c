@@ -1001,7 +1001,7 @@ PUBLIC int HTParseSocket ARGS3(
 **   The current method smells anyway.
 */
     targetClass = *(stream->isa);	/* Copy pointers to procedures */
-    if (rep_in == WWW_BINARY || HTOutputSource
+    if (rep_in == WWW_BINARY || rep_in == WWW_UNKNOWN || HTOutputSource
 	|| (request->content_encoding &&
 	    request->content_encoding != HTAtom_for("8bit") &&
 	    request->content_encoding != HTAtom_for("7bit"))

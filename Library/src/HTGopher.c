@@ -43,6 +43,7 @@
 #include "HTParse.h"
 #include "HTFormat.h"
 #include "HTTCP.h"
+#include "HTFile.h"		/* HTFileFormat() */
 
 /*		Hypertext object building machinery
 */
@@ -666,8 +667,22 @@ PUBLIC int HTLoadGopher ARGS1(HTRequest *, request)
       case GOPHER_PCBINHEX:
       case GOPHER_UUENCODED:
       case GOPHER_BINARY:
-        /* Specifying WWW_UNKNOWN forces dump to local disk. */
-        HTParseSocket (WWW_UNKNOWN,  s, request);
+	{	/* Do our own filetyping -- maybe we get lucky */
+	    HTFormat format = HTFileFormat(arg,
+					   &request->content_encoding,
+					   &request->content_language);
+	    if (format) {
+		CTRACE(stderr,
+		       "Gopher...... figured out content-type myself: %s\n",
+		       HTAtom_name(format));
+		HTParseSocket(format, s, request);
+	    }
+	    else {
+		CTRACE(stderr,"Gopher...... using www/unknown\n");
+		/* Specifying WWW_UNKNOWN forces dump to local disk. */
+		HTParseSocket (WWW_UNKNOWN, s, request);
+	    }
+	}
 	break;
 
     case GOPHER_TEXT :

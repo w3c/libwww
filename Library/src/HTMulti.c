@@ -264,8 +264,6 @@ PRIVATE char * get_best_welcome ARGS1(char *, path)
     STRUCT_DIRENT * dirbuf;
     char * last = strrchr(path, '/');
 
-    if (last) *last = 0;
-
     if (!welcome_names) {
 	HTAddWelcome("Welcome.html");
 	HTAddWelcome("welcome.html");
@@ -273,7 +271,9 @@ PRIVATE char * get_best_welcome ARGS1(char *, path)
 	HTAddWelcome("index.html");
     }
 
+    if (last) *last = 0;
     dp = opendir(path);
+    if (last) *last='/';
     if (!dp) {
 	CTRACE(stderr, "Warning..... Can't open directory %s\n",path);
 	return NULL;
@@ -297,7 +297,7 @@ PRIVATE char * get_best_welcome ARGS1(char *, path)
     if (best_welcome) {
 	char * welcome = (char*)malloc(strlen(path) + strlen(best_welcome)+2);
 	if (!welcome) outofmem(__FILE__, "get_best_welcome");
-	sprintf(welcome, "%s/%s", path, best_welcome);
+	sprintf(welcome, "%s%s%s", path, last ? "" : "/", best_welcome);
 	free(best_welcome);
 	CTRACE(stderr,"Welcome..... \"%s\"\n",welcome);
 	return welcome;
