@@ -471,7 +471,7 @@ PRIVATE void split_line ARGS2(HText *,text, int,split)
     int spare;
     int indent = text->in_line_1 ? text->style->indent1st
     				 : text->style->leftIndent;
-    
+
 /*	Make new line
 */
     HTLine * previous = text->last_line;
@@ -509,7 +509,7 @@ PRIVATE void split_line ARGS2(HText *,text, int,split)
     while ((previous->size > 0) &&
     	(previous->data[previous->size-1] == ' '))	/* Strip trailers */
         previous->size--;
-	
+
     previous = (HTLine *) realloc (previous, LINE_SIZE(previous->size));
     if (previous == NULL) outofmem(__FILE__, "split_line");
 #endif /* ultrix */
@@ -521,8 +521,7 @@ PRIVATE void split_line ARGS2(HText *,text, int,split)
 /*	Terminate finished line for printing
 */
     previous->data[previous->size] = 0;
-     
-    
+
 /*	Align left, right or center
 */
 
@@ -701,6 +700,8 @@ PUBLIC void HText_appendCharacter ARGS2(HText *,text, char,ch)
     if (indent + line->offset + line->size + style->rightIndent
     		>= HTScreenWidth) {
         if (style->wordWrap) {
+	    if(text->permissible_split > line->size)	/* HENRIK 21/02-94 */
+		text->permissible_split = line->size;
 	    split_line(text, text->permissible_split);
 	    if (ch==' ') return;	/* Ignore space causing split */
 	} else new_line(text);

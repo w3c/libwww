@@ -55,23 +55,23 @@
 
 /*	If the guy gives the "MANUAL" command, jump to this: */
 #ifndef MANUAL
-    #define MANUAL "http://info.cern.ch/hypertext/WWW/LineMode/Defaults/QuickGuide.html"
+#define MANUAL "http://info.cern.ch/hypertext/WWW/LineMode/Defaults/QuickGuide.html"
 #endif
 
 #ifndef DEFAULT_LOCAL_LOGFILE
-    #define DEFAULT_LOCAL_LOGFILE	"WWW-log"	/* Log file name for local execution */
+#define DEFAULT_LOCAL_LOGFILE		"WWW-log"	/* Log file name for local execution */
 #endif
 
 #ifndef DEFAULT_OUTPUT_FILE
-    #define DEFAULT_OUTPUT_FILE		"WWW-out"	/* Output file name for non-interactive run */
+#define DEFAULT_OUTPUT_FILE		"WWW-out"	/* Output file name for non-interactive run */
 #endif
 
 #ifndef DEFAULT_REF_HEAD
-    #define DEFAULT_REF_HEAD		"*** References from this document ***"
+#define DEFAULT_REF_HEAD		"*** References from this document ***"
 #endif
 
 #ifndef DEFAULT_OUTPUT_FORMAT
-    #define DEFAULT_OUTPUT_FORMAT	"www/present"
+#define DEFAULT_OUTPUT_FORMAT		"www/present"
 #endif
 
 /* Check Statements */
@@ -141,14 +141,31 @@ extern HTStyleSheet * styleSheet;
 
 
 #ifdef NEWLIB
-#define SCREEN_WIDTH 78
+#define SCREEN_WIDTH		78
 #endif
 
 #ifndef SCREEN_WIDTH      
-#define SCREEN_WIDTH 79  /* Default width of the screen */ 
+#define SCREEN_WIDTH		79  /* Default width of the screen */ 
 #endif
+
+#ifndef MIN_SCREEN_WIDTH
+#define MIN_SCREEN_WIDTH	10 
+#endif
+
+#ifndef MAX_SCREEN_WIDTH
+#define MAX_SCREEN_WIDTH	150	 
+#endif
+
 #ifndef SCREEN_HEIGHT
-#define SCREEN_HEIGHT 24 /* Default number of lines to the screen */
+#define SCREEN_HEIGHT		24 /* Default number of lines to the screen */
+#endif
+
+#ifndef MIN_SCREEN_HEIGHT
+#define MIN_SCREEN_HEIGHT	5 
+#endif
+
+#ifndef MAX_SCREEN_HEIGHT
+#define MAX_SCREEN_HEIGHT	140	 
 #endif
 
 #ifdef VM   			/* Needed to flush out the prompt line..*/
@@ -283,6 +300,7 @@ int main
 #endif
 
 {
+    int  return_status = 0;	
     int  arg;		         /* Argument number as we scan */
     BOOL argument_found = NO;
     BOOL logfile_flag = NO;
@@ -302,7 +320,7 @@ int main
 #endif
 
     request =  HTRequest_new();
-    request->conversions = HTList_new();
+    /* request->conversions = HTList_new(); Done by HTRequest_new() Henrik 18/02-94 */
 	 
 #ifdef VMS
     output = stdout;
@@ -403,13 +421,27 @@ int main
 	    
 	    /* Page size */
 	    } else if (argv[arg][1] == 'p') {
-		if (sscanf(argv[arg]+2, "%d", &HTScreenHeight) <1)  /* fail */
-		    HTScreenHeight = -1;	   /* Undefined */
-	    
+		if(++arg >= argc || *argv[arg] == '-' ||
+		    sscanf(argv[arg], "%d", &HTScreenHeight) < 1)
+		    HTScreenHeight = -1;		/* undefined */
+		else {
+		    if(HTScreenHeight < MIN_SCREEN_HEIGHT)
+			HTScreenHeight = MIN_SCREEN_HEIGHT;
+		    if(HTScreenHeight > MAX_SCREEN_HEIGHT)
+		        HTScreenHeight = MAX_SCREEN_HEIGHT;
+	        }
+
 	    /* Page width */
 	    } else if (argv[arg][1] == 'w') {
-		if (sscanf(argv[arg]+2, "%d", &HTScreenWidth) <1)  /* fail */
-			HTScreenWidth = SCREEN_WIDTH;
+		if(++arg >= argc || *argv[arg] == '-' ||
+		    sscanf(argv[arg], "%d", &HTScreenWidth) < 1)
+		    HTScreenWidth = SCREEN_WIDTH;    	/* undefined */
+		else {
+		    if(HTScreenWidth < MIN_SCREEN_WIDTH)
+			HTScreenWidth = MIN_SCREEN_WIDTH;
+		    if(HTScreenWidth > MAX_SCREEN_WIDTH)
+		        HTScreenWidth = MAX_SCREEN_WIDTH;
+	        }
 	    
 	    /* from -- Initial represntation */
 	    } else if (0==strcmp(argv[arg], "-from")) {
@@ -472,7 +504,10 @@ int main
 #ifndef NO_RULES
 	    } else if (0==strcmp(argv[arg], "-r")) {
 	        if (++arg<argc) { 
-		    if (HTLoadRules(argv[arg]) < 0) exit(-1);
+		    if (HTLoadRules(argv[arg]) < 0) {
+			return_status = -1;
+			goto endproc;
+		    }
 		}
 #endif
 #ifndef NO_DIR_OPTIONS
@@ -489,7 +524,8 @@ int main
 		    default:
 			fprintf(stderr, 
 			   "HTDaemon: bad -d option %s\n", argv[arg]);
-			exit(-4);
+			return_status = -4;
+		        goto endproc;
 		    }
 		} /* loop over characters */
 #endif
@@ -508,7 +544,7 @@ int main
 	    } else if (0==strcmp(argv[arg], "-version")) { 
     		printf("WWW LineMode Browser version %s (WWW Library %s)\n",
 			    VL, HTLibraryVersion);
-		exit(0);
+		goto endproc;
 	    }
 #ifdef THINK_C
 	    /* Echo to file */
@@ -588,7 +624,8 @@ int main
 	    if (!fp) {
 	        fprintf(stderr, "WWW: Can't open file `%s' for writing\n",
 			output_file_name);
-		exit(-4);
+		return_status = -4;
+		goto endproc;
 	    }
 	    output = fp;
 	}
@@ -652,7 +689,7 @@ int main
      	HTParseSocket(	format_in,
 			0,		/* stdin unix file */
 		  	request);
-	    goto good;
+	    goto endproc;
     }
     
 /*	Load first document
@@ -664,12 +701,18 @@ int main
 	
     } else {	/* Can't even get last resort: give up */
     
-	fprintf(stderr, "\nWWW: Can't access `%s'\n", 
-		HTAnchor_address((HTAnchor *)home_anchor));/* not freed */
-	if (!HTMainText) exit(2); /* Can't get first page */
+	char *addr = HTAnchor_address((HTAnchor *)home_anchor);
+
+	fprintf(stderr, "\nWWW: Can't access `%s'\n", addr);
+	free(addr);
+	if (!HTMainText) {
+	    return_status = -2; /* Can't get first page */
+	    goto endproc;
+        }
     }
   
-    if (!HTMainText) exit(0);	/* Hypertext object was not created */
+    if (!HTMainText)
+	goto endproc;			/* Hypertext object was not created */
     
 
 /* 	Main "Event Loop"
@@ -691,13 +734,19 @@ int main
 	    Reference_List(NO);		/* List without titles */
 	}
     }
-good:	
+
+endproc:
+    HTRequest_delete(request);
+    if(default_default)
+	free(default_default);
+    if(!return_status) {		/* Good! */
 #ifdef VMS 
     return 1;
 #else
     return 0; /* Good */
 #endif
-
+    }
+    return return_status;		/* Bad! */
 } /* main() */
 
 
