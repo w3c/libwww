@@ -1,85 +1,60 @@
 <HTML>
 <HEAD>
-  <TITLE>W3C Sample Code Library Activity Statement</TITLE>
-  <LINK rel=STYLESHEET href="../StyleSheets/Area/Activity.css" type="text/css">
+  <TITLE>Why libwww?</TITLE>
 </HEAD>
-<BODY BGCOLOR="#ffffff">
+<BODY TEXT="#000000" BGCOLOR="#FFFFFF" LINK="#0000EE" VLINK="#551A8B">
 <P>
 <A HREF="../"><IMG ALT="W3C" SRC="../Icons/WWW/w3c_home" BORDER="0"></A>
-<A HREF="../Consortium/Prospectus/ActivityList.html"><IMG BORDER="0" ALT="Activities"
-    SRC="../Icons/WWW/activity_48x48" BORDER="0"></A>
 <A href="./"><IMG ALT="Library" SRC="../Icons/WWW/Lib48x" BORDER="0"></A>
 <H1>
-  W3C Sample Code Library Activity Statement
+  Why Libwww?
 </H1>
-<DIV class="intro">
-  The success of the Web has put very high demands on the efficiency and
-  reliability by which people can exchange information.
-  <A HREF="../Protocols/">HTTP</A> has been one of the main vehicles behind
-  the success and has changed significantly in the last six years to keep up
-  with the evolution. W3C is playing an active role in the design and development
-  of HTTP and an important part of this work is to test out new ideas and features
-  in real applications.
-  <UL>
-    <LI>
-      <A HREF="#History">History</A>
-    <LI>
-      <A HREF="#Current">Current Status</A>
-  </UL>
-  <P>
-  Read the <A HREF="./">libwww overview</A> for the latest development.
-  <P>
-  <A HREF="../People/Frystyk/">Henrik Frystyk Nielsen</A>
-</DIV>
 <P>
-  <HR>
+<A HREF="http://www.ceveil.qc.ca/normes-ietf-francisation.html#Heading5"><EM>Rough
+consensus and running code</EM></A> is the&nbsp;main idea behind libwww.
+As for all <A HREF="/Status.html">W3C OpenSource code</A>, the purpose of
+libwww is to provide an environment for experimenting with extensions and
+new features. The focus of libwww is performance, modularity, and extensibility.
+It contains highly efficient code for <A HREF="../Protocols/">HTTP</A> and
+<A HREF="/Addressing/">URIs</A> but also for many other parts of the Web,
+primarily for client side applications like <A HREF="../Robot/">robots</A>,
+<A HREF="../Amaya/">browsers</A>, <A HREF="../WinCom/">GUI apps</A>, and
+<A HREF="../ComLine/">automated tools</A>.
 <P>
-The purpose of libwww is to provide an environment for experimenting with
-extensions and new features - most notably for HTTP but also for many other
-parts of the Web. The focus of libwww is client side applications like robots
-and browsers. Libwww is part of the <A HREF="../Areas.html">W3C Architecture
-area</A> and contains sample code for HTTP clients and for other Internet
-protocols such as FTP, Gopher, News, WAIS, Telnet servers. It has a rudimentary
-HTML parser which can only do the very basics but please have a look at the
-<A HREF="../Amaya/">Amaya Web client</A> for a full-blown HTML browser/editor
-application.
-<H2>
-  History
-</H2>
-<P>
-Libwww has been part of the World Wide Web almost from the beginning. Tim
-Berners-Lee designed and implemented the first version back in November 1992
-in order to demonstrate the Web model. Many people have picked up the Library
-and used it in a variety of contexts. Applications such as Lou Montulli's
+Libwww has been part of the World Wide Web almost from the beginning.
+<A HREF="../People/Berners-Lee/">Tim Berners-Lee</A> designed and implemented
+the first version back in <A HREF="User/History.html">November 1992</A> as
+part of demonstrating the potential of the Web. Many people have picked up
+libwww and used it in a variety of contexts. Applications such as Lou Montulli's
 Lynx character based client, Mosaic Web browser by Marc Andreesen and Eric
-Bena, and the CERN server by Ari Luotonen were all based on later versions
-of libwww. Later on, applications like the Arena browser by Dave Raggett
-and H&aring;kon W. have been added to the list.
-<H2>
-  Current Status
-</H2>
+Bena, and the CERN server by Ari Luotonen were all using later versions of
+libwww. Later on, applications like the Arena browser by Dave Raggett and
+H&aring;kon W. Lie have been added to the list.
 <P>
-Libwww is freely available under W3C copyright for use by anyone. The
-distribution package contains a set of example applications spanning from
-very simple ones to more advanced ones like a robot, and a text based Web
-client.
+<A HREF="http://www.cern.ch/Public/ACHIEVEMENTS/WEB/cerncontext.html">Thanks
+to CERN</A>, libwww was free from the very start and was released on a regular
+basis to the Web Community. When <A HREF="/History.html">CERN stopped being
+the center of the Web</A> in late 1994, libwww moved from
+<A HREF="http://www.cern.ch">CERN</A> to <A HREF="/">W3C</A> which continued
+its development. In May 1998, the code base was made even more available
+in that people now can check it out <A HREF="cvs.html">directly from our
+CVS codebase</A>. Today, libwww is freely available under
+<A HREF="Overview.html#Legal">W3C Copyright</A> for use by anyone and has
+a growing <A HREF="http://www.opensource.org/">OpenSource</A> community helping
+maintaining it.
 <P>
-With <B>version 5.0</B> of libwww which was released September 10 1996, the
-status of libwww has changed from generic Web toolkit for writing applications
-to playground for experimenting with HTTP. The reason for this is that the
-need for a generic Web API written in basic C has changed and we are now
-more focused on how to improve HTTP than to provide a generic Web API.
+Along with the core library comes set of
+<A HREF="User/Applications.html">sample applications</A> that demonstrate
+how to use libwww but at the same time can perform useful tasks in their
+own right.
 <P>
-<B>Release 5.1</B> which was used in the
-<A HREF="../Protocols/HTTP/Performance/Pipeline.html">HTTP performance work</A>
-is expected to be the last release of Libwww from W3C.
-<P>
-The whole code base is <A HREF="cvs.html">directly available from CVS</A>
-- check it out!
+As all OpenSource software, the growth depends on you - it doesn't happen
+by itself. <A HREF="Collaborators.html">Check out what you can do</A> in
+order to help moving <A HREF="./">libwww</A> forward and making it stronger
+and more useful to everybody.
 <P>
   <HR>
 <ADDRESS>
-  <A href="../"><IMG SRC="../Icons/WWW/w3c_home" ALT="W3C" BORDER="0"></A><BR>
   <A HREF="../People/Frystyk/">Henrik Frystyk Nielsen</A>,<BR>
   @(#) $Id$
 </ADDRESS>

@@ -1,0 +1,103 @@
+<HTML>
+<HEAD>
+  <TITLE>Compiling and Linking against libwww</TITLE>
+</HEAD>
+<BODY TEXT="#000000" BGCOLOR="#FFFFFF" LINK="#0000EE" VLINK="#551A8B">
+<P>
+<A HREF="../"><IMG SRC="../Icons/WWW/w3c_home" ALT="W3C" BORDER="0"></A>
+<A HREF="./"><IMG SRC="../Icons/WWW/Lib48x" ALT="libwww" BORDER="0"></A>
+<H1>
+  Compiling and Linking against libwww
+</H1>
+<P>
+After you have <A HREF="../INSTALL.html">installed libwww</A>, you can use
+it to build Web applications. However, compiling and linking against libwww
+requires various command line options to be passed to your compiler and linker.
+These options can be hard to figure out but the <TT>libwww-config</TT> shell
+script (installed in <TT>$exec_prefix/bin</TT>) can help you to do some of
+the work. This script is based on the
+<A HREF="http://www.gtk.org/tutorial/">GTK <TT>gtk-script</TT></A>.
+<H2>
+  Invoking libwww-config
+</H2>
+<P>
+After being installed, <TT>libwww-config</TT> takes the following flags:
+<DL>
+  <DT>
+    <TT>--version</TT>
+  <DD>
+    Prints out the version of libwww installed
+  <DT>
+    <TT>--cflags</TT>
+  <DD>
+    Prints '-I' flags pointing to the installed header files.
+  <DT>
+    <TT>--libs</TT>
+  <DD>
+    Prints out the linker flags necessary to link a program against libwww
+  <DT>
+    <TT>--prefix[=PREFIX]</TT>
+  <DD>
+    If <TT>PREFIX</TT> is specified, overrides the configured value of
+    <TT>$prefix</TT>. (And of exec-prefix, unless <TT>--exec-prefix</TT> is also
+    specified) Otherwise, prints out the configured value of <TT>$prefix</TT>
+  <DT>
+    <TT>--exec-prefix[=PREFIX]</TT>
+  <DD>
+    If <TT>PREFIX</TT> is specified, overrides the configured value of
+    <TT>$exec_prefix</TT>. Otherwise, prints out the configured value of
+    <TT>$exec_prefix</TT>
+</DL>
+<H2>
+  Example of using libwww-config
+</H2>
+<P>
+<TT>libwww-config</TT> can be used to compile and link a program from a configure
+script or directly from the command line. To compile and link a program,
+say one of the libwww sample programs (although these are compiled already
+when compiling libwww), you can do the following:
+<PRE>
+% <B>cd libwww</B>
+% <B>gcc -o test `libwww-config --cflags` Library/Examples/libapp_1.c `libwww-config --libs --cflags`</B>
+</PRE>
+<H2>
+  Undefined References
+</H2>
+<P>
+If you get an error message from your compiler looking like this:
+<PRE>
+/usr/local/lib/libwww.so: undefined reference to `HText_endAnchor'
+/usr/local/lib/libwww.so: undefined reference to `HText_appendParagraph'
+/usr/local/lib/libwww.so: undefined reference to `styleSheet'
+/usr/local/lib/libwww.so: undefined reference to `HText_appendLink'
+/usr/local/lib/libwww.so: undefined reference to `HText_appendObject'
+/usr/local/lib/libwww.so: undefined reference to `HText_appendText'
+/usr/local/lib/libwww.so: undefined reference to `HText_endAppend'
+/usr/local/lib/libwww.so: undefined reference to `HText_beginAnchor'
+/usr/local/lib/libwww.so: undefined reference to `HText_beginAppend'
+/usr/local/lib/libwww.so: undefined reference to `HText_setStyle'
+/usr/local/lib/libwww.so: undefined reference to `HText_appendImage'
+/usr/local/lib/libwww.so: undefined reference to `HText_appendCharacter'
+/usr/local/lib/libwww.so: undefined reference to `HText_new2'
+</PRE>
+<P>
+Then it is likely that you have <A HREF="../INSTALL.html#features">compiled
+libwww as a shared library</A> (default) and not provided an implementation
+for the HTML <A HREF="src/HText.html">HText interface</A>. If you don't want
+to include the libwww <A HREF="../src/HTML.html">HTML parser</A>, then you
+can solve this problem by including the following lines in your source code
+<PRE>
+#ifdef LIBWWW_SHARED
+#include "HTextImp.h"
+#endif
+</PRE>
+<P>
+The <A HREF="src/HTextImp.html">HTextImp module</A> provides a dummy
+implementation of the HText interface.
+<P>
+  <HR>
+<ADDRESS>
+  <A HREF="/People/Frystyk/">Henrik Frystyk Nielsen</A>,<BR>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

@@ -42,6 +42,11 @@ the make file on your own.
     <A HREF="libapp_2.c">Specialized Initialization of libwww</A>
   <DD>
     This example show how to register a protocol module and a stream converter
+  <DT>
+    <A HREF="tzcheck.c">Timezone sampler</A>
+  <DD>
+    Figures out what timezone you are in. This is important for libwww to know
+    as the persistent cache and a lot of other things depends on it.
 </DL>
 <H3>
   <A NAME="GET">Samples using GET Requests</A>
@@ -73,10 +78,22 @@ the make file on your own.
     <B>no</B> event loop and the <A HREF="LoadToFile.c">non-preemptive version</A>
     for <B>integration</B> with Windows' event&nbsp;and other event loops.
   <DT>
-    <A HREF="multichunk.c">Load the same document <TT>n</TT> times</A>
+    <A HREF="multichunk.c">Load the same document <TT>n</TT> times using blocking
+    sockets</A>
   <DD>
     You can use this (but be careful) to beat up a server with the same document
-    as fast as possible
+    as fast as possible.
+  <DT>
+    <A HREF="mget.c">Load the same document n times using non-blocking sockets</A>
+  <DD>
+    Be careful! Also remember that only <TT>GET</TT> and <TT>HEAD</TT> requests
+    can be pipelined in HTTP - not <TT>POST</TT>, for example.
+  <DT>
+    <A HREF="range.c">Range Requests</A>
+  <DD>
+    Range requests can be used to ask for a part or for several parts of a document
+    from an HTTP server without asking for the whole thing. The output is sent
+    directly to stdout. Run the program without parameters for instructions.
 </DL>
 <H3>
   <A NAME="HEAD">Samples using HEAD Requests</A>
