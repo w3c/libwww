@@ -57,15 +57,25 @@ int main (int argc, char ** argv)
 
     if (src_str && *src_str && dst_str && *dst_str) {
 
+	/* Make source relative to where we are */
+	char * cwd = HTGetCurrentDirectoryURL();
+	char * full_src_str = HTParse(src_str, cwd, PARSE_ALL);
+
+	fprintf(stdout, "Saving %s to %s\n", full_src_str, dst_str);
+
 	/* Create a request */
 	request = HTRequest_new();
 
 	/* Get an anchor object for the src and dest URIs */
-	src = HTAnchor_findAddress(src_str);
+	src = HTAnchor_findAddress(full_src_str);
 	dst = HTAnchor_findAddress(dst_str);
 
 	/* PUT the source to the dest */
 	status = HTPutDocumentAnchor(HTAnchor_parent(src), dst, request);
+
+	/* We don't need these anymore */
+	HT_FREE(cwd);
+	HT_FREE(full_src_str);
 
 	/* Go into the event loop... */
 	if (status == YES) HTEventList_loop(request);
