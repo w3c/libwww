@@ -35,7 +35,7 @@ PRIVATE fd_set theNullFDSet ;  				      /* always zero */
 PRIVATE void __ResetMaxSock( void ) ;
 PRIVATE int __DoCallBack( SOCKET, SockOps);
 PRIVATE int __DoUserCallBack( SOCKET, SockOps);
-PRIVATE void __DumpFDSet( fd_set *, const char *);
+PRIVATE void __DumpFDSet( fd_set *, CONST char *);
 
 typedef unsigned long DWORD;
 
@@ -97,9 +97,9 @@ PRIVATE HANDLE console_handle = 0 ;
  * if the  connection has been closed, the socket will appear readable under BSD Unix semantics 
  */
 
-PRIVATE const SockOps ReadBits = FD_READ | FD_ACCEPT  | FD_CLOSE;
-PRIVATE const SockOps WriteBits = FD_WRITE | FD_CONNECT ;
-PRIVATE const SockOps ExceptBits = FD_OOB ;
+PRIVATE CONST SockOps ReadBits = FD_READ | FD_ACCEPT  | FD_CLOSE;
+PRIVATE CONST SockOps WriteBits = FD_WRITE | FD_CONNECT ;
+PRIVATE CONST SockOps ExceptBits = FD_OOB ;
 
 /*
  * Local functions 
@@ -107,7 +107,7 @@ PRIVATE const SockOps ExceptBits = FD_OOB ;
 
 PRIVATE int __HTEvent_addRequest( SOCKET, HTRequest *, SockOps, HTEventCallBack, Priority); 
 PRIVATE void __RequestInit( RQ *, SOCKET, HTRequest *, SockOps, HTEventCallBack, Priority);
-PRIVATE int __ProcessFds( fd_set *, SockOps, const char *);
+PRIVATE int __ProcessFds( fd_set *, SockOps, CONST char *);
 PRIVATE void __RequestUpdate( RQ *, SOCKET, HTRequest *, SockOps, HTEventCallBack, Priority);
 PRIVATE int __EventUnregister(RQ * , RQ **, SockOps );
 
@@ -450,7 +450,7 @@ PUBLIC int HTEvent_SocketIsRegistered( SOCKET sockfd)
  *   
  */
 
-PRIVATE const int SecondsToWait = 5 ;
+PRIVATE CONST int SecondsToWait = 5 ;
 
 PUBLIC int HTEvent_Loop( HTRequest * theRequest ) 
 {
@@ -620,7 +620,7 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
  * preform the associated HTEventCallBack function for each FD in a given set  
  */
 
-PRIVATE int __ProcessFds( fd_set * fdsp, SockOps ops, const char * str) 
+PRIVATE int __ProcessFds( fd_set * fdsp, SockOps ops, CONST char * str) 
 {
     unsigned ui ;
     int status =-1;
@@ -661,6 +661,8 @@ PRIVATE int __DoCallBack( SOCKET s, SockOps ops)
 
     if (cbf == 0)  	/* although it makes no sense, callbacks can be null*/
 	return 0;
+    if (rqp->net_info)
+	rqp->net_info->action = (ops & ReadBits) ? SOC_READ : (ops & WriteBits) ? SOC_WRITE : 0;
     status = cbf( s, rqp, ops);
     if (status == HT_OK)
     	return HT_OK ;
@@ -849,7 +851,7 @@ PUBLIC BOOL HTEventCheckState ARGS2(HTRequest *, request, HTEventState, ret)
     return YES;
 }    
 
-PRIVATE void __DumpFDSet( fd_set * fdp, const char * str) 
+PRIVATE void __DumpFDSet( fd_set * fdp, CONST char * str) 
 {
     SOCKET s ;
     unsigned ui ;
