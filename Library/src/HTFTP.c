@@ -1238,7 +1238,7 @@ PUBLIC int HTLoadFTP (SOCKET soc, HTRequest * request, SockOps ops)
 	ctrl->cmd = HTChunk_new(128);
 	ctrl->state = FTP_BEGIN;
 	ctrl->server = FTP_UNSURE;
-	HTNet_dup(cnet, &ctrl->dnet);
+	ctrl->dnet = HTNet_dup(cnet);
 	cnet->context = ctrl;		   /* Context for control connection */
 	ctrl->dnet->context = data;	      /* Context for data connection */
     } else if (ops == FD_CLOSE) {			      /* Interrupted */

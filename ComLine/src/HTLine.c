@@ -162,13 +162,15 @@ PRIVATE int terminate_handler (HTRequest * request, int status)
 {
     ComLine * cl = (ComLine *) HTRequest_context(request);
     if (status == HT_LOADED) {
-	if (cl->flags & CL_COUNT) {
-	    TTYPrint(OUTPUT, "Content Length found to be %ld\n",
-		     HTAnchor_length(cl->anchor));
+	if (cl) {
+	    if (cl->flags & CL_COUNT) {
+		TTYPrint(OUTPUT, "Content Length found to be %ld\n",
+			 HTAnchor_length(cl->anchor));
+	    }
+	    Cleanup(cl, status == HT_LOADED ? 0 : -1);
 	}
     }
-    if (cl->logfile) HTLog_add(request, status);
-    Cleanup(cl, status == HT_LOADED ? 0 : -1);
+    if (HTLog_isOpen()) HTLog_add(request, status);
     return HT_OK;
 }
 
@@ -409,23 +411,6 @@ int main (int argc, char ** argv)
 	Cleanup(cl, -1);
     }
 
-    /* Rule file specified? */
-    if (cl->rules) {
-	HTList * list = HTList_new();
-	HTRequest * rr = HTRequest_new();
-	char * rules = HTParse(cl->rules, cl->cwd, PARSE_ALL);
-	HTParentAnchor * ra = (HTParentAnchor *) HTAnchor_findAddress(rules);
-	HTRequest_setPreemtive(rr, YES);
-	HTConversion_add(list, "application/x-www-rules", "*/*", HTRules,
-			 1.0, 0.0, 0.0);
-	HTRequest_setConversion(rr, list, YES);
-	if (HTLoadAnchor((HTAnchor *) ra, rr) != YES)
-	    if (SHOW_MSG) TTYPrint(TDEST, "Can't access rules\n");
-	HTConversion_deleteAll(list);
-	HTRequest_delete(rr);
-	FREE(rules);
-    }
-
     /* Destination specified? */
     if (cl->dest) {
 	HTMethod method = HTRequest_method(cl->request);
@@ -477,6 +462,23 @@ int main (int argc, char ** argv)
 
     /* Set timeout on sockets */
     HTEvent_registerTimeout(cl->tv, cl->request, timeout_handler, NO);
+
+    /* Rule file specified? */
+    if (cl->rules) {
+	HTList * list = HTList_new();
+	HTRequest * rr = HTRequest_new();
+	char * rules = HTParse(cl->rules, cl->cwd, PARSE_ALL);
+	HTParentAnchor * ra = (HTParentAnchor *) HTAnchor_findAddress(rules);
+	HTRequest_setPreemtive(rr, YES);
+	HTConversion_add(list, "application/x-www-rules", "*/*", HTRules,
+			 1.0, 0.0, 0.0);
+	HTRequest_setConversion(rr, list, YES);
+	if (HTLoadAnchor((HTAnchor *) ra, rr) != YES)
+	    if (SHOW_MSG) TTYPrint(TDEST, "Can't access rules\n");
+	HTConversion_deleteAll(list);
+	HTRequest_delete(rr);
+	FREE(rules);
+    }
 
     /* Start the request */
     if (cl->dest)					   /* PUT, POST etc. */

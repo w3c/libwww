@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Utility macros</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 22-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 11-Dec-1995 -->
 </HEAD>
 <BODY>
 
@@ -223,69 +223,12 @@ performance difference. (Foteos Macrides).
 
 #ifdef _STANDARD_CODE_
 
-/* The sco ODT 3.0 CC compiler has some trouble with  const */
-#if !defined(sco) || defined(sco_os5) 
-#define CONST const		/* "const" only exists in STDC */
+#if defined(sco) && !defined(_SCO_DS)
+#define CONST		  /* The pre SCO 5.0 CC compiler does not know const */
 #else
-#define CONST
+#define CONST const			      /* "const" only exists in STDC */
 #endif
 
-#if 0
-#define NOPARAMS (void)
-#define PARAMS(parameter_list) parameter_list
-#define NOARGS (void)
-#define ARGS1(t,a) \
-		(t a)
-#define ARGS2(t,a,u,b) \
-		(t a, u b)
-#define ARGS3(t,a,u,b,v,c) \
-		(t a, u b, v c)
-#define ARGS4(t,a,u,b,v,c,w,d) \
-		(t a, u b, v c, w d)
-#define ARGS5(t,a,u,b,v,c,w,d,x,e) \
-		(t a, u b, v c, w d, x e)
-#define ARGS6(t,a,u,b,v,c,w,d,x,e,y,f) \
-		(t a, u b, v c, w d, x e, y f)
-#define ARGS7(t,a,u,b,v,c,w,d,x,e,y,f,z,g) \
-		(t a, u b, v c, w d, x e, y f, z g)
-#define ARGS8(t,a,u,b,v,c,w,d,x,e,y,f,z,g,s,h) \
-		(t a, u b, v c, w d, x e, y f, z g, s h)
-#define ARGS9(t,a,u,b,v,c,w,d,x,e,y,f,z,g,s,h,r,i) \
-		(t a, u b, v c, w d, x e, y f, z g, s h, r i)
-#define ARGS10(t,a,u,b,v,c,w,d,x,e,y,f,z,g,s,h,r,i,q,j) \
-		(t a, u b, v c, w d, x e, y f, z g, s h, r i, q j)
-#endif
-
-#else  /* not ANSI */
-
-#define CONST
-
-#if 0
-#define NOPARAMS ()
-#define PARAMS(parameter_list) ()
-#define NOARGS ()
-#define ARGS1(t,a) (a) \
-		t a;
-#define ARGS2(t,a,u,b) (a,b) \
-		t a; u b;
-#define ARGS3(t,a,u,b,v,c) (a,b,c) \
-		t a; u b; v c;
-#define ARGS4(t,a,u,b,v,c,w,d) (a,b,c,d) \
-		t a; u b; v c; w d;
-#define ARGS5(t,a,u,b,v,c,w,d,x,e) (a,b,c,d,e) \
-		t a; u b; v c; w d; x e;
-#define ARGS6(t,a,u,b,v,c,w,d,x,e,y,f) (a,b,c,d,e,f) \
-		t a; u b; v c; w d; x e; y f;
-#define ARGS7(t,a,u,b,v,c,w,d,x,e,y,f,z,g) (a,b,c,d,e,f,g) \
-		t a; u b; v c; w d; x e; y f; z g;
-#define ARGS8(t,a,u,b,v,c,w,d,x,e,y,f,z,g,s,h) (a,b,c,d,e,f,g,h) \
-		t a; u b; v c; w d; x e; y f; z g; s h;
-#define ARGS9(t,a,u,b,v,c,w,d,x,e,y,f,z,g,s,h,r,i) (a,b,c,d,e,f,g,h,i) \
-		t a; u b; v c; w d; x e; y f; z g; s h; r i;
-#define ARGS10(t,a,u,b,v,c,w,d,x,e,y,f,z,g,s,h,r,i,q,j) (a,b,c,d,e,f,g,h,i,j) \
-		t a; u b; v c; w d; x e; y f; z g; s h; r i; q j;
-#endif		
-	
 #endif /* _STANDARD_CODE_ (ANSI) */
 
 #ifndef NULL

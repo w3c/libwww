@@ -1575,23 +1575,6 @@ int main (int argc, char ** argv)
     if (lm->host && HTFile_dirAccess() == HT_DIR_OK)
 	HTFile_setDirAccess(HT_DIR_SELECTIVE);
 
-    /* Rule file specified? */
-    if (lm->rules) {
-	HTList * list = HTList_new();
-	HTRequest * rr = Thread_new(lm, NO, LM_NO_UPDATE);
-	char * rules = HTParse(lm->rules, lm->cwd, PARSE_ALL);
-	HTParentAnchor * ra = (HTParentAnchor *) HTAnchor_findAddress(rules);
-	HTRequest_setPreemtive(rr, YES);
-	HTConversion_add(list, "application/x-www-rules", "*/*", HTRules,
-			 1.0, 0.0, 0.0);
-	HTRequest_setConversion(rr, list, YES);
-	if (HTLoadAnchor((HTAnchor *) ra, rr) != YES)
-	    if (SHOW_MSG) TTYPrint(TDEST, "Can't access rules\n");
-	HTConversion_deleteAll(list);
-	HTRequest_delete(rr);
-	FREE(rules);
-    }
-
     /* Open output file */
     if (!HTAlert_interactive()) {
 #ifndef _WINDOWS
@@ -1659,6 +1642,22 @@ int main (int argc, char ** argv)
 
     /* Set the DNS cache timeout */
     HTDNS_setTimeout(3600);
+
+    /* Rule file specified? */
+    if (lm->rules) {
+	HTList * list = HTList_new();
+	HTRequest * rr = Thread_new(lm, NO, LM_NO_UPDATE);
+	char * rules = HTParse(lm->rules, lm->cwd, PARSE_ALL);
+	HTParentAnchor * ra = (HTParentAnchor *) HTAnchor_findAddress(rules);
+	HTRequest_setPreemtive(rr, YES);
+	HTConversion_add(list, "application/x-www-rules", "*/*", HTRules,
+			 1.0, 0.0, 0.0);
+	HTRequest_setConversion(rr, list, YES);
+	if (HTLoadAnchor((HTAnchor *) ra, rr) != YES)
+	    if (SHOW_MSG) TTYPrint(TDEST, "Can't access rules\n");
+	HTConversion_deleteAll(list);
+	FREE(rules);
+    }
 
     /* Start the request */
     if (keywords)

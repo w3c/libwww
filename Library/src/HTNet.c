@@ -286,14 +286,14 @@ PUBLIC HTList *HTNet_pendingQueue (void)
 **	Returns YES if OK, else NO
 **	BUG: We do not check if we have a socket free!
 */
-PUBLIC BOOL HTNet_dup (HTNet *src, HTNet **dest)
+PUBLIC HTNet * HTNet_dup (HTNet * src)
 {
-    *dest = NULL;
+    HTNet * me;
     if (!src) return NO;
-    if ((*dest = (HTNet *) malloc(sizeof(HTNet))) == NULL)
+    if ((me = (HTNet *) malloc(sizeof(HTNet))) == NULL)
 	outofmem(__FILE__, "HTNet_dup");
-    memcpy(*dest, src, sizeof(HTNet));
-    return YES;
+    memcpy(me, src, sizeof(HTNet));
+    return me;
 }
 
 /*	HTNet_priority
@@ -392,7 +392,7 @@ PUBLIC BOOL HTNet_newServer (HTRequest * request, SOCKET sockfd)
     /* Start the server request */
     HTList_addObject(HTNetActive, (void *) me);
     if (WWWTRACE)
-	TTYPrint(TDEST, "HTNet_new... starting SERVER request %p\n", request);
+	TTYPrint(TDEST, "HTNet_new... starting SERVER request %p with net object %p\n", request, me);
     (*(me->cbf))(me->sockfd, request, FD_NONE);
     return YES;
 }
@@ -466,8 +466,8 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
     if (HTList_count(HTNetActive) < HTMaxActive) {
 	HTList_addObject(HTNetActive, (void *) me);
 	if (WWWTRACE)
-	    TTYPrint(TDEST, "HTNet_new... starting request %p (retry=%d)\n",
-		    request, request->retrys);
+	    TTYPrint(TDEST, "HTNet_new... starting request %p (retry=%d) with net object %p\n",
+		    request, request->retrys, me);
 	(*(me->cbf))(me->sockfd, request, FD_NONE);
     } else {
 	HTAlertCallback *cbf = HTAlert_find(HT_PROG_WAIT);

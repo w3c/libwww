@@ -906,6 +906,7 @@ PUBLIC int HTDoAccept (HTNet * net)
     /* Swap to new socket */
     HTEvent_UnRegister(net->sockfd, (SockOps) FD_ACCEPT);
     net->sockfd = status;
+    if (PROT_TRACE) TTYPrint(TDEST, "Accepted.... socket %d\n", status);
     return HT_OK;
 }
 

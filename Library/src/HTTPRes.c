@@ -37,6 +37,38 @@ struct _HTStream {
 /* 			    HTTP Output Request Stream			     */
 /* ------------------------------------------------------------------------- */
 
+/*	Cleanup
+**	-------
+**      Cleanup the source request
+**      Returns YES on OK, else NO
+*/
+PRIVATE BOOL Cleanup (HTStream * me)
+{
+    int status = 0;
+    HTRequest * src_req = HTRequest_source(me->request);
+    HTNet * src_net;
+    if (!src_req || !src_req->net) return NO;
+    src_net = src_req->net;
+
+    if (PROT_TRACE) TTYPrint(TDEST, "HTTPResponse FREEING...\n");
+
+#if 0
+    /* Free stream with data TO network */
+    if (!HTRequest_isDestination(src_req) && src_req->input_stream) {
+	if (status == HT_INTERRUPTED)
+	    (*src_req->input_stream->isa->abort)(src_req->input_stream, NULL);
+	else
+	    (*src_req->input_stream->isa->_free)(src_req->input_stream);
+	src_req->input_stream = NULL;
+    }
+#endif
+    /* Remove the request object and our own context object for http */
+    src_net->target = NULL;
+    if (status != HT_INTERRUPTED && HTDNS_socket(src_net->dns) == INVSOC)
+	HTNet_delete(src_net, HT_IGNORE);
+    return YES;
+}
+
 /*	HTTPMakeResponse
 **	----------------
 **	Makes a HTTP/1.0-1.1 response header.
@@ -108,7 +140,7 @@ PRIVATE int HTTPResponse_free (HTStream * me)
     if (status != HT_WOULD_BLOCK) {
 	if ((status = (*me->target->isa->_free)(me->target)) == HT_WOULD_BLOCK)
 	    return HT_WOULD_BLOCK;
-	free(me);
+	Cleanup(me);
     }
     return status;
 }
@@ -116,7 +148,7 @@ PRIVATE int HTTPResponse_free (HTStream * me)
 PRIVATE int HTTPResponse_abort (HTStream * me, HTList * e)
 {
     if (me->target) (*me->target->isa->abort)(me->target, e);
-    free(me);
+    Cleanup(me);
     if (PROT_TRACE) TTYPrint(TDEST, "HTTPResponse ABORTING...\n");
     return HT_ERROR;
 }

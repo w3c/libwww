@@ -361,6 +361,16 @@ PRIVATE int FileCleanup (HTRequest *req, int status)
 {
     HTNet *net = req->net;
     file_info *file = (file_info *) net->context;
+
+    /* Free stream with data TO Local file system */
+    if (!HTRequest_isDestination(req) && req->input_stream) {
+	if (status == HT_INTERRUPTED)
+	    (*req->input_stream->isa->abort)(req->input_stream, NULL);
+	else
+	    (*req->input_stream->isa->_free)(req->input_stream);
+	req->input_stream = NULL;
+    }
+
     if (file) {
 #ifdef NO_UNIX_IO
 	if (file->fp) {
@@ -558,6 +568,10 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	    */
 	    if (HTRequest_isSource(request) && !request->output_stream)
 		return HT_OK;
+
+	    /* Set up stream TO local file system */
+	    request->input_stream = HTBufWriter_new(net, YES, 512);
+
 	    /*
 	    ** Set up concurrent read/write if this request isn't the
 	    ** source for a PUT or POST. As source we don't start reading
@@ -626,7 +640,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	  case FS_GOT_DATA:
 	    if (HTRequest_isPostWeb(request)) {
 		FileCleanup(request, HTRequest_isMainDestination(request) ?
-			    HT_ERROR : HT_IGNORE);
+			    HT_LOADED : HT_IGNORE);
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
@@ -642,7 +656,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	  case FS_NO_DATA:
 	    if (HTRequest_isPostWeb(request)) {
 		FileCleanup(request, HTRequest_isMainDestination(request) ?
-			    HT_ERROR : HT_IGNORE);
+			    HT_NO_DATA : HT_IGNORE);
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
@@ -658,7 +672,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	  case FS_RETRY:
 	    if (HTRequest_isPostWeb(request)) {
 		FileCleanup(request, HTRequest_isMainDestination(request) ?
-			    HT_ERROR : HT_IGNORE);
+			    HT_RETRY : HT_IGNORE);
 		HTRequest_killPostWeb(request);
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link =

@@ -594,6 +594,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	    if (ops == FD_WRITE || ops == FD_NONE) {
 		if (HTRequest_isDestination(request)) {
 		    HTNet *srcnet = request->source->net;
+		    TTYPrint(TDEST,"File Serve. HERE!\n");		
 		    HTEvent_Register(srcnet->sockfd, request->source,
 				     (SockOps) FD_READ,
 				     srcnet->cbf, srcnet->priority);
@@ -754,7 +755,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	  case HTTP_GOT_DATA:
 	    if (HTRequest_isPostWeb(request)) {
 		HTTPCleanup(request, HTRequest_isMainDestination(request) ?
-			    HT_ERROR : HT_IGNORE);
+			    HT_LOADED : HT_IGNORE);
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
@@ -770,7 +771,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	  case HTTP_NO_DATA:
 	    if (HTRequest_isPostWeb(request)) {
 		HTTPCleanup(request, HTRequest_isMainDestination(request) ?
-			    HT_ERROR : HT_IGNORE);
+			    HT_NO_DATA : HT_IGNORE);
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
@@ -786,7 +787,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	  case HTTP_RETRY:
 	    if (HTRequest_isPostWeb(request)) {
 		HTTPCleanup(request, HTRequest_isMainDestination(request) ?
-			    HT_ERROR : HT_IGNORE);
+			    HT_RETRY : HT_IGNORE);
 		HTRequest_killPostWeb(request);
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link = 

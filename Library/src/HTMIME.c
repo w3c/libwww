@@ -46,12 +46,17 @@ typedef enum _MIME_state {
 
     CON,				/* Intermediate states */
     CONTENT,
+    FIRSTLETTER_A,
     FIRSTLETTER_D,
     FIRSTLETTER_L,
     CONTENTLETTER_L,
     CONTENTLETTER_T,
 
-    ALLOW,				/* Headers supported */
+    ACCEPT_TYPE,			/* Headers supported */
+    ACCEPT_CHARSET,
+    ACCEPT_ENCODING,
+    ACCEPT_LANGUAGE,
+    ALLOW,
     AUTHENTICATE,
     CONNECTION,
     CONTENT_ENCODING,
@@ -110,9 +115,7 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 	    header = ++ptr;
 	    switch (TOLOWER(*ptr)) {
 	      case 'a':
-		check_pointer = "llow";
-		ok_state = ALLOW;
-		state = CHECK;
+		state = FIRSTLETTER_A;
 		break;
 
 	      case 'c':
@@ -197,6 +200,24 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 	    ptr++;
 	    break;
 	
+	  case FIRSTLETTER_A:
+	    if (!strncasecomp(ptr, "llow", 4)) {
+		state = ALLOW;
+		ptr += 4;
+	    } else if (!strncasecomp(ptr, "ccept-language", 14)) {
+		state = ACCEPT_LANGUAGE;
+		ptr += 14;
+	    } else if (!strncasecomp(ptr, "ccept-charset", 13)) {
+		state = ACCEPT_CHARSET;
+		ptr += 13;
+	    } else if (!strncasecomp(ptr, "ccept", 5)) {
+		state = ACCEPT_TYPE;
+		ptr += 5;
+	    } else
+		state = UNKNOWN;
+	    ptr++;
+	    break;
+
 	  case FIRSTLETTER_D:
 	    switch (TOLOWER(*ptr)) {
 	      case 'a':
@@ -332,8 +353,8 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 	    break;
 
 	  case CHECK:				     /* Check against string */
-	    while (TOLOWER(*ptr) == *(check_pointer)++) ptr++;
-	    if (!*--check_pointer) {
+	    while (TOLOWER(*ptr) == *check_pointer) ptr++, check_pointer++;
+	    if (!*check_pointer) {
 		state = ok_state;
 		while (*ptr && (WHITE(*ptr) || *ptr==':')) /* Spool to value */
 		    ptr++;
@@ -341,7 +362,23 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 		state = UNKNOWN;
 	    break;
 
-	  case ALLOW:	    
+	  case ACCEPT_TYPE:			/* @@@ */
+	    state = JUNK_LINE;
+	    break;
+
+	  case ACCEPT_CHARSET:			/* @@@ */
+	    state = JUNK_LINE;
+	    break;
+
+	  case ACCEPT_ENCODING:			/* @@@ */
+	    state = JUNK_LINE;
+	    break;
+
+	  case ACCEPT_LANGUAGE:			/* @@@ */
+	    state = JUNK_LINE;
+	    break;
+
+	  case ALLOW:
 	    while ((value = HTNextField(&ptr)) != NULL) {
 		HTMethod new_method;
 		/* We treat them as case-insensitive! */

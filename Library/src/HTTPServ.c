@@ -39,12 +39,10 @@
 
 /* Final states have negative value */
 typedef enum _HTTPState {
-    HTTPS_ERROR		= -2,
-    HTTPS_SENT_RESPONSE	= -1,
+    HTTPS_ERROR		= -1,
     HTTPS_BEGIN		= 0,
     HTTPS_NEED_STREAM,
-    HTTPS_NEED_REQUEST,
-    HTTPS_HANDLE_REQUEST
+    HTTPS_NEED_REQUEST
 } HTTPState;
 
 /* This is the context object for the this module */
@@ -79,6 +77,7 @@ PRIVATE int ServerCleanup (HTRequest *req, int status)
     https_info *http = (https_info *) net->context;
 
     /* Free stream with data TO network */
+#if 0
     if (!HTRequest_isDestination(req) && req->input_stream) {
 	if (status == HT_INTERRUPTED)
 	    (*req->input_stream->isa->abort)(req->input_stream, NULL);
@@ -89,6 +88,7 @@ PRIVATE int ServerCleanup (HTRequest *req, int status)
 
     /* Remove the request object and our own context object for http */
     HTNet_delete(net, status);
+#endif
     FREE(http);
     return YES;
 }
@@ -101,17 +101,25 @@ PRIVATE int ServerCleanup (HTRequest *req, int status)
 */
 PRIVATE int ParseRequest (HTStream * me)
 {
-    HTRequest * newreq = me->http->serve = HTRequest_dup(me->request);
-    HTNet * net = newreq->net;
+    HTRequest * request = me->request;
+    HTRequest * newreq = me->http->serve = HTRequest_dup(request);
     char * line = HTChunk_data(me->buffer);
     char * method;
     char * request_uri;
+
+    /* Bind the two request objects together */
+    newreq->source = request;
+    request->output_format = WWW_SOURCE;
+    request->source = request;			 	  /* Point to myself */
+    HTRequest_addDestination(request, newreq);
+    newreq->input_format = WWW_SOURCE;
 
     /* Handle method and URI */
     if ((method = HTNextField(&line)) && (request_uri = HTNextField(&line))) {
 	if ((newreq->method = HTMethod_enum(method)) == METHOD_INVALID) {
 	    HTRequest_addError(newreq, ERR_FATAL, NO, HTERR_NOT_ALLOWED,
 			       NULL, 0, "ParseRequest");
+	    HTRequest_delete(newreq);
 	    return HT_ERROR;
 	}
 
@@ -134,18 +142,20 @@ PRIVATE int ParseRequest (HTStream * me)
     ** We might find a persistent connection request in which case we don't
     ** want to loose it.
     */
+    me->transparent = YES;
     if ((me->version = HTNextField(&line))) {
-	newreq->output_stream =
-	    HTTPResponse_new(newreq, HTBufWriter_new(net, YES, 512));
+	request->input_stream =
+	    HTTPResponse_new(newreq, HTBufWriter_new(newreq->net, YES, 512));
+	newreq->output_stream = request->input_stream;
 	me->target = HTStreamStack(WWW_MIME, newreq->output_format,
 				   newreq->output_stream, newreq, NO);
-	me->transparent = YES;
 	return HT_OK;
     } else {
 	if (PROT_TRACE) TTYPrint(TDEST, "Request Line is formatted as 0.9\n");
-	newreq->output_stream = HTBufWriter_new(net, YES, 512);
+	request->input_stream = HTBufWriter_new(request->net, YES, 512);
+	newreq->output_stream = request->input_stream;
+	return HT_LOADED;
     }
-    return HT_LOADED;
 }
 
 /*
@@ -286,29 +296,29 @@ PUBLIC int HTServHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	    break;
 
 	  case HTTPS_NEED_REQUEST:
-	    status = HTSocketRead(request, net);
-	    if (status == HT_WOULD_BLOCK)
+	    if (ops == FD_READ || ops == FD_NONE) {
+		status = HTSocketRead(request, net);
+		if (status == HT_WOULD_BLOCK)
+		    return HT_OK;
+		else if (status == HT_LOADED) {
+		    HTRequest * server = http->serve;
+		    if (HTLoad(server, NO) != YES) {
+			if (PROT_TRACE) TTYPrint(TDEST,"HTTP Serve. Error!\n");
+			http->state = HTTPS_ERROR;
+		    }
+		} else
+		    http->state = HTTPS_ERROR;
+	    } else if (ops == FD_WRITE) {		
+		if (HTRequest_isSource(request)) {
+		    HTNet * dest = request->mainDestination->net;
+		    TTYPrint(TDEST,"HTTP Serve. HERE!\n");		
+		    HTEvent_Register(dest->sockfd, dest->request,
+				     (SockOps) FD_READ,
+				     dest->cbf, dest->priority);
+		}
 		return HT_OK;
-	    else if (status == HT_LOADED)
-		http->state = HTTPS_HANDLE_REQUEST;
-	    else
-		http->state = HTTPS_ERROR;
-	    break;
-
-	  case HTTPS_HANDLE_REQUEST:
-	    if (HTLoad(http->serve, NO) != YES) {
-		if (PROT_TRACE) TTYPrint(TDEST,"HTTP Serve. Error serving!\n");
-		http->state = HTTPS_ERROR;
 	    } else
-		http->state = HTTPS_SENT_RESPONSE;
-	    break;
-
-	  case HTTPS_SENT_RESPONSE:
-
-	    /* if persistent connection then jump to NEED_REQUEST */
-
-	    ServerCleanup(request, http->serve ? HT_IGNORE : HT_LOADED);
-	    return HT_OK;
+		http->state = HTTPS_ERROR;
 	    break;
 
 	  case HTTPS_ERROR:
@@ -317,6 +327,4 @@ PUBLIC int HTServHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	    break;
 	}
     }
-}    
-
-
+}

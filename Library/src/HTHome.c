@@ -212,7 +212,7 @@ PUBLIC int HTLoadStart (HTRequest * request, int status)
 	    return HT_LOADED;
 	}
     } else {
-	HTRequest_addRqHd(request, HT_G_NO_CACHE);	  /* No-cache pragma */
+	HTRequest_addGnHd(request, HT_G_NO_CACHE);	  /* No-cache pragma */
 	HTAnchor_clearHeader(request->anchor);
     }
 
