@@ -20,4 +20,4 @@ DEPENDENCIES = \
 Extrnals.html: $(DEPENDENCIES)
 	-rm $(srcdir)/Extrnals.html;
 	(cd $(srcdir) && \
-	$(top_srcdir)/config/makeindx.pl ../src/ ../src/WWW*.html > $(srcdir)/Extrnals.html)
+	perl $(top_srcdir)/config/makeindx.pl ../src/ ../src/WWW*.html > $(srcdir)/Extrnals.html)
