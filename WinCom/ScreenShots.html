@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-  <TITLE>Web Commander Screen Shots</TITLE>
+  <TITLE>Web Commander Help Screen Shots</TITLE>
   <LINK rel=STYLESHEET href="../StyleSheets/Area/Overview.css" type="text/css">
 </HEAD>
 <BODY BGCOLOR="#ffffff" TEXT="#000000">
@@ -10,28 +10,68 @@
 <A HREF="../Library/"><IMG BORDER="0" ALT="libwww" SRC="../Icons/WWW/Lib48x"></A>
 <B><A HREF="./">Web Commander</A></B>
 <H1>
-  Web Commander Screen Shots
+  Web Commander Help and Screen Shots
 </H1>
 <P>
 The following screen shots are PNG images - if your browser doesn't understand
 the <A HREF="/TR/png">PNG image format</A> then they will show up as broken
 images.
 <H3>
-  Main View
+  Saving a Document
 </H3>
+<P>
+The document that you want to save on your favorite HTTP/1.1 editing server
+can either reside on your local disk, on an FTP server, or on an HTTP server.
+Note that Web Commander can handle any type of document including binary
+formats, tar files, programs, etc.
 <P ALIGN=Center>
-<IMG SRC="ScreenShots/app" BORDER="0" ALT="Screenshot of application">
+<IMG SRC="ScreenShots/app" ALT="Save from local file" BORDER="0">
+<P ALIGN=Center>
+<IMG SRC="ScreenShots/SaveFromFTP" ALT="Save from FTP" BORDER="0">
+<P ALIGN=Center>
+<IMG SRC="ScreenShots/SaveFromHTTP" ALT="Save from HTTP" BORDER="0">
 <H3>
   Solving Version Conflicts
 </H3>
+<P>
+If somebody has saved an updated version of the same document that you are
+trying to save, Web Commander detects it and asks you what to do.
 <P ALIGN=Center>
 <IMG SRC="ScreenShots/conflict" ALT="Screenshot of version conflict resolution"
     BORDER="0">
+<P>
+This feature can be turned on and off under the Options menu.
 <H3>
-  Proxy Setup
+  <P ALIGN=Left>
+  Loading a Document
 </H3>
+<P ALIGN=Left>
+You can also use Web Commander to simply load a document either from an HTTP
+server or an FTP server. The cache directives can help you reloading a document
+that you know has been changed in the mean time. Normally you can just use
+the default setting which is to get the nearest version that appears fresh.
+<P ALIGN=Center>
+<IMG SRC="ScreenShots/LoadDocument" ALT="Load a Document" BORDER="0">
+<H3>
+  Deleting a Document
+</H3>
+<P>
+Web Commander can be used to delete a document on an HTTP server
+<P ALIGN=Center>
+<IMG SRC="ScreenShots/DeleteDocument" ALT="Delete a document" BORDER="0">
+<H3>
+  Proxy Setup and SSH Tunnelling
+</H3>
+<P>
+The proxy setup is very flexible as you can use regular expressions to say
+which request should go there. In this example, all requests going to
+<TT>http://jigedit.w3.org/*</TT> are tunnelled through a local host SSH tunnel
+ensuring real security. You can also do things like proxying all requests
+ending in "<TT>.png</TT>" though a particular proxy.
 <P ALIGN=Center>
 <IMG SRC="ScreenShots/proxy" ALT="Proxy setup with regular expressions" BORDER="0">
+<P>
+It could of course also be a normal HTTP proxy sitting on a firewall.
 <P>
   <HR>
 <ADDRESS>
