@@ -42,7 +42,8 @@ PRIVATE int HostEvent(SOCKET soc, void * pVoid, HTEventType type);
 
 /* Type definitions and global variables etc. local to this module */
 PRIVATE time_t	HostTimeout = HOST_OBJECT_TTL;	 /* Timeout for host objects */
-PRIVATE time_t	TcpTtl = TCP_IDLE_PASSIVE;      /* Passive TTL for TCP cons. */
+PRIVATE time_t	HTPassiveTimeout = TCP_IDLE_PASSIVE; /* Passive timeout in s */
+PRIVATE ms_t	HTActiveTimeout = TCP_IDLE_ACTIVE;   /* Active timeout in ms */
 
 PRIVATE HTList	** HostTable = NULL;
 PRIVATE HTList * PendHost = NULL;	    /* List of pending host elements */
@@ -162,7 +163,7 @@ PRIVATE BOOL killPipeline (HTHost * host, HTEventType type)
 
 /*
 **  Silently close an idle persistent connection after 
-**  TCP_IDLE_ACTIVE secs
+**  HTActiveTimeout secs
 */
 PRIVATE int IdleTimeoutEvent (HTTimer * timer, void * param, HTEventType type)
 {
@@ -334,7 +335,7 @@ PUBLIC HTHost * HTHost_new (char * host, u_short u_port)
                         pres->channel);
 		    HTHost_clearChannel(pres, HT_OK);
                 } else {
-                    pres->expires = t + TcpTtl;
+                    pres->expires = t + HTPassiveTimeout;
                     if (CORE_TRACE)
                         HTTrace("Host info... REUSING CHANNEL %p\n",pres->channel);
                 }
@@ -497,17 +498,37 @@ PUBLIC void HTHost_setVersion (HTHost * host, int version)
 }
 
 /*
-**	Get and set the cache timeout for persistent entries.
-**	The default value is TCP_TIMEOUT
+**  Get and set the passive timeout for persistent entries.
 */
-PUBLIC void HTHost_setPersistTimeout (time_t timeout)
+PUBLIC BOOL HTHost_setPersistTimeout (time_t timeout)
 {
-    TcpTtl = timeout;
+    if (timeout > 0) {
+	HTPassiveTimeout = timeout;
+	return YES;
+    }
+    return NO;
 }
 
-PUBLIC time_t HTHost_persistTimeout (time_t timeout)
+PUBLIC time_t HTHost_persistTimeout (void)
 {
-    return TcpTtl;
+    return HTPassiveTimeout;
+}
+
+/*
+**  Get and set the active timeout for persistent entries.
+*/
+PUBLIC BOOL HTHost_setActiveTimeout (ms_t timeout)
+{
+    if (timeout > 1000) {
+	HTActiveTimeout = timeout;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC ms_t HTHost_activeTimeout (void)
+{
+    return HTActiveTimeout;
 }
 
 /*	Persistent Connection Expiration
@@ -642,38 +663,6 @@ PUBLIC BOOL HTHost_isRangeUnitAcceptable (HTHost * host, const char * unit)
     return NO;
 }
 
-/*	HTHost_catchClose
-**	-----------------
-**	This function is registered when the socket is idle so that we get
-**	a notification if the socket closes at the other end. At this point
-**	we can't use the request object as it might have been freed a long
-**	time ago.
-*/
-PUBLIC int HTHost_catchClose (SOCKET soc, void * context, HTEventType type)
-{
-#if 0
-    /* Not used anymore */
-    HTNet * net = (HTNet *)context;
-    HTHost * host = net->host;
-    if (CORE_TRACE)
-	HTTrace("Catch Close. called with socket %d with type %x\n",
-		soc, type);
-    if (type == HTEvent_READ) {
-	HTChannel * ch = HTChannel_find(soc);	  /* Find associated channel */
-	HTHost * host = HTChannel_host(ch);	      /* and associated host */
-	if (ch && host) {	    
-	    if (CORE_TRACE) HTTrace("Catch Close. CLOSING socket %d\n", soc);
-	    HTHost_clearChannel(host, HT_OK);
-	} else {
-	    if (CORE_TRACE) HTTrace("Catch Close. socket %d NOT FOUND!\n",soc);
-	}
-    }
-    HTHost_unregister(host, net, HTEvent_CLOSE);
-    return HT_OK;
-#endif
-    return HT_ERROR;
-}
-
 /*
 **	As soon as we know that this host accepts persistent connections,
 **	we associated the channel with the host. 
@@ -707,7 +696,7 @@ PUBLIC BOOL HTHost_setPersistent (HTHost *		host,
 	SOCKET sockfd = HTChannel_socket(host->channel);
 	if (sockfd != INVSOC && HTNet_availablePersistentSockets() > 0) {
 	    host->persistent = YES;
-	    host->expires = time(NULL) + TcpTtl;     /* Default timeout */
+	    host->expires = time(NULL) + HTPassiveTimeout;     /* Default timeout */
 	    HTChannel_setHost(host->channel, host);
 	    HTNet_increasePersistentSocket();
 	    if (CORE_TRACE)
@@ -1102,7 +1091,7 @@ PRIVATE BOOL HTHost_free (HTHost * host, int status)
                 */
                 if (piped<=1 && HTList_isEmpty(host->pending) && !host->timer) {
                     host->timer = HTTimer_new(NULL, IdleTimeoutEvent,
-					      host, TCP_IDLE_ACTIVE, YES, NO);
+					      host, HTActiveTimeout, YES, NO);
                     if (PROT_TRACE) HTTrace("Host........ Object %p going idle...\n", host);
                 }
             }

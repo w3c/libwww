@@ -1,6 +1,5 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen,  2-Jul-1996 -->
   <TITLE>W3C Sample Code Library libwww Host Class</TITLE>
 </HEAD>
 <BODY>
@@ -41,7 +40,7 @@ The Host class contains information about the remote host, for example the
 type (HTTP/1.0, HTTP/1.1, FTP etc.) along with information on how the connections
 can be used (if it supports persistent connections, interleaved access etc.)
 <H2>
-  Creation and Deletion Methods
+  <A NAME="Creation">Creation and Deletion Methods</A>
 </H2>
 <P>
 We keep a cache of information that we know about a remote host. This allows
@@ -74,10 +73,21 @@ that we don't keep information around that is stale.
 <P>
 Searches the cache of known hosts to see if we already have information about
 this host. If not then we return NULL.
-<PRE>extern HTHost * HTHost_find (char * host);
+<PRE>
+extern HTHost * HTHost_find (char * host);
+</PRE>
+<H3>
+  Is Host Idle?
+</H3>
+<P>
+You can use this function to see whether a host object is idle or in use.
+We have several modes describing how and when a host is idle. This is a function
+of the <A HREF="HTTrans.html">Transport Object</A>
+<PRE>
+extern BOOL HTHost_isIdle (HTHost * host);
 </PRE>
 <H2>
-  Remote Host Information
+  <A NAME="Remote">Remote Host Information</A>
 </H2>
 <P>
 We keep track of the capabilities of the host in the other end so thatwe
@@ -170,95 +180,88 @@ extern void HTHost_setContext (HTHost * me, void * context);
 extern void * HTHost_context  (HTHost * me);
 </PRE>
 <H2>
-  Persistent Connections
+  Register a Request on a Host Object
 </H2>
 <P>
-We don't want more than <TT>(Max open sockets) - 2</TT> connections to be
-persistent in order to avoid deadlock. You can set the max number of simultaneous
-open connection in the <A HREF="HTNet.html#Resources">HTNet manager</A>.
-<PRE>
-extern int HTHost_catchClose (SOCKET soc, void * context, HTEventType type);
-extern BOOL HTHost_setPersistent (HTHost * host, BOOL persistent,
-                                  HTTransportMode mode);
-extern BOOL HTHost_clearChannel (HTHost * host, int status);
-
-extern HTChannel * HTHost_channel (HTHost * host);
-</PRE>
-<H3>
-  Is this host Persistent?
-</H3>
-<P>
-Check whether we have a persistent channel or not
-<PRE>
-extern BOOL HTHost_isPersistent (HTHost * host);
-extern BOOL HTHost_setCloseNotification (HTHost * host, BOOL mode);
-extern BOOL HTHost_closeNotification (HTHost * host);
-</PRE>
-<H3>
-  Timing Persistent Channels
-</H3>
-<P>
-Normally we wait for the peer process to close persistent connections but
-in order not to use up our own resources, we have a timeout on our own. The
-default value is 1 hour, but you can modify the value using the following
-methods:
-<PRE>
-extern time_t HTHost_persistTimeout (time_t timeout);
-extern void HTHost_setPersistTimeout (time_t timeout);
-</PRE>
-<P>
-Each persistent connection has an absolute value of when this connection
-most likely will expire. If the peer process does not inform us, we use our
-own timeout.
-<PRE>
-extern void HTHost_setPersistExpires (HTHost * host, time_t expires);
-extern time_t HTHost_persistExpires (HTHost * host);
-extern void HTHost_setReqsPerConnection (HTHost * host, int reqs);
-extern int HTHost_reqsPerConnection (HTHost * host);
-extern void HTHost_setReqsMade (HTHost * host, int reqs);
-extern int HTHost_reqsMade (HTHost * host);
-</PRE>
-<H2>
-  Transport Mode
-</H2>
-<P>
-Handle the connection mode. The mode may change mode in the middle of a
-connection If the new mode is lower than the old mode then adjust the pipeline
-accordingly. That is, if we are going into single mode then move all entries
-in the pipeline and move the rest to the pending queue. They will get launched
-at a later point in time.
-<PRE>extern HTTransportMode HTHost_mode (HTHost * host, BOOL * active);
-extern BOOL HTHost_setMode (HTHost * host, HTTransportMode mode);
-</PRE>
-<H2>
-  Queuing Requests
-</H2>
-<P>
-Requests are queued in the Host object until we have resources to start them.
-The request is in the form of a Net object as we may have multiple socket
-requests per <A HREF="HTReq.html">Request object</A>. This is for example
-the case with <A HREF="WWWFTp.html">FTP</A> which uses two connections.
+Requests are queued in the Host object until we have
+<A HREF="#Pending">resources to start them</A>. The request is in the form
+of a <A HREF="HTNet.html">Net object</A> as we may have multiple socket requests
+per <A HREF="HTReq.html">Request object</A>. This is for example the case
+with <A HREF="WWWFTp.html">FTP</A> which uses two connections.
 <PRE>
 extern int  HTHost_addNet    (HTHost * host, HTNet * net);
 extern BOOL HTHost_deleteNet (HTHost * host, HTNet * net, int status);
 
 extern HTList * HTHost_net   (HTHost * host);
 </PRE>
+<H2>
+  Channels
+</H2>
+<P>
+A <A HREF="HTChannl.html">Channel object</A> is an abstraction for a transport,
+like a TCP connection, for example. Each host object can have at most one
+channel object associated with it.
 <H3>
-  Is the Host Idle?
+  Create a Channel to a Host
 </H3>
 <P>
-Before we can start a new connection to the host we must be sure that the
-host is idle. That is, if it can accept a new connection. We have several
-modes describing how and when a host is idle. This is a function of the
-<A HREF="HTTrans.html">Transport Object</A>
-<PRE>extern BOOL HTHost_isIdle (HTHost * host);
+As a <A HREF="HTNet.html">Net Object</A> doesn't necessarily know whether
+there is a channel up and running and whether that channel can be reused,
+it must do an explicit connect the the host.
+<PRE>
+extern int HTHost_connect (HTHost * host, HTNet * net, char * url,
+                           HTProtocolId port);
 </PRE>
 <H3>
-  Handling Pending Requests
+  Is Channel About to Close?
 </H3>
 <P>
-There are two ways we can end up with pending reqyests:
+As soon as we know that a channel is about to close (for example because
+the server sends us a <TT>Connection: close</TT> header field) then we register
+this informtation in the Host object:
+<PRE>
+extern BOOL HTHost_setCloseNotification (HTHost * host, BOOL mode);
+extern BOOL HTHost_closeNotification (HTHost * host);
+</PRE>
+<H3>
+  Find Channel Associated with a Host Object
+</H3>
+<P>
+Here you can find an already associated channel with a host object or you
+can explicitly associate a channel with a host object.
+<PRE>
+extern BOOL HTHost_setChannel (HTHost * host, HTChannel * channel);
+extern HTChannel * HTHost_channel (HTHost * host);
+</PRE>
+<H3>
+  Delete a Channel
+</H3>
+<P>
+When a channel is deleted, it must be unregistered from the host object which
+is done by this operation:
+<PRE>
+extern BOOL HTHost_clearChannel (HTHost * host, int status);
+</PRE>
+<H2>
+  <A NAME="Transport">Transport Mode</A>
+</H2>
+<P>
+The way a channel can be used depends on the
+<A HREF="HTTrans.html">transport</A> and what mode the channel is in. The
+mode (whether we can use persistent connections, pipeline, etc.) may change
+mode in the middle of a connection If the new mode is lower than the old
+mode then adjust the pipeline accordingly. That is, if we are going into
+single mode then move all entries in the pipeline and move the rest to the
+pending queue. They will get launched at a later point in time.
+<PRE>
+extern HTTransportMode HTHost_mode (HTHost * host, BOOL * active);
+extern BOOL HTHost_setMode (HTHost * host, HTTransportMode mode);
+</PRE>
+<H2>
+  <A NAME="Pending">Handling Pending Requests</A>
+</H2>
+<P>
+There are two ways we can end up with pending requests:
 <OL>
   <LI>
     If we are out of sockets then register new host objects as pending.
@@ -279,79 +282,96 @@ returns the first of these Host objects.
 <PRE>
 extern HTHost * HTHost_nextPendingHost (void);
 </PRE>
+<H3>
+  Start the Next Pending reqeust
+</H3>
 <P>
 Start the next pending request if any. First we look for pending requests
 for the same host and then we check for any other pending hosts. If nothing
-pending then register a catch close event handler to have something catching
-the socket if the remote server closes the connection, for example due to
-timeout.
+pending then register a close event handler to have something catching the
+socket if the remote server closes the connection, for example due to timeout.
 <PRE>
 extern BOOL HTHost_launchPending (HTHost * host);
-
-extern int HTHost_connect (HTHost * host, HTNet * net, char * url,
-                           HTProtocolId port);
 </PRE>
-<P>
-HTHost clients can use the host for all IO and take advantage of host
-multiplexing and pipelining.
 <H3>
-  How many Requests can we Pipeline onto the same Connection?
+  Stop Launch of Pending Requests
 </H3>
 <P>
-Use these functions to set the max number of requests that can be pipelined
-at any one time on a single, persistent connection. The higher the number,
-the more we have to recover if the server closes the connection prematurely.
-The default is about 50 requests which is enough to fill most links.
+Controls whether pending requests should be automatically activated. The
+default is on, but if turned off then no pending requests are launched.
 <PRE>
-extern BOOL HTHost_setMaxPipelinedRequests (int max);
-extern int HTHost_maxPipelinedRequests (void);
+extern void HTHost_enable_PendingReqLaunch (void);
+extern void HTHost_disable_PendingReqLaunch (void);
 </PRE>
 <H2>
-  Event Management
+  <A NAME="Persistent">Persistent Connections</A>
 </H2>
+<P>
+We don't want more than (Max open sockets) - 2 connections to be persistent
+in order to avoid deadlock. You can set the max number of simultaneous open
+connection in the <A HREF="HTNet.html"#Resources>HTNet manager</A>.
+<H3>
+  Is this host Persistent?
+</H3>
 <PRE>
-extern int HTHost_register(HTHost * host, HTNet * net, HTEventType type);
-extern int HTHost_unregister(HTHost * host, HTNet * net, HTEventType type);
-extern int HTHost_tickleFirstNet(HTHost * host, HTEventType type);
-
-extern BOOL HTHost_setRemainingRead(HTHost * host, size_t remainaing);
-extern size_t HTHost_remainingRead (HTHost * host);
-
-extern SockA * HTHost_getSockAddr(HTHost * host);
+extern BOOL HTHost_setPersistent (HTHost * host, BOOL persistent,
+                                  HTTransportMode mode);
+extern BOOL HTHost_isPersistent (HTHost * host);
 </PRE>
 <H3>
-  Control the Delayed Flush Timer
+  Persistent Connection Timeouts
 </H3>
 <P>
-These methods can control how long we want to wait for a flush on a given
-host.
+If the server doesn't close the connection on us then we close it after a
+while so that we don't unnecessarily take up resources (see also how the
+<A HREF="#RequestTimeout">timeouts of individual requests </A>can be set).
+Libwww provides two mechanisms: an active timeout and a passive timeout.
+The former uses <A HREF="HTTimer.html">libwww timers</A> and is the preferred
+mechanism, the latter passively looks at the Host object when a new request
+is issued in order to determine whether the existing channel can be reused.
+This is primariliy for non-preemptive requests which in general is deprecated.
+<P>
+By default we have an active timeout of 60 secs and a passive timeout of
+120 secs (the latter is longer as this is less reliable). Active timeout
+s can be accessed using these functions:
 <PRE>
-extern BOOL HTHost_setWriteDelay (HTHost * host, ms_t delay);
-extern ms_t HTHost_writeDelay (HTHost * host);
-extern int HTHost_findWriteDelay(HTHost * host, ms_t lastFlushTime, int buffSize);
+extern BOOL HTHost_setActiveTimeout (ms_t timeout);
+extern ms_t HTHost_activeTimeout (void);
 </PRE>
 <P>
-It is also possible to explicitly require a flush using the following method
+and passive timeouts can be accessed using these functions
 <PRE>
-extern int HTHost_forceFlush(HTHost * host);
+extern time_t HTHost_persistTimeout (void);
+extern BOOL HTHost_setPersistTimeout (time_t timeout);
 </PRE>
 <P>
-You can also set the global value so that all new host objects will inherit
-this value instead of setting it individually.
-<PRE>extern BOOL HTHost_setDefaultWriteDelay (ms_t delay);
-extern ms_t HTHost_defaultWriteDelay (void);
+The following two functions are deprecated:
+<PRE>
+extern void HTHost_setPersistExpires (HTHost * host, time_t expires);
+extern time_t HTHost_persistExpires (HTHost * host);
 </PRE>
 <H3>
-  Event Timeouts
+  Keeping Track of Number of Reqeusts
 </H3>
 <P>
-Events can be assigned a timeout which causes the event to be triggered if
-the timeout happens before other action is available on the socket. You can
-assign a global timeout for all host object using the following methods
+Another way to detect when a connection is about to close is to count the
+number of requests made. For example, the (current) default bevaior by most
+Apache servers is to close a TCP connection after 100 requests. I don't quite
+think it makes sense to control the close of a connection like this but anyway,
+there we go.
 <PRE>
-extern int HTHost_eventTimeout (void);
-extern void HTHost_setEventTimeout (int millis);
+extern void HTHost_setReqsPerConnection (HTHost * host, int reqs);
+extern int HTHost_reqsPerConnection (HTHost * host);
+extern void HTHost_setReqsMade (HTHost * host, int reqs);
+extern int HTHost_reqsMade (HTHost * host);
 </PRE>
+<H2>
+  <A NAME="R&amp;W">Read and Write Management</A>
+</H2>
+<P>
+Which <A HREF="HTNet.html">Net object</A> can read and/or write? When doing
+pipelining, we essentially serialize requests and therefore we must keep
+track of who can read and who can write.
 <H3>
   Get the Next Net object for Reading and Writing
 </H3>
@@ -371,30 +391,43 @@ extern HTOutputStream * HTHost_getOutput (HTHost * host, HTTransport * tp,
 					  void * param, int mode);
 </PRE>
 <H3>
-  The Channel Associated with this Host
+  Reading Data and Keeping Track of how Much
 </H3>
-<PRE>
-extern BOOL HTHost_setChannel (HTHost * host, HTChannel * channel);
-extern HTChannel * HTHost_channel (HTHost * host);
-</PRE>
-<H3>
-  Read Management
-</H3>
+<P>
+Because of the push streams, the streams must keep track of how much data
+actually was consumed by that stream.
 <PRE>
 extern int HTHost_read(HTHost * host, HTNet * net);
+
 extern BOOL HTHost_setConsumed(HTHost * host, size_t bytes);
+extern BOOL HTHost_setRemainingRead(HTHost * host, size_t remainaing);
+extern size_t HTHost_remainingRead (HTHost * host);
 </PRE>
 <H2>
-  <A NAME="Pipeline">Handling a Pipeline</A>
+  <A NAME="Pipeline">Pipelining Requests</A>
 </H2>
 <P>
-Pipelines normally run by themselves (requests are issued and responses
-recieved). However, it may be necessry to either prematurely abort a pipeline
-or to recover a broken pipeline due to communication problems with the server.
+When possible, we try to pipeline requests onto the same connection as this
+saves a lot of time and leads to much higher throughput.
+<H3>
+  How many Requests can we Pipeline onto the same Connection?
+</H3>
+<P>
+Use these functions to set the max number of requests that can be pipelined
+at any one time on a single, persistent connection. The higher the number,
+the more we have to recover if the server closes the connection prematurely.
+The default is about 50 requests which is enough to fill most links.
+<PRE>
+extern BOOL HTHost_setMaxPipelinedRequests (int max);
+extern int HTHost_maxPipelinedRequests (void);
+</PRE>
 <H3>
   Pipeline Recovery
 </H3>
 <P>
+Pipelines normally run by themselves (requests are issued and responses
+recieved). However, it may be necessry to either prematurely abort a pipeline
+or to recover a broken pipeline due to communication problems with the server.
 In case a pipeline is broken then we have to recover it and start again.
 This is handled automatically by the host object, so you do not have to call
 this one explicitly.
@@ -414,13 +447,63 @@ function.
 <PRE>extern BOOL HTHost_killPipe (HTHost * host);
 </PRE>
 <H2>
+  <A NAME="Event">Event Management</A>
+</H2>
+<P>
+These functions are used to register and unregister events (read, write,
+etc.) so that the host object knows about it.
+<PRE>
+extern int HTHost_register(HTHost * host, HTNet * net, HTEventType type);
+extern int HTHost_unregister(HTHost * host, HTNet * net, HTEventType type);
+extern int HTHost_tickleFirstNet(HTHost * host, HTEventType type);
+
+extern SockA * HTHost_getSockAddr(HTHost * host);
+</PRE>
+<H3>
+  <A NAME="RequestTimeout">Request Timeouts</A>
+</H3>
+<P>
+Events can be assigned a timeout which causes the event to be triggered if
+the timeout happens before other action is available on the socket. You can
+assign a global timeout for all host object using the following methods.
+The default is no timeout.
+<PRE>
+extern int HTHost_eventTimeout (void);
+extern void HTHost_setEventTimeout (int millis);
+</PRE>
+<H2>
+  <A NAME="Delayed">Delayed Flush Timer</A>
+</H2>
+<P>
+These methods can control how long we want to wait for a flush on a pipelined
+channel. The default is 30ms which is OK in most situations.
+<PRE>
+extern BOOL HTHost_setWriteDelay (HTHost * host, ms_t delay);
+extern ms_t HTHost_writeDelay (HTHost * host);
+extern int HTHost_findWriteDelay(HTHost * host, ms_t lastFlushTime, int buffSize);
+</PRE>
+<P>
+It is also possible to explicitly require a flush using the following method.
+This can also be set directly in the <A HREF="HTReq.html">request object</A>
+for a single request.
+<PRE>
+extern int HTHost_forceFlush(HTHost * host);
+</PRE>
+<P>
+You can also set the <EM>global</EM> value so that all new host objects (and
+therefore all new requests) will inherit this value instead of setting it
+individually.
+<PRE>extern BOOL HTHost_setDefaultWriteDelay (ms_t delay);
+extern ms_t HTHost_defaultWriteDelay (void);
+</PRE>
+<H2>
   Multi homed Host Management
 </H2>
 <P>
-We also keep track of if a host has multiple IP addresses. If so then it
-is called a <I>multi-homed host</I>. This is used for two things: finding
-the fastest host with this name and as a backup if one or more of the hosts
-are down.
+We keep track of hosts with multiple IP addresses - socalled <I>multi-homed
+hosts</I>. This is used for two things: finding the fastest IP address of
+that host and as a backup if one or more of the hosts are down. This is handled
+in connection with the <A HREF="HTDNS.html">DNS manager</A>
 <PRE>
 extern BOOL HTHost_setHome (HTHost * host, int home);
 extern int HTHost_home (HTHost * host);
@@ -433,19 +516,14 @@ extern BOOL HTHost_decreaseRetry (HTHost * host);
   Notify Request that it has become Active
 </H2>
 <P>
-A new callback plugged to the activation of a request. Allows to simplify
-Amaya's use of libwww.
+A new callback plugged to the activation of a request which allows an application
+to know when a request has become active.
 <PRE>
-typedef int HTHost_ActivateRequestCallback (HTRequest *);
-extern void HTHost_setActivateRequestCallback (HTHost_ActivateRequestCallback *
-cbf);
+typedef int HTHost_ActivateRequestCallback (HTRequest * request);
+extern void HTHost_setActivateRequestCallback
+		(HTHost_ActivateRequestCallback * cbf);
 </PRE>
 <P>
-Controls whether pending requests should be automatically activated.
-<PRE>
-extern void HTHost_enable_PendingReqLaunch (void);
-extern void HTHost_disable_PendingReqLaunch (void);
-</PRE>
 <PRE>
 #endif /* HTHOST_H */
 </PRE>
