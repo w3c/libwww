@@ -342,6 +342,8 @@ PRIVATE int HTTPGetBody ARGS4(HTRequest *, request, http_info *, http,
 {
     int status = -1;
     HTStream  *target = NULL;				 /* Unconverted data */
+    HTStream  *s;                                        /* HWL */
+
     if (format_in == WWW_MIME && request->output_format == WWW_SOURCE) {
 	target = HTMIMEConvert(request, NULL, format_in,
 			       request->output_format,
@@ -354,10 +356,20 @@ PRIVATE int HTTPGetBody ARGS4(HTRequest *, request, http_info *, http,
 	   be made contingent on a IP address match or non match. */
 	
 	if (HTCacheDir && use_cache) {
-	    target = HTTee(target,
-			   HTCacheWriter(request, NULL, format_in,
-					 request->output_format,
-					 request->output_stream));
+/*
+            target = HTTee(target,
+                           HTCacheWriter(request, NULL, format_in,
+                                         request->output_format,
+                                         request->output_stream));
+*/
+	    /* HWL added check for s */
+	    s = HTCacheWriter(request, NULL, format_in,
+			  request->output_format,
+			  request->output_stream);
+	    if (s != NULL)  {
+	        target = HTTee(target, s);
+	    }
+
 	}
 	
 	/* Push the data down the stream remembering the end of the

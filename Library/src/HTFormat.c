@@ -108,14 +108,16 @@ PUBLIC void HTFormatDelete ARGS1(HTList *, me)
 /*	Define a presentation system command for a content-type
 **	-------------------------------------------------------
 */
-PUBLIC void HTSetPresentation ARGS6(
+PUBLIC void HTSetPresentation ARGS7(
 	HTList *,	conversions,
 	CONST char *, 	representation,
 	CONST char *, 	command,
+	CONST char *, 	test_command,    /* HWL 27/9/94: mailcap functionality */
 	float,		quality,
 	float,		secs, 
 	float,		secs_per_byte
 ){
+    char * test_command = NULL;
 
     HTPresentation * pres = (HTPresentation *)malloc(sizeof(HTPresentation));
     if (pres == NULL) outofmem(__FILE__, "HTSetPresentation");
@@ -127,8 +129,10 @@ PUBLIC void HTSetPresentation ARGS6(
     pres->secs = secs;
     pres->secs_per_byte = secs_per_byte;
     pres->rep = HTAtom_for(representation);
-    pres->command = 0;
+    pres->command = NULL;
     StrAllocCopy(pres->command, command);
+    pres->test_command = NULL;
+    StrAllocCopy(pres->test_command, test_command);
     
 /*    if (!HTPresentations) HTPresentations = HTList_new(); */
     
@@ -162,10 +166,11 @@ PUBLIC void HTSetConversion ARGS7(
     pres->rep_out = HTAtom_for(representation_out);
     pres->converter = converter;
     pres->command = NULL;		/* Fixed */
+    pres->test_command = NULL;
     pres->quality = quality;
     pres->secs = secs;
     pres->secs_per_byte = secs_per_byte;
-    pres->command = 0;
+/*    pres->command = 0; */
     
 /*    if (!HTPresentations) HTPresentations = HTList_new();  */
     
@@ -851,8 +856,13 @@ PUBLIC HTStream * HTStreamStack ARGS3(HTFormat,		rep_in,
 		    better_match(pres->rep, best_match->rep) ||
 		    (!better_match(best_match->rep, pres->rep) &&
 		     pres->quality > best_quality)) {
-		    best_match = pres;
-		    best_quality = pres->quality;
+/* HWL */
+		    if (!pres->test_command || (system(pres->test_command)==0)) { 
+			if (TRACE && pres->test_command) 
+			    printf("HTStreamStack testing %s %d\n",pres->test_command,system(pres->test_command)); 
+			best_match = pres;
+			best_quality = pres->quality;
+		    }
 		}
 	    }
 	}

@@ -6,7 +6,16 @@
 **
 **	Bugs:
 **		strings written must be less than buffer size.
+**
+**
+**      History:
+**
+**         HFN: wrote it
+**         HWL: converted the caching scheme to be hierachical by taking
+**              AL code from Deamon
+**
 */
+
 #define CACHE_LIMIT 100		/* files */
 
 #include "HTFWriter.h"
@@ -19,6 +28,218 @@
 #ifdef Mips
 #define L_tmpnam 64
 #endif
+
+
+
+
+#include "HTParse.h"
+
+#define CACHE_INFO	".cache_info"
+#define INDEX_FILE	".cache_dirindex"
+#define WELCOME_FILE	".cache_welcome"
+#define TMP_SUFFIX	".cache_tmp"
+#define LOCK_SUFFIX	".cache_lock"
+#define INFO_LINE_LEN	256
+
+
+/************************************************************************
+**
+**	FILENAME GENERATION
+**
+**	Mapping between URLs and cache files
+**
+*************************************************************************
+*/
+
+
+/*
+**	Check that the name we're about to generate doesn't
+**	clash with anything used by the caching system.
+*/
+
+PRIVATE BOOL reserved_name ARGS1(char *, url)
+{
+    char * name = strrchr(url, '/');
+    char * suff = NULL;
+
+    if (name) name++;
+    else name = url;
+
+    if (!strcmp(name, CACHE_INFO) ||
+	!strcmp(name, INDEX_FILE) ||
+	!strcmp(name, WELCOME_FILE))
+	return YES;
+
+    suff = strrchr(name, TMP_SUFFIX[0]);
+    if (suff && !strcmp(suff, TMP_SUFFIX))
+	return YES;
+
+    suff = strrchr(name, LOCK_SUFFIX[0]);
+    if (suff && !strcmp(suff, LOCK_SUFFIX))
+	return YES;
+
+    return NO;
+}
+
+
+/*
+**	Map url to cache file name.
+*/
+PRIVATE char * cache_file_name ARGS2(char *, base, char *, url)
+{
+    char * access = NULL;
+    char * host = NULL;
+    char * path = NULL;
+    char * cfn = NULL;
+    BOOL welcome = NO;
+    BOOL res = NO;
+
+    if (!url ||  strchr(url, '?')  ||  (res = reserved_name(url))  ||
+	!(access = HTParse(url, "", PARSE_ACCESS)) ||
+	(0 != strcmp(access, "http") &&
+	 0 != strcmp(access, "ftp")  &&
+	 0 != strcmp(access, "gopher"))) {
+
+	if (access) free(access);
+
+	if (res && TRACE)
+	    fprintf(stderr,
+		    "Cache....... Clash with reserved name (\"%s\")\n",url);
+
+	return NULL;
+    }
+
+    host = HTParse(url, "", PARSE_HOST);
+    path = HTParse(url, "", PARSE_PATH | PARSE_PUNCTUATION);
+    if (path && path[strlen(path)-1] == '/')
+	welcome = YES;
+
+    if (host) {		/* Canonilize host name */
+	char * cur = host;
+	while (*cur) {
+	    *cur = TOLOWER(*cur);
+	    cur++;
+	}
+    }
+
+    cfn = (char*)malloc(strlen(base) +
+			strlen(access) +
+			(host ? strlen(host) : 0) +
+			(path ? strlen(path) : 0) +
+			(welcome ? strlen(WELCOME_FILE) : 0) + 3);
+    if (!cfn) outofmem(__FILE__, "cache_file_name");
+   sprintf(cfn, "%s/%s/%s%s%s", base, access, host, path,
+	    (welcome ? WELCOME_FILE : ""));
+
+    FREE(access); FREE(host); FREE(path);
+
+    /*
+    ** This checks that the last component is not too long.
+    ** It could check all the components, but the last one
+    ** is most important because it could later blow up the
+    ** whole gc when reading cache info files.
+    ** Operating system handles other cases.
+    ** 64 = 42 + 22  and  22 = 42 - 20  :-)
+    ** In other words I just picked some number, it doesn't
+    ** really matter that much.
+    */
+    {
+	char * last = strrchr(cfn, '/');
+	if (!last) last = cfn;
+	if ((int)strlen(last) > 64) {
+	    CTRACE(stderr, "Too long.... cache file name \"%s\"\n", cfn);
+	    free(cfn);
+	    cfn = NULL;
+	}
+    }
+    return cfn;
+}
+
+
+/*
+**	Create directory path for cache file
+**
+** On exit:
+**	return YES
+**		if directories created -- after that caller
+**		can rely on fopen(cfn,"w") succeeding.
+**
+*/
+PRIVATE BOOL create_cache_place ARGS2(char *, base, char *, cfn)
+{
+    struct stat stat_info;
+    char * cur = NULL;
+    BOOL create = NO;
+
+    if (!cfn  ||  (int)strlen(cfn) <= (int)strlen(base) + 1)
+	return NO;
+
+    cur = cfn + strlen(base) + 1;
+
+    while ((cur = strchr(cur, '/'))) {
+	*cur = 0;
+	if (create || HTStat(cfn, &stat_info) == -1) {
+	    create = YES;	/* To avoid doing stat()s in vain */
+	    CTRACE(stderr, "Cache....... creating cache dir \"%s\"\n", cfn);
+	    if (-1 == mkdir(cfn, 0775)) {
+		CTRACE(stderr, "Cache....... can't create dir \"%s\"\n", cfn);
+		return NO;
+	    }
+	}
+	else {
+	    if (S_ISREG(stat_info.st_mode)) {
+		int len = strlen(cfn);
+		char * tmp1 = (char*)malloc(len + strlen(TMP_SUFFIX) + 1);
+		char * tmp2 = (char*)malloc(len + strlen(INDEX_FILE) + 2);
+		/* time_t t1,t2,t3,t4,t5; */
+
+
+		sprintf(tmp1, "%s%s", cfn, TMP_SUFFIX);
+		sprintf(tmp2, "%s/%s", cfn, INDEX_FILE);
+
+		if (TRACE) {
+		    fprintf(stderr,"Cache....... moving \"%s\" to \"%s\"\n",
+			    cfn,tmp1);
+		    fprintf(stderr,"and......... creating dir \"%s\"\n",
+			    cfn);
+		    fprintf(stderr,"and......... moving \"%s\" to \"%s\"\n",
+			    tmp1,tmp2);
+		}
+		rename(cfn,tmp1);
+		mkdir(cfn,0775);
+		rename(tmp1,tmp2);
+
+/*		if (HTCacheInfo_for(cfn,&t1,&t2,&t3,&t4,&t5)) {
+		    CTRACE(stderr,"Adding...... info entry for %s\n",tmp2);
+		    if (!HTCacheInfo_writeEntryFor(tmp2,t1,t2,t3,t4,t5))
+			HTLog_error2("Can't write cache info entry for",tmp2);
+		}
+*/
+		free(tmp1);
+		free(tmp2);
+	    }
+	    else {
+		CTRACE(stderr,"Cache....... dir \"%s\" already exists\n",cfn);
+	    }
+	}
+	*cur = '/';
+	cur++;
+    }
+    return YES;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 /*		Stream Object
@@ -114,12 +335,16 @@ PUBLIC HTStream* HTThroughLine ARGS5(
     return output_stream;
 }
 
+
+
 /*_________________________________________________________________________
 **
 **		F I L E     A C T I O N 	R O U T I N E S
 **  Bug:
 **	All errors are ignored.
 */
+
+
 
 
 /* -------------------------------------------------------------------------
@@ -134,14 +359,28 @@ PUBLIC HTStream* HTThroughLine ARGS5(
    Returns NULL if no filename could be found.
    Henrik 10/03-94
    ------------------------------------------------------------------------- */
-PUBLIC char *HTFWriter_filename ARGS4(char *, path, char *, url,
+PUBLIC char *HTFWriter_filename ARGS5(char *, path, char *, url,
 				      CONST char *, suffix,
-				      unsigned int, limit)
+				      unsigned int, limit,
+				      BOOL, flat)
 {
 #define HASHTRY 5			   /* Keep this less than 10, please */
     static int primes[HASHTRY] = {31, 37, 41, 43, 47};	      /* Some primes */
     char *urlfile = strrchr(url, '/');
     char *filename = NULL;
+
+    /* HWL 22/9/94 */
+    /* HWL added support for hierachical structure */
+    if (!flat) {
+	filename = cache_file_name(path, url);
+	if (!filename)
+            return NULL;
+	if (create_cache_place(path, filename))
+            return(filename);
+	else
+            return NULL;
+    }
+
     StrAllocCopy(filename, path);
     if (filename && urlfile++) {		   /* We don't want two '/'s */
 	int digits = 1;
@@ -169,7 +408,7 @@ PUBLIC char *HTFWriter_filename ARGS4(char *, path, char *, url,
 /* RISK: Race conditions may occur if this is not added to the filename */
 	    {
 		char pidstr[10];
-		sprintf(pidstr, "-%d", (int) getpid());
+		sprintf(pidstr, "-%d", getpid());
 		StrAllocCat(filename, pidstr);
 	    }
 #endif
@@ -225,6 +464,7 @@ PUBLIC char *HTFWriter_filename ARGS4(char *, path, char *, url,
     }
     return filename;
 }
+
 
 
 /*	Character handling
@@ -408,7 +648,7 @@ PUBLIC HTStream* HTSaveAndExecute ARGS5(
     if ((fnam = HTFWriter_filename(HTSaveLocallyDir,
 				   HTAnchor_physical(request->anchor),
 				   HTFileSuffix(input_format),
-				   1000)) == NULL) {
+				   1000, YES)) == NULL) {
 	HTAlert("Can't find a suitable file name");
 	return NULL;
     }
@@ -481,7 +721,7 @@ PUBLIC HTStream* HTSaveLocally ARGS5(
     fnam = HTFWriter_filename(HTSaveLocallyDir,
 			      HTAnchor_physical(request->anchor),
 			      HTFileSuffix(input_format),
-			      0);
+			      0, YES);
     
     /*	Save Panel */
     answer = HTPrompt("Give name of file to save in", fnam ? fnam : "");
@@ -514,6 +754,21 @@ PRIVATE void HTCache_remove ARGS2(HTList *, list, HTCacheItem *, item)
     HTList_removeObject(list, item);
     HTList_removeObject(item->anchor->cacheItems, item);
     unlink(item->filename);
+
+    /* HWL 22/9/94: since we added a hierachical file structure, we should also clean up */
+    {
+	char * p;
+
+	while ((p = strrchr(item->filename,'/')) && (p != NULL)){
+	    item->filename[p - item->filename] = 0; /* this will be freed in a sec */
+	    if (strcmp(item->filename, HTCacheDir) != 0) {
+		if (TRACE) 
+		    fprintf(stderr,"rmdir %s\n", item->filename);
+		rmdir(item->filename);         /* this will luckily fail if directory is not empty */
+	    }
+	}
+    }
+
     free(item->filename);
     free(item);
 }
@@ -597,7 +852,13 @@ PUBLIC HTStream* HTCacheWriter ARGS5(
     fnam = HTFWriter_filename(HTCacheDir,
 			      HTAnchor_physical(request->anchor),
 			      HTFileSuffix(input_format),
-			      0);
+			      0, NO);
+    if (!fnam) {                         /* HWL 22/9/94 */
+/*	HTAlert("Can't open local file to write into for callback."); howcome: this will also be true for cgi-scripts */
+	free(me);
+	return NULL;
+    }
+
     me->filename = NULL;
     limit_cache(HTCache);		 /* Limit number (not size) of files */
     me->fp = fopen (fnam, "w");

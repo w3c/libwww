@@ -66,7 +66,7 @@ COMMON = $(LOB)/HTParse.o $(LOB)/HTAccess.o $(LOB)/HTTP.o \
 	$(LOB)/HTFile.o	$(LOB)/HTBTree.o $(LOB)/HTFTP.o $(LOB)/HTTCP.o \
 	$(LOB)/SGML.o $(LOB)/HTML.o $(LOB)/HTMLPDTD.o $(LOB)/HTChunk.o \
 	$(LOB)/HTPlain.o $(LOB)/HTWriter.o $(LOB)/HTFWriter.o \
-	$(LOB)/HTMLGen.o $(LOB)/HTTee.o\
+	$(LOB)/HTMLGen.o $(LOB)/HTTee.o $(LOB)/HTExtParse.o $(LOB)/HTEPtoClient.o \
 	$(LOB)/HTAtom.o $(LOB)/HTAnchor.o $(LOB)/HTStyle.o \
 	$(LOB)/HTList.o $(LOB)/HTString.o $(LOB)/HTAlert.o \
 	$(LOB)/HTRules.o $(LOB)/HTFormat.o $(LOB)/HTInit.o $(LOB)/HTMIME.o \
@@ -82,7 +82,7 @@ CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTTP.c $(CMN)HTFile.c \
 	$(CMN)HTFTP.c   $(CMN)HTTCP.c     $(CMN)SGML.c $(CMN)HTML.c	\
 	$(CMN)HTMLPDTD.c \
 	$(CMN)HTPlain.c	$(CMN)HTWriter.c  $(CMN)HTFWriter.c \
-        $(CMN)HTMLGen.c	$(CMN)HTTee.c	\
+        $(CMN)HTMLGen.c	$(CMN)HTTee.c $(CMN)HTExtParse.c $(CMN)HTEPtoClient.c \
 	$(CMN)HTChunk.c $(CMN)HTAtom.c   $(CMN)HTAnchor.c $(CMN)HTStyle.c \
 	$(CMN)HTList.c  $(CMN)HTString.c $(CMN)HTAlert.c $(CMN)HTRules.c \
 	$(CMN)HTFormat.c $(CMN)HTInit.c $(CMN)HTMIME.c $(CMN)HTHistory.c \
@@ -98,7 +98,7 @@ HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h $(CMN)HTTP.h $(CMN)HTFile.h \
 	$(CMN)SGML.h $(CMN)HTML.h $(CMN)HTMLPDTD.h $(CMN)HTChunk.h \
 	$(CMN)HTPlain.h		$(CMN)HTWriter.h \
 	$(CMN)HTFWriter.h 	$(CMN)HTMLGen.h	\
-	$(CMN)HTStream.h $(CMN)HTTee.h\
+	$(CMN)HTStream.h $(CMN)HTTee.h $(CMN)HTExtParse.h $(CMN)HTEPtoClient.h \
 	$(CMN)HTAtom.h $(CMN)HTAnchor.h $(CMN)HTStyle.h \
 	$(CMN)HTList.h \
 	$(CMN)HTString.h $(CMN)HTAlert.h $(CMN)HTRules.h \
@@ -296,6 +296,12 @@ $(LOB)/HTPlain.o : $(OE) $(CMN)HTPlain.c $(CMN)HTPlain.h $(CMN)HTStream.h
 
 $(LOB)/HTTee.o : $(OE) $(CMN)HTTee.c $(CMN)HTTee.h $(CMN)HTStream.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTTee.c
+
+$(LOB)/HTExtParse.o : $(OE) $(CMN)HTExtParse.c $(CMN)HTExtParse.h $(CMN)HTStream.h $(CMN)HTEPtoClient.h
+	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTExtParse.c
+
+$(LOB)/HTEPtoClient.o : $(OE) $(CMN)HTEPtoClient.c $(CMN)HTEPtoClient.h $(CMN)HTStream.h
+	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTEPtoClient.c
 
 $(LOB)/HTWAIS.o : $(OE) $(CMN)HTWAIS.c $(CMN)HTUtils.h $(CMN)HTList.h
 	$(CC) -c -o $@ $(CFLAGS2) $(WAISINC) $(CMN)HTWAIS.c

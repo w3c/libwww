@@ -26,18 +26,19 @@
 PUBLIC void HTFormatInit ARGS1(HTList *, c)
 {
 #ifdef NeXT
-    HTSetPresentation(c,"application/postscript", "open %s",	1.0, 2.0, 0.0);
+    HTSetPresentation(c,"application/postscript", "open %s",	NULL, 1.0, 2.0, 0.0);
     /* The following needs the GIF previewer -- you might not have it. */
-    HTSetPresentation(c,"image/gif", 		"open %s", 	0.3, 2.0, 0.0);
-    HTSetPresentation(c,"image/x-tiff", 	"open %s", 	1.0, 2.0, 0.0);
-    HTSetPresentation(c,"audio/basic", 		"open %s", 	1.0, 2.0, 0.0);
-    HTSetPresentation(c,"*/*", 			"open %s", 	0.05, 0.0, 0.0); 
+
+    HTSetPresentation(c,"image/gif", 		"open %s", 	NULL, 0.3, 2.0, 0.0);
+    HTSetPresentation(c,"image/x-tiff", 	"open %s", 	NULL, 1.0, 2.0, 0.0);
+    HTSetPresentation(c,"audio/basic", 		"open %s", 	NULL, 1.0, 2.0, 0.0);
+    HTSetPresentation(c,"*/*", 			"open %s", 	NULL, 0.05, 0.0, 0.0); 
 #else
     if (getenv("DISPLAY")) {	/* Must have X11 */
-	HTSetPresentation(c,"application/postscript", "ghostview %s",	1.0, 3.0, 0.0);
-	HTSetPresentation(c,"image/gif", 	"xv %s",	1.0, 3.0, 0.0);
-	HTSetPresentation(c,"image/x-tiff", 	"xv %s",	1.0, 3.0, 0.0);
-	HTSetPresentation(c,"image/jpeg", 	"xv %s",	1.0, 3.0, 0.0);
+	HTSetPresentation(c,"application/postscript", "ghostview %s",	NULL, 1.0, 3.0, 0.0);
+	HTSetPresentation(c,"image/gif", 		"xv %s",	NULL, 1.0, 3.0, 0.0);
+	HTSetPresentation(c,"image/x-tiff", 	"xv %s",	NULL, 1.0, 3.0, 0.0);
+	HTSetPresentation(c,"image/jpeg", 	"xv %s",	NULL, 1.0, 3.0, 0.0);
     }
 #endif
     HTSetConversion(c,"www/mime",		"*/*",		HTMIMEConvert,	1.0, 0.0, 0.0);

@@ -140,7 +140,8 @@ PRIVATE void scan ARGS2(char *, name, struct struct_parts *, parts)
 **
 ** On entry,
 **	aName		A filename given
-**      relatedName     A name relative to which aName is to be parsed
+**      relatedName     A name relative to which aName is to be parsed. Give
+**                      it an empty string if aName is absolute.
 **      wanted          A mask for the bits which are wanted.
 **
 ** On exit,
@@ -157,6 +158,9 @@ char * HTParse ARGS3(CONST char *, aName, CONST char *, relatedName,
     char * p;
     char * access;
     struct struct_parts given, related;
+    
+    if (!relatedName)        /* HWL 23/8/94: dont dump due to NULL */
+        relatedName = "";
     
     /* Make working copies of input strings to cut up:
     */

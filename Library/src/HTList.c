@@ -52,7 +52,7 @@ BOOL HTList_removeObject ARGS2(HTList *,me, void *,oldObject)
     while (me->next) {
       previous = me;
       me = me->next;
-      if (me->object == oldObject) {
+      if (me->object == oldObject) {   /* HWL: sigbus error */
 	previous->next = me->next;
 	free (me);
 	return YES;  /* Success */

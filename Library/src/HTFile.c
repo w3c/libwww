@@ -382,7 +382,7 @@ PUBLIC char * HTLocalName ARGS1(CONST char *,name)
 #endif /* not VMS */
 	result = (char *)malloc(
 		strlen(home)+strlen(access)+strlen(host)+strlen(path)+6+1);
-      if (result == NULL) outofmem(__FILE__, "HTLocalName");
+	if (result == NULL) outofmem(__FILE__, "HTLocalName");
 	sprintf(result, "%s/WWW/%s/%s%s", home, access, host, path);
 	free(path);
 	free(access);

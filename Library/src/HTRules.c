@@ -18,6 +18,7 @@
 **	 1 Nov 93  AL	Added htbin.
 **	30 Nov 93  AL	Added HTTranslateReq().
 **	 4 Feb 94  AL	Took away all the daemon-specific stuff.
+**      28 Sep 94  HWL  Added field to HTSetPresentation call
 **
 */
 
@@ -298,7 +299,7 @@ PUBLIC int HTSetConfiguration ARGS1(CONST char *, config)
 			    &quality, &secs, &secs_per_byte);
         else status = 0;
 	if (!HTConversions) HTConversions = HTList_new();
-	HTSetPresentation(HTConversions, word2, word3,
+	HTSetPresentation(HTConversions, word2, word3, NULL,
 		    status >= 1? quality 		: 1.0,
 		    status >= 2 ? secs 			: 0.0,
 		    status >= 3 ? secs_per_byte 	: 0.0 );

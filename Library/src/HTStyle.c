@@ -240,6 +240,12 @@ HTStyle * HTStyleDump (HTStyle * style)
 HTStyle * HTStyleNamed ARGS2 (HTStyleSheet *,self, CONST char *,name)
 {
     HTStyle * scan;
+
+    if (!self) {	/* added by HWL 11/8/94 */
+	if (TRACE) fprintf(stderr, "HTStyleNamed.. Called with NULL pointer\n");
+	return -1;
+    }
+
     for (scan=self->styles; scan; scan=scan->next)
         if (0==strcmp(scan->name, name)) return scan;
     if (TRACE) fprintf(stderr, "StyleSheet: No style named `%s'\n", name);

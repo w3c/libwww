@@ -47,6 +47,7 @@
 #include "HTFWriter.h"	/* for cache stuff */
 #include "HTTee.h"
 #include "HTError.h"
+#include "HTTCP.h"      /* HWL: for HTFindRelatedName */
 
 /* These flags may be set to modify the operation of this module */
 PUBLIC char * HTCacheDir = NULL;  /* Root for cached files or 0 for no cache */
@@ -194,8 +195,6 @@ PUBLIC BOOL HTMethod_inList ARGS2(HTMethod,	method,
     }
     return NO;	/* Not found */
 }
-
-
 
 
 
@@ -637,7 +636,8 @@ PRIVATE BOOL HTLoadDocument ARGS2(HTRequest *,		request,
 	    s = HTStreamStack(item->format, request, NO);
 	    if (s) {		/* format was suitable */
 	        FILE * fp = fopen(item->filename, "r");
-	    	if (TRACE) fprintf(stderr, "Cache: HIT file %s for %s\n",
+	    	if (TRACE) 
+		    fprintf(stderr, "Cache: HIT file %s for %s\n",
 				   item->filename, 
 				   full_address);
 		if (fp) {
@@ -966,6 +966,86 @@ PUBLIC BOOL HTSearchAbsolute ARGS3(
     HTParentAnchor * anchor =
     	(HTParentAnchor*) HTAnchor_findAddress(indexname);
     return HTSearch(keywords, anchor, request);
+}
+
+
+/*
+**             Find Related Name
+**
+**  Creates a string that can be used as a related name when 
+**  calling HTParse initially. 
+**  
+**  The code for this routine originates from the Linemode 
+**  browser and was moved here by howcome@dxcern.cern.ch
+**  in order for all clients to take advantage.
+**
+*/
+
+
+PUBLIC char * HTFindRelatedName NOARGS
+{
+    char* default_default=0;	 /* Parse home relative to this */
+
+    StrAllocCopy(default_default, "file://");
+    StrAllocCat(default_default, HTGetHostName()); /*eg file://dxcern.cern.ch*/
+
+#ifndef MAXPATHLEN
+#define NO_GETWD		/* Assume no  getwd() if no MAXPATHLEN */
+#endif
+
+#ifdef NO_GETWD  		/* No getwd() on this machine */
+#ifdef HAS_GETCWD		/* System V variant SIGN CHANGED TBL 921006 !! */
+
+    {
+	char wd[1024];			/*!! Arbitrary*/
+	char * result = getcwd(wd, sizeof(wd)); 
+	if (result) {
+
+#ifdef VMS 
+            /* convert directory name to Unix-style syntax */
+	    char * disk = strchr (wd, ':');
+	    char * dir = strchr (wd, '[');
+	    if (disk) {
+	        *disk = '\0';
+		StrAllocCat (default_default, "/");  /* needs delimiter */
+		StrAllocCat (default_default, wd);
+	    }
+	    if (dir) {
+		char *p;
+		*dir = '/';  /* Convert leading '[' */
+		for (p = dir ; *p != ']'; ++p)
+			if (*p == '.') *p = '/';
+		*p = '\0';  /* Cut on final ']' */
+		StrAllocCat (default_default, dir);
+	    }
+#else  /* not VMS */
+	    StrAllocCat (default_default, wd);
+#endif  /* not VMS */
+	    } else {
+	        fprintf(stderr,"Can't read working directory (getcwd)", NULL);
+	    }
+	}  /* end if good getcwd result */
+	
+#else   /* has NO getcwd */
+
+	fprintf(stderr,"This platform does not support getwd() or getcwd()", NULL);
+
+#endif	/* has no getcwd */
+
+#else   /* has getwd */
+	{
+      	    char wd[MAXPATHLEN];
+      	    char * result = (char *) getwd(wd);
+	    if (result) {
+	        StrAllocCat(default_default, wd);
+	    } else {
+	        fprintf(stderr,"Can't read working directory.");
+	    }
+	}
+#endif
+		
+    StrAllocCat(default_default, "/default.html");
+    return default_default;
 }
 
 

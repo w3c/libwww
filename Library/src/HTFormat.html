@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>HTFormat: The format manager in the WWW Library</TITLE>
+<!-- Changed by: , 12-Oct-1994 -->
 <NEXTID N="z18">
 </HEAD>
 <BODY>
@@ -247,6 +248,7 @@ struct _HTPresentation {
 	HTAtom* rep_out;	/* resulting representation */
 	HTConverter *converter;	/* The routine to gen the stream stack */
 	char *  command;	/* MIME-format string */
+	char *  test_command;	/* MIME-format string */
 	float	quality;	/* Between 0 (bad) and 1 (good) */
 	float   secs;
 	float   secs_per_byte;
