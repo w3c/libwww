@@ -134,19 +134,9 @@ a set of standard BEFORE and AFTER filters to handle <I>caching</I>,
 Often it is required to log the requests issued to the Library. This can
 either be the case if the application is a server or it can also be useful
 in a client application. This module provides a simple logging mechanism
-which can be enabled if needed.
+which can be enabled if needed. See also the <A HREF="HTSQLLog.html">SQL
+based logging module</A>.
 <PRE>#include "<A HREF="HTLog.html">HTLog.h</A>"
-</PRE>
-<H3>
-  SQL Log Module 
-</H3>
-This SQL based log class generates a SQL database and a set of tables
-storing the results of a request. The result is stored in different
-tables depending on whether it is information about the request or the
-resource returned.
-<P>
-<PRE>
-#include "<A HREF="HTSQLLog.html">HTSQLLog.h</A>"
 </PRE>
 <H3>
   History Management

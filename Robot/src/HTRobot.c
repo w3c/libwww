@@ -17,6 +17,7 @@
 #include "WWWApp.h"				        /* Application stuff */
 #include "WWWTrans.h"
 #include "WWWInit.h"
+#include "WWWSQL.h"
 
 #include "HText.h"
 

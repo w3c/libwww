@@ -151,9 +151,9 @@ The simplest way to compile this package on a Unix platform is:
     (so you can compile the package for a different kind of computer), type `make
     distclean.'
 </OL>
-<H2>
+<H3>
   Compilers and Options
-</H2>
+</H3>
 <P>
 Some systems require unusual options for compilation or linking that the
 <I>configure</I> script does not know about. You can give <I>configure</I>
@@ -169,9 +169,9 @@ Or on systems that have the `env' program, you can do it like this:
       env CPPFLAGS=-I/usr/local/include LDFLAGS=-s ./configure
  
 </PRE>
-<H2>
+<H3>
   Using a Different Build Directory
-</H2>
+</H3>
 <P>
 You can compile the package in a directory different from the one containing
 the source code. Doing so allows you to compile it on more than one kind
@@ -181,9 +181,9 @@ where you want to object files and library to go and run the <I>configure</I>
 script (i.e., go `../src/configure'). <I>configure</I> automatically checks
 for source code in the directory that <I>configure</I> is in and in `..'
 as well.
-<H2>
+<H3>
   Installation Names
-</H2>
+</H3>
 <P>
 By default, `<CODE>make install</CODE>' will install the library in
 `<CODE>/usr/local/lib</CODE>'. You can specify an installation prefix other
@@ -192,9 +192,9 @@ than `/usr/local' by giving <I>configure</I> the option
 an extra prefix or suffix on its name by giving <I>configure</I> the options
 `<CODE>--program-prefix=PREFIX</CODE>' or
 `<CODE>--program-suffix=SUFFIX</CODE>'.
-<H2>
+<H3>
   <A NAME="features">Optional Features and Packages</A>
-</H2>
+</H3>
 <P>
 There are a set of options you can give to <I>configure</I> in addition to
 those understood by all <A HREF="http://www.delorie.com/gnu/docs/autoconf/">GNU
@@ -226,7 +226,7 @@ Autoconf <I>configure</I></A> scripts:
     X library files are in DIR
 </DL>
 <P>
---enable and --with options recognized:
+<CODE>--enable</CODE> and <CODE>--with</CODE> options recognized:
 <DL>
   <DT>
     <CODE>--with-gnu-ld</CODE>
@@ -300,9 +300,9 @@ Autoconf <I>configure</I></A> scripts:
   <DD>
     include support for Cyrillic in line mode browser
 </DL>
-<H2>
+<H3>
   Specifying the System Type
-</H2>
+</H3>
 <P>
 There may be some features <I>configure</I> can not figure out automatically,
 but needs to determine by the type of host the package will run on. Usually
@@ -323,9 +323,9 @@ If you are building compiler tools for cross-compiling, you can also use
 the `--target=TYPE' option to select the type of system they will produce
 code for and the `--build=TYPE' option to select the type of system on which
 you are compiling the package.
-<H2>
+<H3>
   Sharing Defaults
-</H2>
+</H3>
 <P>
 If you want to set default values for <I>configure</I> scripts to share,
 you can create a site shell script called `config.site' that gives default
@@ -334,9 +334,9 @@ looks for `PREFIX/share/config.site' if it exists, then `PREFIX/etc/config.site'
 if it exists. Or, you can set the `CONFIG_SITE' environment variable to the
 location of the site script. A warning: not all <I>configure</I> scripts
 look for a site script.
-<H2>
+<H3>
   Operation Controls
-</H2>
+</H3>
 <P>
 <I>configure</I> recognizes the following options to control how it operates.
 <DL>

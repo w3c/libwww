@@ -1,0 +1,75 @@
+<HTML>
+<HEAD>
+  <TITLE>W3C Sample Code Library libwww SQL Interface</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  W3C Sample Code Library libwww SQL Interface
+</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+<P>
+This module is an easy to use interface to SQL databases. It contains both
+a generic interface and some specific examples of how this can be used to
+connect a Web client to an SQL server. This requires that you have linked
+against the <A href="http://www.tcx.se/">MySQL library</A>. See the
+<A href="../../INSTALL.html">installation instructions</A> for details.
+<PRE>
+#ifndef WWWSQL_H
+#define WWWSQL_H
+</PRE>
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
+<H3>
+  System dependencies
+</H3>
+<P>
+The <A HREF="wwwsys.html">wwwsys.h</A> file includes system-specific include
+files and flags for I/O to network and disk. The only reason for this file
+is that the Internet world is more complicated than Posix and ANSI.
+<PRE>#include "wwwsys.h"
+</PRE>
+<H3>
+  Basic SQL Interface
+</H3>
+<P>
+This module interacts with the MYSQL C client library to perform SQL operations.
+It is not intended as a complete SQL API but handles most of the typical
+error situations talking to an SQL server so that the caller doesn't have
+to think about it.
+<PRE>
+#ifdef HT_MYSQL
+#include "<A HREF="HTSQL.html">HTSQL.h</A>"
+#endif
+</PRE>
+<H3>
+  SQL Client Side Logging
+</H3>
+<P>
+This SQL based log class generates a SQL database and a set of tables storing
+the results of a request. The result is stored in different tables depending
+on whether it is information about the request or the resource returned.
+<PRE>
+#ifdef HT_MYSQL
+#include "<A HREF="HTSQLLog.html">HTSQLLog.h</A>"
+#endif
+</PRE>
+<PRE>
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
+#endif /* WWWSQL_H */
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

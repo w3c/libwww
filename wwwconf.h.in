@@ -388,6 +388,9 @@
 /* Define if you have the <sys/limits.h> header file.  */
 #undef HAVE_SYS_LIMITS_H
 
+/* Define if you have the <sys/machine.h> header file.  */
+#undef HAVE_SYS_MACHINE_H
+
 /* Define if you have the <sys/ndir.h> header file.  */
 #undef HAVE_SYS_NDIR_H
 
