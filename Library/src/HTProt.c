@@ -80,9 +80,11 @@ PUBLIC BOOL HTProtocol_delete (const char * name)
 	HTProtocol *pres;
 	while ((pres = (HTProtocol *) HTList_nextObject(cur))) {
 	    if (!strcmp(pres->name, name)) {
+		BOOL status = HTList_removeObject(protocols, (void *) pres);
 		HT_FREE(pres->name);
 		HT_FREE(pres->transport);
-		return HTList_removeObject(protocols, (void *) pres);
+		HT_FREE(pres);
+		return status;
 	    }
 	}
     }

@@ -58,8 +58,10 @@ PUBLIC BOOL HTTransport_delete (const char * name)
 	HTTransport *pres;
 	while ((pres = (HTTransport *) HTList_nextObject(cur))) {
 	    if (!strcmp(pres->name, name)) {
+		BOOL status = HTList_removeObject(transports, (void *) pres);
 		HT_FREE(pres->name);
-		return HTList_removeObject(transports, (void *) pres);
+		HT_FREE(pres);
+		return status;
 	    }
 	}
     }
