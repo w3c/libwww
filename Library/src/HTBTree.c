@@ -38,9 +38,11 @@ PRIVATE void HTBTElement_free ARGS1(HTBTElement*, element)
     ** This void will free the memory allocated for one element
     */
 {
-    if (element->left != NULL)    HTBTElement_free(element->left);
-    if (element->right != NULL)    HTBTElement_free(element->right);
-    free(element);
+    if (element) {
+        if (element->left != NULL)    HTBTElement_free(element->left);
+	if (element->right != NULL)    HTBTElement_free(element->right);
+	free(element);
+    }
 }
 
 PUBLIC void HTBTree_free ARGS1(HTBTree*, tree)
@@ -60,10 +62,13 @@ PRIVATE void HTBTElementAndObject_free ARGS1(HTBTElement*, element)
     ** This void will free the memory allocated for one element
     */
 {
-    if (element->left != NULL)    HTBTElementAndObject_free(element->left);
-    if (element->right != NULL)    HTBTElementAndObject_free(element->right);
-    free(element->object);
-    free(element);
+    if (element) {     /* Just in case nothing was in the tree anyway */
+        if (element->left != NULL)    HTBTElementAndObject_free(element->left);
+	if (element->right != NULL)    
+	    HTBTElementAndObject_free(element->right);
+	free(element->object);
+	free(element);
+    }
 }
 
 PUBLIC void HTBTreeAndObject_free ARGS1(HTBTree*, tree)
