@@ -100,6 +100,13 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 	char * abs_location = NULL;
 	char * addr = HTAnchor_physical(anchor);
 
+#if 0
+	/*
+	**  We don't use the content-location any more as it is superseeded
+	**  by etags and the combination of the two might do more harm than
+	**  good (The etag is not guaranteed to be unique over multiple URIs)
+	*/
+
 	/*
 	**  If we are using a method different from HEAD and GET then use
 	**  the Content-Location if available, else the Request-URI.
@@ -121,6 +128,7 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 		}
 	    }
 	}
+#endif
 
 	/*
 	**  If we are using a proxy or newer versions of HTTP then we can
