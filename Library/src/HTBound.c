@@ -45,9 +45,6 @@ struct _HTStream {
 
 /* ------------------------------------------------------------------------- */
 
-/*
-**	Searches for FTP line until buffer fills up or a CRLF or LF is found
-*/
 PRIVATE int HTBoundary_put_block (HTStream * me, const char * b, int l)
 {
     const char *start = b;
