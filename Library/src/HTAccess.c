@@ -95,7 +95,7 @@ PUBLIC void HTLib_setSecure (BOOL mode)
 PUBLIC BOOL HTLibInit (CONST char * AppName, CONST char * AppVersion)
 {
 #if WWWTRACE_MODE == WWWTRACE_FILE			  /* Open trace file */
-    if ((TDEST = fopen(TRACE_FILE, "a")) != NULL) {
+    if ((TDEST = fopen(HT_TRACE_FILE, "a")) != NULL) {
 	if (setvbuf(TDEST, NULL, _IOLBF, 0) < 0) {  /* Change to line buffer */
 	    TTYPrint(TDEST, "WWWLibInit.. Can't initialize TRACE buffer - no TRACE\n");
 	    fclose(TDEST);

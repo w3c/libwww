@@ -197,7 +197,6 @@ static int recursing = 0;
 	} // end of monitorWndProc()
 
 extern int main(int, char**);
-extern int RegisterTTYPrint(int (*pTTYPrint)(unsigned int target, const char* fmt, ...));
 int PASCAL WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int nCmdShow)
 	{
 	WNDCLASS wc = {
@@ -220,8 +219,7 @@ int PASCAL WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdL
 	if (!MonitorWindow)
 		return (0);
 #ifdef WWW_WIN_DLL
-	RegisterTTYPrint(&AppTTYPrint);
-//	*PTTYPrint = &AppTTYPrint;
+	*PTTYPrint = &AppTTYPrint;
 #endif
 	main(0, 0);
 	if (MonitorWindow)	//if we don't kill monitor window, Windows will cause app ended

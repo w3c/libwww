@@ -66,8 +66,8 @@ active, but in addition the following WWWTRACE defines have been made:
 
 #if WWWTRACE_MODE == WWWTRACE_FILE
 extern FILE *WWWTrace;
-#ifndef WWWTRACE_FILE
-#define WWWTRACE_FILE	"WWWTRACE.TXT"
+#ifndef HT_TRACE_FILE
+#define HT_TRACE_FILE	"WWWTRACE.TXT"
 #endif
 #define TTYPrint fprintf
 #define TDEST	 WWWTrace
