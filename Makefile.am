@@ -27,6 +27,9 @@ install-exec-local:
 	$(mkinstalldirs) $(pkgincludedir)
 	$(INSTALL_DATA) $(top_builddir)/$(CONFIG_HEADER) $(pkgincludedir)/$(CONFIG_HEADER);
 
+# This is our install script provided by Soren Sandmann
+bin_SCRIPTS = libwww-config
+
 # We do not have _all_ GNU files so add this to avoid warnings
 AUTOMAKE_OPTIONS = foreign
 

@@ -535,7 +535,7 @@ AC_ARG_ENABLE(cyrillic, [  --enable-cyrillic       include support for Cyrillic 
 AC_SUBST(A_STDIO)
 
 dnl Create output files
-AC_OUTPUT([Makefile
+AC_OUTPUT([Makefile libwww-config
 config/Makefile
 Library/Makefile Library/User/Makefile Library/User/Patch/Makefile
 Library/User/Architecture/Makefile Library/User/Using/Makefile Library/User/Guide/Makefile
