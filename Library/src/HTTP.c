@@ -14,6 +14,10 @@
 **  These may be undefined and redefined by syspec.h
 */
 
+/*	MOSAIC_HACK2 is a kludge to guess the file type of trabsferred
+**	file from the URL.  It is STRICTLY illegal to do this!
+*/
+
 /* Implements:
 */
 #include "HTTP.h"
