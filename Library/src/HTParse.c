@@ -60,7 +60,6 @@ PRIVATE void scan(name, parts)
 #endif
 {
     char * after_access;
-    char * start = name;
     char * p;
     int length = strlen(name);
     

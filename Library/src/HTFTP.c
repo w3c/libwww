@@ -114,6 +114,7 @@ PRIVATE char *	this_addr;				    /* Local address */
 #define HT_INTERRUPTED		-29998
 #define FCNTL(r, s, t) fcntl(r, s, t)
 
+
 PRIVATE int HTDoConnect ARGS5(char *, url, char *, protocol,
 			      u_short, default_port, int *, s,
 			      u_long *, addr)
