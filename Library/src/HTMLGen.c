@@ -23,6 +23,7 @@
 #include "HTStream.h"
 #include "SGML.h"
 #include "HTFormat.h"
+#include "tcp.h"
 
 #define PUTC(c) (*me->targetClass.put_character)(me->target, c)
 /* #define PUTS(s) (*me->targetClass.put_string)(me->target, s) */
@@ -96,7 +97,7 @@ PRIVATE void HTMLGen_put_character ARGS2(HTStructured *, me, char, c)
 	    char delims[5];
 	    char * p;
 	    strcpy(delims, ",;:.");		/* @@ english bias */
-	    p = strchr(delims, (int)me->write_pointer[-2]);
+	    p = strchr(delims, me->write_pointer[-2]);
 	    if (p) new_cleanness = p - delims + 2;
 	}
 	if (new_cleanness >= me->cleanness) {

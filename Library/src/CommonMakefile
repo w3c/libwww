@@ -45,7 +45,7 @@ SHELL = /bin/sh
 
 WC = $(WWW)/Library
 CMN = $(WWW)/Library/Implementation/
-
+VMS = $(CMN)vms
 # Where shall we put the objects and built library?
 
 LOB = $(WTMP)/Library/$(WWW_MACH)
@@ -122,12 +122,12 @@ SOURCES = $(CFILES) $(HFILES) $(CMN)Version.make \
 	$(CMN)CommonMakefile $(CMN)Makefile \
 	$(WWW)/README.txt $(WWW)/Copyright.txt $(WWW)/BUILD $(WWW)/Makefile
 SPECIFIC = $(WWW)/All/*/Makefile.include $(WWW)/All/Implementation/Makefile* \
-	$(WC)/vms/descrip.mms $(WC)/vms/build_multinet.com \
-	$(WC)/vms/COPYING.LIB $(WC)/vms/setup.com $(WC)/vms/multinet.opt \
-	$(WC)/vms/patchlevel.h $(WC)/vms/ufc-crypt.h \
-	$(WC)/vms/crypt.c $(WC)/vms/crypt_util.c \
-	$(WC)/vms/getline.c $(WC)/vms/getpass.c \
-	$(WC)/vms/HTVMSUtils.h $(WC)/vms/HTVMSUtils.c
+	$(VMS)/descrip.mms $(VMS)/build_multinet.com \
+	$(VMS)/COPYING.LIB $(VMS)/setup.com $(VMS)/multinet.opt \
+	$(VMS)/patchlevel.h $(VMS)/ufc-crypt.h \
+	$(VMS)/crypt.c $(VMS)/crypt_util.c \
+	$(VMS)/getline.c $(VMS)/getpass.c \
+	$(VMS)/HTVMSUtils.h $(VMS)/HTVMSUtils.c
 
 
 #	Library
