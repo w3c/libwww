@@ -86,10 +86,9 @@
 #endif /* VMS */
 
 /* Macros and other defines */
-/* If LISTEN is defined, then first 'PASV' then 'PORT' (if error) is tried,
-   else ONLY 'PASV' is used in order to establish a data connection. */
-#define LISTEN
-#ifdef LISTEN
+/* If HT_FTP_NO_PORT is not defined, then first 'PASV' then 'PORT' (if error)
+   is tried, else ONLY 'PASV' is used to establish a data connection. */
+#ifndef HT_FTP_NO_PORT
 /* #define REPEAT_LISTEN */    		  /* Reuse the portnumber once found */
 /* #define POLL_PORTS */      /* If allocation does not work, poll ourselves.*/
 #endif
@@ -113,7 +112,7 @@ PUBLIC long HTFTPTimeOut = FTP_DEFAULT_TIMEOUT;
 PRIVATE	unsigned short 	 port_number = FIRST_TCP_PORT;
 #endif
 
-#ifdef LISTEN
+#ifndef HT_FTP_NO_PORT
 #ifdef REPEAT_LISTEN
 PRIVATE int     master_socket = -1;	       /* Listening socket = invalid */
 #endif
@@ -160,12 +159,13 @@ typedef struct _ftp_ctrl_info {
     SOCKFD		sockfd;				/* Socket descripter */
     SockA 		sock_addr;		/* SockA is defined in tcp.h */
     HTInputSocket *	isoc;				     /* Input buffer */
-    HTStream *		target;			            /* Output stream */
-    HTChunk *		transmit;			  /* Line to be send */
+    SocAction		action;			/* Result of the select call */
+    HTStream *		target;				    /* Target stream */
     int 		addressCount;	     /* Attempts if multi-homed host */
     time_t		connecttime;		 /* Used on multihomed hosts */
     struct _HTRequest *	request;	   /* Link back to request structure */
 
+    HTChunk *		transmit;			  /* Line to be send */
     u_long		serv_node;          	     /* IP address of server */
     u_short		serv_port;	    	    /* Port number on server */
     char *		location;        	 /* Current escaped position */
@@ -185,12 +185,13 @@ typedef struct _ftp_data_info {
     SOCKFD		sockfd;				/* Socket descripter */
     SockA 		sock_addr;		/* SockA is defined in tcp.h */
     HTInputSocket *	isoc;				     /* Input buffer */
-    HTStream *		target;			            /* Output stream */
-    HTChunk *		transmit;			  /* Line to be send */
+    SocAction		action;			/* Result of the select call */
+    HTStream *		target;				    /* Target stream */
     int 		addressCount;	     /* Attempts if multi-homed host */
     time_t		connecttime;		 /* Used on multihomed hosts */
     struct _HTRequest *	request;	   /* Link back to request structure */
 
+    HTChunk *		transmit;			  /* Line to be send */
     char *		host;			 /* host to contact for data */
     char		passive;	 	 /* Have we opened passively */
     BOOL 		directory;		         /* Yes if directory */
@@ -450,7 +451,7 @@ PRIVATE time_t HTStrpTime ARGS1(char *, datestr)
     time_info->tm_isdst = -1;			      /* Disable summer time */
     for (cnt=0; cnt<3; cnt++)
     {					    /* Month */
-	*bcol = toupper(*bcol);
+	*bcol = TOUPPER(*bcol);
         bcol++;
     }
     if ((time_info->tm_mon = HTStrpMonth(datestr)) < 0)
@@ -1195,7 +1196,7 @@ PRIVATE BOOL HTFTP_parse_datatype ARGS2(char *, url, char **, datatype)
     char *tptr = dtype;
     
     if (type && !strncasecomp(++type, "type=", 5)) {   	   /* type specified */
-	*tptr++ = toupper(*(type+5));		    /* Look at the type-code */
+	*tptr++ = TOUPPER(*(type+5));		    /* Look at the type-code */
 	if (*dtype == 'L') {		     /* We must look for a byte_size */
 	    int cnt;
 	    *tptr++ = ' ';
@@ -1203,7 +1204,7 @@ PRIVATE BOOL HTFTP_parse_datatype ARGS2(char *, url, char **, datatype)
 		*tptr++ = *(type+6+cnt);
 	} else if (*dtype == 'A' || *dtype == 'E') {
 	    *tptr++ = ' ';
-	    *tptr++ = toupper(*(type+6));     		    /* Get form-code */
+	    *tptr++ = TOUPPER(*(type+6));     		    /* Get form-code */
 	}
 	*tptr = '\0';
 	StrAllocCopy(*datatype, dtype);
@@ -1426,7 +1427,7 @@ PRIVATE ftp_ctrl_info *HTFTP_init_con ARGS2(HTRequest *, req, char *, url)
 }
 
 
-#ifdef LISTEN
+#ifndef HT_FTP_NO_PORT
 /*	Open a master socket for listening on
 **	-------------------------------------
 **
@@ -1563,7 +1564,7 @@ PRIVATE BOOL get_listen_socket ARGS1(ftp_data_info *, data)
     data->sockfd = INVSOC;
     return -1;
 }
-#endif /* LISTEN */
+#endif /* HT_FTP_NO_PORT */
 
 
 /*						   		HTFTP_login
@@ -1806,7 +1807,7 @@ PRIVATE int HTFTP_get_data_con ARGS3(HTRequest *, request,
 	NEED_ACTIVE,		 /* We are the active ones in the connection */
 	NEED_PASSIVE					   /* We are passive */
     } state = BEGIN;
-    int serv_port;
+    int serv_port = 0;
     int status;
     ftp_ctrl_info *ctrl = data->ctrl;
     
@@ -1909,7 +1910,7 @@ PRIVATE int HTFTP_get_data_con ARGS3(HTRequest *, request,
 	    break;
 
 	  case NEED_PASSIVE:
-#ifdef LISTEN
+#ifndef HT_FTP_NO_PORT
 	    /* The server didn't accept our PASV so now we try ourselves to be
 	       passive using PORT */
 	    if (get_listen_socket(data) < 0 ||
@@ -1959,7 +1960,7 @@ PRIVATE int HTFTP_get_data_con ARGS3(HTRequest *, request,
 }
 
 
-#ifdef LISTEN
+#ifndef HT_FTP_NO_PORT
 /*						   	  HTFTP_switch_to_port
 **
 **    	This function changes the current data connection from being PASV to
@@ -2003,7 +2004,7 @@ PRIVATE int HTFTP_switch_to_port ARGS2(ftp_data_info *, data,
     }
     return state;
 }
-#endif /* LISTEN */
+#endif /* HT_FTP_NO_PORT */
 
 
 /*						   	  HTFTP_look_for_data
@@ -2588,13 +2589,13 @@ PRIVATE int HTFTP_get_dir ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 	    status = HTFTP_get_response(ctrl, &ctrl->reply);
 	    if (status/100 == 2) {
 		state = READY_FOR_DATA;
-#ifdef LISTEN
+#ifndef HT_FTP_NO_PORT
 	    } else if (status == 425) {	   /* Connection could not be opened */
 		if (HTFTP_switch_to_port(data, req))
 		    state = P_ERROR;
 		else
 		    state = NEED_LIST;
-#endif /* LISTEN */
+#endif /* HT_FTP_NO_PORT */
 	    } else if (status/100 == 4)
 		state = FAILURE;
 	    else
@@ -2851,7 +2852,7 @@ PRIVATE int HTFTP_get_file ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
             status = HTFTP_get_response(ctrl, &ctrl->reply);
             if (status/100 == 2) {
                 state = READY_FOR_DATA;
-#ifdef LISTEN
+#ifndef HT_FTP_NO_PORT
             } else if (status == 425) {    /* Connection could not be opened */
                 if (HTFTP_switch_to_port(data, req))
                     state = P_ERROR;
@@ -2861,7 +2862,7 @@ PRIVATE int HTFTP_get_file ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 		    else
 			state = P_ERROR;
 		}
-#endif /* LISTEN */
+#endif /* HT_FTP_NO_PORT */
             } else if (status/100 == 4)
                 state = FAILURE;
             else

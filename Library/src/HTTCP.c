@@ -96,7 +96,7 @@ PRIVATE unsigned int HTCacheSize = 0;		    /* Current size of cache */
 */
 PUBLIC CONST char * HTErrnoString ARGS1(int, errornumber)
 {
-#if defined(NeXT) || defined(THINK_C)
+#ifdef HAVE_STRERROR
     return strerror(errornumber);
 #else
 #ifdef VMS
@@ -105,9 +105,15 @@ PUBLIC CONST char * HTErrnoString ARGS1(int, errornumber)
 	    vaxc$errno);
     return buf;
 #else
+#ifdef _WINDOWS 
+    static char buf[60];
+    sprintf(buf, "Unix errno = %ld dec, WinSock erro = %ld", errornumber, WSAGetLastError());
+    return buf;
+#else
     return (errornumber < sys_nerr ? sys_errlist[errornumber]:"Unknown error");
-#endif
-#endif
+#endif  /* WINDOWS */
+#endif /* VMS */
+#endif /* Next of THINK_C */
 }
 
 
@@ -115,15 +121,20 @@ PUBLIC CONST char * HTErrnoString ARGS1(int, errornumber)
 */
 PUBLIC int HTInetStatus ARGS2(int, errnum, char *, where)
 {
-#ifndef VMS
+#if ! (defined(VMS) || defined(WINDOWS))
 
     if (PROT_TRACE)
 	fprintf(TDEST, "TCP errno... %d after call to %s() failed.\n............ %s\n", errnum, where, HTErrnoString(errnum));
 
 #else /* VMS */
-
+#ifdef VMS 
     if (PROT_TRACE) fprintf(TDEST, "         Unix error number          = %ld dec\n", errno);
     if (PROT_TRACE) fprintf(TDEST, "         VMS error                  = %lx hex\n", vaxc$errno);
+#endif
+#ifdef WINDOWS 
+    if (PROT_TRACE) fprintf(TDEST, "         Unix error number          = %ld dec\n", errno);
+    if (PROT_TRACE) fprintf(TDEST, "         NT error                  = %lx hex\n", WSAGetLastError());
+#endif 
 
 #ifdef MULTINET
     if (PROT_TRACE) fprintf(TDEST, "         Multinet error             = %lx hex\n", socket_errno); 
@@ -435,17 +446,12 @@ PUBLIC void HTTCPAddrWeights ARGS2(char *, host, time_t, deltatime)
 **
 ** On exit,
 **	returns	a pointer to a static string which must be copied if
-**		it is to be kept.
+**	it is to be kept. inet_ntoa dumps core on some Sun systems :-(
+**	The current implementation only works for IP-addresses and not in
+**	other address spaces.
 */
-
 PUBLIC CONST char * HTInetString ARGS1(SockA *, sin)
 {
-#if 0
-    /* This dumps core on some Sun systems :-(. The problem is now, that 
-       the current implememtation only works for IP-addresses and not in
-       other address spaces. */
-    return inet_ntoa(sin->sin_addr);
-#endif
     static char string[16];
     sprintf(string, "%d.%d.%d.%d",
 	    (int)*((unsigned char *)(&sin->sin_addr)+0),
@@ -782,7 +788,7 @@ PUBLIC CONST char * HTGetHostName NOARGS
 	    got_it = YES;
     }
 
-#ifndef VMS
+#if !(defined(VMS) || defined(WINDOWS))
     /* Now try the resolver config file */
     if (!got_it && (fp = fopen(RESOLV_CONF, "r")) != NULL) {
 	char buffer[80];
@@ -923,7 +929,11 @@ PUBLIC CONST char * HTGetMailAddress NOARGS
 
 #else
 #ifdef _WINDOWS
+#ifdef WIN32 
+    login = getenv("USERNAME");
+#else 
     login = "PCUSER";				  /* @@@ COULD BE BETTER @@@ */
+#endif /* _WINDOWS */
 #else /* Unix like... */
     if ((login = (char *) getlogin()) == NULL) {
 	if (PROT_TRACE)
@@ -943,8 +953,8 @@ PUBLIC CONST char * HTGetMailAddress NOARGS
 	} else
 	    login = pw_info->pw_name;
     }
-#endif
-#endif
+#endif  /* Unix like */
+#endif  /* VMS */
 
     if (login) {
 	StrAllocCopy(mailaddress, login);
@@ -979,7 +989,10 @@ PUBLIC void HTFreeMailAddress NOARGS
 **	Note: Any port indication in URL, e.g., as `host:port' overwrites
 **	the default_port value.
 **
-**	Returns 0 if OK, -1 on error
+**	returns		HT_ERROR	Error has occured or interrupted
+**			HT_OK		if connected
+**			HT_WOULD_BLOCK  if operation would have blocked
+**			HT_INTERRUPTED	if interrupted
 */
 PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 			     u_short, default_port, u_long *, addr,
@@ -999,7 +1012,7 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 	HTErrorAdd(net->request, ERR_FATAL, NO, HTERR_NO_HOST,
 		   NULL, 0, "HTDoConnect");
 	free(p1);
-	return -1;
+	return HT_ERROR;
     } else {
 	if (PROT_TRACE)
 	    fprintf(TDEST, "HTDoConnect. Looking up `%s\'\n", host);
@@ -1028,7 +1041,7 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 		HTErrorAdd(net->request, ERR_FATAL, NO, HTERR_NO_REMOTE_HOST,
 			   (void *) host, strlen(host), "HTDoConnect");
 		break;
-	    };
+			    }
 	    if (!net->addressCount && hosts > 1)
 		net->addressCount = hosts;
 #ifdef DECNET
@@ -1078,7 +1091,7 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 	}
 
 	/* Check for interrupt */
-	if (HTThreadIntr(net->sockfd)) {
+	if (HTThreadIntr(net->sockfd)) {     /* connect call was interrupted */
 	    if (NETCLOSE(net->sockfd) < 0)
 		HTErrorSysAdd(net->request, ERR_FATAL, socerrno,NO,"NETCLOSE");
 	    HTThreadState(net->sockfd, THD_CLOSE);
@@ -1089,6 +1102,7 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 
 	/* Do a connect */
 	status = connect(net->sockfd, (struct sockaddr *) &net->sock_addr,
+
 			 sizeof(net->sock_addr));
 	/*
 	 * According to the Sun man page for connect:
@@ -1109,10 +1123,15 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 	 *                         the normal case.
 	 */
 #ifdef EAGAIN
+
 	if ((status < 0) && ((socerrno==EINPROGRESS) || (socerrno==EAGAIN)))
 #else
 	if ((status < 0) && (socerrno == EINPROGRESS))
+#ifdef WSAEWOULDBLOCK 	   /* WinSock API */
+	if ((status == SOCKET_ERROR) && (socerrno == WSAEWOULDBLOCK))
+#else
 #endif /* EAGAIN */
+#endif /* WSAEWOULDBLOCK */
 	{
 	    if (PROT_TRACE)
 		fprintf(TDEST, "HTDoConnect. WOULD BLOCK `%s'\n", host);
@@ -1121,22 +1140,26 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 	    return HT_WOULD_BLOCK;
 	}
 	if (net->addressCount >= 1) {
-	    net->connecttime = time(NULL) - net->connecttime;
+	    net->connecttime = time((long *)0) - net->connecttime;
 	    if (status < 0) {
 		if (socerrno==EISCONN) {  /* connect multi after would block */
 		    HTThreadState(net->sockfd, THD_CLR_WRITE);
 		    HTTCPAddrWeights(host, net->connecttime);
 		    free(p1);
 		    net->addressCount = 0;
-		    return 0;
+		    return HT_OK;
+		    if (PROT_TRACE)
+			fprintf(TDEST, "HTDoConnect. Socket %ld already connected\n", net->sockfd);
 		}
 		HTErrorSysAdd(net->request, ERR_NON_FATAL, socerrno, NO,
+
 			      "connect");
 
 		/* I have added EINVAL `invalid argument' as this is what I 
 		   get back from a non-blocking connect where I should 
 		   get `connection refused' on SVR4 */
 		if (socerrno==ECONNREFUSED || socerrno==ETIMEDOUT ||
+
 		    socerrno==ENETUNREACH || socerrno==EHOSTUNREACH ||
 #ifdef __srv4__
 		    socerrno==EHOSTDOWN || socerrno==EINVAL)
@@ -1147,6 +1170,7 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 		else
 		    net->connecttime += TCP_PENALTY;
 		if (NETCLOSE(net->sockfd) < 0)
+
 		    HTErrorSysAdd(net->request, ERR_FATAL, socerrno, NO, 
 				  "NETCLOSE");
 		HTThreadState(net->sockfd, THD_CLOSE);
@@ -1156,14 +1180,14 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 		HTTCPAddrWeights(host, net->connecttime);
 		free(p1);
 		net->addressCount = 0;
-		return 0;
+		return HT_OK;
 	    }
 	} else if (status < 0) {
 	    if (socerrno==EISCONN) {     /* Connect single after would block */
 		HTThreadState(net->sockfd, THD_CLR_WRITE);
 		net->addressCount = 0;
 		free(p1);
-		return 0;
+		return HT_OK;
 	    } else {
 		HTErrorSysAdd(net->request, ERR_FATAL, socerrno, NO,
 			      "connect");
@@ -1177,7 +1201,7 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 	} else {				  /* Connect on single homed */
 	    free(p1);
 	    net->addressCount = 0;
-	    return 0;
+	    return HT_OK;
 	}
     } while (--net->addressCount);
 
@@ -1186,7 +1210,7 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
     free (p1);
     net->addressCount = 0;
     net->sockfd = INVSOC;
-    return -1;
+    return HT_ERROR;
 }
 
 

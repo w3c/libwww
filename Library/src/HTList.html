@@ -22,7 +22,7 @@ example. <P>
 
 This module is implemented by <A HREF="HTList.c">HTList.c</A>, and it
 is a part of the <A
-HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+HREF="http://www.w3.org/hypertext/WWW/Library/User/Guide/Guide.html">
 Library of Common Code</A>.
 
 <PRE>
@@ -36,18 +36,6 @@ struct _HTList {
   void * object;
   HTList * next;
 };
-
-#ifdef SHORT_NAMES
-#define HTList_new 			HTLiNew
-#define HTList_delete			HTLiDele
-#define HTList_addObject		HTLiAdOb
-#define HTList_removeObject		HTLiReOb
-#define HTList_removeLastObject		HTLiReLa
-#define HTList_removeFirstObject	HTLiReFi
-#define HTList_count			HTLiCoun
-#define HTList_indexOf			HTLiInOf
-#define HTList_objectAt			HTLiObAt
-#endif
 
 extern HTList *	HTList_new NOPARAMS;
 extern void	HTList_delete PARAMS((HTList *me));

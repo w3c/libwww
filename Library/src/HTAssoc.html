@@ -17,7 +17,7 @@ Lookups from assosiation list are not case-sensitive. <P>
 
 This module is implemented by <A HREF="HTAssoc.c">HTAssoc.c</A>, and it is
 a part of the <A
-HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+HREF="http://www.w3.org/hypertext/WWW/Library/User/Guide/Guide.html">
 Library of Common Code</A>.
 
 <PRE>
@@ -25,14 +25,6 @@ Library of Common Code</A>.
 #define HTASSOC_H
 
 #include "HTList.h"
-
-
-#ifdef SHORT_NAMES
-#define	HTAL_new	HTAssocList_new
-#define	HTAL_del	HTAssocList_delete
-#define	HTAL_add	HTAssocList_add
-#define	HTAL_lup	HTAssocList_lookup
-#endif /*SHORT_NAMES*/
 
 typedef HTList HTAssocList;
 

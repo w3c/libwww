@@ -24,7 +24,7 @@ character when counting the size of the chunk. <P>
 
 This module is implemented by <A HREF="HTChunk.c">HTChunk.c</A>, and
 it is a part of the <A
-HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+HREF="http://www.w3.org/hypertext/WWW/Library/User/Guide/Guide.html">
 Library of Common Code</A>.
 
 <PRE>
@@ -39,17 +39,6 @@ Library of Common Code</A>.
 	int	allocated;	/* Current size of *data	*/
 	char *	data;		/* Pointer to malloced area or 0 */
 } HTChunk;
-
-
-#ifdef SHORT_NAMES
-#define HTChunkClear		HTChClea
-#define HTChunkPutc		HTChPutc
-#define HTChunkPuts		HTChPuts
-#define HTChunkCreate		HTChCrea
-#define HTChunkTerminate	HTChTerm
-#define HTChunkEnsure		HtChEnsu
-#endif
-
 
 </PRE>
 <H2>Create new chunk</H2>

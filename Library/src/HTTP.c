@@ -28,14 +28,15 @@
 #include "HTAABrow.h"		/* Access Authorization */
 #include "HTTee.h"		/* Tee off a cache stream */
 #include "HTFWrite.h"		/* Write to cache file */
+#include "HTWriter.h"
 #include "HTError.h"
 #include "HTChunk.h"
 #include "HTGuess.h"
 #include "HTThread.h"
+#include "HTTPReq.h"
 #include "HTTP.h"					       /* Implements */
 
 /* Macros and other defines */
-#define HTTP_VERSION	"HTTP/1.0"
 #define PUTC(c)		(*me->target->isa->put_character)(me->target, c)
 #define PUTS(s)		(*me->target->isa->put_string)(me->target, s)
 #define PUTBLOCK(b, l)	(*me->target->isa->put_block)(me->target, b, l)
@@ -43,13 +44,7 @@
 #define ABORT_TARGET	(*me->target->isa->abort)(me->target, e)
 
 /* Globals */
-extern char * HTAppName;		  /* Application name: please supply */
-extern char * HTAppVersion;	       /* Application version: please supply */
-extern BOOL using_proxy;		    /* are we using a proxy gateway? */
-
 PUBLIC int  HTMaxRedirections = 10;	       /* Max number of redirections */
-PUBLIC BOOL HTEnableFrom = NO;			      /* Enable From header? */
-PUBLIC char * HTProxyHeaders = NULL;		    /* Headers to pass as-is */
 
 /* Type definitions and global variables etc. local to this module */
 /* This is the local definition of HTRequest->net_info */
@@ -60,8 +55,6 @@ typedef enum _HTTPState {
     HTTP_BEGIN		= 0,
     HTTP_NEED_CONNECTION,
     HTTP_NEED_REQUEST,
-    HTTP_SENT_REQUEST,
-    HTTP_NEED_BODY,
     HTTP_REDIRECTION,
     HTTP_AA
 } HTTPState;
@@ -70,8 +63,8 @@ typedef struct _http_info {
     SOCKFD		sockfd;				/* Socket descripter */
     SockA 		sock_addr;		/* SockA is defined in tcp.h */
     HTInputSocket *	isoc;				     /* Input buffer */
-    HTStream *		target;			            /* Output stream */
-    HTChunk *		transmit;			  /* Line to be send */
+    SocAction		action;			/* Result of the select call */
+    HTStream *		target;				    /* Target stream */
     int 		addressCount;	     /* Attempts if multi-homed host */
     time_t		connecttime;		 /* Used on multihomed hosts */
     struct _HTRequest *	request;	   /* Link back to request structure */
@@ -79,20 +72,19 @@ typedef struct _http_info {
     HTTPState		state;			  /* State of the connection */
 } http_info;
 
-#define MAX_STATUS_LEN		150	   /* Max number of chars to look at */
+#define MAX_STATUS_LEN		75    /* Max nb of chars to check StatusLine */
 
 struct _HTStream {
     CONST HTStreamClass *	isa;
     HTStream *		  	target;
     HTRequest *			request;
     http_info *			http;
-    int				cnt;
     HTSocketEOL			state;
     BOOL			transparent;
     double			version;		 /* @@@ DOESN'T WORK */
     int				status;
     char 			buffer[MAX_STATUS_LEN+1];
-    char *			bufptr;
+    int				buflen;
 };
 
 /* ------------------------------------------------------------------------- */
@@ -105,198 +97,45 @@ struct _HTStream {
 **
 **      Returns 0 on OK, else -1
 */
-PRIVATE int HTTPCleanup ARGS1(HTRequest *, request)
+PRIVATE int HTTPCleanup ARGS2(HTRequest *, req, BOOL, abort)
 {
     http_info *http;
     int status = 0;
-    if (!request || !request->net_info) {
+    if (!req || !req->net_info) {
 	if (PROT_TRACE) fprintf(TDEST, "HTTPCleanup. Bad argument!\n");
 	status = -1;
     } else {
-	http = (http_info *) request->net_info;
+	http = (http_info *) req->net_info;
 	if (http->sockfd != INVSOC) {
+
+	    /* Free stream with data TO network */
+	    if (!req->PostCallBack) {
+		if (abort)
+		    (*req->input_stream->isa->abort)(req->input_stream, NULL);
+		else
+		    (*req->input_stream->isa->_free)(req->input_stream);
+	    }
+	    
+	    /* Free stream with data FROM network */
+	    if (abort)
+		(*http->target->isa->abort)(http->target, NULL);
+	    else
+		(*http->target->isa->_free)(http->target);
+
 	    if (PROT_TRACE)
 		fprintf(TDEST,"HTTP........ Closing socket %d\n",http->sockfd);
 	    if ((status = NETCLOSE(http->sockfd)) < 0)
 		HTErrorSysAdd(http->request, ERR_FATAL, socerrno, NO,
 			      "NETCLOSE");
 	    HTThreadState(http->sockfd, THD_CLOSE);
-	    HTThread_clear((HTNetInfo *) http);
 	    http->sockfd = INVSOC;
+	    HTThread_clear((HTNetInfo *) http);
 	}
 	if (http->isoc)
 	    HTInputSocket_free(http->isoc);
-	if (http->transmit)
-	    HTChunkFree(http->transmit);
+	free(http);
+	req->net_info = NULL;
     }	
-    free(http);
-    request->net_info = NULL;
-    return status;
-}
-
-
-/*                                                              HTTPSendRequest
-**
-**      This function composes and sends a request to the connected server
-**      specified.
-**
-**	Returns		<0		Error has occured or interrupted
-**			HT_WOULD_BLOCK  if operation would have blocked
-**			HT_INTERRUPTED  if interrupted
-**
-**      Note: The function does NEVER close the connection
-*/
-PRIVATE int HTTPSendRequest ARGS3(HTRequest *, request,
-				  http_info *, http, char *, url)
-{
-    int status = 0;
-
-    /* If first time through then generate HTTP request */
-    if (!http->transmit) {
-	HTChunk *command = HTChunkCreate(2048);
-	http->transmit = command;
-	if (request->method != METHOD_INVALID) {
-	    HTChunkPuts(command, HTMethod_name(request->method));
-	    HTChunkPutc(command, ' ');
-	}
-	else
-	    HTChunkPuts(command, "GET ");
-	
-	/* if we are using a proxy gateway don't copy in the first slash
-	 ** of say: /gopher://a;lkdjfl;ajdf;lkj/;aldk/adflj
-	 ** so that just gohper://.... is sent. */
-	{
-	    char *p1 = HTParse(url, "", PARSE_PATH|PARSE_PUNCTUATION);
-	    if (using_proxy)
-		HTChunkPuts(command, p1+1);
-	    else
-		HTChunkPuts(command, p1);
-	    free(p1);
-	}
-	HTChunkPutc(command, ' ');
-	HTChunkPuts(command, HTTP_VERSION);
-	HTChunkPutc(command, CR);		     /* CR LF, as in rfc 977 */
-	HTChunkPutc(command, LF);
-	
-	if (HTImProxy && HTProxyHeaders) {
-	    HTChunkPuts(command, HTProxyHeaders);
-	} else {
-	    char line[256];    /*@@@@ */
-	    
-	    /* If no conversion list, then put it up, but leave initialization
-	       to the client */
-	    if (!HTConversions)
-		HTConversions = HTList_new();
-	    
-	    /* Run through both lists and generate `accept' lines */
-	    {
-		int i;
-		HTList *conversions[2];
-		conversions[0] = HTConversions;
-		conversions[1] = request->conversions;
-		
-		for (i=0; i<2; i++) {
-		    HTList *cur = conversions[i];
-		    HTPresentation *pres;
-		    while ((pres =(HTPresentation *) HTList_nextObject(cur))) {
-			if (pres->rep_out == WWW_PRESENT) {
-			    if (pres->quality != 1.0) {
-				sprintf(line, "Accept: %s; q=%.3f%c%c",
-					HTAtom_name(pres->rep),
-					pres->quality, CR, LF);
-			    } else {
-				sprintf(line, "Accept: %s%c%c",
-					HTAtom_name(pres->rep), CR, LF);
-			    }
-			    HTChunkPuts(command, line);
-			}
-		    }
-		}
-	    }
-	    
-	    /* Put out referer field if any parent */
-	    if (request->parentAnchor) {
-		char *me = HTAnchor_address((HTAnchor *) request->anchor);
-		char *parent = HTAnchor_address((HTAnchor *)
-						request->parentAnchor);
-		char *relative = HTParse(parent, me,
-					 PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
-		if (relative && *relative) {
-		    sprintf(line, "Referer: %s%c%c", parent, CR, LF);
-		    HTChunkPuts(command, line);
-		}
-		free(me);
-		free(parent);
-		free(relative);
-	    }
-	    
-	    /* Put out from field if enabled by client */
-	    if (HTEnableFrom) {
-		CONST char *mailaddress = HTGetMailAddress();
-		if (mailaddress != NULL) {
-		    sprintf(line, "From: %s%c%c", mailaddress, CR, LF);
-		    HTChunkPuts(command, line);
-		}
-	    }
-	    
-	    /* Put out user-agent */
-	    sprintf(line, "User-Agent: %s/%s  libwww/%s%c%c",
-		    HTAppName ? HTAppName : "unknown",
-		    HTAppVersion ? HTAppVersion : "0.0",
-		    HTLibraryVersion, CR, LF);
-	    HTChunkPuts(command, line);
-	    
-	    /* Put out authorization */
-	    if (request->authorization != NULL) {
-		HTChunkPuts(command, "Authorization: ");
-		HTChunkPuts(command, request->authorization);
-		HTChunkPutc(command, CR);
-		HTChunkPutc(command, LF);
-	    }
-	}
-	HTChunkPutc(command, CR);		   /* Blank line means "end" */
-	HTChunkPutc(command, LF);
-	HTChunkTerminate(command);
-	if (PROT_TRACE) fprintf(TDEST, "HTTP Tx..... %s", command->data);
-	
-	/* Translate into ASCII if necessary */
-#ifdef NOT_ASCII
-	{
-	    char * p;
-	    for(p = command->data; *p; p++) {
-		*p = TOASCII(*p);
-	    }
-	}
-#endif
-    }
-
-    /* Now, we are ready for sending the request */
-    status = NETWRITE(http->sockfd, http->transmit->data,
-		      http->transmit->size-1);
-    if (status < 0) {
-#ifdef EAGAIN
-	if (socerrno == EAGAIN || socerrno == EWOULDBLOCK) 
-#else
-	if (socerrno == EWOULDBLOCK)
-#endif
-	{
-	    if (PROT_TRACE)
-		fprintf(TDEST, "HTTP Tx..... Write operation would block\n");
-	    HTThreadState(http->sockfd, THD_SET_WRITE);
-	    return HT_WOULD_BLOCK;
-	} else {	    			 /* A real error has occured */
-	    char *unescaped = NULL;
-	    HTErrorSysAdd(request, ERR_FATAL, socerrno, NO, "NETWRITE");
-	    StrAllocCopy(unescaped, url);
-	    HTUnEscape(unescaped);
-	    HTErrorAdd(request, ERR_FATAL, NO, HTERR_INTERNAL,
-		       (void *) unescaped, (int) strlen(unescaped),
-		       "HTTPSendRequest");
-	    free(unescaped);
-	    return -1;
-	}
-    }
-    HTThreadState(http->sockfd, THD_CLR_WRITE);			/* Write OK */
     return status;
 }
 
@@ -458,7 +297,7 @@ PRIVATE void HTTPResponse ARGS1(HTStream *, me)
 
       default:						       /* bad number */
 	HTErrorAdd(me->request, ERR_FATAL, NO, HTERR_BAD_REPLY,
-		   (void *) me->buffer, me->cnt, "HTLoadHTTP");
+		   (void *) me->buffer, me->buflen, "HTLoadHTTP");
 	me->http->state = HTTP_ERROR;
 	break;
     }
@@ -469,7 +308,7 @@ PRIVATE void HTTPResponse ARGS1(HTStream *, me)
 /* ------------------------------------------------------------------------- */
 
 /*
-**	Analyse the string we have read. If it is a HTTP 1.0 or higher
+**	Analyse the stream we have read. If it is a HTTP 1.0 or higher
 **	then create a MIME-stream, else create a Guess stream to find out
 **	what the 0.9 server is sending. We need to copy the buffer as we don't
 **	know if we can modify the contents or not.
@@ -477,110 +316,118 @@ PRIVATE void HTTPResponse ARGS1(HTStream *, me)
 **	Stream handling is a function of the status code returned from the 
 **	server:
 **		200:	 Use `output_stream' in HTRequest structure
-**		else:	 Use `output_flush' in HTRequest structure
+**		else:	 Use `error_stream' in HTRequest structure
+**
+**	Return: YES if buffer should be written out. NO otherwise
 */
-PRIVATE void flush ARGS1(HTStream *, me)
+PRIVATE int stream_pipe ARGS1(HTStream *, me)
 {
     HTRequest *req = me->request;
-    me->transparent = YES;				/* Only do this once */
-    if (me->state == EOL_FLF) {
-	if (strncasecomp(me->buffer, "http/", 5) ||
-	    sscanf(me->buffer+5, "%lf %d", &me->version, &me->status) < 2) {
-	    HTErrorAdd(req, ERR_INFO, NO, HTERR_HTTP09,
-		       (void *) me->buffer, me->cnt, "HTTPStatusStream");
-	    me->target = HTGuess_new(req, NULL, WWW_UNKNOWN,
-				     req->output_format, req->output_stream);
-	    PUTBLOCK(me->buffer, me->cnt);
-	} else {
-	    if (req->output_format == WWW_SOURCE) {
-		me->target = HTMIMEConvert(req, NULL, WWW_MIME,
-					   req->output_format,
-					   req->output_stream);
-	    } else if (me->status==200 && req->method==METHOD_GET) {
-		HTStream *s;
-
-		me->target = HTStreamStack(WWW_MIME,req->output_format,
-					   req->output_stream, req, NO);
-
-		/* Cache HTTP 1.0 responses */
-		/* howcome added test for return value from HTCacheWriter 12/1/95 */
-
-		if (HTCacheDir && (s = HTCacheWriter(req, NULL, WWW_MIME,
-							req->output_format,
-							req->output_stream)))
-		    {
-			me->target = HTTee(me->target, s);
-		    }
-	    } else {
-		me->target = HTMIMEConvert(req, NULL, WWW_MIME,
-					   WWW_SOURCE, req->output_flush ?
-					   req->output_flush : HTBlackHole());
-	    }
-	    if (!me->target)
-		me->target = HTBlackHole();			/* What else */
-	}
+    if (me->target) {
+	int status = PUTBLOCK(me->buffer, me->buflen);
+	if (status == HT_OK)
+	    me->transparent = YES;
+	return status;
+    }
+    if (strncasecomp(me->buffer, "http/", 5) ||
+	sscanf(me->buffer+5, "%lf %d", &me->version, &me->status) < 2) {
+	int status;
+	HTErrorAdd(req, ERR_INFO, NO, HTERR_HTTP09,
+		   (void *) me->buffer, me->buflen, "HTTPStatusStream");
+	me->target = HTGuess_new(req, NULL, WWW_UNKNOWN,
+				 req->output_format, req->output_stream);
+	if ((status = PUTBLOCK(me->buffer, me->buflen)) == HT_OK)
+	    me->transparent = YES;
+	return status;
     } else {
-	me->target = HTGuess_new(req, NULL, WWW_UNKNOWN, req->output_format,
-				 req->output_stream);
-	PUTBLOCK(me->buffer, me->cnt);
+	if (req->output_format == WWW_SOURCE) {
+	    me->target = HTMIMEConvert(req, NULL, WWW_MIME, req->output_format,
+				       req->output_stream);
+	} else if (me->status==200) {
+	    HTStream *s;
+	    me->target = HTStreamStack(WWW_MIME, req->output_format,
+				       req->output_stream, req, NO);
+	    
+	    /* howcome: test for return value from HTCacheWriter 12/1/95 */
+	    if (HTCache_isEnabled() &&
+		(s = HTCacheWriter(req, NULL, WWW_MIME,	req->output_format,
+				   req->output_stream))) {
+		me->target = HTTee(me->target, s);
+	    }
+	} else {
+	    me->target = HTStreamStack(WWW_MIME, WWW_SOURCE,
+				       req->error_stream ?
+				       req->error_stream : HTBlackHole(),
+				       req, NO);
+	}
+	if (!me->target)
+	    me->target = HTBlackHole();				/* What else */
     }
+    me->transparent = YES;
+    return HT_OK;
 }
 
-PRIVATE void HTTPStatus_put_character ARGS2(HTStream *, me, char, c)
+/*
+**	Searches for HTTP header line until buffer fills up or a CRLF or LF
+**	is found
+*/
+PRIVATE int HTTPStatus_put_block ARGS3(HTStream *, me, CONST char*, b, int, l)
 {
-    if (me->transparent)
-	PUTC(c);
-    else {
-	if (me->state == EOL_FCR) {
-	    if (c == LF) {
-		me->state = EOL_FLF;			       /* Line found */
-		flush(me);
-	    } else {
-		me->state = EOL_BEGIN;
-		me->cnt += 2;
-		*me->bufptr++ = CR;		      /* Need to put it back */
-		*me->bufptr++ = c;
-	    }
-	} else if (c == CR) {
-	    me->state = EOL_FCR;
-	} else if (c == LF) {
-	    me->state = EOL_FLF;			       /* Line found */
-	    me->cnt++;
-	    *me->bufptr++ = LF;
-	    flush(me);
+    while (!me->transparent && l-- > 0) {
+	int status;
+	if (me->target) {
+	    if ((status = stream_pipe(me)) != HT_OK)
+		return status;
 	} else {
-	    me->cnt++;
-	    *me->bufptr++ = c;
-	    if (me->cnt >= MAX_STATUS_LEN)
-		flush(me);
+	    *(me->buffer+me->buflen++) = *b;
+	    if (me->state == EOL_FCR) {
+		if (*b == LF) {	/* Line found */
+		    if ((status = stream_pipe(me)) != HT_OK)
+			return status;
+		} else {
+		    me->state = EOL_BEGIN;
+		}
+	    } else if (*b == CR) {
+		me->state = EOL_FCR;
+	    } else if (*b == LF) {
+		if ((status = stream_pipe(me)) != HT_OK)
+		    return status;
+	    } else {
+		if (me->buflen >= MAX_STATUS_LEN) {
+		    if ((status = stream_pipe(me)) != HT_OK)
+			return status;
+		}
+	    }
+	    b++;
 	}
     }
+    if (l > 0)
+	return PUTBLOCK(b, l);
+    return HT_OK;
 }
 
-PRIVATE void HTTPStatus_put_string ARGS2(HTStream *, me, CONST char*, s)
+PRIVATE int HTTPStatus_put_string ARGS2(HTStream *, me, CONST char*, s)
 {
-    while (!me->transparent && *s)
-	HTTPStatus_put_character(me, *s++);
-    if (*s) PUTS(s);
+    return HTTPStatus_put_block(me, s, (int) strlen(s));
 }
 
-PRIVATE void HTTPStatus_put_block ARGS3(HTStream *, me, CONST char*, b, int, l)
+PRIVATE int HTTPStatus_put_character ARGS2(HTStream *, me, char, c)
 {
-    while (!me->transparent && l-- > 0)
-	HTTPStatus_put_character(me, *b++);
-    if (l > 0) PUTBLOCK(b, l);
+    return HTTPStatus_put_block(me, &c, 1);
+}
+
+PRIVATE int HTTPStatus_flush ARGS1(HTStream *, me)
+{
+    return (*me->target->isa->flush)(me->target);
 }
 
 PRIVATE int HTTPStatus_free ARGS1(HTStream *, me)
 {
-    int status = me->status;
     HTTPResponse(me);					   /* Get next state */
-    if (!me->transparent)
-	flush(me);
     if (me->target)
 	FREE_TARGET;
     free(me);
-    return status;	     /* Return the HTTP status value - 0 if HTTP 0.9 */
+    return HT_OK;
 }
 
 PRIVATE int HTTPStatus_abort ARGS2(HTStream *, me, HTError, e)
@@ -589,8 +436,8 @@ PRIVATE int HTTPStatus_abort ARGS2(HTStream *, me, HTError, e)
 	ABORT_TARGET;
     free(me);
     if (PROT_TRACE)
-	fprintf(TDEST, "HTTPStatus.. ABORTING LOAD...\n");
-    return EOF;
+	fprintf(TDEST, "HTTPStatus.. ABORTING...\n");
+    return HT_ERROR;
 }
 
 /*	HTTPStatus Stream
@@ -599,6 +446,7 @@ PRIVATE int HTTPStatus_abort ARGS2(HTStream *, me, HTError, e)
 PRIVATE CONST HTStreamClass HTTPStatusClass =
 {		
     "HTTPStatus",
+    HTTPStatus_flush,
     HTTPStatus_free,
     HTTPStatus_abort,
     HTTPStatus_put_character,
@@ -614,7 +462,6 @@ PUBLIC HTStream * HTTPStatus_new ARGS2(HTRequest *, request,
     me->isa = &HTTPStatusClass;
     me->request = request;
     me->http = http;
-    me->bufptr = me->buffer;
     me->state = EOL_BEGIN;
     return me;
 }
@@ -629,7 +476,7 @@ PUBLIC HTStream * HTTPStatus_new ARGS2(HTRequest *, request,
 ** On entry,
 **      request		This is the request structure
 ** On exit,
-**	returns		<0		Error has occured or interrupted
+**	returns		HT_ERROR	Error has occured or interrupted
 **			HT_WOULD_BLOCK  if operation would have blocked
 **			HT_LOADED	if return status 200 OK
 **			HT_NO_DATA	if return status 204 No Response
@@ -654,7 +501,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	** This is actually state HTTP_BEGIN, but it can't be in the state
 	** machine as we need the structure first.
 	*/
-	if (PROT_TRACE) fprintf(TDEST, "HTTP........ Looking for `%s\'\n", url);
+	if (PROT_TRACE) fprintf(TDEST, "HTTP........ Looking for `%s\'\n",url);
 	if ((http = (http_info *) calloc(1, sizeof(http_info))) == NULL)
 	    outofmem(__FILE__, "HTLoadHTTP");
 	http->sockfd = INVSOC;			    /* Invalid socket number */
@@ -662,6 +509,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	http->state = HTTP_BEGIN;
 	request->net_info = (HTNetInfo *) http;
 	HTThread_new((HTNetInfo *) http);
+	request->input_stream = HTTPRequest_new(request,request->input_stream);
     } else
 	http = (http_info *) request->net_info;		/* Get existing copy */
  
@@ -690,11 +538,17 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	  case HTTP_NEED_CONNECTION: 	    /* Now let's set up a connection */
 	    status = HTDoConnect((HTNetInfo *) http, url, TCP_PORT,
 				 NULL, NO);
-	    if (!status) {
+	    if (status == HT_OK) {
 		if (PROT_TRACE)
 		    fprintf(TDEST, "HTTP........ Connected, socket %d\n",
 			    http->sockfd);
+
+		/* Set up read buffer, streams and concurrent read/write */
 		http->isoc = HTInputSocket_new(http->sockfd);
+		request->input_stream->target=HTWriter_new(http->sockfd, YES);
+		http->target = HTImProxy ?
+		    request->output_stream : HTTPStatus_new(request, http);
+		HTThreadState(http->isoc->input_file_number, THD_SET_READ);
 		http->state = HTTP_NEED_REQUEST;
 	    } else if (status == HT_WOULD_BLOCK)
 		return status;
@@ -702,41 +556,45 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		http->state = HTTP_ERROR;	       /* Error or interrupt */
 	    break;
 
-	  case HTTP_NEED_REQUEST:	  /* Compose the request and send it */
-	    if ((status = HTTPSendRequest(request, http, url)) < 0) {
+	    /* As we can do simultanous read and write this is now 1 state */
+	  case HTTP_NEED_REQUEST:
+	    if (http->action == SOC_WRITE) {
+
+		/* Find the right way to call back */
+		if (request->CopyRequest) {
+		    if (!HTAnchor_headerParsed(request->CopyRequest->anchor))
+			return HT_WOULD_BLOCK;
+		    status = request->PostCallBack(request->CopyRequest,
+						   request->input_stream);
+		} else if (request->PostCallBack) {
+		    status = request->PostCallBack(request,
+						   request->input_stream);
+		} else {
+		    status = (*request->input_stream->isa->flush)
+			(request->input_stream);
+		}
 		if (status == HT_WOULD_BLOCK)
-		    return status;
-		else
+		    return HT_WOULD_BLOCK;
+		else if (status == HT_INTERRUPTED)
 		    http->state = HTTP_ERROR;
-	    } else {
-		http->state = HTTP_SENT_REQUEST;	    
-	    }
-	    break;
-
-	  case HTTP_SENT_REQUEST:			    /* Put up stream */
-	    http->target = HTImProxy ?
-		request->output_stream : HTTPStatus_new(request, http);
-	    http->state = HTTP_NEED_BODY;
-	    break;
-
-	  case HTTP_NEED_BODY:				/* Read the response */
-	    status = HTInputSocket_read(http->isoc, http->target);
-	    if (status == HT_WOULD_BLOCK)
-		return HT_WOULD_BLOCK;
-	    else if (status == HT_INTERRUPTED) {
-		(*http->target->isa->abort)(http->target, NULL);
+		else
+		    http->action = SOC_READ;
+	    } else if (http->action == SOC_READ) {
+		status = HTSocketRead(request, http->target);
+		if (status == HT_WOULD_BLOCK)
+		    return HT_WOULD_BLOCK;
+		else if (status == HT_INTERRUPTED)
+		    http->state = HTTP_ERROR;
+		else if (status == HT_LOADED) {
+		    if (http->state == HTTP_NEED_REQUEST)
+			http->state = HTTP_GOT_DATA;
+		} else
+		    http->state = HTTP_ERROR;
+	    } else
 		http->state = HTTP_ERROR;
-	    } else if (status == HT_LOADED) {
-		(*http->target->isa->_free)(http->target);
-		if (http->state == HTTP_NEED_BODY)
-		    http->state = HTTP_GOT_DATA;
-	    } else {
-		(*http->target->isa->_free)(http->target);
-		http->state = HTTP_ERROR;
-	    }
 	    break;
-
-          case HTTP_REDIRECTION:
+	    
+	  case HTTP_REDIRECTION:
 	    if (request->redirect) {
 		HTAnchor *anchor;
 		if (status == 301) {
@@ -750,7 +608,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		}
 		anchor = HTAnchor_findAddress(request->redirect);
 		if (++request->redirections < HTMaxRedirections) {
-		    HTTPCleanup(request);
+		    HTTPCleanup(request, NO);
 		    return HTLoadAnchorRecursive((HTAnchor *) anchor, request);
 		} else {
 		    HTErrorAdd(request, ERR_FATAL, NO, HTERR_MAX_REDIRECT,
@@ -763,11 +621,11 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		http->state = HTTP_ERROR;
 	    }
 	    break;
-
+	    
 	  case HTTP_AA:
+	    HTTPCleanup(request, NO);			 /* Close connection */
 	    if (HTTPAuthentication(request) == YES &&
 		HTAA_retryWithAuth(request) == YES) {
-		HTTPCleanup(request);
 		return HTLoadAnchor((HTAnchor *) request->anchor, request);
 	    } else {
 		char *unescaped = NULL;
@@ -777,22 +635,22 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 			   (void *) unescaped,
 			   (int) strlen(unescaped), "HTLoadHTTP");
 		free(unescaped);
-		http->state = HT_ERROR;
+		return HT_ERROR;
 	    }
 	    break;
-
+	    
 	  case HTTP_GOT_DATA:
-	    HTTPCleanup(request);
+	    HTTPCleanup(request, NO);
 	    return HT_LOADED;
 	    break;
 	    
 	  case HTTP_NO_DATA:
-	    HTTPCleanup(request);
+	    HTTPCleanup(request, NO);
 	    return HT_NO_DATA;
 	    break;
-
+	    
 	  case HTTP_ERROR:
-	    HTTPCleanup(request);
+	    HTTPCleanup(request, YES);
 	    return HT_ERROR;
 	    break;
 	}

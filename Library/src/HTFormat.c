@@ -30,18 +30,15 @@ PUBLIC double HTMaxSecs = 1e10;		/* No effective limit */
 PUBLIC double HTMaxLength = 1e10;	/* No effective limit */
 PUBLIC HTList * HTConversions = NULL;
 
-/* Typedefs and global variable local to thid module */
-struct _HTStream {
-	CONST HTStreamClass *		isa;
-	BOOL			had_cr;
-	HTStream * 		sink;
-};
-
 /* Accept-Encoding and Accept-Language */
 typedef struct _HTAcceptNode {
     HTAtom *	atom;
     double	quality;
 } HTAcceptNode;
+
+struct _HTStream {
+    CONST HTStreamClass *	isa;
+};
 
 /* ------------------------------------------------------------------------- */
 
@@ -137,6 +134,12 @@ PUBLIC void HTSetConversion ARGS7(
 PUBLIC void HTDisposeConversions NOARGS
 {
     if (HTConversions) {
+	HTList *cur = HTConversions;
+	HTPresentation *pres;
+	while ((pres = (HTPresentation*) HTList_nextObject(cur))) {
+	    FREE(pres->command);
+	    free(pres);
+	}
 	HTList_delete(HTConversions);
 	HTConversions = NULL;
     }
@@ -1018,109 +1021,6 @@ PUBLIC int HTParseFile ARGS3(
 }
 
 
-/*	Converter stream: Network Telnet to internal character text
-**	-----------------------------------------------------------
-**
-**	The input is assumed to be in local representation with lines
-**	delimited by (CR,LF) pairs in the local representation.
-**	The (CR,LF) sequenc when found is changed to a '\n' character,
-**	the internal C representation of a new line.
-*/
-PRIVATE void NetToText_put_character ARGS2(HTStream *, me, char, c)
-{
-    if (me->had_cr) {
-        if (c==LF) {
-	    me->sink->isa->put_character(me->sink, '\n');	  /* Newline */
-	    me->had_cr = NO;
-	    return;
-        } else {
-	    me->sink->isa->put_character(me->sink, CR);		 /* leftover */
-	}
-    }
-    me->had_cr = (c==CR);
-    if (!me->had_cr)
-	me->sink->isa->put_character(me->sink, c);		   /* normal */
-}
-
-PRIVATE void NetToText_put_string ARGS2(HTStream *, me, CONST char *, s)
-{    
-    CONST char *p=s;
-    while (*p) {
-	if (me->had_cr) {
-	    if (*p==LF) {
-		me->sink->isa->put_character(me->sink, '\n');	  /* Newline */
-		s++;
-	    } else
-		me->sink->isa->put_character(me->sink, CR);	 /* leftover */
-	}
-	me->had_cr = (*p==CR);
-	if (me->had_cr) {
-	    me->sink->isa->put_block(me->sink, s, p-s);
-	    s=p+1;
-	}
-	p++;
-    }
-    if (p-s)
-	me->sink->isa->put_block(me->sink, s, p-s);
-}
-
-
-PRIVATE void NetToText_put_block ARGS3(HTStream *, me, CONST char*, s, int, l)
-{
-    CONST char *p=s;
-    while (l-- > 0) {
-	if (me->had_cr) {
-	    if (*p==LF) {
-		me->sink->isa->put_character(me->sink, '\n');	  /* Newline */
-		s++;
-	    } else
-		me->sink->isa->put_character(me->sink, CR);	 /* leftover */
-	}
-	me->had_cr = (*p==CR);
-	if (me->had_cr) {
-	    me->sink->isa->put_block(me->sink, s, p-s);
-	    s=p+1;
-	}
-	p++;
-    }
-    if (p-s)
-	me->sink->isa->put_block(me->sink, s, p-s);
-}
-
-PRIVATE int NetToText_free ARGS1(HTStream *, me)
-{
-    me->sink->isa->_free(me->sink);		/* Close rest of pipe */
-    free(me);
-    return 0;
-}
-
-PRIVATE int NetToText_abort ARGS2(HTStream *, me, HTError, e)
-{
-    me->sink->isa->abort(me->sink,e);		/* Abort rest of pipe */
-    free(me);
-    return 0;
-}
-
-PRIVATE HTStreamClass NetToTextClass = {
-    "NetToText",
-    NetToText_free,
-    NetToText_abort,
-    NetToText_put_character,
-    NetToText_put_string,
-    NetToText_put_block
-};
-
-PUBLIC HTStream * HTNetToText ARGS1(HTStream *, sink)
-{
-    HTStream* me = (HTStream *) calloc(1, sizeof(*me));
-    if (me == NULL) outofmem(__FILE__, "NetToText");
-    me->isa = &NetToTextClass;
-    
-    me->had_cr = NO;
-    me->sink = sink;
-    return me;
-}
-
 /* ------------------------------------------------------------------------- */
 /* MULTI THREADED IMPLEMENTATIONS					     */
 /* ------------------------------------------------------------------------- */
@@ -1129,64 +1029,93 @@ PUBLIC HTStream * HTNetToText ARGS1(HTStream *, sink)
 **	-------------------------------------
 **
 **   This routine is responsible for creating and PRESENTING any
-**   graphic (or other) objects described by the file.
-**
+**   graphic (or other) objects described by the file. As this function
+**   max reads a chunk of data on size INPUT_BUFFER_SIZE, it can be used
+**   with both blocking or non-blocking sockets. It will always return to
+**   the event loop, however if we are using blocking I/O then we get a full
+**   buffer read, otherwise we get what's available.
 **
 ** Returns      HT_LOADED	if finished reading
-**	      	EOF		if error,
-**    		HT_INTERRUPTED 	if interrupted
-**     		HT_WOULD_BLOCK  if read would block
+**	      	HT_ERROR	if error,
+**    		HT_INTERRUPTED	if interrupted
+**     		HT_WOULD_BLOCK	if read would block
 */
-PUBLIC int HTInputSocket_read ARGS2(HTInputSocket *, isoc, HTStream *, target)
+PUBLIC int HTSocketRead ARGS2(HTRequest *, request, HTStream *, target)
 {
-    int b_read;
-
+    HTInputSocket *isoc = request->net_info->isoc;
+    int b_read = isoc->input_limit-isoc->input_buffer;
+    int status;
     if (!isoc || isoc->input_file_number==INVSOC) {
 	if (PROT_TRACE) fprintf(TDEST, "Read Socket. Bad argument\n");
-	return EOF;
+	return HT_ERROR;
     }
 
-    /*	Push binary from socket down sink */
-    for(;;) {
-	if (HTThreadIntr(isoc->input_file_number))	      /* Interrupted */
-	    return HT_INTERRUPTED;
-	if ((b_read = NETREAD(isoc->input_file_number, isoc->input_buffer,
-			      INPUT_BUFFER_SIZE)) < 0) {
-#ifdef EAGAIN
-	    if (socerrno==EAGAIN || socerrno==EWOULDBLOCK)    /* POSIX, SVR4 */
-#else
-	    if (socerrno == EWOULDBLOCK)			      /* BSD */
+    if (HTThreadIntr(isoc->input_file_number))		      /* Interrupted */
+	return HT_INTERRUPTED;
+#if 0
+    while(1) {
 #endif
+	/* Read from socket if we got rid of all the data previously read */
+	if (isoc->input_pointer >= isoc->input_limit) {
+	    if ((b_read = NETREAD(isoc->input_file_number, isoc->input_buffer,
+				  INPUT_BUFFER_SIZE)) < 0) {
+#ifdef EAGAIN
+		if (socerrno==EAGAIN || socerrno==EWOULDBLOCK) /* POSIX, SVR4*/
+#else
+		    if (socerrno==EWOULDBLOCK) 			      /* BSD */
+#endif
+			{
+			    if (PROT_TRACE)
+				fprintf(TDEST, "Read Socket. WOULD BLOCK soc %d\n",
+					isoc->input_file_number);
+			    HTThreadState(isoc->input_file_number, THD_SET_READ);
+			    return HT_WOULD_BLOCK;
+			} else { 		     /* We have a real error */
+			    if (PROT_TRACE)
+				fprintf(TDEST, "Read Socket. READ ERROR %d\n", socerrno);
+			    return HT_ERROR;
+			}
+	    } else if (!b_read) {
+		HTThreadState(isoc->input_file_number, THD_CLR_READ);
+		return HT_LOADED;
+	    }
+
+	    /* Remember how much we have read from the input socket */
+	    isoc->input_pointer = isoc->input_buffer;
+	    isoc->input_limit = isoc->input_buffer + b_read;
+
+#ifdef NOT_ASCII
 	    {
-		if (THD_TRACE)
-		    fprintf(TDEST, "Read Socket. WOULD BLOCK soc %d\n",
-			    isoc->input_file_number);
-		HTThreadState(isoc->input_file_number, THD_SET_READ);
+		char *p = isoc->input_buffer;
+		while (p < isoc->input_limit) {
+		    *p = FROMASCII(*p);
+		    p++;
+		}
+	    }
+#endif
+	    if (PROT_TRACE)
+		fprintf(TDEST, "Read Socket. %d bytes read from socket %d\n",
+			b_read, isoc->input_file_number);
+	}
+	
+	/* Now push the data down the stream */
+	if ((status = (*target->isa->put_block)(target, isoc->input_buffer,
+						b_read)) != HT_OK) {
+	    if (status==HT_WOULD_BLOCK) {
+		if (PROT_TRACE)
+		    fprintf(TDEST, "Read Socket. Stream WOULD BLOCK\n");
+		HTThreadState(isoc->input_file_number, THD_CLR_READ);
 		return HT_WOULD_BLOCK;
 	    } else {				     /* We have a real error */
 		if (PROT_TRACE)
-		    fprintf(TDEST, "Read Socket. READ ERROR %d\n", socerrno);
-		return EOF;
+		    fprintf(TDEST, "Read Socket. Stream ERROR\n");
+		return status;
 	    }
-	} else if (!b_read) {
-	    HTThreadState(isoc->input_file_number, THD_CLR_READ);
-	    return HT_LOADED;
 	}
-
-#ifdef NOT_ASCII
-	isoc->input_limit = isoc->input_buffer + b_read;
-	{
-	    char *p;
-	    for(p = isoc->input_buffer; p < isoc->input_limit; p++)
-		*p = FROMASCII(*p);
-	}
-#endif
-
-	/* This is based on the assumption that we actually get rid of ALL
-	   the bytes we have read. Maybe more feedback! */
-	if (PROT_TRACE)
-	    fprintf(TDEST, "Read Socket. %d bytes read\n", b_read);
-	(*target->isa->put_block)(target, isoc->input_buffer, b_read);
-	isoc->input_pointer += b_read;
+	isoc->input_pointer = isoc->input_buffer + b_read;
+#if 0
     }
+#else
+    return HT_WOULD_BLOCK;
+#endif
 }

@@ -22,7 +22,7 @@ file formats in the world, if someone only had time to do it. <P>
 
 This module is implemented by <A HREF="HTGuess.c">HTGuess.c</A>, and
 it is a part of the <A
-HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+HREF="http://www.w3.org/hypertext/WWW/Library/User/Guide/Guide.html">
 Library of Common Code</A>.
 
 <PRE>
@@ -31,10 +31,6 @@ Library of Common Code</A>.
 
 #include "HTStream.h"
 #include "HTFormat.h"
-
-#ifdef SHORT_NAMES
-#define	HTGuess_new	HTGuessN
-#endif
 
 extern HTStream * HTGuess_new	PARAMS((HTRequest *	req,
 					void *		param,

@@ -298,7 +298,7 @@ PUBLIC CONST char *HTErrorGetPrefix NOARGS
 **	error_stack messages.
 */
 
-/* *** LOOK IN HTErrMsg.c FOR ACTUAL IMPLEMENTATION OF THIS FUNCTION *** */
+/* *** LOOK IN HTAlert.c FOR ACTUAL IMPLEMENTATION OF THIS FUNCTION *** */
 
 /* END OF MODULE */
 

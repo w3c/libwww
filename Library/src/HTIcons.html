@@ -14,7 +14,7 @@
 
 This module is implemented by <A HREF="HTIcons.c">HTIcons.c</A>, and
 it is a part of the <A
-HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+HREF="http://www.w3.org/hypertext/WWW/Library/User/Guide/Guide.html">
 Library of Common Code</A>.
 
 <PRE>
@@ -118,9 +118,9 @@ extern void HTAddDirIcon PARAMS((char * url,
 /*								 HTGetIcon()
 ** returns the icon corresponding to content_type or content_encoding.
 */
-extern HTIconNode * HTGetIcon PARAMS((mode_t	mode,
-				      HTFormat	content_type,
-				      HTFormat	content_encoding));
+extern HTIconNode * HTGetIcon PARAMS((mode_t		mode,
+				      HTFormat		content_type,
+				      HTEncoding	content_encoding));
 
 /*
  * returns the HrefNode to get the URL for presentation of a file (indexing)

@@ -17,24 +17,24 @@
 Here we describe the functions of the HTFormat module which handles
 conversion between different data representations. (In MIME parlance,
 a representation is known as a content-type. In <A
-HREF="http://info.cern.ch/hypertext/WWW/TheProject.html">WWW</A> the
+HREF="http://www.w3.org/hypertext/WWW/TheProject.html">WWW</A> the
 term <EM>format</EM> is often used as it is shorter). The content of
 this module is:
 
 <UL>
 <LI><A HREF="#z15">Buffering for I/O</A>
-<LI><A HREF="#Read">Read from the Network</A>
 <LI><A HREF="#FormatTypes">Predefined Format Types</A>
 <LI><A HREF="#Encoding">Registration of Accepted Content Encodings</A>
 <LI><A HREF="#Language">Registration of Accepted Content Languages</A>
 <LI><A HREF="#Type">Registration of Accepted Converters and Presenters</A>
 <LI><A HREF="#Rank">Ranking of Accepted Formats</A>
 <LI><A HREF="#z3">The Stream Stack</A>
+<LI><A HREF="#Read">Read from a Socket</A>
 </UL>
 
 This module is implemented by <A HREF="HTFormat.c">HTFormat.c</A>, and
 it is a part of the <A NAME="z10"
-HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">Library
+HREF="http://www.w3.org/hypertext/WWW/Library/User/Guide/Guide.html">Library
 of Common Code</A>.
 
 <PRE>
@@ -45,11 +45,6 @@ of Common Code</A>.
 #include <A HREF="HTStream.html">"HTStream.h"</A>
 #include <A HREF="HTAtom.html">"HTAtom.h"</A>
 #include <A HREF="HTList.html">"HTList.h"</A>
-
-#ifdef SHORT_NAMES
-#define HTOutputSource HTOuSour
-#define HTOutputBinary HTOuBina
-#endif
 </PRE>
 
 <H2><A NAME="z15">Buffering for network I/O</A></H2>
@@ -85,41 +80,6 @@ extern HTInputSocket* HTInputSocket_new PARAMS((SOCKFD file_number));
 extern void HTInputSocket_free PARAMS((HTInputSocket * isoc));
 </PRE>
 
-<A NAME="Read"><H2>Read from the Network</H2></A>
-
-This function has replaced many other functions for doing read from
-the network. It automaticly converts from ASCII if we are on a
-NON-ASCII machine. This assumes that we do <B>not</B> use this
-function to read a local file on a NON-ASCII machine. The following
-type definition is to make life easier when having a state machine
-looking for a <CODE>&lt;CRLF&gt;</CODE> sequence.
-
-<PRE>
-typedef enum _HTSocketEOL {
-    EOL_ERR = -1,
-    EOL_BEGIN = 0,
-    EOL_FCR,
-    EOL_FLF,
-    EOL_DOT,
-    EOL_SCR,
-    EOL_SLF
-} HTSocketEOL;
-
-extern int HTInputSocket_read	PARAMS((HTInputSocket * isoc,
-					HTStream * target));
-</PRE>
-
-<H2><A NAME="z11">Convert Net ASCII to local representation</A></H2>
-
-This is a filter stream suitable for taking text from a socket and
-passing it into a stream which expects text in the local C
-representation.  It does newline conversion.  As usual, pass its
-output stream to it when creating it.
-
-<PRE>
-extern HTStream * HTNetToText PARAMS ((HTStream * sink));
-</PRE>
-
 <A NAME="FormatTypes"><H2>The HTFormat types</H2></A>
 
 We use the <A HREF="HTAtom.html">HTAtom</A> object for holding
@@ -130,6 +90,7 @@ representations.<P>
 
 <PRE>
 typedef HTAtom * HTFormat;
+typedef HTAtom * HTCharset;
 </PRE>
 
 <H3>Internal ones</H3>
@@ -187,6 +148,7 @@ These are regular MIME types defined. Others can be added!
 #define WWW_HTML 	HTAtom_for("text/html")
 #define WWW_BINARY 	HTAtom_for("application/octet-stream")
 #define WWW_VIDEO 	HTAtom_for("video/mpeg")
+#define WWW_GIF 	HTAtom_for("image/gif")
 </PRE>
 
 Extra types used in the library (EXPERIMENT)
@@ -201,7 +163,8 @@ it makes reference.
 <H2>The HTEncoding type</H2>
 
 <PRE>
-typedef HTAtom* HTEncoding;
+typedef HTAtom * HTEncoding;
+typedef HTAtom * HTCte;				/* Content transfer encoding */
 </PRE>
 
 The following are values for the MIME types:
@@ -210,6 +173,7 @@ The following are values for the MIME types:
 #define WWW_ENC_7BIT		HTAtom_for("7bit")
 #define WWW_ENC_8BIT		HTAtom_for("8bit")
 #define WWW_ENC_BINARY		HTAtom_for("binary")
+#define WWW_ENC_BASE64		HTAtom_for("base64")
 </PRE>
 
 We also add
@@ -220,7 +184,8 @@ We also add
 
 <A NAME="Encoding"><H2>Registration of Accepted Content Encodings</H2></A>
 
-This function is not currently used.
+This function is not currently used, as no encoding/decoding streams
+have been made :-(
 
 <PRE>
 typedef struct _HTContentDescription {
@@ -300,7 +265,10 @@ This module keeps a global list of converters. This can be used to get
 the set of supported formats. <P>
 
 <B>NOTE:</B> There is also a conversion list associated with each
-request in the <A HREF="HTAccess.html#z1">HTRequest structure</A>.
+request in the <A HREF="HTAccess.html#z1">HTRequest
+structure</A>. This list can be used to expand the core set of
+conversions in the global list. The <A HREF="#z3">StreamStack</A> uses
+both lists.
 
 <PRE>
 extern HTList * HTConversions;
@@ -451,10 +419,33 @@ extern double HTStackValue	PARAMS((HTList *	conversions,
 					long int	length));
 </PRE>
 
+<A NAME="Read"><H2>Read Data from a Socket</H2></A>
+
+This function has replaced many other functions for doing read from a
+socket. It automaticly converts from ASCII if we are on a NON-ASCII
+machine. This assumes that we do <B>not</B> use this function to read
+a local file on a NON-ASCII machine. The following type definition is
+to make life easier when having a state machine looking for a
+<CODE>&lt;CRLF&gt;</CODE> sequence.
+
+<PRE>
+typedef enum _HTSocketEOL {
+    EOL_ERR = -1,
+    EOL_BEGIN = 0,
+    EOL_FCR,
+    EOL_FLF,
+    EOL_DOT,
+    EOL_SCR,
+    EOL_SLF
+} HTSocketEOL;
+
+extern int HTSocketRead	PARAMS((HTRequest * request, HTStream * target));
+</PRE>
+
 <HR>
 
 <B><IMG
-ALIGN=middle SRC="http://info.cern.ch/hypertext/WWW/Icons/32x32/caution.gif"> ATTENTION <IMG ALIGN=middle SRC="http://info.cern.ch/hypertext/WWW/Icons/32x32/caution.gif"> <P>
+ALIGN=middle SRC="http://www.w3.org/hypertext/WWW/Icons/32x32/caution.gif"> ATTENTION <IMG ALIGN=middle SRC="http://www.w3.org/hypertext/WWW/Icons/32x32/caution.gif"> <P>
 
 THE REST OF THE FUNCTION DEFINED IN THIS MODULE ARE GOING TO BE
 OBSOLETE SO DO NOT USE THEM - THEY ARE NOT REENTRANT.</B>

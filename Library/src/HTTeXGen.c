@@ -217,13 +217,16 @@ PRIVATE char *TeX_entities[HTML_ENTITIES] = {
 /*	Flush Buffer
 **	------------
 */
-PRIVATE void HTTeXGen_flush ARGS1(HTStructured *, me)
+PRIVATE int HTTeXGen_flush ARGS1(HTStructured *, me)
 {
-    (*me->targetClass.put_block)(me->target, 
-				 me->buffer,
-				 me->write_pointer - me->buffer);
+    int status;
+    if ((status =
+	 (*me->targetClass.put_block)(me->target, me->buffer,
+				      me->write_pointer-me->buffer)) != HT_OK)
+	return status;
     me->write_pointer = me->buffer;
     me->line_break = me->buffer;
+    return (*me->targetClass.flush)(me->target);
 }
 
 
@@ -231,17 +234,17 @@ PRIVATE void HTTeXGen_flush ARGS1(HTStructured *, me)
 **	------------------
 **
 */
-PRIVATE void HTTeXGen_put_character ARGS2(HTStructured *, me, char, c)
+PRIVATE int HTTeXGen_put_character ARGS2(HTStructured *, me, char, c)
 {
     if (!me->startup)		                      /* To skip MIME header */
-	return;
+	return HT_OK;
     if (c=='\n') {
 	if (me->markup || me->preformatted) {     /* Put out as is and flush */
 	    *me->write_pointer++ = c;
 	    HTTeXGen_flush(me);
-	    return;
+	    return HT_OK;
 	} else if (me->sensitive || *(me->write_pointer-1)==' ') {
-	    return;
+	    return HT_OK;
         } else
 	    *me->write_pointer++ = ' ';		      /* Try to pretty print */
     } else if (me->markup || me->preformatted) {
@@ -250,7 +253,7 @@ PRIVATE void HTTeXGen_put_character ARGS2(HTStructured *, me, char, c)
 	if (*(me->write_pointer-1) != ' ')
 	    *me->write_pointer++ = ' ';
 	else
-	    return;
+	    return HT_OK;
     } else {
 	if (c=='$' || c=='&' || c=='%' || c=='#' ||         /* Special chars */
 	    c=='{' || c=='}' || c=='_') {
@@ -310,7 +313,7 @@ PRIVATE void HTTeXGen_put_character ARGS2(HTStructured *, me, char, c)
 	}	    
 	me->line_break = me->buffer;
     }
-    return;
+    return HT_OK;
 }
 
 
@@ -318,19 +321,19 @@ PRIVATE void HTTeXGen_put_character ARGS2(HTStructured *, me, char, c)
 /*	String handling
 **	---------------
 */
-PRIVATE void HTTeXGen_put_string ARGS2(HTStructured *, me, CONST char*, s)
+PRIVATE int HTTeXGen_put_string ARGS2(HTStructured *, me, CONST char*, s)
 {
-    CONST char * p;
-    for (p=s; *p; p++)
-	HTTeXGen_put_character(me, *p);
+    while (*s)
+	HTTeXGen_put_character(me, *s++);
+    return HT_OK;
 }
 
 
-PRIVATE void HTTeXGen_write ARGS3(HTStructured *, me, CONST char*, s, int, l)
+PRIVATE int HTTeXGen_write ARGS3(HTStructured *, me, CONST char*, b, int, l)
 {
-    CONST char * p;
-    for(p=s; p<s+l; p++)
-	HTTeXGen_put_character(me, *p);
+    while (l-- > 0)
+	HTTeXGen_put_character(me, *b++);
+    return HT_OK;
 }
 
 
@@ -433,14 +436,14 @@ PRIVATE int HTTeXGen_free ARGS1(HTStructured *, me)
     HTTeXGen_flush(me);
     (*me->targetClass._free)(me->target);	/* ripple through */
     free(me);
-    return 0;
+    return HT_OK;
 }
 
 
 PRIVATE int HTTeXGen_abort ARGS2(HTStructured *, me, HTError, e)
 {
     HTTeXGen_free(me);
-    return EOF;
+    return HT_ERROR;
 }
 
 
@@ -450,6 +453,7 @@ PRIVATE int HTTeXGen_abort ARGS2(HTStructured *, me, HTError, e)
 PRIVATE CONST HTStructuredClass HTTeXGeneration = /* As opposed to print etc */
 {		
 	"HTMLToTeX",
+	HTTeXGen_flush,
 	HTTeXGen_free,
 	HTTeXGen_abort,
 	HTTeXGen_put_character,        	HTTeXGen_put_string,	HTTeXGen_write,

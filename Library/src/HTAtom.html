@@ -25,7 +25,7 @@ HREF="HTFormat.html#FormatTypes">MIME-types</A> defined as
 
 This module is implemented by <A HREF="HTAtom.c">HTAtom.c</A>, and it
 is a part of the <A NAME="z10"
-HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">Library
+HREF="http://www.w3.org/hypertext/WWW/Library/User/Guide/Guide.html">Library
 of Common Code</A>. <P>
 
 <PRE>
@@ -33,11 +33,6 @@ of Common Code</A>. <P>
 #define HTATOM_H
 
 #include "HTList.h"
-
-#ifdef SHORT_NAMES
-#define HTAt_for	HTAtom_for
-#define HTAt_tMa	HTAtom_templateMatches
-#endif
 
 typedef struct _HTAtom HTAtom;
 struct _HTAtom {

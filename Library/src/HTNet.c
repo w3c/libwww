@@ -232,41 +232,42 @@ PUBLIC HTRequest *HTThread_getRequest ARGS2(CONST fd_set *,	fd_read,
     HTList *cur = HTThreads;
     HTNetInfo *pres;
     SOCKFD cnt;
-    BOOL found = NO;
+    SocAction found = SOC_INVALID;
     for (cnt=STDIN_FILENO+1; cnt<HTMaxfdpl; cnt++) {		/* INTERRUPT */
 	if (FD_ISSET(cnt, &HTfd_intr)) {
 	    if (THD_TRACE)
 		fprintf(TDEST, "GetSocket... Socket %d INTERRUPTED\n", cnt);
-	    found = YES;
+	    found = SOC_INTERRUPT;
 	    break;
 	}
     }
-    if (!found) {
+    if (found == SOC_INVALID) {
 	for (cnt=STDIN_FILENO+1; cnt<HTMaxfdpl; cnt++) {	     /* READ */
 	    if (FD_ISSET(cnt, fd_read)) {
 		if (THD_TRACE)
 		    fprintf(TDEST, "GetSocket... Socket %d for READ\n", cnt);
-		found = YES;
+		found = SOC_READ;
 		break;
 	    }
 	}
     }
-    if (!found) {
+    if (found == SOC_INVALID) {
 	for (cnt=STDIN_FILENO+1; cnt<HTMaxfdpl; cnt++) {   	    /* WRITE */
 	    if (FD_ISSET(cnt, fd_write)) {
 		if (THD_TRACE)
 		    fprintf(TDEST, "GetSocket... Socket %d for WRITE\n", cnt);
-		found = YES;
+		found = SOC_WRITE;
 		break;
 	    }
 	}
     }
-    if (!found || cur == NULL)
+    if (found == SOC_INVALID || cur == NULL)
 	return NULL;
 
-    /* Find the corresponding HTNetInfo structure */
+    /* Find the corresponding HTNetInfo and HTRequest structure */
     while ((pres = (HTNetInfo *) HTList_nextObject(cur)) != NULL) {
 	if (pres->sockfd == cnt) {
+	    pres->action = found;
 	    return pres->request;
 	}
     }

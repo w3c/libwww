@@ -19,18 +19,16 @@ with associated access code.  It allows documents to be loaded given
 various combinations of parameters.  New access protocols may be
 registered at any time.<P>
 
-<B>Note:</B> HTRequest defined and request parameter added to almost
-all calls 18 Nov 1993.<P>
-
 This module is implemented by <A HREF="HTAccess.c">HTAccess.c</A>, and
 it is a part of the <A NAME="z10"
-HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">Library
+HREF="http://www.w3.org/hypertext/WWW/Library/User/Guide/Guide.html">Library
 of Common Code</A>. <P>
 
 The module contains a lot of stuff but the main topics are:
 
 <UL>
 <LI><A HREF="#Library">Initializing and Terminating the Library</A>
+<LI><A HREF="#log">Logging of requests</A>
 <LI><A HREF="#Methods">Management of access methods</A>
 <LI><A HREF="#Addresses">A lot of hard coded addresses</A>
 <LI><A HREF="#z1">The HTRequest structure</A>
@@ -50,32 +48,32 @@ The module contains a lot of stuff but the main topics are:
 #include "HTChunk.h"
 </PRE>
 
-<B>Short Names</B>
+<H2>Global Flags</H2>
+
+Flags and variables which may be set to control the Library
+
+<H3>Redirections</H3>
+
+The maximum number of redirections is pr. default 10. This prevents
+the library from going into an infinite loop which is kind of nice :-)
+
 <PRE>
-#ifdef SHORT_NAMES
-#define HTClientHost 		HTClHost
-#define HTSearchAbsolute	HTSeAbso
-#define HTOutputStream		HTOuStre
-#define HTOutputFormat		HTOuForm
-#endif
+extern int HTMaxRedirections;
 </PRE>
 
-<H2>Flags which may be set to control this module</H2>
+<H3>Other Flags</H3>
 
 <PRE>
-extern char * HTSaveLocallyDir;		/* Dir home for "save locally" files */
-extern char * HTCacheDir;		/* Cache dir, default NULL: no cache */
 extern char * HTClientHost;		/* Name or number of telnetting host */
-extern FILE * HTlogfile;		/* File to output one-liners to */
 extern BOOL HTSecure;			/* Disable security holes? */
+
 extern char * HTImServer;		/* If I'm cern_httpd */
 extern BOOL HTImProxy;			/* If I'm cern_httpd as a proxy */
-extern BOOL HTForceReload;		/* Force reload from cache or net */
 </PRE>
 
 <A NAME="Library"><H2>Initializing and Terminating the Library</H2></A>
 
-<IMG SRC="http://info.cern.ch/hypertext/WWW/Icons/32x32/warning.gif">
+<IMG SRC="http://www.w3.org/hypertext/WWW/Icons/32x32/warning.gif">
 These two functions initiates memory and settings for the Library and
 cleans up memory kept by the Library when about to exit the
 application. It is highly recommended that they are used!
@@ -88,23 +86,22 @@ extern BOOL HTLibTerminate NOPARAMS;
 <A NAME="Methods"><H2>Method Management</H2></A>
 
 These are the valid methods, see <A
-HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/Methods.html">HTTP
-Methods</A>
+HREF="http://www.w3.org/hypertext/WWW/Protocols/HTTP/Methods.html">HTTP
+Methods</A>. <P>
+
+<B>NOTE:</B> the anchor list of allowed methods are not a bitflag, not
+at list.
 
 <PRE>
 typedef enum {
-	METHOD_INVALID	= 0,
-	METHOD_GET	= 1,
-	METHOD_HEAD,
-	METHOD_POST,
-	METHOD_PUT,
-	METHOD_DELETE,
-	METHOD_CHECKOUT,
-	METHOD_CHECKIN,
-	METHOD_SHOWMETHOD,
-	METHOD_LINK,
-	METHOD_UNLINK,
-	MAX_METHODS
+	METHOD_INVALID	= 0x0,
+	METHOD_GET	= 0x1,
+	METHOD_HEAD	= 0x2,    
+	METHOD_POST	= 0x4,    
+	METHOD_PUT	= 0x8,    
+	METHOD_DELETE	= 0x10,
+	METHOD_LINK	= 0x20,
+	METHOD_UNLINK	= 0x40
 } HTMethod;
 </PRE>
 
@@ -113,7 +110,7 @@ typedef enum {
 Gives the enumeration value of the method as a function of the (char *) name.
 
 <PRE>
-extern HTMethod HTMethod_enum PARAMS((char * name));
+extern HTMethod HTMethod_enum PARAMS((CONST char * name));
 </PRE>
 
 <H3>Get Method String</H3>
@@ -121,18 +118,7 @@ extern HTMethod HTMethod_enum PARAMS((char * name));
 The reverse of <I>HTMethod_enum()</I>
 
 <PRE>
-extern char * HTMethod_name PARAMS((HTMethod method));
-</PRE>
-
-<H3>Valid Methods</H3>
-
-This functions searches the list of valid methods for a given anchor, see
-<A HREF="HTAnchor.html">HTAnchor module</A> If the method is found it returns
-YES else NO.
-
-<PRE>
-extern BOOL HTMethod_inList PARAMS((HTMethod	method,
-				    HTList *	list));
+extern CONST char * HTMethod_name PARAMS((HTMethod method));
 </PRE>
 
 <HR>
@@ -165,12 +151,11 @@ extern BOOL HTMethod_inList PARAMS((HTMethod	method,
 extern BOOL HTAA_templateMatch PARAMS((CONST char * tmplate, 
 				       CONST char * filename));
 </PRE>
-
 <HR>
 
-The following have to be defined
-in advance of the other include files
+The following have to be defined in advance of the other include files
 because of circular references.
+
 <PRE>
 typedef struct _HTRequest HTRequest;
 typedef struct _HTNetInfo HTNetInfo;
@@ -187,6 +172,59 @@ NAME="z3" HREF="HTFormat.html">"HTFormat.h"</A>
 #include "HTAABrow.h"		/* HTAASetup */
 </PRE>
 
+<A NAME="HeaderMask"><H2>General HTTP Header Mask</H2></A>
+
+This mask enables and disables which automaticly generated HTTP
+headers are to be sent in a request. If the bit is not turned on they
+are not sent. Extra header can be generated when initializing the <A
+HREF="#ExtraHeaders">ExtraHeaders field</A>. The first set is general
+headers and the second is request headers.
+
+<PRE>
+typedef enum _HeaderEnum {
+    HT_DATE		= 0x1,
+    HT_MESSAGE_ID	= 0x2,
+    HT_MIME		= 0x4,				     /* MIME-Version */
+
+    HT_ACCEPT		= 0x8,
+    HT_FROM		= 0x10,
+    HT_PRAGMA		= 0x20,
+    HT_REFERER		= 0x40,
+    HT_USER_AGENT	= 0x80
+} HeaderEnum;
+
+#define <A NAME="DEF_HEAD">DEFAULT_HEADERS</A> HT_ACCEPT+HT_REFERER+HT_USER_AGENT
+</PRE>
+
+<H2>Entity Header Mask</H2>
+
+The entity headers contain information about the object sent in the
+HTTP transaction. See the <A HREF="HTAnchor.html">Anchor module</A>,
+for the storage of entity headers. This flag defines which headers are
+to be sent in a request together with an entity body (the <B>O</B>
+stands for <EM>object</EM>)
+
+<PRE>
+typedef enum _EntityHeaderEnum {
+    HT_ALLOW		= 0x1,
+    HT_CONTENT_ENCODING	= 0x2,
+    HT_CONTENT_LANGUAGE	= 0x4,
+    HT_CONTENT_LENGTH	= 0x8,
+    HT_CTE		= 0x10,			/* Content-Transfer-Encoding */
+    HT_CONTENT_TYPE	= 0x20,
+    HT_DERIVED_FROM	= 0x40,
+    HT_EXPIRES		= 0x80,
+    HT_LAST_MODIFIED	= 0x200,
+    HT_LINK		= 0x400,
+    HT_TITLE		= 0x800,
+    HT_URI		= 0x1000,
+    HT_VERSION		= 0x2000
+} EntityHeaderEnum;
+
+#define <A NAME="DEF_ENTITY">DEFAULT_ENTITY_HEADERS</A> HT_CONTENT_TYPE+HT_CONTENT_LENGTH \
+	+HT_DERIVED_FROM+HT_VERSION
+</PRE>
+
 <A NAME="Addresses"><H2>Default WWW Addresses</H2></A>
 
 These control the home page selection. To mess with these for normal browses
@@ -198,8 +236,9 @@ is asking for user confusion.
 #define PERSONAL_DEFAULT "WWW/default.html"		/* in home directory */
 #endif
 
-#ifndef LOCAL_DEFAULT_FILE
-#define LOCAL_DEFAULT_FILE "/usr/local/lib/WWW/default.html"
+/* If the home page isn't found, use this file: */
+#ifndef LAST_RESORT
+#define LAST_RESORT	"http://www.w3.org/"
 #endif
 
 /* If one telnets to an access point it will look in this file for home page */
@@ -209,27 +248,26 @@ is asking for user confusion.
 
 /* and if that fails it will use this. */
 #ifndef REMOTE_ADDRESS
-#define REMOTE_ADDRESS  "http://info.cern.ch/remote.html"   /* can't be file */
+#define REMOTE_ADDRESS  "http://www.w3.org/remote.html"   /* can't be file */
 #endif
 
-/* If run from telnet daemon and no -l specified, use this file: */
+/* Default log file name */
 #ifndef DEFAULT_LOGFILE
-#define DEFAULT_LOGFILE	"/usr/adm/www-log/www-log"
+#define DEFAULT_LOGFILE		"www-log"
 #endif
 
-/* If the home page isn't found, use this file: */
-#ifndef LAST_RESORT
-#define LAST_RESORT	"http://info.cern.ch/default.html"
+#ifndef LOCAL_DEFAULT_FILE
+#define LOCAL_DEFAULT_FILE "/usr/local/lib/WWW/default.html"
 #endif
 
 /* This is the default cache directory: */
-#ifndef CACHE_HOME_DIR
-#define CACHE_HOME_DIR		"/tmp/"
+#ifndef HT_CACHE_ROOT
+#define HT_CACHE_ROOT		"/tmp"
 #endif
 
 /* The default directory for "save locally" and "save and execute" files: */
-#ifndef SAVE_LOCALLY_HOME_DIR
-#define SAVE_LOCALLY_HOME_DIR	"/tmp/"
+#ifndef HT_TMP_ROOT
+#define HT_TMP_ROOT		"/tmp"
 #endif
 </PRE>
 
@@ -239,16 +277,23 @@ This structure contains information about socket number, input buffer
 for reading from the network etc. The structure is used through out
 the protocol modules and is the refenrence point for introducing multi
 threaded execution into the library, see specifications on <A
-HREF="http://info.cern.ch/hypertext/WWW/Library/User/Features/multithread.html">Multiple
+HREF="http://www.w3.org/hypertext/WWW/Library/User/Features/multithread.html">Multiple
 Threads</A>.
 
 <PRE>
+typedef enum _SocAction {
+    SOC_INVALID = -1,
+    SOC_WRITE = 0,				/* By default ready to write */
+    SOC_READ,
+    SOC_INTERRUPT
+} SocAction;
+
 struct _HTNetInfo {
     SOCKFD		sockfd;				/* Socket descripter */
     SockA 		sock_addr;		/* SockA is defined in tcp.h */
     HTInputSocket *	isoc;				     /* Input buffer */
-    HTStream *		target;			            /* Output stream */
-    HTChunk *		transmit;			  /* Line to be send */
+    SocAction		action;			/* Result of the select call */
+    HTStream *		target;				    /* Target stream */
     int 		addressCount;	     /* Attempts if multi-homed host */
     time_t		connecttime;		 /* Used on multihomed hosts */
     struct _HTRequest *	request;	   /* Link back to request structure */
@@ -259,42 +304,58 @@ struct _HTNetInfo {
 of attempt to connect to a multi-homed host so we know when to stop
 trying new IP-addresses.</EM>
 
-<H2><A
-NAME="z1">The Request structure</A></H2>When a request is handled, all kinds
-of things about it need to be passed
-along.  These are all put into a
-HTRequest structure. <P>
+<H2><A NAME="z1">The Request structure</A></H2>
 
-<B>Note 1:</B> There is also a <A NAME="z4" HREF="HTFormat.html#z17">global list of converters</A> <P>
-<B>Note 2:</B> If you reuse the request structure for more than one
-request then make sure that the request is re-initialized, so that no `old'
-data is reused, see <A HREF="#z100">functions to manipulate HTRequest
-Structure</A>. The library handles its own internal information from request
-to request but the information set by the caller is untouched. <P>
+When a request is handled, all kinds of things about it need to be
+passed along.  These are all put into a HTRequest structure. This is
+the most essential structure in the library. It contains two main
+categories of information regarding a request:
 
-The elements of the request structure are as follows.
+<UL>
+<LI>Application dependent information
+<LI>Library dependent information
+</UL>
+
+Applications using the Library should <EM>never</EM> use the internal
+library dependent information. It's only because we dont have real
+classes that we can't hide it. <P>
+
+<B>Note:</B> If you reuse the request structure for more than one
+request then make sure that the request is re-initialized, so that no
+`old' data is reused, see <A HREF="#z100">functions to manipulate
+HTRequest Structure</A>. The library handles its own internal
+information from request to request but the information set by the
+caller is untouched. <P>
+
+The elements of the request structure are as follows:
 
 <PRE>
 struct _HTRequest {
 </PRE>
 
-<H3>Set by the caller of HTaccess:</H3>
+<H3>Application Dependent - Set by the caller of HTAccess</H3>
 
 <PRE>
     <A HREF="#Methods">HTMethod</A>	method;
 </PRE>
 
 An enum used to specify the HTTP <A NAME="z7"
-HREF="../../Protocols/HTTP/Methods.html">method</A> used. The default
-value is <CODE>GET</CODE>
+HREF="../../Protocols/HTTP/Methods.html">method</A> used for the
+actual request. The default value is <A
+HREF="#Methods"><CODE>GET</CODE></A>.
+
+<H4>HTTP Header Information</H4>
 
 <PRE>
     HTList * 	conversions;
 </PRE>
 
-NULL, or a list of conversions which the format manager can do in
-order to fulfill the request.  It typically points to a list set up an
-initialisation time for example by <A HREF="HTInit.html">HTInit().</A>
+NULL, or a <EM>local</EM> list of specific conversions which the
+format manager can do in order to fulfill the request.  It typically
+points to a list set up on initialisation time for example by <A
+HREF="HTInit.html">HTInit()</A>. There is also a <A
+HREF="HTFormat.html#z17"><EM>global</EM></A> list of conversions which
+contains a generic set of possible conversions.
 
 <PRE>
     HTList *	encodings;
@@ -310,6 +371,102 @@ The list of (human) language values acceptable in the response. The default
 is all languages.
 
 <PRE>
+    HeaderEnum		HeaderMask;
+    EntityHeaderEnum	EntityMask;
+</PRE>
+
+These two masks defines which headers to include in a HTTP request (or
+any other MIME-like protocol). the first mask defines what
+autogenerated HTTP header fields should be sent in the HTTP
+request. The default value is <A
+HREF="DEF_HEAD">DEFAULT_HEADERS</A>. The second defines what entity
+headers should be sent along with an entity (using PUT or POST).
+
+<PRE>
+    HTParentAnchor *parentAnchor;
+</PRE>
+
+If this parameter is set then a `Referer: &lt;parent address&gt; can
+be generated in the request to the server, see <A
+HREF="http://www.w3.org/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html#z14">
+Referer field in a HTTP Request</A>
+
+<PRE>
+   <A NAME="#ExtraHeaders">char * ExtraHeaders;</A>
+</PRE>
+
+Extra header information can be send along with a request using this
+variable. The text is sent as is so it must be preformatted with
+&lt;CRLF&gt; line terminators.
+
+<H4>Streams From Network to Application</H4>
+
+<PRE>
+    HTStream *	output_stream; 
+</PRE>
+
+The output stream is to be used to put data down to as they come in
+<B>from</B> the network and back to the application. The default value
+is <CODE>NULL</CODE> which means that the stream goes to the user
+(display).
+
+<PRE>
+    HTAtom * 	output_format;
+</PRE>
+
+The desired format of the output stream. This can be used to get
+unconverted data etc. from the library. If <CODE>NULL</CODE>, then <A
+HREF="HTFormat.html#FormatTypes">WWW_PRESENT</A> is default value.
+
+<PRE>
+    HTStream*	error_stream;
+</PRE>
+
+All object bodies sent from the server with status codes different
+from <CODE>200 OK</CODE> will be put down this stream. This can be
+used as a debug window etc. If the value is NULL (default) then the
+stream used is <A HREF="HTFormat.html#BlackHole">HTBlackHole</A>.
+
+<H4>Streams From Application to Network</H4>
+
+<PRE>
+    HTStream *	input_stream; 
+</PRE>
+
+The input stream is to be used by the <CODE>PostCallBack</CODE>
+function to put data out on the network. The user should not
+initialize this field.
+
+<PRE>
+    HTAtom * 	input_format;
+</PRE>
+
+The desired format of the output stream. This can be used to upload
+converted data to a remote server. If <CODE>NULL</CODE>, then <A
+HREF="HTFormat.html#FormatTypes">WWW_SOURCE</A> is default value.
+
+<PRE>
+    int (*PostCallBack)		PARAMS((struct _HTRequest *	request,
+					HTStream *		target));
+</PRE>
+
+The call back function which is called when the current request is
+ready for sending (posting) the data object. The request is the
+current request so that the application knows which post we are
+handling. The function must have the same return values as the other
+<A HREF="#LoadDoc">Load functions</A>.
+
+<H4>Other Flags</H4>
+
+<PRE>
+    BOOL BlockingIO;
+    BOOL ForceReload;
+</PRE>
+
+This flag can be set to override if a protocol module is registered as
+using non-blocking IO.
+
+<PRE>
     BOOL (*<A NAME="z9"> callback</A> ) PARAMS((struct _HTRequest* request,
 						void *param));
 </PRE>
@@ -322,53 +479,12 @@ to disk by HTSaveAndCallBack for example.
 </PRE>
 
 An arbitrary pointer passed to HTAccess and passed back as a parameter
-to the <A NAME="z10" HREF="#z9">callback</A> .
+to the <A NAME="z10" HREF="#z9">callback</A>.
 
-<PRE>
-    HTStream*	output_stream; 
-</PRE>
+<H3>Library Dependent - Set by Library</H3>
 
-The output stream to be used to put data down to as they come in from the
-network. The default value is <CODE>NULL</CODE> which means that the stream
-goes to the user (display).
-
-<PRE>
-    HTStream*	output_flush; 
-</PRE>
-
-All object bodies sent from the server with status codes different
-from <CODE>200 OK</CODE> will be put down this stream. This can be
-used as a debug window etc. If the value is NULL (default) then the
-stream used is <A HREF="HTFormat.html#BlackHole">HTBlackHole</A>.
-
-<PRE>
-    HTAtom * 	output_format;
-</PRE>
-
-The output format of the stream. This can be used to get unconverted
-data etc. from the library. If <CODE>NULL</CODE>, then WWW_PRESENT is
-default value.
-
-<PRE>
-    BOOL BlockingIO;
-</PRE>
-
-This flag can be set to override if a protocol module is registered as
-using non-blocking IO.
-
-<PRE>
-    HTParentAnchor *parentAnchor;
-</PRE>
-
-If this parameter is set then a `Referer: &lt;parent address&gt; is
-generated in the request to the server, see <A
-HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html#z14">
-Referer field in a HTTP Request</A>
-
-<H3>Set by HTAccess</H3>
-
-None of the bits below may be looked at by a client application except
-in the callback routine, when the anchor may be picked out.
+None of the bits below may be looked at by a WWW application. The
+Library handles the cleanup by itself.
 
 <PRE>
     HTParentAnchor*	anchor;
@@ -382,56 +498,76 @@ Used by the protocol and parsing modules.  Valid thoughout the access.
 </PRE>
 
 The anchor for the sub object if any.  The object builder should
-ensure that htis is selected, highlighted, etc when the object is
+ensure that is is selected, highlighted, etc when the object is
 loaded.
 
 <PRE>
-    void *		using_cache;
+    struct _HTRequest *	CopyRequest;
 </PRE>
 
-Pointer to cache element if cache hit
+We need to know if we have a remote request sending data along with
+this request.
 
-<H3>Error Diagnostics</H3>
 <PRE>
-	BOOL		error_block;	/* YES if stream has been used	  */
-	HTList *	error_stack;	/* List of errors		  */
-
-</PRE>
-<H3>Library Side</H3>
-<PRE>
-	HTNetInfo *	net_info;	/* Information about socket etc. */
-	int		redirections;	/* Number of redirections */
+    void *	using_cache;
+    BOOL	using_proxy;
 </PRE>
 
-<H3>Temporary until we get a good MIME parser</H3>
+Pointer to cache element if cache hit anfd if using proxy
+
 <PRE>
-	char *		redirect;		       /* Location or URI */
-	char *		WWWAAScheme;	       /* WWW-Authenticate scheme */
-	char *		WWWAARealm;	        /* WWW-Authenticate realm */
-	char *		WWWprotection;	       /* WWW-Protection-Template */
+    BOOL	error_block;		/* YES if stream has been used	  */
+    HTList *	error_stack;		/* List of errors		  */
 </PRE>
 
-<H3>Server Side</H3>
+These two fields are used by the error reporting system to keep a
+stack of messages.
+
 <PRE>
-	HTAtom *	content_type;	/* Content-Type:		  */
-	HTAtom *	content_language;/* Language			  */
-	HTAtom *	content_encoding;/* Encoding			  */
-	int		content_length;	/* Content-Length:		  */
-	HTInputSocket *	isoc;		/* InputSocket object for reading */
-	char *		authorization;	/* Authorization: field		  */
-	HTAAScheme	scheme;		/* Authentication scheme used	  */
+    HTNetInfo *	net_info;		/* Information about socket etc. */
+    int		redirections;		/* Number of redirections */
 </PRE>
-<H3>Client Side</H3>
+
+Protocol specific information, socket number etc.
+
 <PRE>
-	HTList *	valid_schemes;	/* Valid auth.schemes		  */
-	HTAssocList **	scheme_specifics;/* Scheme-specific parameters	  */
-	char *		authenticate;	/* WWW-authenticate: field */
-	char *		prot_template;	/* WWW-Protection-Template: field */
-	HTAASetup *	setup;		/* Doc protection info		  */
-	HTAARealm *	realm;		/* Password realm		  */
-	char *		dialog_msg;	/* Authentication prompt (client) */
+    char *	redirect;		/* Location or URI */
+    char *	WWWAAScheme;		/* WWW-Authenticate scheme */
+    char *	WWWAARealm;		/* WWW-Authenticate realm */
+    char *	WWWprotection;		/* WWW-Protection-Template */
+</PRE>
+
+Information taken from the MIME header specifically oriented towards
+the request (not the object itself)
+
+<PRE>
+    char *	authorization;		/* Authorization: field		  */
+    HTAAScheme	scheme;			/* Authentication scheme used	  */
+    HTInputSocket *	isoc;		/* InputSocket object for reading */
+    HTAtom *	content_type;		/* Content-Type:		  */
+    HTAtom *	content_language;	/* Language			  */
+    HTAtom *	content_encoding;	/* Encoding			  */
+    int		content_length;		/* Content-Length:		  */
+</PRE>
+
+These header fields are only used by the server and will be removed at some
+point.
+
+<PRE>
+    HTList *	valid_schemes;		/* Valid auth.schemes		  */
+    HTAssocList **	scheme_specifics;/* Scheme-specific parameters	  */
+    char *	authenticate;		/* WWW-authenticate: field */
+    char *	prot_template;		/* WWW-Protection-Template: field */
+    HTAASetup *	setup;			/* Doc protection info		  */
+    HTAARealm *	realm;			/* Password realm		  */
+    char *	dialog_msg;		/* Authentication prompt (client) */
+</PRE>
+
+These fields are used by the HTTP access authentication used by a
+client application.
+
+<PRE>
 };
-
 </PRE>
 
 <H2><A NAME="z100">Functions to Manipulate a HTRequest Structure</A></H2>
@@ -455,7 +591,13 @@ extern void HTRequest_delete PARAMS((HTRequest * req));
 </PRE>
 
 <H3>Clear a request structure</H3>
-Clears a request structure so that it can be reused. The only thing that differs from using free/new is that the list of conversions is kept.
+
+Clears a request structure so that it can be reused. The only thing
+that differs from using free/new is that the list of conversions is
+kept. <P>
+
+<B>NOTE:</B> It is <B>NOT</B> recommended to reuse a request structure!!!
+
 <PRE>
 extern void HTRequest_clear PARAMS((HTRequest * req));
 </PRE>
@@ -501,7 +643,7 @@ have a <EM>negative</EM> value whereas <B>SUCCESS</B> has a
 There are also some functions to help the client getting started with
 <A HREF="#ClientHelp">the first URI</A>.
 
-<A NAME="Relative"><H3>Load a document from relative name</H3></A>
+<A NAME="Relative"><H3>Load a document from relative URL</H3></A>
 
 <PRE>
 extern int HTLoadRelative	PARAMS((CONST char * 	relative_name,
@@ -509,7 +651,7 @@ extern int HTLoadRelative	PARAMS((CONST char * 	relative_name,
 					HTRequest *	request));
 </PRE>
 
-<A NAME="Absolute"></A><H3>Load a document from absolute name</H3>
+<A NAME="Absolute"></A><H3>Load a document from absolute URL</H3>
 
 <PRE>
 extern int HTLoadAbsolute	PARAMS((CONST char *	addr,
@@ -524,7 +666,7 @@ extern int HTLoadToStream	PARAMS((CONST char * 	addr,
 					HTRequest *	request));
 </PRE>
 
-<A NAME="Anchor"><H3>Load if necessary, and select an anchor</H3></A>
+<A NAME="Anchor"><H3>Load a document from anchor</H3></A>
 
 The anchor parameter may be a child anchor. The anchor in the request
 is set to the parent anchor. The recursive function keeps the error
@@ -540,7 +682,7 @@ extern int HTLoadAnchorRecursive PARAMS((HTAnchor *	a,
 
 <H3>Load a Document</H3>
 
-These are two internal routines fro loading a document which has an
+These are two internal routines for loading a document which has an
 address AND a matching anchor.  (The public routines are called with
 one OR the other.)  This is recursively called from file load module
 to try ftp (though this will be obsolete in the next major
@@ -558,7 +700,7 @@ extern int HTLoad		PARAMS((HTRequest * request,
 extern BOOL HTLoadTerminate	PARAMS((HTRequest * request, int status));
 </PRE>
 
-<A NAME="RelSearch"><H3>Search Using Relative URI</H3></A>
+<A NAME="RelSearch"><H3>Search Using Relative URL</H3></A>
 
 Performs a search on word given by the user. Adds the search words to
 the end of the current address and attempts to open the new address.
@@ -569,7 +711,7 @@ extern int HTSearch		PARAMS((CONST char *	keywords,
 					HTRequest *	request));
 </PRE>
 
-<A NAME="AbsSearch"><H3>Search using Absolute URI</H3></A>
+<A NAME="AbsSearch"><H3>Search using Absolute URL</H3></A>
 
 Performs a keyword search on word given by the user. Adds the keyword
 to the end of the current address and attempts to open the new
@@ -610,9 +752,9 @@ Creates a local file URI that can be used as a relative name when
 calling HTParse() to expand a relative file name to an absolute
 one. <P>
 
-The code for this routine originates from the Linemode browser and was
-moved here by howcome@dxcern.cern.ch in order for all clients to take
-advantage. <P>
+The code for this routine originates from the Line Mode Browser and
+was moved here by <EM>howcome@dxcern.cern.ch</EM> in order for all
+clients to take advantage.<P>
 
 <PRE>
 extern char *  HTFindRelatedName NOPARAMS;
@@ -620,7 +762,9 @@ extern char *  HTFindRelatedName NOPARAMS;
 
 <A NAME="PostDoc"><H2>Functions for Posting a Document</H2></A>
 
-This is not quite finished yet but more to come!
+<B>NOTE:</B> The Posting functions are used to send a data object
+along with the request. The functions have the same set of return
+codes as for the <A HREF="#LoadDoc">Load Functions</A>.
 
 <H3>Get a Save Stream</H3>
 
@@ -639,7 +783,44 @@ to save the object to.
 </DL>
 
 <PRE>
-extern HTStream * HTSaveStream PARAMS((HTRequest * request));
+extern HTStream * HTSaveStream	PARAMS((HTRequest * request));
+</PRE>
+
+<H3>Copy an Anchor</H3>
+
+Fetch the URL (possibly local file URL) and send it using either
+<B>PUT</B> or <B>POST</B> directly to the remote destination using
+HTTP, that is remote copy of object <EM>O</EM> from <EM>A</EM> to
+<EM>B</EM> where <EM>A</EM> might be the host of the application. The
+caller can decide the exact method used and which HTTP header fields
+to transmit by setting the user fields in the destination request
+structure.
+
+<PRE>
+extern int HTCopyAnchor		PARAMS((HTAnchor *	src_anchor,
+					HTRequest *	src_req,
+					HTParentAnchor *dest_anchor,
+					HTRequest *	dest_req));
+</PRE>
+
+
+<H3>Upload an Anchor</H3>
+
+Send the contents (in hyperdoc) of the source anchor using either
+<B>PUT</B> or <B>POST</B> to the remote destination using HTTP. The
+caller can decide the exact method used and which HTTP header fields
+to transmit by setting the user fields in the request structure.
+<EM>Format conversion</EM> can be made on the fly by setting the <A
+HREF="#input_format">input_format field</A> in the destination request
+structure. If the content-length is unknown (-1) then a <A
+HREF="HTConLen.html">content-length counter</A> is automaticly put
+into the stream pipe.
+
+
+<PRE>
+extern int HTUploadAnchor	PARAMS((HTAnchor *	src_anchor,
+					HTParentAnchor *dest_anchor,
+					HTRequest *	dest_req));
 </PRE>
 
 
@@ -650,7 +831,7 @@ the routines for performing the various logical operations on an
 object: in HTTP terms, GET, PUT, and POST. The access methods
 supported in the Library are initiated automaticly using the private
 function <CODE>HTAccessInit()</CODE> <B>if not</B> defined
-<CODE>NO_INIT</CODE> <P>
+<CODE>HT_NO_INIT</CODE> <P>
 
 Each of these routine takes as a parameter a <A NAME="z2"
 HREF="#z1">request structure</A> containing details of the request.

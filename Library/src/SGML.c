@@ -283,37 +283,50 @@ PUBLIC HTTag * SGMLFindTag ARGS2(CONST SGML_dtd*, dtd, CONST char *, string)
 
 
 /*	Could check that we are back to bottom of stack! @@  */
-
-PUBLIC int SGML_free  ARGS1(HTStream *, context)
+PUBLIC int SGML_flush  ARGS1(HTStream *, context)
 {
-    int cnt;
-
-    while (context->element_stack) {    /* Make sure, that all tags are gone */
+    while (context->element_stack) {
 	HTElement *ptr = context->element_stack;
-
-	if(SGML_TRACE) fprintf(TDEST, "SGML: Non-matched tag found: <%s>\n",
-			  context->element_stack->tag->name);
+	if (SGML_TRACE)
+	    fprintf(TDEST, "SGML........ Non-matched tag found: <%s>\n",
+		    context->element_stack->tag->name);
 	context->element_stack = ptr->next;
 	free(ptr);
     }
-    (*context->actions->_free)(context->target);
+    return (*context->actions->flush)(context->target);
+}
+
+PUBLIC int SGML_free  ARGS1(HTStream *, context)
+{
+    int status;
+    int cnt;
+    while (context->element_stack) {    /* Make sure, that all tags are gone */
+	HTElement *ptr = context->element_stack;
+
+	if (SGML_TRACE)
+	    fprintf(TDEST, "SGML........ Non-matched tag found: <%s>\n",
+		    context->element_stack->tag->name);
+	context->element_stack = ptr->next;
+	free(ptr);
+    }
+    if ((status = (*context->actions->_free)(context->target)) != HT_OK)
+	return status;
     HTChunkFree(context->string);
     for(cnt=0; cnt<MAX_ATTRIBUTES; cnt++)      	 /* Leak fix Henrik 18/02-94 */
 	if(context->value[cnt])
 	    free(context->value[cnt]);
     free(context);
-    return 0;
+    return HT_OK;
 }
 
 PUBLIC int SGML_abort  ARGS2(HTStream *, context, HTError, e)
 {
     int cnt;
-
     while (context->element_stack) {    /* Make sure, that all tags are gone */
 	HTElement *ptr = context->element_stack;
-
-	if(SGML_TRACE) fprintf(TDEST, "SGML: Non-matched tag found: <%s>\n",
-			  context->element_stack->tag->name);
+	if (SGML_TRACE)
+	    fprintf(TDEST, "SGML........ Non-matched tag found: <%s>\n",
+		    context->element_stack->tag->name);
 	context->element_stack = ptr->next;
 	free(ptr);
     }
@@ -323,7 +336,7 @@ PUBLIC int SGML_abort  ARGS2(HTStream *, context, HTError, e)
 	if(context->value[cnt])
 	    free(context->value[cnt]);
     free(context);
-    return EOF;
+    return HT_ERROR;
 }
 
 
@@ -347,7 +360,7 @@ PUBLIC void SGML_setCallerData ARGS2(HTStream *, context, void*, data)
 }
 #endif
 
-PUBLIC void SGML_character ARGS2(HTStream *, context, char,c)
+PUBLIC int SGML_character ARGS2(HTStream *, context, char,c)
 
 {
     CONST SGML_dtd	*dtd	=	context->dtd;
@@ -697,26 +710,24 @@ handle_S_tag:
 	if (c=='>') {
 	    context->state = S_text;
 	}
-	
     } /* switch on context->state */
-
-}  /* SGML_character */
-
-
-PUBLIC void SGML_string ARGS2(HTStream *, context, CONST char*, str)
-{
-    CONST char *p;
-    for(p=str; *p; p++)
-        SGML_character(context, *p);
+    return HT_OK;
 }
 
 
-PUBLIC void SGML_write ARGS3(HTStream *, context, CONST char*, str, int, l)
+PUBLIC int SGML_string ARGS2(HTStream *, context, CONST char*, s)
 {
-    CONST char *p;
-    CONST char *e = str+l;
-    for(p=str; p<e; p++)
-        SGML_character(context, *p);
+    while (*s)
+        SGML_character(context, *s++);
+    return HT_OK;
+}
+
+
+PUBLIC int SGML_write ARGS3(HTStream *, context, CONST char*, b, int, l)
+{
+    while (l-- > 0)
+        SGML_character(context, *b++);
+    return HT_OK;
 }
 
 /*_______________________________________________________________________
@@ -728,6 +739,7 @@ PUBLIC void SGML_write ARGS3(HTStream *, context, CONST char*, str, int, l)
 PUBLIC CONST HTStreamClass SGMLParser = 
 {		
 	"SGMLParser",
+	SGML_flush,
 	SGML_free,
 	SGML_abort,
 	SGML_character, 
@@ -767,15 +779,3 @@ PUBLIC HTStream* SGML_new  ARGS2(
 
     return context;
 }
-
-
-
-
-
-
-
-
-
-
-
-

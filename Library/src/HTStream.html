@@ -14,76 +14,108 @@
 </PRE>
 
 A Stream object is something which accepts a stream of text. See also
-the <A HREF="SGML.html">Structured stream definition.</A><P>
+the <A HREF="HTStruct.html">Structured stream
+definition.</A>. Generally streams are cascaded into stream pipes
+where the output of a stream is directed into the input of the down
+stream object. However, it is not required that a stream has a target,
+it might as well be a black hole that just swallows data. <P>
 
 The creation methods will vary on the type of Stream Object.  All
-creation methods return a pointer to the stream type below.<P> As you
-can see, but the methods used to write to the stream and close it are
-pointed to be the object itself. <P>
+creation methods return a pointer to the stream object below.<P>
 
-This module is implemented by <A HREF="HTStream.c">HTStream.c</A>, and
-it is a part of the <A
-HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+This module is a part of the <A
+HREF="http://www.w3.org/hypertext/WWW/Library/User/Guide/Guide.html">
 Library of Common Code</A>.
+
+<B>NOTE: </B>The <CODE>put_block</CODE> method was <CODE>write</CODE>,
+but this upset systems which had macros for <CODE>write()</CODE><P>
+
+<B>NOTE: </B>All methods in the stream definition do now return an
+integer. The general return codes from the methods are:
+
+<UL>
+<LI>Would Block: HT_WOULD_BLOCK
+<LI>Interrupted: HT_INTERRUPTED
+<LI>Error      : HT_ERROR
+<LI>OK         : HT_OK
+</UL>
+
+As streams now have a return value, it is <B>very</B> important that
+these return values are passed upstream to all the other streams in
+the stream pipe. <P>
+
+It is not relevant to return how much data has been written in the
+stream, as there often will be a relationship other than 1:1 between
+indata and outdata. However, it is important that a stream keeps state
+(eitheron the indata or the outdata) so that it can accept a
+HT_WOULD_BLOCK and continue at a later time when the blocking
+situation has stopped.
 
 <PRE>
 #ifndef HTSTREAM_H
 #define HTSTREAM_H
 
-
 typedef struct _HTStream HTStream;
 
-</PRE>These are the common methods of all
-streams.  They should be self-explanatory,
-except for end_document which must
-be called before free.  It should
-be merged with free in fact:  it
-should be dummy for new streams.<P>
+typedef struct _HTStreamClass {
 
-<B>NOTE: </B>The <CODE>put_block</CODE> method was <CODE>write</CODE>, but this
-upset systems which had macros for <CODE>write()</CODE><P>
+    char * name;
+</PRE>
 
-<B>NOTE: </B>The methods <CODE>_free</CODE> and <CODE>abort</CODE> in
-the stream are now integers and not void anymore. The general return
-codes from the methods are:
-
-<UL>
-<LI>Error: EOF
-<LI>OK: &gt;=0
-</UL>
-
-The positive return codes can be used freely by the streams.  An
-explanation on an error occured can be parsed using the <A
-HREF="HTError.html">Error Module</A>.
-
-<PRE>typedef struct _HTStreamClass {
-
-	char*  name;				/* Just for diagnostics */
+This field is for diagnostics only
 		
-	int (*_free) PARAMS((
-		HTStream*	me));
+<PRE>
+    int (*flush)		PARAMS((HTStream * me));
+</PRE>
 
-	int (*abort) PARAMS((
-		HTStream*	me,
-		HTError		e));
-		
-	void (*put_character) PARAMS((
-		HTStream*	me,
-		char		ch));
+The <CODE>flush</CODE> method is introduced in order to allow the
+stream to put any buffered data down the stream pipe but without
+taking the stream pipe down. It is for the stream to decide whether it
+has buffered data or not. In some situations, the stream might not
+want to send buffered data down the target as the date might be
+relevant for this stream only.
+
+<PRE>
+    int (*_free)		PARAMS((HTStream * me));
+</PRE>
+
+The <CODE>free</CODE> method is like the <CODE>flush</CODE> method but
+it also frees the current stream object and all stream objects down
+stream. When the <CODE>free</CODE> method has been called, the
+<EM>whole</EM> stream pipe (not only this obejct) should not accept
+any more data.
+
+<PRE>
+    int (*abort)		PARAMS((HTStream * me, HTError e));
+</PRE>
+
+The <CODE>abort</CODE> method should only be used if a stream is
+interrupted, for example by the user, or an error occurs.
+
+<PRE>
+    int (*put_character)	PARAMS((HTStream *	me,
+					char		ch));
 				
-	void (*put_string) PARAMS((
-		HTStream*	me,
-		CONST char *	str));
-		
-	void (*put_block) PARAMS((
-		HTStream*	me,
-		CONST char *	str,
-		int		len));
-		
-		
+    int (*put_string)		PARAMS((HTStream *	me,
+					CONST char *	str));
+
+    int (*put_block)		PARAMS((HTStream *	me,
+					CONST char *	str,
+					int		len));
+</PRE>
+
+These methods are for actually putting data down the stream. It is
+important that the most efficient method is chosen (often
+put_block). There is no guarantee that a stream won't change method,
+for example from <CODE>put_character</CODE> to <CODE>put_block</CODE>
+
+<PRE>
 } HTStreamClass;
 
 #endif /* HTSTREAM_H */
 
-</PRE>end of HTStream.h</A></BODY>
+</PRE>
+
+End of HTStream definition
+</BODY>
 </HTML>

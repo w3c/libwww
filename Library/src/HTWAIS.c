@@ -926,19 +926,19 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 	    fprintf(TDEST, 
 		    "HTLoadWAIS.. Retrieve document `%s'\n............ type `%s' length %ld\n", docname, doctype, document_length);
 		
-	request->content_type = 
+	HTAnchor_setFormat(request->anchor,
 	  !strcmp(doctype, "WSRC") ? HTAtom_for("application/x-wais-source") :
 	  !strcmp(doctype, "TEXT") ? WWW_UNKNOWN :
-	  !strcmp(doctype, "HTML") ? HTAtom_for("text/html") :
-	  !strcmp(doctype, "GIF")  ? HTAtom_for("image/gif") :
-	   		             HTAtom_for("application/octet-stream");
+	  !strcmp(doctype, "HTML") ? WWW_HTML:
+	  !strcmp(doctype, "GIF")  ? WWW_GIF:
+	   		             HTAtom_for("application/octet-stream"));
 	binary = 
 	  0 != strcmp(doctype, "WSRC") &&
 	  0 != strcmp(doctype, "TEXT") &&
 	  0 != strcmp(doctype, "HTML") ;
 
 	/* Guess on TEXT format as it might be HTML */
-	if ((target = HTStreamStack(request->content_type,
+	if ((target = HTStreamStack(HTAnchor_format(request->anchor),
 				    request->output_format,
 				    request->output_stream,
 				    request, YES)) == NULL) {

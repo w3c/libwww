@@ -20,14 +20,14 @@ output by a simple function that easily can be overwritten by a smart
 server or client.  <P>
 
 <NOTE><B>Note: </B></NOTE> At the moment, <A
-HREF="HTErrMsg.c">HTErrorMsg()</A> is called, if the flag
+HREF="HTAlert.c">HTErrorMsg()</A> is called, if the flag
 HTRequest-&gt;error_block is set to YES, then a stream has been put up
 or taken down in the library and therefore it is <B>VERY</B> unsafe to
 put anything more to the stream. <P>
 
 This module is implemented by <A HREF="HTError.c">HTError.c</A>, and
 it is a part of the <A
-HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+HREF="http://www.w3.org/hypertext/WWW/Library/User/Guide/Guide.html">
 Library of Common Code</A>.
 
 <PRE>
@@ -212,23 +212,6 @@ message. They are quite obvious:
 <PRE>
 extern void HTErrorSetPrefix PARAMS((char *path));
 extern CONST char *HTErrorGetPrefix NOPARAMS;
-</PRE>
-
-<H3>Generating an Error Message (default to standard error)</H3>
-
-This function outputs the content of the error_stack to standard output 
-(used in Line Mode Browser), but smart clients and servers might overwrite
-this function so that the error messages can be handled to the user in a nice 
-way. That is the reason for putting the actual implementation in HTErrMsg.c,
-that can be overwritten by clients and servers apart from Line Mode Browser.<P>
-
-<NOTE><B>Note: </B></NOTE>
-
-If a stream <EM>has</EM> been put up (and maybe taken down again) inside the 
-Library, then request-&gt;error_block has been set to YES. This indicates that
-it is NOT possible any more to use the stream as output for the message.
-<PRE>
-extern void HTErrorMsg    PARAMS((HTRequest * request));
 </PRE>
 
 <H3>Freeing an Error List</H3>

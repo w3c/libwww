@@ -290,7 +290,7 @@ PUBLIC void HTStdIconInit ARGS1(CONST char *, url_prefix)
 */
 PUBLIC HTIconNode * HTGetIcon ARGS3(mode_t,	mode,
 				    HTFormat,	content_type,
-				    HTFormat,	content_encoding)
+				    HTEncoding,	content_encoding)
 {
     if (!icon_unknown) icon_unknown = icon_blank;
 

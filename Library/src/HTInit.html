@@ -16,14 +16,24 @@ This module resisters all the plug &amp; play software modules which will
 be used in the program on client side (The server has it's own initialization
 module). <P>
 
-The initialization consists of two phases: Setting up the MIME type conversions
-and defining the relation between a basic set of file suffixes and MIME types. 
-To override this, just copy it and link in your version before you link
-with the library.<P>
+The initialization consists of definiting three bindings:
+
+<UL>
+<LI>Bindings between a source media type and a dest media type (conversion)
+<LI>Bindings between media types and external viewers/presenters
+<LI>Bindings between file extensions and media types
+</UL>
+
+To override the default behavior, you can do two things:
+
+<UL>
+<LI>Use the <CODE>HT_NO_INIT</CODE> preprocessor define
+<LI>Copy it and link in your version before you link with the library.
+</UL>
 
 This module is implemented by <A HREF="HTInit.c">HTInit.c</A>, and it
 is a part of the <A
-HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+HREF="http://www.w3.org/hypertext/WWW/Library/User/Guide/Guide.html">
 Library of Common Code</A>.
 
 <PRE>
@@ -33,28 +43,47 @@ Library of Common Code</A>.
 #include "HTList.h"
 </PRE>
 
-<H2>MIME Type Conversions</H2>
+<H2>Media Type Conversions</H2>
 
-Two default functions can be used to do the MIME type initialization. The
-first contains all MIME types the client can handle <B>plus</B> the types
-that can be handled using save and execute calls, e.g. to start a PostScript
-viewer. The second function only contains MIME type conversions that can
-be handled internally in the client. As an example, the latter is used
-when <A HREF="http://info.cern.ch/hypertext/WWW/LineMode/Status.html">
-Line Mode Browser</A> is started in Non-Interactive mode.
+The <EM>Converters</EM> are used to convert a media type to another
+media type, or to present it on screen. This is a part of the stream
+stack algorithm. The Presenters are also used in the stream stack, but
+are initialized separately.
+
+<PRE>
+extern void HTConverterInit PARAMS((HTList * conversions));
+</PRE>
+
+<H2>Presenters</H2>
+
+The <EM>Presenters</EM> are used to present a media type to the use by
+calling an external program, for example a post script viewer. This is
+a part of the stream stack algorithm. The Converters are also used in
+the stream stack, but are initialized separately.
+
+<PRE>
+extern void HTPresenterInit PARAMS((HTList * conversions));
+</PRE>
+
+<H2>Converters and Presenters</H2>
+
+This function is only defined in order to preserve backward
+compatibility.
 
 <PRE>
 extern void HTFormatInit PARAMS((HTList * conversions));
-extern void HTFormatInitNIM PARAMS((HTList * conversions));
 </PRE>
 
 <H2>File Suffix Setup</H2>
 
-This functions defines a basic set of file suffixes and the corresponding
-MIME types.
+This functions defines a basic set of file suffixes and the
+corresponding media types.
 
 <PRE>
+#ifndef HT_NO_INIT
 extern void HTFileInit NOPARAMS;
+#endif
+
 #endif
 </PRE>
 

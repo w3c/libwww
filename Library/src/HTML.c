@@ -342,7 +342,7 @@ PRIVATE void change_paragraph_style ARGS2(HTStructured *, me, HTStyle *,style)
 /*	Character handling
 **	------------------
 */
-PRIVATE void HTML_put_character ARGS2(HTStructured *, me, char, c)
+PRIVATE int HTML_put_character ARGS2(HTStructured *, me, char, c)
 {
 
     switch (me->sp[0].tag_number) {
@@ -365,7 +365,7 @@ PRIVATE void HTML_put_character ARGS2(HTStructured *, me, char, c)
 	
     default:					/* Free format text */
 	if (me->style_change) {
-	    if ((c=='\n') || (c==' ')) return;	/* Ignore it */
+	    if ((c=='\n') || (c==' ')) return HT_OK;	/* Ignore it */
 	    UPDATE_STYLE;
 	}
 	if (c=='\n') {
@@ -378,6 +378,7 @@ PRIVATE void HTML_put_character ARGS2(HTStructured *, me, char, c)
 	    me->in_word = YES;
 	}
     } /* end switch */
+    return HT_OK;
 }
 
 
@@ -388,7 +389,7 @@ PRIVATE void HTML_put_character ARGS2(HTStructured *, me, char, c)
 **	This is written separately from put_character becuase the loop can
 **	in some cases be promoted to a higher function call level for speed.
 */
-PRIVATE void HTML_put_string ARGS2(HTStructured *, me, CONST char*, s)
+PRIVATE int HTML_put_string ARGS2(HTStructured *, me, CONST char*, s)
 {
 
     switch (me->sp[0].tag_number) {
@@ -415,7 +416,7 @@ PRIVATE void HTML_put_string ARGS2(HTStructured *, me, CONST char*, s)
 	    CONST char *p = s;
 	    if (me->style_change) {
 		for (; *p && ((*p=='\n') || (*p==' ')); p++)  ;  /* Ignore leaders */
-		if (!*p) return;
+		if (!*p) return HT_OK;
 		UPDATE_STYLE;
 	    }
 	    for(; *p; p++) {
@@ -435,16 +436,18 @@ PRIVATE void HTML_put_string ARGS2(HTStructured *, me, CONST char*, s)
 	    } /* for */
 	}
     } /* end switch */
+    return HT_OK;
 }
 
 
 /*	Buffer write
 **	------------
 */
-PRIVATE void HTML_write ARGS3(HTStructured *, me, CONST char*, s, int, l)
+PRIVATE int HTML_write ARGS3(HTStructured *, me, CONST char*, s, int, l)
 {
     while (l-- > 0)
 	HTML_put_character(me, *s++);
+    return HT_OK;
 }
 
 
@@ -462,12 +465,8 @@ PRIVATE void HTML_start_element ARGS4(
 	{
 	    HTChildAnchor * source;
 	    char * href = NULL;
-	    if (present[HTML_A_HREF]) {
+	    if (present[HTML_A_HREF])
 	    	StrAllocCopy(href, value[HTML_A_HREF]);
-#ifdef OLD_CODE
-		HTSimplify(href);
-#endif
-	    }
 	    source = HTAnchor_findChildAndLink(
 		me->node_anchor,				/* parent */
 		present[HTML_A_NAME] ? value[HTML_A_NAME] : 0,	/* Tag */
@@ -486,7 +485,7 @@ PRIVATE void HTML_start_element ARGS4(
 	    }
 	    UPDATE_STYLE;
 	    HText_beginAnchor(me->text, source);
-	    free(href);			/* Leak fix Henrik 17/02-94 */
+	    FREE(href);				 /* Leak fix Henrik 17/02-94 */
 	}
     	break;
 	
@@ -706,6 +705,17 @@ PRIVATE void HTML_put_entity ARGS2(HTStructured *, me, int, entity_number)
     HTML_put_string(me, ISO_Latin1[entity_number]);	/* @@ Other representations */
 }
 
+/*	Flush an HTML object
+**	--------------------
+*/
+PUBLIC int HTML_flush ARGS1(HTStructured *, me)
+{
+    UPDATE_STYLE;			     /* Creates empty document here! */
+    if (me->comment_end)
+		HTML_put_string(me,me->comment_end);
+    HText_endAppend(me->text);
+    return (*me->targetClass.flush)(me->target);
+}
 
 /*	Free an HTML object
 **	-------------------
@@ -730,7 +740,7 @@ PUBLIC int HTML_free ARGS1(HTStructured *, me)
     }
     HTChunkClear(&me->title);	/* Henrik 18/02-94 */
     free(me);
-    return 0;
+    return HT_OK;
 }
 
 
@@ -742,7 +752,7 @@ PRIVATE int HTML_abort ARGS2(HTStructured *, me, HTError, e)
     }
     HTChunkClear(&me->title);	/* Henrik 18/02-94 */
     free(me);
-    return EOF;
+    return HT_ERROR;
 }
 
 
@@ -785,6 +795,7 @@ PRIVATE void get_styles NOARGS
 PUBLIC CONST HTStructuredClass HTMLPresentation = /* As opposed to print etc */
 {		
 	"text/html",
+	HTML_flush,
 	HTML_free,
 	HTML_abort,
 	HTML_put_character, 	HTML_put_string,  HTML_write,

@@ -81,7 +81,7 @@ PRIVATE void flush_breaks ARGS1(HTStructured *, me)
 }
 
 
-PRIVATE void HTMLGen_flush ARGS1(HTStructured *, me)
+PRIVATE int HTMLGen_flush ARGS1(HTStructured *, me)
 {
     (*me->targetClass.put_block)(me->target, 
     				me->buffer,
@@ -89,6 +89,7 @@ PRIVATE void HTMLGen_flush ARGS1(HTStructured *, me)
     me->write_pointer = me->buffer;
     flush_breaks(me);
     me->cleanness = 0;
+    return HT_OK;
 }
 
 
@@ -123,7 +124,7 @@ PRIVATE void allow_break ARGS3(HTStructured *, me, int, new_cleanness,
 **	by hand, too, though this is not a primary design consideration. TBL
 */
 PRIVATE char delims[] = ",;:.";		/* @@ english bias */
-PRIVATE void HTMLGen_output_character ARGS2(HTStructured *, me, char, c)
+PRIVATE int HTMLGen_output_character ARGS2(HTStructured *, me, char, c)
 {
 
     *me->write_pointer++ = c;
@@ -131,7 +132,7 @@ PRIVATE void HTMLGen_output_character ARGS2(HTStructured *, me, char, c)
     if (c=='\n') {		/* Newlines */
         if (me->preformatted) {
 	    HTMLGen_flush(me);
-	    return;
+	    return HT_OK;
 	} else {
 	    me->write_pointer[-1] = c = ' ';	/* Treat same as space */
 	}
@@ -199,16 +200,18 @@ PRIVATE void HTMLGen_output_character ARGS2(HTStructured *, me, char, c)
 	    me->overflowed = YES;
 	}
     }
+    return HT_OK;
 }
-
 
 
 /*	String handling
 **	---------------
 */
-PRIVATE void HTMLGen_output_string ARGS2(HTStructured *, me, CONST char*, s)
+PRIVATE int HTMLGen_output_string ARGS2(HTStructured *, me, CONST char*, s)
 {
-    while (*s) HTMLGen_output_character(me, *s++);
+    while (*s)
+	HTMLGen_output_character(me, *s++);
+    return HT_OK;
 }
 
 
@@ -222,7 +225,7 @@ PRIVATE void HTMLGen_output_string ARGS2(HTStructured *, me, CONST char*, s)
 **
 ** Bug: assumes local encoding is ISO!
 */	
-PRIVATE void HTMLGen_put_character ARGS2(HTStructured *, me, char, c)
+PRIVATE int HTMLGen_put_character ARGS2(HTStructured *, me, char, c)
 {
     if (c=='&') HTMLGen_output_string(me, "&amp;");
     else if (c=='<') HTMLGen_output_string(me, "&lt;");
@@ -230,18 +233,23 @@ PRIVATE void HTMLGen_put_character ARGS2(HTStructured *, me, char, c)
         char temp[8];
 	sprintf(temp, "&%d;", c);
 	HTMLGen_output_string(me, temp);
-    }
-    else HTMLGen_output_character(me, c);
+    } else
+	HTMLGen_output_character(me, c);
+    return HT_OK;
 }
 
-PRIVATE void HTMLGen_put_string ARGS2(HTStructured *, me, CONST char*, s)
+PRIVATE int HTMLGen_put_string ARGS2(HTStructured *, me, CONST char*, s)
 {
-    while (*s) HTMLGen_put_character(me, *s++);
+    while (*s)
+	HTMLGen_put_character(me, *s++);
+    return HT_OK;
 }
 
-PRIVATE void HTMLGen_write ARGS3(HTStructured *, me, CONST char*, s, int, l)
+PRIVATE int HTMLGen_write ARGS3(HTStructured *, me, CONST char*, b, int, l)
 {
-    while (l-- > 0) HTMLGen_put_character(me, *s++);
+    while (l-- > 0)
+	HTMLGen_put_character(me, *b++);
+    return HT_OK;
 }
 
 
@@ -339,8 +347,6 @@ PRIVATE void HTMLGen_put_entity ARGS2(HTStructured *, me, int, entity_number)
     HTMLGen_output_character(me, ';');
 }
 
-
-
 /*	Free an object
 **	--------------
 **
@@ -351,7 +357,7 @@ PRIVATE int HTMLGen_free ARGS1(HTStructured *, me)
     (*me->targetClass.put_character)(me->target, '\n');
     (*me->targetClass._free)(me->target);	/* ripple through */
     free(me);
-    return 0;
+    return HT_OK;
 }
 
 
@@ -361,7 +367,7 @@ PRIVATE int PlainToHTML_free ARGS1(HTStructured *, me)
     HTMLGen_end_element(me, HTML_BODY);
     HTMLGen_end_element(me, HTML_HTML);
     HTMLGen_free(me);
-    return 0;
+    return HT_OK;
 }
 
 
@@ -369,14 +375,14 @@ PRIVATE int PlainToHTML_free ARGS1(HTStructured *, me)
 PRIVATE int HTMLGen_abort ARGS2(HTStructured *, me, HTError, e)
 {
     HTMLGen_free(me);
-    return EOF;
+    return HT_ERROR;
 }
 
 
 PRIVATE int PlainToHTML_abort ARGS2(HTStructured *, me, HTError, e)
 {
     PlainToHTML_free(me);
-    return EOF;
+    return HT_ERROR;
 }
 
 
@@ -387,6 +393,7 @@ PRIVATE int PlainToHTML_abort ARGS2(HTStructured *, me, HTError, e)
 PRIVATE CONST HTStructuredClass HTMLGeneration = /* As opposed to print etc */
 {		
 	"text/html",
+	HTMLGen_flush,
 	HTMLGen_free,
 	HTMLGen_abort,
 	HTMLGen_put_character, 	HTMLGen_put_string, HTMLGen_write,
@@ -424,6 +431,7 @@ PUBLIC HTStructured * HTMLGenerator ARGS1(HTStream *, output)
 PRIVATE CONST HTStructuredClass PlainToHTMLConversion =
 {		
 	"plaintexttoHTML",
+	HTMLGen_flush,
 	PlainToHTML_free,	/* HTMLGen_free,  Henrik 03/03-94 */
 	PlainToHTML_abort,	
 	HTMLGen_put_character,

@@ -18,13 +18,12 @@ comparison and allocations with copies etc. <P>
 
 This module is implemented by <A HREF="HTString.c">HTString.c</A>, and
 it is a part of the <A NAME="z10"
-HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">Library
+HREF="http://www.w3.org/hypertext/WWW/Library/User/Guide/Guide.html">Library
 of Common Code</A>. <P>
 
 <PRE>
 #ifndef HTSTRING_H
 #define HTSTRING_H
-
 
 extern CONST char * HTLibraryVersion;	/* String for help screen etc */
 </PRE>
@@ -64,10 +63,50 @@ extern char * strcasestr PARAMS((char *	s1, char * s2));
 </PRE>
 
 <H2>Next word or quoted string</H2>
+
+This function returns a RFC822 word separated by space, comma, or
+semi-colons.
+
 <PRE>
 extern char * HTNextField PARAMS ((char** pstr));
+</PRE>
+
+<H2>RFC1123 Date/Time Stamp String</H2>
+
+Returns a pointer to a static area!
+
+<PRE>
+extern CONST char *HTDateTimeStr PARAMS((time_t *calendar, BOOL local));
+</PRE>
+
+
+<H2>Timezone Offset</H2>
+
+Calculates the offset from GMT in seconds. This is called from <A
+HREF="HTAccess.html#Library">HTLibInit()</A>.
+
+<PRE>
+extern long HTGetTimeZoneOffset NOPARAMS;
+</PRE>
+
+<H2>Parse a Date/Time String</H2>
+
+Converts a string representation in GMT to a local representation of
+localtime <CODE>time_t</CODE>.
+
+<PRE>
+extern time_t HTParseTime PARAMS((CONST char * str));
+</PRE>
+
+
+<H2>Unique Message-ID String</H2>
+
+<PRE>
+extern CONST char *HTMessageIdStr NOPARAMS;
 #endif
 </PRE>
+
+End of declaration module
 
 </BODY>
 </HTML>

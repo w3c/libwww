@@ -22,8 +22,38 @@
 #include "HTNews.h"
 #include "HTInit.h"				         /* Implemented here */
 
-/* Note: Wildcard is no longer `*' (see further dovn) */
-PUBLIC void HTFormatInit ARGS1(HTList *, c)
+/*	BINDINGS BETWEEN A SOURCE MEDIA TYPE AND A DEST MEDIA TYPE (CONVERSION)
+**	----------------------------------------------------------------------
+**
+**	Not done automaticly - must be done by application!
+*/
+PUBLIC void HTConverterInit ARGS1(HTList *, c)
+{
+    HTSetConversion(c,"www/mime",		"*/*",		HTMIMEConvert,	1.0, 0.0, 0.0);
+    HTSetConversion(c,"text/html",		"text/x-c",	HTMLToC,	0.5, 0.0, 0.0);
+    HTSetConversion(c,"text/html",		"text/plain",	HTMLToPlain,	0.5, 0.0, 0.0);
+    HTSetConversion(c,"text/html",		"www/present",	HTMLPresent,	1.0, 0.0, 0.0);
+    HTSetConversion(c,"text/html",	       	"text/latex",	HTMLToTeX,	1.0, 0.0, 0.0);
+    HTSetConversion(c,"text/plain",		"text/html",	HTPlainToHTML,	1.0, 0.0, 0.0);
+    HTSetConversion(c,"text/plain",		"www/present",	HTPlainPresent,	1.0, 0.0, 0.0);
+#ifdef NEW_CODE
+    HTSetConversion(c,"text/newslist",		"www/present",	HTNewsList,	1.0, 0.0, 0.0);
+    HTSetConversion(c,"text/newslist",		"text/html",	HTNewsList,	1.0, 0.0, 0.0);
+#endif
+    HTSetConversion(c,"application/octet-stream","www/present",	HTSaveLocally,	0.1, 0.0, 0.0);
+    HTSetConversion(c,"application/x-wais-source","*/*",	HTWSRCConvert, 	1.0, 0.0, 0.0);
+    HTSetConversion(c,"*/*",			"www/present",	HTSaveLocally,	0.3, 0.0, 0.0);
+}
+
+/*	BINDINGS BETWEEN MEDIA TYPES AND EXTERNAL VIEWERS/PRESENTERS
+**	------------------------------------------------------------
+**
+**	The data objects are stored in temporary files before the external
+**	program is called
+**
+**	Not done automaticly - must be done by application!
+*/
+PUBLIC void HTPresenterInit ARGS1(HTList *, c)
 {
 #ifdef NeXT
     HTSetPresentation(c,"application/postscript", "open %s",	NULL, 1.0, 2.0, 0.0);
@@ -41,61 +71,34 @@ PUBLIC void HTFormatInit ARGS1(HTList *, c)
 	HTSetPresentation(c,"image/jpeg", 	"xv %s",	NULL, 1.0, 3.0, 0.0);
     }
 #endif
-    HTSetConversion(c,"www/mime",		"*/*",		HTMIMEConvert,	1.0, 0.0, 0.0);
-    HTSetConversion(c,"text/html",		"text/x-c",	HTMLToC,	0.5, 0.0, 0.0);
-    HTSetConversion(c,"text/html",		"text/plain",	HTMLToPlain,	0.5, 0.0, 0.0);
-    HTSetConversion(c,"text/html",		"www/present",	HTMLPresent,	1.0, 0.0, 0.0);
-    HTSetConversion(c,"text/html",	       	"text/latex",	HTMLToTeX,	1.0, 0.0, 0.0);
-    HTSetConversion(c,"text/plain",		"text/html",	HTPlainToHTML,	1.0, 0.0, 0.0);
-    HTSetConversion(c,"text/plain",		"www/present",	HTPlainPresent,	1.0, 0.0, 0.0);
-#ifdef NEW_CODE
-    HTSetConversion(c,"text/newslist",		"www/present",	HTNewsList,	1.0, 0.0, 0.0);
-    HTSetConversion(c,"text/newslist",		"text/html",	HTNewsList,	1.0, 0.0, 0.0);
-#endif
-    HTSetConversion(c,"application/octet-stream","www/present",	HTSaveLocally,	0.1, 0.0, 0.0);
-    HTSetConversion(c,"application/x-wais-source","*/*",	HTWSRCConvert, 	1.0, 0.0, 0.0);
-    HTSetConversion(c,"*/*",			"www/present",	HTSaveLocally,	0.3, 0.0, 0.0);
 }
 
 
-/* -----------------
-   This function is for init of non-interactive mode, where no extern 'pop-up
-   programs' are wanted during execution. Nor should functions be used that
-   redirects the output stream to a temp file, e.g., HTSaveLocally()
-   Henrik 01/03-94
-   ----------------- */ 
-PUBLIC void HTFormatInitNIM ARGS1(HTList *, c)
-{
-    HTSetConversion(c,"www/mime",		"*/*",		HTMIMEConvert,	1.0, 0.0, 0.0);
-    HTSetConversion(c,"text/html",		"text/x-c",	HTMLToC,	0.5, 0.0, 0.0);
-    HTSetConversion(c,"text/html",		"text/plain",	HTMLToPlain,	0.5, 0.0, 0.0);
-    HTSetConversion(c,"text/html",		"www/present",	HTMLPresent,	1.0, 0.0, 0.0);
-    HTSetConversion(c,"text/html",	       	"text/latex",	HTMLToTeX,	1.0, 0.0, 0.0);
-    HTSetConversion(c,"text/plain",		"text/html",	HTPlainToHTML,	1.0, 0.0, 0.0);
-    HTSetConversion(c,"text/plain",		"www/present",	HTPlainPresent,	1.0, 0.0, 0.0);
-#ifdef NEW_CODE
-    HTSetConversion(c,"text/newslist",		"www/present",	HTNewsList,	1.0, 0.0, 0.0);
-    HTSetConversion(c,"text/newslist",		"text/html",	HTNewsList,	1.0, 0.0, 0.0);
-#endif
-    HTSetConversion(c,"application/x-wais-source","*/*",	HTWSRCConvert, 	1.0, 0.0, 0.0);
-    HTSetConversion(c,"application/octet-stream","www/present",	HTThroughLine,	0.1, 0.0, 0.0);
-    HTSetConversion(c,"*/*",			"www/present",	HTThroughLine,	0.3, 0.0, 0.0);
-}
-
-
-
-/*	Define a basic set of suffixes
-**	------------------------------
+/*	PRESENTERS AND CONVERTERS AT THE SAME TIME
+**	------------------------------------------
 **
-**	The LAST suffix for a type is that used for temporary files
-**	of that type.
-**	The quality is an apriori bias as to whether the file should be
+**	This function is only defined in order to preserve backward
+**	compatibility.
+*/
+PUBLIC void HTFormatInit ARGS1(HTList *, c)
+{
+    HTConverterInit(c);
+    HTPresenterInit(c);
+
+}
+
+
+/*	BINDINGS BETWEEN FILE EXTENSIONS AND MEDIA TYPES
+**	------------------------------------------------
+**
+**	The LAST suffix for a type is that used for temporary files of that
+**	type. The quality is an apriori bias as to whether the file should be
 **	used.  Not that different suffixes can be used to represent files
 **	which are of the same format but are originals or regenerated,
 **	with different values.
 */
 
-#ifndef NO_INIT
+#ifndef HT_NO_INIT
 PUBLIC void HTFileInit NOARGS
 {
     /*		Suffix     Contenet-Type	Content-Encoding  Quality			*/
@@ -190,5 +193,5 @@ PUBLIC void HTFileInit NOARGS
     HTAddType("*",       "text/plain",			"7bit",   0.5);
 
 }
-#endif /* !NO_INIT */
+#endif /* !HT_NO_INIT */
 

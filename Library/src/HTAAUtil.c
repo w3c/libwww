@@ -202,7 +202,7 @@ PUBLIC BOOL HTAA_templateCaseMatch ARGS2(CONST char *, tmplate,
 	return NO;
     }
 
-    for( ; *p  &&  *q  &&  toupper(*p) == toupper(*q); p++, q++) /* Find first mismatch */
+    for( ; *p  &&  *q  &&  TOUPPER(*p) == TOUPPER(*q); p++, q++) /* Find first mismatch */
 	; /* do nothing else */
 
     if (!*p && !*q)	return YES;	/* Equally long equal strings */

@@ -26,7 +26,7 @@ struct _HTStream {
 	HTExtParseStruct *      eps;
 };
 
-PRIVATE void HTExtParse_put_character ARGS2(HTStream *, me, char, c)
+PRIVATE int HTExtParse_put_character ARGS2(HTStream *, me, char, c)
 {
     while ((me->eps->used + 1) > me->eps->length) {
 	me->eps->length += INPUT_BUFFER_SIZE;
@@ -34,9 +34,10 @@ PRIVATE void HTExtParse_put_character ARGS2(HTStream *, me, char, c)
     me->eps->buffer = (char *) realloc(me->eps->buffer, me->eps->length);
     *(me->eps->buffer + me->eps->used) = c;
     me->eps->used++;
+    return HT_OK;
 }
 
-PRIVATE void HTExtParse_put_string ARGS2(HTStream *, me, CONST char*, s)
+PRIVATE int HTExtParse_put_string ARGS2(HTStream *, me, CONST char*, s)
 {
     int l = strlen(s);
 
@@ -48,9 +49,10 @@ PRIVATE void HTExtParse_put_string ARGS2(HTStream *, me, CONST char*, s)
     me->eps->buffer = (char *) realloc(me->eps->buffer, me->eps->length);
     memcpy( (me->eps->buffer + me->eps->used), s, l); 
     me->eps->used += l;
+    return HT_OK;
 }
 
-PRIVATE void HTExtParse_write ARGS3(HTStream *, me, CONST char*, s, int, l)
+PRIVATE int HTExtParse_write ARGS3(HTStream *, me, CONST char*, s, int, l)
 {
     while ((me->eps->used + l) > me->eps->length) {
 	me->eps->length += INPUT_BUFFER_SIZE;
@@ -62,8 +64,15 @@ PRIVATE void HTExtParse_write ARGS3(HTStream *, me, CONST char*, s, int, l)
     
     if (TRACE)
 	fprintf(TDEST, "HTExtParse_write, l=%d, used = %d\n",l,me->eps->used);
+    return HT_OK;
 }
 
+
+PRIVATE int HTExtParse_flush ARGS1(HTStream *, me)
+{
+    if (TRACE) fprintf(TDEST, "HTExtParse_flush\n");
+    return HT_OK;
+}
 
 PRIVATE int HTExtParse_free ARGS1(HTStream *, me)
 {
@@ -72,7 +81,7 @@ PRIVATE int HTExtParse_free ARGS1(HTStream *, me)
     (*me->eps->call_client)(me->eps);         /* client will free buffer */
     free(me->eps);
     free(me);
-    return 0;
+    return HT_OK;
 }
 
 PRIVATE int HTExtParse_abort ARGS2(HTStream *, me, HTError, e)
@@ -80,7 +89,7 @@ PRIVATE int HTExtParse_abort ARGS2(HTStream *, me, HTError, e)
     if (TRACE)
 	fprintf(TDEST, "HTExtParse_abort\n");
     HTExtParse_free(me);				  /* Henrik Nov 2 94 */
-    return EOF;
+    return HT_ERROR;
 }
 
 
@@ -92,6 +101,7 @@ PRIVATE int HTExtParse_abort ARGS2(HTStream *, me, HTError, e)
 PRIVATE CONST HTStreamClass HTExtParseClass =
 {		
 	"ExtParse",
+	HTExtParse_flush,
 	HTExtParse_free,
 	HTExtParse_abort,
 	HTExtParse_put_character,

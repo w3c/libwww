@@ -19,14 +19,8 @@ on ASCII machines) one of which converts to ASCII on output.<P>
 
 This module is implemented by <A HREF="HTWriter.c">HTWriter.c</A>, and
 it is a part of the <A
-HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
-Library of Common Code</A>.
-
-<H3>Bugs:</H3>
-<UL>
-<LI>strings written must be less than
-buffer size.
-</UL>
+HREF="http://www.w3.org/hypertext/WWW/Library/User/Guide/Guide.html">
+Library of Common Code</A>. <P>
 
 <PRE>
 #ifndef HTWRITE_H
@@ -34,12 +28,18 @@ buffer size.
 
 #include "HTStream.h"
 
-extern HTStream * HTWriter_new		PARAMS((SOCKFD soc));
+extern HTStream * HTWriter_new		PARAMS((SOCKFD soc, BOOL leave_open));
+
+#if 0
 extern HTStream * HTWriter_newNoClose	PARAMS((SOCKFD soc));
-
-extern HTStream * HTASCIIWriter		PARAMS((SOCKFD soc));
-
 #endif
 
-</PRE>end</BODY>
+#ifdef NOT_ASCII
+extern HTStream * HTASCIIWriter		PARAMS((SOCKFD soc));
+#endif
+
+#endif
+</PRE>
+end
+</BODY>
 </HTML>

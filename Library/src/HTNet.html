@@ -18,18 +18,18 @@ sockets currently in use by the multithreaded clients. It is an
 internal module to the Library, the application interface is
 implemented in the <A HREF="HTEvent.html">Event Module</A>. Look for
 more information in the <A
-HREF="http://info.cern.ch/hypertext/WWW/Library/User/Features/multithread.html">
+HREF="http://www.w3.org/hypertext/WWW/Library/User/Features/multithread.html">
 Multithread Specifications</A>. <P>
 
 This module is implemented by <A HREF="HTThread.c">HTThread.c</A>, and
 it is a part of the <A NAME="z10"
-HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">Library
+HREF="http://www.w3.org/hypertext/WWW/Library/User/Guide/Guide.html">Library
 of Common Code</A>.
 
 <PRE>
 #ifndef HTTHREAD_H
 #define HTTHREAD_H
-
+#include "HTAccess.h"
 </PRE>
 
 <A NAME="Init"><H2>Initiation</H2></A>
@@ -43,7 +43,7 @@ extern BOOL HTThreadInit	NOPARAMS;
 </PRE>
 
 <IMG ALT="NOTE"
-SRC="http://info.cern.ch/hypertext/WWW/Icons/32x32/caution.gif"> It is
+SRC="http://www.w3.org/hypertext/WWW/Icons/32x32/caution.gif"> It is
 <B>VERY</B> important that this one is called before the first
 request, as otherwise the socket bit arrays are uninitialized.
 
@@ -59,7 +59,7 @@ extern void HTThread_new	PARAMS((HTNetInfo * new_net));
 extern int  HTThread_clear	PARAMS((HTNetInfo * old_net));
 </PRE>
 
-<H2>Get Bit-arrays for Select()</H2>
+<H2>Get Copy of Registered Bit-arrays</H2>
 
 This function returns a copy of the current bit-arrays contaning the
 active sockets registered for <CODE>READ</CODE> and

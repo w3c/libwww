@@ -123,7 +123,7 @@ PUBLIC char from_hex ARGS1(char, c)
 /*		Treat One Character
 **		-------------------
 */
-PRIVATE void WSRCParser_put_character ARGS2(HTStream*, me, char, c)
+PRIVATE int WSRCParser_put_character ARGS2(HTStream*, me, char, c)
 {
     switch (me->state) {
     case beginning:
@@ -133,7 +133,7 @@ PRIVATE void WSRCParser_put_character ARGS2(HTStream*, me, char, c)
     case before_tag:
         if (c==')') {
 	    me->state = done;
-	    return;			/* Done with input file */
+	    return HT_OK;			/* Done with input file */
 	} else if (c==':') {
 	    me->param_count = 0;
 	    me->state = colon;
@@ -154,7 +154,7 @@ PRIVATE void WSRCParser_put_character ARGS2(HTStream*, me, char, c)
 		    me->param);
 		me->param_number = PAR_UNKNOWN;
 		me->state = before_value;	/* Could be better ignore */
-		return;
+		return HT_OK;
 	    }
 	    me->state = before_value;
 	} else {
@@ -165,9 +165,9 @@ PRIVATE void WSRCParser_put_character ARGS2(HTStream*, me, char, c)
     case before_value:
         if (c==')') {
 	    me->state = done;
-	    return;			/* Done with input file */
+	    return HT_OK;			/* Done with input file */
 	}
-	if (WHITE(c)) return;		/* Skip white space */
+	if (WHITE(c)) return HT_OK;		/* Skip white space */
 	me->param_count = 0;
 	if (c=='"') {
 	    me->state = quoted_value;
@@ -217,10 +217,10 @@ PRIVATE void WSRCParser_put_character ARGS2(HTStream*, me, char, c)
 	break;
 	
     case done:				/* Ignore anything after EOF */
-	return;
+	return HT_OK;
 
     } /* switch me->state */
-    return;
+    return HT_OK;
 }
 
 
@@ -329,7 +329,7 @@ PRIVATE void WSRC_gen_html ARGS2(HTStream *, me, BOOL, source_file)
 	    
 	    PUTS(" or ");
 	    
-	    sprintf(WSRC_address, "http://info.cern.ch:8001//%s%s%s/%s",
+	    sprintf(WSRC_address, "http://www.w3.org:8001//%s%s%s/%s",
 		me->par_value[PAR_IP_NAME],
 		me->par_value[PAR_TCP_PORT] ? ":" : "",
 		me->par_value[PAR_TCP_PORT] ? me->par_value[PAR_TCP_PORT] :"",
@@ -374,25 +374,27 @@ PRIVATE void WSRC_gen_html ARGS2(HTStream *, me, BOOL, source_file)
 } /* generate html */
 
 
-PRIVATE void WSRCParser_put_string ARGS2(HTStream *, context, CONST char*, str)
+PRIVATE int WSRCParser_put_string ARGS2(HTStream *, context, CONST char*, s)
 {
-    CONST char *p;
-    for(p=str; *p; p++)
-        WSRCParser_put_character(context, *p);
+    while (*s)
+        WSRCParser_put_character(context, *s++);
+    return HT_OK;
 }
 
 
-PRIVATE void WSRCParser_write ARGS3(
-		HTStream *, 	context,
-		CONST char*, 	str,
-		int, 		l)
+PRIVATE int WSRCParser_write ARGS3(HTStream *, 	context,
+				   CONST char*, 	b,
+				   int, 		l)
 {
-    CONST char *p;
-    CONST char *e = str+l;
-    for(p=str; p<e; p++)
-        WSRCParser_put_character(context, *p);
+    while (l-- > 0)
+	WSRCParser_put_character(context, *b++);
+    return HT_OK;
 }
 
+PRIVATE int WSRCParser_flush ARGS1(HTStream *, me)
+{
+    return HT_OK;
+}
 
 PRIVATE int WSRCParser_free ARGS1(HTStream *, me)
 {
@@ -409,13 +411,13 @@ PRIVATE int WSRCParser_free ARGS1(HTStream *, me)
 	}
     }
     free(me);
-    return 0;
+    return HT_OK;
 }
 
 PRIVATE int WSRCParser_abort ARGS2(HTStream *, me, HTError, e)
 {
     WSRCParser_free(me);
-    return EOF;
+    return HT_ERROR;
 }
 
 
@@ -425,6 +427,7 @@ PRIVATE int WSRCParser_abort ARGS2(HTStream *, me, HTError, e)
 
 HTStreamClass WSRCParserClass = {
 	"WSRCParser",
+	WSRCParser_flush,
 	WSRCParser_free,
 	WSRCParser_abort,
 	WSRCParser_put_character,

@@ -3,79 +3,131 @@
 **
 **	(c) COPYRIGHT CERN 1994.
 **	Please first read the full copyright statement in the file COPYRIGH.
+**
+**	This is a try with a non-buffered output stream which remembers
+**	state using the write_pointer. As normally we have a big buffer
+**	somewhere else in the stream chain an extra output buffer will often
+**	not be needed.
 */
 
 /* Library include files */
 #include "tcp.h"
 #include "HTUtils.h"
 #include "HTString.h"
-#include "HTWriter.h"
-
-#define BUFFER_SIZE 4096	/* Tradeoff */
-
-/*		HTML Object
-**		-----------
-*/
+#include "HTThread.h"
+#include "HTWriter.h"					 /* Implemented here */
 
 struct _HTStream {
 	CONST HTStreamClass *	isa;
 
 	SOCKFD	soc;
 	char	*write_pointer;
-	char 	buffer[BUFFER_SIZE];
 	BOOL	leave_open;
 #ifdef NOT_ASCII
-	BOOL	make_ascii;	/* Are we writing to the net? */
+	BOOL			make_ascii;    /* Are we writing to the net? */
+	char *			ascbuf;	    /* Buffer for TOASCII conversion */
 #endif
 };
 
+/* ------------------------------------------------------------------------- */
 
-/*	Write the buffer out to the socket
-**	----------------------------------
+/*	Write to the socket
+**
+** According to Solaris 2.3 man on write:
+**
+**    o	If O_NONBLOCK and O_NDELAY are clear, write() blocks
+**	until the data can be accepted.
+**
+**    o	If O_NONBLOCK or O_NDELAY is set, write()  does  not
+**	block  the  process.   If  some  data  can be written
+**	without blocking the process, write() writes what  it
+**	can  and returns the number of bytes written.  Other-
+**	wise, if O_NONBLOCK is set, it returns - 1  and  sets
+**	errno to EAGAIN or if O_NDELAY is set, it returns 0.
+**
+** According to SunOS 4.1.1 man on write:
+**
+**   +	If the descriptor is  marked  for  non-blocking  I/O
+**	using  fcntl()  to  set  the FNONBLOCK or O_NONBLOCK
+**	flag (defined in  <sys/fcntl.h>),  write()  requests
+**	for  {PIPE_BUF}  (see  pathconf(2V))  or fewer bytes
+**	either  succeed  completely  and  return  nbyte,  or
+**	return -1 and set errno to EAGAIN. A write() request
+**	for greater than {PIPE_BUF} bytes  either  transfers
+**	what it can and returns the number of bytes written,
+**	or transfers no data and returns -1 and  sets  errno
+**	to  EAGAIN.  If  a  write()  request is greater than
+**	{PIPE_BUF} bytes and all data previously written  to
+**	the  pipe  has been read, write() transfers at least
+**	{PIPE_BUF} bytes.
 */
-
-PRIVATE void flush ARGS1(HTStream *, me)
+PRIVATE int HTWriter_write ARGS3(HTStream *, me, CONST char *, buf, int, len)
 {
-    char *read_pointer 	= me->buffer;
-    char *write_pointer = me->write_pointer;
+    int b_write;
+    CONST char *limit = buf+len;
+    if (HTThreadIntr(me->soc))
+	return HT_INTERRUPTED;
 
 #ifdef NOT_ASCII
-    if (me->make_ascii) {
-    	char * p;
-	for(p = me->buffer; p < me->write_pointer; p++)
-	    *p = TOASCII(*p);
+    if (me->make_ascii && len && !me->ascbuf) {	      /* Generate new buffer */
+	char *orig=buf;
+	char *dest;
+	int cnt;
+	me->ascbuf = (char *) malloc(len);
+	dest = me->ascbuf;
+	for (cnt=0; cnt<len; cnt++)
+	    *dest++ = TOASCII(*orig++);
+	me->write_pointer = me->ascbuf;
+	limit = me->ascbuf+len;
     }
+#else
+    if (!me->write_pointer)
+	me->write_pointer = (char *) buf;
+    else
+	len -= (me->write_pointer - buf);
 #endif
-    while (read_pointer < write_pointer) {
-        int status = NETWRITE(me->soc, read_pointer,
-			      write_pointer - read_pointer);
-	if (status < 0) {
-	    if (PROT_TRACE)
-		fprintf(TDEST, "WriteStream.. Error writing to target\n");
-	    return;
+
+    /* Write data to the network */
+    while (me->write_pointer < limit) {
+	if ((b_write = NETWRITE(me->soc, me->write_pointer, len)) < 0) {
+
+#ifdef EAGAIN
+	    if (errno == EAGAIN || errno == EWOULDBLOCK)      /* POSIX, SVR4 */
+#else
+	    if (errno == EWOULDBLOCK)				      /* BSD */
+#endif
+	    {
+		if (PROT_TRACE)
+		    fprintf(TDEST, "Write Socket WOULD BLOCK %d\n", me->soc);
+		HTThreadState(me->soc, THD_SET_WRITE);
+		return HT_WOULD_BLOCK;
+	    } else {
+		if (PROT_TRACE)
+		    fprintf(TDEST, "Write Socket WRITE ERROR %d\n", errno);
+		return HT_ERROR;
+	    }
 	}
-	read_pointer += status;
+	me->write_pointer += b_write;
+	len -= b_write;
+	if (PROT_TRACE)
+	    fprintf(TDEST, "Write Socket %d bytes written to socket %d\n",
+		    b_write, me->soc);
     }
-    me->write_pointer = me->buffer;
-    return;
+#ifdef NOT_ASCII
+    FREE(me->ascbuf);
+#else
+    me->write_pointer = NULL;
+#endif
+    return HT_OK;
 }
-
-
-/*_________________________________________________________________________
-**
-**			A C T I O N 	R O U T I N E S
-*/
 
 /*	Character handling
 **	------------------
 */
-
-PRIVATE void HTWriter_put_character ARGS2(HTStream *, me, char, c)
+PRIVATE int HTWriter_put_character ARGS2(HTStream *, me, char, c)
 {
-    if (me->write_pointer == &me->buffer[BUFFER_SIZE]) flush(me);
-    *me->write_pointer++ = c;
+    return HTWriter_write(me, &c, 1);
 }
-
 
 
 /*	String handling
@@ -83,124 +135,86 @@ PRIVATE void HTWriter_put_character ARGS2(HTStream *, me, char, c)
 **
 **	Strings must be smaller than this buffer size.
 */
-PRIVATE void HTWriter_put_string ARGS2(HTStream *, me, CONST char*, s)
+PRIVATE int HTWriter_put_string ARGS2(HTStream *, me, CONST char*, s)
 {
-    int l = strlen(s);
-    if (me->write_pointer + l > &me->buffer[BUFFER_SIZE]) flush(me);
-    strcpy(me->write_pointer, s);
-    me->write_pointer = me->write_pointer + l;
+    return HTWriter_write(me, s, (int) strlen(s));
 }
 
-
-/*	Buffer write.  Buffers can (and should!) be big.
-**	------------
-*/
-PRIVATE void HTWriter_write ARGS3(HTStream *, me, CONST char*, s, int, l)
+PRIVATE int HTWriter_flush ARGS1(HTStream *, me)
 {
- 
-    CONST char *read_pointer 	= s;
-    CONST char *write_pointer = s+l;
-
-    flush(me);		/* First get rid of our buffer */
-
-#ifdef NOT_ASCII
-    if (me->make_ascii) {
-    	char * p;
-	for(p = me->buffer; p < me->write_pointer; p++)
-	    *p = TOASCII(*p);
-    }
-#endif
-    while (read_pointer < write_pointer) {
-        int status = NETWRITE(me->soc, read_pointer,
-			write_pointer - read_pointer);
-	if (status<0) {
-	    if(TRACE) fprintf(TDEST,
-	    "HTWriter_write: Error on socket output stream!!!\n");
-	    return;
-	}
-	read_pointer = read_pointer + status;
-    }
+    return HT_OK;
 }
 
-
-
-
-/*	Free an HTML object
-**	-------------------
-**
-**	Note that the SGML parsing context is freed, but the created object is not,
-**	as it takes on an existence of its own unless explicitly freed.
-*/
 PRIVATE int HTWriter_free ARGS1(HTStream *, me)
 {
-    flush(me);
-    if (!me->leave_open)
-	NETCLOSE(me->soc);
+    int status = HT_OK;
+    if (!me->leave_open) {
+	if (NETCLOSE(me->soc) < 0)
+	    status = HT_ERROR;
+    }
     free(me);
-    return 0;
+    return status;
 }
 
 PRIVATE int HTWriter_abort ARGS2(HTStream *, me, HTError, e)
 {
-    HTWriter_free(me);
-    return EOF;
+    if (!me->leave_open)
+	NETCLOSE(me->soc);
+    free(me);
+    return HT_ERROR;
 }
 
 
 /*	Structured Object Class
 **	-----------------------
 */
-PRIVATE CONST HTStreamClass HTWriter = /* As opposed to print etc */
+PRIVATE CONST HTStreamClass HTWriter =
 {		
-	"SocketWriter",
-	HTWriter_free,
-	HTWriter_abort,
-	HTWriter_put_character, HTWriter_put_string,
-	HTWriter_write
+    "SocketWriter",
+    HTWriter_flush,
+    HTWriter_free,
+    HTWriter_abort,
+    HTWriter_put_character,
+    HTWriter_put_string,
+    HTWriter_write
 }; 
 
 
 /*	Subclass-specific Methods
 **	-------------------------
 */
-
-PUBLIC HTStream* HTWriter_new ARGS1(SOCKFD, soc)
+PUBLIC HTStream* HTWriter_new ARGS2(SOCKFD, soc, BOOL, leave_open)
 {
-    HTStream* me = (HTStream*)calloc(1,sizeof(*me));
+    HTStream* me = (HTStream *) calloc(1, sizeof(*me));
     if (me == NULL) outofmem(__FILE__, "HTWriter_new");
     me->isa = &HTWriter;       
-    
-#ifdef NOT_ASCII
-    me->make_ascii = NO;
-#endif    
+    me->leave_open = leave_open;
     me->soc = soc;
-    me->write_pointer = me->buffer;
     return me;
 }
 
+#if 0
 PUBLIC HTStream* HTWriter_newNoClose ARGS1(SOCKFD, soc)
 {
     HTStream * me = HTWriter_new(soc);
     if (me) me->leave_open = YES;
     return me;
 }
+#endif
 
 
 /*	Subclass-specific Methods
 **	-------------------------
 */
-
-PUBLIC HTStream* HTASCIIWriter ARGS1(SOCKFD, soc)
-{
-    HTStream* me = (HTStream*)calloc(1,sizeof(*me));
-    if (me == NULL) outofmem(__FILE__, "HTML_new");
-    me->isa = &HTWriter;       
-
 #ifdef NOT_ASCII
+PUBLIC HTStream* HTASCIIWriter ARGS2(SOCKFD, soc, BOOL, leave_open)
+{
+    HTStream* me = (HTStream *) calloc(1, sizeof(*me));
+    if (me == NULL) outofmem(__FILE__, "HTASCIIWriter_new");
+    me->isa = &HTWriter;       
+    me->leave_open = leave_open;
     me->make_ascii = YES;
-#endif    
     me->soc = soc;
-    me->write_pointer = me->buffer;
     return me;
 }
-
+#endif

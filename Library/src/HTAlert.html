@@ -38,8 +38,9 @@ Library of Common Code</A>.
 <PRE>
 #ifndef HTALERT_H
 #define HTALERT_H
-</PRE>
 
+#include "HTAccess.h"
+</PRE>
 
 <A NAME="Interactive"><H2>User Interactive Functions</H2></A>
 
@@ -99,7 +100,7 @@ extern void HTPromptUsernameAndPassword PARAMS((CONST char *	Msg,
 						char **		password));
 </PRE>
 
-<A NAME="NonInteractive"><H2>Messages and Warnings</H2></A>
+<A NAME="NonInteractive"><H2>Messages, Warnings, and Errors</H2></A>
 
 These functions are used to inform the user of an event which requires
 no response form the user.
@@ -119,6 +120,23 @@ action.
 
 <PRE>
 extern void HTProgress PARAMS((CONST char * Msg));
+</PRE>
+
+<H3>Generating an Error Message of a request</H3>
+
+This function outputs the content of the error_stack to standard
+output (used in Line Mode Browser), but smart clients and servers
+might overwrite this function so that the error messages can be
+handled to the user in a nice(r) way. That is the reason for putting
+the actual implementation in <A HREF="HTAlert.c">HTAlert.c</A>.<P>
+
+<B>Note:</B> If a stream <EM>has</EM> been put up (and maybe taken
+down again) inside the Library, then request-&gt;error_block has been
+set to YES. This indicates that it is NOT possible any more to use the
+stream as output for the message.
+
+<PRE>
+extern void HTErrorMsg    PARAMS((HTRequest * request));
 
 #endif
 </PRE>

@@ -29,34 +29,58 @@ struct _HTStream {
 };
 
 
-PRIVATE void HTTee_put_character ARGS2(HTStream *, me, char, c)
+PRIVATE int HTTee_put_character ARGS2(HTStream *, me, char, c)
 {
-    (*me->s1->isa->put_character)(me->s1, c);
-    (*me->s2->isa->put_character)(me->s2, c);
+    int ret1 = (*me->s1->isa->put_character)(me->s1, c);
+    int ret2 = (*me->s2->isa->put_character)(me->s2, c);
+    return (!(ret1+ret2) ? HT_OK :
+	    (ret1==HT_ERROR || ret2==HT_ERROR) ? HT_ERROR :
+	    HT_WOULD_BLOCK);
 }
-PRIVATE void HTTee_put_string ARGS2(HTStream *, me, CONST char*, s)
+
+PRIVATE int HTTee_put_string ARGS2(HTStream *, me, CONST char*, s)
 {
-    (*me->s1->isa->put_string)(me->s1, s);
-    (*me->s2->isa->put_string)(me->s2, s);
+    int ret1 = (*me->s1->isa->put_string)(me->s1, s);
+    int ret2 = (*me->s2->isa->put_string)(me->s2, s);
+    return (!(ret1+ret2) ? HT_OK :
+	    (ret1==HT_ERROR || ret2==HT_ERROR) ? HT_ERROR :
+	    HT_WOULD_BLOCK);
 }
-PRIVATE void HTTee_write ARGS3(HTStream *, me, CONST char*, s, int, l)
+
+PRIVATE int HTTee_write ARGS3(HTStream *, me, CONST char*, s, int, l)
 {
-    (*me->s1->isa->put_block)(me->s1, s, l);
-    (*me->s2->isa->put_block)(me->s2, s, l);
+    int ret1 = (*me->s1->isa->put_block)(me->s1, s, l);
+    int ret2 = (*me->s2->isa->put_block)(me->s2, s, l);
+    return (!(ret1+ret2) ? HT_OK :
+	    (ret1==HT_ERROR || ret2==HT_ERROR) ? HT_ERROR :
+	    HT_WOULD_BLOCK);
 }
+
+PRIVATE int HTTee_flush ARGS1(HTStream *, me)
+{
+    int ret1 = (*me->s1->isa->flush)(me->s1);
+    int ret2 = (*me->s2->isa->flush)(me->s2);
+    return (!(ret1+ret2) ? HT_OK :
+	    (ret1==HT_ERROR || ret2==HT_ERROR) ? HT_ERROR :
+	    HT_WOULD_BLOCK);
+}
+
 PRIVATE int HTTee_free ARGS1(HTStream *, me)
 {
-    (*me->s1->isa->_free)(me->s1);
-    (*me->s2->isa->_free)(me->s2);
+    int ret1 = (*me->s1->isa->_free)(me->s1);
+    int ret2 = (*me->s2->isa->_free)(me->s2);
     free(me);
-    return 0;
+    return (!(ret1+ret2) ? HT_OK :
+	    (ret1==HT_ERROR || ret2==HT_ERROR) ? HT_ERROR :
+	    HT_WOULD_BLOCK);
 }
+
 PRIVATE int HTTee_abort ARGS2(HTStream *, me, HTError, e)
 {
     (*me->s1->isa->abort)(me->s1, e);
     (*me->s2->isa->abort)(me->s2, e);
     free(me);
-    return EOF;
+    return HT_ERROR;
 }
 
 
@@ -66,6 +90,7 @@ PRIVATE int HTTee_abort ARGS2(HTStream *, me, HTError, e)
 PRIVATE CONST HTStreamClass HTTeeClass =
 {		
 	"Tee",
+	HTTee_flush,
 	HTTee_free,
 	HTTee_abort,
 	HTTee_put_character, 	HTTee_put_string,
@@ -77,7 +102,7 @@ PRIVATE CONST HTStreamClass HTTeeClass =
 */
 PUBLIC HTStream * HTTee ARGS2(HTStream *, s1,HTStream *, s2)
 {
-    HTStream * me = (HTStream*)malloc(sizeof(*me));
+    HTStream * me = (HTStream *) calloc(1, sizeof(*me));
     if (!me) outofmem(__FILE__, "HTTee");
     me->isa = &HTTeeClass;
     me->s1 = s1;

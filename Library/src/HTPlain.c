@@ -48,31 +48,40 @@ struct _HTStream {
 **	------------------
 */
 
-PRIVATE void HTPlain_put_character ARGS2(HTStream *, me, char, c)
+PRIVATE int HTPlain_put_character ARGS2(HTStream *, me, char, c)
 {
     HText_appendCharacter(me->text, c);
+    return HT_OK;
 }
-
 
 
 /*	String handling
 **	---------------
 **
 */
-PRIVATE void HTPlain_put_string ARGS2(HTStream *, me, CONST char*, s)
+PRIVATE int HTPlain_put_string ARGS2(HTStream *, me, CONST char*, s)
 {
     HText_appendText(me->text, s);
+    return HT_OK;
 }
 
 
-PRIVATE void HTPlain_write ARGS3(HTStream *, me, CONST char*, s, int, l)
+PRIVATE int HTPlain_write ARGS3(HTStream *, me, CONST char*, b, int, l)
 {
-    CONST char* p;
-    CONST char* e = s+l;
-    for (p=s; p<e; p++) HText_appendCharacter(me->text, *p);
+    while (l-- > 0)
+	HText_appendCharacter(me->text, *b++);
+    return HT_OK;
 }
 
 
+
+/*	Flush an Plain object
+**	--------------------
+*/
+PRIVATE int HTPlain_flush ARGS1(HTStream *, me)
+{
+    return HT_OK;
+}
 
 /*	Free an HTML object
 **	-------------------
@@ -83,7 +92,7 @@ PRIVATE void HTPlain_write ARGS3(HTStream *, me, CONST char*, s, int, l)
 PRIVATE int HTPlain_free ARGS1(HTStream *, me)
 {
     free(me);
-    return 0;
+    return HT_OK;
 }
 
 /*	End writing
@@ -92,7 +101,7 @@ PRIVATE int HTPlain_free ARGS1(HTStream *, me)
 PRIVATE int HTPlain_abort ARGS2(HTStream *, me, HTError, e)
 {
     HTPlain_free(me);
-    return EOF;
+    return HT_ERROR;
 }
 
 
@@ -103,6 +112,7 @@ PRIVATE int HTPlain_abort ARGS2(HTStream *, me, HTError, e)
 PUBLIC CONST HTStreamClass HTPlain =
 {		
 	"PlainText",
+	HTPlain_flush,
 	HTPlain_free,
 	HTPlain_abort,
 	HTPlain_put_character, 	HTPlain_put_string, HTPlain_write,

@@ -33,6 +33,7 @@ that all external functionality can be reached through this one.
 #include "HTChunk.h"			/* Memory management for chunks */
 
 /* Format Management, and Access functions for loading a URL etc. */
+#include "HTInit.h"			/* Initialization functions */
 #include "HTFormat.h"			/* Stream Stack etc. */
 #include "HTAccess.h"			/* Document access network code */
 #include "HTMulti.h"
@@ -55,6 +56,7 @@ that all external functionality can be reached through this one.
 #include "HTFWrite.h"
 #include "HTMIME.h"
 #include "HTWSRC.h"
+#include "HTNetTxt.h"
 
 /* Directory Listings */
 #include "HTIcons.h"
@@ -65,8 +67,9 @@ that all external functionality can be reached through this one.
 #include "HText.h"
 #include "HTStyle.h"
 
-/* Local file access */
+/* Local file access and logging */
 #include "HTFile.h"			/* For Dir access flags */
+#include "HTLog.h"
 
 /* For TCP relevant information (mail address etc.) */
 #include "HTTCP.h"
@@ -80,9 +83,6 @@ that all external functionality can be reached through this one.
 /* Messages and User prompts */
 #include "HTAlert.h"
 #include "HTError.h"
-
-/* TEMPORARY STUFF */
-#include "HTTP.h"
 
 #endif
 </PRE>

@@ -18,7 +18,7 @@ includes for each system the files necessary for network and file
 I/O. <P>
 
 This module is a part of the <A
-HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+HREF="http://www.w3.org/hypertext/WWW/Library/User/Guide/Guide.html">
 Library of Common Code</A>.
 
 <H3>Authors</H3>
@@ -37,6 +37,8 @@ Library of Common Code</A>.
 <DD> Susan C. Weber &lt;sweber@kyle.eitech.com&gt;
 <DT>HF
 <DD> Henrik Frystyk, &lt;frystyk@dxcern.cern.ch&gt;
+<DT>CLB
+<DD>Charlie Brooks  (cbrooks@osf.org)
 </DL>
 
 <H3>History:</H3>
@@ -47,12 +49,17 @@ the WWW library.
 <DT>16 Jan 92
 <DD> PC code from (EvA)
 <DT>22 Apr 93
-<DD> Merged diffs bits from
+<DD>Merged diffs bits from
 xmosaic release
 <DT>29 Apr 93
-<DD> Windows/NT code from (SCW)
+<DD>Windows/NT code from (SCW)
 <DT>29 Sep 93
-<DD> VMS fixes (MD)
+<DD>VMS fixes (MD)
+<DT>Mar 95
+<DD>CLB - changed SLEEP() macro for Windows/NT MSC compiler added
+BOOLEAN_DEFINED macro to avoid duplicate definitions in HUtils.h
+changed netread() macros t support reading from stdin,etc. as well as
+sockets. (Required for linemode browser to work).
 </DL>
 
 <PRE>
@@ -69,6 +76,7 @@ system-specific sections later on. There is also a bunch of
 #define SELECT			/* Can handle &gt;1 channel */
 #define GOT_SYSTEM		/* Can call shell with string */
 #define GOT_PASSWD		/* Can we use getpass() command */
+#define HAVE_STRERROR		/* Do we have the ANSI way of doing this */
 </PRE>
 
 <HR>
@@ -277,6 +285,9 @@ Hounslow <P.M.Hounslow@reading.ac.uk>, and a lot of other PC people.
 #define NETCLOSE(s)     closesocket(s)
 #define IOCTL(s,c,a)	ioctlsocket(s,c, (long *) a)
 
+#define MKDIR(a,b)	mkdir((a))
+#define REMOVE_FILE	remove
+
 #include &lt;io.h&gt;
 #include &lt;string.h&gt;
 #include &lt;process.h&gt;
@@ -295,6 +306,7 @@ Hounslow <P.M.Hounslow@reading.ac.uk>, and a lot of other PC people.
 #define HAS_GETCWD
 #define NO_GETPASSWD
 #define NO_GETDOMAINNAME
+#define BOOLEAN_DEFINED
 
 #define INCLUDES_DONE
 #define TCP_INCLUDES_DONE
@@ -428,7 +440,17 @@ Some special things for the 32 bit version...
 #define EHOSTDOWN	WSAEHOSTDOWN
 #define EISCONN		WSAEISCONN
 
-#define SLEEP(n)	Sleep((n)000)
+#undef NETREAD
+#undef NETWRITE
+
+#define NETREAD(s,b,l)  ((s) >= 10) ? recv((s),(b),(l),0) : read((s), (b), (l))
+#define NETWRITE(s,b,l) ((s) >= 10) ? send((s),(b),(l),0) : write((s),(b), (l))
+
+#undef NO_UNIX_IO
+#define NO_GROUPS
+
+/* Converts from Unix sleep to NT Sleep() */
+#define SLEEP(n)	Sleep((n) * 1000)
 #endif
 </PRE>
 
@@ -603,6 +625,20 @@ typedef unsigned long mode_t;
 #endif /* non VMS */
 </PRE>
 
+<H3>Strftime and other time stuff</H3>
+
+<PRE>
+#ifdef VMS
+#ifndef DECC
+#define NO_STRFTIME
+#endif
+#define NO_MKTIME
+#define NO_TIMEGM
+#define NO_GMTOFF
+#define NO_TIMEZONE
+#endif
+</PRE>
+
 <H3>Definition of Errno</H3>
 
 <PRE>
@@ -657,6 +693,10 @@ typedef mode_t		int;
 #define S_ISREG(m)      (((m)& S_IFMT) == S_IFREG)
 #define WEXITSTATUS(s)	(((s).w_status &gt;&gt; 8) & 0377)
 #define NO_STRFTIME
+
+/* Mips can't uppercase non-alpha */
+#define TOLOWER(c) (isupper(c) ? tolower(c) : (c))
+#define TOUPPER(c) (islower(c) ? toupper(c) : (c))
 </PRE>
 
 <H3>File Permissions</H3>
@@ -686,6 +726,8 @@ Includes Linux (thanks to Rainer Klute) and other SVR5 based systems
 <PRE>
 #if defined(__svr4__) || defined(_POSIX_SOURCE) || defined(__hpux)
 
+#define NO_GMTOFF
+
 #ifdef UTS4				      /* UTS wants sys/types.h first */
 #include &lt;sys/types.h&gt;
 #endif
@@ -711,6 +753,13 @@ This is for NCR 3000 and Pyramid that also are SVR4 systems. Thanks to
 #ifndef NGROUPS_MAX		
 #include &lt;limits.h&gt;
 #endif 
+
+/* Pyramid and Mips can't uppercase non-alpha */
+#ifdef pyramid
+#define TOLOWER(c) (isupper(c) ? tolower(c) : (c))
+#define TOUPPER(c) (islower(c) ? toupper(c) : (c))
+#endif
+
 </PRE>
 
 <CODE>getwd()</CODE> is BSD. System V has <CODE>getcwd()</CODE>
@@ -728,6 +777,9 @@ This is for NCR 3000 and Pyramid that also are SVR4 systems. Thanks to
 #include &lt;time.h&gt;
 #include &lt;fcntl.h&gt;
 
+#ifndef R_OK
+#define R_OK 4
+#endif
 #define	NO_STRFTIME
 #define	WEXITSTATUS(x)	((int)((x).w_T.w_Retcode))
 
@@ -756,9 +808,13 @@ by Lauren Weinstein &lt;lauren@vortex.com&gt;.
 #define d_namlen d_reclen
 #include &lt;sys/limits.h&gt;
 typedef int mode_t;
+
 #define SIGSTP
+#define NO_GMTOFF
+
 #define POSIXWAIT
 #define _POSIX_SOURCE
+
 #include &lt;sys/types.h&gt;
 #include &lt;sys/wait.h&gt;
 #include &lt;net/errno.h&gt;
@@ -777,6 +833,9 @@ typedef int mode_t;
 </PRE>
 
 <H2>NeXT</H2>
+
+Next has a lot of strange changes in constants...
+
 <PRE>
 #ifdef NeXT
 #include &lt;sys/types.h&gt;
@@ -831,6 +890,7 @@ jim@jagubox.gsfc.nasa.gov</ADDRESS>
 #ifdef _AUX
 #include &lt;time.h&gt;
 #define WEXITSTATUS(s) (((s).w_status &gt;&gt; 8) &amp; 0377)
+#define NO_STRFTIME
 #endif
 </PRE>
 
@@ -884,9 +944,8 @@ These are a default unix where not already defined specifically.
 #define FNDELAY		O_NDELAY
 #endif
 
-#if !defined(NeXT) &amp;&amp; !defined(BSD4_4) &amp;&amp; !defined(NetBSD)
-extern char *sys_errlist[];
-extern int sys_nerr;
+#if defined(sun) &amp;&amp; !defined(__svr4__)
+#define NO_MKTIME
 #endif
 
 #endif /* unix */
@@ -961,10 +1020,19 @@ typedef struct sockaddr_in SockA;  /* See netinet/in.h */
 
 <H3>Definition of errno and Return Code</H3>
 
+This is the definition of error codes and the corresponding string
+constants.  If we do not have the <CODE>strerror</CODE> function then
+try the error list table.
+
 <PRE>
 #ifndef ERRNO_DONE
 extern int errno;
 #define socerrno errno
+#endif
+
+#ifndef HAVE_STRERROR				  /* Otherwise use the table */
+extern char *sys_errlist[];
+extern int sys_nerr;
 #endif
 </PRE>
 
@@ -1041,6 +1109,17 @@ value. However, the value <B>IS</B> used!
 #endif
 </PRE>
 
+<H3>File/Directory Management</H3>
+<PRE>
+#ifndef MKDIR
+#define MKDIR(a,b)	mkdir((a), (b))
+#endif
+
+#ifndef REMOVE_FILE
+#define REMOVE_FILE	unlink
+#endif
+</PRE>
+
 <H3>Macros for manipulating masks for select()</H3>
 <PRE>
 #ifdef SELECT
@@ -1061,14 +1140,6 @@ typedef unsigned int fd_set;
 #define TOASCII(c) (c)
 #define FROMASCII(c) (c)                                   
 #endif
-</PRE>
-
-<H3>White Characters</H3>
-
-Is character c white space? For speed, include all control characters
-
-<PRE>
-#define WHITE(c) (((unsigned char)(TOASCII(c))) &lt;= 32)
 </PRE>
 
 <H3>Cache file prefix</H3>

@@ -18,7 +18,7 @@ set up elsewhere. <P>
 
 This module is implemented by <A HREF="HTTP.c">HTTP.c</A>, and it is a
 part of the <A NAME="z10"
-HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">Library
+HREF="http://www.w3.org/hypertext/WWW/Library/User/Guide/Guide.html">Library
 of Common Code</A>. <P>
 
 <PRE>
@@ -48,26 +48,10 @@ which is kind of nice :-)
 
 <PRE>
 extern int HTMaxRedirections;
-</PRE>
 
-<H3>Disable/Enable User Identification in HTTP Request</H3>
-
-If a client want the user's email address to be send in the HTTP
-request as a <A
-HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html#from">
-From field</A> then turn this flag on. The default is off because it
-might cause security problems from within a firewall. When enabled,
-the format used is <EM>user@host.domain</EM>. The value can be
-changed, see <A HREF="HTTCP.html#Mailaddress">HTTCP Module</A>.
-
-<PRE>
-extern BOOL HTEnableFrom;
-</PRE>
-
-<PRE>
 #endif /* HTTP_H */
 </PRE>
 
-End of HTTP module definition.
+End of HTTP module declaration
 </BODY>
 </HTML>

@@ -77,9 +77,9 @@ COMMON = $(LOB)/HTParse.o $(LOB)/HTAccess.o \
 	$(LOB)/HTAAUtil.o $(LOB)/HTAABrow.o $(LOB)/HTAssoc.o \
 	$(LOB)/HTUU.o $(LOB)/HTMulti.o $(LOB)/HTTeXGen.o \
 	$(LOB)/HTDirBrw.o $(LOB)/HTDescpt.o $(LOB)/HTGuess.o \
-	$(LOB)/HTIcons.o $(LOB)/HTError.o $(LOB)/HTErrMsg.o \
-	$(LOB)/HTTP.o $(LOB)/HTThread.o $(LOB)/HTEvent.o \
-	$(LOB)/HTEscape.o
+	$(LOB)/HTIcons.o $(LOB)/HTError.o $(LOB)/HTLog.o \
+	$(LOB)/HTTP.o $(LOB)/HTTPReq.o $(LOB)/HTThread.o $(LOB)/HTEvent.o \
+	$(LOB)/HTEscape.o $(LOB)/HTNetTxt.o
 
 CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTFile.c \
         $(CMN)HTBTree.c $(CMN)HTMulti.c \
@@ -95,16 +95,17 @@ CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTFile.c \
 	$(CMN)HTAAUtil.c $(CMN)HTAABrow.c $(CMN)HTAssoc.c \
 	$(CMN)HTUU.c $(CMN)HTTeXGen.c \
 	$(CMN)HTDirBrw.c $(CMN)HTDescpt.c $(CMN)HTGuess.c \
-	$(CMN)HTIcons.c $(CMN)HTError.c $(CMN)HTErrMsg.c \
-	$(CMN)HTTP.c $(CMN)HTThread.c $(CMN)HTEvent.c \
-	$(CMN)HTEscape.c
+	$(CMN)HTIcons.c $(CMN)HTError.c $(CMN)HTLog.c \
+	$(CMN)HTTP.c $(CMN)HTTPReq.c $(CMN)HTThread.c $(CMN)HTEvent.c \
+	$(CMN)HTEscape.c $(CMN)HTNetTxt.c
 
 HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h $(CMN)HTFile.h \
 	$(CMN)HTMulti.h $(CMN)HTBTree.h $(CMN)HTFTP.h $(CMN)HTTCP.h \
 	$(CMN)SGML.h $(CMN)HTML.h $(CMN)HTMLPDTD.h $(CMN)HTChunk.h \
 	$(CMN)HTPlain.h		$(CMN)HTWriter.h \
 	$(CMN)HTFWrite.h 	$(CMN)HTMLGen.h	\
-	$(CMN)HTStream.h $(CMN)HTTee.h $(CMN)HTXParse.h $(CMN)HTEPtoCl.h \
+	$(CMN)HTStream.h	$(CMN)HTStruct.h \
+	$(CMN)HTTee.h $(CMN)HTXParse.h $(CMN)HTEPtoCl.h \
 	$(CMN)HTAtom.h $(CMN)HTAnchor.h $(CMN)HTStyle.h \
 	$(CMN)HTList.h \
 	$(CMN)HTString.h $(CMN)HTAlert.h $(CMN)HTRules.h \
@@ -117,9 +118,9 @@ HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h $(CMN)HTFile.h \
 	$(CMN)HTAAUtil.h $(CMN)HTAABrow.h $(CMN)HTAssoc.h \
 	$(CMN)HTUU.h $(CMN)HTTeXGen.h \
 	$(CMN)HTDirBrw.h $(CMN)HTDescpt.h $(CMN)HTGuess.h \
-	$(CMN)HTIcons.h $(CMN)HTError.h \
-	$(CMN)HTTP.h $(CMN)HTThread.h $(CMN)HTEvent.h \
-	$(CMN)HTEscape.h $(CMN)WWWLib.h
+	$(CMN)HTIcons.h $(CMN)HTError.h $(CMN)HTLog.h \
+	$(CMN)HTTP.h $(CMN)HTTPReq.h $(CMN)HTThread.h $(CMN)HTEvent.h \
+	$(CMN)HTEscape.h $(CMN)HTNetTxt.h $(CMN)WWWLib.h
 
 SOURCES = $(CFILES) $(HFILES) \
 	$(CMN)Version.make $(CMN)CommonMakefile $(CMN)Makefile $(CMN)README \
@@ -236,6 +237,9 @@ $(LOB)/HTAnchor.o : $(OE) $(CMN)HTAnchor.c $(CMN)HTUtils.h $(CMN)HTList.h
 
 $(LOB)/HTFormat.o : $(OE) $(CMN)HTFormat.c $(CMN)HTUtils.h $(CMN)HTList.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTFormat.c
+
+$(LOB)/HTNetTxt.o : $(OE) $(CMN)HTNetTxt.c $(CMN)HTNetTxt.h $(CMN)HTStream.h
+	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTNetTxt.c
 
 $(LOB)/HTGuess.o : $(OE) $(CMN)HTGuess.c $(CMN)HTUtils.h $(CMN)HTList.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTGuess.c
@@ -379,13 +383,16 @@ $(LOB)/HTEscape.o : $(OE) $(CMN)HTEscape.c $(CMN)HTUtils.h
 $(LOB)/HTError.o : $(OE) $(CMN)HTError.c $(CMN)HTError.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTError.c
 
-$(LOB)/HTErrMsg.o : $(OE) $(CMN)HTErrMsg.c
-	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTErrMsg.c
+$(LOB)/HTLog.o : $(OE) $(CMN)HTLog.c $(CMN)HTLog.h
+	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTLog.c
 
 #	Implementation for Multiple Threads 
 
 $(LOB)/HTTP.o : $(OE) $(CMN)HTTP.c $(CMN)HTTP.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTTP.c
+
+$(LOB)/HTTPReq.o : $(OE) $(CMN)HTTPReq.c $(CMN)HTTPReq.h
+	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTTPReq.c
 
 $(LOB)/HTThread.o : $(OE) $(CMN)HTThread.c $(CMN)HTThread.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTThread.c

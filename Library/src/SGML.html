@@ -1,10 +1,10 @@
 <HTML>
 <HEAD>
-<TITLE>SGML parse and stream definition for libwww</TITLE>
+<TITLE>SGML Parse Definition</TITLE>
 </HEAD>
 <BODY>
 
-<H1>SGML and Structured streams</H1>
+<H1>SGML Parse Definition</H1>
 
 <PRE>
 /*
@@ -27,7 +27,7 @@ search, Strcutured object scheme basically, SGML content enum type.<P>
 
 This module is implemented by <A HREF="SGML.c">SGML.c</A>, and it is a
 part of the <A
-HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+HREF="http://www.w3.org/hypertext/WWW/Library/User/Guide/Guide.html">
 Library of Common Code</A>.
 
 <PRE>
@@ -35,6 +35,7 @@ Library of Common Code</A>.
 #define SGML_H
 
 #include "HTStream.h"
+#include "HTStruct.h"
 </PRE>
 
 <H2>SGML content types</H2>
@@ -89,98 +90,29 @@ typedef struct {
     int			number_of_entities;
 } SGML_dtd;
 
-#define MAX_ATTRIBUTES 20	/* Max number of attributes per element */
+#define MAX_ATTRIBUTES 20	     /* Max number of attributes per element */
 
-/*	SGML context passed to parsers
-*/
+/*	SGML context passed to parsers */
+
 typedef struct _HTSGMLContext *HTSGMLContext;	/* Hidden */
-
-
-/*__________________________________________________________________________
-*/
-
 </PRE>
-<H2>Structured Object definition</H2>A structured object is something
-which can reasonably be represented
-in SGML.  I'll rephrase that.  A
-structured object is am ordered tree-structured
-arrangement of data which is representable
-as text.The SGML parer outputs to
-a Structured object. A Structured
-object can output its contents to
-another Structured Object. It's a
-kind of typed stream. The architecure
-is largely Dan Conolly's. Elements
-and entities are passed to the sob
-by number, implying a knowledge of
-the DTD. Knowledge of the SGML syntax
-is not here, though.<P>
-Superclass: HTStream<P>
-The creation methods will vary on
-the type of Structured Object.Maybe
-the callerData is enough info to
-pass along. <P>
 
-<B>NOTE: </B>The <CODE>put_block</CODE> method was <CODE>write</CODE>,
-but this upset systems which had macros for <CODE>write()</CODE>. See
-<A HREF="HTStream.html">the generic stream definition</A> for valid
-return codes.<P>
+<H2>Find a Tag by Name</H2>
 
-<PRE>typedef struct _HTStructured HTStructured;
+Returns a pointer to the tag within the DTD.
 
-typedef struct _HTStructuredClass{
-
-	char*  name;				/* Just for diagnostics */
-
-	int (*_free) PARAMS((
-		HTStructured*	me));
-
-	int (*abort) PARAMS((
-		HTStructured*	me,
-		HTError		e));
-		
-	void (*put_character) PARAMS((
-		HTStructured*	me,
-		char		ch));
-				
-	void (*put_string) PARAMS((
-		HTStructured*	me,
-		CONST char *	str));
-		
-	void (*put_block) PARAMS((
-		HTStructured*	me,
-		CONST char *	str,
-		int		len));
-		
-	void (*start_element) PARAMS((
-		HTStructured*	me,
-		int		element_number,
-		CONST BOOL*		attribute_present,
-		CONST char**		attribute_value));
-		
-	void (*end_element) PARAMS((
-		HTStructured*	me,
-		int		element_number));
-
-	void (*put_entity) PARAMS((
-		HTStructured*	me,
-		int		entity_number));
-		
-} HTStructuredClass;
-
+<PRE>
+extern HTTag * SGMLFindTag PARAMS((CONST SGML_dtd* dtd, CONST char * string));
 </PRE>
-<H2>Find a Tag by Name</H2>Returns a pointer to the tag within
-the DTD.
-<PRE>extern HTTag * SGMLFindTag PARAMS((CONST SGML_dtd* dtd, CONST char * string));
 
+<H2>Find a Attribute by Name</H2>
 
+Returns the number of the atribute or -1 if failure.
+
+<PRE>
+extern int SGMLFindAttribute PARAMS((HTTag* tag, CONST char * string));
 </PRE>
-<H2>Find a Attribute by Name</H2>Returns the number of the
-atribute or -1 if failure.
-<PRE>extern int SGMLFindAttribute PARAMS((HTTag* tag, CONST char * string));
 
-
-</PRE>
 <H2>Create an SGML parser</H2>
 <PRE>/*
 ** On entry,
@@ -198,17 +130,7 @@ extern HTStream* SGML_new PARAMS((
 
 extern CONST HTStreamClass SGMLParser;
 
-
 #endif	/* SGML_H */
-
-
-
-
-
-
-
-
-
 
 </PRE></BODY>
 </HTML>

@@ -56,11 +56,18 @@ typedef struct _HTSuffix {
 	double		quality;
 } HTSuffix;
 
+typedef struct _file_info {
+    SOCKFD		sockfd;				/* Socket descripter */
+    SockA 		sock_addr;		/* SockA is defined in tcp.h */
+    HTInputSocket *	isoc;				     /* Input buffer */
+    SocAction		action;			/* Result of the select call */
+    HTStream *		target;				    /* Target stream */
+    int 		addressCount;	     /* Attempts if multi-homed host */
+    time_t		connecttime;		 /* Used on multihomed hosts */
+    struct _HTRequest *	request;	   /* Link back to request structure */
+} file_info;
 
-/*                   Controlling globals
-**
-*/
-
+/* Controlling globals */
 PUBLIC BOOL HTTakeBackup = YES;
 PUBLIC BOOL HTSuffixCaseSense = NO;	/* Are suffixes case sensitive */
 
@@ -71,9 +78,7 @@ PRIVATE char *HTCacheRoot = "/WWW$SCRATCH";   /* Where to cache things */
 PRIVATE char *HTCacheRoot = "/tmp/W3_Cache_";   /* Where to cache things */
 #endif
 
-/*	Suffix registration
-*/
-
+/* Suffix registration */
 PRIVATE HTList * HTSuffixes = 0;
 PRIVATE HTSuffix no_suffix = { "*", NULL, NULL, NULL, 1.0 };
 PRIVATE HTSuffix unknown_suffix = { "*.*", NULL, NULL, NULL, 1.0};
@@ -222,10 +227,6 @@ PUBLIC HTContentDescription * HTGetContentDescription ARGS2(char **,	actual,
     HTContentDescription * cd;
     int i;
 
-#ifndef NO_INIT    
-    if (!HTSuffixes) HTFileInit();
-#endif
-
     if (n < 2) return NULL;	/* No suffix */
 
     cd = (HTContentDescription*)calloc(1, sizeof(HTContentDescription));
@@ -345,7 +346,12 @@ PUBLIC char * HTLocalName ARGS1(CONST char *,name)
 #if VMS
         HTVMS_checkDecnet(path);
 #endif /* VMS */
-
+#ifdef _WINDOWS
+	/* an absolute pathname with logical drive */
+	if (*path == '/' && path[2] == ':')
+	    /* NB need memmove because overlaps */
+	    memmove(path, path+1, strlen(path) + 1) ; 
+#endif
 	if (PROT_TRACE)
 	    fprintf(TDEST, "Local filename is \"%s\"\n", path);
 	return(path);
@@ -360,7 +366,12 @@ PUBLIC char * HTLocalName ARGS1(CONST char *,name)
 #if VMS
         HTVMS_checkDecnet(path);
 #endif /* VMS */
-
+#ifdef _WINDOWS 
+	    /* an absolute pathname with logical drive */
+	    if (*path == '/' && path[2] == ':')    
+		/* NB. need memmove because overlaps */
+		memmove( path, path+1, strlen(path) + 1 );
+#endif
 	    if (TRACE)
 		fprintf(TDEST, "Node........ `%s' means path `%s'\n",name,path);
 	    return(path);
@@ -444,9 +455,6 @@ PUBLIC CONST char * HTFileSuffix ARGS1(HTAtom*, rep)
     HTSuffix * suff;
     HTList * cur;
 
-#ifndef NO_INIT    
-    if (!HTSuffixes) HTFileInit();
-#endif
     cur = HTSuffixes;
     while ((suff = (HTSuffix*)HTList_nextObject(cur))) {
 	if (suff->rep == rep) {
@@ -476,10 +484,6 @@ PUBLIC HTFormat HTFileFormat ARGS3(CONST char *,	filename,
     HTFormat content_type = NULL;
 
     if (!filename) return WWW_BINARY;
-
-#ifndef NO_INIT    
-    if (!HTSuffixes) HTFileInit();
-#endif
 
     for (n=0; n<MAX_SUFF+1; n++)  actual[n] = NULL;
     n = HTSplitFilename((char*)filename, actual);
@@ -520,9 +524,6 @@ PUBLIC double HTFileValue ARGS1 (CONST char *,filename)
     HTList * cur;
     int lf = strlen(filename);
 
-#ifndef NO_INIT    
-    if (!HTSuffixes) HTFileInit();
-#endif
     cur = HTSuffixes;
     while ((suff = (HTSuffix*)HTList_nextObject(cur))) {
         int ls = strlen(suff->suffix);
@@ -636,7 +637,7 @@ PUBLIC HTStream * HTFileSaveStream ARGS1(HTRequest *, request)
 #endif /* not VMS */
 	    fclose(fp);
 	    if (TRACE) fprintf(TDEST, "File `%s' exists\n", filename);
-	    if (remove(backup_filename)) {
+	    if (REMOVE_FILE(backup_filename)) {
 		if (TRACE) fprintf(TDEST, "Backup file `%s' removed\n",
 				   backup_filename);
 	    }
@@ -667,9 +668,12 @@ PUBLIC HTStream * HTFileSaveStream ARGS1(HTRequest *, request)
 **			This is the physsical address of the file
 **
 ** On exit,
-**	returns		<0		Error has occured.
-**			HTLOADED	OK 
-**
+**	returns		HT_ERROR	Error has occured or interrupted
+**			HT_LOADED	if file has been loaded successfully
+**			HT_WOULD_BLOCK  We are using blocking I/O so this
+**					indicates that we have a read a chunk
+**					of data and now want to see what's up
+**					in the eventloop.
 */
 PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 {
@@ -678,10 +682,10 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 
     if (!request || !request->anchor) {
 	if (TRACE) fprintf(TDEST, "HTLoadFile.. Called with bad argument\n");
-	return HT_INTERNAL;
+	return HT_ERROR;
     }
     url = HTAnchor_physical(request->anchor);
-    if (TRACE) fprintf(TDEST, "LoadFile.... Looking for `%s\'\n", url);
+    if (PROT_TRACE) fprintf(TDEST, "LoadFile.... Looking for `%s\'\n", url);
 
 
 /*	For unix, we try to translate the name into the name of a transparently
@@ -701,7 +705,6 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 					     &request->content_language);
 	if (TRACE) fprintf(TDEST, "HTLoadFile.. Accessing local file system.\n");
 
-#ifdef GOT_READ_DIR
 
 /*	Multiformat handling. If suffix matches MULTI_SUFFIX then scan
 **	directory to find a good file.
@@ -723,6 +726,7 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 	    }
 	}
 
+#ifdef GOT_READ_DIR
 /*	Check to see if the 'localname' is in fact a directory.  If it is
 **	create a new hypertext object containing a list of files and 
 **	subdirectories contained in the directory.  All of these are links
@@ -751,13 +755,8 @@ open_file:
 
 	    if (fp) {
 		if(TRACE) fprintf(TDEST, "HTLoadFile.. Opened `%s' on local file system\n", localname);
-		if (HTEditable(localname)) {
-		    HTAtom * put = HTAtom_for("PUT");
-		    HTList * methods = HTAnchor_methods(request->anchor);
-		    if (HTList_indexOf(methods, put) == (-1)) {
-			HTList_addObject(methods, put);
-		    }
-		}
+		if (HTEditable(localname))
+		    request->anchor->methods += METHOD_PUT;
 		status = HTParseFile(request->content_type, fp, request);
 		fclose(fp);
 

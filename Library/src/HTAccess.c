@@ -38,6 +38,7 @@
 #include "HText.h"	/* See bugs above */
 #include "HTAlert.h"
 #include "HTFWrite.h"	/* for cache stuff */
+#include "HTLog.h"
 #include "HTTee.h"
 #include "HTError.h"
 #include "HTString.h"
@@ -45,24 +46,20 @@
 #include "HTFile.h"
 #include "HTThread.h"
 #include "HTEvent.h"
+#include "HTInit.h"
 #ifndef NO_RULES
 #include "HTRules.h"
 #endif
 #include "HTAccess.h"					 /* Implemented here */
 
 /* These flags may be set to modify the operation of this module */
-PUBLIC char * HTCacheDir = NULL;  /* Root for cached files or 0 for no cache */
-PUBLIC char * HTSaveLocallyDir = SAVE_LOCALLY_HOME_DIR;	 /* Save & exe files */
 PUBLIC char * HTClientHost = 0;		 /* Name of remote login host if any */
-PUBLIC FILE * HTlogfile = 0;	       /* File to which to output one-liners */
+PUBLIC BOOL HTSecure = NO;		 /* Disable access for telnet users? */
 
-PUBLIC BOOL HTForceReload = NO;	/* Force reload from cache or net */
-PUBLIC BOOL HTSecure = NO;	/* Disable access for telnet users? */
-PUBLIC BOOL using_proxy = NO;	/* are we using a proxy gateway? */
 PUBLIC char * HTImServer = NULL;/* cern_httpd sets this to the translated URL*/
-PUBLIC BOOL HTImProxy = NO;	/* cern_httpd as a proxy? */
+PUBLIC BOOL HTImProxy = NO;			   /* cern_httpd as a proxy? */
 
-PRIVATE HTList * protocols = NULL;          /* List of registered protocols */
+PRIVATE HTList * protocols = NULL;           /* List of registered protocols */
 
 /* Superclass defn */
 struct _HTStream {
@@ -82,9 +79,10 @@ PUBLIC HTRequest * HTRequest_new NOARGS
     HTRequest * me = (HTRequest*) calloc(1, sizeof(*me));  /* zero fill */
     if (!me) outofmem(__FILE__, "HTRequest_new()");
     
-    me->conversions	= HTList_new();	/* No conversions registerd yet */
-    me->output_format	= WWW_PRESENT;	/* default it to present to user */
-
+    me->conversions	= HTList_new();     /* No conversions registered yet */
+    me->output_format	= WWW_PRESENT;	    /* default it to present to user */
+    me->HeaderMask	= DEFAULT_HEADERS;	       /* Send these headers */
+    me->EntityMask	= DEFAULT_ENTITY_HEADERS;	       /* Also these */
     return me;
 }
 
@@ -140,7 +138,7 @@ PUBLIC void HTRequest_delete ARGS1(HTRequest *, req)
 /*			Management of HTTP Methods			     */
 /* --------------------------------------------------------------------------*/
 
-PRIVATE char * method_names[(int)MAX_METHODS + 1] =
+static char *method_names[] =
 {
     "INVALID-METHOD",
     "GET",
@@ -148,9 +146,6 @@ PRIVATE char * method_names[(int)MAX_METHODS + 1] =
     "POST",
     "PUT",
     "DELETE",
-    "CHECKOUT",
-    "CHECKIN",
-    "SHOWMETHOD",
     "LINK",
     "UNLINK",
     NULL
@@ -159,13 +154,23 @@ PRIVATE char * method_names[(int)MAX_METHODS + 1] =
 /*	Get method enum value
 **	---------------------
 */
-PUBLIC HTMethod HTMethod_enum ARGS1(char *, name)
+PUBLIC HTMethod HTMethod_enum ARGS1(CONST char *, name)
 {
     if (name) {
-	int i;
-	for (i=1; i < (int)MAX_METHODS; i++)
-	    if (!strcmp(name, method_names[i]))
-		return (HTMethod)i;
+	if (!strcmp(name, *(method_names+1)))
+	    return METHOD_GET;
+	else if (!strcmp(name, *(method_names+2)))
+	    return METHOD_HEAD;
+	else if (!strcmp(name, *(method_names+3)))
+	    return METHOD_POST;
+	else if (!strcmp(name, *(method_names+4)))
+	    return METHOD_PUT;
+	else if (!strcmp(name, *(method_names+5)))
+	    return METHOD_DELETE;
+	else if (!strcmp(name, *(method_names+6)))
+	    return METHOD_LINK;
+	else if (!strcmp(name, *(method_names+7)))
+	    return METHOD_UNLINK;
     }
     return METHOD_INVALID;
 }
@@ -173,17 +178,37 @@ PUBLIC HTMethod HTMethod_enum ARGS1(char *, name)
 
 /*	Get method name
 **	---------------
+**	Returns pointer to entry in static table in memory
 */
-PUBLIC char * HTMethod_name ARGS1(HTMethod, method)
+PUBLIC CONST char * HTMethod_name ARGS1(HTMethod, method)
 {
-    if ((int)method > (int)METHOD_INVALID  && 
-	(int)method < (int)MAX_METHODS)
+    if (method & METHOD_GET)
+	return *(method_names+1);
+    else if (method == METHOD_HEAD)
+	return *(method_names+2);
+    else if (method == METHOD_POST)
+	return *(method_names+3);
+    else if (method == METHOD_PUT)
+	return *(method_names+4);
+    else if (method == METHOD_DELETE)
+	return *(method_names+5);
+    else if (method == METHOD_LINK)
+	return *(method_names+6);
+    else if (method == METHOD_UNLINK)
+	return *(method_names+7);
+    else
+	return *method_names;
+#if 0
+    if ((int)METHOD_INVALID  && (int)method < (int)MAX_METHODS)
 	return method_names[(int)method];
     else
 	return method_names[(int)METHOD_INVALID];
+#endif
 }
 
 
+#if 0
+/* NOT NEEDED AS METHODS IS NOT A BIT-FLAG */
 /*	Is method in a list of method names?
 **	-----------------------------------
 */
@@ -202,7 +227,7 @@ PUBLIC BOOL HTMethod_inList ARGS2(HTMethod,	method,
     }
     return NO;	/* Not found */
 }
-
+#endif
 
 /* --------------------------------------------------------------------------*/
 /*		      Management of the HTProtocol structure		     */
@@ -256,9 +281,10 @@ PUBLIC BOOL HTProtocolBlocking ARGS1(HTRequest *, me)
 **	Add to or subtract from this list if you add or remove protocol
 **	modules. This function is called from HTLibInit()
 **
-**	Compiling with NO_INIT prevents all known protocols from being forced
-**	in at link time.
+**	Compiling with HT_NO_INIT prevents all known protocols from being
+**	force in at link time.
 */
+#ifndef HT_NO_INIT
 PRIVATE void HTAccessInit NOARGS
 {
     GLOBALREF HTProtocol HTTP, HTFile, HTTelnet, HTTn3270, HTRlogin;
@@ -289,7 +315,7 @@ PRIVATE void HTAccessInit NOARGS
     HTRegisterProtocol(&HTTn3270);
     HTRegisterProtocol(&HTRlogin);
 }
-
+#endif /* !HT_NO_INIT */
 
 /*								     HTLibInit
 **
@@ -301,6 +327,7 @@ PUBLIC BOOL HTLibInit NOARGS
 #ifdef NO_STDIO						  /* Open trace file */
     if ((TDEST = fopen(TRACE_FILE, "a")) != NULL) {
 	if (setvbuf(TDEST, NULL, _IOLBF, 0) < 0) {  /* Change to line buffer */
+	    printf("WWWLibInit.. Can't initialize TRACE buffer - no TRACE\n");
 	    fclose(TDEST);
 	    TDEST = NULL;
 	    WWW_TraceFlag = 0;
@@ -312,10 +339,17 @@ PUBLIC BOOL HTLibInit NOARGS
     if (TRACE)
 	fprintf(TDEST, "WWWLibInit.. INITIALIZING LIBRARY OF COMMON CODE\n");
 
-#ifndef NO_INIT
-    if (!protocols)
-	HTAccessInit();			     /* Initilizing protocol modules */
+/* Shall we initialize the bindings between (access method, protocol module),
+   (file extension, media type)? */
+#ifndef HT_NO_INIT
+    HTAccessInit();		 /* Bind access schemes and protocol modules */
+    HTFileInit();		     /* Bind file extensions and media types */
 #endif
+
+    /* Put up a global conversion list, but leave initialization
+       to the application */
+    if (!HTConversions)
+	HTConversions = HTList_new();
 
 #ifdef WWWLIB_SIG
     /* On Solaris (and others?) we get a BROKEN PIPE signal when connecting
@@ -346,6 +380,8 @@ PUBLIC BOOL HTLibInit NOARGS
     }
 #endif /* _WINDOWS */
 
+    HTGetTimeZoneOffset();			     /* Find offset from GMT */
+    HTTmp_setRoot(NULL);		     /* Set up default tmp directory */
     HTThreadInit();			            /* Initialize bit arrays */
     return YES;
 }
@@ -367,7 +403,8 @@ PUBLIC BOOL HTLibTerminate NOARGS
     HTTCPCacheRemoveAll();
     HTFreeHostName();
     HTFreeMailAddress();
-    FREE(HTCacheDir);
+    HTCache_freeRoot();
+    HTTmp_freeRoot();
 
 #ifdef _WINDOWS
     WSACleanup();
@@ -486,7 +523,7 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
     char * access=0;	/* Name of access method */
     char * addr = HTAnchor_address((HTAnchor*)req->anchor);	/* free me */
 
-#ifndef NO_RULES
+#ifndef HT_NO_RULES
     if (HTImServer) {	/* cern_httpd has already done its own translations */
 	HTAnchor_setPhysical(req->anchor, HTImServer);
 	StrAllocCopy(addr, HTImServer);	/* Oops, queries thru many proxies */
@@ -503,20 +540,18 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
     }
 #else
     HTAnchor_setPhysical(req->anchor, addr);
-#endif
+#endif /* HT_NO_RULES */
 
     access =  HTParse(HTAnchor_physical(req->anchor),
 		      "file:", PARSE_ACCESS);
 
 /*	Check whether gateway access has been set up for this
-**
 **	This function can be replaced by the rule system above.
 */
-#define USE_GATEWAYS
-#ifdef USE_GATEWAYS
+#ifndef HT_NO_PROXY
 
     /* make sure the using_proxy variable is false */
-    using_proxy = NO;
+    req->using_proxy = NO;
 
     if (!override_proxy(addr)) {
 	char * gateway_parameter, *gateway, *proxy;
@@ -537,16 +572,16 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
 
 	free(gateway_parameter);
 
-	if (TRACE && gateway)
-	    fprintf(TDEST,"Gateway..... Found: `%s\'\n", gateway);
-	if (TRACE && proxy)
-	    fprintf(TDEST,"Proxy....... Found: `%s\'\n", proxy);
-
 #ifndef HT_DIRECT_WAIS
 	if (!gateway && 0==strcmp(access, "wais")) {
 	    gateway = HT_DEFAULT_WAIS_GATEWAY;
 	}
 #endif
+
+	if (TRACE && gateway)
+	    fprintf(TDEST,"Gateway..... Found: `%s\'\n", gateway);
+	if (TRACE && proxy)
+	    fprintf(TDEST,"Proxy....... Found: `%s\'\n", proxy);
 
 	/* proxy servers have precedence over gateway servers */
 	if (proxy && *proxy) {
@@ -554,7 +589,7 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
 
             StrAllocCopy(gatewayed,proxy);
 	    StrAllocCat(gatewayed,addr);
-	    using_proxy = YES;
+	    req->using_proxy = YES;
 	    HTAnchor_setPhysical(req->anchor, gatewayed);
 	    free(gatewayed);
 	    free(access);
@@ -575,7 +610,7 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
     		"http:", PARSE_ACCESS);
 	}
     }
-#endif
+#endif /* HT_NO_PROXY */
 
     free(addr);
 
@@ -599,42 +634,6 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
     free(access);
     return HT_NO_ACCESS;
 }
-
-/* --------------------------------------------------------------------------*/
-/*				Document Poster 			     */
-/* --------------------------------------------------------------------------*/
-
-/*		Get a save stream for a document
-**		--------------------------------
-*/
-PUBLIC HTStream *HTSaveStream ARGS1(HTRequest *, request)
-{
-    HTProtocol * p;
-    int status;
-    request->method = METHOD_PUT;
-    status = get_physical(request);
-    if (status == HT_FORBIDDEN) {
-	char *url = HTAnchor_address((HTAnchor *) request->anchor);
-	if (url) {
-	    HTUnEscape(url);
-	    HTErrorAdd(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
-		       (void *) url, (int) strlen(url), "HTLoad");
-	    free(url);
-	} else {
-	    HTErrorAdd(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
-		       NULL, 0, "HTLoad");
-	}
-	return NULL;	/* should return error status? */
-    }
-    if (status < 0) return NULL; /* @@ error. Can't resolve or forbidden */
-    
-    p = (HTProtocol *) HTAnchor_protocol(request->anchor);
-    if (!p) return NULL;
-    
-    return (*p->saveStream)(request);
-    
-}
-
 
 /* --------------------------------------------------------------------------*/
 /*				Document Loader 			     */
@@ -711,20 +710,7 @@ PUBLIC BOOL HTLoadTerminate ARGS2(HTRequest *, request, int, status)
 {
     char * uri = HTAnchor_address((HTAnchor*)request->anchor);
 
-    /* Log the access if necessary */
-    if (HTlogfile) {
-	time_t theTime;
-	time(&theTime);
-	fprintf(HTlogfile, "%24.24s %s %s %s\n",
-	    ctime(&theTime),
-	    HTClientHost ? HTClientHost : "local",
-	    status<0 ? "FAIL" : "GET", uri);
-	fflush(HTlogfile);	/* Actually update it on disk */
-	if (PROT_TRACE) fprintf(TDEST, "Log: %24.24s %s %s %s\n",
-	    ctime(&theTime),
-	    HTClientHost ? HTClientHost : "local",
-	    status<0 ? "FAIL" : "GET", uri);
-    }
+    HTLog_request(request);
 
     /* The error stack might contain general information to the client
        about what has been going on in the library (not only errors) */
@@ -810,7 +796,7 @@ PRIVATE int HTLoadDocument ARGS2(HTRequest *,	request,
     if (!request->output_format) request->output_format = WWW_PRESENT;
 
     /* Check if document is already loaded or in cache */
-    if (!HTForceReload) {
+    if (!request->ForceReload) {
 	if ((text=(HText *)HTAnchor_document(request->anchor))) {
 	    if (PROT_TRACE)
 		fprintf(TDEST, "HTAccess.... Document already in memory.\n");
@@ -838,7 +824,7 @@ PRIVATE int HTLoadDocument ARGS2(HTRequest *,	request,
 		if (s) {	/* format was suitable */
 		    FILE * fp = fopen(item->filename, "r");
 		    if (PROT_TRACE) 
-			fprintf(TDEST, "Cache...... HIT file %s for %s\n",
+			fprintf(TDEST, "Cache....... HIT file %s for %s\n",
 				item->filename, 
 				full_address);
 		    if (fp) {
@@ -854,6 +840,9 @@ PRIVATE int HTLoadDocument ARGS2(HTRequest *,	request,
 		} /* stream ok */
 	    } /* next cache item */
 	} /* if cache available for this anchor */
+    } else {			  /* Make sure that we don't use old headers */
+	HTAnchor_clearHeader(request->anchor);
+	request->HeaderMask += HT_PRAGMA;       /* Force reload through proxy */
     }
     if ((status = HTLoad(request, keep_error_stack)) != HT_WOULD_BLOCK)
 	HTLoadTerminate(request, status);
@@ -970,9 +959,9 @@ PUBLIC int HTLoadRelative ARGS3(CONST char *,		relative_name,
 
 PUBLIC int HTLoadAnchor ARGS2(HTAnchor*, anchor, HTRequest *, request)
 {
-    if (!anchor) return HT_ERROR;				  /* No link */
-    
-    request->anchor  = HTAnchor_parent(anchor);
+    if (!anchor || !request)
+	return HT_ERROR;
+    request->anchor = HTAnchor_parent(anchor);
     request->childAnchor = ((HTAnchor *) request->anchor == anchor) ?
 	NULL : (HTChildAnchor*) anchor;
     return HTLoadDocument(request, NO);
@@ -1116,6 +1105,121 @@ PUBLIC int HTSearchAbsolute ARGS3(CONST char *, 	keywords,
     return HTSearch(keywords, anchor, request);
 }
 
+/* --------------------------------------------------------------------------*/
+/*				Document Poster 			     */
+/* --------------------------------------------------------------------------*/
+
+/*		Get a save stream for a document
+**		--------------------------------
+*/
+PUBLIC HTStream *HTSaveStream ARGS1(HTRequest *, request)
+{
+    HTProtocol * p;
+    int status;
+    request->method = METHOD_PUT;
+    status = get_physical(request);
+    if (status == HT_FORBIDDEN) {
+	char *url = HTAnchor_address((HTAnchor *) request->anchor);
+	if (url) {
+	    HTUnEscape(url);
+	    HTErrorAdd(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
+		       (void *) url, (int) strlen(url), "HTLoad");
+	    free(url);
+	} else {
+	    HTErrorAdd(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
+		       NULL, 0, "HTLoad");
+	}
+	return NULL;	/* should return error status? */
+    }
+    if (status < 0) return NULL; /* @@ error. Can't resolve or forbidden */
+    
+    p = (HTProtocol *) HTAnchor_protocol(request->anchor);
+    if (!p) return NULL;
+    
+    return (*p->saveStream)(request);
+    
+}
+
+/*	COPY AN ANCHOR
+**	--------------
+**  Fetch the URL (possibly local file URL) and send it using either PUT
+**  or POST to the remote destination using HTTP. The caller can decide the
+**  exact method used and which HTTP header fields to transmit by setting the
+**  user fields in the request structure.
+**
+**	returns		HT_WOULD_BLOCK	An I/O operation would block
+**			HT_ERROR	Error has occured
+**			HT_LOADED	Success
+**			HT_NO_DATA	Success, but no document loaded.
+*/
+PUBLIC int HTCopyAnchor ARGS4(HTAnchor *,	src_anchor,
+			      HTRequest *,	src_req,
+			      HTParentAnchor *,	dest_anchor,
+			      HTRequest *,	dest_req)
+{
+    if (!(src_anchor && src_req && dest_anchor && dest_req))
+	return HT_ERROR;
+
+    if (!(dest_anchor->methods & dest_req->method)) {
+	char buf[80];
+	sprintf(buf, "It might not be allowed to %s to this destination, continue?", HTMethod_name(dest_req->method));
+	if (!HTConfirm(buf))
+	    return HT_ERROR;
+    }
+
+    /* First open the destination then open the source */
+    if (HTLoadAnchor((HTAnchor *) dest_anchor, dest_req) != HT_ERROR) {
+	src_req->ForceReload = YES;
+	src_req->HeaderMask += HT_DATE;			 /* Send date header */
+	if (src_req->output_format == WWW_PRESENT)	       /* Use source */
+	    src_req->output_format = WWW_SOURCE;
+
+	/* Now make the link between the two request structures. First setup
+	   the output stream of the source so that data get redirected to
+	   the destination. Then set up the call back function so that
+	   the destination can call for more data */
+	src_req->output_stream = dest_req->input_stream;
+	dest_req->CopyRequest = src_req;
+	dest_req->PostCallBack = HTSocketRead;
+
+	return HTLoadAnchor(src_anchor, src_req);
+    }
+    return HT_ERROR;
+}
+
+
+/*	UPLOAD AN ANCHOR
+**	----------------
+**  Send the contents (in hyperdoc) of the source anchor using either PUT
+**  or POST to the remote destination using HTTP. The caller can decide the
+**  exact method used and which HTTP header fields to transmit by setting the
+**  user fields in the request structure.
+**
+**	returns		HT_WOULD_BLOCK	An I/O operation would block
+**			HT_ERROR	Error has occured
+**			HT_LOADED	Success
+**			HT_NO_DATA	Success, but no document loaded.
+*/
+PUBLIC int HTUploadAnchor ARGS3(HTAnchor *,		src_anchor,
+				HTParentAnchor *,	dest_anchor,
+				HTRequest *,		dest_req)
+{
+    if (!(src_anchor && dest_anchor && dest_req))
+	return HT_ERROR;
+
+    if (!(dest_anchor->methods & dest_req->method)) {
+	char buf[80];
+	sprintf(buf, "It might not be allowed to %s to this destination, continue?", HTMethod_name(dest_req->method));
+	if (!HTConfirm(buf))
+	    return HT_ERROR;
+    }
+
+    return HT_ERROR;
+}
+
+/* --------------------------------------------------------------------------*/
+/*				Anchor help routines   			     */
+/* --------------------------------------------------------------------------*/
 
 /*
 **             Find Related Name
@@ -1170,8 +1274,21 @@ PUBLIC char * HTFindRelatedName NOARGS
 		*p = '\0';  /* Cut on final ']' */
 		StrAllocCat (default_default, dir);
 	    }
-#else  /* not VMS */
+#else
+#ifdef WIN32
+	    char * p = wd ;	/* a colon */
+	    StrAllocCat(default_default, "/");
+
+	    /**p++ = '|' ;	  /* change to '|' */
+	    while( *p != 0 ) { 
+		if (*p == '\\')		         /* change to one true slash */
+		    *p = '/' ;
+		p++;
+	    }
+	    StrAllocCat( default_default, wd) ;
+#else
 	    StrAllocCat (default_default, wd);
+#endif /* not WIN32 */
 #endif /* not VMS */
 	}
     }
@@ -1193,22 +1310,20 @@ PUBLIC char * HTFindRelatedName NOARGS
 **		1	WWW_HOME environment variable (logical name, etc)
 **		2	~/WWW/default.html
 **		3	/usr/local/bin/default.html
-**		4	http://info.cern.ch/default.html
+**		4	http://www.w3.org/default.html
 **
 */
 PUBLIC HTParentAnchor * HTHomeAnchor NOARGS
 {
     char * my_home_document = NULL;
-    char * home = (char *)getenv(LOGICAL_DEFAULT);
+    char * home = (char *) getenv(LOGICAL_DEFAULT);
     char * ref;
     HTParentAnchor * anchor;
     
+    /* Someone telnets in, they get a special home */
     if (home) {
         StrAllocCopy(my_home_document, home);
-    
-/* 	Someone telnets in, they get a special home.
-*/
-    } else  if (HTClientHost) {			/* Telnet server */
+    } else  if (HTClientHost) {				    /* Telnet server */
     	FILE * fp = fopen(REMOTE_POINTER, "r");
 	char * status;
 	if (fp) {
@@ -1223,13 +1338,10 @@ PUBLIC HTParentAnchor * HTHomeAnchor NOARGS
 	if (!my_home_document) StrAllocCopy(my_home_document, REMOTE_ADDRESS);
     }
 
-    
-
 #ifdef unix
-
     if (!my_home_document) {
 	FILE * fp = NULL;
-	CONST char * home =  (CONST char*)getenv("HOME");
+	char * home = (char *) getenv("HOME");
 	if (home) { 
 	    my_home_document = (char *)malloc(
 		strlen(home)+1+ strlen(PERSONAL_DEFAULT)+1);
@@ -1254,11 +1366,9 @@ PUBLIC HTParentAnchor * HTHomeAnchor NOARGS
 	}
     }
 #endif
-    ref = HTParse( my_home_document ?	my_home_document :
-				HTClientHost ? REMOTE_ADDRESS
-				: LAST_RESORT,
-		    "file:",
-		    PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
+    ref = HTParse(my_home_document ? my_home_document :
+		  HTClientHost ? REMOTE_ADDRESS : LAST_RESORT, "file:",
+		  PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
     if (my_home_document) {
 	if (TRACE)
 	    fprintf(TDEST,
@@ -1295,6 +1405,6 @@ PUBLIC BOOL HTBindAnchor ARGS2(HTAnchor*, anchor, HTRequest *, request)
     					: (HTChildAnchor*) anchor;
 	
     return YES;
-} /* HTBindAnchor */
+}
 
 
