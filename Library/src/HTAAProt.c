@@ -6,8 +6,9 @@
 **	AL	Ari Luotonen	luotonen@dxcern.cern.ch
 **
 ** HISTORY:
-**
-**
+**	20 Oct 93  AL	Now finds uid/gid for nobody/nogroup by name
+**			(doesn't use default 65534 right away).
+**			Also understands negative uids/gids.
 ** BUGS:
 **
 **
@@ -50,6 +51,9 @@ PRIVATE BOOL isNumber ARGS1(CONST char *, s)
     CONST char *cur = s;
 
     if (!s || !*s) return NO;
+
+    if (*cur == '-')
+	cur++;		/* Allow initial minus sign in a number */
 
     while (*cur) {
 	if (*cur < '0' || *cur > '9')
@@ -96,6 +100,17 @@ PUBLIC int HTAA_getUid NOARGS
 	    }
 	}
     }
+    /*
+    ** Ok, then let's get uid for nobody.
+    */
+    if (NULL != (pw = getpwnam("nobody"))) {
+	if (TRACE) fprintf(stderr, "HTAA_getUid: Uid for `nobody' is %d\n",
+			   pw->pw_uid);
+	return pw->pw_uid;
+    }
+    /*
+    ** Ok, then use default.
+    */
     return 65534;	/* nobody */
 }
 
@@ -135,6 +150,17 @@ PUBLIC int HTAA_getGid NOARGS
 	    }
 	}
     }
+    /*
+    ** Ok, then let's get gid for nogroup.
+    */
+    if (NULL != (gr = getgrnam("nogroup"))) {
+	if (TRACE) fprintf(stderr, "HTAA_getGid: Gid for `nogroup' is %d\n",
+			   gr->gr_gid);
+	return gr->gr_gid;
+    }
+    /*
+    ** Ok, then use default.
+    */
     return 65534;	/* nogroup */
 }
 

@@ -22,6 +22,11 @@ NAME="z1" HREF="HTUtils.html">"HTUtils.h"</A>
 #include <A
 NAME="z2" HREF="tcp.html">"tcp.h"</A>
 
+#ifdef SHORT_NAMES
+#define HTPrPass	HTPromptPassword
+#define HTPUnAPw	HTPromptUsernameAndPassword
+#endif /*SHORT_NAMES*/
+
 </PRE>
 <H2>HTPrompt and HTPromptPassword: Display a message and get
 the input</H2>
@@ -45,6 +50,27 @@ must be freed.
 extern char * HTPrompt PARAMS((CONST char * Msg, CONST char * deflt));
 extern char * HTPromptPassword PARAMS((CONST char * Msg));
 
+</PRE>
+<H2>HTPromptUsernameAndPassword: Get both username and password</H2>
+<H3>On entry,</H3>
+<DL>
+<DT>Msg<DD>String to be displayed.
+<DT>username<DD> Pointer to char pointer, i.e. <CODE>*username</CODE>
+points to a string.  If non-NULL it is taken to be a default value.
+<DT>password<DD> Pointer to char pointer, i.e. <CODE>*password</CODE>
+points to a string.  Initial value discarded.
+</DL>
+<H3>On exit,</H3>
+<DL>
+<DT>*username<DD> and
+<DT>*password<DD> point to newly allocated strings representing
+the typed-in username and password.  Initial strings pointed to
+by them are NOT freed!
+</DL>
+<PRE>
+extern void HTPromptUsernameAndPassword PARAMS((CONST char *	Msg,
+						char **		username,
+						char **		password));
 
 </PRE>
 <H2>Display a message, don't wait for

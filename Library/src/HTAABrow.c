@@ -35,8 +35,13 @@
 **	AL	Ari Luotonen	luotonen@dxcern.cern.ch
 **
 ** HISTORY:
-**
-**
+**	Oct 17	AL	Made corrections suggested by marca:
+**			Added  if (!realm->username) return NULL;
+**			Changed some ""s to NULLs.
+**			Now doing calloc() to init uuencode source;
+**			otherwise HTUU_encode() reads uninitialized memory
+**			every now and then (not a real bug but not pretty).
+**			Corrected the formula for uuencode destination size.
 ** BUGS:
 **
 **
@@ -113,9 +118,37 @@ PRIVATE int current_portnumber	= 80;	/* where we are currently trying to  */
                                         /* connect.			     */
 PRIVATE char *current_docname	= NULL;	/* The document's name we are        */
                                         /* trying to access.		     */
+PRIVATE char *HTAAForwardAuth	= NULL;	/* Authorization: line to forward    */
+                                        /* (used by gateway httpds)	     */
 
 
+/*** HTAAForwardAuth for enabling gateway-httpds to forward Authorization ***/
 
+PUBLIC void HTAAForwardAuth_set ARGS2(CONST char *, scheme_name,
+				      CONST char *, scheme_specifics)
+{
+    int len = 20 + (scheme_name      ? strlen(scheme_name)      : 0) 
+	         + (scheme_specifics ? strlen(scheme_specifics) : 0);
+
+    FREE(HTAAForwardAuth);
+    if (!(HTAAForwardAuth = (char*)malloc(len)))
+	outofmem(__FILE__, "HTAAForwardAuth_set");
+
+    strcpy(HTAAForwardAuth, "Authorization: ");
+    if (scheme_name) {
+	strcat(HTAAForwardAuth, scheme_name);
+	strcat(HTAAForwardAuth, " ");
+	if (scheme_specifics) {
+	    strcat(HTAAForwardAuth, scheme_specifics);
+	}
+    }
+}
+
+
+PUBLIC void HTAAForwardAuth_reset NOARGS
+{
+    FREE(HTAAForwardAuth);
+}
 
 
 /**************************** HTAAServer ***********************************/
@@ -489,6 +522,7 @@ PRIVATE HTAARealm *HTAARealm_new ARGS4(HTList *,	realm_table,
 **			(with, of course, a newly generated secret
 **			key and fresh timestamp, if Pubkey-scheme
 **			is being used).
+**			NULL, if something fails.
 ** NOTE:
 **	Like throughout the entire AA package, no string or structure
 **	returned by AA package needs to (or should) be freed.
@@ -514,10 +548,10 @@ PRIVATE char *compose_auth_string ARGS2(HTAAScheme,	scheme,
     if ((scheme != HTAA_BASIC && scheme != HTAA_PUBKEY) || !setup ||
 	!setup->scheme_specifics || !setup->scheme_specifics[scheme] ||
 	!setup->server  ||  !setup->server->realms)
-	return "";
+	return NULL;
 
     realmname = HTAssocList_lookup(setup->scheme_specifics[scheme], "realm");
-    if (!realmname) return "";
+    if (!realmname) return NULL;
 
     realm = HTAARealm_lookup(setup->server->realms, realmname);
     if (!realm || setup->retry) {
@@ -529,22 +563,26 @@ PRIVATE char *compose_auth_string ARGS2(HTAAScheme,	scheme,
 			       "not found -- creating");
 	    realm = HTAARealm_new(setup->server->realms, realmname, NULL,NULL);
 	    sprintf(msg,
-		    "Document is protected. Enter username for %s at %s: ",
+		    "Document is protected. Enter username for %s at %s",
 		    realm->realmname,
 		    setup->server->hostname ? setup->server->hostname : "??");
-	    realm->username =
-		HTPrompt(msg, realm->username);
 	}
 	else {
-	    sprintf(msg,"Enter username for %s at %s: ", realm->realmname,
+	    sprintf(msg,"Enter username for %s at %s", realm->realmname,
 		    setup->server->hostname ? setup->server->hostname : "??");
-	    username = HTPrompt(msg, realm->username);
-	    FREE(realm->username);
-	    realm->username = username;
 	}
-	password = HTPromptPassword("Enter password: ");
+
+	username = realm->username;
+	password = NULL;
+	HTPromptUsernameAndPassword(msg, &username, &password);
+
+	FREE(realm->username);
 	FREE(realm->password);
+	realm->username = username;
 	realm->password = password;
+
+	if (!realm->username)
+	    return NULL;		/* Suggested by marca; thanks! */
     }
     
     len = strlen(realm->username ? realm->username : "") +
@@ -561,7 +599,7 @@ PRIVATE char *compose_auth_string ARGS2(HTAAScheme,	scheme,
     else
 	FREE(secret_key);
 
-    if (!(cleartext  = (char*)malloc(len)))
+    if (!(cleartext  = (char*)calloc(len, 1)))
 	outofmem(__FILE__, "compose_auth_string");
 
     if (realm->username) strcpy(cleartext, realm->username);
@@ -590,7 +628,7 @@ PRIVATE char *compose_auth_string ARGS2(HTAAScheme,	scheme,
 	free(ciphertext);
     }
     else { /* scheme == HTAA_BASIC */
-	if (!(result = (char*)malloc(len + len/2)))
+	if (!(result = (char*)malloc(4 * ((len+2)/3) + 1)))
 	    outofmem(__FILE__, "compose_auth_string");
 	HTUU_encode(cleartext, strlen(cleartext), result);
 	free(cleartext);
@@ -661,6 +699,23 @@ PUBLIC char *HTAA_composeAuth ARGS3(CONST char *,	hostname,
     BOOL retry;
     HTAAScheme scheme;
 
+    /*
+    ** Make gateway httpds pass authorization field as it was received.
+    ** (This still doesn't really work because Authenticate: headers
+    **  from remote server are not forwarded to client yet so it cannot
+    **  really know that it should send authorization;  I will not
+    **  implement it yet because I feel we will soon change radically
+    **  the way requests are represented to allow multithreading
+    **  on server-side.  Life is hard.)
+    */
+    if (HTAAForwardAuth) {
+	if (TRACE) fprintf(stderr, "HTAA_composeAuth: %s\n",
+			   "Forwarding received authorization");
+	StrAllocCopy(result, HTAAForwardAuth);
+	HTAAForwardAuth_reset();	/* Just a precaution */
+	return result;
+    }
+
     FREE(result);			/* From previous call */
 
     if (TRACE)
@@ -707,12 +762,16 @@ PUBLIC char *HTAA_composeAuth ARGS3(CONST char *,	hostname,
 		    "This client doesn't know how to compose authentication",
 		    "information for scheme", HTAAScheme_name(scheme));
 	    HTAlert(msg);
-	    auth_string = "";
+	    auth_string = NULL;
 	}
     } /* switch scheme */
 
     current_setup->retry = NO;
 
+    /* Added by marca. */
+    if (!auth_string)
+	return NULL;
+    
     if (!(result = (char*)malloc(sizeof(char) * (strlen(auth_string)+40))))
 	outofmem(__FILE__, "HTAA_composeAuth");
     strcpy(result, "Authorization: ");
@@ -724,7 +783,7 @@ PUBLIC char *HTAA_composeAuth ARGS3(CONST char *,	hostname,
 
 
 
-	    
+
 /* BROWSER PUBLIC				HTAA_shouldRetryWithAuth()
 **
 **		DETERMINES IF WE SHOULD RETRY THE SERVER

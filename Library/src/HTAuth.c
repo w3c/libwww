@@ -6,7 +6,7 @@
 **	AL	Ari Luotonen	luotonen@dxcern.cern.ch
 **
 ** HISTORY:
-**
+**	AL 14.10.93 Fixed the colon-not-allowed-in-password-bug.
 **
 ** BUGS:
 **
@@ -44,7 +44,6 @@ PRIVATE HTAAUser *decompose_auth_string ARGS2(char *,		authstring,
     char *inet_addr = NULL;
     char *timestamp = NULL;
     char *browsers_key = NULL;
-    char *extras = NULL;
 
     if (!user && !(user = (HTAAUser*)malloc(sizeof(HTAAUser))))	/* Allocated */
 	outofmem(__FILE__, "decompose_auth_string");		/* only once */
@@ -120,16 +119,6 @@ PRIVATE HTAAUser *decompose_auth_string ARGS2(char *,		authstring,
 			       "fields missing in authentication string");
 	    return NULL;
 	}
-	extras = strchr(browsers_key, ':');
-    }
-    else extras = strchr(password, ':');
-
-    if (extras) {
-	*(extras++) = '\0';
-	if (TRACE) fprintf(stderr, "%s `%s' %s `%s'\n",
-			   "decompose_auth_string: extra field(s) in",
-			   (scheme==HTAA_BASIC ? "Basic" : "Pubkey"),
-			   "authorization string ignored:", extras);
     }
 
 /*

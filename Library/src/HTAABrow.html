@@ -126,6 +126,19 @@ PUBLIC BOOL HTAA_shouldRetryWithAuth PARAMS((char *	start_of_headers,
 					     int	soc));
 </PRE>
 
+
+<H2>Enabling Gateway httpds to Forward Authorization</H2>
+These functions should only be called from daemon code, and
+<CODE>HTAAForwardAuth_reset()</CODE> must be called before the next
+request is handled to make sure that authorization string
+isn't cached in daemon so that other people can access private
+files using somebody elses previous authorization information.
+<PRE>
+PUBLIC void HTAAForwardAuth_set PARAMS((CONST char * scheme_name,
+					CONST char * scheme_specifics));
+PUBLIC void HTAAForwardAuth_reset NOPARAMS;
+</PRE>
+
 <PRE>
 #endif	/* NOT HTAABROW_H */
 </PRE>

@@ -80,8 +80,38 @@ PUBLIC char * HTPrompt ARGS2(CONST char *, Msg, CONST char *, deflt)
 PUBLIC char * HTPromptPassword ARGS1(CONST char *, Msg)
 {
     char *result = NULL;
-    char *pw = getpass(Msg ? Msg : "Password: ");
+    char *pw = (char*)getpass(Msg ? Msg : "Password: ");
     StrAllocCopy(result, pw);
     return result;
+}
+
+
+/*	Prompt both username and password	HTPromptUsernameAndPassword()
+**	---------------------------------
+** On entry,
+**	Msg		is the prompting message.
+**	*username and
+**	*password	are char pointers; they are changed
+**			to point to result strings.
+**
+**			If *username is not NULL, it is taken
+**			to point to  a default value.
+**			Initial value of *password is
+**			completely discarded.
+**
+** On exit,
+**	*username and *password point to newly allocated
+**	strings -- original strings pointed to by them
+**	are NOT freed.
+**	
+*/
+PUBLIC void HTPromptUsernameAndPassword ARGS3(CONST char *,	Msg,
+					      char **,		username,
+					      char **,		password)
+{
+    if (Msg)
+	fprintf(stderr, "WWW: %s\n", Msg);
+    *username = HTPrompt("Username: ", *username);
+    *password = HTPromptPassword("Password: ");
 }
 

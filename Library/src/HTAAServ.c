@@ -111,6 +111,13 @@ PUBLIC char *HTAA_statusMessage NOARGS
       case HTAA_SETUP_ERROR:
 	return "Forbidden -- server protection setup error";
 	break;
+      case HTAA_DOTDOT:
+	return "Forbidden -- URL containing /../ disallowed";
+	break;
+	/*
+	** It ought to, using an executable script (TBL)
+	** What do you mean, Tim?? (AL)
+	*/
 
     /* 404 cases */
       case HTAA_NOT_FOUND:
@@ -120,6 +127,10 @@ PUBLIC char *HTAA_statusMessage NOARGS
     /* Success */
       case HTAA_OK:
 	return "AA: Access should be ok but something went wrong"; 
+	break;
+
+      case HTAA_OK_GATEWAY:
+	return "AA check bypassed (gatewaying) but something went wrong";
 	break;
 
     /* Others */
@@ -159,6 +170,9 @@ PRIVATE char *status_name ARGS1(HTAAFailReasonType, reason)
       case HTAA_SETUP_ERROR:
 	return "SETUP-ERROR";
 	break;
+      case HTAA_DOTDOT:
+	return "SLASH-DOT-DOT";
+	break;
 
     /* 404 cases */
       case HTAA_NOT_FOUND:
@@ -168,6 +182,9 @@ PRIVATE char *status_name ARGS1(HTAAFailReasonType, reason)
     /* Success */
       case HTAA_OK:
 	return "OK";
+	break;
+      case HTAA_OK_GATEWAY:
+	return "OK-GATEWAY";
 	break;
 
     /* Others */
@@ -427,16 +444,43 @@ PUBLIC int HTAA_checkAuthorization ARGS4(CONST char *,	url,
 	if (keywords) *keywords = (char)0;	/* Chop off keywords */
     }
     HTSimplify(local_copy);	/* Remove ".." etc. */
-    pathname = HTTranslate(local_copy);
-    if (!HTSecure) {
-	char *localname = HTLocalName(pathname);
-	free(pathname);
-	pathname = localname;
-    }	    
-    FREE(local_copy);
 
-    HTAAFailReason = check_authorization(pathname, method,
-					 scheme, scheme_specifics);
+    /* HTSimplify will leave in a "/../" at the top, which can
+    ** be a security hole.
+    */
+    if (strstr(local_copy, "/../")) {
+	if (TRACE) fprintf(stderr, "HTAA_checkAuthorization: %s (`%s')\n",
+			   "Illegal attempt to use /../", url);
+	HTAAFailReason = HTAA_DOTDOT;
+    }
+    else {
+	pathname = HTTranslate(local_copy);
+
+	if (!pathname) {		/* Forbidden by rule */
+	    if (TRACE) fprintf(stderr,
+			       "HTAA_checkAuthorization: Forbidden by rule\n");
+	    HTAAFailReason = HTAA_BY_RULE;
+	}
+	else {	/* pathname != NULL */
+	    char *access = HTParse(pathname, "", PARSE_ACCESS);
+	    if (!*access  ||  0 == strcmp(access, "file")) {  /* Local file  */
+		if (!HTSecure) {			      /* so check AA */
+		    char *localname = HTLocalName(pathname);
+		    free(pathname);
+		    pathname = localname;
+		}
+		HTAAFailReason = check_authorization(pathname, method,
+						     scheme, scheme_specifics);
+	    }
+	    else {  /* Not local access */
+		HTAAFailReason = HTAA_OK_GATEWAY;
+		fprintf(stderr, "HTAA_checkAuthorization: %s (%s access)\n",
+			"Gatewaying -- skipping authorization check",
+			access);
+	    }
+	} /* pathname */
+    }
+    FREE(local_copy);
 
     if (htaa_logfile) {
 	time(&theTime);
@@ -471,6 +515,7 @@ PUBLIC int HTAA_checkAuthorization ARGS4(CONST char *,	url,
       case HTAA_NO_ACL:
       case HTAA_NO_ENTRY:
       case HTAA_SETUP_ERROR:
+      case HTAA_DOTDOT:
 	return 403;
 	break;
 
@@ -479,6 +524,7 @@ PUBLIC int HTAA_checkAuthorization ARGS4(CONST char *,	url,
 	break;
 
       case HTAA_OK:
+      case HTAA_OK_GATEWAY:
 	return 200;
 	break;
 
