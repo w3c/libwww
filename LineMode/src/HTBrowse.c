@@ -1009,7 +1009,7 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest *, actreq)
 	break;
 	
       case 'Z':
-	return EVENT_INTR;
+	return EVENT_INTR_ALL;
 
       case '>':
 	if (!HTClientHost) {
