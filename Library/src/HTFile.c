@@ -44,6 +44,7 @@ typedef enum _FileState {
     FS_NO_DATA		= -2,
     FS_GOT_DATA		= -1,
     FS_BEGIN		= 0,
+    FS_PENDING,
     FS_DO_CN,
     FS_NEED_OPEN_FILE,
     FS_NEED_BODY,
@@ -436,12 +437,39 @@ PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
 		HTHost * host = NULL;
 		if ((host = HTHost_new("localhost", 0)) == NULL) return HT_ERROR;
 		HTNet_setHost(net, host);
-		file->state = FS_DO_CN;
 		if (HTHost_addNet(host, net) == HT_PENDING) {
 		    HTTRACE(PROT_TRACE, "HTLoadFile.. Pending...\n");
-		    return HT_PENDING;
+		    /* move to the hack state */
+		    file->state = FS_PENDING;
+		    return HT_OK;
 		}
 	    }
+	    file->state = FS_DO_CN;
+	    break;
+
+	case FS_PENDING:
+	    /*
+	    ** 2000/08/10 JK : This is a funny state. Because of the
+	    ** internal libwww stacks, when doing multiple local
+	    ** requests (e.g., while using the Robot), we need to ask
+	    ** again for the host object. If we had jumped directly to
+	    ** the FS_DO_CN state, libwww would have blocked because
+	    ** of socket starvation.
+	    ** This state is similar to FS_BEGINNING, but just requests 
+	    ** the host object. 
+	    ** YES. THIS IS AN UGLY HACK!!
+	    */
+	    {
+		HTHost * host = NULL;
+		if ((host = HTHost_new("localhost", 0)) == NULL) return HT_ERROR;
+		HTNet_setHost(net, host);
+		if (HTHost_addNet(host, net) == HT_PENDING) {
+		    HTTRACE(PROT_TRACE, "HTLoadFile.. Pending...\n");
+		    file->state = FS_PENDING;
+		    return HT_OK;
+		}
+	    }
+	    file->state = FS_DO_CN;
 	    break;
 
 	case FS_DO_CN:

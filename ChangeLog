@@ -1,3 +1,14 @@
+2000-08-10	Jose Kahan <jose@w3.org>
+
+	* Because (IMO) a very imbricated protocol stack, the Robot
+	  could hang when accessing local files, as it become starved
+	  on it's own sockets. I fixed the problem by adding a new
+	  state in HTFile:FileEvent() to take into account the case when
+	  a request goes pending. This is mostly based on a previous 
+	  (not commited) patch by Kinuko Yasuda, plus some long debugging to
+	  find out what was happening and a fix to a memory bug that the
+	  other patch had.
+
 2000-08-08 	Wayne Davison <wayne@clari.net>
 	
 	* New HTChunk_setSize function to allow to set the size of a
