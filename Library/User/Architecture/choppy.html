@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Libwww Architecture</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 30-Jun-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Jul-1995 -->
 </HEAD>
 <BODY>
 
@@ -667,19 +667,19 @@ and child anchors is illustrated in the figure.
 
 <OL>
 
-<LI>All child anchors have a pointer to their parent as only the
-parent anchors keep information about the data object itself. Parent
-anchors simply have a pointer to themselves.
-
 <LI>Parent anchors keep a list of its children which is used to avoid
 having multiple example of the same child and in the garbage
 collection of anchors.
+
+<LI>All child anchors have a pointer to their parent as only the
+parent anchors keep information about the data object itself. Parent
+anchors simply have a pointer to themselves.
 
 <LI>Every parent anchor have an address which is a URL pointing to a
 resource that may or may not exist.
 
 <LI>Parents can have a data object associated using the HyperDoc
-structure. In this case anchors <B>B</B> and <B>C</B> has a data
+structure. In this case anchor <B>B</B> and <B>C</B> has a data
 object but <B>A</B> hasn't which can either be because the anchor has
 not yet been requested or the data object has been discarded from
 memory by the application.
@@ -693,8 +693,8 @@ server.
 will be the one selected.
 
 <LI>Parent anchors keep a list of other anchors pointing to it. This
-information is required if a single parent anchor and its children) is
-removed from the sub-web.
+information is required if a single parent anchor (and its children)
+is removed from the sub-web.
 
 </OL>
 
@@ -1145,8 +1145,8 @@ is waiting for user input.
 <DD>The remote server returns a redirection <A
 HREF="../../../Protocols/HTTP/HTRESP.html">status code</A> if the URI
 has either been moved temporarily or permanent to another location,
-possibly on another HTTP server or any other server supported by the
-WWW-model. The HTTP module supports both a temporarily and a permanent
+possibly on another HTTP server or any other service, for example FTP
+or gopher. The HTTP module supports both a temporarily and a permanent
 redirection code returned from the server:
 
 <DL>
@@ -1206,224 +1206,251 @@ HREF="#initial">initial state</A>.
 <H1>Post Webs - an API for PUT and POST</H1>
 
 The <A HREF="../../../Protocols/">HTTP</A> PUT and POST are required
-features when extending the <A HREF="http://www.w3.org">WWW</A> to a
+features when extending the <A HREF="http://www.w3.org">Web</A> to a
 fully collaborative tool with features like remote authoring,
 annotations, update of data bases etc. Many Web applications are
-currently capable of transfering input data in a form from the client
-to the server, but a more generic mechanism than forms is needed for
-transmitting any data object from a client to a server. This document
-specifies how this functionality can be presented to the user and how
-it can be implemented using the <A HREF="../../../Library/">W3C
-Reference Library</A>, a.k.a. WWW Library of Common Code. It defines
-the term "Post Web" and the API to to the Library. It is important to
-note that neither of this requires any modification to the <A
-HREF="../../../Protocols/">HTTP/1.0</A> specification nor to the <A
-HREF="../../../MarkUp/">HTML</A> form definition. <P>
+currently capable of transferring data from HTML forms to a HTTP
+server. However, form data is typically small amounts of text based
+data, and a more generic mechanism is needed for transmitting an
+arbitrary data object to any kind of remote server. This document
+describes how this functionality can be provided by the "Post Web"
+model and how this model interacts with the user, the application, and
+the <A HREF="../../">W3C Reference Library</A>. One of the advantages
+of this model is that it does not require any modification, neither to
+the <A HREF="../../../Protocols/">HTTP/1.0</A> specification nor to
+the <A HREF="../../../MarkUp/">HTML</A> form definition. <P>
 
 <H2>What is a Post Web?</H2>
 
-A Post Web is used as the main abstraction mechanism for enabling the
-user to send data objects simultanously to multiple destinations. The
-purpose of the Post Web is to reflect a set of commonly used
-communication methods and put these methods into the Web model. For
-example, imagine a user writing a document wanting it to be posted to
-the following destinations:
+A "Post Web" is used as an abstraction mechanism for enabling the user
+to perform multiple operations (methods) on a data object rendered in
+multiple representations determined for multiple destinations. This
+may seem complicated but the Post Web is in fact a very simple model as
+will become clear in the following sections. <P>
 
-<UL>
-<LI>a news group
-<LI>a mailing list
-<LI>a college
-<LI>a HTTP server where it can be made available to the whole world
-</UL>
-
-Then this can be represented as a web consisting of 5 nodes:
-
-<P><IMG SRC="PostWebUser.gif"><P>
-
-The basic idea of the post interface to the Library is that when using
-POST, the user is often interested in posting the data object to more
-than one recipient, e.g. the user can send the same data object to two
-mailing lists, a news group and at the same time store the data object
-as a file on a remote HTTP server.
-
-There are three players in the Post Web model:
-
-<DL>
-<DT><A HREF="#user">The User</A>
-<DD>The User builds the Post Web by specifying the recepients of a data object to be posted.
-<DT><A HREF="#client">The Client</A>
-<DD>The Client converts the Post Web into a form that can be handed as a request to the W3C Reference Library
-<DT><A HREF="#library">The Library</A>
-<DD>The Library serves the client request and carry out the transactions with the network
-</DL>
-
-The different roles of the players are described in the following
-sections.
-
-<H2><A NAME="user">The User Builds a Post Web</A></H2>
-
-What is important is that the user has the same interface whether he
-or she is posting to a News group, a mailing list or a HTTP server,
-and that it is possible to post a data object simultanously to
-multiple destinations. The idea behind the Post Web is that the PUT
-and POST methods appear as protocol independent as idempotent methods
-for example GET or HEAD.
-
-The API is flexible enough to support not only the <A
-HREF="../../../Protocols/HTTP/Methods/Post.html">POST</A> method in
-the <A HREF="../../../Protocols/HTTP/HTTP2.html">HTTP Protocol</A>,
-but at the same time provide functionality for posting to email
-addresses using <A HREF="ftp://nic.ddn.mil/rfc/rfc821.txt">SMTP</A>
-and <A HREF="ftp://nic.ddn.mil/rfc/rfc977.txt">NNTP</A> news
-groups. Posting to other Internet servers such as <A
-HREF="ftp://nic.ddn.mil/rfc/rfc959.txt">FTP</A> servers is not
-considered in this document, but the concept is designed with the
-possibility of including additional Internet protocols.<P>
-
-<P><IMG SRC="PostWeb.gif"><P>
-
-As indicated in the figure, the user builds a "Post Web" around an <A
-HREF="../../../Architecture/Anchors.html">anchor element</A> before
-the POST is committed and passed to the Library.  The rounded boxes
-are remote logical data objects that are still to be created and the
-lines are logical links between the post anchor and the remote data
-objects. The two links to the NNTP box represents that the data object
-is to be posted to two different news groups. In practice only one
-physical link would actually exist to the NNTP as all posting to a
-NNTP Server is done in one single transaction.<P>
-
-The actual user interface is for the client to implement, but
-typically a GUI-client could use drag-and-drop icons for building the
-Web. The Post Web could be visualized using a user implemented menu of
-icons of the most used recipients and then let the user drag lines
-between the data object to be posted and the recipients. The Library
-helps the user building the Web by providing the functionality of <A
-HREF="../../Implementation/HTAnchor.html#links"> linking the anchors
-together</A>. <P>
-
-
-<H2><A NAME="client">The Client Generates a Request</A></H2>
-
-Creates the web and make sure it doesn't exist already!!<P>
-
-When the user has decided to commit the POST, the post anchor is
-passed from the client to the Library together with a <A
-HREF="../../Implementation/HTAccess.html#z1">request
-structure</A>. This is very similar to the current implementation of a
-<A HREF="../../../Protocols/HTTP/Methods.html">HTTP GET Method</A>. An
-important consideration in the design has been to include the
-multi-threaded functionality in the posting module so that both PUT
-and POST in principle behaves exactly like a GET or any other method
-using non-blocking I/O, see also the <A
-HREF="multithread.html#control">multi-threaded control flow</A>.
-
-<P><IMG SRC="POSTEvent.gif"> <P>
-
-However, PUT and POST methods are inherently different from the GET
-method as they require a data flow in both directions. This is
-especially the case using PUT as a data object often will be returned
-from the remote server.  <P>
-
-The routine for handling the POST in the Library parses the Post Web
-and groups the individual requests into protocol categories. In the
-case of a NNTP request, all POST requests are handled at the same time
-and send to the actual NNTP server. When the parsing of the Web is
-done, the post module recursively calls the protocol modules to
-execute the POST. <P>
-
-The posting mechanism is designed to be compatible with the <A
-HREF="multithread.html">multi-threaded structure</A> of the Library.
-This means that the client is asked for data based on an event driven
-action taken by the event loop.  The client then gets a <A
-HREF="../Guide/Stream.html"> stream</A> so that the document to be
-posted can be pumped down the stream and out on the net.
-
-
-<H2><A NAME="library">The Library Serves the Request</A></H2>
-
-When the application has created the source anchor information and
-handed it to the Library When a source anchor is handed to the
-Library, it walks through the set of destinations and creates an
-internal representation of the Post Web using <A
-HREF="../../../Implementation/HTAccess.html#z1">HTRequest
-structures</A> -- one for the source and each of the destinations.
-
-The result of the posting varies as a function of the protocol used.
-It is a general rule through out the design of the Library that other
-protocols than HTTP should be supported but not extended beyond their
-individual limitations. This means that the Library has to be flexible
-enough to handle more than one result from a posting transaction
-dependent on the protocol used.
+The purpose of the Post Web is to take a set of common situations
+taken from the world of email and news; merge it with the features of
+HTTP, and put the result into the Web model. This leads to the
+following set of requirements:
 
 <UL>
 
-<LI>Posting to multiple destination must use either libwww threads or
-other thread implementations. In the case of libwww threads, it must
-use non-blocking, interruptible I/O.
-
-<LI>The Library must be capable of handling concurrent write and read
-operations to and from the network.
-
-<LI>It must be possible to perform data conversion from one media type
-to another on the fly when posting. The data conversion can either be
-performed on the data going to all destinations or on individual
+<LI>A post operation can involve one source and a multiple number of
 destinations.
 
+<LI>The source and any of the destinations can be references to either
+local or remote data objects.
+
+<LI>The model must provide data format conversion from one media type
+to another on the fly when posting a data object. The data conversion
+can either be performed on the data going to all destinations or on
+individual destinations.
+
+<LI>The user must be able to specify a relation between a source and
+any of the destinations, for example "Written by".
+ 
 <LI>It must be possible to specify individual methods used for each
 destination, for example, if three destinations are specified then one
 can use PUT, another POST, and the third can use LINK.
+
+<LI>The Library must be able to handle access authentication and
+redirection on both the source and each of the destinations.
+
+</UL>
+
+The Post Web model provides a homogeneous interface to the posting
+operation regardless of the destination, the method, and the data
+format as this conceptually is the same operation. It describes the
+full operation from defining the source and destinations to actually
+transfer the data over the network. This process involves there
+players: the user, the application, and the Library. Each of these
+uses the Post Web model but on different levels of abstraction:
+
+<DL>
+<DT><A HREF="#user">The user</A>
+<DD>To the user, the Post Web is a naming scheme identifying the
+source and destination and how the destinations are related to the
+source.
+
+<DT><A HREF="#client">The application</A>
+<DD>The application sees the operation as a change in the topology of
+the Web and communicates this change to the Library.
+
+<DT><A HREF="#library">The Library</A>
+<DD>The Library interprets the Post Web as a set of related requests
+specifying the access scheme, the operation to be done, the data flow
+between them, and the data formats in this data flow.
+</DL>
+
+The following paragraphs describe the three layers of abstraction and
+how they are interconnected and thus defining the Post Web model.
+
+<H2><A NAME="user">The User Builds a Post Web</A></H2>
+
+The description of the Post Web model includes a basic example in
+which a user wants to post the same data object or variations thereof
+to two mailing lists, a news group and at the same time store the data
+object on a remote HTTP server. This scenario can be graphically
+represented as a Post Web consisting of five nodes: one source and
+four destinations:
+
+<P><IMG SRC="PostWebUser.gif" ALT="User's View"><P>
+
+This document does not specify the user interface for building a Post
+Web as this is tightly connected to the platform involved, but
+obviously it should take advantage of any graphic features
+etc. Typically a GUI-client could use drag-and-drop icons for building
+the Web. For example, the Post Web could be visualized using a
+collection of icons representing commonly used recipients and then let
+the user drag lines between the data object to be posted and the
+recipients. <P>
+
+On each of the four destinations, the user can specify what method
+should be applied and any relations between the source and any of the
+destinations. The relations are identical to the <A
+HREF="../../../MarkUp/">HTML</A> "Link" tag and the <A
+HREF="../../../Protocols/">HTTP</A> "Link" header, and it can for
+example describe authorship, relations to other data objects etc.<P>
+
+When the user has finished specifying the source, the destinations,
+the methods, and any relations between them, the application can take
+this information and convert it to a lower abstraction level.
+
+<H2><A NAME="application">The Application Generates a Request</A></H2>
+
+To the application, the Post Web is a request for change in the
+topology of the Web. The application can describe this change in the
+internal Library representation of the Web based on the <A
+HREF="../../Implementation/HTAnchor.html#anchor">HTAnchor</A> object
+as described in section "<A HREF="Anchors.html">Anchor
+Objects</A>". In the figure below, any of the addresses or data
+objects may or may not exist when the Post Web is submitted by the
+application. Depending on whether it is on the source side or on the
+destination this may or may not be an error situation.
+
+<P><IMG SRC="PostWebApp.gif" ALT="Application's View"><P>
+
+The Library provides an API for handling anchor objects including how
+to link the objects together as indicated in the figure above. This is
+explained in more detail in the <A HREF="User's Guide">User's
+Guide</A>. <P>
+
+<H2><A NAME="library">The Library Serves the Request</A></H2>
+
+When the application has bound the source anchor to the destination
+anchors with the appropriate methods and link relations, the Post Web
+can be handed over to the Library in order to transfer the data object
+from the source to the destinations. The Library is responsible for
+handling the actual protocol communication, and hence this part of the
+Post Web model is the lowest layer of abstraction. Therefore the
+design goals for this layer of the Post Web is somewhat more technical
+than the first two layers:
+
+<UL>
+
+<LI>Posting to multiple destinations must be compatible with libwww
+threads and extern thread implementations. In the case of libwww
+threads, it must use non-blocking, interruptible I/O.
+
+<LI>The Library must be capable of handling concurrent write and read
+operations to and from the network.
 
 <LI>There must be no timing requirements that can lead to race
 conditions between any of the destinations and the source or between
 destinations.
 
-<LI>The Library must be able to handle Access Authentication and
-redirection on both the source and each of the destinations.
+<LI>Redirections and access authentication must be handled on both the
+source side and any of the destinations.
 
-<LI>The user must be able to specify a link relation ship between a
-source and any of the destinations, for example "Written by".
- 
 </UL>
 
+Internally, the Library represents a Post Web in two different ways: A
+<EM>static</EM> and a <EM>dynamic</EM> binding between the source the
+destinations. The static binding is created when the application
+issues the request, and it exists until all the sub-requests in the
+Post Web have reached a final state. The dynamic binding depends on
+the data flow and exists only as long as data is passed through the
+Post Web. The dynamic binding can be set up and taken down
+independently of the static binding, and often this happens multiple
+times during the handling of a request. <P>
 
-<H3>Building a Request Tree</H3>
+As described in the section "<A HREF="DataStructures.html#request">Central
+Data Structures</A>", the <A
+HREF="../../Implementation/HTRequest.html">HTRequest</A> structure is
+one of the central data structures used to describe a request from the
+application. This structure is used in the static binding between the
+source and the destinations and it is initialized as soon as the
+request is passed to the Library from the application.
 
+<P><IMG SRC="PostWebReq.gif" ALT="libwww's Request View"><P>
 
-<H3>Building a Stream Tree</H3>
+At this point no information is known about the data object itself, so
+the static binding only contains information about who the source and
+the destinations are. The dynamic binding carries information about
+data format, content length and other essential metainformation about
+the object. The dynamic binding is basically a stream chain that is
+established as this information gets available from the source
+server:<P>
 
+<P><IMG SRC="PostWebStream.gif" ALT="libwww's Stream View"><P>
 
-<H3>Dynamic Update of Trees</H3>
+<OL>
 
+<LI>As soon as the source server (which might be the local file system
+or a remote HTTP server) is ready to accept a request, it is sent of
+by the Library.
 
-<UL>
-<LI>partial success
+<LI>The Library then waits until the source server starts sending back
+a response. In the mean time, the application can issue request other
+requests as the model is based on non-blocking I/O.
 
-<LI>Access Authentication
+<LI>As soon as data arrives and the data format is identified, the
+dynamic bindings between the source and the destinations can be
+setup. The binding is basically a connection between the target of the
+source request and the input of any of the destination requests.In the
+case of multiple destination, T-streams can be added to supply the
+required number of outgoing data flows.
 
-<LI>Redirection
-</UL>
+<LI>The destination is now ready for transmitting a request. In the
+case of HTTP, the destination request can not be transmitted before
+the full header is known, which is when the meta information from the
+source data object is parsed.
 
+<LI>A response will arrive to each of the destination requests
+determining whether the posting can continue or not.
 
-<P><IMG SRC="PostResult.gif"><P>
+<LI>When the dynamic binding is established, any data format
+conversion can be inserted between the target of the source request
+and the input of any of the destination requests. A converter can
+either be placed directly at the target or on any of the inputs, so
+that all destinations can have different renditions of the data
+object. As the content length often will change as a converter other
+than a through line is used, it can be required to insert a content
+length counter stream which will buffer the data object before it is
+emitted from the stream.
 
-An immediate result from a post transaction is available using NNTP or
-HTTP but when using SMTP, the result might be delayed several days. In
-practice there is no way that the client can await a response for that
-amount of time.
+</OL>
 
-In the figure, postings using SMTP are still rounded because it is not
-possible for the user to actually access the document using the URL
-returned from the Library. As the NNTP posting failed in the figure,
-the document is still non-existent. Only the HTTP posting has turned
-into a physical document reference on the remote server. <P>
+<H2>Updating the Web Topology</H2>
 
-When all postings are terminated, a new anchor is generated containing
-the allocated links on the remote servers for future references
-(except in the SMTP case). The amount of links returned might be a
-subset of the requested recipients as only postings which terminated
-successfully are registered. Using this set, the client must determine
-what to do with failed postings. One possibility would be to try again
-using the failed part of the Post Web, or simply to discard it.
+The application can use the result of the operation returned from the
+Library to either regard the change in the topology of the Web as
+successful, erroneous, or any degree in between. The application can
+use this information to for example update any graphical visualization
+of the part of the Web that the user has traversed. <P>
+
+The result of posting a data object varies from protocol to
+protocol. Typically transaction oriented protocols can provide an
+immediate result whereas relayed protocols can not. As a general rule
+in the design of the Library other protocols than HTTP should be
+supported but not extended beyond their individual limitations. This
+means that the Library has to be flexible enough to handle more than
+one result from a posting transaction dependent on the protocol
+used. As an example, an immediate result from a post transaction is
+available using NNTP or HTTP whereas the result from SMTP might be
+delayed several days. In practice there is no way that the application
+can await a response for that amount of time, and it should therefore
+be treated as "Accepted" with no guarantee of completeness.
 
 <H1>DNS Cache and Host Name Canonicalization</H1>
 

@@ -10,10 +10,10 @@
 
 <H1>Library 3.1 Release Notes</H1>
 
-This is the announcement of the first release of the Library of Common
-Code from W3C. The release is called 3.1 prerelease 1 and is to be
-considered as a beta version of the official release scheduled for end
-of June. The code word for this release is support for remote
+This is the announcement of the second release of the Library of
+Common Code from W3C. The release is called 3.1 prerelease 1 and is to
+be considered as a beta version of the official release scheduled for
+end of June. The code word for this release is support for remote
 collaborate work where people can use HTTP and the Web as a remote
 authoring environment. The purpose of this release is to build and
 maintain a close loop between W3C discussion and implementation
@@ -41,8 +41,117 @@ software distribution. <P>
 
 <H2>Library 3.1pre2 Release Notes, July 1</H2>
 
+This is the announcement of the second release of the Library of
+Common Code from W3C. The release is called 3.1 prerelease 2 and is to
+be considered as a beta version of the official version 3.1. This
+prerelease is also the last one before the "real thing" which will be
+out shortly after this. As usual, the release is ONLY available to W3C
+members, and it not be public available until one month from now. <P>
 
+The code word for the 3.1 release is support for remote collaborate
+work where people can use HTTP and the Web as a remote authoring
+environment. The reason for the slight delay is that this release has
+a new "Post Web" model for implementing PUT and POST, the
+documentation has been reorganized and rewritten, and some other
+important features have been incorporated. The Post Web model is
+described in the new documentation, see the reference below. <P>
 
+The functionality of the Library is now almost at the planned level
+for release 3.1, what we still need approximately a week for is to
+integrate the Windows NT port which has kept Charlie Brooks
+(cbrooks@osf.org) very busy - thanks! <P>
+
+In addition to the new set of features and functionality this release
+also is the first example of source code distributed under the W3C
+conditions. This means that the code is available to consortium
+members only within a month from the release date. <P>
+
+A lot of the work put into this release has been to update the API of
+the Library. This is mainly described in the new "User Guide", so
+please do read this and remember that comments are welcome! <P>
+
+<H3>New Features and Interfaces</H3>
+
+<UL>
+
+<LI>The Post Web model is supported by the following methods to handle
+the <A HREF="../Implementation/HTAccess.html#z1">HTRequest
+structure</A>
+
+<UL>
+<LI>HTRequest_removeDestination()
+<LI>HTRequest_linkDestination()
+<LI>HTRequest_unlinkDestination()
+<LI>HTRequest_removePostWeb()
+<LI>HTRequest_killPostWeb()
+</UL>
+
+<LI><A HREF="../Implementation/HTFile.html">HTFile module</A> is
+completely rewritten as a state machine much like the <A
+HREF="../Implementation/HTTP.html">HTTP module</A>. It is now
+possible to have non-blocking, interruptible I/O and to PUT and POTS
+from a local file as well as from a remote HTTP server.
+
+<LI>HTCopyAnchor is rewritten to use the PostWeb
+
+<LI>The thread model is extended to include a HTThread_kill() function
+so that threads are terminated immediately upon request
+
+<LI><A HREF="../Implementation/HTProxy.html">HTProxy module</A> is
+introduced. This module substitutes the environment variables for
+defining gateways and proxies. It can now be done dynamically at run
+time. For backwards compatibility HTProxy_getEnvVar() can be used to
+read the most used environment variables.
+
+<LI>Taken socket read/write functionality out of HTFormat and created
+<A HREF="../Implementation/HTSocket.html">HTSocket module</A> which
+handles all the basic network access
+
+<LI>Spawned <A HREF="../Implementation/HTMethod.html">HTMethod
+module</A> from HTAccess module
+
+<LI>Better handling of WAIS src files and use of gateway information
+
+<LI>Upgraded the WAIS to handle version 0.5 of the freeWAIS Library.
+
+<LI>Better handling of media types from WAIS responses (guessing)
+
+<LI>All HTTP headers can now be transmitted and received and they can
+all be enabled/disabled using a bitmask.
+
+<LI>New functions to support accept encoding, language, and charset
+
+<LI>Guess stream now handles macbinhex format
+
+<LI>No more circular references in any of the Library include files
+
+<LI>Introduced REMOVE and RMDIR as macros instead of direct system calls
+
+<LI>Removed HTRequest_clear() - it's not safe to reuse a request structure!
+
+<LI>HTStrip() is now placed in the HTString module
+
+<LI>introducing the method used in the link structure in the anchor
+
+<LI>HTTP modified to support PostWeb
+
+</UL>
+
+<H3>Bug Fixes</H3>
+
+<UL>
+<LI>Cache is now avoided if in secure mode (no access to local file system)
+
+<LI>Bug fix to allow simultaneous read and write on the same socket
+
+<LI>Stream stack now dumps to local file if no conversion can be made
+
+<LI>Bug fix that caused core dumps for HTTP 0.9 servers
+
+<LI>Bug fixed in stream stack if system() call is not present. This
+release has a new model called "Post Web" for handling put and post
+from a source to a multiple number of destinations. Furthermore
+</UL>
 
 <H2>Library 3.1pre1 Release Notes, May 20</H2>
 
@@ -54,12 +163,12 @@ please do read this and remember that comments are welcome!
 
 <UL>
 <LI>Windows NT Support (and possibly Windows 3.1 with Win32S) thanks
-to Charlie Brooks, <cbrooks@osf.org>
+to Charlie Brooks, &lt;cbrooks@osf.org&gt;
 
 <LI>A lot easier handling of headers in the HTTP module including
 support for extra headers
 
-<LI>Improved <A HREF="../../Implementation/HTMIME.html">HTTP/MIME
+<LI>Improved <A HREF="../Implementation/HTMIME.html">HTTP/MIME
 parser</A> which recognizes 99% of the HTTP headers The rest will be
 ready in the next release! This includes support for "charset" and
 "level" parameter
@@ -77,10 +186,10 @@ of methods. The garbage collector is not the best
 hash function for improved speed and more functionality than before
 
 <LI>Created HTDateTimeStr() and HTMessageID() in <A
-HREF="../../Implementation/HTString.html">HTString</A>
+HREF="../Implementation/HTString.html">HTString</A>
 
 <LI>Separated HTStructured into its own stream definition module (<A
-HREF="../../Implementation/HTStruct.html">HTStruct.h</A>)
+HREF="../Implementation/HTStruct.html">HTStruct.h</A>)
 
 <LI>Introduced STREAM_TRACE and BIND_TRACE as new debug flag
 
@@ -106,6 +215,6 @@ recognition of UU encoded files
 
 <P>
 <HR>
-<ADDRESS>Henrik Frystyk, libwww@w3.org, May 1995</ADDRESS>
+<ADDRESS>Henrik Frystyk, libwww@w3.org, July 1995</ADDRESS>
 </BODY>
 </HTML>
