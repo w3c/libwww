@@ -172,6 +172,8 @@ distribute :  /pub/www/README.txt /pub/www/Copyright.txt
 	(cd $(WWW)/..; WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 		-f WWW/Library/Implementation/CommonMakefile \
 		/pub/www/src/WWWLibrary_$(VC).tar.Z)
+	(cd ../Implementation; cvs tag \
+	    `sed -e 's/VC = /v/' Version.make | sed -e 's?\.?/?'` )
 	echo Distribution of Library version $(VC) up to date.
 
 /pub/www/src/WWWLibrary_$(VC).tar.Z : $(SOURCES)

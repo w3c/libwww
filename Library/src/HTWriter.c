@@ -45,7 +45,7 @@ PRIVATE void flush ARGS1(HTStream *, me)
 #endif
     while (read_pointer < write_pointer) {
         int status;
-	status = NETWRITE(me->soc, me->buffer,
+	status = NETWRITE(me->soc, me->buffer,  /* Put timeout? @@@ */
 			write_pointer - read_pointer);
 	if (status<0) {
 	    if(TRACE) fprintf(stderr,
