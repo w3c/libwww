@@ -60,38 +60,26 @@ xmosaic release
 #define TCP_H
 </PRE>
 
+<B>NOTE:</B> All system include files must be in &lt; &gt; as Windows
+compilers otherwise get confused.
+
 <H2>Default values</H2>These values may be reset and altered by
 system-specific sections later on. There is also a bunch of
 <A NAME="z5" HREF="#z2">defaults</A> at the end and a section for
 <A NAME="z11" HREF="#z10">ordinary BSD unix versions</A>.
 
-<PRE>/* Default values of those: */
-#define NETCLOSE close	    /* Routine to close a TCP-IP socket		*/
-#define NETREAD  read	    /* Routine to read from a TCP-IP socket	*/
-#define NETWRITE write	    /* Routine to write to a TCP-IP socket	*/
-
-/* Unless stated otherwise, */
-#define SELECT			/* Can handle &gt;1 channel.		*/
-#define GOT_SYSTEM		/* Can call shell with string		*/
-
-#ifdef unix
-#define GOT_PIPE
-#endif
-#ifdef VM
-#define GOT_PIPE		/* Of sorts */
-#endif
-
-#ifdef DECNET
-typedef struct sockaddr_dn SockA;  /* See netdnet/dn.h or custom vms.h */
-#else /* Internet */
-typedef struct sockaddr_in SockA;  /* See netinet/in.h */
-#endif
+<PRE>
+#define SELECT			/* Can handle &gt;1 channel */
+#define GOT_SYSTEM		/* Can call shell with string */
+#define GOT_PASSWD		/* Can we use getpass() command */
 </PRE>
 
-<A NAME="z1"><H1>Platform Specific Stuff</H1></A>
-Information below this line is general for most platforms. <P>
+<HR>
 
-See also <A NAME="z6" HREF="#z2">General Stuff</A>
+<A NAME="z1"><H1>Platform Specific Stuff</H1></A>
+
+Information below this line is specific for most platforms. See also
+<A NAME="z6" HREF="#z2">General Stuff</A>
 
 <H2>Macintosh - Think-C</H2>
 
@@ -109,9 +97,6 @@ int, and the MacTCP library assumes 4-byte int.
 #define NO_GETPID		/* getpid() does not exist 		*/
 #define NO_GETWD		/* getwd() does not exist 		*/
 
-#undef NETCLOSE		    /* Routine to close a TCP-IP socket		*/
-#undef NETREAD		    /* Routine to read from a TCP-IP socket	*/
-#undef NETWRITE 	    /* Routine to write to a TCP-IP socket	*/
 #define NETCLOSE s_close    /* Routine to close a TCP-IP socket		*/
 #define NETREAD  s_read	    /* Routine to read from a TCP-IP socket	*/
 #define NETWRITE s_write    /* Routine to write to a TCP-IP socket	*/
@@ -155,16 +140,15 @@ define NO_SOCKET_DEFS on top. This is a temporary hack.
 #ifdef applec			/* MPW  */
 #undef GOT_SYSTEM
 #define DEBUG			/* Can't put it on the CC command line */
+
 #define NO_UNIX_IO		/* getuid() missing */
 #define NO_GETPID		/* getpid() does not exist */
 #define NO_GETWD		/* getwd() does not exist */
 
-#undef NETCLOSE		    /* Routine to close a TCP-IP socket */
-#undef NETREAD		    /* Routine to read from a TCP-IP socket */
-#undef NETWRITE 	    /* Routine to write to a TCP-IP socket */
 #define NETCLOSE s_close    /* Routine to close a TCP-IP socket */
 #define NETREAD  s_read	    /* Routine to read from a TCP-IP socket */
 #define NETWRITE s_write    /* Routine to write to a TCP-IP socket */
+
 #define _ANSI_SOURCE
 #define GUI
 #define LINEFEED 10
@@ -176,12 +160,7 @@ define NO_SOCKET_DEFS on top. This is a temporary hack.
 #include &lt;socket.ext.h&gt;
 #include &lt;string.h&gt;
 
-#endif /* MPW */
-
-#ifndef STDIO_H
-#include &lt;stdio.h&gt;
-#define STDIO_H
-#endif
+#endif /* applec MPW */
 </PRE>
 
 <H2>Big Blue - the world of incompatibility</H2>
@@ -237,6 +216,7 @@ compile options seem to come across in lower case.
 */
 
 #ifdef VM			/* or MVS -- see above. */
+#define GOT_PIPE		/* Of sorts */
 #define NOT_ASCII		/* char type is not ASCII */
 #define NO_UNIX_IO		/* Unix I/O routines are not supported */
 #define NO_GETPID		/* getpid() does not exist */
@@ -283,31 +263,156 @@ This code thanks to Eelco van Asperen &lt;evas@cs.few.eur.nl&gt;
 #endif  /* PCNFS */
 </PRE>
 
-<H2>IBM-PC running Windows NT</H2>
-These parameters providede by  Susan C. Weber &lt;sweber@kyle.eitech.com&gt;.
+<H2>PC running Windows</H2>
+
+Help provided by Susan C. Weber &lt;sweber@kyle.eitech.com&gt;, Paul
+Hounslow <P.M.Hounslow@reading.ac.uk>, and a lot of other PC people.
 
 <PRE>
 #ifdef _WINDOWS
-#include "fcntl.h"			/* For HTFile.c */
-#include "sys\types.h"			/* For HTFile.c */
-#include "sys\stat.h"			/* For HTFile.c */
+#include &lt;windows.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;sys\types.h&gt;
+#include &lt;sys\stat.h&gt;
 
-#undef NETREAD
-#undef NETWRITE
-#undef NETCLOSE
-#define NETREAD(s,b,l)	((s)&gt;10 ? recv((s),(b),(l),0) : read((s),(b),(l)))
-#define NETWRITE(s,b,l)	((s)&gt;10 ? send((s),(b),(l),0) : write((s),(b),(l)))
-#define NETCLOSE(s) 	((s)&gt;10 ? closesocket(s) : close(s))
+#define NETREAD(s,b,l)  recv((s),(b),(l),0)
+#define NETWRITE(s,b,l) send((s),(b),(l),0)
+#define NETCLOSE(s)     closesocket(s)
+#define IOCTL(s,c,a)	ioctlsocket(s,c, (long *) a)
+
 #include &lt;io.h&gt;
 #include &lt;string.h&gt;
 #include &lt;process.h&gt;
 #include &lt;time.h&gt;
 #include &lt;direct.h&gt;
 #include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
 #include &lt;winsock.h&gt;
-typedef struct sockaddr_in SockA;  /* See netinet/in.h */
+
+#ifdef _WINDLL
+#define NO_STDIO				/* If we are making a DLL */
+#endif
+
+#define NO_PASSWD
+#define NO_GETWD
+#define HAS_GETCWD
+#define NO_GETPASSWD
+#define NO_GETDOMAINNAME
+
 #define INCLUDES_DONE
 #define TCP_INCLUDES_DONE
+
+#define SOCKFD SOCKET			/* WinSocks socket descriptor */
+#define INVSOC INVALID_SOCKET		/* WinSocks invalid socket */
+
+#define DESIRED_WINSOCK_VERSION	0x0101  /* we'd like winsock ver 1.1... */
+#define MINIMUM_WINSOCK_VERSION	0x0101  /* ...but we'll take ver 1.1 :) */
+</PRE>
+
+<H3>File Access</H3>
+
+These next defintions are because the UNIX stuff is not supplied with
+BC4 (Paul Hounslow <P.M.Hounslow@reading.ac.uk>
+
+<PRE>
+#define NO_UNIX_IO
+
+typedef unsigned long mode_t;
+
+#define	_IFMT		0170000	/* type of file */
+#define		_IFDIR	0040000	/* directory */
+#define		_IFCHR	0020000	/* character special */
+#define		_IFBLK	0060000	/* block special */
+#define		_IFREG	0100000	/* regular */
+#define		_IFLNK	0120000	/* symbolic link */
+#define		_IFSOCK	0140000	/* socket */
+#define		_IFIFO	0010000	/* fifo */
+
+#define	S_ISUID		0004000	/* set user id on execution */
+#define	S_ISGID		0002000	/* set group id on execution */
+#define	S_ISVTX		0001000	/* save swapped text even after use */
+
+#ifdef S_IREAD
+#undef S_IREAD
+#define	S_IREAD		0000400	/* read permission, owner */
+#endif
+
+#ifdef S_IWRITE
+#undef S_IWRITE
+#define	S_IWRITE 	0000200	/* write permission, owner */
+#endif
+
+#ifdef S_IEXEC
+#undef S_IEXEC
+#define	S_IEXEC		0000100	/* execute/search permission, owner */
+#endif
+
+#define	S_ENFMT 	0002000	/* enforcement-mode locking */
+
+#ifdef S_IFMT
+#undef S_IFMT
+#define	S_IFMT		_IFMT
+#endif
+
+#ifdef S_IDIR
+#undef S_IDIR
+#define	S_IFDIR		_IFDIR
+#endif
+
+#ifdef S_IFCHR
+#undef S_IFCHR
+#define	S_IFCHR		_IFCHR
+#endif
+
+#ifdef S_IBLK
+#undef S_IBLK
+#define	S_IFBLK		_IFBLK
+#endif
+
+#ifdef S_IREG
+#undef S_IREG
+#define	S_IFREG		_IFREG
+#endif
+
+#define	S_IFLNK		_IFLNK
+
+#ifdef S_IFIFO
+#undef S_IFIFO
+#define	S_IFIFO		_IFIFO
+#endif
+
+#define	S_IRWXU 	0000700	/* rwx, owner */
+#define		S_IRUSR	0000400	/* read permission, owner */
+#define		S_IWUSR	0000200	/* write permission, owner */
+#define		S_IXUSR	0000100	/* execute/search permission, owner */
+#define	S_IRWXG		0000070	/* rwx, group */
+#define		S_IRGRP	0000040	/* read permission, group */
+#define		S_IWGRP	0000020	/* write permission, grougroup */
+#define		S_IXGRP	0000010	/* execute/search permission, group */
+#define	S_IRWXO		0000007	/* rwx, other */
+#define		S_IROTH	0000004	/* read permission, other */
+#define		S_IWOTH	0000002	/* write permission, other */
+#define		S_IXOTH	0000001	/* execute/search permission, other */
+
+#define	S_ISREG(m)	(((m)&_IFMT) == _IFREG)
+</PRE>
+
+<H3>Errno and Return Codes</H3>
+
+Winsock has its own errno codes and it returns them through
+WSAGetLastError(). However, it does also support BSD error codes, so
+we make a compromise.
+
+<PRE>
+/* extern int errno; */
+#define socerrno WSAGetLastError()
+#define ERRNO_DONE
+</PRE>
+
+Return code for socket functions. We can't use -1 as return value
+
+<PRE>
+
 #endif  /* WINDOWS */
 </PRE>
 
@@ -326,16 +431,12 @@ software.
 <DD> Cern's TCP socket emulation
 over DECnet
 </DL>
-The last three do not interfere with
-the unix i/o library, and so they
-need special calls to read, write
-and close sockets. In these cases
-the socket number is a VMS channel
-number, so we make the @@@ HORRIBLE
-@@@ assumption that a channel number
-will be greater than 10 but a unix
-file descriptor less than 10.  It
-works.
+
+The last three do not interfere with the unix i/o library, and so they
+need special calls to read, write and close sockets. In these cases
+the socket number is a VMS channel number, so we make the @@@ HORRIBLE
+@@@ assumption that a channel number will be greater than 10 but a
+unix file descriptor less than 10.  It works.
 
 <PRE>
 #ifdef VMS 
@@ -358,6 +459,7 @@ works.
 #define NETWRITE(s,b,l)	((s)&gt;10 ? socket_write((s),(b),(l)) : \
 				write((s),(b),(l)))
 #define NETCLOSE(s) 	((s)&gt;10 ? socket_close(s) : close(s))
+#define IOCTL(s,c,a)	socket_ioctl(s,c,a);
 #endif /* MULTINET */
 
 #ifdef DECNET
@@ -378,15 +480,15 @@ works.
 #define __TYPES
 #define __TYPES_LOADED
 #endif /* __TIME_T */
-#include "multinet_root:[multinet.include.sys]types.h"
-#include "multinet_root:[multinet.include]errno.h"
+#include &lt;multinet_root:[multinet.include.sys]types.h&gt;
+#include &lt;multinet_root:[multinet.include]errno.h&gt;
 #ifdef __TYPES
 #define __TIME_T
 #endif /* __TYPE */
 #ifdef __TIME_LOADED
 #define __TIME
 #endif /* __TIME_LOADED */
-#include "multinet_root:[multinet.include.sys]time.h"
+#include &lt;multinet_root:[multinet.include.sys]time.h&gt;
 #else /* not MULTINET */
 #include &lt;types.h&gt;
 #include &lt;errno.h&gt;
@@ -402,29 +504,28 @@ works.
 
 #include file
 
-#ifndef DECNET  /* Why is it used at all ? Types conflict with "types.h" */
+#ifndef DECNET  /* Why is it used at all ? Types conflict with "types.h&gt; */
 #include unixio
 #endif
 
 #define INCLUDES_DONE
 
 #ifdef MULTINET  /* Include from standard Multinet directories */
-#include "multinet_root:[multinet.include.sys]socket.h"
+#include &lt;multinet_root:[multinet.include.sys]socket.h&gt;
 #ifdef __TIME_LOADED  /* defined by sys$library:time.h */
 #define __TIME  /* to avoid double definitions in next file */
 #endif
-#include "multinet_root:[multinet.include.netinet]in.h"
-#include "multinet_root:[multinet.include.arpa]inet.h"
-#include "multinet_root:[multinet.include]netdb.h"
-#include "multinet_root:[multinet.include.sys]ioctl.h"
+#include &lt;multinet_root:[multinet.include.netinet]in.h&gt;
+#include &lt;multinet_root:[multinet.include.arpa]inet.h&gt;
+#include &lt;multinet_root:[multinet.include]netdb.h&gt;
+#include &lt;multinet_root:[multinet.include.sys]ioctl.h&gt;
 
 #else  /* not multinet */
 #ifdef DECNET
-#include "types.h"  /* for socket.h */
-#include "socket.h"
-#include "dn"
-#include "dnetdb"
-/* #include "vms.h" */
+#include &lt;types.h&gt;  /* for socket.h */
+#include &lt;socket.h&gt;
+#include &lt;dn"
+#include &lt;dnetdb"
 
 #else /* UCX or WIN */
 #ifdef CADDR_T
@@ -448,15 +549,14 @@ from the system include files...
 
 <PRE>
 #define USE_DIRENT
-#define GOT_READ_DIR 1
-#include "dirent.h"
+#define GOT_READ_DIR
+#include &lt;dirent.h&gt;
 #define STRUCT_DIRENT struct dirent
 #define R_OK 4
 </PRE>
 
-On VMS machines, the linker needs
-to be told to put global data sections
-into a data segment using these storage
+On VMS machines, the linker needs to be told to put global data
+sections into a data segment using these storage
 classes. (MarkDonszelmann)
 
 <PRE>
@@ -483,11 +583,27 @@ can stat them.
 
 <PRE>
 #ifdef VMS
+typedef unsigned long mode_t;
 #define HTLstat HTStat
 #else /* non VMS */
 #define HTStat stat
 #define HTLstat lstat
 #endif /* non VMS */
+</PRE>
+
+<H3>Definition of Errno</H3>
+
+<PRE>
+#ifdef VMS
+#ifndef __DECC
+extern int uerrno;	/* Deposit of error info (as per errno.h) */
+extern volatile noshare int socket_errno; /* socket VMS error info 
+                                          (used for translation of vmserrno) */
+extern volatile noshare int vmserrno;	/* Deposit of VMS error info */
+extern volatile noshare int errno;  /* noshare to avoid PSECT conflict */
+#define ERRNO_DONE
+#endif /* not DECC */
+#endif /* VMS */
 </PRE>
 
 <H2>SCO ODT unix version</H2>
@@ -502,6 +618,7 @@ can stat them.
 #include &lt;time.h&gt;
 #define USE_DIRENT
 #define NEED_INITGROUPS
+#define NO_GETDOMAINNAME
 #endif
 </PRE>
 
@@ -510,11 +627,12 @@ Mips hack (bsd4.3/sysV mixture...)
 
 <PRE>
 #ifdef Mips	/* Bruker */
-extern int errno;
 typedef mode_t		int;
 #define S_ENFMT		S_ISGID		/* record locking enforcement flag */
-#define S_ISCHR(m)	(m & S_IFCHR)
-#define S_ISBLK(m)	(m & S_IFBLK)
+#define S_ISCHR(m)	((m) & S_IFCHR)
+#define S_ISBLK(m)	((m) & S_IFBLK)
+#define S_ISDIR(m)      (((m)& S_IFMT) == S_IFDIR)
+#define S_ISREG(m)      (((m)& S_IFMT) == S_IFREG)
 #define WEXITSTATUS(s)	(((s).w_status &gt;&gt; 8) & 0377)
 #define NO_STRFTIME
 </PRE>
@@ -571,6 +689,13 @@ This is for NCR 3000 and Pyramid that also are SVR4 systems. Thanks to
 #ifndef NGROUPS_MAX		
 #include &lt;limits.h&gt;
 #endif 
+</PRE>
+
+<CODE>getwd()</CODE> is BSD. System V has <CODE>getcwd()</CODE>
+
+<PRE>
+#define NO_GETWD
+#define HAS_GETCWD
 
 #endif /* Solaris and SVR4 */
 </PRE>
@@ -601,16 +726,17 @@ by Lauren Weinstein &lt;lauren@vortex.com&gt;.
 
 #ifdef ISC3			/* Lauren */
 #define USE_DIRENT
-#define GOT_READ_DIR 1
+#define GOT_READ_DIR
 #include &lt;sys/ipc.h&gt;
 #include &lt;sys/dirent.h&gt;
 #define direct dirent
 #include &lt;sys/unistd.h&gt;
 #define d_namlen d_reclen
 #include &lt;sys/limits.h&gt;
-
+typedef int mode_t;
 #define SIGSTP
 #define POSIXWAIT
+#define _POSIX_SOURCE
 #include &lt;sys/types.h&gt;
 #include &lt;sys/wait.h&gt;
 #include &lt;net/errno.h&gt;
@@ -628,23 +754,11 @@ by Lauren Weinstein &lt;lauren@vortex.com&gt;.
 #endif	/* ISC 3.0 */
 </PRE>
 
-<H2>SOCKS</H2>
-SOCKS modifications by Ian Dunkin &lt;imd1707@ggr.co.uk&gt;.
-<PRE>
-#if defined(SOCKS) && !defined(RULE_FILE)
-#define connect Rconnect
-#define accept  Raccept
-#define getsockname Rgetsockname
-#define bind Rbind 
-#define listen Rlisten  
-#endif
-</PRE>
-
 <H2>NeXT</H2>
 <PRE>
 #ifdef NeXT
-#include "sys/types.h"
-#include "sys/stat.h"
+#include &lt;sys/types.h&gt;
+#include &lt;sys/stat.h&gt;
 
 typedef unsigned short mode_t;
 
@@ -720,7 +834,14 @@ These are a default unix where not already defined specifically.
 <H3>Directory reading stuff - BSD or SYS V</H3>
 <PRE>
 #ifdef unix                    	  /* if this is to compile on a UNIX machine */
-#define GOT_READ_DIR 1       /* if directory reading functions are available */
+
+#define GOT_PIPE				        /* We do have a pipe */
+
+#define GOT_READ_DIR         /* if directory reading functions are available */
+#include &lt;pwd.h&gt;
+#include &lt;grp.h&gt;
+
+#include &lt;stdio.h&gt;
 
 #ifndef NeXT
 #define USE_DIRENT		  /* Try this all the time, Henrik May 29 94 */
@@ -740,31 +861,94 @@ These are a default unix where not already defined specifically.
 #ifndef FNDELAY
 #define FNDELAY		O_NDELAY
 #endif
+
+#if !defined(NeXT) &amp;&amp; !defined(BSD4_4)
+extern char *sys_errlist[];
+extern int sys_nerr;
 #endif
+
+#endif /* unix */
 </PRE>
 
+<HR>
 <H1><A NAME="z2">General Stuff</A></H1>
 
 Information below this line is general for most platforms. <P>
 
 See also <A NAME="z3" HREF="#z1">Platform Specific Stuff</A>
 
+<H3>SOCKS</H3>
+
+SOCKS modifications by Ian Dunkin &lt;imd1707@ggr.co.uk&gt;.
+<PRE>
+#if defined(SOCKS) && !defined(RULE_FILE)
+#define connect Rconnect
+#define accept  Raccept
+#define getsockname Rgetsockname
+#define bind Rbind 
+#define listen Rlisten  
+#endif
+</PRE>
+
+<H3>Network Family</H3>
+
+<PRE>
+#ifdef DECNET
+typedef struct sockaddr_dn SockA;  /* See netdnet/dn.h or custom vms.h */
+#else /* Internet */
+typedef struct sockaddr_in SockA;  /* See netinet/in.h */
+#endif
+</PRE>
+
+<H3>Default Values of Network Access</H3>
+
+<PRE>
+#ifndef NETCLOSE
+#define NETCLOSE close		/* Routine to close a TCP-IP socket */
+#endif
+
+#ifndef NETREAD
+#define NETREAD  read		/* Routine to read from a TCP-IP socket	*/
+#endif
+
+#ifndef NETWRITE
+#define NETWRITE write		/* Routine to write to a TCP-IP socket */
+#endif
+</PRE>
+
 <H3>Include files for TCP</H3>
 <PRE>
 #ifndef TCP_INCLUDES_DONE
 #include &lt;sys/socket.h&gt;
 #include &lt;netinet/in.h&gt;
-
-/* #ifndef __hpux */ /* this may or may not be good -marc -- according
-			to somebody, it wasn't a good thing...(?) -- Ari */
-#include &lt;arpa/inet.h&gt;	    /* Must be after netinet/in.h */
-/* #endif */
-
+#include &lt;arpa/inet.h&gt;		       /* Must be after netinet/in.h */
 #include &lt;netdb.h&gt;
-#endif	/* TCP includes */
+#define TCP_INCLUDES_DONE
+#endif
+</PRE>
+
+<H3>Definition of errno and Return Code</H3>
+
+<PRE>
+#ifndef ERRNO_DONE
+extern int errno;
+#define socerrno errno
+#endif
+</PRE>
+
+<H3>Definition of Socket Desrciptores</H3>
+
+This is necessary in order to support Windows NT...
+
+<PRE>
+#ifndef SOCKFD
+#define SOCKFD int		/* Unix like socket descriptor */
+#define INVSOC -1		/* Unix invalid socket */
+#endif
 </PRE>
 
 <H3>Rough estimate of max path length</H3>
+
 <PRE>
 #ifndef HT_MAX_PATH
 #ifdef MAXPATHLEN
@@ -779,8 +963,8 @@ See also <A NAME="z3" HREF="#z1">Platform Specific Stuff</A>
 #endif /* HT_MAX_PATH */
 </PRE>
 
-
 <H3>Definition of NGROUPS</H3>
+
 <PRE>
 #ifdef NO_UNIX_IO
 #define NO_GROUPS
@@ -798,7 +982,14 @@ See also <A NAME="z3" HREF="#z1">Platform Specific Stuff</A>
 </PRE>
 
 <H3>Definition of Standard File Descriptors</H3>
+
+If we don't have stderr etc. then set STDIN_FILENO to a dummy
+value. However, the value <B>IS</B> used!
+
 <PRE>
+#ifdef NO_STDIO
+#define STDIN_FILENO	-1
+#else
 #ifndef STDIN_FILENO
 #define STDIN_FILENO	0
 #endif
@@ -807,6 +998,7 @@ See also <A NAME="z3" HREF="#z1">Platform Specific Stuff</A>
 #endif
 #ifndef STDERR_FILENO
 #define STDERR_FILENO	2
+#endif
 #endif
 </PRE>
 
