@@ -1,16 +1,19 @@
 <HTML>
 <HEAD>
-<TITLE>Multi-Threaded Management</TITLE>
+<TITLE>Multithreaded Management</TITLE>
 <NEXTID N="z100">
 </HEAD>
 <BODY>
-<H1>Multi Threaded Sockets</H1>
+
+<H1>Multithreaded Management of Sockets</H1>
 
 This module contains the routines for handling the set of active
-sockets currently in use by the multi-threaded clients. Look for more
-information in the <A
+sockets currently in use by the multithreaded clients. It is an
+internal module to the Library, the application interface is
+implemented in the <A HREF="HTEvent.html">Event Module</A>. Look for
+more information in the <A
 HREF="http://info.cern.ch/hypertext/WWW/Library/User/Multithread/multithread.html">
-Multi-Thread Specifications</A>. <P>
+Multithread Specifications</A>. <P>
 
 This module is implemented by <A HREF="HTThread.c">HTThread.c</A>, and
 it is a part of the <A NAME="z10"
@@ -29,19 +32,21 @@ This function initiates the arrays of socket descriptors used in the
 Library. It is currently done in the private <A
 HREF="HTAccess.html#ProtReg">HTAccessInit</A> function. <P>
 
-<B>Note:</B> It is <B>VERY</B> important that this one is called
-before the first request.
-
 <PRE>
 PUBLIC BOOL HTThreadInit	NOPARAMS;
 </PRE>
+
+<IMG ALT="NOTE"
+SRC="http://info.cern.ch/hypertext/WWW/Icons/32x32/caution.gif"> It is
+<B>VERY</B> important that this one is called before the first
+request, as otherwise the socket bit arrays are uninitialized.
 
 <H2>Registration of a Thread</H2>
 
 These two functions put a <A HREF="HTAccess.html#HTNetInfo">HTNetInfo
 object</A> into the list of threads and takes it out again
 respectively. A normal place to call these functions would be on
-creation and deletion of the data objects.
+creation and deletion of the <CODE>HTNetInfo</CODE> data structure.
 
 <PRE>
 PUBLIC void HTThread_new	PARAMS((HTNetInfo * new_net));
@@ -58,8 +63,6 @@ active sockets registered for <CODE>READ</CODE> and
 PUBLIC int HTThreadGetFDInfo 	PARAMS((fd_set * read, fd_set * write));
 </PRE>
 
-
-
 <H2>Registration of the State of a Socket</H2>
 
 When a new request is initiated from the client and a socket has been
@@ -72,9 +75,6 @@ function is called in order to register the socket as waiting for the
 actual operation.
 
 <PRE>
-
-extern int 	HTMaxfdpl;
-
 typedef enum _HTThreadAction {
     THD_SET_WRITE,
     THD_CLR_WRITE,
