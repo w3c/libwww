@@ -1,33 +1,37 @@
-<HTML>
-<HEAD>
-<TITLE>User Guide - Application modules</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 20-Nov-1995 -->
-<NEXTID N="z78">
-</HEAD>
-<BODY>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+   "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+<title>User Guide - Application Modules</title>
+<link href="/StyleSheets/libwww.css" type="text/css" rel="stylesheet">
+</head>
+<body>
 
-<A HREF="../../../"><IMG BORDER="0" ALT="W3C" SRC="../../../Icons/WWW/w3c_home"></A>
-<A HREF="../../"><IMG BORDER="0" ALT="libwww" SRC="../../../Icons/WWW/Lib48x"></A>
-<A HREF="./"><IMG BORDER="0" SRC="../../../Icons/WWW/guide48x" ALT="Using"></A>
+<a href="../../../"><img border="0" alt="W3C"
+src="../../../Icons/WWW/w3c_home">
+</a><a href="../../"><img border="0" alt="libwww"
+src="../../../Icons/WWW/Lib48x">
+</a><a href="./"><img border="0" src="../../../Icons/WWW/guide48x"
+alt="Using">
+</a>
 
-<H1>Application modules</H1>
+<h1>Application Modules</h1>
 
-Until now we have described the Library core and the utilities. You might think: "This is all OK,
-but how can I get the Library to do something, for example accessing a remote HTTP server?". In the
-Library distribution file, you will find many modules that actually can do this and much
-more. However, they are not part of the core but of the application. The application can register
-the set of modules that provides the desired functionality which is basically what we have seen in
-the description of the core. This section discusses the application modules and what functionality
-they provide. The Library provides a special include file called <A
-HREF="../../src/WWWApp.html">WWWApp.h</A> which includes all the modules mentioned in
-this section. This include file <EM>may</EM> be included in an application but is not required. <P>
+Until now we have described the <a href="../../src/WWWCore.html">libwww
+core</a> and the utilities. You might think: "This is all OK, but how can I
+get libwww to do something useful, for example accessing a remote HTTP
+server?".
 
-OK, let's continue and get an overview of the functionality provided by the application modules.
+<p>As part of libwww, you will find <a href="../Guide/">many modules</a> that
+actually can do this and much more. The application <em>can</em> register any
+of these modules in order to get the desired functionality. This section
+discusses the application modules and what functionality they provide.</p>
 
-<P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-@(#) $Id$
-</ADDRESS>
-</BODY>
-</HTML>
+<p></p>
+<hr>
+
+<address>
+<a href="/People/Frystyk/">Henrik Frystyk Nielsen</a>,<br>
+@(#) $Id$ </address>
+</body>
+</html>

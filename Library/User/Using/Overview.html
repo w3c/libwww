@@ -1,119 +1,142 @@
-<HTML>
-<HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen,  9-Feb-1996 -->
-  <TITLE>Using the W3C Sample Code Library</TITLE>
-</HEAD>
-<BODY BGCOLOR="#ffffff">
-<P>
-<A HREF="../../../"><IMG BORDER="0" SRC="../../../Icons/WWW/w3c_home" ALT="W3C"
-    WIDTH="72" HEIGHT="48" BORDER="0"></A>
-<A HREF="../../"><IMG BORDER="0" SRC="../../../Icons/WWW/Lib48x" ALT="libwww"
-    WIDTH="48" HEIGHT="48" BORDER="0"></A><IMG BORDER="0" SRC="../../../Icons/WWW/guide48x"
-    ALT="Using">
-<H1>
-  Using the W3C Sample Code Library
-</H1>
-<P>
-This guide describes the "user's view" of the W3C Sample Code Library. It
-concentrates on describing the API and how the application programmer can
-use the Library. It also describes who is responsible for memory management,
-how to initialize modules etc. Reading this guide should be sufficient in
-order to use the Library without being aware of exactly what is going on
-underneath the interface.
-<H2>
-  Getting Started
-</H2>
-<P>
-Get an introduction to <A HREF="Startup.html">how to get started </A>writing
-the first application using libwww. You may also want to have a look at the
-<A HREF="../Start.html">quick overview</A> if this is all you are interested
-in.
-<H2>
-  The Core
-</H2>
-<P>
-The libwww core is the set of modules that must be included in every application.
-It is a registry for handling protocol access, document parsers which all
-are registerered dynamically using an open set of application modules.
-<UL>
-  <LI>
-    <A HREF="Request.html">The Request Class</A>
-  <LI>
-    <A HREF="Prefs.html">Request Preferences</A>
-  <LI>
-    <A HREF="Anchors.html">The Anchor Class</A>
-  <LI>
-    <A HREF="Link.html">The Link Class</A>
-  <LI>
-    <A HREF="Response.html">The Response Class</A>
-  <LI>
-    <A HREF="Filters.html">BEFORE and AFTER Filters</A>
-  <LI>
-    <A HREF="Streams.html">The Stream Class</A>
-  <LI>
-    <A HREF="Host.html">The Host Class</A>
-  <LI>
-    <A HREF="Transport.html">The Transport Class</A>
-  <LI>
-    <A HREF="Methods.html">The Protocol Class</A>
-  <LI>
-    <A HREF="Bind.html">Bindings to the local File system</A>
-  <LI>
-    <A HREF="MIME.html">Protocol Headers and Extensions</A>
-  <LI>
-    <A HREF="Error.html">The Error Class</A>
-  <LI>
-    <A HREF="Dialogs.html">User Dialogs and Progress Notifications</A>
-  <LI>
-    <A HREF="Event.html">The Event Manager</A>
-  <LI>
-    <A HREF="Timers.html">Basic Timers</A>
-</UL>
-<H2>
-  Application Modules and Filters
-</H2>
-<P>
-In the libwww distribution file you will find many modules that actually
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+   "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+<title>Using the W3C Sample Code Library</title>
+<link href="/StyleSheets/libwww.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+
+<p><a href="../../../"><img border="0" src="../../../Icons/WWW/w3c_home"
+alt="W3C" width="72" height="48"></a><a href="../../"><img border="0"
+src="../../../Icons/WWW/Lib48x" alt="libwww" width="48" height="48"></a><img
+border="0" src="../../../Icons/WWW/guide48x" alt="Using"></p>
+
+<h1>Using the W3C Sample Code Library</h1>
+
+<p>This part of the documentation talks about the majority of the libwww
+classses and how to use them.</p>
+
+<h2><a name="Getting">Getting Started</a></h2>
+
+<p>Get an introduction to <a href="Startup.html">how to get started
+</a>writing the first application using libwww. You may also want to have a
+look at the <a href="../Start.html">quick overview</a> if this is all you are
+interested in.</p>
+
+<h2><a name="Libwww">Libwww Core Classes</a></h2>
+
+<p>The <a href="../../src/WWWCore.html">libwww core</a> is the set of modules
+that are part of the libwww runtime. Essentially the runtime is nothing but a
+registry for handling protocol access, document parsers. All these features
+are registerered dynamically using an open set of <a
+href="../Guide/">application modules</a>.</p>
+<ul>
+<li>
+<a href="../../src/HTReq.html">The Request Class</a>
+</li>
+<li>
+<a href="Prefs.html">Request Preferences</a>
+</li>
+<li>
+<a href="../../src/HTAnchor.html">The Anchor Class</a>
+</li>
+<li>
+<a href="../../src/HTLink.html">The Link Class</a>
+</li>
+<li>
+<a href="../../src/HTResponse.html">The Response Class</a>
+</li>
+<li>
+<a href="Filters.html">BEFORE and AFTER Filters</a>
+</li>
+<li>
+<a href="Streams.html">The Stream Class</a>
+</li>
+<li>
+<a href="../../src/HTHost.html">The Host Class</a>
+</li>
+<li>
+<a href="../../src/HTDNS.html">The DNS Class</a>
+</li>
+<li>
+<a href="Transport.html">The Transport Class</a>
+</li>
+<li>
+<a href="../../src/HTProt.html">The Protocol Class</a>
+</li>
+<li>
+<a href="Bind.html">Bindings to the local File system</a>
+</li>
+<li>
+<a href="MIME.html">Protocol Headers and Extensions</a>
+</li>
+<li>
+<a href="Error.html">The Error Class</a>
+</li>
+<li>
+<a href="Dialogs.html">User Dialogs and Progress Notifications</a>
+</li>
+<li>
+<a href="Event.html">The Event Manager</a>
+</li>
+<li>
+<a href="Timers.html">Basic Timers</a>
+</li>
+</ul>
+
+<h2><a name="Applicatio">Application Modules and Filters</a></h2>
+
+<p>In the libwww distribution file you will find many modules that actually
 does much more than libwww core itself. The application can register the
 precise set of modules that provides the desired functionality. This section
-discusses the application modules and what functionality they provide.
-<UL>
-  <LI>
-    <A HREF="Profiles.html">Application Profiles</A>
-  <LI>
-    <A HREF="Cache.html">The Persistent Cache Manager</A>
-  <LI>
-    <A HREF="Proxy.html">Proxy Server and Gateway Filter</A>
-  <LI>
-    <A HREF="Rules.html">Rule File Filter</A> and <A HREF="RuleSyntax.html">Rule
-    File Syntax</A>
-  <LI>
-    <A HREF="Logging.html">Request Log Filter</A>
-  <LI>
-    <A HREF="History.html">History List Manager</A>
-  <LI>
-    <A HREF="HTML.html">HTML Parser Stream</A>
-</UL>
-<H2>
-  Utility Modules
-</H2>
-<P>
-The Library contains a set of basic utility modules which are used throughour
-all the Library code. The APIs defined by the
-<A HREF="../../src/WWWUtil.html">WWWUtil</A> interface provides basic memory
-management and container modules. You can see a list of the utility modules
-in the <A HREF="../Guide/Utils.html">Library Internals</A>
-<UL>
-  <LI>
-    <A HREF="Memory.html">Dynamic Memory Management</A>
-  <LI>
-    <A HREF="Flags.html">Trace Messages and Preprocessor Defines</A>
-</UL>
-<P>
-  <HR>
-<ADDRESS>
-  Henrik Frystyk Nielsen,
-  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
-  @(#) $Id$
-</ADDRESS>
-</BODY></HTML>
+discusses the application modules and what functionality they provide.</p>
+<ul>
+<li>
+<a href="Profiles.html">Application Profiles</a>
+</li>
+<li>
+<a href="Cache.html">The Persistent Cache Manager</a>
+</li>
+<li>
+<a href="Proxy.html">Proxy Server and Gateway Filter</a>
+</li>
+<li>
+<a href="Rules.html">Rule File Filter</a> and <a href="RuleSyntax.html">Rule
+File Syntax</a>
+</li>
+<li>
+<a href="Logging.html">Request Log Filter</a>
+</li>
+<li>
+<a href="History.html">History List Manager</a>
+</li>
+<li>
+<a href="HTML.html">HTML Parser Stream</a>
+</li>
+</ul>
+
+<h2><a name="Utility">Utility Modules</a></h2>
+
+<p>The Library contains a set of basic utility modules which are used
+throughour all the Library code. The APIs defined by the <a
+href="../../src/WWWUtil.html">WWWUtil</a> interface provides basic memory
+management and container modules. You can see a list of the utility modules in
+the <a href="../Guide/Utils.html">Library Internals</a></p>
+<ul>
+<li>
+<a href="Memory.html">Dynamic Memory Management</a>
+</li>
+<li>
+<a href="Flags.html">Trace Messages and Preprocessor Defines</a>
+</li>
+</ul>
+
+<p></p>
+<hr>
+
+<address>
+Henrik Frystyk Nielsen, <a href="mailto:libwww@w3.org">libwww@w3.org</a>,<br>
+@(#) $Id$ </address>
+</body>
+</html>

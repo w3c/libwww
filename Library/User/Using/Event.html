@@ -1,61 +1,67 @@
-<HTML>
-<HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen,  9-Feb-1996 -->
-  <NEXTID N="z78">
-  <TITLE>The Event Class</TITLE>
-</HEAD>
-<BODY BGCOLOR="#ffffff">
-<P>
-<A HREF="../../../"><IMG BORDER="0" ALT="W3C" SRC="../../../Icons/WWW/w3c_home" WIDTH="72"
-    HEIGHT="48" BORDER="0"></A>
-<A HREF="../../"><IMG BORDER="0" ALT="libwww" SRC="../../../Icons/WWW/Lib48x" WIDTH="48"
-    HEIGHT="48" BORDER="0"></A>
-<A HREF="./"><IMG BORDER="0" SRC="../../../Icons/WWW/guide48x" ALT="Using" WIDTH="48"
-    HEIGHT="48" BORDER="0"></A>
-<H1>
-  The Event Manager
-</H1>
-<P>
-The Event Manager defines any event manager to be used by libwww for handling
-events. An <I>event</I> is not strictly defined as it is highly platform
-dependent and hence out of scope for the Library. If you are using the libwww
-pseudo threads on Unix then an event is when the&nbsp;<I>select()</I> system
-call returns a notification on&nbsp;a socket descriptor, but it may as well
-be an asynchronous event from the windows manager etc. If your application
-is not using anything but traditional blocking sockets then you do not need
-an event manager at all. In that case, libwww will block on any socket or
-system call until the process can proceed.
-<P>
-The libwww interface to an event manager is very simple as it consists of
-<B>registering</B> a <I>socket descriptor</I>, the <I>location</I> in the
-program, and the <I>current state</I> when an operation (for example
-<CODE>read</CODE>) would block. When the event manager at a later point in
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+   "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+<title>The Event Class</title>
+</head>
+<body bgcolor="#ffffff">
+
+<p><a href="../../../"><img border="0" alt="W3C"
+src="../../../Icons/WWW/w3c_home" width="72" height="48"></a> <a
+href="../../"><img border="0" alt="libwww" src="../../../Icons/WWW/Lib48x"
+width="48" height="48"></a> <a href="./"><img border="0"
+src="../../../Icons/WWW/guide48x" alt="Using" width="48" height="48"></a></p>
+
+<h1>The Event Manager</h1>
+
+<p>The <a href="../../src/HTEvent.html">Event Manager</a> defines the API to
+any event loop to be used by libwww for handling events. An <i>event</i> is
+not strictly defined as it is highly platform dependent and considered out of
+scope for libwww.</p>
+
+<p>The <a href="../../src/WWWCore.html">libwww core</a> does <em>not</em>
+define any event loop - this is considered part of the application. However,
+in the <a href="../../src/WWWApp.html">libwww application module</a>, you will
+find <a href="../../src/HTEvtLst.html">two default event loops</a>: one for
+Unix and one or Windows. They are normally initialized using the <a
+href="../../src/HTProfil.html">libwww profiles</a> which help you setting up
+libwww for your particular needs.</p>
+
+<p>Libwww is <em>not</em> currently thread safe - it supports what I call
+pseudo threads which are timed on I/O operations - that is, libwww works very
+much like X.</p>
+
+<p>If your application is not using anything but traditional blocking sockets
+then you do not need an event manager at all. In that case, libwww will block
+on any socket or system call until the process can proceed. It is important to
+note that certain operations like <a href="../../src/HTAccess.html">HTTP PUT
+and POST</a>, for example, require non-blocking sockets.</p>
+
+<p>The <a href="../../src/HTEvent.html">libwww event interface</a> is very
+simple, it consists of two operations:</p>
+<ol>
+<li>
+<b>registering</b> a <i>socket descriptor</i> together with the
+<i>location</i> in the program, and the <i>current state</i> of the operation
+(for example <code>read</code>). When the event manager at a later point in
 time gets a notification that the socket has become ready, it can then call
 libwww with the state saved from the registration and libwww can continue.
-Second, libwww must be able to <B>unregister</B> a socket when it is not
-anymore in a state where it can block. <I>Only</I> in case the application
-wishes to use <I>non-blocking</I> sockets it should register methods for
-handling the <B>registration</B> process as described below.
-<P>
-<B>Note</B>: The library <B>core</B> does <I>not</I> define any event manager
-- it is considered part of the application. The library comes with a
-<A HREF="../../src/HTEvntrg.html">default event manager</A> which can be
-initiated using the function <CODE>HTEventInit()</CODE> in
-<A HREF="../../src/HTInit.html">HTInit module</A>
-<P>
-If you are working on a MSWindows platform then you have the possibility
-of using asynchronous socket management (<EM>proactive mode</EM>) instead
-of typical Unix select based I/O (<EM>reactive mode</EM>). Please read the
-<A HREF="../Platform/WinDLL.html">Windows documentation</A> for more details.
-<P>
-<A HREF="../../src/HTEvent.html"><IMG BORDER="0" SRC="../../../Icons/WWW/doc48x" ALT="Documentation"
-    WIDTH="48" HEIGHT="48" BORDER="0" ALIGN="Middle">Registrering an Event
-Manager</A>
-<P>
-  <HR>
-<ADDRESS>
-  Henrik Frystyk Nielsen,
-  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
-  @(#) $Id$
-</ADDRESS>
-</BODY></HTML>
+</li>
+<li>
+<b>unregistering</b> a <em>socket descriptor</em> when it is not anymore in a
+state where it can block.
+</li>
+</ol>
+
+<p><a href="../../src/HTEvent.html"><img border="0"
+src="../../../Icons/WWW/doc48x" alt="Documentation" width="48" height="48"
+align="middle">Registrering an Event Manager</a></p>
+
+<p></p>
+<hr>
+
+<address>
+<a href="/People/Frystyk/">Henrik Frystyk Nielsen</a>,<br>
+@(#) $Id$ </address>
+</body>
+</html>

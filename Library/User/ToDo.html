@@ -5,45 +5,248 @@
 <title>Libwww ToDo List</title>
 </head>
 <body bgcolor="#ffffff">
-<p>
-<a href="../../"><img src="../../Icons/WWW/w3c_home" alt="W3C" border="0"></a>
-<a href="../"><img src="../../Icons/WWW/Lib48x" alt="libwww"
+
+<p><a href="../../"><img src="../../Icons/WWW/w3c_home" alt="W3C"
+border="0"></a> <a href="../"><img src="../../Icons/WWW/Lib48x" alt="libwww"
 border="0"></a></p>
 
 <h1>Libwww ToDo List</h1>
-<p>
-This is the current work plan for new libwww features but remember, the sky's
-the limit! Before you start, make sure that you have an <a
-href="../cvs.html">up-to-date version of the code hot from CVS</a>.</p>
-<p>
-</p>
 
-<center>
+<p style="text-align: center"><a href="#Open">Open Projects</a> | <a
+href="#Completed">Completed Projects</a></p>
+
+<p>This is the current work plan for new libwww features but remember, the
+sky's the limit! Before you start, make sure that you have an <a
+href="../cvs.html">up-to-date version of the code hot from CVS</a>.</p>
+
+<h2><a name="Open">Open Projects</a></h2>
 
 <table border="1" cellspacing="0" align="center" width="90%">
 <tbody>
 <tr>
-<th>
+<th width="20%">
 Project
 </th>
-<th>
+<th width="40%">
 Description
 </th>
-<th>
+<th width="10%">
 Started
 </th>
-<th>
+<th width="15%">
 Status
 </th>
-<th>
+<th width="15%">
+Owner
+</th>
+</tr>
+<tr>
+<td style="text-align: center">
+Mirroring facility in <a href="../../Robot/">Webbot</a>
+</td>
+<td>
+Use the webbot to mirror a site using the very fast HTTP/1.1 engine with
+pipeline and regular expressions!
+</td>
+<td>
+Sep 1998
+</td>
+<td>
+<strong>Ongoing</strong>
+</td>
+<td>
+<strong><a href="../Collaborators.html#Collaborators">Bob Racko</a></strong>
+</td>
+</tr>
+<tr>
+<td style="text-align: center">
+Libwww <a href="http://www.rpm.org">RPM</a> file
+</td>
+<td>
+Can use a lot of the&nbsp;information already used by <a
+href="http://www.gnu.org/software/automake/index.html">GNU automake</a> - need
+a&nbsp;spec file expert!
+</td>
+<td>
+Oct 1998
+</td>
+<td>
+<strong>Ongoing</strong>
+</td>
+<td>
+&nbsp;<strong>Jim Gettys</strong>
+</td>
+</tr>
+<tr>
+<td style="text-align: center">
+Better Windows Makefiles
+</td>
+<td>
+Pending on autoconf and automake to be released with support for Windows. Any
+better ideas plan for improving Windows makefiles?
+</td>
+<td>
+Sep 1998
+</td>
+<td>
+<strong><a
+href="http://www.egroups.com/list/www-lib/626.html">Ongoing</a></strong>
+</td>
+<td>
+&nbsp;
+</td>
+</tr>
+<tr>
+<td style="text-align: center">
+<a href="../../Protocols/HTTP/ietf-http-ext/">HTTP Extension Framework</a>
+</td>
+<td>
+We have many exiting HTTP extensions waiting for the <a
+href="../../Protocols/HTTP/ietf-http-ext/">HTTP Extension Framework</a>. The
+implementation can be based on the existing <a href="../src/HTPEP.html">PEP
+implementation</a>.
+</td>
+<td>
+Oct 1998
+</td>
+<td>
+<strong>Open</strong>
+</td>
+<td>
+&nbsp;
+</td>
+</tr>
+<tr>
+<td style="text-align: center">
+Regular expressions in URI mapping rules
+</td>
+<td>
+Libwww already supports URI mappings in the <a
+href="../src/HTRules.html">rules module</a> but support for <em>sed</em> like
+regular expressions would be extremely useful, especially for mirroring done
+by the <a href="../../Robot/">Webbot</a>. Libwww already uses <a
+href="../src/HTProxy.html">regular expressions for handling proxies</a> and
+other things.
+</td>
+<td>
+Sep 1998
+</td>
+<td>
+<strong>Open</strong>
+</td>
+<td>
+&nbsp;
+</td>
+</tr>
+<tr>
+<td style="text-align: center">
+Drag-and-drop support in <a href="../../WinCom/">Web Commander</a>
+</td>
+<td>
+Would like&nbsp;to be able to drag and drop URIs to save, load, etc. Would
+also&nbsp;be cool to have as well as integration with the Explorer menu.
+</td>
+<td>
+Sep 1998
+</td>
+<td>
+<strong>Open</strong>
+</td>
+<td>
+&nbsp;
+</td>
+</tr>
+<tr>
+<td style="text-align: center">
+GUI Interface for the <a href="../../Robot/">Webbot</a>
+</td>
+<td>
+We already have a <a href="../../Robot/tcl/">sketchy Tcl/Tk interface</a> but
+it&nbsp;hasn't been maintained. We&nbsp;need a&nbsp;GUI expert
+for&nbsp;this&nbsp;one!
+</td>
+<td>
+Oct 1998
+</td>
+<td>
+<a
+href="http://lists.w3.org/Archives/Public/www-lib/1998OctDec/0061.html">Under
+discussion</a>
+</td>
+<td>
+&nbsp;
+</td>
+</tr>
+</tbody>
+</table>
+
+<h2><a name="Completed">Completed Projects</a></h2>
+
+<table border="1" style="text-align: center" cellspacing="0" width="90%"
+align="center">
+<tbody>
+<tr>
+<th width="20%">
+Project
+</th>
+<th width="40%">
+Description
+</th>
+<th width="10%">
+Started
+</th>
+<th width="15%">
+Status
+</th>
+<th width="15%">
 Owner
 </th>
 </tr>
 <tr>
 <td>
-<a href="../../Protocols/">HTTP Digest Authentication</a>
+SSL transport
+</td>
+<td style="text-align: left">
+Libwww's flexible transport&nbsp;architecture&nbsp;allows for
+multiple&nbsp;transports of&nbsp;which&nbsp;SSL&nbsp;could be&nbsp;one
 </td>
 <td>
+Apr 1999
+</td>
+<td>
+<strong><a
+href="http://lists.w3.org/Archives/Public/www-lib/1999AprJun/0016.html">Done</a></strong>
+- <strong>NOTE</strong>: Because of US Export restrictions, we don't believe
+we can distribute this module for now
+</td>
+<td>
+ 
+</td>
+</tr>
+<tr>
+<td>
+HTTP Cookies
+</td>
+<td style="text-align: left">
+Make libwww toss&nbsp;'em around!
+</td>
+<td>
+Mar 1999
+</td>
+<td>
+<strong><a
+href="http://lists.w3.org/Archives/Public/www-lib/1999AprJun/0003.html">Done</a></strong>
+- however, there is no cookie jar - just the parsing/generation
+</td>
+<td>
+<p> </p>
+</td>
+</tr>
+<tr>
+<td>
+<a href="../../Protocols/">HTTP Digest Authentication</a>
+</td>
+<td style="text-align: left">
 Digest is becoming important is is beginning to see widespread deployment.
 Libwww supports easy addition of <a href="../src/HTAAUtil.html">multiple
 authentication schemes</a> so digest can be implemented as a plug-in module
@@ -65,7 +268,7 @@ href="http://www.egroups.com/list/www-lib/703.html">Done</a></strong>
 href="http://info.webcrawler.com/mak/projects/robots/exclusion.html#robotstxt">Robot
 txt file parser</a>
 </td>
-<td>
+<td style="text-align: left">
 The <a href="../../Robot/">Webbot</a> already knows about the <a
 href="http://info.webcrawler.com/mak/projects/robots/exclusion.html#meta">robot
 META tags</a> - help turning it into a well-behaving robot by understanding <a
@@ -88,7 +291,7 @@ Libwww <a
 href="http://www.geocities.com/SiliconValley/Way/8818/p_gksetu.htm">Installshield
 for Windows</a>
 </td>
-<td>
+<td style="text-align: left">
 Libwww and the sample apps like the Web Commander could really use an in
 install shield to get Windows people up and going. Vladimir's version installs
 all the <a href="Guide/">libwww DLLs</a> in a shared location so that they are
@@ -107,27 +310,9 @@ Kozlov</a></strong>
 </tr>
 <tr>
 <td>
-Mirroring facility in <a href="../../Robot/">Webbot</a>
-</td>
-<td>
-Use the webbot to mirror a site using the very fast HTTP/1.1 engine with
-pipeline and regular expressions!
-</td>
-<td>
-Sep 1998
-</td>
-<td>
-<strong>Ongoing</strong>
-</td>
-<td>
-<strong><a href="../Collaborators.html#Collaborators">Bob Racko</a></strong>
-</td>
-</tr>
-<tr>
-<td>
 Better Windows Makefiles
 </td>
-<td>
+<td style="text-align: left">
 Pending on autoconf and automake to be released with support for Windows. Any
 better ideas plan for improving Windows makefiles?
 </td>
@@ -136,154 +321,17 @@ Sep 1998
 </td>
 <td>
 <strong><a
-href="http://www.egroups.com/list/www-lib/626.html">Ongoing</a></strong>
+href="http://www.egroups.com/list/www-lib/626.html">Done</a></strong> - Get
+the separate <a href="../../INSTALL.html#Windows">MSVC makefiles</a>
 </td>
 <td>
 &nbsp;
-</td>
-</tr>
-<tr>
-<td>
-<a href="../../Protocols/HTTP/ietf-http-ext/">HTTP Extension Framework</a>
-</td>
-<td>
-We have many exiting HTTP extensions waiting for the <a
-href="../../Protocols/HTTP/ietf-http-ext/">HTTP Extension Framework</a>. The
-implementation can be based on the existing <a href="../src/HTPEP.html">PEP
-implementation</a>.
-</td>
-<td>
-Oct 1998
-</td>
-<td>
-<strong>Open</strong>
-</td>
-<td>
-&nbsp;
-</td>
-</tr>
-<tr>
-<td>
-Regular expressions in URI mapping rules
-</td>
-<td>
-Libwww already supports URI mappings in the <a
-href="../src/HTRules.html">rules module</a> but support for <em>sed</em> like
-regular expressions would be extremely useful, especially for mirroring done
-by the <a href="../../Robot/">Webbot</a>. Libwww already uses <a
-href="../src/HTProxy.html">regular expressions for handling proxies</a> and
-other things.
-</td>
-<td>
-Sep 1998
-</td>
-<td>
-<strong>Open</strong>
-</td>
-<td>
-&nbsp;
-</td>
-</tr>
-<tr>
-<td>
-Drag-and-drop support in <a href="../../WinCom/">Web Commander</a>
-</td>
-<td>
-Would like&nbsp;to be able to drag and drop URIs to save, load, etc. Would
-also&nbsp;be cool to have as well as integration with the Explorer menu.
-</td>
-<td>
-Sep 1998
-</td>
-<td>
-<strong>Open</strong>
-</td>
-<td>
-&nbsp;
-</td>
-</tr>
-<tr>
-<td>
-GUI Interface for the <a href="../../Robot/">Webbot</a>
-</td>
-<td>
-We already have a <a href="../../Robot/tcl/">sketchy Tcl/Tk interface</a> but
-it&nbsp;hasn't been maintained. We&nbsp;need a&nbsp;GUI expert
-for&nbsp;this&nbsp;one!
-</td>
-<td>
-Oct 1998
-</td>
-<td>
-<a
-href="http://lists.w3.org/Archives/Public/www-lib/1998OctDec/0061.html">Under
-discussion</a>
-</td>
-<td>
-&nbsp;
-</td>
-</tr>
-<tr>
-<td>
-Libwww <a href="http://www.rpm.org">RPM</a> file
-</td>
-<td>
-Can use a lot of the&nbsp;information already used by <a
-href="http://www.gnu.org/software/automake/index.html">GNU automake</a> - need
-a&nbsp;spec file expert!
-</td>
-<td>
-Oct 1998
-</td>
-<td>
-<strong>Open</strong>
-</td>
-<td>
-&nbsp;
-</td>
-</tr>
-<tr>
-<td>
-HTTP Cookies
-</td>
-<td>
-Make libwww toss&nbsp;'em around!
-</td>
-<td>
-Dec 1998
-</td>
-<td>
-<strong><a
-href="http://www.egroups.com/list/www-lib/665.html">Open</a></strong>
-</td>
-<td>
-
-</td>
-</tr>
-<tr>
-<td>
-SSL transport
-</td>
-<td>
-Libwww's flexible transport&nbsp;architecture&nbsp;allows for
-multiple&nbsp;transports of&nbsp;which&nbsp;SSL&nbsp;could be&nbsp;one
-</td>
-<td>
-Dec 1998
-</td>
-<td>
-<strong><a
-href="http://lists.w3.org/Archives/Public/www-lib/1999JanMar/0340.html">Open</a></strong>
-</td>
-<td>
-
 </td>
 </tr>
 </tbody>
 </table>
-</center>
-<p>
-</p>
+
+<p></p>
 <hr>
 
 <address>
