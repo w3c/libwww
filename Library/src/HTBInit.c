@@ -91,6 +91,7 @@ PUBLIC void HTFileInit (void)
     HTBind_add("pcu",	"application/x-pics-user",	NULL,		"8bit",		NULL,	1.0);	/* PICS User */
     HTBind_add("pdf",	"application/pdf",		NULL,		"binary",	NULL,	1.0);
     HTBind_add("pgm",	"image/x-portable-graymap",	NULL,		"binary",	NULL,	1.0);	/* PBM Graymap format	*/
+    HTBind_add("pgp",  	"application/pgp-encrypted",	NULL,		"binary",	NULL,	1.0);	/* PGP encrypted 	*/
     HTBind_add("png",	"image/png",			NULL,		"binary",	NULL,	1.0);	/* PNG			*/
     HTBind_add("pnm",	"image/x-portable-anymap",	NULL,		"binary",	NULL,	1.0);	/* PBM Anymap format	*/
     HTBind_add("ppt",	"application/vnd.ms-powerpoint",NULL,		"binary",	NULL,	0.5);	/* MS Powerpoint	*/
@@ -102,6 +103,7 @@ PUBLIC void HTFileInit (void)
     HTBind_add("rtf",	"text/rtf",			NULL,		"7bit",		NULL,	1.0);	/* RTF			*/
     HTBind_add("rtx",	"text/richtext",		NULL,		"7bit",		NULL,	1.0);	/* MIME Richtext format	*/
     HTBind_add("sh",	"application/x-sh",		NULL,		"7bit",		NULL,	0.5);	/* Shell-script		*/
+    HTBind_add("sig",	"application/pgp-signature",	NULL,		"binary",	NULL,	1.0);	/* PGP signature	*/
     HTBind_add("shar",	"application/x-shar",		NULL,		"8bit",		NULL,	1.0);	/* Shell archive	*/
     HTBind_add("snd",	"audio/basic",			NULL,		"binary",	NULL,	1.0);	/* Audio		*/
     HTBind_add("src",	"application/x-wais-source",	NULL,		"7bit",		NULL,	1.0);	/* WAIS source		*/
