@@ -61,7 +61,7 @@ LINK32=link.exe
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
 # PROP Output_Dir "..\..\..\Bin\Debug"
-# PROP Intermediate_Dir "..\..\..\Bin\Debug"
+# PROP Intermediate_Dir ".\Debug"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /YX /c
 # ADD CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /I "..\..\..\Library\src" /I "..\..\..\Library\External" /D "_DEBUG" /D "WIN32" /D "_CONSOLE" /D "WWW_WIN_DLL" /FR /YX /FD /c
