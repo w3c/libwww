@@ -41,6 +41,7 @@ LMD = $(WWW)/LineMode/Defaults
 CMN = $(WWW)/Library/Implementation/
 DEFAULTS = $(WWW)/LineMode/Defaults
 
+
 CFLAGS2 = $(CFLAGS) -I$(CMN) -I$(LM)
 
 CERNLIBBIN = $(WWW)/bin
@@ -220,7 +221,9 @@ distribute :  /pub/www/README.txt /pub/www/Copyright.txt
 /pub/www/src/WWWLineMode_$(VL).tar.Z : $(SOURCES) $(LMD)/line-mode-guide.txt
 	tar cf /pub/www/src/WWWLineMode_$(VL).tar \
 	    $(SOURCES)  $(LMD)/line-mode-guide.txt \
-	    $(WWW)/LineMode/*/Makefile $(LM)vms/descrip.mms
+	    $(WWW)/LineMode/*/Makefile \
+	    $(WWW)/LineMode/vms/descrip.mms $(WWW)/LineMode/vms/build_multinet.com \
+            $(WWW)/LineMode/vms/setup.com 	    
 	compress /pub/www/src/WWWLineMode_$(VL).tar
 
 

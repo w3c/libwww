@@ -19,6 +19,7 @@
 #include <string.h>
 
 #include "HTUtils.h"
+#include "HTList.h"
 
 PRIVATE HTAtom * hash_table[HASH_SIZE];
 PRIVATE BOOL initialised = NO;

@@ -9,9 +9,8 @@
 **	   Apr 91	vms-vms access included using DECnet syntax
 **	26 Jun 92 (JFG) When running over DECnet, suppressed FTP.
 **			Fixed access bug for relative names on VMS.
-**	   Sep 92 (MD)  Access to VMS files allows sharing.
-**	 4 Nov 93 (AL)	Changed HTSetSuffix() so that if suffix
-**			definition already exists it is replaced.
+**	   Sep 93 (MD)  Access to VMS files allows sharing.
+**	15 Nov 93 (MD)	Moved HTVMSname to HTVMSUTILS.C
 **
 ** Bugs:
 **	FTP: Cannot access VMS files from a unix machine.
@@ -26,6 +25,10 @@
 #define MULTI_SUFFIX ".multi"   /* Extension for scanning formats */
 
 #include "HTUtils.h"
+
+#ifdef VMS
+#include "HTVMSUtils.h"
+#endif /* VMS */
 
 #include "HTParse.h"
 #include "tcp.h"
@@ -76,7 +79,7 @@ PUBLIC int HTDirReadme = HT_DIR_README_TOP;
 
 PRIVATE char *HTMountRoot = "/Net/";		/* Where to find mounts */
 #ifdef VMS
-PRIVATE char *HTCacheRoot = "/WWW$SCRATCH/";   /* Where to cache things */
+PRIVATE char *HTCacheRoot = "/WWW$SCRATCH";   /* Where to cache things */
 #else
 PRIVATE char *HTCacheRoot = "/tmp/W3_Cache_";   /* Where to cache things */
 #endif
@@ -148,72 +151,6 @@ PUBLIC void HTSetSuffix ARGS4(
 
 
 
-#ifdef VMS
-/*	Convert unix-style name into VMS name
-**	-------------------------------------
-**
-** Bug:	Returns pointer to static -- non-reentrant
-*/
-PRIVATE char * vms_name(CONST char * nn, CONST char * fn)
-{
-
-/*	We try converting the filename into Files-11 syntax. That is, we assume
-**	first that the file is, like us, on a VMS node. We try remote
-**	(or local) DECnet access. Files-11, VMS, VAX and DECnet
-**	are trademarks of Digital Equipment Corporation. 
-**	The node is assumed to be local if the hostname WITHOUT DOMAIN
-**	matches the local one. @@@
-*/
-    static char vmsname[INFINITY];	/* returned */
-    char * filename = (char*)malloc(strlen(fn)+1);
-    char * nodename = (char*)malloc(strlen(nn)+2+1);	/* Copies to hack */
-    char *second;		/* 2nd slash */
-    char *last;			/* last slash */
-    
-    char * hostname = HTHostName();
-
-    if (!filename || !nodename) outofmem(__FILE__, "vms_name");
-    strcpy(filename, fn);
-    strcpy(nodename, "");	/* On same node? Yes if node names match */
-    {
-        char *p, *q;
-        for (p=hostname, q=nn; *p && *p!='.' && *q && *q!='.'; p++, q++){
-	    if (TOUPPER(*p)!=TOUPPER(*q)) {
-	        strcpy(nodename, nn);
-		q = strchr(nodename, '.');	/* Mismatch */
-		if (q) *q=0;			/* Chop domain */
-		strcat(nodename, "::");		/* Try decnet anyway */
-		break;
-	    }
-	}
-    }
-
-    second = strchr(filename+1, '/');		/* 2nd slash */
-    last = strrchr(filename, '/');	/* last slash */
-        
-    if (!second) {				/* Only one slash */
-	sprintf(vmsname, "%s%s", nodename, filename + 1);
-    } else if(second==last) {		/* Exactly two slashes */
-	*second = 0;		/* Split filename from disk */
-	sprintf(vmsname, "%s%s:%s", nodename, filename+1, second+1);
-	*second = '/';	/* restore */
-    } else { 				/* More than two slashes */
-	char * p;
-	*second = 0;		/* Split disk from directories */
-	*last = 0;		/* Split dir from filename */
-	sprintf(vmsname, "%s%s:[%s]%s",
-		nodename, filename+1, second+1, last+1);
-	*second = *last = '/';	/* restore filename */
-	for (p=strchr(vmsname, '['); *p!=']'; p++)
-	    if (*p=='/') *p='.';	/* Convert dir sep.  to dots */
-    }
-    free(nodename);
-    free(filename);
-    return vmsname;
-}
-
-
-#endif /* VMS */
 
 
 
@@ -343,7 +280,14 @@ PUBLIC char * HTLocalName ARGS1(CONST char *,name)
     } else {  /* other access */
 	char * result;
         CONST char * home =  (CONST char*)getenv("HOME");
+#ifdef VMS
+	if (!home) 
+	    home = HTCacheRoot; 
+	else
+   	    home = HTVMS_wwwName(home);
+#else /* not VMS */
 	if (!home) home = "/tmp"; 
+#endif /* not VMS */
 	result = (char *)malloc(
 		strlen(home)+strlen(access)+strlen(host)+strlen(path)+6+1);
       if (result == NULL) outofmem(__FILE__, "HTLocalName");
@@ -724,8 +668,7 @@ PUBLIC int HTLoadFile ARGS4 (
     {
         FILE * fp;
 	char * vmsname = strchr(filename + 1, '/') ?
-	  vms_name(nodename, filename) : filename + 1;
-/* MD SEP 93, open files can be read... */
+	  HTVMS_name(nodename, filename) : filename + 1;
 	fp = fopen(vmsname, "r", "shr=put", "shr=upd");
 	
 /*	If the file wasn't VMS syntax, then perhaps it is ultrix
@@ -734,7 +677,6 @@ PUBLIC int HTLoadFile ARGS4 (
 	    char ultrixname[INFINITY];
 	    if (TRACE) fprintf(stderr, "HTFile: Can't open as %s\n", vmsname);
 	    sprintf(ultrixname, "%s::\"%s\"", nodename, filename);
-/* MD SEP 93, open files can be read... */
   	    fp = fopen(ultrixname, "r", "shr=put", "shr=upd");
 	    if (!fp) {
 		if (TRACE) fprintf(stderr, 

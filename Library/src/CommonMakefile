@@ -121,7 +121,13 @@ HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h $(CMN)HTTP.h $(CMN)HTFile.h \
 SOURCES = $(CFILES) $(HFILES) $(CMN)Version.make \
 	$(CMN)CommonMakefile $(CMN)Makefile \
 	$(WWW)/README.txt $(WWW)/Copyright.txt $(WWW)/BUILD $(WWW)/Makefile
-SPECIFIC = $(WWW)/All/*/Makefile.include $(WWW)/All/Implementation/Makefile*
+SPECIFIC = $(WWW)/All/*/Makefile.include $(WWW)/All/Implementation/Makefile* \
+	$(WC)/vms/descrip.mms $(WC)/vms/build_multinet.com \
+	$(WC)/vms/COPYING.LIB $(WC)/vms/setup.com $(WC)/vms/multinet.opt \
+	$(WC)/vms/patchlevel.h $(WC)/vms/ufc-crypt.h \
+	$(WC)/vms/crypt.c $(WC)/vms/crypt_util.c \
+	$(WC)/vms/getline.c $(WC)/vms/getpass.c \
+	$(WC)/vms/HTVMSUtil.h $(WC)/vms/HTVMSUtil.c
 
 
 #	Library
@@ -178,7 +184,7 @@ distribute :  /pub/www/README.txt /pub/www/Copyright.txt
 
 /pub/www/src/WWWLibrary_$(VC).tar.Z : $(SOURCES)
 	tar cf /pub/www/src/WWWLibrary_$(VC).tar \
-	    $(SOURCES)  $(SPECIFIC) $(WC)/*/Makefile $(WC)/vms/descrip.mms
+	    $(SOURCES)  $(SPECIFIC) $(WC)/*/Makefile
 	compress /pub/www/src/WWWLibrary_$(VC).tar
 
 
@@ -242,7 +248,7 @@ $(LOB)/HTTelnet.o : $(OE) $(CMN)HTTelnet.c $(CMN)HTUtils.h $(CMN)HTTelnet.h
 $(LOB)/HTStyle.o : $(OE) $(CMN)HTStyle.c $(CMN)HTUtils.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTStyle.c
 
-$(LOB)/HTAtom.o : $(OE) $(CMN)HTAtom.c $(CMN)HTUtils.h
+$(LOB)/HTAtom.o : $(OE) $(CMN)HTAtom.c $(CMN)HTUtils.h $(CMN)HTList.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTAtom.c
 
 $(LOB)/HTChunk.o : $(OE) $(CMN)HTChunk.c $(CMN)HTUtils.h

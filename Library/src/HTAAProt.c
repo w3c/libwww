@@ -4,24 +4,24 @@
 **
 ** AUTHORS:
 **	AL	Ari Luotonen	luotonen@dxcern.cern.ch
+**	MD	Mark Donszelmann    duns@vxdeop.cern.ch
 **
 ** HISTORY:
 **	20 Oct 93  AL	Now finds uid/gid for nobody/nogroup by name
 **			(doesn't use default 65534 right away).
 **			Also understands negative uids/gids.
+**	14 Nov 93  MD	Added VMS compatibility
+**
 ** BUGS:
 **
 **
 */
 
 #include <string.h>
-#ifdef VMS
-#include "../vms/pwd.h"
-#include "../vms/grp.h" 
-#else
+#ifndef VMS
 #include <pwd.h>	/* Unix password file routine: getpwnam()	*/
 #include <grp.h>	/* Unix group file routine: getgrnam()		*/
-#endif /* VMS */
+#endif /* not VMS */
 
 #include "HTUtils.h"
 #include "HTAAUtil.h"
@@ -68,6 +68,44 @@ PRIVATE BOOL isNumber ARGS1(CONST char *, s)
     return YES;
 }
 
+
+#ifdef VMS
+
+/* PUBLIC							HTAA_getUidName()
+**		GET THE USER ID NAME (VMS ONLY)
+** ON ENTRY:
+**	No arguments.
+**
+** ON EXIT:
+**	returns	the user name 
+**		Default is "" (nobody).
+*/
+PUBLIC char * HTAA_getUidName NOARGS
+{
+    if (current_prot && current_prot->uid_name 
+                  && (0 != strcmp(current_prot->uid_name,"nobody")) )
+       return(current_prot->uid_name);
+    else
+       return("");
+}
+
+/* PUBLIC							HTAA_getFileName
+**		GET THE FILENAME (VMS ONLY)
+** ON ENTRY:
+**	No arguments.
+**
+** ON EXIT:
+**	returns	the filename
+*/
+PUBLIC char * HTAA_getFileName NOARGS
+{
+    if (current_prot && current_prot->filename)
+       return(current_prot->filename);
+    else
+       return("");
+}
+
+#else /* not VMS */
 
 /* PUBLIC							HTAA_getUid()
 **		GET THE USER ID TO CHANGE THE PROCESS UID TO
@@ -120,6 +158,7 @@ PUBLIC int HTAA_getUid NOARGS
 }
 
 
+
 /* PUBLIC							HTAA_getGid()
 **		GET THE GROUP ID TO CHANGE THE PROCESS GID TO
 ** ON ENTRY:
@@ -168,6 +207,9 @@ PUBLIC int HTAA_getGid NOARGS
     */
     return 65534;	/* nogroup */
 }
+
+#endif /* not VMS */
+
 
 
 
