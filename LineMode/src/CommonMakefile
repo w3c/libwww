@@ -260,6 +260,7 @@ $(FTP)/www/src/WWWLineMode_$(VL).tar.Z : $(SOURCES)
 	tar cvf $(FTP)/www/src/WWWLineMode_$(VL).tar \
 	    $(SOURCES) \
 	    $(DISTRIBUTION) \
+	    $(SPECIFIC) \
 	    $(LM)*.html
 	compress -f $(FTP)/www/src/WWWLineMode_$(VL).tar
 
