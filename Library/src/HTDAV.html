@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <title>W3C Sample Code Library libwww WebDAV Access Methods</title>
+  <meta name="generator" content="amaya 5.3, see http://www.w3.org/Amaya/" />
+</head>
+
+<body>
+<h1>W3C Sample Code Library libwww WebDAV Access Methods</h1>
+<pre>/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/</pre>
+
+<p>This module contains methods for accessing URIs using WebDAV methods. It
+also contains functions for headers definition.</p>
+
+<p>This module is implemented by <a href="HTDAV.h">HTDAV.c</a> and it is a
+part of the <a href="http://www.w3.org/Library/">W3C Sample
+CodeLibrary</a>.</p>
+<pre>#ifndef HTDAV_H
+#define HTDAV_H
+
+#ifdef HT_DAV
+</pre>
+
+<h2>WebDAV HEADERS</h2>
+
+<p>WebDAV extension protocol defines new headers to be used in its requests.
+See <a href="http://www.ietf.org/rfc/rfc2518.txt">RFC2518</a> for details.</p>
+<pre>typedef struct _HTDAVHeaders HTDAVHeaders;
+
+extern HTDAVHeaders * HTDAVHeaders_new (void);
+extern BOOL HTDAVHeaders_delete (HTDAVHeaders *me);
+</pre>
+
+<h3>If Header</h3>
+
+<p>Manipulates the "If" header, which describes a series of state lists. The
+caller must assure that the parameter "If" is well-formed. Below, you can see
+a small description of If header format. See section 9.4 of <a
+href="http://www.ietf.org/rfc/rfc2518.tx">RFC2518</a> for details.</p>
+
+<p>If = "If" ":" ( 1*NOTAGGED | 1*TAGGED )</p>
+
+<p>NOTAGGED = LIST</p>
+
+<p>TAGGED = CODED-URL 1*LIST</p>
+
+<p>LIST = "(" 1*( ["Not"] (STATE-TOKEN | "[" ENTITY-TAG "]" ) ) ")"</p>
+
+<p>STATE-TOKEN = CODED-URL</p>
+
+<p>CODED-URL = "&lt;" AbsoluteURI "&gt;</p>
+
+<p><strong>Note</strong>: The caller should free the strings returned by
+HTDAV_ifHeader  method.</p>
+<pre>extern BOOL HTDAV_setIfHeader (HTDAVHeaders *me, const char *If);
+extern BOOL HTDAV_deleteIfHeader (HTDAVHeaders * me);
+extern char * HTDAV_ifHeader (HTDAVHeaders *me);
+</pre>
+
+<h3>Depth Header</h3>
+
+<p>Manipulates the "Depth" header. Depth header is used with methods executed
+on resource which could have internal members (Collections) to indicate
+whether the method should be applied to the resource children.</p>
+
+<p>The caller must assure that the parameter "Depth" is "0", "1" or
+"infinity", and that its value can be applied in the used resquest method
+(for example, LOCK method does not support Depth value 1).</p>
+
+<p><strong>Note</strong>: The caller should free the string returned by
+HTDAV_DepthHeader method.</p>
+<pre>extern BOOL HTDAV_setDepthHeader (HTDAVHeaders *me, const char *Depth);
+extern BOOL HTDAV_deleteDepthHeader (HTDAVHeaders * me);
+extern char * HTDAV_DepthHeader (HTDAVHeaders *me);</pre>
+
+<h3>Lock-Tocken header</h3>
+
+<p>Manipulates the "LockToken" header. It is used in UNLOCK method to
+identify the lock to be removed. The caller must assure that the parameter is
+a state token well-formed (<a
+href="http://www.ietf.org/rfc/rfc2518.txt">RFC2518</a> section 9.5).</p>
+
+<p><strong>Note</strong>: The caller should free the string returned by
+HTDAV_LockTokenHeader method.</p>
+<pre>extern BOOL HTDAV_setLockTokenHeader (HTDAVHeaders *me, const char *LockToken);
+extern BOOL HTDAV_deleteLockTokenHeader (HTDAVHeaders * me);
+extern char * HTDAV_LockTokenHeader (HTDAVHeaders *me);</pre>
+
+<h3>Destination Header</h3>
+
+<p>Manipulates the "Destination" header. It is used in COPY and MOVE methods
+to identify a destination resource. The caller must assure that the parameter
+is an absolute URI.</p>
+
+<p><strong>Note</strong>: The caller should free the string returned by
+HTDAV_DestinationHeader method.</p>
+<pre>extern BOOL HTDAV_setDestinationHeader (HTDAVHeaders *me, const char *Destination);
+extern BOOL HTDAV_deleteDestinationHeader (HTDAVHeaders * me);
+extern char * HTDAV_DestinationHeader (HTDAVHeaders *me);</pre>
+
+<h3>Timeout Header</h3>
+
+<p>Manipulates the "Timeout" header. It is used in LOCK requests to indicate
+the desired timeout value for the requested lock. However, according to the
+<a href="http://www.ietf.org/rfc/rfc2518.txt">RFC2518</a>, the server is not
+required to honor this value.</p>
+
+<p>The caller must assure that the parameter follows the specification in the
+section 9.8 of RFC 2518:</p>
+
+<p>Timeout = "Timeout" ":" 1#TIMETYPE</p>
+
+<p>TIMETYPE = ( "Second-" VAL | "Infinite" | OTHER )</p>
+
+<p>VAL = 1*digit</p>
+
+<p>OTHER = "Extend" Field ; <a
+href="http://www.ietf.org/rfc/rfc2068.txt">RFC2068</a> - section 4.2</p>
+
+<p><strong>Note</strong>: The caller should free the string returned by
+HTDAV_TimeoutHeader  method.</p>
+<pre>extern BOOL HTDAV_setTimeoutHeader (HTDAVHeaders *me, const char *Timeout);
+extern BOOL HTDAV_deleteTimeoutHeader (HTDAVHeaders * me);
+extern char * HTDAV_TimeoutHeader (HTDAVHeaders *me);
+</pre>
+
+<h3>Overwrite Header</h3>
+
+<p>Manipulates the "Overwrite" header. It is used in COPY and MOVE methods to
+specify whether the server should overwrite a destination resource.</p>
+<pre>extern BOOL HTDAV_setOverwriteHeader (HTDAVHeaders *me, BOOL Overwrite);
+extern BOOL HTDAV_deleteOverwriteHeader (HTDAVHeaders * me); 
+extern BOOL HTDAV_OverwriteHeader (HTDAVHeaders * me); 
+</pre>
+
+<h2>WebDAV REQUESTS</h2>
+
+<p>WebDAV extension protocol defines new methods: LOCK, UNLOCK, MOVE, COPY,
+MKCOL, PROPFIND, PROPPATCH (See <a
+href="http://www.ietf.org/rfc/rfc2518.txt">RFC2518</a> for details).</p>
+
+<h3>LOCK Requests</h3>
+
+<p>A LOCK request create or refresh a lock over the destiny URI. If it wants
+to create a new lock, the request should have a XML body (parameter
+"xmlbody"), but if it is a refresh request, this body may be NULL and the
+header "If" should be set in HTDAVHeaders object.</p>
+<pre>extern BOOL HTLOCKDocumentAnchor(HTRequest * request, HTAnchor * dst,
+                                 HTParentAnchor *xmlbody, HTDAVHeaders *headers);
+extern BOOL HTLOCKAnchor (HTRequest * request,HTAnchor * dst,
+                                 char * xmlbody, HTDAVHeaders * headers); 
+extern BOOL HTLOCKAbsolute (HTRequest * request, const char * uri,
+                                 char * xmlbody, HTDAVHeaders * headers);
+extern BOOL HTLOCKRelative (HTRequest * request, const char * relative,
+                                 HTParentAnchor * base, char * xmlbody,
+                                 HTDAVHeaders * headers);</pre>
+
+<h3>UNLOCK Requests</h3>
+
+<p>An UNLOCK request removes a lock from the destiny URI. The request must
+contain the Lock-Token header set in HTDAVHeaders object (so, the
+HTDAVHeaders * headers parameter can't be NULL).</p>
+<pre>extern BOOL HTUNLOCKAnchor (HTRequest * request, HTAnchor * dst,
+                            HTDAVHeaders * headers);
+extern BOOL HTUNLOCKAbsolute (HTRequest * request, const char * uri,
+                            HTDAVHeaders * headers);
+extern BOOL HTUNLOCKRelative (HTRequest * request, const char * relative,
+                            HTParentAnchor * base, HTDAVHeaders * headers);</pre>
+
+<h3>PROPFIND Requests</h3>
+
+<p>PROPFIND requests returns properties defined for the resource. The request
+may contain xml entity body with a "propfind" element, which may include an
+"allprop" element (to get all properties), a "propname" element (the name of
+all properties defined), and a "prop" element containing the desired
+properties.</p>
+<pre>extern BOOL HTPROPFINDAnchor (HTRequest * request, HTAnchor * dst,
+                          const char * xmlbody, HTDAVHeaders * headers);
+extern BOOL HTPROPFINDDocumentAnchor (HTRequest * request, HTAnchor * dst,
+                          HTParentAnchor * xmlbody, HTDAVHeaders * headers);
+extern BOOL HTPROPFINDAbsolute (HTRequest * request, const char * uri,
+                          const char * xmlbody, HTDAVHeaders * headers);
+extern BOOL HTPROPFINDRelative (HTRequest * request, const char * relative,
+                          HTParentAnchor * base, const char * xmlbody,
+                          HTDAVHeaders * headers);</pre>
+
+<h3>PROPPATCH Requests</h3>
+
+<p>PROPPATCH requests sets or removes properties defined for the resource.
+The request MUST contain xml message body (parameter xmlbody) with a
+"propertyupdate" element, which may include a "set" element (to set the
+properties) or a "remove" element (to remove the properties).</p>
+<pre>extern BOOL HTPROPPATCHAnchor (HTRequest * request, HTAnchor * dst,
+                         const char * xmlbody,HTDAVHeaders * headers);
+extern BOOL HTPROPPATCHDocumentAnchor (HTRequest * request,HTAnchor * dst,
+                         HTParentAnchor * xmlbody,HTDAVHeaders * headers);
+extern BOOL HTPROPPATCHAbsolute (HTRequest * request, const char * uri,
+                         const char * xmlbody, HTDAVHeaders * headers);
+extern BOOL HTPROPPATCHRelative (HTRequest * request, const char * relative,
+                         HTParentAnchor * base, const char * xmlbody,
+                         HTDAVHeaders * headers);</pre>
+
+<h3>MKCOL Requests</h3>
+
+<p>MKCOL requests are used to create Collections. The resource indicated by
+the Request-URI (parameters HTAnchor *dst or char *absolute/relative) MUST
+not exist, but all the resource's ancestros MUST exist.</p>
+<pre>extern BOOL HTMKCOLAnchor (HTRequest * request, HTAnchor * dst,
+                         HTDAVHeaders * headers);
+extern BOOL HTMKCOLAbsolute (HTRequest * request, const char * uri,
+                         HTDAVHeaders * headers);
+extern BOOL HTMKCOLRelative (HTRequest * request, const char * relative,
+                         HTParentAnchor * base, HTDAVHeaders * headers);</pre>
+
+<h3>COPY Requests</h3>
+
+<p>COPY requests copies the Request-URI (parameters HTAnchor *src or char
+*absolute/relative) to the resource indicated in Destinarion header. The
+HTDAVHeaders *headers parameter MUST be a non-null object and it MUST have
+the Destination header set. Other headers may also be used, like Depth (0 or
+infinity), If and Overwrite headers.</p>
+<pre>extern BOOL HTCOPYAnchor (HTRequest * request, HTAnchor * src,
+                        const char * xmlbody, HTDAVHeaders * headers);
+extern BOOL HTCOPYDocumentAnchor (HTRequest * request, HTAnchor * src,
+                        HTParentAnchor * xmlbody, HTDAVHeaders * headers);
+extern BOOL HTCOPYAbsolute (HTRequest * request, const char * uri,
+                        const char * xmlbody, HTDAVHeaders * headers);
+extern BOOL HTCOPYRelative (HTRequest * request, const char * relative,
+                        HTParentAnchor * base, const char * xmlbody,
+                        HTDAVHeaders * headers);</pre>
+
+<h3>MOVE Requests</h3>
+
+<p>MOVE requests moves the Request-URI (parameters HTAnchor *src or char
+*absolute/relative) to the resource indicated in Destinarion header. The
+HTDAVHeaders *headers parameter MUST be a non-null object and it MUST have
+the Destination header set. Other headers may also be used, like Depth ("0"
+or "infinity" - if the resource is a Collection, Depth must only be
+"infinity"), If and Overwrite headers.</p>
+<pre>extern BOOL HTMOVEAnchor (HTRequest * request, HTAnchor * src,
+                        const char * xmlbody, HTDAVHeaders * headers);
+extern BOOL HTMOVEDocumentAnchor (HTRequest * request, HTAnchor * src,
+                        HTParentAnchor * xmlbody, HTDAVHeaders * headers);
+extern BOOL HTMOVEAbsolute (HTRequest * request, const char * uri,
+                        const char * xmlbody, HTDAVHeaders * headers);
+extern BOOL HTMOVERelative (HTRequest * request, const char * relative,
+                        HTParentAnchor * base, const char * xmlbody,
+                        HTDAVHeaders * headers);
+
+#endif /* HT_DAV */
+#endif /* HTDAV_H */</pre>
+
+<p></p>
+<hr />
+<address>
+  $Id$
+</address>
+
+<p></p>
+
+<p></p>
+</body>
+</html>
