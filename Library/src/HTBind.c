@@ -263,7 +263,8 @@ PUBLIC char * HTBind_getSuffix ARGS1(HTParentAnchor *, anchor)
     int cnt;
     HTList *cur;
     char *suffix = NULL;
-    char delimiter[] = { *HTDelimiters, '\0' };
+    char delimiter[] = { '\0', '\0' };
+    *delimiter = *HTDelimiters;
     if (anchor) {
 	for (cnt=0; cnt<HASH_SIZE; cnt++) {
 	    if ((cur = HTBindings[cnt])) { 
