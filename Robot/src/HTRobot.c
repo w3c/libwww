@@ -51,13 +51,12 @@ typedef enum _MRFlags {
 } MRFlags;
 
 typedef struct _Robot {
-    HTRequest *		request;
     HTRequest *		timeout;	  /* Until we get a server eventloop */
-    HTParentAnchor *	anchor;
     int			depth;			     /* How deep is our tree */
     int			cnt;				/* Count of requests */
     HTList *		hyperdoc;	     /* List of our HyperDoc Objects */
     HTList *		htext;			/* List of our HText Objects */
+    HTList *		fingers;
     struct timeval *	tv;				/* Timeout on socket */
     char *		cwd;				  /* Current dir URL */
     char *		rules;
@@ -66,7 +65,13 @@ typedef struct _Robot {
     FILE *	        output;
     MRFlags		flags;
 } Robot;
-	
+
+typedef struct _Finger {
+    Robot * robot;
+    HTRequest * request;
+    HTParentAnchor * dest;
+} Finger;
+
 typedef enum _LoadState {
     L_INVALID	= -2,
     L_LOADING	= -1,
@@ -171,14 +176,12 @@ PRIVATE Robot * Robot_new (void)
     me->cwd = HTGetCurrentDirectoryURL();
     me->output = OUTPUT;
     me->cnt = 1;
+    me->fingers = HTList_new();
 
     /* We keep an extra timeout request object for the timeout_handler */
     me->timeout = HTRequest_new();
     HTRequest_setContext (me->timeout, me);
 
-    /* Bind the Robot object together with the Request Object */
-    me->request = HTRequest_new();
-    HTRequest_setContext (me->request, me);
     return me;
 }
 
@@ -188,6 +191,7 @@ PRIVATE Robot * Robot_new (void)
 PRIVATE BOOL Robot_delete (Robot * me)
 {
     if (me) {
+	HTList_delete(me->fingers);
 	if (me->hyperdoc) {
 	    HTList * cur = me->hyperdoc;
 	    HyperDoc * pres;
@@ -217,27 +221,35 @@ PRIVATE BOOL Robot_delete (Robot * me)
 }
 
 /*
-**  This function creates a new request object and initializes it
+**  This function creates a new finger object and initializes it with a new request
 */
-PRIVATE HTRequest * Thread_new (Robot * mr, HTMethod method)
+PRIVATE Finger * Finger_new (Robot * robot, HTParentAnchor * dest, HTMethod method)
 {
-    HTRequest * newreq = HTRequest_new();
-    HTRequest_setContext (newreq, mr);
-    if (mr->flags & MR_PREEMPTIVE) HTRequest_setPreemptive(newreq, YES);
-    HTRequest_addRqHd(newreq, HT_C_HOST);
-    HTRequest_setMethod(newreq, method);
-    mr->cnt++;
-    return newreq;
+    Finger * me;
+    HTRequest * request = HTRequest_new();
+    if ((me = (Finger *) HT_CALLOC(1, sizeof(Finger))) == NULL)
+	HT_OUTOFMEM("Finger_new");
+    me->robot = robot;
+    me->request = request;
+    me->dest = dest;
+    HTList_addObject(robot->fingers, (void *)me);
+
+    HTRequest_setContext (request, me);
+    if (robot->flags & MR_PREEMPTIVE) HTRequest_setPreemptive(request, YES);
+    HTRequest_addRqHd(request, HT_C_HOST);
+    HTRequest_setMethod(request, method);
+    robot->cnt++;
+    return me;
 }
 
-PRIVATE BOOL Thread_delete (Robot * mr, HTRequest * request)
+PRIVATE int Finger_delete (Finger * me)
 {
-    if (mr && request) {
-	HTRequest_delete(request);
-	mr->cnt--;
-	return YES;
-    }
-    return NO;
+    HTList_removeObject(me->robot->fingers, (void *)me);
+    me->robot->cnt--;
+    if (me->request)
+	HTRequest_delete(me->request);
+    HT_FREE(me);
+    return YES;
 }
 
 /*
@@ -292,13 +304,20 @@ PRIVATE void VersionInfo (void)
 PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 			       void * param, int status) 
 {
-    Robot * mr = (Robot *) HTRequest_context(request);
-    Thread_delete(mr, request);
-    if (HTNet_isEmpty()) {
-	if (SHOW_MSG) HTTrace("Robot....... Everything is finished...\n");
-	Cleanup(mr, 0);
+    int count = HTNet_count();
+    Finger * finger = (Finger *) HTRequest_context(request);
+    Robot * robot = finger->robot;
+    if (SHOW_MSG) HTTrace("Robot....... done with %s\n", HTAnchor_physical(finger->dest));
+    Finger_delete(finger);
+    switch (count) {
+    case 0:
+	if (SHOW_MSG) HTTrace("             Everything is finished...\n");
+	Cleanup(robot, 0);
+    case 1:
+	HTRequest_forceFlush(request);
+    default:
+	if (SHOW_MSG) HTTrace("             %d outstanding requests\n", robot->cnt);
     }
-    if (SHOW_MSG) HTTrace("Robot....... %d outstanding requests\n", mr->cnt);
     return HT_OK;
 }
 
@@ -312,12 +331,12 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 PRIVATE int timeout_handler (HTRequest * request)
 {
 #if 0
-    Robot * mr = (Robot *) HTRequest_context(request);
+    Finger * finger = (Finger *) HTRequest_context(request);
 #endif
     if (SHOW_MSG) HTTrace("Robot....... We don't know how to handle timeout...\n");
 #if 0
     HTRequest_kill(request);
-    Thread_delete(mr, request);
+    Finger_delete(finger);
 #endif
     return HT_OK;
 }
@@ -330,7 +349,8 @@ PUBLIC HText * HText_new2 (HTRequest * request, HTParentAnchor * anchor,
 			   HTStream * stream)
 {
     HText * me;
-    Robot * mr = (Robot *) HTRequest_context(request);
+    Finger * finger = (Finger *) HTRequest_context(request);
+    Robot * mr = finger->robot;
     if ((me = (HText *) HT_CALLOC(1, sizeof(HText))) == NULL)
 	HT_OUTOFMEM("HText_new2");
 
@@ -350,7 +370,8 @@ PUBLIC void HText_free (HText * me) {
 PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
 {
     if (text && anchor) {
-	Robot * mr = (Robot *) HTRequest_context(text->request);
+	Finger * finger = (Finger *) HTRequest_context(text->request);
+	Robot * mr = finger->robot;
 	HTAnchor * dest = HTAnchor_followMainLink((HTAnchor *) anchor);
 	HTParentAnchor * dest_parent = HTAnchor_parent(dest);
 	char * uri = HTAnchor_address((HTAnchor *) dest_parent);
@@ -363,7 +384,8 @@ PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
 	    HTParentAnchor * parent = HTRequest_parent(text->request);
 	    HyperDoc * last = HTAnchor_document(parent);
 	    int depth = last ? last->depth+1 : 0;
-	    HTRequest * newreq = Thread_new(mr, METHOD_GET);
+	    Finger * newfinger = Finger_new(mr, dest_parent, METHOD_GET);
+	    HTRequest * newreq = newfinger->request;
 	    HyperDoc_new(mr, dest_parent, depth);
 	    HTRequest_setParent(newreq, HTRequest_anchor(text->request));
 	    if (depth >= mr->depth) {
@@ -376,7 +398,7 @@ PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
 	    }
 	    if (HTLoadAnchor((HTAnchor *) dest_parent, newreq) != YES) {
 		if (SHOW_MSG) HTTrace("not tested!\n");
-		Thread_delete(mr, newreq);
+		Finger_delete(newfinger);
 	    }
 	} else {
 	    if (SHOW_MSG) HTTrace("duplicate or max depth reached\n");
@@ -389,7 +411,8 @@ PUBLIC void HText_appendImage (HText * text, HTChildAnchor * anchor,
 			       const char *alt, const char * align, BOOL isMap)
 {
     if (text && anchor) {
-	Robot * mr = (Robot *) HTRequest_context(text->request);
+	Finger * finger = (Finger *) HTRequest_context(text->request);
+	Robot * mr = finger->robot;
 	HTParentAnchor * dest = (HTParentAnchor *)
 	    HTAnchor_followMainLink((HTAnchor *) anchor);
 	HyperDoc * hd = HTAnchor_document(dest);
@@ -399,7 +422,8 @@ PUBLIC void HText_appendImage (HText * text, HTChildAnchor * anchor,
 	    HTParentAnchor * parent = HTRequest_parent(text->request);
 	    HyperDoc * last = HTAnchor_document(parent);
 	    int depth = last ? last->depth+1 : 0;
-	    HTRequest * newreq = Thread_new(mr, METHOD_HEAD);
+	    Finger * newfinger = Finger_new(mr, dest, METHOD_HEAD);
+	    HTRequest * newreq = newfinger->request;
 	    HyperDoc_new(mr, dest, depth);
 	    if (SHOW_MSG) {
 		char * uri = HTAnchor_address((HTAnchor *) dest);
@@ -409,7 +433,7 @@ PUBLIC void HText_appendImage (HText * text, HTChildAnchor * anchor,
 	    if (HTLoadAnchor((HTAnchor *) dest, newreq) != YES) {
 		if (SHOW_MSG)
 		    HTTrace("Robot....... Image not tested!\n");
-		Thread_delete(mr, newreq);
+		Finger_delete(newfinger);
 	    }
 	}
     }
@@ -434,6 +458,8 @@ int main (int argc, char ** argv)
     HTChunk *	keywords = NULL;			/* From command line */
     int		keycnt = 0;
     Robot *	mr = NULL;
+    Finger *	finger;
+    HTParentAnchor *	startAnchor;
 
     /* Starts Mac GUSI socket library */
 #ifdef GUSI
@@ -495,7 +521,6 @@ int main (int argc, char ** argv)
 
 	    /* preemptive or non-preemptive access */
 	    } else if (!strcmp(argv[arg], "-single")) {
-		HTRequest_setPreemptive(mr->request, YES);
 		mr->flags |= MR_PREEMPTIVE;
 
 	    /* test inlined images */
@@ -507,11 +532,6 @@ int main (int argc, char ** argv)
 		mr->flags |= MR_LINK;
 		mr->depth = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    atoi(argv[++arg]) : DEFAULT_DEPTH;
-
-	    /* preemptive or non-preemptive access */
-	    } else if (!strcmp(argv[arg], "-single")) {
-		HTRequest_setPreemptive(mr->request, YES);
-		mr->flags |= MR_PREEMPTIVE;
 
 	    /* Output start and end time */
 	    } else if (!strcmp(argv[arg], "-ss")) {
@@ -537,8 +557,8 @@ int main (int argc, char ** argv)
        } else {	 /* If no leading `-' then check for URL or keywords */
     	    if (!keycnt) {
 		char * ref = HTParse(argv[arg], mr->cwd, PARSE_ALL);
-		mr->anchor = (HTParentAnchor *) HTAnchor_findAddress(ref);
-		HyperDoc_new(mr, mr->anchor, 0);
+		startAnchor = (HTParentAnchor *) HTAnchor_findAddress(ref);
+		HyperDoc_new(mr, startAnchor, 0);
 		keycnt = 1;
 		HT_FREE(ref);
 	    } else {		   /* Check for successive keyword arguments */
@@ -586,15 +606,19 @@ int main (int argc, char ** argv)
 
     /* Register our own someterminater filter */
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
-    
+#if 0    
     /* Set timeout on sockets */
     HTEventList_registerTimeout(mr->tv, mr->timeout, timeout_handler, NO);
-
+#endif
     /* Start the request */
+    finger = Finger_new(mr, startAnchor, METHOD_GET);
+    if (mr->flags & MR_PREEMPTIVE)
+	HTRequest_setPreemptive(finger->request, YES);
+
     if (keywords)						   /* Search */
-	status = HTSearchAnchor(keywords, (HTAnchor *)mr->anchor, mr->request);
+	status = HTSearchAnchor(keywords, (HTAnchor *)startAnchor, finger->request);
     else
-	status = HTLoadAnchor((HTAnchor *) mr->anchor, mr->request);
+	status = HTLoadAnchor((HTAnchor *)startAnchor, finger->request);
 
     if (keywords) HTChunk_delete(keywords);
     if (status != YES) {
@@ -603,7 +627,7 @@ int main (int argc, char ** argv)
     }
 
     /* Go into the event loop... */
-    HTEventList_loop(mr->request);
+    HTEventList_loop(finger->request);
 
     /* Only gets here if event loop fails */
     Cleanup(mr, 0);

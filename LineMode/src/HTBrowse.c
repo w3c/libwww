@@ -1422,7 +1422,8 @@ PRIVATE int timeout_handler (SOCKET s, void * param, HTEventType type)
 	HTNet_killAll();
 	Cleanup(lm, -1);
     }
-    if (SHOW_MSG) HTTrace(".");
+    if (HTNet_count() > 0)
+	if (SHOW_MSG) HTTrace(".");
     return 0;
 }
 
@@ -1491,6 +1492,7 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 		HText_selectAnchor(document, child);
 	    else
 		HText_select(document);
+	    HTRequest_forceFlush(request);
 	}
 
 	/* Should we output a command line? */
