@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 # 
 # syntax: winConfigure.pl <top directory>
 #
@@ -69,17 +69,19 @@ sub checkDir {
     &parseMakefile($dir, \%DEFS);
     my @subdirs = @{$DEFS{'SUBDIRS'}};
     my @builtSources = @{$DEFS{'BUILT_SOURCES'}};
-    foreach my $built (@{$DEFS{'BUILT_SOURCES'}}) {
+    my $built;
+    foreach $built (@{$DEFS{'BUILT_SOURCES'}}) {
 	my $dest = $dir.'/'.$built;
 	my $input = $dest;
 	$input =~ s/\.[^\.\/]*$/.files/;
 	if ($built =~ m/\.def$/) {
-	    `$arg0/makedefs.pl -headerEXPORTS -d. $input > $dest`;
+	    `perl $arg0/makedefs.pl -headerEXPORTS -d$dir/.. \@$input > $dest`;
 	} else {
 	    &htmlToH($dest);
 	}
     }
-    foreach my $subdir (@{$DEFS{'SUBDIRS'}}) {
+    my $subdir;
+    foreach $subdir (@{$DEFS{'SUBDIRS'}}) {
 	&checkDir($dir.'/'.$subdir);
     }
 }
@@ -113,7 +115,8 @@ sub htmlToH
     my $contents = join('', <INPUT>);
     my $inTag = 0;
     my $tag = '';
-    foreach my $elem (split('[<>]', $contents)) {
+    my $elem;
+    foreach $elem (split('[<>]', $contents)) {
 	if ($inTag) {
 #      print OUTPUT ${$transition{$tag}}[$CLOSE] if (defined $transition{$tag});
 	    ($close, $tag, $space, $rest) = $elem =~ m/(\/?)(\S+)(\s*)(.*)/si;
