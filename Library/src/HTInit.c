@@ -21,7 +21,7 @@
 #include "HTWSRC.h"
 #include "HTFWriter.h"
 
-PUBLIC void HTFormatInit ARGS1(HTList *, c)
+PUBLIC void HTFormatInit ARGS1(HTList *, c)	/* Note: Wildcard is no longer * (see further dovn) */
 {
 #ifdef NeXT
     HTSetPresentation(c,"application/postscript", "open %s",	1.0, 2.0, 0.0);
@@ -29,7 +29,7 @@ PUBLIC void HTFormatInit ARGS1(HTList *, c)
     HTSetPresentation(c,"image/gif", 		"open %s", 	0.3, 2.0, 0.0);
     HTSetPresentation(c,"image/x-tiff", 		"open %s", 	1.0, 2.0, 0.0);
     HTSetPresentation(c,"audio/basic", 		"open %s", 	1.0, 2.0, 0.0);
-    HTSetPresentation(c,"*", 			"open %s", 	1.0, 0.0, 0.0);
+    HTSetPresentation(c,"*/*", 			"open %s", 	0.05, 0.0, 0.0); 
 #else
     if (getenv("DISPLAY")) {	/* Must have X11 */
 	HTSetPresentation(c,"application/postscript", "ghostview %s",	1.0, 3.0, 0.0);
@@ -38,9 +38,7 @@ PUBLIC void HTFormatInit ARGS1(HTList *, c)
 	HTSetPresentation(c,"image/jpeg", 	"xv %s",	1.0, 3.0, 0.0);
     }
 #endif
-  /* HENRIK HTSetConversion(c,"www/mime",			"*",		HTMIMEConvert,	1.0, 0.0, 0.0); */
     HTSetConversion(c,"www/mime",			"*/*",		HTMIMEConvert,	1.0, 0.0, 0.0);
-  /* HENRIK  HTSetConversion(c,"application/x-wais-source","*",		HTWSRCConvert, 	1.0, 0.0, 0.0); */
     HTSetConversion(c,"application/x-wais-source","*/*",		HTWSRCConvert, 	1.0, 0.0, 0.0);
     HTSetConversion(c,"text/html",		"text/x-c",	HTMLToC,	0.5, 0.0, 0.0);
     HTSetConversion(c,"text/html",		"text/plain",	HTMLToPlain,	0.5, 0.0, 0.0);

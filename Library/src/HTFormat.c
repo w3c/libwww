@@ -702,8 +702,8 @@ PUBLIC HTStream * HTStreamStack ARGS2(
     HTList * conversion[2];
     HTFormat source = WWW_SOURCE;
     int which_list;
-    HTPresentation * pres, *match, *wildcard_match=0,
-			*source_match=0, *source_wildcard_match=0;
+    float best_quality = -1e30;		/* Pretty bad! */
+    HTPresentation *pres, *match, *best_match=0, *source_match=0;
     
     if (TRACE) fprintf(stderr,
     	"HTFormat: Constructing stream stack for %s to %s\n",
@@ -720,33 +720,28 @@ PUBLIC HTStream * HTStreamStack ARGS2(
 	HTList * cur = conversion[which_list];
 	
 	while ((pres = (HTPresentation*)HTList_nextObject(cur))) {
-	    if (pres->rep == rep_in ||
-		wild_match(pres->rep, rep_in)) {
-	        if (pres->rep_out == rep_out)
-	            return (*pres->converter)(request, pres->command,
-					      rep_in, pres->rep_out,
-					      request->output_stream);
-		if (wild_match(pres->rep_out, rep_out)) {
-		    wildcard_match = pres;
+	    if	((pres->rep == rep_in || wild_match(pres->rep, rep_in)) &&
+		(pres->rep_out == rep_out || wild_match(pres->rep_out, rep_out))) {
+		if (pres->quality > best_quality) {
+		    best_match = pres;
+		    best_quality = pres->quality;
 		}
 	    }
+	    
+	    /* Special case when input format is 'www/source' */ 
 	    if (pres->rep == source) {
-	        if (pres->rep_out == rep_out)
+	        if (pres->rep_out == rep_out || wild_match(pres->rep_out, rep_out))
 	            source_match = pres;
-		if (wild_match(pres->rep_out, rep_out)) {
-		    source_wildcard_match = pres;
-		}
 	    }
 	}
     }
-    match = wildcard_match ? wildcard_match :
-	    source_match ?	source_match : 
-	    source_wildcard_match;
     
+    match = best_match ? best_match :
+	    source_match ? source_match : 
+	    NULL;
     if (match) return (*match->converter)(
-		request, match->command, rep_in, rep_out,
-		request->output_stream);
-
+	request, match->command, rep_in, rep_out,
+	request->output_stream);
     return NULL;
 }
 	

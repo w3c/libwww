@@ -842,7 +842,11 @@ PUBLIC BOOL HTEditable ARGS1 (CONST char *,filename)
 #ifdef NO_GROUPS
     return NO;		/* Safe answer till we find the correct algorithm */
 #else
-    gid_t 	groups[NGROUPS];	
+#ifdef NeXT
+    int		groups[NGROUPS];
+#else
+    gid_t 	groups[NGROUPS];
+#endif	
     uid_t	myUid;
     int		ngroups;			/* The number of groups  */
     struct stat	fileStatus;

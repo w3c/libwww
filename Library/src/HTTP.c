@@ -296,12 +296,13 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 
 	    if (!HTConversions) {
 		HTConversions = HTList_new();
-		HTFormatInit(HTConversions);
+/*		HTFormatInit(HTConversions);	App may do this not us tbl940210 */
 	    }
 
 	    conversions[0] = HTConversions;
 	    conversions[1] = request->conversions;
 
+	    
 	    for (i=0; i<2; i++) {
 		HTList *cur = conversions[i];
 		HTPresentation *pres;
