@@ -3,6 +3,21 @@ static char *rcsid = "$Id$";
 #endif
 
 /*
+ * Changes Copyright (c) 2003 World Wide Web Consortium, (Massachusetts
+ * Institute of Technology, European Research Consortium for Informatics
+ * and Mathematics, Keio University). All Rights Reserved. This program
+ * is distributed under the W3C's Software Intellectual Property License.
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See W3C License
+ * http://www.w3.org/Consortium/Legal/ for more details.
+ */ 
+
+/* changes: MJD 2003-03-08: removed mdnkit backwards compatibility code
+ *          MJD 2003-03-08: changed #includes to use local include files
+ */
+
+/*
  * Copyright (c) 2001,2002 Japan Network Information Center.
  * All rights reserved.
  *  
@@ -50,14 +65,14 @@ static char *rcsid = "$Id$";
 #include <string.h>
 #include <stdlib.h>
 
-#include <idn/result.h>
-#include <idn/assert.h>
-#include <idn/log.h>
-#include <idn/logmacro.h>
-#include <idn/resconf.h>
-#include <idn/api.h>
-#include <idn/debug.h>
-#include <idn/res.h>
+#include "result.h"
+#include "assert.h"
+#include "log.h"
+#include "logmacro.h"
+#include "resconf.h"
+#include "api.h"
+#include "debug.h"
+#include "res.h"
 
 static int initialized;
 static idn_resconf_t default_conf;
@@ -212,46 +227,3 @@ ret:
 	return (r);
 }
 
-/*
- * These functions are for backward compatibility.
- */
-#ifdef ENABLE_MDNKIT_COMPAT
-
-idn_result_t
-mdn_nameinit(void) {
-	return idn_nameinit(1);
-}
-
-idn_result_t
-mdn_encodename(int actions, const char *from, char *to, size_t tolen) {
-	idn_result_t r;
-
-	assert(from != NULL && to != NULL);
-
-	TRACE(("mdn_encodename(actions=%s, from=\"%s\")\n",
-	       idn__res_actionstostring(actions),
-	       idn__debug_xstring(from, 50)));
-
-	if (!initialized && ((r = idn_nameinit(1)) != idn_success))
-		return (r);
-
-	return (idn_res_encodename(default_conf, actions, from, to, tolen));
-}
-
-idn_result_t
-mdn_decodename(int actions, const char *from, char *to, size_t tolen) {
-	idn_result_t r;
-
-	assert(from != NULL && to != NULL);
-
-	TRACE(("idn_decodename(actions=%s, from=\"%s\", tolen=%d)\n",
-	       idn__res_actionstostring(actions),
-	       idn__debug_xstring(from, 50), (int)tolen));
-
-	if (!initialized && ((r = idn_nameinit(1)) != idn_success))
-		return (r);
-
-	return (idn_res_decodename(default_conf, actions, from, to, tolen));
-}
-
-#endif /* ENABLE_MDNKIT_COMPAT */
