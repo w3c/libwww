@@ -16,7 +16,7 @@
   Request / Response
 </H1>
 <P>
-Libwww is based on a request/response paradigm and the Request class defines
+Libwww is based on a request/response paradigm. A Request class defines
 "<I>an operation to be performed on a URL</I>". The request object is the
 main entry point for an application to issue a request to the Library - all
 operations on a URL <I>must</I> use a Request object. The request object
@@ -26,12 +26,12 @@ application issuing a <B>GET</B> request on a HTTP URL, or a server issuing
 a load on a local file URL. The only difference is that the client gets the
 input from a user whereas the server gets the input via the network.
 <P>
-A request object is created with a default set of parameters which are applicable
-for many URL requests but the class defines a huge set of methods that an
-be used to customize a request for a particular purpose. Example of things
-that you can define is natural language, media types, what RFC 822 headers
-to use, whether the request should be refreshed from cache etc. Scroll down
-and see the set of parameters you can tune.
+A request object is created with a default set of parameters which are 
+applicable for many URL requests, but the class defines a huge set of methods 
+that can be used to customize a request for a particular purpose. Example of 
+things that you can define is natural language, media types, what RFC 822 
+headers to use, whether the request should be refreshed from cache etc. Scroll 
+down and see the set of parameters you can tune.
 <P>
 A request object is registered in the library by issuing an operation on
 a URL - for example <B>PUT</B>, <B>POST</B>, or <B>DELETE</B>. You can find

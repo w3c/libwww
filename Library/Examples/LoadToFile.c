@@ -78,7 +78,7 @@ int main (int argc, char ** argv)
     /* Add our own filter to terminate the application */
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
 
-    /* Set the timeout for long we are going to wait for a response */
+    /* Set the timeout for how long we are going to wait for a response */
     HTHost_setEventTimeout(10000);
 
     /* Scan command line for parameters */

@@ -869,7 +869,7 @@ PUBLIC HTAssocList * HTRequest_range (HTRequest * me)
 }
 
 /*
-**	Connection directives. The connection directies can be initiated by
+**	Connection directives. The connection directives can be initiated by
 **	both the server and the client which is the reason for keeping two
 **	lists
 */

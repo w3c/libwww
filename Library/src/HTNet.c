@@ -199,7 +199,7 @@ PUBLIC int HTNetCall_executeBefore (HTList * list, HTRequest * request)
 }
 
 /*
-**	Register a AFTER filter in the list provided by the caller.
+**	Register an AFTER filter in the list provided by the caller.
 **	Several filters can be registered in which case they are called
 **	with the filter ordering in mind.
 */

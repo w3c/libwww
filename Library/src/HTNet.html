@@ -25,9 +25,9 @@ sockets are ready. In practise this is of course transparent to the application
 - this is just to explain the difference.
 <P>
 When a <A HREF="HTReq.html">Request object</A> is passed to the Library ,
-the core creates a new HTNet object pr <A HREF="HTChannl.html">channel</A>
+the core creates a new HTNet object per <A HREF="HTChannl.html">channel</A>
 used by the request. In many cases a request only uses a single
-<A HREF="HTChannl.html">channel object </A>but for example FTP requests use
+<A HREF="HTChannl.html">channel object </A>but, for example, FTP requests use
 at least two - one for the control connection and one for the data connection.
 <P>
 You can find more information about the libwww pseudo thread model in the
@@ -61,7 +61,7 @@ typedef struct _HTNet HTNet;
 <P>
 Filter functions can be registered to be called <EM>before</EM> and
 <EM>after</EM> a request has either been started or has terminated. The
-conditions for <I>BEFORE</I> and <I>AFTER</I> filters are not the same so
+conditions for <I>BEFORE</I> and <I>AFTER</I> filters are not the same, and so
 we maintain them independently. Filters can be registered globally or locally.
 The global filters are registered directly by the Net Object (this module)
 and the local filters are registered by the
@@ -133,7 +133,7 @@ the following function
 extern BOOL HTNetCall_deleteBefore (HTList * list, HTNetBefore * before);
 </PRE>
 <P>
-You get rid of all BEFORE filters usign this function
+You get rid of all BEFORE filters using this function
 <PRE>
 extern BOOL HTNetCall_deleteBeforeAll (HTList * list);
 </PRE>
@@ -190,15 +190,15 @@ of the codes.
   <DT>
     HT_TEMP_REDIRECT
   <DD>
-    The request has been temporaryly redirected and we send back the new URL
+    The request has been temporarily redirected and we send back the new URL
   <DT>
     HT_ALL
   <DD>
     All of above
 </DL>
 <P>
-A Protocol module can also in certain cases return a <CODE>HT_IGNORE </CODE>in
-which case no filters are called
+A Protocol module can also, in certain cases, return a <CODE>HT_IGNORE</CODE>
+in which case no filters are called
 <PRE>
 typedef int HTNetAfter (HTRequest * request, HTResponse * response,
                         void * param, int status);
