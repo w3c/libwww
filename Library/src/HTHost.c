@@ -124,6 +124,7 @@ PRIVATE BOOL killPipeline (HTHost * host, HTEventType type)
 		    HTTrace("Host kill... Terminating net object %p from pending queue\n", net);
 		net->registeredFor = 0;
 		(*net->event.cbf)(HTChannel_socket(host->channel), net->event.param, type);
+		if (host->lock == net) host->lock = NULL;
 	    }
 	}
 
