@@ -1227,6 +1227,7 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 			type = HTEvent_READ;
 		      }
 		  }
+
 		  /* Now check the status code */
 		  if (status == HT_WOULD_BLOCK)
 		      return HT_OK;
