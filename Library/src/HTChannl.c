@@ -252,7 +252,8 @@ PUBLIC BOOL HTChannel_delete (HTChannel * channel, int status)
 	**  Check whether this channel is used by other objects or we can
 	**  delete it and free memory.
 	*/
-	if (channel->semaphore <= 0 && channels && channel->sockfd != INVSOC) {
+	if (channel->semaphore <= 0 && channels && (
+	    channel->sockfd != INVSOC || channel->fp != NULL)) {
             int hash = HASH(channel->sockfd);
 	    HTList * list = channels[hash];
 	    if (list) {
