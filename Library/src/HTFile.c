@@ -281,7 +281,7 @@ PRIVATE BOOL HTEditable (const char * filename, struct stat * stat_info)
 **	The stream must be used for writing back the file.
 **	@@@ no backup done
 */
-PUBLIC HTStream * HTFileSaveStream (HTRequest * request)
+PRIVATE HTStream * HTFileSaveStream (HTRequest * request)
 {
 
     const char * addr = HTAnchor_address((HTAnchor*)request->anchor);
