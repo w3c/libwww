@@ -515,16 +515,16 @@ PUBLIC int HTDigest_updateInfo (HTRequest *request, HTResponse *response,
 	/*
 	** try to find the magic string in the challenge 
 	*/
-	if (AUTH_TRACE) HTTrace("Digest Update.. "
-				"processing authentication-info");
+	if (AUTH_TRACE)
+	    HTTrace("Digest Update.. Processing authentication-info\n");
 	if ((auth_info = HTAssocList_findObject(challenge, DIGEST_AI)))
 	    proxy = 0;
 	else if ((auth_info = HTAssocList_findObject(challenge, 
 						     PROXY_DIGEST_AI)))
 	    proxy = 1;
 	else {
-	    if (AUTH_TRACE) HTTrace("Digest Update.. "
-				    "didn't find any authentication-info");
+	    if (AUTH_TRACE)
+		HTTrace("Digest Update.. Didn't find any authentication-info\n");
 	    return HT_OK;
 	}
     
@@ -542,9 +542,8 @@ PUBLIC int HTDigest_updateInfo (HTRequest *request, HTResponse *response,
 						   url, NULL);
 	}
 	if (!digest) {
-	    if (AUTH_TRACE) HTTrace("Digest Update.. "
-				    "Error: received authentication-info "
-				    "without having a local digest");	
+	    if (AUTH_TRACE)
+		HTTrace("Digest Update.. Error: received authentication-info without having a local digest\n");	
 	    return HT_ERROR;
 	}
 
@@ -962,8 +961,8 @@ PUBLIC int HTDigest_parse (HTRequest * request, HTResponse * response,
 		    /*
 		    **  We only support MD5 for the moment
 		    */
-		    if (AUTH_TRACE) HTTrace("Digest Parse Unknown "
-					    "algorithm `%s\'\n", value);
+		    if (AUTH_TRACE)
+			HTTrace("Digest Parse Unknown algorithm `%s\'\n", value);
 		    HTDigest_delete(digest);
 		    return HT_ERROR;
 		} else
