@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Request Object</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  1-Feb-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 19-Feb-1996 -->
 </HEAD>
 <BODY>
 
@@ -172,7 +172,12 @@ this request to the application using this anchor.
 This will go into its own structure
 
 <PRE>
-    char *	WWWAAScheme;		/* WWW-Authenticate scheme */
+    char *		scheme;		    /* Current authentication scheme */
+    char *		realm;				    /* Current realm */
+    HTAssocList *	challenge;           /* Challenge received by client */
+    HTAssocList *	credentials;	   /* Credentials received by server */
+
+#if 0
     char *	WWWAARealm;		/* WWW-Authenticate realm */
     char *	WWWprotection;		/* WWW-Protection-Template */
     char *	authorization;		/* Authorization: field */
@@ -184,6 +189,7 @@ This will go into its own structure
     HTAASetup *	setup;			/* Doc protection info		  */
     HTAARealm *	realm;			/* Password realm		  */
     char *	dialog_msg;		/* Authentication prompt (client) */
+#endif
 </PRE>
 
 <H3>Windows Specific Information</H3>

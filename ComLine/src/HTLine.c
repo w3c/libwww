@@ -336,6 +336,7 @@ int main (int argc, char ** argv)
 
     /* Normal converters */
     HTConversion_add(conv, "*/*", "www/present", HTSaveLocally, 0.5, 0.0, 0.0);
+    HTConversion_add(conv,"*/*","www/debug",HTBlackHoleConverter,1.0,0.0,0.0);
 
      /* Initialize bindings between file suffixes and media types */
     HTFileInit();

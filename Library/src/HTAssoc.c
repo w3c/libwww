@@ -37,8 +37,8 @@ PUBLIC BOOL HTAssocList_delete (HTAssocList * alist)
 	HTAssocList *cur = alist;
 	HTAssoc *assoc;
 	while (NULL != (assoc = (HTAssoc*)HTList_nextObject(cur))) {
-	    if (assoc->name) HT_FREE(assoc->name);
-	    if (assoc->value) HT_FREE(assoc->value);
+	    HT_FREE(assoc->name);
+	    HT_FREE(assoc->value);
 	    HT_FREE(assoc);
 	}
 	return HTList_delete(alist);

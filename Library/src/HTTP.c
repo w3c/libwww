@@ -541,16 +541,14 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	     ** wouldn't have to wait while prompting username and password
 	     ** from the user).				-- AL 13.10.93
 	     */
-	    HTAA_composeAuth(request);
-	    if (PROT_TRACE) {
-		if (request->authorization)
-		    HTTrace("HTTP........ Sending Authorization: %s\n",
-			    request->authorization);
-		else
-		    HTTrace(
-			    "HTTP........ Not sending authorization (yet)\n");
+	    if (HTAuth_generate(request)) {
+		if (PROT_TRACE)HTTrace("HTTP........ Credentials generated\n");
+		http->state = HTTP_NEED_CONNECTION;
+	    } else {
+		HTRequest_addError(request, ERR_FATAL, NO, HTERR_UNAUTHORIZED,
+				   NULL, 0, "HTLoadHTTP");
+		http->state = HTTP_ERROR;
 	    }
-	    http->state = HTTP_NEED_CONNECTION;
 	    break;
 	    
 	  case HTTP_NEED_CONNECTION: 	    /* Now let's set up a connection */

@@ -141,7 +141,7 @@ PRIVATE int MakeReplyPipe (HTStream *me, HTRequest *server, HTRequest *client)
 	    PUTS(response_line);
 	    HT_FREE(response_line);
 	} else {	
-	    PUTS("500 Internal");
+	    PUTS("HTTP/1.0 500 Internal");
 	    PUTC(CR);
 	    PUTC(LF);
 	}

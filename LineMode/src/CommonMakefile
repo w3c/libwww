@@ -36,9 +36,9 @@ SHELL = /bin/sh
 	www -w90 -na -p -to text/x-c $*.html > $*.h
 
 #	Directories
-PICC = -DWWW_PICS -I$(WWW)/Pics/Implementation/
-PICL = -L$(WWW)/Pics/$(WWW_MACH) -lpics
-PICSLIB = $(WWW)/Pics/$(WWW_MACH)/libpics.a
+# PICC = -DWWW_PICS -I$(WWW)/Pics/Implementation/
+# P ICL = -L$(WWW)/Pics/$(WWW_MACH) -lpics
+# PICSLIB = $(WWW)/Pics/$(WWW_MACH)/libpics.a
 OBJ = $(WTMP)/LineMode/$(WWW_MACH)
 LIB = $(WTMP)/Library/$(WWW_MACH)
 CMN = $(WWW)/Library/Implementation/

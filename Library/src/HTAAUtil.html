@@ -1,12 +1,11 @@
 <HTML>
 <HEAD>
-<TITLE>Utilities for the Authorization</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 19-Nov-1995 -->
+<TITLE>Authentication Manager</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 20-Feb-1996 -->
 </HEAD>
 <BODY>
 
-<H1>Common Parts of Authorization Module to Both Server And
-Browser</H1>
+<H1>Authentication Manager</H1>
 
 <PRE>
 /*
@@ -15,38 +14,29 @@ Browser</H1>
 */
 </PRE>
 
-This module is the interface to the common parts of Access
-Authorization (AA) package for both server and browser. Important to
-know about memory allocation:<P>
+This module handles the registration of multiple Access authentication
+schemes with support for both clients and servers. The module allows
+multiple authentication schemes to be registered at run time so that
+the client and server easily can extend the set of authentication
+schemes. The Library does already support two welknown schemes from
+the HTTP specification: <B>basic</B> and <B>digest</B> but othes can
+be added. <P>
 
-Routines in this module use dynamic allocation, but free automatically
-all the memory reserved by them. Therefore the caller never has to
-(and never should) free() any object returned by these functions.<P>
-
-Therefore also all the strings returned by this package are only valid
-until the next call to the same function is made. This approach is
-selected, because of the nature of access authorization: no string
-returned by the package needs to be valid longer than until the next
-call.  This also makes it easy to plug the AA package in: you don't
-have to ponder whether to free() something here or is it done
-somewhere else (because it is always done somewhere else).<P>
-
-The strings that the package needs to store are copied so the original
-strings given as parameters to AA functions may be freed or modified
-with no side effects.<P>
-
-Also note: The AA package does not free() anything else than what it
-has itself allocated. <P>
+Authentication information is kept separate from the various
+autehntication schemes so that the management of authentication
+information such as challenges and credentials can be handed
+independent of the scheme used. All information about authentication
+information is stored in a <A HREF="#authbase">Authentication
+Information base</A>.<P>
 
 This module is implemented by <A HREF="HTAAUtil.c">HTAAUtil.c</A>, and
-it is a part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>.
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
 
 <PRE>
 #ifndef HTAAUTIL_H
 #define HTAAUTIL_H
-#include "HTList.h"
+#include "HTAssoc.h"
 #include "HTReq.h"
 </PRE>
 
@@ -54,11 +44,11 @@ W3C Reference Library</A>.
 
 <PRE>
 #ifndef PASSWD_FILE
-#define PASSWD_FILE	"/home2/luotonen/passwd"
+#define PASSWD_FILE	"/tmp/passwd"
 #endif
 
 #ifndef GROUP_FILE
-#define GROUP_FILE	"/home2/luotonen/group"
+#define GROUP_FILE	"/tmp/group"
 #endif
 
 #define ACL_FILE_NAME	".www_acl"
@@ -77,23 +67,9 @@ W3C Reference Library</A>.
 </PRE>
 
 We need to define the following structures as they are used in the
-HTRequest structure. The AA module is declared in <A
-HREF="HTAAUtil.html">HTAAUtil</A> and <A HREF="HTAABrow.html">
-HTAABrow</A>. The enumeration <CODE>HTAAScheme </CODE>represents the
-possible authentication schemes used by the WWW Access Authorization.
+HTRequest object.
 
 <PRE>
-typedef enum {
-    HTAA_UNKNOWN,
-    HTAA_NONE,
-    HTAA_BASIC,
-    HTAA_PUBKEY,
-    HTAA_KERBEROS_V4,
-    HTAA_KERBEROS_V5,
-    HTAA_MAX_SCHEMES				/* THIS MUST ALWAYS BE LAST! */
-} HTAAScheme;
-
-
 /*
 ** Access Authorization failure reasons
 */
@@ -121,137 +97,185 @@ typedef enum {
 } HTAAFailReason;
 </PRE>
 
-<H2>Authentication Schemes</H2>
+<H2>Authentication Scheme Registration</H2>
+
+Registering an autentication scheme involes the following parts:
+
+<DL>
+<DT><B>scheme</B>
+<DD>The name of the scheme which is used to identify the scheme, for
+example as the <CODE>&lt;scheme&gt;</CODE> part of the
+<CODE>WWW-authenticate</CODE> HTTP header.
+
+<DT><B>parser</B>
+<DD>Each scheme must have a <EM>parser</EM> callback function that can
+parse and interpret either the challenge sent by a server application
+or the credentials sent by the client to see whether they can be
+fulfilled or not. In the case of a client, the parser is called each
+time a request did not optain authorization to access the
+resource. The parser should then parse the challenge and store it so
+that we know what we must fulfill if a new request is issued. If the
+app is a server then the parser should validate that the credentails
+are sufficent for accessing the resource.
+
+<DT><B>generator</B>
+<DD>A scheme must also have a <EM>generator</EM> callback function
+that can be called to generate a valid challenge or credentials to be
+sent to the other part. If a new request is issued and we have a
+challenge for this request then the generator should make sure that we
+get the right credentials. This can for example be by asking the user
+for a user name a and password. In the case of a server, the generator
+should generate a challenge that must be answered in order to access
+the resource.
+
+<DT><B>garbage collection</B>
+<DD>The authentication information base has to be able to delete
+authentication information but as it doesn't know the format of the
+scheme specific parts, you must register a garbage collector which
+also is a callback function. The info base manager then calls this
+function each time authentication information is either being deleted
+or updated.
+
+</DL>
+
+The request object has two hooks for the access authentication
+handler: <CODE>challenge</CODE> and <CODE>credentials.</CODE>. Both
+are association lists but the format is completely for the
+<CODE>parser</CODE> and the <CODE>generator</CODE> callback functions
+to manage. By using callback functions for parsing and generating
+valid authentication/authorization information, this module is
+independent of each scheme and hence allows for highly different
+schemes.
+
+<H3>Callback Functions</H3>
+
+The types for the parser and generator callback functions are
+symmetric in that the parser expects an association list of unparsed
+data and returns a scheme dependent data object to be added to the
+authentication information base. The callback functions are made so
+that they can be used both on client side and on server side. The
+<CODE>scheme</CODE> parameter is to tell the current authentication
+scheme. That way, the same callback functions can be for multiple
+schemes if needed.
+
 <PRE>
-/* PUBLIC						HTAAScheme_enum()
-**		TRANSLATE SCHEME NAME TO A SCHEME ENUMERATION
-** ON ENTRY:
-**	name		is a string representing the scheme name.
-**
-** ON EXIT:
-**	returns		the enumerated constant for that scheme.
-*/
-extern HTAAScheme HTAAScheme_enum (CONST char* name);
+typedef BOOL HTAuthParCallback	(HTRequest *	request,
+				 CONST char *	scheme);
 
+typedef BOOL HTAuthGenCallback	(HTRequest *	request,
+				 CONST char *	scheme,
+				 char *		realm,
+				 void *		data);
 
-/* PUBLIC						HTAAScheme_name()
-**			GET THE NAME OF A GIVEN SCHEME
-** ON ENTRY:
-**	scheme		is one of the scheme enum values:
-**			HTAA_NONE, HTAA_BASIC, HTAA_PUBKEY, ...
-**
-** ON EXIT:
-**	returns		the name of the scheme, i.e.
-**			"none", "basic", "pubkey", ...
-*/
-extern char *HTAAScheme_name (HTAAScheme scheme);
-
-
-/* extern						HTAA_templateMatch()
-**		STRING COMPARISON FUNCTION FOR FILE NAMES
-**		   WITH ONE WILDCARD * IN THE TEMPLATE
-** NOTE:
-**	This is essentially the same code as in HTRules.c, but it
-**	cannot be used because it is embedded in between other code.
-**	(In fact, HTRules.c should use this routine, but then this
-**	 routine would have to be more sophisticated... why is life
-**	 sometimes so hard...)
-**
-** ON ENTRY:
-**	tmplate		is a template string to match the file name
-**			agaist, may contain a single wildcard
-**			character * which matches zero or more
-**			arbitrary characters.
-**	filename	is the filename (or pathname) to be matched
-**			agaist the template.
-**
-** ON EXIT:
-**	returns		YES, if filename matches the template.
-**			NO, otherwise.
-*/
-extern BOOL HTAA_templateMatch (CONST char * tmplate, CONST char * filename);
-
-
-/* PUBLIC					    HTAA_templateCaseMatch()
-**		STRING COMPARISON FUNCTION FOR FILE NAMES
-**		   WITH ONE WILDCARD * IN THE TEMPLATE (Case Insensitive)
-** NOTE:
-**	This is essentially the same code as in HTAA_templateMatch, but
-**	it compares case insensitive (for VMS). Reason for this routine
-**	is that HTAA_templateMatch gets called from several places, also 
-**	there where a case sensitive match is needed, so one cannot just
-**	change the HTAA_templateMatch routine for VMS.
-**
-** ON ENTRY:
-**	template	is a template string to match the file name
-**			agaist, may contain a single wildcard
-**			character * which matches zero or more
-**			arbitrary characters.
-**	filename	is the filename (or pathname) to be matched
-**			agaist the template.
-**
-** ON EXIT:
-**	returns		YES, if filename matches the template.
-**			NO, otherwise.
-*/
-extern BOOL HTAA_templateCaseMatch (CONST char * tmpl, CONST char * filename);
-
-
-/* PUBLIC					HTAA_makeProtectionTemplate()
-**		CREATE A PROTECTION TEMPLATE FOR THE FILES
-**		IN THE SAME DIRECTORY AS THE GIVEN FILE
-**		(Used by server if there is no fancier way for
-**		it to tell the client, and by browser if server
-**		didn't send WWW-ProtectionTemplate: field)
-** ON ENTRY:
-**	docname	is the document pathname (from URL).
-**
-** ON EXIT:
-**	returns	a template matching docname, and other files
-**		files in that directory.
-**
-**		E.g.  /foo/bar/x.html  =>  /foo/bar/ *
-**						    ^
-**				Space only to prevent it from
-**				being a comment marker here,
-**				there really isn't any space.
-*/
-extern char *HTAA_makeProtectionTemplate (CONST char * docname);
+typedef BOOL HTAuthGcCallback	(CONST char *	scheme,
+				 void *		data);
 </PRE>
-<H2>MIME Argument List Parser</H2>
+
+
+<H3>Add an Authentication Scheme</H3>
+
+You can add an authentication scheme by using the following
+method. Each of the callback function must have the type as defined
+below.
+
 <PRE>
+extern BOOL HTAuthCall_add	(CONST char *		scheme,
+				 HTAuthParCallback *	parser,
+				 HTAuthGenCallback *	generator,
+				 HTAuthGcCallback *	gc);
+</PRE>
 
-/* PUBLIC						HTAA_parseArgList()
-**		PARSE AN ARGUMENT LIST GIVEN IN A HEADER FIELD
-** ON ENTRY:
-**	str	is a comma-separated list:
-**
-**			item, item, item
-**		where
-**			item ::= value
-**			       | name=value
-**			       | name="value"
-**
-**		Leading and trailing whitespace is ignored
-**		everywhere except inside quotes, so the following
-**		examples are equal:
-**
-**			name=value,foo=bar
-**			 name="value",foo="bar"
-**			  name = value ,  foo = bar
-**			   name = "value" ,  foo = "bar"
-**
-** ON EXIT:
-**	returns	a list of name-value pairs (actually HTAssocList*).
-**		For items with no name, just value, the name is
-**		the number of order number of that item. E.g.
-**		"1" for the first, etc.
-*/
-extern HTList *HTAA_parseArgList (char * str);
+<H3>Delete an Authentication Scheme</H3>
 
+Likewise, you can delete an authentication scheme:
+
+<PRE>
+extern BOOL HTAuthCall_delete (CONST char * scheme);
+extern BOOL HTAuthCall_deleteAll (void);
+</PRE>
+
+<H2>Generating Calls to callback functions</H2>
+
+<H3>Call An authentication Scheme Parser</H3>
+
+This function looks for a authentication scheme that matches what we
+have in the request object and calls the parser callback function.
+Case is not significant. Return YES or whatever callback returns
+
+<PRE>
+extern BOOL HTAuth_parse (HTRequest * request);
+</PRE>
+
+<H3>Call An authentication Scheme Generator</H3>
+
+This function looks for a any authentication scheme that protects this
+resource and calls the generator callback in order to make a challenge
+or credentials. Return YES or whatever callback returns
+
+<PRE>
+extern BOOL HTAuth_generate (HTRequest * request);
+</PRE>
+
+<H3>Call An authentication Scheme Garbage Collector</H3>
+
+This function looks for a authentication scheme that matches what we
+have in the request object and calls the cleanup callback function.
+Case is not significant. Return YES if callback found else NO
+
+<PRE>
+extern BOOL HTAuth_cleanup (CONST char * scheme, void * data);
+</PRE>
+
+<A NAME="authbase"><H2>Authentication Information Databases</H2></A>
+
+The authentication information is stored in a database managed by this
+module. In the current implementation, a database is a list of
+sub-authentication databases, each uniquely identified by a hostname
+and a port number.  Each database contains a set of templates which
+can be used to predict what information to use in a hierarchical
+tree. All authentication dependent information is stored as opaque
+data in a <CODE>node</CODE> referenced by a <EM>realm</EM> and a
+<EM>URL template</EM>. <P>
+
+Normally applications would only keep one auth base but if it wants
+different protection setup as a function of different interfaces then
+it can have one auth base representing each interface. <P>
+
+Server applications can have different authentication setups for each
+hostname and port number they control. For example, a server with
+interfaces "www.foo.com" and "internal.foo.com" can have different
+protection setups for each interface.
+
+<H3>Initialize the Authentication database</H3>
+
+<PRE>
+extern BOOL HTAuthInfo_init (void);
+</PRE>
+
+<H3>Terminate the Database</H3>
+
+<PRE>
+extern BOOL HTAuthInfo_terminate (void);
+</PRE>
+
+<H3>Add information to the Database</H3>
+
+Add an access authentication information node to the database. If
+the entry is already found then it is replaced with the new one.
+The template must follow normal URI syntax but can include a wildcard
+Return YES if added (or replaced), else NO
+
+<PRE>
+extern BOOL HTAuthInfo_add	(CONST char *	scheme,
+				 char *		url,
+				 char *		realm,
+				 void *		data);
 </PRE>
 
 <PRE>
 #endif	/* NOT HTAAUTIL_H */
-</PRE>End of file HTAAUtil.h.</BODY>
+</PRE>
+
+End of file declaration
+</BODY>
 </HTML>

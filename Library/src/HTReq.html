@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Public Declaration of Request Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  5-Feb-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 19-Feb-1996 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -34,6 +34,7 @@ typedef long HTRequestID;
 typedef struct _HTRequest HTRequest;
 
 #include "HTList.h"
+#include "HTAssoc.h"
 #include "HTFormat.h"
 #include "HTStream.h"
 #include "HTEvntrg.h"
@@ -180,6 +181,36 @@ and any list of keywords associated with this anchor.
 
 <PRE>
 extern HTAnchor * HTRequest_redirection (HTRequest * request);
+</PRE>
+
+<H2>Access Authentication</H2>
+
+When a access denied response is returned to the Library, for example
+from a remote HTTP server, this code is passed back to the
+application. The application can then decide whether a new request
+should be established or not. These two methods return the
+authentication information required to issue a new request, that is
+the new anchor and any list of keywords associated with this anchor.
+
+<H3>Challenges</H3>
+
+<PRE>
+extern BOOL HTRequest_setChallenge (HTRequest * request, HTAssocList * list);
+extern HTAssocList * HTRequest_challenge (HTRequest * request);
+</PRE>
+
+<H3>Credentials</H3>
+
+<PRE>
+extern BOOL HTRequest_setCredentials (HTRequest * request, HTAssocList * list);
+extern HTAssocList * HTRequest_credentials (HTRequest * request);
+</PRE>
+
+<H3>Realms</H3>
+
+<PRE>
+extern BOOL HTRequest_setRealm (HTRequest * request, char * realm);
+extern CONST char * HTRequest_realm (HTRequest * request);
 </PRE>
 
 <H2>Max number of Retrys for a Down Load</H2>

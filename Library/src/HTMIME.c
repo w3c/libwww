@@ -64,6 +64,7 @@ typedef enum _MIME_state {
     CONTENT_LENGTH,
     CONTENT_TRANSFER_ENCODING,
     CONTENT_TYPE,
+    MESSAGE_DIGEST,
     MIME_DATE,
     DERIVED_FROM,
     EXPIRES,
@@ -237,6 +238,12 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 		state = CHECK;
 		break;
 
+	      case 'i':
+		check_pointer = "gest-MessageDigest";
+		ok_state = MESSAGE_DIGEST;
+		state = CHECK;
+		break;
+
 	      default:
 		state = UNKNOWN;
 		break;
@@ -397,12 +404,11 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 	    break;
 
 	  case AUTHENTICATE:
-	    if ((value = HTNextField(&ptr)) != NULL) {
-		StrAllocCopy(request->WWWAAScheme, value);
+	    if (!request->challenge) request->challenge = HTAssocList_new();
 
-		/* The parsing is done in HTSSUtils.c for the moment */
-		if (*ptr) StrAllocCopy(request->WWWAARealm, ptr);
-	    }
+	    StrAllocCopy(request->scheme, "basic");
+
+	    HTAssocList_add(request->challenge, "WWW-authenticate", ptr);
 	    state = JUNK_LINE;
 	    break;
 
@@ -476,6 +482,12 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 		    }
 		}
 	    }
+	    state = JUNK_LINE;
+	    break;
+
+	  case MESSAGE_DIGEST:
+	    if (!request->challenge) request->challenge = HTAssocList_new();
+	    HTAssocList_add(request->challenge, "Digest-MessageDigest", ptr);
 	    state = JUNK_LINE;
 	    break;
 

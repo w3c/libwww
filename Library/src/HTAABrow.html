@@ -1,10 +1,10 @@
 <HEAD>
-<TITLE>Browser side Access Auth</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 20-Jan-1996 -->
+<TITLE>Client Side Authentication Challenges and Credentials</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 18-Feb-1996 -->
 </HEAD>
 <BODY>
 
-<H1>Browser Side Access Authorization Module</H1>
+<H1>Client Side Authentication Challenges and Credentials</H1>
 
 <PRE>
 /*
@@ -13,189 +13,46 @@
 */
 </PRE>
 
-This module is the browser side interface to Access Authorization (AA)
-package.  It contains code only for browser.<P>
-
-<B>Important</B> to know about memory allocation:<P>
-
-Routines in this module use dynamic allocation, but free automatically
-all the memory reserved by them.<P>
-
-Therefore the caller never has to (and never should)
-<CODE>free()</CODE> any object returned by these functions.<P>
-
-Therefore also all the strings returned by this package are only valid
-until the next call to the same function is made. This approach is
-selected, because of the nature of access authorization: no string
-returned by the package needs to be valid longer than until the next
-call.<P>
-
-This also makes it easy to plug the AA package in: you don't have to
-ponder whether to <CODE>free()</CODE> something here or is it done
-somewhere else (because it is always done somewhere else).<P>
-
-The strings that the package needs to store are copied
-so the original strings given as parameters to AA
-functions may be freed or modified with no side effects.<P>
-
-<B>Also note:</B> The AA package does not <CODE>free()</CODE> anything
-else than what it has itself allocated.  <P>
+Contains code for parsing challenges and creating credentials for
+basic and digest authentication schemes. See also the HTAAUtil module
+for how to handle other authentication schemes. You don't have to use
+this code at all if you better like to use your own functions for
+parsing challenges and generating credentials. All functions are
+implemented as callback functions to the <A
+HREF="HTAAUtil.html">Authentication Manager</A><P>
 
 This module is implemented by <A HREF="HTAABrow.c">HTAABrow.c</A>, and
-it is a part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>.
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
 
 <PRE>
 #ifndef HTAABROW_H
 #define HTAABROW_H
 #include "HTAAUtil.h"
-#include "HTList.h"
-#include "HTAssoc.h"
-#include "HTReq.h"
-
-/*
-** Local datatype definitions
-**
-** HTAAServer contains all the information about one server.
-*/
-typedef struct _HTAAServer {
-
-    char *	hostname;	/* Host's name			*/
-    int		portnumber;	/* Port number			*/
-    HTList *	setups;		/* List of protection setups	*/
-                                /* on this server; i.e. valid	*/
-                                /* authentication schemes and	*/
-                                /* templates when to use them.	*/
-                                /* This is actually a list of	*/
-                                /* HTAASetup objects.		*/
-    HTList *	realms;		/* Information about passwords	*/
-} HTAAServer;
-
-
-/*
-** HTAASetup contains information about one server's one
-** protected tree of documents.
-*/
-typedef struct _HTAASetup {
-    HTAAServer *server;		/* Which server serves this tree	     */
-    char *	tmplate;	/* Template for this tree		     */
-    HTList *	valid_schemes;	/* Valid authentic.schemes   		     */
-    HTAssocList**scheme_specifics;/* Scheme specific params		     */
-    BOOL	reprompt;	/* Failed last time -- reprompt (or whatever)*/
-} HTAASetup;
-
-
-/*
-** Information about usernames and passwords in
-** Basic and Pubkey authentication schemes;
-*/
-typedef struct _HTAARealm {
-    char *	realmname;	/* Password domain name		*/
-    char *	username;	/* Username in that domain	*/
-    char *	password;	/* Corresponding password	*/
-} HTAARealm;
 </PRE>
 
-<H2>Routines for Browser Side Recording of AA Info</H2>
+<H2>Basic Authentication</H2>
 
-Most of the browser-side AA is done by the following two functions
-(which are called from file <CODE>HTTP.c</CODE> so the browsers using
-<CODE>libwww</CODE> only need to be linked with the new library and not
-be changed at all):
-<UL>
+This is the set of callback functions for handling basic authentication.
 
-<LI><CODE>HTAA_composeAuth()</CODE> composes the
-<CODE>Authorization:</CODE> line contents, if the AA package thinks
-that the given document is protected. Otherwise this function returns
-NULL.  This function also calls the functions <CODE>HTPrompt(),</CODE>
-<CODE>HTPromptPassword()</CODE> and <CODE>HTConfirm()</CODE> to get
-the username, password and some confirmation from the user.
-
-<LI><CODE>HTAA_shouldRetryWithAuth()</CODE> determines whether to
-retry the request with AA or with a new AA (in case username or
-password was misspelled).
-
-</UL>
 <PRE>
-/* BROWSER PUBLIC					HTAA_composeAuth()
-**
-**	COMPOSE Authorization: HEADER LINE CONTENTS
-**	IF WE ALREADY KNOW THAT THE HOST REQUIRES AUTHENTICATION
-**
-** ON ENTRY:
-**	req		request, which contains
-**	req->argument	document, that we're trying to access.
-**	req->setup	protection setup info on browser.
-**	req->scheme	selected authentication scheme.
-**	req->realm	for Basic scheme the username and password.
-**
-** ON EXIT:
-**	returns	NO, if no authorization seems to be needed, and
-**		req->authorization is NULL.
-**		YES, if it has composed Authorization field,
-**		in which case the result is in req->authorization,
-**		e.g.
-**
-**		   "Basic AkRDIhEF8sdEgs72F73bfaS=="
-*/
-extern BOOL HTAA_composeAuth (HTRequest * req);
-
-
-/* BROWSER PUBLIC					HTAA_retryWithAuth()
-**
-**		RETRY THE SERVER WITH AUTHORIZATION (OR IF
-**		ALREADY RETRIED, WITH A DIFFERENT USERNAME
-**		AND/OR PASSWORD (IF MISSPELLED)) OR CANCEL
-** ON ENTRY:
-**	req		request.
-**	req-&gt;valid_schemes
-**			This function should only be called when
-**			server has replied with a 401 (Unauthorized)
-**			status code, and req structure has been filled
-**			up according to server reply, especially the
-**			req->valid_shemes list must have been set up
-**			according to WWW-Authenticate: headers.
-**	callback	the function to call when username and
-**			password have been entered (HTLoadHTTP()).
-** ON EXIT:
-**	On GUI clients pops up a username/password dialog box
-**	with "Ok" and "Cancel".
-**	"Ok" button press should do a callback
-**
-**		HTLoadHTTP(req);
-**
-**	This actually done by function HTPasswordDialog(),
-**	which GUI clients redefine.
-**
-**	returns		YES, if dialog box was popped up.
-**			NO, on failure.
-*/
-extern BOOL HTAA_retryWithAuth (HTRequest *	req);
+extern HTAuthParCallback	HTBasic_parse;
+extern HTAuthGenCallback	HTBasic_generate;
+extern HTAuthGcCallback		HTBasic_delete;
 </PRE>
 
-<H2>Enabling Gateway httpds to Forward Authorization</H2>
+<H2>Digest Authentication</H2>
 
-These functions should only be called from daemon code, and
-<CODE>HTAAForwardAuth_reset()</CODE> must be called before the next
-request is handled to make sure that authorization string isn't cached
-in daemon so that other people can access private files using somebody
-elses previous authorization information.
+This is the set of callback functions for handling digest authentication.
 
 <PRE>
-extern void HTAAForwardAuth_set (CONST char * scheme_name,
-				 CONST char * scheme_specifics);
-extern void HTAAForwardAuth_reset (void);
-</PRE>
-
-<H2>Setup HTTP access authentication</H2>
-
-<PRE>
-extern BOOL HTAA_authentication (HTRequest * request);
+extern HTAuthParCallback	HTDigest_parse;
+extern HTAuthGenCallback	HTDigest_generate;
+extern HTAuthGcCallback		HTDigest_delete;
 </PRE>
 
 <PRE>
 #endif	/* NOT HTAABROW_H */
 </PRE>
-End of file HTAABrow.h.
+End of declaration
 </BODY>

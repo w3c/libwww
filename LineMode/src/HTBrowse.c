@@ -320,6 +320,9 @@ PRIVATE void Cleanup (LineMode * me, int status)
     if (HTAlert_interactive())	   /* Terminate with a LF if not interactive */
 	OutputData(me->pView, "\n");
     LineMode_delete(me);
+
+    HTAuthInfo_deleteAll();
+
     HTLibTerminate();
 #ifdef VMS
     exit(status ? status : 1);
@@ -1289,7 +1292,7 @@ PRIVATE int authentication_handler (HTRequest * request, int status)
     LineMode * lm = context->lm;
 
     /* Ask the authentication module for getting credentials */
-    if (HTAA_authentication(request) && HTAA_retryWithAuth(request)) {
+    if (HTAuth_parse(request)) {
 	HTMethod method = HTRequest_method(request);
 
 	/* Make sure we do a reload from cache */
@@ -1464,6 +1467,10 @@ int main (int argc, char ** argv)
     /* Initialize the protocol modules */
     HTAccessInit();
 
+    /* Setup authentication manager */
+    HTAuthCall_add("basic", HTBasic_parse, HTBasic_generate, HTBasic_delete);
+    HTAuthCall_add("digest", HTDigest_parse,HTDigest_generate,HTDigest_delete);
+
     /* Initialize set of converters */
     lm->converters = HTList_new();
     HTConverterInit(lm->converters);
@@ -1539,7 +1546,7 @@ int main (int argc, char ** argv)
 
 	    /* print version and exit */
 	    } else if (!strcmp(argv[arg], "-version")) { 
-		VersionInfo(0);
+		VersionInfo(lm);
 		Cleanup(lm, 0);
 
 	    /* -? or -help: show the command line help page */
@@ -1693,6 +1700,7 @@ int main (int argc, char ** argv)
 		      case 'b': WWWTRACE |= SHOW_BIND_TRACE; break;
 		      case 'c': WWWTRACE |= SHOW_CACHE_TRACE; break;
 		      case 'g':	WWWTRACE |= SHOW_SGML_TRACE; break;
+		      case 'h': WWWTRACE |= SHOW_AUTH_TRACE; break;
 		      case 'p':	WWWTRACE |= SHOW_PROTOCOL_TRACE; break;
 		      case 's':	WWWTRACE |= SHOW_STREAM_TRACE; break;
 		      case 't':	WWWTRACE |= SHOW_THREAD_TRACE; break;

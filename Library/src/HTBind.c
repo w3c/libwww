@@ -66,7 +66,7 @@ PRIVATE HTBind unknown_suffix = { "*.*", NULL, NULL, NULL, 0.5 };
 PUBLIC BOOL HTBind_init (void)
 {
     if (!HTBindings) {
-	if ((HTBindings = (HTList* *) HT_CALLOC(HASH_SIZE, sizeof(HTList *))) == NULL)
+	if (!(HTBindings = (HTList **) HT_CALLOC(HASH_SIZE, sizeof(HTList *))))
 	    HT_OUTOFMEM("HTBind_init");
     }
     StrAllocCopy(HTDelimiters, DEFAULT_SUFFIXES);
@@ -100,6 +100,7 @@ PUBLIC BOOL HTBind_deleteAll (void)
 	HTList_delete(HTBindings[cnt]);
 	HTBindings[cnt] = NULL;
     }
+    HT_FREE(HTBindings);
     HT_FREE(HTDelimiters);
     return YES;
 }

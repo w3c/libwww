@@ -214,8 +214,11 @@ PUBLIC BOOL HTLibInit (CONST char * AppName, CONST char * AppVersion)
 */
 PUBLIC BOOL HTLibTerminate (void)
 {
-    if (WWWTRACE)
-	HTTrace("WWWLibTerm.. Cleaning up LIBRARY OF COMMON CODE\n");
+    if (WWWTRACE) HTTrace("WWWLibTerm.. Cleaning up LIBRARY OF COMMON CODE\n");
+
+    HT_FREE(HTAppName);	        /* Freed thanks to Wade Ogden <wade@ebt.com> */
+    HT_FREE(HTAppVersion);
+
     HTAtom_deleteAll();					 /* Remove the atoms */
     HTDNS_deleteAll();				/* Remove the DNS host cache */
     HTAnchor_deleteAll(NULL);		/* Delete anchors and drop hyperdocs */

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Association Pairs</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 13-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 18-Feb-1996 -->
 </HEAD>
 <BODY>
 
@@ -40,7 +40,29 @@ extern BOOL HTAssocList_add	(HTAssocList * alist,
 				 CONST char * name, CONST char * value);
 
 extern char *HTAssocList_lookup	(HTAssocList * alist, CONST char * name);
+</PRE>
 
+<H3>Get Name and Values</H3>
+
+Use this to get the name and value of a assoc object
+
+<PRE>
+#define HTAssoc_name(me)	((me) ? (me)->name : NULL)
+#define HTAssoc_value(me)	((me) ? (me)->value : NULL)
+</PRE>
+
+<H3>Traverse list</H3>
+
+Fast macro to traverse the list. Call it first with copy of list
+header: it returns the first object and increments the passed list
+pointer.  Call it with the same variable until it returns NULL.
+
+<PRE>
+#define	HTAssocList_nextObject(me) \
+	((me) &amp;&amp; ((me) = (me)->next) ? (me)->object : NULL)
+</PRE>
+
+<PRE>
 #endif /* not HTASSOC_H */
 </PRE>
 End of file HTAssoc.h.

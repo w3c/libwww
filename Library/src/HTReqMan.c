@@ -104,15 +104,12 @@ PUBLIC BOOL HTRequest_clear (HTRequest * me)
 {
     if (me) {
 	me->boundary = NULL;
-	me->authenticate = NULL;
 	me->error_stack = NULL;
-	me->authorization = NULL;
-	me->prot_template = NULL;
-	me->dialog_msg = NULL;
 	me->net = NULL;
-	me->WWWAAScheme = NULL;
-	me->WWWAARealm = NULL;
-	me->WWWprotection = NULL;
+	me->scheme = NULL;
+	me->realm = NULL;
+	me->challenge = NULL;
+	me->credentials = NULL;
 	return YES;
     }
     return NO;
@@ -159,21 +156,12 @@ PUBLIC void HTRequest_delete (HTRequest * request)
 {
     if (request) {
 	HT_FREE(request->boundary);
-	HT_FREE(request->authenticate);
 	if (request->error_stack) HTError_deleteAll(request->error_stack);
+	if (request->net) request->net->request = NULL;
 
-	HT_FREE(request->authorization);
-	HT_FREE(request->prot_template);
-	HT_FREE(request->dialog_msg);
-
-	if (request->net)			/* Break connection to HTNet */
-	    request->net->request = NULL;
-
-	/* These are temporary until we get a MIME thingy */
-	HT_FREE(request->WWWAAScheme);
-	HT_FREE(request->WWWAARealm);
-	HT_FREE(request->WWWprotection);
-
+	HT_FREE(request->scheme);	    /* Current authentication scheme */
+	if (request->challenge) HTAssocList_delete(request->challenge);
+	if (request->credentials) HTAssocList_delete(request->credentials);
 	HT_FREE(request);
     }
 }
@@ -669,20 +657,54 @@ PUBLIC HTPriority HTRequest_priority (HTRequest * request)
 }
 
 /*
-**  Get and set the NET manager
+**  Access Authentication Credentials
 */
-PUBLIC BOOL HTRequest_setNet (HTRequest * request, HTNet * net)
+PUBLIC BOOL HTRequest_setCredentials (HTRequest * request, HTAssocList * list)
 {
     if (request) {
-	request->net = net;
+	request->credentials = list;
 	return YES;
     }
     return NO;
 }
 
-PUBLIC HTNet * HTRequest_net (HTRequest * request)
+PUBLIC HTAssocList * HTRequest_credentials (HTRequest * request)
 {
-    return (request ? request->net : NULL);
+    return (request ? request->credentials : NULL);
+}
+
+/*
+**  Access Authentication Challenges
+*/
+PUBLIC BOOL HTRequest_setChallenge (HTRequest * request, HTAssocList * list)
+{
+    if (request) {
+	request->challenge = list;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTAssocList * HTRequest_challenge (HTRequest * request)
+{
+    return (request ? request->challenge : NULL);
+}
+
+/*
+**  Access Authentication Realms
+*/
+PUBLIC BOOL HTRequest_setRealm (HTRequest * request, char * realm)
+{
+    if (request) {
+	request->realm = realm;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC CONST char * HTRequest_realm (HTRequest * request)
+{
+    return (request ? request->realm : NULL);
 }
 
 /* ------------------------------------------------------------------------- */

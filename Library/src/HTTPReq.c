@@ -10,8 +10,7 @@
 
 /* Library Includes */
 #include "tcp.h"
-#include "HTUtils.h"
-#include "HTString.h"
+#include "WWWUtil.h"
 #include "HTParse.h"
 #include "HTFormat.h"
 #include "HTNetMan.h"
@@ -21,7 +20,6 @@
 #include "HTWWWStr.h"
 #include "HTWriter.h"
 #include "HTReqMan.h"
-#include "HTChunk.h"
 #include "HTTPGen.h"
 #include "HTTPUtil.h"
 #include "HTTPReq.h"					       /* Implements */
@@ -185,10 +183,15 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 	    }
 	}
     }
-    if (request->authorization != NULL) {	    /* Put out authorization */
-	PUTS("Authorization: ");
-	PUTS(request->authorization);
-	PUTBLOCK(crlf, 2);
+    if (request->credentials) {			    /* Access authentication */
+	HTAssocList * cur = request->credentials;
+	HTAssoc * pres;
+	while ((pres = (HTAssoc *) HTAssocList_nextObject(cur))) {
+	    PUTS(HTAssoc_name(pres));
+	    PUTS(": ");
+	    PUTS(HTAssoc_value(pres));
+	    PUTBLOCK(crlf, 2);
+	}
     }
     if (request->RequestMask & HT_C_FROM) {
 	CONST char *mailaddress = HTGetMailAddress();

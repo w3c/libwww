@@ -3,7 +3,7 @@
 <TITLE>Utility macros</TITLE>
 <!-- Changed by: Henrik Frystyk Nielsen, 12-Feb-1996 -->
 <!-- Changed by: Eric Prud'hommeaux, 13-Feb-1996 -->
-<!-- Changed by: Henrik Frystyk Nielsen, 15-Feb-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 19-Feb-1996 -->
 </HEAD>
 <BODY>
 
@@ -109,6 +109,7 @@ typedef enum _HTTraceFlags {
     SHOW_PROTOCOL_TRACE = 0x80,				/* 	   1000.0000 */
     SHOW_MEM_TRACE	= 0x100,			/*	 1.0000.0000 */
     SHOW_URI_TRACE	= 0x200,			/* 	10.0000.0000 */
+    SHOW_AUTH_TRACE	= 0x400,			/*    1.00.0000.0000 */
     SHOW_ANCHOR_TRACE	= 0x800,			/*   10.00.0000.0000 */
     SHOW_ALL_TRACE	= 0xFFF				/*   11.11.1111.1111 */
 } HTTraceFlags;
@@ -129,6 +130,7 @@ the same time.
 #define PROT_TRACE	(WWWTRACE & SHOW_PROTOCOL_TRACE)
 #define MEM_TRACE	(WWWTRACE & SHOW_MEM_TRACE)
 #define URI_TRACE	(WWWTRACE & SHOW_URI_TRACE)
+#define AUTH_TRACE	(WWWTRACE & SHOW_AUTH_TRACE)
 #define ANCH_TRACE	(WWWTRACE & SHOW_ANCHOR_TRACE)
 </PRE>
 
