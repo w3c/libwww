@@ -332,7 +332,7 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
 			    HTHost_setConsumed(HTNet_host(me->net), length - l);
 			    return ret;
                         } else {
-                            HTNet_setHeaderLength(me->net, HTNet_bytesRead(me->net));
+                            HTNet_setHeaderBytesRead(me->net, HTNet_bytesRead(me->net));
                         }
 		    }
 	        } else {				/* EOL_LINE */
@@ -388,7 +388,7 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
 	/* Check if CL at all - thanks to jwei@hal.com (John Wei) */
 	long cl = HTResponse_length(me->response);
 	if (cl >= 0) {
-	    long bodyRead = HTNet_bytesRead(net) - HTNet_headerLength(net);
+	    long bodyRead = HTNet_bytesRead(net) - HTNet_headerBytesRead(net);
 
 	    /*
 	    **  If we have more than we need then just take what belongs to us.

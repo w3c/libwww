@@ -297,6 +297,7 @@ PRIVATE int MIMERequest_put_block (HTStream * me, const char * b, int l)
 	    char * class = HTHost_class(host);
 	    if (class && !strcmp(class, "http")) {
 		MIMERequest_flush(me);
+		HTNet_setHeaderBytesWritten(net, HTNet_bytesWritten(net));
 		return HT_PAUSE;
 	    }
 	}
@@ -306,7 +307,7 @@ PRIVATE int MIMERequest_put_block (HTStream * me, const char * b, int l)
     if (b) {
 	HTParentAnchor * entity = HTRequest_entityAnchor(me->request);
 	long cl = HTAnchor_length(entity);
-	return (cl>=0 && HTNet_bytesWritten(net) >= cl) ?
+	return (cl>=0 && HTNet_bytesWritten(net)-HTNet_headerBytesWritten(net) >= cl) ?
 	    HT_LOADED : PUTBLOCK(b, l);
     }
     return HT_OK;
