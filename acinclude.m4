@@ -686,6 +686,15 @@ if test $ac_cv_c_long_size_t = yes; then
 fi
 ])
 
+dnl AC_ADDLIB
+AC_DEFUN(AC_ADDLIB,
+[ AC_MSG_CHECKING([for $1])
+  LP=`dirname $1`
+  LN=`basename $1 | sed 's/lib\(.*\)\.a/\1/g'`
+  AC_MSG_RESULT([-L$LP -l$LN])
+  LIBS="$LIBS -L$LP -l$LN"
+])
+
 dnl AC_DECL_NEED_SYS_ERR (Let me know if you have a better name.)
 dnl Some systems don't have strerror; *do* have sys_errlist and sys_nerr,
 dnl but don't declare them.  SunOS, for instance.

@@ -1,6 +1,5 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 11-Mar-1996 -->
   <TITLE>Libwww - the W3C Sample Code Library Installation</TITLE>
 </HEAD>
 <BODY BGCOLOR="#ffffff" TEXT="#000000">
@@ -31,7 +30,7 @@ you can run in the future to recreate the current configuration, a file
 and a file `config.log' containing compiler output (useful mainly for debugging
 <I>configure</I>).
 <H2>
-  Building on Windows
+  <A NAME="Windows">Building on Windows</A>
 </H2>
 <P>
 Building on Windows is somewhat different than building on Unix. We therefore
@@ -46,6 +45,8 @@ so be warned!
     <A HREF="PICS-client/src/windows/pics.mak">PICS Library make file</A>
   <LI>
     <A HREF="Robot/src/windows/webbot.mak">Robot Makefile</A>
+  <LI>
+    <A HREF="WinCom/WinCom.dsp">WinCom Makefile</A>
   <LI>
     <A HREF="ComLine/src/windows/comline.mak">Command Line Tool Makefile</A>
   <LI>
@@ -120,13 +121,21 @@ If you are interested in the details of how we build libwww on windows then
 please continue by reading the special documentation on
 <A HREF="Library/User/Platform/WinDLL.html">how to install on Windows</A>.
 <H2>
-  Building on Unix
+  <A NAME="Unix">Building on Unix</A>
 </H2>
 <P>
 <IMG SRC="Icons/32x32/caution" ALT="Note" BORDER="0" WIDTH="32" HEIGHT="32">
 You probably need the <A HREF="http://www.delorie.com/gnu/docs/make/">GNU
 version of make</A> in order to build libwww. The reason is that some of
 the make files contain some syntax that most other makefiles don't understand.
+<P>
+Libwww uses <A
+HREF="http://www.gnu.org/software/libtool/libtool.html">GNU
+Libtool</A> in order to build shared libraries on a variety of
+systems. While this is very nice for making usable binaries, it can be
+a pain when trying to debug a program. For that reason, compilation of
+shared libraries can be turned off by specifying the
+<CODE>--disable-shared</CODE> option to <CODE>configure</CODE>.
 <P>
 The simplest way to compile this package on a Unix platform is:
 <P>

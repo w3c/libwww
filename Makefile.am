@@ -39,7 +39,7 @@ install-exec-local:
 AUTOMAKE_OPTIONS = foreign
 
 # These are the sub directories
-SUBDIRS = config Library PICS-client LineMode Robot ComLine Icons
+SUBDIRS = config Library PICS-client LineMode Robot ComLine WinCom Icons
 
 # Extra distribution files in zip format and in compress
 dist-hook:
@@ -96,35 +96,35 @@ inc:
 #	Hypertext supplied in text format
 #
 $(top_srcdir)/WELCOME : $(top_srcdir)/WELCOME.html
-	www -p -na $(top_srcdir)/WELCOME.html \
-		-o $(top_srcdir)/WELCOME
+	-www -p -na $(top_srcdir)/WELCOME.html \
+		 -o $(top_srcdir)/WELCOME
 
 $(top_srcdir)/README : $(top_srcdir)/README.html
-	www -p -na $(top_srcdir)/README.html \
-		-o $(top_srcdir)/README
+	-www -p -na $(top_srcdir)/README.html \
+		 -o $(top_srcdir)/README
 
 $(top_srcdir)/INSTALL : $(top_srcdir)/INSTALL.html
-	www -p -na $(top_srcdir)/INSTALL.html \
-		-o $(top_srcdir)/INSTALL
+	-www -p -na $(top_srcdir)/INSTALL.html \
+		 -o $(top_srcdir)/INSTALL
 
 $(top_srcdir)/TODO : $(top_srcdir)/Library/User/ToDo.html
-	cp $(top_srcdir)/Library/User/ToDo.html $(top_srcdir)/TODO.html
-	www -p -na $(top_srcdir)/TODO.html \
-		-o $(top_srcdir)/TODO
+	-cp $(top_srcdir)/Library/User/ToDo.html $(top_srcdir)/TODO.html
+	-www -p -na $(top_srcdir)/TODO.html \
+		 -o $(top_srcdir)/TODO
 
 $(top_srcdir)/NEWS : $(top_srcdir)/Library/User/ReleaseNotes.html
-	cp $(top_srcdir)/Library/User/ReleaseNotes.html $(top_srcdir)/NEWS.html
-	www -p -na $(top_srcdir)/NEWS.html \
-		-o $(top_srcdir)/NEWS
+	-cp $(top_srcdir)/Library/User/ReleaseNotes.html $(top_srcdir)/NEWS.html
+	-www -p -na $(top_srcdir)/NEWS.html \
+		 -o $(top_srcdir)/NEWS
 
 $(top_srcdir)/COPYRIGH : $(top_srcdir)/COPYRIGHT.html
-	www -p -na $(top_srcdir)/COPYRIGHT.html \
-		-o $(top_srcdir)/COPYRIGH
+	-www -p -na $(top_srcdir)/COPYRIGHT.html \
+		 -o $(top_srcdir)/COPYRIGH
 
 $(top_srcdir)/PATCHES : $(top_srcdir)/PATCHES.html
-	www -p -na $(top_srcdir)/PATCHES.html \
-		-o $(top_srcdir)/PATCHES
+	-www -p -na $(top_srcdir)/PATCHES.html \
+		 -o $(top_srcdir)/PATCHES
 
 $(top_srcdir)/CERN : $(top_srcdir)/CERN.html
-	www -p -na $(top_srcdir)/CERN.html \
-		-o $(top_srcdir)/CERN
+	-www -p -na $(top_srcdir)/CERN.html \
+		 -o $(top_srcdir)/CERN

@@ -38,10 +38,34 @@ the latest &nbsp;<A HREF="Guide/">WWW APIs</A> and &nbsp;a complete
 <P>
   <HR>
 <H2>
-  Release 5.1m (to be released)
+  Release 5.1n (To be released)
+</H2>
+These are the things that are upcoming in the next release
+
+<H3>
+  New Features
+</H3>
+
+<H3>
+  Bug Fixes
+</H3>
+<UL>
+  <LI>
+    A close socket event wasn't registered on Windows. This is now
+    done in <A HREF="../src/HTHost.c">HTHost.c</A>.
+  <LI>
+    On some platforms, it is not possible to refer to function
+    addresses accrosss shared libraries. The result is that the libwww
+    API that uses function addresses don't always work. I have added
+    an opcode version of the <A HREF="../src/HTAlert.html">HTAlert
+    API</A> to handle this for user messages and progress
+    notifications.
+</UL>
+
+<H2>
+  Release 5.1m May 21, 1998
 </H2>
 <P>
-These are the things that are upcoming in the next release
 <H3>
   New Features
 </H3>

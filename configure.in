@@ -243,8 +243,10 @@ AC_ARG_WITH(zlib,
     AC_MSG_RESULT(yes)
     if test "x$withval" = "xyes"; then
       withval="-lz"
+      LIBS="$LIBS $withval"
+    else
+      AC_ADDLIB($withval)
     fi
-    LIBS="$LIBS $withval"
     AC_DEFINE(HT_ZLIB)
     AC_TRY_LINK([],
                 [ zlibVersion(); ],
@@ -269,13 +271,14 @@ AC_ARG_WITH(regex,
     AC_MSG_RESULT(yes)
     AC_DEFINE(HT_POSIX_REGEX)
     if test "x$withval" = "xyes"; then
-	AC_CHECK_LIB(rx, regexec, [ LIBS="-lrx $LIBS" ] )
+      AC_CHECK_LIB(rx, regexec, [ LIBS="-lrx $LIBS" ] )
+      LIBS="$withval $LIBS"
     else
-        LIBS="$withval $LIBS"
-	AC_TRY_LINK([],
-	            [ regexec(); ],
-		    [],
-		    [ AC_MSG_ERROR(Could not find the $withval library.  You must first install regex.) ] )
+      AC_ADDLIB($withval)
+      AC_TRY_LINK([],
+	          [ regexec(); ],
+		  [],
+		  [ AC_MSG_ERROR(Could not find the $withval library.  You must first install regex.) ] )
     fi
     ;;
   esac ],
@@ -317,8 +320,10 @@ if test "x$socks" = "x"; then
 	    socks=5
 	    if test "x$withval" = "xyes"; then
 	      withval="-lsocks5"
+	      LIBS="$withval $LIBS"
+	    else
+      	      AC_ADDLIB($withval)
 	    fi
-	    LIBS="$withval $LIBS"
 	    AC_TRY_LINK([],
 	                [ SOCKSconnect(); ],
 			[],
@@ -342,8 +347,10 @@ if test "x$socks" = "x"; then
 	    socks=4
 	    if test "x$withval" = "xyes"; then
 	      withval="-lsocks"
+	      LIBS="$withval $LIBS"
+            else
+      	      AC_ADDLIB($withval)
 	    fi
-	    LIBS="$withval $LIBS"
 	    AC_TRY_LINK([],
 	                [ Rconnect(); ],
 			[],
@@ -376,9 +383,10 @@ AC_ARG_WITH(mysql,
   *)
     AC_MSG_RESULT(yes)
     if test "x$withval" = "xyes"; then
-      withval="-L/usr/local/lib/mysql -lmysqlclient"
+      AC_ADDLIB("/usr/local/lib/mysql/libmysqlclient.a")
+    else
+      AC_ADDLIB($withval)
     fi
-    LIBS="$LIBS $withval"
     AC_DEFINE(HT_MYSQL)
     HTSQL="HTSQL.lo"
     HTSQLLOG="HTSQLLog.lo"
@@ -532,5 +540,6 @@ LineMode/Makefile LineMode/User/Makefile
 LineMode/src/Makefile LineMode/src/windows/Makefile LineMode/src/vms/Makefile
 Robot/Makefile Robot/User/Makefile Robot/src/Makefile Robot/src/windows/Makefile
 ComLine/Makefile ComLine/User/Makefile ComLine/src/Makefile ComLine/src/windows/Makefile
+WinCom/Makefile WinCom/hlp/Makefile WinCom/res/Makefile
 Icons/Makefile Icons/WWW/Makefile Icons/32x32/Makefile Icons/internal/Makefile
 ], date>stamp-h)

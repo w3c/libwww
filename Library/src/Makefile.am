@@ -1,7 +1,7 @@
 ## Process this file with Automake to create Makefile.in.
 
 lib_LTLIBRARIES = libwww.la
-libwww_la_LDFLAGS = -version-info 1:0:1
+libwww_la_LDFLAGS = -version-info "1:0:1"
 
 SUBDIRS = windows vms
 
