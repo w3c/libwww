@@ -14,7 +14,6 @@
 #include "tcp.h"
 
 /* Library include files */
-#include "HTMLPDTD.h"
 #include "HTUtils.h"
 #include "HTAccess.h"
 #include "HTTCP.h"
@@ -195,12 +194,13 @@ PUBLIC void HTErrorFree ARGS1(HTRequest *, request)
 */
 PUBLIC void HTErrorIgnore ARGS1(HTRequest *, request)
 {
-    HTList *cur = request->error_stack;
+    HTList *cur;
     HTErrorInfo *pres;
     if (!request) {
 	if (TRACE) fprintf(stderr, "HTErrorIgnore Bad argument!\n");
 	return;
     }
+    cur = request->error_stack;
     if (cur && (pres = (HTErrorInfo *) HTList_nextObject(cur)) != NULL) {
 	if (TRACE)
 	    fprintf(stderr, "Error Ignore Code: %3d\tMessage: `%s\tSeverity: %d\tParameter: `%s\'\tWhere: `%s\'\n",

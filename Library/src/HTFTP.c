@@ -252,11 +252,12 @@ PRIVATE int HTDoAccept ARGS2(HTRequest *, request, int, sockfd)
 */
 PRIVATE void HTFTPParseError ARGS1(HTChunk **, error)
 {
-    HTChunk *oldtext = *error;
-    if (!oldtext || !oldtext->data) {
+    HTChunk *oldtext;
+    if (!error || !*error || !(*error)->data) {
 	if (TRACE) fprintf(stderr, "FTP......... No error message?\n");
 	return;
     }
+    oldtext = *error;
     {
 	int result;		       /* The first return code in the chunk */
 	char *oldp = oldtext->data;
@@ -294,11 +295,12 @@ PRIVATE void HTFTPParseError ARGS1(HTChunk **, error)
 */
 PRIVATE void HTFTPParseWelcome ARGS1(HTChunk **, welcome)
 {
-    HTChunk *oldtext = *welcome;
-    if (!oldtext || !oldtext->data) {
+    HTChunk *oldtext;
+    if (!welcome || !*welcome || !(*welcome)->data) {
 	if (TRACE) fprintf(stderr, "FTP......... No welcome message?\n");
 	return;
     }
+    oldtext = *welcome;
     {
 	int result;		       /* The first return code in the chunk */
 	char cont;					/* Either ' ' or '-' */
@@ -2913,15 +2915,16 @@ PUBLIC BOOL HTFTP_disable_session NOARGS
 */
 PUBLIC int HTLoadFTP ARGS1(HTRequest *, request)
 {
-    char *url = HTAnchor_physical(request->anchor);
+    char *url;
     int status = -1;
     int retry;		       			    /* How many times tried? */
     ftp_ctrl_info *ctrl;
 
-    if (!request || !request->anchor || !url || !*url) {
+    if (!request || !request->anchor) {
 	if (TRACE) fprintf(stderr, "HTLoadFTP... Bad argument\n");
 	return -1;
     }
+    url = HTAnchor_physical(request->anchor);
 
     /* Initiate a (possibly already exsisting) control connection and a
        corresponding data connection */
@@ -3058,11 +3061,6 @@ PUBLIC int HTLoadFTP ARGS1(HTRequest *, request)
 		   (int) strlen(unescaped), "HTLoadFTP");
 	free(unescaped);
     }
-
-    /* TEMPORARY, SHOULD BE IN HTAccess */
-    if (request->error_stack)
-	HTErrorMsg(request);
-    /* TEMPORARY */
     return status;
 }
 

@@ -671,7 +671,7 @@ PRIVATE int HTGopher_send_cmd ARGS3(HTRequest *, 	request,
 				    gopher_info *, 	gopher)
 {
     int status = 0;
-    if (!gopher) {
+    if (!gopher || !request || !url) {
 	if (TRACE)
 	    fprintf(stderr, "Gopher Tx... Bad argument!\n");
 	return -1;
@@ -715,14 +715,16 @@ PRIVATE int HTGopher_send_cmd ARGS3(HTRequest *, 	request,
 */
 PUBLIC int HTLoadGopher ARGS1(HTRequest *, request)
 {
-    char *url = HTAnchor_physical(request->anchor);
+    char *url;
     int status = -1;
     gopher_info *gopher;
     
-    if (!request || !url || !*url) {
+    if (!request || !request->anchor) {
 	if (TRACE) fprintf(stderr, "HTLoadGopher Bad argument\n");
 	return -1;
     }
+    url = HTAnchor_physical(request->anchor);
+
     if (TRACE) fprintf(stderr, "HTGopher.... Looking for `%s\'\n", url);
 
     /* Initiate a new gopher structure */
@@ -873,11 +875,6 @@ PUBLIC int HTLoadGopher ARGS1(HTRequest *, request)
 	HTAnchor_clearIndex(request->anchor);
 	free(unescaped);
     }
-
-    /* TEMPORARY, SHOULD BE IN HTAccess */
-    if (request->error_stack)
-        HTErrorMsg(request);
-    /* TEMPORARY */
     return status;
 }
 
