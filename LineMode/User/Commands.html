@@ -5,14 +5,11 @@
 </HEAD>
 <BODY>
 
-<A HREF="../../"><IMG ALT="WWW"
-SRC="../../Icons/WWW/WWW48x.gif"></A> <A HREF="../Status.html"><IMG
-ALT="LMB" SRC="../../Icons/WWW/LMB48x.gif"></A> <A
-HREF="QuickGuide.html"><IMG SRC="../../Icons/WWW/guide48x.gif"></A>
+<A HREF="../../"><IMG ALT="WWW" SRC="../../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../Status.html"><IMG ALT="LMB" SRC="../../Icons/WWW/LMB48x.gif"></A>
+<IMG SRC="../../Icons/WWW/guide48x.gif" ALT="Guide">
 
 <H1>Line Mode Browser Commands</H1>
-
-<HR>
 
 The following commands are available at the prompt within <A
 HREF="../Status.html">WWW Line Mode Browser</A>. Some are disabled
@@ -50,11 +47,17 @@ current document.
 
 <DT>Up, Down
 
-<DD> Scrolls up or down one page in the current document.
+<DD>Scrolls up or down one page in the current document.
 
 </DL>
 
 <H3>Load a document</H3>
+
+In version 3.0 and later of the Line Mode Browser you can immediately
+type another command as soon as the prompt line returns. This is the
+result of the multithreaded model used in the <A
+HREF="../../Library/Status.html">Library of Common Code</A>. You don't
+have to wait until the down load or upload has finished.
 
 <DL>
 <DT>&lt;number&gt;
@@ -85,45 +88,7 @@ which is interpreted relatively to the current document.
 
 <DD>Goes back to the first document you were reading.
 
-</DL>
-
-<H3>Loading Multiple Documents Simultanously</H3>
-
-In version 3.0 and later of the Line Mode Browser you can immediately
-type another command as soon as the prompt line returns. This is the
-result of the multithreaded model used in the <A
-HREF="../../Library/Status.html">Library of Common Code</A>.
-
-<H3>Interrupt Current Requests</H3>
-
-<DL>
-
-<DT>z
-
-<DD>If running in multithreaded mode (default in interactive mode from
-version 3.0), you can interrupt a request by typing 'z'.
-
-</DL>
-
-
-<H3>Links</H3>
-
-<DL>
-
-<DT>List
-
-<DD> Gives a numbered list of the links from the current document,
-giving the title of the target documents if it is known otherwise the
-URL To follow a link, type the number by itself as above. By using <A
-NAME="z9" HREF="#z11">source</A>, only the URL's are displayed.
-
-</DL>
-
-<H3>Search</H3>
-
-<DL>
-
-<DT>Find, Keywords  &lt;keywords&gt;
+<DT>Find, Keywords &lt;keywords&gt;
 
 <DD> Queries the current index with the supplied keywords (separated
 by blanks). The interpretation of the keywords depends on the
@@ -136,20 +101,53 @@ does not conflict with another www command.
 
 </DL>
 
-<H3>History</H3>
+<H3>Upload a document to a remote server</H3>
+
+In version 3.1 and later of the Line Mode Browser you can send a
+document to a remote HTTP server using PUT or POST. 
+
+<DL>
+<DT>copy
+
+<DD>Copy a document (PUT) to remote HTTP server. You can either copy a
+file on your local file system, or from a remote HTTP server. An example is:
+
+<PRE>
+	copy
+	Source: http://www.w3.org
+	Destination: http://www.my.server
+</PRE>
+
+</DL>
+
+<H3>Interrupt Current Requests</H3>
+
+Both uploads and downloads can be interrupted at any time.
 
 <DL>
 
-<DT>Recall
+<DT>z, Z
 
-<DD> Without a parameter, gives a numbered list of the documents you
-have visited.  To select one, type "Recall" followed by the number.
+<DD>If running in multithreaded mode (default in interactive mode from
+version 3.0), you can interrupt a request by typing 'z'.
 
 </DL>
 
 <H3>Other Features</H3>
 
 <DL>
+
+<DT>List
+
+<DD> Gives a numbered list of the links from the current document,
+giving the title of the target documents if it is known otherwise the
+URL To follow a link, type the number by itself as above. By using <A
+NAME="z9" HREF="#z11">source</A>, only the URL's are displayed.
+
+<DT>Recall
+
+<DD> Without a parameter, gives a numbered list of the documents you
+have visited.  To select one, type "Recall" followed by the number.
 
 <DT><A NAME="z11">Source</A>
 
@@ -218,8 +216,8 @@ this because it applies to a subshell.
 <HR>
 
 <ADDRESS><A HREF="../../../TBL_Disclaimer.html">Tim BL</A>and <A
-NAME="z16" HREF="../../People.html#Frystyk">Henrik Frystyk</A>,
-October 1994 </ADDRESS>
+NAME="z16" HREF="../../People.html#Frystyk">Henrik Frystyk</A>, May
+1995 </ADDRESS>
 
 </BODY>
 </HTML>

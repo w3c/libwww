@@ -1,57 +1,63 @@
 <HTML>
 <HEAD>
-<TITLE>CERN Line Mode Browser 3.0 Release Notes</TITLE>
+<TITLE>Line Mode Browser 3.1 Release Notes</TITLE>
 </HEAD>
 <BODY>
 
-<A HREF="../../"><IMG ALT="WWW"
-SRC="../../Icons/WWW/WWW48x.gif"></A> <A HREF="../Status.html"><IMG
-ALT="LMB" SRC="../../Icons/WWW/LMB48x.gif"></A>
+<A HREF="../../"><IMG ALT="WWW" SRC="../../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../Status.html"><IMG ALT="LMB" SRC="../../Icons/WWW/LMB48x.gif"></A>
 
-<H1>Line Mode Browser 3.0 Release Notes</H1>
+<H1>Line Mode Browser 3.1 Release Notes</H1>
 
-<HR>
+This is the announcement of the first release of the Line Mode Browser
+from W3C. The release is called 3.1 prerelease 1 and is to be
+considered as a beta version of the official release scheduled for
+June. The code word for the June release is support for remote
+collaborate work where people can use HTTP and the Web as a remote
+authoring environment. The purpose of this release is to build and
+maintain a close loop between W3C discussion and implementation
+leading up to the final 3.1 June release. <P>
 
-This release is the first public release of source code which is
-covered by the new CERN copyright statement. The statement is
-published in the file <B>COPYRIGH</B> (truncated to 8 bytes) in the
-distribution packet or in <A HREF="../../../COPYRIGHT.html">hypertext
-format</A>.<P>
+Due to the limited distribution of the source code it is only
+available from our <A HREF="../../../Dist/">HTTP server</A> and NOT
+our FTP server. There is a "<A HREF="QuickGuide.html">User's Guide</A>" on
+how to use the Line Mode Browser as a basic tool for Web
+applications.<P>
 
-As always, most of the added features in the Line Mode Browser are a
-result of changes to the <A HREF="../../Library/Status.html">Library
-of Common Code</A>. Most of the code is reorganized in order to adapt
-the application to the multithreaded version of the Library. This
-means that the browser now has the following new features:
+The Line Mode Browser is now under <A HREF="../../COPYRIGHT.html">MIT
+copyright</A> and another new formality is that everybody who makes
+modifications, contributions etc. and wishes to incorporate them as
+part of the W3C software distribution <A
+HREF="../../PATCHES.html">must sign a form</A> that gives MIT the
+permissions to use the contributions under the terms of the W3C
+software distribution. <P>
 
-<H2>3.0, Marts 21 1995</H2>
+<H2>Line Mode Browser 3.1 Prerelease, May 20</H2>
 
-Only very little has changed in this release. Most of the new features
-are in the Library.
+As usual most of the functionality in the Line Mode Browser comes
+from the Library, but there are some things that deserve to be
+mentioned:
 
-<H2>3.0 Prerelease 2, December 2 1994</H2>
+<H3>New Features and Interfaces</H3>
 
 <UL>
-
-<LI>The browser is now much more stable and has the same amount of
-functionality as the previous version 2.15
-
+<LI>Added the -single flag so that it can run in singlethreaded mode
+<LI>refresh screen is now improved
+<LI>Introduced `-cacheroot' as command line option
+<LI>Added STREAM_TRACE to command line option
+<LI>Changed SGML trace to `g' instead of `s'
 </UL>
 
-<H2>3.0 Prerelease 1, November 26 1994</H2>
+<H3>Bug Fixes</H3>
 
 <UL>
-
-<LI>Interruptible I/O - hit 'z RETURN' and the current load terminates
-
-<LI>You can at any time initiate a new load or any other command by
-simply start typing.
-
+<LI>No more coredump if HTMainText=NULL!
+<LI>command line option -listrefs now works again
 </UL>
 
+<P>
 <HR>
-
-<ADDRESS>Henrik Frystyk, www-bug@w3.org, Marts 1995</ADDRESS>
+<ADDRESS>Henrik Frystyk, www-bug@w3.org, June 1995</ADDRESS>
 </BODY>
 </HTML>
 

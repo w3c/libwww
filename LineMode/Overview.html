@@ -11,6 +11,9 @@
 
 <H1>WWW Line Mode Browser</H1>
 
+<IMG SRC="../Icons/WWW/new_red.gif" ALT="NOTE"> <B>Version 3.1
+prerelease 1</B> is available <EM>now</EM>!<P>
+
 The Line Mode Browser (www) is a character based World-Wide Web
 Browser.  It is developed for use on dumb terminals and as a test tool
 for the Common Code Library. It can be run in interactive mode,
@@ -38,16 +41,10 @@ in batch jobs.  <P>
 <DD>Stable current version used as test tool for the <A
 HREF="../Library/">Library of Common Code</A>
 
-<DT>Demo site
-
-<DD>Try it by telnet telnet.w3.org (no user or password)
-
 <DT>Plans
 
 <DD>New releases of the Line Mode Browser follows the releases of the
-<A HREF="../Library/">WWW Library of Common Code</A>. A
-Multithreaded version 3.0 is now available <IMG
-SRC="../Icons/WWW/new_red.gif">
+<A HREF="../Library/">WWW Library of Common Code</A> very closely.
 
 <DT>Platforms
 
@@ -56,34 +53,40 @@ HREF="../Library/User/Platform/">Platforms</A>.  See also the <A
 HREF="http://delonline.cern.ch/disk$user/duns/doc/vms/distribution.html">VMS
 version</A>.
 
-<DT>Getting the Source Code
+<DD>The latest source code is available as a <A
+HREF="../../Dist/src/WWWLineMode.tar.Z">compressed tar file</A> or a
+<A HREF="../../Dist/src/WWWLineMode.zip">zip file</A> together with <A
+HREF="../../Dist/src/old">old versions</A>. All this and many other
+things you can find in our <A HREF="../../Dist/src">source
+achive</A>.<P>
 
-<DD>The LineMode Browser is available in two versions:
+A packet contains the following components:
 
 <UL>
-
-<LI>A singlethreaded version 2.15 as <A
-HREF="../../Dist/src/WWWLineMode_2.15.tar.Z">WWWLineMode.tar.Z</A>
-
-<LI>A multithreaded version 3.0 as <A
-HREF="../../Dist/src/WWWLineMode_3.0.tar.Z"> WWWLineMode_3.0.tar.Z</A>.
-
+<LI>The code definitions (*.c)
+<LI>The interface definitions (*.h)
+<LI>The documentation (*.html)
+<LI>A Makefile for building the Line Mode Browser
 </UL>
+<P>
 
-Both source packets can be found in the <A HREF="../../Dist/src">Source
-Archive</A>.
-
-<DT>Precompiles Binaries
-
-<DD>Binaries are available for many <A
-HREF="../Library/User/Platform/">Platforms</A> as <A
-href="../../Dist/bin">www*.tar.Z</A>.
+You can see how to unpack and compile the software in the <A
+HREF="../README.html">README</A> file, and you can find more
+information on the arthitecture in the <A
+HREF="Internals.html">Internals</A> and how to use it in the <A
+HREF="Defaults/QuickGuide.html">User's Guide</A>.
 
 <DT>Copyright
 
-<DD>Version 3.0 and newer versions of the Line Mode Browser are put
-under the <A HREF="../../COPYRIGHT.html">CERN WWW Copyright
-Statement</A>
+<DD>Version 3.1 and newer versions of the Line Mode Browser are put
+under the <A HREF="../COPYRIGHT.html">MIT Copyright Statement</A>
+
+<DT>Patches, Bug fixes, etc..
+
+<DD>When you have modifications and want them to go into our code base
+then please fill out the form for <A
+HREF="../PATCHES.html">Corrections, Modifications, and Patches</A> and
+send it to us. Otherwise we can not use the patch!
 
 </DL>
 
@@ -96,24 +99,16 @@ Code</A> which is necessary in order to compile the browser.
 <H2>More information</H2>
 
 <UL>
-
-<LI><A HREF="Defaults/QuickGuide.html">User Guide</A>
-
+<LI><A HREF="Defaults/QuickGuide.html">Quick User Guide</A>
+<LI><A HREF="Defaults/Commands.html">Commands</A>
+<LI><A HREF="Defaults/CommandLine.html">Command Line Options</A>
 <LI><A HREF="Defaults/Installation.html">Installation Guide</A>
-
 <LI><A HREF="Defaults/Customisation.html">Customization</A>
-
 <LI><A HREF="Defaults/Bugs.html">Known Bugs</A>
-
-<LI><A HREF="Defaults/ReleaseNotes.html">Information on New Features
-and Changed Interfaces</A>
-
+<LI><A HREF="Defaults/ReleaseNotes.html">Information on New Features and Changed Interfaces</A>
 <LI><A HREF="Defaults/Features.html">Change History</A>
-
 <LI><A HREF="Internals.html">Internals</A>
-
 <LI><A HREF="../Gateways/WAISGate.html">Compiling for WAIS access</A>
-
 </UL>
 
 <P>
