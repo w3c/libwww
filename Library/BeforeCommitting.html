@@ -1,5 +1,10 @@
 <HTML>
 <HEAD>
+  <STYLE TYPE="text/css">
+B {
+   color: red;
+}
+</STYLE>
   <TITLE>Before Committing Changes to CVS</TITLE>
 </HEAD>
 <BODY BGCOLOR="#ffffff" TEXT="#000000">
@@ -17,24 +22,36 @@ describes the policy for <A HREF="./">libwww</A> and all its
 <A HREF="User/Applications.html">sample applications</A>. The rules are made
 in order to ensure that when you check out a copy of libwww then the
 <A HREF="cvs.html">CVS'ed version</A> is always capable of compiling!
-<P>
+<H3>
+  Before you Start
+</H3>
 <DL>
   <DT>
-    <B>Before you start</B> - send a note to
+    <B>First of all</B> - send a note to
     <A HREF="http://lists.w3.org/Archives/Public/www-lib/">&lt;www-lib@w3.org&gt;</A>
     about what you are working on in libwww
   <DD>
     We don't want to do double work!
   <DT>
-    <B>Make sure that everything compiles</B> before committing anything
+    <B>Check that the legal stuff is settled</B>!
   <DD>
-    Do a "<CODE>make</CODE>" on everything in the libwww package and make sure
-    there are no warnings, errors and the like
+    Before W3C can accept any diffs we <A HREF="/PATCHES.html">need you to send
+    us this form</A> so that we know we can give out the code for free. 
   <DT>
     <B>Do never do any pretty printing</B> of the code
   <DD>
     Read the <A HREF="User/Style/">Programming Style Guide</A> for more details
     why things are the way they are.
+</DL>
+<H3>
+  Preparing the Commit
+</H3>
+<DL>
+  <DT>
+    <B>Make sure that everything compiles</B> before committing anything
+  <DD>
+    Do a "<CODE>make</CODE>" on everything in the libwww package and make sure
+    there are no warnings, errors and the like
   <DT>
     <B>Make sure that all changes are the ones you expect</B>
   <DD>
@@ -48,18 +65,29 @@ in order to ensure that when you check out a copy of libwww then the
   <DD>
     Don't just remove other people's edits! Often the best way is simply to use
     <CODE>#if 0</CODE> ... <CODE>#endif</CODE>
+</DL>
+<H3>
+  When Ready for Commit
+</H3>
+<DL>
   <DT>
     <B>Send a mail</B> to the
     <A HREF="http://lists.w3.org/Archives/Public/www-lib/">&lt;www-lib@w3.org&gt;</A>
-    mailing list announcing that you are <B>about</B> to commit a new version
+    mailing list announcing that you are <B>about to commit</B> a new version
   <DD>
-    Explain what other people should look out for and ask for feedback
+    Include the diffs and explain what other people should look out for and ask
+    for feedback
   <DT>
     <B>Document what you have done</B> in the
     <A HREF="http://dev.w3.org/cgi-bin/cvsweb/">CVS log</A> and the
     <A HREF="User/ReleaseNotes.html">release notes</A>
   <DD>
     So that others can figure out what has happened
+</DL>
+<H3>
+  Doing the Commit
+</H3>
+<DL>
   <DT>
     Remember to<B> add new files to CVS </B>so that the other people get them
   <DD>
