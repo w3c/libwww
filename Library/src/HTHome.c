@@ -217,22 +217,23 @@ PUBLIC int HTSetTraceMessageMask (const char * shortnames)
 	char * ptr = (char *) shortnames;
 	for(; *ptr; ptr++) {
 	    switch (*ptr) {
-	    case 'f': WWWTRACE |= SHOW_UTIL_TRACE; 	break;
-	    case 'l': WWWTRACE |= SHOW_APP_TRACE; 	break;
-	    case 'c': WWWTRACE |= SHOW_CACHE_TRACE; 	break;
-	    case 'g': WWWTRACE |= SHOW_SGML_TRACE; 	break;
-	    case 'b': WWWTRACE |= SHOW_BIND_TRACE; 	break;
-	    case 't': WWWTRACE |= SHOW_THREAD_TRACE; 	break;
-	    case 's': WWWTRACE |= SHOW_STREAM_TRACE; 	break;
-	    case 'p': WWWTRACE |= SHOW_PROTOCOL_TRACE; 	break;
-	    case 'm': WWWTRACE |= SHOW_MEM_TRACE; 	break;
-	    case 'q': WWWTRACE |= SHOW_SQL_TRACE; 	break;
-	    case 'u': WWWTRACE |= SHOW_URI_TRACE; 	break;
-	    case 'h': WWWTRACE |= SHOW_AUTH_TRACE; 	break;
 	    case 'a': WWWTRACE |= SHOW_ANCHOR_TRACE; 	break;
+	    case 'b': WWWTRACE |= SHOW_BIND_TRACE; 	break;
+	    case 'c': WWWTRACE |= SHOW_CACHE_TRACE; 	break;
+	    case 'e': WWWTRACE |= SHOW_MUX_TRACE; 	break;
+	    case 'f': WWWTRACE |= SHOW_UTIL_TRACE; 	break;
+	    case 'g': WWWTRACE |= SHOW_SGML_TRACE; 	break;
+	    case 'h': WWWTRACE |= SHOW_AUTH_TRACE; 	break;
 	    case 'i': WWWTRACE |= SHOW_PICS_TRACE; 	break;
+	    case 'l': WWWTRACE |= SHOW_APP_TRACE; 	break;
+	    case 'm': WWWTRACE |= SHOW_MEM_TRACE; 	break;
 	    case 'o': WWWTRACE |= SHOW_CORE_TRACE; 	break;
-	    case 'x': WWWTRACE |= SHOW_MUX_TRACE; 	break;
+	    case 'p': WWWTRACE |= SHOW_PROTOCOL_TRACE; 	break;
+	    case 'q': WWWTRACE |= SHOW_SQL_TRACE; 	break;
+	    case 's': WWWTRACE |= SHOW_STREAM_TRACE; 	break;
+	    case 't': WWWTRACE |= SHOW_THREAD_TRACE; 	break;
+	    case 'u': WWWTRACE |= SHOW_URI_TRACE; 	break;
+	    case 'x': WWWTRACE |= SHOW_XML_TRACE; 	break;
 	    case '*': WWWTRACE |= SHOW_ALL_TRACE; 	break;
 	    default:
 		if (WWWTRACE) HTTRACE(APP_TRACE, "Trace....... Bad argument\n");
