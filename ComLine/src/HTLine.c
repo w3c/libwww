@@ -74,6 +74,21 @@ typedef struct _ComLine {
 	
 /* ------------------------------------------------------------------------- */
 
+/*	Standard (non-error) Output
+**	---------------------------
+*/
+PUBLIC int OutputData(const char  * fmt, ...)
+{
+    int ret;
+    va_list pArgs;
+    va_start(pArgs, fmt);
+    ret = vfprintf(stdout, fmt, pArgs);
+    va_end(pArgs);
+    return ret;
+}
+
+/* ------------------------------------------------------------------------- */
+
 /*	Create a Command Line Object
 **	----------------------------
 */
@@ -135,20 +150,20 @@ PRIVATE void SetSignal (void)
     ** get `connection refused' back
     */
     if (signal(SIGPIPE, SIG_IGN) == SIG_ERR) {
-	if (PROT_TRACE) TTYPrint(TDEST, "HTSignal.... Can't catch SIGPIPE\n");
+	if (PROT_TRACE) HTTrace("HTSignal.... Can't catch SIGPIPE\n");
     } else {
-	if (PROT_TRACE) TTYPrint(TDEST, "HTSignal.... Ignoring SIGPIPE\n");
+	if (PROT_TRACE) HTTrace("HTSignal.... Ignoring SIGPIPE\n");
     }
 }
 #endif /* CATCH_SIG */
 
 PRIVATE void VersionInfo (void)
 {
-    TTYPrint(OUTPUT,"\n\nW3C Reference Software\n\n");
-    TTYPrint(OUTPUT,"\tW3C Command Line Tool (%s) version %s.\n",
+    OutputData("\n\nW3C Reference Software\n\n");
+    OutputData("\tW3C Command Line Tool (%s) version %s.\n",
 	     APP_NAME, APP_VERSION);
-    TTYPrint(OUTPUT,"\tW3C Reference Library version %s.\n\n",HTLib_version());
-    TTYPrint(OUTPUT,"Please send feedback to <libwww@w3.org>\n");
+    OutputData("\tW3C Reference Library version %s.\n\n",HTLib_version());
+    OutputData("Please send feedback to <libwww@w3.org>\n");
 }
 
 /*	authentication_handler
@@ -175,7 +190,7 @@ PRIVATE int authentication_handler (HTRequest * request, int status)
 	else					   /* GET, HEAD, DELETE etc. */
 	    HTLoadAnchor((HTAnchor *) cl->anchor, cl->request);
     } else {
-	TTYPrint(OUTPUT, "Access denied\n");
+	OutputData("Access denied\n");
 	Cleanup(cl, -1);
     }
     return HT_ERROR;	  /* Make sure this is the last callback in the list */
@@ -211,7 +226,7 @@ PRIVATE int redirection_handler (HTRequest * request, int status)
 	else					   /* GET, HEAD, DELETE etc. */
 	    result = HTLoadAnchor(new_anchor, cl->request);
     } else {
-	TTYPrint(OUTPUT, "Too many redirections detected\n");
+	OutputData("Too many redirections detected\n");
 	Cleanup(cl, -1);
     }
     return HT_ERROR;	  /* Make sure this is the last callback in the list */
@@ -227,7 +242,7 @@ PRIVATE int terminate_handler (HTRequest * request, int status)
     if (status == HT_LOADED) {
 	if (cl) {
 	    if (cl->flags & CL_COUNT) {
-		TTYPrint(OUTPUT, "Content Length found to be %ld\n",
+		OutputData("Content Length found to be %ld\n",
 			 HTAnchor_length(cl->anchor));
 	    }
 	}
@@ -248,7 +263,7 @@ PRIVATE int terminate_handler (HTRequest * request, int status)
 PRIVATE int timeout_handler (HTRequest * request)
 {
     ComLine * cl = (ComLine *) HTRequest_context(request);
-    if (SHOW_MSG) TTYPrint(TDEST, "Request timeout...\n");
+    if (SHOW_MSG) HTTrace("Request timeout...\n");
     HTRequest_kill(request);
     Cleanup(cl, -1);
     return 0;
@@ -260,7 +275,7 @@ PRIVATE int timeout_handler (HTRequest * request)
 */
 PRIVATE int header_handler (HTRequest * request, CONST char * token)
 {
-    if (SHOW_MSG) TTYPrint(TDEST, "Parsing unknown header `%s\'\n", token);
+    if (SHOW_MSG) HTTrace("Parsing unknown header `%s\'\n", token);
     return HT_OK;
 }
 
@@ -423,7 +438,7 @@ int main (int argc, char ** argv)
 		      case 'u': WWWTRACE |= SHOW_URI_TRACE; break;
 		      default:
 			if (SHOW_MSG)
-			    TTYPrint(TDEST,"Bad parameter (%s) in -v option\n",
+			    HTTrace("Bad parameter (%s) in -v option\n",
 				     argv[arg]);
 		    }
 		}
@@ -462,7 +477,7 @@ int main (int argc, char ** argv)
 		HTRequest_setMethod(cl->request, METHOD_GET);
 
 	    } else {
-		if (SHOW_MSG) TTYPrint(TDEST,"Bad Argument (%s)\n", argv[arg]);
+		if (SHOW_MSG) HTTrace("Bad Argument (%s)\n", argv[arg]);
 	    }
 	} else {	 /* If no leading `-' then check for URL or keywords */
     	    if (!keycnt) {
@@ -487,7 +502,7 @@ int main (int argc, char ** argv)
 #endif
 
     if (!keycnt && !cl->flags & CL_FILTER) {
-	if (SHOW_MSG) TTYPrint(TDEST, "No URL specified\n");
+	if (SHOW_MSG) HTTrace("No URL specified\n");
 	Cleanup(cl, -1);
     }
 
@@ -498,7 +513,7 @@ int main (int argc, char ** argv)
     /* Output file specified? */
     if (cl->outputfile) {
 	if ((cl->output = fopen(cl->outputfile, "wb")) == NULL) {
-	    if (SHOW_MSG) TTYPrint(TDEST, "Can't open `%s'\\n",cl->outputfile);
+	    if (SHOW_MSG) HTTrace("Can't open `%s'\\n",cl->outputfile);
 	    cl->output = OUTPUT;
 	}
     }
@@ -552,7 +567,7 @@ int main (int argc, char ** argv)
 	HTRequest_setConversion(rr, list, YES);
 	HTAlert_add(HTConfirm, HT_A_CONFIRM);
 	if (HTLoadAnchor((HTAnchor *) ra, rr) != YES)
-	    if (SHOW_MSG) TTYPrint(TDEST, "Can't access rules\n");
+	    if (SHOW_MSG) HTTrace("Can't access rules\n");
 	HTConversion_deleteAll(list);
 	HTRequest_delete(rr);
 	HTAlert_delete(HTConfirm);
@@ -586,7 +601,7 @@ int main (int argc, char ** argv)
 
     if (keywords) HTChunk_delete(keywords);
     if (status != YES) {
-	if (SHOW_MSG) TTYPrint(TDEST, "Can't access resource\n");
+	if (SHOW_MSG) HTTrace("Can't access resource\n");
 	Cleanup(cl, -1);
     }
 
