@@ -1,11 +1,11 @@
 <HTML>
 <HEAD>
 <TITLE>Read Me</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  1-Dec-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  5-Dec-1995 -->
 </HEAD>
 <BODY>
 
-<H1>W3C Source Code Distribution Packages</H1>
+<H1>W3C Reference Code Distribution</H1>
 
 <HR>
 
@@ -14,28 +14,29 @@
 	Please first read the full copyright statement in the file COPYRIGH.
 </PRE>
 
-This is the README file which you get when you unwrap one of our tar files. The package contains
-source code for building World-Wide Web applications and related reference applications. In its full
-contents it contains the source code for the following modules:
+This is the README file which you get when you unwrap one of our distribution files. Each package
+contains source code for building one or more of our Web applications and related helper
+applications. The set of W3C Web applications is currently:
 
 <UL>
 <LI><A HREF="Library/">W3C Reference Library</A>
-<LI><A HREF="Daemon/">W3C httpd</A>
 <LI><A HREF="LineMode/">W3C Line Mode Browser</A>
 <LI><A HREF="ComLine/">W3C Command Line Tool</A>
 <LI><A HREF="MiniServ/">W3C Mini Server Frame</A>
 </UL>
 
-At the bottom of this file, you will find pointers to more information.
+Please note that the W3C Reference Library distribution file is required in order to build any of
+the other applications. At the bottom of this file, you will find pointers to more information about
+each application.
 
 <H2>Handling the Distribution Files</H2>
 
-All distribution files contain the source code for each of the modules. W3C also provides a wide set
+A distribution file contains the source code for one or more of the modules. W3C also provides a set
 of precompiled binaries which are available for W3C members <A HREF="../Dist/">directly via HTTP</A>
 or as public domain via anonymous FTP from <A HREF="ftp://ftp.w3.org/pub/">ftp.w3.org</A>.<P>
 
-All of the distribution packets are available as compressed or gzipped tar files, and some are also
-available as zip files. For the compressed tar files, first uncompress and untar the file
+All distribution files are available as compressed tar files, gzipped tar files, or as zip
+files. For the compressed tar files, first uncompress and untar the file
 <CODE>&lt;dist&gt;.tar.Z</CODE> where <CODE>&lt;dist&gt;</CODE> is the name of the specific
 distribution:
 
@@ -60,10 +61,11 @@ For the zip files, type the following:
 
 <A NAME="dirstruc"><H2>Generated Directory structure</H2></A>
 
-The tar files are all designed to be unwrapped in the same (this) directory. They create different
-parts of a common directory tree under that directory. There may be some duplication. They also
-generate a few files in this directory: README, COPYRIGH, and some installation instructions. The
-structure of the untar'ed package is as follows (directories):
+The distribution files are all designed to be unwrapped in the directory named "WWW". They create
+different parts of a common directory tree under that directory. A minor part of this three will be
+included in multiple distribution files. A distribution file also contains a few informative files
+like this README file, a copyright statement, and installation instructions. Please take a moment to
+study these files. The structure of all the unpacked distribution file is as follows (directories):
 
 <PRE>
 	WWW				Top-node
@@ -73,46 +75,47 @@ structure of the untar'ed package is as follows (directories):
 @	WWW/Library			W3C Reference Library
 	WWW/Library/Implementation	Source Code
 	WWW/Library/User		Documentation
+	WWW/Library/User/Patch		Patches
 	WWW/Library/&lt;platform&gt;/*	Platform dependent object files
-
-@	WWW/Daemon			W3C httpd
-	WWW/Daemon/Implementation	Source Code
-	WWW/Daemon/&lt;platform&gt;/*		Platform dependent object files
 
 @	WWW/LineMode			W3C LineMode Browser
 	WWW/LineMode/Implementation	Source Code
 	WWW/LineMode/Defaults/		Documentation
+	WWW/Library/User/Patch		Patches
 	WWW/LineMode/&lt;platform&gt;/*	Platform dependent object files
 
 @	WWW/MiniServ			W3C Mini Server (example)
 	WWW/MiniServ/Implementation	Source Code
 	WWW/MiniServ/User/		Documentation
+	WWW/MiniServ/User/Patch		Patches
 	WWW/MiniServ/&lt;platform&gt;/*	Platform dependent object files
 
 @	WWW/ComLine			W3C Command Line Tool (example)
 	WWW/ComLine/Implementation	Source Code
 	WWW/ComLine/User/		Documentation
+	WWW/ComLine/User/Patch		Patches
 	WWW/ComLine/&lt;platform&gt;/*	Platform dependent object files
 </PRE>
 
-"<CODE>@</CODE>" means that eaach of these modules are given out as a <EM>separate distribution
-file</EM>.  Some or more of these directories might not be there. This depends on the number of
-distribution files. In general there is one distribution file pr. module (Library, Line Mode
-Browser, and Daemon). Please note that the Library distribution file is required for all other
-modules.
+"<CODE>@</CODE>" means that each of these modules are given out as a <EM>separate distribution
+file</EM>.  Some or more of these directories might not be there but please make sure that at least
+the W3C Reference Library is.
 
 <H2>Compilation</H2>
 
-Compilation can be put into two groups depending on if the platform is supported in the BUILD script
-or not. The <EM>BUILD</EM> script is placed in the <CODE>WWW</CODE> directory and you can use it to
-compile and link the W3C applications. The <EM>BUILD</EM> script figures out what platform you are
-on and generates a <CODE>Makefile</CODE> which consists of a platform independent part and a
-platform dependent part.
+Compilation can be put into two groups depending on your platform and if it is supported in the
+BUILD script or not. The <EM>BUILD</EM> script is placed in the <CODE>WWW</CODE> directory and you
+can use it to compile and link the W3C applications. The <EM>BUILD</EM> script figures out what
+platform you are on and generates a <CODE>Makefile</CODE> which consists of a platform independent
+part and a platform dependent part.
 
 <H3>Compilation on already supported Unix platforms</H3>
 
-To <CODE>BUILD</CODE> any of the applications go to the WWW directory
-and type
+<IMG SRC="Icons/32x32/caution.gif"> Stop here and take a look at the "<B>Patches</B>" pages
+(indicated in the <A HREF="#dirstruc">Generated Directory structure</A> to see if you need to apply
+any patches before you compile any of the modules. You can find the Patches <P>
+
+To <CODE>BUILD</CODE> any of the applications go to the WWW directory and type
 
 <PRE>
 	./BUILD library
@@ -126,14 +129,6 @@ and type
 	./BUILD miniserv
 </PRE>
 
-or simply 
-
-<PRE>
-	./BUILD
-</PRE>
-
-in order to BUILD all applications
-
 <H3>Compilation on un-supported Unix platforms</H3>
 
 For other Unix platforms please read the guide on how to <A
@@ -143,7 +138,7 @@ platform.
 <H3>Compilation on Windows</H3>
 
 For Windows we have some <A HREF="Library/User/Platform/Windows.html">special documentation</A> on
-how you can produce DLLs out of the Reference Library
+how you can produce DLLs out of the Reference Library.
 
 <H2>W3C Reference Library</H2>
 
@@ -162,37 +157,13 @@ The Library documentation is included in the distribution file and you can find 
 
 You can also use the <A HREF="Library/">online documentation</A>
 
-<H2>W3C httpd</H2>
+<H2>W3C Line Mode Browser</H2>
 
-W3C httpd is a generic public domain full-featured hypertext server which can be used as a regular
-HTTP server. The running typically on port 80 to serve hypertext and other documents, and also as a
-proxy -- a server on a firewall machine -- that provides access for people inside a firewall to the
-outside world. When running as proxy httpd may be configured to do caching of documents resulting in
-faster response times. <P>
-
-Follow instructions above for compiling and then go on to "<A
-HREF="Daemon/User/Installation/Installation.html"> Installing the basic W3 server</A>". You can also
-use the <A HREF="Daemon/">online documentation</A>
-
-<H2>Places to contact</H2>
-
-If you encounter problems, would like to feed back suggestions good ideas etc. then please contact
-the following addresses:
-
-<UL>
-<LI><B><A HREF="mailto:libwww@w3.org">libwww@w3.org</A></B> regarding the W3C Reference Library,
-Command Line Tool, and the Mini Server.
-<LI><B><A HREF="mailto:httpd@w3.org">httpd@w3.org</A></B> regarding the W3C httpd
-<LI><B><A HREF="mailto:www-bug@w3.org">www-bug@w3.org</A></B> regarding the W3C Line Mode Browser
-</UL>
-
-<H2>W3C LineMode Browser</H2>
-
-The W3C Line Mode Browser is a character based World-Wide Web Browser.  It is developed for use on
-dumb terminals and as a test tool for the Common Code Library. It can be run in interactive mode,
-non- interactive mode and as a proxy client. Furthermore it gives a variety of possibilities for
-data format conversion, filtering etc. It is primarily intended as a test-tool for quick access to
-the Web or used in batch jobs.<P>
+The W3C Line Mode Browser is a simple character based client. It is developed for use on dumb
+terminals and as a test tool for the Common Code Library. It can be run in interactive mode, non-
+interactive mode and as a proxy client. Furthermore it gives a variety of possibilities for data
+format conversion, filtering etc. It is primarily intended as a test-tool for quick access to the
+Web or used in batch jobs.<P>
 
 Installation is very simple as the application can run without any particular setup. You can specify
 your own <EM>HOME PAGE</EM> using the <CODE>WWW_HOME</CODE> environment variable. Remember toy setup
@@ -216,7 +187,7 @@ an example of a server application using the <A HREF="../Library/">W3C Reference
 The Mini Server documentation is included in the distribution file and you can find the top page at
 
 <PRE>
-	MiniServ/User/
+	MiniServ/User/Overview.html
 </PRE>
 
 You can also use the <A HREF="LineMode/">online documentation</A>
@@ -237,6 +208,18 @@ page at
 </PRE>
 
 You can also use the <A HREF="LineMode/">online documentation</A>
+
+<H2>Got Problems or Comments?</H2>
+
+If you encounter problems, would like to feed back suggestions good ideas etc. then please contact
+the following addresses:
+
+<UL>
+<LI><B><A HREF="mailto:libwww@w3.org">libwww@w3.org</A></B> regarding the W3C Reference Library,
+Command Line Tool, and the Mini Server.
+<LI><B><A HREF="mailto:httpd@w3.org">httpd@w3.org</A></B> regarding the W3C httpd
+<LI><B><A HREF="mailto:www-bug@w3.org">www-bug@w3.org</A></B> regarding the W3C Line Mode Browser
+</UL>
 
 <H2>Useful Pointers</H2>
 
@@ -266,6 +249,6 @@ These are the locations where you can get more information.
 
 <P>
 <HR>
-<ADDRESS>Henrik Frystyk, December 1995</ADDRESS>
+<ADDRESS>Henrik Frystyk Nielsen, December 1995</ADDRESS>
 </BODY>
 </HTML>
