@@ -458,7 +458,6 @@ PUBLIC HTStream* HTSaveAndCallback (HTRequest *		request,
 				    HTStream *		output_stream)
 {
    HTStream * me;
-   
 #if 0
    if (request->using_cache) {  /* Special case! file wanted && cache hit */
         (*request->callback)(request,
@@ -471,7 +470,9 @@ PUBLIC HTStream* HTSaveAndCallback (HTRequest *		request,
 	    me->callback = request->callback;
 	}
    }
-#endif
    return me;   
+#else
+   return HTBlackHole();
+#endif
 }
 

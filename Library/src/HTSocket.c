@@ -72,9 +72,11 @@ PUBLIC void HTInputSocket_free (HTInputSocket * me)
 
 /* ------------------------------------------------------------------------- */
 
+#if 0
+
 /* This should return HT_INTERRUPTED if interrupted BUT the connection
    MUST not be closed */ 
-PUBLIC int HTInputSocket_getCharacter ARGS1(HTInputSocket*, isoc)
+PRIVATE int HTInputSocket_getCharacter ARGS1(HTInputSocket*, isoc)
 {
     int ch;
     do {
@@ -96,7 +98,7 @@ PUBLIC int HTInputSocket_getCharacter ARGS1(HTInputSocket*, isoc)
     return FROMASCII(ch);
 }
 
-PUBLIC char * HTInputSocket_getBlock ARGS2(HTInputSocket*,	isoc,
+PRIVATE char * HTInputSocket_getBlock ARGS2(HTInputSocket*,	isoc,
 					   int *,		len)
 {
     if (isoc->write >= isoc->read) {
@@ -240,17 +242,18 @@ PRIVATE char * get_some_line ARGS2(HTInputSocket *,	isoc,
 }
 
 /* The returned string must be freed by the caller */
-PUBLIC char * HTInputSocket_getLine ARGS1(HTInputSocket *, isoc)
+PRIVATE char * HTInputSocket_getLine ARGS1(HTInputSocket *, isoc)
 {
     return get_some_line(isoc, NO);
 }
 
 /* The returned string must be freed by the caller */
-PUBLIC char * HTInputSocket_getUnfoldedLine ARGS1(HTInputSocket *, isoc)
+PRIVATE char * HTInputSocket_getUnfoldedLine ARGS1(HTInputSocket *, isoc)
 {
     return get_some_line(isoc, YES);
 }
 
+#endif
 
 /*	Push data from a socket down a stream
 **	-------------------------------------
@@ -291,7 +294,7 @@ PRIVATE int HTCopy ARGS2(
 	    if (WWWTRACE) TTYPrint(TDEST,
 		"Socket Copy. Read error, read returns %d with errno=%d\n",
 		status, socerrno);
-	    break;
+ 	    break;
 	}
 
 #ifdef NOT_ASCII
@@ -312,45 +315,7 @@ PRIVATE int HTCopy ARGS2(
     return cnt;
 }
 
-
 #if 0
-/*	Push data from a file pointer down a stream
-**	-------------------------------------
-**
-**   This routine is responsible for creating and PRESENTING any
-**   graphic (or other) objects described by the file.
-**
-**
-*/
-PRIVATE void HTFileCopy ARGS2(
-	FILE *,			fp,
-	HTStream*,		sink)
-{
-    HTStreamClass targetClass;    
-    char buffer[INPUT_BUFFER_SIZE];
-    
-/*	Push the data down the stream
-**
-*/
-    targetClass = *(sink->isa);	/* Copy pointers to procedures */
-    
-    /*	Push binary from socket down sink
-    */
-    for(;;) {
-	int status = fread(
-	       buffer, 1, INPUT_BUFFER_SIZE, fp);
-	if (status == 0) { /* EOF or error */
-	    if (ferror(fp) == 0) break;
-	    if (WWWTRACE) TTYPrint(TDEST,
-		"File Copy... Read error, read returns %d\n", ferror(fp));
-	    break;
-	}
-	(*targetClass.put_block)(sink, buffer, status);
-    } /* next bufferload */	
-}
-
-#endif
-
 
 /*	Push data from a socket down a stream STRIPPING CR
 **	--------------------------------------------------
@@ -388,6 +353,7 @@ PRIVATE void HTCopyNoCR ARGS2(
     HTInputSocket_free(isoc);
 }
 
+#endif
 
 /*	Parse a socket given format and file number
 **
@@ -430,6 +396,7 @@ PUBLIC int HTParseSocket ARGS3(
 **   The current method smells anyway.
 */
     targetClass = *(stream->isa);	/* Copy pointers to procedures */
+#if 0
     if (rep_in == WWW_BINARY || rep_in == WWW_UNKNOWN
 	|| (HTAnchor_encoding(request->anchor) != HTAtom_for("8bit") &&
 	    HTAnchor_encoding(request->anchor) != HTAtom_for("7bit"))
@@ -438,8 +405,9 @@ PUBLIC int HTParseSocket ARGS3(
 	HTCopy(file_number, stream);
     } else
         HTCopyNoCR(file_number, stream);
+#endif
+    HTCopy(file_number, stream);
     (*targetClass._free)(stream);
-    
     return HT_LOADED;
 }
 

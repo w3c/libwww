@@ -65,7 +65,7 @@ default WWW addresses.
 
 <H2>Before a Request</H2>
 
-After a request has been issued there are a number of things that an
+When a request has been issued there are a number of things that an
 application might want to do with the request before it actually goes
 on the wire, for example to talk to a remote HTTP server. Examples are
 checking if the object already is kept in a cache managed by the
@@ -73,14 +73,16 @@ application, if the request should be redirected to a proxy or a
 gateway, or there is some other kind of translation of the URL taking
 place. The Library provides a variety of modules that handles many
 common place translations such as <EM>redirection of URLs</EM> and
-<EM>caching</EM>. <P>
+<EM>caching</EM>.<P>
 
 These modules are not part of the <A HREF="WWWCore.html">Library
 Core</A> as the registration process depends on the application. It
 can for example use a database or some other means of registering
 translation rules, proxy servers. etc. The Library implementations are
 deliberately made as platform independent as possible and will cover
-most situations.
+most situations. You can find a function called
+<CODE>HTLoadStart</CODE> in the <A HREF="HTHome.h">HTHome module</A>
+that enables all the functionality for translating URLs.
 
 <H3>Rule File Management</H3>
 
@@ -141,7 +143,11 @@ request). The Application part of the Library provides two following
 modules to handle <EM>logging</EM> and <EM>history
 management</EM>. You can register a <EM>POST request handler</EM> in
 the <A HREF="HTNet.html">Net Manager</A> as described in the <A
-HREF="../User/Using/Overview.html">User's Guide</A>
+HREF="../User/Using/Overview.html">User's Guide</A>. <P>
+
+You can find a function called <CODE>HTLoadTerminate</CODE> in the <A
+HREF="HTHome.h">HTHome module</A> that enables all the functionality
+for handling a request result.
 
 <H3>Logging</H3>
 

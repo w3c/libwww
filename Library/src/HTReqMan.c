@@ -841,8 +841,6 @@ PRIVATE int get_physical (HTRequest *req)
 */
 PUBLIC BOOL HTLoad (HTRequest * request, BOOL recursive)
 {
-    char *arg = NULL;
-    int status;
     if (!request || !request->anchor) {
         if (PROT_TRACE) TTYPrint(TDEST, "Load Start.. Bad argument\n");
         return NO;

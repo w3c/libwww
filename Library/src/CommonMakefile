@@ -46,6 +46,7 @@ CMN = $(WWW)/Library/Implementation/
 DOC = $(WWW)/Library/User
 ICON= $(WWW)/Icons
 VMS = $(CMN)vms
+WIN = $(CMN)windows
 PROD= libwww
 FTP = /afs/w3.org/devel/Dist/$(PROD)
 
@@ -159,6 +160,9 @@ SPECIFIC = \
 	$(WWW)/All/*/Makefile.include \
 	$(WWW)/All/Implementation/Makefile \
 	$(DOC)/Patch/*.fix \
+	$(WIN)/*.def \
+	$(WIN)/*.c \
+	$(WIN)/*.h \
 	$(VMS)/descrip.mms  $(VMS)/COPYING.LIB \
  	$(VMS)/build_multinet.com $(VMS)/build_multinet.com_alpha \
 	$(VMS)/multinet.opt $(VMS)/multinet.opt_alpha \

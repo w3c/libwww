@@ -191,7 +191,7 @@ PRIVATE int HTFile_readDir (HTRequest * request, file_info *file)
 	    }
 
 	    /* Convert stat info to fit our setup */
-	    if ((file_info.st_mode & S_IFMT) == S_IFDIR) {
+	    if (((mode_t) file_info.st_mode & S_IFMT) == S_IFDIR) {
 #ifdef VMS
 		char *dot = strstr(name, ".DIR");      /* strip .DIR part... */
 		if (dot) *dot = '\0';

@@ -134,7 +134,7 @@ Global set of callback functions BEFORE the request is issued. The
 list can be NULL.
 
 <PRE>
-extern BOOL HTNetCall_addAfter	(HTNetCallback *cbf, int status);
+extern BOOL HTNetCall_addBefore	(HTNetCallback *cbf, int status);
 extern BOOL HTNet_setBefore	(HTList * list);
 extern HTList * HTNet_before	(void);
 extern int HTNet_callBefore	(HTRequest *request, int status);
@@ -145,7 +145,7 @@ extern int HTNet_callBefore	(HTRequest *request, int status);
 Global set of callback functions AFTER the request is issued. The list can be NULL
 
 <PRE>
-extern BOOL HTNetCall_addBefore (HTNetCallback *cbf, int status);
+extern BOOL HTNetCall_addAfter	(HTNetCallback *cbf, int status);
 extern BOOL HTNet_setAfter	(HTList * list);
 extern HTList * HTNet_after	(void);
 extern int HTNet_callAfter	(HTRequest *request, int status);

@@ -48,7 +48,7 @@ struct _HTStream {
 **	------------------
 */
 
-PRIVATE int HTPlain_put_character ARGS2(HTStream *, me, char, c)
+PRIVATE int HTPlain_put_character (HTStream * me, char c)
 {
     HText_appendCharacter(me->text, c);
     return HT_OK;
@@ -59,14 +59,14 @@ PRIVATE int HTPlain_put_character ARGS2(HTStream *, me, char, c)
 **	---------------
 **
 */
-PRIVATE int HTPlain_put_string ARGS2(HTStream *, me, CONST char*, s)
+PRIVATE int HTPlain_put_string (HTStream * me, CONST char * s)
 {
     HText_appendText(me->text, s);
     return HT_OK;
 }
 
 
-PRIVATE int HTPlain_write ARGS3(HTStream *, me, CONST char*, b, int, l)
+PRIVATE int HTPlain_write (HTStream * me, CONST char* b, int l)
 {
     while (l-- > 0)
 	HText_appendCharacter(me->text, *b++);
@@ -78,7 +78,7 @@ PRIVATE int HTPlain_write ARGS3(HTStream *, me, CONST char*, b, int, l)
 /*	Flush an Plain object
 **	--------------------
 */
-PRIVATE int HTPlain_flush ARGS1(HTStream *, me)
+PRIVATE int HTPlain_flush (HTStream * me)
 {
     return HT_OK;
 }
@@ -89,7 +89,7 @@ PRIVATE int HTPlain_flush ARGS1(HTStream *, me)
 **	Note that the SGML parsing context is freed, but the created object is not,
 **	as it takes on an existence of its own unless explicitly freed.
 */
-PRIVATE int HTPlain_free ARGS1(HTStream *, me)
+PRIVATE int HTPlain_free (HTStream * me)
 {
     free(me);
     return HT_OK;
@@ -98,7 +98,7 @@ PRIVATE int HTPlain_free ARGS1(HTStream *, me)
 /*	End writing
 */
 
-PRIVATE int HTPlain_abort ARGS2(HTStream *, me, HTList *, e)
+PRIVATE int HTPlain_abort (HTStream * me, HTList * e)
 {
     HTPlain_free(me);
     return HT_ERROR;
@@ -122,23 +122,19 @@ PUBLIC CONST HTStreamClass HTPlain =
 /*		New object
 **		----------
 */
-PUBLIC HTStream* HTPlainPresent ARGS5(
-	HTRequest *,		request,
-	void *,			param,
-	HTFormat,		input_format,
-	HTFormat,		output_format,
-	HTStream *,		output_stream)
+PUBLIC HTStream* HTPlainPresent (HTRequest *	request,
+				 void *		param,
+				 HTFormat	input_format,
+				 HTFormat	output_format,
+				 HTStream *	output_stream)
 {
-
-    HTStream* me = (HTStream*)malloc(sizeof(*me));
+    HTStream* me = (HTStream*)malloc(sizeof(HTStream));
     if (me == NULL) outofmem(__FILE__, "HTPlain_new");
     me->isa = &HTPlain;       
-
     me->text = HText_new2(HTRequest_anchor(request), output_stream);
     HText_beginAppend(me->text);
     HText_setStyle(me->text, HTStyleNamed(styleSheet, "Example"));
-
-    return (HTStream*) me;
+    return me;
 }
 
 

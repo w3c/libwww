@@ -329,7 +329,7 @@ PUBLIC BOOL HTNet_new (HTRequest * request)
     ** continue with this request or not. If we receive a callback status
     ** that is NOT HT_OK then jump directly to the after callbacks and return
     */
-    if ((status = HTNetCall_execute(HTBefore, request, 0)) != HT_OK) {
+    if ((status = HTNetCall_execute(HTBefore, request, HT_OK)) != HT_OK) {
 	HTNetCall_execute(HTAfter, request, status);
 	return YES;
     }

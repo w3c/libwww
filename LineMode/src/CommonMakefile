@@ -42,6 +42,8 @@ CMN = $(WWW)/Library/Implementation/
 LM  = $(WWW)/LineMode/Implementation/
 DOC = $(WWW)/LineMode/Defaults
 ICON= $(WWW)/Icons
+VMS = $(LM)vms
+WIN = $(LM)windows
 BIN = $(WWW)/LineMode/$(WWW_MACH)
 LIBWWW = $(LIB)/libwww.a
 PROD= www
@@ -104,13 +106,12 @@ SPECIFIC = \
 	$(DOC)/Patch/*.fix \
 	$(LM)DefaultStyles.c.classic \
 	$(LM)DefaultStyles.c.modern \
-	$(LM)windows/WWW* \
-	$(LM)windows/www* \
-	$(LM)windows/lib* \
-	$(LM)windows/scroll* \
-	$(LM)vms/descrip.mms \
-	$(LM)vms/build_multinet.com \
-	$(LM)vms/setup.com \
+	$(WIN)/*.def \
+	$(WIN)/*.c \
+	$(WIN)/*.h \
+	$(VMS)/descrip.mms \
+	$(VMS)/build_multinet.com \
+	$(VMS)/setup.com \
  	$(LM)a_stdio.g \
 	$(LM)a_stdio.h
 

@@ -678,6 +678,7 @@ PUBLIC int HTLoadGopher (SOCKET soc, HTRequest * request, SockOps ops)
 		    if (!query || !*(query+1)) {       /* No search required */
 			display_index(request);
 			gopher->state = GOPHER_GOT_DATA;
+			free(path);
 			break;
 		    } else {
 			*query++ = 0; 				 /* Skip '?' */
@@ -691,6 +692,7 @@ PUBLIC int HTLoadGopher (SOCKET soc, HTRequest * request, SockOps ops)
 		    if (!query || !*(query+1)) {       /* No search required */
 			display_cso(request);
 			gopher->state = GOPHER_GOT_DATA;
+			free(path);
 			break;
 		    } else {
 			*query++ = 0; 				 /* Skip '?' */

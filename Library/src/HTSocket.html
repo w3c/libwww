@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Socket I/O Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 22-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 16-Nov-1995 -->
 <NEXTID N="z18">
 </HEAD>
 <BODY>
@@ -97,12 +97,7 @@ THESE FUNCTIONS - THEY ARE NOT REENTRANT. </B>
 <HR>
 
 <PRE>
-extern int HTParseSocket PARAMS((HTFormat format, SOCKFD file_number, HTRequest * rq));
-extern int HTInputSocket_getCharacter PARAMS((HTInputSocket* isoc));
-extern char * HTInputSocket_getBlock PARAMS((HTInputSocket * isoc, int * len));
-extern char * HTInputSocket_getLine PARAMS((HTInputSocket * isoc));
-extern char * HTInputSocket_getUnfoldedLine PARAMS((HTInputSocket * isoc));
-extern char * HTInputSocket_getStatusLine PARAMS((HTInputSocket * isoc));
+extern int HTParseSocket (HTFormat format, SOCKFD file_number, HTRequest * rq);
 </PRE>
 
 <PRE>
