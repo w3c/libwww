@@ -3,23 +3,29 @@
 %define rel	3
 %define prefix	/usr/
 
+Vendor:       W3C World Wide Web Consortium
+Name:         @PACKAGE@
+Version:      %ver
+Release:      %rel
+Copyright:    W3C (see: http://www.w3.org/Consortium/Legal/copyright-software.html), (L)GPL compatible
+Group:        System Environment/Libraries
+Source:       http://www.w3.org/Library/Distribution/w3c-libwww-%{ver}.tar.gz
+URL:          http://www.w3.org/Library
+BuildRoot:    /var/tmp/%{name}-root
+Icon:         Lib48x.gif
+Packager:     someone@w3.org
+
 Summary: General-purpose Web API written in C
-Name: @PACKAGE@
-Version: %ver
-Release: %rel
-Copyright: W3C (see: http://www.w3.org/Consortium/Legal/copyright-software.html)
-Group: System Environment/Libraries
-Source: http://www.w3.org/Library/Distribution/w3c-libwww-%{ver}.tar.gz
-URL: http://www.w3.org/Library
-BuildRoot: /var/tmp/%{name}-root
-Icon: Lib48x.gif
 
 %description
 Libwww is a general-purpose Web API written in C for Unix and Windows (Win32).
 With a highly extensible and layered API, it can accommodate many different
 types of applications including clients, robots, etc. The purpose of libwww
 is to provide a highly optimized HTTP sample implementation as well as other
-Internet protocols and to serve as a testbed for protocol experiments.
+Internet protocols and to serve as a testbed for protocol experiments. Libwww
+also supports HTTPS, thru OpenSSL. Because of the US export restrictions, we
+can't distribute the libwwwssl pre-compiled library. You'll have to compile 
+libwww yourself to use it.
 
 %package devel
 Summary: Libraries and header files for programs that use libwww.
@@ -105,8 +111,14 @@ rm -rf $RPM_BUILD_ROOT
 %{prefix}/include/w3c-libwww
 
 %changelog
+* Fri Aug 04 2000 Jose Kahan <jose@w3.org)
+- Added blurb about the OpenSSL support, some esthetical changes
+
 * Mon Apr 12 1999 Jim Gettys <jg@w3.org)
 - down covert for older RPM currently widespread
 
 * Mon Apr 12 1999 Jeff Johnson <jbj@redhat.com>
 - repackage for Red Hat 6.0.
+
+
+
