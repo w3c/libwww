@@ -149,7 +149,7 @@ PUBLIC char *HTFWriter_filename ARGS4(char *, path, char *, url,
 /* RISK: Race conditions may occur if this is not added to the filename */
 	    {
 		char pidstr[10];
-		sprintf(pidstr, "-%d", getpid());
+		sprintf(pidstr, "-%d", (int) getpid());
 		StrAllocCat(filename, pidstr);
 	    }
 #endif
