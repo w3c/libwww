@@ -537,6 +537,7 @@ PUBLIC int HTDigest_updateInfo (HTRequest *request, HTResponse *response,
 				   HTRequest_anchor(request));
 	    digest = (HTDigest *) HTAA_updateNode (proxy, DIGEST_AUTH, realm, 
 						   url, NULL);
+	    HT_FREE(url);
 	}
 	if (!digest) {
 	    HTTRACE(AUTH_TRACE, "Digest Update.. Error: received authentication-info without having a local digest\n");	
@@ -739,8 +740,15 @@ PRIVATE BOOL digest_credentials (HTRequest * request, HTDigest * digest)
 
 	if (digest->proxy)
 	    uri = HTRequest_proxy(request);
-	else
-	    uri = HTAnchor_address( (HTAnchor*)HTRequest_anchor(request));
+	else {
+	     char * tmp;
+	     /* we get the absolute URL */
+	     tmp = HTAnchor_address( (HTAnchor*)HTRequest_anchor(request));
+	     /* and then remove what makes it absolute, to be backwards
+		compatible */
+	     uri = HTParse (tmp, "", PARSE_PATH | PARSE_PUNCTUATION);
+	     HT_FREE(tmp);
+	}
 
 	/* increment the nonce counter */
 	digest->nc++;
@@ -783,6 +791,8 @@ PRIVATE BOOL digest_credentials (HTRequest * request, HTDigest * digest)
 
 	    HT_FREE(cookie);
 	}
+	if (!digest->proxy)
+	  HT_FREE(uri);
 	HT_FREE(cleartext);
 	return HT_OK;
     }
