@@ -342,8 +342,12 @@ PUBLIC BOOL HTBind_getAnchorBindings (HTParentAnchor * anchor)
 	    if (status) {
 		HTAnchor_setFormat(anchor, format);
 		HTAnchor_setContentTransferEncoding(anchor, transfer);
-		HTAnchor_addEncoding(anchor, encoding);
-		HTAnchor_addLanguage(anchor, language);
+
+                HTAnchor_deleteEncodingAll(anchor);
+                HTAnchor_addEncoding(anchor, encoding);
+
+                HTAnchor_deleteLanguageAll(anchor);
+                HTAnchor_addLanguage(anchor, language);
 	    }
 	}
         HT_FREE(addr);
