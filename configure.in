@@ -32,9 +32,9 @@ AM_CONFIG_HEADER(wwwconf.h)
 dnl Regular configure...
 AC_PROG_CC
 AC_PROG_CXX
-AC_CYGWIN32 	dnl   You should probably
-AC_MINGW32  	dnl   use all three of these
-AC_EXEEXT   	dnl   for maximum portability
+dnl AC_CYGWIN32 	dnl   You should probably
+dnl AC_MINGW32  	dnl   use all three of these
+dnl AC_EXEEXT   	dnl   for maximum portability
 AM_PROG_LIBTOOL
 AC_PROG_MAKE_SET
 AC_PROG_INSTALL
