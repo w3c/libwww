@@ -1,3 +1,7 @@
+2000-09-01      Jose Kahan <jose@w3.org>
+
+	* Updated the libwww version in Library/src/windows/config.h
+
 2000-09-01 	Zhu Qun-Ying <qunying@yahoo.com>
 
 	* BUG FIX: wrong closing comment in Library/src/windows/config.h
