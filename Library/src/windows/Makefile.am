@@ -14,7 +14,8 @@ BUILT_SOURCES = \
 	wwwstream.def	wwwhtml.def	wwwhttp.def \
 	wwwmime.def	wwwnews.def 	wwwtrans.def \
 	wwwtelnt.def	wwwutils.def	wwwwais.def \
-	wwwzip.def	wwwsql.def	wwwxml.def
+	wwwzip.def	wwwsql.def	wwwxml.def \
+	wwwinit.def
 
 EXTRA_DIST = \
 	$(BUILT_SOURCES) \
