@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library Release Notes</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 16-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 20-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -31,10 +31,21 @@
 <LI>WOODWARD, Jennifer
 </UL>
 
-<H2>Alpha Release 6, November 16 1995</H2>
+<H2>Alpha Release 6, November 20 1995</H2>
 
 <UL>
 
+<LI>Removed remaining <CODE>ARGS</CODE> and <CODE>PARAMS</CODE> from the sources. All function
+declarations and definitions now follow the ANSI standard.
+
+<LI>Changed <A HREF="../Implementation/HTAlert.html">HTAlert</A> to be a registration module instead
+of a module to be overriden by an application. Now you can register a <A
+HREF="../Implementation/HTDialog.html">Dialog</A> module as a callback function which is a much more
+generic moduel. It also means that there are no more English text in the <A
+HREF="../Implementation/WWWCore.html">Core</A> of the Library - it's all in a application
+module. The Library provides a default implementation in the new <A
+HREF="../Implementation/HTDialog.html">HTDialog</A> module.
+ 
 <LI>Taken the WWW relevant stuff out of <A HREF="../Implementation/HTString.html">HTString</A> and
 put it into the new module called <A HREF="../Implementation/HTWWWStr.html">HTWWWStr</A>. The latter
 is a part of the core whereas the former is generic string utilities.
