@@ -248,7 +248,8 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
     status = connect(s, (struct sockaddr*)&soc_address, sizeof(soc_address));
     if (status < 0) {
 	    if (TRACE) fprintf(stderr, 
-	      "HTTP: Unable to connect to remote host for `%s' (errno = %d).\n", arg, errno);
+	      "HTTP: Unable to connect to remote host for `%s' (errno = %d).\n",
+	      arg, errno);
 
 	    return HTInetStatus("connect");
       }
@@ -612,7 +613,7 @@ copy:
 /*	Push the data down the stream
 **	We have to remember the end of the first buffer we just read
 */
-	if (format_in == WWW_HTML) {
+	if (format_in == WWW_HTML)  {  
 	    target = HTNetToText(target);	/* Pipe through CR stripper */
 	}
 

@@ -38,8 +38,10 @@ PUBLIC void HTFormatInit ARGS1(HTList *, c)
 	HTSetPresentation(c,"image/jpeg", 	"xv %s",	1.0, 3.0, 0.0);
     }
 #endif
-    HTSetConversion(c,"www/mime",			"*",		HTMIMEConvert,	1.0, 0.0, 0.0);
-    HTSetConversion(c,"application/x-wais-source","*",		HTWSRCConvert, 	1.0, 0.0, 0.0);
+  /* HENRIK HTSetConversion(c,"www/mime",			"*",		HTMIMEConvert,	1.0, 0.0, 0.0); */
+    HTSetConversion(c,"www/mime",			"*/*",		HTMIMEConvert,	1.0, 0.0, 0.0);
+  /* HENRIK  HTSetConversion(c,"application/x-wais-source","*",		HTWSRCConvert, 	1.0, 0.0, 0.0); */
+    HTSetConversion(c,"application/x-wais-source","*/*",		HTWSRCConvert, 	1.0, 0.0, 0.0);
     HTSetConversion(c,"text/html",		"text/x-c",	HTMLToC,	0.5, 0.0, 0.0);
     HTSetConversion(c,"text/html",		"text/plain",	HTMLToPlain,	0.5, 0.0, 0.0);
     HTSetConversion(c,"text/html",		"www/present",	HTMLPresent,	1.0, 0.0, 0.0);

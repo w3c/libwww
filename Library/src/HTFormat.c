@@ -204,7 +204,7 @@ PRIVATE BOOL wild_match ARGS2(HTAtom *,	template,
 	(t = HTAtom_name(template)) && strchr(t, '*') &&
 	(a = HTAtom_name(actual)) &&
 	(st = strchr(t, '/')) && (sa = strchr(a,'/'))) {
-
+	
 	*sa = 0;
 	*st = 0;
 
