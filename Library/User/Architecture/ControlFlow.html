@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Architecture - Control and Data Flow</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 29-Jun-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Aug-1995 -->
 <NEXTID N="z78">
 </HEAD>
 <BODY>
@@ -119,10 +119,8 @@ Threads</A>".
 
 <DL>
 
-<DT>Access Manager
-<DD>
-
-The access manager is the main entry point for requesting a data
+<DT><A HREF="../../Implementation/HTAccess.html">Access Manager</A>
+<DD>The access manager is the main entry point for requesting a data
 object pointed to by a URI. It has a set of methods that allows the
 application to request different services, for example to get a URI,
 post a URI, or to search a URI. When the application issues a request,
@@ -153,7 +151,7 @@ be reconstructed.
 
 </OL>
 
-<DT>Protocol Manager
+<DT><A HREF="../../Implementation/HTProt.html">Protocol Manager</A>
 
 <DD>The protocol manager is invoked by the access manager in order to
 access a document not found in memory or in file cache. The manager
@@ -167,7 +165,7 @@ file-system) and extract information using a specific access
 method. When data arrives from the network, it is passed on to the
 format manager.
 
-<DT>Format Manager
+<DT><A HREF="../../Implementation/HTFormat.html">Format Manager</A>
 
 <DD>The stream format manager takes care of the transportation of
 streams of data from the network to the application and vice versa. It
@@ -177,7 +175,7 @@ selecting the best conversion. As the protocol modules, data format
 converters can be registered dynamically, and the current set of
 streams includes among others: MIME, SGML, HTML, and LaTeX.
 
-<DT>File Cache Manager
+<DT><A HREF="../../Implementation/HTCache.html">File Cache Manager</A>
 
 <DD>The cache manager is used to save data objects once they have been
 down loaded from the network. The cache uses the hierarchy indicated
@@ -185,7 +183,7 @@ in the URLs as a way to identify items in the cache but is still under
 construction and requires a lot of work to be a highly efficient cache
 manager!
 
-<DT>Error Manager
+<DT><A HREF="../../Implementation/HTError.html">Error Manager</A>
 
 <DD>This module manages an information stack which contains
 information of all errors occurred during the communication with a
@@ -196,7 +194,7 @@ according to its impact on the current request, for example "Fatal",
 "Non-Fatal", "Warning" etc. The filtering can be used to decide which
 level of messages will be passed back to the user.
 
-<DT>Event Manager 
+<DT><A HREF="../../Implementation/HTEvntrg.html">Event Manager </A>
 
 <DD>The event manager is a "session layer" handling which thread
 should be the active thread. A thread can either be an internal libwww

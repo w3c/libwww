@@ -1,0 +1,34 @@
+<HTML>
+<HEAD>
+<TITLE>Using the W3C Reference Library</TITLE>
+</HEAD>  
+<BODY>
+
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/WWW48x.gif" ALT="WWW"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
+
+<H1>The Log Manager</H1>
+
+It is possible to log the result of a request to the Library whether
+regardless of what type of application is using the Library. The
+current implementation of the log manager is very simple but it is
+straight forward to replace the implementation with a more
+sofisticated one. The current log format is defined as follows:
+
+<PRE>
+	&lt;HOST&gt; &lt;DATE&gt; &lt;METHOD&gt; &lt;URI&gt; &lt;RESULT&gt; &lt;CONTENT LENGTH&gt;
+</PRE>
+
+where the date and time stamp can be either in local time or
+GMT. Logging is turned off but the application can enable it at any
+time. However, it is also for the application to disable the logging
+in order to close any open file descriptors etc. The exact log API is
+described in the <A HREF="../../Implementation/HTLog.html">Log
+Manager</A>.
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, July 1995</ADDRESS>
+</BODY>
+</HTML> 

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Using - Global Flags</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 12-Jul-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Aug-1995 -->
 </HEAD>  
 <BODY>
 
@@ -100,6 +100,13 @@ Library.</P>
 ("*_r") of the system calls should be used. The name of these system
 calls are currently "*_r", for example <CODE>strtok_r</CODE>. The
 default value is <EM>OFF</EM>.
+
+<DT><CODE>HT_SHARED_DISK_CACHE</CODE>
+
+<DD>If the cache can be shared between several clients this will have
+an effect on the way, update of a document will be done. The default
+cache implementation of the cache manager does not support this so the
+default value is NOT defined.
 
 <DT><CODE>HT_DIRECT_WAIS</CODE>
 

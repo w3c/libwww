@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Command Line Syntax for the Line Mode browser</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Jul-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 18-Aug-1995 -->
 <NEXTID N="z29">
 </HEAD>
 
@@ -40,25 +40,25 @@ are:-
 <DL>
 <DT><B>-help</B> or <B>-?</B>
 <DD>Load this file from directly into the browser
-<DT><B>-v</B>
+<DT><B>-v [ a | b | c | g | p | s | t | u ] </B>
 <DD>Verbose mode: Gives a running commentary on the program's attempts
 to read data in various ways. This can also be turned on and off
 during normal execution, see <A HREF="Commands.html"
 NAME="z21">Existing Commands</A>. As the amount of verbose output from
 the Browser and the Library is substantial, the <CODE>-v</CODE> option
-can now be followed by zero, one or more of the following flags in
+can now be followed by zero, one or more of the following flags (without space) in
 order to differentiate the verbose output generated:
 
-<DL>
-<DT><B>s</B>
-<DD>Show the SGML/HTML relevant information
-<DT><B>u</B>
-<DD>Show URI relevant information
-<DT><B>a</B>
-<DD>Show Anchor relevant information
-<DT><B>p</B>
-<DD>Show Protocol module information
-</DL>
+<UL>
+<LI><B>a</B>: Anchor relevant information
+<LI><B>b</B>: Bindings to local file system
+<LI><B>c</B>: Cache trace
+<LI><B>g</B>: SGML trace
+<LI><B>p</B>: Protocol module information
+<LI><B>s</B>: SGML/HTML relevant information
+<LI><B>t</B>: Thread trace
+<LI><B>u</B>: URI relevant information
+</UL>
 
 The <CODE>-v</CODE> option without any appended options shows all
 trace messages. An example is
@@ -219,28 +219,23 @@ length).
 
 <DL>
 
-<DT><B>-d</B> &lt;options&gt;
+<DT><B>-d</B> 1*( t | b | r | n | s | y )
 
 <DD>This directive can be used to modify the directory listing
 layout. More than one option can be specified but they might be
-mutually exclusive. The following options are available:
+mutually exclusive. The following options are available (withour
+space):
 
-<DL>
-<DT><B>t</B>
-<DD>Place any readme file at the top of the list (default)
-<DT><B>b</B>
-<DD>Place any readme file at the bottom of the list
-<DT><B>r</B>
-<DD>Ignore any readme file
-<DT><B>n</B>
-<DD>Directory listings are not allowed
-<DT><B>s</B>
-<DD>Directory listings are only allowed in the directories where a
+<UL>
+<LI><B>t</B>: Place any readme file at the top of the list (default)
+<LI><B>b</B>: Place any readme file at the bottom of the list
+<LI><B>r</B>: Ignore any readme file
+<LI><B>n</B>: Directory listings are not allowed
+<LI><B>s</B>: Directory listings are only allowed in the directories where a
 file ".www_browsable" is located. The content of the file
 is of no importance.
-<DT><B>y</B>
-<DD>Directory listings are always allowed (default)
-</DL>
+<LI><B>y</B>: Directory listings are always allowed (default)
+</UL>
 
 An example is
 
@@ -260,6 +255,15 @@ makes selective directory listings and places a README file at the top
 <DD>This option enables local caching and defines the root of the
 cache system. If the option is not specified, no local file cache is
 generated. The default cache is "/tmp".
+
+
+<DT><B>-x</B> 1*( i | n | a ) 
+
+<DD> There are various ways of handling Expires header when met in a
+history list or in a local cache. Either it can be <B>I</B>gnored all
+together, the user can be <B>N</B>otified with a warning, or the
+document can be reloaded <B>A</B>utomatically. The default action is
+to ignore expired documents.
 
 <DT><B>-l</B> [ file ]
 <DD>Specifies a log file with a list of visited documents. The default
