@@ -126,6 +126,8 @@ PRIVATE long		HTTotalSize = 0L;
 
 PRIVATE int		new_entries = 0;	   /* Number of new entries */
 
+PRIVATE HTNetAfter HTCacheTouchFilter;
+
 /* ------------------------------------------------------------------------- */
 /*  			     CACHE GARBAGE COLLECTOR			     */
 /* ------------------------------------------------------------------------- */
@@ -718,6 +720,12 @@ PUBLIC BOOL HTCacheInit (const char * cache_root, int size)
 	HTCacheIndex_read(HTCacheRoot);
 
 	/*
+	**  Register the cache AFTER filter for handling 201 responses
+	*/
+	HTNet_addAfter(HTCacheTouchFilter, "http://*",	NULL, HT_CREATED,
+		       HT_FILTER_MIDDLE);
+
+	/*
 	**  Do caching from now on
 	*/
 	HTCacheEnable = YES;
@@ -1048,6 +1056,46 @@ PRIVATE HTCache * HTCache_new (HTRequest * request, HTResponse * response,
     /* Must we revalidate this every time? */
     pres->must_revalidate = HTResponse_mustRevalidate(response);
     return pres;
+}
+
+/*
+**  Add an entry for a resource that has just been created so that we can 
+**  remember the etag and other things. This allows us to guarantee that
+**  we don't loose data due to the lost update problem
+*/
+PRIVATE HTCache * HTCache_touch (HTRequest * request, HTResponse * response,
+				 HTParentAnchor * anchor)
+{
+    HTCache * cache = NULL;
+
+    /* Get a new cache entry */
+    if ((cache = HTCache_new(request, response, anchor)) == NULL) {
+	if (CACHE_TRACE) HTTrace("Cache....... Can't get a cache object\n");
+	return NULL;
+    }
+
+    /* We don't have any of the data in cache - only meta information */
+    if (cache) {
+	cache->size = 0;
+	cache->range = YES;
+    }
+
+    return cache;
+}
+
+/*
+**	Cache Touch AFTER filter
+**	------------------------
+**	Add an entry for a resource that has just been created so that we can 
+**	remember the etag and other things. This allows us to guarantee that
+**	we don't loose data due to the lost update problem
+*/
+PRIVATE int HTCacheTouchFilter (HTRequest * request, HTResponse * response,
+				void * param, int status)
+{
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    HTCache_touch(request, response, anchor);
+    return HT_OK;
 }
 
 /*

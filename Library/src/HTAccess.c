@@ -1118,7 +1118,8 @@ PRIVATE int HTSaveFilter (HTRequest * request, HTResponse * response,
     ** If we succeeded getting the source then start the PUT itself. Otherwise
     ** cleanup the mess
     */
-    if (me->state == HT_LOAD_SOURCE && status == HT_LOADED &&
+    if (me->state == HT_LOAD_SOURCE && 
+	(status == HT_LOADED || status == HT_NOT_MODIFIED) &&
 	!HTError_hasSeverity(HTRequest_error(request), ERR_INFO)) {
 
 	/* Swap the document in the anchor with the new one */
@@ -1134,16 +1135,22 @@ PRIVATE int HTSaveFilter (HTRequest * request, HTResponse * response,
 	HTRequest_setOutputStream(request, me->target);
 
 	/* 
-	** If we are to use preconditions then 
-	** copy the last modified and etag information from
-	** the source to the destination. This is needed in
-	** order to avoid the lost update problem
+	** If we using a persistent cache then we can protect
+	** against the lost update problem by saving the etag
+	** or last modified date in the cache and use it on all
+	** our PUT operations.
 	*/
 	if (HTRequest_preconditions(request)) {
-    	    time_t src_time = HTAnchor_lastModified(me->source);
+#if 0
+	    /*
+	    ** We don't want to copy from the source anchor as this
+	    ** may be from another server
+	    */
+	    time_t src_time = HTAnchor_lastModified(me->source);
 	    char * src_etag = HTAnchor_etag(me->source);
 	    HTAnchor_setLastModified(HTAnchor_parent(me->destination), src_time);
 	    HTAnchor_setEtag(HTAnchor_parent(me->destination), src_etag);
+#endif
 	    HTRequest_addRqHd(request, HT_C_IF_MATCH | HT_C_IF_UNMOD_SINCE);
 	}
 
