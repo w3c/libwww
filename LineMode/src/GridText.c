@@ -134,7 +134,7 @@ PUBLIC HText *	HText_new ARGS1(HTParentAnchor *,anchor)
     HTList_addObject(loaded_texts, self);
     if (HTList_count(loaded_texts) >= LOADED_LIMIT) {
         if (CACHE_TRACE)
-	    fprintf(TDEST, "MemoryCache. Freeing off cached doc.\n"); 
+	    TTYPrint(TDEST, "MemoryCache. Freeing off cached doc.\n"); 
         HText_free((HText *)HTList_removeFirstObject(loaded_texts));
     }
     
@@ -274,7 +274,7 @@ PRIVATE void display_line ARGS2(HText *,text, HTLine *,line)
        a_print(line->data,H,stdout);
        fputc('\n',stdout);
 #else
-       printf("%s%s\n", SPACES(line->offset), line->data);
+       TTYPrint(STDOUT, "%s%s\n", SPACES(line->offset), line->data);
 #endif
    }
    else {
@@ -317,7 +317,7 @@ PRIVATE void display_title ARGS1(HText *,text)
     mvwprintw(w_top, 0, 0, format, title, percent);
     wrefresh(w_top);
 #else
-    if (!text->target) printf(format, title, percent);
+    if (!text->target) TTYPrint(STDOUT, format, title, percent);
     else {
     	char * line = (char*)malloc(HTScreenWidth+10);
         sprintf(line, format, title, percent);
@@ -341,12 +341,12 @@ PRIVATE void fill_screen ARGS2(HText *, text, int,n)
     wrefresh(w_text);
 #else
 #ifndef VIOLA    
-    if (!text->target) printf("%s\n", end_mark);
+    if (!text->target) TTYPrint(STDOUT, "%s\n", end_mark);
     else { PUTS(end_mark); PUTC('\n'); }
     n--;
     
     for (; n; n--) {
-        if (!text->target) printf("\n");
+        if (!text->target) TTYPrint(STDOUT, "\n");
 	else PUTC('\n');
     }
 #endif
@@ -612,7 +612,7 @@ PUBLIC void HText_setStyle ARGS2(HText *,text, HTStyle *,style)
     after = (int) text->style->spaceAfter;
     before = (int) style->spaceBefore;
     if (SGML_TRACE)
-	fprintf(TDEST, "HTML: Change to style %s\n", style->name);
+	TTYPrint(TDEST, "HTML: Change to style %s\n", style->name);
     blank_lines (text, after>before ? after : before);
     text->style = style;
 }
@@ -801,7 +801,7 @@ PUBLIC void HText_endAppend ARGS1(HText *,text)
 */
 PUBLIC void HText_dump ARGS1(HText *,text)
 {
-    fprintf(TDEST, "HText: Dump called\n");
+    TTYPrint(TDEST, "HText: Dump called\n");
 }
 	
 
@@ -909,7 +909,7 @@ PUBLIC BOOL HText_select ARGS1(HText *,text)
 	return YES;
     }
     if (SGML_TRACE)
-	fprintf(TDEST, "HText: Nothing to select!\n");
+	TTYPrint(TDEST, "HText: Nothing to select!\n");
     return NO;
 }
 
@@ -922,7 +922,7 @@ PUBLIC BOOL HText_selectAnchor ARGS2(HText *,text, HTChildAnchor *,anchor)
     }
     if (!a) {
         if (SGML_TRACE)
-	    fprintf(TDEST, "HText: No such anchor in this text!\n");
+	    TTYPrint(TDEST, "HText: No such anchor in this text!\n");
         return NO;
     }
 
@@ -934,7 +934,7 @@ PUBLIC BOOL HText_selectAnchor ARGS2(HText *,text, HTChildAnchor *,anchor)
     {
 	int l = line_for_char(text, a->start);
 	if (SGML_TRACE)
-	    fprintf(TDEST,"HText: Selecting anchor [%d] at char %d, line %d\n",
+	    TTYPrint(TDEST,"HText: Selecting anchor [%d] at char %d, line %d\n",
 		    a->number, a->start, l);
 
 	if ( !text->stale &&
@@ -1045,7 +1045,7 @@ PUBLIC HTAnchor *	HText_linkSelTo ARGS2(HText *,me, HTAnchor *,anchor)
 PUBLIC BOOL HTHeaderParser (HTRequest *request, char *header)
 {
     if (STREAM_TRACE)
-	fprintf(TDEST, "MIMEExtra... we are now in callback\n");
+	TTYPrint(TDEST, "MIMEExtra... we are now in callback\n");
     return YES;
 }
 
@@ -1063,14 +1063,14 @@ PUBLIC int HTMemoryCache (HTRequest * request, HTExpiresMode mode,
     if ((text = (HText *) HTAnchor_document(request->anchor))) {
 	if (request->reload != HT_MEM_REFRESH) {
 	    if (CACHE_TRACE)
-		fprintf(TDEST,"HTMemCache.. Document already in memory\n");
+		TTYPrint(TDEST,"HTMemCache.. Document already in memory\n");
 	    if (mode != HT_EXPIRES_IGNORE) {
 		if (!HTCache_isValid(request->anchor)) {
 		    if (mode == HT_EXPIRES_NOTIFY)
 			HTAlert(request, notification);
 		    else {
 			if (CACHE_TRACE)
-			    fprintf(TDEST,
+			    TTYPrint(TDEST,
 				    "HTMemCache.. Expired - autoreload\n");
 			request->RequestMask |= HT_IMS;
 #ifndef HT_SHARED_DISK_CACHE
@@ -1098,3 +1098,4 @@ PUBLIC int HTMemoryCache (HTRequest * request, HTExpiresMode mode,
     }
     return HT_ERROR;
 }
+

@@ -25,8 +25,19 @@ extern char *   end_reference;                             /* for end anchor */
 extern char *   reference_mark;                       /* for reference lists */
 extern char *   end_mark;                         /* Format string for [End] */
 
+/* TTYPrint - EGP */
+#if WWWTRACE_MODE == WWWTRACE_TTY
+#define STDOUT 1
+#define OUTPUT 2 /* used in TTYPrint's switch for output multiplexing */
+#else
+#define STDOUT stdout
+#define OUTPUT output /* output is a global target for output redirection */
+#endif /* WWWTRACE_TTY */
+
 #endif /* HTBROWSE_H */
 
+/* for access to windows app's windows procedures */
+PUBLIC int bufferInput (char* buf, int len, SOCKET s, HTRequest * req, SockOps ops);
 /*
 
    End of HTBrowse Declaration */
