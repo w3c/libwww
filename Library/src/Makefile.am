@@ -58,6 +58,8 @@ libwww_a_LIBADD = @HTWAIS@ @HTZLIB@
 EXTRA_libwww_a_SOURCES = \
 	HTWAIS.c HTZip.c
 
+libwww_a_DEPENDENCIES = @HTWAIS@ @HTZLIB@
+
 BUILT_SOURCES = sysdep.h \
 	WWWUtil.h 	WWWCore.h 	WWWLib.h \
 	WWWDir.h 	WWWFTP.h 	WWWFile.h \
@@ -65,7 +67,7 @@ BUILT_SOURCES = sysdep.h \
 	WWWNews.h 	WWWTrans.h 	WWWTelnt.h \
 	WWWCache.h 	WWWApp.h 	WWWInit.h \
 	WWWGophe.h	WWWMIME.h	WWWWAIS.h \
-	WWWMux.h				  \
+	WWWMux.h	WWWZip.h \
 	HTParse.h 	HTAccess.h  	HTProxy.h \
 	HTMethod.h 	HTProt.h 	HTCache.h \
 	HTReqMan.h 	HTReq.h  	HTDNS.h \
@@ -105,10 +107,7 @@ BUILT_SOURCES = sysdep.h \
 	HTMerge.h	HTResponse.h 	HTMuxHeader.h \
 	HTMux.h		HTDemux.h	HTMuxTx.h \
 	HTMuxCh.h 	HTHstMan.h	HTMemLog.h \
-	HTTimer.h
-
-EXTRA_HEADERS = \
-	HTWAIS.h HTZip.h
+	HTTimer.h	HTWAIS.h	HTZip.h
 
 DOCS :=	$(wildcard *.html)
 
