@@ -48,9 +48,11 @@ Vladimir Kozlov provides <A HREF="http://www.idm.ru/libwww.htm">fresh binaries
 for wintel</A> and you can also get my
 <A HREF="Library/Distribution/libwww-win32.zip">MSVC makefiles to play with</A>
 (<A HREF="Library/Distribution/libwww-win32.zip.sig">PGP signature</A>) which
-I try to keep up with the <A HREF="Library/cvs.html">latest CVS sourcetree</A>.
-Just unzip them on top of your checked out tree and compile using nmake,
-for example.
+are in sync with the <A HREF="Library/cvs.html">latest CVS sourcetree</A>.
+Just unzip them on top (directly in the libwww folder) of your checked out
+CVS tree, open the <TT>libwww/windows/world.dsw</TT> workspace and do a batch
+build of the whole shebang after you <A HREF="Library/cvs.html#Boot">have
+bootstrapped the code</A>.
 <P>
 You can configure libwww in <A HREF="Library/src/windows/config.h">windows
 config.h</A> and if you are interested in the details of how we build libwww
@@ -123,30 +125,6 @@ defined in the <A HREF="Library/src/windows/config.h">windows config.h file</A>
 then libwww can use <A HREF="http://www.socks.nec.com/">SOCKS</A> to go through
 firewalls. The SOCKS handling code in libwww can be found in
 <A HREF="Library/src/wwwsys.html">wwwsys.h</A>.
-<H3>
-  Compiling
-</H3>
-<P>
-The make files below can be loaded as MSVC <I>Work Spaces</I>. Open them
-and compile them in the order below.
-<UL>
-  <LI>
-    <A HREF="Library/src/windows/libwww.mak">Libwww make file</A>
-  <LI>
-    <A HREF="WinCom/WinCom.dsp">WinCom Makefile</A>
-  <LI>
-    <A HREF="Robot/src/windows/webbot.mak">Robot Makefile</A>
-  <LI>
-    <A HREF="ComLine/src/windows/comline.mak">Command Line Tool Makefile</A>
-  <LI>
-    <A HREF="PICS-client/src/windows/pics.mak">PICS Library make file</A>
-  <LI>
-    <A HREF="LineMode/src/windows/www.mak">Line Mode Browser Makefile</A>
-</UL>
-<H3>
-  Detailed Installation
-</H3>
-<P>
 <H2>
   <A NAME="Unix">Building on Unix and in the Cygwin Environment</A>
 </H2>
