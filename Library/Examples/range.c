@@ -21,6 +21,16 @@
 
 PRIVATE HTChunk * result = NULL;
 
+PRIVATE int printer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stdout, fmt, pArgs));
+}
+
+PRIVATE int tracer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stderr, fmt, pArgs));
+}
+
 PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 			       void * param, int status) 
 {
@@ -31,17 +41,17 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 	    BOOL first = YES;
 	    while ((pres = (HTAssoc *) HTAssocList_nextObject(ranges))) {
 		if (first) {
-		    fprintf(stderr, "Ranges received: ");
+		    HTPrint("Ranges received: ");
 		    first = NO;
 		} else
-		    fprintf(stderr, ", ");
-		fprintf(stderr, "%s %s",
+		    HTPrint(", ");
+		HTPrint("%s %s",
 			HTAssoc_value(pres) ? HTAssoc_value(pres) : "<null>",
 			HTAssoc_value(pres) ? HTAssoc_name(pres) : "<null>");
 	    }
 	}
     } else if (status == HT_LOADED)
-	fprintf(stderr, "Total length of document: %ld", HTResponse_length(response));
+	HTPrint("Total length of document: %ld", HTResponse_length(response));
      
     if (result && HTChunk_data(result)) {
 	fprintf(stdout, "%s", HTChunk_data(result));
@@ -67,6 +77,10 @@ int main (int argc, char ** argv)
 
     /* Create a new premptive client */
     HTProfile_newNoCacheClient("RangeApp", "1.0");
+
+    /* Need our own trace and print functions */
+    HTPrint_setCallback(printer);
+    HTTrace_setCallback(tracer);
 
     /* Add our own filter to update the history list */
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
@@ -123,13 +137,13 @@ int main (int argc, char ** argv)
 	HTEventList_loop(request);
 
     } else {
-	printf("Type the URI to get the range(s) from\n");
-	printf("\t%s <uri> <range-unit> 1*(range-set)\n", argv[0]);
-	printf("where\n");
-	printf("\trange-unit = bytes | token\n");
-	printf("\trange-set = (first-byte-pos - [last-byte-pos]) |  - suffix-length\n");
-	printf("For example:\n");
-	printf("\t%s http://www.w3.org bytes \"0-499\" \"1000-1499\" \"-10\"\n", argv[0]);
+	HTPrint("Type the URI to get the range(s) from\n");
+	HTPrint("\t%s <uri> <range-unit> 1*(range-set)\n", argv[0]);
+	HTPrint("where\n");
+	HTPrint("\trange-unit = bytes | token\n");
+	HTPrint("\trange-set = (first-byte-pos - [last-byte-pos]) |  - suffix-length\n");
+	HTPrint("For example:\n");
+	HTPrint("\t%s http://www.w3.org bytes \"0-499\" \"1000-1499\" \"-10\"\n", argv[0]);
     }
 
     return 0;

@@ -19,6 +19,16 @@
 #include "WWWLib.h"
 #include "WWWInit.h"
 
+PRIVATE int printer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stdout, fmt, pArgs));
+}
+
+PRIVATE int tracer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stderr, fmt, pArgs));
+}
+
 PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 			       void * param, int status) 
 {
@@ -41,6 +51,10 @@ int main (int argc, char ** argv)
 
     /* Create a new premptive client */
     HTProfile_newNoCacheClient("libwww-TRACE", "1.0");
+
+    /* Need our own trace and print functions */
+    HTPrint_setCallback(printer);
+    HTTrace_setCallback(tracer);
 
 #if 0
     HTSetTraceMessageMask("sop");

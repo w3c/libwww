@@ -691,8 +691,10 @@ PRIVATE BOOL Robot_delete (Robot * mr)
 	}
 
 	/* This is new */
-	if(mr->cdepth)
-	  HT_FREE(mr->cdepth);
+#if 0
+	if (mr->cdepth) FT_FREE(mr->cdepth);
+#endif
+
 	if(mr->furl) HT_FREE(mr->furl);
 
 #ifdef HT_POSIX_REGEX

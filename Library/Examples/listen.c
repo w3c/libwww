@@ -37,6 +37,16 @@ typedef struct _ListenTool {
 
 /* ------------------------------------------------------------------------- */
 
+PRIVATE int printer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stdout, fmt, pArgs));
+}
+
+PRIVATE int tracer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stderr, fmt, pArgs));
+}
+
 /*	Create a Listen Tool Object
 **	---------------------------
 */
@@ -120,6 +130,10 @@ int main (int argc, char ** argv)
 
     /* Set up default event loop */
     HTEventInit();
+
+    /* Need our own trace and print functions */
+    HTPrint_setCallback(printer);
+    HTTrace_setCallback(tracer);
 
     /* Add our own filter to handle termination */
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);

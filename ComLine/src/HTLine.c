@@ -82,6 +82,16 @@ HTChunk * post_result = NULL;
 	
 /* ------------------------------------------------------------------------- */
 
+PRIVATE int printer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stdout, fmt, pArgs));
+}
+
+PRIVATE int tracer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stderr, fmt, pArgs));
+}
+
 /*	Create a Command Line Object
 **	----------------------------
 */
@@ -259,6 +269,10 @@ int main (int argc, char ** argv)
 
     /* Initiate W3C Reference Library with a client profile */
     HTProfile_newNoCacheClient(APP_NAME, APP_VERSION);
+
+    /* Need our own trace and print functions */
+    HTPrint_setCallback(printer);
+    HTTrace_setCallback(tracer);
 
     /*
     ** Delete the default Username/password handler so that we can handle

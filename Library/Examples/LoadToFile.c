@@ -29,6 +29,16 @@
 #define APP_VERSION		"1.0"
 #define DEFAULT_OUTPUT_FILE     "get.out"
 
+PRIVATE int printer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stdout, fmt, pArgs));
+}
+
+PRIVATE int tracer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stderr, fmt, pArgs));
+}
+
 /*
 **  We get called here from the event loop when we are done
 **  loading. Here we terminate the program as we have nothing
@@ -56,6 +66,10 @@ int main (int argc, char ** argv)
 
     /* Initiate W3C Reference Library with a client profile */
     HTProfile_newNoCacheClient(APP_NAME, APP_VERSION);
+
+    /* Need our own trace and print functions */
+    HTPrint_setCallback(printer);
+    HTTrace_setCallback(tracer);
 
     /* Add our own filter to terminate the application */
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
@@ -90,9 +104,9 @@ int main (int argc, char ** argv)
         HTEventList_loop(request);
 
     } else {
-	printf("Type the URI of document you want to load and the name of the local file.\n");
-	printf("\t%s <address> -o <localfile>\n", argv[0]);
-	printf("For example, %s http://www.w3.org -o w3chome.html\n", argv[0]);
+	HTPrint("Type the URI of document you want to load and the name of the local file.\n");
+	HTPrint("\t%s <address> -o <localfile>\n", argv[0]);
+	HTPrint("For example, %s http://www.w3.org -o w3chome.html\n", argv[0]);
 
         /* Delete our profile if no load */
         HTProfile_delete();

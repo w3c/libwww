@@ -21,6 +21,11 @@
 #include "WWWApp.h"
 #include "WWWInit.h"
 
+PRIVATE int printer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stdout, fmt, pArgs));
+}
+
 PRIVATE int tracer (const char * fmt, va_list pArgs)
 {
     return (vfprintf(stderr, fmt, pArgs));
@@ -37,8 +42,9 @@ int main (int argc, char ** argv)
 	/* Turn on TRACE so we can see what is going on */
 	if (argc == 3) HTSetTraceMessageMask(argv[2]);
 
-        /* Gotta set up our own traces */
-        HTTrace_setCallback(tracer);
+	/* Need our own trace and print functions */
+        HTPrint_setCallback(printer);
+	HTTrace_setCallback(tracer);
 
 	/* We don't wany any progress notification or other user stuff */
 	HTAlert_setInteractive(NO);
@@ -50,10 +56,10 @@ int main (int argc, char ** argv)
 	if (url && *url)
 	    HTHeadAbsolute(url, request);
 	else
-	    printf("Bad parameters - please try again\n");
+	    HTPrint("Bad parameters - please try again\n");
     } else {
-	printf("Type the URL to perform a HEAD request on.\n");
-	printf("\t%s <url> <trace>\n", argv[0]);
+	HTPrint("Type the URL to perform a HEAD request on.\n");
+	HTPrint("\t%s <url> <trace>\n", argv[0]);
     }
     HTRequest_delete(request);			/* Delete the request object */
     HTProfile_delete();

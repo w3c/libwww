@@ -33,6 +33,16 @@
 /*				  MAIN PROGRAM				     */
 /* ------------------------------------------------------------------------- */
 
+PRIVATE int printer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stdout, fmt, pArgs));
+}
+
+PRIVATE int tracer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stderr, fmt, pArgs));
+}
+
 int main (int argc, char ** argv)
 {
     int		status = 0;
@@ -69,6 +79,10 @@ int main (int argc, char ** argv)
 
     /* Initiate W3C Reference Library with a robot profile */
     HTProfile_newRobot(APP_NAME, APP_VERSION);
+
+    /* Need our own trace and print functions */
+    HTPrint_setCallback(printer);
+    HTTrace_setCallback(tracer);
 
     /* Build a new robot object */
     mr = Robot_new();
@@ -412,8 +426,8 @@ int main (int argc, char ** argv)
     }
 
     /* This is new */
-    mr->cdepth = (int *)calloc(mr->depth+1,sizeof(int));
-
+    if ((mr->cdepth = (int *) HT_CALLOC(mr->depth+1, sizeof(int)))==NULL)
+	HT_OUTOFMEM("main");
 
     /* Should we use persistent cache? */
     if (cache) {
