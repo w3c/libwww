@@ -23,6 +23,7 @@
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTFormat.h"
+#include "HTError.h"
 #include "HTAlert.h"
 #include "HTAccess.h"
 #include "HTBind.h"
@@ -336,7 +337,8 @@ PUBLIC HTStream* HTSaveAndExecute (HTRequest *	request,
     HTStream* me;
     
     if (HTLib_secure()) {
-        HTAlert(request, "Can't save data to file -- please run WWW locally");
+	HTRequest_addError(request, ERR_NON_FATAL, NO, HTERR_UNAUTHORIZED,
+			   NULL, 0, "HTSaveAndExecute");
 	return HTBlackHole();
     }
     
@@ -352,7 +354,8 @@ PUBLIC HTStream* HTSaveAndExecute (HTRequest *	request,
 	fnam = get_filename(HTTmpRoot, HTAnchor_physical(anchor), suffix);
 	FREE(suffix);
 	if (!fnam) {
-	    HTAlert(request, "Can't find a suitable file name");
+	    HTRequest_addError(request, ERR_NON_FATAL, NO, HTERR_NO_FILE,
+			       NULL, 0, "HTSaveAndExecute");
 	    return HTBlackHole();
 	}
     }
@@ -363,7 +366,8 @@ PUBLIC HTStream* HTSaveAndExecute (HTRequest *	request,
     me->request = request;	/* won't be freed */    
     me->fp = fopen (fnam, "wb");
     if (!me->fp) {
-	HTAlert(request, "Can't open temporary file!");
+	HTRequest_addError(request, ERR_NON_FATAL, NO, HTERR_NO_FILE,
+			   NULL, 0, "HTSaveAndExecute");
         free(fnam);
 	free(me);
 	return HTBlackHole();
@@ -401,7 +405,8 @@ PUBLIC HTStream* HTSaveLocally (HTRequest *	request,
     HTStream* me;
     
     if (HTLib_secure()) {
-        HTAlert(request, "Can't save data to file -- please run WWW locally");
+	HTRequest_addError(request, ERR_NON_FATAL, NO, HTERR_UNAUTHORIZED,
+			   NULL, 0, "HTSaveLocally");
 	return HTBlackHole();
     }
 
@@ -412,16 +417,21 @@ PUBLIC HTStream* HTSaveLocally (HTRequest *	request,
 	
     /* Let's find a file name for this file */
     {
+	HTAlertCallback *cbf = HTAlert_find(HT_A_PROMPT);
 	HTParentAnchor *anchor = (HTParentAnchor *) HTRequest_anchor(request);
 	char *suffix = HTBind_getSuffix(anchor);
 	fnam = get_filename(HTTmpRoot, HTAnchor_physical(anchor), suffix);
-	answer = HTPrompt(request, "Give name of file to save in",
-			  fnam ? fnam : "");
+	if (cbf) {
+	    HTAlertPar * reply = HTAlert_newReply();
+	    if ((*cbf)(request, HT_A_PROMPT, HT_MSG_FILENAME, fnam,NULL,reply))
+		answer = HTAlert_replyMessage(reply);
+	    HTAlert_deleteReply(reply);
+	}
+	FREE(suffix);
 	if (!answer) {
 	    FREE(fnam);
 	    return HTBlackHole();
 	}
-	FREE(suffix);
 	FREE(fnam);
     }
     
@@ -432,14 +442,15 @@ PUBLIC HTStream* HTSaveLocally (HTRequest *	request,
     
     me->fp = fopen (answer, "wb");
     if (!me->fp) {
-	HTAlert(request, "Can't open local file to write into.");
+	HTRequest_addError(request, ERR_NON_FATAL, NO, HTERR_NO_FILE,
+			   NULL, 0, "HTSaveLocally");
         FREE(answer);
 	free(me);
 	return HTBlackHole();
     }
     me->callback = NULL;
-    me->request = request;	/* won't be freed */
-    me->filename = answer;	/* Will be freed */
+    me->request = request;
+    me->filename = answer;
     return me;
 }
 

@@ -1,12 +1,12 @@
 <HTML>
 <HEAD>
-<TITLE>Displaying and Promting User Messages</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  7-Nov-1995 -->
+<TITLE>Library Interface for Displaying and Promting Messages</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 19-Nov-1995 -->
 <NEXTID N="z3">
 </HEAD>
 <BODY>
 
-<H1>Displaying and Promting User Messages</H1>
+<H1>Library Interface for Displaying and Promting Messages</H1>
 
 <PRE>
 /*
@@ -15,21 +15,12 @@
 */
 </PRE>
 
-This module may be overridden for GUI clients. It allows progress
-indications and warning messages to be communicated to the user in a
-portable way using stdio. Yes, I know that not all platforms have
-stdio :-(. It contain two parts:
-
-<UL>
-<LI><A HREF="#Interactive">A User Interactive part</A>
-<LI><A HREF="#NonInteractive">A part for sending messages to the user</A>
-</UL>
-
-<UL>
-<LI>May 92 Created By C.T. Barker
-<LI>Feb 93 Portablized etc TBL
-<LI>Mar 95 Updated by Henrik
-</UL>
+This module is a platform independent and language independent
+interface to User messages and prompting. The Library does not provide
+any messages on its own as they must be language independent. These
+can be provided by the application in a language that suits the
+user. The module is a registration of call back functions to the
+application.<P>
 
 This module is implemented by <A HREF="HTAlert.c">HTAlert.c</A>, and
 it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
@@ -42,116 +33,162 @@ Reference Library</A>.
 #include "HTReq.h"
 </PRE>
 
-<A NAME="Interactive"><H2>User Interactive Functions</H2></A>
+<H2>Declaration of Callback Function</H2>
 
-These functions require the user to interact in some way
+The callback functions are defined as a generic callback where the
+caller can pass a set of input parameters and the callee can return a
+set of outptu parameters. Also note that all the <CODE>*_PROG_*</CODE>
+opcodes are a subset of <CODE>HT_A_PROGRESS</CODE>. This means that
+you easily can register a callback for <EM>all</EM> progress reports.
 
-<H3>Flags for This Module</H3>
+<PRE>
+typedef enum _HTAlertOpcode {
+    HT_PROG_DNS		= 0x1,		/* Doing DNS resolution */
+    HT_PROG_CONNECT	= 0x2,		/* Connecting Active */
+    HT_PROG_ACCEPT	= 0x4,		/* Connecting Passive */
+    HT_PROG_READ	= 0x8,		/* Read data */
+    HT_PROG_WRITE	= 0x10,		/* Write data */
+    HT_PROG_DONE	= 0x20,		/* Request finished */
+    HT_PROG_WAIT	= 0x40,		/* Wait for socket */
+    HT_A_PROGRESS	= 0xFF,		/* Send a progress report - no reply */
+
+    /* First word are reserved for progresss notifications */
+
+    HT_A_MESSAGE	= 0x1&lt;&lt;8,	/* Send a message - no reply */
+    HT_A_CONFIRM	= 0x2&lt;&lt;8,	/* Want YES or NO back */
+    HT_A_PROMPT		= 0x4&lt;&lt;8,	/* Want full dialog */
+    HT_A_SECRET		= 0x8&lt;&lt;8,	/* Secret dialog (e.g. password) */
+    HT_A_USER_PW	= 0x10&lt;&lt;8	/* Atomic userid and password */
+} HTAlertOpcode;
+
+typedef struct _HTAlertPar HTAlertPar;
+
+typedef BOOL HTAlertCallback   (HTRequest * request, HTAlertOpcode op,
+				int msgnum, CONST char * dfault, void * input,
+				HTAlertPar * reply);
+</PRE>
+
+If you don't expect any return values then <CODE>reply</CODE> can be
+NULL. The return value of the callback function can be used to
+indicate confirmation on a prompt (Yes or No).
+
+<H2>String Messages</H2>
+
+This is an enumerated list of messages that can be converted into a
+string table etc.
+
+<PRE>
+typedef enum _HTAlertMsg {
+    HT_MSG_NULL = -1,
+    HT_MSG_UID = 0,
+    HT_MSG_PW,
+    HT_MSG_FILENAME,
+    HT_MSG_ACCOUNT,
+    HT_MSG_METHOD,
+    HT_MSG_MOVED,
+    HT_MSG_RULES,
+    HT_MSG_ELEMENTS		            /* This MUST be the last element */
+} HTAlertMsg;
+</PRE>
+
+<H2>Public Methods</H3>
+
+<H3>Enable or Disable Messages</H3>
 
 If you really don't want the library to prompt for anything at all
-then enable this constant. The default value is <EM>OFF</EM>. All
-functions returning a <EM>string</EM> return a dynamic string which
-must be freed by the caller.
+then enable this constant. The default value is <EM>Interactive</EM>.
 
 <PRE>
-extern void HTPrompt_setInteractive	(BOOL interative);
-extern BOOL HTPrompt_interactive	(void);
+extern void HTAlert_setInteractive	(BOOL interative);
+extern BOOL HTAlert_interactive		(void);
 </PRE>
 
-<H3>Display a message, then wait for 'YES' or 'NO'</H3>
+<H3>Add a Callback Function to a list</H3>
 
-This function prompts the user for a confirmation on the message
-passed as a parameter. If the user reacts in the affirmative, returns
-<EM>TRUE</EM>, returns <EM>FALSE</EM> otherwise.
+Register a call back function that is to be called when generating
+messages, dialog, prompts, progress reports etc.
+
+The opcode signifies which call back function to call depending of the
+type of the message. Opcode can be any combination of the bitflags
+defined by <CODE>HTAlertOpcode</CODE>. If you register one callback
+for <CODE>HT_A_PROGRESS</CODE> then this will get called on all
+progress notifications.
 
 <PRE>
-extern BOOL HTConfirm	(HTRequest *request, CONST char * Msg);
+extern BOOL HTAlertCall_add (HTList * list, HTAlertCallback * cbf,
+			     HTAlertOpcode opcode);
 </PRE>
 
-<H3>Prompt the User a Question</H3>
+<H3>Delete a Callback function from a list</H3>
 
-Prompt for answer and get text back. Reply text is either NULL on
-error or a dynamic string which the caller must free.
-
-<PRE>		
-extern char * HTPrompt	(HTRequest *request, CONST char * Msg,
-			CONST char * deflt);
-</PRE>
-
-<H3>Prompt for a Password</H3>
-
-Prompt for password without echoing the reply. Reply text is weither
-NULL on error or a dynamic string which the caller must free. <P>
-
-<B>NOTE:</B> The current version uses <EM>getpass</EM> which on many
-systems returns a string of 8 or 16 bytes.
+Unregister a call back function from a list
 
 <PRE>
-extern char * HTPromptPassword (HTRequest *request, CONST char * Msg);
+extern BOOL HTAlertCall_delete (HTList * list, HTAlertCallback * cbf);
 </PRE>
 
-<H3>Prompt for a UserID and a Password</H3>
+<H3>Delete a list of Callback Functions</H3>
 
-This is just a composite function using <EM>HTPrompt</EM> and
-<EM>HTPromptPassword</EM>. The strings returned must be freed by
-caller.
+Unregisters all call back functions
 
 <PRE>
-extern void HTPromptUsernameAndPassword (HTRequest *	request,
-					 CONST char *	Msg,
-					 char **	username,
-					 char **	password);
+extern BOOL HTAlertCall_deleteAll (HTList * list);
 </PRE>
 
-<A NAME="NonInteractive"><H2>Messages, Warnings, and Errors</H2></A>
+<H3>Find a Callback Function from a List</H3>
 
-These functions are used to inform the user of an event which requires
-no response form the user.
-
-<H3>Display a Message</H3>
-
-This function simply puts out the message passed.
+Finds a callback function corresponding to the opcode. If none has
+been registered then NULL is returned.
 
 <PRE>
-extern void HTAlert	(HTRequest *request, CONST char * Msg);
+extern HTAlertCallback * HTAlertCall_find(HTList * list, HTAlertOpcode opcode);
 </PRE>
 
-<H3>Progress Notification</H3>
+<H2>Handle the Reply Structure</H2>
 
-This function can be used to indicate the current status of a certain
-action. In order to avoid having strings directly in the core parts of
-the Library, this function is passed a "state" argument from which the
-message can be generated in this module. The "param" argument is for
-additional information to be passed.
+Create and delete...
 
 <PRE>
-typedef enum _HTProgressState {
-    HT_PROG_DNS = 0,			/* Doing DNS resolution */
-    HT_PROG_CONNECT,			/* Connecting Active */
-    HT_PROG_ACCEPT,			/* Connecting Passive */
-    HT_PROG_READ,			/* Read data */
-    HT_PROG_WRITE,			/* Write data */
-    HT_PROG_DONE,			/* Request finished */
-    HT_PROG_WAIT			/* Wait for socket */
-} HTProgressState;
-
-extern void HTProgress	(HTRequest *request, HTProgressState state,
-			 void * param);
+extern HTAlertPar * HTAlert_newReply	(void);
+extern void HTAlert_deleteReply		(HTAlertPar * old);
 </PRE>
 
-<H3>Generating an Error Message of a request</H3>
-
-This function outputs the content of the error list to standard output
-(used in Line Mode Browser), but smart clients and servers might
-overwrite this function so that the error messages can be handled to
-the user in a nice(r) way. That is the reason for putting the actual
-implementation in <A HREF="HTAlert.c">HTAlert.c</A>.<P>
+Access the data:
 
 <PRE>
-extern void HTError_print (HTRequest * request, HTList * list);
+extern char * HTAlert_replyMessage	(HTAlertPar * me);
+extern BOOL HTAlert_setReplyMessage	(HTAlertPar * me, CONST char *message);
 
+extern char * HTAlert_replySecret	(HTAlertPar * me);
+extern BOOL HTAlert_setReplySecret	(HTAlertPar * me, CONST char * secret);
+
+extern void * HTAlert_replyOutput	(HTAlertPar * me);
+extern BOOL HTAlert_setReplyOutput	(HTAlertPar * me, void * output);
+</PRE>
+
+<H2>Global set of Callback Functions</H2>
+
+A list can be assigned as being global for all messages.
+
+<PRE>
+extern void HTAlert_setGlobal	(HTList * list);
+extern HTList * HTAlert_global	(void);
+</PRE>
+
+You can also assign a callback directly to the global list. In this
+case you do not need to worry about creating the list - it will be
+created automatically.
+
+<PRE>
+extern BOOL HTAlert_add (HTAlertCallback * cbf, HTAlertOpcode opcode);
+extern HTAlertCallback * HTAlert_find (HTAlertOpcode opcode);
+</PRE>
+
+<PRE>
 #endif
 </PRE>
+
+End of declaration
 
 </BODY>
 </HTML>

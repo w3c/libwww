@@ -95,7 +95,7 @@
 #define ADDRESS_LENGTH		512	   /* Maximum address length of node */
 #define RESPONSE_LENGTH		1024     /* Maximum length of users response */
 
-#define SHOW_MSG		(WWWTRACE || HTPrompt_interactive())
+#define SHOW_MSG		(WWWTRACE || HTAlert_interactive())
 #define CHECK_INPUT(a, b)	(!strncasecomp ((a), (b), strlen((b))))
 
 #define SEC_TIMEOUT		1		       /* timeout in seconds */
@@ -364,6 +364,57 @@ PRIVATE void History_List (void) {
     TTYPrint(OUTPUT, "\n");
 }
 
+/*	Prompt for answer and get text back. Reply text is either NULL on
+**	error or a dynamic string which the caller must free.
+*/
+PRIVATE char * AskUser (HTRequest * request, CONST char * Msg,
+			 CONST char * deflt)
+{
+    char buffer[200];
+    char *reply = NULL;
+    TTYPrint(TDEST, "%s ", Msg ? Msg : "UNKNOWN");
+    if (deflt)
+	TTYPrint(TDEST, "(RETURN for [%s]) ", deflt);
+
+#ifndef NO_STDIO
+    if (!fgets(buffer, 200, stdin))
+	return NULL;		       	     /* NULL string on error, Henrik */
+    buffer[strlen(buffer)-1] = '\0';		        /* Overwrite newline */
+    if (*buffer)
+	StrAllocCopy(reply, buffer);
+    else if (deflt)
+	StrAllocCopy(reply, deflt);
+#endif
+    return reply;
+}
+
+PRIVATE BOOL confirm (HTRequest * request, CONST char * Msg)
+{
+  char Reply[4];	/* One more for terminating NULL -- AL */
+  char *URep;
+  
+  TTYPrint(TDEST, "%s (y/n) ", Msg ? Msg : "UNKNOWN");
+#ifndef NO_STDIO
+  if (!fgets(Reply, 4, stdin))			   /* get reply, max 3 chars */
+#endif
+      return NO;
+  URep=Reply;
+  while (*URep) {
+    if (*URep == '\n') {
+	*URep = (char)0;	/* Overwrite newline */
+	break;
+    }
+    *URep=TOUPPER(*URep);
+    URep++;	/* This was previously embedded in the TOUPPER */
+                /* call an it became evaluated twice because   */
+                /* TOUPPER is a macro -- AL */
+  }
+
+  if ((strcmp(Reply,"YES")==0) || (strcmp(Reply,"Y")==0))
+    return(YES);
+  else
+    return(NO);
+}
 
 /*								MakeCommandLine
 **
@@ -423,9 +474,9 @@ PRIVATE int Upload (HTRequest * req, HTMethod method)
     char *this_addr = HTAnchor_address((HTAnchor*) HTMainAnchor);
     char *sc, *de;
     int status = HT_INTERNAL;
-    if ((sc = HTPrompt(req, "Source:", this_addr)) != NULL &&
-	(de = HTPrompt(req, "Destination:", NULL)) != NULL) {
-	BOOL confirm = YES;
+    if ((sc = AskUser(req, "Source:", this_addr)) != NULL &&
+	(de = AskUser(req, "Destination:", NULL)) != NULL) {
+	BOOL doit = YES;
 	char *fd=HTParse(HTStrip(de), this_addr,
 			 PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
 	char *fs=HTParse(HTStrip(sc), this_addr,
@@ -441,12 +492,12 @@ PRIVATE int Upload (HTRequest * req, HTMethod method)
 	    sprintf(msg, "The destination is already related to the source with a %s method - result %d, continue?",
 		    HTMethod_name(HTAnchor_linkMethod(link)),
 		    HTAnchor_linkResult(link));
-	    confirm = HTConfirm(req, msg);
+	    doit= confirm(req, msg);
 	    free(msg);
 	} else
 	    HTAnchor_link((HTAnchor *) src, (HTAnchor *) dest, NULL, method);
 
-	if (confirm) {
+	if (doit) {
 	    req = Thread_new(YES);		       /* This is the source */
 	    status = HTCopyAnchor((HTAnchor *) src, req);
 	}
@@ -488,7 +539,7 @@ PRIVATE BOOL SaveOutputStream (HTRequest * req, char * This, char * Next)
 	if (fname) {				       /* See if file exists */
 	    if ((fp = fopen(fname, "r")) != NULL) {
 		fclose(fp);
-		if (!HTConfirm(req, "File exists - overwrite?"))
+		if (!confirm(req, "File exists - overwrite?"))
 		    return NO;
 	    }
 	}
@@ -1161,7 +1212,7 @@ int main (int argc, char ** argv)
 	    /* - alone => filter */
 	    if (argv[arg][1] == 0) {
 		filter = YES;	   
-		HTPrompt_setInteractive(NO);
+		HTAlert_setInteractive(NO);
 	    
 	    /* -? or -help: show the command line help page */
 	    } else if (!strcmp(argv[arg], "-?") ||
@@ -1223,7 +1274,7 @@ int main (int argc, char ** argv)
 	    /* reformat html */
 	    } else if (!strcmp(argv[arg], "-reformat")) {
 		HTRequest_setOutputFormat(request, WWW_HTML);
-		HTPrompt_setInteractive(NO);
+		HTAlert_setInteractive(NO);
 		reformat_html = YES;
 
 	    /* Specify a cache root (caching is otherwise disabled) */
@@ -1237,7 +1288,7 @@ int main (int argc, char ** argv)
 					  (arg+1>=argc || *argv[arg+1]=='-') ?
 					  WWW_PRESENT : 
 					  HTAtom_for(argv[++arg]));
-		HTPrompt_setInteractive(NO);
+		HTAlert_setInteractive(NO);
 
 	    /* Telnet from */
 	    } else if (!strcmp(argv[arg], "-h")) {
@@ -1254,16 +1305,16 @@ int main (int argc, char ** argv)
 	    /* List References */
 	    } else if (!strcmp(argv[arg], "-listrefs")) {
 		show_refs = YES;
-		HTPrompt_setInteractive(NO);
+		HTAlert_setInteractive(NO);
 
 	    } else if (!strcasecomp(argv[arg], "-delete")) {  	   /* DELETE */
 		HTRequest_setMethod(request, METHOD_DELETE);
-		HTPrompt_setInteractive(NO);
+		HTAlert_setInteractive(NO);
 
 	    } else if (!strcasecomp(argv[arg], "-head")) {    /* HEAD Method */
 		HTRequest_setMethod(request, METHOD_HEAD);
 		HTRequest_setOutputFormat(request, WWW_MIME);
-		HTPrompt_setInteractive(NO);
+		HTAlert_setInteractive(NO);
 
 	    /* @@@ NOT FINISHED @@@ */
 #if 0
@@ -1277,7 +1328,7 @@ int main (int argc, char ** argv)
 
 	    /* Non-interactive */
 	    } else if (!strcmp(argv[arg], "-n")) {
-		HTPrompt_setInteractive(NO);
+		HTAlert_setInteractive(NO);
 
 	    /* No time out */
 	    } else if (!strcmp(argv[arg], "-nt")) {
@@ -1292,12 +1343,12 @@ int main (int argc, char ** argv)
 	    } else if (!strcmp(argv[arg], "-o")) { 
 		outputfile = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    argv[++arg] : DEFAULT_OUTPUT_FILE;
-		    HTPrompt_setInteractive(NO);
+		    HTAlert_setInteractive(NO);
 
 	    /* Content Length Counter */
 	    } else if (!strcmp(argv[arg], "-cl")) { 
 		count_bytes = YES;
-		HTPrompt_setInteractive(NO);
+		HTAlert_setInteractive(NO);
 
 	    /* Handling of Expire: */
 	    } else if (!strncmp(argv[arg], "-x", 2)) { 
@@ -1400,12 +1451,12 @@ int main (int argc, char ** argv)
 	    /* Original output */
 	    } else if (!strcmp(argv[arg], "-raw")) {
 		HTRequest_setOutputFormat(request, WWW_SOURCE);
-		HTPrompt_setInteractive(NO);
+		HTAlert_setInteractive(NO);
 
 	    /* Source please */
 	    } else if (!strcmp(argv[arg], "-source")) {
 		HTRequest_setOutputFormat(request, WWW_SOURCE);
-		HTPrompt_setInteractive(NO);
+		HTAlert_setInteractive(NO);
 
 	    } else {
 		if (SHOW_MSG)
@@ -1431,7 +1482,7 @@ int main (int argc, char ** argv)
     }
 
     /* Do remaining Initialization */
-    if (HTPrompt_interactive()) {
+    if (HTAlert_interactive()) {
 	presenters = HTList_new();
 	HTPresenterInit(presenters);		       /* Local list */
 	HTRequest_setConversion(request, presenters, NO);
@@ -1441,7 +1492,7 @@ int main (int argc, char ** argv)
     SetSignal();
 #endif
     if (HTScreenHeight == -1) {				/* Default page size */
-	if (HTPrompt_interactive()) {
+	if (HTAlert_interactive()) {
 #ifdef GET_SCREEN_SIZE
 	    int scr_height, scr_width;
 	    scrsize(&scr_height, &scr_width);
@@ -1470,7 +1521,7 @@ int main (int argc, char ** argv)
 #endif
 
     /* Open output file */
-    if (!HTPrompt_interactive()) {
+    if (!HTAlert_interactive()) {
     	if (outputfile) {	    
 	    if ((output = fopen(outputfile, "wb")))
 		HTRequest_setOutputStream(request, HTFWriter_new(output, YES));
@@ -1510,11 +1561,15 @@ int main (int argc, char ** argv)
 	    goto endproc;
     }
     
+    /* Register our User Prompts etc in the Alert Manager */
+    if (HTAlert_interactive()) {
+	HTAlertInit();
+    }
+
     /* Register a call back function for the Net Manager */
-    if (HTPrompt_interactive()) {
-	HTNetCall_addBefore(HTLoadStart, 0);
+    if (HTAlert_interactive()) {
+	HTNetInit();
 	HTNetCall_addAfter(terminate_handler, HT_ALL);
-	HTNetCall_addAfter(HTLoadTerminate, HT_ALL);
     }
     
     /* Register our own "unknown" header handler (see GridText.c) */
@@ -1537,7 +1592,7 @@ int main (int argc, char ** argv)
 
     /* If in interactive mode then start the event loop which will run until
        the program terminates */
-    if (HTPrompt_interactive()) {
+    if (HTAlert_interactive()) {
 
 	/* Set timeout on sockets */
 	if (!no_timeout) {
@@ -1594,7 +1649,7 @@ endproc:
     if (abs_home)
 	free(abs_home);
     if (logfile) HTLog_close();
-    if (HTPrompt_interactive())	   /* Terminate with a LF if not interactive */
+    if (HTAlert_interactive())	   /* Terminate with a LF if not interactive */
 	TTYPrint(OUTPUT, "\n");
     else
 	HTRequest_delete(request);

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Style Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  1-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 19-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -111,21 +111,21 @@ the style back to the nesting state for later manipulation
 of the SGML nesting tree.
 <pre>
 
-extern HTStyle * HTStyleModify PARAMS((
+extern HTStyle * HTStyleModify (
 		HTStyle * 	style, 
 		HTNesting* 	nesting,
-                int 		element_number));
+                int 		element_number);
 
 
 
 /*	Style functions:
 */
-extern HTStyle * HTStyleNew NOPARAMS;
-extern HTStyle* HTStyleNewNamed PARAMS ((CONST char * name));
-extern HTStyle * HTStyleFree PARAMS((HTStyle * self));
+extern HTStyle * HTStyleNew (void);
+extern HTStyle* HTStyleNewNamed (CONST char * name);
+extern HTStyle * HTStyleFree (HTStyle * self);
 #ifdef SUPRESS
-extern HTStyle * HTStyleRead PARAMS((HTStyle * self, HTStream * stream));
-extern HTStyle * HTStyleWrite PARAMS((HTStyle * self, HTStream * stream));
+extern HTStyle * HTStyleRead (HTStyle * self, HTStream * stream);
+extern HTStyle * HTStyleWrite (HTStyle * self, HTStream * stream);
 #endif
 /*		Style Sheet
 **		-----------
@@ -138,20 +138,20 @@ typedef struct _HTStyleSheet {
 
 /*	Stylesheet functions:
 */
-extern HTStyleSheet * HTStyleSheetNew NOPARAMS;
-extern HTStyleSheet * HTStyleSheetFree PARAMS((HTStyleSheet * self));
-extern HTStyle * HTStyleNamed PARAMS((HTStyleSheet * self, CONST char * name));
-extern HTStyle * HTStyleMatching PARAMS((HTStyleSheet *self, HTStyle * style));
-/* extern HTStyle * HTStyleForRun PARAMS((HTStyleSheet *self, NXRun * run)); */
-extern HTStyleSheet * HTStyleSheetAddStyle PARAMS((HTStyleSheet * self,
-	HTStyle * style));
-extern HTStyleSheet * HTStyleSheetRemoveStyle PARAMS((HTStyleSheet * self,
-	HTStyle * style));
+extern HTStyleSheet * HTStyleSheetNew (void);
+extern HTStyleSheet * HTStyleSheetFree (HTStyleSheet * self);
+extern HTStyle * HTStyleNamed (HTStyleSheet * self, CONST char * name);
+extern HTStyle * HTStyleMatching (HTStyleSheet *self, HTStyle * style);
+/* extern HTStyle * HTStyleForRun (HTStyleSheet *self, NXRun * run); */
+extern HTStyleSheet * HTStyleSheetAddStyle (HTStyleSheet * self,
+	HTStyle * style);
+extern HTStyleSheet * HTStyleSheetRemoveStyle (HTStyleSheet * self,
+	HTStyle * style);
 #ifdef SUPPRESS
-extern HTStyleSheet * HTStyleSheetRead PARAMS((HTStyleSheet * self,
-						HTStream * stream));
-extern HTStyleSheet * HTStyleSheetWrite PARAMS((HTStyleSheet * self,
-						HTStream * stream));
+extern HTStyleSheet * HTStyleSheetRead (HTStyleSheet * self,
+						HTStream * stream);
+extern HTStyleSheet * HTStyleSheetWrite (HTStyleSheet * self,
+						HTStream * stream);
 #endif
 #define CLEAR_POINTER ((void *)-1)	/* Pointer value means "clear me" */
 #endif /* HTStyle_H */

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Extra Header Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  9-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 19-Nov-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -114,6 +114,8 @@ managed by <A HREF="HTReq.html">Request Manager</A>
 
 <PRE>
 extern void HTHeader_setParser (HTList * list);
+extern BOOL HTHeader_addParser (CONST char * token, BOOL case_sensitive,
+				HTParserCallback * callback);
 extern HTList * HTHeader_parser (void);
 </PRE>
 
@@ -121,6 +123,8 @@ extern HTList * HTHeader_parser (void);
 
 <PRE>
 extern void HTHeader_setGenerator (HTList * list);
+extern BOOL HTHeader_addGenerator (CONST char * token, BOOL case_sensitive,
+				   HTParserCallback * callback);
 extern HTList * HTHeader_generator (void);
 </PRE>
 

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>A parser for WAIS source files</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  6-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 19-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -33,18 +33,19 @@ Reference Library</A>.
 #include "HTFormat.h"
 
 extern  HTConverter HTWSRCConvert;
-
 </PRE>
-<H2>Escaping Strings</H2>HTDeSlash takes out the invlaid characters
-in a URL path ELEMENT by converting
-them into hex-escaped characters.
-HTEnSlash does the reverse.<P>
-Each returns a pointer to a newly
-allocated string which must eventually
-be freed by the caller.
-<PRE>extern char * HTDeSlash PARAMS((CONST char * str));
 
-extern char * HTEnSlash PARAMS((CONST char * str));
+<H2>Escaping Strings</H2>
+
+HTDeSlash takes out the invlaid characters in a URL path ELEMENT by
+converting them into hex-escaped characters.  HTEnSlash does the
+reverse.<P> Each returns a pointer to a newly allocated string which
+must eventually be freed by the caller.
+
+<PRE>
+extern char * HTDeSlash (CONST char * str);
+
+extern char * HTEnSlash (CONST char * str);
 
 #endif
 

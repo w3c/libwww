@@ -766,7 +766,7 @@ PUBLIC BOOL HTRequest_killPostWeb (HTRequest *me)
 /* --------------------------------------------------------------------------*/
 /*			Physical Anchor Address Manager			     */
 /* --------------------------------------------------------------------------*/
-
+#if 0
 /*		Find physical name and access protocol
 **		--------------------------------------
 **
@@ -826,6 +826,7 @@ PRIVATE int get_physical (HTRequest *req)
     /* Set the access scheme on our way out */
     return (HTProtocol_find(req, req->anchor)==YES) ? HT_OK : HT_NO_ACCESS;
 }
+#endif
 
 /* --------------------------------------------------------------------------*/
 /*				Document Loader 			     */
@@ -846,7 +847,10 @@ PUBLIC BOOL HTLoad (HTRequest * request, BOOL recursive)
         return NO;
     }
     if (request->method == METHOD_INVALID) request->method = METHOD_GET;
-    if (!recursive) HTError_deleteAll(request->error_stack);
+    if (!recursive && request->error_stack) {
+	HTError_deleteAll(request->error_stack);
+	request->error_stack = NULL;
+    }
     return HTNet_new(request);
 }
 
@@ -882,7 +886,11 @@ PUBLIC int HTLoad_terminate (HTRequest *request, int status)
 	break;
 
       case HT_ERROR:
-	HTError_print(request, request->error_stack);
+	{
+	    HTAlertCallback *cbf = HTAlert_find(HT_A_MESSAGE);
+	    if (cbf) (*cbf)(request, HT_A_MESSAGE, HT_MSG_NULL, NULL,
+			    request->error_stack, NULL);
+	}
 	if (PROT_TRACE)
 	    TTYPrint(TDEST, "Load End.... ERROR: Can't access `%s\'\n", uri);
 	break;

@@ -15,28 +15,28 @@
 #include "WWWLib.h"
 #include "HText.h"
 
-extern HTChildAnchor * HText_childNumber PARAMS((HText * text, int n));
+extern HTChildAnchor * HText_childNumber (HText * text, int n);
 
 /* delete a hyper doc object with interfering with any anchors */
-extern void hyperfree PARAMS((HText * me));
+extern void hyperfree (HText * me);
 
 /* Is there any file left? */
-extern BOOL HText_canScrollUp PARAMS((HText * text));
-extern BOOL HText_canScrollDown PARAMS((HText * text));
+extern BOOL HText_canScrollUp (HText * text);
+extern BOOL HText_canScrollDown (HText * text);
 
 /* Move display within window */
-extern void HText_scrollUp PARAMS((HText * text));      /* One page */
-extern void HText_scrollDown PARAMS((HText * text));    /* One page */
-extern void HText_scrollTop PARAMS((HText * text));
-extern void HText_scrollBottom PARAMS((HText * text));
+extern void HText_scrollUp (HText * text);      /* One page */
+extern void HText_scrollDown (HText * text);    /* One page */
+extern void HText_scrollTop (HText * text);
+extern void HText_scrollBottom (HText * text);
 
-extern int HText_sourceAnchors PARAMS((HText * text));
-extern void HText_setStale PARAMS((HText * text));
-extern void HText_refresh PARAMS((HText * text));
+extern int HText_sourceAnchors (HText * text);
+extern void HText_setStale (HText * text);
+extern void HText_refresh (HText * text);
 
 #ifdef CURSES
-extern int HText_getTopOfScreen PARAMS((HText * text));
-extern int HText_getLines PARAMS((HText * text));
+extern int HText_getTopOfScreen (HText * text);
+extern int HText_getLines (HText * text);
 #endif
 
 /*

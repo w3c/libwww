@@ -76,7 +76,7 @@ PUBLIC void HTInputSocket_free (HTInputSocket * me)
 
 /* This should return HT_INTERRUPTED if interrupted BUT the connection
    MUST not be closed */ 
-PRIVATE int HTInputSocket_getCharacter ARGS1(HTInputSocket*, isoc)
+PRIVATE int HTInputSocket_getCharacter (HTInputSocket* isoc)
 {
     int ch;
     do {
@@ -98,8 +98,8 @@ PRIVATE int HTInputSocket_getCharacter ARGS1(HTInputSocket*, isoc)
     return FROMASCII(ch);
 }
 
-PRIVATE char * HTInputSocket_getBlock ARGS2(HTInputSocket*,	isoc,
-					   int *,		len)
+PRIVATE char * HTInputSocket_getBlock (HTInputSocket*	isoc,
+					   int *		len)
 {
     if (isoc->write >= isoc->read) {
 	int status = NETREAD(isoc->sockfd,
@@ -129,7 +129,7 @@ PRIVATE char * HTInputSocket_getBlock ARGS2(HTInputSocket*,	isoc,
 }
 
 
-PRIVATE int fill_in_buffer ARGS1(HTInputSocket *, isoc)
+PRIVATE int fill_in_buffer (HTInputSocket * isoc)
 {
     if (isoc) {
 	int status;
@@ -153,9 +153,9 @@ PRIVATE int fill_in_buffer ARGS1(HTInputSocket *, isoc)
 }
 
 
-PRIVATE void ascii_cat ARGS3(char **,	linep,
-			     char *,	start,
-			     char *,	end)
+PRIVATE void ascii_cat (char **	linep,
+			     char *	start,
+			     char *	end)
 {
     if (linep && start && end && start <= end) {
 	char *ptr;
@@ -179,8 +179,8 @@ PRIVATE void ascii_cat ARGS3(char **,	linep,
 }
 
 
-PRIVATE char * get_some_line ARGS2(HTInputSocket *,	isoc,
-				   BOOL,		unfold)
+PRIVATE char * get_some_line (HTInputSocket *	isoc,
+				   BOOL		unfold)
 {
     if (!isoc)
 	return NULL;
@@ -242,13 +242,13 @@ PRIVATE char * get_some_line ARGS2(HTInputSocket *,	isoc,
 }
 
 /* The returned string must be freed by the caller */
-PRIVATE char * HTInputSocket_getLine ARGS1(HTInputSocket *, isoc)
+PRIVATE char * HTInputSocket_getLine (HTInputSocket * isoc)
 {
     return get_some_line(isoc, NO);
 }
 
 /* The returned string must be freed by the caller */
-PRIVATE char * HTInputSocket_getUnfoldedLine ARGS1(HTInputSocket *, isoc)
+PRIVATE char * HTInputSocket_getUnfoldedLine (HTInputSocket * isoc)
 {
     return get_some_line(isoc, YES);
 }
@@ -268,9 +268,9 @@ PRIVATE char * HTInputSocket_getUnfoldedLine ARGS1(HTInputSocket *, isoc)
 **   RETURNS the number of bytes transferred.
 **
 */
-PRIVATE int HTCopy ARGS2(
-	SOCKFD,			file_number,
-	HTStream*,		sink)
+PRIVATE int HTCopy (
+	SOCKFD			file_number,
+	HTStream*		sink)
 {
     HTStreamClass targetClass;    
     HTInputSocket * isoc;
@@ -329,9 +329,9 @@ PRIVATE int HTCopy ARGS2(
 **	
 **	Character handling is now of type int, Henrik, May 09-94
 */
-PRIVATE void HTCopyNoCR ARGS2(
-	SOCKFD,			file_number,
-	HTStream*,		sink)
+PRIVATE void HTCopyNoCR (
+	SOCKFD			file_number,
+	HTStream*		sink)
 {
     HTStreamClass targetClass;
     HTInputSocket * isoc;   
@@ -369,10 +369,10 @@ PRIVATE void HTCopyNoCR ARGS2(
 
 /* The parameter to this function and HTParsefile should be HTRequest */
 
-PUBLIC int HTParseSocket ARGS3(
-	HTFormat,		rep_in,
-	SOCKFD,			file_number,
-	HTRequest *,		request)
+PUBLIC int HTParseSocket (
+	HTFormat		rep_in,
+	SOCKFD			file_number,
+	HTRequest *		request)
 {
     HTStream * stream;
     HTStreamClass targetClass;    
@@ -423,10 +423,10 @@ PUBLIC int HTParseSocket ARGS3(
 **   when the format is textual.
 **
 */
-PRIVATE int HTParseFile ARGS3(
-	HTFormat,		rep_in,
-	FILE *,			fp,
-	HTRequest *,		request)
+PRIVATE int HTParseFile (
+	HTFormat		rep_in,
+	FILE *			fp,
+	HTRequest *		request)
 {
     HTStream * stream;
     HTStreamClass targetClass;    
@@ -510,10 +510,11 @@ PUBLIC int HTSocketRead (HTRequest * request, HTNet * net)
 		    return HT_ERROR;
 		}
 	    } else if (!b_read) {
+		HTAlertCallback *cbf = HTAlert_find(HT_PROG_DONE);
 		if (PROT_TRACE)
-		    TTYPrint(TDEST, "Read Socket. Finished loading socket %d\n",
-			    isoc->sockfd);
-		HTProgress(request, HT_PROG_DONE, NULL);
+		    TTYPrint(TDEST,"Read Socket. Finished loading socket %d\n",
+			     isoc->sockfd);
+		if(cbf)(*cbf)(request,HT_PROG_DONE,HT_MSG_NULL,NULL,NULL,NULL);
 	        HTEvent_UnRegister(isoc->sockfd, FD_READ);
 		return HT_LOADED;
 	    }
@@ -535,7 +536,12 @@ PUBLIC int HTSocketRead (HTRequest * request, HTNet * net)
 		TTYPrint(TDEST, "Read Socket. %d bytes read from socket %d\n",
 			b_read, isoc->sockfd);
 	    net->bytes_read += b_read;
-	    HTProgress(request, HT_PROG_READ, NULL);
+
+	    {
+		HTAlertCallback *cbf = HTAlert_find(HT_PROG_READ);
+		if (cbf)
+		    (*cbf)(request, HT_PROG_READ, HT_MSG_NULL,NULL,NULL,NULL);
+	    }
 	}
 	
 	/* Now push the data down the stream */

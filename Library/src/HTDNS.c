@@ -482,17 +482,18 @@ PUBLIC int HTGetHostByName (HTNet *net, char *host)
     } else {
 	struct hostent *hostelement;			      /* see netdb.h */
 	char *port = strchr(host, ':');
+	HTAlertCallback *cbf = HTAlert_find(HT_PROG_DNS);
 #ifdef HT_REENTRANT
 	int thd_errno;
 	char buffer[HOSTENT_MAX];
 	struct hostent result;			      /* For gethostbyname_r */
 	if (port) *port='\0';
-	HTProgress(net->request, HT_PROG_DNS, host);
+	if (cbf) (*cbf)(net->request, HT_PROG_DNS, HT_MSG_NULL,NULL,host,NULL);
 	hostelement = gethostbyname_r(host, &result, buffer,
 				      HOSTENT_MAX, &thd_errno);
 #else
 	if (port) *port='\0';
-	HTProgress(net->request, HT_PROG_DNS, host);
+	if (cbf) (*cbf)(net->request, HT_PROG_DNS, HT_MSG_NULL,NULL,host,NULL);
 	hostelement = gethostbyname(host);
 #endif
 	if (!hostelement) {

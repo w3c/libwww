@@ -86,7 +86,7 @@ struct _HTStream {
 **	---------------------
 */
 
-PUBLIC int SGMLFindAttribute ARGS2 (HTTag*, tag, CONST char *, s)
+PUBLIC int SGMLFindAttribute  (HTTag* tag, CONST char * s)
 {
     attr* attributes = tag->attributes;
 
@@ -108,7 +108,7 @@ PUBLIC int SGMLFindAttribute ARGS2 (HTTag*, tag, CONST char *, s)
 */
 /* PUBLIC CONST char * SGML_default = "";   ?? */
 
-PRIVATE void handle_attribute_name ARGS2(HTStream *, context, CONST char *, s)
+PRIVATE void handle_attribute_name (HTStream * context, CONST char * s)
 {
 
     HTTag * tag = context->current_tag;
@@ -134,7 +134,7 @@ PRIVATE void handle_attribute_name ARGS2(HTStream *, context, CONST char *, s)
 /*	Handle attribute value
 **	----------------------
 */
-PRIVATE void handle_attribute_value ARGS2(HTStream *, context, CONST char *, s)
+PRIVATE void handle_attribute_value (HTStream * context, CONST char * s)
 {
     if (context->current_attribute_number != INVALID) {
 	StrAllocCopy(context->value[context->current_attribute_number], s);
@@ -154,7 +154,7 @@ PRIVATE void handle_attribute_value ARGS2(HTStream *, context, CONST char *, s)
 **	If the entity name is unknown, the terminator is treated as
 **	a printable non-special character in all cases, even if it is '<'
 */
-PRIVATE void handle_entity ARGS2(HTStream *, context, char, term)
+PRIVATE void handle_entity (HTStream * context, char term)
 {
 
     CONST char ** entities = context->dtd->entity_names;
@@ -188,7 +188,7 @@ PRIVATE void handle_entity ARGS2(HTStream *, context, char, term)
 /*	End element
 **	-----------
 */
-PRIVATE void end_element ARGS2(HTStream *, context, HTTag *, old_tag)
+PRIVATE void end_element (HTStream * context, HTTag * old_tag)
 {
     if (SGML_TRACE) TTYPrint(TDEST, "SGML: End   </%s>\n", old_tag->name);
     if (old_tag->contents == SGML_EMPTY) {
@@ -230,7 +230,7 @@ PRIVATE void end_element ARGS2(HTStream *, context, HTTag *, old_tag)
 /*	Start an element
 **	----------------
 */
-PRIVATE void start_element ARGS1(HTStream *, context)
+PRIVATE void start_element (HTStream * context)
 {
     HTTag * new_tag = context->current_tag;
     
@@ -262,7 +262,7 @@ PRIVATE void start_element ARGS1(HTStream *, context)
 **		NULL		tag not found
 **		else		address of tag structure in dtd
 */
-PUBLIC HTTag * SGMLFindTag ARGS2(CONST SGML_dtd*, dtd, CONST char *, string)
+PUBLIC HTTag * SGMLFindTag (CONST SGML_dtd* dtd, CONST char * string)
 {
     int high, low, i, diff;
     for(low=0, high=dtd->number_of_tags;
@@ -283,7 +283,7 @@ PUBLIC HTTag * SGMLFindTag ARGS2(CONST SGML_dtd*, dtd, CONST char *, string)
 
 
 /*	Could check that we are back to bottom of stack! @@  */
-PUBLIC int SGML_flush  ARGS1(HTStream *, context)
+PUBLIC int SGML_flush  (HTStream * context)
 {
     while (context->element_stack) {
 	HTElement *ptr = context->element_stack;
@@ -296,7 +296,7 @@ PUBLIC int SGML_flush  ARGS1(HTStream *, context)
     return (*context->actions->flush)(context->target);
 }
 
-PUBLIC int SGML_free  ARGS1(HTStream *, context)
+PUBLIC int SGML_free  (HTStream * context)
 {
     int status;
     int cnt;
@@ -319,7 +319,7 @@ PUBLIC int SGML_free  ARGS1(HTStream *, context)
     return HT_OK;
 }
 
-PUBLIC int SGML_abort  ARGS2(HTStream *, context, HTList *, e)
+PUBLIC int SGML_abort  (HTStream * context, HTList * e)
 {
     int cnt;
     while (context->element_stack) {    /* Make sure, that all tags are gone */
@@ -349,18 +349,18 @@ PUBLIC int SGML_abort  ARGS2(HTStream *, context, HTList *, e)
 */
 
 #ifdef CALLERDATA		  
-PUBLIC void* SGML_callerData ARGS1(HTStream *, context)
+PUBLIC void* SGML_callerData (HTStream * context)
 {
     return context->callerData;
 }
 
-PUBLIC void SGML_setCallerData ARGS2(HTStream *, context, void*, data)
+PUBLIC void SGML_setCallerData (HTStream * context, void* data)
 {
     context->callerData = data;
 }
 #endif
 
-PUBLIC int SGML_character ARGS2(HTStream *, context, char,c)
+PUBLIC int SGML_character (HTStream * context, char c)
 
 {
     CONST SGML_dtd	*dtd	=	context->dtd;
@@ -715,7 +715,7 @@ handle_S_tag:
 }
 
 
-PUBLIC int SGML_string ARGS2(HTStream *, context, CONST char*, s)
+PUBLIC int SGML_string (HTStream * context, CONST char* s)
 {
     while (*s)
         SGML_character(context, *s++);
@@ -723,7 +723,7 @@ PUBLIC int SGML_string ARGS2(HTStream *, context, CONST char*, s)
 }
 
 
-PUBLIC int SGML_write ARGS3(HTStream *, context, CONST char*, b, int, l)
+PUBLIC int SGML_write (HTStream * context, CONST char* b, int l)
 {
     while (l-- > 0)
         SGML_character(context, *b++);
@@ -756,9 +756,9 @@ PUBLIC CONST HTStreamClass SGMLParser =
 **
 */
 
-PUBLIC HTStream* SGML_new  ARGS2(
-	CONST SGML_dtd *,	dtd,
-	HTStructured *,		target)
+PUBLIC HTStream* SGML_new  (
+	CONST SGML_dtd *	dtd,
+	HTStructured *		target)
 {
     int i;
     HTStream* context = (HTStream *) malloc(sizeof(*context));

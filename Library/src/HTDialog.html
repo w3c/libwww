@@ -1,0 +1,118 @@
+<HTML>
+<HEAD>
+<TITLE>MESSAGES AND DIALOGS</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 17-Nov-1995 -->
+<NEXTID N="z11">
+</HEAD>
+<BODY>
+
+<H1>Application side Error Messages And the like</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This module provides some "make life easier" functions in order to get
+the application going. The functionality of this module was originally
+in <A HREF="HTAccess.html">HTAccess</A>, but now It is part of the <A
+HREF="WWWApp.html">application interface</A> which the application
+<EM>may</EM> use it if desired.<P>
+
+This module is implemented by <A HREF="HTHome.c">HTHome.c</A>, and it
+is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>. <P>
+
+<PRE>
+#ifndef HTMSG_H
+#define HTMSG_H
+#include "WWWLib.h"
+</PRE>
+
+You can register a set of callback functions to handle user prompting,
+error messages, confimations etc. Here we give a set of functions that
+can be used on almost anu thinkable platform. If you want to provide
+your own platform dependent inoplementation then fine :-)
+
+<H3>Display a message, then wait for 'YES' or 'NO'</H3>
+
+This function prompts the user for a confirmation on the message
+passed as a parameter. If the user reacts in the affirmative, returns
+<EM>TRUE</EM>, returns <EM>FALSE</EM> otherwise.
+
+<PRE>
+extern HTAlertCallback HTConfirm;
+</PRE>
+
+<H3>Prompt the User a Question</H3>
+
+Prompt for answer and get text back. Reply text is either NULL on
+error or a dynamic string which the caller must free.
+
+<PRE>		
+extern HTAlertCallback HTPrompt;
+</PRE>
+
+<H3>Prompt for a Password</H3>
+
+Prompt for password without echoing the reply. Reply text is weither
+NULL on error or a dynamic string which the caller must free. <P>
+
+<B>NOTE:</B> The current version uses <EM>getpass</EM> which on many
+systems returns a string of 8 or 16 bytes.
+
+<PRE>
+extern HTAlertCallback HTPromptPassword;
+</PRE>
+
+<H3>Prompt for a UserID and a Password</H3>
+
+This is just a composite function using <EM>HTPrompt</EM> and
+<EM>HTPromptPassword</EM>. The strings returned must be freed by
+caller.
+
+<PRE>
+extern HTAlertCallback HTPromptUsernameAndPassword;
+</PRE>
+
+<H3>Display a Message</H3>
+
+This function simply puts out the message passed.
+
+<PRE>
+extern HTAlertCallback HTAlert;
+</PRE>
+
+<H3>Progress Notification</H3>
+
+This function can be used to indicate the current status of a certain
+action. In order to avoid having strings directly in the core parts of
+the Library, this function is passed a "state" argument from which the
+message can be generated in this module. The "param" argument is for
+additional information to be passed.
+
+<PRE>
+extern HTAlertCallback HTProgress;
+</PRE>
+
+<H3>Generating an Error Message of a request</H3>
+
+This function outputs the content of the error list to standard output
+(used in Line Mode Browser), but smart clients and servers might
+overwrite this function so that the error messages can be handled to
+the user in a nice(r) way. That is the reason for putting the actual
+implementation in <A HREF="HTAlert.c">HTAlert.c</A>.<P>
+
+<PRE>
+extern HTAlertCallback HTError_print;
+</PRE>
+
+<PRE>
+#endif /* HTHOME_H */
+</PRE>
+
+End of Declaration
+</BODY>
+</HTML>

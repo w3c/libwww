@@ -32,7 +32,7 @@ PUBLIC BOOL HTPeekTitles = YES;
  *	to HTGetDescription() which returns a description
  *	string for a single file.
  */
-PUBLIC HTList * HTReadDescriptions ARGS1(char *, dirname)
+PUBLIC HTList * HTReadDescriptions (char * dirname)
 {
     char * name = NULL;
     FILE * fp = NULL;
@@ -98,7 +98,7 @@ PUBLIC HTList * HTReadDescriptions ARGS1(char *, dirname)
 }
 
 
-PUBLIC void HTFreeDescriptions ARGS1(HTList *, descriptions)
+PUBLIC void HTFreeDescriptions (HTList * descriptions)
 {
     HTList * cur = descriptions;
     char * str;
@@ -111,8 +111,8 @@ PUBLIC void HTFreeDescriptions ARGS1(HTList *, descriptions)
 }
 
 
-PRIVATE char * HTPeekTitle ARGS2(char *, dirname,
-				 char *, filename)
+PRIVATE char * HTPeekTitle (char * dirname,
+				 char * filename)
 {
 #define PEEK_BUF_SIZE 200
     char * name;
@@ -193,10 +193,10 @@ PRIVATE char * HTPeekTitle ARGS2(char *, dirname,
  *	for a file with name name in directory dirname.
  *	Description file contents is in descriptions list.
  */
-PUBLIC char * HTGetDescription ARGS4(HTList *,	descriptions,
-				     char *,	dirname,
-				     char *,	filename,
-				     HTFormat,	format)
+PUBLIC char * HTGetDescription (HTList *	descriptions,
+				     char *	dirname,
+				     char *	filename,
+				     HTFormat	format)
 {
     HTList * cur = descriptions;
     char * t;

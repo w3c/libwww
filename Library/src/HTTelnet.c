@@ -84,8 +84,8 @@ PRIVATE int remote_session (HTRequest * request, char * url)
     char *port = NULL;
 
     /* We must be in interactive mode */
-    if (!HTPrompt_interactive()) {
-	HTAlert(request,"Can't output live session - must be interactive");
+    if (!HTAlert_interactive()) {
+	if (PROT_TRACE) TTYPrint(TDEST, "Telnet...... Not interactive\n");
 	free(access);
 	free(host);
 	HTChunkFree(cmd);
@@ -109,33 +109,8 @@ PRIVATE int remote_session (HTRequest * request, char * url)
 
     /* If the person is already telnetting etc, forbid hopping */
     if (HTLib_secure()) {
-	HTChunk *msg = HTChunkCreate(256);
-	HTChunkPuts(msg, "Sorry, but the service you have selected is one ");
-	HTChunkPuts(msg, "to which you have to log in. If you were running ");
-	HTChunkPuts(msg, "locally on your own computer, you would be ");
-	HTChunkPuts(msg, "connected automatically. For security reasons, ");
-	HTChunkPuts(msg, "this is not allowed when you log in to this ");
-	HTChunkPuts(msg, "information service remotely. ");
-	if (hostname) {
-	    HTChunkPuts(msg,"You can manually connect to this service using ");
-	    HTChunkPuts(msg, access);
-	    HTChunkPuts(msg, " to host ");
-	    HTChunkPuts(msg, hostname);
-	    if (port) {
-		HTChunkPuts(msg, " using port ");
-		HTChunkPuts(msg, port);
-	    }
-	    if (user) {
-		HTChunkPuts(msg, " and user name ");
-		HTChunkPuts(msg, user);
-	    }
-	    if (passwd) {
-		HTChunkPuts(msg, " and passwd ");
-		HTChunkPuts(msg, passwd);
-	    }
-	}
-	HTAlert(request, msg->data);
-	HTChunkFree(msg);
+	HTRequest_addError(request, ERR_FATAL, NO,
+			   HTERR_ACCESS, NULL, 0, "HTLoadTelnet");
 	free(access);
 	free(host);
 	HTChunkFree(cmd);
@@ -246,18 +221,19 @@ PRIVATE int remote_session (HTRequest * request, char * url)
 	TTYPrint(TDEST, "Telnet...... Command is `%s\'\n", cmd->data);
     if (user) {
 	HTChunk *msg = HTChunkCreate(128);
-	HTChunkPuts(msg, "When you are connected, log in");
 	if (strcasecomp(access, "rlogin")) {
-	    HTChunkPuts(msg, "as <");
+	    HTChunkPuts(msg, "user <");
 	    HTChunkPuts(msg, user);
 	    HTChunkPutc(msg, '>');
 	}
 	if (passwd) {
-	    HTChunkPuts(msg, " using password <");
+	    HTChunkPuts(msg, " and password <");
 	    HTChunkPuts(msg, passwd);
 	    HTChunkPutc(msg, '>');
 	}
-	HTAlert(request, msg->data);
+	HTRequest_addError(request, ERR_INFO, NO,
+			   HTERR_LOGIN, HTChunkData(msg), HTChunkSize(msg),
+			   "HTLoadTelnet");
 	HTChunkFree(msg);
     }
 #ifdef GOT_SYSTEM

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>HTML to rich text Converter</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  6-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 19-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -40,7 +40,7 @@ been closed.  To be actually deleted, the HTML object must be closed
 once more times than it has been reopened.
 
 <PRE>
-extern void HTML_reopen PARAMS((HTStructured * me));
+extern void HTML_reopen (HTStructured * me);
 </PRE>
 
 <H2>Converters</H2>
@@ -60,7 +60,7 @@ typedef enum _HTMLCharacterSet {
 	HTML_PC_CP950
 } HTMLCharacterSet;
 
-extern void HTMLUseCharacterSet PARAMS((HTMLCharacterSet i));
+extern void HTMLUseCharacterSet (HTMLCharacterSet i);
 
 </PRE>
 
@@ -123,40 +123,40 @@ of SGML nesting states to be manipulated, and SGML regenerated from the
 style sequence.
 <PRE>
 
-extern void HTRegenInit NOPARAMS;
+extern void HTRegenInit (void);
 
-extern void HTRegenCharacter PARAMS((
+extern void HTRegenCharacter (
 	char			c,
 	HTNesting *		nesting,
-	HTStructured *		target));
+	HTStructured *		target);
 
-extern	void HTNestingChange PARAMS((
+extern	void HTNestingChange (
 	HTStructured* 	s, 
 	HTNesting*		old, 
 	HTNesting *		newnest,
 	HTChildAnchor *		info,
-	CONST char *		aName));
+	CONST char *		aName);
 
-extern HTNesting * HTMLCommonality PARAMS((
+extern HTNesting * HTMLCommonality (
 	HTNesting * 	s1,
-	HTNesting *	s2));
+	HTNesting *	s2);
 
-extern HTNesting * HTNestElement PARAMS((HTNesting * p, int ele));
-extern /* HTStyle * */ void * HTStyleForNesting PARAMS((HTNesting * n));
+extern HTNesting * HTNestElement (HTNesting * p, int ele);
+extern /* HTStyle * */ void * HTStyleForNesting (HTNesting * n);
 
-extern HTNesting* HTMLAncestor PARAMS((HTNesting * old, int depth));
+extern HTNesting* HTMLAncestor (HTNesting * old, int depth);
 
-extern HTNesting* CopyBranch PARAMS((HTNesting * old, HTNesting * newnest,
-				     int depth));
+extern HTNesting* CopyBranch (HTNesting * old, HTNesting * newnest,
+				     int depth);
 
-extern HTNesting * HTInsertLevel PARAMS((HTNesting * old,
+extern HTNesting * HTInsertLevel (HTNesting * old,
 		int	element_number,
-		int	level));
-extern HTNesting * HTDeleteLevel PARAMS((HTNesting * old,
-		int	level));
-extern int HTMLElementNumber PARAMS((HTNesting * s));
-extern int HTMLLevel PARAMS(( HTNesting * s));
-extern HTNesting* HTMLAncestor PARAMS((HTNesting * old, int depth));
+		int	level);
+extern HTNesting * HTDeleteLevel (HTNesting * old,
+		int	level);
+extern int HTMLElementNumber (HTNesting * s);
+extern int HTMLLevel ( HTNesting * s);
+extern HTNesting* HTMLAncestor (HTNesting * old, int depth);
 
 #endif		/* end HTML_H */
 

@@ -115,7 +115,7 @@ PRIVATE HTStyle default_style =
 	NO, NO, 0, 0,			0 };	
 
 
-PUBLIC void clear_screen NOPARAMS;	/* Forward */
+PUBLIC void clear_screen (void);	/* Forward */
 
 PRIVATE HTList * loaded_texts;	/* A list of all those in memory */
 
@@ -125,7 +125,7 @@ PRIVATE HTList * loaded_texts;	/* A list of all those in memory */
 **	Interactive version
 **
 */
-PUBLIC HText *	HText_new ARGS1(HTParentAnchor *,anchor)
+PUBLIC HText *	HText_new (HTParentAnchor * anchor)
 {
     HTLine * line;
     HText * self = (HText *) malloc(sizeof(*self));
@@ -181,9 +181,9 @@ PUBLIC HText *	HText_new ARGS1(HTParentAnchor *,anchor)
 **	Non-interative  OR interactive if stream is NULL
 **	Stream is assumed open and left open.
 */
-PUBLIC HText *	HText_new2 ARGS2(
-		HTParentAnchor *,	anchor,
-		HTStream*,		stream)
+PUBLIC HText *	HText_new2 (
+		HTParentAnchor * 	anchor,
+		HTStream* 		stream)
 
 {
     HText * me = HText_new(anchor);
@@ -199,7 +199,7 @@ PUBLIC HText *	HText_new2 ARGS2(
 /*	free a hyperdoc object
 **	---------------------
 */
-PUBLIC void hyperfree ARGS1(HText *, self)
+PUBLIC void hyperfree (HText *  self)
 {
     while(YES) {		/* Free off line array */
         HTLine * l = self->last_line;
@@ -224,7 +224,7 @@ PUBLIC void hyperfree ARGS1(HText *, self)
 /*	Free Entire Text
 **	----------------
 */
-PUBLIC void 	HText_free ARGS1(HText *,self)
+PUBLIC void 	HText_free (HText * self)
 {
     HTAnchor_setDocument(self->node_anchor, (HyperDoc *)0);
     hyperfree(self);
@@ -238,7 +238,7 @@ PUBLIC void 	HText_free ARGS1(HText *,self)
 /*	Clear the screen (on screen-mode systems)
 **	----------------
 */
-PUBLIC void clear_screen NOARGS
+PUBLIC void clear_screen (void)
 {
     if (WWWTRACE)
 	return;     		    /* in trace mode, don't clear trace away */
@@ -255,7 +255,7 @@ PUBLIC void clear_screen NOARGS
 /*	Output a line
 **	-------------
 */
-PRIVATE void display_line ARGS2(HText *,text, HTLine *,line)
+PRIVATE void display_line (HText * text, HTLine * line)
 {
 #ifdef CURSES
       int     y, x;
@@ -290,7 +290,7 @@ PRIVATE void display_line ARGS2(HText *,text, HTLine *,line)
 /*	Output the title line
 **	---------------------
 */
-PRIVATE void display_title ARGS1(HText *,text)
+PRIVATE void display_title (HText * text)
 {
     CONST char * title = HTAnchor_title(text->node_anchor);
     char percent[20], format[20];
@@ -332,7 +332,7 @@ PRIVATE void display_title ARGS1(HText *,text)
 /*	Fill the screen with blank after the file
 **	--------------------------
 */
-PRIVATE void fill_screen ARGS2(HText *, text, int,n)
+PRIVATE void fill_screen (HText *  text, int n)
 {
     if (n<=0 || n>1000) return;		/* Large value means no pagination */
     if (text->target) return;
@@ -358,7 +358,7 @@ PRIVATE void fill_screen ARGS2(HText *, text, int,n)
 /*	Output a page
 **	-------------
 */
-PRIVATE void display_page ARGS2(HText *,text, int,line_number)
+PRIVATE void display_page (HText * text, int line_number)
 {
     HTLine * line = text->last_line->prev;
     int i;
@@ -431,7 +431,7 @@ PRIVATE void display_page ARGS2(HText *,text, int,line_number)
 **
 **	These are used by a parser to build the text in an object
 */
-PUBLIC void HText_beginAppend ARGS1(HText *,text)
+PUBLIC void HText_beginAppend (HText * text)
 {
     text->permissible_split = 0;
     text->in_line_1 = YES;
@@ -459,7 +459,7 @@ PUBLIC void HText_beginAppend ARGS1(HText *,text)
 */
 #define new_line(text) split_line(text, 0)
 
-PRIVATE void split_line ARGS2(HText *,text, int,split)
+PRIVATE void split_line (HText * text, int split)
 {
     HTStyle * style = text->style;
     int spare;
@@ -567,7 +567,7 @@ PRIVATE void split_line ARGS2(HText *,text, int,split)
 /*	Allow vertical blank space
 **	--------------------------
 */
-PRIVATE void blank_lines ARGS2(HText *,text, int,newlines)
+PRIVATE void blank_lines (HText * text, int newlines)
 {
     if (text->last_line->size == 0) {	/* No text on current line */
 	HTLine * line = text->last_line->prev;
@@ -592,7 +592,7 @@ PRIVATE void blank_lines ARGS2(HText *,text, int,newlines)
 ** See also: setStyle.
 */
 
-PUBLIC void HText_appendParagraph ARGS1(HText *,text)
+PUBLIC void HText_appendParagraph (HText * text)
 {
     int after = (int) text->style->spaceAfter;
     int before = (int) text->style->spaceBefore;
@@ -605,7 +605,7 @@ PUBLIC void HText_appendParagraph ARGS1(HText *,text)
 **
 **	Does not filter unnecessary style changes.
 */
-PUBLIC void HText_setStyle ARGS2(HText *,text, HTStyle *,style)
+PUBLIC void HText_setStyle (HText * text, HTStyle * style)
 {
     int after, before;
 
@@ -622,7 +622,7 @@ PUBLIC void HText_setStyle ARGS2(HText *,text, HTStyle *,style)
 /*	Append a character to the text object
 **	-------------------------------------
 */
-PUBLIC void HText_appendCharacter ARGS2(HText *,text, char,ch)
+PUBLIC void HText_appendCharacter (HText * text, char ch)
 {
     HTLine * line = text->last_line;
     HTStyle * style = text->style;
@@ -720,7 +720,7 @@ PUBLIC void HText_appendCharacter ARGS2(HText *,text, char,ch)
 */
 /*	Start an anchor field
 */
-PUBLIC void HText_beginAnchor ARGS2(HText *,text, HTChildAnchor *,anc)
+PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anc)
 {
     TextAnchor * a = (TextAnchor *) malloc(sizeof(*a));
     char marker[100];
@@ -751,7 +751,7 @@ PUBLIC void HText_beginAnchor ARGS2(HText *,text, HTChildAnchor *,anc)
 }
 
 
-PUBLIC void HText_endAnchor ARGS1(HText *,text)
+PUBLIC void HText_endAnchor (HText * text)
 {
     TextAnchor * a = text->last_anchor;
     char marker[100];
@@ -765,17 +765,17 @@ PUBLIC void HText_endAnchor ARGS1(HText *,text)
 
 /*		IMAGES
 */
-PUBLIC void HText_appendImage ARGS5(
-	HText *,		text,
-	HTChildAnchor *,	anc,
-	CONST char *,		alt,
-	CONST char *, 		alignment,
-	BOOL,			isMap)
+PUBLIC void HText_appendImage (
+	HText * 		text,
+	HTChildAnchor * 	anc,
+	CONST char * 		alt,
+	CONST char *  		alignment,
+	BOOL			isMap)
 {
     HText_appendText(text, alt? alt : "[IMAGE]");
 }
 	
-PUBLIC void HText_appendText ARGS2(HText *,text, CONST char *,str)
+PUBLIC void HText_appendText (HText * text, CONST char * str)
 {
     CONST char * p;
     for(p=str; *p; p++) {
@@ -784,7 +784,7 @@ PUBLIC void HText_appendText ARGS2(HText *,text, CONST char *,str)
 }
 
 
-PUBLIC void HText_endAppend ARGS1(HText *,text)
+PUBLIC void HText_endAppend (HText * text)
 {
     new_line(text);
     
@@ -800,7 +800,7 @@ PUBLIC void HText_endAppend ARGS1(HText *,text)
 
 /* 	Dump diagnostics to TDEST
 */
-PUBLIC void HText_dump ARGS1(HText *,text)
+PUBLIC void HText_dump (HText * text)
 {
     TTYPrint(TDEST, "HText: Dump called\n");
 }
@@ -808,7 +808,7 @@ PUBLIC void HText_dump ARGS1(HText *,text)
 
 /*	Return the anchor associated with this node
 */
-PUBLIC HTParentAnchor * HText_nodeAnchor ARGS1(HText *,text)
+PUBLIC HTParentAnchor * HText_nodeAnchor (HText * text)
 {
     return text->node_anchor;
 }
@@ -820,7 +820,7 @@ PUBLIC HTParentAnchor * HText_nodeAnchor ARGS1(HText *,text)
 **
 **	The index corresponds to the number we print in the anchor.
 */
-PUBLIC HTChildAnchor * HText_childNumber ARGS2(HText *,text, int,number)
+PUBLIC HTChildAnchor * HText_childNumber (HText * text, int number)
 {
     TextAnchor * a;
     for (a = text->first_anchor; a; a = a->next) {
@@ -829,29 +829,29 @@ PUBLIC HTChildAnchor * HText_childNumber ARGS2(HText *,text, int,number)
     return (HTChildAnchor *)0;	/* Fail */
 }
 
-PUBLIC void HText_setStale ARGS1(HText *,text)
+PUBLIC void HText_setStale (HText * text)
 {
     if (text)
 	text->stale = YES;
 }
 
-PUBLIC void HText_refresh ARGS1(HText *,text)
+PUBLIC void HText_refresh (HText * text)
 {
     if (text && text->stale)
 	display_page(text, text->top_of_screen);
 }
 
-PUBLIC int HText_sourceAnchors ARGS1(HText *,text)
+PUBLIC int HText_sourceAnchors (HText * text)
 {
     return (text ? text->last_anchor_number : -1);
 }
 
-PUBLIC BOOL HText_canScrollUp ARGS1(HText *,text)
+PUBLIC BOOL HText_canScrollUp (HText * text)
 {
     return (text && text->top_of_screen != 0);
 }
 
-PUBLIC BOOL HText_canScrollDown ARGS1(HText *,text)
+PUBLIC BOOL HText_canScrollDown (HText * text)
 {
     return (text && (text->top_of_screen + DISPLAY_LINES -
 		     (text->title ? TITLE_LINES : 0)) < text->lines);
@@ -859,22 +859,22 @@ PUBLIC BOOL HText_canScrollDown ARGS1(HText *,text)
 
 /*		Scroll actions
 */
-PUBLIC void HText_scrollTop ARGS1(HText *,text)
+PUBLIC void HText_scrollTop (HText * text)
 {
     display_page(text, 0);
 }
 
-PUBLIC void HText_scrollDown ARGS1(HText *,text)
+PUBLIC void HText_scrollDown (HText * text)
 {
     display_page(text, text->top_of_screen + DISPLAY_LINES -1);
 }
 
-PUBLIC void HText_scrollUp ARGS1(HText *,text)
+PUBLIC void HText_scrollUp (HText * text)
 {
     display_page(text, text->top_of_screen - DISPLAY_LINES +1);
 }
 
-PUBLIC void HText_scrollBottom ARGS1(HText *,text)
+PUBLIC void HText_scrollBottom (HText * text)
 {
     display_page(text, text->lines - DISPLAY_LINES +1);
 }
@@ -887,7 +887,7 @@ PUBLIC void HText_scrollBottom ARGS1(HText *,text)
 /* Bring to front and highlight it
 */
 
-PRIVATE int line_for_char ARGS2(HText *,text, int,char_num)
+PRIVATE int line_for_char (HText * text, int char_num)
 {
     int line_number =0;
     int characters = 0;
@@ -901,7 +901,7 @@ PRIVATE int line_for_char ARGS2(HText *,text, int,char_num)
     }
 }
 
-PUBLIC BOOL HText_select ARGS1(HText *,text)
+PUBLIC BOOL HText_select (HText * text)
 {
     if (text) {
         HTMainText = text;
@@ -914,7 +914,7 @@ PUBLIC BOOL HText_select ARGS1(HText *,text)
     return NO;
 }
 
-PUBLIC BOOL HText_selectAnchor ARGS2(HText *,text, HTChildAnchor *,anchor)
+PUBLIC BOOL HText_selectAnchor (HText * text, HTChildAnchor * anchor)
 {
     TextAnchor * a;
 
@@ -959,7 +959,7 @@ PUBLIC BOOL HText_selectAnchor ARGS2(HText *,text, HTChildAnchor *,anchor)
 */
 /*	Apply this style to the selection
 */
-PUBLIC void HText_applyStyle ARGS2(HText *, me, HTStyle *,style)
+PUBLIC void HText_applyStyle (HText *  me, HTStyle * style)
 {
     
 }
@@ -967,7 +967,7 @@ PUBLIC void HText_applyStyle ARGS2(HText *, me, HTStyle *,style)
 
 /*	Update all text with changed style.
 */
-PUBLIC void HText_updateStyle ARGS2(HText *, me, HTStyle *,style)
+PUBLIC void HText_updateStyle (HText *  me, HTStyle * style)
 {
     
 }
@@ -975,9 +975,9 @@ PUBLIC void HText_updateStyle ARGS2(HText *, me, HTStyle *,style)
 
 /*	Return style of  selection
 */
-PUBLIC HTStyle * HText_selectionStyle ARGS2(
-	HText *,me,
-	HTStyleSheet *,sheet)
+PUBLIC HTStyle * HText_selectionStyle (
+	HText * me,
+	HTStyleSheet * sheet)
 {
     return 0;
 }
@@ -985,10 +985,10 @@ PUBLIC HTStyle * HText_selectionStyle ARGS2(
 
 /*	Paste in styled text
 */
-PUBLIC void HText_replaceSel ARGS3(
-	HText *,me,
-	CONST char *,aString, 
-	HTStyle *,aStyle)
+PUBLIC void HText_replaceSel (
+	HText * me,
+	CONST char * aString, 
+	HTStyle * aStyle)
 {
 }
 
@@ -996,7 +996,7 @@ PUBLIC void HText_replaceSel ARGS3(
 /*	Apply this style to the selection and all similarly formatted text
 **	(style recovery only)
 */
-PUBLIC void HTextApplyToSimilar ARGS2(HText *,me, HTStyle *,style)
+PUBLIC void HTextApplyToSimilar (HText * me, HTStyle * style)
 {
     
 }
@@ -1005,7 +1005,7 @@ PUBLIC void HTextApplyToSimilar ARGS2(HText *,me, HTStyle *,style)
 /*	Select the first unstyled run.
 **	(style recovery only)
 */
-PUBLIC void HTextSelectUnstyled ARGS2(HText *,me, HTStyleSheet *,sheet)
+PUBLIC void HTextSelectUnstyled (HText * me, HTStyleSheet * sheet)
 {
     
 }
@@ -1013,29 +1013,29 @@ PUBLIC void HTextSelectUnstyled ARGS2(HText *,me, HTStyleSheet *,sheet)
 
 /*	Anchor handling:
 */
-PUBLIC void		HText_unlinkSelection ARGS1(HText *,me)
+PUBLIC void		HText_unlinkSelection (HText * me)
 {
     
 }
 
-PUBLIC HTAnchor *	HText_referenceSelected ARGS1(HText *,me)
+PUBLIC HTAnchor *	HText_referenceSelected (HText * me)
 {
      return 0;   
 }
 
 
 #ifdef CURSES
-PUBLIC int HText_getTopOfScreen ARGS1(HText *,text)
+PUBLIC int HText_getTopOfScreen (HText * text)
 {
       return text->top_of_screen;
 }
 
-PUBLIC int HText_getLines ARGS1(HText *,text)
+PUBLIC int HText_getLines (HText * text)
 {
       return text->lines;
 }
 #endif
-PUBLIC HTAnchor *	HText_linkSelTo ARGS2(HText *,me, HTAnchor *,anchor)
+PUBLIC HTAnchor *	HText_linkSelTo (HText * me, HTAnchor * anchor)
 {
     return 0;
 }
@@ -1068,9 +1068,9 @@ PUBLIC int HTMemoryCache (HTRequest * request, HTExpiresMode mode,
 		TTYPrint(TDEST,"HTMemCache.. Document already in memory\n");
 	    if (mode != HT_EXPIRES_IGNORE) {
 		if (!HTCache_isValid(anchor)) {
-		    if (mode == HT_EXPIRES_NOTIFY)
-			HTAlert(request, notification);
-		    else {
+		    if (mode == HT_EXPIRES_NOTIFY) {
+			if (WWWTRACE) TTYPrint(TDEST, "%s\n", notification);
+		    } else {
 			if (CACHE_TRACE)
 			    TTYPrint(TDEST,
 				    "HTMemCache.. Expired - autoreload\n");

@@ -369,9 +369,9 @@ PUBLIC HTStream * HTRules (HTRequest *	request,
 			   HTFormat	output_format,
 			   HTStream *	output_stream)
 {
-    BOOL confirm = HTConfirm(request, "A new set of rules is to be added to your setup - continue?");
+    HTAlertCallback *cbf = HTAlert_find(HT_A_CONFIRM);
     HTStream * me;
-    if (confirm) {
+    if (cbf && (*cbf)(request, HT_A_CONFIRM, HT_MSG_RULES, NULL, NULL, NULL)) {
 	if ((me = (HTStream *) calloc(1, sizeof(HTStream))) == NULL)
 	    outofmem(__FILE__, "HTRules");
 	me->isa = &HTRuleClass;

@@ -190,7 +190,6 @@ PUBLIC BOOL HTLibTerminate (void)
     HTFreeHostName();			    /* Free up some internal strings */
     HTFreeMailAddress();
     HTTmp_freeRoot();
-    HTError_freePrefix();
 
 #ifdef _WINDOWS
     WSACleanup();
@@ -483,10 +482,12 @@ PUBLIC BOOL HTUploadAnchor (HTAnchor *		src_anchor,
     if (!src_anchor || !dest_anchor || !dest_req)
 	return NO;
     if (!(dest_anchor->methods & dest_req->method)) {
-	char buf[80];
-	sprintf(buf, "It might not be allowed to %s to this destination, continue?", HTMethod_name(dest_req->method));
-	if (!HTConfirm(dest_req, buf))
-	    return NO;
+	BOOL confirm = NO;
+	HTAlertCallback *cbf = HTAlert_find(HT_A_CONFIRM);
+	if (cbf)
+	    confirm=(*cbf)(dest_req, HT_A_CONFIRM, HT_MSG_METHOD, NULL,
+			   (void *) HTMethod_name(dest_req->method), NULL);
+	if (!confirm) return NO;
     }
 
     /* @@@ NOT FINISHED @@@ */

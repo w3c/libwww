@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Error Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  8-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 19-Nov-1995 -->
 <NEXTID N="z1">
 </HEAD>
 <BODY>
@@ -64,6 +64,7 @@ typedef enum _HTErrorElement {
 	HTERR_HTTP_CODES_END,    /* Put all non-HTTP status codes after this */
 	HTERR_NO_REMOTE_HOST,
 	HTERR_NO_HOST,
+	HTERR_NO_FILE,
 	HTERR_FTP_SERVER,
 	HTERR_FTP_NO_RESPONSE,
 	HTERR_TIME_OUT,
@@ -83,6 +84,8 @@ typedef enum _HTErrorElement {
 	HTERR_WAIS_NO_CONNECT,
 	HTERR_SYSTEM,
 	HTERR_CLASS,
+	HTERR_ACCESS,
+	HTERR_LOGIN,
 	HTERR_ELEMENTS		            /* This MUST be the last element */
 } HTErrorElement;
 </PRE>
@@ -200,51 +203,21 @@ extern BOOL HTError_ignoreLast	(HTList * list);
 extern BOOL HTError_setIgnore	(HTError * info);
 </PRE>
 
-<H2>Error Codes and Messages</H2>
+<H2>Methods for Accessing the Error Object</H2>
 
-The error code can be set as part of the error message in the
-<CODE>HTErrors</CODE> structure in the <A HREF="HTError.c">HTError.c
-file</A>. The convention is that HTTP errors have an error code
-equivalent to hte ones specified by the <A
-HREF="http://www.w3.org/pub/WWW/Protocols/">HTTP specification</A> and
-that internal errors have a code of 0.
-
-<PRE>
-extern int HTError_code			(HTError * info);
-</PRE>
-
-The Error Message is also a part of the <CODE>HTErrors</CODE>
-structure in the <A HREF="HTError.c">HTError.c file</A>. It's hard
-wired i order to make sure that the Librray always have a set of error
-messages to provide to the user. The content can of course be changed.
+The definition of the error code and the error message is not part of
+the core Libray. Only the definition of the Error object itself
+is. This object has an index number defined by the
+<CODE>HTErrorElement</CODE> above. The mapping from this index to an
+erro code and a message is for the application to do. The Library
+provides a default implementation in the <A HREF="HTMsg.html">HTMsg
+module</A>. These are the methods for accessing the error object:
 
 <PRE>
-extern CONST char * HTError_message	(HTError * info);
-</PRE>
-
-<H2>Error Object Specific Information</H2>
-
-The following methods provide the registered information in the
-<CODE>Error object</CODE>.
-
-<PRE>
+extern int HTError_index		(HTError * info);
 extern HTSeverity HTError_severity	(HTError * info);
 extern void * HTError_parameter		(HTError * info, int * length);
 extern CONST char * HTError_location	(HTError * info);
-</PRE>
-
-<H2>Error URLs</H2>
-
-Each error message can point to a URL with extended description of
-what went wrong. This can for example also be used by a server in
-order to send back a error URL to the client. The file names of the
-URLs are given in the error message table but the prefix where to find
-them can be handled with the following functions
-
-<PRE>
-extern void HTError_setPrefix		(CONST char * path);
-extern CONST char *HTError_prefix	(void);
-extern void HTError_freePrefix		(void);
 </PRE>
 
 <PRE>

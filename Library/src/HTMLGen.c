@@ -66,7 +66,7 @@ struct _HTStructured {
 **	------------
 */
 
-PRIVATE void flush_breaks ARGS1(HTStructured *, me)
+PRIVATE void flush_breaks (HTStructured * me)
 {
     int i;
     for (i=0; i<= MAX_CLEANNESS; i++) {
@@ -75,7 +75,7 @@ PRIVATE void flush_breaks ARGS1(HTStructured *, me)
 }
 
 
-PRIVATE int HTMLGen_flush ARGS1(HTStructured *, me)
+PRIVATE int HTMLGen_flush (HTStructured * me)
 {
     PUT_BLOCK(me->buffer, me->write_pointer - me->buffer);
     me->write_pointer = me->buffer;
@@ -90,8 +90,7 @@ PRIVATE int HTMLGen_flush ARGS1(HTStructured *, me)
 **	We keep track of all the breaks for when we chop the line
 */
 
-PRIVATE void allow_break ARGS3(HTStructured *, me, int, new_cleanness,
-		BOOL, dlbc)
+PRIVATE void allow_break (HTStructured * me, int new_cleanness, BOOL dlbc)
 {
     me->line_break[new_cleanness] = 
 			 dlbc ? me->write_pointer - 1 /* Point to space */
@@ -116,7 +115,7 @@ PRIVATE void allow_break ARGS3(HTStructured *, me, int, new_cleanness,
 **	by hand, too, though this is not a primary design consideration. TBL
 */
 PRIVATE char delims[] = ",;:.";		/* @@ english bias */
-PRIVATE int HTMLGen_output_character ARGS2(HTStructured *, me, char, c)
+PRIVATE int HTMLGen_output_character (HTStructured * me, char c)
 {
 
     *me->write_pointer++ = c;
@@ -195,7 +194,7 @@ PRIVATE int HTMLGen_output_character ARGS2(HTStructured *, me, char, c)
 /*	String handling
 **	---------------
 */
-PRIVATE int HTMLGen_output_string ARGS2(HTStructured *, me, CONST char*, s)
+PRIVATE int HTMLGen_output_string (HTStructured * me, CONST char* s)
 {
     while (*s)
 	HTMLGen_output_character(me, *s++);
@@ -213,7 +212,7 @@ PRIVATE int HTMLGen_output_string ARGS2(HTStructured *, me, CONST char*, s)
 **
 ** Bug: assumes local encoding is ISO!
 */	
-PRIVATE int HTMLGen_put_character ARGS2(HTStructured *, me, char, c)
+PRIVATE int HTMLGen_put_character (HTStructured * me, char c)
 {
     if (c=='&') HTMLGen_output_string(me, "&amp;");
     else if (c=='<') HTMLGen_output_string(me, "&lt;");
@@ -226,14 +225,14 @@ PRIVATE int HTMLGen_put_character ARGS2(HTStructured *, me, char, c)
     return HT_OK;
 }
 
-PRIVATE int HTMLGen_put_string ARGS2(HTStructured *, me, CONST char*, s)
+PRIVATE int HTMLGen_put_string (HTStructured * me, CONST char* s)
 {
     while (*s)
 	HTMLGen_put_character(me, *s++);
     return HT_OK;
 }
 
-PRIVATE int HTMLGen_write ARGS3(HTStructured *, me, CONST char*, b, int, l)
+PRIVATE int HTMLGen_write (HTStructured * me, CONST char* b, int l)
 {
     while (l-- > 0)
 	HTMLGen_put_character(me, *b++);
@@ -247,11 +246,11 @@ PRIVATE int HTMLGen_write ARGS3(HTStructured *, me, CONST char*, b, int, l)
 **	Within the opening tag, there may be spaces
 **	and the line may be broken at these spaces.
 */
-PRIVATE void HTMLGen_start_element ARGS4(
-	HTStructured *, 	me,
-	int,			element_number,
-	CONST BOOL*,	 	present,
-	CONST char **,		value)
+PRIVATE void HTMLGen_start_element (
+	HTStructured * 	me,
+	int			element_number,
+	CONST BOOL*	 	present,
+	CONST char **		value)
 {
     int i;
     HTTag * tag = &me->dtd->tags[element_number];
@@ -307,8 +306,7 @@ PRIVATE void HTMLGen_start_element ARGS4(
 ** 	nonintitive.
 **	See comment also about PRE above.
 */
-PRIVATE void HTMLGen_end_element ARGS2(HTStructured *, me,
-				      int , element_number)
+PRIVATE void HTMLGen_end_element (HTStructured * me, int element_number)
 {
     if (element_number == HTML_PRE) {
         HTMLGen_output_character(me, '\n');
@@ -328,7 +326,7 @@ PRIVATE void HTMLGen_end_element ARGS2(HTStructured *, me,
 **
 */
 
-PRIVATE void HTMLGen_put_entity ARGS2(HTStructured *, me, int, entity_number)
+PRIVATE void HTMLGen_put_entity (HTStructured * me, int entity_number)
 {
     HTMLGen_output_character(me, '&');
     HTMLGen_output_string(me, me->dtd->entity_names[entity_number]);
@@ -339,7 +337,7 @@ PRIVATE void HTMLGen_put_entity ARGS2(HTStructured *, me, int, entity_number)
 **	--------------
 **
 */
-PRIVATE int HTMLGen_free ARGS1(HTStructured *, me)
+PRIVATE int HTMLGen_free (HTStructured * me)
 {
     HTMLGen_flush(me);
     PUT_CHAR('\n');
@@ -349,7 +347,7 @@ PRIVATE int HTMLGen_free ARGS1(HTStructured *, me)
 }
 
 
-PRIVATE int PlainToHTML_free ARGS1(HTStructured *, me)
+PRIVATE int PlainToHTML_free (HTStructured * me)
 {
     HTMLGen_end_element(me, HTML_PRE);
     HTMLGen_end_element(me, HTML_BODY);
@@ -360,14 +358,14 @@ PRIVATE int PlainToHTML_free ARGS1(HTStructured *, me)
 
 
 
-PRIVATE int HTMLGen_abort ARGS2(HTStructured *, me, HTList *, e)
+PRIVATE int HTMLGen_abort (HTStructured * me, HTList * e)
 {
     HTMLGen_free(me);
     return HT_ERROR;
 }
 
 
-PRIVATE int PlainToHTML_abort ARGS2(HTStructured *, me, HTList *, e)
+PRIVATE int PlainToHTML_abort (HTStructured * me, HTList * e)
 {
     PlainToHTML_free(me);
     return HT_ERROR;
@@ -393,11 +391,11 @@ PRIVATE CONST HTStructuredClass HTMLGeneration = /* As opposed to print etc */
 /*	Subclass-specific Methods
 **	-------------------------
 */
-PUBLIC HTStructured* HTMLGenerator ARGS5(HTRequest *,	request,
-					 void *,	param,
-					 HTFormat,	input_format,
-					 HTFormat,	output_format,
-					 HTStream *,	output_stream)
+PUBLIC HTStructured* HTMLGenerator (HTRequest *	request,
+				    void *	param,
+				    HTFormat	input_format,
+				    HTFormat	output_format,
+				    HTStream *	output_stream)
 {
     HTStructured* me = (HTStructured *) calloc(1, sizeof(HTStructured));
     if (me == NULL) outofmem(__FILE__, "HTMLGenerator");
@@ -442,12 +440,11 @@ PRIVATE CONST HTStructuredClass PlainToHTMLConversion =
 ** Changed by henrik 03/03-94, so no more core dumps etc. (I hope!!!)
 */
 
-PUBLIC HTStream* HTPlainToHTML ARGS5(
-	HTRequest *,		request,
-	void *,			param,
-	HTFormat,		input_format,
-	HTFormat,		output_format,
-	HTStream *,		output_stream)
+PUBLIC HTStream* HTPlainToHTML (HTRequest *	request,
+				void *		param,
+				HTFormat	input_format,
+				HTFormat	output_format,
+				HTStream *	output_stream)
 {
     BOOL present[MAX_ATTRIBUTES];	/* Flags: attribute is present? */
     CONST char *value[MAX_ATTRIBUTES];	/* malloc'd strings or NULL if none */
@@ -478,13 +475,11 @@ PUBLIC HTStream* HTPlainToHTML ARGS5(
 **	ehh - not horrible - THIS REALLY PISSES THEM OFF - Henrik ;-)
 */
 
-PUBLIC HTStream* HTPlainTo7BitHTML ARGS5(
-	HTRequest *,		request,
-	void *,			param,
-	HTFormat,		input_format,
-	HTFormat,		output_format,
-	HTStream *,		output_stream)
-
+PUBLIC HTStream* HTPlainTo7BitHTML (HTRequest *	request,
+				    void *	param,
+				    HTFormat	input_format,
+				    HTFormat	output_format,
+				    HTStream *	output_stream)
 {
     HTStream* me = HTPlainToHTML(request,param,input_format,
     		output_format, output_stream);

@@ -603,14 +603,16 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 		    int code = ctrl->repcode/100;
 		    if (code == 2)		    /* Logged in with passwd */
 			ctrl->substate = SUB_SUCCESS;
-		    else if (code == 3) {      		 /* Account demanded */
-			char *prompt = NULL;
-			StrAllocCopy(prompt, "Account required for ");
-			StrAllocCat(prompt, ctrl->uid);
-			if ((ctrl->account = HTPrompt(request, prompt, NULL)))
+		    else if (code == 3) {      		 /* Account required */
+			HTAlertCallback *cbf = HTAlert_find(HT_A_PROMPT);
+			HTAlertPar * reply = HTAlert_newReply();
+			if (cbf && (*cbf)(request, HT_A_PROMPT,
+					  HT_MSG_ACCOUNT, NULL, NULL, reply)) {
+			    ctrl->account = HTAlert_replyMessage(reply);
 			    ctrl->substate = NEED_ACCOUNT;
-			else
+			} else
 			    ctrl->substate = SUB_ERROR;
+			HTAlert_deleteReply(reply);
 		    } else if (ctrl->repcode == 530)
 			ctrl->substate = PROMPT_USER;
 		    else
@@ -647,17 +649,20 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 
 	  case PROMPT_USER:
 	    {
-		char *prompt = NULL;
-		StrAllocCopy(prompt, "Enter username and password");
+		HTAlertCallback *cbf = HTAlert_find(HT_A_USER_PW);
+		HTAlertPar * reply = HTAlert_newReply();
 		FREE(ctrl->uid);
 		FREE(ctrl->passwd);
-		HTPromptUsernameAndPassword(request, prompt,
-					    &ctrl->uid, &ctrl->passwd);
+		if (cbf &&
+		    (*cbf)(request, HT_A_USER_PW,HT_MSG_NULL,NULL,NULL,reply)){
+		    ctrl->uid = HTAlert_replyMessage(reply);
+		    ctrl->passwd = HTAlert_replySecret(reply);
+		}
+		HTAlert_deleteReply(reply);
 		if (ctrl->uid && *ctrl->uid && ctrl->passwd && *ctrl->passwd)
 		    ctrl->substate = NEED_UID;
 		else
 		    ctrl->substate = SUB_ERROR;
-		free(prompt);
 	    }
 	    break;
 

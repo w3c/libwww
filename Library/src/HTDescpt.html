@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>File descriptions</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  2-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 19-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -71,7 +71,7 @@ The description file for a directory is read in only once by
 given as an argument when finding out a description for a single file.
 
 <PRE>
-extern HTList * HTReadDescriptions PARAMS((char * dirname));
+extern HTList * HTReadDescriptions (char * dirname);
 </PRE>
 
 <H2>Get Description For a File</H2>
@@ -82,10 +82,10 @@ returned by <CODE>HTReadDescriptions()</CODE>, the function
 given file:
 
 <PRE>
-extern char * HTGetDescription PARAMS((HTList *	descriptions,
+extern char * HTGetDescription (HTList *	descriptions,
 				       char *	dirname,
 				       char *	filename,
-				       HTFormat	format));
+				       HTFormat	format);
 </PRE>
 
 Directory name has to be present because this function may then take a
@@ -103,7 +103,7 @@ Once descriptions have been gotten, the description list returned by
 <CODE>HTReadDescriptions()</CODE> must be freed by
 <CODE>HTFreeDescriptions()</CODE>:
 <PRE>
-extern void HTFreeDescriptions PARAMS((HTList * descriptions));
+extern void HTFreeDescriptions (HTList * descriptions);
 </PRE>
 
 <PRE>

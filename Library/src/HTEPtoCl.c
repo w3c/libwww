@@ -18,7 +18,7 @@
 #include "HTUtils.h"
 #include "HTStream.h"
 
-PUBLIC void HTCallClient ARGS1(HTStream *, me)
+PUBLIC void HTCallClient (HTStream * me)
 {
     return;
 }

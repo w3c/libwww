@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Initialization Routines</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 15-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 19-Nov-1995 -->
 </HEAD>
 <BODY>
 <H1>Initialization Module</H1>
@@ -19,7 +19,7 @@ initialization module). None of the functions in this module are
 called from the Library. They are uniquely a help for the application
 programmer in order to set up the functionality of the Library. <P>
 
-The initialization consists of definiting four bindings:
+The initialization consists of definiting the following bindings:
 
 <UL>
 <LI>Between a source media type and a dest media type (conversion)
@@ -30,12 +30,15 @@ The initialization consists of definiting four bindings:
 
 This module is implemented by <A HREF="HTInit.c">HTInit.c</A>, and it
 is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
-Reference Library</A>.
+Reference Library</A>. <P>
+
+<IMG SRC="../../Icons/32x32/warning.gif"> <B>THE APPLICATION MAY USE
+THESE FUNCTIONS BUT IT IS NOT REQUIRED</B>
 
 <PRE>
 #ifndef HTINIT_H
 #define HTINIT_H
-#include "HTList.h"
+#include "WWWLib.h"
 </PRE>
 
 <H2>Media Type Conversions</H2>
@@ -110,7 +113,31 @@ corresponding media types.
 
 <PRE>
 extern void HTFileInit (void);
+</PRE>
 
+<H2>Register Callbacks For the NET manager</H2>
+
+We register two often used callback functions: a BEFORE and a AFTER
+callback Not done automaticly - may be done by application!
+
+<PRE>
+#include "HTHome.h"
+
+extern void HTNetInit (void);
+</PRE>
+
+<H2>Register Callbacks for the ALERT Manager</H2>
+
+We register a set of alert messages Not done automaticly - may be done
+by application!
+
+<PRE>
+#include "HTDialog.h"
+
+extern void HTAlertInit (void);
+</PRE>
+
+<PRE>
 #endif
 </PRE>
 

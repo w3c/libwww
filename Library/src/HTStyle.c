@@ -82,7 +82,7 @@ struct _HTStyle {
 
 /*	Create a new style
 */
-PUBLIC HTStyle* HTStyleNew NOARGS
+PUBLIC HTStyle* HTStyleNew (void)
 {
     HTStyle *style = (HTStyle *) calloc(1, sizeof(HTStyle));
     if (!style) outofmem(__FILE__, "HTStyleNew");
@@ -91,7 +91,7 @@ PUBLIC HTStyle* HTStyleNew NOARGS
 
 /*	Create a new style with a name
 */
-PUBLIC HTStyle* HTStyleNewNamed ARGS1 (CONST char *,name)
+PUBLIC HTStyle* HTStyleNewNamed  (CONST char *name)
 {
     HTStyle * self = HTStyleNew();
     StrAllocCopy(self->name, name);
@@ -101,7 +101,7 @@ PUBLIC HTStyle* HTStyleNewNamed ARGS1 (CONST char *,name)
 
 /*	Free a style
 */
-PUBLIC HTStyle * HTStyleFree ARGS1 (HTStyle *,self)
+PUBLIC HTStyle * HTStyleFree  (HTStyle *self)
 {
     if (self->name) free(self->name);
     if (self->SGMLTag) free(self->SGMLTag);
@@ -246,7 +246,7 @@ HTStyle * HTStyleDump (HTStyle * style)
 
 /*	Searching for styles:
 */
-HTStyle * HTStyleNamed ARGS2 (HTStyleSheet *,self, CONST char *,name)
+HTStyle * HTStyleNamed  (HTStyleSheet *self, CONST char *name)
 {
     HTStyle * scan;
 
@@ -318,8 +318,8 @@ HTStyle * HTStyleForRun (HTStyleSheet *self, NXRun *run)
 /*	Add a style to a sheet
 **	----------------------
 */
-HTStyleSheet * HTStyleSheetAddStyle ARGS2
-  (HTStyleSheet *,self, HTStyle *,style)
+HTStyleSheet * HTStyleSheetAddStyle 
+  (HTStyleSheet *self, HTStyle *style)
 {
     style->next = 0;		/* The style will go on the end */
     if (!self->styles) {
@@ -335,8 +335,8 @@ HTStyleSheet * HTStyleSheetAddStyle ARGS2
 
 /*	Remove the given object from a style sheet if it exists
 */
-HTStyleSheet * HTStyleSheetRemoveStyle ARGS2
-  (HTStyleSheet *,self, HTStyle *,style)
+HTStyleSheet * HTStyleSheetRemoveStyle 
+  (HTStyleSheet *self, HTStyle *style)
 {
     if (self->styles == style) {
     	self->styles = style->next;
@@ -356,7 +356,7 @@ HTStyleSheet * HTStyleSheetRemoveStyle ARGS2
 /*	Create new style sheet
 */
 
-HTStyleSheet * HTStyleSheetNew NOARGS
+HTStyleSheet * HTStyleSheetNew (void)
 {
     HTStyleSheet * style = (HTStyleSheet *) calloc(1, sizeof(HTStyleSheet));
     if (!style) outofmem(__FILE__, "HTStyleSheetNew");
@@ -366,7 +366,7 @@ HTStyleSheet * HTStyleSheetNew NOARGS
 
 /*	Free off a style sheet pointer
 */
-HTStyleSheet * HTStyleSheetFree ARGS1 (HTStyleSheet *,self)
+HTStyleSheet * HTStyleSheetFree  (HTStyleSheet *self)
 {
     HTStyle * style;
     while((style=self->styles)!=0) {

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>HTTP Request Stream</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 15-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 19-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -37,8 +37,7 @@ typedef enum _HTTPVersion {
     HTTP_12
 } HTTPVersion;
 
-extern HTStream * HTTPRequest_new	PARAMS((HTRequest *	request,
-						HTStream *	target));
+extern HTStream * HTTPRequest_new (HTRequest * request, HTStream * target);
 #endif
 </PRE>
 

@@ -43,7 +43,7 @@ PRIVATE HTList * hrefs = NULL;
 
 /* ------------------------------------------------------------------------- */
 
-PRIVATE void alt_resize ARGS1(char *, alt)
+PRIVATE void alt_resize (char * alt)
 {
     if (alt) {
 	int len = strlen(alt);
@@ -52,8 +52,8 @@ PRIVATE void alt_resize ARGS1(char *, alt)
 }
 
 
-PUBLIC char * HTIcon_alt_string ARGS2(char *,	alt,
-				      BOOL,	brackets)
+PUBLIC char * HTIcon_alt_string (char *	alt,
+				      BOOL	brackets)
 {
     static char * ret = NULL;
     char * p = NULL;
@@ -86,9 +86,9 @@ PUBLIC char * HTIcon_alt_string ARGS2(char *,	alt,
 **	a content-type template.  Otherwise, it is a content-encoding
 **	template.
 */
-PUBLIC void HTAddIcon ARGS3(char *,	url,
-			    char *,	alt,
-			    char *,	type_templ)
+PUBLIC void HTAddIcon (char *	url,
+			    char *	alt,
+			    char *	type_templ)
 {
     HTIconNode * node;
 
@@ -114,8 +114,8 @@ PUBLIC void HTAddIcon ARGS3(char *,	url,
  * Put the AddHrefs in a list. It can be used for indexing to
  * present special filetypes through a CGI.
  */
-PUBLIC void HTAddHref ARGS2(char *,     url,
-                            char *,     type_templ)
+PUBLIC void HTAddHref (char *     url,
+                            char *     type_templ)
 {
     HTHrefNode * node;
 
@@ -139,8 +139,8 @@ PUBLIC void HTAddHref ARGS2(char *,     url,
 **	HTAddUnknownIcon(url,alt) adds the icon used for files for which
 **	no other icon seems appropriate (unknown type).
 */
-PUBLIC void HTAddUnknownIcon ARGS2(char *, url,
-				   char *, alt)
+PUBLIC void HTAddUnknownIcon (char * url,
+				   char * alt)
 {
     icon_unknown = (HTIconNode*)calloc(1,sizeof(HTIconNode));
     if (!icon_unknown) outofmem(__FILE__, "HTAddUnknownIcon");
@@ -158,8 +158,8 @@ PUBLIC void HTAddUnknownIcon ARGS2(char *, url,
 **	HTAddBlankIcon(url,alt) adds the blank icon used in the
 **	heading of the listing.
 */
-PUBLIC void HTAddBlankIcon ARGS2(char *, url,
-				 char *, alt)
+PUBLIC void HTAddBlankIcon (char * url,
+				 char * alt)
 {
     icon_blank = (HTIconNode*)calloc(1,sizeof(HTIconNode));
     if (!icon_blank) outofmem(__FILE__, "HTAddBlankIcon");
@@ -176,8 +176,8 @@ PUBLIC void HTAddBlankIcon ARGS2(char *, url,
 /*
 **	HTAddParentIcon(url,alt) adds the parent directory icon.
 */
-PUBLIC void HTAddParentIcon ARGS2(char *, url,
-				  char *, alt)
+PUBLIC void HTAddParentIcon (char * url,
+				  char * alt)
 {
     icon_parent = (HTIconNode*)calloc(1,sizeof(HTIconNode));
     if (!icon_parent) outofmem(__FILE__, "HTAddBlankIcon");
@@ -194,8 +194,8 @@ PUBLIC void HTAddParentIcon ARGS2(char *, url,
 /*
 **	HTAddDirIcon(url,alt) adds the directory icon.
 */
-PUBLIC void HTAddDirIcon ARGS2(char *, url,
-			       char *, alt)
+PUBLIC void HTAddDirIcon (char * url,
+			       char * alt)
 {
     icon_dir = (HTIconNode*)calloc(1,sizeof(HTIconNode));
     if (!icon_dir) outofmem(__FILE__, "HTAddBlankIcon");
@@ -209,8 +209,8 @@ PUBLIC void HTAddDirIcon ARGS2(char *, url,
 }
 
 
-PRIVATE BOOL match ARGS2(char *, templ,
-			 char *, actual)
+PRIVATE BOOL match (char * templ,
+			 char * actual)
 {
     static char * c1 = NULL;
     static char * c2 = NULL;
@@ -235,8 +235,8 @@ PRIVATE BOOL match ARGS2(char *, templ,
 }
 
 
-PRIVATE char * prefixed ARGS2(CONST char *,	prefix,
-			      char *,		name)
+PRIVATE char * prefixed (CONST char *	prefix,
+			      char *		name)
 {
     static char * ret = NULL;
     FREE(ret);	/* From previous call */
@@ -252,7 +252,7 @@ PRIVATE char * prefixed ARGS2(CONST char *,	prefix,
 }
 
 
-PUBLIC void HTStdIconInit ARGS1(CONST char *, url_prefix)
+PUBLIC void HTStdIconInit (CONST char * url_prefix)
 {
     CONST char * p = url_prefix ? url_prefix : "/internal-icon/";
 
@@ -282,9 +282,9 @@ PUBLIC void HTStdIconInit ARGS1(CONST char *, url_prefix)
 /*								 HTGetIcon()
 ** returns the icon corresponding to content_type or content_encoding.
 */
-PUBLIC HTIconNode * HTGetIcon ARGS3(HTFileMode,	mode,
-				    HTFormat,	content_type,
-				    HTEncoding,	content_encoding)
+PUBLIC HTIconNode * HTGetIcon (HTFileMode	mode,
+			       HTFormat		content_type,
+			       HTEncoding	content_encoding)
 {
     if (!icon_unknown) icon_unknown = icon_blank;
     if (mode == HT_IS_FILE) {
@@ -314,7 +314,7 @@ PUBLIC HTIconNode * HTGetIcon ARGS3(HTFileMode,	mode,
 /*
  * Find the URL for a given type. Called from HTDirBrw.c
  */
-PUBLIC HTHrefNode * HTGetHref ARGS1( char *,	filename)
+PUBLIC HTHrefNode * HTGetHref ( char *	filename)
 {
     HTHrefNode * node;
     char *c;

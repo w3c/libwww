@@ -20,7 +20,7 @@
 
 /*	BINDINGS BETWEEN A SOURCE MEDIA TYPE AND A DEST MEDIA TYPE (CONVERSION)
 **	----------------------------------------------------------------------
-**	Not done automaticly - must be done by application!
+**	Not done automaticly - may be done by application!
 */
 PUBLIC void HTConverterInit (HTList * c)
 {
@@ -75,7 +75,7 @@ PUBLIC void HTConverterInit (HTList * c)
 
 /*	BINDINGS BETWEEN MEDIA TYPES AND EXTERNAL VIEWERS/PRESENTERS
 **	------------------------------------------------------------
-**	Not done automaticly - must be done by application!
+**	Not done automaticly - may be done by application!
 **	The data objects are stored in temporary files before the external
 **	program is called
 */
@@ -103,7 +103,7 @@ PUBLIC void HTPresenterInit (HTList * c)
 
 /*	PRESENTERS AND CONVERTERS AT THE SAME TIME
 **	------------------------------------------
-**	Not done automaticly - must be done by application!
+**	Not done automaticly - may be done by application!
 **	This function is only defined in order to preserve backward
 **	compatibility.
 */
@@ -114,9 +114,39 @@ PUBLIC void HTFormatInit (HTList * c)
 
 }
 
+
+/*	REGISTER CALLBACKS FOR THE NET MANAGER
+**	--------------------------------------
+**	We register two often used callback functions:
+**	a BEFORE and a AFTER callback
+**	Not done automaticly - may be done by application!
+*/
+PUBLIC void HTNetInit (void)
+{
+    HTNetCall_addBefore(HTLoadStart, 0);
+    HTNetCall_addAfter(HTLoadTerminate, HT_ALL);
+}
+
+
+/*	REGISTER CALLBACKS FOR THE ALERT MANAGER
+**	----------------------------------------
+**	We register a set of alert messages
+**	Not done automaticly - may be done by application!
+*/
+PUBLIC void HTAlertInit (void)
+{
+    HTAlert_add(HTProgress, HT_A_PROGRESS);
+    HTAlert_add(HTError_print, HT_A_MESSAGE);
+    HTAlert_add(HTConfirm, HT_A_CONFIRM);
+    HTAlert_add(HTPrompt, HT_A_PROMPT);
+    HTAlert_add(HTPromptPassword, HT_A_SECRET);
+    HTAlert_add(HTPromptUsernameAndPassword, HT_A_USER_PW);
+}
+
+
 /*	REGISTER ALL KNOWN PROTOCOLS IN THE LIBRARY
 **	-------------------------------------------
-**	Not done automaticly - must be done by application!
+**	Not done automaticly - may be done by application!
 */
 PUBLIC void HTAccessInit (void)
 {
@@ -139,7 +169,7 @@ PUBLIC void HTAccessInit (void)
 
 /*	BINDINGS BETWEEN FILE EXTENSIONS AND MEDIA TYPES
 **	------------------------------------------------
-**	Not done automaticly - must be done by application!
+**	Not done automaticly - may be done by application!
 **	The LAST suffix for a type is that used for temporary files of that
 **	type. The quality is an apriori bias as to whether the file should be
 **	used.  Not that different suffixes can be used to represent files

@@ -146,6 +146,13 @@ PUBLIC HTList * HTHeader_parser (void)
     return HTParsers;
 }
 
+PUBLIC BOOL HTHeader_addParser (CONST char * token, BOOL case_sensitive,
+				HTParserCallback * callback)
+{
+    if (!HTParsers) HTParsers = HTList_new();
+    return HTParser_add(HTParsers, token, case_sensitive, callback);
+}
+
 /*
 **	Global List of header generators. list can be NULL
 */
@@ -157,6 +164,13 @@ PUBLIC void HTHeader_setGenerator (HTList * list)
 PUBLIC HTList * HTHeader_generator (void)
 {
     return HTGenerators;
+}
+
+PUBLIC BOOL HTHeader_addGenerator (CONST char * token, BOOL case_sensitive,
+				   HTParserCallback * callback)
+{
+    if (!HTGenerators) HTGenerators = HTList_new();
+    return HTParser_add(HTGenerators, token, case_sensitive, callback);
 }
 
 /*

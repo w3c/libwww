@@ -371,11 +371,12 @@ PUBLIC BOOL HTNet_new (HTRequest * request)
 		    request, request->retrys);
 	(*(me->cbf))(me->sockfd, request, FD_NONE);
     } else {
+	HTAlertCallback *cbf = HTAlert_find(HT_PROG_WAIT);
 	if (!HTNetPending) HTNetPending = HTList_new();
 	if (WWWTRACE)
 	    TTYPrint(TDEST, "HTNet_new... request %p registered as pending\n",
 		    request);
-	HTProgress(request, HT_PROG_WAIT, NULL);
+	if (cbf) (*cbf)(request, HT_PROG_WAIT, HT_MSG_NULL, NULL, NULL, NULL);
 	HTList_addObject(HTNetPending, (void *) me);	
     }
     return YES;

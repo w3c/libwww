@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Utility macros</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 16-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 19-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -230,6 +230,7 @@ performance difference. (Foteos Macrides).
 #define CONST
 #endif
 
+#if 0
 #define NOPARAMS (void)
 #define PARAMS(parameter_list) parameter_list
 #define NOARGS (void)
@@ -253,11 +254,13 @@ performance difference. (Foteos Macrides).
 		(t a, u b, v c, w d, x e, y f, z g, s h, r i)
 #define ARGS10(t,a,u,b,v,c,w,d,x,e,y,f,z,g,s,h,r,i,q,j) \
 		(t a, u b, v c, w d, x e, y f, z g, s h, r i, q j)
+#endif
 
 #else  /* not ANSI */
 
 #define CONST
 
+#if 0
 #define NOPARAMS ()
 #define PARAMS(parameter_list) ()
 #define NOARGS ()
@@ -281,7 +284,7 @@ performance difference. (Foteos Macrides).
 		t a; u b; v c; w d; x e; y f; z g; s h; r i;
 #define ARGS10(t,a,u,b,v,c,w,d,x,e,y,f,z,g,s,h,r,i,q,j) (a,b,c,d,e,f,g,h,i,j) \
 		t a; u b; v c; w d; x e; y f; z g; s h; r i; q j;
-		
+#endif		
 	
 #endif /* _STANDARD_CODE_ (ANSI) */
 

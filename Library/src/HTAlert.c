@@ -1,5 +1,5 @@
 /*								      HTAlert.c
-**	DISPLAYING MESSAGES AND GETTING INPUT FOR LINEMODE BROWSER
+**	DIALOG MANAGER
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
@@ -10,6 +10,7 @@
 **	   Jun 92 Created May 1992 By C.T. Barker
 **	   Feb 93 Simplified, portablised TBL
 **	   Sep 93 Corrected 3 bugs in HTConfirm() :-( AL
+**	   Nov 95 Rewritten using callbacks HFN
 */
 
 /* Library include files */
@@ -17,278 +18,206 @@
 #include "HTError.h"					 /* Implemented here */
 #include "HTAlert.h"					 /* Implemented here */
 
-typedef struct _HTProgMsg {
-    HTProgressState	state;
-    char *		msg;
-} HTProgMsg;
+typedef struct _HTAlert {
+    HTAlertCallback *	cbf;
+    HTAlertOpcode	opcode;
+} HTAlert;
+
+struct _HTAlertPar {
+    char *	message;
+    char *	secret;
+    void *	output;
+};
 
 PRIVATE BOOL HTInteractive=YES;		    /* Any prompts from the Library? */
 
+PRIVATE HTList * HTMessages = NULL;	   /* Global list of alert functions */
+
 /* ------------------------------------------------------------------------- */
 
-PUBLIC void HTPrompt_setInteractive (BOOL interactive)
+/*
+**	All messaging can be turned on or off as you like
+*/
+PUBLIC void HTAlert_setInteractive (BOOL interactive)
 {
     HTInteractive = interactive;
 }
 
-PUBLIC BOOL HTPrompt_interactive (void)
+PUBLIC BOOL HTAlert_interactive (void)
 {
     return HTInteractive;
 }
 
-PUBLIC void HTProgress (HTRequest * request, HTProgressState state,
-			void * param)
+/*	HTAlertCall_add
+**	---------------
+**	Register a call back function that is to be called when generating
+**	messages, dialog, prompts, progress reports etc.
+**
+**	The opcode signifies which call back function to call depending of the 
+**	type of the message. Opcode can be one of the enumerations defined
+**	by HTAlertOpcode.
+*/
+PUBLIC BOOL HTAlertCall_add (HTList * list, HTAlertCallback * cbf,
+			     HTAlertOpcode opcode)
 {
-    /* This is just to avoid that we get a lot of progress messages in LMB */
-    if (!(WWWTRACE)) return;
+    if (WWWTRACE) 
+	TTYPrint(TDEST, "Alert Add... HTAlertCallback %p\n", (void *) cbf);
+    if (list && cbf) {
+	HTAlert *me = (HTAlert *) calloc(1, sizeof(HTAlert));
+	if (!me) outofmem(__FILE__, "HTAlertCall_add");
+	me->cbf = cbf;
+	me->opcode = opcode;
+	return HTList_addObject(list, (void *) me);
+    }
+    return NO;
+}
 
-    if (!request) {
+/*	HTAlertCall_delete
+**	------------------
+**	Unregister a call back function from a list
+*/
+PUBLIC BOOL HTAlertCall_delete (HTList * list, HTAlertCallback *cbf)
+{
+    if (WWWTRACE) 
+	TTYPrint(TDEST, "Call delete HTAlertCallback %p\n", (void *) cbf);
+    if (list && cbf) {
+	HTList *cur = list;
+	HTAlert *pres;
+	while ((pres = (HTAlert *) HTList_nextObject(cur))) {
+	    if (pres->cbf == cbf) {
+		HTList_removeObject(list, (void *) pres);
+		free(pres);
+		return YES;
+	    }
+	}
+    }
+    return NO;
+}
+
+/*	HTAlertCall_deleteAll
+**	---------------------
+**	Unregisters all call back functions
+*/
+PUBLIC BOOL HTAlertCall_deleteAll (HTList * list)
+{
+    if (WWWTRACE) 
+	TTYPrint(TDEST, "Call delete All callback functions\n");
+    if (list) {
+	HTList *cur = list;
+	HTAlert *pres;
+	while ((pres = (HTAlert *) HTList_nextObject(cur))) {
+	    HTList_removeObject(list, (void *) pres);
+	    free(pres);
+	}
+	HTList_delete(list);
+	return YES;
+    }
+    return NO;
+}
+
+/*	HTAlertCall_find
+**	----------------
+**	Finds a callback function corresponding to the opcode. If none has
+**	been registered then NULL is returned.
+*/
+PUBLIC HTAlertCallback * HTAlertCall_find (HTList * list, HTAlertOpcode opcode)
+{
+    if (list && HTInteractive) {
+	HTAlert * pres;
+	while ((pres = (HTAlert *) HTList_nextObject(list)) != NULL) {
+	    if (pres->opcode & opcode)
+		return pres->cbf;
+	}
 	if (WWWTRACE)
-	    TTYPrint(TDEST, "HTProgress.. Bad argument\n");
-	return;
+	    TTYPrint(TDEST, "Alert Find.. No entry found for opcode %d\n",opcode);
     }
-    switch (state) {
-      case HT_PROG_DNS:
-	TTYPrint(TDEST, "Looking up %s\n", (char *) param);
-	break;
-
-      case HT_PROG_CONNECT:
-	TTYPrint(TDEST, "Contacting host...\n");
-	break;
-
-      case HT_PROG_ACCEPT:
-	TTYPrint(TDEST, "Waiting for connection...\n");
-	break;
-
-      case HT_PROG_READ:
-	{
-	    long cl = HTAnchor_length(HTRequest_anchor(request));
-	    if (cl > 0) {
-		long b_read = HTRequest_bytesRead(request);
-		double pro = (double) b_read/cl*100;
-		char buf[10];
-		HTNumToStr((unsigned long) cl, buf, 10);
-		TTYPrint(TDEST, "Read (%d%% of %s)\n", (int) pro, buf);
-	    } else
-		TTYPrint(TDEST, "Reading...\n");
-	}
-	break;
-
-      case HT_PROG_WRITE:
-	TTYPrint(TDEST, "Writing...\n");
-	break;
-
-      case HT_PROG_DONE:
-	TTYPrint(TDEST, "Finished\n");
-	break;
-
-      case HT_PROG_WAIT:
-	TTYPrint(TDEST, "Waiting for free socket...\n");
-	break;
-
-      default:
-	TTYPrint(TDEST, "UNKNOWN PROGRESS STATE\n");
-	break;
-    }
+    return NULL;
 }
 
-
-PUBLIC void HTAlert (HTRequest * request, CONST char * Msg)
-{
-#ifdef NeXTStep
-    NXRunAlertPanel(NULL, "%s", NULL, NULL, NULL, Msg);
-#else
-    TTYPrint(TDEST, "\nWARNING:  %s\n", Msg ? Msg : "UNKNOWN");
-#endif
-}
-
-PUBLIC BOOL HTConfirm (HTRequest * request, CONST char * Msg)
-{
-  char Reply[4];	/* One more for terminating NULL -- AL */
-  char *URep;
-  
-  TTYPrint(TDEST, "%s (y/n) ", Msg ? Msg : "UNKNOWN");
-#ifndef NO_STDIO
-  if (!HTInteractive || !fgets(Reply, 4, stdin))   /* get reply, max 3 chars */
-#endif
-      return NO;
-  URep=Reply;
-  while (*URep) {
-    if (*URep == '\n') {
-	*URep = (char)0;	/* Overwrite newline */
-	break;
-    }
-    *URep=TOUPPER(*URep);
-    URep++;	/* This was previously embedded in the TOUPPER */
-                /* call an it became evaluated twice because   */
-                /* TOUPPER is a macro -- AL */
-  }
-
-  if ((strcmp(Reply,"YES")==0) || (strcmp(Reply,"Y")==0))
-    return(YES);
-  else
-    return(NO);
-}
-
-/*	Prompt for answer and get text back. Reply text is either NULL on
-**	error or a dynamic string which the caller must free.
+/*
+**	Global List of Alert functions. list can be NULL
 */
-PUBLIC char * HTPrompt (HTRequest * request, CONST char * Msg,
-			CONST char * deflt)
+PUBLIC void HTAlert_setGlobal (HTList * list)
 {
-    char buffer[200];
-    char *reply = NULL;
-    TTYPrint(TDEST, "%s ", Msg ? Msg : "UNKNOWN");
-    if (deflt)
-	TTYPrint(TDEST, "(RETURN for [%s]) ", deflt);
-
-    if (HTInteractive) {
-#ifndef NO_STDIO
-	if (!fgets(buffer, 200, stdin))
-	    return NULL;	       	     /* NULL string on error, Henrik */
-	buffer[strlen(buffer)-1] = '\0';	        /* Overwrite newline */
-	if (*buffer)
-	    StrAllocCopy(reply, buffer);
-	else if (deflt)
-	    StrAllocCopy(reply, deflt);
-#endif
-    }
-    return reply;
+    HTMessages = list;
 }
 
-
-/*	Prompt for password without echoing the reply. Reply text is
-**	either NULL on error or a dynamic string which the caller must free.
-*/
-PUBLIC char * HTPromptPassword (HTRequest * request, CONST char * Msg)
+PUBLIC HTList * HTAlert_global (void)
 {
-    char *reply = NULL;
-    if (HTInteractive) {
-#ifndef NO_PASSWD
-	char *pw = (char *) getpass(Msg ? Msg : "Password: ");
-	if (pw)
-	    StrAllocCopy(reply, pw);
-#endif
-    }
-    return reply;
+    return HTMessages;
 }
 
-
-/*	Prompt both username and password	HTPromptUsernameAndPassword()
-**	---------------------------------
-** On entry,
-**	Msg		is the prompting message.
-**	*username and
-**	*password	are char pointers; they are changed
-**			to point to result strings.
-**
-**			If *username is not NULL, it is taken
-**			to point to  a default value.
-**			Initial value of *password is
-**			completely discarded.
-**
-** On exit,
-**	*username and *password point to newly allocated
-**	strings -- original strings pointed to by them
-**	are NOT freed.
-**	
-*/
-PUBLIC void HTPromptUsernameAndPassword (HTRequest *	request,
-					 CONST char *	Msg,
-					 char **	username,
-					 char **	password)
+PUBLIC BOOL HTAlert_add (HTAlertCallback * cbf, HTAlertOpcode opcode)
 {
-    TTYPrint(TDEST, "%s\n", Msg ? Msg : "UNKNOWN");
-    *username = HTPrompt(request, "Username:", *username);
-    *password = HTPromptPassword(request, "Password: ");
+    if (!HTMessages) HTMessages = HTList_new();
+    return HTAlertCall_add(HTMessages, cbf, opcode);
 }
 
-
-/*								HTError_print
-**
-**	Default function that creates an error message using HTAlert() to
-**	put out the contents of the error_stack messages. Furthermore, the
-**	error_info structure contains a name of a help file that might be put
-**	up as a link. This file can then be multi-linguistic.
+/*	HTAlert_find
+**	------------
+**	Finds a global callback function corresponding to the opcode
 */
-PUBLIC void HTError_print (HTRequest * request, HTList * list)
+PUBLIC HTAlertCallback * HTAlert_find (HTAlertOpcode opcode)
 {
-    HTList *cur = list;
-    HTError *pres;
-    HTErrorShow showmask = HTError_show();
-    HTChunk *msg = NULL;
-    int code;
-    if (WWWTRACE) TTYPrint(TDEST, "HTError..... Generating message\n");
-    if (!request || !list) return;
-    while ((pres = (HTError *) HTList_nextObject(cur))) {
-	if (HTError_doShow(pres)) {
-	    if (!msg) {
-		HTSeverity severity = HTError_severity(pres);
-		msg = HTChunkCreate(128);
-		if (severity == ERR_WARN)
-		    HTChunkPuts(msg, "Warning: ");
-		else if (severity == ERR_NON_FATAL)
-		    HTChunkPuts(msg, "Non Fatal Error: ");
-		else if (severity == ERR_FATAL)
-		    HTChunkPuts(msg, "Fatal Error: ");
-		else if (severity == ERR_INFO)
-		    HTChunkPuts(msg, "Information: ");
-		else {
-		    if (WWWTRACE)
-			TTYPrint(TDEST, "HTError..... Unknown Classification of Error (%d)...\n", severity);
-		    HTChunkFree(msg);
-		    return;
-		}
-		if ((code = HTError_code(pres)) > 0) {	     /* Error number */
-		    char buf[10];
-		    sprintf(buf, "%d ", code);
-		    HTChunkPuts(msg, buf);
-		}
-	    } else
-		HTChunkPuts(msg, "\nReason: ");
-	    HTChunkPuts(msg, HTError_message(pres));	    /* Error message */
+    return HTAlertCall_find(HTMessages, opcode);
+}
 
-	    if (showmask & HT_ERR_SHOW_PARS) {		 /* Error parameters */
-		int length;
-		int cnt;		
-		char *pars = (char *) HTError_parameter(pres, &length);
-		if (length && pars) {
-		    HTChunkPuts(msg, " (");
-		    for (cnt=0; cnt<length; cnt++) {
-			char ch = *(pars+cnt);
-			if (ch < 0x20 || ch >= 0x7F)
-			    HTChunkPutc(msg, '#');
-			else
-			    HTChunkPutc(msg, ch);
-		    }
-		    HTChunkPuts(msg, ") ");
-		}
-	    }
+PUBLIC HTAlertPar * HTAlert_newReply (void)
+{
+    HTAlertPar * me = (HTAlertPar *) calloc(1, sizeof(HTAlertPar));
+    if (!me) outofmem(__FILE__, "HTAlert_newReply");
+    return me;
+}
 
-	    if (showmask & HT_ERR_SHOW_LOCATION) {	   /* Error Location */
-		HTChunkPuts(msg, "This occured in ");
-		HTChunkPuts(msg, HTError_location(pres));
-		HTChunkPutc(msg, '\n');
-	    }
+/*	HTAlert_deleteReply
+**	-------------------
+**	Delete reply structure but don't touch the replies themselves.
+*/
+PUBLIC void HTAlert_deleteReply (HTAlertPar * old)
+{
+    if (old) free(old);
+}
 
-	    /*
-	    ** Make sure that we don't get this error more than once even
-	    ** if we are keeping the error stack from one request to another
-	    */
-	    HTError_setIgnore(pres);
-	    
-	    /* If we only are show the most recent entry then break here */
-	    if (showmask & HT_ERR_SHOW_FIRST)
-		break;
-	}
+PUBLIC char * HTAlert_replyMessage (HTAlertPar * me)
+{
+    return me ? me->message : NULL;
+}
+
+PUBLIC BOOL HTAlert_setReplyMessage (HTAlertPar * me, CONST char * message)
+{
+    if (me && message) {
+	StrAllocCopy(me->message, message);
+	return YES;
     }
+    return NO;
+}
 
-    if (msg) {
-	HTChunkPutc(msg, '\n');
-	HTAlert(request, HTChunkData(msg));
-	HTChunkFree(msg);
+PUBLIC char * HTAlert_replySecret (HTAlertPar * me)
+{
+    return me ? me->secret : NULL;
+}
+
+PUBLIC BOOL HTAlert_setReplySecret (HTAlertPar * me, CONST char * secret)
+{
+    if (me && secret) {
+	StrAllocCopy(me->secret, secret);
+	return YES;
     }
-    return;
+    return NO;
+}
+
+PUBLIC void * HTAlert_replyOutput (HTAlertPar * me)
+{
+    return me ? me->output : NULL;
+}
+
+PUBLIC BOOL HTAlert_setReplyOutput (HTAlertPar * me, void * output)
+{
+    if (me) {
+	me->output = output;
+	return YES;
+    }
+    return NO;
 }
 
 /*	TTYPrint
@@ -307,5 +236,6 @@ int TTYPrint(FILE* file, const char* fmt, ...)
     fprintf(file, space);
     return (len);
 }
-/* otherwise handled in www.c with the rest of the window shit */
+/* otherwise handled in www.c with the rest of the window stuff */
 #endif
+

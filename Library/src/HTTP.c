@@ -184,8 +184,9 @@ PRIVATE void HTTPNextState (HTStream * me)
 	break;
 	
       case 303:							   /* Method */
-	HTAlert(me->request,
-		"This client doesn't support automatic redirection of type `Method'");
+	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_NOT_IMPLEMENTED,
+			   me->reason, (int) strlen(me->reason),
+			   "HTTPNextState");
 	me->http->next = HTTP_ERROR;
 	break;
 
@@ -649,17 +650,12 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 
 		/* If we haven't reached the limit for redirection */
 		if (HTRequest_retry(request)) {
+		    HTAlertCallback *cbf = HTAlert_find(HT_A_CONFIRM);
 		    HTAnchor *anchor = HTAnchor_findAddress(request->redirect);
 		    if (HTRequest_isPostWeb(request)) {
 			HTRequest *dest = HTRequest_mainDestination(request);
-			char *msg=(char*)malloc(strlen(request->redirect)+100);
-			if (!msg) outofmem(__FILE__, "HTLoadHTTP");
-			sprintf(msg, "\nLocation of %s has changed to %s for method %s, continue operation?",
-				HTRequest_isDestination(request) ?
-				"destination" : "source", request->redirect,
-				HTMethod_name(request->method));
-			if (HTConfirm(request, msg)) {
-			    free(msg);
+			if (cbf && (*cbf)(request, HT_A_CONFIRM, HT_MSG_MOVED,
+					  NULL, request->redirect, NULL)) {
 
 			    /* The new anchor inherits the Post Web */
 			    HTAnchor_moveAllLinks((HTAnchor *) request->anchor,
@@ -669,7 +665,6 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 			    return HTCopyAnchor((HTAnchor *) anchor, dest) ?
 				HT_OK : HT_ERROR;
 			}
-			free(msg);
 			return HT_OK;
 		    } if (request->PostCallback) {
 #if 0

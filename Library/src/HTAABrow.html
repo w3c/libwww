@@ -1,6 +1,6 @@
 <HEAD>
 <TITLE>Browser side Access Auth</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 19-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -139,7 +139,7 @@ password was misspelled).
 **
 **		   "Basic AkRDIhEF8sdEgs72F73bfaS=="
 */
-extern BOOL HTAA_composeAuth PARAMS((HTRequest * req));
+extern BOOL HTAA_composeAuth (HTRequest * req);
 
 
 /* BROWSER PUBLIC					HTAA_retryWithAuth()
@@ -171,7 +171,7 @@ extern BOOL HTAA_composeAuth PARAMS((HTRequest * req));
 **	returns		YES, if dialog box was popped up.
 **			NO, on failure.
 */
-extern BOOL HTAA_retryWithAuth PARAMS((HTRequest *	req));
+extern BOOL HTAA_retryWithAuth (HTRequest *	req);
 </PRE>
 
 <H2>Enabling Gateway httpds to Forward Authorization</H2>
@@ -183,9 +183,9 @@ in daemon so that other people can access private files using somebody
 elses previous authorization information.
 
 <PRE>
-extern void HTAAForwardAuth_set PARAMS((CONST char * scheme_name,
-					CONST char * scheme_specifics));
-extern void HTAAForwardAuth_reset NOPARAMS;
+extern void HTAAForwardAuth_set (CONST char * scheme_name,
+				 CONST char * scheme_specifics);
+extern void HTAAForwardAuth_reset (void);
 </PRE>
 
 <PRE>

@@ -1,12 +1,12 @@
 <HTML>
 <HEAD>
-<TITLE>Anchor Translations</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 16-Nov-1995 -->
+<TITLE>Application Stuff</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 17-Nov-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
 
-<H1>Anchor Translations</H1>
+<H1>Application Stuff</H1>
 
 <PRE>
 /*
@@ -28,8 +28,7 @@ Reference Library</A>. <P>
 <PRE>
 #ifndef HTHOME_H
 #define HTHOME_H
-#include "HTReq.h"
-#include "HTAnchor.h"
+#include "WWWLib.h"
 </PRE>
 
 <A NAME="Addresses"><H2>Default WWW Addresses</H2></A>
@@ -64,7 +63,11 @@ browses is asking for user confusion.
 #endif
 </PRE>
 
-<H2>Generate the Anchor for the Home Page</H2>
+<H2>Home Anchor Generation</H2>
+
+We provide two small functions for finding the first anchor.
+
+<H3>Generate the Anchor for the Home Page</H4>
 
 As it involves file access, this should only be done once when the
 program first runs. This is a default algorithm using the
@@ -74,7 +77,7 @@ program first runs. This is a default algorithm using the
 extern HTParentAnchor * HTHomeAnchor (void);
 </PRE>
 
-<H2>Find Related Name</H2>
+<H3>Find Related Name</H3>
 
 Creates a local file URI that can be used as a relative name when
 calling HTParse() to expand a relative file name to an absolute
@@ -86,7 +89,14 @@ to take advantage.<P>
 extern char *  HTFindRelatedName (void);
 </PRE>
 
-<H2>BEFORE Request Callback</H2>
+<H2>Net Manager Callback Functions</H2>
+
+These two functions are examples of callback functions from the <A
+HREF="HTNet.html">Net Manager</A> which are called <EM>before</EM> and
+<EM>after</EM> a request respectively. They do a lot of the stuff an
+application often has to do anyway.
+
+<H3>BEFORE Request Callback</H3>
 
 This function uses all the functionaly that the app part of the
 Library gives for URL translations BEFORE a request is isseued.  It

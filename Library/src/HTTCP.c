@@ -570,6 +570,7 @@ PUBLIC void HTFreeMailAddress (void)
 PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 {
     int status;
+    HTRequest * request = net->request;
     char *fullhost = HTParse(url, "", PARSE_HOST);
     char *at_sign;
     char *host;
@@ -580,7 +581,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
     else
 	host = fullhost;
     if (!*host) {
-	HTRequest_addError(net->request, ERR_FATAL, NO, HTERR_NO_HOST,
+	HTRequest_addError(request, ERR_FATAL, NO, HTERR_NO_HOST,
 		   NULL, 0, "HTDoConnect");
 	free(fullhost);
 	return HT_ERROR;
@@ -621,7 +622,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	    if ((status = HTParseInet(net, host)) < 0) {
 		if (PROT_TRACE)
 		    TTYPrint(TDEST, "HTDoConnect. Can't locate `%s\'\n", host);
-		HTRequest_addError(net->request, ERR_FATAL, NO, HTERR_NO_REMOTE_HOST,
+		HTRequest_addError(request, ERR_FATAL, NO,HTERR_NO_REMOTE_HOST,
 			   (void *) host, strlen(host), "HTDoConnect");
 		net->tcpstate = TCP_ERROR;
 		break;
@@ -656,7 +657,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	    if ((net->sockfd=socket(AF_INET, SOCK_STREAM,IPPROTO_TCP))==INVSOC)
 #endif
 	    {
-		HTRequest_addSystemError(net->request, ERR_FATAL, socerrno, NO, "socket");
+		HTRequest_addSystemError(request, ERR_FATAL, socerrno, NO, "socket");
 		net->tcpstate = TCP_ERROR;
 		break;
 	    }
@@ -673,7 +674,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	    if (!net->preemtive) {
 #ifdef _WINDOWS
 		{		/* begin windows scope  */
-		    HTRequest * rq = net->request;
+		    HTRequest * rq = request;
 		    long levents = FD_READ | FD_WRITE | FD_ACCEPT | 
 			FD_CONNECT | FD_CLOSE ;
 		    int rv = 0 ;
@@ -717,7 +718,13 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 
 	    /* If multi-homed host then start timer on connection */
 	    if (net->retry) net->connecttime = time(NULL);
-	    HTProgress(net->request, HT_PROG_CONNECT, NULL);
+
+	    /* Progress */
+	    {
+		HTAlertCallback *cbf = HTAlert_find(HT_PROG_CONNECT);
+		if (cbf)
+		    (*cbf)(request,HT_PROG_CONNECT,HT_MSG_NULL,NULL,NULL,NULL);
+	    }
 	    net->tcpstate = TCP_NEED_CONNECT;
 	    break;
 
@@ -759,8 +766,8 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 #endif /* EAGAIN */
 		{
 		    if (PROT_TRACE)
-			TTYPrint(TDEST,"HTDoConnect. WOULD BLOCK `%s'\n", host);
-		    HTEvent_Register(net->sockfd, net->request, (SockOps) FD_CONNECT,
+			TTYPrint(TDEST,"HTDoConnect. WOULD BLOCK `%s'\n",host);
+		    HTEvent_Register(net->sockfd, request, (SockOps)FD_CONNECT,
 				     net->cbf, net->priority);
 		    free(fullhost);
 		    return HT_WOULD_BLOCK;
@@ -831,12 +838,12 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 
 	    /* Do we have more homes to try? */
 	    if (--net->retry > 0) {
-	        HTRequest_addSystemError(net->request, ERR_NON_FATAL, socerrno, NO,
+	        HTRequest_addSystemError(request, ERR_NON_FATAL, socerrno, NO,
 			      "connect");
 		net->tcpstate = TCP_DNS;
 		break;
 	    }
-	    HTRequest_addSystemError(net->request, ERR_FATAL, socerrno,NO, "connect");
+	    HTRequest_addSystemError(request, ERR_FATAL,socerrno,NO,"connect");
 	    HTDNS_delete(host);
 	    net->retry = 0;
 	    free (fullhost);
@@ -860,11 +867,17 @@ PUBLIC int HTDoAccept (HTNet * net, SOCKFD * newfd)
 {
     int status;
     int size = sizeof(net->sock_addr);
+    HTRequest *request = net->request;
     if (net->sockfd==INVSOC) {
 	if (PROT_TRACE) TTYPrint(TDEST, "HTDoAccept.. Invalid socket\n");
 	return HT_ERROR;
     }
-    HTProgress(net->request, HT_PROG_ACCEPT, NULL);
+
+    /* Progress report */
+    {
+	HTAlertCallback *cbf = HTAlert_find(HT_PROG_ACCEPT);
+	if (cbf) (*cbf)(request, HT_PROG_ACCEPT, HT_MSG_NULL,NULL, NULL, NULL);
+    }
     status = accept(net->sockfd, (struct sockaddr *) &net->sock_addr, &size);
 #ifdef _WINSOCKAPI_
     if (status == SOCKET_ERROR)
@@ -884,11 +897,11 @@ PUBLIC int HTDoAccept (HTNet * net, SOCKFD * newfd)
 	{
 	    if (PROT_TRACE)
 		TTYPrint(TDEST,"HTDoAccept.. WOULD BLOCK %d\n", net->sockfd);
-	    HTEvent_Register(net->sockfd, net->request, (SockOps) FD_ACCEPT,
+	    HTEvent_Register(net->sockfd, request, (SockOps) FD_ACCEPT,
 			     net->cbf, net->priority);
 	    return HT_WOULD_BLOCK;
 	}
-	HTRequest_addSystemError(net->request, ERR_WARN, socerrno, YES, "accept");
+	HTRequest_addSystemError(request, ERR_WARN, socerrno, YES, "accept");
 	if (PROT_TRACE) TTYPrint(TDEST, "HTDoAccept.. Accept failed\n");
 	if (HTDNS_socket(net->dns) != INVSOC) {	 	 /* Inherited socket */
 	    HTDNS_setSocket(net->dns, INVSOC);
@@ -928,8 +941,8 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKFD master)
 		if (master != INVSOC) {
 		    int len = sizeof(SockA);
 		    if (getsockname(master, (struct sockaddr *) sin, &len)<0) {
-			HTRequest_addSystemError(net->request, ERR_FATAL, socerrno, NO,
-				      "getsockname");
+			HTRequest_addSystemError(net->request, ERR_FATAL,
+						 socerrno, NO, "getsockname");
 			net->tcpstate = TCP_ERROR;
 			break;
 		    }
@@ -950,7 +963,8 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKFD master)
 	    if ((net->sockfd=socket(AF_INET, SOCK_STREAM,IPPROTO_TCP))==INVSOC)
 #endif
 	    {
-		HTRequest_addSystemError(net->request, ERR_FATAL, socerrno, NO, "socket");
+		HTRequest_addSystemError(net->request, ERR_FATAL, socerrno,
+					 NO, "socket");
 		net->tcpstate = TCP_ERROR;
 		break;
 	    }
@@ -967,15 +981,14 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKFD master)
 	    if (!net->preemtive) {
 #ifdef _WINDOWS 
 		{		/* begin windows scope  */
-		    HTRequest * rq = net->request;
 		    long levents = FD_READ | FD_WRITE | FD_ACCEPT | 
 			FD_CONNECT | FD_CLOSE ;
 		    int rv = 0 ;
 				    
 #ifdef WWW_WIN_ASYNC
 		    /* N.B WSAAsyncSelect() turns on non-blocking I/O */
-		    rv = WSAAsyncSelect( net->sockfd, rq->hwnd, 
-					rq->winMsg, levents);
+		    rv = WSAAsyncSelect(net->sockfd, request->hwnd, 
+					request->winMsg, levents);
 		    if (rv == SOCKET_ERROR) {
 			status = -1 ;
 			if (PROT_TRACE) 

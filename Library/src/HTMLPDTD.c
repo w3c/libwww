@@ -19,7 +19,7 @@
 **	This table must be matched exactly with ALL the translation tables
 */
 
-static CONST char* entities[HTML_ENTITIES] = {
+PRIVATE CONST char* entities[HTML_ENTITIES] = {
   "AElig",	/* capital AE diphthong (ligature) */ 
   "Aacute",	/* capital A, acute accent */ 
   "Acirc",	/* capital A, circumflex accent */ 
@@ -96,10 +96,10 @@ static CONST char* entities[HTML_ENTITIES] = {
 **	Lists must be in alphatbetical order by attribute name
 **	The tag elements contain the number of attributes
 */
-static attr no_attr[1] = 
+PRIVATE attr no_attr[1] = 
 	{{ 0 }};
 
-static attr a_attr[HTML_A_ATTRIBUTES+1] = {		/* Anchor attributes */
+PRIVATE attr a_attr[HTML_A_ATTRIBUTES+1] = {		/* Anchor attributes */
 	{ "EFFECT" },
 	{ "HREF"},
 	{ "ID" },
@@ -113,19 +113,19 @@ static attr a_attr[HTML_A_ATTRIBUTES+1] = {		/* Anchor attributes */
 	{ 0 }	/* Terminate list */
 };	
 
-static attr base_attr[] = {		/* BASE attributes */
+PRIVATE attr base_attr[] = {		/* BASE attributes */
 	{ "HREF"},
 	{ 0 }	/* Terminate list */
 };	
 
 
-static attr changed_attr[] = {
+PRIVATE attr changed_attr[] = {
 	{ "ID" },
 	{ "IDREF" },
 	{ 0 }	/* terminate list */
 };
 
-static attr fig_attr[] = {		/* Figures */
+PRIVATE attr fig_attr[] = {		/* Figures */
 	{ "ALIGN" },
 	{ "ID" },
 	{ "INDEX" },
@@ -135,7 +135,7 @@ static attr fig_attr[] = {		/* Figures */
 	{ 0 }	/* terminate list */
 };
 
-static attr form_attr[] = {		/* General, for many things */
+PRIVATE attr form_attr[] = {		/* General, for many things */
 	{ "ACTION" },
 	{ "ID" },
 	{ "INDEX" },
@@ -144,25 +144,25 @@ static attr form_attr[] = {		/* General, for many things */
 	{ 0 }	/* terminate list */
 };
 
-static attr gen_attr[] = {		/* General, for many things */
+PRIVATE attr gen_attr[] = {		/* General, for many things */
 	{ "ID" },
 	{ "INDEX" },
 	{ "LANG" },
 	{ 0 }	/* terminate list */
 };
 
-static attr htmlplus_attr[] = {		/* wrapper HTMLPLUS */
+PRIVATE attr htmlplus_attr[] = {		/* wrapper HTMLPLUS */
 	{ "FORMS" },
 	{ "VERSION" },
 	{ 0 }				/* terminate list */
 };
 
-static attr id_attr[2] = {
+PRIVATE attr id_attr[2] = {
 	{ "ID" },
 	{ 0 }				/* terminate list */
 };
 
-static attr image_attr[HTML_IMAGE_ATTRIBUTES+1] = {	/* Image attributes */
+PRIVATE attr image_attr[HTML_IMAGE_ATTRIBUTES+1] = {	/* Image attributes */
 	{ "ALIGN" },
 	{ "ISMAP"},			/* Use HTTP SpaceJump instead */
 	{ "LANG" },
@@ -171,7 +171,7 @@ static attr image_attr[HTML_IMAGE_ATTRIBUTES+1] = {	/* Image attributes */
 	{ 0 }	/* Terminate list */
 };	
 
-static attr img_attr[HTML_IMG_ATTRIBUTES+1] = {	/* IMG attributes */
+PRIVATE attr img_attr[HTML_IMG_ATTRIBUTES+1] = {	/* IMG attributes */
 	{ "ALIGN" },
 	{ "ALT" },
 	{ "ISMAP"},			/* Use HTTP SpaceJump instead */
@@ -180,7 +180,7 @@ static attr img_attr[HTML_IMG_ATTRIBUTES+1] = {	/* IMG attributes */
 	{ 0 }	/* Terminate list */
 };	
 
-static attr input_attr[HTML_INPUT_ATTRIBUTES+1] = {
+PRIVATE attr input_attr[HTML_INPUT_ATTRIBUTES+1] = {
 	{ "ALIGN" },
 	{ "CHECKED" },
 	{ "DISABLED" },
@@ -195,7 +195,7 @@ static attr input_attr[HTML_INPUT_ATTRIBUTES+1] = {
 	{ "0" }
 };
 
-static attr l_attr[] = {
+PRIVATE attr l_attr[] = {
 	{ "ALIGN"},
 	{ "ID" },
 	{ "LANG" },
@@ -203,7 +203,7 @@ static attr l_attr[] = {
 	{ 0 }	/* Terminate list */
 };
 
-static attr li_attr[] = {
+PRIVATE attr li_attr[] = {
 	{ "ID" },
 	{ "LANG" },
 	{ "INDEX" },
@@ -211,7 +211,7 @@ static attr li_attr[] = {
 	{ 0 }	/* Terminate list */
 };
 
-static attr link_attr[HTML_LINK_ATTRIBUTES+1] = {	/* link attributes */
+PRIVATE attr link_attr[HTML_LINK_ATTRIBUTES+1] = {	/* link attributes */
 	{ "HREF"},
 	{ "IDREF" },
 	{ "METHODS" },
@@ -220,7 +220,7 @@ static attr link_attr[HTML_LINK_ATTRIBUTES+1] = {	/* link attributes */
 	{ 0 }	/* Terminate list */
 };	
 
-static attr list_attr[] = {
+PRIVATE attr list_attr[] = {
 	{ "COMPACT"},
 	{ "ID" },
 	{ "LANG" },
@@ -228,19 +228,19 @@ static attr list_attr[] = {
 	{ 0 }	/* Terminate list */
 };
 
-static attr glossary_attr[HTML_DL_ATTRIBUTES+1] = {
+PRIVATE attr glossary_attr[HTML_DL_ATTRIBUTES+1] = {
 	{ "ID" },
 	{ "COMPACT " },
 	{ "INDEX" },
 	{ 0 }	/* Terminate list */
 };
 
-static attr nextid_attr[HTML_NEXTID_ATTRIBUTES+1] = {
+PRIVATE attr nextid_attr[HTML_NEXTID_ATTRIBUTES+1] = {
 	{ "N" },
 	{ 0 }	/* Terminate list */
 };
 
-static attr note_attr[HTML_NOTE_ATTRIBUTES+1] = {	/* Footnotes etc etc */
+PRIVATE attr note_attr[HTML_NOTE_ATTRIBUTES+1] = {	/* Footnotes etc etc */
 	{ "ID" },
 	{ "INDEX" },
 	{ "LANG" },
@@ -248,7 +248,7 @@ static attr note_attr[HTML_NOTE_ATTRIBUTES+1] = {	/* Footnotes etc etc */
 	{ 0 }	/* terminate list */
 };
 
-static attr option_attr[HTML_OPTION_ATTRIBUTES+1] = {
+PRIVATE attr option_attr[HTML_OPTION_ATTRIBUTES+1] = {
 	{ "DISABLED" },
 	{ "LANG" },
 	{ "SELECTED" },
@@ -256,19 +256,19 @@ static attr option_attr[HTML_OPTION_ATTRIBUTES+1] = {
 };
 
 #ifdef OLD_CODE
- static attr pre_attr[HTML_PRE_ATTRIBUTES+1] = {
+ PRIVATE attr pre_attr[HTML_PRE_ATTRIBUTES+1] = {
 	{ "WIDTH" },
 	{ 0 }	/* Terminate list */
 };
 #endif
 
-static attr render_attr[HTML_RENDER_ATTRIBUTES+1] = {
+PRIVATE attr render_attr[HTML_RENDER_ATTRIBUTES+1] = {
 	{ "STYLE" },
 	{ "TAG" },
 	{ 0 }	/* Terminate list */
 };
 
-static attr select_attr[HTML_SELECT_ATTRIBUTES+1] = {
+PRIVATE attr select_attr[HTML_SELECT_ATTRIBUTES+1] = {
 	{ "ERROR" },
 	{ "LANG" },
 	{ "MULTIPLE" },			/* WSM bug fix, was SEVERAL */
@@ -277,13 +277,13 @@ static attr select_attr[HTML_SELECT_ATTRIBUTES+1] = {
 	{ 0 },
 };
 
-static attr tab_attr[HTML_TAB_ATTRIBUTES+1] = {
+PRIVATE attr tab_attr[HTML_TAB_ATTRIBUTES+1] = {
 	{ "ALIGN" },
 	{ "AT" },
 	{ 0 }
 };
 
-static attr table_attr[HTML_TABLE_ATTRIBUTES+1] = {
+PRIVATE attr table_attr[HTML_TABLE_ATTRIBUTES+1] = {
 	{ "BORDER" },
 	{ "ID" },
 	{ "INDEX" },
@@ -291,7 +291,7 @@ static attr table_attr[HTML_TABLE_ATTRIBUTES+1] = {
 	{ 0 }
 };
 
-static attr td_attr[HTML_TD_ATTRIBUTES+1] = {
+PRIVATE attr td_attr[HTML_TD_ATTRIBUTES+1] = {
 	{ "ALIGN" },
 	{ "COLSPAN" },
 	{ "ROWSPAN" },
@@ -299,7 +299,7 @@ static attr td_attr[HTML_TD_ATTRIBUTES+1] = {
 	{ 0 }
 };
 
-static attr textarea_attr[HTML_TEXTAREA_ATTRIBUTES+1] = {
+PRIVATE attr textarea_attr[HTML_TEXTAREA_ATTRIBUTES+1] = {
 	{ "COLS" },
 	{ "DISABLED" },
 	{ "ERROR" },
@@ -309,7 +309,7 @@ static attr textarea_attr[HTML_TEXTAREA_ATTRIBUTES+1] = {
 	{ 0 }
 };
 
-static attr ul_attr[HTML_UL_ATTRIBUTES+1] = {
+PRIVATE attr ul_attr[HTML_UL_ATTRIBUTES+1] = {
 	{ "COMPACT" },
 	{ "ID" },
 	{ "INDEX" },
@@ -332,7 +332,7 @@ static attr ul_attr[HTML_UL_ATTRIBUTES+1] = {
 **
 **    Name, 	Attributes, 		content
 */
-static HTTag tags[HTMLP_ELEMENTS] = {
+PRIVATE HTTag tags[HTMLP_ELEMENTS] = {
     { "A"	, a_attr,	HTML_A_ATTRIBUTES,	SGML_MIXED },
     { "ABBREV"  , gen_attr,     HTML_GEN_ATTRIBUTES,	SGML_MIXED },
     { "ABSTRACT" , gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
@@ -451,9 +451,9 @@ struct _HTStructured {
 	/* ... */
 };
 
-PUBLIC void HTStartAnchor ARGS3(HTStructured *, obj,
-		CONST char *,  name,
-		CONST char *,  href)
+PUBLIC void HTStartAnchor (HTStructured * obj,
+		CONST char *  name,
+		CONST char *  href)
 {
     BOOL		present[HTML_A_ATTRIBUTES];
     CONST char*		value[HTML_A_ATTRIBUTES];
@@ -483,10 +483,10 @@ PUBLIC void HTStartAnchor ARGS3(HTStructured *, obj,
 **
 **	Hopefully as usefull as HTStartAnchor. Henrik 23/03-94
 */
-PUBLIC void HTMLPutImg ARGS4(HTStructured *, obj,
-			     CONST char *, src,
-			     CONST char *, alt,
-			     CONST char *, align)
+PUBLIC void HTMLPutImg (HTStructured * obj,
+			     CONST char * src,
+			     CONST char * alt,
+			     CONST char * align)
 {
     BOOL		present[HTML_IMG_ATTRIBUTES];
     CONST char*		value[HTML_IMG_ATTRIBUTES];
@@ -513,8 +513,8 @@ PUBLIC void HTMLPutImg ARGS4(HTStructured *, obj,
 }
 
 
-PUBLIC void HTNextID ARGS2(HTStructured *, obj,
-		CONST char *,	next_one)
+PUBLIC void HTNextID (HTStructured * obj,
+		CONST char *	next_one)
 {
     BOOL		present[HTML_NEXTID_ATTRIBUTES];
     CONST char*		value[HTML_NEXTID_ATTRIBUTES];

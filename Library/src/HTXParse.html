@@ -2,7 +2,7 @@
 <HEAD>
 <TITLE>ExtParse: Module to get unparsed stream from libwww</TITLE>
 <!-- Changed by: , 30-Nov-1994 -->
-<!-- Changed by: Henrik Frystyk Nielsen,  2-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 19-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -29,9 +29,8 @@ for writing to C files.<P>
 </UL>
 
 This module is implemented by <A HREF="HTXParse.c">HTXParse.c</A>, and
-it is a part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>.
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
 
 <PRE>
 #ifndef HTEXTPARSE_H
@@ -42,7 +41,7 @@ W3C Reference Library</A>.
 
 typedef struct _HTExtParseStruct HTExtParseStruct;
 
-typedef void CallClient PARAMS((HTExtParseStruct *me));
+typedef void CallClient (HTExtParseStruct * me);
 
 struct _HTExtParseStruct {
 	CallClient	*call_client;
@@ -54,16 +53,10 @@ struct _HTExtParseStruct {
 	HTRequest *	request;      /* the request structure */
 };
 
-extern HTStream* HTExtParse PARAMS((
-	HTRequest *		request,
-	void *			param,
-	HTFormat		input_format,
-	HTFormat		output_format,
-	HTStream *		output_stream));
-
+extern HTConverter HTExtParse;
 
 #endif
-
-
-</PRE>end</BODY>
+</PRE>
+End of declaration
+</BODY>
 </HTML>

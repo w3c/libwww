@@ -292,7 +292,7 @@ static char * NeXTCharacters[] = {
 
 PRIVATE char** p_entity_values = ISO_Latin1;	/* Pointer to translation */
 
-PUBLIC void HTMLUseCharacterSet ARGS1(HTMLCharacterSet, i)
+PUBLIC void HTMLUseCharacterSet (HTMLCharacterSet i)
 {
     p_entity_values = (i == HTML_NEXT_CHARS) ? NeXTCharacters
     					     : ISO_Latin1;
@@ -310,7 +310,7 @@ a sequence of styles.
 
 /*		If style really needs to be set, call this
 */
-PRIVATE void actually_set_style ARGS1(HTStructured *, me)
+PRIVATE void actually_set_style (HTStructured * me)
 {
     if (!me->text) {			/* First time through */
 	    me->text = HText_new2(me->node_anchor, me->target);
@@ -327,7 +327,7 @@ PRIVATE void actually_set_style ARGS1(HTStructured *, me)
 /*      If you THINK you need to change style, call this
 */
 
-PRIVATE void change_paragraph_style ARGS2(HTStructured *, me, HTStyle *,style)
+PRIVATE void change_paragraph_style (HTStructured * me, HTStyle *style)
 {
     if (me->new_style!=style) {
     	me->style_change = YES;
@@ -344,7 +344,7 @@ PRIVATE void change_paragraph_style ARGS2(HTStructured *, me, HTStyle *,style)
 /*	Character handling
 **	------------------
 */
-PRIVATE int HTML_put_character ARGS2(HTStructured *, me, char, c)
+PRIVATE int HTML_put_character (HTStructured * me, char c)
 {
 
     switch (me->sp[0].tag_number) {
@@ -391,7 +391,7 @@ PRIVATE int HTML_put_character ARGS2(HTStructured *, me, char, c)
 **	This is written separately from put_character becuase the loop can
 **	in some cases be promoted to a higher function call level for speed.
 */
-PRIVATE int HTML_put_string ARGS2(HTStructured *, me, CONST char*, s)
+PRIVATE int HTML_put_string (HTStructured * me, CONST char* s)
 {
 
     switch (me->sp[0].tag_number) {
@@ -445,7 +445,7 @@ PRIVATE int HTML_put_string ARGS2(HTStructured *, me, CONST char*, s)
 /*	Buffer write
 **	------------
 */
-PRIVATE int HTML_write ARGS3(HTStructured *, me, CONST char*, s, int, l)
+PRIVATE int HTML_write (HTStructured * me, CONST char* s, int l)
 {
     while (l-- > 0)
 	HTML_put_character(me, *s++);
@@ -456,11 +456,11 @@ PRIVATE int HTML_write ARGS3(HTStructured *, me, CONST char*, s, int, l)
 /*	Start Element
 **	-------------
 */
-PRIVATE void HTML_start_element ARGS4(
-	HTStructured *, 	me,
-	int,			element_number,
-	CONST BOOL*,	 	present,
-	CONST char **,		value)
+PRIVATE void HTML_start_element (
+	HTStructured * 	me,
+	int			element_number,
+	CONST BOOL*	 	present,
+	CONST char **		value)
 {
     switch (element_number) {
     case HTML_A:
@@ -652,7 +652,7 @@ PRIVATE void HTML_start_element ARGS4(
 **	(internal code errors apart) good nesting. The parser checks
 **	incoming code errors, not this module.
 */
-PRIVATE void HTML_end_element ARGS2(HTStructured *, me, int , element_number)
+PRIVATE void HTML_end_element (HTStructured * me, int element_number)
 {
 #ifdef CAREFUL			/* parser assumed to produce good nesting */
     if (element_number != me->sp[0].tag_number) {
@@ -707,7 +707,7 @@ PRIVATE void HTML_end_element ARGS2(HTStructured *, me, int , element_number)
 /*	(In fact, they all shrink!)
 */
 
-PRIVATE void HTML_put_entity ARGS2(HTStructured *, me, int, entity_number)
+PRIVATE void HTML_put_entity (HTStructured * me, int entity_number)
 {
     HTML_put_string(me, ISO_Latin1[entity_number]);	/* @@ Other representations */
 }
@@ -715,7 +715,7 @@ PRIVATE void HTML_put_entity ARGS2(HTStructured *, me, int, entity_number)
 /*	Flush an HTML object
 **	--------------------
 */
-PUBLIC int HTML_flush ARGS1(HTStructured *, me)
+PUBLIC int HTML_flush (HTStructured * me)
 {
     UPDATE_STYLE;			     /* Creates empty document here! */
     if (me->comment_end)
@@ -735,7 +735,7 @@ PUBLIC int HTML_flush ARGS1(HTStructured *, me)
 **	If non-interactive, everything is freed off.   No: crashes -listrefs
 **	Otherwise, the interactive object is left.	
 */
-PUBLIC int HTML_free ARGS1(HTStructured *, me)
+PUBLIC int HTML_free (HTStructured * me)
 {
     UPDATE_STYLE;		/* Creates empty document here! */
     if (me->comment_end)
@@ -751,7 +751,7 @@ PUBLIC int HTML_free ARGS1(HTStructured *, me)
 }
 
 
-PRIVATE int HTML_abort ARGS2(HTStructured *, me, HTList *, e)
+PRIVATE int HTML_abort (HTStructured * me, HTList * e)
 
 {
     if (me->target) {
@@ -766,7 +766,7 @@ PRIVATE int HTML_abort ARGS2(HTStructured *, me, HTList *, e)
 /*	Get Styles from style sheet
 **	---------------------------
 */
-PRIVATE void get_styles NOARGS
+PRIVATE void get_styles (void)
 {
     got_styles = YES;
     
@@ -817,11 +817,11 @@ PRIVATE CONST HTStructuredClass HTMLPresentation = /* As opposed to print etc */
 **	The structured stream can generate either presentation,
 **	or plain text, or HTML.
 */
-PRIVATE HTStructured* HTML_new ARGS5(HTRequest *,	request,
-				     void *,		param,
-				     HTFormat,		input_format,
-				     HTFormat,		output_format,
-				     HTStream *,	output_stream)
+PRIVATE HTStructured* HTML_new (HTRequest *	request,
+				     void *		param,
+				     HTFormat		input_format,
+				     HTFormat		output_format,
+				     HTStream *	output_stream)
 {
 
     HTStructured * me;
@@ -874,12 +874,12 @@ PRIVATE HTStructured* HTML_new ARGS5(HTRequest *,	request,
 **
 **	This will convert from HTML to presentation or plain text.
 */
-PUBLIC HTStream* HTMLToPlain ARGS5(
-	HTRequest *,		request,
-	void *,			param,
-	HTFormat,		input_format,
-	HTFormat,		output_format,
-	HTStream *,		output_stream)
+PUBLIC HTStream* HTMLToPlain (
+	HTRequest *		request,
+	void *			param,
+	HTFormat		input_format,
+	HTFormat		output_format,
+	HTStream *		output_stream)
 {
     return SGML_new(&HTMLP_dtd, HTML_new(
     	request, NULL, input_format, output_format, output_stream));
@@ -893,12 +893,12 @@ PUBLIC HTStream* HTMLToPlain ARGS5(
 **	is commented out.
 **	This will convert from HTML to presentation or plain text.
 */
-PUBLIC HTStream* HTMLToC ARGS5(
-	HTRequest *,		request,
-	void *,			param,
-	HTFormat,		input_format,
-	HTFormat,		output_format,
-	HTStream *,		output_stream)
+PUBLIC HTStream* HTMLToC (
+	HTRequest *		request,
+	void *			param,
+	HTFormat		input_format,
+	HTFormat		output_format,
+	HTStream *		output_stream)
 {
     
     HTStructured * html;
@@ -920,12 +920,12 @@ PUBLIC HTStream* HTMLToC ARGS5(
 **	Override this if you have a windows version
 */
 #ifndef GUI
-PUBLIC HTStream* HTMLPresent ARGS5(
-	HTRequest *,		request,
-	void *,			param,
-	HTFormat,		input_format,
-	HTFormat,		output_format,
-	HTStream *,		output_stream)
+PUBLIC HTStream* HTMLPresent (
+	HTRequest *		request,
+	void *			param,
+	HTFormat		input_format,
+	HTFormat		output_format,
+	HTStream *		output_stream)
 {
     return SGML_new(&HTMLP_dtd, HTML_new(
     	request, NULL, input_format, output_format, output_stream));

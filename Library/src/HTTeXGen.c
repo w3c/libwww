@@ -216,7 +216,7 @@ PRIVATE char *TeX_entities[HTML_ENTITIES] = {
 /*	Flush Buffer
 **	------------
 */
-PRIVATE int HTTeXGen_flush ARGS1(HTStructured *, me)
+PRIVATE int HTTeXGen_flush (HTStructured * me)
 {
     int status;
     if ((status =
@@ -233,7 +233,7 @@ PRIVATE int HTTeXGen_flush ARGS1(HTStructured *, me)
 **	------------------
 **
 */
-PRIVATE int HTTeXGen_put_character ARGS2(HTStructured *, me, char, c)
+PRIVATE int HTTeXGen_put_character (HTStructured * me, char c)
 {
     if (!me->startup)		                      /* To skip MIME header */
 	return HT_OK;
@@ -320,7 +320,7 @@ PRIVATE int HTTeXGen_put_character ARGS2(HTStructured *, me, char, c)
 /*	String handling
 **	---------------
 */
-PRIVATE int HTTeXGen_put_string ARGS2(HTStructured *, me, CONST char*, s)
+PRIVATE int HTTeXGen_put_string (HTStructured * me, CONST char* s)
 {
     while (*s)
 	HTTeXGen_put_character(me, *s++);
@@ -328,7 +328,7 @@ PRIVATE int HTTeXGen_put_string ARGS2(HTStructured *, me, CONST char*, s)
 }
 
 
-PRIVATE int HTTeXGen_write ARGS3(HTStructured *, me, CONST char*, b, int, l)
+PRIVATE int HTTeXGen_write (HTStructured * me, CONST char* b, int l)
 {
     while (l-- > 0)
 	HTTeXGen_put_character(me, *b++);
@@ -342,11 +342,10 @@ PRIVATE int HTTeXGen_write ARGS3(HTStructured *, me, CONST char*, b, int, l)
 **     	No attributes are put to the output		Henrik 07/03-94
 **	Does no assumptions of WHAT element is started...
 */
-PRIVATE void HTTeXGen_start_element ARGS4(
-	HTStructured *, 	me,
-	int,			element_number,
-	CONST BOOL*,	 	present,
-	CONST char **,		value)
+PRIVATE void HTTeXGen_start_element (HTStructured * 	me,
+				     int		element_number,
+				     CONST BOOL *	present,
+				     CONST char **	value)
 {
     me->startup = YES;			        /* Now, let's get down to it */
     if (me->preformatted == YES) {	       /* Don't start markup in here */
@@ -381,8 +380,7 @@ PRIVATE void HTTeXGen_start_element ARGS4(
 **	Ends an markup element			Henrik 07/03-94
 **	Does no assumptions of WHAT element is ended...
 */
-PRIVATE void HTTeXGen_end_element ARGS2(HTStructured *, me,
-				       int , element_number)
+PRIVATE void HTTeXGen_end_element (HTStructured * me, int element_number)
 {
     if (me->preformatted && element_number != HTML_PRE) {
 	if (WWWTRACE)
@@ -411,7 +409,7 @@ PRIVATE void HTTeXGen_end_element ARGS2(HTStructured *, me,
 **		------------------
 **
 */
-PRIVATE void HTTeXGen_put_entity ARGS2(HTStructured *, me, int, entity_number)
+PRIVATE void HTTeXGen_put_entity (HTStructured * me, int entity_number)
 {
     BOOL mark = me->markup;
     if (*TeX_entities[entity_number] != '&' && /* Theese are converted later */
@@ -428,7 +426,7 @@ PRIVATE void HTTeXGen_put_entity ARGS2(HTStructured *, me, int, entity_number)
 **	-------------------
 **
 */
-PRIVATE int HTTeXGen_free ARGS1(HTStructured *, me)
+PRIVATE int HTTeXGen_free (HTStructured * me)
 {
     HTTeXGen_flush(me);
     (*me->targetClass.put_string)(me->target, "\n\\end{document}\n");
@@ -439,7 +437,7 @@ PRIVATE int HTTeXGen_free ARGS1(HTStructured *, me)
 }
 
 
-PRIVATE int HTTeXGen_abort ARGS2(HTStructured *, me, HTList *, e)
+PRIVATE int HTTeXGen_abort (HTStructured * me, HTList * e)
 {
     HTTeXGen_free(me);
     return HT_ERROR;
@@ -465,12 +463,11 @@ PRIVATE CONST HTStructuredClass HTTeXGeneration = /* As opposed to print etc */
 **	------------------------------------------
 **
 */
-PUBLIC HTStream* HTMLToTeX ARGS5(
-	HTRequest *,		request,
-	void *,			param,
-	HTFormat,		input_format,
-	HTFormat,		output_format,
-	HTStream *,		output_stream)
+PUBLIC HTStream* HTMLToTeX (HTRequest *	request,
+			    void *	param,
+			    HTFormat	input_format,
+			    HTFormat	output_format,
+			    HTStream *	output_stream)
 {
     HTStructured* me = (HTStructured*) calloc(1, sizeof(*me));
     if (me == NULL) outofmem(__FILE__, "HTMLToTeX");    

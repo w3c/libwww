@@ -65,7 +65,7 @@
 ** ON EXIT:
 **	returns		the enumerated constant for that scheme.
 */
-PUBLIC HTAAScheme HTAAScheme_enum ARGS1(CONST char*, name)
+PUBLIC HTAAScheme HTAAScheme_enum (CONST char* name)
 {
     static char *upcased = NULL;
     char *cur;
@@ -98,7 +98,7 @@ PUBLIC HTAAScheme HTAAScheme_enum ARGS1(CONST char*, name)
 **	returns		the name of the scheme, i.e.
 **			"None", "Basic", "Pubkey", ...
 */
-PUBLIC char *HTAAScheme_name ARGS1(HTAAScheme, scheme)
+PUBLIC char *HTAAScheme_name (HTAAScheme scheme)
 {
     switch (scheme) {
       case HTAA_NONE:		return "None";          break;
@@ -135,8 +135,8 @@ PUBLIC char *HTAAScheme_name ARGS1(HTAAScheme, scheme)
 **	returns		YES, if filename matches the template.
 **			NO, otherwise.
 */
-PUBLIC BOOL HTAA_templateMatch ARGS2(CONST char *, tmplate, 
-				     CONST char *, filename)
+PUBLIC BOOL HTAA_templateMatch (CONST char * tmplate, 
+				     CONST char * filename)
 {
     CONST char *p = tmplate;
     CONST char *q = filename;
@@ -188,8 +188,8 @@ PUBLIC BOOL HTAA_templateMatch ARGS2(CONST char *, tmplate,
 **	returns		YES, if filename matches the template.
 **			NO, otherwise.
 */
-PUBLIC BOOL HTAA_templateCaseMatch ARGS2(CONST char *, tmplate, 
-			        	 CONST char *, filename)
+PUBLIC BOOL HTAA_templateCaseMatch (CONST char * tmplate, 
+			        	 CONST char * filename)
 {
     CONST char *p = tmplate;
     CONST char *q = filename;
@@ -239,7 +239,7 @@ PUBLIC BOOL HTAA_templateCaseMatch ARGS2(CONST char *, tmplate,
 **				being a comment marker here,
 **				there really isn't any space.
 */
-PUBLIC char *HTAA_makeProtectionTemplate ARGS1(CONST char *, docname)
+PUBLIC char *HTAA_makeProtectionTemplate (CONST char * docname)
 {
     char *tmplate = NULL;
     char *slash = NULL;
@@ -301,7 +301,7 @@ PUBLIC char *HTAA_makeProtectionTemplate ARGS1(CONST char *, docname)
 **		the number of order number of that item. E.g.
 **		"1" for the first, etc.
 */
-PUBLIC HTAssocList *HTAA_parseArgList ARGS1(char *, str)
+PUBLIC HTAssocList *HTAA_parseArgList (char * str)
 {
     HTAssocList *assoc_list = HTAssocList_new();
     char *cur = NULL;

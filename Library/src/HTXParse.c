@@ -22,7 +22,7 @@ struct _HTStream {
 	HTExtParseStruct *      eps;
 };
 
-PRIVATE int HTExtParse_put_character ARGS2(HTStream *, me, char, c)
+PRIVATE int HTExtParse_put_character (HTStream * me, char c)
 {
     while ((me->eps->used + 1) > me->eps->length) {
 	me->eps->length += INPUT_BUFFER_SIZE;
@@ -33,7 +33,7 @@ PRIVATE int HTExtParse_put_character ARGS2(HTStream *, me, char, c)
     return HT_OK;
 }
 
-PRIVATE int HTExtParse_put_string ARGS2(HTStream *, me, CONST char*, s)
+PRIVATE int HTExtParse_put_string (HTStream * me, CONST char * s)
 {
     int l = strlen(s);
 
@@ -48,7 +48,7 @@ PRIVATE int HTExtParse_put_string ARGS2(HTStream *, me, CONST char*, s)
     return HT_OK;
 }
 
-PRIVATE int HTExtParse_write ARGS3(HTStream *, me, CONST char*, s, int, l)
+PRIVATE int HTExtParse_write (HTStream * me, CONST char * s, int l)
 {
     while ((me->eps->used + l) > me->eps->length) {
 	me->eps->length += INPUT_BUFFER_SIZE;
@@ -63,13 +63,13 @@ PRIVATE int HTExtParse_write ARGS3(HTStream *, me, CONST char*, s, int, l)
 }
 
 
-PRIVATE int HTExtParse_flush ARGS1(HTStream *, me)
+PRIVATE int HTExtParse_flush (HTStream * me)
 {
     if (WWWTRACE) TTYPrint(TDEST, "HTExtParse_flush\n");
     return HT_OK;
 }
 
-PRIVATE int HTExtParse_free ARGS1(HTStream *, me)
+PRIVATE int HTExtParse_free (HTStream * me)
 {
     if (WWWTRACE) TTYPrint(TDEST, "HTExtParse_free\n");
     me->eps->finished = YES;
@@ -79,7 +79,7 @@ PRIVATE int HTExtParse_free ARGS1(HTStream *, me)
     return HT_OK;
 }
 
-PRIVATE int HTExtParse_abort ARGS2(HTStream *, me, HTList *, e)
+PRIVATE int HTExtParse_abort (HTStream * me, HTList * e)
 {
     if (WWWTRACE)
 	TTYPrint(TDEST, "HTExtParse_abort\n");
@@ -104,17 +104,11 @@ PRIVATE CONST HTStreamClass HTExtParseClass =
 	HTExtParse_write
 }; 
 
-/*
-extern void SetBufferPt PARAMS((char * p, int l));
-extern void GiveReadStatus PARAMS((char * p, int l));
-*/
-
-PUBLIC HTStream* HTExtParse ARGS5(
-	HTRequest *,		request,
-	void *,			param,
-	HTFormat,		input_format,
-	HTFormat,		output_format,
-	HTStream *,		output_stream)
+PUBLIC HTStream* HTExtParse (HTRequest *	request,
+			     void *		param,
+			     HTFormat		input_format,
+			     HTFormat		output_format,
+			     HTStream *		output_stream)
 {
     HTStream* me;
   

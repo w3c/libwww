@@ -223,9 +223,6 @@ PUBLIC BOOL HTEvent_unregisterTimeout (void)
 PUBLIC int HTEvent_RegisterTTY( SOCKET fd, HTRequest * rq, SockOps ops, 
 			       HTEventCallback *cbf, HTPriority p) 
 {
-#ifdef TTY_IS_SELECTABLE
-    int status;
-#endif
     assert(rq != 0);
     console_in_use = YES;
     console_handle = (HANDLE) fd;
@@ -634,7 +631,9 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
     SOCKET s ;
     BOOL consoleReady = NO;
     int status = 0 ;
+#ifdef _WINSOCKAPI_
     unsigned ui ;
+#endif
 
     /* Don't leave this loop until we the application */
     do { 
@@ -799,8 +798,10 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 */
 PRIVATE int __ProcessFds( fd_set * fdsp, SockOps ops, CONST char * str) 
 {
-    unsigned ui ;
     SOCKET s ;
+#ifdef _WINSOCKAPI_
+    unsigned ui ;
+#endif
     if (THD_TRACE)
 	TTYPrint(TDEST, "Processing.. %s socket set. max_sock is %d\n",
 		str, max_sock);
@@ -851,12 +852,12 @@ PRIVATE int __DoUserCallback( SOCKET s, SockOps ops)
 */
 PRIVATE void __ResetMaxSock( void )
 {
-    unsigned  ui;
     SOCKET s ;
     SOCKET t_max = 0; 
-
-    if (THD_TRACE)
-    	TTYPrint(TDEST, "ResetMaxSock max socket is %u\n", max_sock);
+#ifdef _WINSOCKAPI_
+    unsigned ui ;
+#endif
+    if (THD_TRACE)TTYPrint(TDEST, "ResetMaxSock max socket is %u\n", max_sock);
 
 #ifdef _WINSOCKAPI_ 
     for (ui = 0 ; ui < all_fds.fd_count; ui++) { 
@@ -888,7 +889,7 @@ PRIVATE int __EventUnregister(register RQ *rqp, register RQ ** rqpp,
 
     if (THD_TRACE)
     	TTYPrint(TDEST, "Unregister.. operations set for socket is %x\n",
-		ap->ops);
+		(unsigned) ap->ops);
 
     /* do we need to delete the socket from it's set as well? */
 
@@ -934,11 +935,10 @@ PRIVATE int __EventUnregister(register RQ *rqp, register RQ ** rqpp,
 PRIVATE void __DumpFDSet( fd_set * fdp, CONST char * str) 
 {
     SOCKET s ;
+#ifdef _WINSOCKAPI_
     unsigned ui ;
-
-    
+#endif
     if (THD_TRACE) {
-	
 	TTYPrint(TDEST, "Dumping..... %s file descriptor set\n", str );
 #ifdef _WINSOCKAPI_ 
         for (ui = 0 ; ui < fdp->fd_count; ui++) { 

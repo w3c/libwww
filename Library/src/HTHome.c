@@ -193,8 +193,8 @@ PUBLIC HTParentAnchor * HTHomeAnchor (void)
 **	This function uses all the functionaly that the app part of the Library
 **	gives for URL translations BEFORE a request is isseud.
 **	It checks for Cache, proxy, and gateway (in that order)
-**	returns		HT_NO_ACCESS		no protocol module found
-**			HT_FORBIDDEN		Error has occured.
+**	returns		HT_LOADED		We already have this
+**			HT_ERROR		We can't load this
 **			HT_OK			Success
 */
 PUBLIC int HTLoadStart (HTRequest * request, int status)
@@ -234,7 +234,7 @@ PUBLIC int HTLoadStart (HTRequest * request, int status)
 	    }
 	    free(addr);
 	    FREE(url);
-	    return HT_FORBIDDEN;
+	    return HT_ERROR;
 	}
 	HTAnchor_setPhysical(anchor, physical);
 	free(physical);
@@ -273,7 +273,7 @@ PUBLIC int HTLoadStart (HTRequest * request, int status)
     FREE(addr);
 
     /* Set the access scheme on our way out */
-    return (HTProtocol_find(request, anchor)==YES) ? HT_OK : HT_NO_ACCESS;
+    return (HTProtocol_find(request, anchor)==YES) ? HT_OK : HT_ERROR;
 }
 
 /*	Application "AFTER" Callback

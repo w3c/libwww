@@ -69,7 +69,7 @@ COMMON=	$(LOB)/HTList.o $(LOB)/HTString.o $(LOB)/HTAtom.o \
 	$(LOB)/HTUU.o $(LOB)/HTMulti.o $(LOB)/HTTeXGen.o \
 	$(LOB)/HTAAUtil.o $(LOB)/HTAABrow.o $(LOB)/HTAssoc.o \
 	$(LOB)/HTIcons.o $(LOB)/HTError.o $(LOB)/HTLog.o \
-	$(LOB)/HTHome.o \
+	$(LOB)/HTHome.o $(LOB)/HTDialog.o \
 	$(LOB)/HTEscape.o $(LOB)/HTDescpt.o $(LOB)/HTGuess.o \
 	$(LOB)/HTTelnet.o $(LOB)/HTWSRC.o $(HTWAIS) $(LOB)/HTGopher.o \
 	$(LOB)/HTTP.o $(LOB)/HTTPReq.o $(LOB)/HTFile.o \
@@ -95,7 +95,7 @@ CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTProxy.c \
 	$(CMN)HTUU.c $(CMN)HTTeXGen.c \
 	$(CMN)HTDescpt.c $(CMN)HTGuess.c $(CMN)HTWWWStr.c \
 	$(CMN)HTIcons.c $(CMN)HTError.c $(CMN)HTLog.c \
-	$(CMN)HTHome.c \
+	$(CMN)HTHome.c $(CMN)HTDialog.c \
 	$(CMN)HTTP.c $(CMN)HTTPReq.c $(CMN)HTNet.c $(CMN)HTEvntrg.c \
 	$(CMN)HTNews.c $(CMN)HTNewsRq.c $(CMN)HTNDir.c $(CMN)HTNewsLs.c \
 	$(CMN)HTEscape.c $(CMN)HTNetTxt.c $(CMN)HTBind.c
@@ -125,7 +125,7 @@ HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h  $(CMN)HTProxy.h $(CMN)HTFile.h \
 	$(CMN)HTUU.h $(CMN)HTTeXGen.h \
 	$(CMN)HTDescpt.h $(CMN)HTGuess.h \
 	$(CMN)HTIcons.h $(CMN)HTError.h $(CMN)HTLog.h \
-	$(CMN)HTHome.h \
+	$(CMN)HTHome.h $(CMN)HTDialog.h \
 	$(CMN)HTTP.h $(CMN)HTTPReq.h $(CMN)HTEvntrg.h \
 	$(CMN)HTNews.h $(CMN)HTNewsRq.h $(CMN)HTNDir.h $(CMN)HTNewsLs.h \
 	$(CMN)HTEscape.h $(CMN)HTNetTxt.h $(CMN)HTBind.h \
@@ -400,14 +400,17 @@ $(LOB)/HTInit.o : $(OE) $(CMN)HTInit.c $(CMN)HTInit.h $(CMN)HTUtils.h
 $(LOB)/HTHist.o : $(OE) $(CMN)HTHist.c $(CMN)HTHist.h $(CMN)HTUtils.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTHist.c
 
-$(LOB)/HTRules.o : $(OE) $(CMN)HTRules.c $(CMN)HTUtils.h
+$(LOB)/HTRules.o : $(OE) $(CMN)HTRules.c $(CMN)HTRules.h $(CMN)HTUtils.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTRules.c
 
-$(LOB)/HTLog.o : $(OE) $(CMN)HTLog.c $(CMN)HTLog.h
+$(LOB)/HTLog.o : $(OE) $(CMN)HTLog.c $(CMN)HTLog.h $(CMN)HTUtils.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTLog.c
 
-$(LOB)/HTHome.o : $(OE) $(CMN)HTHome.c $(CMN)HTHome.h
+$(LOB)/HTHome.o : $(OE) $(CMN)HTHome.c $(CMN)HTHome.h $(CMN)HTUtils.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTHome.c
+
+$(LOB)/HTDialog.o : $(OE) $(CMN)HTDialog.c $(CMN)HTDialog.h $(CMN)HTUtils.h
+	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTDialog.c
 
 # DYNAMIC MODULES
 

@@ -29,7 +29,7 @@ struct _HTStream {
 };
 
 
-PRIVATE int HTTee_put_character ARGS2(HTStream *, me, char, c)
+PRIVATE int HTTee_put_character (HTStream * me, char c)
 {
     int ret1 = (*me->s1->isa->put_character)(me->s1, c);
     int ret2 = (*me->s2->isa->put_character)(me->s2, c);
@@ -38,7 +38,7 @@ PRIVATE int HTTee_put_character ARGS2(HTStream *, me, char, c)
 	    HT_WOULD_BLOCK);
 }
 
-PRIVATE int HTTee_put_string ARGS2(HTStream *, me, CONST char*, s)
+PRIVATE int HTTee_put_string (HTStream * me, CONST char* s)
 {
     int ret1 = (*me->s1->isa->put_string)(me->s1, s);
     int ret2 = (*me->s2->isa->put_string)(me->s2, s);
@@ -47,7 +47,7 @@ PRIVATE int HTTee_put_string ARGS2(HTStream *, me, CONST char*, s)
 	    HT_WOULD_BLOCK);
 }
 
-PRIVATE int HTTee_write ARGS3(HTStream *, me, CONST char*, s, int, l)
+PRIVATE int HTTee_write (HTStream * me, CONST char* s, int l)
 {
     int ret1 = (*me->s1->isa->put_block)(me->s1, s, l);
     int ret2 = (*me->s2->isa->put_block)(me->s2, s, l);
@@ -56,7 +56,7 @@ PRIVATE int HTTee_write ARGS3(HTStream *, me, CONST char*, s, int, l)
 	    HT_WOULD_BLOCK);
 }
 
-PRIVATE int HTTee_flush ARGS1(HTStream *, me)
+PRIVATE int HTTee_flush (HTStream * me)
 {
     int ret1 = (*me->s1->isa->flush)(me->s1);
     int ret2 = (*me->s2->isa->flush)(me->s2);
@@ -65,7 +65,7 @@ PRIVATE int HTTee_flush ARGS1(HTStream *, me)
 	    HT_WOULD_BLOCK);
 }
 
-PRIVATE int HTTee_free ARGS1(HTStream *, me)
+PRIVATE int HTTee_free (HTStream * me)
 {
     int ret1 = (*me->s1->isa->_free)(me->s1);
     int ret2 = (*me->s2->isa->_free)(me->s2);
@@ -75,7 +75,7 @@ PRIVATE int HTTee_free ARGS1(HTStream *, me)
 	    HT_WOULD_BLOCK);
 }
 
-PRIVATE int HTTee_abort ARGS2(HTStream *, me, HTList *, e)
+PRIVATE int HTTee_abort (HTStream * me, HTList * e)
 {
     (*me->s1->isa->abort)(me->s1, e);
     (*me->s2->isa->abort)(me->s2, e);
@@ -100,7 +100,7 @@ PRIVATE CONST HTStreamClass HTTeeClass =
 
 /*	Tee creation
 */
-PUBLIC HTStream * HTTee ARGS2(HTStream *, s1,HTStream *, s2)
+PUBLIC HTStream * HTTee (HTStream * s1,HTStream * s2)
 {
     HTStream * me = (HTStream *) calloc(1, sizeof(*me));
     if (!me) outofmem(__FILE__, "HTTee");

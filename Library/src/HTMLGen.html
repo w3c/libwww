@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>HTML Generator</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  6-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 19-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -35,11 +35,11 @@ that a structured stream has methods for starting and ending mark up
 elements and for HTML/SGML entities.
 
 <PRE>
-extern HTStructured* HTMLGenerator PARAMS((HTRequest *	request,
-					   void *	param,
-					   HTFormat	input_format,
-					   HTFormat	output_format,
-					   HTStream *	output_stream));
+extern HTStructured* HTMLGenerator (HTRequest *	request,
+				   void *	param,
+				   HTFormat	input_format,
+				   HTFormat	output_format,
+				   HTStream *	output_stream);
 
 
 extern HTConverter HTPlainToHTML;
