@@ -94,6 +94,7 @@ BUILT_SOURCES = wwwsys.h \
 	WWWCache.h 	WWWApp.h 	WWWInit.h \
 	WWWGophe.h	WWWMIME.h	WWWWAIS.h \
 	WWWMux.h	WWWZip.h	WWWSQL.h \
+	WWWXML.h \
 	HTParse.h 	HTAccess.h  	HTProxy.h \
 	HTMethod.h 	HTProt.h 	HTCache.h \
 	HTReqMan.h 	HTReq.h  	HTDNS.h \

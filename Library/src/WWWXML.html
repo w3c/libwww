@@ -1,0 +1,63 @@
+<HTML>
+<HEAD>
+  <TITLE>W3C Sample Code Library libwww XML Expat Parser Wrapper</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  Declaration of W3C Sample Code XML Expat Parser Module
+</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+<P>
+We use <A href="http://www.jclark.com/xml/expat.html">James Clark's expat
+XML parser</A> which is very neat indeed. As the code doesn't come as a separate
+library, I included it in the libwww CVS code base where I compile is as
+two libraries: <CODE>libxmltok.a</CODE> and <CODE>libxmlparse.a</CODE>. See
+the <A HREF="../External/">external modules that libwww works</A> with for
+details. Thanks so much to John Punin for writing this code!
+<PRE>
+#ifndef WWWXML_H
+#define WWWXML_H
+</PRE>
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
+<H2>
+  System dependencies
+</H2>
+<P>
+The <A HREF="wwwsys.html">wwwsys.h</A> file includes system-specific include
+files and flags for I/O to network and disk. The only reason for this file
+is that the Internet world is more complicated than Posix and ANSI.
+<PRE>
+#include "wwwsys.h"
+</PRE>
+<H2>
+  Library Includes
+</H2>
+<PRE>
+#ifdef HT_EXPAT
+#include "HTXML.h"
+#endif
+</PRE>
+<P>
+End of XML module
+<PRE>
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
+
+#endif
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>
