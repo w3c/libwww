@@ -1,19 +1,15 @@
-# Microsoft Developer Studio Generated NMAKE File, Format Version 4.20
-# ** DO NOT EDIT **
-
-# TARGTYPE "Win32 (x86) Application" 0x0101
-
+# Microsoft Developer Studio Generated NMAKE File, Based on www.dsp
 !IF "$(CFG)" == ""
-CFG=www - Win32 Debug
-!MESSAGE No configuration specified.  Defaulting to www - Win32 Debug.
+CFG=www - Win32 Release
+!MESSAGE No configuration specified. Defaulting to www - Win32 Release.
 !ENDIF 
 
 !IF "$(CFG)" != "www - Win32 Release" && "$(CFG)" != "www - Win32 Debug"
 !MESSAGE Invalid configuration "$(CFG)" specified.
-!MESSAGE You can specify a configuration when running NMAKE on this makefile
-!MESSAGE by defining the macro CFG on the command line.  For example:
+!MESSAGE You can specify a configuration when running NMAKE
+!MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "www.mak" CFG="www - Win32 Debug"
+!MESSAGE NMAKE /f "www.mak" CFG="www - Win32 Release"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
@@ -28,29 +24,30 @@ NULL=
 !ELSE 
 NULL=nul
 !ENDIF 
-################################################################################
-# Begin Project
-# PROP Target_Last_Scanned "www - Win32 Debug"
-RSC=rc.exe
-MTL=mktyplib.exe
+
 CPP=cl.exe
+MTL=midl.exe
+RSC=rc.exe
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
-# PROP BASE Use_MFC 0
-# PROP BASE Use_Debug_Libraries 0
-# PROP BASE Output_Dir "WinRel"
-# PROP BASE Intermediate_Dir "WinRel"
-# PROP Use_MFC 0
-# PROP Use_Debug_Libraries 0
-# PROP Output_Dir "WinRel"
-# PROP Intermediate_Dir "WinRel"
-OUTDIR=.\WinRel
-INTDIR=.\WinRel
+OUTDIR=.\..\..\..\Bin\Release
+INTDIR=.\Release
+# Begin Custom Macros
+OutDir=.\..\..\..\Bin\Release
+# End Custom Macros
 
-ALL : "..\..\..\Bin\Release\www.exe"
+!IF "$(RECURSE)" == "0" 
 
-CLEAN : 
+ALL : "$(OUTDIR)\www.exe"
+
+!ELSE 
+
+ALL : "$(OUTDIR)\www.exe"
+
+!ENDIF 
+
+CLEAN :
 	-@erase "$(INTDIR)\DefaultStyles.obj"
 	-@erase "$(INTDIR)\GridStyle.obj"
 	-@erase "$(INTDIR)\GridText.obj"
@@ -64,40 +61,34 @@ CLEAN :
 	-@erase "$(INTDIR)\HTProfil.obj"
 	-@erase "$(INTDIR)\lib.obj"
 	-@erase "$(INTDIR)\scroll.obj"
+	-@erase "$(INTDIR)\vc50.idb"
 	-@erase "$(INTDIR)\www.obj"
 	-@erase "$(INTDIR)\www.res"
-	-@erase "..\..\..\Bin\Release\www.exe"
+	-@erase "$(OUTDIR)\www.exe"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-# ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /FR /YX /c
-# ADD CPP /nologo /W3 /GX /O2 /I "..\..\..\Library\src" /I "..\..\..\PICS-client\src" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_ASYNC" /D "WWW_WIN_DLL" /YX /c
-# SUBTRACT CPP /Fr
+"$(INTDIR)" :
+    if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
+
 CPP_PROJ=/nologo /ML /W3 /GX /O2 /I "..\..\..\Library\src" /I\
- "..\..\..\PICS-client\src" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D\
- "WWW_WIN_ASYNC" /D "WWW_WIN_DLL" /Fp"$(INTDIR)/www.pch" /YX /Fo"$(INTDIR)/" /c 
-CPP_OBJS=.\WinRel/
-CPP_SBRS=.\.
-# ADD BASE MTL /nologo /D "NDEBUG" /win32
-# ADD MTL /nologo /D "NDEBUG" /win32
-MTL_PROJ=/nologo /D "NDEBUG" /win32 
-# ADD BASE RSC /l 0x409 /d "NDEBUG"
-# ADD RSC /l 0x409 /d "NDEBUG"
-RSC_PROJ=/l 0x409 /fo"$(INTDIR)/www.res" /d "NDEBUG" 
+ "..\..\..\PICS-client\src" /I "..\..\..\Library\External" /D "NDEBUG" /D\
+ "WIN32" /D "_WINDOWS" /D "WWW_WIN_ASYNC" /D "WWW_WIN_DLL"\
+ /Fp"$(INTDIR)\www.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_OBJS=.\Release/
+CPP_SBRS=.
+MTL_PROJ=/nologo /D "NDEBUG" /mktyplib203 /win32 
+RSC_PROJ=/l 0x409 /fo"$(INTDIR)\www.res" /d "NDEBUG" 
 BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
-BSC32_FLAGS=/nologo /o"$(OUTDIR)/www.bsc" 
+BSC32_FLAGS=/nologo /o"$(OUTDIR)\www.bsc" 
 BSC32_SBRS= \
 	
 LINK32=link.exe
-# ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /machine:I386
-# ADD LINK32 wsock32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /machine:I386 /out:"../../../Bin/Release/www.exe"
 LINK32_FLAGS=wsock32.lib kernel32.lib user32.lib gdi32.lib winspool.lib\
  comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib\
  odbc32.lib odbccp32.lib /nologo /subsystem:windows /incremental:no\
- /pdb:"$(OUTDIR)/www.pdb" /machine:I386 /out:"../../../Bin/Release/www.exe" 
+ /pdb:"$(OUTDIR)\www.pdb" /machine:I386 /out:"$(OUTDIR)\www.exe" 
 LINK32_OBJS= \
 	"$(INTDIR)\DefaultStyles.obj" \
 	"$(INTDIR)\GridStyle.obj" \
@@ -134,27 +125,30 @@ LINK32_OBJS= \
 	"..\..\..\Bin\wwwwais.lib" \
 	"..\..\..\Bin\wwwzip.lib"
 
-"..\..\..\Bin\Release\www.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
+"$(OUTDIR)\www.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
   $(LINK32_FLAGS) $(LINK32_OBJS)
 <<
 
 !ELSEIF  "$(CFG)" == "www - Win32 Debug"
 
-# PROP BASE Use_MFC 0
-# PROP BASE Use_Debug_Libraries 1
-# PROP BASE Output_Dir "WinDebug"
-# PROP BASE Intermediate_Dir "WinDebug"
-# PROP Use_MFC 0
-# PROP Use_Debug_Libraries 1
-# PROP Output_Dir "WinDebug"
-# PROP Intermediate_Dir "WinDebug"
-OUTDIR=.\WinDebug
-INTDIR=.\WinDebug
+OUTDIR=.\..\..\..\Bin\Debug
+INTDIR=.\Debug
+# Begin Custom Macros
+OutDir=.\..\..\..\Bin\Debug
+# End Custom Macros
 
-ALL : "..\..\..\Bin\Debug\www.exe"
+!IF "$(RECURSE)" == "0" 
 
-CLEAN : 
+ALL : "$(OUTDIR)\www.exe"
+
+!ELSE 
+
+ALL : "$(OUTDIR)\www.exe"
+
+!ENDIF 
+
+CLEAN :
 	-@erase "$(INTDIR)\DefaultStyles.obj"
 	-@erase "$(INTDIR)\GridStyle.obj"
 	-@erase "$(INTDIR)\GridText.obj"
@@ -168,46 +162,37 @@ CLEAN :
 	-@erase "$(INTDIR)\HTProfil.obj"
 	-@erase "$(INTDIR)\lib.obj"
 	-@erase "$(INTDIR)\scroll.obj"
-	-@erase "$(INTDIR)\vc40.idb"
-	-@erase "$(INTDIR)\vc40.pdb"
+	-@erase "$(INTDIR)\vc50.idb"
+	-@erase "$(INTDIR)\vc50.pdb"
 	-@erase "$(INTDIR)\www.obj"
 	-@erase "$(INTDIR)\www.res"
+	-@erase "$(OUTDIR)\www.exe"
+	-@erase "$(OUTDIR)\www.ilk"
 	-@erase "$(OUTDIR)\www.pdb"
-	-@erase "..\..\..\Bin\Debug\www.exe"
-	-@erase "..\..\..\Bin\Debug\www.ilk"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-# ADD BASE CPP /nologo /W3 /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /FR /YX /c
-# ADD CPP /nologo /W3 /Gm /GX /Zi /Od /I "..\..\..\Library\src" /I "..\..\..\PICS-client\src" /D "_DEBUG" /D "DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_ASYNC" /D "WWW_WIN_DLL" /YX /c
-# SUBTRACT CPP /Fr
+"$(INTDIR)" :
+    if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
+
 CPP_PROJ=/nologo /MLd /W3 /Gm /GX /Zi /Od /I "..\..\..\Library\src" /I\
- "..\..\..\PICS-client\src" /D "_DEBUG" /D "DEBUG" /D "WIN32" /D "_WINDOWS" /D\
- "WWW_WIN_ASYNC" /D "WWW_WIN_DLL" /Fp"$(INTDIR)/www.pch" /YX /Fo"$(INTDIR)/"\
- /Fd"$(INTDIR)/" /c 
-CPP_OBJS=.\WinDebug/
-CPP_SBRS=.\.
-# ADD BASE MTL /nologo /D "_DEBUG" /win32
-# ADD MTL /nologo /D "_DEBUG" /win32
-MTL_PROJ=/nologo /D "_DEBUG" /win32 
-# ADD BASE RSC /l 0x409 /d "_DEBUG"
-# ADD RSC /l 0x409 /d "_DEBUG"
-RSC_PROJ=/l 0x409 /fo"$(INTDIR)/www.res" /d "_DEBUG" 
+ "..\..\..\PICS-client\src" /I "..\..\..\Library\External" /D "_DEBUG" /D\
+ "DEBUG" /D "WIN32" /D "_WINDOWS" /D "WWW_WIN_ASYNC" /D "WWW_WIN_DLL"\
+ /Fp"$(INTDIR)\www.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_OBJS=.\Debug/
+CPP_SBRS=.
+MTL_PROJ=/nologo /D "_DEBUG" /mktyplib203 /win32 
+RSC_PROJ=/l 0x409 /fo"$(INTDIR)\www.res" /d "_DEBUG" 
 BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
-BSC32_FLAGS=/nologo /o"$(OUTDIR)/www.bsc" 
+BSC32_FLAGS=/nologo /o"$(OUTDIR)\www.bsc" 
 BSC32_SBRS= \
 	
 LINK32=link.exe
-# ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /debug /machine:I386
-# ADD LINK32 wsock32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /debug /machine:I386 /out:"../../../Bin/Debug/www.exe"
 LINK32_FLAGS=wsock32.lib kernel32.lib user32.lib gdi32.lib winspool.lib\
  comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib\
  odbc32.lib odbccp32.lib /nologo /subsystem:windows /incremental:yes\
- /pdb:"$(OUTDIR)/www.pdb" /debug /machine:I386 /out:"../../../Bin/Debug/www.exe"\
- 
+ /pdb:"$(OUTDIR)\www.pdb" /debug /machine:I386 /out:"$(OUTDIR)\www.exe" 
 LINK32_OBJS= \
 	"$(INTDIR)\DefaultStyles.obj" \
 	"$(INTDIR)\GridStyle.obj" \
@@ -244,497 +229,1974 @@ LINK32_OBJS= \
 	"..\..\..\Bin\wwwwais.lib" \
 	"..\..\..\Bin\wwwzip.lib"
 
-"..\..\..\Bin\Debug\www.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
+"$(OUTDIR)\www.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
   $(LINK32_FLAGS) $(LINK32_OBJS)
 <<
 
 !ENDIF 
 
-.c{$(CPP_OBJS)}.obj:
-   $(CPP) $(CPP_PROJ) $<  
+.c{$(CPP_OBJS)}.obj::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
 
-.cpp{$(CPP_OBJS)}.obj:
-   $(CPP) $(CPP_PROJ) $<  
+.cpp{$(CPP_OBJS)}.obj::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
 
-.cxx{$(CPP_OBJS)}.obj:
-   $(CPP) $(CPP_PROJ) $<  
+.cxx{$(CPP_OBJS)}.obj::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
 
-.c{$(CPP_SBRS)}.sbr:
-   $(CPP) $(CPP_PROJ) $<  
+.c{$(CPP_SBRS)}.sbr::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
 
-.cpp{$(CPP_SBRS)}.sbr:
-   $(CPP) $(CPP_PROJ) $<  
+.cpp{$(CPP_SBRS)}.sbr::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
 
-.cxx{$(CPP_SBRS)}.sbr:
-   $(CPP) $(CPP_PROJ) $<  
+.cxx{$(CPP_SBRS)}.sbr::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
 
-################################################################################
-# Begin Target
 
-# Name "www - Win32 Release"
-# Name "www - Win32 Debug"
+!IF "$(CFG)" == "www - Win32 Release" || "$(CFG)" == "www - Win32 Debug"
+SOURCE=..\DefaultStyles.c
 
 !IF  "$(CFG)" == "www - Win32 Release"
 
+DEP_CPP_DEFAU=\
+	"..\..\..\library\external\regex.h"\
+	"..\..\..\library\src\htalert.h"\
+	"..\..\..\library\src\htanchor.h"\
+	"..\..\..\library\src\htarray.h"\
+	"..\..\..\library\src\htassoc.h"\
+	"..\..\..\library\src\htatom.h"\
+	"..\..\..\library\src\htbind.h"\
+	"..\..\..\library\src\htchannl.h"\
+	"..\..\..\library\src\htchunk.h"\
+	"..\..\..\library\src\htdns.h"\
+	"..\..\..\library\src\hterror.h"\
+	"..\..\..\library\src\htescape.h"\
+	"..\..\..\library\src\htevent.h"\
+	"..\..\..\library\src\htext.h"\
+	"..\..\..\library\src\htformat.h"\
+	"..\..\..\library\src\htfwrite.h"\
+	"..\..\..\library\src\hthost.h"\
+	"..\..\..\library\src\hthstman.h"\
+	"..\..\..\library\src\htinet.h"\
+	"..\..\..\library\src\htiostream.h"\
+	"..\..\..\library\src\htlib.h"\
+	"..\..\..\library\src\htlink.h"\
+	"..\..\..\library\src\htlist.h"\
+	"..\..\..\library\src\htmemlog.h"\
+	"..\..\..\library\src\htmemory.h"\
+	"..\..\..\library\src\htmethod.h"\
+	"..\..\..\library\src\html.h"\
+	"..\..\..\library\src\htmlpdtd.h"\
+	"..\..\..\library\src\htnet.h"\
+	"..\..\..\library\src\htparse.h"\
+	"..\..\..\library\src\htprot.h"\
+	"..\..\..\library\src\htreq.h"\
+	"..\..\..\library\src\htresponse.h"\
+	"..\..\..\library\src\htstream.h"\
+	"..\..\..\library\src\htstring.h"\
+	"..\..\..\library\src\htstruct.h"\
+	"..\..\..\library\src\htstyle.h"\
+	"..\..\..\library\src\httimer.h"\
+	"..\..\..\library\src\httrans.h"\
+	"..\..\..\library\src\htuser.h"\
+	"..\..\..\library\src\htutils.h"\
+	"..\..\..\library\src\htutree.h"\
+	"..\..\..\library\src\htuu.h"\
+	"..\..\..\library\src\htwwwstr.h"\
+	"..\..\..\library\src\sgml.h"\
+	"..\..\..\library\src\windows\config.h"\
+	"..\..\..\library\src\wwwcore.h"\
+	"..\..\..\library\src\wwwlib.h"\
+	"..\..\..\library\src\wwwsys.h"\
+	"..\..\..\library\src\wwwutil.h"\
+	"..\gridstyle.h"\
+	"..\htfont.h"\
+	
+
+"$(INTDIR)\DefaultStyles.obj" : $(SOURCE) $(DEP_CPP_DEFAU) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
 !ELSEIF  "$(CFG)" == "www - Win32 Debug"
+
+DEP_CPP_DEFAU=\
+	"..\..\..\library\external\regex.h"\
+	"..\..\..\library\src\htalert.h"\
+	"..\..\..\library\src\htanchor.h"\
+	"..\..\..\library\src\htarray.h"\
+	"..\..\..\library\src\htassoc.h"\
+	"..\..\..\library\src\htatom.h"\
+	"..\..\..\library\src\htbind.h"\
+	"..\..\..\library\src\htchannl.h"\
+	"..\..\..\library\src\htchunk.h"\
+	"..\..\..\library\src\htdns.h"\
+	"..\..\..\library\src\hterror.h"\
+	"..\..\..\library\src\htescape.h"\
+	"..\..\..\library\src\htevent.h"\
+	"..\..\..\library\src\htext.h"\
+	"..\..\..\library\src\htformat.h"\
+	"..\..\..\library\src\htfwrite.h"\
+	"..\..\..\library\src\hthost.h"\
+	"..\..\..\library\src\hthstman.h"\
+	"..\..\..\library\src\htinet.h"\
+	"..\..\..\library\src\htiostream.h"\
+	"..\..\..\library\src\htlib.h"\
+	"..\..\..\library\src\htlink.h"\
+	"..\..\..\library\src\htlist.h"\
+	"..\..\..\library\src\htmemlog.h"\
+	"..\..\..\library\src\htmemory.h"\
+	"..\..\..\library\src\htmethod.h"\
+	"..\..\..\library\src\html.h"\
+	"..\..\..\library\src\htmlpdtd.h"\
+	"..\..\..\library\src\htnet.h"\
+	"..\..\..\library\src\htparse.h"\
+	"..\..\..\library\src\htprot.h"\
+	"..\..\..\library\src\htreq.h"\
+	"..\..\..\library\src\htresponse.h"\
+	"..\..\..\library\src\htstream.h"\
+	"..\..\..\library\src\htstring.h"\
+	"..\..\..\library\src\htstruct.h"\
+	"..\..\..\library\src\htstyle.h"\
+	"..\..\..\library\src\httimer.h"\
+	"..\..\..\library\src\httrans.h"\
+	"..\..\..\library\src\htuser.h"\
+	"..\..\..\library\src\htutils.h"\
+	"..\..\..\library\src\htutree.h"\
+	"..\..\..\library\src\htuu.h"\
+	"..\..\..\library\src\htwwwstr.h"\
+	"..\..\..\library\src\sgml.h"\
+	"..\..\..\library\src\windows\config.h"\
+	"..\..\..\library\src\wwwcore.h"\
+	"..\..\..\library\src\wwwlib.h"\
+	"..\..\..\library\src\wwwsys.h"\
+	"..\..\..\library\src\wwwutil.h"\
+	"..\gridstyle.h"\
+	"..\htfont.h"\
+	{$(INCLUDE)}"sys\stat.h"\
+	{$(INCLUDE)}"sys\types.h"\
+	
+NODEP_CPP_DEFAU=\
+	"..\..\..\library\src\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\DefaultStyles.obj" : $(SOURCE) $(DEP_CPP_DEFAU) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
 
 !ENDIF 
 
-################################################################################
-# Begin Source File
+SOURCE=..\GridStyle.c
 
-SOURCE=.\www.c
-DEP_CPP_WWW_C=\
-	"..\..\..\Library\src\HTHstMan.h"\
-	"..\..\..\Library\src\HTList.h"\
-	"..\..\..\Library\src\HTReqMan.h"\
-	"..\..\..\Library\src\HTResponse.h"\
-	"..\..\..\Library\src\HTUtils.h"\
-	"..\..\..\Library\src\windows\config.h"\
-	"..\..\..\Library\src\WWWCore.h"\
-	"..\..\..\Library\src\WWWLib.h"\
-	".\..\..\..\Library\src\HTAABrow.h"\
-	".\..\..\..\Library\src\HTAlert.h"\
-	".\..\..\..\Library\src\HTAnchor.h"\
-	".\..\..\..\Library\src\HTArray.h"\
-	".\..\..\..\Library\src\HTAssoc.h"\
-	".\..\..\..\Library\src\HTAtom.h"\
-	".\..\..\..\Library\src\HTBind.h"\
-	".\..\..\..\Library\src\HTChannl.h"\
-	".\..\..\..\Library\src\HTChunk.h"\
-	".\..\..\..\Library\src\HTDNS.h"\
-	".\..\..\..\Library\src\HTError.h"\
-	".\..\..\..\Library\src\HTEscape.h"\
-	".\..\..\..\Library\src\HTEvent.h"\
-	".\..\..\..\Library\src\HTFormat.h"\
-	".\..\..\..\Library\src\HTFWrite.h"\
-	".\..\..\..\Library\src\HTHeader.h"\
-	".\..\..\..\Library\src\HTHost.h"\
-	".\..\..\..\Library\src\HTInet.h"\
-	".\..\..\..\Library\src\HTIOStream.h"\
-	".\..\..\..\Library\src\HTLib.h"\
-	".\..\..\..\Library\src\HTLink.h"\
-	".\..\..\..\Library\src\HTMemory.h"\
-	".\..\..\..\Library\src\HTMethod.h"\
-	".\..\..\..\Library\src\HTMIMPrs.h"\
-	".\..\..\..\Library\src\HTNet.h"\
-	".\..\..\..\Library\src\HTParse.h"\
-	".\..\..\..\Library\src\HTProt.h"\
-	".\..\..\..\Library\src\HTReq.h"\
-	".\..\..\..\Library\src\HTStream.h"\
-	".\..\..\..\Library\src\HTString.h"\
-	".\..\..\..\Library\src\HTStruct.h"\
-	".\..\..\..\Library\src\HTTrans.h"\
-	".\..\..\..\Library\src\HTUser.h"\
-	".\..\..\..\Library\src\HTUTree.h"\
-	".\..\..\..\Library\src\HTUU.h"\
-	".\..\..\..\Library\src\HTWWWStr.h"\
-	".\..\..\..\Library\src\sysdep.h"\
-	".\..\..\..\Library\src\WWWUtil.h"\
-	".\..\HTBrowse.h"\
-	".\..\windows\lib.h"\
-	".\..\windows\scroll.h"\
-	{$(INCLUDE)}"\sys\STAT.H"\
-	{$(INCLUDE)}"\sys\TYPES.H"\
-	
-NODEP_CPP_WWW_C=\
-	".\..\..\..\Library\src\HTVMSUtils.h"\
+!IF  "$(CFG)" == "www - Win32 Release"
+
+DEP_CPP_GRIDS=\
+	"..\..\..\library\external\regex.h"\
+	"..\..\..\library\src\htalert.h"\
+	"..\..\..\library\src\htanchor.h"\
+	"..\..\..\library\src\htarray.h"\
+	"..\..\..\library\src\htassoc.h"\
+	"..\..\..\library\src\htatom.h"\
+	"..\..\..\library\src\htbind.h"\
+	"..\..\..\library\src\htchannl.h"\
+	"..\..\..\library\src\htchunk.h"\
+	"..\..\..\library\src\htdns.h"\
+	"..\..\..\library\src\hterror.h"\
+	"..\..\..\library\src\htescape.h"\
+	"..\..\..\library\src\htevent.h"\
+	"..\..\..\library\src\htformat.h"\
+	"..\..\..\library\src\htfwrite.h"\
+	"..\..\..\library\src\hthost.h"\
+	"..\..\..\library\src\hthstman.h"\
+	"..\..\..\library\src\htinet.h"\
+	"..\..\..\library\src\htiostream.h"\
+	"..\..\..\library\src\htlib.h"\
+	"..\..\..\library\src\htlink.h"\
+	"..\..\..\library\src\htlist.h"\
+	"..\..\..\library\src\htmemlog.h"\
+	"..\..\..\library\src\htmemory.h"\
+	"..\..\..\library\src\htmethod.h"\
+	"..\..\..\library\src\html.h"\
+	"..\..\..\library\src\htmlpdtd.h"\
+	"..\..\..\library\src\htnet.h"\
+	"..\..\..\library\src\htparse.h"\
+	"..\..\..\library\src\htprot.h"\
+	"..\..\..\library\src\htreq.h"\
+	"..\..\..\library\src\htresponse.h"\
+	"..\..\..\library\src\htstream.h"\
+	"..\..\..\library\src\htstring.h"\
+	"..\..\..\library\src\htstruct.h"\
+	"..\..\..\library\src\htstyle.h"\
+	"..\..\..\library\src\httimer.h"\
+	"..\..\..\library\src\httrans.h"\
+	"..\..\..\library\src\htuser.h"\
+	"..\..\..\library\src\htutils.h"\
+	"..\..\..\library\src\htutree.h"\
+	"..\..\..\library\src\htuu.h"\
+	"..\..\..\library\src\htwwwstr.h"\
+	"..\..\..\library\src\sgml.h"\
+	"..\..\..\library\src\windows\config.h"\
+	"..\..\..\library\src\wwwcore.h"\
+	"..\..\..\library\src\wwwlib.h"\
+	"..\..\..\library\src\wwwsys.h"\
+	"..\..\..\library\src\wwwutil.h"\
 	
 
-"$(INTDIR)\www.obj" : $(SOURCE) $(DEP_CPP_WWW_C) "$(INTDIR)"
+"$(INTDIR)\GridStyle.obj" : $(SOURCE) $(DEP_CPP_GRIDS) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-# End Source File
-################################################################################
-# Begin Source File
+!ELSEIF  "$(CFG)" == "www - Win32 Debug"
+
+DEP_CPP_GRIDS=\
+	"..\..\..\library\external\regex.h"\
+	"..\..\..\library\src\htalert.h"\
+	"..\..\..\library\src\htanchor.h"\
+	"..\..\..\library\src\htarray.h"\
+	"..\..\..\library\src\htassoc.h"\
+	"..\..\..\library\src\htatom.h"\
+	"..\..\..\library\src\htbind.h"\
+	"..\..\..\library\src\htchannl.h"\
+	"..\..\..\library\src\htchunk.h"\
+	"..\..\..\library\src\htdns.h"\
+	"..\..\..\library\src\hterror.h"\
+	"..\..\..\library\src\htescape.h"\
+	"..\..\..\library\src\htevent.h"\
+	"..\..\..\library\src\htformat.h"\
+	"..\..\..\library\src\htfwrite.h"\
+	"..\..\..\library\src\hthost.h"\
+	"..\..\..\library\src\hthstman.h"\
+	"..\..\..\library\src\htinet.h"\
+	"..\..\..\library\src\htiostream.h"\
+	"..\..\..\library\src\htlib.h"\
+	"..\..\..\library\src\htlink.h"\
+	"..\..\..\library\src\htlist.h"\
+	"..\..\..\library\src\htmemlog.h"\
+	"..\..\..\library\src\htmemory.h"\
+	"..\..\..\library\src\htmethod.h"\
+	"..\..\..\library\src\html.h"\
+	"..\..\..\library\src\htmlpdtd.h"\
+	"..\..\..\library\src\htnet.h"\
+	"..\..\..\library\src\htparse.h"\
+	"..\..\..\library\src\htprot.h"\
+	"..\..\..\library\src\htreq.h"\
+	"..\..\..\library\src\htresponse.h"\
+	"..\..\..\library\src\htstream.h"\
+	"..\..\..\library\src\htstring.h"\
+	"..\..\..\library\src\htstruct.h"\
+	"..\..\..\library\src\htstyle.h"\
+	"..\..\..\library\src\httimer.h"\
+	"..\..\..\library\src\httrans.h"\
+	"..\..\..\library\src\htuser.h"\
+	"..\..\..\library\src\htutils.h"\
+	"..\..\..\library\src\htutree.h"\
+	"..\..\..\library\src\htuu.h"\
+	"..\..\..\library\src\htwwwstr.h"\
+	"..\..\..\library\src\sgml.h"\
+	"..\..\..\library\src\windows\config.h"\
+	"..\..\..\library\src\wwwcore.h"\
+	"..\..\..\library\src\wwwlib.h"\
+	"..\..\..\library\src\wwwsys.h"\
+	"..\..\..\library\src\wwwutil.h"\
+	{$(INCLUDE)}"sys\stat.h"\
+	{$(INCLUDE)}"sys\types.h"\
+	
+NODEP_CPP_GRIDS=\
+	"..\..\..\library\src\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\GridStyle.obj" : $(SOURCE) $(DEP_CPP_GRIDS) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\GridText.c
+
+!IF  "$(CFG)" == "www - Win32 Release"
+
+DEP_CPP_GRIDT=\
+	"..\..\..\library\external\regex.h"\
+	"..\..\..\library\src\htaccess.h"\
+	"..\..\..\library\src\htalert.h"\
+	"..\..\..\library\src\htanchor.h"\
+	"..\..\..\library\src\htarray.h"\
+	"..\..\..\library\src\htassoc.h"\
+	"..\..\..\library\src\htatom.h"\
+	"..\..\..\library\src\htbind.h"\
+	"..\..\..\library\src\htcache.h"\
+	"..\..\..\library\src\htchannl.h"\
+	"..\..\..\library\src\htchunk.h"\
+	"..\..\..\library\src\htdialog.h"\
+	"..\..\..\library\src\htdns.h"\
+	"..\..\..\library\src\hterror.h"\
+	"..\..\..\library\src\htescape.h"\
+	"..\..\..\library\src\htevent.h"\
+	"..\..\..\library\src\htevtlst.h"\
+	"..\..\..\library\src\htext.h"\
+	"..\..\..\library\src\htfilter.h"\
+	"..\..\..\library\src\htformat.h"\
+	"..\..\..\library\src\htfwrite.h"\
+	"..\..\..\library\src\hthist.h"\
+	"..\..\..\library\src\hthome.h"\
+	"..\..\..\library\src\hthost.h"\
+	"..\..\..\library\src\hthstman.h"\
+	"..\..\..\library\src\htinet.h"\
+	"..\..\..\library\src\htiostream.h"\
+	"..\..\..\library\src\htlib.h"\
+	"..\..\..\library\src\htlink.h"\
+	"..\..\..\library\src\htlist.h"\
+	"..\..\..\library\src\htlog.h"\
+	"..\..\..\library\src\htmemlog.h"\
+	"..\..\..\library\src\htmemory.h"\
+	"..\..\..\library\src\htmethod.h"\
+	"..\..\..\library\src\html.h"\
+	"..\..\..\library\src\htmlpdtd.h"\
+	"..\..\..\library\src\htnet.h"\
+	"..\..\..\library\src\htparse.h"\
+	"..\..\..\library\src\htprot.h"\
+	"..\..\..\library\src\htproxy.h"\
+	"..\..\..\library\src\htreq.h"\
+	"..\..\..\library\src\htresponse.h"\
+	"..\..\..\library\src\htrules.h"\
+	"..\..\..\library\src\htstream.h"\
+	"..\..\..\library\src\htstring.h"\
+	"..\..\..\library\src\htstruct.h"\
+	"..\..\..\library\src\htstyle.h"\
+	"..\..\..\library\src\httimer.h"\
+	"..\..\..\library\src\httrans.h"\
+	"..\..\..\library\src\htuser.h"\
+	"..\..\..\library\src\htutils.h"\
+	"..\..\..\library\src\htutree.h"\
+	"..\..\..\library\src\htuu.h"\
+	"..\..\..\library\src\htwwwstr.h"\
+	"..\..\..\library\src\sgml.h"\
+	"..\..\..\library\src\windows\config.h"\
+	"..\..\..\library\src\wwwapp.h"\
+	"..\..\..\library\src\wwwcache.h"\
+	"..\..\..\library\src\wwwcore.h"\
+	"..\..\..\library\src\wwwlib.h"\
+	"..\..\..\library\src\wwwsys.h"\
+	"..\..\..\library\src\wwwutil.h"\
+	"..\gridstyle.h"\
+	"..\gridtext.h"\
+	"..\htbrowse.h"\
+	"..\htfont.h"\
+	
+
+"$(INTDIR)\GridText.obj" : $(SOURCE) $(DEP_CPP_GRIDT) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "www - Win32 Debug"
+
+DEP_CPP_GRIDT=\
+	"..\..\..\library\external\regex.h"\
+	"..\..\..\library\src\htaccess.h"\
+	"..\..\..\library\src\htalert.h"\
+	"..\..\..\library\src\htanchor.h"\
+	"..\..\..\library\src\htarray.h"\
+	"..\..\..\library\src\htassoc.h"\
+	"..\..\..\library\src\htatom.h"\
+	"..\..\..\library\src\htbind.h"\
+	"..\..\..\library\src\htcache.h"\
+	"..\..\..\library\src\htchannl.h"\
+	"..\..\..\library\src\htchunk.h"\
+	"..\..\..\library\src\htdialog.h"\
+	"..\..\..\library\src\htdns.h"\
+	"..\..\..\library\src\hterror.h"\
+	"..\..\..\library\src\htescape.h"\
+	"..\..\..\library\src\htevent.h"\
+	"..\..\..\library\src\htevtlst.h"\
+	"..\..\..\library\src\htext.h"\
+	"..\..\..\library\src\htfilter.h"\
+	"..\..\..\library\src\htformat.h"\
+	"..\..\..\library\src\htfwrite.h"\
+	"..\..\..\library\src\hthist.h"\
+	"..\..\..\library\src\hthome.h"\
+	"..\..\..\library\src\hthost.h"\
+	"..\..\..\library\src\hthstman.h"\
+	"..\..\..\library\src\htinet.h"\
+	"..\..\..\library\src\htiostream.h"\
+	"..\..\..\library\src\htlib.h"\
+	"..\..\..\library\src\htlink.h"\
+	"..\..\..\library\src\htlist.h"\
+	"..\..\..\library\src\htlog.h"\
+	"..\..\..\library\src\htmemlog.h"\
+	"..\..\..\library\src\htmemory.h"\
+	"..\..\..\library\src\htmethod.h"\
+	"..\..\..\library\src\html.h"\
+	"..\..\..\library\src\htmlpdtd.h"\
+	"..\..\..\library\src\htnet.h"\
+	"..\..\..\library\src\htparse.h"\
+	"..\..\..\library\src\htprot.h"\
+	"..\..\..\library\src\htproxy.h"\
+	"..\..\..\library\src\htreq.h"\
+	"..\..\..\library\src\htresponse.h"\
+	"..\..\..\library\src\htrules.h"\
+	"..\..\..\library\src\htstream.h"\
+	"..\..\..\library\src\htstring.h"\
+	"..\..\..\library\src\htstruct.h"\
+	"..\..\..\library\src\htstyle.h"\
+	"..\..\..\library\src\httimer.h"\
+	"..\..\..\library\src\httrans.h"\
+	"..\..\..\library\src\htuser.h"\
+	"..\..\..\library\src\htutils.h"\
+	"..\..\..\library\src\htutree.h"\
+	"..\..\..\library\src\htuu.h"\
+	"..\..\..\library\src\htwwwstr.h"\
+	"..\..\..\library\src\sgml.h"\
+	"..\..\..\library\src\windows\config.h"\
+	"..\..\..\library\src\wwwapp.h"\
+	"..\..\..\library\src\wwwcache.h"\
+	"..\..\..\library\src\wwwcore.h"\
+	"..\..\..\library\src\wwwlib.h"\
+	"..\..\..\library\src\wwwsys.h"\
+	"..\..\..\library\src\wwwutil.h"\
+	"..\a_stdio.h"\
+	"..\gridstyle.h"\
+	"..\gridtext.h"\
+	"..\htbrowse.h"\
+	"..\htfont.h"\
+	{$(INCLUDE)}"sys\stat.h"\
+	{$(INCLUDE)}"sys\types.h"\
+	
+NODEP_CPP_GRIDT=\
+	"..\..\..\library\src\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\GridText.obj" : $(SOURCE) $(DEP_CPP_GRIDT) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\..\..\Library\src\HTBInit.c
+
+!IF  "$(CFG)" == "www - Win32 Release"
+
+DEP_CPP_HTBIN=\
+	"..\..\..\library\external\regex.h"\
+	"..\..\..\library\src\htalert.h"\
+	"..\..\..\library\src\htanchor.h"\
+	"..\..\..\library\src\htarray.h"\
+	"..\..\..\library\src\htassoc.h"\
+	"..\..\..\library\src\htatom.h"\
+	"..\..\..\library\src\htbind.h"\
+	"..\..\..\library\src\htbinit.h"\
+	"..\..\..\library\src\htchannl.h"\
+	"..\..\..\library\src\htchunk.h"\
+	"..\..\..\library\src\htdns.h"\
+	"..\..\..\library\src\hterror.h"\
+	"..\..\..\library\src\htescape.h"\
+	"..\..\..\library\src\htevent.h"\
+	"..\..\..\library\src\htformat.h"\
+	"..\..\..\library\src\htfwrite.h"\
+	"..\..\..\library\src\hthost.h"\
+	"..\..\..\library\src\hthstman.h"\
+	"..\..\..\library\src\htinet.h"\
+	"..\..\..\library\src\htiostream.h"\
+	"..\..\..\library\src\htlib.h"\
+	"..\..\..\library\src\htlink.h"\
+	"..\..\..\library\src\htlist.h"\
+	"..\..\..\library\src\htmemlog.h"\
+	"..\..\..\library\src\htmemory.h"\
+	"..\..\..\library\src\htmethod.h"\
+	"..\..\..\library\src\htnet.h"\
+	"..\..\..\library\src\htparse.h"\
+	"..\..\..\library\src\htprot.h"\
+	"..\..\..\library\src\htreq.h"\
+	"..\..\..\library\src\htresponse.h"\
+	"..\..\..\library\src\htstream.h"\
+	"..\..\..\library\src\htstring.h"\
+	"..\..\..\library\src\htstruct.h"\
+	"..\..\..\library\src\httimer.h"\
+	"..\..\..\library\src\httrans.h"\
+	"..\..\..\library\src\htuser.h"\
+	"..\..\..\library\src\htutils.h"\
+	"..\..\..\library\src\htutree.h"\
+	"..\..\..\library\src\htuu.h"\
+	"..\..\..\library\src\htwwwstr.h"\
+	"..\..\..\library\src\windows\config.h"\
+	"..\..\..\library\src\wwwcore.h"\
+	"..\..\..\library\src\wwwsys.h"\
+	"..\..\..\library\src\wwwutil.h"\
+	
+
+"$(INTDIR)\HTBInit.obj" : $(SOURCE) $(DEP_CPP_HTBIN) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "www - Win32 Debug"
+
+DEP_CPP_HTBIN=\
+	"..\..\..\library\external\regex.h"\
+	"..\..\..\library\src\htalert.h"\
+	"..\..\..\library\src\htanchor.h"\
+	"..\..\..\library\src\htarray.h"\
+	"..\..\..\library\src\htassoc.h"\
+	"..\..\..\library\src\htatom.h"\
+	"..\..\..\library\src\htbind.h"\
+	"..\..\..\library\src\htbinit.h"\
+	"..\..\..\library\src\htchannl.h"\
+	"..\..\..\library\src\htchunk.h"\
+	"..\..\..\library\src\htdns.h"\
+	"..\..\..\library\src\hterror.h"\
+	"..\..\..\library\src\htescape.h"\
+	"..\..\..\library\src\htevent.h"\
+	"..\..\..\library\src\htformat.h"\
+	"..\..\..\library\src\htfwrite.h"\
+	"..\..\..\library\src\hthost.h"\
+	"..\..\..\library\src\hthstman.h"\
+	"..\..\..\library\src\htinet.h"\
+	"..\..\..\library\src\htiostream.h"\
+	"..\..\..\library\src\htlib.h"\
+	"..\..\..\library\src\htlink.h"\
+	"..\..\..\library\src\htlist.h"\
+	"..\..\..\library\src\htmemlog.h"\
+	"..\..\..\library\src\htmemory.h"\
+	"..\..\..\library\src\htmethod.h"\
+	"..\..\..\library\src\htnet.h"\
+	"..\..\..\library\src\htparse.h"\
+	"..\..\..\library\src\htprot.h"\
+	"..\..\..\library\src\htreq.h"\
+	"..\..\..\library\src\htresponse.h"\
+	"..\..\..\library\src\htstream.h"\
+	"..\..\..\library\src\htstring.h"\
+	"..\..\..\library\src\htstruct.h"\
+	"..\..\..\library\src\httimer.h"\
+	"..\..\..\library\src\httrans.h"\
+	"..\..\..\library\src\htuser.h"\
+	"..\..\..\library\src\htutils.h"\
+	"..\..\..\library\src\htutree.h"\
+	"..\..\..\library\src\htuu.h"\
+	"..\..\..\library\src\htwwwstr.h"\
+	"..\..\..\library\src\windows\config.h"\
+	"..\..\..\library\src\wwwcore.h"\
+	"..\..\..\library\src\wwwsys.h"\
+	"..\..\..\library\src\wwwutil.h"\
+	{$(INCLUDE)}"sys\stat.h"\
+	{$(INCLUDE)}"sys\types.h"\
+	
+NODEP_CPP_HTBIN=\
+	"..\..\..\library\src\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTBInit.obj" : $(SOURCE) $(DEP_CPP_HTBIN) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\HTBrowse.c
+
+!IF  "$(CFG)" == "www - Win32 Release"
+
+DEP_CPP_HTBRO=\
+	"..\..\..\library\external\regex.h"\
+	"..\..\..\library\src\htaabrow.h"\
+	"..\..\..\library\src\htaautil.h"\
+	"..\..\..\library\src\htaccess.h"\
+	"..\..\..\library\src\htalert.h"\
+	"..\..\..\library\src\htanchor.h"\
+	"..\..\..\library\src\htansi.h"\
+	"..\..\..\library\src\htarray.h"\
+	"..\..\..\library\src\htassoc.h"\
+	"..\..\..\library\src\htatom.h"\
+	"..\..\..\library\src\htbind.h"\
+	"..\..\..\library\src\htbinit.h"\
+	"..\..\..\library\src\htbound.h"\
+	"..\..\..\library\src\htbufwrt.h"\
+	"..\..\..\library\src\htcache.h"\
+	"..\..\..\library\src\htchannl.h"\
+	"..\..\..\library\src\htchunk.h"\
+	"..\..\..\library\src\htconlen.h"\
+	"..\..\..\library\src\htdescpt.h"\
+	"..\..\..\library\src\htdialog.h"\
+	"..\..\..\library\src\htdir.h"\
+	"..\..\..\library\src\htdns.h"\
+	"..\..\..\library\src\hterror.h"\
+	"..\..\..\library\src\htescape.h"\
+	"..\..\..\library\src\htevent.h"\
+	"..\..\..\library\src\htevtlst.h"\
+	"..\..\..\library\src\htext.h"\
+	"..\..\..\library\src\htfile.h"\
+	"..\..\..\library\src\htfilter.h"\
+	"..\..\..\library\src\htformat.h"\
+	"..\..\..\library\src\htftp.h"\
+	"..\..\..\library\src\htftpdir.h"\
+	"..\..\..\library\src\htfwrite.h"\
+	"..\..\..\library\src\htgopher.h"\
+	"..\..\..\library\src\htguess.h"\
+	"..\..\..\library\src\htheader.h"\
+	"..\..\..\library\src\hthinit.h"\
+	"..\..\..\library\src\hthist.h"\
+	"..\..\..\library\src\hthome.h"\
+	"..\..\..\library\src\hthost.h"\
+	"..\..\..\library\src\hthstman.h"\
+	"..\..\..\library\src\hticons.h"\
+	"..\..\..\library\src\htinet.h"\
+	"..\..\..\library\src\htinit.h"\
+	"..\..\..\library\src\htiostream.h"\
+	"..\..\..\library\src\htlib.h"\
+	"..\..\..\library\src\htlink.h"\
+	"..\..\..\library\src\htlist.h"\
+	"..\..\..\library\src\htlocal.h"\
+	"..\..\..\library\src\htlog.h"\
+	"..\..\..\library\src\htmemlog.h"\
+	"..\..\..\library\src\htmemory.h"\
+	"..\..\..\library\src\htmerge.h"\
+	"..\..\..\library\src\htmethod.h"\
+	"..\..\..\library\src\htmime.h"\
+	"..\..\..\library\src\htmimerq.h"\
+	"..\..\..\library\src\htmimimp.h"\
+	"..\..\..\library\src\html.h"\
+	"..\..\..\library\src\htmlgen.h"\
+	"..\..\..\library\src\htmlpdtd.h"\
+	"..\..\..\library\src\htmulpar.h"\
+	"..\..\..\library\src\htmulti.h"\
+	"..\..\..\library\src\htndir.h"\
+	"..\..\..\library\src\htnet.h"\
+	"..\..\..\library\src\htnews.h"\
+	"..\..\..\library\src\htnewsls.h"\
+	"..\..\..\library\src\htnewsrq.h"\
+	"..\..\..\library\src\htparse.h"\
+	"..\..\..\library\src\htpep.h"\
+	"..\..\..\library\src\htplain.h"\
+	"..\..\..\library\src\htprofil.h"\
+	"..\..\..\library\src\htprot.h"\
+	"..\..\..\library\src\htproxy.h"\
+	"..\..\..\library\src\htreader.h"\
+	"..\..\..\library\src\htreq.h"\
+	"..\..\..\library\src\htresponse.h"\
+	"..\..\..\library\src\htrules.h"\
+	"..\..\..\library\src\htschunk.h"\
+	"..\..\..\library\src\htsocket.h"\
+	"..\..\..\library\src\htstream.h"\
+	"..\..\..\library\src\htstring.h"\
+	"..\..\..\library\src\htstruct.h"\
+	"..\..\..\library\src\htstyle.h"\
+	"..\..\..\library\src\httchunk.h"\
+	"..\..\..\library\src\httcp.h"\
+	"..\..\..\library\src\httee.h"\
+	"..\..\..\library\src\httelnet.h"\
+	"..\..\..\library\src\httexgen.h"\
+	"..\..\..\library\src\httimer.h"\
+	"..\..\..\library\src\http.h"\
+	"..\..\..\library\src\httpgen.h"\
+	"..\..\..\library\src\httpreq.h"\
+	"..\..\..\library\src\httpres.h"\
+	"..\..\..\library\src\httpserv.h"\
+	"..\..\..\library\src\httputil.h"\
+	"..\..\..\library\src\httrans.h"\
+	"..\..\..\library\src\htuser.h"\
+	"..\..\..\library\src\htutils.h"\
+	"..\..\..\library\src\htutree.h"\
+	"..\..\..\library\src\htuu.h"\
+	"..\..\..\library\src\htwriter.h"\
+	"..\..\..\library\src\htwwwstr.h"\
+	"..\..\..\library\src\htxparse.h"\
+	"..\..\..\library\src\htzip.h"\
+	"..\..\..\library\src\sgml.h"\
+	"..\..\..\library\src\windows\config.h"\
+	"..\..\..\library\src\wwwapp.h"\
+	"..\..\..\library\src\wwwcache.h"\
+	"..\..\..\library\src\wwwcore.h"\
+	"..\..\..\library\src\wwwdir.h"\
+	"..\..\..\library\src\wwwfile.h"\
+	"..\..\..\library\src\wwwftp.h"\
+	"..\..\..\library\src\wwwgophe.h"\
+	"..\..\..\library\src\wwwhtml.h"\
+	"..\..\..\library\src\wwwhttp.h"\
+	"..\..\..\library\src\wwwinit.h"\
+	"..\..\..\library\src\wwwlib.h"\
+	"..\..\..\library\src\wwwmime.h"\
+	"..\..\..\library\src\wwwnews.h"\
+	"..\..\..\library\src\wwwstream.h"\
+	"..\..\..\library\src\wwwsys.h"\
+	"..\..\..\library\src\wwwtelnt.h"\
+	"..\..\..\library\src\wwwtrans.h"\
+	"..\..\..\library\src\wwwutil.h"\
+	"..\..\..\library\src\wwwzip.h"\
+	"..\..\..\pics-client\src\cslapp.h"\
+	"..\..\..\pics-client\src\csll.h"\
+	"..\..\..\pics-client\src\cslutils.h"\
+	"..\..\..\pics-client\src\csuser.h"\
+	"..\..\..\pics-client\src\csusrlst.h"\
+	"..\gridtext.h"\
+	"..\htbrowse.h"\
+	
+
+"$(INTDIR)\HTBrowse.obj" : $(SOURCE) $(DEP_CPP_HTBRO) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "www - Win32 Debug"
+
+DEP_CPP_HTBRO=\
+	"..\..\..\library\external\regex.h"\
+	"..\..\..\library\src\htaabrow.h"\
+	"..\..\..\library\src\htaautil.h"\
+	"..\..\..\library\src\htaccess.h"\
+	"..\..\..\library\src\htalert.h"\
+	"..\..\..\library\src\htanchor.h"\
+	"..\..\..\library\src\htansi.h"\
+	"..\..\..\library\src\htarray.h"\
+	"..\..\..\library\src\htassoc.h"\
+	"..\..\..\library\src\htatom.h"\
+	"..\..\..\library\src\htbind.h"\
+	"..\..\..\library\src\htbinit.h"\
+	"..\..\..\library\src\htbound.h"\
+	"..\..\..\library\src\htbufwrt.h"\
+	"..\..\..\library\src\htcache.h"\
+	"..\..\..\library\src\htchannl.h"\
+	"..\..\..\library\src\htchunk.h"\
+	"..\..\..\library\src\htconlen.h"\
+	"..\..\..\library\src\htdescpt.h"\
+	"..\..\..\library\src\htdialog.h"\
+	"..\..\..\library\src\htdir.h"\
+	"..\..\..\library\src\htdns.h"\
+	"..\..\..\library\src\hterror.h"\
+	"..\..\..\library\src\htescape.h"\
+	"..\..\..\library\src\htevent.h"\
+	"..\..\..\library\src\htevtlst.h"\
+	"..\..\..\library\src\htext.h"\
+	"..\..\..\library\src\htfile.h"\
+	"..\..\..\library\src\htfilter.h"\
+	"..\..\..\library\src\htformat.h"\
+	"..\..\..\library\src\htftp.h"\
+	"..\..\..\library\src\htftpdir.h"\
+	"..\..\..\library\src\htfwrite.h"\
+	"..\..\..\library\src\htgopher.h"\
+	"..\..\..\library\src\htguess.h"\
+	"..\..\..\library\src\htheader.h"\
+	"..\..\..\library\src\hthinit.h"\
+	"..\..\..\library\src\hthist.h"\
+	"..\..\..\library\src\hthome.h"\
+	"..\..\..\library\src\hthost.h"\
+	"..\..\..\library\src\hthstman.h"\
+	"..\..\..\library\src\hticons.h"\
+	"..\..\..\library\src\htinet.h"\
+	"..\..\..\library\src\htinit.h"\
+	"..\..\..\library\src\htiostream.h"\
+	"..\..\..\library\src\htlib.h"\
+	"..\..\..\library\src\htlink.h"\
+	"..\..\..\library\src\htlist.h"\
+	"..\..\..\library\src\htlocal.h"\
+	"..\..\..\library\src\htlog.h"\
+	"..\..\..\library\src\htmemlog.h"\
+	"..\..\..\library\src\htmemory.h"\
+	"..\..\..\library\src\htmerge.h"\
+	"..\..\..\library\src\htmethod.h"\
+	"..\..\..\library\src\htmime.h"\
+	"..\..\..\library\src\htmimerq.h"\
+	"..\..\..\library\src\htmimimp.h"\
+	"..\..\..\library\src\html.h"\
+	"..\..\..\library\src\htmlgen.h"\
+	"..\..\..\library\src\htmlpdtd.h"\
+	"..\..\..\library\src\htmulpar.h"\
+	"..\..\..\library\src\htmulti.h"\
+	"..\..\..\library\src\htndir.h"\
+	"..\..\..\library\src\htnet.h"\
+	"..\..\..\library\src\htnews.h"\
+	"..\..\..\library\src\htnewsls.h"\
+	"..\..\..\library\src\htnewsrq.h"\
+	"..\..\..\library\src\htparse.h"\
+	"..\..\..\library\src\htpep.h"\
+	"..\..\..\library\src\htplain.h"\
+	"..\..\..\library\src\htprofil.h"\
+	"..\..\..\library\src\htprot.h"\
+	"..\..\..\library\src\htproxy.h"\
+	"..\..\..\library\src\htreader.h"\
+	"..\..\..\library\src\htreq.h"\
+	"..\..\..\library\src\htresponse.h"\
+	"..\..\..\library\src\htrules.h"\
+	"..\..\..\library\src\htschunk.h"\
+	"..\..\..\library\src\htsocket.h"\
+	"..\..\..\library\src\htstream.h"\
+	"..\..\..\library\src\htstring.h"\
+	"..\..\..\library\src\htstruct.h"\
+	"..\..\..\library\src\htstyle.h"\
+	"..\..\..\library\src\httchunk.h"\
+	"..\..\..\library\src\httcp.h"\
+	"..\..\..\library\src\httee.h"\
+	"..\..\..\library\src\httelnet.h"\
+	"..\..\..\library\src\httexgen.h"\
+	"..\..\..\library\src\httimer.h"\
+	"..\..\..\library\src\http.h"\
+	"..\..\..\library\src\httpgen.h"\
+	"..\..\..\library\src\httpreq.h"\
+	"..\..\..\library\src\httpres.h"\
+	"..\..\..\library\src\httpserv.h"\
+	"..\..\..\library\src\httputil.h"\
+	"..\..\..\library\src\httrans.h"\
+	"..\..\..\library\src\htuser.h"\
+	"..\..\..\library\src\htutils.h"\
+	"..\..\..\library\src\htutree.h"\
+	"..\..\..\library\src\htuu.h"\
+	"..\..\..\library\src\HTWAIS.h"\
+	"..\..\..\library\src\htwriter.h"\
+	"..\..\..\library\src\htwwwstr.h"\
+	"..\..\..\library\src\htxparse.h"\
+	"..\..\..\library\src\htzip.h"\
+	"..\..\..\library\src\sgml.h"\
+	"..\..\..\library\src\windows\config.h"\
+	"..\..\..\library\src\wwwapp.h"\
+	"..\..\..\library\src\wwwcache.h"\
+	"..\..\..\library\src\wwwcore.h"\
+	"..\..\..\library\src\wwwdir.h"\
+	"..\..\..\library\src\wwwfile.h"\
+	"..\..\..\library\src\wwwftp.h"\
+	"..\..\..\library\src\wwwgophe.h"\
+	"..\..\..\library\src\wwwhtml.h"\
+	"..\..\..\library\src\wwwhttp.h"\
+	"..\..\..\library\src\wwwinit.h"\
+	"..\..\..\library\src\wwwlib.h"\
+	"..\..\..\library\src\wwwmime.h"\
+	"..\..\..\library\src\wwwnews.h"\
+	"..\..\..\library\src\wwwstream.h"\
+	"..\..\..\library\src\wwwsys.h"\
+	"..\..\..\library\src\wwwtelnt.h"\
+	"..\..\..\library\src\wwwtrans.h"\
+	"..\..\..\library\src\wwwutil.h"\
+	"..\..\..\library\src\WWWWAIS.h"\
+	"..\..\..\library\src\wwwzip.h"\
+	"..\..\..\pics-client\src\cslapp.h"\
+	"..\..\..\pics-client\src\csll.h"\
+	"..\..\..\pics-client\src\cslutils.h"\
+	"..\..\..\pics-client\src\csuser.h"\
+	"..\..\..\pics-client\src\csusrlst.h"\
+	"..\a_stdio.h"\
+	"..\gridtext.h"\
+	"..\htbrowse.h"\
+	{$(INCLUDE)}"sys\stat.h"\
+	{$(INCLUDE)}"sys\types.h"\
+	
+NODEP_CPP_HTBRO=\
+	"..\..\..\library\src\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTBrowse.obj" : $(SOURCE) $(DEP_CPP_HTBRO) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\..\..\Library\src\HTHInit.c
+
+!IF  "$(CFG)" == "www - Win32 Release"
+
+DEP_CPP_HTHIN=\
+	"..\..\..\library\external\regex.h"\
+	"..\..\..\library\src\htalert.h"\
+	"..\..\..\library\src\htanchor.h"\
+	"..\..\..\library\src\htarray.h"\
+	"..\..\..\library\src\htassoc.h"\
+	"..\..\..\library\src\htatom.h"\
+	"..\..\..\library\src\htbind.h"\
+	"..\..\..\library\src\htchannl.h"\
+	"..\..\..\library\src\htchunk.h"\
+	"..\..\..\library\src\htdns.h"\
+	"..\..\..\library\src\hterror.h"\
+	"..\..\..\library\src\htescape.h"\
+	"..\..\..\library\src\htevent.h"\
+	"..\..\..\library\src\htformat.h"\
+	"..\..\..\library\src\htfwrite.h"\
+	"..\..\..\library\src\hthinit.h"\
+	"..\..\..\library\src\hthost.h"\
+	"..\..\..\library\src\hthstman.h"\
+	"..\..\..\library\src\htinet.h"\
+	"..\..\..\library\src\htiostream.h"\
+	"..\..\..\library\src\htlib.h"\
+	"..\..\..\library\src\htlink.h"\
+	"..\..\..\library\src\htlist.h"\
+	"..\..\..\library\src\htmemlog.h"\
+	"..\..\..\library\src\htmemory.h"\
+	"..\..\..\library\src\htmethod.h"\
+	"..\..\..\library\src\html.h"\
+	"..\..\..\library\src\htmlgen.h"\
+	"..\..\..\library\src\htmlpdtd.h"\
+	"..\..\..\library\src\htnet.h"\
+	"..\..\..\library\src\htparse.h"\
+	"..\..\..\library\src\htplain.h"\
+	"..\..\..\library\src\htprot.h"\
+	"..\..\..\library\src\htreq.h"\
+	"..\..\..\library\src\htresponse.h"\
+	"..\..\..\library\src\htstream.h"\
+	"..\..\..\library\src\htstring.h"\
+	"..\..\..\library\src\htstruct.h"\
+	"..\..\..\library\src\httexgen.h"\
+	"..\..\..\library\src\httimer.h"\
+	"..\..\..\library\src\httrans.h"\
+	"..\..\..\library\src\htuser.h"\
+	"..\..\..\library\src\htutils.h"\
+	"..\..\..\library\src\htutree.h"\
+	"..\..\..\library\src\htuu.h"\
+	"..\..\..\library\src\htwwwstr.h"\
+	"..\..\..\library\src\sgml.h"\
+	"..\..\..\library\src\windows\config.h"\
+	"..\..\..\library\src\wwwcore.h"\
+	"..\..\..\library\src\wwwlib.h"\
+	"..\..\..\library\src\wwwsys.h"\
+	"..\..\..\library\src\wwwutil.h"\
+	
+
+"$(INTDIR)\HTHInit.obj" : $(SOURCE) $(DEP_CPP_HTHIN) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "www - Win32 Debug"
+
+DEP_CPP_HTHIN=\
+	"..\..\..\library\external\regex.h"\
+	"..\..\..\library\src\htalert.h"\
+	"..\..\..\library\src\htanchor.h"\
+	"..\..\..\library\src\htarray.h"\
+	"..\..\..\library\src\htassoc.h"\
+	"..\..\..\library\src\htatom.h"\
+	"..\..\..\library\src\htbind.h"\
+	"..\..\..\library\src\htchannl.h"\
+	"..\..\..\library\src\htchunk.h"\
+	"..\..\..\library\src\htdns.h"\
+	"..\..\..\library\src\hterror.h"\
+	"..\..\..\library\src\htescape.h"\
+	"..\..\..\library\src\htevent.h"\
+	"..\..\..\library\src\htformat.h"\
+	"..\..\..\library\src\htfwrite.h"\
+	"..\..\..\library\src\hthinit.h"\
+	"..\..\..\library\src\hthost.h"\
+	"..\..\..\library\src\hthstman.h"\
+	"..\..\..\library\src\htinet.h"\
+	"..\..\..\library\src\htiostream.h"\
+	"..\..\..\library\src\htlib.h"\
+	"..\..\..\library\src\htlink.h"\
+	"..\..\..\library\src\htlist.h"\
+	"..\..\..\library\src\htmemlog.h"\
+	"..\..\..\library\src\htmemory.h"\
+	"..\..\..\library\src\htmethod.h"\
+	"..\..\..\library\src\html.h"\
+	"..\..\..\library\src\htmlgen.h"\
+	"..\..\..\library\src\htmlpdtd.h"\
+	"..\..\..\library\src\htnet.h"\
+	"..\..\..\library\src\htparse.h"\
+	"..\..\..\library\src\htplain.h"\
+	"..\..\..\library\src\htprot.h"\
+	"..\..\..\library\src\htreq.h"\
+	"..\..\..\library\src\htresponse.h"\
+	"..\..\..\library\src\htstream.h"\
+	"..\..\..\library\src\htstring.h"\
+	"..\..\..\library\src\htstruct.h"\
+	"..\..\..\library\src\httexgen.h"\
+	"..\..\..\library\src\httimer.h"\
+	"..\..\..\library\src\httrans.h"\
+	"..\..\..\library\src\htuser.h"\
+	"..\..\..\library\src\htutils.h"\
+	"..\..\..\library\src\htutree.h"\
+	"..\..\..\library\src\htuu.h"\
+	"..\..\..\library\src\htwwwstr.h"\
+	"..\..\..\library\src\sgml.h"\
+	"..\..\..\library\src\windows\config.h"\
+	"..\..\..\library\src\wwwcore.h"\
+	"..\..\..\library\src\wwwlib.h"\
+	"..\..\..\library\src\wwwsys.h"\
+	"..\..\..\library\src\wwwutil.h"\
+	{$(INCLUDE)}"sys\stat.h"\
+	{$(INCLUDE)}"sys\types.h"\
+	
+NODEP_CPP_HTHIN=\
+	"..\..\..\library\src\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTHInit.obj" : $(SOURCE) $(DEP_CPP_HTHIN) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\..\..\Library\src\HTInit.c
+
+!IF  "$(CFG)" == "www - Win32 Release"
+
+DEP_CPP_HTINI=\
+	"..\..\..\library\external\regex.h"\
+	"..\..\..\library\src\htaabrow.h"\
+	"..\..\..\library\src\htaautil.h"\
+	"..\..\..\library\src\htaccess.h"\
+	"..\..\..\library\src\htalert.h"\
+	"..\..\..\library\src\htanchor.h"\
+	"..\..\..\library\src\htansi.h"\
+	"..\..\..\library\src\htarray.h"\
+	"..\..\..\library\src\htassoc.h"\
+	"..\..\..\library\src\htatom.h"\
+	"..\..\..\library\src\htbind.h"\
+	"..\..\..\library\src\htbound.h"\
+	"..\..\..\library\src\htbufwrt.h"\
+	"..\..\..\library\src\htcache.h"\
+	"..\..\..\library\src\htchannl.h"\
+	"..\..\..\library\src\htchunk.h"\
+	"..\..\..\library\src\htconlen.h"\
+	"..\..\..\library\src\htdescpt.h"\
+	"..\..\..\library\src\htdialog.h"\
+	"..\..\..\library\src\htdir.h"\
+	"..\..\..\library\src\htdns.h"\
+	"..\..\..\library\src\hterror.h"\
+	"..\..\..\library\src\htescape.h"\
+	"..\..\..\library\src\htevent.h"\
+	"..\..\..\library\src\htevtlst.h"\
+	"..\..\..\library\src\htfile.h"\
+	"..\..\..\library\src\htfilter.h"\
+	"..\..\..\library\src\htformat.h"\
+	"..\..\..\library\src\htftp.h"\
+	"..\..\..\library\src\htftpdir.h"\
+	"..\..\..\library\src\htfwrite.h"\
+	"..\..\..\library\src\htgopher.h"\
+	"..\..\..\library\src\htguess.h"\
+	"..\..\..\library\src\htheader.h"\
+	"..\..\..\library\src\hthist.h"\
+	"..\..\..\library\src\hthome.h"\
+	"..\..\..\library\src\hthost.h"\
+	"..\..\..\library\src\hthstman.h"\
+	"..\..\..\library\src\hticons.h"\
+	"..\..\..\library\src\htinet.h"\
+	"..\..\..\library\src\htinit.h"\
+	"..\..\..\library\src\htiostream.h"\
+	"..\..\..\library\src\htlib.h"\
+	"..\..\..\library\src\htlink.h"\
+	"..\..\..\library\src\htlist.h"\
+	"..\..\..\library\src\htlocal.h"\
+	"..\..\..\library\src\htlog.h"\
+	"..\..\..\library\src\htmemlog.h"\
+	"..\..\..\library\src\htmemory.h"\
+	"..\..\..\library\src\htmerge.h"\
+	"..\..\..\library\src\htmethod.h"\
+	"..\..\..\library\src\htmime.h"\
+	"..\..\..\library\src\htmimerq.h"\
+	"..\..\..\library\src\htmimimp.h"\
+	"..\..\..\library\src\htmlgen.h"\
+	"..\..\..\library\src\htmlpdtd.h"\
+	"..\..\..\library\src\htmulpar.h"\
+	"..\..\..\library\src\htmulti.h"\
+	"..\..\..\library\src\htndir.h"\
+	"..\..\..\library\src\htnet.h"\
+	"..\..\..\library\src\htnews.h"\
+	"..\..\..\library\src\htnewsls.h"\
+	"..\..\..\library\src\htnewsrq.h"\
+	"..\..\..\library\src\htparse.h"\
+	"..\..\..\library\src\htpep.h"\
+	"..\..\..\library\src\htprot.h"\
+	"..\..\..\library\src\htproxy.h"\
+	"..\..\..\library\src\htreader.h"\
+	"..\..\..\library\src\htreq.h"\
+	"..\..\..\library\src\htresponse.h"\
+	"..\..\..\library\src\htrules.h"\
+	"..\..\..\library\src\htschunk.h"\
+	"..\..\..\library\src\htsocket.h"\
+	"..\..\..\library\src\htstream.h"\
+	"..\..\..\library\src\htstring.h"\
+	"..\..\..\library\src\htstruct.h"\
+	"..\..\..\library\src\httchunk.h"\
+	"..\..\..\library\src\httcp.h"\
+	"..\..\..\library\src\httee.h"\
+	"..\..\..\library\src\httelnet.h"\
+	"..\..\..\library\src\httexgen.h"\
+	"..\..\..\library\src\httimer.h"\
+	"..\..\..\library\src\http.h"\
+	"..\..\..\library\src\httpgen.h"\
+	"..\..\..\library\src\httpreq.h"\
+	"..\..\..\library\src\httpres.h"\
+	"..\..\..\library\src\httpserv.h"\
+	"..\..\..\library\src\httputil.h"\
+	"..\..\..\library\src\httrans.h"\
+	"..\..\..\library\src\htuser.h"\
+	"..\..\..\library\src\htutils.h"\
+	"..\..\..\library\src\htutree.h"\
+	"..\..\..\library\src\htuu.h"\
+	"..\..\..\library\src\htwriter.h"\
+	"..\..\..\library\src\htwwwstr.h"\
+	"..\..\..\library\src\htxparse.h"\
+	"..\..\..\library\src\htzip.h"\
+	"..\..\..\library\src\sgml.h"\
+	"..\..\..\library\src\windows\config.h"\
+	"..\..\..\library\src\wwwapp.h"\
+	"..\..\..\library\src\wwwcache.h"\
+	"..\..\..\library\src\wwwcore.h"\
+	"..\..\..\library\src\wwwdir.h"\
+	"..\..\..\library\src\wwwfile.h"\
+	"..\..\..\library\src\wwwftp.h"\
+	"..\..\..\library\src\wwwgophe.h"\
+	"..\..\..\library\src\wwwhtml.h"\
+	"..\..\..\library\src\wwwhttp.h"\
+	"..\..\..\library\src\wwwlib.h"\
+	"..\..\..\library\src\wwwmime.h"\
+	"..\..\..\library\src\wwwnews.h"\
+	"..\..\..\library\src\wwwstream.h"\
+	"..\..\..\library\src\wwwsys.h"\
+	"..\..\..\library\src\wwwtelnt.h"\
+	"..\..\..\library\src\wwwtrans.h"\
+	"..\..\..\library\src\wwwutil.h"\
+	"..\..\..\library\src\wwwzip.h"\
+	
+
+"$(INTDIR)\HTInit.obj" : $(SOURCE) $(DEP_CPP_HTINI) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "www - Win32 Debug"
+
+DEP_CPP_HTINI=\
+	"..\..\..\library\external\regex.h"\
+	"..\..\..\library\src\htaabrow.h"\
+	"..\..\..\library\src\htaautil.h"\
+	"..\..\..\library\src\htaccess.h"\
+	"..\..\..\library\src\htalert.h"\
+	"..\..\..\library\src\htanchor.h"\
+	"..\..\..\library\src\htansi.h"\
+	"..\..\..\library\src\htarray.h"\
+	"..\..\..\library\src\htassoc.h"\
+	"..\..\..\library\src\htatom.h"\
+	"..\..\..\library\src\htbind.h"\
+	"..\..\..\library\src\htbound.h"\
+	"..\..\..\library\src\htbufwrt.h"\
+	"..\..\..\library\src\htcache.h"\
+	"..\..\..\library\src\htchannl.h"\
+	"..\..\..\library\src\htchunk.h"\
+	"..\..\..\library\src\htconlen.h"\
+	"..\..\..\Library\src\HTDemux.h"\
+	"..\..\..\library\src\htdescpt.h"\
+	"..\..\..\library\src\htdialog.h"\
+	"..\..\..\library\src\htdir.h"\
+	"..\..\..\library\src\htdns.h"\
+	"..\..\..\library\src\hterror.h"\
+	"..\..\..\library\src\htescape.h"\
+	"..\..\..\library\src\htevent.h"\
+	"..\..\..\library\src\htevtlst.h"\
+	"..\..\..\library\src\htfile.h"\
+	"..\..\..\library\src\htfilter.h"\
+	"..\..\..\library\src\htformat.h"\
+	"..\..\..\library\src\htftp.h"\
+	"..\..\..\library\src\htftpdir.h"\
+	"..\..\..\library\src\htfwrite.h"\
+	"..\..\..\library\src\htgopher.h"\
+	"..\..\..\library\src\htguess.h"\
+	"..\..\..\library\src\htheader.h"\
+	"..\..\..\library\src\hthist.h"\
+	"..\..\..\library\src\hthome.h"\
+	"..\..\..\library\src\hthost.h"\
+	"..\..\..\library\src\hthstman.h"\
+	"..\..\..\library\src\hticons.h"\
+	"..\..\..\library\src\htinet.h"\
+	"..\..\..\library\src\htinit.h"\
+	"..\..\..\library\src\htiostream.h"\
+	"..\..\..\library\src\htlib.h"\
+	"..\..\..\library\src\htlink.h"\
+	"..\..\..\library\src\htlist.h"\
+	"..\..\..\library\src\htlocal.h"\
+	"..\..\..\library\src\htlog.h"\
+	"..\..\..\library\src\htmemlog.h"\
+	"..\..\..\library\src\htmemory.h"\
+	"..\..\..\library\src\htmerge.h"\
+	"..\..\..\library\src\htmethod.h"\
+	"..\..\..\library\src\htmime.h"\
+	"..\..\..\library\src\htmimerq.h"\
+	"..\..\..\library\src\htmimimp.h"\
+	"..\..\..\library\src\htmlgen.h"\
+	"..\..\..\library\src\htmlpdtd.h"\
+	"..\..\..\library\src\htmulpar.h"\
+	"..\..\..\library\src\htmulti.h"\
+	"..\..\..\Library\src\HTMuxCh.h"\
+	"..\..\..\Library\src\HTMuxHeader.h"\
+	"..\..\..\Library\src\HTMuxTx.h"\
+	"..\..\..\library\src\htndir.h"\
+	"..\..\..\library\src\htnet.h"\
+	"..\..\..\library\src\htnews.h"\
+	"..\..\..\library\src\htnewsls.h"\
+	"..\..\..\library\src\htnewsrq.h"\
+	"..\..\..\library\src\htparse.h"\
+	"..\..\..\library\src\htpep.h"\
+	"..\..\..\library\src\htprot.h"\
+	"..\..\..\library\src\htproxy.h"\
+	"..\..\..\library\src\htreader.h"\
+	"..\..\..\library\src\htreq.h"\
+	"..\..\..\library\src\htresponse.h"\
+	"..\..\..\library\src\htrules.h"\
+	"..\..\..\library\src\htschunk.h"\
+	"..\..\..\library\src\htsocket.h"\
+	"..\..\..\library\src\htstream.h"\
+	"..\..\..\library\src\htstring.h"\
+	"..\..\..\library\src\htstruct.h"\
+	"..\..\..\library\src\httchunk.h"\
+	"..\..\..\library\src\httcp.h"\
+	"..\..\..\library\src\httee.h"\
+	"..\..\..\library\src\httelnet.h"\
+	"..\..\..\library\src\httexgen.h"\
+	"..\..\..\library\src\httimer.h"\
+	"..\..\..\library\src\http.h"\
+	"..\..\..\library\src\httpgen.h"\
+	"..\..\..\library\src\httpreq.h"\
+	"..\..\..\library\src\httpres.h"\
+	"..\..\..\library\src\httpserv.h"\
+	"..\..\..\library\src\httputil.h"\
+	"..\..\..\library\src\httrans.h"\
+	"..\..\..\library\src\htuser.h"\
+	"..\..\..\library\src\htutils.h"\
+	"..\..\..\library\src\htutree.h"\
+	"..\..\..\library\src\htuu.h"\
+	"..\..\..\library\src\HTWAIS.h"\
+	"..\..\..\library\src\htwriter.h"\
+	"..\..\..\library\src\htwwwstr.h"\
+	"..\..\..\library\src\htxparse.h"\
+	"..\..\..\library\src\htzip.h"\
+	"..\..\..\library\src\sgml.h"\
+	"..\..\..\library\src\windows\config.h"\
+	"..\..\..\library\src\wwwapp.h"\
+	"..\..\..\library\src\wwwcache.h"\
+	"..\..\..\library\src\wwwcore.h"\
+	"..\..\..\library\src\wwwdir.h"\
+	"..\..\..\library\src\wwwfile.h"\
+	"..\..\..\library\src\wwwftp.h"\
+	"..\..\..\library\src\wwwgophe.h"\
+	"..\..\..\library\src\wwwhtml.h"\
+	"..\..\..\library\src\wwwhttp.h"\
+	"..\..\..\library\src\wwwlib.h"\
+	"..\..\..\library\src\wwwmime.h"\
+	"..\..\..\Library\src\WWWMux.h"\
+	"..\..\..\library\src\wwwnews.h"\
+	"..\..\..\library\src\wwwstream.h"\
+	"..\..\..\library\src\wwwsys.h"\
+	"..\..\..\library\src\wwwtelnt.h"\
+	"..\..\..\library\src\wwwtrans.h"\
+	"..\..\..\library\src\wwwutil.h"\
+	"..\..\..\library\src\WWWWAIS.h"\
+	"..\..\..\library\src\wwwzip.h"\
+	{$(INCLUDE)}"sys\stat.h"\
+	{$(INCLUDE)}"sys\types.h"\
+	
+NODEP_CPP_HTINI=\
+	"..\..\..\library\src\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTInit.obj" : $(SOURCE) $(DEP_CPP_HTINI) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\..\..\Library\src\HTML.c
+
+!IF  "$(CFG)" == "www - Win32 Release"
+
+DEP_CPP_HTML_=\
+	"..\..\..\library\external\regex.h"\
+	"..\..\..\library\src\htalert.h"\
+	"..\..\..\library\src\htanchor.h"\
+	"..\..\..\library\src\htarray.h"\
+	"..\..\..\library\src\htassoc.h"\
+	"..\..\..\library\src\htatom.h"\
+	"..\..\..\library\src\htbind.h"\
+	"..\..\..\library\src\htchannl.h"\
+	"..\..\..\library\src\htchunk.h"\
+	"..\..\..\library\src\htdns.h"\
+	"..\..\..\library\src\hterror.h"\
+	"..\..\..\library\src\htescape.h"\
+	"..\..\..\library\src\htevent.h"\
+	"..\..\..\library\src\htext.h"\
+	"..\..\..\library\src\htformat.h"\
+	"..\..\..\library\src\htfwrite.h"\
+	"..\..\..\library\src\hthost.h"\
+	"..\..\..\library\src\hthstman.h"\
+	"..\..\..\library\src\htinet.h"\
+	"..\..\..\library\src\htiostream.h"\
+	"..\..\..\library\src\htlib.h"\
+	"..\..\..\library\src\htlink.h"\
+	"..\..\..\library\src\htlist.h"\
+	"..\..\..\library\src\htmemlog.h"\
+	"..\..\..\library\src\htmemory.h"\
+	"..\..\..\library\src\htmethod.h"\
+	"..\..\..\library\src\html.h"\
+	"..\..\..\library\src\htmlgen.h"\
+	"..\..\..\library\src\htmlpdtd.h"\
+	"..\..\..\library\src\htnet.h"\
+	"..\..\..\library\src\htparse.h"\
+	"..\..\..\library\src\htprot.h"\
+	"..\..\..\library\src\htreq.h"\
+	"..\..\..\library\src\htresponse.h"\
+	"..\..\..\library\src\htstream.h"\
+	"..\..\..\library\src\htstring.h"\
+	"..\..\..\library\src\htstruct.h"\
+	"..\..\..\library\src\htstyle.h"\
+	"..\..\..\library\src\httexgen.h"\
+	"..\..\..\library\src\httimer.h"\
+	"..\..\..\library\src\httrans.h"\
+	"..\..\..\library\src\htuser.h"\
+	"..\..\..\library\src\htutils.h"\
+	"..\..\..\library\src\htutree.h"\
+	"..\..\..\library\src\htuu.h"\
+	"..\..\..\library\src\htwwwstr.h"\
+	"..\..\..\library\src\sgml.h"\
+	"..\..\..\library\src\windows\config.h"\
+	"..\..\..\library\src\wwwcore.h"\
+	"..\..\..\library\src\wwwhtml.h"\
+	"..\..\..\library\src\wwwsys.h"\
+	"..\..\..\library\src\wwwutil.h"\
+	
+
+"$(INTDIR)\HTML.obj" : $(SOURCE) $(DEP_CPP_HTML_) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "www - Win32 Debug"
+
+DEP_CPP_HTML_=\
+	"..\..\..\library\external\regex.h"\
+	"..\..\..\library\src\htalert.h"\
+	"..\..\..\library\src\htanchor.h"\
+	"..\..\..\library\src\htarray.h"\
+	"..\..\..\library\src\htassoc.h"\
+	"..\..\..\library\src\htatom.h"\
+	"..\..\..\library\src\htbind.h"\
+	"..\..\..\library\src\htchannl.h"\
+	"..\..\..\library\src\htchunk.h"\
+	"..\..\..\library\src\htdns.h"\
+	"..\..\..\library\src\hterror.h"\
+	"..\..\..\library\src\htescape.h"\
+	"..\..\..\library\src\htevent.h"\
+	"..\..\..\library\src\htext.h"\
+	"..\..\..\library\src\htformat.h"\
+	"..\..\..\library\src\htfwrite.h"\
+	"..\..\..\library\src\hthost.h"\
+	"..\..\..\library\src\hthstman.h"\
+	"..\..\..\library\src\htinet.h"\
+	"..\..\..\library\src\htiostream.h"\
+	"..\..\..\library\src\htlib.h"\
+	"..\..\..\library\src\htlink.h"\
+	"..\..\..\library\src\htlist.h"\
+	"..\..\..\library\src\htmemlog.h"\
+	"..\..\..\library\src\htmemory.h"\
+	"..\..\..\library\src\htmethod.h"\
+	"..\..\..\library\src\html.h"\
+	"..\..\..\library\src\htmlgen.h"\
+	"..\..\..\library\src\htmlpdtd.h"\
+	"..\..\..\library\src\htnet.h"\
+	"..\..\..\library\src\htparse.h"\
+	"..\..\..\library\src\htprot.h"\
+	"..\..\..\library\src\htreq.h"\
+	"..\..\..\library\src\htresponse.h"\
+	"..\..\..\library\src\htstream.h"\
+	"..\..\..\library\src\htstring.h"\
+	"..\..\..\library\src\htstruct.h"\
+	"..\..\..\library\src\htstyle.h"\
+	"..\..\..\library\src\httexgen.h"\
+	"..\..\..\library\src\httimer.h"\
+	"..\..\..\library\src\httrans.h"\
+	"..\..\..\library\src\htuser.h"\
+	"..\..\..\library\src\htutils.h"\
+	"..\..\..\library\src\htutree.h"\
+	"..\..\..\library\src\htuu.h"\
+	"..\..\..\library\src\htwwwstr.h"\
+	"..\..\..\library\src\sgml.h"\
+	"..\..\..\library\src\windows\config.h"\
+	"..\..\..\library\src\wwwcore.h"\
+	"..\..\..\library\src\wwwhtml.h"\
+	"..\..\..\library\src\wwwsys.h"\
+	"..\..\..\library\src\wwwutil.h"\
+	{$(INCLUDE)}"sys\stat.h"\
+	{$(INCLUDE)}"sys\types.h"\
+	
+NODEP_CPP_HTML_=\
+	"..\..\..\library\src\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTML.obj" : $(SOURCE) $(DEP_CPP_HTML_) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\..\..\Library\src\HTMLPDTD.c
+
+!IF  "$(CFG)" == "www - Win32 Release"
+
+DEP_CPP_HTMLP=\
+	"..\..\..\library\external\regex.h"\
+	"..\..\..\library\src\htarray.h"\
+	"..\..\..\library\src\htlist.h"\
+	"..\..\..\library\src\htmemory.h"\
+	"..\..\..\library\src\htmlpdtd.h"\
+	"..\..\..\library\src\htstream.h"\
+	"..\..\..\library\src\htstruct.h"\
+	"..\..\..\library\src\htutils.h"\
+	"..\..\..\library\src\sgml.h"\
+	"..\..\..\library\src\windows\config.h"\
+	"..\..\..\library\src\wwwsys.h"\
+	
+
+"$(INTDIR)\HTMLPDTD.obj" : $(SOURCE) $(DEP_CPP_HTMLP) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "www - Win32 Debug"
+
+DEP_CPP_HTMLP=\
+	"..\..\..\library\external\regex.h"\
+	"..\..\..\library\src\htarray.h"\
+	"..\..\..\library\src\htlist.h"\
+	"..\..\..\library\src\htmemory.h"\
+	"..\..\..\library\src\htmlpdtd.h"\
+	"..\..\..\library\src\htstream.h"\
+	"..\..\..\library\src\htstruct.h"\
+	"..\..\..\library\src\htutils.h"\
+	"..\..\..\library\src\sgml.h"\
+	"..\..\..\library\src\windows\config.h"\
+	"..\..\..\library\src\wwwsys.h"\
+	{$(INCLUDE)}"sys\stat.h"\
+	{$(INCLUDE)}"sys\types.h"\
+	
+NODEP_CPP_HTMLP=\
+	"..\..\..\library\src\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTMLPDTD.obj" : $(SOURCE) $(DEP_CPP_HTMLP) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\..\..\Library\src\HTPlain.c
+
+!IF  "$(CFG)" == "www - Win32 Release"
+
+DEP_CPP_HTPLA=\
+	"..\..\..\library\external\regex.h"\
+	"..\..\..\library\src\htanchor.h"\
+	"..\..\..\library\src\htarray.h"\
+	"..\..\..\library\src\htassoc.h"\
+	"..\..\..\library\src\htatom.h"\
+	"..\..\..\library\src\htchannl.h"\
+	"..\..\..\library\src\htchunk.h"\
+	"..\..\..\library\src\htdns.h"\
+	"..\..\..\library\src\hterror.h"\
+	"..\..\..\library\src\htevent.h"\
+	"..\..\..\library\src\htext.h"\
+	"..\..\..\library\src\htformat.h"\
+	"..\..\..\library\src\hthost.h"\
+	"..\..\..\library\src\htiostream.h"\
+	"..\..\..\library\src\htlink.h"\
+	"..\..\..\library\src\htlist.h"\
+	"..\..\..\library\src\htmemory.h"\
+	"..\..\..\library\src\htmethod.h"\
+	"..\..\..\library\src\html.h"\
+	"..\..\..\library\src\htmlpdtd.h"\
+	"..\..\..\library\src\htnet.h"\
+	"..\..\..\library\src\htplain.h"\
+	"..\..\..\library\src\htprot.h"\
+	"..\..\..\library\src\htreq.h"\
+	"..\..\..\library\src\htresponse.h"\
+	"..\..\..\library\src\htstream.h"\
+	"..\..\..\library\src\htstring.h"\
+	"..\..\..\library\src\htstruct.h"\
+	"..\..\..\library\src\htstyle.h"\
+	"..\..\..\library\src\httimer.h"\
+	"..\..\..\library\src\httrans.h"\
+	"..\..\..\library\src\htuser.h"\
+	"..\..\..\library\src\htutils.h"\
+	"..\..\..\library\src\htuu.h"\
+	"..\..\..\library\src\sgml.h"\
+	"..\..\..\library\src\windows\config.h"\
+	"..\..\..\library\src\wwwsys.h"\
+	"..\..\..\library\src\wwwutil.h"\
+	
+
+"$(INTDIR)\HTPlain.obj" : $(SOURCE) $(DEP_CPP_HTPLA) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "www - Win32 Debug"
+
+DEP_CPP_HTPLA=\
+	"..\..\..\library\external\regex.h"\
+	"..\..\..\library\src\htanchor.h"\
+	"..\..\..\library\src\htarray.h"\
+	"..\..\..\library\src\htassoc.h"\
+	"..\..\..\library\src\htatom.h"\
+	"..\..\..\library\src\htchannl.h"\
+	"..\..\..\library\src\htchunk.h"\
+	"..\..\..\library\src\htdns.h"\
+	"..\..\..\library\src\hterror.h"\
+	"..\..\..\library\src\htevent.h"\
+	"..\..\..\library\src\htext.h"\
+	"..\..\..\library\src\htformat.h"\
+	"..\..\..\library\src\hthost.h"\
+	"..\..\..\library\src\htiostream.h"\
+	"..\..\..\library\src\htlink.h"\
+	"..\..\..\library\src\htlist.h"\
+	"..\..\..\library\src\htmemory.h"\
+	"..\..\..\library\src\htmethod.h"\
+	"..\..\..\library\src\html.h"\
+	"..\..\..\library\src\htmlpdtd.h"\
+	"..\..\..\library\src\htnet.h"\
+	"..\..\..\library\src\htplain.h"\
+	"..\..\..\library\src\htprot.h"\
+	"..\..\..\library\src\htreq.h"\
+	"..\..\..\library\src\htresponse.h"\
+	"..\..\..\library\src\htstream.h"\
+	"..\..\..\library\src\htstring.h"\
+	"..\..\..\library\src\htstruct.h"\
+	"..\..\..\library\src\htstyle.h"\
+	"..\..\..\library\src\httimer.h"\
+	"..\..\..\library\src\httrans.h"\
+	"..\..\..\library\src\htuser.h"\
+	"..\..\..\library\src\htutils.h"\
+	"..\..\..\library\src\htuu.h"\
+	"..\..\..\library\src\sgml.h"\
+	"..\..\..\library\src\windows\config.h"\
+	"..\..\..\library\src\wwwsys.h"\
+	"..\..\..\library\src\wwwutil.h"\
+	{$(INCLUDE)}"sys\stat.h"\
+	{$(INCLUDE)}"sys\types.h"\
+	
+NODEP_CPP_HTPLA=\
+	"..\..\..\library\src\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTPlain.obj" : $(SOURCE) $(DEP_CPP_HTPLA) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\..\..\Library\src\HTProfil.c
+
+!IF  "$(CFG)" == "www - Win32 Release"
+
+DEP_CPP_HTPRO=\
+	"..\..\..\library\external\regex.h"\
+	"..\..\..\library\src\htaabrow.h"\
+	"..\..\..\library\src\htaautil.h"\
+	"..\..\..\library\src\htaccess.h"\
+	"..\..\..\library\src\htalert.h"\
+	"..\..\..\library\src\htanchor.h"\
+	"..\..\..\library\src\htansi.h"\
+	"..\..\..\library\src\htarray.h"\
+	"..\..\..\library\src\htassoc.h"\
+	"..\..\..\library\src\htatom.h"\
+	"..\..\..\library\src\htbind.h"\
+	"..\..\..\library\src\htbinit.h"\
+	"..\..\..\library\src\htbound.h"\
+	"..\..\..\library\src\htbufwrt.h"\
+	"..\..\..\library\src\htcache.h"\
+	"..\..\..\library\src\htchannl.h"\
+	"..\..\..\library\src\htchunk.h"\
+	"..\..\..\library\src\htconlen.h"\
+	"..\..\..\library\src\htdescpt.h"\
+	"..\..\..\library\src\htdialog.h"\
+	"..\..\..\library\src\htdir.h"\
+	"..\..\..\library\src\htdns.h"\
+	"..\..\..\library\src\hterror.h"\
+	"..\..\..\library\src\htescape.h"\
+	"..\..\..\library\src\htevent.h"\
+	"..\..\..\library\src\htevtlst.h"\
+	"..\..\..\library\src\htfile.h"\
+	"..\..\..\library\src\htfilter.h"\
+	"..\..\..\library\src\htformat.h"\
+	"..\..\..\library\src\htftp.h"\
+	"..\..\..\library\src\htftpdir.h"\
+	"..\..\..\library\src\htfwrite.h"\
+	"..\..\..\library\src\htgopher.h"\
+	"..\..\..\library\src\htguess.h"\
+	"..\..\..\library\src\htheader.h"\
+	"..\..\..\library\src\hthinit.h"\
+	"..\..\..\library\src\hthist.h"\
+	"..\..\..\library\src\hthome.h"\
+	"..\..\..\library\src\hthost.h"\
+	"..\..\..\library\src\hthstman.h"\
+	"..\..\..\library\src\hticons.h"\
+	"..\..\..\library\src\htinet.h"\
+	"..\..\..\library\src\htinit.h"\
+	"..\..\..\library\src\htiostream.h"\
+	"..\..\..\library\src\htlib.h"\
+	"..\..\..\library\src\htlink.h"\
+	"..\..\..\library\src\htlist.h"\
+	"..\..\..\library\src\htlocal.h"\
+	"..\..\..\library\src\htlog.h"\
+	"..\..\..\library\src\htmemlog.h"\
+	"..\..\..\library\src\htmemory.h"\
+	"..\..\..\library\src\htmerge.h"\
+	"..\..\..\library\src\htmethod.h"\
+	"..\..\..\library\src\htmime.h"\
+	"..\..\..\library\src\htmimerq.h"\
+	"..\..\..\library\src\htmimimp.h"\
+	"..\..\..\library\src\html.h"\
+	"..\..\..\library\src\htmlgen.h"\
+	"..\..\..\library\src\htmlpdtd.h"\
+	"..\..\..\library\src\htmulpar.h"\
+	"..\..\..\library\src\htmulti.h"\
+	"..\..\..\library\src\htndir.h"\
+	"..\..\..\library\src\htnet.h"\
+	"..\..\..\library\src\htnews.h"\
+	"..\..\..\library\src\htnewsls.h"\
+	"..\..\..\library\src\htnewsrq.h"\
+	"..\..\..\library\src\htparse.h"\
+	"..\..\..\library\src\htpep.h"\
+	"..\..\..\library\src\htplain.h"\
+	"..\..\..\library\src\htprofil.h"\
+	"..\..\..\library\src\htprot.h"\
+	"..\..\..\library\src\htproxy.h"\
+	"..\..\..\library\src\htreader.h"\
+	"..\..\..\library\src\htreq.h"\
+	"..\..\..\library\src\htresponse.h"\
+	"..\..\..\library\src\htrules.h"\
+	"..\..\..\library\src\htschunk.h"\
+	"..\..\..\library\src\htsocket.h"\
+	"..\..\..\library\src\htstream.h"\
+	"..\..\..\library\src\htstring.h"\
+	"..\..\..\library\src\htstruct.h"\
+	"..\..\..\library\src\httchunk.h"\
+	"..\..\..\library\src\httcp.h"\
+	"..\..\..\library\src\httee.h"\
+	"..\..\..\library\src\httelnet.h"\
+	"..\..\..\library\src\httexgen.h"\
+	"..\..\..\library\src\httimer.h"\
+	"..\..\..\library\src\http.h"\
+	"..\..\..\library\src\httpgen.h"\
+	"..\..\..\library\src\httpreq.h"\
+	"..\..\..\library\src\httpres.h"\
+	"..\..\..\library\src\httpserv.h"\
+	"..\..\..\library\src\httputil.h"\
+	"..\..\..\library\src\httrans.h"\
+	"..\..\..\library\src\htuser.h"\
+	"..\..\..\library\src\htutils.h"\
+	"..\..\..\library\src\htutree.h"\
+	"..\..\..\library\src\htuu.h"\
+	"..\..\..\library\src\htwriter.h"\
+	"..\..\..\library\src\htwwwstr.h"\
+	"..\..\..\library\src\htxparse.h"\
+	"..\..\..\library\src\htzip.h"\
+	"..\..\..\library\src\sgml.h"\
+	"..\..\..\library\src\windows\config.h"\
+	"..\..\..\library\src\wwwapp.h"\
+	"..\..\..\library\src\wwwcache.h"\
+	"..\..\..\library\src\wwwcore.h"\
+	"..\..\..\library\src\wwwdir.h"\
+	"..\..\..\library\src\wwwfile.h"\
+	"..\..\..\library\src\wwwftp.h"\
+	"..\..\..\library\src\wwwgophe.h"\
+	"..\..\..\library\src\wwwhtml.h"\
+	"..\..\..\library\src\wwwhttp.h"\
+	"..\..\..\library\src\wwwinit.h"\
+	"..\..\..\library\src\wwwlib.h"\
+	"..\..\..\library\src\wwwmime.h"\
+	"..\..\..\library\src\wwwnews.h"\
+	"..\..\..\library\src\wwwstream.h"\
+	"..\..\..\library\src\wwwsys.h"\
+	"..\..\..\library\src\wwwtelnt.h"\
+	"..\..\..\library\src\wwwtrans.h"\
+	"..\..\..\library\src\wwwutil.h"\
+	"..\..\..\library\src\wwwzip.h"\
+	
+
+"$(INTDIR)\HTProfil.obj" : $(SOURCE) $(DEP_CPP_HTPRO) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "www - Win32 Debug"
+
+DEP_CPP_HTPRO=\
+	"..\..\..\library\external\regex.h"\
+	"..\..\..\library\src\htaabrow.h"\
+	"..\..\..\library\src\htaautil.h"\
+	"..\..\..\library\src\htaccess.h"\
+	"..\..\..\library\src\htalert.h"\
+	"..\..\..\library\src\htanchor.h"\
+	"..\..\..\library\src\htansi.h"\
+	"..\..\..\library\src\htarray.h"\
+	"..\..\..\library\src\htassoc.h"\
+	"..\..\..\library\src\htatom.h"\
+	"..\..\..\library\src\htbind.h"\
+	"..\..\..\library\src\htbinit.h"\
+	"..\..\..\library\src\htbound.h"\
+	"..\..\..\library\src\htbufwrt.h"\
+	"..\..\..\library\src\htcache.h"\
+	"..\..\..\library\src\htchannl.h"\
+	"..\..\..\library\src\htchunk.h"\
+	"..\..\..\library\src\htconlen.h"\
+	"..\..\..\library\src\htdescpt.h"\
+	"..\..\..\library\src\htdialog.h"\
+	"..\..\..\library\src\htdir.h"\
+	"..\..\..\library\src\htdns.h"\
+	"..\..\..\library\src\hterror.h"\
+	"..\..\..\library\src\htescape.h"\
+	"..\..\..\library\src\htevent.h"\
+	"..\..\..\library\src\htevtlst.h"\
+	"..\..\..\library\src\htfile.h"\
+	"..\..\..\library\src\htfilter.h"\
+	"..\..\..\library\src\htformat.h"\
+	"..\..\..\library\src\htftp.h"\
+	"..\..\..\library\src\htftpdir.h"\
+	"..\..\..\library\src\htfwrite.h"\
+	"..\..\..\library\src\htgopher.h"\
+	"..\..\..\library\src\htguess.h"\
+	"..\..\..\library\src\htheader.h"\
+	"..\..\..\library\src\hthinit.h"\
+	"..\..\..\library\src\hthist.h"\
+	"..\..\..\library\src\hthome.h"\
+	"..\..\..\library\src\hthost.h"\
+	"..\..\..\library\src\hthstman.h"\
+	"..\..\..\library\src\hticons.h"\
+	"..\..\..\library\src\htinet.h"\
+	"..\..\..\library\src\htinit.h"\
+	"..\..\..\library\src\htiostream.h"\
+	"..\..\..\library\src\htlib.h"\
+	"..\..\..\library\src\htlink.h"\
+	"..\..\..\library\src\htlist.h"\
+	"..\..\..\library\src\htlocal.h"\
+	"..\..\..\library\src\htlog.h"\
+	"..\..\..\library\src\htmemlog.h"\
+	"..\..\..\library\src\htmemory.h"\
+	"..\..\..\library\src\htmerge.h"\
+	"..\..\..\library\src\htmethod.h"\
+	"..\..\..\library\src\htmime.h"\
+	"..\..\..\library\src\htmimerq.h"\
+	"..\..\..\library\src\htmimimp.h"\
+	"..\..\..\library\src\html.h"\
+	"..\..\..\library\src\htmlgen.h"\
+	"..\..\..\library\src\htmlpdtd.h"\
+	"..\..\..\library\src\htmulpar.h"\
+	"..\..\..\library\src\htmulti.h"\
+	"..\..\..\library\src\htndir.h"\
+	"..\..\..\library\src\htnet.h"\
+	"..\..\..\library\src\htnews.h"\
+	"..\..\..\library\src\htnewsls.h"\
+	"..\..\..\library\src\htnewsrq.h"\
+	"..\..\..\library\src\htparse.h"\
+	"..\..\..\library\src\htpep.h"\
+	"..\..\..\library\src\htplain.h"\
+	"..\..\..\library\src\htprofil.h"\
+	"..\..\..\library\src\htprot.h"\
+	"..\..\..\library\src\htproxy.h"\
+	"..\..\..\library\src\htreader.h"\
+	"..\..\..\library\src\htreq.h"\
+	"..\..\..\library\src\htresponse.h"\
+	"..\..\..\library\src\htrules.h"\
+	"..\..\..\library\src\htschunk.h"\
+	"..\..\..\library\src\htsocket.h"\
+	"..\..\..\library\src\htstream.h"\
+	"..\..\..\library\src\htstring.h"\
+	"..\..\..\library\src\htstruct.h"\
+	"..\..\..\library\src\httchunk.h"\
+	"..\..\..\library\src\httcp.h"\
+	"..\..\..\library\src\httee.h"\
+	"..\..\..\library\src\httelnet.h"\
+	"..\..\..\library\src\httexgen.h"\
+	"..\..\..\library\src\httimer.h"\
+	"..\..\..\library\src\http.h"\
+	"..\..\..\library\src\httpgen.h"\
+	"..\..\..\library\src\httpreq.h"\
+	"..\..\..\library\src\httpres.h"\
+	"..\..\..\library\src\httpserv.h"\
+	"..\..\..\library\src\httputil.h"\
+	"..\..\..\library\src\httrans.h"\
+	"..\..\..\library\src\htuser.h"\
+	"..\..\..\library\src\htutils.h"\
+	"..\..\..\library\src\htutree.h"\
+	"..\..\..\library\src\htuu.h"\
+	"..\..\..\library\src\HTWAIS.h"\
+	"..\..\..\library\src\htwriter.h"\
+	"..\..\..\library\src\htwwwstr.h"\
+	"..\..\..\library\src\htxparse.h"\
+	"..\..\..\library\src\htzip.h"\
+	"..\..\..\library\src\sgml.h"\
+	"..\..\..\library\src\windows\config.h"\
+	"..\..\..\library\src\wwwapp.h"\
+	"..\..\..\library\src\wwwcache.h"\
+	"..\..\..\library\src\wwwcore.h"\
+	"..\..\..\library\src\wwwdir.h"\
+	"..\..\..\library\src\wwwfile.h"\
+	"..\..\..\library\src\wwwftp.h"\
+	"..\..\..\library\src\wwwgophe.h"\
+	"..\..\..\library\src\wwwhtml.h"\
+	"..\..\..\library\src\wwwhttp.h"\
+	"..\..\..\library\src\wwwinit.h"\
+	"..\..\..\library\src\wwwlib.h"\
+	"..\..\..\library\src\wwwmime.h"\
+	"..\..\..\library\src\wwwnews.h"\
+	"..\..\..\library\src\wwwstream.h"\
+	"..\..\..\library\src\wwwsys.h"\
+	"..\..\..\library\src\wwwtelnt.h"\
+	"..\..\..\library\src\wwwtrans.h"\
+	"..\..\..\library\src\wwwutil.h"\
+	"..\..\..\library\src\WWWWAIS.h"\
+	"..\..\..\library\src\wwwzip.h"\
+	{$(INCLUDE)}"sys\stat.h"\
+	{$(INCLUDE)}"sys\types.h"\
+	
+NODEP_CPP_HTPRO=\
+	"..\..\..\library\src\HTVMSUtils.h"\
+	
+
+"$(INTDIR)\HTProfil.obj" : $(SOURCE) $(DEP_CPP_HTPRO) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
 
 SOURCE=.\lib.c
 DEP_CPP_LIB_C=\
-	".\..\windows\lib.h"\
+	".\lib.h"\
 	
 
 "$(INTDIR)\lib.obj" : $(SOURCE) $(DEP_CPP_LIB_C) "$(INTDIR)"
 
 
-# End Source File
-################################################################################
-# Begin Source File
-
 SOURCE=.\scroll.c
 DEP_CPP_SCROL=\
-	".\..\windows\lib.h"\
-	".\..\windows\scroll.h"\
+	".\lib.h"\
+	".\scroll.h"\
 	
 
 "$(INTDIR)\scroll.obj" : $(SOURCE) $(DEP_CPP_SCROL) "$(INTDIR)"
 
 
-# End Source File
-################################################################################
-# Begin Source File
+SOURCE=.\www.c
 
-SOURCE=..\GridStyle.c
-DEP_CPP_GRIDS=\
-	"..\..\..\Library\src\HTHstMan.h"\
-	"..\..\..\Library\src\HTList.h"\
-	"..\..\..\Library\src\HTResponse.h"\
-	"..\..\..\Library\src\HTStyle.h"\
-	"..\..\..\Library\src\HTUtils.h"\
-	"..\..\..\Library\src\windows\config.h"\
-	"..\..\..\Library\src\WWWCore.h"\
-	"..\..\..\Library\src\WWWLib.h"\
-	".\..\..\..\Library\src\HTAlert.h"\
-	".\..\..\..\Library\src\HTAnchor.h"\
-	".\..\..\..\Library\src\HTArray.h"\
-	".\..\..\..\Library\src\HTAssoc.h"\
-	".\..\..\..\Library\src\HTAtom.h"\
-	".\..\..\..\Library\src\HTBind.h"\
-	".\..\..\..\Library\src\HTChannl.h"\
-	".\..\..\..\Library\src\HTChunk.h"\
-	".\..\..\..\Library\src\HTDNS.h"\
-	".\..\..\..\Library\src\HTError.h"\
-	".\..\..\..\Library\src\HTEscape.h"\
-	".\..\..\..\Library\src\HTEvent.h"\
-	".\..\..\..\Library\src\HTFormat.h"\
-	".\..\..\..\Library\src\HTFWrite.h"\
-	".\..\..\..\Library\src\HTHost.h"\
-	".\..\..\..\Library\src\HTInet.h"\
-	".\..\..\..\Library\src\HTIOStream.h"\
-	".\..\..\..\Library\src\HTLib.h"\
-	".\..\..\..\Library\src\HTLink.h"\
-	".\..\..\..\Library\src\HTMemory.h"\
-	".\..\..\..\Library\src\HTMethod.h"\
-	".\..\..\..\Library\src\HTML.h"\
-	".\..\..\..\Library\src\HTMLPDTD.h"\
-	".\..\..\..\Library\src\HTNet.h"\
-	".\..\..\..\Library\src\HTParse.h"\
-	".\..\..\..\Library\src\HTProt.h"\
-	".\..\..\..\Library\src\HTReq.h"\
-	".\..\..\..\Library\src\HTStream.h"\
-	".\..\..\..\Library\src\HTString.h"\
-	".\..\..\..\Library\src\HTStruct.h"\
-	".\..\..\..\Library\src\HTTrans.h"\
-	".\..\..\..\Library\src\HTUser.h"\
-	".\..\..\..\Library\src\HTUTree.h"\
-	".\..\..\..\Library\src\HTUU.h"\
-	".\..\..\..\Library\src\HTWWWStr.h"\
-	".\..\..\..\Library\src\SGML.h"\
-	".\..\..\..\Library\src\sysdep.h"\
-	".\..\..\..\Library\src\WWWUtil.h"\
-	{$(INCLUDE)}"\sys\STAT.H"\
-	{$(INCLUDE)}"\sys\TYPES.H"\
-	
-NODEP_CPP_GRIDS=\
-	".\..\..\..\Library\src\HTVMSUtils.h"\
-	
+!IF  "$(CFG)" == "www - Win32 Release"
 
-"$(INTDIR)\GridStyle.obj" : $(SOURCE) $(DEP_CPP_GRIDS) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\GridText.c
-DEP_CPP_GRIDT=\
-	"..\..\..\Library\src\HTEvtLst.h"\
-	"..\..\..\Library\src\HText.h"\
-	"..\..\..\Library\src\HTHstMan.h"\
-	"..\..\..\Library\src\HTList.h"\
-	"..\..\..\Library\src\HTResponse.h"\
-	"..\..\..\Library\src\HTStyle.h"\
-	"..\..\..\Library\src\HTUtils.h"\
-	"..\..\..\Library\src\windows\config.h"\
-	"..\..\..\Library\src\WWWApp.h"\
-	"..\..\..\Library\src\WWWCache.h"\
-	"..\..\..\Library\src\WWWCore.h"\
-	"..\..\..\Library\src\WWWLib.h"\
-	".\..\..\..\Library\src\HTAccess.h"\
-	".\..\..\..\Library\src\HTAlert.h"\
-	".\..\..\..\Library\src\HTAnchor.h"\
-	".\..\..\..\Library\src\HTArray.h"\
-	".\..\..\..\Library\src\HTAssoc.h"\
-	".\..\..\..\Library\src\HTAtom.h"\
-	".\..\..\..\Library\src\HTBind.h"\
-	".\..\..\..\Library\src\HTCache.h"\
-	".\..\..\..\Library\src\HTChannl.h"\
-	".\..\..\..\Library\src\HTChunk.h"\
-	".\..\..\..\Library\src\HTDialog.h"\
-	".\..\..\..\Library\src\HTDNS.h"\
-	".\..\..\..\Library\src\HTError.h"\
-	".\..\..\..\Library\src\HTEscape.h"\
-	".\..\..\..\Library\src\HTEvent.h"\
-	".\..\..\..\Library\src\HTFilter.h"\
-	".\..\..\..\Library\src\HTFormat.h"\
-	".\..\..\..\Library\src\HTFWrite.h"\
-	".\..\..\..\Library\src\HTHist.h"\
-	".\..\..\..\Library\src\HTHome.h"\
-	".\..\..\..\Library\src\HTHost.h"\
-	".\..\..\..\Library\src\HTInet.h"\
-	".\..\..\..\Library\src\HTIOStream.h"\
-	".\..\..\..\Library\src\HTLib.h"\
-	".\..\..\..\Library\src\HTLink.h"\
-	".\..\..\..\Library\src\HTLog.h"\
-	".\..\..\..\Library\src\HTMemory.h"\
-	".\..\..\..\Library\src\HTMethod.h"\
-	".\..\..\..\Library\src\HTML.h"\
-	".\..\..\..\Library\src\HTMLPDTD.h"\
-	".\..\..\..\Library\src\HTNet.h"\
-	".\..\..\..\Library\src\HTParse.h"\
-	".\..\..\..\Library\src\HTProt.h"\
-	".\..\..\..\Library\src\HTProxy.h"\
-	".\..\..\..\Library\src\HTReq.h"\
-	".\..\..\..\Library\src\HTRules.h"\
-	".\..\..\..\Library\src\HTStream.h"\
-	".\..\..\..\Library\src\HTString.h"\
-	".\..\..\..\Library\src\HTStruct.h"\
-	".\..\..\..\Library\src\HTTrans.h"\
-	".\..\..\..\Library\src\HTUser.h"\
-	".\..\..\..\Library\src\HTUTree.h"\
-	".\..\..\..\Library\src\HTUU.h"\
-	".\..\..\..\Library\src\HTWWWStr.h"\
-	".\..\..\..\Library\src\SGML.h"\
-	".\..\..\..\Library\src\sysdep.h"\
-	".\..\..\..\Library\src\WWWUtil.h"\
-	".\..\a_stdio.h"\
-	".\..\GridStyle.h"\
-	".\..\GridText.h"\
-	".\..\HTBrowse.h"\
-	".\..\HTFont.h"\
-	{$(INCLUDE)}"\sys\STAT.H"\
-	{$(INCLUDE)}"\sys\TYPES.H"\
-	
-NODEP_CPP_GRIDT=\
-	".\..\..\..\Library\src\HTVMSUtils.h"\
+DEP_CPP_WWW_C=\
+	"..\..\..\library\external\regex.h"\
+	"..\..\..\library\src\htaabrow.h"\
+	"..\..\..\library\src\htalert.h"\
+	"..\..\..\library\src\htanchor.h"\
+	"..\..\..\library\src\htarray.h"\
+	"..\..\..\library\src\htassoc.h"\
+	"..\..\..\library\src\htatom.h"\
+	"..\..\..\library\src\htbind.h"\
+	"..\..\..\library\src\htchannl.h"\
+	"..\..\..\library\src\htchunk.h"\
+	"..\..\..\library\src\htdns.h"\
+	"..\..\..\library\src\hterror.h"\
+	"..\..\..\library\src\htescape.h"\
+	"..\..\..\library\src\htevent.h"\
+	"..\..\..\library\src\htformat.h"\
+	"..\..\..\library\src\htfwrite.h"\
+	"..\..\..\library\src\htheader.h"\
+	"..\..\..\library\src\hthost.h"\
+	"..\..\..\library\src\hthstman.h"\
+	"..\..\..\library\src\htinet.h"\
+	"..\..\..\library\src\htiostream.h"\
+	"..\..\..\library\src\htlib.h"\
+	"..\..\..\library\src\htlink.h"\
+	"..\..\..\library\src\htlist.h"\
+	"..\..\..\library\src\htmemlog.h"\
+	"..\..\..\library\src\htmemory.h"\
+	"..\..\..\library\src\htmethod.h"\
+	"..\..\..\library\src\htmimprs.h"\
+	"..\..\..\library\src\htnet.h"\
+	"..\..\..\library\src\htparse.h"\
+	"..\..\..\library\src\htprot.h"\
+	"..\..\..\library\src\htreq.h"\
+	"..\..\..\library\src\htreqman.h"\
+	"..\..\..\library\src\htresponse.h"\
+	"..\..\..\library\src\htstream.h"\
+	"..\..\..\library\src\htstring.h"\
+	"..\..\..\library\src\htstruct.h"\
+	"..\..\..\library\src\httimer.h"\
+	"..\..\..\library\src\httrans.h"\
+	"..\..\..\library\src\htuser.h"\
+	"..\..\..\library\src\htutils.h"\
+	"..\..\..\library\src\htutree.h"\
+	"..\..\..\library\src\htuu.h"\
+	"..\..\..\library\src\htwwwstr.h"\
+	"..\..\..\library\src\windows\config.h"\
+	"..\..\..\library\src\wwwcore.h"\
+	"..\..\..\library\src\wwwlib.h"\
+	"..\..\..\library\src\wwwsys.h"\
+	"..\..\..\library\src\wwwutil.h"\
+	"..\htbrowse.h"\
+	".\lib.h"\
+	".\scroll.h"\
 	
 
-"$(INTDIR)\GridText.obj" : $(SOURCE) $(DEP_CPP_GRIDT) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\www.obj" : $(SOURCE) $(DEP_CPP_WWW_C) "$(INTDIR)"
 
 
-# End Source File
-################################################################################
-# Begin Source File
+!ELSEIF  "$(CFG)" == "www - Win32 Debug"
 
-SOURCE=..\HTBrowse.c
-DEP_CPP_HTBRO=\
-	"..\..\..\Library\src\HTEvtLst.h"\
-	"..\..\..\Library\src\HText.h"\
-	"..\..\..\Library\src\HTHstMan.h"\
-	"..\..\..\Library\src\HTList.h"\
-	"..\..\..\Library\src\HTMemLog.h"\
-	"..\..\..\Library\src\HTMerge.h"\
-	"..\..\..\Library\src\HTNewsRq.h"\
-	"..\..\..\Library\src\HTPEP.h"\
-	"..\..\..\Library\src\HTResponse.h"\
-	"..\..\..\Library\src\HTStyle.h"\
-	"..\..\..\Library\src\HTUtils.h"\
-	"..\..\..\Library\src\HTZip.h"\
-	"..\..\..\Library\src\windows\config.h"\
-	"..\..\..\Library\src\WWWApp.h"\
-	"..\..\..\Library\src\WWWCache.h"\
-	"..\..\..\Library\src\WWWCore.h"\
-	"..\..\..\Library\src\WWWInit.h"\
-	"..\..\..\Library\src\WWWLib.h"\
-	"..\..\..\Library\src\WWWMIME.h"\
-	"..\..\..\Library\src\WWWTrans.h"\
-	"..\..\..\Library\src\WWWZip.h"\
-	"..\..\..\PICS-client\src\CSLApp.h"\
-	"..\..\..\PICS-client\src\CSLL.h"\
-	"..\..\..\PICS-client\src\CSUser.h"\
-	"..\..\..\PICS-client\src\CSUsrLst.h"\
-	".\..\..\..\Library\src\HTAABrow.h"\
-	".\..\..\..\Library\src\HTAAUtil.h"\
-	".\..\..\..\Library\src\HTAccess.h"\
-	".\..\..\..\Library\src\HTAlert.h"\
-	".\..\..\..\Library\src\HTAnchor.h"\
-	".\..\..\..\Library\src\HTANSI.h"\
-	".\..\..\..\Library\src\HTArray.h"\
-	".\..\..\..\Library\src\HTAssoc.h"\
-	".\..\..\..\Library\src\HTAtom.h"\
-	".\..\..\..\Library\src\HTBind.h"\
-	".\..\..\..\Library\src\HTBInit.h"\
-	".\..\..\..\Library\src\HTBound.h"\
-	".\..\..\..\Library\src\HTBufWrt.h"\
-	".\..\..\..\Library\src\HTCache.h"\
-	".\..\..\..\Library\src\HTChannl.h"\
-	".\..\..\..\Library\src\HTChunk.h"\
-	".\..\..\..\Library\src\HTConLen.h"\
-	".\..\..\..\Library\src\HTDescpt.h"\
-	".\..\..\..\Library\src\HTDialog.h"\
-	".\..\..\..\Library\src\HTDir.h"\
-	".\..\..\..\Library\src\HTDNS.h"\
-	".\..\..\..\Library\src\HTError.h"\
-	".\..\..\..\Library\src\HTEscape.h"\
-	".\..\..\..\Library\src\HTEvent.h"\
-	".\..\..\..\Library\src\HTFile.h"\
-	".\..\..\..\Library\src\HTFilter.h"\
-	".\..\..\..\Library\src\HTFormat.h"\
-	".\..\..\..\Library\src\HTFTP.h"\
-	".\..\..\..\Library\src\HTFTPDir.h"\
-	".\..\..\..\Library\src\HTFWrite.h"\
-	".\..\..\..\Library\src\HTGopher.h"\
-	".\..\..\..\Library\src\HTGuess.h"\
-	".\..\..\..\Library\src\HTHeader.h"\
-	".\..\..\..\Library\src\HTHInit.h"\
-	".\..\..\..\Library\src\HTHist.h"\
-	".\..\..\..\Library\src\HTHome.h"\
-	".\..\..\..\Library\src\HTHost.h"\
-	".\..\..\..\Library\src\HTIcons.h"\
-	".\..\..\..\Library\src\HTInet.h"\
-	".\..\..\..\Library\src\HTInit.h"\
-	".\..\..\..\Library\src\HTIOStream.h"\
-	".\..\..\..\Library\src\HTLib.h"\
-	".\..\..\..\Library\src\HTLink.h"\
-	".\..\..\..\Library\src\HTLocal.h"\
-	".\..\..\..\Library\src\HTLog.h"\
-	".\..\..\..\Library\src\HTMemory.h"\
-	".\..\..\..\Library\src\HTMethod.h"\
-	".\..\..\..\Library\src\HTMIME.h"\
-	".\..\..\..\Library\src\HTMIMERq.h"\
-	".\..\..\..\Library\src\HTMIMImp.h"\
-	".\..\..\..\Library\src\HTML.h"\
-	".\..\..\..\Library\src\HTMLGen.h"\
-	".\..\..\..\Library\src\HTMLPDTD.h"\
-	".\..\..\..\Library\src\HTMulpar.h"\
-	".\..\..\..\Library\src\HTMulti.h"\
-	".\..\..\..\Library\src\HTNDir.h"\
-	".\..\..\..\Library\src\HTNet.h"\
-	".\..\..\..\Library\src\HTNews.h"\
-	".\..\..\..\Library\src\HTNewsLs.h"\
-	".\..\..\..\Library\src\HTParse.h"\
-	".\..\..\..\Library\src\HTPlain.h"\
-	".\..\..\..\Library\src\HTProfil.h"\
-	".\..\..\..\Library\src\HTProt.h"\
-	".\..\..\..\Library\src\HTProxy.h"\
-	".\..\..\..\Library\src\HTReader.h"\
-	".\..\..\..\Library\src\HTReq.h"\
-	".\..\..\..\Library\src\HTRules.h"\
-	".\..\..\..\Library\src\HTSChunk.h"\
-	".\..\..\..\Library\src\HTSocket.h"\
-	".\..\..\..\Library\src\HTStream.h"\
-	".\..\..\..\Library\src\HTString.h"\
-	".\..\..\..\Library\src\HTStruct.h"\
-	".\..\..\..\Library\src\HTTChunk.h"\
-	".\..\..\..\Library\src\HTTCP.h"\
-	".\..\..\..\Library\src\HTTee.h"\
-	".\..\..\..\Library\src\HTTelnet.h"\
-	".\..\..\..\Library\src\HTTeXGen.h"\
-	".\..\..\..\Library\src\HTTP.h"\
-	".\..\..\..\Library\src\HTTPGen.h"\
-	".\..\..\..\Library\src\HTTPReq.h"\
-	".\..\..\..\Library\src\HTTPRes.h"\
-	".\..\..\..\Library\src\HTTPServ.h"\
-	".\..\..\..\Library\src\HTTPUtil.h"\
-	".\..\..\..\Library\src\HTTrans.h"\
-	".\..\..\..\Library\src\HTUser.h"\
-	".\..\..\..\Library\src\HTUTree.h"\
-	".\..\..\..\Library\src\HTUU.h"\
-	".\..\..\..\Library\src\HTWriter.h"\
-	".\..\..\..\Library\src\HTWWWStr.h"\
-	".\..\..\..\Library\src\HTXParse.h"\
-	".\..\..\..\Library\src\SGML.h"\
-	".\..\..\..\Library\src\sysdep.h"\
-	".\..\..\..\Library\src\WWWDir.h"\
-	".\..\..\..\Library\src\WWWFile.h"\
-	".\..\..\..\Library\src\WWWFTP.h"\
-	".\..\..\..\Library\src\WWWGophe.h"\
-	".\..\..\..\Library\src\WWWHTML.h"\
-	".\..\..\..\Library\src\WWWHTTP.h"\
-	".\..\..\..\Library\src\WWWNews.h"\
-	".\..\..\..\Library\src\WWWStream.h"\
-	".\..\..\..\Library\src\WWWTelnt.h"\
-	".\..\..\..\Library\src\WWWUtil.h"\
-	".\..\..\..\Library\src\WWWWAIS.h"\
-	".\..\..\..\PICS-client\src\CSLUtils.h"\
-	".\..\a_stdio.h"\
-	".\..\GridText.h"\
-	".\..\HTBrowse.h"\
-	{$(INCLUDE)}"\sys\STAT.H"\
-	{$(INCLUDE)}"\sys\TYPES.H"\
+DEP_CPP_WWW_C=\
+	"..\..\..\library\external\regex.h"\
+	"..\..\..\library\src\htaabrow.h"\
+	"..\..\..\library\src\htalert.h"\
+	"..\..\..\library\src\htanchor.h"\
+	"..\..\..\library\src\htarray.h"\
+	"..\..\..\library\src\htassoc.h"\
+	"..\..\..\library\src\htatom.h"\
+	"..\..\..\library\src\htbind.h"\
+	"..\..\..\library\src\htchannl.h"\
+	"..\..\..\library\src\htchunk.h"\
+	"..\..\..\library\src\htdns.h"\
+	"..\..\..\library\src\hterror.h"\
+	"..\..\..\library\src\htescape.h"\
+	"..\..\..\library\src\htevent.h"\
+	"..\..\..\library\src\htformat.h"\
+	"..\..\..\library\src\htfwrite.h"\
+	"..\..\..\library\src\htheader.h"\
+	"..\..\..\library\src\hthost.h"\
+	"..\..\..\library\src\hthstman.h"\
+	"..\..\..\library\src\htinet.h"\
+	"..\..\..\library\src\htiostream.h"\
+	"..\..\..\library\src\htlib.h"\
+	"..\..\..\library\src\htlink.h"\
+	"..\..\..\library\src\htlist.h"\
+	"..\..\..\library\src\htmemlog.h"\
+	"..\..\..\library\src\htmemory.h"\
+	"..\..\..\library\src\htmethod.h"\
+	"..\..\..\library\src\htmimprs.h"\
+	"..\..\..\library\src\htnet.h"\
+	"..\..\..\library\src\htparse.h"\
+	"..\..\..\library\src\htprot.h"\
+	"..\..\..\library\src\htreq.h"\
+	"..\..\..\library\src\htreqman.h"\
+	"..\..\..\library\src\htresponse.h"\
+	"..\..\..\library\src\htstream.h"\
+	"..\..\..\library\src\htstring.h"\
+	"..\..\..\library\src\htstruct.h"\
+	"..\..\..\library\src\httimer.h"\
+	"..\..\..\library\src\httrans.h"\
+	"..\..\..\library\src\htuser.h"\
+	"..\..\..\library\src\htutils.h"\
+	"..\..\..\library\src\htutree.h"\
+	"..\..\..\library\src\htuu.h"\
+	"..\..\..\library\src\htwwwstr.h"\
+	"..\..\..\library\src\windows\config.h"\
+	"..\..\..\library\src\wwwcore.h"\
+	"..\..\..\library\src\wwwlib.h"\
+	"..\..\..\library\src\wwwsys.h"\
+	"..\..\..\library\src\wwwutil.h"\
+	"..\htbrowse.h"\
+	".\lib.h"\
+	".\scroll.h"\
+	{$(INCLUDE)}"sys\stat.h"\
+	{$(INCLUDE)}"sys\types.h"\
 	
-NODEP_CPP_HTBRO=\
-	"..\..\..\PICS-client\src\HTList.h"\
-	"..\..\..\PICS-client\src\WWWCore.h"\
-	".\..\..\..\Library\src\HTVMSUtils.h"\
-	".\..\..\..\Library\src\HTWAIS.h"\
+NODEP_CPP_WWW_C=\
+	"..\..\..\library\src\HTVMSUtils.h"\
 	
 
-"$(INTDIR)\HTBrowse.obj" : $(SOURCE) $(DEP_CPP_HTBRO) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
+"$(INTDIR)\www.obj" : $(SOURCE) $(DEP_CPP_WWW_C) "$(INTDIR)"
 
 
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\DefaultStyles.c
-DEP_CPP_DEFAU=\
-	"..\..\..\Library\src\HText.h"\
-	"..\..\..\Library\src\HTHstMan.h"\
-	"..\..\..\Library\src\HTList.h"\
-	"..\..\..\Library\src\HTResponse.h"\
-	"..\..\..\Library\src\HTStyle.h"\
-	"..\..\..\Library\src\HTUtils.h"\
-	"..\..\..\Library\src\windows\config.h"\
-	"..\..\..\Library\src\WWWCore.h"\
-	"..\..\..\Library\src\WWWLib.h"\
-	".\..\..\..\Library\src\HTAlert.h"\
-	".\..\..\..\Library\src\HTAnchor.h"\
-	".\..\..\..\Library\src\HTArray.h"\
-	".\..\..\..\Library\src\HTAssoc.h"\
-	".\..\..\..\Library\src\HTAtom.h"\
-	".\..\..\..\Library\src\HTBind.h"\
-	".\..\..\..\Library\src\HTChannl.h"\
-	".\..\..\..\Library\src\HTChunk.h"\
-	".\..\..\..\Library\src\HTDNS.h"\
-	".\..\..\..\Library\src\HTError.h"\
-	".\..\..\..\Library\src\HTEscape.h"\
-	".\..\..\..\Library\src\HTEvent.h"\
-	".\..\..\..\Library\src\HTFormat.h"\
-	".\..\..\..\Library\src\HTFWrite.h"\
-	".\..\..\..\Library\src\HTHost.h"\
-	".\..\..\..\Library\src\HTInet.h"\
-	".\..\..\..\Library\src\HTIOStream.h"\
-	".\..\..\..\Library\src\HTLib.h"\
-	".\..\..\..\Library\src\HTLink.h"\
-	".\..\..\..\Library\src\HTMemory.h"\
-	".\..\..\..\Library\src\HTMethod.h"\
-	".\..\..\..\Library\src\HTML.h"\
-	".\..\..\..\Library\src\HTMLPDTD.h"\
-	".\..\..\..\Library\src\HTNet.h"\
-	".\..\..\..\Library\src\HTParse.h"\
-	".\..\..\..\Library\src\HTProt.h"\
-	".\..\..\..\Library\src\HTReq.h"\
-	".\..\..\..\Library\src\HTStream.h"\
-	".\..\..\..\Library\src\HTString.h"\
-	".\..\..\..\Library\src\HTStruct.h"\
-	".\..\..\..\Library\src\HTTrans.h"\
-	".\..\..\..\Library\src\HTUser.h"\
-	".\..\..\..\Library\src\HTUTree.h"\
-	".\..\..\..\Library\src\HTUU.h"\
-	".\..\..\..\Library\src\HTWWWStr.h"\
-	".\..\..\..\Library\src\SGML.h"\
-	".\..\..\..\Library\src\sysdep.h"\
-	".\..\..\..\Library\src\WWWUtil.h"\
-	".\..\GridStyle.h"\
-	".\..\HTFont.h"\
-	{$(INCLUDE)}"\sys\STAT.H"\
-	{$(INCLUDE)}"\sys\TYPES.H"\
-	
-NODEP_CPP_DEFAU=\
-	".\..\..\..\Library\src\HTVMSUtils.h"\
-	
-
-"$(INTDIR)\DefaultStyles.obj" : $(SOURCE) $(DEP_CPP_DEFAU) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-# End Source File
-################################################################################
-# Begin Source File
+!ENDIF 
 
 SOURCE=.\www.rc
 DEP_RSC_WWW_R=\
@@ -742,787 +2204,9 @@ DEP_RSC_WWW_R=\
 	
 
 "$(INTDIR)\www.res" : $(SOURCE) $(DEP_RSC_WWW_R) "$(INTDIR)"
-   $(RSC) $(RSC_PROJ) $(SOURCE)
+	$(RSC) $(RSC_PROJ) $(SOURCE)
 
 
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\..\..\Library\src\HTPlain.c
-DEP_CPP_HTPLA=\
-	"..\..\..\Library\src\HText.h"\
-	"..\..\..\Library\src\HTList.h"\
-	"..\..\..\Library\src\HTResponse.h"\
-	"..\..\..\Library\src\HTStyle.h"\
-	"..\..\..\Library\src\HTUtils.h"\
-	"..\..\..\Library\src\windows\config.h"\
-	".\..\..\..\Library\src\HTAnchor.h"\
-	".\..\..\..\Library\src\HTArray.h"\
-	".\..\..\..\Library\src\HTAssoc.h"\
-	".\..\..\..\Library\src\HTAtom.h"\
-	".\..\..\..\Library\src\HTChannl.h"\
-	".\..\..\..\Library\src\HTChunk.h"\
-	".\..\..\..\Library\src\HTDNS.h"\
-	".\..\..\..\Library\src\HTError.h"\
-	".\..\..\..\Library\src\HTEvent.h"\
-	".\..\..\..\Library\src\HTFormat.h"\
-	".\..\..\..\Library\src\HTHost.h"\
-	".\..\..\..\Library\src\HTIOStream.h"\
-	".\..\..\..\Library\src\HTLink.h"\
-	".\..\..\..\Library\src\HTMemory.h"\
-	".\..\..\..\Library\src\HTMethod.h"\
-	".\..\..\..\Library\src\HTML.h"\
-	".\..\..\..\Library\src\HTMLPDTD.h"\
-	".\..\..\..\Library\src\HTNet.h"\
-	".\..\..\..\Library\src\HTPlain.h"\
-	".\..\..\..\Library\src\HTProt.h"\
-	".\..\..\..\Library\src\HTReq.h"\
-	".\..\..\..\Library\src\HTStream.h"\
-	".\..\..\..\Library\src\HTString.h"\
-	".\..\..\..\Library\src\HTStruct.h"\
-	".\..\..\..\Library\src\HTTrans.h"\
-	".\..\..\..\Library\src\HTUser.h"\
-	".\..\..\..\Library\src\HTUU.h"\
-	".\..\..\..\Library\src\SGML.h"\
-	".\..\..\..\Library\src\sysdep.h"\
-	".\..\..\..\Library\src\WWWUtil.h"\
-	{$(INCLUDE)}"\sys\STAT.H"\
-	{$(INCLUDE)}"\sys\TYPES.H"\
-	
-NODEP_CPP_HTPLA=\
-	".\..\..\..\Library\src\HTVMSUtils.h"\
-	
-
-"$(INTDIR)\HTPlain.obj" : $(SOURCE) $(DEP_CPP_HTPLA) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\..\..\Library\src\HTML.c
-DEP_CPP_HTML_=\
-	"..\..\..\Library\src\HText.h"\
-	"..\..\..\Library\src\HTHstMan.h"\
-	"..\..\..\Library\src\HTList.h"\
-	"..\..\..\Library\src\HTResponse.h"\
-	"..\..\..\Library\src\HTStyle.h"\
-	"..\..\..\Library\src\HTUtils.h"\
-	"..\..\..\Library\src\windows\config.h"\
-	"..\..\..\Library\src\WWWCore.h"\
-	".\..\..\..\Library\src\HTAlert.h"\
-	".\..\..\..\Library\src\HTAnchor.h"\
-	".\..\..\..\Library\src\HTArray.h"\
-	".\..\..\..\Library\src\HTAssoc.h"\
-	".\..\..\..\Library\src\HTAtom.h"\
-	".\..\..\..\Library\src\HTBind.h"\
-	".\..\..\..\Library\src\HTChannl.h"\
-	".\..\..\..\Library\src\HTChunk.h"\
-	".\..\..\..\Library\src\HTDNS.h"\
-	".\..\..\..\Library\src\HTError.h"\
-	".\..\..\..\Library\src\HTEscape.h"\
-	".\..\..\..\Library\src\HTEvent.h"\
-	".\..\..\..\Library\src\HTFormat.h"\
-	".\..\..\..\Library\src\HTFWrite.h"\
-	".\..\..\..\Library\src\HTHost.h"\
-	".\..\..\..\Library\src\HTInet.h"\
-	".\..\..\..\Library\src\HTIOStream.h"\
-	".\..\..\..\Library\src\HTLib.h"\
-	".\..\..\..\Library\src\HTLink.h"\
-	".\..\..\..\Library\src\HTMemory.h"\
-	".\..\..\..\Library\src\HTMethod.h"\
-	".\..\..\..\Library\src\HTML.h"\
-	".\..\..\..\Library\src\HTMLGen.h"\
-	".\..\..\..\Library\src\HTMLPDTD.h"\
-	".\..\..\..\Library\src\HTNet.h"\
-	".\..\..\..\Library\src\HTParse.h"\
-	".\..\..\..\Library\src\HTProt.h"\
-	".\..\..\..\Library\src\HTReq.h"\
-	".\..\..\..\Library\src\HTStream.h"\
-	".\..\..\..\Library\src\HTString.h"\
-	".\..\..\..\Library\src\HTStruct.h"\
-	".\..\..\..\Library\src\HTTeXGen.h"\
-	".\..\..\..\Library\src\HTTrans.h"\
-	".\..\..\..\Library\src\HTUser.h"\
-	".\..\..\..\Library\src\HTUTree.h"\
-	".\..\..\..\Library\src\HTUU.h"\
-	".\..\..\..\Library\src\HTWWWStr.h"\
-	".\..\..\..\Library\src\SGML.h"\
-	".\..\..\..\Library\src\sysdep.h"\
-	".\..\..\..\Library\src\WWWHTML.h"\
-	".\..\..\..\Library\src\WWWUtil.h"\
-	{$(INCLUDE)}"\sys\STAT.H"\
-	{$(INCLUDE)}"\sys\TYPES.H"\
-	
-NODEP_CPP_HTML_=\
-	".\..\..\..\Library\src\HTVMSUtils.h"\
-	
-
-"$(INTDIR)\HTML.obj" : $(SOURCE) $(DEP_CPP_HTML_) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\..\..\Library\src\HTMLPDTD.c
-DEP_CPP_HTMLP=\
-	"..\..\..\Library\src\HTList.h"\
-	"..\..\..\Library\src\HTUtils.h"\
-	"..\..\..\Library\src\windows\config.h"\
-	".\..\..\..\Library\src\HTArray.h"\
-	".\..\..\..\Library\src\HTMemory.h"\
-	".\..\..\..\Library\src\HTMLPDTD.h"\
-	".\..\..\..\Library\src\HTStream.h"\
-	".\..\..\..\Library\src\HTStruct.h"\
-	".\..\..\..\Library\src\SGML.h"\
-	".\..\..\..\Library\src\sysdep.h"\
-	{$(INCLUDE)}"\sys\STAT.H"\
-	{$(INCLUDE)}"\sys\TYPES.H"\
-	
-NODEP_CPP_HTMLP=\
-	".\..\..\..\Library\src\HTVMSUtils.h"\
-	
-
-"$(INTDIR)\HTMLPDTD.obj" : $(SOURCE) $(DEP_CPP_HTMLP) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\..\..\Library\src\HTInit.c
-DEP_CPP_HTINI=\
-	"..\..\..\Library\src\HTDemux.h"\
-	"..\..\..\Library\src\HTEvtLst.h"\
-	"..\..\..\Library\src\HTHstMan.h"\
-	"..\..\..\Library\src\HTList.h"\
-	"..\..\..\Library\src\HTMerge.h"\
-	"..\..\..\Library\src\HTMuxCh.h"\
-	"..\..\..\Library\src\HTMuxHeader.h"\
-	"..\..\..\Library\src\HTMuxTx.h"\
-	"..\..\..\Library\src\HTNewsRq.h"\
-	"..\..\..\Library\src\HTPEP.h"\
-	"..\..\..\Library\src\HTResponse.h"\
-	"..\..\..\Library\src\HTUtils.h"\
-	"..\..\..\Library\src\HTZip.h"\
-	"..\..\..\Library\src\windows\config.h"\
-	"..\..\..\Library\src\WWWApp.h"\
-	"..\..\..\Library\src\WWWCache.h"\
-	"..\..\..\Library\src\WWWCore.h"\
-	"..\..\..\Library\src\WWWLib.h"\
-	"..\..\..\Library\src\WWWMIME.h"\
-	"..\..\..\Library\src\WWWMux.h"\
-	"..\..\..\Library\src\WWWTrans.h"\
-	"..\..\..\Library\src\WWWZip.h"\
-	".\..\..\..\Library\src\HTAABrow.h"\
-	".\..\..\..\Library\src\HTAAUtil.h"\
-	".\..\..\..\Library\src\HTAccess.h"\
-	".\..\..\..\Library\src\HTAlert.h"\
-	".\..\..\..\Library\src\HTAnchor.h"\
-	".\..\..\..\Library\src\HTANSI.h"\
-	".\..\..\..\Library\src\HTArray.h"\
-	".\..\..\..\Library\src\HTAssoc.h"\
-	".\..\..\..\Library\src\HTAtom.h"\
-	".\..\..\..\Library\src\HTBind.h"\
-	".\..\..\..\Library\src\HTBound.h"\
-	".\..\..\..\Library\src\HTBufWrt.h"\
-	".\..\..\..\Library\src\HTCache.h"\
-	".\..\..\..\Library\src\HTChannl.h"\
-	".\..\..\..\Library\src\HTChunk.h"\
-	".\..\..\..\Library\src\HTConLen.h"\
-	".\..\..\..\Library\src\HTDescpt.h"\
-	".\..\..\..\Library\src\HTDialog.h"\
-	".\..\..\..\Library\src\HTDir.h"\
-	".\..\..\..\Library\src\HTDNS.h"\
-	".\..\..\..\Library\src\HTError.h"\
-	".\..\..\..\Library\src\HTEscape.h"\
-	".\..\..\..\Library\src\HTEvent.h"\
-	".\..\..\..\Library\src\HTFile.h"\
-	".\..\..\..\Library\src\HTFilter.h"\
-	".\..\..\..\Library\src\HTFormat.h"\
-	".\..\..\..\Library\src\HTFTP.h"\
-	".\..\..\..\Library\src\HTFTPDir.h"\
-	".\..\..\..\Library\src\HTFWrite.h"\
-	".\..\..\..\Library\src\HTGopher.h"\
-	".\..\..\..\Library\src\HTGuess.h"\
-	".\..\..\..\Library\src\HTHeader.h"\
-	".\..\..\..\Library\src\HTHist.h"\
-	".\..\..\..\Library\src\HTHome.h"\
-	".\..\..\..\Library\src\HTHost.h"\
-	".\..\..\..\Library\src\HTIcons.h"\
-	".\..\..\..\Library\src\HTInet.h"\
-	".\..\..\..\Library\src\HTInit.h"\
-	".\..\..\..\Library\src\HTIOStream.h"\
-	".\..\..\..\Library\src\HTLib.h"\
-	".\..\..\..\Library\src\HTLink.h"\
-	".\..\..\..\Library\src\HTLocal.h"\
-	".\..\..\..\Library\src\HTLog.h"\
-	".\..\..\..\Library\src\HTMemory.h"\
-	".\..\..\..\Library\src\HTMethod.h"\
-	".\..\..\..\Library\src\HTMIME.h"\
-	".\..\..\..\Library\src\HTMIMERq.h"\
-	".\..\..\..\Library\src\HTMIMImp.h"\
-	".\..\..\..\Library\src\HTMLGen.h"\
-	".\..\..\..\Library\src\HTMLPDTD.h"\
-	".\..\..\..\Library\src\HTMulpar.h"\
-	".\..\..\..\Library\src\HTMulti.h"\
-	".\..\..\..\Library\src\HTMux.h"\
-	".\..\..\..\Library\src\HTNDir.h"\
-	".\..\..\..\Library\src\HTNet.h"\
-	".\..\..\..\Library\src\HTNews.h"\
-	".\..\..\..\Library\src\HTNewsLs.h"\
-	".\..\..\..\Library\src\HTParse.h"\
-	".\..\..\..\Library\src\HTProt.h"\
-	".\..\..\..\Library\src\HTProxy.h"\
-	".\..\..\..\Library\src\HTReader.h"\
-	".\..\..\..\Library\src\HTReq.h"\
-	".\..\..\..\Library\src\HTRules.h"\
-	".\..\..\..\Library\src\HTSChunk.h"\
-	".\..\..\..\Library\src\HTSocket.h"\
-	".\..\..\..\Library\src\HTStream.h"\
-	".\..\..\..\Library\src\HTString.h"\
-	".\..\..\..\Library\src\HTStruct.h"\
-	".\..\..\..\Library\src\HTTChunk.h"\
-	".\..\..\..\Library\src\HTTCP.h"\
-	".\..\..\..\Library\src\HTTee.h"\
-	".\..\..\..\Library\src\HTTelnet.h"\
-	".\..\..\..\Library\src\HTTeXGen.h"\
-	".\..\..\..\Library\src\HTTP.h"\
-	".\..\..\..\Library\src\HTTPGen.h"\
-	".\..\..\..\Library\src\HTTPReq.h"\
-	".\..\..\..\Library\src\HTTPRes.h"\
-	".\..\..\..\Library\src\HTTPServ.h"\
-	".\..\..\..\Library\src\HTTPUtil.h"\
-	".\..\..\..\Library\src\HTTrans.h"\
-	".\..\..\..\Library\src\HTUser.h"\
-	".\..\..\..\Library\src\HTUTree.h"\
-	".\..\..\..\Library\src\HTUU.h"\
-	".\..\..\..\Library\src\HTWriter.h"\
-	".\..\..\..\Library\src\HTWWWStr.h"\
-	".\..\..\..\Library\src\HTXParse.h"\
-	".\..\..\..\Library\src\SGML.h"\
-	".\..\..\..\Library\src\sysdep.h"\
-	".\..\..\..\Library\src\WWWDir.h"\
-	".\..\..\..\Library\src\WWWFile.h"\
-	".\..\..\..\Library\src\WWWFTP.h"\
-	".\..\..\..\Library\src\WWWGophe.h"\
-	".\..\..\..\Library\src\WWWHTML.h"\
-	".\..\..\..\Library\src\WWWHTTP.h"\
-	".\..\..\..\Library\src\WWWNews.h"\
-	".\..\..\..\Library\src\WWWStream.h"\
-	".\..\..\..\Library\src\WWWTelnt.h"\
-	".\..\..\..\Library\src\WWWUtil.h"\
-	".\..\..\..\Library\src\WWWWAIS.h"\
-	{$(INCLUDE)}"\sys\STAT.H"\
-	{$(INCLUDE)}"\sys\TYPES.H"\
-	
-NODEP_CPP_HTINI=\
-	".\..\..\..\Library\src\HTVMSUtils.h"\
-	".\..\..\..\Library\src\HTWAIS.h"\
-	
-
-"$(INTDIR)\HTInit.obj" : $(SOURCE) $(DEP_CPP_HTINI) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\..\..\Library\src\HTBInit.c
-DEP_CPP_HTBIN=\
-	"..\..\..\Library\src\HTHstMan.h"\
-	"..\..\..\Library\src\HTList.h"\
-	"..\..\..\Library\src\HTResponse.h"\
-	"..\..\..\Library\src\HTUtils.h"\
-	"..\..\..\Library\src\windows\config.h"\
-	"..\..\..\Library\src\WWWCore.h"\
-	".\..\..\..\Library\src\HTAlert.h"\
-	".\..\..\..\Library\src\HTAnchor.h"\
-	".\..\..\..\Library\src\HTArray.h"\
-	".\..\..\..\Library\src\HTAssoc.h"\
-	".\..\..\..\Library\src\HTAtom.h"\
-	".\..\..\..\Library\src\HTBind.h"\
-	".\..\..\..\Library\src\HTBInit.h"\
-	".\..\..\..\Library\src\HTChannl.h"\
-	".\..\..\..\Library\src\HTChunk.h"\
-	".\..\..\..\Library\src\HTDNS.h"\
-	".\..\..\..\Library\src\HTError.h"\
-	".\..\..\..\Library\src\HTEscape.h"\
-	".\..\..\..\Library\src\HTEvent.h"\
-	".\..\..\..\Library\src\HTFormat.h"\
-	".\..\..\..\Library\src\HTFWrite.h"\
-	".\..\..\..\Library\src\HTHost.h"\
-	".\..\..\..\Library\src\HTInet.h"\
-	".\..\..\..\Library\src\HTIOStream.h"\
-	".\..\..\..\Library\src\HTLib.h"\
-	".\..\..\..\Library\src\HTLink.h"\
-	".\..\..\..\Library\src\HTMemory.h"\
-	".\..\..\..\Library\src\HTMethod.h"\
-	".\..\..\..\Library\src\HTNet.h"\
-	".\..\..\..\Library\src\HTParse.h"\
-	".\..\..\..\Library\src\HTProt.h"\
-	".\..\..\..\Library\src\HTReq.h"\
-	".\..\..\..\Library\src\HTStream.h"\
-	".\..\..\..\Library\src\HTString.h"\
-	".\..\..\..\Library\src\HTStruct.h"\
-	".\..\..\..\Library\src\HTTrans.h"\
-	".\..\..\..\Library\src\HTUser.h"\
-	".\..\..\..\Library\src\HTUTree.h"\
-	".\..\..\..\Library\src\HTUU.h"\
-	".\..\..\..\Library\src\HTWWWStr.h"\
-	".\..\..\..\Library\src\sysdep.h"\
-	".\..\..\..\Library\src\WWWUtil.h"\
-	{$(INCLUDE)}"\sys\STAT.H"\
-	{$(INCLUDE)}"\sys\TYPES.H"\
-	
-NODEP_CPP_HTBIN=\
-	".\..\..\..\Library\src\HTVMSUtils.h"\
-	
-
-"$(INTDIR)\HTBInit.obj" : $(SOURCE) $(DEP_CPP_HTBIN) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\..\..\Library\src\HTHInit.c
-DEP_CPP_HTHIN=\
-	"..\..\..\Library\src\HTHstMan.h"\
-	"..\..\..\Library\src\HTList.h"\
-	"..\..\..\Library\src\HTResponse.h"\
-	"..\..\..\Library\src\HTUtils.h"\
-	"..\..\..\Library\src\windows\config.h"\
-	"..\..\..\Library\src\WWWCore.h"\
-	"..\..\..\Library\src\WWWLib.h"\
-	".\..\..\..\Library\src\HTAlert.h"\
-	".\..\..\..\Library\src\HTAnchor.h"\
-	".\..\..\..\Library\src\HTArray.h"\
-	".\..\..\..\Library\src\HTAssoc.h"\
-	".\..\..\..\Library\src\HTAtom.h"\
-	".\..\..\..\Library\src\HTBind.h"\
-	".\..\..\..\Library\src\HTChannl.h"\
-	".\..\..\..\Library\src\HTChunk.h"\
-	".\..\..\..\Library\src\HTDNS.h"\
-	".\..\..\..\Library\src\HTError.h"\
-	".\..\..\..\Library\src\HTEscape.h"\
-	".\..\..\..\Library\src\HTEvent.h"\
-	".\..\..\..\Library\src\HTFormat.h"\
-	".\..\..\..\Library\src\HTFWrite.h"\
-	".\..\..\..\Library\src\HTHInit.h"\
-	".\..\..\..\Library\src\HTHost.h"\
-	".\..\..\..\Library\src\HTInet.h"\
-	".\..\..\..\Library\src\HTIOStream.h"\
-	".\..\..\..\Library\src\HTLib.h"\
-	".\..\..\..\Library\src\HTLink.h"\
-	".\..\..\..\Library\src\HTMemory.h"\
-	".\..\..\..\Library\src\HTMethod.h"\
-	".\..\..\..\Library\src\HTML.h"\
-	".\..\..\..\Library\src\HTMLGen.h"\
-	".\..\..\..\Library\src\HTMLPDTD.h"\
-	".\..\..\..\Library\src\HTNet.h"\
-	".\..\..\..\Library\src\HTParse.h"\
-	".\..\..\..\Library\src\HTPlain.h"\
-	".\..\..\..\Library\src\HTProt.h"\
-	".\..\..\..\Library\src\HTReq.h"\
-	".\..\..\..\Library\src\HTStream.h"\
-	".\..\..\..\Library\src\HTString.h"\
-	".\..\..\..\Library\src\HTStruct.h"\
-	".\..\..\..\Library\src\HTTeXGen.h"\
-	".\..\..\..\Library\src\HTTrans.h"\
-	".\..\..\..\Library\src\HTUser.h"\
-	".\..\..\..\Library\src\HTUTree.h"\
-	".\..\..\..\Library\src\HTUU.h"\
-	".\..\..\..\Library\src\HTWWWStr.h"\
-	".\..\..\..\Library\src\SGML.h"\
-	".\..\..\..\Library\src\sysdep.h"\
-	".\..\..\..\Library\src\WWWUtil.h"\
-	{$(INCLUDE)}"\sys\STAT.H"\
-	{$(INCLUDE)}"\sys\TYPES.H"\
-	
-NODEP_CPP_HTHIN=\
-	".\..\..\..\Library\src\HTVMSUtils.h"\
-	
-
-"$(INTDIR)\HTHInit.obj" : $(SOURCE) $(DEP_CPP_HTHIN) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\..\..\Library\src\HTProfil.c
-DEP_CPP_HTPRO=\
-	"..\..\..\Library\src\HTEvtLst.h"\
-	"..\..\..\Library\src\HTHstMan.h"\
-	"..\..\..\Library\src\HTList.h"\
-	"..\..\..\Library\src\HTMerge.h"\
-	"..\..\..\Library\src\HTNewsRq.h"\
-	"..\..\..\Library\src\HTPEP.h"\
-	"..\..\..\Library\src\HTResponse.h"\
-	"..\..\..\Library\src\HTUtils.h"\
-	"..\..\..\Library\src\HTZip.h"\
-	"..\..\..\Library\src\windows\config.h"\
-	"..\..\..\Library\src\WWWApp.h"\
-	"..\..\..\Library\src\WWWCache.h"\
-	"..\..\..\Library\src\WWWCore.h"\
-	"..\..\..\Library\src\WWWInit.h"\
-	"..\..\..\Library\src\WWWLib.h"\
-	"..\..\..\Library\src\WWWMIME.h"\
-	"..\..\..\Library\src\WWWTrans.h"\
-	"..\..\..\Library\src\WWWZip.h"\
-	".\..\..\..\Library\src\HTAABrow.h"\
-	".\..\..\..\Library\src\HTAAUtil.h"\
-	".\..\..\..\Library\src\HTAccess.h"\
-	".\..\..\..\Library\src\HTAlert.h"\
-	".\..\..\..\Library\src\HTAnchor.h"\
-	".\..\..\..\Library\src\HTANSI.h"\
-	".\..\..\..\Library\src\HTArray.h"\
-	".\..\..\..\Library\src\HTAssoc.h"\
-	".\..\..\..\Library\src\HTAtom.h"\
-	".\..\..\..\Library\src\HTBind.h"\
-	".\..\..\..\Library\src\HTBInit.h"\
-	".\..\..\..\Library\src\HTBound.h"\
-	".\..\..\..\Library\src\HTBufWrt.h"\
-	".\..\..\..\Library\src\HTCache.h"\
-	".\..\..\..\Library\src\HTChannl.h"\
-	".\..\..\..\Library\src\HTChunk.h"\
-	".\..\..\..\Library\src\HTConLen.h"\
-	".\..\..\..\Library\src\HTDescpt.h"\
-	".\..\..\..\Library\src\HTDialog.h"\
-	".\..\..\..\Library\src\HTDir.h"\
-	".\..\..\..\Library\src\HTDNS.h"\
-	".\..\..\..\Library\src\HTError.h"\
-	".\..\..\..\Library\src\HTEscape.h"\
-	".\..\..\..\Library\src\HTEvent.h"\
-	".\..\..\..\Library\src\HTFile.h"\
-	".\..\..\..\Library\src\HTFilter.h"\
-	".\..\..\..\Library\src\HTFormat.h"\
-	".\..\..\..\Library\src\HTFTP.h"\
-	".\..\..\..\Library\src\HTFTPDir.h"\
-	".\..\..\..\Library\src\HTFWrite.h"\
-	".\..\..\..\Library\src\HTGopher.h"\
-	".\..\..\..\Library\src\HTGuess.h"\
-	".\..\..\..\Library\src\HTHeader.h"\
-	".\..\..\..\Library\src\HTHInit.h"\
-	".\..\..\..\Library\src\HTHist.h"\
-	".\..\..\..\Library\src\HTHome.h"\
-	".\..\..\..\Library\src\HTHost.h"\
-	".\..\..\..\Library\src\HTIcons.h"\
-	".\..\..\..\Library\src\HTInet.h"\
-	".\..\..\..\Library\src\HTInit.h"\
-	".\..\..\..\Library\src\HTIOStream.h"\
-	".\..\..\..\Library\src\HTLib.h"\
-	".\..\..\..\Library\src\HTLink.h"\
-	".\..\..\..\Library\src\HTLocal.h"\
-	".\..\..\..\Library\src\HTLog.h"\
-	".\..\..\..\Library\src\HTMemory.h"\
-	".\..\..\..\Library\src\HTMethod.h"\
-	".\..\..\..\Library\src\HTMIME.h"\
-	".\..\..\..\Library\src\HTMIMERq.h"\
-	".\..\..\..\Library\src\HTMIMImp.h"\
-	".\..\..\..\Library\src\HTML.h"\
-	".\..\..\..\Library\src\HTMLGen.h"\
-	".\..\..\..\Library\src\HTMLPDTD.h"\
-	".\..\..\..\Library\src\HTMulpar.h"\
-	".\..\..\..\Library\src\HTMulti.h"\
-	".\..\..\..\Library\src\HTNDir.h"\
-	".\..\..\..\Library\src\HTNet.h"\
-	".\..\..\..\Library\src\HTNews.h"\
-	".\..\..\..\Library\src\HTNewsLs.h"\
-	".\..\..\..\Library\src\HTParse.h"\
-	".\..\..\..\Library\src\HTPlain.h"\
-	".\..\..\..\Library\src\HTProfil.h"\
-	".\..\..\..\Library\src\HTProt.h"\
-	".\..\..\..\Library\src\HTProxy.h"\
-	".\..\..\..\Library\src\HTReader.h"\
-	".\..\..\..\Library\src\HTReq.h"\
-	".\..\..\..\Library\src\HTRules.h"\
-	".\..\..\..\Library\src\HTSChunk.h"\
-	".\..\..\..\Library\src\HTSocket.h"\
-	".\..\..\..\Library\src\HTStream.h"\
-	".\..\..\..\Library\src\HTString.h"\
-	".\..\..\..\Library\src\HTStruct.h"\
-	".\..\..\..\Library\src\HTTChunk.h"\
-	".\..\..\..\Library\src\HTTCP.h"\
-	".\..\..\..\Library\src\HTTee.h"\
-	".\..\..\..\Library\src\HTTelnet.h"\
-	".\..\..\..\Library\src\HTTeXGen.h"\
-	".\..\..\..\Library\src\HTTP.h"\
-	".\..\..\..\Library\src\HTTPGen.h"\
-	".\..\..\..\Library\src\HTTPReq.h"\
-	".\..\..\..\Library\src\HTTPRes.h"\
-	".\..\..\..\Library\src\HTTPServ.h"\
-	".\..\..\..\Library\src\HTTPUtil.h"\
-	".\..\..\..\Library\src\HTTrans.h"\
-	".\..\..\..\Library\src\HTUser.h"\
-	".\..\..\..\Library\src\HTUTree.h"\
-	".\..\..\..\Library\src\HTUU.h"\
-	".\..\..\..\Library\src\HTWriter.h"\
-	".\..\..\..\Library\src\HTWWWStr.h"\
-	".\..\..\..\Library\src\HTXParse.h"\
-	".\..\..\..\Library\src\SGML.h"\
-	".\..\..\..\Library\src\sysdep.h"\
-	".\..\..\..\Library\src\WWWDir.h"\
-	".\..\..\..\Library\src\WWWFile.h"\
-	".\..\..\..\Library\src\WWWFTP.h"\
-	".\..\..\..\Library\src\WWWGophe.h"\
-	".\..\..\..\Library\src\WWWHTML.h"\
-	".\..\..\..\Library\src\WWWHTTP.h"\
-	".\..\..\..\Library\src\WWWNews.h"\
-	".\..\..\..\Library\src\WWWStream.h"\
-	".\..\..\..\Library\src\WWWTelnt.h"\
-	".\..\..\..\Library\src\WWWUtil.h"\
-	".\..\..\..\Library\src\WWWWAIS.h"\
-	{$(INCLUDE)}"\sys\STAT.H"\
-	{$(INCLUDE)}"\sys\TYPES.H"\
-	
-NODEP_CPP_HTPRO=\
-	".\..\..\..\Library\src\HTVMSUtils.h"\
-	".\..\..\..\Library\src\HTWAIS.h"\
-	
-
-"$(INTDIR)\HTProfil.obj" : $(SOURCE) $(DEP_CPP_HTPRO) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\..\..\Bin\wwwwais.lib
-
-!IF  "$(CFG)" == "www - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "www - Win32 Debug"
 
 !ENDIF 
 
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\..\..\Bin\wwwutils.lib
-
-!IF  "$(CFG)" == "www - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "www - Win32 Debug"
-
-!ENDIF 
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\..\..\Bin\wwwtrans.lib
-
-!IF  "$(CFG)" == "www - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "www - Win32 Debug"
-
-!ENDIF 
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\..\..\Bin\wwwtelnt.lib
-
-!IF  "$(CFG)" == "www - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "www - Win32 Debug"
-
-!ENDIF 
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\..\..\Bin\wwwstream.lib
-
-!IF  "$(CFG)" == "www - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "www - Win32 Debug"
-
-!ENDIF 
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\..\..\Bin\wwwnews.lib
-
-!IF  "$(CFG)" == "www - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "www - Win32 Debug"
-
-!ENDIF 
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\..\..\Bin\wwwmime.lib
-
-!IF  "$(CFG)" == "www - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "www - Win32 Debug"
-
-!ENDIF 
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\..\..\Bin\wwwhttp.lib
-
-!IF  "$(CFG)" == "www - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "www - Win32 Debug"
-
-!ENDIF 
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\..\..\Bin\wwwhtml.lib
-
-!IF  "$(CFG)" == "www - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "www - Win32 Debug"
-
-!ENDIF 
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\..\..\Bin\wwwgophe.lib
-
-!IF  "$(CFG)" == "www - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "www - Win32 Debug"
-
-!ENDIF 
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\..\..\Bin\wwwftp.lib
-
-!IF  "$(CFG)" == "www - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "www - Win32 Debug"
-
-!ENDIF 
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\..\..\Bin\wwwfile.lib
-
-!IF  "$(CFG)" == "www - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "www - Win32 Debug"
-
-!ENDIF 
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\..\..\Bin\wwwdll.lib
-
-!IF  "$(CFG)" == "www - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "www - Win32 Debug"
-
-!ENDIF 
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\..\..\Bin\wwwdir.lib
-
-!IF  "$(CFG)" == "www - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "www - Win32 Debug"
-
-!ENDIF 
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\..\..\Bin\wwwcore.lib
-
-!IF  "$(CFG)" == "www - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "www - Win32 Debug"
-
-!ENDIF 
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\..\..\Bin\wwwcache.lib
-
-!IF  "$(CFG)" == "www - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "www - Win32 Debug"
-
-!ENDIF 
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\..\..\Bin\wwwapp.lib
-
-!IF  "$(CFG)" == "www - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "www - Win32 Debug"
-
-!ENDIF 
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\..\..\Bin\pics.lib
-
-!IF  "$(CFG)" == "www - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "www - Win32 Debug"
-
-!ENDIF 
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE=..\..\..\Bin\wwwzip.lib
-
-!IF  "$(CFG)" == "www - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "www - Win32 Debug"
-
-!ENDIF 
-
-# End Source File
-# End Target
-# End Project
-################################################################################
