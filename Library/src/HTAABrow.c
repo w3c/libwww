@@ -164,8 +164,8 @@ PRIVATE int prompt_user (HTRequest * request, const char * realm,
     HTAlertCallback * cbf = HTAlert_find(HT_A_USER_PW);
     if (request && cbf) {
 	HTAlertPar * reply = HTAlert_newReply();
-	int code = basic->proxy ? HT_MSG_PROXY_PW : HT_A_USER_PW;
-	BOOL res = (*cbf)(request, code, HT_MSG_NULL,
+	int msg = basic->proxy ? HT_MSG_PROXY_UID : HT_MSG_UID;
+	BOOL res = (*cbf)(request, HT_A_USER_PW, msg,
 			  basic->uid, (char *) realm, reply);
 	if (res) {
 	    HT_FREE(basic->uid);

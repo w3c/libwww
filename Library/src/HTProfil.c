@@ -76,9 +76,11 @@ PRIVATE void client_profile (const char * AppName, const char * AppVersion)
 
 PUBLIC void HTProfile_newClient (const char * AppName, const char * AppVersion)
 {
-  /* set up default event loop */
-    HTEventInit();
+    /* Do the default setup */
     client_profile(AppName, AppVersion);
+
+    /* Set up default event loop */
+    HTEventInit();
 
     /* Register the default set of application protocol modules */
     HTProtocolInit();
@@ -87,6 +89,7 @@ PUBLIC void HTProfile_newClient (const char * AppName, const char * AppVersion)
 PUBLIC void HTProfile_newPreemptiveClient (const char * AppName,
 					   const char * AppVersion)
 {
+    /* Do the default setup */
     client_profile(AppName, AppVersion);
 
     /* Register the default set of application protocol modules */

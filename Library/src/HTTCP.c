@@ -264,15 +264,19 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	    if (status < 0) 
 #endif
 	    {
+#ifdef EALREADY
+		if (socerrno==EINPROGRESS || socerrno==EALREADY)
+#else
 #ifdef EAGAIN
 		if (socerrno==EINPROGRESS || socerrno==EAGAIN)
-#else 
+#else
 #ifdef _WINSOCKAPI_
 		if (socerrno==WSAEWOULDBLOCK)
 #else
 		if (socerrno==EINPROGRESS)
 #endif /* _WINSOCKAPI_ */
 #endif /* EAGAIN */
+#endif /* EALREADY */
 		{
 		    if (PROT_TRACE)
 			HTTrace("HTDoConnect. WOULD BLOCK `%s'\n",host);
@@ -333,7 +337,8 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	  case TCP_NEED_BIND:
 	  case TCP_NEED_LISTEN:
 	  case TCP_ERROR:
-	    if (PROT_TRACE) HTTrace("HTDoConnect. Connect failed\n");
+	    if (PROT_TRACE)
+		HTTrace("HTDoConnect. Connect failed %d\n", socerrno);
 	    if (net->sockfd != INVSOC) {
 	        HTEvent_unregister(net->sockfd, (SockOps) FD_ALL);
 		NETCLOSE(net->sockfd);
@@ -394,15 +399,19 @@ PUBLIC int HTDoAccept (HTNet * net, HTNet ** accepted)
     if (status < 0) 
 #endif
     {
-#ifdef EAGAIN
-	if (socerrno==EINPROGRESS || socerrno==EAGAIN)
-#else 
-#ifdef _WINSOCKAPI_
-        if (socerrno==WSAEWOULDBLOCK)
+#ifdef EALREADY
+		if (socerrno==EINPROGRESS || socerrno==EALREADY)
 #else
-	if (socerrno==EINPROGRESS)
+#ifdef EAGAIN
+		if (socerrno==EINPROGRESS || socerrno==EAGAIN)
+#else
+#ifdef _WINSOCKAPI_
+		if (socerrno==WSAEWOULDBLOCK)
+#else
+		if (socerrno==EINPROGRESS)
 #endif /* _WINSOCKAPI_ */
 #endif /* EAGAIN */
+#endif /* EALREADY */
 	{
 	    if (PROT_TRACE)
 		HTTrace("HTDoAccept.. WOULD BLOCK %d\n", net->sockfd);

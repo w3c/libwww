@@ -26,6 +26,7 @@
 PRIVATE const char * HTDialogs[HT_MSG_ELEMENTS] = {
     "Please enter username:",
     "Please enter username for proxy authentication:",
+    "Please enter username for this FTP server:",
     "Password:",
     "Please give name of file to save in:",
     "Plase enter account:",
@@ -275,7 +276,7 @@ PUBLIC BOOL HTPromptUsernameAndPassword (HTRequest * request, HTAlertOpcode op,
 					 int msgnum, const char * dfault,
 					 void * input, HTAlertPar * reply)
 {
-    BOOL status = HTPrompt(request, op, HT_MSG_UID, dfault, input, reply);
+    BOOL status = HTPrompt(request, op, msgnum, dfault, input, reply);
     return status ?
 	HTPromptPassword(request, op, HT_MSG_PW, dfault, input, reply) : NO;
 }

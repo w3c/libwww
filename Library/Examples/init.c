@@ -10,7 +10,7 @@ int main()
 
     /* Set up the application's event loop. We use the 
        example event loop that comes with the Library.  */
-    HTEventrgInit();
+    HTEventInit();
 
     /* Initialize libwww core */
     HTLibInit("TestApp", "1.0");

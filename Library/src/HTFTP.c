@@ -664,8 +664,8 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 		HTAlertPar * reply = HTAlert_newReply();
 		HT_FREE(ctrl->uid);
 		HT_FREE(ctrl->passwd);
-		if (cbf &&
-		    (*cbf)(request, HT_A_USER_PW,HT_MSG_NULL,NULL,NULL,reply)){
+		if (cbf && (*cbf)(request, HT_A_USER_PW, HT_MSG_FTP_UID,
+				  NULL, NULL, reply)){
 		    ctrl->uid = HTAlert_replyMessage(reply);
 		    ctrl->passwd = HTAlert_replySecret(reply);
 		}

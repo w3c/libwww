@@ -374,7 +374,7 @@ PRIVATE void scrsize (int * p_height, int * p_width)
 {
 #if defined(HAVE_IOCTL) && defined(HAVE_WINSIZE)
     register char *s;
-    int ioctl();
+    /* int ioctl(); - henrik */
     struct winsize w;
     if (ioctl(2, TIOCGWINSZ, &w) == 0 && w.ws_row > 0)
 	*p_height = w.ws_row;

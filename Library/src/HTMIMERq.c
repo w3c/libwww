@@ -36,6 +36,8 @@ struct _HTStream {
     BOOL			transparent;
 };
 
+#define HT_MAX_WAIT		6      /* Max number of secs to wait for PUT */
+
 /* ------------------------------------------------------------------------- */
 /* 			    MIME Output Request Stream			     */
 /* ------------------------------------------------------------------------- */
@@ -241,6 +243,7 @@ PRIVATE int MIMERequest_put_block (HTStream * me, const char * b, int l)
 		    HTNet * net = HTRequest_net(me->request);
 		    int zzzz = HTRequest_retrys(me->request);
 		    zzzz = zzzz ? zzzz * 2 : 2;
+		    if (zzzz > HT_MAX_WAIT) zzzz = HT_MAX_WAIT;
 		    (*me->target->isa->flush)(me->target);
 		    if (STREAM_TRACE) HTTrace("MIME........ Sleeping for %d secs\n", zzzz);
 		    HTEvent_register(net->sockfd, me->request,
