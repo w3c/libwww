@@ -491,13 +491,14 @@ PUBLIC int HTEvent_UnregisterAll( void )
 }
 
 
-/*
-** HTEvent_Loop
-** event loop: that is, we wait for activity from one of our registered 
-** channels, and dispatch on that.
+/*  HTEvent_Loop
+**  ------------
+**  event loop: that is, we wait for activity from one of our registered 
+**  channels, and dispatch on that.
 **
-** Under Windows/NT, we must treat the console and sockets as distinct. 
-** That means we can't avoid a busy wait, but we do our best.
+**  There are now two versions of the event loop. The first is if you want
+**  to use async I/O on windows, and the other is if you want to use normal
+**  Unix setup with sockets
 */
 #ifdef WWW_WIN_ASYNC
 int EndLoop = 0;      /* AsyncWindowsProc tells HTEvent_Loop when it is done */

@@ -174,7 +174,7 @@ PUBLIC char *HTSearchScript;
 **  Creates a new context structure for keeping track of the context related
 **  to a specific request.
 */
-PRIVATE HTContext *HTContext_new NOARGS
+PRIVATE HTContext *HTContext_new (void)
 {
     HTContext *me = (HTContext *) calloc(1, sizeof (HTContext));
     if (!me) outofmem(__FILE__, "HTContext_new");
@@ -187,7 +187,7 @@ PRIVATE HTContext *HTContext_new NOARGS
 **  Creates a new context structure for keeping track of the context related
 **  to a specific request.
 */
-PRIVATE BOOL HTContext_delete ARGS1(HTContext *, old)
+PRIVATE BOOL HTContext_delete (HTContext * old)
 {
     FREE(old);
     return YES;
@@ -197,7 +197,7 @@ PRIVATE BOOL HTContext_delete ARGS1(HTContext *, old)
 **  This function creates a new request structure and adds it to the global
 **  list of active threads
 */
-PRIVATE HTRequest *Thread_new ARGS1(BOOL, Interactive)
+PRIVATE HTRequest *Thread_new (BOOL Interactive)
 {
     HTRequest *newreq = HTRequest_new(); 	     /* Set up a new request */
     if (!reqlist) reqlist = HTList_new();
@@ -216,7 +216,7 @@ PRIVATE HTRequest *Thread_new ARGS1(BOOL, Interactive)
 **  This function deletes a request structure and takes it out of the list
 **  of active threads.
 */
-PRIVATE void Thread_delete ARGS1(HTRequest *, oldreq)
+PRIVATE void Thread_delete (HTRequest * oldreq)
 {
     if (oldreq) {
 	HTContext_delete((HTContext *) oldreq->context);
@@ -230,7 +230,7 @@ PRIVATE void Thread_delete ARGS1(HTRequest *, oldreq)
 /*
 **  This function deletes the whole list of active threads.
 */
-PRIVATE void Thread_deleteAll NOARGS
+PRIVATE void Thread_deleteAll (void)
 {
     if (reqlist) {
 	HTList *cur = reqlist;
@@ -252,7 +252,7 @@ PRIVATE void Thread_deleteAll NOARGS
 /*
 ** Get size of the output screen. Stolen from less.
 */
-PRIVATE void scrsize ARGS2(int *, p_height, int *, p_width)
+PRIVATE void scrsize (int * p_height, int * p_width)
 {
       register char *s;
       int ioctl();
@@ -282,7 +282,7 @@ PRIVATE void scrsize ARGS2(int *, p_height, int *, p_width)
 **  This function sets up signal handlers. This might not be necessary to
 **  call if the application has its own handlers.
 */
-PRIVATE void SetSignal NOARGS
+PRIVATE void SetSignal (void)
 {
     /* On some systems (SYSV) it is necessary to catch the SIGPIPE signal
     ** when attemting to connect to a remote host where you normally should
@@ -305,7 +305,7 @@ PRIVATE void SetSignal NOARGS
 **	titles		Set:	if we want titles where available
 **			Clear:  we only get addresses.
 */
-PRIVATE void Reference_List ARGS1(BOOL, titles)
+PRIVATE void Reference_List (BOOL titles)
 {
     int refs = HText_sourceAnchors(HTMainText);
     if (refs <= 0) {
@@ -337,7 +337,7 @@ PRIVATE void Reference_List ARGS1(BOOL, titles)
 **	?? This should really be a hypertext page (not itself in history!).
 **	?? Should have option to display address even when anchor has a title.
 */
-PRIVATE void History_List NOARGS {
+PRIVATE void History_List (void) {
 
     int current = HTHistory_position(hist);
     int max = HTHistory_count(hist);
@@ -368,7 +368,7 @@ PRIVATE void History_List NOARGS {
 **
 **	Generate the Prompt line and flush it to the user
 */
-PRIVATE void MakeCommandLine ARGS1(BOOL, is_index)
+PRIVATE void MakeCommandLine (BOOL is_index)
 {
     /* First Line */
     if (HTAnchor_hasChildren(HTMainAnchor)) {
@@ -403,7 +403,7 @@ PRIVATE void MakeCommandLine ARGS1(BOOL, is_index)
 /*  Print version information
 **  -------------------------
 */
-PRIVATE void VersionInfo NOARGS
+PRIVATE void VersionInfo (void)
 {
     TTYPrint(OUTPUT, "\n\nW3C Reference Software\n\n");
     TTYPrint(OUTPUT, "\tW3C Line Mode Browser version %s.\n", VL);
@@ -417,7 +417,7 @@ PRIVATE void VersionInfo NOARGS
 **  to a HTTP server. The method can be either PUT or POST.
 **  Returns the result of the load function.
 */
-PRIVATE int Upload ARGS2(HTRequest *, req, HTMethod, method)
+PRIVATE int Upload (HTRequest * req, HTMethod method)
 {
     char *this_addr = HTAnchor_address((HTAnchor*) HTMainAnchor);
     char *sc, *de;
@@ -468,7 +468,7 @@ PRIVATE int Upload ARGS2(HTRequest *, req, HTMethod, method)
 **
 **  Henrik Frystyk 02/03-94
 */
-PRIVATE BOOL SaveOutputStream ARGS3(HTRequest *, req, char *,This, char *,Next)
+PRIVATE BOOL SaveOutputStream (HTRequest * req, char * This, char * Next)
 {
     FILE *fp;
     char *fname;
@@ -498,7 +498,7 @@ PRIVATE BOOL SaveOutputStream ARGS3(HTRequest *, req, char *,This, char *,Next)
 	if (SHOW_MSG) TTYPrint(TDEST, "Can't access file (%s)\n", fname);
 	return NO;
     }
-    req->output_stream = HTFWriter_new(fp, NO);
+    HTRequest_setOutputStream(req, HTFWriter_new(fp, NO));
 
     /* Now, file is open and OK: reload the text and put up a stream for it! */
     if (SHOW_MSG)
@@ -569,7 +569,8 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest * req, SockOps ops)
 		    destination = HTAnchor_followMainLink((HTAnchor*) source);
 
 		    /* Continous browsing, so we want Referer field */
-		    req->parentAnchor=HTAnchor_parent((HTAnchor*)source);
+		    HTRequest_setParent(req,
+					HTAnchor_parent((HTAnchor*)source));
 		    status = HTLoadAnchor(destination, req);
 		} else {
 		    status = NO;				/* No anchor */
@@ -821,7 +822,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest * req, SockOps ops)
 	    HText_refresh(HTMainText);			   /* Refresh screen */
 	} else if (CHECK_INPUT("RELOAD", token)) {
 	    req = Thread_new(YES);
-	    req->reload = HT_FORCE_RELOAD;	/* Force full reload */
+	    HTRequest_setReloadMode(req, HT_FORCE_RELOAD);
 	    ((HTContext *) req->context)->history = HT_HIST_NO_UPDATE;
 	    status = HTLoadAnchor((HTAnchor*) HTMainAnchor, req);
 	} else
@@ -878,8 +879,8 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest * req, SockOps ops)
 	if (!HTClientHost) {
 	    HText *curText = HTMainText;     /* Remember current main vindow */
 	    req = Thread_new(NO);
-	    req->reload = HT_MEM_REFRESH;
-	    if (OutSource) req->output_format = WWW_SOURCE;
+	    HTRequest_setReloadMode(req, HT_MEM_REFRESH);
+	    if (OutSource) HTRequest_setOutputFormat(req, WWW_SOURCE);
 	    SaveOutputStream(req, token, next_word);
 	    HText_select(curText);
 	}
@@ -1098,7 +1099,7 @@ PRIVATE int timeout_handler (HTRequest * request)
 /*				  MAIN PROGRAM				     */
 /* ------------------------------------------------------------------------- */
 
-int main ARGS2(int, argc, char **, argv)
+int main (int argc, char ** argv)
 {
     HTRequest *	request;			    /* For the first request */
     int		status = 0;	
@@ -1220,9 +1221,9 @@ int main ARGS2(int, argc, char **, argv)
 		    
 	    /* reformat html */
 	    } else if (!strcmp(argv[arg], "-reformat")) {
-		request->output_format = WWW_HTML;
-		    HTPrompt_setInteractive(NO);
-		    reformat_html = YES;
+		HTRequest_setOutputFormat(request, WWW_HTML);
+		HTPrompt_setInteractive(NO);
+		reformat_html = YES;
 
 	    /* Specify a cache root (caching is otherwise disabled) */
 	    } else if (!strcmp(argv[arg], "-cacheroot")) {
@@ -1231,11 +1232,11 @@ int main ARGS2(int, argc, char **, argv)
 
 	    /* to -- Final representation */
 	    } else if (!strcmp(argv[arg], "-to")) {
-		request->output_format =
-		    (arg+1 >= argc || *argv[arg+1] == '-') ?
-		    	WWW_PRESENT : 
-		    	HTAtom_for(argv[++arg]);
-		    HTPrompt_setInteractive(NO);
+		HTRequest_setOutputFormat(request, 
+					  (arg+1>=argc || *argv[arg+1]=='-') ?
+					  WWW_PRESENT : 
+					  HTAtom_for(argv[++arg]));
+		HTPrompt_setInteractive(NO);
 
 	    /* Telnet from */
 	    } else if (!strcmp(argv[arg], "-h")) {
@@ -1254,13 +1255,12 @@ int main ARGS2(int, argc, char **, argv)
 		HTPrompt_setInteractive(NO);
 
 	    } else if (!strcasecomp(argv[arg], "-delete")) {  	   /* DELETE */
-		request->method = METHOD_DELETE;
+		HTRequest_setMethod(request, METHOD_DELETE);
 		HTPrompt_setInteractive(NO);
 
 	    } else if (!strcasecomp(argv[arg], "-head")) {    /* HEAD Method */
 		HTRequest_setMethod(request, METHOD_HEAD);
 		HTRequest_setOutputFormat(request, WWW_MIME);
-		HTRequest_setOutputStream(request, HTFWriter_new(output, YES));
 		HTPrompt_setInteractive(NO);
 
 	    /* @@@ NOT FINISHED @@@ */
@@ -1397,8 +1397,8 @@ int main ARGS2(int, argc, char **, argv)
 	    
 	    /* Source please */
 	    } else if (!strcmp(argv[arg], "-source")) {
-		    request->output_format = WWW_SOURCE;
-		    HTPrompt_setInteractive(NO);
+		HTRequest_setOutputFormat(request, WWW_SOURCE);
+		HTPrompt_setInteractive(NO);
 
 	    } else {
 		if (SHOW_MSG)
@@ -1465,21 +1465,20 @@ int main ARGS2(int, argc, char **, argv)
     if (!HTPrompt_interactive()) {
     	if (outputfile) {	    
 	    if ((output = fopen(outputfile, "wb")))
-		request->output_stream = HTFWriter_new(output, YES);
-	    else {
-	        if (SHOW_MSG)
-		    TTYPrint(TDEST, "Can't open file `%s'\\n", outputfile);
-	    }
-	}
+		HTRequest_setOutputStream(request, HTFWriter_new(output, YES));
+	    else if (SHOW_MSG)
+		TTYPrint(TDEST, "Can't open file `%s'\\n", outputfile);
+	} else
+	    HTRequest_setOutputStream(request, HTFWriter_new(output, YES));
 
 	/* To reformat HTML, just put it through a parser running
 	** into a regenerator   tbl 940613
 	*/
 	if (reformat_html) {
-	    request->output_stream =
-		SGML_new(&HTMLP_dtd, HTMLGenerator(request, NULL, WWW_HTML,
-						   request->output_format,
-						   request->output_stream));
+	    HTStructured *html=HTMLGenerator(request, NULL, WWW_HTML,
+					     HTRequest_outputFormat(request),
+					     HTRequest_outputStream(request));
+	    HTRequest_setOutputStream(request, SGML_new(&HTMLP_dtd, html));
 	}
     }
     
@@ -1491,12 +1490,10 @@ int main ARGS2(int, argc, char **, argv)
     }
 
     /* Open Log File */
-    if (logfile)
-	HTLog_enable(logfile, YES, NO);
+    if (logfile) HTLog_enable(logfile, YES, NO);
 
     /* Make home page address */
-    if (!home_anchor)
-	home_anchor = HTHomeAnchor();
+    if (!home_anchor) home_anchor = HTHomeAnchor();
 
     /* Just convert formats */
     if (filter) {
@@ -1506,10 +1503,9 @@ int main ARGS2(int, argc, char **, argv)
     }
     
     /* Register a call back function for the Net Manager */
-    if (HTPrompt_interactive())
-	HTNet_register(terminate_handler, HT_ALL);
+    if (HTPrompt_interactive()) HTNet_register(terminate_handler, HT_ALL);
     
-    /* Register our own "unknwon" header handler (see GridText.c) */
+    /* Register our own "unknown" header handler (see GridText.c) */
 #if 0
     parsers = HTList_new();
     HTParser_add (parsers, "*", YES, HTParserCallback *	callback);

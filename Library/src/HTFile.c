@@ -30,7 +30,6 @@
 #include "HTString.h"
 #include "HTParse.h"
 #include "HTTCP.h"
-#include "HTMIME.h"
 #include "HTAnchor.h"
 #include "HTAtom.h"
 #include "HTWriter.h"
@@ -390,6 +389,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
     int status = HT_ERROR;
     HTNet *net = request->net;		     /* Generic protocol information */
     file_info *file;			      /* Specific access information */
+    HTParentAnchor *anchor = HTRequest_anchor(request);
 
     /*
     ** Initiate a new file structure and bind to request structure
@@ -398,7 +398,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
     */
     if (ops == FD_NONE) {
 	if (PROT_TRACE) TTYPrint(TDEST, "HTLoadFile.. Looking for `%s\'\n",
-				HTAnchor_physical(request->anchor));
+				HTAnchor_physical(anchor));
 	if ((file = (file_info *) calloc(1, sizeof(file_info))) == NULL)
 	    outofmem(__FILE__, "HTLoadFILE");
 	file->state = FS_BEGIN;
@@ -422,14 +422,14 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		file->state = FS_TRY_FTP;
 		break;
 	    }
-	    file->local = HTWWWToLocal(HTAnchor_physical(request->anchor), "");
+	    file->local = HTWWWToLocal(HTAnchor_physical(anchor), "");
 	    if (!file->local) {
 		file->state = FS_TRY_FTP;
 		break;
 	    }
 
 	    /* If cache element then jump directly to OPEN FILE state */
-	    file->state = HTAnchor_cacheHit(request->anchor) ?
+	    file->state = HTAnchor_cacheHit(anchor) ?
 		FS_NEED_OPEN_FILE : FS_DO_CN;
 	    break;
 
@@ -450,7 +450,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		    if (new_path) {
 			FREE(file->local);
 			file->local = new_path;
-			HTAnchor_setPhysical(request->anchor, new_path);
+			HTAnchor_setPhysical(anchor, new_path);
 		    } else {
 			file->state = FS_ERROR;
 			break;
@@ -474,14 +474,14 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		    ** If empty file then only serve it if it is editable
 		    */
 		    BOOL editable = HTEditable(file->local, &stat_info);
-		    HTBind_getBindings(request->anchor);
+		    HTBind_getBindings(anchor);
 		    if (editable)
-			HTAnchor_appendMethods(request->anchor, METHOD_PUT);
+			HTAnchor_appendMethods(anchor, METHOD_PUT);
 		    if (stat_info.st_size)
-			HTAnchor_setLength(request->anchor, stat_info.st_size);
+			HTAnchor_setLength(anchor, stat_info.st_size);
 
 		    /* Done with relevant metainformation in anchor */
-		    HTAnchor_setHeaderParsed(request->anchor);
+		    HTAnchor_setHeaderParsed(anchor);
 
 		    if (!editable && !stat_info.st_size) {
 			HTErrorAdd(request, ERR_FATAL, NO, HTERR_NO_CONTENT,
@@ -570,15 +570,11 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	    ** If ANSI then sockfd=INVSOC
 	    */
 	    net->isoc = HTInputSocket_new(net->sockfd);
-	    if (HTAnchor_cacheHit(request->anchor))
-		net->target = HTMIMEConvert(request, NULL, WWW_MIME,
-					     request->output_format,
-					     request->output_stream);
-	    else
-		net->target = HTStreamStack(HTAnchor_format(request->anchor),
-					    request->output_format,
-					    request->output_stream,
-					    request, YES);
+	    if (HTAnchor_cacheHit(anchor))HTAnchor_setFormat(anchor, WWW_MIME);
+	    net->target = HTStreamStack(HTAnchor_format(anchor),
+					request->output_format,
+					request->output_stream,
+					request, YES);
 	    file->state = net->target ? FS_NEED_BODY : FS_ERROR;
 	    break;
 
@@ -606,7 +602,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 
 	  case FS_TRY_FTP:
 	    {
-		char *url = HTAnchor_physical(request->anchor);
+		char *url = HTAnchor_physical(anchor);
 		HTAnchor *anchor;
 		char *newname = NULL;
 		StrAllocCopy(newname, "ftp:");
@@ -628,7 +624,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
-					  (HTAnchor *) request->anchor);
+					  (HTAnchor *) anchor);
 		    HTAnchor_setLinkResult(link, HT_LINK_OK);
 		}
 		HTRequest_removeDestination(request);
@@ -644,7 +640,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
-					  (HTAnchor *) request->anchor);
+					  (HTAnchor *) anchor);
 		    HTAnchor_setLinkResult(link, HT_LINK_OK);
 		}
 		HTRequest_removeDestination(request);
@@ -661,7 +657,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
-					  (HTAnchor *) request->anchor);
+					  (HTAnchor *) anchor);
 		    HTAnchor_setLinkResult(link, HT_LINK_ERROR);
 		}
 		HTRequest_removeDestination(request);
@@ -679,7 +675,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link =
 			HTAnchor_findLink((HTAnchor *) request->source->anchor,
-					  (HTAnchor *) request->anchor);
+					  (HTAnchor *) anchor);
 		    HTAnchor_setLinkResult(link, HT_LINK_ERROR);
 		}
 		HTRequest_removeDestination(request);

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Format Negotiation Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 31-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  5-Nov-1995 -->
 <NEXTID N="z18">
 </HEAD>
 <BODY>
@@ -56,11 +56,11 @@ the following parameters. The content type elements are atoms for
 which we have defined a prototype.
 
 <PRE>
-typedef HTStream * HTConverter	PARAMS((HTRequest *	request,
-					void *		param,
-					HTFormat	input_format,
-					HTFormat	output_format,
-					HTStream *	output_stream));
+typedef HTStream * HTConverter	(HTRequest *	request,
+				 void *		param,
+				 HTFormat	input_format,
+				 HTFormat	output_format,
+				 HTStream *	output_stream);
 </PRE>
 
 <A NAME="user"><H2>Generic Preferences</H2></A>
@@ -104,51 +104,58 @@ typedef struct _HTPresentation {
 
 These macros (which used to be constants) define some basic internally
 referenced representations. The <CODE>www/xxx</CODE> ones are of
-course not MIME standard. <CODE>star/star</CODE> is an output format
-which leaves the input untouched. It is useful for diagnostics, and
-for users who want to see the original, whatever it is.
+course not MIME standard. They are internal representations used in
+the Library but they can't be exported to other apps!
 
 <PRE>
 #define WWW_SOURCE	HTAtom_for("*/*")      /* Whatever it was originally */
 </PRE>
 
-<CODE>www/present</CODE> represents the user's perception of the
-document.  If you convert to www/present, you present the material to
-the user.
+<CODE>WWW_SOURCE</CODE> is an output format which leaves the input
+untouched. In case we are receiving a MIME like message (like for
+example in HTTP/1.x) the source is only considered to be the raw body
+data. The HTTP status line and all headers are stripped out. It is
+useful for diagnostics, and for users who want to see the original,
+whatever it is.
 
 <PRE>
 #define WWW_PRESENT	HTAtom_for("www/present")   /* The user's perception */
 </PRE>
 
-The message/rfc822 format means a MIME message or a plain text message
-with no MIME header. This is what is returned by an HTTP server.
-
-<PRE>
-#define WWW_MIME	HTAtom_for("www/mime")		   /* A MIME message */
-</PRE>
-
-<CODE>www/unknown</CODE> is a really unknown type.  Some default
-action is appropriate.
+<CODE>WWW_PRESENT</CODE> represents the user's perception of the
+document.  If you convert to <CODE>WWW_PRESENT</CODE>, you present the
+material to the user.
 
 <PRE>
 #define WWW_UNKNOWN     HTAtom_for("www/unknown")
 </PRE>
 
+<CODE>WWW_UNKNOWN</CODE> is a really unknown type. It differs from the
+real MIME type <EM>"application/octet-stream"</EM> in that we haven't
+even tried to figure out the content type at this point.<P>
+
 These are regular MIME types defined. Others can be added!
 
 <PRE>
+#define WWW_HTML 	HTAtom_for("text/html")
 #define WWW_PLAINTEXT 	HTAtom_for("text/plain")
+
+#define WWW_MIME	HTAtom_for("message/rfc822")
+
+#define WWW_AUDIO       HTAtom_for("audio/basic")
+
+#define WWW_VIDEO 	HTAtom_for("video/mpeg")
+
+#define WWW_GIF 	HTAtom_for("image/gif")
+#define WWW_PNG 	HTAtom_for("image/png")
+
+#define WWW_BINARY 	HTAtom_for("application/octet-stream")
 #define WWW_POSTSCRIPT 	HTAtom_for("application/postscript")
 #define WWW_RICHTEXT 	HTAtom_for("application/rtf")
-#define WWW_AUDIO       HTAtom_for("audio/basic")
-#define WWW_HTML 	HTAtom_for("text/html")
-#define WWW_BINARY 	HTAtom_for("application/octet-stream")
-#define WWW_VIDEO 	HTAtom_for("video/mpeg")
-#define WWW_GIF 	HTAtom_for("image/gif")
-#define WWW_PNG 	HTAtom_for("image/x-png")  /* @@@ soon image/png @@@ */
 </PRE>
 
-We also have some that come from the various protocols
+We also have some MIME types that come from the various protocols when
+we convert from ASCII to HTML.
 
 <PRE>
 #define WWW_GOPHER_MENU HTAtom_for("text/x-gopher")
@@ -371,10 +378,10 @@ typedef struct _HTContentDescription {
     double	quality;
 } HTContentDescription;
 
-extern BOOL HTRank PARAMS((HTList * possibilities,
-			   HTList * accepted_content_types,
-			   HTList * accepted_content_languages,
-			   HTList * accepted_content_encodings));
+extern BOOL HTRank (HTList * possibilities,
+		    HTList * accepted_content_types,
+		    HTList * accepted_content_languages,
+		    HTList * accepted_content_encodings);
 </PRE>
 
 <H2><A NAME="z3">The Stream Stack</A></H2>
@@ -389,11 +396,11 @@ fed. If <CODE>guess</CODE> is true and input format is
 first few bytes of the stream. <P>
 
 <PRE>
-extern HTStream * HTStreamStack PARAMS((HTFormat	rep_in,
-					HTFormat	rep_out,
-					HTStream *	output_stream,
-					HTRequest *	request,
-					BOOL		guess));
+extern HTStream * HTStreamStack (HTFormat	rep_in,
+				 HTFormat	rep_out,
+				 HTStream *	output_stream,
+				 HTRequest *	request,
+				 BOOL		guess);
 </PRE>
 
 <H2>Cost of a Stream Stack</H2>
@@ -402,11 +409,11 @@ Must return the cost of the same stack which HTStreamStack would set
 up.
 
 <PRE>
-extern double HTStackValue	PARAMS((HTList *	conversions,
-					HTFormat	format_in,
-					HTFormat	format_out,
-					double		initial_value,
-					long int	length));
+extern double HTStackValue	(HTList *	conversions,
+				 HTFormat	format_in,
+				 HTFormat	format_out,
+				 double		initial_value,
+				 long int	length);
 
 #endif /* HTFORMAT */
 </PRE>

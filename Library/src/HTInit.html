@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Initialization Routines</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 31-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  5-Nov-1995 -->
 </HEAD>
 <BODY>
 <H1>Initialization Module</H1>
@@ -40,7 +40,6 @@ Reference Library</A>.
 <PRE>
 #ifndef HTINIT_H
 #define HTINIT_H
-
 #include "HTList.h"
 </PRE>
 
@@ -52,6 +51,16 @@ stack algorithm. The Presenters are also used in the stream stack, but
 are initialized separately.
 
 <PRE>
+#include "HTML.h"			/* Uses HTML/HText interface */
+#include "HTPlain.h"			/* Uses HTML/HText interface */
+
+#include "HTTeXGen.h"
+#include "HTMLGen.h"
+#include "HTMIME.h"
+#include "HTWSRC.h"
+#include "HTFWrite.h"
+#include "HTNewsLs.h"
+
 extern void HTConverterInit	(HTList * conversions);
 </PRE>
 
@@ -81,6 +90,17 @@ Set up default bindings between access schemes and the set of protocol
 modules in the Library.
 
 <PRE>
+#include "HTTP.h"
+#include "HTFile.h"
+#include "HTFTP.h"
+#include "HTGopher.h"
+#include "HTTelnet.h"
+#include "HTNews.h"
+
+#ifdef HT_DIRECT_WAIS
+#include "HTWAIS.h"
+#endif
+
 extern void HTAccessInit (void);
 </PRE>
 

@@ -27,12 +27,10 @@
 #include "HTError.h"
 #include "HTChunk.h"
 #include "HTEscape.h"
-#include "HTReqMan.h"				/* @@@@@@@@@@@@@ */
-#include "HTNetMan.h"				/* @@@@@@@@@@@@@ */
+#include "HTReqMan.h"				/* @@@ */
+#include "HTNetMan.h"				/* @@@ */
 #include "HTNewsRq.h" 
 #include "HTNews.h"					       /* Implements */
-
-#include "HTMIME.h"
 
 /* Macros and other defines */
 #ifndef NEWS_PORT

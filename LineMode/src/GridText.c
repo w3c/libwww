@@ -1057,24 +1057,25 @@ PUBLIC BOOL HTHeaderParser (HTRequest *request, char *header)
 PUBLIC int HTMemoryCache (HTRequest * request, HTExpiresMode mode,
 			  char * notification)
 {
+    HTParentAnchor *anchor = HTRequest_anchor(request);
     HText *text;
     if (!request)
 	return HT_ERROR;
-    if ((text = (HText *) HTAnchor_document(request->anchor))) {
-	if (request->reload != HT_MEM_REFRESH) {
+    if ((text = (HText *) HTAnchor_document(anchor))) {
+	if (HTRequest_reloadMode(request) != HT_MEM_REFRESH) {
 	    if (CACHE_TRACE)
 		TTYPrint(TDEST,"HTMemCache.. Document already in memory\n");
 	    if (mode != HT_EXPIRES_IGNORE) {
-		if (!HTCache_isValid(request->anchor)) {
+		if (!HTCache_isValid(anchor)) {
 		    if (mode == HT_EXPIRES_NOTIFY)
 			HTAlert(request, notification);
 		    else {
 			if (CACHE_TRACE)
 			    TTYPrint(TDEST,
 				    "HTMemCache.. Expired - autoreload\n");
-			request->RequestMask |= HT_IMS;
+			HTRequest_addRqHd(request, HT_IMS);
 #ifndef HT_SHARED_DISK_CACHE
-			request->reload = HT_CACHE_REFRESH;
+			HTRequest_setReloadMode(request, HT_CACHE_REFRESH);
 #endif
 			return HT_ERROR; /* Must go get it */
 		    }
@@ -1091,10 +1092,10 @@ PUBLIC int HTMemoryCache (HTRequest * request, HTExpiresMode mode,
 		HText_select(text);
 	    return HT_LOADED;
 	} else {		/* If refresh version in memory */
-	    request->RequestMask |= HT_IMS;
+	    HTRequest_addRqHd(request, HT_IMS);
 	}
     } else {			      /* Don't reuse any old metainformation */
-	HTAnchor_clearHeader(request->anchor);
+	HTAnchor_clearHeader(anchor);
     }
     return HT_ERROR;
 }

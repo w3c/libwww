@@ -25,7 +25,6 @@
 #include "HTSocket.h"
 #include "HTReqMan.h"
 #include "HTAlert.h"
-#include "HTMIME.h"
 #include "HTAABrow.h"		/* Access Authorization */
 #include "HTTee.h"		/* Tee off a cache stream */
 #include "HTFWrite.h"		/* Write to cache file */
@@ -351,30 +350,24 @@ PRIVATE int stream_pipe (HTStream * me)
 	/* Set up the streams */
 	if (me->status==200) {
 	    HTStream *s;
-	    if (req->output_format == WWW_SOURCE) {
-		me->target = HTMIMEConvert(req, NULL, WWW_MIME,
-					   req->output_format,
-					   req->output_stream);
-	    } else {
-		me->target = HTStreamStack(WWW_MIME, req->output_format,
-					   req->output_stream, req, NO);
+	    me->target = HTStreamStack(WWW_MIME, req->output_format,
+				       req->output_stream, req, NO);
 	    
-		/* howcome: test for return value from HTCacheWriter 12/1/95 */
-		if (req->method==METHOD_GET && HTCache_isEnabled() &&
-		    (s = HTCacheWriter(req, NULL, WWW_MIME, req->output_format,
-				       req->output_stream))) {
-		    me->target = HTTee(me->target, s);
-		}
-	      }
+	    /* howcome: test for return value from HTCacheWriter 12/1/95 */
+	    if (req->method==METHOD_GET && HTCache_isEnabled() &&
+		(s = HTCacheWriter(req, NULL, WWW_MIME, req->output_format,
+				   req->output_stream))) {
+		me->target = HTTee(me->target, s);
+	    }
 	} else if (req->debug_stream) {
 	    me->target = HTStreamStack(WWW_MIME, req->debug_format,
 				       req->debug_stream, req, NO);
 	} else {
-	    me->target = HTMIMEConvert(req, NULL, WWW_MIME, WWW_PRESENT,
-				       HTBlackHole());
+	    /* We still need to parser the MIME part */
+	    me->target = HTStreamStack(WWW_MIME, WWW_PRESENT,
+				       HTBlackHole(), req, NO);
 	}
-	if (!me->target)
-	    me->target = HTBlackHole();				/* What else */
+	if (!me->target) me->target = HTBlackHole();
     }
     HTTPNextState(me);					   /* Get next state */
     me->transparent = YES;

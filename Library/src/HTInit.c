@@ -12,34 +12,8 @@
 #include "HTUtils.h"
 #include "HTFormat.h"
 #include "HTList.h"
-
-/* Binding Managers */
 #include "HTBind.h"
 #include "HTProt.h"
-
-/* Converters and Presenters */
-#include "HTML.h"			/* Uses HTML/HText interface */
-#include "HTPlain.h"			/* Uses HTML/HText interface */
-
-#include "HTTeXGen.h"
-#include "HTMLGen.h"
-#include "HTMIME.h"
-#include "HTWSRC.h"
-#include "HTFWrite.h"
-#include "HTNewsLs.h"
-
-/* Protocol Modules */
-#include "HTTP.h"
-#include "HTFile.h"
-#include "HTFTP.h"
-#include "HTGopher.h"
-#include "HTTelnet.h"
-#include "HTNews.h"
-
-#ifdef HT_DIRECT_WAIS
-#include "HTWAIS.h"
-#endif
-
 #include "HTInit.h"				         /* Implemented here */
 
 /* ------------------------------------------------------------------------- */
@@ -65,7 +39,7 @@ PUBLIC void HTConverterInit (HTList * c)
     ** These are converters that converts to something other than www/present,
     ** that is not directly outputting someting to the user on the screen
     */
-    HTConversion_add(c,"www/mime",		"*/*",		HTMIMEConvert,	1.0, 0.0, 0.0);
+    HTConversion_add(c,"message/rfc822",	"*/*",		HTMIMEConvert,	1.0, 0.0, 0.0);
     HTConversion_add(c,"text/plain",		"text/html",	HTPlainToHTML,	1.0, 0.0, 0.0);
     HTConversion_add(c,"application/x-wais-source","*/*",	HTWSRCConvert, 	1.0, 0.0, 0.0);
 
@@ -99,12 +73,12 @@ PUBLIC void HTPresenterInit (HTList * c)
 
     HTPresentation_add(c,"image/gif", 		"open %s", 	NULL, 0.3, 2.0, 0.0);
     HTPresentation_add(c,"image/x-tiff", 	"open %s", 	NULL, 1.0, 2.0, 0.0);
-    HTPresentation_add(c,"audio/basic", 		"open %s", 	NULL, 1.0, 2.0, 0.0);
-    HTPresentation_add(c,"*/*", 			"open %s", 	NULL, 0.05, 0.0, 0.0); 
+    HTPresentation_add(c,"audio/basic", 	"open %s", 	NULL, 1.0, 2.0, 0.0);
+    HTPresentation_add(c,"*/*", 		"open %s", 	NULL, 0.05, 0.0, 0.0); 
 #else
     if (getenv("DISPLAY")) {	/* Must have X11 */
 	HTPresentation_add(c,"application/postscript", "ghostview %s",	NULL, 1.0, 3.0, 0.0);
-	HTPresentation_add(c,"image/gif", 		"xv %s",	NULL, 1.0, 3.0, 0.0);
+	HTPresentation_add(c,"image/gif", 	"xv %s",	NULL, 1.0, 3.0, 0.0);
 	HTPresentation_add(c,"image/x-tiff", 	"xv %s",	NULL, 1.0, 3.0, 0.0);
 	HTPresentation_add(c,"image/jpeg", 	"xv %s",	NULL, 1.0, 3.0, 0.0);
  	HTPresentation_add(c,"image/x-png",	"xv %s",	NULL, 1.0, 3.0, 0.0);
@@ -167,7 +141,7 @@ PUBLIC void HTFileInit (void)
 {
     /*		       Suffix	 Content-Type		        Encoding  Lang	Quality	*/
 
-    HTBind_add("mime",   "www/mime",			"8bit",   NULL, 1.0);	/* Internal -- MIME is	*/
+    HTBind_add("mime",   "message/rfc822",		"8bit",   NULL, 1.0);	/* Internal -- MIME is	*/
                                                                        /* not recursive	*/
     HTBind_add("bin",    "application/octet-stream",	"binary", NULL, 1.0); /* Uninterpreted binary	*/
     HTBind_add("oda",    "application/oda",		"binary", NULL, 1.0);

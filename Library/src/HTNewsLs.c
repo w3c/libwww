@@ -67,7 +67,7 @@ PRIVATE BOOL ParseList (HTNewsDir *dir, char * line)
 PRIVATE BOOL ParseGroup (HTNewsDir *dir, char * line)
 {
     int index;
-    int refcnt;
+    int refcnt=0;
     char *msgid;
     char *from;
     char *ptr;

@@ -550,18 +550,18 @@ PUBLIC HTStream * HTStreamStack ARGS5(HTFormat,		rep_in,
     HTPresentation *pres, *best_match=NULL;
     
     if (guess && rep_in == WWW_UNKNOWN) {
-	if (STREAM_TRACE)TTYPrint(TDEST,"StreamStack. Using guessing stream\n");
+	if (STREAM_TRACE) TTYPrint(TDEST, "StreamStack. Guessing stream\n");
 	return HTGuess_new(request, NULL, rep_in, rep_out, output_stream);
     }
     if (rep_out == WWW_SOURCE || rep_out == rep_in) {
 	if (STREAM_TRACE)
-	    TTYPrint(TDEST,"StreamStack. Identical in/out format: %s\n",
-		    HTAtom_name(rep_in));
+	    TTYPrint(TDEST, "StreamStack. Identical in/out format: %s\n",
+		     HTAtom_name(rep_in));
 	return output_stream ? output_stream : HTBlackHole();
     }
     if (STREAM_TRACE) {
-	TTYPrint(TDEST, "StreamStack. Constructing stream stack for %s to %s\n",
-		HTAtom_name(rep_in), HTAtom_name(rep_out));
+	TTYPrint(TDEST,"StreamStack. Constructing stream stack for %s to %s\n",
+		 HTAtom_name(rep_in), HTAtom_name(rep_out));
     }
 
     conversion[0] = request->conversions;

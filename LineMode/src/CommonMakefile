@@ -104,6 +104,7 @@ SPECIFIC = \
 	$(DOC)/Patch/*.fix \
 	$(LM)DefaultStyles.c.classic \
 	$(LM)DefaultStyles.c.modern \
+	$(LM)windows/* \
 	$(LM)vms/descrip.mms \
 	$(LM)vms/build_multinet.com \
 	$(LM)vms/setup.com \
