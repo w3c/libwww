@@ -2,14 +2,16 @@
 <HEAD>
   <!-- Changed by: Henrik Frystyk Nielsen,  9-Feb-1996 -->
   <!-- Changed by: Eric Prud'hommeaux, 20-Mar-1996 -->
-<NEXTID N="z78">
-<TITLE>W3C Library Interfaces</TITLE>
+  <NEXTID N="z78">
+  <TITLE>W3C Library Interfaces</TITLE>
 </HEAD>
 <BODY>
-<P><A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
+<P>
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48"></A>
 <A HREF="../../"><IMG ALT="libwww" SRC="../../../Icons/WWW/Lib48x"></A>
 <IMG ALT="LibGuide" SRC="../../../Icons/WWW/internals48x">
-<H1>W3C Library Interfaces
+<H1>
+  W3C Library Interfaces
 </H1>
 <P>
 This is an overview of all <I>interfaces</I> in the W3C Reference Library.
@@ -44,7 +46,6 @@ then always use the HTML files and not the .h files!
 <IMG ALIGN=BOTTOM SRC="../../../Icons/32x32/caution" ALT="NOTE"> This document
 is also available as <A HREF="choppy.html"><B>one big HTML file</B></A> intended
 for printout. Please note that not all links in this version work!
-<P>
 <H2>
   Core Interfaces
 </H2>
@@ -104,6 +105,7 @@ functionality, for example accessing HTTP servers or the local file system.
 The Library has a special include file called
 <A HREF="../../src/WWWApp.html">WWWApp.h</A> which a lot of application helper
 modules that makes it easier to use the core.
+<P>
 <UL>
   <LI>
     Name of DLL: <B>wwwcode.dll</B>
@@ -120,6 +122,7 @@ All transport interfaces are registered dynamically in libwww. This means
 that libwww is independent of the transport being used (for example TCP)
 and you can therefore use libwww in any context you like. You have to specify
 a set of parameters in order for libwww to be able to use it.
+<P>
 <UL>
   <LI>
     Name of DLL: <B>wwwtrans.dll</B>
@@ -137,6 +140,7 @@ a set of parameters in order for libwww to be able to use it.
 <P>
 The cache contains details of temporary disk files which contain the contents
 of remote documents.
+<P>
 <UL>
   <LI>
     Name of DLL: <B>wwwcache.dll</B>
@@ -242,6 +246,7 @@ therefore by use of HTTP forward all requests to for example a proxy server
 which then handle the communications with the remote server, for example
 using FTP about the document and return it to the application (proxy client)
 using HTTP.
+<P>
 <UL>
   <LI>
     Name of DLL: <B>wwwrules.dll</B>
@@ -257,6 +262,7 @@ using HTTP.
 This module provides some "make life easier" functions in order to get the
 application going. They help you generate the first anchor, also called the
 <EM>home anchor</EM>. It also contains a nice set of default WWW addresses.
+<P>
 <UL>
   <LI>
     Name of DLL: <B>wwwapp.dll</B>
@@ -279,6 +285,7 @@ by using the methods in the <A HREF="WWWInit.html">WWWInit</A> module. You
 can modify these modules as you like to fit your particular needs. The modules
 in this interface are <B>not</B> part of any DLL and so must be included
 directly if desired.
+<P>
 <UL>
   <LI>
     <A HREF="../../src/WWWInit.html">WWWInit Interface include file</A>
@@ -342,6 +349,7 @@ This is the include file for all HTTP access including the server side and
 the client side. It can be used together with the core of the W3C Reference
 Library. It contains all HTTP specific modules which are required to compile
 and build the HTTP DLL.
+<P>
 <UL>
   <LI>
     Name of DLL: <B>wwwhttp.dll</B>

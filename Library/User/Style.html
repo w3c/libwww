@@ -1,0 +1,175 @@
+<HTML>
+<HEAD>
+<TITLE>Coding Styles</TITLE>
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/Platform48x.gif"></A>
+
+<H1>Coding Styles</H1>
+Top optimize portibility, the libwww is developed with a set of coding
+styles:
+<UL>
+<LI> <A HREF="#CppInC">C++ in C</A>
+<LI> <A HREF="#PubPriv">PUBLIC/PRIVATE functions and data</A>
+<LI> <A HREF="#Documentation">Documentation</A>
+</UL>
+
+<A NAME="CppInC"><H1>C++ in C</H1></A>
+
+C is much more widely supported than C++. There is a subset of C++
+that is common to all C++ compilers but it can be emulated in C with
+minimal loss in efficiency or readability. This subset includes 
+
+<UL>
+<LI> <A NAME=2 HREF="#construction">construction/destruction</A>
+<LI> <A NAME=3 HREF="#dataHiding">data hiding</A>
+<LI> <A NAME=4 HREF="#nameSpaces">name spaces</A>
+<LI> <A NAME=5 HREF="#thisPointer">this pointer</A>
+<LI> <A NAME=6 HREF="#inheritance">inheritance</A>
+</UL>
+
+While the C++ in C approach is not perfect, it does allow much greater 
+portability.
+
+<A NAME="construction"><H2>construction/destruction</H2>
+C++ provides language primitves for memory allocation (<CODE>new</CODE>) 
+and freeing (<CODE>free</CODE>). These functions call the 
+<CODE>constructor</CODE> and <CODE>destructor</CODE> for an object. The 
+libwww implements this in C with <EM>object</EM>_<CODE>new</CODE> and 
+<EM>object</EM>_<CODE>delete</CODE>. For example:
+
+<PRE>
+PUBLIC HTRequest * HTRequest_new (void)
+{
+    HTRequest * me;
+    if ((me = (HTRequest *) HT_CALLOC(1, sizeof(HTRequest))) == NULL)
+        HT_OUTOFMEM("HTRequest_new()");
+    
+   /* Force Reload */
+    me->reload = HT_ANY_VERSION;
+.
+.
+.
+    me->ContentNegotiation = NO;		       /* Do this by default */
+
+#ifdef WWW_WIN_ASYNC
+    HTEvent_winHandle(me);
+#endif
+    return me;
+}
+
+</PRE>
+<P>
+<A NAME="dataHiding"><H2>data hiding</H2>
+Many classes are defined in C++ to be private, meaning that all manipulation
+of the object is done through member functions (methods). Any attempt at
+meddling with the contents by an outside function will result in a compiler
+error. Object data is protected in libwww by declaring a structure in a 
+header file, but not defining it.
+<PRE>
+typedef struct _MyObject MyObject;
+
+int MyObject_saveTheWorld(MyObject * me);
+<PRE>
+The method (saveTheWorld) is accessible to everyone including the header, 
+but the contents of a MyObject are not. Only the module containing 
+MyObject's methods has a definition of the object, 
+<PRE>
+struct _MyObject {
+    int someInt;
+};
+</PRE>
+and therefor, access to the contents (someInt);
+<P>
+<A NAME="nameSpaces"><H2>name spaces</H2>
+Most C++ objects come with a set of methods (member functions) which 
+are <A NAME=5 HREF="#dataHiding">permitted</A> to affect the object. 
+Any operation perfomed on an object (<CODE>myObject-&gt;saveTheWorld</CODE>)
+will be performed by an method in that object's class.
+
+<PRE>
+class MyObject {
+private:         // data
+    int someInt;
+public:          // methods
+    int saveTheWorld(void);
+}
+main ()
+{
+  MyObject * myObject = new MyObject;
+  myObject-&gt;saveTheWorld();
+}
+</PRE>
+What is actually happening is that the compiler is generating a name 
+from the class name and the method name, eg. 
+<CODE>_@MyObject@@saveTheWord@132</CODE>. This is done explicitly in 
+libwww, eg. <CODE>MyObject_saveTheWorld<CODE>.
+</PRE>
+While more verbose, this does, at least, eliminate the awkward hunt to 
+figure out what instance of a method the compiler used.
+<P>
+<A NAME="thisPointer"><H2>this pointer</H2>
+The this pointer is simply an understood first parameter to any method.
+libwww includes all parameters explicitly.
+<PRE><CODE>C++:</CODE> myObject-&gt;saveTheWorld();</PRE>
+is equivilent to 
+<PRE><CODE>libwww:</CODE> MyObject_saveTheWorld(myObject);</PRE>
+<P>
+<A NAME="inheritance"><H2>inheritance</H2>
+In C++, classes may be derived from other classes.
+<PRE>
+class MyOtherObject: public MyObject {
+private:         // data
+    int anotherInt;
+public:          // methods
+    int saveTheWales(void);
+};
+</PRE>
+As far as memory is concearned, this is identical to
+<PRE>
+struct _MyOtherObject {
+    MyObject base;
+    int anotherInt;
+};
+</PRE>
+but one problem remains. In C++, all the instances of MyOtherObject may
+call <CODE>myOtherObject-&gt;saveTheWales()</CODE> as well as
+<CODE>myOtherObject-&gt;saveTheWorld()</CODE>. The compiler knows that a
+pointer to a <EM>MyOtherObject</EM> also points to a <EM>MyObject</EM>, 
+so <EM>saveTheWorld</EM> may be called with the same pointer as 
+<EM>saveTheWales</EM>.
+<P>
+This is much trickier than the others as it requires more logic on the 
+part of the compiler. An <EM>HTStream</EM> class always includes an
+<EM>HTStreamClass</EM> as the first element. This way, the definition of
+the <EM>HTStream</EM> may vary from module to module, depending on what 
+context is needed to process the stream, but the library can use the 
+standard <EM>HTStreamClass</EM> functions to supply it with data.
+
+<P>
+<P>
+<A NAME="PubPriv"><H1>PUBLIC/PRIVATE functions and data</H1></A>
+All functions and global data are prepended with either <EM>PUBLIC</EM> 
+or <EM>PRIVATE</EM>. These macros are defined in 
+<A NAME=7 HREF="../../src/HTUtils.html#declaration">HTUtils.html</A>.
+In practice PUBLIC is defined to nothing and PRIVATE is 
+<CODE>static</CODE>. These tags are also useful for scripts that search 
+the code for functions (eg 
+<A NAME=8 HREF="../../Implementation/windows/makedefs.pl">makedefs</A>).
+
+<P>
+<P>
+<A NAME="Documentation"><H1>Documentation</H1></A>
+All docementation is written in HTML for the following reasons. None of 
+common documentation formats (.ps, .ps, .rtf, .doc) have hypertext links. 
+To prevent the low level documentation from getting out of sync with the 
+code, the .h files are extracted from the .html files. While this is only 
+effective for API function documentation, it is better than nothing.
+
+<HR>
+<ADDRESS>Eric Prud'hommeaux, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, December 1995</ADDRESS>
+</BODY>
+</HTML>
