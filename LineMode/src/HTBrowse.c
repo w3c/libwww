@@ -138,7 +138,7 @@ typedef enum _LMFlags {
 } LMFlags;
 
 typedef struct _LineMode {
-    HTRequest *		request;
+    HTRequest *		console;			   /* For user input */
     HTParentAnchor *	anchor;
     struct timeval *	tv;				/* Timeout on socket */
     HTList *		active;			  /* List of acitve contexts */
@@ -189,7 +189,6 @@ PRIVATE Context * Context_new (LineMode *lm, HTRequest *request, LMState state)
     me->request = request;
     me->lm = lm;
     HTRequest_setContext(request, (void *) me);
-    HTList_addObject(lm->active, (void *) me);
     return me;
 }
 
@@ -214,6 +213,7 @@ PRIVATE HTRequest * Thread_new (LineMode * lm, BOOL Interactive, LMState state)
     if (Interactive) HTRequest_setConversion(newreq, lm->presenters, NO);
     if (lm->flags & LM_PREEMTIVE) HTRequest_setPreemptive(newreq, YES);
     HTRequest_addRqHd(newreq, HT_C_HOST);
+    HTList_addObject(lm->active, (void *) me);
     return newreq;
 }
 
@@ -273,10 +273,10 @@ PRIVATE LineMode * LineMode_new (void)
     me->tv->tv_sec = -1;
     me->cwd = HTFindRelatedName();
     me->active = HTList_new();
-    me->request = HTRequest_new();
-    Context_new(me, me->request, LM_UPDATE);
+    me->console = HTRequest_new();
+    Context_new(me, me->console, LM_UPDATE);
 #ifdef WWW_WIN_WINDOW
-    TTYReq = me->request;
+    TTYReq = me->console;
 #endif
     me->trace = SHOW_ALL_TRACE;
     return me;
@@ -295,6 +295,7 @@ PRIVATE BOOL LineMode_delete (LineMode * lm)
 	HTHistory_delete(lm->history);
 	HT_FREE(lm->cwd);
 	if (lm->logfile) HTLog_close();
+	HTRequest_delete(lm->console);
 #ifndef WWW_WIN_WINDOW
 	if (OUTPUT && OUTPUT != STDOUT) fclose(OUTPUT);
 #endif
@@ -1122,9 +1123,8 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
     */
     if (cur_req == req)
 	cur_context->state |= LM_NO_UPDATE;
-    else if (cur_req != lm->request) {
+    else
 	cur_context->state |= LM_INACTIVE;    
-    }
     return (status==YES) ? HT_OK : HT_ERROR;
 }
 
@@ -1421,6 +1421,7 @@ int main (int argc, char ** argv)
     int		arg;			       		  /* Index into argv */
     HTChunk *	keywords = NULL;			/* From command line */
     int		keycnt = 0;
+    HTRequest	request = NULL;
     LineMode *	lm;
 
     /* Starts Mac GUSI socket library */
@@ -1447,6 +1448,7 @@ int main (int argc, char ** argv)
 
     /* Create a new Line Mode object */
     lm = LineMode_new();
+    request = Thread_new(lm, NO, LM_UPDATE);
 
     /* Initiate W3C Reference Library */
     HTLibInit(APP_NAME, APP_VERSION);
@@ -1491,12 +1493,12 @@ int main (int argc, char ** argv)
 	    } else if (!strcmp(argv[arg], "-to")) {
 		HTFormat format = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    HTAtom_for(argv[++arg]) : DEFAULT_FORMAT;
-		HTRequest_setOutputFormat(lm->request, format);
+		HTRequest_setOutputFormat(request, format);
 		HTAlert_setInteractive(NO);
 
 	    /* reformat html */
 	    } else if (!strcmp(argv[arg], "-reformat")) {
-		HTRequest_setOutputFormat(lm->request, WWW_HTML);
+		HTRequest_setOutputFormat(request, WWW_HTML);
 		lm->flags |= LM_REFORMAT;
 		HTAlert_setInteractive(NO);
 
@@ -1507,18 +1509,18 @@ int main (int argc, char ** argv)
 
 	    /* original output */
 	    } else if (!strcmp(argv[arg], "-raw")) {
-		HTRequest_setOutputFormat(lm->request, WWW_RAW);
+		HTRequest_setOutputFormat(request, WWW_RAW);
 		HTAlert_setInteractive(NO);
 
 	    /* source please */
 	    } else if (!strcmp(argv[arg], "-source")) {
-		HTRequest_setOutputFormat(lm->request, WWW_SOURCE);
+		HTRequest_setOutputFormat(request, WWW_SOURCE);
 		HTAlert_setInteractive(NO);
 
 	    /* HEAD method */
 	    } else if (!strcasecomp(argv[arg], "-head")) {
-		HTRequest_setMethod(lm->request, METHOD_HEAD);
-		HTRequest_setOutputFormat(lm->request, WWW_MIME);
+		HTRequest_setMethod(request, METHOD_HEAD);
+		HTRequest_setOutputFormat(request, WWW_MIME);
 		HTAlert_setInteractive(NO);
 
 	    /* output filename */
@@ -1605,7 +1607,7 @@ int main (int argc, char ** argv)
 
 	    /* preemptive or non-preemptive access */
 	    } else if (!strcmp(argv[arg], "-single")) {
-		HTRequest_setPreemptive(lm->request, YES);
+		HTRequest_setPreemptive(request, YES);
 		lm->flags |= LM_PREEMTIVE;
 
 	    /* Specify a cache root (caching is otherwise disabled) */
@@ -1729,7 +1731,7 @@ int main (int argc, char ** argv)
     if (HTAlert_interactive()) {
 	lm->presenters = HTList_new();
 	HTPresenterInit(lm->presenters);
-	HTRequest_setConversion(lm->request, lm->presenters, NO);
+	HTRequest_setConversion(request, lm->presenters, NO);
     }
 
     if (HTScreenHeight == -1) {				/* Default page size */
@@ -1759,8 +1761,8 @@ int main (int argc, char ** argv)
 		OUTPUT = STDOUT;
 	    }
 	}
-	HTRequest_setOutputStream(lm->request,
-				  HTFWriter_new(lm->request, OUTPUT, YES));
+	HTRequest_setOutputStream(request,
+				  HTFWriter_new(request, OUTPUT, YES));
 #endif
 
 	/*
@@ -1769,10 +1771,10 @@ int main (int argc, char ** argv)
 	*/
 	if (lm->flags & LM_REFORMAT) {
 	    HTStructured * html =
-		HTMLGenerator(lm->request, NULL, WWW_HTML,
-			      HTRequest_outputFormat(lm->request),
-			      HTRequest_outputStream(lm->request));
-	    HTRequest_setOutputStream(lm->request, SGML_new(&HTMLP_dtd, html));
+		HTMLGenerator(request, NULL, WWW_HTML,
+			      HTRequest_outputFormat(request),
+			      HTRequest_outputStream(request));
+	    HTRequest_setOutputStream(request, SGML_new(&HTMLP_dtd, html));
 	}
     }
     
@@ -1782,9 +1784,9 @@ int main (int argc, char ** argv)
     /* Just convert formats */
     if (lm->flags & LM_FILTER) {
 #ifdef STDIN_FILENO
-	HTRequest_setAnchor(lm->request, (HTAnchor *) lm->anchor);
-	HTRequest_setPreemptive(lm->request, YES);
-	HTLoadSocket(STDIN_FILENO, lm->request, FD_NONE);
+	HTRequest_setAnchor(request, (HTAnchor *) lm->anchor);
+	HTRequest_setPreemptive(request, YES);
+	HTLoadSocket(STDIN_FILENO, request, FD_NONE);
 #endif
 	Cleanup(lm, 0);
 #ifdef WWW_PICS
@@ -1839,7 +1841,7 @@ int main (int argc, char ** argv)
 	lm->tv->tv_sec = HTAlert_interactive() ?
 	    DEFAULT_I_TIMEOUT : DEFAULT_NI_TIMEOUT;
     }
-    HTEvent_registerTimeout(lm->tv, lm->request, timeout_handler, NO);
+    HTEvent_registerTimeout(lm->tv, request, timeout_handler, NO);
 
     /* Set max number of sockets we want open simultanously */
     HTNet_setMaxSocket(6);
@@ -1849,9 +1851,9 @@ int main (int argc, char ** argv)
 
     /* Start the request */
     if (keywords)
-	status = HTSearch(HTChunk_data(keywords), lm->anchor, lm->request);
+	status = HTSearch(HTChunk_data(keywords), lm->anchor, request);
     else
-	status = HTLoadAnchor((HTAnchor *) lm->anchor, lm->request);
+	status = HTLoadAnchor((HTAnchor *) lm->anchor, request);
 
     if (keywords) HTChunk_delete(keywords);
     if (status != YES) {
@@ -1878,16 +1880,16 @@ int main (int argc, char ** argv)
 	*/
 #ifdef STDIN_FILENO
 	if (isatty(STDIN_FILENO)) {
-	    HTEvent_RegisterTTY(STDIN_FILENO, lm->request, (SockOps)FD_READ,
+	    HTEvent_RegisterTTY(STDIN_FILENO, lm->console, (SockOps)FD_READ,
 				scan_command, HT_PRIORITY_MAX);
 	}
 #else
-	HTEvent_RegisterTTY(0, lm->request, (SockOps)FD_READ, scan_command, 1);
+	HTEvent_RegisterTTY(0, lm->console, (SockOps)FD_READ, scan_command, 1);
 #endif
     }
 
     /* Go into the event loop... */
-    HTEvent_Loop(lm->request);
+    HTEvent_Loop(request);
 
     /* Only gets here if event loop fails */
     Cleanup(lm, 0);
