@@ -337,20 +337,8 @@ PUBLIC int HTCacheUpdateFilter (HTRequest * request, HTResponse * response,
 	**  keep this around until the cache load request has terminated
 	**  In the case of a 
 	*/
-#define SINGLE_CACHE_LOAD
-#ifdef SINGLE_CACHE_LOAD
-	{
-	    static BOOL done = NO;
-	    if (!done) {	
-		HTLoad(request, YES);
-		done = YES;
-		return HT_ERROR;
-	    }
-	}
-#else
 	HTLoad(request, YES);
 	return HT_ERROR;
-#endif /* SINGLE_CACHE_LOAD */
     } else {
 
 	/* If entry doesn't already exist then create a new entry */
