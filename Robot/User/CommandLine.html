@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Command Line Syntax for the W3C Mini Robot</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  6-Dec-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 17-Jan-1996 -->
 <NEXTID N="z29">
 </HEAD>
 
@@ -71,8 +71,12 @@ number of the WWW library, and exits.
 <DD>Specifies a log file with a list of visited documents. The default
 value is "www-log"
 
-<DT><B>-link</B>
-<DD>Fetch all links from this document
+<DT><B>-link</B> [ n ]
+
+<DD>Fetch all links from this document. By indicating an integer "n" as the parameter you can
+specify the depth of which the search should go. The default value is 0 which means that only the
+start page is searched. Level 1 insicates that the start page <B>and</B> all pages directly linked
+from the start page are searched.
 
 <DT><B>-n</B>
 <DD>Non-interactive mode. Outputs the formatted document to the
