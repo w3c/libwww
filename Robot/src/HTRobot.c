@@ -1725,7 +1725,7 @@ int main (int argc, char ** argv)
     /* Rule file specified? */
     if (mr->rules) {
 	char * rules = HTParse(mr->rules, mr->cwd, PARSE_ALL);
-	if (!HTLoadRules(rules))
+	if (!HTLoadRulesAutomatically(rules))
 	    if (SHOW_REAL_QUIET(mr)) HTTrace("Can't access rules\n");
 	HT_FREE(rules);
     }
