@@ -86,10 +86,10 @@ PRIVATE int tracer (const char * fmt, va_list pArgs)
 int main (int argc, char ** argv)
 {
     char * uri = NULL;
+    char * cwd = HTGetCurrentDirectoryURL();
 
-    char *cwd = HTGetCurrentDirectoryURL();
     /* Create a new premptive client */
-    HTProfile_newHTMLNoCacheClient ("ShowXML", "1.0");
+    HTProfile_newHTMLNoCacheClient ("ParseRDF", "1.0");
 
     /* Need our own trace and print functions */
     HTPrint_setCallback(printer);
@@ -107,8 +107,8 @@ int main (int argc, char ** argv)
     HTHost_setEventTimeout(15000);
 
     /* Handle command line args */
-    if (argc >= 2)
-	uri = HTParse(argv[1], cwd, PARSE_ALL);
+    if (argc >= 2) uri = HTParse(argv[1], cwd, PARSE_ALL);
+    HT_FREE(cwd);
 
     /* Set up our RDF To Triple conveter stream */
     HTFormat_addConversion("text/rdf", "*/*", HTRDFParser_new, 1.0, 0.0, 0.0);
@@ -117,17 +117,11 @@ int main (int argc, char ** argv)
     HTRDF_registerNewParserCallback (new_parser_handler, NULL);
 
     if (uri) {
-	HTRequest * request = NULL;
-	HTAnchor * anchor = NULL;
+	HTRequest * request = HTRequest_new();
+	HTAnchor * anchor = HTAnchor_findAddress(uri);
 	BOOL status = NO;
 
-	/* Create a request */
-	request = HTRequest_new();
-
-	/* Get an anchor object for the URI */
-	anchor = HTAnchor_findAddress(uri);
-
-	/* Issue the GET and store the result in a chunk */
+	/* Start the GET request */
 	status = HTLoadAnchor(anchor, request);
 
 	/* Go into the event loop... */
@@ -137,7 +131,7 @@ int main (int argc, char ** argv)
 	HTPrint("Type the URI to parse\n");
 	HTPrint("\t%s <uri>\n", argv[0]);
 	HTPrint("For example:\n");
-	HTPrint("\t%s http://www.yoursite.com/your.xml\n", argv[0]);
+	HTPrint("\t%s http://www.yoursite.com/your.rdf\n", argv[0]);
     }
 
     return 0;

@@ -55,8 +55,8 @@ PRIVATE int tracer (const char * fmt, va_list pArgs)
 int main (int argc, char ** argv)
 {
     char * uri = NULL;
+    char * cwd = HTGetCurrentDirectoryURL();
 
-    char *cwd = HTGetCurrentDirectoryURL();
     /* Create a new premptive client */
     HTProfile_newHTMLNoCacheClient ("ShowRDFTriples", "1.0");
 
@@ -65,8 +65,8 @@ int main (int argc, char ** argv)
     HTTrace_setCallback(tracer);
 
     /* Set trace messages */
-#if 0
-    HTSetTraceMessageMask("sop");
+#if 1
+    HTSetTraceMessageMask("sopx");
 #endif
 
     /* Add our own termination filter */
@@ -79,23 +79,18 @@ int main (int argc, char ** argv)
     HTFormat_addConversion("text/rdf", "*/*", HTRDFToTriples, 1.0, 0.0, 0.0);
 
     /* Handle command line args */
-    if (argc >= 2)
-	uri = HTParse(argv[1], cwd, PARSE_ALL);
+    if (argc >= 2) uri = HTParse(argv[1], cwd, PARSE_ALL);
+    HT_FREE(cwd);
 
     if (uri) {
-	HTRequest * request = NULL;
-	HTAnchor * anchor = NULL;
+	HTRequest * request = HTRequest_new();
+	HTAnchor * anchor = HTAnchor_findAddress(uri);
 	BOOL status = NO;
 
-	/* Create a request */
-	request = HTRequest_new();
-
+	/* Set the output stream to stdout */
 	HTRequest_setOutputStream(request, HTFWriter_new(request, stdout, NO));
 
-	/* Get an anchor object for the URI */
-	anchor = HTAnchor_findAddress(uri);
-
-	/* Issue the GET and store the result in a chunk */
+	/* Start the GET request */
 	status = HTLoadAnchor(anchor, request);
 
 	/* Go into the event loop... */
