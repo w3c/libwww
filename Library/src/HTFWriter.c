@@ -613,12 +613,15 @@ PUBLIC HTStream* HTCacheWriter ARGS5(
 	return HTBlackHole();
     }
 
+#ifdef OLD_CODE
     /* THIS IS A TEMP SOLUTION UNTIL WE HAVE A MORE STEADY CACHING SYSTEM
        RUNNING. THEN IT SHOULD USE (char *) HTCacheDir from HTAccess.c. 
        FOR NOW, JUST RETURN BLACK HOLE, Henrik 09/03-94 */
+       /* But SaveAndCallBack uses this code -- cache is disabled in HTTP tim */
     if (TRACE)
 	fprintf (stderr, "HTFCacheWriter: Caching is turned OFF...\n");
     return HTBlackHole();
+#endif
     
     me = (HTStream*)calloc(sizeof(*me),1);
     if (me == NULL) outofmem(__FILE__, "CacheWriter");

@@ -561,7 +561,7 @@ PRIVATE BOOL HTLoadDocument ARGS1(HTRequest *,		request)
     /* Caching is ONLY done if (char*) HTCacheDir is set. Henrik 09/03-94 */
     /* Bug: for each format, we only check whether it is ok, we
        don't check them all and chose the best */
-    if (HTCacheDir && request->anchor->cacheItems) {
+    if (/* HTCacheDir && */ request->anchor->cacheItems) {
         HTList * list = request->anchor->cacheItems;
 	HTList * cur = list;
 	HTCacheItem * item;

@@ -236,6 +236,10 @@ PRIVATE BOOL write_cache ARGS1(HTStream *, me)
     FILE * fp;
     char cache_file_name[256];
     char * www_database;
+    if (!me->par_value[PAR_DATABASE_NAME]
+    	|| !me->par_value[PAR_IP_NAME]
+	) return NO;
+    
     www_database = HTEscape(me->par_value[PAR_DATABASE_NAME], URL_XALPHAS);
     sprintf(cache_file_name, "%sWSRC-%s:%s:%.100s.txt",
     	CACHE_FILE_PREFIX,
@@ -312,10 +316,10 @@ PRIVATE void WSRC_gen_html ARGS2(HTStream *, me, BOOL, source_file)
 	    char * www_database;
 	    www_database = HTEscape(me->par_value[PAR_DATABASE_NAME],
 	    	URL_XALPHAS);
-	    sprintf(WSRC_address, "wais://%s:%s/%s",
+	    sprintf(WSRC_address, "wais://%s%s%s/%s",
 		me->par_value[PAR_IP_NAME],
-		me->par_value[PAR_TCP_PORT] ? me->par_value[PAR_TCP_PORT]
-			: "210",
+		me->par_value[PAR_TCP_PORT] ? ":" : "",
+		me->par_value[PAR_TCP_PORT] ? me->par_value[PAR_TCP_PORT] :"",
 		www_database);
 	
 	    HTStartAnchor(me->target, NULL, WSRC_address);
@@ -324,10 +328,10 @@ PRIVATE void WSRC_gen_html ARGS2(HTStream *, me, BOOL, source_file)
 	    
 	    PUTS(" or ");
 	    
-	    sprintf(WSRC_address, "http://info.cern.ch:8001/%s:%s/%s",
+	    sprintf(WSRC_address, "http://info.cern.ch:8001//%s%s%s/%s",
 		me->par_value[PAR_IP_NAME],
-		me->par_value[PAR_TCP_PORT] ? me->par_value[PAR_TCP_PORT]
-		: "210",
+		me->par_value[PAR_TCP_PORT] ? ":" : "",
+		me->par_value[PAR_TCP_PORT] ? me->par_value[PAR_TCP_PORT] :"",
 		www_database);
 	    HTStartAnchor(me->target, NULL, WSRC_address);
 	    PUTS("through CERN gateway");
@@ -337,7 +341,7 @@ PRIVATE void WSRC_gen_html ARGS2(HTStream *, me, BOOL, source_file)
 	    
 	} else {
 	    give_parameter(me, PAR_IP_NAME);
-	    give_parameter(me, PAR_IP_NAME);
+	    give_parameter(me, PAR_DATABASE_NAME);
 	}
     
     } /* end if source_file */
@@ -348,11 +352,13 @@ PRIVATE void WSRC_gen_html ARGS2(HTStream *, me, BOOL, source_file)
 	START(HTML_DD);
 	PUTS(me->par_value[PAR_MAINTAINER]);
     }
-    START(HTML_DT);
-    PUTS("Host");
-    START(HTML_DD);
-    PUTS(me->par_value[PAR_IP_NAME]);
-
+    if (me->par_value[PAR_IP_NAME]) {
+    	START(HTML_DT);
+    	PUTS("Host");
+    	START(HTML_DD);
+    	PUTS(me->par_value[PAR_IP_NAME]);
+    }
+    
     END(HTML_DL);
 
     if (me->par_value[PAR_DESCRIPTION]) {

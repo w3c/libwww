@@ -544,7 +544,8 @@ copy:
         /* @@ Bug: The decision of whether or not to cache should also be
 	** made contingent on a IP address match or non match.
 	*/
-        if (cache_http) {
+
+        if (HTCacheDir && cache_http) {
 	    target = HTTee(target, HTCacheWriter(request, NULL, format_in,
 						 request->output_format,
 						 request->output_stream));
