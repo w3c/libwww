@@ -119,6 +119,14 @@ PRIVATE char *	this_addr;				    /* Local address */
 #define FCNTL(r, s, t) fcntl(r, s, t)
 
 
+/*								HTDoConnect()
+**
+**	TEMPORARY FUNCTION.
+**	Note: Any port indication in URL, e.g., as `host:port' overwrites
+**	the default_port value.
+**
+**	Returns 0 if OK, -1 on error
+*/
 PUBLIC int HTDoConnect ARGS5(char *, url, char *, protocol,
 			     u_short, default_port, int *, s,
 			     u_long *, addr)
@@ -723,6 +731,7 @@ PRIVATE BOOL parse_dir_entry ARGS4(ftp_data_info *, data, char *, entry,
       case UNIX_SERVER:
       case PETER_LEWIS_SERVER:
       case MACHTEN_SERVER:
+      case WINDOWS_NT:				    /* This is an experiment */
 	/* Interpret and edit LIST output from Unix server */
 	if (first_entry) {
 	    if (data->ctrl->unsure_type == YES &&
@@ -793,6 +802,7 @@ PRIVATE int HTFTP_get_dir_string ARGS2(ftp_data_info *, data,
     do {			                /* Until we have a nice line */
 	while ((ch = HTInputSocket_getCharacter(isoc)) >= 0) {
 	    if (ch == CR || ch == LF) {			      /* Terminator? */
+		first = NO;
 		if (chunk->size != 0) {			    /* got some text */
 		    if (data->ctrl->server == VMS_SERVER) {
 			/* Deal with MultiNet's wrapping of long lines - F.M.*/
@@ -806,7 +816,6 @@ PRIVATE int HTFTP_get_dir_string ARGS2(ftp_data_info *, data,
 		    } else {
 			HTChunkClear(chunk);
 		    }
-		    first = NO;
 		}
 	    } else
 		HTChunkPutc(chunk, ch);
@@ -1407,7 +1416,7 @@ PRIVATE BOOL get_listen_socket ARGS1(ftp_data_info *, data)
     if ((data->socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
 	return HTInetStatus("socket for ftp data");
     if (TRACE)
-	fprintf(stderr, "HTDoConnect. Created socket number %d\n",
+	fprintf(stderr, "HTListen.... Created socket number %d\n",
 		data->socket);
     
     /* Search for a free port. */
@@ -1806,8 +1815,19 @@ PRIVATE int HTFTP_get_data_con ARGS2(ftp_data_info *, data, char *, url)
 	    if (TRACE) fprintf(stderr,
 			       "FTP......... Server is listening on port %d\n",
 			       serv_port);
-	    status = HTDoConnect(url, "FTP", serv_port,
-				 &data->socket, (u_long *) NULL);
+	    
+	    /* Got to strip any host port indication as this is for the control
+	       connection. Thanks to ramey@jello.csc.ti.com (Joe Ramey) */
+	    {
+		char *host=HTParse(url, "",
+				   PARSE_ACCESS+PARSE_HOST+PARSE_PUNCTUATION);
+		char *portptr = strrchr(host, ':');
+		if (portptr && strncmp(portptr, "://", 3))
+		    *portptr = '\0';
+		status = HTDoConnect(host, "FTP", serv_port,
+				     &data->socket, (u_long *) NULL);
+		free(host);
+	    }
 	    if (status == -1) {
 		if (TRACE) fprintf(stderr,
 				   "FTP......... Data connection failed using PASV, let's try PORT instead\n");
@@ -1948,6 +1968,10 @@ PRIVATE int HTFTPServerInfo ARGS1(ftp_ctrl_info *, ctrl)
 		    ctrl->server = PETER_LEWIS_SERVER;
 		    ctrl->use_list = YES;
 		    ctrl->unsure_type = NO;
+		} else if (strncmp(info, "Windows_NT", 10) == 0) {
+		    ctrl->server = WINDOWS_NT;
+		    ctrl->use_list = YES;
+		    ctrl->unsure_type = NO;
 		}
 		
 		/* If we are unsure, try PWD to get more information */
@@ -2018,8 +2042,9 @@ PRIVATE int HTFTPServerInfo ARGS1(ftp_ctrl_info *, ctrl)
 	    "CMS",
 	    "DCTS",
 	    "TCPC",
-	    "PETER_LEWIS",
-	    "NCSA"
+	    "PETER LEWIS",
+	    "NCSA",
+	    "WINDOWS NT"
 	    };
 	if (ctrl->unsure_type == YES)
 	    fprintf(stderr, "FTP......... This might be a %s server\n",
@@ -2593,7 +2618,7 @@ PUBLIC int HTLoadFTP ARGS1(HTRequest *, request)
     HTSimplify(url);
     if((ctrl = HTFTP_init_con(request, url)) == NULL) {
 	HTLoadError(request, 500,
-		    "Could not establish connection to FTP-server\n");
+		    "Could not establish connection to FTP-server");
 	return -1;
     }
 
@@ -2684,9 +2709,14 @@ PUBLIC int HTLoadFTP ARGS1(HTRequest *, request)
 
 	      case FTP_ERROR:
 		{
-		    char * p = strchr(ctrl->reply->data,' ');
-		    if (!p) p = ctrl->reply->data;
-		    HTLoadError(request, 500, p);
+		    if (ctrl->reply && ctrl->reply->data) {
+			char * p = strchr(ctrl->reply->data,' ');
+			if (!p) p = ctrl->reply->data;
+			HTLoadError(request, 500, p);
+		    } else {
+			HTLoadError(request, 500,
+				    "FTP server doesn't give any response.");
+		    }
 		    HTFTP_abort_ctrl_con(ctrl);
 		    return -1;				 /* Exit immediately */
 		}
@@ -2704,7 +2734,7 @@ PUBLIC int HTLoadFTP ARGS1(HTRequest *, request)
     }
     if (status < 0 && status != HT_INTERRUPTED)
 	return HTLoadError(request, 500,
-              "Document not loaded due to strange behavior from FTP-server\n");
+              "Document not loaded due to strange behavior from FTP-server");
     return status;
 }
 

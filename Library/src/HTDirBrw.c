@@ -222,19 +222,6 @@ PRIVATE void ItoA ARGS3(unsigned int, n, char *, start, char, len)
 PRIVATE void HTDirSize ARGS3(unsigned long, n, char *, start, char, len)
 {
     float size = n/1024.0;
-
-#if 0
-    char sign;
-    if (size < 1000)
-	sign = 'K';
-    else if ((size /= 1024) < 1000)
-	sign = 'M';
-    else {
-	size /= 1024;
-	sign = 'G';
-    }
-#endif
-
     if (n < 1000) {
 	if (HTDirShowBytes)
 	    ItoA((int) n, start, len);
@@ -252,31 +239,6 @@ PRIVATE void HTDirSize ARGS3(unsigned long, n, char *, start, char, len)
     else
 	sprintf(start+len-6, "%5dG", (int)(size + 0.5));
     *(start+len) = ' ';
-
-#if 0
-    if (n == 0)
-	sprintf(start+len-6, "    0%c", sign);
-    else if (size + 0.05 < 1)
-	sprintf(start+len-6, "   .%d%c", (int)(10 * (size + 0.05)), sign);
-    else
-	sprintf(start+len-6, "%5d%c", (int)(size + 0.5), sign);
-#endif
-
-#ifdef ORIGINAL_CODE
-    if (n < 1024)
-	ItoA((int) n, start, len);
-    else if ((size = n/1000) < 1000) {
-	sprintf(start+len-6, "%5.3gk", size);
-	*(start+len) = ' ';
-    } else if ((size = size/1000) < 1000) {
-	sprintf(start+len-6, "%5.3gM", size);
-	*(start+len) = ' ';
-    } else {
-	size /= 1000;
-	sprintf(start+len-6, "%5.3gG", size);
-	*(start+len) = ' ';
-    }
-#endif
 }
 
 
@@ -1235,8 +1197,11 @@ PUBLIC int HTFTPBrowseDirectory ARGS4(HTRequest *, req, char *, directory,
                     *bodyptr = ' ';
                     bodyptr += HT_LENGTH_SPACE;
 		}
+
+		/* If we are using NLST, then don't show any size */
 		if (HTDirShowMask & HT_DIR_SHOW_SIZE) {
-                    if ((file_info.f_mode & S_IFMT) != S_IFDIR)
+                    if ((file_info.f_mode & S_IFMT) != S_IFDIR &&
+			data->ctrl->use_list == YES)
                         HTDirSize(file_info.f_size, bodyptr, HT_LENGTH_SIZE);
                     else
                         bodyptr[HT_LENGTH_SIZE-1] = '-';
