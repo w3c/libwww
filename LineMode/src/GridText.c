@@ -85,6 +85,7 @@ struct _HText {
 	TextAnchor *		first_anchor;	/* Singly linked list */
 	TextAnchor *		last_anchor;
 	int			last_anchor_number;	/* user number */
+	TextAnchor *		current_anchor;
 /* For Internal use: */	
 	HTStyle *		style;			/* Current style */
 	int			display_on_the_fly;	/* Lines left */
@@ -155,7 +156,7 @@ PUBLIC HText *	LMHText_new (
     line->offset = line->size = 0;
     self->lines = self->chars = 0;
     self->title = 0;
-    self->first_anchor = self->last_anchor = 0;
+    self->first_anchor = self->last_anchor = self->current_anchor = 0;
     self->style = &default_style;
     self->top_of_screen = 0;
     self->node_anchor = anchor;
@@ -762,6 +763,10 @@ PUBLIC void LMHText_beginAnchor (HText * text,
 {
     char marker[100];
     TextAnchor * a;
+
+    if (elem_num != HTML_A)
+	return;
+
     if ((a = (TextAnchor  *) HT_MALLOC(sizeof(*a))) == NULL)
         HT_OUTOFMEM("HText_beginAnchor");
     a->start = text->chars + text->last_line->size;
@@ -774,6 +779,7 @@ PUBLIC void LMHText_beginAnchor (HText * text,
     a->next = 0;
     a->anchor = anc;
     text->last_anchor = a;
+     text->current_anchor = a;
     
     if (HTAnchor_followMainLink((HTAnchor*)anc)) {
         a->number = ++(text->last_anchor_number);
@@ -785,13 +791,18 @@ PUBLIC void LMHText_beginAnchor (HText * text,
 
 PUBLIC void LMHText_endAnchor (HText * text)
 {
-    TextAnchor * a = text->last_anchor;
+    TextAnchor * a = text->current_anchor;
     char marker[100];
+
+    if (!a)
+	return;
+
     if (a->number && display_anchors) {	 /* If it goes somewhere */
 	sprintf(marker, end_reference, a->number);
 	HText_appendText(text, marker);
     }
     a->extent = text->chars + text->last_line->size - a->start;
+    text->current_anchor = 0;
 }
 
 
@@ -1091,9 +1102,7 @@ PUBLIC void LMHText_endElement (HText * text, int elem_num)
 {
     switch (elem_num) {
     case HTML_A:
-#if 0
 	LMHText_endAnchor (text);
-#endif
 	break;
     default:
 	break;
