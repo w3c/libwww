@@ -29,10 +29,10 @@ BUILT_SOURCES = \
 	HTBrowse.h	GridStyle.h	GridText.h \
 	HTFont.h
 
-PURIFY_CACHE = /tmp/purify-cache
-
 inc: $(BUILT_SOURCES)
 	@echo Generated built sources
+
+PURIFY_CACHE = @PURIFY_CACHE@
 
 purify: $(www_OBJECTS) $(www_DEPENDENCIES)
 	purify -cache-dir=$(PURIFY_CACHE) \

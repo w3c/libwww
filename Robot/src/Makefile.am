@@ -34,6 +34,8 @@ PURIFY_CACHE = /tmp/purify-cache
 inc: $(BUILT_SOURCES)
 	@echo Generated built sources
 
+PURIFY_CACHE = @PURIFY_CACHE@
+
 purify: $(webbot_OBJECTS) $(webbot_DEPENDENCIES)
 	purify -cache-dir=$(PURIFY_CACHE) \
 	$(CC) $(LDFLAGS) -o purify $(webbot_OBJECTS) $(webbot_LDADD) $(LIBS)
