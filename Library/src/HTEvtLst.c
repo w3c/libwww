@@ -252,6 +252,11 @@ PRIVATE SockEvents * SockEvents_get (SOCKET s, SockEvents_action action)
     long v = HASH(s);
     HTList* cur;
     SockEvents * pres;
+
+    /* if the socket doesn't exists, don't do anything */
+    if (s == INVSOC)
+      return NULL;
+
     if (HashTable[v] == NULL) HashTable[v] = HTList_new();
     cur = HashTable[v];
     while ((pres = (SockEvents *) HTList_nextObject(cur)))
@@ -450,6 +455,10 @@ PUBLIC int HTEventList_unregister (SOCKET s, HTEventType type)
     HTList * 		last = cur;
     SockEvents *	pres;
     int			ret = HT_ERROR;
+
+    /* if the socket doesn't exists, don't do anything */
+    if (s == INVSOC)
+      return HT_OK;
 
     while (cur && (pres = (SockEvents *) HTList_nextObject(cur))) {
         if (pres->s == s) {

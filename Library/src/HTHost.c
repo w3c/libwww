@@ -1096,8 +1096,8 @@ PRIVATE BOOL HTHost_free (HTHost * host, int status)
 		    HTTRACE(CORE_TRACE, "%d requests made, %d in pipe, max %d requests pr connection\n" _ 
 				host->reqsMade _ piped _ host->reqsPerConnection);
 		    host->do_recover = YES;
-		    HTChannel_delete(host->channel, status);
-		    host->channel = NULL;
+		    if (HTChannel_delete(host->channel, status))
+		      host->channel = NULL;
 		} else {
 		    HTChannel_setSemaphore(host->channel, 0);
 		    HTHost_clearChannel(host, status);
