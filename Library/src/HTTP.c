@@ -123,6 +123,12 @@ PRIVATE int HTTPCleanup (HTRequest *req, int status)
     if (PROT_TRACE)
 	HTTrace("HTTP Clean.. Called with status %d, net %p\n", status, net);
 
+    if (status == HT_INTERRUPTED) {
+    	HTAlertCallback * cbf = HTAlert_find(HT_PROG_INTERRUPT);
+    	if (cbf) (*cbf)(req, HT_PROG_INTERRUPT,
+	    HT_MSG_NULL, NULL, NULL, NULL);
+    }	
+    
     /* Free stream with data TO network */
     if (HTRequest_isDestination(req))
 	HTRequest_removeDestination(req);
