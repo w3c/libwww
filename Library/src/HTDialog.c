@@ -23,16 +23,20 @@
 /*
 ** Dialog Messages
 */
-PRIVATE char *HTDialogs[HT_MSG_ELEMENTS] = {
+PRIVATE const char * HTDialogs[HT_MSG_ELEMENTS] = {
     "Please enter username:",
     "Password:",
     "Please give name of file to save in:",
     "Plase enter account:",
-    "It might not be allowed to use this method, continue?",
+    "It might not be allowed to use this method on this URL, continue?",
     "Location has moved, continue?",
     "A new set of rules is to be added to your setup - continue?",
     "This file already exists - replace existing file?",
-    "Authentication failed - retry?"
+    "Authentication failed - retry?",
+    "This method has already been performed - repeat operation?",
+    "This document is very big - continue operation?",
+    "The source document for this operation has moved - continue operation with new location?",
+    "The destination document for this operation has moved - continue operation with new location?",
 };
 
 /*

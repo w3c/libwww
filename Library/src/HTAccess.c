@@ -38,6 +38,21 @@ struct _HTStream {
     HTStreamClass * isa;
 };
 
+typedef enum _HTPutState {
+    HT_PUT_SOURCE	= 0,
+    HT_PUT_DESTINATION
+} HTPutState;
+
+typedef struct _HTPutContext {
+    HTParentAnchor *	source;
+    HTAnchor *		destination;
+    HTChunk *		document;
+    HTFormat		format;
+    HTStream *		target;		       /* Any existing output stream */
+    void *		placeholder;	       /* Any existing doc in anchor */
+    HTPutState		state;
+} HTPutContext;
+
 /* --------------------------------------------------------------------------*/
 /*				THE GET METHOD 				     */
 /* --------------------------------------------------------------------------*/
@@ -47,7 +62,7 @@ struct _HTStream {
 **	Private version that requests a document from the request manager
 **	Returns YES if request accepted, else NO
 */
-PRIVATE BOOL HTLoadDocument (HTRequest * request, BOOL recursive)
+PRIVATE BOOL launch_request (HTRequest * request, BOOL recursive)
 {
     if (PROT_TRACE) {
 	HTParentAnchor *anchor = HTRequest_anchor(request);
@@ -68,7 +83,7 @@ PUBLIC BOOL HTLoadAbsolute (const char * url, HTRequest * request)
     if (url && request) {
 	HTAnchor * anchor = HTAnchor_findAddress(url);
 	HTRequest_setAnchor(request, anchor);
-	return HTLoadDocument(request, NO);
+	return launch_request(request, NO);
     }
     return NO;
 }
@@ -163,7 +178,7 @@ PUBLIC HTChunk * HTLoadToChunk (const char * url, HTRequest * request)
 	HTAnchor * anchor = HTAnchor_findAddress(url);
 	HTRequest_setAnchor(request, anchor);
 	HTRequest_setOutputStream(request, target);
-	if (HTLoadDocument(request, NO) == YES)
+	if (launch_request(request, NO) == YES)
 	    return chunk;
 	else {
 	    HTChunk_delete(chunk);
@@ -182,7 +197,7 @@ PUBLIC BOOL HTLoadAnchor (HTAnchor * anchor, HTRequest * request)
 {
     if (anchor && request) {
 	HTRequest_setAnchor(request, anchor);
-	return HTLoadDocument(request, NO);
+	return launch_request(request, NO);
     }
     return NO;
 }
@@ -199,7 +214,7 @@ PUBLIC BOOL HTLoadAnchorRecursive (HTAnchor * anchor, HTRequest * request)
 {
     if (anchor && request) {
 	HTRequest_setAnchor(request, anchor);
-        return HTLoadDocument(request, YES);
+        return launch_request(request, YES);
     }
     return NO;
 }
@@ -212,12 +227,12 @@ PUBLIC BOOL HTLoadAnchorRecursive (HTAnchor * anchor, HTRequest * request)
 */
 PUBLIC HTChunk * HTLoadAnchorToChunk (HTAnchor * anchor, HTRequest * request)
 {
+    HTChunk * chunk = NULL;
     if (anchor && request) {
-	HTChunk * chunk = NULL;
 	HTStream * target = HTStreamToChunk(request, &chunk, 0);
 	HTRequest_setAnchor(request, anchor);
 	HTRequest_setOutputStream(request, target);
-	if (HTLoadDocument(request, NO) == YES)
+	if (launch_request(request, NO) == YES)
 	    return chunk;
 	else {
 	    HTChunk_delete(chunk);
@@ -314,7 +329,10 @@ PRIVATE char * form_url_encode (const char * baseurl, HTAssocList * formdata)
 	int cnt = HTList_count((HTList *) formdata);
 	HTChunk * fullurl = HTChunk_new(128);
 	HTAssoc * pres;
-	if (baseurl) HTChunk_puts(fullurl, baseurl);
+	if (baseurl) {
+	    HTChunk_puts(fullurl, baseurl);
+	    HTChunk_putc(fullurl, '?');
+	}
 	while (cnt > 0) {
 	    pres = (HTAssoc *) HTList_objectAt((HTList *) formdata, --cnt);
 	    if (first)
@@ -348,7 +366,7 @@ PUBLIC BOOL HTSearchAbsolute (HTChunk *		keywords,
 	    HTAnchor * anchor = HTAnchor_findAddress(full);
 	    HTRequest_setAnchor(request, anchor);
 	    HT_FREE(full);
-	    return HTLoadDocument(request, NO);
+	    return launch_request(request, NO);
 	}
     }
     return NO;
@@ -445,7 +463,7 @@ PUBLIC BOOL HTGetFormAbsolute (HTAssocList *	formdata,
 	    HTAnchor * anchor = HTAnchor_findAddress(full);
 	    HTRequest_setAnchor(request, anchor);
 	    HT_FREE(full);
-	    return HTLoadDocument(request, NO);
+	    return launch_request(request, NO);
 	}
     }
     return NO;
@@ -501,7 +519,7 @@ PUBLIC BOOL HTGetFormAnchor (HTAssocList *	formdata,
 PRIVATE int HTEntity_callback (HTRequest * request, HTStream * target)
 {
     HTParentAnchor * entity = HTRequest_entityAnchor(request);
-    if (WWWTRACE) HTTrace("Posting Form from callback function\n");
+    if (WWWTRACE) HTTrace("Posting Data from callback function\n");
     if (!request || !entity || !target) return HT_ERROR;
     {
 	int status;
@@ -511,17 +529,17 @@ PRIVATE int HTEntity_callback (HTRequest * request, HTStream * target)
 	if (status == HT_OK)
 	    return (*target->isa->flush)(target);
 	if (status == HT_WOULD_BLOCK) {
-	    if (PROT_TRACE)HTTrace("Posting Form Target WOULD BLOCK\n");
+	    if (PROT_TRACE)HTTrace("Posting Data Target WOULD BLOCK\n");
 	    return HT_WOULD_BLOCK;
 	} else if (status == HT_PAUSE) {
-	    if (PROT_TRACE) HTTrace("Posting Form. Target PAUSED\n");
+	    if (PROT_TRACE) HTTrace("Posting Data. Target PAUSED\n");
 	    return HT_PAUSE;
 	} else if (status > 0) {	      /* Stream specific return code */
 	    if (PROT_TRACE)
-		HTTrace("Posting Form. Target returns %d\n", status);
+		HTTrace("Posting Data. Target returns %d\n", status);
 	    return status;
 	} else {				     /* we have a real error */
-	    if (PROT_TRACE) HTTrace("Posting Form Target ERROR\n");
+	    if (PROT_TRACE) HTTrace("Posting Data Target ERROR\n");
 	    return status;
 	}
     }
@@ -618,7 +636,7 @@ PUBLIC HTParentAnchor * HTPostFormAnchor (HTAssocList *	formdata,
 	    HTRequest_setPostCallback(request, HTEntity_callback);
 
 	    /* Now start the load normally */
-	    HTLoadDocument(request, NO);
+	    launch_request(request, NO);
 	}
 	HT_FREE(tmpfile);
 	HT_FREE(tmpurl);
@@ -627,8 +645,377 @@ PUBLIC HTParentAnchor * HTPostFormAnchor (HTAssocList *	formdata,
 }
 
 /* --------------------------------------------------------------------------*/
-/*				PUT AND POST METHODS 			     */
-/* --------------------------------------------------------------------------*/
+/*				PUT A DOCUMENT 				     */
+/* --------------------------------------------------------------------------*/ 
+PRIVATE BOOL setup_put (HTRequest * request,
+			HTParentAnchor * source, HTParentAnchor * dest)
+{
+    /*
+    **  Check whether we know if it is possible to PUT to this destination
+    */
+    {
+	HTMethod allowed = HTAnchor_methods(dest);
+	if (!(allowed & METHOD_PUT)) {
+	    HTAlertCallback * prompt = HTAlert_find(HT_A_CONFIRM);
+	    if (prompt) {
+		if ((*prompt)(request, HT_A_CONFIRM, HT_MSG_METHOD,
+			      NULL, NULL, NULL) != YES)
+		    return NO;
+	    }
+	}
+    }
+
+    /*
+    **  Bind the source anchor to the dest anchor that will contain the
+    **  response. If link already exists then ask is we should do it again.
+    **  If so then remove the old link and replace it with a new one.
+    */
+    {
+	HTLink *link = HTLink_find((HTAnchor *) source, (HTAnchor *) dest);
+	if (link && HTLink_method(link) == METHOD_PUT) {
+	    HTAlertCallback * prompt = HTAlert_find(HT_A_CONFIRM);
+	    if (prompt) {
+		if ((*prompt)(request, HT_A_CONFIRM, HT_MSG_REDO,
+			      NULL, NULL, NULL) != YES)
+		    return NO;
+	    }
+	    HTLink_remove((HTAnchor *) source, (HTAnchor *) dest);
+	}
+	HTLink_add((HTAnchor*) source, (HTAnchor*) dest, NULL, METHOD_PUT);
+    }
+    return YES;
+}
+
+/*	Send an Anchor using PUT from absolute name
+**	-------------------------------------------
+**	Upload a document referenced by an absolute URL appended.
+**	The URL can NOT contain any fragment identifier!
+**	The list of form data must be given as an association list where 
+**	the name is the field name and the value is the value of the field.
+*/
+PUBLIC BOOL HTPutAbsolute (HTParentAnchor *	source,
+			   const char *		destination,
+			   HTRequest *		request)
+{
+    if (source && destination && request) {
+	HTAnchor * dest = HTAnchor_findAddress(destination);
+	return HTPutAnchor(source, dest, request);
+    }
+    return NO;
+}
+
+/*	Send an Anchor using PUT from relative name
+**	-------------------------------------------
+**	Upload a document referenced by a relative URL appended.
+**	The URL can NOT contain any fragment identifier!
+**	The list of form data must be given as an association list where 
+**	the name is the field name and the value is the value of the field.
+*/
+PUBLIC BOOL HTPutRelative (HTParentAnchor *	source,
+			   const char * 	relative,
+			   HTParentAnchor *	destination_base,
+			   HTRequest *		request)
+{
+    if (source && relative && destination_base && request) {
+	BOOL status;
+	char * full_url = NULL;
+	char * base_url = HTAnchor_address((HTAnchor *) destination_base);
+	full_url=HTParse(relative, base_url,
+			 PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
+	status = HTPutAbsolute(source, full_url, request);
+	HT_FREE(full_url);
+	HT_FREE(base_url);
+	return status;
+    }
+    return NO;
+}
+
+/*	Send an Anchor using PUT from an anchor
+**	---------------------------------------
+**	Upload a document referenced by an anchor object appended
+**	The URL can NOT contain any fragment identifier!
+**	The list of form data must be given as an association list where 
+**	the name is the field name and the value is the value of the field.
+*/
+PUBLIC BOOL HTPutAnchor (HTParentAnchor *	source,
+			 HTAnchor *		destination,
+			 HTRequest *	 	request)
+{
+    HTParentAnchor * dest = HTAnchor_parent(destination);
+    if (source && dest && request) {
+	if (setup_put(request, source, dest) == YES) {
+
+	    /* Set up the request object */
+	    HTRequest_addGnHd(request, HT_G_DATE);
+	    HTRequest_setEntityAnchor(request, source);
+	    HTRequest_setMethod(request, METHOD_PUT);
+	    HTRequest_setAnchor(request, destination);
+
+	    /* Add the entity callback function to provide the form data */
+	    HTRequest_setPostCallback(request, HTEntity_callback);
+
+	    /* Now start the load normally */
+	    return launch_request(request, NO);
+	}
+    }
+    return NO;
+}
+
+/*	Send an Anchor using PUT from absolute name
+**	-------------------------------------------
+**	Upload a document referenced by an absolute URL appended.
+**	The URL can NOT contain any fragment identifier!
+**	The list of form data must be given as an association list where 
+**	the name is the field name and the value is the value of the field.
+*/
+PUBLIC BOOL HTPutStructuredAbsolute (HTParentAnchor *	source,
+				     const char *	destination,
+				     HTRequest *	request,
+				     HTPostCallback *	input)
+{
+    if (source && destination && request && input) {
+	HTAnchor * dest = HTAnchor_findAddress(destination);
+	return HTPutStructuredAnchor(source, dest, request, input);
+    }
+    return NO;
+}
+
+/*	Send an Anchor using PUT from relative name
+**	-------------------------------------------
+**	Upload a document referenced by a relative URL appended.
+**	The URL can NOT contain any fragment identifier!
+**	The list of form data must be given as an association list where 
+**	the name is the field name and the value is the value of the field.
+*/
+PUBLIC BOOL HTPutStructuredRelative (HTParentAnchor *	source,
+				     const char * 	relative,
+				     HTParentAnchor *	destination_base,
+				     HTRequest *	request,
+				     HTPostCallback *	input)
+{
+    if (source && relative && destination_base && request && input) {
+	BOOL status;
+	char * full_url = NULL;
+	char * base_url = HTAnchor_address((HTAnchor *) destination_base);
+	full_url=HTParse(relative, base_url,
+			 PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
+	status = HTPutStructuredAbsolute(source, full_url, request, input);
+	HT_FREE(full_url);
+	HT_FREE(base_url);
+	return status;
+    }
+    return NO;
+}
+
+/*	Send an Anchor using PUT from an anchor
+**	---------------------------------------
+**	Upload a document referenced by an anchor object appended
+**	The URL can NOT contain any fragment identifier!
+**	The list of form data must be given as an association list where 
+**	the name is the field name and the value is the value of the field.
+*/
+PUBLIC BOOL HTPutStructuredAnchor (HTParentAnchor *	source,
+				   HTAnchor *		destination,
+				   HTRequest *	 	request,
+				   HTPostCallback *	input)
+{
+    HTParentAnchor * dest = HTAnchor_parent(destination);
+    if (source && dest && request) {
+	if (setup_put(request, source, dest) == YES) {
+
+	    /* Set up the request object */
+	    HTRequest_addGnHd(request, HT_G_DATE);
+	    HTRequest_setEntityAnchor(request, source);
+	    HTRequest_setMethod(request, METHOD_PUT);
+	    HTRequest_setAnchor(request, destination);
+
+	    /* Add the entity callback function to provide the form data */
+	    HTRequest_setPostCallback(request, input);
+
+	    /* Now start the load normally */
+	    return launch_request(request, NO);
+	}
+    }
+    return NO;
+}
+
+/*
+**	After filter for handling PUT of document. We should now have the 
+*/
+PRIVATE int HTSaveFilter (HTRequest * request, void * param, int status)
+{
+    HTPutContext * me = (HTPutContext *) param;
+    if (APP_TRACE)
+	HTTrace("Save Filter. Using context %p with state %c\n",
+		me, me->state+0x30);
+
+    /*
+    **  If either the source or the destination has moved then ask the user
+    **  what to do. If there is no user then stop
+    */
+    if (status == HT_TEMP_REDIRECT || status == HT_PERM_REDIRECT) {
+	HTAlertCallback * prompt = HTAlert_find(HT_A_CONFIRM);
+	HTAnchor * redirection = HTRequest_redirection(request);
+	if (prompt && redirection) {
+	    if (me->state == HT_PUT_SOURCE) {
+		if ((*prompt)(request, HT_A_CONFIRM, HT_MSG_SOURCE_MOVED,
+			      NULL, NULL, NULL) == YES) {
+		    me->source = HTAnchor_parent(redirection);
+		    return HT_OK;
+		}
+	    } else {
+		if ((*prompt)(request, HT_A_CONFIRM, HT_MSG_DESTINATION_MOVED,
+			      NULL, NULL, NULL) == YES) {
+		    me->destination = redirection;
+		    return HT_OK;
+		}
+	    }
+	}
+    } else if (status != HT_LOADED && status != HT_ERROR) {
+	if (APP_TRACE) HTTrace("Save Filter. No action...\n");
+	return HT_OK;
+    }
+
+    /*
+    ** If this is the second time we're here then do the clean up. If it is 
+    ** the first time then start the new load (if we have succeeded in getting
+    ** the source)
+    */
+    if (me->state == HT_PUT_SOURCE && status == HT_LOADED) {
+
+	/* Swap the document in the anchor with the new one */
+	me->placeholder = HTAnchor_document(me->source);
+	HTAnchor_setDocument(me->source, HTChunk_data(me->document));
+
+	/* Set up the request object */
+	HTRequest_addGnHd(request, HT_G_DATE);
+	HTRequest_setEntityAnchor(request, me->source);
+	HTRequest_setMethod(request, METHOD_PUT);
+	HTRequest_setAnchor(request, me->destination);
+	HTRequest_setOutputFormat(request, me->format);
+	HTRequest_setOutputStream(request, me->target);
+
+	/* Add the entity callback function to provide the form data */
+	HTRequest_setPostCallback(request, HTEntity_callback);
+
+	/* Now start the load normally */
+	me->state = launch_request(request, NO) ?
+	    HT_PUT_DESTINATION : HT_PUT_SOURCE;
+
+	/*
+	**  By returning HT_ERROR we make sure that this is the last handler to
+	**  be called. We do this as we don't want any other filter to delete
+	**  the request object now when we have just started a new one
+	**  ourselves
+	*/	
+	return HT_ERROR;
+
+    } else {
+	HTRequest_deleteAfter(request, HTSaveFilter);
+	HTAnchor_setDocument(me->source, me->placeholder);
+	HTChunk_delete(me->document);
+	HT_FREE(me);
+    }
+    return HT_OK;
+}
+
+/*	Send an Anchor using PUT from absolute name
+**	-------------------------------------------
+**	Upload a document referenced by an absolute URL appended.
+**	The URL can NOT contain any fragment identifier!
+**	The list of form data must be given as an association list where 
+**	the name is the field name and the value is the value of the field.
+*/
+PUBLIC BOOL HTPutDocumentAbsolute (HTParentAnchor *	source,
+				   const char *		destination,
+				   HTRequest *		request)
+{
+    if (source && destination && request) {
+	HTAnchor * dest = HTAnchor_findAddress(destination);
+	return HTPutDocumentAnchor(source, dest, request);
+    }
+    return NO;
+}
+
+/*	Send an Anchor using PUT from relative name
+**	-------------------------------------------
+**	Upload a document referenced by a relative URL appended.
+**	The URL can NOT contain any fragment identifier!
+**	The list of form data must be given as an association list where 
+**	the name is the field name and the value is the value of the field.
+*/
+PUBLIC BOOL HTPutDocumentRelative (HTParentAnchor *	source,
+				   const char * 	relative,
+				   HTParentAnchor *	destination_base,
+				   HTRequest *		request)
+{
+    if (source && relative && destination_base && request) {
+	BOOL status;
+	char * full_url = NULL;
+	char * base_url = HTAnchor_address((HTAnchor *) destination_base);
+	full_url=HTParse(relative, base_url,
+			 PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
+	status = HTPutDocumentAbsolute(source, full_url, request);
+	HT_FREE(full_url);
+	HT_FREE(base_url);
+	return status;
+    }
+    return NO;
+}
+
+/*	Send an Anchor using PUT from an anchor
+**	---------------------------------------
+**	Upload a document referenced by an anchor object appended
+**	The URL can NOT contain any fragment identifier!
+**	The source document is first loaded into memory and then the PUT
+**	to the remote server is done using the memory version
+*/
+PUBLIC BOOL HTPutDocumentAnchor (HTParentAnchor *	source,
+				 HTAnchor *		destination,
+				 HTRequest *	 	request)
+{
+    HTParentAnchor * dest = HTAnchor_parent(destination);
+    if (source && dest && request) {
+	if (setup_put(request, source, dest) == YES) {
+	    HTPutContext * context = NULL;
+
+	    /*
+	    **  First we register an AFTER filter that can check the result
+	    **  of the source load if success then it can start the PUT
+	    ** operation to the destination.
+	    */
+	    if (!(context=(HTPutContext *) HT_CALLOC(1, sizeof(HTPutContext))))
+		HT_OUTOFMEM("HTPutDocumentAnchor");
+	    context->source = source;
+	    context->destination = destination;
+	    HTRequest_addAfter(request, HTSaveFilter, context, HT_ALL, NO);
+
+	    /*
+	    **  We make sure that we are not using a memory cached element.
+	    **  It's OK to use a file cached element!
+	    */
+	    HTRequest_setReloadMode(request, HT_MEM_REFRESH);
+
+	    /*
+	    ** Now we load the source document into a chunk. We specify that
+	    ** we want the document ASIS from the source location. 
+	    */
+	    context->format = HTRequest_outputFormat(request);
+	    context->target = HTRequest_outputStream(request);
+	    HTRequest_setOutputFormat(request, WWW_SOURCE);
+	    context->document = HTLoadAnchorToChunk((HTAnchor*)source,request);
+	    if (context->document == NULL) {
+		if (APP_TRACE) HTTrace("Put Document No source\n");
+		HT_FREE(context);
+		return NO;
+	    }
+	    return YES;
+	}
+    }
+    return NO;
+}
+
+/* ------------------------------------------------------------------------- */
 
 /*	Copy an anchor
 **	--------------
@@ -709,13 +1096,13 @@ PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_dest)
     } else {			 /* Use the existing Post Web and restart it */
 	src_req = main_dest->source;
 	if (src_req->mainDestination)
-	    if (HTLoadDocument(main_dest, NO) == NO)
+	    if (launch_request(main_dest, NO) == NO)
 		return NO;
 	if (src_req->destinations) {
 	    HTRequest * pres;
 	    cur = HTAnchor_subLinks(src_anchor);
 	    while ((pres = (HTRequest *) HTList_nextObject(cur)) != NULL) {
-		if (HTLoadDocument(pres, NO) == NO)
+		if (launch_request(pres, NO) == NO)
 		    return NO;
 	    }
 	}
@@ -818,9 +1205,7 @@ PUBLIC BOOL HTHeadAbsolute (const char * url, HTRequest * request)
 {
     if (url && request) {
 	HTAnchor * anchor = HTAnchor_findAddress(url);
-	HTRequest_setAnchor(request, anchor);
-	HTRequest_setMethod(request, METHOD_HEAD);
-	return HTLoadDocument(request, NO);
+	return HTHeadAnchor(anchor, request);
     }
     return NO;
 }
@@ -844,8 +1229,7 @@ PUBLIC BOOL HTHeadRelative (const char * 	relative,
 	StrAllocCopy(rel, relative);
 	full_url = HTParse(HTStrip(rel), base_url,
 			 PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
-	HTRequest_setMethod(request, METHOD_HEAD);
-	status = HTLoadAbsolute(full_url, request);
+	status = HTHeadAbsolute(full_url, request);
 	HT_FREE(rel);
 	HT_FREE(full_url);
 	HT_FREE(base_url);
@@ -862,8 +1246,9 @@ PUBLIC BOOL HTHeadAnchor (HTAnchor * anchor, HTRequest * request)
 {
     if (anchor && request) {
 	HTRequest_setAnchor(request, anchor);
+	HTRequest_setOutputFormat(request, WWW_MIME);
 	HTRequest_setMethod(request, METHOD_HEAD);
-	return HTLoadDocument(request, NO);
+	return launch_request(request, NO);
     }
     return NO;
 }
@@ -881,9 +1266,7 @@ PUBLIC BOOL HTDeleteAbsolute (const char * url, HTRequest * request)
 {
     if (url && request) {
 	HTAnchor * anchor = HTAnchor_findAddress(url);
-	HTRequest_setAnchor(request, anchor);
-	HTRequest_setMethod(request, METHOD_DELETE);
-	return HTLoadDocument(request, NO);
+	return HTDeleteAnchor(anchor, request);
     }
     return NO;
 }
@@ -907,8 +1290,7 @@ PUBLIC BOOL HTDeleteRelative (const char * 	relative,
 	StrAllocCopy(rel, relative);
 	full_url = HTParse(HTStrip(rel), base_url,
 			 PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
-	HTRequest_setMethod(request, METHOD_DELETE);
-	status = HTLoadAbsolute(full_url, request);
+	status = HTDeleteAbsolute(full_url, request);
 	HT_FREE(rel);
 	HT_FREE(full_url);
 	HT_FREE(base_url);
@@ -926,7 +1308,67 @@ PUBLIC BOOL HTDeleteAnchor (HTAnchor * anchor, HTRequest * request)
     if (anchor && request) {
 	HTRequest_setAnchor(request, anchor);
 	HTRequest_setMethod(request, METHOD_DELETE);
-	return HTLoadDocument(request, NO);
+	return launch_request(request, NO);
+    }
+    return NO;
+}
+
+/* ------------------------------------------------------------------------- */
+/*				OPTIONS METHOD 				     */
+/* ------------------------------------------------------------------------- */
+
+/*	Options availeble for document from absolute name
+**	-------------------------------------------------
+**	Request a document referencd by an absolute URL.
+**	Returns YES if request accepted, else NO
+*/
+PUBLIC BOOL HTOptionsAbsolute (const char * url, HTRequest * request)
+{
+    if (url && request) {
+	HTAnchor * anchor = HTAnchor_findAddress(url);
+	return HTOptionsAnchor(anchor, request);
+    }
+    return NO;
+}
+
+/*	Options available for document from relative name
+**	-------------------------------------------------
+**	Request a document referenced by a relative URL. The relative URL is 
+**	made absolute by resolving it relative to the address of the 'base' 
+**	anchor.
+**	Returns YES if request accepted, else NO
+*/
+PUBLIC BOOL HTOptionsRelative (const char * 	relative,
+			    HTParentAnchor *	base,
+			    HTRequest *		request)
+{
+    BOOL status = NO;
+    if (relative && base && request) {
+	char * rel = NULL;
+	char * full_url = NULL;
+	char * base_url = HTAnchor_address((HTAnchor *) base);
+	StrAllocCopy(rel, relative);
+	full_url = HTParse(HTStrip(rel), base_url,
+			 PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
+	status = HTOptionsAbsolute(full_url, request);
+	HT_FREE(rel);
+	HT_FREE(full_url);
+	HT_FREE(base_url);
+    }
+    return status;
+}
+
+/*	Options available for document using Anchor
+**	-------------------------------------------
+**	Request the document referenced by the anchor
+**	Returns YES if request accepted, else NO
+*/
+PUBLIC BOOL HTOptionsAnchor (HTAnchor * anchor, HTRequest * request)
+{
+    if (anchor && request) {
+	HTRequest_setAnchor(request, anchor);
+	HTRequest_setMethod(request, METHOD_OPTIONS);
+	return launch_request(request, NO);
     }
     return NO;
 }

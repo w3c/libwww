@@ -17,6 +17,15 @@ SUFFIXES = .h .html
 .html.h:
 	www -w90 -na -p -to text/x-c $(srcdir)/$(*F).html > $(srcdir)/$(*F).h
 
+inc: $(BUILT_SOURCES)
+	@echo Generated built sources
+
+PURIFY_CACHE = /home2/frystyk/purify-cache
+
+purify: $(w3c_OBJECTS) $(w3c_DEPENDENCIES)
+	purify -cache-dir=$(PURIFY_CACHE) \
+	$(LINK) $(w3c_OBJECTS) $(w3c_LDADD) $(LIBS)
+
 w3c_SOURCES = \
 	HTLine.c
 

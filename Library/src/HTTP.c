@@ -117,6 +117,34 @@ PRIVATE int HTTPCleanup (HTRequest *req, int status)
 }
 
 /*
+**	Informational 1xx codes are handled separately
+**	Returns YES if we should stop, NO if we should continue
+*/
+PRIVATE BOOL HTTPInformation (HTStream * me)
+{
+    BOOL result = NO;
+    switch (me->status) {
+
+    case 101:
+	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_SWITCHING,
+			   me->reason, (int) strlen(me->reason),
+			   "HTTPInformation");
+
+	/* Here we should swap to new protocol */
+
+	result = YES;
+	break;
+
+    default:
+	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_CONTINUE,
+			   me->reason, (int) strlen(me->reason),
+			   "HTTPInformation");
+	break;
+    }
+    return result;
+}
+
+/*
 **	This is a big switch handling all HTTP return codes. It puts in any
 **	appropiate error message and decides whether we should expect data
 **	or not.
@@ -124,19 +152,6 @@ PRIVATE int HTTPCleanup (HTRequest *req, int status)
 PRIVATE void HTTPNextState (HTStream * me)
 {
     switch (me->status) {
-
-      case 100:
-	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_CONTINUE,
-			   me->reason, (int) strlen(me->reason),
-			   "HTTPNextState");
-	/* here we should restart the PUT operation */
-	break;
-
-      case 101:
-	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_SWITCHING,
-			   me->reason, (int) strlen(me->reason),
-			   "HTTPNextState");
-	break;
 
       case 0:						     /* 0.9 response */
       case 200:							       /* OK */
@@ -348,7 +363,7 @@ PRIVATE int stream_pipe (HTStream * me)
 	char *ptr = me->buffer+5;		       /* Skip the HTTP part */
 	me->version = HTNextField(&ptr);
 
-	/* here we want to find out when to use persistent connection */
+	/* Here we want to find out when to use persistent connection */
 	if (!strncasecomp(me->version, "1.0", 3)) {
 	    if (PROT_TRACE)HTTrace("HTTP Status. This is a HTTP/1.0 server\n");
 	    HTHost_setVersion(host, HTTP_10);
@@ -363,6 +378,19 @@ PRIVATE int stream_pipe (HTStream * me)
 	    *ptr = '\0';
 	else if ((ptr = strchr(me->reason, '\n')) != NULL)
 	    *ptr = '\0';
+
+	/* 
+	**  If it is a 1xx code then find out what to do and return until we
+	**  get the next code. In the case of Upgrade we may not get back here
+	**  at all. If we are uploading an entity then continue doing that
+	*/
+	if (me->status/100 == 1) {
+	    if (HTTPInformation(me)) me->transparent = YES;
+	    me->buflen = 0;
+	    me->state = EOL_BEGIN;
+	    return HTMethod_hasEntity(HTRequest_method(req)) ?
+		HT_CONTINUE : HT_OK;
+	}
 
 	/* Set up the streams */
 	if (me->status==200) {
@@ -665,9 +693,13 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		}
 	    } else if (ops == FD_READ) {
 		status = (*net->input->isa->read)(net->input);
-		if (status == HT_WOULD_BLOCK)
+		if (status == HT_WOULD_BLOCK || status == HT_PAUSE)
 		    return HT_OK;
-		else if (status==HT_LOADED || status==HT_CLOSED)
+		else if (status==HT_CONTINUE) {
+		    if (PROT_TRACE) HTTrace("HTTP........ Continuing\n");
+		    ops = FD_WRITE;
+		    continue;
+		} else if (status==HT_LOADED || status==HT_CLOSED)
 		    http->state = http->next;	       /* Jump to next state */
 		else
 		    http->state = HTTP_ERROR;

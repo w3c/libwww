@@ -163,6 +163,10 @@ PRIVATE int HTReader_read (HTInputStream * me)
 		if (PROT_TRACE) HTTrace("Read Socket. Target PAUSED\n");
 		HTEvent_unregister(soc, FD_READ);
 		return HT_PAUSE;
+	    } else if (status == HT_CONTINUE) {
+		if (PROT_TRACE) HTTrace("Read Socket. CONTINUE\n");
+		me->write = me->data + b_read;
+		return HT_CONTINUE;
 	    } else if (status>0) {	      /* Stream specific return code */
 		if (PROT_TRACE)
 		    HTTrace("Read Socket. Target returns %d\n", status);

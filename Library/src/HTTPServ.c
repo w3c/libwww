@@ -128,6 +128,11 @@ PRIVATE int MakeReplyPipe (HTStream * me, HTRequest * client)
 	}
 
 	/* Output the response */
+	PUTS(HTTP_VERSION);
+	PUTS(" 100 Continue");
+	PUTC(CR);
+	PUTC(LF);
+
 	if (response_line) {
 	    PUTS(response_line);
 	    HT_FREE(response_line);

@@ -154,11 +154,11 @@ PRIVATE int HTGuess_flush (HTStream * me)
 	if (STREAM_TRACE) {
 	    HTTrace("Guessed..... C-T  : %s\n",
 		    HTAtom_name(anchor->content_type));
-	    HTTrace("............ C-E  : %s\n");
+	    HTTrace("............ C-E  : <...>\n");
 
 	    /* @@@ */
 
-	    HTTrace("............ C-T-E: %s\n");
+	    HTTrace("............ C-T-E: <...>\n");
 
 	    /* @@@ */
 

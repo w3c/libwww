@@ -525,7 +525,11 @@ PUBLIC time_t HTGetTimeZoneOffset (void)
 #else
 	struct tm *local = localtime(&cur_t);
 #endif /* HT_REENTRANT */
+#ifdef HAVE_DAYLIGHT
 	if (daylight && local->tm_isdst>0) {		   /* daylight time? */
+#else
+	if (local->tm_isdst>0) {			   /* daylight time? */
+#endif /* HAVE_DAYLIGHT */
 #ifdef HAVE_ALTZONE
 	    HTTimeZone = altzone;
 #else

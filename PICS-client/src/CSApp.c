@@ -49,13 +49,14 @@ PRIVATE char * S_URLList = "application/x-url-list";
 
 /* LoadURLToConverter - load a URL and set the output to go to converter.
                         Useful for loading user list and profiles. */
-HTList * ListWithBureauBefore = 0;
-HTList * ListWithBureauAfter = 0;
-#include "HTAncMan.h" /* allow me to set physical to 0 */
+PRIVATE int CSApp_bureauError (HTRequest * pReq, void * context, int status);
+PRIVATE int CSApp_bureauAfter (HTRequest * pReq, void * context, int status);
+PRIVATE int CSApp_bureauBefore (HTRequest * pReq, void * context, int status);
+
 PRIVATE BOOL LoadURLToConverter(const char * url, const char * relatedName, 
 				const char * type, HTConverter * converter, 
 				const char * errMessage, HTRequest ** pPReq, 
-				HTList * befores, HTList * afters)
+				void * context)
 {
     BOOL ret;
     char * fullURL;
@@ -64,13 +65,9 @@ PRIVATE BOOL LoadURLToConverter(const char * url, const char * relatedName,
     HTList * conversions = HTList_new();
 
     pRequest = HTRequest_new();
+    HTRequest_setContext(pRequest, context);
     fullURL = HTParse(url, relatedName, PARSE_ALL);
     pParentAnchor = (HTParentAnchor *) HTAnchor_findAddress(fullURL);
-    /* !!! */
-    if (pParentAnchor->physical) {
-        HT_FREE(pParentAnchor->physical);
-	pParentAnchor->physical = 0;
-    }
     HTRequest_setPreemptive(pRequest, YES);
     if (converter) {
         HTConversion_add(conversions, type, "*/*", converter, 1.0, 0.0, 0.0);
@@ -78,10 +75,14 @@ PRIVATE BOOL LoadURLToConverter(const char * url, const char * relatedName,
     }
     if (pPReq)
         *pPReq = pRequest;
-    HTRequest_setBefore(pRequest, ListWithBureauBefore, YES);
-    HTRequest_setAfter(pRequest, ListWithBureauAfter, YES);
+    HTRequest_addBefore(pRequest, CSApp_bureauBefore, context, 0, YES);
+    HTRequest_addAfter(pRequest, CSApp_bureauAfter, context, HT_LOADED, YES);
+    HTRequest_addAfter(pRequest, CSApp_bureauError, context, HT_ERROR, YES);
     if ((ret = HTLoadAnchor((HTAnchor *) pParentAnchor, pRequest)) != YES)
         HTTrace("PICS: Can't access %s.\n", errMessage);
+    HTRequest_deleteBefore(pRequest, CSApp_bureauBefore);
+    HTRequest_deleteAfter(pRequest, CSApp_bureauAfter);
+    HTRequest_deleteAfter(pRequest, CSApp_bureauError);
     if (converter)
         HTConversion_deleteAll(conversions);
     else
@@ -97,7 +98,7 @@ PRIVATE BOOL LoadURLToConverter(const char * url, const char * relatedName,
 PUBLIC BOOL CSUserList_load(char * url, char * relatedName)
 {
     return LoadURLToConverter(url, relatedName, S_URLList, CSUserLists, 
-			      "PICS user list", 0, 0, 0);
+			      "PICS user list", 0, 0);
 }
 
 /* L O A D E D U S E R */
@@ -237,7 +238,7 @@ PUBLIC CSUser_t * CSLoadedUser_load(char * url, char * relatedName)
     BOOL err = 0;
     char * fullURL = HTParse(url, relatedName, PARSE_ALL);
     CSLoadedUser_t * pCSLoadedUser;
-    if (!LoadURLToConverter(fullURL, 0, 0, 0, "PICS user file", 0, 0, 0))
+    if (!LoadURLToConverter(fullURL, 0, 0, 0, "PICS user file", 0, 0))
 /*    if (!LoadURLToConverter(fullURL, 0, S_user, CSParseUser, 
 			    "PICS user file", 0, 0, 0)) */
         err = 1;
@@ -451,8 +452,7 @@ PRIVATE int CSApp_netBefore (HTRequest * pReq, void * param, int status)
     if (PICS_TRACE) HTTrace("PICS: label request:\n%s\n", ptr);
     /* get label and set disposition */
     if (!(LoadURLToConverter(ptr, 0, S_label, CSParseLabel, "Label bureau", 
-			     &pReqParms->pBureauReq, ListWithBureauBefore, 
-			     ListWithBureauAfter))) {
+			     &pReqParms->pBureauReq, (void *)pReqParms))) {
         HT_FREE(ptr);
 	HTTrace("PICS: Couldn't load labels for \"%s\" at bureau \"%s\".\n", url, bureau);
 	HT_FREE(url);
@@ -484,25 +484,38 @@ PRIVATE int CSApp_netAfter (HTRequest * pReq, void * param, int status)
 }
 
 /* will we need this? */
-PRIVATE int CSApp_bureauBefore (HTRequest * pReq, int status)
+PRIVATE int CSApp_bureauBefore (HTRequest * pReq, void * context, int status)
 {
-    ReqParms_t * pReqParms;
-    if (!(pReqParms = ReqParms_getBureauReq(pReq)))
+    ReqParms_t * pReqParms = (ReqParms_t *)context;
+    /* if (!(pReqParms = ReqParms_getBureauReq(pReq)))
         pReqParms = &DefaultReqParms;
     if (pReq != pReqParms->pBureauReq)
-        return HT_ERROR;
+        return HT_ERROR; */
     return HT_OK;
 }
 
-PRIVATE int CSApp_bureauAfter (HTRequest * pReq, int status)
+PRIVATE int CSApp_bureauAfter (HTRequest * pReq, void * context, int status)
 {
-    ReqParms_t * pReqParms;
-    if (!(pReqParms = ReqParms_getBureauReq(pReq)))
+    ReqParms_t * pReqParms = (ReqParms_t *)context;
+    /* if (!(pReqParms = ReqParms_getBureauReq(pReq)))
         pReqParms = &DefaultReqParms;
     if ((pReq != pReqParms->pBureauReq))
-        return HT_ERROR;
+        return HT_ERROR; */
+    if (!pReqParms)
+        return HT_OK;
     if (PICS_TRACE) HTTrace("PICS: Load was %sOK\n", 
 			    pReqParms->disposition == CSError_OK ? "" : "!");
+    return HT_OK;
+}
+
+PRIVATE int CSApp_bureauError (HTRequest * pReq, void * context, int status)
+{
+    ReqParms_t * pReqParms = (ReqParms_t *)context;
+    /* if (!(pReqParms = ReqParms_getBureauReq(pReq)))
+        pReqParms = &DefaultReqParms;
+    if ((pReq != pReqParms->pBureauReq))
+        return HT_ERROR; */
+    HTTrace("PICS: couldn't find label service.\n");
     return HT_OK;
 }
 
@@ -597,21 +610,11 @@ PUBLIC BOOL CSApp_registerApp(CSDisposition_callback * pCallback,
 
     if (!LoadedUsers)
         LoadedUsers = HTList_new();
-    if (!ListWithBureauBefore) {
-        ListWithBureauBefore = HTList_new();
-	HTList_addObject(ListWithBureauBefore, (void *)CSApp_bureauBefore);
-    }
-    if (!ListWithBureauAfter) {
-        ListWithBureauAfter = HTList_new();
-	HTList_addObject(ListWithBureauAfter, (void *)CSApp_bureauAfter);
-    }
     return YES;
 }
 
 /*  while ((pCSLoadedUser = (CSLoadedUser_t *) HTList_removeLastObject(LoadedUsers)))
     HTList_removeObject(pCSLoadedUser);
-    HTList_delete(ListWithBureauAfter);
-    ListWithBureauAfter = NULL;
     return YES; */
 
 PUBLIC BOOL CSApp_unregisterApp()

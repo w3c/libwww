@@ -31,6 +31,8 @@ struct _HTStream {
     HTRequest *			request;
     SOCKET			sockfd;
     int				version;
+    int 			state;    
+    char *			url;
     BOOL			transparent;
 };
 
@@ -42,22 +44,30 @@ struct _HTStream {
 **	-------------
 **	Makes a HTTP/0.9 request
 */
-PRIVATE void HTTP09Request (HTStream * me, HTRequest * request)
+PRIVATE int HTTP09Request (HTStream * me, HTRequest * request)
 {
     HTParentAnchor * anchor = HTRequest_anchor(request);
     char * addr = HTAnchor_physical(anchor);
-    char * fullurl = HTParse(addr, "", PARSE_PATH|PARSE_PUNCTUATION);
-    PUTS("GET ");
-    PUTS(fullurl);
+    if (!me->url) me->url = HTParse(addr, "", PARSE_PATH|PARSE_PUNCTUATION);
+    if (me->state == 0) {
+	PUTS("GET ");
+	me->state++;
+    }
+    if (me->state == 1) {
+	int status = PUTS(me->url);
+	if (status != HT_OK) return status;
+	me->state++;
+    }
     PUTC(CR);
     PUTC(LF);
+    return HT_OK;
 }
 
 /*	HTTPMakeRequest
 **	---------------
 **	Makes a HTTP/1.0-1.1 request header.
 */
-PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
+PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 {
     char crlf[3];
     char qstr[10];
@@ -66,25 +76,28 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
     *crlf = CR; *(crlf+1) = LF; *(crlf+2) = '\0';
 
     /* Generate the HTTP/1.0 RequestLine */
-    {
+    if (me->state == 0) {
 	HTMethod method = HTRequest_method(request);
 	if (method != METHOD_INVALID) {
 	    PUTS(HTMethod_name(method));
 	    PUTC(' ');
 	} else
 	    PUTS("GET ");
+	me->state++;
     }
 
     /* If we are using a proxy then only take the `path' info in the URL */
-    {
-	char *addr = HTAnchor_physical(anchor);
-	char *fullurl = HTParse(addr, "", PARSE_PATH|PARSE_PUNCTUATION);
+    if (me->state == 1) {
+	char * addr = HTAnchor_physical(anchor);
+	int status;
+	if (!me->url) me->url=HTParse(addr, "", PARSE_PATH|PARSE_PUNCTUATION);
 	if (HTRequest_fullURI(request)) {
-	    PUTS(fullurl+1);
+	    status = PUTS(me->url+1);
 	} else {
-	    PUTS(fullurl);
+	    status = PUTS(me->url);
 	}
-	HT_FREE(fullurl);
+	if (status != HT_OK) return status;
+	me->state++;
     }
     PUTC(' ');
     PUTS(HTTP_VERSION);
@@ -264,6 +277,7 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 	PUTBLOCK(crlf, 2);
     }
     if (PROT_TRACE)HTTrace("HTTP........ Generating Request Headers\n");
+    return HT_OK;
 }
 
 PRIVATE int HTTPRequest_put_block (HTStream * me, const char * b, int l)
@@ -273,11 +287,13 @@ PRIVATE int HTTPRequest_put_block (HTStream * me, const char * b, int l)
     } else if (me->transparent)
 	return b ? PUTBLOCK(b, l) : HT_OK;
     else {
-	int status;
-	if (me->version == HTTP_09)
-	    HTTP09Request(me, me->request);
-	else {
-	    HTTPMakeRequest(me, me->request);		  /* Generate header */
+	int status = HT_OK;
+	if (me->version == HTTP_09) {
+	    status = HTTP09Request(me, me->request);
+	    if (status != HT_OK) return status;
+	} else {
+	    status = HTTPMakeRequest(me, me->request);
+	    if (status != HT_OK) return status;
 	    me->transparent = YES;
 	    return b ? PUTBLOCK(b, l) : HT_OK;
 	}
@@ -313,6 +329,7 @@ PRIVATE int HTTPRequest_free (HTStream * me)
     if (status != HT_WOULD_BLOCK) {
 	if ((status = (*me->target->isa->_free)(me->target)) == HT_WOULD_BLOCK)
 	    return HT_WOULD_BLOCK;
+	HT_FREE(me->url);
 	HT_FREE(me);
     }
     return status;
@@ -321,6 +338,7 @@ PRIVATE int HTTPRequest_free (HTStream * me)
 PRIVATE int HTTPRequest_abort (HTStream * me, HTList * e)
 {
     if (me->target) (*me->target->isa->abort)(me->target, e);
+    HT_FREE(me->url);
     HT_FREE(me);
     if (PROT_TRACE) HTTrace("HTTPRequest. ABORTING...\n");
     return HT_ERROR;

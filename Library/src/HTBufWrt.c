@@ -30,6 +30,7 @@ struct _HTOutputStream {
     HTChannel *			ch;
     HTNet *			net;
     int				size;			      /* Buffer size */
+    int				bb;
     char *			block;
     char *			read;		       /* Position in 'data' */
     char *			data;				   /* buffer */
@@ -65,33 +66,41 @@ PRIVATE int HTBufferWriter_abort (HTOutputStream * me, HTList * e)
 
 PRIVATE int HTBufferWriter_write (HTOutputStream *me, const char *buf, int len)
 {
-    int available = me->data + me->size - me->read;
     int status;
-
-    /* Still room in buffer */
-    if (len <= available) {
-	memcpy(me->read, buf, len);
-	me->read += len;
-	return HT_OK;
-    }
-
-    /* If already data in buffer then fill it and flush */
-    if (me->read > me->data) {
-	memcpy(me->read, buf, available);
-	me->block = (char *) buf+available;
-    }
-    if ((status = PUTBLOCK(me->data, me->size)) != HT_OK) return status;
-
-    /* If more data then write n times buffer size */
-    if (!me->block)
-	me->block = (char *) buf;
-    else
+    if (me->bb > 0) {
 	len -= (me->block - buf);
-    {
-	int bb = len - len%me->size;
-	if ((status = PUTBLOCK(me->block, bb)) != HT_OK) return status;
-	me->block += bb;
-	len -= bb;
+	if ((status = PUTBLOCK(me->block, me->bb)) != HT_OK) return status;
+	me->block += me->bb;
+	len -= me->bb;
+	me->bb = 0;
+    } else {
+	int available = me->data + me->size - me->read;
+
+	/* Still room in buffer */
+	if (len <= available) {
+	    memcpy(me->read, buf, len);
+	    me->read += len;
+	    return HT_OK;
+	}
+
+	/* If already data in buffer then fill it and flush */
+	if (me->read > me->data) {
+	    memcpy(me->read, buf, available);
+	    me->block = (char *) buf+available;
+	}
+	if ((status = PUTBLOCK(me->data, me->size)) != HT_OK) return status;
+
+	/* If more data then write n times buffer size */
+	if (!me->block)
+	    me->block = (char *) buf;
+	else {
+	    len -= (me->block - buf);
+	}
+	me->bb = len - len%me->size;
+	if ((status = PUTBLOCK(me->block, me->bb)) != HT_OK) return status;
+	me->block += me->bb;
+	len -= me->bb;
+	me->bb = 0;
     }
 
     /* If data is not aligned then save the rest in our buffer */

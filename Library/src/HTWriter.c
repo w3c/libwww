@@ -112,7 +112,6 @@ PRIVATE int HTWriter_write (HTOutputStream * me, const char * buf, int len)
     /* Write data to the network */
     while (me->write < limit) {
 	if ((b_write = NETWRITE(soc, me->write, len)) < 0) {
-
 #ifdef EAGAIN
 	    if (socerrno == EAGAIN || socerrno == EWOULDBLOCK)/* POSIX, SVR4 */
 #else

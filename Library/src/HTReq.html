@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<!-- Changed by: Henrik Frystyk Nielsen, 15-Jul-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 15-Jul-1996 -->
   <TITLE>W3C Reference Library libwww Request Class</TITLE>
 </HEAD>
 <BODY>
@@ -561,17 +561,15 @@ typedef int HTPostCallback (HTRequest * request, HTStream * target);
 extern void HTRequest_setPostCallback (HTRequest * request, HTPostCallback * cbf);
 extern HTPostCallback * HTRequest_postCallback (HTRequest * request);
 </PRE>
-
-The Entity Anchor is either the anchor directly associated with the
-Request object or the post anchor associated with the object. The
-purpose of the entity anchor is if we are to send data to a remote
-server then we get the metainformation using the entity anchor.
-
+<P>
+The Entity Anchor is either the anchor directly associated with the Request
+object or the post anchor associated with the object. The purpose of the
+entity anchor is if we are to send data to a remote server then we get the
+metainformation using the entity anchor.
 <PRE>
 extern BOOL HTRequest_setEntityAnchor (HTRequest * request, HTParentAnchor * anchor);
 extern HTParentAnchor * HTRequest_entityAnchor (HTRequest * request);
 </PRE>
-
 <H3>
   Input Stream
 </H3>
@@ -654,17 +652,44 @@ extern void HTRequest_setDebugFormat (HTRequest *request, HTFormat format);
 extern HTFormat HTRequest_debugFormat (HTRequest *request);
 </PRE>
 <H2>
-  <A NAME="before">Net before and after calls</A>
+  <A NAME="before">BEFORE and AFTER Filters</A>
 </H2>
 <P>
-The request object may have it's own before and after callbacks. These may
-override or suplement the global set in <A HREF="HTNet.html">HTNet</A>.
+The request object may have it's own before and after
+<A HREF="HTFilter.html">filters</A>. These may override or suplement the
+global set in <A HREF="HTNet.html">HTNet</A>. The request object itself handles
+the list element, that is this should not be freed bu the caller.
+<H3>
+  BEFORE Filters
+</H3>
+<P>
+The BEFORE <A HREF="HTFilter.html">filters</A> are called just after the
+request has been passed to the Library but before any request is issued over
+the network. A BEFORE can infact stop a request completely from being processed.
 <PRE>
-extern void HTRequest_setBefore (HTRequest *request, HTList *befores, 
+extern BOOL HTRequest_addBefore (HTRequest * request, HTNetCallback * filter,
+				 void * param, int status,
 				 BOOL override);
+
+extern BOOL HTRequest_deleteBefore (HTRequest * request, HTNetCallback * filter);
+extern BOOL HTRequest_deleteBeforeAll (HTRequest * request);
+
 extern HTList * HTRequest_before (HTRequest *request, BOOL *override);
-extern void HTRequest_setAfter (HTRequest *request, HTList *afters,
-			        BOOL override);
+</PRE>
+<H3>
+  After Filters
+</H3>
+<P>
+The AFTER filters are called when the request has terminted.
+<PRE>
+extern BOOL HTRequest_addAfter (HTRequest * request, HTNetCallback * filter,
+				void * param, int status,
+				BOOL override);
+
+extern BOOL HTRequest_deleteAfter (HTRequest * request, HTNetCallback * filter);
+
+extern BOOL HTRequest_deleteAfterAll (HTRequest * request);
+
 extern HTList * HTRequest_after (HTRequest *request, BOOL *override);
 </PRE>
 <H2>
@@ -763,7 +788,7 @@ extern void HTRequest_setFullURI (HTRequest *request, BOOL mode);
 extern BOOL HTRequest_fullURI (HTRequest *request);
 </PRE>
 <H2>
-  Error Object
+  <A NAME="Error">Error Object</A>
 </H2>
 <P>
 Errors are like almost anything kept in lists and a error list can be associated

@@ -19,6 +19,15 @@ SUFFIXES = .h .html
 .html.h:
 	www -w90 -na -p -to text/x-c $(srcdir)/$(*F).html > $(srcdir)/$(*F).h
 
+inc: $(BUILT_SOURCES)
+	@echo Generated built sources
+
+PURIFY_CACHE = /home2/frystyk/purify-cache
+
+purify: $(webbot_OBJECTS) $(webbot_DEPENDENCIES)
+	purify -cache-dir=$(PURIFY_CACHE) \
+	$(LINK) $(webbot_OBJECTS) $(webbot_LDADD) $(LIBS)
+
 webbot_SOURCES = \
 	HTRobot.c
 

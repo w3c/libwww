@@ -172,6 +172,10 @@ PUBLIC void HTRequest_delete (HTRequest * request)
 	/* Clean up the error stack */
 	if (request->error_stack) HTError_deleteAll(request->error_stack);
 
+	/* Before and After Filters */
+	if (request->afters) HTList_delete(request->afters);
+	if (request->befores) HTList_delete(request->befores);
+
 	/* Access Authentication */
 	if (request->challenge) HTAssocList_delete(request->challenge);
 	if (request->credentials) HTAssocList_delete(request->credentials);
@@ -546,15 +550,36 @@ PUBLIC HTStream *HTRequest_inputStream (HTRequest *request)
 }
 
 /*
-**	Net before and after callbacks. list can be NULL
+**	Net before and after callbacks
 */
-PUBLIC void HTRequest_setBefore (HTRequest *request, HTList *befores,
+PUBLIC BOOL HTRequest_addBefore (HTRequest * request, HTNetCallback * filter,
+				 void * param, int status,
 				 BOOL override)
 {
     if (request) {
-	request->befores = befores;
 	request->befores_local = override;
+	if (!request->befores) request->befores = HTList_new();
+	return HTNetCall_add(request->befores, filter, param, status);
     }
+    return NO;
+}
+
+PUBLIC BOOL HTRequest_deleteBefore (HTRequest * request, HTNetCallback * filter)
+{
+    if (request && request->befores)
+	return HTNetCall_delete(request->befores, filter);
+    return NO;
+}
+
+PUBLIC BOOL HTRequest_deleteBeforeAll (HTRequest * request)
+{
+    if (request && request->befores) {
+	HTNetCall_deleteAll(request->befores);
+	request->befores = NULL;
+	request->befores_local = NO;
+	return YES;
+    }
+    return NO;
 }
 
 PUBLIC HTList * HTRequest_before (HTRequest *request, BOOL *override)
@@ -566,13 +591,34 @@ PUBLIC HTList * HTRequest_before (HTRequest *request, BOOL *override)
     return NULL;
 }
 
-PUBLIC void HTRequest_setAfter (HTRequest *request, HTList *afters,
+PUBLIC BOOL HTRequest_addAfter (HTRequest * request, HTNetCallback * filter,
+				void * param, int status,
 				BOOL override)
 {
     if (request) {
-	request->afters = afters;
 	request->afters_local = override;
+	if (!request->afters) request->afters = HTList_new();
+	return HTNetCall_add(request->afters, filter, param, status);
     }
+    return NO;
+}
+
+PUBLIC BOOL HTRequest_deleteAfter (HTRequest * request, HTNetCallback * filter)
+{
+    if (request && request->afters)
+	return HTNetCall_delete(request->afters, filter);
+    return NO;
+}
+
+PUBLIC BOOL HTRequest_deleteAfterAll (HTRequest * request)
+{
+    if (request && request->afters) {
+	HTNetCall_deleteAll(request->afters);
+	request->afters = NULL;
+	request->afters_local = NO;
+	return YES;
+    }
+    return NO;
 }
 
 PUBLIC HTList * HTRequest_after (HTRequest *request, BOOL *override)

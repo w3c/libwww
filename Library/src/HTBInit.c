@@ -83,6 +83,7 @@ PUBLIC void HTFileInit (void)
     HTBind_add("nc",	"application/x-netcdf",		NULL,	"binary",	NULL,	1.0);	/* Unidata netCDF data	*/
     HTBind_add("oda",	"application/oda",		NULL,	"binary",	NULL,	1.0);
     HTBind_add("pbm",	"image/x-portable-bitmap",	NULL,	"binary",	NULL,	1.0);	/* PBM Bitmap format	*/
+    HTBind_add("pcu",	"application/x-pics-user",	NULL,	"8bit",		NULL,	1.0);	/* PICS User */
     HTBind_add("pdf",	"application/pdf",		NULL,	"binary",	NULL,	1.0);
     HTBind_add("pgm",	"image/x-portable-graymap",	NULL,	"binary",	NULL,	1.0);	/* PBM Graymap format	*/
     HTBind_add("png",	"image/png",			NULL,	"binary",	NULL,	1.0);	/* PNG			*/

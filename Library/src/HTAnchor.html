@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<!-- Changed by: Henrik Frystyk Nielsen, 15-Jul-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 16-Jul-1996 -->
   <TITLE>W3C Reference Library libwww Anchor Class</TITLE>
 </HEAD>
 <BODY>
@@ -123,15 +123,6 @@ extern HTChildAnchor * HTAnchor_findChildAndLink (
 		const char * tag,			/* May be "" or 0 */
 		const char * href,			/* May be "" or 0 */
 		HTLinkType ltype);			/* May be 0 */
-</PRE>
-<H3>
-  Move a child anchor to the head of the list of its siblings
-</H3>
-<P>
-This is to ensure that an anchor which might have already existed is put
-in the correct order as we load the document.
-<PRE>
-extern void HTAnchor_makeLastChild	(HTChildAnchor *me);
 </PRE>
 <H3>
   Delete an Anchor

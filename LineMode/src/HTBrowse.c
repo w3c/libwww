@@ -570,59 +570,38 @@ PRIVATE void MakeCommandLine (LineMode * lm, BOOL is_index)
 }
 
 /*
-**  Test function for posting data from memory
+**  PUT the current document to the destination specified by the user
 **  Returns the result of the load function.
 */
-PRIVATE int EditAnchor (LineMode * lm, HTRequest * req, HTMethod method)
+PRIVATE int PutAnchor (LineMode * lm, HTRequest * request)
 {
-    char * base = HTAnchor_address((HTAnchor*) HTMainAnchor);
-    char * scr_url = "file:/tmp/testanchor";
-    char * dest_url = NULL;
     int status = HT_INTERNAL;
-    if ((dest_url = AskUser(req, "Destination:", NULL)) != NULL) {
-	BOOL doit = YES;
-	char * fd = HTParse(HTStrip(dest_url), base, PARSE_ALL);
-	char * fs = HTParse(HTStrip(scr_url), base, PARSE_ALL);
-	HTParentAnchor * dest = (HTParentAnchor *) HTAnchor_findAddress(fd);
-	HTParentAnchor * src = (HTParentAnchor *) HTAnchor_findAddress(fs);
-	HTLink * link = HTLink_find((HTAnchor *) src, (HTAnchor *) dest);
-	
-	/* Now link the two anchors together if not already done */
-	if (link) {
-	    char *msg;
-	    if ((msg = (char  *) HT_MALLOC(128)) == NULL)
-	        HT_OUTOFMEM("Upload");
-	    sprintf(msg, "The destination is already related to the source with a %s method - result %d, continue?",
-		    HTMethod_name(HTLink_method(link)), HTLink_result(link));
-	    doit = confirm(req, msg);
-	    HT_FREE(msg);
-	} else {
-	    HTLink_removeAll((HTAnchor *) src);
-	    HTLink_add((HTAnchor *) src, (HTAnchor *) dest, NULL, method);
-	}
-	if (doit) {
-	    char * data = NULL;
-	    HTRequest * new_request = Thread_new(lm, YES, LM_UPDATE);
-	    Context * new_context = (Context *) HTRequest_context(new_request);
-	    new_context->source = src;
+    char * dest = AskUser(request, "Destination: ", NULL);
 
-	    StrAllocCopy(data, "THIS IS A TEST ON POSTING FROM MEMORY");
-	    HTAnchor_setDocument(src, data);
-
-	    /* HERE WE SHOULD FILL IN THE METAINFORMATION WE KNOW IN THE
-	       SOURCE ANCHOR. IF WE DON'T KNOW THE CONTENT LENGTH THEN THIS
-	       IS FINE AS WE CAN SIMPLY ADD THE CONTENT LENGTH COUNTER STREAM
-	       TO THE TARGET WE GET IN OUR POST CALLBACK FUNCTION */
-
-	    status = HTUploadAnchor((HTAnchor *) src, new_request,
-				    HTUpload_callback);
-	}
-	HT_FREE(fd);
-	HT_FREE(fs);
+    /*
+    ** If user has typed a destination then create a new request object and
+    ** start the PUT operation. The destination is taken relative to the
+    ** current location.
+    */
+    if (dest) {
+	HTRequest * new_request = Thread_new(lm, YES, LM_UPDATE);
+	status = HTPutRelative(HTMainAnchor, dest, HTMainAnchor, new_request);
+	HT_FREE(dest);
     }
-    HT_FREE(scr_url);
-    HT_FREE(dest_url);
-    HT_FREE(base);
+    return status;
+}
+
+/*
+**  Delete the current document.
+*/
+PRIVATE int DeleteAnchor (LineMode * lm, HTRequest * request)
+{
+    int status = HT_INTERNAL;
+    BOOL doit = confirm(request, "Delete the current document?");
+    if (doit) {
+	HTRequest * new_request = Thread_new(lm, YES, LM_UPDATE);
+	status = HTDeleteAnchor((HTAnchor *) HTMainAnchor, new_request);
+    }
     return status;
 }
 
@@ -671,27 +650,6 @@ PRIVATE int Upload (LineMode * lm, HTRequest * req, HTMethod method)
     HT_FREE(scr_url);
     HT_FREE(dest_url);
     HT_FREE(base);
-    return status;
-}
-
-/*
-**  Delete a URL
-*/
-PRIVATE int DeleteURL (LineMode * lm, HTRequest * request)
-{
-    char * base = HTAnchor_address((HTAnchor*) HTMainAnchor);
-    char * url = NULL;
-    int status = HT_INTERNAL;
-    if ((url = AskUser(request, "URL to delete:", base)) != NULL) {
-	char * full = HTParse(HTStrip(url), base, PARSE_ALL);
-	HTParentAnchor * anchor=(HTParentAnchor *) HTAnchor_findAddress(full);
-	request = Thread_new(lm, YES, LM_UPDATE);
-	HTRequest_setMethod(request, METHOD_DELETE);
-	status = HTLoadAnchor((HTAnchor *) anchor, request);
-	HT_FREE(full);
-    }
-    HT_FREE(base);
-    HT_FREE(url);
     return status;
 }
 
@@ -996,7 +954,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	
       case 'D':
 	if (CHECK_INPUT("DELETE", token)) {	    		   /* DELETE */
-	    status = DeleteURL(lm, req);
+	    status = DeleteAnchor(lm, req);
 	} else if (CHECK_INPUT("DOWN", token)) {    /* Scroll down one page  */
 	  down:
 	    if (HText_canScrollDown(HTMainText))
@@ -1007,7 +965,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	
       case 'E':
 	if (CHECK_INPUT("EDIT", token)) {
-	    status = EditAnchor(lm, req, METHOD_PUT);
+	    status = PutAnchor(lm, req);
 	} else if (CHECK_INPUT("EXIT", token)) {	    /* Quit program? */
 	    status = NO;
 	} else
@@ -1020,7 +978,8 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	    {
 		if (next_word) {
 		    req = Thread_new(lm, YES, LM_UPDATE);
-		    status = HTSearchString(other_words, HTMainAnchor, req);
+		    status = HTSearchString(other_words,
+					    (HTAnchor *) HTMainAnchor, req);
 		}
 	    }
 	} else if (CHECK_INPUT("FORWARD", token)) {
@@ -1580,6 +1539,9 @@ int main (int argc, char ** argv)
 
     /* Initiate W3C Reference Library with a client profile */
     HTProfile_newClient(APP_NAME, APP_VERSION);
+    
+    /* It's confusing to have progress notofications in linemode browser */
+    HTAlert_delete(HTProgress);
 
     /* Add the default HTML parser to the set of converters */
     {
@@ -1948,7 +1910,7 @@ int main (int argc, char ** argv)
 
     /* Start the request */
     if (keywords)
-	status = HTSearchAnchor(keywords, lm->anchor, request);
+	status = HTSearchAnchor(keywords, (HTAnchor *) lm->anchor, request);
     else
 	status = HTLoadAnchor((HTAnchor *) lm->anchor, request);
 

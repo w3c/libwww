@@ -94,11 +94,23 @@ PUBLIC int HTRuleFilter (HTRequest * request, void * param, int status)
 **	Check the cache mode to see if we can use an already loaded version
 **	of this document. If so and our copy is valid then we don't have
 **	to go out and get it unless we are forced to
+**	We only check the cache in caseof a GET request. Otherwise, we go
+**	directly to the source.
 */
 PUBLIC int HTCacheFilter (HTRequest * request, void * param, int status)
 {
     HTParentAnchor * anchor = HTRequest_anchor(request);
     HTReload mode = HTRequest_reloadMode(request);
+    HTMethod method = HTRequest_method(request);
+
+    /*
+    ** Check the method of the request
+    */
+    if (method != METHOD_GET) {
+	if (CACHE_TRACE) HTTrace("Cachefilter. We only check GET methods\n");
+	return HT_OK;
+    }
+
     /*
     ** If the mode if "Force Reload" then don't even bother to check the
     ** cache - we flush everything we know about this document
@@ -181,6 +193,20 @@ PUBLIC int HTInfoFilter (HTRequest * request, void * param, int status)
 	if (PROT_TRACE)
 	    HTTrace("Load End.... ERROR: Can't access `%s\'\n",
 		    uri ? uri : "<UNKNOWN>");
+	break;
+    }
+
+    case HT_LOADED:
+    {
+	/*
+	** Even though we have received a loaded status the thing we have
+	** loaded successfully may in fact be an error message. We therefore
+	** look at the error stack to see what to do.
+	*/
+	HTAlertCallback *cbf = HTAlert_find(HT_A_MESSAGE);
+	if (cbf) (*cbf)(request, HT_A_MESSAGE, HT_MSG_NULL, NULL,
+			HTRequest_error(request), NULL);
+	if (PROT_TRACE) HTTrace("Load End.... OK: `%s\'\n", uri);
 	break;
     }
 

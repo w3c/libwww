@@ -57,11 +57,24 @@ PRIVATE int HTSC_abort (HTStream * me, HTList * errorlist)
 PRIVATE int HTSC_putBlock (HTStream * me, const char * b, int l)
 {
     me->cur_size += l;
-    if (me->cur_size > me->max_size) me->give_up = YES;
+
+    /*
+    ** Currently we ask the user whether to proceed even though we have a full
+    ** buffer. In the case of puting a document we could also just start 
+    ** sending data.
+    */
+    if (me->cur_size > me->max_size) {
+	HTAlertCallback *cbf = HTAlert_find(HT_A_CONFIRM);
+	if ((cbf && (*cbf)(me->request, HT_A_CONFIRM, HT_MSG_BIG_PUT,
+			   NULL, NULL, NULL)))
+	    me->max_size *= 4;
+	else
+	    me->give_up = YES;
+    }
     if (!me->give_up) {
 	HTChunk_putb(me->chunk, b, l);
 	return HT_OK;
-    }
+    }    
     return HT_ERROR;
 }
 

@@ -16,6 +16,9 @@ SUFFIXES = .h .html
 .html.h:
 	www -w90 -na -p -to text/x-c $(srcdir)/$(*F).html > $(srcdir)/$(*F).h
 
+inc: $(BUILT_SOURCES)
+	@echo Generated built sources
+
 pics_SOURCES = \
 	CSChkLab.c	CSStream.c	CSKwik.c \
 	CSLabel.c	CSLLOut.c	CSLLURLs.c \

@@ -1,5 +1,6 @@
 <HTML>
 <HEAD>
+  <!-- Changed by: Henrik Frystyk Nielsen, 16-Jul-1996 -->
   <TITLE>W3C Reference Library libwww Home Page Management</TITLE>
 </HEAD>
 <BODY>
@@ -77,6 +78,18 @@ all client applications must do then we provide some simple methods that
 do the work for you.
 <PRE>
 extern HTParentAnchor * HTHomeAnchor (void);
+</PRE>
+<H2>
+  <A NAME="temp">Create a New Anchor for Temporary Local Files</A>
+</H2>
+<P>
+When the user starts writing a new document, the client application should
+create a new anchor which can contain the document while it is created. This
+can also be the location for backups and for security "auto-save" functionality.
+This functions creates a new anchor with a URL pointing to the temporary
+location defined by this user profile and returns that anchor.
+<PRE>
+extern HTParentAnchor * HTTmpAnchor (HTUserProfile * up);
 </PRE>
 <H2>
   Get The Current Directory in URL form

@@ -464,6 +464,16 @@ if test $ac_cv_extern_altzone = yes; then
   AC_DEFINE(HAVE_ALTZONE)
 fi
 
+AC_MSG_CHECKING(for time.h that defines daylight)
+AC_CACHE_VAL(ac_cv_extern_daylight,
+[AC_TRY_COMPILE([#include <time.h>], [return daylight;],
+  ac_cv_extern_daylight=yes,
+  ac_cv_extern_daylight=no)])
+AC_MSG_RESULT($ac_cv_extern_daylight)
+if test $ac_cv_extern_daylight = yes; then
+  AC_DEFINE(HAVE_DAYLIGHT)
+fi
+
 if test $ac_cv_extern_timezone = yes; then
   AC_REQUIRE([AC_ISC_POSIX])dnl
   AC_MSG_CHECKING(if timezone is backwards)

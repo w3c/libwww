@@ -186,6 +186,29 @@ PUBLIC HTParentAnchor * HTHomeAnchor (void)
 }
 
 /*
+**	Creates a temporary anchor that doesn't exist
+*/
+PUBLIC HTParentAnchor * HTTmpAnchor (HTUserProfile * up)
+{
+    static int offset = 0;			    /* Just keep counting... */
+    time_t t = time(NULL);
+    char * tmpfile = HTGetTmpFileName(HTUserProfile_tmp(up));
+    char * tmpurl = HTParse(tmpfile, "file:", PARSE_ALL);
+    if (tmpfile && tmpurl && t >= 0) {
+	char * result;
+	if (!(result = (char *) HT_MALLOC(strlen(tmpurl)+20)))
+	    HT_OUTOFMEM("HTTmpAnchor");
+	sprintf(result, "%s.%d.%d", tmpurl, t, offset++);
+	if (APP_TRACE) HTTrace("Tmp Anchor.. With location `%s\'\n", result);
+	return HTAnchor_parent(HTAnchor_findAddress(result));
+	HT_FREE(result);
+    }
+    HT_FREE(tmpfile);
+    HT_FREE(tmpurl);
+    return NULL;
+}
+
+/*
 **	Standard interface to libwww TRACE messages. Pass this function a
 **	string of characters and it will set up the appropriate TRACE flags.
 **	The shortnames for the trace messages are not as intuitive as they
@@ -199,18 +222,20 @@ PUBLIC int HTSetTraceMessageMask (const char * shortnames)
 	char * ptr = (char *) shortnames;
 	for(; *ptr; ptr++) {
 	    switch (*ptr) {
-	    case 'a': WWWTRACE |= SHOW_ANCHOR_TRACE; 	break;
-	    case 'b': WWWTRACE |= SHOW_BIND_TRACE; 	break;
+	    case 'f': WWWTRACE |= SHOW_UTIL_TRACE; 	break;
+	    case 'l': WWWTRACE |= SHOW_APP_TRACE; 	break;
 	    case 'c': WWWTRACE |= SHOW_CACHE_TRACE; 	break;
 	    case 'g': WWWTRACE |= SHOW_SGML_TRACE; 	break;
-	    case 'h': WWWTRACE |= SHOW_AUTH_TRACE; 	break;
-	    case 'i': WWWTRACE |= SHOW_PICS_TRACE; 	break;
-	    case 'l': WWWTRACE |= SHOW_APP_TRACE; 	break;
-	    case 'o': WWWTRACE |= SHOW_CORE_TRACE; 	break;
-	    case 'p': WWWTRACE |= SHOW_PROTOCOL_TRACE; 	break;
-	    case 's': WWWTRACE |= SHOW_STREAM_TRACE; 	break;
+	    case 'b': WWWTRACE |= SHOW_BIND_TRACE; 	break;
 	    case 't': WWWTRACE |= SHOW_THREAD_TRACE; 	break;
+	    case 's': WWWTRACE |= SHOW_STREAM_TRACE; 	break;
+	    case 'p': WWWTRACE |= SHOW_PROTOCOL_TRACE; 	break;
+	    case 'm': WWWTRACE |= SHOW_MEM_TRACE; 	break;
 	    case 'u': WWWTRACE |= SHOW_URI_TRACE; 	break;
+	    case 'h': WWWTRACE |= SHOW_AUTH_TRACE; 	break;
+	    case 'a': WWWTRACE |= SHOW_ANCHOR_TRACE; 	break;
+	    case 'i': WWWTRACE |= SHOW_PICS_TRACE; 	break;
+	    case 'o': WWWTRACE |= SHOW_CORE_TRACE; 	break;
 	    default:
 		if (WWWTRACE) HTTrace("Trace....... Bad argument\n");
 	    }

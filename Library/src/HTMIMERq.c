@@ -212,6 +212,21 @@ PRIVATE int MIMERequest_put_block (HTStream * me, const char * b, int l)
 	    HTNet_setBytesWritten(net, 0);
 	}
 	me->transparent = YES;	
+
+	/*
+	**  If we know we are talking to an HTTP 1.1 server and we are sending
+	**  an entity body then wait until we have received a 100 response
+	*/
+	if (HTMethod_hasEntity(HTRequest_method(me->request))) {
+	    HTNet * net = HTRequest_net(me->request);
+	    HTHost * host = HTNet_host(net);
+	    char * class = HTHost_class(host);
+	    if (class && !strcmp(class, "http") && HTHost_version(host) >= 3) {
+		if (STREAM_TRACE) HTTrace("MIME........ Waiting for 100...\n");
+		(*me->target->isa->flush)(me->target);
+		return HT_PAUSE;
+	    }
+	}
 	return b ? PUTBLOCK(b, l) : HT_OK;
     }
 }

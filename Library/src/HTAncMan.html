@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library libwww Anchor Object</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 15-Jul-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 16-Jul-1996 -->
 </HEAD>
 <BODY>
 
@@ -63,7 +63,7 @@ struct _HTParentAnchor {
   HTParentAnchor * parent;	/* Parent of this anchor (self) */
 
   /* ParentAnchor-specific information */
-  HTList *	children;	/* Subanchors of this, if any */
+  HTList **	children;	/* Hash of subanchors of this, if any */
   HTList *	sources;	/* List of anchors pointing to this, if any */
   void *	document;	/* The document within this is an anchor */
   char *	physical;	/* Physical address */

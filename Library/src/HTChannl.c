@@ -164,7 +164,8 @@ PUBLIC BOOL HTChannel_delete (HTChannel * channel, int status)
 		free_channel(channel);
 		return YES;
 	    }
-	}
+	} else
+	    HTChannel_downSemaphore(channel);
     }
     return NO;
 }

@@ -13,6 +13,7 @@
 **	24-Oct-1991 (JFG), written in C, browser-independant 
 **	21-Nov-1991 (JFG), first complete version
 **	 3-May-1995 (HF), Added a lot of methods and other stuff made an object
+**	July 1996	Patch for adding hash of children Michael Farrar
 */
 
 /* Library include files */
@@ -23,7 +24,8 @@
 #include "HTMethod.h"
 #include "HTAncMan.h"					 /* Implemented here */
 
-#define HASH_SIZE 101		/* Arbitrary prime. Memory/speed tradeoff */
+#define HASH_SIZE	101	   /* Arbitrary prime. Memory/speed tradeoff */
+#define CHILD_HASH_SIZE	 67	       /* Often smaller than hash of parents */
 
 PRIVATE HTList **adult_table=0;  /* Point to table of lists of all parents */
 
@@ -39,7 +41,7 @@ PRIVATE HTList **adult_table=0;  /* Point to table of lists of all parents */
 PRIVATE HTParentAnchor * HTParentAnchor_new (void)
 {
     HTParentAnchor *newAnchor;
-    if ((newAnchor =	(HTParentAnchor *) HT_CALLOC(1, sizeof (HTParentAnchor))) == NULL)
+    if ((newAnchor = (HTParentAnchor *) HT_CALLOC(1, sizeof (HTParentAnchor))) == NULL)
 	HT_OUTOFMEM("HTParentAnchor_new");
     newAnchor->parent = newAnchor;
     newAnchor->content_type = WWW_UNKNOWN;
@@ -67,42 +69,60 @@ PRIVATE HTChildAnchor * HTChildAnchor_new (void)
 **	document. The parent anchor must already exist. All
 **	children without tags (no NAME attribut) points to the same NULL
 **	child.
+**	Children are now hashed for performance reasons. Thanks to
+**	Michael Farrar
 */
 PUBLIC HTChildAnchor * HTAnchor_findChild (HTParentAnchor *	parent,
 					   const char *		tag)
 {
-    HTChildAnchor *child;
-    HTList *kids;
-    
+    HTChildAnchor * child = NULL;
+    HTList * kids = NULL;
     if (!parent) {
-	if (ANCH_TRACE)
-	    HTTrace("Find Child.. called with NULL parent.\n");
+	if (ANCH_TRACE) HTTrace("Child Anchor Bad argument\n");
 	return NULL;
     }
 
+    /* Find a hash for this tag (if any) */
+    {
+	HTList ** children = parent->children;
+	int hash = 0;
+	/*
+	** If tag is empty then use hash value 0
+	*/
+	if (tag) {
+	    const char * ptr = tag;
+	    for(; *ptr; ptr++)
+		hash = (int) ((hash*3 + (*(unsigned char*)ptr)) % CHILD_HASH_SIZE);
+	}
+	if (!children) {
+	    if (!(children = (HTList **)	
+		  HT_CALLOC(CHILD_HASH_SIZE, sizeof(HTList *))))
+		HT_OUTOFMEM("HTAnchor_findChild");
+	}
+	if (!children[hash]) children[hash] = HTList_new();
+	kids = children[hash];
+    }
+
     /* First search list of children to see if tag is already there */
-    if ((kids = parent->children)) {
-	if (tag && *tag) {	/* TBL */
-	    while ((child = (HTChildAnchor *) HTList_nextObject(kids))) {
-		if (child->tag && !strcmp(child->tag, tag)) {
-		    if (ANCH_TRACE)
-			HTTrace(
-				 "Find Child.. %p of parent %p with name `%s' already exists.\n",
-				 (void *) child, (void *) parent, tag);
-		    return child;
-		}
+    if (tag && *tag) {
+	HTList * cur = kids;
+	while ((child = (HTChildAnchor *) HTList_nextObject(cur))) {
+	    if (!strcmp(child->tag, tag)) {
+		if (ANCH_TRACE)
+		    HTTrace("Child Anchor %p of parent %p with name `%s' already exists.\n",
+			    (void *) child, (void *) parent, tag);
+		return child;
 	    }
 	}
-    } else				      /* Create new list of children */
-	parent->children = HTList_new ();
-    
-    /* Did't find it so we need to create a new one */
+    }
+
+    /* If not found then create a new child anchor */
     child = HTChildAnchor_new();
-    HTList_addObject(parent->children, child);
+    HTList_addObject(kids, (void *) child);
     child->parent = parent;
-    StrAllocCopy(child->tag, tag);
+    if (tag) StrAllocCopy(child->tag, tag);
     if (ANCH_TRACE)
-	HTTrace("Find Child.. New Anchor %p named `%s' is child of %p\n",
+	HTTrace("Child Anchor New Anchor %p named `%s' is child of %p\n",
 		(void *) child, tag ? tag : (const char *) "", (void *)parent);
     return child;
 }
@@ -185,7 +205,7 @@ PUBLIC HTChildAnchor * HTAnchor_findChildAndLink (HTParentAnchor *	parent,
 						  HTLinkType		ltype)
 {
     HTChildAnchor * child = HTAnchor_findChild(parent, tag);
-    if (href && *href) {
+    if (child && href && *href) {
 	char * relative_to = HTAnchor_expandedAddress((HTAnchor *) parent);
 	char * parsed_address = HTParse(href, relative_to, PARSE_ALL);
 	HTAnchor * dest = HTAnchor_findAddress(parsed_address);
@@ -194,22 +214,6 @@ PUBLIC HTChildAnchor * HTAnchor_findChildAndLink (HTParentAnchor *	parent,
 	HT_FREE(relative_to);
     }
     return child;
-}
-
-
-/*		Move an anchor to the head of the list of its siblings
-**		------------------------------------------------------
-**
-**	This is to ensure that an anchor which might have already existed
-**	is put in the correct order as we load the document.
-*/
-PUBLIC void HTAnchor_makeLastChild (HTChildAnchor * me)
-{
-    if (me->parent != (HTParentAnchor *) me) { /* Make sure it's a child */
-	HTList * siblings = me->parent->children;
-	HTList_removeObject (siblings, me);
-	HTList_addObject (siblings, me);
-    }
 }
 
 /* ------------------------------------------------------------------------- */
@@ -297,7 +301,16 @@ PRIVATE void * delete_parent (HTParentAnchor * me)
 	    HTLink_delete(pres);
 	HTList_delete(me->links);
     }
-    HTList_delete (me->children);
+
+    /* Remove children */
+    if (me->children) {
+	int cnt = 0;
+	for (; cnt<CHILD_HASH_SIZE; cnt++) {
+	    if (me->children[cnt]) HTList_delete(me->children[cnt]);
+	}
+	HT_FREE(me->children);
+    }
+
     HTList_delete (me->sources);
     HTList_delete (me->variants);
     HT_FREE(me->physical);
@@ -337,18 +350,25 @@ PRIVATE void * delete_family (HTAnchor * me)
 
     /* Delete children */
     if (parent->children) {
-	HTChildAnchor *child;
-	while ((child = (HTChildAnchor *)
-		HTList_removeLastObject(parent->children))) {
-	    HT_FREE(child->tag);
-	    if (child->links) {
-		HTList *cur = child->links;
-		HTLink *pres;
-		while ((pres = (HTLink *) HTList_nextObject(cur)))
-		    HTLink_delete(pres);
-		HTList_delete(child->links);
+	int cnt = 0;
+	for (; cnt<CHILD_HASH_SIZE; cnt++) {
+	    HTList * kids = parent->children[cnt];
+	    if (kids) {
+		HTChildAnchor * child;
+		while ((child=(HTChildAnchor*)HTList_removeLastObject(kids))) {
+		    HT_FREE(child->tag);
+		    if (child->links) {
+			HTList * cur = child->links;
+			HTLink * pres;
+			while ((pres = (HTLink *) HTList_nextObject(cur)))
+			    HTLink_delete(pres);
+			HTList_delete(child->links);
+		    }
+		    HT_FREE(child);
+		}
+		HTList_delete(kids);
+		parent->children[cnt] = NULL;
 	    }
-	    HT_FREE(child);
 	}
     }
     return delete_parent(parent);
@@ -383,7 +403,7 @@ PUBLIC BOOL HTAnchor_deleteAll (HTList * documents)
 }
 
 
-PRIVATE void deleteLinks (HTAnchor * me)
+PRIVATE void delete_links (HTAnchor * me)
 {
   if (! me)
     return;
@@ -408,34 +428,72 @@ PRIVATE void deleteLinks (HTAnchor * me)
 
 PUBLIC BOOL HTAnchor_delete (HTParentAnchor * me)
 {
-  HTChildAnchor *child;
+    /* Don't delete if document is loaded */
+    if (!me || me->document) {
+	if (ANCH_TRACE) HTTrace("Anchor...... Not deleted\n");
+	return NO;
+    }
 
-  /* Don't delete if document is loaded */
-  if (me->document)
-    return NO;
+    /* Recursively try to delete target anchors */
+    delete_links ((HTAnchor *) me);
 
-  /* Recursively try to delete target anchors */
-  deleteLinks ((HTAnchor *) me);
+    if (!HTList_isEmpty(me->sources)) {    /* There are still incoming links */
 
+	/*
+	** Delete all outgoing links from children, if any
+	*/
+	if (me->children) {
+	    int cnt = 0;
+	    for (; cnt<CHILD_HASH_SIZE; cnt++) {
+		HTList * kids = me->children[cnt];
+		if (kids) {
+		    HTChildAnchor * child;
+		    while ((child = (HTChildAnchor *) HTList_nextObject(kids)))
+			delete_links((HTAnchor *) child);
+		    return NO;	/* Parent not deleted */
+		}
+	    }
+	}
+
+	/*
+	** No more incoming links : kill everything
+	** First, recursively delete children
+	*/
+	if (me->children) {
+	    int cnt = 0;
+	    for (; cnt<CHILD_HASH_SIZE; cnt++) {
+		HTList * kids = me->children[cnt];
+		if (kids) {
+		    HTChildAnchor * child;
+		    while ((child=(HTChildAnchor *) HTList_removeLastObject(kids)))
+			delete_links((HTAnchor *) child);
+		    HT_FREE(child->tag);
+		    HT_FREE(child);
+		}
+	    }
+	}
+    }
+
+    /* Now kill myself */
+    delete_parent(me);
+    return YES;  /* Parent deleted */
+#if 0
   if (! HTList_isEmpty (me->sources)) {  /* There are still incoming links */
     /* Delete all outgoing links from children, if any */
     HTList *kids = me->children;
     while ((child = (HTChildAnchor *) HTList_nextObject (kids)))
-      deleteLinks ((HTAnchor *) child);
+      delete_links ((HTAnchor *) child);
     return NO;  /* Parent not deleted */
   }
 
   /* No more incoming links : kill everything */
   /* First, recursively delete children */
   while ((child = (HTChildAnchor *) HTList_removeLastObject (me->children))) {
-    deleteLinks ((HTAnchor *) child);
+    delete_links ((HTAnchor *) child);
     HT_FREE(child->tag);
     HT_FREE(child);
   }
-
-  /* Now kill myself */
-  delete_parent(me);
-  return YES;  /* Parent deleted */
+#endif
 }
 
 /* ------------------------------------------------------------------------- */
@@ -527,7 +585,7 @@ PUBLIC void HTAnchor_clearPhysical(HTParentAnchor * me)
 */
 PUBLIC BOOL HTAnchor_hasChildren  (HTParentAnchor * me)
 {
-    return me ? ! HTList_isEmpty(me->children) : NO;
+    return (me && me->children);
 }
 
 /*	Cache Information
