@@ -128,13 +128,17 @@ PRIVATE int HTTPCleanup (HTRequest *req, int status)
     	HTAlertCallback * cbf = HTAlert_find(HT_PROG_INTERRUPT);
     	if (cbf) (*cbf)(req, HT_PROG_INTERRUPT,
 	    HT_MSG_NULL, NULL, NULL, NULL);
+    } else if (status == HT_TIMEOUT) {
+    	HTAlertCallback * cbf = HTAlert_find(HT_PROG_TIMEOUT);
+    	if (cbf) (*cbf)(req, HT_PROG_TIMEOUT,
+	    HT_MSG_NULL, NULL, NULL, NULL);
     }	
-    
+
     /* Free stream with data TO network */
     if (HTRequest_isDestination(req))
 	HTRequest_removeDestination(req);
     else if (input) {
-	if (status == HT_INTERRUPTED || status == HT_RECOVER_PIPE)
+	if (status==HT_INTERRUPTED || status==HT_RECOVER_PIPE || status==HT_TIMEOUT)
 	    (*input->isa->abort)(input, NULL);
 	else
 	    (*input->isa->_free)(input);
@@ -702,7 +706,7 @@ PRIVATE int stream_pipe (HTStream * me, int length)
 	    **  ranges or anything else make life hard in this case.
 	    */
 	    HTAnchor_clearHeader(HTRequest_anchor(request));
-	    HTResponse_setCachable(response, YES);
+	    HTResponse_setCachable(response, HT_CACHE_ALL);
 	    me->target = HTStreamStack(WWW_MIME,
 				       HTRequest_outputFormat(request),
 				       HTRequest_outputStream(request),
@@ -717,7 +721,7 @@ PRIVATE int stream_pipe (HTStream * me, int length)
 	    */
 	    HTReload reload = HTRequest_reloadMode(request);
 	    if (reload == HT_CACHE_RANGE_VALIDATE) {
-		HTResponse_setCachable(response, YES);
+		HTResponse_setCachable(response, HT_CACHE_ALL);
 		me->target = HTStreamStack(WWW_MIME_PART,
 					   HTRequest_outputFormat(request),
 					   HTRequest_outputStream(request),
@@ -730,12 +734,13 @@ PRIVATE int stream_pipe (HTStream * me, int length)
 					   request, NO);
 	    }
 	} else if (me->status==204 || me->status==304) {
-	    HTResponse_setCachable(response, YES);
+	    HTResponse_setCachable(response, HT_CACHE_ALL);
 	    me->target = HTStreamStack(WWW_MIME_HEAD,
 				       HTRequest_debugFormat(request),
 				       HTRequest_debugStream(request),
 				       request, NO);
 	} else if (HTRequest_debugStream(request)) {
+	    if (me->status == 201) HTResponse_setCachable(response, HT_CACHE_ETAG);
 	    me->target = HTStreamStack(WWW_MIME,
 				       HTRequest_debugFormat(request),
 				       HTRequest_debugStream(request),
@@ -745,6 +750,7 @@ PRIVATE int stream_pipe (HTStream * me, int length)
 	    **  We still need to parse the MIME part in order to find any
 	    **  valuable meta information which is needed from the response.
 	    */
+	    if (me->status == 201) HTResponse_setCachable(response, HT_CACHE_ETAG);
 	    me->target = HTStreamStack(WWW_MIME,
 				       HTRequest_debugFormat(request),
 				       HTRequest_debugStream(request),
@@ -957,7 +963,7 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
     HTHost * host = HTNet_host(net);
 
     /*
-    **  Check whether we have been interrupted
+    **  Check whether we have been interrupted or timed out
     */
     if (type == HTEvent_BEGIN) {
 	http->next = HTTP_OK;
@@ -966,6 +972,11 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 	HTRequest_addError(request, ERR_FATAL, NO, HTERR_INTERRUPTED,
 			   NULL, 0, "HTLoadHTTP");
 	HTTPCleanup(request, HT_INTERRUPTED);
+	return HT_OK;
+    } else if (type == HTEvent_TIMEOUT) {
+	HTRequest_addError(request, ERR_FATAL, NO, HTERR_TIME_OUT,
+			   NULL, 0, "HTLoadHTTP");
+	HTTPCleanup(request, HT_TIMEOUT);
 	return HT_OK;
     } else if (type == HTEvent_END) {
 	HTTPCleanup(request, http->result);

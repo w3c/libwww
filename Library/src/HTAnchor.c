@@ -666,30 +666,39 @@ PUBLIC BOOL HTAnchor_update (HTParentAnchor * me, HTResponse * response)
 {
     if (me && response) {
 
-	if (ANCH_TRACE)
-	    HTTrace("HTAnchor.... Updating metainformation for %p\n", me);
+	if (HTResponse_isCachable(response) == HT_CACHE_ETAG) {
+	    char * etag = HTResponse_etag(response);
+	    if (ANCH_TRACE) HTTrace("HTAnchor.... Updating etag for %p\n", me);
+	    if (etag) {
+		HTAnchor_setEtag(me, etag);
+		return YES;
+	    }
+	} else if (HTResponse_isCachable(response) == HT_CACHE_ALL) {
+	    if (ANCH_TRACE)
+		HTTrace("HTAnchor.... Updating metainformation for %p\n", me);
 
-	/*
-	**  The content length and type is already parsed at this point
-	**  in time. We also check for format parameters like charset etc.
-	**  and copy the contents in the anchor object
-	*/
-	me->content_length = HTResponse_length(response);
-	me->content_type = HTResponse_format(response);
-	me->type_parameters = HTResponse_formatParam(response);
+	    /*
+	    **  The content length and type is already parsed at this point
+	    **  in time. We also check for format parameters like charset etc.
+	    **  and copy the contents in the anchor object
+	    */
+	    me->content_length = HTResponse_length(response);
+	    me->content_type = HTResponse_format(response);
+	    me->type_parameters = HTResponse_formatParam(response);
 	
-	/*
-	**  Inherit all the unparsed headers - we may need them later!
-	*/
-	me->headers = HTResponse_handOverHeader(response);
+	    /*
+	    **  Inherit all the unparsed headers - we may need them later!
+	    */
+	    me->headers = HTResponse_handOverHeader(response);
 
-	/*
-	**  Notifify the response object not to delete the lists that we
-	**  have inherited in the anchor object
-	*/
-	HTResponse_isCached(response, YES);
+	    /*
+	    **  Notifify the response object not to delete the lists that we
+	    **  have inherited in the anchor object
+	    */
+	    HTResponse_isCached(response, YES);
 
-	return YES;
+	    return YES;
+	}
     }
     return NO;
 }

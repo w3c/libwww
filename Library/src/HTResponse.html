@@ -1,6 +1,5 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 15-Jul-1996 -->
   <TITLE>W3C Sample Code Library libwww Response Class</TITLE>
 </HEAD>
 <BODY>
@@ -196,9 +195,23 @@ extern HTAssocList * HTResponse_cacheControl (HTResponse * response);
 The various <CODE>cache-control</CODE> headers and directives decides whether
 an object is cachable or not. Check these methods before starting caching!
 <PRE>
-extern BOOL HTResponse_isCachable  (HTResponse * me);
-extern BOOL HTResponse_setCachable (HTResponse * me, BOOL mode);
+typedef enum _HTCachable {
+    HT_NO_CACHE  = 0,
+    HT_CACHE_ALL = 1,
+    HT_CACHE_ETAG= 2
+} HTCachable; 
+
+extern HTCachable HTResponse_isCachable  (HTResponse * me);
+extern BOOL HTResponse_setCachable (HTResponse * me, HTCachable mode);
 </PRE>
+<H3>
+  The Response Enity Tag (etag)
+</H3>
+Return the etag if any
+<PRE>
+extern char * HTResponse_etag (HTResponse * me);
+</PRE>
+
 <H3>
   Has the Response been Cached?
 </H3>

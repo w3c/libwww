@@ -81,7 +81,8 @@ PRIVATE int pumpData (HTStream * me)
     **  byte ranges then we already have the metainformation and
     **  hence we can ignore the new one as it'd better be the same.
     */
-    if (!(me->mode & HT_MIME_PARTIAL) && HTResponse_isCachable(me->response))
+    if (!(me->mode & HT_MIME_PARTIAL) &&
+	HTResponse_isCachable(me->response) != HT_NO_CACHE)
 	HTAnchor_update(HTRequest_anchor(request), me->response);
 
     /*
@@ -139,37 +140,12 @@ PRIVATE int pumpData (HTStream * me)
 	if ((target = HTStreamStack(format, me->target_format,
 				    me->target, request, YES))==BlackHole) {
 	    if (!savestream) {
-		if (me->target) (*me->target->isa->abort)(me->target, NULL);
-		me->target = HTSaveLocally(request, NULL, NULL, NULL, NULL);
+                if (me->target) (*me->target->isa->abort)(me->target, NULL);
+                me->target = HTSaveLocally(request, NULL, NULL, NULL, NULL);
 		savestream = YES;
 	    }
 	} else
 	    me->target = target;
-    }
-
-    /*
-    **  Can we cache the data object? If so then create a T stream and hook it 
-    **  into the stream pipe. We do it before the transfer decoding so that we
-    **  don't have to deal with that when we retrieve the object from cache.
-    **  If we are appending to a cache entry then use a different stream than
-    **  if creating a new entry.
-    */
-    if (!savestream && HTCacheMode_enabled()) {
-	if (me->mode & HT_MIME_PARTIAL) {
-	    HTStream * append = HTStreamStack(WWW_CACHE_APPEND,
-					      me->target_format,
-					      me->target, request, NO);
-#if 0
-	if (cache) me->target = HTTee(me->target, cache, NULL);
-	me->target = HTPipeBuffer_new(me->target, request, 0);
-#else
-	me->target = append;
-#endif
-	} else if (HTResponse_isCachable(me->response)) {
-	    HTStream * cache = HTStreamStack(WWW_CACHE, me->target_format,
-					     me->target, request, NO);
-	    if (cache) me->target = HTTee(me->target, cache, NULL);
-	}
     }
 
     /*
@@ -188,6 +164,26 @@ PRIVATE int pumpData (HTStream * me)
 	    me->target = target;
     }
 
+    /*
+    **  Can we cache the data object? If so then create a T stream and hook it 
+    **  into the stream pipe. We do it before the transfer decoding so that we
+    **  don't have to deal with that when we retrieve the object from cache.
+    **  If we are appending to a cache entry then use a different stream than
+    **  if creating a new entry.
+    */
+    if (HTCacheMode_enabled()) {
+	if (me->mode & HT_MIME_PARTIAL) {
+	    HTStream * append = HTStreamStack(WWW_CACHE_APPEND,
+					      me->target_format,
+					      me->target, request, NO);
+            me->target = append;
+	} else if (HTResponse_isCachable(me->response) == HT_CACHE_ALL) {
+	    HTStream * cache = HTStreamStack(WWW_CACHE, me->target_format,
+					     me->target, request, NO);
+	    if (cache) me->target = HTTee(me->target, cache, NULL);
+	}
+    }
+    
     /*
     **  Handle any Transfer Encodings
     */

@@ -305,7 +305,7 @@ PUBLIC int HTMIME_pragma (HTRequest * request, HTResponse * response,
 	char * name = HTNextField(&name_val);
 	if (name) {
 	    if (!strcasecomp(name, "no-cache")) {
-		HTResponse_setCachable(response, NO);
+		HTResponse_setCachable(response, HT_NO_CACHE);
 		if (STREAM_TRACE) HTTrace("MIMEParser.. No-Cache Pragma\n");
 	    }
 	}

@@ -93,6 +93,10 @@ PUBLIC BOOL HTProgress (HTRequest * request, HTAlertOpcode op,
 	HTTrace("Working - please wait...\n");
 	break;
 
+      case HT_PROG_TIMEOUT:
+	HTTrace("Request timeout - server did not respond.\n");
+	break;
+
       default:
 	HTTrace("UNKNOWN PROGRESS STATE\n");
 	break;

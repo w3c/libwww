@@ -48,8 +48,8 @@
 #define DUMP_FREQUENCY	20			/* Dump index after 20 loads */
 
 #define MEGA		0x100000L
-#define CACHE_SIZE	(20*MEGA)		/* Default cache size is 20M */
-#define MIN_CACHE_SIZE  (5*MEGA)			   /* Min cache size */
+#define HT_CACHE_SIZE	(20*MEGA)		/* Default cache size is 20M */
+#define HT_MIN_CACHE_SIZE	(5*MEGA)		   /* Min cache size */
 #define SIZE_BUFFER	(1*MEGA)      /* Buffer for metainfo and directories */
 
 /* Final states have negative value */
@@ -121,7 +121,7 @@ PRIVATE int DefaultExpiration = NO_LM_EXPIRATION;
 PRIVATE HTList ** 	CacheTable = NULL;
 
 /* Cache size variables */
-PRIVATE long		HTCacheSize = CACHE_SIZE;
+PRIVATE long		HTCacheSize = HT_CACHE_SIZE;
 PRIVATE long		HTTotalSize = 0L;
 
 PRIVATE int		new_entries = 0;	   /* Number of new entries */
@@ -629,9 +629,11 @@ PUBLIC const char * HTCacheMode_getRoot (void)
 /*
 **	As this is a single user cache, we have to lock it when in use.
 */
+PRIVATE FILE *locked_open_file = {NULL};
+
 PRIVATE BOOL HTCache_getSingleUserLock (const char * root)
 {
-    if (root) {
+    if (root && !locked_open_file) {
 	FILE * fp;
 	char * location = NULL;
 	if ((location = (char *)
@@ -652,6 +654,7 @@ PRIVATE BOOL HTCache_getSingleUserLock (const char * root)
 	    HT_FREE(location);
 	    return NO;
 	}
+	locked_open_file = fp;
 	HT_FREE(location);
 	return YES;
     }
@@ -670,6 +673,11 @@ PRIVATE BOOL HTCache_deleteSingleUserLock (const char * root)
 	    HT_OUTOFMEM("HTCache_deleteLock");
 	strcpy(location, root);
 	strcat(location, HT_CACHE_LOCK);
+	/* under UNIX you can remove an open file, not so under NT */
+	if (locked_open_file) {
+		fclose(locked_open_file);
+	    locked_open_file = NULL;
+	}
 	REMOVE(location);
 	HT_FREE(location);
 	return YES;
@@ -814,7 +822,7 @@ PUBLIC HTExpiresMode HTCacheMode_expires (void)
 */
 PUBLIC BOOL HTCacheMode_setMaxSize (int size)
 {
-    long new_size = size < 5 ? MIN_CACHE_SIZE : size * MEGA;
+    long new_size = size < 5 ? HT_MIN_CACHE_SIZE : size * MEGA;
     if (new_size < HTTotalSize) HTCacheGarbage();
     HTCacheSize = new_size - SIZE_BUFFER;
     if (CACHE_TRACE) HTTrace("Cache...... Total cache size: %ld\n", new_size);
@@ -1344,7 +1352,7 @@ PRIVATE BOOL HTCache_readMeta (HTCache * cache, HTRequest * request)
 	    /*
 	    **  Make sure that we save the reponse information in the anchor
 	    */
-	    HTResponse_setCachable(HTRequest_response(request), YES);
+	    HTResponse_setCachable(HTRequest_response(request), HT_CACHE_ALL);
 	    status = meta_read(fp, request, target);
 	    (*target->isa->_free)(target);
 	    fclose(fp);

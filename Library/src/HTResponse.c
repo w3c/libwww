@@ -14,6 +14,7 @@
 #include "WWWUtil.h"
 #include "HTHeader.h"
 #include "HTLib.h"
+#include "HTWWWStr.h"
 #include "HTResMan.h"					 /* Implemented here */
 
 /* --------------------------------------------------------------------------*/
@@ -338,16 +339,16 @@ PUBLIC BOOL HTResponse_addCacheControl (HTResponse * me,
 /*
 **  Check whether we can cache this object or not.
 */
-PUBLIC BOOL HTResponse_isCachable (HTResponse * me)
+PUBLIC HTCachable HTResponse_isCachable (HTResponse * me)
 {
     if (me) {
 
 	/* We may already have decided that this object is not cachable */
-	if (me->cachable == NO) return NO;
+	if (me->cachable == HT_NO_CACHE) return HT_NO_CACHE;
 
 #if 0
 	/*  We don't cache negotiated resources for the moment */
-	if (me->variants) return NO;
+	if (me->variants) return HT_NO_CACHE;
 #endif
 
 	/*
@@ -359,18 +360,18 @@ PUBLIC BOOL HTResponse_isCachable (HTResponse * me)
 	if (me->cache_control) {
 	    char * token;
 	    if ((token=HTAssocList_findObject(me->cache_control, "no-store")))
-		return NO;
+		return HT_NO_CACHE;
 	    if ((token=HTAssocList_findObject(me->cache_control, "no-cache")))
-		if (!*token) return NO;
+		if (!*token) return HT_NO_CACHE;
 	}
 
 	/* Cache everything else */
-	return YES;
+	return me->cachable;
     }
-    return NO;
+    return HT_NO_CACHE;
 }
 
-PUBLIC BOOL HTResponse_setCachable (HTResponse * me, BOOL mode)
+PUBLIC BOOL HTResponse_setCachable (HTResponse * me, HTCachable mode)
 {
     if (me) {
 	me->cachable = mode;
@@ -409,6 +410,16 @@ PUBLIC char * HTResponse_noCache (HTResponse * me)
     return (me && me->cache_control) ?
 	HTAssocList_findObject(me->cache_control,
 			       "no-cache") : NULL;
+}
+
+PUBLIC char * HTResponse_etag (HTResponse * me)
+{
+    if (me && me->headers) {
+	char * value = HTAssocList_findObject(me->headers, "etag");
+	char * etag = HTNextField(&value);
+	return etag;
+    }
+    return NULL;
 }
 
 /*

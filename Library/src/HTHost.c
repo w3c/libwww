@@ -25,10 +25,10 @@
 #include "HTHost.h"					 /* Implemented here */
 #include "HTHstMan.h"
 
-#define HOST_TIMEOUT		43200L	     /* Default host timeout is 12 h */
+#define HOST_OBJECT_TTL	    43200L	     /* Default host timeout is 12 h */
 
-#define TCP_TTL 		600L	     /* Timeout on a busy connection */
-#define TCP_IDLE_TTL 		60L	    /* Timeout on an idle connection */
+#define TCP_IDLE_PASSIVE      120L /* Passive TTL in s on an idle connection */
+#define TCP_IDLE_ACTIVE     60000L /* Active TTL in ms on an idle connection */
 
 #define MAX_PIPES		50   /* maximum number of pipelined requests */
 #define MAX_HOST_RECOVER	3	      /* Max number of auto recovery */
@@ -41,8 +41,8 @@ struct _HTInputStream {
 PRIVATE int HostEvent(SOCKET soc, void * pVoid, HTEventType type);
 
 /* Type definitions and global variables etc. local to this module */
-PRIVATE time_t	HostTimeout = HOST_TIMEOUT;	  /* Timeout on host entries */
-PRIVATE time_t	TcpTtl = TCP_TTL;          /* Timeout on persistent channels */
+PRIVATE time_t	HostTimeout = HOST_OBJECT_TTL;	 /* Timeout for host objects */
+PRIVATE time_t	TcpTtl = TCP_IDLE_PASSIVE;      /* Passive TTL for TCP cons. */
 
 PRIVATE HTList	** HostTable = NULL;
 PRIVATE HTList * PendHost = NULL;	    /* List of pending host elements */
@@ -106,6 +106,69 @@ PRIVATE BOOL isLastInPipe (HTHost * host, HTNet * net)
 }
 
 /*
+**  Silently close an idle persistent connection after 
+**  TCP_IDLE_ACTIVE secs
+*/
+PRIVATE int IdleTimeoutEvent (HTTimer * timer, void * param, HTEventType type)
+{
+    HTHost * host = (HTHost *) param;
+    SOCKET sockfd = HTChannel_socket(host->channel);
+    int result = HostEvent (sockfd, host, HTEvent_CLOSE);
+    HTTimer_delete(timer);
+    host->timer = NULL;
+    return result;
+}
+
+PRIVATE BOOL BusyTimeoutHandler (HTHost * host)
+{
+    if (host) {
+	int piped = HTList_count(host->pipeline);
+	int pending = HTList_count(host->pending);
+	int cnt;
+
+	/* Terminate all net objects in pending queue */
+	for (cnt=0; cnt<pending; cnt++) {
+	    HTNet * net = HTList_removeLastObject(host->pending);
+	    if (CORE_TRACE) HTTrace("Host timeout Terminating net object %p from pending queue\n", net);
+	    net->registeredFor = 0;
+	    (*net->event.cbf)(HTChannel_socket(host->channel), net->event.param, HTEvent_TIMEOUT);
+	}
+
+	/* Terminate all net objects in pipeline */
+	if (piped >= 1) {
+	    
+	    /*
+	    **  Unregister this host for all events
+	    */
+	    HTEvent_unregister(HTChannel_socket(host->channel), HTEvent_READ);
+	    HTEvent_unregister(HTChannel_socket(host->channel), HTEvent_WRITE);
+	    host->registeredFor = 0;
+
+	    /*
+	    **  Set new mode to single until we know what is going on
+	    */
+	    host->mode = HT_TP_SINGLE;
+
+	    /*
+	    **  Terminte all net objects in the pipeline
+	    */
+	    for (cnt=0; cnt<piped; cnt++) {
+		HTNet * net = HTList_firstObject(host->pipeline);
+		if (CORE_TRACE) HTTrace("Host timeout Terminating net object %p from pipe line\n", net);
+		net->registeredFor = 0;
+		(*net->event.cbf)(HTChannel_socket(host->channel), net->event.param, HTEvent_TIMEOUT);
+	    }
+
+	    HTChannel_setSemaphore(host->channel, 0);
+	    HTHost_clearChannel(host, HT_INTERRUPTED);
+
+	}
+	return YES;
+    }
+    return NO;
+}
+
+/*
 **	HostEvent - host event manager - recieves events from the event 
 **	manager and dispatches them to the client net objects by calling the 
 **	net object's cbf.
@@ -156,7 +219,7 @@ PRIVATE int HostEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    char buf[256];
 	    int ret;
 	    memset(buf, '\0', sizeof(buf));
-	    while ((ret = NETREAD(HTChannel_socket(host->channel), buf, sizeof(buf))) > 0) {
+	    while ((ret = NETREAD(HTChannel_socket(host->channel), buf, sizeof(buf)-1)) > 0) {
 		if (CORE_TRACE)
 		    HTTrace("Host Event.. Host %p `%s\' had %d extraneous bytes: `%s\'\n",
 			    host, host->hostname, ret, buf);
@@ -177,26 +240,12 @@ PRIVATE int HostEvent (SOCKET soc, void * pVoid, HTEventType type)
 	HTTrace("Host Event.. Who wants to write to `%s\'?\n", host->hostname);
 	return HT_ERROR;
     } else if (type == HTEvent_TIMEOUT) {
-
-	if (CORE_TRACE)
-	    HTTrace("Host Event.. WE SHOULD DELETE ALL REQUEST ON `%s\'?\n",
-		    host->hostname);
-
+	BusyTimeoutHandler(host);
     } else {
 	HTTrace("Don't know how to handle OOB data from `%s\'?\n", 
 		host->hostname);
     }
     return HT_OK;
-}
-
-PRIVATE int TimeoutEvent (HTTimer * timer, void * param, HTEventType type)
-{
-    HTHost * host = (HTHost *) param;
-    SOCKET sockfd = HTChannel_socket(host->channel);
-    int result = HostEvent (sockfd, host, HTEvent_CLOSE);
-    HTTimer_delete(timer);
-    host->timer = NULL;
-    return result;
 }
 
 /*
@@ -264,8 +313,7 @@ PUBLIC HTHost * HTHost_new (char * host, u_short u_port)
                     if (CORE_TRACE)
                         HTTrace("Host info... Persistent channel %p gotten cold\n",
                         pres->channel);
-                    HTChannel_delete(pres->channel, HT_OK);
-                    pres->channel = NULL;
+		    HTHost_clearChannel(pres, HT_OK);
                 } else {
                     pres->expires = t + TcpTtl;
                     if (CORE_TRACE)
@@ -976,8 +1024,8 @@ PUBLIC BOOL HTHost_free (HTHost * host, int status)
 
 	/* Check if we should keep the socket open */
         if (HTHost_isPersistent(host)) {
+	    int piped = HTList_count(host->pipeline);
             if (HTHost_closeNotification(host)) {
-		int piped = HTList_count(host->pipeline);
 		if (CORE_TRACE)
 		    HTTrace("Host Object. got close notifiation on socket %d\n",
 			    HTChannel_socket(host->channel));
@@ -997,8 +1045,7 @@ PUBLIC BOOL HTHost_free (HTHost * host, int status)
 		    HTChannel_setSemaphore(host->channel, 0);
 		    HTHost_clearChannel(host, status);
 		}
-	    } else if ((HTList_count(host->pipeline) <= 1 &&
-			host->reqsMade == host->reqsPerConnection)) {
+	    } else if (piped<=1 && host->reqsMade==host->reqsPerConnection) {
                 if (CORE_TRACE) HTTrace("Host Object. closing persistent socket %d\n",
 					HTChannel_socket(host->channel));
                 
@@ -1017,9 +1064,9 @@ PUBLIC BOOL HTHost_free (HTHost * host, int status)
                 **  If connection is idle then set a timer so that we close the 
                 **  connection if idle too long
                 */
-                if (HTHost_isIdle(host) && HTList_isEmpty(host->pending) && !host->timer) {
-                    host->timer = HTTimer_new(NULL, TimeoutEvent,
-					      host, TCP_IDLE_TTL, YES, YES);
+                if (piped<=1 && HTList_isEmpty(host->pending) && !host->timer) {
+                    host->timer = HTTimer_new(NULL, IdleTimeoutEvent,
+					      host, TCP_IDLE_ACTIVE, YES, NO);
                     if (PROT_TRACE) HTTrace("Host........ Object %p going idle...\n", host);
                 }
             }

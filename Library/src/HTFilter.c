@@ -321,7 +321,7 @@ PUBLIC int HTCacheUpdateFilter (HTRequest * request, HTResponse * response,
 	**  case then flush it now. Otherwise prepare for a cache read
 	*/
 	if (CACHE_TRACE) HTTrace("Cache....... Merging metainformation\n");
-	if (HTResponse_isCachable(response) == NO) {
+	if (HTResponse_isCachable(response) == HT_NO_CACHE) {
 	    HTCache_remove(cache);
 	} else {
 	    char * name = HTCache_name(cache);

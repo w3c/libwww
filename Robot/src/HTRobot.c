@@ -75,7 +75,8 @@
 #define SHOW_QUIET(mr)		((mr) && !((mr)->flags & MR_QUIET))
 #define SHOW_REAL_QUIET(mr)	((mr) && !((mr)->flags & MR_REAL_QUIET))
 
-#define DEFAULT_TIMEOUT		50000		       /* timeout in millis */
+#define MILLIES			1000
+#define DEFAULT_TIMEOUT		20		          /* timeout in secs */
 
 #if defined(__svr4__)
 #define CATCH_SIG
@@ -741,7 +742,7 @@ PRIVATE Robot * Robot_new (void)
 	HT_OUTOFMEM("Robot_new");
     me->hyperdoc = HTList_new();
     me->htext = HTList_new();
-    me->timer = DEFAULT_TIMEOUT;
+    me->timer = DEFAULT_TIMEOUT*MILLIES;
     me->cwd = HTGetCurrentDirectoryURL();
     me->output = OUTPUT;
     me->cnt = 0;
@@ -1534,7 +1535,7 @@ int main (int argc, char ** argv)
 	    } else if (!strcmp(argv[arg], "-timeout")) {
 		int timeout = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    atoi(argv[++arg]) : DEFAULT_TIMEOUT;
-		if (timeout > 0) mr->timer = timeout;
+		if (timeout > 1) mr->timer = timeout*MILLIES;
 
 	    /* Force no pipelined requests */
 	    } else if (!strcmp(argv[arg], "-nopipe")) {

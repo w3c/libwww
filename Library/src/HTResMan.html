@@ -106,7 +106,7 @@ This association list is a list of the cache control directives that have
 been received as part of the response. We also keep track of whether the
 response si cachable or not.
 <PRE>
-    BOOL                cachable;
+    HTCachable          cachable;
     BOOL                cached;             /* If anchor has inherited lists */
     HTAssocList *       cache_control;
 </PRE>

@@ -235,13 +235,13 @@ PUBLIC BOOL HTChannel_delete (HTChannel * channel, int status)
 	*/
 	if (status != HT_IGNORE) {
 	    if (channel->input) {
-                if (status == HT_INTERRUPTED)
+                if (status==HT_INTERRUPTED || status==HT_TIMEOUT)
 		    (*channel->input->isa->abort)(channel->input, NULL);
 		else
 		    (*channel->input->isa->_free)(channel->input);
 	    }
 	    if (channel->output) {
-		if (status == HT_INTERRUPTED)
+		if (status==HT_INTERRUPTED || status==HT_TIMEOUT)
 		    (*channel->output->isa->abort)(channel->output, NULL);
 		else
 		    (*channel->output->isa->_free)(channel->output);

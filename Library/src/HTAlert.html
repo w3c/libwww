@@ -62,17 +62,18 @@ typedef enum _HTAlertOpcode {
     HT_PROG_READ	= 0x8,		/* Read data */
     HT_PROG_WRITE	= 0x10,		/* Write data */
     HT_PROG_DONE	= 0x20,		/* Request finished */
-    HT_PROG_INTERRUPT=0x40,     /* Request interrupted */
-    HT_PROG_OTHER   = 0x80,     /* Other progress notes */
-    HT_A_PROGRESS	= 0xFF,		/* Send a progress report - no reply */
+    HT_PROG_INTERRUPT   = 0x40,         /* Request interrupted */
+    HT_PROG_OTHER       = 0x80,         /* Other progress notes */
+    HT_PROG_TIMEOUT     = 0x100,        /* Request timed out */
+    HT_A_PROGRESS	= 0xFFFF,	/* Get all progress reports - no reply */
 
     /* First word are reserved for progresss notifications */
 
-    HT_A_MESSAGE	= 0x1&lt;&lt;8,	/* Send a message - no reply */
-    HT_A_CONFIRM	= 0x2&lt;&lt;8,	/* Want YES or NO back */
-    HT_A_PROMPT		= 0x4&lt;&lt;8,	/* Want full dialog */
-    HT_A_SECRET		= 0x8&lt;&lt;8,	/* Secret dialog (e.g. password) */
-    HT_A_USER_PW	= 0x10&lt;&lt;8	/* Atomic userid and password */
+    HT_A_MESSAGE	= 0x1&lt;&lt;16, /* Send a message - no reply */
+    HT_A_CONFIRM	= 0x2&lt;&lt;16, /* Want YES or NO back */
+    HT_A_PROMPT		= 0x4&lt;&lt;16, /* Want full dialog */
+    HT_A_SECRET		= 0x8&lt;&lt;16, /* Secret dialog (e.g. password) */
+    HT_A_USER_PW	= 0x10&lt;&lt;16 /* Atomic userid and password */
 } HTAlertOpcode;
 
 typedef struct _HTAlertPar HTAlertPar;

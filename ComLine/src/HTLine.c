@@ -45,7 +45,8 @@
 #define DEFAULT_RULE_FILE	"w3c.conf"
 #define DEFAULT_LOG_FILE       	"w3c.log"
 
-#define DEFAULT_TIMEOUT		10000		       /* timeout in millis */
+#define MILLIES			1000
+#define DEFAULT_TIMEOUT		20		          /* timeout in secs */
 
 #define DEFAULT_HOPS		0
 
@@ -110,7 +111,7 @@ PRIVATE ComLine * ComLine_new (void)
     ComLine * me;
     if ((me = (ComLine *) HT_CALLOC(1, sizeof(ComLine))) == NULL)
 	HT_OUTOFMEM("ComLine_new");
-    me->timer = DEFAULT_TIMEOUT;
+    me->timer = DEFAULT_TIMEOUT*MILLIES;
     me->cwd = HTGetCurrentDirectoryURL();
     me->output = OUTPUT;
 
@@ -391,7 +392,7 @@ int main (int argc, char ** argv)
 	    } else if (!strcmp(argv[arg], "-timeout")) {
 		int timeout = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    atoi(argv[++arg]) : DEFAULT_TIMEOUT;
-		if (timeout > 0) cl->timer = timeout;
+		if (timeout >= 1) cl->timer = timeout*MILLIES;
 
 	    /* preemptive or non-preemptive access */
 	    } else if (!strcmp(argv[arg], "-single")) {
