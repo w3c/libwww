@@ -442,18 +442,18 @@ PRIVATE int get_connection ARGS1 (CONST char *,arg)
 		    if (command == NULL) outofmem(__FILE__, "get_connection");
 		    sprintf(command, "PASS %s%c%c", password, CR, LF);
 		} else {
-#ifdef ANON_FTP_HOSTNAME
-		    command = (char*)malloc(20+strlen(HTHostName())+2+1);
+		    char * user = getenv("USER");
+		    CONST char *host = HTHostName();
+		    if (!user) user = "WWWuser";
+		    /* If not fully qualified, suppress it as ftp.uu.net
+		       prefers a blank to a bad name */
+		    if (!strchr(host, '.')) host = "";
+
+		    command = (char*)malloc(20+strlen(host)+2+1);
 		    if (command == NULL) outofmem(__FILE__, "get_connection");
 		    sprintf(command,
-		    "PASS WWWuser@%s%c%c", HTHostName(), CR, LF); /*@@*/
-#else
-		    /* In fact ftp.uu.net for example prefers just "@"
-		    	the fulle domain name, which we can't get - DD */
-		    command = (char*)malloc(20);
-		    if (command == NULL) outofmem(__FILE__, "get_connection");
-		    sprintf(command, "PASS WWWuser@%c%c", CR, LF); /*@@*/
-#endif
+		    "PASS %s@%s%c%c", user ? user : "WWWuser",
+		    host, CR, LF); /*@@*/
 	        }
 		status = response(command);
 		free(command);

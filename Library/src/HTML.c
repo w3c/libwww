@@ -580,6 +580,11 @@ PRIVATE void HTML_start_element ARGS4(
     } /* end switch */
 
     if (HTML_dtd.tags[element_number].contents!= SGML_EMPTY) {
+        if (me->sp == &me->stack) {
+	    fprintf(stderr, "HTML: ****** Maximum nesting of %d exceded!\n",
+	    MAX_NESTING); 
+	    return;
+	}
     	--(me->sp);
 	me->sp[0].style = me->new_style;	/* Stack new style */
 	me->sp[0].tag_number = element_number;

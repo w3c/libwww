@@ -466,7 +466,7 @@ PUBLIC int HTParseSocket ARGS5(
 **
 **
 **   @@  Bug:  This decision ought to be made based on "encoding"
-**   rather than on format.  @@@  Whne we handle encoding.
+**   rather than on format.  @@@  When we handle encoding.
 **   The current method smells anyway.
 */
     targetClass = *(stream->isa);	/* Copy pointers to procedures */
@@ -517,7 +517,7 @@ PUBLIC int HTParseFile ARGS5(
         return HTLoadError(sink, 501, buffer);
     }
     
-/*	Push the data, ignoring CRLF if necessary, down the stream
+/*	Push the data down the stream
 **
 **
 **   @@  Bug:  This decision ought to be made based on "encoding"

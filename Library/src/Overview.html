@@ -1,6 +1,6 @@
 <HEADER>
 <TITLE>W3 Library Internals Overview</TITLE>
-<NEXTID N="62">
+<NEXTID N="64">
 </HEADER>
 <BODY>
 <H1>Library Internals</H1>The <A
@@ -69,6 +69,29 @@ NAME=13 HREF="../../Architecture/Anchors.html"> More on anchors</A>
 )
 </DL>
 
+<H2>Configuration</H2>Much of the trouble is getting everything
+defined appropriately, because the
+rest of the library is so flexible.
+ Modules of note are
+<DL>
+<DT><A
+NAME=z63 HREF="HTInit.html">HTInit</A>
+<DD>The initialisation module for
+clients.  May be replaced in custom
+clients.
+<DT>HTSInit
+<DD>The initialisation module
+for servers. May be replaced for
+cutsom servers. Not part of the library,
+but part of the server.
+<DT><A
+NAME=z62 HREF="HTRules.html">HTRule</A>
+<DD>The module which reads the
+configuartion fiole, and adoes translation
+of URLs according to rules.
+<DD>
+</DL>
+
 <H2><A
 NAME=2>Protocol modules</A></H2>A protocol module is invoked by the
 navigation module in order to access
@@ -93,8 +116,8 @@ local one.  The latter uses HTTCP
 for common TCP routines.
 <DT><A
 NAME=z60 HREF="HTFTP.html">FTP access</A>
-<DD>Uses HTTCP for common TCP
-routines.
+<DD> Uses HTTCP for common
+TCP routines.
 <DT><A
 NAME=z45 HREF="HTTP.html">HTTP access</A>
 <DD> The <A
@@ -195,7 +218,7 @@ are referred to by number, so each
 structured stream must be created
 with knowledge of the DTD which it
 is currently using.<P>
-The structured strams are definied
+The structured strams are defined
 in the <A
 NAME=z33 HREF="SGML.html">SGML module</A> .<P>
 Any instance of a structured stream
@@ -294,4 +317,5 @@ for strings of charcters.
 </DL>
 
 <ADDRESS><A
-NAME=0 HREF="http://info.cern.ch./hypertext/TBL_Disclaimer.html">Tim BL</A></BODY>
+NAME=0 HREF="http://info.cern.ch./hypertext/TBL_Disclaimer.html">Tim BL</A></A>
+</ADDRESS></BODY>

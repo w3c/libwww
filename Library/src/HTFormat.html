@@ -1,6 +1,6 @@
 <HEADER>
 <TITLE>HTFormat: The format manager in the WWW Library</TITLE>
-<NEXTID N="10">
+<NEXTID N="11">
 </HEADER>
 <BODY>
 <H1>Manage different document formats</H1>Here we describe the functions of
@@ -15,7 +15,8 @@ NAME=z0 HREF="HTFormat.c">HTFormat.c</A>
 . This hypertext document is used
 to generate the <A
 NAME=z8 HREF="HTFormat.h">HTFormat.h</A> inlude
-file.
+file.  Part of the <A
+NAME=z10 HREF="Overview.html">WWW library</A>.
 <H2>Preamble</H2>
 <PRE>#ifndef HTFORMAT_H
 #define HTFORMAT_H
@@ -73,7 +74,15 @@ it represents a printed copy.
 
 </PRE>We must include the following file
 after defining HTFormat, to which
-it makes reference.
+it makes reference.<P>
+The HTEncoding type<P>
+typedef HTAtom* HTEncoding;<P>
+The following are values for the
+MIME types:<P>
+#define WWW_ENC_7BIT<P>
+#define WWW_ENC_8BIT<P>
+#define WWW_ENC_BINARY<P>
+We also add
 <PRE>#include "HTAnchor.h"
 
 </PRE>

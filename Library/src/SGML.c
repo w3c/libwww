@@ -262,10 +262,10 @@ PRIVATE void start_element(context)
 **
 ** On exit,
 **	returns:
-**		INVALID		tag not found
-**		>=0		tag number in dtd
+**		NULL		tag not found
+**		else		address of tag structure in dtd
 */
-PRIVATE int find_tag ARGS2(CONST SGML_dtd*, dtd, char *, string)
+PRIVATE HTTag * find_tag ARGS2(CONST SGML_dtd*, dtd, char *, string)
 {
     int high, low, i, diff;
     for(low=0, high=dtd->number_of_tags;
@@ -274,10 +274,10 @@ PRIVATE int find_tag ARGS2(CONST SGML_dtd*, dtd, char *, string)
 	i = (low + (high-low)/2);
 	diff = strcasecomp(dtd->tags[i].name, string);	/* Case insensitive */
 	if (diff==0) {			/* success: found it */
-	    return i;
+	    return &dtd->tags[i];
 	}
     }
-    return INVALID;
+    return NULL;
 }
 
 /*________________________________________________________________________
@@ -414,7 +414,7 @@ PUBLIC void SGML_character ARGS2(HTStream *, context, char,c)
 	if (isalnum(c))
 	    HTChunkPutc(string, c);
 	else {				/* End of tag name */
-	    int t;
+	    HTTag * t;
 	    if (c=='/') {
 		if (TRACE) if (string->size!=0)
 		    fprintf(stderr,"SGML:  `<%s/' found!\n", string->data);
@@ -424,13 +424,13 @@ PUBLIC void SGML_character ARGS2(HTStream *, context, char,c)
 	    HTChunkTerminate(string) ;
 
 	    t = find_tag(dtd, string->data);
-	    if (t == INVALID) {
+	    if (!t) {
 		if(TRACE) fprintf(stderr, "SGML: *** Unknown element %s\n",
 			string->data);
 		context->state = (c=='>') ? S_text : S_junk_tag;
 		break;
 	    }
-	    context->current_tag = &dtd->tags[t];
+	    context->current_tag = t;
 	    
 	    /*  Clear out attributes
 	    */
@@ -557,26 +557,31 @@ PUBLIC void SGML_character ARGS2(HTStream *, context, char,c)
 	if (isalnum(c))
 	    HTChunkPutc(string, c);
 	else {				/* End of end tag name */
-	    int t;
+	    HTTag * t;
 	    HTChunkTerminate(string) ;
-	    if (c!='>') {
-		if (TRACE) fprintf(stderr,"SGML:  `</%s%c' found!\n",
-		    string->data, c);
-		context->state = S_junk_tag;
-		break;
+	    if (!*string->data)	{	/* Empty end tag */
+	        t = context->element_stack->tag;
+	    } else {
+		t = find_tag(dtd, string->data);
 	    }
-	    t = find_tag(dtd, string->data);
-	    if (t == INVALID) {
+	    if (!t) {
 		if(TRACE) fprintf(stderr,
 		    "Unknown end tag </%s>\n", string->data); 
 	    } else {
-	        context->current_tag = &dtd->tags[t];
+	        context->current_tag = t;
 		end_element( context, context->current_tag);
 	    }
 
 	    string->size = 0;
 	    context->current_attribute_number = INVALID;
-	    context->state = S_text;
+	    if (c!='>') {
+		if (TRACE && !WHITE(c))
+		    fprintf(stderr,"SGML:  `</%s%c' found!\n",
+		    	string->data, c);
+		context->state = S_junk_tag;
+	    } else {
+	        context->state = S_text;
+	    }
 	}
 	break;
 
