@@ -1,13 +1,12 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
-   "http://www.w3.org/TR/REC-html40/loose.dtd">
+                      "http://www.w3.org/TR/REC-html40/loose.dtd">
 <html>
 <head>
-
-<!-- Changed by: Henrik Frystyk Nielsen,  5-Nov-1995 -->
-<title>Header Fields and how to Extend Them</title>
+  <!-- Changed by: Henrik Frystyk Nielsen,  5-Nov-1995 -->
+  <title>Header Fields and how to Extend Them</title>
 </head>
-<body bgcolor="#ffffff">
 
+<body bgcolor="#ffffff">
 <p><a href="../../../"><img border="0" src="../../../Icons/WWW/w3c_home"
 alt="W3C" width="72" height="48"></a> <a href="../../"><img border="0"
 src="../../../Icons/WWW/Lib48x" alt="libwww" width="48" height="48"></a> <a
@@ -43,30 +42,26 @@ how to manipulate them for the section on managing <a
 href="Request.html">Request objects</a>. The native set of headers fall into
 the following three categories:</p>
 <dl>
-<dt><i>General Headers</i></dt>
-<dd>
-There are a few header fields which have general applicability for both
-request and response messages, but which do not apply to the communication
-parties or the entity being transferred. This mask enables and disables these
-headers. If the bit is not turned on they are not sent. All headers are
-optional and the default value is not to use any of these headers at all.
-</dd>
-<dt><i>Request Headers</i></dt>
-<dd>
-The request header fields allow the client to pass additional information
-about the request (and about the client itself) to the server. All headers are
-optional but the default behavior is to use all request headers
-<em>except</em> <code>From</code> and <code>Pragma</code>. The reason is that
-the former in general requires permission by the user and the latter has
-special meanings for proxy servers.
-</dd>
-<dt><i>Entity Headers</i></dt>
-<dd>
-The entity headers contain information about the object sent in the HTTP
-transaction. This flag defines which headers are to be sent in a request
-together with an entity body. All headers are optional but the default value
-is to use as many as possible.
-</dd>
+  <dt><i>General Headers</i></dt>
+    <dd>There are a few header fields which have general applicability for
+      both request and response messages, but which do not apply to the
+      communication parties or the entity being transferred. This mask enables
+      and disables these headers. If the bit is not turned on they are not
+      sent. All headers are optional and the default value is not to use any
+      of these headers at all.</dd>
+  <dt><i>Request Headers</i></dt>
+    <dd>The request header fields allow the client to pass additional
+      information about the request (and about the client itself) to the
+      server. All headers are optional but the default behavior is to use all
+      request headers <em>except</em> <code>From</code> and
+      <code>Pragma</code>. The reason is that the former in general requires
+      permission by the user and the latter has special meanings for proxy
+      servers.</dd>
+  <dt><i>Entity Headers</i></dt>
+    <dd>The entity headers contain information about the object sent in the
+      HTTP transaction. This flag defines which headers are to be sent in a
+      request together with an entity body. All headers are optional but the
+      default value is to use as many as possible.</dd>
 </dl>
 
 <p>The set of known headers are equivalent to the set of header defined by the
@@ -126,13 +121,14 @@ is not yet implement - stay tuned!</p>
 
 <p><a href="../../src/HTPEP.html"><img border="0"
 src="../../../Icons/WWW/doc48x" alt="Documentation" width="48" height="48"
-align="middle">Registrering PEP Extensions</a></p>
+align="middle">Registrering Extensions</a></p>
 
 <p></p>
 <hr>
 
 <address>
-<a href="/People/Frystyk/">Henrik Frystyk Nielsen</a>,<br>
-@(#) $Id$</address>
+  <a href="/People/Frystyk/">Henrik Frystyk Nielsen</a>,<br>
+  @(#) $Id$
+</address>
 </body>
 </html>
