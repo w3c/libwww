@@ -33,6 +33,11 @@ PUBLIC void HTProfile_delete (void)
 	/* Clean up all the global preferences */
 	HTFormat_deleteAll();
 
+      /* The following lists have been cleaned up by HTFormat_deleteAll */
+      transfer_encodings = 0;
+      content_encodings = 0;
+      converters = 0;
+
 	/* Terminate libwww */
 	HTLibTerminate();
     }
