@@ -1050,9 +1050,11 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
     CONST char * addr = HTAnchor_physical(request->anchor);
     char * filename;
     HTFormat format;
-    char * nodename = 0;
+    static char * nodename = 0;
     char * newname=0;	/* Simplified name of file */
     HTAtom * encoding;	/* @@ not used yet */
+
+    FREE(nodename);	/* From prev call - Leak fixed AL 6 Feb 1994 */
     
 /*	Reduce the filename to a basic form (hopefully unique!)
 */
@@ -1102,7 +1104,6 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 #else
 
     FREE(filename);
-    FREE(nodename);	/* Leak fixed AL 6 Feb 1994 */
 
 /*	For unix, we try to translate the name into the name of a transparently
 **	mounted file.
@@ -1373,6 +1374,8 @@ open_file:
     }  /* local unix file system */    
 #endif
 #endif
+
+  try_ftp:
 
 #ifndef DECNET
 /*	Now, as transparently mounted access has failed, we try FTP.
