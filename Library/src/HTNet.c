@@ -128,7 +128,7 @@ PUBLIC BOOL HTNetCall_deleteBefore (HTList * list, HTNetBefore * before)
     if (list && before) {
 	HTList * cur = list;
 	BeforeFilter * pres;
-	while ((pres = (BeforeFilter *) HTList_nextObject(list))) {
+	while ((pres = (BeforeFilter *) HTList_nextObject(cur))) {
 	    if (pres->before == before) {
 		HTList_removeObject(list, (void *) pres);
 		HT_FREE(pres->tmplate);
@@ -879,6 +879,8 @@ PUBLIC BOOL HTNet_deleteAll (void)
 PUBLIC BOOL HTNet_kill (HTNet * net)
 {
     if (net) {
+        HTAlertCallback * cbf = HTAlert_find(HT_PROG_INTERRUPT);
+        if (cbf) (*cbf)(net->request, HT_PROG_INTERRUPT, HT_MSG_NULL, NULL, NULL, NULL);
 	if (CORE_TRACE) HTTrace("Net Object.. Killing %p\n", net);
 	if (net->event.cbf) {
 	    (*(net->event.cbf))(HTNet_socket(net), net->event.param, HTEvent_CLOSE);
