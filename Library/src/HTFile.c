@@ -628,6 +628,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		else
 		    StrAllocCat(newname, url);
 		anchor = HTAnchor_findAddress(newname);
+		HTRequest_setAnchor(request, anchor);
 		free(newname);
 		FileCleanup(request, HT_IGNORE);
 		return HTLoad(request, YES);

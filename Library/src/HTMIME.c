@@ -695,6 +695,7 @@ PRIVATE int HTMIME_flush (HTStream * me)
 PRIVATE int HTMIME_free (HTStream * me)
 {
     int status = HT_OK;
+    if (!me->transparent) parseheader(me, me->request, me->anchor);
     if (me->target) {
 	if ((status = (*me->target->isa->_free)(me->target))==HT_WOULD_BLOCK)
 	    return HT_WOULD_BLOCK;

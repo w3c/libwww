@@ -91,7 +91,10 @@ PRIVATE int HTPlain_flush (HTStream * me)
 */
 PRIVATE int HTPlain_free (HTStream * me)
 {
-    free(me);
+    if (me) {
+	HText_endAppend(me->text);
+	free(me);
+    }
     return HT_OK;
 }
 

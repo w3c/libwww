@@ -718,10 +718,8 @@ PRIVATE void HTML_put_entity (HTStructured * me, int entity_number)
 PUBLIC int HTML_flush (HTStructured * me)
 {
     UPDATE_STYLE;			     /* Creates empty document here! */
-    if (me->comment_end)
-		HTML_put_string(me,me->comment_end);
-    HText_endAppend(me->text);
-    return (*me->targetClass.flush)(me->target);
+    if (me->comment_end) HTML_put_string(me,me->comment_end);
+    return me->target ? (*me->targetClass.flush)(me->target) : HT_OK;
 }
 
 /*	Free an HTML object

@@ -736,7 +736,7 @@ PUBLIC int HTLoadGopher (SOCKET soc, HTRequest * request, SockOps ops)
 
 		/* Set up stream FROM network and corresponding read buffer */
 		net->isoc = HTInputSocket_new(net->sockfd);
-		if (gopher->type == GT_MENU)
+                if (gopher->type == GT_MENU || gopher->type == GT_INDEX)
 		    net->target = GopherMenu_new(request, url, NO);
 		else if (gopher->type == GT_CSO)
 		    net->target = GopherMenu_new(request, url, YES);
