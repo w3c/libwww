@@ -77,7 +77,7 @@
 #define HT_ZLIB
 
 /* Define to enable POSIX RegEx support. */
-/* undef HT_POSIX_REGEX */
+#define HT_POSIX_REGEX
 
 /* Define to enable support for enabling a rules file w/o user interaction. */
 /* #undef HT_AUTOMATIC_RULES */
