@@ -760,6 +760,27 @@ PUBLIC void HText_appendCharacter (HText * text, char ch)
     }
 }
 
+PUBLIC void HText_appendText (HText * text, const char * str)
+{
+    const char * p;
+    for(p=str; *p; p++) {
+        HText_appendCharacter(text, *p);
+    }
+}
+
+
+PUBLIC void HText_endAppend (HText * text)
+{
+    new_line(text);
+    
+    if (text->display_on_the_fly) {		/* Not finished? */
+        fill_screen(text, text->display_on_the_fly);	/* Finish it */
+	text->display_on_the_fly = 0;
+	text->next_line = text->last_line;	/* Bug fix after EvA 920117 */
+	text->stale = NO;
+    }
+}
+
 /*		Anchor handling
 **		---------------
 */
@@ -815,18 +836,6 @@ PUBLIC void LMHText_endAnchor (HText * text)
 }
 
 
-/*		IMAGES
-*/
-PUBLIC void HText_appendImage (
-	HText * 		text,
-	HTChildAnchor * 	anc,
-	const char * 		alt,
-	const char *  		alignment,
-	BOOL			isMap)
-{
-    HText_appendText(text, alt? alt : "[IMAGE]");
-}
-	
 /* LMHText_addText() satisfies HText callback requirement.  */
 PUBLIC void LMHText_addText (HText * text, const char * str, int length)
 {
@@ -837,25 +846,16 @@ PUBLIC void LMHText_addText (HText * text, const char * str, int length)
     }
 }
 
-PUBLIC void HText_appendText (HText * text, const char * str)
+/*		IMAGES
+*/
+PUBLIC void HText_appendImage (
+	HText * 		text,
+	HTChildAnchor * 	anc,
+	const char * 		alt,
+	const char *  		alignment,
+	BOOL			isMap)
 {
-    const char * p;
-    for(p=str; *p; p++) {
-        HText_appendCharacter(text, *p);
-    }
-}
-
-
-PUBLIC void HText_endAppend (HText * text)
-{
-    new_line(text);
-    
-    if (text->display_on_the_fly) {		/* Not finished? */
-        fill_screen(text, text->display_on_the_fly);	/* Finish it */
-	text->display_on_the_fly = 0;
-	text->next_line = text->last_line;	/* Bug fix after EvA 920117 */
-	text->stale = NO;
-    }
+    HText_appendText(text, alt? alt : "[IMAGE]");
 }
 
 PUBLIC void HText_appendObject (HText * text, int element_number,
