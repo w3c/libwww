@@ -288,8 +288,6 @@ PRIVATE char * get_best_welcome ARGS1(char *, path)
 	    continue;
 	else {
 	    int v = welcome_value(dirbuf->d_name);
-	    CTRACE(stderr, " ** DEBUG: Got welcome-value %d for %s\n",
-		   v, dirbuf->d_name);
 	    if (v > best_value) {
 		best_value = v;
 		StrAllocCopy(best_welcome, dirbuf->d_name);

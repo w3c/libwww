@@ -146,12 +146,6 @@ PUBLIC int HTClearRules NOARGS
 /*	Translate by rules					HTTranslate()
 **	------------------
 **
-** ATTENTION:
-**	THIS FUNCTION HAS BEEN OBSOLITED BY HTTranslateReq()
-**	ON SERVER SIDE -- ON BROWSER SIDE THIS IS STILL USED!
-**	Don't add new server features to this, this already has
-**	more than it can handle cleanly.
-**
 **	The most recently defined rules are applied last.
 **
 ** On entry,
@@ -160,13 +154,6 @@ PUBLIC int HTClearRules NOARGS
 **	returns		the address of the equivalent string allocated from
 **			the heap which the CALLER MUST FREE. If no translation
 **			occured, then it is a copy of te original.
-** NEW FEATURES:
-**			When a "protect" or "defprot" rule is mathed,
-**			a call to HTAA_setCurrentProtection() or
-**			HTAA_setDefaultProtection() is made to notify
-**			the Access Authorization module that the file is
-**			protected, and so it knows how to handle it.
-**								-- AL
 */
 PUBLIC char * HTTranslate ARGS1(CONST char *, required)
 {
@@ -294,16 +281,14 @@ PUBLIC int HTSetConfiguration ARGS1(CONST char *, config)
 				encoding ? encoding : "binary",
 				status >= 1? quality : 1.0);
 
-    } else if (0==strcasecomp(word1, "addencoding") ||
-	       0==strcasecomp(word1, "encoding")) {
+    } else if (0==strcasecomp(word1, "addencoding")) {
 	if (pointer)
 	    status = sscanf(pointer, "%f", &quality);
 	else status = 0;
 	HTAddEncoding(word2, word3,
 		      status >= 1 ? quality : 1.0);
 
-    } else if (0==strcasecomp(word1, "addlanguage") ||
-	       0==strcasecomp(word1, "language")) {
+    } else if (0==strcasecomp(word1, "addlanguage")) {
 	if (pointer)
 	    status = sscanf(pointer, "%f", &quality);
 	else status = 0;

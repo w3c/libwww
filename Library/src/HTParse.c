@@ -76,7 +76,7 @@ PRIVATE void scan(name, parts)
 		*p = 0;
 		parts->access = after_access; /* Scheme has been specified */
 		after_access = p+1;
-		if (0==strcasecmp("URL", parts->access)) {
+		if (0==strcasecomp("URL", parts->access)) {
 		    parts->access = NULL;  /* Ignore IETF's URL: pre-prefix */
 		} else break;
 	}

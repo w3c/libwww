@@ -270,6 +270,12 @@ Set by HTAccess.
 
 </PRE>pointer to cache element if cache
 hit
+<H3>Error Diagnostics</H3>
+<PRE>
+
+	HTList *	error_stack;	/* List of error messages	  */
+
+</PRE>
 <H3>Server Side</H3>
 <PRE>
 	HTAtom *	content_type;	/* Content-Type:		  */
@@ -606,7 +612,31 @@ algorithm -- browser don't HAVE to
 use this.
 <PRE>extern HTParentAnchor * HTHomeAnchor NOPARAMS;
 
+</PRE>
+
+<H2>Error Diagnostics</H2>
+<PRE>
+
+PUBLIC void HTAddError PARAMS((HTRequest *	req,
+			       char *		msg));
+
+PUBLIC void HTAddError2 PARAMS((HTRequest *	req,
+				char *		msg,
+				char *		param));
+
+PUBLIC void HTAddErrorN PARAMS((HTRequest *	req,
+				char *		msg,
+				int		param));
+
+PUBLIC void HTClearErrors PARAMS((HTRequest *	req));
+
+</PRE>
+
+<PRE>
+
 #endif /* HTACCESS_H */
 
-</PRE>end of HTAccess</BODY>
+</PRE>
+end of HTAccess
+</BODY>
 </HTML>

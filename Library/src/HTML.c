@@ -932,6 +932,7 @@ PUBLIC int HTLoadError ARGS3(
     /* Clean up! Henrik 04/03-94 */
     if (req && req->output_stream)
 	(*req->output_stream->isa->abort)(req->output_stream, err);
+    HTClearErrors(req);
     return -number;
 } 
 

@@ -161,7 +161,8 @@ PRIVATE void HTGuess_put_character ARGS2(HTStream *, me, char, c)
     if (me->output_stream) PUT_CHAR(c);
     else {
 	me->cnt++;
-	if      (c == LF) me->lf_cnt++;
+	if	(c < 0)	  me->high_cnt++;
+	else if (c == LF) me->lf_cnt++;
 	else if (c == CR) me->cr_cnt++;
 	else if (c == 12) me->pg_cnt++;
 	else if (c =='\t')me->text_cnt++;
@@ -198,7 +199,6 @@ PRIVATE void HTGuess_put_block ARGS3(HTStream *, me, CONST char*, b, int, l)
 
 PRIVATE void HTGuess_free ARGS1(HTStream *, me)
 {
-    CTRACE(stderr, " ** DEBUG: HTGuess_free\n");
     if (!me->discard && !me->output_stream)
 	header_and_flush(me);
     if (me->output_stream)
@@ -208,7 +208,6 @@ PRIVATE void HTGuess_free ARGS1(HTStream *, me)
 
 PRIVATE void HTGuess_abort ARGS2(HTStream *, me, HTError, e)
 {
-    CTRACE(stderr, " ** DEBUG: HTGuess_abort\n");
     if (me->output_stream)
 	(*me->output_stream->isa->abort)(me,e);
     free(me);
@@ -234,8 +233,6 @@ PUBLIC HTStream * HTGuess_new ARGS1(HTRequest *, req)
 {
     HTStream * me = (HTStream*)calloc(1,sizeof(HTStream));
     if (!me) outofmem(__FILE__, "HTGuess_new");
-
-    CTRACE(stderr, " ** DEBUG: HTGuess_new\n");
 
     me->isa = &HTGuessClass;
     me->req =req;

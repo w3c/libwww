@@ -354,6 +354,10 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
 */
 #define USE_GATEWAYS
 #ifdef USE_GATEWAYS
+
+    /* make sure the using_proxy variable is false */
+    using_proxy = NO;
+
     if (!override_proxy(addr)) {
 	char * gateway_parameter, *gateway, *proxy;
 
@@ -383,8 +387,6 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
 	    gateway = DEFAULT_WAIS_GATEWAY;
 	}
 #endif
-	/* make sure the using_proxy variable is false */
-	using_proxy = NO;
 
 	/* proxy servers have precedence over gateway servers */
 	if (proxy) {
@@ -641,7 +643,8 @@ PRIVATE BOOL HTLoadDocument ARGS1(HTRequest *,		request)
 		"HTAccess: Can't access `%s'\n", full_address);
 #endif
 	/* This is done in the specific load procedures... Henrik 07/03-94 */
-	/* HTLoadError(request, 500, "Unable to access document."); */
+	if (request->error_stack)
+	    HTLoadError(request, 500, "Unable to access document.");
 	free(full_address);
 	return NO;
     }
@@ -994,4 +997,58 @@ PUBLIC BOOL HTBindAnchor ARGS2(HTAnchor*, anchor, HTRequest *, request)
 	
     return YES;
 } /* HTBindAnchor */
+
+
+
+/*
+ *	Error diagnostics
+ */
+PUBLIC void HTAddError ARGS2(HTRequest *,	req,
+			     char *,		msg)
+{
+    HTAddError2(req,msg,NULL);
+}
+
+PUBLIC void HTAddError2 ARGS3(HTRequest *,	req,
+			      char *,		msg,
+			      char *,		param)
+{
+    int mlen = msg ? strlen(msg) : 0;
+    int plen = param ? strlen(param) : 0;
+    char * str;
+
+    if (!req) return;
+    if (!req->error_stack) req->error_stack = HTList_new();
+
+    str = (char*)malloc(mlen + plen + 2);
+    if (!str) outofmem(__FILE__,"HTAddError2");
+
+    if (msg) strcpy(str,msg);
+    strcpy(str+mlen," ");
+    if (param) strcpy(str+mlen+1,param);
+
+    HTList_addObject(req->error_stack, (void*)str);
+    CTRACE(stderr, "libwww error: %s\n", str);
+}
+
+PUBLIC void HTAddErrorN ARGS3(HTRequest *,	req,
+			      char *,		msg,
+			      int,		num)
+{
+    char buf[20];
+    sprintf(buf,"%d",num);
+    HTAddError2(req,msg,buf);
+}
+
+PUBLIC void HTClearErrors ARGS1(HTRequest *,	req)
+{
+    if (req && req->error_stack) {
+	HTList * cur = req->error_stack;
+	char * str;
+	while ((str = (char*)HTList_nextObject(cur)))
+	    free(str);
+	HTList_delete(req->error_stack);
+	req->error_stack = NULL;
+    }
+}
 

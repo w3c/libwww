@@ -242,6 +242,41 @@ PRIVATE BOOL wild_match ARGS2(HTAtom *,	template,
     return match;
 }
 
+/*
+ * Added by takada@seraph.ntt.jp (94/04/08)
+ */
+PRIVATE BOOL lang_match ARGS2(HTAtom *,	template,
+			      HTAtom *,	actual)
+{
+    char *t, *a, *st, *sa;
+    BOOL match = NO;
+
+    if (template && actual &&
+	(t = HTAtom_name(template)) && (a = HTAtom_name(actual))) {
+	st = strchr(t, '_');
+	sa = strchr(a, '_');
+	if ((st != NULL) && (sa != NULL)) {
+	    if (!strcasecomp(t, a))
+	      match = YES;
+	    else
+	      match = NO;
+	}
+	else {
+	    if (st != NULL) *st = 0;
+	    if (sa != NULL) *sa = 0;
+	    if (!strcasecomp(t, a))
+	      match = YES;
+	    else
+	      match = NO;
+	    if (st != NULL) *st = '_';
+	    if (sa != NULL) *sa = '_';
+	}
+    }
+    return match;
+}
+/* end of addition */
+
+
 
 PRIVATE float type_value ARGS2(HTAtom *,	content_type,
 			       HTList *,	accepted)
@@ -278,7 +313,13 @@ PRIVATE float lang_value ARGS2(HTAtom *,	language,
 	if (node->atom == language) {
 	    return node->quality;
 	}
-	else if (wild_match(node->atom, language)) {
+	/*
+	 * patch by takada@seraph.ntt.jp (94/04/08)
+	 * the original line was
+	 * else if (wild_match(node->atom, language)) {
+	 * and the new line is
+	 */
+	else if (lang_match(node->atom, language)) {
 	    wild = node;
 	}
     }

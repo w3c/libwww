@@ -136,32 +136,6 @@ original.
 PUBLIC char * HTTranslate PARAMS((CONST char * required));
 
 </PRE>
-
-<H2>HTTranslateReq: Translate request by rules</H2>
-<H3>On entry,</H3>
-<DL>
-<DT><CODE>req</CODE>
-<DD>request structure.
-<DT>req->simplified
-<DD>simplified pathname (no ..'s etc in it),
-which will be translated by rules.
-</DL>
-<H3>On exit,</H3>
-<DL>
-<DT>returns
-<DD>YES on success, NO on failure (Forbidden).
-<DT><CODE>req->translated</CODE>
-<DD>contains the translated filename;
-<CODE>NULL</CODE> if a script call.
-<DT><CODE>req->script</CODE>
-<DD>contains the executable script name;
-<CODE>NULL</CODE> if not a script call.
-</DL>
-<PRE>
-PUBLIC BOOL HTTranslateReq PARAMS((HTRequest * req));
-
-
-</PRE>
 <H2><A
 NAME=z2>HTSetConfiguration:  Load one line
 of configuration information</A></H2>

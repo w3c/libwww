@@ -6,11 +6,14 @@
 **	it replaces the old directory browsing routine.
 **	The module is only compiled if GOT_READ_DIR is defined
 **
+** Authors:
+**		HF	Henrik Frystyk, CERN, <frystyk@dxcern.cern.ch>
+**		AL	Ari Luotonen, CERN, <luotonen@www.cern.ch>
 ** History:
-**	   Mar 94	Written by Henrik Frystyk, frystyk@dxcern.cern.ch,
+**	   Mar 94  HF	Written by Henrik Frystyk, frystyk@dxcern.cern.ch,
 **			but with some of the Directory stuff brought from
 **			HTFile().
-**
+**	   Mar 94  AL	Configurable icons.
 ** BUGS:
 **	- No VMS port yet
 **

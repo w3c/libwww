@@ -632,7 +632,7 @@ PRIVATE BOOL parse_vms_line ARGS2(char *, line, dir_file_info *, f_info)
     
     /** Track down the date **/
     if ((cpd=strchr(cp, '-')) != NULL) {
-	if (strlen(cpd) > 9 && isdigit(*(cpd-1)) &&
+	if ((int)strlen(cpd) > 9 && isdigit(*(cpd-1)) &&
 	    isalpha(*(cpd+1)) && *(cpd+4) == '-') {
 	    if ((f_info->f_mtime = HTVMSStrpTime(cpd-2)) == (time_t) 0)
 		return NO;

@@ -21,6 +21,7 @@ struct _HTStream {
 	int	soc;
 	char	*write_pointer;
 	char 	buffer[BUFFER_SIZE];
+	BOOL	leave_open;
 #ifdef NOT_ASCII
 	BOOL	make_ascii;	/* Are we writing to the net? */
 #endif
@@ -124,7 +125,8 @@ PRIVATE void HTWriter_write ARGS3(HTStream *, me, CONST char*, s, int, l)
 PRIVATE void HTWriter_free ARGS1(HTStream *, me)
 {
     flush(me);
-    NETCLOSE(me->soc);
+    if (!me->leave_open)
+	NETCLOSE(me->soc);
     free(me);
 }
 
@@ -153,7 +155,7 @@ PRIVATE CONST HTStreamClass HTWriter = /* As opposed to print etc */
 
 PUBLIC HTStream* HTWriter_new ARGS1(int, soc)
 {
-    HTStream* me = (HTStream*)malloc(sizeof(*me));
+    HTStream* me = (HTStream*)calloc(1,sizeof(*me));
     if (me == NULL) outofmem(__FILE__, "HTML_new");
     me->isa = &HTWriter;       
     
@@ -165,13 +167,21 @@ PUBLIC HTStream* HTWriter_new ARGS1(int, soc)
     return me;
 }
 
+PUBLIC HTStream* HTWriter_newNoClose ARGS1(int, soc)
+{
+    HTStream * me = HTWriter_new(soc);
+    if (me) me->leave_open = YES;
+    return me;
+}
+
+
 /*	Subclass-specific Methods
 **	-------------------------
 */
 
 PUBLIC HTStream* HTASCIIWriter ARGS1(int, soc)
 {
-    HTStream* me = (HTStream*)malloc(sizeof(*me));
+    HTStream* me = (HTStream*)calloc(1,sizeof(*me));
     if (me == NULL) outofmem(__FILE__, "HTML_new");
     me->isa = &HTWriter;       
 
