@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>System dependencies in the W3 library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 25-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 31-Aug-1995 -->
 </HEAD>
 <BODY>
 
@@ -1157,27 +1157,6 @@ typedef unsigned int SOCKET ;
 #else
 #define NGROUPS 20				/* Any better ideas? */
 #endif
-#endif
-#endif
-</PRE>
-
-<H3>Definition of Standard File Descriptors</H3>
-
-If we don't have stderr etc. then set STDIN_FILENO to a dummy
-value. However, the value <B>IS</B> used!
-
-<PRE>
-#ifdef NO_STDIO
-#define STDIN_FILENO	-1
-#else
-#ifndef STDIN_FILENO
-#define STDIN_FILENO	0
-#endif
-#ifndef STDOUT_FILENO
-#define STDOUT_FILENO	1
-#endif
-#ifndef STDERR_FILENO
-#define STDERR_FILENO	2
 #endif
 #endif
 </PRE>

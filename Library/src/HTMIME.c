@@ -482,7 +482,7 @@ PRIVATE int parseheader ARGS3(HTStream *, me, HTRequest *, request,
 		HTAtom_name(me->target_format));
     if ((me->target = HTStreamStack(anchor->content_type,
 				    me->target_format, me->target,
-				    me->request, YES)) == NULL) {
+				    request, YES)) == NULL) {
 	if (STREAM_TRACE)
 	    fprintf(TDEST, "MIMEParser.. Can't convert media type\n");
 	me->target = HTBlackHole();
@@ -503,6 +503,7 @@ PRIVATE int HTMIME_put_block ARGS3(HTStream *, me, CONST char *, b, int, l)
 	if (me->EOLstate == EOL_FCR) {
 	    if (*b == CR) {				    /* End of header */
 		int status = parseheader(me, me->request, me->request->anchor);
+		me->request->net_info->bytes_read = l;
 		if (status != HT_OK)
 		    return status;
 	    } else if (*b == LF)			   	     /* CRLF */
@@ -520,6 +521,7 @@ PRIVATE int HTMIME_put_block ARGS3(HTStream *, me, CONST char *, b, int, l)
 		me->EOLstate = EOL_SCR;
 	    else if (*b == LF) {			    /* End of header */
 		int status = parseheader(me, me->request, me->request->anchor);
+		me->request->net_info->bytes_read = l;
 		if (status != HT_OK)
 		    return status;
 	    } else if (WHITE(*b)) {	       /* Folding: LF SP or CR LF SP */
@@ -533,6 +535,7 @@ PRIVATE int HTMIME_put_block ARGS3(HTStream *, me, CONST char *, b, int, l)
 	} else if (me->EOLstate == EOL_SCR) {
 	    if (*b==CR || *b==LF) {			    /* End of header */
 		int status = parseheader(me, me->request, me->request->anchor);
+		me->request->net_info->bytes_read = l;
 		if (status != HT_OK)
 		    return status;
 	    } else if (WHITE(*b)) {	 /* Folding: LF CR SP or CR LF CR SP */
@@ -551,6 +554,9 @@ PRIVATE int HTMIME_put_block ARGS3(HTStream *, me, CONST char *, b, int, l)
 	    HTChunkPutc(me->buffer, *b);
 	b++;
     }
+
+
+   
     if (me->target) {				    /* Is the stream set up? */
 	if (l > 0)					   /* Anything left? */
 	    return (*me->target->isa->put_block)(me->target, b, l);

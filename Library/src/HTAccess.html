@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Access manager  for libwww</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 27-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 31-Aug-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -660,8 +660,12 @@ typedef struct _HTNetInfo {
     HTStream *		target;				    /* Target stream */
     int 		addressCount;	     /* Attempts if multi-homed host */
     time_t		connecttime;		 /* Used on multihomed hosts */
+    long		bytes_read;		  /* Bytes read from network */
     struct _HTRequest *	request;	   /* Link back to request structure */
 } HTNetInfo;
+
+#define HTNetInfo_bytesRead(me) ((me) ? (me)-&gt;bytes_read : -1)
+
 </PRE>
 
 <EM><B>Note:</B> The AddressCount varaible is used to count the number

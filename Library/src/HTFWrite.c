@@ -355,7 +355,7 @@ PUBLIC HTStream* HTSaveAndExecute ARGS5(
     if (me == NULL) outofmem(__FILE__, "Save and execute");
     me->isa = &HTFWriter;  
     me->request = request;	/* won't be freed */    
-    me->fp = fopen (fnam, "w");
+    me->fp = fopen (fnam, "wb");
     if (!me->fp) {
 	HTAlert(request, "Can't open temporary file!");
         free(fnam);
@@ -426,7 +426,7 @@ PUBLIC HTStream* HTSaveLocally ARGS5(
     me->isa = &HTFWriter;  
     me->announce = YES;
     
-    me->fp = fopen (answer, "w");
+    me->fp = fopen (answer, "wb");
     if (!me->fp) {
 	HTAlert(request, "Can't open local file to write into.");
         FREE(answer);

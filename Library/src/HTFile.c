@@ -67,6 +67,7 @@ typedef struct _file_info {
     HTStream *		target;				    /* Target stream */
     int 		addressCount;	     /* Attempts if multi-homed host */
     time_t		connecttime;		 /* Used on multihomed hosts */
+    long		bytes_read;		  /* Bytes read from network */
     struct _HTRequest *	request;	   /* Link back to request structure */
 
     FileState		state;		  /* Current state of the connection */
@@ -306,7 +307,7 @@ PUBLIC HTStream * HTFileSaveStream ARGS1(HTRequest *, request)
     	free(backup_filename);
     } /* if take backup */    
     
-    if ((fp = fopen(filename, "w")) == NULL) {
+    if ((fp = fopen(filename, "wb")) == NULL) {
 	HTErrorSysAdd(request, ERR_FATAL, errno, NO, "fopen");
 	return NULL;
     } else

@@ -593,7 +593,7 @@ PUBLIC HTStream* HTCacheWriter ARGS5(
 	outofmem(__FILE__, "Cache");
     me->isa = &HTCacheClass;
     me->request = request;
-    if ((me->fp = fopen(fnam, "w")) == NULL) {
+    if ((me->fp = fopen(fnam, "wb")) == NULL) {
 	if (CACHE_TRACE)
 	    fprintf(TDEST, "Cache....... Can't open %s for writing\n", fnam);
 	free(fnam);

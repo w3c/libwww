@@ -164,6 +164,7 @@ typedef struct _ftp_ctrl_info {
     HTStream *		target;				    /* Target stream */
     int 		addressCount;	     /* Attempts if multi-homed host */
     time_t		connecttime;		 /* Used on multihomed hosts */
+    long		bytes_read;		  /* Bytes read from network */
     struct _HTRequest *	request;	   /* Link back to request structure */
 
     HTChunk *		transmit;			  /* Line to be send */
@@ -190,6 +191,7 @@ typedef struct _ftp_data_info {
     HTStream *		target;				    /* Target stream */
     int 		addressCount;	     /* Attempts if multi-homed host */
     time_t		connecttime;		 /* Used on multihomed hosts */
+    long		bytes_read;		  /* Bytes read from network */
     struct _HTRequest *	request;	   /* Link back to request structure */
 
     HTChunk *		transmit;			  /* Line to be send */
@@ -1307,7 +1309,7 @@ PRIVATE ftp_ctrl_info *HTFTP_init_con ARGS2(HTRequest *, req, char *, url)
 	sock_addr.sin_port = htons(serv_port);
 	
 	/* Get node name */
-	if (HTParseInet(&sock_addr, host, NO) < 0) {
+	if (HTParseInet(req, &sock_addr, host, NO) < 0) {
 	    if (PROT_TRACE) fprintf(TDEST,
 			       "FTP......... Can't locate remote host `%s\'\n", host);
 	    FREE(user.domain);

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Style Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Sep-1995 -->
 </HEAD>
 <BODY>
 
@@ -57,25 +57,6 @@ W3C Reference Library</A>.
 #include "HTML.h"
 
 typedef long int HTFont;	/* Dummy definition instead */
-
-
-
-#ifdef SHORT_NAMES
-#define HTStyleNew			HTStNew
-#define HTStyleFree			HTStFree
-#define HTStyleRead			HTStRead
-#define HTStyleWrite			HTStWrite
-#define HTStyleSheetNew			HTStShNe
-#define HTStyleSheetFree		HTStShFr
-#define HTStyleNamed			HTStName
-#define HTStyleForParagraph		HTStFoPa
-#define HTStyleMatching			HTStMatc
-#define HTStyleForRun			HTStFoRu
-#define HTStyleSheetAddStyle		HTStShAd
-#define HTStyleSheetRemoveStyle		HTStShRm
-#define HTStyleSheetRead		HTStShRe
-#define HTStyleSheetWrite		HTStShWr
-#endif
 
 #ifdef DEFINE_STRUCT_HTSTYLE
 #ifdef NeXT_suppressed

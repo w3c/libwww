@@ -88,6 +88,7 @@ typedef struct _gopher_info {
     HTStream *		target;				    /* Target stream */
     int 		addressCount;	     /* Attempts if multi-homed host */
     time_t		connecttime;		 /* Used on multihomed hosts */
+    long		bytes_read;		  /* Bytes read from network */
     struct _HTRequest *	request;	   /* Link back to request structure */
 
     HTChunk *		transmit;			  /* Line to be send */

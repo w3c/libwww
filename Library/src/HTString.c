@@ -530,3 +530,31 @@ PUBLIC char * HTStrip ARGS1(char *, s)
     while(SPACE(*s))s++;	/* Strip leading blanks */
     return s;
 }
+
+
+/* 							     	HTNumToStr
+**	Converts a long (byte count) to a string
+**	----------------------------------------
+**	This function was a PAIN!  In computer-world 1K is 1024 bytes
+**	and 1M is 1024K -- however, sprintf() still formats in base-10.
+**	Therefore I output only until 999, and then start using the
+**	next unit.  This doesn't work wrong, it's just a feature.
+**	The "str" must be large enough to contain the result.
+*/
+PUBLIC void HTNumToStr ARGS2(unsigned long, n, char *, str)
+{
+    double size = n/1024.0;
+    if (n < 1000)
+	sprintf(str, "%dK", n>0 ? 1 : 0);
+    else if (size + 0.999 < 1000)
+	sprintf(str, "%dK", (int)(size + 0.5));
+    else if ((size /= 1024) < 9.9)
+	sprintf(str, "%.1fM", (size + 0.05));
+    else if (size < 1000)
+	sprintf(str, "%dM", (int)(size + 0.5));
+    else if ((size /= 1024) < 9.9)
+	sprintf(str, "%.1fG", (size + 0.05));
+    else
+	sprintf(str, "%dG", (int)(size + 0.5));
+}
+

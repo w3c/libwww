@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Generic Network Communication</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Sep-1995 -->
 </HEAD>
 <BODY>
 
@@ -168,8 +168,10 @@ address field. <P>
 
 On exit *sin is filled in. If no port is specified in str, that field is left
 unchanged in *sin. On success, the number of homes on the host is returned.
+
 <PRE>
-extern int HTParseInet PARAMS((	struct sockaddr_in *	sin,
+extern int HTParseInet	PARAMS((HTRequest *		request,
+				struct sockaddr_in *	sin,
 			       	CONST char *		str,
 				BOOL			use_cur));
 </PRE>
@@ -194,7 +196,10 @@ to the Domain Name Server is minimized. If OK and single homed host then
 it returns 0 but if it is a multi-homed host then 1 is returned.
 
 <PRE>
-extern int HTGetHostByName PARAMS((char *host, SockA *sin, BOOL use_cur));
+extern int HTGetHostByName	PARAMS((HTRequest *	request,
+					char *		host,
+					SockA *		sin,
+					BOOL		use_cur));
 </PRE>
 
 

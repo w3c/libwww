@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>String Handling</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Sep-1995 -->
 </HEAD>
 <BODY>
 
@@ -114,6 +114,18 @@ extern time_t HTParseTime PARAMS((CONST char * str));
 <PRE>
 extern CONST char *HTMessageIdStr NOPARAMS;
 #endif
+</PRE>
+
+<H2>Converts an Integer to a String using Prefix</H2>
+
+In computer-world 1K is 1024 bytes and 1M is 1024K -- however,
+sprintf() still formats in base-10.  Therefore I output only until
+999, and then start using the next unit.  This doesn't work wrong,
+it's just a feature.  The conversion is done in "str" which must be
+large enough to contain the result.
+
+<PRE>
+extern void HTNumToStr PARAMS((unsigned long n, char *str));
 </PRE>
 
 End of declaration module

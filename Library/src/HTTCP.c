@@ -22,6 +22,7 @@
 #include "HTAtom.h"
 #include "HTList.h"
 #include "HTParse.h"
+#include "HTAlert.h"
 #include "HTProt.h"
 #include "HTAccess.h"
 #include "HTError.h"
@@ -31,14 +32,6 @@
 #ifdef VMS 
 #include "HTVMSUtils.h"
 #endif /* VMS */
-
-#ifdef SHORT_NAMES
-#define HTInetStatus		HTInStat
-#define HTErrnoString		HTErrnoS
-#define HTInetString 		HTInStri
-#define HTParseInet		HTPaInet
-#endif
-
 
 /* VMS stuff */
 #ifdef VMS
@@ -477,8 +470,8 @@ PUBLIC CONST char * HTInetString ARGS1(SockA *, sin)
 **      Returns:	>0 if OK the number of homes are returned
 **		     	-1 if error
 */
-PUBLIC int HTGetHostByName ARGS3(char *, host, SockA *, sin,
-				 BOOL, use_cur)
+PUBLIC int HTGetHostByName ARGS4(HTRequest *, request,
+				 char *, host, SockA *, sin, BOOL, use_cur)
 {
     HTAtom *hostatom = HTAtom_for(host);
     host_info *pres = NULL;
@@ -516,9 +509,11 @@ PUBLIC int HTGetHostByName ARGS3(char *, host, SockA *, sin,
 	int thd_errno;
 	char buffer[HOSTENT_MAX];
 	struct hostent result;			      /* For gethostbyname_r */
+	HTProgress(request, HT_PROG_DNS, host);
 	if ((hostelement = gethostbyname_r(host, &result, buffer,
 					   HOSTENT_MAX, &thd_errno)) == NULL) {
 #else
+	HTProgress(request, HT_PROG_DNS, host);
 	if ((hostelement = gethostbyname(host)) == NULL) {
 #endif
 	    if (PROT_TRACE)
@@ -600,8 +595,8 @@ PUBLIC char * HTGetHostBySock ARGS1(int, soc)
 ** NOTE:	It is assumed that any portnumber and numeric host address
 **		is given in decimal notation. Separation character is '.'
 */
-PUBLIC int HTParseInet ARGS3(SockA *, sin, CONST char *, str,
-			     BOOL, use_cur)
+PUBLIC int HTParseInet ARGS4(HTRequest *, request,
+			     SockA *, sin, CONST char *, str, BOOL, use_cur)
 {
     char *host = NULL;
     int status = 0;
@@ -656,7 +651,7 @@ PUBLIC int HTParseInet ARGS3(SockA *, sin, CONST char *, str,
 	if (numeric) {
 	    sin->sin_addr.s_addr = inet_addr(host);	  /* See arpa/inet.h */
 	} else {
-	    if ((status = HTGetHostByName(host, sin, use_cur)) < 0) {
+	    if ((status = HTGetHostByName(request, host, sin, use_cur)) < 0) {
 		free(host);
 		return -1;
 	    }
@@ -800,8 +795,9 @@ PUBLIC CONST char * HTGetHostName NOARGS
 	   then use the former as it is more exact (I guess) */
 	if (strncmp(name, hostname, (int) strlen(hostname))) {
 	    char *domain = strchr(name, '.');
-	    if (domain)
-		StrAllocCat(hostname, domain);
+	    if (!domain)
+		domain = name;
+	    StrAllocCat(hostname, domain);
 	}
     }
 #endif /* NO_GETDOMAINNAME */
@@ -1013,7 +1009,8 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 	    int hosts;
 	    if (PROT_TRACE)
 		fprintf(TDEST, "HTDoConnect. Looking up `%s\'\n", host);
-	    if ((hosts = HTParseInet(&net->sock_addr, host, use_cur)) < 0) {
+	    if ((hosts = HTParseInet(net->request, &net->sock_addr,
+				     host, use_cur)) < 0) {
 		if (PROT_TRACE)
 		    fprintf(TDEST, "HTDoConnect. Can't locate remote host `%s\'\n", host);
 		HTErrorAdd(net->request, ERR_FATAL, NO, HTERR_NO_REMOTE_HOST,
@@ -1038,12 +1035,12 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 			net->sockfd);
 
 	    /* If non-blocking protocol then change socket status
-	     ** I use FCNTL so that I can ask the status before I set it.
-	     ** See W. Richard Stevens (Advan. Prog. in UNIX environment, p.364)
-	     ** Be CAREFULL with the old `O_NDELAY' - it will not work as read()
-	     ** returns 0 when blocking and NOT -1. FNDELAY is ONLY for BSD and
-	     ** does NOT work on SVR4 systems. O_NONBLOCK is POSIX.
-	     */
+	    ** I use FCNTL so that I can ask the status before I set it.
+	    ** See W. Richard Stevens (Advan. Prog. in UNIX environment, p.364)
+	    ** Be CAREFULL with the old `O_NDELAY' - it will not work as read()
+	    ** returns 0 when blocking and NOT -1. FNDELAY is ONLY for BSD and
+	    ** does NOT work on SVR4 systems. O_NONBLOCK is POSIX.
+	    */
 	    if (!HTProtocol_isBlocking(net->request)) {
 #ifdef _WINDOWS 
 		{		/* begin windows scope  */
@@ -1098,6 +1095,9 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 	    /* If multi-homed host then start timer on connection */
 	    if (net->addressCount >= 1)
 		net->connecttime = time(NULL);
+
+	    /* Update progress state */
+	    HTProgress(net->request, HT_PROG_CONNECT, NULL);
 	} /* IF socket is invalid */
 	
 	/* Check for interrupt */

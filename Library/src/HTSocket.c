@@ -17,6 +17,7 @@
 #include "HTProt.h"
 #include "HTTCP.h"
 #include "HTStream.h"
+#include "HTAlert.h"
 #include "HTFormat.h"
 #include "HTThread.h"
 #include "HTError.h"
@@ -552,6 +553,7 @@ PUBLIC int HTSocketRead ARGS2(HTRequest *, request, HTStream *, target)
 		if (PROT_TRACE)
 		    fprintf(TDEST, "Read Socket. Finished loading socket %d\n",
 			    isoc->input_file_number);
+		HTProgress(request, HT_PROG_DONE, NULL);
 		HTThreadState(isoc->input_file_number, THD_CLR_READ);
 		return HT_LOADED;
 	    }
@@ -572,6 +574,8 @@ PUBLIC int HTSocketRead ARGS2(HTRequest *, request, HTStream *, target)
 	    if (PROT_TRACE)
 		fprintf(TDEST, "Read Socket. %d bytes read from socket %d\n",
 			b_read, isoc->input_file_number);
+	    request->net_info->bytes_read += b_read;
+	    HTProgress(request, HT_PROG_READ, NULL);
 	}
 	
 	/* Now push the data down the stream */

@@ -19,6 +19,11 @@
 #include "HTError.h"					 /* Implemented here */
 #include "HTAlert.h"					 /* Implemented here */
 
+typedef struct _HTProgMsg {
+    HTProgressState	state;
+    char *		msg;
+} HTProgMsg;
+
 PRIVATE BOOL HTInteractive=YES;		    /* Any prompts from the Library? */
 
 /* ------------------------------------------------------------------------- */
@@ -33,9 +38,52 @@ PUBLIC BOOL HTPrompt_interactive NOARGS
     return HTInteractive;
 }
 
-PUBLIC void HTProgress ARGS2(HTRequest *, request, CONST char *, Msg)
+PUBLIC void HTProgress ARGS3(HTRequest *, request, HTProgressState, state,
+			     void *, param)
 {
-    fprintf(TDEST, "   %s ...\n", Msg ? Msg : "UNKNWON");
+    /* This is just to avoid that we get a lot of progress messages in LMB */
+    if (!TRACE) return;
+
+    if (!request || !request->anchor) {
+	if (TRACE)
+	    fprintf(TDEST, "HTProgress.. Bad argument\n");
+	return;
+    }
+    switch (state) {
+      case HT_PROG_DNS:
+	fprintf(TDEST, "Looking up %s\n", (char *) param);
+	break;
+
+      case HT_PROG_CONNECT:
+	fprintf(TDEST, "Contacting host...\n");
+	break;
+
+      case HT_PROG_READ:
+	{
+	    long cl = HTAnchor_length(request->anchor);
+	    if (cl > 0) {
+		long b_read = HTNetInfo_bytesRead(request->net_info);
+		double pro = (double) b_read/cl*100;
+		char buf[10];
+		HTNumToStr((unsigned long) cl, buf);
+		fprintf(TDEST, "Read (%d%% of %s)\n", (int) pro, buf);
+	    } else
+		fprintf(TDEST, "Reading...\n");
+	}
+	break;
+
+      case HT_PROG_WRITE:
+	fprintf(TDEST, "Writing...\n");
+	break;
+
+      case HT_PROG_DONE:
+	fprintf(TDEST, "Finished\n");
+	break;
+
+      default:
+	fprintf(TDEST, "UNKNOWN PROGRESS STATE\n");
+	break;
+    }
 }
 
 
