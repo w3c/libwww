@@ -64,6 +64,15 @@ extern int strcasecomp  (const char *a, const char *b);
 extern int strncasecomp (const char *a, const char *b, int n);
 </PRE>
 <H2>
+  <A NAME="cookies">Tail String Comparison</A>
+</H2>
+<P>
+Like strcmp, but match the tail of s2 (used for cookie domain comparison)
+<PRE>
+extern int tailcomp(const char * s1, const char * s2);
+extern int tailcasecomp(const char * s1, const char * s2);
+</PRE>
+<H2>
   String Comparison with Wild Card Match
 </H2>
 <P>
