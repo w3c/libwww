@@ -8,26 +8,18 @@
 SUFFIXES = .html
 
 BUILT_SOURCES = \
-	WELCOME \
-	README \
-	INSTALL \
-	NEWS \
-	TODO \
-	COPYRIGH \
-	PATCHES \
-	CERN
+	COPYRIGH
 
 legal : $(BUILT_SOURCES)
 	@echo Generated built sources
 
 EXTRA_DIST = \
 	$(BUILT_SOURCES) \
-	WELCOME.html \
 	README.html \
 	INSTALL.html \
 	COPYRIGHT.html \
 	PATCHES.html \
-	CERN.html
+	LICENSE.html
 
 # We need to install the config.h header file as well
 install-exec-local:
@@ -95,52 +87,8 @@ inc:
 #
 #	Hypertext supplied in text format
 #
-$(top_srcdir)/WELCOME : $(top_srcdir)/WELCOME.html
-    ifdef WWW
-	  -$(WWW) -p -na $(top_srcdir)/WELCOME.html \
-		  -o $(top_srcdir)/WELCOME
-    endif
-
-$(top_srcdir)/README : $(top_srcdir)/README.html
-    ifdef WWW
-	  -$(WWW) -p -na $(top_srcdir)/README.html \
-		  -o $(top_srcdir)/README
-    endif
-
-$(top_srcdir)/INSTALL : $(top_srcdir)/INSTALL.html
-    ifdef WWW
-	  -$(WWW) -p -na $(top_srcdir)/INSTALL.html \
-		  -o $(top_srcdir)/INSTALL
-    endif
-
-$(top_srcdir)/TODO : $(top_srcdir)/Library/User/ToDo.html
-    ifdef WWW
-	  -$(CP) $(top_srcdir)/Library/User/ToDo.html $(top_srcdir)/TODO.html
-	  -$(WWW) -p -na $(top_srcdir)/TODO.html \
-		  -o $(top_srcdir)/TODO
-    endif
-
-$(top_srcdir)/NEWS : $(top_srcdir)/Library/User/ReleaseNotes.html
-    ifdef WWW
-	  -$(CP) $(top_srcdir)/Library/User/ReleaseNotes.html $(top_srcdir)/NEWS.html
-	  -$(WWW) -p -na $(top_srcdir)/NEWS.html \
-		  -o $(top_srcdir)/NEWS
-    endif
-
 $(top_srcdir)/COPYRIGH : $(top_srcdir)/COPYRIGHT.html
     ifdef WWW
 	  -$(WWW) -p -na $(top_srcdir)/COPYRIGHT.html \
 		  -o $(top_srcdir)/COPYRIGH
-    endif
-
-$(top_srcdir)/PATCHES : $(top_srcdir)/PATCHES.html
-    ifdef WWW
-	  -$(WWW) -p -na $(top_srcdir)/PATCHES.html \
-		  -o $(top_srcdir)/PATCHES
-    endif
-
-$(top_srcdir)/CERN : $(top_srcdir)/CERN.html
-    ifdef WWW
-	  -$(WWW) -p -na $(top_srcdir)/CERN.html \
-		  -o $(top_srcdir)/CERN
     endif
