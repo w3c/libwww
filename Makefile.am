@@ -34,7 +34,7 @@ AUTOMAKE_OPTIONS = foreign
 #
 #	These are the sub directories
 #
-SUBDIRS = Library PICS LineMode Robot ComLine MiniServ Listen Icons
+SUBDIRS = Library PICS-client LineMode Robot ComLine MiniServ Listen Icons
 
 #
 #	Hypertext supplied in text format
