@@ -98,6 +98,7 @@ PUBLIC void HTFileInit (void)
     HTBind_add("ps",	"application/postscript",	NULL,		"8bit",		NULL,	0.8);
     HTBind_add("qt",	"video/quicktime",		NULL,		"binary",	NULL,	1.0);	/* QuickTime		*/
     HTBind_add("ras",	"image/cmu-raster",		NULL,		"binary",	NULL,	1.0);
+    HTBind_add("rdf",	"text/rdf",			NULL,		"binary",	NULL,	1.0);	/* rdf	*/
     HTBind_add("rgb",	"image/x-rgb",			NULL,		"binary",	NULL,	1.0);
     HTBind_add("roff",	"application/x-troff",		NULL,		"7bit",		NULL,	0.5);
     HTBind_add("rtf",	"text/rtf",			NULL,		"7bit",		NULL,	1.0);	/* RTF			*/
