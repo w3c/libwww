@@ -4,6 +4,7 @@ SUFFIXES = .files .def
 
 SRC := $(wildcard *.c)
 MAK := $(wildcard *.mak)
+FLS := $(wildcard *.files)
 
 AUTOMAKE_OPTIONS = foreign
 
@@ -22,6 +23,7 @@ EXTRA_DIST = \
 	config.h \
 	wwwdll.def \
 	$(SRC) \
+	$(FLS) \
 	$(MAK)
 
 def-clean:
