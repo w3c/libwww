@@ -6,7 +6,7 @@ noinst_PROGRAMS = head libapp_1 libapp_2 libapp_3 libapp_4 init \
 	getheaders showlinks showtags showtext tiny upgrade cookie \
 	@SHOWXML@ @WWWSSLEX@
 
-EXTRA_PROGRAMS = showxml ptri stri wwwssl
+EXTRA_PROGRAMS = showxml ptri stri wwwssl rdf_parse_file rdf_parse_buffer
 
 LDADD = \
 	../src/libwwwinit.la \
