@@ -1241,7 +1241,7 @@ This is necessary in order to support Windows NT...
 #endif
 </PRE>
 <H2>
-  Hash Table Sizes
+  <A NAME="Hash">Hash Table Sizes</A>
 </H2>
 <P>
 The size of the hash tables used by the various libwww classes like the
@@ -1252,14 +1252,28 @@ of course.
 <PRE>
 #ifdef LIBWWW_SMALL
 #define HT_XL_HASH_SIZE		101
-#define HT_L_HASH_SIZE		59
+#define HT_L_HASH_SIZE		67
 #define HT_M_HASH_SIZE		31
 #define HT_S_HASH_SIZE		5
+#else
+#ifdef LIBWWW_LARGE
+#define HT_XL_HASH_SIZE		1499
+#define HT_L_HASH_SIZE		599
+#define HT_M_HASH_SIZE		101
+#define HT_S_HASH_SIZE		67
+#else
+#ifdef LIBWWW_EXTRA_LARGE
+#define HT_XL_HASH_SIZE		9973
+#define HT_L_HASH_SIZE		1499
+#define HT_M_HASH_SIZE		599
+#define HT_S_HASH_SIZE		101
 #else
 #define HT_XL_HASH_SIZE		599
 #define HT_L_HASH_SIZE		101
 #define HT_M_HASH_SIZE		67
 #define HT_S_HASH_SIZE		11
+#endif
+#endif
 #endif
 </PRE>
 <H2>
