@@ -58,7 +58,6 @@ int terminate_handler (HTRequest * request, HTResponse * response,
 
 int main (int argc, char ** argv)
 {
-    int		        status = 0;	
     int		        arg = 0;
     char *              outputfile = NULL;
     char *              getme = NULL;
@@ -67,15 +66,17 @@ int main (int argc, char ** argv)
     /* Initiate W3C Reference Library with a client profile */
     HTProfile_newNoCacheClient(APP_NAME, APP_VERSION);
 
+    /* And the traces... */
+#if 0
+    HTSetTraceMessageMask("sop");
+#endif
+
     /* Need our own trace and print functions */
     HTPrint_setCallback(printer);
     HTTrace_setCallback(tracer);
 
     /* Add our own filter to terminate the application */
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
-
-    /* Turn off any interactions */
-    HTAlert_setInteractive(NO);
 
     /* Set the timeout for long we are going to wait for a response */
     HTHost_setEventTimeout(10000);
@@ -98,7 +99,11 @@ int main (int argc, char ** argv)
         request = HTRequest_new();
 
         /* Start the load */
-        status = HTLoadToFile(getme, request, outputfile);
+        if (HTLoadToFile(getme, request, outputfile) != YES) {
+	    HTPrint("Can't open output file\n");
+	    HTProfile_delete();
+	    return 0;
+	}
 
         /* Go into the event loop... */
         HTEventList_loop(request);
