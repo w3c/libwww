@@ -24,12 +24,11 @@ possible failures in the glue code, such that the scripting language will
 not crash while being run in dejagnu. Unfortunately, I haven't been too good
 at capturing everything, but it suffices to show that the functions work.
 <P>
-I believe another UROPer will be working on the glue code to solidify the
-functionality between Tcl and C, so that quick implementations can be done
-using Tk and such. That will also result in a nice testing interface. Currently,
-my work has caught typos, small bugs and such, with the largest noticable
-flaw in the core library being in the parsing. The parsing functions do not
-hold to rfc1808.
+Xing is now here working on the glue code to solidify the functionality between
+Tcl and C, so that quick implementations can be done using Tk and such. That
+will also result in a nice testing interface. Currently, my work has caught
+typos, small bugs and such, with the largest noticable flaw in the core library
+being in the parsing. The parsing functions do not hold to rfc1808.
 <P>
 This code is mostly here to show you that the library is functional, and
 does what it says. It is not a very robust testing method, as it can crash
