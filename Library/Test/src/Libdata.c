@@ -10,6 +10,8 @@ Tcl_HashTable	HTableReq;
 Tcl_HashTable	HTableStream;
 Tcl_HashTable	HTableVoid;
 Tcl_HashTable	HTableUser;
+Tcl_HashTable   HTableProt;
+Tcl_HashTable   HTableCallback;
 
 /*This function has limited use to lookup a keyname given an anchor.
   if there is no associated keyname, NULL is returned 			*/
@@ -211,6 +213,21 @@ Tcl_HashEntry *CreateNewStreamEntry(char *name, char **final_keyname) {
     return entryPtr;
 }
 
+Tcl_HashEntry *CreateNewProtocolEntry(char *name, char **final_keyname) {
+  int new =0;
+  int id = 0;
+  Tcl_HashEntry *entryPtr;
+  char *keyname = malloc(max_keyname);
+  
+  while (!new) {
+    sprintf(keyname, "%s_%d", new, ide);
+    entryPtr = Tcl_CreateHashEntry(&HTableProt, keyname, &new);
+    ++id;
+  }
+  *final_keyname = keyname;
+  return entryPtr;
+}
+
 Tcl_HashEntry *CreateNewVoidEntry(char *name, char **final_keyname) {
     int new = 0;
     int id  = 0;
@@ -254,4 +271,19 @@ Tcl_HashEntry *CreateNewAssocListEntry(char *name, char **final_keyname) {
   }
   *final_keyname = keyname;
   return entryPtr;
+}
+
+Tcl_HashEntry *CreateNewCallbackEntry(char *name, char **final_keyname) {
+  int new = 0;
+  int id = 0;
+  Tcl_HashEntry *entryPtr;
+  char *keyname = malloc(max_keyname);
+  
+  while (!new) {
+    sprintf(keyname, "%s_%d", name, id);
+    entryPtr = Tcl_CreateHashEntry(&HTableCallback, keyname, &new);
+    ++id;
+  }
+ *final_keyname = keyname;
+ return entryPtr;
 }
