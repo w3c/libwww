@@ -332,12 +332,19 @@ PRIVATE int HTCookie_afterFilter (HTRequest * request, HTResponse * response,
 	    while ((pres = (HTCookie *) HTAssocList_nextObject(cookies))) {
 
 		/* Should we check to see if hosts match? */
-		if (CookieMode & HT_COOKIE_SAME_HOST) {
+		if (CookieMode & (HT_COOKIE_SAME_HOST|HT_COOKIE_SAME_DOMAIN)) {
 		    char * cookie_host = HTCookie_domain(pres);
 		    if (cookie_host) {
+			int res;
 			char * addr = HTAnchor_address((HTAnchor *) HTRequest_anchor(request));
 			char * host = HTParse(addr, "", PARSE_HOST);
-			if (strcasecomp(host, cookie_host)) {
+			
+			if (CookieMode & HT_COOKIE_SAME_DOMAIN)
+			    res = tailcasecomp(cookie_host, host);
+			else
+			    res = strcasecomp(cookie_host, host);
+
+			if (res != 0) {
 			    HTTRACE(APP_TRACE, "Cookie...... Host `%s\' doesn't match what is sent in cookie `%s\'\n" _ host _ cookie_host);
 			    HT_FREE(addr);
 			    continue;
