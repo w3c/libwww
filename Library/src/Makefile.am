@@ -41,8 +41,8 @@ SUFFIXES = .h .html .txt
 	$(WWW) -w90 -na -p -to text/x-c $(srcdir)/$(*F).html -o $(srcdir)/$(*F).h
     else
 	@echo "**************************************************"
-	"Generating the .h files using the"
-	"winConfigure.pl script - it may generate a few warnings."
+	@echo "Generating the .h files using the "
+	@echo "winConfigure.pl script - it may generate a few warnings."
 	@echo "**************************************************"
 	perl $(top_srcdir)/config/winConfigure.pl $(srcdir)
     endif
