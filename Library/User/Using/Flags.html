@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Using - Global Flags</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  8-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Nov-1995 -->
 </HEAD>  
 <BODY>
 
@@ -9,11 +9,11 @@
 <A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
 <A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
 
-<H1>Global Flags</H1>
+<H1>Trace Messages and Preprocessor Defines</H1>
 
-The global flags consist of global variables, environment variables, and preprocessor defines. Some
-have already been introduced in the previous sections but this section gives a more complete
-listing.
+The Library has a huge amount of trace messages that are very useful when debugging an application.
+In this section we will have a look at how to use the trace messages and also what preprocessor
+defines that can be used to modify the behavior of the Library.
 
 <H2>Trace Messages</H3>
 
@@ -21,56 +21,9 @@ The Library has a huge set of trace messages that can be enabled in various ways
 important help to the application programmer in order to debug an application and this is the reason
 why they are trated in this User's Guide. <P>
 
-MORE
+<B>MORE</B>
 
-<H3>Global Variables</H3>
-
-Global variables have until recently been in widespread use throughout the Library but as this often
-conflicts with a multithreaded environment, many global variables have been replaced with
-thread-safe representations. However, many modules do still contain state independent global
-variables defining display options, global time-outs, trace options etc. Typical examples are the
-module to generate <A HREF="../../Implementation/HTDir.html">directory listings</A> for HTTP, FTP,
-and local file access to directories and the <A HREF="../../Implementation/HTError.html" >error
-handling module</A>.
-
-Only four specific global variables are to be mentioned in this paper, The first two must be defined
-in the application before linking with the library, and they <EM>must</EM> be assigned values with
-specific semantics.
-
-<DL>
-
-<DT><CODE>HTSecure</CODE>
-<DD>If this flag is enabled then the application has no access to the local file system.  This
-allows applications to be used as a shell for remote logins, for example using telnet. the default
-value is <EM>OFF</EM>
-
-<DT><CODE>HTImProxy</CODE>
-<DD>A proxy server must have a socket as the default destination for incoming data in order to
-forward data either to the proxy client or to the remote server. If this flag is set, then the
-default behavior of sending data to the user is diabled. The default value is <EM>OFF</EM>.
-
-</DL>
-
-<H3>Environment Variables</H3>
-
-Apart from the environment variables for setting up a proxy server or a gateway described in section
-<A HREF="Methods.html">Access Methods</A>, the Library supports only two other environment
-variables: </P>
-
-<DL>
-<DT><CODE>WWW_HOME</CODE>
-<DD>This variable is used by the help function <CODE>HTHomeAnchor()</CODE> to find the address of
-the default document to load when a client application is started. If no <CODE>WWW_HOME</CODE>
-variable has been specified at run time, by default, the Library returns <B>http://www.w3.org/</B>.
- 
-<DT><CODE>USERNAME</CODE>, <CODE>LOGNAME</CODE>, <CODE>USER</CODE>
-<DD>These are the variables that are searched when looking for the user name of the current
-user. They are somewhat platform dependent as the <CODE>USERNAME</CODE> is for Windows NT, and the
-others are for Unix with <CODE>LOGNAME</CODE> as having highest priority.
-
-</DL>
-
-<H3>Preprocessor Defines</H3>
+<H2>Preprocessor Defines</H2>
 
 Most of the preprocessor defines in the Library are platform dependent that are determined as a
 result of the <EM>BUILD script</EM>. However, there are some few defines that on a platform

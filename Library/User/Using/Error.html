@@ -1,7 +1,7 @@
-a<HTML>
+<HTML>
 <HEAD>
 <TITLE>User Guide - Error Handling</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  8-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 16-Nov-1995 -->
 <NEXTID N="z78">
 </HEAD>
 <BODY>
@@ -89,7 +89,7 @@ The <CODE>element</CODE> argument is an index into a table of all error messages
 maintained in the <A HREF="../../Implementation/HTError.c">HTError Module</A> and contains an error
 message together with a URl that might be included in an error message presented to the user. The
 values of the <CODE>element</CODE> argument itself is given by the <CODE>HTErrorElement</CODE>
-enumeration definition in the <A HREF="HTEvent.html">HTEvent Module</A>. <P>
+enumeration definition in the <A HREF="../../Implementation/HTEvntrg.html">HTEvntrg Module</A>. <P>
 
 The next two arguments are used to register any parameters associated with the error. This can for
 example be the file name of a file which could not be opened, a URL which could not be accessed
@@ -98,7 +98,7 @@ be an arbitrary data object. The last argument is a location description to indi
 occured. Often this is the name of the function or a module. <P>
 
 One thing, we didn't mention when describing the <A HREF="Request.html">request object</A> was that
-the <A HREF="../../Implementation/HTRequest.html">Request Object</A> provides a similar function for
+the <A HREF="../../Implementation/HTReq.html">Request Object</A> provides a similar function for
 directly associating an error object with a request object. These functions uses request objects and
 not a list as the basic data object and hence the caller does not have to worry about creating or
 assigning the list to the request object; this is done automatically. The request version of how to
@@ -130,8 +130,8 @@ extern BOOL HTError_addSystem (HTList *		list,
 The only difference is the <CODE>errornumber</CODE> argument which, as described above, in many
 situations is provided by the operating system, for example as a <EM>errno</EM> variable. The
 <CODE>syscall</CODE> is simply the name of the function. Also this function has a mirror function in
-the <A HREF="../../Implementation/HTRequest.html">HTRequest object</A>, and again they look very
-much alike:
+the <A HREF="../../Implementation/HTReq.html">HTRequest object</A>, and again they look very much
+alike:
 
 <PRE>
 extern BOOL HTRequest_addSystemError (HTRequest * 	request,

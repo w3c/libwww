@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Getting Started</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 30-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Nov-1995 -->
 </HEAD>  
 <BODY>
 
@@ -26,19 +26,45 @@ assuming that you are at the top of the WWW tree created when unpacking the dist
 can compare your version of the code with the current version which is available from the online
 documentation from our WWW server.<P>
 
-In order to use the core public functions of the Library, your application needs to include the file
-"<A HREF="../../Implementation/WWWLib.html">WWWLib.h</A>". This file is a container for all the
-Library include files that together define the public API of the core of the Library. As described
-in the document <A HREF="../Architecture/">Library Architecture</A> the core is a frame work for
-other modules that provide the actual functionality, for example for parsing HTML documents or
-getting a document via HTTP or FTP. We will explain later how this functionality can be enabled and
-used by an application. The Library has a second important include file called <A
-HREF="../../Implementation/WWWApp.html">WWWApp.h</A>. In contrast to <A
-HREF="../../Implementation/WWWLib.html">WWWLib.h</A>, this file not required in order to use the
-Library, but it includes functionality which many applications might find useful such as management
-of history lists, logging of requests etc. Later chapters are devoted to describing these features,
-for now we only have to know that this file exists and that it contains application relevant
-modules.<P>
+The Library functionality is divided into a set of modules that each has its own include file. They
+all have a name starting with <EM>WWW</EM>, and as they will be referenced throughout this guide, we
+might as well introduce them from the beginning:
+
+<DL>
+<DT><A HREF="../../Implementation/WWWUtil.html">WWWUtil.h</A>
+<DD>The WWW Utility module contains a lot of the functionality that makes it possible to make
+applications, that is container modules for data objects, basic string functionality etc. This
+module is the basis for all of the following modules and is used extensively.
+
+<DT><A HREF="../../Implementation/WWWCore.html">WWWCore.h</A>
+<DD>The WWW Core module is a set of registration modules that glues an application together. It
+contains no real functionality in itself; it is for example not capable of loading a HTML
+document. It only provides a large set of hooks which can be used to add functionality to the
+Library and to give an application real life. We will here a lot more to the structure of the core,
+and much of this guide is actually describing how to add functionality to the core.
+
+<DT><A HREF="../../Implementation/WWWLib.html">WWWLib.h</A>
+
+<DD>This include is the main include file for the Library. It basically consists of the <A
+HREF="../../Implementation/WWWUtil.html">WWWUtil.h</A> and the <A
+HREF="../../Implementation/WWWCore.html">WWWCore.h</A> so that the application only needs to include
+this one instead of two.
+
+<DT><A HREF="../../Implementation/WWWApp.html">WWWApp.h</A>
+<DD>This module contains a huge set of modules that can be hooked into the Core Library and make the
+application work. In contrast to the Core part, you can pick exactly the modules you want from the
+<A HREF="../../Implementation/WWWApp.html">WWWApp.h</A> in order to create your special application
+whether it is a server, a client, a proxy, a robot or any other Web application.
+
+</DL>
+
+As mentioned, in order to use the core public functions of the Library, your application needs to
+include the file "<A HREF="../../Implementation/WWWLib.html">WWWLib.h</A>". This file is a container
+for all the Library include files that together define the public API of the core of the Library. As
+described in the document <A HREF="../Architecture/">Library Architecture</A> the core is a frame
+work for other modules that provide the actual functionality, for example for parsing HTML documents
+or getting a document via HTTP or FTP. We will explain later how this functionality can be enabled
+and used by an application.<P>
 
 The application must explicitly initialize the Library before it can start using it so that the
 internal file descriptors, and variables can be set to their respective values. This only has to be

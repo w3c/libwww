@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Architecture - Events</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 12-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 12-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -23,7 +23,7 @@ following:</P>
 
 <DL>
 
-<DT><B>Base Mode</B>
+<DT><B>Base Mode (preemtive)</B>
 
 <DD>In this mode all requests are handled in a preemtive way that does
 not allow for any events to pause the execution of a thread or kill
@@ -34,7 +34,7 @@ either be used in forking applications or in threaded applications
 using an external thread model where non-blocking I/O is not a
 requirement.
 
-<DT><B>Active Mode</B>
+<DT><B>Active Mode (Internal Event Loop)</B>
 
 <DD>In this mode the event loop is placed in the Library in the <A
 HREF="../../Implementation/HTEvntrg.html" >HTEvntrg module</A>. The mode
@@ -55,7 +55,7 @@ find itself within call back functions. As an example, this mode is
 currently used by the <A HREF="../../../Arena/">Arena client</A> and
 the <A HREF="../../../LineMode/" >Line Mode Browser</A>.
 
-<DT><B>Passive mode</B>
+<DT><B>Passive mode (External Event Loop)</B>
 
 <DD>This mode is intended for applications where user events can not
 be redirected to a socket or there is already an event loop that can

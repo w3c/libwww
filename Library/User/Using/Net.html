@@ -1,0 +1,184 @@
+<HTML>
+<HEAD>
+<TITLE>User Guide - Request Callback functions</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 12-Nov-1995 -->
+<NEXTID N="z78">
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
+<A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="./"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A>
+
+<H1>Request Callback functions</H1>
+
+As we have seen in the previous chapters, the core part of the Library knows nothing about how to
+access, for example, a HTML document from a remote server. All this depends on what the application
+has registered. In many situations there are a number of things to do before a request is actually
+sent over the wire. For example we might already have the document in a cache or we might have some
+translation of the URL so that we don't go directly to the remote server. The latter case includes
+redirection of a request to go through a proxy server or a gateway. Likewise, when a request is
+terminated, we might want to keep a log of the request and the result, update history lists
+etc. <P>
+
+The Library does provide a large amount of such pre- and post processing modules. However, the exact
+amount used by an application depends on the purpose of the application. Simple script-like
+applications typically do not need any history mechanism etc. Therefore these modules are not a part
+of the core but instead they can be registered as all other preferences. The <A
+HREF="../../Implementation/HTNet.html">Net Manager</A> provides functionality for registering a set
+of callback functions that can be called <EM>before</EM> and <EM>after</EM> a request has been
+executed. Of course, the result of a pre-processing might be that the request does not have to be
+executed at all in which case the request can be terminated before the protocol module is called to
+execute the request. <P>
+
+<H2>Generic Handling of Callbacks</H2>
+
+The registration of callback functions is handled by the <A HREF="../../Implementation/HTNet.html">
+HTNet Manager</A> and it is (of course) based on lists as we have seen so many times before. A
+callback function can be added to a list by using the following function:
+
+<PRE>
+extern BOOL HTNetCall_add (HTList * list, HTNetCallback * cbf, int status);
+</PRE>
+
+The callback function has to be of type <CODE>HTNetCallback</CODE> which is defined as
+
+<PRE>
+typedef int HTNetCallback (HTRequest * request, int result);
+</PRE>
+
+This means that a callback function is called with the current request object and the result of the
+request. Now, if the callback is registered as a <EM>pre</EM> callback then we obviously do not yet
+have a result and the functions is called with the code <EM>HT_OK</EM>. However, if it is a
+<EM>post</EM> callback function then the result code may take any of the following values:
+
+<DL>
+<DT>HT_ERROR
+<DD>An error occured
+<DT>HT_LOADED
+<DD>The document was loaded
+<DT>HT_NO_DATA
+<DD>OK, but no data
+<DT>HT_RETRY
+<DD>Retry request after at a later time
+<DT>HT_REDIRECT
+<DD>The request has been redirected and we send back the new URL
+</DL>
+
+When a callback function is registered, it may be registered with a status code for which it is to
+be called. This means that there may be different callback functions to handle error situations,
+redirections etc. The status code may also take any of the values above, or <EM>HT_ALL</EM> if it is
+to be called always. <P>
+
+A callback function may return any code it likes, but <B>IF</B> the return code is different than
+<EM>HT_OK</EM>, then the callback loop is stopped. If we are in the <EM>before</EM> loop and a
+function returns anything else than <EM>HT_OK</EM> then we immediately jump to the <EM>after</EM>
+loop <B>passing</B> the last return code from the <EM>before</EM> loop. <P>
+
+Likewise, a callback function can be removed from a list using the following function:
+
+<PRE>
+extern BOOL HTNetCall_delete (HTList * list, HTNetCallback *cbf);
+</PRE>
+
+or if you simply want to remove all functions from a list then you can use
+
+<PRE>
+extern BOOL HTNetCall_deleteAll (HTList * list);
+</PRE>
+
+<H2>Pre-Request Callbacks</H2>
+
+When a request has been issued there are a number of things that an application might want to do
+with the request before it actually goes on the wire, for example to talk to a remote HTTP
+server. Examples are checking if the object already is kept in a cache managed by the application,
+if the request should be redirected to a proxy or a gateway, or there is some other kind of
+translation of the URL taking place. The Library provides a variety of modules that handles many
+common place translations such as <EM>redirection of URLs</EM> and <EM>caching</EM>. The full list
+of modules are:
+
+<H3>Rule File Management</H3>
+
+An application can be setup by using a rule file, also known as a configuration file. This is for
+example the case with the W3C httpd and the W3C Line Mode Browser. The <A
+HREF="../../Implementation/HTRules.html">Rules module</A> provides basic support for configuration
+file management and the application can use this is desired. The module is not referred to by the
+Library. Reading a rule file is implemented as a stream converter so that a rule file can come from
+anywhere, even across the network!
+
+<H3>Proxies and Gateways</H3>
+
+Applications do not have to provide native support for all protocols, they can in many situations
+rely on the support of proxies and gateways to help doing the job. Proxy servers are often used to
+carry client requests through a firewall where they can provide services like corporate caching and
+other network optimizations. Both Proxy servers and gateways can serve as "protocol translators"
+which can convert a request in the main Web protocol, HTTP, to an equivalent request in another
+protocol, for example NNTP, FTP, or Gopher. In a later section we will see how to set up the Proxy
+servers and gateways using the <A HREF="../../Implementation/HTProxy.html">Proxy module</A>.
+
+<H3>Cache Manager</H3>
+
+Caching is a required part of any efficient Internet access applications as it saves bandwidth and
+improves access performance significantly in almost all types of accesses.  The Library supports two
+different types of cache: The memory cache and the file cache. The two types differ in several ways
+which reflects their two main purposes: The memory cache is for short term storage of graphic
+objects whereas the file cache is for intermediate term storage of data objects. Often it is
+desirable to have both a memory and a file version of a cached document, so the two types do not
+exclude each other. The <A HREF="../../Implementation/HTCache.html">HTCache module</A> provides a
+basic cache that can be used by an application.
+
+<H3>Register a list of BEFORE Callbacks</H3>
+
+Until now, we have only described how to build a list of callback functions. We will now describe
+how to setup a list as either a pre processing set of callback function (the <EM>BEFORE</EM> loop,
+or a post processing set (<EM>AFTER</EM> loop). A set of callback functions can be registered to be
+called before the request is started by using the following function:
+
+<PRE>
+extern BOOL HTNet_setBefore	(HTList * list);
+</PRE>
+
+In many cases you know when you register a callback function that this is a function that you always
+want to be called when either a request starts up or terminates. In the former case you can simply
+register the callback directly using the following function:
+
+<PRE>
+extern BOOL HTNetCall_addbefore	(HTNetCallback *cbf, int status);
+</PRE>
+
+<H2>Post-Request Callbacks</H2>
+
+When a request is terminated, the application often has to do some action as a result of the request
+(and of the result of the request). The Application part of the Library provides two following
+modules to handle <EM>logging</EM> and <EM>history management</EM>. You can register a <EM>POST
+request handler</EM> in the <A HREF="../../Implementation/HTNet.html">Net Manager</A> as described
+in the <A HREF="./">User's Guide</A>. The set of modules provided by the Library is:<P>
+
+<H3>Logging</H3>
+
+Often it is required to log the requests issued to the Library. This can either be the case if the
+application is a server or it can also be useful in a client application. The <A
+HREF="../../Implementation/HTLog.html">HTLog Module</A> provides a simple logging mechanism which
+can be enabled if needed.
+
+<H3>History Management</H3>
+
+Another type of logging is keeping track of which documents a user has visited when browsing along
+on the Web. The <A HREF="../../Implementation/HTHist.html">HTHistory module</A> provides a basic set
+of functionality to keep track of multiple linear history lists.
+
+<H3>Register a list of AFTER Callbacks</H3>
+
+The registration of a set of callback functions to be called when a request has terminated is
+handled in very much the same way:
+
+<PRE>
+extern BOOL HTNet_setAfter	(HTList * list);
+extern BOOL HTNetCall_addBefore (HTNetCallback *cbf, int status);
+</PRE>
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
+</BODY>
+</HTML>

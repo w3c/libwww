@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Command Line Syntax for the Line Mode browser</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 26-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Nov-1995 -->
 <NEXTID N="z29">
 </HEAD>
 
@@ -151,12 +151,18 @@ will be put in common places. Comments, processing instructions, etc,
 will be stripped. This feature allows HTML files produced by
 different editors to be compared.
 
+<DT><B>-raw</B>
+
+<DD>This command line option returns the output completely untouched
+<EM>exactly</EM> as it is received by the protocol module. For
+example, in the case of FTP, this format returns raw ASCII objects for
+directory listings; for HTTP, everything including the header is
+returned, for Gopher, a raw ASCII object is returned for a menu etc.
+
 <DT><B>-source</B>
 
 <DD>Display the original source (without any MIME-headers) of a
-document instead of parsing it. Has effect for HTML from w3 servers,
-and news articles. (v1.2a or later). In order to get the
-MIME-headers, use the " -to " command.
+document instead of parsing it.
 
 <DT><B>-from</B> [ format ]
 

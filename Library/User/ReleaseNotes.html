@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library Release Notes</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  8-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 16-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -18,6 +18,7 @@
 <LI>CONNOR, Kevin
 <LI>DOMINGUEZ, Mario J.
 <LI>FARKAS, Ivan
+<LI>FLEISCHMAN, Robert M.
 <LI>GIZA, Jim
 <LI>KIM, Joachim
 <LI>KLUTE, Rainer
@@ -29,6 +30,117 @@
 <LI>WEI, John
 <LI>WOODWARD, Jennifer
 </UL>
+
+<H2>Alpha Release 6, November 16 1995</H2>
+
+<UL>
+
+<LI>Taken the WWW relevant stuff out of <A HREF="../Implementation/HTString.html">HTString</A> and
+put it into the new module called <A HREF="../Implementation/HTWWWStr.html">HTWWWStr</A>. The latter
+is a part of the core whereas the former is generic string utilities.
+
+<LI>Made the global variable <CODE>HTLibraryVersion</CODE> local to <A
+HREF="../Implementation/HTAccess.html">HTAccess</A>. The are now only <CODE>WWW_TraceFlag</CODE>
+left as a global variable in the whole Library.
+
+<LI>There are now four main include files. They are called:
+
+<DL>
+<DT><A HREF="../Implementation/WWWUtil.html">WWWUtil.h</A>
+<DD>The WWW Utility module contains a lot of the functionality that makes it possible to make
+applications, that is container modules for data objects, basic string functionality etc. This
+module is the basis for all of the following modules and is used extensively.
+
+<DT><A HREF="../Implementation/WWWCore.html">WWWCore.h</A>
+<DD>The WWW Core module is a set of registration modules that glues an application together. It
+contains no real functionality in itself; it is for example not capable of loading a HTML
+document. It only provides a large set of hooks which can be used to add functionality to the
+Library and to give an application real life. We will here a lot more to the structure of the core,
+and much of this guide is actually describing how to add functionality to the core.
+
+<DT><A HREF="../Implementation/WWWLib.html">WWWLib.h</A>
+<DD>This include is the main include file for the Library. It basically consists of the WWWUtil.h
+and the WWWCore.h so that the application only needs to include this one instead of two.
+
+<DT><A HREF="../Implementation/WWWApp.html">WWWApp.h</A>
+<DD>This module contains a huge set of modules that can be hooked into the Core Library and make the
+application work. In contrast to the Core part, you can pick exactly the modules you want from the
+WWWApp.h in order to create your special application whether it is a server, a client, a proxy, a
+robot or any other Web application.
+</DL>
+
+<LI><A HREF="../Implementation/HTGuess.html">HTGuess stream</A> is now a converter just like any
+other converter, and it can be registered by the application if wanted
+
+<LI><CODE>HTClientHost</CODE> (global var) is removed from the Library as it wasn't use there at all
+
+<LI>Introduced <A HREF="../Implementation/HTHome.html">HTHome module</A> as part of the application
+specific part of the Library. It contains handy functions for the application.
+
+<LI>HTFindRelatedName() and HTHomeAnchor() are moved from HTAccess.c to the new module HTHome.c
+
+<LI>HTImProxy is taken out as it can be handled in the setup of the converters
+
+<LI>Created HTList_appendObject() in <A HREF="../Implementation/HTList.html">HTList module</A> which
+adds an element to end of list
+
+<LI>Introduced pre request callback functions in HTNet and changed the interface. It's described in
+User's Guide. This means that an application can register any action to be executed either
+<EM>before</EM> and/or <EM>after</EM> a request is done. This is described in detail in the <A
+HREF="Using/Net.html">User's Guide.</A>
+
+<LI><A HREF="../Implementation/HTHome.html">HTHome module</A> contains default callback functions to
+be called before and after a request.
+
+<LI>Removed the HTInputSocket_get* functions from <A HREF="../Implementation/HTSocket.html">
+HTSocket</A> as they are no more needed (they were non-reentrant and belonged to the old interface)
+
+<LI>Added the following HTLib_* functions to the <A HREF="../Implementation/HTAccess.html">HTAccess
+module</A>:
+
+<UL>
+<LI>CONST char * HTLib_name (void)
+<LI>CONST char * HTLib_version (void)
+<LI>BOOL HTLib_secure (void)
+<LI>void HTLib_setSecure (BOOL mode)
+</UL>
+
+<LI>Library is now handling cleanup of anchors in HTLibTerminate() as it really is a part of the core.
+
+<LI>Default addresses are taken out of HTAccess and added to HTHome. They were mainly some default
+addresses for <CODE>WWW_HOME</CODE> etc.
+
+<LI>The Library is now not using env variables at all
+
+<LI>The flag <CODE>WWW_WIN_ASYNC</CODE> introduced to use the new async window interface. Add this
+define to your project if you want it
+
+<LI>HTsocketWin and HTwinMsg made internal to HTEvntrg.c. They can now be accessed through the methods
+
+<UL>
+<LI>HTEvent_setWinHandle
+<LI>HTEvent_winHandle
+</UL>
+
+<LI>Added the following formats to the default initialization:
+
+<PRE>
+	www/unknown -> HTGuess_new
+	text/x-www-rules -> HTRules
+</PRE>
+
+<LI>Changed format <EM>image/x-tiff</EM> to <EM>image/tiff</EM> and <EM>image/x-png</EM> to
+<EM>image/png</EM>
+
+<LI>Finished the <A HREF="../Implementation/HTNews.html">News module</A> using non-preemptive
+sockets. Final testing is still missing
+
+<LI>Changed HTRules so that it now is a stream. It also handles line wrapping and has a much more
+solid parsing mechanism. See description in <A HREF="Using/Rules.html">User's Guide</A> for more
+details.
+
+</UL>
+
 
 <H2>Alpha Release 5, November 8 1995</H2>
 
@@ -215,13 +327,25 @@ didn't understand automatic redirect.
 
 <UL>
 
-<LI>We now have a <A HREF="../Implementation/HTBound.html">MIME multipart parser stream</A>
+<LI>We now have a <A HREF="../Implementation/HTBound.html">MIME multipart parser stream</A> which
+supports nested MIME multipart messages. This stream sets up a new MIME parser stream each time it
+finds a new body. Preamble and epilog messages are ignored by default but can be redirected to the
+special <A HREF="../Implementation/HTReq.html">Debug Stream</A> output of the Request object.
 
 <LI>We have added a content counter stream and a buffer stream in <A
-HREF="../Implementation/HTConLen.html">HTConLen module</A>.
+HREF="../Implementation/HTConLen.html">HTConLen module</A>. This can be used to count the number of
+bytes in a data object either to be sent to a remote server or as a check of a received
+body. Together with the Content Length counter stream there is also a buffer stream that can buffer
+up to a certain amount of dat before it goes transparent.
+
+<LI>We have replaced the internal format identifier <CODE>www/mime</CODE> with the MIME conforming
+<CODE>message/rfc822</CODE> format. This may affect the setup of stream converters that used the old
+format.
 
 <LI>We have also added a new <A HREF="../Implementation/HTMIMERq.html">HTMIMERq module</A> which is
-responsible for creatin MIME metainformation when sending requests.
+responsible for creatin MIME metainformation when sending requests. This is used, for example, by
+the <A HREF="../Implementation/HTTP.c">HTTP protocol module</A> and the <A
+HREF="../Implementation/HTNews.c">NNTP protocol module</A>
 
 <LI>For the first time, it is <EM>not</EM> required to define dummy definitions of the external
 declared function in the <A HREF="../Implementation/HText.html">HText Interface</A>. It is now only
