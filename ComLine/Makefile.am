@@ -9,8 +9,8 @@ EXTRA_DIST = \
 	$(BUILT_SOURCES)
 
 $(srcdir)/README : $(srcdir)/User/CommandLine.html
-	ifdef WWW
+    ifdef WWW
 	  -$(CP) $(srcdir)/User/CommandLine.html $(srcdir)/README.html
 	  -$(WWW) -p -na $(srcdir)/README.html \
 		  -o $(srcdir)/README
-	endif
+    endif
