@@ -36,11 +36,11 @@
 #endif /* VMS */
 
 /* Macros and other defines */
-/* x seconds penalty on a multi-homed host if IP-address is down */
-#define TCP_PENALTY		1200
+/* x ms penalty on a multi-homed host if IP-address is unreachable */
+#define TCP_DELAY		30000
 
-/* x seconds penalty on a multi-homed host if IP-address is timed out */
-#define TCP_DELAY		600
+/* x ms penalty on a multi-homed host if IP-address is down for unknown reason */
+#define TCP_PENALTY		60000
 
 /* imperical study in socket call error codes
  */
@@ -319,7 +319,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 		    break;
 		}
 		if (HTHost_retry(me)) {
-		    me->connecttime -= HTGetTimeInMillis();
+		    me->connecttime = HTGetTimeInMillis() - me->connecttime;
 		    /* Added EINVAL `invalid argument' as this is what I 
 		       get back from a non-blocking connect where I should 
 		       get `connection refused' on BSD. SVR4 gives SIG_PIPE */
@@ -340,7 +340,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	  case TCP_CONNECTED:
 	    HTHost_unregister(me, net, HTEvent_CONNECT);
 	    if (HTHost_retry(me)) {
-		me->connecttime -= HTGetTimeInMillis();
+		me->connecttime = HTGetTimeInMillis() - me->connecttime;
 		HTDNS_updateWeigths(me->dns, HTHost_home(me), me->connecttime);
 	    }
 	    HTHost_setRetry(me, 0);

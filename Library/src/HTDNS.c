@@ -155,13 +155,13 @@ PUBLIC BOOL HTDNS_updateWeigths(HTdns *dns, int current, ms_t deltatime)
 		*(dns->weight+cnt) = *(dns->weight+cnt) * passive;
 	    }
 	    if (PROT_TRACE)
-		HTTrace("DNS Weigths. Home %d has weight %4.2f\n", cnt,
+		HTTrace("DNS weight.. Home %d has weight %4.2f\n", cnt,
 			*(dns->weight+cnt));
 	}
 	return YES;
     }
     if (PROT_TRACE)
-	HTTrace("DNS Weigths. Object %p not found'\n", dns);
+	HTTrace("DNS weight.. Object %p not found'\n", dns);
     return NO;
 }
 
@@ -270,7 +270,7 @@ PUBLIC int HTGetHostByName (HTHost * host, char *hostname, HTRequest* request)
 	homes = pres->homes;
 	if (pres->homes > 1) {
 	    int cnt = 0;
-	    double best_weight = 1e30;			      /* Pretty good */
+	    double best_weight = 1e30;			      /* Pretty bad */
 	    while (cnt < pres->homes) {
 		if (*(pres->weight+cnt) < best_weight) {
 		    best_weight = *(pres->weight+cnt);
