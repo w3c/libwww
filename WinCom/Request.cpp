@@ -31,6 +31,7 @@ CRequest::CRequest( CWinComApp * pApp ) : CObject()
     m_pApp = pApp;
     pApp->m_pRequest = this;
     m_cwd = HTGetCurrentDirectoryURL();
+    m_pHTRequest = NULL;
 }
 
 CRequest::~CRequest()

@@ -61,16 +61,12 @@ void CEntityInfo::DoDataExchange(CDataExchange* pDX)
     DDV_MinMaxInt(pDX, m_age, 0, 60000);
 
     DDX_Text(pDX, IDC_CONTENT_LENGTH, m_contentLength);
+    DDX_Text(pDX, IDC_LAST_MODIFIED, m_lastModified.Format("%a, %d %b %Y %H:%M:%S"));
 
 	//}}AFX_DATA_MAP
 }
 
-#if 0
-    DDX_Text(pDX, IDC_LAST_MODIFIED, m_lastModified.Format("%a, %d %b %Y %H:%M:%S"));
-#endif
-
 Format( DWORD dwFlags = 0, LCID lcid = LANG_USER_DEFAULT );
-
 
 BEGIN_MESSAGE_MAP(CEntityInfo, CPropertyPage)
     //{{AFX_MSG_MAP(CEntityInfo)
