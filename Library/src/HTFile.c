@@ -650,5 +650,3 @@ PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
 	}
     } /* End of while(1) */
 }
-
-
