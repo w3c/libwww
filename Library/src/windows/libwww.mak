@@ -4,7 +4,7 @@
 # TARGTYPE "Win32 (x86) Dynamic-Link Library" 0x0102
 
 !IF "$(CFG)" == ""
-CFG=msvc - Win32 Debug
+CFG=msvc - Win32 Release
 !MESSAGE No configuration specified.  Defaulting to msvc - Win32 Debug.
 !ENDIF 
 
@@ -119,7 +119,7 @@ MTL=mktyplib.exe
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\Release
 
 ALL : "wwwzip - Win32 Release" "wwwmux - Win32 Release"\
@@ -148,7 +148,7 @@ CLEAN :
 # ADD CPP /nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/libwww.pch" /YX\
- /Fo"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /c 
 CPP_OBJS=.\Release/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -209,7 +209,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\Debug
 
 ALL : "wwwzip - Win32 Debug" "wwwmux - Win32 Debug" "wwwstream - Win32 Debug"\
@@ -244,7 +244,7 @@ CLEAN :
 # ADD CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /FR /YX /c
 CPP_PROJ=/nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /FR"$(INTDIR)/"\
- /Fp"$(INTDIR)/libwww.pch" /YX /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
+ /Fp"$(INTDIR)/libwww.pch" /YX /Fo"$(INTDIR)/" /I "..\..\External" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\Debug/
 CPP_SBRS=.\Debug/
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -312,7 +312,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwdll\Release"
 # PROP Target_Dir "wwwdll"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwdll\Release
 
 ALL : "$(OUTDIR)\Release\wwwdll.dll"
@@ -328,13 +328,14 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 "$(INTDIR)" :
+    if not exist "$(OUTDIR)/Release/$(NULL)" mkdir "$(OUTDIR)/Release"
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /c
 # ADD CPP /nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwdll.pch" /YX\
- /Fo"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /c 
 CPP_OBJS=.\wwwdll\Release/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -378,7 +379,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwdll\Debug"
 # PROP Target_Dir "wwwdll"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwdll\Debug
 
 ALL : "$(OUTDIR)\Debug\wwwdll.dll"
@@ -398,13 +399,14 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 "$(INTDIR)" :
+    if not exist "$(OUTDIR)/Debug/$(NULL)" mkdir "$(OUTDIR)/Debug"
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /c
 # ADD CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwdll.pch" /YX\
- /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwdll\Debug/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -448,7 +450,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwutils\Release"
 # PROP Target_Dir "wwwutils"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwutils\Release
 
 ALL : "wwwdll - Win32 Release" "$(OUTDIR)\Release\wwwutils.dll"
@@ -478,7 +480,7 @@ CLEAN :
 # ADD CPP /nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwutils.pch" /YX\
- /Fo"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /c 
 CPP_OBJS=.\wwwutils\Release/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -531,7 +533,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwutils\Debug"
 # PROP Target_Dir "wwwutils"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwutils\Debug
 
 ALL : "wwwdll - Win32 Debug" "$(OUTDIR)\Debug\wwwutils.dll"
@@ -565,7 +567,7 @@ CLEAN :
 # ADD CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwutils.pch" /YX\
- /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwutils\Debug/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -618,7 +620,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwcore\Release"
 # PROP Target_Dir "wwwcore"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwcore\Release
 
 ALL : "wwwutils - Win32 Release" "wwwdll - Win32 Release"\
@@ -668,7 +670,7 @@ CLEAN :
 # ADD CPP /nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwcore.pch" /YX\
- /Fo"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /c 
 CPP_OBJS=.\wwwcore\Release/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -741,7 +743,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwcore\Debug"
 # PROP Target_Dir "wwwcore"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwcore\Debug
 
 ALL : "wwwutils - Win32 Debug" "wwwdll - Win32 Debug"\
@@ -795,7 +797,7 @@ CLEAN :
 # ADD CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwcore.pch" /YX\
- /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwcore\Debug/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -868,7 +870,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwcache\Release"
 # PROP Target_Dir "wwwcache"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwcache\Release
 
 ALL : "wwwtrans - Win32 Release" "wwwutils - Win32 Release"\
@@ -892,7 +894,7 @@ CLEAN :
 # ADD CPP /nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwcache.pch" /YX\
- /Fo"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /c 
 CPP_OBJS=.\wwwcache\Release/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -940,7 +942,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwcache\Debug"
 # PROP Target_Dir "wwwcache"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwcache\Debug
 
 ALL : "wwwtrans - Win32 Debug" "wwwutils - Win32 Debug" "wwwdll - Win32 Debug"\
@@ -967,7 +969,7 @@ CLEAN :
 # ADD CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwcache.pch" /YX\
- /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwcache\Debug/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -1015,7 +1017,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwmime\Release"
 # PROP Target_Dir "wwwmime"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwmime\Release
 
 ALL : "wwwcache - Win32 Release" "wwwutils - Win32 Release"\
@@ -1044,7 +1046,7 @@ CLEAN :
 # ADD CPP /nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwmime.pch" /YX\
- /Fo"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /c 
 CPP_OBJS=.\wwwmime\Release/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -1098,7 +1100,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwmime\Debug"
 # PROP Target_Dir "wwwmime"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwmime\Debug
 
 ALL : "wwwcache - Win32 Debug" "wwwutils - Win32 Debug" "wwwdll - Win32 Debug"\
@@ -1130,7 +1132,7 @@ CLEAN :
 # ADD CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwmime.pch" /YX\
- /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwmime\Debug/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -1184,7 +1186,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwhttp\Release"
 # PROP Target_Dir "wwwhttp"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwhttp\Release
 
 ALL : "wwwutils - Win32 Release" "wwwmime - Win32 Release"\
@@ -1217,7 +1219,7 @@ CLEAN :
 # ADD CPP /nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwhttp.pch" /YX\
- /Fo"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /c 
 CPP_OBJS=.\wwwhttp\Release/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -1276,7 +1278,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwhttp\Debug"
 # PROP Target_Dir "wwwhttp"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwhttp\Debug
 
 ALL : "wwwutils - Win32 Debug" "wwwmime - Win32 Debug" "wwwdll - Win32 Debug"\
@@ -1312,7 +1314,7 @@ CLEAN :
 # ADD CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwhttp.pch" /YX\
- /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwhttp\Debug/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -1371,7 +1373,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwnews\Release"
 # PROP Target_Dir "wwwnews"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwnews\Release
 
 ALL : "wwwutils - Win32 Release" "wwwtrans - Win32 Release"\
@@ -1399,7 +1401,7 @@ CLEAN :
 # ADD CPP /nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwnews.pch" /YX\
- /Fo"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /c 
 CPP_OBJS=.\wwwnews\Release/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -1453,7 +1455,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwnews\Debug"
 # PROP Target_Dir "wwwnews"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwnews\Debug
 
 ALL : "wwwutils - Win32 Debug" "wwwtrans - Win32 Debug"\
@@ -1484,7 +1486,7 @@ CLEAN :
 # ADD CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwnews.pch" /YX\
- /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwnews\Debug/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -1538,7 +1540,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwgophe\Release"
 # PROP Target_Dir "wwwgophe"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwgophe\Release
 
 ALL : "wwwutils - Win32 Release" "wwwtrans - Win32 Release"\
@@ -1562,7 +1564,7 @@ CLEAN :
 # ADD CPP /nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwgophe.pch" /YX\
- /Fo"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /c 
 CPP_OBJS=.\wwwgophe\Release/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -1612,7 +1614,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwgophe\Debug"
 # PROP Target_Dir "wwwgophe"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwgophe\Debug
 
 ALL : "wwwutils - Win32 Debug" "wwwtrans - Win32 Debug" "wwwhtml - Win32 Debug"\
@@ -1640,7 +1642,7 @@ CLEAN :
 # ADD CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwgophe.pch" /YX\
- /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwgophe\Debug/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -1690,7 +1692,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwftp\Release"
 # PROP Target_Dir "wwwftp"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwftp\Release
 
 ALL : "wwwutils - Win32 Release" "wwwtrans - Win32 Release"\
@@ -1715,7 +1717,7 @@ CLEAN :
 # ADD CPP /nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwftp.pch" /YX\
- /Fo"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /c 
 CPP_OBJS=.\wwwftp\Release/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -1765,7 +1767,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwftp\Debug"
 # PROP Target_Dir "wwwftp"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwftp\Debug
 
 ALL : "wwwutils - Win32 Debug" "wwwtrans - Win32 Debug" "wwwdll - Win32 Debug"\
@@ -1793,7 +1795,7 @@ CLEAN :
 # ADD CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwftp.pch" /YX\
- /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwftp\Debug/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -1843,7 +1845,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwdir\Release"
 # PROP Target_Dir "wwwdir"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwdir\Release
 
 ALL : "wwwutils - Win32 Release" "wwwhtml - Win32 Release"\
@@ -1869,7 +1871,7 @@ CLEAN :
 # ADD CPP /nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwdir.pch" /YX\
- /Fo"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /c 
 CPP_OBJS=.\wwwdir\Release/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -1919,7 +1921,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwdir\Debug"
 # PROP Target_Dir "wwwdir"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwdir\Debug
 
 ALL : "wwwutils - Win32 Debug" "wwwhtml - Win32 Debug" "wwwdll - Win32 Debug"\
@@ -1948,7 +1950,7 @@ CLEAN :
 # ADD CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwdir.pch" /YX\
- /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwdir\Debug/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -1998,7 +2000,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwfile\Release"
 # PROP Target_Dir "wwwfile"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwfile\Release
 
 ALL : "wwwutils - Win32 Release" "wwwtrans - Win32 Release"\
@@ -2023,7 +2025,7 @@ CLEAN :
 # ADD CPP /nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwfile.pch" /YX\
- /Fo"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /c 
 CPP_OBJS=.\wwwfile\Release/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -2073,7 +2075,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwfile\Debug"
 # PROP Target_Dir "wwwfile"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwfile\Debug
 
 ALL : "wwwutils - Win32 Debug" "wwwtrans - Win32 Debug" "wwwdll - Win32 Debug"\
@@ -2101,7 +2103,7 @@ CLEAN :
 # ADD CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwfile.pch" /YX\
- /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwfile\Debug/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -2151,7 +2153,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwtelnt\Release"
 # PROP Target_Dir "wwwtelnt"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwtelnt\Release
 
 ALL : "wwwutils - Win32 Release" "wwwdll - Win32 Release"\
@@ -2175,7 +2177,7 @@ CLEAN :
 # ADD CPP /nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwtelnt.pch" /YX\
- /Fo"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /c 
 CPP_OBJS=.\wwwtelnt\Release/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -2223,7 +2225,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwtelnt\Debug"
 # PROP Target_Dir "wwwtelnt"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwtelnt\Debug
 
 ALL : "wwwutils - Win32 Debug" "wwwdll - Win32 Debug" "wwwdir - Win32 Debug"\
@@ -2250,7 +2252,7 @@ CLEAN :
 # ADD CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwtelnt.pch" /YX\
- /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwtelnt\Debug/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -2298,7 +2300,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwhtml\Release"
 # PROP Target_Dir "wwwhtml"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwhtml\Release
 
 ALL : "wwwutils - Win32 Release" "wwwdll - Win32 Release"\
@@ -2324,7 +2326,7 @@ CLEAN :
 # ADD CPP /nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwhtml.pch" /YX\
- /Fo"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /c 
 CPP_OBJS=.\wwwhtml\Release/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -2374,7 +2376,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwhtml\Debug"
 # PROP Target_Dir "wwwhtml"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwhtml\Debug
 
 ALL : "wwwutils - Win32 Debug" "wwwdll - Win32 Debug" "wwwcore - Win32 Debug"\
@@ -2404,7 +2406,7 @@ CLEAN :
 # ADD CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwhtml.pch" /YX\
- /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwhtml\Debug/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -2454,7 +2456,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwapp\Release"
 # PROP Target_Dir "wwwapp"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwapp\Release
 
 ALL : "wwwutils - Win32 Release" "wwwstream - Win32 Release"\
@@ -2486,7 +2488,7 @@ CLEAN :
 # ADD CPP /nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwapp.pch" /YX\
- /Fo"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /c 
 CPP_OBJS=.\wwwapp\Release/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -2525,7 +2527,8 @@ LINK32_OBJS= \
 	"$(OUTDIR)\wwwdll.lib" \
 	"$(OUTDIR)\wwwhttp.lib" \
 	"$(OUTDIR)\wwwstream.lib" \
-	"$(OUTDIR)\wwwutils.lib"
+	"$(OUTDIR)\wwwutils.lib" \
+	"..\..\External\gnu_regex.lib"
 
 "$(OUTDIR)\Release\wwwapp.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -2544,7 +2547,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwapp\Debug"
 # PROP Target_Dir "wwwapp"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwapp\Debug
 
 ALL : "wwwutils - Win32 Debug" "wwwstream - Win32 Debug"\
@@ -2580,7 +2583,7 @@ CLEAN :
 # ADD CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwapp.pch" /YX\
- /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwapp\Debug/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -2619,7 +2622,8 @@ LINK32_OBJS= \
 	"$(OUTDIR)\wwwdll.lib" \
 	"$(OUTDIR)\wwwhttp.lib" \
 	"$(OUTDIR)\wwwstream.lib" \
-	"$(OUTDIR)\wwwutils.lib"
+	"$(OUTDIR)\wwwutils.lib" \
+	"..\..\External\gnu_regex.lib"
 
 "$(OUTDIR)\Debug\wwwapp.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -2638,7 +2642,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwwais\Release"
 # PROP Target_Dir "wwwwais"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwwais\Release
 
 ALL : "wwwutils - Win32 Release" "wwwhtml - Win32 Release"\
@@ -2662,7 +2666,7 @@ CLEAN :
 # ADD CPP /nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwwais.pch" /YX\
- /Fo"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /c 
 CPP_OBJS=.\wwwwais\Release/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -2711,7 +2715,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwwais\Debug"
 # PROP Target_Dir "wwwwais"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwwais\Debug
 
 ALL : "wwwutils - Win32 Debug" "wwwhtml - Win32 Debug" "wwwdll - Win32 Debug"\
@@ -2738,7 +2742,7 @@ CLEAN :
 # ADD CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwwais.pch" /YX\
- /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwwais\Debug/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -2787,7 +2791,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwtrans\Release"
 # PROP Target_Dir "wwwtrans"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwtrans\Release
 
 ALL : "wwwutils - Win32 Release" "wwwdll - Win32 Release"\
@@ -2815,7 +2819,7 @@ CLEAN :
 # ADD CPP /nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "_MBCS" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "_MBCS" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwtrans.pch"\
- /YX /Fo"$(INTDIR)/" /c 
+ /YX /Fo"$(INTDIR)/" /I "..\..\External" /c 
 CPP_OBJS=.\wwwtrans\Release/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -2867,7 +2871,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwtrans\Debug"
 # PROP Target_Dir "wwwtrans"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwtrans\Debug
 
 ALL : "wwwutils - Win32 Debug" "wwwdll - Win32 Debug" "wwwcore - Win32 Debug"\
@@ -2899,7 +2903,7 @@ CLEAN :
 # ADD CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwtrans.pch" /YX\
- /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwtrans\Debug/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -2951,7 +2955,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwstream\Release"
 # PROP Target_Dir "wwwstream"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwstream\Release
 
 ALL : "wwwutils - Win32 Release" "wwwdll - Win32 Release"\
@@ -2980,7 +2984,7 @@ CLEAN :
 # ADD CPP /nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwstream.pch" /YX\
- /Fo"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /c 
 CPP_OBJS=.\wwwstream\Release/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -3033,7 +3037,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwstream\Debug"
 # PROP Target_Dir "wwwstream"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwstream\Debug
 
 ALL : "wwwutils - Win32 Debug" "wwwdll - Win32 Debug" "wwwcore - Win32 Debug"\
@@ -3066,7 +3070,7 @@ CLEAN :
 # ADD CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwstream.pch" /YX\
- /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwstream\Debug/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -3119,7 +3123,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwmux\Release"
 # PROP Target_Dir "wwwmux"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwmux\Release
 
 ALL : "wwwtrans - Win32 Release" "wwwstream - Win32 Release"\
@@ -3145,7 +3149,7 @@ CLEAN :
 # ADD CPP /nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwmux.pch" /YX\
- /Fo"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /c 
 CPP_OBJS=.\wwwmux\Release/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -3196,7 +3200,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwmux\wwwmux__"
 # PROP Target_Dir "wwwmux"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwmux\wwwmux__
 
 ALL : "wwwtrans - Win32 Debug" "wwwstream - Win32 Debug" "wwwdll - Win32 Debug"\
@@ -3225,7 +3229,7 @@ CLEAN :
 # ADD CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WWW_WIN_DLL" /D\
  "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /Fp"$(INTDIR)/wwwmux.pch" /YX\
- /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /I "..\..\External" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwmux\wwwmux__/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -3276,7 +3280,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwzip\Release"
 # PROP Target_Dir "wwwzip"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwzip\Release
 
 ALL : "wwwutils - Win32 Release" "wwwstream - Win32 Release"\
@@ -3299,7 +3303,7 @@ CLEAN :
 # ADD CPP /nologo /MD /W3 /GX /O2 /I "..\..\External" /D "NDEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MD /W3 /GX /O2 /I "..\..\External" /D "NDEBUG" /D\
  "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS"\
- /Fp"$(INTDIR)/wwwzip.pch" /YX /Fo"$(INTDIR)/" /c 
+ /Fp"$(INTDIR)/wwwzip.pch" /YX /Fo"$(INTDIR)/" /I "..\..\External" /c 
 CPP_OBJS=.\wwwzip\Release/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
@@ -3347,7 +3351,7 @@ LINK32_OBJS= \
 # PROP Output_Dir "../../../Bin"
 # PROP Intermediate_Dir "wwwzip\Debug"
 # PROP Target_Dir "wwwzip"
-OUTDIR=.\../../../Bin
+OUTDIR=.\..\..\..\Bin
 INTDIR=.\wwwzip\Debug
 
 ALL : "wwwutils - Win32 Debug" "wwwstream - Win32 Debug" "wwwdll - Win32 Debug"\
@@ -3373,7 +3377,7 @@ CLEAN :
 # ADD CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /I "..\..\External" /D "_DEBUG" /D "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MDd /W3 /Gm /GX /Zi /Od /I "..\..\External" /D "_DEBUG" /D\
  "WWW_WIN_DLL" /D "WWW_WIN_ASYNC" /D "WIN32" /D "_WINDOWS"\
- /Fp"$(INTDIR)/wwwzip.pch" /YX /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
+ /Fp"$(INTDIR)/wwwzip.pch" /YX /Fo"$(INTDIR)/" /I "..\..\External" /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\wwwzip\Debug/
 CPP_SBRS=.\.
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
@@ -3922,7 +3926,7 @@ DEP_CPP_HTUU_=\
 	".\..\HTMemory.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
 	{$(INCLUDE)}"\sys\TYPES.H"\
@@ -3947,7 +3951,7 @@ DEP_CPP_HTASS=\
 	".\..\HTMemory.h"\
 	".\..\HTString.h"\
 	".\..\HTUtils.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
 	{$(INCLUDE)}"\sys\TYPES.H"\
@@ -3972,7 +3976,7 @@ DEP_CPP_HTATO=\
 	".\..\HTMemory.h"\
 	".\..\HTString.h"\
 	".\..\HTUtils.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
 	{$(INCLUDE)}"\sys\TYPES.H"\
@@ -3994,7 +3998,7 @@ DEP_CPP_HTCHU=\
 	".\..\HTChunk.h"\
 	".\..\HTMemory.h"\
 	".\..\HTUtils.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
 	{$(INCLUDE)}"\sys\TYPES.H"\
@@ -4017,7 +4021,7 @@ DEP_CPP_HTLIS=\
 	".\..\HTList.h"\
 	".\..\HTMemory.h"\
 	".\..\HTUtils.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
 	{$(INCLUDE)}"\sys\TYPES.H"\
@@ -4039,7 +4043,7 @@ DEP_CPP_HTSTR=\
 	".\..\HTMemory.h"\
 	".\..\HTString.h"\
 	".\..\HTUtils.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
 	{$(INCLUDE)}"\sys\TYPES.H"\
@@ -4061,7 +4065,7 @@ DEP_CPP_HTARR=\
 	".\..\HTArray.h"\
 	".\..\HTMemory.h"\
 	".\..\HTUtils.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
 	{$(INCLUDE)}"\sys\TYPES.H"\
@@ -4096,7 +4100,7 @@ DEP_CPP_HTMEM=\
 	".\..\HTList.h"\
 	".\..\HTMemory.h"\
 	".\..\HTUtils.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
 	{$(INCLUDE)}"\sys\TYPES.H"\
@@ -4135,7 +4139,7 @@ SOURCE=..\HTTrace.c
 DEP_CPP_HTTRA=\
 	".\..\HTMemory.h"\
 	".\..\HTUtils.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
 	{$(INCLUDE)}"\sys\TYPES.H"\
@@ -4233,7 +4237,7 @@ DEP_CPP_HTWWW=\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -4281,7 +4285,7 @@ DEP_CPP_HTWWW=\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -4342,7 +4346,7 @@ DEP_CPP_HTREQ=\
 	".\..\HTUtils.h"\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -4395,7 +4399,7 @@ DEP_CPP_HTREQ=\
 	".\..\HTUtils.h"\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -4448,7 +4452,7 @@ DEP_CPP_HTPRO=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -4493,7 +4497,7 @@ DEP_CPP_HTPRO=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -4529,7 +4533,7 @@ DEP_CPP_HTPAR=\
 	".\..\HTString.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -4557,7 +4561,7 @@ DEP_CPP_HTPAR=\
 	".\..\HTString.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -4613,7 +4617,7 @@ DEP_CPP_HTNET=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -4661,7 +4665,7 @@ DEP_CPP_HTNET=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -4690,7 +4694,7 @@ DEP_CPP_HTMET=\
 	".\..\HTMethod.h"\
 	".\..\HTString.h"\
 	".\..\HTUtils.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
 	{$(INCLUDE)}"\sys\TYPES.H"\
@@ -4710,7 +4714,7 @@ DEP_CPP_HTMET=\
 	".\..\HTMethod.h"\
 	".\..\HTString.h"\
 	".\..\HTUtils.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
 	{$(INCLUDE)}"\sys\TYPES.H"\
@@ -4766,7 +4770,7 @@ DEP_CPP_HTFWR=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -4815,7 +4819,7 @@ DEP_CPP_HTFWR=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -4868,7 +4872,7 @@ DEP_CPP_HTFOR=\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -4913,7 +4917,7 @@ DEP_CPP_HTFOR=\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -4941,7 +4945,7 @@ DEP_CPP_HTESC=\
 	".\..\HTEscape.h"\
 	".\..\HTMemory.h"\
 	".\..\HTUtils.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
 	{$(INCLUDE)}"\sys\TYPES.H"\
@@ -4960,7 +4964,7 @@ DEP_CPP_HTESC=\
 	".\..\HTEscape.h"\
 	".\..\HTMemory.h"\
 	".\..\HTUtils.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
 	{$(INCLUDE)}"\sys\TYPES.H"\
@@ -5012,7 +5016,7 @@ DEP_CPP_HTERR=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -5057,7 +5061,7 @@ DEP_CPP_HTERR=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -5112,7 +5116,7 @@ DEP_CPP_HTDNS=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -5159,7 +5163,7 @@ DEP_CPP_HTDNS=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -5213,7 +5217,7 @@ DEP_CPP_HTBIN=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -5259,7 +5263,7 @@ DEP_CPP_HTBIN=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -5314,7 +5318,7 @@ DEP_CPP_HTANC=\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -5361,7 +5365,7 @@ DEP_CPP_HTANC=\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -5423,7 +5427,7 @@ DEP_CPP_HTALE=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWLib.h"\
 	".\..\WWWUtil.h"\
@@ -5479,7 +5483,7 @@ DEP_CPP_HTALE=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWLib.h"\
 	".\..\WWWUtil.h"\
@@ -5538,7 +5542,7 @@ DEP_CPP_HTINE=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -5587,7 +5591,7 @@ DEP_CPP_HTINE=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -5645,7 +5649,7 @@ DEP_CPP_HTHOS=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -5695,7 +5699,7 @@ DEP_CPP_HTHOS=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -5748,7 +5752,7 @@ DEP_CPP_HTTRAN=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -5793,7 +5797,7 @@ DEP_CPP_HTTRAN=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -5845,7 +5849,7 @@ DEP_CPP_HTCHA=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -5889,7 +5893,7 @@ DEP_CPP_HTCHA=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -5919,7 +5923,7 @@ DEP_CPP_HTSTRE=\
 	".\..\HTMemory.h"\
 	".\..\HTStream.h"\
 	".\..\HTUtils.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
 	{$(INCLUDE)}"\sys\TYPES.H"\
@@ -5940,7 +5944,7 @@ DEP_CPP_HTSTRE=\
 	".\..\HTMemory.h"\
 	".\..\HTStream.h"\
 	".\..\HTUtils.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
 	{$(INCLUDE)}"\sys\TYPES.H"\
@@ -5990,7 +5994,7 @@ DEP_CPP_HTEVE=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -6033,7 +6037,7 @@ DEP_CPP_HTEVE=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -6086,7 +6090,7 @@ DEP_CPP_HTUSE=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -6131,7 +6135,7 @@ DEP_CPP_HTUSE=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -6185,7 +6189,7 @@ DEP_CPP_HTLIB=\
 	".\..\HTUtils.h"\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -6231,7 +6235,7 @@ DEP_CPP_HTLIB=\
 	".\..\HTUtils.h"\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -6285,7 +6289,7 @@ DEP_CPP_HTLIN=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -6331,7 +6335,7 @@ DEP_CPP_HTLIN=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -6383,7 +6387,7 @@ DEP_CPP_HTUTR=\
 	".\..\HTUtils.h"\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -6427,7 +6431,7 @@ DEP_CPP_HTUTR=\
 	".\..\HTUtils.h"\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -6520,7 +6524,7 @@ DEP_CPP_HTRES=\
 	".\..\HTUtils.h"\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -6569,7 +6573,7 @@ DEP_CPP_HTRES=\
 	".\..\HTUtils.h"\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -6641,7 +6645,7 @@ DEP_CPP_HTTCP=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWMux.h"\
 	".\..\WWWUtil.h"\
@@ -6707,7 +6711,7 @@ DEP_CPP_HTTCP=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWMux.h"\
 	".\..\WWWUtil.h"\
@@ -6776,7 +6780,7 @@ DEP_CPP_HTTIM=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
@@ -6836,7 +6840,7 @@ DEP_CPP_HTTIM=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
@@ -6890,7 +6894,7 @@ DEP_CPP_HTMEML=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -6935,7 +6939,7 @@ DEP_CPP_HTMEML=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -7046,7 +7050,7 @@ DEP_CPP_HTCAC=\
 	".\..\HTUU.h"\
 	".\..\HTWriter.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWApp.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWLib.h"\
@@ -7208,7 +7212,7 @@ DEP_CPP_HTMIM=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
@@ -7259,7 +7263,7 @@ DEP_CPP_HTHEA=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -7330,7 +7334,7 @@ DEP_CPP_HTMIME=\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
 	".\..\HTXParse.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCache.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWLib.h"\
@@ -7396,7 +7400,7 @@ DEP_CPP_HTBOU=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
@@ -7457,7 +7461,7 @@ DEP_CPP_HTMIMP=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -7517,7 +7521,7 @@ DEP_CPP_HTMIMI=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
@@ -7710,7 +7714,7 @@ DEP_CPP_HTTPS=\
 	".\..\HTWriter.h"\
 	".\..\HTWWWStr.h"\
 	".\..\HTXParse.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWMIME.h"\
 	".\..\WWWStream.h"\
@@ -7772,7 +7776,7 @@ DEP_CPP_HTAAU=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
@@ -7856,7 +7860,7 @@ DEP_CPP_HTTP_=\
 	".\..\HTWriter.h"\
 	".\..\HTWWWStr.h"\
 	".\..\HTXParse.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWMIME.h"\
 	".\..\WWWStream.h"\
@@ -7920,7 +7924,7 @@ DEP_CPP_HTTPR=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
@@ -7982,7 +7986,7 @@ DEP_CPP_HTTPRE=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
@@ -8042,7 +8046,7 @@ DEP_CPP_HTAAB=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWLib.h"\
 	".\..\WWWUtil.h"\
@@ -8128,7 +8132,7 @@ DEP_CPP_HTTPG=\
 	".\..\HTUU.h"\
 	".\..\HTWriter.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWMIME.h"\
 	".\..\WWWTrans.h"\
@@ -8225,7 +8229,7 @@ DEP_CPP_HTTCH=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
@@ -8284,7 +8288,7 @@ DEP_CPP_HTPEP=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
@@ -8476,7 +8480,7 @@ DEP_CPP_HTNEW=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWUtil.h"\
 	
@@ -8532,7 +8536,7 @@ DEP_CPP_HTNEW=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
@@ -8617,7 +8621,7 @@ DEP_CPP_HTNEWS=\
 	".\..\HTWriter.h"\
 	".\..\HTWWWStr.h"\
 	".\..\HTXParse.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWStream.h"\
 	".\..\WWWTrans.h"\
@@ -8690,7 +8694,7 @@ DEP_CPP_HTNEWS=\
 	".\..\HTWriter.h"\
 	".\..\HTWWWStr.h"\
 	".\..\HTXParse.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWStream.h"\
 	".\..\WWWTrans.h"\
@@ -8758,7 +8762,7 @@ DEP_CPP_HTNEWSL=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWUtil.h"\
 	
@@ -8810,7 +8814,7 @@ DEP_CPP_HTNEWSL=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
@@ -8880,7 +8884,7 @@ DEP_CPP_HTNDI=\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
 	".\..\SGML.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWHTML.h"\
 	".\..\WWWUtil.h"\
@@ -8937,7 +8941,7 @@ DEP_CPP_HTNDI=\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
 	".\..\SGML.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWHTML.h"\
 	".\..\WWWUtil.h"\
@@ -9162,7 +9166,7 @@ DEP_CPP_HTGOP=\
 	".\..\HTWriter.h"\
 	".\..\HTWWWStr.h"\
 	".\..\SGML.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWDir.h"\
 	".\..\WWWHTML.h"\
@@ -9390,7 +9394,7 @@ DEP_CPP_HTFTP=\
 	".\..\HTUU.h"\
 	".\..\HTWriter.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWDir.h"\
 	".\..\WWWLib.h"\
@@ -9459,7 +9463,7 @@ DEP_CPP_HTFTP_=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
@@ -9642,7 +9646,7 @@ DEP_CPP_HTICO=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWLib.h"\
 	".\..\WWWUtil.h"\
@@ -9708,7 +9712,7 @@ DEP_CPP_HTDIR=\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
 	".\..\SGML.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWHTML.h"\
 	".\..\WWWLib.h"\
@@ -9757,7 +9761,7 @@ DEP_CPP_HTDES=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -9922,7 +9926,7 @@ DEP_CPP_HTMUL=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
@@ -9997,7 +10001,7 @@ DEP_CPP_HTFIL=\
 	".\..\HTUU.h"\
 	".\..\HTWriter.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWDir.h"\
 	".\..\WWWLib.h"\
@@ -10184,7 +10188,7 @@ DEP_CPP_HTTEL=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
@@ -10320,7 +10324,7 @@ DEP_CPP_HTMLG=\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
 	".\..\SGML.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -10348,7 +10352,7 @@ DEP_CPP_HTMLP=\
 	".\..\HTStruct.h"\
 	".\..\HTUtils.h"\
 	".\..\SGML.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
 	{$(INCLUDE)}"\sys\TYPES.H"\
@@ -10406,7 +10410,7 @@ DEP_CPP_HTTEX=\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
 	".\..\SGML.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -10435,7 +10439,7 @@ DEP_CPP_SGML_=\
 	".\..\HTStruct.h"\
 	".\..\HTUtils.h"\
 	".\..\SGML.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
 	{$(INCLUDE)}"\sys\TYPES.H"\
@@ -10592,7 +10596,7 @@ DEP_CPP_HTLOG=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWLib.h"\
 	".\..\WWWUtil.h"\
@@ -10652,7 +10656,7 @@ DEP_CPP_HTHOM=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWLib.h"\
 	".\..\WWWUtil.h"\
@@ -10701,7 +10705,7 @@ DEP_CPP_HTHIS=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -10777,7 +10781,7 @@ DEP_CPP_HTDIA=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWApp.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWHTTP.h"\
@@ -10852,7 +10856,7 @@ DEP_CPP_HTACC=\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
 	".\..\HTXParse.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWStream.h"\
 	".\..\WWWUtil.h"\
@@ -10927,7 +10931,7 @@ DEP_CPP_HTFILT=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCache.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWHTTP.h"\
@@ -10990,7 +10994,7 @@ DEP_CPP_HTRUL=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWLib.h"\
 	".\..\WWWUtil.h"\
@@ -11068,7 +11072,7 @@ DEP_CPP_HTPROX=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWApp.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWHTTP.h"\
@@ -11243,7 +11247,7 @@ DEP_CPP_HTEVT=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
@@ -11337,7 +11341,7 @@ DEP_CPP_HTWSR=\
 	".\..\HTUU.h"\
 	".\..\HTWSRC.h"\
 	".\..\SGML.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -11511,7 +11515,7 @@ DEP_CPP_HTANS=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
@@ -11564,7 +11568,7 @@ DEP_CPP_HTLOC=\
 	".\..\HTUser.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -11623,7 +11627,7 @@ DEP_CPP_HTREA=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
@@ -11689,7 +11693,7 @@ DEP_CPP_HTSOC=\
 	".\..\HTUU.h"\
 	".\..\HTWriter.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWTrans.h"\
 	".\..\WWWUtil.h"\
@@ -11750,7 +11754,7 @@ DEP_CPP_HTWRI=\
 	".\..\HTUU.h"\
 	".\..\HTWriter.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
@@ -11812,7 +11816,7 @@ DEP_CPP_HTBUF=\
 	".\..\HTUU.h"\
 	".\..\HTWriter.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
@@ -11959,7 +11963,7 @@ DEP_CPP_HTCON=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
@@ -11991,7 +11995,7 @@ DEP_CPP_HTTEE=\
 	".\..\HTTee.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -12049,7 +12053,7 @@ DEP_CPP_HTGUE=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWLib.h"\
 	".\..\WWWUtil.h"\
@@ -12076,7 +12080,7 @@ DEP_CPP_HTEPT=\
 	".\..\HTMemory.h"\
 	".\..\HTStream.h"\
 	".\..\HTUtils.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
 	{$(INCLUDE)}"\sys\TYPES.H"\
@@ -12135,7 +12139,7 @@ DEP_CPP_HTXPA=\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
 	".\..\HTXParse.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
@@ -12203,7 +12207,7 @@ DEP_CPP_HTSCH=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
@@ -12289,7 +12293,7 @@ DEP_CPP_HTMER=\
 	".\..\HTString.h"\
 	".\..\HTUtils.h"\
 	".\..\HTUU.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
 	{$(INCLUDE)}"\sys\STAT.H"\
@@ -12362,7 +12366,7 @@ DEP_CPP_HTDEM=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
@@ -12430,7 +12434,7 @@ DEP_CPP_HTMUX=\
 	".\..\HTUU.h"\
 	".\..\HTWriter.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWTrans.h"\
 	".\..\WWWUtil.h"\
@@ -12506,7 +12510,7 @@ DEP_CPP_HTMUXC=\
 	".\..\HTWriter.h"\
 	".\..\HTWWWStr.h"\
 	".\..\HTXParse.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWStream.h"\
 	".\..\WWWTrans.h"\
@@ -12696,7 +12700,7 @@ DEP_CPP_HTZIP=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWUtil.h"\
 	".\config.h"\
@@ -12754,7 +12758,7 @@ DEP_CPP_HTZIP=\
 	".\..\HTUTree.h"\
 	".\..\HTUU.h"\
 	".\..\HTWWWStr.h"\
-	".\..\sysdep.h"\
+	".\..\wwwsys.h"\
 	".\..\WWWCore.h"\
 	".\..\WWWUtil.h"\
 	
