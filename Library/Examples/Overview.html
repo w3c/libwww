@@ -1,65 +1,75 @@
 <HTML>
 <HEAD>
-<TITLE>Overview of Examples</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 29-Nov-1995 -->
-</HEAD>  
+  <!-- Changed by: Henrik Frystyk Nielsen, 29-Nov-1995 -->
+  <TITLE>Ready to go Examples</TITLE>
+</HEAD>
 <BODY>
-
+<P>
 <A HREF="../../"><IMG SRC="../../Icons/WWW/w3c_48x48" ALT="W3C"></A>
 <A HREF="../"><IMG SRC="../../Icons/WWW/Lib48x" ALT="Lib"></A>
-
-<H1>Ready to go Examples</H1>
-
-This is the list of small examples using the very basic features of the Library. If you have not
-already compiled the library then please read the <A HREF="../Installation.html">Installation
-guide</A> before you continue. If you want more details of how to use the Library then please read
-the <A HREF="../User/Using/">User's Guide</A>. <P>
-
-In the example we assume that the compiler knows where to look for the Library include file
-<CODE>WWWLib.h</CODE> and also knows where to find the binary library, often called
-<CODE>libwww.a</CODE> on Unix platforms and <CODE>libwww.lib</CODE> on Windows. Again, the result
-might depend on the setup of the dynamic modules, but if no dynamic modules are enabled then the
-example will generate an executable file. If you are in doubt about how to set your compiler then
-you can often get some good ideas by looking into the <A HREF="../../../LineMode/">Line Mode
-Browser</A>. If you are on a Unix box then you can probably use this <A HREF="Makefile">makefile</A>
-by typing:
-
-<PRE>
-	setenv WWW_MACH &lt;your platform&gt;
-	cd WWW/Library/Examples
-	make
-</PRE>
-
-where your platform is one of the names corresponding to a directory in the <A HREF="../../All/">All
-directory</A>. Some platforms require a socket library when building network applications. This is
-for example the case when building on Macintosh or Windows machines. The Library uses the <A
-HREF="http://err.ethz.ch/members/neeri/macintosh/gusiman/GUSI.html">GUSI socket</A> library on the
-Macintosh and the <A HREF="ftp://ftp.spry.com/ms-windows/winsock/docs/winsock.txt">WinSock
-library</A> on windows platforms. Please check the documentation on these libraries for how to
-install them and also if there are any specific requirements on your platform when building network
-applications.<P>
-
-<DL>
-<DT><B><A HREF="libapp_1.c">Start and Stop the Library</A></B>
-<DD>This is a dummy program that just initializes as terminates the Library
-
-<DT><B><A HREF="libapp_2.c">Initializing the Library</A></B>
-<DD>This example show how to register a protocol module and a stream converter
-
-<DT><B><A HREF="libapp_3.c">Fetching a URL interactively</A></B>
-<DD>We here show how to fetch a URL using HTTP and to save it to local file. We also prompt the user
-for a file name for the local file.
-
-<DT><B><A HREF="libapp_4.c">Fetching a URL non-interactively</A></B>
-<DD>We here show how to fetch a URL using HTTP and to save it to local file. You must specify a local
-file name on the command line.
-
-</DL>
-
+<H1>
+  Ready to go Examples
+</H1>
 <P>
-<HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-@(#) $Id$
+This is the list of small examples using the very basic features of the Library.
+If you have not already compiled the library then please read the
+<A HREF="../Installation.html">Installation guide</A> before you continue.
+If you want more details of how to use the Library then please read the
+<A HREF="../User/Using/">User's Guide</A>.
+<P>
+In the example we assume that the compiler knows where to look for the Library
+include file <CODE>WWWLib.h</CODE> and also knows where to find the binary
+library, often called <CODE>libwww.a</CODE> on Unix platforms and
+<CODE>libwww.lib</CODE> on Windows. Again, the result might depend on the
+setup of the dynamic modules, but if no dynamic modules are enabled then
+the example will generate an executable file. If you are in doubt about how
+to set your compiler then you can often get some good ideas by looking into
+the <A HREF="../../../LineMode/">Line Mode Browser</A>. &nbsp;If you are
+using the GNU autoconf configure script then the examples are built as part
+of the overall package. On other platforms, you must provide the make file
+on your own.
+<P>
+Some platforms require a socket library when building network applications.
+This is for example the case when building on Macintosh or Windows machines.
+The Library uses the
+<A HREF="http://err.ethz.ch/members/neeri/macintosh/gusiman/GUSI.html">GUSI
+socket</A> library on the Macintosh and the
+<A HREF="ftp://ftp.spry.com/ms-windows/winsock/docs/winsock.txt">WinSock
+library</A> on windows platforms. Please check the documentation on these
+libraries for how to install them and also if there are any specific requirements
+on your platform when building network applications.
+<P>
+<DL>
+  <DT>
+    <B><A HREF="libapp_1.c">Start and Stop the Library</A></B>
+  <DD>
+    This is a dummy program that just initializes as terminates the Library
+  <DT>
+    <B><A HREF="libapp_2.c">Initializing the Library</A></B>
+  <DD>
+    This example show how to register a protocol module and a stream converter
+  <DT>
+    <B><A HREF="libapp_3.c">Fetching a URL interactively</A></B>
+  <DD>
+    We here show how to fetch a URL using HTTP and to save it to local file.
+    We also prompt the user for a file name for the local file.
+  <DT>
+    <B><A HREF="libapp_4.c">Fetching a URL non-interactively</A></B>
+  <DD>
+    We here show how to fetch a URL using HTTP and to save it to local file.
+    You must specify a local file name on the command line.
+  <DT>
+</DL>
+<P>
+You can also have a look at the more
+<A HREF="../User/Applications.html">complete example applications</A> which
+are capable of doing more interesting things. If you have any example code
+that you would like to <A HREF="../../PATCHES.html">share with us </A>then
+please send us a mail so that we can add it to this page. 
+<P>
+  <HR>
+<ADDRESS>
+  Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, @(#) $Id:
+  Overview.html,v 1.3 1996/05/15 17:26:53 frystyk Exp $
 </ADDRESS>
-</BODY>
-</HTML> 
+</BODY></HTML>

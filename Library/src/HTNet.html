@@ -1,12 +1,11 @@
 <HTML>
 <HEAD>
   <!-- Changed by: Henrik Frystyk Nielsen, 13-Apr-1996 -->
-<!-- Changed by: Eric Prud'hommeaux, 14-May-1996 -->
-  <TITLE>W3C Reference Library libwww NET OBJECT</TITLE>
+  <!-- Changed by: Eric Prud'hommeaux, 14-May-1996 -->
+<TITLE>W3C Reference Library libwww HTNet Class</TITLE>
 </HEAD>
 <BODY>
-<H1>
-  Asyncronous Socket Management
+<H1>The Net Class
 </H1>
 <PRE>
 /*
@@ -29,14 +28,10 @@ Library</A>.
 #ifndef HTNET_H
 #define HTNET_H
 </PRE>
-<H2>
-  The HTNet Object
-</H2>
 <P>
 The <CODE>HTNet</CODE> object is the core of the request queue management.
 This object contains information about the socket descriptor, the input read
 buffer etc. required to identify and service a request.
-<P>
 <PRE>
 typedef struct _HTNet HTNet;
 
@@ -48,7 +43,7 @@ typedef struct _HTNet HTNet;
 #include "HTDNS.h"
 </PRE>
 <H2>
-  Request Call Back Functions
+  Net Callback Functions
 </H2>
 <P>
 Callback functions can be registered to be called <EM>before</EM> and
@@ -63,7 +58,7 @@ on turn and each callback function can be associated with a status code of
 the request. For example one callback function can be registered for HT_LOADED,
 another for HT_ERROR etc.
 <H3>
-  Register a Request Callback
+  Register a Net Callback
 </H3>
 <P>
 Register a call back function that is to be called on every termination of
@@ -115,7 +110,7 @@ extern BOOL HTNetCall_add (HTList * list, HTNetCallback *cbf,
 			  void * param, int status);
 </PRE>
 <H3>
-  Delete a single Callbak
+  Delete a single Callback
 </H3>
 <P>
 Removes a callback function from a list
@@ -143,7 +138,7 @@ what the last callback function returns
 extern int HTNetCall_execute (HTList * list, HTRequest * request, int status);
 </PRE>
 <H3>
-  BEFORE Callbacks
+  Handling BEFORE Callbacks
 </H3>
 <P>
 Global set of callback functions BEFORE the request is issued. The list can
@@ -155,7 +150,7 @@ extern HTList * HTNet_before	(void);
 extern int HTNet_callBefore	(HTRequest *request, int status);
 </PRE>
 <H3>
-  AFTER Callbacks
+  Handling AFTER Callbacks
 </H3>
 <P>
 Global set of callback functions AFTER the request is issued. The list can
@@ -210,7 +205,6 @@ is the set of requests that are actively sending or receiving data. The
 for a free socket. The <EM>Persistent</EM> queue are requets that are waiting
 to use the same socket in order to save network resoures (if the server
 understands persistent connections).
-<P>
 <H4>
   Active Reqeusts?
 </H4>
@@ -237,13 +231,22 @@ list of HTNet objects or NULL if error
 extern HTList *HTNet_pendingQueue (void);
 </PRE>
 <H2>
-  Create an Object
+  Creation and Deletion Methods
 </H2>
 <P>
-You can create a new HTNet object as a new request to be handled. If we have
-more than HTMaxActive connections already then put this into the pending
-queue, else start the request by calling the call back function registered
-with this access method. Returns YES if OK, else NO
+The Net object is intended to live as long as the request is still active.
+In that regard it is very similar to the <A HREF="HTReq.html">Request Object
+</A>. However, the main difference is that a Net object represents a "thread"
+in the Library and a request may have multiple "threads" - an example is
+a FTP request which has a thread to handle the control connection and one
+to handle the data connections.
+<H3>
+  Create a new Object
+</H3>
+<P>
+If we have more than HTMaxActive connections already then put this into the
+pending queue, else start the request by calling the call back function
+registered with this access method. Returns YES if OK, else NO
 <PRE>
 extern BOOL HTNet_newClient (HTRequest * request);
 </PRE>
@@ -260,7 +263,7 @@ And you can create a plain new HTNet object using the following method:
 extern HTNet * HTNet_new (HTRequest * request, SOCKET sockfd);
 </PRE>
 <H3>
-  Duplicate an Existing Object
+  Duplicate an existing Object
 </H3>
 <P>
 Creates a new HTNet object as a duplicate of the same request. Returns YES
@@ -268,8 +271,30 @@ if OK, else NO.
 <PRE>
 extern HTNet * HTNet_dup (HTNet * src);
 </PRE>
+<H3>
+  Delete an Object
+</H3>
+<P>
+Deletes the HTNet object from the list of active requests and calls any
+registered call back functions IF not the status is HT_IGNORE. This is used
+if we have internal requests that the app doesn't know about. We also see
+if we have pending requests that can be started up now when we have a socket
+free. The callback functions are called in the reverse order of which they
+were registered (last one first);
+<PRE>
+extern BOOL HTNet_delete (HTNet * me, int status);
+</PRE>
+<H3>
+  Delete ALL HTNet Objects
+</H3>
+<P>
+Deletes all HTNet object that might either be active or pending We DO NOT
+call the call back functions - A crude way of saying goodbye!
+<PRE>
+extern BOOL HTNet_deleteAll (void);
+</PRE>
 <H2>
-  HTNet Object Methods
+  Net Object Methods
 </H2>
 <H3>
   Make an Object Wait
@@ -312,28 +337,6 @@ this function:
 extern BOOL HTNet_setPersistent (HTNet * net, BOOL persistent);
 </PRE>
 <H3>
-  Delete an Object
-</H3>
-<P>
-Deletes the HTNet object from the list of active requests and calls any
-registered call back functions IF not the status is HT_IGNORE. This is used
-if we have internal requests that the app doesn't know about. We also see
-if we have pending requests that can be started up now when we have a socket
-free. The callback functions are called in the reverse order of which they
-were registered (last one first);
-<PRE>
-extern BOOL HTNet_delete (HTNet * me, int status);
-</PRE>
-<H3>
-  Delete ALL HTNet Objects
-</H3>
-<P>
-Deletes all HTNet object that might either be active or pending We DO NOT
-call the call back functions - A crude way of saying goodbye!
-<PRE>
-extern BOOL HTNet_deleteAll (void);
-</PRE>
-<H3>
   Kill a Request
 </H3>
 <P>
@@ -369,11 +372,18 @@ extern HTInputStream * HTNet_getInput (HTNet * net, HTStream * target,
 
 extern HTOutputStream * HTNet_getOutput (HTNet * net, void * param, int mode);
 </PRE>
-<H2>
-  Data Access Methods
-</H2>
+<H3>
+  Net Context Descriptor
+</H3>
 <P>
-We have some methods for accessing the internals of the Net object
+Just like the <A HREF="../../../../WWW/Library/src/HTReq.html#context">request
+object</A>, a net object can be assigned a context which keeps track of context
+dependent information. The Library does not use this information nor does
+it depend on it but it allows the application to customize a net object to
+specific uses.
+<PRE>extern BOOL HTNet_setContext (HTNet * net, void * context);
+extern void * HTNet_context (HTNet * net);
+</PRE>
 <H3>
   Socket Descriptor
 </H3>

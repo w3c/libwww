@@ -1,13 +1,12 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww Event API</TITLE>
-<!-- Changed by: Eric Prud'hommeaux, 15-May-1996 -->
+  <!-- Changed by: Eric Prud'hommeaux, 15-May-1996 -->
 <!-- Changed by: Henrik Frystyk Nielsen, 16-May-1996 -->
+<TITLE>W3C Reference Library libwww Event Class</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Event Manager</H1>
-
+<H1>The Event Class
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
@@ -29,35 +28,35 @@ typedef u_long SockOps;
 
 #include "HTReq.h"
 </PRE>
-
-This module provides a way for applications to register their own 
-event models, or use the one in <A HREF="HTEvntrg.html">HTEvntrg.html</A>.
 <P>
-
-This module is implemented by <A HREF="HTEvnt.c">HTEvntrg.c</A>, and
-it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C
-Reference Library</A>. <P>
-
-<H2>Event Handlers</H2>
-
-The appplication registers a set of event handlers to be used on a
-specified set of sockets. The eventhandlers must be defined as follows:
-
+This module provides a way for applications to register their own event models,
+or use the one in <A HREF="HTEvntrg.html">HTEvntrg.html</A>.
+<P>
+This module is implemented by <A HREF="HTEvnt.c">HTEvntrg.c</A>, and it is
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C Reference
+Library</A>.
+<P>
+<H2>
+  Event Handlers
+</H2>
+<P>
+The appplication registers a set of event handlers to be used on a specified
+set of sockets. The eventhandlers must be defined as follows:
 <PRE>
 #define FD_NONE	0
 #define FD_ALL (FD_READ | FD_WRITE | FD_OOB | FD_ACCEPT | FD_CONNECT |FD_CLOSE)
-#define FD_UNREGISTER (((FD_ALL) &lt;&lt; 1) & (~(FD_ALL)))
+#define FD_UNREGISTER (((FD_ALL) &lt;&lt; 1) &amp; (~(FD_ALL)))
 
 typedef int HTEventCallback (SOCKET, HTRequest *, SockOps);
 </PRE>
-
-<H2>Register Event Handler Callbacks</H2>
-
-While the event handlers them selves are callback functions the
-functions that register the event handler callbacks are also callback
-functions. By doing this we allow the application to register any type
-of event loop which fits the app.
-
+<H2>
+  Register Event Handler Callbacks
+</H2>
+<P>
+While the event handlers them selves are callback functions the functions
+that register the event handler callbacks are also callback functions. By
+doing this we allow the application to register any type of event loop which
+fits the app.
 <PRE>
 typedef int HTEvent_registerCallback(SOCKET, HTRequest *,
 				     SockOps, HTEventCallback *,
@@ -67,24 +66,20 @@ typedef int HTEvent_unregisterCallback(SOCKET, SockOps);
 extern void HTEvent_setRegisterCallback(HTEvent_registerCallback *);
 extern void HTEvent_setUnregisterCallback(HTEvent_unregisterCallback *);
 </PRE>
-
+<P>
 The library and application may call these functions by calling
-
 <PRE>
 extern int HTEvent_register	(SOCKET, HTRequest *,
 				 SockOps, HTEventCallback *,
 				 HTPriority);
 extern int HTEvent_unregister	(SOCKET, SockOps);
 </PRE>
-
 <PRE>
 #endif /* HTEVENT_H */
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
-
+</BODY></HTML>

@@ -1,0 +1,69 @@
+<HTML>
+<HEAD>
+  <TITLE>WAIS to WWW Gateway</TITLE>
+</HEAD>
+<BODY>
+<P>
+<A HREF="../../"><IMG SRC="../../Icons/WWW/w3c_48x48" ALT="W3C"></A>
+<A HREF="../"><IMG SRC="../../Icons/WWW/Lib48x" ALT="Lib"></A>
+<H1>
+  The WAIS to WWW gateway
+</H1>
+<P>
+The <A HREF="../">W3C Reference Library</A> supports <I>direct
+<A HREF="http://www.cnidr.org">WAIS</A></I> access which means that
+<B>all</B> applications built on top of the Library can serve as a WWW-WAIS
+gateway. Making your application capable of accessing WAIS servers requires
+that you link libwww with the freeWAIS library. Note that any type of application
+can have direct WAIS access including servers and clients. This page explains
+how you can set up your own WWW-WAIS gateway. There are basically two conditions
+that must be fulfilled in order to do this:
+<P>
+<UL>
+  <LI>
+    A version of the <A HREF="../">Libwww</A> with <I>direct WAIS</I> access
+    enabled
+  <LI>
+    The freeWAIS libraries from
+    <A HREF="ftp://ftp.cnidr.org/pub/NIDR.tools/freewais/">CNIDR</A>. The version
+    currently supported is <B>freeWAIS 0.5</B>
+</UL>
+<P>
+If you do <I>not</I> enable direct WAIS access, your application may still
+access WAIS servers by passing through another WWW-WAIS <I>gateway</I>. As
+an example, W3C provides such a gateway as a special service. You can find
+the gateway at <A HREF="http://www.w3.org:8001">http://www.w3.org:8001</A>.
+Please note the special port 8001 which must be a part of the URL.
+<P>
+You can <B>enable </B>direct WAIS in libwww as an
+<A HREF="../../INSTALL.html#features">optional feature in the GNU configure
+script</A> Please read the <A HREF="../../INSTALL.html">installation instructions
+</A>for more details
+<H2>
+  WSRC files
+</H2>
+<P>
+The gateway keeps a cache of WAIS "source" files. These are files describing
+WAIS servers, and are parsed, and are kept in the directory /usr/local/lib/WAIS
+under the server name, port, and database name.
+<P>
+They are normally picked up automatically by searching a <EM>directory of
+servers index</EM>. Once the gateway has picked up a description of a server,
+it uses the description to describe the server to those who follow links
+to it. (See the <A HREF="../src/HTWSRC.html">HTWSRC</A> module in libwww)
+<H2>
+  More Information
+</H2>
+<UL>
+  <LI>
+    <A HREF="http://www.sun.com/cgi-bin/freeWAIS-index.pl">Sun's version of freeWAIS
+    documentation</A>
+</UL>
+<P>
+  <HR>
+<ADDRESS>
+  Tim BL and <A HREF="../People.html#Frystyk">Henrik Frystyk Nielsen</A>,
+  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, @(#) $Id: Date Author State
+  $
+</ADDRESS>
+</BODY></HTML>
