@@ -31,6 +31,11 @@ Library.
 
 <H2>System dependencies</H2>
 
+The <A HREF="tcp.html">tcp.h</A> file includes system-specific include
+files and flags for I/O to network and disk. The only reason for this
+file is that the Internet world is more complicated than Posix and
+ANSI.
+
 <PRE>
 #include "tcp.h"
 </PRE>
@@ -43,16 +48,104 @@ extern "C" {
 #endif
 </PRE>
 
+<H3>Basic Macros etc</H3>
+
+This module includes file contains things we need everywhere,
+generally macros for declarations, booleans, etc.
+
 <PRE>
-#include "HTUtils.h"			/* Macros and other stuff */
-#include "HTArray.h"			/* Dynamic arrays */
-#include "HTAssoc.h"			/* Associated lists */
-#include "HTAtom.h"			/* Pointer referenced strings */
-#include "HTChunk.h"			/* Dynamic strings */
-#include "HTList.h"			/* Linked lists */
-#include "HTMemory.h"			/* Dynamic memory handler */
-#include "HTString.h"			/* Generic string utilities */
-#include "HTUU.h"			/* uuencode/uudecode */
+#include "<A HREF="HTUtils.html">HTUtils.h</A>"
+</PRE>
+
+<H3>Dynamic Arrays</H3>
+
+This module implements a flexible array of pointers. It is a general
+utility module.  An array is a structure which may be extended.  These
+routines create and append data to arrays, automatically reallocating
+them as necessary.  It is garanteed that the last entry in an array is
+<B>NULL</B>
+
+<PRE>
+#include "<A HREF="HTArray.html">HTArray.h</A>"
+</PRE>
+
+<H3>Association Lists</H3>
+
+This is a small module build on top of the <A
+HREF="HTList.html">HTList module</A> that provides a way to store
+<EM>Name-Value</EM> pairs in an easy way.
+
+<PRE>
+#include "<A HREF="HTAssoc.html">HTAssoc.h</A>"
+</PRE>
+
+<H3>Atoms</H3>
+
+Atoms are strings which are given representative pointer values so
+that they can be stored more efficiently, and comparisons for equality
+done more efficiently. The pointer values are in fact entries into a
+hash table.
+
+<PRE>
+#include "<A HREF="HTAtom.html">HTAtom.h</A>"
+</PRE>
+
+<H3>Dynamic Strings</H3>
+
+A Chunk is a block wise expandable array of type (char *) and is a sort of
+apology for real strings in C. Chunks make it easier to handle dynamic strings
+of unknown size. It is often faster than using the String Copy Routines</A>.
+
+<PRE>
+#include "<A HREF="HTChunk.html">HTChunk.h</A>"
+</PRE>
+
+<H3>Linked Lists</H3>
+
+This module provides the functionality for managing a generic list of
+data objects. The module is implemented as a single linked list using
+the scheme <EM>first in - last out (FILO)</EM>.
+
+<PRE>
+#include "<A HREF="HTList.html">HTList.h</A>"
+</PRE>
+
+<H3>Dymamic Memory Management</H3>
+
+This module implements a dynamic memory API that is used throughout
+the Library. The API covers three types of functionality:
+
+<UL>
+<LI><A HREF="#d">Handling of allocation and deallocation of dynamic memory</A>
+<LI><A HREF="#r">Recovering from temporary lack of available memory</A>
+<LI><A HREF="#p">Panic handling in case a new allocation fails</A>
+</UL>
+
+<PRE>
+#include "<A HREF="HTMemory.html">HTMemory.h</A>"
+</PRE>
+
+<H3>String Utilities</H3>
+
+Routines for dynamic arrays of characters include string copy,
+case insensitive comparison etc.
+
+<PRE>
+#include "<A HREF="HTString.html">HTString.h</A>"
+</PRE>
+
+<H3>UU encode and decode</H3>
+
+File module provides functions functions for uuencode and decode
+strings which convert a buffer of bytes to/from RFC 1113 printable
+encoding format. This technique is similar to the familiar Unix
+uuencode format in that it maps 6 binary bits to one ASCII character
+(or more aptly, 3 binary bytes to 4 ASCII characters).  However, RFC
+1113 does not use the same mapping to printable characters as
+uuencode.
+
+<PRE>
+#include "<A HREF="HTUU.html">HTUU.h</A>"
 </PRE>
 
 End of utility modules
