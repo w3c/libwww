@@ -208,6 +208,7 @@ PRIVATE BOOL		listrefs_option = NO;	  /* -listrefs option used?  */
 PRIVATE BOOL		OutSource = NO;		    /* Output source, YES/NO */
 PRIVATE char *		HTLogFileName = NULL;  	    /* Root of log file name */
 PRIVATE int		OldTraceFlag = SHOW_ALL_TRACE;
+PRIVATE HTList *	conversions = NULL;	       /* Format conversions */
 
 #ifdef VMS
 PRIVATE FILE *       output;		/* assignment done in main */
@@ -346,35 +347,6 @@ PRIVATE void help_screen NOARGS {
     free(current_address);    
 } /* End of help_screen */
 
-
-#ifdef OLD_CODE
-/*		Select_Reference
-**		----------------
-**
-**  After a reference is selected by the user, opens document, links into the
-**  history list and displays.
-**
-**  On Entry:
-**       int  reference_num   Number corresponding to the hypertext reference
-**                            given in the text.
-*/
-
-BOOL Select_Reference ARGS1(int,reference_num) {
- 
-    HTAnchor 		* destination;
-    HTChildAnchor * source = HText_childNumber(HTMainText, reference_num);
-    
-    if (!source) return NO; /* No anchor */
-    destination = HTAnchor_followMainLink((HTAnchor*) source);
-    request->parentAnchor = HTAnchor_parent((HTAnchor *) source);
-    if (!HTLoadAnchor(destination, request)) return NO;	/* No link */
-    HTHistory_leavingFrom((HTAnchor*) source);
-    HTHistory_record(destination);
-    request->parentAnchor = NULL;
-    return YES;
-    
-} /* Select_Reference*/
-#endif
 
 /* 	Reference_List
 **	--------------
@@ -568,11 +540,12 @@ PRIVATE HTRequest *Thread_new ARGS1(BOOL, Interactive)
     HTRequest *newreq = HTRequest_new(); 	     /* Set up a new request */
     if (!reqlist)
 	reqlist = HTList_new();
-    HTList_addObject(reqlist, (void *) newreq);
-    if (Interactive)
-	HTFormatInit(newreq->conversions);
-    else
+    if (Interactive) {
+	HTList_delete(newreq->conversions);
+	newreq->conversions = conversions;	    /* Take from global list */
+    } else
 	HTFormatInitNIM(newreq->conversions);
+    HTList_addObject(reqlist, (void *) newreq);
     return newreq;
 }
 
@@ -586,20 +559,30 @@ PRIVATE void Thread_delete ARGS1(HTRequest *, oldreq)
     if (oldreq) {
 	if (reqlist)
 	    HTList_removeObject(reqlist, (void *) oldreq);
+	oldreq->conversions = NULL;	    /* We keep them in a global list */
 	HTRequest_delete(oldreq);
     }
 }
+
 
 /*
 **  This function deletes the whole list of active threads.
 */
 PRIVATE void Thread_deleteAll NOARGS
 {
+    BOOL first=YES;	      /* We only have one global list of conversions */
     if (reqlist) {
 	HTList *cur = reqlist;
 	HTRequest* pres;
-	while ((pres = (HTRequest *) HTList_nextObject(cur)) != NULL)
-	    HTRequest_delete(pres);
+	while ((pres = (HTRequest *) HTList_nextObject(cur)) != NULL) {
+	    if (first) {
+		HTRequest_delete(pres);
+		first = NO;
+	    } else {
+		pres->conversions = NULL;
+		HTRequest_delete(pres);
+	    }
+	}
 	HTList_delete(reqlist);
 	reqlist = NULL;
     }
@@ -609,7 +592,9 @@ PRIVATE void Thread_deleteAll NOARGS
 /*
 **  This function puts up a stream to a file in order to save a document. This
 **  is activated by '>', '>>' or '>!' from the prompt line.
-**  Returns NO if Error and YES if OK
+**  Returns:
+**	YES if load terminated (either success or failure)
+**	 NO if error or operation blocked
 **
 **  Henrik Frystyk 02/03-94
 */
@@ -645,17 +630,18 @@ PRIVATE BOOL SaveOutputStream ARGS2(char *, This, char *, Next)
     }
 
     /* Now, file is open and OK: reload the text and put up a stream for it! */
-    if (TRACE) fprintf(stderr, "Saving to file %s\n", fname);
+    if (TRACE)
+	fprintf(stderr, "Saving to file %s\n", fname);
     {
-	BOOL ret = NO;
+	int status;
 	HTRequest *req = Thread_new(NO); 	     /* Set up a new request */
-	if(OutSource)
+	if (OutSource)
 	    req->output_format = WWW_SOURCE;
 	req->output_stream = HTFWriter_new(fp, NO);
 	HTForceReload = YES;
-	ret = HTLoadAnchor((HTAnchor*) HTMainAnchor, req);
+	status = HTLoadAnchor((HTAnchor*) HTMainAnchor, req);
 	HTForceReload = NO;
-	return ret;
+	return (status != HT_WOULD_BLOCK);
     }
 }
 
@@ -667,7 +653,7 @@ PRIVATE BOOL SaveOutputStream ARGS2(char *, This, char *, Next)
 **	Any Command which works returns from the routine. If nothing
 **	works then a search or error message down at the bottom.
 */
-PUBLIC HTEventState EventHandler ARGS1(HTRequest *, actreq)
+PUBLIC HTEventState EventHandler ARGS1(HTRequest **, actreq)
 { 
     int  ref_num;
     HTEventState status = EVENT_OK;
@@ -677,6 +663,7 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest *, actreq)
     char * next_word;			                      /* Second word */
     char * other_words;				/* Second word and following */
     BOOL is_index = HTAnchor_isIndex(HTMainAnchor);
+    int loadstat = HT_INTERNAL;
 
     if (!fgets(choice, RESPONSE_LENGTH, stdin))		  /* Read User Input */
 	return EVENT_QUIT;				      /* Exit if EOF */
@@ -713,15 +700,12 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest *, actreq)
 	sscanf(this_word,"%d",&ref_num);
 	if (ref_num>0 && ref_num<=HText_sourceAnchors(HTMainText)) {
 	    HTAnchor *destination;
-	    HTRequest *newreq;
 	    HTChildAnchor *source = HText_childNumber(HTMainText, ref_num);
 	    if (source) {
-		newreq = Thread_new(YES);
+		*actreq = Thread_new(YES);
 		destination = HTAnchor_followMainLink((HTAnchor*) source);
-		newreq->parentAnchor = HTAnchor_parent((HTAnchor *) source);
-		HTLoadAnchor(destination, newreq);
-		free(the_choice);
-		return EVENT_OK;
+		(*actreq)->parentAnchor = HTAnchor_parent((HTAnchor *) source);
+		loadstat = HTLoadAnchor(destination, *actreq);
 	    } else {
 		status = EVENT_QUIT;				/* No anchor */
 	    }
@@ -730,22 +714,20 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest *, actreq)
 		fprintf(stderr, "Warning: Invalid Reference Number: (%d)\n",
 			ref_num);
 	}
-	goto ret;
 	break;
 	
       case 'B':		
 	if (Check_User_Input("BACK")) {		  /* Return to previous node */
 	    if (HTHistory_canBacktrack()) {
-		HTLoadAnchor(HTHistory_backtrack(), actreq);
+		*actreq = Thread_new(YES);
+		loadstat = HTLoadAnchor(HTHistory_backtrack(), *actreq);
 	    } else {
 		printf("\n  The BACK command cannot be used,");
 		printf(" as there are no previous documents\n"); 
 	    }
-	}
-	else if (Check_User_Input("BOTTOM")) {		/* Scroll to bottom  */
+	} else if (Check_User_Input("BOTTOM")) {	/* Scroll to bottom  */
 	    HText_scrollBottom(HTMainText);
 	}
-	goto ret;
 	break;
 	
 #ifdef unix
@@ -760,51 +742,49 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest *, actreq)
 	  down:
 	    if (HText_canScrollDown(HTMainText))
 		HText_scrollDown(HTMainText);
-	    goto ret;
 	}
 	break;
 	
       case 'E':			       /* Quit program ? Alternative command */
 	if (Check_User_Input("EXIT"))
-	    goto stop;
+	    status = EVENT_QUIT;
 	break;
 	
       case 'F':						 /* Keyword search ? */
 	if (is_index && Check_User_Input("FIND")) {
 	  find:
-	    if (next_word && HTSearch(other_words, HTMainAnchor, actreq))
-		HTHistory_record((HTAnchor *) HTMainAnchor);
-	    goto ret;
+	    {
+		if (next_word) {
+		    *actreq = Thread_new(YES);
+		    loadstat = HTSearch(other_words, HTMainAnchor, *actreq);
+		}
+	    }
 	}
 	break;
 	
       case 'G':
 	if (Check_User_Input("GOTO")) {				     /* GOTO */
 	    if (next_word) {
-		HTRequest *newreq = Thread_new(YES);
-		HTLoadRelative(next_word, HTMainAnchor, newreq);
-		goto ret;
+		*actreq = Thread_new(YES);
+		loadstat = HTLoadRelative(next_word, HTMainAnchor, *actreq);
 	    }
 	}
 	break;
 	
       case '?':
 	help_screen();
-	goto ret;
+	break;
 	
       case 'H':
-	if (Check_User_Input("HELP")){			     /* help menu, ..*/
+	if (Check_User_Input("HELP")) {			     /* help menu, ..*/
 	    help_screen();			  /*!! or a keyword search ? */
-	    goto ret; 
-	}
-	else if (Check_User_Input("HOME")) {			/* back HOME */
-	    if (!HTHistory_canBacktrack()){ 
+	} else if (Check_User_Input("HOME")) {			/* back HOME */
+	    if (!HTHistory_canBacktrack()) {
 		HText_scrollTop(HTMainText);
 	    } else {
-		HTLoadAnchor(HTHistory_recall(1), actreq);
-		/* !! this assumes history is kept.*/
+		*actreq = Thread_new(YES);
+		loadstat = HTLoadAnchor(HTHistory_recall(1), *actreq);
 	    }
-	    goto ret;
 	}
 	break;
 	
@@ -815,22 +795,18 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest *, actreq)
 	break;
 	
       case 'L':
-	if (Check_User_Input("LIST")){		     /* List of references ? */
+	if (Check_User_Input("LIST")) {		     /* List of references ? */
 	    Reference_List(!OutSource);
-	    goto ret;
 	}
 #ifdef unix
 	else if (Check_User_Input ("LCD")) {	       /* Local change dir ? */
 	  lcd:
 	    if (!next_word) {				 /* Missing argument */
 		printf ("\nName of the new local directory missing.\n");
-		goto ret;
-	    }
-	    if (chdir (next_word)) {			 /* failed : say why */
+	    } else if (chdir (next_word)) {		 /* failed : say why */
 		fprintf (stderr, "\n  ");
 		perror (next_word);
-	    }
-	    else {		    /* Success : display new local directory */
+	    } else {		    /* Success : display new local directory */
 		/* AS Sep 93 */
 #ifdef NO_GETWD     /* No getwd() on this machine */
 #ifdef HAS_GETCWD   /* System V variant SIGN CHANGED TBL 921006 !! */
@@ -846,16 +822,14 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest *, actreq)
 #endif  /* has getwd */
 		/* End AS Sep 93 */
 	    }
-	    goto ret;
 	}
 #endif
 	break;
 	
       case 'M':
 	if (Check_User_Input("MANUAL")) {		 /* Read User manual */
-	    if (HTLoadRelative(MANUAL, HTMainAnchor, actreq))
-		HTHistory_record((HTAnchor *) HTMainAnchor);
-	    goto ret;
+	    *actreq = Thread_new(YES);
+	    loadstat = HTLoadRelative(MANUAL, HTMainAnchor,*actreq);
 	}
 	break;
 	
@@ -866,10 +840,10 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest *, actreq)
 		if (!HTHistory_canBacktrack())
 		    printf(" document as there is no last");
 		printf(" document.\n");
-		goto ret; 
+	    } else {
+		*actreq = Thread_new(YES);
+		loadstat = HTLoadAnchor(HTHistory_moveBy(1),*actreq);
 	    }
-	    HTLoadAnchor(HTHistory_moveBy(1), actreq);
-	    goto ret;
 	}
 	break;
 	
@@ -880,10 +854,10 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest *, actreq)
 		if (!HTHistory_canBacktrack())
 		    printf(" document as there is no last");
 		printf(" document.\n");
-		goto ret;
+	    } else {
+		*actreq = Thread_new(YES);
+		loadstat = HTLoadAnchor(HTHistory_moveBy(-1), *actreq);
 	    }
-	    HTLoadAnchor(HTHistory_moveBy(-1), actreq);
-	    goto ret;
 	}
 #ifdef GOT_SYSTEM	    
 	else if (!HTClientHost && Check_User_Input("PRINT")) {
@@ -899,7 +873,6 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest *, actreq)
 	    free(address);
 	    free(command);
 	    if (result) printf("  %s\n  returns %d\n", command, result);
-	    goto ret;
 	}
 #endif
 	/* this command prints the entire current text to the
@@ -908,7 +881,7 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest *, actreq)
 #define SLAVE_PRINTER_ON  "\033\133\065\151"
 #define SLAVE_PRINTER_OFF "\033\133\064\151"
 	
-	if (Check_User_Input("PS")) {
+	else if (Check_User_Input("PS")) {
 	    printf ("%s",SLAVE_PRINTER_ON);
 	    printf("\f");			   /* Form feed for new page */
 	    HText_scrollTop(HTMainText);
@@ -918,92 +891,81 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest *, actreq)
 	    printf("\f");  /* Form feed for new page */
 	    printf ("%s",SLAVE_PRINTER_OFF);
 	    HText_scrollTop(HTMainText);
-	    goto ret;
 	}	
 #endif
 	break;
 	
       case 'Q':						   /* Quit program ? */
 	if (Check_User_Input("QUIT")) {
-#ifdef VM
-	    if (HTHistory_canBacktrack()){       /* Means one level only */
-		HTLoadAnchor(HTHistory_backtrack(), actreq);
-		goto ret;
-	    } else {
-		goto stop;		              /* On last level, exit */
-	    }
-#endif
-	    
+
 	    /* 	JFG 9/7/92, following a complaint of 'q' mis-typed for '1'.
 		JFG Then made optional because I hate it !!!
 		TBL made it only affect remote logged on users. 921122 */
 	    
 	    if (HTClientHost && (strcasecomp(this_word, "quit") != 0) ) {
 		printf ("\n Please type \"quit\" in full to leave www.\n");
-		goto ret;
-	    }
-	    goto stop;
+	    } else
+		status = EVENT_QUIT;
 	}
 	break;
 	
       case 'R':	
 #ifdef VM
 	if (Check_User_Input("RETURN"))		       /* Means quit program */
-	    goto stop;
+	    status = EVENT_QUIT;
+	else
 #endif	    
 	if (Check_User_Input("RECALL")) {
 	    int  recall_node_num;
 	    
 	    if (!HTHistory_canBacktrack()) {	       /* No nodes to recall */
 		printf("\n  No other documents to recall.\n");
-		goto ret;
+	    } else {
+		/* Previous node number exists, or does the user just */
+		/* require a list of nodes visited? */
+		if (next_word) {
+		    if ((recall_node_num = atoi(next_word)) > 0) {
+			*actreq = Thread_new(YES);
+			loadstat =
+			    HTLoadAnchor(HTHistory_recall(recall_node_num),
+					 *actreq);
+		    } else {
+			ErrMsg("Bad command, for list of commands type help.",
+			       this_command);
+		    }
+		} else {
+		    History_List();
+		}
 	    }
-	    
-	    /* Previous node number exists, or does the user just */
-	    /* require a list of nodes visited? */
-	    if (next_word) {
-		if ((recall_node_num = atoi(next_word)) > 0)  /* Parm OK */
-		    HTLoadAnchor(HTHistory_recall(recall_node_num),
-				 actreq);
-		else
-		    ErrMsg("Bad command, for list of commands type help.",
-			   this_command);
-	    }
-	    else 
-		History_List();
-	    goto ret;
 	} else if (Check_User_Input("REFRESH")) {
 	    HText_select(HTMainText);			   /* Refresh screen */
-	    goto ret;
 	}
 	break;
 	
       case 'S':						       /* TBL 921009 */
 	if (Check_User_Input("SOURCE")) {     	  	  /* Apply to source */
-	    if (!next_word) goto ret;        /* Should refresh as source @@@ */
-	    OutSource = YES;		 	 /* Load and print as source */
-	    this_word = next_word;		         /* Move up one word */
-	    next_word = strtok (NULL, " \t\n\r");
-	    this_command = the_choice + (this_word - choice);
-	    other_words = the_choice + (next_word - choice);
-	    goto loop;	               	       	       /* Go treat as before */
+	    if (next_word) {
+		OutSource = YES;		 /* Load and print as source */
+		this_word = next_word;		         /* Move up one word */
+		next_word = strtok (NULL, " \t\n\r");
+		this_command = the_choice + (this_word - choice);
+		other_words = the_choice + (next_word - choice);
+		goto loop;	                       /* Go treat as before */
+	    }
 	} else if (Check_User_Input("SET")) {          	           /* config */
 	    HTSetConfiguration(other_words);
-	    goto ret;
 	}
 	break;
 	
       case 'T':
 	if (Check_User_Input("TOP")) {			   /* Return to top  */
 	    HText_scrollTop(HTMainText);
-	    goto ret;
 	}
 	break;
 	
       case 'U':
 	if (Check_User_Input("UP")) {		      /* Scroll up one page  */
 	    HText_scrollUp(HTMainText);
-	    goto ret;
 	}
 	break;
 	
@@ -1011,20 +973,18 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest *, actreq)
 	if (Check_User_Input("VERBOSE")) {	     /* Switch verbose mode  */
 	    WWW_TraceFlag = WWW_TraceFlag ? 0 : OldTraceFlag;
 	    printf ("\n  Verbose mode %s.\n", WWW_TraceFlag ? "ON":"OFF");
-	    goto ret;
 	}
 	break;
 	
       case 'Z':
 	HText_select(HTMainText);			   /* Refresh screen */
 	status = EVENT_INTR_ALL;
-	goto ret;
 	break;
 
       case '>':
 	if (!HTClientHost) {
-	    SaveOutputStream(this_word, next_word);
-	    goto ret;
+	    if (SaveOutputStream(this_word, next_word))
+		loadstat = HT_WOULD_BLOCK;
 	}
 	break;
 	
@@ -1050,8 +1010,8 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest *, actreq)
 	        printf("  %s  returns %d\n", command, result);
 	    free(command);
      	    free(address);
-	    goto ret;
 	}
+	break;
 #endif
 	    
 #ifdef GOT_SYSTEM
@@ -1062,28 +1022,26 @@ PUBLIC HTEventState EventHandler ARGS1(HTRequest *, actreq)
 	    result = system(strchr(this_command, '!') + 1);
 	    if (result) printf("  %s  returns %d\n",
 			       strchr(this_command, '!') + 1, result);
-	    goto ret;
 	}
+	break;
 #endif
       default:
+	if (is_index && *this_word) {	     /* No commands, search keywords */
+	    next_word = other_words = this_command;
+	    goto find;
+	} else {             
+	    ErrMsg("Bad command, for list of commands type help.",
+		   this_command);
+	}
 	break;
     } /* Switch on 1st character */
-	
-    if (is_index && *this_word) {	     /* No commands, search keywords */
-	next_word = other_words = this_command;
-	goto find;
-    } else {             
-	ErrMsg("Bad command, for list of commands type help.", this_command);
-    }
-	
-  ret:
-    MakeCommandLine(is_index);
+
+    if (loadstat != HT_INTERNAL && loadstat != HT_WOULD_BLOCK)
+	status = EVENT_TERM;
+    if (loadstat != HT_LOADED)
+	MakeCommandLine(is_index);
     free (the_choice);
     return status;
-	
-  stop:
-    free(the_choice);
-    return EVENT_QUIT;
 }
 
 
@@ -1114,6 +1072,7 @@ PUBLIC HTEventState HTEventRequestTerminate ARGS2(HTRequest *,	actreq,
 	MakeCommandLine(is_index);
     } else if (!HTMainText)			      /* If first try failed */
 	return EVENT_QUIT;
+    Thread_delete(actreq);
     return EVENT_OK;
 }
 
@@ -1427,9 +1386,12 @@ int main ARGS2(int, argc, char **, argv)
 #endif
 
     /* Force predefined presentations etc to be set up */
-    if (HTInteractive)
-	HTFormatInit(request->conversions);
-    else
+    if (HTInteractive) {
+	conversions = HTList_new();
+	HTFormatInit(conversions);
+	HTList_delete(request->conversions);
+	request->conversions = conversions;
+    } else
 	HTFormatInitNIM(request->conversions);
 
     /* Open output file */

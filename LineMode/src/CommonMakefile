@@ -67,6 +67,7 @@ SOURCES = $(LM)HTBrowse.c	$(LM)HTBrowse.h \
 	$(LM)README \
 	$(WWW)/README		$(WWW)/COPYRIGH \
 	$(WWW)/BUILD		$(WWW)/BUILD.SH \
+	$(WWW)/makefile \
  	$(LM)a_stdio.g		$(LM)a_stdio.h
 
 DISTRIBUTION = \
@@ -248,7 +249,7 @@ $(OBJ)/a_stdio.o : $(OE) $(LM)a_stdio.g $(LM)a_stdio.h
 # For W3 Administrative use only:
 
 #	Source Destribution
-distribute : $(WWW)/README $(WWW)/COPYRIGHT
+distribute : $(WWW)/README $(WWW)/COPYRIGHT $(SOURCES)
 	(cd $(WWW)/.. && WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 	-f WWW/LineMode/Implementation/Version.make \
 	-f WWW/LineMode/Implementation/CommonMakefile \
@@ -270,10 +271,10 @@ $(FTP)/www/src/WWWLineMode_$(VL).tar.Z : $(SOURCES)
 #		---------------------------------
 
 $(WWW)/README : $(WWW)/../README.html
-#	www -p -na http://info.cern.ch/hypertext/README.html -o $(WWW)/README
+	www -p -na http://info.cern.ch/hypertext/README.html -o $(WWW)/README
 
 $(WWW)/COPYRIGHT : $(WWW)/../COPYRIGHT.html
-#	www -p -na http://info.cern.ch/hypertext/COPYRIGHT.html -o $(WWW)/COPYRIGH
+	www -p -na http://info.cern.ch/hypertext/COPYRIGHT.html -o $(WWW)/COPYRIGH
 
 #	Line Mode Manual
 #
