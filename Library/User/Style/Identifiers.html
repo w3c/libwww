@@ -1,22 +1,41 @@
-<TITLE>Identifiers -- /Project</TITLE>
-<NEXTID 2>
-<H1>Identifiers</H1>When chosing identifier names, 
+<HEAD>
+<TITLE>Identifiers</TITLE>
+</HEAD>
+<BODY>
+
+<A HREF="../"><IMG ALT="WWW" SRC="../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../Overview.html"><IMG ALT="C-Style" SRC="../Icons/WWW/progstyle48x.gif"></A>
+
+<H1>Identifiers</H1>
+
+When chosing identifier names, it is important that you follow the
+following rules:
+
 <UL>
-<LI>Macros should be un upper case entirely unless they mimic and replace
-a genuine function.
-<LI>External names should be prefixed with HT to avoid confusion with
-other projects' code. Wthin the rest of the identifier, we use initial
-capitals a la Objective-C (e.g. HTSendBuffer).
-<LI>The macro SHORT_NAMES is defined on systems in which external names
-must be unique to within 8 characters (case insesitive). If your names
-would clash, at the top of the .h file for a module you should include
-macros defining distinct short names:
+
+<LI>Macros should be un upper case entirely unless they mimic and
+replace a genuine function.
+
+<LI>External names should be prefixed with <B>HT</B> to avoid
+confusion with other projects' code. For the rest of the identifier,
+we use initial capitals a la Objective-C, for example
+
+<PRE>
+	HTSendBuffer
+</PRE>
+
+<LI>Do <EM>NOT</EM> use global variables unless you have a <B>very</B>
+good reason. It has taken a long time to get rid of them so that we
+can use threads - so don't start this bad habit again!
+
+<LI>Remember to use the <CODE>PRIVATE</CODE> and <CODE>PUBLIC</CODE>
+macros to define local or global identifiers
+
 </UL>
-<XMP>			#ifdef SHORT_NAMES
-			#define HTSendBufferHeader	HTSeBuHe
-			#define HTSendBuffer		HTSeBuff
-			#endif
 
-
-</XMP>(back to <A NAME=1 HREF=Coding.html>Overview</A>)<P>
-___________________________________________________________
+<P>
+<HR>
+<ADDRESS><A HREF="/hypertext/TBL_Disclaimer.html">Tim BL</A>, and <A
+HREF="../People.html#Frystyk">Henrik Frystyk</A>, May 1995</ADDRESS>
+</BODY>
+</HTML>

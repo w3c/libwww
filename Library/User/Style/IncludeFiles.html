@@ -1,24 +1,71 @@
-<TITLE>IncludeFiles -- /Project</TITLE>
-<NEXTID 4>
+<HEAD>
+<TITLE>Include Files</TITLE>
+</HEAD>
+<BODY>
+
+<A HREF="../"><IMG ALT="WWW" SRC="../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../Overview.html"><IMG ALT="C-Style" SRC="../Icons/WWW/progstyle48x.gif"></A>
+
 <H1>Include Files</H1>
-<H2>Module include files</H2>Every module in the project should have a C #incldue file defining
-its interface, and a   .c source file (of the same name apart from
-the suffix) containing the implementation. <P>
-The .c file should #include its own .h file.<P>
-A .h file should be protected so that no errors occur if  it is #included
-twice.<P>
-An interface which relies on other interfaces should #include those
+
+There are three kinds of include files:
+
+<UL>
+<LI>Application include files
+<LI>Library include files
+<LI>System include files and standard C include files
+</UL>
+
+<H2>Application Include Files</H2>
+
+The .c file should #include its own .h file. A .h file should be
+protected so that no errors occur if it is #included twice. This can
+be done by the following directives:
+
+<PRE>
+	#ifndef HTFOO_H
+	#define HTFOO_H
+
+	All the stuff
+
+	#endif /* HTFOO_H */
+</PRE>
+
+An interface which relies on other interfaces should include those
 interface files.  An implemention file which uses other modules should
-#include the .h file if it not already #included by its own .h file.
-<H2>Common include files</H2>These are all in the WWW/Implementation directory.
-<DL>
-<DT><A NAME=1>HTUtils.h</A>
-<DD> Definitions of macros like PUBLIC and PRIVATE and YES and
-NO. For use in all .c files.
-<DT>tcp.h
-<DD> All machine-dependent code for accesing TCP/IP channels and
-files. Also defines some machine-dependent bits like SHORT_NAMES.
-<DT>WWW.h
-<DD> Project-wide definition of constants, etc.
-</DL>
-(See also: <A NAME=2 HREF=Coding.html>Style in general</A> , <A NAME=3 HREF=Directories.html>directory structure</A> )
+include the .h file if it not already included by its own .h file. <P>
+
+<IMG SRC="../Icons/32x32/warning.gif" ALT="WARNING"> The text format
+in description files which are converted into declaration files
+<EM>MUST NOT</EM> be more than 90 characters wide - otherwise it will
+get chopped off by the <A HREF="../LineMode/">Line Mode Browser</A>
+the way the conversion is set up.
+
+<H2>Library Include Files</H2>
+
+If you are making a <A HREF="../Library/">Library of Common Code</A>
+module then you need to include all the modules that you reference in
+your code. You will in all cases need the following:
+
+<PRE>
+	#include "tcp.h"
+	#include "HTUtils.h"
+	#include "HTString.h"
+</PRE>
+
+If you are <B>not</B> making a Library module, then the only one you
+need is <A HREF="../Library/Implementation/WWWLib.html">WWWLib.h</A>
+
+<H2>System include files and standard C include files</H2>
+
+As these are included in the Library code, you will normally not need
+to (and should avoid) include any such files. The reason is that these
+include files are very difficult to get portable over multiple
+platforms.
+
+<P>
+<HR>
+<ADDRESS><A HREF="/hypertext/TBL_Disclaimer.html">Tim BL</A>, and <A
+HREF="../People.html#Frystyk">Henrik Frystyk</A>, May 1995</ADDRESS>
+</BODY>
+</HTML>

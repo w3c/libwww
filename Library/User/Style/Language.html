@@ -1,59 +1,105 @@
-<HEADER>
-<TITLE>Language -- /Project</TITLE>
-<NEXTID N="7">
-</HEADER>
+<HEAD>
+<TITLE>House Style for C Programming</TITLE>
+</HEAD>
 <BODY>
-<H1>Language features</H1>Code to be common shared code must
-(unfortunately!) be written in C,
-rather than any objective C or C++,
-to ensure maximum portability. This
-section does not apply to code written
-for specific platforms.<P>
-C code must compile under either
-a conforming ANSI C compiler OR an
-original Kernighan Ritchie C compiler.
-Therefore, the __STDC__ macro must
-be used to select alternative code
-where necessary.. (<A
-NAME=1 HREF="Ex_Heading.html"> example</A> )<P>
-Code should compile without warnings
-under an ANSI C compiler such as
-gcc with all warnings enabled.
+
+<A HREF="../"><IMG ALT="WWW" SRC="../Icons/WWW/WWW48x.gif"></A>
+<A HREF="Overview.html"><IMG ALT="C-Style" SRC="../Icons/WWW/progstyle48x.gif"></A>
+
+<H1>Language Features</H1>
+
+One of the main objectives is to use the ANSI C and the POSIX.1
+standard <EM>wherever possible</EM> in order to maximum
+portability. This means that we can not use (unfortunately!) neither
+objective C nor C++. However, we also want to support original
+Kernighan Ritchie C compilers and C++ compilers which brings in two
+important aspects in the coding style:
+
 <DL>
-<DT>Parameters and Arguments
-<DD> The <A
-NAME=3 HREF="Macros.html#1">PARAMS(())
-macro</A>  is used to give a format parameter
-list in a declataion so that it will
-be suppressed if the compiler is
-not standard C - see <A
-NAME=4 HREF="Ex_Heading.html">example</A> .  The
-ARGS1 macro is for the declaration
-of the implementation,  taking first
-the type then the argument name.
-For n arguments, macros <A
-NAME=5 HREF="Macros.html#9">ARGn</A> exists
-taking 2n arguments each.
-<DT>#endif
-<DD> Do put the ending condition
-in a comment. Don't put  it as code
-- it won't pass all compilers. 
-<DT>#elif
-<DD> Don't use it. Basic cpp doesn't
-know it.
-<DT>#preprocessor statements
-<DD> DON'T indent
-any preprocessor statements. They
-must (for some compilers) begin in
-column 1.
-<DT>const
-<DD> This keyword does not exist
-in K C, so use the macro <A
-NAME=6 HREF="Macros.html#10">CONST</A> which
-expands to "const" under standard
-C and nothing otherwise. -- See HTUtils.h
+
+<DT>Function Declarations and Prototypes
+
+<DD>In order to support both ANSI C and K&amp;R C function declaration
+use the <A
+HREF="../Library/Implementation/HTUtils.html#declaration"><CODE>ARGS</CODE>
+and <CODE>PARAMS</CODE></A> when declaring a function. Another
+important macro is <CODE>CONST</CODE> as this is not supported by
+K&amp;R C. This is explained more in <A HREF="Macros.html">Macros</A>.
+
+<DT>Reserved words
+
+<DD>It is important that there are no reserved words used as variable
+names, function calls etc in our code. Some of the more common problem
+makes are listed below but see also <A
+HREF="Identifiers.html">Identifiers</A>
+
+<UL>
+<LI>new
+<LI>this
+<LI>class
+<LI>template
+<LI>operator
+<LI>friend
+<LI>catch
+</UL>
+
 </DL>
-(part of: <A
-NAME=2 HREF="Coding.html">style guide</A> )
-<ADDRESS><A
-NAME=0 HREF="http://www.w3.org./hypertext/TBL_Disclaimer.html">Tim BL</A></BODY>
+
+As the world is not ideal, there are some traps that often show up
+when coding after these standards. This sections gives an overview of
+the more serious ones:<P>
+
+<DL>
+
+<DT><CODE>memmove()</CODE>
+<DD>Many platforms do not support this feature or dump core
+<DT><CODE>malloc()</CODE>
+
+<DD>One some platforms <CODE>malloc()</CODE> returns <CODE>NULL</CODE>
+if size is 0.
+
+<DT>Variable length argument list
+<DD>This is not supported on a lot of platforms
+
+<DT><CODE>CONST</CODE> (const) and <CODE>PRIVATE</CODE> (static)
+
+<DD>gcc has a problem with variables declared both <CODE>static</CODE>
+and <CODE>const</CODE>.
+
+<DT><CODE>#endif</CODE>
+
+<DD>Do put the ending condition in a comment. Don't put it as code -
+it won't pass all compilers.
+
+<DT>#elif
+<DD> Don't use it. Basic <B>cpp</B> doesn't know it.
+
+<DT>#preprocessor statements
+
+<DD>DON'T indent any preprocessor statements. They must (for some
+compilers) begin in column 1.
+
+<DT>const
+
+<DD>As mentioned above, this keyword does not exist in K&amp;C, so use
+the macro <A HREF="Macros.html#10">CONST</A> which expands to
+<CODE>const</CODE> under standard C and nothing otherwise.
+
+<DT>Comments
+
+<DD>Don't use <CODE>//</CODE> as a comment delimiter. This is not
+supported by ANSI C.
+
+</DL>
+
+Remember that your code should compile without warnings under an ANSI
+C compiler such as gcc with all warnings enabled <B>BUT</B> this is
+not enough. The more native compilers you can use the better - gcc is
+<EM>not</EM> the only answer of an ANSI compiler.
+
+<P>
+<HR>
+<ADDRESS><A HREF="/hypertext/TBL_Disclaimer.html">Tim BL</A>, and <A
+HREF="../People.html#Frystyk">Henrik Frystyk</A>, May 1995</ADDRESS>
+</BODY>
+</HTML>

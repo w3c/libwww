@@ -1,26 +1,78 @@
-<TITLE>Headings -- /Project</TITLE>
-<NEXTID 3>
-<H1>Function Headings</H1>This style concerns the comments, and so is not essential to compilation.
+<HEAD>
+<TITLE>Include Files</TITLE>
+</HEAD>
+<BODY>
+
+<A HREF="../"><IMG ALT="WWW" SRC="../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../Overview.html"><IMG ALT="C-Style" SRC="../Icons/WWW/progstyle48x.gif"></A>
+
+<H1>Function Headings</H1>
+
+This style concerns the comments, and so is not essential to compilation.
 However, it helps readability of code written by a number of people.
 Some of these conventions may be arbitrary, but are none the less
 useful for that. 
-<H2>Format</H2>See a <A NAME=1 HREF=Ex_Heading.html>sample procedure heading</A> . Note:-
-<UL>
-<LI>White space of two lines separating functions.
-<LI>The identifier of the function right-justified to make it easy to
+
+<H2>Format</H2>
+
+A typical example of a function header looks like:
+
+<PRE>
+/*	Scan a line						scan_line()
+**	-----------
+**	This function scannes a string for ...
+**
+** On entry,
+**	l		points to the zero-terminated line to be scanned
+** On exit,
+**	*l		The line has null termintors inserted after each
+**			 word found.
+**	return value	is the number of words found, or -1 if error.
+**	lines		This global value is incremented.
+*/	
+PRIVATE int scan_line ARGS1(const char *, l)
+{
+   /* Code here */
+
+
+}
+</PRE>
+
+<DL>
+
+<DT>Separation of functions
+<DD>White space of two lines separating functions
+
+<DT>Name of the function 
+<DD>The identifier of the function right-justified to make it easy to
 find when flicking through a listing
-<LI>The separate definitions for standard and old C.
-<LI>The macros PUBLIC and PRIVATE (in <A NAME=2 HREF=IncludeFiles.html#1>HTUtils.h</A> ) expand to null and to
-"static" respectively.  They show that one has thought about whether
-visibility is required outside the module, and they get over the overloading
-of the keyword "static" in C. Use one or the other. (Use for top level
-variables too).
-</UL>
-<H2>Entry and exit condidtions</H2>It is most important to document the function as seen by the rest
+
+<DT>Function header
+<DD>The macros <CODE>PUBLIC</CODE> and <CODE>PRIVATE</CODE> (in <A
+HREF="../Library/Implementation/HTUtils.html">HTUtils.h</A>) expand to
+<CODE>NULL</CODE> and to <CODE>static</CODE> respectively. They show
+that one has thought about whether visibility is required outside the
+module, and they get over the overloading of the keyword "static" in
+C. Use one or the other. (Use for top level variables too).
+
+<DT>Entry and exit conditions 
+
+<DD>It is most important to document the function as seen by the rest
 of the world (especially the caller). The most important aspects of
-the appearance of the function to the caller are the pre- and post-conditions.<P>
-The pre conditions include the value of the parameters and structures
-they point to.  Both include any requirements on or changes to global
-data, the screen, disk files, etc.<P>
-_________________________________________________________________
-<ADDRESS><A NAME=0 HREF=http://www.w3.org./hypertext/TBL_Disclaimer.html>Tim BL</A></A>
+the appearance of the function to the caller are the pre- and
+post-conditions. The preconditions include the value of the parameters
+and structures they point to. Both include any requirements on or
+changes to global data, the screen, disk files, etc.
+
+</DL>
+
+<IMG SRC="../Icons/32x32/caution.gif" ALT="NOTE"> We have a set of
+predefined exit values in <A
+HREF="../Library/Implementation/HTUtils.html">HTUtils module</A>.
+
+<P>
+<HR>
+<ADDRESS><A HREF="/hypertext/TBL_Disclaimer.html">Tim BL</A>, and <A
+HREF="../People.html#Frystyk">Henrik Frystyk</A>, May 1995</ADDRESS>
+</BODY>
+</HTML>

@@ -1,39 +1,90 @@
-<HEADER>
-<TITLE>ModuleHeader -- /Project</TITLE>
-<NEXTID N="2">
-</HEADER>
+<HEAD>
+<TITLE>Modules</TITLE>
+</HEAD>
 <BODY>
-<H1>Module Header</H1>The module header is the comment
-at the top of a .h or .c file. Information
-need not (except for the title) be
-repeated in both the .c and .h files.
-Of course History sections are separate.
-See a dummy <A
-NAME=1 HREF="Ex_ModuleHeader.html">example</A> . Note:-
+
+<A HREF="../"><IMG ALT="WWW" SRC="../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../Overview.html"><IMG ALT="C-Style" SRC="../Icons/WWW/progstyle48x.gif"></A>
+
+<H1>Modules</H1>
+
+A module consists normally of the following:
+
+<UL>
+<LI>A module definition file, for example <EM>foo.c</EM>
+<LI>A module declaration file, for example <EM>foo.h</EM>
+<LI>A module description file, for example <EM>foo.html</EM>
+</UL>
+
+Make sure that your file names are not <B>longer than 8 characters</B>
+as we support PCs as well. The declaration file is
+<B>automatically</B> generated from the description file. This ensures
+that the description of a module is done at the same time as the
+declartion of the module. The generation of the declaration files is
+done at compile time using the <A HREF="../LineMode/">Line Mode
+Browser</A>, so be sure that you have a recent version of this. <P>
+
+<IMG SRC="../Icons/32x32/caution.gif" ALT="NOTE"> It is <EM>very</EM>
+important that all modifications to the modules declaration part is
+done in the description file as this is what we keep in CVS - NOT the
+declaration file itself! <P>
+
+The module header is the comment at the top of a definition file and
+description file. Remember - as other people are going to read this
+then fill it out carefully.
+
+<PRE>
+/*				Foo Bar Module			foobar.c
+**				==============
+**
+** Authors:
+**	JB	J. Bloggs, ACME Widget Company, TX, USA
+**	JD	J. Doe, University of Tamahalahula, Samabaria
+**
+** History:
+**	   Jan 1983	First wriiten as a widget sorter (JB)
+**	23 Nov 1986	Converted into mangle worzle sorter (JD)
+**	38 Dec 1992	Bug fix: Used to carsh on null worzles. (JD, JB)
+**
+** Copyright:
+**	MIT copyright -- See Copyright.html
+*/
+
+
+/*			Global Data
+**			-----------
+*/
+</PRE>
+
 <DL>
+
 <DT>Heading
-<DD> To make it easy to spot the
-file in a long listing, put a header
-and te file name in the top right-hand
-corner.
+
+<DD> To make it easy to spot the file in a long listing, put a header
+and te file name in the top right-hand corner.
+
 <DT> Authors
-<DD> Just a list to make the
-initials intelligible. Use initials
-in the history or in comments in
-the file.
+
+<DD> Just a list to make the initials intelligible. Use initials in
+the history or in comments in the file.
+
 <DT>History
-<DD> A list of major changes of
-the file. You do not need to repeat
-information carried by a code management
-system or in an accompanying hypertext
-file.
+
+<DD> A list of major changes of the file. You do not need to repeat
+information carried by a code management system or in an accompanying
+hypertext file.
+
 <DT>Section headings
-<DD> Sections in the
-file such as public data, private
-module-wide data, etc should be made
-visible. Two blank lines and a heading
-are useful for this.
+
+<DD> Sections in the file such as public data, private module-wide
+data, etc should be made visible. Two blank lines and a heading are
+useful for this.
+
 </DL>
 
-<ADDRESS><A
-NAME=0 HREF="http://www.w3.org./hypertext/TBL_Disclaimer.html">Tim BL</A></BODY>
+<P>
+<HR>
+<ADDRESS><A HREF="/hypertext/TBL_Disclaimer.html">Tim BL</A>, and <A
+HREF="../People.html#Frystyk">Henrik Frystyk</A>, May 1995</ADDRESS>
+</BODY>
+</HTML>

@@ -1,34 +1,84 @@
-<TITLE>Body -- /Project</TITLE>
-<NEXTID 1>
-<H1>Function body layout</H1>With the body of functions, this is the way we aim to do it...we're
-not religious about it, but consistency helps.  If you think your
-way is smarter, you may be right but this is the way we do it.  <P>
-Whatever you do, NEVER make global changes to the indentation etc
-in a file without agreement from me first. (It screws up diffs and
-cde management as well as people).
+<HEAD>
+<TITLE>Function Body Layout</TITLE>
+</HEAD>
+<BODY>
+
+<A HREF="../"><IMG ALT="WWW" SRC="../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../Overview.html"><IMG ALT="C-Style" SRC="../Icons/WWW/progstyle48x.gif"></A>
+
+<H1>Function Body Layout</H1>
+
+With the body of functions, this is the way we aim to do it. We are
+not religious about it, but consistency helps. As noted earlier, if
+you think your way is smarter, you may be right but this is the way we
+do it ;-). The format is pretty close to the one you find in <EM>The C
+Programming Language</EM> by Kernighan and Ritchie.<P>
+
+Whatever you do, <B>NEVER</B> make global changes to the indentation
+etc. in a file - <B>THIS SCREWS UP DIFFS, CVS AS WELL AS PEOPLE</B>
+
 <H2>Indentation</H2>
+
 <UL>
-<LI>Put opening { at the end of the same line as the if, while, etc which
-affects the block;
-<LI>Align the closing brace with the START of that opening line;
-<LI>Indent everything between { and }  by an extra 4 (FOUR) spaces.
+
+<LI>Put opening { at the end of the same line as the <CODE>if</CODE>,
+<CODE>while</CODE>, etc which affects the block
+
+<LI>Align the closing brace with the <EM>START</EM> of that opening line
+
+<LI>Indent everything between { and }  by an extra 4 (FOUR) spaces, like
+
+<PRE>
+        for (i=0; i<2; i++) {
+            HTList *cur = conversions[i];
+            HTPresentation *pres;
+            while ((pres =(HTPresentation *) HTList_nextObject(cur))) {
+                if (pres->rep_out == WWW_PRESENT) {
+                    if (pres->quality != 1.0) {
+                        sprintf(line, "Accept: %s; q=%.3f%c%c",
+                                HTAtom_name(pres->rep),
+                                pres->quality, CR, LF);
+                    } else {
+                        sprintf(line, "Accept: %s%c%c",
+                                HTAtom_name(pres->rep), CR, LF);
+                    }
+                    HTChunkPuts(command, line);
+                }
+            }
+        }
+</PRE>
+
+<LI>Do not make lines wider than 80 characters. Otherwise it gets very
+difficult to read on a 80 character screen.
+
 <LI>Never indent preprocessor instructions (#ifdef, etc), nor increase
-the indentation level on account of preprocessor instructions.
+the indentation level on account of preprocessor instructions (some
+preprocessors do not understand indented directives)
+
 <LI>Block comments should start with /* in column 1, end end with */ in
 column 1. In between, having ** in column 1 is conventional but not
-necessary for very large comments.
+necessary for very large comments. A good example is:
+
+<PRE>
+/*
+** This is a comment that spans several lines. If you want to do this
+** then please use the comment markers as indicated. Do <EM>not</EM> use
+** C++ style comments - they are not portable
+*/
+</PRE>
+
 <LI>Comment the closing braces of conditionals and other blocks with the
 type of block, including the correct sense of the condition of the
 block being closed if there was an "else",  of the function name.
 For example,
 </UL>
-<XMP>			    if (cb[k]==0) {	/* if black */
-				foo = bar;
-			    } else {		/* if white */
-				foo = foobar;
-			    }			/* if white */
-			} 		/* switch on character */
-		    } 			/* loop on lines */
-		}			/* scan_lines()	*/
 
-</XMP>_________________________________________________________________
+<IMG SRC="../Icons/32x32/warning.gif" ALT="WARNING"> Remember to use
+comments in the source code - it makes life easier for everybody
+
+<P>
+<HR>
+<ADDRESS><A HREF="/hypertext/TBL_Disclaimer.html">Tim BL</A>, and <A
+HREF="../People.html#Frystyk">Henrik Frystyk</A>, May 1995</ADDRESS>
+</BODY>
+</HTML>
