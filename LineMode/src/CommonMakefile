@@ -68,6 +68,8 @@ SOURCES = $(LM)HTBrowse.c	$(LM)HTBrowse.h \
 	$(LM)HTFont.h 		$(LM)Version.make\
 	$(LM)DefaultStyles.c	$(LM)CommonMakefile
 
+INCLUDES = $(LM)GridStyle.h
+
 SPECIFIC =  \
 	$(LM)apollo_m68k/Makefile \
 	$(LM)decstation/Makefile \
@@ -126,9 +128,9 @@ $(USELIBDIR)/libwww.a :
 lib :
 	(cd $(WWW)/Library/$(WWW_MACH) && make)
 
-inc :
+inc :	$(INLCUDES)
+	echo Line mode browser include files up to date from html's.
 	(cd $(WWW)/Library/Implementation && make inc)
-
 
 #	Make a copy of the binary and documentation on this machine
 install :	$(PROD)

@@ -99,6 +99,7 @@
 #include "HTHistory.h"	/* Navigational aids */
 #include "HTML.h"	/* For parser */
 #include "HTFWriter.h"	/* For non-interactive output */
+#include "HTMLGen.h"	/* For reformatting HTML */
 #include "HTFile.h"	/* For Dir access flags */
 #include "HTRules.h"    /* For loading rule file */
 #include "HTError.h"
@@ -226,6 +227,7 @@ PRIVATE char        choice[RESPONSE_LENGTH];    /* Users response  */
 PRIVATE char * refhead = DEFAULT_REF_HEAD;  	   /* Reference list heading */
 PRIVATE char *	     logfile_root = 0;	      	/* Log file name */
 PRIVATE BOOL	     filter=0;		     	/* Load from stdin? */
+PRIVATE BOOL	     reformat_html=0;		 /* Reformat html? */
 PRIVATE BOOL	     listrefs_option = 0;	/* -listrefs option used?  */
 PRIVATE HTRequest * request;
 PRIVATE BOOL  OutSource = NO;			    /* Output source, YES/NO */
@@ -473,13 +475,18 @@ int main
 		if(HTScreenWidth > MAX_SCREEN_WIDTH)
 		    HTScreenWidth = MAX_SCREEN_WIDTH;
 		    
+	    /* reformat html */
+	    } else if (!strcmp(argv[arg], "-reformat")) {
+		request->output_format = WWW_HTML;
+		    interactive = NO;
+		    reformat_html = YES;
+
 	    /* to -- Final represntation */
 	    } else if (!strcmp(argv[arg], "-to")) {
 		request->output_format =
 		    (arg+1 >= argc || *argv[arg+1] == '-') ?
-		    WWW_PRESENT : 
-		    HTAtom_for(argv[++arg]);
-		    HTOutputSource = YES;		/* Turn on shortcut */
+		    	WWW_PRESENT : 
+		    	HTAtom_for(argv[++arg]);
 		    interactive = NO;			/* JFG */
 
 	    /* Telnet from */
@@ -663,6 +670,15 @@ int main
 	request->output_stream = HTFWriter_new(output, 
 					       output == stdout ? YES : NO);  
 	/* Just pump to stdout but YES: leave it open */
+	
+	/*	To reformat HTML, just put it through a parser running
+	**	into a regenerator   tbl 940613 */
+	
+	if (reformat_html) {
+	    request->output_stream = SGML_new(&HTMLP_dtd,
+	    			  HTMLGenerator(request->output_stream));
+
+	}
     }
     
     
@@ -743,17 +759,8 @@ int main
     if (interactive) {
 	while (Selection_Prompt());
 	
-    } else if (!HTOutputSource) {	/* Non-interactive but formatted */
-#ifdef OLD_CODE
-	fprintf(output, "\f");		/* Form feed for new page */
-	while(HText_canScrollDown(HTMainText)) {
-	    HText_scrollDown(HTMainText);
-	    fprintf(output, "\f");		/* Form feed for new page */
-	}
-#endif	
-	if (listrefs_option) {
+    } else if (listrefs_option) {
 	    Reference_List(NO);		/* List without titles */
-	}
     }
 
 endproc:
@@ -1527,12 +1534,10 @@ stop:   free(the_choice);
    ------------------------------------------------------------------------- */
 PRIVATE void ErrMsg ARGS2(char *, Msg, char *, Str)
 {
-    if (WWW_TraceFlag) {
-	if (Str)
-	    fprintf(stderr, "Line Mode Browser: %s (%s)\n", Msg, Str);
-	else
-	    fprintf(stderr, "Line Mode Browser: %s\n", Msg);
-    }
+    if (Str)
+	fprintf(stderr, "Line Mode Browser: %s (%s)\n", Msg, Str);
+    else
+	fprintf(stderr, "Line Mode Browser: %s\n", Msg);
 }
 
 
@@ -1575,7 +1580,7 @@ PRIVATE BOOL SaveOutputStream ARGS2(char *, This, char *, Next)
     }
 
     /* Now, file is open and OK: reload the text and put up a stream for it! */
-    ErrMsg("Save file", fname);
+    if (TRACE) fprintf(stderr, "Saving to file %s\n", fname);
     {
 	BOOL ret = NO;
 	HTRequest *req = HTRequest_new(); 	     /* Set up a new request */
