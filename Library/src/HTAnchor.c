@@ -275,10 +275,12 @@ PUBLIC BOOL HTAnchor_moveLinks ARGS2(HTAnchor *, src, HTAnchor *, dest)
     dest->mainLink.dest = src->mainLink.dest;
     dest->mainLink.type = src->mainLink.type;
     dest->mainLink.method = src->mainLink.method;
+    dest->mainLink.result = src->mainLink.result;
 
     src->mainLink.dest = NULL;
     src->mainLink.type = NULL;
-    src->mainLink.dest = METHOD_INVALID;
+    src->mainLink.method = METHOD_INVALID;
+    src->mainLink.result = HT_OK;
 
     /* Move link information for other links */
     if (dest->links)
