@@ -314,6 +314,27 @@ PRIVATE int make_month ARGS1(CONST char *, s)
 */
 PUBLIC long HTGetTimeZoneOffset NOARGS
 {
+#ifndef NO_TIMEZONE
+    {
+#ifdef HAS_ALTZONE
+	time_t cur_t = time(NULL);
+	struct tm * local = localtime(&cur_t);
+	if (daylight && local->tm_isdst==1)	/* daylight time? */
+	    HTTimeZone = altzone;		/* yes */
+	else
+	    HTTimeZone = timezone;		/* no */
+	HTTimeZone = -HTTimeZone;
+	if (TRACE)
+	    fprintf(TDEST,"TimeZone.... GMT + (%02d) hours (including DST)\n",
+		    (int) HTTimeZone/3600);
+#else
+	HTTimeZone = -timezone;
+	if (TRACE)
+	    fprintf(TDEST,"TimeZone.... GMT + (%02d) hours (excluding DST)\n",
+		    (int) HTTimeZone/3600);
+#endif
+    }
+#else
 #ifndef NO_GMTOFF
     {
 	time_t cur_t = time(NULL);
@@ -323,20 +344,7 @@ PUBLIC long HTGetTimeZoneOffset NOARGS
 			   (int)local->tm_gmtoff / 3600);
     }
 #else
-#ifndef NO_TIMEZONE
-    {
-	time_t cur_t = time(NULL);
-	struct tm * local = localtime(&cur_t);
-	if (daylight && local->tm_isdst==1)	/* daylight time? */
-	    HTTimeZone = altzone;		/* yes */
-	else
-	    HTTimeZone = timezone;		/* no */
-
-	HTTimeZone = -HTTimeZone;
-	if (TRACE)
-	    fprintf(TDEST,"TimeZone.... GMT + (%02d) hours\n",
-		    (int) HTTimeZone/3600);
-    }
+    if (TRACE) fprintf(TDEST,"TimeZone.... Not defined\n");
 #endif /* !NO_TIMEZONE */
 #endif /* !NO_GMTOFF */
     return HTTimeZone;
@@ -422,12 +430,16 @@ PUBLIC time_t HTParseTime ARGS1(CONST char *, str)
 	return 0;
     }
 
+#ifdef HAS_ALTZONE
+    tm.tm_isdst = daylight;		       /* Already taken into account */
+#else
+    tm.tm_isdst = -1;
+#endif
+
 #ifndef NO_MKTIME
-    tm.tm_isdst = daylight;   /* We have already taken daylight into account */
     t = mktime(&tm);
 #else
 #ifndef NO_TIMEGM
-    tm.tm_isdst = -1;
     t = timegm(&tm);
 #else
     if (TRACE) fprintf(TDEST,"TimeZone.... undefined\n");
