@@ -103,12 +103,19 @@ PRIVATE void scan(name, parts)
         parts->relative = (*after_access) ? after_access : 0;	/* zero for "" */
     }
 
+#ifdef OLD_CODE
     /* Access specified but no host: the anchor was not really one
-       e.g. news:j462#36487@foo.bar -- JFG 10/7/92, from bug report */
+       e.g. news:j462#36487@foo.bar -- JFG 10/jul/92, from bug report */
+    /* This kludge doesn't work for example when coming across
+       file:/usr/local/www/fred#123
+       which loses its anchor. Correct approach in news is to
+       escape weird characters not allowed in URL.  TBL 21/dec/93
+    */
     if (parts->access && ! parts->host && parts->anchor) {
       *(parts->anchor - 1) = '#';  /* Restore the '#' in the address */
       parts->anchor = 0;
     }
+#endif
 
 #ifdef NOT_DEFINED	/* search is just treated as part of path */
     {

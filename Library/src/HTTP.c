@@ -302,6 +302,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		HTConversions = HTList_new();
 		HTFormatInit(HTConversions);
 	    }
+
 	    conversions[0] = HTConversions;
 	    conversions[1] = request->conversions;
 
