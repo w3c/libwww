@@ -4,7 +4,7 @@ bin_PROGRAMS = w3c
 
 w3c_LDADD = \
 	-lm \
-	../../Library/src/libwww.la \
+	../../Library/src/libwww.la @LIBWWWSSL@ \
 	../../modules/md5/libmd5.la \
 	../../modules/expat/xmlparse/libxmlparse.la \
 	../../modules/expat/xmltok/libxmltok.la
@@ -51,5 +51,11 @@ purify: $(w3c_OBJECTS) $(w3c_DEPENDENCIES)
 	-rm purify; \
 	purify -cache-dir=$(PURIFY_CACHE) \
 	$(CC) $(LDFLAGS) -o purify $(w3c_OBJECTS) \
-	../../Library/src/.libs/libwww.a -lm $(LIBS)
+	-lm \
+	../../Library/src/.libs/libwww.a \
+	../../Library/src/SSL/.libs/libwwwssl.a \
+	../../modules/md5/.libs/libmd5.a \
+	../../modules/expat/xmlparse/.libs/libxmlparse.a \
+	../../modules/expat/xmltok/.libs/libxmltok.a \
+	$(LIBS)
 

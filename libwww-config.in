@@ -48,7 +48,7 @@ while test $# -gt 0; do
       echo -I@includedir@/@PACKAGE@ @DEFS@
       ;;
     --libs)
-      echo -L@libdir@ @LIBS@ -lmd5 -lxmltok -lxmlparse -lwww
+      echo -L@libdir@ @LIBS@ -lmd5 -lxmltok -lxmlparse -lwww @LWWWSSL@
       ;;
     *)
       echo "${usage}" 1>&2

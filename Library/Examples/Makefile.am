@@ -7,7 +7,7 @@ noinst_PROGRAMS = head libapp_1 libapp_2 libapp_3 libapp_4 init \
 
 LDADD = \
 	-lm \
-	../src/libwww.la \
+	../src/libwww.la @LIBWWWSSL@ \
 	../../modules/md5/libmd5.la \
 	../../modules/expat/xmlparse/libxmlparse.la \
 	../../modules/expat/xmltok/libxmltok.la

@@ -4,7 +4,7 @@ bin_PROGRAMS = webbot
 
 webbot_LDADD = \
 	-lm \
-	../../Library/src/libwww.la \
+	../../Library/src/libwww.la @LIBWWWSSL@ \
 	../../modules/md5/libmd5.la \
 	../../modules/expat/xmlparse/libxmlparse.la \
 	../../modules/expat/xmltok/libxmltok.la

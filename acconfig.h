@@ -4,6 +4,9 @@
 /* Define to enable mysql access. */
 #undef HT_MYSQL
 
+/* Define to enable SSL access. */
+#undef HT_SSL
+
 /* Define to enable expat XML parser. */
 #undef HT_EXPAT
 

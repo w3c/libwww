@@ -12,7 +12,7 @@ EXTRA_PROGRAMS = www		# Should be www_PROGRAMS
 
 www_LDADD = \
 	../../Library/src/libwww.la \
-	../../PICS-client/src/libpics.a \
+	../../PICS-client/src/libpics.a @LIBWWWSSL@ \
 	../../modules/md5/libmd5.la \
 	../../modules/expat/xmltok/libxmltok.la \
 	../../modules/expat/xmlparse/libxmlparse.la \
@@ -56,6 +56,8 @@ EXTRA_www_SOURCES = \
 	a_stdio.g \
 	a_stdio.h
 
+DOCS :=	$(wildcard *.html)
+
 inc: $(BUILT_SOURCES)
 	@echo Generated built sources
 
@@ -71,5 +73,6 @@ purify: $(www_OBJECTS) $(www_DEPENDENCIES)
 
 EXTRA_DIST = \
 	$(BUILT_SOURCES) \
+	$(DOCS) \
 	DefaultStyles.c.classic \
 	DefaultStyles.c.modern
