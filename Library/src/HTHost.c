@@ -838,6 +838,7 @@ PUBLIC BOOL HTHost_recoverPipe (HTHost * host)
 		net->registeredFor = 0;
 		(*net->event.cbf)(HTChannel_socket(host->channel), net->event.param, HTEvent_RESET);
 		HTList_appendObject(host->pending, net);
+		host->lock = net;
 	    }
 
 	    HTChannel_setSemaphore(host->channel, 0);
