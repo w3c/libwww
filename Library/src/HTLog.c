@@ -97,7 +97,7 @@ PUBLIC BOOL HTLog_add (HTRequest * request, int status)
 	fprintf(HTLogFile, "localhost - - [%s] %s %s %d %ld\n",
 		HTDateTimeStr(&now, HTloglocal),
 		HTMethod_name(HTRequest_method(request)),
-		uri,
+		uri ? uri : "<null>",			/* Bill Rizzi */
 		status,
 		HTAnchor_length(anchor));
 	HT_FREE(uri);

@@ -47,7 +47,7 @@ PUBLIC char * HTNextField (char ** pstr)
 {
     char * p = *pstr;
     char * start = NULL;
-    if (!*pstr) return NULL;
+    if (!pstr || !*pstr) return NULL;
     while (1) {
 	/* Strip white space and other delimiters */
 	while (*p && (WHITE(*p) || *p==',' || *p==';' || *p=='=')) p++;
@@ -80,6 +80,46 @@ PUBLIC char * HTNextField (char ** pstr)
     if (*p) *p++ = '\0';
     *pstr = p;
     return start;
+}
+
+/*
+**	Find the next s-expression token from a string of characters.
+**	We return the name of this expression and the param points to the
+**	parameters. 
+**
+**	NOTE: The string has been mutilated by '/0's
+*/
+PUBLIC char * HTNextSExp (char ** exp, char ** param)
+{
+    char * p = *exp;
+    char * name = NULL;
+    if (!exp || !*exp) return NULL;
+    while (*p && WHITE(*p)) p++;		/* Strip leading white space */
+    if (!*p) {
+	*exp = p;
+	return NULL;					   	 /* No field */
+    }
+    if (*p == '{') {					     /* Open bracket */
+	int cnt = 1;
+	/*
+	**  Look for name of this expression. If we find a token then search
+	**  for the rest of the expression and remove the end '}'
+	*/
+	p++;
+	if ((name = HTNextField(&p)) == NULL) return NULL;
+	while (*p && WHITE(*p)) p++;
+	*param = p;
+	while (*p) {
+	    if (*p == '{') cnt++;
+	    if (*p == '}') cnt--;
+	    if (!cnt) {
+		*p = '\0';
+		break;
+	    }
+	    p++;
+	}
+    }
+    return name;
 }
 
 /*
@@ -123,7 +163,7 @@ PUBLIC const char * HTMessageIdStr (HTUserProfile * up)
 **	--------------------
 **	These functions are taken from the server written by Ari Luotonen
 */
-
+#if 0
 PRIVATE int make_num (const char *  s)
 {
     if (*s >= '0' && *s <= '9')
@@ -131,13 +171,17 @@ PRIVATE int make_num (const char *  s)
     else
 	return *(s+1) - '0';
 }
-
-PRIVATE int make_month (const char *  s)
+#endif
+PRIVATE int make_month (char * s, char ** ends)
 {
-    int i;
-    for (i=0; i<12; i++)
-	if (!strncasecomp(months[i], s, 3))
-	    return i;
+    char * ptr = s;
+    while (!isalpha(*ptr)) ptr++;
+    if (*ptr) {
+	int i;
+	*ends = ptr+3;		
+	for (i=0; i<12; i++)
+	    if (!strncasecomp(months[i], ptr, 3)) return i;
+    }
     return 0;
 }
 
@@ -152,7 +196,7 @@ PRIVATE int make_month (const char *  s)
 */
 PUBLIC time_t HTParseTime (const char * str, HTUserProfile * up)
 {
-    const char * s;
+    char * s;
     struct tm tm;
     time_t t;
 
@@ -170,12 +214,13 @@ PUBLIC time_t HTParseTime (const char * str, HTUserProfile * up)
 			    "ERROR....... Not a valid time format \"%s\"\n",s);
 		return 0;
 	    }
-	    tm.tm_mday = make_num(s);
-	    tm.tm_mon = make_month(s+3);
-	    tm.tm_year = make_num(s+7);
-	    tm.tm_hour = make_num(s+10);
-	    tm.tm_min = make_num(s+13);
-	    tm.tm_sec = make_num(s+16);
+	    tm.tm_mday = strtol(s, &s, 10);
+	    tm.tm_mon = make_month(s, &s);
+	    tm.tm_year = strtol(s, &s, 10);
+	    tm.tm_hour = strtol(s, &s, 10);
+	    tm.tm_min = strtol(++s, &s, 10);
+	    tm.tm_sec = strtol(++s, &s, 10);
+
 	} else {					    /* Second format */
 	    if (CORE_TRACE)
 		HTTrace("Format...... Wkd, 00 Mon 0000 00:00:00 GMT\n");
@@ -185,13 +230,12 @@ PUBLIC time_t HTParseTime (const char * str, HTUserProfile * up)
 			    "ERROR....... Not a valid time format \"%s\"\n",s);
 		return 0;
 	    }
-	    tm.tm_mday = make_num(s);
-	    tm.tm_mon = make_month(s+3);
-	    tm.tm_year = (100*make_num(s+7) - 1900) + make_num(s+9);
-	    tm.tm_hour = make_num(s+12);
-	    tm.tm_min = make_num(s+15);
-	    tm.tm_sec = make_num(s+18);
-
+	    tm.tm_mday = strtol(s, &s, 10);
+	    tm.tm_mon = make_month(s, &s);
+	    tm.tm_year = strtol(s, &s, 10) - 1900;
+	    tm.tm_hour = strtol(s, &s, 10);
+	    tm.tm_min = strtol(++s, &s, 10);
+	    tm.tm_sec = strtol(++s, &s, 10);
 	}
     } else if (isdigit(*str)) {				    /* delta seconds */
 	t = time(NULL) + atol(str);	      /* Current local calendar time */
@@ -208,7 +252,7 @@ PUBLIC time_t HTParseTime (const char * str, HTUserProfile * up)
     } else {	      /* Try the other format:  Wed Jun  9 01:29:59 1993 GMT */
 	if (CORE_TRACE)
 	    HTTrace("Format...... Wkd Mon 00 00:00:00 0000 GMT\n");
-	s = str;
+	s = (char *) str;
 	while (*s && *s==' ') s++;
 	if (CORE_TRACE)
 	    HTTrace("Trying...... The Wrong time format: %s\n", s);
@@ -217,12 +261,12 @@ PUBLIC time_t HTParseTime (const char * str, HTUserProfile * up)
 		HTTrace("ERROR....... Not a valid time format \"%s\"\n",s);
 	    return 0;
 	}
-	tm.tm_mday = make_num(s+8);
-	tm.tm_mon = make_month(s+4);
-	tm.tm_year = make_num(s+22);
-	tm.tm_hour = make_num(s+11);
-	tm.tm_min = make_num(s+14);
-	tm.tm_sec = make_num(s+17);
+	tm.tm_mon = make_month(s, &s);
+	tm.tm_mday = strtol(s, &s, 10);
+	tm.tm_hour = strtol(s, &s, 10);
+	tm.tm_min = strtol(++s, &s, 10);
+	tm.tm_sec = strtol(++s, &s, 10);
+	tm.tm_year = strtol(s, &s, 10) - 1900;
     }
     if (tm.tm_sec  < 0  ||  tm.tm_sec  > 59  ||
 	tm.tm_min  < 0  ||  tm.tm_min  > 59  ||

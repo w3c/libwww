@@ -113,17 +113,13 @@ PRIVATE int HTReader_read (HTInputStream * me)
 					     NO, "NETREAD");
 		    return HT_ERROR;
 		}
-	    } else if (!b_read) {
+	    } else if (!b_read || socerrno==ECONNRESET) {
 		HTAlertCallback *cbf = HTAlert_find(HT_PROG_DONE);
 		if (PROT_TRACE)
 		    HTTrace("Read Socket. FIN received on socket %d\n", soc);
 		if (cbf) (*cbf)(net->request, HT_PROG_DONE,
 				HT_MSG_NULL, NULL, NULL, NULL);
-	        HTEvent_unregister(soc, FD_READ);
-
-		/* Update host information if persistent connection */
-		if (HTNet_persistent(net))
-		    HTHost_catchClose(soc, net->request, FD_CLOSE);
+	        HTEvent_unregister(soc, FD_ALL);
 		return HT_CLOSED;
 	    }
 

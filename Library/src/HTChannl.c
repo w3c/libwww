@@ -14,6 +14,7 @@
 #include "sysdep.h"
 #include "WWWUtil.h"
 #include "HTAlert.h"
+#include "HTHost.h"
 #include "HTError.h"
 #include "HTChannl.h"					 /* Implemented here */
 
@@ -23,11 +24,11 @@
 struct _HTChannel {
     SOCKET		sockfd;					   /* Socket */
     FILE *		fp;
-    HTChannelMode	mode;				  /* Mode of channel */
     HTInputStream *	input;				     /* Input stream */
     HTOutputStream *	output;				    /* Output stream */
     BOOL		active;			/* Active or passive channel */
     int			semaphore;			   /* On channel use */
+    HTHost *		host;			       /* Zombie connections */
 };
 
 struct _HTInputStream {
@@ -54,6 +55,7 @@ PRIVATE void free_channel (HTChannel * ch)
 	if (ch->sockfd != INVSOC) {
 	    NETCLOSE(ch->sockfd);
 	    HTEvent_unregister(ch->sockfd, (SockOps) FD_ALL);
+   	    HTNet_decreaseSocket();
 	    if (PROT_TRACE)
 		HTTrace("Channel..... Deleted %p, socket %d\n", ch,ch->sockfd);
 	}
@@ -71,10 +73,7 @@ PRIVATE void free_channel (HTChannel * ch)
 /*
 **	A channel is uniquely identified by a socket.
 **	Note that we don't create the input and output stream - they are 
-**	created later. When a channel first is created it has the default mode
-**	HT_CH_SINGLE which ensures that other connections to the same host
-**	will not result in multiple parallel connections but wait and see if
-**	the actual mode supported by the peer process.
+**	created later.
 **
 **	We only keep a hash on sockfd's as we don't have to look for channels
 **	for ANSI file descriptors.
@@ -96,7 +95,6 @@ PUBLIC HTChannel * HTChannel_new (HTNet * net, BOOL active)
 	if ((ch = (HTChannel *) HT_CALLOC(1, sizeof(HTChannel))) == NULL)
 	    HT_OUTOFMEM("HTChannel_new");	    
 	ch->sockfd = sockfd;
-	ch->mode = HT_CH_SINGLE;
 	ch->active = active;
 	ch->semaphore = 1;
 	HTList_addObject(list, (void *) ch);
@@ -193,37 +191,6 @@ PUBLIC BOOL HTChannel_deleteAll (void)
 }
 
 /*
-**	Set and get the mode of a channel. A channel may change mode in the 
-**	middle of a connection. We also return whether the channel is active
-**	or passive.
-*/
-PUBLIC HTChannelMode HTChannel_mode (HTChannel * channel, BOOL * active)
-{
-    return channel ? channel->mode : HT_CH_SINGLE;
-}
-
-PUBLIC BOOL HTChannel_setMode (HTChannel * channel, HTChannelMode mode)
-{
-    if (channel) {
-	channel->mode = mode;
-	return YES;
-    }
-    return NO;
-}
-
-/*
-**	Check whether a channel is idle meaning if it is ready for a new
-**	request which depends on the mode of the channel. If the channel is 
-**	idle, i.e. ready for use then return YES else NO.
-*/
-PUBLIC BOOL HTChannel_idle (HTChannel * channel)
-{
-    return (channel &&
-	    ((channel->mode != HT_CH_SINGLE) ||
-	     (channel->mode == HT_CH_SINGLE && channel->semaphore <= 0)));
-}
-
-/*
 **	Return the socket associated with this channel
 */
 PUBLIC SOCKET HTChannel_socket (HTChannel * channel)
@@ -237,6 +204,24 @@ PUBLIC SOCKET HTChannel_socket (HTChannel * channel)
 PUBLIC FILE * HTChannel_file (HTChannel * channel)
 {
     return channel ? channel->fp : NULL;
+}
+
+/*
+**	We keep the associated Host object in case we have a
+**	sleeping connection. 
+*/
+PUBLIC BOOL HTChannel_setHost (HTChannel * ch, HTHost * host)
+{
+    if (ch && host) {
+	ch->host = host;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTHost * HTChannel_host (HTChannel * ch)
+{
+    return (ch ? ch->host : NULL);
 }
 
 /*
@@ -284,11 +269,9 @@ PUBLIC void HTChannel_setSemaphore (HTChannel * channel, int semaphore)
 **	Create the input stream and bind it to the channel
 **	Please read the description in the HTIOStream module on the parameters
 */
-PUBLIC BOOL HTChannel_setInput (HTChannel * ch,
-				HTInputStream * input, HTChannelMode mode)
+PUBLIC BOOL HTChannel_setInput (HTChannel * ch, HTInputStream * input)
 {
     if (ch) {
-	ch->mode = mode;
 	ch->input = input;
 	return YES;
     }
@@ -304,11 +287,9 @@ PUBLIC HTInputStream * HTChannel_input (HTChannel * ch)
 **	Create the output stream and bind it to the channel
 **	Please read the description in the HTIOStream module on the parameters
 */
-PUBLIC BOOL HTChannel_setOutput (HTChannel * ch,
-				 HTOutputStream * output, HTChannelMode mode)
+PUBLIC BOOL HTChannel_setOutput (HTChannel * ch, HTOutputStream * output)
 {
     if (ch) {
-	ch->mode = mode;
 	ch->output = output;
 	return YES;
     }

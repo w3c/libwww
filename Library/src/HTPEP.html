@@ -149,9 +149,7 @@ As mentioned, the <I>PEP Manager</I> is itself a set of
 <A HREF="HTFilter.html">filters</A> that can be registered by the
 <A HREF="HTNet.html">Net manager</A>.
 <PRE>
-extern int HTPEP_beforeFilter (HTRequest * request, void * param, int status);
-
-extern BOOL HTPEP_afterFilter (HTRequest * request, void * param, int status);
+extern HTNetCallback HTPEP_beforeFilter, HTPEP_afterFilter;
 </PRE>
 <PRE>
 #endif	/* NOT HTPEP_H */

@@ -339,7 +339,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	net->context = file;
     } if (ops == FD_CLOSE) {				      /* Interrupted */
 	HTRequest_addError(request, ERR_FATAL, NO, HTERR_INTERRUPTED,
-			   NULL, 0, "HTLoadHTTP");
+			   NULL, 0, "HTLoadFile");
 	FileCleanup(request, HT_INTERRUPTED);
 	return HT_OK;
     } else
@@ -492,7 +492,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		    return HT_WOULD_BLOCK;
 		}
 #endif
-	    } else if (status == HT_WOULD_BLOCK || status == HT_PERSISTENT)
+	    } else if (status == HT_WOULD_BLOCK || status == HT_PENDING)
 		return HT_OK;
 	    else {
 		HTRequest_addError(request, ERR_INFO, NO, HTERR_INTERNAL,

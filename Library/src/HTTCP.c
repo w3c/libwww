@@ -58,96 +58,111 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 {
     int status;
     HTRequest * request = HTNet_request(net);
-    char * proxy = HTRequest_proxy(request);
-    char * fullhost = NULL;
-    char * host = NULL;
-
-    /* Check to see whether we should connect directly or via a proxy */
-    fullhost = HTParse(proxy ? proxy : url, "", PARSE_HOST);
-
-    /* If there's an @ then use the stuff after it as a hostname */
-    if (fullhost) {
-	char * at_sign;
-	if ((at_sign = strchr(fullhost, '@')) != NULL)
-	    host = at_sign+1;
-	else
-	    host = fullhost;
-    }
-    if (!host || !*host) {
-	HTRequest_addError(request, ERR_FATAL, NO, HTERR_NO_HOST,
-		   NULL, 0, "HTDoConnect");
-	HT_FREE(fullhost);
-	return HT_ERROR;
-    }
+    char * hostname = HTHost_name(HTNet_host(net));
 
     /* Jump into the state machine */
     while (1) {
 	switch (net->tcpstate) {
 	  case TCP_BEGIN:
-	    if (PROT_TRACE) HTTrace("HTDoConnect. Looking up `%s\'\n", host);
-	    {
-		char *port = strchr(host, ':');
-		SockA *sin = &net->sock_addr;
-		memset((void *) sin, '\0', sizeof(SockA));
-		if (port) {
-		    *port++ = '\0';
-		    if (*port && isdigit(*port)) {
+	  {
+	      char * proxy = HTRequest_proxy(request);
+	      char * fullhost = NULL;
+	      char * host = NULL;
+
+	      /* Check to see whether we connect directly or via a proxy */
+	      fullhost = HTParse(proxy ? proxy : url, "", PARSE_HOST);
+
+	      /* If there's an @ then use the stuff after it as a hostname */
+	      if (fullhost) {
+		  char * at_sign;
+		  if ((at_sign = strchr(fullhost, '@')) != NULL)
+		      host = at_sign+1;
+		  else
+		      host = fullhost;
+	      }
+	      if (!host || !*host) {
+		  HTRequest_addError(request, ERR_FATAL, NO, HTERR_NO_HOST,
+				     NULL, 0, "HTDoConnect");
+		  HT_FREE(fullhost);
+		  return HT_ERROR;
+	      } else {
+		  char *port = strchr(host, ':');
+		  SockA *sin = &net->sock_addr;
+		  memset((void *) sin, '\0', sizeof(SockA));
+		  if (PROT_TRACE)
+		      HTTrace("HTDoConnect. Looking up `%s\'\n", host);
+		  if (port) {
+		      *port++ = '\0';
+		      if (*port && isdigit(*port)) {
 #ifdef DECNET
-			sin->sdn_family = AF_DECnet;
-			sin->sdn_objnum=(unsigned char)(strtol(port,(char**)0,10));
+			  sin->sdn_family = AF_DECnet;
+			  sin->sdn_objnum =
+			      (unsigned char)(strtol(port, (char **) 0, 10));
 #else
-			sin->sin_family = AF_INET;
-			sin->sin_port = htons(atol(port));
+			  sin->sin_family = AF_INET;
+			  sin->sin_port = htons(atol(port));
 #endif
-		    }
-		} else {
+		      }
+		  } else {
 #ifdef DECNET
-		    sin->sdn_family = AF_DECnet;
-		    net->sock_addr.sdn_objnum = DNP_OBJ;
+		      sin->sdn_family = AF_DECnet;
+		      net->sock_addr.sdn_objnum = DNP_OBJ;
 #else  /* Internet */
-		    sin->sin_family = AF_INET;
-		    sin->sin_port = htons(default_port);
+		      sin->sin_family = AF_INET;
+		      sin->sin_port = htons(default_port);
 #endif
-		}
-	    }
+		  }
+	      }
 
-	    /* Find information about this host */
-	    if ((net->host = HTHost_new(host)) == NULL) {
-		if (PROT_TRACE) HTTrace("HTDoConnect. Can't get host info\n");
-		net->tcpstate = TCP_ERROR;
-		break;
-	    }
+	      /* Find information about this host */
+	      if ((net->host = HTHost_new(host)) == NULL) {
+		  if (PROT_TRACE)HTTrace("HTDoConnect. Can't get host info\n");
+		  net->tcpstate = TCP_ERROR;
+		  break;
+	      }
 
+	      /*
+	      ** Add the net object to the host object found above. If the
+	      ** host is idle then we can start the request right away,
+	      ** otherwise we must wait until it is free. 
+	      */
+	      if ((status = HTHost_addNet(net->host, net)) == HT_PENDING)
+		  if (PROT_TRACE) HTTrace("HTDoConnect. Pending...\n");
+	      HT_FREE(fullhost);
+
+	      /*
+	      ** If we are pending hen return here, otherwise go to next state
+	      ** which is setting up a channel
+	      */
+	      net->tcpstate = TCP_CHANNEL;
+	      if (status == HT_PENDING) return HT_PENDING;
+	  }
+	  break;
+
+	case TCP_CHANNEL:
 	    /*
-	    ** Check whether we have a cached channel for this host. If not
-	    ** then go ahead and create a new socket and a new channel. If we
-	    ** have to wait for a persistent connection the return. When we
-	    ** get back, we check that the socket hasn't been closed in the
-	    ** meantime
+	    **  The next state depends on whether we have a connection
+	    **  or not - if so then we can jump directly to connect() to
+	    **  test it - otherwise we must around DNS to get the name
+	    **  resolved
 	    */
 	    if ((net->channel = HTHost_channel(net->host)) != NULL) {
 		net->sockfd = HTChannel_socket(net->channel);
-		if (HTChannel_idle(net->channel)) {
-		    HTChannel_upSemaphore(net->channel);
-		    net->tcpstate = TCP_CONNECTED;
-		    break;
-		} else {
-		    if (PROT_TRACE) HTTrace("HTDoConnect. Waiting...\n");
-		    net->tcpstate = TCP_NEED_CONNECT;
-		    HT_FREE(fullhost);
-		    HTNet_wait(net);
-		    return HT_PERSISTENT;
-		}
-	    }
-	    net->tcpstate = TCP_DNS;
+		HTChannel_upSemaphore(net->channel);
+		net->tcpstate = TCP_CONNECTED;
+	    } else
+		net->tcpstate = TCP_DNS;
+	    hostname = HTHost_name(HTNet_host(net));
 	    break;
 
-	  case TCP_DNS:
-	    if ((status = HTParseInet(net, host)) < 0) {
+	case TCP_DNS:
+	    if ((status = HTParseInet(net, hostname)) < 0) {
 		if (PROT_TRACE)
-		    HTTrace("HTDoConnect. Can't locate `%s\'\n", host);
-		HTRequest_addError(request, ERR_FATAL, NO,HTERR_NO_REMOTE_HOST,
-			   (void *) host, strlen(host), "HTDoConnect");
+		    HTTrace("HTDoConnect. Can't locate `%s\'\n", hostname);
+		HTRequest_addError(request, ERR_FATAL, NO,
+				   HTERR_NO_REMOTE_HOST,
+				   (void *) hostname, strlen(hostname),
+				   "HTDoConnect");
 		net->tcpstate = TCP_ERROR;
 		break;
 	    }
@@ -169,6 +184,9 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	    }
 	    if (PROT_TRACE)
 		HTTrace("HTDoConnect. Created socket %d\n",net->sockfd);
+
+	    /* Increase the number of sockets by one */
+	    HTNet_increaseSocket();
 
 	    /* If non-blocking protocol then change socket status
 	    ** I use fcntl() so that I can ask the status before I set it.
@@ -237,8 +255,8 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	    /* Progress */
 	    {
 		HTAlertCallback *cbf = HTAlert_find(HT_PROG_CONNECT);
-		if (cbf)
-		    (*cbf)(request,HT_PROG_CONNECT,HT_MSG_NULL,NULL,host,NULL);
+		if (cbf) (*cbf)(request, HT_PROG_CONNECT, HT_MSG_NULL,
+				NULL, hostname, NULL);
 	    }
 	    net->tcpstate = TCP_NEED_CONNECT;
 	    break;
@@ -270,6 +288,10 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	    if (status < 0) 
 #endif
 	    {
+#if defined(EAGAIN) && defined(EALREADY)
+		if (socerrno==EINPROGRESS ||
+		    socerrno==EALREADY || socerrno==EAGAIN)
+#else
 #ifdef EALREADY
 		if (socerrno==EINPROGRESS || socerrno==EALREADY)
 #else
@@ -283,12 +305,12 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 #endif /* _WINSOCKAPI_ */
 #endif /* EAGAIN */
 #endif /* EALREADY */
+#endif /* EAGAIN && EALREADY */
 		{
 		    if (PROT_TRACE)
-			HTTrace("HTDoConnect. WOULD BLOCK `%s'\n",host);
+			HTTrace("HTDoConnect. WOULD BLOCK `%s'\n", hostname);
 		    HTEvent_register(net->sockfd, request, (SockOps)FD_CONNECT,
 				     net->cbf, net->priority);
-		    HT_FREE(fullhost);
 		    return HT_WOULD_BLOCK;
 		}
 		if (socerrno == EISCONN) {
@@ -335,7 +357,6 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 		HTDNS_updateWeigths(net->dns, net->home, net->connecttime);
 	    }
 	    net->retry = 0;
-	    HT_FREE(fullhost);	    
 	    net->tcpstate = TCP_BEGIN;
 	    return HT_OK;
 	    break;
@@ -350,7 +371,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 		NETCLOSE(net->sockfd);
 		net->sockfd = INVSOC;
 		if (HTHost_isPersistent(net->host)) {	 /* Inherited socket */
-		    HTHost_clearChannel(net->host);
+		    HTHost_clearChannel(net->host, HT_ERROR);
 		    net->tcpstate = TCP_NEED_SOCKET;
 		    break;
 		}
@@ -364,9 +385,8 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 		break;
 	    }
 	    HTRequest_addSystemError(request, ERR_FATAL,socerrno,NO,"connect");
-	    HTDNS_delete(host);
+	    HTDNS_delete(hostname);
 	    net->retry = 0;
-	    HT_FREE(fullhost);
 	    net->tcpstate = TCP_BEGIN;
 	    return HT_ERROR;
 	    break;
@@ -506,6 +526,9 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKET master, int backlog)
 	    if (PROT_TRACE)
 		HTTrace("Socket...... Created %d\n", net->sockfd);
 
+	    /* Increase the number of sockets by one */
+	    HTNet_increaseSocket();
+
 	    /* If non-blocking protocol then change socket status
 	    ** I use fcntl() so that I can ask the status before I set it.
 	    ** See W. Richard Stevens (Advan. Prog. in UNIX environment, p.364)
@@ -601,6 +624,7 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKET master, int backlog)
 	    return HT_OK;
 	    break;
 
+	  case TCP_CHANNEL:
 	  case TCP_NEED_CONNECT:
 	  case TCP_DNS:
 	  case TCP_ERROR:
@@ -627,11 +651,22 @@ PUBLIC int HTDoClose (HTNet * net)
 {
     int status = -1;
     if (net && net->sockfd != INVSOC) {
-	if (PROT_TRACE) HTTrace("Socket...... Close %d\n", net->sockfd);
+	if (PROT_TRACE) HTTrace("HTDoClose... Close %d\n", net->sockfd);
 	status = NETCLOSE(net->sockfd);
 	HTEvent_unregister(net->sockfd, (SockOps) FD_ALL);
+	HTNet_decreaseSocket();
  	net->sockfd = INVSOC;
-    }
+	
+	/*
+	**  As we have a socket available we check for whether
+	**  we can start any pending requests. We do this by asking for
+	**  pending Host objects. If none then use the current object
+	*/
+	HTHost_launchPending(net->host);
+
+    } else
+	if (PROT_TRACE) HTTrace("HTDoClose... No pending requests\n");
     return status < 0 ? HT_ERROR : HT_OK;
 }
+
 

@@ -1,66 +1,134 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww HTTP CLIENT/SERVER</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 17-Apr-1996 -->
-<NEXTID N="z11">
+  <TITLE>W3C Reference Library libwww HTTP Client/Server Module</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Declaration of W3C Reference HTTP MODULE</H1>
-
+<H1>
+  Declaration of W3C Reference HTTP Module
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This is the include file for all HTTP access including the server side
-and the client side. It can be used together with the core of the W3C
-Reference Library. It contains all HTTP specific modules which are
-required to compile and build the HTTP DLL.<P>
-
+<P>
+This is the include file for all HTTP access including the
+<A HREF="HTTPServ.html">server side</A> and the <A HREF="HTTP.html">client
+side</A>. It can be used together with the <A HREF="WWWCore.html">core of
+the W3C Reference Library</A>. It contains all HTTP specific modules which
+are required to compile and build the HTTP DLL.
 <PRE>
 #ifndef WWWHTTP_H
 #define WWWHTTP_H
 </PRE>
-
 <PRE>
 #ifdef __cplusplus
 extern "C" { 
 #endif
 </PRE>
-
-<H2>System dependencies</H2>
-
+<H3>
+  System dependencies
+</H3>
+<P>
 The <A HREF="sysdep.html">sysdep.h</A> file includes system-specific include
-files and flags for I/O to network and disk. The only reason for this
-file is that the Internet world is more complicated than Posix and
-ANSI.
-
-<PRE>
-#include "sysdep.h"
+files and flags for I/O to network and disk. The only reason for this file
+is that the Internet world is more complicated than Posix and ANSI.
+<PRE>#include "<A HREF="sysdep.html">sysdep.h</A>"
 </PRE>
-
-<H2>Library Includes</H2>
-
+<H3>
+  Basic HTTP definitions and utilities
+</H3>
+<P>
+A small set of very basic HTTP stuff
 <PRE>
-#include "HTTPUtil.h"			/* Basic things */
-#include "HTTP.h"			/* HTTP client state machine */
-#include "HTTPServ.h"			/* HTTP server state machine */
-
-#include "HTTPGen.h"			/* General HTTP Header Stream */
-#include "HTTPReq.h"			/* Stream for generating requests */
-#include "HTTPRes.h"			/* Stream for gererating responses */
-
-#include "HTTChunk.h"			/* Chunk encoding */
-
-#include "HTAAUtil.h"			/* Access authentication */
-#include "HTAABrow.h"			/* Access authentication */
+#include "<A HREF="HTTPUtil.html">HTTPUtil.h</A>"
 </PRE>
-
+<H3>
+  HTTP Client State Machine
+</H3>
+<P>
+The client statue machine handles the client side of HTTP generating requests
+and parsing responses.
+<PRE>#include "<A HREF="HTTP.html">HTTP.h</A>"
+</PRE>
+<H3>
+  HTTP Server State Machine
+</H3>
+<P>
+The HTTP module also contains a very simple server module which can be used
+for experimenting but which is not a full blown server.
+<PRE>#include "<A HREF="HTTPServ.html">HTTPServ.h</A>"			/* HTTP server state machine */
+</PRE>
+<H3>
+  General HTTP Header Stream
+</H3>
+<P>
+The HTTP Request stream generates a HTTP request header and writes it to
+the target which is normally a HTWriter stream.
+<PRE>#include "<A HREF="HTTPGen.html">HTTPGen.h</A>"
+</PRE>
+<H3>
+  Client-side Request Generator Stream
+</H3>
+<P>
+The HTTP Request stream generates a HTTP request header and writes it to
+the target which is normally a HTWriter stream.
+<PRE>#include "<A HREF="HTTPReq.html">HTTPReq.h</A>"
+</PRE>
+<H3>
+  Server-side Response Generator Stream
+</H3>
+<P>
+The HTTP response stream generates a HTTP response header and writes it to
+the target which is normally a HTWriter stream.
+<PRE>#include "<A HREF="HTTPRes.html">HTTPRes.h</A>"
+</PRE>
+<H3>
+  Chunked Encoding and Decoding
+</H3>
+<P>
+Chunked transfer encoding and decoding is new in HTTP/1.1. It allows applications
+to use persistent connections while not knowing the content length a priori
+to the response header is generated.
+<PRE>#include "<A HREF="HTTChunk.html">HTTChunk.h</A>"
+</PRE>
+<H3>
+  HTTP Extensions and PEP
+</H3>
+<P>
+The <A HREF="HTPEP.html">PEP Manager</A> is a registry for <I>PEP Protocols</I>
+that follow the generic syntax defined by the
+<A HREF="../../Protocols/">HTTP</A> <I>PEP protocol</I> headers. All <I>PEP
+Protocols</I> are registered at run-time in form of a <I>PEP Module</I>.
+A <I>PEP Module</I> consists of the following:
+<PRE>#include "<A HREF="HTPEP.html">HTPEP.h</A>"
+</PRE>
+<H3>
+  Generic Authentication
+</H3>
+<P>
+The <A HREF="HTAAUtil.html">Authentication Manage</A><I>r</I> is a registry
+for <I>Authentication Schemes</I> that follow the generic syntax defined
+by the <A HREF="../../Protocols/">HTTP</A> <CODE>WWW-authenticate</CODE>
+and <CODE>Authorization</CODE> headers. Currently, the only scheme defined
+is <I>Basic Authentication</I>, but <I>Digest Authentication </I>will soon
+follow. All <I>Authentication Schemes</I> are registered at run-time in form
+of an <I>Authentication Module</I>. An <I>Authentication Module</I> consists
+of the following:
+<PRE>#include "<A HREF="HTAAUtil.html">HTAAUtil.h</A>"
+</PRE>
+<H3>
+  Client Side Authentication
+</H3>
+<P>
+Contains code for parsing challenges and creating credentials for basic and
+digest authentication schemes. See also the <A HREF="HTAAUtil.html">HTAAUtil
+module</A> for how to handle other authentication schemes. 
+<PRE>#include "<A HREF="HTAABrow.html">HTAABrow.h</A>"
+</PRE>
+<P>
 End of HTTP module
-
 <PRE>
 #ifdef __cplusplus
 } /* end extern C definitions */
@@ -68,10 +136,9 @@ End of HTTP module
 
 #endif
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

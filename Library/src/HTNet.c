@@ -24,7 +24,8 @@
 #include "HTAlert.h"
 #include "HTParse.h"
 #include "HTTrans.h"
-#include "HTReqMan.h"
+#include "HTHost.h"
+#include "HTReq.h"
 #include "HTEvent.h"
 #include "HTStream.h"
 #include "HTNetMan.h"					 /* Implemented here */
@@ -32,6 +33,8 @@
 #ifndef HT_MAX_SOCKETS
 #define HT_MAX_SOCKETS	6
 #endif
+
+#define HASH_SIZE	67
 
 typedef struct _NetCall {
     HTNetCallback *	cbf;
@@ -44,35 +47,18 @@ struct _HTStream {
     /* ... */
 };
 
-PRIVATE int 	HTMaxActive = HT_MAX_SOCKETS;  	      /* Max active requests */
 PRIVATE HTList *HTBefore = NULL;	      /* List of call back functions */
 PRIVATE HTList *HTAfter = NULL;	      	      /* List of call back functions */
 
-PRIVATE HTList *HTNetActive = NULL;               /* List of active requests */
-PRIVATE HTList *HTNetPending = NULL;		 /* List of pending requests */
-PRIVATE HTList *HTNetPersistent = NULL;	   /* List of persistent connections */
+PRIVATE int MaxActive = HT_MAX_SOCKETS;  	      /* Max active requests */
+PRIVATE int Active = 0;				      /* Counts open sockets */
+PRIVATE int Persistent = 0;		        /* Counts persistent sockets */
+
+PRIVATE HTList ** NetTable = NULL;		      /* List of net objects */
+PRIVATE int HTNetCount = 0;		       /* Counting elements in table */
 
 /* ------------------------------------------------------------------------- */
-
-/*
-**	Set the max number of simultanous sockets. Default is HT_MAX_SOCKETS
-*/
-PUBLIC BOOL HTNet_setMaxSocket (int newmax)
-{
-    if (newmax > 0) {
-	HTMaxActive = newmax;
-	return YES;
-    }
-    return NO;
-}
-
-PUBLIC int HTNet_maxSocket (void)
-{
-    return HTMaxActive;
-}
-
-/* ------------------------------------------------------------------------- */
-/*			  	Call Back Functions			     */
+/*			  BEFORE and AFTER filters			     */
 /* ------------------------------------------------------------------------- */
 
 /*	HTNetCall_add
@@ -96,7 +82,7 @@ PUBLIC BOOL HTNetCall_add (HTList * list, HTNetCallback * cbf,
 			   void * param, int status)
 {
     if (CORE_TRACE) 
-	HTTrace("Call Add.... HTNetCallback %p with context %p\n",
+	HTTrace("Net Filter.. Add %p with context %p\n",
 		(void *) cbf, param);
     if (list && cbf) {
 	NetCall *me;
@@ -116,8 +102,7 @@ PUBLIC BOOL HTNetCall_add (HTList * list, HTNetCallback * cbf,
 */
 PUBLIC BOOL HTNetCall_delete (HTList * list, HTNetCallback *cbf)
 {
-    if (CORE_TRACE) 
-	HTTrace("Call delete HTNetCallback %p\n", (void *) cbf);
+    if (CORE_TRACE) HTTrace("Net Filter.. Delete %p\n", (void *) cbf);
     if (list && cbf) {
 	HTList *cur = list;
 	NetCall *pres;
@@ -138,8 +123,7 @@ PUBLIC BOOL HTNetCall_delete (HTList * list, HTNetCallback *cbf)
 */
 PUBLIC BOOL HTNetCall_deleteAll (HTList * list)
 {
-    if (CORE_TRACE) 
-	HTTrace("Call delete All callback functions\n");
+    if (CORE_TRACE) HTTrace("Net Filter. Delete All filters\n");
     if (list) {
 	HTList *cur = list;
 	NetCall *pres;
@@ -172,7 +156,7 @@ PUBLIC int HTNetCall_execute (HTList * list, HTRequest * request, int status)
 	    NetCall *pres = (NetCall *) HTList_objectAt(list, cnt);
 	    if (pres && (pres->status == status || pres->status == HT_ALL)) {
 		if (CORE_TRACE)
-		    HTTrace("Net callback %p (request=%p, status=%d)\n",
+		    HTTrace("Net Filter.. %p (request=%p, status=%d)\n",
 			    (void *) pres->cbf, request, status);
 		if ((ret=(*(pres->cbf))(request, pres->param,status)) != HT_OK)
 		    break;
@@ -267,52 +251,99 @@ PUBLIC BOOL HTNetCall_deleteAfter (HTNetCallback * cbf)
 }
 
 /* ------------------------------------------------------------------------- */
-/*			  	Request Queue				     */
+/*			      Socket Management				     */
 /* ------------------------------------------------------------------------- */
 
-/*	HTNet_activeQueue
-**	-----------------
-**	Returns the list of active requests that are currently having an open
-**	connection.
-**	Returns list of HTNet objects or NULL if error
-*/
-PUBLIC HTList *HTNet_activeQueue (void)
+PUBLIC int HTNet_maxSocket (void)
 {
-    return HTNetActive;
+    return MaxActive;
 }
 
-/*	HTNet_idle
-**	----------
-**	Returns whether there are active requests
-*/
-PUBLIC BOOL HTNet_idle (void)
+PUBLIC BOOL HTNet_setMaxSocket (int newmax)
 {
-    return HTList_isEmpty(HTNetActive);
+    if (newmax > 0) {
+	MaxActive = newmax;
+	return YES;
+    }
+    return NO;
 }
 
-/*	HTNet_empty
-**	-----------
-**	Returns whether there are requests registered or not
+PUBLIC void HTNet_increaseSocket (void)
+{
+    Active++;
+    if (CORE_TRACE) HTTrace("Net Manager. %d open sockets\n", Active);
+}
+
+PUBLIC void HTNet_decreaseSocket (void)
+{
+    if (--Active < 0) Active = 0;
+    if (CORE_TRACE) HTTrace("Net Manager. %d open sockets\n", Active);
+}
+
+PUBLIC int HTNet_availableSockets (void)
+{
+    int available = MaxActive - Active;
+    return available > 0 ? available : 0;
+}
+
+PUBLIC void HTNet_increasePersistentSocket (void)
+{
+    Persistent++;
+    if (CORE_TRACE) HTTrace("Net Manager. %d persistent sockets\n", Persistent);
+}
+
+PUBLIC void HTNet_decreasePersistentSocket (void)
+{
+    if (--Persistent < 0) Persistent = 0;
+    if (CORE_TRACE) HTTrace("Net Manager. %d persistent sockets\n", Persistent);
+}
+
+PUBLIC int HTNet_availablePersistentSockets (void)
+{
+    int available = MaxActive - 2 - Persistent;
+    return available > 0 ? available : 0;
+}
+
+/*
+**	Returns whether there are any Net objects pending or active
 */
+PUBLIC BOOL HTNet_isIdle (void)
+{
+    return (HTNetCount > 0);
+}
+
 PUBLIC BOOL HTNet_isEmpty (void)
 {
-    return (HTList_isEmpty(HTNetActive) && HTList_isEmpty(HTNetPersistent) &&
-	    HTList_isEmpty(HTNetPending));
-}
-
-/*	HTNet_pendingQueue
-**	------------------
-**	Returns the list of pending requests that are waiting to become active
-**	Returns list of HTNet objects or NULL if error
-*/
-PUBLIC HTList *HTNet_pendingQueue (void)
-{
-    return HTNetPending;
+    return (HTNetCount <= 0);
 }
 
 /* ------------------------------------------------------------------------- */
 /*			  Creation and deletion methods  		     */
 /* ------------------------------------------------------------------------- */
+
+PRIVATE HTNet * create_object (void)
+{
+    static int net_hash = 0;
+    HTNet * me = NULL;
+
+    /* Create new object */
+    if ((me = (HTNet *) HT_CALLOC(1, sizeof(HTNet))) == NULL)
+        HT_OUTOFMEM("HTNet_new");
+    me->hash = net_hash++ % HASH_SIZE;
+    me->tcpstate = TCP_BEGIN;
+
+    /* Insert into hash table */
+    if (!NetTable) {
+	if ((NetTable = (HTList **) HT_CALLOC(HASH_SIZE, sizeof(HTList *))) == NULL)
+	    HT_OUTOFMEM("create_object");
+    }
+    if (!NetTable[me->hash]) NetTable[me->hash] = HTList_new();
+    HTList_addObject(NetTable[me->hash], (void *) me);
+    HTNetCount++;
+    if (CORE_TRACE)
+	HTTrace("Net Object.. %p created with hash %d\n",me, me->hash);
+    return me;
+}
 
 /*	HTNet_duplicate
 **	---------------
@@ -322,13 +353,382 @@ PUBLIC HTList *HTNet_pendingQueue (void)
 */
 PUBLIC HTNet * HTNet_dup (HTNet * src)
 {
-    HTNet * me;
-    if (!src) return 0;
-    if ((me = (HTNet *) HT_MALLOC(sizeof(HTNet))) == NULL)
-	HT_OUTOFMEM("HTNet_dup");
-    memcpy((void *) me, src, sizeof(HTNet));
-    return me;
+    if (src) {
+        HTNet * me;
+	if ((me = create_object()) == NULL) return NULL;
+	if (CORE_TRACE) HTTrace("Net Object.. Duplicated %p\n", src);
+        memcpy((void *) me, src, sizeof(HTNet));
+	return me;
+    }
+    return NULL;
 }
+
+/*
+**	Start a Net obejct by calling the protocol module.
+*/
+PUBLIC BOOL HTNet_start (HTNet * net)
+{
+    if (net && net->cbf && net->request) {
+	if (CORE_TRACE) HTTrace("Net Object.. Launching %p\n", net);
+	HTEvent_unregister(net->sockfd, (SockOps) FD_ALL);
+	(*(net->cbf))(net->sockfd, net->request, FD_NONE);
+	return YES;
+    }
+    return NO;
+}
+
+/*	HTNet_new
+**	---------
+**	This function creates a new HTNet object and assigns the socket number
+**	to it. This is intended to be used when you are going to listen on a 
+**	socket using the HTDoListen() function in HTTCP.c. The function do NOT
+**	call any of the callback functions.
+**	Returns new object or NULL on error
+*/
+PUBLIC HTNet * HTNet_new (SOCKET sockfd, HTRequest * request)
+{
+    if (sockfd != INVSOC) {
+	HTNet * me;
+	if ((me = create_object()) == NULL) return NULL;
+	me->preemptive = HTRequest_preemptive(request);
+	me->priority = HTRequest_priority(request);
+	me->sockfd = sockfd;
+	me->request = request;
+	HTRequest_setNet(request, me);
+	return me;
+    }
+    if (CORE_TRACE) HTTrace("Net Object.. Can't create empty Net object!\n");
+    return NULL;
+}
+
+/*      HTNet_newServer
+**      ---------------
+**      Create a new HTNet object as a new request to be handled. If we have
+**      more than MaxActive connections already then return NO.
+**      Returns YES if OK, else NO
+*/
+PUBLIC BOOL HTNet_newServer (HTRequest * request, HTNet * net, char * access)
+{
+    HTProtocol * protocol;
+    HTTransport * tp = NULL;    	/* added JTD:5/28/96 */
+    if (!request) return NO;
+
+    /* Find a protocol object for this access scheme */
+    protocol = HTProtocol_find(request, access);
+
+    /* added - JTD:5/28/96 */
+    /* Find a transport object for this protocol */
+    tp = HTTransport_find(request, HTProtocol_transport(protocol));
+    if (tp == NULL) {
+        if (CORE_TRACE) HTTrace("Net Object.. NO TRANSPORT OBJECT\n");
+        return NO;
+    }
+    /* end of additions - JTD:5/28/96 */
+
+    /* Fill out the net object and bind it to the request object */
+    net->preemptive = (HTProtocol_preemptive(protocol) || HTRequest_preemptive(request));
+    net->protocol = protocol;
+    net->transport = tp; 		/* added - JTD:5/28/96 */
+    net->priority = HTRequest_priority(request);
+    net->request = request;
+    HTRequest_setNet(request, net);
+    if (!(net->cbf = HTProtocol_server(protocol))) {
+        if (CORE_TRACE) HTTrace("Net Object.. NO CALL BACK FUNCTION!\n");
+        return NO;
+    }
+
+    /* Increase the number of retrys for this download */
+    HTRequest_addRetry(request);
+
+    /* Start the server request */
+    if (CORE_TRACE)
+        HTTrace("Net Object.. starting SERVER request %p with net object %p\n", request, net);
+    (*(net->cbf))(net->sockfd, request, FD_NONE);
+    return YES;
+}
+
+/*	HTNet_new
+**	---------
+**	Create a new HTNet object as a new request to be handled. If we have
+**	more than MaxActive connections already then put this into the
+**	pending queue, else start the request by calling the call back
+**	function registered with this access method. 
+**	Returns YES if OK, else NO
+*/
+PUBLIC BOOL HTNet_newClient (HTRequest * request)
+{
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    HTNet * me = NULL;
+    HTProtocol * protocol = NULL;
+    HTTransport * tp = NULL;
+    char * physical = NULL;
+    int status;
+    if (!request) return NO;
+    /*
+    ** First we do all the "BEFORE" callbacks in order to see if we are to
+    ** continue with this request or not. If we receive a callback status
+    ** that is NOT HT_OK then jump directly to the after callbacks and return
+    */
+    if ((status = HTNet_callBefore(request, HT_OK)) != HT_OK) {
+	HTNet_callAfter(request, status);
+	return YES;
+    }
+
+    /*
+    ** If no translation was provided by the application then use the anchor
+    ** address directly
+    */
+    if (!(physical = HTAnchor_physical(anchor))) {
+	char * addr = HTAnchor_address((HTAnchor *) anchor);
+	if (CORE_TRACE) HTTrace("Net Object.. Using default address\n");
+	HTAnchor_setPhysical(anchor, addr);
+	physical = HTAnchor_physical(anchor);
+	HT_FREE(addr);
+    }
+
+    /* Find a protocol object for this access scheme */
+    {
+	char * access = HTParse(physical, "", PARSE_ACCESS);
+	if ((protocol = HTProtocol_find(request, access)) == NULL) {
+	    if (CORE_TRACE) HTTrace("Net Object.. NO PROTOCOL OBJECT\n");
+	    HT_FREE(access);
+	    return NO;
+	}
+	HT_FREE(access);
+    }
+
+    /* Find a transport object for this protocol */
+    tp = HTTransport_find(request, HTProtocol_transport(protocol));
+    if (tp == NULL) {
+	if (CORE_TRACE) HTTrace("Net Object.. NO TRANSPORT OBJECT\n");
+	return NO;
+    }
+
+    /* Create new net object and bind it to the request object */
+    if ((me = create_object()) == NULL) return NO;
+    me->preemptive = (HTProtocol_preemptive(protocol) || HTRequest_preemptive(request));
+    me->priority = HTRequest_priority(request);
+    me->sockfd = INVSOC;
+    me->protocol = protocol;
+    me->transport = tp;
+    me->request = request;
+    HTRequest_setNet(request, me);
+    if (!(me->cbf = HTProtocol_client(protocol))) {
+	if (CORE_TRACE) HTTrace("Net Object.. NO CALL BACK FUNCTION!\n");
+	HT_FREE(me);
+	return NO;
+    }
+
+    /* Increase the number of retrys for this download */
+    HTRequest_addRetry(request);
+
+    /*
+    ** Check if we can start the request, else put it into pending queue
+    ** If so then call the call back function associated with the anchor.
+    ** We use the INVSOC as we don't have a valid socket yet!
+    */
+    if (CORE_TRACE)
+        HTTrace("Net Object.. starting request %p (retry=%d) with net object %p\n",
+	        request, HTRequest_retrys(request), me);
+    (*(me->cbf))(me->sockfd, request, FD_NONE);
+    return YES;
+}
+
+/*	delete_object
+**	-------------
+**	Deletes an HTNet object
+**	Return YES if OK, else NO
+*/
+PRIVATE BOOL delete_object (HTNet *net, int status)
+{
+    if (CORE_TRACE) HTTrace("Net Object.. Remove object %p\n", net);
+    if (net) {
+
+	/* Close socket */
+	if (net->channel) {
+	    HTEvent_unregister(net->sockfd, (SockOps) FD_ALL);
+	    if (HTHost_isPersistent(net->host)) {
+		if (CORE_TRACE)
+		    HTTrace("Net Object.. keeping socket %d\n", net->sockfd);
+		HTChannel_delete(net->channel, status);
+	    } else {
+		if (CORE_TRACE)
+		    HTTrace("Net Object.. closing socket %d\n", net->sockfd);
+
+		/* 
+		**  By lowering the semaphore we make sure that the channel
+		**  is gonna be deleted
+		*/
+		HTChannel_downSemaphore(net->channel);
+		HTChannel_delete(net->channel, status);
+	    }
+	    net->channel = NULL;
+	}
+
+	/*
+	**  As we may have a socket available we check for whether
+	**  we can start any pending requests. We do this by asking for
+	**  pending Host objects. If none then use the current object
+	*/
+	HTHost_launchPending(net->host);
+
+	/*
+	**  Break the link to the request and free the Net object
+	*/
+	HTRequest_setNet(net->request, NULL);
+	HT_FREE(net);
+	return status ? NO : YES;
+    }
+    return NO;
+}
+
+/*
+**	Clears the contents of the Net object so that we can use it again.
+*/
+PUBLIC BOOL HTNet_clear (HTNet * net)
+{
+    if (net) {
+	net->sockfd = INVSOC;
+	net->channel = NULL;
+	net->input = NULL;
+	net->bytes_read = 0;
+	net->bytes_written = 0;
+	net->tcpstate = TCP_CHANNEL;
+	return YES;
+    }
+    return NO;
+}
+
+/*	HTNet_delete
+**	------------
+**	Deletes the HTNet object from the list of active requests and calls
+**	any registered call back functions IF not the status is HT_IGNORE.
+**	This is used if we have internal requests that the app doesn't know
+**	about. We also see if we have pending requests that can be started
+**	up now when we have a socket free.
+**	The callback functions are called in the reverse order of which they
+**	were registered (last one first)
+**	Return YES if OK, else NO
+*/
+PUBLIC BOOL HTNet_delete (HTNet * net, int status)
+{
+    if (CORE_TRACE) 
+	HTTrace("Net Object.. Delete %p and call AFTER filters\n", net);
+    if (net) {
+	HTRequest * request = net->request;
+
+	/*
+	** If we have a premature close then recover the request. Otherwise
+	** break the link to the Host object and continue deleting the net
+	** object
+	*/
+	if (net->host) {
+	    if (status == HT_RECOVER_PIPE) {
+		if (CORE_TRACE) HTTrace("Net Object.. Recovering %p\n", net);
+		HTChannel_setSemaphore(net->channel, 0);
+		HTHost_clearChannel(net->host, HT_INTERRUPTED);
+		HTHost_setMode(net->host, HT_TP_SINGLE);
+		HTNet_clear(net);
+		if (CORE_TRACE)
+		    HTTrace("Net Object.. Restarting request %p (retry=%d) with net object %p\n",
+			    request, HTRequest_retrys(request), net);
+		HTHost_launchPending(net->host);
+		return YES;
+	    } else
+		HTHost_deleteNet(net->host, net);
+	}
+
+        /* Remove object from the table of Net Objects */
+	if (NetTable) {
+	    HTList * list = NetTable[net->hash];
+	    if (list) {
+		HTList_removeObject(list, (void *) net);
+		delete_object(net, status);
+		HTNetCount--;
+	    }
+	}
+
+    	/* Call AFTER filters */
+	HTNet_callAfter(request, status);
+        return YES;
+    }
+    return NO;
+}
+
+/*	HTNet_deleteAll
+**	---------------
+**	Deletes all HTNet object that might either be active or pending
+**	We DO NOT call the AFTER filters - A crude way of saying goodbye!
+*/
+PUBLIC BOOL HTNet_deleteAll (void)
+{
+    if (CORE_TRACE) 
+	HTTrace("Net Object.. Remove all Net objects, NO filters\n"); 
+    if (NetTable) {
+	HTList * cur = NULL;
+        HTNet * pres = NULL;
+	int cnt;
+	for (cnt=0; cnt<HASH_SIZE; cnt++) {
+	    if ((cur = NetTable[cnt])) { 
+		while ((pres = (HTNet *) HTList_nextObject(cur)) != NULL)
+		    delete_object(pres, HT_INTERRUPTED);
+	    }
+	    HTList_delete(NetTable[cnt]);
+	}
+	HT_FREE(NetTable);
+	HTNetCount = 0;
+	return YES;
+    }
+    return NO;
+}
+
+/*	HTNet_kill
+**	----------
+**	Kill the request by calling the call back function with a request for 
+**	closing the connection. Does not remove the object. This is done by
+**	HTNet_delete() function which is called by the load routine.
+**	Returns OK if success, NO on error
+*/
+PUBLIC BOOL HTNet_kill (HTNet * net)
+{
+    if (net && net->cbf) {
+        if (CORE_TRACE) HTTrace("Net Object.. Killing %p\n", net);
+        (*(net->cbf))(net->sockfd, net->request, FD_CLOSE);
+	return YES;
+    }
+    if (CORE_TRACE) HTTrace("Net Object.. No object to kill\n", net);
+    return NO;
+}
+
+/*	HTNet_killAll
+**	-------------
+**	Kills all registered net objects by calling the call
+**	back function with a request for closing the connection. We do not
+**	remove the HTNet object as it is done by HTNet_delete().
+**	Returns OK if success, NO on error
+*/
+PUBLIC BOOL HTNet_killAll (void)
+{
+    if (CORE_TRACE) HTTrace("Net Object.. Kill ALL Net objects!!!\n"); 
+    if (NetTable) {
+	HTList * cur = NULL;
+        HTNet * pres = NULL;
+	int cnt;
+	for (cnt=0; cnt<HASH_SIZE; cnt++) {
+	    if ((cur = NetTable[cnt])) { 
+		while ((pres = (HTNet *) HTList_nextObject(cur)) != NULL)
+    		    HTNet_kill(pres);
+	    }
+	}
+	return YES;
+    }
+    if (CORE_TRACE) HTTrace("Net Object.. No objects to kill\n");
+    return NO;
+}
+
+/* ------------------------------------------------------------------------- */
+/*			    Connection Specifics 			     */
+/* ------------------------------------------------------------------------- */
 
 /*	HTNet_priority
 **	--------------
@@ -353,421 +753,6 @@ PUBLIC BOOL HTNet_setPriority (HTNet * net, HTPriority priority)
     return NO;
 }
 
-/*	create_object
-**	-------------
-**	Creates an HTNet object
-*/
-PRIVATE HTNet * create_object (void)
-{
-    HTNet * me;
-    if ((me = (HTNet *) HT_CALLOC(1, sizeof(HTNet))) == NULL)
-        HT_OUTOFMEM("HTNet_new");
-    me->tcpstate = TCP_BEGIN;
-    if (!HTNetActive) HTNetActive = HTList_new();
-    return me;
-}
-
-/*	HTNet_new
-**	---------
-**	This function creates a new HTNet object and assigns the socket number
-**	to it. This is intended to be used when you are going to listen on a 
-**	socket using the HTDoListen() function in HTTCP.c. The function do NOT
-**	call any of the callback functions.
-**	Returns new object or NULL on error
-*/
-PUBLIC HTNet * HTNet_new (SOCKET sockfd, HTRequest * request)
-{
-    if (sockfd != INVSOC) {
-	HTNet * me;
-	if ((me = create_object()) == NULL) return NULL;
-	if (CORE_TRACE)
-	    HTTrace("HTNet_new... Create empty Net object %p\n", me);
-	me->preemptive = HTRequest_preemptive(request);
-	me->priority = HTRequest_priority(request);
-	me->sockfd = sockfd;
-	me->request = request;
-	HTRequest_setNet(request, me);
-	return me;
-    }
-    if (CORE_TRACE) HTTrace("HTNet_new... Can't create empty Net object!\n");
-    return NULL;
-}
-
-/*      HTNet_newServer
-**      ---------------
-**      Create a new HTNet object as a new request to be handled. If we have
-**      more than HTMaxActive connections already then return NO.
-**      Returns YES if OK, else NO
-*/
-PUBLIC BOOL HTNet_newServer (HTRequest * request, HTNet * net, char * access)
-{
-    HTProtocol * protocol;
-    HTTransport * tp = NULL;    	/* added JTD:5/28/96 */
-    if (!request) return NO;
-
-    /* Find a protocol object for this access scheme */
-    protocol = HTProtocol_find(request, access);
-
-    /* added - JTD:5/28/96 */
-    /* Find a transport object for this protocol */
-    tp = HTTransport_find(request, HTProtocol_transport(protocol));
-    if (tp == NULL) {
-        if (CORE_TRACE) HTTrace("HTNet....... NO TRANSPORT OBJECT\n");
-        return NO;
-    }
-    /* end of additions - JTD:5/28/96 */
-
-    /* Fill out the net object and bind it to the request object */
-    net->preemptive = (HTProtocol_preemptive(protocol) || request->preemptive);
-    net->protocol = protocol;
-    net->transport = tp; 		/* added - JTD:5/28/96 */
-    net->priority = HTRequest_priority(request);
-    net->request = request;
-    HTRequest_setNet(request, net);
-    if (!(net->cbf = HTProtocol_server(protocol))) {
-        if (CORE_TRACE) HTTrace("HTNet_new... NO CALL BACK FUNCTION!\n");
-        return NO;
-    }
-    request->retrys++;
-
-    /* Start the server request */
-    HTList_addObject(HTNetActive, (void *) net);
-    if (CORE_TRACE)
-        HTTrace("HTNet_new... starting SERVER request %p with net object %p\n", request, net);
-    (*(net->cbf))(net->sockfd, request, FD_NONE);
-    return YES;
-}
-
-/*	HTNet_new
-**	---------
-**	Create a new HTNet object as a new request to be handled. If we have
-**	more than HTMaxActive connections already then put this into the
-**	pending queue, else start the request by calling the call back
-**	function registered with this access method. 
-**	Returns YES if OK, else NO
-*/
-PUBLIC BOOL HTNet_newClient (HTRequest * request)
-{
-    int status;
-    HTNet * me = NULL;
-    HTProtocol * protocol = NULL;
-    HTTransport * tp = NULL;
-    char * physical = NULL;
-    if (!request) return NO;
-    /*
-    ** First we do all the "BEFORE" callbacks in order to see if we are to
-    ** continue with this request or not. If we receive a callback status
-    ** that is NOT HT_OK then jump directly to the after callbacks and return
-    */
-    if ((status = HTNet_callBefore(request, HT_OK)) != HT_OK) {
-	HTNet_callAfter(request, status);
-	return YES;
-    }
-
-    /*
-    ** If no translation was provided by the application then use the anchor
-    ** address directly
-    */
-    if (!(physical = HTAnchor_physical(request->anchor))) {
-	char * addr = HTAnchor_address((HTAnchor *) request->anchor);
-	if (CORE_TRACE) HTTrace("HTNet New... Using default address\n");
-	HTAnchor_setPhysical(request->anchor, addr);
-	physical = HTAnchor_physical(request->anchor);
-	HT_FREE(addr);
-    }
-
-    /* Find a protocol object for this access scheme */
-    {
-	char * access = HTParse(physical, "", PARSE_ACCESS);
-	if ((protocol = HTProtocol_find(request, access)) == NULL) {
-	    if (CORE_TRACE) HTTrace("HTNet_new... NO PROTOCOL OBJECT\n");
-	    HT_FREE(access);
-	    return NO;
-	}
-	HT_FREE(access);
-    }
-
-    /* Find a transport object for this protocol */
-    tp = HTTransport_find(request, HTProtocol_transport(protocol));
-    if (tp == NULL) {
-	if (CORE_TRACE) HTTrace("HTNet....... NO TRANSPORT OBJECT\n");
-	return NO;
-    }
-
-    /* Create new net object and bind it to the request object */
-    if ((me = create_object()) == NULL) return NO;
-    me->preemptive = (HTProtocol_preemptive(protocol) || request->preemptive);
-    me->priority = HTRequest_priority(request);
-    me->sockfd = INVSOC;
-    me->protocol = protocol;
-    me->transport = tp;
-    me->request = request;
-    HTRequest_setNet(request, me);
-    if (!(me->cbf = HTProtocol_client(protocol))) {
-	if (CORE_TRACE) HTTrace("HTNet_new... NO CALL BACK FUNCTION!\n");
-	HT_FREE(me);
-	return NO;
-    }
-    request->retrys++;
-
-    /*
-    ** Check if we can start the request, else put it into pending queue
-    ** If so then call the call back function associated with the anchor.
-    ** We use the INVSOC as we don't have a valid socket yet!
-    */
-    if (HTList_count(HTNetActive) < HTMaxActive) {
-	HTList_addObject(HTNetActive, (void *) me);
-	if (CORE_TRACE)
-	    HTTrace("HTNet_new... starting request %p (retry=%d) with net object %p\n",
-		    request, request->retrys, me);
-	(*(me->cbf))(me->sockfd, request, FD_NONE);
-    } else {
-	HTAlertCallback *cbf = HTAlert_find(HT_PROG_WAIT);
-	if (!HTNetPending) HTNetPending = HTList_new();
-	if (CORE_TRACE)
-	    HTTrace("HTNet_new... request %p registered as pending\n",
-		    request);
-	if (cbf) (*cbf)(request, HT_PROG_WAIT, HT_MSG_NULL, NULL, NULL, NULL);
-	HTList_addObject(HTNetPending, (void *) me);	
-    }
-    return YES;
-}
-
-/*	delete_object
-**	-------------
-**	Deletes an HTNet object
-**	Return YES if OK, else NO
-*/
-PRIVATE BOOL delete_object (HTNet *net, int status)
-{
-    if (CORE_TRACE)
-	HTTrace("HTNet_delete Remove net object %p\n", net);
-    if (net) {
-
-	/* Free stream with data FROM network to application */
-#if 0
-	if (net->target) {
-	    if (status == HT_INTERRUPTED)
-		(*net->target->isa->abort)(net->target, NULL);
-	    else
-		(*net->target->isa->_free)(net->target);
-	    net->target = NULL;
-	}
-#endif
-
-	/* Close socket */
-	if (net->channel) {
-	    HTEvent_unregister(net->sockfd, (SockOps) FD_ALL);
-	    if (HTHost_channel(net->host) == NULL) {
-		if (CORE_TRACE)
-		    HTTrace("HTNet_delete closing %d\n", net->sockfd);
-		HTChannel_downSemaphore(net->channel);
-		HTChannel_delete(net->channel, status);
-	    } else {
-		if (CORE_TRACE)
-		    HTTrace("HTNet_delete keeping %d\n", net->sockfd);
-		/* Here we should probably use a low priority */
-		HTChannel_delete(net->channel, status);
-		HTEvent_register(net->sockfd, 0, (SockOps) FD_READ,
-				 HTHost_catchClose, net->priority);
-	    }
-	    net->channel = NULL;
-	}
-	HTRequest_setNet(net->request, NULL); 	    /* Break link to request */
-	HT_FREE(net);
-	return status ? NO : YES;
-    }
-    return NO;
-}
-
-/*	HTNet_delete
-**	------------
-**	Deletes the HTNet object from the list of active requests and calls
-**	any registered call back functions IF not the status is HT_IGNORE.
-**	This is used if we have internal requests that the app doesn't know
-**	about. We also see if we have pending requests that can be started
-**	up now when we have a socket free.
-**	The callback functions are called in the reverse order of which they
-**	were registered (last one first)
-**	Return YES if OK, else NO
-*/
-PUBLIC BOOL HTNet_delete (HTNet * net, int status)
-{
-    if (CORE_TRACE) 
-	HTTrace("HTNetDelete. Object and call callback functions\n");
-    if (HTNetActive && net) {
-	SOCKET cs = net->sockfd;			   /* Current sockfd */
-
-	/* Remove object and call callback functions */
-	HTRequest *request = net->request;
-	if (HTList_removeObject(HTNetActive, (void *) net) != YES)
-	    if (CORE_TRACE)
-		HTTrace("HTNetDelete. %p not registered!\n", net);
- 	delete_object(net, status);
-	HTNet_callAfter(request, status);
-
-	/*
-	** See first if we have a persistent request queued up for this socket
-	** If not then see if there is a pending request
-	*/
-	if (HTNetPersistent) {
-	    HTList *cur = HTNetPersistent;
-	    HTNet *next;
-	    while ((next = (HTNet *) HTList_nextObject(cur))) {
-		if (next->sockfd == cs) {
-		    if (CORE_TRACE)
-			HTTrace("HTNet delete Launch request %p on WARM socket %d (net object %p)\n",
-				 next->request, next->sockfd, next);
-		    HTList_addObject(HTNetActive, (void *) next);
-		    HTList_removeObject(HTNetPersistent, (void *) next);
-		    (*(next->cbf))(next->sockfd, next->request, FD_WRITE);
-		    break;
-		}
-	    }
-	} else if (HTList_count(HTNetActive) < HTMaxActive &&
-		   HTList_count(HTNetPending)) {
-	    HTNet *next = (HTNet *) HTList_removeFirstObject(HTNetPending);
-	    if (next) {
-		HTList_addObject(HTNetActive, (void *) next);
-		if (CORE_TRACE)
-		    HTTrace("HTNet delete launch PENDING request %p\n",
-			    next->request);
-		(*(next->cbf))(INVSOC, next->request, FD_NONE);
-	    }
-	}
-	return YES;
-    }
-    return NO;
-}
-
-/*	HTNet_deleteAll
-**	---------------
-**	Deletes all HTNet object that might either be active or pending
-**	We DO NOT call the call back functions - A crude way of saying goodbye!
-*/
-PUBLIC BOOL HTNet_deleteAll (void)
-{
-    if (CORE_TRACE) 
-	HTTrace("HTNetDelete. Remove all Net objects, NO callback\n"); 
-    if (HTNetPersistent) {
-	HTList *cur = HTNetPersistent;
-	HTNet *pres;
-	while ((pres = (HTNet *) HTList_nextObject(cur))) {
-	    pres->sockfd = INVSOC;	    /* Don't close it more than once */
-	    delete_object(pres, HT_INTERRUPTED);
-	}
-	HTList_delete(HTNetPersistent);
-	HTNetPersistent = NULL;
-    }
-    if (HTNetPending) {
-	HTList *cur = HTNetPending;
-	HTNet *pres;
-	while ((pres = (HTNet *) HTList_nextObject(cur)))
-	    delete_object(pres, HT_INTERRUPTED);
-	HTList_delete(HTNetPending);
-	HTNetPending = NULL;
-    }
-    if (HTNetActive) {
-	HTList *cur = HTNetActive;
-	HTNet *pres;
-	while ((pres = (HTNet *) HTList_nextObject(cur)))
-	    delete_object(pres, HT_INTERRUPTED);
-	HTList_delete(HTNetActive);
-	HTNetActive = NULL;
-    }
-    return NO;
-}
-
-/*	HTNet_wait
-**	----------
-**	Let a net object wait for a persistent socket. It will be launched
-**	from the HTNet_delete() function
-**	Return YES if OK, else NO
-*/
-PUBLIC BOOL HTNet_wait (HTNet *net)
-{
-    if (net) {
-	if (CORE_TRACE)
-	    HTTrace("HTNet_wait.. request %p is waiting for presistent socket %d\n",
-		     net->request, net->sockfd);
-
-	/* Take it out of the active queue and add it to persistent queue */
-	if (HTList_removeObject(HTNetActive, (void *) net) != YES) {
-	    if (CORE_TRACE) HTTrace("HTNet_wait.. not registered!\n");
-	    return NO;
-	}
-	if (!HTNetPersistent) HTNetPersistent = HTList_new();
-	return HTList_addObject(HTNetPersistent, (void *) net);	
-    }
-    return NO;
-}
-
-/* ------------------------------------------------------------------------- */
-/*			        Killing requests  			     */
-/* ------------------------------------------------------------------------- */
-
-/*	HTNet_kill
-**	----------
-**	Kill the request by calling the call back function with a request for 
-**	closing the connection. Does not remove the object. This is done by
-**	HTNet_delete() function which is called by the load routine.
-**	Returns OK if success, NO on error
-*/
-PUBLIC BOOL HTNet_kill (HTNet * me)
-{
-    if (HTNetActive && me) {
-	HTList *cur = HTNetActive;
-	HTNet *pres;
-	while ((pres = (HTNet *) HTList_nextObject(cur))) {
-	    if (pres == me) {
-		(*(pres->cbf))(pres->sockfd, pres->request, FD_CLOSE);
-		return YES;
-	    }
-	}
-    }
-    if (CORE_TRACE)
-	HTTrace("HTNet_kill.. object %p is not registered\n", me);
-    return NO;
-}
-
-/*	HTNet_killAll
-**	-------------
-**	Kills all registered (active+pending) requests by calling the call
-**	back function with a request for closing the connection. We do not
-**	remove the HTNet object as it is done by HTNet_delete().
-**	Returns OK if success, NO on error
-*/
-PUBLIC BOOL HTNet_killAll (void)
-{
-    HTNet *pres;
-    if (CORE_TRACE)
-	HTTrace("HTNet_kill.. ALL registered requests!!!\n");
-
-    /* We start off in persistent queue so we avoid racing */
-    if (HTNetPersistent) {
-	while ((pres = (HTNet *) HTList_lastObject(HTNetPersistent)) != NULL) {
-	    pres->sockfd = INVSOC;
-	    (*(pres->cbf))(pres->sockfd, pres->request, FD_CLOSE);
-	    HTList_removeObject(HTNetPersistent, pres);
-	}
-    }
-    if (HTNetPending) {
-	while ((pres = (HTNet *) HTList_lastObject(HTNetPending)) != NULL) {
-	    (*(pres->cbf))(pres->sockfd, pres->request, FD_CLOSE);
-	    HTList_removeObject(HTNetPending, pres);
-	}
-    }
-    if (HTNetActive) {
-	while ((pres = (HTNet *) HTList_lastObject(HTNetActive)) != NULL)
-	    (*(pres->cbf))(pres->sockfd, pres->request, FD_CLOSE);
-    }
-    return YES;
-}
-
-/* ------------------------------------------------------------------------- */
-/*			    Connection Specifics 			     */
-/* ------------------------------------------------------------------------- */
-
 /*	HTNet_Persistent
 **	----------------
 **	Check whether the net object handles persistent connections
@@ -783,22 +768,23 @@ PUBLIC BOOL HTNet_persistent (HTNet * net)
 **	Set the net object to handle persistent connections
 **	If we also have a DNS entry then update that as well
 */
-PUBLIC BOOL HTNet_setPersistent (HTNet * net, BOOL persistent)
+PUBLIC BOOL HTNet_setPersistent (HTNet *		net,
+				 BOOL			persistent,
+				 HTTransportMode	mode)
 {
     if (net) {
-	if (CORE_TRACE) HTTrace("Net......... Persistent connection set %s\n",
-				persistent ? "ON" : "OFF");
+	BOOL result;			/* Bill Rizzi */
 	if (persistent)
-	    HTHost_setChannel(net->host, net->channel);
+	    result = HTHost_setChannel(net->host, net->channel, mode);
 	else
-	    HTHost_clearChannel(net->host);
+	    result = HTHost_clearChannel(net->host, HT_OK);
+	if (CORE_TRACE)
+	    HTTrace("Net Object.. Persistent connection set %s %s\n",
+		    persistent ? "ON" : "OFF",
+		    result ? "succeeded" : "failed");
     }
     return NO;
 }
-
-/* ------------------------------------------------------------------------- */
-/*			      Data Access Methods  			     */
-/* ------------------------------------------------------------------------- */
 
 /*
 **	Context pointer to be used in context call back function
@@ -935,10 +921,10 @@ PUBLIC HTInputStream * HTNet_getInput (HTNet * net, HTStream * target,
 	HTTransport * tp = net->transport;
 	HTChannel * ch = net->channel;
 	net->input = (*tp->input_new)(net, ch, target, param, mode);
-	HTChannel_setInput(ch, net->input, tp->mode);
+	HTChannel_setInput(ch, net->input);
 	return net->input;
     }
-    if (CORE_TRACE) HTTrace("Net......... Can't create input stream\n");
+    if (CORE_TRACE) HTTrace("Net Object.. Can't create input stream\n");
     return NULL;
 }
 
@@ -952,9 +938,9 @@ PUBLIC HTOutputStream * HTNet_getOutput (HTNet * net, void * param, int mode)
 	HTTransport * tp = net->transport;
 	HTChannel * ch = net->channel;
 	HTOutputStream * output = (*tp->output_new)(net, ch, param, mode);
-	HTChannel_setOutput(ch, output, tp->mode);
+	HTChannel_setOutput(ch, output);
 	return output;
     }
-    if (CORE_TRACE) HTTrace("Net......... Can't create output stream\n");
+    if (CORE_TRACE) HTTrace("Net Object.. Can't create output stream\n");
     return NULL;
 }

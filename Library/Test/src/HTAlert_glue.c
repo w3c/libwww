@@ -318,7 +318,7 @@ int HTAlert_replySecret_tcl(ClientData clientData, Tcl_Interp *interp,
 
 int HTAlert_setReplySecret_tcl(ClientData clientData, Tcl_Interp *interp, 
 			    int argc, char **argv) {
-  if (argv ==3) {
+  if (argc ==3) {
     char *AlertPar_key = argv[1];
     const char *secret = argv[2];
     if (AlertPar_key && secret) {

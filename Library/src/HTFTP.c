@@ -191,7 +191,7 @@ PRIVATE int FTPCleanup (HTRequest * request, int status)
 		HT_FREE(data->file);
 		HT_FREE(data);
 	    }
-	    HTNet_setPersistent(dnet, NO);
+	    HTNet_setPersistent(dnet, NO, HT_TP_SINGLE);
 	    HTNet_delete(dnet, HT_IGNORE);
 	}
 	HTNet_delete(cnet, status);
@@ -1038,8 +1038,7 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 		if (PROT_TRACE)
 		    HTTrace("FTP Data.... Active data socket %d\n",
 			    dnet->sockfd);
-		HTNet_setPersistent(dnet, YES);
-		HTChannel_setMode(dnet->channel, HT_CH_BATCH);
+		HTNet_setPersistent(dnet, YES, HT_TP_INTERLEAVE);
 		ctrl->substate = NEED_ACTION;
 	    } else {			 	  /* Swap to PORT on the fly */
 		HTDoClose(dnet);
@@ -1329,7 +1328,7 @@ PUBLIC int HTLoadFTP (SOCKET soc, HTRequest * request, SockOps ops)
 				ctrl->server);
 		    ctrl->reset = 1;
 		} else
-		    HTNet_setPersistent(cnet, YES);
+		    HTNet_setPersistent(cnet, YES, HT_TP_SINGLE);
 #if 0
 		char *s_class = HTDNS_serverClass(cnet->dns);
 		if (s_class && strcasecomp(s_class, "ftp")) {
@@ -1378,7 +1377,7 @@ PUBLIC int HTLoadFTP (SOCKET soc, HTRequest * request, SockOps ops)
 		}
 
 		ctrl->state = FTP_NEED_LOGIN;
-	    } else if (status == HT_WOULD_BLOCK || status == HT_PERSISTENT)
+	    } else if (status == HT_WOULD_BLOCK || status == HT_PENDING)
 		return HT_OK;
 	    else
 		ctrl->state = FTP_ERROR;	       /* Error or interrupt */

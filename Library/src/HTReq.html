@@ -259,6 +259,21 @@ extern BOOL HTRequest_setScheme (HTRequest * request, char * scheme);
 extern const char * HTRequest_scheme (HTRequest * request);
 </PRE>
 <H2>
+  HTTP Extensions (PEP)
+</H2>
+<P>
+HTTP can be extended in several ways but traditionally it has been by using
+new headers. Here we present a new idea which provides a framework for describing
+extensions and their scope. This is only an idea an may be modified later!
+The implementation of the extensions can be found in the
+<A HREF="HTPEP.html">PEP module</A>
+<PRE>
+extern BOOL HTRequest_addExtension (HTRequest * request, char * token, char
+* value);
+extern BOOL HTRequest_deleteExtension (HTRequest * request);
+extern HTAssocList * HTRequest_extension (HTRequest * request);
+</PRE
+<H2>
   Max number of Retrys for a Down Load
 </H2>
 <P>
@@ -281,6 +296,7 @@ extern int  HTRequest_maxRetry (void);
 
 extern int HTRequest_retrys (HTRequest * request);
 extern BOOL HTRequest_doRetry (HTRequest *request);
+extern BOOL HTRequest_addRetry (HTRequest * request);
 </PRE>
 <H2>
   Set Max Forwards for TRACE methods

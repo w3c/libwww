@@ -2,4 +2,4 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = src User Examples
+SUBDIRS = src User Examples Test

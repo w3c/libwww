@@ -76,7 +76,7 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
     char qstr[10];
     *crlf = CR; *(crlf+1) = LF; *(crlf+2) = '\0';
 
-    /* Generate the HTTP/1.0 RequestLine */
+    /* Generate the HTTP/1.x RequestLine */
     if (me->state == 0) {
 	if (method != METHOD_INVALID) {
 	    PUTS(HTMethod_name(method));
@@ -117,7 +117,16 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 	me->state++;
     }
     PUTC(' ');
-    PUTS(HTTP_VERSION);
+
+    /*
+    **  Send out the version number. If we know it is a HTTP/1.0 server we
+    **  are talking to then use HTTP/1.0, else use HTTP/1.1 as default version
+    **  number
+    */
+    if (me->version == HTTP_10)
+	PUTS(HTTP_VERSION_10);
+    else
+	PUTS(HTTP_VERSION);
     PUTBLOCK(crlf, 2);
 
     /* Request Headers */

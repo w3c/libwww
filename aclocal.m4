@@ -65,6 +65,7 @@ for ac_dir in $TCLLIB ; do
   fi
 done
 ])
+LIBTCL=""
 ac_path_tcl=$ac_cv_path_tcl
 test -z $ac_path_tcl && ac_path_tcl=missing
 AC_MSG_RESULT($ac_path_tcl)

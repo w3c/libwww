@@ -10,7 +10,7 @@ int main()
     HTLibInit("TestApp", "1.0");
 
     /* Register TCP as the transport */
-    HTTransport_add("tcp", HT_CH_SINGLE, HTReader_new, HTWriter_new);
+    HTTransport_add("tcp", HT_TP_SINGLE, HTReader_new, HTWriter_new);
 
     /* Register the HTTP Module */
     HTProtocol_add("http", "tcp", YES, HTLoadHTTP, NULL);

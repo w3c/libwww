@@ -169,7 +169,7 @@ int HTHost_setChannel_tcl(ClientData clientData, Tcl_Interp *interp,
 	HTHost *host = (HTHost *) Tcl_GetHashValue(host_entry);
 	HTChannel *channel = (HTChannel *) Tcl_GetHashValue(channel_entry);
 
-	BOOL result = HTHost_setChannel(host, channel);
+	BOOL result = HTHost_setChannel(host, channel, HT_TP_SINGLE);
 
 	Tcl_AppendResult(interp, result ? "YES" : "NO", NULL);
 
@@ -195,7 +195,7 @@ int HTHost_clearChannel_tcl(ClientData clientData, Tcl_Interp *interp,
       if(host_entry) {
 	HTHost *host = (HTHost *) Tcl_GetHashValue(host_entry);
 
-	BOOL result = HTHost_clearChannel(host);
+	BOOL result = HTHost_clearChannel(host, HT_OK);
 
 	Tcl_AppendResult(interp, result ? "YES" : "NO", NULL);
 

@@ -136,6 +136,7 @@ PUBLIC void HTEncoderInit (HTList * c)
 PUBLIC void HTBeforeInit (void)
 {
     HTNetCall_addBefore(HTCacheFilter, NULL, 0);
+    HTNetCall_addBefore(HTPEP_beforeFilter, NULL, 0);
     HTNetCall_addBefore(HTCredentialsFilter, NULL, 0);
     HTNetCall_addBefore(HTRuleFilter, NULL, 0);
     HTNetCall_addBefore(HTProxyFilter, NULL, 0);
@@ -151,6 +152,7 @@ PUBLIC void HTBeforeInit (void)
 PUBLIC void HTAfterInit (void)
 {
     HTNetCall_addAfter(HTAuthFilter, NULL, HT_NO_ACCESS);
+    HTNetCall_addAfter(HTPEP_afterFilter, NULL, HT_ALL);
     HTNetCall_addAfter(HTRedirectFilter, NULL, HT_TEMP_REDIRECT);
     HTNetCall_addAfter(HTRedirectFilter, NULL, HT_PERM_REDIRECT);
     HTNetCall_addAfter(HTLogFilter, NULL, HT_ALL);
@@ -199,12 +201,12 @@ PUBLIC void HTAlertInit (void)
 */
 PUBLIC void HTTransportInit (void)
 {
-    HTTransport_add("tcp", HT_CH_SINGLE, HTReader_new, HTWriter_new);
-    HTTransport_add("buffered_tcp", HT_CH_SINGLE, HTReader_new, HTBufferWriter_new);
+    HTTransport_add("tcp", HT_TP_SINGLE, HTReader_new, HTWriter_new);
+    HTTransport_add("buffered_tcp", HT_TP_SINGLE, HTReader_new, HTBufferWriter_new);
 #ifndef NO_UNIX_IO
-    HTTransport_add("local", HT_CH_SINGLE, HTReader_new, HTWriter_new);
+    HTTransport_add("local", HT_TP_SINGLE, HTReader_new, HTWriter_new);
 #else
-    HTTransport_add("local", HT_CH_SINGLE, HTANSIReader_new, HTANSIWriter_new);
+    HTTransport_add("local", HT_TP_SINGLE, HTANSIReader_new, HTANSIWriter_new);
 #endif
 }
 
@@ -320,11 +322,13 @@ PUBLIC void HTMIMEInit (void)
 	{"content-range", &HTMIME_contentRange},
 	{"content-transfer-encoding", &HTMIME_contentTransferEncoding}, 
 	{"content-type", &HTMIME_contentType},
+	{"content-version", &HTMIME_version},
 	{"date", &HTMIME_date},
   	{"derived-from", &HTMIME_derivedFrom}, 
 	{"digest-MessageDigest", &HTMIME_messageDigest}, 
 	{"etag", &HTMIME_etag},
         {"expires", &HTMIME_expires},
+        {"extension", &HTMIME_extension},
 	{"from", &HTMIME_from},
 	{"host", &HTMIME_host},
 	{"if-modified-since", &HTMIME_ifModifiedSince}, 

@@ -37,6 +37,7 @@ typedef enum _TCPState {
     TCP_ERROR		= -2,
     TCP_CONNECTED	= -1,
     TCP_BEGIN		= 0,
+    TCP_CHANNEL,
     TCP_DNS,
     TCP_NEED_SOCKET,
     TCP_NEED_BIND,
@@ -45,6 +46,8 @@ typedef enum _TCPState {
 } TCPState;
 
 struct _HTNet {
+    int                 hash;                                  /* Hash value */
+
     SOCKET		sockfd;				/* Socket descripter */
     FILE *		fp;			 /* If we can't use a socket */
 

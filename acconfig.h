@@ -4,6 +4,9 @@
 /* Define to enable SOCKS firewall-breaching code. */
 #undef SOCKS
 
+/* Define to enable TcL testing code. */
+#undef LIBTCL
+
 /* Define to build Cyrillic version. */
 #undef CYRILLIC
 

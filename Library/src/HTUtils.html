@@ -153,7 +153,7 @@ Success are (&gt;=0) and failure are (&lt;0)
 
 #define HT_CONTINUE             29991   /* Continue an operation */
 #define HT_CLOSED		29992	/* The socket was closed */
-#define HT_PERSISTENT		29993	/* Wait for persistent connection */
+#define HT_PENDING		29993	/* Wait for connection */
 #define HT_IGNORE		29994	/* Ignore this in the Net manager */
 #define HT_NO_DATA		29995	/* OK but no data was loaded */
 #define HT_RELOAD		29996	/* If we must reload the document */
@@ -167,6 +167,7 @@ Success are (&gt;=0) and failure are (&lt;0)
 #define HT_FORBIDDEN		-11	/* Access forbidden */
 #define HT_RETRY		-13	/* If service isn't available */
 #define HT_NO_PROXY_ACCESS      -14     /* No proxy access */
+#define HT_RECOVER_PIPE         -15     /* Recover pipe line */
 
 #define HT_INTERNAL		-100	/* Weird -- should never happen. */
 

@@ -565,7 +565,7 @@ PUBLIC LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
 
     /* timeout stuff */
     if (uMsg == WM_TIMER) {
-	if (seltime.tcbf && (seltime.always || !HTNet_idle())) {
+	if (seltime.tcbf && (seltime.always || HTNet_isIdle())) {
 	    if (THD_TRACE)
 		HTTrace("Event Loop.. calling timeout cbf\n");
 	    (*(seltime.tcbf))(seltime.request);
@@ -775,7 +775,7 @@ PUBLIC int HTEventrg_loop( HTRequest * theRequest )
 
 	/* If timeout then see if we should call callback function */
 	if (active_sockets == 0) {
-	    if (seltime.tcbf && (seltime.always || !HTNet_idle())) {
+	    if (seltime.tcbf && (seltime.always || HTNet_isIdle())) {
 #if 0
 		/* This drives you crazy! */
 		if (THD_TRACE) HTTrace("Event Loop.. select timeout\n");
@@ -894,11 +894,12 @@ PRIVATE int __DoUserCallback( SOCKET s, SockOps ops)
 PRIVATE void __ResetMaxSock( void )
 {
     SOCKET s ;
-    SOCKET t_max = 0; 
+    SOCKET t_max = 0;
+    SOCKET old_max = max_sock;
+    
 #ifdef _WINSOCKAPI_
     unsigned ui ;
 #endif
-    if (THD_TRACE)HTTrace("ResetMaxSock max socket is %u\n", max_sock);
 
 #ifdef _WINSOCKAPI_ 
     for (ui = 0 ; ui < all_fds.fd_count; ui++) { 
@@ -915,7 +916,8 @@ PRIVATE void __ResetMaxSock( void )
 
     max_sock = t_max ;
     if (THD_TRACE)
-    	HTTrace("ResetMaxSock new max is %u\n", max_sock);
+	HTTrace("Sockets..... Reset max socket from %u to %u\n",
+		old_max, max_sock);
     return;
 }  
 

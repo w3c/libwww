@@ -106,7 +106,7 @@ PUBLIC HTChildAnchor * HTAnchor_findChild (HTParentAnchor *	parent,
     if (tag && *tag) {
 	HTList * cur = kids;
 	while ((child = (HTChildAnchor *) HTList_nextObject(cur))) {
-	    if (!strcmp(child->tag, tag)) {
+	    if (child->tag && !strcmp(child->tag, tag)) {
 		if (ANCH_TRACE)
 		    HTTrace("Child Anchor %p of parent %p with name `%s' already exists.\n",
 			    (void *) child, (void *) parent, tag);

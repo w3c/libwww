@@ -192,6 +192,9 @@ PUBLIC void HTRequest_delete (HTRequest * request)
 
 	/* more */
 
+	/* Simple extension protocol */
+	if (request->extension) HTAssocList_delete(request->extension);
+
 	HT_FREE(request);
     }
 }
@@ -857,6 +860,11 @@ PUBLIC int HTRequest_retrys (HTRequest * request)
     return request ? request->retrys : 0;
 }
 
+PUBLIC BOOL HTRequest_addRetry (HTRequest * request)
+{
+    return (request && request->retrys++);
+}
+
 /*
 **	Should we try again?
 **	--------------------
@@ -1063,6 +1071,34 @@ PUBLIC HTParentAnchor * HTRequest_entityAnchor (HTRequest * request)
 {
     return request ? request->source_anchor ? request->source_anchor :
 	request->anchor : NULL;
+}
+
+/*
+**	Simple Extension Protocol
+*/
+PUBLIC BOOL HTRequest_addExtension (HTRequest * request,
+				    char * token, char * value)
+{
+    if (request) {
+	if (!request->extension) request->extension = HTAssocList_new();
+	return HTAssocList_addObject(request->extension, token, value);
+    }
+    return NO;
+}
+
+PUBLIC BOOL HTRequest_deleteExtension (HTRequest * request)
+{
+    if (request && request->extension) {
+	HTAssocList_delete(request->extension);
+	request->extension = NULL;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTAssocList * HTRequest_extension (HTRequest * request)
+{
+    return (request ? request->extension : NULL);
 }
 
 /* ------------------------------------------------------------------------- */

@@ -45,6 +45,16 @@ to the first word or NULL on error
 extern char * HTNextField (char** pstr);
 </PRE>
 <H2>
+  Next S-expression
+</H2>
+<P>
+Find the next s-expression token from a string of characters. We return the
+<CODE>name</CODE> of this expression and the <CODE>param</CODE> points to
+the parameters. Note, that the string has been mutilated by a 0 terminator!
+<PRE>
+extern char * HTNextSExp (char ** exp, char ** param);
+</PRE>
+<H2>
   Reading CRLF
 </H2>
 <P>

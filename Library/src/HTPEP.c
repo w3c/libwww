@@ -351,10 +351,11 @@ PUBLIC int HTPEP_beforeFilter (HTRequest * request, void * param, int status)
     int ret = HT_OK;
     char * url = HTAnchor_physical(HTRequest_anchor(request));
     const char * realm = HTRequest_realm(request);
-    HTList * list = HTPEP_findList(realm, url); 
-    if (APP_TRACE) HTTrace("PEP Engine.. Calling BEFORE protocls %p\n", list);
+    HTList * list = HTPEP_findList(realm, url);
     if (list) {
 	HTPEPElement * pres;
+	if (APP_TRACE)
+	    HTTrace("PEP Engine.. Calling BEFORE protocols %p\n", list);
 	while ((pres = (HTPEPElement *) HTList_nextObject(list))) {
 	    HTPEPModule * module = HTPEP_findModule(pres->name);
 	    if (module) {
@@ -363,25 +364,21 @@ PUBLIC int HTPEP_beforeFilter (HTRequest * request, void * param, int status)
 	    }
 	}
     }
-    return YES;
+    return HT_OK;
 }
 
 /*	HTPEP_afterFilter
 **	-----------------
 **	Return YES or whatever callback returns
 */
-PUBLIC BOOL HTPEP_afterFilter (HTRequest * request, void * param, int status)
+PUBLIC int HTPEP_afterFilter (HTRequest * request, void * param, int status)
 {
     int ret = HT_OK;
-#if 0
-    HTList * protocols = HTRequest_protocols(request);
-#else
-    HTList * protocols = NULL;
-#endif
-    if (APP_TRACE)
-	HTTrace("PEP Engine.. Calling AFTER protocols %p\n", protocols);
+    HTAssocList * protocols = HTRequest_extension(request);
     if (protocols) {
 	HTPEPElement * pres;
+	if (APP_TRACE)
+	    HTTrace("PEP Engine.. Calling AFTER protocols %p\n", protocols);
 	while ((pres = (HTPEPElement *) HTList_nextObject(protocols))) {
 	    HTPEPModule * module = HTPEP_findModule(pres->name);
 	    if (module) {
@@ -390,5 +387,5 @@ PUBLIC BOOL HTPEP_afterFilter (HTRequest * request, void * param, int status)
 	    }
 	}
     }
-    return YES;
+    return HT_OK;
 }

@@ -1,27 +1,26 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww HTTP GENERAL HEADER STREAM</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+  <TITLE>W3C Reference Library libwww HTTP General Header Stream</TITLE>
 </HEAD>
 <BODY>
-
-<H1>HTTP General Header Stream</H1>
-
+<H1>
+  HTTP General Header Stream
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-The HTTP General Header stream generates the general headers of a HTTP
-request or response and writes it to the target which is normally
-either a HTTP response stream or a HTTP request stream.<P>
-
-This module is implemented by <A HREF="HTTPGen.c">HTTPGen.c</A>, and
-it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
-Reference Library</A>.
-
+<P>
+The HTTP General Header stream generates the general headers of a HTTP request
+or response and writes it to the target which is normally either a HTTP response
+stream or a HTTP request stream.
+<P>
+This module is implemented by <A HREF="HTTPGen.c">HTTPGen.c</A>, and it is
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>.
 <PRE>
 #ifndef HTTPGEN_H
 #define HTTPGEN_H
@@ -29,25 +28,23 @@ Reference Library</A>.
 #include "HTStream.h"
 #include "HTReq.h"
 </PRE>
-
-<H3>Streams Definition</H3>
-
-This stream makes a general HTTP header before it goes into
-transparent mode. If <CODE>endHeader</CODE> is YES then we send an
-empty <CODE>CRLF</CODE> in order to end the header.
-
+<H3>
+  Streams Definition
+</H3>
+<P>
+This stream makes a general HTTP header before it goes into transparent mode.
+If <CODE>endHeader</CODE> is YES then we send an empty <CODE>CRLF</CODE>
+in order to end the header.
 <PRE>
 extern HTStream * HTTPGen_new  (HTRequest * request, HTStream * target,
 				BOOL endHeader);
 </PRE>
-
 <PRE>
 #endif
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

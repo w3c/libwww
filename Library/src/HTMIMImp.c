@@ -102,11 +102,11 @@ PUBLIC int HTMIME_connection (HTRequest * request, char * token, char * value)
     if ((field = HTNextField(&value)) != NULL) {
 	if (!strcasecomp(field, "close")) {			 /* HTTP/1.1 */
 	    HTNet * net = HTRequest_net(request);
-	    HTNet_setPersistent(net, NO);
+	    HTNet_setPersistent(net, NO, HT_TP_INTERLEAVE);
 	    if (STREAM_TRACE) HTTrace("MIMEParser.. Close negotiated\n");
 	} else if (!strcasecomp(field, "keep-alive")) {	         /* HTTP/1.0 */
 	    HTNet * net = HTRequest_net(request);
-	    HTNet_setPersistent(net, YES);
+	    HTNet_setPersistent(net, YES, HT_TP_SINGLE);
 	    if (STREAM_TRACE) HTTrace("MIMEParser.. HTTP/1.0 Keep Alive\n");
 	}
     }
@@ -235,13 +235,6 @@ PUBLIC int HTMIME_derivedFrom (HTRequest * request, char * token, char * value)
     return HT_OK;
 }
 
-PUBLIC int HTMIME_messageDigest (HTRequest * request, char * token, char * value)
-{
-    if (!request->challenge) request->challenge = HTAssocList_new();
-    HTAssocList_addObject(request->challenge, "Digest-MessageDigest", value);
-    return HT_OK;
-}
-
 PUBLIC int HTMIME_etag (HTRequest * request, char * token, char * value)
 {
     char * field;
@@ -256,6 +249,19 @@ PUBLIC int HTMIME_expires (HTRequest * request, char * token, char * value)
     HTParentAnchor * anchor = HTRequest_anchor(request);
     HTAnchor_setExpires(anchor, HTParseTime(value, 
 					    HTRequest_userProfile(request)));
+    return HT_OK;
+}
+
+PUBLIC int HTMIME_extension (HTRequest * request, char * token, char * value)
+{
+    char * param = NULL;
+    char * extension = HTNextSExp(&value, &param);
+    if (extension) {
+	if (PROT_TRACE)
+	    HTTrace("Extension... name: `%s\', value: `%s\'\n",
+		    extension, param);
+	HTRequest_addExtension(request, extension, param);
+    }
     return HT_OK;
 }
 
@@ -332,7 +338,8 @@ PUBLIC int HTMIME_location (HTRequest * request, char * token, char * value)
 
     /* 
     ** If moved permanent then make a typed link between the old and the new
-    ** anchor
+    ** anchor. If the location header is part of a 201 response then make a new
+    ** anchor and link this to the original anchor with "created".
     */
     return HT_OK;
 }
@@ -340,6 +347,13 @@ PUBLIC int HTMIME_location (HTRequest * request, char * token, char * value)
 PUBLIC int HTMIME_maxForwards (HTRequest * request, char * token, char * value)
 {
 
+    return HT_OK;
+}
+
+PUBLIC int HTMIME_messageDigest (HTRequest * request, char * token, char * value)
+{
+    if (!request->challenge) request->challenge = HTAssocList_new();
+    HTAssocList_addObject(request->challenge, "Digest-MessageDigest", value);
     return HT_OK;
 }
 

@@ -11,8 +11,7 @@
 
 /* Library Include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
+#include "WWWUtil.h"
 #include "HTParse.h"
 #include "HTReq.h"
 #include "HTIOStream.h"
@@ -26,7 +25,7 @@ PRIVATE HTList * transports = NULL;         /* List of registered transports */
 **	Register a Transport module
 */
 PUBLIC BOOL HTTransport_add (const char *		name,
-			     HTChannelMode		mode,
+			     HTTransportMode		mode,
 			     HTInput_new *		get_input,
 			     HTOutput_new *		get_output)
 {
@@ -107,7 +106,17 @@ PUBLIC HTTransport * HTTransport_find (HTRequest * request, const char * name)
     return NULL;
 }
 
-PUBLIC HTChannelMode HTTransport_mode (HTTransport * tp)
+PUBLIC HTTransportMode HTTransport_mode (HTTransport * tp)
 {
-    return (tp ? tp->mode : HT_CH_SINGLE);
+    return (tp ? tp->mode : HT_TP_SINGLE);
 }
+
+PUBLIC BOOL HTTransport_setMode (HTTransport * tp, HTTransportMode mode)
+{
+    if (tp) {
+        tp->mode = mode;
+        return YES;
+    }
+    return NO;
+}
+

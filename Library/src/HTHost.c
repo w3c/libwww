@@ -35,16 +35,18 @@ struct _HTHost {
     HTMethod		methods;	       	/* Public methods (bit-flag) */
     char *		server;				      /* Server name */
     char *		user_agent;			       /* User Agent */
-    HTChannelMode	mode;	      			   /* Supported mode */
+    HTTransportMode	mode;	      			   /* Supported mode */
     HTChannel *		channel;		       /* Persistent channel */
+    HTList *		pipeline;		 /* Pipe line of net objects */
+    HTList *		pending;	      /* List of pending Net objects */
     time_t		expires;	  /* Persistent channel expires time */
 };
 
-PRIVATE HTList	** HostTable = NULL;
 PRIVATE time_t	HostTimeout = HOST_TIMEOUT;	  /* Timeout on host entries */
 PRIVATE time_t	TCPTimeout = TCP_TIMEOUT;  /* Timeout on persistent channels */
 
-PRIVATE HTList * Persistent = NULL;	       /* List of persistent sockets */
+PRIVATE HTList	** HostTable = NULL;
+PRIVATE HTList * PendHost = NULL;	    /* List of pending host elements */
 
 /* ------------------------------------------------------------------------- */
 
@@ -57,6 +59,8 @@ PRIVATE void free_object (HTHost * me)
 	    HTChannel_delete(me->channel, HT_OK);
 	    me->channel = NULL;
 	}
+	HTList_delete(me->pipeline);
+	HTList_delete(me->pending);
 	HT_FREE(me);
     }
 }
@@ -109,7 +113,7 @@ PUBLIC HTHost * HTHost_new (char * host)
 	HTList * cur = list;
 	while ((pres = (HTHost *) HTList_nextObject(cur))) {
 	    if (!strcmp(pres->hostname, host)) {
-		if (time(NULL) > pres->ntime + HostTimeout) {
+		if (HTHost_isIdle(pres) && time(NULL)>pres->ntime+HostTimeout){
 		    if (CORE_TRACE)
 			HTTrace("Host info... Collecting host info %p\n",pres);
 		    delete_object(list, pres);
@@ -120,7 +124,7 @@ PUBLIC HTHost * HTHost_new (char * host)
 	}
     }
 
-    /* If not found then create new Host object */
+    /* If not found then create new Host object, else use existing one */
     if (pres) {
 	if (pres->channel) {
 	    if (pres->expires < time(NULL)) {	   /* Cached channel is cold */
@@ -139,11 +143,20 @@ PUBLIC HTHost * HTHost_new (char * host)
 	    HT_OUTOFMEM("HTHost_add");
 	StrAllocCopy(pres->hostname, host);
 	pres->ntime = time(NULL);
+	pres->mode = HT_TP_SINGLE;
 	if (CORE_TRACE) 
 	    HTTrace("Host info... added `%s\' to list %p\n", host, list);
 	HTList_addObject(list, (void *) pres);
     }
     return pres;
+}
+
+/*
+**	Get and set the hostname of the remote host
+*/
+PUBLIC char * HTHost_name (HTHost * host)
+{
+     return host ? host->hostname : NULL;
 }
 
 /*
@@ -252,21 +265,6 @@ PUBLIC BOOL HTHost_setUserAgent (HTHost * host, const char * userAgent)
     return NO;
 }
 
-/*
-**	Searches the list of persistent connections for a host object
-**	associated with this channel
-*/
-PRIVATE HTHost * HTHost_findPersistent (HTChannel * ch)
-{
-    if (Persistent && ch) {
-	HTList * cur = Persistent;
-	HTHost * pres;
-	while ((pres = (HTHost *) HTList_nextObject(cur)))
-	    if (pres->channel == ch) return pres;
-    }
-    return NULL;
-}
-
 /*	HTHost_catchClose
 **	-----------------
 **	This function is registered when the socket is idle so that we get
@@ -281,10 +279,10 @@ PUBLIC int HTHost_catchClose (SOCKET soc, HTRequest * request, SockOps ops)
 		soc, (unsigned) ops);
     if (ops == FD_READ) {
 	HTChannel * ch = HTChannel_find(soc);	  /* Find associated channel */
-	HTHost * host = HTHost_findPersistent(ch);
+	HTHost * host = HTChannel_host(ch);	      /* and associated host */
 	if (ch && host) {	    
 	    if (CORE_TRACE) HTTrace("Catch Close. CLOSING socket %d\n", soc);
-	    HTHost_clearChannel(host);
+	    HTHost_clearChannel(host, HT_OK);
 	} else {
 	    if (CORE_TRACE) HTTrace("Catch Close. socket %d NOT FOUND!\n",soc);
 	}
@@ -299,7 +297,9 @@ PUBLIC int HTHost_catchClose (SOCKET soc, HTRequest * request, SockOps ops)
 **	We don't want more than MaxSockets-2 connections to be persistent in
 **	order to avoid deadlock.
 */
-PUBLIC BOOL HTHost_setChannel (HTHost * host, HTChannel * channel)
+PUBLIC BOOL HTHost_setChannel (HTHost *		host,
+			       HTChannel *	channel,
+			       HTTransportMode	mode)
 {
     if (!host || !channel) return NO;
     if (host->channel) {
@@ -307,11 +307,12 @@ PUBLIC BOOL HTHost_setChannel (HTHost * host, HTChannel * channel)
 	return YES;
     } else {
 	SOCKET sockfd = HTChannel_socket(channel);
-	if (!Persistent) Persistent = HTList_new();
-	if (sockfd != INVSOC && HTList_count(Persistent)<HTNet_maxSocket()-2) {
+	if (sockfd != INVSOC && HTNet_availablePersistentSockets() > 0) {
 	    host->channel = channel;
+	    host->mode = mode;
 	    host->expires = time(NULL) + TCPTimeout;	  /* Default timeout */
-	    HTList_addObject(Persistent, host);
+	    HTChannel_setHost(channel, host); 
+	    HTNet_increasePersistentSocket();
 	    if (CORE_TRACE)
 		HTTrace("Host info... added host %p as persistent\n", host);
 	    return YES;
@@ -336,15 +337,16 @@ PUBLIC HTChannel * HTHost_channel (HTHost * host)
 **	Clear the persistent entry by deleting the channel object. Note that
 **	the channel object is only deleted if it's not used anymore.
 */
-PUBLIC BOOL HTHost_clearChannel (HTHost * host)
+PUBLIC BOOL HTHost_clearChannel (HTHost * host, int status)
 {
     if (host && host->channel) {
-	HTChannel_delete(host->channel, HT_OK);
+	HTChannel_setHost(host->channel, NULL);
+	HTChannel_delete(host->channel, status);
 	host->expires = 0;
 	host->channel = NULL;
+	HTNet_decreasePersistentSocket();
 	if (CORE_TRACE)
 	    HTTrace("Host info... removed host %p as persistent\n", host);
-	HTList_removeObject(Persistent, host);
 	return YES;
     }
     return NO;
@@ -356,5 +358,211 @@ PUBLIC BOOL HTHost_clearChannel (HTHost * host)
 PUBLIC BOOL HTHost_isPersistent (HTHost * host)
 {
     return host && host->channel;
+}
+
+/*
+**	Handle the connection mode. The mode may change mode in the 
+**	middle of a connection.
+*/
+PUBLIC HTTransportMode HTHost_mode (HTHost * host, BOOL * active)
+{
+    return host ? host->mode : HT_TP_SINGLE;
+}
+
+/*
+**	If the new mode is lower than the old mode then adjust the pipeline
+**	accordingly. That is, if we are going into single mode then move
+**	all entries in the pipeline and move the rest to the pending
+**	queue. They will get launched at a later point in time.
+*/
+PUBLIC BOOL HTHost_setMode (HTHost * host, HTTransportMode mode)
+{
+    if (host) {
+	/*
+	**  Check the new mode and see if we must adjust the queues.
+	*/
+	if (mode == HT_TP_SINGLE && host->mode > mode) {
+	    int piped = HTList_count(host->pipeline);
+	    if (piped > 0) {
+		int cnt;
+		if (CORE_TRACE)
+		    HTTrace("Host info... Moving %d Net objects from pipe line to pending queue\n", piped);
+		if (!host->pending) host->pending = HTList_new();
+		for (cnt=0; cnt<piped; cnt++) {
+		    HTNet * net = HTList_removeFirstObject(host->pipeline);
+		    HTList_appendObject(host->pending, net);
+		}
+	    }
+	}
+	host->mode = mode;
+	return YES;
+    }
+    return NO;
+}
+
+/*
+**	Check whether a host is idle meaning if it is ready for a new
+**	request which depends on the mode of the host. If the host is 
+**	idle, i.e. ready for use then return YES else NO. If the host supports
+**	persistent connections then still only return idle if no requests are
+**	ongoing. 
+*/
+PUBLIC BOOL HTHost_isIdle (HTHost * host)
+{
+    return (host && HTList_count(host->pipeline) <= 0);
+}
+
+/*
+**	Add a net object to the host object. If the host
+**	is idle then add to active list (pipeline) else add
+**	it to the pending list
+**	Return HT_PENDING if we must pend, HT_OK, or HT_ERROR
+*/
+PUBLIC int HTHost_addNet (HTHost * host, HTNet * net)
+{
+    if (host && net) {
+	int status = HT_OK;
+
+	/* Check to see if we can get a socket */
+	if (HTNet_availableSockets() <= 0) {
+	    if (!PendHost) PendHost = HTList_new();
+	    if (CORE_TRACE)
+		HTTrace("Host info... Add Host %p as pending\n", host);
+	    HTList_addObject(PendHost, host);
+	    status = HT_PENDING;
+	}
+
+	/* Add to either active or pending queue */
+	if (HTHost_isIdle(host)) {
+	    if (CORE_TRACE) HTTrace("Host info... Add Net %p to pipeline of host %p\n", net, host);
+	    if (!host->pipeline) host->pipeline = HTList_new();
+	    HTList_addObject(host->pipeline, net);
+	    
+	    /*
+	    **  We have been idle and must hence unregister our catch close
+	    **  event handler
+	    */
+	    if (host->channel) {
+		SOCKET sockfd = HTChannel_socket(host->channel);
+		HTEvent_unregister(sockfd, (SockOps) FD_CLOSE);
+	    }
+	} else {
+	    if (CORE_TRACE) HTTrace("Host info... Add Net %p as pending\n", net);
+	    if (!host->pending) host->pending = HTList_new();
+	    HTList_addObject(host->pending, net);
+	    status = HT_PENDING;
+	}
+	return status;
+    }
+    return HT_ERROR;
+}
+
+PUBLIC BOOL HTHost_deleteNet (HTHost * host, HTNet * net)
+{
+    if (host && net) {
+	if (CORE_TRACE)
+	    HTTrace("Host info... Remove Net %p from pipe line\n", net);
+	HTList_removeObject(host->pipeline, net);
+	HTList_removeObject(host->pending, net);
+	return YES;
+    }
+    return NO;
+}
+
+/*
+**	Handle pending host objects.
+**	There are two ways we can end up with pending reqyests:
+**	 1) If we are out of sockets then register new host objects as pending.
+**	 2) If we are pending on a connection then register new net objects as
+**	    pending
+**	This set of functions handles pending host objects and can start new
+**	requests as resources get available
+*/
+
+/*
+**	Check this host object for any pending requests and return the next
+**	registered Net object.
+*/
+PUBLIC HTNet * HTHost_nextPendingNet (HTHost * host)
+{
+    HTNet * net = NULL;
+    if (host && host->pending && host->pipeline) {
+	if ((net = (HTNet *) HTList_removeFirstObject(host->pending)) != NULL)
+	    if (PROT_TRACE)
+		HTTrace("Host info... Popping %p from pending net queue\n",
+			net);
+	HTList_addObject(host->pipeline, net);
+    }
+    return net;
+}
+
+/*
+**	Return the current list of pending host obejcts waiting for a socket
+*/
+PUBLIC HTHost * HTHost_nextPendingHost (void)
+{
+    HTHost * host = NULL;
+    if (PendHost) {
+	if ((host = (HTHost *) HTList_removeFirstObject(PendHost)) != NULL)
+	    if (PROT_TRACE)
+		HTTrace("Host info... Poping %p from pending host queue\n",
+			host);
+    }
+    return host;
+}
+
+/*
+**	Start the next pending request if any. First we look for pending
+**	requests for the same host and then we check for any other pending
+**	hosts
+*/
+PUBLIC BOOL HTHost_launchPending (HTHost * host)
+{
+    int available = HTNet_availableSockets();
+
+    if (!host) {
+	if (PROT_TRACE) HTTrace("Host info... Bad arguments\n");
+	return NO;
+    }
+
+    /*
+    **  Check if we do have resources available for a new request
+    **  This can either be reusing an existing connection or opening a new one
+    */
+    if (available > 0 || host->mode >= HT_TP_PIPELINE) {
+
+	/*
+	**  Check the current Host obejct for pending Net objects
+	*/
+	if (host) {
+	    HTNet * net = HTHost_nextPendingNet(host);
+	    if (net) return HTNet_start(net);
+	}
+
+	/*
+	**  Check for other pending Host objects
+	*/
+	{
+	    HTHost * pending = HTHost_nextPendingHost();
+	    if (pending) {
+		HTNet * net = HTHost_nextPendingNet(pending);
+		if (net) return HTNet_start(net);
+	    }
+	}
+
+	/*
+	**  If nothing pending then register our catch close event handler to
+	**  have something catching the socket if the remote server closes the
+	**  connection, for example due to timeout.
+	*/
+	if (PROT_TRACE) HTTrace("Host info... Nothing pending\n");
+	if (host->channel) {
+	    SOCKET sockfd = HTChannel_socket(host->channel);
+	    HTEvent_register(sockfd, 0, (SockOps) FD_CLOSE,
+			     HTHost_catchClose,  HT_PRIORITY_MAX);
+	}
+    } else
+	if (PROT_TRACE) HTTrace("Host info... No available sockets\n");
+    return NO;
 }
 

@@ -31,7 +31,7 @@ void init_strings() {
 
 char *generate_char(char *str) {
   
-  int index = random((int) strlen(str));
+  int index = HTRandom((int) strlen(str));
   char *result = malloc(sizeof(str[index]));
   sprintf(result, "%c", str[index]);
   return (result);
@@ -41,7 +41,7 @@ char *generate_escape() {
 
   char *escape=malloc(3);
   StrAllocCat(escape, "%");
-  if (random(1)) {
+  if (HTRandom(1)) {
      StrAllocCat(escape, generate_char("0123456789ABCDEF"));
      StrAllocCat(escape, generate_char("0123456789ABCDEF"));
   } else {
@@ -53,7 +53,7 @@ char *generate_escape() {
 
 char *generate_unreserved() {
   
-  int index = random((int) strlen(unreserved));
+  int index = HTRandom((int) strlen(unreserved));
   char *result = malloc(sizeof(unreserved[index]));
   sprintf(result, "%c", unreserved[index]);
   return (result);
@@ -65,7 +65,7 @@ char *generate_uchar(char *addition) {
   int len = (int) strlen(addition);
   char *str = malloc(unreserved_length+len);
   int total = unreserved_length + len + 50;
-  int index = random(total);
+  int index = HTRandom(total);
 
   if (index > (unreserved_length+len)) {
     result = generate_escape();
@@ -82,7 +82,7 @@ char *generate_xchar() {
   char *result = malloc(3);
   char *str = malloc(unreserved_length+7);
   int total = unreserved_length + 7 + 50;
-  int index = random(total);
+  int index = HTRandom(total);
 
   if (index > (unreserved_length+7)) {
     result = generate_escape();
@@ -97,7 +97,7 @@ char *generate_xchar() {
 char *add_item(int size, char *start, char *str) {
  
   char *search = malloc(size);
-  int length = random(size);
+  int length = HTRandom(size);
   int i;
   StrAllocCat(search, start);
   if (!length) length = 1;
@@ -110,7 +110,7 @@ char *add_item(int size, char *start, char *str) {
 char *add_uitem(int size, char *start, char *str) {
  
   char *search = malloc(size);
-  int length = random(size);
+  int length = HTRandom(size);
   int i;
   StrAllocCat(search, start);
   /*  if (!length) length = 1;*/
@@ -123,7 +123,7 @@ char *add_uitem(int size, char *start, char *str) {
 char *add_xitem(int size, char *start) {
  
   char *search = malloc(size);
-  int length = random(size);
+  int length = HTRandom(size);
   int i;
   StrAllocCat(search, start);
   if (!length) length = 1;
@@ -147,17 +147,17 @@ char *generate_host() {
 
   char *host = malloc(91);
   int i, j, length;
-  int num = random(5);
+  int num = HTRandom(5);
 
   /*Domain label, alphadigit | alphadigit *[ alphadigit } "-" ] alphadigit */
   
   for (i = 1; i < num; i++) {
-    if (random(1)) StrAllocCat(host, generate_char(alphadigit));
+    if (HTRandom(1)) StrAllocCat(host, generate_char(alphadigit));
     else {
       StrAllocCat(host, generate_char(alphadigit));
-      length = random(13);
+      length = HTRandom(13);
       for (j = 1; j <= length; j++) {
-	if (random(10) > 9) StrAllocCat(host, "-");
+	if (HTRandom(10) > 9) StrAllocCat(host, "-");
 	else StrAllocCat(host, generate_char(alphadigit));
       }
       StrAllocCat(host, generate_char(alphadigit));
@@ -167,12 +167,12 @@ char *generate_host() {
 
   /* Top Label, alpha | alpha *[ alphadigit | "-" ] alphadigit */
 
-  if (random(1)) StrAllocCat(host, generate_char(alpha));
+  if (HTRandom(1)) StrAllocCat(host, generate_char(alpha));
   else {
     StrAllocCat(host, generate_char(alpha));
-    length = random(13);
+    length = HTRandom(13);
     for (j = 1; j <= length; j++) {
-      if (random(10) > 9) StrAllocCat(host, "-");
+      if (HTRandom(10) > 9) StrAllocCat(host, "-");
       else StrAllocCat(host, generate_char(alphadigit));
     }
     StrAllocCat(host, generate_char(alphadigit));
@@ -186,18 +186,18 @@ char *generate_hostport() {
   char *nums = malloc(sizeof("255.255.255.255"));
   
   /*for address */
-  if (random(3)) {
+  if (HTRandom(3)) {
     StrAllocCat(hostport, generate_host());
   }
   /* for actual ip numbers */
   else {
-    sprintf(nums, "%d.%d.%d.%d",random(255),random(255),random(255),random(255));
+    sprintf(nums, "%d.%d.%d.%d",HTRandom(255),HTRandom(255),HTRandom(255),HTRandom(255));
     StrAllocCat(hostport, nums);
   }
 
   /* For port num */
-  if (random(1)) {
-    sprintf(nums, ":%d",random(9999));
+  if (HTRandom(1)) {
+    sprintf(nums, ":%d",HTRandom(9999));
     StrAllocCat(hostport, nums);
   }
   return(hostport);
@@ -207,13 +207,13 @@ char *generate_login() {
 
   char *login = malloc(150);
   char *port = malloc(sizeof("9999"));
-  int parts = random(4);
+  int parts = HTRandom(4);
   int i;
 
   /* user and password */
-  if (random(1)) {
+  if (HTRandom(1)) {
     StrAllocCat(login, add_uitem(15,"",";?&="));
-    if (random(1)) {
+    if (HTRandom(1)) {
       StrAllocCat(login, add_uitem(15,":",";?&="));
     }
     StrAllocCat(login, "@");
@@ -234,27 +234,27 @@ int generate_login_tcl(ClientData clientData, Tcl_Interp *interp,
 char *generate_urlpath(int size) {
 
   char *path = malloc(size);
-  return(add_xitem(random(size),""));
+  return(add_xitem(HTRandom(size),""));
 }
 
 char *ftpURL() {
 
   char *url = malloc(200);
-  int number = random(8);
+  int number = HTRandom(8);
   int i;
  
   StrAllocCat(url, "ftp://");
   StrAllocCat(url, generate_login());
 
   /* fpath */
-  if (random(1)) {
+  if (HTRandom(1)) {
     if (!number) number = 1;
     for (i = 1; i <= number; i++) {
       StrAllocCat(url, "/");
       StrAllocCat(url, generate_uchar("?:@&="));
     }
     /* ftptype */
-    if (random(5) > 4) {
+    if (HTRandom(5) > 4) {
       StrAllocCat(url, ";type=");
       StrAllocCat(url, generate_char("AIDaid"));
     }
@@ -265,20 +265,20 @@ char *ftpURL() {
 char *httpURL() {
 
   char *url = malloc(200);
-  int number = random(8);
+  int number = HTRandom(8);
   int i;
  
   StrAllocCat(url, "http://");
   StrAllocCat(url, generate_hostport());
   /* hpath */
-  if (random(1)) {
+  if (HTRandom(1)) {
     if (!number) number = 1;
     for (i = 1; i <= number; i++) {
       StrAllocCat(url, "/");
       StrAllocCat(url, generate_uchar(";:@&="));
     }
     /* search */
-    if (random(5) > 4) {
+    if (HTRandom(5) > 4) {
       StrAllocCat(url, "?");
       StrAllocCat(url, generate_uchar(";:@&="));
     }
@@ -291,20 +291,20 @@ char *gopherURL() {
 
   StrAllocCat(url, "gopher://");
   StrAllocCat(url, generate_hostport());
-  if (random(1)) {
+  if (HTRandom(1)) {
     StrAllocCat(url, "/");
-    if (random(2)) {
+    if (HTRandom(2)) {
       /* gtype */
       StrAllocCat(url, generate_xchar());
-      if (random(2)) {
+      if (HTRandom(2)) {
 	/* selector */
 	StrAllocCat(url, add_xitem(15,""));
-	if (random(1)) {
+	if (HTRandom(1)) {
 	  StrAllocCat(url, "%09");
-	  if (random(5) > 4) {
+	  if (HTRandom(5) > 4) {
 	    StrAllocCat(url, "?");
 	    StrAllocCat(url, generate_uchar(";:@&="));
-	    if (random(1)) {
+	    if (HTRandom(1)) {
 	      StrAllocCat(url, "%09");
 	      StrAllocCat(url, add_xitem(15,""));
 	    }
@@ -329,7 +329,7 @@ char *telnetURL() {
 
 /********************************/
 
-int random(int n) {
+int HTRandom(int n) {
   return rand() % (n + 1);
 }
 

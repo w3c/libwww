@@ -11,17 +11,20 @@ AC_CONFIG_AUX_DIR(config)
 dnl Cheks for platform information
 AC_CANONICAL_SYSTEM
 
+dnl Initializing Automake
+AC_PROG_MAKE_SET
+AC_ARG_PROGRAM
+fp_PROG_INSTALL
+dnl AM_INIT_AUTOMAKE
+dnl AC_PROG_MAKE_SET
+dnl AC_ARG_PROGRAM
+
 dnl Variables for Automake.
 PACKAGE=w3c-libwww
 AC_SUBST(PACKAGE)
 VERSION=4.1b3
 AC_SUBST(VERSION)
 AC_DEFINE_UNQUOTED(W3C_VERSION, "$VERSION")
-
-dnl Automake requires these.
-AC_PROG_MAKE_SET
-AC_ARG_PROGRAM
-fp_PROG_INSTALL
 
 AC_PROG_CC
 AC_PROG_RANLIB
@@ -130,10 +133,14 @@ AC_CHECK_LIB(ICE, IceConnectionNumber)
 AC_CHECK_LIB(socket, socket)
 AC_CHECK_LIB(inet, connect)
 AC_CHECK_LIB(nsl, t_accept)
+AC_CHECK_LIB(dl, dlopen)
+
+dnl Checks for TcL Library
 AC_PATH_TCL(
 	AC_DEFINE(TCL),
 	AC_MSG_WARN(Cannot find TCL; code will be built without it)
 )
+AC_SUBST(LIBTCL)
 
 dnl Checks for header files:
 AC_CHECK_HEADERS(stdio.h)

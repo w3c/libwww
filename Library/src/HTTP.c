@@ -112,8 +112,9 @@ PRIVATE int HTTPCleanup (HTRequest *req, int status)
     }
 
     /* Remove the request object and our own context structure for http */
-    HTNet_delete(net, status);
     HT_FREE(http);
+    HTNet_setContext(net, NULL);
+    HTNet_delete(net, status);
     return YES;
 }
 
@@ -369,19 +370,25 @@ PRIVATE int stream_pipe (HTStream * me)
 	HTHost_setVersion(host, HTTP_09);
 	return status;
     } else {
-	char *ptr = me->buffer+5;		       /* Skip the HTTP part */
+	char *ptr = me->buffer+4;		       /* Skip the HTTP part */
 	me->version = HTNextField(&ptr);
 
 	/* Here we want to find out when to use persistent connection */
-	if (!strncasecomp(me->version, "1.0", 3)) {
+	if (!strncasecomp(me->version, "/1.0", 4)) {
 	    if (PROT_TRACE)HTTrace("HTTP Status. This is a HTTP/1.0 server\n");
 	    HTHost_setVersion(host, HTTP_10);
-	} else {
+	} else if (!strncasecomp(me->version, "/1.", 3)) {     /* 1.x family */
 	    HTHost_setVersion(host, HTTP_11);
-	    HTNet_setPersistent(net, YES);		       /* By default */
+	    HTNet_setPersistent(net, YES, HT_TP_INTERLEAVE);   /* By default */
+	} else { 
+	    if (PROT_TRACE)HTTrace("HTTP Status. No 1.x version number - treat it as a HTTP/1.0 server\n");
+	    HTHost_setVersion(host, HTTP_10);
 	}
 
 	me->status = atoi(HTNextField(&ptr));
+	/* Kludge to fix the NCSA server version bug */
+	if (me->status == 0) me->status = atoi(me->version);
+
 	me->reason = ptr;
 	if ((ptr = strchr(me->reason, '\r')) != NULL)	  /* Strip \r and \n */
 	    *ptr = '\0';
@@ -421,6 +428,18 @@ PRIVATE int stream_pipe (HTStream * me)
 	    me->target = HTStreamStack(WWW_MIME, req->debug_format,
 				       req->debug_stream, req, NO);
 	}
+
+	/*
+	**  As we are getting fresh metainformation in the HTTP response,
+	**  we clear the old metainfomation in order not to mix it with the new
+	**  one. This is particularly important for the content-length and the
+	**  like.
+	*/
+	{
+	    HTParentAnchor * anchor = HTRequest_anchor(me->request);
+	    HTAnchor_clearHeader(anchor);
+	}
+
     }
     if (!me->target) me->target = HTErrorStream();
     HTTPNextState(me);					   /* Get next state */
@@ -570,11 +589,15 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
     if (ops == FD_NONE) {
 	if (PROT_TRACE) HTTrace("HTTP........ Looking for `%s\'\n",
 				HTAnchor_physical(anchor));
-	if ((http = (http_info *) HT_CALLOC(1, sizeof(http_info))) == NULL)
-	    HT_OUTOFMEM("HTLoadHTTP");
+	if (!net->context) {
+	    if ((http = (http_info *) HT_CALLOC(1, sizeof(http_info))) == NULL)
+		HT_OUTOFMEM("HTLoadHTTP");
+	    HTNet_setContext(net, http);
+	} else {
+	    http = (http_info *) HTNet_context(net);	/* Get existing copy */
+	}
 	http->state = HTTP_BEGIN;
 	http->next = HTTP_GOT_DATA;
-	HTNet_setContext(net, http);
     } else if (ops == FD_CLOSE) {			      /* Interrupted */
 	HTRequest_addError(request, ERR_FATAL, NO, HTERR_INTERRUPTED,
 			   NULL, 0, "HTLoadHTTP");
@@ -664,7 +687,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		    HTRequest_linkDestination(request);
 		}
 		http->state = HTTP_NEED_REQUEST;
-	    } else if (status == HT_WOULD_BLOCK || status == HT_PERSISTENT)
+	    } else if (status == HT_WOULD_BLOCK || status == HT_PENDING)
 		return HT_OK;
 	    else
 		http->state = HTTP_ERROR;	       /* Error or interrupt */
@@ -711,9 +734,23 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		    if (PROT_TRACE) HTTrace("HTTP........ Continuing\n");
 		    ops = FD_WRITE;
 		    continue;
-		} else if (status==HT_LOADED || status==HT_CLOSED)
+		} else if (status==HT_LOADED)
 		    http->state = http->next;	       /* Jump to next state */
-		else
+		else if (status==HT_CLOSED) {
+		    HTHost * host = HTNet_host(net);
+
+		    /*
+		    ** If this is a persistent connection and we get a close
+		    ** then it is an error and we should recover from it by
+		    ** restarting the pipe line of requests if any
+		    */
+		    if (HTHost_isPersistent(host)) {
+			status = HT_RECOVER_PIPE;
+			http->state = HTTP_ERROR;
+			break;
+		    } else
+			http->state = HTTP_GOT_DATA;
+		} else
 		    http->state = HTTP_ERROR;
 	    } else {
 		http->state = HTTP_ERROR;

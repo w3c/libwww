@@ -1378,7 +1378,7 @@ PUBLIC BOOL HTHeadAnchor (HTAnchor * anchor, HTRequest * request)
 {
     if (anchor && request) {
 	HTRequest_setAnchor(request, anchor);
-	HTRequest_setOutputFormat(request, WWW_MIME);
+	HTRequest_setOutputFormat(request, WWW_DEBUG);
 	HTRequest_setMethod(request, METHOD_HEAD);
 	return launch_request(request, NO);
     }

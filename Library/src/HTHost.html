@@ -42,10 +42,9 @@ can be used (if it supports persistent connections, interleaved access etc.)
 </H2>
 <P>
 We keep a cache of information that we know about a remote host. This allows
-us to be much more detailed in geneating requests. Search the host info cache
-for a host object or create a new one and add it. Examples of host names
-are
-<P>
+us to be much more detailed in generating requests. Search the host info
+cache for a host object or create a new one and add it. Examples of host
+names are
 <UL>
   <LI>
     www.w3.org
@@ -70,7 +69,17 @@ that we don't keep information around that is stale.
 <P>
 This is what we know about the remote host
 <H3>
-  Remote Host Prococol Class and Version
+  Remote Host Name
+</H3>
+<P>
+Get the name of the remote host. This is set automatically when a new Host
+object and can be asked for at any point in time. You can not change the
+host name but must create a new Host object instead.
+<PRE>
+extern char * HTHost_name	(HTHost * host);
+</PRE>
+<H3>
+  Remote Host Protocol Class and Version
 </H3>
 <P>
 Define the <EM>host class</EM> of the host at the other end. A class is a
@@ -92,11 +101,11 @@ extern void HTHost_setVersion	(HTHost * host, int version);
   Remote host Options and Services
 </H3>
 <P>
-We keep track of the capabilities of the remote host. In many caces the
+We keep track of the capabilities of the remote host. In many cases the
 information that we get is specific to servers but this doesn't <I>have</I>
 to be the case.
 <H4>
-  Public Methods
+  Public Methods accessible on This Host
 </H4>
 <P>
 A server can inform a client about the supported methods using the
@@ -119,7 +128,7 @@ extern BOOL HTHost_setServer	(HTHost * host, const char * server);
 </H4>
 <P>
 A client can send the name of the client application in a HTTP request. We
-pick up this infomration and add it to the Host Object
+pick up this information and add it to the Host Object
 <PRE>extern char * HTHost_userAgent 	(HTHost * host);
 extern BOOL HTHost_setUserAgent	(HTHost * host, const char * userAgent);
 </PRE>
@@ -130,8 +139,9 @@ extern BOOL HTHost_setUserAgent	(HTHost * host, const char * userAgent);
 We don't want more than MaxSockets-2 connections to be persistent in order
 to avoid deadlock.
 <PRE>
-extern BOOL HTHost_setChannel (HTHost * host, HTChannel * channel);
-extern BOOL HTHost_clearChannel (HTHost * host);
+extern BOOL HTHost_setChannel (HTHost * host, HTChannel * channel,
+                               HTTransportMode mode);
+extern BOOL HTHost_clearChannel (HTHost * host, int status);
 
 extern HTChannel * HTHost_channel (HTHost * host);
 </PRE>
@@ -142,6 +152,29 @@ extern HTChannel * HTHost_channel (HTHost * host);
 Check whether we have a persistent channel or not
 <PRE>
 extern BOOL HTHost_isPersistent (HTHost * host);
+</PRE>
+<H3>
+  Is the Host Idle
+</H3>
+<P>
+Before we can start a new connection to the host we must be sure that the
+host is idle. That is, if it can accept a new connection. We have several
+modes describing how and when a host is idle. This is a function of the Transport
+Object
+<PRE>
+extern BOOL HTHost_isIdle (HTHost * host);
+</PRE>
+<H3>
+  Handling the Transport Mode
+</H3>
+<P>
+Handle the connection mode. The mode may change mode in the middle of a
+connection If the new mode is lower than the old mode then adjust the pipeline
+accordingly. That is, if we are going into single mode then move all entries
+in the pipeline and move the rest to the pending queue. They will get launched
+at a later point in time.
+<PRE>extern HTTransportMode HTHost_mode (HTHost * host, BOOL * active);
+extern BOOL HTHost_setMode (HTHost * host, HTTransportMode mode);
 </PRE>
 <H3>
   Timing Persistent Channels
@@ -163,15 +196,60 @@ own timeout.
 extern void HTHost_setPersistExpires (HTHost * host, time_t expires);
 extern time_t HTHost_persistExpires (HTHost * host);
 </PRE>
+<H2>
+  Queuing Requests
+</H2>
+<P>
+Requests are queued in the Host object until we have resources to start them.
+The request is in the form of a Net object as we may have multiple socket
+requests per <A HREF="HTReq.html">Request object</A>. This is for example
+the case with <A HREF="WWWFTp.html">FTP</A> which uses two connections.
+<PRE>extern int HTHost_addNet     (HTHost * host, HTNet * net);
+extern BOOL HTHost_deleteNet (HTHost * host, HTNet * net);
+extern HTList * HTHost_net   (HTHost * host);
+</PRE>
 <H3>
-  Catching a Close Event
+  Is the Host Idle
 </H3>
 <P>
-This function is registered when the socket is idle so that we get a notification
-if the socket closes at the other end. At this point we can't use the request
-object as it might have been freed a long time ago.
+Before we can start a new connection to the host we must be sure that the
+host is idle. That is, if it can accept a new connection. We have several
+modes describing how and when a host is idle. This is a function of the
+<A HREF="HTTrans.html">Transport Object</A>
+<PRE>extern BOOL HTHost_isIdle (HTHost * host);
+</PRE>
+<H3>
+  Handling Pending Requests
+</H3>
+<P>
+There are two ways we can end up with pending reqyests:
+<OL>
+  <LI>
+    If we are out of sockets then register new host objects as pending.
+  <LI>
+    If we are pending on a connection then register new net objects as pending
+</OL>
+<P>
+This set of functions handles pending host objects and can start new requests
+as resources get available. The first function checks the host object for
+any pending <A HREF="HTNet.html">Net objects</A> and return the first of
+these Net objects.
 <PRE>
-extern int HTHost_catchClose (SOCKET soc, HTRequest * request, SockOps ops);
+extern HTNet * HTHost_nextPendingNet (HTHost * host);
+</PRE>
+<P>
+The second checks the list of pending host objects waiting for a socket and
+returns the first of these Host objects.
+<PRE>
+extern HTHost * HTHost_nextPendingHost (void);
+</PRE>
+<P>
+Start the next pending request if any. First we look for pending requests
+for the same host and then we check for any other pending hosts. If nothing
+pending then register a catch close event handler to have something catching
+the socket if the remote server closes the connection, for example due to
+timeout.
+<PRE>extern BOOL HTHost_launchPending (HTHost * host);
 </PRE>
 <PRE>
 #endif /* HTHOST_H */

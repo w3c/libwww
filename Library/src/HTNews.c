@@ -395,7 +395,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 
 		/* Set up the persistent connection */
 		if (!HTNet_persistent(net)) {
-		    HTNet_setPersistent(net, YES);
+		    HTNet_setPersistent(net, YES, HT_TP_SINGLE);
 		    greeting = YES;
 		}
 
@@ -445,7 +445,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		}
 		news->state = greeting ? NEWS_NEED_GREETING : NEWS_NEED_SWITCH;
 
-	    } else if (status == HT_WOULD_BLOCK || status == HT_PERSISTENT)
+	    } else if (status == HT_WOULD_BLOCK || status == HT_PENDING)
 		return HT_OK;
 	    else
 		news->state = NEWS_ERROR;
@@ -508,6 +508,13 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		else if (status == HT_ERROR)
 		    news->state = NEWS_ERROR;
 		news->format = WWW_MIME;
+
+		/*
+		** Set the default content type to plain text as news servers
+		** almost never send any useful information about the length
+		** of the body or the type - the success of MIME!
+		*/
+		HTAnchor_setFormat(anchor, WWW_PLAINTEXT);
 		news->sent = YES;
 	    } else {
 		status = (*net->input->isa->read)(net->input);

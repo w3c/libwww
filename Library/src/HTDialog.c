@@ -182,7 +182,7 @@ PUBLIC BOOL HTProgress (HTRequest * request, HTAlertOpcode op,
 	break;
 
       case HT_PROG_DONE:
-	HTTrace("Finished\n");
+	HTTrace("Connection closed\n");
 	break;
 
       case HT_PROG_WAIT:

@@ -2,11 +2,12 @@
 <HEAD>
   <!-- Changed by: Henrik Frystyk Nielsen, 13-Apr-1996 -->
   <!-- Changed by: Eric Prud'hommeaux, 14-May-1996 -->
-<!-- Changed by: Henrik Frystyk Nielsen,  5-Jul-1996 -->
-<TITLE>W3C Reference Library libwww HTNet Class</TITLE>
+  <!-- Changed by: Henrik Frystyk Nielsen,  5-Jul-1996 -->
+  <TITLE>W3C Reference Library libwww HTNet Class</TITLE>
 </HEAD>
 <BODY>
-<H1>The Net Class
+<H1>
+  The Net Class
 </H1>
 <PRE>
 /*
@@ -57,32 +58,31 @@ typedef struct _HTNet HTNet;
 #include "HTDNS.h"
 </PRE>
 <H2>
-  <A NAME="callout">Net Callback Functions</A>
+  <A NAME="callout">Before and After Filters</A>
 </H2>
 <P>
-Callback functions can be registered to be called <EM>before</EM> and
+Filter functions can be registered to be called <EM>before</EM> and
 <EM>after</EM> a request has either been started or has terminated. The following
 functions are the generic registration mechanisms where we use lists as the
-basic data container. Then there is two methods for binding a list of callback
+basic data container. Then there is two methods for binding a list of filter
 functions to the set which is called <EM>before</EM> and to the set set which
 is called <EM>after</EM>
 <P>
-In both cases there can be more than one callback function which are called
-on turn and each callback function can be associated with a status code of
-the request. For example one callback function can be registered for
+In both cases there can be more than one filter function which are called
+on turn and each filter function can be associated with a status code of
+the request. For example one filter function can be registered for
 <CODE>HT_LOADED</CODE>, another for <CODE>HT_ERROR</CODE> etc.
 <H3>
-  Register a Net Callback
+  Register a Net Filter
 </H3>
 <P>
-Register a call back function that is to be called on every termination of
-a request. Several call back functions can be registered in which case all
-of them are called in the reverse order of which they were registered (last
-one first). We name the calling mechansm of calling the functions for the
-<EM>before</EM> loop and the <EM>after</EM> loop.
+Several filters can be registered in which case all of them are called in
+the reverse order of which they were registered (last one first). We name
+the calling mechansm of calling the filter for the <EM>before</EM> loop and
+the <EM>after</EM> loop.
 <P>
-In case the callback function is registered as being called <EM>after</EM>
-the request has terminated the result of the request is passed to the fucntion.
+In case the filter function is registered as being called <EM>after</EM>
+the request has terminated the result of the request is passed to the function.
 The status signifies which call back function to call depending of the result
 of the request. This can be
 <DL>
@@ -98,6 +98,15 @@ of the request. This can be
     HT_NO_DATA
   <DD>
     OK, but no data
+  <DT>
+    HT_NO_ACCESS
+  <DD>
+    The request could not be succeeded due to lack of credentials
+  <DT>
+    HT_NO_PROXY_ACCESS
+  <DD>
+    The request could not be succeeded due to lack of credentials for accessing
+    an intermediate proxy
   <DT>
     HT_RETRY
   <DD>
@@ -116,9 +125,9 @@ of the request. This can be
     All of above
 </DL>
 <P>
-Any callback function any code it likes, but <B>IF NOT</B> the code is
-<EM>HT_OK</EM>, then the callback loop is stopped. If we are in the
-<EM>before</EM> loop and a function returns anything else than <EM>HT_OK</EM>
+Any filter can return any code it likes, but <B>IF NOT</B> the code is
+<EM>HT_OK</EM>, then the filter loop is stopped. If we are in the
+<EM>before</EM> loop and a filter returns anything else than <EM>HT_OK</EM>
 then we immediately jump to the <EM>after</EM> loop <B>passing</B> the last
 return code from the <EM>before</EM> loop.
 <PRE>
@@ -128,15 +137,15 @@ extern BOOL HTNetCall_add (HTList * list, HTNetCallback *cbf,
 			  void * param, int status);
 </PRE>
 <H3>
-  Delete a single Callback
+  Delete a single Filter
 </H3>
 <P>
-Removes a callback function from a list
+Removes a filter function from a list
 <PRE>
 extern BOOL HTNetCall_delete (HTList * list, HTNetCallback *cbf);
 </PRE>
 <H3>
-  Delete a list of Callbacks
+  Delete a list of Filters
 </H3>
 <P>
 Unregisters all call back functions in the list
@@ -144,23 +153,22 @@ Unregisters all call back functions in the list
 extern BOOL HTNetCall_deleteAll (HTList * list);
 </PRE>
 <H3>
-  Call List of Registered Callback Functions
+  Call List of Registered Filter Functions
 </H3>
 <P>
-Call all the call back functions registered in the list IF not the status
-is HT_IGNORE. The callback functions are called in the order of which they
-were registered. At the moment an application callback function is called,
-it can free the request object - it is no longer used by the Library. Returns
-what the last callback function returns
+Call all the filters registered in the list <I>IF</I> not the status is
+<CODE>HT_IGNORE</CODE>. The filters are called in the order of which they
+were registered. At the moment an application filter is called, it can free
+the request object - it is no longer used by the Library. Returns what the
+last filter returns
 <PRE>
 extern int HTNetCall_execute (HTList * list, HTRequest * request, int status);
 </PRE>
 <H3>
-  Handling BEFORE Callbacks
+  Handling BEFORE Filters
 </H3>
 <P>
-Global set of callback functions BEFORE the request is issued. The list can
-be NULL.
+Global set of filters BEFORE the request is issued. The list can be NULL.
 <PRE>
 extern BOOL HTNetCall_addBefore	(HTNetCallback *cbf, void * param, int status);
 extern BOOL HTNetCall_deleteBefore (HTNetCallback * cbf);
@@ -171,11 +179,10 @@ extern HTList * HTNet_before	(void);
 extern int HTNet_callBefore	(HTRequest *request, int status);
 </PRE>
 <H3>
-  Handling AFTER Callbacks
+  Handling AFTER Filters
 </H3>
 <P>
-Global set of callback functions AFTER the request is issued. The list can
-be NULL
+Global set of filters AFTER the request is issued. The list can be NULL
 <PRE>
 extern BOOL HTNetCall_addAfter	(HTNetCallback *cbf, void * param, int status);
 extern BOOL HTNetCall_deleteAfter (HTNetCallback * cbf);
@@ -186,7 +193,7 @@ extern HTList * HTNet_after	(void);
 extern int HTNet_callAfter	(HTRequest *request, int status);
 </PRE>
 <H2>
-  Request Queueing and Resource Management
+  Socket Resource Management
 </H2>
 <P>
 The request queue ensures that no more than a fixed number of TCP connections
@@ -206,6 +213,33 @@ persistent sockets.
 <PRE>
 extern BOOL HTNet_setMaxSocket (int newmax);
 extern int  HTNet_maxSocket (void);
+</PRE>
+<H3>
+  Socket Counters
+</H3>
+<PRE>
+extern void HTNet_increaseSocket (void);
+extern void HTNet_decreaseSocket (void);
+
+extern int HTNet_availableSockets (void);
+</PRE>
+<H3>
+  Persistent Socket Counters
+</H3>
+<PRE>
+extern void HTNet_increasePersistentSocket (void);
+extern void HTNet_decreasePersistentSocket (void);
+
+extern int HTNet_availablePersistentSockets (void);
+</PRE>
+<H3>
+  Any Ongoing Connections?
+</H3>
+<P>
+Returns whether there are active requests. Idle persistent sockets do not
+count as active.
+<PRE>
+extern BOOL HTNet_isIdle (void);
 </PRE>
 <H3>
   List Active Queue
@@ -296,6 +330,13 @@ if OK, else NO.
 extern HTNet * HTNet_dup (HTNet * src);
 </PRE>
 <H3>
+  Launch a Net Object
+</H3>
+<P>
+Start a Net obejct by calling the protocol module.
+<PRE>extern BOOL HTNet_start (HTNet * net);
+</PRE>
+<H3>
   Delete an Object
 </H3>
 <P>
@@ -303,8 +344,8 @@ Deletes the HTNet object from the list of active requests and calls any
 registered call back functions IF not the status is HT_IGNORE. This is used
 if we have internal requests that the app doesn't know about. We also see
 if we have pending requests that can be started up now when we have a socket
-free. The callback functions are called in the reverse order of which they
-were registered (last one first);
+free. The filters are called in the reverse order of which they were registered
+(last one first);
 <PRE>
 extern BOOL HTNet_delete (HTNet * me, int status);
 </PRE>
@@ -358,7 +399,9 @@ extern BOOL HTNet_persistent (HTNet * net);
 You can set or disable a Net object supporting persistent connections using
 this function:
 <PRE>
-extern BOOL HTNet_setPersistent (HTNet * net, BOOL persistent);
+extern BOOL HTNet_setPersistent (HTNet *           net,
+                                 BOOL              persistent,
+                                 HTTransportMode   mode);
 </PRE>
 <H3>
   Kill a Request
@@ -419,8 +462,8 @@ extern SOCKET HTNet_socket (HTNet * net);
   The Request Object
 </H3>
 <P>
-The <A HREF="HTReq.html">Request object</A> is normally set up
-automatically but can be changed at a later time.
+The <A HREF="HTReq.html">Request object</A> is normally set up automatically
+but can be changed at a later time.
 <PRE>
 extern BOOL HTNet_setRequest (HTNet * net, HTRequest * request);
 extern HTRequest * HTNet_request (HTNet * net);
@@ -452,22 +495,20 @@ extern HTHost * HTNet_host (HTNet * net);
 <H3>
   The DNS Object
 </H3>
-
-The DNS object keeps track of the DNS entries that we have already
-checked out.
+<P>
+The DNS object keeps track of the DNS entries that we have already checked
+out.
 <PRE>
 extern BOOL HTNet_setDns (HTNet * net, HTdns * dns);
 extern HTdns * HTNet_dns (HTNet * net);
 </PRE>
-
-If we are talking to a multi-homed host then we may
-connect to any of the homes. In that case we store the current home in
-the Net object so that we can query about it later.
-
+<P>
+If we are talking to a multi-homed host then we may connect to any of the
+homes. In that case we store the current home in the Net object so that we
+can query about it later.
 <PRE>
 extern int HTNet_home (HTNet * net);
 </PRE>
-
 <PRE>
 #endif /* HTNET_H */
 </PRE>

@@ -1,30 +1,28 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww HTTP COMMON</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 17-Apr-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 17-Apr-1996 -->
+  <TITLE>W3C Reference Library libwww HTTP COMMON</TITLE>
 </HEAD>
 <BODY>
-
-<H1>HTTP Communalities between Server and Client Module</H1>
-
+<H1>
+  HTTP Communalities between Server and Client Module
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-The HTTP <A HREF="HTTP.html">client module</A> and the <A
-HREF="HTTPServ.html">server module</A> has a few things in common
-which we keep in this file.<P>
-
-<PRE>
-#ifndef HTTPUTIL_H
+<P>
+The HTTP <A HREF="HTTP.html">client module</A> and the
+<A HREF="HTTPServ.html">server module</A> has a few things in common which
+we keep in this file.
+<PRE>#ifndef HTTPUTIL_H
 #define HTTPUTIL_H
 </PRE>
-
-<H3>HTTP Version Management</H3>
-
+<H3>
+  HTTP Version Management
+</H3>
 <PRE>
 typedef enum _HTTPVersion {
     HTTP = 0,
@@ -34,20 +32,19 @@ typedef enum _HTTPVersion {
     HTTP_12
 } HTTPVersion;
 </PRE>
-
-<H3>Current version of HTTP</H3>
-
+<H3>
+  Versions supported by HTTP
+</H3>
 <PRE>
+#define HTTP_VERSION_10	"HTTP/1.0"
 #define HTTP_VERSION	"HTTP/1.1"
 </PRE>
-
 <PRE>
 #endif
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

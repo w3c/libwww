@@ -56,6 +56,7 @@ typedef struct _Robot {
     HTRequest *		timeout;	  /* Until we get a server eventloop */
     HTParentAnchor *	anchor;
     int			depth;			     /* How deep is our tree */
+    int			cnt;				/* Count of requests */
     HTList *		hyperdoc;	     /* List of our HyperDoc Objects */
     HTList *		htext;			/* List of our HText Objects */
     struct timeval *	tv;				/* Timeout on socket */
@@ -162,6 +163,7 @@ PRIVATE Robot * Robot_new (void)
     me->tv->tv_sec = DEFAULT_TIMEOUT;
     me->cwd = HTGetCurrentDirectoryURL();
     me->output = OUTPUT;
+    me->cnt = 1;
 
     /* We keep an extra timeout request object for the timeout_handler */
     me->timeout = HTRequest_new();
@@ -217,6 +219,7 @@ PRIVATE HTRequest * Thread_new (Robot * mr, HTMethod method)
     if (mr->flags & MR_PREEMPTIVE) HTRequest_setPreemptive(newreq, YES);
     HTRequest_addRqHd(newreq, HT_C_HOST);
     HTRequest_setMethod(newreq, method);
+    mr->cnt++;
     return newreq;
 }
 
@@ -224,6 +227,7 @@ PRIVATE BOOL Thread_delete (Robot * mr, HTRequest * request)
 {
     if (mr && request) {
 	HTRequest_delete(request);
+	mr->cnt--;
 	return YES;
     }
     return NO;
@@ -281,9 +285,12 @@ PRIVATE void VersionInfo (void)
 PRIVATE int terminate_handler (HTRequest * request, void * param, int status) 
 {
     Robot * mr = (Robot *) HTRequest_context(request);
-    if (mr->logfile) HTLog_add(request, status);
     Thread_delete(mr, request);
-    if (HTNet_isEmpty()) Cleanup(mr, 0);
+    if (HTNet_isEmpty()) {
+	if (SHOW_MSG) HTTrace("Robot....... Everything is finished...\n");
+	Cleanup(mr, 0);
+    }
+    if (SHOW_MSG) HTTrace("Robot....... %d outstanding requests\n", mr->cnt);
     return HT_OK;
 }
 
@@ -355,7 +362,7 @@ PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
 		if (SHOW_MSG)
 		    HTTrace("loading at depth %d using HEAD\n", depth);
 		HTRequest_setMethod(newreq, METHOD_HEAD);
-		HTRequest_setOutputFormat(newreq, WWW_MIME);
+		HTRequest_setOutputFormat(newreq, WWW_DEBUG);
 	    } else {
 		if (SHOW_MSG) HTTrace("loading at depth %d\n", depth);
 	    }

@@ -46,7 +46,6 @@ struct _HTStream {
     HTEOLState			EOLstate;
     BOOL			transparent;
     BOOL			head_only;
-    BOOL			nntp;
     BOOL			footer;
     BOOL			haveToken;
 };
@@ -57,9 +56,12 @@ PRIVATE int pumpData (HTStream * me)
 {
     HTRequest * request = me->request;
     HTParentAnchor * anchor = me->anchor;
+    HTFormat format = HTAnchor_format(anchor);
+    HTEncoding transfer = HTAnchor_transfer(anchor);
+    long length = HTAnchor_length(anchor);
     me->transparent = YES;		  /* Pump rest of data right through */
 
-    /* If this request us a source in PostWeb then pause here */
+    /* If this request is a source in PostWeb then pause here */
     if (HTRequest_isSource(request)) return HT_PAUSE;
 
     /* If HEAD method then we just stop here */
@@ -67,12 +69,20 @@ PRIVATE int pumpData (HTStream * me)
 	request->method == METHOD_HEAD) return HT_LOADED;
 
     /*
+    ** If there is no content-length, no transfer encoding and no
+    ** content type then we assume that there is no
+    ** bodypart in the message and we can return HT_LOADED
+    */
+    if (length<=0 && format==WWW_UNKNOWN && transfer==NULL) {
+	if (STREAM_TRACE) HTTrace("MIME Parser. No body in this messsage\n");
+	return HT_LOADED;
+    }
+
+    /*
     ** Handle any Content Type
-    ** News server almost never send content type or content length
     */
     {
-	HTFormat format = HTAnchor_format(anchor);
-	if (format != WWW_UNKNOWN || me->nntp) {
+	if (format != WWW_UNKNOWN) {
 	    if (STREAM_TRACE) HTTrace("Building.... C-T stack from %s to %s\n",
 				      HTAtom_name(format),
 				      HTAtom_name(me->target_format));
@@ -92,7 +102,6 @@ PRIVATE int pumpData (HTStream * me)
 
     /* Handle any Transfer encoding */
     {
-	HTEncoding transfer = HTAnchor_transfer(anchor);
 	if (!HTFormat_isUnityTransfer(transfer)) {
 	    if (STREAM_TRACE) HTTrace("Building.... C-T-E stack\n");
 	    me->target = HTTransferCodingStack(transfer, me->target,

@@ -224,10 +224,11 @@ PUBLIC HTOutputStream * HTWriter_new (HTNet * net, HTChannel * ch,
 PUBLIC BOOL HTWriter_set (HTOutputStream * me, HTNet * net, 
 			  HTChannel * ch, void * param, int mode)
 {
-    if (!me)
-        return NO;
-    me->net = net;
-    me->ch = ch;
-    return YES;
+    if (me) {
+	me->net = net;
+	me->ch = ch;
+	return YES;
+    }
+    return NO;
 }
 

@@ -48,6 +48,12 @@ class is defined as follows:
 <PRE>
 typedef struct _HTTransport HTTransport;
 
+typedef enum _HTTransportMode {
+    HT_TP_SINGLE	= 0,		/* One single request at a time */
+    HT_TP_PIPELINE	= 1,		/* Use pipelined requests */
+    HT_TP_INTERLEAVE	= 2		/* Can we interleave requests? */
+} HTTransportMode;
+
 #include "HTIOStream.h"
 #include "HTChannl.h"
 </PRE>
@@ -62,7 +68,7 @@ respectively. You can find the definition of the I/O streams in the
 <A HREF="HTIOStream.html">HTIOStream module</A>.
 <PRE>
 extern BOOL HTTransport_add (const char *		name,
-			     HTChannelMode		mode,
+			     HTTransportMode		mode,
 			     HTInput_new *		get_input,
 			     HTOutput_new *		get_output);
 </PRE>
@@ -97,13 +103,15 @@ access acheme. If an access scheme is found then the protocol object is returned
 extern HTTransport * HTTransport_find (HTRequest * request, const char * name);
 </PRE>
 <H3>
-  Supported Mode
+  Supported Transort Modes
 </H3>
 <P>
-A transport object is registered with the <A HREF="HTChannl.html">channel
-mode </A>that it supports.
+A transport object is registered with the flow control
+mode that it supports. This mode describes whether we can issue multiple
+requests at the same time.
 <PRE>
-extern HTChannelMode HTTransport_mode (HTTransport * tp);
+extern HTTransportMode HTTransport_mode (HTTransport * tp);
+extern BOOL HTTransport_setMode (HTTransport * tp, HTTransportMode mode);
 </PRE>
 <H3>
   Input and Output Stream Creation Methods
@@ -111,7 +119,7 @@ extern HTChannelMode HTTransport_mode (HTTransport * tp);
 <PRE>
 struct _HTTransport {
     char *		name;
-    HTChannelMode	mode;			   /* Channel mode supported */
+    HTTransportMode	mode;			      /* Flow mode supported */
     HTInput_new *	input_new; 	     /* Input stream creation method */
     HTOutput_new *	output_new;	    /* Output stream creation method */
 };

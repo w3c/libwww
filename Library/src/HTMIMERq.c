@@ -261,7 +261,6 @@ PRIVATE int MIMERequest_put_block (HTStream * me, const char * b, int l)
     if (b) {
 	HTParentAnchor * entity = HTRequest_entityAnchor(me->request);
 	long cl = HTAnchor_length(entity);
-	if (STREAM_TRACE)
 	return (cl>=0 && HTNet_bytesWritten(net) >= cl) ?
 	    HT_LOADED : PUTBLOCK(b, l);
     }
