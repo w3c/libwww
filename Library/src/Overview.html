@@ -5,23 +5,29 @@
 </HEAD>
 <BODY>
 <H1><IMG ALT="[ICON]" SRC="http://info.cern.ch/hypertext/WWW/Icons/WWW/WWWlogo.gif"> Internals and Programmer's Guide</H1>
+ <HR>
 
-This guide includes a specification of the modules in the libwww and the
-relationships between them. Every module in the library has a HTML
-document associated with it containing a detailed description of the
-functionality and interface to other modules. This page is the top node for
-the implementation specific documentation and contains links to all the
-modules in the library. The documentation on the library is dynamically kept
-up to date as the actual include files (.h) are generated from the HTML
-documents using the <A HREF="http://info.cern.ch/hypertext/WWW/LineMode/Status.html">Line Mode Browser</A>. <P>
+This guide includes a specification of the modules in the <A
+HREF="http://info.cern.ch/hypertext/WWW/Library/Status.html">World-Wide
+Web Library of common code</A> and the relationships between them.
+Every module in the library has a HTML document associated with it
+containing a detailed description of the functionality and interface
+to other modules. This page is the top node for the implementation
+specific documentation and contains links to all the modules in the
+library.  The documentation on the library is dynamically kept up to
+date as the actual include files (.h) are generated from the HTML
+documents using the <A
+HREF="http://info.cern.ch/hypertext/WWW/LineMode/Status.html">Line
+Mode Browser</A>. Look here to see the <A HREF="Version.make"> current
+version number</A> of the library<P>
 
 The document is divided into the following sections:
 <UL>
-<LI> <A HREF="Overview.html#Overview">Overview of the Library</A>
-<LI> <A HREF="Overview.html#Communication">Communication Modules</A>
-<LI> <A HREF="Overview.html#Stream">The Stream Concept</A>
-<LI> <A HREF="Overview.html#Presentation">Presentation Modules</A> 
-<LI> <A HREF="Overview.html#Utils">Programming Utilities</A>
+<LI><A HREF="#Overview">Overview of the Library</A>
+<LI><A HREF="#Communication">Communication Modules</A>
+<LI><A HREF="#Stream">The Stream Concept</A>
+<LI><A HREF="#Presentation">Presentation Modules</A>
+<LI><A HREF="#Utils">Programming Utilities</A>
 </UL>
 
 
@@ -33,76 +39,138 @@ then always use the HTML files and not the .h files!</EM> <P>
 
 <A NAME="Overview"><H2>Overview</H2></A>
 
-Many current <A NAME="5" HREF="http://info.cern.ch/hypertext/WWW/TheProject.html">World-Wide Web</A> browsers and servers share a common architecture based
-on the <A NAME="z71" HREF="http://info.cern.ch/hypertext/WWW/Library/Status.html">Library of common code</A>. The interface between the library and a WWW
-client or server is described in <A NAME="7" HREF="http://info.cern.ch/hypertext/WWW/Architecture/BrowserOperation.html">Browser operation</A> and
-<A NAME="z28" HREF="http://info.cern.ch/hypertext/WWW/Library/User/Using.html">
-Using the common library</A>. See also a general description of <A HREF="http://info.cern.ch/hypertext/WWW/Terms.html">Hypertext Terms</A>.<P>
+Many current <A
+HREF="http://info.cern.ch/hypertext/WWW/TheProject.html">World-Wide
+Web</A> browsers and servers share a common architecture based on the
+World-Wide Web Common Code Library. The interface between the library
+and a WWW client or server is described in <A
+HREF="http://info.cern.ch/hypertext/WWW/Architecture/BrowserOperation.html">
+Browser operation</A> and <A
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Using.html">
+Using the common library</A>. See also a general description of <A
+HREF="http://info.cern.ch/hypertext/WWW/Terms.html">Hypertext
+Terms</A>.<P>
 
-The <A NAME="1" HREF="http://info.cern.ch/hypertext/WWW/Architecture/BrowserControl.ps">control flow diagram</A> of the Library shows the module interface to
-a WWW Browser. In the diagram, the common code presented in this document is
-to the right of the grey line.<P>
+The <A
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Features/Library.gif">
+control flow diagram</A> of the Library shows the module interface to a WWW
+Browser. In the diagram, the common code presented in this document is to the
+right of the green line.<P>
 
 The main application module is a platform dependent module called by the
-operating system, and it manages the overall running of the program.
-In the <A HREF="http://info.cern.ch/hypertext/WWW/LineMode/Status.html">CERN Line Mode Browser</A>, it is
-<A NAME="21" HREF="http://info.cern.ch/hypertext/WWW/LineMode/Implementation/HTBrowse.c">HTBrowse</A>. In the <A HREF="http://info.cern.ch/hypertext/WWW/Daemon/Status.html">CERN HTTP Server</A>, it is <A HREF="http://info.cern.ch/hypertext/WWW/Daemon/Implementation/HTDaemon.c">HTDaemon</A>. <P>
+operating system, and it manages the overall running of the program.  In the
+<A HREF="http://info.cern.ch/hypertext/WWW/LineMode/Status.html">CERN Line
+Mode Browser</A>, it is <A NAME="21"
+HREF="http://info.cern.ch/hypertext/WWW/LineMode/Implementation/HTBrowse.c">
+HTBrowse</A>.  In the <A
+HREF="http://info.cern.ch/hypertext/WWW/Daemon/Status.html">CERN HTTP
+Server</A>, it is <A
+HREF="http://info.cern.ch/hypertext/WWW/Daemon/Implementation/HTDaemon.c">
+HTDaemon</A>.  <P>
 
-On behalf of the user, the client parses a request to the <A HREF="HTAccess.html">HTAccess Module</A> that is the main entry node to the library. When the
-request has been fulfilled (either in terms of an load or an error message)
-the data is parsed back to the client through the <A HREF="HTML.html">HTML
-Module</A> and the <A HREF="HText.html">HText Module</A>, see also
-<A HREF="Overview.html#Styles">Information on presentation modules</A>. <P>
+On behalf of the user, the client parses a request to the <A
+HREF="HTAccess.html">HTAccess Module</A> that is the main entry node to the
+library. When the request has been fulfilled (either in terms of an load or an
+error message) the data is parsed back to the client through the <A
+HREF="HTML.html">HTML Module</A> and the <A HREF="HText.html">HText
+Module</A>, see also <A HREF="Overview.html#Styles">Information on
+presentation modules</A>.  <P>
 
 <DL>
-<DT> <A NAME="8" HREF="HTAccess.html">HTAccess</A>
-<DD> The Access manager module which actually loads documents is
-     based in HTAccess.c. This uses all the <A NAME="3" HREF="#Protocol">
-     protocol modules</A>.  Given an anchor ID to jump to, it asks the
-     anchor object for the address in order to load it.
-<DT> <A NAME="z29" HREF="HTFormat.html">HTFormat</A>
-<DD> The Format Manager uses the <A NAME="15" HREF="#cascade">parser modules</A>
-     to load the document as appropriate. It can also decide
-     on the format of a file from its name. This module defines the HTConverter
-     type.
-<DT> <A NAME="9" HREF="HTAnchor.html">HTAnchor object</A>
-<DD> An anchor exists for very URL or fragment identifier. The
-     <A NAME="22" HREF="HTAnchor.html">HTAnchor Module</A> takes care of
-     creating anchors, managing the links between them and their attributes. 
-     This module is independent of the type of graphics object (text, line
-     drawing etc). It stores hypertext addresses of anchors, and ensures
-     that anchors with the same address are the same anchor.  See also the
-     <A NAME="13" HREF="http://info.cern.ch/hypertext/WWW/Architecture/Anchors.html">Anchor Description</A> )
+
+<DT><A NAME="8" HREF="HTAccess.html">HTAccess</A>
+
+<DD>The Access manager module which actually loads documents is based in
+HTAccess.c. This uses all the <A NAME="3" HREF="#Protocol"> protocol
+modules</A>.  Given an anchor ID to jump to, it asks the anchor object for the
+address in order to load it.
+
+<DT><A NAME="z29" HREF="HTFormat.html">HTFormat</A>
+
+<DD>The Format Manager uses the <A NAME="15" HREF="#cascade">parser
+modules</A> to load the document as appropriate. It can also decide on the
+format of a file from its name. This module defines the HTConverter type.
+
+<DT><A NAME="9" HREF="HTAnchor.html">HTAnchor object</A>
+
+<DD>An anchor exists for very URL or fragment identifier. The <A NAME="22"
+HREF="HTAnchor.html">HTAnchor Module</A> takes care of creating anchors,
+managing the links between them and their attributes.  This module is
+independent of the type of graphics object (text, line drawing etc). It stores
+hypertext addresses of anchors, and ensures that anchors with the same address
+are the same anchor.  See also the <A NAME="13"
+HREF="http://info.cern.ch/hypertext/WWW/Architecture/Anchors.html">Anchor
+Description</A> )
 
 <DT><A NAME="z74" HREF="HTHistory.html">HTHistory</A>
-<DD> Optional client module records and replays on request the
-     documents which the user visits 
+
+<DD>Optional client module records and replays on request the documents which
+the user visits
+
 </DL>
 
 <H3>Configuration of the Library</H3>
 
 Much of the trouble is getting everything defined appropriately, because the
-rest of the library is so flexible. Modules of note are:
+rest of the library is so flexible. Modules to note are:
 
 <DL>
-<DT> <A NAME="z63" HREF="HTInit.html">HTInit</A>
-<DD> The initialisation module for clients. This modules contains functions
-     to setup a list of MIME type converters that the client is capable of
-     handling and a set of bindings between file suffixes and MIME types.
-     The module may be replaced in custom clients.
-<DT> HTSInit
-<DD> The initialisation module for servers. May be replaced for
-     custom servers. Not part of the library, but part of the server.
-<DT> <A NAME="z62" HREF="HTRules.html">HTRule</A>
-<DD> The module which reads the configuration file, and does translation
-     of URLs according to rules. It is currently replaced by <A HREF="http://info.cern.ch/hypertext/WWW/Daemon/Implementation/HTConfig.c">HTConfig
-     Module</A> in the CERN Server and no rule file is used in the Line Mode
-     Browser in order to keep it simple.     
+
+<DT><A NAME="z63" HREF="HTInit.html">HTInit</A>
+
+<DD>The initialisation module for clients. This modules contains functions to
+setup a list of MIME type converters that the client is capable of handling
+and a set of bindings between file suffixes and MIME types.  The module may be
+replaced in custom clients.
+
+<DT>HTSInit
+
+<DD>The initialisation module for servers. May be replaced for custom
+servers. Not part of the library, but part of the server.
+
+<DT><A NAME="z62" HREF="HTRules.html">HTRule</A>
+
+<DD>The module which reads the configuration file, and does translation of
+URLs according to rules. It is currently replaced by <A
+HREF="http://info.cern.ch/hypertext/WWW/Daemon/Implementation/HTConfig.c">
+HTConfig Module</A> in the CERN Server and no rule file is used in the Line
+Mode Browser in order to keep it simple.
+
 </DL>
 
 Many modules have a set of configuration flags that are external globals
-described in the documentation of each module.
+described in the documentation of each module, i.e., the HTML files that
+defines the .h files.
 
+<H3>Modules to Overwrite</H3>
+
+Many of the library modules that output data directly to the client or through
+a server can easily be overwritten, e.g, by a GUI client. Below is a list of
+moduels that specifically have been propared for this, but other modules can
+be overwritten as well:
+
+<DL>
+
+<DT><A HREF="HTML.html">HTML</A>
+
+<DD>The HTML parser build upon the <A HREF="SGML.html">SGML</A> parser
+
+<DT><A HREF="HTErrorMsg.html">HTErrorMsg</A>
+
+<DD>This module generates the messages on the <A HREF="#ErrorAlert"> error
+stack</A>
+
+<DT><A HREF="HTAlert.html">HTAlert</A>
+
+<DD>See also <A HREF="#ErrorAlert">Description of HTAlert</A>
+
+<DT><A HREF="HTEvent.html">HTEvent</A>
+
+<DD>This is the internal event loop in the library for multi-threaded protocol
+access. See also the description of <A HREF="#multithread"> multiple
+threads</A>
+
+</DL>
 
 <A NAME="Communication"><H2>Communication Modules</H2></A>
 
@@ -111,288 +179,409 @@ Network communication.
 
 <H3>Communications Interface to the Network</H3>
 
-The functionality of the <A HREF="HTTCP.html">HTTCP Module</A> covers
-several topics but they are all related to TCP/IP communication. All
-active and passive connection
-establishment from the <A HREF="Overview.html#Protocol"> Protocol Modules</A>
-goes through this module. Furthermore, the
-module  manages a local host cache of visited hosts so that the Domain Name
-Server is only consulted when necessary.<P>
+The functionality of the <A HREF="HTTCP.html">HTTCP Module</A> covers several
+topics but they are all related to TCP/IP communication. All active and
+passive connection establishment from the <A HREF="Overview.html#Protocol">
+Protocol Modules</A> goes through this module. Furthermore, the module manages
+a local host cache of visited hosts so that the Domain Name Server is only
+consulted when necessary.<P>
 
 Other topics includes:
 
 <UL>
-<LI> I/O status indication (errno etc.)
-<LI> Information on remote hosts
-<LI> Information on local host (domain name etc.)
-<LI> Information on current user (mail address)
+<LI>I/O status indication (errno etc.)
+<LI>Information on remote hosts
+<LI>Information on local host (domain name etc.)
+<LI>Information on current user (mail address)
 </UL>
 
 <H3><A NAME="Protocol">Protocol modules</A></H3>
 
 A protocol module is invoked by the <A HREF="HTAccess.html">HTAcces Module</A>
-in order to access a document. Each protocol  module is responsible for
-extracting information
-from a local file or remote server using a particular protocol.  Depending
-on the protocol, the protocol module either builds a graphic object (e.g.
-hypertext) itself, or it passes a socket descriptor to the format manager
-for parsing by one of the parser modules. <P>
+in order to access a document. Each protocol module is responsible for
+extracting information from a local file or remote server using a particular
+protocol.  Depending on the protocol, the protocol module either builds a
+graphic object (e.g.  hypertext) itself, or it passes a socket descriptor to
+the format manager for parsing by one of the parser modules. <P>
 
 When the client parses a request to the library a <A HREF="HTAccess.html#z1">
-HTRequest Structure</A> is filled out and parsed to, e.g. HTLoadAnchor() in 
-HTAccess module. HTRequest is a hierarchical data structure that contains
-all information needed by the client, the server and the library to
-fulfill the request. The default values in the structure makes it very easy
-for the client to do a normal request of, e.g., a HTML document.
+HTRequest Structure</A> is filled out and parsed to, e.g. HTLoadAnchor() in
+HTAccess module. HTRequest is a hierarchical data structure that contains all
+information needed by the client, the server and the library to fulfill the
+request. The default values in the structure makes it very easy for the client
+to do a normal request of, e.g., a HTML document.
 
 <DL>
-<DT><A
-NAME="z46" HREF="HTFile.html">File access</A>
-<DD> This module provides access to files on a local file system. Due to
-     a general confusion of the "file://" access scheme in the <A HREF="http://info.cern.ch/hypertext/WWW/Addressing/URL/Overview.html">URL Specifications</A>
-     it tries FTP access on failure, but this will be changed in a new major
-     release, June 1994.
+
+<DT><A NAME="z46" HREF="HTFile.html">File access</A>
+
+<DD>This module provides access to files on a local file system. Due
+to general confusion of the "file://" access scheme in the <A
+HREF="http://info.cern.ch/hypertext/WWW/Addressing/URL/Overview.html">URL
+Specifications</A> tries FTP access on failure, but this will be
+changed in a new major release, June 1994.
+
 <DT><A NAME="z60" HREF="HTFTP.html">FTP access</A>
-<DD> Uses HTTCP for common TCP routines.
+
+<DD>Uses HTTCP for common TCP routines.
+
 <DT><A NAME="z45" HREF="HTTP.html">HTTP access</A>
-<DD> The <A NAME="25" HREF="HTTP.html">HTTP module</A> handles document search
-      and retrieve using the <A NAME="6" HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/HTTP2.html">HTTP</A> protocol. See <A HREF="http://info.cern.ch/hypertext/WWW/Library/User/Features/HTTPFeatures.html">The Current
-Implementation of the HTTP Client</A>.
-<DT> <A NAME="z40" HREF="HTNews.html">News access</A>
-<DD> The NNTP internet news protocol is handled by HTNews which builds a
-     hypertext object.
-<DT> <A NAME="z44" HREF="HTGopher.html">Gopher access</A>
-<DD> The internet gopher access to menus and flat files (and
-     links to telnet nodes, WhoIs servers, CSO Name Server etc.) is handled
-     by <A NAME="26" HREF="HTGopher.html">HTGopher Module</A>.
-<DT> <A NAME="z72" HREF="HTTelnet.html">Telnet access</A>
-<DD> A dummy access which forks a session. Also rlogin, tn3270.
-<DT> <A NAME="z39" HREF="HTWAIS.html">WAIS access</A>
-<DD> WAIS access is also implemented in a separate<A
-NAME="27" HREF="http://info.cern.ch/hypertext/WWW/Daemon/WAISGate.html"> gateway program</A>.
+
+<DD>The <A NAME="25" HREF="HTTP.html">HTTP module</A> handles document
+search and retrieve using the <A NAME="6"
+HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/HTTP2.html">HTTP</A>
+protocol. See also information on the <A
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Features/HTTPFeatures.html">
+current implementation</A> of the HTTP client. The module is now a complete
+state machine which is a required functionality in a <A
+HREF="#multithread">multi-threaded enviromnent</A>.
+
+<DT><A NAME="z40" HREF="HTNews.html">News access</A>
+
+<DD>The NNTP internet news protocol is handled by HTNews which builds a
+hypertext object.
+
+<DT><A NAME="z44" HREF="HTGopher.html">Gopher access</A>
+
+<DD>The internet gopher access to menus and flat files (and links to telnet
+nodes, WhoIs servers, CSO Name Server etc.) is handled by <A NAME="26"
+HREF="HTGopher.html">HTGopher Module</A>.
+
+<DT><A NAME="z72" HREF="HTTelnet.html">Telnet access</A>
+
+<DD>A dummy access which forks a session. Also rlogin, tn3270.
+
+<DT><A NAME="z39" HREF="HTWAIS.html">WAIS access</A>
+
+<DD>WAIS access is also implemented in a separate<A NAME="27"
+HREF="http://info.cern.ch/hypertext/WWW/Daemon/WAISGate.html"> gateway
+program</A>.
+
+</DL>
+
+<A NAME="multithread"><H3>Multi-Threaded Clients</H3></A>
+
+From version 3.0 (unreleased) of the Common Code Library, multi-threaded
+functionality has been added as an extra set of modules. For the moment, only
+the HTTP module has multiple threads but both FTP and Gopher are foreseen for
+the same functionality. For more information, see <A
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Multithread/multithread.html">Specifications
+on Multiple Threads</A>. The modules included are: <P>
+
+<DL>
+
+<DT><A HREF="HTThread.html">HTThread</A>
+
+<DD>This module provides the functionality for registrating sockets as ready
+for READ or WRITE (this includes the CONNECT statement that is basically a
+WRITE request).
+
+<DT><A HREF="HTEvent.html">HTEvent</A>
+
+<DD>This is the Libray's own version of the event-loop serving the HTTP
+client. The user can interrupt via stdin and a call-back function is used so
+that the user can determine whether it was an interrupt or a type-ahead.
+
 </DL>
 
 <H3>Reading Data from a Socket</H3>
 
 To avoid reading directly from the socket a module has been put up to provide
-an input buffer and some functionality to make it easier to get data from the 
+an input buffer and some functionality to make it easier to get data from the
 network.
+
 <DL>
-<DT> <A HREF="HTFormat.html#z15"> InputSocket</A>
-<DD> This module is a submodule of <A HREF="HTFormat.html">HTFormat</A> and it
-     provides the functionality of reading data from the network. When
-     multi-threaded access gets incorporated it is essential that all
-     requests to the network goes through one point in the library.
+
+<DT><A HREF="HTFormat.html#z15"> Non-reentrant Reading Functions</A>
+
+<DD>This module is a submodule of <A HREF="HTFormat.html">HTFormat</A> and it
+provides the functionality of reading data from the network. When
+multi-threaded access gets incorporated it is essential that all requests to
+the network goes through one point in the library. The reason keeping these is
+to support the single-threaded protocol access.
+
+<DT><A HREF="HTFormat.html#multi">Reentrant Reading Functions</A>
+
+<DD>This is also a submodule of the <A HREF="HTFormat.html">HTFormat</A> but
+the difference from the other socket parsing module is that this is completely
+reentrant. That is, it can be used together with a multi-threaded client.
+
 </DL>
 
-The same is not yet the case for writing to a socket, but this is on the 
-"to do list".
+The same is not yet the case for writing to a socket, but this is on the "to
+do list".
 
 
 <H3>Access Authorization</H3>
 
 In order to prevent unauthorized access on a World-Wide Web server, a basic
-authorization scheme has been developed, see
-<A NAME="z76" HREF="http://info.cern.ch/hypertext/WWW/AccessAuthorization/Overview.html">Access Authorization</A> for more details on the scheme. The access
+authorization scheme has been developed, see <A
+HREF="http://info.cern.ch/hypertext/WWW/AccessAuthorization/Overview.html">
+Access Authorization</A> for more details on the scheme. The access
 authorization is implemented in the following modules:
+
 <DL>
-<DT> <A HREF="HTAABrow.html">HTAABrow</A>
-<DD> This module contains WWW Browser specific code, that is composing the
-     <A HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html#9">HTTP Authorization Header</A>, recording users information etc.
-<DT> <A HREF="HTAAUtil.html">HTAAUtil</A>
-<DD> This module contains the authorization code that is common to both the
-     servers and clients, e.g., handling information on different
-     authentication etc.
-<DT> <A HREF="HTUU.html">UU Encoding and Decoding</A>
-<DD> Provides functions to encode and decode a data buffer according to the
-     RFC 1113 printable encoding format.
+
+<DT><A HREF="HTAABrow.html">HTAABrow</A>
+
+<DD>This module contains WWW Browser specific code, that is composing the <A
+HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html#9">
+HTTP Authorization Header</A>, recording users information etc.
+
+<DT><A HREF="HTAAUtil.html">HTAAUtil</A>
+
+<DD>This module contains the authorization code that is common to both the
+servers and clients, e.g., handling information on different authentication
+etc.
+
+<DT><A HREF="HTUU.html">UU Encoding and Decoding</A>
+
+<DD>Provides functions to encode and decode a data buffer according to the
+RFC 1113 printable encoding format.
+
 </DL>
 
 <H3>Presenting Directory Listings and other Listings</H3>
 
 When listings return from the protocol modules they are converted into HTML
 and parsed to the client. Listings might be HTTP directory listings, Gopher
-menus, FTP directory listings, CSO Name server etc. The modules providing
-this functionality are:
+menus, FTP directory listings, CSO Name server etc. The modules providing this
+functionality are:
+
 <DL>
-<DT> <A HREF="HTDirBrw.html">HTDirBrw</A>
-<DD> This is a very configurable module to actually present the listings
-<DT> <A HREF="HTDescript.html">HTDescript</A>
-<DD> This module handles the description field in a HTTP directory listing.
-     For a HTML file, the default action is to peek the title of the 
-     document.
-<DT> <A HREF="HTIcons.html">HTIcons</A>
-<DD> This module handles the set of icons used in the listings (HTTP, Gopher,
-     FTP etc.).
+
+<DT><A HREF="HTDirBrw.html">HTDirBrw</A>
+
+<DD>This is a very configurable module to actually present the listings
+
+<DT><A HREF="HTDescript.html">HTDescript</A>
+
+<DD>This module handles the description field in a HTTP directory listing.
+For a HTML file, the default action is to peek the title of the document.
+
+<DT><A HREF="HTIcons.html">HTIcons</A>
+
+<DD>This module handles the set of icons used in the listings (HTTP, Gopher,
+FTP etc.).
+
 </DL>
 
 <H3>Multi Linguistic Documents</H3>
 
-The HTTP protocol provides the possibility of handling 
-<A HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html#z12">Multi Linguistic Documents</A>. 
+The HTTP protocol provides the possibility of handling <A
+HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html#z12">
+Multi Linguistic Documents</A>.
 
 <DL>
-<DT> <A HREF="HTMulti.html">HTMulti</A>
-<DD> This is the current implementation of the Multi Linguistic support
-     in the Library.
+
+<DT><A HREF="HTMulti.html">HTMulti</A>
+
+<DD>This is the current implementation of the Multi Linguistic support in the
+Library.
+
 </DL>
 
 
 <A NAME="Stream"><H2>The Stream Concept</H2></A>
 
-This section describes the stream concept which is heavily used throughout
-the library.
+This section describes the stream concept which is heavily used throughout the
+library.
 
 <H3><A NAME="z37">Streams</A></H3>
 
 Streams are unidirectional objects where you can pump data character by
-character, using strings, and/or using large blocks of data. The <A HREF="HTStream.html">HTStream Module</A> is a generic representation of a stream class
-so that the interface to any stream in the library is identical.<P>
+character, using strings, and/or using large blocks of data. The <A
+HREF="HTStream.html">HTStream Module</A> is a generic representation of a
+stream class so that the interface to any stream in the library is
+identical.<P>
 
 Streams can be thought of as like files open for write. The stream-based
-architecture allows the software to be event-driven in the sense that
-when input arrives, it is put into a stream, and any necessary actions
-then cascade off that. Even reading from the Network can in fact be done
-using a stream having the read function pumping data down the input stream.<P>
+architecture allows the software to be event-driven in the sense that when
+input arrives, it is put into a stream, and any necessary actions then cascade
+off that. Even reading from the Network can in fact be done using a stream
+having the read function pumping data down the input stream.<P>
 
 Stream might be <A HREF="Overview.html#cascade">cascaded</A> so that one
-stream writes into into another stream
-after having performed some processing on the data.  An output stream is
-often referred to as the "target" or "sink" stream.<P>
+stream writes into into another stream after having performed some processing
+on the data.  An output stream is often referred to as the "target" or "sink"
+stream.<P>
 
 Currently the following specific stream objects are implemented:
 
 <DL>
-<DT> <A NAME="z43" HREF="HTWriter.html">HTWriter</A>
-<DD> Writes to a socket or something opened with the UNIX file I/O open()
-     function.
-<DT> <A NAME="z42" HREF="HTFWriter.html">HTFWriter</A>
-<DD> Writes to an ANSI C FILE * object, as opened by fopen(), etc.
-<DT> <A NAME="z41" HREF="SGML.html">SGML</A>
-<DD> Parses the data and generates a <A HREF="Overview.html#z38">structured
-     stream</A>. Each parser instance is created with reference to a
-     particular DTD structure.
+
+<DT><A NAME="z43" HREF="HTWriter.html">HTWriter</A>
+
+<DD>Writes to a socket or something opened with the UNIX file I/O open()
+function.
+
+<DT><A NAME="z42" HREF="HTFWriter.html">HTFWriter</A>
+
+<DD>Writes to an ANSI C FILE * object, as opened by fopen(), etc.
+
+<DT><A NAME="z41" HREF="SGML.html">SGML</A>
+
+<DD>Parses the data and generates a <A HREF="Overview.html#z38">structured
+stream</A>. Each parser instance is created with reference to a particular DTD
+structure.
+
 </DL>
 
-Furthermore a set of basic utility stream objects have been implemented to
-be used in a variety of constructions:
+Furthermore a set of basic utility stream objects have been implemented to be
+used in a variety of constructions:
 
 <DL>
-<DT> <A NAME="z75" HREF="HTTee.html">HTTee</A>
-<DD> Just writes into two streams at once. Useful for taking a copy
-     for a cache.
-<DT> <A HREF="HTFWriter.html">Black Hole</A>
-<DD> A quite expensive way of piping data into a hole for then to be
-     forgotten forever.
-<DT> <A HREF="HTFWriter.html">Through Line</A>
-<DD> A short circuited stream that returns the same output sink as it is
-     called with. 
-<DT> <A NAME="counter" HREF="HTMIME.html#counter">Content Length Counter</A>
-<DD> This stream counts the number of bytes pumped into the stream. This is 
-     used in, e.g., <A HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/Methods/Post.html">POST'ing in the HTTP Protocol</A>
+
+<DT><A NAME="z75" HREF="HTTee.html">HTTee</A>
+
+<DD>Just writes into two streams at once. Useful for taking a copy for a
+cache.
+
+<DT><A HREF="HTFWriter.html">Black Hole</A>
+
+<DD>A quite expensive way of piping data into a hole for then to be forgotten
+forever.
+
+<DT><A HREF="HTFWriter.html">Through Line</A>
+
+<DD>A short circuited stream that returns the same output sink as it is
+called with.
+
+<DT><A NAME="counter" HREF="HTMIME.html#counter">Content Length Counter</A>
+
+<DD>This stream counts the number of bytes pumped into the stream. This is
+used in, e.g., <A
+HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/Methods/Post.html">
+POST'ing in the HTTP Protocol</A>
+
 </DL>
 
 <H3>Converters</H3>
 
 Streams can be more than just a hole to put data into (e.g. to a file). They
-can have a converter connected to it so that the data format is modified 
-going through the stream. The Library contains a large amount of converters, 
-many of them converting to or from HTML.
+can have a converter connected to it so that the data format is modified going
+through the stream. The Library contains a large amount of converters, many of
+them converting to or from HTML.
 
 <DL>
-<DT> <A NAME="z70" HREF="HTFormat.html#z11">HTNetToText</A>
-<DD> Converts "Net ascii" (the stuff telnet sessions are made of)
-     info local C textual data stream.
-<DT> <A NAME="z69" HREF="HTMIME.html">HTMIME</A>
-<DD> Parse a MIME format message. This module also contains a
-     <A HREF="Overview.html#counter">Content Length Counter</A>
-<DT> <A NAME="z36" HREF="HTWSRC.html">HTWSRC</A>
-<DD> Parses a "WAIS source" description.
-<DT> <A NAME="z68" HREF="HTPlain.html">HTPlain</A>
-<DD> Takes plain ASCII text and converts into whatever -- typically
-     styled text for display or HTML.
+
+<DT><A NAME="z70" HREF="HTFormat.html#z11">HTNetToText</A>
+
+<DD>Converts "Net ascii" (the stuff telnet sessions are made of) info local C
+textual data stream.
+
+<DT><A NAME="z69" HREF="HTMIME.html">HTMIME</A>
+
+<DD>Parse a MIME format message. This module also contains a <A
+HREF="Overview.html#counter">Content Length Counter</A>
+
+<DT><A NAME="z36" HREF="HTWSRC.html">HTWSRC</A>
+
+<DD>Parses a "WAIS source" description.
+
+<DT><A NAME="z68" HREF="HTPlain.html">HTPlain</A>
+
+<DD>Takes plain ASCII text and converts into whatever -- typically styled
+text for display or HTML.
+
 </DL>
 
 <H3><A NAME="z38">Structured streams</A></H3>
 
-A structured stream is a subclass of a
-<A NAME="z32" HREF="HTStream.html">stream</A>, but instead of just accepting
-data, it also accepts SGML events such as begin and end elements. A structured
-stream therefore represents a structured document. You can think of a
-structured stream as like the output from an SGML parser. It is more efficient
-for modules which generate hypertext objects to output a structured stream
-than to output SGML which is then parsed.<P>
+A structured stream is a subclass of a <A NAME="z32"
+HREF="HTStream.html">stream</A>, but instead of just accepting data, it also
+accepts SGML events such as begin and end elements. A structured stream
+therefore represents a structured document. You can think of a structured
+stream as like the output from an SGML parser. It is more efficient for
+modules which generate hypertext objects to output a structured stream than to
+output SGML which is then parsed.<P>
 
 The elements and entities in the stream are referred to by numbers, rather
-than strings. The DTD contains the mapping between element names
-and numbers, so each structured stream when created is associated with the
-DTD which it using.<P>
+than strings. The DTD contains the mapping between element names and numbers,
+so each structured stream when created is associated with the DTD which it
+using.<P>
 
-The structured stream data structures are defined in the
-<A NAME="z33" HREF="SGML.html">SGML module</A> above.<P>
-Any instance of a structured stream has a related DTD which gives the
-rules and element and entity names for events on the structured stream.
-The only DTD which is currently in the library is the HTML DTD, in the
-<A NAME="z34" HREF="HTMLDTD.html">HTMLDTD</A> module.<P>
+The structured stream data structures are defined in the <A NAME="z33"
+HREF="SGML.html">SGML module</A> above.<P> Any instance of a structured stream
+has a related DTD which gives the rules and element and entity names for
+events on the structured stream.  The only DTD which is currently in the
+library is the HTML DTD, in the <A NAME="z34" HREF="HTMLDTD.html">HTMLDTD</A>
+module.<P>
 
-The SGML parser uses a DTD to output to a structured stream from a stream
-of SGML.  A hypertext editor will output to a structured stream when
-writing out a document.  Many <A NAME="z56" HREF="#Protocol">protocol
-modules</A> output to a structures stream when generating their data
-structures.<P>
+The SGML parser uses a DTD to output to a structured stream from a stream of
+SGML.  A hypertext editor will output to a structured stream when writing out
+a document.  Many <A NAME="z56" HREF="#Protocol">protocol modules</A> output
+to a structures stream when generating their data structures.<P>
 
 The current structured stream modules are
 
 <DL>
-<DT> <A NAME="z54" HREF="HTML.html">HTML</A>
-<DD> This module is an important one as it actually PRESENTS a hypertext
-     object to the user.  GUI writers replace this module with your own,
-     or use it and replaced the <A NAME="z53" HREF="#12">HText</A>
-     module which it feeds.
-<DT> <A NAME="z55" HREF="HTMLGen.html">HTMLGen</A>
-<DD> This structured stream regenerates a plain stream.  It makes reference
-     to the HTML DTD to regenerate the names of entities and elements. This
-     is used by the server to pass a hypertext document on to the client,
-     and also by the client to save HTML.
-<DT> <A HREF="HTTeXGen.html">HTTeXGen</A>
-<DD> Structured streams can be used for other conversions than from 
-     SGML to HTML. As an example, this is a SGML to LaTex converter that
-     makes it easier to construct paper versions of a HTML document.
+
+<DT><A NAME="z54" HREF="HTML.html">HTML</A>
+
+<DD>This module is an important one as it actually PRESENTS a hypertext
+object to the user.  GUI writers replace this module with your own, or use it
+and replaced the <A NAME="z53" HREF="#12">HText</A> module which it feeds.
+
+<DT><A NAME="z55" HREF="HTMLGen.html">HTMLGen</A>
+
+<DD>This structured stream regenerates a plain stream.  It makes reference to
+the HTML DTD to regenerate the names of entities and elements. This is used by
+the server to pass a hypertext document on to the client, and also by the
+client to save HTML.
+
+<DT><A HREF="HTTeXGen.html">HTTeXGen</A>
+
+<DD>Structured streams can be used for other conversions than from SGML to
+HTML. As an example, this is a SGML to LaTex converter that makes it easier to
+construct paper versions of a HTML document.
+
 </DL>
 
-These modules refer to the DTD modules (pick one of the following,
-probably HTMLPDTD)
+These modules refer to the DTD modules (pick one of the following, probably
+HTMLPDTD)
 
 <DL>
-<DT> <A NAME="z67" HREF="HTMLDTD.html">HTMLDTD</A>
-<DD> Table describing some aspects of the HTML document type: entity
-and element names, element contents and allowed attributes.
-<DT> <A NAME="z73" HREF="HTMLPDTD.html">HTMLPDTD</A>
-<DD> The same thing but for HTML-Plus document type.
+
+<DT><A NAME="z67" HREF="HTMLDTD.html">HTMLDTD</A>
+
+<DD>Table describing some aspects of the HTML document type: entity and
+element names, element contents and allowed attributes.
+
+<DT><A NAME="z73" HREF="HTMLPDTD.html">HTMLPDTD</A>
+
+<DD>The same thing but for HTML-Plus document type.
+
 </DL>
 
 <H3><A NAME="cascade">Cascading Streams Using a Stream Stack</A></H3>
 
 When more than one conversion is needed a stack of stream can be created
-having the first stream pumping data into the next etc. Creation of each 
-stream is based on the content type of the actual data. The following
-modules provide the functionality for handling stream conversions:
+having the first stream pumping data into the next etc. Creation of each
+stream is based on the content type of the actual data. The following modules
+provide the functionality for handling stream conversions:
 
 <DL>
-<DT> <A NAME="z30" HREF="#z29">HTFormat</A>
-<DD> This module performs the registration of MIME types and conversion
-     modules.  Currently we only parse HTML, plain 
-     text and MIME messages, but obviously other formats can be added.
-<DT> <A HREF="HTFormat.html#z3">Stream Stack</A>
-<DD> As mentioned above, streams can be cascaded to perform a multistep
-     conversion. This submodule handles a stack of streams, but or the
-     moment only direct conversion is supported so the size of the stack
-     is always 1. 
-<DT> <A HREF="HTGuess.html">HTGuess</A>
-<DD> If the input format is unknown at the time when putting up a stream
-     stack, then this module scans a part of the stream and on a statistical
-     basis determines the type of stream needed from the
-     <A HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/Object_Headers.html#z16">content-type</A>.
+
+<DT><A NAME="z30" HREF="#z29">HTFormat</A>
+
+<DD>This module performs the registration of MIME types and conversion
+modules.  Currently we only parse HTML, plain text and MIME messages, but
+obviously other formats can be added.
+
+<DT><A HREF="HTFormat.html#z3">Stream Stack</A>
+
+<DD>As mentioned above, streams can be cascaded to perform a multistep
+conversion. This submodule handles a stack of streams, but or the moment only
+direct conversion is supported so the size of the stack is always 1.
+
+<DT><A HREF="HTGuess.html">HTGuess</A>
+
+<DD>If the input format is unknown at the time when putting up a stream
+stack, then this module scans a part of the stream and on a statistical basis
+determines the type of stream needed from the <A
+HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/Object_Headers.html#z16">content-type</A>.
+
 </DL>
 
 
@@ -408,22 +597,26 @@ Some hypertext objects work by storing the whole structure of the document.
 Others work by converting the nested structure into a linear sequence of
 styled text for display. <P>
 
-The library provides code for doing this "flattening".  You don't have
-to use these modules: if you want to work the first way, just replace
-the entry points in HTML with your own, to prevent the library modules
-from being loaded.<P>
+The library provides code for doing this "flattening".  You don't have to use
+these modules: if you want to work the first way, just replace the entry
+points in HTML with your own, to prevent the library modules from being
+loaded.<P>
 
 The <A NAME="z66" HREF="#z54">HTML</A> object mentioned above flattens
-structured text into styled text. The HTPlain object generates a styled
-text for a plain ascii document.<P>
+structured text into styled text. The HTPlain object generates a styled text
+for a plain ascii document.<P>
 
 The style system uses a set of names styles, each of which contains paragraph
-and character formatting information. This is managed by the HTStyle module. <P>
+and character formatting information. This is managed by the HTStyle module.
+
+<P>
 
 <DL>
-<DT><A
-NAME="z65" HREF="HTStyle.html">HTStyle</A>
-<DD> Style and style sheet manipulation.
+
+<DT><A NAME="z65" HREF="HTStyle.html">HTStyle</A>
+
+<DD>Style and style sheet manipulation.
+
 </DL>
 
 <H3><A NAME="14">Styled Text object</A></H3>
@@ -437,80 +630,102 @@ navigation object in order to follow links. We use the more common term
 and displays.
 
 <DL>
-<DT><A NAME="12" HREF="HText.html">HText</A>
-<DD> This object is window-system dependent. In the line mode browser, the
-<A NAME="17" HREF="../../Architecture/../LineMode/Internals.html#3">
-GridText</A> module is the hypertext object, providing the generic
-functionality of this module. Note that this interface is an alternative to the
-HTML.h interface above when you are building a client: you can replace
-the library code at either point depending on the interface you require.
-</DL>
 
+<DT><A NAME="12" HREF="HText.html">HText</A>
+
+<DD>This object is window-system dependent. In the line mode browser, the <A
+NAME="17" HREF="../../Architecture/../LineMode/Internals.html#3"> GridText</A>
+module is the hypertext object, providing the generic functionality of this
+module. Note that this interface is an alternative to the HTML.h interface
+above when you are building a client: you can replace the library code at
+either point depending on the interface you require.
+
+</DL>
 
 <A NAME="Utils"><H2>General Modules and Utilities</H2></A>
 
-This section covers the basic programming utilities that can be used in the 
+This section covers the basic programming utilities that can be used in the
 client or server to make life easier.
 
 <H3>Container Modules</H3>
 
 These modules are generic data object storage modules that might be used
-wherever convenient. The general rule for freeing memory from these
-modules is that free methods handles data structures generated within the
-modules whereas user data is for the caller to free. The modules consist
-of:<P>
+wherever convenient. The general rule for freeing memory from these modules is
+that free methods handles data structures generated within the modules whereas
+user data is for the caller to free. The modules consist of:
 
-<DT> <A NAME="z59" HREF="HTBTree.html">Binary Trees</A>
-<DD> This is a complete balanced binary tree that might be used for storage
-     and sort of a large number of data objects, e.g. filenames in
-     directory listings etc.
-<DT> <A NAME="z50" HREF="HTChunk.html">Chunks</A>
-<DD> A Chunk is a blockwise expandable array of type (char *) and is a sort of
-     apology for real strings in C. Chunks make it easier to handle dynamic
-     strings of unknown size. It is often faster than using the
-     String Copy Routines</A>.
-<DT> <A NAME="z77" HREF="HTList.html">Linked Lists</A>
-<DD>This module provides the functionality for managing a generic list of
-    data objects. The module is implemented as a single linked list using
-    the scheme <EM>first in - last out (FILO)</EM>.  
-<DT> <A HREF="HTAssoc.html">Association Lists</A>
-<DD> This is a small module build on top of HTList that provides a way
-     to store <EM>Name-Value</EM> pairs in an easy way.
-<DT> <A HREF="HTString.html">Strings</A>
-<DD> A few manipulation routines for dynamic arrays of characters. The 
-     routines include string copy, case insensitive comparison etc.
-<DT> <A HREF="HTAtom.html">Atoms</A>
-<DD> Atoms are strings which are given representative pointer values so that
-     they can be stored more efficiently, and comparisons for equality done
-     more efficiently. The pointer values are in fact entries into a hash
-     table. 
+<P>
+
+<DT><A NAME="z59" HREF="HTBTree.html">Binary Trees</A>
+
+<DD>This is a complete balanced binary tree that might be used for storage
+and sort of a large number of data objects, e.g. filenames in directory
+listings etc.
+
+<DT><A NAME="z50" HREF="HTChunk.html">Chunks</A>
+
+<DD>A Chunk is a blockwise expandable array of type (char *) and is a sort of
+apology for real strings in C. Chunks make it easier to handle dynamic strings
+of unknown size. It is often faster than using the String Copy Routines</A>.
+
+<DT><A NAME="z77" HREF="HTList.html">Linked Lists</A>
+
+<DD>This module provides the functionality for managing a generic list of data
+objects. The module is implemented as a single linked list using the scheme
+<EM>first in - last out (FILO)</EM>.
+
+<DT><A HREF="HTAssoc.html">Association Lists</A>
+
+<DD>This is a small module build on top of HTList that provides a way to
+store <EM>Name-Value</EM> pairs in an easy way.
+
+<DT><A HREF="HTString.html">Strings</A>
+
+<DD>A few manipulation routines for dynamic arrays of characters. The
+routines include string copy, case insensitive comparison etc.
+
+<DT><A HREF="HTAtom.html">Atoms</A>
+
+<DD>Atoms are strings which are given representative pointer values so that
+they can be stored more efficiently, and comparisons for equality done more
+efficiently. The pointer values are in fact entries into a hash table.
+
 </DL>
 
-<H3>Error Message and Information Handling</H3>
+<H3><A NAME="ErrorAlert">Error Message and Information Handling</A></H3>
 
-These modules are available for handling information and parse it from
-the Library back to the user: <P>
+These modules are available for handling information and parse it from the
+Library back to the user: <P>
 
 <DL>
-<DT> <A NAME="z64" HREF="HTAlert.html">HTAlert User Messages</A>
-<DD> This modules contains the code for prompting the user for file names,
-     userid, password etc. Furthermore, it presents messages containing
-     status information, error messages etc. to the user. The implementation
-     in the library is meant for the Line Mode Browser (i.e. it writes
-     to stderr) but can easily be overwritten by GUI browsers.
-<DT> <A HREF="HTError.html">HTError Module</A>
-<DD> This module maintains an message stack within the <A HREF="HTAccess#z1">
-     HTRequest Structure</A>. The module classifies messages in the range from 
-     <I>Information</I> to <I>Fatal Error</I>. As an example, the new
-     <A HREF="http://info.cern.ch/hypertext/WWW/Addressing/URL/Overview.html">
-     URL</A> specified in a <A HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/HTRESP.html#z10">HTTP Redirection</A> gets parsed back to the user so
-     that a clever client can edit the link directly.
-<DT> <A HREF="HTErrorMsg.c">HTErrorMsg</A>
-<DD> This module is in fact a part of the HTError module but a this is written
-     specifically for a browser like Line Mode Browser, GUI clients would like
-     to overwrite it. It presents the content of the message stack to the 
-     user in a readable form. Often, the information could be shown in a
-     separate information window in the client.
+
+<DT><A NAME="z64" HREF="HTAlert.html">HTAlert User Messages</A>
+
+<DD>This modules contains the code for prompting the user for file names,
+userid, password etc. Furthermore, it presents messages containing status
+information, error messages etc. to the user. The implementation in the
+library is meant for the Line Mode Browser (i.e. it writes to stderr) but can
+easily be overwritten by GUI browsers.
+
+<DT><A HREF="HTError.html">HTError Module</A>
+
+<DD>This module maintains an message stack within the <A HREF="HTAccess#z1">
+HTRequest Structure</A>. The module classifies messages in the range from
+<I>Information</I> to <I>Fatal Error</I>. As an example, the new <A
+HREF="http://info.cern.ch/hypertext/WWW/Addressing/URL/Overview.html"> URL</A>
+specified in a <A
+HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/HTRESP.html#z10">HTTP
+Redirection</A> gets parsed back to the user so that a clever client can edit
+the link directly.
+
+<DT><A HREF="HTErrorMsg.c">HTErrorMsg</A>
+
+<DD>This module is in fact a part of the HTError module but a this is written
+specifically for a browser like Line Mode Browser, GUI clients would like to
+overwrite it. It presents the content of the message stack to the user in a
+readable form. Often, the information could be shown in a separate information
+window in the client.
+
 </DL>
 
 
@@ -519,10 +734,14 @@ the Library back to the user: <P>
 The functionality for handling URLs is all placed in one module:
 
 <DL>
-<DT> <A HREF="HTParse.html">HTParse</A>
-<DD> This module provides functions for parsing URLs, simplify them by removing
-     redundant information, escape and unescape them according to the 
-     <A HREF="http://info.cern.ch/hypertext/WWW/Addressing/URL/4_URI_Recommentations.html">URL Specifications</A>.
+
+<DT><A HREF="HTParse.html">HTParse</A>
+
+<DD>This module provides functions for parsing URLs, simplify them by
+removing redundant information, escape and unescape them according to the <A
+HREF="http://info.cern.ch/hypertext/WWW/Addressing/URL/4_URI_Recommentations.html">URL
+Specifications</A>.
+
 </DL>
 
 <H3>Basic Utilities</H3>
@@ -530,18 +749,26 @@ The functionality for handling URLs is all placed in one module:
 The list of basic utilities are currently as follows:
 
 <DL>
+
 <DT><A NAME="z47" HREF="tcp.html">System specifics</A>
-<DD> The tcp.h file includes system-specific include files and flags for I/O
-     to network and disk. The only reason for this file is that the Internet
-     world is more complicated than Posix and ANSI.
-<DT> <A NAME="z48" HREF="HTUtils.html">HTUtils</A>
-<DD> The HTUtil.h file includes things we need everywhere, generally macros
-     for declarations, booleans, etc.
+
+<DD>The tcp.h file includes system-specific include files and flags for I/O
+to network and disk. The only reason for this file is that the Internet world
+is more complicated than Posix and ANSI.
+
+<DT><A NAME="z48" HREF="HTUtils.html">HTUtils</A>
+
+<DD>The HTUtil.h file includes things we need everywhere, generally macros
+for declarations, booleans, etc.
+
 </DL>
 
 <HR>
-<ADDRESS><A
-NAME="0" HREF="http://info.cern.ch./hypertext/TBL_Disclaimer.html">Tim BL</A>
-and <A HREF="http://info.cern.ch/hypertext/WWW/People.html#Frystyk">Henrik Frystyk</A>, libwww@info.cern.ch, July 1994
+
+<ADDRESS><A NAME="0"
+HREF="http://info.cern.ch./hypertext/TBL_Disclaimer.html">Tim BL</A> and <A
+HREF="http://info.cern.ch/hypertext/WWW/People.html#Frystyk">Henrik
+Frystyk</A>, libwww@info.cern.ch, August 1994
+
 </BODY>
 </HTML>
