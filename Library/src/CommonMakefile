@@ -68,7 +68,7 @@ CFLAGS2 = $(CFLAGS) $(WAISCFLAGS) -I$(CMN) -DXMOSAIC_HACK
 CERNLIBBIN = $(WWW)/bin
 
 COMMON = $(LOB)/HTParse.o $(LOB)/HTAccess.o $(LOB)/HTTP.o \
-	$(LOB)/HTFile.o	$(LOB)/HTFTP.o $(LOB)/HTTCP.o \
+	$(LOB)/HTFile.o	$(LOB)/HTBTree.o $(LOB)/HTFTP.o $(LOB)/HTTCP.o \
 	$(LOB)/SGML.o $(LOB)/HTML.o $(LOB)/HTMLDTD.o $(LOB)/HTChunk.o \
 	$(LOB)/HTPlain.o $(LOB)/HTWriter.o $(LOB)/HTFWriter.o \
 	$(LOB)/HTMLGen.o \
@@ -79,9 +79,11 @@ COMMON = $(LOB)/HTParse.o $(LOB)/HTAccess.o $(LOB)/HTTP.o \
 	$(LOB)/HTTelnet.o $(LOB)/HTWSRC.o $(HTWAIS)
 
 CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTTP.c $(CMN)HTFile.c \
+        $(CMN)HTBTree.c \
 	$(CMN)HTFTP.c   $(CMN)HTTCP.c     $(CMN)SGML.c $(CMN)HTML.c	\
 	$(CMN)HTMLDTD.c \
-	$(CMN)HTPlain.c	$(CMN)HTWriter.c  $(CMN)HTFWriter.c $(CMN)HTMLGen.c	\
+	$(CMN)HTPlain.c	$(CMN)HTWriter.c  $(CMN)HTFWriter.c \
+        $(CMN)HTMLGen.c	\
 	$(CMN)HTChunk.c $(CMN)HTAtom.c   $(CMN)HTAnchor.c $(CMN)HTStyle.c \
 	$(CMN)HTList.c  $(CMN)HTString.c $(CMN)HTAlert.c $(CMN)HTRules.c \
 	$(CMN)HTFormat.c $(CMN)HTInit.c $(CMN)HTMIME.c $(CMN)HTHistory.c \
@@ -89,7 +91,7 @@ CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTTP.c $(CMN)HTFile.c \
 	$(CMN)HTWAIS.c  $(CMN)HTWSRC.c
 
 HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h $(CMN)HTTP.h $(CMN)HTFile.h \
-	$(CMN)HTFTP.h $(CMN)HTTCP.h \
+	$(CMN)HTBTree.h $(CMN)HTFTP.h $(CMN)HTTCP.h \
 	$(CMN)SGML.h $(CMN)HTML.h $(CMN)HTMLDTD.h $(CMN)HTChunk.h \
 	$(CMN)HTPlain.h		$(CMN)HTWriter.h \
 	$(CMN)HTFWriter.h 	$(CMN)HTMLGen.h	\
@@ -276,6 +278,9 @@ $(LOB)/HTTCP.o : $(OE) $(CMN)HTTCP.c $(CMN)HTUtils.h
 
 $(LOB)/HTFile.o : $(OE) $(CMN)HTFile.c $(CMN)HTUtils.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTFile.c
+
+$(LOB)/HTBTree.o : $(OE) $(CMN)HTBTree.c $(CMN)HTUtils.h
+	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTBTree.c
 
 $(LOB)/HTFTP.o : $(OE) $(CMN)HTFTP.c $(CMN)HTUtils.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTFTP.c
