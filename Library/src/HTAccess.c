@@ -695,6 +695,30 @@ PUBLIC HTParentAnchor * HTPostFormAnchor (HTAssocList *	formdata,
     return postanchor;
 }
 
+/*
+**	POST a URL and save the response in a mem buffer
+**	------------------------------------------------
+**	Returns chunk if OK - else NULL
+*/
+PUBLIC HTChunk * HTPostFormAnchorToChunk (HTAssocList * formdata,
+					  HTAnchor *	anchor,
+					  HTRequest *	request)
+{
+    if (formdata && anchor && request) {
+	HTChunk * chunk = NULL;
+	HTStream * target = HTStreamToChunk(request, &chunk, 0);
+	HTRequest_setOutputStream(request, target);
+	if (HTPostFormAnchor(formdata, anchor, request) != NULL)
+	    return chunk;
+	else {
+	    HTChunk_delete(chunk);
+	    return NULL;
+	}
+    }
+    return NULL;
+}
+
+
 /* --------------------------------------------------------------------------*/
 /*				PUT A DOCUMENT 				     */
 /* --------------------------------------------------------------------------*/ 

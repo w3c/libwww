@@ -67,9 +67,10 @@ anchor.
   Load a Document into Memory
 </H3>
 <P>
-Request a document referred to by the URL and load it into a chunk object.
-A <A HREF="HTChunk.html">chunk object</A> is a dynamic string so in the end
-you will have a single memory buffer containing the document.
+Request a document referred to by the URL and load it into a
+<A HREF="HTChunk.html">HTChunk object</A>. A <A HREF="HTChunk.html">chunk
+object</A> is a dynamic string so in the end you will have a single memory
+buffer containing the document. The chunk must be freed by the caller.
 <PRE>extern HTChunk * HTLoadToChunk (const char * url, HTRequest * request);
 </PRE>
 <H3>
@@ -110,8 +111,9 @@ appropriate method in the <A HREF="HTAnchor.html">Anchor class</A>.
 </H3>
 <P>
 This is the same as <CODE>HTLoadToChunk</CODE> but instead of passing a URL
-string you pass an anchor object. Internally, all URLs are represented as
-anchors which contains all the information we have about the resource.
+string you pass an <A HREF="HTAnchor.html">HTAnchor object</A>. Internally,
+all URLs are represented as anchors which contains all the information we
+have about the resource. The chunk must be freed by the caller.
 <PRE>extern HTChunk * HTLoadAnchorToChunk (HTAnchor * anchor, HTRequest * request);
 </PRE>
 <H3>
@@ -141,12 +143,12 @@ the URL specified and add the set of rules to the existing set.
 <PRE>extern BOOL HTLoadRules (const char * url);
 </PRE>
 <H2>
-  Search a Document (Method = GET)
+  <A NAME="Search">Search a Document (Method = GET)</A>
 </H2>
 <P>
 The search methods all use <CODE>GET</CODE> as the method in the
-<A HREF="http://www.w3.org/Protocols/">HTTP request</A>. The functions
-take the keywords and encode them according to
+<A HREF="http://www.w3.org/Protocols/">HTTP request</A>. The functions take
+the keywords and encode them according to
 <A HREF="http://info.internet.isi.edu:80/in-notes/rfc/files/rfc1866.txt">RFC
 1866 (Hypertext Markup language)</A>. That is, the query part is separated
 from the rest of the URL by a "?" nu is treated as being part of the URL
@@ -196,7 +198,7 @@ extern BOOL HTSearchString (const char *	keywords,
 			    HTRequest * 	request);
 </PRE>
 <H2>
-  Handle Forms Using GET Method
+  <A NAME="getforms">Handle Forms Using GET Method</A>
 </H2>
 <P>
 Form data can be sent to a HTTP server in two ways - it can either use a
@@ -250,14 +252,14 @@ extern BOOL HTGetFormAnchor (HTAssocList *	formdata,
 			     HTRequest * 	request);
 </PRE>
 <H2>
-  Handle Forms Using POST Method
+  <A NAME="PostForms">Handle Forms Using POST Method</A>
 </H2>
 <P>
 The main difference between a <CODE>GET</CODE> form and a <CODE>POST</CODE>
 form is that the data in a <CODE>POST</CODE> form is sent as the body part
-of the <A HREF="http://www.w3.org/Protocols/">HTTP</A> message whereas
-a <CODE>GET</CODE> form wraps it all up into the URL. In order to be able
-to use the <CODE>POST</CODE> data object at a later point in time, we create
+of the <A HREF="http://www.w3.org/Protocols/">HTTP</A> message whereas a
+<CODE>GET</CODE> form wraps it all up into the URL. In order to be able to
+use the <CODE>POST</CODE> data object at a later point in time, we create
 a new anchor on the fly. This anchor has a URL file location which points
 into the temporary area given by the <A HREF="HTUser.html">User Profile
 Object</A>. That is - you can actually save the anchor using a
@@ -305,6 +307,20 @@ the field name and the value is the value of the field.
 extern HTParentAnchor * HTPostFormAnchor (HTAssocList *	formdata,
 					  HTAnchor *	anchor,
 					  HTRequest * 	request);
+</PRE>
+<H3>
+  Send a Form and Save the Result in a Memory Buffer
+</H3>
+<P>
+Send a form to the location referred to by the <A HREF="HTAnchor.html">HTAnchor
+object</A> and load the result of the POST into a
+<A HREF="HTChunk.html">HTChunk object</A>. A <A HREF="HTChunk.html">chunk
+object</A> is a dynamic memory buffer so in the end you will have a single
+memory buffer containing the document. The chunk must be freed by the caller.
+<PRE>
+extern HTChunk * HTPostFormAnchorToChunk (HTAssocList * formdata,
+                                          HTAnchor *    anchor,
+                                          HTRequest *   request);
 </PRE>
 <H2>
   <A NAME="Head">Get Metainformation about a Document (Method = HEAD)</A>
