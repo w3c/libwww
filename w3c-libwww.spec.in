@@ -1,10 +1,10 @@
 # Note that this is NOT a relocatable package
-%define ver	5.2.8
+%define ver	@VERSION@
 %define rel	3
 %define prefix	/usr/
 
 Summary: General-purpose Web API written in C
-Name: w3c-libwww
+Name: @PACKAGE@
 Version: %ver
 Release: %rel
 Copyright: W3C (see: http://www.w3.org/Consortium/Legal/copyright-software.html)
