@@ -798,7 +798,10 @@ PUBLIC BOOL HTRequest_deleteRange (HTRequest * me)
 PUBLIC BOOL HTRequest_addRange (HTRequest * me, char * unit, char * range)
 {
     if (me) {
-	if (!me->byte_ranges) me->byte_ranges = HTAssocList_new();
+	if (!me->byte_ranges) {
+	    me->byte_ranges = HTAssocList_new();
+	    HTRequest_addRqHd(me, HT_C_RANGE);
+	}
 	return HTAssocList_replaceObject(me->byte_ranges, unit, range);
     }
     return NO;
