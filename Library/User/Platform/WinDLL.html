@@ -1,14 +1,13 @@
 <HTML>
 <HEAD>
 <TITLE>How to Build the WWW Libraries for Windows</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 20-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  2-Dec-1995 -->
 </HEAD>
 
 <BODY>
 
 <A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
 <A HREF="../../"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
-<A HREF="../../../LineMode/"><IMG ALT="LMB" SRC="../../../Icons/WWW/LMB48x.gif"></A>
 <A HREF="./"><IMG ALT="OS" SRC="../../../Icons/WWW/Platform48x.gif"></A>
 
 <H1>Building Window DLLs</H1>
@@ -84,43 +83,96 @@ HREF="TTYPrint.html">TTYPrint</A> function. When Windows loads a DLL, the export
 pointers get "fixed up" in the other modules.  Consequently, what may be a directly addressable
 piece of data in it's home library will be a pointer in the other libraries and executables that
 dynamically link to it. The <A HREF="TTYPrint.html">TTYPrint</A> pointer is <A
-HREF="..\Implementation\windll\wwwdll.def">exported</A> to the other modules and referenced via the
-TTYPrint macro in <A HREF="../../Implementation/HTUtils.html">HTUtils.h</A>. <A HREF="#dll">wwwdll.dll
-</A> also contains the WWW_TraceFlag to the same end of macroing the indirection.  <B>
-Dependencies:</B> <I> windll.c wwwdll.c wwwdll.def </I>
+HREF="../../Implementation/windows/wwwdll.def">exported</A> to the other modules and referenced via
+the TTYPrint macro in <A HREF="../../Implementation/HTUtils.html">HTUtils.h</A>. <A
+HREF="#dll">wwwdll.dll </A> also contains the WWW_TraceFlag to the same end of macroing the
+indirection.  <B> Dependencies:</B> <I> windll.c wwwdll.c wwwdll.def </I>
 
 <A NAME="utils"><H2>wwwutils.dll</H2></A>
 
 The utils are a set of basic utilies that are used by the other libraries and may prove usefull
 outside the context of the libwww. It implements linked lists, associative arrays, ... See <A
 HREF="../../Implementation/WWWUtil.html"> Util Modules</A> for a description of the use of these
-functions.  <B> Dependencies:</B> <I> wwwdll.lib windll.c wwwutils.def HTArray.c HTAssoc.c HTAtom.c
-HTChunk.c HTList.c HTString.c HTUU.c </I>
+functions.  <B> Dependencies:</B>
+<I>
+wwwdll.lib
+windll.c
+wwwutils.def
+HTArray.c
+HTAssoc.c
+HTAtom.c
+HTChunk.c
+HTList.c
+HTString.c
+HTUU.c
+</I>
 
 <A NAME="core"><H2>wwwcore.dll</H2></A>
 
 This library contains all the WWW specific functions needed to write an application that uses the
 standard streams and converters, or produces it's own. See <A
 HREF="../../Implementation/WWWCore.html">Core Modules</A> for a description of the use of these
-functions.  <B> Dependencies:</B> <I> wwwdll.lib wwwutils.lib windll.c wwwcore.def HTAccess.c
-HTAlert.c HTAnchor.c HTBind.c HTConLen.c HTDialog.c HTDNS.c HTError.c HTEscape.c HTEvnrg.c
-HTFormat.c HTFWrite.c HTMethod.c HTNet.c HTParse.c HTProt.c HTReqMan.c HTSocket.c HTTCP.c HTTee.c
-HTWriter.c HTWWWStr.c </I>
+functions.  <B> Dependencies:</B>
+<I>
+wwwdll.lib
+wwwutils.lib
+windll.c
+wwwcore.def
+HTAccess.c
+HTAlert.c
+HTAnchor.c
+HTBind.c
+HTConLen.c
+HTDialog.c
+HTDNS.c
+HTError.c
+HTEscape.c
+HTEvntrg.c
+HTFormat.c
+HTFWrite.c
+HTMethod.c
+HTNet.c
+HTParse.c
+HTProt.c
+HTReqMan.c
+HTSocket.c
+HTTCP.c
+HTTee.c
+HTWriter.c
+HTWWWStr.c
+</I>
 
 
 <A NAME="cache"><H2>wwwcache.dll</H2></A>
 
-<B> Dependencies:</B> <I> wwwdll.lib wwwutils.lib windll.c wwwcache.def HTCache.c </I>
+<B> Dependencies:</B>
+<I>
+wwwdll.lib
+wwwutils.lib
+windll.c
+wwwcache.def
+HTCache.c
+</I>
 
 <A NAME="mime"><H2>wwwmime.dll</H2></A>
 
 <B> Dependencies:</B>
-<I>wwwdll.lib wwwutils.lib
-wwwcore.lib windll.c wwwmime.def HTBound.c HTHeader.c HTMIME.c HTMIMERq.c </I>
+<I>
+wwwdll.lib
+wwwutils.lib
+wwwcore.lib
+windll.c
+wwwmime.def
+HTBound.c
+HTHeader.c
+HTMIME.c
+HTMIMERq.c
+</I>
 
 <A NAME="http"><H2>wwwhttp.dll</H2></A>
 
-<B> Dependencies:</B> <I>
+<B> Dependencies:</B>
+<I>
 wwwdll.lib
 wwwutils.lib
 wwwcore.lib
@@ -153,7 +205,6 @@ wwwutils.lib
 wwwcore.lib
 windll.c
 wwwrules.def
-HTAlert.c
 HTProxy.c
 HTRules.c
 </I>
@@ -207,7 +258,7 @@ HTWSRC.c
 
 <H2>Make Files</H2>
 
-MSVC2.2 Make files are available in the <A HREF="../../Implementation/windows"> windll</A>
+MSVC2.2 Make files are available in the <A HREF="../../Implementation/windows/">windows</A>
 directory. Each library is build from some .c files,
 
 It is impoortant to build these libraries in the correct order. Observe the dependancies listed at
@@ -227,7 +278,7 @@ names.
 <H2>Exporting Functions</H2>
 
 The functions exported from a DLL are listed in the EXPORTS section of a .def file. These can be
-found in the <A HREF="../../Implementation/windows">windll </A> directory. These may also be build by
+found in the <A HREF="../../Implementation/windows">windows</A> directory. These may also be build by
 the <A HREF="#makedefs"> makeDefs.pl</A> perl script.
 
 <A NAME="makedefs"><H2>makeDefs.pl</H2></A>
@@ -283,7 +334,7 @@ model stronly resembles the unix model.  Define <B>_CONSOLE</B> for all librarie
 
 <P>
 <HR>
-<ADDRESS><A HREF="../../../People.html#Prudamo">Eric Prud'hommeaux</A>, November 1995</ADDRESS>
+<ADDRESS><A HREF="mailto:eric@w3.org">Eric Prud'hommeaux</A>, November 1995</ADDRESS>
 </BODY>
 </HTML>
 
