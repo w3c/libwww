@@ -331,7 +331,7 @@ PUBLIC void HTErrorMsg ARGS1(HTRequest *, request)
 		highest = NO;
 	    } else {
 		START(HTML_B);
-		PUTS("This occurred because ");
+		PUTS("This occurred because: ");
 		END(HTML_B);
 	    }
 

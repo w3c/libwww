@@ -1274,17 +1274,16 @@ PRIVATE ftp_ctrl_info *HTFTP_init_con ARGS2(HTRequest *, req, char *, url)
 	    data->directory = YES;
 	} else {
 	    /* If data type is not specified in URL let's find it ourselves. */
-	    HTAtom *encoding;
-	    HTAtom *language;
 	    HTUnEscape(filename);
-	    data->fileformat = HTFileFormat(filename, &encoding, &language);
+	    data->fileformat = HTFileFormat(filename,
+					    &req->content_encoding,
+					    &req->content_language);
 	    if (HTFTP_parse_datatype(filename, &data->datatype) != YES) {
-		if ((encoding != HTAtom_for("8bit") &&
-		     encoding != HTAtom_for("7bit"))) {
+		if ((req->content_encoding != HTAtom_for("8bit") &&
+		     req->content_encoding != HTAtom_for("7bit"))) {
 		    if (TRACE)
-			fprintf(stderr, "FTP......... File is binary\n");
+			fprintf(stderr, "FTP......... Binary data mode\n");
 		    StrAllocCopy(data->datatype, "I");
-		    req->content_encoding = HTAtom_for("binary");
 		}
 	    } else {
 		/* Chop off data type */

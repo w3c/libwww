@@ -344,14 +344,15 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
 	StrAllocCopy(addr, HTAnchor_physical(req->anchor));
 
 #ifndef NO_RULES
-    if (HTImServer)	/* cern_httpd has already done its own translations */
+    if (HTImServer) {	/* cern_httpd has already done its own translations */
 	HTAnchor_setPhysical(req->anchor, HTImServer);
-#ifdef OLD_CODE
-	HTAnchor_setPhysical(req->anchor, addr);
-#endif
+	StrAllocCopy(addr, HTImServer);	/* Oops, queries thru many proxies */
+					/* didn't work without this -- AL  */
+    }
     else {
 	char * physical = HTTranslate(addr);
 	if (!physical) {
+	    free(addr);
 	    return HT_FORBIDDEN;
 	}
 	HTAnchor_setPhysical(req->anchor, physical);
@@ -658,10 +659,8 @@ PRIVATE BOOL HTLoadDocument ARGS1(HTRequest *,		request)
 		"HTAccess: Can't access `%s'\n", full_address);
 #endif
 	/* This is done in the specific load procedures... Henrik 07/03-94 */
-#if 0
-	if (request->error_stack)
+	if (request->old_error_stack)
 	    HTLoadError(request, 500, "Unable to access document.");
-#endif
 	free(full_address);
 	return NO;
     }
@@ -1035,7 +1034,7 @@ PUBLIC void HTAddError2 ARGS3(HTRequest *,	req,
     char * str;
 
     if (!req) return;
-    if (!req->error_stack) req->error_stack = HTList_new();
+    if (!req->old_error_stack) req->old_error_stack = HTList_new();
 
     str = (char*)malloc(mlen + plen + 2);
     if (!str) outofmem(__FILE__,"HTAddError2");
@@ -1044,7 +1043,7 @@ PUBLIC void HTAddError2 ARGS3(HTRequest *,	req,
     strcpy(str+mlen," ");
     if (param) strcpy(str+mlen+1,param);
 
-    HTList_addObject(req->error_stack, (void*)str);
+    HTList_addObject(req->old_error_stack, (void*)str);
     CTRACE(stderr, "libwww error: %s\n", str);
 }
 
@@ -1059,13 +1058,13 @@ PUBLIC void HTAddErrorN ARGS3(HTRequest *,	req,
 
 PUBLIC void HTClearErrors ARGS1(HTRequest *,	req)
 {
-    if (req && req->error_stack) {
-	HTList * cur = req->error_stack;
+    if (req && req->old_error_stack) {
+	HTList * cur = req->old_error_stack;
 	char * str;
 	while ((str = (char*)HTList_nextObject(cur)))
 	    free(str);
-	HTList_delete(req->error_stack);
-	req->error_stack = NULL;
+	HTList_delete(req->old_error_stack);
+	req->old_error_stack = NULL;
     }
 }
 
