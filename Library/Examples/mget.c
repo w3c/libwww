@@ -26,9 +26,24 @@
 
 PRIVATE int remaining = 0;
 
+/* ----------------------------------------------------------------- */
+
+PRIVATE int printer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stdout, fmt, pArgs));
+}
+
+PRIVATE int tracer (const char * fmt, va_list pArgs)
+{
+    return (vfprintf(stderr, fmt, pArgs));
+}
+
 PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 			       void * param, int status) 
 {
+    /* Check for status */
+    HTTrace("Load %d resulted in status %d\n", remaining, status);
+	
     /* We are done with this request */
     HTRequest_delete(request);
 
@@ -52,6 +67,10 @@ int main (int argc, char ** argv)
 
     /* Create a new premptive client */
     HTProfile_newNoCacheClient("libwww-MGET", "1.0");
+
+    /* Need our own trace and print functions */
+    HTPrint_setCallback(printer);
+    HTTrace_setCallback(tracer);
 
     /* Add our own filter to handle termination */
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
