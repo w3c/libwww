@@ -26,6 +26,7 @@
 
 #define DEFAULT_SQL_LOCATION_TABLE	"locations"
 #define DEFAULT_SQL_USER_TABLE		"users"
+#define DEFAULT_SQL_COMMENTS_TABLE	"comments"
 #define DEFAULT_SQL_LOG_TABLE		"logs"
 
 #define DEFAULT_SQL_KEY_TYPE		"int unsigned not null"
@@ -33,16 +34,23 @@
 
 #define DEFAULT_CVS_USER		"unknown"
 
+#define DELIMITERS			" \n"
+
 #define BUFSIZE				1024
 
 typedef enum _SQLFlags {
     SQL_CLEAR_LOCATION_TABLE 	= 0x1,
-    SQL_CLEAR_USER_TABLE	= 0x2,
-    SQL_CLEAR_LOG_TABLE		= 0x4,
-    SQL_DROP_LOCATION_TABLE 	= 0x8, 
-    SQL_DROP_USER_TABLE		= 0x10,
-    SQL_DROP_LOG_TABLE		= 0x20
-} SQLFlags; 
+    SQL_DROP_LOCATION_TABLE 	= 0x2, 
+
+    SQL_CLEAR_USER_TABLE	= 0x4,
+    SQL_DROP_USER_TABLE		= 0x8,
+
+    SQL_CLEAR_COMMENTS_TABLE	= 0x10,
+    SQL_DROP_COMMENTS_TABLE	= 0x20,
+
+    SQL_CLEAR_LOG_TABLE		= 0x40,
+    SQL_DROP_LOG_TABLE		= 0x80
+} SQLFlags;
 
 /* ------------------------------------------------------------------------- */
 
@@ -99,11 +107,12 @@ PRIVATE BOOL createTables (HTSQL * sql, SQLFlags flags)
 	char buf[1024];
 	char * query = NULL;
 
+	/* Create location table */
+
 	/* If we have to delete it first */
 	if (flags & SQL_DROP_LOCATION_TABLE) 
 	    drop_table(sql, DEFAULT_SQL_LOCATION_TABLE);
 
-	/* Create location table */
 	query = HTSQL_printf(buf, 1024,
 			     "create table %s (id %s auto_increment, location varchar(%u) binary not null, primary key(id), unique(location), index loc_idx(location(32)))",
 			     DEFAULT_SQL_LOCATION_TABLE,
@@ -115,11 +124,12 @@ PRIVATE BOOL createTables (HTSQL * sql, SQLFlags flags)
 	if (flags & SQL_CLEAR_LOCATION_TABLE) 
 	    clear_table(sql, DEFAULT_SQL_LOCATION_TABLE);
 
+	/* Create user table */
+
 	/* If we have to delete it first */
 	if (flags & SQL_DROP_USER_TABLE) 
 	    drop_table(sql, DEFAULT_SQL_USER_TABLE);
 
-	/* Create User table */
 	query = HTSQL_printf(buf, 1024,
 			     "create table %s (id %s auto_increment, username varchar(%u) binary not null, primary key(id), unique(username), index username_idx(username(32)))",
 			     DEFAULT_SQL_USER_TABLE,
@@ -131,14 +141,32 @@ PRIVATE BOOL createTables (HTSQL * sql, SQLFlags flags)
 	if (flags & SQL_CLEAR_USER_TABLE) 
 	    clear_table(sql, DEFAULT_SQL_USER_TABLE);
 
+	/* Create comments table */
+
+	/* If we have to delete it first */
+	if (flags & SQL_DROP_COMMENTS_TABLE) 
+	    drop_table(sql, DEFAULT_SQL_COMMENTS_TABLE);
+
+	query = HTSQL_printf(buf, 1024,
+			     "create table %s (id %s auto_increment, comment text, primary key(id))",
+			     DEFAULT_SQL_COMMENTS_TABLE,
+			     DEFAULT_SQL_KEY_TYPE);
+	HTSQL_query(sql, query);
+
+	/* If we have to clear it out */
+	if (flags & SQL_CLEAR_COMMENTS_TABLE) 
+	    clear_table(sql, DEFAULT_SQL_COMMENTS_TABLE);
+
+	/* Create logs table */
+
 	/* If we have to delete it first */
 	if (flags & SQL_DROP_LOG_TABLE) 
 	    drop_table(sql, DEFAULT_SQL_LOG_TABLE);
 
-	/* Create Log table */
 	query = HTSQL_printf(buf, 1024,
-			     "create table %s (location %s, username %s, primary key(location, username), date datetime, operation char(32), comment text)",
+			     "create table %s (location %s, username %s, date datetime, operation char(32), comment %s)",
 			     DEFAULT_SQL_LOG_TABLE,
+			     DEFAULT_SQL_KEY_TYPE,
 			     DEFAULT_SQL_KEY_TYPE,
 			     DEFAULT_SQL_KEY_TYPE);
 	HTSQL_query(sql, query);
@@ -229,6 +257,18 @@ PRIVATE int add_user (HTSQL * sql, const char * user)
 	    index = HTSQL_getLastInsertId(sql);
 	}
 	return index;
+    }
+    return -1;
+}
+
+PRIVATE int add_comment (HTSQL * sql, const char * comment)
+{
+    if (sql && comment) {
+	char buf[1024];
+	char * query = HTSQL_printf(buf, 1024, "insert into %s (comment) values (%S)",
+				    DEFAULT_SQL_COMMENTS_TABLE, comment);
+	if (HTSQL_query(sql, query) != YES) return -1;
+	return HTSQL_getLastInsertId(sql);
     }
     return -1;
 }
@@ -326,82 +366,91 @@ int main (int argc, char ** argv)
 	char * root = HTNextField(&ptr);
 	char * operation = NULL;
 	char * files = NULL;
-	char * logmessage = NULL;
-	char * p;
-	char * q;
-
-	/* Find log message */
-	if ((q = strcasestr(ptr, "\nLog Message:")) != NULL) {
-	    logmessage = q+14;
-	    *q = '\0';
-	}
-
-	/* Find files */
-	if ((q = strcasestr(ptr, " Files:")) != NULL)
-	    files = q+8;
-
-	/* Find operation */
-	for (p=q; p>HTChunk_data(loginfo) && *p!='\n'; p--);
-	if (*p == '\n') operation = HTNextField(&p);
-
-#if 0
-	fprintf(stderr, "operation: `%s\', files: `%s\', log: `%s\'\n",
-		operation, files, logmessage);
+	char * comment = NULL;
+	int comment_id = -1;
+	int user_id = -1;
+	char * p, * q;
+#ifdef HT_REENTRANT
+	char *lasts;					     /* For strtok_r */
 #endif
 
-	/* Create the query */
-	if (operation && files && logmessage) {
-	    char * file;
-	    int location_id = -1;
-	    int user_id = -1;
+	/* Find shared log message and get id */
+	if ((q = strcasestr(ptr, "\nLog Message:")) != NULL) {
+	    comment = q+14;
+	    *q = '\0';
+	}
+	if ((comment_id = add_comment(sql, comment)) < 0) 
+	    Cleanup(-1, sql, loginfo);
 
-	    /* Add/find user and get id */
-	    if ((user_id = add_user(sql, cvsuser)) < 0)
-		Cleanup(-1, sql, loginfo);
+	/* Add/find user and get id */
+	if ((user_id = add_user(sql, cvsuser)) < 0)
+	    Cleanup(-1, sql, loginfo);
 
-	    /* Add log entry for each file */
-	    ptr = files;
-	    while ((file = HTNextField(&ptr)) != NULL) {		
-		char * path = NULL;		
-		StrAllocMCopy(&path, root, "/", file, NULL);
+	/* For each operation, find the files involved */
+	while ((q = strcasestr(ptr, " Files:")) != NULL) {
 
-		/* Add/find location and get id */
-		if ((location_id = add_location(sql, path)) < 0) {
-		    Cleanup(-1, sql, loginfo);
-		    break;
-		}
+	    /* Find the operation */
+	    files = q+9;
+	    for (p=q; p>HTChunk_data(loginfo) && *p && *p!='\n'; p--);
+	    p++;
+	    operation = HTNextField(&p);
 
-		/* Add log entry */
-		{
-		    char buf[1024];
-		    char * query = HTSQL_printf(buf, 1024, "insert into %s values (%u,%u,%T,%S,%S)",
-						DEFAULT_SQL_LOG_TABLE,
-						location_id,
-						user_id,
-						cvsdate,
-						operation,
-						logmessage);
-		    if (HTSQL_query(sql, query) != YES) {
-			Cleanup(-1, sql, loginfo);
-			break;
-		    }
-		}
+	    /* Find the next line */
+	    if ((q = strchr(files, '\n')) != NULL) {
+		*q++ = '\0';
+		ptr = q;
+	    }
+
+	    /* Create the query */
+	    if (operation && files && comment) {
+		char * file;
+		int location_id = -1;
+
+#ifdef HT_REENTRANT
+		if ((file = strtok_r(files, DELIMITERS, &lasts)) != NULL) {
+#else
+		if ((file = strtok(files, DELIMITERS)) != NULL) {
+#endif /* HT_REENTRANT */
+		    do {
+			char * path = NULL;		
+			StrAllocMCopy(&path, root, "/", file, NULL);
+
+			/* Add/find location and get id */
+			if ((location_id = add_location(sql, path)) < 0) {
+			    Cleanup(-1, sql, loginfo);
+			    break;
+			}
+
+#if 1
+			fprintf(stderr, "location: `%s\', user: `%s\', operation: `%s\', comment: `%s\'\n",
+				path, cvsuser, operation, comment);
+#endif
+
+			/* Add log entry */
+			{
+			    char buf[1024];
+			    char * query = HTSQL_printf(buf, 1024, "insert into %s values (%u,%u,%T,%S,%u)",
+							DEFAULT_SQL_LOG_TABLE,
+							location_id,
+							user_id,
+							cvsdate,
+							operation,
+							comment_id);
+			    if (HTSQL_query(sql, query) != YES) {
+				Cleanup(-1, sql, loginfo);
+				break;
+			    }
+			}
 		
-		HT_FREE(path);
+			HT_FREE(path);
+#ifdef HT_REENTRANT
+		    } while ((file = (char *) strtok_r(NULL, DELIMITERS, &lasts)) != NULL);
+#else
+		    } while ((file = strtok(NULL, DELIMITERS)) != NULL);
+#endif /* HT_REENTRANT */
+		}
 	    }
 	}
-
-	/* 
-	** Update of /libwww/Library/Test
-	** In directory rufus.w3.org:/tmp/cvs-serv29893
-	**
-	** Modified Files:
-	**        site.exp 
-	** Log Message:
-	**test commit
-	*/
-
-
     }
 
     return 0;

@@ -66,7 +66,7 @@ date/time.
 <! SQL endif >
 
 <HR>
-<! SQL query "select trim('/sources/public' from locations.location), users.username, logs.date, logs.operation, logs.comment from locations, users, logs where logs.date > from_unixtime(unix_timestamp(now())-$offset) and locations.id=logs.location and users.id=logs.username order by logs.date DESC limit $o3,20" q1 >
+<! SQL query "select trim('/sources/public' from locations.location), users.username, logs.date, logs.operation, comments.comment from locations, users, comments, logs where logs.date > from_unixtime(unix_timestamp(now())-$offset) and locations.id=logs.location and users.id=logs.username and comments.id=logs.comment order by logs.date DESC limit $o3,20" q1 >
 
 <!-- Put in table -->
 <table width="100%">
