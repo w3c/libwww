@@ -247,7 +247,7 @@ PUBLIC void hyper_free (HText *  self)
 /*	Free Entire Text
 **	----------------
 */
-PUBLIC int 	HText_free (HText * self)
+PUBLIC void 	HText_free (HText * self)
 {
     if (self) {
 	HTAnchor_setDocument(self->node_anchor, NULL);
@@ -837,7 +837,7 @@ PUBLIC void LMHText_addText (HText * text, const char * str, int length)
     }
 }
 
-PUBLIC int HText_appendText (HText * text, const char * str)
+PUBLIC void HText_appendText (HText * text, const char * str)
 {
     const char * p;
     for(p=str; *p; p++) {

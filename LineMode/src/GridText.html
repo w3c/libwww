@@ -69,8 +69,10 @@ extern HText* LMHText_new (HTRequest * req,
 		HTParentAnchor * anchor,HTStream * output_stream);
 extern HText* LMHText_new2 (HTRequest * req,
               HTParentAnchor * anchor,HTStream * output_stream);
+extern void HText_free (HText * self);
 extern BOOL LMHText_delete (HText * self);
 extern void LMHText_addText (HText * text, const char * str, int length);
+extern void LMHText_appendText (HText * text, const char * str);
 extern void LMHText_beginAnchor (HText *text,
 		int elem_num, int attr_num, HTChildAnchor* anc,
 		const BOOL* present, const char** value);
