@@ -1,0 +1,86 @@
+<HTML>
+<HEAD>
+<TITLE>Using the W3C Reference Library</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 10-Jul-1995 -->
+</HEAD>  
+<BODY>
+
+<A HREF="../../../"><IMG SRC="../../../Icons/WWW/WWW48x.gif" ALT="WWW"></A>
+<A HREF="../../"><IMG SRC="../../../Icons/WWW/Lib48x.gif" ALT="Lib"></A>
+<IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using">
+
+<H1>Using the W3C Reference Library</H1>
+
+<IMG SRC="../../../Icons/WWW/construction.gif" ALT="WIP"> This paper
+is still under construction. Comments are welcome at <A
+HREF="mailto:libwww@w3.org">libwww@w3.org</A></P>
+
+This is the user guide documentation describing the W3C Reference
+library. It concentrates on the API and how the application programmer
+can use the Library. It also describes who is responsible for memory
+management and when things can be initialized etc. It is basically a
+filteret version of the <A HREF="../Guide/">Internals</A> document
+where only the "public" functions are described. This document is the
+second of three documents that each describes different aspects of the
+Library:
+
+<DL>
+
+<DT><A HREF="../Architecture/"><IMG ALT="Architecture" SRC="../../../Icons/WWW/Spec48x.gif"></A> <B>The Architecture</B>
+
+<DD>The current document is the first in the series and it describes
+the architecture of the Library without referring directly to the code
+itself. This is the "designer view" where bugs are a unknown
+phenomenon.
+
+<DT><A HREF="Overview.html"><IMG SRC="../../../Icons/WWW/guide48x.gif" ALT="Using"></A> <B>The User's Guide</B>
+
+<DD>The second document introduces the "official" API of the
+Library. This document represents the "User's view" and should be
+sufficient to use the Library without being aware of what's going on
+underneeth the interface. It is also the API that is least exposed to
+changes. The description contains a set of examples.
+
+<DT><A HREF="../Guide/"><IMG ALT="Internals" SRC="../../../Icons/WWW/Tang48x.gif"></A> <B>The Internals and Programmer's Guide</B>
+
+<DD>The last document in the serie presents all modules in the Library
+regardles if they are part of the API described in the User's Guide or
+not. This is also known as the "hacker's view" of the Library.
+
+</UL>
+
+<IMG ALIGN=BOTTOM SRC="../../../Icons/32x32/caution.gif" ALT="NOTE">
+Each part of the documentation is also available as <A
+HREF="choppy.html"><B>one big HTML file</B></A> intended for
+printout. As a result, the relative links in this document do not
+work!<P>
+
+
+<H2>Table of Contents</H2> 
+<OL>
+<LI><A HREF="Startup.html">Getting Started</A>
+<LI><A HREF="Prefs.html">Setting Up Preferences for Language, Charset etc.</A>
+<LI><A HREF="Bind.html">Make Bindings to the local File system</A>
+<LI><A HREF="Methods.html">Registering Access Schemes</A>
+<LI><A HREF="Proxy.html">Registering Proxy Servers and Gateways</A> <P>
+
+<LI><A HREF="Anchors.html">Anchor Objects</A>
+<LI><A HREF="Request.html">Request Objects</A>
+<LI><A HREF="HyperDoc.html">HyperDoc Objects</A><P>
+
+<LI><A HREF="Streams.html">Building Stream Chains</A>
+<LI><A HREF="Access.html">The Access Manager</A>
+<LI><A HREF="Cache.html">Managing the Cache</A>
+<LI><A HREF="MIME.html">The HTTP/MIME Parser</A>
+<LI><A HREF="HTML.html">The HTML Parser</A>
+<LI><A HREF="Override.html">Application Specific Modules</A>
+<LI><A HREF="Flags.html">Global Flags</A>
+</OL>
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, July 1995</ADDRESS>
+</BODY>
+</HTML> 
+
+
