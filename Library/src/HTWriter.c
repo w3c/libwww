@@ -128,7 +128,7 @@ PRIVATE void HTWriter_free ARGS1(HTStream *, me)
     free(me);
 }
 
-PRIVATE void HTWriter_abort ARGS1(HTStream *, me)
+PRIVATE void HTWriter_abort ARGS2(HTStream *, me, HTError, e)
 {
     HTWriter_free(me);
 }
@@ -142,7 +142,7 @@ PRIVATE CONST HTStreamClass HTWriter = /* As opposed to print etc */
 	"SocketWriter",
 	HTWriter_free,
 	HTWriter_abort,
-	HTWriter_put_character, 	HTWriter_put_string,
+	HTWriter_put_character, HTWriter_put_string,
 	HTWriter_write
 }; 
 
