@@ -1,3 +1,20 @@
+/*
+**	@(#) $Id$
+**	
+**	Other libwww samples can be found at "http://www.w3.org/Library/Examples"
+**	
+**	Copyright (c© 1995-1998 World Wide Web Consortium, (Massachusetts
+**	Institute of Technology, Institut National de Recherche en
+**	Informatique et en Automatique, Keio University). All Rights
+**	Reserved. This program is distributed under the W3C's Software
+**	Intellectual Property License. This program is distributed in the hope
+**	that it will be useful, but WITHOUT ANY WARRANTY; without even the
+**	implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+**	PURPOSE. See W3C License http://www.w3.org/Consortium/Legal/ for more
+**	details.
+**
+**      Issues a range request to an HTTP server and saves the result in a chunk
+*/
 #include "WWWLib.h"
 #include "WWWHTTP.h"
 #include "WWWInit.h"
@@ -29,11 +46,6 @@ int main()
     /* Register the default set of converters */
     HTConverterInit(converters);
     HTFormat_setConversion(converters);
-
-    /* Register the default HTML Parser */
-    /* We don't do this here as we then must provide the HTExt interface as
-       described in the libwww Users's Guide */
-    /* HTMLInit(); */
 
     /* Register the default set of transfer encoders and decoders */
     HTTransferEncoderInit(encodings);
