@@ -1,5 +1,5 @@
-#	Common Makefile for W3 Library Code
-#	-----------------------------------
+#	Common Makefile for W3C Reference Library
+#	-----------------------------------------
 #
 #	(c) COPYRIGHT MIT 1995.
 #	Please first read the full copyright statement in the file COPYRIGH.
@@ -108,7 +108,7 @@ HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h  $(CMN)HTProxy.h $(CMN)HTFile.h \
 	$(CMN)HTNet.h $(CMN)HTNetMan.h $(CMN)HTFTPDir.h \
 	$(CMN)HTPlain.h		$(CMN)HTWriter.h \
 	$(CMN)HTFWrite.h 	$(CMN)HTMLGen.h	\
-	$(CMN)HTStream.h	$(CMN)HTStruct.h \
+	$(CMN)HTStream.h $(CMN)HTStruct.h $(CMN)HTMulpar.h \
 	$(CMN)HTTee.h $(CMN)HTXParse.h $(CMN)HTEPtoCl.h \
 	$(CMN)HTAtom.h $(CMN)HTAnchor.h $(CMN)HTStyle.h \
 	$(CMN)HTList.h $(CMN)HTWWWStr.h \
@@ -129,7 +129,8 @@ HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h  $(CMN)HTProxy.h $(CMN)HTFile.h \
 	$(CMN)HTTP.h $(CMN)HTTPReq.h $(CMN)HTEvntrg.h \
 	$(CMN)HTNews.h $(CMN)HTNewsRq.h $(CMN)HTNDir.h $(CMN)HTNewsLs.h \
 	$(CMN)HTEscape.h $(CMN)HTNetTxt.h $(CMN)HTBind.h \
-	$(CMN)WWWLib.h $(CMN)WWWApp.h $(CMN)WWWCore.h $(CMN)WWWUtil.h
+	$(CMN)WWWLib.h $(CMN)WWWApp.h $(CMN)WWWCore.h $(CMN)WWWUtil.h \
+	$(CMN)WWWNews.h $(CMN)WWWHTTP.h $(CMN)WWWMIME.h
 
 SOURCES = $(CFILES) $(HFILES) \
 	$(CMN)Version.make $(CMN)CommonMakefile $(CMN)README \

@@ -21,7 +21,8 @@
 struct _HTProtocol {
     char *		name;
     BOOL		preemtive;
-    HTEventCallback	*callback;
+    HTEventCallback *	client;
+    HTEventCallback *	server;
 };
 
 PRIVATE HTList * protocols = NULL;           /* List of registered protocols */
@@ -35,9 +36,10 @@ PRIVATE HTList * protocols = NULL;           /* List of registered protocols */
 */
 PUBLIC BOOL HTProtocol_add (CONST char *       	name,
 			    BOOL		preemtive,
-			    HTEventCallback *	callback)
+			    HTEventCallback *	client,
+			    HTEventCallback *	server)
 {
-    if (name && callback) {
+    if (name && (client || server)) {
 	HTProtocol *newProt = (HTProtocol *) calloc(1, sizeof(HTProtocol));
 	if (newProt == NULL) outofmem(__FILE__, "HTProtocol_add");
 	StrAllocCopy(newProt->name, name);
@@ -46,7 +48,8 @@ PUBLIC BOOL HTProtocol_add (CONST char *       	name,
 	    while ((*ptr = TOLOWER(*ptr))) ptr++;
 	}
 	newProt->preemtive = preemtive;
-	newProt->callback = callback;
+	newProt->client = client;
+	newProt->server = server;
 	if (!protocols) protocols = HTList_new();
 	return HTList_addObject(protocols, (void *) newProt);
     }
@@ -72,11 +75,19 @@ PUBLIC BOOL HTProtocol_delete (CONST char * name)
 }
 
 /*
-**	Returns the callback function
+**	Returns the client callback function
 */
-PUBLIC HTEventCallback *HTProtocol_callback (HTProtocol * protocol)
+PUBLIC HTEventCallback * HTProtocol_client (HTProtocol * protocol)
 {
-    return protocol ? protocol->callback : NULL;
+    return protocol ? protocol->client : NULL;
+}
+
+/*
+**	Returns the server callback function
+*/
+PUBLIC HTEventCallback * HTProtocol_server (HTProtocol * protocol)
+{
+    return protocol ? protocol->server : NULL;
 }
 
 /*
@@ -107,30 +118,24 @@ PUBLIC BOOL HTProtocol_deleteAll (void)
     return NO;
 }
 
-
 /*
-**	Search registered protocols to find suitable one.
-**	Return YES if found, else NO
+**	Search registered protocols to find suitable protocol object.
+**	Return protocol object or NULL
 */
-PUBLIC BOOL HTProtocol_find (HTRequest * request, HTParentAnchor * anchor)
+PUBLIC HTProtocol * HTProtocol_find (HTRequest * request, CONST char * access)
 {
-    if (anchor && request) {
-	char *access = HTParse(HTAnchor_physical(anchor), "", PARSE_ACCESS);
-	HTList *cur = protocols;
-	HTProtocol *p;
+    if (request && access) {
+	HTList * cur = protocols;
+	HTProtocol * pres;
 	if (cur) {
-	    while ((p = (HTProtocol *) HTList_nextObject(cur))) {
-		if (!strcmp(p->name, access)) {
-		    HTAnchor_setProtocol(anchor, p);
-		    free(access);
-		    return YES;
-		}
+	    while ((pres = (HTProtocol *) HTList_nextObject(cur))) {
+		if (!strcmp(pres->name, access)) return pres;
 	    }
 	}
-	HTRequest_addError(request, ERR_FATAL, NO, HTERR_CLASS,
-			   access, (int) strlen(access), "HTProtocol_find");
-	free(access);
+	HTRequest_addError(request, ERR_FATAL, NO, HTERR_CLASS, (char*) access,
+			   (int) strlen(access), "HTProtocol_find");
     }
-    return NO;
+    return NULL;
 }
+
 

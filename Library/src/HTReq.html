@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Public Declaration of Request Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 22-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 26-Nov-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -49,14 +49,23 @@ anchor.  (The public routines are called with one OR the other.)
 extern BOOL HTLoad (HTRequest * request, BOOL recursive);
 </PRE>
 
-<H2>Library Request Call Back Functions</H2>
-
-These functions are registered at startup time by HTLibInit() in order to
-probably terminate a request to the Library. The application can
-register addtional call back functions in the same manner:
+If you are a server then you want this function. This function
+initiates the server side of a request and starts serving it back
+accross the network.  Returns: YES if request has been registered
+(success) NO an error occured
 
 <PRE>
-extern HTNetCallback HTLoad_terminate, HTLoad_start;
+extern BOOL HTServ (HTRequest * request, BOOL recursive);
+</PRE>
+
+<H2>Library Request Call Back Functions</H2>
+
+This function is registered at startup time by HTLibInit() in order to
+probably terminate a request to the Library. The application can
+register additional call back functions in the same manner:
+
+<PRE>
+extern HTNetCallback HTLoad_terminate;
 </PRE>
 
 <H2>Creation and Deletion Methods</H2>
@@ -77,6 +86,15 @@ methods in this module, but it will work as is for a simple request.
 extern HTRequest * HTRequest_new (void);
 </PRE>
 
+<H3>Create a duplicate</H3>
+
+Creates a new HTRequest object as a duplicate of the src request.
+Returns YES if OK, else NO
+
+<PRE>
+extern HTRequest * HTRequest_dup (HTRequest * src);
+</PRE>
+
 <H3>Delete Object</H3>
 
 This function deletes the object and cleans up the memory.
@@ -94,6 +112,15 @@ only lives as long as the request is being serviced.
 <PRE>
 extern void HTRequest_setAnchor (HTRequest *request, HTAnchor *anchor);
 extern HTParentAnchor * HTRequest_anchor (HTRequest *request);
+</PRE>
+
+<H2>Bind an Access to a request</H2>
+
+This is done if you are a server. In this case you do not need an anchor
+
+<PRE>
+extern void HTRequest_setAccess (HTRequest * request, char * access);
+extern CONST char * HTRequest_access (HTRequest * request);
 </PRE>
 
 <H2>Set the Method</H2>
@@ -453,12 +480,25 @@ extern BOOL HTRequest_preemtive (HTRequest *request);
 The request can be assigned an initial priority which then gets
 inherited by all HTNet objects and other requests objects created as a
 result of this one. You can also assign a separate priority to an
-indicidual HTNet obejct by using the methods in the <A
+indicidual HTNet object by using the methods in the <A
 HREF="HTNet.html">Net manager</A>.
 
 <PRE>
 extern HTPriority HTRequest_priority (HTRequest * request);
 extern BOOL HTRequest_setPriority (HTRequest * request, HTPriority priority);
+</PRE>
+
+<H2>Get an set the HTNet Object</H2>
+
+If a request is actually going on the net then the <A
+HREF="HTNet.html">Net MAnager</A> is contacted to handle the
+request. The Net manager creates a HTNEt object and links it to the
+Request object. You can get to the HTNet object using the following
+functions.
+
+<PRE>
+extern HTNet * HTRequest_net (HTRequest * request);
+extern BOOL HTRequest_setNet (HTRequest * request, HTNet * net);
 </PRE>
 
 <H2>Format Negotiation</H2>

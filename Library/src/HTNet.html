@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Asyncronous Socket Management</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 22-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 24-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -194,32 +194,30 @@ active. Returns list of HTNet objects or NULL if error
 extern HTList *HTNet_pendingQueue (void);
 </PRE>
 
-<H2>HTNet Object Methods</H2>
+<H2>Create an Object</H2>
 
-These methods are used from within the Request Manager and are not
-normally to be used outside the Library kernel.
+You can create a new HTNet object as a new request to be handled. If
+we have more than HTMaxActive connections already then return NO.
+Returns YES if OK, else NO
 
-<H3>Create an Object</H3>
+<PRE>
+extern BOOL HTNet_newServer (HTRequest * request);
+</PRE>
 
-Create a new HTNet object as a new request to be handled. If we have
-more than HTMaxActive connections already then put this into the
-pending queue, else start the request by calling the call back
+You can create a new HTNet object as a new request to be handled. If
+we have more than HTMaxActive connections already then put this into
+the pending queue, else start the request by calling the call back
 function registered with this access method.  Returns YES if OK, else
 NO
 
 <PRE>
-extern BOOL HTNet_new (HTRequest * request);
+extern BOOL HTNet_newClient (HTRequest * request);
 </PRE>
 
-<H3>Create an Empty Object</H3>
-
-This function creates a new HTNet object and assigns the socket number
-to it. This is intended to be used when you are going to listen on a
-socket using the HTDoListen() function in HTTCP.c. The function do NOT
-call any of the callback functions.  Returns YES if OK, else NO
+And you can create a plain new HTNet object using the following method:
 
 <PRE>
-extern BOOL HTNet_create (HTRequest * request, SOCKET sockfd);
+extern HTNet * HTNet_new (HTRequest * request, SOCKET sockfd);
 </PRE>
 
 <H3>Duplicate an Existing Object</H3>
@@ -230,6 +228,8 @@ Returns YES if OK, else NO.
 <PRE>
 extern BOOL HTNet_dup (HTNet *src, HTNet **dest);
 </PRE>
+
+<H2>HTNet Object Methods</H2>
 
 <H3>Make an Object Wait</H3>
 

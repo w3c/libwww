@@ -640,17 +640,6 @@ PUBLIC HyperDoc * HTAnchor_document  (HTParentAnchor * me)
     return me ? me->document : NULL;
 }
 
-
-#if 0
-/* We might want to use this when we have a link editing application */
-PUBLIC void HTAnchor_setAddress
-   (HTAnchor * me, char * addr)
-{
-  if (me)
-    StrAllocCopy (me->parent->address, addr);
-}
-#endif
-
 PUBLIC char * HTAnchor_address  (HTAnchor * me)
 {
     char *addr = NULL;
@@ -688,21 +677,6 @@ PUBLIC void HTAnchor_setIndex  (HTParentAnchor * me)
 PUBLIC BOOL HTAnchor_isIndex  (HTParentAnchor * me)
 {
     return me ? me->isIndex : NO;
-}
-
-/*	Protocol
-**	--------
-*/
-
-PUBLIC void * HTAnchor_protocol (HTParentAnchor * me)
-{
-    return me ? me->protocol : NULL;
-}
-
-PUBLIC void HTAnchor_setProtocol (HTParentAnchor * me,
-	void* 	protocol)
-{
-    if (me) me->protocol = protocol;
 }
 
 /*	Physical Address

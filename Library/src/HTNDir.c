@@ -168,6 +168,7 @@ PUBLIC HTNewsDir * HTNewsDir_new (HTRequest * request, CONST char * title,
     dir->target = HTMLGenerator(request, NULL, WWW_HTML,
 				HTRequest_outputFormat(request),
 				HTRequest_outputStream(request));
+    HTAnchor_setFormat(HTRequest_anchor(request), WWW_HTML);
     dir->request = request;
     dir->top = YES;
     dir->key = key;

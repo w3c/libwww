@@ -55,8 +55,8 @@ PRIVATE char *HTDelimiters = NULL;			  /* Set of suffixes */
 
 PRIVATE HTList **HTBindings = NULL;   /* Point to table of lists of bindings */
 
-PRIVATE HTBind no_suffix = { "*", NULL, NULL, NULL, 1.0 };
-PRIVATE HTBind unknown_suffix = { "*.*", NULL, NULL, NULL, 1.0};
+PRIVATE HTBind no_suffix = { "*", NULL, NULL, NULL, 0.5 };
+PRIVATE HTBind unknown_suffix = { "*.*", NULL, NULL, NULL, 0.5 };
 
 /* ------------------------------------------------------------------------- */
 
@@ -70,6 +70,10 @@ PUBLIC BOOL HTBind_init (void)
 	if (!HTBindings) outofmem(__FILE__, "HTBind_init");
     }
     StrAllocCopy(HTDelimiters, DEFAULT_SUFFIXES);
+    no_suffix.type = WWW_UNKNOWN;
+    no_suffix.encoding = WWW_ENC_BINARY;
+    unknown_suffix.type = WWW_UNKNOWN;
+    unknown_suffix.encoding = WWW_ENC_BINARY;
     return YES;
 }
 

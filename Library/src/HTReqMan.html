@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Request Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 22-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 24-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -93,7 +93,9 @@ struct _HTRequest {
 <H3>Anchors</H3>
 
 <PRE>
-    HTParentAnchor *	anchor;
+    char *		access;	       /* The Server access for this request */
+    HTParentAnchor *	anchor;	       /* The Client anchor for this request */
+
     HTChildAnchor *	childAnchor;	    /* For element within the object */
     HTParentAnchor *	parentAnchor;			/* For referer field */
 </PRE>
@@ -170,7 +172,9 @@ This will go into its own structure
     HTAARealm *	realm;			/* Password realm		  */
     char *	dialog_msg;		/* Authentication prompt (client) */
 
+#if 0
     HTInputSocket *	isoc;		/* InputSocket object for reading */
+#endif
 </PRE>
 
 <H3>Windows Specific Information</H3>

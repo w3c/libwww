@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Access manager  for libwww</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 17-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 24-Nov-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -34,7 +34,12 @@ Reference Library</A>. <P>
 #include "HTAnchor.h"
 </PRE>
 
-<A NAME="Library"><H2><IMG SRC="../../Icons/32x32/warning.gif"> Initializing and Terminating the Library</H2></A>
+<A NAME="Library"><H2>Generic Library Functions</H2></A>
+
+These are functions that affect the overall behavior of the Library.
+
+<H3><IMG SRC="../../Icons/32x32/warning.gif"> Initializing and
+Terminating the Library</H3>
 
 These two functions initiates memory and settings for the Library and
 cleans up memory kept by the Library when about to exit the
@@ -45,7 +50,7 @@ extern BOOL HTLibInit (CONST char * AppName, CONST char * AppVersion);
 extern BOOL HTLibTerminate (void);
 </PRE>
 
-<H2>Library Name and Version</H2>
+<H3>Library Name and Version</H3>
 
 You can get the generic name of the Library and the version by using
 the following functions:
@@ -55,7 +60,7 @@ extern CONST char * HTLib_name (void);
 extern CONST char * HTLib_version (void);
 </PRE>
 
-<H2>Application Name and Version</H2>
+<H3>Application Name and Version</H3>
 
 Returns the name of the application and the version number that was
 passed to the <CODE>HTLibInit()</CODE> function.
@@ -65,7 +70,7 @@ extern CONST char * HTLib_appName (void);
 extern CONST char * HTLib_appVersion (void);
 </PRE>
 
-<H2>Accessing the Local File System</H2>
+<H3>Accessing the Local File System</H3>
 
 The Library does normally use the local file system for dumping
 unknown data objects, file cache etc. In some situations this is not
@@ -78,7 +83,7 @@ extern BOOL HTLib_secure (void);
 extern void HTLib_setSecure (BOOL mode);
 </PRE>
 
-<A NAME="LoadDoc"><H2>Functions for Requesting an Object</H2></A>
+<A NAME="LoadDoc"><H2>LOAD Request Methods</H2></A>
 
 <H3>Request a document from absolute name</H3>
 
@@ -163,6 +168,8 @@ extern BOOL HTSearchAbsolute (CONST char *	keywords,
 			      HTRequest *	request);
 </PRE>
 
+<A NAME="PostDoc"><H2>POST Request Methods</H2></A>
+
 <H3>Copy an anchor</H3>
 
 Fetch the URL (possibly local file URL) and send it using either PUT
@@ -187,6 +194,17 @@ request accepted, else NO
 extern BOOL HTUploadAnchor (HTAnchor *		src_anchor,
 			    HTParentAnchor *	dest_anchor,
 			    HTRequest *		dest_req);
+</PRE>
+
+<A NAME="ServerDoc"><H2>SERVER Request Methods</H2></A>
+
+<H3>Service a Request</H3>
+
+This function sets up a request to service a document using the
+specified access scheme.
+
+<PRE>
+extern BOOL HTServDocument (HTRequest * request, CONST char * access);
 </PRE>
 
 <PRE>

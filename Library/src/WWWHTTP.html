@@ -1,0 +1,56 @@
+<HTML>
+<HEAD>
+<TITLE>Declaration of W3C Reference HTTP MODULE</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 25-Nov-1995 -->
+<NEXTID N="z11">
+</HEAD>
+<BODY>
+
+<H1>Declaration of W3C Reference HTTP MODULE</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This is the include file for the basic NNTP module that can be used
+together with the core of the W3C Reference Library. It contains all
+HTTP specific modules which are required to compile and build the HTTP
+DLL.<P>
+
+<PRE>
+#ifndef WWWHTTP_H
+#define WWWHTTP_H
+</PRE>
+
+<H2>Library Includes</H2>
+
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
+
+<PRE>
+#include "HTTP.h"			/* HTTP client state machine */
+#include "HTTPReq.h"			/* Streams for parsing HTTP output */
+#include "HTAAUtil.h"			/* Access authentication */
+#include "HTAABrow.h"			/* Access authentication */
+</PRE>
+
+End of HTTP module
+
+<PRE>
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
+
+#endif
+</PRE>
+
+End of WWWHTTP API definition
+
+</BODY>
+</HTML>

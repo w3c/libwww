@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Format Negotiation Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 22-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 25-Nov-1995 -->
 <NEXTID N="z18">
 </HEAD>
 <BODY>
@@ -108,15 +108,27 @@ course not MIME standard. They are internal representations used in
 the Library but they can't be exported to other apps!
 
 <PRE>
-#define WWW_SOURCE	HTAtom_for("*/*")      /* Whatever it was originally */
+#define WWW_RAW		HTAtom_for("www/void")   /* Raw output from Protocol */
 </PRE>
 
-<CODE>WWW_SOURCE</CODE> is an output format which leaves the input
+<CODE>WWW_RAW</CODE> is an output format which leaves the input
 untouched <EM>exactly</EM> as it is received by the protocol
 module. For example, in the case of FTP, this format returns raw ASCII
 objects for directory listings; for HTTP, everything including the
 header is returned, for Gopher, a raw ASCII object is returned for a
 menu etc.
+
+<PRE>
+#define WWW_SOURCE	HTAtom_for("*/*")   /* Almost what it was originally */
+</PRE>
+
+<CODE>WWW_SOURCE</CODE> is an output format which leaves the input
+untouched <EM>exactly</EM> as it is received by the protocol module
+<B>IF</B> not a suitable converter has been registered with a quality
+factor higher than 1 (for example 2). In this case the <EM>SUPER
+CONVERTER</EM> is preferred for the raw output. This can be used as a
+filter effect that allows conversion from, for example raw
+FTPdirectory listings into HTML but passes a MIME body untouched.
 
 <PRE>
 #define WWW_PRESENT	HTAtom_for("www/present")   /* The user's perception */
@@ -173,7 +185,7 @@ Finally we have defined a special format for our RULE files as they
 can be handled by a special converter.
 
 <PRE>
-#define WWW_RULES	HTAtom_for("text/x-www-rules")
+#define WWW_RULES	HTAtom_for("application/x-www-rules")
 </PRE>
 
 <H4>Add a Presenter</H4>

@@ -281,7 +281,7 @@ PRIVATE BOOL GopherMenuLine (HTStream *me, char *line)
 	}
 	if (dir_show & HT_DS_ICON) {		 	 /* Put out the icon */
 	    HTIconNode *icon = GopherIcon(gtype);
-	    if (icon && icon->icon_url) {
+	    if (icon) {
 		HTMLPutImg(target, icon->icon_url,
 			   HTIcon_alt_string(icon->icon_alt, YES), NULL);
 		PUTC(' ');

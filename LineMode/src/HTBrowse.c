@@ -58,6 +58,8 @@
 #include "HTBrowse.h"			     /* Things exported, short names */
 #include "GridText.h"				     /* Hypertext definition */
 
+#include "HTNetMan.h"
+
 /* Macros and other defines */
 #ifndef VL
 #define VL "unspecified"
@@ -1307,24 +1309,10 @@ int main (int argc, char ** argv)
 		show_refs = YES;
 		HTAlert_setInteractive(NO);
 
-	    } else if (!strcasecomp(argv[arg], "-delete")) {  	   /* DELETE */
-		HTRequest_setMethod(request, METHOD_DELETE);
-		HTAlert_setInteractive(NO);
-
 	    } else if (!strcasecomp(argv[arg], "-head")) {    /* HEAD Method */
 		HTRequest_setMethod(request, METHOD_HEAD);
 		HTRequest_setOutputFormat(request, WWW_MIME);
 		HTAlert_setInteractive(NO);
-
-	    /* @@@ NOT FINISHED @@@ */
-#if 0
-	    } else if (!strcasecomp(argv[arg], "-post")) {    /* POST Method */
-		if (arg+1 < argc && *argv[arg+1] != '-') {
-		    char *ref = HTParse(argv[arg], abs_home, PARSE_ALL);
-		    post_anchor = (HTParentAnchor*) HTAnchor_findAddress(ref);
-		    free(ref);
-		}
-#endif
 
 	    /* Non-interactive */
 	    } else if (!strcmp(argv[arg], "-n")) {
@@ -1557,8 +1545,10 @@ int main (int argc, char ** argv)
     /* Just convert formats */
     if (filter) {
 	HTRequest_setAnchor (request, (HTAnchor *) home_anchor);
+#if 0
      	HTParseSocket(input_format, 0, request);      /* From std UNIX input */
-	    goto endproc;
+#endif
+	goto endproc;
     }
     
     /* Register our User Prompts etc in the Alert Manager */

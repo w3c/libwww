@@ -239,22 +239,28 @@ PUBLIC int HTFileRead (HTRequest * request, HTNet * net, FILE * fp)
 */
 PUBLIC int HTLoadSocket (SOCKET soc, HTRequest * request, SockOps ops)
 {
-    HTNet *net = request->net;
+    HTNet * net = NULL;
+    if (!request) return HT_ERROR;
     if (ops == FD_NONE) {
+	HTNet * me;
 	if (soc==INVSOC) {
 	    if (PROT_TRACE) TTYPrint(TDEST, "Load Socket. invalid socket\n");
 	    return HT_ERROR;
 	}
-
-	/* Setting up the Net object for the already open socket, soc */
 	if (PROT_TRACE) TTYPrint(TDEST,"Load Socket. Loading socket %d\n",soc);
-	net->sockfd = soc;
-	net->isoc = HTInputSocket_new(soc);
-
-
+	me = HTNet_new(request, soc);
+	me->sockfd = soc;
+	me->target = request->output_stream;
+	me->isoc = HTInputSocket_new(soc);
+	net = me;
     } else if (ops == FD_CLOSE) {			      /* Interrupted */
 	HTNet_delete(request->net, HT_INTERRUPTED);
 	return HT_OK;
+    } else
+	net = request->net;
+    if (!net) {
+	if (PROT_TRACE) TTYPrint(TDEST, "Load Socket. invalid argument\n");
+	return HT_ERROR;
     }
 
     /* In this load function we only have one state: READ */

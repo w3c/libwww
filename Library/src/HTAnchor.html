@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Anchor object Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 16-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 26-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -129,7 +129,6 @@ struct _HTParentAnchor {
   HTList *	children;	/* Subanchors of this, if any */
   HTList *	sources;	/* List of anchors pointing to this, if any */
   HyperDoc *	document;	/* The document within this is an anchor */
-  void *	protocol;	/* Protocol object */
   char *	physical;	/* Physical address */
   BOOL		cacheHit;	/* Yes, if cached object found */
   char * 	address;	/* Absolute address of this node */

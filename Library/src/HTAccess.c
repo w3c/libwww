@@ -206,7 +206,7 @@ PUBLIC BOOL HTLibTerminate (void)
 }
 
 /* --------------------------------------------------------------------------*/
-/*	           		Access functions			     */
+/*	           		Load Access functions			     */
 /* --------------------------------------------------------------------------*/
 
 /*	Request a document
@@ -370,7 +370,7 @@ PUBLIC BOOL HTSearchAbsolute (CONST char *	keywords,
 }
 
 /* --------------------------------------------------------------------------*/
-/*				Document Poster 			     */
+/*				Post Access Functions 			     */
 /* --------------------------------------------------------------------------*/
 
 /*	Copy an anchor
@@ -392,10 +392,11 @@ PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_req)
 
     /* Build the POST web if not already there */
     if (!main_req->source) {
-	src_req = HTRequest_new();		  /* First set up the source */
+	src_req = HTRequest_dup(main_req);	  /* First set up the source */
 	HTAnchor_clearHeader((HTParentAnchor *) src_anchor);
 	src_req->reload = HT_MEM_REFRESH;
 	src_req->source = src_req;			  /* Point to myself */
+	src_req->output_stream = NULL;
 	src_req->output_format = WWW_SOURCE;	 /* We want source (for now) */
 
 	/* Set up the main link in the source anchor */
@@ -415,7 +416,7 @@ PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_req)
 		main_req->reload = HT_CACHE_REFRESH;
 		main_req->method = method;
 		HTRequest_addDestination(src_req, main_req);
-		main_req->input_format = WWW_SOURCE;	  /* for now :-( @@@ */
+		main_req->input_format = WWW_SOURCE;
 		if (HTLoadAnchor(main_anchor, main_req) == NO)
 		    return NO;
 	    }
@@ -436,13 +437,16 @@ PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_req)
 				dest);
 		    return NO;
 		}
-		dest_req = HTRequest_new();
+		dest_req = HTRequest_dup(main_req);
 		dest_req->GenMask |= HT_DATE;		 /* Send date header */
 		dest_req->source = src_req;
 		dest_req->reload = HT_CACHE_REFRESH;
 		dest_req->method = method;
 		HTRequest_addDestination(src_req, dest_req);
-		dest_req->input_format = WWW_SOURCE;	  /* for now :-( @@@ */
+
+		dest_req->output_stream = NULL;
+		dest_req->output_format = WWW_SOURCE;
+
 		if (HTLoadAnchor(dest, dest_req) == NO)
 		    return NO;
 	    }
@@ -495,3 +499,20 @@ PUBLIC BOOL HTUploadAnchor (HTAnchor *		src_anchor,
     return NO;
 }
 
+/* --------------------------------------------------------------------------*/
+/*	           	      Server Access functions			     */
+/* --------------------------------------------------------------------------*/
+
+/*	Serv a Document
+**	---------------
+**	This function sets up a request to service a document using the
+**	specified access scheme.
+*/
+PUBLIC BOOL HTServDocument (HTRequest * request, CONST char * access)
+{
+    if (request && access) {
+	HTRequest_setAccess(request, (char *) access);
+	return HTServ(request, NO);
+    }
+    return NO;
+}

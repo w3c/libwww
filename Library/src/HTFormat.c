@@ -541,19 +541,15 @@ PUBLIC HTStream * HTStreamStack (HTFormat	rep_in,
     int which_list;
     double best_quality = -1e30;		/* Pretty bad! */
     HTPresentation *pres, *best_match=NULL;
-    
-#if 0
-    /* The Guess stream is now registered as any other converter */
-    if (guess && rep_in == WWW_UNKNOWN) {
-	if (STREAM_TRACE) TTYPrint(TDEST, "StreamStack. Guessing stream\n");
-	return HTGuess_new(request, NULL, rep_in, rep_out, output_stream);
+    if (rep_out == WWW_RAW) {
+	if (STREAM_TRACE) TTYPrint(TDEST,"StreamStack. Raw output...\n");
+	return output_stream ? output_stream : HTBlackHole();
     }
-#endif
 
-    if (rep_out == WWW_SOURCE || rep_out == rep_in) {
+    if (rep_out == rep_in) {
 	if (STREAM_TRACE)
-	    TTYPrint(TDEST, "StreamStack. Source requested or identical in/out format: %s\n",
-		     HTAtom_name(rep_in));
+	    TTYPrint(TDEST,"StreamStack. Identical input/output format (%s)\n",
+		     HTAtom_name(rep_out));
 	return output_stream ? output_stream : HTBlackHole();
     }
     if (STREAM_TRACE) {
@@ -566,7 +562,6 @@ PUBLIC HTStream * HTStreamStack (HTFormat	rep_in,
 
     for(which_list = 0; which_list<2; which_list++) {
 	HTList * cur = conversion[which_list];
-	
 	while ((pres = (HTPresentation*)HTList_nextObject(cur))) {
 	    if ((pres->rep==rep_in || wild_match(pres->rep, rep_in)) &&
 		(pres->rep_out==rep_out || wild_match(pres->rep_out,rep_out))){
@@ -592,9 +587,20 @@ PUBLIC HTStream * HTStreamStack (HTFormat	rep_in,
 	    }
 	}
     }
-    if (best_match)
+
+    if (best_match) {
+ 	if (rep_out == WWW_SOURCE && best_match->rep_out != WWW_SOURCE) {
+	    if (STREAM_TRACE) TTYPrint(TDEST,"StreamStack. Source output\n");
+	    return output_stream ? output_stream : HTBlackHole();
+	}
 	return (*best_match->converter)(request, best_match->command,
 					rep_in, rep_out, output_stream);
+    }
+    if (rep_out == WWW_SOURCE) {
+	if (STREAM_TRACE) TTYPrint(TDEST,"StreamStack. Source output\n");
+	return output_stream ? output_stream : HTBlackHole();
+    }
+
     if (STREAM_TRACE)
 	TTYPrint(TDEST,"StreamStack. No match found, dumping to local file\n");
     return HTSaveLocally(request, NULL, rep_in, rep_out, output_stream);

@@ -1044,7 +1044,7 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKET master, int backlog)
 	  case TCP_CONNECTED:
 	    net->tcpstate = TCP_BEGIN;
 	    if (PROT_TRACE)
-		TTYPrint(TDEST, "HTDoListen.. Bind and listen port %d on %s\n",
+		TTYPrint(TDEST,"HTDoListen.. Bind and listen on port %d %s\n",
 			(int) ntohs(net->sock_addr.sin_port),
 			HTInetString(&net->sock_addr));
 	    return HT_OK;

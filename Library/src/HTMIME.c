@@ -708,8 +708,7 @@ PRIVATE int HTMIME_free (HTStream * me)
 PRIVATE int HTMIME_abort (HTStream * me, HTList * e)
 {
     int status = HT_ERROR;
-    if (me->target)
-	status = (*me->target->isa->abort)(me->target, e);
+    if (me->target) status = (*me->target->isa->abort)(me->target, e);
     if (PROT_TRACE)
 	TTYPrint(TDEST, "MIME........ ABORTING...\n");
     HTChunkFree(me->buffer);

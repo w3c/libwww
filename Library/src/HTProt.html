@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Access Scheme Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 11-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 24-Nov-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -64,7 +64,8 @@ event loop when used in non-preemtive mode.
 <PRE>
 extern BOOL HTProtocol_add (CONST char *       	name,
 			    BOOL		preemtive,
-			    HTEventCallback *	callback);
+			    HTEventCallback *	client,
+			    HTEventCallback *	server);
 </PRE>
 
 <H3>Delete an Access Scheme</H3>
@@ -85,21 +86,24 @@ HREF="HTAccess.html#Library">HTLibTerminate()</A>
 extern BOOL HTProtocol_deleteAll (void);
 </PRE>
 
-<H3>Bind an Access Scheme to an Anchor</H3>
+<H3>Find a Protocol Object</H3>
 
-This function finds the access scheme that is bound to the anchor's
-type of URL. Returns YES if found, else NO
+You can search the list of registered protocol objects as a function
+of the access acheme. If an access scheme is found then the protocol
+object is returned.
 
 <PRE>
-extern BOOL HTProtocol_find (HTRequest * request, HTParentAnchor * anchor);
+extern HTProtocol * HTProtocol_find (HTRequest * request, CONST char * access);
 </PRE>
 
-<H3Finds the Callback Function</H3>
+<H3>Get the callback functions</H3>
 
-Returns the callback function registered with this access scheme if any.
+You can get the callback functions registered together with a protocol
+object using the following methods.
 
 <PRE>
-extern HTEventCallback *HTProtocol_callback (HTProtocol * protocol);
+extern HTEventCallback * HTProtocol_client (HTProtocol * protocol);
+extern HTEventCallback * HTProtocol_server (HTProtocol * protocol);
 </PRE>
 
 <H3>Is Access Scheme Preemtive</H3>

@@ -174,7 +174,6 @@ PRIVATE int HTFWriter_write (HTStream * me, CONST char* s, int l)
 PRIVATE int HTFWriter_free (HTStream * me)
 {
     if (me->leave_open != YES) fclose(me->fp);
-
     if (me->end_command) {		/* Temp file */
 #ifdef GOT_SYSTEM
 	system(me->end_command);	/* @@ Beware of security hole */
@@ -194,6 +193,7 @@ PRIVATE int HTFWriter_free (HTStream * me)
 
 PRIVATE int HTFWriter_abort (HTStream * me, HTList * e)
 {
+    if (PROT_TRACE) TTYPrint(TDEST, "FileWriter.. ABORTING...\n");
     if (me->leave_open != YES) fclose(me->fp);
     if (me->end_command) {		/* Temp file */
 	if (STREAM_TRACE)

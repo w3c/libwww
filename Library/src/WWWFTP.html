@@ -1,0 +1,54 @@
+<HTML>
+<HEAD>
+<TITLE>Declaration of W3C Reference FTP MODULE</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 20-Nov-1995 -->
+<NEXTID N="z11">
+</HEAD>
+<BODY>
+
+<H1>Declaration of W3C Reference FTP MODULE</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This is the include file for the basic FTP module that can be used
+together with the core of the W3C Reference Library. It contains all
+FTP specific modules which are required to compile and build the FTP
+DLL.<P>
+
+<PRE>
+#ifndef WWWFTP_H
+#define WWWFTP_H
+</PRE>
+
+<H2>Library Includes</H2>
+
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
+
+<PRE>
+#include "HTFTP.h"			/* FTP client state machine */
+#include "HTFTPDir.h"			/* Streams for parsing FTP output */
+</PRE>
+
+End of FTP module
+
+<PRE>
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
+
+#endif
+</PRE>
+
+End of WWWFTP API definition
+
+</BODY>
+</HTML>

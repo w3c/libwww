@@ -91,6 +91,20 @@ PUBLIC HTRequest * HTRequest_new (void)
     return me;
 }
 
+/*	HTRequest_dup
+**	-------------
+**	Creates a new HTRequest object as a duplicate of the src request.
+**	Returns YES if OK, else NO
+*/
+PUBLIC HTRequest * HTRequest_dup (HTRequest * src)
+{
+    HTRequest * me;
+    if (!src) return NO;
+    if ((me = (HTRequest *) calloc(1, sizeof(HTRequest))) == NULL)
+	outofmem(__FILE__, "HTRequest_dup");
+    memcpy(me, src, sizeof(HTRequest));
+    return me;
+}
 
 /*  Delete a request structure
 **  --------------------------
@@ -102,6 +116,8 @@ PUBLIC void HTRequest_delete (HTRequest * request)
 	FREE(request->boundary);
 	FREE(request->authenticate);
 	if (request->error_stack) HTError_deleteAll(request->error_stack);
+
+	FREE(request->access);
 
 	FREE(request->authorization);
 	FREE(request->prot_template);
@@ -312,6 +328,19 @@ PUBLIC void HTRequest_addEnHd (HTRequest *request, HTEnHd enhd)
 PUBLIC HTEnHd HTRequest_enHd (HTRequest *request)
 {
     return request ? request->EntityMask : 0;
+}
+
+/*
+**	Access scheme for server
+*/
+PUBLIC void HTRequest_setAccess (HTRequest * request, char * access)
+{
+    if (request && access) StrAllocCopy(request->access, access);
+}
+
+PUBLIC CONST char * HTRequest_access (HTRequest * request)
+{
+    return request ? request->access : NULL;
 }
 
 /*
@@ -561,6 +590,23 @@ PUBLIC BOOL HTRequest_setPriority (HTRequest * request, HTPriority priority)
 PUBLIC HTPriority HTRequest_priority (HTRequest * request)
 {
     return (request ? request->priority : -1);
+}
+
+/*
+**  Get and set the NET manager
+*/
+PUBLIC BOOL HTRequest_setNet (HTRequest * request, HTNet * net)
+{
+    if (request) {
+	request->net = net;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTNet * HTRequest_net (HTRequest * request)
+{
+    return (request ? request->net : NULL);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -845,9 +891,29 @@ PUBLIC BOOL HTLoad (HTRequest * request, BOOL recursive)
 	HTError_deleteAll(request->error_stack);
 	request->error_stack = NULL;
     }
-    return HTNet_new(request);
+    return HTNet_newClient(request);
 }
 
+/*	Serv a resource
+**	---------------
+**	This function initiates the server side of a request and starts 
+**	serving it back accross the network.
+**	Returns:
+**		YES	if request has been registered (success)
+**		NO	an error occured
+*/
+PUBLIC BOOL HTServ (HTRequest * request, BOOL recursive)
+{
+    if (!request || !request->access) {
+        if (PROT_TRACE) TTYPrint(TDEST, "Serv Start.. Bad argument\n");
+        return NO;
+    }
+    if (!recursive && request->error_stack) {
+	HTError_deleteAll(request->error_stack);
+	request->error_stack = NULL;
+    }
+    return HTNet_newServer(request);
+}
 
 /*	Terminate a LOAD
 **	----------------
@@ -897,19 +963,3 @@ PUBLIC int HTLoad_terminate (HTRequest *request, int status)
     free(uri);
     return HT_OK;
 }
-
-/*	Start a LOAD
-**	------------
-**	This function makes sure that we have a physical anchor address
-**	It can be registered in the Net Manager
-*/
-PUBLIC int HTLoad_start (HTRequest *request, int status)
-{
-    char * physical = HTAnchor_address((HTAnchor *) request->anchor);
-    HTAnchor_setPhysical(request->anchor, physical);
-    free(physical);
-    return (HTProtocol_find(request, request->anchor)==YES) ?
-	HT_OK : HT_NO_ACCESS;
-    return HT_OK;
-}
-

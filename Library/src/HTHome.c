@@ -271,9 +271,7 @@ PUBLIC int HTLoadStart (HTRequest * request, int status)
 	FREE(newaddr);
     }
     FREE(addr);
-
-    /* Set the access scheme on our way out */
-    return (HTProtocol_find(request, anchor)==YES) ? HT_OK : HT_ERROR;
+    return HT_OK;
 }
 
 /*	Application "AFTER" Callback

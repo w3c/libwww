@@ -504,8 +504,8 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		BOOL greeting = NO;
 		char *s_class = HTDNS_serverClass(net->dns);
 		if (s_class && strcasecomp(s_class, "nntp")) {
-		    HTRequest_addError(request, ERR_FATAL, NO, HTERR_CLASS, NULL, 0,
-			       "HTLoadNews");
+		    HTRequest_addError(request, ERR_FATAL, NO, HTERR_CLASS,
+				       NULL, 0, "HTLoadNews");
 		    news->state = NEWS_ERROR;
 		    break;
 		}
@@ -580,8 +580,8 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 	    } else if (request->method == METHOD_POST)
 		news->state = NEWS_NEED_POST;
 	    else {
-		HTRequest_addError(request, ERR_FATAL, NO, HTERR_NOT_IMPLEMENTED,
-			   NULL, 0, "HTLoadNews");
+		HTRequest_addError(request, ERR_FATAL, NO,
+				   HTERR_NOT_IMPLEMENTED,NULL, 0,"HTLoadNews");
 		news->state = NEWS_ERROR;
 	    }
 	    HTUnEscape(news->name);

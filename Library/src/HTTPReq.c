@@ -101,7 +101,7 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 		(list && ((cur = HTRequest_conversion(request)) != NULL))) {
 		HTPresentation  *pres;
 		while ((pres =(HTPresentation *) HTList_nextObject(cur))) {
-		    if (pres->rep_out == WWW_PRESENT) {
+		    if (pres->rep_out==WWW_PRESENT && pres->quality <= 1.0) {
 			if (pres->quality != 1.0) {
 			    sprintf(linebuf, "Accept: %s; q=%1.1f%c%c",
 				    HTAtom_name(pres->rep),

@@ -21,6 +21,7 @@
 #include "HTProt.h"
 #include "HTError.h"
 #include "HTAlert.h"
+#include "HTParse.h"
 #include "HTReqMan.h"
 #include "HTEvntrg.h"
 #include "HTStream.h"
@@ -319,9 +320,72 @@ PRIVATE HTNet * create_object (HTRequest * request)
 	outofmem(__FILE__, "HTNet_new");
     me->request = request;
     request->net = me;
+    me->tcpstate = TCP_BEGIN;
     return me;
 }
 
+/*	HTNet_new
+**	---------
+**	This function creates a new HTNet object and assigns the socket number
+**	to it. This is intended to be used when you are going to listen on a 
+**	socket using the HTDoListen() function in HTTCP.c. The function do NOT
+**	call any of the callback functions.
+**	Returns new object or NULL on error
+*/
+PUBLIC HTNet * HTNet_new (HTRequest * request, SOCKET sockfd)
+{
+    HTNet * me;
+    if (WWWTRACE) TTYPrint(TDEST, "HTNet_new... Create empty Net object\n");
+    if (!request || sockfd==INVSOC) return NULL;
+    if ((me = create_object(request)) == NULL) return NULL;
+    me->preemtive = request->preemtive;
+    me->priority = request->priority;
+    me->sockfd = sockfd;
+    return me;
+}
+
+/*	HTNet_newServer
+**	---------------
+**	Create a new HTNet object as a new request to be handled. If we have
+**	more than HTMaxActive connections already then return NO.
+**	Returns YES if OK, else NO
+*/
+PUBLIC BOOL HTNet_newServer (HTRequest * request)
+{
+    HTNet * me;
+    HTProtocol * protocol;
+    if (!request) return NO;
+
+    /* Check if we can start the request, else return immediately */
+    if (!HTNetActive) HTNetActive = HTList_new();
+    if (HTList_count(HTNetActive) > HTMaxActive) {
+	if (PROT_TRACE) TTYPrint(TDEST, "HTNet new... NO SOCKET AVAILABLE\n");
+	HTNetCall_execute(HTAfter, request, HT_RETRY);
+	return YES;
+    }
+
+    /* Find a protocol object for this access scheme */
+    protocol = HTProtocol_find(request, HTRequest_access(request));
+	
+    /* Create new net object and bind it to the request object */
+    if ((me = create_object(request)) == NULL) return NO;
+    me->preemtive = (HTProtocol_preemtive(protocol) || request->preemtive);
+    me->priority = request->priority;
+    me->sockfd = INVSOC;
+    if (!(me->cbf = HTProtocol_server(protocol))) {
+	if (WWWTRACE) TTYPrint(TDEST, "HTNet_new... NO CALL BACK FUNCTION!\n");
+	free(me);
+	return NO;
+    }
+    request->retrys++;
+
+    /* Start the server request */
+    HTList_addObject(HTNetActive, (void *) me);
+    if (WWWTRACE)
+	TTYPrint(TDEST, "HTNet_new... starting SERVER request %p\n", request);
+    (*(me->cbf))(me->sockfd, request, FD_NONE);
+    return YES;
+}
 
 /*	HTNet_new
 **	---------
@@ -331,12 +395,12 @@ PRIVATE HTNet * create_object (HTRequest * request)
 **	function registered with this access method. 
 **	Returns YES if OK, else NO
 */
-PUBLIC BOOL HTNet_new (HTRequest * request)
+PUBLIC BOOL HTNet_newClient (HTRequest * request)
 {
     int status;
     HTNet * me;
-    HTProtocol *prot;
-    char * physical;
+    HTProtocol * protocol;
+    char * physical = NULL;
     if (!request) return NO;
     /*
     ** First we do all the "BEFORE" callbacks in order to see if we are to
@@ -352,23 +416,32 @@ PUBLIC BOOL HTNet_new (HTRequest * request)
     ** If no translation was provided by the application then use the anchor
     ** address directly
     */
+    if (!HTNetActive) HTNetActive = HTList_new();
     if (!(physical = HTAnchor_physical(request->anchor)) || !*physical) {
 	char * addr = HTAnchor_address((HTAnchor *) request->anchor);
-	if (WWWTRACE) TTYPrint(TDEST, "HTNet New... USING DEFAULT ADDRESS!\n");
+	if (WWWTRACE) TTYPrint(TDEST, "HTNet New... Using default address\n");
 	HTAnchor_setPhysical(request->anchor, addr);
-	HTProtocol_find(request, request->anchor);
+	physical = HTAnchor_physical(request->anchor);
 	FREE(addr);
     }
 
-    if (!HTNetActive) HTNetActive = HTList_new();
-    prot = (HTProtocol *) HTAnchor_protocol(request->anchor);
-
+    /* Find a protocol object for this access scheme */
+    {
+	char * access = HTParse(physical, "", PARSE_ACCESS);
+	if ((protocol = HTProtocol_find(request, access)) == NULL) {
+	    if (WWWTRACE) TTYPrint(TDEST, "HTNet_new... NO PROTOCOL OBJECT\n");
+	    free(access);
+	    return NO;
+	}
+	free(access);
+    }
+	
     /* Create new net object and bind it to the request object */
     if ((me = create_object(request)) == NULL) return NO;
-    me->preemtive = (HTProtocol_preemtive(prot) || request->preemtive);
+    me->preemtive = (HTProtocol_preemtive(protocol) || request->preemtive);
     me->priority = request->priority;
     me->sockfd = INVSOC;
-    if (!(me->cbf = HTProtocol_callback(prot))) {
+    if (!(me->cbf = HTProtocol_client(protocol))) {
 	if (WWWTRACE) TTYPrint(TDEST, "HTNet_new... NO CALL BACK FUNCTION!\n");
 	free(me);
 	return NO;
@@ -395,26 +468,6 @@ PUBLIC BOOL HTNet_new (HTRequest * request)
 	if (cbf) (*cbf)(request, HT_PROG_WAIT, HT_MSG_NULL, NULL, NULL, NULL);
 	HTList_addObject(HTNetPending, (void *) me);	
     }
-    return YES;
-}
-
-/*	HTNet_create
-**	------------
-**	This function creates a new HTNet object and assigns the socket number
-**	to it. This is intended to be used when you are going to listen on a 
-**	socket using the HTDoListen() function in HTTCP.c. The function do NOT
-**	call any of the callback functions.
-**	Returns YES if OK, else NO
-*/
-PUBLIC BOOL HTNet_create (HTRequest * request, SOCKET sockfd)
-{
-    HTNet * me;
-    if (WWWTRACE) TTYPrint(TDEST, "HTNet_create empty Net object\n");
-    if (!request || sockfd==INVSOC) return NO;
-    if ((me = create_object(request)) == NULL) return NO;
-    me->preemtive = request->preemtive;
-    me->priority = request->priority;
-    me->sockfd = sockfd;
     return YES;
 }
 

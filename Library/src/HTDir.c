@@ -165,9 +165,11 @@ PRIVATE BOOL HTDirNode_print (HTDir *dir, HTDirNode *node)
 
 	/* Are we having a hot or a cold icon? */
 	if (!(dir->show & HT_DS_HOTI)) {
-	    HTMLPutImg(target, icon->icon_url,
-		       HTIcon_alt_string(icon->icon_alt, YES), NULL);
-	    PUTC(' ');
+	    if (icon) {
+		HTMLPutImg(target, icon->icon_url,
+			   HTIcon_alt_string(icon->icon_alt, YES), NULL);
+		PUTC(' ');
+	    }
 	}
 
 	/* Start the anchor element */
@@ -266,10 +268,12 @@ PRIVATE BOOL HTDir_headLine (HTDir *dir)
 	HTStructured *target = dir->target;
 	START(HTML_PRE);
 	if (dir->show & HT_DS_ICON) {
-	    HTIconNode *icon = HTGetIcon(HT_IS_BLANK, NULL, NULL);
-	    HTMLPutImg(target, icon->icon_url,
-		       HTIcon_alt_string(icon->icon_alt, YES), NULL);
-	    PUTC(' ');
+	    HTIconNode * icon = HTGetIcon(HT_IS_BLANK, NULL, NULL);
+	    if (icon) {
+		HTMLPutImg(target, icon->icon_url,
+			   HTIcon_alt_string(icon->icon_alt, YES), NULL);
+		PUTC(' ');
+	    }
 	}
 
 	tp = dir->fnbuf;

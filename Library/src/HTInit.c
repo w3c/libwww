@@ -41,7 +41,6 @@ PUBLIC void HTConverterInit (HTList * c)
     HTConversion_add(c,"message/rfc822",	"*/*",		HTMIMEConvert,	1.0, 0.0, 0.0);
     HTConversion_add(c,"multipart/*",		"*/*",		HTBoundary,	1.0, 0.0, 0.0);
     HTConversion_add(c,"text/plain",		"text/html",	HTPlainToHTML,	1.0, 0.0, 0.0);
-    HTConversion_add(c,"application/x-wais-source","*/*",	HTWSRCConvert, 	1.0, 0.0, 0.0);
 
     /*
     ** The following conversions are converting ASCII output from various
@@ -51,8 +50,9 @@ PUBLIC void HTConverterInit (HTList * c)
     HTConversion_add(c,"text/x-gopher",		"www/present",	HTGopherMenu,	1.0, 0.0, 0.0);
     HTConversion_add(c,"text/x-cso",		"www/present",	HTGopherCSO,	1.0, 0.0, 0.0);
 #endif
-    HTConversion_add(c,"text/x-nntp-list",	"www/present",	HTNewsList,	1.0, 0.0, 0.0);
-    HTConversion_add(c,"text/x-nntp-over",	"www/present",	HTNewsGroup,	1.0, 0.0, 0.0);
+    HTConversion_add(c,"text/x-nntp-list",	"*/*",		HTNewsList,	1.0, 0.0, 0.0);
+    HTConversion_add(c,"text/x-nntp-over",	"*/*",		HTNewsGroup,	1.0, 0.0, 0.0);
+    HTConversion_add(c,"text/x-wais-source",	"*/*",		HTWSRCConvert, 	1.0, 0.0, 0.0);
 
     /*
     ** We also register a special content type guess stream that can figure out
@@ -64,7 +64,7 @@ PUBLIC void HTConverterInit (HTList * c)
     ** Handling Rule files is handled just like any other stream
     ** This converter reads a rule file and generates the rules
     */
-    HTConversion_add(c,"text/x-www-rules",	"*/*",		HTRules,	1.0, 0.0, 0.0);
+    HTConversion_add(c,"application/x-www-rules","*/*",		HTRules,	1.0, 0.0, 0.0);
 
     /*
     ** This dumps all other formats to local disk without any further
@@ -151,21 +151,56 @@ PUBLIC void HTAlertInit (void)
 PUBLIC void HTAccessInit (void)
 {
 #ifndef DECNET
-    HTProtocol_add("ftp", NO, HTLoadFTP);
-    HTProtocol_add("nntp", NO, HTLoadNews);
-    HTProtocol_add("news", NO, HTLoadNews);
-    HTProtocol_add("gopher", NO, HTLoadGopher);
+    HTProtocol_add("ftp", NO, HTLoadFTP, NULL);
+    HTProtocol_add("nntp", NO, HTLoadNews, NULL);
+    HTProtocol_add("news", NO, HTLoadNews, NULL);
+    HTProtocol_add("gopher", NO, HTLoadGopher, NULL);
 #ifdef HT_DIRECT_WAIS
-    HTProtocol_add("wais", YES, HTLoadWAIS);
+    HTProtocol_add("wais", YES, HTLoadWAIS, NULL);
 #endif
 #endif /* DECNET */
 
-    HTProtocol_add("http", NO, HTLoadHTTP);
-    HTProtocol_add("file", NO, HTLoadFile);
-    HTProtocol_add("telnet", YES, HTLoadTelnet);
-    HTProtocol_add("tn3270", YES, HTLoadTelnet);
-    HTProtocol_add("rlogin", YES, HTLoadTelnet);
+    HTProtocol_add("http", NO, HTLoadHTTP, NULL);
+    HTProtocol_add("file", NO, HTLoadFile, NULL);
+    HTProtocol_add("telnet", YES, HTLoadTelnet, NULL);
+    HTProtocol_add("tn3270", YES, HTLoadTelnet, NULL);
+    HTProtocol_add("rlogin", YES, HTLoadTelnet, NULL);
 }
+
+#if 0
+/*	BINDINGS BETWEEN ICONS AND MEDIA TYPES
+**	--------------------------------------
+**	Not done automaticly - may be done by application!
+**	For directory listings etc. you can bind a set of icons to a set of
+**	media types and special icons for directories and other objects that
+**	do not have a media type.
+*/
+PUBLIC void HTStdIconInit (CONST char * url_prefix)
+{
+    CONST char * p = url_prefix ? url_prefix : "/internal-icon/";
+
+    HTAddBlankIcon  (prefixed(p,"blank.xbm"),	NULL	);
+    HTAddDirIcon    (prefixed(p,"directory.xbm"),"DIR"	);
+    HTAddParentIcon (prefixed(p,"back.xbm"),	"UP"	);
+    HTAddUnknownIcon(prefixed(p,"unknown.xbm"),	NULL	);
+    HTAddIcon(prefixed(p,"unknown.xbm"),	NULL,	"*/*");
+    HTAddIcon(prefixed(p,"binary.xbm"),		"BIN",	"binary");
+    HTAddIcon(prefixed(p,"unknown.xbm"),	NULL,	"www/unknown");
+    HTAddIcon(prefixed(p,"text.xbm"),		"TXT",	"text/*");
+    HTAddIcon(prefixed(p,"image.xbm"),		"IMG",	"image/*");
+    HTAddIcon(prefixed(p,"movie.xbm"),		"MOV",	"video/*");
+    HTAddIcon(prefixed(p,"sound.xbm"),		"AU",	"audio/*");
+    HTAddIcon(prefixed(p,"tar.xbm"),		"TAR",	"multipart/x-tar");
+    HTAddIcon(prefixed(p,"tar.xbm"),		"TAR",	"multipart/x-gtar");
+    HTAddIcon(prefixed(p,"compressed.xbm"),	"CMP",	"x-compress");
+    HTAddIcon(prefixed(p,"compressed.xbm"),	"GZP",	"x-gzip");
+    HTAddIcon(prefixed(p,"index.xbm"),		"IDX",	"application/x-gopher-index");
+    HTAddIcon(prefixed(p,"index2.xbm"),		"CSO",	"application/x-gopher-cso");
+    HTAddIcon(prefixed(p,"telnet.xbm"),		"TEL",	"application/x-gopher-telnet");
+    HTAddIcon(prefixed(p,"unknown.xbm"),       	"DUP",	"application/x-gopher-duplicate");
+    HTAddIcon(prefixed(p,"unknown.xbm"),	"TN",	"application/x-gopher-tn3270");
+}
+#endif
 
 /*	BINDINGS BETWEEN FILE EXTENSIONS AND MEDIA TYPES
 **	------------------------------------------------
@@ -174,7 +209,7 @@ PUBLIC void HTAccessInit (void)
 **	type. The quality is an apriori bias as to whether the file should be
 **	used.  Not that different suffixes can be used to represent files
 **	which are of the same format but are originals or regenerated,
-**	with different values. Called from HTLibraryInit().
+**	with different values.
 */
 PUBLIC void HTFileInit (void)
 {
