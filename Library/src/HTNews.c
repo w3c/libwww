@@ -92,7 +92,6 @@ PUBLIC void HTSetNewsHost ARGS1(CONST char *, value)
 **	1.	Environment variable NNTPSERVER
 **	2.	File SERVER_FILE
 **	3.	Compilation time macro DEFAULT_NEWS_HOST
-**	4.	Default to "news"
 **
 **	On the NeXT, we pick up the NewsHost name from, in order:
 **
@@ -100,7 +99,6 @@ PUBLIC void HTSetNewsHost ARGS1(CONST char *, value)
 **	2.	Global default "NewsHost"
 **	3.	News default "NewsHost"
 **	4.	Compilation time macro DEFAULT_NEWS_HOST
-**	5.	Default to "news"
 */
 PRIVATE BOOL initialized = NO;
 PRIVATE BOOL initialize NOARGS

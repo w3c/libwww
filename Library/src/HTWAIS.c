@@ -517,10 +517,14 @@ display_search_response ARGS4(
 
 
 
-/*		Load by name					HTLoadWAIS
-**		============
+/*	Load Document from WAIS Server				HTLoadWAIS()
+**	------------------------------
 **
-**	This renders any object or search as required
+** On entry,
+**	request		This is the request structure
+** On exit,
+**	returns		<0		Error has occured
+**			HT_LOADED	OK
 */
 PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 
@@ -534,9 +538,10 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
     CONST char * arg = HTAnchor_physical(request->anchor);
     HTFormat		format_out = request->output_format;
     HTStream*		sink = request->output_stream;
-    
+#if 0    
     static CONST char * error_header =
 "<h1>Access error</h1>\nThe following error occured in accesing a WAIS server:<P>\n";
+#endif
     char * key;			  /* pointer to keywords in URL */
     char* request_message = NULL; /* arbitrary message limit */
     char* response_message = NULL; /* arbitrary message limit */
@@ -554,6 +559,7 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
     FILE *connection = 0;
     char * names;		/* Copy of arg to be hacked up */
     BOOL ok = NO;
+    int status = -1;
     
     extern FILE * connect_to_server();
     
@@ -604,10 +610,19 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 	} /* if database */
      }
      
-     if (!ok)
-	 return HTLoadError(request, 500, "Syntax error in WAIS URL");
+     if (!ok) {
+	 char *unescaped = NULL;
+	 StrAllocCopy(unescaped, url);
+	 HTUnEscape(unescaped);
+	 HTErrorAdd(request, ERR_FATAL, NO, HTTP_BAD_REQUEST,
+		    (void *) unescaped, (int) strlen(unescaped),
+		    "HTLoadWAIS");
+	 free(unescaped);
+	 free(names);
+	 return -1;
+     }
 
-     if (TRACE) fprintf(stderr, "HTWAIS: Parsed OK\n");
+     if (TRACE) fprintf(stderr, "HTLoadWAIS.. URL Parsed OK\n");
      
      service = strchr(names, ':');
      if (service)  *service++ = 0;
@@ -617,14 +632,14 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
         connection = NULL;
 
      else if (!(key && !*key))
-      if ((connection=connect_to_server(server_name,atoi(service)))
-      	 == NULL)  {
-	 if (TRACE) fprintf (stderr,
-	     "%sCan't open connection to %s via service %s.\n",
-	     error_header, server_name, service);
-	 free(names);
-	 return HTLoadError(request, 500, "Can't open connection to WAIS server");
-    }
+      if ((connection=connect_to_server(server_name,atoi(service))) == NULL)  {
+	  char host = HTParse(arg, "", PARSE_HOST);
+	  if (TRACE) fprintf (stderr, "HTLoadWAIS.. Can't open connection to %s via service %s.\n",
+			      server_name, service);
+	  HTErrorAdd(request, ERR_FATAL, NO, HTERR_WAIS_NO_CONNECTION,
+		     (void *) host, (int) strlen(host), "HTLoadWAIS");
+	  goto cleanup;
+      }
 
     StrAllocCopy(wais_database,www_database);
     HTUnEscape(wais_database);
@@ -768,9 +783,12 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 	  0 != strcmp(doctype, "HTML") ;
 
 
-	target = HTStreamStack(format_in, request, NO);
-	if (!target) return HTLoadError(request, 500,
-		"Can't convert format of WAIS document");
+	if ((target = HTStreamStack(format_in, request, NO)) == NULL)
+	    return -1;
+#ifdef OLD_CODE
+	    return HTLoadError(request, 500,
+			       "Can't convert format of WAIS document");
+#endif
 /*	Decode hex or litteral format for document ID
 */	
 	WAIS_from_WWW(docid, docname);
@@ -838,18 +856,24 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 
     } /* If document rather than search */
 
+    /* (This postponed until later,  after a timeout:) */
+    status = HT_LOADED;
 
-
-
-/*	(This postponed until later,  after a timeout:)
-*/
+  cleanup:
     if (connection) close_connection(connection);
     if (wais_database) free(wais_database);
-    s_free(request_message);
-    s_free(response_message);
-
-    free(names);
-    return HT_LOADED;
+    if (request_message) s_free(request_message);
+    if (response_message) s_free(response_message);
+    FREE(names);
+    if (status < 0) {
+	char *unescaped = NULL;
+	StrAllocCopy(unescaped, arg);
+	HTUnEscape(unescaped);
+	HTErrorAdd(request, ERR_FATAL, NO, HTERR_INTERNAL, (void *) unescaped,
+		   (int) strlen(unescaped), "HTLoadWAIS");
+	free(unescaped);
+    }
+    return status;
 }
 
 GLOBALDEF PUBLIC HTProtocol HTWAIS = { "wais", HTLoadWAIS, NULL };
