@@ -25,8 +25,8 @@ EXTRA_DIST = \
 # is platform specific, we do not install it with the other libwww include files
 install-exec-local:
 	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(includedir)
-	$(INSTALL_DATA) $(top_builddir)/$(CONFIG_HEADER) $(includedir)/$(CONFIG_HEADER);
+	$(mkinstalldirs) $(DESTDIR)$(includedir)
+	$(INSTALL_DATA) $(top_builddir)/$(CONFIG_HEADER) $(DESTDIR)$(includedir)/$(CONFIG_HEADER);
 
 # This is our install script provided by Soren Sandmann
 bin_SCRIPTS = libwww-config

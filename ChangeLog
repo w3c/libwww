@@ -1,3 +1,7 @@
+2000-09-01      Peter Stamfest <peter.stamfest@eunet.at>
+
+	* Corrected a DESTDIR problem in Makefile.am
+
 2000-09-01      Jose Kahan <jose@w3.org>
 
 	* Updated the libwww version in Library/src/windows/config.h
