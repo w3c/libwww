@@ -62,7 +62,7 @@
 #define DEFAULT_DELAY		50			/* Write delay in ms */
 
 #if 0
-#define HT_MEMLOG		/* May be expensive in performance! */
+#define HT_MEMLOG		/* Is expensive in performance! */
 #endif
 
 /* #define SHOW_MSG		(WWWTRACE || HTAlert_interactive()) */
@@ -98,7 +98,7 @@ typedef struct _Robot {
     HTList *		fingers;
 
     int 		timer;
-    char *		cwd;				  /* Current dir URL */
+    char *		cwd;			/* Current dir URL */
     char *		rules;
     char *		prefix;
     char *		img_prefix;
@@ -172,11 +172,12 @@ typedef struct _HyperDoc {
 } HyperDoc;
 
 /*
-** This is the HText object that is created every time we start parsing a 
+** This is the HText object that is created every time we start parsing an 
 ** HTML object
 */
 struct _HText {
     HTRequest *		request;
+    BOOL		follow;
 };
 
 /*
@@ -976,11 +977,30 @@ PUBLIC HText * HText_new2 (HTRequest * request, HTParentAnchor * anchor,
     HText * me;
     Finger * finger = (Finger *) HTRequest_context(request);
     Robot * mr = finger->robot;
+    char * robots = NULL;
+
     if ((me = (HText *) HT_CALLOC(1, sizeof(HText))) == NULL)
 	HT_OUTOFMEM("HText_new2");
 
     /* Bind the HText object together with the Request Object */
     me->request = request;
+    me->follow = YES;
+
+    /* Check to see if we have any meta tags */
+    if ((robots = HTAnchor_robots(anchor)) != NULL) {
+	char * strval = NULL;
+	char * ptr = NULL;
+	char * token = NULL;
+	StrAllocCopy(strval, robots);
+	ptr = strval;
+	while ((token = HTNextField(&ptr)) != NULL) {
+	    if (!strcasecomp(token, "nofollow")) {
+		me->follow = NO;
+		break;
+	    }
+	}
+	HT_FREE(strval);
+    }
 
     /* Add this HyperDoc object to our list */
     if (!mr->htext) mr->htext = HTList_new();
@@ -1002,7 +1022,7 @@ PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
 	char * uri = HTAnchor_address((HTAnchor *) dest_parent);
 	HyperDoc * hd = HTAnchor_document(dest_parent);
 	HTParentAnchor * referer = HTRequest_anchor(text->request);
-	BOOL match = YES;
+	BOOL match = text->follow;
 	BOOL check = NO;
 
 	if (!uri) return;
@@ -1016,7 +1036,9 @@ PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
 	}
 	    
 	/* Check for prefix match */
-	if (mr->prefix) match = HTStrMatch(mr->prefix, uri) ? YES : NO;
+	if (match && mr->prefix) {
+	    match = HTStrMatch(mr->prefix, uri) ? YES : NO;
+	}
 
 #ifdef HT_POSIX_REGEX
 	/* Check for any regular expression */

@@ -1110,7 +1110,7 @@ PRIVATE char * HTCache_metaLocation (HTCache * cache)
 PRIVATE BOOL meta_write (FILE * fp, HTRequest * request, HTResponse * response)
 {
     if (fp && request && response) {
-	HTAssocList * headers = HTResponse_header(response);
+	HTAssocList * headers = HTAnchor_header(HTRequest_anchor(request));
 	HTAssocList * connection = HTResponse_connection(response);
 	char * nocache = HTResponse_noCache(response);
 
@@ -1159,9 +1159,19 @@ PRIVATE BOOL meta_write (FILE * fp, HTRequest * request, HTResponse * response)
 	    HTAssocList * cur = headers;
 	    HTAssoc * pres;
 	    while ((pres = (HTAssoc *) HTAssocList_nextObject(cur))) {
-		if (fprintf(fp, "%s: %s\n", HTAssoc_name(pres), HTAssoc_value(pres))<0) {
-		    if (CACHE_TRACE) HTTrace("Cache....... Error writing metainfo\n");
-		    return NO;
+		char * name = HTAssoc_name(pres);
+
+		/* Don't write the headers that are already hop-by-hop */
+		if (strcasecomp(name, "connection") &&
+		    strcasecomp(name, "keep-alive") &&
+		    strcasecomp(name, "proxy-authenticate") &&
+		    strcasecomp(name, "proxy-authorization") &&
+		    strcasecomp(name, "transfer-encoding") &&
+		    strcasecomp(name, "upgrade")) {
+		    if (fprintf(fp, "%s: %s\n", name, HTAssoc_value(pres)) < 0) {
+			if (CACHE_TRACE) HTTrace("Cache....... Error writing metainfo\n");
+			return NO;
+		    }
 		}
 	    }
 	}

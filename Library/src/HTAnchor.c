@@ -792,6 +792,36 @@ PUBLIC BOOL HTAnchor_setLocation (HTParentAnchor * me, char * location)
     return NO;
 }
 
+/*	Meta tags
+**	---------
+*/
+PUBLIC HTAssocList * HTAnchor_meta (HTParentAnchor * me)
+{
+    return me ? me->meta_tags : NULL;
+}
+
+PUBLIC BOOL HTAnchor_addMeta (HTParentAnchor * me,
+			      const char * name, const char * value)
+{
+    if (me) {
+	if (!me->meta_tags) me->meta_tags = HTAssocList_new();
+	return HTAssocList_replaceObject(me->meta_tags, name, value);
+    }
+    return NO;
+}
+
+/*
+**	robots meta tag
+*/
+PUBLIC char * HTAnchor_robots (HTParentAnchor * me)
+{
+    if (me && me->meta_tags) {
+	char * robots = HTAssocList_findObject(me->meta_tags, "robots");
+	return robots;
+    }
+    return NULL;
+}
+
 /*	Content-Type
 **	------------
 */
@@ -1260,6 +1290,12 @@ PUBLIC void HTAnchor_clearHeader (HTParentAnchor * me)
     if (me->type_parameters) {
 	HTAssocList_delete(me->type_parameters);
 	me->type_parameters = NULL;
+    }    
+
+    /* Meta tags */
+    if (me->meta_tags) {
+	HTAssocList_delete(me->meta_tags);
+	me->meta_tags = NULL;
     }    
 
     /* Dates etc. */

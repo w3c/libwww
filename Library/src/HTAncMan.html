@@ -83,6 +83,8 @@ struct _HTParentAnchor {
   HTFormat	content_type;	/* Content type */
   HTAssocList *	type_parameters;/* Content type parameters (charset etc.) */
 
+  HTAssocList * meta_tags;      /* Set of metatags found in the HTML text */
+
   char *	content_base;
   HTList *	content_encoding;
   HTList *	content_language;

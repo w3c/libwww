@@ -239,6 +239,14 @@ PRIVATE attr glossary_attr[HTML_DL_ATTRIBUTES+1] = {
 	{ 0 }	/* Terminate list */
 };
 
+PRIVATE attr meta_attr[HTML_META_ATTRIBUTES+1] = {
+    { "CONTENT"},
+    { "HTTP-EQUIV"},
+    { "NAME"},
+    { "SCHEME" },
+    { 0 }		/* Terminate list */
+};	
+
 PRIVATE attr nextid_attr[HTML_NEXTID_ATTRIBUTES+1] = {
 	{ "N" },
 	{ 0 }	/* Terminate list */
@@ -384,6 +392,7 @@ PRIVATE HTTag tags[HTMLP_ELEMENTS] = {
     { "MARGIN"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
     { "MATH"	, id_attr,	HTML_ID_ATTRIBUTE,	SGML_MIXED },
     { "MENU"	, gen_attr,	HTML_GEN_ATTRIBUTES,	SGML_MIXED },
+    { "META"	, meta_attr,	HTML_META_ATTRIBUTES,	SGML_EMPTY },
     { "NEXTID"  , nextid_attr,	1,			SGML_EMPTY },
     { "NOTE"	, note_attr,	HTML_NOTE_ATTRIBUTES,	SGML_EMPTY },
     { "OL"	, list_attr,	HTML_LIST_ATTRIBUTES,	SGML_MIXED },

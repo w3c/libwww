@@ -105,8 +105,13 @@ PRIVATE int pumpData (HTStream * me)
 	HTHost * host = HTNet_host(me->net);
 	if (length<=0 && transfer==NULL &&
 	    HTHost_isPersistent(host) && !HTHost_closeNotification(host)) {
-	    if (STREAM_TRACE) HTTrace("MIME Parser. No body in this messsage\n");
-	    return HT_LOADED;
+	    if (format != WWW_UNKNOWN) {
+		if (STREAM_TRACE) HTTrace("MIME Parser. BAD - there seems to be a body but no length. This must be an HTTP/1.0 server pretending that it is HTTP/1.1\n");
+		HTHost_setCloseNotification(host, YES);
+	    } else {
+		if (STREAM_TRACE) HTTrace("MIME Parser. No body in this messsage\n");
+		return HT_LOADED;
+	    }
 	}
     }
 

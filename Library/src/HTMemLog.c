@@ -11,6 +11,7 @@
 /* Library include files */
 #include "sysdep.h"
 #include "HTUtils.h"
+#include "HTInet.h"
 #include "HTMemLog.h"
 #include "HTTimer.h"
 
@@ -100,40 +101,13 @@ PUBLIC int HTMemLog_add(char * buf, size_t len)
     return HT_ERROR;
 }
 
-PRIVATE int HTMemLog_adjustGMT(long theTime)
-{
-    static long adjustment = -1;
-    if (adjustment == -1) {
-        tzset();
-        adjustment = timezone;
-    }
-    return theTime-adjustment;
-}
-
-PRIVATE int HTMemLog_addTime(void)
+PRIVATE ms_t HTMemLog_addTime(void)
 {
     char buff[20];
-    int len;
-    int ret;
-#ifdef WWW_MSWINDOWS
-    SYSTEMTIME systemTime;
-
-    GetLocalTime(&systemTime);
-    ret = systemTime.wSecond;
-    len = sprintf(buff, "%02d:%02d:%02d.%d", systemTime.wHour, systemTime.wMinute, systemTime.wSecond, systemTime.wMilliseconds);
-#else /* WWW_MSWINDOWS */
-#ifdef HAVE_GETTIMEOFDAY
-    struct timeval tp;
-    struct timezone tz;
-
-    gettimeofday(&tp, &tz);
-    tp.tv_sec = HTMemLog_adjustGMT(tp.tv_sec)%(24*60*60);
-    ret = tp.tv_sec;
-    len = sprintf(buff, "%02ld:%02ld:%02ld.%ld", tp.tv_sec/3600, (tp.tv_sec%3600)/60, tp.tv_sec%60, tp.tv_usec);
-#endif /* HAVE_GETTIMEOFDAY */
-#endif /* !WWW_MSWINDOWS */
+    ms_t ms = HTGetTimeInMillis();
+    int len = sprintf(buff, "%lu", ms);
     HTMemLog_add(buff, len);
-    return ret;
+    return ms;
 }
 
 PUBLIC void HTMemLog_close (void)

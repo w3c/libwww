@@ -436,6 +436,21 @@ PRIVATE void HTML_start_element (
     }
     break;
 
+    case HTML_META:
+    {
+	/*
+	** We don't handle HTTP-EQUIV here - only "NAME". It shouldn't be
+	** a problem, though :)
+	*/
+	if (present[HTML_META_NAME] && value[HTML_META_NAME]) {
+	    HTAnchor_addMeta (me->node_anchor,
+			      value[HTML_META_NAME],
+			      (present[HTML_META_CONTENT] && value[HTML_META_CONTENT]) ?
+			      value[HTML_META_CONTENT] : "");
+	}
+    }
+    break;
+
     case HTML_TITLE:
         HTChunk_clear(me->title);
 	break;

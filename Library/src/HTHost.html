@@ -159,6 +159,18 @@ extern char * HTHost_rangeUnits  (HTHost * host);
 extern BOOL HTHost_setRangeUnits (HTHost * host, const char * units);
 extern BOOL HTHost_isRangeUnitAcceptable (HTHost * host, const char * unit);
 </PRE>
+
+<H3>
+  User Defined Contexts
+</H3>
+
+This can be used for anything that the application would like to keep tabs on.
+
+<PRE>
+extern void HTHost_setContext (HTHost * me, void * context);
+extern void * HTHost_context  (HTHost * me);
+</PRE>
+
 <H2>
   Persistent Connections
 </H2>

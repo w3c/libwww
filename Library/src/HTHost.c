@@ -1411,6 +1411,19 @@ PUBLIC int HTHost_forceFlush(HTHost * host)
     return ret;
 }
 
+/*
+** Context pointer to be used as a user defined context 
+*/
+PUBLIC void HTHost_setContext (HTHost * me, void * context)
+{
+    if (me) me->context = context;
+}
+
+PUBLIC void * HTHost_context (HTHost * me)
+{
+    return me ? me->context : NULL;
+}
+
 PUBLIC int HTHost_eventTimeout (void)
 {
     return EventTimeout;

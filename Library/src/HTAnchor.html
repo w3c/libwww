@@ -326,6 +326,28 @@ extern void HTAnchor_appendTitle	(HTParentAnchor *me,
 					 const char *	title);
 </PRE>
 <H3>
+  Meta Tags within the Document
+</H3>
+
+<PRE>
+extern HTAssocList * HTAnchor_meta (HTParentAnchor * me);
+extern BOOL HTAnchor_addMeta (HTParentAnchor * me,
+			      const char * name, const char * value);
+</PRE>
+
+<H4>
+  The Robots Meta tag
+</H4>
+
+A special case function that looks for any robots meta tag. This tag
+contains information about which links a robot can traverse and which
+it shouldn't.
+
+<PRE>
+extern char * HTAnchor_robots (HTParentAnchor * me);
+</PRE>
+
+<H3>
   Content Base
 </H3>
 <P>
