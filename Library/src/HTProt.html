@@ -59,11 +59,11 @@ This functions registers a protocol module and binds it to a specific
 access acheme. For example HTTP.c is bound to http URLs. The call back
 function is the function to be called for loading. The reason why it
 is of type HTEventCallback is that it then can be used directly in the
-event loop when used in non-preemtive mode.
+event loop when used in non-preemptive mode.
 
 <PRE>
 extern BOOL HTProtocol_add (CONST char *       	name,
-			    BOOL		preemtive,
+			    BOOL		preemptive,
 			    HTEventCallback *	client,
 			    HTEventCallback *	server);
 </PRE>
@@ -106,13 +106,13 @@ extern HTEventCallback * HTProtocol_client (HTProtocol * protocol);
 extern HTEventCallback * HTProtocol_server (HTProtocol * protocol);
 </PRE>
 
-<H3>Is Access Scheme Preemtive</H3>
+<H3>Is Access Scheme Preemptive</H3>
 
 Returns YES if the implementation of the access scheme supports
-preemtive access only.
+preemptive access only.
 
 <PRE>
-extern BOOL HTProtocol_preemtive (HTProtocol * protocol);
+extern BOOL HTProtocol_preemptive (HTProtocol * protocol);
 </PRE>
 
 <PRE>

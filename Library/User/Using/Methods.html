@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Using - Access Modules</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 31-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 17-Jan-1996 -->
 </HEAD>  
 <BODY>
 
@@ -36,7 +36,7 @@ HREF="../../Implementation/HTProt.html">protocol manager</A> which exports the f
 
 <PRE>
 extern BOOL HTProtocol_add (CONST char *       	scheme,
-			    BOOL		preemtive,
+			    BOOL		preemptive,
 			    HTEventCallBack *	callback);
 </PRE>
 
@@ -48,11 +48,14 @@ than one access scheme, it can be registered multiple time with different scheme
 with the <A HREF="../../Implementation/HTTelnet.html">Telnet access module</A> which also can handle
 <B>rlogin</B> and <B>tn3270</B> terminal sessions. <P>
 
-The next argument describes to the Library whether it is capable of handling non-blocking sockets or
-not. This is normally a design decision when implementing the protocol module, and we will not
-stretch this argument anymore in this guide. The <A HREF="../Architecture/">Library Architecture</A>
-document discusses in more detail how a protocol module can be designed to support non-blocking
-sockets. <P>
+<A NAME="preemptive"></A>The <CODE>preemptive</CODE> argument describes to the Library whether it is
+capable of handling non-blocking sockets or not. This is normally a design decision when
+implementing the protocol module in that a module implemented for using blocking sockets normally
+can't use non-blocking sockets. However, the other way is often possible, and in some situations it
+is advantageous to use blocking sockets. The Library allows this to happen on a pr request basic as
+explained in the section <A HREF="Request.html#preemptive">"The Request Object"</A>. The <A
+HREF="../Architecture/">Library Architecture</A> document discusses in more detail how a protocol
+module can be designed to support non-blocking sockets. <P>
 
 The last argument is the actual function name to call when a request has been issued and a protocol
 module has been found associated with the access scheme used. Even though it is not clear at this

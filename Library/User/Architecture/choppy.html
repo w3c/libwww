@@ -747,9 +747,9 @@ can live longer than a single request as persistent connections might handle a s
 the same TCP socket. Net objects can be used in three different ways:
 
 <OL>
-<LI>All requests are preemtive and all I/O is blocking
-<LI>Requests are non-preemtive managed by an <EM>internal</EM> event loop
-<LI>Requests are non-preemtive managed by an <EM>external</EM> event loop
+<LI>All requests are preemptive and all I/O is blocking
+<LI>Requests are non-preemptive managed by an <EM>internal</EM> event loop
+<LI>Requests are non-preemptive managed by an <EM>external</EM> event loop
 </OL>
 
 The three modes are described in more detail in the section on <A HREF="Events.html">Internal and
@@ -1048,9 +1048,9 @@ following:</P>
 
 <DL>
 
-<DT><B>Base Mode (preemtive)</B>
+<DT><B>Base Mode (preemptive)</B>
 
-<DD>In this mode all requests are handled in a preemtive way that does
+<DD>In this mode all requests are handled in a preemptive way that does
 not allow for any events to pause the execution of a thread or kill
 it. This mode is in other words strictly single threaded and the major
 difference between this mode and the next two modes is that all

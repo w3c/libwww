@@ -474,9 +474,9 @@ extern void HTRequest_setContext (HTRequest *request, void *context);
 extern void *HTRequest_context (HTRequest *request);
 </PRE>
 
-<H2>Preemtive or Non-preemtive Access</H2>
+<H2>Preemptive or Non-preemptive Access</H2>
 
-A access scheme is defined with a default for using either preemtive
+A access scheme is defined with a default for using either preemptive
 (blocking I/O) or non-premitve (non-blocking I/O). This is basically a
 result of the implementation of the protocol module itself. However,
 if non-blocking I/O is the default then some times it is nice to be
@@ -485,8 +485,8 @@ first document (the home page) then blocking can be used instead of
 non-blocking.
 
 <PRE>
-extern void HTRequest_setPreemtive (HTRequest *request, BOOL mode);
-extern BOOL HTRequest_preemtive (HTRequest *request);
+extern void HTRequest_setPreemptive (HTRequest *request, BOOL mode);
+extern BOOL HTRequest_preemptive (HTRequest *request);
 </PRE>
 
 <H2>Priority Management</H2>

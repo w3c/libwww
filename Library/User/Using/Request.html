@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Using the W3C Reference Library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  4-Dec-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 17-Jan-1996 -->
 </HEAD>  
 <BODY>
 
@@ -382,19 +382,18 @@ extern void HTRequest_setContext (HTRequest *request, void *context);
 extern void *HTRequest_context (HTRequest *request);
 </PRE>
 
-<H2>Preemtive or Non-preemtive Access</H2>
+<A NAME="preemptive"><H2>Preemptive or Non-preemptive Access</H2></A>
 
-A access scheme is defined with a default for using either preemtive
-(blocking I/O) or non-premitve (non-blocking I/O). This is basically a
-result of the implementation of the protocol module itself. However,
-if non-blocking I/O is the default then some times it is nice to be
-able to set the mode to blocking instead. For example when loading the
-first document (the home page) then blocking can be used instead of
-non-blocking.
+A access scheme is registered with a default for using either preemptive (blocking I/O) or
+non-premitve (non-blocking I/O). This is basically a result of the implementation of the protocol
+module itself and is explained in the section <A HREF="Methods.html#preemptive">Registering Access
+Schemes</A>. However, if non-blocking I/O is the default then some times it is nice to be able to
+set the mode to blocking instead. For example when loading the first document (the home page) then
+blocking can be used instead of non-blocking.
 
 <PRE>
-extern void HTRequest_setPreemtive (HTRequest *request, BOOL mode);
-extern BOOL HTRequest_preemtive (HTRequest *request);
+extern void HTRequest_setPreemptive (HTRequest *request, BOOL mode);
+extern BOOL HTRequest_preemptive (HTRequest *request);
 </PRE>
 
 <H2>Format Negotiation</H2>
