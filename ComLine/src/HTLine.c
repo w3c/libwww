@@ -194,7 +194,7 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 	if (cbf) (*cbf)(request, HT_A_MESSAGE, HT_MSG_NULL, NULL,
 			HTRequest_error(request), NULL);
     }
-    Cleanup(cl, status == HT_LOADED ? 0 : -1);
+    Cleanup(cl, (status/100 == 2) ? 0 : -1);
     return HT_OK;
 }
 
@@ -479,10 +479,7 @@ int main (int argc, char ** argv)
     }
 
     /* Add progress notification */
-    if (cl->flags & CL_QUIET) {
-	HTList * global = HTAlert_global();
-	HTAlertCall_delete(global, HTProgress);
-    }
+    if (cl->flags & CL_QUIET) HTAlert_deleteOpcode(HT_A_PROGRESS);
 
     /* Output file specified? */
     if (cl->outputfile) {
