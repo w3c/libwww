@@ -4,7 +4,7 @@
 <BODY>
 
 <A HREF="../"><IMG ALT="WWW" SRC="../Icons/WWW/WWW48x.gif"></A>
-<A HREF="../Overview.html"><IMG ALT="C-Style" SRC="../Icons/WWW/progstyle48x.gif"></A>
+<A HREF="Overview.html"><IMG ALT="C-Style" SRC="../Icons/WWW/progstyle48x.gif"></A>
 
 <H1>Modules</H1>
 
@@ -16,11 +16,19 @@ A module consists normally of the following:
 <LI>A module description file, for example <EM>foo.html</EM>
 </UL>
 
+Even though ANSI C doesn't support classes or objects, it is an
+advantage - especially when more and more people are going to
+contribute with modules that each module is a self contained unit with
+a clearly defined interface to the rest of the world. It is important
+that you supply a lot of "methods" for accessing the data structures
+and only declare as little <CODE>PUBLIC</CODE> as possible of the
+internal structures.<P>
+
 Make sure that your file names are not <B>longer than 8 characters</B>
 as we support PCs as well. The declaration file is
 <B>automatically</B> generated from the description file. This ensures
 that the description of a module is done at the same time as the
-declartion of the module. The generation of the declaration files is
+declaration of the module. The generation of the declaration files is
 done at compile time using the <A HREF="../LineMode/">Line Mode
 Browser</A>, so be sure that you have a recent version of this. <P>
 
@@ -61,7 +69,7 @@ then fill it out carefully.
 <DT>Heading
 
 <DD> To make it easy to spot the file in a long listing, put a header
-and te file name in the top right-hand corner.
+and the file name in the top right-hand corner.
 
 <DT> Authors
 
