@@ -596,7 +596,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		** register the input stream and get ready for read
 		*/
 		if (HTRequest_isDestination(request)) {
-		    HTEvent_Register(net->sockfd, request, (SockOps) FD_READ,
+		    HTEvent_register(net->sockfd, request, (SockOps) FD_READ,
 				     HTLoadHTTP, net->priority);
 		    HTRequest_linkDestination(request);
 		}
@@ -613,10 +613,10 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		if (HTRequest_isDestination(request)) {
 		    HTNet *srcnet = request->source->net;
 		    if (srcnet) {
-			HTEvent_Register(srcnet->sockfd, request->source,
+			HTEvent_register(srcnet->sockfd, request->source,
 					 (SockOps) FD_READ,
 					 srcnet->cbf, srcnet->priority);
-			HTEvent_UnRegister(net->sockfd, FD_WRITE);
+			HTEvent_unregister(net->sockfd, FD_WRITE);
 		    }
 		    return HT_OK;
 		}

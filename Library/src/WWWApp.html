@@ -1,112 +1,115 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww APPLICATION</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 16-Apr-1996 -->
-<NEXTID N="z11">
+  <!-- Changed by: Henrik Frystyk Nielsen, 16-Apr-1996 -->
+  <NEXTID N="z11">
+  <TITLE>W3C Reference Library libwww APPLICATION</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Non-Mandatory Application Include File</H1>
-
+<H1>
+  Non-Mandatory Application Include File
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-In addition top the basic W3C Reference Library include file called <A
-HREF="WWWLib.html">WWWLib.h</A> you <EM>can</EM> also include this
-file called WWWApp.h depending on the needs of your
-application. However, it is not required and none of the files
-included below are ever used in the core part of the Library
-itself. Only if this file is included, the extra modules will get
-included in the linked object code. It is also possible to include
-only a subset of the files below if the functionality you are after is
-covered by them.
-
+<P>
+In addition top the basic W3C Reference Library include file called
+<A HREF="WWWLib.html">WWWLib.h</A> you <EM>can</EM> also include this file
+called WWWApp.h depending on the needs of your application. However, it is
+not required and none of the files included below are ever used in the core
+part of the Library itself. Only if this file is included, the extra modules
+will get included in the linked object code. It is also possible to include
+only a subset of the files below if the functionality you are after is covered
+by them.
 <PRE>
 #ifndef WWWAPP_H
 #define WWWAPP_H
 </PRE>
-
 <PRE>
 #ifdef __cplusplus
 extern "C" { 
 #endif
 </PRE>
-
-<H2>System dependencies</H2>
-
+<H2>
+  System dependencies
+</H2>
+<P>
 The <A HREF="sysdep.html">sysdep.h</A> file includes system-specific include
-files and flags for I/O to network and disk. The only reason for this
-file is that the Internet world is more complicated than Posix and
-ANSI.
-
+files and flags for I/O to network and disk. The only reason for this file
+is that the Internet world is more complicated than Posix and ANSI.
 <PRE>
 #include "sysdep.h"
 </PRE>
-
-<H2>Generating the First Anchor</H2>
-
-This module provides some "make life easier" functions in order to get
-the application going. They help you generate the first anchor, also
-called the <EM>home anchor</EM>. It also contains a nice set of
-default WWW addresses.
-
+<H2>
+  Generating the First Anchor
+</H2>
+<P>
+This module provides some "make life easier" functions in order to get the
+application going. They help you generate the first anchor, also called the
+<EM>home anchor</EM>. It also contains a nice set of default WWW addresses.
 <PRE>
 #include "<A HREF="HTHome.html">HTHome.h</A>"
 </PRE>
-
-<H2>User Dialogs and Messages</H2>
-
-You can register a set of callback functions to handle user prompting,
-error messages, confimations etc. Here we give a set of functions that
-can be used on almost anu thinkable platform. If you want to provide
-your own platform dependent implementation then fine :-)
-
+<H2>
+  User Dialogs and Messages
+</H2>
+<P>
+You can register a set of callback functions to handle user prompting, error
+messages, confimations etc. Here we give a set of functions that can be used
+on almost anu thinkable platform. If you want to provide your own platform
+dependent implementation then fine :-)
 <PRE>
 #include "<A HREF="HTDialog.html">HTDialog.h</A>"
 </PRE>
-
-<H2>After Terminating a Request</H2>
-
-When a request is terminated, the application often has to do some
-action as a result of the request (and of the result of the
-request). The Application part of the Library provides two following
-modules to handle <EM>logging</EM> and <EM>history
-management</EM>. You can register a <EM>POST request handler</EM> in
-the <A HREF="HTNet.html">Net Manager</A> as described in the <A
-HREF="../User/Using/Overview.html">User's Guide</A>. <P>
-
-You can find a function called <CODE>HTLoadTerminate</CODE> in the <A
-HREF="HTHome.html">HTHome module</A> that enables all the functionality
+<H2>
+  Registering Requests
+</H2>
+<P>
+The library core does not provide an event model. Instead the application
+must register methods to register and unregister requests. This module provides
+those methods so that simple apps, like the LineMode browser, may use this
+event model.
+<PRE>#include "<A HREF="HTHome.html">HTEvntrg.h</A>"
+</PRE>
+<H2>
+  After Terminating a Request
+</H2>
+<P>
+When a request is terminated, the application often has to do some action
+as a result of the request (and of the result of the request). The Application
+part of the Library provides two following modules to handle <EM>logging</EM>
+and <EM>history management</EM>. You can register a <EM>POST request
+handler</EM> in the <A HREF="HTNet.html">Net Manager</A> as described in
+the <A HREF="../User/Using/Overview.html">User's Guide</A>.
+<P>
+You can find a function called <CODE>HTLoadTerminate</CODE> in the
+<A HREF="HTHome.html">HTHome module</A> that enables all the functionality
 for handling a request result.
-
-<H3>Logging</H3>
-
-Often it is required to log the requests issued to the Library. This
-can either be the case if the application is a server or it can also
-be useful in a client application. This module provides a simple
-logging mechanism which can be enabled if needed.
-
+<H3>
+  Logging
+</H3>
+<P>
+Often it is required to log the requests issued to the Library. This can
+either be the case if the application is a server or it can also be useful
+in a client application. This module provides a simple logging mechanism
+which can be enabled if needed.
 <PRE>
 #include "<A HREF="HTLog.html">HTLog.h</A>"
 </PRE>
-
-<H3>History Management</H3>
-
-Another type of logging is keeping track of which documents a user has
-visited when browsing along on the Web. The Library history manager
-provides a basic set of functionality to keep track of a linear
-history list.
-
+<H3>
+  History Management
+</H3>
+<P>
+Another type of logging is keeping track of which documents a user has visited
+when browsing along on the Web. The Library history manager provides a basic
+set of functionality to keep track of a linear history list.
 <PRE>
 #include "<A HREF="HTHist.html">HTHist.h</A>"
 </PRE>
-
+<P>
 End of application specific modules
-
 <PRE>
 #ifdef __cplusplus
 } /* end extern C definitions */
@@ -114,10 +117,9 @@ End of application specific modules
 
 #endif
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

@@ -136,7 +136,7 @@ PRIVATE const SockOps ExceptBits = FD_OOB ;
 /*
 ** Local functions 
 */
-PRIVATE int __HTEvent_addRequest( SOCKET, HTRequest *, SockOps, HTEventCallback *, HTPriority); 
+PRIVATE int __AddRequest( SOCKET, HTRequest *, SockOps, HTEventCallback *, HTPriority); 
 PRIVATE void __RequestInit( RQ *, SOCKET, HTRequest *, SockOps, HTEventCallback *, HTPriority);
 PRIVATE int __ProcessFds( fd_set *, SockOps, const char *);
 PRIVATE void __RequestUpdate( RQ *, SOCKET, HTRequest *, SockOps, HTEventCallback *, HTPriority);
@@ -145,11 +145,11 @@ PRIVATE int __EventUnregister(RQ * , RQ **, SockOps );
 /* ------------------------------------------------------------------------- */
 
 #ifdef WWW_WIN_ASYNC
-/*	HTEvent_winHandle
+/*	HTEventrg_winHandle
 **	-----------------
 **	Managing the windows handle on Windows
 */
-PUBLIC BOOL HTEvent_winHandle (HTRequest * request)
+PUBLIC BOOL HTEventrg_winHandle (HTRequest * request)
 {
     if (request) {
 	request->hwnd = HTsocketWin;
@@ -159,14 +159,14 @@ PUBLIC BOOL HTEvent_winHandle (HTRequest * request)
     return NO;
 }
 
-PUBLIC BOOL HTEvent_setWinHandle (HWND window, unsigned long message)
+PUBLIC BOOL HTEventrg_setWinHandle (HWND window, unsigned long message)
 {
     HTsocketWin = window;
     HTwinMsg = message;
     return YES;
 }
 
-PUBLIC HWND HTEvent_getWinHandle (unsigned long * pMessage)
+PUBLIC HWND HTEventrg_getWinHandle (unsigned long * pMessage)
 {
     if (pMessage)
         *pMessage = HTwinMsg;
@@ -177,22 +177,22 @@ PUBLIC HWND HTEvent_getWinHandle (unsigned long * pMessage)
 /*
 **	By having these dummy definitions we can keep the same def file
 */
-PUBLIC BOOL HTEvent_winHandle (HTRequest * request)
+PUBLIC BOOL HTEventrg_winHandle (HTRequest * request)
 {
     return YES;
 }
-PUBLIC BOOL HTEvent_setWinHandle (HWND window, unsigned long message)
+PUBLIC BOOL HTEventrg_setWinHandle (HWND window, unsigned long message)
 {
     return YES;
 }
-PUBLIC HWND HTEvent_getWinHandle (unsigned long * pMessage)
+PUBLIC HWND HTEventrg_getWinHandle (unsigned long * pMessage)
 {
     return (HWND) 0;
 }
 #endif /* WWW_WIN_DLL */
 #endif /* WWW_WIN_ASYNC */
 
-/*	HTEvent_registerTimeout 
+/*	HTEventrg_registerTimeout 
 **	-----------------------
 **	Set the timeout for sockets. This does only works on NON windows
 **	platforms as we need to poll for the console on windows
@@ -202,7 +202,7 @@ PUBLIC HWND HTEvent_getWinHandle (unsigned long * pMessage)
 **	sockets are active.
 **	Returns YES if OK else NO
 */
-PUBLIC BOOL HTEvent_registerTimeout (struct timeval *tp, HTRequest * request,
+PUBLIC BOOL HTEventrg_registerTimeout (struct timeval *tp, HTRequest * request,
 				     HTEventTimeout *tcbf, BOOL always)
 {
     if (tp) {
@@ -225,12 +225,12 @@ PUBLIC BOOL HTEvent_registerTimeout (struct timeval *tp, HTRequest * request,
     return YES;
 }
 
-/*	HTEvent_unregisterTimeout 
+/*	HTEventrg_unregisterTimeout 
 **	-------------------------
 **	Disables the callback function.
 **	Returns YES if OK else NO
 */
-PUBLIC BOOL HTEvent_unregisterTimeout (void)
+PUBLIC BOOL HTEventrg_unregisterTimeout(void)
 {
 #ifdef WWW_WIN_ASYNC
     /* Same window process WWW_WIN_ASYNC stuff and TIMEOUT */
@@ -242,13 +242,13 @@ PUBLIC BOOL HTEvent_unregisterTimeout (void)
 }
 
 /*
-** HTEvent_RegisterTTY 
+** HTEventrg_registerTTY 
 **
 ** register the tty (console) as having events.
 ** if the TTY is select()-able (as is true under Unix), then we treat
 ** it as just another socket. Otherwise, take steps depending on the platform
 */
-PUBLIC int HTEvent_RegisterTTY( SOCKET fd, HTRequest * rq, SockOps ops, 
+PUBLIC int HTEventrg_registerTTY( SOCKET fd, HTRequest * rq, SockOps ops, 
 			       HTEventCallback *cbf, HTPriority p) 
 {
     assert(rq != 0);
@@ -262,9 +262,9 @@ PUBLIC int HTEvent_RegisterTTY( SOCKET fd, HTRequest * rq, SockOps ops,
 	
 #ifdef TTY_IS_SELECTABLE 
 
-    /* HTEvent_Register adds the request _and_ inserts in fd table */
+    /* HTEventrg_register adds the request _and_ inserts in fd table */
     userSockets++;
-    return HTEvent_Register( fd, rq, ops, cbf, p) ;
+    return HTEventrg_register( fd, rq, ops, cbf, p) ;
 
 #else 
 
@@ -279,7 +279,7 @@ PUBLIC int HTEvent_RegisterTTY( SOCKET fd, HTRequest * rq, SockOps ops,
 
     console_handle = GetStdHandle( STD_INPUT_HANDLE) ;
  
-    return __HTEvent_addRequest((SOCKET)console_handle, rq, ops, cbf, p);
+    return __AddRequest((SOCKET)console_handle, rq, ops, cbf, p);
 #else 
 #ifdef WWW_MSWINDOWS /* EGP - added stub */
     return (0);
@@ -291,9 +291,9 @@ PUBLIC int HTEvent_RegisterTTY( SOCKET fd, HTRequest * rq, SockOps ops,
 }
 
 /*
-** HTEvent_UnRegisterTTY - unregisters TTY i/o channel
+** HTEventrg_unregisterTTY - unregisters TTY i/o channel
 */
-PUBLIC int HTEvent_UnRegisterTTY(SOCKET s, SockOps ops) 
+PUBLIC int HTEventrg_unregisterTTY(SOCKET s, SockOps ops) 
 {
     if (THD_TRACE)
 	HTTrace("UnregisterTTY on channel %d\n", s) ;
@@ -307,18 +307,18 @@ PUBLIC int HTEvent_UnRegisterTTY(SOCKET s, SockOps ops)
 #ifdef TTY_IS_SELECTABLE
     userSockets--;
 #endif
-    return HTEvent_UnRegister(s, ops) ;	/* no harm in unregistering...*/
+    return HTEventrg_unregister(s, ops) ;	/* no harm in unregistering...*/
 }
 
 
 /*
-**  HTEvent_Register
+**  HTEventrg_register
 **  for a given socket, reqister a request structure, a set of operations, 
 **  a HTEventCallback function, and a priority. For this implementation, 
 **  we allow only a single HTEventCallback function for all operations.
 **  and the priority field is ignored.
 */
-PUBLIC int HTEvent_Register (SOCKET s, HTRequest * rq, SockOps ops,
+PUBLIC int HTEventrg_register (SOCKET s, HTRequest * rq, SockOps ops,
 			     HTEventCallback *cbf, HTPriority p) 
 {
     if (THD_TRACE) 
@@ -326,7 +326,7 @@ PUBLIC int HTEvent_Register (SOCKET s, HTRequest * rq, SockOps ops,
 		s, (void *)rq,  (void *)cbf, (unsigned) ops, (unsigned) p) ;
 
 
-    (void)__HTEvent_addRequest( s, rq, ops, cbf, p);
+    (void)__AddRequest( s, rq, ops, cbf, p);
  
 #ifdef WWW_WIN_ASYNC
 #ifndef WIN32	/* EGP */
@@ -374,11 +374,11 @@ PUBLIC int HTEvent_Register (SOCKET s, HTRequest * rq, SockOps ops,
 }
 
 /*
-**  HTEvent_addRequst - add the given socket and its associated Request
+**  __AddRequst - add the given socket and its associated Request
 **  when socket has activity, the registered HTEventCallback function will
 **  invoked  
 */
-PRIVATE int __HTEvent_addRequest(SOCKET s, HTRequest * rq, SockOps ops,
+PRIVATE int __AddRequest(SOCKET s, HTRequest * rq, SockOps ops,
 				 HTEventCallback *cbf, HTPriority p)
 {
     RQ * rqp = 0 , **rqpp = 0 ;
@@ -398,7 +398,7 @@ PRIVATE int __HTEvent_addRequest(SOCKET s, HTRequest * rq, SockOps ops,
     if (!found) { 
         /* error if memory not allocated */
         if ((*rqpp = rqp = (RQ *) HT_CALLOC(1, sizeof(RQ))) == NULL)
-	    HT_OUTOFMEM("__HTEvent_addRequest");
+	    HT_OUTOFMEM("__AddRequest");
         __RequestInit( rqp, s, rq, ops, cbf, p) ;
     }
     return 0;
@@ -441,13 +441,13 @@ PRIVATE void __RequestUpdate( RQ * rqp, SOCKET s, HTRequest * rq,
 }
 
 /*
-** HTEvent_UnRegister
+** HTEventrg_unregister
 ** remove the registered information for the specified socket for the actions 
 ** specified in ops. if no actions remain after the unregister, the registered
 ** info is deleted, and, if the socket has been registered for notification, 
 ** the HTEventCallback will be invoked.
 */
-PUBLIC int HTEvent_UnRegister( SOCKET s, SockOps ops) 
+PUBLIC int HTEventrg_unregister( SOCKET s, SockOps ops) 
 {
     long v = HASH(s) ;
     int rv = 0 ;
@@ -472,12 +472,12 @@ PUBLIC int HTEvent_UnRegister( SOCKET s, SockOps ops)
 }
 
 /*
-** HTEvent_Retrieve 
+** __RetrieveCBF
 ** given a socket, return the HTEventCallback function registered for it
 ** and return the HTRequest pointer associated with it.
 ** If the socket isn't found, the function returns NULL
 */
-PUBLIC HTEventCallback *HTEvent_Retrieve(SOCKET s, SockOps ops,HTRequest **arp)
+PRIVATE HTEventCallback *__RetrieveCBF(SOCKET s, SockOps ops,HTRequest **arp)
 {
     long value = HASH(s);
     register RQ * rqp = 0, **rqpp = 0 ;
@@ -504,12 +504,12 @@ PUBLIC HTEventCallback *HTEvent_Retrieve(SOCKET s, SockOps ops,HTRequest **arp)
 }
 
 /*
-** HTEvent_UnregisterAll
+** HTEventrg_unregisterAll
 ** unregister all sockets 
 ** N.B. we just remove them for our internal data structures: it is up to the 
 ** application to actually close the socket. 
 */
-PUBLIC int HTEvent_UnregisterAll( void ) 
+PUBLIC int HTEventrg_unregisterAll( void ) 
 {
     int i ;
     register RQ * rqp, **rqpp ;
@@ -538,17 +538,17 @@ PUBLIC int HTEvent_UnregisterAll( void )
 }
 
 
-/*	HTEvent_stopLoop
+/*	HTEventrg_stopLoop
 **	----------------
 **	Stops the (select based) event loop. The function does not guarantee
 **	that all requests have terminated. This is for the app to do
 */
-PUBLIC void HTEvent_stopLoop (void)
+PUBLIC void HTEventrg_stopLoop (void)
 {
     HTEndLoop = 1;
 }
 
-/*  HTEvent_Loop
+/*  HTEventrg_loop
 **  ------------
 **  event loop: that is, we wait for activity from one of our registered 
 **  channels, and dispatch on that.
@@ -597,7 +597,7 @@ PUBLIC LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
     return (0);
 }
 
-PUBLIC int HTEvent_Loop( HTRequest * theRequest )
+PUBLIC int HTEventrg_loop( HTRequest * theRequest )
 {
     MSG msg;
 #ifdef WWW_WIN_CONSOLE
@@ -635,7 +635,7 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
     return (HTEndLoop == 1 ? HT_OK : HT_ERROR);
 }
 
-#else /* WWW_WIN_ASYNC  - Unix HTEvent_Loop */
+#else /* WWW_WIN_ASYNC  - Unix HTEventrg_loop */
 
 #ifdef WWW_WIN_DLL
 PUBLIC LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
@@ -645,7 +645,7 @@ PUBLIC LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
 }
 #endif
 
-PUBLIC int HTEvent_Loop( HTRequest * theRequest ) 
+PUBLIC int HTEventrg_loop( HTRequest * theRequest ) 
 {
     fd_set treadset, twriteset, texceptset ;    
     int active_sockets;
@@ -854,7 +854,7 @@ PRIVATE int __ProcessFds( fd_set * fdsp, SockOps ops, const char * str)
 PRIVATE int __DoCallback( SOCKET s, SockOps ops)
 {
     HTRequest * rqp = NULL;
-    HTEventCallback *cbf = HTEvent_Retrieve( s, ops, &rqp);
+    HTEventCallback *cbf = __RetrieveCBF( s, ops, &rqp);
     /* although it makes no sense, callbacks can be null */
     if (!cbf || (rqp && rqp->priority == HT_PRIORITY_OFF)) {
 	if (THD_TRACE) HTTrace("Callback.... No callback found\n");
@@ -870,7 +870,7 @@ PRIVATE int __DoCallback( SOCKET s, SockOps ops)
 PRIVATE int __DoUserCallback( SOCKET s, SockOps ops)
 {
     HTRequest * rqp = NULL;
-    HTEventCallback *cbf = HTEvent_Retrieve( s, ops, &rqp);
+    HTEventCallback *cbf = __RetrieveCBF( s, ops, &rqp);
     /* although it makes no sense, callbacks can be null*/
     if (!cbf || !rqp || rqp->priority == HT_PRIORITY_OFF) {
 	if (THD_TRACE) HTTrace("UserCallback No callback found\n");
@@ -988,3 +988,55 @@ PRIVATE void __DumpFDSet( fd_set * fdp, const char * str)
     return ;
 }
 
+PUBLIC BOOL HTEventrg_init (const char * AppName, const char * AppVersion)
+{
+#ifdef WWW_WIN_ASYNC
+    /*
+    **	We are here starting a hidden window to take care of events from
+    **  the async select() call in the async version of the event loop in
+    **	the Internal event manager (HTEvntrg.c)
+    */
+    static char className[] = "AsyncWindowClass";
+    WNDCLASS wc;
+    OSVERSIONINFO osInfo;
+    
+    wc.style=0;
+    wc.lpfnWndProc=(WNDPROC)AsyncWindowProc;
+    wc.cbClsExtra=0;
+    wc.cbWndExtra=0;
+    wc.hIcon=0;
+    wc.hCursor=0;
+    wc.hbrBackground=0;
+    wc.lpszMenuName=(LPSTR)0;
+    wc.lpszClassName=className;
+
+    osInfo.dwOSVersionInfoSize = sizeof(osInfo);
+    GetVersionEx(&osInfo);
+    if (osInfo.dwPlatformId == VER_PLATFORM_WIN32s || osInfo.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS)
+	wc.hInstance=GetModuleHandle(NULL); /* 95 and non threaded platforms */
+    else
+	wc.hInstance=GetCurrentProcess(); /* NT and hopefully everything following */
+    if (!RegisterClass(&wc)) {
+    	HTTrace("HTLibInit.. Can't RegisterClass \"%s\"\n", className);
+	    return NO;
+    }
+    if (!(HTSocketWin = CreateWindow(className, "WWW_WIN_ASYNC", WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, 
+                                     CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, wc.hInstance,0))) {
+	char space[50];
+       	HTTrace("HTLibInit.. Can't CreateWindow \"WWW_WIN_ASYNC\" - error:");
+	sprintf(space, "%ld\n", GetLastError());
+	HTTrace(space);
+    	return NO;
+    }
+    HTwinMsg = WM_USER;  /* use first available message since app uses none */
+#endif /* WWW_WIN_ASYNC */
+    return YES;
+}
+
+PUBLIC BOOL HTEventrg_terminate (void)
+{
+#ifdef WWW_WIN_ASYNC
+    DestroyWindow(HTsocketWin);
+#endif
+    return YES;
+}

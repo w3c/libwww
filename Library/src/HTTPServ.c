@@ -199,7 +199,7 @@ PRIVATE int HTTPReply_free (HTStream * me)
 	if (HTNet_persistent(snet)) {
 	    if (STREAM_TRACE)
 		HTTrace("HTTPReply... Persistent conenction\n");
-	    HTEvent_Register(snet->sockfd, me->request, (SockOps) FD_READ,
+	    HTEvent_register(snet->sockfd, me->request, (SockOps) FD_READ,
 			     snet->cbf, snet->priority);
 	    HTRequest_clear(me->request);
 	} else {
@@ -231,7 +231,7 @@ PRIVATE int HTTPReply_abort (HTStream * me, HTList * e)
     if (HTNet_persistent(snet)) {
 	if (STREAM_TRACE)
 	    HTTrace("HTTPReply... Persistent conenction\n");
-	HTEvent_Register(snet->sockfd, me->request, (SockOps) FD_READ,
+	HTEvent_register(snet->sockfd, me->request, (SockOps) FD_READ,
 			 snet->cbf, snet->priority);
 	HTRequest_clear(me->request);
     } else {
@@ -501,14 +501,14 @@ PUBLIC int HTServHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 #if 0
 		if (HTRequest_mainDestination(request)) {
 		    HTNet * dest = request->mainDestination->net;
-		    HTEvent_Register(dest->sockfd, dest->request,
+		    HTEvent_register(dest->sockfd, dest->request,
 				     (SockOps) FD_READ,
 				     dest->cbf, dest->priority);
 		}
 #else
 		if (http->client && http->client->net) {
 		    HTNet * dnet = http->client->net;
-		    HTEvent_Register(dnet->sockfd, http->client,
+		    HTEvent_register(dnet->sockfd, http->client,
 				     (SockOps) FD_READ, dnet->cbf, dnet->priority);
 		}
 #endif		    

@@ -1,48 +1,46 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww NET OBJECT</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  3-Apr-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen,  3-Apr-1996 -->
+  <TITLE>W3C Reference Library libwww NET OBJECT</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Asyncronous Socket Management</H1>
-
+<H1>
+  Asyncronous Socket Management
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This module contains the routines for handling the set of active
-sockets currently in use by the multithreaded clients. It is an
-internal module to the Library, the application interface is
-implemented in the <A HREF="HTEvntrg.html">Event Module</A>. Look for
-more information in the <A
-HREF="http://www.w3.org/pub/WWW/Library/User/Architecture/">
-Multithread Specifications</A>. <P>
-
-This module is implemented by <A HREF="HTNet.c">HTNet.c</A>, and it is
-a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C
-Reference Library</A>.
-
+<P>
+This module contains the routines for handling the set of active sockets
+currently in use by the multithreaded clients. It is an internal module to
+the Library, the application interface is implemented in the
+<A HREF="HTEvntrg.html">Event Module</A>. Look for more information in the
+<A HREF="http://www.w3.org/pub/WWW/Library/User/Architecture/"> Multithread
+Specifications</A>.
+<P>
+This module is implemented by <A HREF="HTNet.c">HTNet.c</A>, and it is a
+part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C Reference
+Library</A>.
 <PRE>
 #ifndef HTNETMAN_H
 #define HTNETMAN_H
 #include "HTNet.h"
 #include "HTDNS.h"
 #include "HTSocket.h"
-#include "HTEvntrg.h"
+#include "HTEvent.h"
 #include "HTProt.h"
 </PRE>
-
-<H2>The HTNet Object</H2>
-
-The <CODE>HTNet</CODE> object is the core of the request queue
-management. This object contains information about the socket
-descriptor, the input read buffer etc. required to identify and
-service a request. <P>
-
+<H2>
+  The HTNet Object
+</H2>
+<P>
+The <CODE>HTNet</CODE> object is the core of the request queue management.
+This object contains information about the socket descriptor, the input read
+buffer etc. required to identify and service a request.
+<P>
 <PRE>
 typedef enum _TCPState {
     TCP_ERROR		= -2,
@@ -95,14 +93,12 @@ struct _HTNet {
 #define HTNet_setBytesRead(me,l)	((me) ? (me-&gt;bytes_read=(l)) : -1)
 #define HTNet_setBytesWritten(me,l)	((me) ? (me-&gt;bytes_written=(l)) :-1)
 </PRE>
-
 <PRE>
 #endif /* HTNETMAN_H */
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

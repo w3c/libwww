@@ -55,7 +55,7 @@ PRIVATE void free_channel (HTChannel * ch)
 	/* Close the socket */
 	if (ch->sockfd != INVSOC) {
 	    NETCLOSE(ch->sockfd);
-	    HTEvent_UnRegister(ch->sockfd, (SockOps) FD_ALL);
+	    HTEvent_unregister(ch->sockfd, (SockOps) FD_ALL);
 	    if (PROT_TRACE)
 		HTTrace("Channel..... Deleted %p, socket %d\n", ch,ch->sockfd);
 	}

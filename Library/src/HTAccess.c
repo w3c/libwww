@@ -1,4 +1,4 @@
-/*								     HTAccess.c
+/*								     htaccess.c
 **	ACCESS MANAGER
 **
 **	(c) COPYRIGHT MIT 1995.
@@ -101,35 +101,6 @@ PUBLIC void HTLib_setSecure (BOOL mode)
 */
 PUBLIC BOOL HTLibInit (const char * AppName, const char * AppVersion)
 {
-#ifdef WWW_WIN_ASYNC
-    /*
-    **	We are here starting a hidden window to take care of events from
-    **  the async select() call in the async version of the event loop in
-    **	the Internal event manager (HTEvntrg.c)
-    */
-    HWND htSocketWin;
-    static char className[] = "AsyncWindowClass";
-    WNDCLASS wc;
-    OSVERSIONINFO osInfo;
-    
-    wc.style=0;
-    wc.lpfnWndProc=(WNDPROC)AsyncWindowProc;
-    wc.cbClsExtra=0;
-    wc.cbWndExtra=0;
-    wc.hIcon=0;
-    wc.hCursor=0;
-    wc.hbrBackground=0;
-    wc.lpszMenuName=(LPSTR)0;
-    wc.lpszClassName=className;
-
-    osInfo.dwOSVersionInfoSize = sizeof(osInfo);
-    GetVersionEx(&osInfo);
-    if (osInfo.dwPlatformId == VER_PLATFORM_WIN32s || osInfo.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS)
-	wc.hInstance=GetModuleHandle(NULL); /* 95 and non threaded platforms */
-    else
-	wc.hInstance=GetCurrentProcess(); /* NT and hopefully everything following */
-#endif /* WWW_WIN_ASYNC */
-
     if (WWWTRACE)
 	HTTrace("WWWLibInit.. INITIALIZING LIBRARY OF COMMON CODE\n");
 
@@ -163,21 +134,6 @@ PUBLIC BOOL HTLibInit (const char * AppName, const char * AppVersion)
     HTSetSignal();				   /* Set signals in library */
 #endif
 
-#ifdef WWW_WIN_ASYNC
-    if (!RegisterClass(&wc)) {
-    	HTTrace("HTEvent_Loop.. Can't RegisterClass \"%s\"\n", className);
-	    return NO;
-    }
-    if (!(htSocketWin = CreateWindow(className, "WWW_WIN_ASYNC", WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, 
-                                     CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, wc.hInstance,0))) {
-	char space[50];
-       	HTTrace("HTEvent_Loop.. Can't CreateWindow \"WWW_WIN_ASYNC\" - error:");
-	sprintf(space, "%ld\n", GetLastError());
-	HTTrace(space);
-    	return NO;
-    }
-    HTEvent_setWinHandle (htSocketWin, WM_USER);     /* use first available message since app uses none */
-#endif /* WWW_WIN_ASYNC */
 
 #ifdef _WINSOCKAPI_
     /*
@@ -231,10 +187,6 @@ PUBLIC BOOL HTLibTerminate (void)
 
 #ifdef _WINSOCKAPI_
     WSACleanup();
-#endif
-
-#ifdef WWW_WIN_ASYNC
-    DestroyWindow(HTEvent_getWinHandle(0));
 #endif
 
     return YES;
@@ -578,7 +530,7 @@ PUBLIC int HTUpload_callback (HTRequest * request, HTStream * target)
 	    if (PROT_TRACE)
 		HTTrace("POST Anchor. Target returns %d\n", status);
 	    return status;
-	} else {				     /* We have a real error */
+	} else {				     /* we have a real error */
 	    if (PROT_TRACE) HTTrace("POST Anchor. Target ERROR\n");
 	    return status;
 	}

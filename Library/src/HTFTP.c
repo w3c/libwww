@@ -1368,7 +1368,7 @@ PUBLIC int HTLoadFTP (SOCKET soc, HTRequest * request, SockOps ops)
 		** register the input stream and get ready for read
 		*/
 		if (HTRequest_isPostWeb(request)) {
-		    HTEvent_Register(cnet->sockfd, request, (SockOps) FD_READ,
+		    HTEvent_register(cnet->sockfd, request, (SockOps) FD_READ,
 				     HTLoadFTP, cnet->priority);
 		    HTRequest_linkDestination(request);
 		}

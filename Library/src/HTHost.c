@@ -234,7 +234,7 @@ PUBLIC int HTHost_catchClose (SOCKET soc, HTRequest * request, SockOps ops)
 	    if (CORE_TRACE) HTTrace("Catch Close. socket %d NOT FOUND!\n",soc);
 	}
     }
-    HTEvent_UnRegister(soc, (SockOps) FD_ALL);
+    HTEvent_unregister(soc, (SockOps) FD_ALL);
     return HT_OK;
 }
 

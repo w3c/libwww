@@ -6,7 +6,7 @@ HTChannl.c
 HTDNS.c
 HTError.c
 HTEscape.c
-HTEvntrg.c
+HTEvent.c
 HTFormat.c
 HTFWrite.c
 HTHost.c

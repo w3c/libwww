@@ -114,13 +114,13 @@ PRIVATE int HTANSIReader_read (HTInputStream * me)
 	    if (status == HT_WOULD_BLOCK) {
 		if (PROT_TRACE) HTTrace("ANSI read... Target WOULD BLOCK\n");
 #if 0
-		HTEvent_UnRegister(soc, FD_READ);
+		HTEvent_unregister(soc, FD_READ);
 #endif
 		return HT_WOULD_BLOCK;
 	    } else if (status == HT_PAUSE) {
 		if (PROT_TRACE) HTTrace("ANSI read... Target PAUSED\n");
 #if 0
-		HTEvent_UnRegister(soc, FD_READ);
+		HTEvent_unregister(soc, FD_READ);
 #endif
 		return HT_PAUSE;
 	    } else if (status > 0) {	      /* Stream specific return code */

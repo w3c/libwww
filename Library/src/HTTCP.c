@@ -276,7 +276,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 		{
 		    if (PROT_TRACE)
 			HTTrace("HTDoConnect. WOULD BLOCK `%s'\n",host);
-		    HTEvent_Register(net->sockfd, request, (SockOps)FD_CONNECT,
+		    HTEvent_register(net->sockfd, request, (SockOps)FD_CONNECT,
 				     net->cbf, net->priority);
 		    HT_FREE(fullhost);
 		    return HT_WOULD_BLOCK;
@@ -319,7 +319,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	    break;
 
 	  case TCP_CONNECTED:
-	    HTEvent_UnRegister(net->sockfd, (SockOps) FD_CONNECT);
+	    HTEvent_unregister(net->sockfd, (SockOps) FD_CONNECT);
 	    if (net->retry) {
 		net->connecttime -= time(NULL);
 		HTDNS_updateWeigths(net->dns, net->home, net->connecttime);
@@ -335,7 +335,7 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
 	  case TCP_ERROR:
 	    if (PROT_TRACE) HTTrace("HTDoConnect. Connect failed\n");
 	    if (net->sockfd != INVSOC) {
-	        HTEvent_UnRegister(net->sockfd, (SockOps) FD_ALL);
+	        HTEvent_unregister(net->sockfd, (SockOps) FD_ALL);
 		NETCLOSE(net->sockfd);
 		net->sockfd = INVSOC;
 		if (HTHost_isPersistent(net->host)) {	 /* Inherited socket */
@@ -406,7 +406,7 @@ PUBLIC int HTDoAccept (HTNet * net)
 	{
 	    if (PROT_TRACE)
 		HTTrace("HTDoAccept.. WOULD BLOCK %d\n", net->sockfd);
-	    HTEvent_Register(net->sockfd, request, (SockOps) FD_ACCEPT,
+	    HTEvent_register(net->sockfd, request, (SockOps) FD_ACCEPT,
 			     net->cbf, net->priority);
 	    return HT_WOULD_BLOCK;
 	}
@@ -416,7 +416,7 @@ PUBLIC int HTDoAccept (HTNet * net)
     }
 
     /* Swap to new socket */
-    HTEvent_UnRegister(net->sockfd, (SockOps) FD_ACCEPT);
+    HTEvent_unregister(net->sockfd, (SockOps) FD_ACCEPT);
     net->sockfd = status;
 
     /* Create a channel for the new socket */
@@ -607,7 +607,7 @@ PUBLIC int HTDoCLose (HTNet * net)
     if (net && net->sockfd != INVSOC) {
 	if (PROT_TRACE) HTTrace("Socket...... Close %d\n", net->sockfd);
 	status = NETCLOSE(net->sockfd);
-	HTEvent_UnRegister(net->sockfd, (SockOps) FD_ALL);
+	HTEvent_unregister(net->sockfd, (SockOps) FD_ALL);
  	net->sockfd = INVSOC;
     }
     return status < 0 ? HT_ERROR : HT_OK;

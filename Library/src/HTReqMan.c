@@ -89,7 +89,7 @@ PUBLIC HTRequest * HTRequest_new (void)
     /* Content negotiation */
     me->ContentNegotiation = NO;		       /* Do this by default */
 
-#ifdef WWW_WIN_ASYNC
+#if 0 /* WWW_WIN_ASYNC */
     HTEvent_winHandle(me);
 #endif
     return me;
@@ -863,7 +863,7 @@ PUBLIC BOOL HTRequest_destinationsReady (HTRequest * me)
 	    if (CORE_TRACE)
 		HTTrace("POSTWeb..... All destinations are ready!\n");
 	    if (net)			      /* Might already have finished */
-		HTEvent_Register(net->sockfd, source, (SockOps) FD_READ,
+		HTEvent_register(net->sockfd, source, (SockOps) FD_READ,
 				 net->cbf, net->priority);
 	    return YES;
 	}
@@ -902,7 +902,7 @@ PUBLIC BOOL HTRequest_linkDestination (HTRequest *dest)
 	    if (CORE_TRACE)
 		HTTrace("POSTWeb..... All destinations ready!\n");
 	    if (net)			      /* Might already have finished */
-		HTEvent_Register(net->sockfd, source, (SockOps) FD_READ,
+		HTEvent_register(net->sockfd, source, (SockOps) FD_READ,
 				 net->cbf, net->priority);
 	    return YES;
 	}

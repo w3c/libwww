@@ -98,7 +98,7 @@ PRIVATE int HTReader_read (HTInputStream * me)
 		{
 		    if (PROT_TRACE)
 			HTTrace("Read Socket. WOULD BLOCK fd %d\n",soc);
-		    HTEvent_Register(soc, net->request, (SockOps) FD_READ,
+		    HTEvent_register(soc, net->request, (SockOps) FD_READ,
 				     net->cbf, net->priority);
 		    return HT_WOULD_BLOCK;
 #ifdef __svr4__
@@ -126,7 +126,7 @@ PRIVATE int HTReader_read (HTInputStream * me)
 			     soc);
 		if (cbf) (*cbf)(net->request, HT_PROG_DONE,
 				HT_MSG_NULL, NULL, NULL, NULL);
-	        HTEvent_UnRegister(soc, FD_READ);
+	        HTEvent_unregister(soc, FD_READ);
 		return HT_CLOSED;
 	    }
 
@@ -160,11 +160,11 @@ PRIVATE int HTReader_read (HTInputStream * me)
 	     (me->target, me->data, b_read)) != HT_OK) {
 	    if (status == HT_WOULD_BLOCK) {
 		if (PROT_TRACE) HTTrace("Read Socket. Target WOULD BLOCK\n");
-		HTEvent_UnRegister(soc, FD_READ);
+		HTEvent_unregister(soc, FD_READ);
 		return HT_WOULD_BLOCK;
 	    } else if (status == HT_PAUSE) {
 		if (PROT_TRACE) HTTrace("Read Socket. Target PAUSED\n");
-		HTEvent_UnRegister(soc, FD_READ);
+		HTEvent_unregister(soc, FD_READ);
 		return HT_PAUSE;
 	    } else if (status>0) {	      /* Stream specific return code */
 		if (PROT_TRACE)
@@ -178,7 +178,7 @@ PRIVATE int HTReader_read (HTInputStream * me)
 	}
 	me->write = me->data + b_read;
     } while (net->preemptive);
-    HTEvent_Register(soc, net->request, (SockOps) FD_READ,
+    HTEvent_register(soc, net->request, (SockOps) FD_READ,
 		     net->cbf, net->priority);
     return HT_WOULD_BLOCK;
 }

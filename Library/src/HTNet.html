@@ -1,420 +1,423 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww NET OBJECT</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 13-Apr-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 13-Apr-1996 -->
+<!-- Changed by: Eric Prud'hommeaux, 14-May-1996 -->
+  <TITLE>W3C Reference Library libwww NET OBJECT</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Asyncronous Socket Management</H1>
-
+<H1>
+  Asyncronous Socket Management
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This module contains the routines for handling the set of active
-sockets currently in use by the multithreaded clients. It is an
-internal module to the Library, the application interface is
-implemented in the <A HREF="HTEvntrg.html">Event Module</A>. Look for
-more information in the <A
-HREF="http://www.w3.org/pub/WWW/Library/User/Architecture/">
-Multithread Specifications</A>. <P>
-
-This module is implemented by <A HREF="HTNet.c">HTNet.c</A>, and it is
-a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C
-Reference Library</A>.
-
+<P>
+This module contains the routines for handling the set of active sockets
+currently in use by the multithreaded clients. It is an internal module to
+the Library, the application interface is implemented in the
+<A HREF="HTEvent.html">Event Module</A>. Look for more information in the
+<A HREF="http://www.w3.org/pub/WWW/Library/User/Architecture/"> Multithread
+Specifications</A>.
+<P>
+This module is implemented by <A HREF="HTNet.c">HTNet.c</A>, and it is a
+part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C Reference
+Library</A>.
 <PRE>
 #ifndef HTNET_H
 #define HTNET_H
 </PRE>
-
-<H2>The HTNet Object</H2>
-
-The <CODE>HTNet</CODE> object is the core of the request queue
-management. This object contains information about the socket
-descriptor, the input read buffer etc. required to identify and
-service a request. <P>
-
+<H2>
+  The HTNet Object
+</H2>
+<P>
+The <CODE>HTNet</CODE> object is the core of the request queue management.
+This object contains information about the socket descriptor, the input read
+buffer etc. required to identify and service a request.
+<P>
 <PRE>
 typedef struct _HTNet HTNet;
 
-#include "HTEvntrg.h"
+#include "HTEvent.h"
 #include "HTReq.h"
 #include "HTTrans.h"
 #include "HTHost.h"
 #include "HTChannl.h"
 #include "HTDNS.h"
 </PRE>
-
-<H2>Request Call Back Functions</H2>
-
+<H2>
+  Request Call Back Functions
+</H2>
+<P>
 Callback functions can be registered to be called <EM>before</EM> and
-<EM>after</EM> a request has either been started or has
-terminated. The following functions are the generic registration
-mechanisms where we use lists as the basic data container. Then there
-is two methods for binding a list of callback functions to the set
-which is called <EM>before</EM> and to the set set which is called
-<EM>after</EM> <P>
-
-In both cases there can be more than one callback function which are
-called on turn and each callback function can be associated with a
-status code of the request. For example one callback function can be
-registered for HT_LOADED, another for HT_ERROR etc.
-
-<H3>Register a Request Callback</H3>
-
-Register a call back function that is to be called on every
-termination of a request. Several call back functions can be
-registered in which case all of them are called in the reverse order
-of which they were registered (last one first). We name the calling
-mechansm of calling the functions for the <EM>before</EM> loop and the
-<EM>after</EM> loop.<P>
-
-In case the callback function is registered as being called
-<EM>after</EM> the request has terminated the result of the request is
-passed to the fucntion. The status signifies which call back function
-to call depending of the result of the request. This can be
-
+<EM>after</EM> a request has either been started or has terminated. The following
+functions are the generic registration mechanisms where we use lists as the
+basic data container. Then there is two methods for binding a list of callback
+functions to the set which is called <EM>before</EM> and to the set set which
+is called <EM>after</EM>
+<P>
+In both cases there can be more than one callback function which are called
+on turn and each callback function can be associated with a status code of
+the request. For example one callback function can be registered for HT_LOADED,
+another for HT_ERROR etc.
+<H3>
+  Register a Request Callback
+</H3>
+<P>
+Register a call back function that is to be called on every termination of
+a request. Several call back functions can be registered in which case all
+of them are called in the reverse order of which they were registered (last
+one first). We name the calling mechansm of calling the functions for the
+<EM>before</EM> loop and the <EM>after</EM> loop.
+<P>
+In case the callback function is registered as being called <EM>after</EM>
+the request has terminated the result of the request is passed to the fucntion.
+The status signifies which call back function to call depending of the result
+of the request. This can be
 <DL>
-<DT>HT_ERROR
-<DD>An error occured
-<DT>HT_LOADED
-<DD>The document was loaded
-<DT>HT_NO_DATA
-<DD>OK, but no data
-<DT>HT_RETRY
-<DD>Retry request after at a later time
-<DT>HT_REDIRECT
-<DD>The request has been redirected and we send back the new URL
-<DT>HT_ALL
-<DD>All of above
+  <DT>
+    HT_ERROR
+  <DD>
+    An error occured
+  <DT>
+    HT_LOADED
+  <DD>
+    The document was loaded
+  <DT>
+    HT_NO_DATA
+  <DD>
+    OK, but no data
+  <DT>
+    HT_RETRY
+  <DD>
+    Retry request after at a later time
+  <DT>
+    HT_REDIRECT
+  <DD>
+    The request has been redirected and we send back the new URL
+  <DT>
+    HT_ALL
+  <DD>
+    All of above
 </DL>
-
+<P>
 Any callback function any code it likes, but <B>IF NOT</B> the code is
 <EM>HT_OK</EM>, then the callback loop is stopped. If we are in the
-<EM>before</EM> loop and a function returns anything else than
-<EM>HT_OK</EM> then we immediately jump to the <EM>after</EM> loop
-<B>passing</B> the last return code from the <EM>before</EM> loop.
-
+<EM>before</EM> loop and a function returns anything else than <EM>HT_OK</EM>
+then we immediately jump to the <EM>after</EM> loop <B>passing</B> the last
+return code from the <EM>before</EM> loop.
 <PRE>
 typedef int HTNetCallback (HTRequest * request, void * param, int status);
 
 extern BOOL HTNetCall_add (HTList * list, HTNetCallback *cbf,
 			  void * param, int status);
 </PRE>
-
-<H3>Delete a single Callbak</H3>
-
+<H3>
+  Delete a single Callbak
+</H3>
+<P>
 Removes a callback function from a list
-
 <PRE>
 extern BOOL HTNetCall_delete (HTList * list, HTNetCallback *cbf);
 </PRE>
-
-<H3>Delete a list of Callbacks</H3>
-
+<H3>
+  Delete a list of Callbacks
+</H3>
+<P>
 Unregisters all call back functions in the list
-
 <PRE>
 extern BOOL HTNetCall_deleteAll (HTList * list);
 </PRE>
-
-<H3>Call List of Registered Callback Functions</H3>
-
-Call all the call back functions registered in the list IF not the
-status is HT_IGNORE.  The callback functions are called in the order
-of which they were registered. At the moment an application callback
-function is called, it can free the request object - it is no longer
-used by the Library. Returns what the last callback function returns
-
+<H3>
+  Call List of Registered Callback Functions
+</H3>
+<P>
+Call all the call back functions registered in the list IF not the status
+is HT_IGNORE. The callback functions are called in the order of which they
+were registered. At the moment an application callback function is called,
+it can free the request object - it is no longer used by the Library. Returns
+what the last callback function returns
 <PRE>
 extern int HTNetCall_execute (HTList * list, HTRequest * request, int status);
 </PRE>
-
-<H3>BEFORE Callbacks</H3>
-
-Global set of callback functions BEFORE the request is issued. The
-list can be NULL.
-
+<H3>
+  BEFORE Callbacks
+</H3>
+<P>
+Global set of callback functions BEFORE the request is issued. The list can
+be NULL.
 <PRE>
 extern BOOL HTNetCall_addBefore	(HTNetCallback *cbf, void * param, int status);
 extern BOOL HTNet_setBefore	(HTList * list);
 extern HTList * HTNet_before	(void);
 extern int HTNet_callBefore	(HTRequest *request, int status);
 </PRE>
-
-<H3>AFTER Callbacks</H3>
-
-Global set of callback functions AFTER the request is issued. The list can be NULL
-
+<H3>
+  AFTER Callbacks
+</H3>
+<P>
+Global set of callback functions AFTER the request is issued. The list can
+be NULL
 <PRE>
 extern BOOL HTNetCall_addAfter	(HTNetCallback *cbf, void * param, int status);
 extern BOOL HTNet_setAfter	(HTList * list);
 extern HTList * HTNet_after	(void);
 extern int HTNet_callAfter	(HTRequest *request, int status);
 </PRE>
-
-<H2>Request Queue</H2>
-
-The request queue ensures that no more than a fixed number of TCP
-connections are open at the same time. If more requests are handed to
-the Library, they are put into the pending queue and initiated when
-sockets become free.
-
-<H3>Number of Simultanous open TCP connections</H3>
-
-Set the max number of simultanous sockets. The default value is
-HT_MAX_SOCKETS which is 6. The number of persistent connections depend
-on this value as a deadlock can occur if all available sockets a
-persistent (see the <A HREF="HTDNS.html">DNS Manager</A> for more
-information on setting the number of persistent connections). The
-number of persistent connections can never be more than the max number
-of sockets-2, so letting newmax=2 prevents persistent sockets.
-
+<H2>
+  Request Queue
+</H2>
+<P>
+The request queue ensures that no more than a fixed number of TCP connections
+are open at the same time. If more requests are handed to the Library, they
+are put into the pending queue and initiated when sockets become free.
+<H3>
+  Number of Simultanous open TCP connections
+</H3>
+<P>
+Set the max number of simultanous sockets. The default value is HT_MAX_SOCKETS
+which is 6. The number of persistent connections depend on this value as
+a deadlock can occur if all available sockets a persistent (see the
+<A HREF="HTDNS.html">DNS Manager</A> for more information on setting the
+number of persistent connections). The number of persistent connections can
+never be more than the max number of sockets-2, so letting newmax=2 prevents
+persistent sockets.
 <PRE>
 extern BOOL HTNet_setMaxSocket (int newmax);
 extern int  HTNet_maxSocket (void);
 </PRE>
-
-<H3>List Active Queue</H3>
-
-Returns the list of active requests that are currently having an open
-connection. Returns list of HTNet objects or NULL if
-error. 
-
+<H3>
+  List Active Queue
+</H3>
+<P>
+Returns the list of active requests that are currently having an open connection.
+Returns list of HTNet objects or NULL if error.
 <PRE>
 extern HTList *HTNet_activeQueue (void);
 extern BOOL HTNet_idle (void);
 </PRE>
-
-<H3>Are we Active?</H3>
-
-We have some small functions that tell whether there are registered
-requests in the Net manager. There are tree queues: The
-<EM>active</EM>, the <EM>pending</EM>, and the
-<EM>persistent</EM>. The <EM>active</EM> queue is the set of requests
-that are actively sending or receiving data. The <EM>pending</EM> is
-the requests that we have registered but which are waiting for a free
-socket. The <EM>Persistent</EM> queue are requets that are waiting to
-use the same socket in order to save network resoures (if the server
-understands persistent connections). <P>
-
-<H4>Active Reqeusts?</H4>
-
+<H3>
+  Are we Active?
+</H3>
+<P>
+We have some small functions that tell whether there are registered requests
+in the Net manager. There are tree queues: The <EM>active</EM>, the
+<EM>pending</EM>, and the <EM>persistent</EM>. The <EM>active</EM> queue
+is the set of requests that are actively sending or receiving data. The
+<EM>pending</EM> is the requests that we have registered but which are waiting
+for a free socket. The <EM>Persistent</EM> queue are requets that are waiting
+to use the same socket in order to save network resoures (if the server
+understands persistent connections).
+<P>
+<H4>
+  Active Reqeusts?
+</H4>
+<P>
 Returns whether there are requests in the <EM>active</EM> queue or not
-
 <PRE>
 extern BOOL HTNet_idle (void);
 </PRE>
-
-<H4>Registered Requests?</H4>
-
-Returns whether there are requests registered in any of the lists or
-not
-
+<H4>
+  Registered Requests?
+</H4>
+<P>
+Returns whether there are requests registered in any of the lists or not
 <PRE>
 extern BOOL HTNet_isEmpty (void);
 </PRE>
-
-<H3>List Pending Queue</H3>
-
-Returns the list of pending requests that are waiting to become
-active. Returns list of HTNet objects or NULL if error
-
+<H3>
+  List Pending Queue
+</H3>
+<P>
+Returns the list of pending requests that are waiting to become active. Returns
+list of HTNet objects or NULL if error
 <PRE>
 extern HTList *HTNet_pendingQueue (void);
 </PRE>
-
-<H2>Create an Object</H2>
-
-You can create a new HTNet object as a new request to be handled. If
-we have more than HTMaxActive connections already then put this into
-the pending queue, else start the request by calling the call back
-function registered with this access method.  Returns YES if OK, else
-NO
-
+<H2>
+  Create an Object
+</H2>
+<P>
+You can create a new HTNet object as a new request to be handled. If we have
+more than HTMaxActive connections already then put this into the pending
+queue, else start the request by calling the call back function registered
+with this access method. Returns YES if OK, else NO
 <PRE>
 extern BOOL HTNet_newClient (HTRequest * request);
 </PRE>
-
-You can create a new HTNet object as a new request to be handled. If
-we have more than HTMaxActive connections already then return NO.
-Returns YES if OK, else NO
-
+<P>
+You can create a new HTNet object as a new request to be handled. If we have
+more than HTMaxActive connections already then return NO. Returns YES if
+OK, else NO
 <PRE>
 extern BOOL HTNet_newServer (HTRequest * request, SOCKET sockfd, char *access);
 </PRE>
-
+<P>
 And you can create a plain new HTNet object using the following method:
-
 <PRE>
 extern HTNet * HTNet_new (HTRequest * request, SOCKET sockfd);
 </PRE>
-
-<H3>Duplicate an Existing Object</H3>
-
-Creates a new HTNet object as a duplicate of the same request.
-Returns YES if OK, else NO.
-
+<H3>
+  Duplicate an Existing Object
+</H3>
+<P>
+Creates a new HTNet object as a duplicate of the same request. Returns YES
+if OK, else NO.
 <PRE>
 extern HTNet * HTNet_dup (HTNet * src);
 </PRE>
-
-<H2>HTNet Object Methods</H2>
-
-<H3>Make an Object Wait</H3>
-
-Let a net object wait for a persistent socket. It will be launched
-from the HTNet_delete() function when the socket gets free.
-
+<H2>
+  HTNet Object Methods
+</H2>
+<H3>
+  Make an Object Wait
+</H3>
+<P>
+Let a net object wait for a persistent socket. It will be launched from the
+HTNet_delete() function when the socket gets free.
 <PRE>
 extern BOOL HTNet_wait (HTNet *net);
 </PRE>
-
-<H3>Priority Management</H3>
-
-Each HTNet object is created with a priority which it inherits from
-the <A HREF="HTReq.html">Request manager</A>. However, in some
-stuations it is useful to be to change the current priority after the
-request has been started. These two functions allow you to do
-this. The effect will show up the first time (which might be
-imidiately) the socket blocks and control returns to the event loop.
-Also have a look at how you can do this before the request is issued
-in the <A HREF="HTReq.html">request manager</A>.
-
+<H3>
+  Priority Management
+</H3>
+<P>
+Each HTNet object is created with a priority which it inherits from the
+<A HREF="HTReq.html">Request manager</A>. However, in some stuations it is
+useful to be to change the current priority after the request has been started.
+These two functions allow you to do this. The effect will show up the first
+time (which might be imidiately) the socket blocks and control returns to
+the event loop. Also have a look at how you can do this before the request
+is issued in the <A HREF="HTReq.html">request manager</A>.
 <PRE>
 extern HTPriority HTNet_priority (HTNet * net);
 extern BOOL HTNet_setPriority (HTNet * net, HTPriority priority);
 </PRE>
-
-<H3>Persistent Connections</H3>
-
-You can set a Net object to handle persistent connections for example
-using HTTP, NNTP, or FTP. You can control whether a Net object
-supports persistent connections or not using this function.
-
+<H3>
+  Persistent Connections
+</H3>
+<P>
+You can set a Net object to handle persistent connections for example using
+HTTP, NNTP, or FTP. You can control whether a Net object supports persistent
+connections or not using this function.
 <PRE>
 extern BOOL HTNet_persistent (HTNet * net);
 </PRE>
-
-You can set or disable a Net object supporting persistent connections
-using this function:
-
+<P>
+You can set or disable a Net object supporting persistent connections using
+this function:
 <PRE>
 extern BOOL HTNet_setPersistent (HTNet * net, BOOL persistent);
 </PRE>
-
-<H3>Delete an Object</H3>
-
-Deletes the HTNet object from the list of active requests and calls
-any registered call back functions IF not the status is HT_IGNORE.
-This is used if we have internal requests that the app doesn't know
-about. We also see if we have pending requests that can be started up
-now when we have a socket free. The callback functions are called in
-the reverse order of which they were registered (last one first);
-
+<H3>
+  Delete an Object
+</H3>
+<P>
+Deletes the HTNet object from the list of active requests and calls any
+registered call back functions IF not the status is HT_IGNORE. This is used
+if we have internal requests that the app doesn't know about. We also see
+if we have pending requests that can be started up now when we have a socket
+free. The callback functions are called in the reverse order of which they
+were registered (last one first);
 <PRE>
 extern BOOL HTNet_delete (HTNet * me, int status);
 </PRE>
-
-<H3>Delete ALL HTNet Objects</H3>
-
-Deletes all HTNet object that might either be active or pending We DO
-NOT call the call back functions - A crude way of saying goodbye!
-
+<H3>
+  Delete ALL HTNet Objects
+</H3>
+<P>
+Deletes all HTNet object that might either be active or pending We DO NOT
+call the call back functions - A crude way of saying goodbye!
 <PRE>
 extern BOOL HTNet_deleteAll (void);
 </PRE>
-
-<H3>Kill a Request</H3>
-
-Kill the request by calling the call back function with a request for
-closing the connection. Does not remove the object. This is done by
-HTNet_delete() function which is called by the load routine.  Returns
-OK if success, NO on error
-
+<H3>
+  Kill a Request
+</H3>
+<P>
+Kill the request by calling the call back function with a request for closing
+the connection. Does not remove the object. This is done by HTNet_delete()
+function which is called by the load routine. Returns OK if success, NO on
+error
 <PRE>
 extern BOOL HTNet_kill (HTNet * me);
 </PRE>
-
-<H3>Kill ALL requests</H3>
-
-Kills all registered (active+pending) requests by calling the call
-back function with a request for closing the connection. We do not
-remove the HTNet object as it is done by HTNet_delete().  Returns OK
-if success, NO on error
-
+<H3>
+  Kill ALL requests
+</H3>
+<P>
+Kills all registered (active+pending) requests by calling the call back function
+with a request for closing the connection. We do not remove the HTNet object
+as it is done by HTNet_delete(). Returns OK if success, NO on error
 <PRE>
 extern BOOL HTNet_killAll (void);
 </PRE>
-
-<H3>Create Input and Output Streams</H3>
-
-You create the input stream and bind it to the channel using the
-following methods. Please read the description in the <A
-HREF="HTIOStream.html">HTIOStream module</A> on the parameters
-<EM>target</EM>, <EM>param</EM>, and <EM>mode</EM>. Both methods
-return YES if OK, else NO.
-
+<H3>
+  Create Input and Output Streams
+</H3>
+<P>
+You create the input stream and bind it to the channel using the following
+methods. Please read the description in the
+<A HREF="HTIOStream.html">HTIOStream module</A> on the parameters
+<EM>target</EM>, <EM>param</EM>, and <EM>mode</EM>. Both methods return YES
+if OK, else NO.
 <PRE>
 extern HTInputStream * HTNet_getInput (HTNet * net, HTStream * target,
 				       void * param, int mode);
 
 extern HTOutputStream * HTNet_getOutput (HTNet * net, void * param, int mode);
 </PRE>
-
-<H2>Data Access Methods</H2>
-
+<H2>
+  Data Access Methods
+</H2>
+<P>
 We have some methods for accessing the internals of the Net object
-
-<H3>Socket Descriptor</H3>
-
+<H3>
+  Socket Descriptor
+</H3>
 <PRE>
 extern BOOL HTNet_setSocket (HTNet * net, SOCKET sockfd);
 extern SOCKET HTNet_socket (HTNet * net);
 </PRE>
-
-<H3>The Transport Object</H3>
-
+<H3>
+  The Transport Object
+</H3>
+<P>
 The <A HREF="HTTransport.html">transport object</A> is normally set up
 automatically but can be changed at a later time.
-
 <PRE>
 extern BOOL HTNet_setTransport (HTNet * net, HTTransport * tp);
 extern HTTransport * HTNet_transport (HTNet * net);
 </PRE>
-
-<H3>The Channel Object</H3>
-
+<H3>
+  The Channel Object
+</H3>
 <PRE>
 extern BOOL HTNet_setChannel (HTNet * net, HTChannel * channel);
 extern HTChannel * HTNet_channel (HTNet * net);
 </PRE>
-
-<H3>The Host Object</H3>
-
+<H3>
+  The Host Object
+</H3>
 <PRE>
 extern BOOL HTNet_setHost (HTNet * net, HTHost * host);
 extern HTHost * HTNet_host (HTNet * net);
 </PRE>
-
-<H3>The DNS Object</H3>
-
+<H3>
+  The DNS Object
+</H3>
 <PRE>
 extern BOOL HTNet_setDns (HTNet * net, HTdns * dns);
 extern HTdns * HTNet_dns (HTNet * net);
 </PRE>
-
 <PRE>
 #endif /* HTNET_H */
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

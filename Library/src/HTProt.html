@@ -1,67 +1,63 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww PROTOCOLS</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 26-Mar-1996 -->
-<NEXTID N="z11">
+  <!-- Changed by: Henrik Frystyk Nielsen, 26-Mar-1996 -->
+  <NEXTID N="z11">
+  <TITLE>W3C Reference Library libwww PROTOCOLS</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Access Scheme Manager</H1>
-
+<H1>
+  Access Scheme Manager
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This module keeps a list of valid protocol (naming scheme) specifiers
-with associated access code. New access protocols may be registered at
-any time.<P>
-
-This module is implemented by <A HREF="HTProt.c">HTProt.c</A>, and it
-is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
-Reference Library</A>. <P>
-
+<P>
+This module keeps a list of valid protocol (naming scheme) specifiers with
+associated access code. New access protocols may be registered at any time.
+<P>
+This module is implemented by <A HREF="HTProt.c">HTProt.c</A>, and it is
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>.
+<P>
 <PRE>
 #ifndef HTPROT_H
 #define HTPROT_H
 
 #include "HTReq.h"
 #include "HTAnchor.h"
-#include "HTEvntrg.h"
+#include "HTEvent.h"
 #include "HTTrans.h"
 </PRE>
-
-After the new architecture based on call back functions managed by an
-eventloop and protocol state machines, the protocol structure has been
-modified to reflect this call back structure. The
-<CODE>HTEventCallback</CODE> is defined in <A
-HREF="HTEvntrg.html">HTEvntrg module</A>. <P>
-
-All the access schemes supported in the Library can be initiated using
-the function <CODE>HTAccessInit()</CODE> in <A
-HREF="HTInit.html">HTInit module</A><P>
-
-An access scheme module takes as a parameter a socket (which is an
-invalid socket the first time the function is called), a <A
-HREF="HTReqMan.html">request structure</A> containing details of the
-request, and the action by which the (valid) socket was selected in
-the event loop.  When the protocol class routine is called, the anchor
-element in the request is already valid (made valid by HTAccess).
-
+<P>
+After the new architecture based on call back functions managed by an eventloop
+and protocol state machines, the protocol structure has been modified to
+reflect this call back structure. The <CODE>HTEventCallback</CODE> is defined
+in <A HREF="HTEvntrg.html">HTEvntrg module</A>.
+<P>
+All the access schemes supported in the Library can be initiated using the
+function <CODE>HTAccessInit()</CODE> in <A HREF="HTInit.html">HTInit module</A>
+<P>
+An access scheme module takes as a parameter a socket (which is an invalid
+socket the first time the function is called), a
+<A HREF="HTReqMan.html">request structure</A> containing details of the request,
+and the action by which the (valid) socket was selected in the event loop.
+When the protocol class routine is called, the anchor element in the request
+is already valid (made valid by HTAccess).
 <PRE>
 typedef struct _HTProtocol HTProtocol;
 </PRE>
-
-<H3>Add an Access Scheme</H3>
-
-This functions registers a protocol module and binds it to a specific
-access acheme. For example HTTP.c is bound to http URLs. The call back
-function is the function to be called for loading. The reason why it
-is of type HTEventCallback is that it then can be used directly in the
-event loop when used in non-preemptive mode.
-
+<H3>
+  Add an Access Scheme
+</H3>
+<P>
+This functions registers a protocol module and binds it to a specific access
+acheme. For example HTTP.c is bound to http URLs. The call back function
+is the function to be called for loading. The reason why it is of type
+HTEventCallback is that it then can be used directly in the event loop when
+used in non-preemptive mode.
 <PRE>
 extern BOOL HTProtocol_add (const char *       	name,
 			    const char *	transport,
@@ -69,69 +65,66 @@ extern BOOL HTProtocol_add (const char *       	name,
 			    HTEventCallback *	client,
 			    HTEventCallback *	server);
 </PRE>
-
-<H3>Delete an Access Scheme</H3>
-
-This functions deletes a registered protocol module so that it can not
-be used for accessing a resource anymore.
-
+<H3>
+  Delete an Access Scheme
+</H3>
+<P>
+This functions deletes a registered protocol module so that it can not be
+used for accessing a resource anymore.
 <PRE>
 extern BOOL HTProtocol_delete (const char * name);
 </PRE>
-
-<H3>Remove ALL Registered Schemes</H3>
-
-This is the garbage collection function. It is called by <A
-HREF="HTAccess.html#Library">HTLibTerminate()</A>
-
+<H3>
+  Remove ALL Registered Schemes
+</H3>
+<P>
+This is the garbage collection function. It is called by
+<A HREF="HTAccess.html#Library">HTLibTerminate()</A>
 <PRE>
 extern BOOL HTProtocol_deleteAll (void);
 </PRE>
-
-<H3>Find a Protocol Object</H3>
-
-You can search the list of registered protocol objects as a function
-of the access acheme. If an access scheme is found then the protocol
-object is returned.
-
+<H3>
+  Find a Protocol Object
+</H3>
+<P>
+You can search the list of registered protocol objects as a function of the
+access acheme. If an access scheme is found then the protocol object is returned.
 <PRE>
 extern HTProtocol * HTProtocol_find (HTRequest * request, const char * access);
 </PRE>
-
-<H3>Get the callback functions</H3>
-
-You can get the callback functions registered together with a protocol
-object using the following methods.
-
+<H3>
+  Get the callback functions
+</H3>
+<P>
+You can get the callback functions registered together with a protocol object
+using the following methods.
 <PRE>
 extern HTEventCallback * HTProtocol_client (HTProtocol * protocol);
 extern HTEventCallback * HTProtocol_server (HTProtocol * protocol);
 </PRE>
-
-<H3>Is Access Scheme Preemptive</H3>
-
-Returns YES if the implementation of the access scheme supports
-preemptive access only.
-
+<H3>
+  Is Access Scheme Preemptive
+</H3>
+<P>
+Returns YES if the implementation of the access scheme supports preemptive
+access only.
 <PRE>
 extern BOOL HTProtocol_preemptive (HTProtocol * protocol);
 </PRE>
-
-<H3>Get and Set the Transport</H3>
-
+<H3>
+  Get and Set the Transport
+</H3>
 <PRE>
 extern BOOL HTProtocol_setTransport (HTProtocol * protoccol,
 				     const char * transport);
 extern const char * HTProtocol_transport (HTProtocol * protocol);
 </PRE>
-
 <PRE>
 #endif /* HTPROT_H */
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

@@ -232,6 +232,9 @@ CSDisposition_callback PICSCallback;
 PRIVATE HTRequest * Thread_new (LineMode * lm, BOOL Interactive, LMState state)
 {
     HTRequest * newreq = HTRequest_new();
+#ifdef WWW_WIN_ASYNC
+    HTEventrg_winHandle(newreq);
+#endif
     if (!lm) return NULL;
     Context_new(lm, newreq, state);
     if (Interactive) HTRequest_setConversion(newreq, lm->presenters, NO);
@@ -1665,6 +1668,8 @@ int main (int argc, char ** argv)
 
     /* Initiate W3C Reference Library */
     HTLibInit(APP_NAME, APP_VERSION);
+    HTEvent_setRegisterCallback(HTEventrg_register);
+    HTEvent_setUnregisterCallback(HTEventrg_unregister);
 
     /* Create a new Line Mode object */
     lm = LineMode_new();
@@ -2079,7 +2084,7 @@ int main (int argc, char ** argv)
 	lm->tv->tv_sec = HTAlert_interactive() ?
 	    DEFAULT_I_TIMEOUT : DEFAULT_NI_TIMEOUT;
     }
-    HTEvent_registerTimeout(lm->tv, request, timeout_handler, NO);
+    HTEventrg_registerTimeout(lm->tv, request, timeout_handler, NO);
 
     /* Set max number of sockets we want open simultanously */
     HTNet_setMaxSocket(6);
@@ -2133,16 +2138,16 @@ int main (int argc, char ** argv)
 	*/
 #ifdef STDIN_FILENO
 	if (isatty(STDIN_FILENO)) {
-	    HTEvent_RegisterTTY(STDIN_FILENO, lm->console, (SockOps)FD_READ,
+	    HTEventrg_registerTTY(STDIN_FILENO, lm->console, (SockOps)FD_READ,
 				scan_command, HT_PRIORITY_MAX);
 	}
 #else
-	HTEvent_RegisterTTY(0, lm->console, (SockOps)FD_READ, scan_command, 1);
+	HTEventrg_registerTTY(0, lm->console, (SockOps)FD_READ, scan_command, 1);
 #endif
     }
 
     /* Go into the event loop... */
-    HTEvent_Loop(request);
+    HTEventrg_loop(request);
 
     /* Only gets here if event loop fails */
     Cleanup(lm, 0);

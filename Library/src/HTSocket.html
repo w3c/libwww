@@ -1,42 +1,41 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww Socket Interface</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  5-Apr-1996 -->
-<NEXTID N="z18">
+  <!-- Changed by: Henrik Frystyk Nielsen,  5-Apr-1996 -->
+  <NEXTID N="z18">
+  <TITLE>W3C Reference Library libwww Socket Interface</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Manages Read and Write to and from the Network</H1>
-
+<H1>
+  Manages Read and Write to and from the Network
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This module defines the read and write functions to and from the
-network. As we are having reentrant function and a smarter network I/O
-this will get very small :-) <P>
-
-This module is implemented by <A HREF="HTSocket.c">HTSocket.c</A>, and
-it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
-Reference Library</A>.
-
+<P>
+This module defines the read and write functions to and from the network.
+As we are having reentrant function and a smarter network I/O this will get
+very small :-)
+<P>
+This module is implemented by <A HREF="HTSocket.c">HTSocket.c</A>, and it
+is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>.
 <PRE>
 #ifndef HTSOCKET_H
 #define HTSOCKET_H
 
-#include <A HREF="HTReq.html">"HTEvntrg.h"</A>
+#include <A HREF="HTReq.html">"HTEvent.h"</A>
 </PRE>
-
-<H2>Reading CRLF</H2>
-
-The Library provides a default set of read routines that can handle
-the most common situations. However, before we start we make following
-definition is to make life easier when having a state machine looking
-for a <CODE>&lt;CRLF&gt;</CODE> sequence.
-
+<H2>
+  Reading CRLF
+</H2>
+<P>
+The Library provides a default set of read routines that can handle the most
+common situations. However, before we start we make following definition
+is to make life easier when having a state machine looking for a
+<CODE>&lt;CRLF&gt;</CODE> sequence.
 <PRE>
 typedef enum _HTEOLState {
     EOL_ERR = -1,
@@ -48,27 +47,24 @@ typedef enum _HTEOLState {
     EOL_SLF
 } HTEOLState;
 </PRE>
-
-<H2>Load Data from a Socket</H2>
-
-This function is a wrapper around the <CODE>HTSocketRead()</CODE>
-declared below. It provides a callback function for the <A
-HREF="HTEvntrg.html">event loop</A> so that a socket can be loaded
-using non-blocking I/O. The function requires an <B>open</B>
-socket. It will typically be used in server applications or in a
-client application that can read directly from <CODE>stdin</CODE>.
-
+<H2>
+  Load Data from a Socket
+</H2>
+<P>
+This function is a wrapper around the <CODE>HTSocketRead()</CODE> declared
+below. It provides a callback function for the <A HREF="HTEvntrg.html">event
+loop</A> so that a socket can be loaded using non-blocking I/O. The function
+requires an <B>open</B> socket. It will typically be used in server applications
+or in a client application that can read directly from <CODE>stdin</CODE>.
 <PRE>
 extern HTEventCallback HTLoadSocket;
 </PRE>
-
 <PRE>
 #endif
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

@@ -2,6 +2,7 @@
 <HEAD>
 <TITLE>W3C Reference Library libwww EVENTS</TITLE>
 <!-- Changed by: Henrik Frystyk Nielsen,  5-Apr-1996 -->
+<!-- Changed by: Eric Prud'hommeaux, 15-May-1996 -->
 </HEAD>
 <BODY>
 
@@ -36,17 +37,17 @@ typedef enum _HTPriority {
 
 typedef u_long SockOps; 
 
-#include "HTReq.h"
 #include "sysdep.h"
+#include "HTReq.h"
 </PRE>
 
 <H2>Windows Specific Handles</H2>
 
 <PRE>
 #if defined(WWW_WIN_ASYNC) || defined(WWW_WIN_DLL)
-extern BOOL HTEvent_winHandle (HTRequest * request);
-extern BOOL HTEvent_setWinHandle (HWND window, unsigned long message);
-extern HWND HTEvent_getWinHandle (unsigned long * pMessage);
+extern BOOL HTEventrg_winHandle (HTRequest * request);
+extern BOOL HTEventrg_setWinHandle (HWND window, unsigned long message);
+extern HWND HTEventrg_getWinHandle (unsigned long * pMessage);
 extern LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 #endif
 </PRE>
@@ -72,7 +73,7 @@ another socket. Otherwise, take steps depending on the platform. This
 is the function to use to register user events!
 
 <PRE>
-extern int HTEvent_RegisterTTY	(SOCKET, HTRequest *, SockOps,
+extern int HTEventrg_registerTTY	(SOCKET, HTRequest *, SockOps,
 				 HTEventCallback *, HTPriority);
 </PRE>
 
@@ -82,7 +83,7 @@ Unregisters TTY I/O channel. If the TTY is select()-able (as is true
 under Unix), then we treat it as just another socket.
 
 <PRE>
-extern int HTEvent_UnRegisterTTY (SOCKET, SockOps);
+extern int HTEventrg_unregisterTTY (SOCKET, SockOps);
 </PRE>
 
 <H3>Register an Event Handler</H3>
@@ -93,7 +94,7 @@ we allow only a single HTEventCallback function for all operations.
 and the priority field is ignored.
 
 <PRE>
-extern int HTEvent_Register	(SOCKET, HTRequest *,
+extern int HTEventrg_register	(SOCKET, HTRequest *,
 				 SockOps, HTEventCallback *,
 				 HTPriority);
 </PRE>
@@ -106,7 +107,7 @@ the registered info is deleted, and, if the socket has been registered
 for notification, the HTEventCallback will be invoked.
 
 <PRE>
-extern int HTEvent_UnRegister	(SOCKET, SockOps);
+extern int HTEventrg_unregister	(SOCKET, SockOps);
 </PRE>
 
 <H3>Unregister ALL Event Handlers</H3>
@@ -115,7 +116,7 @@ Unregister all sockets. N.B. we just remove them for our internal data
 structures: it is up to the application to actually close the socket.
 
 <PRE>
-extern int HTEvent_UnregisterAll (void);
+extern int HTEventrg_unregisterAll (void);
 </PRE>
 
 <H2>Handler for Timeout on Sockets</H2>
@@ -131,7 +132,7 @@ then only when Library sockets are active. Returns YES if OK else NO.
 <PRE>
 typedef int HTEventTimeout (HTRequest *);
 
-extern BOOL HTEvent_registerTimeout (struct timeval *tp, HTRequest * request,
+extern BOOL HTEventrg_registerTimeout (struct timeval *tp, HTRequest * request,
 				     HTEventTimeout *tcbf, BOOL always);
 </PRE>
 
@@ -143,7 +144,7 @@ sockets as distinct.  That means we can't avoid a busy wait, but we do
 our best.
 
 <PRE>
-extern int HTEvent_Loop (HTRequest * request);
+extern int HTEventrg_loop (HTRequest * request);
 </PRE>
 
 <H2>Stop the Event Loop</H2>
@@ -152,11 +153,11 @@ Stops the (select based) event loop. The function does not guarantee
 that all requests have terminated. This is for the app to do
 
 <PRE>
-extern void HTEvent_stopLoop (void);
+extern void HTEventrg_stopLoop (void);
 </PRE>
 
 <PRE>
-#endif /* HTEvent_H */
+#endif /* HTEVENTRG_H */
 </PRE>
 
 <HR>

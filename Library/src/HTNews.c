@@ -548,7 +548,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 		** register the input stream and get ready for read
 		*/
 		if (HTRequest_isPostWeb(request)) {
-		    HTEvent_Register(net->sockfd, request, (SockOps) FD_READ,
+		    HTEvent_register(net->sockfd, request, (SockOps) FD_READ,
 				     HTLoadNews, net->priority);
 		    HTRequest_linkDestination(request);
 		}
@@ -783,7 +783,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
             if (ops == FD_WRITE || ops == FD_NONE) {
 		if (HTRequest_isDestination(request)) {
 		    HTNet *srcnet = request->source->net;
-		    HTEvent_Register(srcnet->sockfd, request->source,
+		    HTEvent_register(srcnet->sockfd, request->source,
 				     (SockOps) FD_READ,
 				     HTLoadNews, srcnet->priority);
 		    return HT_OK;

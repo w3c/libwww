@@ -516,7 +516,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		** register the input stream and get ready for read
 		*/
 		if (HTRequest_isDestination(request)) {
-		    HTEvent_Register(net->sockfd, request, (SockOps) FD_READ,
+		    HTEvent_register(net->sockfd, request, (SockOps) FD_READ,
 				     HTLoadFile, net->priority);
 		    HTRequest_linkDestination(request);
 		}
@@ -535,7 +535,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		*/
 		if (!net->preemptive) {
 		    if (PROT_TRACE) HTTrace("HTLoadFile.. returning\n");
-		    HTEvent_Register(net->sockfd, request, (SockOps) FD_READ,
+		    HTEvent_register(net->sockfd, request, (SockOps) FD_READ,
 				     net->cbf, net->priority);
 		    return HT_WOULD_BLOCK;
 		}
