@@ -196,10 +196,8 @@ PRIVATE void HTMLGen_start_element ARGS4(
 	me->cleanness = 1;
 	me->delete_line_break_char = NO;
     }
-    /* Make very specific HTML assumption that PRE can't be
-       nested! */
-       
-    me->preformatted = (element_number == HTML_PRE)  ? YES : was_preformatted;
+    /* Make very specific HTML assumption that PRE can't be nested! */
+    me->preformatted = (element_number == HTML_PRE) ? YES : was_preformatted;
 }
 
 
@@ -225,7 +223,7 @@ PRIVATE void HTMLGen_end_element ARGS2(HTStructured *, me,
     }
     HTMLGen_put_string(me, "</");
     HTMLGen_put_string(me, me->dtd->tags[element_number].name);
-    HTMLGen_put_character(me, '>');
+    HTMLGen_put_string(me, ">\n");
     if (element_number == HTML_PRE) me->preformatted = NO;
 }
 
@@ -289,7 +287,7 @@ PRIVATE CONST HTStructuredClass HTMLGeneration = /* As opposed to print etc */
 	HTMLGen_free,
 	HTMLGen_abort,
 	HTMLGen_put_character, 	HTMLGen_put_string, HTMLGen_write,
-	HTMLGen_start_element, 	HTMLGen_end_element,
+	HTMLGen_start_element,	HTMLGen_end_element,
 	HTMLGen_put_entity
 }; 
 
@@ -326,7 +324,7 @@ PUBLIC HTStructured * HTMLGenerator ARGS1(HTStream *, output)
 PRIVATE CONST HTStructuredClass PlainToHTMLConversion =
 {		
 	"plaintexttoHTML",
-	HTMLGen_free,	
+	PlainToHTML_free,	/* HTMLGen_free,  Henrik 03/03-94 */
 	PlainToHTML_abort,	
 	HTMLGen_put_character,
 	HTMLGen_put_string,
@@ -339,6 +337,8 @@ PRIVATE CONST HTStructuredClass PlainToHTMLConversion =
 
 /*	HTConverter from plain text to HTML Stream
 **	------------------------------------------
+**
+** Changed by henrik 03/03-94, so no more core dumps etc. (I hope!!!)
 */
 
 PUBLIC HTStream* HTPlainToHTML ARGS5(
@@ -348,18 +348,35 @@ PUBLIC HTStream* HTPlainToHTML ARGS5(
 	HTFormat,		output_format,
 	HTStream *,		output_stream)
 {
+    BOOL present[MAX_ATTRIBUTES];	/* Flags: attribute is present? */
+    CONST char *value[MAX_ATTRIBUTES];	/* malloc'd strings or NULL if none */
     HTStructured* me = (HTStructured*)malloc(sizeof(*me));
     if (me == NULL) outofmem(__FILE__, "PlainToHTML");
-    me->isa = (HTStructuredClass*) &PlainToHTMLConversion;       
-
+    
+    memset(present, '\0', MAX_ATTRIBUTES);
+    memset(value, '\0', MAX_ATTRIBUTES*sizeof(char *));
+    
+    me->isa = (HTStructuredClass*) &PlainToHTMLConversion;
     me->dtd = &HTMLP_dtd;
     me->target = output_stream;
-    me->targetClass = *me->target->isa;
-    	/* Copy pointers to routines for speed*/
-	
-    HTMLGen_put_string(me, "<HTML>\n<BODY>\n<PRE>\n");
-    me->preformatted = YES;
+    me->targetClass = *me->target->isa;/* Copy pointers to routines for speed*/
+    me->write_pointer = me->buffer;
+    me->line_break = 	me->buffer;
+    me->cleanness = 	0;
+    me->delete_line_break_char = NO;
+    me->preformatted = NO;
+    
+    HTMLGen_start_element(me, HTML_HTML, present, value);
+    HTMLGen_start_element(me, HTML_BODY, present, value);
+    HTMLGen_start_element(me, HTML_PRE, present, value);
+
     return (HTStream*) me;
 }
+
+
+
+
+
+
 
 

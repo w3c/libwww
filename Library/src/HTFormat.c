@@ -968,10 +968,10 @@ PUBLIC int HTParseSocket ARGS3(
     stream = HTStreamStack(rep_in, request);
 
     if (!stream) {
-        char buffer[1024];	/* @@@@@@@@ */
+	char buffer[1024];	/* @@@@@@@@ */
 	sprintf(buffer, "Sorry, can't convert from %s to %s.",
 		HTAtom_name(rep_in), HTAtom_name(request->output_format));
-	if (TRACE) fprintf(stderr, "HTFormat: %s\n", buffer);
+	if (TRACE) fprintf(stderr, "HTFormat(in HTParseSocket): %s\n", buffer);
         return HTLoadError(request, 501, buffer);
     }
     
@@ -1021,7 +1021,7 @@ PUBLIC int HTParseFile ARGS3(
     stream = HTStreamStack(rep_in, request);
     
     if (!stream) {
-        char buffer[1024];	/* @@@@@@@@ */
+	char buffer[1024];	/* @@@@@@@@ */
 	sprintf(buffer, "Sorry, can't convert from %s to %s.",
 		HTAtom_name(rep_in), HTAtom_name(request->output_format));
 	if (TRACE) fprintf(stderr, "HTFormat(in HTParseFile): %s\n", buffer);

@@ -555,7 +555,8 @@ PRIVATE BOOL HTLoadDocument ARGS1(HTRequest *,		request)
 	if (TRACE) fprintf(stderr, 
 		"HTAccess: Can't access `%s'\n", full_address);
 #endif
-	HTLoadError(request, 500, "Unable to access document.");
+	/* This is done in the specific load procedures... Henrik 07/03-94 */
+	/* HTLoadError(request, 500, "Unable to access document."); */
 	free(full_address);
 	return NO;
     }

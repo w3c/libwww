@@ -47,6 +47,7 @@ PUBLIC void HTFormatInit ARGS1(HTList *, c)	/* Note: Wildcard is no longer * (se
     HTSetConversion(c,"text/plain",		"www/present",	HTPlainPresent,	1.0, 0.0, 0.0);
     HTSetConversion(c,"application/octet-stream",	"www/present",	HTSaveLocally,	0.1, 0.0, 0.0);
     HTSetConversion(c,"*/*",			"www/present",	HTSaveLocally,	0.3, 0.0, 0.0);
+    HTSetConversion(c,"text/html",	       	"text/latex",	HTMLToTeX,	1.0, 0.0, 0.0);
     /* www/source is replaced by star/star */
 }
 
@@ -68,6 +69,7 @@ PUBLIC void HTFormatInitNIM ARGS1(HTList *, c)
     HTSetConversion(c,"text/plain",		"www/present",	HTPlainPresent,	1.0, 0.0, 0.0);
     HTSetConversion(c,"application/octet-stream","www/present",	HTThroughLine,	0.1, 0.0, 0.0);
     HTSetConversion(c,"*/*",			"www/present",	HTThroughLine,	0.3, 0.0, 0.0);
+    HTSetConversion(c,"text/html",	       	"text/latex",	HTMLToTeX,	1.0, 0.0, 0.0);
 }
 
 

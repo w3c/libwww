@@ -1,4 +1,4 @@
-/*	HyperText Tranfer Protocol	- Client implementation		HTTP.c
+/*	HyperText73 Tranfer Protocol	- Client implementation		HTTP.c
 **	==========================
 **
 ** Bugs:
@@ -113,8 +113,9 @@ PRIVATE void parse_401_headers ARGS2(HTRequest *,	req,
 	else if (TRACE) {
 	    fprintf(stderr, "Invalid header line `%s' ignored\n", line);
 	} /* else invalid header line */
+	free(line);
     } /* while header lines remain */
-
+    FREE(line);
     req->valid_schemes = valid_schemes;
     req->scheme_specifics = scheme_specifics;
     req->prot_template = template;

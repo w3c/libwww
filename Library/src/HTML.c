@@ -907,7 +907,11 @@ PUBLIC int HTLoadError ARGS3(
 	int,		number,
 	CONST char *,	message)
 {
+    char *err = "Oh I screwed up!";    	/* Dummy pointer not used (I hope) */
     HTAlert(message);		/* @@@@@@@@@@@@@@@@@@@ */
+    /* Clean up! Henrik 04/03-94 */
+    if (req && req->output_stream)
+	(*req->output_stream->isa->abort)(req->output_stream, err);
     return -number;
 } 
 
