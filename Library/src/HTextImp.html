@@ -1,0 +1,55 @@
+<HTML>
+<HEAD>
+  <TITLE>W3C Sample Code Library libwww Rich Hypertext Object - Dummy Implementation</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  Dummy Implementation of Rich HyperText Object
+</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+<P>
+If you are not using the libwww HTML parser but you are compiling libwww
+as a shared library then you need to include this dummy implementation of
+the <A HREF="HText.html">HText interface</A> in order to link succesfully.
+In order to compile it in, you can do something like this
+<P>
+<CODE>#ifdef LIBWWW_SHARED<BR>
+#include "HTextImp.h"<BR>
+#endif</CODE>
+<P>
+This module is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">
+W3C Sample Code Library</A>.
+<PRE>
+#ifndef HTEXTIMP_H
+#define HTEXTIMP_H
+
+#include "HText.h"
+struct _HText {};
+PUBLIC HTStyleSheet * styleSheet = NULL;
+PUBLIC HText * HText_new2 (HTRequest * request, HTParentAnchor * anchor,
+			   HTStream * stream) {return NULL;}
+PUBLIC void HText_free (HText * me) {}
+PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor) {}
+PUBLIC void HText_endAnchor (HText * text) {}
+PUBLIC void HText_appendText (HText * text, const char * str) {}
+PUBLIC void HText_appendImage (HText * text, HTChildAnchor * anchor,
+			       const char *alt, const char * align, BOOL isMap) {}
+PUBLIC void HText_appendCharacter (HText * text, char ch) {}
+PUBLIC void HText_endAppend (HText * text) {}
+PUBLIC void HText_setStyle (HText * text, HTStyle * style) {}
+PUBLIC void HText_beginAppend (HText * text) {}
+PUBLIC void HText_appendParagraph (HText * text) {}
+
+#endif
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>
