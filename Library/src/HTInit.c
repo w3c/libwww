@@ -12,7 +12,6 @@
 #include "sysdep.h"
 #include "WWWUtil.h"
 #include "WWWCore.h"
-#include "HTReqMan.h"		/* @@@ Should be removed */
 #include "HTInit.h"				         /* Implemented here */
 
 /* ------------------------------------------------------------------------- */
@@ -186,7 +185,16 @@ PUBLIC void HTAccessInit (void)
     HTProtocol_add("rlogin", "", YES, HTLoadTelnet, NULL);
 }
 
-#if 0
+/*	REGISTER DEFULT EVENT MANAGER
+**	-----------------------------
+**	Not done automaticly - may be done by application!
+*/
+PUBLIC void HTEventInit (void)
+{
+    HTEvent_setRegisterCallback(HTEventrg_register);
+    HTEvent_setUnregisterCallback(HTEventrg_unregister);
+}
+
 /*	BINDINGS BETWEEN ICONS AND MEDIA TYPES
 **	--------------------------------------
 **	Not done automaticly - may be done by application!
@@ -194,226 +202,32 @@ PUBLIC void HTAccessInit (void)
 **	media types and special icons for directories and other objects that
 **	do not have a media type.
 */
-/* PUBLIC void HTStdIconInit (const char * url_prefix) */
+PUBLIC void HTIconInit (const char * url_prefix)
 {
-    const char * p = url_prefix ? url_prefix : "/internal-icon/";
+    const char * prefix = url_prefix ? url_prefix : "/internal-icon/";
 
-    HTAddBlankIcon  (prefixed(p,"blank.xbm"),	NULL	);
-    HTAddDirIcon    (prefixed(p,"directory.xbm"),"DIR"	);
-    HTAddParentIcon (prefixed(p,"back.xbm"),	"UP"	);
-    HTAddUnknownIcon(prefixed(p,"unknown.xbm"),	NULL	);
-    HTAddIcon(prefixed(p,"unknown.xbm"),	NULL,	"*/*");
-    HTAddIcon(prefixed(p,"binary.xbm"),		"BIN",	"binary");
-    HTAddIcon(prefixed(p,"unknown.xbm"),	NULL,	"www/unknown");
-    HTAddIcon(prefixed(p,"text.xbm"),		"TXT",	"text/*");
-    HTAddIcon(prefixed(p,"image.xbm"),		"IMG",	"image/*");
-    HTAddIcon(prefixed(p,"movie.xbm"),		"MOV",	"video/*");
-    HTAddIcon(prefixed(p,"sound.xbm"),		"AU",	"audio/*");
-    HTAddIcon(prefixed(p,"tar.xbm"),		"TAR",	"multipart/x-tar");
-    HTAddIcon(prefixed(p,"tar.xbm"),		"TAR",	"multipart/x-gtar");
-    HTAddIcon(prefixed(p,"compressed.xbm"),	"CMP",	"x-compress");
-    HTAddIcon(prefixed(p,"compressed.xbm"),	"GZP",	"x-gzip");
-    HTAddIcon(prefixed(p,"index.xbm"),		"IDX",	"application/x-gopher-index");
-    HTAddIcon(prefixed(p,"index2.xbm"),		"CSO",	"application/x-gopher-cso");
-    HTAddIcon(prefixed(p,"telnet.xbm"),		"TEL",	"application/x-gopher-telnet");
-    HTAddIcon(prefixed(p,"unknown.xbm"),       	"DUP",	"application/x-gopher-duplicate");
-    HTAddIcon(prefixed(p,"unknown.xbm"),	"TN",	"application/x-gopher-tn3270");
+    HTIcon_addBlank("blank.xbm", 	prefix,	NULL);
+    HTIcon_addDir("directory.xbm", 	prefix, "DIR");
+    HTIcon_addParent("back.xbm", 	prefix,	"UP");
+    HTIcon_addUnknown("unknown.xbm", 	prefix, NULL);
+
+    HTIcon_add("unknown.xbm",	prefix,	NULL,	"*/*");
+    HTIcon_add("binary.xbm", 	prefix,	"BIN",	"binary");
+    HTIcon_add("unknown.xbm",	prefix,	NULL,	"www/unknown");
+    HTIcon_add("text.xbm", 	prefix,	"TXT",	"text/*");
+    HTIcon_add("image.xbm",	prefix,	"IMG",	"image/*");
+    HTIcon_add("movie.xbm", 	prefix,	"MOV",	"video/*");
+    HTIcon_add("sound.xbm", 	prefix,	"AU",	"audio/*");
+    HTIcon_add("tar.xbm", 	prefix,	"TAR",	"multipart/x-tar");
+    HTIcon_add("tar.xbm", 	prefix,	"TAR",	"multipart/x-gtar");
+    HTIcon_add("compressed.xbm",prefix,	"CMP",	"x-compress");
+    HTIcon_add("compressed.xbm",prefix,	"GZP",	"x-gzip");
+    HTIcon_add("index.xbm", 	prefix,	"IDX",	"application/x-gopher-index");
+    HTIcon_add("index2.xbm", 	prefix,	"CSO",	"application/x-gopher-cso");
+    HTIcon_add("telnet.xbm", 	prefix,	"TEL",	"application/x-gopher-telnet");
+    HTIcon_add("unknown.xbm",	prefix,	"DUP",	"application/x-gopher-duplicate");
+    HTIcon_add("unknown.xbm",	prefix,	"TN",	"application/x-gopher-tn3270");
 }
-#endif
-
-/*     standard MIME parsers
- */
-PRIVATE int allow (HTRequest * request, char * token, char * value)
-{
-    char * field;
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    while ((field = HTNextField(&value)) != NULL) {
-        HTMethod new_method;
-	/* We treat them as case-insensitive! */
-	if ((new_method = HTMethod_enum(field)) != METHOD_INVALID)
-	    HTAnchor_appendMethods(anchor, new_method);
-    }
-    if (STREAM_TRACE)
-        HTTrace("MIMEParser.. Methods allowed: %d\n",
-		HTAnchor_methods(anchor));
-    return HT_OK;
-}
-
-PRIVATE int authenticate (HTRequest * request, char * token, char * value)
-{
-    if (!request->challenge) request->challenge = HTAssocList_new();
-
-    StrAllocCopy(request->scheme, "basic");	/* @@@@@@@@@ */
-
-    HTAssocList_add(request->challenge, "WWW-authenticate", value);
-    return HT_OK;
-}
-
-PRIVATE int connection (HTRequest * request, char * token, char * value)
-{
-    char * field;
-    if ((field = HTNextField(&value)) != NULL) {
-        if (!strcasecomp(field, "keep-alive")) {
-	    HTNet_setPersistent(request->net, YES);
-	    if (STREAM_TRACE) HTTrace("MIMEParser.. Persistent Connection\n");
-	}
-    }
-    return HT_OK;
-}
-
-PRIVATE int content_encoding (HTRequest * request, char * token, char * value)
-{
-    char * field;
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    while ((field = HTNextField(&value)) != NULL) {
-        char * lc = field;
-	while ((*lc = TOLOWER(*lc))) lc++;
-	HTAnchor_addEncoding(anchor, HTAtom_for(field));
-    }
-    return HT_OK;
-}
-
-PRIVATE int content_language (HTRequest * request, char * token, char * value)
-{
-    char * field;
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    while ((field = HTNextField(&value)) != NULL) {
-        char * lc = field;
-	while ((*lc = TOLOWER(*lc))) lc++;
-	HTAnchor_addLanguage(anchor, HTAtom_for(field));
-    }
-    return HT_OK;
-}
-
-PRIVATE int content_length (HTRequest * request, char * token, char * value)
-{
-    char * field;
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    if ((field = HTNextField(&value)) != NULL)
-        HTAnchor_setLength(anchor, atol(field));
-    return HT_OK;
-}
-
-PRIVATE int content_transfer_encoding (HTRequest * request, char * token, char * value)
-{
-    char * field;
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    if ((field = HTNextField(&value)) != NULL) {
-        char *lc = field;
-	while ((*lc = TOLOWER(*lc))) lc++;
-	HTAnchor_setTransfer(anchor, HTAtom_for(field));
-    }
-    return HT_OK;
-}
-
-PRIVATE int content_type (HTRequest * request, char * token, char * value)
-{
-    char * field;
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    if ((field = HTNextField(&value)) != NULL) {
-        char *lc = field;
-	while ((*lc = TOLOWER(*lc))) lc++; 
-	HTAnchor_setFormat(anchor, HTAtom_for(field));
-	while ((field = HTNextField(&value)) != NULL) {
-	    if (!strcasecomp(field, "charset")) {
-	        if ((field = HTNextField(&value)) != NULL) {
-		    lc = field;
-		    while ((*lc = TOLOWER(*lc))) lc++;
-		    HTAnchor_setCharset(anchor, HTAtom_for(field));
-		}
-	    } else if (!strcasecomp(field, "level")) {
-	        if ((field = HTNextField(&value)) != NULL) {
-		    lc = field;
-		    while ((*lc = TOLOWER(*lc))) lc++;
-		    HTAnchor_setLevel(anchor, HTAtom_for(field));
-		}
-	    } else if (!strcasecomp(field, "boundary")) {
-	        if ((field = HTNextField(&value)) != NULL) {
-		    StrAllocCopy(request->boundary, field);
-	        }
-	    }
-	}
-    }
-    return HT_OK;
-}
-
-PRIVATE int derived_from (HTRequest * request, char * token, char * value)
-{
-    char * field;
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    if ((field = HTNextField(&value)) != NULL)
-        HTAnchor_setDerived(anchor, field);
-    return HT_OK;
-}
-
-PRIVATE int expires (HTRequest * request, char * token, char * value)
-{
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    HTAnchor_setExpires(anchor, HTParseTime(value, 
-					    HTRequest_userProfile(request)));
-    return HT_OK;
-}
-
-PRIVATE int last_modified (HTRequest * request, char * token, char * value)
-{
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    HTAnchor_setLastModified(anchor, HTParseTime(value, 
-					    HTRequest_userProfile(request)));
-    return HT_OK;
-}
-
-PRIVATE int location (HTRequest * request, char * token, char * value)
-{
-    request->redirectionAnchor = HTAnchor_findAddress(HTStrip(value));
-    return HT_OK;
-}
-
-PRIVATE int message_digest (HTRequest * request, char * token, char * value)
-{
-    if (!request->challenge) request->challenge = HTAssocList_new();
-    HTAssocList_add(request->challenge, "Digest-MessageDigest", value);
-    return HT_OK;
-}
-
-PRIVATE int mime_date (HTRequest * request, char * token, char * value)
-{
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    HTAnchor_setDate(anchor, HTParseTime(value, 
-					 HTRequest_userProfile(request)));
-    return HT_OK;
-}
-
-PRIVATE int newsgroups (HTRequest * request, char * token, char * value)
-{
-    /* HTRequest_net(request)->nntp = YES; */	       	/* Due to news brain damage */
-    return HT_OK;
-}
-
-PRIVATE int retry_after (HTRequest * request, char * token, char * value)
-{
-    request->retry_after = HTParseTime(value, 
-				       HTRequest_userProfile(request));
-    return HT_OK;
-}
-
-PRIVATE int title (HTRequest * request, char * token, char * value)
-{
-    char * field;
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    if ((field = HTNextField(&value)) != NULL)
-        HTAnchor_setTitle(anchor, field);
-    return HT_OK;
-}
-
-PRIVATE int version (HTRequest * request, char * token, char * value)
-{
-    char * field;
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    if ((field = HTNextField(&value)) != NULL)
-        HTAnchor_setVersion(anchor, field);
-    return HT_OK;
-}
-
 
 /*	REGISTER ALL HTTP/1.1 MIME HEADERS
 **	--------------------------------------------
@@ -425,34 +239,62 @@ PUBLIC void HTMIMEInit()
         char * string;
 	HTParserCallback * pHandler;
     } fixedHandlers[] = {
-	{"allow", &allow}, 
-	{"accept-language", NULL}, 
-	{"accept-charset", NULL}, 
-	{"accept", NULL}, 
-	{"accept-encoding", NULL}, 
-	{"connection", &connection}, 
-	{"content-encoding", &content_encoding}, 
-	{"content-language", &content_language}, 
-	{"content-length", &content_length}, 
-	{"content-transfer-encoding", &content_transfer_encoding}, 
-	{"content-type", &content_type},
-	{"date", &mime_date}, 
-	{"derived-from", &derived_from}, 
-	{"digest-MessageDigest", &message_digest}, 
-        {"expires", &expires}, 
+	{"accept", &HTMIME_accept}, 
+	{"accept-charset", &HTMIME_acceptCharset}, 
+	{"accept-encoding", &HTMIME_acceptEncoding}, 
+	{"accept-language", &HTMIME_acceptLanguage}, 
+	{"accept-ranges", &HTMIME_acceptRanges}, 
+	{"age", &HTMIME_age}, 
+	{"allow", &HTMIME_allow},
+	{"authorization", NULL},
+	{"cache-control", NULL},
+	{"connection", &HTMIME_connection}, 
+	{"content-base", &HTMIME_contentBase}, 
+	{"content-encoding", &HTMIME_contentEncoding}, 
+	{"content-language", &HTMIME_contentLanguage}, 
+	{"content-length", &HTMIME_contentLength}, 
+	{"content-location", &HTMIME_contentLocation}, 
+	{"content-md5", &HTMIME_contentMD5},
+	{"content-range", &HTMIME_contentRange},
+	{"content-transfer-encoding", &HTMIME_contentTransferEncoding}, 
+	{"content-type", &HTMIME_contentType},
+	{"date", &HTMIME_date},
+  	{"derived-from", &HTMIME_derivedFrom}, 
+	{"digest-MessageDigest", &HTMIME_messageDigest}, 
+	{"etag", &HTMIME_etag},
+        {"expires", &HTMIME_expires},
+	{"from", &HTMIME_from},
+	{"host", &HTMIME_host},
+	{"if-modified-since", &HTMIME_ifModifiedSince}, 
+	{"if-match", &HTMIME_ifMatch}, 
+	{"if-none-match", &HTMIME_ifNoneMatch}, 
+	{"if-range", &HTMIME_ifRange}, 
+	{"if-unmodified-since", &HTMIME_ifUnmodifiedSince}, 
 	{"keep-alive", NULL}, 
-	{"last-modified", &last_modified}, 
-/*	{"link", &link},  */
-	{"location", &location}, 
+	{"last-modified", &HTMIME_lastModified}, 
+	{"link", &HTMIME_link},
+	{"location", &HTMIME_location},
+	{"max-forwards", &HTMIME_maxForwards}, 
 	{"mime-version", NULL}, 
-	{"newsgroups", &newsgroups}, 
-	{"retry-after", &retry_after}, 
+	{"newsgroups", &HTMIME_newsGroups}, 
+	{"pragma", &HTMIME_pragma},
+	{"proxy-authenticate", &HTMIME_proxyAuthenticate},
+	{"proxy-authorization", &HTMIME_proxyAuthorization},
+	{"public", &HTMIME_public},
+	{"range", &HTMIME_range},
+	{"referer", &HTMIME_referer},
+	{"retry-after", &HTMIME_retryAfter}, 
 	{"server", NULL}, 
-	{"title", &title}, 
-	{"transfer-encoding", &content_transfer_encoding}, 
-/*	{"uri", &uri_header},  */
-	{"version", &version}, 
-	{"www-authenticate", &authenticate}, 
+	{"title", &HTMIME_title}, 
+	{"transfer-encoding", &HTMIME_contentTransferEncoding}, 
+	{"upgrade", &HTMIME_upgrade},
+	{"uri", &HTMIME_uri},
+	{"user-agent", &HTMIME_userAgent},
+	{"vary", &HTMIME_vary},
+	{"version", &HTMIME_version},
+	{"via", &HTMIME_via},
+	{"warning", &HTMIME_warning},
+	{"www-authenticate", &HTMIME_authenticate}, 
     };
     int i;
 

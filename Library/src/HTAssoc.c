@@ -11,6 +11,7 @@
 **	a shorter abbrev it is not found).
 ** AUTHORS:
 **	AL	Ari Luotonen	luotonen@dxcern.cern.ch
+**	HFN	Henrik Frystyk	frystyk@w3.org
 **
 ** HISTORY:
 **

@@ -42,9 +42,9 @@
 **	The code for this routine originates from the Linemode 
 **	browser and was moved here by howcome@w3.org
 **	in order for all clients to take advantage.
-**	The string returned must be HT_FREEd by the caller
+**	The string returned must be freed by the caller
 */
-PUBLIC char * HTFindRelatedName (void)
+PUBLIC char * HTGetCurrentDirectoryURL (void)
 {
     char* default_default = NULL;	      /* Parse home relative to this */
     char * host = HTGetHostName(); 

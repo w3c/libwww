@@ -11,9 +11,8 @@
 
 /* Library include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
-#include "HTReq.h"
+#include "WWWUtil.h"
+#include "WWWCore.h"
 #include "HTConLen.h"					 /* Implemented here */
 
 #define HT_MIN_BLOCK 	0x100

@@ -10,21 +10,23 @@
 **
 **	History:
 **	   Mar 94	Written by Ari Luotonen, luotonen@dxcern.cern.ch
+**			Henrik Frystyk, frystyk@w3.org
 **
 */
 
 /* Library include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
-#include "HTAnchor.h"
-#include "HTParse.h"
-#include "HTFormat.h"
-#include "HTChunk.h"
+#include "WWWUtil.h"
+#include "WWWCore.h"
 #include "HTIcons.h"					 /* Implemented here */
 
+struct _HTIconNode {
+    char *	icon_url;
+    char *	icon_alt;
+    char *	type_templ;
+};
+
 /* Globals */
-PRIVATE BOOL HTDirShowBrackets = YES;
 PRIVATE HTIconNode * icon_unknown = NULL;	/* Unknown file type */
 PRIVATE HTIconNode * icon_blank = NULL;		/* Blank icon in heading */
 PRIVATE HTIconNode * icon_parent = NULL;	/* Parent directory icon */
@@ -33,13 +35,6 @@ PRIVATE HTIconNode * icon_dir = NULL;		/* Directory icon */
 /* Type definitions and global variables etc. local to this module */
 PRIVATE HTList * icons = NULL;
 PRIVATE int alt_len = 0;			/* Longest ALT text */
-
-/* 
- * Global variable for the AddHref nodes
- * AddHref URL suff1 suff2 ...
- */
-PRIVATE HTList * hrefs = NULL;
-
 
 /* ------------------------------------------------------------------------- */
 
@@ -50,164 +45,6 @@ PRIVATE void alt_resize (char * alt)
 	if (len > alt_len) alt_len = len;
     }
 }
-
-
-PUBLIC char * HTIcon_alt_string (char *	alt,
-				      BOOL	brackets)
-{
-    static char * ret = NULL;
-    char * p = NULL;
-    int len = alt ? strlen(alt) : 0;
-
-    HT_FREE(ret);		/* from previous call */
-    if ((p = ret = (char*) HT_MALLOC(alt_len + 3)) == NULL)
-	HT_OUTOFMEM("HTIcon_alt_string");
-
-    if (HTDirShowBrackets)
-	*p++ = brackets ? '[' : ' ';
-    if (alt) strcpy(p,alt);
-    p += len;
-    while (len++ < alt_len) *p++=' ';
-    if (HTDirShowBrackets)
-	*p++ = brackets ? ']' : ' ';
-    *p = 0;
-
-    return ret;
-}
-
-
-/*
-**	HTAddIcon(url, alt, type_templ) adds icon:
-**
-**		<IMG SRC="url" ALT="[alt]">
-**
-**	for files for which content-type or content-encoding matches
-**	type_templ.  If type_templ contains a slash, it is taken to be
-**	a content-type template.  Otherwise, it is a content-encoding
-**	template.
-*/
-PUBLIC void HTAddIcon (char *	url,
-			    char *	alt,
-			    char *	type_templ)
-{
-    HTIconNode * node;
-
-    if (!url || !type_templ) return;
-
-    if ((node = (HTIconNode *) HT_CALLOC(1,sizeof(HTIconNode))) == NULL)
-        HT_OUTOFMEM("HTAddIcon");
-
-    if (url) StrAllocCopy(node->icon_url, url);
-    if (alt) StrAllocCopy(node->icon_alt, alt);
-    if (type_templ) StrAllocCopy(node->type_templ, type_templ);
-
-    if (!icons) icons = HTList_new();
-    HTList_addObject(icons, (void*)node);
-    alt_resize(alt);
-    if (PROT_TRACE)
-	HTTrace("AddIcon..... %s => SRC=\"%s\" ALT=\"%s\"\n",
-		type_templ,url, alt ? alt : "");
-}
-
-
-/*
- * Put the AddHrefs in a list. It can be used for indexing to
- * present special filetypes through a CGI.
- */
-PUBLIC void HTAddHref (char *     url,
-                            char *     type_templ)
-{
-    HTHrefNode * node;
-
-    if (!url || !type_templ) return;
-
-    if ((node = (HTHrefNode *) HT_CALLOC(1,sizeof(HTHrefNode))) == NULL)
-        HT_OUTOFMEM("HTAddHref");
-
-    if (url) StrAllocCopy(node->href_url, url);
-    if (type_templ) StrAllocCopy(node->type_templ, type_templ);
-
-    if (!hrefs) hrefs = HTList_new();
-    HTList_addObject(hrefs, (void*)node);
-    if (PROT_TRACE)
-	HTTrace("AddHref..... %s => URL=\"%s\" \n",type_templ,url);
-}
-
-
-
-/*
-**	HTAddUnknownIcon(url,alt) adds the icon used for files for which
-**	no other icon seems appropriate (unknown type).
-*/
-PUBLIC void HTAddUnknownIcon (char * url,
-				   char * alt)
-{
-    if ((icon_unknown = (HTIconNode *) HT_CALLOC(1,sizeof(HTIconNode))) == NULL)
-        HT_OUTOFMEM("HTAddUnknownIcon");
-
-    if (url) StrAllocCopy(icon_unknown->icon_url, url);
-    if (alt) StrAllocCopy(icon_unknown->icon_alt, alt);
-    alt_resize(alt);
-    if (PROT_TRACE)
-	HTTrace("AddIcon..... UNKNOWN => SRC=\"%s\" ALT=\"%s\"\n",url,
-		alt ? alt : "");
-}
-
-
-/*
-**	HTAddBlankIcon(url,alt) adds the blank icon used in the
-**	heading of the listing.
-*/
-PUBLIC void HTAddBlankIcon (char * url,
-				 char * alt)
-{
-    if ((icon_blank = (HTIconNode *) HT_CALLOC(1,sizeof(HTIconNode))) == NULL)
-        HT_OUTOFMEM("HTAddBlankIcon");
-
-    if (url) StrAllocCopy(icon_blank->icon_url, url);
-    if (alt) StrAllocCopy(icon_blank->icon_alt, alt);
-    alt_resize(alt);
-    if (PROT_TRACE)
-	HTTrace("AddIcon..... BLANK => SRC=\"%s\" ALT=\"%s\"\n",url,
-		alt ? alt : "");
-}
-
-
-/*
-**	HTAddParentIcon(url,alt) adds the parent directory icon.
-*/
-PUBLIC void HTAddParentIcon (char * url,
-				  char * alt)
-{
-    if ((icon_parent = (HTIconNode *) HT_CALLOC(1,sizeof(HTIconNode))) == NULL)
-        HT_OUTOFMEM("HTAddBlankIcon");
-
-    if (url) StrAllocCopy(icon_parent->icon_url, url);
-    if (alt) StrAllocCopy(icon_parent->icon_alt, alt);
-    alt_resize(alt);
-    if (PROT_TRACE)
-	HTTrace("AddIcon..... PARENT => SRC=\"%s\" ALT=\"%s\"\n",url,
-		alt ? alt : "");
-}
-
-
-/*
-**	HTAddDirIcon(url,alt) adds the directory icon.
-*/
-PUBLIC void HTAddDirIcon (char * url,
-			       char * alt)
-{
-    if ((icon_dir = (HTIconNode *) HT_CALLOC(1,sizeof(HTIconNode))) == NULL)
-        HT_OUTOFMEM("HTAddBlankIcon");
-
-    if (url) StrAllocCopy(icon_dir->icon_url, url);
-    if (alt) StrAllocCopy(icon_dir->icon_alt, alt);
-    alt_resize(alt);
-    if (PROT_TRACE)
-	HTTrace("AddIcon..... DIRECTORY => SRC=\"%s\" ALT=\"%s\"\n",url,
-		alt ? alt : "");
-}
-
 
 PRIVATE BOOL match (char * templ,
 		    const char * actual)
@@ -235,56 +72,156 @@ PRIVATE BOOL match (char * templ,
 }
 
 
-PRIVATE char * prefixed (const char *	prefix,
-			      char *		name)
+PRIVATE char * prefixed (const char * name, const char * prefix)
 {
-    static char * ret = NULL;
-    HT_FREE(ret);		/* from previous call */
-
-    if ((ret = (char  *) HT_MALLOC(strlen(prefix) + strlen(name) + 2)) == NULL)
-        HT_OUTOFMEM("prefixed");
-
-    strcpy(ret,prefix);
-    if (*prefix && prefix[strlen(prefix)-1] != '/')
-	strcat(ret,"/");
-    strcat(ret,name);
+    char * ret = NULL;
+    if (name) {
+	int len = prefix ? strlen(prefix) : 0;
+	if ((ret = (char *) HT_MALLOC(len + strlen(name) + 2)) == NULL)
+	    HT_OUTOFMEM("prefixed");
+	if (prefix) {
+	    strcpy(ret, prefix);
+	    if (*prefix && prefix[len-1] != '/') strcat(ret, "/");
+	    strcat(ret, name);
+	} else
+	    strcpy(ret, name);
+    }
     return ret;
 }
 
-
-PUBLIC void HTStdIconInit (const char * url_prefix)
+PUBLIC char * HTIcon_url (HTIconNode * node)
 {
-    const char * p = url_prefix ? url_prefix : "/internal-icon/";
+    return node ? node->icon_url : NULL;
+}
 
-    HTAddBlankIcon  (prefixed(p,"blank.xbm"),	NULL	);
-    HTAddDirIcon    (prefixed(p,"directory.xbm"),"DIR"	);
-    HTAddParentIcon (prefixed(p,"back.xbm"),	"UP"	);
-    HTAddUnknownIcon(prefixed(p,"unknown.xbm"),	NULL	);
-    HTAddIcon(prefixed(p,"unknown.xbm"),	NULL,	"*/*");
-    HTAddIcon(prefixed(p,"binary.xbm"),		"BIN",	"binary");
-    HTAddIcon(prefixed(p,"unknown.xbm"),	NULL,	"www/unknown");
-    HTAddIcon(prefixed(p,"text.xbm"),		"TXT",	"text/*");
-    HTAddIcon(prefixed(p,"image.xbm"),		"IMG",	"image/*");
-    HTAddIcon(prefixed(p,"movie.xbm"),		"MOV",	"video/*");
-    HTAddIcon(prefixed(p,"sound.xbm"),		"AU",	"audio/*");
-    HTAddIcon(prefixed(p,"tar.xbm"),		"TAR",	"multipart/x-tar");
-    HTAddIcon(prefixed(p,"tar.xbm"),		"TAR",	"multipart/x-gtar");
-    HTAddIcon(prefixed(p,"compressed.xbm"),	"CMP",	"x-compress");
-    HTAddIcon(prefixed(p,"compressed.xbm"),	"GZP",	"x-gzip");
-    HTAddIcon(prefixed(p,"index.xbm"),		"IDX",	"application/x-gopher-index");
-    HTAddIcon(prefixed(p,"index2.xbm"),		"CSO",	"application/x-gopher-cso");
-    HTAddIcon(prefixed(p,"telnet.xbm"),		"TEL",	"application/x-gopher-telnet");
-    HTAddIcon(prefixed(p,"unknown.xbm"),       	"DUP",	"application/x-gopher-duplicate");
-    HTAddIcon(prefixed(p,"unknown.xbm"),	"TN",	"application/x-gopher-tn3270");
+/*
+**	Returned string must be freed by caller
+*/
+PUBLIC char * HTIcon_alternative (HTIconNode * node, BOOL brackets)
+{
+    char * ret = NULL;
+    if (node) {
+	char * p = NULL;
+	int len = node->icon_alt ? strlen(node->icon_alt) : 0;
+	if ((p = ret = (char *) HT_MALLOC(alt_len + 3)) == NULL)
+	    HT_OUTOFMEM("HTIcon_alt_string");
+	*p++ = brackets ? '[' : ' ';
+	if (node->icon_alt) strcpy(p, node->icon_alt);
+	p += len;
+	while (len++ < alt_len) *p++=' ';
+	*p++ = brackets ? ']' : ' ';
+	*p = 0;
+    }
+    return ret;
+}
+
+/*
+**	HTAddIcon(url, alt, type_templ) adds icon:
+**
+**		<IMG SRC="url" ALT="[alt]">
+**
+**	for files for which content-type or content-encoding matches
+**	type_templ.  If type_templ contains a slash, it is taken to be
+**	a content-type template.  Otherwise, it is a content-encoding
+**	template.
+*/
+PUBLIC BOOL HTIcon_add (const char * url, const char * prefix,
+			char * alt, char * type_templ)
+{
+    if (url && type_templ) {
+	HTIconNode * node;
+	if ((node = (HTIconNode *) HT_CALLOC(1,sizeof(HTIconNode))) == NULL)
+	    HT_OUTOFMEM("HTAddIcon");
+	if (url) node->icon_url = prefixed(url, prefix);
+	if (alt) StrAllocCopy(node->icon_alt, alt);
+	if (type_templ) StrAllocCopy(node->type_templ, type_templ);
+	if (!icons) icons = HTList_new();
+	HTList_addObject(icons, (void *) node);
+	alt_resize(alt);
+	if (PROT_TRACE)
+	    HTTrace("AddIcon..... %s => SRC=\"%s\" ALT=\"%s\"\n",
+		    type_templ,url, alt ? alt : "");
+	return YES;
+    }
+    return NO;
+}
+
+/*
+**	Add the icon used for files for which
+**	no other icon seems appropriate (unknown type).
+*/
+PUBLIC BOOL HTIcon_addUnknown (const char * url, const char * prefix,
+			       char * alt)
+{
+    if ((icon_unknown = (HTIconNode *) HT_CALLOC(1,sizeof(HTIconNode)))==NULL)
+        HT_OUTOFMEM("HTAddUnknownIcon");
+    if (url) icon_unknown->icon_url = prefixed(url, prefix);
+    if (alt) StrAllocCopy(icon_unknown->icon_alt, alt);
+    alt_resize(alt);
+    if (PROT_TRACE)
+	HTTrace("Icon add.... UNKNOWN => SRC=\"%s\" ALT=\"%s\"\n",url,
+		alt ? alt : "");
+    return YES;
 }
 
 
-/*								 HTGetIcon()
-** returns the icon corresponding to content_type or content_encoding.
+/*
+**	Add the blank icon used in the heading of the listing.
 */
-PUBLIC HTIconNode * HTGetIcon (HTFileMode	mode,
-			       HTFormat		content_type,
-			       HTEncoding	content_encoding)
+PUBLIC BOOL HTIcon_addBlank (const char * url, const char * prefix, char * alt)
+{
+    if ((icon_blank = (HTIconNode *) HT_CALLOC(1,sizeof(HTIconNode))) == NULL)
+        HT_OUTOFMEM("HTAddBlankIcon");
+    if (url) icon_blank->icon_url = prefixed(url, prefix);
+    if (alt) StrAllocCopy(icon_blank->icon_alt, alt);
+    alt_resize(alt);
+    if (PROT_TRACE)
+	HTTrace("Icon add.... BLANK => SRC=\"%s\" ALT=\"%s\"\n",url,
+		alt ? alt : "");
+    return YES;
+}
+
+
+/*
+**	Add the parent directory icon.
+*/
+PUBLIC BOOL HTIcon_addParent (const char * url, const char * prefix, char * alt)
+{
+    if ((icon_parent = (HTIconNode *) HT_CALLOC(1,sizeof(HTIconNode))) == NULL)
+        HT_OUTOFMEM("HTAddBlankIcon");
+    if (url) icon_parent->icon_url = prefixed(url, prefix);
+    if (alt) StrAllocCopy(icon_parent->icon_alt, alt);
+    alt_resize(alt);
+    if (PROT_TRACE)
+	HTTrace("Icon add.... PARENT => SRC=\"%s\" ALT=\"%s\"\n",url,
+		alt ? alt : "");
+    return YES;
+}
+
+
+/*
+**	Add the directory icon.
+*/
+PUBLIC BOOL HTIcon_addDir (const char * url, const char * prefix, char * alt)
+{
+    if ((icon_dir = (HTIconNode *) HT_CALLOC(1,sizeof(HTIconNode))) == NULL)
+        HT_OUTOFMEM("HTAddBlankIcon");
+    if (url) icon_dir->icon_url = prefixed(url, prefix);
+    if (alt) StrAllocCopy(icon_dir->icon_alt, alt);
+    alt_resize(alt);
+    if (PROT_TRACE)
+	HTTrace("Icon add.... DIRECTORY => SRC=\"%s\" ALT=\"%s\"\n",url,
+		alt ? alt : "");
+    return YES;
+}
+
+/*
+**	Returns the icon corresponding to content_type or content_encoding.
+**	If no match is found then use "unknown icon"
+*/
+PUBLIC HTIconNode * HTIcon_find (HTFileMode	mode,
+				 HTFormat	content_type,
+				 HTEncoding	content_encoding)
 {
     if (!icon_unknown) icon_unknown = icon_blank;
     if (mode == HT_IS_FILE) {
@@ -309,29 +246,3 @@ PUBLIC HTIconNode * HTGetIcon (HTFileMode	mode,
     }
     return icon_unknown;
 }
-
-
-/*
- * Find the URL for a given type. Called from HTDirBrw.c
- */
-PUBLIC HTHrefNode * HTGetHref ( char *	filename)
-{
-    HTHrefNode * node;
-    char *c;
-
-    HTList * cur = hrefs;
-
-    c = strrchr(filename, '.');
-    if (c) {
-	while ((node = (HTHrefNode*)HTList_nextObject(cur))) {
-	    if ((!strcmp(node->type_templ,c)) ) {
-		return node;
-	    }
-	}
-    }
-    return NULL;
-}
-
-/* END OF MODULE */
-
-

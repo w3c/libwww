@@ -1,4 +1,3 @@
-HTAccess.html
 HTAlert.html
 HTAnchor.html
 HTAncMan.html
@@ -12,6 +11,7 @@ HTFormat.html
 HTFWrite.html
 HTHost.html
 HTInet.html
+HTLib.html
 HTMethod.html
 HTNet.html
 HTNetMan.html

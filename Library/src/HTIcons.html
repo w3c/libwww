@@ -1,66 +1,97 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww ICONS</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 23-Jun-1996 -->
+  <TITLE>W3C Reference Library libwww Icon Management</TITLE>
 </HEAD>
 <BODY>
-<H1>Icon Management</H1>
-
+<H1>
+  Icon Management
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This module is implemented by <A HREF="HTIcons.c">HTIcons.c</A>, and
-it is a part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>.
-
+<P>
+Icons for directory listsings etc. are bound to MIME
+<CODE>content-types</CODE> and <CODE>content-encodings</CODE> as described
+in the <A HREF="HTFormat.html">format manager</A>. These functions bind icon
+URLs to given <CODE>content-type</CODE> or encoding templates. Templates
+containing a slash are taken to be <CODE>content-type</CODE> templates, other
+are <CODE>content-encoding</CODE> templates.
+<P>
+This module is implemented by <A HREF="HTIcons.c">HTIcons.c</A>, and it is
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>.
 <PRE>
 #ifndef HTICONS_H
 #define HTICONS_H
 
-#include "HTFormat.h"
+#include "WWWLib.h"
 </PRE>
-
-<H2>Icons</H2>
-
-Icons are bound to MIME content-types and encoding.  These functions
-bind icon URLs to given content-type or encoding templates.  Templates
-containing a slash are taken to be content-type templates, other are
-encoding templates. <P>
- 
-<H2>Controlling globals</H2>
-
-<H3>Show brackets around alternative text</H3>
-By default alternative text is bracketed by square brackets (the
-<CODE>ALT</CODE> tag to <CODE>IMG</CODE> element).  Setting the global
-<CODE>HTDirShowBrackets</CODE> to false will turn this feature off.
-
 <PRE>
-typedef struct _HTIconNode {
-    char *	icon_url;
-    char *	icon_alt;
-    char *	type_templ;
-} HTIconNode;
-
-/*
- * The list element definition to bind a CGI to a filetyp for special
- * presentation like looking in an archiv (AddHref /cgi-bin/unarch? .zip .tar)
- */
-typedef struct _HTHrefNode {
-    char *      href_url;
-    char *      type_templ;
-} HTHrefNode;
+typedef struct _HTIconNode HTIconNode;
 </PRE>
-
-<H2>File Mode</H2>
-
-This is a simplified file mode enumeration that can is used in
-directory listings.
-
+<H2>
+  Add new Icons
+</H2>
+<P>
+All of these functions take an absolute URL and alternate text to use. Add
+an icon the list
+<H3>
+  Generic Icons
+</H3>
+<PRE>extern BOOL HTIcon_add (const char * url, const char * prefix,
+				char * alt, char * type_templ);
+</PRE>
+<H3>
+  Specific Icons
+</H3>
+<P>
+We also have a special set of icons used to represent well-known things in
+direcctory listings.
+<H4>
+  Unknown Icon
+</H4>
+<P>
+Add a unknown icon representing files that we can't figure out what is and
+hence can`'t come up with a better icon.
+<PRE>extern BOOL HTIcon_addUnknown (const char * url, const char * prefix,
+				char * alt);
+</PRE>
+<H4>
+  Empty Icon
+</H4>
+<P>
+In order to aligned HTML pages for directory listings in preformatted mode,
+we need an empty (or blank) icon of the same size as the other icons.
+<PRE>extern BOOL HTIcon_addBlank (const char * url, const char * prefix,
+				char * alt);
+</PRE>
+<H4>
+  Parent Icon
+</H4>
+<P>
+Add an icon representing a level up in a directory listing - the parent
+directory.
+<PRE>extern BOOL HTIcon_addParent (const char * url, const char * prefix,
+				char * alt);
+</PRE>
+<H4>
+  Directory Icon
+</H4>
+<P>
+This icon represents a directory or a folder
+<PRE>extern BOOL HTIcon_addDir (const char * url, const char * prefix,
+				char * alt);
+</PRE>
+<H2>
+  Find an Icon
+</H2>
+<P>
+This is a simplified file mode enumeration that can is used in directory
+listings.
 <PRE>
 typedef  enum _HTFileMode {
     HT_IS_FILE,				/* Normal file */
@@ -68,101 +99,72 @@ typedef  enum _HTFileMode {
     HT_IS_BLANK,			/* Blank Icon */
     HT_IS_PARENT			/* Parent Directory */
 } HTFileMode;
+
+
+extern HTIconNode * HTIcon_find (HTFileMode	mode,
+				 HTFormat	content_type,
+				 HTEncoding	content_encoding);
 </PRE>
-
-<H2>Public functions</H2>
-
-All of these functions take an absolute URL and alternate text to use. <P>
-
-<PRE>
-/* Generates the alt-tag */
-extern char * HTIcon_alt_string (char * alt,
-				        BOOL   brackets);
-
-/*
- * General icon binding.  Use this icon if content-type or encoding
- * matches template.
- */
-extern void HTAddIcon (char *	url,
-			      char *	alt,
-			      char *	type_templ);
-
-
-/*
- * Called from HTConfig.c to build the list of all the AddHref's
- */
-extern void HTAddHref (char *    url,
-                              char *    type_templ);
-
-
-/*
- * Icon for which no other icon can be used.
- */
-extern void HTAddUnknownIcon (char * url,
-				     char * alt);
-
-/*
- * Invisible icon for the listing header field to make it aligned
- * with the rest of the listing (this doesn't have to be blank).
- */
-extern void HTAddBlankIcon (char * url,
-				   char * alt);
-
-/*
- * Icon to use for parent directory.
- */
-extern void HTAddParentIcon (char * url,
-				    char * alt);
-
-/*
- * Icon to use for a directory.
- */
-extern void HTAddDirIcon (char * url,
-			         char * alt);
-
-/*								 HTGetIcon()
-** returns the icon corresponding to content_type or content_encoding.
-*/
-extern HTIconNode * HTGetIcon (HTFileMode	mode,
-				      HTFormat		content_type,
-				      HTEncoding	content_encoding);
-
-/*
- * returns the HrefNode to get the URL for presentation of a file (indexing)
- */
-extern HTHrefNode * HTGetHref ( char *  filename);
-
-
+<H2>
+  Icon URL
+</H2>
+<P>
+When you want to add the icon reference into a directory listing, you can
+get the URL of the icon by using this method. Don't free or modify the string
+returned!
+<PRE>extern char * HTIcon_url (HTIconNode * node);
 </PRE>
-
-
-<H4>A Predifined Set of Icons</H4>
-The function <CODE>HTStdIconInit(url_prefix)</CODE> can be used to
-initialize a standard icon set:
+<H2>
+  Alternative text
+</H2>
+<P>
+Get the alternative text (if any) for text based clients or if you don't
+want to download the image right away. The string returned must be freed
+by the caller.
+<PRE>extern char * HTIcon_alternative (HTIconNode * node, BOOL brackets);
+</PRE>
+<H2>
+  A Standard Set of Icons
+</H2>
+<P>
+The <A HREF="WWWFile.html">WWWFile</A> interface does not define a default
+set of icons but the Library distribution files comes with a <I>standard</I>
+set of icons that can be used if desired. The Icons can be found in
+<CODE>$(datadir)/www-icons</CODE>.The set covers the types described below
+and they can be set up using the <A HREF="HTInit.html#icons">HTIconInit()
+initialization</A> function in the <A HREF="WWWInit.html">WWWInit startup
+interface</A>
+<P>
 <UL>
-<LI> <CODE>blank.xbm</CODE> for the blank icon
-<LI> <CODE>directory.xbm</CODE> for directory icon
-<LI> <CODE>back.xbm</CODE> for parent directory
-<LI> <CODE>unknown.xbm</CODE> for unknown icon
-<LI> <CODE>binary.xbm</CODE> for binary files
-<LI> <CODE>text.xbm</CODE> for ascii files
-<LI> <CODE>image.xbm</CODE> for image files
-<LI> <CODE>movie.xbm</CODE> for video files
-<LI> <CODE>sound.xbm</CODE> for audio files
-<LI> <CODE>tar.xbm</CODE> for tar and gtar files
-<LI> <CODE>compressed.xbm</CODE> for compressed and gzipped files
+  <LI>
+    <CODE>blank.xbm</CODE> for the blank icon
+  <LI>
+    <CODE>directory.xbm</CODE> for directory icon
+  <LI>
+    <CODE>back.xbm</CODE> for parent directory
+  <LI>
+    <CODE>unknown.xbm</CODE> for unknown icon
+  <LI>
+    <CODE>binary.xbm</CODE> for binary files
+  <LI>
+    <CODE>text.xbm</CODE> for ascii files
+  <LI>
+    <CODE>image.xbm</CODE> for image files
+  <LI>
+    <CODE>movie.xbm</CODE> for video files
+  <LI>
+    <CODE>sound.xbm</CODE> for audio files
+  <LI>
+    <CODE>tar.xbm</CODE> for tar and gtar files
+  <LI>
+    <CODE>compressed.xbm</CODE> for compressed and gzipped files
 </UL>
-<PRE>
-extern void HTStdIconInit (const char * url_prefix);
-</PRE>
-
 <PRE>
 #endif /* HTICONS */
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

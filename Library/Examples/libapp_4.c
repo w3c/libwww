@@ -2,6 +2,7 @@
 #include "WWWTrans.h"
 #include "WWWHTTP.h"
 #include "WWWMIME.h"
+#include "WWWApp.h"
 
 int main (int argc, char ** argv)
 {

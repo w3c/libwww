@@ -116,6 +116,9 @@ PUBLIC void HTPresentation_add (HTList *	conversions,
     StrAllocCopy(pres->command, command);
     pres->test_command = NULL;
     StrAllocCopy(pres->test_command, test_command);
+    if (CORE_TRACE)
+	HTTrace("Presentation Adding `%s\' with quality %.2f\n",
+		command, quality);
     HTList_addObject(conversions, pres);
 }
 
@@ -154,6 +157,9 @@ PUBLIC void HTConversion_add (HTList *		conversions,
     pres->quality = quality;
     pres->secs = secs;
     pres->secs_per_byte = secs_per_byte;
+    if (CORE_TRACE)
+	HTTrace("Conversions. Adding %p with quality %.2f\n",
+		converter, quality);
     HTList_addObject(conversions, pres);
 }
 

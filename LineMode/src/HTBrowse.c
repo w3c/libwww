@@ -1617,17 +1617,6 @@ PRIVATE int timeout_handler (HTRequest * request)
     return 0;
 }
 
-/*	header_handler
-**	---------------
-**	This function is registered to handle unknown MIME headers
-*/
-PRIVATE int header_handler (HTRequest * request, const char * token, 
-			    const char * value)
-{
-    if (SHOW_MSG) HTTrace("Parsing unknown header `%s\'\n", token);
-    return HT_OK;
-}
-
 /* ------------------------------------------------------------------------- */
 /*				  MAIN PROGRAM				     */
 /* ------------------------------------------------------------------------- */
@@ -1978,7 +1967,7 @@ int main (int argc, char ** argv)
     HTFileInit();
 
     /* Set up default set of icons */
-    HTStdIconInit(NULL);
+    HTIconInit(NULL);
 
     /* Get any proxy or gateway environment variables */
     HTProxy_getEnvVar();
@@ -2080,9 +2069,6 @@ int main (int argc, char ** argv)
     /* Register a transport */
     HTTransportInit();
 
-    /* Register our own MIME header handler for extra headers */
-/*    HTHeader_addParser("*", NO, header_handler);
-*/
     /* Set timeout on sockets */
     if (lm->tv->tv_sec < 0) {
 	lm->tv->tv_sec = HTAlert_interactive() ?

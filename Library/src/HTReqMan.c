@@ -32,20 +32,15 @@
 #include "sysdep.h"
 #include "WWWUtil.h"
 #include "HTAccess.h"
-#include "HTString.h"
 #include "HTParse.h"
 #include "HTAlert.h"
 #include "HTError.h"
-#include "HTList.h"
-#include "HTCache.h"
 #include "HTNetMan.h"
 #include "HTEvent.h"
 #include "HTProt.h"
-#include "HTProxy.h"
 #include "HTHeader.h"
+#include "HTLib.h"
 #include "HTReqMan.h"					 /* Implemented here */
-
-#include "HTRules.h"
 
 #ifndef HT_MAX_RELOADS
 #define HT_MAX_RELOADS	6
@@ -718,6 +713,15 @@ PUBLIC time_t HTRequest_retryTime (HTRequest * request)
 PUBLIC HTAnchor * HTRequest_redirection (HTRequest * request)
 {
     return (request ? request->redirectionAnchor : NULL);
+}
+
+PUBLIC BOOL HTRequest_setRedirection (HTRequest * request, HTAnchor * anchor)
+{
+    if (request && anchor) {
+	request->redirectionAnchor = (HTAnchor *) HTAnchor_parent(anchor);
+	return YES;
+    }
+    return NO;
 }
 
 /*

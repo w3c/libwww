@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<!-- Changed by: Henrik Frystyk Nielsen,  1-Jun-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 17-Jun-1996 -->
   <TITLE>W3C Reference Library libwww Request Class</TITLE>
 </HEAD>
 <BODY>
@@ -212,6 +212,7 @@ a new request, that is the new anchor and any list of keywords associated
 with this anchor.
 <PRE>
 extern HTAnchor * HTRequest_redirection (HTRequest * request);
+extern BOOL HTRequest_setRedirection (HTRequest * request, HTAnchor * anchor);
 </PRE>
 <H2>
   Access Authentication

@@ -1,0 +1,102 @@
+<HTML>
+<HEAD>
+  <!-- Changed by: Henrik Frystyk Nielsen, 23-Jun-1996 -->
+  <TITLE>W3C Reference Library libwww Default MIME/RFC822 Header Parsers</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  Default MIME/RFC822 Header Parser
+</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+<P>
+The Library's MIME parser is divided into two parts: A generic MIME parser
+that knows how to unwrap all RFC822 headers and specialized header parsers
+that knows how to parse <CODE>Content-Length</CODE>, for example. This is
+the default set of the specialized MIME header parsers that can be registered
+as part of the generic MIME. Note that these functions are not registered
+by default - they must be registered by the application. This can be done
+using the <A HREF="HTInit.html">HTMIMEInit()</A> function in the
+<A HREF="WWWInit.html">WWWInit interface</A>. Of course this can also be
+used to register new headers that are not represented below - or if you want
+to replace a default parser then this is also very easy.
+<P>
+This module is implemented by <A HREF="HTMIMImp.c">HTMIMImp.c</A>, and it
+is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>.
+<PRE>
+#ifndef HTMIMIMP_H
+#define HTMIMIMP_H
+
+#include "HTReq.h"
+#include "HTHeader.h"
+</PRE>
+<PRE>
+extern HTParserCallback 
+	HTMIME_accept, 
+	HTMIME_acceptCharset, 
+	HTMIME_acceptEncoding, 
+	HTMIME_acceptLanguage, 
+	HTMIME_acceptRanges, 
+	HTMIME_age, 
+	HTMIME_allow,
+	HTMIME_authorization,
+	HTMIME_cacheControl,
+	HTMIME_connection, 
+	HTMIME_contentBase, 
+	HTMIME_contentEncoding, 
+	HTMIME_contentLanguage, 
+	HTMIME_contentLength, 
+	HTMIME_contentLocation, 
+	HTMIME_contentMD5,
+	HTMIME_contentRange,
+	HTMIME_contentTransferEncoding, 
+	HTMIME_contentType,
+	HTMIME_date,
+  	HTMIME_derivedFrom, 
+	HTMIME_messageDigest, 
+	HTMIME_etag,
+        HTMIME_expires,
+	HTMIME_from,
+	HTMIME_host,
+	HTMIME_ifModifiedSince, 
+	HTMIME_ifMatch, 
+	HTMIME_ifNoneMatch, 
+	HTMIME_ifRange, 
+	HTMIME_ifUnmodifiedSince, 
+	HTMIME_lastModified, 
+	HTMIME_link,
+	HTMIME_location,
+	HTMIME_maxForwards, 
+	HTMIME_newsGroups, 
+	HTMIME_pragma,
+	HTMIME_proxyAuthenticate,
+	HTMIME_proxyAuthorization,
+	HTMIME_public,
+	HTMIME_range,
+	HTMIME_referer,
+	HTMIME_retryAfter, 
+	HTMIME_title, 
+	HTMIME_contentTransferEncoding, 
+	HTMIME_upgrade,
+	HTMIME_uri,
+	HTMIME_userAgent,
+	HTMIME_vary,
+	HTMIME_version,
+	HTMIME_via,
+	HTMIME_warning,
+	HTMIME_authenticate; 
+</PRE>
+<PRE>
+#endif
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

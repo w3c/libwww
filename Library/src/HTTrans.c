@@ -43,7 +43,7 @@ PUBLIC BOOL HTTransport_add (const char *		name,
 	tp->input_new = get_input;
 	tp->output_new = get_output;
 	if (!transports) transports = HTList_new();
-	if (PROT_TRACE) HTTrace("Transport... Adding `%s'\n", name);
+	if (CORE_TRACE) HTTrace("Transport... Adding `%s'\n", name);
 	return HTList_addObject(transports, (void *) tp);
     }
     return NO;

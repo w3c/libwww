@@ -1,5 +1,6 @@
 <HTML>
 <HEAD>
+<!-- Changed by: Henrik Frystyk Nielsen, 28-Jun-1996 -->
   <TITLE>W3C Reference Library libwww Default Initialization</TITLE>
 </HEAD>
 <BODY>
@@ -64,17 +65,22 @@ in the Library.
 #include "WWWWAIS.h"
 #endif
 
-extern void HTAccessInit (void);
+#define HTAccessInit HTProtocolInit
+extern void HTProtocolInit (void);
 </PRE>
 <H2>
-  Default MIME Parsers
+  <A NAME="MIME">Default MIME Parsers</A>
 </H2>
 <P>
 The core doesn't have any built in MIME parsers, but many of the protocols
 need them. For instance, many elements of the library rely on the
 <CODE>Content-Length</CODE> being correctly set. HTMIMEInit provides the
 minimal functionality needed for library reliablilty.
-<PRE>extern void HTMIMEInit (void);
+<PRE>
+#include "WWWMIME.h"
+#include "WWWApp.h"
+
+extern void HTMIMEInit (void);
 </PRE>
 <H2>
   Default Event Manager
@@ -90,7 +96,7 @@ call using non-blocking and interleaved sockets.
 extern void HTEventInit (void);
 </PRE>
 <H2>
-  Default Media Type Conversions
+  <A NAME="Converter">Default Media Type Conversions</A>
 </H2>
 <P>
 The <EM>Converters</EM> are used to convert a media type to another media
@@ -138,8 +144,8 @@ extern void HTEncoderInit	(HTList * encodings);
   Default BEFORE and AFTER Net Callback Functions
 </H2>
 <P>
-We register two often used callback functions: a BEFORE and a AFTER callback
-Not done automaticly - may be done by application!
+We register two often used callback functions: a <CODE>BEFORE</CODE> and
+a <CODE>AFTER</CODE> callback Not done automaticly - may be done by application!
 <PRE>#include "WWWApp.h"
 
 extern void HTNetInit (void);
@@ -153,6 +159,19 @@ application!
 <PRE>#include "WWWApp.h"
 
 extern void HTAlertInit (void);
+</PRE>
+<H2>
+  Default Icons for Directory Listings
+</H2>
+<P>
+The WWWDir interface contains support for including references (URLs and
+ALT text tags) to icons in directory listings. The icons are selected as
+a function of the media type and the content encoding of the file in question.
+That is - you can set up icons for compressed files, postscript files etc.
+There is also a small set of specific icons representing directories etc.
+<PRE>#include "<A HREF="WWWFile.html">WWWFile.h</A>"
+
+extern void HTIconInit (const char * url_prefix);
 </PRE>
 <PRE>
 #endif

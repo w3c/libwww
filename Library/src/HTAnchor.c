@@ -704,6 +704,10 @@ PUBLIC void * HTAnchor_document  (HTParentAnchor * me)
     return me ? me->document : NULL;
 }
 
+/*
+**	We resolve the child address with respect to either a base URL
+**	given as part of the context or as the request-URI
+*/
 PUBLIC char * HTAnchor_address  (HTAnchor * me)
 {
     char *addr = NULL;
@@ -711,9 +715,10 @@ PUBLIC char * HTAnchor_address  (HTAnchor * me)
 	if (((HTParentAnchor *) me == me->parent) ||
 	    !((HTChildAnchor *) me)->tag) { /* it's an adult or no tag */
 	    StrAllocCopy (addr, me->parent->address);
-	}
-	else {			/* it's a named child */
-	    if ((addr = (char  *) HT_MALLOC(2 + strlen (me->parent->address) + strlen (((HTChildAnchor *) me)->tag))) == NULL)
+	} else {			/* it's a named child */
+	    char * abs = me->parent->content_base ?
+		me->parent->content_base : me->parent->address;
+	    if ((addr = (char *) HT_MALLOC(2+strlen(abs)+strlen(((HTChildAnchor *) me)->tag))) == NULL)
 	        HT_OUTOFMEM("HTAnchor_address");
 	    sprintf (addr, "%s#%s", me->parent->address,
 		     ((HTChildAnchor *) me)->tag);
@@ -760,6 +765,25 @@ PUBLIC void HTAnchor_setPhysical (HTParentAnchor * me,
 	return;
     }
     StrAllocCopy(me->physical, physical);
+}
+
+/*	Base Address
+**	------------
+*/
+PUBLIC char * HTAnchor_base (HTParentAnchor * me)
+{
+    return me ? me->content_base : NULL;
+}
+
+PUBLIC BOOL HTAnchor_setBase (HTParentAnchor * me, char * base)
+{
+    if (!me || !base) {
+	if (ANCH_TRACE)
+	    HTTrace("HTAnchor.... set base called with null argument\n");
+	return NO;
+    }
+    StrAllocCopy(me->content_base, base);
+    return YES;
 }
 
 /*	Cache Information
@@ -1035,6 +1059,8 @@ PUBLIC void HTAnchor_clearHeader (HTParentAnchor * me)
 	HTList_delete(me->content_language);
 	me->content_language = HTList_new();
     }
+    HT_FREE(me->content_base);
+    HT_FREE(me->content_location);
     me->content_length = -1;					  /* Invalid */
     me->transfer = NULL;
     me->content_type = WWW_UNKNOWN;

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
-<!-- Changed by: Henrik Frystyk Nielsen, 31-May-1996 -->
-  <TITLE>W3C Reference Library libwww SYSTEM DEPENDENCIES</TITLE>
+  <!-- Changed by: Henrik Frystyk Nielsen, 31-May-1996 -->
+  <TITLE>W3C Reference Library libwww System Dependencies</TITLE>
 </HEAD>
 <BODY>
 <H1>
@@ -14,8 +14,28 @@
 */
 </PRE>
 <P>
-System-system differences for TCP include files and macros. This file includes
-for each system the files necessary for network and file I/O.
+This file makes up for the differencies in the systems and platforms supported
+by libwww. On Unix, it is a question of <A HREF="../../INSTALL.html">using
+autoconf</A> to figure out what environment we are in. This is done by running
+the configure script which creates a <CODE>config.h</CODE> file. This
+configuration include file contains a large set of macro definitions telling
+what features we have and don't have. On platforms not supported by autoconf
+(Windows, Mac, VMS etc.) you will find the information normally contained
+in the <CODE>config.h</CODE> file directly included below. The
+<A HREF="#Platform">second part of this file </A>uses all the information
+that we either have from the config.h file or directly coded and actually
+does the includes etc.
+<P>
+<UL>
+  <LI>
+    <A HREF="sysdep.html#Unix">Unix</A>
+  <LI>
+    <A HREF="sysdep.html#Microsoft">Microsoft Windows Win32 API</A>
+  <LI>
+    <A HREF="sysdep.html#Macintosh">Macintosh</A>
+  <LI>
+    <A HREF="sysdep.html#Macintosh">Vax VMS</A>
+</UL>
 <P>
 This module is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">
 W3C Reference Library</A>.
@@ -96,18 +116,19 @@ W3C Reference Library</A>.
   Platform Specific Stuff
 </H1>
 <H2>
-  Unix
+  <A NAME="Unix">Unix</A>
 </H2>
 <P>
-We rely on autoconf to do the dirty job. If you have any changhes then please
-add them to the <A HREF="../../../INSTALL.html">configure script</A>
+We rely on <I>autoconf</I> to do the dirty job. If you have any changhes
+then please add them to the <A HREF="../../../INSTALL.html">configure
+script</A>
 <PRE>
 #ifdef HAVE_CONFIG_H
 #include &lt;config.h&gt;
 #endif
 </PRE>
 <H2>
-  Microsoft Windows Win32 API
+  <A NAME="Microsoft">Microsoft Windows Win32 API</A>
 </H2>
 <P>
 Help provided by Eric Prud'hommeaux, Susan C. Weber
@@ -276,8 +297,7 @@ definitions moved from _WIN32 ifdef by EGP
 <P>
 Return code for socket functions. We can't use -1 as return value
 <P>
-<PRE>
-#define EWOULDBLOCK     WSAEWOULDBLOCK
+<PRE>#define EWOULDBLOCK     WSAEWOULDBLOCK
 #define EINPROGRESS     WSAEINPROGRESS
 #define ECONNREFUSED    WSAECONNREFUSED
 #define ETIMEDOUT       WSAETIMEDOUT
@@ -299,13 +319,19 @@ Return code for socket functions. We can't use -1 as return value
 #endif /* WWW_MSWINDOWS */
 </PRE>
 <H2>
-  Macintosh - Metrowerks Codewarrior 6
+  <A NAME="Macintosh">Macintosh</A>
 </H2>
+<P>
+We have two environments on Macintosh: Codeworrior and MPV.
+<H3>
+  Metrowerks Codewarrior 6
+</H3>
 <P>
 Metrowerks Codewarrior is one development environment on the Mac. We are
 using GUSI (1.5.9) by Matthias Neeracher &lt;neeri@iis.ee.ethz.ch&gt; for
-our socket lib. You can find more information about the GUSI Library at
-<CODE>http://err.ethz.ch/members/neeri/macintosh/gusiman/GUSI.html</CODE>
+our socket lib. You can find more information about the
+<A HREF="http://err.ethz.ch/~neeri/macintosh/gusiman/">GUSI Library</A> from
+Switzerland.
 <P>
 Compiles on PPC. Should compile on 68K.
 <P>
@@ -346,9 +372,9 @@ August 31, 1995 by Steven T. Roussey &lt;sroussey@eng.uci.edu&gt; (STR)
 #define MKDIR(a,b)      mkdir(a)
 #endif
 </PRE>
-<H2>
-  Macintosh - MPW
-</H2>
+<H3>
+  MPW
+</H3>
 <P>
 MPW is one development environment on the Mac.
 <P>
@@ -384,88 +410,7 @@ NO_SOCKET_DEFS on top. This is a temporary hack.
 #endif /* applec MPW */
 </PRE>
 <H2>
-  IBM VM-CMS, VM-XA Mainframes
-</H2>
-<P>
-MVS is compiled as for VM. MVS has no unix-style I/O. The command line compile
-options seem to come across in lower case.
-<PRE>
-#ifdef mvs
-#define MVS
-#endif
-
-#ifdef MVS
-#define VM
-#endif
-
-#ifdef NEWLIB
-#pragma linkage(newlib,OS)	/* Enables recursive NEWLIB */
-#endif
-
-/*	VM doesn't have a built-in predefined token, so we cheat: */
-#ifndef VM
-#include &lt;string.h&gt;		/* For bzero etc - not  VM */
-#endif
-
-/*	Note:	All include file names must have 8 chars max (+".h")
-**
-**	Under VM, compile with "(DEF=VM,SHORT_NAMES,DEBUG)"
-**
-**	Under MVS, compile with "NOMAR DEF(MVS)" to get rid of 72 char margin
-**	  System include files TCPIP and COMMMAC neeed line number removal(!)
-*/
-
-#ifdef VM			/* or MVS -- see above. */
-#define GOT_PIPE		/* Of sorts */
-#define NOT_ASCII		/* char type is not ASCII */
-#define NO_UNIX_IO		/* Unix I/O routines are not supported */
-#undef  HAVE_GETPID		/* getpid() does not exist */
-#define NO_GETWD		/* getwd() does not exist */
-#ifndef SHORT_NAMES
-#define SHORT_NAMES		/* 8 character uniqueness for globals */
-#endif
-#include &lt;manifest.h&gt;
-#include &lt;bsdtypes.h&gt;
-#include &lt;stdefs.h&gt;
-#include &lt;socket.h&gt;
-#include &lt;in.h&gt;
-#include &lt;inet.h&gt;
-#include &lt;netdb.h&gt;
-#include &lt;errno.h&gt;	    /* independent */
-extern char asciitoebcdic[], ebcdictoascii[];
-#define TOASCII(c)   (c=='\n' ?  10  : ebcdictoascii[c])
-#define FROMASCII(c) (c== 10  ? '\n' : asciitoebcdic[c])
-#include &lt;bsdtime.h&gt;
-#include &lt;time.h&gt;
-#include &lt;string.h&gt;
-#define INCLUDES_DONE
-#define TCP_INCLUDES_DONE
-#define SIMPLE_TELNET
-#endif
-</PRE>
-<H2>
-  IBM-PC running MS-DOS with SunNFS for TCP/IP
-</H2>
-<P>
-This code thanks to Eelco van Asperen &lt;evas@cs.few.eur.nl&gt;
-<PRE>
-#ifdef PCNFS
-#include &lt;sys/types.h&gt;
-#include &lt;string.h&gt;
-#include &lt;errno.h&gt;	    /* independent */
-#include &lt;sys/time.h&gt;	    /* independent */
-#include &lt;sys/stat.h&gt;
-#include &lt;fcntl.h&gt;	    /* In place of sys/param and sys/file */
-#define INCLUDES_DONE
-#define FD_SET(fd,pmask) (*(unsigned*)(pmask)) |=  (1&lt;&lt;(fd))
-#define FD_CLR(fd,pmask) (*(unsigned*)(pmask)) &amp;= ~(1&lt;&lt;(fd))
-#define FD_ZERO(pmask)   (*(unsigned*)(pmask))=0
-#define FD_ISSET(fd,pmask) (*(unsigned*)(pmask) &amp; (1&lt;&lt;(fd)))
-#define NO_GROUPS
-#endif  /* PCNFS */
-</PRE>
-<H2>
-  VAX/VMS
+  <A NAME="VAX">VAX/VMS</A>
 </H2>
 <P>
 Under VMS, there are many versions of TCP-IP. Define one if you do not use
@@ -715,7 +660,7 @@ extern volatile noshare int errno;  /* noshare to avoid PSECT conflict */
 <P>
   <HR>
 <H1>
-  Platform Independent Stuff
+  <A NAME="Platform">Platform Independent Stuff</A>
 </H1>
 <P>
 Here we use all the knowledge we got above...

@@ -1,11 +1,11 @@
 <HTML>
 <HEAD>
   <!-- Changed by: Henrik Frystyk Nielsen, 18-May-1996 -->
-  <TITLE>W3C Reference Library libwww CORE</TITLE>
+  <TITLE>W3C Reference Library libwww Core Interface</TITLE>
 </HEAD>
 <BODY>
 <H1>
-  Declaration of W3C Reference Library CORE
+  Declaration of W3C Reference Library Core Interface
 </H1>
 <PRE>
 /*
@@ -39,8 +39,16 @@ extern "C" {
 The <A HREF="sysdep.html">sysdep.h</A> file includes system-specific include
 files and flags for I/O to network and disk. The only reason for this file
 is that the Internet world is more complicated than Posix and ANSI.
-<PRE>
-#include "sysdep.h"
+<PRE>#include "sysdep.h"
+</PRE>
+<H3>
+  Generic Libwww Information
+</H3>
+<P>
+This module contains some generic functions for getting the name and version
+of libwww. It also contains some global configuration options like if you
+can access the local file system, for example.
+<PRE>#include "<A HREF="HTLib.html">HTLib.h</A>"
 </PRE>
 <H3>
   The Request Class
@@ -52,18 +60,6 @@ main entry point for an application to issue a request to the Library - all
 operations on a URL <I>must</I> use a Request object.
 <PRE>
 #include "<A HREF="HTReq.html">HTReq.h</A>"
-</PRE>
-<H3>
-  Higher Level Request Functions
-</H3>
-<P>
-Even though you may use the API for the HTRequest object directly in order
-to issue a request, you will probably find that in real life it is easier
-to use a higher level abstraction API. This API is provided by the
-<A HREF="HTAccess.html">HTAccess module</A> where you will find all kind
-of functions for down loading a URL etc.
-<PRE>
-#include "<A HREF="HTAccess.html">HTAccess.h</A>"
 </PRE>
 <H3>
   Request Methods

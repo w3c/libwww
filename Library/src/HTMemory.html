@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen,  6-Apr-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 23-Jun-1996 -->
   <TITLE>W3C Reference Library libwww Dynamic Memory Handlers</TITLE>
 </HEAD>
 <BODY>
@@ -72,10 +72,10 @@ You can of course also provide your own methods as well.
 #define __LINE__ 0L
 #endif
 
-#define HT_MALLOC(size)		HTMemory_malloc(size)
-#define HT_CALLOC(count, size)	HTMemory_calloc(count, size)
-#define HT_REALLOC(ptr, size)	HTMemory_realloc(ptr, size)
-#define HT_FREE(pointer)	{HTMemory_free(pointer);(pointer)=NULL;}
+#define HT_MALLOC(size)		HTMemory_malloc((size))
+#define HT_CALLOC(count, size)	HTMemory_calloc((count), (size))
+#define HT_REALLOC(ptr, size)	HTMemory_realloc((ptr), (size))
+#define HT_FREE(pointer)	{HTMemory_free((pointer));((pointer))=NULL;}
 </PRE>
 <H2>
   <A NAME="Memory">Memory Freer Functions</A>

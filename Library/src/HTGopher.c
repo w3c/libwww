@@ -113,7 +113,7 @@ PRIVATE HTDirShow	dir_show = HT_DS_ICON;
 /*	GopherIcon
 **	----------
 **	This function finds an appopriate icon for the item in the gopher
-**	list. Actually it is only a shell build upon HTGetIcon().
+**	list. Actually it is only a shell build upon HTIcon_find().
 */
 PRIVATE HTIconNode *GopherIcon (HTGopherType type)
 {
@@ -167,7 +167,7 @@ PRIVATE HTIconNode *GopherIcon (HTGopherType type)
 	content_type = HTAtom_for("www/unknown");
 	break;
     }
-    return HTGetIcon(mode, content_type, content_encoding);
+    return HTIcon_find(mode, content_type, content_encoding);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -271,8 +271,9 @@ PRIVATE BOOL GopherMenuLine (HTStream *me, char *line)
 	if (dir_show & HT_DS_ICON) {		 	 /* Put out the icon */
 	    HTIconNode *icon = GopherIcon(gtype);
 	    if (icon) {
-		HTMLPutImg(target, icon->icon_url,
-			   HTIcon_alt_string(icon->icon_alt, YES), NULL);
+		char * alt = HTIcon_alternative(icon, YES);
+		HTMLPutImg(target, HTIcon_url(icon), alt, NULL);
+		HT_FREE(alt);
 		PUTC(' ');
 	    }
 	}

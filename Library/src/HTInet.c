@@ -327,7 +327,7 @@ PUBLIC char * HTGetHostName (void)
 		if (*domainstr) {
 		    StrAllocCat(hostname, ".");
 		    StrAllocCat(hostname, domainstr);
-		    fqdn = YES;
+		    fqdn = 2;
 		    break;
 		}
 	    }

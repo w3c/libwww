@@ -157,18 +157,17 @@ PRIVATE BOOL HTDirNode_print (HTDir *dir, HTDirNode *node)
 	HTFormat format = NULL;
 	HTEncoding encoding = NULL;
 	double q=1.0;
-	HTIconNode *icon;
-	HTHrefNode *href;
+	HTIconNode * icon;
 	if (node->mode == HT_IS_FILE)
 	    HTBind_getFormat(node->fname, &format, &encoding, NULL, NULL, &q);
-	icon = HTGetIcon(node->mode, format, encoding);
-	href = HTGetHref(node->fname);
+	icon = HTIcon_find(node->mode, format, encoding);
 
 	/* Are we having a hot or a cold icon? */
 	if (!(dir->show & HT_DS_HOTI)) {
 	    if (icon) {
-		HTMLPutImg(target, icon->icon_url,
-			   HTIcon_alt_string(icon->icon_alt, YES), NULL);
+		char * alt = HTIcon_alternative(icon, YES);
+		HTMLPutImg(target, HTIcon_url(icon), alt, NULL);
+		HT_FREE(alt);
 		PUTC(' ');
 	    }
 	}
@@ -191,8 +190,8 @@ PRIVATE BOOL HTDirNode_print (HTDir *dir, HTDirNode *node)
 	}
 
 	if (dir->show & HT_DS_HOTI) {
-	    HTMLPutImg(target, icon->icon_url,
-		       HTIcon_alt_string(icon->icon_alt, YES), NULL);
+	    char * alt = HTIcon_alternative(icon, YES);
+	    HTMLPutImg(target, HTIcon_url(icon), alt, NULL);
 	    PUTC(' ');
 	}
     } else {
@@ -271,10 +270,11 @@ PRIVATE BOOL HTDir_headLine (HTDir *dir)
 	HTStructured *target = dir->target;
 	START(HTML_PRE);
 	if (dir->show & HT_DS_ICON) {
-	    HTIconNode * icon = HTGetIcon(HT_IS_BLANK, NULL, NULL);
+	    HTIconNode * icon = HTIcon_find(HT_IS_BLANK, NULL, NULL);
 	    if (icon) {
-		HTMLPutImg(target, icon->icon_url,
-			   HTIcon_alt_string(icon->icon_alt, YES), NULL);
+		char * alt = HTIcon_alternative(icon, NO);
+		HTMLPutImg(target, HTIcon_url(icon), alt, NULL);
+		HT_FREE(alt);
 		PUTC(' ');
 	    }
 	}
@@ -440,8 +440,8 @@ PRIVATE int DirSort (const void *a, const void *b)
     HTDirNode *bb = *(HTDirNode **) b;
     return strcmp(aa->fname, bb->fname);
 #else
-    return strcmp((char *) (*((HTDirNode**)a))->fname,
-		  (char *) (*((HTDirNode**)a))->fname);
+    return strcmp((*((HTDirNode **) a))->fname,
+		  (*((HTDirNode **) b))->fname);
 #endif
 }
 
@@ -452,8 +452,8 @@ PRIVATE int DirCaseSort (const void *a, const void *b)
     HTDirNode *bb = *(HTDirNode **) b;
     return strcasecomp(aa->fname, bb->fname);
 #else
-    return strcasecomp((char *) (*((HTDirNode**)a))->fname,
-		       (char *) (*((HTDirNode**)a))->fname);
+    return strcasecomp((*((HTDirNode **) a))->fname,
+		       (*((HTDirNode **) b))->fname);
 #endif
 }
 

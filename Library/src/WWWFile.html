@@ -1,56 +1,71 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww LOCAL FILE</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 16-Apr-1996 -->
-<NEXTID N="z11">
+  <TITLE>W3C Reference Library libwww Local File Access</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Declaration of W3C Reference FILE MODULE</H1>
-
+<H1>
+  Declaration of W3C Reference Local File Access
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This is the include file for local file handling modules that can be
-used together with the core of the W3C Reference Library. It contains
-modules which are required to compile and build the FILE DLL.<P>
-
+<P>
+This is the module for accessing local files and directories. The module
+contans
 <PRE>
 #ifndef WWWFILE_H
 #define WWWFILE_H
 </PRE>
-
 <PRE>
 #ifdef __cplusplus
 extern "C" { 
 #endif
 </PRE>
-
-<H2>System dependencies</H2>
-
+<H3>
+  System dependencies
+</H3>
+<P>
 The <A HREF="sysdep.html">sysdep.h</A> file includes system-specific include
-files and flags for I/O to network and disk. The only reason for this
-file is that the Internet world is more complicated than Posix and
-ANSI.
-
+files and flags for I/O to network and disk. The only reason for this file
+is that the Internet world is more complicated than Posix and ANSI.
 <PRE>
 #include "sysdep.h"
 </PRE>
-
-<H2>Library Includes</H2>
-
-
-<PRE>
-#include "HTMulti.h"
-#include "HTFile.h"
+<H3>
+  Access the Local File System
+</H3>
+<P>
+The WWWFile interface provides a platform independent access scheme for local
+files. The local file access works exactly like any other access scheme,
+for example HTTP, in that the "file protocol" is independent of the underlying
+transport. This can be used to for example slide in a CVS transport layser
+underneath the file module without making any modifications to the file module
+itself. You can read more about the transport managament in the
+<A HREF="WWWTrans.html">Transport Interface</A>.
+<PRE>#include "<A HREF="HTFile.html">HTFile.h</A>"
 </PRE>
-
+<H3>
+  Content Negotiation
+</H3>
+<P>
+When accessing the lccal file system, you can enable <I>content negotiation</I>
+as described in the <A HREF="http://www.w3.org/pub/WWW/Protocols/">HTTP
+specification</A>. &nbsp;The content negotiation algorithm is based on file
+suffixes as defined by the <A HREF="HTBind.html">Bind manager</A>. When looking
+for a file you do <B>not</B> have to specify a suffix. Instead this module
+looks for all alternatives with the same main name. For example, looking
+for the file <I>Overview</I> can result in any of the files (or directories)
+<I>Overview.txt</I>, <I>Overview.html</I>, <I>Overview.ps</I> etc. The selection
+algorithm is based on the values of the preferences for language, media type,
+encoding, etc. - exactly like a server would do with the <CODE>accept</CODE>
+headers.
+<PRE>#include "<A HREF="HTMulti.html">HTMulti.h</A>"
+</PRE>
+<P>
 End of FILE module
-
 <PRE>
 #ifdef __cplusplus
 } /* end extern C definitions */
@@ -58,10 +73,9 @@ End of FILE module
 
 #endif
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

@@ -1,0 +1,90 @@
+<HTML>
+<HEAD>
+  <TITLE>W3C Reference Library libwww Global Libwww Information</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 27-Jun-1996 -->
+</HEAD>
+<BODY>
+<H1>
+  Global Libwww Information
+</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+<P>
+This module contains some generic functions for getting the name and version
+of libwww. It also contains some global configuration options like if you
+can access the local file system, for example.
+<P>
+This module is implemented by <A HREF="HTAccess.c">HTAccess.c</A>, and it
+is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>.
+<PRE>
+#ifndef HTLIB_H
+#define HTLIB_H
+
+#include "HTUser.h"
+</PRE>
+<H3>
+  <IMG SRC="../../Icons/32x32/warning"> Initializing and Terminating the Library
+</H3>
+<P>
+These two functions initiates memory and settings for the Library core and
+cleans up memory kept by the core when about to exit the application. They
+&nbsp;<B>must</B> be used!
+<PRE>extern BOOL HTLibInit (const char * AppName, const char * AppVersion);
+extern BOOL HTLibTerminate (void);
+</PRE>
+<H3>
+  Library Name and Version
+</H3>
+<P>
+You can get the generic name of the Library and the version by using the
+following functions:
+<PRE>extern const char * HTLib_name (void);
+extern const char * HTLib_version (void);
+</PRE>
+<H3>
+  Application Name and Version
+</H3>
+<P>
+Returns the name of the application and the version number that was passed
+to the <CODE>HTLibInit()</CODE> function.
+<PRE>
+extern const char * HTLib_appName (void);
+extern const char * HTLib_appVersion (void);
+</PRE>
+<H3>
+  Accessing the Local File System
+</H3>
+<P>
+The Library does normally use the local file system for dumping unknown data
+objects, file cache etc. In some situations this is not desired and we can
+therefore turn it off. This mode also prevents you from being able to access
+other resources where you have to log in telnet, for example.
+<PRE>extern BOOL HTLib_secure (void);
+extern void HTLib_setSecure (BOOL mode);
+</PRE>
+<H3>
+  Default User Profile
+</H3>
+<P>
+The default <A HREF="HTUser.html">user profile</A> is automatically created
+by the libwww in order to get information about the <I>hostname</I>, default
+<I>email -address </I>etc. All <A HREF="HTReq.html">request objects</A> will
+be created with this default user profile. The application may assign individual
+user profiles to every request object or may set the default user profile.
+<PRE>extern HTUserProfile * HTLib_userProfile (void);
+extern BOOL HTLib_setUserProfile (HTUserProfile * up);
+</PRE>
+<PRE>
+#endif /* HTLIB_H */
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

@@ -9,6 +9,7 @@
 **	TBL	Tim Berners-Lee timbl@w3.org
 **	JFG	Jean-Francois Groff jfg@dxcern.cern.ch
 **	DD	Denis DeLaRoca (310) 825-4580  <CSP1DWD@mvs.oac.ucla.edu>
+**	HFN	Henrik Frystyk, frystyk@w3.org
 ** History
 **       8 Jun 92 Telnet hopping prohibited as telnet is not secure TBL
 **	26 Jun 92 When over DECnet, suppressed FTP, Gopher and News. JFG
@@ -23,32 +24,12 @@
 **	   Sep 95 Rewritten, HFN
 */
 
-#if !defined(HT_DIRECT_WAIS) && !defined(HT_DEFAULT_WAIS_GATEWAY)
-#define HT_DEFAULT_WAIS_GATEWAY "http://www.w3.org:8001/"
-#endif
-
 /* Library include files */
-#include "WWWLib.h"
+#include "WWWUtil.h"
+#include "WWWCore.h"
+#include "WWWStream.h"
 #include "HTReqMan.h"
 #include "HTAccess.h"					 /* Implemented here */
-
-#ifndef W3C_VERSION
-#define W3C_VERSION	"unknown"
-#endif
-
-#ifndef HT_DEFAULT_USER
-#define HT_DEFAULT_USER		"LIBWWW_GENERIC_USER"
-#endif
-
-PRIVATE char * HTAppName = NULL;	  /* Application name: please supply */
-PRIVATE char * HTAppVersion = NULL;    /* Application version: please supply */
-
-PRIVATE char * HTLibName = "libwww";
-PRIVATE char * HTLibVersion = W3C_VERSION;
-
-PRIVATE BOOL   HTSecure = NO;		 /* Can we access local file system? */
-
-PRIVATE HTUserProfile * UserProfile = NULL;	     /* Default user profile */
 
 #define PUTBLOCK(b, l)	(*target->isa->put_block)(target, b, l)
 
@@ -56,168 +37,7 @@ struct _HTStream {
     HTStreamClass * isa;
 };
 
-/* --------------------------------------------------------------------------*/
-/*	           Initialization and Termination of the Library	     */
-/* --------------------------------------------------------------------------*/
-
-/*	Information about the Application
-**	---------------------------------
-*/
-PUBLIC const char * HTLib_appName (void)
-{
-    return HTAppName ? HTAppName : "UNKNOWN";
-}
-
-PUBLIC const char * HTLib_appVersion (void)
-{
-    return HTAppVersion ? HTAppVersion : "0.0";
-}
-
-/*	Information about libwww
-**	------------------------
-*/
-PUBLIC const char * HTLib_name (void)
-{
-    return HTLibName ? HTLibName : "UNKNOWN";
-}
-
-PUBLIC const char * HTLib_version (void)
-{
-    return HTLibVersion ? HTLibVersion : "0.0";
-}
-
-/*	Default User Profile
-**	--------------------
-*/
-PUBLIC HTUserProfile * HTLib_userProfile (void)
-{
-    return UserProfile;
-}
-
-PUBLIC BOOL HTLib_setUserProfile (HTUserProfile * up)
-{
-    if (up) {
-	UserProfile = up;
-	return YES;
-    }
-    return NO;
-}
-
-/*	Access Local File System
-**	------------------------
-**	In this mode we do not tough the local file system at all
-*/
-PUBLIC BOOL HTLib_secure (void)
-{
-    return HTSecure;
-}
-
-PUBLIC void HTLib_setSecure (BOOL mode)
-{
-    HTSecure = mode;
-}
-
-/*								     HTLibInit
-**
-**	This function initiates the Library and it MUST be called when
-**	starting up an application. See also HTLibTerminate()
-*/
-PUBLIC BOOL HTLibInit (const char * AppName, const char * AppVersion)
-{
-    if (WWWTRACE)
-	HTTrace("WWWLibInit.. INITIALIZING LIBRARY OF COMMON CODE\n");
-
-    /* Set the application name and version */
-    if (AppName) {
-	char *ptr;
-	StrAllocCopy(HTAppName, AppName);
-	ptr = HTAppName;
-	while (*ptr) {
-	    if (WHITE(*ptr)) *ptr = '_';
-	    ptr++;
-	}
-    }
-    if (AppVersion) {
-	char *ptr;
-	StrAllocCopy(HTAppVersion, AppVersion);
-	ptr = HTAppVersion;
-	while (*ptr) {
-	    if (WHITE(*ptr)) *ptr = '_';
-	    ptr++;
-	}
-    }
-
-    /* Create a default user profile */
-    UserProfile = HTUserProfile_new(HT_DEFAULT_USER, NULL);
-    
-    /* Initialize bindings */
-    HTBind_init();
-
-#ifdef WWWLIB_SIG
-    /* On Solaris (and others?) we get a BROKEN PIPE signal when connecting
-    ** to a port where we should get `connection refused'. We ignore this 
-    ** using the following function call
-    */
-    HTSetSignal();				   /* Set signals in library */
-#endif
-
-
-#ifdef _WINSOCKAPI_
-    /*
-    ** Initialise WinSock DLL. This must also be shut down! PMH
-    */
-    {
-        WSADATA            wsadata;
-	if (WSAStartup(DESIRED_WINSOCK_VERSION, &wsadata)) {
-	    if (WWWTRACE)
-		HTTrace("WWWLibInit.. Can't initialize WinSoc\n");
-            WSACleanup();
-            return NO;
-        }
-        if (wsadata.wVersion < MINIMUM_WINSOCK_VERSION) {
-            if (WWWTRACE)
-		HTTrace("WWWLibInit.. Bad version of WinSoc\n");
-            WSACleanup();
-            return NO;
-        }
-    }
-#endif /* _WINSOCKAPI_ */
-
-    return YES;
-}
-
-
-/*	HTLibTerminate
-**	--------------
-**	This function HT_FREEs memory kept by the Library and should be called
-**	before exit of an application (if you are on a PC platform)
-*/
-PUBLIC BOOL HTLibTerminate (void)
-{
-    if (WWWTRACE) HTTrace("WWWLibTerm.. Cleaning up LIBRARY OF COMMON CODE\n");
-
-    HT_FREE(HTAppName);	        /* Freed thanks to Wade Ogden <wade@ebt.com> */
-    HT_FREE(HTAppVersion);
-
-    HTAtom_deleteAll();					 /* Remove the atoms */
-    HTDNS_deleteAll();				/* Remove the DNS host cache */
-    HTAnchor_deleteAll(NULL);		/* Delete anchors and drop hyperdocs */
-
-    HTProtocol_deleteAll();  /* Remove bindings between access and protocols */
-    HTBind_deleteAll();	    /* Remove bindings between suffixes, media types */
-
-    HTUserProfile_delete(UserProfile);	    /* Free our default User profile */
-
-#ifdef _WINSOCKAPI_
-    WSACleanup();
-#endif
-
-    return YES;
-}
-
-/* --------------------------------------------------------------------------*/
-/*	           		Load Access functions			     */
-/* --------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------- */
 
 /*	Request a document
 **	-----------------
@@ -241,7 +61,7 @@ PRIVATE BOOL HTLoadDocument (HTRequest * request, BOOL recursive)
 **	Request a document referencd by an absolute URL.
 **	Returns YES if request accepted, else NO
 */
-PUBLIC BOOL HTLoadAbsolute (const char * url, HTRequest* request)
+PUBLIC BOOL HTLoadAbsolute (const char * url, HTRequest * request)
 {
     if (url && request) {
 	HTAnchor * anchor = HTAnchor_findAddress(url);
@@ -265,6 +85,29 @@ PUBLIC BOOL HTLoadToStream (const char * url, BOOL filter, HTRequest *request)
     return HTLoadAbsolute(url, request);
 }
 
+/*
+**	Load a URL to a mem buffer
+**	--------------------------
+**	Load a request and store the result in a memory buffer.
+**	Returns chunk if OK - else NULL
+*/
+PUBLIC HTChunk * HTLoadToChunk (const char * url, HTRequest * request)
+{
+    if (url && request) {
+	HTChunk * chunk = NULL;
+	HTStream * target = HTStreamToChunk(request, &chunk, 0);
+	HTAnchor * anchor = HTAnchor_findAddress(url);
+	HTRequest_setAnchor(request, anchor);
+	HTRequest_setOutputStream(request, target);
+	if (HTLoadDocument(request, NO) == YES)
+	    return chunk;
+	else {
+	    HTChunk_delete(chunk);
+	    return NULL;
+	}
+    }
+    return NULL;
+}
 
 /*	Request a document from relative name
 **	-------------------------------------
@@ -326,6 +169,29 @@ PUBLIC BOOL HTLoadAnchorRecursive (HTAnchor * anchor, HTRequest * request)
     return NO;
 }
 
+
+/*
+**	Load a URL to a mem buffer
+**	--------------------------
+**	Load a request and store the result in a memory buffer.
+**	Returns chunk if OK - else NULL
+*/
+PUBLIC HTChunk * HTLoadAnchorToChunk (HTAnchor * anchor, HTRequest * request)
+{
+    if (anchor && request) {
+	HTChunk * chunk = NULL;
+	HTStream * target = HTStreamToChunk(request, &chunk, 0);
+	HTRequest_setAnchor(request, anchor);
+	HTRequest_setOutputStream(request, target);
+	if (HTLoadDocument(request, NO) == YES)
+	    return chunk;
+	else {
+	    HTChunk_delete(chunk);
+	    return NULL;
+	}
+    }
+    return NULL;
+}
 
 /*	Search an Anchor
 **	----------------

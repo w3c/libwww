@@ -1,57 +1,82 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww DIRECTORY LISTING</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 16-Apr-1996 -->
-<NEXTID N="z11">
+  <TITLE>W3C Reference Library libwww Directory Listings</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Declaration of W3C Reference DIRECTORY MODULE</H1>
-
+<H1>
+  Declaration of W3C Reference Directory Listings
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This is the include file for the directory handling modules that can
-be used together with the core of the W3C Reference Library. It
-contains all Directory specific modules which are required to compile
-and build the DIRECTORY DLL.<P>
-
+<P>
+This is the include file for the directory handling modules for parsing and
+presenting directory listings - often in the form of a HTML document.
 <PRE>
 #ifndef WWWDIR_H
 #define WWWDIR_H
 </PRE>
-
 <PRE>
 #ifdef __cplusplus
 extern "C" { 
 #endif
 </PRE>
-
-<H2>System dependencies</H2>
-
+<H3>
+  System dependencies
+</H3>
+<P>
 The <A HREF="sysdep.html">sysdep.h</A> file includes system-specific include
-files and flags for I/O to network and disk. The only reason for this
-file is that the Internet world is more complicated than Posix and
-ANSI.
-
+files and flags for I/O to network and disk. The only reason for this file
+is that the Internet world is more complicated than Posix and ANSI.
 <PRE>
-#include "sysdep.h"
+#include "<A HREF="sysdep.html">sysdep.h</A>"
 </PRE>
-
-<H2>Library Includes</H2>
-
+<H2>
+  Icons
+</H2>
+<P>
+No directory listings without icons! The WWWDir interface contains support
+for including references (URLs and ALT text tags) to icons in directory listings.
+The icons are selected as a function of the media type and the content encoding
+of the file in question. That is - you can set up icons for compressed files,
+postscript files etc. There is also a small set of specific icons representing
+directories etc.
+<P>
+<B>Note</B>: Icons are not set up by default! You must enable them yourself.
+The Library distribution contains a small default set of icons which you
+can find at <CODE>$(datadir)/www-icons</CODE>, and they can be set up using
+the <A HREF="HTInit.html#icons">HTIconInit() initialization</A> function
+in the <A HREF="WWWInit.html">WWWInit startup interface</A>
+<PRE>#include "<A HREF="HTIsonc.html">HTIcons.h</A>"
+</PRE>
+<H2>
+  File Descriptions
+</H2>
+<P>
+Descriptions appearing in <A HREF="HTDir.html">directory listings</A> are
+produced by this module. This may be overridden by another module for those
+who which descriptions to come from somewhere else. It's only HTTP directory
+listings that contain a description field (if enabled by the
+<A HREF="HTDir.html">Directory browsing module</A>.
 <PRE>
-#include "HTIcons.h"
-#include "HTDescpt.h"
-#include "HTDir.h"
+#include "<A HREF="HTDescpt.html">HTDescpt</A>.h"
 </PRE>
-
+<H2>
+  Directory listings
+</H2>
+<P>
+The directory manager generates directory listings for FTP and HTTP requests.
+This module contains the protocol independent code and it produces the HTML
+object. It is only included if either the <A HREF="HTFTP.html">FTP</A> or
+the <A HREF="HTFile.html">File</A> module is included.
+<PRE>
+#include "<A HREF="HTDir.html">HTDir.h</A>"
+</PRE>
+<P>
 End of DIR module
-
 <PRE>
 #ifdef __cplusplus
 } /* end extern C definitions */
@@ -59,10 +84,9 @@ End of DIR module
 
 #endif
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

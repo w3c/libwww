@@ -1,127 +1,129 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww APPLICATION</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 13-Apr-1996 -->
-<NEXTID N="z11">
+<!-- Changed by: Henrik Frystyk Nielsen, 28-Jun-1996 -->
+  <TITLE>W3C Reference Library libwww Application Helper Functions</TITLE>
 </HEAD>
 <BODY>
-
-<H1>Application Stuff</H1>
-
+<H1>
+  Application Helper Functions
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-This module provides some "make life easier" functions in order to get
-the application going. The functionality of this module was originally
-in <A HREF="HTAccess.html">HTAccess</A>, but now it has been moved
-here as a part of the <A HREF="WWWApp.html">application interface</A>
-where the application <EM>may</EM> use it if desired.<P>
-
-This module is implemented by <A HREF="HTHome.c">HTHome.c</A>, and it
-is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
-Reference Library</A>. <P>
-
+<P>
+This module provides some "<I>make life easier</I>" functions in order to
+get the application going. The functionality of this module was originally
+in <A HREF="HTAccess.html">HTAccess</A>, but now it has been moved here as
+a part of the <A HREF="WWWApp.html">application interface</A> where the
+application <EM>may</EM> use it if desired.
+<P>
+This module is implemented by <A HREF="HTHome.c">HTHome.c</A>, and it is
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>.
 <PRE>
 #ifndef HTHOME_H
 #define HTHOME_H
 #include "WWWLib.h"
 </PRE>
-
-<A NAME="Addresses"><H2>Default WWW Addresses</H2></A>
-
-These control the home page selection. To mess with these for normal
-browses is asking for user confusion.
-
-<PRE>
-#define LOGICAL_DEFAULT "WWW_HOME"	      /* Defined to be the home page */
+<H2>
+  Home Page Management
+</H2>
+<P>
+The <I>home page </I>is special in that this is is the first page to visit
+when &nbsp;a client application starts up. Note that a home page is a generic
+URL and hence can be any resouce - not only resources on the local file system.
+<H3>
+  Personal Home Page
+</H3>
+<PRE>#define LOGICAL_DEFAULT 	"WWW_HOME"    /* Defined to be the home page */
 
 #ifndef PERSONAL_DEFAULT
-#define PERSONAL_DEFAULT "WWW/default.html"		/* in home directory */
+#define PERSONAL_DEFAULT 	"WWW/default.html"	/* in home directory */
 #endif
 
 /* If the home page isn't found, use this file: */
 #ifndef LAST_RESORT
-#define LAST_RESORT	"http://www.w3.org/"
+#define LAST_RESORT		"http://www.w3.org/"
 #endif
-
+</PRE>
+<H3>
+  Home Page for Remote Access
+</H3>
+<P>
+Some Web applications can also be run remotely - for example as a telnet
+login shell. The Line Mode Browser is an example of such an application.&nbsp;In
+that case, the home page is often more generic than a personal home page.
+<PRE>
 /* If one telnets to an access point it will look in this file for home page */
 #ifndef REMOTE_POINTER
-#define REMOTE_POINTER  "/etc/www-remote.url"		    /* can't be file */
+#define REMOTE_POINTER 		 "/etc/www-remote.url"	    /* can't be file */
 #endif
 
 /* and if that fails it will use this. */
 #ifndef REMOTE_ADDRESS
-#define REMOTE_ADDRESS  "http://www.w3.org/"		    /* can't be file */
+#define REMOTE_ADDRESS  	"http://www.w3.org/"	    /* can't be file */
 #endif
 
 #ifndef LOCAL_DEFAULT_FILE
-#define LOCAL_DEFAULT_FILE "/usr/local/lib/WWW/default.html"
+#define LOCAL_DEFAULT_FILE 	"/usr/local/lib/WWW/default.html"
 #endif
 </PRE>
-
-<H2>Home Anchor Generation</H2>
-
-We provide two small functions for finding the first anchor.
-
-<H3>Generate the Anchor for the Home Page</H4>
-
-As it involves file access, this should only be done once when the
-program first runs. This is a default algorithm using the
-<CODE>WWW_HOME</CODE> environment variable.
-
-<PRE>
-extern HTParentAnchor * HTHomeAnchor (void);
+<H3>
+  Get an Anchor for the Home Page
+</H3>
+<P>
+Getting an anchor for the <I>home page</I> involves looking for the (environment)
+variables described in the section above. As this is something that almost
+all client applications must do then we provide some simple methods that
+do the work for you.
+<PRE>extern HTParentAnchor * HTHomeAnchor (void);
 </PRE>
-
-<H3>Find Related Name</H3>
-
-Creates a local file URI that can be used as a relative name when
-calling HTParse() to expand a relative file name to an absolute
-one. The code for this routine originates from the Line Mode Browser
-and was moved here by <EM>howcome@w3.org</EM> in order for all clients
-to take advantage.<P>
-
-<PRE>
-extern char *  HTFindRelatedName (void);
+<H3>
+  Get The Current Directory in URL form
+</H3>
+<P>
+Creates a local file URL that can be used as a relative name when calling
+expanding other URLs relative to the current location in the local file system
+tree where the application is running. The code for this routine originates
+from the Line Mode Browser and was moved here by <EM>howcome@w3.org</EM>
+in order for all clients to take advantage.
+<PRE>#define HTFindRelatedName HTGetCurrentDirectoryURL
+extern char *  HTGetCurrentDirectoryURL (void);
 </PRE>
-
-<H2>Net Manager Callback Functions</H2>
-
-These two functions are examples of callback functions from the <A
-HREF="HTNet.html">Net Manager</A> which are called <EM>before</EM> and
-<EM>after</EM> a request respectively. They do a lot of the stuff an
-application often has to do anyway.
-
-<H3>BEFORE Request Callback</H3>
-
-This function uses all the functionaly that the app part of the
-Library gives for URL translations BEFORE a request is isseued.  It
-checks for Cache, proxy, and gateway (in that order)
-
-<PRE>
-extern HTNetCallback HTLoadStart;
+<H2>
+  Net Manager Callback Functions
+</H2>
+<P>
+These two functions are examples of callback functions from the
+<A HREF="HTNet.html">Net Manager</A> which are called <EM>before</EM> and
+<EM>after</EM> a request respectively. They do a lot of the stuff an application
+often has to do anyway.
+<H3>
+  BEFORE Request Callback
+</H3>
+<P>
+This function uses all the functionaly that the app part of the Library gives
+for URL translations <I>BEFORE</I> a request is isseued. It checks for
+<B>cache</B>, <B>proxy</B>, and <B>gateway</B> (in that order)
+<PRE>extern HTNetCallback HTLoadStart;
 </PRE>
-
-<H3>AFTER Request Callback</H3>
-
-This function uses all the functionaly that the app part of the Library
-gives for handling AFTER a request.
-
-<PRE>
-extern HTNetCallback HTLoadTerminate;
+<H3>
+  AFTER Request Callback
+</H3>
+<P>
+This function uses all the functionaly that the app part of the Library gives
+for handling <I>AFTER</I> a request.
+<PRE>extern HTNetCallback HTLoadTerminate;
 </PRE>
-
 <PRE>
 #endif /* HTHOME_H */
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>

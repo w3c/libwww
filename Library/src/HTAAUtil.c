@@ -150,7 +150,7 @@ PUBLIC BOOL HTAuthCall_deleteAll (void)
 **	which contains informations for generate either credentials or
 **	challenges. The database is symmetric for both server and client
 **	applications and the implementation can be changed independent of the 
-**	API so if you fell like using a fancy database toolkit then feel HT_FREE
+**	API so if you fell like using a fancy database toolkit then feel free
 **	to go right ahead :-)
 */
 

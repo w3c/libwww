@@ -1,12 +1,11 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
-  <NEXTID N="z11">
-  <TITLE>W3C Reference Library libwww access methods</TITLE>
+  <!-- Changed by: Henrik Frystyk Nielsen, 28-Jun-1996 -->
+  <TITLE>W3C Reference Library libwww Accessing URLs</TITLE>
 </HEAD>
 <BODY>
 <H1>
-  Access Manager
+  Accessing URLs
 </H1>
 <PRE>
 /*
@@ -16,10 +15,12 @@
 </PRE>
 <P>
 This module is the application interface module to the
-<A HREF="HTReq.html">Request class</A>. You can use the Request class directly
-but this module makes it easier to use by providing a lot of small request
-functions using the Request class in different ways. It contains help functions
-for accessing documents and for uploading documents to a remote server.
+<A HREF="HTReq.html">Request class</A>. It contains a lot of methods for
+loading URLs and also for uploading URLs using <CODE>PUT</CODE> or
+<CODE>POST</CODE>, for example. You can use the Request class directly but
+this module makes it easier to use by providing a lot of small request functions
+using the Request class in different ways. It contains help functions for
+accessing documents and for uploading documents to a remote server.
 <P>
 This module is implemented by <A HREF="HTAccess.c">HTAccess.c</A>, and it
 is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
@@ -32,120 +33,78 @@ Library</A>.
 #include "HTAnchor.h"
 </PRE>
 <H2>
-  Generic Library Functions
+  Loading a URL
 </H2>
 <P>
-These are functions that affect the overall behavior of the Library.
+URLs can be accesses using a character string, for example
+"<CODE>http://www.w3.org</CODE>" or it can be accessed by using the libwww
+representation of a URL which is called an <A HREF="HTAnchor.html">Anchor
+object</A>. Note that we call all objects accessible through URLs for
+<I>documents</I> - this is a notion we have inherited from the hypertext
+world.
 <H3>
-  <IMG SRC="../../Icons/32x32/warning"> Initializing and Terminating the Library
+  Request a Document from Absolute URL
 </H3>
 <P>
-These two functions initiates memory and settings for the Library and cleans
-up memory kept by the Library when about to exit the application. They
-<B>must</B> be used!
-<PRE>
-extern BOOL HTLibInit (const char * AppName, const char * AppVersion);
-extern BOOL HTLibTerminate (void);
+Request a document referencd by an <I>absolute</I> URL. The output from the
+request is passed to the <A HREF="HTFormat.html">Stream Pipe Manager</A>
+that figures out where to pump the data. This can for example be to the display
+or to a local file depending on the set of
+<A HREF="HTFormat.html#type">converters</A> registered by the application.
+<PRE>extern BOOL HTLoadAbsolute (const char * url, HTRequest * request);
 </PRE>
 <H3>
-  Library Name and Version
+  Request a Document from Relative URL
 </H3>
 <P>
-You can get the generic name of the Library and the version by using the
-following functions:
-<PRE>
-extern const char * HTLib_name (void);
-extern const char * HTLib_version (void);
-</PRE>
-<H3>
-  Application Name and Version
-</H3>
-<P>
-Returns the name of the application and the version number that was passed
-to the <CODE>HTLibInit()</CODE> function.
-<PRE>
-extern const char * HTLib_appName (void);
-extern const char * HTLib_appVersion (void);
-</PRE>
-<H3>
-  Accessing the Local File System
-</H3>
-<P>
-The Library does normally use the local file system for dumping unknown data
-objects, file cache etc. In some situations this is not desired and we can
-therefore turn it off. This mode also prevents you from being able to access
-other resources where you have to log in, fr example telnet.
-<PRE>
-extern BOOL HTLib_secure (void);
-extern void HTLib_setSecure (BOOL mode);
-</PRE>
-<H3>
-  Default User Profile
-</H3>
-<P>
-The default <A HREF="HTUser.html">user profile </A>is automatically created
-by the libwww in order to get information about the host name, default email
-address etc. All <A HREF="HTReq.html">request objects</A> will be created
-with this default user profile. The application may assign individual user
-profiles to every request object or may set the default user profile.
-<PRE>extern HTUserProfile * HTLib_userProfile (void);
-extern BOOL HTLib_setUserProfile (HTUserProfile * up);
-</PRE>
-<H2>
-  LOAD Request Methods
-</H2>
-<H3>
-  Request a document from absolute name
-</H3>
-<P>
-Request a document referencd by an absolute URL. Returns YES if request accepted,
-else NO
-<PRE>
-extern BOOL HTLoadAbsolute (const char * url, HTRequest* request);
-</PRE>
-<H3>
-  Request a document from absolute name to stream
-</H3>
-<P>
-Request a document referencd by an absolute URL and sending the data down
-a stream. This is _excactly_ the same as HTLoadAbsolute as the ourputstream
-is specified using the function. HTRequest_setOutputStream(). 'filter' is
-ignored! Returns YES if request accepted, else NO
-<PRE>
-extern BOOL HTLoadToStream (const char * url, BOOL filter, HTRequest *request);
-</PRE>
-<H3>
-  Request a document from relative name
-</H3>
-<P>
-Request a document referenced by a relative URL. The relative URL is made
-absolute by resolving it relative to the address of the 'base' anchor. Returns
-YES if request accepted, else NO
-<PRE>
-extern BOOL HTLoadRelative (const char * 	relative,
+Request a document referenced by a <I>relative</I> URL. The relative URL
+is made absolute by resolving it relative to the address of the '<I>base</I>'
+anchor.
+<PRE>extern BOOL HTLoadRelative (const char * 	relative,
 			    HTParentAnchor *	base,
 			    HTRequest *		request);
 </PRE>
 <H3>
-  Request an anchor
+  Load a URL into Memory
 </H3>
 <P>
-Request the document referenced by the anchor Returns YES if request accepted,
-else NO
-<PRE>
-extern BOOL HTLoadAnchor (HTAnchor * anchor, HTRequest * request);
+Request a document referred to by the URL and load it into a chunk object.
+A <A HREF="HTChunk.html">chunk object</A> is a dynamic string so in the end
+you will have a single memory buffer containing the document.
+<PRE>extern HTChunk * HTLoadToChunk (const char * url, HTRequest * request);
 </PRE>
 <H3>
-  Request an anchor
+  Request a Document using an Anchor
 </H3>
 <P>
-Same as HTLoadAnchor but any information in the Error Stack in the request
-object is kept, so that any error messages in one This function is almost
-identical to HTLoadAnchor, but it doesn't clear the error stack so that the
-information in there is kept. Returns YES if request accepted, else NO
-<PRE>
-extern BOOL HTLoadAnchorRecursive (HTAnchor * anchor, HTRequest * request);
+Here the URL is represented by an <A HREF="HTAnchor.html">Anchor object</A>.
+You can get an anchor object representing a URL by passing the URL to the
+approproiate method in the <A HREF="HTAnchor.html">Anchor class</A>.
+<PRE>extern BOOL HTLoadAnchor (HTAnchor * anchor, HTRequest * request);
 </PRE>
+<H3>
+  Load a URL into Memory using an Anchor
+</H3>
+<P>
+This is the same as HTLoadToChunk but instead of passing a URL string you
+pass an anchor object. Internally, all URLs are represented as anchors which
+contains all the information we have about the resource.
+<PRE>extern HTChunk * HTLoadAnchorToChunk (HTAnchor * anchor, HTRequest * request);
+</PRE>
+<H3>
+  Recursively Request a Document using an Anchor
+</H3>
+<P>
+Same as <CODE>HTLoadAnchor()</CODE> but the information in the error stack
+in the request object is kept, so that any error messages in one. This function
+is almost identical to <CODE>HTLoadAnchor</CODE>, but it doesn't clear the
+error stack so that the information in there is kept. Returns YES if request
+accepted, else NO
+<PRE>extern BOOL HTLoadAnchorRecursive (HTAnchor * anchor, HTRequest * request);
+</PRE>
+<H2>
+  Searching a URL
+</H2>
 <H3>
   Search an Anchor
 </H3>
@@ -168,15 +127,12 @@ Request a document referencd by an absolute URL appended with the keywords
 given. The URL can NOT contain any fragment identifier! The list of keywords
 must be a space-separated list and spaces will be converted to '+' before
 the request is issued. Returns YES if request accepted, else NO
-<PRE>
-extern BOOL HTSearchAbsolute (const char *	keywords,
+<PRE>extern BOOL HTSearchAbsolute (const char *	keywords,
 			      const char *	url,
 			      HTRequest *	request);
 </PRE>
-<P>
-<A NAME="PostDoc"></A>
 <H2>
-  POST Request Methods
+  Saving a URL
 </H2>
 <H3>
   Copy an anchor
@@ -189,8 +145,7 @@ to transmit by setting the user fields in the request structure. If posting
 to NNTP then we can't dispatch at this level but must pass the source anchor
 to the news module that then takes all the refs to NNTP and puts into the
 "newsgroups" header Returns YES if request accepted, else NO
-<PRE>
-extern BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_req);
+<PRE>extern BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_req);
 </PRE>
 <H3>
   Upload an Anchor
@@ -214,8 +169,7 @@ destination anchor by using the
 anchor contains metainformation about the data object in memory and the
 destination anchor represents the reponse from the remote server. Returns
 YES if request accepted, else NO
-<PRE>
-extern BOOL HTUploadAnchor (HTAnchor *		source_anchor,
+<PRE>extern BOOL HTUploadAnchor (HTAnchor *		source_anchor,
 			    HTRequest * 	request,
 			    HTPostCallback *	callback);
 </PRE>

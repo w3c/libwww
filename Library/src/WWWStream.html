@@ -15,7 +15,8 @@
 </PRE>
 <P>
 The stream part of the Library is a set of streams that can be used in many
-contexts throughout the Library.
+contexts throughout the Library. It also contains conversions between streams
+and other memory containers, for example <A HREF="HTChunk.html">Chunks</A>.
 <PRE>
 #ifndef WWWSTREAM_H
 #define WWWSTREAM_H
@@ -32,8 +33,7 @@ extern "C" {
 The <A HREF="sysdep.html">sysdep.h</A> file includes system-specific include
 files and flags for I/O to network and disk. The only reason for this file
 is that the Internet world is more complicated than Posix and ANSI.
-<PRE>
-#include "sysdep.h"
+<PRE>#include "sysdep.h"
 </PRE>
 <H3>
   Content Length Counter
@@ -42,8 +42,7 @@ is that the Internet world is more complicated than Posix and ANSI.
 This stream also buffers the result to find out the content length. If a
 maximum buffer limit is reached Content-Length is calculated for logs but
 it is not sent to the client -- rather the buffer is flushed right away.
-<PRE>
-#include "<A HREF="HTConLen.html">HTConLen.h</A>"			/* Content Length Counter */
+<PRE>#include "<A HREF="HTConLen.html">HTConLen.h</A>"			/* Content Length Counter */
 </PRE>
 <H3>
   Content Guess Stream
@@ -55,8 +54,7 @@ to figure out the format, and calls <CODE>HTStreamStack()</CODE>. This is
 a kind of lazy-evaluation of <CODE>HTStreamStack()</CODE>. This could be
 extended arbitrarily to recognize all the possible file formats in the world,
 if someone only had time to do it.
-<PRE>
-#include "<A HREF="HTGuess.html">HTGuess.h</A>"			/* Guess stream */
+<PRE>#include "<A HREF="HTGuess.html">HTGuess.h</A>"			/* Guess stream */
 </PRE>
 <H3>
   Tee Stream
@@ -66,20 +64,28 @@ The Tee stream just writes everything you put into it into two oter streams.
 One use (the only use?!) is for taking a cached copey on disk while loading
 the main copy, without having to wait for the disk copy to be finished and
 reread it.
-<PRE>
-#include "<A HREF="HTTee.html">HTTee.h</A>"			/* T streem for splitting a stream */
+<PRE>#include "<A HREF="HTTee.html">HTTee.h</A>"			/* T streem for splitting a stream */
 </PRE>
 <H3>
-  Memory Buffer
+  Stream to Chunk Conversion
+</H3>
+<P>
+If you do not like the stream model in libwww, then you can use this stream
+to convert a <A HREF="HTStream.html">stream object </A>into a
+<A HREF="HTChunk.html">Chunk object</A> which is a dynamic character string
+buffer in memory.
+<PRE>#include "<A HREF="HTSChunk.html">HTSChunk.h</A>"
+</PRE>
+<H3>
+  Stream to Memory Object Conversion
 </H3>
 <P>
 This version of the stream object is a hook for clients that want an unparsed
 stream from libwww. The HTXParse_put_* and HTXParse_write routines copy the
 content of the incoming buffer into a buffer that is realloced whenever
-necessary. This buffer is handed over to the client in HTXParse_free. See
-also <A HREF="HTFWrite.html">HTFWriter</A> for writing to C files.
-<PRE>
-#include "<A HREF="HTXParse.html">HTXParse.h</A>"			/* External parse stream */
+necessary. This buffer is handed over to the client in
+<CODE>HTXParse_free</CODE>.
+<PRE>#include "<A HREF="HTXParse.html">HTXParse.h</A>"			/* External parse stream */
 </PRE>
 <PRE>
 #ifdef __cplusplus

@@ -236,7 +236,7 @@ PRIVATE int HTGuess_free (HTStream * me)
 
 PRIVATE int HTGuess_abort (HTStream * me, HTList * e)
 {
-    if (me->target) (*me->target->isa->abort)(me,e);
+    if (me->target) (*me->target->isa->abort)(me->target, e);
     HT_FREE(me);
     return HT_ERROR;
 }

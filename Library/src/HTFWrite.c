@@ -21,14 +21,13 @@
 
 /* Library include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
+#include "WWWUtil.h"
 #include "HTFormat.h"
 #include "HTError.h"
 #include "HTAlert.h"
 #include "HTAccess.h"
+#include "HTLib.h"
 #include "HTBind.h"
-#include "HTList.h"
 #include "HTParse.h"
 #include "HTReq.h"
 #include "HTFWrite.h"					 /* Implemented here */

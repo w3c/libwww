@@ -61,7 +61,7 @@ PUBLIC BOOL HTProtocol_add (const char *       	name,
 	newProt->client = client;
 	newProt->server = server;
 	if (!protocols) protocols = HTList_new();
-	if (PROT_TRACE) HTTrace("Protocol.... Adding `%s'\n", name);
+	if (CORE_TRACE) HTTrace("Protocol.... Adding `%s'\n", name);
 	return HTList_addObject(protocols, (void *) newProt);
     }
     return NO;

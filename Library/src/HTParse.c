@@ -16,14 +16,13 @@
 #include "HTString.h"
 #include "HTParse.h"					 /* Implemented here */
 
-struct struct_parts {
-	char * access;		/* Now known as "scheme" */
-	char * host;
-	char * absolute;
-	char * relative;
-/*	char * search;		no - treated as part of path */
-	char * anchor;
-};
+typedef struct _HTURI {
+    char * access;		/* Now known as "scheme" */
+    char * host;
+    char * absolute;
+    char * relative;
+    char * fragment;
+} HTURI;
 
 /*	Scan a filename for its consituents
 **	-----------------------------------
@@ -32,23 +31,24 @@ struct struct_parts {
 **	name	points to a document name which may be incomplete.
 ** On exit,
 **      absolute or relative may be nonzero (but not both).
-**	host, anchor and access may be nonzero if they were specified.
+**	host, fragment and access may be nonzero if they were specified.
 **	Any which are nonzero point to zero terminated strings.
 */
-PRIVATE void scan (char * name, struct struct_parts * parts)
+PRIVATE void scan (char * name, HTURI * parts)
 {
-    char * after_access;
     char * p;
-    int length = strlen(name);
+    char * after_access = name;
+    memset(parts, '\0', sizeof(HTURI));
+
+    /* Look for fragment identifier */
+    if ((p = strrchr(name, '#')) != NULL) {
+	*p++ = '\0';
+	parts->fragment = p;
+    }
     
-    parts->access = 0;
-    parts->host = 0;
-    parts->absolute = 0;
-    parts->relative = 0;
-    parts->anchor = 0;
-    
-    after_access = name;
     for(p=name; *p; p++) {
+	if (*p=='/' || *p=='#' || *p=='?')
+	    break;
 	if (*p==':') {
 		*p = 0;
 		parts->access = after_access; /* Scheme has been specified */
@@ -67,16 +67,8 @@ PRIVATE void scan (char * name, struct struct_parts * parts)
 		    parts->access = NULL;  /* Ignore IETF's URL: pre-prefix */
 		} else break;
 	}
-	if (*p=='/') break;		/* Access has not been specified */
-	if (*p=='#') break;
     }
     
-    for(p=name+length-1; p>=name; p--) {
-	if (*p =='#') {
-	    parts->anchor=p+1;
-	    *p=0;				/* terminate the rest */
-	}
-    }
     p = after_access;
     if (*p=='/'){
 	if (p[1]=='/') {
@@ -120,7 +112,7 @@ PUBLIC char * HTParse (const char *aName, const char *relatedName, int wanted)
     char * rel = 0;
     char * p;
     char * access;
-    struct struct_parts given, related;
+    HTURI given, related;
     
     if (!relatedName)        /* HWL 23/8/94: dont dump due to NULL */
         relatedName = "";
@@ -147,7 +139,7 @@ PUBLIC char * HTParse (const char *aName, const char *relatedName, int wanted)
 	    related.host=0;
 	    related.absolute=0;
 	    related.relative=0;
-	    related.anchor=0;
+	    related.fragment=0;
 	}
 	
     if (wanted & PARSE_HOST)
@@ -160,7 +152,7 @@ PUBLIC char * HTParse (const char *aName, const char *relatedName, int wanted)
         if (strcmp(given.host, related.host)!=0) {
 	    related.absolute=0;
 	    related.relative=0;
-	    related.anchor=0;
+	    related.fragment=0;
 	}
 	
     if (wanted & PARSE_PATH) {
@@ -190,15 +182,15 @@ PUBLIC char * HTParse (const char *aName, const char *relatedName, int wanted)
     }
 		
     if (wanted & PARSE_ANCHOR)
-	if(given.anchor || related.anchor) {
-	    if(given.absolute && given.anchor) {   /*Fixes for relURLs...*/
+	if(given.fragment || related.fragment) {
+	    if(given.absolute && given.fragment) {   /*Fixes for relURLs...*/
 		if(wanted & PARSE_PUNCTUATION) strcat(result, "#");
-		strcat(result, given.anchor); 
-	    } else if (!(given.absolute) && !(given.anchor)) {
+		strcat(result, given.fragment); 
+	    } else if (!(given.absolute) && !(given.fragment)) {
 		strcat(result, "");
 	    } else {
 		if(wanted & PARSE_PUNCTUATION) strcat(result, "#");
-		strcat(result, given.anchor ? given.anchor : related.anchor); 
+		strcat(result, given.fragment ? given.fragment : related.fragment); 
 	    }
 	}
     HT_FREE(rel);
@@ -416,7 +408,7 @@ PUBLIC char *HTSimplify (char ** url)
 **
 **  On entry,
 **	Both names must be absolute, fully qualified names of nodes
-**	(no anchor bits)
+**	(no fragment bits)
 **
 **  On exit,
 **	The return result points to a newly allocated name which, if
