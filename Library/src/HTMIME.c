@@ -280,7 +280,7 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
 {
     const char * start = b;
     const char * end = start;
-    const char * value = HTChunk_size(me->value) >= 0 ? b : NULL;
+    const char * value = HTChunk_size(me->value) > 0 ? b : NULL;
     int length = l;
     int status;
 
