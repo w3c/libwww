@@ -2041,7 +2041,7 @@ PRIVATE int HTFTP_look_for_data ARGS2(HTRequest *, 	request,
     /* This sleep is necessary as data is usually arriving more slow on control
        connection than on data connection. Even on an error, the data socket 
        might indicate that data is ready, even though they are not :-( */
-    sleep(1);
+    SLEEP(1);
 
     /* Now make the select */
 #ifdef __hpux

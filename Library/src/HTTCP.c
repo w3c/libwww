@@ -1241,8 +1241,8 @@ PUBLIC int HTDoAccept ARGS1(HTNetInfo *, net)
 	    return status;
 	} else
 	    HTErrorSysAdd(net->request, ERR_WARN, socerrno, YES, "accept");
-	sleep(1);
-    }	
+	SLEEP(1);
+    }
     
     /* If nothing has happened */    
     if (PROT_TRACE)

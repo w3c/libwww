@@ -857,8 +857,6 @@ PRIVATE void limit_cache ARGS1(HTList * , list)
     if (best_item) HTCache_remove(list, best_item);
 }
 
-#ifdef GOT_READ_DIR
-
 /*	Cache Writer
 **	------------------
 **
@@ -927,8 +925,6 @@ PUBLIC HTStream* HTCacheWriter ARGS5(
     me->filename = fnam;   /* will be freed */
     return me;
 }
-
-#endif /* GOT_READ_DIR */
 
 
 /*	Save and Call Back

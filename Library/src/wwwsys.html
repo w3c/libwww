@@ -427,6 +427,8 @@ Some special things for the 32 bit version...
 #define EHOSTUNREACH	WSAEHOSTUNREACH
 #define EHOSTDOWN	WSAEHOSTDOWN
 #define EISCONN		WSAEISCONN
+
+#define SLEEP(n)	Sleep((n)000)
 #endif
 </PRE>
 
@@ -459,9 +461,6 @@ unix file descriptor less than 10.  It works.
 #define CACHE_FILE_PREFIX  "SYS$LOGIN:Z_"
 
 #ifdef WIN_TCP
-#undef NETREAD
-#undef NETWRITE
-#undef NETCLOSE
 #define NETREAD(s,b,l)	((s)&gt;10 ? netread((s),(b),(l)) : read((s),(b),(l)))
 #define NETWRITE(s,b,l)	((s)&gt;10 ? netwrite((s),(b),(l)) : write((s),(b),(l)))
 #define NETCLOSE(s) 	((s)&gt;10 ? netclose(s) : close(s))
@@ -480,9 +479,6 @@ unix file descriptor less than 10.  It works.
 
 #ifdef DECNET
 #undef SELECT  /* not supported */
-#undef NETREAD
-#undef NETWRITE
-#undef NETCLOSE
 #define NETREAD(s,b,l)	((s)&gt;10 ? recv((s),(b),(l),0) : read((s),(b),(l)))
 #define NETWRITE(s,b,l)	((s)&gt;10 ? send((s),(b),(l),0) : write((s),(b),(l)))
 #define NETCLOSE(s) 	((s)&gt;10 ? socket_close(s) : close(s))
@@ -892,6 +888,16 @@ extern int sys_nerr;
 Information below this line is general for most platforms. <P>
 
 See also <A NAME="z3" HREF="#z1">Platform Specific Stuff</A>
+
+<H3>Sleep System Call</H3>
+
+Some systems use milliseconds instead of seconds
+
+<PRE>
+#ifndef SLEEP
+#define SLEEP(n)	sleep(n)
+#endif
+</PRE>
 
 <H3>SOCKS</H3>
 
