@@ -8,9 +8,8 @@ EXTRA_DIST = \
 	build_multinet.com \
 	build_multinet.com_alpha \
 	multinet.opt \
-	ltinet.opt_alpha \
 	build_ucx.com \
-	uild_ucx.com_alpha \
+	build_ucx.com_alpha \
 	ucx.opt \
 	ucx.opt_alpha \
 	patchlevel.h \

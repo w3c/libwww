@@ -13,5 +13,6 @@ libxmltok_la_SOURCES = \
 	xmltok_impl.h \
 	latin1tab.h \
 	utf8tab.h \
+	xmltok_impl.c \
 	xmlrole.c \
 	xmltok.c
