@@ -843,7 +843,15 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 		continue;
 	    }
 #endif /* EINTR */
+#if 0
+	    /*
+	    **  We should not use a request but simply a list which can show
+	    **  the errors which occured in select
+	    */
 	    HTRequest_addSystemError(theRequest, ERR_FATAL, socerrno, NO, "select");
+#else
+	    if (THD_TRACE) HTTrace("Event Loop.. select returned error %d\n", socerrno);
+#endif
 	    EventList_dump();
 	    return HT_ERROR;
         }
