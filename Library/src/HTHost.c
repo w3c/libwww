@@ -383,13 +383,13 @@ PUBLIC HTHost * HTHost_newWParse (HTRequest * request, char * url, u_short u_por
     }
     if (!parsedHost || !*parsedHost) {
 	HTRequest_addError(request, ERR_FATAL, NO, HTERR_NO_HOST,
-			   NULL, 0, "HTDoConnect");
+			   NULL, 0, "HTHost_newWParse");
 	HT_FREE(fullhost);
 	return NULL;
     }
     port = strchr(parsedHost, ':');
     if (PROT_TRACE)
-	HTTrace("HTDoConnect. Looking up `%s\'\n", parsedHost);
+	HTTrace("HTHost parse Looking up `%s\'\n", parsedHost);
     if (port) {
 	*port++ = '\0';
 	if (!*port || !isdigit((int) *port))
@@ -398,7 +398,7 @@ PUBLIC HTHost * HTHost_newWParse (HTRequest * request, char * url, u_short u_por
     }
     /* Find information about this host */
     if ((me = HTHost_new(parsedHost, u_port)) == NULL) {
-	if (PROT_TRACE)HTTrace("HTDoConnect. Can't get host info\n");
+	if (PROT_TRACE)HTTrace("HTHost parse Can't get host info\n");
 	me->tcpstate = TCP_ERROR;
 	return NULL;
     }
@@ -969,13 +969,16 @@ PUBLIC int HTHost_addNet (HTHost * host, HTNet * net)
 	/*
 	**  If we don't have a socket already then check to see if we can get
 	**  one. Otherwise we put the host object into our pending queue.
-	*/	
+	*/
 	if (!host->channel && HTNet_availableSockets() <= 0) {
 	    if (!PendHost) PendHost = HTList_new();
-	    if (CORE_TRACE)
-		HTTrace("Host info... Add Host %p as pending\n", host);
 	    HTList_addObject(PendHost, host);
-	    status = HT_PENDING;
+	    if (!host->pending) host->pending = HTList_new();
+	    HTList_addObject(host->pending, net);	    
+ 	    if (CORE_TRACE)
+		HTTrace("Host info... Added Host %p with Net %p (request %p) as pending, %d requests made, %d requests in pipe, %d pending\n",
+			host, net, net->request, host->reqsMade, HTList_count(host->pipeline), HTList_count(host->pending));
+	    return HT_PENDING;
 	}
 
 #if 0
@@ -1189,78 +1192,52 @@ PUBLIC HTHost * HTHost_nextPendingHost (void)
 */
 PUBLIC BOOL HTHost_launchPending (HTHost * host)
 {
-    int available = HTNet_availableSockets();
-
+    HTNet * net = NULL;
     if (!host) {
 	if (PROT_TRACE) HTTrace("Host info... Bad arguments\n");
 	return NO;
     }
 
     /*
-    **  Check if we do have resources available for a new request
-    **  This can either be reusing an existing connection or opening a new one
+    **  In pipeline we can only have one doing writing at a time.
+    **  We therefore check that there are no other Net object
+    **  registered for write
     */
-    if (available > 0 || host->mode >= HT_TP_PIPELINE) {
-	HTNet * net;
+    if (host->mode == HT_TP_PIPELINE) {
+	net = (HTNet *) HTList_lastObject(host->pipeline);
+	if (net && net->registeredFor == HTEvent_WRITE)
+	    return NO;
+    }
 
-	/*
-	**  In pipeline we can only have one doing writing at a time.
-	**  We therefore check that there are no other Net object
-	**  registered for write
-	*/
-	if (host->mode == HT_TP_PIPELINE) {
-	    net = (HTNet *) HTList_lastObject(host->pipeline);
-	    if (net && net->registeredFor == HTEvent_WRITE)
-		return NO;
+    /*
+    **  Check the current Host object for pending Net objects
+    */
+    if (_roomInPipe(host) && DoPendingReqLaunch &&
+	   (net = HTHost_nextPendingNet(host))) {
+	HTHost_ActivateRequest(net);
+	if (CORE_TRACE)
+	    HTTrace("Launch pending net object %p with %d reqs in pipe (%d reqs made)\n",
+		    net, HTList_count(host->pipeline), host->reqsMade);
+	return HTNet_execute(net, HTEvent_WRITE);
+    }
+
+    /*
+    **  Check for other pending Host objects
+    */
+    if (DoPendingReqLaunch && HTNet_availableSockets() > 0) {
+	HTHost * pending = HTHost_nextPendingHost();
+	if (pending && (net = HTHost_nextPendingNet(pending))) {
+	    if (!pending->pipeline) pending->pipeline = HTList_new();
+	    HTList_addObject(pending->pipeline, net);
+	    host->reqsMade++;
+	    if (CORE_TRACE)
+		HTTrace("Launch pending host object %p, net %p with %d reqs in pipe (%d reqs made)\n",
+			pending, net, HTList_count(pending->pipeline), pending->reqsMade);
+	    HTHost_ActivateRequest(net);
+	    return HTNet_execute(net, HTEvent_WRITE);
 	}
-
-	/*
-	**  Check the current Host object for pending Net objects
-	**
-	**  Send out as many as will fit in pipe.
-	*/
-	while (_roomInPipe(host) && (net = HTHost_nextPendingNet(host))) {
-	    int status = NO;
-	    /* JK: Added new code to interrupt pending requests*/
-	    if (DoPendingReqLaunch) {
-	      HTHost_ActivateRequest (net);
-	      if (CORE_TRACE)
-		HTTrace("Launch pending net object %p with %d reqs in pipe (%d reqs made)\n", net, HTList_count(host->pipeline), host->reqsMade);
-	      status = HTNet_execute(net, HTEvent_WRITE);
-            } else
-	      {
-		/* replace the object that was taken off the list */
-		HTList_appendObject (host->pending, (void *) net);
-		/* go the the other pending hosts routine */
-		break;
-	      }
-
-	    if (status != HT_OK)
-		return status;
-        }
-
-	/*
-	**  Check for other pending Host objects
-	*/
-	{
-	    HTHost * pending = HTHost_nextPendingHost();
-	    if (pending) {
-		HTNet * net = HTHost_nextPendingNet(pending);
-		if (net) {
-                   if (DoPendingReqLaunch) {
-                       HTHost_ActivateRequest (net);
-                       return HTNet_execute(net, HTEvent_WRITE);
-                   } else {
-		     /* replace the object that was taken off the list */
-		     HTList_appendObject (PendHost, (void *) pending);
-                     return NO;
-		   }
-		}
-	    }
-	}
-    } else
-	if (PROT_TRACE) HTTrace("Host info... No more requests.\n");
-    return NO;
+    }
+    return YES;
 }
 
 PUBLIC HTNet * HTHost_firstNet (HTHost * host)
@@ -1276,14 +1253,18 @@ PUBLIC HTNet * HTHost_firstNet (HTHost * host)
 */
 PUBLIC int HTHost_connect (HTHost * host, HTNet * net, char * url, HTProtocolId port)
 {
-#if 1
     HTRequest * request = HTNet_request(net);
-    int status;
+    int status = HT_OK;
     if (!host) {
 	HTProtocol * protocol = HTNet_protocol(net);
 	if ((host = HTHost_newWParse(request, url, HTProtocol_id(protocol))) == NULL)
 	    return HT_ERROR;
-	if (!host->channel) {
+
+	/*
+	** If not already locked and without a channel
+	** then lock the darn thing
+	*/
+	if (!host->lock && !host->channel) {
 	    host->forceWriteFlush = YES;
 	    host->lock = net;
 	}
@@ -1298,7 +1279,7 @@ PUBLIC int HTHost_connect (HTHost * host, HTNet * net, char * url, HTProtocolId 
 	}
 	if (status == HT_WOULD_BLOCK) {
 	    host->lock = net;
-	    return HT_WOULD_BLOCK;
+	    return status;
 	}
 	if (status == HT_PENDING) return HT_WOULD_BLOCK;
     } else {
@@ -1307,14 +1288,6 @@ PUBLIC int HTHost_connect (HTHost * host, HTNet * net, char * url, HTProtocolId 
 	}
     }
     return HT_ERROR; /* @@@ - some more deletion and stuff here? */
-#else
-    int status;
-    status = HTDoConnect(net, url, port);
-    if (status == HT_OK) return HT_OK;
-    if (status == HT_WOULD_BLOCK || status == HT_PENDING)
-	return HT_WOULD_BLOCK;
-    return HT_ERROR; /* @@@ - some more deletion and stuff here? */
-#endif
 }
 
 /*
@@ -1361,7 +1334,10 @@ PUBLIC int HTHost_register (HTHost * host, HTNet * net, HTEventType type)
 	    return HTEvent_register(HTChannel_socket(host->channel),
 				    type, event);
 	}
+
+	return YES;
     }
+    if ("HTHost req.. Bad arguments\n");
     return NO;
 }
 
