@@ -83,7 +83,7 @@ PUBLIC int HTInetStatus(where)
 #endif
 #endif 
 
-    CTRACE(tfp, "TCP: Error %d in `errno' after call to %s() failed.\n\t%s\n",
+    CTRACE(tfp, "TCP......... Error %d in `errno' after call to %s() failed.\n\t%s\n",
 	    errno,  where,
 
 #ifdef VM
@@ -229,7 +229,7 @@ PUBLIC int HTParseInet ARGS2(SockA *,sin, CONST char *,str)
 #ifdef SUPPRESS		/* 1. crashes!?!.  2. Not recommended */
 	    struct servent * serv = getservbyname(port, (char*)0);
 	    if (serv) sin->sin_port = serv->s_port;
-	    else if (TRACE) fprintf(stderr, "TCP: Unknown service %s\n", port);
+	    else if (TRACE) fprintf(stderr, "TCP......... Unknown service %s\n", port);
 #endif
 	}
       }
@@ -269,7 +269,7 @@ PUBLIC int HTParseInet ARGS2(SockA *,sin, CONST char *,str)
     }
 
     if (TRACE) fprintf(stderr,  
-	"TCP: Parsed address as port %d, IP address %d.%d.%d.%d\n",
+	"TCP......... Parsed address as port %d, IP address %d.%d.%d.%d\n",
 		(int)ntohs(sin->sin_port),
 		(int)*((unsigned char *)(&sin->sin_addr)+0),
 		(int)*((unsigned char *)(&sin->sin_addr)+1),
@@ -305,11 +305,11 @@ PUBLIC char * HTGetHostName ARGS1(int, soc)
 			AF_INET);
     if (!phost) {
 	if (TRACE) fprintf(stderr,
-			   "TCP: Can't find internet node name for peer!!\n");
+			   "TCP......... Can't find internet node name for peer!!\n");
 	return NULL;
     }
     StrAllocCopy(name, phost->h_name);
-    if (TRACE) fprintf(stderr, "TCP: Peer name is `%s'\n", name);
+    if (TRACE) fprintf(stderr, "TCP......... Peer name is `%s'\n", name);
 
     return name;
 
@@ -334,19 +334,19 @@ PRIVATE void get_host_details NOARGS
     
     if (hostname) return;		/* Already done */
     gethostname(name, namelength);	/* Without domain */
-    CTRACE(tfp, "TCP: Local host name is %s\n", name);
+    CTRACE(tfp, "TCP......... Local host name is %s\n", name);
     StrAllocCopy(hostname, name);
 
 #ifndef DECNET  /* Decnet ain't got no damn name server 8#OO */
     phost=gethostbyname(name);		/* See netdb.h */
     if (!phost) {
 	if (TRACE) fprintf(stderr, 
-		"TCP: Can't find my own internet node address for `%s'!!\n",
+		"TCP......... Can't find my own internet node address for `%s'!!\n",
 		name);
 	return;  /* Fail! */
     }
     StrAllocCopy(hostname, phost->h_name);
-    CTRACE(tfp, "TCP: Full local host name is %s\n", hostname);
+    CTRACE(tfp, "TCP......... Full local host name is %s\n", hostname);
 
 #ifdef NEED_HOST_ADDRESS		/* no -- needs name server! */
     memcpy(&HTHostAddress, &phost->h_addr, phost->h_length);

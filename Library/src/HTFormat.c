@@ -326,10 +326,15 @@ PUBLIC BOOL HTRank ARGS4(HTList *, possibilities,
 	    HTList_addObject(accepted, d);
 	    accepted_cnt++;
 	}
+	else {
+	    if (d->filename) free(d->filename);
+	    free(d);
+	}
     }
 
+    CTRACE(stderr, "Ranking.....\n");
     CTRACE(stderr,
-	   "RANK QUALITY CONTENT-TYPE         LANGUAGE ENCODING    FILE\n");
+	   "\nRANK QUALITY CONTENT-TYPE         LANGUAGE ENCODING    FILE\n");
 
     sorted = HTList_new();
     while (accepted_cnt-- > 0) {
@@ -355,6 +360,7 @@ PUBLIC BOOL HTRank ARGS4(HTList *, possibilities,
 	    HTList_addObject(sorted, (void*)worst);
 	}
     }
+    CTRACE(stderr, "\n");
     HTList_delete(accepted);
     HTList_delete(possibilities->next);
     possibilities->next = sorted->next;
@@ -537,6 +543,7 @@ PRIVATE char * get_some_line ARGS2(HTInputSocket *,	isoc,
 	    for(; cur < isoc->input_limit; cur++) {
 		char c = FROMASCII(*cur);
 		if (!c) {
+		    if (line) free(line);	/* Leak fixed AL 6 Feb 94 */
 		    return NULL;	/* Panic! read a 0! */
 		}
 		if (check_unfold  &&  c != ' '  &&  c != '\t') {

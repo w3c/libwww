@@ -174,12 +174,6 @@ PUBLIC char * HTTranslate ARGS1(CONST char *, required)
     char *current = NULL;
     StrAllocCopy(current, required);
 
-#ifdef OLD_CODE
-    HTAA_clearProtections();	/* Reset from previous call -- AL */
-#endif
-
-    if (!rules || HTList_isEmpty(rules)) return current;
-
     for(r = rules; r; r = r->next) {
         char * p = r->pattern;
 	int m=0;   /* Number of characters matched against wildcard */
@@ -249,8 +243,7 @@ PUBLIC char * HTTranslate ARGS1(CONST char *, required)
 
     } /* loop over rules */
 
-    if (current) free(current);
-    return NULL;
+    return current;	/* For clients default is to pass */
 }
 
 

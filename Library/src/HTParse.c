@@ -258,6 +258,24 @@ char * HTParse(aName, relatedName, wanted)
 }
 
 
+/*
+**	As strcpy() but guaranteed to work correctly
+**	with overlapping parameters.	AL 7 Feb 1994
+*/
+PRIVATE void ari_strcpy ARGS2(char *, to,
+			      char *, from)
+{
+    char * tmp;
+
+    if (!to || !from) return;
+
+    tmp = (char*)malloc(strlen(from)+1);
+    if (!tmp) outofmem(__FILE__, "my_strcpy");
+
+    strcpy(tmp, from);
+    strcpy(to, tmp);
+    free(tmp);
+}
 /*	        Simplify a filename
 //		-------------------
 //
@@ -284,20 +302,20 @@ PUBLIC void HTSimplify ARGS1(char *, filename)
 		for (q=p-1; (q>=filename) && (*q!='/'); q--); /* prev slash */
 		if (q[0]=='/' && 0!=strncmp(q, "/../", 4)
 			&&!(q-1>filename && q[-1]=='/')) {
-	            strcpy(q, p+3);	/* Remove  /xxx/..	*/
+	            ari_strcpy(q, p+3);		/* Remove  /xxx/..	*/
 		    if (!*filename) strcpy(filename, "/");
 		    p = q-1;		/* Start again with prev slash 	*/
 		} else {			/*   xxx/.. leave it!	*/
 #ifdef BUG_CODE
-		    strcpy(filename, p[3] ? p+4 : p+3); /* rm  xxx/../	*/
+		    ari_strcpy(filename, p[3] ? p+4 : p+3); /* rm  xxx/../ */
 		    p = filename;		/* Start again */
 #endif
 		}
 	    } else if ((p[1]=='.') && (p[2]=='/' || !p[2])) {
-	        strcpy(p, p+2);			/* Remove a slash and a dot */
+	        ari_strcpy(p, p+2);		/* Remove a slash and a dot */
 	    } else if (p[-1] != ':') {
 		while (p[1] == '/') {
-		    strcpy(p, p+1);		/* Remove multiple slashes */
+		    ari_strcpy(p, p+1);	/* Remove multiple slashes */
 		}
 	    }
 	}

@@ -85,12 +85,33 @@ PUBLIC HTRequest * HTRequest_new NOARGS
 PUBLIC void HTRequest_delete ARGS1(HTRequest *, req)
 {
     if (req) {
-	HTList *cur = req->conversions;
-	HTPresentation *pres;
+	if (req->conversions) {
+	    HTList *cur = req->conversions;
+	    HTPresentation *pres;
 
-	while ((pres = (HTPresentation*)HTList_nextObject(cur)))
-	    free(pres);
+	    while ((pres = (HTPresentation*)HTList_nextObject(cur))) {
+		FREE(pres->command);		/* Leak fixed AL 6 Feb 1994 */
+		free(pres);
+	    }
+	    HTList_delete(req->conversions);	/* Leak fixed AL 6 Feb 1994 */
+	}
 
+	FREE(req->request);
+	FREE(req->argument);
+	FREE(req->arg_path);
+	FREE(req->translated);
+	FREE(req->script);
+	FREE(req->location);
+	FREE(req->last_modified);
+	FREE(req->expires);
+	FREE(req->uri);
+	FREE(req->message_id);
+	if (req->allowed) HTList_delete(req->allowed);
+	if (req->public) HTList_delete(req->public);
+	FREE(req->meta_file);
+	FREE(req->authorization);
+	FREE(req->auth_string);
+	FREE(req->www_authenticate);
 	free(req);
     }
 }

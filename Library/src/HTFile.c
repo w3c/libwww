@@ -176,11 +176,12 @@ PUBLIC void HTSetSuffix ARGS5(CONST char *,	suffix,
     if (language)
 	suff->language = HTAtom_for(language);
     if (encoding) {
-    	char * enc = NULL;
+	char * enc = NULL;
 	char * p;
 	StrAllocCopy(enc, encoding);
 	for (p=enc; *p; p++) *p = TOLOWER(*p);
-	suff->encoding = HTAtom_for(encoding);
+	suff->encoding = HTAtom_for(enc);
+	free(enc);	/* Leak fixed AL 6 Feb 1994 */
     }
 
     suff->quality = value;
@@ -214,8 +215,7 @@ PRIVATE int split_filename ARGS2(char *,	s_str,
 	for(end=start+1; *end && !is_separator(*end); end++);
 	save = *end;
 	*end = 0;
-	s_arr[i] = NULL;
-	StrAllocCopy(s_arr[i], start);
+	StrAllocCopy(s_arr[i], start);	/* Frees the previous value */
 	*end = save;
 	start = end;
     }
@@ -275,9 +275,7 @@ PRIVATE HTContentDescription * content_description ARGS2(char **, actual,
 	HTSuffix * suff;
 	BOOL found = NO;
 
-	CTRACE(stderr,
-	       " ** content_description: LOOKING FOR SUFFIX \"%s\"\n",
-	       actual[i]);
+	CTRACE(stderr, "Searching... for suffix \"%s\"\n", actual[i]);
 
 	while ((suff = (HTSuffix*)HTList_nextObject(cur))) {
 	    if (!strcmp(suff->suffix, actual[i])) {
@@ -348,7 +346,7 @@ PRIVATE HTList * dir_matches ARGS1(char *, path)
 
     dp = opendir(dirname);
     if (!dp) {
-	CTRACE(stderr,"dir_matches: Can't open directory %s\n",
+	CTRACE(stderr,"Warning..... Can't open directory %s\n",
 	       dirname);
 	goto dir_match_failed;
     }
@@ -363,19 +361,16 @@ PRIVATE HTList * dir_matches ARGS1(char *, path)
 		cd = content_description(actual, n);
 		if (cd) {
 		    if (cd->content_type) {
-			StrAllocCopy(cd->filename, dirname);
-			StrAllocCat(cd->filename, "/");
-			StrAllocCat(cd->filename, dirbuf->d_name);
+			cd->filename = (char*)malloc(strlen(dirname) + 2 +
+						     strlen(dirbuf->d_name));
+			if (!cd->filename) outofmem(__FILE__, "dir_matches");
+			sprintf(cd->filename, "%s/%s",
+				dirname, dirbuf->d_name);
 			HTList_addObject(matches, (void*)cd);
 		    }
 		    else free(cd);
 		}
-		else CTRACE(stderr,
-		    "dir_matches: couldn't get file description for \"%s\"\n",
-			    dirbuf->d_name);
 	    }
-	    else CTRACE(stderr, "dir_matches: \"%s\" didn't match \"%s\"\n",
-			dirbuf->d_name, basename);
 	}
     }
     closedir(dp);
@@ -389,43 +384,62 @@ PRIVATE HTList * dir_matches ARGS1(char *, path)
 PUBLIC BOOL HTGetBest ARGS1(HTRequest *, req)
 {
     HTList * matches;
+    HTList * cur;
+    HTContentDescription * best = NULL;
+    HTContentDescription * cd;
 
     if (!req || !req->translated || !*req->translated) return NO;
 
     matches = dir_matches(req->translated);
+    if (!matches) {
+	CTRACE(stderr, "No matches.. for \"%s\"\n", req->translated);
+	return NO;
+    }
 
-    {	/* BEGIN DEBUG */
-	HTList * cur = matches;
-	HTContentDescription * cd;
+    /* BEGIN DEBUG */
+    cur = matches;
+    CTRACE(stderr, "Multi....... Possibilities for \"%s\"\n", req->translated);
+    CTRACE(stderr, "\nCONTENT-TYPE  LANGUAGE  ENCODING  QUALITY  FILE\n");
+    while ((cd = (HTContentDescription*)HTList_nextObject(cur))) {
+	CTRACE(stderr, "%s\t%s\t%s\t  %.5f  %s\n",
+	       cd->content_type    ?HTAtom_name(cd->content_type)  :"-\t",
+	       cd->content_language?HTAtom_name(cd->content_language):"-",
+	       cd->content_encoding?HTAtom_name(cd->content_encoding):"-",
+	       cd->quality,
+	       cd->filename        ?cd->filename                     :"-");
+    }
+    CTRACE(stderr, "\n");
+    /* END DEBUG */
 
-	CTRACE(stderr, "POSSIBILITIES FOR \"%s\"\n", req->translated);
-	CTRACE(stderr,
-	"%sContent-Type  Content-Language  Content-Encoding  Quality  File%s",
-	"\n---------------------------------------------------------------\n",
-	"\n---------------------------------------------------------------\n");
-	while ((cd = (HTContentDescription*)HTList_nextObject(cur))) {
-	    CTRACE(stderr, "%s\t%s\t\t%s\t\t  %.5f  %s\n",
-		   cd->content_type    ?HTAtom_name(cd->content_type)  :"-\t",
-		   cd->content_language?HTAtom_name(cd->content_language):"-",
-		   cd->content_encoding?HTAtom_name(cd->content_encoding):"-",
-		   cd->quality,
-		   cd->filename        ?cd->filename                     :"-");
-	}
-	CTRACE(stderr,
-	"---------------------------------------------------------------\n");
-    }	/* END DEBUG */
-
+    /*
+    ** Finally get best that is readable
+    */
     if (HTRank(matches, req->conversions, req->languages, req->encodings)) {
-	HTContentDescription * best = HTList_objectAt(matches, 0);
-	if (best && best->filename) {
-	    StrAllocCopy(req->translated, best->filename);
-	    HTList_delete(matches);
-	    return YES;
+	cur = matches;
+	while ((best = (HTContentDescription*)HTList_nextObject(cur))) {
+	    if (best && best->filename) {
+		if (access(best->filename, R_OK) != -1) {
+		    StrAllocCopy(req->translated, best->filename);
+		    req->content_language = best->content_language;
+		    req->content_encoding = best->content_encoding;
+		    break;
+		}
+		else CTRACE(stderr,
+			    "Bad News.... \"%s\" is not readable\n",
+			    best->filename);
+	    }
 	}
     } /* Select best */
 
+    cur = matches;
+    while ((cd = (HTContentDescription*)HTList_nextObject(cur))) {
+	if (cd->filename) free(cd->filename);
+	free(cd);
+    }
     HTList_delete(matches);
-    return NO;
+
+    if (best) return YES;
+    else return NO;
 }
 
 
@@ -437,13 +451,14 @@ PUBLIC void HTSetAttributes ARGS2(HTRequest *,		req,
     if (!req || !stat_info) return;
 
     req->content_length = stat_info->st_size;
-    CTRACE(stderr, "Content-Length set to %d\n", req->content_length);
+    CTRACE(stderr, "Content-Length %d\n", req->content_length);
 
 #ifndef VMS
     gmt = gmtime(&stat_info->st_mtime);
+    if (req->last_modified) free(req->last_modified);
     req->last_modified = (char*)malloc(40);
     strftime(req->last_modified, 40, "%A, %d-%b-%y %H:%M:%S GMT", gmt);
-    CTRACE(stderr, "Last-Modified set to %s\n", req->last_modified);
+    CTRACE(stderr, "Last-Modified %s\n", req->last_modified);
 #endif
 }
 
@@ -452,16 +467,9 @@ PUBLIC BOOL HTGetAttributes ARGS1(HTRequest *, req)
 {
     struct stat stat_info;
 
-    if (!req || !req->translated || stat(req->translated, &stat_info) == -1) {
-	if (!req)
-	    CTRACE(stderr, "HTGetAttributes bug: called with req==NULL\n");
-	else if (!req->translated)
-	    CTRACE(stderr, "HTGetAttributes bug: req->translated==NULL\n");
-	else CTRACE(stderr,
-		    "HTGetAttributes: stat(\"%s\") failed (errno %d)\n",
-		    req->translated, errno);
+    if (!req || !req->translated || stat(req->translated, &stat_info) == -1)
 	return NO;
-    }
+
     HTSetAttributes(req, &stat_info);
     return YES;
 }
@@ -475,22 +483,15 @@ PUBLIC BOOL HTMulti ARGS1(HTRequest *, req)
     struct stat stat_info;
     int stat_status = -1;
 
-    if (!req) {
-	CTRACE(stderr, "HTMulti bug: called with req==NULL\n");
+    if (!req || !req->translated)
 	return NO;
-    }
-    else if (!req->translated) {
-	CTRACE(stderr, "HTGetAttributes bug: req->translated==NULL\n");
-	return NO;
-    }
 
 #ifdef GOT_READ_DIR
     multi = strrchr(req->translated, MULTI_SUFFIX[0]);
     if (multi && !strcmp(multi, MULTI_SUFFIX)) {
-	CTRACE(stderr,
-	       "Filename ends in .multi, doing multiformat handling\n");
+	CTRACE(stderr, "Multi....... by %s suffix\n", MULTI_SUFFIX);
 	if (!HTGetBest(req)) {
-	    CTRACE(stderr, "Multi failed -- giving up\n");
+	    CTRACE(stderr, "Multi....... failed -- giving up\n");
 	    return NO;
 	}
     }
@@ -498,10 +499,10 @@ PUBLIC BOOL HTMulti ARGS1(HTRequest *, req)
 	stat_status = stat(req->translated, &stat_info);
 	if (stat_status == -1) {
 	    CTRACE(stderr,
-		   "Couldn't stat \"%s\" (errno %d) - doing automatic multi\n",
+		   "AutoMulti... because couldn't stat \"%s\" (errno %d)\n",
 		   req->translated, errno);
 	    if (!HTGetBest(req)) {
-		CTRACE(stderr, "Automatic multi failed -- giving up\n");
+		CTRACE(stderr, "AutoMulti... failed -- giving up\n");
 		return NO;
 	    }
 	}
@@ -511,7 +512,7 @@ PUBLIC BOOL HTMulti ARGS1(HTRequest *, req)
     if (stat_status == -1)
 	stat_status = stat(req->translated, &stat_info);
     if (stat_status == -1) {
-	CTRACE(stderr, "Couldn't stat \"%s\" -- givin up (errno %d)\n",
+	CTRACE(stderr, "Stat fails.. on \"%s\" -- givin up (errno %d)\n",
 	       req->translated, errno);
 	return NO;
     }
@@ -571,6 +572,7 @@ Bug removed thanks to joe@athena.mit.edu */
 	END(HTML_PRE);
 	fclose(fp);
     } 
+    free(readme_file_name);	/* Leak fixed AL 6 Feb 1994 */
 }
 #endif
 
@@ -1095,8 +1097,9 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
     }
 #else
 
-    free(filename);
-    
+    FREE(filename);
+    FREE(nodename);	/* Leak fixed AL 6 Feb 1994 */
+
 /*	For unix, we try to translate the name into the name of a transparently
 **	mounted file.
 **
@@ -1371,7 +1374,7 @@ open_file:
 /*	Now, as transparently mounted access has failed, we try FTP.
 */
     {
-	if (strcmp(nodename, HTHostName())!=0)
+	if (nodename && strcmp(nodename, HTHostName())!=0)
 	    return HTFTPLoad(request, NULL, addr,
 	    request->anchor, request->output_format, request->output_stream);
     }
