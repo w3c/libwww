@@ -59,7 +59,7 @@ PRIVATE int HTBufferWriter_flush (HTOutputStream * me)
 PRIVATE int FlushEvent (HTTimer * timer, void * param, HTEventType type)
 {
     HTOutputStream * me = (HTOutputStream *) param;
-    if (timer != me->timer)
+    if (me->timer && timer != me->timer)
 	HTDEBUGBREAK("Buffer Writer timer %p not in sync\n" _ timer);
     HTTRACE(PROT_TRACE, "Buffer...... Timeout flushing %p with timer %p\n" _ me _ timer);
 
@@ -157,11 +157,11 @@ PRIVATE BOOL HTBufferWriter_addBuffer(HTOutputStream * me, int addthis)
 PRIVATE int HTBufferWriter_abort (HTOutputStream * me, HTList * e)
 {
     HTTRACE(STREAM_TRACE, "Buffer...... ABORTING...\n");
-    if (me->target) (*me->target->isa->abort)(me->target, e);
     if (me->timer) {
 	HTTimer_delete(me->timer);
 	me->timer = NULL;
     }
+    if (me->target) (*me->target->isa->abort)(me->target, e);
     return HT_ERROR;
 }
 
@@ -237,6 +237,10 @@ PRIVATE int HTBufferWriter_put_string (HTOutputStream * me, const char * s)
 PRIVATE int HTBufferWriter_close (HTOutputStream * me)
 {
     if (me) {
+	if (me->timer) {
+	    HTTimer_delete(me->timer);
+	    me->timer = NULL;
+	}
 	if (me->target) (*me->target->isa->close)(me->target);
 	HT_FREE(me->data);
 	HT_FREE(me);
