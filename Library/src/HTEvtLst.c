@@ -346,6 +346,7 @@ PUBLIC BOOL EventOrder_deleteAll (void)
 /*
 ** ResetMaxSock - reset the value of the maximum socket in use 
 */
+#ifndef WWW_WIN_ASYNC
 PRIVATE void __ResetMaxSock (void)
 {
     SOCKET cnt;
@@ -362,6 +363,7 @@ PRIVATE void __ResetMaxSock (void)
 	HTTrace("Event....... Reset MaxSock from %u to %u\n", old_max, MaxSock);
     return;
 }  
+#endif /* !WWW_WIN_ASYNC */
 
 /*
 **  For a given socket, reqister a request structure, a set of operations, 

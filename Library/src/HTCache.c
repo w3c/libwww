@@ -1641,7 +1641,7 @@ PRIVATE HTStream * HTCacheStream (HTRequest * request, BOOL append)
 	me->request = request;
 	me->response = response;
 	me->cache = cache;
-	me->fd = fd;
+	me->fp = fp;
 	me->append = append;
 	return me;
     }
