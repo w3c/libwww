@@ -34,7 +34,7 @@ AC_CACHE_VAL(ac_cv_path_wais,
 [
 WAISPATH="$WAISPATH ${srcdir}/*WAIS* ${srcdir}/*wais* ${srcdir}/../*WAIS* ${srcdir}/../../*WAIS* ${srcdir}/../../../*WAIS* ${srcdir}/../*wais* ${srcdir}/../../*wais* ${srcdir}/../../../*wais*"
 for ac_dir in $WAISPATH ; do
-  if test -f ${ac_dir}/include/ui.h; then
+  if test -f ${ac_dir}/include/wais.h; then
     ac_cv_path_wais=$ac_dir
     break;
   fi
