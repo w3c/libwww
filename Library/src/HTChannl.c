@@ -48,8 +48,14 @@ PRIVATE void free_channel (HTChannel * ch)
     if (ch) {
 
 	/* Close the input and output stream */
-	if (ch->input) (*ch->input->isa->close)(ch->input);
-	if (ch->output) (*ch->output->isa->close)(ch->output);
+	if (ch->input) {
+	    (*ch->input->isa->close)(ch->input);
+	    ch->input = NULL;
+	}
+	if (ch->output) {
+	    (*ch->output->isa->close)(ch->output);
+	    ch->output = NULL;
+	}
 
 	/* Close the socket */
 	if (ch->sockfd != INVSOC) {

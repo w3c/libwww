@@ -63,6 +63,14 @@ extern HTHost * HTHost_new (char * host);
 <P>
 The Host Class contains an automatic garbage collection of Host objects so
 that we don't keep information around that is stale.
+<H3>
+  Find a Host Object
+</H3>
+<P>
+Searches the cache of known hosts to see if we already have information about
+this host. If not then we return NULL.
+<PRE>extern HTHost * HTHost_find (char * host);
+</PRE>
 <H2>
   Host Class Methods
 </H2>

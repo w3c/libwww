@@ -151,29 +151,45 @@ Success are (&gt;=0) and failure are (&lt;0)
 #define HT_OK			0	/* Generic success */
 #define HT_ALL			1	/* Used by Net Manager */
 
-#define HT_CONTINUE             29991   /* Continue an operation */
-#define HT_CLOSED		29992	/* The socket was closed */
-#define HT_PENDING		29993	/* Wait for connection */
-#define HT_IGNORE		29994	/* Ignore this in the Net manager */
-#define HT_NO_DATA		29995	/* OK but no data was loaded */
-#define HT_RELOAD		29996	/* If we must reload the document */
-#define HT_PERM_REDIRECT	29997	/* Redo the retrieve with a new URL */
-#define HT_TEMP_REDIRECT	29998	/* Redo the retrieve with a new URL */
-#define HT_LOADED		29999	/* Instead of a socket */
+#define HT_CONTINUE             100     /* Continue an operation */
+#define HT_UPGRADE              101     /* Switching protocols */
+
+#define HT_LOADED		200  	/* Everything's OK */
+#define HT_CREATED  	        201     /* New object is created */
+#define HT_ACCEPTED  	        202     /* Accepted */
+#define HT_NO_DATA		204  	/* OK but no data was loaded */
+#define HT_RESET_CONTENT        205     /* Reset content */
+#define HT_PARTIAL_CONTENT	206  	/* Partial Content */
+
+#define HT_MULTIPLE_CHOICES     300     /* Multiple choices */
+#define HT_PERM_REDIRECT	301  	/* Permanent redirection */
+#define HT_TEMP_REDIRECT	302  	/* Temporary redirection */
+#define HT_SEE_OTHER            303     /* See other */
+#define HT_NOT_MODIFIED         304     /* Not Modified */
+#define HT_USE_PROXY            305     /* Use Proxy */
+
+#define HT_IGNORE		900  	/* Ignore this in the Net manager */
+#define HT_CLOSED		901  	/* The socket was closed */
+#define HT_PENDING		902  	/* Wait for connection */
+#define HT_RELOAD		903  	/* If we must reload the document */
 
 #define HT_ERROR		-1	/* Generic failure */
 
-#define HT_NO_ACCESS		-10	/* Access not available */
-#define HT_FORBIDDEN		-11	/* Access forbidden */
-#define HT_RETRY		-13	/* If service isn't available */
-#define HT_NO_PROXY_ACCESS      -14     /* No proxy access */
-#define HT_RECOVER_PIPE         -15     /* Recover pipe line */
+#define HT_NO_ACCESS		-401	/* Unauthorized */
+#define HT_FORBIDDEN		-403	/* Access forbidden */
+#define HT_NOT_ACCEPTABLE	-406	/* Not Acceptable */
+#define HT_NO_PROXY_ACCESS      -407    /* Proxy Authentication Failed */
+#define HT_CONFLICT             -409    /* Conflict */
+#define HT_LENGTH_REQUIRED      -411    /* Length required */
 
-#define HT_INTERNAL		-100	/* Weird -- should never happen. */
+#define HT_RETRY		-503	/* If service isn't available */
+#define HT_BAD_VERSION		-505	/* Bad protocol version */
 
-#define HT_WOULD_BLOCK		-29997  /* If we are in a select */
-#define HT_INTERRUPTED 		-29998	/* Note the negative value! */
-#define HT_PAUSE                -29999  /* If we want to pause a stream */
+#define HT_INTERNAL		-900    /* Weird -- should never happen. */
+#define HT_WOULD_BLOCK		-901    /* If we are in a select */
+#define HT_INTERRUPTED 		-902    /* Note the negative value! */
+#define HT_PAUSE                -903    /* If we want to pause a stream */
+#define HT_RECOVER_PIPE         -904    /* Recover pipe line */
 </PRE>
 <H2>
   Upper- and Lowercase macros

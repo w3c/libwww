@@ -291,6 +291,48 @@ PUBLIC int HTRedirectFilter (HTRequest * request, void * param, int status)
 } 
 
 /*
+**	Retry through Proxy Filter
+**	--------------------------
+**	This filter handles a 305 Use Proxy response and retries the request
+**	through the proxy
+*/
+PUBLIC int HTUseProxyFilter (HTRequest * request, void * param, int status)
+{
+    HTAnchor * proxy_anchor = HTRequest_redirection(request); 
+    if (!proxy_anchor) {
+	if (PROT_TRACE) HTTrace("Use Proxy... No proxy location\n");
+	return HT_OK;
+    }
+
+    /*
+    **  Add the proxy to the list. Assume HTTP access method only!
+    */
+    {
+	char * addr = HTAnchor_address(proxy_anchor);
+	HTProxy_add("http", addr);
+	HT_FREE(addr);
+    } 
+ 
+    /*
+    **  Start new request through the proxy if we haven't reached the max
+    **  number of redirections for this request
+    */ 
+    if (HTRequest_doRetry(request)) { 
+	HTLoadAnchor(proxy_anchor, request);
+    } else {
+	HTRequest_addError(request, ERR_FATAL, NO, HTERR_MAX_REDIRECT,
+			   NULL, 0, "HTRedirectFilter");
+    }
+
+    /*
+    **  By returning HT_ERROR we make sure that this is the last handler to be
+    **  called. We do this as we don't want any other filter to delete the 
+    **  request object now when we have just started a new one ourselves
+    */
+    return HT_ERROR;
+} 
+
+/*
 **	Client side authentication BEFORE filter
 **	----------------------------------------
 **	The filter generates the credentials required to access a document

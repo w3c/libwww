@@ -205,6 +205,8 @@ PUBLIC BOOL HTLibTerminate (void)
 
     HTUTree_deleteAll();			     /* Delete all URL Trees */
 
+    HTChannel_deleteAll();			/* Delete remaining channels */
+
 #ifdef _WINSOCKAPI_
     WSACleanup();
 #endif

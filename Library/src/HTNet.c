@@ -355,9 +355,12 @@ PUBLIC HTNet * HTNet_dup (HTNet * src)
 {
     if (src) {
         HTNet * me;
+	int hash;
 	if ((me = create_object()) == NULL) return NULL;
+	hash = me->hash;
 	if (CORE_TRACE) HTTrace("Net Object.. Duplicated %p\n", src);
         memcpy((void *) me, src, sizeof(HTNet));
+	me->hash = hash;			/* Carry over hash entry */
 	return me;
     }
     return NULL;
@@ -716,7 +719,7 @@ PUBLIC BOOL HTNet_killAll (void)
 	int cnt;
 	for (cnt=0; cnt<HASH_SIZE; cnt++) {
 	    if ((cur = NetTable[cnt])) { 
-		while ((pres = (HTNet *) HTList_nextObject(cur)) != NULL)
+		while ((pres = (HTNet *) HTList_lastObject(cur)) != NULL)
     		    HTNet_kill(pres);
 	    }
 	}

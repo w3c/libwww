@@ -146,6 +146,17 @@ PRIVATE BOOL HTDirNode_free (HTDirNode *node)
 }
 
 /*
+**  Escape a filename and add a '/' if it's a directory
+*/
+PRIVATE char * expand_name (char * name, HTFileMode mode)
+{
+    char * escaped = HTEscape(name, URL_XPALPHAS);
+    if (mode == HT_IS_DIR)
+	if (*(name+strlen(name)-1) != '/') StrAllocCat(escaped, "/");
+    return escaped;
+}
+
+/*
 **	Output an element in HTML
 **	Returns YES if OK, else NO
 */
@@ -174,7 +185,7 @@ PRIVATE BOOL HTDirNode_print (HTDir *dir, HTDirNode *node)
 
 	/* Start the anchor element */
 	if (dir->base) {
-	    char *escaped = HTEscape(node->fname, URL_XPALPHAS);
+	    char *escaped = expand_name(node->fname, node->mode);
 	    char *full;
 	    if ((full = (char *) HT_MALLOC(strlen(escaped)+strlen(dir->base)+1)) == NULL)
 		HT_OUTOFMEM("HTDirNode_print");
@@ -184,7 +195,7 @@ PRIVATE BOOL HTDirNode_print (HTDir *dir, HTDirNode *node)
 	    HT_FREE(escaped);
 	    HT_FREE(full);
 	} else {
-	    char *escaped = HTEscape(node->fname, URL_XPALPHAS);
+	    char *escaped = expand_name(node->fname, node->mode);
 	    HTStartAnchor(target, NULL, escaped);
 	    HT_FREE(escaped);
 	}
@@ -196,7 +207,7 @@ PRIVATE BOOL HTDirNode_print (HTDir *dir, HTDirNode *node)
 	}
     } else {
 	if (dir->base) {
-	    char *escaped = HTEscape(node->fname, URL_XPALPHAS);
+	    char *escaped = expand_name(node->fname, node->mode);
 	    char *full;
 	    if ((full = (char *) HT_MALLOC(strlen(escaped)+strlen(dir->base)+1)) == NULL)
 		HT_OUTOFMEM("HTDirNode_print");
@@ -413,7 +424,9 @@ PUBLIC BOOL HTDir_addElement (HTDir *dir, char *name, char *date, char *size,
 {
     HTDirNode *node = HTDirNode_new();
     if (!dir || !name) return NO;
-    StrAllocCopy(node->fname, name);				/* Mandatory */
+    if ((node->fname = (char *) HT_MALLOC(strlen(name) + 2)) == NULL)
+	HT_OUTOFMEM("HTDir_addElement");
+    strcpy(node->fname, name);					/* Mandatory */
     if (dir->show & HT_DS_DATE && date) StrAllocCopy(node->date, date);
     if (dir->show & HT_DS_SIZE && size) StrAllocCopy(node->size, size);
     if (dir->show & HT_DS_DES) {
@@ -423,7 +436,12 @@ PUBLIC BOOL HTDir_addElement (HTDir *dir, char *name, char *date, char *size,
 
 #endif
     }
+
+
+    /* Set the mode of the file */
     node->mode = mode;
+
+    /* Should we display now or later? */
     if (dir->key == HT_DK_NONE) {
 	if (!dir->size++) HTDir_headLine(dir);
 	HTDirNode_print(dir, node);

@@ -108,6 +108,15 @@ or <CODE>HEAD</CODE> method (or any other safe method)
 extern HTNetCallback HTRedirectFilter;
 </PRE>
 <H3>
+  Proxy Redirection filter
+</H3>
+<P>
+This filter handles a "<CODE>305 Use Proxy"</CODE> response and retries the
+request through the proxy
+<PRE>
+extern HTNetCallback HTUseProxyFilter;
+</PRE>
+<H3>
   Client side authentication filter
 </H3>
 <P>

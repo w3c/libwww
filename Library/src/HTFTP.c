@@ -1041,10 +1041,11 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 		HTNet_setPersistent(dnet, YES, HT_TP_INTERLEAVE);
 		ctrl->substate = NEED_ACTION;
 	    } else {			 	  /* Swap to PORT on the fly */
-		HTDoClose(dnet);
+		NETCLOSE(dnet->sockfd);
+		dnet->sockfd = INVSOC;
 		if (PROT_TRACE)
 		    HTTrace("FTP......... Swap to PORT on the fly\n");
-		ctrl->substate = 0;
+		ctrl->substate = NEED_SELECT;
 		HT_FREE(segment);
 		return HT_OK;
 	    }

@@ -681,8 +681,14 @@ PUBLIC HTParentAnchor * HTPostFormAnchor (HTAssocList *	formdata,
 /*				PUT A DOCUMENT 				     */
 /* --------------------------------------------------------------------------*/ 
 PRIVATE BOOL setup_anchors (HTRequest * request,
-			HTParentAnchor * source, HTParentAnchor * dest)
+			    HTParentAnchor * source, HTParentAnchor * dest,
+			    HTMethod method)
 {
+    if (!(method & (METHOD_PUT | METHOD_POST))) {
+	if (APP_TRACE) HTTrace("Posting..... Bad method\n");
+	return NO;
+    }
+
     /*
     **  Check whether we know if it is possible to PUT to this destination.
     **  We both check the local set of allowed methods in the anchor and any
@@ -690,8 +696,14 @@ PRIVATE BOOL setup_anchors (HTRequest * request,
     **  server.
     */
     {
-	HTMethod allowed = HTAnchor_methods(dest);
-	if (!(allowed & METHOD_PUT)) {
+	char * addr = HTAnchor_address((HTAnchor *) source);
+	char * hostname = HTParse(addr, "", PARSE_HOST);
+	HTHost * host = HTHost_find(hostname);
+	HTMethod public_methods = HTHost_publicMethods(host);
+	HTMethod private_methods = HTAnchor_methods(dest);
+	HT_FREE(hostname);
+	HT_FREE(addr);
+	if (!(method & (private_methods | public_methods))) {
 	    HTAlertCallback * prompt = HTAlert_find(HT_A_CONFIRM);
 	    if (prompt) {
 		if ((*prompt)(request, HT_A_CONFIRM, HT_MSG_METHOD,
@@ -779,7 +791,7 @@ PUBLIC BOOL HTPutAnchor (HTParentAnchor *	source,
 {
     HTParentAnchor * dest = HTAnchor_parent(destination);
     if (source && dest && request) {
-	if (setup_anchors(request, source, dest) == YES) {
+	if (setup_anchors(request, source, dest, METHOD_PUT) == YES) {
 
 	    /* Set up the request object */
 	    HTRequest_addGnHd(request, HT_G_DATE);
@@ -854,7 +866,7 @@ PUBLIC BOOL HTPostAnchor (HTParentAnchor *	source,
 {
     HTParentAnchor * dest = HTAnchor_parent(destination);
     if (source && dest && request) {
-	if (setup_anchors(request, source, dest) == YES) {
+	if (setup_anchors(request, source, dest, METHOD_POST) == YES) {
 
 	    /* Set up the request object */
 	    HTRequest_addGnHd(request, HT_G_DATE);
@@ -932,7 +944,7 @@ PUBLIC BOOL HTPutStructuredAnchor (HTParentAnchor *	source,
 {
     HTParentAnchor * dest = HTAnchor_parent(destination);
     if (source && dest && request) {
-	if (setup_anchors(request, source, dest) == YES) {
+	if (setup_anchors(request, source, dest, METHOD_PUT) == YES) {
 
 	    /* Set up the request object */
 	    HTRequest_addGnHd(request, HT_G_DATE);
@@ -1105,7 +1117,7 @@ PUBLIC BOOL HTPutDocumentAnchor (HTParentAnchor *	source,
 {
     HTParentAnchor * dest = HTAnchor_parent(destination);
     if (source && dest && request) {
-	if (setup_anchors(request, source, dest) == YES) {
+	if (setup_anchors(request, source, dest, METHOD_PUT) == YES) {
 	    HTPutContext * context = NULL;
 
 	    /*

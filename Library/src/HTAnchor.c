@@ -319,6 +319,10 @@ PRIVATE void * delete_parent (HTParentAnchor * me)
     HT_FREE(me->title);
     if (me->content_encoding) HTList_delete(me->content_encoding);
     if (me->content_language) HTList_delete(me->content_language);
+
+    /* Type parameter information */
+    if (me->type_parameters) HTAssocList_delete(me->type_parameters);
+
     HT_FREE(me->derived_from);
     HT_FREE(me->version);
     if (me->extra_headers) {
@@ -1003,11 +1007,15 @@ PUBLIC void HTAnchor_clearHeader (HTParentAnchor * me)
     HT_FREE(me->content_location);
     me->content_length = -1;					  /* Invalid */
     me->transfer = NULL;
+
+    /* Clear the content type */
     me->content_type = WWW_UNKNOWN;
     if (me->type_parameters) {
 	HTAssocList_delete(me->type_parameters);
 	me->type_parameters = NULL;
     }    
+
+    /* Dates etc. */
     me->date = (time_t) -1;
     me->expires = (time_t) -1;
     me->last_modified = (time_t) -1;

@@ -155,6 +155,7 @@ PUBLIC void HTAfterInit (void)
     HTNetCall_addAfter(HTPEP_afterFilter, NULL, HT_ALL);
     HTNetCall_addAfter(HTRedirectFilter, NULL, HT_TEMP_REDIRECT);
     HTNetCall_addAfter(HTRedirectFilter, NULL, HT_PERM_REDIRECT);
+    HTNetCall_addAfter(HTUseProxyFilter, NULL, HT_USE_PROXY);
     HTNetCall_addAfter(HTLogFilter, NULL, HT_ALL);
     HTNetCall_addAfter(HTInfoFilter, NULL, HT_ALL);
 }

@@ -152,6 +152,53 @@ PUBLIC HTHost * HTHost_new (char * host)
 }
 
 /*
+**	Search the host info cache for a host object. Examples of host names:
+**
+**		www.w3.org
+**		www.foo.com:8000
+**		18.52.0.18
+**
+**	Returns Host object or NULL if not found.
+*/
+PUBLIC HTHost * HTHost_find (char * host)
+{
+    HTList * list = NULL;			    /* Current list in cache */
+    HTHost * pres = NULL;
+    if (CORE_TRACE)
+	HTTrace("Host info... Looking for `%s\'\n", host ? host : "<null>");
+
+    /* Find a hash for this host */
+    if (host && HostTable) {
+	int hash = 0;
+	char *ptr;
+	for (ptr=host; *ptr; ptr++)
+	    hash = (int) ((hash * 3 + (*(unsigned char *) ptr)) % HASH_SIZE);
+	if (!HostTable[hash]) return NULL;
+	list = HostTable[hash];
+
+	/* Search the cache */
+	{
+	    HTList * cur = list;
+	    while ((pres = (HTHost *) HTList_nextObject(cur))) {
+		if (!strcmp(pres->hostname, host)) {
+		    if (time(NULL) > pres->ntime + HostTimeout) {
+			if (CORE_TRACE)
+			    HTTrace("Host info... Collecting host %p\n", pres);
+			delete_object(list, pres);
+			pres = NULL;
+  		    } else {
+			if (CORE_TRACE)
+			    HTTrace("Host info... Found `%s\'\n", host);
+		    }
+		    return pres;
+		}
+	    }
+	}
+    }
+    return NULL;
+}
+
+/*
 **	Get and set the hostname of the remote host
 */
 PUBLIC char * HTHost_name (HTHost * host)
