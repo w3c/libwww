@@ -65,21 +65,12 @@ int main (int argc, char ** argv)
 	uri = argv[1];
 	for (arg=2; arg<argc; arg++) {
 	    char * string = argv[arg];
-	    char * name = HTNextField(&string);
-	    char * value = HTNextField(&string);
-	    if (!value) value = "";
-	    if (name) {
-		char * escaped_name = HTEscape(name, URL_XPALPHAS);
-		char * escaped_value = HTEscape(value, URL_XPALPHAS);
+	    
+	    /* Create a list to hold the form arguments */
+	    if (!formfields) formfields = HTAssocList_new();
 
-		/* Create a list to hold the form arguments */
-		if (!formfields) formfields = HTAssocList_new();
-
-		HTAssocList_addObject(formfields, escaped_name, escaped_value);
-
-		HT_FREE(escaped_name);
-		HT_FREE(escaped_value);
-	    }
+	    /* Parse the content and add it to the association list */
+	    HTParseFormInput(formfields, string);
 	}
     }
 

@@ -453,18 +453,8 @@ int main (int argc, char ** argv)
 		HT_FREE(ref);
 	    } else if (formdata) {		   /* Keywords are form data */
 		char * string = argv[arg];
-		char * name = HTNextField(&string);
-		char * value = HTNextField(&string);
 		if (tokencount++ <= 1) formfields = HTAssocList_new();
-		if (!value) value="";
-		if (name) {
-		    char * escaped_name = HTEscape(name, URL_XPALPHAS);
-		    char * escaped_value = HTEscape(value, URL_XPALPHAS);
-		    HTAssocList_addObject(formfields,
-					  escaped_name, escaped_value);
-		    HT_FREE(escaped_name);
-		    HT_FREE(escaped_value);
-		}
+		HTParseFormInput(formfields, string);
 	    } else {		   	       /* keywords are search tokens */
 		char * escaped = HTEscape(argv[arg], URL_XALPHAS);
 		if (tokencount++ <= 1)
