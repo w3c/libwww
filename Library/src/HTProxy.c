@@ -197,6 +197,7 @@ PUBLIC BOOL HTProxy_deleteAll (void)
 	** handling proxy authentication
 	*/
 	HTNet_deleteBefore(HTAA_proxyBeforeFilter);
+        HTNet_deleteAfter(HTAuthFilter);
 
 	proxies = NULL;
 	return YES;
