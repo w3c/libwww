@@ -1,14 +1,30 @@
+2000-08-11 	Wayne Davison <wayne@clari.net>
+
+	* Added two new functions to HTHash.c, HTHashtable_removeObject()
+	  and HTHashTable_walk. The first one allows to delete individual
+	  elements from a hash-table, the second one allows to walk
+	  throug all associated elements in a table without having to ask 
+	  for a list of all keys and then looking each one up. See
+	  http://lists.w3.org/Archives/Public/www-lib/2000JulSep/0146.html
+	  for a more detaile description on how to use these functions.
+	  
+	* I got rid of a few useless variable initializations in HTHash.c
+	  (when the variables were being set to a value immediately
+	  following the init value).
+
+	* I removed some superfluous spaces that I saw.  
+
 2000-08-10 	Wayne Davison <wayne@clari.net>
 
-	* Since "cvs update" was complaining about a bunch of generated files
-	  in the Library/src dir, I tweaked it to ignore the *.la files and
-	  the .libs dir.
+	* Since "cvs update" was complaining about a bunch of generated
+	  files in the Library/src dir, I tweaked it to ignore the *.la
+	  files and the .libs dir.
 
 2000-08-10	Jose Kahan <jose@w3.org>
 
-	* Because (IMO) a very imbricated protocol stack, the Robot
+	* Because (IMO) of a very imbricated protocol stack, the Robot
 	  could hang when accessing local files, as it become starved
-	  on it's own sockets. I fixed the problem by adding a new
+	  on its own sockets. I fixed the problem by adding a new
 	  state in HTFile:FileEvent() to take into account the case when
 	  a request goes pending. This is mostly based on a previous 
 	  (not commited) patch by Kinuko Yasuda, plus some long debugging to

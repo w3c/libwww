@@ -49,7 +49,13 @@ extern BOOL	HTHashtable_delete (HTHashtable *me);
   Add an Element to a HashTable
 </H2>
 <PRE>
-extern BOOL HTHashtable_addObject (HTHashtable *me, const char *key , void *newObject);
+extern BOOL HTHashtable_addObject (HTHashtable *me, const char *key, void *newObject);
+</PRE>
+<H2>
+  Remove an Element from a HashTable
+</H2>
+<PRE>
+extern BOOL HTHashtable_removeObject (HTHashtable *me, const char *key);
 </PRE>
 <H2>
   Search for an Element in a Hash Table
@@ -62,6 +68,23 @@ extern void *	HTHashtable_object (HTHashtable * me, const char *key);
 </H2>
 <PRE>
 extern int	HTHashtable_count  (HTHashtable *me);
+</PRE>
+<H2>
+  Walk all the elements in a Hash Table
+</H2>
+<P>
+Walking the hashtable calls the specified function pointer with each key
+and object that is in the hash table.  If the callback function returns 0,
+the walking stops.  If it returns a negative number, the current element
+is removed from the hash table.  Return a positive number to keep going.
+<P>
+Note that it is legal for the walkFunc to call HTHashtable_removeObject()
+on any element in the current hash table <STRONG>except</STRONG> the current
+one (if you intend to keep going, that is).  The only legal way to delete the
+current element while continuing to walk the table is to use the negative
+return value.
+<PRE>
+extern BOOL	HTHashtable_walk (HTHashtable *me, int (*walkFunc)(HTHashtable *, char *, void *));
 </PRE>
 <H2>
   Extract in a dynamic array all keys of the Hash Table

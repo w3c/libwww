@@ -39,13 +39,13 @@ PUBLIC HTHashtable * HTHashtable_new (int size)
 
 PUBLIC BOOL HTHashtable_delete (HTHashtable *me)
 {
-    int i = 0;
     if (me) {
+	int i;
 	for(i = 0; i< me->size; i++) {
 	    HTList * l = (HTList *)me->table[i];
 	    if (l) {
 		HTList *cur = l;
-		keynode *kn = NULL;
+		keynode *kn;
 		while ((kn = (keynode *) HTList_nextObject(cur))) {
 		    HT_FREE(kn->key);
 		    HT_FREE(kn);
@@ -78,14 +78,14 @@ PRIVATE int hash_number (const char *key, int size)
 )
 */
 
-PUBLIC BOOL HTHashtable_addObject (HTHashtable *me, const char *key , 
+PUBLIC BOOL HTHashtable_addObject (HTHashtable *me, const char *key,
 				   void *newObject)
 {
     if(me) {
 	int size = me->size;
 	int i = hash_number(key,size);
 	HTList *l = (HTList *)me->table[i];
-	keynode *kn = NULL;
+	keynode *kn;
 	if(!l)
 	    l = me->table[i] = HTList_new();
 	if ((kn = (keynode  *) HT_CALLOC(1, sizeof (keynode))) == NULL)
@@ -98,6 +98,34 @@ PUBLIC BOOL HTHashtable_addObject (HTHashtable *me, const char *key ,
     }
     return NO;
 }
+
+/*
+(
+  Remove an Element from the HashTable
+)
+*/
+
+PUBLIC BOOL HTHashtable_removeObject (HTHashtable *me, const char *key)
+{
+    if(me) {
+	int size = me->size;
+	int i = hash_number(key,size);
+	HTList *l = (HTList *)me->table[i];
+	if(l) {
+	    HTList *cur = l;
+	    keynode *kn;
+	    while ((kn = (keynode *) HTList_nextObject(cur))) {
+		if(!strcmp(key,kn->key)) {
+		    HTList_removeObject(l,kn);
+		    me->count--;
+		    return YES;
+		}
+	    }
+	}
+    }
+    return NO;
+}
+
 /*
 (
   Search for an Element in a Hash Table
@@ -112,7 +140,7 @@ PUBLIC void *HTHashtable_object (HTHashtable * me, const char *key)
 	HTList * l = (HTList *)me->table[i];
 	if (l) {
 	    HTList *cur = l;
-	    keynode *kn = NULL;
+	    keynode *kn;
 	    while ((kn = (keynode *) HTList_nextObject(cur))) {
 		if(!strcmp(key,kn->key))
 		    return kn->object;
@@ -128,7 +156,7 @@ PUBLIC void *HTHashtable_object (HTHashtable * me, const char *key)
 )
 */
 
-PUBLIC int HTHashtable_count  (HTHashtable *me)
+PUBLIC int HTHashtable_count (HTHashtable *me)
 {
     if(me)
 	return me->count;
@@ -137,12 +165,44 @@ PUBLIC int HTHashtable_count  (HTHashtable *me)
 
 /*
 (
+   Walk all Elements in the HashTable
+)
+*/
+
+PUBLIC BOOL HTHashtable_walk (HTHashtable *me,
+			      int (*walkFunc)(HTHashtable *,char *, void *))
+{
+    if(me) {
+	int i, j;
+	for(i = 0; i< me->size; i++) {
+	    HTList *l = (HTList *)me->table[i];
+	    if(l) {
+		HTList *cur = l;
+		keynode *kn, *nextkn;
+		for(kn = (keynode *)HTList_nextObject(cur); kn; kn = nextkn) {
+		    j = walkFunc(me, kn->key, kn->object);
+		    if(j == 0)
+			return YES;
+		    nextkn = (keynode *)HTList_nextObject(cur);
+		    if (j < 0) {
+			HTList_removeObject(l, kn);
+			me->count--;
+		    }
+		}
+	    }
+	}
+	return YES;
+    }
+    return NO;
+}
+
+/*
+(
    Extract in a dynamic array all keys of the Hash Table
 )
 */
 
-
-PUBLIC HTArray * HTHashtable_keys  (HTHashtable *me)
+PUBLIC HTArray * HTHashtable_keys (HTHashtable *me)
 {
     if(me) {
 	HTArray *keys = HTArray_new(me->count);
@@ -152,7 +212,7 @@ PUBLIC HTArray * HTHashtable_keys  (HTHashtable *me)
 	    HTList * l = (HTList *)me->table[i];
 	    if (l) {
 		HTList *cur = l;
-		keynode *kn = NULL;
+		keynode *kn;
 		while ((kn = (keynode *) HTList_nextObject(cur))) {
 		    char * nkey = NULL;
 		    StrAllocCopy(nkey,kn->key);
