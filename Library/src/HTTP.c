@@ -68,6 +68,7 @@ typedef struct _http_info {
     HTRequest *		request;
     HTTimer *		timer;
     BOOL		usedTimer;
+    BOOL		repetitive_writing;
 } http_info;
 
 #define MAX_STATUS_LEN		100   /* Max nb of chars to check StatusLine */
@@ -96,9 +97,11 @@ struct _HTInputStream {
 /* How long to wait before writing the body in PUT and POST requests */
 #define DEFAULT_FIRST_WRITE_DELAY	2000
 #define DEFAULT_SECOND_WRITE_DELAY	3000
+#define DEFAULT_REPEAT_WRITE		30
 
 PRIVATE ms_t HTFirstWriteDelay = DEFAULT_FIRST_WRITE_DELAY;
 PRIVATE ms_t HTSecondWriteDelay = DEFAULT_SECOND_WRITE_DELAY;
+PRIVATE ms_t HTRepeatWrite = DEFAULT_REPEAT_WRITE;
 
 #ifdef HT_NO_PIPELINING
 PRIVATE HTTPConnectionMode ConnectionMode = HTTP_11_NO_PIPELINING;
@@ -964,6 +967,7 @@ PRIVATE int FlushPutEvent (HTTimer * timer, void * param, HTEventType type)
     http_info * http = (http_info *) param;
     HTStream * input = HTRequest_inputStream(http->request);
     HTPostCallback * pcbf = HTRequest_postCallback(http->request);
+    int status = HT_ERROR;
 
     http->usedTimer = YES;
     if (timer != http->timer)
@@ -971,16 +975,27 @@ PRIVATE int FlushPutEvent (HTTimer * timer, void * param, HTEventType type)
     HTTRACE(PROT_TRACE, "Uploading... Flushing %p with timer %p\n" _ http _ timer);
 
     /*
-    **  We ignore the return code here which we shouldn't!!!
+    **  Call the callback that will provide the data to save
+    **  If the callback returns HT_OK then call it again until
+    **  it returns something else than HT_OK.
     */
-    if (http && input && pcbf) (*pcbf)(http->request, input);
+    if (http && input && pcbf) {
+	status = (*pcbf)(http->request, input);
+	HTTRACE(PROT_TRACE, "Uploading... Callback returned %d\n" _ status);	
+    }
 
     /*
-    **  Delete the timer
+    **  If the callback returned something else than HT_OK then delete
+    **  the timer, otherwise update it to a much shorter expiration
+    **  time so that we can write some more data to the net.
     */
-    HTTimer_delete(http->timer);
-    http->timer = NULL;
-
+    if (status != HT_OK) {
+	HTTimer_delete(http->timer);
+	http->timer = NULL;
+    } else if (!http->repetitive_writing) {
+	http->timer = HTTimer_new(NULL, FlushPutEvent, http, HTRepeatWrite, YES, YES);
+	http->repetitive_writing = YES;
+    }
     return HT_OK;
 }
 
