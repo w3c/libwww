@@ -202,10 +202,12 @@ PUBLIC void HTRequest_delete (HTRequest * me)
 	/* Proxy information */
 	HT_FREE(me->proxy);
 
-	/* PEP Information */
-	if (me->protocol) HTAssocList_delete(me->protocol);
-	if (me->protocol_request) HTAssocList_delete(me->protocol_request);
-	if (me->protocol_info) HTAssocList_delete(me->protocol_info);
+	/* Extra header fields */
+	if (me->extra_headers) HTAssocList_delete(me->extra_headers);
+
+	/* HTTP Extension Information */
+	if (me->optional) HTAssocList_delete(me->optional);
+	if (me->mandatory) HTAssocList_delete(me->mandatory);
 
 	/* Any response object */
 	if (me->response) HTResponse_delete(me->response);
@@ -937,87 +939,84 @@ PUBLIC BOOL HTRequest_deleteRealm (HTRequest * me)
 }
 
 /*
-**  PEP Protocol header
+**  New header fields as association list
 */
-PUBLIC BOOL HTRequest_addProtocol (HTRequest * me,
+PUBLIC BOOL HTRequest_addExtraHeader (HTRequest * me,
+				      char * token, char * value)
+{
+    if (me && token) {
+	if (!me->extra_headers) me->extra_headers = HTAssocList_new();
+	return HTAssocList_addObject(me->extra_headers, token, value);
+    }
+    return NO;
+}
+
+PUBLIC HTAssocList * HTRequest_extraHeader (HTRequest * me)
+{
+    return (me ? me->extra_headers : NULL);
+}
+
+PUBLIC BOOL HTRequest_deleteExtraHeaderAll (HTRequest * me)
+{
+    if (me && me->extra_headers) {
+	HTAssocList_delete(me->extra_headers);
+	me->extra_headers = NULL;
+	return YES;
+    }
+    return NO;
+}
+
+/*
+**  HTTP Extension Framework
+*/
+PUBLIC BOOL HTRequest_addOptional (HTRequest * me,
 				   char * token, char * value)
 {
     if (me) {
-	if (!me->protocol) me->protocol = HTAssocList_new();
-	return HTAssocList_addObject(me->protocol, token,value);
+	if (!me->optional) me->optional = HTAssocList_new();
+	return HTAssocList_addObject(me->optional, token,value);
     }
     return NO;
 }
 
-PUBLIC BOOL HTRequest_deleteProtocolAll (HTRequest * me)
+PUBLIC HTAssocList * HTRequest_optional (HTRequest * me)
 {
-    if (me && me->protocol) {
-	HTAssocList_delete(me->protocol);
-	me->protocol = NULL;
+    return (me ? me->optional : NULL);
+}
+
+PUBLIC BOOL HTRequest_deleteOptionalAll (HTRequest * me)
+{
+    if (me && me->optional) {
+	HTAssocList_delete(me->optional);
+	me->optional = NULL;
 	return YES;
     }
     return NO;
 }
 
-PUBLIC HTAssocList * HTRequest_protocol (HTRequest * me)
-{
-    return (me ? me->protocol : NULL);
-}
-
-/*
-**  PEP Protocol Info header
-*/
-PUBLIC BOOL HTRequest_addProtocolInfo (HTRequest * me,
-				       char * token, char * value)
+PUBLIC BOOL HTRequest_addMandatory (HTRequest * me,
+				    char * token, char * value)
 {
     if (me) {
-	if (!me->protocol_info) me->protocol_info = HTAssocList_new();
-	return HTAssocList_addObject(me->protocol_info, token,value);
+	if (!me->mandatory) me->mandatory = HTAssocList_new();
+	return HTAssocList_addObject(me->mandatory, token,value);
     }
     return NO;
 }
 
-PUBLIC BOOL HTRequest_deleteProtocolInfoAll (HTRequest * me)
+PUBLIC HTAssocList * HTRequest_mandatory (HTRequest * me)
 {
-    if (me && me->protocol_info) {
-	HTAssocList_delete(me->protocol_info);
-	me->protocol_info = NULL;
+    return (me ? me->mandatory : NULL);
+}
+
+PUBLIC BOOL HTRequest_deleteMandatoryAll (HTRequest * me)
+{
+    if (me && me->mandatory) {
+	HTAssocList_delete(me->mandatory);
+	me->mandatory = NULL;
 	return YES;
     }
     return NO;
-}
-
-PUBLIC HTAssocList * HTRequest_protocolInfo (HTRequest * me)
-{
-    return (me ? me->protocol_info : NULL);
-}
-
-/*
-**  PEP Protocol request header
-*/
-PUBLIC BOOL HTRequest_addProtocolRequest (HTRequest * me,
-					  char * token, char * value)
-{
-    if (me) {
-	if (!me->protocol_request) me->protocol_request = HTAssocList_new();
-	return HTAssocList_addObject(me->protocol_request, token,value);
-    }
-    return NO;
-}
-
-PUBLIC BOOL HTRequest_deleteProtocolRequestAll (HTRequest * me)
-{
-    if (me && me->protocol_request) {
-	HTAssocList_delete(me->protocol_request);
-	me->protocol_request = NULL;
-	return YES;
-    }
-    return NO;
-}
-
-PUBLIC HTAssocList * HTRequest_protocolRequest (HTRequest * me)
-{
-    return (me ? me->protocol_request : NULL);
 }
 
 /*

@@ -122,7 +122,37 @@ PRIVATE int HTTPGenMake (HTStream * me, HTRequest * request)
 	PUTBLOCK(linebuf, (int) strlen(linebuf));
     }
 
-    /* Put out extra information if any */
+    /* Put out any extra association values as headers (if any) */
+    if (gen_mask & HT_G_EXTRA_HEADERS) {
+	HTAssocList * cur = HTRequest_extraHeader(request);
+	if (cur) {
+	    HTAssoc * pres;
+	    while ((pres = (HTAssoc *) HTAssocList_nextObject(cur))) {
+		char * name = HTAssoc_name(pres);
+		char * value = HTAssoc_value(pres);
+		if (name && *name) {
+		    char * ptr = name;
+		    while (*ptr) {
+			if (isspace(*ptr)) *ptr='_';
+			ptr++;
+		    }
+		    PUTS(name);
+		    PUTS(": ");
+		    if (value) {
+			ptr = value;
+			while (*ptr) {
+			    if (isspace(*ptr)) *ptr=' ';
+			    ptr++;
+			}
+			PUTS(value);
+		    }
+		    PUTBLOCK(crlf, 2);
+		}
+	    }
+	}
+    }
+
+    /* Put out extra information based on streams (if any) */
     {
 	HTList * list;
 	BOOL override;
@@ -140,6 +170,8 @@ PRIVATE int HTTPGenMake (HTStream * me, HTRequest * request)
 		(*pres)(request, me->target);
 	}
     }
+
+    /* Check to see if we are done */
     if (me->endHeader) {
 	sprintf(linebuf, "%c%c", CR, LF);	   /* Blank line means "end" */
 	PUTBLOCK(linebuf, (int) strlen(linebuf));

@@ -133,9 +133,6 @@ These are the masks that decides what headers to send.
     HTRsHd		ResponseMask;
     HTRqHd		RequestMask;
     HTEnHd		EntityMask;
-
-    HTList *		generators;
-    BOOL		gens_local;
 </PRE>
 <H3>
   Local MIME Header Parsers
@@ -233,15 +230,38 @@ already know that we need to generate credentials for a specific realm.
     HTAssocList *	credentials;	   /* Credentials received by server */
 </PRE>
 <H3>
-  Protocol Extension Protocol (PEP) Information
+  Request Header Extensibility
 </H3>
 <P>
-These association lists contain the information that we are to send as PEP
-headers in the request.
+  <HR>
+<H4>
+  1) Simple Association List
+</H4>
+<P>
+Add the (name, value) and it will be converted into MIME header format as
+<CODE>name: value</CODE>. DO NOT ADD CRLF line termination - this is done
+by the <A HREF="HTTPReq.html">HTTP header generator stream</A>
 <PRE>
-    HTAssocList *	protocol;
-    HTAssocList *	protocol_info;
-    HTAssocList *	protocol_request;
+    HTAssocList	*	extra_headers;
+</PRE>
+<H4>
+  2) Stream Oriented Header Generators
+</H4>
+<P>
+A generator is a stream with direct access to the output stream
+<PRE>
+    HTList *		generators;
+    BOOL		gens_local;
+</PRE>
+<H4>
+  4) HTTP Extension Framework
+</H4>
+<P>
+These association lists contain the information that we are to send as
+<A HREF="/Protocols/HTTP/ietf-http-ext/">HTTP Extension Framework</A>.
+<PRE>
+    HTAssocList *	mandatory;
+    HTAssocList *	optional;
 </PRE>
 <H3>
   Anchors
@@ -286,7 +306,7 @@ headers in the request.
     void *		context;
 </PRE>
 <H3>
-  PostWeb Information
+  PostWeb Information (Not used anymore - don't use!)
 </H3>
 <PRE>
     HTRequest *		source;		     /* Source for request or itself */

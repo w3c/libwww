@@ -74,40 +74,7 @@ typedef struct _HTRequest HTRequest;
 #include "HTResponse.h"
 </PRE>
 <H2>
-  Issuing a Request
-</H2>
-<P>
-These are the "<I>basic request methods</I>" provided directly by the Request
-class. This is a very low level API as the caller must have set up the request
-object before passing it to libwww. There are two versions: one for issuing
-client requests and one for issuing server requests. You will probably most
-often use the client version but libwww can in fact also deal with incoming
-connections. You can find many higher level issuing functions in the
-<A HREF="HTAccess.html">HTAccess module</A>. If you like, you can of course
-use this directly!
-<PRE>
-extern BOOL HTLoad (HTRequest * request, BOOL recursive);
-extern BOOL HTServe(HTRequest * request, BOOL recursive);
-</PRE>
-<H2>
-  Killing a Request
-</H2>
-<P>
-This function kills this particular request, see <A HREF="HTNet.html">HTNet
-module</A> for a function that kills them all. If you know that you are
-pipelining requests (typically the case for GUI browsers, robots etc.) then
-it is often not enough to just kill a single request as the whole pipeline
-gets affected. Therefore, in that case you MUST call the
-<TT><A HREF="HTHost.html#Pipeline">HTHost_killPipe</A></TT> function instead,
-<PRE>
-extern BOOL HTRequest_kill(HTRequest * request);
-</PRE>
-<P>
-Note that you can get to the HTHost object via the <A HREF="HTNet.html">HTNet
-object</A> which you can <A HREF="#HTNet">get by calling
-HTRequest_net(...)</A>.
-<H2>
-  Creation and Deletion Methods
+  <A NAME="Creation">Creation and Deletion Methods</A>
 </H2>
 <P>
 The request object is intended to live as long as the request is still active,
@@ -154,6 +121,9 @@ information that the application keeps in its copy of the request object.
 Otherwise it will be freed multiple times. Returns YES if OK, else NO
 <PRE>
 extern HTRequest * HTRequest_dupInternal (HTRequest * src);
+
+extern BOOL HTRequest_setInternal (HTRequest * request, BOOL mode);
+extern BOOL HTRequest_internal (HTRequest * request);
 </PRE>
 <H3>
   Delete Object
@@ -164,19 +134,102 @@ This function deletes the object and cleans up the memory.
 extern void HTRequest_delete (HTRequest * request);
 </PRE>
 <H2>
-  Date and Time Stamp when Request was Issued
+  <A NAME="Issuing">Issuing a Request</A>
 </H2>
 <P>
-The start time when the request was issued may be of value to the cache
-validation mechanism as described by the HTTP/1.1 specification. The value
-is automatically set when creating the request headers and sending off the
-request. The time is a local time.
+These are the "<I>basic request methods</I>" provided directly by the Request
+class. This is a very low level API as the caller must have set up the request
+object before passing it to libwww. There are two versions: one for issuing
+client requests and one for issuing server requests. You will probably most
+often use the client version but libwww can in fact also deal with incoming
+connections. You can find many higher level issuing functions in the
+<A HREF="HTAccess.html">HTAccess module</A>. If you like, you can of course
+use this directly!
 <PRE>
-extern time_t HTRequest_date  (HTRequest * request);
-extern BOOL HTRequest_setDate (HTRequest * request, time_t date);
+extern BOOL HTLoad (HTRequest * request, BOOL recursive);
+extern BOOL HTServe(HTRequest * request, BOOL recursive);
 </PRE>
 <H2>
-  Set the Method for the Request
+  <A NAME="Killing">Killing a Request</A>
+</H2>
+<P>
+This function kills this particular request, see <A HREF="HTNet.html">HTNet
+module</A> for a function that kills them all. If you know that you are
+pipelining requests (typically the case for GUI browsers, robots etc.) then
+it is often not enough to just kill a single request as the whole pipeline
+gets affected. Therefore, in that case you MUST call the
+<TT><A HREF="HTHost.html#Pipeline">HTHost_killPipe</A></TT> function instead,
+<PRE>
+extern BOOL HTRequest_kill(HTRequest * request);
+</PRE>
+<P>
+Note that you can get to the HTHost object via the <A HREF="HTNet.html">HTNet
+object</A> which you can <A HREF="#HTNet">get by calling
+HTRequest_net(...)</A>.
+<H2>
+  <A NAME="Relations">Relations to Other Libwww Objects</A>
+</H2>
+<P>
+The Request object is linked to a set of other libwww objects - here's how
+to get to these objects...
+<H3>
+  <A NAME="Anchor">Binding to an Anchor Object</A>
+</H3>
+<P>
+Every request object has an <A HREF="HTAnchor.html">anchor</A> associated
+with it. The anchor normally lives until the application terminates but a
+request object only lives as long as the request is being serviced. If the
+anchor that we have requested is infact a child anchor then we always load
+the parent anchor and then after the load jump to the location. A child anchor
+is a an anchor which points to a subpart of the document (has a "#" in the
+URL).
+<PRE>
+extern void HTRequest_setAnchor (HTRequest *request, HTAnchor *anchor);
+extern HTParentAnchor * HTRequest_anchor (HTRequest *request);
+
+extern HTChildAnchor * HTRequest_childAnchor (HTRequest * request);
+</PRE>
+<H3>
+  <A NAME="User">Binding to a User Profile</A>
+</H3>
+<P>
+Each request is associated with a <A HREF="HTUser.html">User profile</A>
+which contains information about the local host name, email address of the
+user, news server etc. A request object is created with a default "generic
+user" but can be assigned a specific user at any time.
+<PRE>
+extern BOOL HTRequest_setUserProfile (HTRequest * request, HTUserProfile * up);
+extern HTUserProfile * HTRequest_userProfile (HTRequest * request);
+</PRE>
+<H3>
+  <A NAME="HTNet">Binding to a Net Object</A>
+</H3>
+<P>
+If a request is actually going on the net then the <A HREF="HTNet.html">Net
+Manager</A> is contacted to handle the request. The Net manager creates a
+HTNEt object and links it to the Request object. You can get to the HTNet
+object using the following functions.
+<PRE>
+extern HTNet * HTRequest_net (HTRequest * request);
+extern BOOL HTRequest_setNet (HTRequest * request, HTNet * net);
+</PRE>
+<P>
+Note that you can go from the HTNet object to the
+<A HREF="HTHost.html">HTHost</A> object by calling <TT>HTNet_host(...)</TT>.
+<H3>
+  <A NAME="Response">Binding to a Response Object</A>
+</H3>
+<P>
+If a request is actually going on the net and we are getting a response back
+then we also create a <A HREF="HTResponse.html">HTResponse object</A> and
+bind it to the request object. Once we know what to do with the response,
+we may transfer the information to the anchor object.
+<PRE>
+extern HTResponse * HTRequest_response (HTRequest * request);
+extern BOOL HTRequest_setResponse (HTRequest * request, HTResponse * response);
+</PRE>
+<H2>
+  <A NAME="Method">Set the Method for the Request</A>
 </H2>
 <P>
 The Method is the operation to be executed on the requested object. The default
@@ -195,19 +248,20 @@ extern void HTRequest_setMethod (HTRequest *request, HTMethod method);
 extern HTMethod HTRequest_method (HTRequest *request);
 </PRE>
 <H2>
-  Priority Management
+  <A NAME="Priority">Priority Management</A>
 </H2>
 <P>
 The request can be assigned an initial priority which then gets inherited
-by all HTNet objects and other requests objects created as a result of this
-one. You can also assign a separate priority to an indicidual HTNet object
-by using the methods in the <A HREF="HTNet.html">Net manager</A>.
+by all <A HREF="HTNet.html">HTNet objects</A> and other requests objects
+created as a result of this one. You can also assign a separate priority
+to an indicidual HTNet object by using the methods in the
+<A HREF="HTNet.html">Net manager</A>.
 <PRE>
 extern HTPriority HTRequest_priority (HTRequest * request);
 extern BOOL HTRequest_setPriority (HTRequest * request, HTPriority priority);
 </PRE>
 <H2>
-  Pipelining Managament
+  <A NAME="Pipelining">Pipelining Managament</A>
 </H2>
 <P>
 Libwww supports HTTP/1.1 pipelining which greatly optimizes HTTP's behavior
@@ -220,47 +274,19 @@ request a request object to be flushed.
 extern BOOL HTRequest_setFlush (HTRequest * me, BOOL mode);
 extern BOOL HTRequest_flush (HTRequest * me);
 </PRE>
-<H2>
-  Binding to a User Profile
-</H2>
+<H3>
+  Force the Pipeline to be Flushed Immediately
+</H3>
 <P>
-Each request is associated with a <A HREF="HTUser.html">User profile</A>
-which contains information about the local host name, email address of the
-user, news server etc. A request object is created with a default "generic
-user" but can be assigned a specific user at any time.
+Forcing a fluch immediatly is slightly different as this can be done in
+"retrospect". That is, if suddenly the application decides on performing
+a flush after the request was initiated then it can use this function to
+flush at a later time.
 <PRE>
-extern BOOL HTRequest_setUserProfile (HTRequest * request, HTUserProfile * up);
-extern HTUserProfile * HTRequest_userProfile (HTRequest * request);
+extern int HTRequest_forceFlush (HTRequest * request);
 </PRE>
 <H2>
-  <A NAME="HTNet">Binding to a Net Object</A>
-</H2>
-<P>
-If a request is actually going on the net then the <A HREF="HTNet.html">Net
-Manager</A> is contacted to handle the request. The Net manager creates a
-HTNEt object and links it to the Request object. You can get to the HTNet
-object using the following functions.
-<PRE>
-extern HTNet * HTRequest_net (HTRequest * request);
-extern BOOL HTRequest_setNet (HTRequest * request, HTNet * net);
-</PRE>
-<P>
-Note that you can go from the HTNet object to the
-<A HREF="HTHost.html">HTHost</A> object by calling <TT>HTNet_host(...)</TT>.
-<H2>
-  Binding to a Response Object
-</H2>
-<P>
-If a request is actually going on the net and we are getting a response back
-then we also create a HTResponse object and bind it to the request object.
-Once we know what to do with the response, we may transfer the information
-to the anchor object.
-<PRE>
-extern HTResponse * HTRequest_response (HTRequest * request);
-extern BOOL HTRequest_setResponse (HTRequest * request, HTResponse * response);
-</PRE>
-<H2>
-  <A NAME="Error">Error Object</A>
+  <A NAME="Error">Dealing with Request Error Messages</A>
 </H2>
 <P>
 Errors are like almost anything kept in lists and a error list can be associated
@@ -292,7 +318,7 @@ extern BOOL HTRequest_addSystemError (HTRequest * 	request,
 				      char *		syscall);
 </PRE>
 <H2>
-  Max number of Retrys for a Down Load
+  <A NAME="MaxRetry">Max number of Retrys for a Down Load</A>
 </H2>
 <P>
 Automatic reload can happen in two situations:
@@ -320,7 +346,7 @@ extern int HTRequest_AAretrys (HTRequest * request);
 extern BOOL HTRequest_addAARetry (HTRequest * request);
 </PRE>
 <H2>
-  Set Max Forwards for TRACE methods
+  <A NAME="MaxForward">Set Max Forwards for TRACE methods</A>
 </H2>
 <P>
 The <CODE>TRACE</CODE> method is used to invoke a remote, application-layer
@@ -347,7 +373,7 @@ extern void HTRequest_setPreemptive (HTRequest *request, BOOL mode);
 extern BOOL HTRequest_preemptive (HTRequest *request);
 </PRE>
 <H2>
-  Content Negotiation
+  <A NAME="conneg">Content Negotiation</A>
 </H2>
 <P>
 When accessing the local file system, the Library is capable of performing
@@ -360,7 +386,7 @@ extern void HTRequest_setNegotiation (HTRequest *request, BOOL mode);
 extern BOOL HTRequest_negotiation (HTRequest *request);
 </PRE>
 <H2>
-  Request Preconditions
+  <A NAME="Preconditions">Request Preconditions (HTTP If-* Headers)</A>
 </H2>
 <P>
 Should this request use preconditions when doing a <TT>PUT</TT> or a
@@ -381,12 +407,27 @@ extern void HTRequest_setPreconditions (HTRequest * me, HTPreconditions mode);
 extern HTPreconditions HTRequest_preconditions (HTRequest * me);
 </PRE>
 <H2>
-  Handling Metainformation (RFC822 Headers)
+  <A NAME="Parsers">Local MIME header Parsers</A>
 </H2>
 <P>
-The Library supports a large set of headers that can be sent along with a
-request (or a response for that matter). All headers can be either disabled
-or enabled using bit flags that are defined in the following.
+MIMEParsers get their own type which is optimized for static and regex parser
+strings.
+<PRE>
+typedef struct _HTMIMEParseSet HTMIMEParseSet;
+extern void HTRequest_setMIMEParseSet (HTRequest *request,
+				       HTMIMEParseSet * parseSet, BOOL local);
+extern HTMIMEParseSet * HTRequest_MIMEParseSet (HTRequest *request,
+					      BOOL * pLocal);
+</PRE>
+<H2>
+  <A NAME="default">Which Default Protocol Header Fields To Use?</A>
+</H2>
+<P>
+Libwww supports a large set of headers that can be sent along with a request
+(or a response for that matter). All headers can be either disabled or enabled
+using bit flags that are defined in the following. See also the
+<A HREF="#extra">section on how to extend the default set of supported header
+fields</A>.
 <H3>
   <A NAME="gnhd">General HTTP Header Mask</A>
 </H3>
@@ -405,11 +446,13 @@ typedef enum _HTGnHd {
     HT_G_MESSAGE_ID	= 0x20,
     HT_G_MIME		= 0x40,
     HT_G_TRAILER        = 0x80,
-    HT_G_TRANSFER       = 0x100
+    HT_G_TRANSFER       = 0x100,
+    HT_G_EXTRA_HEADERS  = 0x200
 } HTGnHd;
 
 #define DEFAULT_GENERAL_HEADERS	\
-        HT_G_CONNECTION + HT_G_CC + HT_G_TRANSFER + HT_G_TRAILER
+        HT_G_CONNECTION + HT_G_CC + HT_G_TRANSFER + HT_G_TRAILER + \
+        HT_G_EXTRA_HEADERS
 
 extern void HTRequest_setGnHd (HTRequest *request, HTGnHd gnhd);
 extern void HTRequest_addGnHd (HTRequest *request, HTGnHd gnhd);
@@ -514,27 +557,68 @@ typedef enum _HTEnHd {
     HT_E_VERSION		= 0x20000
 } HTEnHd;
 
-#define DEFAULT_ENTITY_HEADERS		0xFFFF			      /* all */
+#define DEFAULT_ENTITY_HEADERS		0xFFFFFFFF		      /* all */
 
 extern void HTRequest_setEnHd (HTRequest *request, HTEnHd enhd);
 extern void HTRequest_addEnHd (HTRequest *request, HTEnHd enhd);
 extern HTEnHd HTRequest_enHd (HTRequest *request);
 </PRE>
 <H2>
-  Local MIME header Parsers
+  <A NAME="extra">Extending The Default Set Of Header Fields</A>
 </H2>
 <P>
-MIMEParsers get their own type which is optimized for static and regex parser
-strings.
+See also how to <A HREF="#default">set up default header fields</A>. There
+are three ways to extend the set of headers that are sent in a request:
+<OL>
+  <LI>
+    A simple <A HREF="HTAssoc.html">association list</A>
+  <LI>
+    A <A HREF="HTHeader.html">stream oriented approach where the stream (called
+    a generator)</A> has direct access to the outgoing stream. That it, it can
+    add any header it likes.
+  <LI>
+    <A HREF="/Protocols/HTTP/ietf-http-ext/">HTTP extension mechanism</A> which
+    is a much better way for handling extensions.
+</OL>
+<H3>
+  1) Simple Association List
+</H3>
+<P>
+Add the (name, value) and it will be converted into MIME header format as
+name: value. Do NOT add <TT>CRLF</TT> line termination - this is done by
+the HTTP header generator stream
 <PRE>
-typedef struct _HTMIMEParseSet HTMIMEParseSet;
-extern void HTRequest_setMIMEParseSet (HTRequest *request, 
-				       HTMIMEParseSet * parseSet, BOOL local);
-extern HTMIMEParseSet * HTRequest_MIMEParseSet (HTRequest *request,
-					      BOOL * pLocal);
+extern BOOL HTRequest_addExtraHeader       (HTRequest * request,
+                                            char * token, char * value);
+extern HTAssocList * HTRequest_extraHeader (HTRequest * request);
+extern BOOL HTRequest_deleteExtraHeaderAll (HTRequest * request);
+</PRE>
+<H3>
+  2) Stream Oriented Header Generators
+</H3>
+<P>
+Extra header information can be send along with a request using
+<A HREF="HTHeader.html">header generators</A>. The text is sent as is so
+it must be preformatted with <TT>CRLF</TT> line terminators. You can also
+register <A HREF="HTHeader.html">MIME header parsers</A> using the HTHeader
+module.
+<PRE>
+extern void HTRequest_setGenerator (HTRequest *request, HTList *gens,
+                                    BOOL override);
+extern HTList * HTRequest_generator (HTRequest *request, BOOL *override);
+</PRE>
+<H3>
+  3) HTTP Extension Framework
+</H3>
+<P>
+These association lists contain the information that we are to send as HTTP
+Extension Framework. This is not done yet but you can find some hints in
+the PEP module
+<PRE>
+/* TBD */
 </PRE>
 <H2>
-  <A NAME="Accept">Accept Headers</A>
+  <A NAME="Accept">User And Application Preferences Using Accept Headers</A>
 </H2>
 <P>
 The Accept family of headers is an important part of HTTP handling the format
@@ -600,7 +684,7 @@ extern void HTRequest_setCharset (HTRequest *request, HTList *charset, BOOL over
 extern HTList * HTRequest_charset (HTRequest *request);
 </PRE>
 <H2>
-  HTTP Cache Validation and Cache Control
+  <A NAME="Cache">HTTP Cache Validation and Cache Control</A>
 </H2>
 <P>
 The Library has two concepts of caching: in memory and on file. When loading
@@ -640,9 +724,21 @@ extern BOOL HTRequest_addCacheControl        (HTRequest * request,
 extern BOOL HTRequest_deleteCacheControlAll  (HTRequest * request);
 extern HTAssocList * HTRequest_cacheControl  (HTRequest * request);
 </PRE>
-<H3>
-  HTTP Expect Directives
-</H3>
+<H2>
+  <A NAME="Date">Date and Time Stamp when Request was Issued</A>
+</H2>
+<P>
+The start time when the request was issued may be of value to the cache
+validation mechanism as described by the HTTP/1.1 specification. The value
+is automatically set when creating the request headers and sending off the
+request. The time is a local time.
+<PRE>
+extern time_t HTRequest_date  (HTRequest * request);
+extern BOOL HTRequest_setDate (HTRequest * request, time_t date);
+</PRE>
+<H2>
+  <A NAME="Expect">HTTP Expect Directives</A>
+</H2>
 <P>
 The Expect request-header field is used to indicate that particular server
 behaviors are required by the client. A server that does not understand or
@@ -654,9 +750,9 @@ extern BOOL HTRequest_addExpect (HTRequest * me,
 extern BOOL HTRequest_deleteExpect (HTRequest * me);
 extern HTAssocList * HTRequest_expect (HTRequest * me);
 </PRE>
-<H3>
-  Partial Requests and Range Retrievals
-</H3>
+<H2>
+  <A NAME="Partial">Partial Requests and Range Retrievals</A>
+</H2>
 <P>
 Libwww can issue range requests in case we have already obtained a part of
 the entity body. Since all HTTP entities are represented in HTTP messages
@@ -673,7 +769,7 @@ extern BOOL HTRequest_deleteRangeAll (HTRequest * request);
 extern HTAssocList * HTRequest_range (HTRequest * request);
 </PRE>
 <H2>
-  HTTP Connection Control Request Directives
+  <A NAME="Connection">HTTP Connection Control Request Directives</A>
 </H2>
 <P>
 The connection control directives are all part of the connection header and
@@ -713,52 +809,7 @@ extern const char * HTRequest_realm (HTRequest * request);
 extern BOOL HTRequest_deleteRealm (HTRequest * me);
 </PRE>
 <H2>
-  HTTP Extensions (PEP)
-</H2>
-<P>
-HTTP can be extended in several ways but traditionally it has been by using
-new headers. Here we present a new idea which provides a framework for describing
-extensions and their scope. This is only an idea an may be modified later!
-The implementation of the extensions can be found in the
-<A HREF="HTPEP.html">PEP module</A>
-<H3>
-  Protocol
-</H3>
-<P>
-This association list is a list of the extension directives that are to be
-sent as part of the request.
-<PRE>
-extern BOOL HTRequest_addProtocol       (HTRequest * request,
-                                         char * token, char * value);
-extern BOOL HTRequest_deleteProtocolAll (HTRequest * request);
-extern HTAssocList * HTRequest_Protocol (HTRequest * request);
-</PRE>
-<H3>
-  Protocol Info
-</H3>
-<P>
-This association list is a list of the extension directives that are to be
-sent as part of the request.
-<PRE>
-extern BOOL HTRequest_addProtocolInfo       (HTRequest * request,
-                                            char * token, char * value);
-extern BOOL HTRequest_deleteProtocolInfoAll (HTRequest * request);
-extern HTAssocList * HTRequest_ProtocolInfo (HTRequest * request);
-</PRE>
-<H3>
-  Protocol Request
-</H3>
-<P>
-This association list is a list of the extension directives that are to be
-sent as part of the request.
-<PRE>
-extern BOOL HTRequest_addProtocolRequest       (HTRequest * request,
-                                               char * token, char * value);
-extern BOOL HTRequest_deleteProtocolRequestAll (HTRequest * request);
-extern HTAssocList * HTRequest_ProtocolRequest (HTRequest * request);
-</PRE>
-<H2>
-  HTTP Referer Field
+  <A NAME="Referer">HTTP Referer Field</A>
 </H2>
 <P>
 If this parameter is set then a `Referer: &lt;parent address&gt; can be generated
@@ -769,21 +820,7 @@ extern void HTRequest_setParent (HTRequest *request, HTParentAnchor *parent);
 extern HTParentAnchor * HTRequest_parent (HTRequest *request);
 </PRE>
 <H2>
-  Extra Headers
-</H2>
-<P>
-Extra header information can be send along with a request using this variable.
-The text is sent as is so it must be preformatted with
-<CODE>&lt;CRLF&gt;</CODE> line terminators. This will get changed at some
-point so that you can register a header together with a handler in the MIME
-parser.
-<PRE>
-extern void HTRequest_setGenerator (HTRequest *request, HTList *gens, 
-				    BOOL override);
-extern HTList * HTRequest_generator (HTRequest *request, BOOL *override);
-</PRE>
-<H2>
-  <A NAME="before">BEFORE and AFTER Filters</A>
+  <A NAME="before">Local BEFORE and AFTER Filters</A>
 </H2>
 <P>
 The request object may have it's own before and after
@@ -856,7 +893,7 @@ extern BOOL HTRequest_deleteAfterStatus (HTRequest * request, int status);
 extern BOOL HTRequest_deleteAfterAll (HTRequest * request);
 </PRE>
 <H2>
-  Sending data to the Network
+  <A NAME="App2Net">Sending data from App to Network</A>
 </H2>
 <P>
 Multiple Request objects can be connected in order to create a
@@ -909,7 +946,7 @@ extern void HTRequest_setInputStream (HTRequest * request, HTStream * input);
 extern HTStream *HTRequest_inputStream (HTRequest * request);
 </PRE>
 <H3>
-  Is This Request part of a Post Web?
+  Is This Request part of a Post Web? (Deprecated)
 </H3>
 <P>
 Check to see if this request object is part of a Post Web.
@@ -927,7 +964,7 @@ extern BOOL HTRequest_setSource (HTRequest * request, HTRequest * source);
 extern HTRequest * HTRequest_source (HTRequest * request);
 </PRE>
 <H2>
-  Streams From Network to Application
+  <A NAME="Net2App">Streams From Network to Application</A>
 </H2>
 <H3>
   Default Output Stream
@@ -941,7 +978,19 @@ extern void HTRequest_setOutputStream (HTRequest *request, HTStream *output);
 extern HTStream *HTRequest_outputStream (HTRequest *request);
 </PRE>
 <H3>
-  Has Output Stream been Connected to Channel?
+  Default Output Stream Format
+</H3>
+<P>
+The desired format of the output stream. This is used in the
+<A HREF="HTFormat.html">stream stack builder</A> to determine which stream
+to plug in to deal with the data. If <CODE>NULL</CODE>, then
+<A HREF="HTFormat.html#FormatTypes">WWW_PRESENT</A> is default value.
+<PRE>
+extern void HTRequest_setOutputFormat (HTRequest *request, HTFormat format);
+extern HTFormat HTRequest_outputFormat (HTRequest *request);
+</PRE>
+<H3>
+  Has Output Stream been Connected to Channel? (Deprecated)
 </H3>
 <P>
 Has output stream been connected to the channel? If not then we must free
@@ -949,16 +998,8 @@ it explicitly when deleting the request object
 <PRE>extern void HTRequest_setOutputConnected (HTRequest * request, BOOL mode);
 extern BOOL HTRequest_outputConnected	 (HTRequest * request);
 </PRE>
-<P>
-The desired format of the output stream. This can be used to get unconverted
-data etc. from the library. If <CODE>NULL</CODE>, then
-<A HREF="HTFormat.html#FormatTypes">WWW_PRESENT</A> is default value.
-<PRE>
-extern void HTRequest_setOutputFormat (HTRequest *request, HTFormat format);
-extern HTFormat HTRequest_outputFormat (HTRequest *request);
-</PRE>
 <H3>
-  Debug Stream
+  Default Debug Stream
 </H3>
 <P>
 All object bodies sent from the server with status codes different from
@@ -970,6 +1011,9 @@ not set up.
 extern void HTRequest_setDebugStream (HTRequest *request, HTStream *debug);
 extern HTStream *HTRequest_debugStream (HTRequest *request);
 </PRE>
+<H3>
+  Default Debug Stream Format
+</H3>
 <P>
 The desired format of the error stream. This can be used to get unconverted
 data etc. from the library. The default value if <CODE>WWW_HTML</CODE> as
@@ -1001,23 +1045,7 @@ extern void HTRequest_setContext (HTRequest *request, void *context);
 extern void *HTRequest_context (HTRequest *request);
 </PRE>
 <H2>
-  Binding to an Anchor Object
-</H2>
-<P>
-Every request object has an <A HREF="HTAnchor.html">anchor</A> associated
-with it. The anchor normally lives until the application terminates but a
-request object only lives as long as the request is being serviced. If the
-anchor that we have requested is infact a child anchor then we always load
-the parent anchor and then after the load jump to the location. A child anchor
-is a an anchor which points to a subpart of the document (has a "#" in the
-URL).
-<PRE>extern void HTRequest_setAnchor (HTRequest *request, HTAnchor *anchor);
-extern HTParentAnchor * HTRequest_anchor (HTRequest *request);
-
-extern HTChildAnchor * HTRequest_childAnchor (HTRequest * request);
-</PRE>
-<H2>
-  Should we Issue a full HTTP Request-URI?
+  <A NAME="FullURI">Should we Issue a full HTTP Request-URI?</A>
 </H2>
 <P>
 In early versions of HTTP, the request sent to the remote server varies whether
@@ -1028,21 +1056,22 @@ extern void HTRequest_setFullURI (HTRequest *request, BOOL mode);
 extern BOOL HTRequest_fullURI (HTRequest *request);
 </PRE>
 <H2>
-  Proxy URL
+  <A NAME="Proxies">Handling Proxies</A>
 </H2>
 <P>
 In case we are using a proxy for this requst then we can register it together
 with the request object. That way we can find the proxy and look for
 authentication information, for example in the
 <A HREF="HTAAUtil.html">Authentication filter</A>. The string is freed by
-the Request object on deletion.
+the Request object on deletion. This is normally handled automatically by
+the <A HREF="HTProxy.html">proxy and gateway module</A>
 <PRE>
 extern BOOL HTRequest_setProxy    (HTRequest * request, const char * proxy);
 extern char * HTRequest_proxy     (HTRequest * request);
 extern BOOL HTRequest_deleteProxy (HTRequest * request);
 </PRE>
 <H2>
-  Enity Bytes Read or Written in a Request
+  <A NAME="Count">Bytes Read or Written in a Request</A>
 </H2>
 <P>
 This function returns the bytes read in the current request. For a deeper
@@ -1059,18 +1088,6 @@ headers
 <PRE>
 extern long HTRequest_bytesRead (HTRequest * request);
 extern long HTRequest_bytesWritten (HTRequest * request);
-</PRE>
-<H2>
-  Internal Request Objects
-</H2>
-<P>
-The library may under certain circumstances create its own Request objects.
-These are all handled internal and does not show up on the application side
-at all.
-<PRE>
-extern BOOL HTRequest_setInternal (HTRequest * request, BOOL mode);
-extern BOOL HTRequest_internal (HTRequest * request);
-extern int HTRequest_forceFlush (HTRequest * request);
 </PRE>
 <PRE>
 #endif /* HTREQ_H */
