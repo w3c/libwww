@@ -1,17 +1,19 @@
-<PRE>
-/*		C File Writer			HTWriter.c
-**		-------------
-**
-**   It is useful to have both FWriter and Writer for environments in
-**   which fdopen() doesn't exist for example.
-*/
-
-#ifndef HTFWRITE_H
+<HEADER>
+<TITLE>/Net/dxcern/userd/timbl/hypertext/WWW/Library/Implementation/HTFWriter.html</TITLE></HEADER>
+<BODY>
+<H1>C File Writer</H1>It is useful to have both FWriter
+and Writer for environments in which
+fdopen() doesn't exist for example.
+<PRE>#ifndef HTFWRITE_H
 #define HTFWRITE_H
 
 #include "HTStream.h"
-#include &#60;stdio.h>
+#include &lt;stdio.h>
 #include "HTFormat.h"
+
+#ifdef SHORT_NAMES
+#define	HTFWriter_new	HTFWnew
+#endif
 
 extern HTStream * HTFWriter_new PARAMS((FILE * fp));
 
@@ -21,4 +23,4 @@ extern HTStream * HTSaveAndExecute PARAMS((
 	HTStream *		sink));
 
 #endif
-</PRE>
+</PRE>end</BODY>

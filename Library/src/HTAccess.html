@@ -23,7 +23,10 @@ NAME=z0 HREF="Overview.html">libwww library</A> .
 #include "HTFormat.h"
 
 #ifdef SHORT_NAMES
-#define HTClientHost HTClHost
+#define HTClientHost 		HTClHost
+#define HTSearchAbsolute	HTSeAbso
+#define HTOutputStream		HTOuStre
+#define HTOutputFormat		HTOuForm
 #endif
 
 /*	Return codes from load routines:
@@ -38,7 +41,7 @@ NAME=z0 HREF="Overview.html">libwww library</A> .
 
 </PRE>
 <H2>Default Addresses</H2>These control the home page selection.
- To mess with these for normal browses
+To mess with these for normal browses
 is asking for user confusion.
 <PRE>#define LOGICAL_DEFAULT "WWW_HOME"  /* Defined to be the home page */
 

@@ -643,7 +643,7 @@ PUBLIC void HTDirTitles ARGS2(HTStructured *, target,
     }
     free(path);
 }
-#endif GOT_READ_DIR
+#endif /* GOT_READ_DIR */
 		
 
 

@@ -277,7 +277,7 @@ int HTLoadRules ARGS1(CONST char *, filename)
 	}
 	
 	if (0==strcasecomp(operation, "suffix")) {
-	    HTSetSuffix(pattern, equiv, quality);
+	    HTSetSuffix(pattern, equiv, status = 4? quality : 1.0);
 	} else {
 	    op =	0==strcasecomp(operation, "map")  ?	HT_Map
 		:	0==strcasecomp(operation, "pass") ?	HT_Pass

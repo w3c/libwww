@@ -162,7 +162,7 @@ PRIVATE void PlainToHTML_end_document ARGS1(HTStructured *, me)
 /*	Structured Object Class
 **	-----------------------
 */
-PUBLIC CONST HTStructuredClass HTMLGeneration = /* As opposed to print etc */
+PRIVATE CONST HTStructuredClass HTMLGeneration = /* As opposed to print etc */
 {		
 	"text/html",
 	HTMLGen_free,

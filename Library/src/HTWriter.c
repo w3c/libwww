@@ -141,7 +141,7 @@ PRIVATE void HTWriter_end_document ARGS1(HTStream *, me)
 /*	Structured Object Class
 **	-----------------------
 */
-PUBLIC CONST HTStreamClass HTWriter = /* As opposed to print etc */
+PRIVATE CONST HTStreamClass HTWriter = /* As opposed to print etc */
 {		
 	"SocketWriter",
 	HTWriter_free,
