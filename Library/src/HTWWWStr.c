@@ -535,10 +535,10 @@ PUBLIC BOOL HTDateDirStr (time_t * time, char * str, int len)
 #if defined(HT_REENTRANT) || defined(SOLARIS)
     struct tm loctime;
     localtime_r(time, &loctime);
-    strftime(str, len, "%d-%b-%y %H:%M", &loctime);
+    strftime(str, len, "%d-%b-%Y %H:%M", &loctime);
     return YES;
 #else
-    strftime(str, len, "%d-%b-%y %H:%M", localtime(time));
+    strftime(str, len, "%d-%b-%Y %H:%M", localtime(time));
     return YES;
 #endif /* HT_REENTRANT || SOLARIS */
 #else
