@@ -797,7 +797,7 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
     EventOrderList = HTList_new();	/* is kept around until EventOrder_deleteAll */
 
     /* Don't leave this loop until we leave the application */
-    do {
+    while (!HTEndLoop) {
         treadset = FdArray[HTEvent_INDEX(HTEvent_READ)];
         twriteset = FdArray[HTEvent_INDEX(HTEvent_WRITE)];
         texceptset = FdArray[HTEvent_INDEX(HTEvent_OOB)];
@@ -896,7 +896,7 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 	if ((status = EventOrder_executeAndDelete()) != HT_OK)
 	    return status;
 #endif /* HT_EVENT_ORDER */
-    } while (!HTEndLoop);
+    };
 
     /* Reset HTEndLoop in case we want to start again */
     HTEndLoop = 0;
