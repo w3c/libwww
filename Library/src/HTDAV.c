@@ -3,7 +3,6 @@
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
-**	@(#) $Id$
 **
 ** Authors
 **	MKP	Manuele Kirsch Pinheiro, Manuele.Kirsch_Pinheiro@inrialpes.fr 
@@ -16,14 +15,19 @@
 **	          Jose Kahan.
 **
 **      $Log$
+**      Revision 1.1  2002/03/21 14:16:27  kirschpi
+**      Missing files
+**      Manuele Kirsch
+**
 **
 ** $Id$
 */
 
+
 /* Library include files */
+#include "wwwsys.h"
 #include "WWWLib.h"
 #include "WWWInit.h"
-#include "wwwsys.h"
 #include "WWWUtil.h"
 #include "WWWStream.h"
 #include "HTDAV.h"		/* implemented here */

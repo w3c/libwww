@@ -208,7 +208,6 @@ PUBLIC const char * HTMethod_name (HTMethod method)
 	return *method_names;
 }
 
-#if defined(HT_DAV) || defined (HT_EXT)
 
 /* 
 ** Does the method include an entity body? 
@@ -240,11 +239,8 @@ PUBLIC BOOL HTMethod_hasEntity (HTMethod me) {
     return (NO);
 }
 
-#endif /* HT_DAV || HT_EXT */
 
 
-
-#ifdef HT_EXT
 /*
 ** Set an extension method: HTMethod structure has 7 methods (METHOD_EXT_0
 ** to METHOD_EXT_6) that can be set by the application.
@@ -261,7 +257,7 @@ PUBLIC BOOL HTMethod_hasEntity (HTMethod me) {
 **
 */
 PUBLIC BOOL HTMethod_setExtensionMethod (HTMethod method, const char * name, BOOL hasEntity) {
-    
+#ifdef HT_EXT
     if (name && *name) {
         if (method == METHOD_EXT_0) { 
             StrAllocCopy ((char *)(*(method_names+18)), name);
@@ -294,6 +290,8 @@ PUBLIC BOOL HTMethod_setExtensionMethod (HTMethod method, const char * name, BOO
         else return NO;
         return YES;     
     }   
+#endif /* HT_EXT */
+
     return NO;    
 }
 
@@ -302,6 +300,7 @@ PUBLIC BOOL HTMethod_setExtensionMethod (HTMethod method, const char * name, BOO
 ** Delete the extension method: this funcion unset the extension method
 */
 PUBLIC BOOL HTMethod_deleteExtensionMethod (HTMethod method) {
+#ifdef HT_EXT
     char *ptr = NULL;   
 
     if ( (method == METHOD_EXT_0) && (*(method_names+18)) )  {
@@ -337,9 +336,10 @@ PUBLIC BOOL HTMethod_deleteExtensionMethod (HTMethod method) {
         HT_FREE(ptr);
         return YES;
     }
+    
+#endif /* HT_EXT */
 
     return NO;
 }
 
-#endif /* HT_EXT */
 

@@ -1750,17 +1750,18 @@ PUBLIC BOOL HTServe (HTRequest * me, BOOL recursive)
 /* --------------------------------------------------------------------------*/
 /*                              Message Body                                 */
 /* --------------------------------------------------------------------------*/
-#ifdef HT_EXT
 
 /*
 ** This function sets the request's message body
 */
 PUBLIC BOOL HTRequest_setMessageBody (HTRequest * request, const char * body) {
+#ifdef HT_EXT
 
     if (request && body && *body){          
         StrAllocCopy (request->messageBody,body);
         return YES;
     }
+#endif /* HT_EXT */    
     return NO;  
 }
 
@@ -1769,11 +1770,13 @@ PUBLIC BOOL HTRequest_setMessageBody (HTRequest * request, const char * body) {
 ** setting it to NULL.
 */
 PUBLIC BOOL HTRequest_deleteMessageBody (HTRequest * request) {
+#ifdef HT_EXT
     if (request && request->messageBody) {
         HT_FREE (request->messageBody);
         request->messageBody = NULL;
         return YES;
     }           
+#endif /* HT_EXT */    
     return NO;
 }
 
@@ -1783,8 +1786,10 @@ PUBLIC BOOL HTRequest_deleteMessageBody (HTRequest * request) {
 PUBLIC char * HTRequest_messageBody (HTRequest * request) {
     char * bodycopy = NULL;     
 
+#ifdef HT_EXT    
     if (request && request->messageBody && *(request->messageBody)) 
         StrAllocCopy(bodycopy,request->messageBody);    
+#endif /* HT_EXT */    
     
     return bodycopy;
 }
@@ -1797,10 +1802,13 @@ PUBLIC char * HTRequest_messageBody (HTRequest * request) {
 ** header will be created only if there is a message Body.
 */
 PUBLIC BOOL HTRequest_setMessageBodyLength (HTRequest * request, long int length) {
+#ifdef HT_EXT    
     if (request && length > 0) {
         request->messageBodyLength = length;
         return YES;
     }
+#endif /* HT_EXT */    
+
     return NO;
 }
 
@@ -1810,8 +1818,12 @@ PUBLIC BOOL HTRequest_setMessageBodyLength (HTRequest * request, long int length
 ** or -1 if it is not set.
 */
 PUBLIC long int HTRequest_messageBodyLength (HTRequest * request) {
+#ifdef HT_EXT    
     return (request && (request->messageBody && request->messageBodyLength))?
                         request->messageBodyLength:-1;
+#else
+    return -1;
+#endif
 }
 
 
@@ -1823,10 +1835,12 @@ PUBLIC long int HTRequest_messageBodyLength (HTRequest * request) {
 */
 PUBLIC BOOL HTRequest_setMessageBodyFormat (HTRequest * request, HTFormat format) {
         
+#ifdef HT_EXT    
     if (request && format) {
         request->messageBodyFormat = format;
         return YES;
     }
+#endif /*HT_EXT*/
     return NO;
 }
 
@@ -1836,10 +1850,11 @@ PUBLIC BOOL HTRequest_setMessageBodyFormat (HTRequest * request, HTFormat format
 ** NULL if it is not set.
 */
 PUBLIC HTFormat HTRequest_messageBodyFormat (HTRequest * request) {
+#ifdef HT_EXT    
     if (request && request->messageBodyFormat) 
         return request->messageBodyFormat;
-    else return NULL;    
+    else 
+#endif /*HT_EXT*/	    
+	return NULL;
 }
 
-
-#endif

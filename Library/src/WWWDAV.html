@@ -1,11 +1,11 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 16-Apr-1996 -->
-  <TITLE>W3C Sample Code Library libwww ZLib Streams</TITLE>
+  <!-- Changed by: Manuele Kirsch Pinheiro, 29-May-2002 -->
+  <TITLE>W3C Sample Code Library libwww WebDAV Access Methods</TITLE>
 </HEAD>
 <BODY>
 <H1>
-  W3C Sample Code Library libwww WEBDAV Streams
+  W3C Sample Code Library libwww WEBDAV Access Methods
 </H1>
 <PRE>
 /*
@@ -14,10 +14,11 @@
 */
 </PRE>
 <P>
-The stream part of the Library is a set of streams that can be used to
-encode/decode, or compress/decompress content. Many of the streams are based
-on <A HREF="http://www.cdrom.com/pub/infozip/zlib/">zlib</A> which is a freely
-available compression library.
+The WebDAV protocol is a set of extensions for the HTTP/1.1 protocol that
+allows clients to perform remote web content authoring operations. This
+extension is defined on <A HREF="http://www.ietf.org/rfc/rfc2518.txt/">RFC2518</A>.
+More informations about WebDAV can be found also in <A HREF="http://www.webdav.org/">
+WebDAV.org</A>. 
 <PRE>
 #ifndef WWWDAV_H
 #define WWWDAV_H
@@ -37,10 +38,11 @@ is that the Internet world is more complicated than Posix and ANSI.
 <PRE>#include "wwwsys.h"
 </PRE>
 <H3>
-  GZip Compression / Decompression
+  WebDAV Methods / Headers
 </H3>
 <P>
-This stream can encode / decode gzipped content.
+The WebDAV protocol defined 7 new HTTP methods and also some new request headers.
+The WWWDAV library defines high levels functions to manipulate those new elements.
 <PRE>
 #ifdef HT_DAV
 #include "<A HREF="HTDAV.html">HTDAV.h</A>"

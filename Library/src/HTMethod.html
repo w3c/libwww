@@ -98,11 +98,8 @@ than a function. The function is interesting only when using WebDAV (many
 methods) or extension methods (in this case, a dynamic structure is
 needed).</p>
 <pre>
-#if defined(HT_DAV) || defined(HT_EXT)
 extern BOOL HTMethod_hasEntity(HTMethod me);
-#else
-#define HTMethod_hasEntity(me)    ((me) &amp; (METHOD_PUT | METHOD_POST))
-#endif</pre>
+</pre>
 
 <h3>Extension Methods</h3>
 
@@ -112,10 +109,10 @@ unknown methods, and use them. It's recomended for applications that need
 only a few new methods, that aren't yet in the libwww. The application should
 register the desired methos, an before finish, it must unregister these
 methods.</p>
-<pre>#ifdef HT_EXT
+<pre>
 extern BOOL HTMethod_setExtensionMethod (HTMethod method, const char * name, BOOL hasEntity);
 extern BOOL HTMethod_deleteExtensionMethod (HTMethod method);
-#endif</pre>
+</pre>
 
 <p></p>
 <pre>#endif /* HTMETHOD_H */</pre>

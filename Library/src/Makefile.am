@@ -353,9 +353,6 @@ libwwwdav_la_SOURCES = \
         HTDAV.h \
         HTDAV.c
 
-libwwwdav_la_DEPENDENCIES = \
-        HTHome.o
-
 libwwwdav_la_LDFLAGS = -rpath $(libdir)
 
 libwwwxml_la_SOURCES = \

@@ -923,7 +923,7 @@ included, a Content-Type header will be added to the request too.</p>
 
 <p><strong>Note</strong>: The caller should free the string returned by
 HTRequest_messageBody function!</p>
-<pre>#if defined(HT_EXT)
+<pre>
 extern BOOL HTRequest_setMessageBody (HTRequest * request, const char * body);
 extern BOOL HTRequest_deleteMessageBody (HTRequest * request);
 extern char * HTRequest_messageBody (HTRequest * request);
@@ -934,7 +934,7 @@ extern long int HTRequest_messageBodyLength (HTRequest * request);
 extern BOOL HTRequest_setMessageBodyFormat (HTRequest * request, HTFormat format);
 extern HTFormat HTRequest_messageBodyFormat (HTRequest * request);
 
-#endif</pre>
+</pre>
 
 <p></p>
 
