@@ -643,7 +643,7 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 	*/
 	wt = NULL;
 	if ((status = HTTimer_next(&timeout)))
-	    return status;
+	    break;
 	if (timeout != 0) {
 	    waittime.tv_sec = timeout / MILLI_PER_SECOND;
 	    waittime.tv_usec = (timeout % MILLI_PER_SECOND) *
@@ -713,7 +713,8 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 	    EventList_dump();
 #endif /* HTDEBUG */
 
-	    return HT_ERROR;
+	    status = HT_ERROR;
+	    break;
         }
 
 	/*
@@ -727,20 +728,21 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 	for (s = 0 ; s <= maxfds ; s++) { 
 	    if (FD_ISSET(s, &texceptset))
 		if ((status = EventOrder_add(s, HTEvent_OOB, now)) != HT_OK)
-		    return status;
+		    goto stop_loop;
 	    if (FD_ISSET(s, &twriteset))
 		if ((status = EventOrder_add(s, HTEvent_WRITE, now)) != HT_OK)
-		    return status;
+		    goto stop_loop;
 	    if (FD_ISSET(s, &treadset))
 		if ((status = EventOrder_add(s, HTEvent_READ, now)) != HT_OK)
-		    return status;
+		    goto stop_loop;
 	}
-	if ((status = EventOrder_executeAndDelete()) != HT_OK) return status;
+	if ((status = EventOrder_executeAndDelete()) != HT_OK) break;
     };
 
     /* Reset HTEndLoop in case we want to start again */
+ stop_loop:
     HTEndLoop = 0;
-    return HT_OK;
+    return status;
 #endif /* !WWW_WIN_ASYNC */
 }
 
