@@ -115,11 +115,12 @@ PUBLIC int HTMIME_connection (HTRequest * request, HTResponse * response,
 	**  tokens.
 	*/
 	if (name) {
+	    HTNet * net = HTRequest_net(request);
+	    HTHost * host = HTNet_host(net);
 	    if (!strcasecomp(name, "close")) {			 /* HTTP/1.1 */
 		if (STREAM_TRACE) HTTrace("MIMEParser.. Close received...\n");
+		HTHost_setCloseNotification(host, YES);
 	    } else if (!strcasecomp(name, "keep-alive")) {       /* HTTP/1.0 */
-		HTNet * net = HTRequest_net(request);
-		HTHost * host = HTNet_host(net);
 
 		/*
 		**  In case this is an HTTP/1.1 server sending keep-alive then

@@ -385,9 +385,17 @@ PUBLIC HTStream * HTRules (HTRequest *	request,
 			   HTStream *	output_stream)
 {
     HTAlertCallback *cbf = HTAlert_find(HT_A_CONFIRM);
-    HTStream * me;
-    if (!cbf ||
-	(cbf && (*cbf)(request,HT_A_CONFIRM,HT_MSG_RULES,NULL,NULL,NULL))) {
+    
+    /*
+    **  If the library has been compiled so that we automatically accept
+    **  rule files then it's OK not to ask the user.
+    */
+#ifdef HT_AUTOMATIC_RULES
+    if (!cbf || (cbf && (*cbf)(request,HT_A_CONFIRM, HT_MSG_RULES, NULL,NULL,NULL))) {
+#else
+    if ((cbf && (*cbf)(request,HT_A_CONFIRM, HT_MSG_RULES, NULL,NULL,NULL))) {
+#endif
+	HTStream * me;
 	if (WWWTRACE) HTTrace("Rule file... Parser object created\n");
 	if ((me = (HTStream *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
 	    HT_OUTOFMEM("HTRules");
@@ -396,8 +404,11 @@ PUBLIC HTStream * HTRules (HTRequest *	request,
 	me->buffer = HTChunk_new(512);
 	me->EOLstate = EOL_BEGIN;
 	if (!rules) rules = HTList_new();
-    } else
-	me = HTErrorStream();
-    return me;
+	return me;
+    } else {
+	HTRequest_addError(request, ERR_FATAL, NO, HTERR_NO_AUTO_RULES,
+			   NULL, 0, "HTRules");
+	return HTErrorStream();
+    }
 }
 

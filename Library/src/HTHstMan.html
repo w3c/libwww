@@ -73,6 +73,8 @@ struct _HTHost {
     BOOL		persistent;
     HTTransportMode	mode;	      			   /* Supported mode */
     int                 recovered;        /* How many times had we recovered */
+    HTTimer *           timer;         /* Timer for handling idle connection */
+    BOOL                close_notification;        /* Got a hint about close */
 
     /* Support for transports */
     HTChannel *		channel;			     /* data channel */

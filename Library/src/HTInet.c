@@ -574,38 +574,57 @@ PUBLIC time_t HTGetTimeZoneOffset (void)
 **	is NULL then don't prepend anything.
 **	If success, the result must be freed by caller, else we return NULL
 */
-PUBLIC char * HTGetTmpFileName (const char * dir)
+PUBLIC char * HTGetTmpFileName (const char * abs_dir)
 {
+#ifdef HAVE_TEMPNAM
+    return tempnam(abs_dir, NULL);
+#else
+    /*
+    **  This is only approx. as we don't know if this file exists or not.
+    **  Hopefully, tempnam() exists on enough platforms so that this is not
+    **  a problem.
+    */
     char * result = NULL;
     char * offset = NULL;
-    if (!(result = (char *) HT_MALLOC(dir ? strlen(dir) : 0 + HT_MAX_TMPNAM + 2)))
+    if (!(result = (char *) HT_MALLOC((abs_dir ? strlen(abs_dir) : 0) +
+				      HT_MAX_TMPNAM + 2)))
 	HT_OUTOFMEM("HTGetTmpFileName");
-    if (dir && *dir) {
-	strcpy(result, dir);
-	offset = result+strlen(result)-1;
-	if (*offset != '/') *offset++ = '/';
-    } else
-	offset = result;
-#ifdef HT_REENTRANT
-    tmpnam_r(offset);
+
+#ifdef WWW_MSWINDOWS
+    if (abs_dir) {
 #else
-    tmpnam(offset);
+    if (abs_dir && *abs_dir=='/') {
+#endif /* WWW_MSWINDOWS */
+	strcpy(result, abs_dir);
+	offset = result+strlen(result);
+	if (*(offset-1) != '/') *offset++ = '/';
+
+#ifdef HT_REENTRANT
+	tmpnam_r(offset);
+#else
+	tmpnam(offset);
 #endif
 
-    /*
-    **  If we don't have a dir then remove what the system call may have
-    **  prepended the response with
-    */
-    if (offset == result) {
+	{
 #ifdef WWW_MSWINDOWS
-	char * orig = strrchr(offset, '\\');
+	    char * orig = strrchr(offset, '\\');
 #else
-        char * orig = strrchr(offset, '/');
+	    char * orig = strrchr(offset, '/');
 #endif /* WWW_MSWINDOWS */
-        char * dest = result;
-	if (orig++) while ((*dest++ = *orig++));
+	    char * dest = offset;
+	    if (orig++) while ((*dest++ = *orig++));
+	}
+    } else {
+	offset = result;
+#ifdef HT_REENTRANT
+	tmpnam_r(offset);
+#else
+	tmpnam(offset);
+#endif
+	offset = result;
     }
     return result;
+#endif /* HAVE_TEMPNAM */
 }
 
 /*

@@ -871,6 +871,11 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 		    HTHost_setVersion(host, HTTP_10);
 		}
 
+		if (HTNet_preemptive(net)) {
+		    if (PROT_TRACE) HTTrace("HTTP........ Force flush on preemptive load\n");
+		    HTRequest_setFlush(request, YES);
+		}
+
 		/* Jump to next state */
 		http->state = HTTP_NEED_STREAM;
 	    } else if (status == HT_WOULD_BLOCK || status == HT_PENDING)
@@ -1045,7 +1050,7 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 	      ** then it is an error and we should recover from it by
 	      ** restarting the pipe line of requests if any
 	      */
-	      if (HTHost_isPersistent(host)) {
+	      if (HTHost_isPersistent(host) && !HTHost_closeNotification(host)) {
 		  if (host == NULL) return HT_ERROR;
 		  HTRequest_setFlush(request, YES);
 		  HTHost_recoverPipe(host);

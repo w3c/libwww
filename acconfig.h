@@ -1,8 +1,11 @@
 /* Define to enable direct WAIS access. */
 #undef HT_DIRECT_WAIS
 
-/* Define to enable HT_ZLIB compression / decompression support. */
+/* Define to enable Zlib compression / decompression support. */
 #undef HT_ZLIB
+
+/* Define to enable support for enabling a rules file w/o user interaction. */
+#undef HT_AUTOMATIC_RULES
 
 /* Define to enable SOCKS firewall-breaching code. */
 #undef SOCKS

@@ -34,6 +34,7 @@ typedef struct _HTHost HTHost;
 #include "HTReq.h"
 #include "HTEvent.h"
 #include "HTProt.h"
+#include "HTTimer.h"
 </PRE>
 <P>
 The Host class contains information about the remote host, for example the
@@ -178,6 +179,8 @@ extern HTChannel * HTHost_channel (HTHost * host);
 Check whether we have a persistent channel or not
 <PRE>
 extern BOOL HTHost_isPersistent (HTHost * host);
+extern BOOL HTHost_setCloseNotification (HTHost * host, BOOL mode);
+extern BOOL HTHost_closeNotification (HTHost * host);
 </PRE>
 <H3>
   Timing Persistent Channels

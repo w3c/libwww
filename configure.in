@@ -21,7 +21,7 @@ PACKAGE=w3c-libwww
 AC_SUBST(PACKAGE)
 AC_DEFINE_UNQUOTED(W3C_PACKAGE, "$PACKAGE")
 
-VERSION=5.1a
+VERSION=5.1b
 AC_SUBST(VERSION)
 AC_DEFINE_UNQUOTED(W3C_VERSION, "$VERSION")
 
@@ -235,6 +235,21 @@ AC_ARG_ENABLE(nagle,
   esac ],
   AC_MSG_RESULT(yes)
   AC_DEFINE(HT_NO_NAGLE)
+)
+
+AC_MSG_CHECKING(whether to accept new rule files without asking an end user.)
+AC_ARG_ENABLE(autorules,
+[  --enable-autorules      Enabling acceptance of rule files without user interaction.],
+[ case "${enableval}" in
+  yes)
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(HT_AUTOMATIC_RULES)
+    ;;
+  *) 
+    AC_MSG_RESULT(no)
+    ;;
+  esac ],
+  AC_MSG_RESULT(no)
 )
 
 AC_MSG_CHECKING(whether to disable HTTP/1.1 pipelining)

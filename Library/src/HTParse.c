@@ -461,7 +461,7 @@ PUBLIC char * HTRelative (const char * aName, const char * relatedName)
     	StrAllocCopy(result, after_access);
     } else {					/* Some path in common */
         int levels= 0;
-        for(; *q && (*q!='#'); q++)  if (*q=='/') levels++;
+        for(; *q && *q!='#' && *q!=';' && *q!='?'; q++) if (*q=='/') levels++;
 	if ((result = (char  *) HT_MALLOC(3*levels + strlen(last_slash) + 1)) == NULL)
 	    HT_OUTOFMEM("HTRelative");
 	result[0]=0;

@@ -154,7 +154,7 @@ PUBLIC void HTTimer_trace(HTTimer * timer)
 */
 PRIVATE void EventList_dump (void)
 {
-    long v;
+    int v = 0;
     HTList* cur;
     SockEvents * pres;
 
@@ -465,6 +465,14 @@ PUBLIC int HTEventList_unregister(SOCKET s, HTEventType type)
 		if (timer) HTTimer_delete(timer);
 	    }
 	    
+#ifdef WWW_WIN_ASYNC
+	    if (WSAAsyncSelect(s, HTSocketWin, HTwinMsg, remaining) < 0)
+		ret = HT_ERROR;
+#else /* WWW_WIN_ASYNC */
+	    FD_CLR(s, FdArray+HTEvent_INDEX(type));
+	    HTTraceData((char*)FdArray+HTEvent_INDEX(type), 8, "HTEventList_unregister: (s:%d)", s);
+#endif /* !WWW_WIN_ASYNC */
+
 	    /*
 	    **  Check to see if we can delete the action completely. We do this
 	    **  if there are no more events registered.
@@ -477,7 +485,7 @@ PUBLIC int HTEventList_unregister(SOCKET s, HTEventType type)
 
 #ifndef WWW_WIN_ASYNC
 		/* Check to see if we have to update MaxSock */
-		if(pres->s > MaxSock) __ResetMaxSock();
+		if(pres->s >= MaxSock) __ResetMaxSock();
 #endif /* !WWW_WIN_ASYNC */
 
 		HT_FREE(pres);
@@ -486,15 +494,8 @@ PUBLIC int HTEventList_unregister(SOCKET s, HTEventType type)
 	    }
 	    ret = HT_OK;
 
-#ifdef WWW_WIN_ASYNC
-	    if (WSAAsyncSelect(s, HTSocketWin, HTwinMsg, remaining) < 0)
-		ret = HT_ERROR;
-#else /* WWW_WIN_ASYNC */
-	    FD_CLR(s, FdArray+HTEvent_INDEX(type));
-	    HTTraceData((char*)FdArray+HTEvent_INDEX(type), 8, "HTEventList_unregister: (s:%d)", s);
-#endif /* !WWW_WIN_ASYNC */
-      	    if (THD_TRACE)
-		HTTrace("Event....... Socket %d unregistered for %s\n", s, HTEvent_type2str(type));
+      	    if (THD_TRACE) HTTrace("Event....... Socket %d unregistered for %s\n", s,
+				   HTEvent_type2str(type));
 
 	    /*
 	    **  We found the socket and can break
@@ -770,9 +771,6 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
         treadset = FdArray[HTEvent_INDEX(HTEvent_READ)];
         twriteset = FdArray[HTEvent_INDEX(HTEvent_WRITE)];
         texceptset = FdArray[HTEvent_INDEX(HTEvent_OOB)];
-        maxfds = MaxSock; 
-
-	if (THD_TRACE) HTTrace("Event Loop.. calling select: maxfds is %d\n", maxfds);
 
         /*
 	**  Timeval struct copy needed for linux, as it set the value to the
@@ -789,12 +787,15 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 	    wt = &waittime;
 	}
 
-	/* WHAT THE HECK??? */
-#define HT_FS_BYTES(a)  ((((a)/16)+1) * 4)
+        maxfds = MaxSock; 
+	if (THD_TRACE) HTTrace("Event Loop.. calling select: maxfds is %d\n", maxfds);
 
+#ifdef EVENT_TRACE
+#define HT_FS_BYTES(a)  ((((a)/16)+1) * 4)
 	HTTraceData((char*)&treadset, HT_FS_BYTES(maxfds), "HTEventList_loop pre treadset: (maxfd:%d)", maxfds);
 	HTTraceData((char*)&twriteset, HT_FS_BYTES(maxfds), "HTEventList_loop pre twriteset:");
 	HTTraceData((char*)&texceptset, HT_FS_BYTES(maxfds), "HTEventList_loop pre texceptset:");
+#endif /* EVENT_TRACE */
 
 #ifdef __hpux 
         active_sockets = select(maxfds+1, (int *)&treadset, (int *)&twriteset,
@@ -804,9 +805,12 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 #endif
 
 	now = HTGetTimeInMillis();
+
+#ifdef EVENT_TRACE
 	HTTraceData((char*)&treadset, HT_FS_BYTES(maxfds), "HTEventList_loop post treadset: (active_sockets:%d)", active_sockets);
 	HTTraceData((char*)&twriteset, HT_FS_BYTES(maxfds), "HTEventList_loop post twriteset: (errno:%d)", errno);
 	HTTraceData((char*)&texceptset, HT_FS_BYTES(maxfds), "HTEventList_loop post texceptset:");
+#endif /* EVENT_TRACE */
 
 	if (THD_TRACE) HTTrace("Event Loop.. select returns %d\n", active_sockets);
 

@@ -571,7 +571,8 @@ typedef enum _HTReload {
     HT_CACHE_VALIDATE	    = 0x2,	             /* Validate cache entry */
     HT_CACHE_END_VALIDATE   = 0x4,                  /* End to end validation */
     HT_CACHE_RANGE_VALIDATE = 0x8,
-    HT_CACHE_FLUSH	    = 0x10                      /* Force full reload */
+    HT_CACHE_FLUSH	    = 0x10,                     /* Force full reload */
+    HT_CACHE_ERROR          = 0x20         /* An error occurred in the cache */
 } HTReload;
 
 extern void HTRequest_setReloadMode (HTRequest *request, HTReload mode);

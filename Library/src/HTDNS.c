@@ -23,7 +23,7 @@
 #include "HTHstMan.h"
 #include "HTDNS.h"					 /* Implemented here */
 
-#define DNS_TIMEOUT		43200L	      /* Default DNS timeout is 12 h */
+#define DNS_TIMEOUT		1800L	     /* Default DNS timeout is 30 mn */
 #define HASH_SIZE		67
 
 /* Type definitions and global variables etc. local to this module */

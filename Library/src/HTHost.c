@@ -27,15 +27,11 @@
 
 #define HOST_TIMEOUT		43200L	     /* Default host timeout is 12 h */
 
-#if 0
-#define TCP_TIMEOUT		3600L		/* Default TCP timeout i 1 h */
-#else
 /*
 ** After the connection management draft by Jim Gettys, we have changed this
 ** to 60 secs instead of an hour
 */
 #define TCP_TIMEOUT		60L	       /* Default TCP timeout is 60s */
-#endif
 
 #define MAX_PIPES		50   /* maximum number of pipelined requests */
 #define MAX_HOST_RECOVER	3	      /* Max number of auto recovery */
@@ -63,20 +59,27 @@ PRIVATE WriteDelay = DEFAULT_DELAY;			      /* Delay in ms */
 PRIVATE void free_object (HTHost * me)
 {
     if (me) {
+	int i;
 	HT_FREE(me->hostname);
 	HT_FREE(me->type);
 	HT_FREE(me->server);
 	HT_FREE(me->user_agent);
 	HT_FREE(me->range_units);
+
+	/* Delete the channel (if any) */
 	if (me->channel) {
 	    HTChannel_delete(me->channel, HT_OK);
 	    me->channel = NULL;
 	}
-	{
-	int i;
+
+	/* Unregister the events */
 	for (i = 0; i < HTEvent_TYPES; i++)
 	    HTEvent_delete(me->events[i]);
-	}
+
+	/* Delete the timer (if any) */
+	if (me->timer) HTTimer_delete(me->timer);
+
+	/* Delete the queues */
 	HTList_delete(me->pipeline);
 	HTList_delete(me->pending);
 	HT_FREE(me);
@@ -176,6 +179,16 @@ PRIVATE int HostEvent (SOCKET soc, void * pVoid, HTEventType type)
 		host->hostname);
     }
     return HT_OK;
+}
+
+PRIVATE int TimeoutEvent (HTTimer * timer, void * param, HTEventType type)
+{
+    HTHost * host = (HTHost *) param;
+    SOCKET sockfd = HTChannel_socket(host->channel);
+    int result = HostEvent (sockfd, host, HTEvent_CLOSE);
+    HTTimer_delete(timer);
+    host->timer = NULL;
+    return result;
 }
 
 /*
@@ -595,6 +608,7 @@ PUBLIC BOOL HTHost_setPersistent (HTHost *		host,
 	**  This will lead to an infinite look having the stream freing
 	**  itself.
 	*/
+	host->persistent = NO;
 	return HTHost_clearChannel(host, HT_IGNORE);
     }
 
@@ -640,6 +654,25 @@ PUBLIC BOOL HTHost_isPersistent (HTHost * host)
 PUBLIC HTChannel * HTHost_channel (HTHost * host)
 {
     return host ? host->channel : NULL;
+}
+
+
+/*
+**  Check whether we have got a "close" notification, for example in the
+**  connection header
+*/
+PUBLIC BOOL HTHost_setCloseNotification (HTHost * host, BOOL mode)
+{
+    if (host) {
+	host->close_notification = mode;
+	return NO;
+    }
+    return NO;
+}
+
+PUBLIC BOOL HTHost_closeNotification (HTHost * host)
+{
+    return host && host->close_notification;
 }
 
 /*
@@ -838,17 +871,19 @@ PUBLIC int HTHost_addNet (HTHost * host, HTNet * net)
 	**  Add net object to either active or pending queue.
 	*/
 	if (_roomInPipe(host)) {
-	    if (CORE_TRACE) HTTrace("Host info... Add Net %p to pipeline of host %p\n", net, host);
+	    if (CORE_TRACE)
+		HTTrace("Host info... Add Net %p to pipeline of host %p\n", net, host);
 	    if (!host->pipeline) host->pipeline = HTList_new();
 	    HTList_addObject(host->pipeline, net);
 
 	    /*
-	    ** Send out the request if we're not blocked on write
+	    **  If we have been idle then make sure we delete the timer
 	    */
-#if 0
-	    if (!(host->registeredFor & HTEvent_BITS(HTEvent_WRITE)))
-		status = HTHost_launchPending(host) == YES ? HT_OK : HT_ERROR;
-#endif
+	    if (host->timer) {
+		HTTimer_delete(host->timer);
+		host->timer = NULL;
+	    }
+
 	} else {
 	    if (CORE_TRACE) HTTrace("Host info... Add Net %p as pending\n", net);
 	    if (!host->pending) host->pending = HTList_new();
@@ -867,7 +902,7 @@ PUBLIC BOOL HTHost_free (HTHost * host, int status)
     if (host->persistent && !(host->reqsMade >= host->reqsPerConnection && HTList_count(host->pipeline) <= 1))
 #else
     /* Check this with FTP as well */
-    if (host->persistent &&
+	if (host->persistent && !host->close_notification &&
 	(!host->reqsPerConnection ||
 	 (host->reqsPerConnection && host->reqsMade < host->reqsPerConnection)))
 #endif
@@ -906,6 +941,16 @@ PUBLIC BOOL HTHost_deleteNet (HTHost * host, HTNet * net)
 	    HTTrace("Host info... Remove Net %p from pipe line\n", net);
 	HTList_removeObject(host->pipeline, net);
 	HTList_removeObject(host->pending, net);
+
+	/*
+	**  If connection is idle then set a timer so that we close the 
+	**  connection if idle too long
+	*/
+	if (HTHost_isPersistent(host) && HTList_isEmpty(host->pipeline)
+	    && !host->timer) {
+	    host->timer = HTTimer_new(NULL, TimeoutEvent, host, TCPTimeout*1000, YES);
+	    if (PROT_TRACE) HTTrace("Host........ Object %p going idle...\n", host);
+	}
 	return YES;
     }
     return NO;

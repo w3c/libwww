@@ -111,6 +111,7 @@ typedef enum _HTAlertMsg {
     HT_MSG_SOURCE_MOVED,
     HT_MSG_DESTINATION_MOVED,
     HT_MSG_REDIRECTION,
+    HT_MSG_PROXY,
     HT_MSG_ELEMENTS		            /* This MUST be the last element */
 } HTAlertMsg;
 
@@ -123,7 +124,7 @@ typedef enum _HTAlertMsg {
     "Plase enter account:", \
     "You might not be allowed to use this method here, continue?", \
     "Location has moved, continue?", \
-    "A new set of rules is to be added to your setup - continue?", \
+    "A new set of rules is requested to be added to your setup - continue?", \
     "This file already exists - replace existing file?", \
     "Authentication failed - retry?", \
     "Proxy authentication failed - retry?", \
@@ -133,8 +134,8 @@ typedef enum _HTAlertMsg {
 with new location?", \
     "The destination document for this operation has moved - continue \
 operation with new location?", \
-    "A redirection may change the behavior of this method - proceed anyway?"
-
+    "A redirection may change the behavior of this method - proceed anyway?", \
+    "An automatic request for changing proxy has been encountered - continue?"
 </PRE>
 <H2>
   Enable or Disable Messages

@@ -152,7 +152,9 @@ PUBLIC int HTCacheFilter (HTRequest * request, void * param, int mode)
 	*/
 	cache = HTCache_find(anchor);
 	if (cache) {
-	    reload = HTMAX(reload, HTCache_isFresh(cache, request));
+	    HTReload cache_mode = HTCache_isFresh(cache, request);
+	    if (cache_mode == HT_CACHE_ERROR) cache = NULL;
+	    reload = HTMAX(reload, cache_mode);
 	    HTRequest_setReloadMode(request, reload);
 
 	    /*
@@ -185,7 +187,7 @@ PUBLIC int HTCacheFilter (HTRequest * request, void * param, int mode)
 		validate = YES;
 		HTCache_getLock(cache, request);
 		HTRequest_addRqHd(request, HT_C_IF_NONE_MATCH | HT_C_IMS);
-	    } else {
+	    } else if (cache) {
 		/*
 		**  The entity does not require any validation at all. We
 		**  can just go ahead and get it from the cache. In case we
@@ -502,6 +504,7 @@ PUBLIC int HTRedirectFilter (HTRequest * request, HTResponse * response,
 PUBLIC int HTUseProxyFilter (HTRequest * request, HTResponse * response,
 			     void * param, int status)
 {
+    HTAlertCallback * cbf = HTAlert_find(HT_A_CONFIRM);
     HTAnchor * proxy_anchor = HTResponse_redirection(response); 
     if (!proxy_anchor) {
 	if (PROT_TRACE) HTTrace("Use Proxy... No proxy location\n");
@@ -510,30 +513,39 @@ PUBLIC int HTUseProxyFilter (HTRequest * request, HTResponse * response,
 
     /*
     **  Add the proxy to the list. Assume HTTP access method only!
+    **  Because evil servers may rediret the client to an untrusted
+    **  proxy, we can only accept redirects for this particular
+    **  server. Also, we do not know whether this is for HTTP or all
+    **  other requests as well
     */
-    {
+    if ((cbf && (*cbf)(request, HT_A_CONFIRM, HT_MSG_PROXY, NULL,NULL,NULL))) {
 	char * addr = HTAnchor_address(proxy_anchor);
 	HTProxy_add("http", addr);
 	HT_FREE(addr);
-    } 
  
-    /*
-    **  Start new request through the proxy if we haven't reached the max
-    **  number of redirections for this request
-    */ 
-    if (HTRequest_doRetry(request)) { 
-	HTLoadAnchor(proxy_anchor, request);
-    } else {
-	HTRequest_addError(request, ERR_FATAL, NO, HTERR_MAX_REDIRECT,
-			   NULL, 0, "HTRedirectFilter");
-    }
+	/*
+	**  Start new request through the proxy if we haven't reached the max
+	**  number of redirections for this request
+	*/ 
+	if (HTRequest_doRetry(request)) { 
+	    HTLoadAnchor(proxy_anchor, request);
+	} else {
+	    HTRequest_addError(request, ERR_FATAL, NO, HTERR_MAX_REDIRECT,
+			       NULL, 0, "HTRedirectFilter");
+	}
 
-    /*
-    **  By returning HT_ERROR we make sure that this is the last handler to be
-    **  called. We do this as we don't want any other filter to delete the 
-    **  request object now when we have just started a new one ourselves
-    */
-    return HT_ERROR;
+	/*
+	**  By returning HT_ERROR we make sure that this is the last handler to be
+	**  called. We do this as we don't want any other filter to delete the 
+	**  request object now when we have just started a new one ourselves
+	*/
+	return HT_ERROR;
+
+    } else {
+	HTRequest_addError(request, ERR_FATAL, NO, HTERR_NO_AUTO_PROXY,
+			   NULL, 0, "HTUseProxyFilter");
+	return HT_OK;
+    }
 } 
 
 /*

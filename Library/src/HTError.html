@@ -124,6 +124,8 @@ typedef enum _HTErrorElement {
 	HTERR_ACCESS,
 	HTERR_LOGIN,
         HTERR_CACHE_EXPIRED,
+        HTERR_NO_AUTO_RULES,
+        HTERR_NO_AUTO_PROXY,
 	HTERR_ELEMENTS		            /* This MUST be the last element */
 } HTErrorElement;
 </PRE>
@@ -238,7 +240,10 @@ ignored","internal"}, \
     { 0,   "Wrong or unknown access scheme",		"internal" }, \
     { 0,   "Access scheme not allowed in this context",	"internal" }, \
     { 0,   "When you are connected, you can log in",	"internal" }, \
-    { 0,   "This version has expired and will be automatically reloaded", "internal" }
+    { 0,   "This version has expired and will be automatically reloaded", "internal" }, \
+    { 0,   "Loading new rules must be explicitly acknowledged", "internal" }, \
+    { 0,   "Automatic proxy redirection must be explicitly acknowledged", "internal" }
+
 
 extern HTErrorShow HTError_show (void);
 extern BOOL HTError_setShow (HTErrorShow mask);

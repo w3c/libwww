@@ -257,7 +257,22 @@ PUBLIC BOOL HTLoadRules (const char * url)
 	HTList * list = HTList_new();
 	HTRequest * request = HTRequest_new();
 	HTRequest_setPreemptive(request, YES);
+
+	/*
+	**  We do only accept a new rules files when we are in interactive
+	**  mode and can ask the user for it. If HT_AUTOMATIC_RULES is 
+	**  defined then we accept new rules files without explicit ack
+	**  from the user
+	*/
+#ifdef HT_AUTOMATIC_RULES
 	HTAlert_setInteractive(NO);
+#endif
+
+	/*
+	**  Add the rules parsing stream for this particular request only.
+	**  That is, we only accept a rules file when we have explicitly
+	**  asked for it using this function.
+	*/
 	HTConversion_add(list, "application/x-www-rules", "*/*", HTRules,
 			 1.0, 0.0, 0.0);
 	HTRequest_setConversion(request, list, YES);

@@ -52,11 +52,20 @@ distribution package contains a set of example applications spanning from
 very simple ones to more advanced ones like a robot, and a text based Web
 client.
 <P>
-With <I>version 5.0</I> of libwww which was released September 10 1996, the
+With <B>version 5.0</B> of libwww which was released September 10 1996, the
 status of libwww has changed from generic Web toolkit for writing applications
 to playground for experimenting with HTTP. The reason for this is that the
 need for a generic Web API written in basic C has changed and we are now
 more focused on how to improve HTTP than to provide a generic Web API.
+<P>
+<B>Release 5.1</B> which was used in the
+<A HREF="../Protocols/HTTP/Performance/Pipeline.html">HTTP performance work</A>
+is expected to be the last release of Libwww. We are now moving to the Jigsaw
+code base, written in Java. Java provides a more powerful platform for
+experimentation than C, which will accelerate our new protocol experiments
+this year. This does not mean that W3C will not produce protocol sample code
+but merely that we have chosen to use a more powerful environment. Except
+for security fixes there will be no more patches or updates for libwww.
 <H2>
   Recent Accomplishments
 </H2>
@@ -67,7 +76,12 @@ more focused on how to improve HTTP than to provide a generic Web API.
     The focus for version 5.1 was to implement a high-performance HTTP/1.1 client
     used as a testbed for the
     "<A HREF="../Protocols/HTTP/Performance/Pipeline.html">Network Performance
-    Effects of HTTP/1.1, CSS1, and PNG</A>" paper.
+    Effects of HTTP/1.1, CSS1, and PNG</A>" paper. This release which was used
+    in the <A HREF="../Protocols/HTTP/Performance/Pipeline.html">HTTP performance
+    work</A> is expected to be the last release of Libwww, since we are now moving
+    to the Jigsaw code base, written in Java. Java provides a more powerful platform
+    for experimentation than C, which will accelerate our new protocol experiments
+    this year.
 </DL>
 <H2>
   What is the Next Step?

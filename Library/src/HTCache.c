@@ -23,7 +23,8 @@
 #include "HTCache.h"					 /* Implemented here */
 
 /* This is the default cache directory: */
-#define HT_CACHE_ROOT	"/tmp/w3c-cache"
+#define HT_CACHE_LOC	"/tmp/"
+#define HT_CACHE_ROOT	"w3c-cache/"
 #define HT_CACHE_INDEX	".index"
 #define HT_CACHE_META	".meta"
 #define HT_CACHE_ETAG	"@w3c@"
@@ -584,9 +585,31 @@ PRIVATE BOOL create_cache_root (const char * cache_root)
 */
 PRIVATE BOOL HTCacheMode_setRoot (const char * cache_root)
 {
-    StrAllocCopy(HTCacheRoot, cache_root ? cache_root : HT_CACHE_ROOT);
-    if (*(HTCacheRoot+strlen(HTCacheRoot)-1) != '/')
-	StrAllocCat(HTCacheRoot, "/");
+    if (cache_root) {
+	StrAllocCopy(HTCacheRoot, cache_root);
+	if (*(HTCacheRoot+strlen(HTCacheRoot)-1) != '/')
+	    StrAllocCat(HTCacheRoot, "/");
+    } else {
+	/*
+	**  If no cache root has been indicated then look for a suitable
+	**  location.
+	*/
+	char * cr = (char *) getenv("TMPDIR");
+#if 0
+	/*
+	**  Windows screws this up pretty bad :-(
+	*/
+	if (!cr) cr = (char *) getenv("TMP");
+	if (!cr) cr = (char *) getenv("TEMP");
+#endif
+	if (!cr) cr = HT_CACHE_LOC;
+	StrAllocCopy(HTCacheRoot, cr);
+	if (*(HTCacheRoot+strlen(HTCacheRoot)-1) != '/')
+	    StrAllocCat(HTCacheRoot, "/");
+	StrAllocCat(HTCacheRoot, HT_CACHE_ROOT);
+	if (*(HTCacheRoot+strlen(HTCacheRoot)-1) != '/')
+	    StrAllocCat(HTCacheRoot, "/");
+    }
     if (create_cache_root(HTCacheRoot) == NO) return NO;
     if (CACHE_TRACE) HTTrace("Cache Root.. Root set to `%s\'\n", HTCacheRoot);
     return YES;
@@ -771,6 +794,10 @@ PRIVATE BOOL HTCache_createLocation (HTCache * me)
 	struct stat stat_info;
 	if ((path = (char *) HT_MALLOC(strlen(HTCacheRoot) + 10)) == NULL)
 	    HT_OUTOFMEM("HTCache_createLocation");
+
+	/*
+	** Find the path and check whether the directory already exists or not
+	*/
 	sprintf(path, "%s%d", HTCacheRoot, me->hash);
 	if (HT_STAT(path, &stat_info) == -1) {
 	    if (CACHE_TRACE) HTTrace("Cache....... Create dir `%s\'\n", path);
@@ -782,6 +809,11 @@ PRIVATE BOOL HTCache_createLocation (HTCache * me)
 	    if (CACHE_TRACE)
 		HTTrace("Cache....... Directory `%s\' already exists\n", path);
 	}
+
+	/*
+	** Find a non-existent filename within the path that we just created
+	*/
+	me->cachename = HTGetTmpFileName(path);
 	HT_FREE(path);
 	return status;
     }
@@ -791,6 +823,7 @@ PRIVATE BOOL HTCache_createLocation (HTCache * me)
 /*
 **	Find a cache filename for this cache object.
 */
+#if 0
 PRIVATE BOOL HTCache_findName (HTCache * me)
 {
     if (me) {
@@ -804,6 +837,7 @@ PRIVATE BOOL HTCache_findName (HTCache * me)
     }
     return NO;
 }
+#endif
 
 /*
 **  Calculate the corrected_initial_age of the object. We use the time
@@ -907,7 +941,7 @@ PRIVATE HTCache * HTCache_new (HTRequest * request, HTResponse * response,
 	pres->hash = hash;
 	pres->url = url;
 	pres->range = NO;
-	HTCache_findName(pres);
+	HTCache_createLocation(pres);
 	HTList_addObject(list, (void *) pres);
 	new_entries++;
     } else
@@ -1055,23 +1089,14 @@ PUBLIC BOOL HTCache_deleteAll (void)
 **  module. The name returned is in URL syntax and must be freed by
 **  the caller
 */
-PRIVATE char * HTCache_location (HTCache * cache, BOOL meta)
+PRIVATE char * HTCache_metaLocation (HTCache * cache)
 {
     char * local = NULL;
-    if (cache && HTCacheRoot) {
-	if (meta) {
-	    if ((local = (char *) HT_MALLOC(strlen(HTCacheRoot) + 10 +
-					    strlen(HT_CACHE_META) +
-					    strlen(cache->cachename))) == NULL)
-		HT_OUTOFMEM("HTCache_location");
-	    sprintf(local, "%s%d/%s%s", HTCacheRoot, cache->hash, cache->cachename,
-		    HT_CACHE_META);
-	} else {
-	    if ((local = (char *) HT_MALLOC(strlen(HTCacheRoot) + 10 +
-					    strlen(cache->cachename))) == NULL)
-		HT_OUTOFMEM("HTCache_location");
-	    sprintf(local, "%s%d/%s", HTCacheRoot, cache->hash, cache->cachename);
-	}
+    if (cache && cache->cachename && *cache->cachename) {
+	if ((local = (char *) HT_MALLOC(strlen(cache->cachename) +
+					strlen(HT_CACHE_META) + 5)) == NULL)
+	    HT_OUTOFMEM("HTCache_metaLocation");
+	sprintf(local, "%s%s", cache->cachename, HT_CACHE_META);
     }
     return local;
 }
@@ -1163,8 +1188,12 @@ PUBLIC BOOL HTCache_writeMeta (HTCache * cache, HTRequest * request,
     if (cache && request && response) {
 	BOOL status;
 	FILE * fp;
-	char * name = HTCache_location(cache, YES);
-	if (!name) return NO;
+	char * name = HTCache_metaLocation(cache);
+	if (!name) {
+	    if (CACHE_TRACE) HTTrace("Cache....... Invalid cache entry\n");
+	    HTCache_remove(cache);
+	    return NO;
+	}
 	if ((fp = fopen(name, "wb")) == NULL) {
 	    if (CACHE_TRACE)
 		HTTrace("Cache....... Can't open `%s\' for writing\n", name);
@@ -1216,8 +1245,12 @@ PRIVATE BOOL HTCache_readMeta (HTCache * cache, HTRequest * request)
     if (cache && request && anchor) {
 	BOOL status;
 	FILE * fp;
-	char * name = HTCache_location(cache, YES);
-	if (!name) return NO;
+	char * name = HTCache_metaLocation(cache);
+	if (!name) {
+	    if (CACHE_TRACE) HTTrace("Cache....... Invalid meta name\n", name);
+	    HTCache_remove(cache);
+	    return NO;
+	}
 	if (CACHE_TRACE) HTTrace("Cache....... Looking for `%s\'\n", name);
 	if ((fp = fopen(name, "rb")) == NULL) {
 	    if (CACHE_TRACE)
@@ -1278,12 +1311,10 @@ PUBLIC BOOL HTCache_updateMeta (HTCache * cache, HTRequest * request,
 PRIVATE BOOL flush_object (HTCache * cache)
 {
     if (cache && !HTCache_hasLock(cache)) {
-	char * head = HTCache_location(cache, YES);
-	char * body = HTCache_location(cache, NO);
+	char * head = HTCache_metaLocation(cache);
 	REMOVE(head);
-	REMOVE(body);
 	HT_FREE(head);
-	HT_FREE(body);
+	REMOVE(cache->cachename);
 	return YES;
     }
     return NO;
@@ -1342,7 +1373,9 @@ PUBLIC HTReload HTCache_isFresh (HTCache * cache, HTRequest * request)
 	**  persistent cache
 	*/
 	HTParentAnchor * anchor = HTRequest_anchor(request);
-	if (!HTAnchor_headerParsed(anchor)) HTCache_readMeta(cache, request);
+	if (!HTAnchor_headerParsed(anchor)) {
+	    if (HTCache_readMeta(cache, request) != YES) return HT_CACHE_ERROR;
+	}
 
 	/*
 	**  If we only have a part of this request then make a range request
@@ -1458,10 +1491,9 @@ PUBLIC BOOL HTCache_breakLock (HTCache * cache, HTRequest * request)
 */
 PUBLIC char * HTCache_name (HTCache * cache)
 {
-    if (cache && HTCacheRoot) {
-	char * local = HTCache_location(cache, NO);
+    if (cache) {
+	char * local = cache->cachename;
 	char * url = HTParse(local, "cache:", PARSE_ALL);
-	HT_FREE(local);
 	return url;
     }
     return NULL;
@@ -1622,20 +1654,15 @@ PRIVATE HTStream * HTCacheStream (HTRequest * request, BOOL append)
     ** Test that we can actually write to the cache file. If the entry already
     ** existed then it will be overridden with the new data.
     */
-    {
-	char * name = HTCache_location(cache, NO);
-	if ((fp = fopen(name, append ? "ab" : "wb")) == NULL) {
-	    if (CACHE_TRACE)
-		HTTrace("Cache....... Can't open `%s\' for writing\n", name);
-	    HTCache_delete(cache);
-	    HT_FREE(name);	    
-	    return NULL;
-	} else {
-	    if (CACHE_TRACE)
-		HTTrace("Cache....... %s file `%s\'\n",
-			append ? "Append to" : "Creating", name);
-	}
-	HT_FREE(name);
+    if ((fp = fopen(cache->cachename, append ? "ab" : "wb")) == NULL) {
+	if (CACHE_TRACE)
+	    HTTrace("Cache....... Can't open `%s\' for writing\n", cache->cachename);
+	HTCache_delete(cache);
+	return NULL;
+    } else {
+	if (CACHE_TRACE)
+	    HTTrace("Cache....... %s file `%s\'\n",
+		    append ? "Append to" : "Creating", cache->cachename);
     }
 
     /* Set up the stream */

@@ -178,6 +178,12 @@ Help provided by Eric Prud'hommeaux, Susan C. Weber
 #define HAVE_STDIO_H
 #define HAVE_STRERROR
 
+/*
+**  tempnam() has very hard problems on windows accepting a directory
+**  in the calling argument.
+*/
+/* #define HAVE_TEMPNAM */
+
 #include &lt;stdlib.h&gt;
 #include &lt;winsock.h&gt;
 
@@ -783,9 +789,10 @@ Their existance is discovered by <CODE>configure</CODE>.
 /* string{,s}.h */
 #ifdef HAVE_STRING_H
 #include &lt;string.h&gt;
-#endif
+#else
 #ifdef HAVE_STRINGS_H
 #include &lt;strings.h&gt;
+#endif
 #endif
 
 /* syslog.h */

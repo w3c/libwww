@@ -57,8 +57,8 @@ PRIVATE void client_profile (const char * AppName, const char * AppVersion,
     else
 	HTProtocolInit();
 
-    /* Enable the persistent cache */
-    HTCacheInit(NULL, 20);
+    /* The persistent cache does not work in preemptive mode */
+    if (!preemptive) HTCacheInit(NULL, 20);
 
     /* Register the default set of BEFORE and AFTER filters */
     HTNetInit();

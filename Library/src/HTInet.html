@@ -124,10 +124,13 @@ The default news host is "news" but you can get ans set the value here.
   Get a Temporary File Name
 </H3>
 <P>
-Finds a temporary name in in the directory given. If the directory is
-<CODE>NULL</CODE> do not prepend anything. If success, the result must be
-freed by caller, else we return <CODE>NULL</CODE>
-<PRE>extern char * HTGetTmpFileName (const char * dir);
+HTGetTmpFileName() allows the user to control the choice of a
+directory. The argument dir points to the name of the directory in
+which the file is to be created. This is equivalent to tempnam()
+function.
+
+<PRE>
+extern char * HTGetTmpFileName (const char * dir);
 </PRE>
 <H3>
   Signal Handling

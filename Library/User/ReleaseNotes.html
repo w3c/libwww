@@ -36,6 +36,74 @@ code so please take it as that and nothing more!
 <IMG BORDER="0" SRC="../../Icons/32x32/caution" ALT="NOTE"> <B>Check out
 the latest &nbsp;<A HREF="Extrnals.html">list of public functions</A></B>
 <H2>
+  Release 5.1b April 1997
+</H2>
+<H3>
+  Bug Fixes
+</H3>
+<UL>
+  <LI>
+    Fixed a problem in <A HREF="../src/HTRules.html">HTRules.c</A> as described
+    in
+    <A HREF="http://lists.w3.org/Archives/Public/www-lib-bugs/msg00248.html">this
+    bug report</A>
+  <LI>
+    Fixed coredump problem in <A HREF="../src/HTInet.html">HTGetTmpFileName()</A>
+    as described in
+    <A HREF="http://lists.w3.org/Archives/Public/www-lib-bugs/msg00247.html">this
+    bug report</A>. This affects also the
+    <A HREF="../src/HTCache.html">HTCache</A> module which relies on temporary
+    file names
+  <LI>
+    Made the <A HREF="../src/HTCache.html">persistent cache</A> more robust which
+    in some cases will save a segmentation fault
+  <LI>
+    Fixed problem in <A HREF="../src/sysdep.html">sysdep.h</A> as reported in
+    <A HREF="http://lists.w3.org/Archives/Public/www-lib-bugs/msg00249.html">this
+    bug report</A>
+  <LI>
+    Fixed problem where a request was not flushed if using blocking sockets as
+    reported by
+    <A HREF="http://lists.w3.org/Archives/Public/www-lib-bugs/msg00250.html">this
+    bug report</A>.
+  <LI>
+    A limitation in the current persistent cache is that it only works in
+    non-preemptive mode. Hence if using blocking sockets then the cache should
+    be disabled. This is now the default behavior in the
+    <A HREF="../src/HTProfil.html">libwww profiles</A>.
+  <LI>
+    Bug fixed that caused the <CODE>maxsock</CODE> variable used in
+    <CODE>select()</CODE> not to be decreased when deleting a socket in the default
+    <A HREF="../src/HTEvtLst.html">event manager</A>
+  <LI>
+    Changed the connection management so that it complies with the
+    <A HREF="http://www.ics.uci.edu/pub/ietf/http/draft-ietf-http-connection-00.txt">Connection
+    Management</A> draft by Jim Gettys and Alan Freier. The HTTP client now closes
+    idle connections after 60 seconds which is a heuristic period chosen by Jeff
+    Mogul in the paper
+    "<A HREF="http://www.research.digital.com/wrl/techreports/abstracts/95.4.html">The
+    Case for Persistent-Connection HTTP</A>". The number can be dynamically changed
+    using the <CODE>HTHost_setPersistTimeout() </CODE>and the
+    <CODE>HTHost_persistTimeout() </CODE>methods. This could be made more advanced
+    so that we take into account any information given in the
+    "<TT>Keep-Alive</TT>" header but isn't for now.
+  <LI>
+    Fixed a problem when a HTTP/1.1 server sent a response including a
+    <TT>Connection: close</TT> header using the close of the TCP connection as
+    a delimiter. This problem was pointed out in
+    <A HREF="http://lists.w3.org/Archives/Public/www-lib-bugs/msg00254.html">this
+    bug report</A>
+  <LI>
+    Fixed security hole handling <A HREF="../src/HTTP.c">HTTP 305 proxy redirection
+    codes</A>. The proxy location returned in the responses was enabled as a
+    permanent proxy without any notification. The operation now requires explicit
+    acknowledgement from the user
+  <LI>
+    Fixed potential (but small) security whole handling
+    <A HREF="../src/HTRules.html">parsing a new rules file</A>. This operation
+    now requires explicit acknowledgement from the user.
+</UL>
+<H2>
   Release 5.1 February 18 1997
 </H2>
 <H3>
@@ -48,7 +116,7 @@ the latest &nbsp;<A HREF="Extrnals.html">list of public functions</A></B>
     Support for zlib based decompression in content encoding
 </UL>
 <H3>
-  Bugfixes
+  Bug Fixes
 </H3>
 <UL>
   <LI>
