@@ -5,6 +5,12 @@
 	  HTPlain_abort. I found the bug while running the robot
 	  thru Insure and found the fix by seeing what was being
 	  done in the HTML (HTML.c) stream.
+
+	* The make dist command wasn't copying the .c, .files, and .mak
+	  files found in the Library/src/windows. As a result, the tar files
+	  created with this command were missing those files. The problem
+	  came from some wrong assumptions in the Makefile.am of the
+	  windows directory.
 	
 2000-08-11 	Wayne Davison <wayne@clari.net>
 
