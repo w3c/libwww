@@ -52,7 +52,6 @@ PUBLIC HTextImp * HTextImp_new (HTRequest *	 request,
     HTextImp * me = NULL;
     if ((me = (HTextImp *) HT_CALLOC(1, sizeof (HTextImp))) == NULL)
 	HT_OUTOFMEM("HTextImp_new");
-    if (me->text_new) me->app = (*me->text_new)(request, anchor, output_stream);
     me->text_new = text_new;    
     me->text_delete = text_delete; 
     me->text_build = text_build;  
@@ -63,6 +62,7 @@ PUBLIC HTextImp * HTextImp_new (HTRequest *	 request,
     me->text_unparsedBeginElement = text_unparsedBeginElement;
     me->text_unparsedEndElement = text_unparsedEndElement;
     me->text_unparsedEntity = text_unparsedEntity;
+    if (me->text_new) me->app = (*me->text_new)(request, anchor, output_stream);
     return me;
 }
 
