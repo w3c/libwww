@@ -61,10 +61,10 @@ PROD = www
 
 SOURCES = $(LM)HTBrowse.c	$(LM)HTBrowse.h \
 	$(LM)GridText.c		$(LM)GridText.h \
-	$(LM)GridStyle.c	$(LM)GridStyle.html \
-	$(LM)GridStyle.h	$(LM)HTFont.h \
-	$(LM)DefaultStyles.c	$(LM)Version.make \
-	$(LM)CommonMakefile	$(LM)README \
+	$(LM)GridStyle.c	$(LM)GridStyle.h \
+	$(LM)HTFont.h		$(LM)DefaultStyles.c \
+	$(LM)Version.make	$(LM)CommonMakefile \
+	$(LM)README \
 	$(WWW)/README		$(WWW)/COPYRIGH \
  	$(LM)a_stdio.g		$(LM)a_stdio.h
 
@@ -247,7 +247,7 @@ $(OBJ)/a_stdio.o : $(OE) $(LM)a_stdio.g $(LM)a_stdio.h
 # For W3 Administrative use only:
 
 #	Source Destribution
-distribute : $(WWW)/COPYRIGHT $(WWW)/README
+distribute : $(WWW)/README $(WWW)/COPYRIGHT
 	(cd $(WWW)/.. && WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 	-f WWW/LineMode/Implementation/Version.make \
 	-f WWW/LineMode/Implementation/CommonMakefile \
@@ -259,7 +259,7 @@ distribute : $(WWW)/COPYRIGHT $(WWW)/README
 $(FTP)/www/src/WWWLineMode_$(VL).tar.Z : $(SOURCES)
 	tar cvf $(FTP)/www/src/WWWLineMode_$(VL).tar \
 	    $(SOURCES) \
-	    $(DISTRIBUTION)
+	    $(DISTRIBUTION) \
 	    $(LM)*.html
 	compress -f $(FTP)/www/src/WWWLineMode_$(VL).tar
 
@@ -268,10 +268,10 @@ $(FTP)/www/src/WWWLineMode_$(VL).tar.Z : $(SOURCES)
 #		---------------------------------
 
 $(WWW)/README : $(WWW)/../README.html
-	www -p -na http://info.cern.ch/hypertext/README.html -o $(WWW)/README
+#	www -p -na http://info.cern.ch/hypertext/README.html -o $(WWW)/README
 
 $(WWW)/COPYRIGHT : $(WWW)/../COPYRIGHT.html
-	www -p -na http://info.cern.ch/hypertext/COPYRIGHT.html -o $(WWW)/COPYRIGH
+#	www -p -na http://info.cern.ch/hypertext/COPYRIGHT.html -o $(WWW)/COPYRIGH
 
 #	Line Mode Manual
 #
