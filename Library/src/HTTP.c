@@ -961,8 +961,9 @@ PRIVATE int FlushPutEvent (HTTimer * timer, void * param, HTEventType type)
     if (http && input && pcbf) (*pcbf)(http->request, input);
 
     /*
-    **  Delete the timer but remember that we have used it
+    **  Delete the timer
     */
+    HTTimer_delete(http->timer);
     http->timer = NULL;
 
     return HT_OK;

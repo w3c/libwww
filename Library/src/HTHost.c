@@ -119,42 +119,29 @@ PRIVATE BOOL killPipeline (HTHost * host, HTEventType type)
 	/* Terminate all net objects in pending queue */
 	for (cnt=0; cnt<pending; cnt++) {
 	    HTNet * net = HTList_removeLastObject(host->pending);
-	    if (CORE_TRACE) HTTrace("Host kill... Terminating net object %p from pending queue\n", net);
-	    net->registeredFor = 0;
-	    (*net->event.cbf)(HTChannel_socket(host->channel), net->event.param, type);
+	    if (net) {
+		if (CORE_TRACE)
+		    HTTrace("Host kill... Terminating net object %p from pending queue\n", net);
+		net->registeredFor = 0;
+		(*net->event.cbf)(HTChannel_socket(host->channel), net->event.param, type);
+	    }
 	}
 
 	/* Terminate all net objects in pipeline */
 	if (piped >= 1) {
 	    
-#if 0
-	    /*
-	    **  Unregister this host for all events
-	    */
-	    HTEvent_unregister(HTChannel_socket(host->channel), HTEvent_READ);
-	    HTEvent_unregister(HTChannel_socket(host->channel), HTEvent_WRITE);
-	    host->registeredFor = 0;
-
-	    /*
-	    **  Set new mode to single until we know what is going on
-	    */
-	    host->mode = HT_TP_SINGLE;
-#endif
 	    /*
 	    **  Terminte all net objects in the pipeline
 	    */
 	    for (cnt=0; cnt<piped; cnt++) {
 		HTNet * net = HTList_firstObject(host->pipeline);
-		if (CORE_TRACE) HTTrace("Host kill... Terminating net object %p from pipe line\n", net);
-		net->registeredFor = 0;
-		(*net->event.cbf)(HTChannel_socket(host->channel), net->event.param, type);
+		if (net) {
+		    if (CORE_TRACE)
+			HTTrace("Host kill... Terminating net object %p from pipe line\n", net);
+		    net->registeredFor = 0;
+		    (*net->event.cbf)(HTChannel_socket(host->channel), net->event.param, type);
+		}
 	    }
-
-#if 0
-	    HTChannel_setSemaphore(host->channel, 0);
-	    HTHost_clearChannel(host, HT_INTERRUPTED);
-#endif
-
 	}
 	return YES;
     }
@@ -257,10 +244,14 @@ PRIVATE int HostEvent (SOCKET soc, void * pVoid, HTEventType type)
 			HTAnchor_physical(HTRequest_anchor(HTNet_request(targetNet))));
 	    return (*targetNet->event.cbf)(HTChannel_socket(host->channel), targetNet->event.param, type);
 	}
-	HTTrace("Host Event Host %p (`%s\') dispatched with event %d but doesn't have a target - %d requests made, %d requests in pipe, %d pending\n",
-		host, host ? host->hostname : "<null>", type,
-		host, host->reqsMade,
-		HTList_count(host->pipeline), HTList_count(host->pending));
+	if (CORE_TRACE)
+	    HTTrace("Host Event Host %p (`%s\') dispatched with event %s but doesn't have a target - %d requests made, %d requests in pipe, %d pending\n",
+		    host,
+		    host ? host->hostname : "<null>",
+		    HTEvent_type2str(type),
+		    host ? host->reqsMade : -1,
+		    HTList_count(host->pipeline),
+		    HTList_count(host->pending));
 #if 0
 	HTDebugBreak(__FILE__, __LINE__, "Host Event.. Host %p (`%s\') dispatched with event %d\n",
 		     host, host ? host->hostname : "<null>", type);
@@ -972,10 +963,24 @@ PUBLIC int HTHost_addNet (HTHost * host, HTNet * net)
 	**  one. Otherwise we put the host object into our pending queue.
 	*/
 	if (!host->channel && HTNet_availableSockets() <= 0) {
+
+	    /* Create list for pending Host objects */
 	    if (!PendHost) PendHost = HTList_new();
-	    HTList_addObject(PendHost, host);
+
+	    /* Add the host object ad pending if not already */
+	    if (HTList_indexOf(PendHost, host) < 0) HTList_addObject(PendHost, host);
+
+	    /* 
+	    ** Add the Net object to the Host object. If it is the current Net
+	    ** obejct holding the lock then add it to the beginning of the list.
+	    ** Otherwise add it to the end
+	    */
 	    if (!host->pending) host->pending = HTList_new();
-	    HTList_addObject(host->pending, net);	    
+	    if (host->lock == net)
+		HTList_appendObject(host->pending, net);
+	    else
+		HTList_addObject(host->pending, net);
+
  	    if (CORE_TRACE)
 		HTTrace("Host info... Added Net %p (request %p) as pending on pending Host %p, %d requests made, %d requests in pipe, %d pending\n",
 			net, net->request, host, host->reqsMade,
@@ -1049,7 +1054,8 @@ PUBLIC int HTHost_addNet (HTHost * host, HTNet * net)
 	    HTList_addObject(host->pending, net);	    
 	    if (CORE_TRACE)
 		HTTrace("Host info... Added Net %p (request %p) as pending on Host %p, %d requests made, %d requests in pipe, %d pending\n",
-			net, net->request, host, host->reqsMade,
+			net, net->request,
+			host, host->reqsMade,
 			HTList_count(host->pipeline), HTList_count(host->pending));
 	    status = HT_PENDING;
 	}
@@ -1097,8 +1103,10 @@ PRIVATE BOOL HTHost_free (HTHost * host, int status)
                 HTHost_clearChannel(host, status);
 
             } else {
-                if (CORE_TRACE) HTTrace("Host Object. keeping persistent socket %d\n", HTChannel_socket(host->channel));
-                HTChannel_delete(host->channel, status);
+                if (CORE_TRACE) HTTrace("Host Object. keeping persistent socket %d\n",
+					HTChannel_socket(host->channel));
+                if (HTChannel_delete(host->channel, status))
+		    HTDebugBreak(__FILE__, __LINE__, "Host Event.. Channel unexpected deleted from host %p (%s)\n", host, host->hostname);
                 
                 /*
                 **  If connection is idle then set a timer so that we close the 
@@ -1160,7 +1168,8 @@ PUBLIC HTNet * HTHost_nextPendingNet (HTHost * host)
 	*/
 	if ((net = (HTNet *) HTList_removeFirstObject(host->pending)) != NULL) {
 	    if (CORE_TRACE)
-		HTTrace("Host info... Popping %p from pending net queue\n", net);
+		HTTrace("Host info... Popping %p from pending net queue on host %p\n",
+			net, host);
 #if 0
 	    {
 		HTRequest * request = HTNet_request(net);

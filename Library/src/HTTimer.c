@@ -53,6 +53,33 @@ PRIVATE HTTimer * InTimer = NULL;
 #endif /* !WATCH_RECURSION */
 /* ------------------------------------------------------------------------- */
 
+/*
+**  When a timer has expired, we dispatch the event handler and re-register the
+**  timer with the next expiration time if repetitive. Otherwise we just leave
+**  it
+*/
+PRIVATE int Timer_dispatch (HTList * cur, HTList * last)
+{
+    HTTimer * timer;
+    int ret = HT_ERROR;
+
+    timer = (HTTimer *)HTList_objectOf(cur);
+    if (timer == NULL) {
+#if 0
+        HTDebugBreak(__FILE__, __LINE__, "Timer dispatch couldn't find a timer\n");
+#endif
+        CLEARME(timer);
+	return HT_ERROR;
+    }
+    if (timer->repetitive)
+	HTTimer_new(timer, timer->cbf, timer->param, timer->millis, YES, YES);
+    else
+	HTList_quickRemoveElement(cur, last);
+    if (THD_TRACE) HTTrace("Timer....... Dispatch timer %p\n", timer);
+    ret = (*timer->cbf) (timer, timer->param, HTEvent_TIMEOUT);
+    return ret;
+}
+
 PUBLIC BOOL HTTimer_registerSetTimerCallback (HTTimerSetCallback * cbf)
 {
     if (CORE_TRACE) HTTrace("Timer....... registering %p as timer set cbf\n", cbf);
@@ -85,14 +112,11 @@ PUBLIC BOOL HTTimer_delete (HTTimer * timer)
     HTList * last;
     HTList * cur;
     CHECKME(timer);
-    if ((cur = HTList_elementOf(Timers, (void *)timer, &last)) == NULL) {
-	CLEARME(timer);
-	return NO;
-    }
+    if ((cur = HTList_elementOf(Timers, (void *)timer, &last)) == NULL) CLEARME(timer);
     if (HTList_quickRemoveElement(cur, last)) {
-	if (THD_TRACE) HTTrace("Timer....... Deleted timer %p\n", timer);
+	if (THD_TRACE) HTTrace("Timer....... Deleted active timer %p\n", timer);
     } else { 
-	if (THD_TRACE) HTTrace("Timer....... Could not delete timer %p\n", timer);
+	if (THD_TRACE) HTTrace("Timer....... Deleted expired timer %p\n", timer);
     }
 
     /*
@@ -183,18 +207,8 @@ PUBLIC HTTimer * HTTimer_new (HTTimer * timer, HTTimerCallback * cbf,
     */
     if (SetPlatformTimer) SetPlatformTimer(timer);
 
-    /*
-    **  Check if the timer object has already expired
-    */
-    if (timer->expires <= now) {
-	int status;
-	if ((status = (*timer->cbf)(timer, timer->param, HTEvent_TIMEOUT)) != HT_OK) {
-	    if (cur) HTList_quickRemoveElement(cur, last);
-	    CLEARME(timer);
-	    HT_FREE(timer);
-	    return NULL;
-	}
-    }
+    /* Check if the timer object has already expired. If so then dispatch */
+    if (timer->expires <= now) Timer_dispatch(cur, last);
 
     CLEARME(timer);
     return timer;
@@ -230,49 +244,12 @@ PUBLIC BOOL HTTimer_deleteAll (void)
     return NO;
 }
 
-/*
-**  When a timer has expired, we dispatch the event handler and re-register the
-**  timer with the next expiration time.
-*/
-PRIVATE int Timer_dispatch (HTList * cur, HTList * last, int now)
-{
-    HTTimer * timer;
-    int ret = HT_ERROR;
-
-    timer = (HTTimer *)HTList_objectOf(cur);
-    if (timer == NULL) {
-#if 0
-        HTDebugBreak(__FILE__, __LINE__, "Timer dispatch couldn't find a timer\n");
-#endif
-        CLEARME(timer);
-	return HT_ERROR;
-    }
-    if (timer->repetitive)
-	HTTimer_new(timer, timer->cbf, timer->param, timer->millis, YES, YES);
-    else
-	HTList_quickRemoveElement(cur, last);
-    if (THD_TRACE) HTTrace("Timer....... Dispatch timer %p\n", timer);
-    ret = (*timer->cbf) (timer, timer->param, HTEvent_TIMEOUT);
-
-    /*
-    ** If not repetitive then call any platform specific timer handler
-    ** and delete the timer
-    */
-    if (!timer->repetitive) {
-	if (DeletePlatformTimer) DeletePlatformTimer(timer);
-	HT_FREE(timer);
-    }
-    return ret;
-}
-
 PUBLIC int HTTimer_dispatch (HTTimer * timer)
 {
     HTList * cur;
     HTList * last = Timers;
-    ms_t now = HTGetTimeInMillis();
-
     cur = HTList_elementOf(Timers, (void *)timer, &last);
-    return Timer_dispatch(cur, last, now);
+    return Timer_dispatch(cur, last);
 }
 
 /*
@@ -291,39 +268,17 @@ PUBLIC int HTTimer_next (ms_t * pSoonest)
     ms_t now = HTGetTimeInMillis();
     int ret = HT_OK;
 
-#if 0
-    if (Timers == NULL) return HT_OK;
-    /*	The Timers list may be modified during a dispatch
-    **	so we have to build an intermediate list
-    */
-    head = last = HTList_new();
-    cur = Timers;
-    while ((pres = (HTTimer *) HTList_nextObject(cur)) && pres->expires <= now) {
-	HTList_addObject(last, (void *)pres);
-	last = HTList_nextObject(last);
-    }
-
-    /*
-    **	Now dispatch the intermediate list
-    */
-    cur = last = head;
-    while ((pres = (HTTimer *) HTList_nextObject(cur)) && ret == HT_OK) {
-	ret = Timer_dispatch(cur, last, now);
-	last = cur;
-    }
-#else
     /*
     **  Dispatch all timers that have expired
     */
     while (Timers && (pres = (HTTimer *) HTList_nextObject(cur))) {
 	if (pres->expires <= now) {
-	    if ((ret = Timer_dispatch(cur, last, now)) != HT_OK) break;
+	    if ((ret = Timer_dispatch(cur, last)) != HT_OK) break;
 	    cur = last = Timers;
 	} else {
 	    last = cur;
 	}	
     }
-#endif
 
     if (pSoonest) {
 	/*

@@ -468,10 +468,8 @@ PUBLIC int HTEventList_unregister(SOCKET s, HTEventType type)
                 if (timer) HTTimer_delete(timer);
                 pres->events[HTEvent_INDEX(type)]->timer = NULL;
 #else
-#if 0
 		HTTimer * timer = pres->timeouts[HTEvent_INDEX(type)];
                 if (timer) HTTimer_delete(timer);
-#endif
                 pres->timeouts[HTEvent_INDEX(type)] = NULL;
 #endif
 		
@@ -870,6 +868,7 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 		**           a  file  descriptor  that is not a valid open file
 		**           descriptor.
 		*/
+		if (THD_TRACE)
 		    HTTrace("Event Loop.. One or more sockets were not through their connect phase - try again\n");
 		continue;
 	    }

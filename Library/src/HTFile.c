@@ -368,6 +368,7 @@ PRIVATE int ReturnEvent (HTTimer * timer, void * param, HTEventType type)
     /*
     **  Delete the timer
     */
+    HTTimer_delete(file->timer);
     file->timer = NULL;
 
     /*
