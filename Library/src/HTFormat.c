@@ -625,7 +625,7 @@ PRIVATE char * get_some_line ARGS2(HTInputSocket *,	isoc,
 			ascii_cat(&line, start, cur-prev_cr);
 			start = isoc->input_pointer = cur+1;
 
-			if (line && strlen(line) > 0 && unfold) {
+			if (line && (int) strlen(line) > 0 && unfold) {
 			    check_unfold = YES;
 			}
 			else {
