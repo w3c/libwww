@@ -1,0 +1,162 @@
+<HTML>
+<HEAD>
+<TITLE>CERN WWW Library Working List</TITLE>
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="WWW" SRC="../../../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../../Status.html"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
+
+<H1>Working List for the Library</H1>
+
+This is a list of what's going on in the Library of Common Code. It
+also is a strong indication of what's going on in the <A
+HREF="../../../LineMode/Status.html">Line Mode Browser</A>.
+
+
+<H2>Plan for Next release</H2>
+
+These topics have been implemented and are under test or they are very
+close to be so. Anyway, you will find it in the next release! You can
+also look at the <A HREF="../Features/Features.html">Change
+History</A> to see what's new in the current version.
+
+<DL>
+
+<DT><A HREF="../../../Protocols/">HTTP/1.0</A> Compilant <A
+HREF="../Features/HTTPFeatures.html">HTTP module</A>
+
+<DD>An improved HTTP module that supports (almost) all HTTP/1.0
+features as currently specified.
+
+<DT><A HREF="../../User/Features/HTTPPost.html">PUT and POST</A>
+
+<DD>Support for <B>PUT</B> and <B>POST</B> in Library (should have
+been there a long time ago). This is going to use the multithreaded
+model which already works for <B>GET</B> and <B>HEAD</B>. It enables
+the possibility of editing and saving a document to a remote HTTP
+server and to copy a document from one remote HTTP server to another.
+
+<DT>HTTP/MIME-parser
+
+<DD> A new HTTP/MIME-parser that can be used as a general module. A new
+MIME parser has been implemented. It understands all <A
+HREF="../../../Protocols/">HTTP headers</A> and stores <EM>entity</EM>
+information in the anchor structure. Request relevant information is
+stored in the request structure. See <A HREF="../Guide/">Programmer's
+Guide</A> for more information.
+
+<DT>Content Length Counter Stream
+
+<DD>Which is needed for PUT and POST
+
+<DT>Windows NT
+
+<DD>Better support for Windows is under test
+
+<DT>Other
+
+<DD>A bunch or minor things...
+
+</DL>
+
+
+<H2>Under Development</H2>
+
+These topics are under development but might not get into the next
+release:
+
+<DL>
+
+<DT>A better API
+
+<DD>Many people say that the Library is too hard to use...
+
+<DT>Typed Links
+
+<DD>This should also have been there a long time ago, but now we want
+it!
+
+<DT>Better support for <B>Accept</B> headers and other headers
+
+<DD>Including Accept-Language, etc.
+
+<DT>Expires, Last-Modified etc.
+
+<DD>As we have a better MIME parser, we can now implement all these
+nifty features
+
+<DT>New News Module
+
+<DD>A better News module which also supports PUT and POST.
+
+<DT>Full editing capabilities with versioning
+
+<DD>So that we can do PUT and POST to a remote server
+
+</DL>
+
+<H2>Next Week's Working Plan</H2>
+
+This is what we <B>are going to</B> implement. If somebody should get
+the idea of writing some of the modules mentioned, it will be
+appreciated a lot ;-).  Contact <I>libwww@w3.org</I> for further
+coordination.
+
+<DL>
+
+<DT>Access Authentication
+
+<DD>Support for various schemes as they pop up (which they tend to do
+quite a lot these days)
+
+<DT>Keep-Alive
+
+<DD>Implement support for <EM>KEEP-ALIVE</EM> requests where the
+client can <B>GET</B>, <B>PUT</B>, and <B>POST</B> several documents
+over the same line - all using non-blocking I/O
+
+<DT>Whois++
+
+<DD> Actually a WhoIs++ module has been implemented (thanks to Michael
+Mealling, ccoprmm@oit.gatech.edu) in the library but it is not in this
+release as I haven't found many WhoIs++ servers and that the port
+chosen is 43 just like the old WhoIs protocol, and that makes it a bit
+tricky.
+
+<DT>README File in directory listings
+
+<DD>Make it possible to have both Ascii files (using
+&lt;PRE&gt;...&lt;/PRE&gt;) and HTML files.
+
+<DT>Non-blocking DNS interface
+
+<DD>Does anyone know of a public domain non-blocking DNS interface to
+make smart <B>getXbyY()</B> function calls?
+
+<DT>OS/2 listings
+
+<DD>Implement long FTP directory listings for OS/2 platforms.
+
+</DL>
+
+
+<H2>Ideas for New Features</H2>
+
+This is what we <B>have not started yet</B> but what we would like to
+implement.
+
+<DL>
+<DT> Separation of Protocol Modules
+<DD> The protocol modules should be separated completely from the HTML
+     machinery so that it is possible to, e.g., get raw FTP directory listings
+     through to the user.
+</DL>
+
+<P>
+<HR>
+<ADDRESS>Henrik Frystyk, April 1995, libwww@w3.org</ADDRESS>
+</BODY>
+</HTML>
+
+

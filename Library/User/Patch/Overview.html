@@ -1,0 +1,83 @@
+<HTML>
+<HEAD>
+<TITLE>Known Bugs in Library of Common Code</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  7-Feb-1995 -->
+</HEAD>
+<BODY>
+
+<A HREF="../../../"><IMG ALT="WWW"
+SRC="../../../Icons/WWW/WWW48x.gif"></A> <A
+HREF="../../../Library/Status.html"><IMG SRC="../../../Icons/WWW/Lib48x.gif"></A>
+<IMG SRC="../../../Icons/WWW/Bug48x.gif" ALT="Bug">
+
+<H1>Known Bugs in Library of Common Code</H1>
+
+<HR>
+
+The list of known bugs are in reverse chronological order.<P>
+
+<IMG SRC="../../../Icons/32x32/caution.gif"> If you (very unlikely) have
+discovered a new <B>BUG</B> or just have a great idea - pronounced
+patches ;-) then please mail <EM>libwww@info.cern.ch</EM> noting the
+version of the Library. <P>
+
+You can also find a list of bugs under the <A
+HREF="../../../Daemon/Bugs.html">CERN Server</A>, the <A
+HREF="../../../Arena/Status.html">Arena Browser</A>, and the <A
+HREF="../../../LineMode/Defaults/Bugs.html">Line Mode Browser</A>.<P>
+
+<H2><A NAME="z3">From Schulmberger Oct 93</H2>
+
+<UL>
+<LI>flatten tree structure, obj and src in same dir as src a ala Gnu, etc etc
+<LI>Use Gnu configure!
+<LI>Document config options
+<LI>Redundant config changes <LI>Shell scripts expect only one config (no NIS handling)
+</UL>
+
+<H2><A NAME="z1">From WWW Workshop July 1993</A></H2>
+
+These were brought up at the <A
+HREF="../../../WorkingNotes/Overview.html#z45" NAME="z2">workshop</A>.
+
+<UL>
+<LI>Nested lists into parser, GridText, Styles. <LI>(test dataset for HTML+) <L
+>VMS compilation of library, please  --- Done<LI>Collapse spaces in free (not PRE) text <LI>Problem with CopyNoCR in mac? should map (13,10) onto \n.
+<LI>FTP: HTProgress() message about transfer size, to allow informed abort. <LI>Scan of unknown file with intelligent disposition would be useful.
+<LI>Stream:
+Extra method "close_abort()" to close in error? Allow error to be passed down.
+<LI>HTParseSocket doesn't return an error on truncated data.
+<LI>Internationalize:
+Numbered messages instead of strings <LI>Structured streams also handled by
+HTStreamStack <LI>Distribution:
+generate diffs, please <LI>CVS remote access please for helpers
+<LI>Documentation: More philosophy about how to use the library.
+More on configuration options.
+<LI>Anchor objects: how to make them more memory-efficent? Efficient freeing?
+Restrict its use to HTML.c? <LI>Source caching in client.
+Needs: HTTee -- a stream T piece, cacheWriter (see HTWAIS).
+In anchor, put cache format and filename.
+<LI>Callback for "loading" mailto: URLs.
+<LI>WAIS and Z3950 etc <LI>TITLE accumulates CRLFs from input stream! Wrong...
+<LI>Space after &lt;dd> in list causes 1 characetr indent <LI>Library build:
+WTMP in released makefile should be $(WWW) so users don't get confused -- Lou.
+</UL><H2>Before that:</H2><UL>
+<LI>Add rcp access to the "file" access method if it is straightforward.
+The rcp protocol was originally defined by the UCB code,
+and still is perhaps best defined that way.
+More recent retrospctive documentation exists (where?) <LI>Add code to save
+back files by HTTP or FTP,
+and code to REGENERATE HTML from a styled hypertext.
+<LI>Authentication &amp; privacy -- implement HTTP specs for this.
+<LI>In each protocol access module,
+put timeouts on both connect() and read() using non-blocking mode and select()
+to allow user-defined covering timeouts for document retrieval.
+A little common code here would be useful,
+allowing also platform-dependent "Abort" buttons on long transfers.
+<LI>Makefile -- complete dependencies</UL> <P>
+
+<P>
+<HR>
+<ADDRESS>libwww@info.cern.ch, February 1995</ADDRESS>
+</BODY>
+</HTML>
