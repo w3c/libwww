@@ -97,14 +97,14 @@ PRIVATE HTStream * CSParseConverter_new (HTRequest *	request,
 PRIVATE int CSParseMachRead_free (HTStream * me)
 {
     int status = CSParse_free(me);
-	CSParse_deleteMachReadState(me->pCSParse);
+	CSParse_deleteMachRead(me->pCSParse);
     return status;
 }
 
 PRIVATE int CSParseMachRead_abort (HTStream * me, HTList * e)
 {
     int status = CSParse_free(me);
-        CSParse_deleteMachReadState(me->pCSParse);
+        CSParse_deleteMachRead(me->pCSParse);
     return status;
 }
 
@@ -127,7 +127,7 @@ PUBLIC HTStream * CSParseMachRead (HTRequest *	request,
 {
     HTStream * me = CSParseConverter_new(request, output_stream);
     me->isa = &CSParseClass_machRead;
-    me->pCSParse = CSParse_newMachReadState();
+    me->pCSParse = CSParse_newMachRead(0, 0);
     return me;
 }
 

@@ -2,7 +2,7 @@
 <HEAD>
 <TITLE>Machine-readable parser for libpics</TITLE>
 <!-- Changed by: Henrik Frystyk Nielsen,  1-Feb-1996 -->
-<!-- Changed by: Eric Prud'hommeaux, 28-Mar-1996 -->
+<!-- Changed by: Eric Prud'hommeaux, 19-Apr-1996 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -67,10 +67,10 @@ As the label is parsed, it will call the assigned TargetChangeCallback as it
 passes from state to state.
 
 <PRE>
-typedef MachReadTargetCallback_t(CSMachRead_t * pCSMachRead, 
-				CSParse_t * pCSParse, 
-				CSMRTC_t target, BOOL closed, 
-				void * pVoid);
+typedef StateRet_t MachReadTargetCallback_t(CSMachRead_t * pCSMachRead, 
+					    CSParse_t * pCSParse, 
+					    CSMRTC_t target, BOOL closed, 
+					    void * pVoid);
 </PRE>
 
 <H3>ErrorHandler</H3>
@@ -92,9 +92,11 @@ continues to iterate or parse. The states must all be freed. description data
 will only be freed after all the CSMachReads that refer to it are deleted.
 
 <PRE>
-extern CSParse_t * CSParse_newMachReadState(void);
-extern BOOL CSParse_deleteMachReadState(CSParse_t *);
-extern CSMachRead_t * CSParse_getMachReadState(CSParse_t * me);
+extern CSParse_t * CSParse_newMachRead(
+			MachReadTargetCallback_t * pMachReadTargetCallback, 
+			MRErrorHandler_t * pMRErrorHandler);
+extern BOOL CSParse_deleteMachRead(CSParse_t *);
+extern CSMachRead_t * CSParse_getMachRead(CSParse_t * me);
 extern char * CSMachRead_getSystem(CSMachRead_t * pCSMachRead);
 extern char * CSMachRead_getService(CSMachRead_t * pCSMachRead);
 

@@ -2,7 +2,7 @@
 <HEAD>
 <TITLE>PICS library utilities</TITLE>
 <!-- Changed by: Henrik Frystyk Nielsen,  1-Feb-1996 -->
-<!-- Changed by: Eric Prud'hommeaux, 22-Mar-1996 -->
+<!-- Changed by: Eric Prud'hommeaux, 20-Apr-1996 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -40,10 +40,10 @@ typedef enum {
 */
 </PRE>
 
-<H3>CSApp_callback</H3> - function to be called by the when Pics receives 
+<H3>CSDisposition_callback</H3> - function to be called by the when Pics receives 
 ratings for a requested document. The callback is called afer the PICS library
 has decided whether the user should be permitted access to the document.
-<LI>CSApp_callCriteria - when to call the app
+<LI>CSDisposition_criteria - when to call the app
 <LI>pReq - HTRequest which told libwww to load the document
 <LI>disposition - CSApp_OK if user should see document, CSApp_denied otherwise
 <LI>pVoid - void pointer passed to <A HREF="#CSApp_registerApp">CSApp_registerApp
@@ -52,8 +52,8 @@ has decided whether the user should be permitted access to the document.
 <PRE>
 typedef enum {
   CSApp_neverCall = 0, CSApp_callOnBad = 1, CSApp_callOnGood = 2
-} CSApp_callCriteria;
-typedef CSError_t (CSApp_callback)(HTRequest* pReq, CSLabel_t * pCSLabel, 
+} CSDisposition_criteria;
+typedef CSError_t (CSDisposition_callback)(HTRequest* pReq, CSLabel_t * pCSLabel, 
 				   CSUser_t * pCSUser, CSError_t disposition, 
 				   void * pVoid);
 </PRE>
@@ -132,8 +132,8 @@ CSApp_unregisterApp - unregister defaults and free associated memory
 
 <PRE>
 typedef int (CSApp_userCallback)(CSUser_t * pCSUser, void * pVoid);
-extern BOOL CSApp_registerApp(CSApp_callback * pCallback, 
-			      CSApp_callCriteria criteria, 
+extern BOOL CSApp_registerApp(CSDisposition_callback * pCallback, 
+			      CSDisposition_criteria criteria, 
 			      CSApp_userCallback * pUserCallback, 
 			      void * pVoid);
 extern BOOL CSApp_unregisterApp();
@@ -150,8 +150,9 @@ dynamic library. Use CSApp_UnregisterReq for every call to CSApp_RegisterReq.
 CSApp_UnregisterReq - free memory associated with call to CSApp_registerReq
 <PRE>
 extern BOOL CSApp_registerReq(HTRequest* pReq, CSUser_t * pCSUser, 
-			    CSApp_callback callback, CSApp_callCriteria criteria,
-			    void * pVoid);
+			      CSDisposition_callback callback, 
+			      CSDisposition_criteria criteria,
+			      void * pVoid);
 
 extern BOOL CSApp_unregisterReq(HTRequest* pReq);
 </PRE>

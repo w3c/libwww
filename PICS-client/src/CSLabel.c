@@ -8,7 +8,7 @@
 
 #define GetCSLabel(A) ((A)->target.pCSLabel)
 #define SETNEXTSTATE(target, subState) \
-  pCSParse->pParseState = target; \
+  pCSParse->pTargetObject = target; \
   pCSParse->currentSubState = subState;
 
 
@@ -551,8 +551,8 @@ PUBLIC CSLabel_t * CSLabel_new(CSLLData_t * pCSLLData, LabelTargetCallback_t * p
     if ((me = (CSLabel_t *) HT_CALLOC(1, sizeof(CSLabel_t))) == NULL)
         HT_OUTOFMEM("CSLabel_t");
     me->pCSLLData = pCSLLData;
-	me->pLabelTargetCallback = pLabelTargetCallback;
-	me->pLLErrorHandler = pLLErrorHandler;
+    me->pLabelTargetCallback = pLabelTargetCallback;
+    me->pLLErrorHandler = pLLErrorHandler;
     CSLabelAssoc_add(me, pCSLLData);
     return me;
 }
@@ -621,14 +621,14 @@ PUBLIC char * CSLabel_getRatingStr(CSLabel_t * pCSLabel)
 }
 
 PUBLIC CSParse_t * CSParse_newLabel(LabelTargetCallback_t * pLabelTargetCallback, 
-									  LLErrorHandler_t * pLLErrorHandler)
+				    LLErrorHandler_t * pLLErrorHandler)
 {
     CSParse_t * me = CSParse_new();
     me->pParseContext->engineOf = &CSParse_targetParser;
     me->pParseContext->pTargetChangeCallback = &targetChangeCallback;
     me->pParseContext->pParseErrorHandler = &parseErrorHandler;
     me->target.pCSLabel = CSLabel_new(CSLLData_new(), pLabelTargetCallback, pLLErrorHandler);
-    me->pParseState = &LabelList_targetObject;
+    me->pTargetObject = &LabelList_targetObject;
     me->currentSubState = SubState_N;
     return me;
 }
@@ -648,7 +648,7 @@ PUBLIC BOOL CSParse_deleteLabel(CSParse_t * pCSParse)
 }
 
 /* D E F A U L T   P A R S I N G   H A N D L E R S */
-PRIVATE StateRet_t targetChangeCallback(CSParse_t * pCSParse, TargetObject_t * pParseState, CSParseTC_t target, BOOL closed, void * pVoid)
+PRIVATE StateRet_t targetChangeCallback(CSParse_t * pCSParse, TargetObject_t * pTargetObject, CSParseTC_t target, BOOL closed, void * pVoid)
 {
 
 	CSLabel_t * pCSLabel = GetCSLabel(pCSParse);

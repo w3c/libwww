@@ -519,7 +519,7 @@ PUBLIC char MatchAny[] = "MatchAny";
 PUBLIC NowIn_t CSParse_targetParser(CSParse_t * pCSParse, char demark, void * pVoid)
 {
 /*    ParseContext_t * pParseContext = pCSParse->pParseContext; */
-    TargetObject_t * pParseState = pCSParse->pParseState;
+    TargetObject_t * pTargetObject = pCSParse->pTargetObject;
     BOOL failedOnPunct = NO;
     char * token = 0;
     StateRet_t ret = StateRet_OK;
@@ -530,8 +530,8 @@ PUBLIC NowIn_t CSParse_targetParser(CSParse_t * pCSParse, char demark, void * pV
         token = HTChunk_data(pCSParse->token);
     }
 /*Input_dump(token, demark);*/
-    for (i = 0; i < pParseState->stateTokenCount; i++) {
-        StateToken_t * pStateToken = pParseState->stateTokens + i;
+    for (i = 0; i < pTargetObject->stateTokenCount; i++) {
+        StateToken_t * pStateToken = pTargetObject->stateTokens + i;
         pCSParse->pStateToken = pStateToken;
 
         if (!(pCSParse->currentSubState & pStateToken->validSubStates))
@@ -546,8 +546,8 @@ PUBLIC NowIn_t CSParse_targetParser(CSParse_t * pCSParse, char demark, void * pV
                     continue;
                 case StateRet_ERROR_BAD_CHAR:
 		    (*pCSParse->pParseContext->pParseErrorHandler)(pCSParse, token, demark, StateRet_ERROR_BAD_CHAR);
-                    if (pParseState->pDestroy)
-		        (*pParseState->pDestroy)(pCSParse);
+                    if (pTargetObject->pDestroy)
+		        (*pTargetObject->pDestroy)(pCSParse);
                     return NowIn_ERROR;
 	        default:
 		    break;
@@ -568,38 +568,38 @@ PUBLIC NowIn_t CSParse_targetParser(CSParse_t * pCSParse, char demark, void * pV
             }
         }
 /* open or close and do the appropriate callbacks */
-/* printf("%10s %c %20s - %s\n", token, demark, pCSParse->pParseState->note, pStateToken->note); */
+/* printf("%10s %c %20s - %s\n", token, demark, pCSParse->pTargetObject->note, pStateToken->note); */
 	if (pStateToken->command & Command_NOTOKEN) {
 	    HTChunk_clear(pCSParse->token);
 		token = 0;
 	}
-	if (pStateToken->command & Command_OPEN && pParseState->pOpen)
-	    if ((*pParseState->pOpen)(pCSParse, token, demark) == StateRet_ERROR)
+	if (pStateToken->command & Command_OPEN && pTargetObject->pOpen)
+	    if ((*pTargetObject->pOpen)(pCSParse, token, demark) == StateRet_ERROR)
 		return NowIn_ERROR;
         if (pStateToken->command & (Command_OPEN|Command_CLOSE) && pCSParse->pParseContext->pTargetChangeCallback)
-	    if ((*pCSParse->pParseContext->pTargetChangeCallback)(pCSParse, pParseState, pParseState->targetChange, 
+	    if ((*pCSParse->pParseContext->pTargetChangeCallback)(pCSParse, pTargetObject, pTargetObject->targetChange, 
 		(BOOL)(pStateToken->command & Command_CLOSE), pVoid) == StateRet_ERROR)
 		return NowIn_ERROR;
-        if (pStateToken->command & Command_CLOSE && pParseState->pClose)
-            ret = (*pParseState->pClose)(pCSParse, token, demark);
+        if (pStateToken->command & Command_CLOSE && pTargetObject->pClose)
+            ret = (*pTargetObject->pClose)(pCSParse, token, demark);
 
         if (pStateToken->pPrep && ret != NowIn_ERROR)
             ret = (*pStateToken->pPrep)(pCSParse, token, demark);
-        if (pStateToken->pNextParseState)
-            pCSParse->pParseState = pStateToken->pNextParseState;
+        if (pStateToken->pNextTargetObject)
+            pCSParse->pTargetObject = pStateToken->pNextTargetObject;
         if (pStateToken->nextSubState != SubState_X)
             pCSParse->currentSubState = pStateToken->nextSubState;
 /*
 CSLabel_dump(pCSLabel);
-HTTrace(pCSParse->pParseState->note);
+HTTrace(pCSParse->pTargetObject->note);
 */
         if (pStateToken->command & Command_CHAIN)
             return NowIn_CHAIN;
         return ret == StateRet_ERROR_BAD_CHAR ? NowIn_ERROR : ret == StateRet_DONE ? NowIn_END : NowIn_ENGINE;
     }
     (*pCSParse->pParseContext->pParseErrorHandler)(pCSParse, token, demark, failedOnPunct ? StateRet_WARN_BAD_PUNCT : StateRet_WARN_NO_MATCH);
-    if (pParseState->pDestroy)
-	    (*pParseState->pDestroy)(pCSParse);
+    if (pTargetObject->pDestroy)
+	    (*pTargetObject->pDestroy)(pCSParse);
     return NowIn_ERROR;
 }
 

@@ -241,12 +241,12 @@ profiles.
 
 
 Example: When reading a CSLabel, the callback will be called 
-with pParseState = CSLLTC_SERVICE when reading a service, CSLLTC_LABEL when
+with pTargetObject = CSLLTC_SERVICE when reading a service, CSLLTC_LABEL when
 reading a label, etc.
 <PRE>
 typedef struct TargetObject_s TargetObject_t;
 typedef StateRet_t TargetChangeCallback_t(CSParse_t * pCSParse, 
-					 TargetObject_t * pParseState, 
+					 TargetObject_t * pTargetObject, 
 					 CSParseTC_t targetChange, BOOL closed,
 					 void * pVoid);
 </PRE>

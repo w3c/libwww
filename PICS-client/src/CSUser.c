@@ -318,7 +318,7 @@ PUBLIC CSParse_t * CSParse_newUser()
     me->pParseContext->pTargetChangeCallback = &targetChangeCallback;
     me->pParseContext->pParseErrorHandler = &parseErrorHandler;
     me->target.pCSUser = CSUser_new(CSUserData_new());
-    me->pParseState = &User_targetObject;
+    me->pTargetObject = &User_targetObject;
     me->currentSubState = SubState_N;
     return me;
 }
@@ -337,7 +337,7 @@ PUBLIC BOOL CSParse_deleteUser(CSParse_t * pCSParse)
 }
 
 /* P A R S I N G   H A N D L E R S */
-PRIVATE StateRet_t targetChangeCallback(CSParse_t * pCSParse, TargetObject_t * pParseState, CSParseTC_t target, BOOL closed, void * pVoid)
+PRIVATE StateRet_t targetChangeCallback(CSParse_t * pCSParse, TargetObject_t * pTargetObject, CSParseTC_t target, BOOL closed, void * pVoid)
 {
 
     CSUser_t * pCSUser = GetCSUser(pCSParse);
@@ -391,7 +391,7 @@ PRIVATE StateRet_t User_setTarget(CSParse_t * pCSParse, char * token, char demar
     int caseNumber;
     pCSParse->pParseContext->valType = ValType_SVAL;
 
-    if (pCSParse->pParseState == &User_targetObject) {
+    if (pCSParse->pTargetObject == &User_targetObject) {
         caseNumber = pCSParse->pStateToken-User_stateTokens;
         switch (caseNumber) {
             case 3: READY_FVAL(CSUserData, version); break;
@@ -404,7 +404,7 @@ PRIVATE StateRet_t User_setTarget(CSParse_t * pCSParse, char * token, char demar
             case 10: READY_BVAL(CSUserData, observe_dates); break;
             case 11: READY_SVAL(CSUserData, bureau); break;
         }
-    } else if (pCSParse->pParseState == &UserService_targetObject) {
+    } else if (pCSParse->pTargetObject == &UserService_targetObject) {
         caseNumber = pCSParse->pStateToken-UserService_stateTokens;
         switch (caseNumber) {
             case 2: READY_SVAL(UserService, rating_service); break;
@@ -412,7 +412,7 @@ PRIVATE StateRet_t User_setTarget(CSParse_t * pCSParse, char * token, char demar
             case 4: READY_BVAL(UserService, missing_scale); break;
             case 5: READY_BVAL(UserService, observe_dates); break;
         }
-    } else if (pCSParse->pParseState == &UserRating_targetObject) {
+    } else if (pCSParse->pTargetObject == &UserRating_targetObject) {
         caseNumber = pCSParse->pStateToken-UserRating_stateTokens;
         switch (caseNumber) {
             case 2: READY_BVAL(UserServiceRating, missing_scale); break;

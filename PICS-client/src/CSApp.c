@@ -29,8 +29,8 @@ typedef struct {
     HTRequest * pReq;
     HTRequest * pBureauReq;
 
-    CSApp_callCriteria criteria;/* if the criteria are met */
-    CSApp_callback * pCallback;	/*  call pCallback */
+    CSDisposition_criteria criteria;/* if the criteria are met */
+    CSDisposition_callback * pCallback;	/*  call pCallback */
     CSError_t disposition;	/*   with */
     CSLabel_t * pCSLabel;	/*   all */
     CSUser_t * pCSUser;		/*   these */
@@ -242,7 +242,7 @@ PUBLIC CSUser_t * CSLoadedUser_load(char * url, char * relatedName)
 /* R E Q P A R M S */
 HTList * ReqParms = 0;
 
-PRIVATE ReqParms_t * ReqParms_new(HTRequest * pReq, CSUser_t * pCSUser, CSApp_callback * pCallback, CSApp_callCriteria criteria, void * pVoid)
+PRIVATE ReqParms_t * ReqParms_new(HTRequest * pReq, CSUser_t * pCSUser, CSDisposition_callback * pCallback, CSDisposition_criteria criteria, void * pVoid)
 {
     ReqParms_t * me;
     if ((me = (ReqParms_t *) HT_CALLOC(1, sizeof(ReqParms_t))) == NULL)
@@ -556,8 +556,8 @@ PRIVATE int CSApp_headerParser (HTRequest * pReq, const char * token)
 }
 
 /* application functions */
-PUBLIC BOOL CSApp_registerApp(CSApp_callback * pCallback, 
-			      CSApp_callCriteria criteria, 
+PUBLIC BOOL CSApp_registerApp(CSDisposition_callback * pCallback, 
+			      CSDisposition_criteria criteria, 
 			      CSApp_userCallback pUserCallback, void * pVoid)
 {
     HTList* conversions;
@@ -609,7 +609,7 @@ PUBLIC BOOL CSApp_unregisterApp()
     return YES;
 }
 
-PUBLIC BOOL CSApp_registerReq(HTRequest* pReq, CSUser_t * pCSUser, CSApp_callback pCallback, CSApp_callCriteria criteria, void * pVoid)
+PUBLIC BOOL CSApp_registerReq(HTRequest* pReq, CSUser_t * pCSUser, CSDisposition_callback pCallback, CSDisposition_criteria criteria, void * pVoid)
 {
     ReqParms_t * pReqParms;
     if (!ReqParms)

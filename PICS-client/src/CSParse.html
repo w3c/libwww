@@ -188,7 +188,7 @@ struct StateToken_s {
     char * name1;       /* or compare to this name */
     char * name2;		/* many strings have 2 spellings ("ratings" vs. "r") */
     <A HREF="CSLUtils.html#CSParseSC">CSParseTC_t</A> targetChange; /* whether target change implies diving or climbing from current state */
-    <A HREF="#TargetObject">TargetObject_t</A> * pNextParseState;
+    <A HREF="#TargetObject">TargetObject_t</A> * pNextTargetObject;
     <A HREF="#SubState">SubState_t</A> nextSubState;
     <A HREF="#Command">Command_t</A> command;	/* open, close, chain, etc. */
     <A HREF="#Prep">Prep_t</A> * pPrep;		/* prepare for next state */
@@ -272,7 +272,7 @@ struct CSParse_s {
         <A HREF="CSLUtils.html#CSLabel">CSLabel_t</A> * pCSLabel; /* defined in <A HREF="CSLabel.c">CSLabel.c</A> */
         <A HREF="CSLUtils.html#CSUser">CSUser_t</A> * pCSUser; /* defined in <A HREF="CSUser.c">CSUser.c</A> */
         } target;
-    <A HREF="#TargetObject">TargetObject_t</A> * pParseState;
+    <A HREF="#TargetObject">TargetObject_t</A> * pTargetObject;
     <A HREF="#SubState">SubState_t</A> currentSubState;
     <A HREF="#StateToken">StateToken_t</A> * pStateToken;
     };

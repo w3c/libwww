@@ -6,6 +6,10 @@
 #include "CSMRSt.h"
 
 #define GetCSMachRead(A) ((A)->target.pCSMachRead)
+#define SETNEXTSTATE(target, subState) \
+  pCSParse->pTargetObject = target; \
+  pCSParse->currentSubState = subState;
+
 
 struct CSMachRead_s {
     CSMachReadData_t * pCSMachReadData;
@@ -13,8 +17,8 @@ struct CSMachRead_s {
     MachRead_category_t * pCurrentMachRead_category;
     MachRead_enum_t * pCurrentMachRead_enum;
 
-	MachReadTargetCallback_t * pMachReadTargetCallback;
-	MRErrorHandler_t * pMRErrorHandler;
+    MachReadTargetCallback_t * pMachReadTargetCallback;
+    MRErrorHandler_t * pMRErrorHandler;
 };
 
 PRIVATE TargetObject_t MachRead_targetObject;
@@ -77,15 +81,15 @@ PRIVATE StateToken_t MachRead_stateTokens[] = {
        E: could be icondef - category
        F: back from category so open or close paren
        G: open paren so it is a category */
-     {           "enter", SubState_N,    Punct_ALL, 0,             0, 0, 0, &Version_targetObject, SubState_A, Command_MATCHANY|Command_OPEN|Command_CHAIN, 0},
-     {"need version set", SubState_A, Punct_LPAREN, 0,             0, 0, 0, &Version_targetObject, SubState_A, 0, 0},
-     { "need system set", SubState_B, Punct_LPAREN, 0,             0, 0, 0, &System_targetObject, SubState_A, 0, 0},
-     {"need service set", SubState_C, Punct_LPAREN, 0,             0, 0, 0, &Service_targetObject, SubState_A, 0, 0},
+     {           "enter", SubState_N,    Punct_ALL, 0,             0, 0, 0, &MachRead_targetObject, SubState_A, Command_MATCHANY|Command_OPEN|Command_CHAIN, 0},
+     {"need version set", SubState_A, Punct_LPAREN, 0,             0, 0, 0, &Version_targetObject, SubState_N, 0, 0},
+     { "need system set", SubState_B, Punct_LPAREN, 0,             0, 0, 0, &System_targetObject, SubState_N, 0, 0},
+     {"need service set", SubState_C, Punct_LPAREN, 0,             0, 0, 0, &Service_targetObject, SubState_N, 0, 0},
      {"need options set", SubState_D, Punct_LPAREN, 0,             0, 0, 0, &MachRead_targetObject, SubState_E, 0, 0},
-     {            "icon", SubState_E,  Punct_WHITE, 0,        "icon", 0, 0, &Icon_targetObject, SubState_A, 0, 0},
-     {            "name", SubState_E,  Punct_WHITE, 0,        "name", 0, 0, &Name_targetObject, SubState_A, 0, 0},
-     {     "description", SubState_E,  Punct_WHITE, 0, "description", 0, 0, &Description_targetObject, SubState_A, 0, 0},
-     {         "default", SubState_E, Punct_LPAREN, 0,     "default", 0, 0, &Default_targetObject, SubState_A, 0, 0},
+     {            "icon", SubState_E,  Punct_WHITE, 0,        "icon", 0, 0, &Icon_targetObject, SubState_N, 0, 0},
+     {            "name", SubState_E,  Punct_WHITE, 0,        "name", 0, 0, &Name_targetObject, SubState_N, 0, 0},
+     {     "description", SubState_E,  Punct_WHITE, 0, "description", 0, 0, &Description_targetObject, SubState_N, 0, 0},
+     {         "default", SubState_E, Punct_LPAREN, 0,     "default", 0, 0, &Default_targetObject, SubState_N, 0, 0},
      {        "category", SubState_E, Punct_LPAREN, 0,    "category", 0, 0, &Category_targetObject, SubState_N, 0, 0},
      {   "open category", SubState_F, Punct_LPAREN, 0,             0, 0, 0, &MachRead_targetObject, SubState_G, 0, 0},
      {             "end", SubState_F, Punct_RPAREN, 0,             0, 0, 0, &MachRead_targetObject, SubState_N, Command_CLOSE, 0},
@@ -100,7 +104,7 @@ PRIVATE StateToken_t Version_stateTokens[] = {
      { "text", SubState_A,  Punct_WHITE, 0, "PICS-version", 0, 0, &Version_targetObject, SubState_B, 0, 0},
      {"value", SubState_B, Punct_RPAREN, &Version_get,   0, 0, 0, &MachRead_targetObject, SubState_B, Command_CLOSE, 0}
     };
-PRIVATE TargetObject_t Version_targetObject = {"Version", 0, 0, 0, Version_stateTokens, raysize(Version_stateTokens), CSMRTC_MACHREAD};
+PRIVATE TargetObject_t Version_targetObject = {"Version", 0, 0, 0, Version_stateTokens, raysize(Version_stateTokens), CSMRTC_VERSION};
 
 PRIVATE StateToken_t System_stateTokens[] = { 
     /* A: fresh System
@@ -147,11 +151,11 @@ PRIVATE StateToken_t Default_stateTokens[] = {
      {  "enter", SubState_N, Punct_ALL, 0,          0, 0, 0, &Default_targetObject, SubState_A, Command_MATCHANY|Command_OPEN|Command_CHAIN, 0},
      {   "open", SubState_A,             Punct_LPAREN, 0,            0, 0, 0, &Default_targetObject, SubState_B, 0, 0},
      {  "close", SubState_A,             Punct_RPAREN, 0,            0, 0, 0, &MachRead_targetObject, SubState_E, Command_CLOSE, 0},
-     {    "min", SubState_B,              Punct_WHITE, 0,        "min", 0, 0, &Min_targetObject, SubState_A, 0, 0},
-     {    "max", SubState_B,              Punct_WHITE, 0,        "max", 0, 0, &Max_targetObject, SubState_A, 0, 0},
-     {  "multi", SubState_B, Punct_WHITE|Punct_RPAREN, 0,      "multi", 0, 0, &Multi_targetObject, SubState_A, Command_CHAIN, 0},
-     {"integer", SubState_B, Punct_WHITE|Punct_RPAREN, 0,    "integer", 0, 0, &Integer_targetObject, SubState_A, Command_CHAIN, 0},
-     {"labeled", SubState_B, Punct_WHITE|Punct_RPAREN, 0, "label-only", 0, 0, &Labeled_targetObject, SubState_A, Command_CHAIN, 0},
+     {    "min", SubState_B,              Punct_WHITE, 0,        "min", 0, 0, &Min_targetObject, SubState_N, 0, 0},
+     {    "max", SubState_B,              Punct_WHITE, 0,        "max", 0, 0, &Max_targetObject, SubState_N, 0, 0},
+     {  "multi", SubState_B, Punct_WHITE|Punct_RPAREN, 0,      "multi", 0, 0, &Multi_targetObject, SubState_N, Command_CHAIN, 0},
+     {"integer", SubState_B, Punct_WHITE|Punct_RPAREN, 0,    "integer", 0, 0, &Integer_targetObject, SubState_N, Command_CHAIN, 0},
+     {"labeled", SubState_B, Punct_WHITE|Punct_RPAREN, 0, "label-only", 0, 0, &Labeled_targetObject, SubState_N, Command_CHAIN, 0},
     };
 PRIVATE TargetObject_t Default_targetObject = {"Default", 0, 0, 0, Default_stateTokens, raysize(Default_stateTokens), CSMRTC_DEF};
 
@@ -207,17 +211,18 @@ PRIVATE StateToken_t Category_stateTokens[] = {
        E: enum or category
        F: back from category so need open or close
        G: category */
-     {           "enter", SubState_N,       Punct_ALL, 0,       0, 0, 0, &Category_targetObject, SubState_A, Command_MATCHANY|Command_OPEN|Command_CHAIN, 0},
-     {"need transmit_as", SubState_A,    Punct_LPAREN, 0,             0, 0, 0, &Transmit_as_targetObject, SubState_A, 0, 0},
+/*   {           "enter", SubState_N,       Punct_ALL, 0,       0, 0, 0, &Category_targetObject, SubState_A, Command_MATCHANY|Command_OPEN|Command_CHAIN, 0},
+     {"need transmit_as", SubState_A,    Punct_LPAREN, 0,             0, 0, 0, &Transmit_as_targetObject, SubState_N, 0, 0}, */
+     {           "enter", SubState_N,       Punct_ALL, 0,       0, 0, 0, &Transmit_as_targetObject, SubState_N, Command_MATCHANY|Command_OPEN|Command_CHAIN, 0},
      {"need options set", SubState_B,    Punct_LPAREN, 0,             0, 0, 0, &Category_targetObject, SubState_C, 0, 0},
-     {            "icon", SubState_C,     Punct_WHITE, 0,        "icon", 0, 0, &Icon_targetObject, SubState_A, 0, 0},
-     {            "name", SubState_C,     Punct_WHITE, 0,        "name", 0, 0, &Name_targetObject, SubState_A, 0, 0},
-     {     "description", SubState_C,     Punct_WHITE, 0, "description", 0, 0, &Description_targetObject, SubState_A, 0, 0},
-     {             "min", SubState_C,     Punct_WHITE, 0,         "min", 0, 0, &Min_targetObject, SubState_A, 0, 0},
-     {             "max", SubState_C,     Punct_WHITE, 0,         "max", 0, 0, &Max_targetObject, SubState_A, 0, 0},
-     {  "multi", SubState_C, Punct_WHITE|Punct_RPAREN, 0,       "multi", 0, 0, &Multi_targetObject, SubState_A, Command_CHAIN, 0},
-     {"integer", SubState_C, Punct_WHITE|Punct_RPAREN, 0,     "integer", 0, 0, &Integer_targetObject, SubState_A, Command_CHAIN, 0},
-     {"labeled", SubState_C, Punct_WHITE|Punct_RPAREN, 0,     "labeled", 0, 0, &Labeled_targetObject, SubState_A, Command_CHAIN, 0},
+     {            "icon", SubState_C,     Punct_WHITE, 0,        "icon", 0, 0, &Icon_targetObject, SubState_N, 0, 0},
+     {            "name", SubState_C,     Punct_WHITE, 0,        "name", 0, 0, &Name_targetObject, SubState_N, 0, 0},
+     {     "description", SubState_C,     Punct_WHITE, 0, "description", 0, 0, &Description_targetObject, SubState_N, 0, 0},
+     {             "min", SubState_C,     Punct_WHITE, 0,         "min", 0, 0, &Min_targetObject, SubState_N, 0, 0},
+     {             "max", SubState_C,     Punct_WHITE, 0,         "max", 0, 0, &Max_targetObject, SubState_N, 0, 0},
+     {  "multi", SubState_C, Punct_WHITE|Punct_RPAREN, 0,       "multi", 0, 0, &Multi_targetObject, SubState_N, Command_CHAIN, 0},
+     {"integer", SubState_C, Punct_WHITE|Punct_RPAREN, 0,     "integer", 0, 0, &Integer_targetObject, SubState_N, Command_CHAIN, 0},
+     {"labeled", SubState_C, Punct_WHITE|Punct_RPAREN, 0,     "labeled", 0, 0, &Labeled_targetObject, SubState_N, Command_CHAIN, 0},
      {            "enum", SubState_C,    Punct_LPAREN, 0,       "label", 0, 0, &Enum_targetObject, SubState_N, 0, 0},
      {        "category", SubState_C,    Punct_LPAREN, 0,    "category", 0, 0, &Category_targetObject, SubState_N, 0, 0},
      {"open enum or cat", SubState_D,    Punct_LPAREN, 0,             0, 0, 0, &Category_targetObject, SubState_E, 0, 0},
@@ -250,12 +255,13 @@ PRIVATE StateToken_t Enum_stateTokens[] = {
 	   F: ) close
 	   G: 'icon' -> H
 	   H: close */
-     {      "label", SubState_A, Punct_LPAREN, 0,       "label", 0, 0, &Enum_targetObject, SubState_B, 0, 0},
-     {       "name", SubState_B,  Punct_WHITE, 0,        "name", 0, 0, &Name_targetObject, SubState_A, 0, 0},
+     {      "enter", SubState_N,    Punct_ALL, 0,             0, 0, 0, &Enum_targetObject, SubState_B, Command_MATCHANY|Command_OPEN|Command_CHAIN, 0},
+/*     {      "label", SubState_A, Punct_LPAREN, 0,       "label", 0, 0, &Enum_targetObject, SubState_B, 0, 0}, */
+     {       "name", SubState_B,  Punct_WHITE, 0,        "name", 0, 0, &Name_targetObject, SubState_N, 0, 0},
      {       "open", SubState_C, Punct_LPAREN, 0,             0, 0, 0, &Enum_targetObject, SubState_D, 0, 0},
-     {"description", SubState_D,  Punct_WHITE, 0, "description", 0, 0, &Description_targetObject, SubState_A, 0, 0},
-     {      "value", SubState_D,  Punct_WHITE, 0,       "value", 0, 0, &Value_targetObject, SubState_A, 0, 0},
-     {      "value", SubState_E,  Punct_WHITE, 0,       "value", 0, 0, &Value_targetObject, SubState_A, 0, 0},
+     {"description", SubState_D,  Punct_WHITE, 0, "description", 0, 0, &Description_targetObject, SubState_N, 0, 0},
+     {      "value", SubState_D,  Punct_WHITE, 0,       "value", 0, 0, &Value_targetObject, SubState_N, 0, 0},
+     {      "value", SubState_E,  Punct_WHITE, 0,       "value", 0, 0, &Value_targetObject, SubState_N, 0, 0},
      {       "open", SubState_F, Punct_LPAREN, 0,             0, 0, 0, &Enum_targetObject, SubState_G, 0, 0},
      {      "close", SubState_F, Punct_RPAREN, 0,             0, 0, 0, 0, SubState_X, Command_CLOSE|Command_CHAIN, &postValueState},
      {       "icon", SubState_G,  Punct_WHITE, 0,        "icon", 0, 0, &Icon_targetObject, SubState_A, 0, 0},
@@ -390,12 +396,15 @@ PUBLIC void CSMachReadData_free(CSMachReadData_t * me)
     HT_FREE(me);
 }
 
-PUBLIC CSMachRead_t * CSMachRead_new(CSMachReadData_t * pCSMachReadData)
+PUBLIC CSMachRead_t * CSMachRead_new(CSMachReadData_t * pCSMachReadData, MachReadTargetCallback_t * pMachReadTargetCallback, 
+								   MRErrorHandler_t * pMRErrorHandler)
 {
     CSMachRead_t * me;
     if ((me = (CSMachRead_t *) HT_CALLOC(1, sizeof(CSMachRead_t))) == NULL)
         HT_OUTOFMEM("CSMachRead_t");
     me->pCSMachReadData = pCSMachReadData;
+    me->pMachReadTargetCallback = pMachReadTargetCallback;
+    me->pMRErrorHandler = pMRErrorHandler;
     CSMachReadAssoc_add(me, pCSMachReadData);
     return me;
 }
@@ -403,7 +412,8 @@ PUBLIC CSMachRead_t * CSMachRead_new(CSMachReadData_t * pCSMachReadData)
 PUBLIC CSMachRead_t * CSMachRead_copy(CSMachRead_t * old)
 {
     CSMachRead_t * me;
-    me = CSMachRead_new(old->pCSMachReadData);
+    me = CSMachRead_new(old->pCSMachReadData, old->pMachReadTargetCallback, 
+			old->pMRErrorHandler);
     memcpy(me, old, sizeof(CSMachRead_t));
     return me;
 }
@@ -422,24 +432,25 @@ PUBLIC CSMachReadData_t * CSMachRead_getCSMachReadData(CSMachRead_t * me) {retur
 PUBLIC MachRead_category_t * CSMachRead_getMachReadCategory(CSMachRead_t * pCSMachRead) {return pCSMachRead->pCurrentMachRead_category;}
 PUBLIC MachRead_enum_t * CSMachRead_getMachReadEnum(CSMachRead_t * pCSMachRead) {return pCSMachRead->pCurrentMachRead_enum;}
 
-PUBLIC CSParse_t * CSParse_newMachReadState()
+PUBLIC CSParse_t * CSParse_newMachRead(MachReadTargetCallback_t * pMachReadTargetCallback, 
+				       MRErrorHandler_t * pMRErrorHandler)
 {
     CSParse_t * me = CSParse_new();
     me->pParseContext->engineOf = &CSParse_targetParser;
     me->pParseContext->pTargetChangeCallback = &targetChangeCallback;
     me->pParseContext->pParseErrorHandler = &parseErrorHandler;
-    me->target.pCSMachRead = CSMachRead_new(CSMachReadData_new());
-    me->pParseState = &MachRead_targetObject;
+    me->target.pCSMachRead = CSMachRead_new(CSMachReadData_new(), pMachReadTargetCallback, pMRErrorHandler);
+    me->pTargetObject = &MachRead_targetObject;
     me->currentSubState = SubState_N;
     return me;
 }
 
-PUBLIC CSMachRead_t * CSParse_getMachReadState(CSParse_t * me)
+PUBLIC CSMachRead_t * CSParse_getMachRead(CSParse_t * me)
 {
     return (me->target.pCSMachRead);
 }
 
-PUBLIC BOOL CSParse_deleteMachReadState(CSParse_t * pCSParse)
+PUBLIC BOOL CSParse_deleteMachRead(CSParse_t * pCSParse)
 {
     CSMachRead_t * me = GetCSMachRead(pCSParse);
     CSMachReadData_free(CSMachRead_getCSMachReadData(me));
@@ -448,7 +459,7 @@ PUBLIC BOOL CSParse_deleteMachReadState(CSParse_t * pCSParse)
 }
 
 /* P A R S I N G   H A N D L E R S */
-PRIVATE StateRet_t targetChangeCallback(CSParse_t * pCSParse, TargetObject_t * pParseState, CSParseTC_t target, BOOL closed, void * pVoid)
+PRIVATE StateRet_t targetChangeCallback(CSParse_t * pCSParse, TargetObject_t * pTargetObject, CSParseTC_t target, BOOL closed, void * pVoid)
 {
 
     CSMachRead_t * pCSMachRead = GetCSMachRead(pCSParse);
@@ -472,54 +483,49 @@ PRIVATE StateRet_t postValueState(CSParse_t * pCSParse, char * token, char demar
     CSMachRead_t * pCSMachRead = GetCSMachRead(pCSParse);
 
     if (pCSMachRead->pCurrentMachRead_enum) {
-        pCSParse->pParseState = &Enum_targetObject;
-		if (SVal_initialized(&pCSMachRead->pCurrentMachRead_enum->icon)) {
-	        pCSParse->currentSubState = SubState_H;
-		    return StateRet_OK;
-		}
-		if (FVal_initialized(&pCSMachRead->pCurrentMachRead_enum->value)) {
-	        pCSParse->currentSubState = SubState_F;
-		    return StateRet_OK;
-		}
-		if (SVal_initialized(&pCSMachRead->pCurrentMachRead_enum->description)) {
-	        pCSParse->currentSubState = SubState_E;
-		    return StateRet_OK;
-		}
-        pCSParse->currentSubState = SubState_C;
+	if (SVal_initialized(&pCSMachRead->pCurrentMachRead_enum->icon)) {
+	    SETNEXTSTATE(&Enum_targetObject, SubState_H);
 	    return StateRet_OK;
-    }
-	if (pCSMachRead->pCurrentMachRead_category){
-        pCSParse->pParseState = &Category_targetObject;
-        pCSParse->currentSubState = SubState_B;
+	}
+	if (FVal_initialized(&pCSMachRead->pCurrentMachRead_enum->value)) {
+	    SETNEXTSTATE(&Enum_targetObject, SubState_F);
 	    return StateRet_OK;
+	}
+	if (SVal_initialized(&pCSMachRead->pCurrentMachRead_enum->description)) {
+	    SETNEXTSTATE(&Enum_targetObject, SubState_E);
+	    return StateRet_OK;
+	}
+        SETNEXTSTATE(&Enum_targetObject, SubState_C);
+	return StateRet_OK;
+      }
+    if (pCSMachRead->pCurrentMachRead_category){
+	SETNEXTSTATE(&Category_targetObject, SubState_B);
+	return StateRet_OK;
     }
-    pCSParse->pParseState = &MachRead_targetObject;
-    pCSParse->currentSubState = SubState_D;
+    SETNEXTSTATE(&MachRead_targetObject, SubState_D);
     return StateRet_OK;
 }
 
 PRIVATE StateRet_t Category_next(CSParse_t * pCSParse, char * token, char demark)
 {
     CSMachRead_t * pCSMachRead = GetCSMachRead(pCSParse);
-	if (pCSMachRead->pCurrentMachRead_category) {
-        pCSParse->pParseState = &Category_targetObject;
-        pCSParse->currentSubState = SubState_F;
-	    return StateRet_OK;
-	}
-    pCSParse->pParseState = &MachRead_targetObject;
-    pCSParse->currentSubState = SubState_F;
+    if (pCSMachRead->pCurrentMachRead_category) {
+        SETNEXTSTATE(&Category_targetObject, SubState_F);
+	return StateRet_OK;
+    }
+    SETNEXTSTATE(&MachRead_targetObject, SubState_F);
     return StateRet_OK;
 }
 
 PRIVATE StateRet_t Multi_setTrue(CSParse_t * pCSParse, char * token, char demark)
 {
     CSMachRead_t * pCSMachRead = GetCSMachRead(pCSParse);
-	if (pCSMachRead->pCurrentMachRead_category) {
-		BVal_set(&pCSMachRead->pCurrentMachRead_category->multi, YES);
-	} else {
-		BVal_set(&pCSMachRead->pCSMachReadData->multi, YES);
-	}
-	return postValueState(pCSParse, token, demark);
+    if (pCSMachRead->pCurrentMachRead_category) {
+        BVal_set(&pCSMachRead->pCurrentMachRead_category->multi, YES);
+    } else {
+        BVal_set(&pCSMachRead->pCSMachReadData->multi, YES);
+    }
+    return postValueState(pCSParse, token, demark);
 }
 
 PRIVATE StateRet_t Integer_setTrue(CSParse_t * pCSParse, char * token, char demark)
