@@ -1,0 +1,54 @@
+<HTML>
+<HEAD>
+<TITLE>Declaration of W3C Reference Telnet, rlogin, and TN3270 MODULE</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 20-Nov-1995 -->
+<NEXTID N="z11">
+</HEAD>
+<BODY>
+
+<H1>Declaration of W3C Reference Telnet, rlogin, and TN3270 MODULE</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This is the include file for the basic Telnet, rlogin, and TN3270
+module that can be used together with the core of the W3C Reference
+Library. It contains all Telnet, rlogin, and TN3270 specific modules
+which are required to compile and build the Telnet, rlogin, and TN3270
+DLL.<P>
+
+<PRE>
+#ifndef WWWTELNET_H
+#define WWWTELNET_H
+</PRE>
+
+<H2>Library Includes</H2>
+
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
+
+<PRE>
+#include "HTTelnet.h"			      /* TELNET client state machine */
+</PRE>
+
+End of TELNET module
+
+<PRE>
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
+
+#endif
+</PRE>
+
+End of WWWTelnet API definition
+
+</BODY>
+</HTML>
