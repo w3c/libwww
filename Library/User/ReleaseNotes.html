@@ -47,6 +47,8 @@ These are the things that are upcoming in the next release
   New Features
 </H3>
 <UL>
+<LI>Made sure that we write more often as we check for expired timers in HTWriter.c
+<LI>Added a "repetitive" flag to timers so that they can be created to say call me every 30ms over and over again
   <LI>
     Added support for building libwww as a shared library on Unix (it is already
     using DLLs on Windows). If you have any problems with shared libraries on
@@ -83,11 +85,22 @@ These are the things that are upcoming in the next release
 </H3>
 <UL>
   <LI>
+    Fixed a bug in the <A href="../src/HTParse.html">generation of
+    relative URIs</a> which caused the creation of incorrecte relative
+    URIs. Libwww uses relative URIs in the HTTP referer field and
+    other places to save (often significant) amount of bandwidth.
+  <LI>
+    Decreased mdefault max number of outstanding (pipelined) requests
+    from 100 to 50 <LI>Does now check whether we get a broken pipe
+    when writing to the network from expired timers. This was a bug
+    that it didn't.
+  <LI>
     Applied the <A HREF="Patch/5.1l/">following patches</A>
   <LI>
-    Fixed a problem in the HTWWWStr.c that caused a
-    <A HREF="http://lists.w3.org/Archives/Public/www-lib/1998AprJun/0000.html">Y2K
-    bug if strftime isn't available</A> on the system on where libwww is running
+    Fixed a problem in the HTWWWStr.c that caused a <A
+    HREF="http://lists.w3.org/Archives/Public/www-lib/1998AprJun/0000.html">Y2K
+    bug if strftime isn't available</A> on the system on where libwww
+    is running
 </UL>
 <H2>
   Release 5.1l March 25, 1998
