@@ -90,6 +90,11 @@ AC_CHECK_PROGS(have_tn3270, tn3270 x3270)
 if test -n "$have_tn3270" ; then
   AC_DEFINE_UNQUOTED(TN3270_PROGRAM, "$have_tn3270")
 fi
+AC_CHECK_PROGS(have_perl, perl)
+if test ! -n "$have_perl" ; then
+   AC_MSG_ERROR("Perl needs to be installed in order to compile libwww")
+fi
+
 AC_PATH_PROG(RM, rm, rm)
 AC_PATH_PROG(AR, ar, ar)
 AC_PATH_PROG(MKDIR, mkdir, mkdir)
@@ -99,7 +104,9 @@ AC_PATH_PROG(TAR, tar, tar)
 AC_PATH_PROG(CVS, cvs, cvs)
 AC_PATH_PROG(SED, sed, sed)
 AC_PATH_PROGS(COMPRESS, gzip compress, compress)
-AC_PATH_PROGS(WWW, www, [""])
+dnl JK 26/July/2000: desactivated the use of the www tool, as it's faster to
+dnl use perl
+dnl AC_PATH_PROGS(WWW, www, [""])
 AC_PROG_LN_S
 
 dnl Checks for misc files
