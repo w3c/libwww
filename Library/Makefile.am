@@ -5,5 +5,5 @@ DOCS :=	$(wildcard *.html *.gif)
 EXTRA_DIST = \
 	$(DOCS)
 
-SUBDIRS = src User Examples External # Test
+SUBDIRS = src User Examples External cvs2sql # Test
 

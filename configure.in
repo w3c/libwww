@@ -379,6 +379,7 @@ AC_ARG_WITH(mysql,
     AC_MSG_RESULT(no)
     HTSQL=""
     HTSQLLOG=""
+    CVS2SQL=""
     ;;
   *)
     AC_MSG_RESULT(yes)
@@ -390,14 +391,17 @@ AC_ARG_WITH(mysql,
     AC_DEFINE(HT_MYSQL)
     HTSQL="HTSQL.lo"
     HTSQLLOG="HTSQLLog.lo"
+    CVS2SQL="cvs2sql"
     ;;
   esac ],
   AC_MSG_RESULT(no)
   HTSQL=""
   HTSQLLOG=""
+  CVS2SQL=""
 )
 AC_SUBST(HTSQL)
 AC_SUBST(HTSQLLOG)
+AC_SUBST(CVS2SQL)
 
 AC_MSG_CHECKING(whether to link libwww as shared library)
 AC_ARG_ENABLE(shared, [],
@@ -534,6 +538,7 @@ Library/User/Style/Makefile Library/User/Platform/Makefile
 Library/Test/Makefile Library/Test/User/Makefile Library/Test/src/Makefile
 Library/src/Makefile Library/src/windows/Makefile Library/src/vms/Makefile
 Library/Examples/Makefile
+Library/cvs2sql/Makefile
 Library/External/Makefile
 PICS-client/Makefile PICS-client/User/Makefile PICS-client/src/Makefile PICS-client/src/windows/Makefile
 LineMode/Makefile LineMode/User/Makefile
