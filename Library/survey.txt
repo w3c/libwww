@@ -1,0 +1,205 @@
+=====================================
+             LIBWWW SURVEY
+=====================================
+
+Opens: September 22, 2000
+Ends:  October 6, 2000
+Goal:  Get a clear idea of what the libwww user community would like to
+       do with libwww
+Means: Mail your responses to this form to www-lib-survey@w3.org
+
+---------------------------------------------------------------------
+[1.0] Who are you and how do you use libwww
+---------------------------------------------------------------------
+
+[1.1] Do you develop or have developed applications that use libwww
+
+[ ] Yes
+[ ] No
+
+If you didn't answer yes to [1.1], go to section 2.
+
+[1.2] What kind of application (you may cite the name too, if you want)
+
+[1.2] On which platform and environment (mark all that apply)
+
+[ ] X-Windows
+[ ] Unix (includes Linux, Solaris, ...)
+[ ] Win32
+[ ] GTK
+[ ] Others (please cite): 
+
+[1.3] Which language(s) did you use
+
+[ ] C
+[ ] C++
+[ ] Others (please cite):
+
+[1.4] How do you rate your programming skills
+
+[ ] Experience programmer
+[ ] Average programmer
+[ ] Beginner
+
+[1.5] What parts of libww do you use
+
+[ ] XML parser
+[ ] RDF parser
+[ ] HTML parser
+[ ] HTTP 
+[ ] FTP
+[ ] News
+[ ] Telnet
+[ ] Gopher
+[ ] SSL
+[ ] Others (please cite):
+
+[1.6] What applications of libwww do you use
+
+[ ] Examples
+[ ] Robot
+[ ] LineMode parser
+[ ] Command line parser
+[ ] WinCommander
+
+[1.7] What modifications do you make to the code before you use it?
+
+[1.8] If you have any tests for libwww code, what parts of libwww
+      do you test and are you willing to contribute the tests to
+      the W3C?
+
+[1.9] Anything else you'd like to say
+
+---------------------------------------------------------------------
+[2.0] Your opinion of libwww
+---------------------------------------------------------------------
+
+[2.1] In your opinion, libwww is (check all that apply):
+
+[ ] useful to write sample code
+[ ] useful for learning how to program a WWW application
+[ ] useful to write production code
+[ ] Other: please cite
+
+[2.2] Do you find it useful that libwww is written in C
+
+[ ] Yes
+[ ] No
+
+[2.3] Please explain your previous answer
+
+[2.4] Do you feel that libwww too big?
+
+[ ] Yes
+[ ] No
+
+[2.5] If so, which parts would you like to remove, or move to other libraries
+
+[2.6] What are the things that you like the most of libwww
+
+[2.7] What are the things that you dislike the most of libwww
+
+[2.8] What are the things that you would like to change in libwww
+
+[2.9] What are the things you think that libwww are missing
+
+[2.10] Anything else you'd like to say
+
+---------------------------------------------------------------------
+Section 3: The future
+---------------------------------------------------------------------
+
+---------------------------------------------------------------------
+[3.1] Let's continue with libwww
+---------------------------------------------------------------------
+
+[3.1.1] Do you think it's worth it to have a WWW library?
+
+[ ] Yes
+[ ] No
+
+[3.1.2] Do you know of any other similar libraries (please give a URL to
+        the project if possible)
+
+[3.1.2] Do you think it's worth it to invest time continuing enhancing
+        libwww and its architecture.
+
+[ ] Yes
+[ ] No
+
+[3.1.3] Are you interested in joining the core team of such a project 
+        (enhancing libwww)?
+
+[ ] Yes
+[ ] No
+
+[3.1.4]  If you are willing to write some new documentation or improve
+         existing documentation, which topics are you willing to document?
+
+[3.1.5] Anything else you'd like to say
+
+---------------------------------------------------------------------
+[3.4] Let's invest our forces enhancing an existing project
+---------------------------------------------------------------------
+
+[3.4.1] Do you think it's better to enhance another existing project (i.e.,
+        merge our efforts)
+
+[3.4.2] Are you interested in joining the core team of such a project
+        (enhancing an existing project)?
+
+[ ] Yes
+[ ] No
+
+[3.4.3] Anything else you'd like to say
+
+---------------------------------------------------------------------
+[3.5] Let's write it again
+---------------------------------------------------------------------
+
+[3.5.1] Do you think the project should stop and start again from a clean
+        slate?
+
+[ ] Yes
+[ ] No
+
+[3.5.2] Which language would you use and why (please take into account
+        portability among systems)?
+
+[3.5.3] Are you interested in joining the core team of such a project 
+        (starting a new libwww project)?
+
+[ ] Yes
+[ ] No
+
+---------------------------------------------------------------------
+[3.6] Where to host it
+---------------------------------------------------------------------
+
+[3.6.1] Should W3C continue hosting libwww or any other spin-off projects?
+
+[ ] Yes
+[ ] No
+
+[3.6.2] SourceForge (SF): How would feel if the W3C transferred libwww to a 
+        SF project?
+
+[3.6.3] Are you currently involved with any SF projects?
+
+[ ] Yes
+[ ] No
+
+[3.6.4] If so, do you think libwww would fit into that developement paradigm?
+
+[ ] Yes
+[ ] No
+
+[3.6.5] Do you have other suggestions of where libwww should be hosted?
+
+[3.6.6] Anything else you'd like to say
+
+---------------------------------------------------------------------
+[4.0] Your comments
+---------------------------------------------------------------------
+
+[4.1] Anything else you'd like to say
