@@ -1642,15 +1642,6 @@ int main (int argc, char ** argv)
     LineMode *	lm;
     char *      picsUser = NULL;
 
-    HTAtom *    atom11;
-    HTAtom *    atom12;
-    char *      str11;
-    char *      str12;
-    atom11 = HTAtom_for("atom11");
-    atom12 = HTAtom_for("atom12");
-    str11 = HTAtom_name(atom11);
-    str12 = HTAtom_name(atom12);
-
 /*    char *      picsUserList = NULL; */
 
     /* Starts Mac GUSI socket library */
@@ -1681,7 +1672,6 @@ int main (int argc, char ** argv)
 
     /* Set up our event manager */
     HTEventrgInit();
-    HTEventInit();
 
     /* Create a new Line Mode object */
     lm = LineMode_new();
@@ -1974,6 +1964,7 @@ int main (int argc, char ** argv)
 
     /* Initialize set of converters */
     lm->converters = HTList_new();
+    HTMLInit(lm->converters);
     HTConverterInit(lm->converters);
     HTMLInit(lm->converters);
     HTFormat_setConversion(lm->converters);
