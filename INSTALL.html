@@ -90,11 +90,20 @@ library for Win32</A>.
   SQL Access
 </H3>
 <P>
-If <CODE>HT_MYSQL</CODE> is defined in the
+&nbsp;<CODE>HT_MYSQL</CODE> is defined in the
 <A HREF="Library/src/windows/config.h">windows config.h file</A> then libwww
 can use a <A HREF="http://www.tcx.se/">MySQL database</A> for handling
 <A HREF="Robot/User/CommandLine.html#Logging">logging</A> instead of plain
 text files. This has a <A HREF="Robot/www-sql/">huge set of advantages</A>.
+<H3>
+  SOCKS Support
+</H3>
+<P>
+If either <TT>SOCKS</TT> and either <TT>SOCKS4</TT> or <TT>SOCKS5</TT> is
+defined in the <A HREF="Library/src/windows/config.h">windows config.h file</A>
+then libwww can use <A HREF="http://www.socks.nec.com/">SOCKS</A> to go through
+firewalls. The SOCKS handling code in libwww can be found in
+<A HREF="Library/src/wwwsys.html">wwwsys.h</A>.
 <H3>
   Compiling
 </H3>
