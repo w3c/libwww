@@ -32,5 +32,6 @@ BUILT_SOURCES = \
 	CSUser.h	CSUserSt.h \
 	CSParse.h	CSUsrLst.h
 
-DIST_EXTRA = \
-	$(BUILT_SOURCES)
+EXTRA_DIST = \
+	$(BUILT_SOURCES) \
+	$(DOCS)

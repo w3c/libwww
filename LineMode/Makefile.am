@@ -2,4 +2,9 @@
 
 AUTOMAKE_OPTIONS = foreign
 
+DOCS :=	$(wildcard *.html *.gif)
+
+EXTRA_DIST = \
+	$(DOCS)
+
 SUBDIRS = src User

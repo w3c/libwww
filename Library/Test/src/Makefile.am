@@ -1,12 +1,15 @@
 ## Process this file with Automake to create Makefile.in.
+##
+## This is not up-to-date with the latest API so we skip it for now
+##
 
 # bin_PROGRAMS = w3clib
 
-w3clib_LDADD = \
+w3clibLDADD = \
 	@LIBTCL@ \
 	../../src/libwww.a -lm
 
-w3clib_DEPENDENCIES = \
+w3clibDEPENDENCIES = \
 	@LIBTCL@ \
 	../../src/libwww.a
 
@@ -15,7 +18,7 @@ AUTOMAKE_OPTIONS = foreign
 
 INCLUDES = -I$(srcdir)/../../src
 
-w3clib_SOURCES = \
+w3clibSOURCES = \
 	HTAnchor_glue.c 	HTAnchor_glue.h \
 	HTReq_glue.c 		HTReq_glue.h \
 	HTList_glue.c		HTList_glue.h \

@@ -17,6 +17,7 @@ HTNet.c
 HTParse.c
 HTProt.c
 HTReqMan.c
+HTResponse.c
 HTStream.c
 HTTrans.c
 HTUser.c

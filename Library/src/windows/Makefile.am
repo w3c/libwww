@@ -17,6 +17,7 @@ BUILT_SOURCES = \
 	wwwtrans.def
 
 EXTRA_DIST = \
+	$(BUILT_SOURCES) \
 	wwwdll.def \
 	$(SRC) \
 	$(MAK)

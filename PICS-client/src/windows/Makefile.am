@@ -12,6 +12,7 @@ BUILT_SOURCES = \
 	pics.def
 
 EXTRA_DIST = \
+	$(BUILT_SOURCES) \
 	$(SRC) \
 	$(MAK) \
 	$(PL)
