@@ -132,7 +132,7 @@ PRIVATE char *HTFWriter_filename ARGS4(char *, path, char *, url,
 		hash = *ptr + *primes * hash;
 	    hash %= limit;
 	    {					   /* Convert hash to string */
-		char hashstr[digits+1];
+		char hashstr[20+1];	/* @@@ fixme */
 		sprintf(format, "%%0%du", digits);
 		sprintf(hashstr, format, hash);
 		*(hashstr+digits) = '\0';
@@ -177,7 +177,7 @@ PRIVATE char *HTFWriter_filename ARGS4(char *, path, char *, url,
 			    hash = *ptr + *(primes+cnt) * hash;
 			hash %= limit;
 			{
-			    char hashstr[digits+1];
+			    char hashstr[20+1]; /* @@@ fixme */
 			    sprintf(hashstr, format, hash);
 			    *(hashstr+digits) = '\0';
 			    memcpy(replace, hashstr, digits);
