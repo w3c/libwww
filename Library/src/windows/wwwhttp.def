@@ -1,17 +1,40 @@
 EXPORTS
-;HTTP.c             @ 100
-HTLoadHTTP          @ 101
-;HTTPRq.c           @ 200
-HTProxyHeaders      @ 201
-HTTPRequest_new     @ 202
-;HTAABrow           @ 300
-HTAA_composeAuth    @ 301
-HTPasswordDialog    @ 302
-HTAA_retryWithAuth  @ 303
-;HTAAUtil           @ 400
-HTAAScheme_enum     @ 401
-HTAAScheme_name     @ 402
-HTAA_templateMatch  @ 403
-HTAA_templateCaseMatch @ 404
-HTAA_makeProtectionTemplate @ 405
-HTAA_parseArgList   @ 406
+;HTAABrow.c		@ 100
+HTAA_composeAuth	@ 101
+HTPasswordDialog	@ 102
+HTAA_retryWithAuth	@ 103
+
+;HTAAUtil.c		@ 200
+HTAAScheme_enum		@ 201
+HTAAScheme_name		@ 202
+HTAA_templateMatch	@ 203
+HTAA_templateCaseMatch	@ 204
+HTAA_makeProtectionTemplate @ 205
+HTAA_parseArgList	@ 206
+
+;HTAlert.c		@ 300
+HTAlert_setInteractive	@ 301
+HTAlert_interactive	@ 302
+HTAlertCall_add		@ 303
+HTAlertCall_delete	@ 304
+HTAlertCall_deleteAll	@ 305
+HTAlertCall_find	@ 306
+HTAlert_setGlobal	@ 307
+HTAlert_global		@ 308
+HTAlert_add		@ 309
+HTAlert_find		@ 310
+HTAlert_newReply	@ 311
+HTAlert_deleteReply	@ 312
+HTAlert_replyMessage	@ 313
+HTAlert_setReplyMessage	@ 314
+HTAlert_replySecret	@ 315
+HTAlert_setReplySecret	@ 316
+HTAlert_replyOutput	@ 317
+HTAlert_setReplyOutput	@ 318
+
+;HTTP.c			@ 400
+HTLoadHTTP		@ 401
+
+;HTTPReq.c		@ 500
+HTTPRequest_new		@ 501
+

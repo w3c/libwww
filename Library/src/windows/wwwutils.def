@@ -1,21 +1,24 @@
 EXPORTS
-;HTArray		@ 100
+;HTArray.c		@ 100
 HTArray_new		@ 101
 HTArray_clear		@ 102
 HTArray_delete		@ 103
 HTArray_addObject	@ 104
 HTArray_sort		@ 105
-;HTAssoc		@ 200
+
+;HTAssoc.c		@ 200
 HTAssocList_new		@ 201
 HTAssocList_delete	@ 202
 HTAssocList_add		@ 203
 HTAssocList_lookup	@ 204
-;HTAtom			@ 300
+
+;HTAtom.c		@ 300
 HTAtom_for		@ 301
 HTAtom_caseFor		@ 302
 HTAtom_deleteAll	@ 303
 HTAtom_templateMatches	@ 304
-;HTChunk		@ 400
+
+;HTChunk.c		@ 400
 HTChunkCreate		@ 401
 HTChunkClear		@ 402
 HTChunkFree		@ 403
@@ -23,28 +26,31 @@ HTChunkPutc		@ 404
 HTChunkEnsure		@ 405
 HTChunkTerminate	@ 406
 HTChunkPuts		@ 407
-;HTList			@ 500
+
+;HTList.c		@ 500
 HTList_new		@ 501
 HTList_delete		@ 502
 HTList_addObject	@ 503
-HTList_removeObject	@ 504
-HTList_removeLastObject	@ 505
-HTList_removeFirstObject @ 506
-HTList_count		@ 507
-HTList_indexOf		@ 508
-HTList_objectAt		@ 509
-HTList_removeObjectAt	@ 510
-HTList_appendObject	@ 511
-;HTString		@ 600
-WWW_TraceFlag		@ 601
-strcasecomp		@ 602
-strncasecomp		@ 603
-strcasestr		@ 604
-HTSACopy		@ 605
-HTSACat			@ 606
-HTStrMatch		@ 607
-HTStrCaseMatch		@ 608
-HTStrip			@ 609
-;HTUU			@ 700
+HTList_appendObject	@ 504
+HTList_removeObject	@ 505
+HTList_removeLastObject	@ 506
+HTList_removeFirstObject @ 507
+HTList_count		@ 508
+HTList_indexOf		@ 509
+HTList_objectAt		@ 510
+HTList_removeObjectAt	@ 511
+
+;HTString.c		@ 600
+strcasecomp		@ 601
+strncasecomp		@ 602
+strcasestr		@ 603
+HTSACopy		@ 604
+HTSACat			@ 605
+HTStrMatch		@ 606
+HTStrCaseMatch		@ 607
+HTStrip			@ 608
+
+;HTUU.c			@ 700
 HTUU_encode		@ 701
 HTUU_decode		@ 702
+

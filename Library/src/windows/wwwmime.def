@@ -1,22 +1,26 @@
 EXPORTS
-;HTBound                @ 100
-HTBoundary              @ 101
-;HTHeader.c             @ 200
-HTParser_add            @ 201
-HTParser_delete         @ 202
-HTParser_deleteAll      @ 203
-HTParser_find           @ 204
-HTGenerator_add         @ 205
-HTGenerator_delete      @ 206
-HTGenerator_deleteAll   @ 207
-HTHeader_setParser      @ 208
-HTHeader_parser         @ 209
-HTHeader_setGenerator   @ 210
-HTHeader_generator      @ 211
-HTHeader_deleteAll      @ 212
-HTHeader_addParser	@ 213
-HTHeader_addGenerator	@ 214
-;HTMIME                 @ 300
-HTMIMEConvert           @ 301
-;HTMIMERq               @ 400
-HTMIMERequest_new       @ 401
+;HTBound.c		@ 100
+HTBoundary		@ 101
+
+;HTHeader.c		@ 200
+HTParser_add		@ 201
+HTParser_delete		@ 202
+HTParser_deleteAll	@ 203
+HTParser_find		@ 204
+HTGenerator_add		@ 205
+HTGenerator_delete	@ 206
+HTGenerator_deleteAll	@ 207
+HTHeader_setParser	@ 208
+HTHeader_parser		@ 209
+HTHeader_addParser	@ 210
+HTHeader_setGenerator	@ 211
+HTHeader_generator	@ 212
+HTHeader_addGenerator	@ 213
+HTHeader_deleteAll	@ 214
+
+;HTMIME.c		@ 300
+HTMIMEConvert		@ 301
+
+;HTMIMERq.c		@ 400
+HTMIMERequest_new	@ 401
+
