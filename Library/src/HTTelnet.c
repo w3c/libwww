@@ -142,6 +142,18 @@ PRIVATE int remote_session ARGS2(HTRequest *, request, char *, url)
 	HTChunkPuts(cmd, "TELNET ");
 	HTChunkPuts(cmd, hostname);			  /* Port is ignored */
 #else
+#ifdef FULL_TELNET					    /* User and port */
+	HTChunkPuts(cmd, "telnet ");
+	HTChunkPuts(cmd, hostname);
+	if (user) {
+	    HTChunkPuts(cmd, " -l ");
+	    HTChunkPuts(cmd, user);
+	}
+	if (port) {
+	    HTChunkPutc(cmd, ' ');
+	    HTChunkPuts(cmd,  port);
+	}
+#else
 #ifdef MULTINET
 	HTChunkPuts(cmd, "TELNET ");
 	if (port) {
@@ -150,7 +162,7 @@ PRIVATE int remote_session ARGS2(HTRequest *, request, char *, url)
 	    HTChunkPutc(cmd, ' ');
 	}
 	HTChunkPuts(cmd, hostname);
-#else
+#else							  /* User is ignored */
 	HTChunkPuts(cmd, "telnet ");
 	HTChunkPuts(cmd, hostname);
 	if (port) {
@@ -158,6 +170,7 @@ PRIVATE int remote_session ARGS2(HTRequest *, request, char *, url)
 	    HTChunkPuts(cmd,  port);
 	}
 #endif /* MULTINET */
+#endif /* FULL_TELNET */
 #endif /* SIMPLE_TELNET */
 
     } else if (!strcmp(access, "rlogin")) {
