@@ -1,11 +1,11 @@
 <HTML>
 <HEAD>
   <!-- Changed by: Henrik Frystyk Nielsen, 15-Jul-1996 -->
-  <TITLE>W3C Sample Code Library libwww Accessing URLs</TITLE>
+  <TITLE>W3C Sample Code Library libwww Accessing URIs</TITLE>
 </HEAD>
 <BODY>
 <H1>
-  Accessing URLs
+  Accessing URIs
 </H1>
 <PRE>
 /*
@@ -16,11 +16,62 @@
 <P>
 This module is the application interface module to the
 <A HREF="HTReq.html">Request class</A>. It contains a lot of methods for
-loading URLs and also for uploading URLs using <CODE>PUT</CODE> or
+loading URIs and also for uploading URIs using <CODE>PUT</CODE> or
 <CODE>POST</CODE>, for example. You can use the Request class directly but
 this module makes it easier to use by providing a lot of small request functions
 using the Request class in different ways. It contains help functions for
 accessing documents and for uploading documents to a remote server.
+<P>
+This module contains functions for handling all HTTP/1.1 methods:
+<DL>
+  <DT>
+    GET Requests
+  <DD>
+    <UL>
+      <LI>
+	<A HREF="#Load">Various GET requests including specialized functions like
+	loading a rule file, etc.</A>
+      <LI>
+	<A HREF="#Search">Search requests based on the GET method</A>
+      <LI>
+	<A HREF="#getforms">Formdata requests based on the GET method</A>
+    </UL>
+  <DT>
+    PUT Requests
+  <DD>
+    <UL>
+      <LI>
+	<A HREF="#SaveASIS">Save a document from memory ASIS using PUT</A>
+      <LI>
+	<A HREF="#SaveStructured">Save a structured document from memory using PUT</A>
+      <LI>
+	<A HREF="#SaveURL">Save any URI (FTP, HTTP, local disk) using PUT</A>
+    </UL>
+  <DT>
+    POST Requests
+  <DD>
+    <UL>
+      <LI>
+	<A HREF="#PostForms">Post Formdata to a remote HTTP server</A>
+      <LI>
+	<A HREF="#PostASIS">Post a document from memory ASIS to a remote HTTP
+	server</A>
+    </UL>
+  <DT>
+    HEAD, DELETE, OPTIONS, and TRACE requests
+  <DD>
+    <UL>
+      <LI>
+	<A HREF="#Head">Get metainformation about a document using HEAD requests</A>
+      <LI>
+	<A HREF="#Delete">Delete documents based on the DELETE method</A>
+      <LI>
+	<A HREF="#OPTIONS">Get information about the features supoprted by a resource
+	using OPTIONS</A>
+      <LI>
+	<A HREF="#TRACE">Trace a request using the TRACE method</A>
+    </UL>
+</DL>
 <P>
 This module is implemented by <A HREF="HTAccess.c">HTAccess.c</A>, and it
 is a part of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code
@@ -33,19 +84,19 @@ Library</A>.
 #include "HTAnchor.h"
 </PRE>
 <H2>
-  Load a Document (Method = GET)
+  <A NAME="Load">Load a Document (Method = GET)</A>
 </H2>
 <P>
-URLs can be accesses using a character string, for example
+URIs can be accesses using a character string, for example
 "<CODE>http://www.w3.org</CODE>" or it can be accessed by using the libwww
-representation of a URL called an <A HREF="HTAnchor.html">Anchor object</A>.
-Note that we call all objects accessible through URLs for <I>documents</I>
+representation of a URI called an <A HREF="HTAnchor.html">Anchor object</A>.
+Note that we call all objects accessible through URIs for <I>documents</I>
 - this is a notion we have inherited from the hypertext world.
 <H3>
-  Load a Document from Absolute URL
+  Load a Document from Absolute URI
 </H3>
 <P>
-Request a document referencd by an <I>absolute</I> URL. The output from the
+Request a document referencd by an <I>absolute</I> URI. The output from the
 request is passed to the <A HREF="HTFormat.html">Stream Pipe Manager</A>
 that figures out where to pump the data. This can for example be to the display
 or to a local file depending on the set of
@@ -53,10 +104,10 @@ or to a local file depending on the set of
 <PRE>extern BOOL HTLoadAbsolute (const char * url, HTRequest * request);
 </PRE>
 <H3>
-  Load a Document from Relative URL
+  Load a Document from Relative URI
 </H3>
 <P>
-Request a document referenced by a <I>relative</I> URL. The relative URL
+Request a document referenced by a <I>relative</I> URI. The relative URI
 is made absolute by resolving it relative to the address of the '<I>base</I>'
 anchor.
 <PRE>extern BOOL HTLoadRelative (const char * 	relative,
@@ -67,7 +118,7 @@ anchor.
   Load a Document into Memory
 </H3>
 <P>
-Request a document referred to by the URL and load it into a
+Request a document referred to by the URI and load it into a
 <A HREF="HTChunk.html">HTChunk object</A>. A <A HREF="HTChunk.html">chunk
 object</A> is a dynamic string so in the end you will have a single memory
 buffer containing the document. The chunk must be freed by the caller.
@@ -77,7 +128,7 @@ buffer containing the document. The chunk must be freed by the caller.
   Load a Document and Save as a Local File
 </H3>
 <P>
-This function loads a URL and saves the contents in the specifed file. The
+This function loads a URI and saves the contents in the specifed file. The
 file should not &nbsp;be open, as the load function both opens and closes
 the file. If the file already exists then it asks the user whether the file
 should be overwritten or not. the contents is saved <I>ASIS</I> - that is
@@ -90,7 +141,7 @@ extern BOOL HTLoadToFile (const char * url, HTRequest * request,
   Load a Document and put the Contents into a Stream
 </H3>
 <P>
-Request a document referenced by an absolute URL and sending the data down
+Request a document referenced by an absolute URI and sending the data down
 a stream. This stream can be anny stream you like, for eample one from the
 <A HREF="WWWStream.html">Stream Interface</A>.
 <PRE>
@@ -101,8 +152,8 @@ extern BOOL HTLoadToStream (const char * url, HTStream * output,
   Load a Document using an Anchor
 </H3>
 <P>
-Here the URL is represented by an <A HREF="HTAnchor.html">Anchor object</A>.
-You can get an anchor object representing a URL by passing the URL to the
+Here the URI is represented by an <A HREF="HTAnchor.html">Anchor object</A>.
+You can get an anchor object representing a URI by passing the URI to the
 appropriate method in the <A HREF="HTAnchor.html">Anchor class</A>.
 <PRE>extern BOOL HTLoadAnchor (HTAnchor * anchor, HTRequest * request);
 </PRE>
@@ -110,9 +161,9 @@ appropriate method in the <A HREF="HTAnchor.html">Anchor class</A>.
   Load a Document into Memory using an Anchor
 </H3>
 <P>
-This is the same as <CODE>HTLoadToChunk</CODE> but instead of passing a URL
+This is the same as <CODE>HTLoadToChunk</CODE> but instead of passing a URI
 string you pass an <A HREF="HTAnchor.html">HTAnchor object</A>. Internally,
-all URLs are represented as anchors which contains all the information we
+all URIs are represented as anchors which contains all the information we
 have about the resource. The chunk must be freed by the caller.
 <PRE>extern HTChunk * HTLoadAnchorToChunk (HTAnchor * anchor, HTRequest * request);
 </PRE>
@@ -132,23 +183,22 @@ so that the information in there is kept.
 </H2>
 <P>
 We also have a set of functions for loading special files like rules files
-which also are referenced by a URL but which do have to be treated specially.
+which also are referenced by a URI but which do have to be treated specially.
 <H3>
   Load a Rule File
 </H3>
 <P>
-Rule files can be loaded just like any other URL but you can also just
-use these functions which do all the work for you: they load a rule
-find with the URL specified and add the set of rules to the existing
-set.
+Rule files can be loaded just like any other URI but you can also just use
+these functions which do all the work for you: they load a rule find with
+the URI specified and add the set of rules to the existing set.
 <P>
-They come in two flavours - one that asks the user whether it is OK to
-add the rules and one that does it automatically without asking. As
-the app would have to call this method explicitly, it may have other
-ways of protecting the user.
+They come in two flavours - one that asks the user whether it is OK to add
+the rules and one that does it automatically without asking. As the app would
+have to call this method explicitly, it may have other ways of protecting
+the user.
 <P>
-Both functions use <A HREF="HTReq.html#preemptive">preemptive
-requests</A> so that everything else stops in the meantime.
+Both functions use <A HREF="HTReq.html#preemptive">preemptive requests</A>
+so that everything else stops in the meantime.
 <PRE>
 extern BOOL HTLoadRules (const char * url);
 extern BOOL HTLoadRulesAutomatically (const char * url);
@@ -162,14 +212,13 @@ The search methods all use <CODE>GET</CODE> as the method in the
 the keywords and encode them according to
 <A HREF="http://info.internet.isi.edu:80/in-notes/rfc/files/rfc1866.txt">RFC
 1866 (Hypertext Markup language)</A>. That is, the query part is separated
-from the rest of the URL by a "?" nu is treated as being part of the URL
-path.
+from the rest of the URI by a "?".
 <P>
 The keywords are passed to the function as a <A HREF="HTChunk.html">Chunk
 Object</A> and each keyword <B>must</B> be separated by a space ' '. This
-will then be converted into a '+' before added to the URL.
+will then be converted into a '+' before added to the URI.
 <H3>
-  Search a Document from Absolute URL
+  Search a Document from Absolute URI
 </H3>
 <PRE>
 extern BOOL HTSearchAbsolute (HTChunk *		keywords,
@@ -177,10 +226,10 @@ extern BOOL HTSearchAbsolute (HTChunk *		keywords,
 			      HTRequest *	request);
 </PRE>
 <H3>
-  Search a Document from Relative URL
+  Search a Document from Relative URI
 </H3>
 <P>
-Search a document referenced by a <I>relative</I> URL. The relative URL is
+Search a document referenced by a <I>relative</I> URI. The relative URI is
 made absolute by resolving it relative to the address of the '<I>base</I>'
 anchor.
 <PRE>
@@ -209,10 +258,10 @@ extern BOOL HTSearchString (const char *	keywords,
 			    HTRequest * 	request);
 </PRE>
 <H2>
-  <A NAME="getforms">Handle Forms Using GET Method</A>
+  <A NAME="getforms">Submit Forms Using GET Method</A>
 </H2>
 <P>
-Form data can be sent to a HTTP server in two ways - it can either use a
+Formdata can be sent to an HTTP server in two ways - it can either use a
 <CODE>GET</CODE> method or it can use a <CODE>POST</CODE> method. The difference
 is whether the request "has side effects" or not. For example, if you are
 ordering a pizza then the (hopefully positive) sideeffect is that you actually
@@ -221,26 +270,24 @@ to Alta Vista, then there is no sideeffect. In the former example you would
 use the <CODE>GET</CODE> form and in the latter you would use the
 <CODE>POST</CODE> form.
 <H3>
-  Send a Form from Absolute URL using GET
+  Submit Form from Absolute URI using GET
 </H3>
 <P>
-Request a <CODE>GET</CODE> form referencd by an absolute URL appended with
-the formdata given. The URL can <I>NOT</I> contain any fragment
-identifier!&nbsp;The list of form data must be given as an
+Submit formdata using GET to the address indicated as the "base" which must
+be an absolute URI. The list of form data must be given as an
 <A HREF="HTAssoc.html">association list</A> where the name is the field name
-and the value is the value of the field. Enter the fields in the same order
-as they are setup in the HTML file, the it will work.
+and the value is the value of the field.
 <PRE>
 extern BOOL HTGetFormAbsolute (HTAssocList *	formdata,
 			       const char *	base,
 			       HTRequest *	request);
 </PRE>
 <H3>
-  Send a Form from Relative URL using GET
+  Submit Form from Relative URI using GET
 </H3>
 <P>
-Request a <CODE>GET</CODE> form referencd by a relative URL appended with
-the formdata given. The list of formdata must be given as an
+Submit formdata using GET to the address indicated relative to the address
+of the base anchor. The list of form data must be given as an
 <A HREF="HTAssoc.html">association list</A> where the name is the field name
 and the value is the value of the field.
 <PRE>
@@ -253,25 +300,23 @@ extern BOOL HTGetFormRelative (HTAssocList * 	formdata,
   Send a Form using an Anchor and the GET Method
 </H3>
 <P>
-Request a <CODE>GET</CODE> form referencd by an anchor object appended with
-the formdata given. The URL can <I>NOT</I> contain any fragment identifier!
-The list of form data must be given as an association list where the name
-is the field name and the value is the value of the field.
+Submit formdata using GET to the address indicated of the anchor. The list
+of form data must be given as an <A HREF="HTAssoc.html">association list</A>
+where the name is the field name and the value is the value of the field.
 <PRE>
 extern BOOL HTGetFormAnchor (HTAssocList *	formdata,
 			     HTAnchor *		anchor,
 			     HTRequest * 	request);
 </PRE>
 <H2>
-  <A NAME="PostForms">Handle Forms Using POST Method</A>
+  <A NAME="PostForms">Submit Forms Using POST Method</A>
 </H2>
 <P>
-The main difference between a <CODE>GET</CODE> form and a <CODE>POST</CODE>
-form is that the data in a <CODE>POST</CODE> form is sent as the body part
-of the <A HREF="http://www.w3.org/Protocols/">HTTP</A> message whereas a
-<CODE>GET</CODE> form wraps it all up into the URL. In order to be able to
+The data in a <CODE>POST</CODE> form is sent as the body part of the
+<A HREF="http://www.w3.org/Protocols/">HTTP</A> message whereas a
+<CODE>GET</CODE> form wraps it all up into the URI. In order to be able to
 use the <CODE>POST</CODE> data object at a later point in time, we create
-a new anchor on the fly. This anchor has a URL file location which points
+a new anchor on the fly. This anchor has a URI file location which points
 into the temporary area given by the <A HREF="HTUser.html">User Profile
 Object</A>. That is - you can actually save the anchor using a
 <CODE>PUT</CODE> request and then be able to retrive the form data at a later
@@ -280,26 +325,25 @@ it is really just a special example of sending any kind of data to a remote
 server. All <CODE>POST</CODE> form functions return the new anchor or
 <CODE>NULL</CODE> if they fail.
 <H3>
-  Send a Form from Absolute URL using POST
+  Submit Form from Absolute URI using POST
 </H3>
 <P>
-Request a <CODE>POST</CODE> form referencd by an absolute URL appended with
-the formdata given. The URL can <I>NOT</I> contain any fragment identifier!
-The list of form data must be given as an association list where the name
-is the field name and the value is the value of the field.
+Submit formdata using POST to the address indicated as the "base" which must
+be an absolute URI. The list of form data must be given as an
+<A HREF="HTAssoc.html">association list</A> where the name is the field name
+and the value is the value of the field.
 <PRE>
 extern HTParentAnchor * HTPostFormAbsolute (HTAssocList *	formdata,
 					    const char *	base,
 					    HTRequest *	request);
 </PRE>
 <H3>
-  Send a Form from a Relative URL using GET
+  Submit Form from a Relative URI using GET
 </H3>
 <P>
-Request a <CODE>POST</CODE> form referencd by a relative URL appended with
-the formdata given. The URL can <I>NOT</I> contain any fragment identifier!
-The list of form data must be given as an association list where the name
-is the field name and the value is the value of the field.
+Submit formdata using POST to the address indicated relative to the address
+of the base anchor. The list of form data must be given as an association
+list where the name is the field name and the value is the value of the field.
 <PRE>
 extern HTParentAnchor * HTPostFormRelative (HTAssocList * 	formdata,
 					    const char * 	relative,
@@ -307,27 +351,27 @@ extern HTParentAnchor * HTPostFormRelative (HTAssocList * 	formdata,
 					    HTRequest *		request);
 </PRE>
 <H3>
-  Send a Form using an Anchor and the POST Method
+  Submit Form using an Anchor and the POST Method
 </H3>
 <P>
-Request a <CODE>POST</CODE> form referencd by an anchor object appended with
-the formdata given. The URL can NOT contain any fragment identifier! The
-list of form data must be given as an association list where the name is
-the field name and the value is the value of the field.
+Submit formdata using POST to the address indicated of the anchor. The list
+of form data must be given as an <A HREF="HTAssoc.html">association list</A>
+where the name is the field name and the value is the value of the field.
 <PRE>
 extern HTParentAnchor * HTPostFormAnchor (HTAssocList *	formdata,
 					  HTAnchor *	anchor,
 					  HTRequest * 	request);
 </PRE>
 <H3>
-  Send a Form and Save the Result in a Memory Buffer
+  Submit Form and Save the Result in a Memory Buffer
 </H3>
 <P>
-Send a form to the location referred to by the <A HREF="HTAnchor.html">HTAnchor
-object</A> and load the result of the POST into a
-<A HREF="HTChunk.html">HTChunk object</A>. A <A HREF="HTChunk.html">chunk
-object</A> is a dynamic memory buffer so in the end you will have a single
-memory buffer containing the document. The chunk must be freed by the caller.
+Submit formdata to the address referred to by the
+<A HREF="HTAnchor.html">HTAnchor object</A> and load the result of the POST
+into a <A HREF="HTChunk.html">HTChunk object</A>. A
+<A HREF="HTChunk.html">chunk object</A> is a dynamic memory buffer so in
+the end you will have a single memory buffer containing the document. The
+chunk must be freed by the caller.
 <PRE>
 extern HTChunk * HTPostFormAnchorToChunk (HTAssocList * formdata,
                                           HTAnchor *    anchor,
@@ -338,22 +382,22 @@ extern HTChunk * HTPostFormAnchorToChunk (HTAssocList * formdata,
 </H2>
 <P>
 If you are not interested in the document itself but only in the
-<I>metainformation</I> that you can get <I>describing</I> the document then
-you should use the <CODE>HEAD</CODE> method in your request.
+<I>metainformation</I> that <I>describes</I> the document then you should
+use the <CODE>HEAD</CODE> method in your request.
 <H3>
-  Get Metainformation about a Document from Absolute URL
+  Get Metainformation about a Document from Absolute URI
 </H3>
 <P>
 Request metainfomration about a document referencd by an <I>absolute</I>
-URL.
+URI.
 <PRE>extern BOOL HTHeadAbsolute (const char * url, HTRequest * request);
 </PRE>
 <H3>
-  Get Metainformation about a Document from Relative URL
+  Get Metainformation about a Document from Relative URI
 </H3>
 <P>
 Request metainformation about a document referenced by a <I>relative</I>
-URL.
+URI.
 <PRE>extern BOOL HTHeadRelative (const char * 	relative,
 			    HTParentAnchor *	base,
 			    HTRequest *		request);
@@ -362,8 +406,8 @@ URL.
   Get Metainformation about a Document using an Anchor
 </H3>
 <P>
-Here the URL is represented by an <A HREF="HTAnchor.html">Anchor object</A>.
-You can get an anchor object representing a URL by passing the URL to the
+Here the URI is represented by an <A HREF="HTAnchor.html">Anchor object</A>.
+You can get an anchor object representing a URI by passing the URI to the
 approproiate method in the <A HREF="HTAnchor.html">Anchor class</A>.
 <PRE>extern BOOL HTHeadAnchor (HTAnchor * anchor, HTRequest * request);
 </PRE>
@@ -374,19 +418,19 @@ approproiate method in the <A HREF="HTAnchor.html">Anchor class</A>.
 If you want to delete a document (or make the document inaccessible for future
 references) then you can use the <CODE>DELETE</CODE> method in your request.
 <H3>
-  Delete a Document from Absolute URL
+  Delete a Document from Absolute URI
 </H3>
 <P>
 Request metainfomration about a document referencd by an <I>absolute</I>
-URL.
+URI.
 <PRE>extern BOOL HTDeleteAbsolute (const char * url, HTRequest * request);
 </PRE>
 <H3>
-  Delete a Document from Relative URL
+  Delete a Document from Relative URI
 </H3>
 <P>
 Request metainformation about a document referenced by a <I>relative</I>
-URL.
+URI.
 <PRE>extern BOOL HTDeleteRelative (const char * 	relative,
 			    HTParentAnchor *	base,
 			    HTRequest *		request);
@@ -395,55 +439,50 @@ URL.
   Delete a Document using an Anchor
 </H3>
 <P>
-Here the URL is represented by an <A HREF="HTAnchor.html">Anchor object</A>.
-You can get an anchor object representing a URL by passing the URL to the
+Here the URI is represented by an <A HREF="HTAnchor.html">Anchor object</A>.
+You can get an anchor object representing a URI by passing the URI to the
 approproiate method in the <A HREF="HTAnchor.html">Anchor class</A>.
 <PRE>extern BOOL HTDeleteAnchor (HTAnchor * anchor, HTRequest * request);
 </PRE>
 <H2>
-  <A NAME="SaveASIS">Save a Document ASIS (Method = PUT)</A>
+  <A NAME="SaveASIS">Save a Document ASIS From Memory (Method = PUT)</A>
 </H2>
 <P>
-You can upload a document to a remote server using the following methods.
-The document that you want to PUT must be in the form of an anchor. The reason
-for this is that when we are put'ing a document we must have some metainformation
-available. Metainformation can be the media type, the document length, the
-lamguage, or any other metainformation that you can find associated with
-the Anchor object.
+If you already have a document in memory and it is associated with an
+<A HREF="HTAnchor.html">Anchor object</A> then you can PUT this document
+to a remote server using the following methods. Other information that you
+can set in the anchor is metadata like the media type, the document length,
+the language, or any other information that you want to associate with the
+document to be uploaded.
 <P>
-This set of functions takes the contents of the anchor <B>ASIS</B> - that
-it the <I>exact</I> content of the document associated with this anchor will
-be sent to the remote server. If your anchor represents a structured content
+This set of functions takes the document <B>ASIS</B> - that it the
+<I>exact</I> content of the document associated with this anchor will be
+sent to the remote server. If your anchor represents a structured content
 and the document itself is a parse tree, for example, then you can use the
-more flexible structure <A HREF="HTAccess.html#SaveStructured">PUT interface
-below</A>.
+<A HREF="#SaveStructured">structured PUT functions</A>.
 <P>
-If your application is an Web editor, then you may want to create a new anchor
+If your application is an editor, then you may want to create a new anchor
 on the fly for temporary backups on local disk before you save it to a remote
-server. An easy way to get a new anchor with a local file URL pointing into
-local file space is by using the <A HREF="HTHome.html#temp">HTTmpAnchor()</A>
-function which is part of the <A HREF="WWWApp.html">WWWApp interface</A>.
+server. An easy way to get a new anchor with a local file URI is to use the
+<A HREF="HTHome.html#temp">HTTmpAnchor</A> function which is part of the
+<A HREF="WWWApp.html">WWWApp interface</A>.
 <H3>
-  Save a Document ASIS from Absolute URL using PUT
+  Save a Document ASIS from Memory Using Absolute URI (PUT)
 </H3>
 <P>
-Upload a document referenced by an absolute URL. The URL can <I>NOT</I> contain
-any fragment identifier - that is, it must be a parent anchor! The list of
-form data must be given as an association list where the name is the field
-name and the value is the value of the field.
+The source is an anchor with the contents already in memory and the destination
+is an absolute URI.
 <PRE>
 extern BOOL HTPutAbsolute (HTParentAnchor *	source,
 			   const char *		destination,
 			   HTRequest *		request);
 </PRE>
 <H3>
-  Save a Document ASIS from Relative URL using PUT
+  Save a Document ASIS from Memory Using Relative URI (PUT)
 </H3>
 <P>
-Upload a document referenced by a relative URL appended. The URL can
-<I>NOT</I> contain any fragment identifier! The list of form data must be
-given as an association list where the name is the field name and the value
-is the value of the field.
+The source is an anchor with the contents already in memory and the destination
+is a relative URI relative to the destination anchor
 <PRE>
 extern BOOL HTPutRelative (HTParentAnchor *	source,
 			   const char * 	relative,
@@ -451,13 +490,11 @@ extern BOOL HTPutRelative (HTParentAnchor *	source,
 			   HTRequest *		request);
 </PRE>
 <H3>
-  Save a Document ASIS Using an Anchor and the PUT Method
+  Save a Document ASIS from Memory Using an Anchor (PUT)
 </H3>
 <P>
-Upload a document referenced by an anchor object appended The URL can
-<I>NOT</I> contain any fragment identifier! The list of form data must be
-given as an association list where the name is the field name and the value
-is the value of the field.
+Both the source and the anchor are anchor objects. The source anchor already
+has the contents in memory
 <PRE>
 extern BOOL HTPutAnchor (HTParentAnchor *	source,
 			 HTAnchor *		dest,
@@ -467,22 +504,19 @@ extern BOOL HTPutAnchor (HTParentAnchor *	source,
   <A NAME="SaveStructured">Save a Structured Document (Using PUT)</A>
 </H2>
 <P>
-If the content of the document associated with the anchor contains structured
-information and can't be uploaded <B>ASIS</B> then you can use this interface.
-The only difference is that the caller must provide the function that provides
-data while sending it accross the network. You can find several examples
-in the <A HREF="HTAccess.html">HTAccess module</A> on how to write a data
-source function. You can for example have a look at the
-<CODE>HTEntity_callback</CODE> function which is used in the <B>ASIS</B>
-interface.
+If you want to save a document from memory but it contains structured information
+(for example, it is in the form of a parse tree) then you can use this interface.
+The only difference from above is that the caller must provide the function
+that provides data while sending it accross the network - we can't just take
+it as a block. You can for example have a look at the
+<CODE>HTEntity_callback</CODE> function which is used in the
+<A HREF="#SaveASIS"><B>ASIS</B> interface</A> if you want to write your own
+data feeding method.
 <H3>
-  Save a Structured Document to Absolute URL using PUT
+  Save a Structured Document from Memory to Absolute URI (PUT)
 </H3>
 <P>
-Upload a document referenced by an absolute URL appended. The URL can NOT
-contain any fragment identifier! The list of form data must be given as an
-association list where the name is the field name and the value is the value
-of the field.
+Upload a document referenced by an absolute URI.
 <PRE>
 extern BOOL HTPutStructuredAbsolute (HTParentAnchor *	source,
 				     const char *	destination,
@@ -490,13 +524,11 @@ extern BOOL HTPutStructuredAbsolute (HTParentAnchor *	source,
 				     HTPostCallback *	input);
 </PRE>
 <H3>
-  Save a Structured Document to Relative URL using PUT
+  Save a Structured Document from Memory to Relative URI (PUT)
 </H3>
 <P>
-Upload a document referenced by a relative URL appended. The URL can NOT
-contain any fragment identifier! The list of form data must be given as an
-association list where the name is the field name and the value is the value
-of the field.
+The source is an anchor with the contents already in memory and the destination
+is a relative URI relative to the destination anchor
 <PRE>
 extern BOOL HTPutStructuredRelative (HTParentAnchor *	source,
 				     const char * 	relative,
@@ -508,10 +540,8 @@ extern BOOL HTPutStructuredRelative (HTParentAnchor *	source,
   Save a Structured Document Using an Anchor and the PUT Method
 </H3>
 <P>
-Upload a document referenced by an anchor object appended The URL can NOT
-contain any fragment identifier! The list of form data must be given as an
-association list where the name is the field name and the value is the value
-of the field. The HTPostCallback function type is declared in the HTRequest
+The source is an anchor with the contents already in memory and the destination
+is a relative URI. The HTPostCallback function type is declared in the HTRequest
 object.
 <PRE>
 extern BOOL HTPutStructuredAnchor (HTParentAnchor *	source,
@@ -520,38 +550,29 @@ extern BOOL HTPutStructuredAnchor (HTParentAnchor *	source,
 				   HTPostCallback *	input);
 </PRE>
 <H2>
-  <A NAME="SaveURL">Save a Document (Using PUT)</A>
+  <A NAME="SaveURL">Save a Remote Document (Using PUT)</A>
 </H2>
 <P>
-If the content of the document associated with the anchor contains document
-information and can't be uploaded <B>ASIS</B> then you can use this interface.
-The only difference is that the caller must provide the function that provides
-data while sending it accross the network. You can find several examples
-in the <A HREF="HTAccess.html">HTAccess module</A> on how to write a data
-source function. You can for example have a look at the
-<CODE>HTEntity_callback</CODE> function which is used in the <B>ASIS</B>
-interface.
+If the content of the document associated with the anchor is <B>NOT</B> in
+memory then you can use this interface. These methods make two requests:
+first they go out and get the source which can be on an FTP server, on local
+disk, on another HTTP server etc. and then they PUT this document ASIS to
+the destination HTTP server.
 <H3>
-  Save a Document from Absolute URL using PUT
+  Save a Document from Absolute URI using PUT
 </H3>
 <P>
-Upload a document referenced by an absolute URL appended. The URL can NOT
-contain any fragment identifier! The list of form data must be given as an
-association list where the name is the field name and the value is the value
-of the field.
+Get the source and PUT it to the destination which is an absolute URI
 <PRE>
 extern BOOL HTPutDocumentAbsolute (HTParentAnchor *	source,
 				   const char *	        destination,
 				   HTRequest *	        request);
 </PRE>
 <H3>
-  Save a Document from Relative URL using PUT
+  Save a Document from Relative URI using PUT
 </H3>
 <P>
-Upload a document referenced by a relative URL appended. The URL can NOT
-contain any fragment identifier! The list of form data must be given as an
-association list where the name is the field name and the value is the value
-of the field.
+Get the source and PUT it to the destination which is a relative URI
 <PRE>
 extern BOOL HTPutDocumentRelative (HTParentAnchor *	source,
 				   const char * 	relative,
@@ -562,57 +583,47 @@ extern BOOL HTPutDocumentRelative (HTParentAnchor *	source,
   Save a Document Using an Anchor and the PUT Method
 </H3>
 <P>
-Upload a document referenced by an anchor object appended The URL can NOT
-contain any fragment identifier! The list of form data must be given as an
-association list where the name is the field name and the value is the value
-of the field. The HTPostCallback function type is declared in the HTRequest
-object.
+Get the source and PUT it to the destination which is an anchor object.
 <PRE>
 extern BOOL HTPutDocumentAnchor (HTParentAnchor *	source,
 				 HTAnchor *		destination,
 				 HTRequest *	 	request);
 </PRE>
 <H2>
-  <A NAME="PostASIS">Save a Document ASIS (Method = POST)</A>
+  <A NAME="PostASIS">Post a Document from Memory ASIS (Method = POST)</A>
 </H2>
 <P>
-You can upload a document to a remote server using the following methods.
-The document that you want to POST must be in the form of an anchor. The
-reason for this is that when we are posting a document we must have some
-metainformation available. Metainformation can be the media type, the document
-length, the lamguage, or any other metainformation that you can find associated
-with the Anchor object.
+If you already have a document in memory and it is associated with an
+<A HREF="HTAnchor.html">Anchor object</A> then you can POST this document
+to a remote server using the following methods. Other information that you
+can set in the anchor is metadata like the media type, the document length,
+the language, or any other information that you want to associate with the
+document to be uploaded.
 <P>
-This set of functions takes the contents of the anchor <B>ASIS</B> - that
-it the <I>exact</I> content of the document associated with this anchor will
-be sent to the remote server.
+This set of functions takes the document <B>ASIS</B> - that it the
+<I>exact</I> content of the document associated with this anchor will be
+sent to the remote server.
 <P>
-If your application is an Web editor, then you may want to create a new anchor
+If your application is an editor, then you may want to create a new anchor
 on the fly for temporary backups on local disk before you save it to a remote
-server. An easy way to get a new anchor with a local file URL pointing into
-local file space is by using the <A HREF="HTHome.html#temp">HTTmpAnchor()</A>
-function which is part of the <A HREF="WWWApp.html">WWWApp interface</A>.
+server. An easy way to get a new anchor with a local file URI is to use the
+<A HREF="HTHome.html#temp">HTTmpAnchor</A> function which is part of the
+<A HREF="WWWApp.html">WWWApp interface</A>.
 <H3>
-  Save a Document ASIS from Absolute URL using POST
+  Post a Document from Memory ASIS using Absolute URI (POST)
 </H3>
 <P>
-Upload a document referenced by an absolute URL. The URL can <I>NOT</I> contain
-any fragment identifier - that is, it must be a parent anchor! The list of
-form data must be given as an association list where the name is the field
-name and the value is the value of the field.
+Upload a document using POST referenced by an absolute URI.
 <PRE>
 extern BOOL HTPostAbsolute (HTParentAnchor *	source,
 			   const char *		destination,
 			   HTRequest *		request);
 </PRE>
 <H3>
-  Save a Document ASIS from Relative URL using POST
+  Post a Document from Memory ASIS using Relative URI (POST)
 </H3>
 <P>
-Upload a document referenced by a relative URL appended. The URL can
-<I>NOT</I> contain any fragment identifier! The list of form data must be
-given as an association list where the name is the field name and the value
-is the value of the field.
+Upload a document using POST referenced by a relative URI.
 <PRE>
 extern BOOL HTPostRelative (HTParentAnchor *	source,
 			   const char * 	relative,
@@ -620,20 +631,18 @@ extern BOOL HTPostRelative (HTParentAnchor *	source,
 			   HTRequest *		request);
 </PRE>
 <H3>
-  Save a Document ASIS Using an Anchor and the POST Method
+  Post a Document from Memory ASIS using an Anchor (POST)
 </H3>
 <P>
-Upload a document referenced by an anchor object appended The URL can
-<I>NOT</I> contain any fragment identifier! The list of form data must be
-given as an association list where the name is the field name and the value
-is the value of the field.
+POST an anchor - here both the source and the anchor are anchor objects.
+The source anchor already has the contents in memory.
 <PRE>
 extern BOOL HTPostAnchor (HTParentAnchor *	source,
 			 HTAnchor *		dest,
 			 HTRequest *	 	request);
 </PRE>
 <H2>
-  Get Available Options for a Document (Method = OPTIONS)
+  <A NAME="OPTIONS">Get Available Options for a Document (Method = OPTIONS)</A>
 </H2>
 <P>
 If you want to get information about a document then you can use the the
@@ -648,21 +657,21 @@ A speciality about the <CODE>OPTIONS</CODE> method is that the client can
 issue a request with no pathinfo at all but only with a "<CODE>*</CODE>".
 That is, the request line can look like this "<CODE>OPTIONS * HTTP/1.1</CODE>".
 This means that we request information about the server as a whole and not
-only about a single URL. You can get this effect by using a URL containing
+only about a single URI. You can get this effect by using a URI containing
 the hostname alone with <B>NO</B> extra slash at the end, for example
 <CODE>http://www.w3.org</CODE>, <CODE>http://www.cern.ch</CODE>.
 <H3>
-  Options Available for Document from Absolute URL
+  Options Available for Document from Absolute URI
 </H3>
 <P>
-Request options about a document referencd by an <I>absolute</I> URL.
+Request options about a document referencd by an <I>absolute</I> URI.
 <PRE>extern BOOL HTOptionsAbsolute (const char * url, HTRequest * request);
 </PRE>
 <H3>
-  Options Available for Document from Relative URL
+  Options Available for Document from Relative URI
 </H3>
 <P>
-Request options about a document referenced by a <I>relative</I> URL.
+Request options about a document referenced by a <I>relative</I> URI.
 <PRE>extern BOOL HTOptionsRelative (const char * 	relative,
 			    HTParentAnchor *	base,
 			    HTRequest *		request);
@@ -671,13 +680,14 @@ Request options about a document referenced by a <I>relative</I> URL.
   Options Available for Document using an Anchor
 </H3>
 <P>
-Here the URL is represented by an <A HREF="HTAnchor.html">Anchor object</A>.
-You can get an anchor object representing a URL by passing the URL to the
+Here the URI is represented by an <A HREF="HTAnchor.html">Anchor object</A>.
+You can get an anchor object representing a URI by passing the URI to the
 appropriate method in the <A HREF="HTAnchor.html">Anchor class</A>.
 <PRE>extern BOOL HTOptionsAnchor (HTAnchor * anchor, HTRequest * request);
 </PRE>
 <H2>
-  Get Trace Loop back Information for a Document (Method = TRACE)
+  <A NAME="TRACE">Get Trace Loop back Information for a Document (Method =
+  TRACE)</A>
 </H2>
 <P>
 The TRACE method is used to invoke a remote, application-layer loop-back
@@ -699,17 +709,17 @@ If successful, the response SHOULD contain the entire request message in
 the entity-body, with a Content-Type of <CODE>"message/http"</CODE>. Responses
 to this method MUST NOT be cached.
 <H3>
-  Traces Available for Document from Absolute URL
+  Traces Available for Document from Absolute URI
 </H3>
 <P>
-Request traces about a document referencd by an <I>absolute</I> URL.
+Request traces about a document referencd by an <I>absolute</I> URI.
 <PRE>extern BOOL HTTraceAbsolute (const char * url, HTRequest * request);
 </PRE>
 <H3>
-  Traces Available for Document from Relative URL
+  Traces Available for Document from Relative URI
 </H3>
 <P>
-Request traces about a document referenced by a <I>relative</I> URL.
+Request traces about a document referenced by a <I>relative</I> URI.
 <PRE>extern BOOL HTTraceRelative (const char * 	relative,
 			     HTParentAnchor *	base,
 			     HTRequest *	request);
@@ -718,25 +728,25 @@ Request traces about a document referenced by a <I>relative</I> URL.
   Traces Available for Document using an Anchor
 </H3>
 <P>
-Here the URL is represented by an <A HREF="HTAnchor.html">Anchor object</A>.
-You can get an anchor object representing a URL by passing the URL to the
+Here the URI is represented by an <A HREF="HTAnchor.html">Anchor object</A>.
+You can get an anchor object representing a URI by passing the URI to the
 appropriate method in the <A HREF="HTAnchor.html">Anchor class</A>.
 <PRE>extern BOOL HTTraceAnchor (HTAnchor * anchor, HTRequest * request);
 </PRE>
 <H2>
-  Save a URL To Multiple Destinations
+  Save a URI To Multiple Destinations - Not supported!!!
 </H2>
 <P>
-<I><B>Note:</B> This is not as stable as the other functions yet!</I>
+<STRONG>Note: This is no longer supported</STRONG>
 <P>
 These are the generic versions of the <CODE>PUT</CODE> and <CODE>POST</CODE>
 functions. They can be used to send documents to multiple destinations
 simultanously using the PostWeb model.
 <H3>
-  Copy an anchor
+  Copy an anchor - not supported
 </H3>
 <P>
-Fetch the URL from either local file store <B>or</B> from a remote HTTP server
+Fetch the URI from either local file store <B>or</B> from a remote HTTP server
 and send it using either PUT or POST to the remote destination using HTTP.
 The caller can decide the exact method used and which HTTP header fields
 to transmit by setting the user fields in the request structure. If posting
@@ -746,7 +756,7 @@ to the news module that then takes all the refs to NNTP and puts into the
 <PRE>extern BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_req);
 </PRE>
 <H3>
-  Upload an Anchor
+  Upload an Anchor - not supported
 </H3>
 <P>
 This function can be used to send data along with a request to a remote server.
@@ -770,7 +780,7 @@ Returns YES if request accepted, else NO
 			    HTPostCallback *	callback);
 </PRE>
 <H3>
-  POST Callback Handler
+  POST Callback Handler - not supported
 </H3>
 <P>
 Is you do not want to handle the stream interface on your own, you can use
