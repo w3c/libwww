@@ -1089,6 +1089,9 @@ PRIVATE int HTSaveFilter (HTRequest * request, HTResponse * response,
 	    HTRequest_addRqHd(request, HT_C_IF_MATCH | HT_C_IF_UNMOD_SINCE);
 	}
 
+        /* Delete existing credentials as they are generated anew */
+        HTRequest_deleteCredentialsAll(request);
+
 	/* Make sure we flush the output immediately */
 	HTRequest_forceFlush(request);
 
