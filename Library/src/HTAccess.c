@@ -342,15 +342,13 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
 	StrAllocCopy(addr, HTAnchor_physical(req->anchor));
 
 #ifndef NO_RULES
-    if (HTImServer)	/* cern_httpd has already done its own translations */
-	HTAnchor_setPhysical(req->anchor, HTImServer);
-#ifdef OLD_CODE
+    if (HTImServer) {	/* cern_httpd has already done its own translations */
+	addr = HTImServer;
 	HTAnchor_setPhysical(req->anchor, addr);
-#endif
+    }
     else {
 	char * physical = HTTranslate(addr);
 	if (!physical) {
-	    free(addr);
 	    return HT_FORBIDDEN;
 	}
 	HTAnchor_setPhysical(req->anchor, physical);
