@@ -127,7 +127,7 @@ PRIVATE BOOL ComLine_delete (ComLine * me)
 PRIVATE void Cleanup (ComLine * me, int status)
 {
     ComLine_delete(me);
-    HTLibTerminate();
+    HTProfile_delete();
 #ifdef VMS
     exit(status ? status : 1);
 #else

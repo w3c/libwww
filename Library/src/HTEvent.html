@@ -37,8 +37,9 @@ handling the <B>registration</B> process as described below.
 <B>Note</B>: The library <B>core</B> does <I>not</I> define any event manager
 - it is considered part of the application. The library comes with a
 <A HREF="HTEvntrg.html">default event manager</A> which can be initiated
-using the function <CODE>HTEventInit()</CODE> in <A HREF="HTInit.html">HTInit
-module</A>
+using the function 
+<CODE>HTEventInit()</CODE> in the 
+<A HREF="HTEvntrg.html">HTEvntrg module</A>.
 <P>
 This module is implemented by <A HREF="HTEvent.c">HTEvent.c</A>, and it is
 a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C Reference
@@ -123,7 +124,8 @@ extern void HTEvent_setUnregisterCallback(HTEvent_unregisterCallback *);
 </PRE>
 <P>
 You can register the event manager provided together with libwww by using
-the <CODE>HTEventInit()</CODE> in the <A HREF="HTInit.html">HTInit module</A>
+<CODE>HTEventInit()</CODE> in the 
+<A HREF="HTEvntrg.html">HTEvntrg module</A>.
 <PRE>
 #endif /* HTEVENT_H */
 </PRE>

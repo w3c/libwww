@@ -235,9 +235,8 @@ PRIVATE BOOL Thread_delete (Robot * mr, HTRequest * request)
 */
 PRIVATE void Cleanup (Robot * me, int status)
 {
-    HTNet_killAll();
     Robot_delete(me);
-    HTLibTerminate();
+    HTProfile_delete();
 #ifdef VMS
     exit(status ? status : 1);
 #else
