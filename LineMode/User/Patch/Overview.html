@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Known Bugs in Line Mode Browser</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 16-Oct-1995 -->
 </HEAD>
 <BODY>
 
@@ -10,8 +10,6 @@
 <IMG ALT="BUG" SRC="../../Icons/WWW/Bug48x.gif">
 
 <H1>Known Bugs in Line Mode Browser</H1>
-
-The list of known bugs are in reverse chronological order.<P>
 
 The list of known bugs are in reverse chronological order. Please
 report bugs or bug-fixes to <A
@@ -23,7 +21,45 @@ appear.
 	./www -version
 </PRE>
 
+The provided patches are relative to the <CODE>WWW</CODE> directory in
+the distribution tree. In order to apply a patch, do the following in
+the <CODE>WWW</CODE> directory:
+
+<OL>
+
+<LI>Download the patch, for example <EM>lmb-1.patch</EM>
+
+<LI>Invoke the patch command by typing 
+
+<PRE>
+	patch &lt; lmb-1.patch
+</PRE>
+
+<LI>Rebuild the code by typing
+
+<PRE>
+	make clobber
+	./BUILD linemode
+</PRE>
+</OL>
+
 <HR>
+
+<H2>Version 3.1</H2>
+
+<DL>
+<DT>Problem running from scripts or as a cron job
+
+<DD>Version 3.1 of the Line Mode Browser registers STDIN as an channel
+for user input. If the browser is run as a cron job then STDIN comes
+from <CODE>/dev/null</CODE> which always returns ready for reading in
+a select call. Line Mode browser then thinks that the user has
+interrupted the request and exists. Apply <A
+HREF="Patch/lmb-1.patch">this patch</A> in order to avoid the problem.
+
+</DL>
+
+<H2>On the Wish list</H2>
 
 <DL>
 
@@ -60,6 +96,6 @@ anchor numbers.
 <P>
 <HR>
 <ADDRESS><A HREF="../../People.html#BernersLee">Tim BL</A>, and <A HREF="../../People.html#Frystyk">Henrik Frystyk</A>,
-<A HREF="mailto:www-bug@w3.org">www-bug@w3.org</A>, July 1995</ADDRESS>
+<A HREF="mailto:www-bug@w3.org">www-bug@w3.org</A>, October 1995</ADDRESS>
 </BODY>
 </HTML>

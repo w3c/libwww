@@ -1,0 +1,177 @@
+===================================================================
+RCS file: /afs/w3.org/hypertext/WWW/LineMode/Repository/Implementation/HTBrowse.c,v
+retrieving revision 1.66
+diff -c -r1.66 HTBrowse.c
+*** 1.66	1995/07/14 23:14:08
+--- LineMode/Implementation/HTBrowse.c	1995/10/16 15:46:01
+***************
+*** 81,86 ****
+--- 81,88 ----
+  #define COM_HELP_FILE "http://www.w3.org/hypertext/WWW/LineMode/Defaults/CommandLine.html"
+  #endif
+  
++ #define C_HELP "http://www.w3.org/hypertext/WWW/LineMode/Defaults/Commands.html"
++ 
+  #ifndef DEFAULT_OUTPUT_FILE
+  #define DEFAULT_OUTPUT_FILE		"www-out"
+  #endif
+***************
+*** 188,193 ****
+--- 190,196 ----
+  PRIVATE int		OldTraceFlag = SHOW_ALL_TRACE;
+  PRIVATE BOOL		Blocking = NO;			/* Use multithreaded */
+  PRIVATE FILE *	        output = NULL;
++ PRIVATE int 		loadstat;
+  
+  #ifdef VMS
+  #ifdef __DECC
+***************
+*** 309,315 ****
+  }
+  #endif /* CATCH_SIG */
+  
+! 
+  /*		Display Help screen	 		 Help_screen
+  **		-------------------
+  ** Produce a help screen, displaying the current document address and
+--- 312,318 ----
+  }
+  #endif /* CATCH_SIG */
+  
+! #if 0
+  /*		Display Help screen	 		 Help_screen
+  **		-------------------
+  ** Produce a help screen, displaying the current document address and
+***************
+*** 400,406 ****
+      printf("\n");
+      free(current_address);    
+  } /* End of help_screen */
+! 
+  
+  /* 	Reference_List
+  **	--------------
+--- 403,409 ----
+      printf("\n");
+      free(current_address);    
+  } /* End of help_screen */
+! #endif
+  
+  /* 	Reference_List
+  **	--------------
+***************
+*** 610,620 ****
+  	    sprintf(msg, "The destination is already related to the source with a %s method, continue?", metstr);
+  	    confirm = HTConfirm(msg);
+  	    free(msg);
+! 	} else
+! 	    HTAnchor_link((HTAnchor *) src, (HTAnchor *) dest, NULL, method);
+  
+  	if (confirm) {
+  	    *actreq = Thread_new(YES);		       /* This is the source */
+  	    status = HTCopyAnchor((HTAnchor *) src, *actreq);
+  	}
+  	free(this_addr);
+--- 613,624 ----
+  	    sprintf(msg, "The destination is already related to the source with a %s method, continue?", metstr);
+  	    confirm = HTConfirm(msg);
+  	    free(msg);
+! 	}
+  
+  	if (confirm) {
+  	    *actreq = Thread_new(YES);		       /* This is the source */
++ 	    /* HTAnchor_removeAllLinks((HTAnchor *) src); */
++ 	    HTAnchor_link((HTAnchor *) src, (HTAnchor *) dest, NULL, method);
+  	    status = HTCopyAnchor((HTAnchor *) src, *actreq);
+  	}
+  	free(this_addr);
+***************
+*** 696,702 ****
+      char * other_words;				/* Second word and following */
+      BOOL is_index = HTAnchor_isIndex(HTMainAnchor);
+      BOOL found = YES;
+!     int loadstat = HT_INTERNAL;
+  
+      if (!fgets(choice, RESPONSE_LENGTH, stdin))		  /* Read User Input */
+  	return EVENT_QUIT;				      /* Exit if EOF */
+--- 700,706 ----
+      char * other_words;				/* Second word and following */
+      BOOL is_index = HTAnchor_isIndex(HTMainAnchor);
+      BOOL found = YES;
+!     loadstat = HT_INTERNAL;
+  
+      if (!fgets(choice, RESPONSE_LENGTH, stdin))		  /* Read User Input */
+  	return EVENT_QUIT;				      /* Exit if EOF */
+***************
+*** 817,828 ****
+  	break;
+  	
+        case '?':
+! 	help_screen();
+  	break;
+  	
+        case 'H':
+  	if (Check_User_Input("HELP")) {			     /* help menu, ..*/
+! 	    help_screen();			  /*!! or a keyword search ? */
+  	} else if (Check_User_Input("HOME")) {			/* back HOME */
+  	    if (!HTHistory_canBacktrack()) {
+  		HText_scrollTop(HTMainText);
+--- 821,836 ----
+  	break;
+  	
+        case '?':
+! 	*actreq = Thread_new(YES);
+! 	(*actreq)->BlockingIO = YES;
+! 	loadstat = HTLoadAbsolute(MANUAL, *actreq);
+  	break;
+  	
+        case 'H':
+  	if (Check_User_Input("HELP")) {			     /* help menu, ..*/
+! 	    *actreq = Thread_new(YES);
+! 	    (*actreq)->BlockingIO = YES;
+! 	    loadstat = HTLoadAbsolute(C_HELP, *actreq);
+  	} else if (Check_User_Input("HOME")) {			/* back HOME */
+  	    if (!HTHistory_canBacktrack()) {
+  		HText_scrollTop(HTMainText);
+***************
+*** 1532,1539 ****
+      /* Test of putting non-interactive mode into the event loop as well */
+      reqlist = HTList_new();
+      HTList_addObject(reqlist, (void *) request);
+!     HTEvent_RegisterTTY( STDIN_FILENO, request, (SockOps)FD_READ,
+! 			NewEventHandler, 1) ;
+      HTHistory_record((HTAnchor *) home_anchor);	    	    /* Setup history */
+      return_status = HTEventLoop(request, home_anchor,
+  				(keywords && *keywords) ? keywords : NULL);
+--- 1540,1553 ----
+      /* Test of putting non-interactive mode into the event loop as well */
+      reqlist = HTList_new();
+      HTList_addObject(reqlist, (void *) request);
+! #ifdef STDIN_FILENO
+!     if (isatty(STDIN_FILENO)) {
+! 	HTEvent_RegisterTTY(STDIN_FILENO, request, (SockOps)FD_READ,
+! 			    NewEventHandler, 1);
+!     }
+! #else
+!     HTEvent_RegisterTTY(0, request, (SockOps)FD_READ, NewEventHandler, 1);
+! #endif
+      HTHistory_record((HTAnchor *) home_anchor);	    	    /* Setup history */
+      return_status = HTEventLoop(request, home_anchor,
+  				(keywords && *keywords) ? keywords : NULL);
+***************
+*** 1572,1578 ****
+  
+      theEventState = EventHandler( &newrqp);
+      if (theEventState == EVENT_TERM)
+!     	theEventState = HTEventRequestTerminate( newrqp, theEventState) ;
+      if (!HTEventCheckState( newrqp, theEventState))   /* returned EVENT_QUIT */
+    	return HT_OK;
+      else 
+--- 1586,1592 ----
+  
+      theEventState = EventHandler( &newrqp);
+      if (theEventState == EVENT_TERM)
+!     	theEventState = HTEventRequestTerminate( newrqp, loadstat);
+      if (!HTEventCheckState( newrqp, theEventState))   /* returned EVENT_QUIT */
+    	return HT_OK;
+      else 
