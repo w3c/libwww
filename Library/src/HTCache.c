@@ -2345,7 +2345,7 @@ PRIVATE int CacheEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    break;
 
 	case CL_NEED_OPEN_FILE:
-	    status = HTFileOpen(net, cache->local, HT_FT_RDONLY);
+	    status = HTFileOpen(net, cache->local, HT_FB_RDONLY);
 	    if (status == HT_OK) {
 		/*
 		** Create the stream pipe FROM the channel to the application.
