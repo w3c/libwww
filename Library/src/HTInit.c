@@ -67,13 +67,13 @@ PUBLIC void HTConverterInit ARGS1(HTList *, c)
     HTSetConversion(c,"text/plain",		"www/present",	HTPlainPresent,	1.0, 0.0, 0.0);
     HTSetConversion(c,"text/html",		"text/x-c",	HTMLToC,	0.5, 0.0, 0.0);
     HTSetConversion(c,"text/html",		"text/plain",	HTMLToPlain,	0.5, 0.0, 0.0);
+    HTSetConversion(c,"text/html",	       	"text/latex",	HTMLToTeX,	1.0, 0.0, 0.0);
 
     /*
     ** These are converters that converts to something other than www/present,
     ** that is not directly outputting someting to the user on the screen
     */
     HTSetConversion(c,"www/mime",		"*/*",		HTMIMEConvert,	1.0, 0.0, 0.0);
-    HTSetConversion(c,"text/html",	       	"text/latex",	HTMLToTeX,	1.0, 0.0, 0.0);
     HTSetConversion(c,"text/plain",		"text/html",	HTPlainToHTML,	1.0, 0.0, 0.0);
     HTSetConversion(c,"application/x-wais-source","*/*",	HTWSRCConvert, 	1.0, 0.0, 0.0);
 

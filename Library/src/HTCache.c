@@ -345,31 +345,35 @@ PRIVATE char *HTCache_wwwName ARGS1 (char *, name)
 	StrAllocCopy(result, "file:");	     /* We get an absolute file name */
 #ifdef VMS 
 	/* convert directory name to Unix-style syntax */
-	char * disk = strchr (name, ':');
-	char * dir = strchr (name, '[');
-	if (disk) {
-	    *disk = '\0';
-	    StrAllocCat(result, "/");			  /* needs delimiter */
-	    StrAllocCat(result, name);
-	}
-	if (dir) {
-	    char *p;
-	    *dir = '/'; 	 		      /* Convert leading '[' */
-	    for (p = dir ; *p != ']'; ++p)
-		if (*p == '.') *p = '/';
-	    *p = '\0';  				 /* Cut on final ']' */
-	    StrAllocCat(result, dir);
+	{
+	    char * disk = strchr (name, ':');
+	    char * dir = strchr (name, '[');
+	    if (disk) {
+		*disk = '\0';
+		StrAllocCat(result, "/"); /* needs delimiter */
+		StrAllocCat(result, name);
+	    }
+	    if (dir) {
+		char *p;
+		*dir = '/';	/* Convert leading '[' */
+		for (p = dir ; *p != ']'; ++p)
+		    if (*p == '.') *p = '/';
+		*p = '\0';	/* Cut on final ']' */
+		StrAllocCat(result, dir);
+	    }
 	}
 #else  /* not VMS */
 #ifdef WIN32
-	char * p = name;					  /* a colon */
-	StrAllocCat(result, "/");
-	while( *p != 0 ) { 
-	    if (*p == '\\')		         /* change to one true slash */
-		*p = '/' ;
-	    p++;
+	{
+	    char * p = name;					  /* a colon */
+	    StrAllocCat(result, "/");
+	    while( *p != 0 ) { 
+		if (*p == '\\')		         /* change to one true slash */
+		    *p = '/' ;
+		p++;
+	    }
+	    StrAllocCat(result, name);
 	}
-	StrAllocCat(result, name);
 #else /* not WIN32 */
 	StrAllocCat (result, name);
 #endif /* not WIN32 */
