@@ -1,12 +1,13 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
-   "http://www.w3.org/TR/REC-html40/loose.dtd">
+                      "http://www.w3.org/TR/REC-html40/loose.dtd">
 <html>
 <head>
-<title>Getting Libwww from the CVS Repository</title>
-<link rel="STYLESHEET" href="../StyleSheets/libwww.css" type="text/css">
+  <title>Getting Libwww from the CVS Repository</title>
+  <link rel="STYLESHEET" href="../StyleSheets/libwww.css" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html">
 </head>
-<body>
 
+<body>
 <p><a href="../"><img src="../Icons/WWW/w3c_home" alt="W3C" border="0"></a> <a
 href="./"><img src="../Icons/WWW/Lib48x" alt="libwww" border="0"></a></p>
 
@@ -15,41 +16,24 @@ href="./"><img src="../Icons/WWW/Lib48x" alt="libwww" border="0"></a></p>
 <p></p>
 
 <div class="intro">
-
-<a href="http://www.cyclic.com/cvs/info.html">CVS</a> allows
-<strong>YOU</strong> to follow the development of <a href="./">libwww</a> and
-its <a href="User/Applications.html">sample applications</a> closely and to
+<a href="http://www.gnu.org/software/cvs">CVS</a> allows <strong>YOU</strong>
+to follow the development of <a href="./">libwww</a> and its <a
+href="User/Applications.html">sample applications</a> closely and to
 contribute with patches and new features.
 <ul>
-<li>
-<a href="#Releases">How does libwww releases and CVS work together?</a>
-</li>
-<li>
-<a href="#Anonymous">How to check out libwww from CVS</a>
-</li>
-<li>
-<a href="#SSH">SSH Based CVS Checkout</a>
-</li>
-<li>
-<a href="#update">How to get the latest edits from CVS</a>
-</li>
-<li>
-<a href="#Write">CVS Write access and policy</a>
-</li>
-<li>
-<a href="#Boot">How to get bootstrapped after checking out</a>
-<ul>
-<li>
-<a href="#Easy">Generate Include files</a>
-</li>
-<li>
-<a href="#More">Generate Makefiles</a>
-</li>
-<li>
-<a href="#Compiling">Configure and compile libwww</a>
-</li>
-</ul>
-</li>
+  <li><a href="#Releases">How does libwww releases and CVS work
+  together?</a></li>
+  <li><a href="#Anonymous">How to check out libwww from CVS</a></li>
+  <li><a href="#SSH">SSH Based CVS Checkout</a></li>
+  <li><a href="#update">How to get the latest edits from CVS</a></li>
+  <li><a href="#Write">CVS Write access and policy</a></li>
+  <li><a href="#Boot">How to get bootstrapped after checking out</a>
+    <ul>
+      <li><a href="#Easy">Generate Include files</a></li>
+      <li><a href="#More">Generate Makefiles</a></li>
+      <li><a href="#Compiling">Configure and compile libwww</a></li>
+    </ul>
+  </li>
 </ul>
 
 <p>The following requires that you are familiar with CVS - if not then look at
@@ -60,7 +44,6 @@ provided by <a href="http://www.loria.fr/~molli/">Pascal.Molli</a>.</p>
 
 <p></p>
 <hr>
-
 
 <h2><a name="Releases">Libwww Releases</a></h2>
 
@@ -93,16 +76,12 @@ href="http://www.cyclic.com/cvs/windows.html">Windows</a>, and may even work
 for <a href="http://www.cyclic.com/cvs/mac.html">Macs</a> although I am not
 sure. A couple of notes:</p>
 <ul>
-<li>
-<a
-href="http://lists.w3.org/Archives/Public/www-lib/1999AprJun/0169.html">Win95/98
-doesn't have the notion of a home directory so you may have to set it
-yourself</a> or define it in <code>Admin/Preferences/WinCVS</code> in <a
-href="http://www.wincvs.org">WinCVS</a>
-</li>
-<li>
-Make sure you are running at least CVS 1.9 or later.
-</li>
+  <li><a
+    href="http://lists.w3.org/Archives/Public/www-lib/1999AprJun/0169.html">Win95/98
+    doesn't have the notion of a home directory so you may have to set it
+    yourself</a> or define it in <code>Admin/Preferences/WinCVS</code> in <a
+    href="http://www.wincvs.org">WinCVS</a></li>
+  <li>Make sure you are running at least CVS 1.9 or later.</li>
 </ul>
 
 <p>Start by login as follows:</p>
@@ -149,7 +128,7 @@ do</a> before committing changes to libwww.</p>
 access to the CVS repository using <a
 href="http://www.cs.hut.fi/ssh/">SSH</a>. You setup CVS to use SSH as remote
 shell by setting the <code>CVS_RSH</code> env variable. Using bash or similar,
-it looks like this:</p>
+it looks like this: </p>
 <pre>% <strong>export CVS_RSH=/usr/local/bin/ssh</strong></pre>
 
 <p>When you are using SSH, you don't need to do a CVS login. Instead you can
@@ -170,7 +149,7 @@ for Windows</a>.</p>
 the code base up to date with the <a href="Changes">latest edits and changes
 committed to CVS</a>. Whenever something has been committed, a notification
 will be sent to the &lt;<a
-href="http://lists.w3.org/Archives/Public/www-lib/">www-lib@w3.org</a>>
+href="http://lists.w3.org/Archives/Public/www-lib/">www-lib@w3.org</a>&gt;
 mailing list (<a href="http://www.w3.org/Mail/Request">see here how to
 subscribe</a>) as well as getting listed on the <a href="Changes">latest
 changes page</a>.</p>
@@ -194,15 +173,9 @@ href="#Easy">repeat the compilation bootstrapping</a> procedure.</p>
 have to go through which are already done if compiling from a distribution
 package. Follow these three steps:</p>
 <ol>
-<li>
-<a href="#Easy">Generate include files</a>
-</li>
-<li>
-<a href="#More">Unix only: generate make files</a>
-</li>
-<li>
-<a href="#Compiling">Configure and compile libwww</a>
-</li>
+  <li><a href="#Easy">Generate include files</a></li>
+  <li><a href="#More">Unix only: generate make files</a></li>
+  <li><a href="#Compiling">Configure and compile libwww</a></li>
 </ol>
 
 <h3><a name="Easy">1. Generate Include Files (Windows &amp; Unix)</a></h3>
@@ -213,7 +186,7 @@ href="http://www.perl.org">Perl</a> script provided by <a
 href="/People/Eric/">Eric Prud'hommeaux</a>. Never mind that it gives a few
 warnings when it runs - they are all OK. It requires that you have a recent
 version of <a href="http://www.perl.org">Perl</a> on your machine. Run the
-script like this (note the explicit use of the perl interpreter):</p>
+script like this (note the explicit use of the Perl interpreter):</p>
 <pre>% <strong>cd libwww</strong>
 % <strong>perl config/winConfigure.pl</strong></pre>
 
@@ -223,45 +196,37 @@ Unix, you <a href="#More">need some more</a>...</p>
 
 <h3><a name="More">2. Generate Makefile (Unix only)</a></h3>
 
-<p>On Unix you <strong>MUST</strong> have the following GNU tools installed in
-order to continue. Check that you have the following programs with the correct
-version number:</p>
+<p>On Unix you <strong>MUST</strong> have the following <a
+href="http://www.gnu.org/">GNU</a> tools installed in order to continue. Check
+that you have the following programs with the correct version number:</p>
 <dl>
-<dt><a href="http://www.gnu.org/order/ftp.html"><strong>gcc</strong></a> and
-<a href="http://www.gnu.org/order/ftp.html"><strong>GNU make</strong></a></dt>
-<dd>
-Automake relies on features provided by gcc and GNU make that don't come with
-other compilers and makes. When compiling directly from CVS you MUST use these
-gcc and gmake.
-</dd>
-<dt><strong><a href="http://sourceware.cygnus.com/automake/">GNU automake</a>
-(version 1.4 or later)</strong></dt>
-<dd>
-Automake is a tool for automatically generating <code>Makefile.in</code>'s
-which are used by autoconf
-</dd>
-<dt><strong><a href="http://sourceware.cygnus.com/autoconf/">GNU autoconf</a>
-(version 2.13 or later)</strong></dt>
-<dd>
-A tool for automatically generating <code>Makefile</code>'s which are used by
-make
-</dd>
-<dt><strong><a href="http://www.gnu.org/software/libtool/libtool.html">GNU
-libtool</a> (version 1.2d or later)</strong></dt>
-<dd>
-A tool for automatically handling generation of shared libraries. If you
-upgrade libtool to a new version then you <strong>MUST</strong> rerun the
-configure script as some files used by libtool have to be regenerated.
-</dd>
+  <dt><a href="http://www.gnu.org/software/gcc/"><strong>gcc</strong></a> and
+  <a href="http://www.gnu.org/software/make"><strong>GNU
+  make</strong></a></dt>
+    <dd>Automake relies on features provided by gcc and GNU make that don't
+      come with other compilers and makes. When compiling directly from CVS
+      you MUST use these gcc and gmake.</dd>
+  <dt><strong><a href="http://sourceware.cygnus.com/automake/">GNU
+  automake</a> (version 1.4 or later)</strong></dt>
+    <dd>Automake is a tool for automatically generating
+      <code>Makefile.in</code>'s which are used by autoconf</dd>
+  <dt><strong><a href="http://www.gnu.org/software/autoconf/">GNU autoconf</a>
+  (version 2.13 or later, but avoid <a
+  href="http://geocrawler.com/archives/3/323/1999/7/0/2496195">version
+  2.14</a>) </strong></dt>
+    <dd>A tool for automatically generating <code>Makefile</code>'s which are
+      used by make.</dd>
+  <dt><strong><a href="http://www.gnu.org/software/libtool/libtool.html">GNU
+  libtool</a> (version 1.3.4 or later)</strong></dt>
+    <dd>A tool for automatically handling generation of shared libraries. If
+      you upgrade libtool to a new version then you <strong>MUST</strong>
+      rerun the configure script as some files used by libtool have to be
+      regenerated.</dd>
 </dl>
-
-<p>Optionally, the libwww <a href="../LineMode/">Line Mode Browser</a> can be
-used generate the include files. If not available then a  <a href="#Easy">perl
-script</a> is used instead.</p>
 
 <p>Now <a name="Using11">generate</a> the make files as follows - don't worry
 about the <a
-href="http://subzero.campus.luth.se/FreeDocs/autoconf-2.12/autoconf_44.html#IDX36">warnings
+href="http://www.gnu.org/manual/autoconf/html_node/autoconf_45.html">warnings
 produced by autoconf</a>:</p>
 <pre>% <strong>aclocal; autoheader; automake; autoconf</strong></pre>
 
@@ -275,7 +240,7 @@ and run this command instead</p>
 
 <p>Remember to <a
 href="mailto:www-lib-request@w3.org?subject=subscribe">subscribe to the
-&lt;www-lib@w3.org></a> mailing list (<a
+&lt;www-lib@w3.org&gt;</a> mailing list (<a
 href="http://www.findmail.com/list/www-lib/">findmail archives</a>) for
 information of new features as well as discussions of problems and ideas.</p>
 
@@ -291,9 +256,9 @@ and compile libwww</a>!</p>
 
 <p></p>
 <hr>
-
 <address>
-<A HREF="/People/Jose/">Jos&eacute; Kahan</A>,<br>
-@(#) $Id$ </address>
+  <a href="/People/Jose/">José Kahan</a>,<br>
+  @(#) $Id$ 
+</address>
 </body>
 </html>
