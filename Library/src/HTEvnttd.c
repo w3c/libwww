@@ -17,7 +17,7 @@ PUBLIC void HTEventThread_new ARGS1(void *, new_net)
 
 PUBLIC int HTEventThread_clear ARGS1( void *, old_net) 
 {
-    HTThread_clear((HTNetInfo *) old_net);
+    return HTThread_clear((HTNetInfo *) old_net);
 }
 
 PUBLIC void HTEventThreadState ARGS2( SOCKFD, sockfd, HTThreadAction, action) 
