@@ -320,7 +320,7 @@ PRIVATE BOOL HTCacheIndex_parseLine (char * line)
 	if (sscanf(line, "%ld %ld %c %d %d %ld %ld %ld %c",
 		   &cache->expires,
 		   &cache->size,
-		   &cache->range,
+		   &range,
 		   &cache->hash,
 		   &cache->hits,
 		   &cache->freshness_lifetime,
