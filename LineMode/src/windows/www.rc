@@ -73,7 +73,7 @@ IDI_SNP                 ICON    DISCARDABLE     "WWW.ICO"
 //
 // Generated from the TEXTINCLUDE 3 resource.
 //
-#include "e:\u\eric\projects\winlib\comm.rc"
+//#include "e:\u\eric\projects\winlib\comm.rc"
 
 
 /////////////////////////////////////////////////////////////////////////////

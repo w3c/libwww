@@ -43,7 +43,7 @@ RSC=rc.exe
 OUTDIR=.\WinRel
 INTDIR=.\WinRel
 
-ALL : .\WinRel\www.exe .\WinRel\www.bsc
+ALL : $(OUTDIR)/www.exe $(OUTDIR)/www.bsc
 
 $(OUTDIR) : 
     if not exist $(OUTDIR)/nul mkdir $(OUTDIR)
@@ -66,34 +66,35 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 BSC32_FLAGS=/nologo /o$(OUTDIR)/"www.bsc" 
 BSC32_SBRS= \
-	.\WinRel\HTDir.sbr \
-	.\WinRel\HTFTPDir.sbr \
-	.\WinRel\HTTelnet.sbr \
-	.\WinRel\www.sbr \
-	.\WinRel\HTWSRC.sbr \
-	.\WinRel\HTLog.sbr \
-	.\WinRel\HTHome.sbr \
-	.\WinRel\HTInit.sbr \
-	.\WinRel\HTIcons.sbr \
-	.\WinRel\HTFile.sbr \
-	.\WinRel\HTTeXGen.sbr \
-	.\WinRel\lib.sbr \
-	.\WinRel\HTML.sbr \
-	.\WinRel\HTHist.sbr \
-	.\WinRel\HTGopher.sbr \
-	.\WinRel\HTFTP.sbr \
-	.\WinRel\HTPlain.sbr \
-	.\WinRel\HTGuess.sbr \
-	.\WinRel\scroll.sbr \
-	.\WinRel\HTMulti.sbr \
-	.\WinRel\GridStyle.sbr \
-	.\WinRel\GridText.sbr \
-	.\WinRel\HTBrowse.sbr \
-	.\WinRel\DefaultStyles.sbr \
-	.\WinRel\HTMLPDTD.sbr \
-	.\WinRel\SGML.sbr
+	$(INTDIR)/HTDir.sbr \
+	$(INTDIR)/HTFTPDir.sbr \
+	$(INTDIR)/HTTelnet.sbr \
+	$(INTDIR)/www.sbr \
+	$(INTDIR)/HTWSRC.sbr \
+	$(INTDIR)/HTLog.sbr \
+	$(INTDIR)/HTHome.sbr \
+	$(INTDIR)/HTInit.sbr \
+	$(INTDIR)/HTIcons.sbr \
+	$(INTDIR)/HTFile.sbr \
+	$(INTDIR)/HTTeXGen.sbr \
+	$(INTDIR)/lib.sbr \
+	$(INTDIR)/HTML.sbr \
+	$(INTDIR)/HTHist.sbr \
+	$(INTDIR)/HTGopher.sbr \
+	$(INTDIR)/HTFTP.sbr \
+	$(INTDIR)/HTPlain.sbr \
+	$(INTDIR)/HTGuess.sbr \
+	$(INTDIR)/scroll.sbr \
+	$(INTDIR)/HTMulti.sbr \
+	$(INTDIR)/GridStyle.sbr \
+	$(INTDIR)/GridText.sbr \
+	$(INTDIR)/HTBrowse.sbr \
+	$(INTDIR)/DefaultStyles.sbr \
+	$(INTDIR)/HTMLPDTD.sbr \
+	$(INTDIR)/SGML.sbr \
+	$(INTDIR)/HTBInit.sbr
 
-.\WinRel\www.bsc : $(OUTDIR)  $(BSC32_SBRS)
+$(OUTDIR)/www.bsc : $(OUTDIR)  $(BSC32_SBRS)
     $(BSC32) @<<
   $(BSC32_FLAGS) $(BSC32_SBRS)
 <<
@@ -106,44 +107,45 @@ LINK32_FLAGS=user32.lib comdlg32.lib gdi32.lib wsock32.lib /NOLOGO\
  /OUT:$(OUTDIR)/"www.exe" 
 DEF_FILE=
 LINK32_OBJS= \
-	.\WinRel\HTDir.obj \
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwnews.lib \
-	.\WinRel\HTFTPDir.obj \
-	.\WinRel\HTTelnet.obj \
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwdll.lib \
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwutils.lib \
-	.\WinRel\www.obj \
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwcore.lib \
-	.\WinRel\HTWSRC.obj \
-	.\WinRel\HTLog.obj \
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwcache.lib \
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwmime.lib \
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwhttp.lib \
-	.\WinRel\HTHome.obj \
-	.\WinRel\HTInit.obj \
-	.\WinRel\HTIcons.obj \
-	.\WinRel\HTFile.obj \
-	.\WinRel\HTTeXGen.obj \
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwrules.lib \
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwmlgen.lib \
-	.\WinRel\lib.obj \
-	.\WinRel\HTML.obj \
-	.\WinRel\HTHist.obj \
-	.\WinRel\HTGopher.obj \
-	.\WinRel\HTFTP.obj \
-	.\WinRel\HTPlain.obj \
-	.\WinRel\HTGuess.obj \
-	.\WinRel\scroll.obj \
-	.\WinRel\HTMulti.obj \
-	.\WinRel\GridStyle.obj \
-	.\WinRel\GridText.obj \
-	.\WinRel\HTBrowse.obj \
-	.\WinRel\DefaultStyles.obj \
-	.\WinRel\HTMLPDTD.obj \
-	.\WinRel\SGML.obj \
-	.\WinRel\www.res
+	$(INTDIR)/HTDir.obj \
+	..\..\..\Library\Implementation\windows\WinDebug\wwwnews.lib \
+	$(INTDIR)/HTFTPDir.obj \
+	$(INTDIR)/HTTelnet.obj \
+	..\..\..\Library\Implementation\windows\WinDebug\wwwdll.lib \
+	..\..\..\Library\Implementation\windows\WinDebug\wwwutils.lib \
+	$(INTDIR)/www.obj \
+	..\..\..\Library\Implementation\windows\WinDebug\wwwcore.lib \
+	$(INTDIR)/HTWSRC.obj \
+	$(INTDIR)/HTLog.obj \
+	..\..\..\Library\Implementation\windows\WinDebug\wwwcache.lib \
+	..\..\..\Library\Implementation\windows\WinDebug\wwwmime.lib \
+	..\..\..\Library\Implementation\windows\WinDebug\wwwhttp.lib \
+	$(INTDIR)/HTHome.obj \
+	$(INTDIR)/HTInit.obj \
+	$(INTDIR)/HTIcons.obj \
+	$(INTDIR)/HTFile.obj \
+	$(INTDIR)/HTTeXGen.obj \
+	..\..\..\Library\Implementation\windows\WinDebug\wwwrules.lib \
+	..\..\..\Library\Implementation\windows\WinDebug\wwwmlgen.lib \
+	$(INTDIR)/lib.obj \
+	$(INTDIR)/HTML.obj \
+	$(INTDIR)/HTHist.obj \
+	$(INTDIR)/HTGopher.obj \
+	$(INTDIR)/HTFTP.obj \
+	$(INTDIR)/HTPlain.obj \
+	$(INTDIR)/HTGuess.obj \
+	$(INTDIR)/scroll.obj \
+	$(INTDIR)/HTMulti.obj \
+	$(INTDIR)/GridStyle.obj \
+	$(INTDIR)/GridText.obj \
+	$(INTDIR)/HTBrowse.obj \
+	$(INTDIR)/DefaultStyles.obj \
+	$(INTDIR)/HTMLPDTD.obj \
+	$(INTDIR)/SGML.obj \
+	$(INTDIR)/www.res \
+	$(INTDIR)/HTBInit.obj
 
-.\WinRel\www.exe : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
+$(OUTDIR)/www.exe : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
   $(LINK32_FLAGS) $(LINK32_OBJS)
 <<
@@ -161,7 +163,7 @@ LINK32_OBJS= \
 OUTDIR=.\WinDebug
 INTDIR=.\WinDebug
 
-ALL : .\WinDebug\www.exe .\WinDebug\www.bsc
+ALL : $(OUTDIR)/www.exe $(OUTDIR)/www.bsc
 
 $(OUTDIR) : 
     if not exist $(OUTDIR)/nul mkdir $(OUTDIR)
@@ -184,34 +186,35 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 BSC32_FLAGS=/nologo /o$(OUTDIR)/"www.bsc" 
 BSC32_SBRS= \
-	.\WinDebug\HTDir.sbr \
-	.\WinDebug\HTFTPDir.sbr \
-	.\WinDebug\HTTelnet.sbr \
-	.\WinDebug\www.sbr \
-	.\WinDebug\HTWSRC.sbr \
-	.\WinDebug\HTLog.sbr \
-	.\WinDebug\HTHome.sbr \
-	.\WinDebug\HTInit.sbr \
-	.\WinDebug\HTIcons.sbr \
-	.\WinDebug\HTFile.sbr \
-	.\WinDebug\HTTeXGen.sbr \
-	.\WinDebug\lib.sbr \
-	.\WinDebug\HTML.sbr \
-	.\WinDebug\HTHist.sbr \
-	.\WinDebug\HTGopher.sbr \
-	.\WinDebug\HTFTP.sbr \
-	.\WinDebug\HTPlain.sbr \
-	.\WinDebug\HTGuess.sbr \
-	.\WinDebug\scroll.sbr \
-	.\WinDebug\HTMulti.sbr \
-	.\WinDebug\GridStyle.sbr \
-	.\WinDebug\GridText.sbr \
-	.\WinDebug\HTBrowse.sbr \
-	.\WinDebug\DefaultStyles.sbr \
-	.\WinDebug\HTMLPDTD.sbr \
-	.\WinDebug\SGML.sbr
+	$(INTDIR)/HTDir.sbr \
+	$(INTDIR)/HTFTPDir.sbr \
+	$(INTDIR)/HTTelnet.sbr \
+	$(INTDIR)/www.sbr \
+	$(INTDIR)/HTWSRC.sbr \
+	$(INTDIR)/HTLog.sbr \
+	$(INTDIR)/HTHome.sbr \
+	$(INTDIR)/HTInit.sbr \
+	$(INTDIR)/HTIcons.sbr \
+	$(INTDIR)/HTFile.sbr \
+	$(INTDIR)/HTTeXGen.sbr \
+	$(INTDIR)/lib.sbr \
+	$(INTDIR)/HTML.sbr \
+	$(INTDIR)/HTHist.sbr \
+	$(INTDIR)/HTGopher.sbr \
+	$(INTDIR)/HTFTP.sbr \
+	$(INTDIR)/HTPlain.sbr \
+	$(INTDIR)/HTGuess.sbr \
+	$(INTDIR)/scroll.sbr \
+	$(INTDIR)/HTMulti.sbr \
+	$(INTDIR)/GridStyle.sbr \
+	$(INTDIR)/GridText.sbr \
+	$(INTDIR)/HTBrowse.sbr \
+	$(INTDIR)/DefaultStyles.sbr \
+	$(INTDIR)/HTMLPDTD.sbr \
+	$(INTDIR)/SGML.sbr \
+	$(INTDIR)/HTBInit.sbr
 
-.\WinDebug\www.bsc : $(OUTDIR)  $(BSC32_SBRS)
+$(OUTDIR)/www.bsc : $(OUTDIR)  $(BSC32_SBRS)
     $(BSC32) @<<
   $(BSC32_FLAGS) $(BSC32_SBRS)
 <<
@@ -224,44 +227,45 @@ LINK32_FLAGS=user32.lib comdlg32.lib gdi32.lib wsock32.lib /NOLOGO\
  /MACHINE:I386 /OUT:$(OUTDIR)/"www.exe" 
 DEF_FILE=
 LINK32_OBJS= \
-	.\WinDebug\HTDir.obj \
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwnews.lib \
-	.\WinDebug\HTFTPDir.obj \
-	.\WinDebug\HTTelnet.obj \
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwdll.lib \
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwutils.lib \
-	.\WinDebug\www.obj \
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwcore.lib \
-	.\WinDebug\HTWSRC.obj \
-	.\WinDebug\HTLog.obj \
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwcache.lib \
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwmime.lib \
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwhttp.lib \
-	.\WinDebug\HTHome.obj \
-	.\WinDebug\HTInit.obj \
-	.\WinDebug\HTIcons.obj \
-	.\WinDebug\HTFile.obj \
-	.\WinDebug\HTTeXGen.obj \
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwrules.lib \
-	\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwmlgen.lib \
-	.\WinDebug\lib.obj \
-	.\WinDebug\HTML.obj \
-	.\WinDebug\HTHist.obj \
-	.\WinDebug\HTGopher.obj \
-	.\WinDebug\HTFTP.obj \
-	.\WinDebug\HTPlain.obj \
-	.\WinDebug\HTGuess.obj \
-	.\WinDebug\scroll.obj \
-	.\WinDebug\HTMulti.obj \
-	.\WinDebug\GridStyle.obj \
-	.\WinDebug\GridText.obj \
-	.\WinDebug\HTBrowse.obj \
-	.\WinDebug\DefaultStyles.obj \
-	.\WinDebug\HTMLPDTD.obj \
-	.\WinDebug\SGML.obj \
-	.\WinDebug\www.res
+	$(INTDIR)/HTDir.obj \
+	..\..\..\Library\Implementation\windows\WinDebug\wwwnews.lib \
+	$(INTDIR)/HTFTPDir.obj \
+	$(INTDIR)/HTTelnet.obj \
+	..\..\..\Library\Implementation\windows\WinDebug\wwwdll.lib \
+	..\..\..\Library\Implementation\windows\WinDebug\wwwutils.lib \
+	$(INTDIR)/www.obj \
+	..\..\..\Library\Implementation\windows\WinDebug\wwwcore.lib \
+	$(INTDIR)/HTWSRC.obj \
+	$(INTDIR)/HTLog.obj \
+	..\..\..\Library\Implementation\windows\WinDebug\wwwcache.lib \
+	..\..\..\Library\Implementation\windows\WinDebug\wwwmime.lib \
+	..\..\..\Library\Implementation\windows\WinDebug\wwwhttp.lib \
+	$(INTDIR)/HTHome.obj \
+	$(INTDIR)/HTInit.obj \
+	$(INTDIR)/HTIcons.obj \
+	$(INTDIR)/HTFile.obj \
+	$(INTDIR)/HTTeXGen.obj \
+	..\..\..\Library\Implementation\windows\WinDebug\wwwrules.lib \
+	..\..\..\Library\Implementation\windows\WinDebug\wwwmlgen.lib \
+	$(INTDIR)/lib.obj \
+	$(INTDIR)/HTML.obj \
+	$(INTDIR)/HTHist.obj \
+	$(INTDIR)/HTGopher.obj \
+	$(INTDIR)/HTFTP.obj \
+	$(INTDIR)/HTPlain.obj \
+	$(INTDIR)/HTGuess.obj \
+	$(INTDIR)/scroll.obj \
+	$(INTDIR)/HTMulti.obj \
+	$(INTDIR)/GridStyle.obj \
+	$(INTDIR)/GridText.obj \
+	$(INTDIR)/HTBrowse.obj \
+	$(INTDIR)/DefaultStyles.obj \
+	$(INTDIR)/HTMLPDTD.obj \
+	$(INTDIR)/SGML.obj \
+	$(INTDIR)/www.res \
+	$(INTDIR)/HTBInit.obj
 
-.\WinDebug\www.exe : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
+$(OUTDIR)/www.exe : $(OUTDIR)  $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
   $(LINK32_FLAGS) $(LINK32_OBJS)
 <<
@@ -283,72 +287,44 @@ LINK32_OBJS= \
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTDir.c
+SOURCE=..\..\..\Library\Implementation\HTDir.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\HTDir.obj :  $(SOURCE)  $(INTDIR)
+$(INTDIR)/HTDir.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\HTDir.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ENDIF 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwnews.lib
+SOURCE=..\..\..\Library\Implementation\windows\WinDebug\wwwnews.lib
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTFTPDir.c
+SOURCE=..\..\..\Library\Implementation\HTFTPDir.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\HTFTPDir.obj :  $(SOURCE)  $(INTDIR)
+$(INTDIR)/HTFTPDir.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\HTFTPDir.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ENDIF 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTTelnet.c
+SOURCE=..\..\..\Library\Implementation\HTTelnet.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\HTTelnet.obj :  $(SOURCE)  $(INTDIR)
+$(INTDIR)/HTTelnet.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\HTTelnet.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ENDIF 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwdll.lib
+SOURCE=..\..\..\Library\Implementation\windows\WinDebug\wwwdll.lib
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\
-\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwutils.lib
+SOURCE=..\..\..\Library\Implementation\windows\WinDebug\wwwutils.lib
 # End Source File
 ################################################################################
 # Begin Source File
@@ -359,298 +335,162 @@ DEP_WWW_C=\
 	.\scroll.h\
 	..\HTBrowse.h
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\www.obj :  $(SOURCE)  $(DEP_WWW_C) $(INTDIR)
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\www.obj :  $(SOURCE)  $(DEP_WWW_C) $(INTDIR)
-
-!ENDIF 
+$(INTDIR)/www.obj :  $(SOURCE)  $(DEP_WWW_C) $(INTDIR)
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwcore.lib
+SOURCE=..\..\..\Library\Implementation\windows\WinDebug\wwwcore.lib
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTWSRC.c
+SOURCE=..\..\..\Library\Implementation\HTWSRC.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\HTWSRC.obj :  $(SOURCE)  $(INTDIR)
+$(INTDIR)/HTWSRC.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\HTWSRC.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ENDIF 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTLog.c
+SOURCE=..\..\..\Library\Implementation\HTLog.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\HTLog.obj :  $(SOURCE)  $(INTDIR)
+$(INTDIR)/HTLog.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\HTLog.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ENDIF 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\
-\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwcache.lib
+SOURCE=..\..\..\Library\Implementation\windows\WinDebug\wwwcache.lib
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwmime.lib
+SOURCE=..\..\..\Library\Implementation\windows\WinDebug\wwwmime.lib
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwhttp.lib
+SOURCE=..\..\..\Library\Implementation\windows\WinDebug\wwwhttp.lib
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTHome.c
+SOURCE=..\..\..\Library\Implementation\HTHome.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\HTHome.obj :  $(SOURCE)  $(INTDIR)
+$(INTDIR)/HTHome.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\HTHome.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ENDIF 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTInit.c
+SOURCE=..\..\..\Library\Implementation\HTInit.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\HTInit.obj :  $(SOURCE)  $(INTDIR)
+$(INTDIR)/HTInit.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\HTInit.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ENDIF 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTIcons.c
+SOURCE=..\..\..\Library\Implementation\HTIcons.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\HTIcons.obj :  $(SOURCE)  $(INTDIR)
+$(INTDIR)/HTIcons.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\HTIcons.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ENDIF 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTFile.c
+SOURCE=..\..\..\Library\Implementation\HTFile.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\HTFile.obj :  $(SOURCE)  $(INTDIR)
+$(INTDIR)/HTFile.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\HTFile.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ENDIF 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTTeXGen.c
+SOURCE=..\..\..\Library\Implementation\HTTeXGen.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\HTTeXGen.obj :  $(SOURCE)  $(INTDIR)
+$(INTDIR)/HTTeXGen.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\HTTeXGen.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ENDIF 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\
-\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwrules.lib
+SOURCE=..\..\..\Library\Implementation\windows\WinDebug\wwwrules.lib
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\
-\PROJECTS\LIBWWW\WWW\Library\Implementation\windows\WinDebug\wwwmlgen.lib
+SOURCE=..\..\..\Library\Implementation\windows\WinDebug\wwwmlgen.lib
 # End Source File
 ################################################################################
 # Begin Source File
 
 SOURCE=.\lib.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\lib.obj :  $(SOURCE)  $(INTDIR)
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\lib.obj :  $(SOURCE)  $(INTDIR)
-
-!ENDIF 
+$(INTDIR)/lib.obj :  $(SOURCE)  $(INTDIR)
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTML.c
+SOURCE=..\..\..\Library\Implementation\HTML.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\HTML.obj :  $(SOURCE)  $(INTDIR)
+$(INTDIR)/HTML.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\HTML.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ENDIF 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTHist.c
+SOURCE=..\..\..\Library\Implementation\HTHist.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\HTHist.obj :  $(SOURCE)  $(INTDIR)
+$(INTDIR)/HTHist.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\HTHist.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ENDIF 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTGopher.c
+SOURCE=..\..\..\Library\Implementation\HTGopher.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\HTGopher.obj :  $(SOURCE)  $(INTDIR)
+$(INTDIR)/HTGopher.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\HTGopher.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ENDIF 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTFTP.c
+SOURCE=..\..\..\Library\Implementation\HTFTP.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\HTFTP.obj :  $(SOURCE)  $(INTDIR)
+$(INTDIR)/HTFTP.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\HTFTP.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ENDIF 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTPlain.c
+SOURCE=..\..\..\Library\Implementation\HTPlain.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\HTPlain.obj :  $(SOURCE)  $(INTDIR)
+$(INTDIR)/HTPlain.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\HTPlain.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ENDIF 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTGuess.c
+SOURCE=..\..\..\Library\Implementation\HTGuess.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\HTGuess.obj :  $(SOURCE)  $(INTDIR)
+$(INTDIR)/HTGuess.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\HTGuess.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ENDIF 
 
 # End Source File
 ################################################################################
@@ -658,141 +498,70 @@ SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTGuess.c
 
 SOURCE=.\scroll.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\scroll.obj :  $(SOURCE)  $(INTDIR)
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\scroll.obj :  $(SOURCE)  $(INTDIR)
-
-!ENDIF 
+$(INTDIR)/scroll.obj :  $(SOURCE)  $(INTDIR)
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTMulti.c
+SOURCE=..\..\..\Library\Implementation\HTMulti.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\HTMulti.obj :  $(SOURCE)  $(INTDIR)
+$(INTDIR)/HTMulti.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\HTMulti.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ENDIF 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\LineMode\Implementation\GridStyle.c
+SOURCE=..\GridStyle.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\GridStyle.obj :  $(SOURCE)  $(INTDIR)
+$(INTDIR)/GridStyle.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\GridStyle.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ENDIF 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\LineMode\Implementation\GridText.c
+SOURCE=..\GridText.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\GridText.obj :  $(SOURCE)  $(INTDIR)
+$(INTDIR)/GridText.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\GridText.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ENDIF 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\LineMode\Implementation\HTBrowse.c
+SOURCE=..\HTBrowse.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\HTBrowse.obj :  $(SOURCE)  $(INTDIR)
+$(INTDIR)/HTBrowse.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\HTBrowse.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ENDIF 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\LineMode\Implementation\DefaultStyles.c
+SOURCE=..\DefaultStyles.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\DefaultStyles.obj :  $(SOURCE)  $(INTDIR)
+$(INTDIR)/DefaultStyles.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\DefaultStyles.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ENDIF 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\HTMLPDTD.c
+SOURCE=..\..\..\Library\Implementation\HTMLPDTD.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\HTMLPDTD.obj :  $(SOURCE)  $(INTDIR)
+$(INTDIR)/HTMLPDTD.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\HTMLPDTD.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ENDIF 
 
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\SGML.c
+SOURCE=..\..\..\Library\Implementation\SGML.c
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\SGML.obj :  $(SOURCE)  $(INTDIR)
+$(INTDIR)/SGML.obj :  $(SOURCE)  $(INTDIR)
    $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ELSEIF  "$(CFG)" == "Win32 Debug"
-
-.\WinDebug\SGML.obj :  $(SOURCE)  $(INTDIR)
-   $(CPP) $(CPP_PROJ)  $(SOURCE) 
-
-!ENDIF 
 
 # End Source File
 ################################################################################
@@ -802,17 +571,17 @@ SOURCE=.\www.rc
 DEP_WWW_R=\
 	.\www.ico
 
-!IF  "$(CFG)" == "Win32 Release"
-
-.\WinRel\www.res :  $(SOURCE)  $(DEP_WWW_R) $(INTDIR)
+$(INTDIR)/www.res :  $(SOURCE)  $(DEP_WWW_R) $(INTDIR)
    $(RSC) $(RSC_PROJ)  $(SOURCE) 
 
-!ELSEIF  "$(CFG)" == "Win32 Debug"
+# End Source File
+################################################################################
+# Begin Source File
 
-.\WinDebug\www.res :  $(SOURCE)  $(DEP_WWW_R) $(INTDIR)
-   $(RSC) $(RSC_PROJ)  $(SOURCE) 
+SOURCE=..\..\..\Library\Implementation\HTBInit.c
 
-!ENDIF 
+$(INTDIR)/HTBInit.obj :  $(SOURCE)  $(INTDIR)
+   $(CPP) $(CPP_PROJ)  $(SOURCE) 
 
 # End Source File
 # End Group
