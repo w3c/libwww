@@ -1,0 +1,327 @@
+<HTML>
+<HEAD>
+  <!-- Changed by: Henrik Frystyk Nielsen, 15-Jul-1996 -->
+  <TITLE>W3C Reference Library libwww Response Class</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  The Response Class
+</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+<P>
+Libwww is based on a request/response paradigm and the Request class defines
+"<I>an operation to be performed on a URL</I>". The request object is the
+main entry point for an application to issue a request to the Library - all
+operations on a URL <I>must</I> use a Request object. The response object
+is created as a placeholder for the response received by the remote server.
+All filters can then use the information passed in the response and act
+appropriately. The response objetc is deleted automatically when the
+corresponding request object is deleted.
+<P>
+This module is implemented by <A HREF="HTResponse.c">HTResponse.c</A>, and
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>.
+<PRE>
+#ifndef HTRESPONSE_H
+#define HTRESPONSE_H
+
+typedef struct _HTResponse HTResponse;
+
+#include "HTEvent.h"
+#include "HTList.h"
+#include "HTAssoc.h"
+#include "HTFormat.h"
+#include "HTUser.h"
+</PRE>
+<H2>
+  Creating and Deleting Response Objects
+</H2>
+<P>
+The response obejct gets created when we start receiving a response from
+a remote server.
+<H3>
+  Create Response Object
+</H3>
+<P>
+Creates a new response object with a corresponding User Profile object.
+<PRE>
+extern HTResponse * HTResponse_new (void);
+</PRE>
+<H3>
+  Delete Response Object
+</H3>
+<P>
+This function deletes the object and cleans up the memory.
+<PRE>
+extern BOOL HTResponse_delete (HTResponse * response);
+</PRE>
+<H2>
+  Redirections
+</H2>
+<P>
+When a redirection response is returned to the Library, for example from
+a remote HTTP server, this code is passed back to the application. The
+application can then decide whether a new request should be established or
+not. These two methods return the redirection information required to issue
+a new request, that is the new anchor and any list of keywords associated
+with this anchor.
+<PRE>
+extern HTAnchor * HTResponse_redirection (HTResponse * response);
+extern BOOL HTResponse_setRedirection (HTResponse * response, HTAnchor * anchor);
+</PRE>
+<H2>
+  Retry Request After
+</H2>
+<P>
+Some services, for example HTTP, can in case they are unavailable at the
+time the request is issued send back a time and date stamp to the client
+telling when they are expected to back online. In case a request results
+in a HT_RETRY status, the application can use any time indicated in this
+field to retry the request at a later time. The Library does not initiate
+any request on its own - it's for the application to do. The time returned
+by this function is in calendar time or -1 if not available.
+<PRE>
+extern time_t HTResponse_retryTime (HTResponse * response);
+extern BOOL HTResponse_setRetryTime (HTResponse * response, time_t retry);
+</PRE>
+<H2>
+  <A NAME="Access">HTTP Access Authentication Challanges</A>
+</H2>
+<P>
+When a access denied response is returned to the Library, for example from
+a remote HTTP server, this code is passed back to the application. The
+application can then decide whether a new request should be established or
+not. These two methods return the authentication information required to
+issue a new request, that is the new anchor and any list of keywords associated
+with this anchor.
+<PRE>
+extern BOOL HTResponse_addChallenge (HTResponse * response, char * token, char * value);
+
+extern BOOL HTResponse_deleteChallengeAll (HTResponse * response);
+
+extern HTAssocList * HTResponse_challenge (HTResponse * response);
+</PRE>
+<H3>
+  Realms
+</H3>
+<PRE>
+extern BOOL HTResponse_setRealm (HTResponse * response, char * realm);
+extern const char * HTResponse_realm (HTResponse * response);
+</PRE>
+<H3>
+  Access Authentication Schemes
+</H3>
+<PRE>
+extern BOOL HTResponse_setScheme (HTResponse * response, char * scheme);
+extern const char * HTResponse_scheme (HTResponse * response);
+</PRE>
+<H2>
+  HTTP Connection Control Directives
+</H2>
+<P>
+The connection control directives are all part of the connection header and
+control the behavior of this connection. The respose object contains the
+connection information that we have received in the response.
+<PRE>
+extern BOOL HTResponse_addConnection       (HTResponse * response,
+                                            char * token, char * value);
+extern BOOL HTResponse_deleteConnectionAll (HTResponse * response);
+extern HTAssocList * HTResponse_connection (HTResponse * response);
+</PRE>
+<H2>
+  HTTP Extensions (PEP)
+</H2>
+<P>
+HTTP can be extended in several ways but traditionally it has been by using
+new headers. Here we present a new idea which provides a framework for describing
+extensions and their scope. This is only an idea an may be modified later!
+The implementation of the extensions can be found in the
+<A HREF="HTPEP.html">PEP module</A>
+<H3>
+  Protocol
+</H3>
+<P>
+This association list is a list of the extension directives that were received
+as part of the response.
+<PRE>
+extern BOOL HTResponse_addProtocol       (HTResponse * response,
+                                          char * token, char * value);
+extern BOOL HTResponse_deleteProtocolAll (HTResponse * response);
+extern HTAssocList * HTResponse_protocol (HTResponse * response);
+</PRE>
+<H3>
+  Protocol Info
+</H3>
+<P>
+This association list is a list of the extension directives that were received
+as part of the response.
+<PRE>
+extern BOOL HTResponse_addProtocolInfo       (HTResponse * response,
+                                              char * token, char * value);
+extern BOOL HTResponse_deleteProtocolInfoAll (HTResponse * response);
+extern HTAssocList * HTResponse_protocolInfo (HTResponse * response);
+</PRE>
+<H3>
+  Protocol Request
+</H3>
+<P>
+This association list is a list of the extension directives that were received
+as part of the response.
+<PRE>
+extern BOOL HTResponse_addProtocolRequest       (HTResponse * response,
+                                                 char * token, char * value);
+extern BOOL HTResponse_deleteProtocolRequestAll (HTResponse * response);
+extern HTAssocList * HTResponse_protocolRequest (HTResponse * response);
+</PRE>
+<H2>
+  HTTP Cache Control Directives
+</H2>
+<P>
+This association list is a list of the cache control directives that have
+been received as part of the response. We also keep track of whether the
+response is cachable or not.
+<PRE>
+extern BOOL HTResponse_addCacheControl       (HTResponse * response,
+                                              char * token, char *value);
+extern BOOL HTResponse_deleteCacheControlAll (HTResponse * response);
+extern HTAssocList * HTResponse_cacheControl (HTResponse * response);
+</PRE>
+<H3>
+  Is the response Cachable?
+</H3>
+<P>
+The various <CODE>cache-control</CODE> headers and directives decides whether
+an object is cachable or not. Check these methods before starting caching!
+<PRE>
+extern BOOL HTResponse_isCachable  (HTResponse * me);
+extern BOOL HTResponse_setCachable (HTResponse * me, BOOL mode);
+</PRE>
+<H3>
+  Has the Response been Cached?
+</H3>
+<P>
+When we gc the response object we need to know whether the header lists have
+been inherited by other objects (the <A HREF="HTAnchor.html">anchor</A> object,
+for example) and hence shouldn't be deleted. We can tell the response object
+this by using the following method call
+<PRE>
+extern BOOL HTResponse_isCached (HTResponse * me, BOOL mode);
+</PRE>
+<H3>
+  Some Cache-Control helper Methods
+</H3>
+<P>
+Some useful helper functions for handling specific response cache directives
+<PRE>
+extern time_t HTResponse_maxAge              (HTResponse * response);
+extern BOOL   HTResponse_mustRevalidate      (HTResponse * response);
+extern char * HTResponse_noCache             (HTResponse * response);
+</PRE>
+<H3>
+  Partial responses and Range Retrievals
+</H3>
+<P>
+Libwww can issue range requests in case we have already obtained a part of
+the entity body. Since all HTTP entities are represented in HTTP messages
+as sequences of bytes, the concept of a byte range is meaningful for any
+HTTP entity. (However, not all clients and servers need to support byte-range
+operations.) Byte range specifications in HTTP apply to the sequence of bytes
+in the entity-body (not necessarily the same as the message-body). A byte
+range operation may specify a single range of bytes, or a set of ranges within
+a single entity.
+<PRE>
+extern BOOL HTResponse_addRange       (HTResponse * response,
+                                       char * unit, char * range);
+extern BOOL HTResponse_deleteRangeAll (HTResponse * response);
+extern HTAssocList * HTResponse_range (HTResponse * response);
+</PRE>
+<H3>
+  Content Length
+</H3>
+<P>
+We store the content length so that we have an idea of how many bytes to
+expect.
+<PRE>
+extern long int HTResponse_length (HTResponse * response);
+extern void HTResponse_setLength  (HTResponse * response, long int length);
+extern void HTResponse_addLength  (HTResponse * response, long int deltalength);
+</PRE>
+<H3>
+  Content Type (Media type)
+</H3>
+<P>
+We store the content-type of the response along with the charset, level and
+all other paramaters that may follow the content-type itself.
+<PRE>
+extern HTFormat HTResponse_format (HTResponse * response);
+extern void HTResponse_setFormat  (HTResponse * response, HTFormat format);
+</PRE>
+<P>
+The Response object stores all content type parameters (charset, level, etc.)
+in an Association list so here you will always be able to find them. We also
+have a few methods for the special cases: <CODE>charset</CODE> and
+<CODE>level</CODE> as they are often needed.
+<PRE>
+extern HTAssocList * HTResponse_formatParam (HTResponse * response);
+extern BOOL HTResponse_addFormatParam  (HTResponse * response,
+					const char * name, const char * value);
+</PRE>
+<H4>
+  Charset parameter to Content-Type
+</H4>
+<PRE>
+extern HTCharset HTResponse_charsee (HTResponse * response);
+extern BOOL HTResponse_setCharset   (HTResponse * response, HTCharset charset);
+</PRE>
+<H4>
+  Level parameter to Content-Type
+</H4>
+<PRE>
+extern HTLevel HTResponse_level (HTResponse * response);
+extern BOOL HTResponse_setLevel (HTResponse * response, HTLevel level);
+</PRE>
+<H3>
+  Content Encodings
+</H3>
+<P>
+The list of encodings that we have received in the response.
+<PRE>
+extern HTList * HTResponse_encoding (HTResponse * response);
+extern BOOL HTResponse_addEncoding  (HTResponse * response, HTEncoding enc);
+</PRE>
+<H3>
+  Content Transfer Encodings
+</H3>
+<P>
+Any transfer encoding that we have received in the response.
+<PRE>
+extern HTEncoding HTResponse_transfer (HTResponse * response);
+extern BOOL HTResponse_setTransfer (HTResponse * response, HTEncoding cte);
+</PRE>
+<H3>
+  Original Response Headers
+</H3>
+<P>
+The <A HREF="HTMIME.html">MIME parser</A> may add the original response headers
+as (name,value) pairs. The information may be picked up by the
+<A HREF="WWWCache.html">persistent cache manager</A>.
+<PRE>
+extern BOOL HTResponse_addHeader       (HTResponse * response,
+                                        char * token, char * value);
+extern BOOL HTResponse_deleteHeaderAll (HTResponse * response);
+extern HTAssocList * HTResponse_header (HTResponse * response);
+</PRE>
+<PRE>
+#endif /* HTRESPONSE_H */
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>
