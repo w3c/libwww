@@ -218,7 +218,7 @@ AC_OUTPUT([Makefile
 Library/Makefile Library/User/Makefile Library/User/Patch/Makefile
 Library/User/Architecture/Makefile Library/User/Using/Makefile Library/User/Guide/Makefile
 Library/src/Makefile Library/src/windows/Makefile Library/src/vms/Makefile
-PICS/Makefile PICS/User/Makefile PICS/src/Makefile
+PICS-client/Makefile PICS-client/User/Makefile PICS-client/src/Makefile
 Arena/Makefile Arena/src/Makefile
 LineMode/Makefile LineMode/User/Makefile
 LineMode/src/Makefile LineMode/src/windows/Makefile LineMode/src/vms/Makefile
