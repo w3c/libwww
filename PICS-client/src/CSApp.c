@@ -176,7 +176,7 @@ PUBLIC BOOL CSLoadedUser_add(CSUser_t * pCSUser, char * url)
 {
     int callBackRet;
     CSLoadedUser_t * pCSLoadedUser;
-    callBackRet = PUserCallback(pCSUser, DefaultReqParms.pVoid);
+    callBackRet = (*PUserCallback)(pCSUser, DefaultReqParms.pVoid);
     switch (callBackRet) {
         case 1:
             DefaultReqParms.pCSUser = pCSUser;
@@ -558,7 +558,7 @@ PRIVATE int CSApp_headerParser (HTRequest * pReq, char * token, char * value)
 /* application functions */
 PUBLIC BOOL CSApp_registerApp(CSDisposition_callback * pCallback, 
 			      CSDisposition_criteria criteria, 
-			      CSApp_userCallback pUserCallback, void * pVoid)
+			      CSApp_userCallback * pUserCallback, void * pVoid)
 {
     HTList* conversions;
 
