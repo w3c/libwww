@@ -261,6 +261,15 @@ PRIVATE int HTTPSendRequest ARGS3(HTRequest *, request,
 	    free(relative);
 	}
 
+	/* Put out from field */
+	{
+	    CONST char *mailaddress = HTGetMailAddress();
+	    if (mailaddress != NULL) {
+		sprintf(line, "From: %s%c%c", mailaddress, CR, LF);
+		HTChunkPuts(command, line);
+	    }
+	}
+    
 	/* Put out user-agent */
 	sprintf(line, "User-Agent: %s/%s  libwww/%s%c%c",
 		HTAppName ? HTAppName : "unknown",

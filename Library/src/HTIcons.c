@@ -229,8 +229,8 @@ PRIVATE BOOL match ARGS2(char *, templ,
 }
 
 
-PRIVATE char * prefixed ARGS2(char *,	prefix,
-			      char *,	name)
+PRIVATE char * prefixed ARGS2(CONST char *,	prefix,
+			      char *,		name)
 {
     static char * ret = NULL;
     FREE(ret);	/* From previous call */
@@ -248,7 +248,7 @@ PRIVATE char * prefixed ARGS2(char *,	prefix,
 
 PUBLIC void HTStdIconInit ARGS1(CONST char *, url_prefix)
 {
-    char * p = url_prefix ? url_prefix : "/internal-icon/";
+    CONST char * p = url_prefix ? url_prefix : "/internal-icon/";
 
     HTAddBlankIcon  (prefixed(p,"blank.xbm"),	NULL	);
     HTAddDirIcon    (prefixed(p,"directory.xbm"),"DIR"	);

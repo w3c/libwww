@@ -802,8 +802,12 @@ PUBLIC CONST char * HTGetMailAddress NOARGS
     char *login;
     CONST char *domain;
     struct passwd *pw_info;
-    if (mailaddress)
-	return mailaddress;
+    if (mailaddress) {
+	if (*mailaddress)
+	    return mailaddress;
+	else
+	    return NULL;       /* No luck the last time so we wont try again */
+    }
     if ((login = (char *) getlogin()) == NULL) {
 	if (TRACE) fprintf(stderr, "MailAddress. getlogin returns NULL\n");
 	if ((pw_info = getpwuid(getuid())) == NULL) {
@@ -823,6 +827,10 @@ PUBLIC CONST char * HTGetMailAddress NOARGS
 	StrAllocCat(mailaddress, "@");
 	if ((domain = HTGetHostName()) != NULL)
 	    StrAllocCat(mailaddress, domain);
+	else {
+	    *mailaddress = '\0';
+	    return NULL;			/* Domain name not available */
+	}
 	return mailaddress;
     }
     return NULL;

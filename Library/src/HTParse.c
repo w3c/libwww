@@ -319,6 +319,8 @@ PRIVATE void ari_strcpy ARGS2(char *, to,
 //		/fred/././..		becomes /fred/..
 //		/fred/.././junk/.././	becomes /fred/..
 //
+// If more than one set of `://' is found (several proxies in cascade) then
+// only the part after the last `://' is simplified.
 */
 PUBLIC void HTSimplify ARGS1(char *, filename)
 {
@@ -334,7 +336,10 @@ PUBLIC void HTSimplify ARGS1(char *, filename)
 
     /* Skip prefix, starting ./ and starting ///<etc> */
     if ((urlptr = strstr(filename, "://")) != NULL) {	      /* Find prefix */
+	char *newptr;
 	urlptr += 3;
+	while ((newptr = strstr(urlptr, "://")) != NULL)
+	    urlptr = newptr+3;
 	prefix = YES;
     } else if ((urlptr = strstr(filename, ":/")) != NULL) {
 	urlptr += 2;
