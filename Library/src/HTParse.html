@@ -17,11 +17,9 @@
 This module contains code to parse URIs and various related things such as:
 
 <UL>
-<LI> Parse a URI relative to another URI
-<LI> Get the URI relative to another URI 
-<LI> Remove redundant data from the URI (HTSimplify and HTCanon)
-<LI> Expand a local host name into a full domain name (HTExpand)
-<LI> Search a URI for illigal characters in order to prevent security holes
+<LI><A HREF="#parse">Parse a URI for tokens</A>
+<LI><A HREF="#canon">Canonicalization of URIs</A>
+<LI><A HREF="#secure">Search a URI for illigal characters in order to prevent security holes</A>
 </UL>
 
 This module is implemented by <A HREF="HTParse.c">HTParse.c</A>, and it is
@@ -36,14 +34,19 @@ Library of Common Code</A>.
 #include "HTEscape.h"
 </PRE>
 
-<H2>HTParse:  Parse a URI relative to another URI</H2>
+<A NAME="parse"><H2>Parsing URIs</H2></A>
 
-This returns those parts of a name which are given (and requested) substituting
-bits from the related name where necessary.
+These functions can be used to get information in a URI.
 
-<H3>Control Flags for HTParse</H3>
+<H3>Parse a URI relative to another URI</H3>
 
-The following are flag bits which may be ORed together to form a number
+This returns those parts of a name which are given (and requested)
+substituting bits from the related name where necessary. The
+<CODE>aName</CODE> argument is the (possibly relative) URI to be
+parsed, the <CODE>relatedName</CODE> is the URI which the
+<CODE>aName</CODE> is to be parsed relative to. Passing an empty
+string means that the <CODE>aName</CODE> is an absolute URI. The
+following are flag bits which may be OR'ed together to form a number
 to give the 'wanted' argument to HTParse.
 
 <PRE>
@@ -55,24 +58,18 @@ to give the 'wanted' argument to HTParse.
 #define PARSE_ALL		31
 </PRE>
 
-<H3>On entry</H3>
-<DL>
-<DT>aName
-<DD> A filename given
-<DT>relatedName
-<DD> A name relative to which
-aName is to be parsed
-<DT>wanted
-<DD> A mask for the bits which
-are wanted.
-</DL>
+where the format of a URI is as follows:
 
-<H3>On exit,</H3>
-<DL>
-<DT>returns
-<DD> A pointer to a malloc'd string
-which MUST BE FREED
-</DL>
+<PRE>
+/*
+	ACCESS :// HOST / PATH # ANCHOR
+*/
+</PRE>
+
+<CODE>PUNCTUATION</CODE> means any delimiter like '/', ':', '#'
+between the tokens above.
+
+The string returned by the function must be freed by the caller.
 
 <PRE>
 extern char * HTParse  PARAMS((	const char * aName,
@@ -80,7 +77,26 @@ extern char * HTParse  PARAMS((	const char * aName,
 				int wanted));
 </PRE>
 
-<H2>HTStrip: Strip white space off a string</H2>
+<H3>Create a Relative (Partial) URI</H3>
+
+This function creates and returns a string which gives an expression
+of one address as related to another.  Where there is no relation, an
+absolute address is retured.
+
+<H3>On entry,</H3>Both names must be absolute, fully
+qualified names of nodes (no anchor
+bits)
+<H3>On exit,</H3>The return result points to a newly
+allocated name which, if parsed by
+HTParse relative to relatedName,
+will yield aName. The caller is responsible
+for freeing the resulting name later.
+
+<PRE>
+extern char * HTRelative PARAMS((const char * aName, const char *relatedName));
+</PRE>
+
+<H3>Strip white space off a string</H3>
 
 <H3>On exit</H3>Return value points to first non-white
 character, or to 0 if none.<P>
@@ -91,7 +107,12 @@ with zero.
 extern char * HTStrip PARAMS((char * s));
 </PRE>
 
-<H2>HTSimplify: Simplify a UTL</H2>
+<A NAME="canon"><H2>Canonicalization</H2></A>
+
+Canonicalization of URIs is a difficult job, but it saves a lot of
+down loads and double entries in the cache if we do a good job...
+
+<H3>Canonicalize the Path Part of a URI</H3>
 
 A URI is allowed to contain the seqeunce xxx/../ which may be
 replaced by "" , and the seqeunce "/./" which may be replaced by "/".
@@ -131,27 +152,7 @@ only the part after the last `://' is simplified.
 extern char *HTSimplify PARAMS((char *filename));
 </PRE>
 
-
-<H2>HTRelative:  Make Relative (Partial)
-URI</H2>This function creates and returns
-a string which gives an expression
-of one address as related to another.
-Where there is no relation, an absolute
-address is retured.
-<H3>On entry,</H3>Both names must be absolute, fully
-qualified names of nodes (no anchor
-bits)
-<H3>On exit,</H3>The return result points to a newly
-allocated name which, if parsed by
-HTParse relative to relatedName,
-will yield aName. The caller is responsible
-for freeing the resulting name later.
-
-<PRE>
-extern char * HTRelative PARAMS((const char * aName, const char *relatedName));
-</PRE>
-
-<H2>HTExpand: Expand a Local Host Name Into a Full Domain Name</H2>
+<H3>Canonicalize the DNS part of a URI</H3>
 
 This function expands the host name of the URI from a local name to a
 full domain name and converts the host name to lower case. The
@@ -163,7 +164,11 @@ extern char *HTCanon PARAMS ((	char **	filename,
 				char *	host));
 </PRE>
 
-<H2>Prevent Security Holes</H2>
+<A NAME="secure"><H2>Prevent Security Holes</H2></A>
+
+In many telnet like protocols, it can be very dangerous to allow a
+full ASCII character set to be in a URI. Therefore we have to strip
+them out.
 
 <CODE>HTCleanTelnetString()</CODE> makes sure that the given string
 doesn't contain characters that could cause security holes, such as
