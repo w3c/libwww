@@ -52,6 +52,16 @@ path name</H2>
 
 
 </PRE>
+<H2>Output a directory entry</H2>This is only used by HTFTP.c for
+example -- it is a common routine
+for generating a linked directory
+entry.
+<PRE>extern void HTDirEntry PARAMS((
+	HTStructured *  target,		/* in which to put the linked text */
+	CONST char *	tail,		/* last part of directory name */
+	CONST char *	entry));	/* name of this entry */
+
+</PRE>
 <H2>Define the representation for a file
 suffix</H2>
 <PRE>
@@ -131,4 +141,4 @@ NULL.
 
 #endif /* HTFILE_H */
 
-</PRE>end of HTFile</BODY>
+</PRE>end of HTFile</A></BODY>
