@@ -32,8 +32,8 @@ NULL=nul
 # Begin Project
 # PROP Target_Last_Scanned "pics - Win32 Debug"
 MTL=mktyplib.exe
-CPP=cl.exe
 RSC=rc.exe
+CPP=cl.exe
 
 !IF  "$(CFG)" == "pics - Win32 Release"
 
@@ -54,17 +54,17 @@ ALL : "$(OUTDIR)\pics.dll"
 
 CLEAN : 
 	-@erase "..\..\..\Bin\Release\pics.dll"
-	-@erase ".\Release\CSLLURLs.obj"
-	-@erase ".\Release\CSApp.obj"
-	-@erase ".\Release\CSStream.obj"
-	-@erase ".\Release\CSChkLab.obj"
 	-@erase ".\Release\CSLLOut.obj"
 	-@erase ".\Release\CSLabel.obj"
-	-@erase ".\Release\CSKwik.obj"
+	-@erase ".\Release\CSLLURLs.obj"
 	-@erase ".\Release\CSMacRed.obj"
-	-@erase ".\Release\CSUsrLst.obj"
-	-@erase ".\Release\CSUser.obj"
+	-@erase ".\Release\CSStream.obj"
+	-@erase ".\Release\CSApp.obj"
+	-@erase ".\Release\CSChkLab.obj"
 	-@erase ".\Release\CSMem.obj"
+	-@erase ".\Release\CSKwik.obj"
+	-@erase ".\Release\CSUser.obj"
+	-@erase ".\Release\CSUsrLst.obj"
 	-@erase ".\Release\CSParse.obj"
 	-@erase ".\Release\pics.lib"
 	-@erase ".\Release\pics.exp"
@@ -100,17 +100,17 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\pics.def"
 LINK32_OBJS= \
-	"$(INTDIR)/CSLLURLs.obj" \
-	"$(INTDIR)/CSApp.obj" \
-	"$(INTDIR)/CSStream.obj" \
-	"$(INTDIR)/CSChkLab.obj" \
 	"$(INTDIR)/CSLLOut.obj" \
 	"$(INTDIR)/CSLabel.obj" \
-	"$(INTDIR)/CSKwik.obj" \
+	"$(INTDIR)/CSLLURLs.obj" \
 	"$(INTDIR)/CSMacRed.obj" \
-	"$(INTDIR)/CSUsrLst.obj" \
-	"$(INTDIR)/CSUser.obj" \
+	"$(INTDIR)/CSStream.obj" \
+	"$(INTDIR)/CSApp.obj" \
+	"$(INTDIR)/CSChkLab.obj" \
 	"$(INTDIR)/CSMem.obj" \
+	"$(INTDIR)/CSKwik.obj" \
+	"$(INTDIR)/CSUser.obj" \
+	"$(INTDIR)/CSUsrLst.obj" \
 	"$(INTDIR)/CSParse.obj" \
 	"..\..\..\Library\src\windows\wwwdll\Debug\wwwdll.lib" \
 	"..\..\..\Library\src\windows\wwwcore\Debug\wwwcore.lib" \
@@ -143,17 +143,17 @@ CLEAN :
 	-@erase ".\Debug\vc40.pdb"
 	-@erase ".\Debug\vc40.idb"
 	-@erase "..\..\..\Bin\Debug\pics.dll"
-	-@erase ".\Debug\CSUsrLst.obj"
-	-@erase ".\Debug\CSLLOut.obj"
-	-@erase ".\Debug\CSLLURLs.obj"
-	-@erase ".\Debug\CSApp.obj"
-	-@erase ".\Debug\CSMem.obj"
 	-@erase ".\Debug\CSMacRed.obj"
 	-@erase ".\Debug\CSKwik.obj"
 	-@erase ".\Debug\CSParse.obj"
-	-@erase ".\Debug\CSStream.obj"
+	-@erase ".\Debug\CSUsrLst.obj"
+	-@erase ".\Debug\CSLLOut.obj"
 	-@erase ".\Debug\CSLabel.obj"
 	-@erase ".\Debug\CSUser.obj"
+	-@erase ".\Debug\CSLLURLs.obj"
+	-@erase ".\Debug\CSApp.obj"
+	-@erase ".\Debug\CSMem.obj"
+	-@erase ".\Debug\CSStream.obj"
 	-@erase ".\Debug\CSChkLab.obj"
 	-@erase "..\..\..\Bin\Debug\pics.ilk"
 	-@erase ".\Debug\pics.lib"
@@ -191,17 +191,17 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
 DEF_FILE= \
 	".\pics.def"
 LINK32_OBJS= \
-	"$(INTDIR)/CSUsrLst.obj" \
-	"$(INTDIR)/CSLLOut.obj" \
-	"$(INTDIR)/CSLLURLs.obj" \
-	"$(INTDIR)/CSApp.obj" \
-	"$(INTDIR)/CSMem.obj" \
 	"$(INTDIR)/CSMacRed.obj" \
 	"$(INTDIR)/CSKwik.obj" \
 	"$(INTDIR)/CSParse.obj" \
-	"$(INTDIR)/CSStream.obj" \
+	"$(INTDIR)/CSUsrLst.obj" \
+	"$(INTDIR)/CSLLOut.obj" \
 	"$(INTDIR)/CSLabel.obj" \
 	"$(INTDIR)/CSUser.obj" \
+	"$(INTDIR)/CSLLURLs.obj" \
+	"$(INTDIR)/CSApp.obj" \
+	"$(INTDIR)/CSMem.obj" \
+	"$(INTDIR)/CSStream.obj" \
 	"$(INTDIR)/CSChkLab.obj" \
 	"..\..\..\Library\src\windows\wwwdll\Debug\wwwdll.lib" \
 	"..\..\..\Library\src\windows\wwwcore\Debug\wwwcore.lib" \
@@ -248,14 +248,10 @@ LINK32_OBJS= \
 ################################################################################
 # Begin Source File
 
-SOURCE="..\CSUsrLst.c"
-
-!IF  "$(CFG)" == "pics - Win32 Release"
-
+SOURCE=".\..\CSUsrLst.c"
 DEP_CPP_CSUSR=\
 	".\..\..\..\Library\src\WWWLib.h"\
 	".\..\CSLApp.h"\
-	".\..\..\..\Library\src\WWWUtil.h"\
 	".\..\..\..\Library\src\sysdep.h"\
 	".\..\..\..\Library\src\WWWCore.h"\
 	".\..\CSLUtils.h"\
@@ -266,7 +262,7 @@ DEP_CPP_CSUSR=\
 	".\..\..\..\Library\src\HTDNS.h"\
 	".\..\..\..\Library\src\HTError.h"\
 	".\..\..\..\Library\src\HTEscape.h"\
-	".\..\..\..\Library\src\HTEvntrg.h"\
+	".\..\..\..\Library\src\HTEvent.h"\
 	".\..\..\..\Library\src\HTFormat.h"\
 	".\..\..\..\Library\src\HTHost.h"\
 	".\..\..\..\Library\src\HTMethod.h"\
@@ -288,6 +284,9 @@ DEP_CPP_CSUSR=\
 	".\..\..\..\Library\src\HTChannl.h"\
 	".\..\..\..\Library\src\HTAssoc.h"\
 	
+
+!IF  "$(CFG)" == "pics - Win32 Release"
+
 
 "$(INTDIR)\CSUsrLst.obj" : $(SOURCE) $(DEP_CPP_CSUSR) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -295,51 +294,6 @@ DEP_CPP_CSUSR=\
 
 !ELSEIF  "$(CFG)" == "pics - Win32 Debug"
 
-DEP_CPP_CSUSR=\
-	".\..\..\..\Library\src\WWWLib.h"\
-	".\..\CSLApp.h"\
-	".\..\..\..\Library\src\WWWUtil.h"\
-	".\..\..\..\Library\src\WWWCore.h"\
-	".\..\..\..\Library\src\sysdep.h"\
-	".\..\..\..\Library\src\HTUtils.h"\
-	".\..\..\..\Library\src\HTArray.h"\
-	".\..\..\..\Library\src\HTAssoc.h"\
-	".\..\..\..\Library\src\HTAtom.h"\
-	".\..\..\..\Library\src\HTChunk.h"\
-	".\..\..\..\Library\src\HTList.h"\
-	".\..\..\..\Library\src\HTMemory.h"\
-	".\..\..\..\Library\src\HTString.h"\
-	".\..\..\..\Library\src\HTUU.h"\
-	{$(INCLUDE)}"\sys\Types.h"\
-	{$(INCLUDE)}"\sys\Stat.h"\
-	".\..\..\..\Library\src\HTAccess.h"\
-	".\..\..\..\Library\src\HTAlert.h"\
-	".\..\..\..\Library\src\HTAnchor.h"\
-	".\..\..\..\Library\src\HTBind.h"\
-	".\..\..\..\Library\src\HTDNS.h"\
-	".\..\..\..\Library\src\HTError.h"\
-	".\..\..\..\Library\src\HTEscape.h"\
-	".\..\..\..\Library\src\HTEvntrg.h"\
-	".\..\..\..\Library\src\HTFormat.h"\
-	".\..\..\..\Library\src\HTHost.h"\
-	".\..\..\..\Library\src\HTMethod.h"\
-	".\..\..\..\Library\src\HTNet.h"\
-	".\..\..\..\Library\src\HTParse.h"\
-	".\..\..\..\Library\src\HTProt.h"\
-	".\..\..\..\Library\src\HTReq.h"\
-	".\..\..\..\Library\src\HTStream.h"\
-	".\..\..\..\Library\src\HTIOStream.h"\
-	".\..\..\..\Library\src\HTInet.h"\
-	".\..\..\..\Library\src\HTWWWStr.h"\
-	".\..\..\..\Library\src\HTTrans.h"\
-	".\..\..\..\Library\src\HTFWrite.h"\
-	".\..\..\..\Library\src\HTSocket.h"\
-	".\..\..\..\Library\src\HTChannl.h"\
-	".\..\CSLUtils.h"\
-	
-NODEP_CPP_CSUSR=\
-	".\..\..\..\Library\src\HTVMSUtils.h"\
-	
 
 "$(INTDIR)\CSUsrLst.obj" : $(SOURCE) $(DEP_CPP_CSUSR) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -351,10 +305,7 @@ NODEP_CPP_CSUSR=\
 ################################################################################
 # Begin Source File
 
-SOURCE="..\CSChkLab.c"
-
-!IF  "$(CFG)" == "pics - Win32 Release"
-
+SOURCE=".\..\CSChkLab.c"
 DEP_CPP_CSCHK=\
 	".\..\..\..\Library\src\WWWLib.h"\
 	".\..\CSLUtils.h"\
@@ -362,7 +313,6 @@ DEP_CPP_CSCHK=\
 	".\..\CSUserSt.h"\
 	".\..\CSLL.h"\
 	".\..\CSLLSt.h"\
-	".\..\..\..\Library\src\WWWUtil.h"\
 	".\..\..\..\Library\src\sysdep.h"\
 	".\..\..\..\Library\src\HTUtils.h"\
 	".\..\..\..\Library\src\HTList.h"\
@@ -373,74 +323,13 @@ DEP_CPP_CSCHK=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-!ELSEIF  "$(CFG)" == "pics - Win32 Debug"
-
-DEP_CPP_CSCHK=\
-	".\..\..\..\Library\src\WWWLib.h"\
-	".\..\CSLUtils.h"\
-	".\..\CSUser.h"\
-	".\..\CSUserSt.h"\
-	".\..\CSLL.h"\
-	".\..\CSLLSt.h"\
-	".\..\..\..\Library\src\WWWUtil.h"\
-	".\..\..\..\Library\src\WWWCore.h"\
-	".\..\..\..\Library\src\sysdep.h"\
-	".\..\..\..\Library\src\HTUtils.h"\
-	".\..\..\..\Library\src\HTArray.h"\
-	".\..\..\..\Library\src\HTAssoc.h"\
-	".\..\..\..\Library\src\HTAtom.h"\
-	".\..\..\..\Library\src\HTChunk.h"\
-	".\..\..\..\Library\src\HTList.h"\
-	".\..\..\..\Library\src\HTMemory.h"\
-	".\..\..\..\Library\src\HTString.h"\
-	".\..\..\..\Library\src\HTUU.h"\
-	{$(INCLUDE)}"\sys\Types.h"\
-	{$(INCLUDE)}"\sys\Stat.h"\
-	".\..\..\..\Library\src\HTAccess.h"\
-	".\..\..\..\Library\src\HTAlert.h"\
-	".\..\..\..\Library\src\HTAnchor.h"\
-	".\..\..\..\Library\src\HTBind.h"\
-	".\..\..\..\Library\src\HTDNS.h"\
-	".\..\..\..\Library\src\HTError.h"\
-	".\..\..\..\Library\src\HTEscape.h"\
-	".\..\..\..\Library\src\HTEvntrg.h"\
-	".\..\..\..\Library\src\HTFormat.h"\
-	".\..\..\..\Library\src\HTHost.h"\
-	".\..\..\..\Library\src\HTMethod.h"\
-	".\..\..\..\Library\src\HTNet.h"\
-	".\..\..\..\Library\src\HTParse.h"\
-	".\..\..\..\Library\src\HTProt.h"\
-	".\..\..\..\Library\src\HTReq.h"\
-	".\..\..\..\Library\src\HTStream.h"\
-	".\..\..\..\Library\src\HTIOStream.h"\
-	".\..\..\..\Library\src\HTInet.h"\
-	".\..\..\..\Library\src\HTWWWStr.h"\
-	".\..\..\..\Library\src\HTTrans.h"\
-	".\..\..\..\Library\src\HTFWrite.h"\
-	".\..\..\..\Library\src\HTSocket.h"\
-	".\..\..\..\Library\src\HTChannl.h"\
-	
-NODEP_CPP_CSCHK=\
-	".\..\..\..\Library\src\HTVMSUtils.h"\
-	
-
-"$(INTDIR)\CSChkLab.obj" : $(SOURCE) $(DEP_CPP_CSCHK) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ENDIF 
-
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE="..\CSKwik.c"
-
-!IF  "$(CFG)" == "pics - Win32 Release"
-
+SOURCE=".\..\CSKwik.c"
 DEP_CPP_CSKWI=\
 	".\..\..\..\Library\src\WWWLib.h"\
-	".\..\..\..\Library\src\WWWUtil.h"\
 	".\..\..\..\Library\src\sysdep.h"\
 	
 
@@ -448,66 +337,11 @@ DEP_CPP_CSKWI=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-!ELSEIF  "$(CFG)" == "pics - Win32 Debug"
-
-DEP_CPP_CSKWI=\
-	".\..\..\..\Library\src\WWWLib.h"\
-	".\..\..\..\Library\src\WWWUtil.h"\
-	".\..\..\..\Library\src\WWWCore.h"\
-	".\..\..\..\Library\src\sysdep.h"\
-	".\..\..\..\Library\src\HTUtils.h"\
-	".\..\..\..\Library\src\HTArray.h"\
-	".\..\..\..\Library\src\HTAssoc.h"\
-	".\..\..\..\Library\src\HTAtom.h"\
-	".\..\..\..\Library\src\HTChunk.h"\
-	".\..\..\..\Library\src\HTList.h"\
-	".\..\..\..\Library\src\HTMemory.h"\
-	".\..\..\..\Library\src\HTString.h"\
-	".\..\..\..\Library\src\HTUU.h"\
-	{$(INCLUDE)}"\sys\Types.h"\
-	{$(INCLUDE)}"\sys\Stat.h"\
-	".\..\..\..\Library\src\HTAccess.h"\
-	".\..\..\..\Library\src\HTAlert.h"\
-	".\..\..\..\Library\src\HTAnchor.h"\
-	".\..\..\..\Library\src\HTBind.h"\
-	".\..\..\..\Library\src\HTDNS.h"\
-	".\..\..\..\Library\src\HTError.h"\
-	".\..\..\..\Library\src\HTEscape.h"\
-	".\..\..\..\Library\src\HTEvntrg.h"\
-	".\..\..\..\Library\src\HTFormat.h"\
-	".\..\..\..\Library\src\HTHost.h"\
-	".\..\..\..\Library\src\HTMethod.h"\
-	".\..\..\..\Library\src\HTNet.h"\
-	".\..\..\..\Library\src\HTParse.h"\
-	".\..\..\..\Library\src\HTProt.h"\
-	".\..\..\..\Library\src\HTReq.h"\
-	".\..\..\..\Library\src\HTStream.h"\
-	".\..\..\..\Library\src\HTIOStream.h"\
-	".\..\..\..\Library\src\HTInet.h"\
-	".\..\..\..\Library\src\HTWWWStr.h"\
-	".\..\..\..\Library\src\HTTrans.h"\
-	".\..\..\..\Library\src\HTFWrite.h"\
-	".\..\..\..\Library\src\HTSocket.h"\
-	".\..\..\..\Library\src\HTChannl.h"\
-	
-NODEP_CPP_CSKWI=\
-	".\..\..\..\Library\src\HTVMSUtils.h"\
-	
-
-"$(INTDIR)\CSKwik.obj" : $(SOURCE) $(DEP_CPP_CSKWI) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ENDIF 
-
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE="..\CSLabel.c"
-
-!IF  "$(CFG)" == "pics - Win32 Release"
-
+SOURCE=".\..\CSLabel.c"
 DEP_CPP_CSLAB=\
 	".\..\..\..\Library\src\sysdep.h"\
 	".\..\..\..\Library\src\HTList.h"\
@@ -525,46 +359,16 @@ DEP_CPP_CSLAB=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-!ELSEIF  "$(CFG)" == "pics - Win32 Debug"
-
-DEP_CPP_CSLAB=\
-	".\..\..\..\Library\src\sysdep.h"\
-	".\..\..\..\Library\src\HTList.h"\
-	".\..\..\..\Library\src\HTString.h"\
-	".\..\CSParse.h"\
-	".\..\CSLL.h"\
-	".\..\CSLLSt.h"\
-	{$(INCLUDE)}"\sys\Types.h"\
-	{$(INCLUDE)}"\sys\Stat.h"\
-	".\..\CSLUtils.h"\
-	".\..\..\..\Library\src\HTChunk.h"\
-	".\..\..\..\Library\src\HTUtils.h"\
-	".\..\..\..\Library\src\HTMemory.h"\
-	
-NODEP_CPP_CSLAB=\
-	".\..\..\..\Library\src\HTVMSUtils.h"\
-	
-
-"$(INTDIR)\CSLabel.obj" : $(SOURCE) $(DEP_CPP_CSLAB) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ENDIF 
-
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE="..\CSLLOut.c"
-
-!IF  "$(CFG)" == "pics - Win32 Release"
-
+SOURCE=".\..\CSLLOut.c"
 DEP_CPP_CSLLO=\
 	".\..\..\..\Library\src\WWWLib.h"\
 	".\..\CSLUtils.h"\
 	".\..\CSLL.h"\
 	".\..\CSLLSt.h"\
-	".\..\..\..\Library\src\WWWUtil.h"\
 	".\..\..\..\Library\src\sysdep.h"\
 	".\..\..\..\Library\src\HTUtils.h"\
 	".\..\..\..\Library\src\HTList.h"\
@@ -575,75 +379,16 @@ DEP_CPP_CSLLO=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-!ELSEIF  "$(CFG)" == "pics - Win32 Debug"
-
-DEP_CPP_CSLLO=\
-	".\..\..\..\Library\src\WWWLib.h"\
-	".\..\CSLUtils.h"\
-	".\..\CSLL.h"\
-	".\..\CSLLSt.h"\
-	".\..\..\..\Library\src\WWWUtil.h"\
-	".\..\..\..\Library\src\WWWCore.h"\
-	".\..\..\..\Library\src\sysdep.h"\
-	".\..\..\..\Library\src\HTUtils.h"\
-	".\..\..\..\Library\src\HTArray.h"\
-	".\..\..\..\Library\src\HTAssoc.h"\
-	".\..\..\..\Library\src\HTAtom.h"\
-	".\..\..\..\Library\src\HTChunk.h"\
-	".\..\..\..\Library\src\HTList.h"\
-	".\..\..\..\Library\src\HTMemory.h"\
-	".\..\..\..\Library\src\HTString.h"\
-	".\..\..\..\Library\src\HTUU.h"\
-	{$(INCLUDE)}"\sys\Types.h"\
-	{$(INCLUDE)}"\sys\Stat.h"\
-	".\..\..\..\Library\src\HTAccess.h"\
-	".\..\..\..\Library\src\HTAlert.h"\
-	".\..\..\..\Library\src\HTAnchor.h"\
-	".\..\..\..\Library\src\HTBind.h"\
-	".\..\..\..\Library\src\HTDNS.h"\
-	".\..\..\..\Library\src\HTError.h"\
-	".\..\..\..\Library\src\HTEscape.h"\
-	".\..\..\..\Library\src\HTEvntrg.h"\
-	".\..\..\..\Library\src\HTFormat.h"\
-	".\..\..\..\Library\src\HTHost.h"\
-	".\..\..\..\Library\src\HTMethod.h"\
-	".\..\..\..\Library\src\HTNet.h"\
-	".\..\..\..\Library\src\HTParse.h"\
-	".\..\..\..\Library\src\HTProt.h"\
-	".\..\..\..\Library\src\HTReq.h"\
-	".\..\..\..\Library\src\HTStream.h"\
-	".\..\..\..\Library\src\HTIOStream.h"\
-	".\..\..\..\Library\src\HTInet.h"\
-	".\..\..\..\Library\src\HTWWWStr.h"\
-	".\..\..\..\Library\src\HTTrans.h"\
-	".\..\..\..\Library\src\HTFWrite.h"\
-	".\..\..\..\Library\src\HTSocket.h"\
-	".\..\..\..\Library\src\HTChannl.h"\
-	
-NODEP_CPP_CSLLO=\
-	".\..\..\..\Library\src\HTVMSUtils.h"\
-	
-
-"$(INTDIR)\CSLLOut.obj" : $(SOURCE) $(DEP_CPP_CSLLO) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ENDIF 
-
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE="..\CSLLURLs.c"
-
-!IF  "$(CFG)" == "pics - Win32 Release"
-
+SOURCE=".\..\CSLLURLs.c"
 DEP_CPP_CSLLU=\
 	".\..\..\..\Library\src\WWWLib.h"\
 	".\..\CSLUtils.h"\
 	".\..\CSLL.h"\
 	".\..\CSLLSt.h"\
-	".\..\..\..\Library\src\WWWUtil.h"\
 	".\..\..\..\Library\src\sysdep.h"\
 	".\..\..\..\Library\src\HTUtils.h"\
 	".\..\..\..\Library\src\HTList.h"\
@@ -654,69 +399,11 @@ DEP_CPP_CSLLU=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-!ELSEIF  "$(CFG)" == "pics - Win32 Debug"
-
-DEP_CPP_CSLLU=\
-	".\..\..\..\Library\src\WWWLib.h"\
-	".\..\CSLUtils.h"\
-	".\..\CSLL.h"\
-	".\..\CSLLSt.h"\
-	".\..\..\..\Library\src\WWWUtil.h"\
-	".\..\..\..\Library\src\WWWCore.h"\
-	".\..\..\..\Library\src\sysdep.h"\
-	".\..\..\..\Library\src\HTUtils.h"\
-	".\..\..\..\Library\src\HTArray.h"\
-	".\..\..\..\Library\src\HTAssoc.h"\
-	".\..\..\..\Library\src\HTAtom.h"\
-	".\..\..\..\Library\src\HTChunk.h"\
-	".\..\..\..\Library\src\HTList.h"\
-	".\..\..\..\Library\src\HTMemory.h"\
-	".\..\..\..\Library\src\HTString.h"\
-	".\..\..\..\Library\src\HTUU.h"\
-	{$(INCLUDE)}"\sys\Types.h"\
-	{$(INCLUDE)}"\sys\Stat.h"\
-	".\..\..\..\Library\src\HTAccess.h"\
-	".\..\..\..\Library\src\HTAlert.h"\
-	".\..\..\..\Library\src\HTAnchor.h"\
-	".\..\..\..\Library\src\HTBind.h"\
-	".\..\..\..\Library\src\HTDNS.h"\
-	".\..\..\..\Library\src\HTError.h"\
-	".\..\..\..\Library\src\HTEscape.h"\
-	".\..\..\..\Library\src\HTEvntrg.h"\
-	".\..\..\..\Library\src\HTFormat.h"\
-	".\..\..\..\Library\src\HTHost.h"\
-	".\..\..\..\Library\src\HTMethod.h"\
-	".\..\..\..\Library\src\HTNet.h"\
-	".\..\..\..\Library\src\HTParse.h"\
-	".\..\..\..\Library\src\HTProt.h"\
-	".\..\..\..\Library\src\HTReq.h"\
-	".\..\..\..\Library\src\HTStream.h"\
-	".\..\..\..\Library\src\HTIOStream.h"\
-	".\..\..\..\Library\src\HTInet.h"\
-	".\..\..\..\Library\src\HTWWWStr.h"\
-	".\..\..\..\Library\src\HTTrans.h"\
-	".\..\..\..\Library\src\HTFWrite.h"\
-	".\..\..\..\Library\src\HTSocket.h"\
-	".\..\..\..\Library\src\HTChannl.h"\
-	
-NODEP_CPP_CSLLU=\
-	".\..\..\..\Library\src\HTVMSUtils.h"\
-	
-
-"$(INTDIR)\CSLLURLs.obj" : $(SOURCE) $(DEP_CPP_CSLLU) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ENDIF 
-
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE="..\CSMacRed.c"
-
-!IF  "$(CFG)" == "pics - Win32 Release"
-
+SOURCE=".\..\CSMacRed.c"
 DEP_CPP_CSMAC=\
 	".\..\..\..\Library\src\sysdep.h"\
 	".\..\..\..\Library\src\HTUtils.h"\
@@ -734,44 +421,14 @@ DEP_CPP_CSMAC=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-!ELSEIF  "$(CFG)" == "pics - Win32 Debug"
-
-DEP_CPP_CSMAC=\
-	".\..\..\..\Library\src\sysdep.h"\
-	".\..\..\..\Library\src\HTUtils.h"\
-	".\..\..\..\Library\src\HTString.h"\
-	".\..\CSParse.h"\
-	".\..\CSMR.h"\
-	".\..\CSMRSt.h"\
-	{$(INCLUDE)}"\sys\Types.h"\
-	{$(INCLUDE)}"\sys\Stat.h"\
-	".\..\..\..\Library\src\HTMemory.h"\
-	".\..\CSLUtils.h"\
-	".\..\..\..\Library\src\HTChunk.h"\
-	".\..\..\..\Library\src\HTList.h"\
-	
-NODEP_CPP_CSMAC=\
-	".\..\..\..\Library\src\HTVMSUtils.h"\
-	
-
-"$(INTDIR)\CSMacRed.obj" : $(SOURCE) $(DEP_CPP_CSMAC) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ENDIF 
-
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE="..\CSMem.c"
-
-!IF  "$(CFG)" == "pics - Win32 Release"
-
+SOURCE=".\..\CSMem.c"
 DEP_CPP_CSMEM=\
 	".\..\..\..\Library\src\WWWLib.h"\
 	".\..\CSLUtils.h"\
-	".\..\..\..\Library\src\WWWUtil.h"\
 	".\..\..\..\Library\src\sysdep.h"\
 	".\..\..\..\Library\src\HTUtils.h"\
 	".\..\..\..\Library\src\HTList.h"\
@@ -782,67 +439,11 @@ DEP_CPP_CSMEM=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-!ELSEIF  "$(CFG)" == "pics - Win32 Debug"
-
-DEP_CPP_CSMEM=\
-	".\..\..\..\Library\src\WWWLib.h"\
-	".\..\CSLUtils.h"\
-	".\..\..\..\Library\src\WWWUtil.h"\
-	".\..\..\..\Library\src\WWWCore.h"\
-	".\..\..\..\Library\src\sysdep.h"\
-	".\..\..\..\Library\src\HTUtils.h"\
-	".\..\..\..\Library\src\HTArray.h"\
-	".\..\..\..\Library\src\HTAssoc.h"\
-	".\..\..\..\Library\src\HTAtom.h"\
-	".\..\..\..\Library\src\HTChunk.h"\
-	".\..\..\..\Library\src\HTList.h"\
-	".\..\..\..\Library\src\HTMemory.h"\
-	".\..\..\..\Library\src\HTString.h"\
-	".\..\..\..\Library\src\HTUU.h"\
-	{$(INCLUDE)}"\sys\Types.h"\
-	{$(INCLUDE)}"\sys\Stat.h"\
-	".\..\..\..\Library\src\HTAccess.h"\
-	".\..\..\..\Library\src\HTAlert.h"\
-	".\..\..\..\Library\src\HTAnchor.h"\
-	".\..\..\..\Library\src\HTBind.h"\
-	".\..\..\..\Library\src\HTDNS.h"\
-	".\..\..\..\Library\src\HTError.h"\
-	".\..\..\..\Library\src\HTEscape.h"\
-	".\..\..\..\Library\src\HTEvntrg.h"\
-	".\..\..\..\Library\src\HTFormat.h"\
-	".\..\..\..\Library\src\HTHost.h"\
-	".\..\..\..\Library\src\HTMethod.h"\
-	".\..\..\..\Library\src\HTNet.h"\
-	".\..\..\..\Library\src\HTParse.h"\
-	".\..\..\..\Library\src\HTProt.h"\
-	".\..\..\..\Library\src\HTReq.h"\
-	".\..\..\..\Library\src\HTStream.h"\
-	".\..\..\..\Library\src\HTIOStream.h"\
-	".\..\..\..\Library\src\HTInet.h"\
-	".\..\..\..\Library\src\HTWWWStr.h"\
-	".\..\..\..\Library\src\HTTrans.h"\
-	".\..\..\..\Library\src\HTFWrite.h"\
-	".\..\..\..\Library\src\HTSocket.h"\
-	".\..\..\..\Library\src\HTChannl.h"\
-	
-NODEP_CPP_CSMEM=\
-	".\..\..\..\Library\src\HTVMSUtils.h"\
-	
-
-"$(INTDIR)\CSMem.obj" : $(SOURCE) $(DEP_CPP_CSMEM) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ENDIF 
-
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE="..\CSParse.c"
-
-!IF  "$(CFG)" == "pics - Win32 Release"
-
+SOURCE=".\..\CSParse.c"
 DEP_CPP_CSPAR=\
 	".\..\..\..\Library\src\sysdep.h"\
 	".\..\..\..\Library\src\HTChunk.h"\
@@ -858,47 +459,20 @@ DEP_CPP_CSPAR=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-!ELSEIF  "$(CFG)" == "pics - Win32 Debug"
+# End Source File
+################################################################################
+# Begin Source File
 
-DEP_CPP_CSPAR=\
-	".\..\..\..\Library\src\sysdep.h"\
-	".\..\..\..\Library\src\HTChunk.h"\
-	".\..\..\..\Library\src\HTString.h"\
+SOURCE=".\..\CSStream.c"
+DEP_CPP_CSSTR=\
+	".\..\..\..\Library\src\WWWLib.h"\
+	".\..\..\..\Library\src\HTProxy.h"\
 	".\..\CSLUtils.h"\
+	".\..\CSMR.h"\
+	".\..\CSUser.h"\
+	".\..\CSLL.h"\
+	".\..\CSLApp.h"\
 	".\..\CSParse.h"\
-	{$(INCLUDE)}"\sys\Types.h"\
-	{$(INCLUDE)}"\sys\Stat.h"\
-	".\..\..\..\Library\src\HTUtils.h"\
-	".\..\..\..\Library\src\HTList.h"\
-	".\..\..\..\Library\src\HTMemory.h"\
-	
-NODEP_CPP_CSPAR=\
-	".\..\..\..\Library\src\HTVMSUtils.h"\
-	
-
-"$(INTDIR)\CSParse.obj" : $(SOURCE) $(DEP_CPP_CSPAR) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ENDIF 
-
-# End Source File
-################################################################################
-# Begin Source File
-
-SOURCE="..\CSStream.c"
-
-!IF  "$(CFG)" == "pics - Win32 Release"
-
-DEP_CPP_CSSTR=\
-	".\..\..\..\Library\src\WWWLib.h"\
-	".\..\..\..\Library\src\HTProxy.h"\
-	".\..\CSLUtils.h"\
-	".\..\CSMR.h"\
-	".\..\CSUser.h"\
-	".\..\CSLL.h"\
-	".\..\CSLApp.h"\
-	".\..\..\..\Library\src\WWWUtil.h"\
 	".\..\..\..\Library\src\sysdep.h"\
 	".\..\..\..\Library\src\HTList.h"\
 	".\..\..\..\Library\src\HTUtils.h"\
@@ -911,7 +485,7 @@ DEP_CPP_CSSTR=\
 	".\..\..\..\Library\src\HTDNS.h"\
 	".\..\..\..\Library\src\HTError.h"\
 	".\..\..\..\Library\src\HTEscape.h"\
-	".\..\..\..\Library\src\HTEvntrg.h"\
+	".\..\..\..\Library\src\HTEvent.h"\
 	".\..\..\..\Library\src\HTFormat.h"\
 	".\..\..\..\Library\src\HTHost.h"\
 	".\..\..\..\Library\src\HTMethod.h"\
@@ -929,78 +503,18 @@ DEP_CPP_CSSTR=\
 	".\..\..\..\Library\src\HTAtom.h"\
 	".\..\..\..\Library\src\HTChannl.h"\
 	".\..\..\..\Library\src\HTAssoc.h"\
-	
-
-"$(INTDIR)\CSStream.obj" : $(SOURCE) $(DEP_CPP_CSSTR) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ELSEIF  "$(CFG)" == "pics - Win32 Debug"
-
-DEP_CPP_CSSTR=\
-	".\..\..\..\Library\src\WWWLib.h"\
-	".\..\..\..\Library\src\HTProxy.h"\
-	".\..\CSLUtils.h"\
-	".\..\CSMR.h"\
-	".\..\CSUser.h"\
-	".\..\CSLL.h"\
-	".\..\CSLApp.h"\
-	".\..\..\..\Library\src\WWWUtil.h"\
-	".\..\..\..\Library\src\WWWCore.h"\
-	".\..\..\..\Library\src\sysdep.h"\
-	".\..\..\..\Library\src\HTUtils.h"\
-	".\..\..\..\Library\src\HTArray.h"\
-	".\..\..\..\Library\src\HTAssoc.h"\
-	".\..\..\..\Library\src\HTAtom.h"\
 	".\..\..\..\Library\src\HTChunk.h"\
-	".\..\..\..\Library\src\HTList.h"\
-	".\..\..\..\Library\src\HTMemory.h"\
-	".\..\..\..\Library\src\HTString.h"\
-	".\..\..\..\Library\src\HTUU.h"\
-	{$(INCLUDE)}"\sys\Types.h"\
-	{$(INCLUDE)}"\sys\Stat.h"\
-	".\..\..\..\Library\src\HTAccess.h"\
-	".\..\..\..\Library\src\HTAlert.h"\
-	".\..\..\..\Library\src\HTAnchor.h"\
-	".\..\..\..\Library\src\HTBind.h"\
-	".\..\..\..\Library\src\HTDNS.h"\
-	".\..\..\..\Library\src\HTError.h"\
-	".\..\..\..\Library\src\HTEscape.h"\
-	".\..\..\..\Library\src\HTEvntrg.h"\
-	".\..\..\..\Library\src\HTFormat.h"\
-	".\..\..\..\Library\src\HTHost.h"\
-	".\..\..\..\Library\src\HTMethod.h"\
-	".\..\..\..\Library\src\HTNet.h"\
-	".\..\..\..\Library\src\HTParse.h"\
-	".\..\..\..\Library\src\HTProt.h"\
-	".\..\..\..\Library\src\HTReq.h"\
-	".\..\..\..\Library\src\HTStream.h"\
-	".\..\..\..\Library\src\HTIOStream.h"\
-	".\..\..\..\Library\src\HTInet.h"\
-	".\..\..\..\Library\src\HTWWWStr.h"\
-	".\..\..\..\Library\src\HTTrans.h"\
-	".\..\..\..\Library\src\HTFWrite.h"\
-	".\..\..\..\Library\src\HTSocket.h"\
-	".\..\..\..\Library\src\HTChannl.h"\
-	
-NODEP_CPP_CSSTR=\
-	".\..\..\..\Library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\CSStream.obj" : $(SOURCE) $(DEP_CPP_CSSTR) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-!ENDIF 
-
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE="..\CSUser.c"
-
-!IF  "$(CFG)" == "pics - Win32 Release"
-
+SOURCE=".\..\CSUser.c"
 DEP_CPP_CSUSE=\
 	".\..\..\..\Library\src\sysdep.h"\
 	".\..\..\..\Library\src\HTUtils.h"\
@@ -1020,42 +534,11 @@ DEP_CPP_CSUSE=\
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-!ELSEIF  "$(CFG)" == "pics - Win32 Debug"
-
-DEP_CPP_CSUSE=\
-	".\..\..\..\Library\src\sysdep.h"\
-	".\..\..\..\Library\src\HTUtils.h"\
-	".\..\..\..\Library\src\HTString.h"\
-	".\..\..\..\Library\src\HTEscape.h"\
-	".\..\..\..\Library\src\HTParse.h"\
-	".\..\CSParse.h"\
-	".\..\CSUser.h"\
-	".\..\CSUserSt.h"\
-	{$(INCLUDE)}"\sys\Types.h"\
-	{$(INCLUDE)}"\sys\Stat.h"\
-	".\..\..\..\Library\src\HTMemory.h"\
-	".\..\CSLUtils.h"\
-	".\..\..\..\Library\src\HTChunk.h"\
-	".\..\..\..\Library\src\HTList.h"\
-	
-NODEP_CPP_CSUSE=\
-	".\..\..\..\Library\src\HTVMSUtils.h"\
-	
-
-"$(INTDIR)\CSUser.obj" : $(SOURCE) $(DEP_CPP_CSUSE) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ENDIF 
-
 # End Source File
 ################################################################################
 # Begin Source File
 
-SOURCE="..\CSApp.c"
-
-!IF  "$(CFG)" == "pics - Win32 Release"
-
+SOURCE=".\..\CSApp.c"
 DEP_CPP_CSAPP=\
 	".\..\..\..\Library\src\WWWLib.h"\
 	".\..\..\..\Library\src\WWWApp.h"\
@@ -1067,14 +550,14 @@ DEP_CPP_CSAPP=\
 	".\..\CSUser.h"\
 	".\..\CSUserSt.h"\
 	".\..\CSUsrLst.h"\
-	".\..\..\..\Library\src\WWWUtil.h"\
 	".\..\..\..\Library\src\sysdep.h"\
+	".\..\..\..\Library\src\HTEvntrg.h"\
 	".\..\..\..\Library\src\HTHome.h"\
 	".\..\..\..\Library\src\HTDialog.h"\
 	".\..\..\..\Library\src\HTLog.h"\
 	".\..\..\..\Library\src\HTHist.h"\
+	".\..\..\..\Library\src\HTEvent.h"\
 	".\..\..\..\Library\src\HTReq.h"\
-	".\..\..\..\Library\src\HTEvntrg.h"\
 	".\..\..\..\Library\src\HTList.h"\
 	".\..\..\..\Library\src\HTAssoc.h"\
 	".\..\..\..\Library\src\HTFormat.h"\
@@ -1108,71 +591,6 @@ DEP_CPP_CSAPP=\
 "$(INTDIR)\CSApp.obj" : $(SOURCE) $(DEP_CPP_CSAPP) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
-
-!ELSEIF  "$(CFG)" == "pics - Win32 Debug"
-
-DEP_CPP_CSAPP=\
-	".\..\..\..\Library\src\WWWLib.h"\
-	".\..\..\..\Library\src\WWWApp.h"\
-	".\..\..\..\Library\src\HTHeader.h"\
-	".\..\CSLApp.h"\
-	".\..\CSParse.h"\
-	".\..\CSLUtils.h"\
-	".\..\CSLL.h"\
-	".\..\CSUser.h"\
-	".\..\CSUserSt.h"\
-	".\..\CSUsrLst.h"\
-	".\..\..\..\Library\src\WWWUtil.h"\
-	".\..\..\..\Library\src\WWWCore.h"\
-	".\..\..\..\Library\src\sysdep.h"\
-	".\..\..\..\Library\src\HTUtils.h"\
-	".\..\..\..\Library\src\HTArray.h"\
-	".\..\..\..\Library\src\HTAssoc.h"\
-	".\..\..\..\Library\src\HTAtom.h"\
-	".\..\..\..\Library\src\HTChunk.h"\
-	".\..\..\..\Library\src\HTList.h"\
-	".\..\..\..\Library\src\HTMemory.h"\
-	".\..\..\..\Library\src\HTString.h"\
-	".\..\..\..\Library\src\HTUU.h"\
-	{$(INCLUDE)}"\sys\Types.h"\
-	{$(INCLUDE)}"\sys\Stat.h"\
-	".\..\..\..\Library\src\HTAccess.h"\
-	".\..\..\..\Library\src\HTAlert.h"\
-	".\..\..\..\Library\src\HTAnchor.h"\
-	".\..\..\..\Library\src\HTBind.h"\
-	".\..\..\..\Library\src\HTDNS.h"\
-	".\..\..\..\Library\src\HTError.h"\
-	".\..\..\..\Library\src\HTEscape.h"\
-	".\..\..\..\Library\src\HTEvntrg.h"\
-	".\..\..\..\Library\src\HTFormat.h"\
-	".\..\..\..\Library\src\HTHost.h"\
-	".\..\..\..\Library\src\HTMethod.h"\
-	".\..\..\..\Library\src\HTNet.h"\
-	".\..\..\..\Library\src\HTParse.h"\
-	".\..\..\..\Library\src\HTProt.h"\
-	".\..\..\..\Library\src\HTReq.h"\
-	".\..\..\..\Library\src\HTStream.h"\
-	".\..\..\..\Library\src\HTIOStream.h"\
-	".\..\..\..\Library\src\HTInet.h"\
-	".\..\..\..\Library\src\HTWWWStr.h"\
-	".\..\..\..\Library\src\HTTrans.h"\
-	".\..\..\..\Library\src\HTFWrite.h"\
-	".\..\..\..\Library\src\HTSocket.h"\
-	".\..\..\..\Library\src\HTChannl.h"\
-	".\..\..\..\Library\src\HTHome.h"\
-	".\..\..\..\Library\src\HTDialog.h"\
-	".\..\..\..\Library\src\HTLog.h"\
-	".\..\..\..\Library\src\HTHist.h"\
-	
-NODEP_CPP_CSAPP=\
-	".\..\..\..\Library\src\HTVMSUtils.h"\
-	
-
-"$(INTDIR)\CSApp.obj" : $(SOURCE) $(DEP_CPP_CSAPP) "$(INTDIR)"
-   $(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ENDIF 
 
 # End Source File
 ################################################################################
@@ -1190,7 +608,7 @@ SOURCE=.\pics.def
 ################################################################################
 # Begin Source File
 
-SOURCE="..\..\..\Library\src\windows\wwwcore\Debug\wwwcore.lib"
+SOURCE=".\..\..\..\Library\src\windows\wwwcore\Debug\wwwcore.lib"
 
 !IF  "$(CFG)" == "pics - Win32 Release"
 
@@ -1202,7 +620,7 @@ SOURCE="..\..\..\Library\src\windows\wwwcore\Debug\wwwcore.lib"
 ################################################################################
 # Begin Source File
 
-SOURCE="..\..\..\Library\src\windows\wwwdll\Debug\wwwdll.lib"
+SOURCE=".\..\..\..\Library\src\windows\wwwdll\Debug\wwwdll.lib"
 
 !IF  "$(CFG)" == "pics - Win32 Release"
 
@@ -1215,7 +633,7 @@ SOURCE="..\..\..\Library\src\windows\wwwdll\Debug\wwwdll.lib"
 # Begin Source File
 
 SOURCE=\
-"..\..\..\Library\src\windows\wwwutils\Debug\wwwutils.lib"
+".\..\..\..\Library\src\windows\wwwutils\Debug\wwwutils.lib"
 
 !IF  "$(CFG)" == "pics - Win32 Release"
 
@@ -1227,7 +645,7 @@ SOURCE=\
 ################################################################################
 # Begin Source File
 
-SOURCE="..\..\..\Library\src\windows\wwwmime\Debug\wwwmime.lib"
+SOURCE=".\..\..\..\Library\src\windows\wwwmime\Debug\wwwmime.lib"
 
 !IF  "$(CFG)" == "pics - Win32 Release"
 
