@@ -1,0 +1,389 @@
+<HTML>
+<HEAD>
+  <TITLE>W3C Sample Code Library libwww RDF Parser</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  RDF Parser Based on Expat and SiRPAC
+</H1>
+<P>
+<STRONG>Written and integrated into libwww by John Punin - thanks!</STRONG>
+<P>
+This module is implemented by <A HREF="HTRDF.c">HTRDF.c</A>, and is a part
+of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code Library</A>.
+<P>
+This RDF parser is based on Janne Saarela's Java based
+<A href="/RDF/Implementations/SiRPAC/">SiRPAC</A> and
+<A href="http://www.jclark.com/xml/expat.html">James Clark's expat XML
+parser</A> which isincluded in the libwww CVS code base where I compile is
+as two libraries: <CODE>libxmltok.a</CODE> and <CODE>libxmlparse.a</CODE>.
+See the <A HREF="../External/">external modules that libwww works</A> with
+for details.
+<PRE>
+#ifndef HTRDF_H
+#define HTRDF_H
+
+#include "<A href="HTHash.html">HTHash.h</A>"
+
+#define RDFMS "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+#define RDFSCHEMA "http://www.w3.org/TR/WD-rdf-schema#"
+#define XMLSCHEMA "xml"
+
+typedef char * String;
+</PRE>
+<H2>
+  <A NAME="HTTriple">RDF Triple Class</A>
+</H2>
+<PRE>
+typedef struct _HTTriple HTTriple;
+
+extern HTTriple * HTTriple_new (String p, String s, String o);
+extern BOOL HTTriple_delete (HTTriple * me);
+extern void HTTriple_print (HTTriple * me);
+extern String HTTriple_subject (HTTriple * me);
+extern String HTTriple_predicate (HTTriple * me);
+extern String HTTriple_object (HTTriple * me);
+</PRE>
+<H2>
+  <A NAME="HTElement">RDF Element Class</A>
+</H2>
+<PRE>
+typedef struct _HTElement HTElement;
+
+extern HTElement * HTElement_new (String sName, HTAssocList * al);
+extern HTElement * HTElement_new2 (String sContent);
+extern BOOL HTElement_addData (HTElement *me, String sContent);
+extern BOOL HTElement_delete (HTElement * me);
+extern BOOL HTElement_addChild (HTElement * me, HTElement * element);
+extern BOOL HTElement_addAttribute (HTElement * me, String sName, String sValue);
+extern BOOL HTElement_removeAttribute (HTElement * me, String sName);
+extern String HTElement_getAttribute (HTElement * me, String sName);
+extern String HTElement_getAttribute2 (HTElement * me, String sNamespace, String sName);
+extern BOOL HTElement_addTarget (HTElement * me, HTElement * element);
+extern HTElement * HTElement_target (HTElement * me);
+extern BOOL HTElement_instanceOfData (HTElement * me);
+</PRE>
+<H2>
+  <A NAME="HTRDF">RDF Parser &amp; Compiler Definition</A>
+</H2>
+<P>
+These methods create and deletes an RDF Parser/Compiler (SIRPAC)
+<H3>
+  Create and Delete Parser Instance
+</H3>
+<PRE>
+typedef struct _HTRDFParser HTRDF;
+
+extern HTRDF * HTRDF_new (void);
+extern BOOL HTRDF_delete (HTRDF * me);
+</PRE>
+<H3>
+  <A NAME="newparser">Callback Handler Announcing a new RDF Parser Object</A>
+</H3>
+<P>
+When a <A HREF="#converter">RDF parser object</A> is created, the stream
+checks to see if there are any callbacks registered which should be notified
+about the new stream instance. If that is the case then this callback is
+called and a pointer to the RDF parser passed along. The output stream is
+the target that was originally set for the request object before the request
+was issued.
+<PRE>
+typedef void HTRDFCallback_new (
+	HTStream *		me,
+	HTRequest *		request,
+	HTFormat 		target_format,
+	HTStream *		target_stream,
+	HTRDF *                 rdfparser,
+	void *                  context);
+</PRE>
+<H4>
+  Register RDF Parser Creation Notification Callback
+</H4>
+<P>
+<STRONG>@@@Should be handled via XML names spaces@@@</STRONG>
+<PRE>
+extern BOOL HTRDF_registerNewParserCallback (HTRDFCallback_new *, void * context);
+</PRE>
+<H3>
+  <A NAME="newtriple">Callback Handler Announcing a new RDF Triple</A>
+</H3>
+<P>
+Handler announcing that a new triple has been generated.
+<PRE>
+typedef void HTTripleCallback_new (
+	HTRDF *		rdfp,
+	HTTriple *	t,
+	void *		context);
+</PRE>
+<H4>
+  Register RDF Triple Creation Notification Callback
+</H4>
+<PRE>
+extern BOOL HTRDF_registerNewTripleCallback (
+	HTRDF *			me,
+	HTTripleCallback_new * 	cbf,
+	void * 			context);
+</PRE>
+<H3>
+  Set Address
+</H3>
+<P>
+Saves the name of the source document for later inspection if needed
+<PRE>
+extern BOOL HTRDF_setSource (HTRDF * me, String source);
+</PRE>
+<H3>
+  Resolve Symbolic References
+</H3>
+<P>
+Go through the m_vResolveQueue and assign direct object reference for each
+symbolic reference
+<PRE>
+extern BOOL HTRDF_resolve(HTRDF *me);
+</PRE>
+<H3>
+  Find Suitable Start Element
+</H3>
+<P>
+Given an XML document (well-formed HTML, for example), look for a suitable
+element to start parsing from
+<PRE>
+extern BOOL HTRDF_processXML(HTRDF *me, HTElement *root);
+</PRE>
+<H3>
+  Return the root element pointer.
+</H3>
+<P>
+This requires the parsing has been already done.
+<PRE>
+extern HTElement * HTRDF_root(HTRDF *me);
+</PRE>
+<H3>
+  Return the full namespace URI for a given prefix sPrefix.
+</H3>
+<P>
+The default namespace is identified with xmlns prefix. The namespace of xmlns
+attribute is an empty string.
+<PRE>
+extern String HTRDF_namespace(HTRDF *me,String sPrefix);
+</PRE>
+<H3>
+  Parsing Literal or Resource?
+</H3>
+<P>
+Methods to determine whether we are parsing parseType="Literal" or
+parseType="Resource"
+<PRE>
+extern BOOL HTRDF_parseLiteral(HTRDF *me);
+extern BOOL HTRDF_parseResource(HTRDF *me);
+</PRE>
+<H3>
+  Resolve Later
+</H3>
+<P>
+Add the element e to the m_vResolveQueue to be resolved later.
+<PRE>
+extern void HTRDF_resolveLater(HTRDF *me,HTElement *e);
+</PRE>
+<H3>
+  Register ID
+</H3>
+<P>
+Add an element e to the Hashtable m_hIDtable which stores all nodes with
+an ID
+<PRE>
+extern void HTRDF_registerID(HTRDF *me,String sID,HTElement *e);
+</PRE>
+<H3>
+  Register Resource
+</H3>
+<P>
+Add an element e to the Vector m_vResources which stores all nodes with an
+URI
+<PRE>
+extern void HTRDF_registerResource(HTRDF *me,HTElement *e);
+</PRE>
+<H3>
+  Look for Node
+</H3>
+<P>
+Look for a node by name sID from the Hashtable m_hIDtable of all registered
+IDs.
+<PRE>
+extern HTElement *HTRDF_lookforNode(HTRDF *me,String sID);
+</PRE>
+<H3>
+  If Element from RDF Schema?
+</H3>
+<P>
+Check if the element e is from the namespace of the RDF schema by comparing
+only the beginning of the expanded element name with the canonical RDFMS
+URI
+<PRE>
+extern BOOL HTRDF_isRDF(HTRDF *me, HTElement *ele);
+extern BOOL HTRDF_isRDFroot(HTRDF *me, HTElement *ele);
+</PRE>
+<H3>
+  Is the element a Description?
+</H3>
+<PRE>
+extern BOOL HTRDF_isDescription(HTRDF *me, HTElement *ele);
+</PRE>
+<H3>
+  Is the element a Predicate? 
+</H3>
+<P>
+This method matches all properties but those from RDF namespace
+<PRE>
+extern BOOL HTRDF_isTypedPredicate(HTRDF *me, HTElement *e);
+</PRE>
+<H3>
+  Is the element a Container?
+</H3>
+<PRE>
+extern BOOL HTRDF_isContainer(HTRDF *me, HTElement *e);
+</PRE>
+<H3>
+  Is the element a Bag?
+</H3>
+<PRE>
+extern BOOL HTRDF_isBag(HTRDF *me, HTElement *e);
+</PRE>
+<H3>
+  Is the element an Alternative?
+</H3>
+<PRE>
+extern BOOL HTRDF_isAlternative(HTRDF *me, HTElement *e);
+</PRE>
+<H3>
+  Is the element a Sequence?
+</H3>
+<PRE>
+extern BOOL HTRDF_isSequence(HTRDF *me, HTElement *e);
+</PRE>
+<H3>
+  Is the element a ListItem?
+</H3>
+<PRE>
+extern BOOL HTRDF_isListItem (HTRDF *me, HTElement *e);
+</PRE>
+<H3>
+  Start processing an RDF/XML document instance from the root element rdf.
+</H3>
+<PRE>
+extern BOOL HTRDF_processRDF(HTRDF *me, HTElement *ele);
+</PRE>
+<P>
+processDescription manages Description elements
+<DL COMPACT>
+  <DT>
+    description
+  <DD>
+    The Description element itself
+  <DT>
+    inPredicate
+  <DD>
+    Is this is a nested description
+  <DT>
+    reificate
+  <DD>
+    Do we need to reificate
+  <DT>
+    createBag
+  <DD>
+    Do we create a bag container
+  <DT>
+    return
+  <DD>
+    An ID for the description
+</DL>
+<PRE>
+extern String HTRDF_processDescription (
+	HTRDF *		me,
+	HTElement *	description,
+	BOOL		inPredicate,
+	BOOL		reificate,
+	BOOL		createBag);
+</PRE>
+<H3>
+  Manage the typedNode production in the RDF grammar.
+</H3>
+<PRE>
+extern String HTRDF_processTypedNode(HTRDF *me, HTElement *e);
+</PRE>
+<H3>
+  Special method to deal with rdf:resource attribute
+</H3>
+<PRE>
+extern String HTRDF_getResource(HTRDF *me,HTElement *e);
+</PRE>
+<H3>
+  Create a new reification ID
+</H3>
+<P>
+Using a name part and an incremental counter m_iReificationCounter.
+<PRE>
+extern String HTRDF_newReificationID (HTRDF *me);
+</PRE>
+<H3>
+  Create a new triple
+</H3>
+<P>
+and add it to the m_triples List
+<PRE>
+extern void HTRDF_addTriple (HTRDF *me, String sPredicate, String sSubject,
+			     String sObject);
+</PRE>
+<H3>
+  Create New Bag
+</H3>
+<P>
+allows one to determine whether SiRPAC produces Bag instances for each
+Description block. The default setting is not to generate them.
+<PRE>
+extern void HTRDF_createBags (HTRDF *me, BOOL b);
+</PRE>
+<H3>
+  Set Output Stream
+</H3>
+<P>
+Set output stream for RDF parser
+<PRE>
+extern void HTRDF_setOutputStream (HTRDF *me, HTStream *ostream);
+</PRE>
+<H2>
+  <A NAME="converter">RDF Converter Streams</A>
+</H2>
+<P>
+A set of <A HREF="HTFormat.html">converter streams</A> using the
+<A HREF="#HTRDF">HTRDF Parser object</A>
+<H3>
+  RDF To Triple Converter
+</H3>
+<P>
+This stream converter converts an RDF stream to triples that are passed to
+the application using the <A HREF="#newtriple">new triples callback
+handler</A>. The RDF object itself can be obtained using the
+<A HREF="#newparser">new RDF parser object callback</A>
+<PRE>
+extern HTConverter HTRDFParser_new;
+</PRE>
+<H3>
+  Print RDF Triple Converter
+</H3>
+<P>
+This stream converter converts an RDF stream to triples and sends them downstrem
+as <TT>(predicate, subject, object)</TT>. This can for example be used to
+print them out to stdout etc.
+<PRE>
+extern HTConverter HTRDFToTriples;
+</PRE>
+<PRE>
+#endif
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

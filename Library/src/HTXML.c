@@ -33,7 +33,9 @@ struct _HTStream {
     void *                      xml_user_data;
 };
 
-PRIVATE HTXMLCallback_new *	newInstance = NULL;
+/* @@@ SHould not be global but controlled by name spaces @@@ */
+PRIVATE HTXMLCallback_new *	XMLInstance = NULL;
+PRIVATE void *			XMLInstanceContext = NULL;
 
 /* ------------------------------------------------------------------------- */
 
@@ -203,15 +205,16 @@ PUBLIC HTStream * HTXML_new (HTRequest *	request,
     HTTRACE(XML_TRACE, "XML Parser.. Stream created\n");
     
     /* Call the stream callback handler (if any) with this new stream */
-    if (newInstance)
-	(*newInstance)(me, request, output_format, output_stream, me->xmlstream);
+    if (XMLInstance)
+	(*XMLInstance)(me, request, output_format, output_stream, me->xmlstream, XMLInstanceContext);
 
     return me;
 }
 
-PUBLIC BOOL HTXMLCallback_registerNew (HTXMLCallback_new * me)
+PUBLIC BOOL HTXMLCallback_registerNew (HTXMLCallback_new * me, void * context)
 {
-    newInstance = me;
+    XMLInstance = me;
+    XMLInstanceContext = context;
     return YES;
 }
 

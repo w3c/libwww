@@ -50,7 +50,7 @@ extern HTConverter HTXML_new;
 When a <A HREF="#converter">libwww to expat XML stream converter instance
 </A>is created, the stream checks to see if there are any callbacks registered
 which should be notified about the new stream instance. If that is the case
-then this callback is called and a pointer to the XML parsed passed along.
+then this callback is called and a pointer to the XML parser passed along.
 The output stream is the target that was originally set for the request object
 before the request was issued.
 <PRE>
@@ -59,13 +59,15 @@ typedef void HTXMLCallback_new (
 	HTRequest *		request,
 	HTFormat 		target_format,
 	HTStream *		target_stream,
-	XML_Parser              xmlparser);
+	XML_Parser              xmlparser,
+	void *                  context);
 </PRE>
 <H3>
   Register Creation notification Callback
 </H3>
+<STRONG>@@@Should be handled via XML names spaces@@@</STRONG>
 <PRE>
-extern BOOL HTXMLCallback_registerNew (HTXMLCallback_new *);
+extern BOOL HTXMLCallback_registerNew (HTXMLCallback_new *, void * context);
 </PRE>
 <H2>
   XML Expat Stream to Libwww Structured Stream
