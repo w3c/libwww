@@ -51,6 +51,7 @@ PRIVATE int HTPlain_free (HTStream * me)
 {
     if (me) {
 	HTextImp_build(me->text, HTEXT_END);
+	HTextImp_delete(me->text);
 	HT_FREE(me);
     }
     return HT_OK;
@@ -60,6 +61,7 @@ PRIVATE int HTPlain_abort (HTStream * me, HTList * e)
 {
     if (me) {
 	HTextImp_build(me->text, HTEXT_ABORT);
+	HTextImp_delete(me->text);
 	HT_FREE(me);
     }
     return HT_ERROR;

@@ -1,3 +1,11 @@
+2000-08-11 	Jose Kahan <jose@w3.org>
+
+	* Memory leak. The HTPlain (HTPlain.c) stream wasn't freeing the
+	  HTTextImp (me->text) object in the HTPlain_free and
+	  HTPlain_abort. I found the bug while running the robot
+	  thru Insure and found the fix by seeing what was being
+	  done in the HTML (HTML.c) stream.
+	
 2000-08-11 	Wayne Davison <wayne@clari.net>
 
 	* Added two new functions to HTHash.c, HTHashtable_removeObject()
