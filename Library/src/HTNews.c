@@ -83,6 +83,7 @@ struct _HTStream {
     BOOL			junk;
     char 			buffer[MAX_NEWS_LINE+1];
     int				buflen;
+    HTHost *			host;
 };
 
 struct _HTInputStream {
@@ -117,6 +118,9 @@ PRIVATE int ScanResponse (HTStream * me)
 				   req->output_stream, req, NO);
 	me->semi_trans = YES;
 	if (!me->target) return HT_ERROR;
+    } else if (news->repcode/100 == 4) {
+	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_NOT_FOUND,
+			   news->reply, strlen(news->reply), "ScanResponse");
     }
     return HT_LOADED;
 }
@@ -127,8 +131,9 @@ PRIVATE int ScanResponse (HTStream * me)
 */
 PRIVATE int HTNewsStatus_put_block (HTStream * me, const char * b, int l)
 {
+    int status;
+    HTHost_setConsumed(me->host, l);
     while (!me->semi_trans && l-- > 0) {
-	int status;
 	if (me->EOLstate == EOL_FCR) {
 	    if (*b == LF) {
 		if (me->junk) me->junk = NO;
@@ -228,7 +233,8 @@ PRIVATE const HTStreamClass HTNewsStatusClass =
     HTNewsStatus_put_block
 };
 
-PUBLIC HTStream *HTNewsStatus_new (HTRequest * request, news_info * news)
+PRIVATE HTStream * HTNewsStatus_new (HTRequest * request, news_info * news,
+				     HTHost * host)
 {
     HTStream *me;
     if ((me = (HTStream  *) HT_CALLOC(1, sizeof(HTStream))) == NULL)
@@ -237,6 +243,7 @@ PUBLIC HTStream *HTNewsStatus_new (HTRequest * request, news_info * news)
     me->request = request;
     me->news = news;
     me->EOLstate = EOL_BEGIN;
+    me->host = host;
     return me;
 }
 
@@ -355,8 +362,9 @@ PRIVATE int NewsEvent (SOCKET soc, void * pVoid, HTEventType type)
     int status = HT_ERROR;
     HTNet * net = news->net;
     HTRequest * request = HTNet_request(net);
-    HTParentAnchor *anchor = HTRequest_anchor(request);
+    HTParentAnchor * anchor = HTRequest_anchor(request);
     char * url = HTAnchor_physical(anchor);
+    HTHost * host = HTNet_host(net);
     
     /*
     ** Initiate a new nntp structure and bind to request structure
@@ -395,13 +403,15 @@ PRIVATE int NewsEvent (SOCKET soc, void * pVoid, HTEventType type)
 		    char *newshack = NULL;    /* Then we can use HTParse :-) */
 		    StrAllocCopy(newshack, "news://");
 		    StrAllocCat(newshack, newshost);
-		    status = HTDoConnect(net, (char *) newshack, NEWS_PORT);
+		    status = HTHost_connect(host, net, (char *) newshack, NEWS_PORT);
+		    host = HTNet_host(net);
 		    HT_FREE(newshack);
 		} else
 		    news->state = NEWS_ERROR;
 	    } else if (!strncasecomp(url, "nntp:", 5)) {
 		news->name = HTParse(url, "", PARSE_PATH);
-		status = HTDoConnect(net, url, NEWS_PORT);
+		status = HTHost_connect(host, net, url, NEWS_PORT);
+		host = HTNet_host(net);
 	    } else {
 		if (PROT_TRACE) HTTrace("News........ Huh?");
 		news->state = NEWS_ERROR;
@@ -437,7 +447,7 @@ PRIVATE int NewsEvent (SOCKET soc, void * pVoid, HTEventType type)
 		** stream stack.
 		*/
 		{
-		    HTStream * rstream = HTNewsStatus_new(request, news);
+		    HTStream * rstream = HTNewsStatus_new(request, news, host);
 		    HTNet_setReadStream(net, rstream);
 		    HTRequest_setOutputConnected(request, YES);
 		}
@@ -747,45 +757,17 @@ PRIVATE int NewsEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    break;
 		
 	  case NEWS_SUCCESS:
-	    if (HTRequest_isPostWeb(request)) {
-		if (HTRequest_isDestination(request)) {
-		    HTRequest * source = HTRequest_source(request);
-		    HTLink *link =
-			HTLink_find((HTAnchor *)HTRequest_anchor(source),
-					  (HTAnchor *) anchor);
-		    HTLink_setResult(link, HT_LINK_OK);
-		}
-	    }
 	    HTNewsCleanup(request, HT_LOADED);
 	    return HT_OK;
 	    break;
 
 	case NEWS_NO_DATA:
-	    if (HTRequest_isPostWeb(request)) {
-		if (HTRequest_isDestination(request)) {
-		    HTRequest * source = HTRequest_source(request);
-		    HTLink *link =
-			HTLink_find((HTAnchor *)HTRequest_anchor(source),
-					  (HTAnchor *) anchor);
-		    HTLink_setResult(link, HT_LINK_OK);
-		}
-	    }
 	    HTNewsCleanup(request, HT_NO_DATA);
 	    return HT_OK;
 	    break;
 
 	  case NEWS_ERROR:
-	    if (HTRequest_isPostWeb(request)) {
-		if (HTRequest_isDestination(request)) {
-		    HTRequest * source = HTRequest_source(request);
-		    HTLink *link =
-			HTLink_find((HTAnchor *)HTRequest_anchor(source),
-					  (HTAnchor *) anchor);
-		    HTLink_setResult(link, HT_LINK_ERROR);
-		}
-		HTRequest_killPostWeb(request);
-	    }
-	    HTNewsCleanup(request, HT_ERROR);
+	    HTNewsCleanup(request, HT_NOT_FOUND);
 	    return HT_OK;
 	    break;
 	}
