@@ -93,6 +93,10 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
+SOURCE=.\CacheSetup.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\Delete.cpp
 # End Source File
 # Begin Source File
@@ -260,6 +264,10 @@ SOURCE=..\Bin\wwwzip.lib
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Source File
+
+SOURCE=.\CacheSetup.h
+# End Source File
 # Begin Source File
 
 SOURCE=.\Delete.h

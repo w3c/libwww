@@ -24,6 +24,7 @@
 #define IDD_LOAD                        154
 #define IDD_PROGRESS                    155
 #define IDD_DELETE                      156
+#define IDD_CACHE_SETUP                 160
 #define IDC_SOURCE_URI                  1001
 #define IDC_DESTINATION_URI             1002
 #define IDC_MEDIA_TYPE                  1002
@@ -43,6 +44,7 @@
 #define IDC_EXPIRES                     1008
 #define ID_BROWSE                       1009
 #define ID_SUBMIT                       1010
+#define ID_CACHE_FLUSH                  1010
 #define IDC_LINK_TYPE                   1011
 #define ID_CANCEL                       1011
 #define ID_LINK_REMOVE                  1012
@@ -68,6 +70,12 @@
 #define IDC_DELETE_ADDRESS              1034
 #define IDC_CACHE_RELOAD                1034
 #define IDC_CACHE_VALIDATION            1035
+#define IDC_CACHE_SPIN_T                1044
+#define IDC_CACHE_SIZE_T                1045
+#define IDC_CACHE_SIZE_S                1046
+#define IDC_CACHE_SPIN_S                1047
+#define IDC_CACHE_ENABLE                1048
+#define IDC_CACHE_ROOT                  1049
 #define ID_PROXY_SETUP                  32771
 #define ID_OPTIONS_PROXIES              32772
 #define ID_VERSION_CONFLICT             32777
@@ -76,6 +84,7 @@
 #define ID_LOAD_ADDRESS                 32781
 #define ID_DELETE_DOCUMENT              32782
 #define ID_DELETE_ADDRESS               32783
+#define ID_CACHE_SETUP                  32784
 #define IDS_WINCOM                      61446
 #define IDS_SOURCE                      61447
 #define IDS_CANNOT_OPEN_FILE            61448
@@ -96,9 +105,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        160
-#define _APS_NEXT_COMMAND_VALUE         32784
-#define _APS_NEXT_CONTROL_VALUE         1041
+#define _APS_NEXT_RESOURCE_VALUE        161
+#define _APS_NEXT_COMMAND_VALUE         32786
+#define _APS_NEXT_CONTROL_VALUE         1050
 #define _APS_NEXT_SYMED_VALUE           102
 #endif
 #endif

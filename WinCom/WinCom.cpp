@@ -27,6 +27,7 @@
 #include "EntityInfo.h"
 #include "Links.h"
 #include "ProxySetup.h"
+#include "CacheSetup.h"
 #include "Password.h"
 #include "VersionConflict.h"
 
@@ -48,6 +49,7 @@ BEGIN_MESSAGE_MAP(CWinComApp, CWinApp)
 	//{{AFX_MSG_MAP(CWinComApp)
 	ON_COMMAND(ID_APP_ABOUT, OnAppAbout)
 	ON_COMMAND(ID_OPTIONS_PROXIES, OnOptionsProxies)
+	ON_COMMAND(ID_CACHE_SETUP, OnCacheSetup)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -106,10 +108,10 @@ BOOL CWinComApp::InitInstance()
             HTAlert_add(UserNameAndPassword, HT_A_USER_PW);
         }
 
-        /* Set up the persistent cache */
-        HTCacheInit(NULL, 20);
+	/* Setup our persistent cache */
+	CacheSetup.Init();
 
-        /* Set up amount of warning info wanted */
+	/* Set up amount of warning info wanted */
         {
             m_showServerStatus = GetIniShowServerStatus();
             int show_flag = m_showServerStatus ? HT_ERR_SHOW_PARS : 0;
@@ -385,6 +387,9 @@ int CWinComApp::Run()
 
 int CWinComApp::ExitInstance() 
 {
+    /* Terminate cache */
+    CacheSetup.Terminate();
+  
     /* Terminate libwww */
     HTProfile_delete();
 
@@ -416,5 +421,13 @@ void CWinComApp::OnOptionsProxies()
     if (ProxySetup.DoModal() == IDOK) {
 	ProxySetup.AddProxyOptionsToIni();
 	ProxySetup.RegisterProxies();
+    }
+}
+
+void CWinComApp::OnCacheSetup() 
+{
+    if (CacheSetup.DoModal() == IDOK) {
+	CacheSetup.Terminate();
+	CacheSetup.Init();
     }
 }

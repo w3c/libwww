@@ -125,6 +125,8 @@ BEGIN
     POPUP "&Options"
     BEGIN
         MENUITEM "&Proxy Setup...",             ID_OPTIONS_PROXIES
+        MENUITEM "&Cache Setup...",             ID_CACHE_SETUP
+        MENUITEM SEPARATOR
         MENUITEM "&Detect Conflicts",           ID_VERSION_CONFLICT
         MENUITEM "&Show Response Codes",        ID_SHOW_SERVER_STATUS
     END
@@ -366,6 +368,36 @@ BEGIN
     DEFPUSHBUTTON   "Cancel",IDCANCEL,210,42,50,14
 END
 
+IDD_CACHE_SETUP DIALOG DISCARDABLE  0, 0, 258, 106
+STYLE DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Cache Setup"
+FONT 8, "MS Sans Serif"
+BEGIN
+    GROUPBOX        "Cache Root",IDC_STATIC,7,7,244,29
+    COMBOBOX        IDC_CACHE_ROOT,13,17,232,13,CBS_SIMPLE | CBS_SORT | 
+                    WS_DISABLED | WS_TABSTOP
+    GROUPBOX        "Cache Parameters",IDC_STATIC,7,38,244,43
+    LTEXT           "Total Cache Size",IDC_STATIC,13,49,55,8
+    COMBOBOX        IDC_CACHE_SIZE_T,86,47,26,13,CBS_SIMPLE | CBS_SORT | 
+                    WS_TABSTOP
+    CONTROL         "Spin3",IDC_CACHE_SPIN_T,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | 
+                    UDS_ARROWKEYS,103,46,9,15
+    LTEXT           "MBytes",IDC_STATIC,115,49,24,8
+    DEFPUSHBUTTON   "Flush Cache",ID_CACHE_FLUSH,162,46,50,14
+    LTEXT           "Max Size of Single File",IDC_STATIC,13,67,72,8
+    COMBOBOX        IDC_CACHE_SIZE_S,86,64,26,13,CBS_SIMPLE | CBS_SORT | 
+                    WS_TABSTOP
+    CONTROL         "Spin3",IDC_CACHE_SPIN_S,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | 
+                    UDS_ARROWKEYS,102,64,9,15
+    LTEXT           "MBytes",IDC_STATIC,114,67,24,8
+    CONTROL         "Cache Enabled",IDC_CACHE_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,161,63,61,16
+    DEFPUSHBUTTON   "OK",IDOK,148,85,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,201,85,50,14
+END
+
 
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
@@ -504,6 +536,14 @@ BEGIN
         RIGHTMARGIN, 260
         TOPMARGIN, 7
         BOTTOMMARGIN, 56
+    END
+
+    IDD_CACHE_SETUP, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 251
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 99
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -737,6 +777,11 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDR_MAINFRAME           "WebCommander\n\nWebCommander\n\n\nWebCommander.Document\nWebCommander Document"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_CACHE_SETUP          "Setup Persistent Cache\nSetup Persistent Cache"
 END
 
 #endif    // English (U.S.) resources

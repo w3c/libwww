@@ -30,6 +30,7 @@
 #include "resource.h"       // main symbols
 #include "Request.h"	// Added by ClassView
 #include "ProxySetup.h"	// Added by ClassView
+#include "CacheSetup.h"	// Added by ClassView
 #include "EntityInfo.h"	// Added by ClassView
 #include "Location.h"	// Added by ClassView
 
@@ -88,12 +89,14 @@ public:
 	//{{AFX_MSG(CWinComApp)
 	afx_msg void OnAppAbout();
 	afx_msg void OnOptionsProxies();
+	afx_msg void OnCacheSetup();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 
 protected:
 	CString		m_currentDir;
 	CProxySetup	ProxySetup;
+	CCacheSetup	CacheSetup;
 
         CRecentFileList	* m_pSourceList;
 	CRecentFileList * m_pDestinationList;
