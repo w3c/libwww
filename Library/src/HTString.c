@@ -84,7 +84,7 @@ PUBLIC char * HTStrCaseStr (char * s1, char * s2)
 ** tailcomp(s1,s2) -- like strcmp(s1,s2) but match s1 with the tail of s2
 **                    (used for cookie domain comparison)
 */
-int tailcomp(const char * s1, const char * s2)
+PUBLIC int tailcomp(const char * s1, const char * s2)
 {
     int l1 = strlen(s1);
     int l2 = strlen(s2);
@@ -95,7 +95,7 @@ int tailcomp(const char * s1, const char * s2)
     return strcmp(s1, s2);
 }
 
-int tailcasecomp(const char * s1, const char * s2)
+PUBLIC int tailcasecomp(const char * s1, const char * s2)
 {
     int l1 = strlen(s1);
     int l2 = strlen(s2);
