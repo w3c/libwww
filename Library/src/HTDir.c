@@ -303,8 +303,9 @@ PRIVATE BOOL HTDir_headLine (HTDir *dir)
 	}
 	*tp = '\0';
 	PUTS(dir->lnbuf);
+	END(HTML_PRE);
 	START(HTML_HR);
-	PUTC('\n');
+	START(HTML_PRE);
 	return YES;
     }
     return NO;
@@ -497,7 +498,9 @@ PUBLIC BOOL HTDir_free (HTDir * dir)
     /* Put out the end of the HTML stuff */
     {
 	HTStructured *target = dir->target;
+	END(HTML_PRE);
 	START(HTML_HR);
+	START(HTML_PRE);
 	if (!dir->size)
 	    PUTS("Empty directory");
 	else if (dir->size == 1)
