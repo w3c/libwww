@@ -5,7 +5,7 @@ noinst_PROGRAMS = head libapp_1 libapp_2 libapp_3 libapp_4 init \
 	range tzcheck mget isredirected listen eventloop memput \
 	showlinks showtags showtext tiny upgrade cookie @SHOWXML@
 
-EXTRA_PROGRAMS = showxml
+EXTRA_PROGRAMS = showxml ptri stri
 
 LDADD = \
 	../src/libwwwinit.la \
@@ -38,12 +38,30 @@ EXTRA_DIST = \
 
 PURIFY_CACHE = @PURIFY_CACHE@
 
-purify: $(cookie_OBJECTS) $(cookie_DEPENDENCIES)
+purify: $(stri_OBJECTS) $(stri_DEPENDENCIES)
 	-rm purify; \
 	purify -cache-dir=$(PURIFY_CACHE) \
-	$(CC) $(LDFLAGS) -o purify $(cookie_OBJECTS) \
+	$(CC) $(LDFLAGS) -o purify $(stri_OBJECTS) \
 	-lm \
-	../src/.libs/libwww.a \
+	../src/.libs/libwwwinit.a \
+	../src/.libs/libwwwapp.a \
+	../src/.libs/libwwwxml.a \
+	../src/.libs/libwwwhtml.a \
+	../src/.libs/libwwwtelnet.a \
+	../src/.libs/libwwwnews.a \
+	../src/.libs/libwwwhttp.a \
+	../src/.libs/libwwwmime.a \
+	../src/.libs/libwwwgopher.a \
+	../src/.libs/libwwwftp.a \
+	../src/.libs/libwwwdir.a \
+	../src/.libs/libwwwcache.a \
+	../src/.libs/libwwwstream.a \
+	../src/.libs/libwwwfile.a \
+	../src/.libs/libwwwmux.a \
+	../src/.libs/libwwwtrans.a \
+	../src/.libs/libwwwcore.a \
+	../src/.libs/libwwwutils.a \
+	../src/.libs/libwwwzip.a \
 	../../modules/md5/.libs/libmd5.a \
 	../../modules/expat/xmlparse/.libs/libxmlparse.a \
 	../../modules/expat/xmltok/.libs/libxmltok.a \
