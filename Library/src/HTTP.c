@@ -541,6 +541,7 @@ PRIVATE int stream_pipe (HTStream * me)
 				       HTRequest_outputStream(request),
 				       request, NO);
 	} else if (me->status==304) {
+	    HTAnchor_setCachable(anchor, YES);
 	    me->target = HTStreamStack(WWW_MIME_HEAD,
 				       HTRequest_debugFormat(request),
 				       HTRequest_debugStream(request),

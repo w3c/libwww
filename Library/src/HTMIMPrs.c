@@ -18,7 +18,6 @@
 #include "HTString.h"
 #include "HTMIMPrs.h"
 
-#define HT_MAX_NO_CACHE		6
 #define DEFAULT_HASH_SIZE 	11
 
 struct _HTMIMEParseEl{
@@ -30,6 +29,9 @@ struct _HTMIMEParseEl{
 
 PRIVATE char * no_cache_headers[HT_MAX_NO_CACHE] =
 {
+    "date",
+    "etag",
+    "expires",
     "connection",
     "keep-alive",
     "public",

@@ -538,7 +538,8 @@ proc Start {} {
 	set Space(start) "********************************* $url"
 	set Space(end) {}
 	Log $Space(start)
-	catch {exec $webbot $img $link $ss $trace $url} results
+        Log "Calling webbot with $webbot $img $link $ss $trace $url"
+	catch {eval exec $webbot $img $link $ss $trace $url} results
 	Log $results
 	Log $Space(end)
 	Status Done

@@ -58,9 +58,17 @@ typedef struct _cache_info {
 } cache_info;
 
 struct _HTCache {
+    /* Location */
     int 		hash;
     char *		url;
     char *		cachename;
+
+    /* Cache validators */
+    char *		etag;
+    time_t		date;
+    time_t		expires;
+
+    /* GC parameters */
     long		size;
     int			hits;
     time_t		freshness_lifetime;
@@ -256,11 +264,18 @@ PUBLIC BOOL HTCacheIndex_write (const char * cache_root)
 	    for (cnt=0; cnt<HASH_SIZE; cnt++) {
 		if ((cur = CacheTable[cnt])) { 
 		    HTCache * pres;
-		    while ((pres = (HTCache *) HTList_nextObject(cur)) != NULL) {
-			if (fprintf(fp, "%s %s %ld %d %d %ld %ld %ld %c\r\n",
-				    pres->url, pres->cachename,
-				    pres->size, pres->hash, pres->hits,
-				    pres->freshness_lifetime, pres->response_time,
+		    while ((pres = (HTCache *) HTList_nextObject(cur))) {
+			if (fprintf(fp, "%s %s %s %ld %ld %ld %d %d %ld %ld %ld %c\r\n",
+				    pres->url,
+				    pres->cachename,
+				    pres->etag ? pres->etag : "@",
+				    pres->date,
+				    pres->expires,
+				    pres->size,
+				    pres->hash,
+				    pres->hits,
+				    pres->freshness_lifetime,
+				    pres->response_time,
 				    pres->corrected_initial_age,
 				    pres->must_revalidate+0x30) < 0) {
 			    if (CACHE_TRACE)
@@ -297,11 +312,17 @@ PRIVATE BOOL HTCacheIndex_parseLine (char * line)
 	{
 	    char * url = HTNextField(&line);
 	    char * cachename = HTNextField(&line);
+	    char * etag = HTNextField(&line);
 	    StrAllocCopy(cache->url, url);
 	    StrAllocCopy(cache->cachename, cachename);
+	    if (strcmp(etag, "@")) StrAllocCopy(cache->etag, etag);
 	}
-	if (sscanf(line, "%ld %d %d %ld %ld %ld %c",
-		   &cache->size, &cache->hash, &cache->hits,
+	if (sscanf(line, "%ld %ld %ld %d %d %ld %ld %ld %c",
+		   &cache->date,
+		   &cache->expires,
+		   &cache->size,
+		   &cache->hash,
+		   &cache->hits,
 		   &cache->freshness_lifetime,
 		   &cache->response_time,
 		   &cache->corrected_initial_age,
@@ -737,6 +758,57 @@ PRIVATE BOOL HTCache_findName (HTCache * me)
 }
 
 /*
+**  Calculate the corrected_initial_age of the object. We use the time
+**  when this function is called as the response_time as this is when
+**  we have received the complete response. This may cause a delay if
+**  the reponse header is very big but should not cause any non-correct
+**  behavior.
+*/
+PRIVATE BOOL calculate_time (HTCache * me, HTRequest * request)
+{
+    if (me && request) {
+	HTParentAnchor * anchor = HTRequest_anchor(request);
+	me->response_time = time(NULL);
+	me->date = HTAnchor_date(anchor);
+	me->expires = HTAnchor_expires(anchor);
+	{
+	    time_t apparent_age = HTMAX(0, me->response_time - me->date);
+	    time_t corrected_received_age = HTMAX(apparent_age, HTAnchor_age(anchor));
+	    time_t response_delay = me->response_time - HTRequest_date(request);
+	    me->corrected_initial_age = corrected_received_age + response_delay;
+	}
+
+	/*
+	**  Estimate an expires time using the max-age and expires time. If we
+	**  don't have an explicit expires time then set it to 10% of the LM
+	**  date. If no LM date is available then use 24 hours.
+	*/
+	{
+	    time_t freshness_lifetime = HTAnchor_maxAge(anchor);
+	    if (freshness_lifetime < 0) {
+		if (me->expires < 0) {
+		    time_t lm = HTAnchor_lastModified(anchor);
+		    if (lm < 0)
+			freshness_lifetime = 24*3600;		/* 24 hours */
+		    else 
+			freshness_lifetime = (me->date - lm) / 10;
+		} else
+		    freshness_lifetime = me->expires - me->date;
+	    }
+	    me->freshness_lifetime = HTMAX(0, freshness_lifetime);
+	}
+	if (CACHE_TRACE) {
+	    HTTrace("Cache....... Received Age %d, corrected %d, freshness lifetime %d\n",
+		    HTAnchor_age(anchor),
+		    me->corrected_initial_age,
+		    me->freshness_lifetime);
+	}
+	return YES;
+    }
+    return NO;
+}
+
+/*
 **  Create a new cache entry and add it to the list
 */
 PRIVATE HTCache * HTCache_new (HTRequest * request, HTParentAnchor * anchor)
@@ -782,54 +854,24 @@ PRIVATE HTCache * HTCache_new (HTRequest * request, HTParentAnchor * anchor)
 	HTCache_findName(pres);
 	HTList_addObject(list, (void *) pres);
 	new_entries++;
-    }
+    } else
+	HT_FREE(url);
 
     if (HTCache_hasLock(pres)) {
 	if (CACHE_TRACE) HTTrace("Cache....... Entry %p locked\n");
 	return pres;
     }
 
-    /*
-    **  Calculate the corrected_initial_age of the object. We use the time
-    **  when this function is called as the response_time as this is when we
-    **  have received the complete response. This may cause a delay if the
-    **  reponse header is very big but should not cause any non-correct
-    **  behavior.
-    */
-    pres->response_time = time(NULL);
+    /* Calculate the various times */
+    calculate_time(pres, request);
+
+    /* Update the etag */
     {
-	time_t apparent_age = HTMAX(0, pres->response_time - HTAnchor_date(anchor));
-	time_t corrected_received_age = HTMAX(apparent_age, HTAnchor_age(anchor));
-	time_t response_delay = pres->response_time - HTRequest_date(request);
-	pres->corrected_initial_age = corrected_received_age + response_delay;
+	char * etag = HTAnchor_etag(anchor);
+	if (etag) StrAllocCopy(pres->etag, etag);
     }
 
-    /*
-    **  Estimate an expires time using the max-age and expires time. If we
-    **  don't have an explicit expires time then set it to 10% of the LM date.
-    **  If no LM date is available then use 24 hours.
-    */
-    {
-	time_t freshness_lifetime = HTAnchor_maxAge(anchor);
-	if (freshness_lifetime < 0) {
-	    time_t exp = HTAnchor_expires(anchor);
-	    if (exp < 0) {
-		time_t lm = HTAnchor_lastModified(anchor);
-		if (lm < 0)
-		    freshness_lifetime = 24*3600;		/* 24 hours */
-		else 
-		    freshness_lifetime = (HTAnchor_date(anchor) - lm) / 10;
-	    } else
-		freshness_lifetime = exp - HTAnchor_date(anchor);
-	}
-	pres->freshness_lifetime = HTMAX(0, freshness_lifetime);
-    }
-    if (CACHE_TRACE) {
-	HTTrace("Cache....... Received Age %d, corrected %d, freshness lifetime %d\n",
-		HTAnchor_age(anchor),
-		pres->corrected_initial_age,
-		pres->freshness_lifetime);
-    }
+    /* Must we revalidate this every time */
     pres->must_revalidate = HTAnchor_mustRevalidate(anchor);
     return pres;
 }
@@ -1125,15 +1167,37 @@ PRIVATE BOOL meta_write (FILE * fp, HTRequest * request, HTAssocList * headers)
 	char * nocache = HTAnchor_noCache(anchor);
 
 	/*
-	**  Check whether either the connection header or the cache control header
-	**  includes header names that we should not cache/
+	**  Check whether either the connection header or the cache control
+	**  header includes header names that we should not cache
 	*/
 	if (connection || nocache) {
-	    
-	    /* MORE */
 
+	    /*
+	    **  Walk though the cache control no-cache directive
+	    */
+	    if (nocache) {
+		char * line = NULL;
+		char * ptr = NULL;
+		char * field = NULL;
+		StrAllocCopy(line, nocache);		 /* Get our own copy */
+		ptr = line;
+		while ((field = HTNextField(&ptr)) != NULL)
+		    HTAssocList_removeObject(headers, field);
+		HT_FREE(line);
+	    }
+
+	    /*
+	    **  Walk though the connection header
+	    */
+	    if (connection) {
+		HTAssoc * pres;
+		while ((pres=(HTAssoc *) HTAssocList_nextObject(connection))) {
+		    char * field = HTAssoc_name(pres);
+		    HTAssocList_removeObject(headers, field);
+		}
+	    }
 	}
-	
+
 	/*
 	**  Write out the remaining list of headerss
 	*/
@@ -1184,16 +1248,18 @@ PUBLIC BOOL HTCache_writeMeta (HTCache * cache, HTRequest * request)
 
 /*
 **  Merge metainformation with existing version. This means that we have had a
-**  successful validation and hence a true cache hit.
+**  successful validation and hence a true cache hit. We only regard the
+**  following headers: Date, etag, content-location, expires, cache-control,
+**  and vary.
 */
 PUBLIC BOOL HTCache_updateMeta (HTCache * cache, HTRequest * request)
 {
-    if (cache) {
+    if (cache && request) {
+	HTParentAnchor * anchor = HTRequest_anchor(request);
+	char * etag = HTAnchor_etag(anchor);
 	cache->hits++;
-
-	/* MORE */
-
-	return YES;
+	if (etag) StrAllocCopy(cache->etag, etag);
+	return calculate_time(cache, request);
     }
     return NO;
 }
@@ -1363,6 +1429,7 @@ PRIVATE int CacheCleanup (HTRequest * request, int status)
     HTStream * input = HTRequest_inputStream(request);
 
     /* Free stream with data TO local cache system */
+#if 0
     if (input) {
 	if (status == HT_INTERRUPTED)
 	    (*input->isa->abort)(input, NULL);
@@ -1370,7 +1437,7 @@ PRIVATE int CacheCleanup (HTRequest * request, int status)
 	    (*input->isa->_free)(input);
 	HTRequest_setInputStream(request, NULL);
     }
-
+#endif
     if (status != HT_IGNORE) {
 	if (cache) {
 	    HT_FREE(cache->local);
@@ -1378,6 +1445,8 @@ PRIVATE int CacheCleanup (HTRequest * request, int status)
 	}
 	HTNet_delete(net, status);
     } else if (cache) {
+	HTChannel * channel = HTNet_channel(net);
+	HTChannel_delete(channel, HT_OK);
 	HT_FREE(cache->local);
     }
     return YES;
@@ -1442,6 +1511,7 @@ PUBLIC int HTLoadCache (SOCKET soc, HTRequest * request, SockOps ops)
 	    cache->meta = YES;
 	    cache->local = HTWWWToLocal(meta, "",
 					HTRequest_userProfile(request));
+	    HT_FREE(meta);
 	    if (cache->local) {
 		if (HT_STAT(cache->local, &cache->stat_info) == -1) {
 		    if (PROT_TRACE)
