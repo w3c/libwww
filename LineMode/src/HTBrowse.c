@@ -62,18 +62,18 @@
 /* Check Statements */
 /* ================ */
 
-#define NAME_CHECK 0                /* Trace to show NAME anchors */
+#define NAME_CHECK 0	/* Trace to show NAME anchors */
 
 
 /* Include Files */
 /* ============= */
 
 #include <ctype.h>
-#include "HTUtils.h"		    /* WWW general purpose macros */
+#include "HTUtils.h"	/* WWW general purpose macros */
 
-#include "HTBrowse.h"		 /* Things exported, short names */
+#include "HTBrowse.h"	/* Things exported, short names */
 
-#include "GridText.h"	 /* Hypertext definition */
+#include "GridText.h"	/* Hypertext definition */
 
 #include "HTFormat.h"
 #include "HTTCP.h"	/* TCP/IP utilities */
@@ -577,7 +577,8 @@ int main
 	    }
 	    output = fp;
 	}
-	request->output_stream = HTFWriter_new(output);   /* Just pump to stdout */
+	request->output_stream = HTFWriter_new(output, YES);  
+	/* Just pump to stdout but YES: leave it open */
     }
     
     
@@ -619,17 +620,17 @@ int main
 **	-------------------
 */
 
-    if (filter) {			/* Just convert formats */
-    	/*   HTParseSocket(format_in, request->output_format, */
+    if (filter) {			/* Just convert formats	*/
+    	/*   HTParseSocket(format_in, request->output_format,	*/
     	/*           home_anchor,										*/
-		/*   0,			** stdin unix file **						*/
-		/* request->output_stream);									*/
+	/*   0,			** stdin unix file **		*/
+	/* request->output_stream);				*/
 		
-		/* HENRIK */
+	/* HENRIK */
      	HTParseSocket(	format_in,
-    						0,					/* stdin unix file */
-		  					request);
-			goto good;
+			0,		/* stdin unix file */
+		  	request);
+	    goto good;
     }
     
 /*	Load first document
@@ -637,8 +638,7 @@ int main
 */
     if ( *keywords ? HTSearch(keywords, home_anchor, request)
     		   : HTLoadAnchor((HTAnchor*)home_anchor, request)){
-		   
-	HTHistory_record((HTAnchor *)home_anchor);
+    	HTHistory_record((HTAnchor *)home_anchor);
 	
     } else {	/* Can't even get last resort: give up */
     
@@ -646,7 +646,7 @@ int main
 		HTAnchor_address((HTAnchor *)home_anchor));/* not freed */
 	if (!HTMainText) exit(2); /* Can't get first page */
     }
-    
+  
     if (!HTMainText) exit(0);	/* Hypertext object was not created */
     
 /* 	Main "Event Loop"
@@ -835,10 +835,10 @@ PRIVATE void Reference_List ARGS1(BOOL, titles)
 	fprintf(output,
 	"\n\n     There are no references from this document.\n\n");
     } else {
-	    
-	fprintf(output, refhead ? refhead 
-		: "\n\n     References from this document:-\n");
-	fprintf(output, "\n");    
+	
+	fprintf(output, "%s\n",
+		refhead ? refhead 
+		: "\n\n     References from this document:-");
 	for (n=1; n<=HText_sourceAnchors(HTMainText); n++) {
 	    HTAnchor * destination =
 	    HTAnchor_followMainLink(
