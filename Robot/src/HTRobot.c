@@ -21,9 +21,10 @@
 #include "HText.h"
 
 #include "HTRobot.h"			     		 /* Implemented here */
+#include "HTWatch.h"
 
 #ifndef W3C_VERSION
-#define W3C_VERSION 		"unspecified"
+#define W3C_VERSION 		"Unspecified"
 #endif
 
 #define APP_NAME		"W3CRobot"
@@ -96,6 +97,14 @@ PUBLIC HTParentAnchor * HTMainAnchor = NULL;
 PUBLIC HTStyleSheet * styleSheet = NULL;
 
 /* ------------------------------------------------------------------------- */
+
+PUBLIC int HTWatch(int id, void * obj, const char * fmt, ...)
+{
+    va_list pArgs;
+    va_start(pArgs, fmt);
+    fprintf(stderr, "id: %x  obj: %p: ", id, obj);
+    return vfprintf(stderr, fmt, pArgs);
+}
 
 /*	Standard (non-error) Output
 **	---------------------------
@@ -579,7 +588,7 @@ int main (int argc, char ** argv)
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
     
     /* Set timeout on sockets */
-    HTEventrg_registerTimeout(mr->tv, mr->timeout, timeout_handler, NO);
+    HTEventList_registerTimeout(mr->tv, mr->timeout, timeout_handler, NO);
 
     /* Start the request */
     if (keywords)						   /* Search */
@@ -594,7 +603,7 @@ int main (int argc, char ** argv)
     }
 
     /* Go into the event loop... */
-    HTEventrg_loop(mr->request);
+    HTEventList_loop(mr->request);
 
     /* Only gets here if event loop fails */
     Cleanup(mr, 0);
