@@ -383,10 +383,6 @@ int main (int argc, char ** argv)
 	}
     }
 
-#ifdef CATCH_SIG
-    SetSignal();
-#endif
-
     if (!keycnt) {
 	VersionInfo();
 	Cleanup(mr, 0);
