@@ -61,6 +61,12 @@ PUBLIC BOOL HTSecure = NO;	/* Disable access for telnet users? */
 
 PRIVATE HTList * protocols = NULL;   /* List of registered protocol descriptors */
 
+/* 	Superclass defn */
+
+struct _HTStream {
+	HTStreamClass * isa;
+	/* ... */
+};
 
 /*	Create  a request structure
 **	---------------------------
@@ -469,6 +475,7 @@ PRIVATE BOOL HTLoadDocument ARGS1(HTRequest *,		request)
 				   full_address);
 		if (fp) {
 		    HTFileCopy(fp, s);
+		    (*s->isa->free)(s);	/* close up pipeline */
 		    fclose(fp);
 		    free(full_address);
 		    return YES;
