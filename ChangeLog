@@ -1,5 +1,17 @@
 Changes with libwww 5.3.3
  
+ 
+2002-06-28      Manuele Kirsch <mkirsch@terra.com.br>
+
+	* Minor fixes concerning WebDAV module and Extension methods. At 
+	  src/HTTP.c source file, the 207 status codes has now the result 
+	  HT_MULTI_STATUS (line 310), at src/Makefile.am file, HTHome.o 
+	  was added to libwwwdav dependencies, and in Examples/davsample.c,
+	  options "-l", "-c" and "-m" can not anymore produce "Segment dump"  
+	  error when an command line argument is missing. Concerning to 
+	  Extension Methods, the definitions of HTMethod_hasEntity macro 
+	  into HTMethods.html have been changed to improve the code readability.
+
 2002-03-19      Manuele Kirsch <Manuele.Kirsch_Pinheiro@inrialpes.fr>
 
 	* The WebDAV module has been changed to use HTRequest entity 
