@@ -28,15 +28,11 @@
 #include <io.h>
 #endif
 
-
 PRIVATE HTList *HTThreads = NULL;      	 /* List of the HTNetInfo structures */
 PRIVATE fd_set nullSet ;
 PRIVATE fd_set HTfd_intr;
 PRIVATE fd_set HTfd_libs ;
 PRIVATE SOCKET libMaxSock = 0 ;
-
-
-int LibraryCallback( SOCKET, HTRequest *, SockOps) ;
 
 /* ------------------------------------------------------------------------- */
 
@@ -87,6 +83,35 @@ PUBLIC void HTThreadStateByRequest ARGS2(HTRequest *, request,
 }
 
 
+/*
+**  LibraryCallback - "glue" between 3.0 thread code and new callback functions
+**  map return codes into a simple yes/no model. 
+*/
+int LibraryCallback( SOCKET s, HTRequest * rq, SockOps f)
+{
+    int status = 0 ;
+    HTEventState state ;
+    HTProtocol * proto = (HTProtocol *)
+            HTAnchor_protocol( rq -> anchor) ;
+
+    /* begin */    
+
+    if (proto == 0)   	/* Whoa! No protocol! */
+    	return -1;
+    status = proto->load( rq ) ;
+    if (status != HT_WOULD_BLOCK) {   /* completed - good or bad... */
+        if (THD_TRACE) 
+            fprintf(TDEST, "LibCallBack. Calling Terminate...\n");
+	if (status != HT_OK) {
+	    HTLoadTerminate(rq, status);
+	    state = HTEventRequestTerminate( rq, status) ;
+	    /* if the state isn't EVENT_QUIT */
+	    if (! HTEventCheckState( rq, state ))
+		return HT_OK;  /* treat as failure */
+	}
+    }  /* if status */
+    return HT_WOULD_BLOCK;
+}
 
 /*								  HTThreadState
 **
@@ -280,38 +305,6 @@ PUBLIC HTRequest *HTThread_isAlive ARGS1(HTNetInfo *, net)
     if (THD_TRACE)
 	fprintf(TDEST, "Thread...... Thread is not alive\n");
     return NULL;
-}
-
-
-/*
- *   LibraryCallback - "glue" between 3.0 thread code and new callback functions
- *   map return codes into a simple yes/no model. 
- */
-
-int LibraryCallback( SOCKET s, HTRequest * rq, SockOps f)
-{
-    int status = 0 ;
-    HTEventState state ;
-    HTProtocol * proto = (HTProtocol *)
-            HTAnchor_protocol( rq -> anchor) ;
-
-    /* begin */    
-
-    if (proto == 0)   	/* Whoa! No protocol! */
-    	return -1;
-    status = proto->load( rq ) ;
-    if (status != HT_WOULD_BLOCK) {   /* completed - good or bad... */
-        if (THD_TRACE) 
-            fprintf(TDEST, "LibCallBack. Calling Terminate...\n");
-	if (status != HT_OK) {
-	    HTLoadTerminate(rq, status);
-	    state = HTEventRequestTerminate( rq, status) ;
-	    /* if the state isn't EVENT_QUIT */
-	    if (! HTEventCheckState( rq, state ))
-		return HT_OK;  /* treat as failure */
-	}
-    }  /* if status */
-    return HT_WOULD_BLOCK;
 }
 
 /*							         HTThread_kill
