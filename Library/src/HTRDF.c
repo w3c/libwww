@@ -37,21 +37,21 @@ struct _HTStream {
 #define PUTS(t,s)	(*(t)->target->isa->put_string)((t)->target, (s))
 
 struct _HTTriple {
-    String 			m_sPredicate;
-    String 			m_sSubject;
-    String 			m_sObject;
+    char * 			m_sPredicate;
+    char * 			m_sSubject;
+    char * 			m_sObject;
 };
 
 struct _HTElement {
-    String 			m_sName;
+    char * 			m_sName;
     HTAssocList *		m_attributes;
     HTList *			m_children;
-    String 			m_sID;
-    String 			m_sBagID;
+    char * 			m_sID;
+    char * 			m_sBagID;
     HTList *			m_vTargets;
     BOOL   			m_bDone;
-    String 			m_sPrefix;
-    String 			m_sContent;
+    char * 			m_sPrefix;
+    char * 			m_sContent;
 };
 
 struct _HTRDFParser {
@@ -59,7 +59,7 @@ struct _HTRDFParser {
     HTList *			m_elementStack;
     HTElement *			m_root;
     HTList *			m_triples;
-    String 			m_sSource;
+    char * 			m_sSource;
     HTList *			m_vAllNameSpaces;
 
     BOOL			m_bCreateBags;
@@ -67,7 +67,7 @@ struct _HTRDFParser {
 
     HTList *			m_parseTypeStack;
     HTList *			m_parseElementStack;
-    String 			m_sLiteral;
+    char * 			m_sLiteral;
 
     HTList *			m_vResources;
     HTList * 			m_vResolveQueue;
@@ -84,28 +84,28 @@ struct _HTRDFParser {
 PRIVATE HTRDFCallback_new *	RDFInstance = NULL;
 PRIVATE void *			RDFInstanceContext = NULL;
 
-PRIVATE String HTRDF_processContainer (HTRDF *me, HTElement *e);
-PRIVATE String HTRDF_processPredicate (HTRDF *me, HTElement *predicate,
+PRIVATE char * HTRDF_processContainer (HTRDF *me, HTElement *e);
+PRIVATE char * HTRDF_processPredicate (HTRDF *me, HTElement *predicate,
 				    HTElement *description,
-				    String sTarget,
+				    char * sTarget,
 				    BOOL reificate);
-PRIVATE void HTRDF_processListItem (HTRDF *me,String sID, HTElement *listitem, 
+PRIVATE void HTRDF_processListItem (HTRDF *me,char * sID, HTElement *listitem, 
 				    int iCounter);
 PRIVATE void HTRDF_checkAttributes (HTRDF *me,HTElement *Element);
 PRIVATE BOOL HTRDF_expandAttributes (HTRDF *me, HTElement *parent, HTElement *ele);
-PRIVATE String HTRDF_reificate (HTRDF *me, String sPredicate, String sSubject,
-			       String sObject, String sNodeID);
+PRIVATE char * HTRDF_reificate (HTRDF *me, char * sPredicate, char * sSubject,
+			       char * sObject, char * sNodeID);
 
 /* ------------------------------------------------------------------------- */
 
 /*
 **  Searches a whole list of Strings and returns true if the String is found.
 */
-PRIVATE BOOL HTList_contains (HTList *list, String s)
+PRIVATE BOOL HTList_contains (HTList *list, char * s)
 {
     HTList *cur = list;
-    String cs = NULL;
-    while ((cs = (String) HTList_nextObject(cur))) {
+    char * cs = NULL;
+    while ((cs = (char *) HTList_nextObject(cur))) {
 	if (!strcmp(cs, s)) return YES;	
     }
     return NO;
@@ -138,7 +138,7 @@ PRIVATE char * trim (char *s)
 /*				TRIPLE of RDF 				     */
 /* ------------------------------------------------------------------------- */
 
-PUBLIC HTTriple * HTTriple_new (String p, String s, String o) 
+PUBLIC HTTriple * HTTriple_new (char * p, char * s, char * o) 
 {
     HTTriple * me = NULL;
     if (p && s && o) {
@@ -170,17 +170,17 @@ PUBLIC void HTTriple_print (HTTriple * me)
 		me->m_sObject);	
 }
 
-PUBLIC String HTTriple_subject (HTTriple * me)
+PUBLIC char * HTTriple_subject (HTTriple * me)
 {
     return me ? me->m_sSubject : NULL;
 }
 
-PUBLIC String  HTTriple_predicate (HTTriple * me)
+PUBLIC char *  HTTriple_predicate (HTTriple * me)
 {
     return me ? me->m_sPredicate : NULL;
 }
 
-PUBLIC String HTTriple_object (HTTriple * me)
+PUBLIC char * HTTriple_object (HTTriple * me)
 {
     return me ? me->m_sObject : NULL;
 }
@@ -189,7 +189,7 @@ PUBLIC String HTTriple_object (HTTriple * me)
 /*				ELEMENT of RDF 				     */
 /* ------------------------------------------------------------------------- */
 
-PUBLIC HTElement * HTElement_new (String sName, HTAssocList * al)
+PUBLIC HTElement * HTElement_new (char * sName, HTAssocList * al)
 {
     HTElement * me = NULL;
     if (sName) {
@@ -209,7 +209,7 @@ PUBLIC HTElement * HTElement_new (String sName, HTAssocList * al)
 ** Creates a Data Element and saves the data in the Content field. 
 ** Data Element does not have attributes
 */
-PUBLIC HTElement * HTElement_new2 (String sContent)
+PUBLIC HTElement * HTElement_new2 (char * sContent)
 {
     HTElement * me = NULL;
     if (sContent) {
@@ -226,7 +226,7 @@ PUBLIC HTElement * HTElement_new2 (String sContent)
     return me;
 }
 
-PUBLIC BOOL HTElement_addData (HTElement *me, String sContent)
+PUBLIC BOOL HTElement_addData (HTElement *me, char * sContent)
 {
     if (me && sContent) {
 	int l = strlen(me->m_sName);
@@ -260,26 +260,26 @@ PUBLIC BOOL HTElement_addChild (HTElement * me, HTElement * element)
     return (me && element) ? HTList_appendObject(me->m_children, element) : NO;
 }
 
-PUBLIC BOOL HTElement_addAttribute (HTElement * me, String sName, String sValue)
+PUBLIC BOOL HTElement_addAttribute (HTElement * me, char * sName, char * sValue)
 {
     return (me && sName && sValue) ?
 	HTAssocList_addObject(me->m_attributes, sName, sValue) : NO;
 }
 
-PUBLIC BOOL HTElement_removeAttribute (HTElement * me, String sName)
+PUBLIC BOOL HTElement_removeAttribute (HTElement * me, char * sName)
 {
     return (me && sName) ? HTAssocList_removeObject(me->m_attributes, sName) : NO;
 }
 
-PUBLIC String HTElement_getAttribute (HTElement * me, String sName)
+PUBLIC char * HTElement_getAttribute (HTElement * me, char * sName)
 {
     return (me && sName) ? HTAssocList_findObjectCaseSensitiveExact(me->m_attributes, sName) : NULL;
 }
 
-PUBLIC String HTElement_getAttribute2 (HTElement * me, String sNamespace, String sName)
+PUBLIC char * HTElement_getAttribute2 (HTElement * me, char * sNamespace, char * sName)
 {
-    String fValue = NULL;
-    String fName = NULL;
+    char * fValue = NULL;
+    char * fName = NULL;
     if (me && sNamespace && sName) {
 	StrAllocMCopy(&fName, sNamespace, sName, NULL);	
 	fValue = HTAssocList_findObjectCaseSensitiveExact(me->m_attributes, fName);
@@ -329,9 +329,9 @@ PRIVATE void XML_startElement (void * userData,
 
     if (atts) {
 	while (atts[i]) {
-	    String aName = (String ) atts[i];
+	    char * aName = (char * ) atts[i];
 	    if (!strcmp(aName, "xmlns")) {
-		String aValue = (String) atts[i+1];
+		char * aValue = (char *) atts[i+1];
 		int len = aValue ? strlen(aValue) : -1;
 		if (len == 0 && !rdfp->m_sSource)
 		    aValue = rdfp->m_sSource;
@@ -340,7 +340,7 @@ PRIVATE void XML_startElement (void * userData,
 		if (!HTList_contains(rdfp->m_vAllNameSpaces, aValue) &&
 		   strncmp(aValue, RDFMS, strlen(RDFMS)) &&
 		   strncmp(aValue, RDFSCHEMA, strlen(RDFSCHEMA))) {
-		    String nname = NULL;
+		    char * nname = NULL;
 		    StrAllocCopy(nname, aValue);
 		    HTList_addObject(rdfp->m_vAllNameSpaces, nname);
 		}
@@ -348,13 +348,13 @@ PRIVATE void XML_startElement (void * userData,
 		/* Special case: Don't save document's own address  */
 		if (rdfp->m_sSource && 
 		   !strncmp(aValue, rdfp->m_sSource, strlen(rdfp->m_sSource))) {
-		    String nname = NULL;
+		    char * nname = NULL;
 		    StrAllocCopy(nname, aValue);
 		    HTList_addObject(rdfp->m_vAllNameSpaces, nname);
 		}
 	    } else if (!strncmp(aName, "xmlns:", 6)) {
-		String aValue = (String) atts[i+1];
-		String nName = NULL;
+		char * aValue = (char *) atts[i+1];
+		char * nName = NULL;
 		int len = aValue ? strlen(aValue) : -1;
 		if (len == 0 && !rdfp->m_sSource)
 		    aValue = rdfp->m_sSource;
@@ -366,7 +366,7 @@ PRIVATE void XML_startElement (void * userData,
 		if (!HTList_contains(rdfp->m_vAllNameSpaces, aValue) &&
 		   strncmp(aValue, RDFMS, strlen(RDFMS)) &&
 		   strncmp(aValue, RDFSCHEMA, strlen(RDFSCHEMA))) {
-		    String nname = NULL;
+		    char * nname = NULL;
 		    StrAllocCopy(nname, aValue);
 		    HTList_addObject(rdfp->m_vAllNameSpaces, nname);
 		}
@@ -374,7 +374,7 @@ PRIVATE void XML_startElement (void * userData,
 		/* Special case: Don't save document's own address  */
 		if (rdfp->m_sSource && 
 		   !strncmp(aValue, rdfp->m_sSource, strlen(rdfp->m_sSource))) {
-		    String nname = NULL;
+		    char * nname = NULL;
 		    StrAllocCopy(nname, aValue);
 		    HTList_addObject(rdfp->m_vAllNameSpaces, nname);
 		}
@@ -395,9 +395,9 @@ PRIVATE void XML_startElement (void * userData,
     ** determine the namespace of the element accordingly
     */
     {
-	String sNamespace = NULL;
-	String sElementName = NULL;
-	String sPrefix2 = NULL;
+	char * sNamespace = NULL;
+	char * sElementName = NULL;
+	char * sPrefix2 = NULL;
 	HTElement *newElement = NULL;
 	char *pindex = strchr(name, ':');
 	int ix = pindex ? (int) (pindex - name) : -1 ;
@@ -421,11 +421,11 @@ PRIVATE void XML_startElement (void * userData,
 	i = 0;
 	if (atts) {
 	    while (atts[i]) {
-		String aName = (String) atts[i];
-		String sAttributeNamespace = NULL;
+		char * aName = (char *) atts[i];
+		char * sAttributeNamespace = NULL;
 		if (strncmp(aName, "xmlns", 5)) {
-		    String aValue = (String) atts[i+1];
-		    String sPrefix = NULL;
+		    char * aValue = (char *) atts[i+1];
+		    char * sPrefix = NULL;
 		    /* Expat does not have type for attributes */	
 		    pindex = strchr(aName, ':');
 		    ix = pindex ? (int) (pindex - aName) : -1;
@@ -451,7 +451,7 @@ PRIVATE void XML_startElement (void * userData,
 			    sprintf(sPrefix, "gen%d\n", i);
 			}
 			{
-			    String fName = NULL;	
+			    char * fName = NULL;	
 			    StrAllocMCopy(&fName, sPrefix, ":", aValue, NULL);
 			    HTAssocList_addObject(newAL, fName, aValue);
 			    HT_FREE(fName);
@@ -460,7 +460,7 @@ PRIVATE void XML_startElement (void * userData,
 			    HT_FREE(fName);
 			}
 		    } else {
-			String fName = NULL;	
+			char * fName = NULL;	
 			StrAllocMCopy(&fName, sAttributeNamespace, aName, NULL);
 			HTAssocList_addObject(newAL, fName, aValue);
 			HT_FREE(fName);
@@ -489,7 +489,7 @@ PRIVATE void XML_startElement (void * userData,
 	 * piece of XML
 	 */
 	if (HTRDF_parseLiteral(rdfp)) {
-	    String fName = NULL;
+	    char * fName = NULL;
 	    if (!sPrefix2) {
 		if (sNamespace)
 		    HTAssocList_addObject(newAL, "xmlns:gen", sNamespace);
@@ -498,7 +498,7 @@ PRIVATE void XML_startElement (void * userData,
 		StrAllocCopy(newElement->m_sPrefix, "gen");
 		HT_FREE(fName);
 	    } else {
-		String sAttributeNamespace = HTRDF_namespace(rdfp, sPrefix2);
+		char * sAttributeNamespace = HTRDF_namespace(rdfp, sPrefix2);
 		if (sAttributeNamespace) {
 		    StrAllocMCopy(&fName, "xmlns:", sPrefix2, NULL);
 		    HTAssocList_addObject(newAL, fName, sAttributeNamespace);
@@ -509,7 +509,7 @@ PRIVATE void XML_startElement (void * userData,
 		HT_FREE(fName);
 	    }
 	} else {
-	    String fName = NULL;
+	    char * fName = NULL;
 	    StrAllocMCopy(&fName, sNamespace, sElementName, NULL);
 	    newElement = HTElement_new(fName, newAL);
 	    HT_FREE(fName);
@@ -523,8 +523,8 @@ PRIVATE void XML_startElement (void * userData,
 	** Check parseType
 	*/
 	{
-	    String fName = NULL;
-	    String sLiteralValue = NULL;
+	    char * fName = NULL;
+	    char * sLiteralValue = NULL;
 	    StrAllocMCopy(&fName, RDFMS, "parseType", NULL);
 	    sLiteralValue = HTElement_getAttribute(newElement, fName);
 	    HT_FREE(fName);
@@ -585,7 +585,7 @@ PRIVATE void XML_startElement (void * userData,
 		 * an additional Description node here in the document tree.
 		 */
 		{
-		    String fName = NULL;
+		    char * fName = NULL;
 		    HTElement *desc = NULL;
 		    HTAssocList * al = HTAssocList_new ();
 		    StrAllocMCopy(&fName, RDFMS, "Description", NULL);
@@ -660,10 +660,10 @@ PRIVATE void XML_characterData (void * userData,
      * hierarchy with the help of the stack.
      */
     HTRDF * rdfp = (HTRDF *) userData;
-    HTElement *e = (HTElement *)
-	HTList_lastObject(rdfp->m_elementStack);
-    String tstr = NULL, str = NULL;
-    if (!(str = HT_MALLOC(len+1)))
+    HTElement * e = (HTElement *) HTList_lastObject(rdfp->m_elementStack);
+    char * tstr = NULL;
+    char * str = NULL;
+    if (!(str = (char *) HT_MALLOC(len+1)))
 	HT_OUTOFMEM("XML_characterData");
     strncpy(str, s, len);
     str[len]='\0';
@@ -913,8 +913,8 @@ PUBLIC BOOL HTRDF_delete (HTRDF * me)
 	HT_FREE(me->m_sSource);
 	if (me->m_vAllNameSpaces) {
 	    HTList *cur = me->m_vAllNameSpaces;
-	    String s = NULL;
-	    while ((s = (String) HTList_nextObject(cur))) {
+	    char * s = NULL;
+	    while ((s = (char *) HTList_nextObject(cur))) {
 		HT_FREE(s);
 	    }
 	    HTList_delete(me->m_vAllNameSpaces);
@@ -940,7 +940,7 @@ PUBLIC BOOL HTRDF_delete (HTRDF * me)
  * setSource method saves the name of the source document for
  * later inspection if needed
  */
-PUBLIC BOOL HTRDF_setSource(HTRDF *me, String source)
+PUBLIC BOOL HTRDF_setSource(HTRDF *me, char * source)
 {
     if (me && source) {
 	StrAllocCopy (me->m_sSource, source);
@@ -960,10 +960,10 @@ PUBLIC BOOL HTRDF_resolve (HTRDF * me)
 	HTElement *e = NULL;
 	HTElement *e2 = NULL;
 	while ((e = (HTElement *) HTList_nextObject(cur))) {
-	    String sAbout = HTElement_getAttribute2(e, RDFMS, "about");
-	    String sResource = HTElement_getAttribute2(e, RDFMS, "resource");
-	    String sAboutEach = HTElement_getAttribute2(e, RDFMS, "aboutEach");
-	    String sAboutEachPrefix = HTElement_getAttribute2(e, RDFMS,
+	    char * sAbout = HTElement_getAttribute2(e, RDFMS, "about");
+	    char * sResource = HTElement_getAttribute2(e, RDFMS, "resource");
+	    char * sAboutEach = HTElement_getAttribute2(e, RDFMS, "aboutEach");
+	    char * sAboutEachPrefix = HTElement_getAttribute2(e, RDFMS,
 							      "aboutEachPrefix");
 	    if (sAbout) {
 		if (sAbout[0]=='#') 
@@ -992,7 +992,7 @@ PUBLIC BOOL HTRDF_resolve (HTRDF * me)
 		HTList * curr = me->m_vResources;
 		HTElement *ele = NULL;
 		while ((ele = (HTElement *) HTList_nextObject(curr))) {
-		    String sA = HTElement_getAttribute2(ele, RDFMS, "about");
+		    char * sA = HTElement_getAttribute2(ele, RDFMS, "about");
 		    if (sA && 
 		       !strncmp(sA, sAboutEachPrefix, strlen(sAboutEachPrefix))) {
 			HTElement_addTarget(e, ele);		    
@@ -1106,7 +1106,7 @@ PUBLIC BOOL HTRDF_isTypedPredicate(HTRDF *me, HTElement *e)
 {
     if (me && e && e->m_sName) {
 	int len = strlen(e->m_sName);
-	String tp[] = {"predicate", "subject", "object",
+	char * tp[] = {"predicate", "subject", "object",
 		       "value", "type", "Property", "Statement"};
 	int i;
 	if (HTRDF_isRDF(me, e)) {
@@ -1124,7 +1124,7 @@ PUBLIC BOOL HTRDF_isTypedPredicate(HTRDF *me, HTElement *e)
     return NO;
 }
 
-PRIVATE void HTRDF_processListItem (HTRDF * me, String sID, HTElement *listitem, 
+PRIVATE void HTRDF_processListItem (HTRDF * me, char * sID, HTElement *listitem, 
 				    int iCounter)
 {
   /*
@@ -1132,8 +1132,8 @@ PRIVATE void HTRDF_processListItem (HTRDF * me, String sID, HTElement *listitem,
    * 1. LI element without content (resource available)
    * 2. LI element with content (resource unavailable)
    */
-    String cName = NULL;
-    String sResource = HTRDF_getResource(me, listitem);
+    char * cName = NULL;
+    char * sResource = HTRDF_getResource(me, listitem);
     char sdig[20];
     sprintf(sdig, "_%d", iCounter);
     StrAllocMCopy(&cName, RDFMS, sdig, NULL);
@@ -1151,17 +1151,17 @@ PRIVATE void HTRDF_processListItem (HTRDF * me, String sID, HTElement *listitem,
 	    if (HTElement_instanceOfData(n)) {
 		HTRDF_addTriple(me, cName, sID, n->m_sContent);
 	    } else if (HTRDF_isDescription(me, n)) {
-		String sNodeID = HTRDF_processDescription(me, n, NO, YES, NO);
+		char * sNodeID = HTRDF_processDescription(me, n, NO, YES, NO);
 		HTRDF_addTriple(me, cName, sID, sNodeID);
 		StrAllocCopy(listitem->m_sID, sNodeID);
 	    } else if (HTRDF_isListItem(me, n)) {
 		HTPrint("Can not nest list item inside list item\n");
 	    } else if (HTRDF_isContainer(me, n)) {
-		String c = HTRDF_processContainer(me, n);
+		char * c = HTRDF_processContainer(me, n);
 		HTRDF_addTriple(me, cName, sID, n->m_sID);
 		HT_FREE(c);
 	    } else if (HTRDF_isTypedPredicate(me, n)) {
-		String sNodeID = HTRDF_processTypedNode(me, n);
+		char * sNodeID = HTRDF_processTypedNode(me, n);
 		HTRDF_addTriple(me, cName, sID, sNodeID);
 		HT_FREE(sNodeID);
 	    }
@@ -1170,13 +1170,13 @@ PRIVATE void HTRDF_processListItem (HTRDF * me, String sID, HTElement *listitem,
     HT_FREE(cName);
 }
 
-PRIVATE String HTRDF_processContainer(HTRDF *me, HTElement *n)
+PRIVATE char * HTRDF_processContainer(HTRDF *me, HTElement *n)
 {
-    String sID = NULL;
-    String tName = NULL;
-    String aName = NULL;
-    String sName = NULL;
-    String bName = NULL;
+    char * sID = NULL;
+    char * tName = NULL;
+    char * aName = NULL;
+    char * sName = NULL;
+    char * bName = NULL;
     StrAllocMCopy(&tName, RDFMS, "type", NULL);
     StrAllocMCopy(&aName, RDFMS, "Alt", NULL);
     StrAllocMCopy(&sName, RDFMS, "Seq", NULL);
@@ -1224,20 +1224,20 @@ PRIVATE String HTRDF_processContainer(HTRDF *me, HTElement *n)
  * Manage the typedNode production in the RDF grammar.
  *
  */
-PUBLIC String HTRDF_processTypedNode(HTRDF *me, HTElement *typedNode)
+PUBLIC char * HTRDF_processTypedNode(HTRDF *me, HTElement *typedNode)
 {
-    String sID = HTElement_getAttribute2(typedNode, RDFMS, "ID");
-    String sBagID = HTElement_getAttribute2(typedNode, RDFMS, "bagID");
-    String sAbout = HTElement_getAttribute2(typedNode, RDFMS, "about");
-    String sAboutEach = HTElement_getAttribute2(typedNode, RDFMS, "aboutEach");
-    /*String sAboutEachPrefix = HTElement_getAttribute2(typedNode, RDFMS,
+    char * sID = HTElement_getAttribute2(typedNode, RDFMS, "ID");
+    char * sBagID = HTElement_getAttribute2(typedNode, RDFMS, "bagID");
+    char * sAbout = HTElement_getAttribute2(typedNode, RDFMS, "about");
+    char * sAboutEach = HTElement_getAttribute2(typedNode, RDFMS, "aboutEach");
+    /*char * sAboutEachPrefix = HTElement_getAttribute2(typedNode, RDFMS,
 						      "aboutEachPrefix");*/
-    String resource =  HTElement_getAttribute2(typedNode, RDFMS, "resource");
-    String iName = NULL;
-    String bName = NULL;
-    String tName = NULL;
+    char * resource =  HTElement_getAttribute2(typedNode, RDFMS, "resource");
+    char * iName = NULL;
+    char * bName = NULL;
+    char * tName = NULL;
 
-    String sObject = NULL;
+    char * sObject = NULL;
 
     StrAllocMCopy(&iName, RDFMS, "ID", NULL);
     StrAllocMCopy(&bName, RDFMS, "bagID", NULL);
@@ -1255,8 +1255,9 @@ PUBLIC String HTRDF_processTypedNode(HTRDF *me, HTElement *typedNode)
     {
 	HTAssoc * assoc;
 	HTAssocList *cur = typedNode->m_attributes;
-	String sAttribute = NULL;
-	String tValue = NULL, sValue = NULL;
+	char * sAttribute = NULL;
+	char * tValue = NULL;
+	char * sValue = NULL;
 	while((assoc= (HTAssoc *) HTList_nextObject(cur))) {
 	    sAttribute = HTAssoc_name(assoc);
 	    sValue = HTAssoc_value(assoc);
@@ -1328,10 +1329,10 @@ PUBLIC BOOL HTRDF_processRDF (HTRDF *me, HTElement *e)
 		HTRDF_processDescription(me, ele, NO, me->m_bCreateBags,
 					 me->m_bCreateBags);
 	    } else if (HTRDF_isContainer(me, ele)) {
-		String c = HTRDF_processContainer(me, ele);
+		char * c = HTRDF_processContainer(me, ele);
 		HT_FREE(c);
 	    } else 	if (HTRDF_isTypedPredicate(me, ele)) {
-		String t = HTRDF_processTypedNode(me, ele);
+		char * t = HTRDF_processTypedNode(me, ele);
 		HT_FREE(t);
 	    }
 	}
@@ -1352,16 +1353,16 @@ PUBLIC BOOL HTRDF_processRDF (HTRDF *me, HTElement *e)
  * return the new ID which can be used to identify the predicate
  *
  */
-PRIVATE String HTRDF_processPredicate (HTRDF * 		me,
+PRIVATE char * HTRDF_processPredicate (HTRDF * 		me,
 				       HTElement * 	predicate,
 				       HTElement *	description,
-				       String 		sTarget,
+				       char * 		sTarget,
 				       BOOL 		reificate)
 {
-    String sStatementID = HTElement_getAttribute2(predicate, RDFMS, "ID");
-    String nsStatementID = NULL;
-    String sBagID = HTElement_getAttribute2(predicate, RDFMS, "bagID");
-    String sResource = HTRDF_getResource(me, predicate);
+    char * sStatementID = HTElement_getAttribute2(predicate, RDFMS, "ID");
+    char * nsStatementID = NULL;
+    char * sBagID = HTElement_getAttribute2(predicate, RDFMS, "bagID");
+    char * sResource = HTRDF_getResource(me, predicate);
 
     /*
     ** If a predicate has other attributes than rdf:ID, rdf:bagID,
@@ -1371,8 +1372,8 @@ PRIVATE String HTRDF_processPredicate (HTRDF * 		me,
     {
 	HTElement * place_holder = NULL;
 	HTAssocList * newAL = HTAssocList_new();
-	String fName = NULL;
-	String aName = NULL;
+	char * fName = NULL;
+	char * aName = NULL;
 
 	StrAllocMCopy(&fName, RDFMS, "Description", NULL);
 	place_holder = HTElement_new(fName, newAL);
@@ -1456,7 +1457,7 @@ PRIVATE String HTRDF_processPredicate (HTRDF * 		me,
     ** sResource attribute
     */
     if (sResource && HTElement_target(predicate)) {
-	String dStatementID = HTRDF_processDescription(me,
+	char * dStatementID = HTRDF_processDescription(me,
 						       HTElement_target(predicate),
 						       YES, NO, NO);
 	if (reificate) {
@@ -1484,14 +1485,14 @@ PRIVATE String HTRDF_processPredicate (HTRDF * 		me,
 	StrAllocCopy(nsStatementID, sStatementID);
 	if (HTList_isEmpty(cur)) {
 	    if (reificate) {
-		String nr = HTRDF_newReificationID(me);
+		char * nr = HTRDF_newReificationID(me);
 		HT_FREE(nsStatementID);
 		nsStatementID = HTRDF_reificate (me, predicate->m_sName, 
 						sTarget, nr,
 						predicate->m_sID);
 		HT_FREE(nr);
 	    } else {
-		String nr = HTRDF_newReificationID(me);
+		char * nr = HTRDF_newReificationID(me);
 		HTRDF_addTriple(me, predicate->m_sName, sTarget, nr);
 		HT_FREE(nr);
 	    }
@@ -1499,7 +1500,7 @@ PRIVATE String HTRDF_processPredicate (HTRDF * 		me,
 	while ((n2= (HTElement *) HTList_nextObject(cur))) {
 	    if (HTRDF_isDescription(me, n2)) {
 		HTElement *d2 = n2;
-		String dStatementID =HTRDF_processDescription(me, d2, YES, NO, NO);
+		char * dStatementID =HTRDF_processDescription(me, d2, YES, NO, NO);
 		StrAllocCopy(d2->m_sID, dStatementID);
 		
 		if (reificate) {
@@ -1513,7 +1514,8 @@ PRIVATE String HTRDF_processPredicate (HTRDF * 		me,
 				    nsStatementID);
 		}
 	    } else if (HTElement_instanceOfData(n2)) {
-		String tValue = NULL, sValue = n2->m_sContent;
+		char * tValue = NULL;
+		char * sValue = n2->m_sContent;
 		/* we've  got real data */
                 /*
 		 * Only if the content is not empty PCDATA (whitespace that is)
@@ -1534,10 +1536,10 @@ PRIVATE String HTRDF_processPredicate (HTRDF * 		me,
 		HT_FREE(tValue);
 	    } else if (HTRDF_isContainer(me, n2)) {
 		HTElement *target = HTElement_target(description);
-		String aboutTarget  = 
+		char * aboutTarget  = 
 		    target ? 
 		    HTElement_getAttribute2(target, RDFMS, "about") : NULL;
-		String sCollectionID = HTRDF_processContainer(me, n2);
+		char * sCollectionID = HTRDF_processContainer(me, n2);
 		StrAllocCopy(nsStatementID, sCollectionID);
 		/* Attach the collection to the current predicate */
 		if (target) {
@@ -1592,7 +1594,7 @@ PRIVATE String HTRDF_processPredicate (HTRDF * 		me,
  * return		An ID for the description
  *
  */
-PUBLIC String HTRDF_processDescription (HTRDF *		me,
+PUBLIC char * HTRDF_processDescription (HTRDF *		me,
 				        HTElement *	description,
 					BOOL 		inPredicate,
 					BOOL 		reificate,
@@ -1601,20 +1603,20 @@ PUBLIC String HTRDF_processDescription (HTRDF *		me,
     int iChildCount = 1;
     BOOL bOnce = YES;
 
-    String sAbout = HTElement_getAttribute2(description, RDFMS, "about");
-    String sAboutEach = HTElement_getAttribute2(description, RDFMS, "aboutEach");
-    String sAboutEachPrefix = HTElement_getAttribute2(description, RDFMS,
+    char * sAbout = HTElement_getAttribute2(description, RDFMS, "about");
+    char * sAboutEach = HTElement_getAttribute2(description, RDFMS, "aboutEach");
+    char * sAboutEachPrefix = HTElement_getAttribute2(description, RDFMS,
 						      "aboutEachPrefix");
-    String sBagid = HTElement_getAttribute2(description, RDFMS, "bagID");
-    String sID = HTElement_getAttribute2(description, RDFMS, "ID");
+    char * sBagid = HTElement_getAttribute2(description, RDFMS, "bagID");
+    char * sID = HTElement_getAttribute2(description, RDFMS, "ID");
     HTElement *target = HTElement_target(description);
     BOOL hasTarget = HTList_isEmpty(description->m_vTargets) ? NO : YES;
     BOOL targetIsContainer = NO;
-    String sTargetAbout = NULL;
-    String sTargetBagID = NULL;
-    String sTargetID = NULL;
-    String dName = NULL;
-    String aName = NULL;
+    char * sTargetAbout = NULL;
+    char * sTargetBagID = NULL;
+    char * sTargetID = NULL;
+    char * dName = NULL;
+    char * aName = NULL;
 
     /*
     ** Return immediately if the description has already been managed
@@ -1628,7 +1630,7 @@ PUBLIC String HTRDF_processDescription (HTRDF *		me,
     ** Determine what the target of the Description reference is
     */
     if (hasTarget) {
-	String sTargetID2 = HTElement_getAttribute2(target, RDFMS, "ID");
+	char * sTargetID2 = HTElement_getAttribute2(target, RDFMS, "ID");
 	sTargetAbout = HTElement_getAttribute2(target, RDFMS, "about");
         sTargetBagID = HTElement_getAttribute2(target, RDFMS, "bagID");
 	if (me->m_sSource && sTargetID2) {
@@ -1666,7 +1668,7 @@ PUBLIC String HTRDF_processDescription (HTRDF *		me,
 	    HTElement *ele = NULL;
 	    while ((ele= (HTElement *) HTList_nextObject(cur))) {
 		if (HTRDF_isListItem(me, ele)) {
-		    String sResource = HTRDF_getResource(me, ele);
+		    char * sResource = HTRDF_getResource(me, ele);
 		    if (sResource) {
 			HTElement * newDescription = NULL;
 			HTElement * ele2;
@@ -1790,7 +1792,7 @@ PUBLIC String HTRDF_processDescription (HTRDF *		me,
 	    else if (HTRDF_isContainer(me, n))
 		HTPrint("Can not nest Container inside Description\n");
 	    else if (HTRDF_isTypedPredicate(me, n)) {
-		String sChildID = NULL;
+		char * sChildID = NULL;
 		if (hasTarget && targetIsContainer) {
 		    sChildID = HTRDF_processPredicate(me, n, description,
 						     target->m_sBagID ? 
@@ -1806,7 +1808,7 @@ PUBLIC String HTRDF_processDescription (HTRDF *		me,
 		    StrAllocCopy(description->m_sID, sChildID);
 		} else if (!hasTarget && !inPredicate) {
 		    if (!description->m_sID) {
-			String nr = HTRDF_newReificationID(me);
+			char * nr = HTRDF_newReificationID(me);
 			StrAllocCopy(description->m_sID, nr);
 			HT_FREE(nr);
 		    }
@@ -1827,7 +1829,7 @@ PUBLIC String HTRDF_processDescription (HTRDF *		me,
 			    sAbout = sID;
 			} else {
 			    if (!description->m_sID) {
-				String nr = HTRDF_newReificationID(me);
+				char * nr = HTRDF_newReificationID(me);
 				StrAllocCopy(description->m_sID, nr);
 				HT_FREE(nr);
 			    }
@@ -1844,13 +1846,13 @@ PUBLIC String HTRDF_processDescription (HTRDF *		me,
 		 * the m_bCreateBags variable is true
 		 */
 		if (sBagid || (me->m_bCreateBags && createBag)) {
-		    String sNamespace = RDFMS;
+		    char * sNamespace = RDFMS;
 		    if (bOnce && sChildID) {
-			String tName = NULL;
-			String bName = NULL;
+			char * tName = NULL;
+			char * bName = NULL;
 			bOnce = NO;
 			if (!description->m_sBagID) {
-			    String nr = HTRDF_newReificationID(me);
+			    char * nr = HTRDF_newReificationID(me);
 			    StrAllocCopy(description->m_sBagID, nr);
 			    HT_FREE(nr);
 			}
@@ -1865,7 +1867,7 @@ PUBLIC String HTRDF_processDescription (HTRDF *		me,
 			    
 		    }
 		    if (sChildID) {
-			String tName = NULL;
+			char * tName = NULL;
 			char si[20];
 			sprintf(si, "%d", iChildCount);
 			StrAllocMCopy(&tName, sNamespace, "_", si, NULL);
@@ -1931,9 +1933,9 @@ PUBLIC HTElement * HTRDF_root (HTRDF *me)
  * The namespace of xmlns attribute is an empty string.
  */
 
-PUBLIC String HTRDF_namespace(HTRDF * me, String sPrefix)
+PUBLIC char * HTRDF_namespace(HTRDF * me, char * sPrefix)
 {
-    String nPrefix = NULL;
+    char * nPrefix = NULL;
     HTAssocList * calist;
     HTList * cur = me->m_namespaceStack;
     
@@ -1941,7 +1943,7 @@ PUBLIC String HTRDF_namespace(HTRDF * me, String sPrefix)
 	StrAllocCopy(nPrefix, "xmlns");
 
     while ((calist = (HTAssocList *) HTList_nextObject(cur))) {
-	String sValue = HTAssocList_findObjectCaseSensitiveExact(calist, sPrefix);
+	char * sValue = HTAssocList_findObjectCaseSensitiveExact(calist, sPrefix);
 	if (sValue) {
 	    StrAllocCopy(nPrefix, sValue);
 	    return nPrefix;
@@ -1977,7 +1979,7 @@ PUBLIC BOOL HTRDF_parseLiteral(HTRDF *me)
     HTList *cur = me->m_elementStack;
     if (!HTList_isEmpty(me->m_elementStack)) {
 	while((e = (HTElement *) HTList_nextObject(cur))) {
-	    String sParseType = NULL;
+	    char * sParseType = NULL;
 	    sParseType = HTElement_getAttribute2(e, RDFMS, "parseType");
 	    if (sParseType) {
 		if (strcmp(sParseType, "Resource"))
@@ -1999,7 +2001,7 @@ PUBLIC BOOL HTRDF_parseResource(HTRDF *me)
     HTList *cur = me->m_elementStack;
     if (!HTList_isEmpty(me->m_elementStack)) {
 	while((e = (HTElement *) HTList_nextObject(cur))) {
-	    String sParseType = NULL;	
+	    char * sParseType = NULL;	
 	    sParseType = HTElement_getAttribute2(e, RDFMS, "parseType");
 	    if (sParseType) {
 		if (!strcmp(sParseType, "Resource"))
@@ -2023,26 +2025,26 @@ PUBLIC BOOL HTRDF_parseResource(HTRDF *me)
 PRIVATE void HTRDF_checkAttributes(HTRDF *me, HTElement *e)
 {
     {
-	String sResource = HTElement_getAttribute2(e, RDFMS, "resource");
+	char * sResource = HTElement_getAttribute2(e, RDFMS, "resource");
     
 	if (sResource && sResource[0] == '#') 
 	    HTRDF_resolveLater(me, e);
     }
     {
-	String sAboutEach = HTElement_getAttribute2(e, RDFMS, "aboutEach");
+	char * sAboutEach = HTElement_getAttribute2(e, RDFMS, "aboutEach");
     
 	if (sAboutEach && sAboutEach[0] == '#') 
 	    HTRDF_resolveLater(me, e);
     }
     {
-        String sAboutEachPrefix = HTElement_getAttribute2(e, RDFMS,
+        char * sAboutEachPrefix = HTElement_getAttribute2(e, RDFMS,
 							  "aboutEachPrefix");
     
 	if (sAboutEachPrefix && sAboutEachPrefix[0] == '#') 
 	    HTRDF_resolveLater(me, e);
     }
     {
-        String sAbout = HTElement_getAttribute2(e, RDFMS, "about");
+        char * sAbout = HTElement_getAttribute2(e, RDFMS, "about");
 	if (sAbout) {
 	    if (sAbout[0] == '#') 
 		HTRDF_resolveLater(me, e);
@@ -2052,7 +2054,7 @@ PRIVATE void HTRDF_checkAttributes(HTRDF *me, HTElement *e)
     }
 
     {
-        String sBagID = HTElement_getAttribute2(e, RDFMS, "bagID");
+        char * sBagID = HTElement_getAttribute2(e, RDFMS, "bagID");
     
 	if (sBagID) {
 	    HTRDF_registerID(me, sBagID, e);
@@ -2060,7 +2062,7 @@ PRIVATE void HTRDF_checkAttributes(HTRDF *me, HTElement *e)
 	}
     }
     {
-        String sID = HTElement_getAttribute2(e, RDFMS, "ID");
+        char * sID = HTElement_getAttribute2(e, RDFMS, "ID");
 	if (sID) {
 	    HTRDF_registerID(me, sID, e);
 	    StrAllocCopy(e->m_sID, sID);
@@ -2080,7 +2082,7 @@ PUBLIC void HTRDF_resolveLater(HTRDF *me, HTElement *e)
  * which stores all nodes with an ID
  */
 
-PUBLIC void HTRDF_registerID(HTRDF *me, String sID, HTElement *e)
+PUBLIC void HTRDF_registerID(HTRDF *me, char * sID, HTElement *e)
 {
     if (HTHashtable_object(me->m_hIDtable, sID))
 	HTPrint("Node ID %s redefined", sID);
@@ -2100,7 +2102,7 @@ PUBLIC void HTRDF_registerResource(HTRDF *me, HTElement *e)
  * m_hIDtable of all registered IDs.
  */
 
-PUBLIC HTElement *HTRDF_lookforNode(HTRDF *me, String sID)
+PUBLIC HTElement *HTRDF_lookforNode(HTRDF *me, char * sID)
 {
     if (sID)
 	return (HTElement *) HTHashtable_object(me->m_hIDtable, sID);
@@ -2110,9 +2112,9 @@ PUBLIC HTElement *HTRDF_lookforNode(HTRDF *me, String sID)
 /*
 ** Special method to deal with rdf:resource attribute
 */
-PUBLIC String HTRDF_getResource(HTRDF *me, HTElement *e)
+PUBLIC char * HTRDF_getResource(HTRDF *me, HTElement *e)
 {
-   String sResource = HTElement_getAttribute2(e, RDFMS, "resource");
+   char * sResource = HTElement_getAttribute2(e, RDFMS, "resource");
    if (sResource != NULL && sResource[0] == '\0')
        sResource = me->m_sSource;
    return sResource; 
@@ -2127,8 +2129,8 @@ PUBLIC String HTRDF_getResource(HTRDF *me, HTElement *e)
 PRIVATE BOOL HTRDF_expandAttributes (HTRDF * me, HTElement * parent, HTElement * ele)
 {
     BOOL foundAbbreviation = NO;
-    String sAttribute = NULL;
-    String sValue = NULL;
+    char * sAttribute = NULL;
+    char * sValue = NULL;
     HTAssoc * assoc;
     HTAssocList * cur = ele->m_attributes;
     int lxmlschema = strlen(XMLSCHEMA);
@@ -2164,9 +2166,9 @@ PRIVATE BOOL HTRDF_expandAttributes (HTRDF * me, HTElement * parent, HTElement *
  * Create a new reification ID by using a name part and an
  * incremental counter m_iReificationCounter.
  */
-PUBLIC String HTRDF_newReificationID (HTRDF *me) 
+PUBLIC char * HTRDF_newReificationID (HTRDF *me) 
 {
-    String nsid = NULL;
+    char * nsid = NULL;
     char nsrc[20];
     me->m_iReificationCounter++;
     sprintf(nsrc, "%d", me->m_iReificationCounter);
@@ -2183,15 +2185,15 @@ PUBLIC String HTRDF_newReificationID (HTRDF *me)
  * and returns the ID of the new node
  */
 
-PRIVATE String HTRDF_reificate(HTRDF *me, String sPredicate, String sSubject,
-			      String sObject, String sNodeID)
+PRIVATE char * HTRDF_reificate(HTRDF *me, char * sPredicate, char * sSubject,
+			      char * sObject, char * sNodeID)
 {
-    String sName = NULL;
-    String pName = NULL;
-    String oName = NULL;
-    String tName = NULL;
-    String stName = NULL;
-    String tNodeID = NULL;
+    char * sName = NULL;
+    char * pName = NULL;
+    char * oName = NULL;
+    char * tName = NULL;
+    char * stName = NULL;
+    char * tNodeID = NULL;
 
     if (!sNodeID)
 	tNodeID = HTRDF_newReificationID(me);
@@ -2236,8 +2238,8 @@ PRIVATE String HTRDF_reificate(HTRDF *me, String sPredicate, String sSubject,
  * Send the triple to the Output stream
  */
 
-PUBLIC void HTRDF_addTriple (HTRDF *me, String sPredicate, String sSubject, 
-			     String sObject) 
+PUBLIC void HTRDF_addTriple (HTRDF *me, char * sPredicate, char * sSubject, 
+			     char * sObject) 
 {
     HTTriple *t = NULL;
 

@@ -28,8 +28,6 @@ for details.
 #define RDFMS "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 #define RDFSCHEMA "http://www.w3.org/TR/WD-rdf-schema#"
 #define XMLSCHEMA "xml"
-
-typedef char * String;
 </PRE>
 <H2>
   <A NAME="HTTriple">RDF Triple Class</A>
@@ -37,12 +35,12 @@ typedef char * String;
 <PRE>
 typedef struct _HTTriple HTTriple;
 
-extern HTTriple * HTTriple_new (String p, String s, String o);
+extern HTTriple * HTTriple_new (char * p, char * s, char * o);
 extern BOOL HTTriple_delete (HTTriple * me);
 extern void HTTriple_print (HTTriple * me);
-extern String HTTriple_subject (HTTriple * me);
-extern String HTTriple_predicate (HTTriple * me);
-extern String HTTriple_object (HTTriple * me);
+extern char * HTTriple_subject (HTTriple * me);
+extern char * HTTriple_predicate (HTTriple * me);
+extern char * HTTriple_object (HTTriple * me);
 </PRE>
 <H2>
   <A NAME="HTElement">RDF Element Class</A>
@@ -50,15 +48,15 @@ extern String HTTriple_object (HTTriple * me);
 <PRE>
 typedef struct _HTElement HTElement;
 
-extern HTElement * HTElement_new (String sName, HTAssocList * al);
-extern HTElement * HTElement_new2 (String sContent);
-extern BOOL HTElement_addData (HTElement *me, String sContent);
+extern HTElement * HTElement_new (char * sName, HTAssocList * al);
+extern HTElement * HTElement_new2 (char * sContent);
+extern BOOL HTElement_addData (HTElement *me, char * sContent);
 extern BOOL HTElement_delete (HTElement * me);
 extern BOOL HTElement_addChild (HTElement * me, HTElement * element);
-extern BOOL HTElement_addAttribute (HTElement * me, String sName, String sValue);
-extern BOOL HTElement_removeAttribute (HTElement * me, String sName);
-extern String HTElement_getAttribute (HTElement * me, String sName);
-extern String HTElement_getAttribute2 (HTElement * me, String sNamespace, String sName);
+extern BOOL HTElement_addAttribute (HTElement * me, char * sName, char * sValue);
+extern BOOL HTElement_removeAttribute (HTElement * me, char * sName);
+extern char * HTElement_getAttribute (HTElement * me, char * sName);
+extern char * HTElement_getAttribute2 (HTElement * me, char * sNamespace, char * sName);
 extern BOOL HTElement_addTarget (HTElement * me, HTElement * element);
 extern HTElement * HTElement_target (HTElement * me);
 extern BOOL HTElement_instanceOfData (HTElement * me);
@@ -130,7 +128,7 @@ extern BOOL HTRDF_registerNewTripleCallback (
 <P>
 Saves the name of the source document for later inspection if needed
 <PRE>
-extern BOOL HTRDF_setSource (HTRDF * me, String source);
+extern BOOL HTRDF_setSource (HTRDF * me, char * source);
 </PRE>
 <H3>
   Resolve Symbolic References
@@ -165,7 +163,7 @@ extern HTElement * HTRDF_root(HTRDF *me);
 The default namespace is identified with xmlns prefix. The namespace of xmlns
 attribute is an empty string.
 <PRE>
-extern String HTRDF_namespace(HTRDF *me,String sPrefix);
+extern char * HTRDF_namespace (HTRDF * me, char * sPrefix);
 </PRE>
 <H3>
   Parsing Literal or Resource?
@@ -192,7 +190,7 @@ extern void HTRDF_resolveLater(HTRDF *me,HTElement *e);
 Add an element e to the Hashtable m_hIDtable which stores all nodes with
 an ID
 <PRE>
-extern void HTRDF_registerID(HTRDF *me,String sID,HTElement *e);
+extern void HTRDF_registerID(HTRDF *me, char * sID,HTElement *e);
 </PRE>
 <H3>
   Register Resource
@@ -210,7 +208,7 @@ extern void HTRDF_registerResource(HTRDF *me,HTElement *e);
 Look for a node by name sID from the Hashtable m_hIDtable of all registered
 IDs.
 <PRE>
-extern HTElement *HTRDF_lookforNode(HTRDF *me,String sID);
+extern HTElement *HTRDF_lookforNode(HTRDF *me, char * sID);
 </PRE>
 <H3>
   If Element from RDF Schema?
@@ -298,7 +296,7 @@ processDescription manages Description elements
     An ID for the description
 </DL>
 <PRE>
-extern String HTRDF_processDescription (
+extern char * HTRDF_processDescription (
 	HTRDF *		me,
 	HTElement *	description,
 	BOOL		inPredicate,
@@ -309,13 +307,13 @@ extern String HTRDF_processDescription (
   Manage the typedNode production in the RDF grammar.
 </H3>
 <PRE>
-extern String HTRDF_processTypedNode(HTRDF *me, HTElement *e);
+extern char * HTRDF_processTypedNode(HTRDF *me, HTElement *e);
 </PRE>
 <H3>
   Special method to deal with rdf:resource attribute
 </H3>
 <PRE>
-extern String HTRDF_getResource(HTRDF *me,HTElement *e);
+extern char * HTRDF_getResource(HTRDF *me,HTElement *e);
 </PRE>
 <H3>
   Create a new reification ID
@@ -323,7 +321,7 @@ extern String HTRDF_getResource(HTRDF *me,HTElement *e);
 <P>
 Using a name part and an incremental counter m_iReificationCounter.
 <PRE>
-extern String HTRDF_newReificationID (HTRDF *me);
+extern char * HTRDF_newReificationID (HTRDF *me);
 </PRE>
 <H3>
   Create a new triple
@@ -331,8 +329,8 @@ extern String HTRDF_newReificationID (HTRDF *me);
 <P>
 and add it to the m_triples List
 <PRE>
-extern void HTRDF_addTriple (HTRDF *me, String sPredicate, String sSubject,
-			     String sObject);
+extern void HTRDF_addTriple (HTRDF *me, char * sPredicate, char * sSubject,
+			     char * sObject);
 </PRE>
 <H3>
   Create New Bag
