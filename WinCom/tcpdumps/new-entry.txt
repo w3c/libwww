@@ -1,0 +1,124 @@
+18.29.0.116.2009 -> 18.29.0.24.80 over TCP
+	<No data>
+-----------------------------------------------------------------
+18.29.0.24.80 -> 18.29.0.116.2009 over TCP
+	<No data>
+-----------------------------------------------------------------
+18.29.0.116.2009 -> 18.29.0.24.80 over TCP
+	<No data>
+-----------------------------------------------------------------
+18.29.0.116.2009 -> 18.29.0.24.80 over TCP
+	HEAD /frystyk/test/test350.html HTTP/1.1.
+	Accept: */*;q=0.3.
+	Accept-Encoding: deflate.
+	TE: trailers,deflate.
+	Host: jigedit.w3.org.
+	User-Agent: WebCommander/1.1 libwww/5.1n.
+	Connection: TE,Keep-Alive.
+	.
+	
+-----------------------------------------------------------------
+18.29.0.24.80 -> 18.29.0.116.2009 over TCP
+	<No data>
+-----------------------------------------------------------------
+18.29.0.24.80 -> 18.29.0.116.2009 over TCP
+	HTTP/1.1 401 Unauthorized.
+	Date: Tue, 08 Sep 1998 14:38:44 GMT.
+	Content-Length: 196.
+	Content-Type: text/html.
+	Server: Jigsaw/2.0beta1.
+	WWW-authenticate: Basic realm="w3t".
+	.
+	
+-----------------------------------------------------------------
+18.29.0.116.2009 -> 18.29.0.24.80 over TCP
+	<No data>
+-----------------------------------------------------------------
+18.29.0.116.2009 -> 18.29.0.24.80 over TCP
+	HEAD /frystyk/test/test350.html HTTP/1.1.
+	Accept: */*;q=0.3.
+	Accept-Encoding: deflate.
+	TE: trailers,deflate.
+	Authorization: Basic ZnJ5c3R5azpkYW5tYXJr.
+	Host: jigedit.w3.org.
+	User-Agent: WebCommander/1.1 libwww/5.1n.
+	Connection: TE,Keep-Alive.
+	.
+	
+-----------------------------------------------------------------
+18.29.0.24.80 -> 18.29.0.116.2009 over TCP
+	<No data>
+-----------------------------------------------------------------
+18.29.0.24.80 -> 18.29.0.116.2009 over TCP
+	HTTP/1.1 404 Not Found.
+	Date: Tue, 08 Sep 1998 14:38:48 GMT.
+	Content-Length: 201.
+	Content-Type: text/html.
+	Server: Jigsaw/2.0beta1.
+	.
+	
+-----------------------------------------------------------------
+18.29.0.116.2009 -> 18.29.0.24.80 over TCP
+	PUT /frystyk/test/test350.html HTTP/1.1.
+	Accept: */*;q=0.3.
+	Accept-Encoding: deflate.
+	TE: trailers,deflate.
+	Authorization: Basic ZnJ5c3R5azpkYW5tYXJr.
+	Expect: 100-continue.
+	Host: jigedit.w3.org.
+	User-Agent: WebCommander/1.1 libwww/5.1n.
+	Connection: TE.
+	Date: Tue, 08 Sep 1998 14:38:49 GMT.
+	Content-Length: 104.
+	Content-Type: text/html.
+	Last-Modified: Fri, 04 Sep 1998 13:50:18 GMT.
+	.
+	
+-----------------------------------------------------------------
+18.29.0.24.80 -> 18.29.0.116.2009 over TCP
+	<No data>
+-----------------------------------------------------------------
+18.29.0.24.80 -> 18.29.0.116.2009 over TCP
+	HTTP/1.1 100 Continue.
+	Date: Tue, 08 Sep 1998 14:38:48 GMT.
+	Server: Jigsaw/2.0beta1.
+	.
+	
+-----------------------------------------------------------------
+18.29.0.116.2009 -> 18.29.0.24.80 over TCP
+	<No data>
+-----------------------------------------------------------------
+18.29.0.116.2009 -> 18.29.0.24.80 over TCP
+	<HTML>
+	<HEAD>
+	  <TITLE>this is a testfile</TITLE>
+	</HEAD>
+	<BODY>
+	<P>
+	this is a test file
+	</BODY></HTML>
+	
+-----------------------------------------------------------------
+18.29.0.24.80 -> 18.29.0.116.2009 over TCP
+	<No data>
+-----------------------------------------------------------------
+18.29.0.24.80 -> 18.29.0.116.2009 over TCP
+	HTTP/1.1 201 Created.
+	Date: Tue, 08 Sep 1998 14:38:50 GMT.
+	Transfer-Encoding: deflate,chunked.
+	Content-Type: text/html.
+	Etag: "13iqh05:qb30fi3o".
+	Location: http://jigedit.w3.org/frystyk/test/test350.html.
+	Server: Jigsaw/2.0beta1.
+	.
+	2A.
+	x..).s.+.,.TH.O.T(N,KMQ(.MNN-N+...TP.....|.
+	
+-----------------------------------------------------------------
+18.29.0.24.80 -> 18.29.0.116.2009 over TCP
+	0.
+	.
+	
+-----------------------------------------------------------------
+18.29.0.116.2009 -> 18.29.0.24.80 over TCP
+	<No data>

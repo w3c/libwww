@@ -1,0 +1,86 @@
+18.29.0.116.2021 -> 18.29.0.24.80 over TCP
+	HEAD /frystyk/test/puttest.html HTTP/1.1.
+	Accept: */*;q=0.3.
+	Accept-Encoding: deflate.
+	TE: trailers,deflate.
+	Authorization: Basic ZnJ5c3R5azpkYW5tYXJr.
+	Host: jigedit.w3.org.
+	User-Agent: WebCommander/1.1 libwww/5.1n.
+	Connection: TE.
+	.
+	
+-----------------------------------------------------------------
+18.29.0.24.80 -> 18.29.0.116.2021 over TCP
+	<No data>
+-----------------------------------------------------------------
+18.29.0.24.80 -> 18.29.0.116.2021 over TCP
+	HTTP/1.1 200 OK.
+	Date: Tue, 08 Sep 1998 14:47:09 GMT.
+	Content-Length: 9894.
+	Content-Type: text/html.
+	Etag: "16cjh7d:q9is1fuo".
+	Last-Modified: Tue, 08 Sep 1998 14:47:09 GMT.
+	Server: Jigsaw/2.0beta1.
+	.
+	
+-----------------------------------------------------------------
+18.29.0.116.2021 -> 18.29.0.24.80 over TCP
+	<No data>
+-----------------------------------------------------------------
+18.29.0.116.2021 -> 18.29.0.24.80 over TCP
+	PUT /frystyk/test/puttest.html HTTP/1.1.
+	Accept: */*;q=0.3.
+	Accept-Encoding: deflate.
+	TE: trailers,deflate.
+	Authorization: Basic ZnJ5c3R5azpkYW5tYXJr.
+	Expect: 100-continue.
+	Host: jigedit.w3.org.
+	User-Agent: WebCommander/1.1 libwww/5.1n.
+	Connection: TE.
+	Date: Tue, 08 Sep 1998 14:47:17 GMT.
+	Content-Length: 104.
+	Content-Type: text/html.
+	Last-Modified: Fri, 04 Sep 1998 13:50:18 GMT.
+	.
+	
+-----------------------------------------------------------------
+18.29.0.24.80 -> 18.29.0.116.2021 over TCP
+	<No data>
+-----------------------------------------------------------------
+18.29.0.24.80 -> 18.29.0.116.2021 over TCP
+	HTTP/1.1 100 Continue.
+	Date: Tue, 08 Sep 1998 14:38:48 GMT.
+	Server: Jigsaw/2.0beta1.
+	.
+	
+-----------------------------------------------------------------
+18.29.0.116.2021 -> 18.29.0.24.80 over TCP
+	<No data>
+-----------------------------------------------------------------
+18.29.0.116.2021 -> 18.29.0.24.80 over TCP
+	<HTML>
+	<HEAD>
+	  <TITLE>this is a testfile</TITLE>
+	</HEAD>
+	<BODY>
+	<P>
+	this is a test file
+	</BODY></HTML>
+	
+-----------------------------------------------------------------
+18.29.0.24.80 -> 18.29.0.116.2021 over TCP
+	<No data>
+-----------------------------------------------------------------
+18.29.0.24.80 -> 18.29.0.116.2021 over TCP
+	HTTP/1.1 204 No Content.
+	Date: Tue, 08 Sep 1998 14:47:18 GMT.
+	Content-Length: 104.
+	Content-Type: text/html.
+	Etag: "16cjh7d:qb30v26o".
+	Last-Modified: Tue, 08 Sep 1998 14:47:18 GMT.
+	Server: Jigsaw/2.0beta1.
+	.
+	
+-----------------------------------------------------------------
+18.29.0.116.2021 -> 18.29.0.24.80 over TCP
+	<No data>
