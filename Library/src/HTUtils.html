@@ -1,11 +1,11 @@
 <HTML>
 <HEAD>
 <TITLE>Utility macros</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  9-Feb-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 10-Feb-1996 -->
 </HEAD>
 <BODY>
 
-<H1>Macros for general use</H1>
+<H1>General Purpose Macros</H1>
 
 <PRE>
 /*
@@ -23,38 +23,95 @@ for system specific information. <P>
 <PRE>
 #ifndef HTUTILS_H
 #define HTUTILS_H
+</PRE>
 
+<H2>Are we using Standard Code?</H2>
+
+We hopefully are...
+
+<PRE>
 #if defined(__STDC__) || defined(__cplusplus) || defined(WWW_MSWINDOWS)
 #define _STANDARD_CODE_
 #endif
 </PRE>
 
-<A NAME="debug"><H2>Debug message control</H2></A>
+<A NAME="debug"><H2>Debug Message Control</H2></A>
 
-This is the global flag for setting the WWWTRACE options.
+This is the global flag for setting the WWWTRACE options. The verbose
+mode is no longer a simple boolean but a bit field so that it is
+possible to see parts of the output messages. 
 
 <PRE>
 #ifndef DEBUG
 #define DEBUG	/* No one ever turns this off as trace is too important */
-#endif		/* Keep option for really small memory applications too */
-
-#ifdef WWW_WIN_DLL
-extern int * WWW_TraceFlag;		     /* Global flag for all W3 trace */
-#else
-extern int WWW_TraceFlag;		     /* Global flag for all W3 trace */
 #endif
-
 </PRE>
 
-The verbose mode is no longer a simple boolean but a bit field so that
-it is possible to see parts of the output messages. The
-<EM>WWWTRACE</EM> define still outputs all messages if verbose mode is
-active, but in addition the following WWWTRACE defines have been made:
+<H3>Definition of the Global Trace Flag</H3>
+
+The global trace flag variable is available everywhere.
 
 <PRE>
-#define WWWTRACE_FILE	1
-#define WWWTRACE_STDERR	2
-#define WWWTRACE_TTY	3
+#ifdef DEBUG
+#ifdef WWW_WIN_DLL
+extern int *		WWW_TraceFlag;	 /* In DLLs, we need the indirection */
+#define WWWTRACE	(*WWW_TraceFlag) 
+#else
+extern int		WWW_TraceFlag;	     /* Global flag for all W3 trace */
+#define WWWTRACE	(WWW_TraceFlag)
+#endif /* WWW_WIN_DLL */
+#else
+#define WWWTRACE	0
+#endif /* DEBUG */
+</PRE>
+
+The <EM>WWWTRACE</EM> define outputs messages if verbose mode is
+active according to the following rules:
+
+<PRE>
+typedef enum _HTTraceFlags {
+    SHOW_UTIL_TRACE	= 0x1,				/* 	           1 */
+    SHOW_APP_TRACE	= 0x2,				/* 	          10 */
+    SHOW_CACHE_TRACE	= 0x4,				/*		 100 */
+    SHOW_SGML_TRACE	= 0x8,				/*		1000 */
+    SHOW_BIND_TRACE	= 0x10,				/* 	      1.0000 */
+    SHOW_THREAD_TRACE	= 0x20,				/* 	     10.0000 */
+    SHOW_STREAM_TRACE	= 0x40,				/* 	    100.0000 */
+    SHOW_PROTOCOL_TRACE = 0x80,				/* 	   1000.0000 */
+    SHOW_URI_TRACE	= 0x200,			/* 	10.0000.0000 */
+    SHOW_ANCHOR_TRACE	= 0x800,			/*   10.00.0000.0000 */
+    SHOW_ALL_TRACE	= 0xFFF				/*   11.11.1111.1111 */
+} HTTraceFlags;
+</PRE>
+
+The flags are made so that they can serve as a group flag for
+correlated trace messages, e.g. showing messages for SGML and HTML at
+the same time.
+
+<PRE>
+#define UTIL_TRACE	(WWWTRACE & SHOW_UTIL_TRACE)
+#define APP_TRACE	(WWWTRACE & SHOW_APP_TRACE)
+#define CACHE_TRACE	(WWWTRACE & SHOW_CACHE_TRACE)
+#define SGML_TRACE	(WWWTRACE & SHOW_SGML_TRACE)
+#define BIND_TRACE	(WWWTRACE & SHOW_BIND_TRACE)
+#define THD_TRACE	(WWWTRACE & SHOW_THREAD_TRACE)
+#define STREAM_TRACE	(WWWTRACE & SHOW_STREAM_TRACE)
+#define PROT_TRACE	(WWWTRACE & SHOW_PROTOCOL_TRACE)
+#define URI_TRACE	(WWWTRACE & SHOW_URI_TRACE)
+#define ANCH_TRACE	(WWWTRACE & SHOW_ANCHOR_TRACE)
+</PRE>
+
+<H3>Destination for Trace Messages</H3>
+
+You can send trace messages to various destinations depending on the
+type of your application. By default, on Unix the messages are sent to
+stderr using fprintf() and if we are on Windows and have a windows
+applications then use the TTYPrint function.
+
+<PRE>
+#define WWWTRACE_FILE	1		/* Output to file */
+#define WWWTRACE_STDERR	2		/* Output to stderr */
+#define WWWTRACE_TTY	3		/* Output to TTY */
 
 #ifndef WWWTRACE_MODE
 #ifdef WWW_WIN_WINDOW
@@ -95,72 +152,15 @@ int TTYPrint(unsigned int target, const char* fmt, ...);
 int TTYPrint(FILE* target, const char* fmt, ...);
 #endif
 #endif
-
-typedef enum _HTTraceFlags {
-    SHOW_UTIL_TRACE	= 0x1,				/* 	           1 */
-    SHOW_APP_TRACE	= 0x2,				/* 	          10 */
-    SHOW_CACHE_TRACE	= 0x4,				/*		 100 */
-    SHOW_SGML_TRACE	= 0x8,				/*		1000 */
-    SHOW_BIND_TRACE	= 0x10,				/* 	      1.0000 */
-    SHOW_THREAD_TRACE	= 0x20,				/* 	     10.0000 */
-    SHOW_STREAM_TRACE	= 0x40,				/* 	    100.0000 */
-    SHOW_PROTOCOL_TRACE = 0x80,				/* 	   1000.0000 */
-    SHOW_URI_TRACE	= 0x200,			/* 	10.0000.0000 */
-    SHOW_ANCHOR_TRACE	= 0x800,			/*   10.00.0000.0000 */
-    SHOW_ALL_TRACE	= 0xFFF				/*   11.11.1111.1111 */
-} HTTraceFlags;
-</PRE>
-
-The flags are made so that they can serve as a group flag for correlated
-trace messages, e.g. showing messages for SGML and HTML at the same time. 
-
-<PRE>
-#ifdef DEBUG
-#ifdef WWW_WIN_DLL
-#define WWWTRACE	(*WWW_TraceFlag)
-#define UTIL_TRACE	(*WWW_TraceFlag & SHOW_UTIL_TRACE)
-#define APP_TRACE	(*WWW_TraceFlag & SHOW_APP_TRACE)
-#define CACHE_TRACE	(*WWW_TraceFlag & SHOW_CACHE_TRACE)
-#define SGML_TRACE	(*WWW_TraceFlag & SHOW_SGML_TRACE)
-#define BIND_TRACE	(*WWW_TraceFlag & SHOW_BIND_TRACE)
-#define THD_TRACE	(*WWW_TraceFlag & SHOW_THREAD_TRACE)
-#define STREAM_TRACE	(*WWW_TraceFlag & SHOW_STREAM_TRACE)
-#define PROT_TRACE	(*WWW_TraceFlag & SHOW_PROTOCOL_TRACE)
-#define URI_TRACE	(*WWW_TraceFlag & SHOW_URI_TRACE)
-#define ANCH_TRACE	(*WWW_TraceFlag & SHOW_ANCHOR_TRACE)
-#else
-#define WWWTRACE	(WWW_TraceFlag)
-#define UTIL_TRACE	(WWW_TraceFlag & SHOW_UTIL_TRACE)
-#define APP_TRACE	(WWW_TraceFlag & SHOW_APP_TRACE)
-#define CACHE_TRACE	(WWW_TraceFlag & SHOW_CACHE_TRACE)
-#define SGML_TRACE	(WWW_TraceFlag & SHOW_SGML_TRACE)
-#define BIND_TRACE	(WWW_TraceFlag & SHOW_BIND_TRACE)
-#define THD_TRACE	(WWW_TraceFlag & SHOW_THREAD_TRACE)
-#define STREAM_TRACE	(WWW_TraceFlag & SHOW_STREAM_TRACE)
-#define PROT_TRACE	(WWW_TraceFlag & SHOW_PROTOCOL_TRACE)
-#define URI_TRACE	(WWW_TraceFlag & SHOW_URI_TRACE)
-#define ANCH_TRACE	(WWW_TraceFlag & SHOW_ANCHOR_TRACE)
-#endif
-#else
-#define WWWTRACE	0
-#define UTIL_TRACE	0
-#define APP_TRACE	0
-#define CACHE_TRACE	0
-#define SGML_TRACE	0
-#define BIND_TRACE	0
-#define THD_TRACE	0
-#define STREAM_TRACE	0
-#define PROT_TRACE	0
-#define URI_TRACE	0
-#define ANCH_TRACE	0
-#endif
 </PRE>
 
 <H2>Standard C library for malloc() etc</H2>
 
 Replace memory allocation and free C RTL functions with VAXC$xxx_OPT
-altrenatives for VAXC (but not DECC) on VMS. This makes a big
-performance difference. (Foteos Macrides).
+alternatives for VAXC (but not DECC) on VMS. This makes a big
+performance difference. (Foteos Macrides). Also have a look at the <A
+HREF="HTMemory.html">Dynamic Memory Module</A> for how to handle
+<CODE>malloc</CODE> and <CODE>calloc</CODE>.
 
 <PRE>
 #ifdef vax
@@ -209,7 +209,7 @@ performance difference. (Foteos Macrides).
 #endif
 </PRE>
 
-<A NAME="declaration"><H2>Macros for declarations</H2></A>
+<A NAME="declaration"><H2>Macros for Function Declarations</H2></A>
 
 <PRE>
 #define PUBLIC			/* Accessible outside this module     */
@@ -228,9 +228,18 @@ performance difference. (Foteos Macrides).
 #define CONST
 
 #endif /* _STANDARD_CODE_ (ANSI) */
+</PRE>
 
-#ifndef NULL
-#define NULL ((void *)0)
+<H2>Variable Argument Functions</H2>
+
+This is normally one of the more tricky part in portable code as it
+very often doesn't work. If you are going to use it then watch out!
+
+<PRE>
+#ifdef _STANDARD_CODE_
+#include &lt;stdarg.h&gt;
+#else
+#include &lt;varargs.h&gt;
 #endif
 </PRE>
 
@@ -255,10 +264,32 @@ typedef char	BOOLEAN;				    /* Logical value */
 #define YES             (BOOL)1
 #define NO              (BOOL)0
 #endif
+</PRE>
 
+<H2>NULL Definition</H2>
+
+<PRE>
+#ifndef NULL
+#define NULL ((void *)0)
+#endif
+</PRE>
+
+<H2>Often used Interger Macros</H2>
+
+<H3>Min and Max functions</H3>
+
+<PRE>
 #ifndef HTMIN 
 #define HTMIN(a,b) ((a) &lt;= (b) ? (a) : (b))
 #define HTMAX(a,b) ((a) >= (b) ? (a) : (b))
+#endif
+</PRE>
+
+<H3>Double abs function</H3>
+
+<PRE>
+#ifndef HTDABS
+#define HTDABS(a) ((a) &lt; 0.0 ? (-(a)) : (a))
 #endif
 </PRE>
 
@@ -293,30 +324,6 @@ stream modules. Success are (&gt;=0) and failure are (&lt;0)
 #define HT_PAUSE                -29999  /* If we want to pause a stream */
 </PRE>
 
-<H2>Other stuff</H2>
-
-<PRE>
-#ifdef _STANDARD_CODE_
-#include &lt;stdarg.h&gt;
-#else
-#include &lt;varargs.h&gt;
-#endif
-</PRE>
-
-<H2>Out Of Memory checking for malloc() return:</H2>
-
-<PRE>
-#ifndef __FILE__
-#define __FILE__ ""
-#define __LINE__ ""
-#endif
-
-#define outofmem(file, func) \
- { fprintf(TDEST, "%s %s: out of memory.\nProgram aborted.\n", file, func); \
-  exit(1);}
-
-</PRE>
-
 <H2>Upper- and Lowercase macros</H2>
 
 The problem here is that toupper(x) is not defined officially unless
@@ -347,11 +354,7 @@ isupper(x) is.  These macros are CERTAINLY needed on #if defined(pyr)
 Is character <B>c</B> white space?
 
 <PRE>
-#ifdef OLD_CODE
-#define WHITE(c) (((unsigned char)(TOASCII(c))) &lt;= 32)
-#else
 #define WHITE(c) isspace(c)
-#endif
 </PRE>
 
 <H2>The local equivalents of CR and LF</H2>
@@ -363,8 +366,6 @@ as net ascii after translation.
 <PRE>
 #define LF   FROMASCII('\012')  /* ASCII line feed LOCAL EQUIVALENT */
 #define CR   FROMASCII('\015')  /* Will be converted to ^M for transmission */
-
-#endif /* HTUTILS_H */
 </PRE>
 
 <H2>Library Dynamic Memory Magement</H2>
@@ -376,6 +377,10 @@ HREF="HTMemory.html">memory management module</A>.
 #include "HTMemory.h"
 </PRE>
 
-end of utilities
+<PRE>
+#endif /* HT_UTILS.h */
+</PRE>
+
+End of utility declarations
 </BODY>
 </HTML>

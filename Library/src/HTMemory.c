@@ -12,10 +12,10 @@
 #include "tcp.h"
 #include "HTUtils.h"
 #include "HTList.h"
-/*#include "HTMemory.h"*/					 /* Implemented here */
+#include "HTMemory.h"					 /* Implemented here */
 
 PRIVATE HTList * HTMemCall = NULL;		    /* List of memory freers */
-PRIVATE HTMemory_exit_callback * PExit = NULL;	  /* panic and exit function */
+PRIVATE HTMemory_exitCallback * PExit = NULL;	  /* panic and exit function */
 PRIVATE size_t LastAllocSize = 0;		  /* size of last allocation */ 
 
 /* ------------------------------------------------------------------------- */
@@ -142,7 +142,7 @@ PUBLIC void HTMemory_free (void * ptr)
 **	it is all over. If this function returns or is undefined, 
 **	HTMemory_outofmem calls exit(1).
 */
-PUBLIC void HTMemory_setExit (HTMemory_exit_callback * pExit)
+PUBLIC void HTMemory_setExit (HTMemory_exitCallback * pExit)
 {
     PExit = pExit;
 }
@@ -151,7 +151,7 @@ PUBLIC void HTMemory_setExit (HTMemory_exit_callback * pExit)
 **	-------------
 **	Get the current exit function.
 */
-PUBLIC HTMemory_exit_callback * HTMemory_exit (void)
+PUBLIC HTMemory_exitCallback * HTMemory_exit (void)
 {
     return PExit;
 }

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Memory Management</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  9-Feb-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 10-Feb-1996 -->
 <NEXTID N="z3">
 </HEAD>
 <BODY>
@@ -51,6 +51,14 @@ wany any memory management beyond normal malloc and alloc then you can
 just use that instead of the HTMemory_* function.
 
 <PRE>
+#ifndef __FILE__
+#define __FILE__ ""
+#endif
+
+#ifndef __LINE__
+#define __LINE__ 0L
+#endif
+
 #define HT_MALLOC(size)		HTMemory_malloc(size)
 #define HT_CALLOC(count, size)	HTMemory_calloc(count, size)
 #define HT_REALLOC(ptr, size)	HTMemory_realloc(ptr, size)
@@ -104,11 +112,23 @@ has not defined this function, HTMemory_outofmem TTYPrints the error
 message and calls exit(1).
 
 <PRE>
-typedef void HTMemory_exit_callback(char * name, char * file, unsigned long line);
-extern void HTMemory_setExit(HTMemory_exit_callback * pExit);
-extern HTMemory_exit_callback * HTMemory_exit(void);
-extern void HTMemory_outofmem(char * name, char * file, unsigned long line);
+typedef void HTMemory_exitCallback(char *name, char *file, unsigned long line);
+
+extern void HTMemory_setExit(HTMemory_exitCallback * pExit);
+extern HTMemory_exitCallback * HTMemory_exit(void);
+</PRE>
+
+<H3>Call the Exit Handler</H3>
+
+If an allocation fails then this function is called. If the
+application has registered it's own panic handler then this is called
+diretly from this function. Otherwise, the default behavior is to
+write a small message to stderr and then exit.
+
+<PRE>
 #define HT_OUTOFMEM(name) HTMemory_outofmem(name, __FILE__, __LINE__)
+
+extern void HTMemory_outofmem(char * name, char * file, unsigned long line);
 </PRE>
 
 <PRE>
