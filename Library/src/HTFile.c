@@ -44,8 +44,13 @@ typedef struct _HTSuffix {
 } HTSuffix;
 
 
+#ifdef USE_DIRENT		/* Set this for Sys V systems */
+#define STRUCT_DIRENT struct dirent
+#else
+#define STRUCT_DIRENT struct direct
+#endif
 
-#ifdef unix			/* if this is to compile on a UNIX machine */
+#ifdef GOT_READ_DIR	/* if this is to compile on a UNIX machine */
 #include "HTML.h"		/* For directory object building */
 
 #define PUTC(c) (*target->isa->put_character)(target, c)
@@ -201,7 +206,7 @@ PRIVATE char * vms_name(CONST char * nn, CONST char * fn)
 **  If a README file exists, then it is inserted into the document here.
 */
 
-#ifdef unix
+#ifdef GOT_READ_DIR
 PRIVATE void do_readme ARGS2(HTStructured *, target, CONST char *, localname)
 { 
     FILE * fp;
@@ -552,6 +557,7 @@ PUBLIC HTStream * HTFileSaveStream ARGS1(HTParentAnchor *, anchor)
     
 }
 
+#ifdef GOT_READ_DIR
 /*      Output one directory entry
 **
 */
@@ -636,6 +642,7 @@ PUBLIC void HTDirTitles ARGS2(HTStructured *, target,
     }
     free(path);
 }
+#endif GOT_READ_DIR
 		
 
 
@@ -722,11 +729,11 @@ PUBLIC int HTLoadFile ARGS4 (
 	   && (0==strcmp(localname + strlen(localname) - strlen(MULTI_SUFFIX),
 	                  MULTI_SUFFIX))) {
 	    DIR *dp;
-	    struct direct * dirbuf;
 
+	    STRUCT_DIRENT * dirbuf;
 	    float best = NO_VALUE_FOUND;	/* So far best is bad */
 	    HTFormat best_rep = NULL;	/* Set when rep found */
-	    struct direct best_dirbuf;	/* Best dir entry so far */
+	    STRUCT_DIRENT best_dirbuf;	/* Best dir entry so far */
 
 	    char * base = strrchr(localname, '/');
 	    int baselen;
@@ -789,7 +796,7 @@ forget_multi:
 **	create a new hypertext object containing a list of files and 
 **	subdirectories contained in the directory.  All of these are links
 **      to the directories or files listed.
-**      NB This assumes the existance of a type 'struct direct', which will
+**      NB This assumes the existance of a type 'STRUCT_DIRENT', which will
 **      hold the directory entry, and a type 'DIR' which is used to point to
 **      the current directory being read.
 */
@@ -809,7 +816,7 @@ forget_multi:
 		HTStructuredClass targetClass;
 
 		DIR *dp;
-		struct direct * dirbuf;
+		STRUCT_DIRENT * dirbuf;
 		
 		char * logical;
 		char * tail;

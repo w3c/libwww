@@ -10,8 +10,8 @@
 #include "HTWSRC.h"
 
 
-#include <sys/types.h>
-#include <sys/stat.h>
+/* #include <sys/types.h>	already in tcp.h */
+/* #include <sys/stat.h>  	this too         */
 #include <stdio.h>
 #include "HTML.h"
 

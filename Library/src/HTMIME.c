@@ -135,7 +135,7 @@ PRIVATE void HTMIME_put_character ARGS2(HTStream *, me, char, c)
 	    if (!*me->check_pointer) me->state = me->if_ok;
 	} else {		/* Error */
 	    if (TRACE) fprintf(stderr,
-	    	"HTMIME: Bad character `%c' found where `%s' expected",
+	    	"HTMIME: Bad character `%c' found where `%s' expected\n",
 		c, me->check_pointer - 1);
 	    goto bad_field_name;
 	}

@@ -77,6 +77,7 @@ PUBLIC int HTLoadHTTP ARGS4 (
     int s;				/* Socket number for returned data */
     char *command;			/* The whole command */
     char * eol = 0;			/* End of line if found */
+    char * start_of_data;		/* Start of body of reply */
     int status;				/* tcp return */
     HTStream *	target = NULL;		/* Unconverted data */
     HTFormat format_in;			/* Format arriving in the message */
@@ -233,10 +234,10 @@ retry:
     }
 
 
-/*	Now load the data:	HTTP2 response parse
+/*	Read the first line of the response
+**	-----------------------------------
 */
 
-    format_in = WWW_HTML;	/* default */
     {
     
     /* Get numeric status etc */
@@ -250,11 +251,7 @@ retry:
 	line_buffer = (char *) malloc(buffer_length * sizeof(char));
 	if (!line_buffer) outofmem(__FILE__, "HTLoadHTTP");
 	
-	for(;;) {
-
-	    int fields;
-	    char server_version [VERSION_LENGTH+1];
-	    int server_status;
+	do {	/* Loop to read in the first line */
 	    
 	   /* Extend line buffer if necessary for those crazy WAIS URLs ;-) */
 	   
@@ -288,37 +285,53 @@ retry:
 
 	    length = length + status;
 	    	    
-	    if (!eol && !end_of_file) continue;		/* No LF */	    
-	    
-	    *eol = 0;		/* Terminate the line */
+	    if (eol) *eol = 0;		/* Terminate the line */
 
+	} while (!eol && !end_of_file);		/* No LF */	    
+	        
+    } /* Scope of loop variables */
 
-/*	 We now have a terminated unfolded line.
+    
+/*	We now have a terminated unfolded line. Parse it.
+**	-------------------------------------------------
 */
 
-	    if (TRACE)fprintf(stderr, "HTTP: Rx: %s\n", line_buffer);
+    if (TRACE)fprintf(stderr, "HTTP: Rx: %s\n", line_buffer);
+
+    {
+	int fields;
+	char server_version [VERSION_LENGTH+1];
+	int server_status;
+
 
 /* Kludge to work with old buggy servers.  They can't handle the third word
 ** so we try again without it.
 */
-	    if (extensions &&
-	         0==strcmp(line_buffer,		/* Old buggy server? */
-	    	   "Document address invalid or access not authorised")) {
-		extensions = NO;
-    		if (line_buffer) free(line_buffer);
-    		if (TRACE) fprintf(stderr,
-		    "HTTP: close socket %d to retry with HTTP0\n", s);
-    		NETCLOSE(s);
-		goto retry;		/* @@@@@@@@@@ */
-	    }
+	if (extensions &&
+		0==strcmp(line_buffer,		/* Old buggy server? */
+		"Document address invalid or access not authorised")) {
+	    extensions = NO;
+	    if (line_buffer) free(line_buffer);
+	    if (TRACE) fprintf(stderr,
+		"HTTP: close socket %d to retry with HTTP0\n", s);
+	    NETCLOSE(s);
+	    goto retry;		/* @@@@@@@@@@ */
+	}
 
-	    fields = sscanf(line_buffer, "%20s%d",
-	    	server_version,
-	    	&server_status);
+	fields = sscanf(line_buffer, "%20s%d",
+	    server_version,
+	    &server_status);
 
-	    if (fields < 2) break;
+	if (fields < 2) {			/* HTTP0 reply */
+	    format_in = WWW_HTML;
+	    start_of_data = line_buffer;	/* reread whole reply */
 	    
+	} else {				/* Ful HTTP reply */
+	
+	/*	Decode full HTTP response */
+	
 	    format_in = HTAtom_for("www/mime");
+	    start_of_data = eol ? eol + 1 : "";
 
 	    switch (server_status / 100) {
 	    
@@ -327,7 +340,7 @@ retry:
 		break;
 		
 	    case 3:		/* Various forms of redirection */
-	    	HTAlert(
+		HTAlert(
 	"Redirection response from server is not handled by this client");
 		break;
 		
@@ -336,11 +349,11 @@ retry:
 		{
 		    char *p1 = HTParse(gate ? gate : arg, "", PARSE_HOST);
 		    char * message = (char*)malloc(
-		    	strlen(line_buffer)+strlen(p1) + 100);
+			strlen(line_buffer)+strlen(p1) + 100);
 		    if (!message) outofmem(__FILE__, "HTTP 5xx status");
 		    sprintf(message,
 		    "HTTP server at %s replies:\n%s", p1, line_buffer);
-		    status = HTLoadError(sink, server_status, message);
+		    HTLoadError(sink, server_status, message);
 		    free(message);
 		    free(p1);
 		    goto clean_up;
@@ -350,12 +363,11 @@ retry:
 	    case 2:		/* Good: Got MIME object */
 		break;
 
-	    }
-	    
-	    break;		/* Get out of for loop */
-	    
-	} /* Loop over lines */
-    }		/* Scope of HTTP2 handling block */
+	    } /* switch on response code */
+	
+	}		/* Full HTTP reply */
+	
+    } /* scope of fields */
 
 /*	Set up the stream stack to handle the body of the message
 */
@@ -379,13 +391,13 @@ retry:
 **	We have to remember the end of the first buffer we just read
 */
     if (format_in != WWW_HTML) {
-        if (eol) (*target->isa->put_string)(target, eol+1);
+        (*target->isa->put_string)(target, start_of_data);
 	HTCopy(s, target);
 	
     } else {   /* ascii text with CRLFs :-( */
-        if (eol) {
+        {
 	    char * p;
-	    for (p = eol+1; *p; p++)
+	    for (p = start_of_data; *p; p++)
 	        if (*p != '\r') (*target->isa->put_character)(target, *p);
 	}
 	HTCopyNoCR(s, target);
@@ -396,7 +408,6 @@ retry:
 
 /*	Clean up
 */
-    status = HT_LOADED;
     
 clean_up: 
     if (line_buffer) free(line_buffer);
@@ -404,9 +415,10 @@ clean_up:
     if (TRACE) fprintf(stderr, "HTTP: close socket %d.\n", s);
     (void) NETCLOSE(s);
 
-    return status;			/* Good return */
+    return HT_LOADED;			/* Good return */
 
 }
+
 
 /*	Protocol descriptor
 */

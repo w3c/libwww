@@ -19,6 +19,8 @@
 **	defined which accepts select and select_anchor.
 */
 
+#define DEFAULT_WAIS_GATEWAY "http://info.cern.ch:8001/"
+
 /* Implements:
 */
 #include "HTAccess.h"
@@ -140,7 +142,10 @@ PRIVATE int get_physical ARGS2(
     		"file:", PARSE_ACCESS);
 
 /*	Check whether gateway access has been set up for this
+**
+**	This function can be replaced by the rule system above.
 */
+#define USE_GATEWAYS
 #ifdef USE_GATEWAYS
     {
 	char * gateway_parameter, gateway;
@@ -151,12 +156,19 @@ PRIVATE int get_physical ARGS2(
 	strcat(gateway_parameter, "_GATEWAY");
 	gateway = (char *)getenv(gateway_parameter); /* coerce for decstation */
 	free(gateway_parameter);
+	
+#ifndef DIRECT_WAIS
+	if (!gateway && 0=strcmp(access, "wais")) {
+	    gateway = DEFAULT_WAIS_GATEWAY;
+	}
+#endif
 	if (gateway) {
-	    status = HTLoadHTTP(addr, gateway, anchor,
-	    	HTOutputFormat ? HTOutputFormat : WWW_PRESENT, sink);
-	    HTAlert("Cannot retrieve required information from gateway.");
+	    char * path = HTParse(addr, "", PARSE_PATH + PARSE_PUNCTUATION);
+	    char * gatewayed = HTParse(path, gateway, PARSE_ALL);
+            HTAnchor_setPhysical(anchor, gatewayed);
 	    free(access);
-	    return status;
+    	    access =  HTParse(HTAnchor_physical(anchor),
+    		"http:", PARSE_ACCESS);
 	}
     }
 #endif
@@ -200,6 +212,7 @@ PRIVATE int get_physical ARGS2(
 **	returns		<0		Error has occured.
 **			HT_LOADED	Success
 **			HT_NO_DATA	Success, but no document loaded.
+**					(telnet sesssion started etc)
 **
 */
 PRIVATE int HTLoad ARGS4(
