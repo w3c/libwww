@@ -24,7 +24,7 @@
 #define HAVE_STRFTIME 1
 
 /* Define if you have <sys/wait.h> that is POSIX.1 compatible.  */
-/* undef HAVE_SYS_WAIT_H /*
+/* undef HAVE_SYS_WAIT_H */
 
 /* Define if your struct tm has tm_zone.  */
 /* #undef HAVE_TM_ZONE */
