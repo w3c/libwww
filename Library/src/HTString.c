@@ -330,23 +330,22 @@ PUBLIC long HTGetTimeZoneOffset NOARGS
 {
 #ifndef NO_TIMEZONE
     {
-#ifndef NO_ALTZONE
 	time_t cur_t = time(NULL);
 	struct tm * local = localtime(&cur_t);
-	if (daylight && local->tm_isdst==1)	/* daylight time? */
-	    HTTimeZone = altzone;		/* yes */
-	else
-	    HTTimeZone = timezone;		/* no */
+	if (daylight && local->tm_isdst>0) {		   /* daylight time? */
+#ifndef NO_ALTZONE
+	    HTTimeZone = altzone;
+#else
+ 	    /* Assumes a fixed DST offset of 1 hour, which is probably wrong */
+ 	    HTTimeZone = timezone - 3600;
+#endif
+	} else {						       /* no */
+	    HTTimeZone = timezone;
+	}
 	HTTimeZone = -HTTimeZone;
 	if (TRACE)
 	    fprintf(TDEST,"TimeZone.... GMT + (%02d) hours (including DST)\n",
 		    (int) HTTimeZone/3600);
-#else
-	HTTimeZone = -timezone;
-	if (TRACE)
-	    fprintf(TDEST,"TimeZone.... GMT + (%02d) hours (excluding DST)\n",
-		    (int) HTTimeZone/3600);
-#endif
     }
 #else
 #ifndef NO_GMTOFF
@@ -354,8 +353,9 @@ PUBLIC long HTGetTimeZoneOffset NOARGS
 	time_t cur_t = time(NULL);
 	struct tm * local = localtime(&cur_t);
 	HTTimeZone = local->tm_gmtoff;
-	if (TRACE) fprintf(TDEST,"TimeZone.... GMT + (%02d) hours\n",
-			   (int)local->tm_gmtoff / 3600);
+	if (TRACE)
+	    fprintf(TDEST,"TimeZone.... GMT + (%02d) hours (including DST)\n",
+		    (int)local->tm_gmtoff / 3600);
     }
 #else
     if (TRACE) fprintf(TDEST,"TimeZone.... Not defined\n");

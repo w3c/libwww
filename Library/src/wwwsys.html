@@ -732,7 +732,7 @@ Includes Linux (thanks to Rainer Klute) and other SVR5 based systems
 <PRE>
 #if defined(__svr4__) || defined(_POSIX_SOURCE) || defined(__hpux)
 
-#ifdef __hpux
+#if defined(__hpux) || defined(linux)
 #define NO_ALTZONE
 #endif
 
