@@ -1,0 +1,39 @@
+<HTML>
+<HEAD>
+<TITLE>FTP Directory Listing</TITLE>
+</HEAD>
+<BODY>
+
+<H1>FTP Directory Listings</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This module converts a FTP directory listing to a HTML object<P>
+
+This module is implemented by <A HREF="HTFTPDir.c">HTFTPDir.c</A>, and it is
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C
+Reference Library</A>.
+
+<PRE>
+#ifndef HTFTPDIR_H
+#define HTFTPDIR_H
+
+#include "HTStream.h"
+#include "HTFTP.h"
+
+extern HTStream * HTFTPDir_new (HTRequest *	request,
+				FTPServerType	server,
+				char		list);
+#endif
+
+</PRE>
+end of HTFTPDir declaration
+</BODY>
+</HTML>
+
+
