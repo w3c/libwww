@@ -5,12 +5,12 @@
 </HEAD>
 <BODY BGCOLOR="#ffffff">
 <P>
-<A HREF="http://www20.w3.org:8000/WWW/"><IMG BORDER="0" ALT="W3C" WIDTH="48" HEIGHT="48"
-    BORDER="0" ALT="W3C" SRC="../../../Icons/WWW/w3c_home"></A>
-<A HREF="http://www20.w3.org:8000/WWW/Library/"><IMG BORDER="0" ALT="libwww" WIDTH="48"
-    HEIGHT="48" BORDER="0" SRC="../../../Icons/WWW/Lib48x"></A>
-<A HREF="http://www20.w3.org:8000/WWW/Library/User/Using/"><IMG BORDER="0" ALT="Architecture"
-    WIDTH="48" HEIGHT="48" BORDER="0" SRC="../../../Icons/WWW/design48x"></A>
+<A HREF="../../../"><IMG BORDER="0" ALT="W3C" WIDTH="48" HEIGHT="48" BORDER="0"
+    ALT="W3C" SRC="../../../Icons/WWW/w3c_home"></A>
+<A HREF="../../"><IMG BORDER="0" ALT="libwww" WIDTH="48" HEIGHT="48" BORDER="0"
+    SRC="../../../Icons/WWW/Lib48x"></A>
+<A HREF="./"><IMG BORDER="0" ALT="Architecture" WIDTH="48" HEIGHT="48" BORDER="0"
+    SRC="../../../Icons/WWW/design48x"></A>
 <H1>
   Before and After Filters
 </H1>
@@ -24,9 +24,8 @@ do only handle metainformation about a resource. For example, the authentication
 filters looks to see if we have been asked to provide some credentials in
 order to access a URL. If so then it adds a protocol defined header to the
 request, and if not then the request just proceeds. Handling the actual data
-object is done by
-<A HREF="http://www20.w3.org:8000/WWW/Library/User/Using/Streams.html">streams</A>
-which can &nbsp;modify the contents of a data object.
+object is done by <A HREF="../Using/Streams.html">streams</A> which can
+&nbsp;modify the contents of a data object.
 <P>
 The Library can handle local and global filters - local filters are associated
 with a single request and global filters are associated with all requests.
@@ -38,10 +37,9 @@ add to or override the global set of filters.
 Often, a before and an after filter needs to share a context which is unique
 to this set of filters. There are various ways this can be handled by the
 Library. Either a context can associated at registration time or it can be
-built while the filters are run. The
-<A HREF="http://www20.w3.org:8000/WWW/Library/src/HTUTree.html">URL tree</A>
-is a useful data object for keeping information associated with realms or
-sets of URLs.
+built while the filters are run. The <A HREF="../../src/HTUTree.html">URL
+tree</A> is a useful data object for keeping information associated with
+realms or sets of URLs.
 <P>
   <HR>
 <ADDRESS>

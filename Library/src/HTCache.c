@@ -24,7 +24,7 @@
 #include "HTCache.h"					 /* Implemented here */
 
 /* This is the default cache directory: */
-#define HT_CACHE_ROOT	"/tmp/w3c-lib"
+#define HT_CACHE_ROOT	"/tmp/w3c-cache"
 #define HT_CACHE_INDEX	".index"
 #define HT_CACHE_META	".meta"
 #define HT_CACHE_ETAG	"@w3c@"
@@ -44,7 +44,7 @@
 #define WARN_HEURISTICS		24*3600		/* When to issue a warning */
 
 #define HASH_SIZE 	67
-#define DUMP_FREQUENCY	10			/* Dump index after 10 loads */
+#define DUMP_FREQUENCY	50			/* Dump index after 10 loads */
 
 #define MEGA		0x100000L
 #define CACHE_SIZE	(20*MEGA)		/* Default cache size is 20M */
@@ -92,7 +92,10 @@ struct _HTCache {
 
 struct _HTStream {
     const HTStreamClass *	isa;
+    int				fd;
+#if 0
     FILE *			fp;
+#endif
     long			bytes_written;	  /* Number of bytes written */
     HTCache *			cache;
     HTRequest *			request;
@@ -1157,6 +1160,7 @@ PRIVATE BOOL meta_write (FILE * fp, HTRequest * request, HTResponse * response)
 PUBLIC BOOL HTCache_writeMeta (HTCache * cache, HTRequest * request,
 			       HTResponse * response)
 {
+    return YES;
     if (cache && request && response) {
 	BOOL status;
 	FILE * fp;
@@ -1243,8 +1247,23 @@ PUBLIC BOOL HTCache_updateMeta (HTCache * cache, HTRequest * request,
 				HTResponse * response)
 {
     if (cache && request && response) {
+	HTParentAnchor * anchor = HTRequest_anchor(request);
 	cache->hits++;
-	return calculate_time(cache, request, response);
+
+	/* Calculate the various times */
+	calculate_time(cache, request, response);
+
+	/* Get the last-modified and etag values if any */
+	{
+	    char * etag = HTAnchor_etag(anchor);
+	    if (etag) StrAllocCopy(cache->etag, etag);
+	    cache->lm = HTAnchor_lastModified(anchor);
+	}
+
+	/* Must we revalidate this every time? */
+	cache->must_revalidate = HTResponse_mustRevalidate(response);
+
+	return YES;
     }
     return NO;
 }
@@ -1480,7 +1499,11 @@ PRIVATE BOOL free_stream (HTStream * me, BOOL abort)
 	**  however, next time we do a load we can use byte ranges to complete
 	**  the request.
 	*/
+#if 0
 	if (me->fp) fclose(me->fp);
+#else
+	if (me->fd) close(me->fd);
+#endif
 
 	/*
 	**  We are done storing the object body and can update the cache entry.
@@ -1535,17 +1558,24 @@ PRIVATE int HTCache_abort (HTStream * me, HTList * e)
 
 PRIVATE int HTCache_flush (HTStream * me)
 {
+#if 0
     return (fflush(me->fp) == EOF) ? HT_ERROR : HT_OK;
+#else    
+    return HT_OK;
+#endif
 }
 
 PRIVATE int HTCache_putBlock (HTStream * me, const char * s, int  l)
 {
+#if 0
     int status = (fwrite(s, 1, l, me->fp) != l) ? HT_ERROR : HT_OK;
     if (l > 1 && status == HT_OK) {
 	HTCache_flush(me);
 	me->bytes_written += l;
     }
-    return status;
+#else
+    return (write(me->fd, s, l) != l) ? HT_ERROR : HT_OK;
+#endif
 }
 
 PRIVATE int HTCache_putChar (HTStream * me, char c)
@@ -1572,7 +1602,12 @@ PRIVATE const HTStreamClass HTCacheClass =
 PRIVATE HTStream * HTCacheStream (HTRequest * request, BOOL append)
 {
     HTCache * cache = NULL;
+#if 0
     FILE * fp = NULL;
+#else
+    int fd = -1;
+#endif
+    
     HTResponse * response = HTRequest_response(request);
     HTParentAnchor * anchor = HTRequest_anchor(request);
     if (!HTCacheEnable) {
@@ -1601,12 +1636,20 @@ PRIVATE HTStream * HTCacheStream (HTRequest * request, BOOL append)
     */
     {
 	char * name = HTCache_location(cache, NO);
+#if 0
 	if ((fp = fopen(name, append ? "ab" : "wb")) == NULL) {
 	    if (CACHE_TRACE)
 		HTTrace("Cache....... Can't open `%s\' for writing\n", name);
 	    HTCache_delete(cache);
 	    HT_FREE(name);	    
 	    return NULL;
+#else
+	if ((fd = open(name,
+		       append ? O_WRONLY | O_CREAT : O_WRONLY | O_CREAT | O_TRUNC,
+		       S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH )) == -1) {
+	    HTRequest_addSystemError(request, ERR_FATAL, errno, NO, "open");
+	    return NULL;
+#endif
 	} else {
 	    if (CACHE_TRACE)
 		HTTrace("Cache....... %s file `%s\'\n",
@@ -1624,7 +1667,7 @@ PRIVATE HTStream * HTCacheStream (HTRequest * request, BOOL append)
 	me->request = request;
 	me->response = response;
 	me->cache = cache;
-	me->fp = fp;
+	me->fd = fd;
 	me->append = append;
 	return me;
     }
@@ -1799,17 +1842,7 @@ PRIVATE int CacheEvent (SOCKET soc, void * pVoid, HTEventType type)
 						request, YES);
 		HTRequest_setOutputConnected(request, YES);
 
-#if 0
-		/*
-		** Create the stream pipe TO the channel from the application
-		** and hook it up to the request object
-		*/
-		{
-		    HTOutputStream * output = HTNet_getOutput(net, NULL, 0);
-		    HTRequest_setInputStream(request, (HTStream *) output);
-		}
-#endif
-		    
+		/* Set the return code as being OK */
 		HTRequest_addError(request, ERR_INFO, NO, HTERR_OK,
 				   NULL, 0, "HTLoadCache");
 		cache->state = CL_NEED_CONTENT;

@@ -136,7 +136,7 @@ PUBLIC HTdns * HTDNS_add (HTList * list, struct hostent * element,
 **	required as we can't expect a lot of data to test on.
 **	"current" is the index returned by HTGetHostByName()
 */
-PUBLIC BOOL HTDNS_updateWeigths(HTdns *dns, int current, time_t deltatime)
+PUBLIC BOOL HTDNS_updateWeigths(HTdns *dns, int current, ms_t deltatime)
 {
     if (dns) {
 	int cnt;
