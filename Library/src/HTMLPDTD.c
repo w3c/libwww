@@ -185,7 +185,7 @@ static attr input_attr[HTML_INPUT_ATTRIBUTES+1] = {
 	{ "CHECKED" },
 	{ "DISABLED" },
 	{ "ERROR" },
-	{ "MAX" },
+	{ "MAXLENGTH" },		/* WSM bug fix, was MAX */
 	{ "MIN" },
 	{ "NAME" }, 
 	{ "SIZE" },
@@ -271,8 +271,9 @@ static attr render_attr[HTML_RENDER_ATTRIBUTES+1] = {
 static attr select_attr[HTML_SELECT_ATTRIBUTES+1] = {
 	{ "ERROR" },
 	{ "LANG" },
+	{ "MULTIPLE" },			/* WSM bug fix, was SEVERAL */
 	{ "NAME" },
-	{ "SEVERAL" },
+	{ "SIZE" },			/* WSM bug fix, missing */
 	{ 0 },
 };
 

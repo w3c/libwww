@@ -577,6 +577,15 @@ point.
 These fields are used by the HTTP access authentication used by a
 client application.
 
+<H3>Windows Specific Information</H3>
+
+<PRE>
+#ifdef _WINDOWS 
+	HWND		hwnd;		/* Windows handle for MSWindows   */
+	unsigned long   winMsg;         /* msg number of Windows eloop    */
+#endif /* _WINDOWS */
+</PRE>
+
 <PRE>
 };
 </PRE>

@@ -38,7 +38,7 @@ Library of Common Code</A>.
 <DT>HF
 <DD> Henrik Frystyk, &lt;frystyk@dxcern.cern.ch&gt;
 <DT>CLB
-<DD>Charlie Brooks  (cbrooks@osf.org)
+<DD> Charlie Brooks, &lt;cbrooks@osf.org&gt;
 </DL>
 
 <H3>History:</H3>
@@ -54,12 +54,10 @@ xmosaic release
 <DT>29 Apr 93
 <DD>Windows/NT code from (SCW)
 <DT>29 Sep 93
-<DD>VMS fixes (MD)
-<DT>Mar 95
-<DD>CLB - changed SLEEP() macro for Windows/NT MSC compiler added
-BOOLEAN_DEFINED macro to avoid duplicate definitions in HUtils.h
-changed netread() macros t support reading from stdin,etc. as well as
-sockets. (Required for linemode browser to work).
+<DD>Mar 96 CLB - changed SLEEP() macro for Windows/NT MSC compiler
+ added BOOLEAN_DEFINED macro to avoid duplicate definitions in HUtils.h
+ changed netread() macros to support reading from stdin,etc. as well
+ as sockets. (Required for linemode browser to work).
 </DL>
 
 <PRE>
@@ -76,7 +74,6 @@ system-specific sections later on. There is also a bunch of
 #define SELECT			/* Can handle &gt;1 channel */
 #define GOT_SYSTEM		/* Can call shell with string */
 #define GOT_PASSWD		/* Can we use getpass() command */
-#define HAVE_STRERROR		/* Do we have the ANSI way of doing this */
 </PRE>
 
 <HR>
@@ -332,7 +329,7 @@ BC4 (Paul Hounslow <P.M.Hounslow@reading.ac.uk>
 
 typedef unsigned long mode_t;
 
-#define	_IFMT		0170000	/* type of file */
+#define		_IFMT	0170000	/* type of file */
 #define		_IFDIR	0040000	/* directory */
 #define		_IFCHR	0020000	/* character special */
 #define		_IFBLK	0060000	/* block special */
@@ -444,17 +441,21 @@ Some special things for the 32 bit version...
 #define EHOSTDOWN	WSAEHOSTDOWN
 #define EISCONN		WSAEISCONN
 
-#undef NETREAD
-#undef NETWRITE
+#undef NETREAD 
+#undef NETWRITE 
 
 #define NETREAD(s,b,l)  ((s) >= 10) ? recv((s),(b),(l),0) : read((s), (b), (l))
-#define NETWRITE(s,b,l) ((s) >= 10) ? send((s),(b),(l),0) : write((s),(b), (l))
+#define NETWRITE(s,b,l) ((s) >= 10) ? send((s),(b),(l),0) : write((s), (b), (l))
+ 
+#undef NO_UNIX_IO	/* CLB NT has some Unix IO - must be more specific */
 
-#undef NO_UNIX_IO
+/* Some compilers do only define WIN32 and NOT _WINDOWS */
+#undef  MKDIR
+#define MKDIR(a,b) mkdir((a))  /* CLB NT has mkdir, but only one arg */
+
 #define NO_GROUPS
 
-/* Converts from Unix sleep to NT Sleep() */
-#define SLEEP(n)	Sleep((n) * 1000)
+#define SLEEP(n)	Sleep((n)*1000)
 #endif
 </PRE>
 

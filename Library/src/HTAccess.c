@@ -47,9 +47,11 @@
 #include "HTEvent.h"
 #include "HTBind.h"
 #include "HTInit.h"
+
 #ifndef NO_RULES
 #include "HTRules.h"
 #endif
+
 #include "HTAccess.h"					 /* Implemented here */
 
 /* These flags may be set to modify the operation of this module */
@@ -62,6 +64,11 @@ PUBLIC char * HTImServer = NULL;/* cern_httpd sets this to the translated URL*/
 PUBLIC BOOL HTImProxy = NO;			   /* cern_httpd as a proxy? */
 
 PRIVATE HTList * protocols = NULL;           /* List of registered protocols */
+
+#ifdef _WINDOWS 
+PUBLIC HWND HTsocketWin = 0 ;
+unsigned long HTwinMsg = 0 ;
+#endif 
 
 /* Superclass defn */
 struct _HTStream {
@@ -86,6 +93,12 @@ PUBLIC HTRequest * HTRequest_new NOARGS
     me->error_format	= WWW_HTML;	 /* default format of error messages */
     me->HeaderMask	= DEFAULT_HEADERS;	       /* Send these headers */
     me->EntityMask	= DEFAULT_ENTITY_HEADERS;	       /* Also these */
+
+#ifdef _WINDOWS
+    me->hwnd = HTsocketWin;
+    me->winMsg = HTwinMsg;
+#endif
+
     return me;
 }
 
@@ -112,6 +125,12 @@ PUBLIC void HTRequest_clear ARGS1(HTRequest *, req)
     /* Now initialize as from scratch but with the old list of conversions */
     req->conversions = conversions;
     req->output_format = WWW_PRESENT;	    /* default it to present to user */
+
+#ifdef _WINDOWS   
+    me->hwnd = HTsocketWin ;
+    me->winMsg = HTwinMsg ;
+#endif 
+
 }
 
 
@@ -1262,19 +1281,17 @@ PUBLIC char * HTFindRelatedName NOARGS
 		*p = '\0';  /* Cut on final ']' */
 		StrAllocCat (default_default, dir);
 	    }
-#else
+#else  /* not VMS */
 #ifdef WIN32
 	    char * p = wd ;	/* a colon */
 	    StrAllocCat(default_default, "/");
-
-	    /**p++ = '|' ;	  /* change to '|' */
 	    while( *p != 0 ) { 
 		if (*p == '\\')		         /* change to one true slash */
 		    *p = '/' ;
 		p++;
 	    }
-	    StrAllocCat( default_default, wd) ;
-#else
+	    StrAllocCat( default_default, wd);
+#else /* not WIN32 */
 	    StrAllocCat (default_default, wd);
 #endif /* not WIN32 */
 #endif /* not VMS */

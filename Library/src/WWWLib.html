@@ -23,6 +23,10 @@ that all external functionality can be reached through this one.
 #ifndef WWWLIB_H
 #define WWWLIB_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif
+
 /* System dependencies */
 #include "tcp.h"
 #include "HTUtils.h"			/* Macros and other stuff */
@@ -36,7 +40,6 @@ that all external functionality can be reached through this one.
 #include "HTInit.h"			/* Initialization functions */
 #include "HTFormat.h"			/* Stream Stack etc. */
 #include "HTAccess.h"			/* Document access network code */
-#include "HTMulti.h"
 
 /* URLs and Anchors - Internal representation of URLs */
 #include "HTAnchor.h"			/* Anchor class Definition */
@@ -84,6 +87,10 @@ that all external functionality can be reached through this one.
 /* Messages and User prompts */
 #include "HTAlert.h"
 #include "HTError.h"
+
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
 
 #endif
 </PRE>
