@@ -1,10 +1,6 @@
 ## Process this file with Automake to create Makefile.in.
 
-AUTOMAKE_OPTIONS = foreign
-
-SUBDIRS = windows
-
-lib_LIBRARIES = libpics.a
+lib_LTLIBRARIES = libpics.la
 
 SUBDIRS = windows
 
@@ -28,7 +24,7 @@ SUFFIXES = .h .html
 inc: $(BUILT_SOURCES)
 	@echo Generated built sources
 
-libpics_a_SOURCES = \
+libpics_la_SOURCES = \
 	CSChkLab.c	CSStream.c	CSKwik.c \
 	CSLabel.c	CSLLOut.c	CSLLURLs.c \
 	CSMacRed.c	CSMem.c		CSApp.c \
