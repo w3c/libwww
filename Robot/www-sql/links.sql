@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
  <HEAD>
-  <TITLE>W3C Link Database</TITLE>
+  <TITLE>The Webbot Log Database - Link Types</TITLE>
   <LINK rel=STYLESHEET href="http://www.w3.org/StyleSheets/Area/Overview.css" type="text/css">
  </HEAD>
 <A HREF="http://www.w3.org/"><IMG ALT="W3C" SRC="http://www.w3.org/Icons/WWW/w3c_home" BORDER="0" WIDTH="72"
@@ -9,7 +9,7 @@
 <A HREF="http://www.w3.org/Robot/"><IMG ALT="Robot" SRC="http://www.w3.org/Icons/WWW/robot48x" BORDER="0"></A>
 <A HREF="./">Top</A>
 <H1>
-  W3C Link Database
+  The Webbot Log Database - Link Types
 </H1>
 <P>
 <H2>

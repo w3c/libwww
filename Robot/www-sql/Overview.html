@@ -1,25 +1,31 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
-  <TITLE>The W3C Web Database</TITLE>
+  <TITLE>The Webbot Log Database</TITLE>
   <LINK rel=STYLESHEET href="http://www.w3.org/StyleSheets/Area/Overview.css"
   type="text/css">
 </HEAD>
-<BODY>
+<BODY BGCOLOR="#ffffff" TEXT="#000000">
 <P>
 <A HREF="http://www.w3.org/"><IMG ALT="W3C" SRC="http://www.w3.org/Icons/WWW/w3c_home"
     BORDER="0" WIDTH="72" HEIGHT="48"></A>
 <A HREF="http://www.w3.org/Robot/"><IMG ALT="Robot" SRC="http://www.w3.org/Icons/WWW/robot48x"
     BORDER="0"></A>
 <H1>
-  The W3C Web Database
+  The Webbot Log Database
 </H1>
 <P>
-Here you can find information about broken links, redirections, document
-titles, last modified dates, content types, link relationships and much much
-more. The information is extracted from an SQL database as you go along.
-This SQL database is built and maintained by the libwww robot which travseres
-the site approximately every night.
+This is an example of a web-enabled interface to a <A
+HREF="http://www.tcx.se/">MySQL database</A> based on <A
+href="http://www.daa.com.au/~james/www-sql/">www-sql</A>. The
+following links provides you with some <B>samples</B> of how you can
+extract information about <EM>broken links</EM>,
+<EM>redirections</EM>, <EM>document titles</EM>, <EM>last modified
+dates</EM>, <EM>content types</EM>, <EM>link relationships</EM> and
+much much more from the <A
+HREF="http://www.w3.org/Robot/User/CommandLine.html#Logging">webbot MySQL
+log database</A>. The information is extracted directly from the MySQL
+database as you go along.
 <DL>
   <DT>
     <B><A HREF="links.sql">Link Relationships</A></B>
@@ -42,18 +48,16 @@ the site approximately every night.
     Find out what is wrong about your pages and where the problems are
 </DL>
 <P>
-This tool uses a <A href="http://www.tcx.se/">MySQL</A> database runnning
-on localhost and the Web interface is provided by
-<A href="http://www.daa.com.au/~james/www-sql/">www-sql</A>.
-<P>
-The index is approximately updated either early in the morning or late in
-the evening, but there is no automated process in place as it is running
-against my own machine.
+I use this set of files to check my own links on the
+<A HREF="http://www.w3.org">W3C website</A> approximately every evening or
+so and it takes about 50 minutes to check 32,000 links.
 <P>
 Have fun!
 <P>
   <HR>
 <ADDRESS>
-  <A href="http://www.w3.org/People/Frystyk/">Henrik Frystyk Nielsen</A>
+  <A href="http://www.w3.org/People/Frystyk/">Henrik Frystyk
+  Nielsen</A>,<BR>
+  @(#) $Id$
 </ADDRESS>
 </BODY></HTML>

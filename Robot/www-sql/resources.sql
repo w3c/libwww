@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
  <HEAD>
-  <TITLE>W3C Resource Database</TITLE>
+  <TITLE>The Webbot Log Database - Resources</TITLE>
   <LINK rel=STYLESHEET href="http://www.w3.org/StyleSheets/Area/Overview.css" type="text/css">
  </HEAD>
 <A HREF="http://www.w3.org/"><IMG ALT="W3C" SRC="http://www.w3.org/Icons/WWW/w3c_home" BORDER="0" WIDTH="72"
@@ -10,7 +10,7 @@
 <A HREF="./">Top</A>
 
 <H1>
-  W3C Resource Database
+  The Webbot Log Database - Resources
 </H1>
 
 Here you can search for information about our documents including titles, last modified dates, etc.

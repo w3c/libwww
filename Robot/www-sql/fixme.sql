@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
  <HEAD>
-  <TITLE>Broken HTML, bad style, etc</TITLE>
+  <TITLE>The Webbot Log Database - Broken HTML, bad style, etc</TITLE>
   <LINK rel=STYLESHEET href="http://www.w3.org/StyleSheets/Area/Overview.css" type="text/css">
  </HEAD>
 <A HREF="http://www.w3.org/"><IMG ALT="W3C" SRC="http://www.w3.org/Icons/WWW/w3c_home" BORDER="0" WIDTH="72"
@@ -10,7 +10,7 @@
 <A HREF="./">Top</A>
 
 <H1>
-  Broken HTML, Bad Style, etc
+  The Webbot Log Database - Broken HTML, Bad Style, etc
 </H1>
 
 What's wrong on our web site and where to find it :)
