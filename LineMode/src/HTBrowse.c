@@ -365,6 +365,7 @@ PRIVATE void Cleanup (LineMode * me, int status)
 
     HTAuthInfo_deleteAll();
 
+    HTEventrgTerminate();
     HTLibTerminate();
 #ifdef VMS
     exit(status ? status : 1);
@@ -1678,12 +1679,13 @@ int main (int argc, char ** argv)
     HTLibInit(APP_NAME, APP_VERSION);    
     HTMIMEInit();
 
+    /* Set up our event manager */
+    HTEventrgInit();
+    HTEventInit();
+
     /* Create a new Line Mode object */
     lm = LineMode_new();
     request = Thread_new(lm, NO, LM_UPDATE);
-
-    /* Set up our event manager */
-    HTEventInit();
 
     /* Scan command Line for parameters */
     for (arg=1; arg<argc ; arg++) {

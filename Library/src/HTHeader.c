@@ -82,7 +82,7 @@ PUBLIC BOOL HTHeader_addRegexParser (const char * token, BOOL case_sensitive,
 
 PUBLIC BOOL HTHeader_deleteParser (const char * token)
 {
-    return HTMIMEParseSet_deleteToken(ParseSet, token);
+    return HTMIMEParseSet_delete(ParseSet, token);
 }
 
 /*
@@ -115,7 +115,7 @@ PUBLIC BOOL HTHeader_deleteGenerator (HTPostCallback  * callback)
 */
 PUBLIC void HTHeader_deleteAll (void)
 {
-    HTMIMEParseSet_delete(ParseSet);
+    HTMIMEParseSet_deleteAll(ParseSet);
     if (HTGenerators) {
 	HTGenerator_deleteAll(HTGenerators);
 	HTGenerators = NULL;

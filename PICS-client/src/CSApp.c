@@ -41,7 +41,7 @@ ReqParms_t DefaultReqParms = {0, 0, CSApp_neverCall, 0, CSError_APP, 0, 0, 0};
 
 /* handy strings */
 
-PRIVATE char * S_mimeLabel = "PICS-Label*";
+PRIVATE char * S_mimeLabel = "PICS-Label";
 PRIVATE char * S_machRead = "application/x-pics-machine-readable";
 PRIVATE char * S_label = "application/pics-label";
 PRIVATE char * S_user = "application/x-pics-user";
@@ -532,7 +532,6 @@ PRIVATE int CSApp_headerGenerator (HTRequest * pReq, HTStream * target)
 /*HTParserCallback CSApp_headerParser;*/
 PRIVATE int CSApp_headerParser (HTRequest * pReq, char * token, char * value)
 {
-    char * label;
     CSParse_t * pCSParse;
     ReqParms_t * pReqParms = ReqParms_getReq(pReq);
 
@@ -574,7 +573,7 @@ PUBLIC BOOL CSApp_registerApp(CSDisposition_callback * pCallback,
     HTHeader_addGenerator(CSApp_headerGenerator);
     HTNetCall_addBefore(CSApp_netBefore, NULL, HT_ALL);
     HTNetCall_addAfter(CSApp_netAfter, NULL, HT_ALL);
-    HTHeader_addParser(S_mimeLabel, TRUE, CSApp_headerParser);
+    HTHeader_addParser(S_mimeLabel, FALSE, CSApp_headerParser);
 
     /* set converters so pics profiles may be read */
     conversions = HTFormat_conversion();

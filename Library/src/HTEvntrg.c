@@ -986,7 +986,7 @@ PRIVATE void __DumpFDSet( fd_set * fdp, const char * str)
     return ;
 }
 
-PUBLIC BOOL HTEventrg_init (const char * AppName, const char * AppVersion)
+PUBLIC BOOL HTEventrgInit (void)
 {
 #ifdef WWW_WIN_ASYNC
     /*
@@ -1031,7 +1031,7 @@ PUBLIC BOOL HTEventrg_init (const char * AppName, const char * AppVersion)
     return YES;
 }
 
-PUBLIC BOOL HTEventrg_terminate (void)
+PUBLIC BOOL HTEventrgTerminate (void)
 {
 #ifdef WWW_WIN_ASYNC
     DestroyWindow(HTSocketWin);

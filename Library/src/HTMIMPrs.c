@@ -175,8 +175,8 @@ PUBLIC int HTMIMEParseSet_dispatch (HTMIMEParseSet * me, HTRequest * request,
     }
 
     for (pEl = me->regexParsers; pEl; pEl = pEl->next) {
-        if ((pEl->caseSensitive && !HTStrMatch(pEl->token, token)) || 
-	    (!pEl->caseSensitive && !HTStrCaseMatch(pEl->token, token))) {
+        if ((pEl->caseSensitive && HTStrMatch(pEl->token, token)) || 
+	    (!pEl->caseSensitive && HTStrCaseMatch(pEl->token, token))) {
 	    if (pFound) *pFound = YES;
 	    if (!pEl->pFunk) return HT_OK; /* registered with no callback*/
 	    return (*pEl->pFunk)(request, token, value);

@@ -34,6 +34,7 @@ Library</A>. You can also have a look at the other
 #ifndef HTINIT_H
 #define HTINIT_H
 #include "WWWLib.h"
+#include "WWWApp.h"
 </PRE>
 <H2>
   Default Transport Protocol Modules
@@ -66,15 +67,24 @@ in the Library.
 extern void HTAccessInit (void);
 </PRE>
 <H2>
+  Default MIME Parsers
+</H2>
+<P>
+The core doesn't have any built in MIME parsers, but many of the protocols 
+need them. For instance, many elements of the library rely on the 
+Content-Length being correctly set. HTMIMEInit provides the minimal 
+functionality needed for library reliablilty.
+<PRE>
+extern void HTMIMEInit (void);
+</PRE>
+<H2>
   Default Event Manager
 </H2>
 <P>
 The event loop is used if you are using non-blocking sockets or want to use
 real threads.
 <PRE>
-#include "WWWApp.h"
-
-extern void HTEventInit (void);
+#include "HTEvntrg.h"
 </PRE>
 <H2>
   Default Media Type Conversions

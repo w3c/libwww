@@ -101,6 +101,40 @@ PRIVATE int pumpData (HTStream * me)
     return HT_OK;
 }
 
+/* _dispatchParsers - call request's MIME header parser.
+** Use global parser if no appropriate one is found for request.
+*/
+PRIVATE int _dispatchParsers (HTStream * me)
+{
+    int status;
+    char * token = HTChunk_data(me->token);
+    char * value = HTChunk_data(me->value);
+    BOOL found, local;
+    HTMIMEParseSet * parseSet;
+
+    /* In case we get an empty header consisting of a CRLF, we fall thru */
+    if (STREAM_TRACE) HTTrace("checking MIME header %s: %s\n", token, value);
+
+    if ((parseSet = HTRequest_MIMEParseSet(me->request, &local)) != NULL) {
+        status = HTMIMEParseSet_dispatch(parseSet, me->request, 
+					 token, value, &found);
+	if (found)
+	    return status;
+	if (local)
+	    return HT_OK; /* not found, but that's OK */
+    }
+
+    if ((parseSet = HTHeader_MIMEParseSet()) == NULL)
+        return HT_OK;
+    status = HTMIMEParseSet_dispatch(parseSet, me->request, 
+				     token, value, &found);
+    if (found)
+        return status;
+    if (STREAM_TRACE) HTTrace("Ignoring MIME header: %s: %s.\n", token, value);
+
+    return HT_OK;
+}
+
 /*
 **	Header is terminated by CRCR, LFLF, CRLFLF, CRLFCRLF
 **	Folding is either of CF LWS, LF LWS, CRLF LWS
@@ -168,9 +202,7 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
 		HTChunk_putb(me->value, value, end-value);
 		HTChunk_putc(me->value, '\0');
 		start=b, end=b;
-		status = HTRequest_dispatchMIMEParse(me->request, 
-						     HTChunk_data(me->token), 
-						     HTChunk_data(me->value));
+		status = _dispatchParsers(me);
 		if (me->EOLstate == EOL_END) {		/* EOL_END */
 		    if (status == HT_OK)
 		        status = pumpData(me);
@@ -257,8 +289,7 @@ PRIVATE int HTMIME_free (HTStream * me)
 {
     int status = HT_OK;
     if (!me->transparent)
-        if (HTRequest_dispatchMIMEParse(me->request, HTChunk_data(me->token), 
-					HTChunk_data(me->value)) == HT_OK)
+        if (_dispatchParsers(me) == HT_OK)
 	    pumpData(me);
     if (me->target) {
 	if ((status = (*me->target->isa->_free)(me->target))==HT_WOULD_BLOCK)

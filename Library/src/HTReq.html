@@ -496,12 +496,6 @@ extern void HTRequest_setMIMEParseSet (HTRequest *request,
 extern HTMIMEParseSet * HTRequest_MIMEParseSet (HTRequest *request,
 					      BOOL * pLocal);
 </PRE>
-HTRequest_dispatchMIMEParse calls the headers that you register with 
-HTRequest_setMIMEParseSet.
-<PRE>
-extern int HTRequest_dispatchMIMEParse (HTRequest * me, char * token, 
-					char * value);
-</PRE>
 <H2>
   Sending data to the Network
 </H2>
