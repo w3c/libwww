@@ -278,6 +278,18 @@ $(FTP)/www/src/WWWLineMode_$(VL).tar.Z : $(SOURCES)
 	    $(LM)*.html
 	compress -f $(FTP)/www/src/WWWLineMode_$(VL).tar
 
+zip : $(WWW)/README $(WWW)/COPYRIGHT $(WWW)/PATCHES $(WWW)/CERN $(SOURCES)
+	(cd $(WWW)/..; WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
+	-f WWW/LineMode/Implementation/Version.make \
+	-f WWW/LineMode/Implementation/CommonMakefile \
+	$(FTP)/www/src/WWWLineMode_$(VL).zip)
+	@echo Distribution of LineMode version $(VL) up to date.
+
+$(FTP)/www/src/WWWLineMode_$(VL).zip : $(SOURCES)
+	zip -v $(FTP)/www/src/WWWLineMode_$(VL).zip \
+	    $(SOURCES) \
+	    $(SPECIFIC) \
+	    $(CMN)*.html
 
 #		Hypertext supplied in text format
 #		---------------------------------
