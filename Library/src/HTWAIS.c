@@ -210,9 +210,9 @@ PRIVATE char * WWW_from_WAIS ARGS1(any *, docid)
     }	 
     for (p=docid->bytes; (p<docid->bytes+docid->size) && (q<&buf[BIG]);) {
 	if (TRACE) fprintf(stderr, "    Record type %d, length %d\n",
-		p[0], p[1]);
+			   p[0], p[1]);
         if (*p>10) {
-	    fprintf(stderr, "Eh? DOCID record type of %d!\n", *p);
+	    if (TRACE) fprintf(stderr, "Eh? DOCID record type of %d!\n", *p);
 	    return 0;
 	}
 	{	/* Bug fix -- allow any byte value 15 Apr 93 */

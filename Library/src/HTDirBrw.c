@@ -44,6 +44,7 @@
 #include "HTDirBrw.h"					 /* Implemented here */
 #include "HTDescript.h"
 
+
 /* Macros and other defines */
 #ifdef USE_DIRENT			       /* Set this for Sys V systems */
 #define STRUCT_DIRENT struct dirent
@@ -466,45 +467,51 @@ PRIVATE void HTDirOutTop ARGS5(HTStructured *, target,
 {
     char *logical = HTAnchor_address(anchor);
     char *path = HTParse(logical, "", PARSE_PATH + PARSE_PUNCTUATION);
+    char *title = NULL;
     char *current = strrchr(path, '/');
     char *parent = NULL;
-    BOOL hotparent = NO;
 
-    /* Find current and parent if any */
-    if (current) {
-	if (*(current+1)) {		 /* If not root, make link to parent */
-	    *current++ = '\0';
-	    if ((parent = strrchr(path, '/')) != NULL) {
-		HTUnEscape(++parent);
-		if ((int)strlen(parent) > HTDirFileLength)
-		    *(parent+HTDirFileLength-1) = '\0';
-	    } else {
-		parent = "Welcome Directory";
-	    }
-	    hotparent = YES;
-	} else {       						  /* If root */
-	    current = "Welcome Directory";
-	    parent  = "None";
-	}
-    } else {						     /* Last attempt */
-	current = "Unknown?";
-	parent = "Unknown?";
-    }
-    /* Output title */
-    {
-	char *title = NULL;
-	START(HTML_TITLE);
-	PUTS("Index of ");
-	StrAllocCopy(title, current);
+    /*
+     * Make title
+     */
+    if (path) {
+	StrAllocCopy(title,path);
 	HTUnEscape(title);
-	PUTS(title);
-	END(HTML_TITLE);
-	START(HTML_H1);
-	PUTS("Index of ");
-	PUTS(title);
-	END(HTML_H1);
-	free(title);
     }
+    else {
+	StrAllocCopy(title,"Welcome Directory");
+    }
+
+    /*
+     * Find parent directory if any
+     */
+    if (current) {
+	if (current != path) {	/* Not root, make link to parent */
+	    *current++ = 0;
+	    if ((parent = strrchr(path,'/')))
+		parent++;
+	    else
+		parent = path;
+	    HTUnEscape(++parent);
+	    if ((int)strlen(parent) > HTDirFileLength)
+		*(parent+HTDirFileLength-1) = '\0';
+	}
+	else if (*(current+1)) {  /* In a subdir under root, link to root */
+	    current++;
+	    parent = "/";
+	}
+    }
+
+    /* Output title */
+    START(HTML_TITLE);
+    PUTS("Index of ");
+    PUTS(title);
+    END(HTML_TITLE);
+    START(HTML_H1);
+    PUTS("Index of ");
+    PUTS(title);
+    END(HTML_H1);
+
     if (message && HTDirInfo == HT_DIR_INFO_TOP)
 	HTDirOutMessage(target, message);
     else if (HTDirReadme == HT_DIR_README_TOP)
@@ -535,7 +542,7 @@ PRIVATE void HTDirOutTop ARGS5(HTStructured *, target,
     START(HTML_HR);
     PUTC('\n');
 
-    if (hotparent) {
+    if (parent) {
 	if (!icon_parent)
 	    icon_parent = icon_dir ? icon_dir :
 		icon_blank ? icon_blank : icon_unknown;
@@ -550,7 +557,10 @@ PRIVATE void HTDirOutTop ARGS5(HTStructured *, target,
 	    char *relative;
 	    if ((relative = (char *) malloc(strlen(current) + 4)) == NULL)
 		outofmem(__FILE__, "HTDirOutTop");
-	    sprintf(relative, "%s/..", current);
+	    if (*current)
+		sprintf(relative, "%s/..", current);
+	    else
+		strcpy(relative, "..");
 	    HTStartAnchor(target, NULL, relative);
 	    free(relative);
 	    PUTS("Parent directory");

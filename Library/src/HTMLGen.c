@@ -337,7 +337,7 @@ PRIVATE CONST HTStructuredClass HTMLGeneration = /* As opposed to print etc */
 
 PUBLIC HTStructured * HTMLGenerator ARGS1(HTStream *, output)
 {
-    HTStructured* me = (HTStructured*)malloc(sizeof(*me));
+    HTStructured* me = (HTStructured*)calloc(1,sizeof(*me));
     if (me == NULL) outofmem(__FILE__, "HTMLGenerator");
     me->isa = &HTMLGeneration;       
     me->dtd = &HTMLP_dtd;
@@ -347,9 +347,6 @@ PUBLIC HTStructured * HTMLGenerator ARGS1(HTStream *, output)
     
     me->write_pointer = me->buffer;
     me->line_break = 	me->buffer;
-    me->cleanness = 	0;
-    me->delete_line_break_char = NO;
-    me->preformatted = 	0;
     return me;
 }
 
@@ -389,7 +386,7 @@ PUBLIC HTStream* HTPlainToHTML ARGS5(
 {
     BOOL present[MAX_ATTRIBUTES];	/* Flags: attribute is present? */
     CONST char *value[MAX_ATTRIBUTES];	/* malloc'd strings or NULL if none */
-    HTStructured* me = (HTStructured*)malloc(sizeof(*me));
+    HTStructured* me = (HTStructured*)calloc(1,sizeof(*me));
     if (me == NULL) outofmem(__FILE__, "PlainToHTML");
     
     memset(present, '\0', MAX_ATTRIBUTES);
@@ -399,12 +396,8 @@ PUBLIC HTStream* HTPlainToHTML ARGS5(
     me->dtd = &HTMLP_dtd;
     me->target = output_stream;
     me->targetClass = *me->target->isa;/* Copy pointers to routines for speed*/
-    me->seven_bit = NO;		/* Allow 8-bit codes in output */
     me->write_pointer = me->buffer;
     me->line_break = 	me->buffer;
-    me->cleanness = 	0;
-    me->delete_line_break_char = NO;
-    me->preformatted = 0;
     
     HTMLGen_start_element(me, HTML_HTML, present, value);
     HTMLGen_start_element(me, HTML_BODY, present, value);
@@ -432,8 +425,4 @@ PUBLIC HTStream* HTPlainTo7BitHTML ARGS5(
     ((HTStructured*)me)->seven_bit = YES;
     return me;
 }
-
-
-
-
 

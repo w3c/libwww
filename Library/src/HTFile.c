@@ -390,9 +390,16 @@ PUBLIC char * HTLocalName ARGS1(CONST char *,name)
     
     HTUnEscape(path);	/* Interpret % signs */
 
+    /*
+     * CERN httpd has it's own enhanced rule system which has already
+     * done the mappings, and the local filename ("physical address")
+     * is stored in HTImServer.
+     */
     if (HTImServer && !*access) {
 	free(access);
 	free(host);
+	StrAllocCopy(path, HTImServer);
+	HTUnEscape(path);
 	CTRACE(stderr, "Local filename is \"%s\"\n", path);
 	return(path);
     }

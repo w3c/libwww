@@ -718,7 +718,7 @@ PUBLIC BOOL HTInputSocket_seemsBinary ARGS1(HTInputSocket *, isoc)
 
 /*	Stream the data to an ouput file as binary
 */
-PUBLIC int HTOutputBinary ARGS3( HTInputSocket *, isoc,
+PUBLIC int HTOutputBinary ARGS3(HTInputSocket *,isoc,
 				int, 		input,
 				FILE *, 	output)
 {
@@ -735,6 +735,45 @@ PUBLIC int HTOutputBinary ARGS3( HTInputSocket *, isoc,
     } while (YES);
 }
 
+
+/*
+ * Normal HTTP headers are never bigger than 2K.
+ */
+#define S_BUFFER_SIZE 2000
+
+PUBLIC void HTInputSocket_startBuffering ARGS1(HTInputSocket *,	isoc)
+{
+    if (isoc) {
+	isoc->s_do_buffering = YES;
+	if (!isoc->s_buffer) {
+	    isoc->s_buffer = (char*)malloc(S_BUFFER_SIZE + 1);
+	    isoc->s_buffer_size = S_BUFFER_SIZE;
+	}
+	isoc->s_buffer_cur = isoc->s_buffer;
+    }
+}
+
+PUBLIC void HTInputSocket_stopBuffering ARGS1(HTInputSocket *, isoc)
+{
+    if (isoc) {
+	isoc->s_do_buffering = NO;
+	if (isoc->s_buffer_cur)
+	    *isoc->s_buffer_cur = 0;
+    }
+}
+
+PUBLIC int HTInputSocket_getBuffer ARGS2(HTInputSocket *,	isoc,
+					 char **,		buffer_ptr)
+{
+    if (!isoc || !isoc->s_buffer || !isoc->s_buffer_cur)
+	return 0;
+    else {
+	*isoc->s_buffer_cur = 0;
+	if (buffer_ptr)
+	    *buffer_ptr = isoc->s_buffer;
+	return (int) (isoc->s_buffer_cur - isoc->s_buffer);
+    }
+}
 
 PRIVATE BOOL better_match ARGS2(HTFormat, f,
 				HTFormat, g)

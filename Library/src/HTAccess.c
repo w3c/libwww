@@ -58,8 +58,9 @@ PUBLIC FILE * HTlogfile = 0;	/* File to which to output one-liners */
 PUBLIC BOOL HTForceReload = NO;	/* Force reload from cache or net */
 PUBLIC BOOL HTSecure = NO;	/* Disable access for telnet users? */
 PUBLIC BOOL using_proxy = NO;	/* are we using a proxy gateway? */
-PUBLIC BOOL HTImServer = NO;	/* cern_httpd sets this */
+PUBLIC char * HTImServer = NULL;/* cern_httpd sets this to the translated URL*/
 PUBLIC BOOL HTImProxy = NO;	/* cern_httpd as a proxy? */
+
 
 /*	To generate other things, play with these:
 */
@@ -342,7 +343,10 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
 
 #ifndef NO_RULES
     if (HTImServer)	/* cern_httpd has already done its own translations */
+	HTAnchor_setPhysical(req->anchor, HTImServer);
+#ifdef OLD_CODE
 	HTAnchor_setPhysical(req->anchor, addr);
+#endif
     else {
 	char * physical = HTTranslate(addr);
 	if (!physical) {

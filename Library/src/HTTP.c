@@ -400,9 +400,6 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	/*
 	** Load results directly to client
 	*/
-#ifdef OLD_CODE
-	HTProxyBytes =
-#endif
 	HTCopy(s, request->output_stream);
 	(*request->output_stream->isa->free)(request->output_stream);
 

@@ -475,6 +475,8 @@ extern int errno;
 <PRE>#ifdef __osf__
 #define USE_DIRENT
 #endif /* OSF1 AXP */
+
+
 </PRE>
 
 <H2>Regular BSD unix versions</H2>
@@ -483,6 +485,7 @@ These are a default unix where not already defined specifically.
 
 <PRE>
 #ifndef INCLUDES_DONE
+
 #include &lt;sys/types.h>
 /* #include &lt;streams/streams.h>			not ultrix */
 #include &lt;string.h>
@@ -514,6 +517,51 @@ These are a default unix where not already defined specifically.
 #define FNDELAY		O_NDELAY
 #endif
 #endif
+
+</PRE>
+
+
+<H2>ISC 3.0</H2>
+by Lauren Weinstein &lt;lauren@vortex.com&gt;.
+<PRE>
+
+#ifdef ISC3
+
+#define USE_DIRENT		/* Lauren */
+#define GOT_READ_DIR 1		/* Lauren */
+#include <sys/ipc.h>		/* Lauren */
+#include <sys/dirent.h>		/* Lauren */
+#include <sys/unistd.h>		/* Lauren */
+typedef int mode_t;		/* Lauren */
+#define d_namlen d_reclen 	/* Lauren */
+#define _POSIX_SOURCE		/* Lauren */
+#include <sys/limits.h>		/* Lauren */
+#define NGROUPS NGROUPS_MAX	/* Lauren */
+
+#define SIGSTP			/* Lauren */
+#define POSIXWAIT		/* Lauren */
+#include <sys/types.h>		/* Lauren */
+#include <sys/wait.h>		/* Lauren */
+#include <net/errno.h>		/* Lauren */
+
+#ifdef ORGLW	/* Lauren */
+#include <sys/file.h>
+#endif
+
+#define _SYSV3	   /* Lauren */
+#include <time.h>  /* Lauren */
+
+
+#include <sys/fcntl.h>
+#define S_ISDIR(m)	(((m) & 0170000) == 0040000)
+#define S_ISCHR(m)	(((m) & 0170000) == 0020000)
+#define S_ISBLK(m)	(((m) & 0170000) == 0060000)
+#define S_ISREG(m)	(((m) & 0170000) == 0100000)
+#define S_ISFIFO(m)	(((m) & 0170000) == 0010000)
+#define S_ISLNK(m)	(((m) & 0170000) == 0120000)
+
+#endif	/* ISC 3.0 */
+
 </PRE>
 
 <H3>Rough estimate of max path length</H3>
@@ -528,6 +576,7 @@ These are a default unix where not already defined specifically.
 #endif
 #endif
 </PRE>
+
 
 <H3>Definition of NGROUPS</H3>
 <PRE>
