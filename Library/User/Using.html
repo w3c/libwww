@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>How to get Started Writing an App</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 31-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 30-Nov-1995 -->
 </HEAD>
 
 <BODY>
@@ -12,27 +12,25 @@
 
 <H1>How to get Started Writing an App</H1>
 
-<IMG SRC="../../Icons/32x32/caution.gif"> This contents will change
-slightly. Please look at the <A HREF="Using/">User's Guide</A> for
-more details. <P>
-
 This note explains the overall moves to make when you are writing an application on top of the W3C
 Reference Library (libwww). For details on how to use the library, you should look at the <A
-HREF="./">User's Guide</A>. In addition, it is a good idea to look at the reference applications of
-which the <A HREF="../../LineMode/">Line Mode Browser</A> is the simplest and it especially intended
-as an example of how to use the libwww.<P>
+HREF="Using/">User's Guide</A>. <P>
+
+<IMG SRC="../../Icons/32x32/caution.gif" ALT="NOTE"> It is a good idea to have a look at our example
+applications:
 
 <UL>
+<LI><A HREF="../../ComLine/">A simple Command Line Tool</A>
+<LI><A HREF="../../MiniServ/">A frame for building a server</A>
+<LI><A HREF="../../LineMode/">The good old Line-Mode Browser</A>
 <LI><A HREF="../../Daemon/">World-Wide Web Server</A>
 <LI><A HREF="../../Arena/">Arena Client</A>
-<LI><A HREF="../../LineMode/">Line-Mode Browser</A>
 </UL>
 
 This quick guide takes you through the basic steps necessary to create your own application with all
 the power of the W3C Reference Library:
 
 <OL>
-<LI><A HREF="#init">Initialize and terminate libwww</A>
 <LI><A HREF="#pref">Define preferences and application capabilities</A>
 <LI><A HREF="#bind">Binding File Suffixes and Data Formats</A>
 <LI><A HREF="#sgml">Should I use the Internal SGML/HTML Parse Stream?</A> <P>
@@ -50,22 +48,6 @@ the power of the W3C Reference Library:
 <LI><A HREF="#user">User Messages</A>
 <LI><A HREF="#free">When to free Objects</A>
 </OL>
-
-<A NAME="init"><H2>Initialize and terminate libwww</H2></A>
-
-All the public functionality in libwww is available from the <A
-HREF="../Implementation/WWWLib.html">WWWLib.h</A> include file. The library must be initiated
-before it is used and it must be terminated in a well-defined way in to allow it to do garbage
-collection of used memory, close open files etc. There are two functions that do this job:
-
-<PRE>
-extern BOOL HTLibInit (void);
-extern BOOL HTLibTerminate (void);
-</PRE>
-
-Everything that affects libwww must be done "between" the call to these two functions. Note, that
-the termination function can't be used for "resetting" the library. Certain parts of the library can
-be reset, for example the anchor objects, but this must be done on a "object-to-object" basis.
 
 <A NAME="pref"><H2>Define preferences and application capabilities</H2></A>
 

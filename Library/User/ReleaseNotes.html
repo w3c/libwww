@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>W3C Reference Library Release Notes</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 20-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 30-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -9,7 +9,7 @@
 <A HREF="../"><IMG ALT="Lib" SRC="../../Icons/WWW/Lib48x.gif"></A>
 <IMG SRC="../../Icons/WWW/relnotes48x.gif" ALT="RELEASE"></A>
 
-<H1>Library 4.0 Release Notes</H1>
+<H1>Library 4.0 Release Notes, December 1 1995</H1>
 
 <IMG SRC="../../Icons/32x32/caution.gif"> Thanks to all the good work done by the alpha testers:
 
@@ -29,6 +29,27 @@
 <LI>REAGEN, Jeff
 <LI>WEI, John
 <LI>WOODWARD, Jennifer
+</UL>
+
+<H2>Alpha Release 7, November 28 1995</H2>
+
+<UL>
+<LI>Added a backlog parameter to the <A HREF="../Implementation/HTTCP.html">HTDoListen() function</A>
+
+<LI>Added a parameter for handling <CODE>server modules</CODE> to the <A
+HREF="../Implementation/HTProt.html">Protocol</A> module. An access scheme (for example HTTP, can
+now be registered together with a <EM>client module</EM> and a <EM>server modele</EM>
+
+<LI>Added <A HREF="../Implementation/HTAccess.html">HTServDocument</A> to the <A
+HREF="../Implementation/HTAccess.html">HTAccess module</A> in order to better support server
+applications.
+
+<LI>Made <A HREF="../Implementation/WWWNews.html">WWWNews.html</A>, <A
+HREF="../Implementation/WWWHTTP.html">WWWHTTP.html</A>, <A
+HREF="../Implementation/WWWMIME.html">WWWMIME.html</A>, and <A
+HREF="../Implementation/WWWFTP.html">WWWFTP.html</A> include files to be used by applications.
+
+<LI>Changed functions with the name <CODE>preemtive</CODE> to <CODE>preemptive</CODE> it was a spelling mistake
 </UL>
 
 <H2>Alpha Release 6, November 20 1995</H2>

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Getting Started</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 15-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 29-Nov-1995 -->
 </HEAD>  
 <BODY>
 
@@ -166,7 +166,7 @@ int main()
     HTLibInit("TestApp", "1.0");
 
     /* Register the HTTP Module */
-    HTProtocol_add("http", YES, HTLoadHTTP);     
+    HTProtocol_add("http", YES, HTLoadHTTP, NULL);
 
     /* Add a conversion to our empty list */
     HTConversion_add(converters, "*/*", "www/present", HTSaveLocally, 1.0, 0.0, 0.0);
@@ -250,15 +250,18 @@ examples simple.
 <PRE>
 #include "WWWLib.h"
 #include "HTTP.h"
+#include "HTDialog.h"
 
 int main (int argc, char ** argv)
 {
-    HTList *converters = HTList_new();
-    HTRequest *request = HTRequest_new();	  /* Create a request object */
+    HTList * converters = HTList_new();
+    HTRequest * request = HTRequest_new();	  /* Create a request object */
+    WWWTRACE = SHOW_ALL_TRACE;
     HTLibInit("TestApp", "1.0");
-    HTProtocol_add("http", YES, HTLoadHTTP);     
+    HTProtocol_add("http", YES, HTLoadHTTP, NULL);
     HTConversion_add(converters, "*/*", "www/present", HTSaveLocally, 1.0, 0.0, 0.0);
     HTFormat_setConversion(converters);
+    HTAlert_add(HTPrompt, HT_A_PROMPT);
     if (argc == 2) {
 	HTLoadAbsolute(argv[1], request);
     } else
