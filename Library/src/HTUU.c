@@ -18,6 +18,10 @@
 **	with the WWW project coding standards by:	AL  5 Aug 1993
 **	Originally written by:				MR 12 Aug 1990
 **	Original header text:
+**
+**      06 Jun 2000 Heiner KallWeit changed the proposed size of the 
+**              of the buffer for HTUU_Encode to avoid SIGSEV problems.
+** 
 ** -------------------------------------------------------------
 **  File containing routines to convert a buffer
 **  of bytes to/from RFC 1113 printable encoding format.
@@ -65,7 +69,7 @@ PRIVATE unsigned char pr2six[256];
  *             nbytes   is the number of bytes in that buffer.
  *                      This cannot be more than 48.
  *             bufcoded points to an output buffer.  Be sure that this
- *                      can hold at least 1 + (4*nbytes)/3 characters.
+ *                      can hold at least 5 + 4 * (nbytes/3) characters.
  *
  *    Exit     bufcoded contains the coded line.  The first 4*nbytes/3 bytes
  *                      contain printing ASCII characters representing

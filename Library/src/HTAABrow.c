@@ -26,6 +26,10 @@
 **	Feb 96 HFN	Rewritten to make it scheme independent and based on
 **			callback functions and an info structure
 **      Nov 98 JKO      Added support for message digest authentication
+**    Jun 2000 JKO      Changed the buffer size for HTUU_encode in order
+**                      to avoid a potential SIGSEV when calling that 
+**                      function (as advised by Heiner Kallweit).
+**
 */
 
 /* Portions of this code (as indicated) are derived from the Internet Draft
@@ -224,7 +228,7 @@ PRIVATE BOOL basic_credentials (HTRequest * request, HTBasic * basic)
 	char * cipher = NULL;
 	int cl_len = strlen(basic->uid ? basic->uid : "") +
 	    strlen(basic->pw ? basic->pw : "") + 5;
-	int ci_len = 4 * (((cl_len+2)/3) + 1);
+	int ci_len = 5 + 4 * (cl_len/3);
 	if ((cleartext = (char *) HT_CALLOC(1, cl_len)) == NULL)
 	    HT_OUTOFMEM("basic_credentials");
 	*cleartext = '\0';
