@@ -30,7 +30,14 @@ the rule table.
 
 #include "HTUtils.h"
 
-typedef enum _HTRuleOp {HT_Invalid, HT_Map, HT_Pass, HT_Fail} HTRuleOp;
+typedef enum _HTRuleOp {
+	HT_Invalid, 
+	HT_Map, 
+	HT_Pass, 
+	HT_Fail,
+	HT_DefProt,
+	HT_Protect
+} HTRuleOp;
 
 </PRE>
 <H2>HTAddRule:  Add rule to the list</H2>
@@ -150,7 +157,9 @@ extern int HTLoadRules(const char * filename);
 #else
 extern int HTLoadRules();
 #endif
+</PRE>
 
+<PRE>
 
 #endif /* HTUtils.h */
 </PRE>end</A></BODY>

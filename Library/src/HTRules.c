@@ -13,7 +13,8 @@
 **	11 Sep 93 MD	Changed %i into %d in debug printf. 
 **			VMS does not recognize %i.
 **			Bug Fix: in case of PASS, only one parameter to printf.
-**                      
+**	19 Sep 93	Added Access Authorization stuff - AL
+**
 */
 
 /* (c) CERN WorldWideWeb project 1990,91. See Copyright.html for details */
@@ -22,6 +23,7 @@
 #include <stdio.h>
 #include "tcp.h"
 #include "HTFile.h"
+#include "HTAAServ.h"	/* Access Authorization */
 
 #define LINE_LENGTH 256
 
@@ -41,6 +43,7 @@ PRIVATE rule * rules = 0;	/* Pointer to first on list */
 #ifndef PUT_ON_HEAD
 PRIVATE rule * rule_tail = 0;	/* Pointer to last on list */
 #endif
+
 
 /*	Add rule to the list					HTAddRule()
 **	--------------------
@@ -148,6 +151,13 @@ int HTClearRules()
 **	returns		the address of the equivalent string allocated from
 **			the heap which the CALLER MUST FREE. If no translation
 **			occured, then it is a copy of te original.
+** NEW FEATURES:
+**			When a "protect" or "defprot" rule is mathed,
+**			a call to HTAA_setCurrentProtection() or
+**			HTAA_setDefaultProtection() is made to notify
+**			the Access Authorization module that the file is
+**			protected, and so it knows how to handle it.
+**								-- AL
 */
 #ifdef __STDC__
 char * HTTranslate(const char * required)
@@ -157,13 +167,14 @@ char * HTTranslate(required)
 #endif
 {
     rule * r;
-    char * current = (char *)malloc(strlen(required)+1);
-    if (current==NULL) outofmem(__FILE__, "HTTranslate"); /* NT */
-    strcpy(current, required);
-    
+    char *current = NULL;
+    StrAllocCopy(current, required);
+
+    HTAA_clearProtections();	/* Reset from previous call -- AL */
+
     for(r = rules; r; r = r->next) {
         char * p = r->pattern;
-	int m;   /* Number of characters matched against wildcard */
+	int m=0;   /* Number of characters matched against wildcard */
 	CONST char * q = current;
 	for(;*p && *q; p++, q++) {   /* Find first mismatch */
 	    if (*p!=*q) break;
@@ -177,12 +188,49 @@ char * HTTranslate(required)
 	    if (*p != *q) continue;	/* plain mismatch: go to next rule */
 
 	switch (r->op) {		/* Perform operation */
+
+#ifdef ACCESS_AUTH
+	case HT_DefProt:
+	case HT_Protect:
+	    {
+		char *local_copy = NULL;
+		char *p;
+		char *eff_ids = NULL;
+		char *prot_file = NULL;
+
+		if (TRACE) fprintf(stderr,
+				   "HTRule: `%s' matched %s %s: `%s'\n",
+				   current,
+				   (r->op==HT_Protect ? "Protect" : "DefProt"),
+				   "rule, setup",
+				   (r->equiv ? r->equiv :
+				    (r->op==HT_Protect ?"DEFAULT" :"NULL!!")));
+
+		if (r->equiv) {
+		    StrAllocCopy(local_copy, r->equiv);
+		    p = local_copy;
+		    prot_file = HTNextField(&p);
+		    eff_ids = HTNextField(&p);
+		}
+
+		if (r->op == HT_Protect)
+		    HTAA_setCurrentProtection(current, prot_file, eff_ids);
+		else
+		    HTAA_setDefaultProtection(current, prot_file, eff_ids);
+
+		FREE(local_copy);
+
+		/* continue translating rules */
+	    }
+	    break;
+#endif ACCESS_AUTH
+
 	case HT_Pass:				/* Authorised */
     		if (!r->equiv) {
 		    if (TRACE) printf("HTRule: Pass `%s'\n", current);
 		    return current;
 	        }
-		/* Fall through ...to map and pass */
+		/* Else fall through ...to map and pass */
 		
 	case HT_Map:
 	    if (*p == *q) { /* End of both strings, no wildcard */
@@ -222,12 +270,12 @@ char * HTTranslate(required)
 		}
 		break;
 
-	    case HT_Invalid:
-	    case HT_Fail:				/* Unauthorised */
+	case HT_Invalid:
+	case HT_Fail:				/* Unauthorised */
     		    if (TRACE) printf("HTRule: *** FAIL `%s'\n", current);
 		    return (char *)0;
 		    		    
-	        } /* if tail matches ... switch operation */
+	} /* if tail matches ... switch operation */
 
     } /* loop over rules */
 
@@ -262,9 +310,15 @@ PUBLIC int  HTSetConfiguration ARGS1(CONST char *, config)
     	free(line);
 	return 0;
     } ;	/* Comment only or blank */
-    
+
     word2 = HTNextField(&pointer);
-    word3 = HTNextField(&pointer);
+
+    if (0==strcasecomp(word1, "defprot") ||
+	0==strcasecomp(word1, "protect"))
+	word3 = pointer;  /* The rest of the line to be parsed by AA module */
+    else
+	word3 = HTNextField(&pointer);	/* Just the next word */
+
     if (!word2) {
 	fprintf(stderr, "HTRule: Insufficient operands: %s\n", line);
 	free(line);
@@ -285,13 +339,15 @@ PUBLIC int  HTSetConfiguration ARGS1(CONST char *, config)
         else status = 0;
 	HTSetPresentation(word2, word3,
 		    status >= 1? quality 		: 1.0,
-		    status >= 2 ? secs 		: 0.0,
+		    status >= 2 ? secs 			: 0.0,
 		    status >= 3 ? secs_per_byte 	: 0.0 );
-
+	
     } else {
 	op =	0==strcasecomp(word1, "map")  ?	HT_Map
 	    :	0==strcasecomp(word1, "pass") ?	HT_Pass
 	    :	0==strcasecomp(word1, "fail") ?	HT_Fail
+	    :   0==strcasecomp(word1, "defprot") ? HT_DefProt
+	    :	0==strcasecomp(word1, "protect") ? HT_Protect
 	    :						HT_Invalid;
 	if (op==HT_Invalid) {
 	    fprintf(stderr, "HTRule: Bad rule `%s'\n", config);
@@ -304,7 +360,7 @@ PUBLIC int  HTSetConfiguration ARGS1(CONST char *, config)
 }
 
 
-/*	Load the rules from a file				HtLoadRules()
+/*	Load the rules from a file				HTLoadRules()
 **	--------------------------
 **
 ** On entry,
@@ -334,3 +390,5 @@ int HTLoadRules ARGS1(CONST char *, filename)
     fclose(fp);
     return 0;		/* No error or syntax errors ignored */
 }
+
+

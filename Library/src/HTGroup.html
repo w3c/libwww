@@ -1,0 +1,142 @@
+<HEAD>
+</HEAD>
+<BODY>
+
+<H1>Group File Routines</H1>
+
+<PRE>
+#ifndef HTGROUP_H
+#define HTGROUP_H
+
+#include "HTUtils.h"
+#include "HTList.h"
+
+#ifdef SHORT_NAMES
+#define HTAApGrD	HTAA_parseGroupDef
+#define HTAArGrR	HTAA_resolveGroupReferences
+#define HTAApGrD	HTAA_printGroupDef
+#define HTAAGD_d	GroupDef_delete
+#define HTAAuIIG	HTAA_userAndInetInGroup
+#endif /* SHORT_NAMES */
+
+typedef HTList GroupDefList;
+typedef HTList ItemList;
+
+typedef struct {
+    char *	group_name;
+    ItemList *	item_list;
+} GroupDef;
+
+
+/*
+** Access Authorization failure reasons
+*/
+typedef enum {
+    HTAA_OK,		/* 200 OK				*/
+    HTAA_NO_AUTH,	/* 401 Unauthorized, not authenticated	*/
+    HTAA_NOT_MEMBER,	/* 401 Unauthorized, not authorized	*/
+    HTAA_IP_MASK,	/* 403 Forbidden by IP mask		*/
+    HTAA_BY_RULE,	/* 403 Forbidden by rule		*/
+    HTAA_NO_ACL,	/* 403 Forbidden, ACL non-existent	*/
+    HTAA_NO_ENTRY,	/* 403 Forbidden, no ACL entry		*/
+    HTAA_SETUP_ERROR,	/* 403 Forbidden, server setup error	*/
+    HTAA_NOT_FOUND	/* 404 Not found, or read protected	*/
+} HTAAFailReasonType;
+
+</PRE>
+
+
+<H2>Group definition grammar</H2>
+<DL>
+<I>
+<DT>string	<DD>"sequence of alphanumeric characters"
+<DT>user_name	<DD>string
+<DT>group_name	<DD>string
+<DT>group_ref	<DD>group_name
+<DT>user_def	<DD>user_name | group_ref
+<DT>user_def_list	<DD>  user_def { ',' user_def }
+<DT>user_part	<DD>user_def | '(' user_def_list ')'
+
+<DT>templ		<DD>"sequence of alphanumeric characters and '*'s"
+<DT>ip_number_mask	<DD>templ '.' templ '.' templ '.' templ
+<DT>domain_name_mask	<DD>templ { '.' templ }
+<DT>address		<DD>ip_number_mask | domain_name_mask
+<DT>address_def		<DD>address
+<DT>address_def_list	<DD>address_def { ',' address_def }
+<DT>address_part	<DD>address_def | '(' address_def_list ')'
+
+<DT>item	<DD>[user_part] ['@' address_part]
+<DT>item_list	<DD>item { ',' item }
+<DT>group_def	<DD>item_list
+<DT>group_decl	<DD>group_name ':' group_def
+</I>
+</DL>
+
+<H3>Parse Group Definition</H3>
+<PRE>
+PUBLIC GroupDef *HTAA_parseGroupDef PARAMS((FILE * fp));
+</PRE>
+
+<H2>Fill in Pointers to referenced Group Definitions in a Group Definition</H2>
+References to groups (by their name) are resolved from
+<CODE>group_def_list</CODE> and pointers to those structures are added
+to <CODE>group_def.</CODE>
+<PRE>
+PUBLIC void HTAA_resolveGroupReferences PARAMS((GroupDef *     group_def,
+						GroupDefList * group_def_list));
+</PRE>
+
+<H2>Read Group File (and do caching)</H2>
+If group file is already in cache returns a pointer to
+previously read group definition list.
+<PRE>
+PUBLIC GroupDefList *HTAA_readGroupFile PARAMS((CONST char * filename));
+</PRE>
+
+<H2>Delete Group Definition</H2>
+Groups in cache should <EM>never</EM> be freed by this function. This
+should only be used to free group definitions read by
+<CODE>HTAA_parseGroupDef.</CODE> 
+<PRE>
+PUBLIC void GroupDef_delete PARAMS((GroupDef * group_def));
+</PRE>
+
+<H2>Print Out Group Definition (for trace purposes)</H2>
+<PRE>
+PUBLIC void HTAA_printGroupDef PARAMS((GroupDef * group_def));
+</PRE>
+
+
+<H2>Does a User Belong to a Given Set of Groups</H2>
+This function checks both the username and the internet address.
+<PRE>
+/* PUBLIC					HTAA_userAndInetInGroup()
+**		CHECK IF USER BELONGS TO TO A GIVEN GROUP
+**		AND THAT THE CONNECTION COMES FROM AN
+**		ADDRESS THAT IS ALLOWED BY THAT GROUP
+** ON ENTRY:
+**	group		the group definition structure.
+**	username	connecting user.
+**	ip_number	browser host IP number, optional.
+**	ip_name		browser host IP name, optional.
+**			However, one of ip_number or ip_name
+**			must be given.
+** ON EXIT:
+**	returns		HTAA_IP_MASK, if IP address mask was
+**			reason for failing.
+**			HTAA_NOT_MEMBER, if user does not belong
+**			to the group.
+**			HTAA_OK if both IP address and user are ok.
+*/
+PUBLIC HTAAFailReasonType HTAA_userAndInetInGroup PARAMS((GroupDef * group,
+							  char *     username,
+							  char *     ip_number,
+							  char *     ip_name));
+</PRE>
+
+
+<PRE>
+#endif /* not HTGROUP_H */
+</PRE>
+End of file HTGroup.h.
+</BODY>

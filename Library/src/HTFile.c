@@ -1037,6 +1037,7 @@ forget_multi:
 open_file:
 	{
 	    FILE * fp = fopen(localname,"r");
+
 	    if(TRACE) fprintf (stderr, "HTFile: Opening `%s' gives %p\n",
 				localname, (void*)fp);
 	    if (fp) {		/* Good! */
@@ -1070,7 +1071,8 @@ open_file:
 */
     {
     	if (TRACE)
-    	printf("Can't open `%s', errno=%d\n", addr, errno);
+	    printf("Can't open `%s', errno=%d\n", addr, errno);
+
 	return HTLoadError(sink, 403, "Can't access requested file.");
     }
     

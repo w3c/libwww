@@ -41,6 +41,7 @@
 #include "HTMIME.h"
 #include "HTML.h"		/* SCW */
 #include "HTInit.h"		/* SCW */
+#include "HTAABrow.h"		/* Access Authorization */
 
 struct _HTStream {
 	HTStreamClass * isa;		/* all we need to know */
@@ -196,8 +197,41 @@ retry:
 		HTAppVersion ? HTAppVersion : "0.0",
 		HTLibraryVersion, CR, LF);
 	      StrAllocCat(command, line);
+
+#ifdef ACCESS_AUTH
+#define FREE(x)	if (x) {free(x); x=NULL;}
+	{
+	    char *docname;
+	    char *hostname;
+	    char *colon;
+	    int portnumber;
+	    char *auth;
+
+	    docname = HTParse(arg, "", PARSE_PATH);
+	    hostname = HTParse((gate ? gate : arg), "", PARSE_HOST);
+	    if (hostname &&
+		NULL != (colon = strchr(hostname, ':'))) {
+		*(colon++) = NULL;	/* Chop off port number */
+		portnumber = atoi(colon);
+	    }
+	    else portnumber = 80;
+
+	    if (NULL!=(auth=HTAA_composeAuth(hostname, portnumber, docname))) {
+		sprintf(line, "%s%c%c", auth, CR, LF);
+		StrAllocCat(command, line);
+	    }
+	    if (TRACE) {
+		if (auth)
+		    fprintf(stderr, "HTTP: Sending authorization: %s\n", auth);
+		else
+		    fprintf(stderr, "HTTP: Not sending authorization (yet)\n");
+	    }
+	    FREE(hostname);
+	    FREE(docname);
+	}
+#endif /* ACCESS_AUTH */
     }
-       
+
     StrAllocCat(command, crlf);	/* Blank line means "end" */
 
     if (TRACE) fprintf(stderr, "HTTP Tx: %s\n", command);
@@ -330,7 +364,8 @@ retry:
 	    eol = strchr(text_buffer + length, 10);	    
 	    if (eol) {
 	        *eol = 0;		/* Terminate the line */
-	        if (eol[-1] = CR) eol[-1] = 0;	/* Chop trailing CR */
+	        if (eol[-1] == CR) eol[-1] = 0;	/* Chop trailing CR */
+		                                /* = corrected to ==  -- AL  */
             }
 
 	    length = length + status;
@@ -396,7 +431,53 @@ retry:
 	"Redirection response from server is not handled by this client");
 		break;
 		
-	    case 4:		/* "I think I goofed" */
+	    case 4:		/* Access Authorization problem */
+#ifdef ACCESS_AUTH
+		switch (server_status) {
+		  case 401:
+		    length -= start_of_data - text_buffer;
+		    if (HTAA_shouldRetryWithAuth(start_of_data, length, s)) {
+			/* Clean up before retrying */
+			if (binary_buffer) free(binary_buffer);
+			if (text_buffer) free(text_buffer);
+			if (TRACE) 
+			    fprintf(stderr, "%s %d %s\n",
+				    "HTTP: close socket", s,
+				    "to retry with Access Authorization");
+			(void)NETCLOSE(s);
+			goto retry;
+			break;
+		    }
+		    else {
+			/* FALL THROUGH */
+		    }
+		  default:
+		    {
+			char *p1 = HTParse(gate ? gate : arg, "", PARSE_HOST);
+			char * message;
+
+			if (!(message = (char*)malloc(strlen(text_buffer) +
+						      strlen(p1) + 100)))
+			    outofmem(__FILE__, "HTTP 4xx status");
+			sprintf(message,
+				"HTTP server at %s replies:\n%s\n\n%s\n",
+				p1, text_buffer,
+				((server_status == 401) 
+				 ? "Access Authorization package giving up.\n"
+				 : ""));
+			status = HTLoadError(sink, server_status, message);
+			free(message);
+			free(p1);
+			goto clean_up;
+		    }
+		} /* switch */
+		goto clean_up;
+		break;
+#else
+		/* case 4 without Access Authorization falls through */
+		/* to case 5 (previously "I think I goofed").  -- AL */
+#endif /* ACCESS_AUTH */
+
 	    case 5:		/* I think you goofed */
 		{
 		    char *p1 = HTParse(gate ? gate : arg, "", PARSE_HOST);

@@ -1,0 +1,57 @@
+<HEAD>
+</HEAD>
+<BODY>
+<H1>Lexical Analysor (mainly for config files)</H1>
+
+<PRE>
+#ifndef HTLEX_H
+#define HTLEX_H
+
+#include "HTUtils.h"
+
+
+#ifdef SHORT_NAMES
+#define	lex_verb	lex_verbose
+#endif /*SHORT_NAMES*/
+
+
+typedef enum {
+    LEX_NONE,		/* Internally used	*/
+    LEX_EOF,		/* End of file		*/
+    LEX_REC_SEP,	/* Record separator	*/
+    LEX_FIELD_SEP,	/* Field separator	*/
+    LEX_ITEM_SEP,	/* List item separator	*/
+    LEX_OPEN_PAREN,	/* Group start tag	*/
+    LEX_CLOSE_PAREN,	/* Group end tag	*/
+    LEX_AT_SIGN,	/* Address qualifier	*/
+    LEX_ALPH_STR,	/* Alphanumeric string	*/
+    LEX_TMPL_STR	/* Template string	*/
+} LexItem;
+
+extern char lex_buffer[];	/* Read lexical string		*/
+extern int lex_line;		/* Line number in source file	*/
+
+</PRE>
+
+<H2>Get Next Lexical Item</H2>
+If returns <CODE>LEX_ALPH_STR</CODE> or <CODE>LEX_TMPL_STR</CODE> the
+string is in global buffer <CODE>lex_buffer.</CODE>
+<PRE>
+PUBLIC LexItem lex PARAMS((FILE * fp));
+</PRE>
+
+<H2>Push Back Latest Item</H2>
+<PRE>
+PUBLIC void unlex PARAMS((LexItem lex_item));
+</PRE>
+
+<H2>Get the Name for Lexical Item</H2>
+<PRE>
+PUBLIC char *lex_verbose PARAMS((LexItem lex_item));
+</PRE>
+
+<PRE>
+#endif /* not HTLEX_H */
+</PRE>
+End of file HTLex.h.
+</BODY>

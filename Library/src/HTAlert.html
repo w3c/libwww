@@ -23,12 +23,15 @@ NAME="z1" HREF="HTUtils.html">"HTUtils.h"</A>
 NAME="z2" HREF="tcp.html">"tcp.h"</A>
 
 </PRE>
-<H2>HTPrompt: Display a message and get
+<H2>HTPrompt and HTPromptPassword: Display a message and get
 the input</H2>
+HTPromptPassword() doesn't echo reply on the screen.
 <H3>On entry,</H3>
 <DL>
 <DT>Msg
 <DD> String to be displayed.
+<DT>deflt
+<DD> If NULL the default value (only for HTPrompt())
 </DL>
 
 <H3>On exit,</H3>
@@ -40,6 +43,7 @@ must be freed.
 
 <PRE>		
 extern char * HTPrompt PARAMS((CONST char * Msg, CONST char * deflt));
+extern char * HTPromptPassword PARAMS((CONST char * Msg));
 
 
 </PRE>
