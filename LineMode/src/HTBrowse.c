@@ -195,7 +195,6 @@ PUBLIC char * HTAppVersion = VL; 	              /* Application version */
 PUBLIC  int   HTScreenWidth   = SCREEN_WIDTH;		       /* By default */
 PUBLIC  int   HTScreenHeight  = -1;	         		/* Undefined */
 PUBLIC BOOL   display_anchors = YES;	    /* anchor will be shown in text? */
-PUBLIC char * log_file_name = 0;	      	    /* Root of log file name */
 
 #ifdef OLD_CODE
 #ifdef VMS
@@ -232,6 +231,7 @@ PRIVATE BOOL	     reformat_html=0;		 /* Reformat html? */
 PRIVATE BOOL	     listrefs_option = 0;	/* -listrefs option used?  */
 PRIVATE HTRequest * request;
 PRIVATE BOOL  OutSource = NO;			    /* Output source, YES/NO */
+PRIVATE char *HTLogFileName = 0;	      	    /* Root of log file name */
 
 
 #ifdef VMS
@@ -697,16 +697,16 @@ int main
         if(!logfile_root)
             logfile_root = HTClientHost ?
 		DEFAULT_LOGFILE : DEFAULT_LOCAL_LOGFILE;
-	log_file_name = (char*) malloc(strlen(logfile_root)+20);
+	HTLogFileName = (char*) malloc(strlen(logfile_root)+20);
 
 #ifdef NO_GETPID
-	sprintf(log_file_name, "%s", logfile_root);  /* No getpid() */
+	sprintf(HTLogFileName, "%s", logfile_root);  /* No getpid() */
 #else
-	sprintf(log_file_name, "%s-%d", logfile_root, (int) getpid());
+	sprintf(HTLogFileName, "%s-%d", logfile_root, (int) getpid());
 #endif
-	HTlogfile = fopen(log_file_name, "a");
+	HTlogfile = fopen(HTLogFileName, "a");
 	if (!HTlogfile)
-	    ErrMsg("Can't open log file", log_file_name);
+	    ErrMsg("Can't open log file", HTLogFileName);
     };
 
 /*	Enable local directory access
