@@ -1,503 +1,533 @@
-<HTML>
-<HEAD>
-  <TITLE>Command Line Syntax for the W3C Mini Robot</TITLE>
-  <LINK rel=STYLESHEET href="../../StyleSheets/Area/Overview.css" type="text/css">
-</HEAD>
-<BODY BGCOLOR="#ffffff" TEXT="#000000">
-<P>
-<A HREF="../"><IMG ALT="W3C" SRC="../../Icons/WWW/w3c_home" BORDER="0" WIDTH="72"
-    HEIGHT="48"></A>
-<A HREF="../"><IMG ALT="Robot" SRC="../../Icons/WWW/robot48x" WIDTH="48"
-    HEIGHT="48" BORDER="0"></A> <IMG ALT="MANUAL" SRC="../../Icons/WWW/doc48x">
-<H1>
-  Command Line Syntax
-</H1>
-<P>
-<DIV class="intro">
-  The generic syntax is:
-  <PRE> 	webbot [ <A HREF="#z19">options</A> ] [ <A HREF="#z16">URI</A> [ <A HREF="#z17">keywords</A> ] ]
-</PRE>
-  <P>
-  Check here the following options
-  <UL>
-    <LI>
-      <A HREF="#Help">Getting Help</A>
-    <LI>
-      <A HREF="#Constraints">Setting Basic Constraints for Traversal</A>
-    <LI>
-      <A HREF="#txt">Robots.txt and HTML META tags</A>
-    <LI>
-      <A HREF="#regex">Regular Expressions based Constraints</A>
-    <LI>
-      <A HREF="#Search">Breath First or Depth First Search</A>
-    <LI>
-      <A HREF="#Inlined">Checking Inlined Images</A>
-    <LI>
-      <A HREF="#Logging">SQL Based Logging using MySQL</A>
-    <LI>
-      <A HREF="#Regular">Regular Ascii Text Logging</A>
-    <LI>
-      <A HREF="#Stats">Distribution and Statistics Features</A>
-    <LI>
-      <A HREF="#Persistent">Persistent Cache</A>
-    <LI>
-      <A HREF="#Other">Other Options</A>
-  </UL>
-</DIV>
-<P>
-  <HR>
-<H2>
-  <A NAME="z19">Options</A>
-</H2>
-<P>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+   "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+<title>Command Line Syntax for the W3C Mini Robot</title>
+<link rel="STYLESHEET" href="../../StyleSheets/Area/Overview.css"
+type="text/css">
+</head>
+<body bgcolor="#ffffff" text="#000000" lang="en">
+<p>
+<a href="../"><img alt="W3C" src="../../Icons/WWW/w3c_home" border="0"
+width="72" height="48"></a> <a href="../"><img alt="Robot"
+src="../../Icons/WWW/robot48x" width="48" height="48" border="0"></a> <img
+alt="MANUAL" src="../../Icons/WWW/doc48x"></p>
+
+<h1>Command Line Syntax</h1>
+<p>
+</p>
+
+<div class="intro">
+
+The generic syntax is:
+<pre>         webbot [ <a href="#z19">options</a> ] [ <a href="#z16">URI</a> [ <a href="#z17">keywords</a> ] ]</pre>
+<p>
+Check here the following options</p>
+<ul>
+<li>
+<a href="#Help">Getting Help</a>
+</li>
+<li>
+<a href="#Constraints">Setting Basic Constraints for Traversal</a>
+</li>
+<li>
+<a href="#txt">Robots.txt and HTML META tags</a>
+</li>
+<li>
+<a href="#regex">Regular Expressions based Constraints</a>
+</li>
+<li>
+<a href="#Search">Breath First or Depth First Search</a>
+</li>
+<li>
+<a href="#Handling">Handling HTTP redirections</a>
+</li>
+<li>
+<a href="#Inlined">Checking Inlined Images</a>
+</li>
+<li>
+<a href="#Logging">SQL Based Logging using MySQL</a>
+</li>
+<li>
+<a href="#Regular">Regular Ascii Text Logging</a>
+</li>
+<li>
+<a href="#Stats">Distribution and Statistics Features</a>
+</li>
+<li>
+<a href="#Persistent">Persistent Cache</a>
+</li>
+<li>
+<a href="#Other">Other Options</a>
+</li>
+</ul>
+</div>
+<p>
+</p>
+<hr>
+
+
+<h2><a name="z19">Options</a></h2>
+<p>
 The order of the options is not important and options can in fact be specified
-on either side of any <A HREF="#z16"NAME="z14">URI</A>. Currently available
-options are:-
-<H3>
-  <A NAME="Help">Getting Help</A>
-</H3>
-<DL>
-  <DT>
-    <B>-v [ a | b | c | g | p | s | t | u ] </B>
-  <DD>
-    Verbose mode: Gives a running commentary on the program's attempts to read
-    data in various ways. As the amount of verbose output is substantial, the
-    <TT>-v</TT> option can now be followed by zero, one or more of the following
-    flags (without space) in order to differentiate the verbose output generated:
-    <UL>
-      <LI>
-	<B>a</B>: Anchor relevant information
-      <LI>
-	<B>b</B>: Bindings to local file system
-      <LI>
-	<B>c</B>: Cache trace
-      <LI>
-	<B>g</B>: SGML trace
-      <LI>
-	<B>p</B>: Protocol module information
-      <LI>
-	<B>s</B>: SGML/HTML relevant information
-      <LI>
-	<B>t</B>: Thread trace
-      <LI>
-	<B>u</B>: URI relevant information
-    </UL>
-    <P>
-    The <TT>-v</TT> option without any appended options shows all trace messages.
-    An example is "<TT>-vpt</TT>" showing <EM>thread</EM> and <EM>protocol</EM>
-    trace messages
-  <DT>
-    <B>-version</B>
-  <DD>
-    Prints out the version number of the robot and the version number of libwww
-    and exits.
-</DL>
-<H3>
-  <A NAME="Constraints">Setting Basic Constraints for Traversal</A>
-</H3>
-<P>
-These are some very simple constrants that can always be used when running
-the webbot.
-<DL>
-  <DT>
-    <B>-depth [ n ]</B>
-  <DD>
-    Limit jumps to <B>n</B> hops from the start page. The n-1 link is checked
-    using a <TT>HEAD</TT> request. The default value is 0 which means that only
-    the start page is searched. A value of 1 will cause the start page <B>and</B>
-    all pages directly linked from that start page to be checked.
-  <DT>
-    <B>-prefix [ URI ]</B>
-  <DD>
-    Define a URI prefix for all URIs - if they do not match the prefix then they
-    are not checked. The rejected URIs can be <A HREF="#Logging">logged to a
-    separate file</A>.
-</DL>
-<H3>
-  <A NAME="txt">Robots.txt and HTML META tags</A>
-</H3>
-<P>
-There are situations where you may not want the robot to behave as a robot
-but more as a link checker in which case you may consider using these options:
-<DL>
-  <DT>
-    <B>-norobotstxt</B>
-  <DD>
-    If you for some reason don't want the robot to check for a
-    <A HREF="http://info.webcrawler.com/mak/projects/robots/exclusion.html#robotstxt">robots.txt
-    file</A> then add this command line option
-  <DT>
-    <B>-nometatags</B>
-  <DD>
-    If you for some reason don't want the robot to check for
-    <A HREF="http://info.webcrawler.com/mak/projects/robots/exclusion.html#meta">HTML
-    robots related META tags</A> then add this command line option
-</DL>
-<H3>
-  <A NAME="regex">Regular Expressions based Constraints</A>
-</H3>
-<P>
-Using regular expressions reguires that you
-<A HREF="../../INSTALL.html#features">link against a regex library</A> handling
-<A HREF="http://www.delorie.com/gnu/docs/rx/rx_3.html">regular expressions</A>
-- see the <A href="../../INSTALL.html">installation instructions</A> for
-details. When using regular expressions, you can control the constraints
-much more efficiently - both to decide which URIs should be followed and
-to decide whether the webbot should use <CODE>HEAD</CODE> or <CODE>GET</CODE>
-when checking the links.
-<DL>
-  <DT>
-    <B>-exclude [ regex ] </B>
-  <DD>
-    Allows you to define a
-    <A HREF="http://www.delorie.com/gnu/docs/rx/rx_3.html">regular expression</A>
-    of which URIs should be excluded from the traversal. The rejected URIs can
-    be <A HREF="#Logging">logged to a separate file</A>. This can be used to
-    exclude specific parts of the URI space, for example all URIs containing
-    "/old/": <CODE>-exclude "/old/"</CODE>
-  <DT>
-    <B>-check [ regex ]</B>
-  <DD>
-    Check all URIs that match this regular expression with a <TT>HEAD</TT> method
-    instead of a <TT>GET</TT> method. This can be used to verify links but avoiding
-    downloading large distribution files like this: <CODE>-check
-    "\.gz$|\.Z$|\.zip$|</CODE>, for example.
-  <DT>
-    <B>-include [ regex ]</B>
-  <DD>
-    Allows you to define a
-    <A HREF="http://www.delorie.com/gnu/docs/rx/rx_3.html">regular expression</A>
-    of which URIs should be included in the traversal
-</DL>
-<H3>
-  <A NAME="Search">Breath First or Depth First Search</A>
-</H3>
-<P>
-The webbot can perform either a
-<A HREF="http://study.haifa.ac.il/~gmazorvs/">Depth First Search (DFS) or
-a Breadth First Search (BFS)</A>. The default is DFS where the robot issues
-new requests as soon as they are encountered. To change to the BFS algorithmn,
-use the "<TT>-bfs</TT>" flag:
-<DL>
-  <DT>
-    <B>-bfs</B>
-  <DD>
-    Use Breadth First Search (BFS) instead of Depth First Search (DFS)
-</DL>
-<H3>
-  <A NAME="Inlined">Checking Inlined Images</A>
-</H3>
-<P>
+on either side of any <a href="#z16" name="z14">URI</a>. Currently available
+options are:-</p>
+
+<h3><a name="Help">Getting Help</a></h3>
+<dl>
+<dt><b>-v [ a | b | c | g | p | s | t | u ] </b></dt>
+<dd>
+Verbose mode: Gives a running commentary on the program's attempts to read
+data in various ways. As the amount of verbose output is substantial, the
+<tt>-v</tt> option can now be followed by zero, one or more of the following
+flags (without space) in order to differentiate the verbose output generated:
+<ul>
+<li>
+<b>a</b>: Anchor relevant information
+</li>
+<li>
+<b>b</b>: Bindings to local file system
+</li>
+<li>
+<b>c</b>: Cache trace
+</li>
+<li>
+<b>g</b>: SGML trace
+</li>
+<li>
+<b>p</b>: Protocol module information
+</li>
+<li>
+<b>s</b>: SGML/HTML relevant information
+</li>
+<li>
+<b>t</b>: Thread trace
+</li>
+<li>
+<b>u</b>: URI relevant information
+</li>
+</ul>
+<p>
+The <tt>-v</tt> option without any appended options shows all trace messages.
+An example is "<tt>-vpt</tt>" showing <em>thread</em> and <em>protocol</em>
+trace messages</p>
+</dd>
+<dt><b>-version</b></dt>
+<dd>
+Prints out the version number of the robot and the version number of libwww
+and exits.
+</dd>
+</dl>
+
+<h3><a name="Constraints">Setting Basic Constraints for Traversal</a></h3>
+<p>
+These are some very simple constrants that can always be used when running the
+webbot.</p>
+<dl>
+<dt><b>-depth [ n ]</b></dt>
+<dd>
+Limit jumps to <b>n</b> hops from the start page. The n-1 link is checked
+using a <tt>HEAD</tt> request. The default value is 0 which means that only
+the start page is searched. A value of 1 will cause the start page <b>and</b>
+all pages directly linked from that start page to be checked.
+</dd>
+<dt><b>-prefix [ URI ]</b></dt>
+<dd>
+Define a URI prefix for all URIs - if they do not match the prefix then they
+are not checked. The rejected URIs can be <a href="#Logging">logged to a
+separate file</a>.
+</dd>
+</dl>
+
+<h3><a name="txt">Robots.txt and HTML META tags</a></h3>
+<p>
+There are situations where you may not want the robot to behave as a robot but
+more as a link checker in which case you may consider using these options:</p>
+<dl>
+<dt><b>-norobotstxt</b></dt>
+<dd>
+If you for some reason don't want the robot to check for a <a
+href="http://info.webcrawler.com/mak/projects/robots/exclusion.html#robotstxt">robots.txt
+file</a> then add this command line option
+</dd>
+<dt><b>-nometatags</b></dt>
+<dd>
+If you for some reason don't want the robot to check for <a
+href="http://info.webcrawler.com/mak/projects/robots/exclusion.html#meta">HTML
+robots related META tags</a> then add this command line option
+</dd>
+</dl>
+
+<h3><a name="regex">Regular Expressions based Constraints</a></h3>
+<p>
+Using regular expressions reguires that you <a
+href="../../INSTALL.html#features">link against a regex library</a> handling
+<a href="http://www.delorie.com/gnu/docs/rx/rx_3.html">regular expressions</a>
+- see the <a href="../../INSTALL.html">installation instructions</a> for
+details. When using regular expressions, you can control the constraints much
+more efficiently - both to decide which URIs should be followed and to decide
+whether the webbot should use <code>HEAD</code> or <code>GET</code> when
+checking the links.</p>
+<dl>
+<dt><b>-exclude [ regex ] </b></dt>
+<dd>
+Allows you to define a <a
+href="http://www.delorie.com/gnu/docs/rx/rx_3.html">regular expression</a> of
+which URIs should be excluded from the traversal. The rejected URIs can be <a
+href="#Logging">logged to a separate file</a>. This can be used to exclude
+specific parts of the URI space, for example all URIs containing "/old/":
+<code>-exclude "/old/"</code>
+</dd>
+<dt><b>-check [ regex ]</b></dt>
+<dd>
+Check all URIs that match this regular expression with a <tt>HEAD</tt> method
+instead of a <tt>GET</tt> method. This can be used to verify links but
+avoiding downloading large distribution files like this: <code>-check
+"\.gz$|\.Z$|\.zip$|</code>, for example.
+</dd>
+<dt><b>-include [ regex ]</b></dt>
+<dd>
+Allows you to define a <a
+href="http://www.delorie.com/gnu/docs/rx/rx_3.html">regular expression</a> of
+which URIs should be included in the traversal
+</dd>
+</dl>
+
+<h3><a name="Search">Breath First or Depth First Search</a></h3>
+<p>
+The webbot can perform either a <a
+href="http://study.haifa.ac.il/~gmazorvs/">Depth First Search (DFS) or a
+Breadth First Search (BFS)</a>. The default is DFS where the robot issues new
+requests as soon as they are encountered. To change to the BFS algorithmn, use
+the "<tt>-bfs</tt>" flag:</p>
+<dl>
+<dt><b>-bfs</b></dt>
+<dd>
+Use Breadth First Search (BFS) instead of Depth First Search (DFS)
+</dd>
+</dl>
+
+<h3><a name="Handling">Handling HTTP Redirections</a></h3>
+<p>
+By default, the webbot doesn't follow HTTP redirections - it only registers
+them in the <a href="#Regular">log files</a>. However, by using the
+<strong>-redir</strong> option, it actually follows the redirections if the
+redirected address fulfills the <a href="#regex">traversing
+constraints</a>.</p>
+<dl>
+<dt><b>-redir [ rediretioncode ]</b></dt>
+<dd>
+Follow HTTP redirections. If no redirectioncode is given then follow all known
+redirections (<a href="../../Protocols/">301, 302, 303, 307</a>). If you just
+want a single type of redirection to be followed then indicate that number as
+the redirectioncode, for example <strong>-redir 302</strong>.
+</dd>
+</dl>
+
+<h3><a name="Inlined">Checking Inlined Images</a></h3>
+<p>
 The webbot can check inlined images as well as normal hyperlinks. You can
-control this using the following flags:
-<DL>
-  <DT>
-    <B>-img</B>
-  <DD>
-    Test include <STRONG>inlined images </STRONG>using a <TT>HEAD</TT> request
-  <DT>
-    <B>-saveimg</B>
-  <DD>
-    Saving the <STRONG>inlined images</STRONG> on local disk or pump them to
-    a black hole. This is primarily to emulate a GUI client's behavior using
-    the robot
-  <DT>
-    <B>-alt [ file ]</B>
-  <DD>
-    Specifies a
-    <A HREF="http://www.apache.org/docs/mod/mod_log_referer.html">Referer Log
-    Format</A> style log file of all inlined images <EM>without or with an
-    empty</EM> an <STRONG>ALT</STRONG> tag.
-  <DT>
-    <B>-prefix [ URI ]</B>
-  <DD>
-    Define a URI prefix for all inlined image URIs - if they do not match the
-    prefix then they are not checked. The rejected URIs can be
-    <A HREF="#Logging">logged to a separate file</A>.
-</DL>
-<H3>
-  <A NAME="Logging">SQL Based Logging using MySQL</A>
-</H3>
-<P>
-Using SQL based logging requires that you have linked against a
-<A href="http://www.tcx.se/">MySQL library</A>. See the
-<A href="../../INSTALL.html">installation instructions</A> for details. I
-like the Web interface provided by
-<A HREF="http://www.daa.com.au/~james/www-sql/">www-sql</A> which makes it
-easy to access the logged data. The data is stored in four tables within
-the same database (the default name is "<CODE>webbot</CODE>"):
-<DL>
-  <DT>
-    <B>uris</B>
-  <DD>
-    An index that maps URIs to integers so that they are easier to refer to
-  <DT>
-    <B>requests</B>
-  <DD>
-    Contains information from the request including the request-URI, the method,
-    and the resulting status code.
-  <DT>
-    <B>resources</B>
-  <DD>
-    Contains information of the resource like content-type, content-encoding,
-    expires, etc.
-  <DT>
-    <B>links</B>
-  <DD>
-    Contains information about which documents point to which dopuments, the
-    type of the link etc. The type can either be implicit like "<EM>referer</EM>"
-    or "<EM>image</EM>", or it can be explicit like "<EM>stylesheet</EM>",
-    "<EM>toc</EM>", etc.
-</DL>
-<P>
-The command line options for handling the SQL logging are as follows:
-<DL>
-  <DT>
-    <B>-sqlserver [ srvrname ]</B>
-  <DD>
-    Specify the mysql server. The default is <CODE>"localhost</CODE>".
-  <DT>
-    <B>-sqldb [ dbname ]</B>
-  <DD>
-    Specify the database to use. The default is <CODE>webbot</CODE>. Note that
-    webbot creates its own set of tables for handling the logs.
-  <DT>
-    <B>-sqluser [ usrname ]</B>
-  <DD>
-    Use this to specify the user that we are connection to the database as. The
-    default is <CODE>"webbot</CODE>".
-  <DT>
-    <B>-sqlpassword [ usrpswd ]</B>
-  <DD>
-    Use this to specify the password needed to connect to the database. The default
-    is empty string.
-  <DT>
-    <B>-sqlrelative [ relroot ]</B>
-  <DD>
-    If you want to make the URI entries in the database relative then you can
-    specify the root to which they should be made relative. This can for example
-    be used to built the database on another machine than is normally running
-    the service. On heavy loaded sites, it is often a good idea to have an internal
-    test server running which can be used to build the database as it does take
-    some resources.
-  <DT>
-    <B>-sqlexternals</B>
-  <DD>
-    Use this flag if you want all links that have been filtered because they
-    didn't fulfill the constraints to be logged as well in the same table as
-    all other URIs.
-  <DT>
-    <B>-sqlclearlinks</B>
-  <DD>
-    Clears the <B>links</B> table before starting the traversal.
-  <DT>
-    <B>-sqlclearrequests</B>
-  <DD>
-    Clears the <B>requests</B> table before starting the traversal.
-  <DT>
-    <B>-sqlclearresources</B>
-  <DD>
-    Clears the <B>resources</B> table before starting the traversal.
-  <DT>
-    <B>-sqlclearuris</B>
-  <DD>
-    Clears the <B>uris</B> table before starting the traversal.
-</DL>
-<H3>
-  <A NAME="Regular">Regular Ascii Text Logging</A>
-</H3>
-<P>
-This set of log files are dumped in normal ASCII format into local files
-<DL>
-  <DT>
-    <B>-404 [ file ]</B>
-  <DD>
-    Specifies a
-    <A HREF="http://www.apache.org/docs/mod/mod_log_referer.html">Referer Log
-    Format</A> style log file of all links resulting in a 404 (Not Found) status
-    code
-  <DT>
-    <B>-l [ file ]</B>
-  <DD>
-    Specifies a
-    <A HREF="../../Daemon/User/Config/Logging.html#common-logfile-format">Common
-    Log File Format</A> style log file with a list of visited documents and the
-    result codes obtained.
-  <DT>
-    <B>-negotiated [ file ]</B>
-  <DD>
-    Specifies a log file of all URIs that where subject to content negotiation.
-  <DT>
-    <B>-referer [ file ]</B>
-  <DD>
-    Specifies a
-    <A HREF="http://www.apache.org/docs/mod/mod_log_referer.html">Referer Log
-    Format</A> style log file of which documents points to which documents
-  <DT>
-    <B>-reject [ file ]</B>
-  <DD>
-    Specifies a log file of all the URIs encountered that didn't fulfill the
-    <A HREF="#Constaints">constraints for traversal</A>.
-</DL>
-<H3>
-  <A NAME="Stats">Distribution and Statistics Features</A>
-</H3>
-<P>
-Note that if you are using SQL based logging then the set of statictics that
-can be drawn directly from the database is very high.
-<DL>
-  <DT>
-    <B>-format [ file ]</B>
-  <DD>
-    Specifies a log file of which <STRONG>media types</STRONG> (content types)
-    were encountered in the run and their distribution
-  <DT>
-    <B>-charset [ file ]</B>
-  <DD>
-    Specifies a log file of which <STRONG>charsets</STRONG> (content type parameter)
-    were encountered in the run and their distribution
-  <DT>
-    <B>-hitcount [ file ]</B>
-  <DD>
-    Specifies a log file of URIs sorted after <STRONG>how many times</STRONG>
-    they were referenced in the run
-  <DT>
-    <B>-lm [ file ]</B>
-  <DD>
-    Specifies a log file of URIs sorted after <STRONG>last modified date</STRONG>.
-    This gives a good overview of the dynamics of the web site that you are checking.
-  <DT>
-    <B>-rellog [ file ]</B>
-  <DD>
-    Specifies a log file of any link relationship found in the <STRONG>HTML LINK
-    tag</STRONG> (either the <STRONG>REL</STRONG> of the <STRONG>REV</STRONG>
-    attribute) that has the relation specified in the <B>-relation</B> parameter
-    (all relations are modelled by libwww as "forward"). For example <TT>"-rellog
-    stylesheets-logfile.txt -relation stylesheet"</TT> will produce a log file
-    of all link relationships of type "stylesheet". The format of the log file
-    is
-    <P ALIGN=Center>
-    <TT>"&lt;relationship&gt; &lt;media type&gt; &lt;from-URI&gt; --&gt;
-    &lt;to-URI&gt;"</TT>
-    <P>
-    meaning that the <TT>from-URI</TT> has the forward <TT>relationship</TT>
-    with <TT>to-URI</TT>.
-  <DT>
-    <B>-title [ file ]</B>
-  <DD>
-    Specifies a log file of URIs sorted after any <STRONG>title</STRONG> found
-    either as an HTTP header or in the HTML.
-</DL>
-<H3>
-  <A NAME="Persistent">Persistent Cache</A>
-</H3>
-<P>
-The webbot can use the persistent cache while travesing the web site which
-may casue a significant performance optimization. These are the command line
-options:
-<DL>
-  <DT>
-    <B>-cache</B>
-  <DD>
-    Enable the <A HREF="../../Library/src/WWWCache.html">libwww persistent
-    cache</A>
-  <DT>
-    <B>-cacheroot [ dir ]</B>
-  <DD>
-    Where should the cache be located? The default is <TT>/tmp/w3c-cache</TT>
-  <DT>
-    <B>-validate</B>
-  <DD>
-    Force validation using either the <TT>etag</TT> or the <TT>last-modified
-    </TT>date provided by the server
-  <DT>
-    <B>-endvalidate</B>
-  <DD>
-    Force end-to-end validation by adding a <TT>max-age=0</TT> cache control
-    directive
-</DL>
-<H3>
-  <A NAME="Other">Other Options</A>
-</H3>
-<DL>
-  <DT>
-    <B>-delay [ n ]</B>
-  <DD>
-    Specify the write delay in milliseconds for how long we can wait until we
-    flush the output buffer when using pipelining. The default value is 50 ms.
-    The longer delay, the bigger TCP packets but also longer response time.
-  <DT>
-    <B>-n</B>
-  <DD>
-    Non-interactive mode.
-  <DT>
-    <B>-nopipe</B>
-  <DD>
-    Do <I>not</I> use HTTP/1.1 pipelining. The default for this option can be
-    set using the <A HREF="../../INSTALL.html">configure script under
-    installation</A>.
-  <DT>
-    <B>-o [ file ]</B>
-  <DD>
-    Redirects output to specified file. This mode forced non-interactive mode.
-  <DT>
-    <B>-q</B>
-  <DD>
-    Somewhat quiet mode.
-  <DT>
-    <B>-Q</B>
-  <DD>
-    Really quiet mode.
-  <DT>
-    <B>-r &lt;address&gt; </B>
-  <DD>
-    Rule file, a.k.a. <A
-    HREF="../../Library/User/Using/RuleSyntax.html">configuration
-    file</A> is a set of rules and configuration options that can be
-    used to map URLs, and to set up other aspects of the behavior of
-    the command line tool. Note that the address must be specified as
-    a URI - and in fact it can be located on HTTP servers etc. as need
-    be. File URIs are parsed relative to the current folder, so a rule
-    file address of "<TT>rules.conf</TT>" will point to a file in the
-    location where this tool it started. If a local file then the file
-    suffix must be "<TT>.conf</TT>" - otherwise the media type must be
-    <TT>application/x-www-rules</TT>.
-  <DT>
-    <A NAME="single"><B>-single</B></A>
-  <DD>
-    Single threaded mode. If this flag is set then the browser uses blocking,
-    non interruptible I/O in interactive mode. Non-interactive mode always uses
-    blocking I/O.
-  <DT>
-    <B>-ss</B>
-  <DD>
-    Print out date and time for start and stop for the job.
-  <DT>
-    <B>-timeout [ n ]</B>
-  <DD>
-    Timeout in seconds on open connections. If we don't get a reply within n
-    secs then about the request. Default timeout is 20 secs.
-</DL>
-<H2>
-  <A NAME="z16">URI</A>
-</H2>
-<P>
-The URI is the <A HREF="../../Addressing/Addressing.html"> hypertext
-address</A> of the document at which you want to start the robot.
-<H2>
-  <A NAME="z17">keywords</A>
-</H2>
-<P>
-Any further command line arguments are taken as keywords. Keywords can be
-used as search tokens in an HTTP request-URI encoded so that all spaces are
-replaced with "<TT>+</TT>" and unsafe characters are encoded using the URI
-"<TT>%xx</TT>" escape mechanism. An example of a search query is
-<PRE>	webbot http://... "RECORD=ID" "par1=a" "par2=b" "par3=c" "par4=d"
-</PRE>
-<P>
-  <HR>
-<ADDRESS>
-  <A HREF="../../People/Frystyk/">Henrik Frystyk Nielsen</A><BR>
-  @(#) $Id$
-</ADDRESS>
-</BODY></HTML>
+control this using the following flags:</p>
+<dl>
+<dt><b>-img</b></dt>
+<dd>
+Test include <strong>inlined images </strong>using a <tt>HEAD</tt> request
+</dd>
+<dt><b>-saveimg</b></dt>
+<dd>
+Saving the <strong>inlined images</strong> on local disk or pump them to a
+black hole. This is primarily to emulate a GUI client's behavior using the
+robot
+</dd>
+<dt><b>-alt [ file ]</b></dt>
+<dd>
+Specifies a <a
+href="http://www.apache.org/docs/mod/mod_log_referer.html">Referer Log
+Format</a> style log file of all inlined images <em>without or with an
+empty</em> an <strong>ALT</strong> tag.
+</dd>
+<dt><b>-prefix [ URI ]</b></dt>
+<dd>
+Define a URI prefix for all inlined image URIs - if they do not match the
+prefix then they are not checked. The rejected URIs can be <a
+href="#Logging">logged to a separate file</a>.
+</dd>
+</dl>
+
+<h3><a name="Logging">SQL Based Logging using MySQL</a></h3>
+<p>
+Using SQL based logging requires that you have linked against a <a
+href="http://www.tcx.se/">MySQL library</a>. See the <a
+href="../../INSTALL.html">installation instructions</a> for details. I like
+the Web interface provided by <a
+href="http://www.daa.com.au/~james/www-sql/">www-sql</a> which makes it easy
+to access the logged data. The data is stored in four tables within the same
+database (the default name is "<code>webbot</code>"):</p>
+<dl>
+<dt><b>uris</b></dt>
+<dd>
+An index that maps URIs to integers so that they are easier to refer to
+</dd>
+<dt><b>requests</b></dt>
+<dd>
+Contains information from the request including the request-URI, the method,
+and the resulting status code.
+</dd>
+<dt><b>resources</b></dt>
+<dd>
+Contains information of the resource like content-type, content-encoding,
+expires, etc.
+</dd>
+<dt><b>links</b></dt>
+<dd>
+Contains information about which documents point to which documents, the type
+of the link etc. The type can either be implicit like "<em>referer</em>" or
+"<em>image</em>", or it can be explicit like "<em>stylesheet</em>",
+"<em>toc</em>", etc.
+</dd>
+</dl>
+<p>
+The command line options for handling the SQL logging are as follows:</p>
+<dl>
+<dt><b>-sqlserver [ srvrname ]</b></dt>
+<dd>
+Specify the mysql server. The default is <code>"localhost</code>".
+</dd>
+<dt><b>-sqldb [ dbname ]</b></dt>
+<dd>
+Specify the database to use. The default is <code>webbot</code>. Note that
+webbot creates its own set of tables for handling the logs.
+</dd>
+<dt><b>-sqluser [ usrname ]</b></dt>
+<dd>
+Use this to specify the user that we are connection to the database as. The
+default is <code>"webbot</code>".
+</dd>
+<dt><b>-sqlpassword [ usrpswd ]</b></dt>
+<dd>
+Use this to specify the password needed to connect to the database. The
+default is empty string.
+</dd>
+<dt><b>-sqlrelative [ relroot ]</b></dt>
+<dd>
+If you want to make the URI entries in the database relative then you can
+specify the root to which they should be made relative. This can for example
+be used to built the database on another machine than is normally running the
+service. On heavy loaded sites, it is often a good idea to have an internal
+test server running which can be used to build the database as it does take
+some resources.
+</dd>
+<dt><b>-sqlexternals</b></dt>
+<dd>
+Use this flag if you want all links that have been filtered because they
+didn't fulfill the constraints to be logged as well in the same table as all
+other URIs.
+</dd>
+<dt><b>-sqlclearlinks</b></dt>
+<dd>
+Clears the <b>links</b> table before starting the traversal.
+</dd>
+<dt><b>-sqlclearrequests</b></dt>
+<dd>
+Clears the <b>requests</b> table before starting the traversal.
+</dd>
+<dt><b>-sqlclearresources</b></dt>
+<dd>
+Clears the <b>resources</b> table before starting the traversal.
+</dd>
+<dt><b>-sqlclearuris</b></dt>
+<dd>
+Clears the <b>uris</b> table before starting the traversal.
+</dd>
+</dl>
+
+<h3><a name="Regular">Regular Ascii Text Logging</a></h3>
+<p>
+This set of log files are dumped in normal ASCII format into local files</p>
+<dl>
+<dt><b>-404 [ file ]</b></dt>
+<dd>
+Specifies a <a
+href="http://www.apache.org/docs/mod/mod_log_referer.html">Referer Log
+Format</a> style log file of all links resulting in a 404 (Not Found) status
+code
+</dd>
+<dt><b>-l [ file ]</b></dt>
+<dd>
+Specifies a <a
+href="../../Daemon/User/Config/Logging.html#common-logfile-format">Common Log
+File Format</a> style log file with a list of visited documents and the result
+codes obtained.
+</dd>
+<dt><b>-negotiated [ file ]</b></dt>
+<dd>
+Specifies a log file of all URIs that where subject to content negotiation.
+</dd>
+<dt><b>-referer [ file ]</b></dt>
+<dd>
+Specifies a <a
+href="http://www.apache.org/docs/mod/mod_log_referer.html">Referer Log
+Format</a> style log file of which documents points to which documents
+</dd>
+<dt><b>-reject [ file ]</b></dt>
+<dd>
+Specifies a log file of all the URIs encountered that didn't fulfill the <a
+href="#Constaints">constraints for traversal</a>.
+</dd>
+</dl>
+
+<h3><a name="Stats">Distribution and Statistics Features</a></h3>
+<p>
+Note that if you are using SQL based logging then the set of statistics that
+can be drawn directly from the database is very high.</p>
+<dl>
+<dt><b>-format [ file ]</b></dt>
+<dd>
+Specifies a log file of which <strong>media types</strong> (content types)
+were encountered in the run and their distribution
+</dd>
+<dt><b>-charset [ file ]</b></dt>
+<dd>
+Specifies a log file of which <strong>charsets</strong> (content type
+parameter) were encountered in the run and their distribution
+</dd>
+<dt><b>-hitcount [ file ]</b></dt>
+<dd>
+Specifies a log file of URIs sorted after <strong>how many times</strong> they
+were referenced in the run
+</dd>
+<dt><b>-lm [ file ]</b></dt>
+<dd>
+Specifies a log file of URIs sorted after <strong>last modified date</strong>.
+This gives a good overview of the dynamics of the web site that you are
+checking.
+</dd>
+<dt><b>-rellog [ file ]</b></dt>
+<dd>
+Specifies a log file of any link relationship found in the <strong>HTML LINK
+tag</strong> (either the <strong>REL</strong> of the <strong>REV</strong>
+attribute) that has the relation specified in the <b>-relation</b> parameter
+(all relations are modelled by libwww as "forward"). For example <tt>"-rellog
+stylesheets-logfile.txt -relation stylesheet"</tt> will produce a log file of
+all link relationships of type "stylesheet". The format of the log file is
+<p align="center">
+<tt>"&lt;relationship> &lt;media type> &lt;from-URI> --> &lt;to-URI>"</tt></p>
+<p>
+meaning that the <tt>from-URI</tt> has the forward <tt>relationship</tt> with
+<tt>to-URI</tt>.</p>
+</dd>
+<dt><b>-title [ file ]</b></dt>
+<dd>
+Specifies a log file of URIs sorted after any <strong>title</strong> found
+either as an HTTP header or in the HTML.
+</dd>
+</dl>
+
+<h3><a name="Persistent">Persistent Cache</a></h3>
+<p>
+The webbot can use the persistent cache while traversing the web site which
+may cause a significant performance optimization. These are the command line
+options:</p>
+<dl>
+<dt><b>-cache</b></dt>
+<dd>
+Enable the <a href="../../Library/src/WWWCache.html">libwww persistent
+cache</a>
+</dd>
+<dt><b>-cacheroot [ dir ]</b></dt>
+<dd>
+Where should the cache be located? The default is <tt>/tmp/w3c-cache</tt>
+</dd>
+<dt><b>-validate</b></dt>
+<dd>
+Force validation using either the <tt>etag</tt> or the <tt>last-modified
+</tt>date provided by the server
+</dd>
+<dt><b>-endvalidate</b></dt>
+<dd>
+Force end-to-end validation by adding a <tt>max-age=0</tt> cache control
+directive
+</dd>
+</dl>
+
+<h3><a name="Other">Other Options</a></h3>
+<dl>
+<dt><b>-delay [ n ]</b></dt>
+<dd>
+Specify the write delay in milliseconds for how long we can wait until we
+flush the output buffer when using pipelining. The default value is 50 ms. The
+longer delay, the bigger TCP packets but also longer response time.
+</dd>
+<dt><b>-n</b></dt>
+<dd>
+Non-interactive mode.
+</dd>
+<dt><b>-nopipe</b></dt>
+<dd>
+Do <i>not</i> use HTTP/1.1 pipelining. The default for this option can be set
+using the <a href="../../INSTALL.html">configure script under
+installation</a>.
+</dd>
+<dt><b>-o [ file ]</b></dt>
+<dd>
+Redirects output to specified file. This mode forced non-interactive mode.
+</dd>
+<dt><b>-q</b></dt>
+<dd>
+Somewhat quiet mode.
+</dd>
+<dt><b>-Q</b></dt>
+<dd>
+Really quiet mode.
+</dd>
+<dt><b>-r &lt;address> </b></dt>
+<dd>
+Rule file, a.k.a. <a
+href="../../Library/User/Using/RuleSyntax.html">configuration file</a> is a
+set of rules and configuration options that can be used to map URLs, and to
+set up other aspects of the behavior of the command line tool. Note that the
+address must be specified as a URI - and in fact it can be located on HTTP
+servers etc. as need be. File URIs are parsed relative to the current folder,
+so a rule file address of "<tt>rules.conf</tt>" will point to a file in the
+location where this tool it started. If a local file then the file suffix must
+be "<tt>.conf</tt>" - otherwise the media type must be
+<tt>application/x-www-rules</tt>.
+</dd>
+<dt><a name="single"><b>-single</b></a></dt>
+<dd>
+Single threaded mode. If this flag is set then the browser uses blocking, non
+interruptible I/O in interactive mode. Non-interactive mode always uses
+blocking I/O.
+</dd>
+<dt><b>-ss</b></dt>
+<dd>
+Print out date and time for start and stop for the job.
+</dd>
+<dt><b>-timeout [ n ]</b></dt>
+<dd>
+Timeout in seconds on open connections. If we don't get a reply within n secs
+then about the request. Default timeout is 20 secs.
+</dd>
+</dl>
+
+<h2><a name="z16">URI</a></h2>
+<p>
+The URI is the <a href="../../Addressing/Addressing.html"> hypertext
+address</a> of the document at which you want to start the robot.</p>
+
+<h2><a name="z17">keywords</a></h2>
+<p>
+Any further command line arguments are taken as keywords. Keywords can be used
+as search tokens in an HTTP request-URI encoded so that all spaces are
+replaced with "<tt>+</tt>" and unsafe characters are encoded using the URI
+"<tt>%xx</tt>" escape mechanism. An example of a search query is</p>
+<pre>        webbot http://... "RECORD=ID" "par1=a" "par2=b" "par3=c" "par4=d"</pre>
+<p>
+</p>
+<hr>
+
+<address>
+<a href="../../People/Frystyk/">Henrik Frystyk Nielsen</a><br>
+@(#) $Id$ </address>
+</body>
+</html>
