@@ -423,7 +423,7 @@ PUBLIC char * HTProxy_find (const char * url)
 #endif
 		if (!pres->access ||
 		    (pres->access && !strcmp(pres->access, access))) {
-		    if (pres->port == port) {
+		    if ((pres->port == 0) || (pres->port == port)) {
 			char *np = pres->host+strlen(pres->host);
 			char *hp = host+strlen(host);
 			while (np>=pres->host && hp>=host && (*np--==*hp--));
