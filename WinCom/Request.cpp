@@ -24,6 +24,7 @@
 // From libwww
 #include "WWWLib.h"			      /* Global Library Include file */
 #include "WWWApp.h"
+#include "WWWFile.h"
 
 #ifdef _DEBUG
 #undef THIS_FILE
