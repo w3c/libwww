@@ -227,6 +227,8 @@ PUBLIC void 	HText_free ARGS1(HText *,self)
 	free(l);
     }
     free(self);
+    if (self == HTMainText)                       	  /* Henrik 24/02-94 */
+	HTMainText = NULL;
 }
 
 
@@ -238,6 +240,7 @@ PUBLIC void 	HText_free ARGS1(HText *,self)
 */
 PUBLIC void clear_screen NOARGS
 {
+
     if (TRACE) return;     /* in trace mode, don't clear trace away */
 #ifdef CURSES
     if (w_text != NULL) {

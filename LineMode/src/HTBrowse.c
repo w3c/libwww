@@ -1186,7 +1186,8 @@ find:	       	if (next_word && HTSearch(other_words, HTMainAnchor, request))
 
 	  case 'G':
 	    if (Check_User_Input("GOTO")) { 			     /* GOTO */
-		if (HTLoadRelative(next_word, HTMainAnchor, request))
+		if (next_word &&
+		    HTLoadRelative(next_word, HTMainAnchor, request))
 		    HTHistory_record((HTAnchor*) HTMainAnchor);
 		goto ret;
 	    }
@@ -1418,24 +1419,25 @@ lcd:	        if (!next_word) {                        /* Missing argument */
 	  case '>':
 	    /* Checks if file exists. Can be overruled by using '>!' */
 	    if (!HTClientHost) {
-		char *fname = NULL;
-		FILE *fp;
-
-		if (*(this_command+1) && *(this_command+1) != ' ') {
-		    if (*(this_command+1) == '!') {
-			*(this_command+1) = ' ';             /* Strip it off */
-		    } else if (*(this_command+1) != '>') {
-			fname = (char *) (this_command+1);
-		    }
-		} else {
-		    fname = next_word;
-		}
-		if (fname) {
-		    if ((fp = fopen(fname, "r")) != NULL) {
-			printf("%s: File exists\n", fname);
-			fclose(fp);
+		if (*(this_word+1) == '>') {
+		    if(!(*(this_word+2) || next_word))
 			goto ret;
-		    }
+		} else if (*(this_word+1) == '!') {
+		    if(!(*(this_word+2) || next_word))
+			goto ret;
+		    else
+			*(this_command+1) = ' ';   /* Strip '!' from command */
+		} else {
+		    char *fname = *(this_word+1) ? (this_word+1) : next_word;
+		    if (fname) {
+			FILE *fp = fopen(fname, "r");
+			if (fp != NULL) {
+			    printf("%s: File exists\n", fname);
+			    fclose(fp);
+			    goto ret;
+			}
+		    } else
+			goto ret;
 		}
 	    } /* Note: no break! */
 	 
