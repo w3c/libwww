@@ -6,7 +6,8 @@
 <H1>HTParse</H1>This module of the WWW library contains
 code to parse URLs and various related
 things.  Implemented by <A
-NAME=z0 HREF="HTParse.c">HTParse.c</A>.
+NAME=z0 HREF="HTParse.c">HTParse.c</A>
+.
 <PRE>#ifndef HTPARSE_H
 #define HTPARSE_H
 #include "HTUtils.h"
@@ -116,10 +117,10 @@ the same infromation but with all
 "unacceptable" characters represented
 in the form %xy where X and Y are
 two hex digits.
-<PRE>extern char * HTEscape PARAMS((char * str, unsigned char mask));
+<PRE>extern char * HTEscape PARAMS((CONST char * str, unsigned char mask));
 
 </PRE>The following are valid mask values.
- The terms are the BNF names in the
+The terms are the BNF names in the
 URL document.
 <PRE>#define URL_XALPHAS	(unsigned char) 1
 #define URL_XPALPHAS	(unsigned char) 2
@@ -139,4 +140,5 @@ place, as it will never grow.
 #endif	/* HTPARSE_H */
 
 
-</PRE>end of HTParse</BODY>
+</PRE>end of HTParse</A><P>
+</BODY>

@@ -371,7 +371,7 @@ PRIVATE CONST unsigned char isAcceptable[96] =
 
 PRIVATE char *hex = "0123456789ABCDEF";
 
-PUBLIC char * HTEscape ARGS2 (char *, str,
+PUBLIC char * HTEscape ARGS2 (CONST char *, str,
 	unsigned char, mask)
 {
 #define ACCEPTABLE(a)	( a>=32 && a<128 && ((isAcceptable[a-32]) & mask))
