@@ -635,8 +635,12 @@ PUBLIC BOOL HTNet_delete (HTNet * net, int status)
 		if (CORE_TRACE)
 		    HTTrace("Net Object.. Restarting request %p (retry=%d) with net object %p\n",
 			    request, HTRequest_retrys(request), net);
+#if 0
 		HTHost_launchPending(net->host);
 		return YES;
+#else
+		return HTNet_start(net);
+#endif
 	    } else
 		HTHost_deleteNet(net->host, net);
 	}
