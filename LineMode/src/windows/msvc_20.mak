@@ -800,8 +800,7 @@ SOURCE=\PROJECTS\LIBWWW\WWW\Library\Implementation\SGML.c
 
 SOURCE=.\www.rc
 DEP_WWW_R=\
-	.\www.ico\
-	E:\u\eric\PROJECTS\WINLIB\COMM.RC
+	.\www.ico
 
 !IF  "$(CFG)" == "Win32 Release"
 
