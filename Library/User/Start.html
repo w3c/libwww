@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-  <TITLE>Libwww Quick Overview</TITLE>
+  <TITLE>Libwww Quick Guide</TITLE>
 </HEAD>
 <BODY BGCOLOR="#ffffff">
 <P>
@@ -8,7 +8,7 @@
 <A HREF="../"><IMG SRC="../../Icons/WWW/Lib48x" ALT="libwww" BORDER="0"></A>
 <A HREF="./"><IMG SRC="../../Icons/WWW/doc48x" ALT="Documentation" BORDER="0"></A>
 <H1>
-  Libwww Quick Overview
+  Libwww Quick Guide
 </H1>
 <P>
 The <A HREF="../src/WWWCore.html">libwww core</A> is the central part of
@@ -20,13 +20,19 @@ need the same amount of functionality and also they do not need it to be
 done in the same order. Therefore, in order to accommodate the various needs
 of different types of applications, libwww has a set of application profiles
 which initialize the libwww core with a standard set of features provided
-as a part of the W3C Library distribution-file.
+as a part of the libwww distribution-file.
+<H2>
+  Installation
+</H2>
+<P>
+If you have not already installed and compiled libwww then have a look at
+our <A HREF="../../INSTALL.html">installation guide</A> before you continue.
 <H2>
   Application Profiles
 </H2>
 <P>
-The Library comes with a large set of default functions, for example for
-accessing HTTP and FTP servers, parsing
+Libwww comes with a large set of default functions, for example for accessing
+HTTP and FTP servers, parsing
 <A HREF="http://info.internet.isi.edu:80/in-notes/rfc/files/rfc822.txt">RFC
 822</A> headers etc. but it must all be registered by the application before
 the core knows about it. You can either register the parts directly through
@@ -86,30 +92,29 @@ like:
 <P>
 When you want to load a URL, or perform some other method, for example sending
 a document to a remote server, you must create a Request object -fill it
-out with your preferences, and pass it to the Library. In the application
-interface, there is already a large set of functions that help you set up
-the request in order to perform the operation you want. For example, there
-are functions that download a document into a memory buffer, save a document
-to local file, or to POST form data to&nbsp;a remote HTTP server.
+out with your preferences, and pass it to libwww. In the application interface,
+there is already a large set of functions that help you set up the request
+in order to perform the operation you want. For example, there are functions
+that download a document into a memory buffer, save a document to local file,
+or to POST form data to&nbsp;a remote HTTP server.
 <P>
-When a request is passed to the Library, libwww calls a set of filters that
-can modify the request in&nbsp;various ways before it is passed on to the
-network layers of libwww. Also, after a request has terminated, libwww calls
-a set of AFTER filters that interpret the result and can perform
-variousoperations based on this result. If the request succeeds and we start
-receiving data from the other end of the connection, the Library creates
-a stream pipe which feeds data from the network layers back to
-the&nbsp;application. In the request object you can specify the final destination
-for your data, for example presenting it to a user, save it to a file, or
-to send it over the network.
+When a request is passed to libwww, libwww calls a set of filters that can
+modify the request in&nbsp;various ways before it is passed on to the network
+layers of libwww. Also, after a request has terminated, libwww calls a set
+of AFTER filters that interpret the result and can perform variousoperations
+based on this result. If the request succeeds and we start receiving data
+from the other end of the connection, libwww creates a stream pipe which
+feeds data from the network layers back to the&nbsp;application. In the request
+object you can specify the final destination for your data, for example
+presenting it to a user, save it to a file, or to send it over the network.
 <H2>
   Filters
 </H2>
 <P>
 Libwww has a concept of filters that can be called when a request object
-has been passed to the Library and when the request has terminated.These
-filters handle a lot of the functionality enabled by the application profiles.
-For &nbsp;example, access authentication, redirection, logging,cache validation,
+has been passed to libwww and when the request has terminated.These filters
+handle a lot of the functionality enabled by the application profiles. For
+&nbsp;example, access authentication, redirection, logging,cache validation,
 proxy support and much more are implemented as filters.Filters can be registered
 either locally to a single request of globally for all requests. Global filters
 is useful if the filter is to be performed very often and local filters can
@@ -129,19 +134,19 @@ proceeds.
 <P>
 One thing filters can not do is to add a document to the request- for example
 if you are using a <TT>PUT</TT> method in order to send a document &nbsp;to
-a remote HTTP server. Instead, the Library uses streams to transport data
-objects from the application over the network, or&nbsp;the other way. Streams
-are advantageous as they handle data as&nbsp;soon as it arrives and they
-can be cascaded into stream pipes. Each stream element in a stream pipe can
-do some operation on the data object. Streams can be used for many things:
-they can convert data object from one data type to another, or they can apply
+a remote HTTP server. Instead, libwww uses streams to transport data objects
+from the application over the network, or&nbsp;the other way. Streams are
+advantageous as they handle data as&nbsp;soon as it arrives and they can
+be cascaded into stream pipes. Each stream element in a stream pipe can do
+some operation on the data object. Streams can be used for many things: they
+can convert data object from one data type to another, or they can apply
 a compression algorithm or a transport encoding, for example base 64.
 However,streams can also be used for calculating the content length, or to
 generate an MD5 hash of the data object.
 <P>
 Stream pipes are generated by looking at the <I>content-type</I>, the<I>
 content-encoding</I>, and the <I>transport-encoding</I> of a data object.That
-is, if the Library receives a document encoded using chunked transfer-encoding,
+is, if libwww receives a document encoded using chunked transfer-encoding,
 then it looks to see if it has a stream object which can decode this encoding
 and pass it to the next stream in the stream pipe.
 <P>
@@ -155,27 +160,69 @@ the document in another.
 </H2>
 <P>
 The <A HREF="../src/WWWApp.html">application interface</A> provides many
-helper functions that make the Library core easier to use. This is particular
+helper functions that make libwww core easier to use. This is particular
 the case for accessing URLs where you can find a large set of functions in
 the <A HREF="../src/HTAccess.html">HTAccess module</A>. If these functions
 for some reason are not what you are looking for then you can of course go
 ahead and write your own additions but you should find what is needed at
 least to get started!
 <H2>
-  Getting Started
+  Should I use the Internal SGML/HTML Parser?
 </H2>
 <P>
-For a more detailed description of libwww, you can read the Architecture
-document, the Library Interface overview describing the various modules of
-libwww, and finally the User's Guide describing how to set up preferences
-and lots of other stuff. There are also many example application as part
-of the Library distribution file that you may have a look. These will often
-help you understand how to use libwww in practice.
+Libwww contains code for parsing an HTML document but not to present it to
+the user. The reason for that is that libwww is platform independent and
+doesn't know about the UI interface at all. The libwww HTML parser is quite
+crude as it has not been updated for a long time. Instead we refer you to
+the <A HREF="../../Amaya/">Amaya browser/edirtor</A> for a full HTML parser.
+However, <I>if</I> you prefer using the default libwww HTML parser (like
+for example the Line Mode Browser) then you <I>must</I> provide a set of
+functions that meet the <A HREF="../src/HText.html">HText Interface
+definition</A>.
+<P>
+The HTML parser calls the HText interface each time it has identified an
+HTML element, but doesn't put any restrictions on what the HText function
+actually do with the data. Two different examples are the Line Mode Browser
+which renders the information and presents it to the user; and the Mini Robot
+which uses the anchor information to start new requests in order to traverse
+the Web space. The illustration below shows how the libwww HTML parser is
+organized with a description of the model below.
+<P>
+<IMG SRC="Guide/Interfaces.gif" ALT="Interfaces" WIDTH="431" HEIGHT="319">
+<P>
+<DL>
+  <DT>
+    <I>Stream Interface</I>
+  <DD>
+    Use this interface if you do <I>not</I> want to use any of the SGML/HTML
+    parsers in libwww. The default mode is <I>not</I> to initialize the libwww
+    SGML/HTML parser. You will have to set if up explicitly, for example by calling
+    <A HREF="../src/HTHInit.html">HTMLInit</A>. 
+  <DT>
+    <I>Structured Stream Interface</I>
+  <DD>
+    Use this interface if you do want the libwww SGML parser but <I>not</I> the
+    HTML parser. The SGML parser is a generic (but crude) SGML parser which can
+    be setup with a specific DTD. It should of course only be a SGML lexer but
+    this is not the case. It normally feeds the HTML parser with structured data.
+    In this case, you will be emulating the <A HREF="../src/HTML.c">HTML
+    module</A>, and generating a hypertext object from the structured stream.
+  <DT>
+    <I>HText Call Back Interface</I>
+  <DD>
+    This requires the full SGML/HTML parser in libwww. After the data object
+    has been parsed by the SGML and the HTML parser, the HTML parser calls the
+    HText interface so that the application can render it. The callback functions
+    are all declared but not defined in the <A HREF="../src/HText.html">HText
+    module</A>. The client must provide the actual code that defines the presentation
+    method used for a specific HTML tag. You can set up this mode by calling
+    <A HREF="../src/HTHInit.html">HTMLInit</A>. 
+</DL>
 <P>
   <HR>
 <ADDRESS>
-  Henrik Frystyk Nielsen, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
-  <P>
+  Henrik Frystyk Nielsen,
+  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
   @(#) $Id$
 </ADDRESS>
 </BODY></HTML>
