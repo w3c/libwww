@@ -296,16 +296,16 @@ $(FTP)/src/WWWLineMode_$(VL).zip : $(SOURCES)
 #		Member supplied in text format
 #		---------------------------------
 
-$(WWW)/README : $(WWW)/README.html
+$(WWW)/README : /afs/w3.org/member/WWW/README.html
 	www -p -na http://www.w3.org/member/WWW/README.html -o $(WWW)/README
 
-$(WWW)/COPYRIGHT : $(WWW)/COPYRIGHT.html
+$(WWW)/COPYRIGHT : /afs/w3.org/member/WWW/COPYRIGHT.html
 	www -p -na http://www.w3.org/member/WWW/COPYRIGHT.html -o $(WWW)/COPYRIGH
 
-$(WWW)/PATCHES : $(WWW)/PATCHES.html
+$(WWW)/PATCHES : /afs/w3.org/member/WWW/PATCHES.html
 	www -p -na http://www.w3.org/member/WWW/PATCHES.html -o $(WWW)/PATCHES
 
-$(WWW)/CERN : $(WWW)/CERN.html
+$(WWW)/CERN : /afs/w3.org/member/WWW/CERN.html
 	www -p -na http://www.w3.org/member/WWW/CERN.html -o $(WWW)/CERN
 
 #	Line Mode Manual
