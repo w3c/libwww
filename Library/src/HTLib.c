@@ -19,6 +19,7 @@
 #include "HTAnchor.h"
 #include "HTProt.h"
 #include "HTDNS.h"
+#include "HTUTree.h"
 #include "HTLib.h"					 /* Implemented here */
 
 #ifndef W3C_VERSION
@@ -189,6 +190,8 @@ PUBLIC BOOL HTLibTerminate (void)
     HTBind_deleteAll();	    /* Remove bindings between suffixes, media types */
 
     HTUserProfile_delete(UserProfile);	    /* Free our default User profile */
+
+    HTUTree_deleteAll();			     /* Delete all URL Trees */
 
 #ifdef _WINSOCKAPI_
     WSACleanup();

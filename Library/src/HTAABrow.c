@@ -6,7 +6,7 @@
 **	@(#) $Id$
 **
 **	Contains code for parsing challenges and creating credentials for 
-**	basic and digest authentication schemes. See also the HTAAUtil module
+**	basic authentication schemes. See also the HTAAUtil module
 **	for how to handle other authentication schemes. You don't have to use
 **	this code at all.
 **
@@ -31,20 +31,40 @@
 #include "HTAAUtil.h"
 #include "HTAABrow.h"					 /* Implemented here */
 
+#define BASIC_AUTH	"basic"
+
 typedef struct _HTBasic {		  /* Basic challenge and credentials */
     char *	uid;
     char *	pw;
+    BOOL	first;
 } HTBasic;
 
-typedef struct _HTDigest {		 /* Digest challenge and credentials */
-    char *	nounce;
-    char *	opaque;
-    BOOL	stale;
-    char *	uid;
-    char *	pw;
-} HTDigest;
-
 /* ------------------------------------------------------------------------- */
+
+PRIVATE HTBasic * HTBasic_new()
+{
+    HTBasic * me = NULL;
+    if ((me = (HTBasic *) HT_CALLOC(1, sizeof(HTBasic))) == NULL)
+	HT_OUTOFMEM("HTBasic_new");
+    me->first = YES;
+    return me;
+}
+
+/*	HTBasic_delete
+**	--------------
+**	Deletes a "basic" information object
+*/
+PUBLIC int HTBasic_delete (void * context)
+{
+    HTBasic * basic = (HTBasic *) context;
+    if (basic) {
+	HT_FREE(basic->uid);
+	HT_FREE(basic->pw);
+	HT_FREE(basic);
+	return YES;
+    }
+    return NO;
+}
 
 /*
 **	Create a protection template for the files
@@ -83,12 +103,11 @@ PRIVATE char * make_template (const char * docname)
 **
 **		"Basic AkRDIhEF8sdEgs72F73bfaS=="
 **
-**	Returns	YES if credentials created, else NO
+**	Returns	HT_OK or HT_ERROR
 */
-PRIVATE HTAssocList * basic_credentials (HTRequest * request, HTBasic * basic)
+PRIVATE BOOL basic_credentials (HTRequest * request, HTBasic * basic)
 {
     if (request && basic) {
-	HTAssocList * credentials = HTAssocList_new();
 	char * cleartext = NULL;
 	char * cipher = NULL;
 	int cl_len = strlen(basic->uid ? basic->uid : "") +
@@ -111,61 +130,39 @@ PRIVATE HTAssocList * basic_credentials (HTRequest * request, HTBasic * basic)
 	    if (!cookie) HT_OUTOFMEM("basic_credentials");
 	    strcpy(cookie, "Basic ");
 	    strcat(cookie, cipher);
-	    HTAssocList_addObject(credentials, "Authorization", cookie);
+	    HTRequest_addCredentials(request, "Authorization", cookie);
 	    HT_FREE(cookie);
 	}
 	HT_FREE(cleartext);
 	HT_FREE(cipher);
-	return credentials;
+	return HT_OK;
     }
-    return NULL;
-}
-
-/*
-**	Make digest authentication scheme credentials and register this
-**	information in the request object as credentials. They will then
-**	be included in the request header.
-**	Returns	YES if credentials created, else NO
-*/
-PRIVATE HTAssocList *digest_credentials (HTRequest * request, HTDigest *digest)
-{
-    if (request && digest) {
-	HTAssocList * credentials = HTAssocList_new();
-	char * cleartext = NULL;
-	char * cipher = NULL;
-
-	/* Do the generation */
-#if 0	
-	HTAssocList_addObject(credentials, "Authorization", cookie);
-#endif
-	HT_FREE(cleartext);
-	HT_FREE(cipher);
-	return credentials;
-    }
-    return NULL;
+    return HT_ERROR;
 }
 
 /*
 **	Prompt the user for username and password.
 **	Returns	YES if user name was typed in, else NO
 */
-PRIVATE BOOL prompt_user (HTRequest * request, char * realm,
-			  char ** uid, char ** pw)
+PRIVATE int prompt_user (HTRequest * request, const char * realm,
+			 HTBasic * basic)
 {
     HTAlertCallback * cbf = HTAlert_find(HT_A_USER_PW);
     if (request && cbf) {
 	HTAlertPar * reply = HTAlert_newReply();	
-	BOOL res = (*cbf)(request, HT_A_USER_PW,HT_MSG_NULL,*uid,realm,reply);
+	BOOL res = (*cbf)(request, HT_A_USER_PW,HT_MSG_NULL,
+			  basic->uid, (char *) realm, reply);
 	if (res) {
-	    HT_FREE(*uid);
-	    HT_FREE(*pw);
-	    *uid = HTAlert_replyMessage(reply);
-	    *pw = HTAlert_replySecret(reply);
+	    HT_FREE(basic->uid);
+	    HT_FREE(basic->pw);
+	    basic->uid = HTAlert_replyMessage(reply);
+	    basic->pw = HTAlert_replySecret(reply);
+	    basic->first = NO;
 	}
 	HTAlert_deleteReply(reply);
-	return res ? YES : NO;
+	return res ? HT_OK : HT_ERROR;
     }
-    return NO;
+    return HT_OK;
 }
 
 /*	HTBasic_generate
@@ -175,25 +172,27 @@ PRIVATE BOOL prompt_user (HTRequest * request, char * realm,
 **	stored as an association list in the request object.
 **	This is a callback function for the AA handler.
 */
-PUBLIC BOOL HTBasic_generate (HTRequest * request, const char * scheme,
-			      char * realm, void * challenge)
+PUBLIC int HTBasic_generate (HTRequest * request, void * context, int status)
 { 
-    if (request && scheme && realm && challenge) {
-	HTBasic * basic = (HTBasic *) challenge;
-	if (AUTH_TRACE) HTTrace("Auth........ Generating basic credentials\n");
-	/*
-	** If we have a set of credentials then store it in the request object
-	*/
-	if (basic->uid || prompt_user(request, realm,&basic->uid,&basic->pw)) {
-	    HTAssocList * credentials = HTRequest_credentials(request);
-	    if (credentials) HTAssocList_delete(credentials);
-	    if ((credentials = basic_credentials(request, basic))) {
-		HTRequest_setCredentials(request, credentials);
-		return YES;
-	    }
+    HTBasic * basic = (HTBasic *) context;
+    if (request) {
+	const char * realm = HTRequest_realm(request);
+
+	/* If we don't have a basic context then add a new one to the tree */
+	if (!basic) {
+	    char * url = HTAnchor_physical(HTRequest_anchor(request));
+	    basic = HTBasic_new();
+	    HTAA_addNode(BASIC_AUTH, realm, url, basic);
 	}
+
+	/*
+	** If we have a set of credentials (or the user provides a new set)
+	** then store it in the request object as the credentials
+	*/
+	if (basic->uid || prompt_user(request, realm, basic) == HT_OK)
+	    return basic_credentials(request, basic);
     }
-    return NO;
+    return HT_OK;
 }
 
 /*	HTBasic_parse
@@ -204,117 +203,30 @@ PUBLIC BOOL HTBasic_generate (HTRequest * request, const char * scheme,
 **	the right set of credentials to generate.
 **	The function is a callback function for the AA handler.
 */
-PUBLIC BOOL HTBasic_parse (HTRequest * request, const char * scheme)
+PUBLIC int HTBasic_parse (HTRequest * request, void * context, int status)
 {
-    HTAssocList * challenge;
-    if (request && (challenge = HTRequest_challenge(request))) {
-	char * p = HTAssocList_findObject(challenge, "WWW-authenticate");
-	char * value = HTNextField(&p);
-	if (AUTH_TRACE)
-	    HTTrace("Auth........ Parsing %s challenge\n", value?value:"NULL");
-	if (p && (value = HTNextField(&p))) {
-	    /*
-	    ** If valid challenge then make a template for the resource and
-	    ** store this information in our authentication base
-	    */
-	    if (!strcasecomp(value, "realm") && (value = HTNextField(&p))) {
-		char * url = HTAnchor_physical(HTRequest_anchor(request));
-		char * tmplate = make_template(url);
-		HTBasic * me = (HTBasic *) HT_CALLOC(1, sizeof(HTBasic));
-		if (!me) HT_OUTOFMEM("HTBasic_parse");
-		HTAuthInfo_add(scheme, tmplate, value, me);
-		HTRequest_setRealm(request, value);
-		HT_FREE(tmplate);
-		return YES;
-	    }
-	}
-    }
-    if (AUTH_TRACE) HTTrace("Auth........ None basic challenge found\n");
-    return NO;
-}
-
-/*	HTBasic_delete
-**	--------------
-**	Deletes a "basic" information object
-*/
-PUBLIC BOOL HTBasic_delete (const char * scheme, void * data)
-{
-    HTBasic * basic = (HTBasic *) data;
-    if (basic) {
-	HTBasic * basic = (HTBasic *) data;
-	HT_FREE(basic->uid);
-	HT_FREE(basic->pw);
-	HT_FREE(basic);
-	return YES;
-    }
-    return NO;
-}
-
-/*	HTDigest_generate
-**	-----------------
-**	This function generates "basic" credentials for the challenge found in
-**	the authentication information base for this request. The result is
-**	stored as an association list in the request object.
-**	This is a callback function for the AA handler.
-*/
-PUBLIC BOOL HTDigest_generate (HTRequest * request, const char * scheme,
-			       char * realm, void * challenge)
-{ 
-    if (request && scheme && realm && challenge) {
-	HTDigest * digest = (HTDigest *) challenge;
-	if (AUTH_TRACE)HTTrace("Auth........ Generating digest credentials\n");
+    HTAssocList * challenge = HTRequest_challenge(request);
+    if (request && challenge) {
+	char * p = HTAssocList_findObject(challenge, BASIC_AUTH);
+	char * realm = HTNextField(&p);
+	char * rm = HTNextField(&p);
 	/*
-	** If we have a set of credentials then store it in the request object
+	** If valid challenge then make a template for the resource and
+	** store this information in our authentication URL Tree
 	*/
-#if 0
-	if (basic->uid || prompt_user(request, realm,&basic->uid,&basic->pw)) {
-	    HTAssocList * credentials = HTRequest_credentials(request);
-	    if (credentials) HTAssocList_delete(credentials);
-	    if ((credentials = basic_credentials(request, basic))) {
-		HTRequest_setCredentials(request, credentials);
-		return YES;
-	    }
+	if (realm && !strcasecomp(realm, "realm") && rm) {
+	    char * url = HTAnchor_physical(HTRequest_anchor(request));
+	    char * tmplate = make_template(url);
+	    HTBasic * basic = HTBasic_new();
+	    if (AUTH_TRACE) HTTrace("Basic Parse. Realm `%s\' found\n", rm);
+	    HTAA_addNode(BASIC_AUTH, rm, tmplate, basic);
+	    HTRequest_setRealm(request, rm);
+	    HT_FREE(tmplate);
 	}
-#endif
+	return HT_OK;
     }
-    return NO;
-}
-
-/*	HTDigest_parse
-**	--------------
-**	This function parses the contents of a "digest" challenge 
-**	and stores the challenge in our authentication information datebase.
-**	We also store the realm in the request object which will help finding
-**	the right set of credentials to generate.
-**	The function is a callback function for the AA handler.
-*/
-PUBLIC BOOL HTDigest_parse (HTRequest * request, const char * scheme)
-{
-    if (request) {
-
-	/* Do the parsing */
-
-    }
-    if (AUTH_TRACE) HTTrace("Auth........ No digest challenge found\n");
-    return NO;
-}
-
-/*	HTDigest_delete
-**	---------------
-**	Deletes a "digest" information object
-*/
-PUBLIC BOOL HTDigest_delete (const char * scheme, void * data)
-{
-    HTDigest * digest = (HTDigest *) data;
-    if (digest) {
-	HT_FREE(digest->nounce);
-	HT_FREE(digest->opaque);
-	HT_FREE(digest->uid);
-	HT_FREE(digest->pw);
-	HT_FREE(digest);
-	return YES;
-    }
-    return NO;
+    if (AUTH_TRACE) HTTrace("Auth........ No challenges found\n");
+    return HT_OK;
 }
 
 

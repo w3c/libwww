@@ -70,7 +70,7 @@ PRIVATE int HTTPGenMake (HTStream * me, HTRequest * request)
 	sprintf(linebuf, "Connection: Keep-Alive%c%c", CR, LF);
 	PUTBLOCK(linebuf, (int) strlen(linebuf));
     }
-    if (request->RequestMask & HT_G_NO_CACHE) {
+    if (request->RequestMask & HT_G_PRAGMA_NO_CACHE) {
 	sprintf(linebuf, "Pragma: %s%c%c", "no-cache", CR, LF);
 	PUTBLOCK(linebuf, (int) strlen(linebuf));
     }

@@ -1,6 +1,7 @@
 HTAccess.c
 HTDialog.c
 HTEvntrg.c
+HTFilter.c
 HTHist.c
 HTHome.c
 HTLog.c

@@ -550,6 +550,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
     while (1) {
 	switch (http->state) {
 	  case HTTP_BEGIN:
+#if 0
 	    /*
 	     ** Compose authorization information (this was moved here
 	     ** from after the making of the connection so that the connection
@@ -564,6 +565,9 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 				   NULL, 0, "HTLoadHTTP");
 		http->state = HTTP_ERROR;
 	    }
+#else
+	    http->state = HTTP_NEED_CONNECTION;
+#endif
 	    break;
 	    
 	case HTTP_NEED_CONNECTION: 	    /* Now let's set up a connection */

@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<!-- Changed by: Henrik Frystyk Nielsen,  2-Jul-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  7-Jul-1996 -->
   <TITLE>W3C Reference Library libwww Private Request Definition</TITLE>
 </HEAD>
 <BODY>
@@ -184,12 +184,10 @@ request to the application using this anchor.
 </H3>
 <P>
 The <CODE>challenge</CODE> and the <CODE>credentials</CODE> entries are use
-by the authentication parsers and generators respectively. It is required
-to have a <CODE>scheme</CODE> in order to find a parser for an authentication
-scheme.
+by the authentication parsers and generators respectively.
 <PRE>
-    char *		scheme;		    /* Current authentication scheme */
     char *		realm;				    /* Current realm */
+    char *		scheme;				   /* Current scheme */
 
     HTAssocList *	challenge;           /* Challenge received by client */
     HTAssocList *	credentials;	   /* Credentials received by server */

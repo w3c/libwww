@@ -1,6 +1,6 @@
 <HEAD>
 <TITLE>W3C Reference Library libwww Client Side Authentication Challenges and Credentials</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  7-Jul-1996 -->
 </HEAD>
 <BODY>
 
@@ -28,7 +28,8 @@ Reference Library</A>.
 <PRE>
 #ifndef HTAABROW_H
 #define HTAABROW_H
-#include "HTAAUtil.h"
+#include "HTUTree.h"
+#include "HTNet.h"
 </PRE>
 
 <H2>Basic Authentication</H2>
@@ -36,19 +37,9 @@ Reference Library</A>.
 This is the set of callback functions for handling basic authentication.
 
 <PRE>
-extern HTAuthParCallback	HTBasic_parse;
-extern HTAuthGenCallback	HTBasic_generate;
-extern HTAuthGcCallback		HTBasic_delete;
-</PRE>
-
-<H2>Digest Authentication</H2>
-
-This is the set of callback functions for handling digest authentication.
-
-<PRE>
-extern HTAuthParCallback	HTDigest_parse;
-extern HTAuthGenCallback	HTDigest_generate;
-extern HTAuthGcCallback		HTDigest_delete;
+extern HTNetCallback	HTBasic_parse;
+extern HTNetCallback	HTBasic_generate;
+extern HTUTree_gc	HTBasic_delete;
 </PRE>
 
 <PRE>

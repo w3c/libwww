@@ -74,6 +74,17 @@ PUBLIC int HTMIME_allow (HTRequest * request, char * token, char * value)
     return HT_OK;
 }
 
+PUBLIC int HTMIME_authenticate (HTRequest * request, char * token, char * value)
+{    
+    char * scheme = HTNextField(&value);
+
+    /* Check that we know how to handle this scheme */
+
+    HTRequest_addChallenge(request, scheme, value);
+    HTRequest_setScheme(request, scheme);
+    return HT_OK;
+}
+
 PUBLIC int HTMIME_authorization (HTRequest * request, char * token, char * value)
 {
 
@@ -472,16 +483,5 @@ PUBLIC int HTMIME_warning (HTRequest * request, char * token, char * value)
     } else {
 	if (STREAM_TRACE) HTTrace("MIMEParser.. Invalid warning\n");
     }
-    return HT_OK;
-}
-
-PUBLIC int HTMIME_authenticate (HTRequest * request, char * token, char * value)
-{
-    HTAssocList * challenge = HTRequest_challenge(request);
-    if (!challenge) challenge = HTAssocList_new();
-    HTAssocList_addObject(challenge, "WWW-authenticate", value);
-
-    StrAllocCopy(request->scheme, "basic");	/* @@@@@@@@@ */
-
     return HT_OK;
 }

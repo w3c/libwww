@@ -119,16 +119,54 @@ PUBLIC void HTEncoderInit (HTList * c)
     HTCoding_add(c, "chunked", HTChunkedEncoder, HTChunkedDecoder, 1.0);
 }
 
-/*	REGISTER CALLBACKS FOR THE NET MANAGER
-**	--------------------------------------
-**	We register two often used callback functions:
-**	a BEFORE and a AFTER callback
+/*	REGISTER BEFORE FILTERS
+**	-----------------------
+**	The BEFORE filters handle proxies, caches, rule files etc.
+**	The filters are called in the order by which the are registered
+**	Not done automaticly - may be done by application!
+*/
+PUBLIC void HTBeforeInit (void)
+{
+    HTNetCall_addBefore(HTProxyFilter, NULL, 0);
+    HTNetCall_addBefore(HTRuleFilter, NULL, 0);
+    HTNetCall_addBefore(HTCacheFilter, NULL, 0);
+    HTNetCall_addBefore(HTCredentialsFilter, NULL, 0);
+}
+
+/*	REGISTER AFTER FILTERS
+**	----------------------
+**	The AFTER filters handle error messages, logging, redirection,
+**	authentication etc.
+**	The filters are called in the order by which the are registered
+**	Not done automaticly - may be done by application!
+*/
+PUBLIC void HTAfterInit (void)
+{
+    HTNetCall_addAfter(HTAuthFilter, NULL, HT_NO_ACCESS);
+    HTNetCall_addAfter(HTRedirectFilter, NULL, HT_TEMP_REDIRECT);
+    HTNetCall_addAfter(HTRedirectFilter, NULL, HT_PERM_REDIRECT);
+    HTNetCall_addAfter(HTLogFilter, NULL, HT_ALL);
+    HTNetCall_addAfter(HTInfoFilter, NULL, HT_ALL);
+}
+
+/*	REGISTER DEFAULT AUTHENTICATION SCHEMES
+**	---------------------------------------
+**	This function registers the BASIC access authentication
+*/
+PUBLIC void HTAAInit (void)
+{
+    HTAA_newModule ("basic", HTBasic_generate, HTBasic_parse, HTBasic_delete);
+}
+
+/*	REGISTER BEFORE AND AFTER FILTERS
+**	---------------------------------
+**	We register a commonly used set of BEFORE and AFTER filters.
 **	Not done automaticly - may be done by application!
 */
 PUBLIC void HTNetInit (void)
 {
-    HTNetCall_addBefore(HTLoadStart, NULL, 0);
-    HTNetCall_addAfter(HTLoadTerminate, NULL, HT_ALL);
+    HTBeforeInit();
+    HTAfterInit();
 }
 
 
@@ -233,7 +271,7 @@ PUBLIC void HTIconInit (const char * url_prefix)
 **	--------------------------------------------
 **	Not done automaticly - may be done by application!
 */
-PUBLIC void HTMIMEInit()
+PUBLIC void HTMIMEInit (void)
 {
     struct {
         char * string;

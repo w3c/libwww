@@ -1,4 +1,4 @@
-/* 								     HTAAUtil.c
+/*
 **	COMMON PARTS OF ACCESS AUTHORIZATION MODULE
 **	FOR BOTH SERVER AND BROWSER
 **
@@ -29,112 +29,118 @@
 
 /* Library include files */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
-#include "HTParse.h"
-#include "HTReqMan.h"
-#include "HTAssoc.h"
+#include "WWWUtil.h"
+#include "WWWCore.h"
 #include "HTAAUtil.h"					 /* Implemented here */
 
-typedef struct _HTAuthScheme {
+#define AA_NAME			"w3c-AA"	      /* Name of the AA tree */
+#define DEFAULT_PORT            80                    /* Concentrate on HTTP */
+
+struct _HTAAModule {
     char *		scheme;
-    HTAuthParCallback *	parser;
-    HTAuthGenCallback *	generator;
-    HTAuthGcCallback *	gc;
-} HTAuthScheme;
+    HTNetCallback *	before;
+    HTNetCallback *	after;
+    HTUTree_gc *	gc;
+};
+
+typedef struct _HTAAElement {
+    char *		scheme;
+    void * 		context;
+} HTAAElement;
 
 PRIVATE HTList * HTSchemes;	/* List of registered authentication schemes */
 
-typedef struct _HTABase {		  /* Server Authentication info base */
-    char *	host;
-    int		port;
-    HTList *	templates;		  /* List of templates for this base */
-    HTList *	nodes;			      /* List of nodes for this base */
-} HTABase;
-
-typedef struct _HTANode { 		  /* Authentication scheme specifics */
-    char *	realm;
-    char *	scheme;
-    void *	data;
-} HTANode;
-
-typedef struct _HTATemplate {			 /* Hierarchical information */
-    char *	tmplate;
-    HTANode *	node;
-} HTATemplate;
-
-PRIVATE HTList * AuthBases = NULL;	      /* Current authentication base */
-
 /* ------------------------------------------------------------------------- */
-/*			     AUTHENTICATION SCHEMES 			     */
+/*			 AUTHENTICATION MODULE MANAGEMENT		     */
 /* ------------------------------------------------------------------------- */
 
-/*	HTAuthCall_add
-**	--------------
-**	Register a callback functions that is to be called when we want to
-**	parse challenges and to generate credentials - or the other way round.
-**	If you are a server then you want to do the latter and if you are a 
-**	client then you want to do the former.
-*/
-PUBLIC BOOL HTAuthCall_add (const char *	scheme,
-			    HTAuthParCallback *	parser,
-			    HTAuthGenCallback *	generator,
-			    HTAuthGcCallback *	gc)
+PRIVATE BOOL delete_module (HTAAModule * module)
 {
-    if (scheme && parser && generator && gc) {
-	HTAuthScheme * me;
+    if (module) {
+	HT_FREE(module->scheme);
+	HT_FREE(module);
+	return YES;
+    }
+    return NO;
+}
+
+PRIVATE HTAAModule * find_module (const char * scheme)
+{
+    if (!HTSchemes) HTSchemes = HTList_new();
+    if (scheme) {
+	HTList * cur = HTSchemes;
+	HTAAModule * pres = NULL;
+	while ((pres = (HTAAModule *) HTList_nextObject(cur)))
+	    if (!strcasecomp(pres->scheme, scheme)) return pres;
+    } else
+	if (AUTH_TRACE) HTTrace("Auth Engine. Bad argument\n");
+    return NULL;
+}
+
+PUBLIC HTAAModule * HTAA_newModule (const char *	scheme,
+				    HTNetCallback *	before,
+				    HTNetCallback *	after,
+				    HTUTree_gc *	gc)
+{
+    if (scheme) {
+	HTAAModule * pres = find_module(scheme);
+
+	/* If found then update entry - else create a new one */
+	if (!pres) {
+	    if (!(pres = (HTAAModule *) HT_CALLOC(1, sizeof(HTAAModule))))
+		HT_OUTOFMEM("HTAA_newModule");
+	    StrAllocCopy(pres->scheme, scheme);
+	    pres->before = before;
+	    pres->after = after;
+	    pres->gc = gc;
+
+	    /* Add the new AA Module to the list */
+	    HTList_addObject(HTSchemes, (void *) pres);
+	    if (AUTH_TRACE) HTTrace("Auth Engine. Created module %p\n", pres);
+	} else {
+	    if (AUTH_TRACE) HTTrace("Auth Engine. Found module %p\n", pres);
+	}
+	return pres;
+    } else {
+	if (AUTH_TRACE) HTTrace("Auth Engine. Bad argument\n");
+	return NULL;
+    }
+}
+
+PUBLIC HTAAModule * HTAA_findModule (const char * scheme)
+{
+    if (scheme) {
+	HTAAModule * pres = find_module(scheme);
 	if (AUTH_TRACE)
-	    HTTrace("Auth add.... %s with parser %p and generator %p\n",
-		    scheme, (void *) parser, (void *) generator);
-	if ((me = (HTAuthScheme *) HT_CALLOC(1, sizeof(HTAuthScheme))) == NULL)
-	    HT_OUTOFMEM("HTAuthCall_add");
-	StrAllocCopy(me->scheme, scheme);
-	me->parser = parser;
-	me->generator = generator;
-	me->gc = gc;
-	if (!HTSchemes) HTSchemes = HTList_new();	
-	return HTList_addObject(HTSchemes, (void *) me);
+	    HTTrace("Auth Engine. did %sfind %s\n", pres ? "" : "NOT ",scheme);
+	return pres;
+    } else {
+	if (AUTH_TRACE) HTTrace("Auth Engine. Bad augument\n");
     }
-    return NO;
+    return NULL;
 }
 
-/*	HTAuthCall_delete
-**	-------------------
-**	Unregister a authentication scheme from the list
-**	Return YES if OK, else NO
-*/
-PUBLIC BOOL HTAuthCall_delete (const char * scheme)
+PUBLIC BOOL HTAA_deleteModule (const char * scheme)
 {
-    HTList * cur = HTSchemes;
-    if (scheme && cur) {
-	HTAuthScheme * pres;
-	while ((pres = (HTAuthScheme *) HTList_nextObject(cur))) {
-	    if (!strcmp(scheme, pres->scheme)) {
-		HTList_removeObject(HTSchemes, (void *) pres);
-		HT_FREE(pres->scheme);
-		HT_FREE(pres);
-		return YES;
-	    }
+    if (scheme) {
+	HTAAModule * pres = find_module(scheme);
+	if (pres) {
+	    HTList_removeObject(HTSchemes, pres);
+	    if (AUTH_TRACE) HTTrace("Auth Engine. deleted %p\n", pres);
+	    delete_module(pres);
+	    return YES;
 	}
     }
     return NO;
 }
 
-/*	HTAuthCall_deleteAll
-**	----------------------
-**	Unregisters all call back functions
-**	Returns YES if OK, else NO
-*/
-PUBLIC BOOL HTAuthCall_deleteAll (void)
+PUBLIC BOOL HTAA_deleteAllModules (void)
 {
-    HTList * cur = HTSchemes;
-    if (AUTH_TRACE) HTTrace("Auth delete. all schemes\n");
-    if (cur) {
-	HTAuthScheme * pres;
-	while ((pres = (HTAuthScheme *) HTList_nextObject(cur))) {
-	    HT_FREE(pres->scheme);
-	    HT_FREE(pres);
-	}
+    if (HTSchemes) {
+	HTList * cur = HTSchemes;
+	HTAAModule * pres;
+	while ((pres = (HTAAModule *) HTList_nextObject(cur)))
+	    delete_module(pres);
 	HTList_delete(HTSchemes);
 	HTSchemes = NULL;
 	return YES;
@@ -143,48 +149,52 @@ PUBLIC BOOL HTAuthCall_deleteAll (void)
 }
 
 /* ------------------------------------------------------------------------- */
-/*		       AUTHENTICATION INFORMATION DATA BASE		     */
+/*			    HANDLE THE AA URL TREE			     */
 /* ------------------------------------------------------------------------- */
 
-/*	This module maintains an authentication information database
-**	which contains informations for generate either credentials or
-**	challenges. The database is symmetric for both server and client
-**	applications and the implementation can be changed independent of the 
-**	API so if you fell like using a fancy database toolkit then feel free
-**	to go right ahead :-)
-*/
-
 /*
-**	Create a new anode
-**	Returns new object or NULL if error
+**	A AA element is a particular AA procotol associated with a
+**	particular point in the URL tree. The scheme is the name of the
+**	AA protocol known to be able to handle this context. This protocol
+**	must have been registered as a AA module.
 */
-PRIVATE HTANode * HTANode_new (HTABase * base, const char * realm,
-			       const char * scheme, void * data)
+PRIVATE HTAAElement * HTAA_newElement (const char * scheme, void * context)
 {
-    if (base && realm && scheme) {
-	HTANode * me;
-	if ((me = (HTANode *) HT_CALLOC(1, sizeof(HTANode))) == NULL)
-	    HT_OUTOFMEM("HTANode_new");
-	StrAllocCopy(me->realm, realm);
+    if (scheme) {
+	HTAAElement * me;
+	if ((me = (HTAAElement *) HT_CALLOC(1, sizeof(HTAAElement))) == NULL)
+	    HT_OUTOFMEM("HTAAElement_new");
 	StrAllocCopy(me->scheme, scheme);
-	me->data = data;
-	HTList_addObject(base->nodes, (void *) me);
+	me->context = context;
+	if (AUTH_TRACE) HTTrace("Auth Engine. Created element %p\n", me);
 	return me;
     }
     return NULL;
 }
 
-/*
-**	Delete a node. We call the scheme gc callback to handle the opaque
-**	data object.
-*/
-PRIVATE BOOL HTANode_delete (HTABase * base, HTANode * me)
+PRIVATE BOOL HTAA_updateElement (HTAAElement * element,
+				 const char * scheme, void * context)
 {
-    if (base && me) {
-	HTAuth_cleanup(me->scheme, me->data);
-	HT_FREE(me->realm);
+    if (element && scheme) {
+	StrAllocCopy(element->scheme, scheme);
+	element->context = context;
+	return YES;
+    }
+    return NO;
+}
+
+PRIVATE int HTAA_deleteElement (void * context)
+{
+    HTAAElement * me = (HTAAElement *) context;
+    if (me) {
+	HTAAModule * module = HTAA_findModule(me->scheme);
+
+	/* If module then call the gc of the Authentication Module */
+	if (module && module->gc && me->context)
+	    (*module->gc)(me->context);
+
+	if (AUTH_TRACE) HTTrace("Auth Engine. Deleted element %p\n", me);
 	HT_FREE(me->scheme);
-	HTList_removeObject(base->nodes, (void *) me);
 	HT_FREE(me);
 	return YES;
     }
@@ -192,238 +202,8 @@ PRIVATE BOOL HTANode_delete (HTABase * base, HTANode * me)
 }
 
 /*
-**	Search an authentication base for a matching anode.
-**	Return the anode object found or NULL if none
-*/
-PRIVATE HTANode * HTANode_find (HTABase * base, const char * realm)
-{    
-    if (base && base->nodes && realm) {
-	HTList * cur = base->nodes;
-	HTANode * pres;
-	while ((pres = (HTANode *) HTList_nextObject(cur))) {
-	    if (!strcmp(pres->realm, realm)) return pres;
-	}
-    }
-    return NULL;
-}
-
-/*
-**	Create a new template and add to authentication base
-**	Returns new object or NULL if error
-*/
-PRIVATE HTATemplate * HTATemplate_new (HTABase * base, char * tmplate,
-				       HTANode * node)
-{
-    if (base && tmplate && node) {
-	HTATemplate * me;
-	if ((me = (HTATemplate *) HT_CALLOC(1, sizeof(HTATemplate))) == NULL)
-	    HT_OUTOFMEM("HTATemplate_new");
-	me->node = node;
-	me->tmplate = tmplate;
-	HTList_addObject(base->templates, (void *) me);
-	return me;
-    }
-    return NULL;
-}
-
-/*
-**	Delete a template
-*/
-PRIVATE BOOL HTATemplate_delete (HTABase * base, HTATemplate * me)
-{
-    if (base && me) {
-	HT_FREE(me->tmplate);
-	HTList_removeObject(base->templates, (void *) me);
-	HT_FREE(me);
-	return YES;
-    }
-    return NO;
-}
-
-/*
-**	Search an authentication base for a matching template.
-**	Return the template object found or NULL if none
-*/
-PRIVATE HTATemplate * HTATemplate_find (HTABase * base, const char *docname)
-{
-    if (base && base->templates && docname) {
-	HTList * cur = base->templates;
-	HTATemplate * pres;
-	while ((pres = (HTATemplate *) HTList_nextObject(cur))) {
-	    if (HTStrMatch(pres->tmplate, docname)) {
-		if (AUTH_TRACE)
-		    HTTrace("Template.... `%s' matched `%s'\n",
-			    docname, pres->tmplate);
-		return pres;
-	    }
-	}
-    }
-    return NULL;
-}
-
-/*
-**	Search an authentication base for a HTATemplate object in order to
-**	update it with a new HTANode. We do this whenever we replace a anode
-**	Return YES if OK, else NO
-*/
-PRIVATE BOOL HTATemplate_update (HTABase * base, HTANode * old, HTANode *me)
-{
-    if (base && old && me) {
-	HTList * cur = base->templates;
-	HTATemplate * pres;
-	while ((pres = (HTATemplate *) HTList_nextObject(cur))) {
-	    if (pres->node == old) {
-		pres->node = me;
-		if (AUTH_TRACE) HTTrace("Template.... updating %p\n", pres);
-		return YES;
-	    }
-	}
-    }
-    return NO;
-}
-
-/*
-**	Create a new authentication base
-**	Returns new object or NULL if error
-*/
-PRIVATE HTABase * HTABase_new (const char * host, int port)
-{
-    if (host) {
-	HTABase * me;
-	if ((me = (HTABase *) HT_CALLOC(1, sizeof(HTABase))) == NULL)
-	    HT_OUTOFMEM("HTABase_new");
-	StrAllocCopy(me->host, host);
-	me->port = (port > 0 ? port : 80);
-	me->templates = HTList_new();
-	me->nodes = HTList_new();
-	HTList_addObject(AuthBases, (void *) me);
-	if (AUTH_TRACE) HTTrace("Auth Base... %p created\n", me);
-	return me;
-    }
-    return NULL;
-}
-
-/*
-**	Delete a complete server tree and everything within it.
-*/
-PRIVATE BOOL HTABase_delete (HTABase * base)
-{
-    if (base) {
-	HTList * cur;
-
-	/* Free all templates */
-	if ((cur = base->templates)) {
-	    HTATemplate * pres;
-	    while ((pres = (HTATemplate *) HTList_lastObject(cur)))
-		HTATemplate_delete(base, pres);
-	    HTList_delete(base->templates);
-	}
-
-	/* Free all nodes */
-	if ((cur = base->nodes)) {
-	    HTANode * pres;
-	    while ((pres = (HTANode *) HTList_lastObject(cur)))
-		HTANode_delete(base, pres);
-	    HTList_delete(base->nodes);	    
-	}
-
-	HT_FREE(base->host);
-	HT_FREE(base);
-	return YES;
-    }
-    return NO;
-}
-
-/*
-**	Find a authentication base. Return NULL if not found
-*/
-PRIVATE HTABase * HTABase_find (const char * host, int port)
-{
-    HTList * cur = AuthBases;
-    if (port <= 0) port = 80;
-    if (host && cur) {
-	HTABase * pres;
-	while ((pres = (HTABase *) HTList_nextObject(cur))) {
-	    if (pres->port==port && !strcmp(pres->host, host)) return pres;
-	}
-    }
-    return NULL;
-}
-
-/* ------------------------------------------------------------------------- */
-/*		   HANDLING THE AUTHENTICATION INFORMATION BASE		     */
-/* ------------------------------------------------------------------------- */
-
-/*	HTAuthInfo_add
-**	--------------
-**	Add an access authentication information node to the database. If
-**	the entry is already found then it is replaced with the new one.
-**	The template must follow normal URI syntax but can include a wildcard
-**	Return YES if added (or replaced), else NO
-*/
-PUBLIC BOOL HTAuthInfo_add (const char * scheme, char * url,
-			    char * realm, void * data)
-{
-    HTABase * base;
-    HTANode * anode;
-    if (!scheme || !url || !realm || !data) return NO;
-    if (AUTH_TRACE) HTTrace("Auth base... adding info for `%s'\n", url);
-    if (!AuthBases) AuthBases = HTList_new();
-
-    /* Find an existing authentication base or create new */
-    {
-	char * host = HTParse(url, "", PARSE_HOST);
-	char * colon = strchr(host, ':');
-	int port = 80;
-	if (colon ) {
-	    *(colon++) = '\0';			     /* Chop off port number */
-	    port = atoi(colon);
-	}
-	if ((base = HTABase_find(host, port)) == NULL)
-	    base = HTABase_new(host, port);
-	HT_FREE(host);
-	if (!base) return NO;		       /* Couldn't create a new base */
-    }
-
-    /*
-    ** Find a matching anode or create a new one. If we find an existing one
-    ** we also update the template pointing to the anode. Otherwise we create
-    ** a new template as well.
-    */
-    {
-	HTANode * old = HTANode_find(base, realm);
-	anode = HTANode_new(base, realm, scheme, data);
-	if (old) {
-	    HTATemplate_update(base, old, anode);
-	    HTANode_delete(base, old);
-	} else {
-	    char * docname = HTParse(url, "", PARSE_PATH);
-	    HTATemplate_new(base, docname, anode);
-	}
-    }
-    return anode ? YES : NO;
-}
-
-/*	HTAuthInfo_deleteAll
-**	--------------------
-**	Remove the Database
-*/
-PUBLIC BOOL HTAuthInfo_deleteAll (void)
-{
-    if (AuthBases) {
-	HTList * cur = AuthBases;
-	HTABase * pres;
-	while ((pres = (HTABase *) HTList_nextObject(cur)))
-	    HTABase_delete(pres);
-	HTList_delete(AuthBases);
-	AuthBases = NULL;
-	return YES;
-    }
-    return NO;
-}
-
-/*	AuthInfo_find
-**	-------------
+**	Find AA Element
+**	---------------
 **	Seaches the set of authentication information bases for a match
 **	In order to find an anode we do the following:
 **
@@ -434,126 +214,138 @@ PUBLIC BOOL HTAuthInfo_deleteAll (void)
 **	Return the node found else NULL which means that we don't have any
 **	authentication information to hook on to this request or response
 */
-PRIVATE HTANode * HTAuthInfo_find (char * url, char * realm)
+PRIVATE HTAAElement * HTAA_findElement (const char * realm, const char * url)
 {
-    HTABase * base;
-    HTATemplate * tmplate;
-    HTANode * anode;
-    if (AUTH_TRACE)
-	HTTrace("Auth base... looking for info on `%s'\n", url);
+    HTUTree * tree;
+    if (!url) {
+	if (AUTH_TRACE) HTTrace("Auth Engine. Bad argument\n");
+	return NULL;
+    }
+    if (AUTH_TRACE) HTTrace("Auth Engine. Looking up `%s'\n", url);
 
-    /* Find an existing authentication base */
+    /* Find an existing URL Tree for this URL (if any) */
     {
 	char * host = HTParse(url, "", PARSE_HOST);
 	char * colon = strchr(host, ':');
-	int port = 80;
+	int port = DEFAULT_PORT;
 	if (colon ) {
 	    *(colon++) = '\0';			     /* Chop off port number */
 	    port = atoi(colon);
 	}	
-	base = HTABase_find(host, port);
+	tree = HTUTree_find(AA_NAME, host, port);
 	HT_FREE(host);
-	if (base == NULL) return NULL;			   /* Base not found */
-    }
-
-    /* Do we have a realm to look for? */
-    if (realm) {
-	if ((anode = HTANode_find(base, realm)) != NULL) {
-	    if (AUTH_TRACE)
-		HTTrace("Auth info... found matching realm `%s\'\n", realm);
-	    return anode;
+	if (!tree) {
+	    if (AUTH_TRACE) HTTrace("Auth Engine. No information\n");
+	    return NULL;
 	}
     }
 
-    /* If no realm or realm not found then look for template */
+    /* Find a matching AA element (if any) */
     {
-	char * docname = HTParse(url, "", PARSE_PATH);
-	if ((tmplate = HTATemplate_find(base, docname)) != NULL)
-	    anode = tmplate->node;
-	HT_FREE(docname);
-	return anode;
+	char * path = HTParse(url, "", PARSE_PATH);
+	HTAAElement *element = (HTAAElement*)HTUTree_findNode(tree,realm,path);
+	HT_FREE(path);
+	return element;
     }
-    return NULL;						 /* No match */
+    return NULL;
+}
+
+/*	Add a AA context to the URL tree
+**	--------------------------------
+**	Each node in the AA URL tree is a list of the modules we must call
+**	for this particular node.
+*/
+PUBLIC BOOL HTAA_addNode (char const * scheme,
+			  const char * realm, const char * url, void * context)
+{
+    HTUTree * tree = NULL;
+    HTAAModule * module = NULL;
+    if (!scheme || !url) {
+	if (AUTH_TRACE) HTTrace("Auth Engine. Bad argument\n");
+	return NO;
+    }
+    if (AUTH_TRACE) HTTrace("Auth Engine. Adding info for `%s'\n", url);
+
+    /* Find the AA module with this name */
+    if ((module = HTAA_findModule(scheme)) == NULL) {
+	if (AUTH_TRACE) HTTrace("Auth Engine. Module `%s\' not registered\n",
+			       scheme ? scheme : "<null>");
+	return NO;
+    }
+
+    /* Find an existing URL Tree or create a new one */
+    {
+	char * host = HTParse(url, "", PARSE_HOST);
+	char * colon = strchr(host, ':');
+	int port = DEFAULT_PORT;
+	if (colon ) {
+	    *(colon++) = '\0';			     /* Chop off port number */
+	    port = atoi(colon);
+	}
+	tree = HTUTree_new(AA_NAME, host, port, HTAA_deleteElement);
+	HT_FREE(host);
+	if (!tree) {
+	    if (AUTH_TRACE) HTTrace("Auth Engine. Can't create tree\n");
+	    return NO;
+	}
+    }
+
+    /* Find a matching AA element or create a new one */
+    {
+	char * path = HTParse(url, "", PARSE_PATH);
+	HTAAElement * element = NULL;
+	BOOL status;
+	if ((element = (HTAAElement *) HTUTree_findNode(tree, realm, path)))
+	    status = HTAA_updateElement(element, scheme, context);
+	else {
+	    element = HTAA_newElement(scheme, context);
+	    status = HTUTree_addNode(tree, realm, path, element);
+	}
+	HT_FREE(path);
+	return status;
+    }
 }
 
 /* ------------------------------------------------------------------------- */
-/*		   PARSE AND GENERATE CHELLENGES AND CREDENTIALS	     */
+/*			       AUTHENTICATION ENGINE 			     */
 /* ------------------------------------------------------------------------- */
 
-/*	HTAuth_parse
-**	------------
-**	This function looks for a authentication scheme that matches what we
-**	have in the request object and calls the parser callback function.
-**	Case is not significant.
-**	Return YES or whatever callback returns
+/*	HTAA_beforeFilter
+**	------------------
+**	Return HT_OK or whatever callback returns
 */
-PUBLIC BOOL HTAuth_parse (HTRequest * request)
+PUBLIC int HTAA_beforeFilter (HTRequest * request, void * param, int status)
 {
-    HTList * cur = HTSchemes;
-    if (request && request->scheme && request->challenge && cur) {
-	HTAuthScheme * pres;
-	while ((pres = (HTAuthScheme *) HTList_nextObject(cur))) {
-	    if (!strcasecomp(request->scheme, pres->scheme)) {
-		if (AUTH_TRACE)
-		    HTTrace("Auth Calling Parser %p\n", pres->parser);
-		return (*(pres->parser))(request, pres->scheme);
-	    }
+    char * url = HTAnchor_physical(HTRequest_anchor(request));
+    const char * realm = HTRequest_realm(request);
+    HTAAElement * element = HTAA_findElement(realm, url); 
+
+    /* Delete any old credentials if any */
+    if (element) {
+	HTAAModule * module = HTAA_findModule(element->scheme);
+	HTRequest_deleteChallenge(request);
+	if (module) {
+	    if (AUTH_TRACE) HTTrace("Auth Engine. Found BEFORE filter %p\n",
+				   module->before);
+	    return (*module->before)(request, element->context,status);
 	}
     }
-    if (AUTH_TRACE)HTTrace("Auth Parse.. No challenge or credentials found\n");
-    return YES;
+    return HT_OK;
 }
 
-/*	HTAuth_generate
-**	---------------
-**	This function looks for a any authentication scheme that protects 
-**	this resource and calls the generator callback in order to make a
-**	challenge or setup credentials depending on whether we are a server
-**	or a client.
+/*	HTAA_afterFilter
+**	-----------------
 **	Return YES or whatever callback returns
 */
-PUBLIC BOOL HTAuth_generate (HTRequest * request)
+PUBLIC BOOL HTAA_afterFilter (HTRequest * request, void * param, int status)
 {
-    HTList * cur = HTSchemes;
-    if (request && cur) {
-	char * url = HTAnchor_physical(request->anchor);
-	HTANode * node = HTAuthInfo_find(url, request->realm);
-	if (node && node->data) {
-	    HTAuthScheme * pres;
-	    while ((pres = (HTAuthScheme *) HTList_nextObject(cur))) {
-		if (!strcasecomp(node->scheme, pres->scheme)) {
-		    if (AUTH_TRACE)
-			HTTrace("Auth Calling Generator %p\n",pres->generator);
-		    return (*(pres->generator))(request, node->scheme,
-						node->realm, node->data);
-		}
-	    }
-	}
+    const char * scheme = HTRequest_scheme(request);
+    HTAAModule * module = HTAA_findModule(scheme);
+    if (module) {
+	if (AUTH_TRACE)
+	    HTTrace("Auth Engine. Found AFTER filter %p\n", module->after);
+	return (*module->after)(request, NULL, status);
     }
-    if (AUTH_TRACE)HTTrace("Auth Gen.... No challenge or credentials found\n");
-    return YES;
-}
-
-/*	HTAuth_cleanup
-**	--------------
-**	This function looks for a authentication scheme that matches what we
-**	have in the request object and calls the cleanup callback function.
-**	Case is not significant. If the scheme is not registered then
-**	Return YES if callback found else NO
-*/
-PUBLIC BOOL HTAuth_cleanup (const char * scheme, void * data)
-{
-    HTList * cur = HTSchemes;
-    if (scheme && cur && data) {
-	HTAuthScheme * pres;
-	while ((pres = (HTAuthScheme *) HTList_nextObject(cur))) {
-	    if (!strcasecomp(scheme, pres->scheme)) {
-		if (AUTH_TRACE) HTTrace("Auth Calling gc %p\n", pres->gc);
-		(*(pres->gc))(scheme, data);
-		return YES;
-	    }
-	}
-    }
-    return NO;
+    return HT_OK;
 }
 

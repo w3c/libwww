@@ -20,4 +20,5 @@ HTReqMan.c
 HTStream.c
 HTTrans.c
 HTUser.c
+HTUTree.c
 HTWWWStr.c

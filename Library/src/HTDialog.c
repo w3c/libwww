@@ -111,6 +111,7 @@ PRIVATE HTErrorMessage HTErrors[HTERR_ELEMENTS] = {
     { 0,   "News-server replies",			"internal" },
     { 0,   "Trying `ftp://' instead of `file://'",	"internal" },
     { 0,   "Too many redirections",			"internal" },
+    { 0,   "Method not suited for automatic redirection","internal" },
     { 0,   "Premature End Of File",			"internal" },
     { 0,   "Response from WAIS Server too Large - Extra lines ignored","internal"},
     { 0,   "WAIS-server doesn't return any data", 	"internal" },

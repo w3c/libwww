@@ -112,6 +112,19 @@ unescaping the URLs.
 #include "<A HREF="HTEscape.html">HTEscape.h</A>"
 </PRE>
 <H3>
+  URL Trees and Hierarchies
+</H3>
+<P>
+A <A HREF="HTUTree.html">URL tree</A> is a data class that can store all
+the information we know about a URL hierarchy. Typically, a URL hierarchy
+is what a client sees of a Web server but it can also be the view a server
+has of itself. A URL tree has the advantage that it can be searched using
+URLs <I>or</I> using realms. The letter is most useful to "guess" information
+about a remote URL that we haven't seen before.
+<PRE>
+#include "<A HREF="HTUTree.html">HTUTree.h</A>"
+</PRE>
+<H3>
   Web Related String Functions
 </H3>
 <P>

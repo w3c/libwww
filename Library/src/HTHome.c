@@ -27,9 +27,6 @@
 
 /* Library include files */
 #include "WWWLib.h"
-#include "WWWApp.h"
-#include "WWWCache.h"
-#include "WWWRules.h"
 #include "HTHome.h"					 /* Implemented here */
 
 /* ------------------------------------------------------------------------- */
@@ -199,8 +196,8 @@ PUBLIC int HTSetTraceMessageMask (const char * shortnames)
 #ifdef WWWTRACE
     WWWTRACE = 0;
     if (shortnames) {
-	char * ptr;
-	for(ptr=shortnames; *ptr; ptr++) {
+	char * ptr = (char *) shortnames;
+	for(; *ptr; ptr++) {
 	    switch (*ptr) {
 	    case 'a': WWWTRACE |= SHOW_ANCHOR_TRACE; 	break;
 	    case 'b': WWWTRACE |= SHOW_BIND_TRACE; 	break;
@@ -224,130 +221,4 @@ PUBLIC int HTSetTraceMessageMask (const char * shortnames)
 #else
     return 0;
 #endif
-}
-
-/*	Application "BEFORE" Callback
-**	-----------------------------
-**	This function uses all the functionaly that the app part of the Library
-**	gives for URL translations BEFORE a request is isseud.
-**	It checks for Cache, proxy, and gateway (in that order)
-**	returns		HT_LOADED		We already have this
-**			HT_ERROR		We can't load this
-**			HT_OK			Success
-*/
-PUBLIC int HTLoadStart (HTRequest * request, void * param, int status)
-{    
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    char * addr = HTAnchor_address((HTAnchor *) anchor);
-    HTReload mode = HTRequest_reloadMode(request);
-
-    /*
-    ** Check if document is already loaded. 
-    */
-    if (mode != HT_FORCE_RELOAD) {
-	if (HTMemoryCache_check(request) == HT_LOADED) {
-	    HT_FREE(addr);
-	    return HT_LOADED;
-	}
-    } else {
-	HTRequest_addGnHd(request, HT_G_NO_CACHE);	  /* No-cache pragma */
-	HTAnchor_clearHeader(anchor);
-    }
-
-    /*
-    ** Check if we have any rule translations to do
-    */
-    {
-	HTList *list = HTRule_global();
-	char * physical = HTRule_translate(list, addr, NO);
-	if (!physical) {
-	    char *url = HTAnchor_address((HTAnchor *) anchor);
-	    if (url) {
-		HTUnEscape(url);
-		HTRequest_addError(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
-			   (void *) url, (int) strlen(url), "HTLoad");
-	    } else {
-		HTRequest_addError(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
-			   NULL, 0, "HTLoad");
-	    }
-	    HT_FREE(addr);
-	    HT_FREE(url);
-	    return HT_ERROR;
-	}
-	HTAnchor_setPhysical(anchor, physical);
-	HT_FREE(physical);
-    }
-
-    /*
-    ** Check local Disk Cache (if we are not forced to reload), then
-    ** for proxy, and finally gateways
-    */
-    {
-	char *newaddr=NULL;
-	if (mode != HT_FORCE_RELOAD && (newaddr = HTCache_getReference(addr))){
-	    if (mode != HT_CACHE_REFRESH) {
-		HTAnchor_setPhysical(anchor, newaddr);
-		HTAnchor_setCacheHit(anchor, YES);
-	    } else {			 /* If refresh version in file cache */
-		HTRequest_addGnHd(request, HT_G_NO_CACHE);
-		HTRequest_addRqHd(request, HT_C_IMS);
-	    }
-	} else if ((newaddr = HTProxy_find(addr))) {
-	    StrAllocCat(newaddr, addr);
-	    HTRequest_setFullURI(request, YES);
-	    HTAnchor_setPhysical(anchor, newaddr);
-	} else if ((newaddr = HTGateway_find(addr))) {
-	    char * path = HTParse(addr, "",
-				  PARSE_HOST + PARSE_PATH + PARSE_PUNCTUATION);
-		/* Chop leading / off to make host into part of path */
-	    char * gatewayed = HTParse(path+1, newaddr, PARSE_ALL);
-            HTAnchor_setPhysical(anchor, gatewayed);
-	    HT_FREE(path);
-	    HT_FREE(gatewayed);
-	} else {
-	    HTRequest_setFullURI(request, NO);
-	}
-	HT_FREE(newaddr);
-    }
-    HT_FREE(addr);
-    return HT_OK;
-}
-
-/*	Application "AFTER" Callback
-**	-----------------------------
-**	This function uses all the functionaly that the app part of the Library
-**	gives for handling AFTER a request.
-*/
-PUBLIC int HTLoadTerminate (HTRequest * request, void * param, int status)
-{
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    char * uri = HTAnchor_address((HTAnchor*) anchor);
-    switch (status) {
-      case HT_RETRY:
-	if (PROT_TRACE)
-	    HTTrace("Load End.... NOT AVAILABLE, RETRY AT %ld\n",
-		     HTRequest_retryTime(request));
-	break;
-
-      case HT_ERROR:
-	{
-	    HTAlertCallback *cbf = HTAlert_find(HT_A_MESSAGE);
-	    if (cbf) (*cbf)(request, HT_A_MESSAGE, HT_MSG_NULL, NULL,
-			    HTRequest_error(request), NULL);
-	}
-	if (PROT_TRACE)
-	    HTTrace("Load End.... ERROR: Can't access `%s\'\n",
-		     uri ? uri : "<UNKNOWN>");
-	break;
-
-      default:
-	if (PROT_TRACE)
-	    HTTrace("Load End.... Request ended with code %d\n", status);
-	break;
-    }
-
-    /* Should we do logging? */
-    if (HTLog_isOpen()) HTLog_add(request, status);
-    HT_FREE(uri);
-    return HT_OK;
 }

@@ -108,8 +108,8 @@ PUBLIC BOOL HTRequest_clear (HTRequest * me)
     if (me) {
 	me->error_stack = NULL;
 	me->net = NULL;
-	me->scheme = NULL;
 	me->realm = NULL;
+	me->scheme = NULL;
 	me->challenge = NULL;
 	me->credentials = NULL;
 	me->connected = NO;
@@ -173,9 +173,16 @@ PUBLIC void HTRequest_delete (HTRequest * request)
 	/* Clean up the error stack */
 	if (request->error_stack) HTError_deleteAll(request->error_stack);
 
-	HT_FREE(request->scheme);	    /* Current authentication scheme */
+	/* Access Authentication */
 	if (request->challenge) HTAssocList_delete(request->challenge);
 	if (request->credentials) HTAssocList_delete(request->credentials);
+	HT_FREE(request->realm);
+	HT_FREE(request->scheme);
+
+	/* PEP Information */
+
+	/* more */
+
 	HT_FREE(request);
     }
 }
@@ -800,11 +807,22 @@ PUBLIC HTPriority HTRequest_priority (HTRequest * request)
 /*
 **  Access Authentication Credentials
 */
-PUBLIC BOOL HTRequest_setCredentials (HTRequest * request, HTAssocList * list)
+PUBLIC BOOL HTRequest_deleteCredentials (HTRequest * request)
+{
+    if (request && request->credentials) {
+	HTAssocList_delete(request->credentials);
+	request->credentials = NULL;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC BOOL HTRequest_addCredentials (HTRequest * request,
+				    char * token, char * value)
 {
     if (request) {
-	request->credentials = list;
-	return YES;
+	if (!request->credentials) request->credentials = HTAssocList_new();
+	return HTAssocList_addObject(request->credentials, token, value);
     }
     return NO;
 }
@@ -817,10 +835,21 @@ PUBLIC HTAssocList * HTRequest_credentials (HTRequest * request)
 /*
 **  Access Authentication Challenges
 */
-PUBLIC BOOL HTRequest_setChallenge (HTRequest * request, HTAssocList * list)
+PUBLIC BOOL HTRequest_addChallenge (HTRequest * request,
+				    char * token, char * value)
 {
     if (request) {
-	request->challenge = list;
+	if (!request->challenge) request->challenge = HTAssocList_new();
+	return HTAssocList_addObject(request->challenge, token, value);
+    }
+    return NO;
+}
+
+PUBLIC BOOL HTRequest_deleteChallenge (HTRequest * request)
+{
+    if (request && request->challenge) {
+	HTAssocList_delete(request->challenge);
+	request->challenge = NULL;
 	return YES;
     }
     return NO;
@@ -836,8 +865,8 @@ PUBLIC HTAssocList * HTRequest_challenge (HTRequest * request)
 */
 PUBLIC BOOL HTRequest_setRealm (HTRequest * request, char * realm)
 {
-    if (request) {
-	request->realm = realm;
+    if (request && realm) {
+	StrAllocCopy(request->realm, realm);
 	return YES;
     }
     return NO;
@@ -846,6 +875,23 @@ PUBLIC BOOL HTRequest_setRealm (HTRequest * request, char * realm)
 PUBLIC const char * HTRequest_realm (HTRequest * request)
 {
     return (request ? request->realm : NULL);
+}
+
+/*
+**  Access Authentication Schemes
+*/
+PUBLIC BOOL HTRequest_setScheme (HTRequest * request, char * scheme)
+{
+    if (request && scheme) {
+	StrAllocCopy(request->scheme, scheme);
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC const char * HTRequest_scheme (HTRequest * request)
+{
+    return (request ? request->scheme : NULL);
 }
 
 /*
@@ -1128,71 +1174,6 @@ PUBLIC BOOL HTRequest_killPostWeb (HTRequest *me)
     }
     return NO;
 }
-
-/* --------------------------------------------------------------------------*/
-/*			Physical Anchor Address Manager			     */
-/* --------------------------------------------------------------------------*/
-#if 0
-/*		Find physical name and access protocol
-**		--------------------------------------
-**
-**	Checks for Cache, proxy, and gateway (in that order)
-**
-** On exit,    
-**	returns		HT_NO_ACCESS		no protocol module found
-**			HT_FORBIDDEN		Error has occured.
-**			HT_OK			Success
-**
-*/
-PRIVATE int get_physical (HTRequest *req)
-{    
-    char * addr = HTAnchor_address((HTAnchor*)req->anchor);	/* free me */
-    HTList *list = HTRule_global();
-    char * physical = HTRule_translate(list, addr, NO);
-    if (!physical) {
-	HT_FREE(addr);
-	return HT_FORBIDDEN;
-    }
-    HTAnchor_setPhysical(req->anchor, physical);
-    HT_FREE(physical);
-
-    /*
-    ** Check local Disk Cache (if we are not forced to reload), then
-    ** for proxy, and finally gateways
-    */
-    {
-	char *newaddr=NULL;
-	if (req->reload != HT_FORCE_RELOAD &&
-	    (newaddr = HTCache_getReference(addr))) {
-	    if (req->reload != HT_CACHE_REFRESH) {
-		HTAnchor_setPhysical(req->anchor, newaddr);
-		HTAnchor_setCacheHit(req->anchor, YES);
-	    } else {			 /* If refresh version in file cache */
-		req->RequestMask |= (HT_IMS + HT_NO_CACHE);
-	    }
-	} else if ((newaddr = HTProxy_find(addr))) {
-	    StrAllocCat(newaddr, addr);
-	    req->using_proxy = YES;
-	    HTAnchor_setPhysical(req->anchor, newaddr);
-	} else if ((newaddr = HTGateway_find(addr))) {
-	    char * path = HTParse(addr, "",
-				  PARSE_HOST + PARSE_PATH + PARSE_PUNCTUATION);
-		/* Chop leading / off to make host into part of path */
-	    char * gatewayed = HTParse(path+1, newaddr, PARSE_ALL);
-            HTAnchor_setPhysical(req->anchor, gatewayed);
-	    HT_FREE(path);
-	    HT_FREE(gatewayed);
-	} else {
-	    req->using_proxy = NO;     	    /* We don't use proxy or gateway */
-	}
-	HT_FREE(newaddr);
-    }
-    HT_FREE(addr);
-
-    /* Set the access scheme on our way out */
-    return (HTProtocol_find(req, req->anchor)==YES) ? HT_OK : HT_NO_ACCESS;
-}
-#endif
 
 /* --------------------------------------------------------------------------*/
 /*				Document Loader 			     */

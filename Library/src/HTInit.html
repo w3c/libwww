@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<!-- Changed by: Henrik Frystyk Nielsen,  3-Jul-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen,  3-Jul-1996 -->
   <TITLE>W3C Reference Library libwww Default Initialization</TITLE>
 </HEAD>
 <BODY>
@@ -74,8 +74,8 @@ extern void HTProtocolInit (void);
 <P>
 The core doesn't have any built in MIME parsers, but many of the protocols
 need them. For instance, many elements of the library rely on the
-<CODE>Content-Length</CODE> being correctly set. HTMIMEInit provides the
-minimal functionality needed for library reliablilty.
+<CODE>Content-Length</CODE> being correctly set. <CODE>HTMIMEInit()</CODE>
+provides the minimal functionality needed for library reliabilty.
 <PRE>
 #include "WWWMIME.h"
 #include "WWWApp.h"
@@ -136,19 +136,56 @@ extern void HTFormatInit	(HTList * conversions);
 <P>
 Content encoders and decoders can handle encodings like <EM>chunked</EM>
 etc.
-<PRE>#include "WWWHTTP.h"
+<PRE>#include "<A HREF="WWWHTTP.html">WWWHTTP.h</A>"
 
 extern void HTEncoderInit	(HTList * encodings);
 </PRE>
 <H2>
-  Default BEFORE and AFTER Net Callback Functions
+  Default BEFORE and AFTER Filters
 </H2>
 <P>
-We register two often used callback functions: a <CODE>BEFORE</CODE> and
-a <CODE>AFTER</CODE> callback Not done automaticly - may be done by application!
-<PRE>#include "WWWApp.h"
+This module provides a set of default <B>BEFORE</B> and <B>AFTER</B> filters
+that can be registered by the <A HREF="HTNet.html">Net manager</A> to be
+called before and after a request. All filters can be registered either to
+be called <I>globally</I> (all requests) or <I>locally</I> (pr request basis).
+<B>Not</B> done automaticly - may be done by application!
+<H3>
+  BEFORE Filters
+</H3>
+<P>
+The <I>BEFORE</I> filters handle <I>proxies</I>, <I>caches</I>, <I>rule
+files</I> etc. The filters are called in the order by which the are registered
+<PRE>#include "<A HREF="WWWApp.html">WWWApp.h</A>"
 
-extern void HTNetInit (void);
+extern void HTBeforeInit (void);
+</PRE>
+<H3>
+  AFTER Filters
+</H3>
+<P>
+The <I>AFTER</I> filters handle error messages, logging, redirection,
+authentication etc. The filters are called in the order by which the are
+registered
+<PRE>extern void HTAfterInit (void);
+</PRE>
+<H3>
+  BEFORE and AFTER Filters
+</H3>
+<P>
+This is just a short cut for registrating both <I>BEFORE</I> and <I>AFTER</I>
+at once
+<PRE>extern void HTNetInit (void);
+</PRE>
+<H2>
+  Default Access Authentication Modules
+</H2>
+<P>
+The <A HREF="HTAAUtil.html">Access Manager</A> which is implemented as a
+<I>BEFORE</I> and an <I>AFTER</I> filter (automatically registered in
+<CODE>HTNetInit()</CODE>) does not by default know of any access authentication
+schemes. As everything else, this must be registered! This function does
+the job and should be all you need.
+<PRE>extern void HTAAInit (void);
 </PRE>
 <H2>
   Default Message and Dialog Functions
@@ -156,7 +193,7 @@ extern void HTNetInit (void);
 <P>
 We register a set of alert messages Not done automaticly - may be done by
 application!
-<PRE>#include "WWWApp.h"
+<PRE>#include "<A HREF="HTApp.html">WWWApp.h</A>"
 
 extern void HTAlertInit (void);
 </PRE>
@@ -164,11 +201,12 @@ extern void HTAlertInit (void);
   Default Icons for Directory Listings
 </H2>
 <P>
-The WWWDir interface contains support for including references (URLs and
-ALT text tags) to icons in directory listings. The icons are selected as
-a function of the media type and the content encoding of the file in question.
-That is - you can set up icons for compressed files, postscript files etc.
-There is also a small set of specific icons representing directories etc.
+The <A HREF="WWWDir.html">WWWDir interface</A> contains support for including
+references (URLs and <CODE>ALT</CODE> text tags) to icons in directory listings.
+The icons are selected as a function of the media type and the content encoding
+of the file in question. That is - you can set up icons for compressed files,
+postscript files etc. There is also a small set of specific icons representing
+directories etc.
 <PRE>#include "<A HREF="WWWFile.html">WWWFile.h</A>"
 
 extern void HTIconInit (const char * url_prefix);

@@ -187,8 +187,6 @@ InputParser_t * PInputParser = &parse_command;
 
 /* Net callback handlers */
 PRIVATE HTNetCallback terminate_handler;
-PRIVATE HTNetCallback authentication_handler;
-PRIVATE HTNetCallback redirection_handler;
 
 /* ------------------------------------------------------------------------- */
 
@@ -364,8 +362,6 @@ PRIVATE void Cleanup (LineMode * me, int status)
     CSLoadedUser_deleteAll();
     CSApp_unregisterApp();
     LineMode_delete(me);
-
-    HTAuthInfo_deleteAll();
 
     HTEventrgTerminate();
     HTLibTerminate();
@@ -1488,76 +1484,6 @@ PRIVATE int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 #endif
 }
 
-/*	authentication_handler
-**	----------------------
-**	This function is registered to handle access authentication,
-**	for example for HTTP
-*/
-PRIVATE int authentication_handler (HTRequest * request, void * param,
-				    int status)
-{
-    Context * context = (Context *) HTRequest_context(request);
-    LineMode * lm = context->lm;
-
-    /* Ask the authentication module for getting credentials */
-    if (HTAuth_parse(request)) {
-	HTMethod method = HTRequest_method(request);
-
-	/* Make sure we do a reload from cache */
-	HTRequest_setReloadMode(request, HT_FORCE_RELOAD);
-
-	/* Log current request */
-	if (HTLog_isOpen()) HTLog_add(request, status);
-
-	/* Start request with new credentials */
-	if (HTMethod_hasEntity(method)) {		   /* PUT, POST etc. */
-	    HTCopyAnchor((HTAnchor *) context->source, request);
-	} else					   /* GET, HEAD, DELETE etc. */
-	    HTLoadAnchor((HTAnchor *) HTRequest_anchor(request), request);
-    } else {
-	OutputData(lm->pView, "Access denied\n");
-	if (!HTAlert_interactive()) Cleanup(lm, -1);
-    }
-    return HT_ERROR;	  /* Make sure this is the last callback in the list */
-}
-
-/*	redirection_handler
-**	-------------------
-**	This function is registered to handle permanent and temporary
-**	redirections
-*/
-PRIVATE int redirection_handler (HTRequest * request, void * param, int status)
-{
-    Context * context = (Context *) HTRequest_context(request);
-    HTMethod method = HTRequest_method(request);
-    LineMode * lm = context->lm;
-    HTAnchor * new_anchor = HTRequest_redirection(request);
-
-    /* Make sure we do a reload from cache */
-    HTRequest_setReloadMode(request, HT_FORCE_RELOAD);
-
-    /* If destination specified then bind source anchor with new destination */
-    if (HTMethod_hasEntity(method)) {
-	HTLink_removeAll((HTAnchor *) context->source);
-	HTLink_add((HTAnchor *) context->source, new_anchor, NULL, method);
-    }
-
-    /* Log current request */
-    if (HTLog_isOpen()) HTLog_add(request, status);
-
-    /* Start new request */
-    if (HTRequest_retry(request)) {
-	if (HTMethod_hasEntity(method))			   /* PUT, POST etc. */
-	    HTCopyAnchor((HTAnchor *) context->source, request);
-	else					   /* GET, HEAD, DELETE etc. */
-	    HTLoadAnchor(new_anchor, request);
-    } else {
-	OutputData(lm->pView, "Too many redirections detected\n");
-	if (!HTAlert_interactive()) Cleanup(lm, -1);
-    }
-    return HT_ERROR;	  /* Make sure this is the last callback in the list */
-}
-
 /*	terminate_handler
 **	-----------------
 **	This function is registered to handle the result of the request
@@ -1928,8 +1854,7 @@ int main (int argc, char ** argv)
     HTProtocolInit();
 
     /* Setup authentication manager */
-    HTAuthCall_add("basic", HTBasic_parse, HTBasic_generate, HTBasic_delete);
-    HTAuthCall_add("digest", HTDigest_parse,HTDigest_generate,HTDigest_delete);
+    HTAAInit();
 
     /* Initialize set of converters */
     lm->converters = HTList_new();
@@ -2023,11 +1948,21 @@ int main (int argc, char ** argv)
     }
 
     /* Register a call back function for the Net Manager */
+#if 0
     HTNetCall_addBefore(HTLoadStart, NULL, 0);
     HTNetCall_addAfter(authentication_handler, NULL, HT_NO_ACCESS);
     HTNetCall_addAfter(redirection_handler, NULL, HT_PERM_REDIRECT);
     HTNetCall_addAfter(redirection_handler, NULL, HT_TEMP_REDIRECT);
     HTNetCall_addAfter(HTLoadTerminate, NULL, HT_ALL);
+#endif
+
+    /*
+    ** Register all the standard BEFORE and AFTER filters
+    */
+    HTBeforeInit();
+    HTAfterInit();
+
+    /* Add our own filter to update the history list */
     HTNetCall_addAfter(terminate_handler, NULL, HT_ALL);
 
     /* Register a transport */

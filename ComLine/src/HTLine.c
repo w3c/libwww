@@ -167,73 +167,6 @@ PRIVATE void VersionInfo (void)
     OutputData("Please send feedback to <libwww@w3.org>\n");
 }
 
-/*	authentication_handler
-**	----------------------
-**	This function is registered to handle access authentication,
-**	for example for HTTP
-*/
-PRIVATE int authentication_handler (HTRequest * request, void * param,
-				    int status)
-{
-    ComLine * cl = (ComLine *) HTRequest_context(request);
-
-    /* Ask the authentication module for getting credentials */
-    if (HTAuth_parse(request)) {
-
-	/* Make sure we do a reload from cache */
-	HTRequest_setReloadMode(request, HT_FORCE_RELOAD);
-
-	/* Log current request */
-	if (HTLog_isOpen()) HTLog_add(request, status);
-
-	/* Start request with new credentials */
-	if (cl->dest)					   /* PUT, POST etc. */
-	    HTCopyAnchor((HTAnchor *) cl->anchor, cl->request);
-	else					   /* GET, HEAD, DELETE etc. */
-	    HTLoadAnchor((HTAnchor *) cl->anchor, cl->request);
-    } else {
-	OutputData("Access denied\n");
-	Cleanup(cl, -1);
-    }
-    return HT_ERROR;	  /* Make sure this is the last callback in the list */
-}
-
-/*	redirection_handler
-**	-------------------
-**	This function is registered to handle permanent and temporary
-**	redirections
-*/
-PRIVATE int redirection_handler (HTRequest * request, void * param, int status)
-{
-    BOOL result = YES;
-    ComLine * cl = (ComLine *) HTRequest_context(request);
-    HTAnchor * new_anchor = HTRequest_redirection(request);
-
-    /* Make sure we do a reload from cache */
-    HTRequest_setReloadMode(request, HT_FORCE_RELOAD);
-
-    /* If destination specified then bind together anchors */
-    if (cl->dest) {
-	HTLink_removeAll((HTAnchor *) cl->anchor);
-	HTLink_add((HTAnchor *) cl->anchor, new_anchor, NULL, cl->method);
-    }
-
-    /* Log current request */
-    if (HTLog_isOpen()) HTLog_add(request, status);
-
-    /* Start new request */
-    if (HTRequest_retry(request)) {
-	if (cl->dest)					   /* PUT, POST etc. */
-	    result = HTCopyAnchor((HTAnchor *) cl->anchor, cl->request);
-	else					   /* GET, HEAD, DELETE etc. */
-	    result = HTLoadAnchor(new_anchor, cl->request);
-    } else {
-	OutputData("Too many redirections detected\n");
-	Cleanup(cl, -1);
-    }
-    return HT_ERROR;	  /* Make sure this is the last callback in the list */
-}
-
 /*	terminate_handler
 **	-----------------
 **	This function is registered to handle the result of the request
@@ -253,7 +186,6 @@ PRIVATE int terminate_handler (HTRequest * request, void * param, int status)
 	if (cbf) (*cbf)(request, HT_A_MESSAGE, HT_MSG_NULL, NULL,
 			HTRequest_error(request), NULL);
     }
-    if (HTLog_isOpen()) HTLog_add(request, status);
     Cleanup(cl, status == HT_LOADED ? 0 : -1);
     return HT_OK;
 }
@@ -561,12 +493,20 @@ int main (int argc, char ** argv)
     }
 
     /* Register a call back function for the Net Manager */
+#if 0
     HTNetCall_addBefore(HTLoadStart, NULL, 0);
     HTNetCall_addAfter(authentication_handler, NULL, HT_NO_ACCESS);
     HTNetCall_addAfter(redirection_handler, NULL, HT_PERM_REDIRECT);
     HTNetCall_addAfter(redirection_handler, NULL, HT_TEMP_REDIRECT);
     HTNetCall_addAfter(terminate_handler, NULL, HT_ALL);
+#endif
     
+    /*
+    ** Register all the standard BEFORE and AFTER filters
+    */
+    HTBeforeInit();
+    HTAfterInit();
+
     /* Set timeout on sockets */
     HTEventrg_registerTimeout(cl->tv, cl->request, timeout_handler, NO);
 

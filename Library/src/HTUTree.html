@@ -1,0 +1,151 @@
+<HTML>
+<HEAD>
+<!-- Changed by: Henrik Frystyk Nielsen,  7-Jul-1996 -->
+  <TITLE>W3C Reference Library libwww URL Tress</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  URL Trees
+</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+<P>
+A <I>URL tree</I> is a hierarchical container class that is well suited for
+storing information about a URL hierarchy. The <I>root</I> of a URL tree
+is the <I>hostname</I> part of the URL, for example
+<CODE>www.w3.org:8000</CODE>.&nbsp;Client application can use URL trees to
+store what they know about remote servers, for example the access authentication,
+PICS labels and PEP modules required to access a specific URL from a remote
+server. However, URL trees can also be used on server side to contain information
+about the server tree, for example what parts of the tree is protected etc.
+<P>
+There are three components of the URL tree which all can be searched for
+using the methods declared in this module.
+<UL>
+  <LI>
+    The Tree itself
+  <LI>
+    A URL Node which represents a hierarchy level in a URL
+  <LI>
+    A URL Template which can span multiple nodes and are very similar to the
+    realms known from for example Basic Access Authentication in HTTP.
+</UL>
+<P>
+Typically, a URL tree will be empty when the application starts and as time
+goes by and we get to know more about the remote servers that we have access,
+the URL trees will contain more and more information. A nice feature about
+URL trees is that the application can interpolate information based on realms
+and templates. This gives the application a good chance of guessing what
+information (for example a set of credentials) should be appended to a new
+request.
+<P>
+We do not currently distinguish between multiple access mechanisms, for example
+<B>HTTP</B> and <B>FTP</B>, however, URL trees are mostly used within the
+HTTP domain.
+<P>
+<I>URL Trees</I> are often used by <A HREF="HTFilter.html">filters</A> which
+stores information about remote services, Each filter can have its own URL
+tree&nbsp;<I>or</I> a URL tree can be shared among multiple filters.
+<P>
+This module is implemented by <A HREF="HTUTree.c">HTUTree.c</A>, and it is
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>.
+<PRE>
+#ifndef HTUTREE_H
+#define HTUTREE_H
+#include "HTReq.h"
+</PRE>
+<H2>
+  URL Trees
+</H2>
+<P>
+The three parts of a URL tree are called
+<PRE>
+typedef struct _HTUTree     HTUTree;
+typedef struct _HTURealm     HTURealm;
+typedef struct _HTUTemplate HTUTemplate;
+</PRE>
+<H3>
+  Create a URL Tree
+</H3>
+<P>
+Create a new authentication base Returns new object or NULL if error
+<PRE>
+
+typedef int HTUTree_gc		(void * context);
+
+extern HTUTree * HTUTree_new (const char * 		root,
+			      const char * 		host,
+			      int 			port,
+			      HTUTree_gc *	 	gc);
+</PRE>
+<H3>
+  Delete a URL Tree
+</H3>
+<P>
+Delete a complete server tree and everything within it.
+<PRE>
+extern BOOL HTUTree_delete (const char * 	root,
+			    const char * 	host,
+			    int			port);
+</PRE>
+<H3>
+  Delete ALL URL Trees
+</H3>
+<P>
+Delete all information bases
+<PRE>
+extern BOOL HTUTree_deleteAll (void);
+</PRE>
+<H3>
+  Find a URL Tree
+</H3>
+<P>
+Find a authentication base. Return NULL if not found
+<PRE>
+extern HTUTree * HTUTree_find (const char *	root,
+			       const char *	host,
+			       int		port);
+</PRE>
+
+<H2>
+  URL Nodes
+</H2>
+
+<PRE>
+extern void * HTUTree_findNode (HTUTree * tree, 
+                                const char * realm, const char * path); 
+</PRE>
+
+<PRE>
+extern BOOL HTUTree_addNode (HTUTree * tree, 
+                             const char * realm, const char * path, 
+                             void * context);
+</PRE>
+
+
+<PRE>
+extern BOOL HTUTree_replaceNode (HTUTree * tree, 
+                                 const char * realm, const char * path, 
+                                 void * context);
+</PRE>
+
+<PRE>
+extern BOOL HTUTree_deleteNode (HTUTree * tree, 
+                                const char * realm, const char * path);
+</PRE>
+
+
+<PRE>
+#endif /* HTUTREE_H */
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

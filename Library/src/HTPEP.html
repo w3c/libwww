@@ -1,0 +1,164 @@
+<HTML>
+<HEAD>
+<!-- Changed by: Henrik Frystyk Nielsen,  8-Jul-1996 -->
+  <TITLE>W3C Reference Library libwww PEP Engine</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  PEP Engine
+</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+<P>
+The <I>PEP Manager</I> is a registry for <I>PEP Protocols</I> that follow
+the generic syntax defined by the <A HREF="../../Protocols/">HTTP</A> <I>PEP
+protocol</I> headers. All <I>PEP Protocols</I> are registered at run-time
+in form of a <I>PEP Module</I>. A <I>PEP Module</I> consists of the following:
+<DL>
+  <DT>
+    <B>protocol</B>
+  <DD>
+    The name which is used to identify the protocol.
+  <DT>
+    <B>BEFORE Filter</B>
+  <DD>
+    When a new request is issued, the <I>PEP Manager</I> looks in the URL tree
+    to see if we have any PEP information for this particular request. The search
+    is based on the realm (if known) in which the request belongs and the URL
+    itself. If a record is found then the <I>PEP Manager</I> calls the <I>PEP
+    Module</I> in order to generate the PEP protocol headers.
+  <DT>
+    <B>AFTER Filter</B>
+  <DD>
+    After a request has terminated and the result was lack of required PEP protocol
+    headers, the request should normally be repeated with a new set of PEP protocol
+    headers. The AFTER filter is responsible for extracting the challenge from
+    the HTTP response and store it in the URL tree, so that we next time we request
+    the same URL we know that it is protected and we can ask the user for the
+    appropriate PRP protocol headers.
+  <DT>
+    <B>garbage collection</B>
+  <DD>
+    The PEP information is stored in a <A HREF="HTUTree.html">URL Tree</A> but
+    as it doesn't know the format of the protocol specific parts, you must register
+    a garbage collector (gc). The gc is called when node is deleted in the tree.
+</DL>
+<P>
+<B>Note: </B>The <I>PEP Manager</I> itself consists of <B>BEFORE</B> and
+an <B>AFTER</B> <A HREF="HTFilter.html">filter</A> - just like the <I>PEP
+Modules</I>. This means that any <I>PEP Module</I> also can be registered
+directly as a <B>BEFORE</B> and <B>AFTER</B>
+<A HREF="HTFilter.html">filter</A> by the <A HREF="HTNet.html">Net Manager</A>.
+The reason for having the two layer model is that the <I>PEP Manager</I>
+maintains a single <A HREF="HTUTree.html">URL tree</A> for storing PEP
+information for all <I>PEP Protocols</I>.
+<P>
+A<I> PEP Module</I> has three resources, it can use when creating PEP protocol
+headers:
+<UL>
+  <LI>
+    Handle the <I>PEP protocol headers</I> send from the remote party (typically
+    in the form of a HTTP response.
+  <LI>
+    Handle the <I>PEP protocol headers</I> which typically are to part of the
+    next request.
+  <LI>
+    Add information to the <A HREF="HTUTree.html">URL Tree</A>
+</UL>
+<P>
+This module is implemented by <A HREF="HTPEP.c">HTPEP.c</A> (get it?), and
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>.
+<PRE>
+#ifndef HTPEP_H
+#define HTPEP_H
+#include "HTList.h"
+#include "HTReq.h"
+#include "HTUTree.h"
+
+typedef struct _HTPEPModule HTPEPModule;
+</PRE>
+<H2>
+  PEP Module Registration
+</H2>
+<P>
+A <I>PEP Protocol</I> is registered by registering an <I>PEP Module</I> to
+in the <I>PEP Manager</I>.
+<H3>
+  Add a PEP Module
+</H3>
+<P>
+You can add a PEP protocol by using the following method. Each of the callback
+function must have the type as defined below.
+<PRE>extern HTPEPModule * HTPEP_newModule(const char *		protocol,
+					  HTNetCallback *	before,
+					  HTNetCallback *	after,
+					  HTUTree_gc *		gc);
+</PRE>
+<H3>
+  Find a PEP Module
+</H3>
+<PRE>extern HTPEPModule * HTPEP_findModule (const char * protocol);
+</PRE>
+<H3>
+  Delete a PEP Module
+</H3>
+<PRE>extern BOOL HTPEP_deleteModule (const char * protocol);
+</PRE>
+<H3>
+  Delete ALL PEP modules
+</H3>
+<PRE>extern BOOL HTPEP_deleteAllModules (void);
+</PRE>
+<H2>
+  Handling the URL Tree
+</H2>
+<P>
+The PEP information is stored as <A HREF="HTUTree.html">URL Trees</A>. &nbsp;The
+root of a URL Tree is identified by a <I>hostname</I> and a <I>port number</I>.
+Each URL Tree contains a set of templates and realms which can be used to
+predict what information to use in a hierarchical tree.
+<P>
+The URL trees are automatically collected after some time so the application
+does not have to worry about freeing the trees. When a node in a tree is
+freed, the gc registered as part of the PEP Module is called.
+<P>
+Server applications can have different PEP setups for each hostname and port
+number, they control. For example, a server with interfaces
+"<CODE>www.foo.com</CODE>" and "<CODE>internal.foo.com</CODE>" can have different
+protection setups for each interface.
+<H3>
+  Add information to the Database
+</H3>
+<P>
+Add a PEP information node to the database. If the entry is already found
+then it is replaced with the new one. The template must follow normal URI
+syntax but can include a wildcard Return YES if added (or replaced), else
+NO
+<PRE>extern HTPEPModule * HTPEP_findModule (const char * name);
+</PRE>
+<H2>
+  The PEP Manager Filters
+</H2>
+<P>
+As mentioned, the <I>PEP Manager</I> is itself a set of
+<A HREF="HTFilter.html">filters</A> that can be registered by the
+<A HREF="HTNet.html">Net manager</A>.
+<PRE>
+extern int HTPEP_beforeFilter (HTRequest * request, void * param, int status);
+
+extern BOOL HTPEP_afterFilter (HTRequest * request, void * param, int status);
+</PRE>
+<PRE>
+#endif	/* NOT HTPEP_H */
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

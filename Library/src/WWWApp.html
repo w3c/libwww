@@ -1,10 +1,11 @@
 <HTML>
 <HEAD>
-  <TITLE>W3C Reference Library libwww Application Interface</TITLE>
+  <TITLE>W3C Reference Library libwww Client Profile Interface</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  5-Jul-1996 -->
 </HEAD>
 <BODY>
 <H1>
-  Application Interface
+  Client Profile Interface
 </H1>
 <PRE>
 /*
@@ -30,9 +31,9 @@ by them.
 extern "C" { 
 #endif
 </PRE>
-<H2>
+<H3>
   System dependencies
-</H2>
+</H3>
 <P>
 The <A HREF="sysdep.html">sysdep.h</A> file includes system-specific include
 files and flags for I/O to network and disk. The only reason for this file
@@ -53,7 +54,7 @@ from.
 <PRE>#include "<A HREF="HTEvntrg.html">HTEvntrg.h</A>"
 </PRE>
 <H2>
-  Managing the Home Anchor
+  Managing the Home Page
 </H2>
 <P>
 This module provides some "make life easier" functions in order to get the
@@ -86,19 +87,17 @@ of functions for down loading a URL etc.
 #include "<A HREF="HTAccess.html">HTAccess.h</A>"
 </PRE>
 <H2>
-  After Terminating a Request
+  BEFORE and AFTER Filters
 </H2>
 <P>
-When a request is terminated, the application often has to do some action
-as a result of the request (and of the result of the request). The Application
-part of the Library provides two following modules to handle <EM>logging</EM>
-and <EM>history management</EM>. You can register a <EM>POST request
-handler</EM> in the <A HREF="HTNet.html">Net Manager</A> as described in
-the <A HREF="../User/Using/Overview.html">User's Guide</A>.
-<P>
-You can find a function called <CODE>HTLoadTerminate</CODE> in the
-<A HREF="HTHome.html">HTHome module</A> that enables all the functionality
-for handling a request result.
+<I>Before</I> a request has been issued and <I>after</I> it has terminated
+the application often has to do some action as a result of the request (and
+of the result of the request). The Client Profile Interface Library provides
+a set of standard BEFORE and AFTER filters to handle <I>caching</I>,
+<I>redirection</I>, <I>authentication</I>, <I>logging</I> etc.
+<PRE>
+#include "<A HREF="HTFilter.html">HTFilter.h</A>"
+</PRE>
 <H3>
   Logging
 </H3>
@@ -110,9 +109,9 @@ which can be enabled if needed.
 <PRE>
 #include "<A HREF="HTLog.html">HTLog.h</A>"
 </PRE>
-<H3>
+<H2>
   History Management
-</H3>
+</H2>
 <P>
 Another type of logging is keeping track of which documents a user has visited
 when browsing along on the Web. The Library history manager provides a basic

@@ -2,7 +2,7 @@
 <HEAD>
   <!-- Changed by: Henrik Frystyk Nielsen, 13-Apr-1996 -->
   <!-- Changed by: Eric Prud'hommeaux, 14-May-1996 -->
-<!-- Changed by: Henrik Frystyk Nielsen,  1-Jul-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  5-Jul-1996 -->
 <TITLE>W3C Reference Library libwww HTNet Class</TITLE>
 </HEAD>
 <BODY>
@@ -103,9 +103,13 @@ of the request. This can be
   <DD>
     Retry request after at a later time
   <DT>
-    HT_REDIRECT
+    HT_PERM_REDIRECT
   <DD>
-    The request has been redirected and we send back the new URL
+    The request has been permanently redirected and we send back the new URL
+  <DT>
+    HT_TEMP_REDIRECT
+  <DD>
+    The request has been temporaryly redirected and we send back the new URL
   <DT>
     HT_ALL
   <DD>

@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen,  2-Jul-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  7-Jul-1996 -->
   <TITLE>W3C Reference Library libwww Request Class</TITLE>
 </HEAD>
 <BODY>
@@ -215,7 +215,7 @@ extern HTAnchor * HTRequest_redirection (HTRequest * request);
 extern BOOL HTRequest_setRedirection (HTRequest * request, HTAnchor * anchor);
 </PRE>
 <H2>
-  Access Authentication
+  <A NAME="Access">Access Authentication</A>
 </H2>
 <P>
 When a access denied response is returned to the Library, for example from
@@ -228,14 +228,20 @@ with this anchor.
   Challenges
 </H3>
 <PRE>
-extern BOOL HTRequest_setChallenge (HTRequest * request, HTAssocList * list);
+extern BOOL HTRequest_addChallenge (HTRequest * request, char * token, char * value);
+
+extern BOOL HTRequest_deleteChallenge (HTRequest * request);
+
 extern HTAssocList * HTRequest_challenge (HTRequest * request);
 </PRE>
 <H3>
   Credentials
 </H3>
 <PRE>
-extern BOOL HTRequest_setCredentials (HTRequest * request, HTAssocList * list);
+extern BOOL HTRequest_addCredentials (HTRequest * request, char * token, char * value);
+
+extern BOOL HTRequest_deleteCredentials (HTRequest * request);
+
 extern HTAssocList * HTRequest_credentials (HTRequest * request);
 </PRE>
 <H3>
@@ -244,6 +250,13 @@ extern HTAssocList * HTRequest_credentials (HTRequest * request);
 <PRE>
 extern BOOL HTRequest_setRealm (HTRequest * request, char * realm);
 extern const char * HTRequest_realm (HTRequest * request);
+</PRE>
+<H3>
+  Access Authentication Schemes
+</H3>
+<PRE>
+extern BOOL HTRequest_setScheme (HTRequest * request, char * scheme);
+extern const char * HTRequest_scheme (HTRequest * request);
 </PRE>
 <H2>
   Max number of Retrys for a Down Load
@@ -370,7 +383,7 @@ typedef enum _HTGnHd {
     HT_G_MESSAGE_ID	= 0x4,
     HT_G_MIME		= 0x8,
     HT_G_CONNECTION	= 0x10,
-    HT_G_NO_CACHE	= 0x20					   /* Pragma */
+    HT_G_PRAGMA_NO_CACHE= 0x20
 } HTGnHd;
 
 #define DEFAULT_GENERAL_HEADERS		HT_G_CONNECTION

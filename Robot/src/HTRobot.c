@@ -646,8 +646,13 @@ int main (int argc, char ** argv)
 	HTAlert_add(HTPromptUsernameAndPassword, HT_A_USER_PW);
     }
 
-    /* Register a call back function for the Net Manager */
-    HTNetCall_addBefore(proxy_handler, NULL, 0);
+    /*
+    ** Register some standard BEFORE and AFTER filters
+    */
+    HTNetCall_addBefore(HTProxyFilter, NULL, 0);
+    HTNetCall_addBefore(HTRuleFilter, NULL, 0);
+    HTNetCall_addAfter(HTLogFilter, NULL, HT_ALL);
+    HTNetCall_addAfter(HTInfoFilter, NULL, HT_ALL);
     HTNetCall_addAfter(terminate_handler, NULL, HT_ALL);
     
     /* Set timeout on sockets */
