@@ -81,6 +81,17 @@ of <I>feeds</I> that put data to the stream.
 #include "<A HREF="HTMerge.html">HTMerge.h</A>"
 </PRE>
 <H3>
+  No Free Stream
+</H3>
+<P>
+This stream is a throughline for all methods except FREE and
+ABORT. This means that it can be use to put ahead of streams that you
+don't want to be freed or aborted until you are redy to do it
+yourself.
+<PRE>
+#include "<A HREF="HTNoFree.html">HTNoFree.h</A>"
+</PRE>
+<H3>
   Stream to Chunk Conversion
 </H3>
 <P>

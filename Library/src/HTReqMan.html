@@ -257,10 +257,12 @@ headers in the request.
 </H3>
 <PRE>
     HTStream *		output_stream; 
+    HTStream *		orig_output_stream; 
     HTFormat		output_format;
     BOOL		connected;
 
-    HTStream*		debug_stream;
+    HTStream *		debug_stream;
+    HTStream *		orig_debug_stream;
     HTFormat		debug_format;
 </PRE>
 <H3>

@@ -2,5 +2,6 @@ HTConLen.c
 HTGuess.c
 HTSChunk.c
 HTTee.c
+HTNoFree.c
 HTMerge.c
 HTXParse.c

@@ -1,0 +1,44 @@
+<HTML>
+<HEAD>
+<TITLE>W3C Sample Code Library libwww No Free Stream</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 31-May-1996 -->
+</HEAD>
+<BODY>
+
+<H1>No Free Stream</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This stream is a throughline for all methods except FREE and
+ABORT. This means that it can be use to put ahead of streams that you
+don't want to be freed or aborted until you are redy to do it
+yourself.
+<P>
+This module is implemented by <A HREF="HTnoFree.c">HTNoFree.c</A>, and
+it is a part of the <A HREF="http://www.w3.org/Library/"> W3C Sample
+Code Library</A>.
+
+<PRE>
+#ifndef _HTNOFREE_H
+#define _HTNOFREE_H
+
+#include "<A HREF="HTStream.html">HTStream.h</A>"
+
+extern HTStream * HTNoFreeStream_new (HTStream * target);
+
+extern int HTNoFreeStream_delete (HTStream * me);
+
+#endif /* HTNOFREE_H */
+</PRE>
+
+<HR>
+<ADDRESS>
+@(#) $Id$
+</ADDRESS>
+</BODY>
+</HTML>

@@ -32,6 +32,7 @@
 #include "wwwsys.h"
 #include "WWWUtil.h"
 #include "HTParse.h"
+#include "HTNoFree.h"
 #include "HTAlert.h"
 #include "HTError.h"
 #include "HTNetMan.h"
@@ -157,11 +158,21 @@ PUBLIC void HTRequest_delete (HTRequest * me)
 	if (me->net) HTNet_setRequest(me->net, NULL);
 
 	/* Should we delete the output stream? */
-	if (!me->connected && me->output_stream) {
-	    if (CORE_TRACE)
-		HTTrace("Request..... Deleting dangling output stream\n");
-	    (*me->output_stream->isa->_free)(me->output_stream);
+	if (me->orig_output_stream) {
+	    if (CORE_TRACE) HTTrace("Request..... Deleting dangling output stream\n");
+	    (*me->orig_output_stream->isa->_free)(me->orig_output_stream);
+	    me->orig_output_stream = NULL;
+	    HTNoFreeStream_delete(me->output_stream);
 	    me->output_stream = NULL;
+	}
+
+	/* Should we delete the debug stream? */
+	if (me->orig_debug_stream) {
+	    if (CORE_TRACE) HTTrace("Request..... Deleting dangling debug stream\n");
+	    (*me->orig_debug_stream->isa->_free)(me->orig_debug_stream);
+	    me->orig_debug_stream = NULL;
+	    HTNoFreeStream_delete(me->debug_stream);
+	    me->debug_stream = NULL;
 	}
 
 	/* Clean up the error stack */
@@ -1049,7 +1060,14 @@ PUBLIC HTParentAnchor * HTRequest_parent (HTRequest * me)
 */
 PUBLIC void HTRequest_setOutputStream (HTRequest * me, HTStream *output)
 {
-    if (me) me->output_stream = output;
+    if (me) {
+	if (output) {
+	    me->output_stream = HTNoFreeStream_new(output);
+	    me->orig_output_stream = output;
+	} else {
+	    me->output_stream = output;
+	}
+    }
 }
 
 PUBLIC HTStream *HTRequest_outputStream (HTRequest * me)
@@ -1075,7 +1093,12 @@ PUBLIC HTFormat HTRequest_outputFormat (HTRequest * me)
 */
 PUBLIC void HTRequest_setDebugStream (HTRequest * me, HTStream *debug)
 {
-    if (me) me->debug_stream = debug;
+	if (debug) {
+	    me->debug_stream = HTNoFreeStream_new(debug);
+	    me->orig_debug_stream = debug;
+	} else {
+	    me->debug_stream = debug;
+	}
 }
 
 PUBLIC HTStream *HTRequest_debugStream (HTRequest * me)

@@ -62,7 +62,8 @@ libwww_la_SOURCES = \
 	HTPEP.c		HTProfil.c	HTMerge.c \
 	HTDemux.c	HTMuxTx.c	HTMuxCh.c \
 	HTTimer.c	HTTrace.c	HTMemLog.c \
-	HText.c		HTDigest.c	md5.c
+	HText.c		HTNoFree.c	HTDigest.c \
+	md5.c
 
 libwww_la_LIBADD = @HTWAIS@ @HTZLIB@ @HTSQL@ @HTSQLLOG@ @HTXML@
 
@@ -126,7 +127,7 @@ BUILT_SOURCES = wwwsys.h \
 	HTHstMan.h	HTMemLog.h	HTTimer.h \
 	HTWAIS.h	HTZip.h		HTSQL.h \
 	HTSQLLog.h	HTextImp.h	HTDigest.h \
-	HTXML.h		md5.h
+	HTNoFree.h	HTXML.h		md5.h
 
 pkginclude_HEADERS = $(BUILT_SOURCES)
 
