@@ -93,9 +93,11 @@ PRIVATE void HTMLGen_put_character ARGS2(HTStructured *, me, char, c)
     if ((!me->preformatted  && c==' ')) {
         int new_cleanness = 1;
 	if (me->write_pointer > (me->buffer + 1)) {
-		char delims[] = ",;:.";		/* @@ english bias */
-		char * p = strchr(delims, me->write_pointer[-2]);
-		if (p) new_cleanness = p - delims + 2;
+	    char delims[5];
+	    char * p;
+	    strcpy(delims, ",;:.");		/* @@ english bias */
+	    p = strchr(delims, me->write_pointer[-2]);
+	    if (p) new_cleanness = p - delims + 2;
 	}
 	if (new_cleanness >= me->cleanness) {
 	    me->line_break = me->write_pointer - 1;  /* Point to space */
