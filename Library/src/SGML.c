@@ -729,15 +729,33 @@ PRIVATE int SGML_write (HTStream * context, const char * b, int l)
 		    case S_md_dqs: /* Skip double quoted string */
 			if (c == '"')
 				context->state = S_md;
+			else if (c == '>')
+			    {
+				text = b;
+				count = 0;
+				context->state = S_text;
+			    }
 			break;
 
 		    case S_md_sqs: /* Skip single quoted string */
 			if (c == '\'')
 				context->state = S_md;
+			else if (c == '>')
+			    {
+				text = b;
+				count = 0;
+				context->state = S_text;
+			    }
 			break;
 
 		    case S_com_1: /* Starting a comment? */
 			context->state = (c == '-') ? S_com : S_md;
+			if (c == '>')
+			    {
+				text = b;
+				count = 0;
+				context->state = S_text;
+			    }
 			break;
 
 		    case S_com: /* ..within comment */
