@@ -35,7 +35,7 @@
 #define W3C_VERSION		"unspecified"
 #endif
 
-#define APP_NAME		"W3CCommandLine"
+#define APP_NAME		"W3C-WebCon"
 #define APP_VERSION		W3C_VERSION
 
 /* Default page for "-help" command line option */
@@ -169,13 +169,17 @@ PRIVATE void SetSignal (void)
 }
 #endif /* CATCH_SIG */
 
-PRIVATE void VersionInfo (void)
+PRIVATE void VersionInfo (const char * name)
 {
-    OutputData("\n\nW3C Reference Software\n\n");
-    OutputData("\tW3C Command Line Tool (%s) version %s.\n",
-	     APP_NAME, APP_VERSION);
-    OutputData("\tW3C Reference Library version %s.\n\n",HTLib_version());
-    OutputData("Please send feedback to <libwww@w3.org>\n");
+    OutputData("\nW3C OpenSource Software");
+    OutputData("\n-----------------------\n\n");
+    OutputData("\tWebCon version %s\n", APP_VERSION);
+    OutputData("\tusing the W3C libwww library version %s.\n\n",HTLib_version());
+    OutputData("\tTry \"%s -help\" for help\n\n", name ? name : APP_NAME);
+    OutputData("\tSee \"http://www.w3.org/ComLine/User/\" for user information\n");
+    OutputData("\tSee \"http://www.w3.org/ComLine/\" for general information\n\n");
+    OutputData("\tPlease send feedback to the <www-lib@w3.org> mailing list,\n");
+    OutputData("\tsee \"http://www.w3.org/Library/#Forums\" for details\n\n");
 }
 
 /*	terminate_handler
@@ -404,7 +408,7 @@ int main (int argc, char ** argv)
 
 	    /* print version and exit */
 	    } else if (!strcmp(argv[arg], "-version")) { 
-		VersionInfo();
+		VersionInfo(argv[0]);
 		Cleanup(cl, 0);
 
 	    /* run in quiet mode */
@@ -484,8 +488,8 @@ int main (int argc, char ** argv)
 #endif
 
     if (!tokencount && !cl->flags & CL_FILTER) {
-	if (SHOW_MSG) HTTrace("No URL specified\n");
-	Cleanup(cl, -1);
+	VersionInfo(argv[0]);
+	Cleanup(cl, 0);
     }
 
     /* Add progress notification */
