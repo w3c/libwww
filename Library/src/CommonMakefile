@@ -77,7 +77,8 @@ COMMON = $(LOB)/HTParse.o $(LOB)/HTAccess.o $(LOB)/HTTP.o \
 	$(LOB)/HTHistory.o $(LOB)/HTNews.o $(LOB)/HTGopher.o \
 	$(LOB)/HTTelnet.o $(LOB)/HTWSRC.o $(HTWAIS) \
 	$(LOB)/HTAAUtil.o $(LOB)/HTAABrow.o $(LOB)/HTAssoc.o \
-	$(LOB)/HTUU.o $(LOB)/HTMulti.o $(LOB)/HTTeXGen.o $(LOB)/HTGuess.o
+	$(LOB)/HTUU.o $(LOB)/HTMulti.o $(LOB)/HTTeXGen.o \
+	$(LOB)/HTDirBrw.o $(LOB)/HTGuess.o
 
 CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTTP.c $(CMN)HTFile.c \
         $(CMN)HTBTree.c $(CMN)HTMulti.c \
@@ -91,7 +92,8 @@ CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTTP.c $(CMN)HTFile.c \
 	$(CMN)HTNews.c  $(CMN)HTGopher.c $(CMN)HTTelnet.c \
 	$(CMN)HTWAIS.c  $(CMN)HTWSRC.c \
 	$(CMN)HTAAUtil.c $(CMN)HTAABrow.c $(CMN)HTAssoc.c \
-	$(CMN)HTUU.c $(CMN)HTTeXGen.c $(CMN)HTGuess.c
+	$(CMN)HTUU.c $(CMN)HTTeXGen.c \ 
+	$(CMN)HTDirBrw.c $(CMN)HTGuess.c
 
 HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h $(CMN)HTTP.h $(CMN)HTFile.h \
 	$(CMN)HTMulti.h $(CMN)HTBTree.h $(CMN)HTFTP.h $(CMN)HTTCP.h \
@@ -109,7 +111,8 @@ HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h $(CMN)HTTP.h $(CMN)HTFile.h \
 	$(CMN)HTTelnet.h \
 	$(CMN)HTWAIS.h  $(CMN)HTWSRC.h \
 	$(CMN)HTAAUtil.h $(CMN)HTAABrow.h $(CMN)HTAssoc.h \
-	$(CMN)HTUU.h $(CMN)HTTeXGen.h $(CMN)HTGuess.h
+	$(CMN)HTUU.h $(CMN)HTTeXGen.h \
+	$(CMN)HTDirBrw.h $(CMN)HTGuess.h
 
 SOURCES = $(CFILES) $(HFILES) $(CMN)Version.make \
 	$(CMN)CommonMakefile $(CMN)Makefile \
@@ -337,6 +340,9 @@ $(LOB)/HTTCP.o : $(OE) $(CMN)HTTCP.c $(CMN)HTUtils.h
 $(LOB)/HTFile.o : $(OE) $(CMN)HTFile.c $(CMN)HTUtils.h \
 	 $(CMN)HTMLPDTD.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTFile.c
+
+$(LOB)/HTDirBrw.o : $(OE) $(CMN)HTDirBrw.c $(CMN)HTDirBrw.h
+	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTDirBrw.c
 
 $(LOB)/HTMulti.o : $(OE) $(CMN)HTMulti.c $(CMN)HTUtils.h \
 	 $(CMN)HTFile.h $(CMN)HTMulti.h

@@ -45,14 +45,13 @@ struct _HTStructured {
 	HTStreamClass			targetClass;	/* COPY for speed */
 	CONST SGML_dtd *		dtd;
 	
-	char				buffer[BUFFER_SIZE+1]; /* 1for NL */
+	char				buffer[BUFFER_SIZE+1];
 	char *				write_pointer;
 	char *				line_break;
 	int				cleanness;
 	BOOL				delete_line_break_char;
-	BOOL				preformatted;
+	char				preformatted;
 };
-
 
 /*	Flush Buffer
 **	------------
@@ -108,9 +107,9 @@ PRIVATE void HTMLGen_put_character ARGS2(HTStructured *, me, char, c)
 	}
     }
     
-    /* Flush buffer out when full */
+    /* Flush buffer out when full. If preformetted then don't wrap! */
     if (me->write_pointer == me->buffer + BUFFER_SIZE) {
-    	if (me->cleanness) {
+    	if (!me->preformatted && me->cleanness) {
 	    char line_break_char = me->line_break[0];
 	    char * saved = me->line_break;
 	    
@@ -132,8 +131,8 @@ PRIVATE void HTMLGen_put_character ARGS2(HTStructured *, me, char, c)
 
 	} else {
 	    (*me->targetClass.put_block)(me->target,
-	    	me->buffer,
-		BUFFER_SIZE);
+					 me->buffer,
+					 BUFFER_SIZE);
 	    me->write_pointer = me->buffer;
 	}
 	me->line_break = me->buffer;
@@ -171,11 +170,13 @@ PRIVATE void HTMLGen_start_element ARGS4(
 	CONST char **,		value)
 {
     int i;
-    
-    BOOL was_preformatted = me->preformatted;
     HTTag * tag = &me->dtd->tags[element_number];
 
-    me->preformatted = NO;	/* free text within tags */
+#ifdef OLD_CODE 
+    /* Make very specific HTML assumption that PRE can't be nested! */
+    BOOL was_preformatted = me->preformatted;
+    me->preformatted = NO;	/* free text within tags NO!, henrik */
+#endif
     HTMLGen_put_character(me, '<');
     HTMLGen_put_string(me, tag->name);
     if (present) for (i=0; i< tag->number_of_attributes; i++) {
@@ -189,15 +190,19 @@ PRIVATE void HTMLGen_start_element ARGS4(
 	    }
 	}
     }
-    HTMLGen_put_string(me, ">\n");
+    /* Nested PRE is no more a problem! */
+    if (element_number == HTML_PRE)
+	me->preformatted++;
+    if(me->preformatted)
+	HTMLGen_put_character(me, '>');
+    else
+	HTMLGen_put_string(me, ">\n");
     
     if (tag->contents != SGML_EMPTY) {  /* can break after element start */ 
     	me->line_break = me->write_pointer;	/* Don't you hate SGML?  */
 	me->cleanness = 1;
 	me->delete_line_break_char = NO;
     }
-    /* Make very specific HTML assumption that PRE can't be nested! */
-    me->preformatted = (element_number == HTML_PRE) ? YES : was_preformatted;
 }
 
 
@@ -223,8 +228,12 @@ PRIVATE void HTMLGen_end_element ARGS2(HTStructured *, me,
     }
     HTMLGen_put_string(me, "</");
     HTMLGen_put_string(me, me->dtd->tags[element_number].name);
-    HTMLGen_put_string(me, ">\n");
-    if (element_number == HTML_PRE) me->preformatted = NO;
+    if (me->preformatted)
+	HTMLGen_put_character(me, '>');		          /* Henrik 24/03-94 */
+    else
+	HTMLGen_put_string(me, ">\n");
+    if (element_number == HTML_PRE && me->preformatted)
+	me->preformatted--;
 }
 
 
@@ -310,7 +319,7 @@ PUBLIC HTStructured * HTMLGenerator ARGS1(HTStream *, output)
     me->line_break = 	me->buffer;
     me->cleanness = 	0;
     me->delete_line_break_char = NO;
-    me->preformatted = 	NO;
+    me->preformatted = 	0;
     return me;
 }
 
@@ -364,7 +373,7 @@ PUBLIC HTStream* HTPlainToHTML ARGS5(
     me->line_break = 	me->buffer;
     me->cleanness = 	0;
     me->delete_line_break_char = NO;
-    me->preformatted = NO;
+    me->preformatted = 0;
     
     HTMLGen_start_element(me, HTML_HTML, present, value);
     HTMLGen_start_element(me, HTML_BODY, present, value);

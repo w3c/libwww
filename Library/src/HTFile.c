@@ -60,7 +60,7 @@ typedef struct _HTSuffix {
 } HTSuffix;
 
 
-
+#ifdef OLD_CODE
 #ifdef USE_DIRENT		/* Set this for Sys V systems */
 #define STRUCT_DIRENT struct dirent
 #else
@@ -78,14 +78,18 @@ struct _HTStructured {
 	CONST HTStructuredClass *	isa;
 	/* ... */
 };
+#endif /* OLD_CODE */
 
 
 /*                   Controlling globals
 **
 */
 
+#ifdef OLD_CODE
 PUBLIC int HTDirAccess = HT_DIR_OK;
 PUBLIC int HTDirReadme = HT_DIR_README_TOP;
+#endif /* OLD_CODE */
+
 PUBLIC BOOL HTTakeBackup = YES;
 PUBLIC BOOL HTSuffixCaseSense = NO;	/* Are suffixes case sensitive */
 
@@ -279,12 +283,11 @@ PUBLIC HTContentDescription * HTGetContentDescription ARGS2(char **,	actual,
 }
 
 
-
 /*	Send README file
 **
 **  If a README file exists, then it is inserted into the document here.
 */
-
+#ifdef OLD_CODE
 #ifdef GOT_READ_DIR
 PRIVATE void do_readme ARGS2(HTStructured *, target, CONST char *, localname)
 { 
@@ -327,8 +330,8 @@ Bug removed thanks to joe@athena.mit.edu */
     } 
     free(readme_file_name);	/* Leak fixed AL 6 Feb 1994 */
 }
-#endif
-
+#endif /* GOT_READ_DIR */
+#endif /* OLD_CODE */
 
 /*	Make the cache file name for a W3 document
 **	------------------------------------------
@@ -745,6 +748,7 @@ PUBLIC HTStream * HTFileSaveStream ARGS1(HTRequest *, request)
 /*      Output one directory entry
 **
 */
+#if OLD_CODE
 PUBLIC void HTDirEntry ARGS3(HTStructured *, target,
 		 CONST char * , tail,
 		 CONST char *,  entry)
@@ -762,12 +766,14 @@ PUBLIC void HTDirEntry ARGS3(HTStructured *, target,
     PUTS(entry);
     END(HTML_A);
 }
+#endif
  
 /*      Output parent directory entry
 **
 **    This gives the TITLE and H1 header, and also a link
 **    to the parent directory if appropriate.
 */
+#ifdef OLD_CODE
 PUBLIC void HTDirTitles ARGS2(HTStructured *, target,
 		 HTAnchor * , anchor)
 
@@ -806,6 +812,7 @@ PUBLIC void HTDirTitles ARGS2(HTStructured *, target,
 	relative = (char*) malloc(strlen(current) + 4);
 	if (relative == NULL) outofmem(__FILE__, "DirRead");
 	sprintf(relative, "%s/..", current);
+	HTSimplify(relative);
 	HTStartAnchor(target, "", relative);
 	free(relative);
 
@@ -825,7 +832,7 @@ PUBLIC void HTDirTitles ARGS2(HTStructured *, target,
     }
     free(path);
 }
-		
+#endif /* OLD_CODE */
 
 
 /*	Load a document
@@ -970,8 +977,13 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 	    if (TRACE) fprintf(stderr, "HTFile: can't stat %s\n", localname);
 
 	}  else {		/* Stat was OK */
-		
 	    if (((dir_info.st_mode) & S_IFMT) == S_IFDIR) {
+	    int ret;
+	    ret = HTBrowseDirectory(request, localname);
+	    FREE(localname);
+	    return ret;
+
+#ifdef OLD_CODE		
 		/* if localname is a directory */	
 
 		HTStructured* target;		/* HTML object */
@@ -1158,14 +1170,13 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 		    FREE(localname);
 		    return HT_LOADED;	/* document loaded */
 		}
-
+#endif /* OLD_CODE */	
 	    } /* end if localname is directory */
-	
 	} /* end if file stat worked */
 	
 /* End of directory reading section
 */
-#endif
+#endif /* GOT_READ_DIR */
 open_file:
 	{
 	    FILE * fp = fopen(localname,"r");
@@ -1197,20 +1208,21 @@ open_file:
 /*	Now, as transparently mounted access has failed, we try FTP.
 */
     {
+	if (nodename && *nodename && strcmp(nodename, HTHostName())!=0) {
 #ifdef OLD_CODE
-	if (nodename && strcmp(nodename, HTHostName())!=0)
 	    return HTFTPLoad(request, NULL, addr,
 	    request->anchor, request->output_format, request->output_stream);
 #endif
-	char * newname = NULL;
-	StrAllocCopy(newname, "ftp:");
-	if (!strncmp(addr, "file:", 5))
-	    StrAllocCat(newname, addr+5);
-	else
-	    StrAllocCat(newname, addr);
-	HTAnchor_setPhysical(request->anchor, newname);
-	free(newname);
-	return HTLoad(request);
+	    char * newname = NULL;
+	    StrAllocCopy(newname, "ftp:");
+	    if (!strncmp(addr, "file:", 5))
+		StrAllocCat(newname, addr+5);
+	    else
+		StrAllocCat(newname, addr);
+	    HTAnchor_setPhysical(request->anchor, newname);
+	    free(newname);
+	    return HTLoad(request);
+	}
     }
 #endif
 

@@ -216,7 +216,7 @@ extern CONST SGML_dtd HTMLP_dtd;
 
 </PRE>
 <H2>Start anchor element</H2>It is kinda convenient to have a
-particulr routine for starting an
+particular routine for starting an
 anchor element, as everything else
 for HTML is simple anyway.
 <H3>On entry</H3>targetstream poinst to a structured
@@ -228,11 +228,20 @@ is to be omitted.
 		HTStructured * targetstream,
 		CONST char *  	name,
 		CONST char *  	href));
-
-
-
-
 </PRE>
+
+<H2>Put image element</H2>
+Hopefully as useful as HTStartAnchor.
+<H3>On entry</H3>
+targetstream point to a structured stream object.<P>
+src, alt and align are omitted if they are set to NULL.
+<PRE>
+extern void HTMLPutImg PARAMS((HTStructured *obj,
+		 	       CONST char *src,
+			       CONST char *alt,
+			       CONST char *align));
+</PRE>
+
 <H2>Specify next ID to be used</H2>This is anoter convenience routine,
 for specifying the next ID to be
 used by an editor in the series z1.
@@ -243,3 +252,6 @@ z2,...
 
 </PRE>End of module definition</BODY>
 </HTML>
+
+
+

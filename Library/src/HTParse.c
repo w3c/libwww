@@ -300,6 +300,88 @@ PRIVATE void ari_strcpy ARGS2(char *, to,
 */
 PUBLIC void HTSimplify ARGS1(char *, filename)
 {
+    int tokcnt = 0;
+    char *strptr;
+    char *urlptr;
+    if (!filename || !*filename)                         /* Just to be sure! */
+	return;
+
+    /* Skip prefix, starting ./ and starting ///<etc> */
+    urlptr = strstr(filename, "://");                         /* Find prefix */
+    urlptr = urlptr ? urlptr+3 : filename;
+    if (*urlptr == '.' && *(urlptr+1) == '/')            /* Starting ./<etc> */
+	urlptr += 2;
+    else if (*urlptr == '/') {		         /* Some URLs start //<file> */
+	while (*++urlptr == '/');
+    }
+    if (!*urlptr)
+	return;
+
+    /* Now we have the string we want to work with */
+    strptr = urlptr;
+    while (*strptr++) {                        /* Count number of delimiters */
+	if (*strptr == '/')
+	    tokcnt++;
+    }
+    {
+	BOOL slashtail = NO;
+	char *empty = "";
+	char *url = NULL;
+	char **tokptr;
+	char **tokstart;
+	StrAllocCopy(url, urlptr);
+
+	/* Does the URL end with a slash? */
+	if(*(filename+strlen(filename)-1) == '/')
+	    slashtail = YES;
+	
+	/* I allocate cnt+2 as I don't know if the url is terminated by '/' */
+	if ((tokstart = (char **) calloc(tokcnt+2, sizeof(char *))) == NULL)
+	    outofmem(__FILE__, "HTSimplify");
+
+	/* Read the tokens forwards */
+	tokptr = tokstart;
+	*tokptr++ = strtok(url, "/");
+	while ((strptr = strtok(NULL, "/")) != NULL)
+	    *tokptr++ = strptr;
+	
+	/* Scan backwards for '.' and '..' */
+	tokptr--;
+	while(tokptr >= tokstart) {
+	    if (!strcmp(*tokptr, ".")) {
+		*tokptr = empty;
+	    } else if (!strcmp(*tokptr, "..")) {
+		char **pptr = tokptr-1;
+		while (pptr >= tokstart) {
+		    if (**pptr && strcmp(*pptr, "..") && strcmp(*pptr, ".")) {
+			*pptr = empty;
+			*tokptr = empty;
+			break;
+		    }
+		    pptr--;
+		}
+	    }
+	    tokptr--;
+	}
+
+	/* Write the rest out forwards */
+	*urlptr = '\0';
+	strcat(urlptr, *++tokptr);
+	while (*++tokptr) {
+	    if (**tokptr) {
+		strcat(urlptr, "/");
+		strcat(urlptr, *tokptr);
+	    }
+	}
+	if (slashtail == YES)
+	    strcat(urlptr, "/");
+	free(url);
+	free(tokstart);
+    }
+    if (TRACE)
+	fprintf(stderr, "HTSimplify: %s\n", filename);
+}
+#ifdef OLD_CODE
     char * p = filename;
     char * q;
     
@@ -333,6 +415,7 @@ PUBLIC void HTSimplify ARGS1(char *, filename)
 	}  /* end while (*p) */
     } /* end if (p) */
 }
+#endif /* OLD_CODE */
 
 
 /*		Make Relative Name
@@ -412,7 +495,9 @@ char * HTRelative(aName, relatedName)
 **	Unlike HTUnEscape(), this routine returns a malloced string.
 */
 
-PRIVATE CONST unsigned char isAcceptable[96] =
+/* Not BOTH static AND const at the same time in gcc :-(, Henrik 18/03-94 */
+/* PRIVATE CONST unsigned char isAcceptable[96] = */
+PRIVATE unsigned char isAcceptable[96] =
 
 /*	Bit 0		xalpha		-- see HTFile.h
 **	Bit 1		xpalpha		-- as xalpha but with plus.

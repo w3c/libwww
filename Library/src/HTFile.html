@@ -17,6 +17,7 @@ it can be reached by FTP.
 #include "HTFormat.h"
 #include "HTAccess.h"
 #include "HTML.h"		/* SCW */
+#include "HTDirBrw.h"
 
 #ifdef SHORT_NAMES
 #define HTGetCoD	HTGetContentDescription
@@ -24,27 +25,10 @@ it can be reached by FTP.
 #endif /*SHORT_NAMES*/
  
 </PRE>
-<H2>Controlling globals</H2>These flags control how directories
-and files are represented as hypertext,
-and are typically set by the application
-from command line options, etc.
-<PRE>extern int HTDirAccess;		/* Directory access level */
+<H2>Controlling globals</H2>
+These flags control how directories and files are represented as hypertext.<P>
 
-#define HT_DIR_FORBID 		0	/* Altogether forbidden */
-#define HT_DIR_SELECTIVE	1	/* If HT_DIR_ENABLE_FILE exists */
-#define HT_DIR_OK		2	/* Any accesible directory */
-
-#define HT_DIR_ENABLE_FILE	".www_browsable" /* If exists, can browse */
-
-extern int HTDirReadme;		/* Include readme files in listing? */
-					/* Values: */
-#define HT_DIR_README_NONE	0	/* No */
-#define HT_DIR_README_TOP	1	/* Yes, first */
-#define HT_DIR_README_BOTTOM	2	/* Yes, at the end */
-
-#define HT_DIR_README_FILE		"README"
-
-</PRE>
+<B>This has been moved to HTDirBrw.html</B>
 
 <H2>Multiformat Handling</H2>
 
@@ -78,27 +62,8 @@ path name</H2>
 </PRE>
 <H2>Generate the name of a cache file</H2>
 <PRE>extern char * HTCacheFileName PARAMS((CONST char * name));
-
-
 </PRE>
-<H2>Output directory titles</H2>This is (like the next one) used
-by HTFTP. It is common code to generate
-the title and heading 1 and the parent
-directory link for any anchor.
-<PRE>extern void HTDirTitles PARAMS((
-	HTStructured * 	target,
-	HTAnchor * 	anchor));
 
-</PRE>
-<H2>Output a directory entry</H2>This is used by HTFTP.c for example
--- it is a common routine for generating
-a linked directory entry.
-<PRE>extern void HTDirEntry PARAMS((
-	HTStructured *  target,		/* in which to put the linked text */
-	CONST char *	tail,		/* last part of directory name */
-	CONST char *	entry));	/* name of this entry */
-
-</PRE>
 <H2><A
 NAME="z1">HTSetSuffix: Define the representation
 for a file suffix</A></H2>This defines a mapping between local

@@ -471,6 +471,42 @@ PUBLIC void HTStartAnchor ARGS3(HTStructured *, obj,
 
 }
 
+/*	Utility Routine: useful for people building HTML objects */
+
+/*	Put image element
+**	--------------------
+**
+**	Hopefully as usefull as HTStartAnchor. Henrik 23/03-94
+*/
+PUBLIC void HTMLPutImg ARGS4(HTStructured *, obj,
+			     CONST char *, src,
+			     CONST char *, alt,
+			     CONST char *, align)
+{
+    BOOL		present[HTML_IMG_ATTRIBUTES];
+    CONST char*		value[HTML_IMG_ATTRIBUTES];
+    
+    {
+    	int i;
+    	for(i=0; i<HTML_IMG_ATTRIBUTES; i++)
+	    present[i] = NO;
+    }
+    if (src) {
+    	present[HTML_IMG_SRC] = YES;
+	value[HTML_IMG_SRC] = src;
+    }
+    if (alt) {
+        present[HTML_IMG_ALT] = YES;
+        value[HTML_IMG_ALT] = alt;
+    }
+    if (align) {
+        present[HTML_IMG_ALIGN] = YES;
+        value[HTML_IMG_ALIGN] = align;
+    }
+    (*obj->isa->start_element)(obj, HTML_IMG , present, value);
+}
+
+
 PUBLIC void HTNextID ARGS2(HTStructured *, obj,
 		int,	next_one)
 {
@@ -490,4 +526,6 @@ PUBLIC void HTNextID ARGS2(HTStructured *, obj,
     (*obj->isa->start_element)(obj, HTML_NEXTID , present, value);
 
 }
+
+
 

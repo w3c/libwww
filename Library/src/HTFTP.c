@@ -77,6 +77,7 @@ BUGS:	@@@  	Limit connection cache size!
 #include "HTFile.h"	/* For HTFileFormat() */
 #include "HTBTree.h"
 #include "HTChunk.h"
+#include "HTDirBrw.h"
 #ifndef IPPORT_FTP
 #define IPPORT_FTP	21
 #endif
@@ -153,9 +154,16 @@ NOARGS
     if (data_read_pointer >= data_write_pointer) {
 	status = NETREAD(data_soc, data_buffer, DATA_BUFFER_SIZE);
 	/* Get some more data */
-	if (status <= 0) return (char)-1;
-	data_write_pointer = data_buffer + status;
-	data_read_pointer = data_buffer;
+	if (status < 0) {
+	    if (TRACE)
+		fprintf(stderr, "FTP: Error reading from net: %d\n", status);
+	    return EOF;
+	} else if (!status) {
+	    return EOF;
+	} else {
+	    data_write_pointer = data_buffer + status;
+	    data_read_pointer = data_buffer;
+	}
     }
 #ifdef NOT_ASCII
     {
@@ -165,6 +173,36 @@ NOARGS
 #else
     return *data_read_pointer++;
 #endif
+}
+
+
+/*						      	HTFTP_get_string()
+**
+**	This function returns the next text string from the open FTP-connection
+**	terminated either by '\r' or LF.
+**
+**	Returns 0 if EOF or error and 1 if OK
+**
+*/
+PRIVATE int HTFTP_get_string ARGS1(HTChunk *, chunk)
+{
+    char ch;
+    int status = 1;
+    HTChunkClear(chunk);
+    for(;;) {
+	if ((ch = NEXT_DATA_CHAR) == EOF) {
+	    status = 0;
+	    break;
+	}	    
+	if (ch == '\r' || ch == LF) {
+	    if (chunk->size != 0)
+		break;
+	} else {
+	    HTChunkPutc(chunk, ch);
+	}
+    }
+    HTChunkTerminate(chunk);
+    return status;
 }
 
 
@@ -656,6 +694,7 @@ PRIVATE int get_listen_socket()
 **	returns		HT_LOADED if OK
 **			<0 if error.
 */
+#ifdef OLD_CODE
 PRIVATE int read_directory ARGS1(HTRequest *, request)
 #if OLD_PARAMS
 ARGS6 (
@@ -747,7 +786,7 @@ ARGS6 (
     if (lastpath) free(lastpath);
     return response(NIL) == 2 ? HT_LOADED : -1;
 }
-
+#endif
 
 /*	Retrieve File from Server
 **	-------------------------
@@ -915,8 +954,14 @@ ARGS6 (
     /* @@ */
 #endif
     if (isDirectory) {
-	return read_directory(request);
+        char *filename = HTParse(name, "", PARSE_PATH + PARSE_PUNCTUATION);
+	HTFTPBrowseDirectory(request, filename, HTFTP_get_string);
+	free(filename);
+	return response(NIL) == 2 ? HT_LOADED : -1;
+#ifdef OLD_CODE
+	return read_directory(request, NULL, anchor, name, format_out, sink);
       /* returns HT_LOADED or error */
+#endif
     } else {
 	HTParseSocket(format, data_soc, request);
     

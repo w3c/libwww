@@ -38,7 +38,7 @@ struct _HTStructured {
 	HTStreamClass			targetClass;	   /* COPY for speed */
 	CONST SGML_dtd *		dtd;
 	
-	char				buffer[BUFFER_SIZE+20];  /* Needed!! */
+	char				buffer[2*BUFFER_SIZE];   /* See note */
 	char *				write_pointer;
 	char *				line_break;
 	BOOL				sensitive;          /* Can we put \n */
@@ -46,6 +46,9 @@ struct _HTStructured {
 	BOOL				markup;     /* If doing LaTeX markup */
 	BOOL				startup;      /* To skip MIME header */
 };
+
+/* The buffer has to be bigger than 80 as latex markup might make the line
+   longer before we get to flush it. */
 
 PRIVATE char *TeX_names[HTMLP_ELEMENTS][2] = {
     { "",       	""		},	/* HTML_A		*/

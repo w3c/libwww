@@ -567,7 +567,10 @@ PRIVATE void HTML_start_element ARGS4(
     case HTML_BODY:
     
     case HTML_IMG:			/* Images -- ignore */
-    
+	UPDATE_STYLE;			/* Henrik 23/03-94 */
+/*	HText_appendImage(me->text, ); */
+	break;
+
     case HTML_TT:			/* Physical character highlighting */
     case HTML_B:			/* Currently ignored */
     case HTML_I:
