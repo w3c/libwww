@@ -67,6 +67,8 @@
 #include "CSUser.h"
 #include "CSUsrLst.h"
 
+#include "HTWatch.h"
+
 #ifndef W3C_VERSION
 #define W3C_VERSION		"Unspecified"
 #endif
@@ -175,6 +177,13 @@ typedef struct _Context {
     HTParentAnchor *	source;	   /* The source if we are using PUT or POST */
 } Context;
 
+PRIVATE int scan_command (SOCKET s, void * param, HTEventType type);
+HTEvent ConsoleEvent = {
+    HT_PRIORITY_MAX,
+    scan_command, 
+    0, 0
+};
+
 #ifndef WWW_WIN_WINDOW
 PRIVATE FILE *		OUTPUT = stdout;
 #endif
@@ -186,6 +195,14 @@ InputParser_t * PInputParser = &parse_command;
 PRIVATE HTNetAfter terminate_handler;
 
 /* ------------------------------------------------------------------------- */
+
+PUBLIC int HTWatch(int id, void * obj, const char * fmt, ...)
+{
+    va_list pArgs;
+    va_start(pArgs, fmt);
+    fprintf(stderr, "id: %x  obj: %p: ", id, obj);
+    return vfprintf(stderr, fmt, pArgs);
+}
 
 /*	Create a Context Object
 **	-----------------------
@@ -804,7 +821,7 @@ CSError_t PICSCallback(HTRequest* pReq, CSLabel_t * pCSLabel,
 **	Returns		HT_ERROR	Error has occured or we quit
 **			HT_OK		Call back was OK
 */
-PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
+PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, HTEventType type)
 {
     char * the_choice=NULL;		           /* preserved user command */
     char * token=NULL;        	   	    	    /* First word of command */
@@ -1357,7 +1374,7 @@ PUBLIC BOOL readConsole(HANDLE conIn, char* buf, int len, int* pRed)
 **	Read available characters from buf into stat. buf maybe bigger or
 **	smaller than stat.
 */
-PUBLIC int bufferInput (char* buf, int len, SOCKET s, HTRequest * req, SockOps ops)
+PUBLIC int bufferInput (char* buf, int len, SOCKET s, HTRequest * req, HTEventType type)
 {
     static char stat[RESPONSE_LENGTH];
     static int iStat = 0;
@@ -1373,7 +1390,7 @@ PUBLIC int bufferInput (char* buf, int len, SOCKET s, HTRequest * req, SockOps o
 		    int ret;
 		    stat[iStat] = 0;
 		    iStat = 0;
-		    if ((ret = (*PInputParser)(stat, s, req, ops)) != HT_OK)
+		    if ((ret = (*PInputParser)(stat, s, req, type)) != HT_OK)
 			return (ret);
 		}
 		break;
@@ -1394,30 +1411,14 @@ PUBLIC int bufferInput (char* buf, int len, SOCKET s, HTRequest * req, SockOps o
     return (HT_OK);
 }
 
-PRIVATE int scan_command (SOCKET s, HTRequest * req, SockOps ops)
+PRIVATE int scan_command (SOCKET s, void * param, HTEventType type)
 {
+    HTRequest * req = (HTRequest *)param;
     /* buf happens to == eatText's buffer but not neccesary */
     static char buf[RESPONSE_LENGTH];
+#ifdef WWW_MSWINDOWS
     int red;
     int ret;
-
-#ifndef WWW_MSWINDOWS
-    if (!fgets(buf, sizeof(buf), stdin))		  /* Read User Input */
-        return HT_ERROR;				      /* Exit if EOF */
-    return ((*PInputParser)(buf, s, req, ops));
-#if 0
-	if ((red = read(s, buf, sizeof(buf))) < 0) {
-#ifdef EAGAIN
-	    if (socerrno==EINPROGRESS || socerrno==EAGAIN)
-#else
-	    if (socerrno==EINPROGRESS)
-#endif
-		return (HT_OK);
-    	    if (PROT_TRACE) HTTrace("Read Console... READ ERROR\n");
-	    return HT_ERROR;
-	}
-#endif
-#else
 
     while(1) {
 #ifdef WWW_WIN_CONSOLE
@@ -1425,13 +1426,28 @@ PRIVATE int scan_command (SOCKET s, HTRequest * req, SockOps ops)
         if (PROT_TRACE) HTTrace("Read Console... READ ERROR\n");
 	    return HT_ERROR;
 	}
-#else	/* !WWW_WIN_CONSOLE */
-#endif /* !WWW_WIN_CONSOLE */
+#endif /* WWW_WIN_CONSOLE */
 	if (!red) return (HT_OK);
-	ret = bufferInput(buf, red, s, req, ops);
+	ret = bufferInput(buf, red, s, req, type);
 	if (ret != HT_OK) return (ret);
     }
-#endif
+#else /* WWW_MSWINDOWS */
+    if (!fgets(buf, sizeof(buf), stdin))		  /* Read User Input */
+        return HT_ERROR;				      /* Exit if EOF */
+    return ((*PInputParser)(buf, s, req, type));
+#if 0
+	if ((red = read(s, buf, sizeof(buf))) < 0) {
+#ifdef EAGAIN
+	    if (socerrno==EINPROGRESS || socerrno==EAGAIN)
+#else /* EAGAIN */
+	    if (socerrno==EINPROGRESS)
+#endif /* !EAGAIN */
+		return (HT_OK);
+    	    if (PROT_TRACE) HTTrace("Read Console... READ ERROR\n");
+	    return HT_ERROR;
+	}
+#endif /* 0 */
+#endif /* !WWW_MSWINOWS */
 }
 
 /*	terminate_handler
@@ -1877,7 +1893,7 @@ int main (int argc, char ** argv)
 #ifdef STDIN_FILENO
 	HTRequest_setAnchor(request, (HTAnchor *) lm->anchor);
 	HTRequest_setPreemptive(request, YES);
-	HTLoadSocket(STDIN_FILENO, request, FD_NONE);
+	HTLoadSocket(STDIN_FILENO, request);
 #endif
 	Cleanup(lm, 0);
     }
@@ -1903,7 +1919,7 @@ int main (int argc, char ** argv)
 		      (void *)lm);
      /* Add our own filter to update the history list */
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
-    HTEventrg_registerTimeout(lm->tv, request, timeout_handler, NO);
+    HTEventList_registerTimeout(lm->tv, request, timeout_handler, NO);
 
 /*    if (picsUserList && !CSUserList_load(picsUserList, lm->cwd))
         HTTrace("Unable to load PICS user list \"%s\".\n", picsUserList); */
@@ -1944,18 +1960,18 @@ int main (int argc, char ** argv)
 	** Register STDIN as the user socket IF not STDIN is connected to
 	** /dev/null or other non-terminal devices
 	*/
+	ConsoleEvent.param = lm->console;
 #ifdef STDIN_FILENO
 	if (isatty(STDIN_FILENO)) {
-	    HTEventrg_registerTTY(STDIN_FILENO, lm->console, (SockOps)FD_READ,
-				scan_command, HT_PRIORITY_MAX);
+	    HTEventList_register(STDIN_FILENO, HTEvent_READ, &ConsoleEvent);
 	}
 #else
-	HTEventrg_registerTTY(0, lm->console, (SockOps)FD_READ, scan_command, 1);
+	HTEventList_register(GetStdHandle(STD_INPUT_HANDLE), HTEvent_READ, &ConsoleEvent);
 #endif
     }
 
     /* Go into the event loop... */
-    HTEventrg_loop(request);
+    HTEventList_loop(request);
 
     /* Only gets here if event loop fails */
     Cleanup(lm, 0);

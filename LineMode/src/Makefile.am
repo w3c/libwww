@@ -44,5 +44,5 @@ EXTRA_DIST = \
 	$(BUILT_SOURCES) \
 	DefaultStyles.c.classic \
 	DefaultStyles.c.modern \
- 	a_stdio.g \
+	a_stdio.g \
 	a_stdio.h

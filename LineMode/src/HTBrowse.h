@@ -32,9 +32,9 @@ extern int OutputData(HTView * pView, const char  * fmt, ...);
 #endif /* HTBROWSE_H */
 
 /* for access to windows app's windows procedures */
-typedef int InputParser_t (char* buf, SOCKET s, HTRequest * req, SockOps ops);
+typedef int InputParser_t (char* buf, SOCKET s, HTRequest * req, HTEventType type);
 extern InputParser_t * PInputParser;
-PUBLIC int bufferInput (char* buf, int len, SOCKET s, HTRequest * req, SockOps ops);
+PUBLIC int bufferInput (char* buf, int len, SOCKET s, HTRequest * req, HTEventType type);
 extern LineMode * Context_getLineMode(HTRequest * request);
 extern HTRequest * LineMode_getConsole(LineMode * pLm);
 extern HTView * LineMode_getView(LineMode * pLm);
@@ -42,4 +42,4 @@ extern HTView * HTView_create(char* name, int rows, int cols, LineMode * pLm);
 extern BOOL HTView_destroy(HTView * pView);
 /*
 
-   End of HTBrowse Declaration */
+   End of HTBrowse Declaration*/
