@@ -473,6 +473,21 @@ PUBLIC BOOL HTRequest_negotiation (HTRequest * me)
 }
 
 /*
+**  Use preconditions when doing a PUT or a POST. These are the
+**  if-* header fields that can be used to avoid version conflicts
+**  etc.
+*/
+PUBLIC void HTRequest_setPreconditions (HTRequest * me, BOOL mode)
+{
+    if (me) me->preconditions = mode;
+}
+
+PUBLIC BOOL HTRequest_preconditions (HTRequest * me)
+{
+    return me ? me->preconditions : NO;
+}
+
+/*
 **	Set General Headers
 */
 PUBLIC void HTRequest_setGnHd (HTRequest * me, HTGnHd gnhd)

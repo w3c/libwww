@@ -342,6 +342,15 @@ extern void HTRequest_setNegotiation (HTRequest *request, BOOL mode);
 extern BOOL HTRequest_negotiation (HTRequest *request);
 </PRE>
 <H2>
+  Request Preconditions
+</H2>
+Should this request use preconditions when doing a PUT or a POST? These are the
+if-* header fields that can be used to avoid version conflicts etc. The default is no.
+<PRE>
+extern void HTRequest_setPreconditions (HTRequest * me, BOOL mode);
+extern BOOL HTRequest_preconditions (HTRequest * me);
+</PRE>
+<H2>
   Handling Metainformation (RFC822 Headers)
 </H2>
 <P>
