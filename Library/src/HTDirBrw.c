@@ -10,10 +10,10 @@
 **	The module is only compiled if GOT_READ_DIR is defined
 **
 ** Authors:
-**		HF	Henrik Frystyk, CERN, <frystyk@dxcern.cern.ch>
+**		HF	Henrik Frystyk, CERN, <frystyk@w3.org>
 **		AL	Ari Luotonen, CERN, <luotonen@www.cern.ch>
 ** History:
-**	   Mar 94  HF	Written by Henrik Frystyk, frystyk@dxcern.cern.ch,
+**	   Mar 94  HF	Written by Henrik Frystyk, frystyk@w3.org,
 **			but with some of the Directory stuff brought from
 **			HTFile().
 **	   Mar 94  AL	Configurable icons.

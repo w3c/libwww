@@ -5,7 +5,7 @@
 **	Please first read the full copyright statement in the file COPYRIGH.
 **
 ** Authors
-**	TBL	Tim Berners-Lee timbl@info.cern.ch
+**	TBL	Tim Berners-Lee timbl@w3.org
 **	JFG	Jean-Francois Groff jgh@next.com
 **	DD	Denis DeLaRoca (310) 825-4580  <CSP1DWD@mvs.oac.ucla.edu>
 ** History

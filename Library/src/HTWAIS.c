@@ -11,7 +11,7 @@
 **
 ** Authors
 **	BK	Brewster Kahle, Thinking Machines, <Brewster@think.com>
-**	TBL	Tim Berners-Lee, CERN <timbl@info.cern.ch>
+**	TBL	Tim Berners-Lee, CERN <timbl@w3.org>
 **
 ** History
 **	   Sep 91	TBL adapted shell-ui.c (BK) with HTRetrieve.c from WWW.

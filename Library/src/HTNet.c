@@ -8,7 +8,7 @@
 **	functions. This includes an interrupt handler and a event loop.
 **	
 ** History:
-**  	12 June 94	Written by Henrik Frystyk, frystyk@dxcern.cern.ch
+**  	12 June 94	Written by Henrik Frystyk, frystyk@w3.org
 */
 
 /* Implemention dependent include files */

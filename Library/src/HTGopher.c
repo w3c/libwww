@@ -8,7 +8,7 @@
 **	26 Sep 90	Adapted from other accesses (News, HTTP) TBL
 **	29 Nov 91	Downgraded to C, for portable implementation.
 **	28 Apr 94	target no more global and icons implemented
-**			HF, frystyk@dxcern.cern.ch
+**			HF, frystyk@w3.org
 **	 2 May 94	Fixed possible security hole when the URL contains
 **			a newline, that could cause multiple commands to be
 **			sent to a Gopher server. AL, luotonen@www.cern.ch

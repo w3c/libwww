@@ -263,8 +263,8 @@ PRIVATE BOOL match ARGS2 (CONST char *,unknown, CONST char *,tmplate)
 **	THE EMAIL ADDRESS IS CORRUPTED
 **
 ** For example, returns "Tim Berners-Lee" if given any of
-**	" Tim Berners-Lee <tim@online.cern.ch> "
-**  or	" tim@online.cern.ch ( Tim Berners-Lee ) "
+**	" Tim Berners-Lee <tim@w3.org> "
+**  or	" tim@w3.org ( Tim Berners-Lee ) "
 */
 PRIVATE char * author_name ARGS1 (char *,email)
 {

@@ -5,7 +5,7 @@
 **	Please first read the full copyright statement in the file COPYRIGH.
 **
 ** Authors
-**	TBL	Tim Berners-Lee timbl@info.cern.ch
+**	TBL	Tim Berners-Lee timbl@w3.org
 **	JFG	Jean-Francois Groff jfg@dxcern.cern.ch
 **	DD	Denis DeLaRoca (310) 825-4580  <CSP1DWD@mvs.oac.ucla.edu>
 ** History
@@ -774,7 +774,7 @@ PUBLIC BOOL HTLoadTerminate ARGS2(HTRequest *, request, int, status)
       default:
 	if (PROT_TRACE) {
 	    fprintf(TDEST, "HTAccess.... **** Internal software error in CERN WWWLib version %s ****\n", HTLibraryVersion);
-	    fprintf(TDEST, "............ Please mail libwww@info.cern.ch quoting what software\n");
+	    fprintf(TDEST, "............ Please mail libwww@w3.org quoting what software\n");
 	    fprintf(TDEST, "............ and version you are using including the URL:\n");
 	    fprintf(TDEST, "............ `%s\'\n", uri);
 	    fprintf(TDEST, "............ that caused the problem, thanks!\n");
@@ -1293,7 +1293,7 @@ PUBLIC int HTUploadAnchor ARGS3(HTAnchor *,		src_anchor,
 **  calling HTParse initially. 
 **  
 **  The code for this routine originates from the Linemode 
-**  browser and was moved here by howcome@dxcern.cern.ch
+**  browser and was moved here by howcome@w3.org
 **  in order for all clients to take advantage.
 **
 **  The string returned must be freed by the caller

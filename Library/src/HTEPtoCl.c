@@ -10,7 +10,7 @@
 **      can overWrite it.
 **
 ** History:
-**  	19 Sep 94	Written by Hakon W Lie, howcome@info.cern.ch
+**  	19 Sep 94	Written by Hakon W Lie, howcome@w3.org
 */
 
 /* Library include files */

@@ -10,7 +10,7 @@
 **	request structure and freed together with this.
 **
 ** History:
-**  	05 May 94	Written by Henrik Frystyk, frystyk@dxcern.cern.ch
+**  	05 May 94	Written by Henrik Frystyk, frystyk@w3.org
 */
 
 /* Library include files */

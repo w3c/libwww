@@ -20,11 +20,11 @@
 **	succession, it will hang for what remains of a minute.
 **
 ** Authors
-**	TBL	Tim Berners-lee <timbl@info.cern.ch>
+**	TBL	Tim Berners-lee <timbl@w3.org>
 **	DD	Denis DeLaRoca 310 825-4580 <CSP1DWD@mvs.oac.ucla.edu>
 **      LM      Lou Montulli <montulli@ukanaix.cc.ukans.edu>
 **      FM      Foteos Macrides <macrides@sci.wfeb.edu>
-**	HF	Henrik Frystyk <frystyk@dxcern.cern.ch>
+**	HF	Henrik Frystyk <frystyk@w3.org>
 **	AL	Ari Luotonen <luotonen@www.cern.ch>
 **
 ** History:

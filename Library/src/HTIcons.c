@@ -8,7 +8,7 @@
 **	and selecting the icon for local directory listings, FTP and Gopher.
 **
 **	History:
-**	   Mar 94	Written by Ari Luotonen, luotonen@ptsun00.cern.ch
+**	   Mar 94	Written by Ari Luotonen, luotonen@dxcern.cern.ch
 **
 */
 
