@@ -838,8 +838,8 @@ PUBLIC void HTCopy ARGS2(
 	if (status <= 0) {
 	    if (status == 0) break;
 	    if (TRACE) fprintf(stderr,
-		"HTFormat: Read error, read returns %d with errno=%d (%s)\n",
-		status, errno, strerror(errno));
+		"HTFormat: Read error, read returns %d with errno=%d\n",
+		status, errno);
 	    break;
 	}
 	

@@ -41,12 +41,24 @@ extern int HTDirReadme;		/* Include readme files in listing? */
 
 #define HT_DIR_README_FILE		"README"
 
+</PRE>
 
+<H2>Do Multiformat Handling</H2>
+<PRE>
 PUBLIC BOOL HTMulti PARAMS((HTRequest * req));
 
 </PRE>
-<H2>Convert filenames between local and
-WWW formats</H2>
+
+<H2>Get and set attributes for request</H2>
+This sets Content-Length and Last-Modified fields to
+request by doing a <CODE>stat()</CODE> for
+<CODE>req-&gt;translated</CODE>
+<PRE>
+PUBLIC BOOL HTGetAttributes PARAMS((HTRequest * req));
+
+</PRE>
+
+<H2>Convert filenames between local and WWW formats</H2>
 <PRE>extern char * HTLocalName PARAMS((CONST char * name));
 
 
