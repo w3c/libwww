@@ -50,6 +50,7 @@ PRIVATE HTParentAnchor * HTParentAnchor_new (void)
     newAnchor->date = (time_t) -1;
     newAnchor->expires = (time_t) -1;
     newAnchor->last_modified = (time_t) -1;
+    newAnchor->age = (time_t) -1;
     return newAnchor;
 }
 
@@ -316,25 +317,8 @@ PRIVATE void * delete_parent (HTParentAnchor * me)
     HT_FREE(me->address);
 
     /* Then remove entity header information (metainformation) */
-    HT_FREE(me->title);
-    if (me->content_encoding) HTList_delete(me->content_encoding);
-    if (me->content_language) HTList_delete(me->content_language);
-    HT_FREE(me->content_location);
+    HTAnchor_clearHeader(me);
 
-    /* Type parameter information */
-    if (me->type_parameters) HTAssocList_delete(me->type_parameters);
-
-    HT_FREE(me->derived_from);
-    HT_FREE(me->version);
-    HT_FREE(me->etag);
-
-    if (me->extra_headers) {
-	HTList *cur = me->extra_headers;
-	char *pres;
-	while ((pres = (char *) HTList_nextObject(cur)))
-	    HT_FREE(pres);
-	HTList_delete(me->extra_headers);
-    }
     HT_FREE(me);
     return doc;
 }
@@ -594,17 +578,46 @@ PUBLIC BOOL HTAnchor_hasChildren  (HTParentAnchor * me)
     return (me && me->children);
 }
 
-/*	Cache Information
-**	-----------------
+/*
+**  Check whether we can cache this object or not.
 */
-PUBLIC BOOL HTAnchor_cacheHit (HTParentAnchor * me)
+PUBLIC BOOL HTAnchor_cachable (HTParentAnchor * me)
 {
-    return me ? me->cacheHit : NO;
+    if (me) {
+
+	/* We may already have decided that this object is not cachable */
+	if (me->cachable == NO) return NO;
+
+	/*  We don't cache negotiated resources for the moment */
+	if (me->variants) return NO;
+
+	/*
+	**  Check if we should cache this object or not. We are very liberale
+	**  in that we cache everything except if we explicit are told not to
+	**  cache (no-store, no-cache). In all other cases we can get around
+	**  it by forcing revalidation
+	*/
+	if (me->cache_control) {
+	    char * token;
+	    if ((token=HTAssocList_findObject(me->cache_control, "no-store")))
+		return NO;
+	    if ((token=HTAssocList_findObject(me->cache_control, "no-cache")))
+		if (!*token) return NO;
+	}
+
+	/* Cache everything else */
+	return YES;
+    }
+    return NO;
 }
 
-PUBLIC void HTAnchor_setCacheHit (HTParentAnchor * me, BOOL cacheHit)
+PUBLIC BOOL HTAnchor_setCachable (HTParentAnchor * me, BOOL mode)
 {
-    if (me) me->cacheHit = cacheHit;
+    if (me) {
+	me->cachable = mode;
+	return YES;
+    }
+    return NO;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -635,6 +648,55 @@ PUBLIC BOOL HTAnchor_deleteVariant (HTParentAnchor * me,
 				    HTParentAnchor * variant)
 {
     return (me && variant) ? HTList_removeObject(me->variants, variant) : NO;
+}
+
+/*
+**  Cache control directives that we haev received
+*/
+PUBLIC BOOL HTAnchor_addCacheControl (HTParentAnchor * anchor,
+				      char * token, char * value)
+{
+    if (anchor) {
+	if (!anchor->cache_control) anchor->cache_control = HTAssocList_new();
+	return HTAssocList_addObject(anchor->cache_control, token, value);
+    }
+    return NO;
+}
+
+PUBLIC BOOL HTAnchor_deleteCacheControl (HTParentAnchor * anchor)
+{
+    if (anchor && anchor->cache_control) {
+	HTAssocList_delete(anchor->cache_control);
+	anchor->cache_control = NULL;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTAssocList * HTAnchor_cacheControl (HTParentAnchor * anchor)
+{
+    return (anchor ? anchor->cache_control : NULL);
+}
+
+PUBLIC time_t HTAnchor_maxAge (HTParentAnchor * anchor)
+{
+    if (anchor && anchor->cache_control) {
+	char * token = HTAssocList_findObject(anchor->cache_control, "max-age");
+	if (token) return atol(token);
+    }
+    return (time_t) -1;
+}
+
+PUBLIC BOOL HTAnchor_mustRevalidate (HTParentAnchor * anchor)
+{
+    return anchor && anchor->cache_control &&
+	(HTAssocList_findObject(anchor->cache_control, "must-revalidate") != NULL);
+}
+
+PUBLIC char * HTAnchor_noCache (HTParentAnchor * anchor)
+{
+    return (anchor && anchor->cache_control) ?
+	HTAssocList_findObject(anchor->cache_control, "no-cache") : NULL;
 }
 
 /*
@@ -943,6 +1005,19 @@ PUBLIC void HTAnchor_setLastModified (HTParentAnchor * me, const time_t lm)
 }
 
 /*
+**	Age
+*/
+PUBLIC time_t HTAnchor_age (HTParentAnchor * me)
+{
+    return me ? me->age : -1;
+}
+
+PUBLIC void HTAnchor_setAge (HTParentAnchor * me, const time_t age)
+{
+    if (me) me->age = age;
+}
+
+/*
 **	Entity Tag
 */
 PUBLIC char * HTAnchor_etag (HTParentAnchor * me)
@@ -960,6 +1035,7 @@ PUBLIC BOOL HTAnchor_isEtagWeak (HTParentAnchor * me)
     return (me && me->etag && !strncasecomp(me->etag, "W/", 2));
 }
 
+#if 0
 /*
 **	Extra Header List of unknown headers
 */
@@ -978,18 +1054,31 @@ PUBLIC void HTAnchor_addExtra (HTParentAnchor * me, const char * header)
 	HTList_addObject(me->extra_headers, (void *) newhead);
     }
 }
+#endif
 
 /*
-**	Has header been parsed?
+**  Validate anchor values and finish up parsing
 */
+PUBLIC void HTAnchor_setHeaderParsed (HTParentAnchor * me)
+{
+    if (me) {
+
+	/*
+	**  If the server did not send a date then use the current time
+	*/
+	if (me->date < 0) me->date = time(NULL);
+
+	/*
+	**  If we don't get a Last-Modified header then set it to date
+	*/
+	if (me->last_modified < 0) me->last_modified = me->date;
+	me->header_parsed = YES;
+    }
+}
+
 PUBLIC BOOL HTAnchor_headerParsed (HTParentAnchor * me)
 {
     return (me ? me->header_parsed : NO);
-}
-
-PUBLIC void HTAnchor_setHeaderParsed (HTParentAnchor * me)
-{
-    if (me) me->header_parsed = YES;
 }
 
 /*	Clear Header Information
@@ -1011,6 +1100,9 @@ PUBLIC void HTAnchor_clearHeader (HTParentAnchor * me)
     me->content_length = -1;					  /* Invalid */
     me->transfer = NULL;
 
+    /* Delete the title */
+    HT_FREE(me->title);
+
     /* Clear the content type */
     me->content_type = WWW_UNKNOWN;
     if (me->type_parameters) {
@@ -1018,15 +1110,24 @@ PUBLIC void HTAnchor_clearHeader (HTParentAnchor * me)
 	me->type_parameters = NULL;
     }    
 
+    /* Cache controls */
+    me->cachable = NO;
+    if (me->cache_control) {
+	HTAssocList_delete(me->cache_control);
+	me->cache_control = NULL;
+    }
+
     /* Dates etc. */
     me->date = (time_t) -1;
     me->expires = (time_t) -1;
     me->last_modified = (time_t) -1;
+    me->age = (time_t) -1;
     
     HT_FREE(me->derived_from);
     HT_FREE(me->version);
     HT_FREE(me->etag);
 
+#if 0
     if (me->extra_headers) {
 	HTList *cur = me->extra_headers;
 	char *pres;
@@ -1036,4 +1137,5 @@ PUBLIC void HTAnchor_clearHeader (HTParentAnchor * me)
 	me->extra_headers = NULL;
     }
     me->header_parsed = NO;				      /* All cleared */
+#endif
 }

@@ -186,10 +186,18 @@ PUBLIC void HTRequest_delete (HTRequest * request)
 	HT_FREE(request->scheme);
 
 	/* Cache control headers */
-	if (request->cache_control) HTAssocList_delete(request->cache_control);
+	if (request->cache_control)
+	    HTAssocList_delete(request->cache_control);
+
+	/* Original headers for cache */
+	if (request->headers)
+	    HTAssocList_delete(request->headers);
 
 	/* Connection headers */
-	if (request->connection) HTAssocList_delete(request->connection);
+	if (request->client_connection)
+	    HTAssocList_delete(request->client_connection);
+	if (request->server_connection)
+	    HTAssocList_delete(request->server_connection);
 
 	/* Proxy information */
 	HT_FREE(request->proxy);
@@ -199,7 +207,10 @@ PUBLIC void HTRequest_delete (HTRequest * request)
 	/* more */
 
 	/* Simple extension protocol */
-	if (request->extension) HTAssocList_delete(request->extension);
+	if (request->client_extension)
+	    HTAssocList_delete(request->client_extension);
+	if (request->server_extension)
+	    HTAssocList_delete(request->server_extension);
 
 	HT_FREE(request);
     }
@@ -832,6 +843,33 @@ PUBLIC time_t HTRequest_retryTime (HTRequest * request)
     return request ? request->retry_after : -1;
 }
 
+PUBLIC BOOL HTRequest_setRetryTime (HTRequest * request, time_t retry)
+{
+    if (request) {
+	request->retry_after = retry;
+	return YES;
+    }
+    return NO;
+}
+
+/*
+**	Date/time stamp when then request was issued
+**	This is normally set when generating the request headers.
+*/
+PUBLIC time_t HTRequest_date (HTRequest * request)
+{
+    return request ? request->date : -1;
+}
+
+PUBLIC BOOL HTRequest_setDate (HTRequest * request, time_t date)
+{
+    if (request) {
+	request->date = date;
+	return YES;
+    }
+    return NO;
+}
+
 /*
 **    Redirection informantion
 */
@@ -1085,38 +1123,67 @@ PUBLIC HTParentAnchor * HTRequest_entityAnchor (HTRequest * request)
 }
 
 /*
-**	Simple Extension Protocol
+**	Simple Extension Protocol. The extensions can be initiated by both
+**	the server and the client which is the reason for keeping two lists
 */
-PUBLIC BOOL HTRequest_addExtension (HTRequest * request,
-				    char * token, char * value)
+PUBLIC BOOL HTRequest_addClientExtension (HTRequest * request,
+					  char * token, char * value)
 {
     if (request) {
-	if (!request->extension) request->extension = HTAssocList_new();
-	return HTAssocList_addObject(request->extension, token, value);
+	if (!request->client_extension)
+	    request->client_extension = HTAssocList_new();
+	return HTAssocList_addObject(request->client_extension, token, value);
     }
     return NO;
 }
 
-PUBLIC BOOL HTRequest_deleteExtension (HTRequest * request)
+PUBLIC BOOL HTRequest_deleteClientExtension (HTRequest * request)
 {
-    if (request && request->extension) {
-	HTAssocList_delete(request->extension);
-	request->extension = NULL;
+    if (request && request->client_extension) {
+	HTAssocList_delete(request->client_extension);
+	request->client_extension = NULL;
 	return YES;
     }
     return NO;
 }
 
-PUBLIC HTAssocList * HTRequest_extension (HTRequest * request)
+PUBLIC HTAssocList * HTRequest_clientExtension (HTRequest * request)
 {
-    return (request ? request->extension : NULL);
+    return (request ? request->client_extension : NULL);
+}
+
+PUBLIC BOOL HTRequest_addServerExtension (HTRequest * request,
+					  char * token, char * value)
+{
+    if (request) {
+	if (!request->server_extension)
+	    request->server_extension = HTAssocList_new();
+	return HTAssocList_addObject(request->server_extension, token, value);
+    }
+    return NO;
+}
+
+PUBLIC BOOL HTRequest_deleteServerExtension (HTRequest * request)
+{
+    if (request && request->server_extension) {
+	HTAssocList_delete(request->server_extension);
+	request->server_extension = NULL;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTAssocList * HTRequest_serverExtension (HTRequest * request)
+{
+    return (request ? request->server_extension : NULL);
 }
 
 /*
-**	Cache control directives
+**	Cache control directives. The cache control can be initiated by both
+**	the server and the client which is the reason for keeping two lists
 */
 PUBLIC BOOL HTRequest_addCacheControl (HTRequest * request,
-				    char * token, char * value)
+					     char * token, char * value)
 {
     if (request) {
 	if (!request->cache_control) request->cache_control=HTAssocList_new();
@@ -1141,31 +1208,89 @@ PUBLIC HTAssocList * HTRequest_cacheControl (HTRequest * request)
 }
 
 /*
-**	Connection directives
+** 	Original header information used by the cache filter
 */
-PUBLIC BOOL HTRequest_addConnection (HTRequest * request,
-				    char * token, char * value)
+PUBLIC BOOL HTRequest_addHeaders (HTRequest * request,
+				  char * token, char * value)
 {
     if (request) {
-	if (!request->connection) request->connection=HTAssocList_new();
-	return HTAssocList_addObject(request->connection, token, value);
+	if (!request->headers)
+	    request->headers=HTAssocList_new();
+	return HTAssocList_addObject(request->headers, token, value);
     }
     return NO;
 }
 
-PUBLIC BOOL HTRequest_deleteConnection (HTRequest * request)
+PUBLIC BOOL HTRequest_deleteHeaders (HTRequest * request)
 {
-    if (request && request->connection) {
-	HTAssocList_delete(request->connection);
-	request->connection = NULL;
+    if (request && request->headers) {
+	HTAssocList_delete(request->headers);
+	request->headers = NULL;
 	return YES;
     }
     return NO;
 }
 
-PUBLIC HTAssocList * HTRequest_connection (HTRequest * request)
+PUBLIC HTAssocList * HTRequest_headers (HTRequest * request)
 {
-    return (request ? request->connection : NULL);
+    return (request ? request->headers : NULL);
+}
+
+/*
+**	Connection directives. The connection directies can be initiated by
+**	both the server and the client which is the reason for keeping two
+**	lists
+*/
+PUBLIC BOOL HTRequest_addClientConnection (HTRequest * request,
+					   char * token, char * value)
+{
+    if (request) {
+	if (!request->client_connection)
+	    request->client_connection=HTAssocList_new();
+	return HTAssocList_addObject(request->client_connection, token, value);
+    }
+    return NO;
+}
+
+PUBLIC BOOL HTRequest_deleteClientConnection (HTRequest * request)
+{
+    if (request && request->client_connection) {
+	HTAssocList_delete(request->client_connection);
+	request->client_connection = NULL;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTAssocList * HTRequest_clientConnection (HTRequest * request)
+{
+    return (request ? request->client_connection : NULL);
+}
+
+PUBLIC BOOL HTRequest_addServerConnection (HTRequest * request,
+					   char * token, char * value)
+{
+    if (request) {
+	if (!request->server_connection)
+	    request->server_connection=HTAssocList_new();
+	return HTAssocList_addObject(request->server_connection, token, value);
+    }
+    return NO;
+}
+
+PUBLIC BOOL HTRequest_deleteServerConnection (HTRequest * request)
+{
+    if (request && request->server_connection) {
+	HTAssocList_delete(request->server_connection);
+	request->server_connection = NULL;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTAssocList * HTRequest_serverConnection (HTRequest * request)
+{
+    return (request ? request->server_connection : NULL);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1415,12 +1540,26 @@ PUBLIC BOOL HTLoad (HTRequest * request, BOOL recursive)
         if (CORE_TRACE) HTTrace("Load Start.. Bad argument\n");
         return NO;
     }
+
+    /* Make sure that we don't carry over any old physical address */
     HTAnchor_clearPhysical(request->anchor);
+
+    /* Set the default method */
     if (request->method == METHOD_INVALID) request->method = METHOD_GET;
+
+    /* Should we keep the error stack or not? */
     if (!recursive && request->error_stack) {
 	HTError_deleteAll(request->error_stack);
 	request->error_stack = NULL;
     }
+
+    /*
+    **  We set the start point of handling a request to here.
+    **  This time will be used by the cache
+    */
+    HTRequest_setDate(request, time(NULL));
+
+    /* Now start the Net Manager */
     return HTNet_newClient(request);
 }
 

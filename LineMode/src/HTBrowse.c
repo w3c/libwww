@@ -1110,6 +1110,16 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	} else if (CHECK_INPUT("REFRESH", token)) {
 	    HText_setStale(HTMainText);			    /* Force refresh */
 	    HText_refresh(HTMainText);			   /* Refresh screen */
+
+	} else if (CHECK_INPUT("REVALIDATE", token)) {
+	    req = Thread_new(lm, YES, LM_NO_UPDATE);
+
+	    /*
+	    **  Add a end-to-end validator to the request
+	    */
+	    HTRequest_setReloadMode(req, HT_CACHE_END_VALIDATE);
+	    status = HTLoadAnchor((HTAnchor*) (HTMainAnchor ? HTMainAnchor : 
+					       lm->anchor), req);
 	} else if (CHECK_INPUT("RELOAD", token)) {
 	    req = Thread_new(lm, YES, LM_NO_UPDATE);
 
@@ -1697,10 +1707,9 @@ int main (int argc, char ** argv)
 		HTRequest_setPreemptive(request, YES);
 		lm->flags |= LM_PREEMTIVE;
 
-	    /* Specify a cache root (caching is otherwise disabled) */
-	    } else if (!strcmp(argv[arg], "-cacheroot")) {
-		HTCache_enable((arg+1>=argc || *argv[arg+1]=='-') ?
-			       NULL : argv[++arg]);
+	    /* Disconnected operation */
+	    } else if (!strncmp(argv[arg], "-discon", 7)) {
+		HTCacheMode_setDisconnected(HT_DISCONNECT_NORMAL);
 
 	    /* Handling of Expire (cache) */
 	    } else if (!strncmp(argv[arg], "-x", 2)) { 
@@ -1708,13 +1717,13 @@ int main (int argc, char ** argv)
 		  for(;*p;p++) {
 		      switch (argv[arg][2]) {
 		      case 'i':
-			  HTCache_setExpiresMode(HT_EXPIRES_IGNORE);
+			  HTCacheMode_setExpires(HT_EXPIRES_IGNORE);
 			  break;
 		      case 'n':
-			  HTCache_setExpiresMode(HT_EXPIRES_NOTIFY);
+			  HTCacheMode_setExpires(HT_EXPIRES_NOTIFY);
 			  break;
 		      case 'a':
-			  HTCache_setExpiresMode(HT_EXPIRES_AUTO);
+			  HTCacheMode_setExpires(HT_EXPIRES_AUTO);
 			  break;
 		      default:
 			  if (SHOW_MSG)

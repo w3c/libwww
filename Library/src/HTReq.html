@@ -186,11 +186,33 @@ extern HTMethod HTRequest_method (HTRequest *request);
 </H2>
 <P>
 The connection control directives are all part of the connection header and
-control the behavior of this connection.
-<PRE>extern BOOL HTRequest_addConnection (HTRequest * request,
+control the behavior of this connection. <CODE>Connection</CODE> directives
+can be sent in both directions - that is - from the server to the client
+and vise-verse. In order to separate outgoing from incoming cache control
+directives, we keep two lists - one for outgoing and one for incoming.
+<H4>
+  Client Connection Directives
+</H4>
+<P>
+This association list is a list of the connection control directives that
+are to be sent as part of the <CODE>Cache-Control</CODE> header.
+<PRE>
+extern BOOL HTRequest_addClientConnection (HTRequest * request,
                                            char * token, char * value);
-extern BOOL HTRequest_deleteConnection    (HTRequest * request);
-extern HTAssocList * HTRequest_connection (HTRequest * request);
+extern BOOL HTRequest_deleteClientConnection (HTRequest * request);
+extern HTAssocList * HTRequest_clientConnection (HTRequest * request);
+</PRE>
+<H4>
+  Server Connection Directives
+</H4>
+<P>
+This association list is a list of the cache control directives that have
+been received as part of the <CODE>Cache-Control</CODE> header.
+<PRE>
+extern BOOL HTRequest_addServerConnection (HTRequest * request,
+                                           char * token, char * value);
+extern BOOL HTRequest_deleteServerConnection (HTRequest * request);
+extern HTAssocList * HTRequest_serverConnection (HTRequest * request);
 </PRE>
 <H2>
   Cache Validation and Cache Control
@@ -200,13 +222,17 @@ The Library has two concepts of caching: in memory and on file. When loading
 a document, this flag can be set in order to define who can give a response
 to the request. The mempory buffer is considered to be equivalent to a history
 buffer. That is, it doesn't not follow the same expiration mechanism that
-is characteristic for a persistent file cache.
+is characteristic for a persistent file cache.<P>
+
+You can also set the cache to run in disconnected mode - see the <A HREF="HTCache.html">Cache manager</A> for more details on how to do this.
+
 <PRE>
 typedef enum _HTReload {
-    HT_CACHE_OK	        = 0x0,		/* Use any version available */
-    HT_CACHE_FLUSH_MEM	= 0x1,		/* Reload from file cache or network */
-    HT_CACHE_VALIDATE	= 0x2,		/* Validate cache entry */
-    HT_CACHE_FLUSH	= 0x4		/* Force full reload */
+    HT_CACHE_OK	          = 0x0,	        /* Use any version available */
+    HT_CACHE_FLUSH_MEM	  = 0x1,	/* Reload from file cache or network */
+    HT_CACHE_VALIDATE	  = 0x2,	             /* Validate cache entry */
+    HT_CACHE_END_VALIDATE = 0x4,                    /* End to end validation */
+    HT_CACHE_FLUSH	  = 0x8                         /* Force full reload */
 } HTReload;
 
 extern void HTRequest_setReloadMode (HTRequest *request, HTReload mode);
@@ -218,10 +244,15 @@ extern HTReload HTRequest_reloadMode (HTRequest *request);
 <P>
 The cache control directives are all part of the cache control header and
 control the behavior of any intermediate cache between the user agent and
-the origin server.
-<PRE>extern BOOL HTRequest_addCacheControl       (HTRequest * request,
-                                             char * token, char * value);
-extern BOOL HTRequest_deleteCacheControl    (HTRequest * request);
+the origin server. <CODE>Cache-control</CODE> directives can be sent in both
+directions - that is - from the server to the client and vise-verse. We keep
+the out-going ones here and the incoming becomes part of the anchor object.
+This association list is a list of the cache control directives that are
+to be sent as part of the <CODE>Cache-Control</CODE> request header.
+<PRE>
+extern BOOL HTRequest_addCacheControl (HTRequest * request,
+                                       char * token, char * value);
+extern BOOL HTRequest_deleteCacheControl (HTRequest * request);
 extern HTAssocList * HTRequest_cacheControl (HTRequest * request);
 </PRE>
 <H2>
@@ -291,14 +322,33 @@ new headers. Here we present a new idea which provides a framework for describin
 extensions and their scope. This is only an idea an may be modified later!
 The implementation of the extensions can be found in the
 <A HREF="HTPEP.html">PEP module</A>
-<PRE>
-extern BOOL HTRequest_addExtension (HTRequest * request, char * token, char
-* value);
-extern BOOL HTRequest_deleteExtension (HTRequest * request);
-extern HTAssocList * HTRequest_extension (HTRequest * request);
-</PRE>
+<H4>
+  Client Extensions Directives
+</H4>
 <P>
-Max number of Retrys for a Down Load
+This association list is a list of the extension directives that are to be
+sent as part of the <CODE>Extension</CODE> header.
+<PRE>
+extern BOOL HTRequest_addClientExtension (HTRequest * request,
+                                          char * token, char * value);
+extern BOOL HTRequest_deleteClientExtension (HTRequest * request);
+extern HTAssocList * HTRequest_clientExtension (HTRequest * request);
+</PRE>
+<H4>
+  Server Extensions Directives
+</H4>
+<P>
+This association list is a list of the extension directives that have been
+received as part of the <CODE>Extension</CODE> header.
+<PRE>
+extern BOOL HTRequest_addServerExtension (HTRequest * request,
+                                          char * token, char * value);
+extern BOOL HTRequest_deleteServerExtension (HTRequest * request);
+extern HTAssocList * HTRequest_serverExtension (HTRequest * request);
+</PRE>
+<H2>
+  Max number of Retrys for a Down Load
+</H2>
 <P>
 Automatic reload can happen in two situations:
 <UL>
@@ -335,6 +385,18 @@ A <CODE>TRACE</CODE> request <I>MUST NOT</I> include an entity.
 extern int HTRequest_maxForwards (HTRequest * request);
 </PRE>
 <H2>
+  Date and Time Stamp when Request was Issued
+</H2>
+<P>
+The start time when the request was issued may be of value to the cache
+validation mechanism as described by the HTTP/1.1 specification. The value
+is automatically set when creating the request headers and sending off the
+request. The time is a local time.
+<PRE>
+extern time_t HTRequest_date  (HTRequest * request);
+extern BOOL HTRequest_setDate (HTRequest * request, time_t date);
+</PRE>
+<H2>
   Retry Request After
 </H2>
 <P>
@@ -347,6 +409,7 @@ any request on its own - it's for the application to do. The time returned
 by this function is in calendar time or -1 if not available.
 <PRE>
 extern time_t HTRequest_retryTime (HTRequest * request);
+extern BOOL HTRequest_setRetryTime (HTRequest * request, time_t retry);
 </PRE>
 <H2>
   Accept Headers
@@ -572,6 +635,21 @@ extern void HTRequest_setGenerator (HTRequest *request, HTList *gens,
 				    BOOL override);
 extern HTList * HTRequest_generator (HTRequest *request, BOOL *override);
 </PRE>
+<H3>
+  Original Headers
+</H3>
+<P>
+The <A HREF="HTMIME.html">MIME parser</A> may add the original headers as
+(name,value) pairs. The information may be picked up by the
+<A HREF="WWWCache.html">persistent cache manager</A>.
+<PRE>
+extern BOOL HTRequest_addHeaders (HTRequest * request, char * token, char * value);
+extern BOOL HTRequest_deleteHeaders (HTRequest * request);
+extern HTAssocList * HTRequest_headers (HTRequest * request);
+</PRE>
+<H3>
+  MIME Parsers
+</H3>
 <P>
 MIMEParsers get their own type which is optimized for static and regex parser
 strings.

@@ -374,7 +374,7 @@ PUBLIC int HTPEP_beforeFilter (HTRequest * request, void * param, int status)
 PUBLIC int HTPEP_afterFilter (HTRequest * request, void * param, int status)
 {
     int ret = HT_OK;
-    HTAssocList * protocols = HTRequest_extension(request);
+    HTAssocList * protocols = HTRequest_serverExtension(request);
     if (protocols) {
 	HTPEPElement * pres;
 	if (APP_TRACE)

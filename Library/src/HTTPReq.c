@@ -72,6 +72,7 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
     HTMethod method = HTRequest_method(request);
     HTRqHd request_mask = HTRequest_rqHd(request);
     HTParentAnchor * anchor = HTRequest_anchor(request);
+    char * etag = HTAnchor_etag(anchor);
     char crlf[3];
     char qstr[10];
     *crlf = CR; *(crlf+1) = LF; *(crlf+2) = '\0';
@@ -272,40 +273,34 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
     **  priority than the date relates ones. That is, if we have a etag then
     **  use that, otherwise use the date
     */
-    if (request_mask & HT_C_IF_MATCH) {
-	char * etag = HTAnchor_etag(anchor);
-	if (etag) {
-	    PUTS("If-Match: \"");
-	    PUTS(etag);
-	    PUTC('"');
-	    PUTBLOCK(crlf, 2);
-	    if (PROT_TRACE) HTTrace("HTTP........ Using etag `%s\'\n", etag);
-	}
-    } else if (request_mask & HT_C_IMS) {
-	time_t lm = HTAnchor_lastModified(anchor);
-	if (lm > 0) {
-	    PUTS("If-Modified-Since: ");
-	    PUTS(HTDateTimeStr(&lm, NO));
-	    PUTBLOCK(crlf, 2);
-	    if (PROT_TRACE) HTTrace("HTTP........ Using date validator\n");
-	}
-    }
-    if (request_mask & HT_C_IF_NONE_MATCH) {
-	char * etag = HTAnchor_etag(anchor);
-	if (etag) {
-	    PUTS("If-None-Match: \"");
-	    PUTS(etag);
-	    PUTC('"');
-	    PUTBLOCK(crlf, 2);
-	    if (PROT_TRACE) HTTrace("HTTP........ Using etag `%s\'\n", etag);
-	}
+    if (request_mask & HT_C_IF_MATCH && etag) {
+	PUTS("If-Match: \"");
+	PUTS(etag);
+	PUTC('"');
+	PUTBLOCK(crlf, 2);
+	if (PROT_TRACE) HTTrace("HTTP........ If-Match using etag `%s\'\n", etag);
     } else if (request_mask & HT_C_IF_UNMOD_SINCE) {
 	time_t lm = HTAnchor_lastModified(anchor);
 	if (lm > 0) {
 	    PUTS("If-Unmodified-Since: ");
 	    PUTS(HTDateTimeStr(&lm, NO));
 	    PUTBLOCK(crlf, 2);
-	    if (PROT_TRACE) HTTrace("HTTP........ Using date validator\n");
+	    if (PROT_TRACE) HTTrace("HTTP........ If-Unmodified-Since\n");
+	}
+    }
+    if (request_mask & HT_C_IF_NONE_MATCH && etag) {
+	PUTS("If-None-Match: \"");
+	PUTS(etag);
+	PUTC('"');
+	PUTBLOCK(crlf, 2);
+	if (PROT_TRACE) HTTrace("HTTP........ If-None-Match using etag `%s\'\n", etag);
+    } else if (request_mask & HT_C_IMS) {
+	time_t lm = HTAnchor_lastModified(anchor);
+	if (lm > 0) {
+	    PUTS("If-Modified-Since: ");
+	    PUTS(HTDateTimeStr(&lm, NO));
+	    PUTBLOCK(crlf, 2);
+	    if (PROT_TRACE) HTTrace("HTTP........ If-Modified-Since\n");
 	}
     }
 

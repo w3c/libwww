@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<!-- Changed by: Henrik Frystyk Nielsen, 16-Jul-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 16-Jul-1996 -->
   <TITLE>W3C Reference Library libwww Anchor Class</TITLE>
 </HEAD>
 <BODY>
@@ -273,6 +273,39 @@ header. This is for the <A HREF="HTMIME.html">MIME parser</A> to find out.
 extern void HTAnchor_setCacheHit	(HTParentAnchor	* me, BOOL cacheHit);
 </PRE>
 <H3>
+  Is the Object Cachable?
+</H3>
+<P>
+The various cache-control headers and directives decides whether an object
+is cachable or not. Check these methods before starting caching!
+<PRE>extern BOOL HTAnchor_cachable           (HTParentAnchor * me);
+extern BOOL HTAnchor_setCachable        (HTParentAnchor * me, BOOL mode);
+</PRE>
+<H3>
+  Cache Control Directives
+</H3>
+<P>
+The cache control directives are all part of the cache control header and
+control the behavior of any intermediate cache between the user agent and
+the origin server. <CODE>Cache-control</CODE> directives can be sent in both
+directions - that is - from the server to the client and vise-verse. We keep
+the incoming ones here and the out-going as part of the
+<A HREF="HTReq.html">request object</A>.
+<PRE>
+extern BOOL HTAnchor_addCacheControl       (HTParentAnchor * anchor,
+                                            char * token, char * value);
+extern BOOL HTAnchor_deleteCacheControl    (HTParentAnchor * anchor);
+extern HTAssocList * HTAnchor_cacheControl (HTParentAnchor * anchor);
+</PRE>
+
+Some useful helper functions for handling specific cache directives
+
+<PRE>
+extern time_t HTAnchor_maxAge              (HTParentAnchor * anchor);
+extern BOOL   HTAnchor_mustRevalidate      (HTParentAnchor * anchor);
+</PRE>
+
+<H3>
   Is the Anchor searchable?
 </H3>
 <PRE>extern void HTAnchor_clearIndex		(HTParentAnchor * me);
@@ -433,6 +466,18 @@ extern void HTAnchor_setEtag	(HTParentAnchor * me, const char * etag);
 extern BOOL HTAnchor_isEtagWeak	(HTParentAnchor * me);
 </PRE>
 <H3>
+  Age Header
+</H3>
+<P>
+The <CODE>Age</CODE> response-header field conveys the sender's estimate
+of the amount of time since the response (or its revalidation) was generated
+at the origin server. A cached response is "fresh" if its age does not exceed
+its freshness lifetime.
+<PRE>
+extern time_t HTAnchor_age    (HTParentAnchor * me);
+extern void HTAnchor_setAge   (HTParentAnchor * me, const time_t age);
+</PRE>
+<H3>
   Expires Date
 </H3>
 <PRE>
@@ -446,24 +491,12 @@ extern void HTAnchor_setExpires		(HTParentAnchor	* me, const time_t exp);
 extern char * HTAnchor_derived	(HTParentAnchor *me);
 extern void HTAnchor_setDerived	(HTParentAnchor *me, const char *derived_from);
 </PRE>
-<H3>
-  Extra Headers
-</H3>
-<P>
-List of unknown headers coming in from the network. Do not use the
-<CODE>HTAnchor_addExtra()</CODE> function to extra headers here, but use
-the field in the <A HREF="HTReq.html#z1">request structure</A> for sending
-test headers.
-<PRE>
-extern HTList * HTAnchor_Extra		(HTParentAnchor *me);
-extern void HTAnchor_addExtra		(HTParentAnchor *me,
-					 const char *	header);
-</PRE>
 <H2>
   Status of Header Parsing
 </H2>
 <P>
-These are primarily for internal use
+This is primarily for internal use. It is so that we can check whether the
+header has been parsed or not.
 <PRE>extern BOOL HTAnchor_headerParsed	(HTParentAnchor *me);
 extern void HTAnchor_setHeaderParsed	(HTParentAnchor *me);
 </PRE>

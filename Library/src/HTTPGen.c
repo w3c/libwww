@@ -73,7 +73,7 @@ PRIVATE int HTTPGenMake (HTStream * me, HTRequest * request)
 	}
     }
     if (gen_mask & HT_G_CONNECTION) {
-	HTAssocList * cur = HTRequest_cacheControl(request);
+	HTAssocList * cur = HTRequest_clientConnection(request);
 	if (cur) {
 	    BOOL first=YES;
 	    HTAssoc * pres;
@@ -98,7 +98,7 @@ PRIVATE int HTTPGenMake (HTStream * me, HTRequest * request)
 	}
     }
     if (gen_mask & HT_G_DATE) {
-	time_t local = time(NULL);
+	time_t local = HTRequest_date(request);
 	sprintf(linebuf, "Date: %s%c%c", HTDateTimeStr(&local, NO), CR,LF);
 	PUTBLOCK(linebuf, (int) strlen(linebuf));
     }

@@ -1,77 +1,82 @@
 <HTML>
 <HEAD>
-<TITLE>Defining the address of your news server for WWW</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  8-Oct-1995 -->
-<NEXTID N="z3">
+  <!-- Changed by: Henrik Frystyk Nielsen,  8-Oct-1995 -->
+  <NEXTID N="z3">
+  <TITLE>Defining the address of your news server for WWW</TITLE>
 </HEAD>
 <BODY>
-
+<P>
 <A HREF="../../"><IMG ALT="W3C" SRC="../../Icons/WWW/w3c_48x48"></A>
 <A HREF="../"><IMG ALT="LMB" SRC="../../Icons/WWW/LMB48x"></A>
-
-<H1>Defining a News Server</H1>
-
-To be able to read news, the <A HREF="../">Line Mode Browser (www)</A>
-needs the address of a <A HREF="AboutNewsServers.html" NAME="z2">news
-server</A>. This is a machine which runs the NNTP protocol.  If you
-already use internet news on your site, you will have one of
-these. There are several ways you can tell <EM>www</EM>which news
-server to use.<P>
-
-Note you may also have your machine enabled as being authorized to
-pick up news from the news server by that server's system manager.
-
-<H2>For a NeXT</H2>
-
-The NeXT defaults are read, looking for a value for "NewsHost" for
-application name "WorldWideWeb", then for a global default, then for
-application named "News".
-
-<H2>All other cases</H2>
-
-On all other platforms (?) you can do one of the following in order to
-define a news server.
-
-<H3>Set an environment variable</H3>
-
-You can set the environment variable <B>NNTPSERVER</B> to be the
-internet address of the server.  As a n example, you can do this in
-your <EM>.login</EM> file, or your <EM>.cshrc</EM> file.  (On VMS, use
-a logical name, on VM/CMS, the CENV globalv table).
-
-<H3>Use a file</H3>
-
-The file <EM>/usr/local/lib/rn/server</EM> will be read if it exists
-and no environment variable is defined.  It should contain the single
-line containing the name of the news server.  This filename may be
-overridden at compile time by defining the SERVER_FILE symbol to be
-the quoted string.
-
-<H3>At Compile Time</H3>
-
-If you are installing www for several people, you can set the default
-by defining the variable <EM>DEFAULT_NEWS_HOST</EM> to be the quoted
-string of the server name on the command line for the compilation of
-the HTNews.c module For example, use the option (check your own
-compiler's command line syntax)
-
+<H1>
+  Defining a News Server
+</H1>
+<P>
+To be able to read news, the <A HREF="../">Line Mode Browser (www)</A> needs
+the address of a <A HREF="AboutNewsServers.html" NAME="z2">news server</A>.
+This is a machine which runs the NNTP protocol. If you already use internet
+news on your site, you will have one of these. There are several ways you
+can tell <EM>www</EM>which news server to use.
+<P>
+Note you may also have your machine enabled as being authorized to pick up
+news from the news server by that server's system manager.
+<H2>
+  For a NeXT
+</H2>
+<P>
+The NeXT defaults are read, looking for a value for "NewsHost" for application
+name "WorldWideWeb", then for a global default, then for application named
+"News".
+<H2>
+  All other cases
+</H2>
+<P>
+On all other platforms (?) you can do one of the following in order to define
+a news server.
+<H3>
+  Set an environment variable
+</H3>
+<P>
+You can set the environment variable <B>NNTPSERVER</B> to be the internet
+address of the server. As a n example, you can do this in your
+<EM>.login</EM> file, or your <EM>.cshrc</EM> file. (On VMS, use a logical
+name, on VM/CMS, the CENV globalv table).
+<H3>
+  Use a file
+</H3>
+<P>
+The file <EM>/usr/local/lib/rn/server</EM> will be read if it exists and
+no environment variable is defined. It should contain the single line containing
+the name of the news server. This filename may be overridden at compile time
+by defining the SERVER_FILE symbol to be the quoted string.
+<H3>
+  At Compile Time
+</H3>
+<P>
+If you are installing www for several people, you can set the default by
+defining the variable <EM>DEFAULT_NEWS_HOST</EM> to be the quoted string
+of the server name on the command line for the compilation of the HTNews.c
+module For example, use the option (check your own compiler's command line
+syntax)
 <PRE>
 	-DDEFAULT_NEWS_HOST="mynewshost.domain"
 </PRE>
-
-<H3>Use a domain name alias</H3>
-
-If no other default news host is found, the software looks for a
-machine with name or alias "news" in the local domain.  If your domain
-has a single news server which you would like to use as a default, and
-the person in charge of the domain name registration agrees, then make
-an alias "news" for the server.  This will have the management
-advantage that the administration can move the news server without any
-trouble later.
-
+<H3>
+  Use a domain name alias
+</H3>
 <P>
-<HR>
-<ADDRESS><A HREF="../../People.html#BernersLee">Tim BL</A></ADDRESS>
-
-</BODY>
-</HTML>
+If no other default news host is found, the software looks for a machine
+with name or alias "news" in the local domain. If your domain has a single
+news server which you would like to use as a default, and the person in charge
+of the domain name registration agrees, then make an alias "news" for the
+server. This will have the management advantage that the administration can
+move the news server without any trouble later.
+<P>
+  <HR>
+<ADDRESS>
+  <A HREF="../../People.html#BernersLee">Tim BL</A>, Henrik Frystyk Nielsen,
+  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
+  <P>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

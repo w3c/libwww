@@ -36,7 +36,7 @@ struct _HTStream {
     BOOL			transparent;
 };
 
-#define HT_MAX_WAIT		6      /* Max number of secs to wait for PUT */
+#define HT_MAX_WAIT		8      /* Max number of secs to wait for PUT */
 
 /* ------------------------------------------------------------------------- */
 /* 			    MIME Output Request Stream			     */

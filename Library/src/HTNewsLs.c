@@ -115,7 +115,7 @@ PRIVATE BOOL ParseGroup (HTRequest * request, HTNewsDir *dir, char * line)
     while (*msgid && *msgid != DELIMITER) msgid++;
     *msgid++ = '\0';					/* Date */
     if (*msgid=='<') msgid++;
-    t = HTParseTime(date,  HTRequest_userProfile(request));
+    t = HTParseTime(date,  HTRequest_userProfile(request), YES);
     ptr = msgid;
     while (*ptr && *ptr != DELIMITER) {
 	if (*ptr=='>') *ptr = '\0';

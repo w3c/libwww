@@ -20,7 +20,6 @@
 #include "sysdep.h"
 #include "WWWUtil.h"
 #include "WWWCore.h"
-#include "WWWCache.h"
 #include "WWWMIME.h"
 #include "WWWStream.h"
 #include "WWWTrans.h"
@@ -114,30 +113,39 @@ PRIVATE int HTTPCleanup (HTRequest *req, int status)
 
 /*
 **	Informational 1xx codes are handled separately
-**	Returns YES if we should stop, NO if we should continue
+**	Returns YES if we should continue, NO if we should stop
 */
 PRIVATE BOOL HTTPInformation (HTStream * me)
 {
-    BOOL result = NO;
+    http_info * http = me->http;
     switch (me->status) {
 
-    case 101:
-	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_SWITCHING,
-			   me->reason, (int) strlen(me->reason),
-			   "HTTPInformation");
-
-	/* Here we should swap to new protocol */
-
-	result = YES;
-	break;
-
-    default:
+    case 100:
 	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_CONTINUE,
 			   me->reason, (int) strlen(me->reason),
 			   "HTTPInformation");
+	return YES;
+	break;
+
+    case 101:
+	/*
+	**  We consider 101 Switching as a final state and exit this request
+	*/
+	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_SWITCHING,
+			   me->reason, (int) strlen(me->reason),
+			   "HTTPInformation");
+	http->next = HTTP_OK;
+	http->result = HT_UPGRADE;
+	break;
+
+    default:
+	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_BAD_REPLY,
+		   (void *) me->buffer, me->buflen, "HTTPNextState");
+	http->next = HTTP_ERROR;
+	http->result = HT_ERROR;
 	break;
     }
-    return result;
+    return NO;
 }
 
 /*
@@ -442,15 +450,16 @@ PRIVATE void HTTPNextState (HTStream * me)
 */
 PRIVATE int stream_pipe (HTStream * me)
 {
-    HTRequest * req = me->request;
-    HTNet * net = req->net;
+    HTRequest * request = me->request;
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    HTNet * net = HTRequest_net(request);
     HTHost * host = HTNet_host(net);
     if (me->target) {
 	int status = PUTBLOCK(me->buffer, me->buflen);
 	if (status == HT_OK)
 	    me->transparent = YES;
 	return status;
-    } else if (HTRequest_isSource(req) && !req->output_stream) {
+    } else if (HTRequest_isSource(request)&&!HTRequest_outputStream(request)) {
 	/*
 	**  We need to wait for the destinations to get ready
 	*/
@@ -467,10 +476,12 @@ PRIVATE int stream_pipe (HTStream * me)
     if (strncasecomp(me->buffer, "http", 4)) {
 #endif
 	int status;
-	HTRequest_addError(req, ERR_INFO, NO, HTERR_HTTP09,
+	HTRequest_addError(request, ERR_INFO, NO, HTERR_HTTP09,
 		   (void *) me->buffer, me->buflen, "HTTPStatusStream");
-	me->target = HTStreamStack(WWW_UNKNOWN, req->output_format,
-				   req->output_stream, req, NO);
+	me->target = HTStreamStack(WWW_UNKNOWN,
+				   HTRequest_outputFormat(request),
+				   HTRequest_outputStream(request),
+				   request, NO);
 	me->http->next = HTTP_OK;
 	if ((status = PUTBLOCK(me->buffer, me->buflen)) == HT_OK)
 	    me->transparent = YES;
@@ -508,32 +519,12 @@ PRIVATE int stream_pipe (HTStream * me)
 	**  at all. If we are uploading an entity then continue doing that
 	*/
 	if (me->status/100 == 1) {
-	    if (HTTPInformation(me)) me->transparent = YES;
-	    me->buflen = 0;
-	    me->state = EOL_BEGIN;
-	    return HTMethod_hasEntity(HTRequest_method(req)) ?
-		HT_CONTINUE : HT_OK;
-	}
-
-	/* Set up the streams */
-	if (me->status==200) {
-	    HTStream *s;
-	    me->target = HTStreamStack(WWW_MIME, req->output_format,
-				       req->output_stream, req, NO);
-	    
-	    /* howcome: test for return value from HTCacheWriter 12/1/95 */
-	    if (req->method==METHOD_GET && HTCache_isEnabled() &&
-		(s = HTCacheWriter(req, NULL, WWW_MIME, req->output_format,
-				   req->output_stream))) {
-		me->target = HTTee(me->target, s, NULL);
+	    if (HTTPInformation(me) == YES) {
+		me->buflen = 0;
+		me->state = EOL_BEGIN;
+		return HTMethod_hasEntity(HTRequest_method(request)) ?
+		    HT_CONTINUE : HT_OK;
 	    }
-	} else if (req->debug_stream) {
-	    me->target = HTStreamStack(WWW_MIME, req->debug_format,
-				       req->debug_stream, req, NO);
-	} else {
-	    /* We still need to parser the MIME part */
-	    me->target = HTStreamStack(WWW_MIME, req->debug_format,
-				       req->debug_stream, req, NO);
 	}
 
 	/*
@@ -542,11 +533,32 @@ PRIVATE int stream_pipe (HTStream * me)
 	**  one. This is particularly important for the content-length and the
 	**  like.
 	*/
-	if (me->status != 304) {
-	    HTParentAnchor * anchor = HTRequest_anchor(me->request);
+	if (me->status==200 || me->status==203 || me->status==300) {
 	    HTAnchor_clearHeader(anchor);
+	    HTAnchor_setCachable(anchor, YES);
+	    me->target = HTStreamStack(WWW_MIME,
+				       HTRequest_outputFormat(request),
+				       HTRequest_outputStream(request),
+				       request, NO);
+	} else if (me->status==304) {
+	    me->target = HTStreamStack(WWW_MIME_HEAD,
+				       HTRequest_debugFormat(request),
+				       HTRequest_debugStream(request),
+				       request, NO);
+	} else if (HTRequest_debugStream(request)) {
+	    HTAnchor_clearHeader(anchor);
+	    me->target = HTStreamStack(WWW_MIME,
+				       HTRequest_debugFormat(request),
+				       HTRequest_debugStream(request),
+				       request, NO);
+	} else {
+	    /* We still need to parser the MIME part */
+	    HTAnchor_clearHeader(anchor);
+	    me->target = HTStreamStack(WWW_MIME,
+				       HTRequest_debugFormat(request),
+				       HTRequest_debugStream(request),
+				       request, NO);
 	}
-
     }
     if (!me->target) me->target = HTErrorStream();
     HTTPNextState(me);					   /* Get next state */

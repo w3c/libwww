@@ -568,16 +568,12 @@ PUBLIC time_t HTGetTimeZoneOffset (void)
 
 /*
 **	Finds a temporary name in in the directory given. If the directory
-**	is NULL then use whatever the system dependent function provides as
-**	alternatives. A suffix (if any) will be appended to the file name.
+**	is NULL then don't prepend anything.
 **	If success, the result must be freed by caller, else we return NULL
 */
 PUBLIC char * HTGetTmpFileName (const char * dir)
 {
     char * result = NULL;
-#ifdef HAVE_TEMPNAM
-    result = tempnam(dir, "www-");
-#else /* Use tmpnam */
     char * offset = NULL;
     if (!(result = (char *) HT_MALLOC(dir ? strlen(dir) : 0 +HT_MAX_TMPNAM+2)))
 	HT_OUTOFMEM("HTGetTmpFileName");
@@ -592,6 +588,19 @@ PUBLIC char * HTGetTmpFileName (const char * dir)
 #else
     tmpnam(offset);
 #endif
-#endif
+
+    /*
+    **  If we don't have a dir then remove what the system call may have
+    **  prepended the response with
+    */
+    if (offset == result) {
+#ifdef WWW_MSWINDOWS
+	char * orig = strrchr(offset, '\\');
+#else
+        char * orig = strrchr(offset, '/');
+#endif /* WWW_MSWINDOWS */
+        char * dest = result;
+	if (orig++) while ((*dest++ = *orig++));
+    }
     return result;
 }

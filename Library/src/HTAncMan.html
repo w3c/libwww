@@ -67,7 +67,6 @@ struct _HTParentAnchor {
   HTList *	sources;	/* List of anchors pointing to this, if any */
   void *	document;	/* The document within this is an anchor */
   char *	physical;	/* Physical address */
-  BOOL		cacheHit;	/* Yes, if cached object found */
   char * 	address;	/* Absolute address of this node */
   BOOL		isIndex;	/* Acceptance of a keyword search */
 
@@ -75,6 +74,10 @@ struct _HTParentAnchor {
 
   /* We keep a list of variants of this anchor, if any */
   HTList *	variants;
+
+  /* Cache controls */
+  BOOL          cachable;       /* Default value is YES */
+  HTAssocList * cache_control;
 
   /* Entity header fields */
   char *	title;
@@ -95,14 +98,17 @@ struct _HTParentAnchor {
   time_t	date;		/* When was the request issued */  
   time_t	expires;	/* When does the copy expire */
   time_t	last_modified;	/* When was this last modified */
+  time_t	age;	        /* Cache estimate of age */
   char * 	etag;		/* entity tag */
 
   char *	derived_from;	/* Opaque string */
   char *	version;	/* Opaque string */
 
+#if 0
   /* List of unknown headers coming in from the network. Use the field in the
      request structure for sending test headers. */
   HTList *	extra_headers;
+#endif
 };
 </PRE>
 

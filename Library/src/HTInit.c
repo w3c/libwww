@@ -40,6 +40,7 @@ PUBLIC void HTConverterInit (HTList * c)
     */
     HTConversion_add(c,"message/rfc822",	"*/*",		HTMIMEConvert,	1.0, 0.0, 0.0);
     HTConversion_add(c,"message/x-rfc822-foot",	"*/*",		HTMIMEFooter,	1.0, 0.0, 0.0);
+    HTConversion_add(c,"message/x-rfc822-head",	"*/*",		HTMIMEHeader,	1.0, 0.0, 0.0);
     HTConversion_add(c,"multipart/*",		"*/*",		HTBoundary,	1.0, 0.0, 0.0);
     HTConversion_add(c,"text/plain",		"text/html",	HTPlainToHTML,	1.0, 0.0, 0.0);
 
@@ -63,6 +64,12 @@ PUBLIC void HTConverterInit (HTList * c)
     ** the content type by reading the first bytes of the stream
     */
     HTConversion_add(c,"www/unknown",		"*/*",		HTGuess_new,	1.0, 0.0, 0.0);
+
+    /*
+    ** Register a persistent cache stream which can save an object to local
+    ** file
+    */
+    HTConversion_add(c,"www/cache",		"*/*",		HTCacheWriter,	1.0, 0.0, 0.0);
 
     /*
     ** Handling Rule files is handled just like any other stream
@@ -157,6 +164,7 @@ PUBLIC void HTAfterInit (void)
     HTNetCall_addAfter(HTRedirectFilter, NULL, HT_TEMP_REDIRECT);
     HTNetCall_addAfter(HTRedirectFilter, NULL, HT_PERM_REDIRECT);
     HTNetCall_addAfter(HTUseProxyFilter, NULL, HT_USE_PROXY);
+    HTNetCall_addAfter(HTCacheUpdateFilter, NULL, HT_NOT_MODIFIED);
     HTNetCall_addAfter(HTLogFilter, NULL, HT_ALL);
     HTNetCall_addAfter(HTInfoFilter, NULL, HT_ALL);
 }
@@ -219,20 +227,21 @@ PUBLIC void HTTransportInit (void)
 PUBLIC void HTProtocolInit (void)
 {
 #ifndef DECNET
-    HTProtocol_add("ftp", "tcp", NO, HTLoadFTP, NULL);
-    HTProtocol_add("nntp", "tcp", NO, HTLoadNews, NULL);
-    HTProtocol_add("news", "tcp", NO, HTLoadNews, NULL);
-    HTProtocol_add("gopher", "tcp", NO, HTLoadGopher, NULL);
+    HTProtocol_add("ftp", 	"tcp", 		NO, 	HTLoadFTP,	NULL);
+    HTProtocol_add("nntp",	"tcp", 		NO, 	HTLoadNews,	NULL);
+    HTProtocol_add("news",	"tcp", 		NO, 	HTLoadNews,	NULL);
+    HTProtocol_add("gopher",	"tcp", 		NO, 	HTLoadGopher,	NULL);
 #ifdef HT_DIRECT_WAIS
-    HTProtocol_add("wais", "", YES, HTLoadWAIS, NULL);
+    HTProtocol_add("wais",	"",		YES, 	HTLoadWAIS,	NULL);
 #endif
 #endif /* DECNET */
 
-    HTProtocol_add("http", "buffered_tcp", NO, HTLoadHTTP, NULL);
-    HTProtocol_add("file", "local", NO, HTLoadFile, NULL);
-    HTProtocol_add("telnet", "", YES, HTLoadTelnet, NULL);
-    HTProtocol_add("tn3270", "", YES, HTLoadTelnet, NULL);
-    HTProtocol_add("rlogin", "", YES, HTLoadTelnet, NULL);
+    HTProtocol_add("http", 	"buffered_tcp", NO,	HTLoadHTTP,	NULL);
+    HTProtocol_add("file", 	"local", 	NO, 	HTLoadFile, 	NULL);
+    HTProtocol_add("cache", 	"local", 	NO, 	HTLoadCache, 	NULL);
+    HTProtocol_add("telnet", 	"", 		YES, 	HTLoadTelnet, 	NULL);
+    HTProtocol_add("tn3270", 	"", 		YES, 	HTLoadTelnet, 	NULL);
+    HTProtocol_add("rlogin", 	"", 		YES, 	HTLoadTelnet, 	NULL);
 }
 
 /*	REGISTER ALL KNOWN PROTOCOLS IN THE LIBRARY PREEMPTIVELY
@@ -313,7 +322,7 @@ PUBLIC void HTMIMEInit (void)
 	{"age", &HTMIME_age}, 
 	{"allow", &HTMIME_allow},
 	{"authorization", NULL},
-	{"cache-control", NULL},
+	{"cache-control", &HTMIME_cacheControl},
 	{"connection", &HTMIME_connection}, 
 	{"content-base", &HTMIME_contentBase}, 
 	{"content-encoding", &HTMIME_contentEncoding}, 

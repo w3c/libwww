@@ -1,96 +1,100 @@
 <HTML>
 <HEAD>
-<TITLE>Customizing Line Mode Browser</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  8-Oct-1995 -->
+  <!-- Changed by: Henrik Frystyk Nielsen,  8-Oct-1995 -->
+  <TITLE>Customizing Line Mode Browser</TITLE>
 </HEAD>
 <BODY>
-
+<P>
 <A HREF="../../"><IMG ALT="W3C" SRC="../../Icons/WWW/w3c_48x48"></A>
 <A HREF="../../Library/"><IMG ALT="libwww" SRC="../../Icons/WWW/Lib48x"></A>
 <A HREF="../"><IMG ALT="LMB" SRC="../../Icons/WWW/LMB48x"></A>
-
-<H1>Customizing Line Mode Browser</H1>
-
-Customizing <A HREF="../">Line Mode Browser</A>'s behavior is done
-with environment variables or their equivalent depending on the
-platform. "<A HREF="EnvVariables.html">Environment variable</A>" is a
-Unix term. On VMS you should use a <A
-HREF="Installation_VMS.html#3">logical name</A>.<P>
-
-A list of things you can customize with environment variables (or
-local equivalents) is described below. The Line Mode Browser can
-furthermore be set up to use either a <A
-HREF="../../Daemon/User/Proxies/Proxies.html">proxy server or a
-gateway</A>. <P>
-
-<H2><A NAME="9">WWW_HOME</A></H2>
-
-The address of the first document to start with if you run www without
-a document name on the command line.  For example, you can set it to
-
+<H1>
+  Customizing Line Mode Browser
+</H1>
+<P>
+Customizing <A HREF="../">Line Mode Browser</A>'s behavior is done with
+environment variables or their equivalent depending on the platform.
+"<A HREF="EnvVariables.html">Environment variable</A>" is a Unix term. On
+VMS you should use a <A HREF="Installation_VMS.html#3">logical name</A>.
+<P>
+A list of things you can customize with environment variables (or local
+equivalents) is described below. The Line Mode Browser can furthermore be
+set up to use either a <A HREF="../../Daemon/User/Proxies/Proxies.html">proxy
+server or a gateway</A>.
+<P>
+<H2>
+  <A NAME="9">WWW_HOME</A>
+</H2>
+<P>
+The address of the first document to start with if you run www without a
+document name on the command line. For example, you can set it to
 <PRE>
 	http://www.w3.org
 </PRE>
-
-if you want to always use the home page on the W3C welcome page.<P>
-
-If no <CODE>WWW_HOME</CODE> variable is set the Line Mode Browser then
-it automaticly tries the following locations:
-
+<P>
+if you want to always use the home page on the W3C welcome page.
+<P>
+If no <CODE>WWW_HOME</CODE> variable is set the Line Mode Browser then it
+automaticly tries the following locations:
 <OL>
-<LI>~/WWW/default.html
-<LI>/usr/local/lib/WWW/default.html
-<LI>http://www.w3.org/default.html
+  <LI>
+    ~/WWW/default.html
+  <LI>
+    /usr/local/lib/WWW/default.html
+  <LI>
+    http://www.w3.org/default.html
 </OL>
-
-If you are installing www without privileges, you may not be able to
-install the home page, and so you will have to set
-<CODE>WWW_HOME</CODE> to point to a local copy of the file, or to our
-server.<P>
-
-You can customize www to start at a page of your choice. You can write
-your own page, or use someone else's.  All you have to do is to set
-the environment variable <CODE>WWW_HOME</CODE> to the www address of
-your preferred home page. (When you are using www, you can see what an
-address looks like by typing help when you are reading a document - it
-tells you the address of that node).
-
-<H2><A NAME="z14">WWW_CONFIG</A></H2>
-
-If defined, must be the name of a local file which contains
-configuration information including rules, presentation recipes, etc.
-If configuration files are also specified using the <A
-HREF="CommandLine.html#z11">-r option</A>, they are loaded first.
-
-<H2>NNTPSERVER</H2>
-
+<P>
+If you are installing www without privileges, you may not be able to install
+the home page, and so you will have to set <CODE>WWW_HOME</CODE> to point
+to a local copy of the file, or to our server.
+<P>
+You can customize www to start at a page of your choice. You can write your
+own page, or use someone else's. All you have to do is to set the environment
+variable <CODE>WWW_HOME</CODE> to the www address of your preferred home
+page. (When you are using www, you can see what an address looks like by
+typing help when you are reading a document - it tells you the address of
+that node).
+<H2>
+  <A NAME="z14">WWW_CONFIG</A>
+</H2>
+<P>
+If defined, must be the name of a local file which contains configuration
+information including rules, presentation recipes, etc. If configuration
+files are also specified using the <A HREF="CommandLine.html#z11">-r
+option</A>, they are loaded first.
+<H2>
+  NNTPSERVER
+</H2>
+<P>
 See how to set up a <A NAME="5" HREF="NewsServer.html">news server's
-address</A> for the Line Mode Browser and why you can't use other <A
-HREF="AboutNewsServers.html">sites' newsserver</A>.
-
-<H2><A NAME="12">WWW_PRINT_COMMAND</A></H2>
-
-Unix only. A quoted printf-style format string for the system command
-you wish to invoke with the www PRINT command.  This should contain
-one <CODE>%s</CODE> marker where www should put the name of the
-document to be printed.  The default is
-
+address</A> for the Line Mode Browser and why you can't use other
+<A HREF="AboutNewsServers.html">sites' newsserver</A>.
+<H2>
+  <A NAME="12">WWW_PRINT_COMMAND</A>
+</H2>
+<P>
+Unix only. A quoted printf-style format string for the system command you
+wish to invoke with the www PRINT command. This should contain one
+<CODE>%s</CODE> marker where www should put the name of the document to be
+printed. The default is
 <PRE>
 	www -n -na -p66 '%s' | lpr
 </PRE>
-
-(The single quotes around the <CODE>%s</CODE> are necessary in case
-the address contains shell metacharacters.) When you define this
-variable, you may of course have to enclose the whole thing in double
-quotes, e.g.
-
+<P>
+(The single quotes around the <CODE>%s</CODE> are necessary in case the address
+contains shell metacharacters.) When you define this variable, you may of
+course have to enclose the whole thing in double quotes, e.g.
 <PRE>
 	setenv WWW_PRINT_COMMAND "www -n -na -p66 '%s' | lpr"
 </PRE>
-
 <P>
-<HR>
-<ADDRESS><A HREF="../../People.html#BernersLee">Tim BL</A>, and <A HREF="../../People.html#Frystyk">Henrik Frystyk</A>,
-<A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, November 1995</ADDRESS>
-</BODY>
-</HTML>
+  <HR>
+<ADDRESS>
+  <A HREF="../../People.html#BernersLee">Tim BL</A>, and
+  <A HREF="../../People.html#Frystyk">Henrik Frystyk</A>,
+  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
+  <P>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

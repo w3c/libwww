@@ -55,7 +55,9 @@ PUBLIC int HTMIME_acceptRanges (HTRequest * request, char * token, char * value)
 
 PUBLIC int HTMIME_age (HTRequest * request, char * token, char * value)
 {
-
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    HTAnchor_setAge(anchor,
+		    HTParseTime(value, HTRequest_userProfile(request), NO));
     return HT_OK;
 }
 
@@ -92,22 +94,48 @@ PUBLIC int HTMIME_authorization (HTRequest * request, char * token, char * value
 
 PUBLIC int HTMIME_cacheControl (HTRequest * request, char * token, char * value)
 {
-
+    /*
+    **  Walk through the set of cache-control directives and add them to the
+    **  response association list for cache control directives
+    */
+    char * name_val;
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    while ((name_val = HTNextPair(&value)) != NULL) {
+	char * name = HTNextField(&name_val);
+	char * val = HTNextField(&name_val);
+	if (name) HTAnchor_addCacheControl(anchor, name, val ? val : "");
+    }
     return HT_OK;
 }
 
 PUBLIC int HTMIME_connection (HTRequest * request, char * token, char * value)
 {
-    char * field;
-    if ((field = HTNextField(&value)) != NULL) {
-	if (!strcasecomp(field, "close")) {			 /* HTTP/1.1 */
-	    HTNet * net = HTRequest_net(request);
-	    HTNet_setPersistent(net, NO, HT_TP_INTERLEAVE);
-	    if (STREAM_TRACE) HTTrace("MIMEParser.. Close negotiated\n");
-	} else if (!strcasecomp(field, "keep-alive")) {	         /* HTTP/1.0 */
-	    HTNet * net = HTRequest_net(request);
-	    HTNet_setPersistent(net, YES, HT_TP_SINGLE);
-	    if (STREAM_TRACE) HTTrace("MIMEParser.. HTTP/1.0 Keep Alive\n");
+    /*
+    **  Walk through the set of connection directives and add them to the
+    **  response association list for connection directives
+    */
+    char * name_val;
+    while ((name_val = HTNextPair(&value)) != NULL) {
+	char * name = HTNextField(&name_val);
+	char * val = HTNextField(&name_val);
+
+	/*
+	**  If we have a name then look if it is concerning persistent
+	**  connections. If so, then we handle it here, otherwise we leave it
+	**  to somebody else by simply adding it to the list of connection
+	**  tokens.
+	*/
+	if (name) {
+	    if (!strcasecomp(name, "close")) {			 /* HTTP/1.1 */
+		HTNet * net = HTRequest_net(request);
+		HTNet_setPersistent(net, NO, HT_TP_INTERLEAVE);
+		if (STREAM_TRACE) HTTrace("MIMEParser.. Close negotiated\n");
+	    } else if (!strcasecomp(name, "keep-alive")) {       /* HTTP/1.0 */
+		HTNet * net = HTRequest_net(request);
+		HTNet_setPersistent(net, YES, HT_TP_SINGLE);
+		if (STREAM_TRACE)HTTrace("MIMEParser.. HTTP/1.0 Keep Alive\n");
+	    } else
+		HTRequest_addServerConnection(request, name, val ? val : "");
 	}
     }
     return HT_OK;
@@ -175,7 +203,13 @@ PUBLIC int HTMIME_contentMD5 (HTRequest * request, char * token, char * value)
 
 PUBLIC int HTMIME_contentRange (HTRequest * request, char * token, char * value)
 {
-
+    /*
+    **  We don't support range responses and don't wanna cache them for now.
+    **  This is only to prevent a server from sending us something that 
+    **  confuses us.
+    */
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    HTAnchor_setCachable(anchor, NO);
     return HT_OK;
 }
 
@@ -222,7 +256,7 @@ PUBLIC int HTMIME_date (HTRequest * request, char * token, char * value)
 {
     HTParentAnchor * anchor = HTRequest_anchor(request);
     HTAnchor_setDate(anchor, HTParseTime(value, 
-					 HTRequest_userProfile(request)));
+					 HTRequest_userProfile(request), YES));
     return HT_OK;
 }
 
@@ -248,7 +282,8 @@ PUBLIC int HTMIME_expires (HTRequest * request, char * token, char * value)
 {
     HTParentAnchor * anchor = HTRequest_anchor(request);
     HTAnchor_setExpires(anchor, HTParseTime(value, 
-					    HTRequest_userProfile(request)));
+					    HTRequest_userProfile(request),
+					    YES));
     return HT_OK;
 }
 
@@ -258,9 +293,9 @@ PUBLIC int HTMIME_extension (HTRequest * request, char * token, char * value)
     char * extension = HTNextSExp(&value, &param);
     if (extension) {
 	if (PROT_TRACE)
-	    HTTrace("Extension... name: `%s\', value: `%s\'\n",
+	    HTTrace("Extension... Name: `%s\', value: `%s\'\n",
 		    extension, param);
-	HTRequest_addExtension(request, extension, param);
+	HTRequest_addServerExtension(request, extension, param);
     }
     return HT_OK;
 }
@@ -320,8 +355,10 @@ PUBLIC int HTMIME_ifUnmodifiedSince (HTRequest * request, char * token, char * v
 PUBLIC int HTMIME_lastModified (HTRequest * request, char * token, char * value)
 {
     HTParentAnchor * anchor = HTRequest_anchor(request);
-    HTAnchor_setLastModified(anchor, HTParseTime(value, 
-					    HTRequest_userProfile(request)));
+    HTAnchor_setLastModified(anchor,
+			     HTParseTime(value, 
+					 HTRequest_userProfile(request),
+					 YES));
     return HT_OK;
 }
 
@@ -359,7 +396,21 @@ PUBLIC int HTMIME_messageDigest (HTRequest * request, char * token, char * value
 
 PUBLIC int HTMIME_pragma (HTRequest * request, char * token, char * value)
 {
-
+    /*
+    **  Walk through the set of pragma directives and search for one that may
+    **  affect the cachability of this object
+    */
+    char * name_val;
+    while ((name_val = HTNextPair(&value)) != NULL) {
+	char * name = HTNextField(&name_val);
+	if (name) {
+	    if (!strcasecomp(name, "no-cache")) {
+		HTParentAnchor * anchor = HTRequest_anchor(request);
+		HTAnchor_setCachable(anchor, NO);
+		if (STREAM_TRACE) HTTrace("MIMEParser.. No-Cache Pragma\n");
+	    }
+	}
+    }
     return HT_OK;
 }
 
@@ -400,8 +451,8 @@ PUBLIC int HTMIME_referer (HTRequest * request, char * token, char * value)
 
 PUBLIC int HTMIME_retryAfter (HTRequest * request, char * token, char * value)
 {
-    request->retry_after =
-	HTParseTime(value, HTRequest_userProfile(request));
+    HTRequest_setDate(request,
+		      HTParseTime(value, HTRequest_userProfile(request), YES));
     return HT_OK;
 }
 

@@ -108,27 +108,32 @@ PUBLIC int HTRuleFilter (HTRequest * request, void * param, int status)
 PUBLIC int HTCacheFilter (HTRequest * request, void * param, int status)
 {
     HTParentAnchor * anchor = HTRequest_anchor(request);
+    HTCache * cache = NULL;
     HTReload mode = HTRequest_reloadMode(request);
     HTMethod method = HTRequest_method(request);
+    HTDisconnectedMode disconnect = HTCacheMode_disconnected();
+    BOOL validate = NO;
 
     /*
-    ** Check the method of the request
+    **  If the cache is disabled all together then it won't help looking, huh?
+    */
+    if (!HTCacheMode_enabled()) return HT_OK;
+    if (CACHE_TRACE) HTTrace("Cachefilter. Checking persistent cache\n");
+
+    /*
+    **  Now check the cache...
     */
     if (method != METHOD_GET) {
 	if (CACHE_TRACE) HTTrace("Cachefilter. We only check GET methods\n");
-	return HT_OK;
-    }
-
-    /*
-    ** If the mode if "Force Reload" then don't even bother to check the
-    ** cache - we flush everything we know about this document
-    */
-    if (mode == HT_CACHE_FLUSH) {
- 	/*
+    } else if (mode == HT_CACHE_FLUSH) {
+	/*
+	** If the mode if "Force Reload" then don't even bother to check the
+	** cache - we flush everything we know abut this document anyway.
 	** Add the appropriate request headers. We use both the "pragma"
 	** and the "cache-control" headers in order to be
-	** backwards compatible with HTP/1.0
+	** backwards compatible with HTTP/1.0
 	*/
+	validate = YES;
 	HTRequest_addGnHd(request, HT_G_PRAGMA_NO_CACHE);
 	HTRequest_addCacheControl(request, "no-cache", "");
 
@@ -136,34 +141,111 @@ PUBLIC int HTCacheFilter (HTRequest * request, void * param, int status)
 	** We also flush the information in the anchor
 	*/
 	HTAnchor_clearHeader(anchor);
-	return HT_OK;
+
+    } else {
+	/*
+	** Check the persistent cache manager. If we have a cache hit then
+	** continue to see if the reload mode requires us to do a validation
+	** check. This filter assumes that we can get the cached version
+	** through one of our protocol modules (for example the file module)
+	*/
+	cache = HTCache_find(anchor);
+	if (cache) {
+	    mode = HTMAX(mode, HTCache_isFresh(cache, request));
+
+	    /*
+	    **  Now check the mode and add the right headers for the validation
+	    **  If we are to validate a cache entry then we get a lock
+	    **  on it so that not other requests can steal it.
+	    */
+	    if (mode == HT_CACHE_END_VALIDATE) {
+		/*
+		**  If we were asked to end-to-end validate the cached object
+		**  then use a max-age=0 cache control directive
+		*/
+		validate = YES;
+		HTCache_getLock(cache, request);
+		HTRequest_addCacheControl(request, "max-age", "0");
+	    } else if (mode == HT_CACHE_VALIDATE) {
+		/*
+		**  If we were asked to validate the cached object then
+		**  use the etag or the last modified for cache validation
+		*/
+		validate = YES;
+		HTCache_getLock(cache, request);
+		HTRequest_addRqHd(request, HT_C_IF_NONE_MATCH | HT_C_IMS);
+	    } else {
+		/*
+		**  The entity does not require any validation at all. We
+		**  can just go ahead and get it from the cache
+		*/
+		char * name = HTCache_name(cache);
+		HTAnchor_setPhysical(anchor, name);
+		HTCache_addHit(cache);
+		HT_FREE(name);
+	    }
+	}
+    }
+    
+    /*
+    **  If we are in disconnected mode and we are to validate an entry
+    **  then check whether what mode of disconnected mode we're in. If
+    **  we are to use our own cache then return a "504 Gateway Timeout"
+    */
+    if ((!cache || validate) && disconnect != HT_DISCONNECT_NONE) {
+	if (disconnect == HT_DISCONNECT_EXTERNAL)
+	    HTRequest_addCacheControl(request, "only-if-cached", "");
+	else {
+	    HTRequest_addError(request, ERR_FATAL, NO,
+			       HTERR_GATE_TIMEOUT, "Disconnected Cache Mode",
+			       0, "HTCacheFilter");
+	    return HT_ERROR;
+	}
+    }
+    return HT_OK;
+}
+
+/*
+**	Cache Update AFTER filter
+**	-------------------------
+**	On our way out we catch the metainformation and stores it in
+**	our persistent store. If we have a cache validation (a 304
+**	response then we use the new metainformation and merges it with
+**	the existing information already captured in the cache.
+*/
+PUBLIC int HTCacheUpdateFilter (HTRequest * request, void * param, int status)
+{
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    HTCache * cache = HTCache_find(anchor);
+
+    /*
+    **  If this request resulted in a "304 Not Modified" response then
+    **  we merge the new metainformation with the old.
+    */
+    if (CACHE_TRACE) HTTrace("Cache....... Merging metainformation\n");
+
+    /*
+    **  It may in fact be that the information in the 304 response
+    **  told us that we can't cache the entity anymore. If this is the
+    **  case then flush it now. Otherwise prepare for a cache read
+    */
+    if (HTAnchor_cachable(anchor) == NO) {
+	HTCache_remove(cache);
+    } else {
+	HTCache_update(cache, request);
+	HTRequest_setReloadMode(request, HT_CACHE_OK);
     }
 
     /*
-    ** Check the persistent cache manager. If we have a cache hit then
-    ** continue to see if the reload mode requires us to do a validation check.
-    ** This filter assumes that we can get the cached version through one of
-    ** our protocol modules (for example the file module)
+    **  Start request directly from the cache. As with the redirection filter
+    **  we reuse the same request object which means that we must
+    **  keep this around until the cache load request has terminated
+    **  In the case of a 
     */
     {
-	char * addr = HTAnchor_address((HTAnchor *) anchor);
-	char * cache = HTCache_getReference(addr);
-	if (cache) {
-	    if (mode != HT_CACHE_VALIDATE) {
-		HTAnchor_setPhysical(anchor, cache);
-		HTAnchor_setCacheHit(anchor, YES);
-	    } else {
-		/*
-		**  If we were asked to validate the memory version then
-		**  use the etag or the last modified for cache validation
-		*/
-		HTRequest_addRqHd(request, HT_C_IF_NONE_MATCH | HT_C_IMS);
-	    }
-	    HT_FREE(cache);
-	}
-	HT_FREE(addr);
+	HTLoad(request, NO);
+	return HT_ERROR;
     }
-    return HT_OK;
 }
 
 /*
@@ -197,7 +279,7 @@ PUBLIC int HTMemoryCacheFilter (HTRequest * request, void * param, int status)
     **  we can add a cache validator
     */
     if (document) {
-	HTExpiresMode expires = HTCache_expiresMode();
+	HTExpiresMode expires = HTCacheMode_expires();
 	if (validation != HT_CACHE_FLUSH_MEM) {
 	    if (CACHE_TRACE)
 		HTTrace("Mem Cache... Document already in memory\n");
@@ -207,7 +289,11 @@ PUBLIC int HTMemoryCacheFilter (HTRequest * request, void * param, int status)
 		**  Ask the cache manager if this object has expired. Also
 		**  check if we should care about expiration or not.
 		*/
+#if 0
 		if (!HTCache_isValid(anchor)) {
+#else
+		    if (1) {
+#endif
 		    if (expires == HT_EXPIRES_NOTIFY) {
 
 			/*

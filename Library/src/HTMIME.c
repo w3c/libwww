@@ -22,6 +22,8 @@
 #include "sysdep.h"
 #include "WWWUtil.h"
 #include "WWWCore.h"
+#include "WWWCache.h"
+#include "WWWStream.h"
 #include "HTReqMan.h"
 #include "HTNetMan.h"
 #include "HTHeader.h"
@@ -30,9 +32,11 @@
 
 #define MIME_HASH_SIZE 101
 
-/*		MIME Object
-**		-----------
-*/
+typedef enum _HTMIMEMode {
+    HT_MIME_HEADER	= 0x1,
+    HT_MIME_FOOTER	= 0x2
+} HTMIMEMode;
+
 struct _HTStream {
     const HTStreamClass *	isa;
     HTRequest *			request;
@@ -44,10 +48,10 @@ struct _HTStream {
     HTChunk *			value;
     int				hash;
     HTEOLState			EOLstate;
+    HTMIMEMode			mode;
     BOOL			transparent;
-    BOOL			head_only;
-    BOOL			footer;
     BOOL			haveToken;
+    BOOL			cache;
 };
 
 /* ------------------------------------------------------------------------- */
@@ -60,13 +64,16 @@ PRIVATE int pumpData (HTStream * me)
     HTEncoding transfer = HTAnchor_transfer(anchor);
     long length = HTAnchor_length(anchor);
     me->transparent = YES;		  /* Pump rest of data right through */
+    HTAnchor_setHeaderParsed(anchor);
 
     /* If this request is a source in PostWeb then pause here */
     if (HTRequest_isSource(request)) return HT_PAUSE;
 
     /* If HEAD method then we just stop here */
-    if (me->head_only || me->footer ||
-	request->method == METHOD_HEAD) return HT_LOADED;
+    if (me->mode & (HT_MIME_HEADER | HT_MIME_FOOTER) ||
+	HTRequest_method(me->request) == METHOD_HEAD) {
+	return HT_LOADED;
+    }
 
     /*
     ** If there is no content-length, no transfer encoding and no
@@ -100,6 +107,18 @@ PRIVATE int pumpData (HTStream * me)
 	}
     }
 
+    /*
+    ** Can we cache the data object? If so then create a T stream and hook it 
+    ** into the stream pipe. We do it before the transfer decoding so that we
+    ** don't have to deal with that when we retrieve the object from cache
+    */
+    if (HTCacheMode_enabled() && HTAnchor_cachable(anchor))  {
+	HTStream * cache;
+	if ((cache = HTStreamStack(WWW_CACHE, me->target_format,
+				   me->target, request, NO)))
+	    me->target = HTTee(me->target, cache, NULL);
+    }
+
     /* Handle any Transfer encoding */
     {
 	if (!HTFormat_isUnityTransfer(transfer)) {
@@ -128,23 +147,26 @@ PRIVATE int _dispatchParsers (HTStream * me)
 			      value ? value : "<null>");
     if (!token) return HT_OK;			    /* Ignore noop token */
 
+    /*
+    ** Search the local set of MIME parsers
+    */
     if ((parseSet = HTRequest_MIMEParseSet(me->request, &local)) != NULL) {
         status = HTMIMEParseSet_dispatch(parseSet, me->request, 
-					 token, value, &found);
+					 token, value, &found, me->cache);
 	if (found)
 	    return status;
 	if (local)
 	    return HT_OK; /* not found, but that's OK */
     }
 
-    if ((parseSet = HTHeader_MIMEParseSet()) == NULL)
-        return HT_OK;
+    /*
+    ** Search the global set of MIME parsers
+    */
+    if ((parseSet = HTHeader_MIMEParseSet()) == NULL) return HT_OK;
     status = HTMIMEParseSet_dispatch(parseSet, me->request, 
-				     token, value, &found);
-    if (found)
-        return status;
-    if (STREAM_TRACE) HTTrace("Ignoring MIME header: %s: %s.\n", token, value);
-
+				     token, value, &found, me->cache);
+    if (found) return status;
+    if (STREAM_TRACE) HTTrace("MIME header. Ignoring %s: %s\n", token, value);
     return HT_OK;
 }
 
@@ -369,12 +391,13 @@ PUBLIC HTStream* HTMIMEConvert (HTRequest *	request,
         HT_OUTOFMEM("HTMIMEConvert");
     me->isa = &HTMIME;       
     me->request = request;
-    me->anchor = request->anchor;
-    me->net = request->net;
+    me->anchor = HTRequest_anchor(request);
+    me->net = HTRequest_net(request);
     me->target = output_stream;
     me->target_format = output_format;
     me->token = HTChunk_new(256);
     me->value = HTChunk_new(256);
+    me->cache = HTCacheMode_enabled() && HTAnchor_cachable(me->anchor);
     me->hash = 0;
     me->EOLstate = EOL_BEGIN;
     me->haveToken = NO;
@@ -396,7 +419,7 @@ PUBLIC HTStream * HTMIMEHeader (HTRequest *	request,
 {
     HTStream * me = HTMIMEConvert(request, param, input_format,
 				  output_format, output_stream);
-    me->head_only = YES;
+    me->mode |= HT_MIME_HEADER;
     return me;
 }
 
@@ -412,7 +435,7 @@ PUBLIC HTStream * HTMIMEFooter (HTRequest *	request,
 {
     HTStream * me = HTMIMEConvert(request, param, input_format,
 				  output_format, output_stream);
-    me->footer = YES;
+    me->mode |= HT_MIME_FOOTER;
     me->EOLstate = EOL_FLF;
     return me;
 }

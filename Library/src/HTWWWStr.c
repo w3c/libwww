@@ -82,6 +82,52 @@ PUBLIC char * HTNextField (char ** pstr)
     return start;
 }
 
+/*	Find next Name-value pair
+**	-------------------------
+**	This is the same as HTNextField but it does not look for '=' as a
+**	separator so if there is a name-value pair then both parts are
+**	returned.
+**	Returns	a pointer to the first word or NULL on error
+*/
+PUBLIC char * HTNextPair (char ** pstr)
+{
+    char * p = *pstr;
+    char * start = NULL;
+    if (!pstr || !*pstr) return NULL;
+    while (1) {
+	/* Strip white space and other delimiters */
+	while (*p && (*p==',' || *p==';')) p++;
+	if (!*p) {
+	    *pstr = p;
+	    return NULL;				   	 /* No field */
+	}
+
+	if (*p == '"') {				     /* quoted field */
+	    start = ++p;
+	    for(;*p && *p!='"'; p++)
+		if (*p == '\\' && *(p+1)) p++;	       /* Skip escaped chars */
+	    break;			    /* kr95-10-9: needs to stop here */
+	} else if (*p == '<') {				     /* quoted field */
+	    start = ++p;
+	    for(;*p && *p!='>'; p++)
+		if (*p == '\\' && *(p+1)) p++;	       /* Skip escaped chars */
+	    break;			    /* kr95-10-9: needs to stop here */
+	} else if (*p == '(') {					  /* Comment */
+	    for(;*p && *p!=')'; p++)
+		if (*p == '\\' && *(p+1)) p++;	       /* Skip escaped chars */
+	    p++;
+	} else {					      /* Spool field */
+	    start = p;
+	    while(*p && *p!=',' && *p!=';')
+		p++;
+	    break;						   /* Got it */
+	}
+    }
+    if (*p) *p++ = '\0';
+    *pstr = p;
+    return start;
+}
+
 /*
 **	Find the next s-expression token from a string of characters.
 **	We return the name of this expression and the param points to the
@@ -194,7 +240,7 @@ PRIVATE int make_month (char * s, char ** ends)
 **		Wkd Mon 00 00:00:00 0000 GMT		(ctime)
 **		1*DIGIT					(delta-seconds)
 */
-PUBLIC time_t HTParseTime (const char * str, HTUserProfile * up)
+PUBLIC time_t HTParseTime (const char * str, HTUserProfile * up, BOOL expand)
 {
     char * s;
     struct tm tm;
@@ -216,7 +262,7 @@ PUBLIC time_t HTParseTime (const char * str, HTUserProfile * up)
 	    }
 	    tm.tm_mday = strtol(s, &s, 10);
 	    tm.tm_mon = make_month(s, &s);
-	    tm.tm_year = strtol(s, &s, 10);
+	    tm.tm_year = strtol(++s, &s, 10);
 	    tm.tm_hour = strtol(s, &s, 10);
 	    tm.tm_min = strtol(++s, &s, 10);
 	    tm.tm_sec = strtol(++s, &s, 10);
@@ -238,14 +284,18 @@ PUBLIC time_t HTParseTime (const char * str, HTUserProfile * up)
 	    tm.tm_sec = strtol(++s, &s, 10);
 	}
     } else if (isdigit(*str)) {				    /* delta seconds */
-	t = time(NULL) + atol(str);	      /* Current local calendar time */
+	t = expand ? time(NULL) + atol(str) : atol(str);
 	if (CORE_TRACE) {
+	    if (expand) {
 #ifdef HT_REENTRANT
-	    char buffer[CTIME_MAX];
-	    HTTrace("Time string. Delta-time %s parsed to %ld seconds, or in local time: %s", str, (long) t, (char *) ctime_r(&t, buffer, CTIME_MAX));
+		char buffer[CTIME_MAX];
+		HTTrace("Time string. Delta-time %s parsed to %ld seconds, or in local time: %s", str, (long) t, (char *) ctime_r(&t, buffer, CTIME_MAX));
 #else
-	    HTTrace("Time string. Delta-time %s parsed to %ld seconds, or in local time: %s", str, (long) t, ctime(&t));
+		HTTrace("Time string. Delta-time %s parsed to %ld seconds, or in local time: %s", str, (long) t, ctime(&t));
 #endif
+	    } else {
+		HTTrace("Time string. Delta-time %s parsed to %ld seconds\n", str, (long) t);
+	    }
 	}
 	return t;
 
@@ -493,9 +543,9 @@ PUBLIC char * HTWWWToLocal (const char * url, const char * base,
 	const char * myhost = HTUserProfile_fqdn(up);
 
 	/* Find out if this is a reference to the local file system */
-	if ((*access && strcmp(access, "file")) ||
-	    (*host && strcasecomp(host, "localhost") &&
-	     myhost && strcmp(host, myhost))) {
+	if ((*access && strcmp(access, "file") && strcmp(access, "cache")) ||
+	     (*host && strcasecomp(host, "localhost") &&
+	      myhost && strcmp(host, myhost))) {
 	    if (PROT_TRACE)
 		HTTrace("LocalName... Not on local file system\n");
 	    HT_FREE(access);

@@ -139,7 +139,7 @@ PUBLIC BOOL HTProgress (HTRequest * request, HTAlertOpcode op,
 			int msgnum, const char * dfault, void * input,
 			HTAlertPar * reply)
 {
-    if (!request || HTRequest_internal(request)) return NO;
+    if (request && HTRequest_internal(request)) return NO;
     switch (op) {
       case HT_PROG_DNS:
 	HTTrace("Looking up %s\n", input ? (char *) input : "");
@@ -154,7 +154,7 @@ PUBLIC BOOL HTProgress (HTRequest * request, HTAlertOpcode op,
 	break;
 
       case HT_PROG_READ:
-	{
+	if (request) {
 	    long cl = HTAnchor_length(HTRequest_anchor(request));
 	    if (cl > 0) {
 		long b_read = HTRequest_bytesRead(request);
@@ -168,7 +168,7 @@ PUBLIC BOOL HTProgress (HTRequest * request, HTAlertOpcode op,
 	break;
 
       case HT_PROG_WRITE:
-	if (HTRequest_isPostWeb(request)) {
+	if (request && HTMethod_hasEntity(HTRequest_method(request))) {
 	    HTParentAnchor *anchor=HTRequest_anchor(HTRequest_source(request));
 	    long cl = HTAnchor_length(anchor);
 	    if (cl > 0) {
@@ -188,6 +188,10 @@ PUBLIC BOOL HTProgress (HTRequest * request, HTAlertOpcode op,
 
       case HT_PROG_WAIT:
 	HTTrace("Waiting for free socket...\n");
+	break;
+
+      case HT_PROG_GC:
+	HTTrace("Garbage colleting persistent cache - please wait...\n");
 	break;
 
       default:

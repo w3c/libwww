@@ -247,7 +247,7 @@ PUBLIC BOOL HTNetCall_addAfter (HTNetCallback * cbf, void * param, int status)
 
 PUBLIC BOOL HTNetCall_deleteAfter (HTNetCallback * cbf)
 {
-    return HTNetCall_delete(HTBefore, cbf);
+    return HTNetCall_delete(HTAfter, cbf);
 }
 
 /* ------------------------------------------------------------------------- */

@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<!-- Changed by: Henrik Frystyk Nielsen, 15-Jul-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 15-Jul-1996 -->
   <TITLE>W3C Reference Library libwww Stream Pipe Manager</TITLE>
 </HEAD>
 <BODY>
@@ -205,6 +205,12 @@ for example sent as a HTML document in a HTTP redirection message.
 <CODE>WWW_UNKNOWN</CODE> is a really unknown type. It differs from the real
 MIME type <EM>"application/octet-stream"</EM> in that we haven't even tried
 to figure out the content type at this point.
+<PRE>
+#define WWW_CACHE     HTAtom_for("www/cache")
+</PRE>
+<P>
+<CODE>WWW_CACHE</CODE> is the internal content-type designated for a persistent
+cache module which can store the object to local storage.
 <P>
 These are regular MIME types defined. Others can be added!
 <PRE>

@@ -374,9 +374,8 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	    ** We stat the file in order to find the size and to see it if
 	    ** exists.
 	    */
-	    if ((HTRequest_negotiation(request) &&
-		 HTMethod_isSafe(HTRequest_method(request)) &&
-		 !HTAnchor_cacheHit(anchor))) {
+	    if (HTRequest_negotiation(request) &&
+		HTMethod_isSafe(HTRequest_method(request))) {
  		char * conneg = HTMulti(request, file->local,&file->stat_info);
 		if (conneg) {
 		    HT_FREE(file->local);
@@ -412,7 +411,8 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	    }
 
 	    /*
-	    ** If empty file then only serve it if it is editable
+	    ** If empty file then only serve it if it is editable. We also get
+	    ** the bindings for the file suffixes in lack of better bindings
 	    */
 	    {
 		BOOL editable = HTEditable(file->local, &file->stat_info);
@@ -420,10 +420,6 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		if (editable) HTAnchor_appendMethods(anchor, METHOD_PUT);
 		if (file->stat_info.st_size)
 		    HTAnchor_setLength(anchor, file->stat_info.st_size);
-
-		/* Done with relevant metainformation in anchor */
-		HTAnchor_setHeaderParsed(anchor);
-
 		if (!editable && !file->stat_info.st_size) {
 		    HTRequest_addError(request, ERR_FATAL,NO,HTERR_NO_CONTENT,
 				       NULL, 0, "HTLoadFile");
@@ -439,11 +435,8 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		/* 
 		** Create the stream pipe FROM the channel to the application.
 		** The target for the input stream pipe is set up using the
-		** stream stack. If we are reading from the cache then use the
-		** MIME parser as well.
+		** stream stack.
 		*/
-		if (HTAnchor_cacheHit(anchor))
-		    HTAnchor_setFormat(anchor, WWW_MIME);
 		HTNet_getInput(net,
 			       HTStreamStack(HTAnchor_format(anchor),
 					     HTRequest_outputFormat(request),
@@ -489,7 +482,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		    if (PROT_TRACE) HTTrace("HTLoadFile.. returning\n");
 		    HTEvent_register(net->sockfd, request, (SockOps) FD_READ,
 				     net->cbf, net->priority);
-		    return HT_WOULD_BLOCK;
+		    return HT_OK;
 		}
 #endif
 	    } else if (status == HT_WOULD_BLOCK || status == HT_PENDING)

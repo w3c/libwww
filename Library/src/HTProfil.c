@@ -27,7 +27,7 @@ PUBLIC void HTProfile_delete (void)
     if (HTLib_isInitialized()) {
 
 	/* Clean up the persistent cache (if any) */
-	HTCache_deleteAll();
+	HTCacheTerminate();
 
 	/* Clean up all the global preferences */
 	HTFormat_deleteAll();
@@ -37,7 +37,8 @@ PUBLIC void HTProfile_delete (void)
     }
 }
 
-PRIVATE void client_profile (const char * AppName, const char * AppVersion)
+PRIVATE void client_profile (const char * AppName, const char * AppVersion,
+			     BOOL preemptive)
 {
     /* If the Library is not already initialized then do it */
     if (!HTLib_isInitialized()) HTLibInit(AppName, AppVersion);
@@ -48,14 +49,17 @@ PRIVATE void client_profile (const char * AppName, const char * AppVersion)
     /* Register the default set of transport protocols */
     HTTransportInit();
 
-    /* Register the default set of transport protocols */
-    HTTransportInit();
+    /* Register the default set of application protocol modules */
+    if (preemptive)
+	HTProtocolPreemptiveInit();
+    else
+	HTProtocolInit();
+
+    /* Enable the persistent cache */
+    HTCacheInit(NULL, 0);
 
     /* Register the default set of BEFORE and AFTER filters */
     HTNetInit();
-
-    /* Enable the persistent cache */
-    HTCache_enable(NULL);
 
     /* Set up the default set of Authentication schemes */
     HTAAInit();
@@ -88,23 +92,17 @@ PRIVATE void client_profile (const char * AppName, const char * AppVersion)
 PUBLIC void HTProfile_newClient (const char * AppName, const char * AppVersion)
 {
     /* Do the default setup */
-    client_profile(AppName, AppVersion);
+    client_profile(AppName, AppVersion, NO);
 
     /* Set up default event loop */
     HTEventInit();
-
-    /* Register the default set of application protocol modules */
-    HTProtocolInit();
 }
 
 PUBLIC void HTProfile_newPreemptiveClient (const char * AppName,
 					   const char * AppVersion)
 {
     /* Do the default setup */
-    client_profile(AppName, AppVersion);
-
-    /* Register the default set of application protocol modules */
-    HTProtocolPreemptiveInit();
+    client_profile(AppName, AppVersion, YES);
 
     /* Remember that we are loading preemptively */
     preemptive = YES;

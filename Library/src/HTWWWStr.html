@@ -45,6 +45,16 @@ to the first word or NULL on error
 extern char * HTNextField (char** pstr);
 </PRE>
 <H2>
+  Next Name-value Pair
+</H2>
+<P>
+This is the same as <CODE>HTNextField</CODE> but it does not look for '='
+as a separator so if there is a name-value pair then both parts are returned.
+Returns a pointer to the first word or NULL on error
+<PRE>
+extern char * HTNextPair (char ** pstr);
+</PRE>
+<H2>
   Next S-expression
 </H2>
 <P>
@@ -97,9 +107,12 @@ extern BOOL HTDateDirStr (time_t * time, char * str, int len);
 <P>
 Converts a string representation in GMT to a local representation of localtime
 <CODE>time_t</CODE>. The local time zone is taken from the
-<A HREF="HTUser.html">user profile</A> information.
+<A HREF="HTUser.html">user profile</A> information. If the time is relative
+(for example in the <CODE>Age</CODE> header) then you can indicate whether
+it should be expanded to local time or not by using the <CODE>expand</CODE>
+argument.
 <PRE>
-extern time_t HTParseTime (const char * str, HTUserProfile * up);
+extern time_t HTParseTime (const char * str, HTUserProfile * up, BOOL expand);
 </PRE>
 <H2>
   Unique Message-ID String

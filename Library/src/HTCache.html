@@ -13,10 +13,11 @@
 */
 </PRE>
 <P>
-The cache contains details of persietent files which contain the contents
+The cache contains details of persistent files which contain the contents
 of remote documents. The existing cache manager is somewhat naive - especially
-in its garbage collection but it is just an example of how it can be done.
-More advanced implementations are welcome!
+in its garbage collection but it is just an example of how it can be
+done.However, it is a fully HTTP/1.1 compliant cache manager.&nbsp;More advanced
+implementations are welcome!
 <P>
 This module is implemented by <A HREF="HTCache.c">HTCache.c</A>, and it is
 a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C Reference
@@ -28,77 +29,71 @@ Library</A>.
 #include "WWWLib.h"
 </PRE>
 <H2>
-  Cache Creation and Deletion
+  Initialize and Terminate the Persistent Cache
+</H2>
+<P>
+If `cache_root' is <CODE>NULL</CODE> then use <CODE>HT_CACHE_ROOT</CODE>
+which by default is set to "<CODE>/tmp/w3c-lib</CODE>". The
+<CODE>cache_root</CODE> location does not have to exist, it will be created
+automatically if not. An empty string will make '/' as cache root. The size
+is the total size in MBytes - the default size is 20M. The cache can not
+be less than 5M. We can only enable the cache if we are in
+<A HREF="HTLib.html#Secure">secure mode </A>where we can not access the local
+file system.&nbsp;This is for example the case if using an application as
+a telnet shell.
+<PRE>
+extern BOOL HTCacheInit (const char * cache_root, int size);
+</PRE>
+<P>
+After the cache has been terminated it can not be used anymore unless you
+do another <CODE>HTCacheInit()</CODE> call.
+<PRE>
+extern BOOL HTCacheTerminate (void);
+</PRE>
+<H2>
+  Cache Mode Parameters
 </H2>
 <P>
 The persistent cache has a set of overall parameters &nbsp;that you can adust
 <H3>
-  Enable Cache
+  Enable and Disable the Cache
 </H3>
 <P>
-If <EM>cache_root</EM> is NULL then reuse old value or use
-<CODE>HT_CACHE_ROOT</CODE>. An empty string will make '/' as cache root.
-<PRE>extern BOOL HTCache_enable		(const char * cache_root);
+The cache can be temporarily suspended by using the enable/disable flag.
+This does not prevent the cache from being enabled/disable at a later point
+in time.
+<PRE>
+extern void HTCacheMode_setEnabled (BOOL mode);
+extern BOOL HTCacheMode_enabled (void);
 </PRE>
 <H3>
-  Disable Cache
+  What is the current Cache Root?
 </H3>
 <P>
-Turns off the cache. Note that the cache can be disabled and enabled at any
-time. The cache root is kept and can be reused during the execution.
-<PRE>extern BOOL HTCache_disable		(void);
+Return the value of the cache root. The cache root can only be set through
+the <CODE>HTCacheInit()</CODE> function
+<PRE>
+extern const char * HTCacheMode_getRoot	(void);
 </PRE>
 <H3>
-  Is Cache Enabled
+  Total Cache Size
 </H3>
 <P>
-Returns YES or NO. Also makes sure that we have a root value (even though
-it might be invalid)
-<PRE>extern BOOL HTCache_isEnabled		(void);
-</PRE>
-<H3>
-  Where should the Cache Store its Contents
-</H3>
-<P>
-If <EM>cache_root</EM> is NULL then the current value (might be a define)
-Should we check if the cache_root is actually OK? I think not!
-<PRE>extern BOOL HTCache_setRoot		(const char * cache_root);
-extern const char *HTCache_getRoot	(void);
-</PRE>
-<H3>
-  Delete Cache
-</H3>
-<P>
-This is normally done automatically by the <A HREF="HTLib.html">Lib object</A>.
-None of these functions touches the disk cache itself - they only manages
-memory.
-<PRE>extern void HTCache_freeRoot		(void);
-extern void HTCache_clearMem		(void);
-</PRE>
-<P>
-You can also prune the cache sompletely including the file objects.
-<PRE>extern void HTCache_deleteAll		(void);
-</PRE>
-<H2>
-  Cache Validation
-</H2>
-<H3>
-  Verify if an Object is Valid
-</H3>
-<P>
-This function checks whether a document has expired or not. The check is
-based on the metainformation passed in the anchor object The function returns
-<CODE>YES</CODE> or <CODE>NO</CODE>.
-<PRE>extern BOOL HTCache_isValid (HTParentAnchor * anchor);
+We set the default cache size to 20M. We set the minimum size to 5M in order
+not to get into weird problems while writing the cache. The size is indicated
+in Mega bytes. The size is given in MBytes and is also returned in MBytes.
+<PRE>
+extern BOOL HTCacheMode_setMaxSize (int size);
+extern int  HTCacheMode_maxSize    (void);
 </PRE>
 <H3>
   How do we handle Expiration of Cached Objects?
 </H3>
 <P>
 There are various ways of handling <CODE>Expires</CODE> header when met in
-a history list. Either it can be ignored all together, the user can be notified
-with a warning, or the document can be reloaded automatically. This flag
-decides what action to be taken. The default action is
+a <I>history list</I>. Either it can be ignored all together, the user can
+be notified with a warning, or the document can be reloaded automatically.
+This flag decides what action to be taken. The default action is
 <CODE>HT_EXPIRES_IGNORE</CODE>. In <CODE>HT_EXPIRES_NOTIFY</CODE> mode ,
 we push a message on to the Error stack which is presented to the user.
 <PRE>
@@ -108,28 +103,151 @@ typedef enum _HTExpiresMode {
     HT_EXPIRES_AUTO
 } HTExpiresMode;
 
-extern void HTCache_setExpiresMode (HTExpiresMode mode);
-extern HTExpiresMode HTCache_expiresMode (void);
+extern void HTCacheMode_setExpires (HTExpiresMode mode);
+extern HTExpiresMode HTCacheMode_expires (void);
+</PRE>
+<H3>
+  Disconnected Operation
+</H3>
+<P>
+The cache can be set to handle disconnected operation where it does not use
+the network to validate entries and do not attempt to load new versions.
+All requests that can not be fulfilled by the cache will be returned with
+a <CODE>"504 Gateway Timeout"</CODE> response. There are two modes of how
+the cache can operate in disconnected mode: it can use diconnected mode on
+its own persistent cache or it can forward the disconnected request to a
+proxy cache, for example. The latter mode only really makes sense when you
+are using a proxy, of course.
+<PRE>
+typedef enum _HTDisconnectedMode {
+    HT_DISCONNECT_NONE     = 0,
+    HT_DISCONNECT_NORMAL   = 1,
+    HT_DISCONNECT_EXTERNAL = 2
+} HTDisconnectedMode;
+
+extern void HTCacheMode_setDisconnected (HTDisconnectedMode mode);
+extern HTDisconnectedMode HTCacheMode_disconnected (void);
+extern BOOL HTCacheMode_isDisconnected (HTReload mode);
 </PRE>
 <H2>
-  Filling the Cache and Cache Lookup
+  The HTCache Object
 </H2>
+<P>
+The cache object is what we store about a cached objet in memory.
+<PRE>
+typedef struct _HTCache HTCache;
+</PRE>
+<H3>
+  Create a Cached Object
+</H3>
 <P>
 Filling the cache is done as all other transportation of bulk data in libwww
 using <A HREF="HTStream.html">streams</A>. The cache object creater is a
 stream which in many cases sits on a <A HREF="HTTee.html">T stream</A> so
 that we get the original feed and at the same time can parse the contents.
-<PRE>extern HTConverter HTCacheWriter;
+<PRE>
+extern HTConverter HTCacheWriter;
 </PRE>
 <H3>
-  Find a Reference for a Cached Object
+  Load a Cached Object
+</H3>
+<P>
+Loading a cached object is also done as all other loads in libwww by using
+a <A HREF="HTProt.html">protocol load module</A>. For the moment, this load
+function handles the persistent cache as if it was on local file but in fact
+&nbsp;it could be anywhere.
+<PRE>
+extern HTEventCallback HTLoadCache;
+</PRE>
+<H3>
+  Delete a Cache Object
+</H3>
+<P>
+Remove a HTCache object from memory and from disk. You must explicitly remove
+a lock before this operation can succeed
+<PRE>
+extern BOOL HTCache_remove (HTCache * cache);
+</PRE>
+<H3>
+  Delete All Cache Objects
+</H3>
+<P>
+Destroys all cache entried in memory but does not write anything to disk.
+Use the index methods above for doing that. We do not delete the disk contents.
+<PRE>
+extern BOOL HTCache_deleteAll (void);
+</PRE>
+<H3>
+  Find a Cached Object
 </H3>
 <P>
 Verifies if a cache object exists for this URL and if so returns a URL for
 the cached object. It does not verify whether the object is valid or not,
 for example it might have expired. Use the cache validation methods for checking
 this.
-<PRE>extern char * HTCache_getReference	(char * url);
+<PRE>
+extern HTCache * HTCache_find (HTParentAnchor * anchor);
+</PRE>
+<H3>
+  Set the Size of a Cached Object
+</H3>
+<P>
+Set and get the size of a cached object. We don't consider the metainformation
+as part of the size which is the the reason for why the min cache size should
+not be less than 5M. When we set the cache size we also check whether we
+should run the gc or not.
+<PRE>
+extern BOOL HTCache_setSize (HTCache * cache, long size);
+extern long HTCache_size    (HTCache * cache);
+</PRE>
+<H3>
+  Verify if an Object is Fresh
+</H3>
+<P>
+This function checks whether a document has expired or not. The check is
+based on the metainformation passed in the anchor object The function returns
+the level of validation needed for getting a fresh version. We also check
+the cache control directives in the request to see if they change the freshness
+discission.
+<PRE>
+extern HTReload HTCache_isFresh (HTCache * me, HTRequest * request);
+</PRE>
+<H3>
+  Register a Cache Hit
+</H3>
+<P>
+As a cache hit may occur several places, we have a public function where
+we can declare a download to be a true cache hit. The number of hits a cache
+object has affects its status when we are doing garbage collection.
+<PRE>
+extern BOOL HTCache_addHit (HTCache * cache);
+</PRE>
+<H3>
+  Find the Location of a Cached Object
+</H3>
+<P>
+Is we have a valid entry in the cache then we also need a location where
+we can get it. Hopefully, we may be able to access it thourgh one of our
+protocol modules, for example the <A HREF="WWWFile.html">local file module</A>.
+The name returned is in URL syntax and must be freed by the caller
+<PRE>
+extern char * HTCache_name (HTCache * cache);
+</PRE>
+<H3>
+  Locking a Cache Object
+</H3>
+<P>
+While we are creating a new cache object or while we are validating an existing
+one, we must have a lock on the entry so that not other requests can get
+to it in the mean while. A lock can be broken if the same request tries to
+create the cache entry again. This means that we have tried to validate the
+cache entry but we got a new shipment of bytes back from the origin server
+or an intermediary proxy.
+<PRE>
+extern BOOL HTCache_getLock     (HTCache * cache, HTRequest * request);
+extern BOOL HTCache_breakLock   (HTCache * cache, HTRequest * request);
+extern BOOL HTCache_hasLock     (HTCache * cache);
+extern BOOL HTCache_releaseLock (HTCache * cache);
 </PRE>
 <PRE>
 #endif

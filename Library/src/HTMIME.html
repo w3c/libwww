@@ -1,42 +1,31 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Reference Library libwww RFC822 PARSER</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 17-Apr-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 17-Apr-1996 -->
+  <TITLE>W3C Reference Library libwww MIME/RFC822 Parser</TITLE>
 </HEAD>
 <BODY>
-
-<H1>MIME Parser</H1>
-
+<H1>
+  MIME Parser
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-The MIME parser stream presents a MIME document. It recursively
-invokes the format manager to handle embedded formats.<P>
-
-As well as stripping off and parsing the headers, the MIME parser has
-to parse any weirld MIME encodings it may meet within the body parts
-of messages, and must deal with multipart messages. <P>
-
-This module is implemented to the level necessary for operation with
-WWW, but is not currently complete for any arbitrary MIME message.<P>
-
-Check the <A NAME="z0" HREF="HTMIME.c">source</A> for latest additions
-to functionality.<P> The MIME parser is complicated by the fact that
-WWW allows real binary to be sent, not ASCII encoded.  Therefore the
-netascii decoding is included in this module. One cannot layer it by
-converting first from Net to local text, then decoding it. Of course,
-for local files, the net ascii decoding is not needed.  There are
-therefore two creation routines. <P>
-
+<P>
+The MIME parser stream presents a MIME document with a header and possibly
+a footer. It recursively invokes the format manager to handle embedded formats
+like MIME multipart. As well as stripping off and parsing the headers, the
+MIME parser has to parse any weird MIME encodings it may meet within the
+body parts of messages, and must deal with multipart messages.
+<P>
+This module is implemented to the level necessary for operation with WWW,
+but is not currently complete for any arbitrary MIME message.
+<P>
 This module is implemented by <A HREF="HTMIME.c">HTMIME.c</A>, and it is
-a part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>.
-
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>.
 <PRE>
 #ifndef HTMIME_H
 #define HTMIME_H
@@ -44,45 +33,44 @@ W3C Reference Library</A>.
 #include "HTStream.h"
 #include "HTFormat.h"
 </PRE>
-
-<H2>Stream Converters in this Module</H2>
-
-<H3>MIME header parser stream</H3>
-
-This stream parses a complete MIME header and if a content type header
-is found then the stream stack is called. Any left over data is pumped
-right through the stream.
-
+<H2>
+  Stream Converters in this Module
+</H2>
+<H3>
+  MIME header parser stream
+</H3>
+<P>
+This stream parses a complete MIME header and if a content type header is
+found then the stream stack is called. Any left over data is pumped right
+through the stream.
 <PRE>
 extern HTConverter HTMIMEConvert;
 </PRE>
-
-<H3>MIME Header ONLY parser stream</H3>
-
-This stream parses a complete MIME header and then returnes HT_PAUSE.
-It does not set up any streams and resting data stays in the buffer.
-This can be used if you only want to parse the headers before you
-decide what to do next. This is for example the case in a server app.
-
+<H3>
+  MIME Header ONLY parser stream
+</H3>
+<P>
+This stream parses a complete MIME header and then returnes HT_PAUSE. It
+does not set up any streams and resting data stays in the buffer. This can
+be used if you only want to parse the headers before you decide what to do
+next. This is for example the case in a server app.
 <PRE>
 extern HTConverter HTMIMEHeader;
 </PRE>
-
-<H3>MIME Footer ONLY parser</H3>
-
+<H3>
+  MIME Footer ONLY parser
+</H3>
+<P>
 Parse only a footer, for example after a chunked encoding.
-
 <PRE>
 extern HTConverter HTMIMEFooter;
 </PRE>
-
 <PRE>
 #endif
 </PRE>
-
-<HR>
+<P>
+  <HR>
 <ADDRESS>
-@(#) $Id$
+  @(#) $Id$
 </ADDRESS>
-</BODY>
-</HTML>
+</BODY></HTML>
