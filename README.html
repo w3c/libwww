@@ -1,219 +1,177 @@
-<HTML><HEAD>
-<TITLE>W3C Software Read Me</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 10-Mar-1996 -->
-</HEAD><BODY><H1>W3C Reference Code Distribution
-</H1><P><HR>
-
-<PRE><P>
+<HTML>
+<HEAD>
+  <!-- Changed by: Henrik Frystyk Nielsen, 10-Mar-1996 -->
+  <TITLE>W3C Reference Library Read Me</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  W3C Reference Library Distribution
+</H1>
+<P>
+  <HR>
+<PRE>
 	(c) COPYRIGHT MIT 1995.
 	Please first read the full copyright statement in the file COPYRIGH.
-</PRE><P>This is the README file which you get when you unwrap one of our distribution files. Each package
-contains source code for building one or more of our Web applications and related helper
-applications. The set of W3C Web applications is currently:
-<UL><LI><A HREF="Library/">Reference Library (libwww)</A>
-<LI><A HREF="LineMode/">Line Mode Browser</A>
-<LI><A HREF="ComLine/">Command Line Tool</A>
-<LI><A HREF="MiniServ/">Mini Server</A>
-<LI><A HREF="Robot/">Mini Robot</A>
-<LI><A HREF="Listen/">Socket Listen Tool</A>
-</UL><P>Please note that the W3C Reference Library distribution file is required
-in order to build any of
-the other applications. At the bottom of this file, you will find pointers
-to more information about
-each application.
-
-<H2>Handling the Distribution Files
-</H2><P>A distribution file contains the source code for one or more of the
-modules. W3C also provides a set
-of precompiled binaries which are available for W3C members
-<A HREF="../Dist/">directly via HTTP</A>
-or as public domain via anonymous FTP from
-<A HREF="ftp://ftp.w3.org/pub/">ftp.w3.org</A>.
+</PRE>
 <P>
-
-All distribution files are available as compressed tar files, gzipped tar
-files, or as zip
-files. For the compressed tar files, first uncompress and untar the file
-<CODE>&lt;dist&gt;.tar.Z</CODE> where <CODE>&lt;dist&gt;</CODE> is the name
-of the specific
-distribution:
-
-<PRE><P>
-	uncompress &lt;dist&gt;.tar.Z
-
-	gunzip &lt;dist&gt;.tar.gz
-</PRE><P>Then untar the file by typing
-
-<PRE><P>
-	tar xf &lt;dist&gt;.tar
-</PRE><P>For the zip files, type the following:
-
-<PRE><P>
-	unzip &lt;dist&gt;.zip
-</PRE><H2>Compilation
-</H2><P>Compilation can be put into two groups depending on your platform
-and if it is supported in the
-BUILD script or not. The <EM>BUILD</EM> script is placed in the
-<CODE>WWW</CODE> directory and you
-can use it to compile and link the W3C applications. The <EM>BUILD</EM> script
-figures out what
-platform you are on and generates a <CODE>Makefile</CODE> which consists
-of a platform independent
-part and a platform dependent part.
-
-<H3>Compilation on already supported Unix platforms
-</H3><P><IMG SRC="Icons/32x32/caution.gif" ALT="Note">Stop here and take
-a look at
-the <A HREF="Library/User/Patch/Overview.html">patches</A> &nbsp;to see if
-you have to apply any source code patches
+This is the README file which you get when you unwrap the W3C Reference Library
+distribution package. Each package contains source code for building the
+Library and a set of example applications. The set of modules included in
+the package is:
+<UL>
+  <LI>
+    <A HREF="#Reference">Reference Library (libwww)</A>
+  <LI>
+    <A HREF="#Line">Line Mode Browser (www)</A>
+  <LI>
+    <A HREF="#Mini">Mini Server (webd)</A>
+  <LI>
+    <A HREF="#Command">Command Line Tool (w3c)</A>
+  <LI>
+    <A HREF="#robot">Mini Robot (webbot)</A>
+  <LI>
+    <A HREF="#Socket">Socket Listen Tool (listen)</A>
+</UL>
+<H2>
+  Handling the Distribution Files
+</H2>
 <P>
+A distribution file contains the source code and documentation for the Library
+and the example applications. You can get the distribution files from the
+<A HREF="Library/">Library top page</A> All distribution files are available
+as compressed tar files, gzipped tar files, or as zip files. For the compressed
+tar files, first uncompress and untar the file
+<CODE><I>w3c-libwww-X.X.tar.Z</I></CODE> where X is the version number, for
+example <I>4.0</I>:
+<PRE>	uncompress w3c-libwww-X.X.tar.Z
 
-We use autoconf in order to compile the reference source code on Unix platforms.
-Please read the <A HREF="INSTALL.html">INSTALL</A> document for instructions.
-<H3>Compilation on un-supported Unix platforms
-</H3><P>For other Unix platforms please read the guide on how to
-<A
-HREF="Library/User/Platform/Porting.html">adjust the BUILD script</A> for
-compilation on your
-platform.
-
-<H3>Compilation on Windows
-</H3><P>For Windows we have some
-<A HREF="Library/User/Platform/Windows.html">special documentation</A> on
-how you can produce DLLs out of the Reference Library.
-
-<H2>Reference Library (libwww)
-</H2><P>The W3C Reference Library is a general code base that can be used
-to build clients and servers. It
-contains code for accessing HTTP, FTP, Gopher, News, WAIS, Telnet servers,
-and the local file
-system. Furthermore it provides modules for parsing, managing and presenting
-hypertext objects to
-the user and a wide spectra of generic programming utilities. The Library
-is the basis for many <A
-HREF="TheProject.html">World-Wide Web</A> applications and all the W3C software
-is build on top of
-it. The Library is a required part of all other W3C applications in this
-distribution.
+	gunzip w3c-libwww-X.X.tar.gz
+</PRE>
 <P>
-
+Then untar the file by typing
+<PRE>	tar xf w3c-libwww-X.X.tar
+</PRE>
+<P>
+For the zip files, type the following:
+<PRE>	unzip w3c-libwww-X.X.zip
+</PRE>
+<H2>
+  Installation
+</H2>
+<P>
+Please look at the special <A HREF="INSTALL.html">installation
+documentation</A>
+<H2>
+  <A NAME="Reference">Reference Library (libwww)</A>
+</H2>
+<P>
+The <A HREF="Library/">W3C Reference Library</A> is a general code base that
+can be used to build clients and servers. It contains code for accessing
+HTTP, FTP, Gopher, News, WAIS, Telnet servers, and the local file system.
+Furthermore it provides modules for parsing, managing and presenting hypertext
+objects to the user and a wide spectra of generic programming utilities.
+The Library is the basis for many <A HREF="TheProject.html">World-Wide Web</A>
+applications and all the W3C software is build on top of it. The Library
+is a required part of all other W3C applications in this distribution.
+<P>
 The Library documentation is included in the distribution file and you can
 find the top page at
-
-<PRE><P>
-	Library/User/Overview.html
-</PRE><P>You can also use the <A HREF="Library/">online documentation</A>
-
-<H2>Line Mode Browser
-</H2><P>The W3C Line Mode Browser is a simple character based client. It
-is developed for use on dumb
-terminals and as a test tool for the Common Code Library. It can be run in
-interactive mode, non-
-interactive mode and as a proxy client. Furthermore it gives a variety of
-possibilities for data
-format conversion, filtering etc. It is primarily intended as a test-tool
-for quick access to the
-Web or used in batch jobs.
+<PRE>	<A HREF="Library/User/Overview.html">Library/User/Overview.html</A>
+</PRE>
+<H2>
+  <A NAME="Line">Line Mode Browser (www)</A>
+</H2>
 <P>
-
+The <A HREF="LineMode/">W3C Line Mode Browser</A> is a simple character based
+client. It is developed for use on dumb terminals and as a test tool for
+the Common Code Library. It can be run in interactive mode, non- interactive
+mode and as a proxy client. Furthermore it gives a variety of possibilities
+for data format conversion, filtering etc. It is primarily intended as a
+test-tool for quick access to the Web or used in batch jobs.
+<P>
 Installation is very simple as the application can run without any particular
-setup. You can specify
-your own <EM>HOME PAGE</EM> using the <CODE>WWW_HOME</CODE> environment variable.
-Remember toy setup
-a <CODE>NNTPSERVER</CODE> environment variable before you try to access a
-news server.
+setup. You can specify your own <EM>HOME PAGE</EM> using the
+<CODE>WWW_HOME</CODE> environment variable. Remember toy setup a
+<CODE>NNTPSERVER</CODE> environment variable before you try to access a news
+server.
 <P>
-
 The Line Mode Browser documentation is included in the distribution file
-and you can find the top
-page at
-
-<PRE><P>
-	LineMode/User/Overview.html
-</PRE><P>You can also use the <A HREF="LineMode/">online documentation</A>
-
-<H2>Mini Server
-</H2><P>The W3C Mini Server is a cross platform server frame work that can
-be used as a basis for writing
-portable servers. It is <B>NOT</B> a full server - only a frame! It is developed
-in C and serves as
-an example of a server application using the <A HREF="../Library/">W3C Reference
-Library</A>.
+and you can find the top page at
+<PRE>	<A HREF="LineMode/User/Overview.html">LineMode/User/Overview.html</A>
+</PRE>
+<H2>
+  <A NAME="Mini">Mini Server (webd)</A>
+</H2>
 <P>
-
+The <A HREF="MiniServ/">W3C Mini Server</A> is a cross platform server frame
+work that can be used as a basis for writing portable servers. It is
+<B>NOT</B> a full server - only a frame! It is developed in C and serves
+as an example of a server application using the <A HREF="../Library/">W3C
+Reference Library</A>.
+<P>
 The Mini Server documentation is included in the distribution file and you
 can find the top page at
-
-<PRE><P>
-	MiniServ/User/Overview.html
-</PRE><P>You can also use the <A HREF="MiniServ/">online documentation</A>
-
-<H2>Command Line Tool
-</H2><P>The W3C Command Line Tool is a cross platform command line tool for
-accessing the Web. It is
-developed in C and serves as an example of a client application using the
-<A HREF="../Library/">W3C
-Reference Library</A> and as a test-tool for quick access to the Web from
-scripts, cron jobs etc. It
-gives a variety of possibilities for data format conversion, filtering etc.
-It is primarily intended
-as a test-tool for quick access to the Web or used in scripts, cron jobs
-etc.
-<P>
-
-The Command Line Tool documentation is included in the distribution file
-and you can find the top
-page at
-
-<PRE><P>
-	ComLine/User/Overview.html
-</PRE><P>You can also use the <A HREF="ComLine/">online documentation</A>
-
-<H2>Mini Robot
-</H2><P>The W3C Mini Robot is a cross platform command line tool for accessing
-the Web. It is developed in C
-and serves as an example of a robot application using the
-<A HREF="../Library/">W3C Reference
-Library</A> and as a test-tool for quick access to the Web from scripts,
-cron jobs etc. It is
-primarily intended as a test-tool for quick access to the Web or used in
-scripts, cron jobs etc.
-<P>
-
-The W3C Mini Robot documentation is included in the distribution file and
-you can find the top page
-at
-
-<PRE><P>
-	Robot/User/Overview.html
-</PRE><P>You can also use the <A HREF="Robot/">online documentation</A>
-
-<H2>Socket Listen Tool</H2>
-
-The W3C Socket Listen Tool is a cross platform tool for debugging what
-is being sent over the wire. It simply listens on a socket and
-forwards everything to stderr or whatever is available on the actual
-platform. It is developed in C and serves as an example application
-using the <A HREF="../Library/">W3C Reference Library</A><P>
-
-The W3C Socket Listen Tool documentation is included in the
-distribution file and you can find the top page at
-
-<PRE>
-	Listen/User/Overview.html
+<PRE>	<A HREF="MiniServ/User/Overview.html">MiniServ/User/Overview.html</A>
 </PRE>
-
-You can also use the <A HREF="Listen/">online documentation</A>
-
-<H2>Got Problems or Comments?
-</H2><P>If you encounter problems, would like to feed back suggestions good
-ideas etc. then please send a
-mail explaining your problem <EM>and</EM> the version of the W3C software
-to <A
-HREF="mailto:libwww@w3.org">libwww@w3.org</A>
-
-<P><B>Have fun!</B>
+<H2>
+  <A NAME="Command">Command Line Tool (w3c)</A>
+</H2>
 <P>
-<HR>
-<ADDRESS>Henrik Frystyk Nielsen, February 1996
-</ADDRESS></BODY></HTML>
+The <A HREF="ComLine/">W3C Command Line Tool</A> is a cross platform command
+line tool for accessing the Web. It is developed in C and serves as an example
+of a client application using the <A HREF="../Library/">W3C Reference
+Library</A> and as a test-tool for quick access to the Web from scripts,
+cron jobs etc. It gives a variety of possibilities for data format conversion,
+filtering etc. It is primarily intended as a test-tool for quick access to
+the Web or used in scripts, cron jobs etc.
+<P>
+The Command Line Tool documentation is included in the distribution file
+and you can find the top page at
+<PRE>	<A HREF="ComLine/User/Overview.html">ComLine/User/Overview.html</A>
+</PRE>
+<H2>
+  <A NAME="robot">Mini Robot (webbot)</A>
+</H2>
+<P>
+The <A HREF="Robot/">W3C Mini Robot</A> is a cross platform command line
+tool for accessing the Web. It is developed in C and serves as an example
+of a robot application using the <A HREF="../Library/">W3C Reference
+Library</A> and as a test-tool for quick access to the Web from scripts,
+cron jobs etc. It is primarily intended as a test-tool for quick access to
+the Web or used in scripts, cron jobs etc.
+<P>
+The W3C Mini Robot documentation is included in the distribution file and
+you can find the top page at
+<PRE>	<A HREF="Robot/User/Overview.html">Robot/User/Overview.html</A>
+</PRE>
+<H2>
+  <A NAME="Socket">Socket Listen Tool (listen)</A>
+</H2>
+<P>
+The <A HREF="Listen/">W3C Socket Listen Tool</A> is a cross platform tool
+for debugging what is being sent over the wire. It simply listens on a socket
+and forwards everything to stderr or whatever is available on the actual
+platform. It is developed in C and serves as an example application using
+the <A HREF="../Library/">W3C Reference Library</A>
+<P>
+The W3C Socket Listen Tool documentation is included in the distribution
+file and you can find the top page at
+<PRE>	<A HREF="Listen/User/Overview.html">Listen/User/Overview.html</A>
+</PRE>
+<H2>
+  Got Problems or Comments?
+</H2>
+<P>
+If you encounter problems, would like to feed back suggestions good ideas
+etc. then please send a mail explaining your problem <EM>and</EM> the version
+of the W3C software to <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>
+<P>
+<B>Have fun!</B>
+<P>
+  <HR>
+<ADDRESS>
+  Henrik Frystyk Nielsen, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>
+  <P>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

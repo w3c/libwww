@@ -1,71 +1,80 @@
-<HTML><HEAD>
-<TITLE>Getting the W3C Source Code Distribution</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 15-Dec-1995 -->
-</HEAD><BODY><P><IMG SRC="Icons/WWW/w3c_48x48.gif" ALT="W3C" WIDTH="48" HEIGHT="48">
-<H1>Downloading the W3C Reference Code
-</H1><P>W3C distributes source code and in some cases precompiled binaries
-of the W3C applications. Access
-to the distribution files are provided through our HTTP service or our FTP
-service.
-
-<DL><DT><A HREF="Library/"><IMG ALT="LIB" SRC="Icons/WWW/Cogs48x.gif"></A>
-<B>WWW Reference Library</B>
-<A HREF="../Dist/libwww/libwww_src.tar.gz">gzipped tar file</A>,
-<A HREF="../Dist/libwww/libwww_src.tar.Z">compressed tar file</A>, or
-<A HREF="../Dist/libwww/libwww_src.zip">zip file</A>
-
-<DT><A HREF="LineMode/"><IMG SRC="Icons/WWW/LMB48x.gif" ALT="LMB"></A> <B>Line
-Mode Browser</B>
-<A HREF="../Dist/linemode/www_src.tar.gz">gzipped tar file</A>,
-<A HREF="../Dist/linemode/www_src.tar.Z">compressed tar file</A>, or
-<A HREF="../Dist/linemode/www_src.zip">zip file</A>
-
-<DT><A HREF="ComLine/"><IMG SRC="Icons/WWW/lines48x.gif" ALT="ComLine"></A>
-<B>Command Line Tool</B>
-<A HREF="../Dist/comline/w3c_src.tar.gz">gzipped tar file</A>,
-<A HREF="../Dist/comline/w3c_src.tar.Z">compressed tar file</A>, or
-<A HREF="../Dist/comline/w3c_src.zip">zip file</A>
-
-<DT><A HREF="Robot/"><IMG SRC="Icons/WWW/robot48x.gif" ALT="Robot"></A> <B>Mini
-Robot</B>
-<A HREF="../Dist/robot/webbot_src.tar.gz">gzipped tar file</A>,
-<A HREF="../Dist/robot/webbot_src.tar.Z">compressed tar file</A>, or
-<A HREF="../Dist/robot/webbot_src.zip">zip file</A>
-
-<DT><A HREF="MiniServ/"><IMG SRC="Icons/WWW/serv48x.gif" ALT="MiniServ"></A>
-<B>Mini Server</B>
-<A HREF="../Dist/miniserv/webd_src.tar.gz">gzipped tar file</A>,
-<A HREF="../Dist/miniserv/webd_src.tar.Z">compressed tar file</A>, or
-<A HREF="../Dist/miniserv/webd_src.zip">zip file</A>
-
-</DL><P>You can also simply jump directly to our
-<A HREF="../Dist/">distribution archives</A>.
+<HTML>
+<HEAD>
+  <!-- Changed by: Henrik Frystyk Nielsen, 15-Dec-1995 -->
+  <TITLE>Getting the W3C Source Code Distribution</TITLE>
+</HEAD>
+<BODY>
 <P>
-
-<H2>Access via FTP
-</H2><P>Our public domain archives are also available through anonymous FTP.
-If you do not have a FTP client
-in your Web application then you can get to it by making a traditional FTP
-session as follows:
-
-<PRE><P>
-	&gt; ftp ftp.w3.org
+<A HREF="/."><IMG SRC="Icons/WWW/w3c_48x48" ALT="W3C"></A>
+<A HREF="Library/"><IMG SRC="Icons/WWW/Lib48x" ALT="LIBWWW"></A>
+<H1>
+  Downloading the W3C Reference Library
+</H1>
+<P>
+W3C distributes <A HREF="Library/src/">source code</A>,
+<A HREF="Library/User/">documentation</A>, and
+<A HREF="Library/User/applications.html">example applications</A> for the
+<A HREF="library">W3C Reference Library</A>. Access to the distribution files
+are provided through our HTTP service or our FTP service. The easiest is
+simply to download the distribution file in one of the following formats:
+<UL>
+  <LI>
+    <B>gzipped tar file</B> via
+    <A HREF="Library/Distribution/w3c-lbwt.gz">HTTP</A> or
+    <A HREF="ftp://ftp.w3.org/pub/libwww/w3c-libwww.tar.gz">FTP</A>
+  <LI>
+    <B>compressed tar file</B> via
+    <A HREF="Library/Distribution/w3c-lbwt.z">HTTP</A> or
+    <A HREF="ftp://ftp.w3.org/pub/libwww/w3c-libwww.tar.Z">FTP</A>
+  <LI>
+    <B>zip file</B> via <A HREF="Library/Distribution/w3c-libw.zip">HTTP</A>
+    or <A HREF="ftp://ftp.w3.org/pub/libwww/w3c-libwww.zip">FTP</A>
+</UL>
+<P>
+Please read the <A HREF="README.html">README file</A> for a more detailed
+description of the contents of the distribution package.
+<H2>
+  Direct Access via Anonymous FTP
+</H2>
+<P>
+Our public domain archives are also available through anonymous FTP. If you
+do not have a FTP client in your Web application then you can get to it by
+making a traditional FTP session as follows:
+<PRE>
+	&gt; ftp <A HREF="ftp://ftp.w3.org/pub/libwww/">ftp.w3.org</A>
 	Enter user name: <B>anonymous</B>
 	Password: <B>me@myhost.edu</B>
-	ftp&gt; cd /pub/&lt;MODULE&gt;
+	ftp&gt; cd /pub/libwww
 	ftp&gt; binary
-	ftp&gt; get &lt;MODULE&gt;
+	ftp&gt; get w3c-libwww-x.x
 	ftp&gt; quit
 	&gt;
-</PRE><P>Please note that there are multiple distribution files, so download the ones you are interested in.
-
-<H2>Install the Distribution Files
-</H2><P>When you have downloaded the modules you are interested in, you are
-ready to <A
-HREF="README.html">install the software</A> - <B>have fun!</B>
-
+</PRE>
 <P>
-<HR>
-<A HREF="./"><IMG SRC="Icons/WWW/w3c_48x48.gif" ALT="W3C" WIDTH="48" HEIGHT="48"></A>
-<ADDRESS><A HREF="People/Frystyk/">Henrik Frystyk</A>, November 1995
-</ADDRESS></BODY></HTML>
+where x.x is the highest version number you can find. This file contains
+the complete libwww distribution, so this is all you need!
+<H2>
+  Install the Distribution Files
+</H2>
+<P>
+When you have downloaded the modules you are interested in, you are ready
+to <A HREF="INSTALL.html">install the software</A>
+<H2>
+  Old Versions and Diff Files
+</H2>
+<P>
+We keep a small set of old versions and diff files between versions. These
+files are available from our <A HREF="ftp://ftp.w3.org/pub/libwww/">FTP
+site</A> as well
+<P>
+<B>Have fun!</B>
+<P>
+  <HR>
+<A HREF="_."><IMG ALT="W3C" WIDTH="48" HEIGHT="48" SRC="Icons/WWW/w3c_48x4.gif"></A>
+<ADDRESS>
+  <A HREF="People/frystyk">Henrik Frystyk Nielsen</A>,
+  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
+  <P>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

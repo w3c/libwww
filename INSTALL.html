@@ -31,14 +31,27 @@ and a file `config.log' containing compiler output (useful mainly for debugging
   Building on Windows
 </H2>
 <P>
+Building on Windows is somewhat different than building on Unix. We therefore
+have a separate set of directions for doing this. We do maintain a set of
+Microsoft Visual C make files which can be used directly. If you do not use
+this compiler then please read the instructions on how you can move this
+to other compilers.
+<P>
 <UL>
   <LI>
-    Stop here and jump to the <A HREF="Library/User/Patch/">Known Bugs and
-    Patches</A> page to see if you need to apply any patches before you compile.
+    <A HREF="Library/src/windows/libwww.mak">Library make file</A>
   <LI>
-    Please continue by reading the special documentation on
-    <A HREF="Library/User/Platform/WinDLL.html">how to install on Windows</A>.
+    <A HREF="PICS-client/src/windows/pics.mak">PICS Library make file</A>
+  <LI>
+    <A HREF="Robot/src/windows/webbot.mak">Robot Makefile</A>
+  <LI>
+    <A HREF="LineMode/src/windows/www.mak">Line Mode Browser Makefile</A>
 </UL>
+<P>
+Stop here and jump to the <A HREF="Library/User/Patch/">Known Bugs and
+Patches</A> page to see if you need to apply any patches before you compile.
+Please continue by reading the special documentation on
+<A HREF="Library/User/Platform/WinDLL.html">how to install on Windows</A>.
 <H2>
   Building on Unix
 </H2>
