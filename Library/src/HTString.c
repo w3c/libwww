@@ -446,7 +446,7 @@ PUBLIC time_t HTParseTime ARGS1(CONST char *, str)
 **
 **	The result can be given in both local and GMT dependent on the flag
 */
-PUBLIC CONST char *HTDateTimeStr ARGS2(time_t *, calendar, BOOL, local)
+PUBLIC CONST char *HTDateTimeStr (time_t * calendar, BOOL local)
 {
     static char buf[40];
 

@@ -279,7 +279,7 @@ PRIVATE BOOL HTDir_headLine (HTDir *dir)
 
 	tp = dir->lnbuf;
 	if (dir->show & HT_DS_DATE) {
-	    LeftStr(&tp, "Date", HT_DLEN_DATE);
+	    LeftStr(&tp, "Last Modified", HT_DLEN_DATE);
 	    LeftStr(&tp, " ", HT_DLEN_SPACE);
 	}
 	if (dir->show & HT_DS_SIZE) {
