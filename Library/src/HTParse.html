@@ -142,9 +142,9 @@ PUBLIC char * HTRelative PARAMS((const char * aName, const char *relatedName));
 <H2>HTExpand: Expand a Local Host Name Into a Full Domain Name</H2>
 
 This function expands the host name of the URI from a local name to a
-full domain name, converts the host name to lower case and takes away
-`:80', `:70' and `:21'. The advantage by doing this is that we only have
-one entry in the host case and one entry in the document cache.
+full domain name and converts the host name to lower case. The
+advantage by doing this is that we only have one entry in the host
+case and one entry in the document cache.
 
 <PRE>
 PUBLIC char *HTCanon PARAMS ((	char **	filename,

@@ -193,32 +193,18 @@ char * HTParse ARGS3(CONST char *, aName, CONST char *, relatedName,
         if(given.host || related.host) {
 	    if(wanted & PARSE_PUNCTUATION) strcat(result, "//");
 	    strcat(result, given.host ? given.host : related.host);
-#if 0
-/* This is now done in HTCanon */
-#define CLEAN_URLS
-#endif
-#ifdef CLEAN_URLS
-	    /* Ignore default port numbers, and trailing dots on FQDNs
-	       which will only cause identical adreesses to look different */
+
+	    /* Ignore default port numbers */
 	    {
 		char *tail = result + strlen(result);
 	    	char *p = strchr(tail, ':');
-		if (p && access) {		/* Port specified */
-		    if (  (   strcmp(access, "http") == 0
-		    	   && strcmp(p, ":80") == 0 )
-			||
-		          (   strcmp(access, "gopher") == 0
-		    	   && strcmp(p, ":70") == 0 )
-		    	)
-		    *p = (char)0;	/* It is the default: ignore it */
-		}
-		if (!p) p = tail + strlen(tail); /* After hostname */
-		if (*p) {				  /* Henrik 17/04-94 */
-		    p--;				/* End of hostname */
-		    if (*p == '.') *p = (char)0; /* chop final . */
+		if (p && access) {			   /* Port specified */
+		    if ((!strcmp(access, "http") && !strcmp(p, ":80")) ||
+			(!strcmp(access, "gopher") && !strcmp(p, ":70")) ||
+			(!strcmp(access, "ftp") && !strcmp(p, ":21")))
+			*p = '\0';
 		}
 	    }
-#endif
 	}
 	
     if (given.host && related.host)  /* If different hosts, inherit no path. */
@@ -341,11 +327,12 @@ PUBLIC char *HTSimplify ARGS1(char *, filename)
 	path = filename;
     if (*path == '/' && *(path+1)=='/') {	  /* Some URLs start //<foo> */
 	path += 1;
-    } else if (!strncmp(path, "news:", 5)) {	    /* Make group lower case */
-	char *group = path+5;
-	while (*group && *group!='@' && *group!='/') {
-	    *group = TOLOWER(*group);
-	    group++;
+    } else if (!strncmp(path, "news:", 5)) {
+	char *ptr = strchr(path+5, '@');
+	if (!ptr) ptr = path+5;
+	while (*ptr) {			    /* Make group or host lower case */
+	    *ptr = TOLOWER(*ptr);
+	    ptr++;
 	}
 	if (URI_TRACE)
 	    fprintf(stderr, "into\n............ `%s'\n", filename);
@@ -509,7 +496,6 @@ char * HTRelative ARGS2(CONST char *, aName, CONST char *, relatedName)
 **	1) The host name is converted to lowercase
 **	2) Expands the host name of the URL from a local name to a full
 **	   domain name. A host name is started by `://'.
-**	3) The default port indication :80, :70, and :21 for are stripped
 **
 **	Return: OK	The position of the current path part of the URL
 */
@@ -557,22 +543,8 @@ PUBLIC char *HTCanon ARGS2 (char **, filename, char *, host)
 	    path--;
 	}
     }
-
-    /* Chop off port if `:80' (http), `:70' (gopher), or `:21' (ftp) */
-    if (port) {
-	if ((*(port+1)=='8' && *(port+2)=='0' &&
-	     (*(port+3)=='/' || !*(port+3))) ||
-	    (*(port+1)=='2' && *(port+2)=='1' &&
-	     (*(port+3)=='/' || !*(port+3))) ||
-	    (*(port+1)=='7' && *(port+2)=='0' &&
-	     (*(port+3)=='/' || !*(port+3)))) {
-	    if (!newname) {
-		char *orig=port, *dest=port+3;
-		while((*orig++ = *dest++));
-	    }
-	} else if (newname)
-	    strncat(newname, port, (int) (path-port));
-    }
+    if (port && newname)
+	strncat(newname, port, (int) (path-port));
     if (newname) {
 	char *newpath = newname+strlen(newname);
 	strcat(newname, path);
