@@ -6,21 +6,28 @@
   </TITLE>
   <LINK rel=STYLESHEET href="http://www.w3.org/StyleSheets/Area/Overview.css" type="text/css">
  </HEAD>
-<A HREF="http://www.w3.org/"><IMG ALT="W3C" SRC="http://www.w3.org/Icons/WWW/w3c_home" BORDER="0" WIDTH="72"
-    HEIGHT="48"></A>
-<A HREF="http://www.w3.org/Library/"><IMG ALT="libwww" SRC="http://www.w3.org/Icons/WWW/Cogs48x" BORDER="0"></A>
-<A HREF="./">Top</A>
+<BODY TEXT="#000000" BGCOLOR="#FFFFFF" LINK="#0000EE" VLINK="#551A8B">
+  <A HREF="http://www.w3.org/"><IMG ALT="W3C" SRC="http://www.w3.org/Icons/WWW/w3c_home" BORDER="0" WIDTH="72" HEIGHT="48"></A>
+  <A HREF="http://www.w3.org/Library/"><IMG ALT="libwww" SRC="http://www.w3.org/Icons/WWW/Cogs48x" BORDER="0"></A>
+  <A HREF="./">CVS Changes</A>
 
 <H1>
   Changes Committed to the libwww CVS Source Tree
 </H1>
 
+Here you can ind all the <A
+HREF="http://www.w3.org/Library">libwww</A> code changes after a
+certain date/time. If you haven't already then <A
+HREF="http://www.w3.org/Library/cvs.html">get the libwww code base
+directly from CVS</A>.<P>
+
+Discussions about libwww should happen on the <A
+HREF="http://www.w3.org/Library/#Forums">&lt;www-lib@w3.org&gt;</A>
+mailing list.<P>
+
 <! SQL set root "http://dev.w3.org/cgi-bin/cvsweb">
 <! SQL connect >
 <! SQL database cvsloglibwww >
-
-Find all the documents that have changed after a certain
-date/time.
 
 <! SQL setdefault cnt 0 >
 <! SQL setdefault hours 0 >
@@ -108,5 +115,5 @@ Next
   <A href="http://www.w3.org/People/Frystyk/">Henrik Frystyk Nielsen</a><br>
   @(#) $Id$
 </ADDRESS>
- </BODY>
+</BODY>
 </HTML>
