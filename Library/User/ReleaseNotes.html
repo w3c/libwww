@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
-<TITLE>WWW Library Release Notes</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  8-Jul-1995 -->
+<TITLE>W3C Reference Library Release Notes</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 13-Jul-1995 -->
 </HEAD>
 <BODY>
 
@@ -10,14 +10,13 @@
 
 <H1>Library 3.1 Release Notes</H1>
 
-This is the announcement of the second release of the W3C Reference
-Library. The release is called 3.1 prerelease 1 and is to be
-considered as a beta version of the official release scheduled for end
-of June. The code word for this release is support for remote
-collaborate work where people can use HTTP and the Web as a remote
-authoring environment. The purpose of this release is to build and
-maintain a close loop between W3C discussion and implementation
-leading up to the final 3.1 release. <P>
+<IMG ALT="NOTE" SRC="../../Icons/32x32/cautiong.gif"> <B>The Library
+is out in a pre-relrease!</B>
+
+This is the announcement of the version 3.1 release of the W3C
+Reference Library. The code word for this release is support for
+remote collaborate work where people can use HTTP and the Web as a
+remote authoring environment.<P>
 
 In addition to the new set of features and functionality this release
 also is the first example of source code distributed under the W3C
@@ -38,6 +37,73 @@ part of the W3C software distribution <A
 HREF="../../PATCHES.html">must sign a form</A> that gives MIT the
 permissions to use the contributions under the terms of the W3C
 software distribution. <P>
+
+<H2>Library 3.1pre3 Release Notes, July 13</H2>
+
+This is a last test of the 3.1 release. The official 3.1 release will
+follow in a few days. The purpose of this third pre-release is simply
+to avoid any obvious problems while we still have time. Very little
+will change in the final release!
+
+<H3>New Features and Interfaces</H3>
+
+<UL>
+
+<LI>Changed "rs6000" to "AIX" and "decstation" to "ultrix" in
+BUILD script. The previous names were not obvious
+
+<LI>Have created <A HREF="../Implementation/HTProt.html">HTProt
+module</A> which handles protocol module registration. It used to be
+in <A HREF="../Implementation/HTAccess.html">HTAccess module</A>, but
+this module is now uniquely for user requests
+
+<LI>Changed the names of the following functions in the <A
+HREF="../Implementation/HTProt.html">HTProt module</A>
+
+<PRE>
+	HTRegisterProtocol	-> HTProtocol_add
+	HTProtocolDispose	-> HTProtocol_deleteAll
+	HTProtocolBlocking	-> HTProtocol_isBlocking
+</PRE>
+
+<LI>Canonicalization now understands host names terminated with a ":",
+for example "www.w3.org:" is converted into "www.w3.org"
+
+<LI>HTEvnttd.c is removed from the source tree; it's no longer needed.
+Likewise, HTEvent.c is no longer needed; it has been superseded by
+HTEvntrg.c and HTEvntrg.html.
+
+<LI>Added support for REENTRANT versions of
+
+<PRE>
+	getlogin_r
+	gethostbyname_r
+	gethostbyaddr_r
+	ctime_r
+	localtime_r
+	gmtime_r
+	asctime_r
+	ctermid_r
+	rand_r
+	readdir_r
+</PRE>
+
+<EM>except</EM> in <A HREF="../Implementation/HTFTP.html">HTFTP
+module</A> as it will be changed later. Some of the function cause
+problems on Solaris...
+
+</UL>
+
+
+<H3>Bug Fixes</H3>
+
+<UL>
+
+<LI>Fixed bug in HTBind_getSuffix that caused garbage file suffixes
+
+<LI>Fixed memory leak in HTAnchor if a child has more than one destination
+
+</UL>
 
 <H2>Library 3.1pre2 Release Notes, July 1</H2>
 
