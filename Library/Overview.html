@@ -12,7 +12,7 @@
 width="72" height="48"></a> <img border="0" alt="libwww"
 src="../Icons/WWW/Lib48x"></p>
 
-<h1>Libwww - the W3C Sample Code Library</h1>
+<h1>Libwww - the W3C Protocol Library</h1>
 
 <p align="center"><a href="#News">News</a> | <a href="Activity.html">Why
 libwww?</a> | <a name="Installation" href="Distribution.html">Get it!</a> | <a
@@ -26,18 +26,37 @@ href="Collaborators.html">Hackers</a></p>
 
 <div class="intro">
 
-Libwww is a general-purpose client side Web API written in C for <a
-href="User/Platform/">Unix and Windows (Win32)</a>. With a highly extensible
-and layered API, it can accommodate many different types of client
-applications including clients, robots, etc. The purpose of libwww is to
-provide a <a href="../Protocols/HTTP/Performance/Pipeline.html">highly
-optimized HTTP</a> sample implementation as well as other Internet protocols
-and to serve as a testbed for protocol experiments.
+Libwww is a highly modular, general-purpose client side Web API written in C
+for <a href="User/Platform/">Unix and Windows (Win32)</a>. It's well suited
+for both small and large <a href="User/Applications.html">applications,</a>
+like <a href="/Amaya/">browser/editors</a>, <a href="/Robot/">robots</a>, <a
+href="/ComLine/">batch tools</a>, etc. Pluggable <a href="User/Guide/">modules
+provided with libwww</a> include complete <a
+href="User/Guide/#HTTP">HTTP/1.1</a> (with caching, pipelining, PUT, POST,
+Digest Authentication, deflate, etc), <a href="User/Guide/#Interface1">MySQL
+logging</a>, <a href="User/Guide/#Access">FTP</a>, <a
+href="User/Guide/#HTML">HTML/4</a>, <a href="User/Guide/#Expat">XML</a>
+(expat), <a href="User/Guide/#Expat">RDF</a> (SiRPAC), and much more. The
+purpose of libwww is to serve as a testbed for protocol experiments.
 <ul>
 <li>
-<big><strong>Apr 15 1999:</strong> <a href="User/ReleaseNotes.html#5.2.8">libwww 5.2.8 is out</a> - <a
-href="Distribution.html">come get it</a> - now also as <a
-href="Distribution.html#Source">RPMs</a>!</big>
+<strong>Apr 20, 1999:</strong> Number of <a href="cvs.html">checkout from
+CVS</a> exceeds 1400!
+</li>
+<li>
+<strong>Apr 18, 1999:</strong> John Punin: Added <a href="src/HTRDF.html">RDF
+parser</a> to the <a href="User/Guide/#Expat">XML module</a> in libwww - <a
+href="cvs.html">help testing!</a>
+</li>
+<li>
+<strong>Apr 17, 1999:</strong> Vladimir Kozlov has generated wintel <a
+href="http://www.idm.ru/libwww.htm">libwww 5.2.8 binaries</a> - available from
+his <a href="http://www.idm.ru/">IDM Web site</a>
+</li>
+<li>
+<strong>Apr 15, 1999:</strong><a href="User/ReleaseNotes.html#5.2.8"> libwww
+5.2.8 is out</a> - <a href="Distribution.html">come get it</a> - now also as
+<a href="Distribution.html#Source">RPMs</a>!
 </li>
 <li>
 <strong>Apr 6 1999:</strong> <strong>SSL NOTICE:</strong> Because of US
@@ -55,11 +74,6 @@ hackers!
 href="http://lists.w3.org/Archives/Public/www-lib/1999AprJun/0016.html">SSL
 transport in libwww</a> - help testing!
 </li>
-<li>
-<strong>Apr 3, 1999:</strong> Raffaele Sena: Added HTML4.0 support in <a
-href="http://lists.w3.org/Archives/Public/www-lib/1999AprJun/0015.html">libwww
-HTML parser</a>
-</li>
 </ul>
 
 <p>Nearby: <a href="User/Applications.html">Sample Applications</a> | <a
@@ -74,6 +88,11 @@ Packages</a></p>
 
 <h2><a name="News">News, Updates, and Events</a></h2>
 <ul>
+<li>
+<strong>Apr 3, 1999:</strong> Raffaele Sena: Added HTML4.0 support in <a
+href="http://lists.w3.org/Archives/Public/www-lib/1999AprJun/0015.html">libwww
+HTML parser</a>
+</li>
 <li>
 <strong>Mar 31: 1999:</strong> Interested in helping porting to Macs? <a
 href="http://lists.w3.org/Archives/Public/www-lib/1999JanMar/0411.html">Follow
@@ -210,4 +229,7 @@ href="../Consortium/Legal/copyright-software.html">software licensing
 href="../Consortium/Legal/privacy-statement.html#Members">Member</a> privacy
 statements.</small></p>
 </body>
+
+<!--  LocalWords:  Punin RDF XML Kozlov wintel
+-->
 </html>
