@@ -15,17 +15,22 @@
 **			HTFile().
 **	   Mar 94  AL	Configurable icons.
 **	   Apr 94  HF	Icons moved to own module
+**	   Jul 94  FM	Compile substitute strftime() for VMS && !DECC (and
+**			use sys$share:vaxcrtl/share in .opt file for linking).
+**			Insulate free() from _free structure element.
 ** BUGS:
-**	- No VMS port yet
 **
 */
 
-/* Implementation dependent include files */
+
+#ifdef VMS
+typedef unsigned long mode_t;
+#define lstat stat
+#else /* not VMS */
 #include <pwd.h>
 #include <grp.h>
-#ifdef VMS
-#include "HTVMSUtils.h"
-#endif /* VMS */
+#endif /* not VMS */
+
 #include "tcp.h"
 
 /* Library include files */
@@ -45,12 +50,15 @@
 #include "HTError.h"
 #include "HTDirBrw.h"					 /* Implemented here */
 
+#ifdef VMS
+#include "HTVMSUtils.h"
+#endif /* VMS */
 
-#ifdef Mips
+#if defined(Mips) || (defined(VMS) && !defined(DECC))
 PRIVATE char * months[12] = {
     "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"
 };
-#endif /* Mips */
+#endif /* Mips || (VMS && !DECC) */
 
 
 /* Macros and other defines */
@@ -66,7 +74,7 @@ PRIVATE char * months[12] = {
 #define PUTS(s) (*target->isa->put_string)(target, s)
 #define START(e) (*target->isa->start_element)(target, e, 0, 0)
 #define END(e) (*target->isa->end_element)(target, e)
-#define FREE_TARGET (*target->isa->free)(target)
+#define FREE_TARGET (*target->isa->_free)(target)
 
 
 struct _HTStructured {
@@ -806,7 +814,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 
     if (HTDirAccess == HT_DIR_SELECTIVE) {
 	StrAllocCat(pathname, HT_DIR_ENABLE_FILE);
-	if (stat(pathname, &file_info)) {
+	if (HTStat(pathname, &file_info)) {
 	    if (TRACE) fprintf(stderr,
 	        "HTBrowse.... Can't stat() file: %s (errno: %d)\n",
 			       pathname, errno);
@@ -877,20 +885,28 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	    /* First make a lstat() and get a key ready. */
 	    *(pathname+pathend) = '\0';
 	    StrAllocCat(pathname, dirbuf->d_name);
-	    if (lstat(pathname, &file_info)) {
+	    if (HTLstat(pathname, &file_info)) {
+#ifndef VMS
 		if (TRACE) fprintf(stderr,
 		"HTBrowse.... OUPS, lstat failed on %s (errno: %d)\n",
 				   pathname, errno);
-		continue;
+		DirAbort(bt);
+		goto cleanup;
+#else /* VMS */
+		/* for VMS the failure here means the file is not readable...
+		   we however continue to browse through the directory... */
+                continue;
+#endif /* VMS */
 	    }
 	    if ((nodekey = (HTDirKey *) calloc(1, sizeof(HTDirKey))) == NULL)
 		outofmem(__FILE__, "HTFileBrowseDirectory");
 
+#ifndef VMS
 	    /* Check if symbolic link, if so do a stat(). If this fails, don't
 	       show the item in the list */
 	    if ((file_info.st_mode & S_IFMT) == S_IFLNK) {
 		int symend;		
-		if (stat(pathname, &file_info)) {
+		if (HTStat(pathname, &file_info)) {
 		    if (TRACE)
 			fprintf(stderr, "HTBrowse.... stat failed on symbolic link %s, errno: %d\n", pathname, errno);
 		    KeyFree(nodekey);
@@ -910,6 +926,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 		    *(nodekey->symlink+symend) = '\0';
 		}
 	    }
+#endif /* not VMS */
 
 	    /* Generate key entry in nodekey */
 	    if (keyptr) {	             /* Use content of keyptr as key */
@@ -933,6 +950,16 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 		int filestrlen = strlen(nodekey->filename);
 
 		if ((file_info.st_mode & S_IFMT) == S_IFDIR) {
+#ifdef VMS  
+		    /* strip .DIR part... */
+                    char *dot;
+                    dot = strstr(nodekey->filename,".DIR");
+                    if (dot)
+                    {
+                       *dot = '\0';
+                       filestrlen -= 4;
+                    }
+#endif /* VMS */
 		    nodekey->is_dir = YES;	/* We need the trailing slash*/
 		    filestrlen++;
 		}
@@ -954,7 +981,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 		bodyptr = nodekey->body;
 		memset((void *) bodyptr, ' ', HTBodyLength);
 		if (HTDirShowMask & HT_DIR_SHOW_DATE) {
-#ifdef Mips
+#if defined(Mips) || (defined(VMS) && !defined(DECC))
 		    struct tm * t = localtime(&file_info.st_mtime);
 
 		    sprintf(bodyptr,"%02d-%s-%02d %02d:%02d",
@@ -966,7 +993,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 #else
 		    strftime(bodyptr, HT_LENGTH_DATE+1, "%d-%b-%y %H:%M",
 			     localtime(&file_info.st_mtime));
-#endif /* non-Mips */
+#endif /* Mips || (VMS && !DECC) */
 		    bodyptr += HT_LENGTH_DATE;
 		    *bodyptr = ' ';
 		    bodyptr += HT_LENGTH_SPACE;
@@ -986,6 +1013,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 		    ItoA(file_info.st_nlink, bodyptr, HT_LENGTH_NLINK);
 		    bodyptr += HT_LENGTH_NLINK+HT_LENGTH_SPACE;
 		}
+#ifndef VMS
 		if (HTDirShowMask & HT_DIR_SHOW_OWNER) {
 		    char *bp = bodyptr;
 		    char *pwptr;
@@ -1016,6 +1044,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 		    }
 		    bodyptr += HT_LENGTH_GROUP+HT_LENGTH_SPACE;
 		}
+#endif /* not VMS */
 		*bodyptr = '\0';
 		if (HTDirDescriptions) {
 		    char * d = HTGetDescription(descriptions,
@@ -1220,7 +1249,7 @@ PUBLIC int HTFTPBrowseDirectory ARGS3(HTRequest *, req, char *, directory,
 		memset((void *) bodyptr, ' ', HTBodyLength);
 		if (HTDirShowMask & HT_DIR_SHOW_DATE) {
 		    if (file_info.f_mtime) {
-#ifdef Mips
+#if defined(Mips) || (defined(VMS) && !defined(DECC))
 			struct tm * t = localtime(&file_info.f_mtime);
 
 			sprintf(bodyptr,"%02d-%s-%02d %02d:%02d",
@@ -1232,7 +1261,7 @@ PUBLIC int HTFTPBrowseDirectory ARGS3(HTRequest *, req, char *, directory,
 #else
 			strftime(bodyptr, HT_LENGTH_DATE+1, "%d-%b-%y %H:%M",
 				 localtime(&file_info.f_mtime));
-#endif /* non-Mips */
+#endif /* Mips || (VMS && !DECC) */
 		    } else {
 			*bodyptr = '-';
 		    }

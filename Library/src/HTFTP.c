@@ -79,6 +79,10 @@
 #include "HTError.h"
 #include "HTFTP.h"					 /* Implemented here */
 
+#ifdef VMS
+#include "HTVMSUtils.h"
+#endif /* VMS */
+
 /* Macros and other defines */
 /* If LISTEN is defined, then first 'PASV' then 'PORT' (if error) is tried,
    else ONLY 'PASV' is used in order to establish a data connection. */
@@ -427,8 +431,11 @@ PRIVATE time_t HTStrpTime ARGS1(char *, datestr)
 	return (time_t) 0;
     }
     time_info->tm_isdst = -1;			      /* Disable summer time */
-    for (cnt=0; cnt<3; cnt++)					    /* Month */
-	*bcol++ = toupper(*bcol);
+    for (cnt=0; cnt<3; cnt++)
+    {					    /* Month */
+	*bcol = toupper(*bcol);
+        bcol++;
+    }
     if ((time_info->tm_mon = HTStrpMonth(datestr)) < 0)
 	return (time_t) 0;
     ecol = bcol;		   			       	      /* Day */

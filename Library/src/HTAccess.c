@@ -15,6 +15,7 @@
 **	28 May 93 WAIS gateway explicit if no WAIS library linked in.
 **	   Dec 93 Bug change around, more reentrant, etc
 **	09 May 94 logfile renamed to HTlogfile to avoid clash with WAIS
+**	 8 Jul 94 Insulate free() from _free structure element.
 ** Bugs
 **	This module assumes that that the graphic object is hypertext, as it
 **	needs to select it when it has been loaded.  A superclass needs to be
@@ -647,7 +648,7 @@ PRIVATE BOOL HTLoadDocument ARGS2(HTRequest *,		request,
 				   full_address);
 		if (fp) {
 		    HTFileCopy(fp, s);
-		    (*s->isa->free)(s);	/* close up pipeline */
+		    (*s->isa->_free)(s);	/* close up pipeline */
 		    fclose(fp);
 		    free(full_address);
 		    return YES;
