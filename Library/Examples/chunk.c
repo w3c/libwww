@@ -13,11 +13,15 @@ int main (int argc, char ** argv)
 
     /* Turn on TRACE so we can see what is going on */
 #if 0
-    WWWTRACE = SHOW_CORE_TRACE + SHOW_STREAM_TRACE + SHOW_PROTOCOL_TRACE;
+    HTSetTraceMessageMask("sop");
 #endif
 
-    /* Set up the request and pass it to the Library */
-    HTRequest_setOutputFormat(request, WWW_SOURCE);
+    /* We want raw output including headers */
+    HTRequest_setOutputFormat(request, WWW_RAW);
+
+    /* Close connection immediately */
+    HTRequest_addConnection(request, "close", "");
+
     if (url) {
 	char * cwd = HTGetCurrentDirectoryURL();
 	char * absolute_url = HTParse(url, cwd, PARSE_ALL);
