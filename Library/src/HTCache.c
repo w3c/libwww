@@ -44,7 +44,6 @@
 
 #define WARN_HEURISTICS		24*3600		  /* When to issue a warning */
 
-#define HASH_SIZE 	599
 #define DUMP_FREQUENCY	10			 /* Dump index every x loads */
 
 #define MEGA			0x100000L
@@ -176,7 +175,7 @@ PRIVATE BOOL HTCacheGarbage (void)
 	**  case. It could also include max_stale.
 	*/
 	if (CACHE_TRACE) HTTrace("Cache....... Collecting Stale entries\n");
-	for (cnt=0; cnt<HASH_SIZE; cnt++) {
+	for (cnt=0; cnt<HT_XL_HASH_SIZE; cnt++) {
 	    if ((cur = CacheTable[cnt])) { 
 		HTList * old_cur = cur;
 		HTCache * pres;
@@ -206,7 +205,7 @@ PRIVATE BOOL HTCacheGarbage (void)
 	    BOOL removed = NO;
 	    if (CACHE_TRACE)
 		HTTrace("Cache....... Collecting entries with %d hits\n",hits);
-	    for (cnt=0; cnt<HASH_SIZE; cnt++) {
+	    for (cnt=0; cnt<HT_XL_HASH_SIZE; cnt++) {
 		if ((cur = CacheTable[cnt])) { 
 		    HTList * old_cur = cur;
 		    HTCache * pres;
@@ -301,7 +300,7 @@ PUBLIC BOOL HTCacheIndex_write (const char * cache_root)
 	{
 	    HTList * cur;
 	    int cnt;
-	    for (cnt=0; cnt<HASH_SIZE; cnt++) {
+	    for (cnt=0; cnt<HT_XL_HASH_SIZE; cnt++) {
 		if ((cur = CacheTable[cnt])) { 
 		    HTCache * pres;
 		    while ((pres = (HTCache *) HTList_nextObject(cur))) {
@@ -403,11 +402,11 @@ PRIVATE BOOL HTCacheIndex_parseLine (char * line)
 	**  entry. Also check that the hash is still within bounds
 	*/
 	if (!CacheTable) {
-	    if ((CacheTable = (HTList **) HT_CALLOC(HASH_SIZE,
+	    if ((CacheTable = (HTList **) HT_CALLOC(HT_XL_HASH_SIZE,
 						    sizeof(HTList *))) == NULL)
 		HT_OUTOFMEM("HTCache_parseLine");
 	}
-	if (cache->hash >= 0 && cache->hash < HASH_SIZE) {
+	if (cache->hash >= 0 && cache->hash < HT_XL_HASH_SIZE) {
 	    int hash = cache->hash;
 	    if (!CacheTable[hash]) CacheTable[hash] = HTList_new();
 	    HTList_addObject(CacheTable[hash], (void *) cache);
@@ -1087,9 +1086,9 @@ PRIVATE HTCache * HTCache_new (HTRequest * request, HTResponse * response,
     if ((url = HTAnchor_address((HTAnchor *) anchor))) {
 	char * ptr;
 	for (ptr=url; *ptr; ptr++)
-	    hash = (int) ((hash * 3 + (*(unsigned char *) ptr)) % HASH_SIZE);
+	    hash = (int) ((hash * 3 + (*(unsigned char *) ptr)) % HT_XL_HASH_SIZE);
 	if (!CacheTable) {
-	    if ((CacheTable = (HTList **) HT_CALLOC(HASH_SIZE,
+	    if ((CacheTable = (HTList **) HT_CALLOC(HT_XL_HASH_SIZE,
 						   sizeof(HTList *))) == NULL)
 	        HT_OUTOFMEM("HTCache_new");
 	}
@@ -1427,7 +1426,7 @@ PUBLIC HTCache * HTCache_find (HTParentAnchor * anchor)
 	int hash = 0;
 	char * ptr = url;
 	for (; *ptr; ptr++)
-	    hash = (int) ((hash * 3 + (*(unsigned char *) ptr)) % HASH_SIZE);
+	    hash = (int) ((hash * 3 + (*(unsigned char *) ptr)) % HT_XL_HASH_SIZE);
 	if (!CacheTable[hash]) {
 	    HT_FREE(url);
 	    return NULL;
@@ -1475,7 +1474,7 @@ PUBLIC BOOL HTCache_deleteAll (void)
 	int cnt;
 
 	/* Delete the rest */
-	for (cnt=0; cnt<HASH_SIZE; cnt++) {
+	for (cnt=0; cnt<HT_XL_HASH_SIZE; cnt++) {
 	    if ((cur = CacheTable[cnt])) { 
 		HTCache * pres;
 		while ((pres = (HTCache *) HTList_nextObject(cur)) != NULL)
@@ -1754,7 +1753,7 @@ PUBLIC BOOL HTCache_flushAll (void)
 	int cnt;
 
 	/* Delete the rest */
-	for (cnt=0; cnt<HASH_SIZE; cnt++) {
+	for (cnt=0; cnt<HT_XL_HASH_SIZE; cnt++) {
 	    if ((cur = CacheTable[cnt])) { 
 		HTCache * pres;
 		while ((pres = (HTCache *) HTList_nextObject(cur)) != NULL) {

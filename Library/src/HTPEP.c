@@ -19,7 +19,6 @@
 #include "WWWCore.h"
 #include "HTPEP.h"					 /* Implemented here */
 
-#define HASH_SIZE 		67			  /* Arbitrary prime */
 #define PEP_NAME		"w3c-pep"	     /* Name of the PEP tree */
 #define DEFAULT_PORT		80		      /* Concentrate on HTTP */
 
@@ -65,12 +64,13 @@ PRIVATE HTPEPModule * find_module (const char * name, HTList ** hashlist)
 
     /* Find a hash for this PEP module */
     {
-	int hash = 0;
-	const char * ptr;
-	for (ptr=name; *ptr; ptr++)
-	    hash = (int) ((hash * 3 + (*(unsigned char *) ptr)) % HASH_SIZE);
+	int hash;
+	const unsigned char * p;
+	for (p=name, hash=0; *p; p++) {
+	    hash = (hash * 3 + *p) % HT_M_HASH_SIZE;
+	}
 	if (!HTModules) {
-	    if ((HTModules = (HTList **) HT_CALLOC(HASH_SIZE,
+	    if ((HTModules = (HTList **) HT_CALLOC(HT_M_HASH_SIZE,
 						   sizeof(HTList *))) == NULL)
 	        HT_OUTOFMEM("find_module");
 	}
@@ -155,7 +155,7 @@ PUBLIC BOOL HTPEP_deleteAllModules (void)
     if (HTModules) {
 	int cnt;
 	HTList * cur;
-	for (cnt=0; cnt<HASH_SIZE; cnt++) {
+	for (cnt=0; cnt<HT_M_HASH_SIZE; cnt++) {
 	    if ((cur = HTModules[cnt])) { 
 		HTPEPModule * pres;
 		while ((pres = (HTPEPModule *) HTList_nextObject(cur)))

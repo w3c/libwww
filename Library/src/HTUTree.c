@@ -27,7 +27,6 @@
 #include "HTUTree.h"					 /* Implemented here */
 
 #define TREE_TIMEOUT		43200L	     /* Default tree timeout is 12 h */
-#define HASH_SIZE 		101			  /* Arbitrary prime */
 
 struct _HTUTree {			  /* Server URL info base */
     char *		name;
@@ -293,12 +292,13 @@ PRIVATE HTUTree * find_tree (const char * 	name,
 
     /* Find a hash for this host */
     {
-	int hash = 0;
-	const char * ptr;
-	for (ptr=host; *ptr; ptr++)
-	    hash = (int) ((hash * 3 + (*(unsigned char *) ptr)) % HASH_SIZE);
+	int hash;
+	const unsigned char * p;
+	for (p=host, hash=0; *p; p++) {
+	    hash = (hash * 3 + *p) % HT_L_HASH_SIZE;
+	}
 	if (!InfoTable) {
-	    if ((InfoTable = (HTList **) HT_CALLOC(HASH_SIZE,
+	    if ((InfoTable = (HTList **) HT_CALLOC(HT_L_HASH_SIZE,
 						   sizeof(HTList *))) == NULL)
 	        HT_OUTOFMEM("HTUTree_find");
 	}
@@ -416,7 +416,7 @@ PUBLIC BOOL HTUTree_deleteAll (void)
     if (InfoTable) {
 	int cnt;
 	HTList * cur;
-	for (cnt=0; cnt<HASH_SIZE; cnt++) {
+	for (cnt=0; cnt<HT_L_HASH_SIZE; cnt++) {
 	    if ((cur = InfoTable[cnt])) { 
 		HTUTree * pres;
 		while ((pres = (HTUTree *) HTList_nextObject(cur)))

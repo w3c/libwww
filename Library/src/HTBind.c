@@ -48,8 +48,6 @@ typedef struct _HTBind {
     double	quality;
 } HTBind;
 
-#define HASH_SIZE	101	   /* Arbitrary prime. Memory/speed tradeoff */
-
 /* Suffix registration */
 PRIVATE BOOL HTCaseSen = YES;		      /* Are suffixes case sensitive */
 PRIVATE char *HTDelimiters = NULL;			  /* Set of suffixes */
@@ -67,7 +65,7 @@ PRIVATE HTBind unknown_suffix = { "*.*", NULL, NULL, NULL, NULL, 0.5 };
 PUBLIC BOOL HTBind_init (void)
 {
     if (!HTBindings) {
-	if (!(HTBindings = (HTList **) HT_CALLOC(HASH_SIZE, sizeof(HTList *))))
+	if (!(HTBindings = (HTList **) HT_CALLOC(HT_L_HASH_SIZE, sizeof(HTList *))))
 	    HT_OUTOFMEM("HTBind_init");
     }
     StrAllocCopy(HTDelimiters, DEFAULT_SUFFIXES);
@@ -90,7 +88,7 @@ PUBLIC BOOL HTBind_deleteAll (void)
     HTList *cur;
     if (!HTBindings)
 	return NO;
-    for (cnt=0; cnt<HASH_SIZE; cnt++) {
+    for (cnt=0; cnt<HT_L_HASH_SIZE; cnt++) {
 	if ((cur = HTBindings[cnt])) { 
 	    HTBind *pres;
 	    while ((pres = (HTBind *) HTList_nextObject(cur)) != NULL) {
@@ -189,13 +187,14 @@ PUBLIC BOOL HTBind_add (const char *	suffix,
     else if (!strcmp(suffix, "*.*"))
 	suff = &unknown_suffix;
     else {
-	HTList *suflist;
-	int hash=0;
-	const char *ptr=suffix;
+	HTList * suflist;
+	int hash;
+	const unsigned char * p;
 
 	/* Select list from hash table */
-	for( ; *ptr; ptr++)
-	    hash = (int) ((hash * 3 + (*(unsigned char*)ptr)) % HASH_SIZE);
+	for (p=suffix, hash=0; *p; p++) {
+	    hash = (hash * 3 + TOLOWER(*p)) % HT_L_HASH_SIZE;
+	}
 
 	if (!HTBindings[hash]) HTBindings[hash] = HTList_new();
 	suflist = HTBindings[hash];
@@ -283,7 +282,7 @@ PUBLIC char * HTBind_getSuffix (HTParentAnchor * anchor)
     HTList * encoding = HTAnchor_encoding(anchor);
     HTList * language = HTAnchor_language(anchor);
     if (anchor) {
-	for (cnt=0; cnt<HASH_SIZE; cnt++) {
+	for (cnt=0; cnt<HT_L_HASH_SIZE; cnt++) {
 	    if ((cur = HTBindings[cnt])) { 
 		HTBind *pres;
 		while ((pres = (HTBind *) HTList_nextObject(cur))) {
@@ -446,15 +445,15 @@ PUBLIC BOOL HTBind_getFormat (const char *	filename,
 	while ((suffix=strtok(NULL, HTDelimiters)) != NULL) {
 #endif /* HT_REENTRANT */
 	    HTBind *suff=NULL;
-	    int hash=0;
-	    char *ptr=suffix;
-	    if (BIND_TRACE)
-		HTTrace("Get Binding. Look for '%s\' ", suffix);
+	    int hash;
+	    unsigned char * p;
+	    if (BIND_TRACE) HTTrace("Get Binding. Look for '%s\' ", suffix);
 	    sufcnt++;
 
 	    /* Select list from hash table */
-	    for( ; *ptr; ptr++)
-		hash = (int)((hash*3+(*(unsigned char*)ptr)) % HASH_SIZE);
+	    for (p=suffix, hash=0; *p; p++) {
+		hash = (hash * 3 + TOLOWER(*p)) % HT_L_HASH_SIZE;
+	    }
 
 	    /* Now search list for entries (case or non case sensitive) */
 	    if (HTBindings[hash]) {

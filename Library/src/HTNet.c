@@ -36,8 +36,6 @@
 #define HT_MAX_SOCKETS	25
 #endif
 
-#define HASH_SIZE	599
-
 typedef struct _BeforeFilter {
     HTNetBefore *	before;				  /* Filter function */
     char *		tmplate;     /* URL template for when to call filter */
@@ -549,11 +547,11 @@ PRIVATE HTNet * create_object (void)
     /* Create new object */
     if ((me = (HTNet *) HT_CALLOC(1, sizeof(HTNet))) == NULL)
         HT_OUTOFMEM("HTNet_new");
-    me->hash = net_hash++ % HASH_SIZE;
+    me->hash = net_hash++ % HT_XL_HASH_SIZE;
 
     /* Insert into hash table */
     if (!NetTable) {
-	if ((NetTable = (HTList **) HT_CALLOC(HASH_SIZE, sizeof(HTList *))) == NULL)
+	if ((NetTable = (HTList **) HT_CALLOC(HT_XL_HASH_SIZE, sizeof(HTList *))) == NULL)
 	    HT_OUTOFMEM("create_object");
     }
     if (!NetTable[me->hash]) NetTable[me->hash] = HTList_new();
@@ -949,7 +947,7 @@ PUBLIC BOOL HTNet_deleteAll (void)
 	HTList * cur = NULL;
         HTNet * pres = NULL;
 	int cnt;
-	for (cnt=0; cnt<HASH_SIZE; cnt++) {
+	for (cnt=0; cnt<HT_XL_HASH_SIZE; cnt++) {
 	    if ((cur = NetTable[cnt])) { 
 		while ((pres = (HTNet *) HTList_nextObject(cur)) != NULL)
 		    delete_object(pres);
@@ -1010,7 +1008,7 @@ PUBLIC BOOL HTNet_killAll (void)
 	HTList * cur = NULL;
         HTNet * pres = NULL;
 	int cnt;
-	for (cnt=0; cnt<HASH_SIZE; cnt++) {
+	for (cnt=0; cnt<HT_XL_HASH_SIZE; cnt++) {
 	    if ((cur = NetTable[cnt])) { 
 		while ((pres = (HTNet *) HTList_lastObject(cur)) != NULL)
     		    HTNet_kill(pres);

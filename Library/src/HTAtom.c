@@ -23,9 +23,7 @@
 #include "HTList.h"
 #include "HTAtom.h"
 
-#define HASH_SIZE	599		/* Tunable */
-
-PRIVATE HTAtom * hash_table[HASH_SIZE];
+PRIVATE HTAtom * hash_table[HT_XL_HASH_SIZE];
 PRIVATE BOOL initialised = NO;
 
 /*
@@ -43,14 +41,14 @@ PUBLIC HTAtom * HTAtom_for (const char * string)
     /*		First time around, clear hash table
     */
     if (!initialised) {
-        memset((void *) hash_table, '\0', sizeof(HTAtom *) * HASH_SIZE);
+        memset((void *) hash_table, '\0', sizeof(HTAtom *) * HT_XL_HASH_SIZE);
 	initialised = YES;
     }
     
     /*		Generate hash function
     */
     for (p=string, hash=0; *p; p++) {
-        hash = (hash * 3 + TOLOWER(*p)) % HASH_SIZE;
+        hash = (hash * 3 + TOLOWER(*p)) % HT_XL_HASH_SIZE;
     }
     
     /*		Search for the string in the list
@@ -93,14 +91,14 @@ PUBLIC HTAtom * HTAtom_caseFor (const char * string)
     /*		First time around, clear hash table
     */
     if (!initialised) {
-        memset((void *) hash_table, '\0', sizeof(HTAtom *) * HASH_SIZE);
+        memset((void *) hash_table, '\0', sizeof(HTAtom *) * HT_XL_HASH_SIZE);
 	initialised = YES;
     }
     
     /*		Generate hash function
     */
     for(p=string, hash=0; *p; p++) {
-        hash = (hash * 3 + TOLOWER(*p)) % HASH_SIZE;
+        hash = (hash * 3 + TOLOWER(*p)) % HT_XL_HASH_SIZE;
     }
     
     /*		Search for the string in the list
@@ -134,7 +132,7 @@ PUBLIC void HTAtom_deleteAll (void)
     HTAtom *cur;
     HTAtom *next;
     
-    for (i=0; i<HASH_SIZE; i++) {
+    for (i=0; i<HT_XL_HASH_SIZE; i++) {
 	if (hash_table[i]) {
 	    cur = hash_table[i];
 	    while (cur) {
@@ -182,7 +180,7 @@ PUBLIC HTList *HTAtom_templateMatches (const char * templ)
 	int i;
 	HTAtom *cur;
 
-	for (i=0; i<HASH_SIZE; i++) {
+	for (i=0; i<HT_XL_HASH_SIZE; i++) {
 	    for (cur = hash_table[i];  cur;  cur=cur->next) {
 		if (mime_match(cur->name, templ))
 		    HTList_addObject(matches, (void*)cur);

@@ -25,8 +25,8 @@
 #include "HTWWWStr.h"
 #include "HTAncMan.h"					 /* Implemented here */
 
-#define HASH_SIZE	599	   /* Arbitrary prime. Memory/speed tradeoff */
-#define CHILD_HASH_SIZE	 97	       /* Often smaller than hash of parents */
+#define PARENT_HASH_SIZE	HT_XL_HASH_SIZE
+#define CHILD_HASH_SIZE		HT_L_HASH_SIZE
 
 PRIVATE HTList **adult_table=0;  /* Point to table of lists of all parents */
 
@@ -164,9 +164,9 @@ PUBLIC HTAnchor * HTAnchor_findAddress (const char * address)
 
 	/* Select list from hash table */
 	for(p=newaddr, hash=0; *p; p++)
-	    hash = (int) ((hash * 3 + (*(unsigned char*)p)) % HASH_SIZE);
+	    hash = (int) ((hash * 3 + (*(unsigned char*)p)) % PARENT_HASH_SIZE);
 	if (!adult_table) {
-	    if ((adult_table = (HTList* *) HT_CALLOC(HASH_SIZE, sizeof(HTList*))) == NULL)
+	    if ((adult_table = (HTList* *) HT_CALLOC(PARENT_HASH_SIZE, sizeof(HTList*))) == NULL)
 	        HT_OUTOFMEM("HTAnchor_findAddress");
 	}
 	if (!adult_table[hash]) adult_table[hash] = HTList_new();
@@ -397,7 +397,7 @@ PUBLIC BOOL HTAnchor_deleteAll (HTList * documents)
     HTList *cur;
     if (!adult_table)
 	return NO;
-    for (cnt=0; cnt<HASH_SIZE; cnt++) {
+    for (cnt=0; cnt<PARENT_HASH_SIZE; cnt++) {
 	if ((cur = adult_table[cnt])) { 
 	    HTParentAnchor *pres;
 	    while ((pres = (HTParentAnchor *) HTList_nextObject(cur)) != NULL){
@@ -422,7 +422,7 @@ PUBLIC BOOL HTAnchor_clearAll (HTList * documents)
     int cnt;
     HTList * cur;
     if (!adult_table) return NO;
-    for (cnt=0; cnt<HASH_SIZE; cnt++) {
+    for (cnt=0; cnt<PARENT_HASH_SIZE; cnt++) {
 	if ((cur = adult_table[cnt])) { 
 	    HTParentAnchor * pres;
 	    while ((pres = (HTParentAnchor *) HTList_nextObject(cur))) {
@@ -555,11 +555,11 @@ PUBLIC HTArray * HTAnchor_getArray (int growby)
     if (!adult_table) return NULL;
 
     /* Allocate an array for the anchors */
-    if (!growby) growby = HASH_SIZE;
+    if (!growby) growby = PARENT_HASH_SIZE;
     array = HTArray_new(growby);
 
     /* Traverse anchor structure */
-    for (cnt=0; cnt<HASH_SIZE; cnt++) {
+    for (cnt=0; cnt<PARENT_HASH_SIZE; cnt++) {
 	if ((cur = adult_table[cnt])) { 
 	    HTParentAnchor * pres = NULL;
 	    while ((pres = (HTParentAnchor *) HTList_nextObject(cur)) != NULL) {

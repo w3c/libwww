@@ -73,6 +73,8 @@ globally or locally as you like. The local registrations is managed by
   Header Parsers
 </H3>
 <PRE>
+#define MIME_HASH_SIZE  HT_L_HASH_SIZE
+
 extern void HTHeader_setMIMEParseSet (HTMIMEParseSet * list);
 extern HTMIMEParseSet * HTHeader_MIMEParseSet (void);
 extern BOOL HTHeader_addParser (const char * token, BOOL case_sensitive,

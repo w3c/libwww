@@ -18,8 +18,6 @@
 #include "HTString.h"
 #include "HTMIMPrs.h"
 
-#define DEFAULT_HASH_SIZE 	11
-
 struct _HTMIMEParseEl{
     HTMIMEParseEl * 	next;
     const char * 	token;
@@ -107,7 +105,7 @@ PUBLIC HTMIMEParseEl * HTMIMEParseSet_add (HTMIMEParseSet * me,
     */
     if (!me->parsers) {
         if (!me->size)
-	    me->size = DEFAULT_HASH_SIZE;
+	    me->size = HT_S_HASH_SIZE;
 	if ((me->parsers = (HTMIMEParseEl **) HT_CALLOC(me->size, sizeof(HTMIMEParseEl *))) == NULL)
 	    HT_OUTOFMEM("HTMIME parsers");
     }

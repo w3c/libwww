@@ -19,7 +19,6 @@
 #include "HTHeader.h"					 /* Implemented here */
 #include "HTMIMPrs.h"
 
-#define MIME_HASH_SIZE 101
 HTMIMEParseSet * ParseSet = NULL;
 PRIVATE HTList * HTGenerators = NULL;
 

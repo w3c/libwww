@@ -23,8 +23,7 @@
 
 #include "HTChannl.h"					 /* Implemented here */
 
-#define HASH_SIZE	67
-#define HASH(s)		((s) % HASH_SIZE)
+#define HASH(s)		((s) % (HT_M_HASH_SIZE))
 
 struct _HTInputStream {
     const HTInputStreamClass *	isa;
@@ -164,7 +163,7 @@ PUBLIC HTChannel * HTChannel_new (SOCKET sockfd, FILE * fp, BOOL active)
     int hash = sockfd < 0 ? 0 : HASH(sockfd);
     if (PROT_TRACE) HTTrace("Channel..... Hash value is %d\n", hash);
     if (!channels) {
-	if (!(channels = (HTList **) HT_CALLOC(HASH_SIZE,sizeof(HTList*))))
+	if (!(channels = (HTList **) HT_CALLOC(HT_M_HASH_SIZE,sizeof(HTList*))))
 	    HT_OUTOFMEM("HTChannel_new");
     }
     if (!channels[hash]) channels[hash] = HTList_new();
@@ -275,7 +274,7 @@ PUBLIC BOOL HTChannel_deleteAll (void)
     if (channels) {
 	HTList * cur;
 	int cnt;
-	for (cnt=0; cnt<HASH_SIZE; cnt++) {
+	for (cnt=0; cnt<HT_M_HASH_SIZE; cnt++) {
 	    if ((cur = channels[cnt])) { 
 		HTChannel * pres;
 		while ((pres = (HTChannel *) HTList_nextObject(cur)) != NULL)

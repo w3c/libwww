@@ -36,11 +36,10 @@
 #include "HTEvtLst.h"					 /* Implemented here */
 
 /* Type definitions and global variables etc. local to this module */
-#define PRIME_TABLE_SIZE	67
 #define MILLI_PER_SECOND	1000
-#define HASH(s)			((s) % PRIME_TABLE_SIZE) 
+#define HASH(s)			((s) % HT_M_HASH_SIZE) 
 #define HT_EVENT_ORDER				  /* use event ordering code */
-#define EVENTS_TO_EXECUTE	5  /* how many to execute in one select loop */
+#define EVENTS_TO_EXECUTE	10 /* how many to execute in one select loop */
 
 #ifdef WWW_WIN_ASYNC
 #define TIMEOUT	1 /* WM_TIMER id */
@@ -68,7 +67,7 @@ typedef enum {
     SockEvents_find
 } SockEvents_action;
 
-HTList * HashTable[PRIME_TABLE_SIZE]; 
+HTList * HashTable[HT_M_HASH_SIZE]; 
 PRIVATE int HTEndLoop = 0;		       /* If !0 then exit event loop */
 
 /* ------------------------------------------------------------------------- */
@@ -171,7 +170,7 @@ PRIVATE void EventList_dump (void)
     HTTrace(" ");
     HTTimer_traceHead();
     HTTrace("\n");
-    for (v = 0; v < PRIME_TABLE_SIZE; v++) {
+    for (v = 0; v < HT_M_HASH_SIZE; v++) {
 	cur = HashTable[v];
 	while ((pres = (SockEvents *) HTList_nextObject(cur))) {
 	    int i;
@@ -530,7 +529,7 @@ PUBLIC int HTEventList_unregisterAll (void)
 {
     int i;
     if (THD_TRACE) HTTrace("Unregister.. all sockets\n");
-    for (i = 0 ; i < PRIME_TABLE_SIZE; i++) {
+    for (i = 0 ; i < HT_M_HASH_SIZE; i++) {
 	HTList * cur = HashTable[i];
 	SockEvents * pres;
 	while ((pres = (SockEvents *) HTList_nextObject(cur))) {

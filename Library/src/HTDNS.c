@@ -24,7 +24,6 @@
 #include "HTDNS.h"					 /* Implemented here */
 
 #define DNS_TIMEOUT		1800L	     /* Default DNS timeout is 30 mn */
-#define HASH_SIZE		67
 
 /* Type definitions and global variables etc. local to this module */
 struct _HTdns {
@@ -176,7 +175,7 @@ PUBLIC BOOL HTDNS_delete (const char * host)
     const char *ptr;
     if (!host || !CacheTable) return NO;
     for(ptr=host; *ptr; ptr++)
-	hash = (int) ((hash * 3 + (*(unsigned char *) ptr)) % HASH_SIZE);
+	hash = (int) ((hash * 3 + (*(unsigned char *) ptr)) % HT_M_HASH_SIZE);
     if ((list = CacheTable[hash])) {	 /* We have the list, find the entry */
 	HTdns *pres;
 	while ((pres = (HTdns *) HTList_nextObject(list))) {
@@ -198,7 +197,7 @@ PUBLIC BOOL HTDNS_deleteAll (void)
     int cnt;
     HTList *cur;
     if (!CacheTable) return NO;
-    for (cnt=0; cnt<HASH_SIZE; cnt++) {
+    for (cnt=0; cnt<HT_M_HASH_SIZE; cnt++) {
 	if ((cur = CacheTable[cnt])) { 
 	    HTdns *pres;
 	    while ((pres = (HTdns *) HTList_nextObject(cur)) != NULL)
@@ -238,9 +237,9 @@ PUBLIC int HTGetHostByName (HTHost * host, char *hostname, HTRequest* request)
 	int hash = 0;
 	char *ptr;
 	for(ptr=hostname; *ptr; ptr++)
-	    hash = (int) ((hash * 3 + (*(unsigned char *) ptr)) % HASH_SIZE);
+	    hash = (int) ((hash * 3 + (*(unsigned char *) ptr)) % HT_M_HASH_SIZE);
 	if (!CacheTable) {
-	    if ((CacheTable = (HTList* *) HT_CALLOC(HASH_SIZE, sizeof(HTList *))) == NULL)
+	    if ((CacheTable = (HTList* *) HT_CALLOC(HT_M_HASH_SIZE, sizeof(HTList *))) == NULL)
 	        HT_OUTOFMEM("HTDNS_init");
 	}
 	if (!CacheTable[hash]) CacheTable[hash] = HTList_new();
