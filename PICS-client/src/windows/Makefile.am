@@ -9,16 +9,17 @@ PL  := $(wildcard *.pl)
 AUTOMAKE_OPTIONS = foreign
 
 BUILT_SOURCES = \
-	pics.def	picslist.txt
+	pics.def
 
 EXTRA_DIST = \
 	$(SRC) \
 	$(MAK) \
 	$(PL)
 
+def:  maintainer-clean-generic $(BUILT_SOURCES)
+
 .files.def:
-	../../../config/makedefs.pl @ < $(srcdir)/$(*F).files > $(srcdir)/$(*F).def
+	$(top_srcdir)/config/makedefs.pl -headerEXPORTS -d.. @$(srcdir)/$(*F).files > $(srcdir)/$(*F).def
 
 picslist.txt:
 	ls -1 ../*.c | sed -e s=\.\./==1 | ../../../config/makedefs.pl @ > picslist.txt
-
