@@ -182,13 +182,16 @@ PUBLIC GroupDef *HTAA_getAclEntry ARGS3(FILE *,		acl_file,
 		HTList_delete(methods);
 		free(buf);
 		group_def = HTAA_parseGroupDef(acl_file);
+		/*
+		** HTAA_parseGroupDef() already reads the record
+		** separator so we don't call HTAAFile_nextRec().
+		*/
 		return group_def;
 	    }
 	    else if (TRACE) fprintf(stderr, " METHOD NOT FOUND\n");
 	    HTList_delete(methods);
 	}	/* if template match */
 	else {
-	    HTAAFile_nextRec(acl_file);
 	    if (TRACE) {
 		fprintf(stderr,
 			"Filename '%s' didn't match template '%s'\n",

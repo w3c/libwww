@@ -28,28 +28,34 @@
 
 
 /* PUBLIC						HTAAFile_nextRec()
-**			GO TO THE BEGINNING OF THE NEXT RECORD
+**		GO TO THE BEGINNING OF THE NEXT RECORD
 ** ON ENTRY:
 **	fp	is the file from which records are read from.
 **
 ** ON EXIT:
 **	returns	nothing. File read pointer is located at the beginning
-**		of the next record.
+**		of the next record. Handles continuation lines
+**		(lines ending in comma indicate a following
+**		continuation line).
 **
 */
 PUBLIC void HTAAFile_nextRec ARGS1(FILE *, fp)
 {
     int ch = getc(fp);
+    int last = (char)0;
 
-    while (ch != EOF  &&  ch != CR  &&  ch != LF)
-	ch = getc(fp);			/* Skip until end-of-line */
-
-    while (ch != EOF &&
-	   (ch == CR  ||  ch == LF))	/*Skip carriage returns and linefeeds*/
-	ch = getc(fp);
-
-    if (ch != EOF)
-	ungetc(ch, fp);
+    do {
+	while (ch != EOF  &&  ch != CR  &&  ch != LF) {
+	    if (ch != ' '  && ch != '\t')
+		last = ch;		/* Last non-whitespace */
+	    ch = getc(fp);		/* Skip until end-of-line */
+	}
+	while (ch != EOF &&
+	       (ch == CR  ||  ch == LF))/*Skip carriage returns and linefeeds*/
+	    ch = getc(fp);
+	if (ch != EOF)
+	    ungetc(ch, fp);
+    } while (last == ',' && ch != EOF);	/* Skip also continuation lines */
 }
 
 
@@ -102,13 +108,6 @@ PRIVATE int read_item ARGS4(FILE *,	fp,
 	ch = getc(fp);
     } /* while not eol or eof or too many read */
 
-    /* Terminate the string, truncating trailing whitespace off.
-    ** Otherwise (if whitespace would be included), here would
-    ** be *dest='\0'; and  cnt -= ... would be left out.
-    */
-    *end = '\0';
-    cnt -= dest-end;
-
     if (cnt == max_len)	{
 	/* If the field was too long (or exactly maximum) ignore the rest */
 	while (ch != FIELD_SEPARATOR &&
@@ -119,6 +118,13 @@ PRIVATE int read_item ARGS4(FILE *,	fp,
 
     if (ch == CR || ch == LF)
 	ungetc(ch, fp);	/* Push back the record separator (NL or LF) */
+
+    /* Terminate the string, truncating trailing whitespace off.
+    ** Otherwise (if whitespace would be included), here would
+    ** be *dest='\0'; and  cnt -= ... would be left out.
+    */
+    *end = '\0';
+    cnt -= dest-end;
 
     return ch;		/* Return the terminating character */
 }

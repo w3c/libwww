@@ -85,6 +85,7 @@ PUBLIC int HTLoadHTTP ARGS4 (
     char crlf[3];			/* A CR LF equivalent string */
     HTStream *	target = NULL;		/* Unconverted data */
     HTFormat format_in;			/* Format arriving in the message */
+    char *auth = NULL;			/* Authorization information */
     
     CONST char* gate = 0;		/* disable this feature */
     SockA soc_address;			/* Binary network address */
@@ -124,6 +125,42 @@ PUBLIC int HTLoadHTTP ARGS4 (
     }
     
 retry:
+
+/*
+** Compose authorization information (this was moved here
+** from after the making of the connection so that the connection
+** wouldn't have to wait while prompting username and password
+** from the user).				-- AL 13.10.93
+*/
+#ifdef ACCESS_AUTH
+#define FREE(x)	if (x) {free(x); x=NULL;}
+    {
+	char *docname;
+	char *hostname;
+	char *colon;
+	int portnumber;
+
+	docname = HTParse(arg, "", PARSE_PATH);
+	hostname = HTParse((gate ? gate : arg), "", PARSE_HOST);
+	if (hostname &&
+	    NULL != (colon = strchr(hostname, ':'))) {
+	    *(colon++) = NULL;	/* Chop off port number */
+	    portnumber = atoi(colon);
+	}
+	else portnumber = 80;
+	
+	auth = HTAA_composeAuth(hostname, portnumber, docname);
+
+	if (TRACE) {
+	    if (auth)
+		fprintf(stderr, "HTTP: Sending authorization: %s\n", auth);
+	    else
+		fprintf(stderr, "HTTP: Not sending authorization (yet)\n");
+	}
+	FREE(hostname);
+	FREE(docname);
+    }
+#endif /* ACCESS_AUTH */
    
 /*	Now, let's get a socket set up from the server for the data:
 */      
@@ -199,35 +236,9 @@ retry:
 	      StrAllocCat(command, line);
 
 #ifdef ACCESS_AUTH
-#define FREE(x)	if (x) {free(x); x=NULL;}
-	{
-	    char *docname;
-	    char *hostname;
-	    char *colon;
-	    int portnumber;
-	    char *auth;
-
-	    docname = HTParse(arg, "", PARSE_PATH);
-	    hostname = HTParse((gate ? gate : arg), "", PARSE_HOST);
-	    if (hostname &&
-		NULL != (colon = strchr(hostname, ':'))) {
-		*(colon++) = NULL;	/* Chop off port number */
-		portnumber = atoi(colon);
-	    }
-	    else portnumber = 80;
-
-	    if (NULL!=(auth=HTAA_composeAuth(hostname, portnumber, docname))) {
-		sprintf(line, "%s%c%c", auth, CR, LF);
-		StrAllocCat(command, line);
-	    }
-	    if (TRACE) {
-		if (auth)
-		    fprintf(stderr, "HTTP: Sending authorization: %s\n", auth);
-		else
-		    fprintf(stderr, "HTTP: Not sending authorization (yet)\n");
-	    }
-	    FREE(hostname);
-	    FREE(docname);
+	if (auth != NULL) {
+	    sprintf(line, "%s%c%c", auth, CR, LF);
+	    StrAllocCat(command, line);
 	}
 #endif /* ACCESS_AUTH */
     }

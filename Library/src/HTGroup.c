@@ -639,6 +639,8 @@ PUBLIC GroupDefList *HTAA_readGroupFile ARGS1(CONST char *, filename)
     FILE *fp;
     GroupCache *group_cache;
 
+    if (!filename || !*filename) return NULL;
+
     if (!group_cache_list)
 	group_cache_list = HTList_new();
     else {
@@ -739,7 +741,7 @@ PUBLIC HTAAFailReasonType HTAA_userAndInetInGroup ARGS4(GroupDef *, group,
 		} /* search for username */
 	    } /* IP address ok */
 	    else {
-		return HTAA_IP_MASK;
+		reason = HTAA_IP_MASK;
 	    }
 	} /* while items in group */
     } /* valid parameters */

@@ -28,6 +28,35 @@ extern char *crypt();
 PRIVATE char salt_chars [65] =
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789./";
 
+
+/* PRIVATE						next_rec()
+**		GO TO THE BEGINNING OF THE NEXT RECORD
+**		Otherwise like HTAAFile_nextRec() but
+**		does not handle continuation lines
+**		(because password file has none).
+** ON ENTRY:
+**	fp	is the password file from which records are read from.
+**
+** ON EXIT:
+**	returns	nothing. File read pointer is located at the beginning
+**		of the next record.
+*/
+PRIVATE void next_rec ARGS1(FILE *, fp)
+{
+    int ch = getc(fp);
+
+    while (ch != EOF  &&  ch != CR  &&  ch != LF)
+	ch = getc(fp);		/* Skip until end-of-line */
+
+    while (ch != EOF &&
+	   (ch == CR  ||  ch == LF))	/*Skip carriage returns and linefeeds*/
+	ch = getc(fp);
+
+    if (ch != EOF)
+	ungetc(ch, fp);
+}
+
+
 /* PUBLIC						HTAA_encryptPasswd()
 **		ENCRYPT PASSWORD TO THE FORM THAT IT IS SAVED
 **		IN THE PASSWORD FILE.
@@ -155,7 +184,7 @@ PUBLIC BOOL HTAA_passwdMatch ARGS2(CONST char *, password,
 }
 
 
-/* PUBLIC						HTAAFile_readPasswdRec()
+/* PUBLIC					HTAAFile_readPasswdRec()
 **			READ A RECORD FROM THE PASSWORD FILE
 ** ON ENTRY:
 **	fp		open password file
@@ -189,12 +218,12 @@ PUBLIC int HTAAFile_readPasswdRec ARGS3(FILE *, fp,
 	return EOF;
     }
     else if (terminator == CR  ||  terminator == LF) {	/* End of line */
-	HTAAFile_nextRec(fp);
+	next_rec(fp);
 	return 1;
     }
     else {
 	HTAAFile_readField(fp, out_password, MAX_PASSWORD_LEN);
-	HTAAFile_nextRec(fp);
+	next_rec(fp);
 	return 2;
     }
 }
