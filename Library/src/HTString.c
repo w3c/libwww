@@ -430,7 +430,7 @@ PUBLIC time_t HTParseTime ARGS1(CONST char *, str)
 	return 0;
     }
 
-#ifndef NO_ALTZONE
+#if !defined(NO_TIMEZONE) && !defined(NO_ALTZONE)
     tm.tm_isdst = daylight;		       /* Already taken into account */
 #else
     tm.tm_isdst = -1;

@@ -170,13 +170,16 @@ define NO_SOCKET_DEFS on top. This is a temporary hack.
 
 <H2>Big Blue - the world of incompatibility</H2>
 
-IBM RS600</H2>On the IBM RS-6000, AIX is almost Unix. <P>
+<H2>IBM RS600</H2>
+
+On the IBM RS-6000, AIX is almost Unix. <P>
 
 <PRE>
 #ifdef _AIX
 #define AIX
 #endif
 #ifdef AIX
+#define NO_ALTZONE
 #define unix
 #endif
 
@@ -803,8 +806,16 @@ This is for NCR 3000 and Pyramid that also are SVR4 systems. Thanks to
 <PRE>
 #ifdef __osf__
 #define USE_DIRENT
-#define NO_ALTZONE
+#define NO_TIMEZONE
 #endif /* OSF1 AXP */
+</PRE>
+
+<H2>Ultrix Decstation</H2>
+
+<PRE>
+#ifdef decstation
+#define NO_TIMEZONE					/* Ultrix has gmtoff */
+#endif
 </PRE>
 
 <H2>ISC 3.0</H2>
