@@ -23,7 +23,8 @@ NAME="z0" HREF="HTFWriter.c">HTFWriter.c</A>
 
 </PRE>
 <H2>Stream given file</H2>
-<PRE>extern HTStream * HTFWriter_new ARGS2(FILE *, fp, BOOL, leave_open);
+<PRE>extern HTStream * HTFWriter_new PARAMS((FILE *	fp,
+					     BOOL	leave_open));
 </PRE>OLD: (HENRIK 08/02-94) extern HTStream
 * HTFWriter_new PARAMS((FILE * fp));<P>
 Converters<P>
