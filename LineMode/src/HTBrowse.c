@@ -204,7 +204,13 @@ PUBLIC char * HTAppVersion = VL; 	/* Application version */
 PUBLIC  int  HTScreenWidth   = SCREEN_WIDTH;	/* By default */
 PUBLIC  int  HTScreenHeight  = -1;	         /* Undefined */
 PUBLIC  BOOL display_anchors = YES;	         /* anchor will be shown in text? */
+#ifdef VMS
+#ifdef __DECC
+PUBLIC  BOOL interactive     = YES;        /*  e.g. shows prompts etc */
+#endif /* DECC */
+#else /* not VMS */
 PRIVATE  BOOL interactive     = YES;        /*  e.g. shows prompts etc */
+#endif /* not VMS */
 PRIVATE  char * output_file_name = NULL;    /* -o xxxx */
 					   
 PUBLIC char * start_reference = NULL;      /* Format string for start anchor */
@@ -239,6 +245,14 @@ PRIVATE HTRequest * request;
 
 #ifdef VMS
 PRIVATE FILE *       output;		/* assignment done in main */
+#ifdef __DECC
+/* dummy declarations to make sure that LINKER will not complain */
+PUBLIC char *HTBinDir;
+PUBLIC int HTDiag;
+PUBLIC char *HTPostScript;
+PUBLIC char *HTPutScript;
+PUBLIC char *HTSearchScript;
+#endif /* DECC */
 #else /* not VMS */
 PRIVATE FILE *	     output = stdout;
 #endif /* not VMS */ 
