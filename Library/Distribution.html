@@ -1,12 +1,12 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
-   "http://www.w3.org/TR/REC-html40/loose.dtd">
+                      "http://www.w3.org/TR/REC-html40/loose.dtd">
 <html>
 <head>
-<title>Getting the W3C libwww Source</title>
-<link rel="STYLESHEET" href="/StyleSheets/libwww.css" type="text/css">
+  <title>Getting the W3C libwww Source</title>
+  <link rel="STYLESHEET" href="/StyleSheets/libwww.css" type="text/css">
 </head>
-<body>
 
+<body>
 <p><a href="../"><img src="../Icons/WWW/w3c_home" alt="W3C" border="0"></a> <a
 href="./"><img src="../Icons/WWW/Lib48x" alt="libwww" border="0"></a></p>
 
@@ -22,31 +22,26 @@ and <a href="User/Applications.html">sample applications</a> is made <a
 href="./#Legal">freely available for any purpose</a> - get it in one of the
 forms below.</p>
 <ul>
-<li>
-<em>Looking for Win32 binaries?</em> Vladimir Kozlov most kindly provides <a
-href="http://www.idm.ru/libwww.htm">libwww binaries</a> from the <a
-href="http://www.idm.ru">IDM Web site</a>
-</li>
-<li>
-Remember to <a
-href="mailto:www-lib-request@w3.org?subject=subscribe">subscribe to the
-&lt;www-lib@w3.org></a> mailing list (<a
-href="http://www.findmail.com/list/www-lib/">findmail archives</a>)
-</li>
-<li>
-<a href="Collaborators.html">How can I get involved in libwww development?</a>
-</li>
+  <li><em>Looking for Win32 binaries?</em> Vladimir Kozlov most kindly
+    provides <a href="http://www.idm.ru/libwww.htm">libwww binaries</a> from
+    the <a href="http://www.idm.ru">IDM Web site</a></li>
+  <li>Remember to <a
+    href="mailto:www-lib-request@w3.org?subject=subscribe">subscribe to the
+    &lt;www-lib@w3.org></a> mailing list (<a
+    href="http://www.findmail.com/list/www-lib/">findmail archives</a>)</li>
+  <li><a href="Collaborators.html">How can I get involved in libwww
+    development?</a></li>
 </ul>
 
 <h2><a name="Checkout">Checkout from CVS (Preferred)</a></h2>
 
 <p><a href="cvs.html">Checking out the code base</a> directly from our <a
-href="http://www.cyclic.com/cvs/info.html">CVS</a> repository allows you to
-follow the development of libwww closely and to contribute much easier. Also,
-you will get a lot of bug fixes that are not in the distribution tar ball. In
-fact, if you intend to provide patches then you <b>should</b> use the CVS
-repository! If you intend to write code for libwww then have a look at the <a
-href="User/Style/">coding guide lines</a> before you begin.</p>
+href="http://dev.w3.org/cgi-bin/cvsweb/libwww/">CVS repository</a> allows you
+to follow the development of libwww closely and to contribute much easier.
+Also, you will get a lot of bug fixes that are not in the distribution tar
+ball. In fact, if you intend to provide patches then you <b>should</b> use the
+CVS repository! If you intend to write code for libwww then have a look at the
+<a href="User/Style/">coding guide lines</a> before you begin.</p>
 
 <h2><a name="Snapshot">CVS Repository Snapshot</a></h2>
 
@@ -57,12 +52,11 @@ system, unpack it, and treat it as your working copy or alternatively you can
 use the <a href="http://www.cyclic.com/cvs/info.html">CVS import facility</a>
 into your own CVS repository.</p>
 <ul>
-<li>
-<a href="ftp://dev.w3.org/pub/libwww/cvs-snapshot.tar.gz">Get the latest CVS
-snapshot as a gzipped tar file</a> - it is generated 4 times daily around <a
-href="http://www.timeanddate.com/worldclock/fixedform.html">2:30, 8:30, 14:30,
-and 20:30 GMT</a>
-</li>
+  <li><a href="ftp://dev.w3.org/pub/libwww/cvs-snapshot.tar.gz">Get the latest
+    CVS snapshot as a gzipped tar file</a> - it is generated 4 times daily
+    around <a
+    href="http://www.timeanddate.com/worldclock/fixedform.html">2:30, 8:30,
+    14:30, and 20:30 GMT</a></li>
 </ul>
 
 <p>We don't promise anything but there is a good chance that it compiles as
@@ -78,28 +72,22 @@ href="../People/Frystyk/frystyk.asc">ID 1F71508D</a> (also available from the
 key servers). These packages should always be accompanied by a <tt>.sig</tt>
 file containing a valid PGP signature.</p>
 <ul>
-<li>
-<a href="Distribution/SRPMS/w3c-libwww-5.2.8-3.src.rpm">Source RPM</a> (<a
-href="Distribution/SRPMS/w3c-libwww-5.2.8-3.src.rpm.sig">PGP signature</a>)
-</li>
-<li>
-<a href="Distribution/RPMS/i386/w3c-libwww-5.2.8-3.i386.rpm">i386 binary
-RPM</a> (<a href="Distribution/RPMS/i386/w3c-libwww-5.2.8-3.i386.rpm.sig">PGP
-signature</a>) containing the <a href="./">base library</a>
-</li>
-<li>
-<a href="Distribution/RPMS/i386/w3c-libwww-apps-5.2.8-3.i386.rpm">i386 binary
-RPM</a> (<a
-href="Distribution/RPMS/i386/w3c-libwww-apps-5.2.8-3.i386.rpm.sig">PGP
-signature</a>) containing the <a href="/Robot/">webbot</a> and the <a
-href="/ComLine">command line tool</a>
-</li>
-<li>
-<a href="Distribution/RPMS/i386/w3c-libwww-devel-5.2.8-3.i386.rpm">i386 binary
-RPM</a> (<a
-href="Distribution/RPMS/i386/w3c-libwww-devel-5.2.8-3.i386.rpm.sig">PGP
-signature</a>) containing the include files for development
-</li>
+  <li><a href="Distribution/SRPMS/w3c-libwww-5.2.8-3.src.rpm">Source RPM</a>
+    (<a href="Distribution/SRPMS/w3c-libwww-5.2.8-3.src.rpm.sig">PGP
+    signature</a>)</li>
+  <li><a href="Distribution/RPMS/i386/w3c-libwww-5.2.8-3.i386.rpm">i386 binary
+    RPM</a> (<a
+    href="Distribution/RPMS/i386/w3c-libwww-5.2.8-3.i386.rpm.sig">PGP
+    signature</a>) containing the <a href="./">base library</a></li>
+  <li><a href="Distribution/RPMS/i386/w3c-libwww-apps-5.2.8-3.i386.rpm">i386
+    binary RPM</a> (<a
+    href="Distribution/RPMS/i386/w3c-libwww-apps-5.2.8-3.i386.rpm.sig">PGP
+    signature</a>) containing the <a href="/Robot/">webbot</a> and the <a
+    href="/ComLine">command line tool</a></li>
+  <li><a href="Distribution/RPMS/i386/w3c-libwww-devel-5.2.8-3.i386.rpm">i386
+    binary RPM</a> (<a
+    href="Distribution/RPMS/i386/w3c-libwww-devel-5.2.8-3.i386.rpm.sig">PGP
+    signature</a>) containing the include files for development</li>
 </ul>
 
 <h2><a name="Tar">Latest Tar Ball Release (Apr 15, 1999)</a></h2>
@@ -115,21 +103,16 @@ href="../People/Frystyk/frystyk.asc">ID 1F71508D</a> (also available from key
 servers). These packages should always be accompanied by a <tt>.sig</tt> file
 containing a valid PGP.</p>
 <ul>
-<li>
-<a href="Distribution/w3c-libwww-5.2.8.tar.gz">w3c-libwww-5.2.8.tar.gz</a> and
-PGP signature <a
-href="Distribution/w3c-libwww-5.2.8.tar.gz.sig">w3c-libwww-5.2.8.tar.gz.sig</a>
-</li>
-<li>
-<a href="Distribution/w3c-libwww-5.2.8.tar.Z">w3c-libwww-5.2.8.tar.Z</a> and
-PGP signature <a
-href="Distribution/w3c-libwww-5.2.8.tar.Z.sig">w3c-libwww-5.2.8.tar.Z.sig</a>
-</li>
-<li>
-<a href="Distribution/w3c-libwww-5.2.8.zip">w3c-libwww-5.2.8.zip</a> and PGP
-signature <a
-href="Distribution/w3c-libwww-5.2.8.zip.sig">w3c-libwww-5.2.8.zip.sig</a>
-</li>
+  <li><a
+    href="Distribution/w3c-libwww-5.2.8.tar.gz">w3c-libwww-5.2.8.tar.gz</a>
+    and PGP signature <a
+    href="Distribution/w3c-libwww-5.2.8.tar.gz.sig">w3c-libwww-5.2.8.tar.gz.sig</a></li>
+  <li><a href="Distribution/w3c-libwww-5.2.8.tar.Z">w3c-libwww-5.2.8.tar.Z</a>
+    and PGP signature <a
+    href="Distribution/w3c-libwww-5.2.8.tar.Z.sig">w3c-libwww-5.2.8.tar.Z.sig</a></li>
+  <li><a href="Distribution/w3c-libwww-5.2.8.zip">w3c-libwww-5.2.8.zip</a> and
+    PGP signature <a
+    href="Distribution/w3c-libwww-5.2.8.zip.sig">w3c-libwww-5.2.8.zip.sig</a></li>
 </ul>
 
 <p>When you have downloaded libwww, you are ready to <a
@@ -153,8 +136,8 @@ href="Distribution/">distribution archives</a>.</p>
 <hr>
 
 <address>
-<a href="../People/Frystyk/">Henrik Frystyk Nielsen</a>,<br>
-@(#) $Id$
+  <A HREF="/People/Jose/">Jos&eacute; Kahan</A>,<br>
+  @(#) $Id$ 
 </address>
 </body>
 </html>

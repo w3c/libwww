@@ -1,234 +1,209 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
-   "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html>
-<head>
-<meta name="robots" content="index,follow">
-<title>Libwww - the W3C Sample Code Library</title>
-<link rel="STYLESHEET" href="/StyleSheets/libwww.css" type="text/css">
-</head>
-<body>
-
-<p><a href="../"><img alt="W3C" src="../Icons/WWW/w3c_home" border="0"
-width="72" height="48"></a> <img border="0" alt="libwww"
-src="../Icons/WWW/Lib48x"></p>
-
-<h1>Libwww - the W3C Protocol Library</h1>
-
-<p align="center"><a href="#News">News</a> | <a href="Activity.html">Why
-libwww?</a> | <a name="Installation" href="Distribution.html">Get it!</a> | <a
-href="../INSTALL.html">Installation</a> | <a href="Changes">Latest updates</a>
-| <a href="User/ReleaseNotes.html">Release Notes</a> | <a
-href="User/">Documentation</a> | <a href="#Forums">Mailing list</a> | <a
-href="#Legal">Legal</a> | <a href="#Authors">Authors</a> &amp; <a
-href="Collaborators.html">Hackers</a></p>
-
-<p style="text-align: center"><a
-href="User/ReleaseNotes.html#5.2.8"><strong>Apr 14, 1999: libwww 5.2.8 is
-out</strong></a> - come <a href="Distribution.html"><strong>get it</strong>
-</a><strong> - now also as </strong><a
-href="Distribution.html#Source"><strong>RPMs</strong></a><strong>!</strong></p>
-
-<div class="intro">
-
-Libwww is a highly modular, general-purpose client side Web API written in C
-for <a href="User/Platform/">Unix and Windows (Win32)</a>. It's well suited
-for both small and large <a href="User/Applications.html">applications,</a>
-like <a href="/Amaya/">browser/editors</a>, <a href="/Robot/">robots</a>, <a
-href="/ComLine/">batch tools</a>, etc. Pluggable <a href="User/Guide/">modules
-provided with libwww</a> include complete <a
-href="User/Guide/#HTTP">HTTP/1.1</a> (with caching, pipelining, PUT, POST,
-Digest Authentication, deflate, etc), <a href="User/Guide/#Interface1">MySQL
-logging</a>, <a href="User/Guide/#Access">FTP</a>, <a
-href="User/Guide/#HTML">HTML/4</a>, <a href="User/Guide/#Expat">XML</a>
-(expat), <a href="User/Guide/#Expat">RDF</a> (SiRPAC), and much more. The
-purpose of libwww is to serve as a testbed for protocol experiments.
-<ul>
-<li>
-<strong>Apr 20, 1999:</strong> Number of <a href="cvs.html">checkout from
-CVS</a> exceeds 1400!
-</li>
-<li>
-<strong>Apr 18, 1999:</strong> John Punin: Added <a href="src/HTRDF.html">RDF
-parser</a> to the <a href="User/Guide/#Expat">XML module</a> in libwww - <a
-href="cvs.html">help testing!</a>
-</li>
-<li>
-<strong>Apr 17, 1999:</strong> Vladimir Kozlov has generated wintel <a
-href="http://www.idm.ru/libwww.htm">libwww 5.2.8 binaries</a> - available from
-his <a href="http://www.idm.ru/">IDM Web site</a>
-</li>
-<li>
-<strong>Apr 6 1999:</strong> <strong>SSL NOTICE:</strong> Because of US
-regulations on encryption, we don't believe we can distribute Olga's glue code
-between openSSL and libwww. I hope to have a definitive answer on what is
-allowed and what is not very soon.
-</li>
-<li>
-<strong>Apr 3, 1999:</strong> Check out the <a
-href="Collaborators.html#Collaborators">libwww hall of fame</a> - truly cool
-hackers!
-</li>
-<li>
-<strong>Apr 3, 1999:</strong> Olga Antropova: <a
-href="http://lists.w3.org/Archives/Public/www-lib/1999AprJun/0016.html">SSL
-transport in libwww</a> - help testing!
-</li>
-</ul>
-
-<p>Nearby: <a href="User/Applications.html">Sample Applications</a> | <a
-href="http://dev.w3.org/cgi-bin/cvsweb/libwww/">CVS Repository</a> | <a
-href="User/ToDo.html">ToDo</a> | <a href="User/Guide/">Modules and
-Packages</a></p>
-</div>
-
-<p></p>
-<hr>
-
-
-<h2><a name="News">News, Updates, and Events</a></h2>
-<ul>
-<li>
-<strong>Apr 3, 1999:</strong> Raffaele Sena: Added HTML4.0 support in <a
-href="http://lists.w3.org/Archives/Public/www-lib/1999AprJun/0015.html">libwww
-HTML parser</a>
-</li>
-<li>
-<strong>Mar 31: 1999:</strong> Interested in helping porting to Macs? <a
-href="http://lists.w3.org/Archives/Public/www-lib/1999JanMar/0411.html">Follow
-the dicussions</a>!
-</li>
-<li>
-<strong>Mar 4, 1999:</strong> Daniel Veillard has put up a cool new version of
-<a href="http://dev.w3.org/cgi-bin/cvsweb/libwww/">cvsweb which provides Web
-access</a> to the <a href="cvs.html">libwww CVS codebase</a>
-</li>
-<li>
-<strong>Feb 24, 1999:</strong> Release of <a
-href="Distribution.html#tar">libwww 5.2.6</a> with lots of new features
-including:
-<ul>
-<li>
-John Punin's integration with <a href="src/HTXML.html">Integration</a> James
-Clark's <a href="http://www.jclark.com/xml/expat.html">Expat XML parser</a>,
-</li>
-<li>
-Jose Kahan's <a
-href="http://www.egroups.com/list/www-lib/703.html">client-side Digest
-Authentication implementation</a>,
-</li>
-<li>
-<a
-href="http://lists.w3.org/Archives/Public/www-lib/1999JanMar/0195.html">Tiny,
-Web browser based on libwww with only a strict minimum of HTTP and HTML in
-only 170K on linux (stripped) into libwww.</a>
-</li>
-</ul>
-</li>
-<li>
-<strong>Feb 23, 1999:</strong> <a href="src/HTXML.html">Integration</a> of
-James Clark's <a href="http://www.jclark.com/xml/expat.html">Expat XML
-parser</a> into libwww. Also check out the new <a href="Examples/#XML">XML
-sample application</a> demonstrating how the integration works.
-</li>
-<li>
-<strong>Feb 16, 1999:</strong> New set of <a
-href="http://lists.w3.org/Archives/Public/www-lib/1999JanMar/0231.html">MSVC
-makefiles for all of the libwww and its sample applications</a>
-</li>
-<li>
-<strong>Feb 9, 1999:</strong><a
-href="http://lists.w3.org/Archives/Public/www-lib/1999JanMar/0195.html">New
-tiny, Web browser with only a strict minimum of HTTP and HTML committed to
-CVS</a> in only 170K on linux (stripped)
-</li>
-<li>
-<strong>Jan 6, 1999</strong>: Improved <a href="src/HTML.html">libwww HTML
-parser</a> and <a href="src/HText.html">new callback interface</a> committed
-to <a href="cvs.html">CVS</a>
-</li>
-</ul>
-
-See also the <a href="OldEvents.html">libwww timeline</a> for past news items
+"http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+  <META name="robots" content="index,follow">
+  <TITLE>Libwww - the W3C Sample Code Library</TITLE>
+  <LINK rel="STYLESHEET" href="/StyleSheets/libwww.css" type="text/css">
+</HEAD>
+<BODY>
+<P>
+<A href="../"><IMG alt="W3C" src="../Icons/WWW/w3c_home" border="0" width="72"
+    height="48"></A> <IMG border="0" alt="libwww" src="../Icons/WWW/Lib48x">
+<H1>
+  Libwww - the W3C Protocol Library
+</H1>
+<P align="center">
+<A href="#News">News</A> | <A href="Activity.html">Why libwww?</A> |
+<A name="Installation" href="Distribution.html">Get it!</A> |
+<A href="../INSTALL.html">Installation</A> | <A href="Changes">Latest
+updates</A> | <A href="User/ReleaseNotes.html">Release Notes</A> |
+<A href="User/">Documentation</A> | <A href="#Forums">Mailing list</A> |
+<A href="#Legal">Legal</A> | <A href="#Authors">Authors</A> &amp;
+<A href="Collaborators.html">Hackers</A>
+<DIV class="intro">
+  Libwww is a highly modular, general-purpose client side Web API written in
+  C for <A href="User/Platform/">Unix and Windows (Win32)</A>. It's well suited
+  for both small and large <A href="User/Applications.html">applications,</A>
+  like <A href="/Amaya/">browser/editors</A>, <A href="/Robot/">robots</A>,
+  <A href="/ComLine/">batch tools</A>, etc. Pluggable
+  <A href="User/Guide/">modules provided with libwww</A> include complete
+  <A href="User/Guide/#HTTP">HTTP/1.1</A> (with caching, pipelining, PUT, POST,
+  Digest Authentication, deflate, etc), <A href="User/Guide/#Interface1">MySQL
+  logging</A>, <A href="User/Guide/#Access">FTP</A>,
+  <A href="User/Guide/#HTML">HTML/4</A>, <A href="User/Guide/#Expat">XML</A>
+  (expat), <A href="User/Guide/#Expat">RDF</A> (SiRPAC), and much more. The
+  purpose of libwww is to serve as a testbed for protocol experiments.
+  <UL>
+    <LI>
+      <STRONG>Jul 7 1999: New</STRONG>
+      <STRONG><A href="http://web.mit.edu/network/libwwwssl/">libwww-SSL library
+      is available for testing in the US</A>!</STRONG> Thanks to Jeff Schiller
+      who have made his export controlled server available, we can distribute Olga's
+      glue code between openSSL and libwww. It should run on both Unix and Windows
+      - try it out!
+    <LI>
+      <STRONG>Jun 25: 1999:</STRONG> <A href="/Talks/1999/06/libwww/">Slides from
+      libwww presentation</A> - explains some of the why's and how's
+    <LI>
+      <STRONG>Jun 20, 1999:</STRONG> Number of <A href="cvs.html">checkout from
+      CVS</A> exceeds 1700!
+    <LI>
+      <STRONG>Apr 18, 1999:</STRONG> John Punin: Added <A href="src/HTRDF.html">RDF
+      parser</A> to the <A href="User/Guide/#Expat">XML module</A> in libwww -
+      <A href="cvs.html">help testing!</A>
+    <LI>
+      <STRONG>Apr 17, 1999:</STRONG> Vladimir Kozlov has generated wintel
+      <A href="http://www.idm.ru/libwww.htm">libwww 5.2.8 binaries</A> - available
+      from his <A href="http://www.idm.ru/">IDM Web site</A>
+    <LI>
+      <STRONG>Apr 3, 1999:</STRONG> Check out the
+      <A href="Collaborators.html#Collaborators">libwww hall of fame</A> - truly
+      cool hackers!
+    <LI>
+      <STRONG>Apr 3, 1999:</STRONG> Olga Antropova:
+      <A href="http://lists.w3.org/Archives/Public/www-lib/1999AprJun/0016.html">SSL
+      transport in libwww</A> - help testing!
+  </UL>
+  <P>
+  Nearby: <A href="User/Applications.html">Sample Applications</A> |
+  <A href="http://dev.w3.org/cgi-bin/cvsweb/libwww/">CVS Repository</A> |
+  <A href="User/ToDo.html">ToDo</A> | <A href="User/Guide/">Modules and
+  Packages</A>
+</DIV>
+<P>
+<P>
+  <HR>
+<H2>
+  <A name="News">News, Updates, and Events</A>
+</H2>
+<UL>
+  <LI>
+    <STRONG>Apr 3, 1999:</STRONG> Raffaele Sena: Added HTML4.0 support in
+    <A href="http://lists.w3.org/Archives/Public/www-lib/1999AprJun/0015.html">libwww
+    HTML parser</A>
+  <LI>
+    <STRONG>Mar 31: 1999:</STRONG> Interested in helping porting to Macs?
+    <A href="http://lists.w3.org/Archives/Public/www-lib/1999JanMar/0411.html">Follow
+    the dicussions</A>!
+  <LI>
+    <STRONG>Mar 4, 1999:</STRONG> Daniel Veillard has put up a cool new version
+    of <A href="http://dev.w3.org/cgi-bin/cvsweb/libwww/">cvsweb which provides
+    Web access</A> to the <A href="cvs.html">libwww CVS codebase</A>
+  <LI>
+    <STRONG>Feb 24, 1999:</STRONG> Release of
+    <A href="Distribution.html#tar">libwww 5.2.6</A> with lots of new features
+    including:
+    <UL>
+      <LI>
+	John Punin's integration with <A href="src/HTXML.html">Integration</A> James
+	Clark's <A href="http://www.jclark.com/xml/expat.html">Expat XML parser</A>,
+      <LI>
+	Jose Kahan's <A href="http://www.egroups.com/list/www-lib/703.html">client-side
+	Digest Authentication implementation</A>,
+      <LI>
+	<A href="http://lists.w3.org/Archives/Public/www-lib/1999JanMar/0195.html">Tiny,
+	Web browser based on libwww with only a strict minimum of HTTP and HTML in
+	only 170K on linux (stripped) into libwww.</A>
+    </UL>
+  <LI>
+    <STRONG>Feb 23, 1999:</STRONG> <A href="src/HTXML.html">Integration</A> of
+    James Clark's <A href="http://www.jclark.com/xml/expat.html">Expat XML
+    parser</A> into libwww. Also check out the new <A href="Examples/#XML">XML
+    sample application</A> demonstrating how the integration works.
+  <LI>
+    <STRONG>Feb 16, 1999:</STRONG> New set of
+    <A href="http://lists.w3.org/Archives/Public/www-lib/1999JanMar/0231.html">MSVC
+    makefiles for all of the libwww and its sample applications</A>
+  <LI>
+    <STRONG>Feb 9,
+    1999:</STRONG><A href="http://lists.w3.org/Archives/Public/www-lib/1999JanMar/0195.html">New
+    tiny, Web browser with only a strict minimum of HTTP and HTML committed to
+    CVS</A> in only 170K on linux (stripped)
+  <LI>
+    <STRONG>Jan 6, 1999</STRONG>: Improved <A href="src/HTML.html">libwww HTML
+    parser</A> and <A href="src/HText.html">new callback interface</A> committed
+    to <A href="cvs.html">CVS</A>
+</UL>
+<P>
+See also the <A href="OldEvents.html">libwww timeline</A> for past news items
 and events
-
-<h2><a name="Forums">Libwww Mailinglist</a></h2>
-
-<p>Please send all requests regarding libwww to &lt;<a
-href="mailto:www-lib-request@w3.org?subject=subscribe">www-lib@w3.org</a>>
-public mailing list. This list is <a
-href="http://lists.w3.org/Archives/Public/www-lib/">archived at W3C</a> and
-also at <a href="http://www.findmail.com/list/www-lib/">findmail</a>. Note,
-you <b>MUST</b> be subscribed in order to post to the mailing list. Follow
-these shortcuts to <a
-href="mailto:www-lib-request@w3.org?subject=subscribe"><strong>quick
-subscribe</strong></a> or <a
-href="mailto:www-lib-request@w3.org?subject=unsubscribe"><strong>quick
-unsubscribe</strong></a> or see the <a href="../Mail/Request.html">information
-on mailing&nbsp;lists</a> for more details.</p>
-
-<h2><a name="Legal">Legal Stuff</a></h2>
-<ul>
-<li>
-Libwww is covered by this <a
-href="../Consortium/Legal/libwww-copyright-notice-19980720.html">copyright
-notice</a> as well as the <a
-href="/Consortium/Legal/copyright-software.html">full W3C license</a>
-</li>
-<li>
-Any IPR questions? Please check our <a
-href="/Consortium/Legal/IPR-FAQ.html">Intellectual Property FAQ for
-answers</a>
-</li>
-<li>
-If you like to get contribute changes so that they can be incorporated into
-our code base then please fill out the <a href="../PATCHES.html">Corrections,
-Modifications, and Patches</a> form and send it to us. Otherwise we can not
-use the patch!
-</li>
-</ul>
-
-<h2><a name="Authors">Authors</a></h2>
-
-<p>The development of libwww depends on <b>YOU</b>! The more people who
+<H2>
+  <A name="Forums">Libwww Mailinglist</A>
+</H2>
+<P>
+Please send all requests regarding libwww to
+&lt;<A href="mailto:www-lib-request@w3.org?subject=subscribe">www-lib@w3.org</A>&gt;
+public mailing list. This list is
+<A href="http://lists.w3.org/Archives/Public/www-lib/">archived at W3C</A>
+and also at <A href="http://www.findmail.com/list/www-lib/">findmail</A>.
+Note, you <B>MUST</B> be subscribed in order to post to the mailing list.
+Follow these shortcuts to
+<A href="mailto:www-lib-request@w3.org?subject=subscribe"><STRONG>quick
+subscribe</STRONG></A> or
+<A href="mailto:www-lib-request@w3.org?subject=unsubscribe"><STRONG>quick
+unsubscribe</STRONG></A> or see the <A href="../Mail/Request.html">information
+on mailing&nbsp;lists</A> for more details.
+<H2>
+  <A name="Legal">Legal Stuff</A>
+</H2>
+<UL>
+  <LI>
+    Libwww is covered by this
+    <A href="../Consortium/Legal/libwww-copyright-notice-19980720.html">copyright
+    notice</A> as well as the
+    <A href="/Consortium/Legal/copyright-software.html">full W3C license</A>
+  <LI>
+    Any IPR questions? Please check our
+    <A href="/Consortium/Legal/IPR-FAQ.html">Intellectual Property FAQ for
+    answers</A>
+  <LI>
+    If you like to get contribute changes so that they can be incorporated into
+    our code base then please fill out the <A href="../PATCHES.html">Corrections,
+    Modifications, and Patches</A> form and send it to us. Otherwise we can not
+    use the patch!
+</UL>
+<H2>
+  <A name="Authors">Authors</A>
+</H2>
+<P>
+The development of libwww depends on <B>YOU</B>! The more people who
 are&nbsp;contributing and helping the development, the more useful the code
-base gets. Check out the <a href="Collaborators.html"><b>list of libwww
-hackers</b></a> who provide invaluable contributions to the libwww code base
-and find out how you can help!</p>
-<dl>
-<dt><a href="/People/Frystyk/">Henrik Frystyk Nielsen</a></dt>
-<dd>
-Designed and implemented libwww from version 2.17 up to the latest version
-</dd>
-<dt><a href="../People/#BernersLee">Tim Berners-Lee</a> and <a
-href="../People.html#Groff">Jean-Francois Groff</a></dt>
-<dd>
-Came up with the initial design and implementation of libwww
-</dd>
-</dl>
-
-<p></p>
-<hr>
-
-<address>
-<a href="/People/Frystyk/">Henrik Frystyk Nielsen</a>,<br>
-@(#) $Id$ </address>
-
-<p class="policyfooter"><small><a
-href="../Consortium/Legal/ipr-notice.html#Copyright">Copyright</a>
-&nbsp;&copy;&nbsp; 1997 <a href="http://www.w3.org">W3C</a> (<a
-href="http://www.lcs.mit.edu">MIT</a>, <a
-href="http://www.inria.fr/">INRIA</a>, <a
-href="http://www.keio.ac.jp/">Keio</a> ), All Rights Reserved. W3C <a
-href="../Consortium/Legal/ipr-notice.html#Legal Disclaimer">liability,</a> <a
-href="../Consortium/Legal/ipr-notice.html#W3C Trademarks">trademark</a>, <a
-href="../Consortium/Legal/copyright-documents.html">document use </a>and <a
-href="../Consortium/Legal/copyright-software.html">software licensing
-</a>rules apply. Your interactions with this site are in accordance with our
-<a href="../Consortium/Legal/privacy-statement.html#Public">public</a> and <a
-href="../Consortium/Legal/privacy-statement.html#Members">Member</a> privacy
-statements.</small></p>
-</body>
-
+base gets. Check out the <A href="Collaborators.html"><B>list of libwww
+hackers</B></A> who provide invaluable contributions to the libwww code base
+and find out how you can help!
+<DL>
+  <DT>
+    <A href="/People/Frystyk/">Henrik Frystyk Nielsen</A>
+  <DD>
+    Designed and implemented libwww from version 2.17 up to the latest version
+  <DT>
+    <A href="../People/#BernersLee">Tim Berners-Lee</A> and
+    <A href="../People.html#Groff">Jean-Francois Groff</A>
+  <DD>
+    Came up with the initial design and implementation of libwww
+</DL>
+<P>
+<P>
+  <HR>
+<ADDRESS>
+  <A HREF="/People/Jose/">Jos&eacute; Kahan</A>,<BR>
+  @(#) $Id$
+</ADDRESS>
+<P class="policyfooter">
+<SMALL><A href="../Consortium/Legal/ipr-notice.html#Copyright">Copyright</A>
+&nbsp;&copy;&nbsp; 1997 <A href="http://www.w3.org">W3C</A>
+(<A href="http://www.lcs.mit.edu">MIT</A>,
+<A href="http://www.inria.fr/">INRIA</A>,
+<A href="http://www.keio.ac.jp/">Keio</A> ), All Rights Reserved. W3C
+<A href="../Consortium/Legal/ipr-notice.html#Legal Disclaimer">liability,</A>
+<A href="../Consortium/Legal/ipr-notice.html#W3C Trademarks">trademark</A>,
+<A href="../Consortium/Legal/copyright-documents.html">document use </A>and
+<A href="../Consortium/Legal/copyright-software.html">software licensing
+</A>rules apply. Your interactions with this site are in accordance with
+our <A href="../Consortium/Legal/privacy-statement.html#Public">public</A>
+and <A href="../Consortium/Legal/privacy-statement.html#Members">Member</A>
+privacy statements.</SMALL>
+</BODY></HTML>
 <!--  LocalWords:  Punin RDF XML Kozlov wintel
 -->
-</html>

@@ -1,0 +1,156 @@
+<HTML>
+<HEAD>
+  <META name="robots" content="index,follow">
+  <TITLE>Libwww - the W3C Sample Code Library</TITLE>
+  <LINK rel=STYLESHEET href="../StyleSheets/Area/Overview.css" type="text/css">
+</HEAD>
+<BODY TEXT="#000000" BGCOLOR="#FFFFFF" LINK="#0000EE" VLINK="#551A8B">
+<P>
+<A HREF="../"><IMG ALT="W3C" SRC="../Icons/WWW/w3c_home" BORDER="0" WIDTH="72"
+    HEIGHT="48"></A> <IMG BORDER="0" ALT="libwww" SRC="../Icons/WWW/Lib48x">
+<H1>
+  Libwww - the W3C Sample Code Library
+</H1>
+<P ALIGN=Center>
+<A HREF="#News">News</A> | <A HREF="Activity.html">Why libwww?</A> |
+<A NAME="Installation" HREF="Distribution.html">Get it!</A> |
+<A HREF="Changes">Latest updates</A> |
+<A HREF="User/Applications.html">Sample Apps</A> |
+<A HREF="User/ReleaseNotes.html">Release Notes</A> |
+<A HREF="User/">Documentation</A> | <A HREF="#Forums">Mailing list</A> |
+<A HREF="#Legal">Legal</A> | <A HREF="#Authors">Authors</A> &amp;
+<A HREF="Collaborators.html">Hackers</A>
+<P>
+<DIV class="intro">
+  Libwww is a general-purpose Web API written in C for
+  <A HREF="User/Platform/">Unix and Windows (Win32)</A>. With a highly extensible
+  and layered API, it can accommodate many different types of applications
+  including clients, robots, etc. The purpose of libwww is to provide a
+  <A HREF="../Protocols/HTTP/Performance/Pipeline.html">highly optimized HTTP</A>
+  sample implementation as well as other Internet protocols and to serve as
+  a testbed for protocol experiments.
+  <UL>
+    <LI>
+      <STRONG>Feb 9, 1999:
+      </STRONG><A HREF="http://lists.w3.org/Archives/Public/www-lib/1999JanMar/0195.html">New
+      tiny, Web browser with only a strict minimum of HTTP and HTML committed to
+      CVS</A>
+    <LI>
+      <STRONG>Jan 30, 1999:</STRONG> Vladimir Kozlov has just compiled
+      <A HREF="http://www.idm.ru/libwww.htm">fresh libwww binaries for wintel</A>
+      - available from the <A HREF="http://www.idm.ru">IDM Web site</A>
+    <LI>
+      <STRONG>Jan 6, 1999</STRONG>: Improved <A HREF="src/HTML.html">libwww HTML
+      parser</A> and <A HREF="src/HText.html">new callback interface</A> committed
+      to <A HREF="cvs.html">CVS</A>
+    <LI>
+      <STRONG>Dec 16, 1998</STRONG>: <A HREF="../People/W3Cpeople.html#Kahan">Jose
+      Kahan</A> announces
+      <A HREF="http://www.egroups.com/list/www-lib/703.html">client-side Digest
+      Authentication implementation in libwww</A> - <A HREF="../Library/cvs.html">try
+      it out</A>!
+    <LI>
+      <STRONG>Dec 1, 1998:</STRONG>
+      <A HREF="http://www.egroups.com/list/www-lib/626.html">Libwww now runs</A>
+      in the latest <A HREF="http://sourceware.cygnus.com/cygwin/">Cygwin b20
+      environment</A> - please help testing!
+  </UL>
+</DIV>
+<P>
+  <HR>
+<H2>
+  <A NAME="News">News, Updates, and Events</A>
+</H2>
+<DL COMPACT>
+  <DT>
+    <STRONG>Dec 3, 1998</STRONG>
+  <DD>
+    Number of libwww <A HREF="cvs.html">check-outs from CVS</A> exceeds 700!
+  <DT>
+    <STRONG>Nov 1, 1998</STRONG>
+  <DD>
+    <A HREF="Distribution.html">Release of libwww 5.2</A> - a result of
+    <A HREF="Collaborators.html#Collaborators">close collaboration</A> and extensive
+    testing by the <A HREF="#Forums">libwww community</A>. Special thanks to
+    Bob Racko, John Punin, Vladimir Kozlov, and Jose Kahan.
+</DL>
+<P>
+See also the <A HREF="OldEvents.html">libwww timeline</A>
+<H2>
+  <A NAME="Forums">Libwww Mailinglist</A>
+</H2>
+<P>
+Please send all requests regarding libwww to
+&lt;<A HREF="mailto:www-lib-request@w3.org?subject=subscribe">www-lib@w3.org</A>&gt;.
+This list is <A HREF="http://www.findmail.com/list/www-lib/">archived at
+findmail</A> and in the
+<A HREF="http://lists.w3.org/Archives/Public/www-lib/">W3C archives</A>.
+Note, that you <B>MUST</B> be subscribed in order to post to the mailing
+list. Follow these shortcuts to
+<A HREF="mailto:www-lib-request@w3.org?subject=subscribe"><STRONG>quick
+subscribe</STRONG></A> or
+<A HREF="mailto:www-lib-request@w3.org?subject=unsubscribe"><STRONG>quick
+unsubscribe</STRONG></A> or see the <A HREF="../Mail/Request.html">information
+on mailing&nbsp;lists</A> for more details.
+<H2>
+  <A NAME="Legal">Legal Stuff</A>
+</H2>
+<UL>
+  <LI>
+    Libwww is covered by this
+    <A HREF="../Consortium/Legal/libwww-copyright-notice-19980720.html">copyright
+    notice</A> as well as the
+    <A HREF="/Consortium/Legal/copyright-software.html">full W3C license</A>
+  <LI>
+    Any IPR questions? Please check our
+    <A HREF="/Consortium/Legal/IPR-FAQ.html">Intellectual Property FAQ for
+    answers</A>
+  <LI>
+    If you like to get contribute changes so that they can be incorporated into
+    our code base then please fill out the <A HREF="../PATCHES.html">Corrections,
+    Modifications, and Patches</A> form and send it to us. Otherwise we can not
+    use the patch!
+</UL>
+<H2>
+  <A NAME="Authors">Authors</A>
+</H2>
+<P>
+The development of libwww depends on <B>YOU</B>! The more people who
+are&nbsp;contributing and helping the development, the more useful the code
+base gets. Check out the <A HREF="Collaborators.html"><B>list of libwww
+hackers</B></A> who provide invaluable contributions to the libwww code base
+and find out how you can help!
+<DL>
+  <DT>
+    <A HREF="/People/Frystyk/">Henrik Frystyk Nielsen</A>
+  <DD>
+    Designed and implemented libwww from version 2.17 up to the latest version
+  <DT>
+    <A HREF="../People/#BernersLee">Tim Berners-Lee</A> and
+    <A HREF="../People.html#Groff">Jean-Francois Groff</A>
+  <DD>
+    Came up with the initial design and implementation of libwww
+</DL>
+<P>
+  <HR>
+<ADDRESS>
+  <A href="../"><IMG SRC="../Icons/WWW/w3c_home" ALT="W3C" BORDER="0"></A>
+  <BR>
+  <A HREF="/People/Jose/">Jos&eacute; Kahan</A>,<BR>
+  @(#) $Id$
+</ADDRESS>
+<P class=policyfooter>
+<SMALL><A href="../Consortium/Legal/ipr-notice.html#Copyright">Copyright</A>
+&nbsp;&copy;&nbsp; 1997 <A href="http://www.w3.org">W3C</A>
+(<A href="http://www.lcs.mit.edu">MIT</A>,
+<A href="http://www.inria.fr/">INRIA</A>,
+<A href="http://www.keio.ac.jp/">Keio</A> ), All Rights Reserved. W3C
+<A href="../Consortium/Legal/ipr-notice.html#Legal Disclaimer">liability,</A>
+<A href="../Consortium/Legal/ipr-notice.html#W3C Trademarks">trademark</A>,
+<A href="../Consortium/Legal/copyright-documents.html">document use </A>and
+<A href="../Consortium/Legal/copyright-software.html">software licensing
+</A>rules apply. Your interactions with this site are in accordance with
+our <A href="../Consortium/Legal/privacy-statement.html#Public">public</A>
+and <A href="../Consortium/Legal/privacy-statement.html#Members">Member</A>
+privacy statements.</SMALL>
+</BODY></HTML>
