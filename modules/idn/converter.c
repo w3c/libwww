@@ -17,6 +17,7 @@ static char *rcsid = "$Id$";
  */
 
 /* changes: MJD 2003-03-20: removed <race.h>
+ * changes: MJD 2003-03-20: removed call to getregistrystring
  */
 
 /* Original sources are: */
@@ -260,15 +261,15 @@ ret:
 static char *
 get_system_aliasfile() {
 #ifdef WIN32
-	static char alias_path[500];	/* a good longer than MAX_PATH */
+/*	static char alias_path[500];	/* a good longer than MAX_PATH */
 
 	if (idn__util_getregistrystring(idn__util_hkey_localmachine,
 					IDNVAL_ALIASFILE,
 					alias_path, sizeof(alias_path))) {
 		return (alias_path);
-	} else {
+	} else {*/
 		return (NULL);
-	}
+/*	}*/
 #else
 	return (IDN_ALIAS_FILE);
 #endif

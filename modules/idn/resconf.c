@@ -3,6 +3,25 @@ static char *rcsid = "$Id$";
 #endif
 
 /*
+ * idn module for libwww: see http://dev.w3.org/cvsweb/libwww/modules/idn/
+ *
+ * Changes by Martin Duerst (W3C) are:
+ *   Copyright (C) 2003 World Wide Web Consortium, (Massachusetts
+ *   Institute of Technology, European Research Consortium for Informatics
+ *   and Mathematics, Keio University). All Rights Reserved. This work is
+ *   distributed under the W3C Software License [1] in the hope that
+ *   it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ *   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ *   [1] http://www.w3.org/Consortium/Legal/2002/copyright-software-20021231
+ */
+
+/* changes: MJD 2003-03-20: removed call to getregistrystring
+ *          MJD 2003-03-20: removed localencoding.h
+ */
+
+/* Original sources are: */
+/*
  * Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
  *  
  * By using this file, you agree to the terms and conditions set forth bellow.
@@ -70,7 +89,7 @@ static char *rcsid = "$Id$";
 #include <idn/mapper.h>
 #include <idn/mapselector.h>
 #include <idn/delimitermap.h>
-#include <idn/localencoding.h>
+/*#include <idn/localencoding.h>*/
 #include <idn/resconf.h>
 #include <idn/debug.h>
 #include <idn/util.h>
@@ -214,15 +233,15 @@ ret:
 char *
 idn_resconf_defaultfile() {
 #ifdef WIN32
-	static char default_path[MAX_PATH_SIZE];
+/*	static char default_path[MAX_PATH_SIZE];
 
 	if (idn__util_getregistrystring(idn__util_hkey_localmachine,
 					IDNVAL_CONFFILE, default_path,
 					sizeof(default_path))) {
 		return (default_path);
-	} else {
+	} else {*/
 		return (NULL);
-	}
+/*	}*/
 #else
 	return (IDN_RESCONF_FILE);
 #endif
@@ -247,7 +266,7 @@ userhomedir() {
 static idn_result_t
 open_userdefaultfile(FILE **fpp) {
 #ifdef WIN32
-	char user_path[MAX_PATH_SIZE];
+/*	char user_path[MAX_PATH_SIZE];
 
 	TRACE(("open_userdefaultfile()\n"));
 
@@ -257,9 +276,9 @@ open_userdefaultfile(FILE **fpp) {
 		return (idn_nofile);
 	}
 	*fpp = fopen(user_path, "r");
-	if (*fpp == NULL) {
+	if (*fpp == NULL) {*/
 		return (idn_nofile);
-	}
+/*	}*/
 	return (idn_success);
 #else /* WIN32 */
 	const char *homedir;
