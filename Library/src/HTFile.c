@@ -97,6 +97,9 @@ PRIVATE HTSuffix unknown_suffix = { "*.*", NULL, NULL, 1.0};
 **	representation.
 **	Calling this with suffix set to "*.*" will set the default
 **	representation for unknown suffix files which contain a ".".
+**
+**	If filename suffix is already defined its previous
+**	definition is overridden.
 */
 PUBLIC void HTSetSuffix ARGS4(
 	CONST char *,	suffix,
@@ -106,17 +109,25 @@ PUBLIC void HTSetSuffix ARGS4(
 {
     
     HTSuffix * suff;
-    
+
     if (strcmp(suffix, "*")==0) suff = &no_suffix;
     else if (strcmp(suffix, "*.*")==0) suff = &unknown_suffix;
     else {
-	suff = (HTSuffix*) calloc(1, sizeof(HTSuffix));
-	if (suff == NULL) outofmem(__FILE__, "HTSetSuffix");
+	HTList *cur = HTSuffixes;
+
+	while (NULL != (suff = (HTSuffix*)HTList_nextObject(cur))) {
+	    if (suff->suffix && 0==strcmp(suff->suffix, suffix))
+		break;
+	}
+	if (!suff) { /* Not found -- create a new node */
+	    suff = (HTSuffix*) calloc(1, sizeof(HTSuffix));
+	    if (suff == NULL) outofmem(__FILE__, "HTSetSuffix");
 	
-	if (!HTSuffixes) HTSuffixes = HTList_new();
-	HTList_addObject(HTSuffixes, suff);
+	    if (!HTSuffixes) HTSuffixes = HTList_new();
+	    HTList_addObject(HTSuffixes, suff);
 	
-	StrAllocCopy(suff->suffix, suffix);
+	    StrAllocCopy(suff->suffix, suffix);
+	}
     }
 
     suff->rep = HTAtom_for(representation);

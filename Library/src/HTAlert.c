@@ -80,8 +80,8 @@ PUBLIC char * HTPrompt ARGS2(CONST char *, Msg, CONST char *, deflt)
 PUBLIC char * HTPromptPassword ARGS1(CONST char *, Msg)
 {
     char *result = NULL;
-    char *pw = (char*) getpass(Msg ? Msg : "Password: ");
-    char *pw = (char*) getpass(Msg ? Msg : "Password: ");
+    char *pw = (char*)getpass(Msg ? Msg : "Password: ");
+
     StrAllocCopy(result, pw);
     return result;
 }
