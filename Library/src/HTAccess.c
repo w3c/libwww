@@ -729,7 +729,7 @@ PUBLIC BOOL HTSearch ARGS3(
 
     /* static CONST BOOL isAcceptable[96] = */
     /* static AND const is not good for a gnu compiler! Frystyk 25/02-94 */
-    BOOL isAcceptable[96] =
+    static BOOL isAcceptable[96] =
     /*   0 1 2 3 4 5 6 7 8 9 A B C D E F */
     {    0,0,0,0,0,0,0,0,0,0,1,0,0,1,1,0,	/* 2x   !"#$%&'()*+,-./	 */
          1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,	/* 3x  0123456789:;<=>?	 */
