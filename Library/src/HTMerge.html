@@ -1,0 +1,41 @@
+<HTML>
+<HEAD>
+  <!-- Changed by: Henrik Frystyk Nielsen, 31-May-1996 -->
+  <TITLE>W3C Reference Library libwww Merge Stream</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  Merge stream
+</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+<P>
+The <I>Merge</I> stream can be used to merge multiple streams into a single
+target stream. The Merge stream does not prevent any of the streams from
+writing and no ordering is imposed. The main feature is basically that the
+free and abort methods can be called n times where n equals the number of
+feeds that put data to the stream.
+<P>
+This module is implemented by <A HREF="HTMerge.c">HTMerge.c</A>, and it is
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>.
+<PRE>
+#ifndef _HTMERGE_H
+#define _HTMERGE_H
+
+#include "HTStream.h"
+
+extern HTStream * HTMerge (HTStream * target, int feeds);
+
+#endif /* HTMERGE_H */
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>
