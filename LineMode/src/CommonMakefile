@@ -70,7 +70,7 @@ SOURCES = $(LM)HTBrowse.c	$(LM)HTBrowse.h \
 	$(LM)README \
 	$(WWW)/README		$(WWW)/COPYRIGH \
 	$(WWW)/BUILD		$(WWW)/BUILD.SH \
-	$(WWW)/Makefile \
+	$(WWW)/PATCHES		$(WWW)/Makefile \
  	$(LM)a_stdio.g		$(LM)a_stdio.h
 
 DISTRIBUTION = \
@@ -259,7 +259,7 @@ $(OBJ)/a_stdio.o : $(OE) $(LM)a_stdio.g $(LM)a_stdio.h
 # For W3 Administrative use only:
 
 #	Source Destribution
-distribute : $(WWW)/README $(WWW)/COPYRIGHT $(SOURCES)
+distribute : $(WWW)/README $(WWW)/COPYRIGHT $(WWW)/PATCHES $(SOURCES)
 	(cd $(WWW)/.. && WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 	-f WWW/LineMode/Implementation/Version.make \
 	-f WWW/LineMode/Implementation/CommonMakefile \
@@ -285,6 +285,9 @@ $(WWW)/README : $(WWW)/../README.html
 
 $(WWW)/COPYRIGHT : $(WWW)/../COPYRIGHT.html
 	www -p -na http://www.w3.org/hypertext/WWW/COPYRIGHT.html -o $(WWW)/COPYRIGH
+
+$(WWW)/PATCHES : $(WWW)/../PATCHES.html
+	www -p -na http://www.w3.org/hypertext/WWW/PATCHES.html -o $(WWW)/PATCHES
 
 #	Line Mode Manual
 #
