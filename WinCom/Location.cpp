@@ -77,7 +77,7 @@ void CLocation::OnBrowse()
 	
 	// Make the source an absolute URI
 	CString path = fd.GetPathName();
-	char * fileaddr = HTLocalToWWW(path);
+	char * fileaddr = HTLocalToWWW(path, NULL);
 	if (fileaddr) {
 	    m_source = fileaddr;
 	    m_sourceList.SetWindowText(fileaddr);

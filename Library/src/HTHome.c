@@ -57,7 +57,7 @@ PUBLIC char * HTGetCurrentDirectoryURL (void)
 #endif /* HAVE_GETCWD */
     *(wd+HT_MAX_PATH) = '\0';
     if (*(wd+strlen(wd)-1) != '/') strcat(wd, "/");
-    return result ? HTLocalToWWW(result) : NULL;
+    return result ? HTLocalToWWW(result, NULL) : NULL;
 }
 
 
