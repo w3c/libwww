@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>History module</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 21-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 23-Aug-1995 -->
 </HEAD>
 <BODY>
 
@@ -34,86 +34,119 @@ W3C Reference Library</A>.
 #include "HTAnchor.h"
 </PRE>
 
-<H2>Record an entry in the list</H2>
+<H2>Creation and Deletion Methods</H2>
+
+The history module can handle multiple history lists which can be
+useful in a multithreaded environment with several open windows in the
+client application. A new histrory lidt is referenced by the handle
+returned from the creation method.
+
+<PRE>
+typedef struct _HTHistory HTHistory;
+
+extern HTHistory *HTHistory_new		NOPARAMS;
+extern BOOL HTHistory_delete		PARAMS((HTHistory *old));
+</PRE>
+
+<H2>Add and delete History Elements</H2>
+
+<H3>Record an entry in a list</H3>
 
 Registers the object in the linear list. The first entry is the home
-page. No check is done for duplicates.  Returns YES if OK, else NO
+page. No check is done for duplicates.  Returns YES if ok, else NO
 
 <PRE>
-extern BOOL HTHistory_record	PARAMS((HTAnchor * destination));
+extern BOOL HTHistory_record		PARAMS((HTHistory *hist, HTAnchor *cur));
 </PRE>
 
-<H2>Delete an entry</H2>
+<H3>Replace list with new element</H3>
 
-Deletes the object from the list. Returns YES if OK, else NO
+Iserts the new element at the current position and removes all any
+old list from current position. For example if c is cur pos
+<UL>
+<LI>before: a b c d e
+<LI>after : a b f
+</UL>
+Returns YES if ok, else NO
 
 <PRE>
-extern BOOL HTHistory_delete	PARAMS((HTAnchor * old));
+extern BOOL HTHistory_replace		PARAMS((HTHistory *hist, HTAnchor *cur));
 </PRE>
 
-<H2>Clear the History list from Anchor</H2>
+<H3>Delete last entry in a list</H3>
 
-Deletes the history list FROM the last occurance of current entry and
-forward.  Returns YES if OK, else NO
+Deletes the last object from the list Returns YES if OK, else NO
 
 <PRE>
-extern BOOL HTHistory_clearFrom	PARAMS((HTAnchor * cur));
+extern BOOL HTHistory_removeLast 	PARAMS((HTHistory *hist));
 </PRE>
 
-<H2>Clear the History list from Position</H2>
+<H3>Remove the History list from position</H3>
 
-Deletes the history list FROM the entry at position 'index'. Home page
-has position 1.  Returns YES if OK, else NO
+Deletes the history list FROM the entry at position 'cur' (excluded).
+Home page has position 1.  Returns YES if OK, else NO
 
 <PRE>
-extern BOOL HTHistory_clearFromPos	PARAMS((int index));
+extern BOOL HTHistory_removeFrom 	PARAMS((HTHistory *hist, int pos));
 </PRE>
 
-<H2>Delete the whole list</H2>
-
-Deletes the whole list from memory, so a new list can be started.
-Returns YES if OK, else NO
-
-<PRE>
-extern BOOL HTHistory_clearAll	NOPARAMS;
-</PRE>
-
-<H2>Number of elements stored</H2>
+<H3>Number of elements stored</H3>
 
 Returns the size of the history list or -1 if none.
 
 <PRE>
-extern int HTHistory_count	NOPARAMS;
+extern int HTHistory_count		PARAMS((HTHistory *hist));
 </PRE>
 
-<H2>Find and re-register visited anchor</H2>
+<H3>Current Position</H3>
 
-Finds already registered anchor with given index and registers it
-again EXCEPT if last entry. This allows for `circular' history lists
-with duplicate entries.
+Returns the current position or -1 on error
 
 <PRE>
-extern HTAnchor * HTHistory_recall	PARAMS((int cnt));
+extern int HTHistory_position		PARAMS((HTHistory *hist));
 </PRE>
 
-<H2>Find Indexed entry</H2>
+<H3>Find and re-register visited anchor</H3>
+
+Finds already registered anchor at given position and registers it
+again EXCEPT if last entry. This allows for `circular' history lists
+with duplicate entries. Position 1 is the home anchor. The current
+position <EM>is</EM> updated.
+
+<PRE>
+extern HTAnchor * HTHistory_recall 	PARAMS((HTHistory *hist, int pos));
+</PRE>
+
+<H3>Find Entry at position</H3>
 
 Entry with the given index in the list (1 is the home page). Like
-HTHistory_recall but without re-registration
+<CODE>HTHistory_recall</CODE> but without re-registration. Un success,
+the current position <EM>is</EM> updated to the value 'pos' value.
 
 <PRE>
-extern HTAnchor * HTHistory_findPos	PARAMS((int n));
+extern HTAnchor * HTHistory_find 	PARAMS((HTHistory *hist, int pos));
 </PRE>
 
-<H2>Can we back in history?</H2>
+<H3>List the History List</H3>
+
+This function is like <CODE>HTHistory_find()</CODE> but <EM>does
+not</EM> update the current position
+
+<PRE>
+extern HTAnchor * HTHistory_list	PARAMS((HTHistory *hist, int pos));
+</PRE>
+
+<H2>Navigation</H2>
+
+<H3>Can we back in history</H3>
 
 Returns YES if the current anchor is not the first entry (home page)
 
 <PRE>
-extern BOOL HTHistory_canBacktrack	PARAMS((HTAnchor * cur));
+extern BOOL HTHistory_canBacktrack 	PARAMS((HTHistory *hist));
 </PRE>
 
-<H2>Backtrack with deletion</H2>
+<H3>Backtrack with deletion</H3>
 
 Returns the previous object and erases the last object. This does not
 allow for 'forward' as we are always at the end of the list. If no
@@ -121,10 +154,10 @@ previous object exists, NULL is returned so that the application knows
 that no previous object was found. See also HTHistory_back().
 
 <PRE>
-extern HTAnchor * HTHistory_backtrack	NOPARAMS;
+extern HTAnchor * HTHistory_backtrack 	PARAMS((HTHistory *hist));
 </PRE>
 
-<H2>Backtrack without deletion</H2>
+<H3>Backtrack without deletion</H3>
 
 Returns the previos object but does not erase the last object. This
 does not allow for 'forward'. If no previous object exists, NULL is
@@ -132,55 +165,23 @@ returned so that the application knows that no previous object was
 found. See also HTHistory_backtrack()
 
 <PRE>
-extern HTAnchor * HTHistory_back	PARAMS((HTAnchor * cur));
+extern HTAnchor * HTHistory_back 	PARAMS((HTHistory *hist));
 </PRE>
 
-<H2>Can we go Forward?</H2>
+<H3>Can we go forward</H3>
 
 Returns YES if the current anchor is not the last entry
 
 <PRE>
-extern BOOL HTHistory_canForward	PARAMS((HTAnchor * cur));
+extern BOOL HTHistory_canForward 	PARAMS((HTHistory *hist));
 </PRE>
 
-<H2>Forward</H2>
+<H3>Forward</H3>
 
 Return the next object in the list or NULL if none
 
 <PRE>
-extern HTAnchor * HTHistory_forward	PARAMS((HTAnchor * cur));
-</PRE>
-
-<H2>Can we Move By Offset?</H2>
-
-Support for Next and Previous in order to allow for browsing through
-the same parent node
-
-<PRE>
-extern BOOL HTHistory_canMoveBy		PARAMS((int offset));
-#define HTHistory_canNext (HTHistory_canMoveBy (+1))
-#define HTHistory_canPrevious (HTHistory_canMoveBy (-1))
-</PRE>
-
-<H2>Browse through references in the same parent node</H2>
-
-Take the n-th child's link after or before the one we took to get
-here.  Positive offset means go towards most recently added children
-or "Next" and negative value means "Previous"
-
-<PRE>
-extern HTAnchor * HTHistory_moveBy	PARAMS((int offset));
-#define HTHistory_next (HTHistory_moveBy (+1))
-#define HTHistory_previous (HTHistory_moveBy (-1))
-</PRE>
-
-<H2>Change last history entry</H2>
-
-Sometimes we load a node by one anchor but leave by a different
-one, and it is the one we left from which we want to remember.
-
-<PRE>
-extern void HTHistory_leavingFrom	PARAMS((HTAnchor * anchor));
+extern HTAnchor * HTHistory_forward 	PARAMS((HTHistory *hist));
 
 #endif /* HTHISTORY_H */
 </PRE>

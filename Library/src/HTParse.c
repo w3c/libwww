@@ -457,7 +457,7 @@ PUBLIC char *HTCanon ARGS2 (char **, filename, char *, host)
     if (((strptr = strchr(host, '.')) == NULL || strptr >= path) &&
 	strncasecomp(host, "localhost", 9)) {
 	CONST char *domain = HTGetDomainName();
-	if (domain) {
+	if (domain && *domain) {
 	    if ((newname = (char *) calloc(1, strlen(*filename) +
 				       strlen(domain)+2)) == NULL)
 		outofmem(__FILE__, "HTCanon");

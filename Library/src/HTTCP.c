@@ -724,11 +724,11 @@ PUBLIC void HTSetHostName ARGS1(char *, host)
 **	2) if the hostname doesn't contain any '.' try to read
 **	   /etc/resolv.conf. If there is no domain line in this file then
 **	3) Try getdomainname and do as the man pages say for resolv.conf (sun)
-**		If there is no domain line in this file, then it is derived
-**		from the domain name set by the domainname(1) command, usually
-**		by removing the first component. For example, if the domain-
-**		name is set to ``foo.podunk.edu'' then the default domain name
-**		used will be ``pudunk.edu''.
+**	   If there is no domain line in this file, then it is derived
+**	   from the domain name set by the domainname(1) command, usually
+**	   by removing the first component. For example, if the domain-
+**	   name is set to ``foo.podunk.edu'' then the default domain name
+**	   used will be ``pudunk.edu''.
 **
 **	This is the same procedure as used by res_init() and sendmail.
 **

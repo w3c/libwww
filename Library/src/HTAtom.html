@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Atoms - an easy way of organizing strings</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 23-Aug-1995 -->
 </HEAD>
 <BODY>
 
@@ -60,7 +61,7 @@ extern HTAtom * HTAtom_caseFor	PARAMS((CONST char * string));
 <H3>Get Content of an Atom</H3>
 
 <PRE>
-#define HTAtom_name(a) ((a)->name)
+#define HTAtom_name(a) ((a) ? (a)->name : NULL)
 </PRE>
 
 This macro returns the string pointed to by the <CODE>atom</CODE>.
