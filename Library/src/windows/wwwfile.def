@@ -1,0 +1,13 @@
+EXPORTS
+;HTMulti.c		@ 100
+HTAddWelcome		@ 101
+HTMulti			@ 102
+
+;HTFile.c		@ 200
+HTFile_setDirAccess	@ 201
+HTFile_dirAccess	@ 202
+HTFile_setDirReadme	@ 203
+HTFile_dirReadme	@ 204
+HTFileSaveStream	@ 205
+HTLoadFile		@ 206
+

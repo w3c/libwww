@@ -1,0 +1,24 @@
+EXPORTS
+;HTIcons.c		@ 100
+HTIcon_alt_string	@ 101
+HTAddIcon		@ 102
+HTAddHref		@ 103
+HTAddUnknownIcon	@ 104
+HTAddBlankIcon		@ 105
+HTAddParentIcon		@ 106
+HTAddDirIcon		@ 107
+HTStdIconInit		@ 108
+HTGetIcon		@ 109
+HTGetHref		@ 110
+
+;HTDescpt.c		@ 200
+HTReadDescriptions	@ 201
+HTFreeDescriptions	@ 202
+HTGetDescription	@ 203
+
+;HTDir.c		@ 300
+HTDir_setWidth		@ 301
+HTDir_new		@ 302
+HTDir_addElement	@ 303
+HTDir_free		@ 304
+

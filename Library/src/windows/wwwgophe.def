@@ -1,0 +1,4 @@
+EXPORTS
+;HTGopher.c		@ 100
+HTLoadGopher		@ 101
+
