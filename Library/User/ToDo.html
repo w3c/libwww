@@ -1,152 +1,293 @@
-<HTML>
-<HEAD>
-  <TITLE>Libwww ToDo List</TITLE>
-</HEAD>
-<BODY BGCOLOR="#ffffff">
-<P>
-<A HREF="../../"><IMG SRC="../../Icons/WWW/w3c_home" ALT="W3C" BORDER="0"></A>
-<A HREF="../"><IMG SRC="../../Icons/WWW/Lib48x" ALT="libwww" BORDER="0"></A>
-<H1>
-  Libwww ToDo List
-</H1>
-<P>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+   "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+<title>Libwww ToDo List</title>
+</head>
+<body bgcolor="#ffffff">
+<p>
+<a href="../../"><img src="../../Icons/WWW/w3c_home" alt="W3C" border="0"></a>
+<a href="../"><img src="../../Icons/WWW/Lib48x" alt="libwww"
+border="0"></a></p>
+
+<h1>Libwww ToDo List</h1>
+<p>
 This is the current work plan for new libwww features but remember, the sky's
-the limit! Before you start, make sure that you have an
-<A HREF="../cvs.html">up-to-date version of the code hot from CVS</A>.
-<P>
-<CENTER>
-  <TABLE BORDER CELLSPACING="0" ALIGN="Center" WIDTH="90%">
-    <TR>
-      <TH>Project</TH>
-      <TH>Description</TH>
-      <TH>Started</TH>
-      <TH>Status</TH>
-      <TH>Owner</TH>
-    </TR>
-    <TR>
-      <TD><A HREF="../../Protocols/">HTTP Digest Authentication</A></TD>
-      <TD>Digest is becoming important is is beginning to see widespread deployment.
-	Libwww supports easy addition of <A HREF="../src/HTAAUtil.html">multiple
-	authentication schemes</A> so digest can be implemented as a plug-in module</TD>
-      <TD>Oct 1998</TD>
-      <TD><STRONG><A HREF="http://www.egroups.com/list/www-lib/703.html">Done</A></STRONG></TD>
-      <TD><STRONG><A HREF="../Collaborators.html#Collaborators">Jose
-	Kahan</A></STRONG></TD>
-    </TR>
-    <TR>
-      <TD><A HREF="http://info.webcrawler.com/mak/projects/robots/exclusion.html#robotstxt">Robot
-	txt file parser</A></TD>
-      <TD>The <A HREF="../../Robot/">Webbot</A> already knows about the
-	<A HREF="http://info.webcrawler.com/mak/projects/robots/exclusion.html#meta">robot
-	META tags</A> - help turning it into a well-behaving robot by understanding
-	<A HREF="http://info.webcrawler.com/mak/projects/robots/exclusion.html#robotstxt">robot.txt
-	files</A> as well.</TD>
-      <TD>Oct 1998</TD>
-      <TD><STRONG>Done</STRONG></TD>
-      <TD><STRONG><A HREF="../Collaborators.html#Collaborators">John
-	Punin</A></STRONG></TD>
-    </TR>
-    <TR>
-      <TD>Libwww
-	<A HREF="http://www.geocities.com/SiliconValley/Way/8818/p_gksetu.htm">Installshield
-	for Windows</A></TD>
-      <TD>Libwww and the sample apps like the Web Commander could really use an
-	in install shield to get Windows people up and going. Vladimir's version
-	installs all the <A HREF="Guide/">libwww DLLs</A> in a shared location so
-	that they are available to other apps as well</TD>
-      <TD>Oct 1998</TD>
-      <TD><A HREF="http://194.226.9.94/libwww.htm"><STRONG>Done</STRONG></A></TD>
-      <TD><STRONG><A HREF="../Collaborators.html#Collaborators">Vladimir
-	Kozlov</A></STRONG></TD>
-    </TR>
-    <TR>
-      <TD>Mirroring facility in <A HREF="../../Robot/">Webbot</A></TD>
-      <TD>Use the webbot to mirror a site using the very fast HTTP/1.1 engine with
-	pipeline and regular expressions!</TD>
-      <TD>Sep 1998</TD>
-      <TD><STRONG>Ongoing</STRONG></TD>
-      <TD><STRONG><A HREF="../Collaborators.html#Collaborators">Bob
-	Racko</A></STRONG></TD>
-    </TR>
-    <TR>
-      <TD>Better Windows Makefiles</TD>
-      <TD>Pending on autoconf and automake to be released with support for Windows.
-	Any better ideas plan for improving Windows makefiles?</TD>
-      <TD>Sep 1998</TD>
-      <TD><STRONG><A HREF="http://www.egroups.com/list/www-lib/626.html">Ongoing</A></STRONG></TD>
-      <TD>&nbsp;</TD>
-    </TR>
-    <TR>
-      <TD><A HREF="../../Protocols/HTTP/ietf-http-ext/">HTTP Extension Framework</A></TD>
-      <TD>We have many exiting HTTP extensions waiting for the
-	<A HREF="../../Protocols/HTTP/ietf-http-ext/">HTTP Extension Framework</A>.
-	The implementation can be based on the existing <A HREF="../src/HTPEP.html">PEP
-	implementation</A>.</TD>
-      <TD>Oct 1998</TD>
-      <TD><STRONG>Open</STRONG></TD>
-      <TD>&nbsp;</TD>
-    </TR>
-    <TR>
-      <TD>Regular expressions in URI mapping rules</TD>
-      <TD>Libwww already supports URI mappings in the
-	<A HREF="../src/HTRules.html">rules module</A> but support for <EM>sed</EM>
-	like regular expressions would be extremely useful, especially for mirroring
-	done by the <A HREF="../../Robot/">Webbot</A>. Libwww already uses
-	<A HREF="../src/HTProxy.html">regular expressions for handling proxies</A>
-	and other things.</TD>
-      <TD>Sep 1998</TD>
-      <TD><STRONG>Open</STRONG></TD>
-      <TD>&nbsp;</TD>
-    </TR>
-    <TR>
-      <TD>Drag-and-drop support in <A HREF="../../WinCom/">Web Commander</A></TD>
-      <TD>Would like&nbsp;to be able to drag and drop URIs to save, load, etc.
-	Would also&nbsp;be cool to have as well as integration with the Explorer
-	menu.</TD>
-      <TD>Sep 1998</TD>
-      <TD><STRONG>Open</STRONG></TD>
-      <TD>&nbsp;</TD>
-    </TR>
-    <TR>
-      <TD>GUI Interface for the <A HREF="../../Robot/">Webbot</A></TD>
-      <TD>We already have a <A HREF="../../Robot/tcl/">sketchy Tcl/Tk interface</A>
-	but it&nbsp;hasn't been maintained. We&nbsp;need a&nbsp;GUI expert
-	for&nbsp;this&nbsp;one!</TD>
-      <TD>Oct 1998</TD>
-      <TD><A HREF="http://lists.w3.org/Archives/Public/www-lib/1998OctDec/0061.html">Under
-	discussion</A></TD>
-      <TD>&nbsp;</TD>
-    </TR>
-    <TR>
-      <TD>Libwww <A HREF="http://www.rpm.org">RPM</A> file</TD>
-      <TD>Can use a lot of the&nbsp;information already used by
-	<A HREF="http://www.gnu.org/software/automake/index.html">GNU automake</A>
-	- need a&nbsp;spec file expert!</TD>
-      <TD>Oct 1998</TD>
-      <TD><STRONG>Open</STRONG></TD>
-      <TD>&nbsp;</TD>
-    </TR>
-    <TR>
-      <TD>HTTP Cookies</TD>
-      <TD>Make libwww toss&nbsp;'em around!</TD>
-      <TD>Dec 1998</TD>
-      <TD><STRONG><A HREF="http://www.egroups.com/list/www-lib/665.html">Open</A></STRONG></TD>
-      <TD></TD>
-    </TR>
-    <TR>
-      <TD>SSL transport</TD>
-      <TD>Libwww's flexible transport&nbsp;architecture&nbsp;allows for
-	multiple&nbsp;transports of&nbsp;which&nbsp;SSL&nbsp;could be&nbsp;one</TD>
-      <TD>Dec 1998</TD>
-      <TD><STRONG><A HREF="http://www.egroups.com/list/www-lib/mg2029641463.html">Open</A></STRONG></TD>
-      <TD></TD>
-    </TR>
-  </TABLE>
-</CENTER>
-<P>
-  <HR>
-<ADDRESS>
-  <A HREF="/People/Frystyk/">Henrik Frystyk Nielsen</A>,<BR>
-  @(#) $Id$
-</ADDRESS>
-</BODY></HTML>
+the limit! Before you start, make sure that you have an <a
+href="../cvs.html">up-to-date version of the code hot from CVS</a>.</p>
+<p>
+</p>
+
+<center>
+
+<table border="1" cellspacing="0" align="center" width="90%">
+<tbody>
+<tr>
+<th>
+Project
+</th>
+<th>
+Description
+</th>
+<th>
+Started
+</th>
+<th>
+Status
+</th>
+<th>
+Owner
+</th>
+</tr>
+<tr>
+<td>
+<a href="../../Protocols/">HTTP Digest Authentication</a>
+</td>
+<td>
+Digest is becoming important is is beginning to see widespread deployment.
+Libwww supports easy addition of <a href="../src/HTAAUtil.html">multiple
+authentication schemes</a> so digest can be implemented as a plug-in module
+</td>
+<td>
+Oct 1998
+</td>
+<td>
+<strong><a
+href="http://www.egroups.com/list/www-lib/703.html">Done</a></strong>
+</td>
+<td>
+<strong><a href="../Collaborators.html#Collaborators">Jose Kahan</a></strong>
+</td>
+</tr>
+<tr>
+<td>
+<a
+href="http://info.webcrawler.com/mak/projects/robots/exclusion.html#robotstxt">Robot
+txt file parser</a>
+</td>
+<td>
+The <a href="../../Robot/">Webbot</a> already knows about the <a
+href="http://info.webcrawler.com/mak/projects/robots/exclusion.html#meta">robot
+META tags</a> - help turning it into a well-behaving robot by understanding <a
+href="http://info.webcrawler.com/mak/projects/robots/exclusion.html#robotstxt">robot.txt
+files</a> as well.
+</td>
+<td>
+Oct 1998
+</td>
+<td>
+<strong>Done</strong>
+</td>
+<td>
+<strong><a href="../Collaborators.html#Collaborators">John Punin</a></strong>
+</td>
+</tr>
+<tr>
+<td>
+Libwww <a
+href="http://www.geocities.com/SiliconValley/Way/8818/p_gksetu.htm">Installshield
+for Windows</a>
+</td>
+<td>
+Libwww and the sample apps like the Web Commander could really use an in
+install shield to get Windows people up and going. Vladimir's version installs
+all the <a href="Guide/">libwww DLLs</a> in a shared location so that they are
+available to other apps as well
+</td>
+<td>
+Oct 1998
+</td>
+<td>
+<a href="http://194.226.9.94/libwww.htm"><strong>Done</strong></a>
+</td>
+<td>
+<strong><a href="../Collaborators.html#Collaborators">Vladimir
+Kozlov</a></strong>
+</td>
+</tr>
+<tr>
+<td>
+Mirroring facility in <a href="../../Robot/">Webbot</a>
+</td>
+<td>
+Use the webbot to mirror a site using the very fast HTTP/1.1 engine with
+pipeline and regular expressions!
+</td>
+<td>
+Sep 1998
+</td>
+<td>
+<strong>Ongoing</strong>
+</td>
+<td>
+<strong><a href="../Collaborators.html#Collaborators">Bob Racko</a></strong>
+</td>
+</tr>
+<tr>
+<td>
+Better Windows Makefiles
+</td>
+<td>
+Pending on autoconf and automake to be released with support for Windows. Any
+better ideas plan for improving Windows makefiles?
+</td>
+<td>
+Sep 1998
+</td>
+<td>
+<strong><a
+href="http://www.egroups.com/list/www-lib/626.html">Ongoing</a></strong>
+</td>
+<td>
+&nbsp;
+</td>
+</tr>
+<tr>
+<td>
+<a href="../../Protocols/HTTP/ietf-http-ext/">HTTP Extension Framework</a>
+</td>
+<td>
+We have many exiting HTTP extensions waiting for the <a
+href="../../Protocols/HTTP/ietf-http-ext/">HTTP Extension Framework</a>. The
+implementation can be based on the existing <a href="../src/HTPEP.html">PEP
+implementation</a>.
+</td>
+<td>
+Oct 1998
+</td>
+<td>
+<strong>Open</strong>
+</td>
+<td>
+&nbsp;
+</td>
+</tr>
+<tr>
+<td>
+Regular expressions in URI mapping rules
+</td>
+<td>
+Libwww already supports URI mappings in the <a
+href="../src/HTRules.html">rules module</a> but support for <em>sed</em> like
+regular expressions would be extremely useful, especially for mirroring done
+by the <a href="../../Robot/">Webbot</a>. Libwww already uses <a
+href="../src/HTProxy.html">regular expressions for handling proxies</a> and
+other things.
+</td>
+<td>
+Sep 1998
+</td>
+<td>
+<strong>Open</strong>
+</td>
+<td>
+&nbsp;
+</td>
+</tr>
+<tr>
+<td>
+Drag-and-drop support in <a href="../../WinCom/">Web Commander</a>
+</td>
+<td>
+Would like&nbsp;to be able to drag and drop URIs to save, load, etc. Would
+also&nbsp;be cool to have as well as integration with the Explorer menu.
+</td>
+<td>
+Sep 1998
+</td>
+<td>
+<strong>Open</strong>
+</td>
+<td>
+&nbsp;
+</td>
+</tr>
+<tr>
+<td>
+GUI Interface for the <a href="../../Robot/">Webbot</a>
+</td>
+<td>
+We already have a <a href="../../Robot/tcl/">sketchy Tcl/Tk interface</a> but
+it&nbsp;hasn't been maintained. We&nbsp;need a&nbsp;GUI expert
+for&nbsp;this&nbsp;one!
+</td>
+<td>
+Oct 1998
+</td>
+<td>
+<a
+href="http://lists.w3.org/Archives/Public/www-lib/1998OctDec/0061.html">Under
+discussion</a>
+</td>
+<td>
+&nbsp;
+</td>
+</tr>
+<tr>
+<td>
+Libwww <a href="http://www.rpm.org">RPM</a> file
+</td>
+<td>
+Can use a lot of the&nbsp;information already used by <a
+href="http://www.gnu.org/software/automake/index.html">GNU automake</a> - need
+a&nbsp;spec file expert!
+</td>
+<td>
+Oct 1998
+</td>
+<td>
+<strong>Open</strong>
+</td>
+<td>
+&nbsp;
+</td>
+</tr>
+<tr>
+<td>
+HTTP Cookies
+</td>
+<td>
+Make libwww toss&nbsp;'em around!
+</td>
+<td>
+Dec 1998
+</td>
+<td>
+<strong><a
+href="http://www.egroups.com/list/www-lib/665.html">Open</a></strong>
+</td>
+<td>
+
+</td>
+</tr>
+<tr>
+<td>
+SSL transport
+</td>
+<td>
+Libwww's flexible transport&nbsp;architecture&nbsp;allows for
+multiple&nbsp;transports of&nbsp;which&nbsp;SSL&nbsp;could be&nbsp;one
+</td>
+<td>
+Dec 1998
+</td>
+<td>
+<strong><a
+href="http://lists.w3.org/Archives/Public/www-lib/1999JanMar/0340.html">Open</a></strong>
+</td>
+<td>
+
+</td>
+</tr>
+</tbody>
+</table>
+</center>
+<p>
+</p>
+<hr>
+
+<address>
+<a href="/People/Frystyk/">Henrik Frystyk Nielsen</a>,<br>
+@(#) $Id$ </address>
+</body>
+</html>

@@ -1,67 +1,99 @@
-<HTML>
-<HEAD>
-  <TITLE>List of Platforms for libwww</TITLE>
-</HEAD>
-<BODY BGCOLOR="#ffffff" TEXT="#000000">
-<P>
-<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_home" BORDER="0"></A>
-<A HREF="../../"><IMG ALT="libwww" SRC="../../../Icons/WWW/Lib48x" BORDER="0"></A>
-<IMG BORDER="0" SRC="../../../Icons/WWW/Platform48x" WIDTH="48" HEIGHT="48"
-    ALT="Platforms">
-<H1>
-  List of Platforms for libwww
-</H1>
-<P>
-This list gives an overview of the platforms where
-<A HREF="../../">libwww</A> is known (or belived) to work. Thanks a lot to
-the big group of creative contributors for the long list of hints, patches
-and additions to the make files and system dependent code! If you have any
-problems or questions then send a mail to the
-<A HREF="http://lists.w3.org/Archives/Public/www-lib/">www-lib@w3.org</A>
-mailing list (read the <A HREF="/Mail/Request.html">instructions for how
-to subscribe</A>). We also keep an
-<A HREF="http://lists.w3.org/Archives/Public/www-lib/threads.html">archive
-of the mailing list</A> so that more easily can get up to speed.
-<P>
-<TABLE BORDER CELLSPACING="0" WIDTH="90%" ALIGN="center">
-  <TR>
-    <TH WIDTH="15%">Platform</TH>
-    <TH WIDTH="15%">OS</TH>
-    <TH WIDTH="15%">Version</TH>
-    <TH>Note</TH>
-  </TR>
-  <TR>
-    <TD>Unix</TD>
-    <TD>Tried on Solaris, Linux and Digital Unix</TD>
-    <TD><P ALIGN=Center>
-      -</TD>
-    <TD>Build the library using <A HREF="../../../INSTALL.html">GNU Autoconf's
-      configure script</A> as described in the
-      <A HREF="../../../INSTALL.html#Unix">installation instructions</A>.
-      <B>Note</B>: You <A HREF="GNUMake.html"><B>must</B> use GNU make</A> in order
-      to do this</TD>
-  </TR>
-  <TR>
-    <TD>Windows</TD>
-    <TD>Tried on Windows NT and 95</TD>
-    <TD><P ALIGN=Center>
-      4.0</TD>
-    <TD>Follow the <A HREF="../../../INSTALL.html#Windows">installation
-      instructions</A> and also the <A HREF="WinDLL.html">special notes for building
-      on Windows</A></TD>
-  </TR>
-</TABLE>
-<P>
-<I><B>Disclaimer</B>: Libwww has been designed to be both portable and flexible
-based on ANSI C and the POSIX standard. However, there are still platforms
-that do not conform to any of these standards. Even though autoconf is often
-capable of getting around such problems it may not always be the case. In
-this situation we are happy to accept patches but do not intend to actively
-maintain such platforms.</I>
-<P>
-  <HR>
-<ADDRESS>
-  <A HREF="/People/Frystyk/">Henrik Frystyk Nielsen</A>,<BR>
-  @(#) $Id$
-</ADDRESS>
-</BODY></HTML>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+   "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+<title>List of Platforms for libwww</title>
+</head>
+<body bgcolor="#ffffff" text="#000000">
+<p>
+<a href="../../../"><img alt="W3C" src="../../../Icons/WWW/w3c_home"
+border="0"></a> <a href="../../"><img alt="libwww"
+src="../../../Icons/WWW/Lib48x" border="0"></a> <img border="0"
+src="../../../Icons/WWW/Platform48x" width="48" height="48"
+alt="Platforms"></p>
+
+<h1>List of Platforms for libwww</h1>
+<p>
+This list gives an overview of the platforms where <a href="../../">libwww</a>
+is known (or belived) to work. Thanks a lot to the big group of creative
+contributors for the long list of hints, patches and additions to the make
+files and system dependent code! If you have any problems or questions then
+send a mail to the <a
+href="http://lists.w3.org/Archives/Public/www-lib/">www-lib@w3.org</a> mailing
+list (read the <a href="/Mail/Request.html">instructions for how to
+subscribe</a>). We also keep an <a
+href="http://lists.w3.org/Archives/Public/www-lib/threads.html">archive of the
+mailing list</a> so that more easily can get up to speed.</p>
+<p>
+</p>
+
+<table border="1" cellspacing="0" width="90%" align="center">
+<tbody>
+<tr>
+<th width="15%">
+Platform
+</th>
+<th width="15%">
+OS
+</th>
+<th>
+Note
+</th>
+</tr>
+<tr>
+<td>
+Unix
+</td>
+<td>
+Tried on Solaris, Linux and Digital Unix
+</td>
+<td>
+Build the library using <a href="../../../INSTALL.html">GNU Autoconf's
+configure script</a> as described in the <a
+href="../../../INSTALL.html#Unix">installation instructions</a>. <b>Note</b>:
+You <a href="GNUMake.html"><b>must</b> use GNU make</a> in order to do this
+</td>
+</tr>
+<tr>
+<td>
+Windows
+</td>
+<td>
+Tried on Windows 95/98/NT
+</td>
+<td>
+Follow the <a href="../../../INSTALL.html#Windows">installation
+instructions</a> and see the <a href="WinDLL.html">special notes for building
+on</a><a href="WinDLL.html"> Windows</a>
+</td>
+</tr>
+<tr>
+<td>
+Macs
+</td>
+<td>
+MacOS
+</td>
+<td>
+It doesn't work out of the box but several people are using it on Macs. Ask on
+the &lt;<a href="mailto:www-lib@w3.org">www-lib@w3.org</a>> mailing list
+</td>
+</tr>
+</tbody>
+</table>
+<p>
+<i><b>Disclaimer</b>: Libwww has been designed to be both portable and
+flexible based on ANSI C and POSIX. However, there are platforms that do not
+conform to these standards. Even though autoconf is often capable of getting
+around such problems it may not always be the case. In this situation we are
+happy to accept patches but do not promise to maintain any platforms other
+than the ones we use for development.</i></p>
+<p>
+</p>
+<hr>
+
+<address>
+<a href="/People/Frystyk/">Henrik Frystyk Nielsen</a>,<br>
+@(#) $Id$ </address>
+</body>
+</html>

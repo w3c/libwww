@@ -1,185 +1,138 @@
-<HTML>
-<HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen,  5-Nov-1995 -->
-  <TITLE>Registering Protocol Headers</TITLE>
-</HEAD>
-<BODY BGCOLOR="#ffffff">
-<P>
-<A HREF="../../../"><IMG BORDER="0" SRC="../../../Icons/WWW/w3c_home" ALT="W3C"
-    WIDTH="72" HEIGHT="48" BORDER="0"></A>
-<A HREF="../../"><IMG BORDER="0" SRC="../../../Icons/WWW/Lib48x" ALT="libwww"
-    WIDTH="48" HEIGHT="48" BORDER="0"></A>
-<A HREF="./"><IMG BORDER="0" SRC="../../../Icons/WWW/guide48x" ALT="Using"
-    WIDTH="48" HEIGHT="48" BORDER="0"></A>
-<H1>
-  Protocol Headers and Extensions
-</H1>
-<P>
-The Library provides a few powerful mechanisms to handle document metainformation
-and how to generate and parse additional header information coming across
-the network. This section describes how to handle metainformation and headers
-and how this can be used to experiment with existing protocols by means of
-additional headers. Headers are registered in a
-<A HREF="Response.html">Response Object</A> but are not parsed until they
-are needed. If we want to cache the object then the headers are moved to
-an <A HREF="../../src/HTAnchor.html">HTAnchor Object</A> but the headers
-are still not parsed before we need to.
-<H2>
-  Generating Headers
-</H2>
-<P>
-Outgoing metainformation describing preferences in requests or entities to
-be sent to a remote server is handled in two ways: The Library supports a
-"native" set (called <EM>known</EM> headers of headers which can be manipulated
-directly, but it also provides support for header extensions defined by the
-application. This section describes how both the existing set of headers
-and the extensions can be handled.
-<H3>
-  Generating Known Headers
-</H3>
-<P>
-The Library manages a "native" set of protocol headers which we will introduce
-in this section. The default behavior for the Library is to use a representative
-set of headers on each request but all headers can be explicitly enabled
-or disabled on a per request basic by the application. Here we will mainly
-describe the set of native headers but leave the description of how to manipulate
-them for the section on managing <A HREF="Request.html">Request objects</A>.
-The native set of headers fall into the following three categories:
-<DL>
-  <DT>
-    <I>General Headers</I>
-  <DD>
-    There are a few header fields which have general applicability for both request
-    and response messages, but which do not apply to the communication parties
-    or the entity being transferred. This mask enables and disables these headers.
-    If the bit is not turned on they are not sent. All headers are optional and
-    the default value is not to use any of these headers at all.
-  <DT>
-    <I>Request Headers</I>
-  <DD>
-    The request header fields allow the client to pass additional information
-    about the request (and about the client itself) to the server. All headers
-    are optional but the default behavior is to use all request headers
-    <EM>except</EM> <CODE>From</CODE> and <CODE>Pragma</CODE>. The reason is
-    that the former in general requires permission by the user and the latter
-    has special meanings for proxy servers.
-  <DT>
-    <I>Entity Headers</I>
-  <DD>
-    The entity headers contain information about the object sent in the HTTP
-    transaction. This flag defines which headers are to be sent in a request
-    together with an entity body. All headers are optional but the default value
-    is to use as many as possible.
-</DL>
-<P>
-As mentioned, the set of native headers are equivalent to the set of header
-defined by the <A HREF="../../../Protocols/">HTTP/1.1 protocol</A> specification.
-Libwww also provides functionality for registering additional headers which
-we will have a look at in the next section.
-<H3>
-  Generating Extension Headers
-</H3>
-<P>
-Each time a request is to be generated, the Library looks to see if a list
-of callback functions has been registered to provide additional metainformation
-to send along with the request. If this is the case then each of these callback
-functions will be called in turn and the resulting request is then the sum
-of the original response and the information provided by the callback functions.
-<P>
-<A HREF="../../src/HTHeader.html"><IMG BORDER="0" SRC="../../../Icons/WWW/doc48x"
-    ALT="Documentation" WIDTH="48" HEIGHT="48" BORDER="0" ALIGN="Middle">Registrering
-Header Generators</A>
-<H2>
-  Parsing Headers
-</H2>
-<P>
-The <A HREF="../../src/HTMIME.html">MIME parser stream</A> parses MIME
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+   "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+
+<!-- Changed by: Henrik Frystyk Nielsen,  5-Nov-1995 -->
+<title>Header Fields and how to Extend Them</title>
+</head>
+<body bgcolor="#ffffff">
+
+<p><a href="../../../"><img border="0" src="../../../Icons/WWW/w3c_home"
+alt="W3C" width="72" height="48"></a> <a href="../../"><img border="0"
+src="../../../Icons/WWW/Lib48x" alt="libwww" width="48" height="48"></a> <a
+href="./"><img border="0" src="../../../Icons/WWW/guide48x" alt="Using"
+width="48" height="48"></a></p>
+
+<h1>Header Fields and how to Extend Them</h1>
+
+<p>Libwww provides a few powerful mechanisms to generate and parse header
+fields for HTTP requests and the like.This section describes how to handle
+header fields and how to extend the default set of headers. Known headers are
+the ones that libwww already knows, unknown headers are - guess what -
+extensions!</p>
+
+<h2><a name="Lazy">Lazy Header Parsing</a></h2>
+
+<p>Regardless of whether a incoming (response) header field are known or not,
+they are registered in a <a href="Response.html">Response Object</a> but are
+not parsed until/if they are needed - this is an important performance feature
+as RFC 822 header fields are hard to parse. If we want to cache the object
+then the headers are moved to an <a href="../../src/HTAnchor.html">HTAnchor
+Object</a> but the headers are still not parsed before we need to.</p>
+
+<h2><a name="Generating1">Generating Known Headers</a></h2>
+
+<p>Libwww manages a known set of headers for which the default behavior it is
+to use a representative set on each request. However, all known headers can be
+<a
+href="http://jigedit.w3.org/frystyk/WWW/Library/src/HTReq.html#gnhd">explicitly
+enabled or disabled on a per request basis</a> by the application. Here we
+will mainly describe the set of native headers but leave the description of
+how to manipulate them for the section on managing <a
+href="Request.html">Request objects</a>. The native set of headers fall into
+the following three categories:</p>
+<dl>
+<dt><i>General Headers</i></dt>
+<dd>
+There are a few header fields which have general applicability for both
+request and response messages, but which do not apply to the communication
+parties or the entity being transferred. This mask enables and disables these
+headers. If the bit is not turned on they are not sent. All headers are
+optional and the default value is not to use any of these headers at all.
+</dd>
+<dt><i>Request Headers</i></dt>
+<dd>
+The request header fields allow the client to pass additional information
+about the request (and about the client itself) to the server. All headers are
+optional but the default behavior is to use all request headers
+<em>except</em> <code>From</code> and <code>Pragma</code>. The reason is that
+the former in general requires permission by the user and the latter has
+special meanings for proxy servers.
+</dd>
+<dt><i>Entity Headers</i></dt>
+<dd>
+The entity headers contain information about the object sent in the HTTP
+transaction. This flag defines which headers are to be sent in a request
+together with an entity body. All headers are optional but the default value
+is to use as many as possible.
+</dd>
+</dl>
+
+<p>The set of known headers are equivalent to the set of header defined by the
+<a href="../../../Protocols/">HTTP/1.1 protocol</a> specification. Libwww also
+provides functionality for registering additional headers which we will have a
+look at in the next section.</p>
+
+<h3><a name="Generating">Generating Extension Headers</a></h3>
+
+<p>Each time a request is to be generated, libwww additional headers are to
+send along with the request. This can happen in three ways as <a
+href="http://jigedit.w3.org/frystyk/WWW/Library/src/HTReq.html#extra">described
+in the request class</a></p>
+
+<h2>Parsing Headers</h2>
+
+<p>The <a href="../../src/HTMIME.html">MIME parser stream</a> parses MIME
 metainformation, for example generated by MIME-like protocols, such as HTTP,
-and NNTP. For <A HREF="../../../Protocols/">HTTP</A> it handles all headers
-as defined in HTTP/1.1 of the specification. When a header is parsed, the
-information is first stored in an <A HREF="Response.html">HTResponse
-object.</A>
-<H3>
-  Parsing Known Headers
-</H3>
-<P>
-The set of headers directly handled by the
-<A HREF="../../src/HTMIME.html">internal MIME parser</A> is the reader is
-referred to the actual implementation in order to see the exact list. However,
-some of the more special headers are:
-<DL>
-  <DT>
-    <CODE>Allow</CODE>
-  <DD>
-    Builds a list of allowed methods for this entity
-  <DT>
-    <CODE>Content-Language</CODE>
-  <DD>
-    Builds a list of natural languages
-  <DT>
-    <CODE>Content-Length</CODE>
-  <DD>
-    This parameter is now passed
-  <DT>
-    <CODE>Content-Type</CODE>
-  <DD>
-    The <CODE>Content-Type</CODE> header now support the <CODE>charset</CODE>
-    parameter and the <CODE>level</CODE> parameter, however none of them are
-    used by the <A HREF="#HTML">HTML parser</A>
-  <DT>
-    <CODE>Date</CODE>, <CODE>Expires</CODE>, <CODE>Retry-After</CODE>, and
-    <CODE>LastModified</CODE>
-  <DD>
-    All date and time headers are parsed understanding the following formats:
-    RFC 1123, RFC 850, ANSI C's asctime(), and delta time. The latter is a
-    non-negative integer indicating seconds after the message was received. Note,
-    that it is <EM>always</EM> for the application to issue a new request as
-    a function of any of the date and time headers..
-  <DT>
-    <CODE>DerivedFrom, Version</CODE>
-  <DD>
-    For handling version control when managing collaborative works using HTTP.
-</DL>
-<H3>
-  Parsing Extension Headers
-</H3>
-<P>
-In many cases, if you have registered an extra set of headers to be generated,
-you are also in a situation where you would like to handle the result that
-is returned by the remote server. As we will describe in this section, the
-Library provides a very similar interface to the one presented above for
-generating extra headers.
-<P>
-Each time a request is received, and a unknown header is encountered by the
-internal <A HREF="../../src/HTMIME.html">MIME parser</A>, libwww looks to
-see if a list of callback functions has been registered to parse additional
+and NNTP. For <a href="../../../Protocols/">HTTP</a> it handles all headers as
+defined in HTTP/1.1 of the specification. When a header is parsed, the
+information is first stored in an <a href="Response.html">HTResponse
+object.</a></p>
+
+<h3>Parsing Known Headers</h3>
+
+<p>The set of headers directly handled by the <a
+href="../../src/HTMIME.html">internal MIME parser</a> is the reader is
+referred to the <a href="../../src/HTMIMImp.html">actual implementation</a> in
+order to see the exact list.</p>
+
+<h3>Parsing Extension Headers</h3>
+
+<p>In many cases, if you have registered an extra set of headers to be
+generated, you are also in a situation where you would like to handle the
+result that is returned by the remote server. As we will describe in this
+section, the Library provides a very similar interface to the one presented
+above for generating extra headers.</p>
+
+<p>Each time a request is received, and a unknown header is encountered by the
+internal <a href="../../src/HTMIME.html">MIME parser</a>, libwww looks to see
+if a list of callback functions has been registered to parse additional
 metainformation. In case a parser is found for this particular header, the
-call back is called with the header and all parameters that might follow
-it. As MIME headers can contain line wrappings, the
-<A HREF="../../src/HTMIME.html">MIME parser</A> canonicalizes the header
-line before the callback function is called which makes the job easier for
-the callback function.
-<P>
-<A HREF="../../src/HTHeader.html"><IMG BORDER="0" SRC="../../../Icons/WWW/doc48x"
-    ALT="Documentation" WIDTH="48" HEIGHT="48" BORDER="0" ALIGN="Middle">Registrering
-Header Parsers</A>
-<H2>
-  PEP Extensions
-</H2>
-<P>
-The <I>PEP Manager</I> is a registry for <I>PEP Protocols</I> that follow
-the generic syntax defined by the <A HREF="../../../Protocols/">HTTP</A>
-<I>PEP protocol</I> headers. All <I>PEP Protocols</I> are registered at run-time
-in form of a <I>PEP Module</I>.
-<P>
-<A HREF="../../src/HTPEP.html"><IMG BORDER="0" SRC="../../../Icons/WWW/doc48x"
-    ALT="Documentation" WIDTH="48" HEIGHT="48" BORDER="0" ALIGN="Middle">Registrering
-PEP Extensions</A>
-<P>
-  <HR>
-<ADDRESS>
-  Henrik Frystyk Nielsen,
-  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
-  @(#) $Id$
-</ADDRESS>
-</BODY></HTML>
+call back is called with the header and all parameters that might follow it.
+As MIME headers can contain line wrappings, the <a
+href="../../src/HTMIME.html">MIME parser</a> canonicalizes the header line
+before the callback function is called which makes the job easier for the
+callback function.</p>
+
+<p><a href="../../src/HTHeader.html"><img border="0"
+src="../../../Icons/WWW/doc48x" alt="Documentation" width="48" height="48"
+align="middle">Registrering Header Parsers</a></p>
+
+<h2>HTTP Extension Framework</h2>
+
+<p>The <a href="/Protocols/HTTP/ietf-http-ext/">HTTP extension framework</a>
+is not yet implement - stay tuned!</p>
+
+<p><a href="../../src/HTPEP.html"><img border="0"
+src="../../../Icons/WWW/doc48x" alt="Documentation" width="48" height="48"
+align="middle">Registrering PEP Extensions</a></p>
+
+<p></p>
+<hr>
+
+<address>
+<a href="/People/Frystyk/">Henrik Frystyk Nielsen</a>,<br>
+@(#) $Id$</address>
+</body>
+</html>

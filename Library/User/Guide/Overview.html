@@ -1,445 +1,572 @@
-<HTML>
-<HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 28-Jun-1996 -->
-  <!-- Changed by: Henrik Frystyk Nielsen, 24-Jun-1996 -->
-  <TITLE>W3C Library Interfaces</TITLE>
-</HEAD>
-<BODY BGCOLOR="#ffffff">
-<P>
-<A HREF="../../../"><IMG BORDER="0" ALT="W3C" SRC="../../../Icons/WWW/w3c_home"
-    WIDTH="72" HEIGHT="48" BORDER="0"></A>
-<A HREF="../../"><IMG BORDER="0" ALT="libwww" SRC="../../../Icons/WWW/Lib48x"
-    WIDTH="48" HEIGHT="48" BORDER="0"></A>
-<IMG BORDER="0" ALT="LibGuide" SRC="../../../Icons/WWW/internals48x">
-<H1>
-  W3C Library Interfaces
-</H1>
-<P>
-The W3C Sample Code Library consists of a set of small APIs called
-<I>interfaces</I>. This section is an overview of all interfaces in the Library.
-An interface can cover multiple related C modules and it is defined by a
-<B>WWW*.h</B> include file, for example
-<A HREF="../../src/WWWCore.html">WWWCore.h</A>. On
-<A HREF="../Platform/WinDLL.html">Windows platforms</A>, each interface
-corresponds to a DLL with a DLL definition file defining all exported methods
-and data objects. You can also have a look at the
-<A HREF="../Extrnals.html">complete list of all public functions</A>.
-<P>
-Every module in the Library has a HTML document associated with it containing
-a detailed description of the functionality and interface to other modules.
-This page is the top node for the implementation specific documentation and
-contains links to all the modules in the Library. The documentation is
-dynamically kept up to date as the actual include files (.h) are generated
-from the HTML documents using the <A HREF="../../../LineMode/">Line Mode
-Browser</A>.
-<P>
-If you are changing any of the interfaces then please note that when compiling
-make sure that you have a relatively new version of the
-<A HREF="../../../LineMode/">Line Mode Browser</A> that parses the HTML documents
-correctly (2.13 and newer versions). Find out what version of the Line Mode
-Browser you are using by typing
-<PRE>
-	www -version
-</PRE>
-<P>
-Also remember that when editing the module interfaces or adding functionality
-then always use the HTML files and not the .h files!
-<H2>
-  Basic Interfaces
-</H2>
-<P>
-The core interfaces must be included in all applications. <A NAME="dll"></A>
-<H3>
-  <A NAME="dll">Windows Specifics</A>
-</H3>
-<P>
-This is a small interface that handles trace messages on Windows
-<UL>
-  <LI>
-    Name of DLL: <B>wwwdll.dll</B>
-  <LI>
-    <A HREF="../../src/windows/wwwdll.def">Definition list of exported API</A>
-</UL>
-<H3>
-  <A HREF="../../src/WWWUtil.html" NAME="Basic">Basic Utilities</A>
-</H3>
-<P>
-The Utility modules are mostly container modules, dynamic strings and other
-stuff that you can't live without when building applications. The modules
-are used by the core part of the W3C Sample Code Library but can also be
-used by the application. See also the main Library include file called
-<A HREF="../../src/WWWLib.html">WWWLib.h</A> which contains all converters
-and protocol modules known to the Library. You can include this one if the
-application is to use all the functionality of the Library.
-<UL>
-  <LI>
-    Name of DLL: <B>wwwutil.dll</B>
-  <LI>
-    <A HREF="../Extrnals.html#wwwutil">Hypertext List of Exported Functions</A>
-  <LI>
-    <A HREF="../../src/windows/wwwutils.def">Definition list of exported API</A>
-  <LI>
-    <A HREF="../../src/WWWUtil.html">Interface include file</A>
-</UL>
-<H3>
-  <A HREF="../../src/WWWCore.html" NAME="Core">Core Interface</A>
-</H3>
-<P>
-This is the basic include file for the core of the W3C Sample Code Library.
-Together with the <A HREF="../../src/WWWUtil.html">WWWUtil module</A> it
-contains all core specific modules which are required to compile and build
-the Library. The core part of the Library is designed as a set of registration
-modules with no real functionality in itself. Instead all the functionality
-comes when the application registers the modules that provides a desired
-functionality, for example accessing HTTP servers or the local file system.
-The Library has a special include file called
-<A HREF="../../src/WWWApp.html">WWWApp.h</A> which a lot of application helper
-modules that makes it easier to use the core.
-<UL>
-  <LI>
-    Name of DLL: <B>wwwcore.dll</B>
-  <LI>
-    <A HREF="../Extrnals.html#wwwcore">Hypertext List of Exported Functions</A>
-  <LI>
-    <A HREF="../../src/windows/wwwcore.def">Definition list of exported API</A>
-  <LI>
-    <A HREF="../../src/WWWCore.html">Interface include file</A>
-</UL>
-<H2>
-  <A NAME="Transport">Transport Protocol Interfaces</A>
-</H2>
-<P>
-All transport interfaces are registered dynamically in libwww. This means
-that libwww is independent of the transport being used (for example TCP)
-and you can therefore use libwww in any context you like. You have to specify
-a set of parameters in order for libwww to be able to use it.
-<UL>
-  <LI>
-    Name of DLL: <B>wwwtrans.dll</B>
-  <LI>
-    <A HREF="../Extrnals.html#wwwtrans">Hypertext List of Exported Functions</A>
-  <LI>
-    <A HREF="../../src/windows/wwwtrans.def">Definition list of exported API</A>
-  <LI>
-    <A HREF="../../src/WWWTrans.html">Interface include file</A>
-</UL>
-<H2>
-  <A NAME="Stream">Stream Interfaces</A>
-</H2>
-<H3>
-  <A HREF="../../src/WWWCache.html">Persistent Cache</A>
-</H3>
-<P>
-The cache contains details of temporary disk files which contain the contents
-of remote documents.
-<UL>
-  <LI>
-    Name of DLL: <B>wwwcache.dll</B>
-  <LI>
-    <A HREF="../Extrnals.html#wwwcache">Hypertext List of Exported Functions</A>
-  <LI>
-    <A HREF="../../src/windows/wwwcache.def">Definition list of exported API</A>
-  <LI>
-    <A HREF="../../src/WWWCache.html">Interface include file</A>
-</UL>
-<H3>
-  <A HREF="../../src/WWWHTML.html">HTML Parser and Generator</A>
-</H3>
-<P>
-This is the include file for the basic HTML module that can be used together
-with the core of the W3C Sample Code Library. It contains all HTML specific
-modules which are required to compile and build the HTML DLL. Please note
-that as the <A HREF="../../src/HText.html">HText</A> is <B>not</B> included
-in this interface. The reason is that the HText interface only is declared
-by the Library but must be defined by the application. Therefore it can not
-be part of a DLL but must be included directly in the application.
-<UL>
-  <LI>
-    Name of DLL: <B>wwwhtml.dll</B>
-  <LI>
-    <A HREF="../Extrnals.html#wwwHTML">Hypertext List of Exported Functions</A>
-  <LI>
-    <A HREF="../../src/windows/wwwhtml.def">Definition list of exported API</A>
-  <LI>
-    <A HREF="../../src/WWWHTML.html">Interface include file</A>
-</UL>
-<H3>
-  <A HREF="../../src/WWWDir.html">Directory Browsing</A>
-</H3>
-<P>
-This is the include file for the directory handling modules that can be used
-together with the core of the W3C Sample Code Library. It contains all Directory
-specific modules which are required to compile and build the DIRECTORY DLL.
-<UL>
-  <LI>
-    Name of DLL: <B>wwwdir.dll</B>
-  <LI>
-    <A HREF="../Extrnals.html#wwwdir">Hypertext List of Exported Functions</A>
-  <LI>
-    <A HREF="../../src/windows/wwwdir.def">Definition list of exported API</A>
-  <LI>
-    <A HREF="../../src/WWWDir.html">Interface include file</A>
-</UL>
-<H3>
-  <A HREF="../../src/WWWStream.html">Special Streams</A>
-</H3>
-<P>
-This interface provides a set of specialized stream. For example a stream
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+   "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+<title>W3C Library Packages and Interfaces</title>
+</head>
+<body bgcolor="#ffffff">
+
+<p><a href="../../../"><img border="0" alt="W3C"
+src="../../../Icons/WWW/w3c_home" width="72" height="48"></a> <a
+href="../../"><img border="0" alt="libwww" src="../../../Icons/WWW/Lib48x"
+width="48" height="48"></a> <img border="0" alt="LibGuide"
+src="../../../Icons/WWW/internals48x"></p>
+
+<h1>W3C Library Packages and Interfaces</h1>
+
+<p>Libwww consists of a set of APIs called <em>packages</em> which covers
+multiple related source modules; on <a
+href="../Platform/WinDLL.html">Wintel</a> packages are organized into DLLs and
+on Unix we organize them into separate libraries. A package interface is
+exported via a single include file of the type <b>WWW*.h</b>, for example <a
+href="../../src/WWWCore.html">WWWCore.h</a>.</p>
+<ul>
+<li>
+<a href="#Basic1">Basic Utility Pagages</a> - basic container classes etc
+</li>
+<li>
+<a href="#Core">Core Packages</a> - the libwww core which is essential a
+registry and nothing else
+</li>
+<li>
+<a href="#Libwww">Initialization Packages</a> - provides help setting up much
+of the functionality in libwww
+</li>
+<li>
+<a href="#Applicatio">High Level Application Packages</a> - simple application
+APIs for resolving a URI etc.
+</li>
+<li>
+<a href="#Transport">Transport Packages</a> - access to TCP, local file system
+etc.
+</li>
+<li>
+<a href="#MIME">MIME Packages</a> - handles basic MIME parsing
+</li>
+<li>
+<a href="#Protocol">Protocol Packages</a> - access to HTTP, FTP, Gopher, file,
+telnet, etc.
+</li>
+<li>
+<a href="#Persistent1">Persistent Cacing Packages</a> - including HTTP/1.1
+persistent cache
+</li>
+<li>
+<a href="#Stream">Stream Packages</a> - including <a
+href="http://www.cdrom.com/pub/infozip/zlib/">zlib compression</a>, content
+length counter etc.
+</li>
+<li>
+<a href="#HTML1">HTML and XML Packages</a> - including a wrapper for the <a
+href="http://www.jclark.com/xml/expat.html">Expat XML parser</a>
+</li>
+<li>
+<a href="#Database">Database Access Packages</a> - access to <a
+href="http://www.tcx.se/">MySQL</a> etc.
+</li>
+</ul>
+
+<p>You can also have a look at the <a href="../Extrnals.html">complete list of
+all public functions</a>.</p>
+
+<h2><a name="Basic1">Basic Utility Packages</a></h2>
+
+<p>The core interfaces must be included in all applications.</p>
+
+<h3><a name="dll">Windows Specific Package</a></h3>
+
+<p>This is a small interface that handles trace messages on Windows</p>
+<ul>
+<li>
+Wintel DLL: <b>wwwdll.dll</b>
+</li>
+<li>
+<a href="../../src/windows/wwwdll.def">Definition list of exported API</a>
+</li>
+</ul>
+
+<h3><a href="../../src/WWWUtil.html" name="Basic">Basic Utility
+Package</a></h3>
+
+<p>The basic utility package contains mostly container modules, dynamic
+strings and other stuff that you can't live without when building
+applications. The modules are used by all other libwww packages but can also
+be used by the application.</p>
+<ul>
+<li>
+Wintel DLL: <b>wwwutil.dll</b>
+</li>
+<li>
+Unix lib: <strong>libwwwutil.a</strong>
+</li>
+<li>
+Package include file: <a href="../../src/WWWUtil.html">WWWUtil.h</a>
+</li>
+<li>
+<a href="../Extrnals.html#WWWUtil">Exported Classes and Functions</a>
+</li>
+</ul>
+
+<h3><a href="../../src/WWWCore.html" name="Core">Libwww Core Package</a></h3>
+
+<p>The libwww core package is designed as a set of registration modules where
+features can be registered dynamically by the application. Examples of
+features that the application may want to register is <a href="#HTTP">HTTP
+access</a>, local file access, <a href="#HTML">HTML parser</a>, etc. In the <a
+href="#Applicatio1">application package</a>, you can find a set of default
+profiles helping you registering the most commonly used features.</p>
+<ul>
+<li>
+Wintel DLL: <b>wwwcore.dll</b>
+</li>
+<li>
+Unix lib: <strong>libwwwcore.a</strong>
+</li>
+<li>
+Package include file: <a href="../../src/WWWCore.html">WWWCore.h</a>
+</li>
+<li>
+<a href="../Extrnals.html#WWWCore">Exported Classes and Functions</a>
+</li>
+</ul>
+
+<h2><a name="Libwww">Libwww Initialization Packages</a></h2>
+
+<p>These packages help the application set up functionality.</p>
+
+<h3><a href="../../src/WWWInit.html" name="Initialization">Profile
+Initialization Package</a></h3>
+
+<p>Libwww is a framework for adding functionality. It has hooks for adding
+protocol modules, like for example HTTP, FTP, and also for adding streams that
+can convert from one media type to some other type, or presenting the result
+to the user. In the distribution file of the Library you will find a large set
+of protocol modules and streams already implemented. However, in order to use
+these you need to initialize them. This can be done by using the services
+provided by the <a href="../../src/WWWInit.html">WWWInit</a> module.</p>
+<ul>
+<li>
+Wintel DLL: <strong>wwwinit.dll</strong>
+</li>
+<li>
+Unix lib: <strong>libwwwinit.a</strong>
+</li>
+<li>
+Package include file: <a href="../../src/WWWInit.html">WWWInit.h</a>
+</li>
+<li>
+<a href="../Extrnals.html#WWWInit">Exported Classes and Functions</a>
+</li>
+</ul>
+
+<h2><a name="Applicatio">High Level Application Packages</a></h2>
+
+<p>These packages provides services including handling proxies, gateways,
+configuration files, support for <code>PUT</code>, <code>POST</code>,
+<code>OPTIONS</code>, <code>HEAD</code>, etc. requests.</p>
+
+<h3><a href="../../src/WWWApp.html" name="Applicatio1">Application
+Utilities</a></h3>
+
+<p>This application package handles a lot of features that many applications
+need: dialogs and progress notifications, high level URI resolving, rule files
+etc.</p>
+<ul>
+<li>
+Wintel DLL: <b>wwwapp.dll</b>
+</li>
+<li>
+Unix lib: <strong>libwwwapp.a</strong>
+</li>
+<li>
+Package include file: <a href="../../src/WWWApp.html">WWWApp.h</a>
+</li>
+<li>
+<a href="../Extrnals.html#WWWApp">Exported Classes and Functions</a>
+</li>
+</ul>
+
+<h2><a name="Transport">Transport Packages</a></h2>
+
+<p>Transports are registered dynamically in libwww. This means that libwww is
+independent of the transport being used (for example TCP) and you can
+therefore use libwww in any context you like. Each transport is registered
+with a set of parameters describing how the transport behaves, for example
+whether it supports preemptive access etc.</p>
+
+<h3><a name="Local1" href="../../src/WWWTrans.html">TCP and Local File
+Transport Package</a></h3>
+
+<p>This is the package that provides the TCP and Local file transports used by
+the <a href="#Protocol">protocol packages.</a></p>
+<ul>
+<li>
+Wintel DLL: <b>wwwtrans.dll</b>
+</li>
+<li>
+Unix lib: <strong>libwwwtrans.a</strong>
+</li>
+<li>
+Package include file: <a href="../../src/WWWTrans.html">WWWTrans.h</a>
+</li>
+<li>
+<a href="../Extrnals.html#WWWTrans">Exported Classes and Functions</a>
+</li>
+</ul>
+
+<h3><a name="WebMUX" href="../../src/WWWMux.html">WebMUX Transport Package</a>
+- Experimental!!!</h3>
+
+<p>This is a very experimental package that provides pieces of the <a
+href="/Protocols/MUX/">WebMUX specification</a><a href="#Protocol"></a></p>
+<ul>
+<li>
+Wintel DLL: <b>wwwmux.dll</b>
+</li>
+<li>
+Unix lib: <strong>libwwwmux.a</strong>
+</li>
+<li>
+Package include file: <a href="../../src/WWWMux.html">WWWMux.h</a>
+</li>
+<li>
+<a href="../Extrnals.html#WWWMux">Exported Classes and Functions</a>
+</li>
+</ul>
+
+<h2 id="MIME1">MIME Packages</h2>
+
+<p>These packages handle MIME and the like.</p>
+
+<h3><a href="../../src/WWWMIME.html" name="MIME">MIME Parser and
+Generator</a></h3>
+
+<p>The MIME parser package contains all the libwww functionality for handling
+RFC822/MIME parsing and generation including multipart MIME etc.</p>
+<ul>
+<li>
+Wintel DLL: <b>wwwmime.dll</b>
+</li>
+<li>
+Unix lib: <strong>libwwwmime.a</strong>
+</li>
+<li>
+Package include file: <a href="../../src/WWWMIME.html">WWWMIME.h</a>
+</li>
+<li>
+<a href="../Extrnals.html#WWWMIME">Exported Classes and Functions</a>
+</li>
+</ul>
+
+<h2><a name="Protocol">Protocol Packages</a></h2>
+
+<p>Protocols are also registered dynamically in libwww. They are registered to
+use a specific transport and whether they support preemptive access etc. See
+the <a href="#Applicatio">application level packages</a> for how to resolve
+URIs using libwww</p>
+
+<h3><a href="../../src/WWWFile.html" name="Local">Local File Access</a></h3>
+
+<p>This is the include file for resolving <strong>file:</strong> addresses or
+equivalent</p>
+<ul>
+<li>
+Wintel DLL: <b>wwwfile.dll</b>
+</li>
+<li>
+Unix lib: <strong>libwwwfile.a</strong>
+</li>
+<li>
+Package include file: <a href="../../src/WWWFile.html">WWWFile.h</a>
+</li>
+<li>
+<a href="../Extrnals.html#WWWFile">Exported Classes and Functions</a>
+</li>
+</ul>
+
+<h3><a href="../../src/WWWFTP.html" name="Access">FTP Access</a></h3>
+
+<p>This is the include file for resolving <strong>ftp:</strong> addresses or
+equivalent</p>
+<ul>
+<li>
+Wintel DLL: <b>wwwftp.dll</b>
+</li>
+<li>
+Unix lib: <strong>libwwwftp.a</strong>
+</li>
+<li>
+Package include file: <a href="../../src/WWWFTP.html">WWWFTP.h</a>
+</li>
+<li>
+<a href="../Extrnals.html#wwwFTP">Exported Classed and Functions</a>
+</li>
+</ul>
+
+<h3><a href="../../src/WWWGophe.html" name="Gopher">Gopher Access</a></h3>
+
+<p>This is the include file for resolving <strong>gopher:</strong> addresses
+or equivalent</p>
+<ul>
+<li>
+Wintel DLL: <b>wwwgophe.dll</b>
+</li>
+<li>
+Unix lib: <strong>libwwwgopher.a</strong>
+</li>
+<li>
+Package include file: <a href="../../src/WWWGophe.html">WWWGophe.h</a>
+</li>
+<li>
+<a href="../Extrnals.html#WWWGophe">Exported Classes and Functions</a>
+</li>
+</ul>
+
+<h3><a href="../../src/WWWHTTP.html" name="HTTP">HTTP Access</a></h3>
+
+<p>This is the include file for resolving <strong>http:</strong> addresses or
+equivalent</p>
+<ul>
+<li>
+Wintel DLL: <b>wwwhttp.dll</b>
+</li>
+<li>
+Unix lib: <strong>libwwwhttp.a</strong>
+</li>
+<li>
+Package include file:<a href="../../src/WWWHTTP.html"> WWWHTTP.h</a>
+</li>
+<li>
+<a href="../Extrnals.html#WWWHTTP">Exported Classes and Functions</a>
+</li>
+</ul>
+
+<h3><a href="../../src/WWWNews.html" name="News">News Access</a></h3>
+
+<p>This is the include file for resolving <strong>news:</strong> and
+<strong>nntp:</strong> addresses or equivalent.</p>
+<ul>
+<li>
+Wintel DLL: <b>wwwnews.dll</b>
+</li>
+<li>
+Unix lib: <strong>libwwwnews.a</strong>
+</li>
+<li>
+Package include file: <a href="../../src/WWWNews.html">WWWNews.h</a>
+</li>
+<li>
+<a href="../Extrnals.html#WWWNews">Exported Classes and Functions</a>
+</li>
+</ul>
+
+<h3><a href="../../src/WWWTelnt.html" name="Telnet">Telnet Access</a></h3>
+
+<p>This is the include file for resolving <strong>telnet:</strong>,
+<strong>rlogin:</strong>, <strong>tn3270:</strong> addresses or
+equivalent.</p>
+<ul>
+<li>
+Wintel DLL: <b>wwwtelnt.dll</b>
+</li>
+<li>
+Unix lib: <strong>libwwwtelnt.a</strong>
+</li>
+<li>
+Package include file: <a href="../../src/WWWTelnt.html">WWWTelnt.h</a>
+</li>
+<li>
+<a href="../Extrnals.html#WWWTelnt">Exported Classes and Functions</a>
+</li>
+</ul>
+
+<h3><a href="../../src/WWWWAIS.html" name="WAIS">WAIS Access</a></h3>
+
+<p>This is the include file for resolving <strong>wais:</strong> addresses or
+equivalent</p>
+<ul>
+<li>
+Wintel DLL: <b>wwwwais.dll</b>
+</li>
+<li>
+Unix lib: <strong>libwwwwais.a</strong>
+</li>
+<li>
+Package include file: <a href="../../src/WWWWAIS.html">WWWWAIS.h</a>
+</li>
+<li>
+<a href="../Extrnals.html#WWWWAIS">Exported Classes and Functions</a>
+</li>
+</ul>
+
+<h2 id="Persistent1">Persistent Caching Packages</h2>
+
+<p>These packages handle persistent management of information</p>
+
+<h3><a href="../../src/WWWCache.html" name="Persistent">HTTP/1.1 Persistent
+Cache Package</a></h3>
+
+<p>This module implements a HTTP/1.1 persistent cache manager.</p>
+<ul>
+<li>
+Wintel DLL: <b>wwwcache.dll</b>
+</li>
+<li>
+Unix lib: <strong>libwwwmime.a</strong>
+</li>
+<li>
+Package include file: <a href="../../src/WWWCache.html">WWWCache.h</a>
+</li>
+<li>
+<a href="../Extrnals.html#WWWCache">Exported Classes and Functions</a>
+</li>
+</ul>
+
+<h2><a name="Stream">Stream Packages</a></h2>
+
+<p>Streams and converters are an essential part of libwww - all dataflow
+happens using streams.</p>
+
+<h3><a href="../../src/WWWStream.html" name="Special">Special Streams
+Package</a></h3>
+
+<p>This interface provides a set of specialized stream. For example a stream
 for guessing unknown media types from magic words. It also contains streams
-for downloading a document into a memory buffer, counting content length
-and much more.
-<UL>
-  <LI>
-    Name of DLL: <B>wwwstream.dll</B>
-  <LI>
-    <A HREF="../Extrnals.html#wwwstream">Hypertext List of Exported Functions</A>
-  <LI>
-    <A HREF="../../src/windows/wwwstream.def">Definition list of exported API</A>
-  <LI>
-    <A HREF="../../src/WWWStream.html">Interface include file</A>
-</UL>
-<H3>
-  <A HREF="../../src/WWWMIME.html">MIME Parser and Generator</A>
-</H3>
-<P>
-This is the module for basic RFC822/MIME parsing that can be used together
-with the core of the W3C Sample Code Library. It contains all MIME specific
-modules which are required to compile and build the MIME DLL.
-<UL>
-  <LI>
-    Name of DLL: <B>wwwmime.dll</B>
-  <LI>
-    <A HREF="../Extrnals.html#wwwMIME">Hypertext List of Exported Functions</A>
-  <LI>
-    <A HREF="../../src/windows/wwwmime.def">Definition list of exported API</A>
-  <LI>
-    <A HREF="../../src/WWWMIME.html">Interface include file</A>
-</UL>
-<H3>
-  <A HREF="../../src/WWWZip.html">ZLib Compression and Decompression Streams</A>
-</H3>
-<P>
-The stream part of the Library is a set of streams that can be used to
-encode/decode, or compress/decompress content. Many of the streams are based
-on <A HREF="http://www.cdrom.com/pub/infozip/zlib/">zlib</A> which is a freely
-available compression library.
-<UL>
-  <LI>
-    Name of DLL: <B>wwwzip.dll</B>
-  <LI>
-    <A HREF="../Extrnals.html#wwwZip">Hypertext List of Exported Functions</A>
-  <LI>
-    <A HREF="../../src/windows/wwwzip.def">Definition list of exported API</A>
-  <LI>
-    <A HREF="../../src/WWWZip.html">Interface include file</A>
-</UL>
-<H2>
-  Protocol Interfaces
-</H2>
-<H3>
-  <A HREF="../../src/WWWFile.html">Local File Access</A>
-</H3>
-<P>
-This is the include file for local file handling modules that can be used
-together with the core of the W3C Sample Code Library. It contains modules
-which are required to compile and build the FILE DLL.
-<UL>
-  <LI>
-    Name of DLL: <B>wwwfile.dll</B>
-  <LI>
-    <A HREF="../Extrnals.html#wwwfile">Hypertext List of Exported Functions</A>
-  <LI>
-    <A HREF="../../src/windows/wwwfile.def">Definition list of exported API</A>
-  <LI>
-    <A HREF="../../src/WWWFile.html">Interface include file</A>
-</UL>
-<H3>
-  <A HREF="../../src/WWWFTP.html">FTP Access</A>
-</H3>
-<P>
-This is the include file for the basic FTP module that can be used together
-with the core of the W3C Sample Code Library. It contains all FTP specific
-modules which are required to compile and build the FTP DLL.
-<UL>
-  <LI>
-    Name of DLL: <B>wwwftp.dll</B>
-  <LI>
-    <A HREF="../Extrnals.html#wwwFTP">Hypertext List of Exported Functions</A>
-  <LI>
-    <A HREF="../../src/windows/wwwftp.def">Definition list of exported API</A>
-  <LI>
-    <A HREF="../../src/WWWFTP.html">Interface include file</A>
-</UL>
-<H3>
-  <A HREF="../../src/WWWGophe.html">Gopher Access</A>
-</H3>
-<P>
-This is the include file for the basic GOPHER module that can be used together
-with the core of the W3C Sample Code Library. It contains all GOPHER specific
-modules which are required to compile and build the GOPHER DLL.
-<UL>
-  <LI>
-    Name of DLL: <B>wwwgophe.dll</B>
-  <LI>
-    <A HREF="../Extrnals.html#wwwgophe">Hypertext List of Exported Functions</A>
-  <LI>
-    <A HREF="../../src/windows/wwwgophe.def">Definition list of exported API</A>
-  <LI>
-    <A HREF="../../src/WWWGophe.html">Interface include file</A>
-</UL>
-<H3>
-  <A HREF="../../src/WWWHTTP.html">HTTP Access</A>
-</H3>
-<P>
-This is the include file for all HTTP access including the server side and
-the client side. It can be used together with the core of the W3C Sample
-Code Library. It contains all HTTP specific modules which are required to
-compile and build the HTTP DLL.
-<UL>
-  <LI>
-    Name of DLL: <B>wwwhttp.dll</B>
-  <LI>
-    <A HREF="../Extrnals.html#wwwHTTP">Hypertext List of Exported Functions</A>
-  <LI>
-    <A HREF="../../src/windows/wwwhttp.def">Definition list of exported API</A>
-  <LI>
-    <A HREF="../../src/WWWHTTP.html">Interface include file</A>
-</UL>
-<H3>
-  <A HREF="../../src/WWWNews.html">News Access</A>
-</H3>
-<P>
-This is the include file for the basic NNTP module that can be used together
-with the core of the W3C Sample Code Library. It contains all News specific
-modules which are required to compile and build the News DLL.
-<UL>
-  <LI>
-    Name of DLL: <B>wwwnews.dll</B>
-  <LI>
-    <A HREF="../Extrnals.html#wwwnews">Hypertext List of Exported Functions</A>
-  <LI>
-    <A HREF="../../src/windows/wwwnews.def">Definition list of exported API</A>
-  <LI>
-    <A HREF="../../src/WWWNews.html">Interface include file</A>
-</UL>
-<H3>
-  <A HREF="../../src/WWWTelnt.html">Telnet Access</A>
-</H3>
-<P>
-This is the include file for the basic Telnet, rlogin, and TN3270 module
-that can be used together with the core of the W3C Sample Code Library. It
-contains all Telnet, rlogin, and TN3270 specific modules which are required
-to compile and build the Telnet, rlogin, and TN3270 DLL.
-<UL>
-  <LI>
-    Name of DLL: <B>wwwtelnt.dll</B>
-  <LI>
-    <A HREF="../Extrnals.html#wwwtelnt">Hypertext List of Exported Functions</A>
-  <LI>
-    <A HREF="../../src/windows/wwwtelnt.def">Definition list of exported API</A>
-  <LI>
-    <A HREF="../../src/WWWTelnt.html">Interface include file</A>
-</UL>
-<H3>
-  <A HREF="../../src/WWWWAIS.html">WAIS Access</A>
-</H3>
-<P>
-This is the include file for the basic WAIS module that can be used together
-with the core of the W3C Sample Code Library. It contains all WAIS specific
-modules which are required to compile and build the WAIS DLL.
-<UL>
-  <LI>
-    Name of DLL: <B>wwwwais.dll</B>
-  <LI>
-    <A HREF="../Extrnals.html#wwwWAIS">Hypertext List of Exported Functions</A>
-  <LI>
-    <A HREF="../../src/windows/wwwwais.def">Definition list of exported API</A>
-  <LI>
-    <A HREF="../../src/WWWWAIS.html">Interface include file</A>
-</UL>
-<H2>
-  Application Interfaces
-</H2>
-<H3>
-  <A HREF="../../src/WWWApp.html">Application Utilities</A>
-</H3>
-<P>
-A way to initialize applications is to use a rule file, also known as a
-configuration file. This is for example the case with the W3C httpd and the
-W3C Line Mode Browser. This module provides basic support for configuration
-file management and the application can use this is desired. The module is
-not referred to by the Library. Reading a rule file is implemented as a stream
-converter so that a rule file can come from anywhere, even across the network!
-<P>
-Applications do not have to provide native support for all protocols, they
-can in many situations rely on the support of proxies and gateways to help
-doing the job. Proxy servers are often used to carry client requests through
-a firewall where they can provide services like corporate caching and other
-Network Optimizations. Both Proxy servers and gateways can serve as "protocol
-translators" which can convert a request in the main Web protocol, HTTP,
-to an equivalent request in another protocol, for example NNTP, FTP, or Gopher.
-In case a proxy server or a gateway is available to the application, it can
-therefore by use of HTTP forward all requests to for example a proxy server
-which then handle the communications with the remote server, for example
-using FTP about the document and return it to the application (proxy client)
-using HTTP.
-<P>
-This module provides provides functionality for handling proxies, rule files,
-and a large set of other application utilities that make it easier to build
-an application using libwww.
-<UL>
-  <LI>
-    Name of DLL: <B>wwwapp.dll</B>
-  <LI>
-    <A HREF="../Extrnals.html#wwwapp">Hypertext List of Exported Functions</A>
-  <LI>
-    <A HREF="../../src/windows/wwwapp.def">Definition list of exported API</A>
-  <LI>
-    <A HREF="../../src/WWWApp.html">Interface include file</A>
-</UL>
-<H3>
-  <A HREF="../../src/WWWSQL.html">SQL Interface</A>
-</H3>
-<P>
-This module is an easy to use interface to SQL databases. It contains both
-a generic interface and some specific examples of how this can be used to
-connect a Web client to an SQL server. This requires that you have linked
-against the <A href="http://www.tcx.se/">MySQL library</A>. See the
-<A HREF="../../../INSTALL.html">installation instructions</A> for details.
-<UL>
-  <LI>
-    Name of DLL: <B>wwwsql.dll</B>
-  <LI>
-    <A HREF="../Extrnals.html#wwwsql">Hypertext List of Exported Functions</A>
-  <LI>
-    <A HREF="../../src/windows/wwwsql.def">Definition list of exported API</A>
-  <LI>
-    <A HREF="../../src/WWWSQL.html">Interface include file</A>
-</UL>
-<H3>
-  <A HREF="../../src/WWWInit.html" NAME="Initialization">Initialization
-  Modules</A>
-</H3>
-<P>
-The core parts of the Library is a framework for adding functionality. It
-has hooks for adding protocol modules, like for example HTTP, FTP, and also
-for adding streams that can convert from one media type to some other type,
-or presenting the result to the user. In the distribution file of the Library
-you will find a large set of protocol modules and streams already implemented.
-However, in order to use these you need to initialize them. This can be done
-by using the methods in the <A HREF="../../src/WWWInit.html">WWWInit</A>
-module. You can modify these modules as you like to fit your particular needs.
-The modules in this interface are <B>not</B> part of any DLL and so must
-be included directly if desired.
-<UL>
-  <LI>
-    <A HREF="../../src/WWWInit.html">WWWInit Interface include file</A>
-</UL>
-<P>
-  <HR>
-<ADDRESS>
-  Henrik Frystyk Nielsen,
-  <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,<BR>
-  @(#) $Id$
-</ADDRESS>
-</BODY></HTML>
+for downloading a document into a memory buffer, counting content length and
+much more.</p>
+<ul>
+<li>
+Wintel DLL: <b>wwwstream.dll</b>
+</li>
+<li>
+Unix lib: <strong>libwwwstream.a</strong>
+</li>
+<li>
+Package include file: <a href="../../src/WWWStream.html">WWWStream.h</a>
+</li>
+<li>
+<a href="../Extrnals.html#WWWStream">Exported Classes and Functions</a>
+</li>
+</ul>
+
+<h3><a href="../../src/WWWDir.html" name="Directory">Directory Browsing
+Package</a></h3>
+
+<p>The directory browsing pacakge contains code for handling browsing folders
+in both local files including handling icons and the like.</p>
+<ul>
+<li>
+Wintel DLL: <b>wwwdir.dll</b>
+</li>
+<li>
+Unix lib: <strong>libwwwdir.a</strong>
+</li>
+<li>
+Package include file: <a href="../../src/WWWDir.html">WWWDir.h</a>
+</li>
+<li>
+<a href="../Extrnals.html#WWWDir">Exported Classes and Functions</a>
+</li>
+</ul>
+
+<h3><a href="../../src/WWWZip.html" name="ZLib">ZLib Compression and
+Decompression Streams Package</a></h3>
+
+<p>Libwww can use <a href="http://www.cdrom.com/pub/infozip/zlib/">zlib</a> to
+compress/decompress content on the fly. This requires that zlib is available
+to link against,  see the <a href="../../External/#expat">instructions on how
+to interact with external packages</a> for detail.</p>
+<ul>
+<li>
+Wintel DLL: <b>wwwzip.dll</b>
+</li>
+<li>
+Unix lib: <strong>libwwwzip.a</strong>
+</li>
+<li>
+Package include file: <a href="../../src/WWWZip.html">WWWZip.h</a>
+</li>
+<li>
+<a href="../Extrnals.html#WWWZip">Exported Classes and Functions</a>
+</li>
+</ul>
+
+<h2><a name="HTML1">HTML and XML Parser Packages</a></h2>
+
+<h3><a href="../../src/WWWHTML.html" name="HTML">HTML Parser and
+Generator</a></h3>
+
+<p>This is the default libwww HTML parser based on a simple callback scheme
+into the application. It also contains code for generating HTML.</p>
+<ul>
+<li>
+Wintel DLL: <b>wwwhtml.dll</b>
+</li>
+<li>
+Unix lib: <strong>libwwwhtml.a</strong>
+</li>
+<li>
+Package include file: <a href="../../src/WWWHTML.html">WWWHTML.h</a>
+</li>
+<li>
+<a href="../Extrnals.html#WWWHTML">Exported Classes and Functions</a>
+</li>
+</ul>
+
+<h3><a name="Expat" href="../../src/WWWXML.html">Expat XML Wrapper
+Package</a></h3>
+
+<p>Libwww can use the <a href="../../External/#Expat">Expat XML parser</a> to
+handle XML. This requires that the expat parser is available, see the <a
+href="../../External/#expat">instructions on how to interact with external
+packages</a> for detail</p>
+<ul>
+<li>
+Wintel DLL: <b>wwwhtml.dll</b>
+</li>
+<li>
+Unix lib: <strong>libwwwhtml.a</strong>
+</li>
+<li>
+Package include file: <a href="../../src/WWWXML.html">WWWXML.h</a>
+</li>
+<li>
+<a href="../Extrnals.html#WWWXML">Exported Classes and Functions</a>
+</li>
+</ul>
+
+<h2><a name="Database">Database Access Packages</a></h2>
+
+<p>Database access can for example be used to handle logging etc.</p>
+
+<h3><a href="../../src/WWWSQL.html" name="Interface1">MySQL Access
+Package</a></h3>
+
+<p>Libwww can use <a href="../../External/#MySQL">MySQL</a><a
+href="../../External/#"> </a>for various types of logging etc. This requires
+that the mysql client library is available, see the <a
+href="../../External/#MySQL">instructions on how to interact with external
+packages</a> for detail</p>
+<ul>
+<li>
+Wintel DLL: <b>wwwsql.dll</b>
+</li>
+<li>
+Unix lib: <strong>libwwwsql.a</strong>
+</li>
+<li>
+Package include file: <a href="../../src/WWWSQL.html">WWWSQL.h</a>
+</li>
+<li>
+<a></a> <a href="../Extrnals.html#WWWSQL">Exported Classes and Functions</a>
+</li>
+</ul>
+
+<p></p>
+<hr>
+
+<address>
+<a href="/People/Frystyk/">Henrik Frystyk Nielsen</a>,<br>
+@(#) $Id$ </address>
+</body>
+</html>
