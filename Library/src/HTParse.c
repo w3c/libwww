@@ -192,9 +192,16 @@ char * HTParse ARGS3(CONST char *, aName, CONST char *, relatedName,
     }
 		
     if (wanted & PARSE_ANCHOR)
-        if(given.anchor || related.anchor) {
-	    if(wanted & PARSE_PUNCTUATION) strcat(result, "#");
-	    strcat(result, given.anchor ? given.anchor : related.anchor);
+	if(given.anchor || related.anchor) {
+	    if(given.absolute && given.anchor) {   /*Fixes for relURLs...*/
+		if(wanted & PARSE_PUNCTUATION) strcat(result, "#");
+		strcat(result, given.anchor); 
+	    } else if (!(given.absolute) && !(given.anchor)) {
+		strcat(result, "");
+	    } else {
+		if(wanted & PARSE_PUNCTUATION) strcat(result, "#");
+		strcat(result, given.anchor ? given.anchor : related.anchor); 
+	    }
 	}
     free(rel);
     free(name);
