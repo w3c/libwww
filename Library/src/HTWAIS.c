@@ -1,11 +1,13 @@
-/*	WorldWideWeb - Wide Area Informaion Server Access	HTWAIS.c
-**	==================================================
+/*								       HTWAIS.c
+**	WORLDWIDEWEB - WIDE AREA INFORMAION SERVER ACCESS
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	This module allows a WWW server or client to read data from a
-**	remote  WAIS
-**  server, and provide that data to a WWW client in hypertext form.
-**  Source files, once retrieved, are stored and used to provide
-**  information about the index when that is acessed.
+**	remote  WAIS server, and provide that data to a WWW client in
+**	hypertext form. Source files, once retrieved, are stored and used
+**	to provide information about the index when that is acessed.
 **
 ** Authors
 **	BK	Brewster Kahle, Thinking Machines, <Brewster@think.com>

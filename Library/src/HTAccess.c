@@ -1,5 +1,8 @@
-/*		Access Manager					HTAccess.c
-**		==============
+/*								     HTAccess.c
+**	ACCESS MANAGER
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 ** Authors
 **	TBL	Tim Berners-Lee timbl@info.cern.ch
@@ -133,6 +136,13 @@ PUBLIC void HTRequest_delete ARGS1(HTRequest *, req)
 	HTFormatDelete(req);
 	HTErrorFree(req);
 	HTAACleanup(req);
+
+	/* These are temporary until we get a MIME thingy */
+	FREE(req->redirect);
+	FREE(req->WWWAAScheme);
+	FREE(req->WWWAARealm);
+	FREE(req->WWWprotection);
+
 	FREE(req);
     }
 }
@@ -228,19 +238,20 @@ PUBLIC BOOL HTProtocolBlocking ARGS1(HTRequest *, me)
 }
 
 
+/* --------------------------------------------------------------------------*/
+/*	           Initialization and Termination of the Library	     */
+/* --------------------------------------------------------------------------*/
+
 /*	Register all known protocols
 **	----------------------------
 **
-**	Add to or subtract from this list if you add or remove protocol modules.
-**	This routine is called the first time the protocol list is needed,
-**	unless any protocols are already registered, in which case it is not
-**	called. Therefore the application can override this list.
+**	Add to or subtract from this list if you add or remove protocol
+**	modules. This function is called from HTLibInit()
 **
 **	Compiling with NO_INIT prevents all known protocols from being forced
 **	in at link time.
 */
-#ifndef NO_INIT
-PRIVATE void HTAccessInit NOARGS			/* Call me once */
+PRIVATE void HTAccessInit NOARGS
 {
     GLOBALREF HTProtocol HTTP, HTFile, HTTelnet, HTTn3270, HTRlogin;
 #ifndef DECNET
@@ -250,12 +261,6 @@ PRIVATE void HTAccessInit NOARGS			/* Call me once */
     GLOBALREF  HTProtocol HTFTP, HTNews, HTGopher;
 #ifdef DIRECT_WAIS
     GLOBALREF  HTProtocol HTWAIS;
-#endif
-
-    HTThreadInit();			  /* Initialize bit arrays and stdin */
-
-#ifdef LIB_SIG					   /* Set signals in library */
-    HTSetSignal();
 #endif
 
     HTRegisterProtocol(&HTFTP);
@@ -276,7 +281,46 @@ PRIVATE void HTAccessInit NOARGS			/* Call me once */
     HTRegisterProtocol(&HTTn3270);
     HTRegisterProtocol(&HTRlogin);
 }
+
+
+/*								     HTLibInit
+**
+**	This function initiates the Library and it MUST be called when
+**	starting up an application. See also HTLibTerminate()
+*/
+PUBLIC BOOL HTLibInit NOARGS
+{
+    if (TRACE)
+	fprintf(stderr, "WWWLibInit.. INITIALIZING LIBRARY OF COMMON CODE\n");
+    if (!protocols)
+	HTAccessInit();
+    HTAccessInit();			     /* Initilizing protocol modules */
+
+#ifdef LIB_SIG
+    /* On Solaris (and others?) we get a BROKEN PIPE signal when connecting
+    ** to a port where er should get `connection refused'. We ignore this 
+    ** using the following function call
+    */
+    HTSetSignal();				   /* Set signals in library */
 #endif
+
+    HTThreadInit();			            /* Initialize bit arrays */
+    return YES;
+}
+
+
+/*								 HTLibTerminate
+**
+**	This function frees memory kept by the Library and should be called
+**	before exit of an application.
+*/
+PUBLIC BOOL HTLibTerminate NOARGS
+{
+    if (TRACE)
+	fprintf(stderr, "WWWLibTerm.. Cleaning up LIBRARY OF COMMOND CODE\n");
+    return YES;
+}
+
 
 /* --------------------------------------------------------------------------*/
 /*			Physical Anchor Address Manager			     */
@@ -474,25 +518,23 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
 
     free(addr);
 
-
-/*	Search registered protocols to find suitable one
-*/
+    /* Search registered protocols to find suitable one */
     {
-	HTList *cur;
+	HTList *cur = protocols;
 	HTProtocol *p;
-#ifndef NO_INIT
-        if (!protocols) HTAccessInit();
-#endif
-	cur = protocols;
-	while ((p = (HTProtocol*)HTList_nextObject(cur))) {
-	    if (strcmp(p->name, access)==0) {
-		HTAnchor_setProtocol(req->anchor, p);
-		free(access);
-		return (HT_OK);
+	if (!cur) {
+	    if (TRACE)
+		fprintf(stderr, "HTAccess.... NO PROTOCOL MODULES INITIATED\n");
+	} else {
+	    while ((p = (HTProtocol*)HTList_nextObject(cur))) {
+		if (strcmp(p->name, access)==0) {
+		    HTAnchor_setProtocol(req->anchor, p);
+		    free(access);
+		    return (HT_OK);
+		}
 	    }
 	}
     }
-
     free(access);
     return HT_NO_ACCESS;
 }
@@ -595,6 +637,78 @@ PUBLIC int HTLoad ARGS2(HTRequest *, request, BOOL, keep_error_stack)
 }
 
 
+/*		Terminate a LOAD
+**		----------------
+**
+**	This function looks at the status code from the HTLoadDocument
+**	function and updates logfiles, creates error messages etc.
+**
+**    On Entry,
+**	Status code from load function
+*/
+PUBLIC BOOL HTLoadTerminate ARGS2(HTRequest *, request, int, status)
+{
+    char * uri = HTAnchor_address((HTAnchor*)request->anchor);
+
+    /* Log the access if necessary */
+    if (HTlogfile) {
+	time_t theTime;
+	time(&theTime);
+	fprintf(HTlogfile, "%24.24s %s %s %s\n",
+	    ctime(&theTime),
+	    HTClientHost ? HTClientHost : "local",
+	    status<0 ? "FAIL" : "GET", uri);
+	fflush(HTlogfile);	/* Actually update it on disk */
+	if (PROT_TRACE) fprintf(stderr, "Log: %24.24s %s %s %s\n",
+	    ctime(&theTime),
+	    HTClientHost ? HTClientHost : "local",
+	    status<0 ? "FAIL" : "GET", uri);
+    }
+
+    /* The error stack might contain general information to the client
+       about what has been going on in the library (not only errors) */
+    if (!HTImProxy && request->error_stack)
+	HTErrorMsg(request);
+
+    switch (status) {
+      case HT_LOADED:
+	if (PROT_TRACE) {
+	    fprintf(stderr, "HTAccess.... OK: `%s' has been accessed.\n", uri);
+	}
+	break;
+
+      case HT_NO_DATA:
+	if (PROT_TRACE) {
+	    fprintf(stderr, "HTAccess.... OK BUT NO DATA: `%s'\n", uri);
+	}
+	break;
+
+      case HT_WOULD_BLOCK:
+	if (PROT_TRACE) {
+	    fprintf(stderr, "HTAccess.... WOULD BLOCK: `%s'\n", uri);
+	}
+	break;
+
+      case HT_ERROR:
+	if (HTImProxy)
+	    HTErrorMsg(request);		     /* Only on a real error */
+	if (PROT_TRACE) {
+	    fprintf(stderr, "HTAccess.... ERROR: Can't access `%s'\n", uri);
+	}
+	break;
+
+      default:
+	if (PROT_TRACE) {
+	    fprintf(stderr, "HTAccess.... Internal software error in CERN WWWLib version %s ****\n\nPlease mail www-bug@info.cern.ch quoting what software and what version you are using\nand the URL: %s that caused the problem, thanks!\n",
+		    HTLibraryVersion, uri);
+	}
+	break;
+    }
+    free(uri);
+    return YES;
+}
+
+
 /*		Load a document - with logging etc
 **		----------------------------------
 **
@@ -619,7 +733,6 @@ PUBLIC int HTLoad ARGS2(HTRequest *, request, BOOL, keep_error_stack)
 **			HT_NO_DATA	Success, but no document loaded.
 **					(telnet sesssion started etc)
 */
-
 PRIVATE int HTLoadDocument ARGS2(HTRequest *,	request,
 				 BOOL,		keep_error_stack)
 
@@ -683,70 +796,8 @@ PRIVATE int HTLoadDocument ARGS2(HTRequest *,	request,
 	} /* next cache item */
     } /* if cache available for this anchor */
     
-    status = HTLoad(request, keep_error_stack);
-
-    /* Log the access if necessary */
-    if (HTlogfile) {
-	time_t theTime;
-	time(&theTime);
-	fprintf(HTlogfile, "%24.24s %s %s %s\n",
-	    ctime(&theTime),
-	    HTClientHost ? HTClientHost : "local",
-	    status<0 ? "FAIL" : "GET",
-	    full_address);
-	fflush(HTlogfile);	/* Actually update it on disk */
-	if (PROT_TRACE) fprintf(stderr, "Log: %24.24s %s %s %s\n",
-	    ctime(&theTime),
-	    HTClientHost ? HTClientHost : "local",
-	    status<0 ? "FAIL" : "GET",
-	    full_address);
-    }
-
-    /* The error stack might contain general information to the client
-       about what has been going on in the library (not only errors) */
-    if (!HTImProxy && request->error_stack)
-	HTErrorMsg(request);
-
-    switch (status) {
-      case HT_LOADED:
-	if (PROT_TRACE) {
-	    fprintf(stderr, "HTAccess.... OK: `%s' has been accessed.\n",
-		    full_address);
-	}
-	break;
-
-      case HT_NO_DATA:
-	if (PROT_TRACE) {
-	    fprintf(stderr, "HTAccess.... OK BUT NO DATA: `%s'\n",
-		    full_address);
-	}
-	break;
-
-      case HT_WOULD_BLOCK:
-	if (PROT_TRACE) {
-	    fprintf(stderr, "HTAccess.... WOULD BLOCK: `%s'\n",
-		    full_address);
-	}
-	break;
-
-      case HT_ERROR:
-	if (HTImProxy)
-	    HTErrorMsg(request);		     /* Only on a real error */
-	if (PROT_TRACE) {
-	    fprintf(stderr, "HTAccess.... ERROR: Can't access `%s'\n",
-		    full_address);
-	}
-	break;
-
-      default:
-	if (PROT_TRACE) {
-	    fprintf(stderr, "HTAccess.... Internal software error in CERN WWWLib version %s ****\n\nPlease mail www-bug@info.cern.ch quoting what software and what version you are using\nand the URL: %s that caused the problem, thanks!\n",
-		    HTLibraryVersion,
-		    full_address);
-	}
-	status = HT_ERROR;
-	break;
-    }
+    if ((status = HTLoad(request, keep_error_stack)) != HT_WOULD_BLOCK)
+	HTLoadTerminate(request, status);
     free(full_address);
     return status;
 }

@@ -7,6 +7,13 @@
 
 <H1>Access Manager</H1>
 
+<PRE>
+/*
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
 This module keeps a list of valid protocol (naming scheme) specifiers
 with associated access code.  It allows documents to be loaded given
 various combinations of parameters.  New access protocols may be
@@ -23,6 +30,7 @@ of Common Code</A>. <P>
 The module contains a lot of stuff but the main topics are:
 
 <UL>
+<LI><A HREF="#Library">Initializing and Terminating the Library</A>
 <LI><A HREF="#Methods">Management of access methods</A>
 <LI><A HREF="#Addresses">A lot of hard coded addresses</A>
 <LI><A HREF="#z1">The HTRequest structure</A>
@@ -64,9 +72,21 @@ extern BOOL HTImProxy;			/* If I'm cern_httpd as a proxy */
 extern BOOL HTForceReload;		/* Force reload from cache or net */
 </PRE>
 
+<A NAME="Library"><H2>Initializing and Terminating the Library</H2></A>
+
+<IMG SRC="http://info.cern.ch/hypertext/WWW/Icons/32x32/warning.gif">
+These two functions initiates memory and settings for the Library and
+cleans up memory kept by the Library when about to exit the
+application. It is highly recommended that they are used!
+
+<PRE>
+extern BOOL HTLibInit NOPARAMS;
+extern BOOL HTLibTerminate NOPARAMS;
+</PRE>
+
 <A NAME="Methods"><H2>Method Management</H2></A>
 
-Thesse are the valid methods, see <A
+These are the valid methods, see <A
 HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/Methods.html">HTTP
 Methods</A>
 
@@ -493,24 +513,30 @@ stack in the request structure so that no information is lost having
 more than one call. See also <A HREF="#BindAnchor">HTBindAnchor()</A>.
 
 <PRE>
-extern int HTLoadAnchor	PARAMS((HTAnchor  * 	a,
-				HTRequest *	request));
+extern int HTLoadAnchor		PARAMS((HTAnchor  * 	a,
+					HTRequest *	request));
 extern int HTLoadAnchorRecursive PARAMS((HTAnchor *	a,
 					HTRequest *	request));
 </PRE>
 
 <H3>Load a Document</H3>
 
-This is an internal routine, which has an address AND a matching
-anchor.  (The public routines are called with one OR the other.)  This
-is recursively called from file load module to try ftp (though this
-will be obsolete in the next major release).<P>
+These are two internal routines fro loading a document which has an
+address AND a matching anchor.  (The public routines are called with
+one OR the other.)  This is recursively called from file load module
+to try ftp (though this will be obsolete in the next major
+release).<P>
 
 If <CODE>keep_error_stack</CODE> is YES then the error (or info) stack
 is not cleared from the previous call.
 
 <PRE>
-extern int HTLoad PARAMS((HTRequest * request, BOOL keep_error_stack));
+extern int HTLoad		PARAMS((HTRequest * request,
+					BOOL keep_error_stack));
+</PRE>
+
+<PRE>
+extern BOOL HTLoadTerminate	PARAMS((HTRequest * request, int status));
 </PRE>
 
 <A NAME="RelSearch"><H3>Search Using Relative URI</H3></A>

@@ -1,5 +1,8 @@
-/*				Navigation
-**				==========
+/*								    HTHistory.c
+**	NAVIGATION MANAGER
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 */
 
 #include "HTHistory.h"

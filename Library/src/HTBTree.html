@@ -1,17 +1,28 @@
-<HEADER>
-<TITLE>/Net/dxcern/userd/timbl/hypertext/WWW/Library/Implementation/HTBTree.html</TITLE>
-<NEXTID N="1">
-</HEADER>
+<HTML>
+<HEAD>
+<TITLE>Balanced Binary Tree</TITLE>
+</HEAD>
 <BODY>
-<H1>Balanced Binary Tree for sorting
-things</H1>Tree creation, traversal and freeing.
- User-supplied comparison routine.<P>
-Author: Arthur Secret, CERN. Public
-domain.  Please mail bugs and changes
-to www-request@info.cern.ch<P>
-part of <A
-NAME=z0 HREF="Overview.html">libWWW</A>
-<PRE>#ifdef SHORT_NAMES
+
+<H1>Balanced Binary Tree</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+Tree creation, traversal and freeing. User-supplied comparison
+routine.<P>
+
+This module is implemented by <A HREF="HTBTree.c">HTBTree.c</A>, and
+it is a part of the <A
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+Library of Common Code</A>.
+
+<PRE>
+#ifdef SHORT_NAMES
 #define	HTBTree_new		HTBTNew
 #define	HTBTree_free		HTBTFree
 #define HTBTreeAndObject_free	HTBTAOFr

@@ -1,7 +1,10 @@
-/*			Multiple Thread Socket Management
-**			=================================
+/*								     HTThread.c
+**	MULTIPLE THREAD SOCKET MANAGEMENT
 **
-**	This is the implementation of the internal library multi-threading
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+**
+**	This is the implementation of the internal library multithreading
 **	functions. This includes an interrupt handler and a event loop.
 **	
 ** History:
@@ -79,7 +82,8 @@ PUBLIC void HTThreadState ARGS2(int, sockfd, HTThreadAction, action)
 	    "CLEAR WRITE",
 	    "SET READ",
 	    "CLEAR READ",
-	    "INTERRUPT",
+	    "SET INTERRUPT",
+	    "CLEAR INTERRUPT",
 	    "CLOSE"
 	    };
 	fprintf(stderr,
@@ -173,7 +177,8 @@ PUBLIC void HTThreadMarkIntrAll ARGS1(CONST fd_set *,	fd_user)
     if (THD_TRACE)
 	fprintf(stderr, "Thread...... Mark ALL Library sockfd INTERRUPTED\n");
     for (cnt=0; cnt<HTMaxfdpl; cnt++) {
-	if (!FD_ISSET(cnt, fd_user)) FD_SET(cnt, &HTfd_intr);
+	if (FD_ISSET(cnt, &HTfd_set) && !FD_ISSET(cnt, fd_user))
+	    FD_SET(cnt, &HTfd_intr);
     }
 }
 
@@ -236,7 +241,6 @@ PUBLIC HTRequest *HTThread_getRequest ARGS2(CONST fd_set *,	fd_read,
 	if (FD_ISSET(cnt, &HTfd_intr)) {
 	    if (THD_TRACE)
 		fprintf(stderr, "GetSocket... Socket %d INTERRUPTED\n", cnt);
-	    HTThreadState(cnt, THD_CLR_INTR);		/* Only called once! */
 	    found = YES;
 	    break;
 	}

@@ -1,16 +1,29 @@
 <HTML>
 <HEAD>
-<TITLE>HTChunk: Flexible array handling for libwww</TITLE></HEAD>
+<TITLE>HTChunk: Flexible array handling for libwww</TITLE>
+</HEAD>
 <BODY>
+
 <H1>Chunk handling: Flexible arrays</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
 
 This module implements a flexible array. It is a general utility module.
 A chunk is a structure which may be extended.  These routines create
 and append data to chunks, automatically reallocating them as necessary.
 It is garanteed that the array is '\0' terminated at all times, so the
 terminating function, <A HREF="HTChunk.html#Terminate">HTChunkTerminate</A>
-is only necessary to get the right size in the chunk structure.
+is only necessary to get the right size in the chunk structure. <P>
 
+This module is implemented by <A HREF="HTChunk.c">HTChunk.c</A>, and
+it is a part of the <A
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+Library of Common Code</A>.
 
 <PRE>
 #ifndef HTCHUNK_H

@@ -1,7 +1,10 @@
-/*	Multi Threaded implementation of HTTP Client		HTTP.c
-**	============================================
+/*									 HTTP.c
+**	MULTITHREADED IMPLEMENTATION OF HTTP CLIENT
 **
-**	This module implments the HTTP protocol
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+**
+**	This module implments the HTTP protocol as a state machine
 **
 ** History:
 **    < May 24 94 ??	Unknown - but obviously written
@@ -38,6 +41,7 @@
 #define PUTS(s)		(*me->target->isa->put_string)(me->target, s)
 #define PUTBLOCK(b, l)	(*me->target->isa->put_block)(me->target, b, l)
 #define FREE_TARGET	(*me->target->isa->_free)(me->target)
+#define ABORT_TARGET	(*me->target->isa->abort)(me->target, e)
 
 /* Globals */
 extern char * HTAppName;		  /* Application name: please supply */
@@ -578,8 +582,10 @@ PRIVATE int HTTPStatus_free ARGS1(HTStream *, me)
 PRIVATE int HTTPStatus_abort ARGS2(HTStream *, me, HTError, e)
 {
     if (me->target)
-	(*me->target->isa->abort)(me, e);
+	ABORT_TARGET;
     free(me);
+    if (PROT_TRACE)
+	fprintf(stderr, "HTTPStatus.. ABORTING LOAD...\n");
     return EOF;
 }
 
@@ -711,12 +717,17 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		else
 		    http->target = HTTPStatus_new(request, http);
 	    }
-	    if (HTInputSocket_read(http->isoc, http->target) == HT_WOULD_BLOCK)
+	    status = HTInputSocket_read(http->isoc, http->target);
+	    if (status == HT_WOULD_BLOCK)
 		return HT_WOULD_BLOCK;
-
-	    status = (*http->target->isa->_free)(http->target);
-	    if(!status || http->state == HTTP_NEED_BODY)
+	    else if (status == HT_INTERRUPTED)
+		status = (*http->target->isa->abort)(http->target, NULL);
+	    else
+		status = (*http->target->isa->_free)(http->target);
+	    if (status >= 0 && http->state == HTTP_NEED_BODY)
 		http->state = HTTP_GOT_DATA;
+	    else
+		http->state = HTTP_ERROR;
 	    break;
 
           case HTTP_REDIRECTION:
@@ -741,7 +752,6 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		    http->state = HTTP_ERROR;
 		}
 	    } else {
-		fprintf(stderr, "HEREHREHRE\n");
 		HTErrorAdd(request, ERR_FATAL, NO, HTERR_BAD_REPLY,
 			   NULL, 0, "HTLoadHTTP");
 		http->state = HTTP_ERROR;
@@ -749,9 +759,9 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	    break;
 
 	  case HTTP_AA:
+	    HTTPCleanup(request);
 	    if (HTTPAuthentication(request) == YES &&
 		HTAA_retryWithAuth(request) == YES) {
-		HTTPCleanup(request);
 		return HTLoadAnchor((HTAnchor *) request->anchor, request);
 	    } else {
 		char *unescaped = NULL;
@@ -766,6 +776,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	    break;
 
 	  case HTTP_GOT_DATA:
+	    HTTPCleanup(request);
 	    return HT_LOADED;
 	    break;
 	    

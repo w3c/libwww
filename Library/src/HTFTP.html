@@ -4,10 +4,18 @@
 <NEXTID N="z1">
 </HEAD>
 <BODY>
+
 <H1>FTP access functions</H1>
 
-This is the FTP load module that handles all communication with FTP-servers.
-The module is part of the <A HREF="Overview.html">CERN Common WWW Library</A>.<P>
+<PRE>
+/*
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This is the FTP load module that handles all communication with
+FTP-servers. <P>
 
 <B>Authors</B><P>
 
@@ -19,7 +27,13 @@ The module is part of the <A HREF="Overview.html">CERN Common WWW Library</A>.<P
 <LI>Henrik Frystyk, frystyk@dxcern.cern.ch
 </UL>
 
-<PRE>#ifndef HTFTP_H
+This module is implemented by <A HREF="HTFTP.c">HTFTP.c</A>, and it is
+a part of the <A
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+Library of Common Code</A>.
+
+<PRE>
+#ifndef HTFTP_H
 #define HTFTP_H
 #include "HTChunk.h"
 </PRE>

@@ -1,10 +1,17 @@
 <HTML>
 <HEAD>
 <TITLE>WAIS protocol module for the W3 library</TITLE>
-<NEXTID N="z3">
 </HEAD>
 <BODY>
+
 <H1>WAIS Protocol Interface</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
 
 This module does not actually perform the WAIS protocol directly, but it
 does using one or more libraries of the freeWAIS distribution. The
@@ -29,7 +36,10 @@ be able to read source files, and access WAIS indexes through a gateway.<P>
 A <A NAME="z2" HREF="../../Daemon/WAISGate.html">WAIS-WWW gateway</A>
 is just a normal W3 server with a libwww compiled with this module.<P>
 
-Anyways, this interface won't change much:
+This module is implemented by <A HREF="HTWAIS.c">HTWAIS.c</A>, and it is
+a part of the <A
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+Library of Common Code</A>.
 
 <PRE>
 #ifndef HTWAIS_H

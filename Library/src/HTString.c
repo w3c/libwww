@@ -1,4 +1,8 @@
-/*		Case-independent string comparison		HTString.c
+/*								     HTString.c
+**	DYNAMIC STRING UTILITIES
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	Original version came with listserv implementation.
 **	Version TBL Oct 91 replaces one which modified the strings.

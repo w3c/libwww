@@ -1,5 +1,8 @@
-/*			Generic Communication Code		HTTCP.c
-**			==========================
+/*									HTTCP.c
+**	GENERIC COMMUNICATION CODE
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	This code is in common between client and server sides.
 **

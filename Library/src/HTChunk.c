@@ -1,5 +1,8 @@
-/*		Chunk handling:	Flexible arrays
-**		===============================
+/*								      HTChunk.c
+**	CHUNK HANDLING:	FLEXIBLE ARRAYS
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 ** history:	AL, HF	28 Apr 94, Now chunk->data is filled by '\0' so
 **			that the string is terminated at any time. That makes

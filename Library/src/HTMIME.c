@@ -1,5 +1,8 @@
-/*			MIME Message Parse			HTMIME.c
-**			==================
+/*								       HTMIME.c
+**	MIME MESSAGE PARSE
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	This is RFC 1341-specific code.
 **	The input stream pushed into this parser is assumed to be

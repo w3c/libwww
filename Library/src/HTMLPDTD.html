@@ -1,11 +1,29 @@
-<HTML><HEAD><TITLE>The HTML PLUS DTD -- software interface in libwww
-</TITLE><NEXTID N="z4"></HEAD><HEAD></HEAD><BODY><H1>
-HTML Plus DTD - Software Interface</H1>SGML purists should excuse the use of
-the term "DTD" in this file to represent DTD-related information which is not
-exactly a DTD itself.<P>The C modular structure doesn't work very well here,
-as the dtd is partly in the .h and partly in the .c which are not very
-independent.
-Tant pis.<P>There are a couple of HTML-specific utility routines also defined.
+<HTML>
+<HEAD>
+<TITLE>The HTML PLUS DTD -- software interface in libwww</TITLE>
+</HEAD>
+<BODY>
+
+<H1>HTML Plus DTD - Software Interface</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+SGML purists should excuse the use of the term "DTD" in this file to
+represent DTD-related information which is not exactly a DTD
+itself. The C modular structure doesn't work very well here, as the
+dtd is partly in the .h and partly in the .c which are not very
+independent.  <EM>Tant pis!</EM> There are a couple of HTML-specific
+utility routines also defined. <P>
+
+This module is a part of the <A
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+Library of Common Code</A>.
+
 <PRE>
 #ifndef HTMLDTD_H
 #define HTMLDTD_H

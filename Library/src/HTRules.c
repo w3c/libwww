@@ -1,5 +1,8 @@
-/*	Configuration manager for Clients			HTRules.c
-**	=================================
+/*								      HTRules.c
+**	CONFIGURATION MANAGER FOR CLIENTS
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	This module is replaced by HTConfig.c in httpd.
 **
@@ -22,20 +25,17 @@
 **
 */
 
-/* (c) CERN WorldWideWeb project 1990,91. See Copyright.html for details */
-#include "HTRules.h"
-
-#include "HTFile.h"
-#include "HTParse.h"	/* HTParse() */
-#include "HTAAUtil.h"
-
 #ifndef VMS
 #include <pwd.h>	/* Unix password file routine: getpwnam() */
 #endif /* not VMS */
 
+#include "HTFile.h"
+#include "HTParse.h"
+#include "HTAAUtil.h"
+
+#include "HTRules.h"					 /* Implemented here */
 
 #define LINE_LENGTH 256
-
 
 typedef struct _rule {
 	struct _rule *	next;

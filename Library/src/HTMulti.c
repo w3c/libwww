@@ -1,12 +1,12 @@
-
-/*
-**		Multiformat handling
+/*								      HTMulti.c
+**	MULTIFORMAT HANDLING
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 ** History:
 **	March 94  AL	Separated from HTFile.c because
 **			multiformat handling would be a mess in VMS.
-**
-**
 */
 
 #include "HTMulti.h"

@@ -1,5 +1,8 @@
-/*	Style Implementation for Hypertext			HTStyle.c
-**	==================================
+/*								      HTStyle.c
+**	STYLE IMPLEMENTATION FOR HYPERTEXT
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	Styles allow the translation between a logical property
 **	of a piece of text and its physical representation.

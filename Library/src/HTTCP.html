@@ -1,11 +1,20 @@
-<HEADER>
-<TITLE>/Net/dxcern/userd/timbl/hypertext/WWW/Library/src/HTTCP.html</TITLE></HEADER>
+<HTML>
+<HEAD>
+<TITLE>/Net/dxcern/userd/timbl/hypertext/WWW/Library/src/HTTCP.html</TITLE>
+</HEAD>
 <BODY>
+
 <H1>Generic Network Communication</H1>
 
+<PRE>
+/*
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
 This module has the common code for handling TCP/IP and DECnet connections
-etc. The module is a part of the <A HREF="Overview.html">CERN Common WWW
-Library</A>. The main topics of functions in this module are:
+etc. The main topics of functions in this module are:
 
 <UL>
 <LI><A HREF="#ConEst">Connection establishment</A>
@@ -13,6 +22,11 @@ Library</A>. The main topics of functions in this module are:
 <LI><A HREF="#DNS">Host and mail addresses</A>
 <LI><A HREF="#Signals">Signal Handling</A>
 </UL>
+
+This module is implemented by <A HREF="HTTCP.c">HTTCP.c</A>, and it is
+a part of the <A
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+Library of Common Code</A>.
 
 <PRE>
 #ifndef HTTCP_H

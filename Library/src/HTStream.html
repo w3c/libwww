@@ -1,22 +1,33 @@
 <HTML>
 <HEAD>
-<TITLE>The Generic Stream Class Definition</TITLE></HEAD>
+<TITLE>The Generic Stream Class Definition</TITLE>
+</HEAD>
 <BODY>
+
 <H1>Stream Object definition</H1>
 
-A Stream object is something which accepts a stream of text. This
-module is a part on the <A HREF="Overview.html">Library of Common
-Code</A>. See also the <A HREF="SGML.html">Structured stream
-definition.</A><P>
+<PRE>
+/*
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
 
-The creation methods will vary on
-the type of Stream Object.   All
-creation methods return a pointer
-to the stream type below.<P>
-As you can see, but the methods used
-to write to the stream and close
-it are pointed to be the object itself.
-<PRE>#ifndef HTSTREAM_H
+A Stream object is something which accepts a stream of text. See also
+the <A HREF="SGML.html">Structured stream definition.</A><P>
+
+The creation methods will vary on the type of Stream Object.  All
+creation methods return a pointer to the stream type below.<P> As you
+can see, but the methods used to write to the stream and close it are
+pointed to be the object itself. <P>
+
+This module is implemented by <A HREF="HTStream.c">HTStream.c</A>, and
+it is a part of the <A
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+Library of Common Code</A>.
+
+<PRE>
+#ifndef HTSTREAM_H
 #define HTSTREAM_H
 
 #include "HTUtils.h"

@@ -1,5 +1,8 @@
-/*			Icon Management		       		HTIcon.c
-**			===============
+/*								       HTIcon.c
+**	ICON MANAGEMENT
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	This module contains the functions for initializing, adding
 **	and selecting the icon for local directory listings, FTP and Gopher.

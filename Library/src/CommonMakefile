@@ -1,7 +1,8 @@
 #	Common Makefile for W3 Library Code
 #	-----------------------------------
 #
-#	(c) CERN 1990, 1991 -- see Copyright.html for conditions
+#	(c) COPYRIGHT CERN 1994.
+#	Please first read the full copyright statement in the file COPYRIGH.
 #
 # This file should be invariant between systems.
 #	DEPENDENCIES NOT COMPLETE @@

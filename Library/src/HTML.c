@@ -1,5 +1,8 @@
-/*		Structured stream to Rich hypertext converter
-**		============================================
+/*									 HTML.c
+**	STRUCTURED STREAM TO RICH HYPERTEXT CONVERTER
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	This generates of a hypertext object.  It converts from the
 **	structured stream interface fro HTMl events into the style-

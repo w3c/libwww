@@ -1,24 +1,34 @@
 <HTML>
 <HEAD>
-<TITLE>SGML parse and stream definition for libwww</TITLE></HEAD>
+<TITLE>SGML parse and stream definition for libwww</TITLE>
+</HEAD>
 <BODY>
-<H1>SGML and Structured streams</H1>The SGML parser is a state machine.
-It is called for every character of the input stream. The DTD data
-structure contains pointers to functions which are called to
-implement the actual effect of the text read. When these functions are
-called, the attribute structures pointed to by the DTD are valid,
-and the function is parsed a pointer to the curent tag structure, and
-an "element stack" which represents the state of nesting within SGML
-elements. See also the <A HREF="HTStream.html">the generic Stream
-definition</A><P>
 
-The following aspects are from Dan
-Connolly's suggestions:  Binary search,
-Strcutured object scheme basically,
-SGML content enum type.<P>
+<H1>SGML and Structured streams</H1>
 
-The module is a part of the <A HREF="Overview">CERN Common WWW Library</A>
-(c) Copyright CERN 1991 - See Copyright.html
+<PRE>
+/*
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+The SGML parser is a state machine.  It is called for every character
+of the input stream. The DTD data structure contains pointers to
+functions which are called to implement the actual effect of the text
+read. When these functions are called, the attribute structures
+pointed to by the DTD are valid, and the function is parsed a pointer
+to the curent tag structure, and an "element stack" which represents
+the state of nesting within SGML elements. See also the <A
+HREF="HTStream.html">the generic Stream definition</A><P>
+
+The following aspects are from Dan Connolly's suggestions: Binary
+search, Strcutured object scheme basically, SGML content enum type.<P>
+
+This module is implemented by <A HREF="SGML.c">SGML.c</A>, and it is a
+part of the <A
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+Library of Common Code</A>.
 
 <PRE>
 #ifndef SGML_H

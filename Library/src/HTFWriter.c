@@ -1,5 +1,8 @@
-/*		FILE WRITER				HTFWrite.h
-**		===========
+/*							       	    HTFWriter.c
+**	FILE WRITER
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	This version of the stream object just writes to a C file.
 **	The file is assumed open and left open.
@@ -7,9 +10,7 @@
 **	Bugs:
 **		strings written must be less than buffer size.
 **
-**
 **      History:
-**
 **         HFN: wrote it
 **         HWL: converted the caching scheme to be hierachical by taking
 **              AL code from Deamon

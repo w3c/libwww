@@ -1,8 +1,11 @@
-/*			Error Output Module
-**			===================
+/*								   HTErrorMsg.c
+**	ERROR OUTPUT MODULE
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	This module contains the error / information generating function 
-**	HTErrorMsg() so taht it can be overwritten by smart browsers and
+**	HTErrorMsg() so that it can be overwritten by smart browsers and
 **	servers.
 **
 ** History:

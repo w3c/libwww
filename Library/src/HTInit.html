@@ -1,22 +1,30 @@
 <HTML>
 <HEAD>
 <TITLE>Initialization routines in libwww</TITLE>
-<NEXTID N="z1">
 </HEAD>
 <BODY>
 <H1>Initialization Module</H1>
 
+<PRE>
+/*
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
 This module resisters all the plug &amp; play software modules which will
 be used in the program on client side (The server has it's own initialization
-module). The module is a part of the <A HREF="Overview.html">CERN Common WWW
-Library</A>. <P>
+module). <P>
 
 The initialization consists of two phases: Setting up the MIME type conversions
 and defining the relation between a basic set of file suffixes and MIME types. 
 To override this, just copy it and link in your version before you link
 with the library.<P>
 
-Implemented by <A NAME="z0" HREF="HTInit.c">HTInit.c</A> by default.
+This module is implemented by <A HREF="HTInit.c">HTInit.c</A>, and it
+is a part of the <A
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+Library of Common Code</A>.
 
 <PRE>
 #include "HTUtils.h"

@@ -1,15 +1,17 @@
-
-/*								HTDescript.c
- *	File Descriptions
- *
- * Authors:
- *	AL	Ari Luotonen <luotonen@dxcern.cern.ch>
- *
- * History:
- *	30 Mar 94  AL	Written from scratch.
- *
- *
- */
+/*								   HTDescript.c
+**	FILE DESCRIPTIONS
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+**
+** Authors:
+**	AL	Ari Luotonen <luotonen@dxcern.cern.ch>
+**
+**  History:
+**	30 Mar 94  AL	Written from scratch.
+**
+**
+*/
 
 #include "HTUtils.h"
 #include "HTList.h"

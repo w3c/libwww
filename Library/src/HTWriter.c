@@ -1,7 +1,10 @@
-/*		FILE WRITER			HTWrite.c
-**		===========
+/*							              HTWrite.c
+**	FILE WRITER BASED ON A SOCKFD
 **
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 */
+
 #include "HTWriter.h"
 
 #define BUFFER_SIZE 4096	/* Tradeoff */

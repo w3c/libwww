@@ -1,5 +1,8 @@
-/*			Directory Browsing	       		HTDirBrw.c
-**			==================
+/*							       	     HTDirBrw.c
+**	DIRECTORY BROWSING
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	This is unix-specific code in general
 **	The module is intended for use in HTFile.c and HTFTP.c where

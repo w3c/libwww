@@ -1,6 +1,8 @@
-
-/*		STREAM TO GUESS CONTENT-TYPE			HTGuess.c
-**		============================
+/*								      HTGuess.c
+**	STREAM TO GUESS CONTENT-TYPE
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	This version of the stream object just writes its input
 **	to its output, but prepends Content-Type: field and an

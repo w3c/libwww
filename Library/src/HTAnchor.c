@@ -1,16 +1,17 @@
-/*	Hypertext "Anchor" Object				HTAnchor.c
-**	==========================
+/*								     HTAnchor.c
+**	HYPERTEXT "ANCHOR" OBJECT
 **
-** An anchor represents a region of a hypertext document which is linked to
-** another anchor in the same or a different document.
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+**
+**	An anchor represents a region of a hypertext document which is
+**	linked to another anchor in the same or a different document.
 **
 ** History
-**
 **         Nov 1990  Written in Objective-C for the NeXT browser (TBL)
 **	24-Oct-1991 (JFG), written in C, browser-independant 
 **	21-Nov-1991 (JFG), first complete version
 **
-**	(c) Copyright CERN 1991 - See Copyright.html
 */
 
 #include "HTFormat.h"

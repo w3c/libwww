@@ -1,6 +1,8 @@
-
-/* MODULE							HTUU.c
-**			UUENCODE AND UUDECODE
+/*									 HTUU.c
+**	UUENCODE AND UUDECODE
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 ** ACKNOWLEDGEMENT:
 **	This code is taken from rpem distribution, and was originally

@@ -1,5 +1,8 @@
-/*			Atoms: Names to numbers			HTAtom.c
-**			=======================
+/*								       HTAtom.c
+**	ATOMS: STRINSGS TO NUMBERS
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	Atoms are names which are given representative pointer values
 **	so that they can be stored more efficiently, and comparisons
@@ -9,7 +12,6 @@
 **
 ** Authors:
 **	TBL	Tim Berners-Lee, WorldWideWeb project, CERN
-**	(c) Copyright CERN 1991 - See Copyright.html
 **
 */
 #define HASH_SIZE	101		/* Tunable */

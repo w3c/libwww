@@ -3,7 +3,15 @@
 <TITLE>HTGuess: Guess content-type from a stream</TITLE>
 </HEAD>
 <BODY>
+
 <H1>Content-Type Guesser</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
 
 This stream is a one that reads first a chunk of stuff, tries to
 figure out the format, and calls <CODE>HTStreamStack()</CODE>.  This
@@ -12,8 +20,10 @@ is a kind of lazy-evaluation of <CODE>HTStreamStack()</CODE>. <P>
 This could be extended arbitrarily to recognize all the possible
 file formats in the world, if someone only had time to do it. <P>
 
-Part of <A HREF="Overview.html">libwww</A>. Implemented by <A
-HREF="HTGuess.c"><CODE>HTGuess.c</CODE></A>. <P>
+This module is implemented by <A HREF="HTGuess.c">HTGuess.c</A>, and
+it is a part of the <A
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+Library of Common Code</A>.
 
 <PRE>
 #ifndef HTGUESS_H

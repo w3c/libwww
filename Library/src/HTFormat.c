@@ -1,5 +1,8 @@
-/*		Manage different file formats			HTFormat.c
-**		=============================
+/*								     HTFormat.c
+**	MANAGE DIFFERENT FILE FORMATS
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 ** Bugs:
 **	Assumes the incoming stream is ASCII, rather than a local file

@@ -1,5 +1,8 @@
-/* Simple LaTeX Generator that converts in a 1:1 manner from HTML to LaTeX
-** =======================================================================
+/*								     HTTeXGen.c
+**	HTML -> LaTeX CONVERTER
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 ** 	This version of the HTML object sends LaTeX to the output stream.
 ** 	No attributes are considered in the translation!

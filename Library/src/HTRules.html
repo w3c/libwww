@@ -1,15 +1,22 @@
-<HEADER>
+<HTML>
+<HEAD>
 <TITLE>Configuration Manager for libwww</TITLE>
-<NEXTID N="6">
-</HEADER>
+</HEAD>
 <BODY>
-<H1>Configuration manager</H1>Author Tim Berners-Lee/CERN. Public
-domain. Please mail changes to timbl@info.cern.ch.<P>
-The configuration information loaded
-includes tables (file suffixes, presentation
-methods) in other modules.  The most
-likely routines needed by developers
-will be:
+
+<H1>Configuration manager</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+The configuration information loaded includes tables (file suffixes,
+presentation methods) in other modules.  The most likely routines
+needed by developers will be:
+
 <DL>
 <DT><A
 NAME=z3 HREF="#z2">HTSetConfiguration</A>
@@ -25,7 +32,13 @@ NAME=z5 HREF="#z4">HTTranslate</A>
 the rule table.
 </DL>
 
-<PRE>#ifndef HTRULE_H
+This module is implemented by <A HREF="HTRules.c">HTRules.c</A>, and
+it is a part of the <A
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+Library of Common Code</A>.
+
+<PRE>
+#ifndef HTRULE_H
 #define HTRULE_H
 
 #include "HTUtils.h"

@@ -1,5 +1,8 @@
-/*		Plain text object		HTWrite.c
-**		=================
+/*								      HTWrite.c
+**	PLAIN TEXT OBJECT
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	This version of the stream object just writes to a socket.
 **	The socket is assumed open and left open.

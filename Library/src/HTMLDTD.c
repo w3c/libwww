@@ -1,11 +1,11 @@
-/*		Our Static DTD for HTML
-**		-----------------------
+/*								      HTMLDTD.c
+**	STATIC DTD FOR HTML - THIS IS OLD AND NOT USED - SEE HTMLPDTD.c
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	 6 Nov 93	MD	Increased size of img_attr array to make space
 **  				for terminator.
-*/
-
-/* Implements:
 */
 
 #include "HTMLDTD.h"

@@ -1,13 +1,24 @@
 <HTML>
 <HEAD>
-<TITLE>Network News Transfer protocol module for the WWW library</TITLE></HEAD>
+<TITLE>Network News Transfer protocol module for the WWW library</TITLE>
+</HEAD>
 <BODY>
-<H1>HTNews</H1>
-<PRE>/* History:
-**	26 Sep 90	Written TBL in Objective-C
-**	29 Nov 91	Downgraded to C, for portable implementation.
-*/
 
+<H1>News Access</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This module is implemented by <A HREF="HTNews.c">HTNews.c</A>, and it
+is a part of the <A
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+Library of Common Code</A>.
+
+<PRE>
 #ifndef HTNEWS_H
 #define HTNEWS_H
 
@@ -16,12 +27,12 @@
 
 GLOBALREF HTProtocol HTNews;
 
-extern void HTSetNewsHost PARAMS((CONST char *value));
-extern CONST char * HTGetNewsHost NOPARAMS;
-extern char * HTNewsHost;
+extern void		HTSetNewsHost PARAMS((CONST char *value));
+extern CONST char *	HTGetNewsHost NOPARAMS;
+extern char *		HTNewsHost;
 
 #endif /* HTNEWS_H */
 
-
-</PRE>tbl</A></BODY>
+</PRE>
+</BODY>
 </HTML>

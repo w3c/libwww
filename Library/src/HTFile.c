@@ -1,5 +1,8 @@
-/*			File Access				HTFile.c
-**			===========
+/*								       HTFile.c
+**	FILE ACCESS
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	This is unix-specific code in general, with some VMS bits.
 **	These are routines for file access used by browsers.

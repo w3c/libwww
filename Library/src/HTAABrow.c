@@ -1,6 +1,8 @@
-
-/* MODULE							HTAABrow.c
+/* 								     HTAABrow.c
 **		BROWSER SIDE ACCESS AUTHORIZATION MODULE
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	Containts the code for keeping track on server hostnames,
 **	port numbers, scheme names, usernames, passwords

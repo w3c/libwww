@@ -1,5 +1,8 @@
-/*		Parse HyperText Document Address		HTParse.c
-**		================================
+/*								      HTParse.c
+**	URI MANAGEMENT
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 ** history:
 **	May 12 94	TAB added as legal char in HTCleanTelnetString

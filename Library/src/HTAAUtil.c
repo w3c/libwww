@@ -1,7 +1,9 @@
-
-/* MODULE							HTAAUtil.c
-**		COMMON PARTS OF ACCESS AUTHORIZATION MODULE
-**			FOR BOTH SERVER AND BROWSER
+/* 								     HTAAUtil.c
+**	COMMON PARTS OF ACCESS AUTHORIZATION MODULE
+**	FOR BOTH SERVER AND BROWSER
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 ** IMPORTANT:
 **	Routines in this module use dynamic allocation, but free

@@ -1,20 +1,36 @@
 <HTML>
 <HEAD>
-<TITLE>HTAlert: Handling user messages in libwww</TITLE>
+<TITLE>Handling user messages in libwww</TITLE>
 <NEXTID N="z3">
 </HEAD>
 <BODY>
+
 <H1>Displaying Messages and Getting Input</H1>
 
-This module is a part of the <A NAME="z0" HREF="Overview.html">CERN WWW Library</A>. It may be overridden for GUI clients. It allows progress
-indications and warning messages to be communicated to the user in
-a portable way.
+<PRE>
+/*
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This modue may be overridden for GUI clients. It allows progress
+indications and warning messages to be communicated to the user in a
+portable way.
 
 <UL>
 <LI>May 92 Created By C.T. Barker
 <LI>Feb 93 Portablized etc TBL
 </UL>
+
+This module is implemented by <A HREF="HTAlert.c">HTAlert.c</A>, and
+it is a part of the <A
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+Library of Common Code</A>.
+
 <PRE>
+#ifndef HTALERT_H
+#define HTALERT_H
 #include <A NAME="z1" HREF="HTUtils.html">"HTUtils.h"</A>
 
 #ifdef SHORT_NAMES
@@ -117,9 +133,8 @@ FALSE otherwise.
 <PRE>
 extern BOOL HTConfirm PARAMS ((CONST char * Msg));
 
+#endif
+</PRE>
 
-
-
-
-</A></PRE></BODY>
+</BODY>
 </HTML>

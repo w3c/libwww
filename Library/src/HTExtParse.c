@@ -1,7 +1,11 @@
-/*
+/*								   HTExtParse.c
+**	EXTPARSE CLASS
 **
-**	ExtParse Class HWL 23/8/94		HTExtParse.c
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
+**  AUTHORS:
+**	HWL 23/8/94
 */
 
 #include "HTFormat.h"			/* defines INPUT_BUFFER_SIZE */

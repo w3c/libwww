@@ -1,5 +1,8 @@
-/*			External Parse to Client
-**			========================
+/*								 HTEpToClient.c
+**	EXTERNAL PARSE TO CLIENT
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	This module contains the interface between the 
 **      the ExtParse module and the client. The dummy function is

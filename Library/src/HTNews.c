@@ -1,5 +1,8 @@
-/*			NEWS ACCESS				HTNews.c
-**			===========
+/*								       HTNews.c
+**	NEWS ACCESS
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 ** History:
 **	26 Sep 90	Written TBL

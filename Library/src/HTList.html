@@ -4,15 +4,27 @@
 <NEXTID N="z3">
 </HEAD>
 <BODY>
-<H1>List object</H1>The list object is a generic container
-for storing collections of things
-in order.   In principle it could
-be implemented in many ways, but
-in practice knowing that it is a
-linked list is important for speed.
-See also the  <A
-NAME="z2" HREF="#z1">traverse macro</A> for
-example.
+
+<H1>List object</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+The list object is a generic container for storing collections of
+things in order.  In principle it could be implemented in many ways,
+but in practice knowing that it is a linked list is important for
+speed.  See also the <A NAME="z2" HREF="#z1">traverse macro</A> for
+example. <P>
+
+This module is implemented by <A HREF="HTList.c">HTList.c</A>, and it
+is a part of the <A
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+Library of Common Code</A>.
+
 <PRE>
 #ifndef HTLIST_H
 #define HTLIST_H

@@ -1,14 +1,13 @@
-/*		Configuration-specific Initialialization	HTInit.c
-**		----------------------------------------
-*/
-
-/*	Define a basic set of suffixes and presentations
-**	------------------------------------------------
+/*								       HTInit.c
+**	CONFIGURATION-SPECIFIC INITIALIALIZATION
 **
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+**
+**	Define a basic set of suffixes and presentations
 */
 
-/* Implements:
-*/
+/* Implements: */
 #include "HTInit.h"
 
 #include "HTML.h"

@@ -3,15 +3,28 @@
 <TITLE>Directory Browsing</TITLE>
 </HEAD>
 <BODY>
+
 <H1>Directory Browsing</H1>
-<PRE>#ifndef HTDIRBRW_H
+
+<PRE>
+/*
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This module is implemented by <A HREF="HTDirBrw.c">HTDirBrw.c</A>, and
+it is a part of the <A
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+Library of Common Code</A>.
+
+<PRE>
+#ifndef HTDIRBRW_H
 #define HTDIRBRW_H
 
 #include "HTFTP.h"
 </PRE>
 
-This module is a part of the <A HREF="Overview.html">CERN Common WWW Library</A>.
- 
 <H2>Controlling globals</H2>
 These flags control how directories and files are represented as hypertext,
 and are typically set by the application from command line options, etc.

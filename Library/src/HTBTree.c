@@ -1,8 +1,13 @@
-/*                  Binary Tree for sorting things
-**                  ==============================
-**                      Author: Arthur Secret
+/*								      HTBTree.c
+**	BINARY TREE FOR SORTING THINGS
 **
-**       4 March 94: Bug fixed in the balancing procedure
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+**
+** Authors:
+**	Arthur Secret
+**
+**	4 March 94: Bug fixed in the balancing procedure
 **
 */
 

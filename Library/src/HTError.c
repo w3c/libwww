@@ -1,5 +1,8 @@
-/*			Error Report Module
-**			===================
+/*								      HTError.c
+**	ERROR REPORT MODULE
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	This is the implementaion of an error message reporting system that 
 **	reports errors occured either in a stream module (structured streams

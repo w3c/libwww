@@ -1,10 +1,13 @@
-
-/* MODULE							HTAssoc.c
-**	    ASSOCIATION LIST FOR STORING NAME-VALUE PAIRS.
-**	    NAMES NOT CASE SENSITIVE, AND ONLY COMMON LENGTH
-**	    IS CHECKED (allows abbreviations; well, length is
-**	    taken from lookup-up name, so if table contains
-**	    a shorter abbrev it is not found).
+/* 							       	      HTAssoc.c
+**	ASSOCIATION LIST FOR STORING NAME-VALUE PAIRS.
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+**
+**	NAMES NOT CASE SENSITIVE, AND ONLY COMMON LENGTH
+**	IS CHECKED (allows abbreviations; well, length is
+**	taken from lookup-up name, so if table contains
+**	a shorter abbrev it is not found).
 ** AUTHORS:
 **	AL	Ari Luotonen	luotonen@dxcern.cern.ch
 **

@@ -1,38 +1,48 @@
 <HEAD>
 </HEAD>
 <BODY>
+
 <H1>Browser Side Access Authorization Module</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
 
 This module is the browser side interface to Access Authorization (AA)
 package.  It contains code only for browser.<P>
 
 <B>Important</B> to know about memory allocation:<P>
 
-Routines in this module use dynamic allocation, but free
-automatically all the memory reserved by them.
-<P>
+Routines in this module use dynamic allocation, but free automatically
+all the memory reserved by them.<P>
+
 Therefore the caller never has to (and never should)
-<CODE>free()</CODE> any object returned by these functions.
-<P>
-Therefore also all the strings returned by this package
-are only valid until the next call to the same function
-is made. This approach is selected, because of the nature
-of access authorization: no string returned by the package
-needs to be valid longer than until the next call.
-<P>
-This also makes it easy to plug the AA package in:
-you don't have to ponder whether to <CODE>free()</CODE>
-something here or is it done somewhere else (because it
-is always done somewhere else).
-<P>
+<CODE>free()</CODE> any object returned by these functions.<P>
+
+Therefore also all the strings returned by this package are only valid
+until the next call to the same function is made. This approach is
+selected, because of the nature of access authorization: no string
+returned by the package needs to be valid longer than until the next
+call.<P>
+
+This also makes it easy to plug the AA package in: you don't have to
+ponder whether to <CODE>free()</CODE> something here or is it done
+somewhere else (because it is always done somewhere else).<P>
+
 The strings that the package needs to store are copied
 so the original strings given as parameters to AA
-functions may be freed or modified with no side effects.
-<P>
-<B>Also note:</B>
-The AA package does not <CODE>free()</CODE> anything else
-than what it has itself allocated.
-<P>
+functions may be freed or modified with no side effects.<P>
+
+<B>Also note:</B> The AA package does not <CODE>free()</CODE> anything
+else than what it has itself allocated.  <P>
+
+This module is implemented by <A HREF="HTAABrow.c">HTAABrow.c</A>, and
+it is a part of the <A
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+Library of Common Code</A>.
 
 <PRE>
 #ifndef HTAABROW_H

@@ -1,5 +1,8 @@
-/*		Telnet Acees, Roligin, etc			HTAccess.c
-**		==========================
+/*								     HTTelnet.c
+**	TELNET ACCESS, ROLIGIN, etc.
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 ** Authors
 **	TBL	Tim Berners-Lee timbl@info.cern.ch

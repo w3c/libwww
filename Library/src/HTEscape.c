@@ -1,5 +1,8 @@
-/*		Escape and Unesacpe Illegal Characters in a URI	     HTEscape.c
-**		===============================================
+/*								     HTEscape.c
+**	ESCAPE AND UNESACPE ILLEGAL CHARACTERS IN A URI
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 ** history:
 **	Nov 13 94	Spawned from HTParse, as it then can be used in utility

@@ -1,13 +1,22 @@
 <HTML>
 <HEAD>
-<TITLE>HTStyle: Style management for libwww</TITLE></HEAD>
+<TITLE>HTStyle: Style management for libwww</TITLE>
+</HEAD>
 <BODY>
 
-<H1>Style Definition for Hypertext</H1>Styles allow the translation
-between a logical property of a piece of text and its physical
-representation.<P> A StyleSheet is a collection of styles, defining
-the translation necessary to represent a document. It is a linked list
-of styles.
+<H1>Style Definition for Hypertext</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+Styles allow the translation between a logical property of a piece of
+text and its physical representation. A StyleSheet is a collection of
+styles, defining the translation necessary to represent a document. It
+is a linked list of styles.
 
 <H2>Overriding this module</H2>
 
@@ -31,7 +40,12 @@ HTStypeNamed().<P>
 You can in any case override this function in your own code, which
 will prevent the HTStyle from being loaded.  You will be able to
 redefine your style structure in this case without problems, as no
-other moule needs to know it.
+other moule needs to know it. <P>
+
+This module is implemented by <A HREF="HTStyle.c">HTStyle.c</A>, and
+it is a part of the <A
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+Library of Common Code</A>.
 
 <PRE>
 #ifndef HTStyle_H

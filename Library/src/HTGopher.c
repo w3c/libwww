@@ -1,5 +1,8 @@
-/*			GOPHER ACCESS				HTGopher.c
-**			=============
+/*							       	     HTGopher.c
+**	GOPHER ACCESS
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 ** History:
 **	26 Sep 90	Adapted from other accesses (News, HTTP) TBL

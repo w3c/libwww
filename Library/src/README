@@ -1,3 +1,25 @@
 
-This is the README file which seems to be empty...
+	 WELCOME TO THE WORLD-WIDE WEB LIBRARY OF COMMON CODE
+	 ====================================================
 
+(c) COPYRIGHT CERN 1994.
+Please first read the full copyright statement in the file COPYRIGH.
+
+The CERN World-Wide Web Library of Common Code is a general code base
+that can be used to build clients, servers, and other applications. It
+contains code for accessing HTTP, FTP, Gopher, News, WAIS, Telnet
+servers, and the local file system. Furthermore it provides modules
+for parsing, managing and presenting hypertext objects to the user and
+a wide spectra of generic programming utilities. The Library is the
+basis for many World-Wide Web applications and all the CERN WWW
+software is build on top of it.
+
+For more information on the Library, please look at the page
+
+	http://info.cern.ch/hyperetext/WWW/Library/Status.html
+
+Have fun!
+
+--
+
+libwww@info.cern.ch, November 1994

@@ -1,22 +1,35 @@
 <HTML>
 <HEAD>
 <TITLE>A parser for WAIS source files</TITLE>
-<NEXTID N="z5">
 </HEAD>
 <BODY>
-<H1>WAIS Source file parser</H1>This converter returns a <A
-NAME="z1" HREF="Overview.html#z37">stream</A> object
-into which a <A
-NAME="z3" HREF="../../../Products/WAIS/Overview.html">WAIS</A> source file can
-be written.  The result is put via
-a <A
-NAME="z2" HREF="Overview.html#z38">structured stream</A> into whatever
-format was required for the output
-stream.<P>
-See also: <A
-NAME="z4" HREF="HTWAIS.html">HTWAIS</A> protocol interface
-module
-<PRE>#ifndef HTWSRC_H
+
+<H1>WAIS Source file parser</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This converter returns a <A
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Stream.html">stream
+object</A> into which a <A
+HREF="http://info.cern.ch/hypertext/Products/WAIS/Overview.html">WAIS</A>
+source file can be written.  The result is put via a <A
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Stream">structured
+stream</A> into whatever format was required for the output stream.<P>
+See also: <A NAME="z4" HREF="HTWAIS.html">HTWAIS</A> protocol
+interface module.<P>
+
+This module is implemented by <A HREF="HTWSRC.c">HTWSRC.c</A>, and it is
+a part of the <A
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+Library of Common Code</A>.
+
+<PRE>
+#ifndef HTWSRC_H
 #define HTWSRC_H
 #include "HTUtils.h"
 

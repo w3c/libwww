@@ -1,11 +1,17 @@
 <HTML>
 <HEAD>
 <TITLE>Multithreaded Management</TITLE>
-<NEXTID N="z100">
 </HEAD>
 <BODY>
 
 <H1>Multithreaded Management of Sockets</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
 
 This module contains the routines for handling the set of active
 sockets currently in use by the multithreaded clients. It is an
@@ -75,7 +81,7 @@ actual operation.
 
 <PRE>
 typedef enum _HTThreadAction {
-    THD_SET_WRITE,
+    THD_SET_WRITE=0,
     THD_CLR_WRITE,
     THD_SET_READ,
     THD_CLR_READ,

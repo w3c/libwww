@@ -3,13 +3,25 @@
 <TITLE>Latex Generation</TITLE>
 </HEAD>
 <BODY>
+
 <H1>LaTeX generator</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
 
 This module converts a structured stream from HTML into LaTeX format. The
 conversion is mostly a 1:1 translation, but as the LaTeX compiler is much
 more strict than a typical HTML converter some typographical constraints
-are put on the translation. Only text is translated for the moment. The
-module is a part of the <A HREF="Overview.html">CERN Common WWW Library</A>.
+are put on the translation. Only text is translated for the moment. <P>
+
+This module is implemented by <A HREF="HTTeXGen.c">HTTeXGen.c</A>, and
+it is a part of the <A
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+Library of Common Code</A>.
 
 <PRE>
 #ifndef HTTEXGEN_H

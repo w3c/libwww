@@ -1,5 +1,8 @@
-/*	Displaying messages and getting input for LineMode Browser
-**	==========================================================
+/*								      HTAlert.c
+**	DISPLAYING MESSAGES AND GETTING INPUT FOR LINEMODE BROWSER
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	REPLACE THIS MODULE with a GUI version in a GUI environment!
 **

@@ -1,8 +1,17 @@
+<HTML>
 <HEAD>
+<TITLE>UU Encoding and Decoding</TITLE>
 </HEAD>
 <BODY>
 
 <H1>Encoding to Printable Characters</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
 
 File module provides functions <CODE>HTUU_encode()</CODE> and
 <CODE>HTUU_decode()</CODE> which convert a buffer of bytes to/from RFC
@@ -11,7 +20,12 @@ File module provides functions <CODE>HTUU_encode()</CODE> and
 This technique is similar to the familiar Unix uuencode format in that
 it maps 6 binary bits to one ASCII character (or more aptly, 3 binary
 bytes to 4 ASCII characters).  However, RFC 1113 does not use the same
-mapping to printable characters as uuencode.
+mapping to printable characters as uuencode. <P>
+
+This module is implemented by <A HREF="HTUU.c">HTUU.c</A>, and it is a
+part of the <A
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+Library of Common Code</A>.
 
 <PRE>
 #ifndef HTUU_H

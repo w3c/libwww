@@ -1,5 +1,8 @@
-/*			General SGML Parser code		SGML.c
-**			========================
+/*									 SGML.c
+**	GENERAL SGML PARSER CODE
+**
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
 **
 **	This module implements an HTStream object. To parse an
 **	SGML file, create this object which is a parser. The object
