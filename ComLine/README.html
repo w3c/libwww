@@ -183,11 +183,10 @@ execution.
   <DT>
     <B>-auth</B>
   <DD>
-     If you are willing to try this then you can include your
-     username, password, and the realm for where to apply it using the
-     <B>-auth</B> command line option. I don't want to hear anything
-     about security, OK?  The format is
-     <CODE>user:password@realm</CODE>
+    If you are willing to try this then you can include your username, password,
+    and the realm for where to apply it using the <B>-auth</B> command line option.
+    I don't want to hear anything about security, OK? The format is
+    <CODE>user:password@realm</CODE>
 </DL>
 <H3>
   <A NAME="Format">Data Format Conversions</A>
@@ -253,7 +252,8 @@ following flags:
   <DT>
     <B>-timeout</B> &lt;n&gt;
   <DD>
-    Timeout in seconds on sockets
+    Timeout in seconds on open connections. If we don't get a reply within n
+    secs then about the request. Default timeout is 20 secs
 </DL>
 <H2>
   <A NAME="z16">URI</A>
