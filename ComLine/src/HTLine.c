@@ -38,7 +38,7 @@
 #define APP_VERSION		W3C_VERSION
 
 /* Default page for "-help" command line option */
-#define HELP	"http://www.w3.org/ComLine/User/CommandLine.html"
+#define W3C_HELP		"http://www.w3.org/ComLine/README"
 
 #define DEFAULT_OUTPUT_FILE	"w3c.out"
 #define DEFAULT_RULE_FILE	"w3c.conf"
@@ -74,6 +74,11 @@ typedef struct _ComLine {
     char *		outputfile;
     FILE *	        output;
     HTFormat		format;		        /* Input format from console */
+
+    char *		realm;			/* For automated authentication */
+    char *		user;
+    char *		password;
+
     CLFlags		flags;
 } ComLine;
 	
@@ -198,6 +203,62 @@ PRIVATE int LineTrace (const char * fmt, va_list pArgs)
     return (vfprintf(stderr, fmt, pArgs));
 }
 
+PRIVATE BOOL PromptUsernameAndPassword (HTRequest * request, HTAlertOpcode op,
+					int msgnum, const char * dfault,
+					void * input, HTAlertPar * reply)
+{
+    ComLine * cl = (ComLine *) HTRequest_context(request);
+    char * realm = (char *) input;
+    if (request && cl) {
+
+	/*
+	**  If we have a realm then check that it matches the realm
+	**  that we got from the server.
+	*/
+	if (realm && cl->realm && !strcmp(cl->realm, realm)) {
+	    HTAlert_setReplyMessage(reply, cl->user ? cl->user : "");
+	    HTAlert_setReplySecret(reply, cl->password ? cl->password : "");
+	    return YES;
+	} else {
+	    BOOL status = HTPrompt(request, op, msgnum, dfault, input, reply);
+	    return status ?
+		HTPromptPassword(request, op, HT_MSG_PW, dfault, input, reply) : NO;
+	}
+    }
+    return NO;
+}
+
+PRIVATE BOOL ParseCredentials (ComLine * cl, char * credentials)
+{
+    if (cl && credentials) {
+	char * start = credentials;
+	char * end = credentials;
+
+	/* Make sure we don't get inconsistent sets of information */
+	cl->realm = NULL;
+	cl->user = NULL;
+	cl->password = NULL;
+
+	/* Find the username */
+	while (*end && *end!=':') end++;
+	if (!*end) return NO;
+	*end++ = '\0';
+	cl->user = start;
+	start = end;
+
+	/* Find the password */
+	while (*end && *end!='@') end++;
+	if (!*end) return NO;
+	*end++ = '\0';
+	cl->password = start;
+	start = end;
+
+	/* Find the realm */
+	cl->realm = start;
+    }
+    return YES;
+}
+
 /* ------------------------------------------------------------------------- */
 /*				  MAIN PROGRAM				     */
 /* ------------------------------------------------------------------------- */
@@ -234,6 +295,14 @@ int main (int argc, char ** argv)
     HTProfile_newNoCacheClient(APP_NAME, APP_VERSION);
     HTTrace_setCallback(LineTrace);
 
+    /*
+    ** Delete the default Username/password handler so that we can handle
+    ** parameters handed to us from the command line. The default is set
+    ** by the profile.
+    */
+    HTAlert_deleteOpcode(HT_A_USER_PW);
+    HTAlert_add(PromptUsernameAndPassword, HT_A_USER_PW);
+
     /* Add our own filter to update the history list */
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
 
@@ -247,7 +316,7 @@ int main (int argc, char ** argv)
 	    
 	    /* -? or -help: show the command line help page */
 	    } else if (!strcmp(argv[arg],"-?") || !strcmp(argv[arg],"-help")) {
-		cl->anchor = (HTParentAnchor *) HTAnchor_findAddress(HELP);
+		cl->anchor = (HTParentAnchor *) HTAnchor_findAddress(W3C_HELP);
 		tokencount = 1;
 
 	    /* non-interactive */
@@ -292,6 +361,12 @@ int main (int argc, char ** argv)
 		int hops = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    atoi(argv[++arg]) : DEFAULT_HOPS;
 		if (hops >= 0) HTRequest_setMaxForwards(cl->request, hops);
+
+	    /* automated authentication of format user:password@realm */
+	    } else if (!strncmp(argv[arg], "-auth", 5)) {
+		char * credentials = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    argv[++arg] : NULL;
+		if (credentials) ParseCredentials(cl, credentials);
 
 	    /* rule file */
 	    } else if (!strcmp(argv[arg], "-r")) {

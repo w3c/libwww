@@ -1,152 +1,79 @@
 <HTML>
- <HEAD>
-   <!-- Changed by: Henrik Frystyk Nielsen, 10-Mar-1996 -->
-   <TITLE>Libwww - the W3C Sample Code Library README</TITLE>
- </HEAD>
- 
+<HEAD>
+  <TITLE>Libwww - the W3C Sample Code Library README</TITLE>
+</HEAD>
 <BODY BGCOLOR="#ffffff" TEXT="#000000">
-
- <H1>
-   Libwww - the W3C Sample Code Library README
- </H1>
- <P>
-   <HR>
- <PRE>
- 	(c) COPYRIGHT MIT 1995.
- 	Please first read the full copyright statement in the file COPYRIGH.
- </PRE>
- <P>
- This is the README file which you get when you unwrap the W3C Sample Code
- Library distribution package. Each package contains source code for building
- the Library and a set of example applications. The set of modules included
- in the package is:
- <UL>
-   <LI>
-     <A HREF="#Reference">Sample Code Library (libwww)</A>
-   <LI>
-     <A HREF="#Line">Line Mode Browser (www)</A>
-   <LI>
-     <A HREF="#Mini">Mini Server (webd)</A>
-   <LI>
-     <A HREF="#Command">Command Line Tool (w3c)</A>
-   <LI>
-     <A HREF="#robot">Mini Robot (webbot)</A>
-   <LI>
-     <A HREF="#Socket">Socket Listen Tool (listen)</A>
- </UL>
- <H2>
-   Handling the Distribution Files
- </H2>
- <P>
- A distribution file contains the source code and documentation for the Library
- and the example applications. You can get the distribution files from the
- <A HREF="Library/">Library top page</A> All distribution files are available
- as compressed tar files, gzipped tar files, or as zip files. For the compressed
- tar files, first uncompress and untar the file
- <CODE><I>w3c-libwww-X.X.tar.Z</I></CODE> where X is the version number, for
- example <I>4.0</I>:
- <PRE>	uncompress w3c-libwww-X.X.tar.Z
+<H1>
+  Libwww - the W3C Sample Code Library README
+</H1>
+<P>
+  <HR>
+<PRE>
+ (c) COPYRIGHT MIT 1995.
+ Please first read the full copyright statement in the file <A HREF="COPYRIGHT.html">COPYRIGHT</A>.
  
- 	gunzip w3c-libwww-X.X.tar.gz
- </PRE>
- <P>
- Then untar the file by typing
- <PRE>	tar xf w3c-libwww-X.X.tar
- </PRE>
- <P>
- For the zip files, type the following:
- <PRE>	unzip w3c-libwww-X.X.zip
- </PRE>
- <H2>
-   Installation
- </H2>
- <P>
- Please look at the special <A HREF="INSTALL.html">installation
- documentation</A>
- <H2>
-   <A NAME="Reference">Sample Code Library (libwww)</A>
- </H2>
- <P>
- The <A HREF="Library/">W3C Sample Code Library</A> is a general code base
- that can be used to build clients and servers. It contains code for accessing
- HTTP, FTP, Gopher, News, WAIS, Telnet servers, and the local file system.
- Furthermore it provides modules for parsing, managing and presenting hypertext
- objects to the user and a wide spectra of generic programming utilities.
- The Library is the basis for many <A HREF="TheProject.html">World-Wide Web</A>
- applications and all the W3C software is build on top of it. The Library
- is a required part of all other W3C applications in this distribution.
- <H2>
-   <A NAME="Line">Line Mode Browser (www)</A>
- </H2>
- <P>
- The <A HREF="LineMode/">W3C Line Mode Browser</A> is a simple character based
- client. It is developed for use on dumb terminals and as a test tool for
- the Common Code Library. It can be run in interactive mode, non- interactive
- mode and as a proxy client. Furthermore it gives a variety of possibilities
- for data format conversion, filtering etc. It is primarily intended as a
- test-tool for quick access to the Web or used in batch jobs.
- <P>
- Installation is very simple as the application can run without any particular
- setup. You can specify your own <EM>HOME PAGE</EM> using the
- <CODE>WWW_HOME</CODE> environment variable. Remember toy setup a
- <CODE>NNTPSERVER</CODE> environment variable before you try to access a news
- server.
- <H2>
-   <A NAME="Mini">Mini Server (webd)</A>
- </H2>
- <P>
- <B>This tool is not maintained anymore!!!</B>
- <P>
- The <A HREF="MiniServ/">W3C Mini Server</A> is a cross platform server frame
- work that can be used as a basis for writing portable servers. It is
- <B>NOT</B> a full server - only a frame! It is developed in C and serves
- as an example of a server application using the <A HREF="../Library/">W3C
- Sample Code Library</A>.
- <H2>
-   <A NAME="Command">Command Line Tool (w3c)</A>
- </H2>
- <P>
- The <A HREF="ComLine/">W3C Command Line Tool</A> is a cross platform command
- line tool for accessing the Web. It is developed in C and serves as an example
- of a client application using the <A HREF="../Library/">W3C Sample Code
- Library</A> and as a test-tool for quick access to the Web from scripts,
- cron jobs etc. It gives a variety of possibilities for data format conversion,
- filtering etc. It is primarily intended as a test-tool for quick access to
- the Web or used in scripts, cron jobs etc.
- <H2>
-   <A NAME="robot">Mini Robot (webbot)</A>
- </H2>
- <P>
- The <A HREF="Robot/">W3C Mini Robot</A> is a cross platform command line
- tool for accessing the Web. It is developed in C and serves as an example
- of a robot application using the <A HREF="../Library/">W3C Sample Code
- Library</A> and as a test-tool for quick access to the Web from scripts,
- cron jobs etc. It is primarily intended as a test-tool for quick access to
- the Web or used in scripts, cron jobs etc.
- <H2>
-   <A NAME="Socket">Socket Listen Tool (listen)</A>
- </H2>
- <P>
- The <A HREF="Listen/">W3C Socket Listen Tool</A> is a cross platform tool
- for debugging what is being sent over the wire. It simply listens on a socket
- and forwards everything to stderr or whatever is available on the actual
- platform. It is developed in C and serves as an example application using
- the <A HREF="../Library/">W3C Sample Code Library</A>
- <H2>
-   Got Problems or Comments?
- </H2>
- <P>
- If you encounter problems, would like to feed back suggestions good ideas
- etc. then please send a mail explaining your problem <EM>and</EM> the version
- of the W3C software to <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>
- <P>
- <B>Have fun!</B>
- <P>
-   <HR>
- <ADDRESS>
-   Henrik Frystyk Nielsen,
-   <A HREF="mailto:libwww@w3.org">libwww@w3.org</A><BR>
-   @(#) $Id$
- </ADDRESS>
- </BODY></HTML>
-
+</PRE>
+<P>
+When you download a libwww distribution file, you get the following components:
+<UL>
+  <LI>
+    a <A HREF="Library/User/ReleaseNotes.html">list of new features</A>
+  <LI>
+    <A HREF="INSTALL.html">installation guide</A>
+  <LI>
+    libwww <A HREF="Library/src/">source code</A>,
+  <LI>
+    libwww <A HREF="Library/User/">documentation</A>, and the
+  <LI>
+    <A HREF="Consortium/Legal/copyright-software.html">W3C Copyright Statement</A>
+</UL>
+<P>
+You also get <A HREF="Library/User/Applications.html">some sample
+applications</A> that show how to use libwww including the
+<A HREF="LineMode/">Line Mode Browser</A>, the <A HREF="ComLine/">Web Command
+Tool</A>, and the <A HREF="Robot/">Mini Robot</A>.
+<H2>
+  Handling the Distribution Files
+</H2>
+<P>
+A distribution file contains the source code and documentation for the Library
+and the example applications. You can get the distribution files from the
+<A HREF="Library/">Library top page</A> All distribution files are available
+as compressed tar files, gzipped tar files, or as zip files. For the compressed
+tar files, first uncompress and untar the file
+<CODE><I>w3c-libwww-X.X.tar.Z</I></CODE> where X is the version number, for
+example <I>4.0</I>:
+<PRE>uncompress w3c-libwww-X.X.tar.Z
+ 
+ gunzip w3c-libwww-X.X.tar.gz
+</PRE>
+<P>
+Then untar the file by typing
+<PRE>tar xf w3c-libwww-X.X.tar
+</PRE>
+<P>
+For the zip files, type the following:
+<PRE>unzip w3c-libwww-X.X.zip 
+</PRE>
+<H2>
+  Installation
+</H2>
+<P>
+You are now ready to install libwww - please look at the special
+<A HREF="INSTALL.html">installation documentation</A>
+<H2>
+  Got Problems or Comments?
+</H2>
+<P>
+If you encounter problems, would like to feed back suggestions good ideas
+etc. then please send a mail
+&lt;<A HREF="mailto:wwwlib@w3.org">www-lib@w3.org</A>&gt;
+<P>
+<B>Have fun!</B>
+<P>
+  <HR>
+<ADDRESS>
+  <A HREF="../People/Frystyk/">Henrik Frystyk Nielsen</A>,<BR>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>
