@@ -91,6 +91,7 @@ AC_PATH_PROG(TAR, tar, tar)
 AC_PATH_PROG(CVS, cvs, cvs)
 AC_PATH_PROG(SED, sed, sed)
 AC_PATH_PROGS(COMPRESS, gzip compress, compress)
+AC_PATH_PROGS(WWW, www, [""])
 AC_PROG_LN_S
 
 dnl Checks for misc files
@@ -272,7 +273,6 @@ AC_ARG_WITH(regex,
     AC_DEFINE(HT_POSIX_REGEX)
     if test "x$withval" = "xyes"; then
       AC_CHECK_LIB(rx, regexec, [ LIBS="-lrx $LIBS" ] )
-      LIBS="$withval $LIBS"
     else
       AC_ADDLIB($withval)
       AC_TRY_LINK([],
