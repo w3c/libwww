@@ -29,7 +29,7 @@ part of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code Library</A>.
   Initializing and Terminating libwww
 </H2>
 <P>
-These two functions initiates memory and settings for the libwww core and
+These two functions initialize memory and settings for the libwww core and
 cleans up memory kept by libwww core when exiting the application. They
 &nbsp;MUST be used as libwww otherwise is in a undefined state.
 <PRE>extern BOOL HTLibInit (const char * AppName, const char * AppVersion);
@@ -87,7 +87,7 @@ extern BOOL HTLib_setAppVersion (const char * version);
 </H2>
 <P>
 Libwww does normally use the local file system for dumping unknown data objects,
-file cache etc. In some situations this is not desired and we can therefore
+file cache etc. In some situations this is not desired, and we can therefore
 turn it off. This mode also prevents you from being able to access other
 resources where you have to login telnet, for example.
 <PRE>extern BOOL HTLib_secure (void);

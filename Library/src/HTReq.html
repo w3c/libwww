@@ -97,7 +97,7 @@ extern HTRequest * HTRequest_new (void);
 </H3>
 <P>
 Clears all protocol specific information so that the request object can be
-used for another request. It should be use with care as application specific
+used for another request. It should be used with care as application specific
 information is <B>not</B> re-initialized. Returns YES if OK, else NO.
 <PRE>
 extern BOOL HTRequest_clear (HTRequest * me);
@@ -141,7 +141,7 @@ These are the "<I>basic request methods</I>" provided directly by the Request
 class. This is a very low level API as the caller must have set up the request
 object before passing it to libwww. There are two versions: one for issuing
 client requests and one for issuing server requests. You will probably most
-often use the client version but libwww can in fact also deal with incoming
+often use the client version, but, in fact, libwww can also deal with incoming
 connections. You can find many higher level issuing functions in the
 <A HREF="HTAccess.html">HTAccess module</A>. If you like, you can of course
 use this directly!
@@ -179,8 +179,8 @@ to get to these objects...
 Every request object has an <A HREF="HTAnchor.html">anchor</A> associated
 with it. The anchor normally lives until the application terminates but a
 request object only lives as long as the request is being serviced. If the
-anchor that we have requested is infact a child anchor then we always load
-the parent anchor and then after the load jump to the location. A child anchor
+anchor that we have requested is a child anchor then we always load
+the parent anchor; after the load jump to the location. A child anchor
 is a an anchor which points to a subpart of the document (has a "#" in the
 URL).
 <PRE>
@@ -289,9 +289,9 @@ extern int HTRequest_forceFlush (HTRequest * request);
   <A NAME="Error">Dealing with Request Error Messages</A>
 </H2>
 <P>
-Errors are like almost anything kept in lists and a error list can be associated
-with a request using the following functions. In order to make life easier,
-there are also some easy mapping functions to the
+Errors are, like almost anything,  kept in lists. An error list can be
+associated with a request using the following functions. In order to make 
+life easier, there are also some easy mapping functions to the
 <A HREF="HTError.html">HTError object</A>, so that you can add an error directly
 to a request object.
 <PRE>
@@ -362,12 +362,12 @@ extern int HTRequest_maxForwards (HTRequest * request);
   <A NAME="preemptive">Preemptive or Non-preemptive Access</A>
 </H2>
 <P>
-A access scheme is defined with a default for using either preemptive (blocking
-I/O) or non-premitve (non-blocking I/O). This is basically a result of the
+An access scheme is defined with a default for using either preemptive (blocking
+I/O) or non-preemptive (non-blocking I/O). This is basically a result of the
 implementation of the protocol module itself. However, if non-blocking I/O
 is the default then some times it is nice to be able to set the mode to blocking
-instead. For example when loading the first document (the home page) then
-blocking can be used instead of non-blocking.
+instead. For example, when loading the first document (the home page),
+blocking mode can be used instead of non-blocking.
 <PRE>
 extern void HTRequest_setPreemptive (HTRequest *request, BOOL mode);
 extern BOOL HTRequest_preemptive (HTRequest *request);
@@ -574,7 +574,7 @@ are three ways to extend the set of headers that are sent in a request:
     A simple <A HREF="HTAssoc.html">association list</A>
   <LI>
     A <A HREF="HTHeader.html">stream oriented approach where the stream (called
-    a generator)</A> has direct access to the outgoing stream. That it, it can
+    a generator)</A> has direct access to the outgoing stream. That is, it can
     add any header it likes.
   <LI>
     <A HREF="/Protocols/HTTP/ietf-http-ext/">HTTP extension mechanism</A> which
@@ -689,7 +689,7 @@ extern HTList * HTRequest_charset (HTRequest *request);
 <P>
 The Library has two concepts of caching: in memory and on file. When loading
 a document, this flag can be set in order to define who can give a response
-to the request. The mempory buffer is considered to be equivalent to a history
+to the request. The memory buffer is considered to be equivalent to a history
 buffer. That is, it doesn't not follow the same expiration mechanism that
 is characteristic for a persistent file cache.
 <P>

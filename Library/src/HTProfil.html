@@ -109,7 +109,7 @@ extern void HTProfile_newHTMLNoCacheClient (
 <P>
 We also have a blocking (preemptive) version of the same client interface.
 The difference is that this version uses traditional blocking sockets and
-hence only one reques can be performed at the same time.
+hence only one request can be performed at the same time.
 <PRE>
 extern void HTProfile_newPreemptiveClient (
 	const char * AppName,
@@ -148,7 +148,7 @@ extern void HTProfile_newPreemptiveRobot (
 This is a generic profile cleanup that should be used on all the profiles
 above. This will clean up the memory allocated by the profile and by the
 Library core itself. After calling this you can not call any Library function
-again. This call also superseeds the termination function for teh Library
+again. This call also supersedes the termination function for the Library
 core, <CODE>HTLibTerminate()</CODE> so that you don't have to call that after
 calling this function.
 <PRE>extern void HTProfile_delete (void);
