@@ -127,7 +127,7 @@ SPECIFIC = $(WWW)/All/*/Makefile.include $(WWW)/All/Implementation/Makefile* \
 	$(WC)/vms/patchlevel.h $(WC)/vms/ufc-crypt.h \
 	$(WC)/vms/crypt.c $(WC)/vms/crypt_util.c \
 	$(WC)/vms/getline.c $(WC)/vms/getpass.c \
-	$(WC)/vms/HTVMSUtil.h $(WC)/vms/HTVMSUtil.c
+	$(WC)/vms/HTVMSUtils.h $(WC)/vms/HTVMSUtils.c
 
 
 #	Library
