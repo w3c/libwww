@@ -762,6 +762,8 @@ PRIVATE int SGML_write (HTStream * context, const char * b, int l)
 			    text = b;
 			    count = 0;
 			    context->state = S_text;
+			} else if (c == '-') {
+			    context->state = S_com_2a;
 			} else
 			    context->state = S_com;
 			break;
