@@ -42,6 +42,10 @@ int main (int argc, char ** argv)
     /* Create a new premptive client */
     HTProfile_newNoCacheClient("libwww-TRACE", "1.0");
 
+#if 0
+    HTSetTraceMessageMask("sop");
+#endif
+
     /* Add our own filter to handle termination */
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
 
@@ -49,7 +53,7 @@ int main (int argc, char ** argv)
     if (argc >= 3) {
 	dst_str = argv[1];
 	max_forward = atoi(argv[2]);
-	if (max_forward<0 || max_forward>10) max_forward==1;
+	if (max_forward<0 || max_forward>10) max_forward=1;
     } else {
 	printf("Type the URI of the destination you want to TRACE and the max number of hops you want to try\n");
 	printf("\t%s <destination> <hops>\n", argv[0]);
