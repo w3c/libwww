@@ -15,6 +15,7 @@
 
 #include "WWWLib.h"			      /* Global Library Include file */
 #include "WWWApp.h"				        /* Application stuff */
+#include "HText.h"
 
 #include "HTRobot.h"			     		 /* Implemented here */
 
@@ -51,6 +52,7 @@ typedef struct _Robot {
     HTParentAnchor *	anchor;
     int			depth;			     /* How deep is our tree */
     HTList *		hyperdoc;	     /* List of our HyperDoc Objects */
+    HTList *		htext;			/* List of our HText Objects */
     struct timeval *	tv;				/* Timeout on socket */
     char *		cwd;				  /* Current dir URL */
     HTList *		converters;
@@ -82,12 +84,9 @@ typedef struct _HyperDoc {
 ** This is the HText object that is created every time we start parsing a 
 ** HTML object
 */
-typedef struct _HText {
+struct _HText {
     HTRequest *		request;
-} HText;
-
-typedef struct _HTStyle HTStyle;
-typedef struct _HTStyleSheet HTStyleSheet;
+};
 
 PUBLIC HText * HTMainText = NULL;
 PUBLIC HTParentAnchor * HTMainAnchor = NULL;
@@ -144,6 +143,7 @@ PRIVATE Robot * Robot_new (void)
 	(me->tv = (struct timeval*) calloc(1, sizeof(struct timeval))) == NULL)
 	outofmem(__FILE__, "Robot_new");
     me->hyperdoc = HTList_new();
+    me->htext = HTList_new();
     me->tv->tv_sec = DEFAULT_TIMEOUT;
     me->cwd = HTFindRelatedName();
     me->output = OUTPUT;
@@ -166,6 +166,13 @@ PRIVATE BOOL Robot_delete (Robot * me)
 	    while ((pres = (HyperDoc *) HTList_nextObject(cur)))
 		HyperDoc_delete(pres);
 	    HTList_delete(me->hyperdoc);
+	}
+	if (me->htext) {
+	    HTList * cur = me->htext;
+	    HText * pres;
+	    while ((pres = (HText *) HTList_nextObject(cur)))
+		HText_free(pres);
+	    HTList_delete(me->htext);
 	}
 	if (me->logfile) HTLog_close();
 	if (me->output && me->output != STDOUT) fclose(me->output);
@@ -268,7 +275,8 @@ PRIVATE int timeout_handler (HTRequest * request)
     if (SHOW_MSG) TTYPrint(TDEST, "Robot....... Request timeout...\n");
     HTRequest_kill(request);
     Thread_delete(mr, request);
-    return 0;
+    if (HTNet_isEmpty()) Cleanup(mr, -1);
+    return HT_OK;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -279,10 +287,21 @@ PUBLIC HText * HText_new2 (HTRequest * request, HTParentAnchor * anchor,
 			   HTStream * stream)
 {
     HText * me;
+    Robot * mr = (Robot *) HTRequest_context(request);
     if ((me = (HText *) calloc(1, sizeof(HText))) == NULL)
 	outofmem(__FILE__, "HText_new2");
+
+    /* Bind the HText object together with the Request Object */
     me->request = request;
+
+    /* Add this HyperDoc object to our list */
+    if (!mr->htext) mr->htext = HTList_new();
+    HTList_addObject(mr->htext, (void *) me);
     return me;
+}
+
+PUBLIC void HText_free (HText * me) {
+    if (me) free (me);
 }
 
 PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
@@ -350,7 +369,6 @@ PUBLIC void HText_endAppend (HText * text) {}
 PUBLIC void HText_setStyle (HText * text, HTStyle * style) {}
 PUBLIC void HText_beginAppend (HText * text) {}
 PUBLIC void HText_appendParagraph (HText * text) {}
-PUBLIC BOOL HText_delete (HText * me) { return YES; }
 
 /* ------------------------------------------------------------------------- */
 /*				  MAIN PROGRAM				     */

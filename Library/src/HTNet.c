@@ -572,7 +572,7 @@ PUBLIC BOOL HTNet_delete (HTNet * net, int status)
 				 next->request, next->sockfd, next);
 		    HTList_addObject(HTNetActive, (void *) next);
 		    HTList_removeObject(HTNetPersistent, (void *) next);
-		    (*(next->cbf))(next->sockfd, next->request, FD_NONE);
+		    (*(next->cbf))(next->sockfd, next->request, FD_WRITE);
 		    break;
 		}
 	    }

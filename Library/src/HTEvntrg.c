@@ -746,7 +746,8 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 		/* This drives you crazy! */
 		if (THD_TRACE) TTYPrint(TDEST,"Event Loop.. select timeout\n");
 #endif
-		(*(seltime.tcbf))(seltime.request);
+		if ((status = (*(seltime.tcbf))(seltime.request)) != HT_OK)
+		    return status;
 	    } else
 		continue;
 	}
