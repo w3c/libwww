@@ -22,9 +22,10 @@ inc : inc-recursive
 
 all-local : inc legal
 
-LEGAL =	../WELCOME \
+LEGAL =	WELCOME \
 	README \
 	INSTALL \
+	NEWS \
 	COPYRIGH \
 	PATCHES \
 	CERN
@@ -32,6 +33,8 @@ LEGAL =	../WELCOME \
 legal : $(LEGAL)
 
 DIST_OTHER = \
+	INSTALL.html \
+	README.html \
 	$(LEGAL)
 
 SUBDIRS = Library PICS LineMode Robot ComLine MiniServ Listen Icons
@@ -39,9 +42,9 @@ SUBDIRS = Library PICS LineMode Robot ComLine MiniServ Listen Icons
 #
 #	Hypertext supplied in text format
 #
-$(top_srcdir)/../WELCOME : /afs/w3.org/devel/WELCOME.html
-	www -p -na http://www.w3.org/devel/WELCOME.html \
-		-o $(top_srcdir)/../WELCOME
+$(top_srcdir)/WELCOME : /afs/w3.org/devel/WWW/WELCOME.html
+	www -p -na http://www.w3.org/devel/WWW/WELCOME.html \
+		-o $(top_srcdir)/WELCOME
 
 $(top_srcdir)/README : /afs/w3.org/devel/WWW/README.html
 	www -p -na http://www.w3.org/devel/WWW/README.html \
@@ -50,6 +53,10 @@ $(top_srcdir)/README : /afs/w3.org/devel/WWW/README.html
 $(top_srcdir)/INSTALL : /afs/w3.org/devel/WWW/INSTALL.html
 	www -p -na http://www.w3.org/devel/WWW/INSTALL.html \
 		-o $(top_srcdir)/INSTALL
+
+$(top_srcdir)/NEWS : /afs/w3.org/devel/WWW/Library/User/ReleaseNotes.html
+	www -p -na http://www.w3.org/devel/WWW/Library/User/ReleaseNotes.html \
+		-o $(top_srcdir)/NEWS
 
 $(top_srcdir)/COPYRIGH : /afs/w3.org/devel/WWW/COPYRIGHT.html
 	www -p -na http://www.w3.org/devel/WWW/COPYRIGHT.html \
