@@ -178,7 +178,7 @@ BEGIN
     ICON            IDR_MAINFRAME,IDC_STATIC,11,15,20,20
     LTEXT           "Henrik Frystyk Nielsen",IDC_STATIC,41,14,128,8
     DEFPUSHBUTTON   "OK",IDOK,178,7,32,14,WS_GROUP
-    LTEXT           "W3C Copyright (C) 1998",IDC_STATIC,41,27,126,8
+    LTEXT           "W3C Copyright (C) 1998-2001",IDC_STATIC,41,27,126,8
 END
 
 IDD_LOCATION DIALOGEX 0, 0, 267, 98
@@ -422,15 +422,18 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
+            VALUE "Comments", "\0"
             VALUE "CompanyName", "\0"
             VALUE "FileDescription", "WinCom MFC Application\0"
             VALUE "FileVersion", "1, 0, 0, 1\0"
             VALUE "InternalName", "WebCommander\0"
-            VALUE "LegalCopyright", "Copyright (C) 1998\0"
+            VALUE "LegalCopyright", "Copyright (C) 1998-2001\0"
             VALUE "LegalTrademarks", "W3C\0"
             VALUE "OriginalFilename", "WinCom.exe\0"
+            VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "WebCommander Application\0"
             VALUE "ProductVersion", "1, 0, 0, 1\0"
+            VALUE "SpecialBuild", "\0"
         END
     END
     BLOCK "VarFileInfo"
@@ -768,7 +771,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_APP_VERSION         "1.01a"
+    IDS_APP_VERSION         "1.02"
     IDS_APP_UPGRADE         "Do you want to check the W3C site to see if an upgrade is available?"
     IDS_BREAK_CACHE_LOCK    "The persistent cache is currently locked. This may indicate that the cache is already in use.\n\nIf you are absolutely sure this is not the case then you can delete the lock.\n\nDo you want to delete the lock?"
     ID_APP_UPGRADE          "Do you want to check the W3C site to see if an upgrade is available?"
