@@ -140,6 +140,11 @@ PRIVATE BOOL killPipeline (HTHost * host, HTEventType type)
 		    (*net->event.cbf)(HTChannel_socket(host->channel), net->event.param, type);
 		}
 	    }
+	    /* Richard Atterer (18/04/03): Close the connection, 
+	     * to prevent the server from sending us the remainder
+	     * of the data for the currently active request. */
+	    HTChannel_setSemaphore(host->channel, 0);
+	    HTHost_clearChannel(host, HT_INTERRUPTED);    
 	}
 	return YES;
     }

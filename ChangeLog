@@ -1,5 +1,33 @@
 Changes with libwww 5.40
 
+2003-04-18      Jose Kahan <jose@w3.org>
+
+	* Richard Atterer: HTHost_killpipe() didn't behave correctly:
+          The private function killPipeLine() called by it wasn't 
+          closing the HTTP/1.1 pipelined connection. This could cause
+	  many problems:
+
+	  - We call HTHost_killPipe() while the pipeline is active, in 
+            the middle of a download
+  	  - The requests of the pipeline are removed from the queue,
+            but the connection is still open
+          - Instead of executing the main loop, we *immediately* 
+            start another request for the same host.
+          - Because the connection is still up, the request is 
+            added to the pipeline and the HTTP request headers are 
+            sent off
+          - The new request's event object now "listens" to the connection
+          - Instead of the HTTP reply headers it expects, it only gets 
+            what it thinks is "garbage" - in fact, it is the remaining 
+            data of the request which was aborted by HTHost_killPipe() 
+            earlier
+          - libwww concludes that "this is a HTTP 0.9 or earlier host" 
+            and aborts the new request with an error :-(
+
+	  The solution was to close the connection inside killPipeline(), 
+          but only if the pipeline isn't idle, i.e. it contains 1 or 
+          more requests.
+
 2003-04-14      Jose Kahan <jose@w3.org>
 
         * The previous patch made a call to strcasecmp which isn't 
