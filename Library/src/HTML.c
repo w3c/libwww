@@ -521,7 +521,7 @@ PRIVATE void HTML_start_element ARGS4(
 	
     case HTML_LI:
         UPDATE_STYLE;
-	if (me->sp[1].tag_number != HTML_DIR)
+	if (me->sp[0].tag_number != HTML_DIR)
 	    HText_appendParagraph(me->text);
 	else
 	    HText_appendCharacter(me->text, '\t');	/* Tab @@ nl for UL? */

@@ -26,6 +26,9 @@
 # LIBDIR	Directory for installed library
 #______________________________________________________________________
 
+#  If this env var is set to something else Some makes will use that instead
+SHELL = /bin/sh
+
 #	.h files are distributed but originally are made from the
 #	self-documenting hypertext files.
 
@@ -185,9 +188,10 @@ $(WWW)/Copyright.txt : $(WWW)/../Copyright.html
 
 OE = $(LOB)/.created
 $(OE) :
-	if [ ! -r $(WTMP) ] ; then mkdir $(WTMP); fi
-	if [ ! -r $(WTMP)/Library ] ; then mkdir $(WTMP)/Library; fi
-	if [ ! -r $(WTMP)/Library/$(WWW_MACH) ] ; then mkdir $(WTMP)/Library/$(WWW_MACH); fi
+	if [ ! -r $(WTMP) ] ; then mkdir $(WTMP); else echo OK ; fi
+	if [ ! -r $(WTMP)/Library ] ; then mkdir $(WTMP)/Library; else echo OK ; fi
+	if [ ! -r $(WTMP)/Library/$(WWW_MACH) ] ; \
+		then mkdir $(WTMP)/Library/$(WWW_MACH); else echo OK ; fi
 	touch $@
 
 $(LOB)/HTList.o : $(OE) $(CMN)HTList.c $(CMN)HTUtils.h $(CMN)HTList.h

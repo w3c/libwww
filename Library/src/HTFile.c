@@ -280,6 +280,8 @@ PUBLIC char * HTLocalName ARGS1(CONST char *,name)
     char * host = HTParse(name, "", PARSE_HOST);
     char * path = HTParse(name, "", PARSE_PATH+PARSE_PUNCTUATION);
     
+    HTUnEscape(path);	/* Interpret % signs */
+    
     if (0==strcmp(access, "file")) {
         free(access);	
 	if ((0==strcmp(host, HTHostName())) || !*host) {
@@ -580,6 +582,8 @@ PUBLIC int HTLoadFile ARGS4 (
     }
 #else
 
+    free(filename);
+    
 /*	For unix, we try to translate the name into the name of a transparently
 **	mounted file.
 **
@@ -620,7 +624,6 @@ PUBLIC int HTLoadFile ARGS4 (
 	    dp = opendir(localname);
 	    if (!dp) {
 forget_multi:
-		free(filename);  
 		free(localname);
 		return HTLoadError(sink, 500,
 			"Multiformat: directory scan failed.");
@@ -660,7 +663,6 @@ forget_multi:
 		goto open_file;
 		
 	    } else { 			/* If not found suitable file */
-		free(filename);  
 		free(localname);
 		return HTLoadError(sink, 403,	/* List formats? */
 		   "Could not find suitable representation for transmission.");
@@ -694,11 +696,13 @@ forget_multi:
 		DIR *dp;
 		struct direct * dirbuf;
 		
+		char * logical;
+		char * tail;
+		
 		BOOL present[HTML_A_ATTRIBUTES];
 		char * value[HTML_A_ATTRIBUTES];
 		
 		char * tmpfilename = NULL;
-		char * shortfilename = NULL;
 		struct stat file_info;
 		
 		if (TRACE)
@@ -709,6 +713,7 @@ forget_multi:
 **	marker file can be browsed
 */
 		if (HTDirAccess == HT_DIR_FORBID) {
+		    free(localname);
 		    return HTLoadError(sink, 403,
 		    "Directory browsing is not allowed.");
 		}
@@ -722,7 +727,6 @@ forget_multi:
 		    strcat(enable_file_name, "/");
 		    strcat(enable_file_name, HT_DIR_ENABLE_FILE);
 		    if (stat(enable_file_name, &file_info) != 0) {
-			free(filename);  
 			free(localname);
 			return HTLoadError(sink, 403,
 			"Selective access is not enabled for this directory");
@@ -732,7 +736,6 @@ forget_multi:
  
 		dp = opendir(localname);
 		if (!dp) {
-		    free(filename);  
 		    free(localname);
 		    return HTLoadError(sink, 403, "This directory is not readable.");
 		}
@@ -740,6 +743,9 @@ forget_multi:
 
  /*	Directory access is allowed and possible
  */
+		logical = HTAnchor_address((HTAnchor*)anchor);
+		tail = strrchr(logical, '/') +1;	/* last part or "" */
+		
 		target = HTML_new(anchor, format_out, sink);
 		targetClass = *target->isa;	/* Copy routine entry points */
 		    
@@ -748,19 +754,21 @@ forget_multi:
 				present[i] = (i==HTML_A_HREF);
 		}
 		
-		START(HTML_TITLE);
-		PUTS(filename);
-		END(HTML_TITLE);    
-
-		START(HTML_H1);
-		shortfilename=strrchr(localname,'/');
-		/* put the last part of the path in shortfilename */
-		shortfilename++;               /* get rid of leading '/' */
-		if (*shortfilename=='\0')
-		    shortfilename--;
-		PUTS(shortfilename);
-		END(HTML_H1);
-
+		{
+		    char * printable = NULL;
+		    StrAllocCopy(printable, tail);
+		    HTUnEscape(printable);
+		    START(HTML_TITLE);
+		    PUTS(*printable ? printable : "Welcome ");
+		    PUTS(" directory");
+		    END(HTML_TITLE);    
+    
+		    START(HTML_H1);
+		    PUTS(*printable ? printable : "Welcome");
+		    END(HTML_H1);
+		    free(printable);
+		}
+		
                 if (HTDirReadme == HT_DIR_README_TOP)
 		    do_readme(target, localname);
 		
@@ -771,7 +779,6 @@ forget_multi:
 		START(HTML_DIR);		
 
 		while (dirbuf = readdir(dp)) {
-		    START(HTML_LI);
 			    /* while there are directory entries to be read */
 		    if (dirbuf->d_ino == 0)
 				    /* if the entry is not being used, skip it */
@@ -780,13 +787,15 @@ forget_multi:
 		    if (!strcmp(dirbuf->d_name,"."))
 			continue;      /* skip the entry for this directory */
 			
-		    if (strcmp(dirbuf->d_name,".."))
+		    if (strcmp(dirbuf->d_name,"..") != 0) {
 				/* if the current entry is parent directory */
 			if ((*(dirbuf->d_name)=='.') ||
 			    (*(dirbuf->d_name)==','))
 			    continue;    /* skip those files whose name begins
 					    with '.' or ',' */
-
+		    } else {
+		        if (!*tail) continue; /* No up from top level */
+		    }
 		    StrAllocCopy(tmpfilename,localname);
 		    if (strcmp(localname,"/")) 
 					/* if filename is not root directory */
@@ -800,17 +809,23 @@ forget_multi:
 		    StrAllocCat(tmpfilename,dirbuf->d_name);
 		    /* append the current entry's filename to the path */
 		    HTSimplify(tmpfilename);
+		    
+		    /* Output the directory entry */
 	    
+		    START(HTML_LI);
 		    {
-			char * relative = (char*) malloc(
-			    strlen(shortfilename) + strlen(dirbuf->d_name)+2);
+			char * relative;
+			char * escaped = HTEscape(
+				dirbuf->d_name, URL_XPALPHAS);
+			/* If empty tail, gives absolute ref below */
+			relative = (char*) malloc(
+			    strlen(tail) + strlen(escaped)+2);
 			if (relative == NULL) outofmem(__FILE__, "DirRead");
-/*		sprintf(relative, "%s/%s", shortfilename, dirbuf->d_name);*/
-/* Won't work for root, or mapped names, so use following line */
-			sprintf(relative, "./%s", dirbuf->d_name);
+			sprintf(relative, "%s/%s", tail, escaped);
 			value[HTML_A_HREF] = relative;
 			(*targetClass.start_element)(
 				    target,HTML_A, present, value);
+			free(escaped);
 			free(relative);
 		    }
 		    stat(tmpfilename, &file_info);
@@ -832,6 +847,7 @@ forget_multi:
 		} /* end while directory entries left to read */
 		
 		closedir(dp);
+		free(logical);
 		free(tmpfilename);
 		
 #ifdef SORT
@@ -853,7 +869,6 @@ forget_multi:
 		END_TARGET;
 		FREE_TARGET;
 		    
-		free(filename);  
 		free(localname);
 		return HT_LOADED;	/* document loaded */
 		
@@ -887,7 +902,6 @@ open_file:
 */
     if (fd<0) {
 	if (strcmp(nodename, HTHostName())!=0) {
-	    free(filename);
 	    fd = HTFTPLoad(addr, anchor, format_out, sink);
 	    if (fd<0) return HTInetStatus("FTP file load");
 	    return fd;
@@ -899,14 +913,12 @@ open_file:
 */
     if (fd<0) {
     	if (TRACE)
-    	printf("Can't open `%s', errno=%d\n", filename, errno);
-	free(filename);
+    	printf("Can't open `%s', errno=%d\n", addr, errno);
 	return HTLoadError(sink, 403, "Can't access requested file.");
     }
     
     HTParseSocket(format, format_out, anchor, fd, sink);
     NETCLOSE(fd);
-    free(filename);
     return HT_LOADED;
 
 }

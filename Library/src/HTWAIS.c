@@ -87,7 +87,7 @@ PRIVATE char	line[2048];	/* For building strings to display */
 #include "HTParse.h"
 #include "HTFormat.h"
 #include "HTTCP.h"
-#include "HTWSRC.h"		/* Need some bits from here */
+/* #include "HTWSRC.h"	*/	/* Need some bits from here */
 
 /*		Hypertext object building machinery
 */
@@ -439,7 +439,7 @@ display_search_response ARGS4(
 	} else { /* Not archie */
 	    docname =  WWW_from_WAIS(docid);
 	    if (docname) {
-		char * dbname = HTDeSlash(database);
+		char * dbname = HTEscape(database, URL_XPALPHAS);
 		sprintf(line, "%s/%s/%d/%s",		/* W3 address */
 				    dbname,
 		    head->Types ? head->Types[0] : "TEXT",
@@ -530,8 +530,8 @@ PUBLIC int HTLoadWAIS ARGS4(
     SearchResponseAPDU  *retrieval_response = 0;
     char keywords[MAX_KEYWORDS_LENGTH + 1];
     char *server_name;	
-    char *wais_database;		/* name of current database */
-    char *www_database;			/* Same name with deslashed */
+    char *wais_database = NULL;		/* name of current database */
+    char *www_database;			/* Same name escaped */
     char *service;
     char *doctype;
     char *doclength;
@@ -612,7 +612,9 @@ PUBLIC int HTLoadWAIS ARGS4(
 	 return HTLoadError(sink, 500, "Can't open connection to WAIS server");
     }
 
-    wais_database = HTEnSlash(www_database);
+    StrAllocCopy(wais_database,www_database);
+    HTUnEscape(wais_database);
+    
 	/* This below fixed size stuff is terrible */
     request_message = (char*)s_malloc((size_t)MAX_MESSAGE_LEN * sizeof(char));
     response_message = (char*)s_malloc((size_t)MAX_MESSAGE_LEN * sizeof(char));

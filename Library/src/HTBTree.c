@@ -39,17 +39,23 @@ PUBLIC void HTBTree_free ARGS1(HTBTree*, tree)
     ** This void will free the memory allocated for the whole tree
     */
 {
-    HTBTElement * wagazou;
-
-    wagazou = HTBTree_next(tree,NULL);
-    while (wagazou != NULL)
-    {
-        free (wagazou);
-        wagazou = HTBTree_next(tree,wagazou);
-    }
+    HTBTElement_free(tree->top);
     free(tree);
 }
 
+
+
+
+
+PRIVATE void HTBTElement_free ARGS1(HTBTElement*, element)
+    /**********************************************************
+    ** This void will free the memory allocated for one element
+    */
+{
+    if (element->left != NULL)    HTBTElement_free(element->left);
+    if (element->right != NULL)    HTBTElement_free(element->right);
+    free (element);
+}
 
 
 
@@ -64,22 +70,22 @@ PUBLIC void HTBTree_add ARGS2(
     **       2/ balance the tree to be as fast as possible when reading it
     */
 {
-    HTBTElement * leopard;
-    HTBTElement * leopard_son;
-    HTBTElement * leopard_father;
-    HTBTElement * leo_brother;
-    BOOL bouboule,bouboule2,first_correction;
+    HTBTElement * father_of_element;
+    HTBTElement * added_element;
+    HTBTElement * forefather_of_element;
+    HTBTElement * father_of_forefather;
+    BOOL father_found,top_found,first_correction;
     int depth,depth2;
-        /* leopard is a pointer to the structure that is the father of the new 
-        ** object "object".
-        ** leopard_son is a pointer to the structure that contains or will contain 
+        /* father_of_element is a pointer to the structure that is the father of the
+        ** new object "object".
+        ** added_element is a pointer to the structure that contains or will contain 
         ** the new object "object".
-        ** leopard_father and leo_brother are pointers that are used to modify the
-        ** depths of upper elements, when needed.
+        ** father_of_forefather and forefather_of_element are pointers that are used
+        ** to modify the depths of upper elements, when needed.
         **
-        ** bouboule indicates by a value NO when the future father of "object" is 
+        ** father_found indicates by a value NO when the future father of "object" is 
         ** found.
-        ** bouboule2 indicates by a value NO when, in case of a difference of depths
+        ** top_found indicates by a value NO when, in case of a difference of depths
         **  < 2, the top of the tree is encountered and forbids any further try to
         ** balance the tree.
         ** first_correction is a boolean used to avoid infinite loops in cases
@@ -109,85 +115,95 @@ PUBLIC void HTBTree_add ARGS2(
     }
     else
     {   
-        bouboule = YES;
-        leopard = tree->top;
-        leopard_son = NULL;
-        leopard_father = NULL;
-        leo_brother = NULL;      
-        while (bouboule)
+        father_found = YES;
+        father_of_element = tree->top;
+        added_element = NULL;
+        father_of_forefather = NULL;
+        forefather_of_element = NULL;      
+        while (father_found)
         {
-            if (tree->compare(object,leopard->object)<0)
+            if (tree->compare(object,father_of_element->object)<0)
 	    {
-                if (leopard->left != NULL) leopard = leopard->left;
+                if (father_of_element->left != NULL)
+                    father_of_element = father_of_element->left;
                 else 
 	        {
-                    bouboule = NO;
-                    leopard->left = (HTBTElement *)malloc(sizeof(HTBTElement));
-                    if (leopard->left==NULL) outofmem(__FILE__, "HTBTree_add");
-                    leopard_son = leopard->left;
-                    leopard_son->up = leopard;
-                    leopard_son->object = object;
-                    leopard_son->left = NULL;
-                    leopard_son->left_depth = 0;
-                    leopard_son->right = NULL;
-                    leopard_son->right_depth = 0;
+                    father_found = NO;
+                    father_of_element->left = 
+                        (HTBTElement *)malloc(sizeof(HTBTElement));
+                    if (father_of_element->left==NULL) 
+                        outofmem(__FILE__, "HTBTree_add");
+                    added_element = father_of_element->left;
+                    added_element->up = father_of_element;
+                    added_element->object = object;
+                    added_element->left = NULL;
+                    added_element->left_depth = 0;
+                    added_element->right = NULL;
+                    added_element->right_depth = 0;
                 }
    	    }
-            if (tree->compare(object,leopard->object)>0)
+            if (tree->compare(object,father_of_element->object)>0)
             {
-                if (leopard->right != NULL) leopard = leopard->right;
+                if (father_of_element->right != NULL) 
+                    father_of_element = father_of_element->right;
                 else 
                 {  
-                    bouboule = NO;
-                    leopard->right = (HTBTElement *)malloc(sizeof(HTBTElement));
-                    if (leopard->right==NULL) outofmem(__FILE__, "HTBTree_add");
-                    leopard_son = leopard->right;
-                    leopard_son->up = leopard;
-                    leopard_son->object = object;
-                    leopard_son->left = NULL;
-                    leopard_son->left_depth = 0;
-                    leopard_son->right = NULL;
-                    leopard_son->right_depth = 0;       
+                    father_found = NO;
+                    father_of_element->right = 
+                        (HTBTElement *)malloc(sizeof(HTBTElement));
+                    if (father_of_element->right==NULL) 
+                        outofmem(__FILE__, "HTBTree_add");
+                    added_element = father_of_element->right;
+                    added_element->up = father_of_element;
+                    added_element->object = object;
+                    added_element->left = NULL;
+                    added_element->left_depth = 0;
+                    added_element->right = NULL;
+                    added_element->right_depth = 0;       
     	        }
             }
 	}
             /*
             ** Changing of all depths that need to be changed
             */
-        leopard_father = leopard;
-        leo_brother = leopard_son;
+        father_of_forefather = father_of_element;
+        forefather_of_element = added_element;
         do
         {
-            if (leopard_father->left == leo_brother)
+            if (father_of_forefather->left == forefather_of_element)
             {
-                depth = leopard_father->left_depth;
-                leopard_father->left_depth = 1 
-                            + MAX(leo_brother->right_depth,leo_brother->left_depth);
-                depth2 = leopard_father->left_depth;
+                depth = father_of_forefather->left_depth;
+                father_of_forefather->left_depth = 1 
+                            + MAX(forefather_of_element->right_depth,
+                                  forefather_of_element->left_depth);
+                depth2 = father_of_forefather->left_depth;
             }
             else
 	    {
-                depth = leopard_father->right_depth;
-                leopard_father->right_depth = 1
-                            + MAX(leo_brother->right_depth,leo_brother->left_depth);
-                depth2 = leopard_father->right_depth;
+                depth = father_of_forefather->right_depth;
+                father_of_forefather->right_depth = 1
+                            + MAX(forefather_of_element->right_depth,
+                                  forefather_of_element->left_depth);
+                depth2 = father_of_forefather->right_depth;
             }
-            leo_brother = leopard_father;
-            leopard_father = leopard_father->up;
-        } while ((depth != depth2) && (leopard_father != NULL));
+            forefather_of_element = father_of_forefather;
+            father_of_forefather = father_of_forefather->up;
+        } while ((depth != depth2) && (father_of_forefather != NULL));
         
 
             /*
             ** 2/ Balancing the binary tree, if necessary
             */
-        bouboule2 = YES;
+        top_found = YES;
         first_correction = YES;
-        while ((bouboule2) && (first_correction))
+        while ((top_found) && (first_correction))
         {
-            if ((abs(leopard->left_depth - leopard->right_depth)) < 2)
+            if ((abs(father_of_element->left_depth
+                      - father_of_element->right_depth)) < 2)
 	    {
-                if (leopard->up != NULL) leopard = leopard->up;
-                else bouboule2 = NO;
+                if (father_of_element->up != NULL) 
+                    father_of_element = father_of_element->up;
+                else top_found = NO;
 	    }
             else
  	    {                /* We start the process of balancing */
@@ -205,39 +221,41 @@ PUBLIC void HTBTree_add ARGS2(
                     */
 
 
-                if (leopard->left_depth > leopard->right_depth)
+                if (father_of_element->left_depth > father_of_element->right_depth)
 	        {
-                    leopard_son = leopard->left;
-                    leopard->left_depth = leopard_son->right_depth;
-                    leopard_son->right_depth = 1
-                                    + MAX(leopard->right_depth,leopard->left_depth);
-                    if (leopard->up != NULL)
+                    added_element = father_of_element->left;
+                    father_of_element->left_depth = added_element->right_depth;
+                    added_element->right_depth = 1
+                                    + MAX(father_of_element->right_depth,
+                                          father_of_element->left_depth);
+                    if (father_of_element->up != NULL)
 		    {
-                        leopard_father = leopard->up;
-                        leo_brother = leopard_son;
+                        father_of_forefather = father_of_element->up;
+                        forefather_of_element = added_element;
                         do 
                         {
-                            if (leopard_father->left == leo_brother->up)
+                            if (father_of_forefather->left
+                                 == forefather_of_element->up)
                             {
-                                depth = leopard_father->left_depth;
-                                leopard_father->left_depth = 1
-                                                    + MAX(leo_brother->left_depth,
-                                                          leo_brother->right_depth);
-                                depth2 = leopard_father->left_depth;
+                                depth = father_of_forefather->left_depth;
+                                father_of_forefather->left_depth = 1
+                                    + MAX(forefather_of_element->left_depth,
+                                          forefather_of_element->right_depth);
+                                depth2 = father_of_forefather->left_depth;
 			    }
                             else
 			    {
-                                depth = leopard_father->right_depth;
-                                leopard_father->right_depth = 1
-                                                    + MAX(leo_brother->left_depth,
-                                                          leo_brother->right_depth);
-                                depth2 = leopard_father->right_depth;
+                                depth = father_of_forefather->right_depth;
+                                father_of_forefather->right_depth = 1
+                                    + MAX(forefather_of_element->left_depth,
+                                          forefather_of_element->right_depth);
+                                depth2 = father_of_forefather->right_depth;
 			    }
-                            leo_brother = leopard_father;
-                            leopard_father = leopard_father->up;
-			} while ((depth != depth2) && (leopard_father != NULL));
-                        leopard_father = leopard->up;
-                        if (leopard_father->left == leopard)
+                            forefather_of_element = father_of_forefather;
+                            father_of_forefather = father_of_forefather->up;
+			} while ((depth != depth2) && (father_of_forefather != NULL));
+                        father_of_forefather = father_of_element->up;
+                        if (father_of_forefather->left == father_of_element)
 	                {
                             /*
                             **                   3                       3
@@ -248,11 +266,11 @@ PUBLIC void HTBTree_add ARGS2(
                             ** 3 is used to show that it may not be the top of the
                             ** tree.
                             */ 
-                            leopard_father->left = leopard_son;
-                            leopard->left = leopard_son->right;
-                            leopard_son->right = leopard;
+                            father_of_forefather->left = added_element;
+                            father_of_element->left = added_element->right;
+                            added_element->right = father_of_element;
                         }
-                        if (leopard_father->right == leopard)
+                        if (father_of_forefather->right == father_of_element)
 		        {
                             /*
                             **          3                       3
@@ -263,11 +281,11 @@ PUBLIC void HTBTree_add ARGS2(
                             ** 3 is used to show that it may not be the top of the
                             ** tree
                             */
-                            leopard_father->right = leopard_son;
-                            leopard->left = leopard_son->right;
-                            leopard_son->right = leopard;
+                            father_of_forefather->right = added_element;
+                            father_of_element->left = added_element->right;
+                            added_element->right = father_of_element;
                         }
-                        leopard_son->up = leopard_father;
+                        added_element->up = father_of_forefather;
 		    }
                     else
 		    {
@@ -279,47 +297,48 @@ PUBLIC void HTBTree_add ARGS2(
                         **
                         ** 1 is used to show that it is the top of the tree    
                         */
-                        leopard_son->up = NULL;
-                        leopard->left = leopard_son->right;
-                        leopard_son->right = leopard;
+                        added_element->up = NULL;
+                        father_of_element->left = added_element->right;
+                        added_element->right = father_of_element;
 		    }
-                    leopard->up = leopard_son;
-                    if (leopard->left != NULL)
-                        leopard->left->up = leopard;
+                    father_of_element->up = added_element;
+                    if (father_of_element->left != NULL)
+                        father_of_element->left->up = father_of_element;
 	        }
                 else
 	        {
-                    leopard_son = leopard->right;
-                    leopard->right_depth = leopard_son->left_depth;
-                    leopard_son->left_depth = 1 + 
-                                      MAX(leopard->right_depth,leopard->left_depth);
-                    if (leopard->up != NULL)
+                    added_element = father_of_element->right;
+                    father_of_element->right_depth = added_element->left_depth;
+                    added_element->left_depth = 1 + 
+                            MAX(father_of_element->right_depth,
+                                father_of_element->left_depth);
+                    if (father_of_element->up != NULL)
 		    {
-                        leopard_father = leopard->up;
-                        leo_brother = leopard_son;
+                        father_of_forefather = father_of_element->up;
+                        forefather_of_element = added_element;
                         do 
                         {
-                            if (leopard_father->left == leopard)
+                            if (father_of_forefather->left == father_of_element)
                             {
-                                depth = leopard_father->left_depth;
-                                leopard_father->left_depth = 1
-                                                    + MAX(leopard_son->left_depth,
-                                                          leopard_son->right_depth);
-                                depth2 = leopard_father->left_depth;
+                                depth = father_of_forefather->left_depth;
+                                father_of_forefather->left_depth = 1
+                                                    + MAX(added_element->left_depth,
+                                                          added_element->right_depth);
+                                depth2 = father_of_forefather->left_depth;
 			    }
                             else
 			    {
-                                depth = leopard_father->right_depth;
-                                leopard_father->right_depth = 1
-                                                   + MAX(leopard_son->left_depth,
-                                                         leopard_son->right_depth); 
-                                depth2 = leopard_father->right_depth;
+                                depth = father_of_forefather->right_depth;
+                                father_of_forefather->right_depth = 1
+                                                   + MAX(added_element->left_depth,
+                                                         added_element->right_depth); 
+                                depth2 = father_of_forefather->right_depth;
 			    }
-                            leopard_father = leopard_father->up;
-                            leo_brother = leopard_father;
-			} while ((depth != depth2) && (leopard_father != NULL));;
-                        leopard_father = leopard->up;
-                        if (leopard_father->left == leopard)
+                            father_of_forefather = father_of_forefather->up;
+                            forefather_of_element = father_of_forefather;
+			} while ((depth != depth2) && (father_of_forefather != NULL));
+                        father_of_forefather = father_of_element->up;
+                        if (father_of_forefather->left == father_of_element)
 		        {
                             /*
                             **                    3                       3
@@ -330,11 +349,11 @@ PUBLIC void HTBTree_add ARGS2(
                             ** 3 is used to show that it may not be the top of the
                             ** tree.
                             */
-                            leopard_father->left = leopard_son;
-                            leopard->right = leopard_son->left;
-                            leopard_son->left = leopard;
+                            father_of_forefather->left = added_element;
+                            father_of_element->right = added_element->left;
+                            added_element->left = father_of_element;
                         }
-                        if (leopard_father->right == leopard)
+                        if (father_of_forefather->right == father_of_element)
 		        {
                             /*
                             **           3                      3
@@ -345,11 +364,11 @@ PUBLIC void HTBTree_add ARGS2(
                             ** 3 is used to show that it may not be the top of the
                             ** tree
                             */
-                            leopard_father->right = leopard_son;
-                            leopard->right = leopard_son->left;
-                            leopard_son->left = leopard;
+                            father_of_forefather->right = added_element;
+                            father_of_element->right = added_element->left;
+                            added_element->left = father_of_element;
                         }
-                        leopard_son->up = leopard_father;
+                        added_element->up = father_of_forefather;
 		    }
                     else
                     {
@@ -361,20 +380,20 @@ PUBLIC void HTBTree_add ARGS2(
                         **
                         ** 1 is used to show that it is the top of the tree.
                         */
-                        leopard_son->up = NULL;
-                        leopard->right = leopard_son->left;
-                        leopard_son->left = leopard;
+                        added_element->up = NULL;
+                        father_of_element->right = added_element->left;
+                        added_element->left = father_of_element;
 		    }
-                    leopard->up = leopard_son;
-                    leopard->right->up = leopard;
+                    father_of_element->up = added_element;
+                    father_of_element->right->up = father_of_element;
 		}
 	    }
         }
-        while (leopard->up != NULL)
+        while (father_of_element->up != NULL)
 	{
-            leopard = leopard->up;
+            father_of_element = father_of_element->up;
         }
-        tree->top = leopard;
+        tree->top = father_of_element;
     }
 }
 
@@ -389,37 +408,58 @@ PUBLIC HTBTElement * HTBTree_next ARGS2(
     ** If no elements left, returns a pointer to NULL.
     */
 {
-    HTBTElement * leopard;
-    HTBTElement * leopard_father;
+    HTBTElement * father_of_element;
+    HTBTElement * father_of_forefather;
 
     if (ele == NULL)
     {
-        leopard = tree->top;
-        if (leopard != NULL)
-            while (leopard->left != NULL)
-                leopard = leopard->left;
+        father_of_element = tree->top;
+        if (father_of_element != NULL)
+            while (father_of_element->left != NULL)
+                father_of_element = father_of_element->left;
     }
     else
     {
-        leopard = ele;
-        if (leopard->right != NULL)
+        father_of_element = ele;
+        if (father_of_element->right != NULL)
 	{
-            leopard = leopard->right;
-            while (leopard->left != NULL)
-                leopard = leopard->left;
+            father_of_element = father_of_element->right;
+            while (father_of_element->left != NULL)
+                father_of_element = father_of_element->left;
 	}
         else
 	{
-            leopard_father = leopard->up;
-            while (leopard_father->right == leopard)
+            father_of_forefather = father_of_element->up;
+            while (father_of_forefather->right == father_of_element)
 	    {
-                leopard = leopard_father;
-                leopard_father = leopard->up;
+                father_of_element = father_of_forefather;
+                father_of_forefather = father_of_element->up;
 	    }
-            leopard = leopard_father;
+            father_of_element = father_of_forefather;
 	}
     }
-    return leopard;
+#ifdef BTREE_TRACE
+    /* The option -DBTREE_TRACE will give much more information
+    ** about the way the process is running, for debugging matters
+    */
+    if (father_of_element != NULL)
+    {
+        printf("\nObject = %s\t",father_of_element->object);
+        if (father_of_element->up != NULL)
+            printf("Objet du pere = %s\n",father_of_element->up->object);
+        else printf("Pas de Pere\n");
+        if (father_of_element->left != NULL)
+            printf("Objet du fils gauche = %s\t",father_of_element->left->object); 
+        else printf("Pas de fils gauche\t");
+        if (father_of_element->right != NULL)
+            printf("Objet du fils droit = %s\n",father_of_element->right->object);
+        else printf("Pas de fils droit\n");
+        printf("Profondeur gauche = %i\t",father_of_element->left_depth);
+        printf("Profondeur droite = %i\n",father_of_element->right_depth);
+        printf("      **************\n");
+    }
+#endif
+    return father_of_element;
 }
 
 
@@ -430,7 +470,7 @@ main ()
     */
 {
     HTBTree * tree;
-    HTBTElement * wagazou;
+    HTBTElement * next_element;
     
     tree = HTBTree_new(strcasecmp);
     HTBTree_add(tree,"zoo");
@@ -441,11 +481,16 @@ main ()
     HTBTree_add(tree,"Peter");
     HTBTree_add(tree,"Harrison");
     HTBTree_add(tree,"WWW");
-    wagazou = HTBTree_next(tree,NULL);
-    while (wagazou != NULL)
+#ifdef BTREE_TRACE
+    printf("\nTreeTopObject=%s\n\n",tree->top->object);
+#endif
+    next_element = HTBTree_next(tree,NULL);
+    while (next_element != NULL)
     {
-        printf("The next element is %s\n",wagazou->object);
-        wagazou = HTBTree_next(tree,wagazou);
+#ifndef BTREE_TRACE
+        printf("The next element is %s\n",next_element->object);
+#endif
+        next_element = HTBTree_next(tree,next_element);
     }
     HTBTree_free (tree);
 }

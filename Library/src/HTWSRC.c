@@ -17,6 +17,7 @@
 
 #include "HTUtils.h"
 #include "tcp.h"
+#include "HTParse.h"
 
 #define BIG 10000		/* Arbitrary limit to value length */
 #define PARAM_MAX BIG
@@ -100,61 +101,6 @@ PUBLIC char from_hex ARGS1(char, c)
 			: (c>='A')&&(c<='F') ? c-'A'+10
 			: (c>='a')&&(c<='f') ? c-'a'+10
 			:		       0;
-}
-
-/*	Turn database name into a path element
-**	--------------------------------------
-**
-**	Creates new string which must be freed.
-*/
-PUBLIC char * HTDeSlash ARGS1(CONST char *, db)
-{
-#define ACCEPTABLE(c)	((c!='/')&&(c!='#')&&(c!='%')&&(c>' ')&&(c<='z'))
-    CONST char * p;
-    char * q;
-    char * result;
-    int unacceptable = 0;
-    for(p=db; *p; p++)
-        if (!ACCEPTABLE(*p))
-		unacceptable++;
-    result = (char *) malloc(p-db + unacceptable+ unacceptable + 1);
-    for(q=result, p=db; *p; p++)
-	if (!ACCEPTABLE(*p)) {
-	    *q++ = HEX_ESCAPE;	/* Means hex commming */
-	    *q++ = hex[(*p) >> 4];
-	    *q++ = hex[(*p) & 15];
-	}
-	else *q++ = *p;
-    *q++ = 0;			/* Terminate */
-    return result;
-}
-
-/*	Reverse Operation
-**	-----------------
-*/
-/*		Return value must be freed
-*/
-PUBLIC char * HTEnSlash ARGS1(CONST char *, s)
-{
-    CONST char *p;
-    char *z;
-    char * result = (char *)malloc(strlen(s)+1);
-    for(z=result, p=s; *p ;) {
-	if (*p == HEX_ESCAPE) {
-	    char c;
-	    unsigned int b;
-	    p++;
-	    c = *p++;
-	    b =   from_hex(c);
-	    c = *p++;
-	    if (!c) break;	/* Odd number of chars! */
-	    *z++ = (b<<4) + from_hex(c);
-	} else {
-	    *z++ = *p++;	/* Non-hex */
-	}
-    }
-    *z = 0;			/* Terminate */
-    return result;
 }
 
 
@@ -308,7 +254,7 @@ void WSRC_gen_html ARGS1(HTStream *, me)
 
 	char WSRC_address[256];
 	char * www_database;
-	www_database = HTDeSlash(me->par_value[PAR_DATABASE_NAME]);
+	www_database = HTEscape(me->par_value[PAR_DATABASE_NAME], URL_XALPHAS);
 	sprintf(WSRC_address, "wais://%s:%s/%s",
 	    me->par_value[PAR_IP_NAME],
 	    me->par_value[PAR_TCP_PORT] ? me->par_value[PAR_TCP_PORT] : "210",

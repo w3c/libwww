@@ -6,6 +6,8 @@
 #include "HTParse.h"
 #include "tcp.h"
 
+#define HEX_ESCAPE '%'
+
 struct struct_parts {
 	char * access;
 	char * host;
@@ -341,6 +343,60 @@ char * HTRelative(aName, relatedName)
 }
 
 
+/*		Escape undesirable characters using %		HTEscape()
+**		-------------------------------------
+**
+**	This function takes a pointer to a string in which
+**	some characters may be unacceptable unescaped.
+**	It returns a string which has these characters
+**	represented by a '%' character followed by two hex digits.
+**
+**	Unlike HTUnEscape(), this routine returns a malloced string.
+*/
+
+PRIVATE CONST unsigned char isAcceptable[96] =
+
+/*	Bit 0		xalpha		-- see HTFile.h
+**	Bit 1		xpalpha		-- as xalpha but with plus.
+**	Bit 3 ...	path		-- as xpalphas but with /
+*/
+    /*   0 1 2 3 4 5 6 7 8 9 A B C D E F */
+    {    0,0,0,0,0,0,0,0,0,0,7,6,0,7,7,4,	/* 2x   !"#$%&'()*+,-./	 */
+         7,7,7,7,7,7,7,7,7,7,0,0,0,0,0,0,	/* 3x  0123456789:;<=>?	 */
+	 7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,	/* 4x  @ABCDEFGHIJKLMNO  */
+	 7,7,7,7,7,7,7,7,7,7,7,0,0,0,0,7,	/* 5X  PQRSTUVWXYZ[\]^_	 */
+	 0,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,	/* 6x  `abcdefghijklmno	 */
+	 7,7,7,7,7,7,7,7,7,7,7,0,0,0,0,0 };	/* 7X  pqrstuvwxyz{\}~	DEL */
+
+PRIVATE char *hex = "0123456789ABCDEF";
+
+PUBLIC char * HTEscape ARGS2 (char *, str,
+	unsigned char, mask)
+{
+#define ACCEPTABLE(a)	( a>=32 && a<128 && ((isAcceptable[a-32]) & mask))
+    CONST char * p;
+    char * q;
+    char * result;
+    int unacceptable = 0;
+    for(p=str; *p; p++)
+        if (!ACCEPTABLE((unsigned char)TOASCII(*p)))
+		unacceptable++;
+    result = (char *) malloc(p-str + unacceptable+ unacceptable + 1);
+    if (result == NULL) outofmem(__FILE__, "HTEscape");
+    for(q=result, p=str; *p; p++) {
+    	unsigned char a = TOASCII(*p);
+	if (!ACCEPTABLE(a)) {
+	    *q++ = HEX_ESCAPE;	/* Means hex commming */
+	    *q++ = hex[a >> 4];
+	    *q++ = hex[a & 15];
+	}
+	else *q++ = *p;
+    }
+    *q++ = 0;			/* Terminate */
+    return result;
+}
+
+
 /*		Decode %xx escaped characters			HTUnEscape()
 **		-----------------------------
 **
@@ -352,8 +408,9 @@ char * HTRelative(aName, relatedName)
 
 PRIVATE char from_hex ARGS1(char, c)
 {
-    return  TOASCII(c) > '9' ? c - 'A' + 10
-    			     : c - '0';
+    return  c >= '0' && c <= '9' ?  c - '0' 
+    	    : c >= 'A' && c <= 'F'? c - 'A' + 10
+    	    : c - 'a' + 10;	/* accept small letters just in case */
 }
 
 PUBLIC char * HTUnEscape ARGS1( char *, str)
@@ -361,7 +418,7 @@ PUBLIC char * HTUnEscape ARGS1( char *, str)
     char * p = str;
     char * q = str;
     while(*p) {
-        if (*p == '%') {
+        if (*p == HEX_ESCAPE) {
 	    p++;
 	    if (*p) *q = from_hex(*p++) * 16;
 	    if (*p) *q = FROMASCII(*q + from_hex(*p++));

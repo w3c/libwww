@@ -1,9 +1,12 @@
 <HEADER>
-<TITLE>HTParse:  URL parsing in the WWW Library</TITLE></HEADER>
+<TITLE>HTParse:  URL parsing in the WWW Library</TITLE>
+<NEXTID N="1">
+</HEADER>
 <BODY>
 <H1>HTParse</H1>This module of the WWW library contains
 code to parse URLs and various related
-things.
+things.  Implemented by <A
+NAME=z0 HREF="HTParse.c">HTParse.c</A>.
 <PRE>#ifndef HTPARSE_H
 #define HTPARSE_H
 #include "HTUtils.h"
@@ -21,8 +24,8 @@ HTParse.
 
 
 </PRE>
-<H2>HTParse:  Parse a Name relative to
-another name</H2>This returns those parts of a name
+<H2>HTParse:  Parse a URL relative to
+another URL</H2>This returns those parts of a name
 which are given (and requested) substituting
 bits from the related name where
 necessary.
@@ -63,7 +66,7 @@ extern char * HTStrip();
 #endif
 
 </PRE>
-<H2>HTSimplify: Simplify a filename</H2>A URL is allowed to contain the seqeunce
+<H2>HTSimplify: Simplify a UTL</H2>A URL is allowed to contain the seqeunce
 xxx/../ which may be replaced by
 "" , and the seqeunce "/./" which
 may be replaced by "/". Simplification
@@ -81,8 +84,10 @@ extern void HTSimplify(char * filename);
 extern void HTSimplify();
 #endif
 
+
 </PRE>
-<H2>HTRelative:  Make Relative Name</H2>This function creates and returns
+<H2>HTRelative:  Make Relative (Partial)
+URL</H2>This function creates and returns
 a string which gives an expression
 of one address as related to another.
 Where there is no relation, an absolute
@@ -101,6 +106,26 @@ extern char * HTRelative(const char * aName, const char *relatedName);
 extern char * HTRelative();
 #endif
 
+
+</PRE>
+<H2>HTEscape:  Encode unacceptable characters
+in string</H2>This funtion takes a string containing
+any sequence of ASCII characters,
+and returns a malloced string containing
+the same infromation but with all
+"unacceptable" characters represented
+in the form %xy where X and Y are
+two hex digits.
+<PRE>extern char * HTEscape PARAMS((char * str, unsigned char mask));
+
+</PRE>The following are valid mask values.
+ The terms are the BNF names in the
+URL document.
+<PRE>#define URL_XALPHAS	(unsigned char) 1
+#define URL_XPALPHAS	(unsigned char) 2
+#define URL_PATH	(unsigned char) 4
+
+
 </PRE>
 <H2>HTUnEscape: Decode %xx escaped characters</H2>This function takes a pointer to
 a string in which character smay
@@ -111,8 +136,7 @@ place, as it will never grow.
 <PRE>extern char * HTUnEscape PARAMS(( char * str));
 
 
-#endif
+#endif	/* HTPARSE_H */
 
 
-
-</PRE></BODY>
+</PRE>end of HTParse</BODY>
