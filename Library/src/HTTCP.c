@@ -1167,7 +1167,11 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 		   get `connection refused' */
 		if (errno==ECONNREFUSED || errno==ETIMEDOUT ||
 		    errno==ENETUNREACH || errno==EHOSTUNREACH ||
-		    errno==EHOSTDOWN || errno==EINVAL)
+		    errno==EHOSTDOWN
+#ifdef EINVAL
+		    || errno == EINVAL
+#endif
+		   )
 		    net->connecttime += TCP_DELAY;
 		else
 		    net->connecttime += TCP_PENALTY;

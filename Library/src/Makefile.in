@@ -115,11 +115,11 @@ realclean : clean
 	-$(RM) -f ./Makefile ./config.h
 	( cd $(srcdir) ; $(CHMOD) +w $(HFILES) ; $(RM) -f $(HFILES) )
 
-dist : $(HFILES) README.txt Copyright.txt
+dist : $(HFILES) README COPYRIGH
 	-$(MKDIR) ./../WWWLibrary_$(VC)
 	( cd ./.. ; $(LN_S) ./WWWLibrary_$(VC) ./Library )
 	$(CP) -pr $(srcdir) ./../WWWLibrary_$(VC)
-	$(CP) -p README.txt Copyright.txt ./../WWWLibrary_$(VC)
+	$(CP) -p README COPYRIGH ./../WWWLibrary_$(VC)
 	$(CP) -pr $(VMS) ./../WWWLibrary_$(VC)
 	( cd ./.. ; $(TAR) cvf ./../WWWLibrary_$(VC).tar ./WWWLibrary_$(VC) ./Library )
 	$(COMPRESS) ./../../WWWLibrary_$(VC).tar
