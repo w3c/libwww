@@ -358,6 +358,7 @@ PUBLIC CSParse_t * CSParse_new(void)
 PUBLIC void CSParse_delete(CSParse_t * me)
 {
 	HT_FREE(me->pParseContext);
+	HTChunk_delete(me->token);
 	HT_FREE(me);
 }
 

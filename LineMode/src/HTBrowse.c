@@ -360,6 +360,7 @@ PRIVATE void Cleanup (LineMode * me, int status)
     if (HTAlert_interactive())	   /* Terminate with a LF if not interactive */
 	OutputData(me->pView, "\n");
     CSLoadedUser_deleteAll();
+    CSApp_unregisterApp();
     LineMode_delete(me);
 
     HTAuthInfo_deleteAll();

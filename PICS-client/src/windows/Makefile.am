@@ -22,4 +22,3 @@ EXTRA_DIST = \
 picslist.txt:
 	ls -1 ../*.c | sed -e s=\.\./==1 | ../../../config/makedefs.pl @ > picslist.txt
 
-

@@ -187,8 +187,8 @@ PRIVATE void CSUserAssoc_removeByState(CSUser_t * pCSUser)
 PRIVATE UserServiceRating_t * UserServiceRating_new(void)
 {
     UserServiceRating_t * me;
-	if ((me = (UserServiceRating_t *) HT_CALLOC(1, sizeof(UserServiceRating_t))) == NULL)
-	    HT_OUTOFMEM("UserServiceRating_t");
+    if ((me = (UserServiceRating_t *) HT_CALLOC(1, sizeof(UserServiceRating_t))) == NULL)
+        HT_OUTOFMEM("UserServiceRating_t");
     me->ranges = HTList_new();
     return me;
 }
@@ -198,9 +198,11 @@ PUBLIC void UserServiceRating_free(UserServiceRating_t * me)
     Range_t * pRange;
     while ((pRange = (Range_t *) HTList_removeLastObject(me->ranges)))
         HT_FREE(pRange);
+    HTList_delete(me->ranges);
     SVal_clear(&me->identifier);
     BVal_clear(&me->missing_scale);
     BVal_clear(&me->observe_dates);
+    HT_FREE(me);
 }
 
 PRIVATE UserService_t * UserService_new(void)
@@ -223,6 +225,7 @@ PUBLIC void UserService_free(UserService_t * me)
     BVal_clear(&me->missing_service);
     BVal_clear(&me->missing_scale);
     BVal_clear(&me->observe_dates);
+    HT_FREE(me);
 }
 
 PUBLIC CSUserData_t * CSUserData_new(void)
@@ -255,6 +258,7 @@ PUBLIC void CSUserData_free(CSUserData_t * me)
     BVal_clear(&me->missing_service);
     BVal_clear(&me->missing_scale);
     BVal_clear(&me->observe_dates);
+    SVal_clear(&me->bureau);
     HT_FREE(me);
 }
 

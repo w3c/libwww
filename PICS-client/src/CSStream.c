@@ -108,7 +108,7 @@ PRIVATE HTStream * CSParseConverter_new (HTRequest *	request,
 PRIVATE int CSParseMachRead_free (HTStream * me)
 {
     int status = CSParse_free(me);
-	CSParse_deleteMachRead(me->pCSParse);
+    CSParse_deleteMachRead(me->pCSParse);
     return status;
 }
 
@@ -146,9 +146,11 @@ PUBLIC HTStream * CSParseMachRead (HTRequest *	request,
 PRIVATE int CSParseUser_free (HTStream * me)
 {
 /*    CSParse_deleteUser(me->pCSParse); */
-    CSLoadedUser_add(CSParse_getUser(me->pCSParse), 
-		      HTAnchor_address((HTAnchor *)HTRequest_anchor(me->request)));
+    char * addr = HTAnchor_address((HTAnchor *)HTRequest_anchor(me->request));
+    CSLoadedUser_add(CSParse_getUser(me->pCSParse), addr);
+    HT_FREE(addr);
     CSParse_free(me);
+    HT_FREE(me);
     return HT_OK;
 }
 
@@ -192,13 +194,17 @@ PRIVATE int CSParseLabel_free (HTStream * me)
 {
     CSApp_label(me->request, CSParse_getLabel(me->pCSParse));
 /*    CSParse_deleteLabel(me->pCSParse); keep it around and let CSApp free it */
-    return CSParse_free(me);
+    CSParse_free(me);
+    HT_FREE(me);
+    return HT_OK;
 }
 
 PRIVATE int CSParseLabel_abort (HTStream * me, HTList * e)
 {
     CSParse_deleteLabel(me->pCSParse);
-    return CSParse_free(me);
+    CSParse_free(me);
+    HT_FREE(me);
+    return HT_OK;
 }
 
 PRIVATE const HTStreamClass CSParseClass_label =

@@ -78,6 +78,8 @@ PRIVATE BOOL LoadURLToConverter(const char * url, const char * relatedName,
         HTTrace("PICS: Can't access %s.\n", errMessage);
     if (converter)
         HTConversion_deleteAll(conversions);
+    else
+        HTList_delete(conversions);
     HTRequest_delete(pRequest);
     HT_FREE(fullURL);
     return ret;
@@ -435,9 +437,9 @@ PRIVATE int CSApp_netBefore (HTRequest * pReq, void * param, int status)
         return HT_OK;
     if (!(bureau = CSUser_bureau(pReqParms->pCSUser)))
         return HT_OK;				/* Header will handle it */
-    url = HTAnchor_address((HTAnchor*)HTRequest_anchor(pReq));
     if (ReqParms_checkCache(pReqParms, &ret))
         return ret;
+    url = HTAnchor_address((HTAnchor*)HTRequest_anchor(pReq));
     ptr = CSUser_getLabels(pReqParms->pCSUser, url, CSOption_normal, 
 			   CSCompleteness_full);
     if (PICS_TRACE) HTTrace("PICS: label request:\n%s\n", ptr);
@@ -447,13 +449,16 @@ PRIVATE int CSApp_netBefore (HTRequest * pReq, void * param, int status)
 			     ListWithBureauAfter))) {
         HT_FREE(ptr);
 	HTTrace("PICS: Couldn't load labels for \"%s\" at bureau \"%s\".\n", url, bureau);
+	HT_FREE(url);
 	return HT_OK;
     }
     HT_FREE(ptr);
     if (pReqParms->disposition == CSError_APP) {
         HTTrace("PICS: No labels for \"%s\" at bureau \"%s\".\n", url, bureau);
+	HT_FREE(url);
 	return HT_OK;
     }
+    HT_FREE(url);
     return ReqParms_checkDisposition(pReqParms);
 }
 
@@ -602,6 +607,12 @@ PUBLIC BOOL CSApp_registerApp(CSDisposition_callback * pCallback,
     }
     return YES;
 }
+
+/*  while ((pCSLoadedUser = (CSLoadedUser_t *) HTList_removeLastObject(LoadedUsers)))
+    HTList_removeObject(pCSLoadedUser);
+    HTList_delete(ListWithBureauAfter);
+    ListWithBureauAfter = NULL;
+    return YES; */
 
 PUBLIC BOOL CSApp_unregisterApp()
 {

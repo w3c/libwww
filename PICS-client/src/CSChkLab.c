@@ -91,7 +91,10 @@ PUBLIC CSError_t CSCheckLabel_checkLabelAndUser(CSLabel_t * pCSLabel, CSUser_t *
     CSLabel_output(parms.pCSLabel, pKwik);
 */
     if (PICS_TRACE) CSLabel_dump(parms.pCSLabel);
-    CSLLData_getAllSingleLabels(parms.pCSLabel);
+/*
+    HTList * tmp;
+    tmp = CSLLData_getAllSingleLabels(parms.pCSLabel);
+    HTList_delete(tmp); */
     if ((ret = CSUser_iterateServices(parms.pCSUser, CSCheckLabel_findLabelService, &parms, 0, 0)) != CSError_OK)
         return ret;
     if (FVal_initialized(&CSUser_getCSUserData(pCSUser)->minimum_services) && 
