@@ -219,8 +219,8 @@ PUBLIC BOOL HTRegisterProtocol(protocol)
 **
 **	Add to or subtract from this list if you add or remove protocol modules.
 **	This routine is called the first time the protocol list is needed,
-**	unless any protocols are already registered, in which case it is not called.
-**	Therefore the application can override this list.
+**	unless any protocols are already registered, in which case it is not
+**	called. Therefore the application can override this list.
 **
 **	Compiling with NO_INIT prevents all known protocols from being forced
 **	in at link time.
@@ -506,7 +506,7 @@ PRIVATE int get_physical ARGS1(HTRequest *, req)
 **					(telnet sesssion started etc)
 **
 */
-PUBLIC int HTLoad ARGS1(HTRequest *, request)
+PUBLIC int HTLoad ARGS2(HTRequest *, request, BOOL, keep_error_stack)
 {
     char	*arg = NULL;
     HTProtocol	*p;
@@ -514,12 +514,13 @@ PUBLIC int HTLoad ARGS1(HTRequest *, request)
 
     if (request->method == METHOD_INVALID)
 	request->method = METHOD_GET;
+    if (!keep_error_stack) {
+	HTErrorFree(request);
+	request->error_block = NO;
+    }
+
     status = get_physical(request);
     if (status == HT_FORBIDDEN) {
-#ifdef OLD_CODE
-        return HTLoadError(request, 500,
-                           "Access forbidden by rule");
-#endif /* OLD_CODE */
 	char *url = HTAnchor_address((HTAnchor *) request->anchor);
 	if (url) {
 	    HTUnEscape(url);
@@ -552,11 +553,6 @@ PUBLIC HTStream *HTSaveStream ARGS1(HTRequest *, request)
     request->method = METHOD_PUT;
     status = get_physical(request);
     if (status == HT_FORBIDDEN) {
-#ifdef OLD_CODE
-        HTLoadError(request, 500,
-		    "Access forbidden by rule");
-	return NULL;	/* should return error status? */
-#endif /* OLD_CODE */
 	char *url = HTAnchor_address((HTAnchor *) request->anchor);
 	if (url) {
 	    HTUnEscape(url);
@@ -602,7 +598,8 @@ PUBLIC HTStream *HTSaveStream ARGS1(HTRequest *, request)
 **
 */
 
-PRIVATE BOOL HTLoadDocument ARGS1(HTRequest *,		request)
+PRIVATE BOOL HTLoadDocument ARGS2(HTRequest *,		request,
+				  BOOL,			keep_error_stack)
 
 {
     int	        status;
@@ -662,9 +659,8 @@ PRIVATE BOOL HTLoadDocument ARGS1(HTRequest *,		request)
 	} /* next cache item */
     } /* if cache available for this anchor */
     
-    status = HTLoad(request);
+    status = HTLoad(request, keep_error_stack);
 
-    
 /*	Log the access if necessary
 */
     if (HTlogfile) {
@@ -682,6 +678,11 @@ PRIVATE BOOL HTLoadDocument ARGS1(HTRequest *,		request)
 	    status<0 ? "FAIL" : "GET",
 	    full_address);
     }
+
+    /* The error stack might contain general information to the client
+       about what has been going on in the library (not only errors) */
+    if (request->error_stack)
+	HTErrorMsg(request);
 
     if (status == HT_LOADED) {
 	if (TRACE) {
@@ -710,9 +711,6 @@ PRIVATE BOOL HTLoadDocument ARGS1(HTRequest *,		request)
 	if (TRACE) fprintf(stderr, 
 		"HTAccess: Can't access `%s'\n", full_address);
 #endif
-	/* This is done in the specific load procedures... Henrik 07/03-94 */
-	if (request->error_stack)
-	    HTErrorMsg(request);
 	free(full_address);
 	return NO;
     }
@@ -751,7 +749,7 @@ PUBLIC BOOL HTLoadAbsolute ARGS2(CONST char *,addr, HTRequest*, request)
    request->anchor = HTAnchor_parent(anchor);
    request->childAnchor = ((HTAnchor*)request->anchor == anchor) ?
    			NULL : (HTChildAnchor*) anchor;
-   return HTLoadDocument(request);
+   return HTLoadDocument(request, NO);
 }
 
 
@@ -779,7 +777,7 @@ PUBLIC BOOL HTLoadToStream ARGS3(
    request->childAnchor = ((HTAnchor*)request->anchor == anchor) ? NULL :
    	(HTChildAnchor*) anchor;
     request->output_stream = request->output_stream;
-    return HTLoadDocument(request);
+    return HTLoadDocument(request, NO);
 }
 
 
@@ -845,7 +843,36 @@ PUBLIC BOOL HTLoadAnchor ARGS2(HTAnchor*, anchor, HTRequest *, request)
     request->childAnchor = ((HTAnchor*)request->anchor == anchor) ? NULL
     					: (HTChildAnchor*) anchor;
     
-    return HTLoadDocument(request) ? YES : NO;
+    return HTLoadDocument(request, NO) ? YES : NO;
+	
+} /* HTLoadAnchor */
+
+
+/*		Load if necessary, and select an anchor
+**		--------------------------------------
+**
+**	This function is almost identical to HTLoadAnchor, but it doesn't
+**	clear the error stack so that the information in there is kept.
+**
+**    On Entry,
+**        destination      	    The child or parenet anchor to be loaded.
+**
+**    On Exit,
+**        returns    YES     Success
+**                   NO      Failure 
+**
+*/
+
+PUBLIC BOOL HTLoadAnchorRecursive ARGS2(HTAnchor*, anchor,
+					HTRequest *, request)
+{
+    if (!anchor) return NO;	/* No link */
+    
+    request->anchor  = HTAnchor_parent(anchor);
+    request->childAnchor = ((HTAnchor*)request->anchor == anchor) ? NULL
+    					: (HTChildAnchor*) anchor;
+    
+    return HTLoadDocument(request, YES) ? YES : NO;
 	
 } /* HTLoadAnchor */
 

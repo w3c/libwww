@@ -20,7 +20,7 @@
 #include "HTError.h"					 /* Implemented here */
 
 /* Globals */
-PUBLIC unsigned int HTErrorShowMask = HT_ERR_SHOW_WARNING+HT_ERR_SHOW_PARS;
+PUBLIC unsigned int HTErrorShowMask = HT_ERR_SHOW_DEFAULT;
 
 /* Type definitions and global variables etc. local to this module */
 
@@ -57,6 +57,7 @@ PUBLIC HTErrorMsgInfo error_info[HTERR_ELEMENTS] = {
     { 0,   "CSO-server replies", 	"cso.multi" },
     { 0,   "Bad or Incomplete Response","bad_reply.multi" },	     /* HTTP */
     { 0,   "News-server replies",	"news.multi" },
+    { 0,   "Trying `ftp://' instead of `file://'. ANY OLD URL STILL USING WRONG ACCESS METHOD WILL BE OBSOLETE IN THE NEXT MAJOR RELEASE!","ftpfile.multi" },
     { 0,   "System call `%s' failed: ",	"system.multi" }
 };
 
@@ -102,18 +103,25 @@ PUBLIC int HTErrorAdd ARGS7(HTRequest *, 	request,
 	newError->par_length = par_length;
     }
     newError->where = where;
+
+    /* Add to the stack in the request structure */
+    if (!request->error_stack)
+	request->error_stack = HTList_new();
+    else {			/* Get last object in order to find a handle */
+	HTList *cur = request->error_stack;
+	HTErrorInfo *pres = (HTErrorInfo *) HTList_nextObject(cur);
+	if (pres != NULL)
+	    newError->handle = pres->handle+1;
+    }
     if (TRACE) {
-	fprintf(stderr, "Message..... Code: %3d\tMessage: `%s\'\tSeverity: %d\tParameter: `%s\'\tWhere: `%s\'\n",
+	fprintf(stderr, "Message..... Handle: %d\tCode: %3d\tMessage: `%s\'\tSeverity: %d\tParameter: `%s\'\tWhere: `%s\'\n",
+		newError->handle,
 		error_info[newError->element].code,
 		error_info[newError->element].msg,
 		newError->severity,
 		newError->par ? (char *) newError->par : "Unspecified",
 		newError->where ? newError->where : "Unspecified");
     }
-
-    /* Add to the stack in the request structure */
-    if (!request->error_stack)
-	request->error_stack = HTList_new();
     HTList_addObject(request->error_stack, (void *) newError);
     return (-element);
 }
@@ -136,18 +144,11 @@ PUBLIC int HTErrorSysAdd ARGS4(HTRequest *, 	request,
 			       char *,		syscall)
 
 {
-    HTErrorInfo *newError;
     if (!request) {
 	if (TRACE) fprintf(stderr, "HTErrorSys.. Bad argument!\n");
 	return -1;
     }
-    if ((newError = (HTErrorInfo *) calloc(1, sizeof(HTErrorInfo))) == NULL)
-	outofmem(__FILE__, "HTErrorSysAdd");
-    newError->element = HTERR_SYSTEM;
-    newError->severity = severity;
-    newError->ignore = ignore;
     if (syscall) {
-	newError->where = syscall;
 	HTInetStatus(syscall);
     } else
 	HTInetStatus("Unspecified System Call");
@@ -157,22 +158,10 @@ PUBLIC int HTErrorSysAdd ARGS4(HTRequest *, 	request,
 	sprintf(temp, error_info[HTERR_SYSTEM].msg, syscall);
 	StrAllocCopy(errmsg, temp);
 	StrAllocCat(errmsg, HTErrnoString());
-	newError->par = (void *) errmsg;
+	HTErrorAdd(request, severity, ignore, HTERR_SYSTEM, (void *) errmsg,
+		   (int) strlen(errmsg), syscall);
+	free(errmsg);
     }
-    newError->par_length = (int) strlen(newError->par);
-    if (TRACE) {
-	fprintf(stderr, "System Error Code: %3d\tMessage: `%s\tSeverity: %d\tParameter: `%s\'\tWhere: `%s\'\n",
-		error_info[newError->element].code,
-		error_info[newError->element].msg,
-		newError->severity,
-		(char *) newError->par,
-		newError->where ? newError->where : "Unspecified");
-    }
-
-    /* Add to the stack in the request structure */
-    if (!request->error_stack)
-	request->error_stack = HTList_new();
-    HTList_addObject(request->error_stack, (void *) newError);
     return (-HTERR_SYSTEM);
 }
 
@@ -199,10 +188,50 @@ PUBLIC void HTErrorFree ARGS1(HTRequest *, request)
 
 /*								HTErrorIgnore
 **
+**	Turns on the `ignore' flag for the error with the current handle in 
+**	the error list. If the list is empty, nothing is done.
+*/
+PUBLIC void HTErrorIgnore ARGS2(HTRequest *, request, int, handle)
+{
+    BOOL found = NO;
+    HTList *cur;
+    HTErrorInfo *pres;
+    if (!request) {
+	if (TRACE) fprintf(stderr, "HTErrorIgnore Bad argument!\n");
+	return;
+    }
+    cur = request->error_stack;
+    while ((pres = (HTErrorInfo *) HTList_nextObject(cur))) {
+	if (pres->handle == handle) {
+	    pres->ignore = YES;
+	    found = YES;
+	    break;
+	}
+    }
+
+    if (TRACE) {
+	if (found) {
+	    fprintf(stderr, "Error Ignore Handle: %d\tCode: %3d\tMessage: `%s\tSeverity: %d\tParameter: `%s\'\tWhere: `%s\'\n",
+		    pres->handle,
+		    error_info[pres->element].code,
+		    error_info[pres->element].msg,
+		    pres->severity,
+		    pres->par ? (char *) pres->par : "Unspecified",
+		    pres->where ? pres->where : "Unspecified");
+	} else {
+	    fprintf(stderr, "Error Ignore Bad handle\n");
+	}
+    }
+    return;
+}
+
+
+/*							    HTErrorIgnoreLast
+**
 **	Turns on the `ignore' flag for the most recent error entered the
 **	error list. If the list is empty, nothing is done.
 */
-PUBLIC void HTErrorIgnore ARGS1(HTRequest *, request)
+PUBLIC void HTErrorIgnoreLast ARGS1(HTRequest *, request)
 {
     HTList *cur;
     HTErrorInfo *pres;
@@ -227,12 +256,8 @@ PUBLIC void HTErrorIgnore ARGS1(HTRequest *, request)
 
 /*								HTErrorMsg
 **
-**	Creates an error message on standard output containing the 
-**	error_stack messages. The HTErr 
-**	Only if the global variable HTErrorInfoPath != NULL, an anchor
-**	will be created to an message help file. It is garanteed that
-**	NO STREAM has been put up or taken down in the library at this point.
-**	This function might be overwritten by a smart server or client.
+**	Creates an error message on standard error containing the 
+**	error_stack messages.
 */
 
 /* *** LOOK IN HTML.C FOR ACTUAL IMPLEMENTATION OF THIS FUNCTION *** */

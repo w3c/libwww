@@ -723,7 +723,7 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 	char * multi;
 	HTFormat format = HTFileFormat(localname, &request->content_encoding,
 				       &request->content_language);
-	if (TRACE) fprintf(stderr, "HTLoadFile.. As we are NOT in secure mode, we can access the local file system.\n");
+	if (TRACE) fprintf(stderr, "HTLoadFile.. Accessing local file system.\n");
 
 #ifdef GOT_READ_DIR
 
@@ -795,7 +795,12 @@ open_file:
 	char *nodename = HTParse(url, "", PARSE_HOST);
 	if (nodename && *nodename && strcmp(nodename, HTHostName())!=0) {
 	    char * newname = NULL;
-	    if (TRACE) fprintf(stderr, "HTLoadFile.. Couldn't find file on local file system, let's try via FTP\n");
+	    char *unescaped = NULL;
+	    StrAllocCopy(unescaped, url);
+	    HTUnEscape(unescaped);
+	    HTErrorAdd(request, ERR_FATAL, NO, HTERR_FILE_TO_FTP,
+		       (void *) unescaped,
+		       (int) strlen(unescaped), "HTLoadFile");
 	    StrAllocCopy(newname, "ftp:");
 	    if (!strncmp(url, "file:", 5))
 		StrAllocCat(newname, url+5);
@@ -804,8 +809,8 @@ open_file:
 	    HTAnchor_setPhysical(request->anchor, newname);
 	    free(newname);
 	    free(nodename);
-	    HTErrorFree(request);			 /* Free error stack */
-	    return HTLoad(request);	      /* Jump directly to FTP module */
+	    free(unescaped);
+	    return HTLoad(request, YES);      /* Jump directly to FTP module */
 	}
 	free(nodename);
     }

@@ -51,18 +51,20 @@ typedef enum _HTErrorElement {
 	HTERR_CSO_SERVER,
 	HTERR_BAD_REPLY,					/* HTTP */
 	HTERR_NEWS_SERVER,
+	HTERR_FILE_TO_FTP,
 	HTERR_SYSTEM,
 	HTERR_ELEMENTS		            /* This MUST be the last element */
 } HTErrorElement;
 
 typedef enum _HTErrSeverity {
     ERR_FATAL		  = 0x1,
-    ERR_NON_FATAL	  = 0x3,
-    ERR_WARNING 	  = 0x7,
-    ERR_INFO	 	  = 0xF
+    ERR_NON_FATAL	  = 0x2,
+    ERR_WARNING 	  = 0x4,
+    ERR_INFO	 	  = 0x8
 } HTErrSeverity;
 
 typedef struct _HTErrorInfo {
+    int			handle;		/* Unique number in this stack */
     HTErrorElement 	element;        /* Index number into HTErrorMsgInfo */
     HTErrSeverity 	severity; 	/* A la VMS */
     BOOL               	ignore;         /* YES if msg should not go to user */
@@ -74,7 +76,15 @@ typedef struct _HTErrorInfo {
 
 <H2>Controling Globals</H2>
 
-This variable dictates which errors should be put out.
+This variable dictates which errors should be put out. The first four
+enumerations make it possible to see `everything as bad or worse than' this
+level, e.g. HT_ERR_SHOW_NON_FATAL shows messages of type HT_ERR_SHOW_NON_FATAL
+and HT_ERR_SHOW_FATAL. <P>
+
+<NOTE>Note:</NOTE> The default value is made so that it only puts a message to
+stderr if a `real' error has occurred. If a separate widget is available for
+information and error messages then probably HT_ERR_SHOW_DETAILED would be more
+appropriate.
 
 <PRE>
 typedef enum _HTErrorShow {
@@ -86,7 +96,9 @@ typedef enum _HTErrorShow {
     HT_ERR_SHOW_LOCATION  = 0x20,
     HT_ERR_SHOW_IGNORE    = 0x40,
     HT_ERR_SHOW_FIRST     = 0x80,
-    HT_ERR_SHOW_ALL	  = 0x6F	/* All bits except HT_ERR_SHOW_FIRST */
+    HT_ERR_SHOW_DEFAULT	  = 0x13,
+    HT_ERR_SHOW_DETAILED  = 0x1F,
+    HT_ERR_SHOW_DEBUG	  = 0x7F,
 } HTErrorShow;
 
 extern unsigned int HTErrorShowMask;
@@ -132,12 +144,16 @@ extern int HTErrorSysAdd PARAMS(( HTRequest * 	request,
 
 <H3>Ignoring an Error Message</H3>
 
-If an error message is not to be send to the user, e.g., output to the stream, then the ignore flag must be turn on. This function turns it on for the latest error appended to the list.
+If an error message is not to be send to the user, e.g., output to the stream,
+then the ignore flag must be turn on. Theese functions turns it on for the
+latest error appended to the list or an arbitrary error refered to by its 
+handle.
 <PRE>
-extern void HTErrorIgnore PARAMS((HTRequest * request));
+extern void HTErrorIgnore PARAMS((HTRequest * request, int handle));
+extern void HTErrorIgnoreLast PARAMS((HTRequest * request));
 </PRE>
 
-<H3>Generating an Error Message (default to standard output)</H3>
+<H3>Generating an Error Message (default to standard error)</H3>
 
 This function outputs the content of the error_stack to standard output (used in Line Mode Browser), but smart clients and servers might overwrite this function so that the error messages can be handled to the user in a nice way. That is the reason for putting the actual implementation in HTML.c, that normally gets overwritten by clients and servers apart from Line Mode Browser. <P>
 

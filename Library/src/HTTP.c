@@ -232,13 +232,10 @@ PRIVATE int HTTPSendRequest ARGS3(HTRequest *, request,
 	    }
 	}
 
-#if 0
 	/* Put out referer field if any parent */
-	if (HTAnchor_parent((HTAnchor *) request->anchor) != request->anchor) {
+	if (request->parentAnchor) {
 	    char *this = HTAnchor_address((HTAnchor *) request->anchor);
-	    char *parent = HTAnchor_address((HTAnchor *)
-					    HTAnchor_parent((HTAnchor *)
-							    request->anchor));
+	    char *parent = HTAnchor_address((HTAnchor *)request->parentAnchor);
 	    char *relative = HTParse(parent, this,
                 PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
 	    if (relative && *relative) {
@@ -249,7 +246,7 @@ PRIVATE int HTTPSendRequest ARGS3(HTRequest *, request,
 	    free(parent);
 	    free(relative);
 	}
-#endif
+
 	/* Put out user-agent */
 	sprintf(line, "User-Agent: %s/%s  libwww/%s%c%c",
 		HTAppName ? HTAppName : "unknown",
@@ -423,7 +420,8 @@ PRIVATE HTAnchor *HTTPRedirect ARGS3(HTRequest *, request,
 **      request		This is the request structure
 ** On exit,
 **	returns		<0		Error has occured
-**			HT_LOADED	OK
+**			HT_LOADED	if return status 200 OK
+**			HT_NO_DATA	if return status 204 No Response
 */
 PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 {
@@ -593,9 +591,31 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	    switch (server_status/100) {
 
 	      case 2:		/* Good: Got MIME object */
-		status = HTTPGetBody(request, http, isoc, format_in, YES);
+		switch (server_status) {
+		  case 204:				      /* No response */
+		    HTErrorAdd(request, ERR_INFO, NO, HTERR_NO_RESPONSE,
+			       NULL, 0, "HTLoadHTTP");
+		    status = HT_NO_DATA;
+		    break;			       /* Don't get any body */
+		  case 203:					  /* Partial */
+		    HTErrorAdd(request, ERR_INFO, NO, HTERR_PARTIAL,
+			       NULL, 0, "HTLoadHTTP");
+		    /* Drop through to 200 as we still have to get the body */
+		  case 200:
+		    status = HTTPGetBody(request, http, isoc, format_in, YES);
+		    break;
+		  default:
+		    {
+			int length = (int) strlen(status_line);
+			HTErrorAdd(request, ERR_FATAL, NO, HTERR_BAD_REPLY,
+				   (void *) status_line, length < 50 ?
+				   length : 50, "HTLoadHTTP");
+		    }
+		    status = -1;
+		    break;
+		}
 		break;
-		    
+
 	      case 3:		/* Various forms of redirection */
 		switch (server_status) {
 		  case 301:					    /* Moved */
@@ -608,8 +628,10 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 			    free(status_line);
 			    HTInputSocket_free(isoc);
 			    HTTPCleanup(request, http);
-			    if (HTLoadAnchor((HTAnchor *) anchor,
-					     request) == YES)
+
+			    /* Now do a recursive call but keep error stack */
+			    if (HTLoadAnchorRecursive((HTAnchor *) anchor,
+						      request) == YES)
 				return HT_LOADED;
 			    else
 				return -1;

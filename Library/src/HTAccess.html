@@ -4,29 +4,29 @@
 <NEXTID N="z11">
 </HEAD>
 <BODY>
-<H1>Access Manager</H1>This module keeps a list of valid
+<H1>Access Manager</H1>
+This module keeps a list of valid
 protocol (naming scheme) specifiers
 with associated access code.  It
 allows documents to be loaded given
 various combinations of parameters.
 New access protocols may be registered
 at any time.<P>
-Note: HTRequest defined and request
-parametsr added to almost all calls
+
+<B>Note:</B> HTRequest defined and request parameter added to almost all calls
 18 Nov 1993.<P>
-Part of the <A
-NAME="z0" HREF="Overview.html">libwww library</A> .  Implemented
-by <A
-NAME="z8" HREF="HTAccess.c">HTAcces.c</A>
-<PRE>#ifndef HTACCESS_H
+
+This document is a part of the <A NAME="z0" HREF="Overview.html">
+libwww library</A>. The code is implemented in <A NAME="z8" HREF="HTAccess.c">
+HTAcces.c</A>
+
+<PRE>
+#ifndef HTACCESS_H
 #define HTACCESS_H
 
-/*	Definition uses:
-*/
-#include "HTUtils.h"
-#include "HTList.h"
+/* Definition uses: */
 #include "tcp.h"
-
+#include "HTList.h"
 
 #ifdef SHORT_NAMES
 #define HTClientHost 		HTClHost
@@ -34,7 +34,13 @@ NAME="z8" HREF="HTAccess.c">HTAcces.c</A>
 #define HTOutputStream		HTOuStre
 #define HTOutputFormat		HTOuForm
 #endif
+</PRE>
 
+<H2>Methods</H2>
+
+Thesse are the valid methods, see <A HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/Methods.html">HTTP Methods</A>
+
+<PRE>
 typedef enum {
 	METHOD_INVALID	= 0,
 	METHOD_GET	= 1,
@@ -49,37 +55,35 @@ typedef enum {
 	METHOD_UNLINK,
 	MAX_METHODS
 } HTMethod;
-
-
 </PRE>
-<H2>Methods</H2>
+
+<H3>Get Method Enumeration</H3>
+
+Gives the enumeration value of the method as a function of the (char *) name.
+
 <PRE>
-
-/*	Get method enum value
-**	---------------------
-*/
 PUBLIC HTMethod HTMethod_enum PARAMS((char * name));
+</PRE>
 
+<H3>Get Method String</H3>
 
-/*	Get method name
-**	---------------
-*/
+The reverse of <I>HTMethod_enum()</I>
+
+<PRE>
 PUBLIC char * HTMethod_name PARAMS((HTMethod method));
+</PRE>
 
+<H3>Valid Methods</H3>
 
-/* PUBLIC						HTMethod_inList()
-**		IS A METHOD IN A LIST OF METHOD NAMES
-** ON ENTRY:
-**	method		is the method to look for.
-**	list		is a list of method names.
-**
-** ON EXIT:
-**	returns		YES, if method was found.
-**			NO, if not found.
-*/
+This functions searches the list of valid methods for a given anchor, see
+<A HREF="HTAnchor.html">HTAnchor module</A> If the method is found it returns
+YES else NO.
+
+<PRE>
 PUBLIC BOOL HTMethod_inList PARAMS((HTMethod	method,
 				    HTList *	list));
 </PRE>
+
 <H2>Match Template Against Filename</H2>
 <PRE>
 /* PUBLIC						HTAA_templateMatch()
@@ -111,7 +115,8 @@ PUBLIC BOOL HTAA_templateMatch PARAMS((CONST char * template,
 </PRE>The following have to be defined
 in advance of the other include files
 because of circular references.
-<PRE>typedef struct _HTRequest HTRequest;
+<PRE>
+typedef struct _HTRequest HTRequest;
 
 /*
 ** Callback to call when username and password
@@ -125,65 +130,54 @@ typedef int (*HTRetryCallbackType) PARAMS((HTRequest * req));
 NAME="z3" HREF="HTFormat.html">"HTFormat.h"</A>
 #include "HTAAUtil.h"		/* HTAAScheme, HTAAFailReason */
 #include "HTAABrow.h"		/* HTAASetup */
-
-
-/*	Return codes from load routines:
-**
-**	These codes may be returned by the protocol modules,
-**	and by the HTLoad routines.
-**	In general, positive codes are OK and negative ones are bad.
-*/
-
-#define HT_NO_DATA -9999	/* return code: OK but no data was loaded */
-				/* Typically, other app started or forked */
-
 </PRE>
-<H2>Default Addresses</H2>These control the home page selection.
-To mess with these for normal browses
+
+<H2>Default Addresses</H2>
+
+These control the home page selection. To mess with these for normal browses
 is asking for user confusion.
-<PRE>#define LOGICAL_DEFAULT "WWW_HOME"  /* Defined to be the home page */
+<PRE>
+#define LOGICAL_DEFAULT "WWW_HOME"	      /* Defined to be the home page */
 
 #ifndef PERSONAL_DEFAULT
-#define PERSONAL_DEFAULT "WWW/default.html"	/* in home directory */
+#define PERSONAL_DEFAULT "WWW/default.html"		/* in home directory */
 #endif
+
 #ifndef LOCAL_DEFAULT_FILE
 #define LOCAL_DEFAULT_FILE "/usr/local/lib/WWW/default.html"
 #endif
-/*  If one telnets to a www access point,
-    it will look in this file for home page */
+
+/* If one telnets to an access point it will look in this file for home page */
 #ifndef REMOTE_POINTER
-#define REMOTE_POINTER  "/etc/www-remote.url"  /* can't be file */
-#endif
-/* and if that fails it will use this. */
-#ifndef REMOTE_ADDRESS
-#define REMOTE_ADDRESS  "http://info.cern.ch/remote.html"  /* can't be file */
+#define REMOTE_POINTER  "/etc/www-remote.url"		    /* can't be file */
 #endif
 
-/* If run from telnet daemon and no -l specified, use this file:
-*/
+/* and if that fails it will use this. */
+#ifndef REMOTE_ADDRESS
+#define REMOTE_ADDRESS  "http://info.cern.ch/remote.html"   /* can't be file */
+#endif
+
+/* If run from telnet daemon and no -l specified, use this file: */
 #ifndef DEFAULT_LOGFILE
 #define DEFAULT_LOGFILE	"/usr/adm/www-log/www-log"
 #endif
 
-/*	If the home page isn't found, use this file:
-*/
+/* If the home page isn't found, use this file: */
 #ifndef LAST_RESORT
 #define LAST_RESORT	"http://info.cern.ch/default.html"
 #endif
 
-/*	This is the default cache directory:
-*/
+/* This is the default cache directory: */
 #ifndef CACHE_HOME_DIR
 #define CACHE_HOME_DIR		"/tmp/"
 #endif
 
-/*	The default directory for "save locally" and "save and execute" files:
-*/
+/* The default directory for "save locally" and "save and execute" files: */
 #ifndef SAVE_LOCALLY_HOME_DIR
 #define SAVE_LOCALLY_HOME_DIR	"/tmp/"
 #endif
-
 </PRE>
+
 <H2><A
 NAME="z1">The Request structure</A></H2>When a request is handled, all kinds
 of things about it need to be passed
@@ -191,7 +185,11 @@ along.  These are all put into a
 HTRequest structure. <P>
 
 <NOTE>Note 1:</NOTE> There is also a <A NAME="z4" HREF="HTFormat.html#z17">global list of converters</A> <P>
-<NOTE>Note 2:</NOTE> It is <B>NOT</B> safe to reuse a request structure for more than one request. It should be freed and reallocated or cleared, see <A HREF="#z100">functions to manipulate HTRequest Structure</A>
+<NOTE>Note 2:</NOTE> If you reuse the request structure for more than one
+request then make sure that the request is re-initialized, so that no `old'
+data is reused, see <A HREF="#z100">functions to manipulate HTRequest
+Structure</A>. The library handles its own internal information from request
+to request but the information set by the caller is untouched.
 
 <PRE>struct _HTRequest {
 
@@ -247,8 +245,14 @@ generic format such as www/present
 <H4>Information about the requester</H4>
 <PRE>	char *		from;
 
-</PRE>Email format address of person responible
-for request
+</PRE>Email format address of person responible for request
+
+<H4>The URI from which this request was obtained</H4>
+<PRE>	HTParentAnchor *parentAnchor;
+</PRE>
+If this parameter is set then a `Referer: &lt;parent address&gt; is generated
+in the request to the server, see <A HREF="http://info.cern.ch/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html#z14">Referer field in a HTTP Request</A>
+
 <H3>Set by HTAccess</H3>None of the bits below may be looked
 at by a client application except
 in the callback routine, when the
@@ -430,7 +434,9 @@ Note: This is equivalent to HTLoadDocument
 <H2>Load if necessary, and select an
 anchor</H2>The anchor parameter may be a child
 anchor. The anchor in the request
-is set to the parent anchor.
+is set to the parent anchor. The recursive function keeps the error stack in 
+the request structure so that no information is lost having more than one
+call. 
 <H3>On Entry,</H3>
 <DL>
 <DT>anchor
@@ -454,27 +460,33 @@ yet.
 <DD> The parenet anchor.
 </DL>
 
-<PRE>extern BOOL HTLoadAnchor PARAMS((HTAnchor * a,
-			HTRequest *		request));
-
-
+<PRE>
+extern BOOL HTLoadAnchor PARAMS((HTAnchor  * a,
+				 HTRequest *		request));
+extern BOOL HTLoadAnchorRecursive PARAMS((HTAnchor  * a,
+				 	  HTRequest *		request));
 </PRE>
 
 <H2>Load a Document</H2>
 This is an internal routine, which has an address AND a matching
 anchor.  (The public routines are called with one OR the other.)
-This is, however, recursively called from file load module to
-try ftp.
+This is recursively called from file load module to try ftp (though this
+will be obsolete in the next major release).
 
 <H3>On entry,</H3>
-request->
+<DL> 
+<DT> request->
+<DD>
 <DL>
 	<DT> anchor		<DD> a parent anchor with fully qualified
 				     hypertext reference as its address set
 	<DT> output_format	<DD> valid
 	<DT> output_stream	<DD> valid on NULL
 </DL>
-
+<DT> keep_error_stack 
+<DD> If this is set to YES then the error (or info) stack is not cleared from
+the previous call. 
+</DL> 
 <H3>On exit,</H3>
 returns
 <DL>
@@ -485,7 +497,7 @@ returns
 </DL>
 
 <PRE>
-PUBLIC int HTLoad PARAMS((HTRequest * request));
+PUBLIC int HTLoad PARAMS((HTRequest * request, BOOL keep_error_stack));
 </PRE>
 
 
@@ -618,32 +630,12 @@ should only be done once when the
 program first runs. This is a default
 algorithm -- browser don't HAVE to
 use this.
-<PRE>extern HTParentAnchor * HTHomeAnchor NOPARAMS;
-
-</PRE>
-
-<H2>Error Diagnostics</H2>
 <PRE>
-
-PUBLIC void HTAddError PARAMS((HTRequest *	req,
-			       CONST char *	msg));
-
-PUBLIC void HTAddError2 PARAMS((HTRequest *	req,
-				CONST char *	msg,
-				CONST char *	param));
-
-PUBLIC void HTAddErrorN PARAMS((HTRequest *	req,
-				CONST char *	msg,
-				int		param));
-
-PUBLIC void HTClearErrors PARAMS((HTRequest *	req));
-
+extern HTParentAnchor * HTHomeAnchor NOPARAMS;
 </PRE>
 
 <PRE>
-
 #endif /* HTACCESS_H */
-
 </PRE>
 end of HTAccess
 </BODY>

@@ -205,10 +205,14 @@ for something more sophisticated.
 
 #define WHITE(c) (((unsigned char)(TOASCII(c))) &lt;= 32)
 
-
 </PRE>
-<H2>Sucess (>=0) and failure (&lt;0) codes</H2>
+<H2>Return Codes for Protocol Modules</H2>
+
+Theese are the codes returned from the protocol modules. Success (&gt;=0) and
+failure (&lt;0) codes
 <PRE>
+#define HT_NO_DATA		-9999	/* OK but no data was loaded */
+					/* Typically, other app started */
 #define HT_INTERRUPTED 		-29998	/* Note the negative value! */
 #define HT_LOADED 29999			/* Instead of a socket */
 #define HT_REDIRECTION_ON_FLY 29998	/* Redo the retrieve with a new URL */

@@ -933,13 +933,15 @@ PUBLIC int HTLoadError ARGS3(
     /* Clean up! Henrik 04/03-94 */
     if (req && req->output_stream)
 	(*req->output_stream->isa->abort)(req->output_stream, err);
+#if OLD_CODE
     HTClearErrors(req);
+#endif
     return -number;
 } 
 
 
 /* ------------------------------------------------------------------------- */
-/* NOTE: THIS FUNCTION IS PLACED HEER AS THE HTML.C MODULE NORMALLY GETS
+/* NOTE: THIS FUNCTION IS PLACED HERE AS THE HTML.C MODULE NORMALLY GETS
 **       OVERRIDDEN BY THE CLIENT OR SERVER
 **								HTErrorMsg
 **
@@ -964,10 +966,12 @@ PUBLIC void HTErrorMsg ARGS1(HTRequest *, request)
     /* This check is only necessary if the error message is put down the
        stream, because we have to know if a stream has been put up and/or
        taken down again. Here it is only put as an example */
+#if 0
     if (request->error_block) {
-	if (TRACE) fprintf(stderr, "HTErrorMsg.. Errors are not printed as no stream is available.\n");
+	if (TRACE) fprintf(stderr, "HTErrorMsg.. No messages are printed as no stream is available.\n");
 	return;
     }
+#endif
 
     /* Output messages */
     chunk = HTChunkCreate(128);
@@ -981,7 +985,7 @@ PUBLIC void HTErrorMsg ARGS1(HTRequest *, request)
 	    if (highest) {			    /* If first time through */
 		if (TRACE)
 		    fprintf(stderr,
-			    "HTError..... Generating error message.\n");
+			    "HTError..... Generating message.\n");
 		
 		/* Output title */
 		if (pres->severity == ERR_WARNING)
@@ -990,6 +994,8 @@ PUBLIC void HTErrorMsg ARGS1(HTRequest *, request)
 		    HTChunkPuts(chunk, "Non Fatal Error ");
 		else if (pres->severity == ERR_FATAL)
 		    HTChunkPuts(chunk, "Fatal Error ");
+		else if (pres->severity == ERR_INFO)
+		    HTChunkPuts(chunk, "Information ");
 		else {
 		    if (TRACE)
 			fprintf(stderr, "HTError..... Unknown Classification of Error (%d)...\n", pres->severity);
@@ -1032,6 +1038,9 @@ PUBLIC void HTErrorMsg ARGS1(HTRequest *, request)
 		HTChunkPuts(chunk, pres->where);
 		HTChunkPutc(chunk, '\n');
 	    }
+
+	    /* We don't want the message more than once */
+	    HTErrorIgnore(request, pres->handle);
 	    
 	    /* If we only are going to show the higest entry */
 	    if (HTErrorShowMask & HT_ERR_SHOW_FIRST)
@@ -1040,7 +1049,8 @@ PUBLIC void HTErrorMsg ARGS1(HTRequest *, request)
     }
     HTChunkPutc(chunk,  '\n');
     HTChunkTerminate(chunk);
-    HTAlert(chunk->data);
+    if (chunk->size > 2)
+	HTAlert(chunk->data);
     HTChunkFree(chunk);
     return;
 }
