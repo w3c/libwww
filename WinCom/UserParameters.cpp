@@ -31,7 +31,7 @@ PRIVATE HTErrorMessage HTErrors[HTERR_ELEMENTS] =
     { 201, "Document Created",				"success" },
     { 202, "Accepted", 					"success" },
     { 203, "Non-authoritative Information",		"success" },
-    { 204, "Response Contained no Data",		"success" },
+    { 204, "Operation Succeeded but Response contained no data",		"success" },
     { 205, "Reset Content",				"success" },
     { 206, "Partial Content",				"success" },
     { 207, "Partial Update OK",				"success" },
