@@ -20,7 +20,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTParse.h"
@@ -236,7 +236,7 @@ PRIVATE int remote_session (HTRequest * request, char * url)
 			   "HTLoadTelnet");
 	HTChunk_delete(msg);
     }
-#ifdef GOT_SYSTEM
+#ifdef HAVE_SYSTEM
     system(cmd->data);
 #endif
     HT_FREE(access);

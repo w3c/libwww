@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Generic Network Communication</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  3-Dec-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 26-Feb-1996 -->
 </HEAD>
 <BODY>
 
@@ -86,7 +86,7 @@ pass the error number as a parameter as we on some platforms get
 different codes from sockets and local file access.
 
 <PRE>
-extern CONST char * HTErrnoString	(int errnum);
+extern const char * HTErrnoString	(int errnum);
 extern int HTInetStatus			(int errnum, char * where);
 </PRE>
 
@@ -125,7 +125,7 @@ pointer returned points to static memory which must be copied if it is to be
 kept.
 
 <PRE>
-extern CONST char * HTInetString (struct sockaddr_in * sin);
+extern const char * HTInetString (struct sockaddr_in * sin);
 </PRE>
 
 <A NAME="HTGetHostName"><H3>Get Name of This Machine</H3></A>
@@ -134,7 +134,7 @@ This function returns a CONET char pointer to a static location containing
 the name of this host or NULL if not available.
 
 <PRE>
-extern CONST char * HTGetHostName (void);
+extern const char * HTGetHostName (void);
 </PRE>
 
 
@@ -165,7 +165,7 @@ HTGetHostName() function. Changing the domain name requires a call to
 HTSetHostname().
 
 <PRE>
-extern CONST char *HTGetDomainName (void);
+extern const char *HTGetDomainName (void);
 </PRE>
 
 
@@ -177,7 +177,11 @@ one of the current host name so different values can be assigned. The default
 value is &lt;USER&gt;@hostname where hostname is as returned by HTGetHostName().
 
 <PRE>
-extern CONST char * HTGetMailAddress (void);
+#ifndef HT_DEFAULT_LOGIN
+#define HT_DEFAULT_LOGIN	"libwww"
+#endif
+
+extern const char * HTGetMailAddress (void);
 </PRE>
 
 

@@ -25,7 +25,7 @@
 */
 
 /* Library Includes */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTParse.h"
@@ -73,7 +73,7 @@ typedef struct _file_info {
 
 /* Local definition */
 struct _HTStream {
-    CONST HTStreamClass *	isa;
+    const HTStreamClass *	isa;
     /* ... */
 };
 
@@ -124,10 +124,8 @@ PUBLIC HTDirReadme HTFile_dirReadme (void)
 */
 PRIVATE int HTFile_readDir (HTRequest * request, file_info *file)
 {
-#ifndef GOT_READ_DIR
-    return HT_ERROR;
-#else
-    DIR *dp;
+#ifdef HAVE_READDIR
+    DIR * dp;
     struct stat file_info;
     char *url = HTAnchor_physical(request->anchor);
     char fullname[HT_MAX_PATH+1];
@@ -165,21 +163,25 @@ PRIVATE int HTFile_readDir (HTRequest * request, file_info *file)
     }
 
     if ((dp = opendir(file->local))) {
-	STRUCT_DIRENT *dirbuf;
+	struct dirent * dirbuf;
 	HTDir *dir = HTDir_new(request, dir_show, dir_key);
 	char datestr[20];
 	char sizestr[10];
 	HTFileMode mode;
 #ifdef HT_REENTRANT
-	STRUCT_DIRENT result;				    /* For readdir_r */
-	while ((dirbuf = (STRUCT_DIRENT *) readdir_r(dp, &result)))
+	struct dirent * result;				    /* For readdir_r */
+	while ((dirbuf = (dirent *) readdir_r(dp, &result)))
 #else
 	while ((dirbuf = readdir(dp)))
 #endif /* HT_REENTRANT */
 	{
 	    /* Current and parent directories are never shown in list */
+#ifdef HAVE_DIRENT_INO
 	    if (!dirbuf->d_ino ||
 		!strcmp(dirbuf->d_name, ".") || !strcmp(dirbuf->d_name, ".."))
+#else
+	    if (!strcmp(dirbuf->d_name, ".") || !strcmp(dirbuf->d_name, ".."))
+#endif
 		continue;
 
 	    /* Make a lstat on the file */
@@ -215,7 +217,9 @@ PRIVATE int HTFile_readDir (HTRequest * request, file_info *file)
     } else
 	HTRequest_addSystemError(request,  ERR_FATAL, errno, NO, "opendir");
     return HT_LOADED;
-#endif /* GOT_READ_DIR */
+#else
+#error "readdir not defined"
+#endif /* HAVE_READDIR */
 }
 
 /*	Determine write access to a file
@@ -229,23 +233,15 @@ PRIVATE int HTFile_readDir (HTRequest * request, file_info *file)
 **	1.	No code for non-unix systems.
 **	2.	Isn't there a quicker way?
 */
-PRIVATE BOOL HTEditable (CONST char * filename, struct stat * stat_info)
+PRIVATE BOOL HTEditable (const char * filename, struct stat * stat_info)
 {
-#ifndef NO_UNIX_IO
-#ifdef NO_GROUPS
-    return NO;		   /* Safe answer till we find the correct algorithm */
-#else
-#ifdef NeXT
-    int groups[NGROUPS];
-#else
-    gid_t groups[NGROUPS];
-#endif	
+#ifdef GETGROUPS_T
     int i;
     uid_t myUid;
     int	ngroups;			/* The number of groups  */
     struct stat	fileStatus;
     struct stat *fileptr = stat_info ? stat_info : &fileStatus;
-        
+    GETGROUPS_T groups[NGROUPS];
     if (!stat_info) {
 	if (HT_STAT(filename, &fileStatus))
 	    return NO;				  /* Can't even access file! */
@@ -279,14 +275,13 @@ PRIVATE BOOL HTEditable (CONST char * filename, struct stat * stat_info)
     }
     if (PROT_TRACE) HTTrace("\tFile is not editable.\n");
     return NO;					/* If no excuse, can't do */
-#endif
 #else
     /*
     ** We don't know and can't find out. Can we be sure that when opening
     ** a file in mode "a" that the file is not modified?
     */
     return NO;
-#endif /* !NO_UNIX_IO */
+#endif /* GETGROUPS_T */
 }
 
 
@@ -299,7 +294,7 @@ PRIVATE BOOL HTEditable (CONST char * filename, struct stat * stat_info)
 PUBLIC HTStream * HTFileSaveStream (HTRequest * request)
 {
 
-    CONST char * addr = HTAnchor_address((HTAnchor*)request->anchor);
+    const char * addr = HTAnchor_address((HTAnchor*)request->anchor);
     char * filename = HTWWWToLocal(addr, "");
     FILE* fp;
 
@@ -529,7 +524,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	    ** returns 0 when blocking and NOT -1. FNDELAY is ONLY for BSD
 	    ** and does NOT work on SVR4 systems. O_NONBLOCK is POSIX.
 	    */
-#ifndef NO_FCNTL
+#ifdef HAVE_FCNTL
 	    if (!request->net->preemptive) {
 		if ((status = FCNTL(net->sockfd, F_GETFL, 0)) != -1) {
 		    status |= O_NONBLOCK;			    /* POSIX */
@@ -542,7 +537,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 			HTTrace("HTLoadFile.. Using NON_BLOCKING I/O\n");
 		}
 	    }
-#endif /* NO_FCNTL */
+#endif /* HAVE_FCNTL */
 #else
 #ifdef VMS	
 	    if (!(file->fp = fopen(file->local,"r","shr=put","shr=upd"))) {

@@ -23,12 +23,12 @@
 
 #include "HTRobot.h"			     		 /* Implemented here */
 
-#ifndef VR
-#define VR "unspecified"
+#ifndef W3C_VERSION
+#define W3C_VERSION 		"unspecified"
 #endif
 
 #define APP_NAME		"W3CRobot"
-#define APP_VERSION		VR
+#define APP_VERSION		W3C_VERSION
 
 /* Default page for "-help" command line option */
 #define HELP	"http://www.w3.org/pub/WWW/Robot/User/CommandLine.html"
@@ -124,8 +124,8 @@ PUBLIC int OutputData(const char  * fmt, ...)
 PRIVATE HyperDoc * HyperDoc_new (Robot * mr,HTParentAnchor * anchor, int depth)
 {
     HyperDoc * hd;
-    if ((hd = (HyperDoc *) calloc(1, sizeof(HyperDoc))) == NULL)
-	outofmem(__FILE__, "HyperDoc_new");
+    if ((hd = (HyperDoc *) HT_CALLOC(1, sizeof(HyperDoc))) == NULL)
+	HT_OUTOFMEM("HyperDoc_new");
     hd->state = L_INVALID;
     hd->depth = depth;
  
@@ -157,9 +157,9 @@ PRIVATE BOOL HyperDoc_delete (HyperDoc * hd)
 PRIVATE Robot * Robot_new (void)
 {
     Robot * me;
-    if ((me = (Robot *) calloc(1, sizeof(Robot))) == NULL ||
-	(me->tv = (struct timeval*) calloc(1, sizeof(struct timeval))) == NULL)
-	outofmem(__FILE__, "Robot_new");
+    if ((me = (Robot *) HT_CALLOC(1, sizeof(Robot))) == NULL ||
+	(me->tv = (struct timeval*) HT_CALLOC(1, sizeof(struct timeval))) == NULL)
+	HT_OUTOFMEM("Robot_new");
     me->hyperdoc = HTList_new();
     me->htext = HTList_new();
     me->tv->tv_sec = DEFAULT_TIMEOUT;
@@ -351,8 +351,8 @@ PUBLIC HText * HText_new2 (HTRequest * request, HTParentAnchor * anchor,
 {
     HText * me;
     Robot * mr = (Robot *) HTRequest_context(request);
-    if ((me = (HText *) calloc(1, sizeof(HText))) == NULL)
-	outofmem(__FILE__, "HText_new2");
+    if ((me = (HText *) HT_CALLOC(1, sizeof(HText))) == NULL)
+	HT_OUTOFMEM("HText_new2");
 
     /* Bind the HText object together with the Request Object */
     me->request = request;
@@ -406,7 +406,7 @@ PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
 }
 
 PUBLIC void HText_appendImage (HText * text, HTChildAnchor * anchor,
-			       CONST char *alt, CONST char * align, BOOL isMap)
+			       const char *alt, const char * align, BOOL isMap)
 {
     if (text && anchor) {
 	Robot * mr = (Robot *) HTRequest_context(text->request);
@@ -436,7 +436,7 @@ PUBLIC void HText_appendImage (HText * text, HTChildAnchor * anchor,
 }
 
 PUBLIC void HText_endAnchor (HText * text) {}
-PUBLIC void HText_appendText (HText * text, CONST char * str) {}
+PUBLIC void HText_appendText (HText * text, const char * str) {}
 PUBLIC void HText_appendCharacter (HText * text, char ch) {}
 PUBLIC void HText_endAppend (HText * text) {}
 PUBLIC void HText_setStyle (HText * text, HTStyle * style) {}

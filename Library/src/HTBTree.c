@@ -12,7 +12,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTBTree.h"
 
@@ -54,50 +54,50 @@ PUBLIC HTBTree * HTBTree_new (HTComparer * comp)
 
 
 
-PRIVATE void HTBTElement_free (HTBTElement*  element)
+PRIVATE void HTBTElement_HT_FREE (HTBTElement*  element)
     /**********************************************************
-    ** This void will free the memory allocated for one element
+    ** This void will HT_FREE the memory allocated for one element
     */
 {
     if (element) {
-        if (element->left != NULL)    HTBTElement_free(element->left);
-	if (element->right != NULL)    HTBTElement_free(element->right);
+        if (element->left != NULL)    HTBTElement_HT_FREE(element->left);
+	if (element->right != NULL)    HTBTElement_HT_FREE(element->right);
 	HT_FREE(element);
     }
 }
 
-PUBLIC void HTBTree_free (HTBTree*  tree)
+PUBLIC void HTBTree_HT_FREE (HTBTree*  tree)
     /**************************************************************
-    ** This void will free the memory allocated for the whole tree
+    ** This void will HT_FREE the memory allocated for the whole tree
     */
 {
-    HTBTElement_free(tree->top);
+    HTBTElement_HT_FREE(tree->top);
     HT_FREE(tree);
 }
 
 
 
 
-PRIVATE void HTBTElementAndObject_free (HTBTElement*  element)
+PRIVATE void HTBTElementAndObject_HT_FREE (HTBTElement*  element)
     /**********************************************************
-    ** This void will free the memory allocated for one element
+    ** This void will HT_FREE the memory allocated for one element
     */
 {
     if (element) {     /* Just in case nothing was in the tree anyway */
-        if (element->left != NULL)    HTBTElementAndObject_free(element->left);
+        if (element->left != NULL)    HTBTElementAndObject_HT_FREE(element->left);
 	if (element->right != NULL)    
-	    HTBTElementAndObject_free(element->right);
+	    HTBTElementAndObject_HT_FREE(element->right);
 	HT_FREE(element->object);
 	HT_FREE(element);
     }
 }
 
-PUBLIC void HTBTreeAndObject_free (HTBTree*  tree)
+PUBLIC void HTBTreeAndObject_HT_FREE (HTBTree*  tree)
     /**************************************************************
-    ** This void will free the memory allocated for the whole tree
+    ** This void will HT_FREE the memory allocated for the whole tree
     */
 {
-    HTBTElementAndObject_free(tree->top);
+    HTBTElementAndObject_HT_FREE(tree->top);
     HT_FREE(tree);
 }
 
@@ -529,7 +529,7 @@ PUBLIC HTBTElement * HTBTree_next(HTBTree * tree, HTBTElement * element)
             father_of_element = father_of_forefather;
 	}
     }
-#ifdef BTREE_TRACE
+#if 0
     /* The option -DBTREE_TRACE will give much more information
     ** about the way the process is running, for debugging matters
     */
@@ -557,7 +557,7 @@ PUBLIC HTBTElement * HTBTree_next(HTBTree * tree, HTBTElement * element)
 }
 
 
-#ifdef TEST
+#if 0
 main ()
     /******************************************************
     ** This is just a test to show how to handle HTBTree.c
@@ -700,19 +700,13 @@ main ()
     HTBTree_add(tree,"MAIL2HTML");
     HTBTree_add(tree,"core");
     HTBTree_add(tree,"EmacsWWW");
-#ifdef BTREE_TRACE
     HTTrace("\nTreeTopObject=%s\n\n",tree->top->object);
-#endif
     next_element = HTBTree_next(tree,NULL);
     while (next_element != NULL)
     {
-#ifndef BTREE_TRACE
         HTTrace("The next element is %s\n",next_element->object);
-#endif
         next_element = HTBTree_next(tree,next_element);
     }
-    HTBTree_free (tree);
+    HTBTree_HT_FREE (tree);
 }
-
-
 #endif

@@ -20,7 +20,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTAssoc.h"					 /* Implemented here */
@@ -48,7 +48,7 @@ PUBLIC BOOL HTAssocList_delete (HTAssocList * alist)
 
 
 PUBLIC BOOL HTAssocList_add (HTAssocList * alist,
-			     CONST char * name, CONST char * value)
+			     const char * name, const char * value)
 {
     HTAssoc *assoc;
     if (alist) {
@@ -65,7 +65,7 @@ PUBLIC BOOL HTAssocList_add (HTAssocList * alist,
 }
 
 
-PUBLIC char *HTAssocList_lookup (HTAssocList * alist, CONST char * name)
+PUBLIC char *HTAssocList_lookup (HTAssocList * alist, const char * name)
 {
     HTAssocList *cur = alist;
     HTAssoc *assoc;

@@ -223,9 +223,9 @@ conversions.
 
 <PRE>
 extern void HTPresentation_add (HTList *	conversions,
-				CONST char * 	representation,
-				CONST char * 	command,
-				CONST char * 	test_command,
+				const char * 	representation,
+				const char * 	command,
+				const char * 	test_command,
 				double		quality,
 				double		secs, 
 				double		secs_per_byte);
@@ -261,8 +261,8 @@ conversions.
 
 <PRE>
 extern void HTConversion_add   (HTList *	conversions,
-				CONST char * 	rep_in,
-				CONST char * 	rep_out,
+				const char * 	rep_in,
+				const char * 	rep_out,
 				HTConverter *	converter,
 				double		quality,
 				double		secs, 
@@ -302,7 +302,7 @@ typedef struct _HTAcceptNode {
 
 <PRE>
 extern void HTEncoding_add (HTList * 		list,
-			    CONST char *	enc,
+			    const char *	enc,
 			    double		quality);
 </PRE>
 
@@ -318,7 +318,7 @@ extern void HTEncoding_deleteAll (HTList * list);
 
 <PRE>
 extern void HTCharset_add (HTList *		list,
-			   CONST char *		charset,
+			   const char *		charset,
 			   double		quality);
 </PRE>
 
@@ -334,7 +334,7 @@ extern void HTCharset_deleteAll	(HTList * list);
 
 <PRE>
 extern void HTLanguage_add (HTList *		list,
-			    CONST char *	lang,
+			    const char *	lang,
 			    double		quality);
 </PRE>
 

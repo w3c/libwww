@@ -8,7 +8,7 @@
 */
 
 /* Library Includes */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTWWWStr.h"
@@ -26,7 +26,7 @@
 #define PUTBLOCK(b, l)	(*me->target->isa->put_block)(me->target, b, l)
 
 struct _HTStream {
-    CONST HTStreamClass *	isa;
+    const HTStreamClass *	isa;
     HTStream *		  	target;
     HTRequest *			request;
     BOOL			endHeader;
@@ -53,7 +53,7 @@ PRIVATE int HTTPGenMake (HTStream * me, HTRequest * request)
 	/* @@@@@@ */
     }
     if (request->GenMask & HT_G_MESSAGE_ID) {
-	CONST char *msgid = HTMessageIdStr();
+	const char *msgid = HTMessageIdStr();
 	if (msgid) {
 	    sprintf(linebuf, "Message-ID: %s%c%c", msgid, CR, LF);
 	    PUTBLOCK(linebuf, (int) strlen(linebuf));
@@ -98,7 +98,7 @@ PRIVATE int HTTPGenMake (HTStream * me, HTRequest * request)
     return HT_OK;
 }
 
-PRIVATE int HTTPGen_put_block (HTStream * me, CONST char * b, int l)
+PRIVATE int HTTPGen_put_block (HTStream * me, const char * b, int l)
 {
     if (me->transparent)
 	return b ? PUTBLOCK(b, l) : HT_OK;
@@ -114,7 +114,7 @@ PRIVATE int HTTPGen_put_character (HTStream * me, char c)
     return HTTPGen_put_block(me, &c, 1);
 }
 
-PRIVATE int HTTPGen_put_string (HTStream * me, CONST char * s)
+PRIVATE int HTTPGen_put_string (HTStream * me, const char * s)
 {
     return HTTPGen_put_block(me, s, strlen(s));
 }
@@ -153,7 +153,7 @@ PRIVATE int HTTPGen_abort (HTStream * me, HTList * e)
 /*	HTTPGen Stream
 **	-----------------
 */
-PRIVATE CONST HTStreamClass HTTPGenClass =
+PRIVATE const HTStreamClass HTTPGenClass =
 {		
     "HTTPGen",
     HTTPGen_flush,

@@ -15,7 +15,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTTCP.h"
@@ -220,7 +220,7 @@ PUBLIC void * HTError_parameter (HTError * info, int * length)
     return NULL;
 }
 
-PUBLIC CONST char * HTError_location (HTError * info)
+PUBLIC const char * HTError_location (HTError * info)
 {
     return info ? info->where : NULL;
 }

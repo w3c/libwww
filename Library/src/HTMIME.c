@@ -18,7 +18,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTFormat.h"
@@ -79,7 +79,7 @@ typedef enum _MIME_state {
 } MIME_state;
 
 struct _HTStream {
-    CONST HTStreamClass *	isa;
+    const HTStreamClass *	isa;
     HTRequest *			request;
     HTNet *			net;
     HTParentAnchor *		anchor;
@@ -107,7 +107,7 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
     char *ptr = me->buffer->data-1;     /* We dont change the data in length */
     char *stop = ptr+me->buffer->size;			     /* When to stop */
     char *header = ptr;      				  /* For diagnostics */
-    CONST char * check_pointer;				   /* checking input */
+    const char * check_pointer;				   /* checking input */
     char *value;
 
     /* In case we get an empty header consisting of a CRLF, we fall thru */
@@ -600,10 +600,10 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 **	Header is terminated by CRCR, LFLF, CRLFLF, CRLFCRLF
 **	Folding is either of CF LWS, LF LWS, CRLF LWS
 */
-PRIVATE int HTMIME_put_block (HTStream * me, CONST char * b, int l)
+PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
 {
-    CONST char * start = b;
-    CONST char * end = start;
+    const char * start = b;
+    const char * end = start;
     while (!me->transparent && l-- > 0) {
 	if (me->EOLstate == EOL_FCR) {
 	    if (*b == CR) {				    /* End of header */
@@ -704,7 +704,7 @@ PRIVATE int HTMIME_put_character (HTStream * me, char c)
 /*	String handling
 **	---------------
 */
-PRIVATE int HTMIME_put_string (HTStream * me, CONST char * s)
+PRIVATE int HTMIME_put_string (HTStream * me, const char * s)
 {
     return HTMIME_put_block(me, s, (int) strlen(s));
 }
@@ -754,7 +754,7 @@ PRIVATE int HTMIME_abort (HTStream * me, HTList * e)
 /*	Structured Object Class
 **	-----------------------
 */
-PRIVATE CONST HTStreamClass HTMIME =
+PRIVATE const HTStreamClass HTMIME =
 {		
 	"MIMEParser",
 	HTMIME_flush,

@@ -12,7 +12,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTReq.h"
@@ -22,7 +22,7 @@
 #include "HTWriter.h"					 /* Implemented here */
 
 struct _HTStream {
-	CONST HTStreamClass *	isa;
+	const HTStreamClass *	isa;
 	SOCKET			sockfd;
 	HTNet *			net;
 	char			*wptr;
@@ -65,10 +65,10 @@ struct _HTStream {
 **	the  pipe  has been read, write() transfers at least
 **	{PIPE_BUF} bytes.
 */
-PRIVATE int HTWriter_write (HTStream * me, CONST char * buf, int len)
+PRIVATE int HTWriter_write (HTStream * me, const char * buf, int len)
 {
     int b_write;
-    CONST char *limit = buf+len;
+    const char *limit = buf+len;
     HTRequest * request = me->net->request;
     HTNet * net = me->net;
 
@@ -148,7 +148,7 @@ PRIVATE int HTWriter_put_character (HTStream * me, char c)
 **
 **	Strings must be smaller than this buffer size.
 */
-PRIVATE int HTWriter_put_string (HTStream * me, CONST char * s)
+PRIVATE int HTWriter_put_string (HTStream * me, const char * s)
 {
     return HTWriter_write(me, s, (int) strlen(s));
 }
@@ -181,7 +181,7 @@ PRIVATE int HTWriter_abort (HTStream * me, HTList * e)
 /*	Structured Object Class
 **	-----------------------
 */
-PRIVATE CONST HTStreamClass HTWriter =
+PRIVATE const HTStreamClass HTWriter =
 {		
     "SocketWriter",
     HTWriter_flush,

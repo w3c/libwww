@@ -10,7 +10,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTEscape.h"					 /* Implemented here */
 
@@ -18,8 +18,8 @@
 #define ACCEPTABLE(a)	( a>=32 && a<128 && ((isAcceptable[a-32]) & mask))
 
 /*
-**  Not BOTH static AND CONST at the same time in gcc :-(, Henrik 18/03-94 
-**  code gen error in gcc when making random access to static CONST table(!!)
+**  Not BOTH static AND const at the same time in gcc :-(, Henrik 18/03-94 
+**  code gen error in gcc when making random access to static const table(!!)
 */
 
 /*
@@ -53,12 +53,12 @@ PRIVATE char *hex = "0123456789ABCDEF";
 **	allowed in URLs unencoded -- so DON'T use the table below for
 **	parsing! 
 **
-**	Unlike HTUnEscape(), this routine returns a malloced string.
+**	Unlike HTUnEscape(), this routine returns a HT_MALLOCed string.
 **
 */
-PUBLIC char * HTEscape (CONST char * str, HTURIEncoding mask)
+PUBLIC char * HTEscape (const char * str, HTURIEncoding mask)
 {
-    CONST char * p;
+    const char * p;
     char * q;
     char * result;
     int unacceptable = 0;

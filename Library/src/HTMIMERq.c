@@ -10,7 +10,7 @@
 */
 
 /* Library Includes */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTWWWStr.h"
@@ -28,7 +28,7 @@
 #define PUTBLOCK(b, l)	(*me->target->isa->put_block)(me->target, b, l)
 
 struct _HTStream {
-    CONST HTStreamClass *	isa;
+    const HTStreamClass *	isa;
     HTStream *		  	target;
     HTRequest *			request;
     BOOL			endHeader;
@@ -134,7 +134,7 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
     return HT_OK;
 }
 
-PRIVATE int MIMERequest_put_block (HTStream * me, CONST char * b, int l)
+PRIVATE int MIMERequest_put_block (HTStream * me, const char * b, int l)
 {
     if (me->transparent)
 	return b ? PUTBLOCK(b, l) : HT_OK;
@@ -154,7 +154,7 @@ PRIVATE int MIMERequest_put_character (HTStream * me, char c)
     return MIMERequest_put_block(me, &c, 1);
 }
 
-PRIVATE int MIMERequest_put_string (HTStream * me, CONST char * s)
+PRIVATE int MIMERequest_put_string (HTStream * me, const char * s)
 {
     return MIMERequest_put_block(me, s, strlen(s));
 }
@@ -193,7 +193,7 @@ PRIVATE int MIMERequest_abort (HTStream * me, HTList * e)
 /*	MIMERequest Stream
 **	-----------------
 */
-PRIVATE CONST HTStreamClass MIMERequestClass =
+PRIVATE const HTStreamClass MIMERequestClass =
 {		
     "MIMERequest",
     MIMERequest_flush,

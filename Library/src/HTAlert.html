@@ -64,7 +64,7 @@ typedef enum _HTAlertOpcode {
 typedef struct _HTAlertPar HTAlertPar;
 
 typedef BOOL HTAlertCallback   (HTRequest * request, HTAlertOpcode op,
-				int msgnum, CONST char * dfault, void * input,
+				int msgnum, const char * dfault, void * input,
 				HTAlertPar * reply);
 </PRE>
 
@@ -162,7 +162,7 @@ the caller must make sure <B>not</B> to free the reply message before
 it has been used.
 
 <PRE>
-extern BOOL HTAlert_setReplyMessage	(HTAlertPar * me, CONST char *message);
+extern BOOL HTAlert_setReplyMessage	(HTAlertPar * me, const char *message);
 extern BOOL HTAlert_assignReplyMessage	(HTAlertPar * me, char * message);
 </PRE>
 
@@ -174,7 +174,7 @@ extern char * HTAlert_replyMessage	(HTAlertPar * me);
 
 <PRE>
 extern char * HTAlert_replySecret	(HTAlertPar * me);
-extern BOOL HTAlert_setReplySecret	(HTAlertPar * me, CONST char * secret);
+extern BOOL HTAlert_setReplySecret	(HTAlertPar * me, const char * secret);
 
 extern void * HTAlert_replyOutput	(HTAlertPar * me);
 extern BOOL HTAlert_setReplyOutput	(HTAlertPar * me, void * output);

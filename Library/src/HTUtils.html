@@ -1,9 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Utility macros</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 12-Feb-1996 -->
-<!-- Changed by: Eric Prud'hommeaux, 13-Feb-1996 -->
-<!-- Changed by: Henrik Frystyk Nielsen, 19-Feb-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 29-Feb-1996 -->
 </HEAD>
 <BODY>
 
@@ -19,49 +17,12 @@
 This module is a part of the <A
 HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference Library</A>.
 
-See also the system dependent file <A HREF="tcp.html">tcp module</A>
+See also the system dependent file <A HREF="sysdep.html">tcp module</A>
 for system specific information. <P>
 
 <PRE>
 #ifndef HTUTILS_H
 #define HTUTILS_H
-</PRE>
-
-<H2>Are we using Standard Code?</H2>
-
-We hopefully are...
-
-<PRE>
-#if defined(__STDC__) || defined(__cplusplus) || defined(WWW_MSWINDOWS)
-#define _STANDARD_CODE_
-#endif
-</PRE>
-
-<H3>Variable Argument Functions</H3>
-
-This is normally one of the more tricky part in portable code as it
-very often doesn't work. If you are going to use it then watch out!
-
-<PRE>
-#ifdef _STANDARD_CODE_
-#include &lt;stdarg.h&gt;
-#else
-#include &lt;varargs.h&gt;
-#endif
-</PRE>
-
-<H3>Const Declarations</H3>
-
-<PRE>
-#ifdef _STANDARD_CODE_
-#if defined(sco) && !defined(_SCO_DS)
-#define CONST		  /* The pre SCO 5.0 CC compiler does not know const */
-#else
-#define CONST const			      /* "const" only exists in STDC */
-#endif
-#else
-#define CONST
-#endif
 </PRE>
 
 <A NAME="debug"><H2>Debug Message Control</H2></A>
@@ -146,67 +107,12 @@ the callback and instead macro HTTrace as follows:
 #define HTTrace MyAppSpecificTrace
 
 <PRE>
-typedef int HTTraceCallback(CONST char * fmt, va_list pArgs);
+typedef int HTTraceCallback(const char * fmt, va_list pArgs);
 
 extern void HTTrace_setCallback(HTTraceCallback * pCall);
 extern HTTraceCallback * HTTrace_getCallback(void);
 
-extern int HTTrace(CONST char * fmt, ...);
-</PRE>
-
-<H2>Standard C library for malloc() etc</H2>
-
-Replace memory allocation and free C RTL functions with VAXC$xxx_OPT
-alternatives for VAXC (but not DECC) on VMS. This makes a big
-performance difference. (Foteos Macrides). Also have a look at the <A
-HREF="HTMemory.html">Dynamic Memory Module</A> for how to handle
-<CODE>malloc</CODE> and <CODE>calloc</CODE>.
-
-<PRE>
-#ifdef vax
-#ifdef unix
-#define ultrix	/* Assume vax+unix=ultrix */
-#endif
-#endif
-
-#ifndef VMS
-#ifndef ultrix
-#ifdef NeXT
-#include &lt;libc.h&gt;	/* NeXT */
-#endif
-
-#ifndef Mips
-#ifndef MACH /* Vincent.Cate@furmint.nectar.cs.cmu.edu */
-#include &lt;stdlib.h&gt;	/* ANSI */
-#endif
-#endif
-
-#else /* ultrix */
-#include &lt;malloc.h&gt;
-#include &lt;memory.h&gt;
-#include &lt;stdio.h&gt;
-#include &lt;stdlib.h&gt;   /* ANSI */   /* BSN */
-#endif
-
-#else	/* VMS */
-#include &lt;stdio.h&gt;
-#include &lt;stdlib.h&gt;
-#include &lt;unixlib.h&gt;
-#include &lt;ctype.h&gt;
-#if defined(VAXC) && !defined(__DECC)
-#define malloc	VAXC$MALLOC_OPT
-#define calloc	VAXC$CALLOC_OPT
-#define free	VAXC$FREE_OPT
-#define cfree	VAXC$CFREE_OPT
-#define realloc	VAXC$REALLOC_OPT
-#endif /* VAXC but not DECC */
-#define unlink remove
-#define gmtime localtime
-#include &lt;stat.h&gt;
-#define S_ISDIR(m)      (((m)&S_IFMT) == S_IFDIR)
-#define S_ISREG(m)      (((m)&S_IFMT) == S_IFREG)
-#define putenv HTVMS_putenv
-#endif
+extern int HTTrace(const char * fmt, ...);
 </PRE>
 
 <A NAME="declaration"><H2>Macros for Function Declarations</H2></A>
@@ -219,7 +125,7 @@ HREF="HTMemory.html">Dynamic Memory Module</A> for how to handle
 <H2>Booleans</H2>
 
 <PRE>
-#ifndef BOOLEAN_DEFINED
+#ifndef BOOLEAN
 typedef char	BOOLEAN;				    /* Logical value */
 #endif
 
@@ -233,6 +139,7 @@ typedef char	BOOLEAN;				    /* Logical value */
 #ifndef BOOL
 #define BOOL BOOLEAN
 #endif
+
 #ifndef YES
 #define YES             (BOOL)1
 #define NO              (BOOL)0
@@ -304,8 +211,6 @@ isupper(x) is.  These macros are CERTAINLY needed on #if defined(pyr)
 || define(mips) or BDSI platforms. For safefy, we make them mandatory.
 
 <PRE>
-#include &lt;ctype.h&gt;
-
 #ifndef TOLOWER
 #define TOLOWER(c) tolower(c)
 #define TOUPPER(c) toupper(c)

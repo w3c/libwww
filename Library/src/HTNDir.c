@@ -13,7 +13,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTMLPDTD.h"
@@ -39,7 +39,7 @@
 
 /* Type definitions and global variables etc. local to this module */
 struct _HTStructured {
-    CONST HTStructuredClass *	isa;
+    const HTStructuredClass *	isa;
     /* ... */
 };
 
@@ -156,7 +156,7 @@ PUBLIC BOOL HTNewsDir_setWidth (int max_width)
 **    	Creates a structured stream object and sets up the initial HTML stuff
 **	Returns the newsdir object if OK, else NULL
 */
-PUBLIC HTNewsDir * HTNewsDir_new (HTRequest * request, CONST char * title,
+PUBLIC HTNewsDir * HTNewsDir_new (HTRequest * request, const char * title,
 				  HTNewsDirKey key)
 {
     HTNewsDir *dir;
@@ -180,7 +180,7 @@ PUBLIC HTNewsDir * HTNewsDir_new (HTRequest * request, CONST char * title,
     /* Start the HTML stuff */
     {
 	HTStructured *target = dir->target;
-	CONST char *msg = title ? title : "News Listing";
+	const char *msg = title ? title : "News Listing";
 	START(HTML_HTML);
 	START(HTML_HEAD);
 	START(HTML_TITLE);
@@ -223,14 +223,14 @@ PUBLIC BOOL HTNewsDir_addElement (HTNewsDir * dir, int index, char * subject,
     return YES;
 }
 
-PRIVATE int NDirIndexSort (CONST void *a, CONST void *b)
+PRIVATE int NDirIndexSort (const void *a, const void *b)
 {
     int aa = (*((HTNewsNode **)a))->index;
     int bb = (*((HTNewsNode **)b))->index;
     return aa-bb;
 }
 
-PRIVATE int NDirSubjectSort (CONST void *a, CONST void *b)
+PRIVATE int NDirSubjectSort (const void *a, const void *b)
 {
 #if 0
     char *aa = (*((HTNewsNode **)a))->subject;
@@ -239,7 +239,7 @@ PRIVATE int NDirSubjectSort (CONST void *a, CONST void *b)
     return 0;
 }
 
-PRIVATE int NDirFromSort (CONST void *a, CONST void *b)
+PRIVATE int NDirFromSort (const void *a, const void *b)
 {
 #if 0
     HTNewsNode *aa = *(HTNewsNode **) a;
@@ -253,14 +253,14 @@ PRIVATE int NDirFromSort (CONST void *a, CONST void *b)
     return 1;
 }
 
-PRIVATE int NDirDateSort (CONST void *a, CONST void *b)
+PRIVATE int NDirDateSort (const void *a, const void *b)
 {
     time_t aa = (*((HTNewsNode **)a))->date;
     time_t bb = (*((HTNewsNode **)b))->date;
     return bb-aa;
 }
 
-PRIVATE int NDirGroupSort (CONST void *a, CONST void *b)
+PRIVATE int NDirGroupSort (const void *a, const void *b)
 {
     char *aa = (*((HTNewsNode **)a))->name;
     char *bb = (*((HTNewsNode **)b))->name;

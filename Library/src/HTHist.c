@@ -10,7 +10,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTAnchor.h"
 #include "HTHist.h"					 /* Implemented here */

@@ -13,7 +13,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTStream.h"
@@ -29,7 +29,7 @@
 #define ATSIGN			'@'
 
 struct _HTStream {
-    CONST HTStreamClass *	isa;
+    const HTStreamClass *	isa;
     HTRequest *			request;
     HTSocketEOL			state;
     HTNewsDir *			dir;
@@ -118,7 +118,7 @@ PRIVATE BOOL ParseGroup (HTNewsDir *dir, char * line)
 /*
 **	Searches for News line until buffer fills up or a CRLF or LF is found
 */
-PRIVATE int HTNewsList_put_block (HTStream * me, CONST char * b, int l)
+PRIVATE int HTNewsList_put_block (HTStream * me, const char * b, int l)
 {
     while (l-- > 0) {
 	if (me->state == EOL_FCR) {
@@ -165,7 +165,7 @@ PRIVATE int HTNewsList_put_character (HTStream * me, char ch)
     return HTNewsList_put_block(me, &ch, 1);
 }
 
-PRIVATE int HTNewsList_put_string (HTStream * me, CONST char * s)
+PRIVATE int HTNewsList_put_string (HTStream * me, const char * s)
 {
     return HTNewsList_put_block(me, s, (int) strlen(s));
 }
@@ -189,7 +189,7 @@ PRIVATE int HTNewsList_abort (HTStream * me, HTList * e)
     return HT_ERROR;
 }
 
-PRIVATE CONST HTStreamClass HTNewsListClass =
+PRIVATE const HTStreamClass HTNewsListClass =
 {               
     "NewsList",
     HTNewsList_flush,

@@ -47,8 +47,8 @@ where <EM>sensitive</EM> can either be <EM>YES</EM> or <EM>NO</EM>. Also the set
 be defined using the following function:
 
 <PRE>
-extern CONST char *HTBind_delimiters	(void);
-extern void HTBind_setDelimiters	(CONST char * new_suffixes);
+extern const char *HTBind_delimiters	(void);
+extern void HTBind_setDelimiters	(const char * new_suffixes);
 </PRE>
 
 Examples of a list of suffixes are
@@ -66,8 +66,8 @@ the file system. You can add a binding between a Content type and a suffix by us
 function:
 
 <PRE>
-extern BOOL HTBind_addType	(CONST char *	suffix,
-				 CONST char *	format,
+extern BOOL HTBind_addType	(const char *	suffix,
+				 const char *	format,
 				 double		value);
 </PRE>
 
@@ -78,16 +78,16 @@ like described in the section <A HREF="Prefs.html">Request Preferences</A>. In e
 you can add a binding between an encoding anda file suffix using the following function:
 
 <PRE>
-extern BOOL HTBind_addEncoding	(CONST char *	suffix,
-				 CONST char *	encoding,
+extern BOOL HTBind_addEncoding	(const char *	suffix,
+				 const char *	encoding,
 				 double		value);
 </PRE>
 
 Bindings can also be made between a file suffix and a specific natural language:
 
 <PRE>
-extern BOOL HTBind_addLanguage	(CONST char *	suffix,
-				 CONST char *	language,
+extern BOOL HTBind_addLanguage	(const char *	suffix,
+				 const char *	language,
 				 double		value);
 </PRE>
 

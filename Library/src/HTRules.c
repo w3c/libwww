@@ -33,7 +33,7 @@
 #include "HTRules.h"					 /* Implemented here */
 
 struct _HTStream {
-    CONST HTStreamClass *	isa;
+    const HTStreamClass *	isa;
     HTRequest *			request;
     HTStream *			target;
     HTChunk *			buffer;
@@ -83,7 +83,7 @@ PUBLIC BOOL HTRule_setGlobal(HTList * list)
 **	returns		YES if OK, else NO
 */
 PUBLIC BOOL HTRule_add (HTList * list, HTRuleOp op,
-			CONST char * pattern, CONST char * replace)
+			const char * pattern, const char * replace)
 {
     if (list && pattern) {
 	HTRule * me;
@@ -133,7 +133,7 @@ PUBLIC BOOL HTRule_deleteAll (HTList * list)
 **	equivalent string allocated from the heap which the CALLER MUST
 **	FREE.
 */
-PUBLIC char * HTRule_translate (HTList * list, CONST char * token,
+PUBLIC char * HTRule_translate (HTList * list, const char * token,
 				BOOL ignore_case)
 {
     HTRule * pres;
@@ -186,7 +186,7 @@ PUBLIC char * HTRule_translate (HTList * list, CONST char * token,
 **	Call this, for example, to load a X resource with config info.
 **	Returns YES if line OK, else NO
 */
-PUBLIC BOOL HTRule_parseLine (HTList * list, CONST char * config)
+PUBLIC BOOL HTRule_parseLine (HTList * list, const char * config)
 {
     HTRuleOp op;
     char * line = NULL;
@@ -267,7 +267,7 @@ PUBLIC BOOL HTRule_parseLine (HTList * list, CONST char * config)
 /*
 **	Folding is either of CF LWS, LF LWS, CRLF LWS
 */
-PRIVATE int HTRule_put_block (HTStream * me, CONST char * b, int l)
+PRIVATE int HTRule_put_block (HTStream * me, const char * b, int l)
 {
     while (l > 0) {
 	if (me->EOLstate == EOL_FCR) {
@@ -316,7 +316,7 @@ PRIVATE int HTRule_put_character (HTStream * me, char c)
     return HTRule_put_block(me, &c, 1);
 }
 
-PRIVATE int HTRule_put_string (HTStream * me, CONST char * s)
+PRIVATE int HTRule_put_string (HTStream * me, const char * s)
 {
     return HTRule_put_block(me, s, (int) strlen(s));
 }
@@ -353,7 +353,7 @@ PRIVATE int HTRule_abort (HTStream * me, HTList * e)
 /*	Structured Object Class
 **	-----------------------
 */
-PRIVATE CONST HTStreamClass HTRuleClass =
+PRIVATE const HTStreamClass HTRuleClass =
 {		
     "RuleParser",
     HTRule_flush,

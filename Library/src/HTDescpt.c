@@ -14,7 +14,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTFormat.h"
@@ -189,7 +189,7 @@ PRIVATE char * HTPeekTitle (char * dirname,
 
 
 /*
- *	Returns a description string (that must not be freed!)
+ *	Returns a description string (that must not be HT_FREEd!)
  *	for a file with name name in directory dirname.
  *	Description file contents is in descriptions list.
  */

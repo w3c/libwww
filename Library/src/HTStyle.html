@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Style Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 19-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 29-Feb-1996 -->
 </HEAD>
 <BODY>
 
@@ -60,7 +60,6 @@ typedef long int HTFont;	/* Dummy definition instead */
 
 #ifdef DEFINE_STRUCT_HTSTYLE
 #ifdef NeXT_suppressed
-#include &lt;appkit/appkit.h>
 typedef NXCoord HTCoord;
 #define HTParagraphStyle NXTextStyle
 #define HTCoord NXCoord
@@ -121,7 +120,7 @@ extern HTStyle * HTStyleModify (
 /*	Style functions:
 */
 extern HTStyle * HTStyleNew (void);
-extern HTStyle* HTStyleNewNamed (CONST char * name);
+extern HTStyle* HTStyleNewNamed (const char * name);
 extern HTStyle * HTStyleFree (HTStyle * self);
 #ifdef SUPRESS
 extern HTStyle * HTStyleRead (HTStyle * self, HTStream * stream);
@@ -140,7 +139,7 @@ typedef struct _HTStyleSheet {
 */
 extern HTStyleSheet * HTStyleSheetNew (void);
 extern HTStyleSheet * HTStyleSheetFree (HTStyleSheet * self);
-extern HTStyle * HTStyleNamed (HTStyleSheet * self, CONST char * name);
+extern HTStyle * HTStyleNamed (HTStyleSheet * self, const char * name);
 extern HTStyle * HTStyleMatching (HTStyleSheet *self, HTStyle * style);
 /* extern HTStyle * HTStyleForRun (HTStyleSheet *self, NXRun * run); */
 extern HTStyleSheet * HTStyleSheetAddStyle (HTStyleSheet * self,

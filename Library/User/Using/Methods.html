@@ -35,7 +35,7 @@ Let's see how we can register a protocol module. The support for this is provide
 HREF="../../Implementation/HTProt.html">protocol manager</A> which exports the following function:
 
 <PRE>
-extern BOOL HTProtocol_add (CONST char *       	scheme,
+extern BOOL HTProtocol_add (const char *       	scheme,
 			    BOOL		preemptive,
 			    HTEventCallBack *	callback);
 </PRE>
@@ -67,7 +67,7 @@ often but the dynamic nature of the binding leaves this choice free to the appli
 is desired, you can do so by calling the following function:
 
 <PRE>
-extern BOOL HTProtocol_delete (CONST char * scheme);
+extern BOOL HTProtocol_delete (const char * scheme);
 </PRE>
 
 The argument is exactly the same scheme as described above.

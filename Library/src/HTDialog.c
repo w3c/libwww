@@ -102,7 +102,7 @@ PRIVATE HTErrorMessage HTErrors[HTERR_ELEMENTS] = {
 /* ------------------------------------------------------------------------- */
 
 PUBLIC BOOL HTProgress (HTRequest * request, HTAlertOpcode op,
-			int msgnum, CONST char * dfault, void * input,
+			int msgnum, const char * dfault, void * input,
 			HTAlertPar * reply)
 {
     if (!request) {
@@ -156,7 +156,7 @@ PUBLIC BOOL HTProgress (HTRequest * request, HTAlertOpcode op,
 	break;
 
       case HT_PROG_WAIT:
-	HTTrace("Waiting for free socket...\n");
+	HTTrace("Waiting for HT_FREE socket...\n");
 	break;
 
       default:
@@ -167,7 +167,7 @@ PUBLIC BOOL HTProgress (HTRequest * request, HTAlertOpcode op,
 }
 
 PUBLIC BOOL HTConfirm (HTRequest * request, HTAlertOpcode op,
-		       int msgnum, CONST char * dfault, void * input,
+		       int msgnum, const char * dfault, void * input,
 		       HTAlertPar * reply)
 {
     char response[4];	/* One more for terminating NULL -- AL */
@@ -193,10 +193,10 @@ PUBLIC BOOL HTConfirm (HTRequest * request, HTAlertOpcode op,
 }
 
 /*	Prompt for answer and get text back. Reply text is either NULL on
-**	error or a dynamic string which the caller must free.
+**	error or a dynamic string which the caller must HT_FREE.
 */
 PUBLIC BOOL HTPrompt (HTRequest * request, HTAlertOpcode op,
-		      int msgnum, CONST char * dfault, void * input,
+		      int msgnum, const char * dfault, void * input,
 		      HTAlertPar * reply)
 {
     HTTrace("%s ", HTDialogs[msgnum]);
@@ -220,18 +220,20 @@ PUBLIC BOOL HTPrompt (HTRequest * request, HTAlertOpcode op,
 }
 
 /*	Prompt for password without echoing the reply. Reply text is
-**	either NULL on error or a dynamic string which the caller must free.
+**	either NULL on error or a dynamic string which the caller must HT_FREE.
 */
 PUBLIC BOOL HTPromptPassword (HTRequest * request, HTAlertOpcode op,
-			      int msgnum, CONST char * dfault, void * input,
+			      int msgnum, const char * dfault, void * input,
 			      HTAlertPar * reply)
 {
     if (reply && msgnum>=0) {
-#ifndef NO_PASSWD
+#ifdef HAVE_GETPASS
 	char * pw = (char *) getpass(HTDialogs[msgnum]);
 	if (pw) HTAlert_setReplySecret(reply, pw);
 	return YES;
-#endif
+#else
+#error "getpass is not defined"
+#endif /* HAVE_GETPASS */
     }
     return NO;
 }
@@ -241,7 +243,7 @@ PUBLIC BOOL HTPromptPassword (HTRequest * request, HTAlertOpcode op,
 **	Prompt Username and password as an atomic operation
 */
 PUBLIC BOOL HTPromptUsernameAndPassword (HTRequest * request, HTAlertOpcode op,
-					 int msgnum, CONST char * dfault,
+					 int msgnum, const char * dfault,
 					 void * input, HTAlertPar * reply)
 {
     BOOL status = HTPrompt(request, op, HT_MSG_UID, dfault, input, reply);
@@ -257,7 +259,7 @@ PUBLIC BOOL HTPromptUsernameAndPassword (HTRequest * request, HTAlertOpcode op,
 **	up as a link. This file can then be multi-linguistic.
 */
 PUBLIC BOOL HTError_print (HTRequest * request, HTAlertOpcode op,
-			   int msgnum, CONST char * dfault, void * input,
+			   int msgnum, const char * dfault, void * input,
 			   HTAlertPar * reply)
 {
     HTList *cur = (HTList *) input;
@@ -348,7 +350,7 @@ PUBLIC BOOL HTError_print (HTRequest * request, HTAlertOpcode op,
 **	up as a link. This file can then be multi-linguistic.
 */
 PUBLIC BOOL HTError_response (HTRequest * request, HTAlertOpcode op,
-			      int msgnum, CONST char * dfault, void * input,
+			      int msgnum, const char * dfault, void * input,
 			      HTAlertPar * reply)
 {
     HTList * cur = (HTList *) input;

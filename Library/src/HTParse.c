@@ -10,7 +10,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTParse.h"
 #include "HTString.h"
@@ -111,7 +111,7 @@ PRIVATE void scan (char * name, struct struct_parts * parts)
 ** On exit,
 **	returns		A pointer to a malloc'd string which MUST BE FREED
 */
-PUBLIC char * HTParse (CONST char *aName, CONST char *relatedName, int wanted)
+PUBLIC char * HTParse (const char *aName, const char *relatedName, int wanted)
 {
     char * result = 0;
     char * return_value = 0;
@@ -251,7 +251,7 @@ PRIVATE char *HTCanon  (char ** filename, char * host)
        and without a trailing dot. */
     if (((strptr = strchr(host, '.')) == NULL || strptr >= path) &&
 	strncasecomp(host, "localhost", 9)) {
-	CONST char *domain = HTGetDomainName();
+	const char *domain = HTGetDomainName();
 	if (domain && *domain) {
 	    if ((newname = (char *) HT_CALLOC(1, strlen(*filename) + strlen(domain)+2)) == NULL)
 		HT_OUTOFMEM("HTCanon");
@@ -407,43 +407,6 @@ PUBLIC char *HTSimplify (char ** url)
     return *url;
 }
 
-#ifdef OLD_CODE
-    char * p = filename;
-    char * q;
-    
-    if (p) {
-	while (*p && (*p == '/' || *p == '.'))     /* Pass starting / or .'s */
-	    p++;
-	while(*p) {
-	    if (*p=='/') {
-	    if ((p[1]=='.') && (p[2]=='.') && (p[3]=='/' || !p[3] )) {
-		for (q=p-1; (q>=filename) && (*q!='/'); q--); /* prev slash */
-		if (q[0]=='/' && 0!=strncmp(q, "/../", 4)
-			&&!(q-1>filename && q[-1]=='/')) {
-	            ari_strcpy(q, p+3);		/* Remove  /xxx/..	*/
-		    if (!*filename) strcpy(filename, "/");
-		    p = q-1;		/* Start again with prev slash 	*/
-		} else {			/*   xxx/.. leave it!	*/
-#ifdef BUG_CODE
-		    ari_strcpy(filename, p[3] ? p+4 : p+3); /* rm  xxx/../ */
-		    p = filename;		/* Start again */
-#endif
-		}
-	    } else if ((p[1]=='.') && (p[2]=='/' || !p[2])) {
-	        ari_strcpy(p, p+2);		/* Remove a slash and a dot */
-	    } else if (p[-1] != ':') {
-		while (p[1] == '/') {
-		    ari_strcpy(p, p+1);	/* Remove multiple slashes */
-		}
-	    }
-	    }
-	    p++;
-	}  /* end while (*p) */
-    } /* end if (p) */
-}
-#endif /* OLD_CODE */
-
-
 /*		Make Relative Name
 **		------------------
 **
@@ -461,14 +424,14 @@ PUBLIC char *HTSimplify (char ** url)
 **	The caller is responsible for freeing the resulting name later.
 **
 */
-PUBLIC char * HTRelative (CONST char * aName, CONST char * relatedName)
+PUBLIC char * HTRelative (const char * aName, const char * relatedName)
 {
     char * result = 0;
-    CONST char *p = aName;
-    CONST char *q = relatedName;
-    CONST char * after_access = 0;
-    CONST char * path = 0;
-    CONST char * last_slash = 0;
+    const char *p = aName;
+    const char *q = relatedName;
+    const char * after_access = 0;
+    const char * path = 0;
+    const char * last_slash = 0;
     int slashes = 0;
     
     for(;*p; p++, q++) {	/* Find extent of match */

@@ -10,7 +10,7 @@
 */
 
 /* Library Include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTReqMan.h"
@@ -31,7 +31,7 @@ struct _HTInputSocket {
 };
 
 struct _HTStream {
-    CONST HTStreamClass *	isa;
+    const HTStreamClass *	isa;
 };
 
 /* ------------------------------------------------------------------------- */

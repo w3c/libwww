@@ -8,7 +8,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTTCP.h"
@@ -20,7 +20,7 @@ PRIVATE char * months[12] = {
     "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"
 };
 
-#ifdef NO_STRFTIME
+#ifndef HAVE_STRFTIME
 PRIVATE char * wkdays[7] = {
     "Mon","Tue","Wed","Thu","Fri","Sat","Sun"
 };
@@ -95,26 +95,26 @@ PUBLIC char * HTNextField (char ** pstr)
 **
 **	Returns a pointer to the MessageID
 */
-PUBLIC CONST char *HTMessageIdStr (void)
+PUBLIC const char *HTMessageIdStr (void)
 {
     static char buf[80];
     time_t sectime = time(NULL);
-#ifndef NO_GETPID
-    CONST char *address = HTGetDomainName();
+#ifdef HAVE_GETPID
+    const char *address = HTGetDomainName();
 #else
-    CONST char *address = HTGetMailAddress();
-#endif /* NO_GETPID */
+    const char *address = HTGetMailAddress();
+#endif /* HAVE_GETPID */
     if (!address) address = tmpnam(NULL);
     if ((!address || !*address) && sectime < 0) {
 	if (WWWTRACE)
 	    HTTrace("MessageID...  Can't make a unique MessageID\n");
 	return "";
     }
-#ifndef NO_GETPID
+#ifdef HAVE_GETPID
     sprintf(buf, "<%ldZ%ld@%s>", sectime, getpid(), address ? address : "@@@");
 #else
     sprintf(buf, "<%ldZ%s>", sectime, address ? address : "@@@");
-#endif /* NO_GETPID */
+#endif /* HAVE_GETPID */
 
     *(buf+79) = '\0';
     return buf;
@@ -125,7 +125,7 @@ PUBLIC CONST char *HTMessageIdStr (void)
 **	These functions are taken from the server written by Ari Luotonen
 */
 
-PRIVATE int make_num (CONST char *  s)
+PRIVATE int make_num (const char *  s)
 {
     if (*s >= '0' && *s <= '9')
 	return 10 * (*s - '0') + *(s+1) - '0';
@@ -133,7 +133,7 @@ PRIVATE int make_num (CONST char *  s)
 	return *(s+1) - '0';
 }
 
-PRIVATE int make_month (CONST char *  s)
+PRIVATE int make_month (const char *  s)
 {
     int i;
     for (i=0; i<12; i++)
@@ -148,7 +148,7 @@ PRIVATE int make_month (CONST char *  s)
 */
 PUBLIC long HTGetTimeZoneOffset (void)
 {
-#ifndef NO_TIMEZONE
+#ifdef HAVE_TIMEZONE
     {
 	time_t cur_t = time(NULL);
 #ifdef HT_REENTRANT
@@ -158,12 +158,12 @@ PUBLIC long HTGetTimeZoneOffset (void)
 	struct tm *local = localtime(&cur_t);
 #endif /* HT_REENTRANT */
 	if (daylight && local->tm_isdst>0) {		   /* daylight time? */
-#ifndef NO_ALTZONE
+#ifdef HAVE_ALTZONE
 	    HTTimeZone = altzone;
 #else
  	    /* Assumes a fixed DST offset of 1 hour, which is probably wrong */
  	    HTTimeZone = timezone - 3600;
-#endif
+#endif /* HAVE_ALTZONE */
 	} else {						       /* no */
 	    HTTimeZone = timezone;
 	}
@@ -173,7 +173,7 @@ PUBLIC long HTGetTimeZoneOffset (void)
 		    (int) HTTimeZone/3600);
     }
 #else
-#ifndef NO_GMTOFF
+#ifdef HAVE_TM_GMTOFF
     {
 	time_t cur_t = time(NULL);
 #ifdef HT_REENTRANT
@@ -189,8 +189,8 @@ PUBLIC long HTGetTimeZoneOffset (void)
     }
 #else
     if (WWWTRACE) HTTrace("TimeZone.... Not defined\n");
-#endif /* !NO_TIMEZONE */
-#endif /* !NO_GMTOFF */
+#endif /* HAVE_TM_GMTOFF */
+#endif /* HAVE_TIMEZONE */
     return HTTimeZone;
 }
 
@@ -203,9 +203,9 @@ PUBLIC long HTGetTimeZoneOffset (void)
 **		Wkd Mon 00 00:00:00 0000 GMT		(ctime)
 **		1*DIGIT					(delta-seconds)
 */
-PUBLIC time_t HTParseTime (CONST char *  str)
+PUBLIC time_t HTParseTime (const char *  str)
 {
-    CONST char * s;
+    const char * s;
     struct tm tm;
     time_t t;
 
@@ -290,22 +290,22 @@ PUBLIC time_t HTParseTime (CONST char *  str)
 	return 0;
     }
 
-#if !defined(NO_TIMEZONE) && !defined(NO_ALTZONE)
+#if defined(HAVE_TIMEZONE) && defined(HAVE_ALTZONE)
     tm.tm_isdst = daylight;		       /* Already taken into account */
 #else
     tm.tm_isdst = -1;
 #endif
 
-#ifndef NO_MKTIME
+#ifdef HAVE_MKTIME
     t = mktime(&tm);
     t += (HTTimeZone);
 #else
-#ifndef NO_TIMEGM
+#ifdef HAVE_TIMEGM
     t = timegm(&tm);
 #else
-    if (WWWTRACE) HTTrace("Time String. Can not be parsed\n");
-#endif /* !NO_TIMEGM */
-#endif /* !NO_MKTIME */
+#error "Neither mktime nor timegm defined"
+#endif /* HAVE_TIMEGM */
+#endif /* HAVE_MKTIME */
 
     if (WWWTRACE)
 	HTTrace(
@@ -322,11 +322,11 @@ PUBLIC time_t HTParseTime (CONST char *  str)
 **
 **	The result can be given in both local and GMT dependent on the flag
 */
-PUBLIC CONST char *HTDateTimeStr (time_t * calendar, BOOL local)
+PUBLIC const char *HTDateTimeStr (time_t * calendar, BOOL local)
 {
     static char buf[40];
 
-#ifndef NO_STRFTIME
+#ifdef HAVE_STRFTIME
     if (local) {
 	/*
 	** Solaris 2.3 has a bug so we _must_ use reentrant version
@@ -392,7 +392,7 @@ PUBLIC CONST char *HTDateTimeStr (time_t * calendar, BOOL local)
 */
 PUBLIC BOOL HTDateDirStr (time_t * time, char * str, int len)
 {
-#ifndef NO_STRFTIME
+#ifdef HAVE_STRFTIME
 #if defined(HT_REENTRANT) || defined(SOLARIS)
     struct tm loctime;
     localtime_r(time, &loctime);
@@ -414,7 +414,7 @@ PUBLIC BOOL HTDateDirStr (time_t * time, char * str, int len)
 	return YES;
     }
     return NO;
-#endif /* NO_STRFTIME */		
+#endif /* HAVE_STRFTIME */		
 }
 
 /* 							     	HTNumToStr
@@ -457,13 +457,13 @@ PUBLIC void HTNumToStr (unsigned long n, char * str, int len)
 **		OK:	local file (that must be freed by caller)
 **		Error:	NULL
 */
-PUBLIC char * HTWWWToLocal (CONST char * url, CONST char * base)
+PUBLIC char * HTWWWToLocal (const char * url, const char * base)
 {
     if (url) {
 	char * access = HTParse(url, base, PARSE_ACCESS);
 	char * host = HTParse(url, base, PARSE_HOST);
 	char * path = HTParse(url, base, PARSE_PATH+PARSE_PUNCTUATION);
-	CONST char *myhost = HTGetHostName();
+	const char *myhost = HTGetHostName();
 
 	/* Find out if this is a reference to the local file system */
 	if ((*access && strcmp(access, "file")) ||
@@ -512,7 +512,7 @@ PUBLIC char * HTWWWToLocal (CONST char * url, CONST char * base)
 **		OK:	local file (that must be freed by caller)
 **		Error:	NULL
 */
-PUBLIC char * HTLocalToWWW (CONST char * local)
+PUBLIC char * HTLocalToWWW (const char * local)
 {
     char * result = NULL;
     if (local && *local) {

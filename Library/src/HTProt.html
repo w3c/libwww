@@ -62,7 +62,7 @@ is of type HTEventCallback is that it then can be used directly in the
 event loop when used in non-preemptive mode.
 
 <PRE>
-extern BOOL HTProtocol_add (CONST char *       	name,
+extern BOOL HTProtocol_add (const char *       	name,
 			    BOOL		preemptive,
 			    HTEventCallback *	client,
 			    HTEventCallback *	server);
@@ -74,7 +74,7 @@ This functions deletes a registered protocol module so that it can not
 be used for accessing a resource anymore.
 
 <PRE>
-extern BOOL HTProtocol_delete (CONST char * name);
+extern BOOL HTProtocol_delete (const char * name);
 </PRE>
 
 <H3>Remove ALL Registered Schemes</H3>
@@ -93,7 +93,7 @@ of the access acheme. If an access scheme is found then the protocol
 object is returned.
 
 <PRE>
-extern HTProtocol * HTProtocol_find (HTRequest * request, CONST char * access);
+extern HTProtocol * HTProtocol_find (HTRequest * request, const char * access);
 </PRE>
 
 <H3>Get the callback functions</H3>

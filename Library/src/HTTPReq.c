@@ -9,7 +9,7 @@
 */
 
 /* Library Includes */
-#include "tcp.h"
+#include "sysdep.h"
 #include "WWWUtil.h"
 #include "HTParse.h"
 #include "HTFormat.h"
@@ -29,7 +29,7 @@
 #define PUTBLOCK(b, l)	(*me->target->isa->put_block)(me->target, b, l)
 
 struct _HTStream {
-    CONST HTStreamClass *	isa;
+    const HTStreamClass *	isa;
     HTStream *		  	target;
     HTRequest *			request;
     SOCKET			sockfd;
@@ -194,7 +194,7 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 	}
     }
     if (request->RequestMask & HT_C_FROM) {
-	CONST char *mailaddress = HTGetMailAddress();
+	const char *mailaddress = HTGetMailAddress();
 	if (mailaddress) {
 	    PUTS("From: ");
 	    PUTS(mailaddress);
@@ -248,7 +248,7 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
     if (PROT_TRACE)HTTrace("HTTP........ Generating Request Headers\n");
 }
 
-PRIVATE int HTTPRequest_put_block (HTStream * me, CONST char * b, int l)
+PRIVATE int HTTPRequest_put_block (HTStream * me, const char * b, int l)
 {
     if (!me->target) {
 	return HT_WOULD_BLOCK;
@@ -272,7 +272,7 @@ PRIVATE int HTTPRequest_put_character (HTStream * me, char c)
     return HTTPRequest_put_block(me, &c, 1);
 }
 
-PRIVATE int HTTPRequest_put_string (HTStream * me, CONST char * s)
+PRIVATE int HTTPRequest_put_string (HTStream * me, const char * s)
 {
     return HTTPRequest_put_block(me, s, strlen(s));
 }
@@ -311,7 +311,7 @@ PRIVATE int HTTPRequest_abort (HTStream * me, HTList * e)
 /*	HTTPRequest Stream
 **	-----------------
 */
-PRIVATE CONST HTStreamClass HTTPRequestClass =
+PRIVATE const HTStreamClass HTTPRequestClass =
 {		
     "HTTPRequest",
     HTTPRequest_flush,

@@ -9,7 +9,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTReq.h"
@@ -133,7 +133,7 @@ PRIVATE int buf_flush (HTStream * me)
     return HT_OK;
 }
 
-PRIVATE int buf_put_block (HTStream * me, CONST char * b, int l)
+PRIVATE int buf_put_block (HTStream * me, const char * b, int l)
 {
     me->conlen += l;
     if (!me->give_up) {
@@ -167,7 +167,7 @@ PRIVATE int buf_put_char (HTStream * me, char c)
     return buf_put_block(me, &c, 1);
 }
 
-PRIVATE int buf_put_string (HTStream * me, CONST char * s)
+PRIVATE int buf_put_string (HTStream * me, const char * s)
 {
     return buf_put_block(me, s, (int) strlen(s));
 }

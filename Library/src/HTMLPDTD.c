@@ -9,7 +9,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTMLPDTD.h"
 
@@ -19,7 +19,7 @@
 **	This table must be matched exactly with ALL the translation tables
 */
 
-PRIVATE CONST char* entities[HTML_ENTITIES] = {
+PRIVATE const char* entities[HTML_ENTITIES] = {
   "AElig",	/* capital AE diphthong (ligature) */ 
   "Aacute",	/* capital A, acute accent */ 
   "Acirc",	/* capital A, circumflex accent */ 
@@ -414,7 +414,7 @@ PRIVATE HTTag tags[HTMLP_ELEMENTS] = {
 };
 
 
-PUBLIC CONST SGML_dtd HTMLP_dtd = {
+PUBLIC const SGML_dtd HTMLP_dtd = {
     tags,
     HTMLP_ELEMENTS,
     entities,
@@ -436,11 +436,11 @@ struct _HTStructured {
 };
 
 PUBLIC void HTStartAnchor (HTStructured * obj,
-		CONST char *  name,
-		CONST char *  href)
+		const char *  name,
+		const char *  href)
 {
     BOOL		present[HTML_A_ATTRIBUTES];
-    CONST char*		value[HTML_A_ATTRIBUTES];
+    const char*		value[HTML_A_ATTRIBUTES];
     
     {
     	int i;
@@ -468,12 +468,12 @@ PUBLIC void HTStartAnchor (HTStructured * obj,
 **	Hopefully as usefull as HTStartAnchor. Henrik 23/03-94
 */
 PUBLIC void HTMLPutImg (HTStructured * obj,
-			     CONST char * src,
-			     CONST char * alt,
-			     CONST char * align)
+			     const char * src,
+			     const char * alt,
+			     const char * align)
 {
     BOOL		present[HTML_IMG_ATTRIBUTES];
-    CONST char*		value[HTML_IMG_ATTRIBUTES];
+    const char*		value[HTML_IMG_ATTRIBUTES];
     
     {
     	int i;
@@ -498,10 +498,10 @@ PUBLIC void HTMLPutImg (HTStructured * obj,
 
 
 PUBLIC void HTNextID (HTStructured * obj,
-		CONST char *	next_one)
+		const char *	next_one)
 {
     BOOL		present[HTML_NEXTID_ATTRIBUTES];
-    CONST char*		value[HTML_NEXTID_ATTRIBUTES];
+    const char*		value[HTML_NEXTID_ATTRIBUTES];
     {
     	int i;
     	for(i=0; i<HTML_NEXTID_ATTRIBUTES; i++)

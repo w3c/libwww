@@ -10,7 +10,7 @@
 */
 
 /* Library Include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTParse.h"
@@ -34,7 +34,7 @@ PRIVATE HTList * protocols = NULL;           /* List of registered protocols */
 /*
 **	Register a Protocol module as an active access method
 */
-PUBLIC BOOL HTProtocol_add (CONST char *       	name,
+PUBLIC BOOL HTProtocol_add (const char *       	name,
 			    BOOL		preemptive,
 			    HTEventCallback *	client,
 			    HTEventCallback *	server)
@@ -60,7 +60,7 @@ PUBLIC BOOL HTProtocol_add (CONST char *       	name,
 /*
 **	Deletes a Protocol module as an active access method
 */
-PUBLIC BOOL HTProtocol_delete (CONST char * name)
+PUBLIC BOOL HTProtocol_delete (const char * name)
 {
     if (protocols) {
 	HTList *cur = protocols;
@@ -123,7 +123,7 @@ PUBLIC BOOL HTProtocol_deleteAll (void)
 **	Search registered protocols to find suitable protocol object.
 **	Return protocol object or NULL
 */
-PUBLIC HTProtocol * HTProtocol_find (HTRequest * request, CONST char * access)
+PUBLIC HTProtocol * HTProtocol_find (HTRequest * request, const char * access)
 {
     if (request && access) {
 	HTList * cur = protocols;

@@ -19,7 +19,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTMLPDTD.h"
@@ -49,7 +49,7 @@
 /* Type definitions and global variables etc. local to this module */
 
 struct _HTStructured {
-    CONST HTStructuredClass *	isa;
+    const HTStructuredClass *	isa;
     /* ... */
 };
 
@@ -432,7 +432,7 @@ PUBLIC BOOL HTDir_addElement (HTDir *dir, char *name, char *date, char *size,
     return YES;
 }
 
-PRIVATE int DirSort (CONST void *a, CONST void *b)
+PRIVATE int DirSort (const void *a, const void *b)
 {
 #if 0
     HTDirNode *aa = *(HTDirNode **) a;
@@ -444,7 +444,7 @@ PRIVATE int DirSort (CONST void *a, CONST void *b)
 #endif
 }
 
-PRIVATE int DirCaseSort (CONST void *a, CONST void *b)
+PRIVATE int DirCaseSort (const void *a, const void *b)
 {
 #if 0
     HTDirNode *aa = *(HTDirNode **) a;

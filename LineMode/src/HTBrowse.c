@@ -23,7 +23,7 @@
 **              record of previous nodes visited to be kept.
 **   6 Apr 91:  When a node is accessed, it is immediately read into a 
 **              buffer, in an unformatted state, as soon as the connection is  
-**              made, so that the server is freed as quickly as possible. 
+**              made, so that the server is HT_FREEd as quickly as possible. 
 **              The program now also uses the additional modules HTBufferFile.c
 **              and HTBufferFile.h.
 **  17 Apr 91:  Can be used on machines running ANSI C and ordinary C.
@@ -49,7 +49,6 @@
 **
 **	REF_MARK	Printf string to be used for printing anchor numbers
 **	END_MARK	String to be used to denote the end of a document
-**	VL		Version number, quoted eg "1.2a"
 */
 
 #include "WWWLib.h"
@@ -62,12 +61,12 @@
 #include "GridText.h"				     /* Hypertext definition */
 #include "HTBrowse.h"			     /* Things exported, short names */
 
-#ifndef VL
-#define VL "unspecified"
+#ifndef W3C_VERSION
+#define W3C_VERSION		"Unspecified"
 #endif
 
 #define APP_NAME		"W3CLineMode"
-#define APP_VERSION		VL
+#define APP_VERSION		W3C_VERSION
 
 /* Default page for "Manual" command */
 #define MANUAL	"http://www.w3.org/pub/WWW/LineMode/Defaults/QuickGuide.html"
@@ -104,10 +103,6 @@
 #define DEFAULT_NI_TIMEOUT	10     /* Non-interactive timeout in seconds */
 
 #define DEFAULT_FORMAT		WWW_PRESENT
-
-#if defined(ultrix) || defined(__osf__)
-#define GET_SCREEN_SIZE
-#endif
 
 #if defined(__svr4__)
 #define CATCH_SIG
@@ -331,13 +326,12 @@ PRIVATE void Cleanup (LineMode * me, int status)
 #endif
 }
 
-#ifdef GET_SCREEN_SIZE
-#include <sys/ioctl.h>
 /*
 ** Get size of the output screen. Stolen from less.
 */
 PRIVATE void scrsize (int * p_height, int * p_width)
 {
+#if defined(HAVE_IOCTL) && defined(HAVE_WINSIZE)
     register char *s;
     int ioctl();
     struct winsize w;
@@ -354,8 +348,11 @@ PRIVATE void scrsize (int * p_height, int * p_width)
 	*p_width = atoi(s);
     else
 	*p_width = 80;
+#else
+    *p_height = SCREEN_HEIGHT;
+    *p_width = SCREEN_WIDTH;
+#endif /* HAVE_IOCTL && HAVE_WINSIZE */
 }
-#endif /* GET_SCREEN_SIZE, BSN */
 
 #ifdef CATCH_SIG
 #include <signal.h>
@@ -407,7 +404,7 @@ PRIVATE void Reference_List (LineMode * lm, BOOL titles)
 					HText_childNumber(HTMainText, cnt));
 	    HTParentAnchor * parent = HTAnchor_parent(dest);
 	    char * address =  HTAnchor_address(dest);
-	    CONST char * title = titles ? HTAnchor_title(parent) : NULL;
+	    const char * title = titles ? HTAnchor_title(parent) : NULL;
 	    OutputData(lm->pView, reference_mark, cnt);
 	    OutputData(lm->pView, "%s%s\n",
 		    ((HTAnchor*)parent!=dest) && title ? "in " : "",
@@ -439,7 +436,7 @@ PRIVATE void History_List (LineMode * lm)
 	HTAnchor *anchor = HTHistory_list(lm->history, cnt);
     	char *address = HTAnchor_address(anchor);
 	HTParentAnchor *parent = HTAnchor_parent(anchor);
-	CONST char *title = HTAnchor_title(parent);
+	const char *title = HTAnchor_title(parent);
 	OutputData(lm->pView, "%s R %d\t%s%s\n",
 	       (cnt==current) ? "*" : " ",
 	       cnt,
@@ -451,10 +448,10 @@ PRIVATE void History_List (LineMode * lm)
 }
 
 /*	Prompt for answer and get text back. Reply text is either NULL on
-**	error or a dynamic string which the caller must free.
+**	error or a dynamic string which the caller must HT_FREE.
 */
-PRIVATE char * AskUser (HTRequest * request, CONST char * Msg,
-			CONST char * deflt)
+PRIVATE char * AskUser (HTRequest * request, const char * Msg,
+			const char * deflt)
 {
     char buffer[200];
     char *reply = NULL;
@@ -474,7 +471,7 @@ PRIVATE char * AskUser (HTRequest * request, CONST char * Msg,
     return reply;
 }
 
-PRIVATE BOOL confirm (HTRequest * request, CONST char * Msg)
+PRIVATE BOOL confirm (HTRequest * request, const char * Msg)
 {
     char response[4];
     HTTrace("%s (y/n) ", Msg ? Msg : "UNKNOWN");
@@ -795,11 +792,11 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	break;
 	
       case 'C':
-#ifdef unix
+#ifdef HAVE_CHDIR
 	if (CHECK_INPUT("CD", token)) {        /* Change working directory ? */
 	    goto lcd;
 	} else
-#endif
+#endif /* HAVE_CHDIR */
 	if (CHECK_INPUT("CLEAR", token)) {	       /* Clear History list */
 	    HTHistory_removeFrom(lm->history, 1);
 	} else
@@ -889,7 +886,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	if (CHECK_INPUT("LIST", token)) {	     /* List of references ? */
 	    Reference_List(lm, !OutSource);
 	}
-#ifdef unix
+#ifdef HAVE_CHDIR
 	else if (CHECK_INPUT ("LCD", token)) {	       /* Local change dir ? */
 	  lcd:
 	    if (!next_word) {				 /* Missing argument */
@@ -898,23 +895,22 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 		OutputData(lm->pView, "\n  ");
 		perror (next_word);
 	    } else {		    /* Success : display new local directory */
-		/* AS Sep 93 */
-#ifdef NO_GETWD     /* No getwd() on this machine */
-#ifdef HAS_GETCWD   /* System V variant SIGN CHANGED TBL 921006 !! */
+#ifdef HAVE_GETWD
 		OutputData(lm->pView, "\nLocal directory is now:\n %s\n",
-			getcwd (choice, sizeof(choice)));
-#else   /* has NO getcwd */
+			   (char *) getwd (choice));
+#else
+#ifdef HAVE_GETCWD
+		OutputData(lm->pView, "\nLocal directory is now:\n %s\n",
+			   getcwd (choice, sizeof(choice)));
+#else
+#error "This platform doesn't support getwd or getcwd"
 		if (SHOW_MSG)
-		    HTTrace("This platform does not support getwd() or getcwd()\n");
-#endif	/* has no getcwd */
-#else   /* has getwd */
-		OutputData(lm->pView, "\nLocal directory is now:\n %s\n",
-		       (char *) getwd (choice));
-#endif  /* has getwd */
-		/* End AS Sep 93 */
+		    HTTrace("This platform doesn't support getwd or getcwd\n");
+#endif /* HAVE_GETCWD */
+#endif /* HAVE_GETWD */
 	    }
 	}
-#endif
+#endif /* HAVE_CHDIR */
 	else
 	    found = NO;
 	break;
@@ -933,7 +929,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	    status = Upload(lm, req, METHOD_POST);
 	}
 
-#ifdef GOT_SYSTEM	    
+#ifdef HAVE_SYSTEM	    
 	else if (!lm->host && CHECK_INPUT("PRINT", token)) {
 	    char * address = HTAnchor_address((HTAnchor *) HTMainAnchor);
 	    char * command;
@@ -1099,7 +1095,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	break;
 #endif
 	    
-#ifdef GOT_SYSTEM
+#ifdef HAVE_SYSTEM
       case '!':
 	if (!lm->host) {				      /* Local only! */
 	    int result;
@@ -1109,7 +1105,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 				 strchr(this_command, '!') + 1, result);
 	}
 	break;
-#endif
+#endif /* HAVE_SYSTEM */
       default:
 	found = NO;
 	break;
@@ -1407,7 +1403,7 @@ PRIVATE int timeout_handler (HTRequest * request)
 **	---------------
 **	This function is registered to handle unknown MIME headers
 */
-PRIVATE int header_handler (HTRequest * request, CONST char * token)
+PRIVATE int header_handler (HTRequest * request, const char * token)
 {
     if (SHOW_MSG) HTTrace("Parsing unknown header `%s\'\n", token);
     return HT_OK;
@@ -1751,19 +1747,13 @@ int main (int argc, char ** argv)
     }
 
     if (HTScreenHeight == -1) {				/* Default page size */
-	if (HTAlert_interactive()) {
-#ifdef GET_SCREEN_SIZE
-	    int scr_height, scr_width;
-	    scrsize(&scr_height, &scr_width);
-	    HTScreenHeight = scr_height;
-#else
-	    HTScreenHeight = SCREEN_HEIGHT;
-#endif
-	} else
+	if (HTAlert_interactive())
+	    scrsize(&HTScreenHeight, &HTScreenWidth);
+	else
 	    HTScreenHeight = 999999;
     }
 
-    /* Disable free directory browsing when using telnet host */
+    /* Disable HT_FREE directory browsing when using telnet host */
     if (lm->host && HTFile_dirAccess() == HT_DIR_OK)
 	HTFile_setDirAccess(HT_DIR_SELECTIVE);
 

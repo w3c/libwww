@@ -54,7 +54,7 @@ resources. <CODE>config</CODE> is a string in the syntax of a rule
 file line.
 
 <PRE>
-extern BOOL HTRule_parseLine (HTList * list, CONST char * config);
+extern BOOL HTRule_parseLine (HTList * list, const char * config);
 </PRE>
 
 <H2>Add a Rule to the List</H2>
@@ -80,7 +80,7 @@ typedef enum _HTRuleOp {
 } HTRuleOp;
 
 extern BOOL HTRule_add (HTList * list, HTRuleOp op,
-			CONST char * pattern, CONST char * replace);
+			const char * pattern, const char * replace);
 </PRE>
 
 <H2>Delete all Registered Rules</H2>
@@ -111,7 +111,7 @@ equivalent string allocated from the heap which the CALLER MUST
 FREE. If no translation occured, then it is a copy of the original.
 
 <PRE>
-extern char * HTRule_translate (HTList * list, CONST char * token,
+extern char * HTRule_translate (HTList * list, const char * token,
 				BOOL ignore_case);
 </PRE>
 

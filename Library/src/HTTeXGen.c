@@ -20,7 +20,7 @@
 #define WORD_DELIMITERS ",;:[]()"
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTTeXGen.h"
 #include "HTMLPDTD.h"
@@ -32,16 +32,16 @@
 */
 
 struct _HTStream {
-	CONST HTStreamClass *		isa;	
+	const HTStreamClass *		isa;	
 	HTStream * 			target;
 	HTStreamClass			targetClass;	   /* COPY for speed */
 };
 
 struct _HTStructured {
-	CONST HTStructuredClass *	isa;
+	const HTStructuredClass *	isa;
 	HTStream * 			target;
 	HTStreamClass			targetClass;	   /* COPY for speed */
-	CONST SGML_dtd *		dtd;
+	const SGML_dtd *		dtd;
 	
 	char				buffer[2*BUFFER_SIZE];   /* See note */
 	char *				write_pointer;
@@ -320,7 +320,7 @@ PRIVATE int HTTeXGen_put_character (HTStructured * me, char c)
 /*	String handling
 **	---------------
 */
-PRIVATE int HTTeXGen_put_string (HTStructured * me, CONST char* s)
+PRIVATE int HTTeXGen_put_string (HTStructured * me, const char* s)
 {
     while (*s)
 	HTTeXGen_put_character(me, *s++);
@@ -328,7 +328,7 @@ PRIVATE int HTTeXGen_put_string (HTStructured * me, CONST char* s)
 }
 
 
-PRIVATE int HTTeXGen_write (HTStructured * me, CONST char* b, int l)
+PRIVATE int HTTeXGen_write (HTStructured * me, const char* b, int l)
 {
     while (l-- > 0)
 	HTTeXGen_put_character(me, *b++);
@@ -344,8 +344,8 @@ PRIVATE int HTTeXGen_write (HTStructured * me, CONST char* b, int l)
 */
 PRIVATE void HTTeXGen_start_element (HTStructured * 	me,
 				     int		element_number,
-				     CONST BOOL *	present,
-				     CONST char **	value)
+				     const BOOL *	present,
+				     const char **	value)
 {
     me->startup = YES;			        /* Now, let's get down to it */
     if (me->preformatted == YES) {	       /* Don't start markup in here */
@@ -447,7 +447,7 @@ PRIVATE int HTTeXGen_abort (HTStructured * me, HTList * e)
 /*	Structured Object Class
 **	-----------------------
 */
-PRIVATE CONST HTStructuredClass HTTeXGeneration = /* As opposed to print etc */
+PRIVATE const HTStructuredClass HTTeXGeneration = /* As opposed to print etc */
 {		
 	"HTMLToTeX",
 	HTTeXGen_flush,

@@ -37,7 +37,7 @@ is defined in the <A HREF="HTReq.html">Request Manager</A>. The other
 one is for parsing. This needs the string to parse.
 
 <PRE>
-typedef int HTParserCallback (HTRequest * request, CONST char * token);
+typedef int HTParserCallback (HTRequest * request, const char * token);
 </PRE>
 
 <H2>Header Parser Management</H3>
@@ -54,7 +54,7 @@ zero or more arbritary chars.
 
 <PRE>
 extern BOOL HTParser_add (HTList *		parsers,
-			  CONST char *       	token,
+			  const char *       	token,
 			  BOOL			case_sensitive,
 			  HTParserCallback *	callback);
 </PRE>
@@ -62,7 +62,7 @@ extern BOOL HTParser_add (HTList *		parsers,
 <H3>Unregister a Header parser</H3>
 
 <PRE>
-extern BOOL HTParser_delete (HTList * parsers, CONST char * token);
+extern BOOL HTParser_delete (HTList * parsers, const char * token);
 </PRE>
 
 <H3>Delete the list of registered header parsers.</H3>
@@ -77,7 +77,7 @@ Search registered parsers to find suitable one for this token If a
 parser isn't found, the function returns NULL
 
 <PRE>
-extern HTParserCallback * HTParser_find (HTList *parsers, CONST char * token);
+extern HTParserCallback * HTParser_find (HTList *parsers, const char * token);
 </PRE>
 
 <H2>Header Generator Management</H2>
@@ -114,9 +114,9 @@ managed by <A HREF="HTReq.html">Request Manager</A>
 
 <PRE>
 extern void HTHeader_setParser (HTList * list);
-extern BOOL HTHeader_addParser (CONST char * token, BOOL case_sensitive,
+extern BOOL HTHeader_addParser (const char * token, BOOL case_sensitive,
 				HTParserCallback * callback);
-extern BOOL HTHeader_deleteParser (CONST char * token);
+extern BOOL HTHeader_deleteParser (const char * token);
 extern HTList * HTHeader_parser (void);
 </PRE>
 

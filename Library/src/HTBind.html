@@ -59,11 +59,11 @@ extern void HTBind_caseSensitive	(BOOL sensitive);
 <H2>Suffix Delimiters</H2>
 
 Change the set of suffix delimiters. The default is a platform
-dependent set defined in the <A HREF="tcp.html">tcp module</A>.
+dependent set defined in the <A HREF="sysdep.html">tcp module</A>.
 
 <PRE>
-extern CONST char *HTBind_delimiters	(void);
-extern void HTBind_setDelimiters	(CONST char * new_suffixes);
+extern const char *HTBind_delimiters	(void);
+extern void HTBind_setDelimiters	(const char * new_suffixes);
 </PRE>
 
 <H2>Set up Bindings Associated with a File Suffix</H2>
@@ -79,22 +79,22 @@ There are three types of bindings:
 And the associated set of methods is defined as:
 
 <PRE>
-extern BOOL HTBind_add		(CONST char *	suffix,
-				 CONST char *	representation,
-				 CONST char *	encoding,
-				 CONST char *	language,
+extern BOOL HTBind_add		(const char *	suffix,
+				 const char *	representation,
+				 const char *	encoding,
+				 const char *	language,
 				 double		value);
 
-extern BOOL HTBind_addType	(CONST char *	suffix,
-				 CONST char *	format,
+extern BOOL HTBind_addType	(const char *	suffix,
+				 const char *	format,
 				 double		value);
 
-extern BOOL HTBind_addEncoding	(CONST char *	suffix,
-				 CONST char *	encoding,
+extern BOOL HTBind_addEncoding	(const char *	suffix,
+				 const char *	encoding,
 				 double		value);
 
-extern BOOL HTBind_addLanguage	(CONST char *	suffix,
-				 CONST char *	language,
+extern BOOL HTBind_addLanguage	(const char *	suffix,
+				 const char *	language,
 				 double		value);
 </PRE>
 
@@ -146,7 +146,7 @@ one lowest. Returns the format, encoding, and language found. See also
 <CODE>HTBind_getBindings</CODE>.
 
 <PRE>
-extern BOOL HTBind_getFormat	(CONST char *	filename,
+extern BOOL HTBind_getFormat	(const char *	filename,
 				 HTFormat *	format,
 				 HTEncoding *	encoding,
 				 HTLanguage *	language,

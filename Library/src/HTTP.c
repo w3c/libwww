@@ -16,7 +16,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTParse.h"
@@ -77,7 +77,7 @@ typedef struct _http_info {
 #define MAX_STATUS_LEN		100   /* Max nb of chars to check StatusLine */
 
 struct _HTStream {
-    CONST HTStreamClass *	isa;
+    const HTStreamClass *	isa;
     HTStream *		  	target;
     HTRequest *			request;
     http_info *			http;
@@ -381,7 +381,7 @@ PRIVATE int stream_pipe (HTStream * me)
 **	Searches for HTTP header line until buffer fills up or a CRLF or LF
 **	is found
 */
-PRIVATE int HTTPStatus_put_block (HTStream * me, CONST char * b, int l)
+PRIVATE int HTTPStatus_put_block (HTStream * me, const char * b, int l)
 {
     while (!me->transparent && l-- > 0) {
 	int status;
@@ -415,7 +415,7 @@ PRIVATE int HTTPStatus_put_block (HTStream * me, CONST char * b, int l)
     return HT_OK;
 }
 
-PRIVATE int HTTPStatus_put_string (HTStream * me, CONST char * s)
+PRIVATE int HTTPStatus_put_string (HTStream * me, const char * s)
 {
     return HTTPStatus_put_block(me, s, (int) strlen(s));
 }
@@ -454,7 +454,7 @@ PRIVATE int HTTPStatus_abort (HTStream * me, HTList * e)
 /*	HTTPStatus Stream
 **	-----------------
 */
-PRIVATE CONST HTStreamClass HTTPStatusClass =
+PRIVATE const HTStreamClass HTTPStatusClass =
 {		
     "HTTPStatus",
     HTTPStatus_flush,

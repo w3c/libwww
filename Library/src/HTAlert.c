@@ -191,7 +191,7 @@ PUBLIC char * HTAlert_replyMessage (HTAlertPar * me)
     return me ? me->message : NULL;
 }
 
-PUBLIC BOOL HTAlert_setReplyMessage (HTAlertPar * me, CONST char * message)
+PUBLIC BOOL HTAlert_setReplyMessage (HTAlertPar * me, const char * message)
 {
     if (me && message) {
 	StrAllocCopy(me->message, message);
@@ -211,7 +211,7 @@ PUBLIC char * HTAlert_replySecret (HTAlertPar * me)
     return me ? me->secret : NULL;
 }
 
-PUBLIC BOOL HTAlert_setReplySecret (HTAlertPar * me, CONST char * secret)
+PUBLIC BOOL HTAlert_setReplySecret (HTAlertPar * me, const char * secret)
 {
     if (me && secret) {
 	StrAllocCopy(me->secret, secret);

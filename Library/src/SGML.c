@@ -14,7 +14,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTChunk.h"
@@ -60,9 +60,9 @@ typedef enum _sgml_state {
 */
 struct _HTStream {
 
-    CONST HTStreamClass *	isa;		/* inherited from HTStream */
+    const HTStreamClass *	isa;		/* inherited from HTStream */
     
-    CONST SGML_dtd 		*dtd;
+    const SGML_dtd 		*dtd;
     HTStructuredClass	*actions;	/* target class  */
     HTStructured	*target;	/* target object */
 
@@ -71,9 +71,6 @@ struct _HTStream {
     HTChunk		*string;
     HTElement		*element_stack;
     sgml_state		state;
-#ifdef CALLERDATA		  
-    void *		callerData;
-#endif
     BOOL present[MAX_ATTRIBUTES];	/* Flags: attribute is present? */
     char * value[MAX_ATTRIBUTES];	/* malloc'd strings or NULL if none */
 } ;
@@ -86,7 +83,7 @@ struct _HTStream {
 **	---------------------
 */
 
-PUBLIC int SGMLFindAttribute  (HTTag* tag, CONST char * s)
+PUBLIC int SGMLFindAttribute  (HTTag* tag, const char * s)
 {
     attr* attributes = tag->attributes;
 
@@ -106,9 +103,9 @@ PUBLIC int SGMLFindAttribute  (HTTag* tag, CONST char * s)
 /*	Handle Attribute
 **	----------------
 */
-/* PUBLIC CONST char * SGML_default = "";   ?? */
+/* PUBLIC const char * SGML_default = "";   ?? */
 
-PRIVATE void handle_attribute_name (HTStream * context, CONST char * s)
+PRIVATE void handle_attribute_name (HTStream * context, const char * s)
 {
 
     HTTag * tag = context->current_tag;
@@ -134,7 +131,7 @@ PRIVATE void handle_attribute_name (HTStream * context, CONST char * s)
 /*	Handle attribute value
 **	----------------------
 */
-PRIVATE void handle_attribute_value (HTStream * context, CONST char * s)
+PRIVATE void handle_attribute_value (HTStream * context, const char * s)
 {
     if (context->current_attribute_number != INVALID) {
 	StrAllocCopy(context->value[context->current_attribute_number], s);
@@ -157,8 +154,8 @@ PRIVATE void handle_attribute_value (HTStream * context, CONST char * s)
 PRIVATE void handle_entity (HTStream * context, char term)
 {
 
-    CONST char ** entities = context->dtd->entity_names;
-    CONST char *s = context->string->data;
+    const char ** entities = context->dtd->entity_names;
+    const char *s = context->string->data;
     
     int high, low, i, diff;
     for(low=0, high = context->dtd->number_of_entities;
@@ -176,7 +173,7 @@ PRIVATE void handle_entity (HTStream * context, char term)
 	HTTrace("SGML: Unknown entity %s\n", s); 
     PUTC('&');
     {
-	CONST char *p;
+	const char *p;
 	for (p=s; *p; p++) {
 	    PUTC(*p);
 	}
@@ -256,7 +253,7 @@ PRIVATE void start_element (HTStream * context)
     	context->target,
 	new_tag - context->dtd->tags,
 	context->present,
-	(CONST char**) context->value);  /* coerce type for think c */
+	(const char**) context->value);  /* coerce type for think c */
     if (new_tag->contents != SGML_EMPTY) {		/* i.e. tag not empty */
 	HTElement * N;
 	if ((N = (HTElement  *) HT_MALLOC(sizeof(HTElement))) == NULL)
@@ -280,7 +277,7 @@ PRIVATE void start_element (HTStream * context)
 **		NULL		tag not found
 **		else		address of tag structure in dtd
 */
-PUBLIC HTTag * SGMLFindTag (CONST SGML_dtd* dtd, CONST char * string)
+PUBLIC HTTag * SGMLFindTag (const SGML_dtd* dtd, const char * string)
 {
     int high, low, i, diff;
     for(low=0, high=dtd->number_of_tags;
@@ -357,36 +354,10 @@ PUBLIC int SGML_abort  (HTStream * context, HTList * e)
     return HT_ERROR;
 }
 
-
-/*	Read and write user callback handle
-**	-----------------------------------
-**
-**   The callbacks from the SGML parser have an SGML context parameter.
-**   These calls allow the caller to associate his own context with a
-**   particular SGML context.
-*/
-
-#ifdef CALLERDATA		  
-PUBLIC void* SGML_callerData (HTStream * context)
-{
-    return context->callerData;
-}
-
-PUBLIC void SGML_setCallerData (HTStream * context, void* data)
-{
-    context->callerData = data;
-}
-#else
-#ifdef WWW_WIN_DLL
-PUBLIC void * SGML_callerData (HTStream * context) {return NULL;}
-PUBLIC void SGML_setCallerData (HTStream * context, void* data) {}
-#endif /* WWW_WIN_DLL */
-#endif /* CALLERDATA */
-
 PUBLIC int SGML_character (HTStream * context, char c)
 
 {
-    CONST SGML_dtd	*dtd	=	context->dtd;
+    const SGML_dtd	*dtd	=	context->dtd;
     HTChunk	*string = 	context->string;
 
     switch(context->state) {
@@ -738,7 +709,7 @@ handle_S_tag:
 }
 
 
-PUBLIC int SGML_string (HTStream * context, CONST char* s)
+PUBLIC int SGML_string (HTStream * context, const char* s)
 {
     while (*s)
         SGML_character(context, *s++);
@@ -746,7 +717,7 @@ PUBLIC int SGML_string (HTStream * context, CONST char* s)
 }
 
 
-PUBLIC int SGML_write (HTStream * context, CONST char* b, int l)
+PUBLIC int SGML_write (HTStream * context, const char* b, int l)
 {
     while (l-- > 0)
         SGML_character(context, *b++);
@@ -759,7 +730,7 @@ PUBLIC int SGML_write (HTStream * context, CONST char* b, int l)
 /*	Structured Object Class
 **	-----------------------
 */
-PRIVATE CONST HTStreamClass SGMLParser = 
+PRIVATE const HTStreamClass SGMLParser = 
 {		
     "SGMLParser",
     SGML_flush,
@@ -778,7 +749,7 @@ PRIVATE CONST HTStreamClass SGMLParser =
 **	actions		is the sink for the data as a set of routines.
 **
 */
-PUBLIC HTStream * SGML_new (CONST SGML_dtd * dtd, HTStructured * target)
+PUBLIC HTStream * SGML_new (const SGML_dtd * dtd, HTStructured * target)
 {
     int i;
     HTStream* context;
@@ -793,9 +764,6 @@ PUBLIC HTStream * SGML_new (CONST SGML_dtd * dtd, HTStructured * target)
     					/* Ugh: no OO */
     context->state = S_text;
     context->element_stack = 0;			/* empty */
-#ifdef CALLERDATA		  
-    context->callerData = (void*) callerData;
-#endif    
     for(i=0; i<MAX_ATTRIBUTES; i++) context->value[i] = 0;
 
     return context;

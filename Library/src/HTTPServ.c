@@ -12,7 +12,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTParse.h"
@@ -56,7 +56,7 @@ typedef struct _https_info {
 
 /* The HTTP Receive Stream */
 struct _HTStream {
-    CONST HTStreamClass *	isa;
+    const HTStreamClass *	isa;
     HTStream *		  	target;
     HTRequest *			request;
     https_info *		http;
@@ -161,7 +161,7 @@ PRIVATE int MakeReplyPipe (HTStream *me, HTRequest *server, HTRequest *client)
     return (*me->target->isa->flush)(me->target);
 }
 
-PRIVATE int HTTPReply_put_block (HTStream * me, CONST char * b, int l)
+PRIVATE int HTTPReply_put_block (HTStream * me, const char * b, int l)
 {
     if (me->transparent)
 	return b ? PUTBLOCK(b, l) : HT_OK;
@@ -171,7 +171,7 @@ PRIVATE int HTTPReply_put_block (HTStream * me, CONST char * b, int l)
     }
 }
 
-PRIVATE int HTTPReply_put_string (HTStream * me, CONST char * s)
+PRIVATE int HTTPReply_put_string (HTStream * me, const char * s)
 {
     return HTTPReply_put_block(me, s, strlen(s));
 }
@@ -250,7 +250,7 @@ PRIVATE int HTTPReply_abort (HTStream * me, HTList * e)
 /*	HTTPReply Stream
 **	-----------------
 */
-PRIVATE CONST HTStreamClass HTTPReplyClass =
+PRIVATE const HTStreamClass HTTPReplyClass =
 {		
     "HTTPReply",
     HTTPReply_flush,
@@ -325,10 +325,10 @@ PRIVATE int ParseRequest (HTStream * me)
 /*
 **	Searches for HTTP Request Line before going into transparent mode
 */
-PRIVATE int HTTPReceive_put_block (HTStream * me, CONST char * b, int l)
+PRIVATE int HTTPReceive_put_block (HTStream * me, const char * b, int l)
 {
     if (!me->transparent) {
-	CONST char *p=b;
+	const char *p=b;
 	while (l>0 && *p!=CR && *p!=LF) l--, p++;
 	HTChunk_putb(me->buffer, b, p-b);
 	if (*p==CR || *p==LF) {
@@ -347,7 +347,7 @@ PRIVATE int HTTPReceive_put_block (HTStream * me, CONST char * b, int l)
     return HT_OK;
 }
 
-PRIVATE int HTTPReceive_put_string (HTStream * me, CONST char * s)
+PRIVATE int HTTPReceive_put_string (HTStream * me, const char * s)
 {
     return HTTPReceive_put_block(me, s, (int) strlen(s));
 }
@@ -386,7 +386,7 @@ PRIVATE int HTTPReceive_abort (HTStream * me, HTList * e)
 /*	HTTPReceive Stream
 **	-----------------
 */
-PRIVATE CONST HTStreamClass HTTPReceiveClass =
+PRIVATE const HTStreamClass HTTPReceiveClass =
 {		
     "HTTPReceive",
     HTTPReceive_flush,

@@ -27,7 +27,7 @@ INI files for X resources. In that case, you can also parse a single line from a
 the following function:
 
 <PRE>
-extern BOOL HTRule_parseLine (HTList * list, CONST char * config);
+extern BOOL HTRule_parseLine (HTList * list, const char * config);
 </PRE>
 
 You can add a rule to a list of rules as any other preference. The <CODE>pattern</CODE> is a string
@@ -47,7 +47,7 @@ typedef enum _HTRuleOp {
     HT_UseProxy
 } HTRuleOp;
 
-extern BOOL HTRule_add (HTList * list, HTRuleOp op, CONST char * pattern, CONST char * replace);
+extern BOOL HTRule_add (HTList * list, HTRuleOp op, const char * pattern, const char * replace);
 </PRE>
 
 And as normal you can delete a set of rules by using this function:
@@ -74,7 +74,7 @@ the equivalent string allocated from the heap which the CALLER MUST FREE. If no 
 then it is a copy of the original.
 
 <PRE>
-extern char * HTRule_translate (HTList * list, CONST char * token, BOOL ignore_case);
+extern char * HTRule_translate (HTList * list, const char * token, BOOL ignore_case);
 </PRE>
 
 <P>

@@ -115,7 +115,7 @@ If <EM>cache_root</EM> is NULL then reuse old value or use
 root.
 
 <PRE>
-extern BOOL HTCache_enable		(CONST char * cache_root);
+extern BOOL HTCache_enable		(const char * cache_root);
 </PRE>
 
 <H2>Disable Cache</H2>
@@ -143,13 +143,13 @@ If <EM>cache_root</EM> is NULL then the current value (might be a define)
 Should we check if the cache_root is actually OK? I think not!
 
 <PRE>
-extern BOOL HTCache_setRoot		(CONST char * cache_root);
+extern BOOL HTCache_setRoot		(const char * cache_root);
 </PRE>
 
 <H2>Get Cache Root</H2>
 
 <PRE>
-extern CONST char *HTCache_getRoot	(void);
+extern const char *HTCache_getRoot	(void);
 </PRE>
 
 <H2>Clean up memory</H2>

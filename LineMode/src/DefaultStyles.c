@@ -38,7 +38,7 @@ PRIVATE HTTabStop tabs_24[] = {
 **	link to next, name, tag, tagtype,
 **	font, size, colour, 		superscript, anchor id,
 **	indents: (1st,l,r), justific,	lineheight, descent,	tabs,
-**	word wrap, free format, space: before, after, flags.
+**	word wrap, HT_FREE format, space: before, after, flags.
 */
 
 PRIVATE HTStyle HTStyleNormal = { 0,  "Normal", "P",

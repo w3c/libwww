@@ -14,7 +14,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTFormat.h"
@@ -31,7 +31,7 @@
 */
 
 struct _HTStream {
-	CONST HTStreamClass *	isa;
+	const HTStreamClass *	isa;
 
 	HTRequest *		req;
 	HTParentAnchor *	anchor;
@@ -170,7 +170,7 @@ PRIVATE int HTGuess_flush (HTStream * me)
 }
 
 
-PRIVATE int HTGuess_put_block (HTStream * me, CONST char * b, int l)
+PRIVATE int HTGuess_put_block (HTStream * me, const char * b, int l)
 {
     while (!me->transparent && l-- > 0) {
 	int status;
@@ -210,7 +210,7 @@ PRIVATE int HTGuess_put_character (HTStream * me, char c)
     return HTGuess_put_block(me, &c, 1);
 }
 
-PRIVATE int HTGuess_put_string (HTStream * me, CONST char * s)
+PRIVATE int HTGuess_put_string (HTStream * me, const char * s)
 {
     return HTGuess_put_block(me, s, (int) strlen(s));
 }
@@ -239,7 +239,7 @@ PRIVATE int HTGuess_abort (HTStream * me, HTList * e)
 /*	Guessing stream
 **	---------------
 */
-PRIVATE CONST HTStreamClass HTGuessClass =
+PRIVATE const HTStreamClass HTGuessClass =
 {		
 	"GuessWhat",
 	HTGuess_flush,

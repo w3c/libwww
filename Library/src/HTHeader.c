@@ -9,7 +9,7 @@
 */
 
 /* Library Include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTParse.h"
@@ -34,7 +34,7 @@ PRIVATE HTList * HTGenerators = NULL;
 **	arbritary chars.
 */
 PUBLIC BOOL HTParser_add (HTList *		parsers,
-			  CONST char *       	token,
+			  const char *       	token,
 			  BOOL			case_sensitive,
 			  HTParserCallback *	callback)
 {
@@ -53,7 +53,7 @@ PUBLIC BOOL HTParser_add (HTList *		parsers,
 /*
 **	Unregister a Header parser
 */
-PUBLIC BOOL HTParser_delete (HTList * parsers, CONST char * token)
+PUBLIC BOOL HTParser_delete (HTList * parsers, const char * token)
 {
     if (parsers) {
 	HTList *cur = parsers;
@@ -91,7 +91,7 @@ PUBLIC BOOL HTParser_deleteAll (HTList * parsers)
 **	Search registered parsers to find suitable one for this token
 **	If a parser isn't found, the function returns NULL
 */
-PUBLIC HTParserCallback * HTParser_find (HTList *parsers, CONST char * token)
+PUBLIC HTParserCallback * HTParser_find (HTList *parsers, const char * token)
 {
     HTList * cur = parsers;
     HTParser * pres;
@@ -147,14 +147,14 @@ PUBLIC HTList * HTHeader_parser (void)
     return HTParsers;
 }
 
-PUBLIC BOOL HTHeader_addParser (CONST char * token, BOOL case_sensitive,
+PUBLIC BOOL HTHeader_addParser (const char * token, BOOL case_sensitive,
 				HTParserCallback * callback)
 {
     if (!HTParsers) HTParsers = HTList_new();
     return HTParser_add(HTParsers, token, case_sensitive, callback);
 }
 
-PUBLIC BOOL HTHeader_deleteParser (CONST char * token)
+PUBLIC BOOL HTHeader_deleteParser (const char * token)
 {
     if (!HTParsers) return NO;
     return HTParser_delete(HTParsers, token);

@@ -16,7 +16,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTList.h"
@@ -31,10 +31,10 @@ PRIVATE BOOL initialised = NO;
 **	Finds an atom representation for a string. The atom doesn't have to be
 **	a new one but can be an already existing atom.
 */
-PUBLIC HTAtom * HTAtom_for (CONST char * string)
+PUBLIC HTAtom * HTAtom_for (const char * string)
 {
     int hash;
-    CONST char * p;
+    const char * p;
     HTAtom * a;
     
     /*		First time around, clear hash table
@@ -79,10 +79,10 @@ PUBLIC HTAtom * HTAtom_for (CONST char * string)
 **	Finds an atom representation for a string. The atom doesn't have to be
 **	a new one but can be an already existing atom.
 */
-PUBLIC HTAtom * HTAtom_caseFor (CONST char * string)
+PUBLIC HTAtom * HTAtom_caseFor (const char * string)
 {
     int hash;
-    CONST char * p;
+    const char * p;
     HTAtom * a;
     
     /*		First time around, clear hash table
@@ -144,7 +144,7 @@ PUBLIC void HTAtom_deleteAll (void)
 }
 
 
-PRIVATE BOOL mime_match (CONST char * name, CONST char * templ)
+PRIVATE BOOL mime_match (const char * name, const char * templ)
 {
     if (name && templ) {
 	static char *n1 = NULL;
@@ -152,7 +152,7 @@ PRIVATE BOOL mime_match (CONST char * name, CONST char * templ)
 	char *n2;
 	char *t2;
 
-	StrAllocCopy(n1, name);		/* These also free the ones	*/
+	StrAllocCopy(n1, name);		/* These also HT_FREE the ones	*/
 	StrAllocCopy(t1, templ);	/* from previous call.		*/
 
 	if (!(n2 = strchr(n1, '/'))  ||  !(t2 = strchr(t1, '/')))
@@ -169,7 +169,7 @@ PRIVATE BOOL mime_match (CONST char * name, CONST char * templ)
 }
 	
 
-PUBLIC HTList *HTAtom_templateMatches (CONST char * templ)
+PUBLIC HTList *HTAtom_templateMatches (const char * templ)
 {
     HTList *matches = HTList_new();
 

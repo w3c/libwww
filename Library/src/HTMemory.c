@@ -9,7 +9,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTList.h"
 #include "HTMemory.h"					 /* Implemented here */

@@ -13,7 +13,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"					 /* Implemented here */
 
@@ -30,7 +30,7 @@ PUBLIC int WWW_TraceFlag = 0;		/* Global trace flag for ALL W3 code */
 /*	Strings of any length
 **	---------------------
 */
-PUBLIC int strcasecomp (CONST char * a, CONST char * b)
+PUBLIC int strcasecomp (const char * a, const char * b)
 {
     int diff;
     for( ; *a && *b; a++, b++) {
@@ -46,10 +46,10 @@ PUBLIC int strcasecomp (CONST char * a, CONST char * b)
 /*	With count limit
 **	----------------
 */
-PUBLIC int strncasecomp (CONST char * a, CONST char * b, int n)
+PUBLIC int strncasecomp (const char * a, const char * b, int n)
 {
-	CONST char *p =a;
-	CONST char *q =b;
+	const char *p =a;
+	const char *q =b;
 	
 	for(p=a, q=b;; p++, q++) {
 	    int diff;
@@ -90,7 +90,7 @@ PUBLIC char * strcasestr (char * s1, char * s2)
 
 /*	Allocate a new copy of a string, and returns it
 */
-PUBLIC char * HTSACopy (char ** dest, CONST char * src)
+PUBLIC char * HTSACopy (char ** dest, const char * src)
 {
   if (*dest) HT_FREE(*dest);
   if (! src)
@@ -105,7 +105,7 @@ PUBLIC char * HTSACopy (char ** dest, CONST char * src)
 
 /*	String Allocate and Concatenate
 */
-PUBLIC char * HTSACat (char ** dest, CONST char * src)
+PUBLIC char * HTSACat (char ** dest, const char * src)
 {
   if (src && *src) {
     if (*dest) {
@@ -136,13 +136,13 @@ PUBLIC char * HTSACat (char ** dest, CONST char * src)
 **		- pointer to part matched by wildcard if any
 **		- NULL if no match
 */
-PUBLIC char * HTStrMatch (CONST char * tmpl, CONST char * name)
+PUBLIC char * HTStrMatch (const char * tmpl, const char * name)
 {
     while (*tmpl && *name && *tmpl==*name) tmpl++, name++;
     return ((!*tmpl && !*name) || *tmpl=='*') ? (char *) name : (char *) NULL;
 }    
 
-PUBLIC char * HTStrCaseMatch (CONST char * tmpl, CONST char * name)
+PUBLIC char * HTStrCaseMatch (const char * tmpl, const char * name)
 {
     while (*tmpl && *name && TOUPPER(*tmpl)==TOUPPER(*name)) tmpl++, name++;
     return ((!*tmpl && !*name) || *tmpl=='*') ? (char *) name : (char *) NULL;
@@ -181,7 +181,7 @@ PUBLIC HTTraceCallback * HTTrace_getCallback(void)
     return PHTTraceCallback;
 }
 
-PUBLIC int HTTrace(CONST char * fmt, ...)
+PUBLIC int HTTrace(const char * fmt, ...)
 {
     va_list pArgs;
     va_start(pArgs, fmt);

@@ -98,7 +98,7 @@ extern void HText_setStyle (HText * text, HTStyle * style);
 </PRE>
 <H3>Add a zero-terminated string</H3>
 <PRE>
-extern void HText_appendText (HText * text, CONST char * str);
+extern void HText_appendText (HText * text, const char * str);
 
 </PRE>
 
@@ -135,7 +135,7 @@ even if the elements using them have been deleted from the document.
 <pre>
 extern void HText_setNextId (
 	HText *		text,
-	CONST char *    s);
+	const char *    s);
 
 </pre>
 <H3>Append an inline image</H3>The image is handled by the creation
@@ -153,8 +153,8 @@ image itself as a separate document.
 <PRE>extern void HText_appendImage (
 	HText * 	text,
 	HTChildAnchor * anc,
-	CONST char * 	alternative_text,
-	CONST char *	alignment,
+	const char * 	alternative_text,
+	const char *	alignment,
 	BOOL		isMap);
 
 </PRE>
@@ -169,8 +169,8 @@ compound object has parsed itself.
 <PRE>extern void HText_appendObject (
 	HText * 		text,
 	int			element_number,
-	CONST BOOL *		present,
-	CONST char * CONST * 	value);
+	const BOOL *		present,
+	const char * const * 	value);
 
 </PRE>
 <H3>HText_unimplemented: Warn that object
@@ -232,7 +232,7 @@ extern HTStyle * HText_selectionStyle (
 /*	Paste in styled text
 */
 extern void HText_replaceSel (HText * me,
-	CONST char *aString, 
+	const char *aString, 
 	HTStyle* aStyle);
 
 /*	Apply this style to the selection and all similarly formatted text

@@ -25,10 +25,10 @@
  * first pass: EGP - 10/26/95
  */
 
-#include <assert.h>			/* @@@ Should be in tcp.h @@@ */
+#include <assert.h>			/* @@@ Should be in sysdep.h @@@ */
 
 /* Implementation dependent include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTReqMan.h"
@@ -50,12 +50,12 @@ PRIVATE fd_set all_fds ;			    /* any descriptor at all */
 
 PRIVATE int HTEndLoop = 0;		       /* If !0 then exit event loop */
 
-PRIVATE CONST int SecondsToWait = 5 ;
+PRIVATE const int SecondsToWait = 5 ;
 
 PRIVATE void __ResetMaxSock( void ) ;
 PRIVATE int __DoCallback( SOCKET, SockOps);
 PRIVATE int __DoUserCallback( SOCKET, SockOps);
-PRIVATE void __DumpFDSet( fd_set *, CONST char *);
+PRIVATE void __DumpFDSet( fd_set *, const char *);
 
 typedef unsigned long DWORD;
 
@@ -128,16 +128,16 @@ PRIVATE struct timeval *tvptr = NULL;
 ** if the connection has been closed, the socket will appear readable under
 ** BSD Unix semantics 
 */
-PRIVATE CONST SockOps ReadBits = FD_READ | FD_ACCEPT  | FD_CLOSE;
-PRIVATE CONST SockOps WriteBits = FD_WRITE | FD_CONNECT ;
-PRIVATE CONST SockOps ExceptBits = FD_OOB ;
+PRIVATE const SockOps ReadBits = FD_READ | FD_ACCEPT  | FD_CLOSE;
+PRIVATE const SockOps WriteBits = FD_WRITE | FD_CONNECT ;
+PRIVATE const SockOps ExceptBits = FD_OOB ;
 
 /*
 ** Local functions 
 */
 PRIVATE int __HTEvent_addRequest( SOCKET, HTRequest *, SockOps, HTEventCallback *, HTPriority); 
 PRIVATE void __RequestInit( RQ *, SOCKET, HTRequest *, SockOps, HTEventCallback *, HTPriority);
-PRIVATE int __ProcessFds( fd_set *, SockOps, CONST char *);
+PRIVATE int __ProcessFds( fd_set *, SockOps, const char *);
 PRIVATE void __RequestUpdate( RQ *, SOCKET, HTRequest *, SockOps, HTEventCallback *, HTPriority);
 PRIVATE int __EventUnregister(RQ * , RQ **, SockOps );
 
@@ -820,7 +820,7 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 ** ProcessFds 
 ** preform the associated HTEventCallback function for each FD in a given set  
 */
-PRIVATE int __ProcessFds( fd_set * fdsp, SockOps ops, CONST char * str) 
+PRIVATE int __ProcessFds( fd_set * fdsp, SockOps ops, const char * str) 
 {
     SOCKET s ;
 #ifdef _WINSOCKAPI_
@@ -933,7 +933,7 @@ PRIVATE int __EventUnregister(register RQ *rqp, register RQ ** rqpp,
         FD_CLR(s, &except_fds);
 
 
-    /* if all actions are clear we are free to delete our request structure */
+    /* if all actions are clear we are HT_FREE to delete our request structure */
     if (ap->ops == 0)  {
         if (rqp->unregister) /* requested HTEventCallback */
             rv = ap->cbf( s, ap->rq, FD_UNREGISTER); 
@@ -964,7 +964,7 @@ PRIVATE int __EventUnregister(register RQ *rqp, register RQ ** rqpp,
     return 0 ;
 }
 
-PRIVATE void __DumpFDSet( fd_set * fdp, CONST char * str) 
+PRIVATE void __DumpFDSet( fd_set * fdp, const char * str) 
 {
     SOCKET s ;
 #ifdef _WINSOCKAPI_

@@ -174,7 +174,7 @@ Exactly as for the header generators you can <EM>add</EM> and <EM>delete</EM> an
 in this case is a callback function. This function has a special definition which is given by
 
 <PRE>
-typedef int HTParserCallback (HTRequest * request, CONST char * token);
+typedef int HTParserCallback (HTRequest * request, const char * token);
 </PRE>
 
 The request object is the current request being handled and the token is the header that was
@@ -192,7 +192,7 @@ request if required. We can register a callback function by using the following 
 
 <PRE>
 extern BOOL HTParser_add (HTList *		parsers,
-			  CONST char *       	token,
+			  const char *       	token,
 			  BOOL			case_sensitive,
 			  HTParserCallback *	callback);
 </PRE>
@@ -219,7 +219,7 @@ with "PICS", "PiCs", "pics", for example:
 As for header generators, you can unregister a callback function by using the following function:
 
 <PRE>
-extern BOOL HTParser_delete (HTList * parsers, CONST char * token);
+extern BOOL HTParser_delete (HTList * parsers, const char * token);
 </PRE>
 
 <H2>Enabling Preferences</H2>
@@ -269,7 +269,7 @@ calling the cleanup method of each preference as indicated below:
 <H3>Header Parsers</H3>
 
 <PRE>
-extern BOOL HTParser_delete (HTList * parsers, CONST char * token);
+extern BOOL HTParser_delete (HTList * parsers, const char * token);
 extern BOOL HTParser_deleteAll (HTList * parsers);
 </PRE>
 

@@ -15,7 +15,7 @@
 */
 
 /* Library Include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTParse.h"
@@ -91,7 +91,7 @@ typedef struct _news_info {
 
 /* This version of a stream is used for NEWS LIST conversion to HTML */
 struct _HTStream {
-    CONST HTStreamClass *	isa;
+    const HTStreamClass *	isa;
     HTStream *			target;
     HTRequest *			request;
     news_info *			news;
@@ -139,7 +139,7 @@ PRIVATE int ScanResponse (HTStream * me)
 **	Searches for NNTP header line until buffer fills up or a CRLF or LF
 **	is found
 */
-PRIVATE int HTNewsStatus_put_block (HTStream * me, CONST char * b, int l)
+PRIVATE int HTNewsStatus_put_block (HTStream * me, const char * b, int l)
 {
     while (!me->semi_trans && l-- > 0) {
 	int status;
@@ -173,7 +173,7 @@ PRIVATE int HTNewsStatus_put_block (HTStream * me, CONST char * b, int l)
     */
     if (l > 0) {
 	int rest = l;
-	CONST char *ptr = b;
+	const char *ptr = b;
 	while (rest-- > 0) {
 	    if (*ptr == CR) {
 		me->EOLstate = me->EOLstate==EOL_DOT ? EOL_SCR : EOL_FCR;
@@ -201,7 +201,7 @@ PRIVATE int HTNewsStatus_put_character (HTStream * me, char ch)
     return HTNewsStatus_put_block(me, &ch, 1);
 }
 
-PRIVATE int HTNewsStatus_put_string (HTStream * me, CONST char * str)
+PRIVATE int HTNewsStatus_put_string (HTStream * me, const char * str)
 {
     return HTNewsStatus_put_block(me, str, (int) strlen(str));
 }
@@ -231,7 +231,7 @@ PRIVATE int HTNewsStatus_abort (HTStream * me, HTList * e)
     return HT_ERROR;
 }
 
-PRIVATE CONST HTStreamClass HTNewsStatusClass =
+PRIVATE const HTStreamClass HTNewsStatusClass =
 {		
     "NewsStatus",
     HTNewsStatus_flush,
@@ -282,7 +282,7 @@ PUBLIC int HTNews_maxArticles (void)
 /*
 **	Sets the current NEWS server.
 */
-PUBLIC BOOL HTNews_setHost (CONST char * newshost)
+PUBLIC BOOL HTNews_setHost (const char * newshost)
 {
     if (newshost && *newshost) {
 	StrAllocCopy(HTNewsHost, newshost);
@@ -298,7 +298,7 @@ PUBLIC BOOL HTNews_setHost (CONST char * newshost)
 		if (*(HTNewsHost+strlen(HTNewsHost)-1) == '.')
 		    *(HTNewsHost+strlen(HTNewsHost)-1) = '\0';
 	    } else {
-		CONST char *domain = HTGetDomainName();
+		const char *domain = HTGetDomainName();
 		if (domain) {
 		    StrAllocCat(HTNewsHost, ".");
 		    StrAllocCat(HTNewsHost, domain);
@@ -330,7 +330,7 @@ PUBLIC BOOL HTNews_setHost (CONST char * newshost)
 **
 **	Return:	HTNewsHost if success else NULL
 */
-PUBLIC CONST char *HTNews_host (void)
+PUBLIC const char *HTNews_host (void)
 {
     if (HTNewsHost) {
 	if (*HTNewsHost) {
@@ -486,7 +486,7 @@ PUBLIC int HTLoadNews (SOCKET soc, HTRequest * request, SockOps ops)
 
 	  case NEWS_NEED_CONNECTION: 		/* Let's set up a connection */
 	    if (!strncasecomp(url, "news:", 5)) {
-		CONST char *newshost = HTNews_host();
+		const char *newshost = HTNews_host();
 		StrAllocCopy(news->name, url+5);
 		if (newshost) {
 		    char *newshack = NULL;    /* Then we can use HTParse :-) */

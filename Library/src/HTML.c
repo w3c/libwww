@@ -17,7 +17,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTAtom.h"
@@ -49,7 +49,7 @@ typedef struct _stack_element {
 } stack_element;
 
 struct _HTStructured {
-    CONST HTStructuredClass * 	isa;
+    const HTStructuredClass * 	isa;
     HTRequest *			request;
     HTParentAnchor * 		node_anchor;
     HText * 			text;
@@ -62,7 +62,7 @@ struct _HTStructured {
     char *			comment_start;	/* for literate programming */
     char *			comment_end;
     
-    CONST SGML_dtd*		dtd;
+    const SGML_dtd*		dtd;
     
     HTTag *			current_tag;
     BOOL			style_change;
@@ -76,7 +76,7 @@ struct _HTStructured {
 };
 
 struct _HTStream {
-    CONST HTStreamClass *	isa;
+    const HTStreamClass *	isa;
     /* .... */
 };
 
@@ -392,7 +392,7 @@ PRIVATE int HTML_put_character (HTStructured * me, char c)
 **	This is written separately from put_character becuase the loop can
 **	in some cases be promoted to a higher function call level for speed.
 */
-PRIVATE int HTML_put_string (HTStructured * me, CONST char* s)
+PRIVATE int HTML_put_string (HTStructured * me, const char* s)
 {
 
     switch (me->sp[0].tag_number) {
@@ -416,7 +416,7 @@ PRIVATE int HTML_put_string (HTStructured * me, CONST char* s)
 	
     default:					/* Free format text */
         {
-	    CONST char *p = s;
+	    const char *p = s;
 	    if (me->style_change) {
 		for (; *p && ((*p=='\n') || (*p==' ')); p++)  ;  /* Ignore leaders */
 		if (!*p) return HT_OK;
@@ -446,7 +446,7 @@ PRIVATE int HTML_put_string (HTStructured * me, CONST char* s)
 /*	Buffer write
 **	------------
 */
-PRIVATE int HTML_write (HTStructured * me, CONST char* s, int l)
+PRIVATE int HTML_write (HTStructured * me, const char* s, int l)
 {
     while (l-- > 0)
 	HTML_put_character(me, *s++);
@@ -460,8 +460,8 @@ PRIVATE int HTML_write (HTStructured * me, CONST char* s, int l)
 PRIVATE void HTML_start_element (
 	HTStructured * 	me,
 	int			element_number,
-	CONST BOOL*	 	present,
-	CONST char **		value)
+	const BOOL*	 	present,
+	const char **		value)
 {
     switch (element_number) {
     case HTML_A:
@@ -797,7 +797,7 @@ PRIVATE void get_styles (void)
 /*	Structured Object Class
 **	-----------------------
 */
-PRIVATE CONST HTStructuredClass HTMLPresentation = /* As opposed to print etc */
+PRIVATE const HTStructuredClass HTMLPresentation = /* As opposed to print etc */
 {		
 	"text/html",
 	HTML_flush,

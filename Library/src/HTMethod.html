@@ -54,7 +54,7 @@ typedef enum {
 Gives the enumeration value of the method as a function of the (char *) name.
 
 <PRE>
-extern HTMethod HTMethod_enum (CONST char * name);
+extern HTMethod HTMethod_enum (const char * name);
 </PRE>
 
 <H3>Get Method String</H3>
@@ -62,7 +62,7 @@ extern HTMethod HTMethod_enum (CONST char * name);
 The reverse of <I>HTMethod_enum()</I>
 
 <PRE>
-extern CONST char * HTMethod_name (HTMethod method);
+extern const char * HTMethod_name (HTMethod method);
 </PRE>
 
 <H3>Is Method "Safe"</H3>

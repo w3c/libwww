@@ -11,7 +11,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTChunk.h"				         /* Implemented here */
 
@@ -30,7 +30,7 @@ PUBLIC HTChunk * HTChunk_new (int grow)
 
 /*	Clear a chunk of all data
 **	--------------------------
-**	Zero the space but do NOT free it. We zero because we promise to have
+**	Zero the space but do NOT HT_FREE it. We zero because we promise to have
 **	a NUL terminated string at all times.
 */
 PUBLIC void HTChunk_clear (HTChunk * ch)
@@ -78,7 +78,7 @@ PUBLIC void HTChunk_putc (HTChunk * ch, char c)
 /*	Append a string
 **	---------------
 */
-PUBLIC void HTChunk_puts (HTChunk * ch, CONST char * s)
+PUBLIC void HTChunk_puts (HTChunk * ch, const char * s)
 {
     HTChunk_putb(ch, s, (int) strlen(s));
 }
@@ -87,7 +87,7 @@ PUBLIC void HTChunk_puts (HTChunk * ch, CONST char * s)
 **	---------------
 **	The string is always zero terminated
 */
-PUBLIC void HTChunk_putb (HTChunk * ch, CONST char * block, int len)
+PUBLIC void HTChunk_putb (HTChunk * ch, const char * block, int len)
 {
     if (ch && block && len) {
 	int needed = ch->size+len;
@@ -132,7 +132,7 @@ PUBLIC void HTChunk_ensure (HTChunk * ch, int len)
     ch->allocated = needed-1 - ((needed-1) % ch->growby)
     			     + ch->growby; /* Round up */
     ch->data = ch->data ? (char *)realloc(ch->data, ch->allocated)
-			: (char *)malloc(ch->allocated);
-    if (ch->data == NULL) outofmem(__FILE__, "HTChunk_ensure");
+			: (char *)HT_MALLOC(ch->allocated);
+    if (ch->data == NULL) HT_OUTOFMEM(__FILE__, "HTChunk_ensure");
 #endif
 }

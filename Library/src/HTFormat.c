@@ -10,12 +10,12 @@
 **	Therefore, non-ASCII machines can't read local files.
 **
 ** HISTORY:
-**	8 Jul 94  FM	Insulate free() from _free structure element.
+**	8 Jul 94  FM	Insulate HT_FREE() from _HT_FREE structure element.
 **	8 Nov 94  HFN	Changed a lot to make reentrant
 */
 
 /* Library Include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTTCP.h"
@@ -35,7 +35,7 @@ PRIVATE HTList * HTLanguages = NULL;
 PRIVATE double HTMaxSecs = 1e10;		/* No effective limit */
 
 struct _HTStream {
-    CONST HTStreamClass *	isa;
+    const HTStreamClass *	isa;
 };
 
 /* ------------------------------------------------------------------------- */
@@ -62,9 +62,9 @@ struct _HTStream {
 **	maxsecs:	A limit on the time user will wait (0 for infinity)
 */
 PUBLIC void HTPresentation_add (HTList *	conversions,
-				CONST char *	representation,
-				CONST char *	command,
-				CONST char *	test_command,
+				const char *	representation,
+				const char *	command,
+				const char *	test_command,
 				double		quality,
 				double		secs, 
 				double		secs_per_byte)
@@ -104,8 +104,8 @@ PUBLIC void HTPresentation_deleteAll (HTList * list)
 **	---------------------------------------------
 */
 PUBLIC void HTConversion_add (HTList *		conversions,
-			      CONST char *	representation_in,
-			      CONST char *	representation_out,
+			      const char *	representation_in,
+			      const char *	representation_out,
 			      HTConverter *	converter,
 			      double		quality,
 			      double		secs, 
@@ -132,7 +132,7 @@ PUBLIC void HTConversion_deleteAll (HTList * list)
 }
 
 PUBLIC void HTEncoding_add (HTList * 		list,
-			    CONST char *	enc,
+			    const char *	enc,
 			    double		quality)
 {
     HTAcceptNode * node;
@@ -162,7 +162,7 @@ PUBLIC void HTEncoding_deleteAll (HTList * list)
 }
 
 PUBLIC void HTLanguage_add (HTList *		list,
-			    CONST char *	lang,
+			    const char *	lang,
 			    double		quality)
 {
     HTAcceptNode * node;
@@ -185,7 +185,7 @@ PUBLIC void HTLanguage_deleteAll (HTList * list)
 }
 
 PUBLIC void HTCharset_add (HTList *		list,
-			   CONST char *		charset,
+			   const char *		charset,
 			   double		quality)
 {
     HTAcceptNode * node;
@@ -296,7 +296,7 @@ PUBLIC void HTFormat_deleteAll (void)
 
 PRIVATE BOOL better_match (HTFormat f, HTFormat g)
 {
-    CONST char *p, *q;
+    const char *p, *q;
 
     if (f && g  &&  (p = HTAtom_name(f))  &&  (q = HTAtom_name(g))) {
 	int i,j;
@@ -572,7 +572,7 @@ PUBLIC HTStream * HTStreamStack (HTFormat	rep_in,
 		if (!best_match || better_match(pres->rep, best_match->rep) ||
 		    (!better_match(best_match->rep, pres->rep) &&
 		     pres->quality > best_quality)) {
-#ifdef GOT_SYSTEM
+#ifdef HAVE_SYSTEM
 		    int result=0;
 		    if (pres->test_command) {
 			result = system(pres->test_command);
@@ -586,7 +586,7 @@ PUBLIC HTStream * HTStreamStack (HTFormat	rep_in,
 #else
 		    best_match = pres;
 		    best_quality = pres->quality;
-#endif /* GOT_SYSTEM */
+#endif /* HAVE_SYSTEM */
 		}
 	    }
 	}

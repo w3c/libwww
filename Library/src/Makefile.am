@@ -1,0 +1,110 @@
+## Process this file with Automake to create Makefile.in.
+
+VMS = $(srcdir)/vms
+WIN = $(srcdir)/windows
+FTP = /afs/w3.org/devel/Dist/$(PROD)
+
+lib_LIBRARIES = www
+
+#	.h files are distributed but originally are made from the
+#	self-documenting hypertext files.
+SUFFIXES = .h .html .txt
+.html.h:
+	www -w90 -na -p -to text/x-c $(srcdir)/$(*F).html > $(srcdir)/$(*F).h
+
+#	Some extra make directives
+inc : $(HEADERS)
+	@echo Include files generated from hypertext.
+
+all-local : inc
+
+www_SOURCES = \
+	HTParse.c	HTAccess.c 	HTProxy.c \
+	HTMethod.c 	HTProt.c 	HTCache.c \
+	HTReqMan.c 	HTDNS.c 	HTArray.c \
+        HTFile.c 	HTBTree.c 	HTMulti.c \
+	HTFTP.c 	HTTCP.c     	SGML.c \
+	HTML.c		HTMLPDTD.c 	HTDir.c \
+	HTFTPDir.c	HTEPtoCl.c	HTStyle.c \
+	HTPlain.c	HTWriter.c  	HTFWrite.c \
+        HTMLGen.c	HTTee.c 	HTXParse.c \
+	HTChunk.c 	HTAtom.c   	HTAnchor.c \
+	HTList.c  	HTString.c 	HTAlert.c \
+	HTFormat.c 	HTHist.c 	HTMemory.c \
+	HTInit.c 	HTBInit.c  	HTRules.c \
+	HTMIME.c 	HTMIMERq.c 	HTBound.c \
+	HTConLen.c 	HTHeader.c	HTBind.c \
+	HTGopher.c 	HTTelnet.c	HTNetTxt.c \
+	HTNews.c  	HTWSRC.c 	HTSocket.c \
+	HTAAUtil.c 	HTAABrow.c 	HTAssoc.c \
+	HTUU.c		HTTeXGen.c	HTEscape.c \
+	HTDescpt.c 	HTGuess.c 	HTWWWStr.c \
+	HTIcons.c 	HTError.c 	HTLog.c \
+	HTHome.c 	HTDialog.c	HTNDir.c \
+	HTTP.c		HTTPServ.c	HTNewsRq.c \
+	HTTPGen.c 	HTTPReq.c 	HTTPRes.c \
+	HTNet.c 	HTEvntrg.c	HTNewsLs.c \
+	@HTWAIS@
+
+include_HEADERS = \
+	WWWUtil.h 	WWWCore.h 	WWWLib.h \
+	WWWDir.h 	WWWFTP.h 	WWWFile.h \
+	WWWGuess.h 	WWWHTML.h 	WWWHTTP.h \
+	WWWNews.h 	WWWRules.h 	WWWTelnt.h \
+	WWWCache.h 	WWWApp.h 	WWWInit.h \
+	WWWGophe.h	WWWMIME.h	WWWWAIS.h
+
+noinst_HEADERS = sysdep.h \
+	HTParse.h 	HTAccess.h  	HTProxy.h \
+	HTMethod.h 	HTProt.h 	HTCache.h \
+	HTReqMan.h 	HTReq.h  	HTDNS.h \
+	HTMulti.h 	HTBTree.h 	HTFTP.h \
+	SGML.h		HTML.h		HTMLPDTD.h \
+	HTNet.h 	HTNetMan.h 	HTFTPDir.h \
+	HTPlain.h	HTWriter.h	HTFile.h \
+	HTFWrite.h 	HTMLGen.h	HTTCP.h \
+	HTEvntrg.h 	HTArray.h  	HTChunk.h \
+	HTStream.h 	HTStruct.h 	HTMulpar.h \
+	HTTee.h 	HTXParse.h 	HTEPtoCl.h \
+	HTAtom.h 	HTAnchor.h 	HTAncMan.h \
+	HTList.h 	HTWWWStr.h 	HTMemory.h \
+	HTString.h 	HTAlert.h 	HTRules.h \
+	HTFormat.h  	HTStyle.h	HTNewsLs.h \
+	HTInit.h 	HTBInit.h	HTBind.h \
+	HTMIME.h 	HTMIMERq.h 	HTBound.h \
+	HTConLen.h 	HTHeader.h	HTHist.h \
+	HTGopher.h 	HTDir.h		HTUtils.h \
+ 	HTNewsRq.h	HText.h 	HTTelnet.h \
+	HTNDir.h  	HTWSRC.h 	HTSocket.h \
+	HTAAUtil.h 	HTAABrow.h 	HTAssoc.h \
+	HTUU.h		HTTeXGen.h	HTDescpt.h \
+	HTGuess.h	HTNetTxt.h 	HTBind.h \
+	HTIcons.h 	HTError.h 	HTLog.h \
+	HTHome.h 	HTDialog.h 	HTEscape.h \
+	HTTP.h		HTTPServ.h	HTNews.h \
+	HTTPGen.h 	HTTPReq.h 	HTTPRes.h \
+	HTTPUtil.h	
+
+EXTRA_HEADERS = \
+	HTWAIS.h
+
+DIST_OTHER = \
+	$(WIN)/Makefile \
+	$(WIN)/*.bat \
+	$(WIN)/*.pl \
+	$(WIN)/*.mak \
+	$(WIN)/*.def \
+	$(WIN)/*.c \
+	$(WIN)/*.h \
+	$(WIN)/*.txt \
+	$(VMS)/descrip.mms  $(VMS)/COPYING.LIB \
+ 	$(VMS)/build_multinet.com $(VMS)/build_multinet.com_alpha \
+	$(VMS)/multinet.opt $(VMS)/multinet.opt_alpha \
+	$(VMS)/build_ucx.com $(VMS)/build_ucx.com_alpha \
+	$(VMS)/ucx.opt $(VMS)/ucx.opt_alpha \
+	$(VMS)/patchlevel.h $(VMS)/ufc-crypt.h \
+	$(VMS)/crypt.c $(VMS)/crypt_util.c \
+	$(VMS)/getline.c $(VMS)/getpass.c \
+	$(VMS)/HTVMSUtils.h $(VMS)/HTVMSUtils.c \
+	$(VMS)/dirent.h $(VMS)/dirent.c $(VMS)/sys_dirent.h
+

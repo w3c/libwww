@@ -30,7 +30,7 @@ PRIVATE BOOL HTloglocal = YES;		     /* Use local or GMT for logfile */
 **	file or overwriting an exsisting file.
 **	Returns YES if OK, NO on error
 */
-PUBLIC BOOL HTLog_open (CONST char * filename, BOOL local, BOOL append)
+PUBLIC BOOL HTLog_open (const char * filename, BOOL local, BOOL append)
 {
     if (!filename || !*filename) {
 	if (WWWTRACE) HTTrace("Log......... No log file given\n");

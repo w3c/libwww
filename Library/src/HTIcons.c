@@ -13,7 +13,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTAnchor.h"
@@ -234,7 +234,7 @@ PRIVATE BOOL match (char * templ,
 }
 
 
-PRIVATE char * prefixed (CONST char *	prefix,
+PRIVATE char * prefixed (const char *	prefix,
 			      char *		name)
 {
     static char * ret = NULL;
@@ -251,9 +251,9 @@ PRIVATE char * prefixed (CONST char *	prefix,
 }
 
 
-PUBLIC void HTStdIconInit (CONST char * url_prefix)
+PUBLIC void HTStdIconInit (const char * url_prefix)
 {
-    CONST char * p = url_prefix ? url_prefix : "/internal-icon/";
+    const char * p = url_prefix ? url_prefix : "/internal-icon/";
 
     HTAddBlankIcon  (prefixed(p,"blank.xbm"),	NULL	);
     HTAddDirIcon    (prefixed(p,"directory.xbm"),"DIR"	);

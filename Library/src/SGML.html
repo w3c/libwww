@@ -87,7 +87,7 @@ struct _tag{
 typedef struct {
     HTTag *		tags;		/* Must be in strcmp order by name */ 
     int			number_of_tags;
-    CONST char **	entity_names;	/* Must be in strcmp order by name */
+    const char **	entity_names;	/* Must be in strcmp order by name */
     int			number_of_entities;
 } SGML_dtd;
 
@@ -103,7 +103,7 @@ typedef struct _HTSGMLContext *HTSGMLContext;	/* Hidden */
 Returns a pointer to the tag within the DTD.
 
 <PRE>
-extern HTTag * SGMLFindTag (CONST SGML_dtd* dtd, CONST char * string);
+extern HTTag * SGMLFindTag (const SGML_dtd* dtd, const char * string);
 </PRE>
 
 <H2>Find a Attribute by Name</H2>
@@ -111,7 +111,7 @@ extern HTTag * SGMLFindTag (CONST SGML_dtd* dtd, CONST char * string);
 Returns the number of the atribute or -1 if failure.
 
 <PRE>
-extern int SGMLFindAttribute (HTTag* tag, CONST char * string);
+extern int SGMLFindAttribute (HTTag* tag, const char * string);
 </PRE>
 
 <H2>Create an SGML parser</H2>
@@ -126,11 +126,11 @@ extern int SGMLFindAttribute (HTTag* tag, CONST char * string);
 
 
 extern HTStream* SGML_new (
-	CONST SGML_dtd * 		dtd,
+	const SGML_dtd * 		dtd,
 	HTStructured *		target);
 
 #if 0
-extern CONST HTStreamClass SGMLParser;
+extern const HTStreamClass SGMLParser;
 #endif
 
 #endif	/* SGML_H */

@@ -77,7 +77,7 @@ struct _HTStyle {
     HTTabStop           *tabs;          /* array of tab stops, 0 terminated */
 
     BOOL                wordWrap;       /* Yes means wrap at space not char */
-    BOOL                freeFormat;     /* Yes means \n is just white space */
+    BOOL                HT_FREEFormat;     /* Yes means \n is just white space */
     HTCoord             spaceBefore;    /* Omissions from NXTextStyle */
     HTCoord             spaceAfter;
     int                 paraFlags;      /* Paragraph flags, bits as follows: */
@@ -104,7 +104,7 @@ PUBLIC HTStyle* HTStyleNew (void)
 
 /*	Create a new style with a name
 */
-PUBLIC HTStyle* HTStyleNewNamed (CONST char * name)
+PUBLIC HTStyle* HTStyleNewNamed (const char * name)
 {
     HTStyle * self = HTStyleNew();
     StrAllocCopy(self->name, name);
@@ -154,7 +154,7 @@ PUBLIC HTStyle * HTModfyStyle (HTStyle *  old, void *  nesting,
 
 /*	Searching for styles:
 */
-HTStyle * HTStyleNamed (HTStyleSheet * self, CONST char * name)
+HTStyle * HTStyleNamed (HTStyleSheet * self, const char * name)
 {
     HTStyle * scan;
     for (scan=self->styles; scan; scan=scan->next)

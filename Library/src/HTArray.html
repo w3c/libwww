@@ -96,7 +96,7 @@ function using where you can define you own comparison routine as a
 function of the type:
 
 <PRE>
-typedef int HTComparer (CONST void * a, CONST void * b);
+typedef int HTComparer (const void * a, const void * b);
 </PRE>
 
 The sort function returns YES if sorting OK, else NO.

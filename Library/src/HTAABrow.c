@@ -17,7 +17,7 @@
 **	Oct 17	AL	Made corrections suggested by marca:
 **			Added  if (!realm->username) return NULL;
 **			Changed some ""s to NULLs.
-**			Now doing calloc() to init uuencode source;
+**			Now doing HT_CALLOC() to init uuencode source;
 **			otherwise HTUU_encode() reads uninitialized memory
 **			every now and then (not a real bug but not pretty).
 **			Corrected the formula for uuencode destination size.
@@ -56,7 +56,7 @@ typedef struct _HTDigest {		 /* Digest challenge and credentials */
 **				being a comment marker here,
 **				there really isn't any space.
 */
-PRIVATE char * make_template (CONST char * docname)
+PRIVATE char * make_template (const char * docname)
 {
     char *tmplate = NULL;
     char *slash = NULL;
@@ -174,7 +174,7 @@ PRIVATE BOOL prompt_user (HTRequest * request, char * realm,
 **	stored as an association list in the request object.
 **	This is a callback function for the AA handler.
 */
-PUBLIC BOOL HTBasic_generate (HTRequest * request, CONST char * scheme,
+PUBLIC BOOL HTBasic_generate (HTRequest * request, const char * scheme,
 			      char * realm, void * challenge)
 { 
     if (request && scheme && realm && challenge) {
@@ -203,7 +203,7 @@ PUBLIC BOOL HTBasic_generate (HTRequest * request, CONST char * scheme,
 **	the right set of credentials to generate.
 **	The function is a callback function for the AA handler.
 */
-PUBLIC BOOL HTBasic_parse (HTRequest * request, CONST char * scheme)
+PUBLIC BOOL HTBasic_parse (HTRequest * request, const char * scheme)
 {
     HTAssocList * challenge;
     if (request && (challenge = HTRequest_challenge(request))) {
@@ -236,7 +236,7 @@ PUBLIC BOOL HTBasic_parse (HTRequest * request, CONST char * scheme)
 **	--------------
 **	Deletes a "basic" information object
 */
-PUBLIC BOOL HTBasic_delete (CONST char * scheme, void * data)
+PUBLIC BOOL HTBasic_delete (const char * scheme, void * data)
 {
     HTBasic * basic = (HTBasic *) data;
     if (basic) {
@@ -256,7 +256,7 @@ PUBLIC BOOL HTBasic_delete (CONST char * scheme, void * data)
 **	stored as an association list in the request object.
 **	This is a callback function for the AA handler.
 */
-PUBLIC BOOL HTDigest_generate (HTRequest * request, CONST char * scheme,
+PUBLIC BOOL HTDigest_generate (HTRequest * request, const char * scheme,
 			       char * realm, void * challenge)
 { 
     if (request && scheme && realm && challenge) {
@@ -287,7 +287,7 @@ PUBLIC BOOL HTDigest_generate (HTRequest * request, CONST char * scheme,
 **	the right set of credentials to generate.
 **	The function is a callback function for the AA handler.
 */
-PUBLIC BOOL HTDigest_parse (HTRequest * request, CONST char * scheme)
+PUBLIC BOOL HTDigest_parse (HTRequest * request, const char * scheme)
 {
     if (request) {
 
@@ -295,14 +295,14 @@ PUBLIC BOOL HTDigest_parse (HTRequest * request, CONST char * scheme)
 
     }
     if (AUTH_TRACE) HTTrace("Auth........ No digest challenge found\n");
-    return NULL;
+    return NO;
 }
 
 /*	HTDigest_delete
 **	---------------
 **	Deletes a "digest" information object
 */
-PUBLIC BOOL HTDigest_delete (CONST char * scheme, void * data)
+PUBLIC BOOL HTDigest_delete (const char * scheme, void * data)
 {
     HTDigest * digest = (HTDigest *) data;
     if (digest) {

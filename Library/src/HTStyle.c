@@ -13,7 +13,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTStyle.h"
@@ -92,7 +92,7 @@ PUBLIC HTStyle* HTStyleNew (void)
 
 /*	Create a new style with a name
 */
-PUBLIC HTStyle* HTStyleNewNamed  (CONST char *name)
+PUBLIC HTStyle* HTStyleNewNamed  (const char *name)
 {
     HTStyle * self = HTStyleNew();
     StrAllocCopy(self->name, name);
@@ -249,7 +249,7 @@ HTStyle * HTStyleDump (HTStyle * style)
 
 /*	Searching for styles:
 */
-HTStyle * HTStyleNamed  (HTStyleSheet *self, CONST char *name)
+HTStyle * HTStyleNamed  (HTStyleSheet *self, const char *name)
 {
     if (self && name) {				     /* added by HWL 11/8/94 */
 	HTStyle * scan;

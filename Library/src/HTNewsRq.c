@@ -9,7 +9,7 @@
 */
 
 /* Library Includes */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTParse.h"
@@ -23,7 +23,7 @@
 #define PUTBLOCK(b, l)	(*me->target->isa->put_block)(me->target, b, l)
 
 struct _HTStream {
-    CONST HTStreamClass *	isa;
+    const HTStreamClass *	isa;
     HTStream *		  	target;
     HTRequest *			request;
     SOCKET			sockfd;
@@ -47,7 +47,7 @@ PRIVATE BOOL NewsPost_start (HTStream * me, HTRequest * request)
 {
     char linebuf[128];		/* @@@ */
     HTChunk *header = me->buffer;
-    CONST char *mailaddress = HTGetMailAddress();
+    const char *mailaddress = HTGetMailAddress();
     if (mailaddress) {
 	sprintf(linebuf, "From: %s%c%c", mailaddress, CR, LF);
 	HTChunk_puts(header, linebuf);
@@ -103,7 +103,7 @@ PRIVATE int NewsPost_end (HTStream * me)
     return PUTBLOCK(buf, 5);
 }
 
-PRIVATE int NewsPost_put_block (HTStream * me, CONST char* b, int l)
+PRIVATE int NewsPost_put_block (HTStream * me, const char* b, int l)
 {
     if (!me->target) {
 	return HT_WOULD_BLOCK;
@@ -126,7 +126,7 @@ PRIVATE int NewsPost_put_character (HTStream * me, char c)
     return NewsPost_put_block(me, &c, 1);
 }
 
-PRIVATE int NewsPost_put_string (HTStream * me, CONST char * s)
+PRIVATE int NewsPost_put_string (HTStream * me, const char * s)
 {
     return NewsPost_put_block(me, s, strlen(s));
 }
@@ -166,7 +166,7 @@ PRIVATE int NewsPost_abort (HTStream * me, HTList * e)
 /*	NewsPost Stream
 **	-----------------
 */
-PRIVATE CONST HTStreamClass NewsPostClass =
+PRIVATE const HTStreamClass NewsPostClass =
 {		
     "NewsPost",
     NewsPost_flush,

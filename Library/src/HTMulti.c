@@ -10,7 +10,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTMulti.h"
@@ -30,7 +30,7 @@ PRIVATE HTList * welcome_names = NULL;	/* Welcome.html, index.html etc. */
 */
 PRIVATE int HTSplitFilename (char * s_str, char ** s_arr)
 {
-    CONST char *delimiters = HTBind_delimiters();
+    const char *delimiters = HTBind_delimiters();
     char * start = s_str;
     char * end;
     char save;
@@ -67,7 +67,7 @@ PUBLIC void HTAddWelcome (char * name)
 }
 
 
-#ifdef GOT_READ_DIR
+#ifdef HAVE_READDIR
 
 /* PRIVATE						multi_match()
 **
@@ -126,10 +126,10 @@ PRIVATE HTList * dir_matches (char * path)
     int baselen;
     char * multi = NULL;
     DIR * dp;
-    STRUCT_DIRENT * dirbuf;
+    struct dirent * dirbuf;
     HTList * matches = NULL;
 #ifdef HT_REENTRANT
-    STRUCT_DIRENT result;				    /* For readdir_r */
+    DIR result;				    /* For readdir_r */
 #endif
 
     if (!path) return NULL;
@@ -156,7 +156,7 @@ PRIVATE HTList * dir_matches (char * path)
 
     matches = HTList_new();
 #ifdef HT_REENTRANT
-	while ((dirbuf = (STRUCT_DIRENT *) readdir_r(dp, &result))) {
+	while ((dirbuf = (DIR *) readdir_r(dp, &result))) {
 #else
 	while ((dirbuf = readdir(dp))) {
 #endif /* HT_REENTRANT */
@@ -291,7 +291,7 @@ PRIVATE char * get_best_welcome (char * path)
     char * best_welcome = NULL;
     int best_value = 0;
     DIR * dp;
-    STRUCT_DIRENT * dirbuf;
+    struct dirent * dirbuf;
     char * last = strrchr(path, '/');
 
     if (!welcome_names) {
@@ -340,7 +340,7 @@ PRIVATE char * get_best_welcome (char * path)
     return NULL;
 }
 
-#endif /* GOT_READ_DIR */
+#endif /* HAVE_READDIR */
 
 
 /*
@@ -370,7 +370,7 @@ PUBLIC char * HTMulti (HTRequest *	req,
     if (!req || !path || !*path || !stat_info)
 	return NULL;
 
-#ifdef GOT_READ_DIR
+#ifdef HAVE_READDIR
     if (*(path+strlen(path)-1) == '/') {	/* Find welcome page */
 	new_path = get_best_welcome(path);
 	if (new_path) path = new_path;
@@ -403,7 +403,7 @@ PUBLIC char * HTMulti (HTRequest *	req,
 	    }
 	}
     }
-#endif /* GOT_READ_DIR */
+#endif /* HAVE_READDIR */
 
     if (stat_status == -1)
 	stat_status = HT_STAT(path, stat_info);

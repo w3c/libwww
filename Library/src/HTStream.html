@@ -98,9 +98,9 @@ interrupted, for example by the user, or an error occurs.
 <PRE>
     int (*put_character)(HTStream * me, char ch);
 				
-    int (*put_string)	(HTStream * me, CONST char * str);
+    int (*put_string)	(HTStream * me, const char * str);
 
-    int (*put_block)	(HTStream * me, CONST char * str, int len);
+    int (*put_block)	(HTStream * me, const char * str, int len);
 </PRE>
 
 These methods are for actually putting data down the stream. It is

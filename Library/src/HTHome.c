@@ -19,7 +19,7 @@
 **	28 May 93 WAIS gateway explicit if no WAIS library linked in.
 **	   Dec 93 Bug change around, more reentrant, etc
 **	09 May 94 logfile renamed to HTlogfile to avoid clash with WAIS
-**	 8 Jul 94 Insulate free() from _free structure element.
+**	 8 Jul 94 Insulate HT_FREE() from _HT_FREE structure element.
 **	   Sep 95 Rewritten, HFN
 **	   Nov 95 Spawned from HTAccess.c
 */
@@ -42,12 +42,12 @@
 **	The code for this routine originates from the Linemode 
 **	browser and was moved here by howcome@w3.org
 **	in order for all clients to take advantage.
-**	The string returned must be freed by the caller
+**	The string returned must be HT_FREEd by the caller
 */
 PUBLIC char * HTFindRelatedName (void)
 {
     char* default_default = NULL;	      /* Parse home relative to this */
-    CONST char *host = HTGetHostName(); 
+    const char *host = HTGetHostName(); 
     StrAllocCopy(default_default, "file://");
     if (host)
 	StrAllocCat(default_default, host);
@@ -56,16 +56,16 @@ PUBLIC char * HTFindRelatedName (void)
     {
 	char wd[HT_MAX_PATH+1];
 
-#ifdef NO_GETWD
-#ifdef HAS_GETCWD	      /* System V variant SIGN CHANGED TBL 921006 !! */
+#ifdef HAVE_GETWD
+	char *result = (char *) getwd(wd);
+#else
+#ifdef HAVE_GETCWD	      /* System V variant SIGN CHANGED TBL 921006 !! */
 	char *result = (char *) getcwd(wd, sizeof(wd)); 
 #else
+#error "This platform does not support neither getwd nor getcwd\n"
 	char *result = NULL;
-	HTAlert("This platform does not support neither getwd nor getcwd\n");
-#endif
-#else
-	char *result = (char *) getwd(wd);
-#endif
+#endif /* HAVE_GETCWD */
+#endif /* HAVE_GETWD */
 	*(wd+HT_MAX_PATH) = '\0';
 	if (result) {
 #ifdef VMS 
@@ -148,7 +148,6 @@ PUBLIC HTParentAnchor * HTHomeAnchor (void)
 	if (!my_home_document) StrAllocCopy(my_home_document, REMOTE_ADDRESS);
     }
 
-#ifdef unix
     if (!my_home_document) {
 	FILE * fp = NULL;
 	char * home = (char *) getenv("HOME");
@@ -167,21 +166,19 @@ PUBLIC HTParentAnchor * HTHomeAnchor (void)
 	    fclose(fp);
 	} else {
 	    if (WWWTRACE)
-		HTTrace(
-			"HTBrowse: No local home document ~/%s or %s\n",
+		HTTrace("Home Anchor. No local home document in ~/%s or %s\n",
 			PERSONAL_DEFAULT, LOCAL_DEFAULT_FILE);
 	    HT_FREE(my_home_document);
 	    my_home_document = NULL;
 	}
     }
-#endif
+
     ref = HTParse(my_home_document ? my_home_document :
 		  HTLib_secure() ? REMOTE_ADDRESS : LAST_RESORT, "file:",
 		  PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
     if (my_home_document) {
 	if (WWWTRACE)
-	    HTTrace(
-		   "HTAccess.... `%s\' used for custom home page as\n`%s\'\n",
+	    HTTrace("Home Anchor. `%s\' used for custom home page as\n`%s\'\n",
 		    my_home_document, ref);
 	HT_FREE(my_home_document);
     }

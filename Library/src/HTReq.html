@@ -127,7 +127,7 @@ This is done if you are a server. In this case you do not need an anchor
 <PRE>
 #if 0
 extern void HTRequest_setAccess (HTRequest * request, char * access);
-extern CONST char * HTRequest_access (HTRequest * request);
+extern const char * HTRequest_access (HTRequest * request);
 #endif
 </PRE>
 
@@ -210,7 +210,7 @@ extern HTAssocList * HTRequest_credentials (HTRequest * request);
 
 <PRE>
 extern BOOL HTRequest_setRealm (HTRequest * request, char * realm);
-extern CONST char * HTRequest_realm (HTRequest * request);
+extern const char * HTRequest_realm (HTRequest * request);
 </PRE>
 
 <H2>Max number of Retrys for a Down Load</H2>

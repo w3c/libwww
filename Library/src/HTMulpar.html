@@ -49,9 +49,9 @@ typedef struct _HTMultipartClass {
 
     int (*put_character)(HTMultipart *	me, char ch);
 
-    int (*put_string)	(HTMultipart *	me, CONST char * str);
+    int (*put_string)	(HTMultipart *	me, const char * str);
 
-    int (*put_block)	(HTMultipart *	me, CONST char * str, int len);
+    int (*put_block)	(HTMultipart *	me, const char * str, int len);
 </PRE>
 
 See the <A HREF="HTStream.html">Generic Stream Definition</A> for an
@@ -60,13 +60,13 @@ explanation of these methods. Note that they all have a
 stream. This is to avoid <EM>incompatible pointer</EM> warnings
 
 <PRE>
-    int (*begin_part)	(HTMultipart *	me, CONST char * boundary);
+    int (*begin_part)	(HTMultipart *	me, const char * boundary);
 
     int (*end_part)	(HTMultipart *	me);
 
-    int (*preamble)	(HTMultipart *	me, CONST char * pre);
+    int (*preamble)	(HTMultipart *	me, const char * pre);
 
-    int (*epilogue)	(HTMultipart *	me, CONST char * epi);
+    int (*epilogue)	(HTMultipart *	me, const char * epi);
 		
 } HTMultipartClass;
 

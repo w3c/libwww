@@ -13,7 +13,7 @@
 */
 
 /* Library Include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTStream.h"
@@ -21,9 +21,9 @@
 
 /* Typedefs and global variable local to this module */
 struct _HTStream {
-    CONST HTStreamClass *	isa;
+    const HTStreamClass *	isa;
     HTStream * 			target;
-    CONST char *		start;
+    const char *		start;
     BOOL			had_cr;
 };
 
@@ -40,7 +40,7 @@ struct _HTStream {
 **	The (CR,LF) sequence when found is changed to a '\n' character,
 **	the internal C representation of a new line.
 */
-PRIVATE int NetToText_put_block (HTStream * me, CONST char * s, int l)
+PRIVATE int NetToText_put_block (HTStream * me, const char * s, int l)
 {
     int status;
     if (!me->start)
@@ -72,7 +72,7 @@ PRIVATE int NetToText_put_character (HTStream * me, char c)
     return NetToText_put_block(me, &c, 1);
 }
 
-PRIVATE int NetToText_put_string (HTStream * me, CONST char * s)
+PRIVATE int NetToText_put_string (HTStream * me, const char * s)
 {    
     return NetToText_put_block(me, s, (int) strlen(s));
 }
@@ -129,10 +129,10 @@ PUBLIC HTStream * HTNetToText (HTStream * target)
 **	the network representation of a new line.
 **	Conversion: '\r' is stripped and \n => CRLF
 */
-PRIVATE int TextToNet_put_block (HTStream * me, CONST char* b, int len)
+PRIVATE int TextToNet_put_block (HTStream * me, const char* b, int len)
 {
     int status;
-    CONST char *limit = b+len;
+    const char *limit = b+len;
     
     if (!me->start)
 	me->start = b;
@@ -163,7 +163,7 @@ PRIVATE int TextToNet_put_character (HTStream * me, char c)
     return TextToNet_put_block(me, &c, 1);
 }
 
-PRIVATE int TextToNet_put_string (HTStream * me, CONST char * s)
+PRIVATE int TextToNet_put_string (HTStream * me, const char * s)
 {    
     return TextToNet_put_block(me, s, (int) strlen(s));
 }

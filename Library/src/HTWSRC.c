@@ -13,7 +13,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTMLPDTD.h"
@@ -30,7 +30,7 @@
 #define HEX_ESCAPE '%'
 
 struct _HTStructured {
-	CONST HTStructuredClass *	isa;
+	const HTStructuredClass *	isa;
 	/* ... */
 };
 
@@ -42,7 +42,7 @@ struct _HTStructured {
 
 /*	Here are the parameters which can be specified in a  source file
 */
-PRIVATE CONST char* par_name[] = {
+PRIVATE const char* par_name[] = {
 	"version", 
 	"ip-address",
 #define PAR_IP_NAME 2
@@ -70,7 +70,7 @@ PRIVATE CONST char* par_name[] = {
 } ;
 
 #if 0
-PRIVATE  CONST char * hex = "0123456789ABCDEF";
+PRIVATE  const char * hex = "0123456789ABCDEF";
 #endif
 
 enum tokenstate { beginning, before_tag, colon, before_value,
@@ -87,7 +87,7 @@ enum tokenstate { beginning, before_tag, colon, before_value,
 */
 
 struct _HTStream {
-	CONST HTStreamClass *	isa;
+	const HTStreamClass *	isa;
 	HTStructured *		target;
 	HTRequest *		request;
 	char *			par_value[PAR_COUNT];
@@ -382,7 +382,7 @@ PRIVATE void WSRC_gen_html (HTStream * me, BOOL source_file)
 } /* generate html */
 
 
-PRIVATE int WSRCParser_put_string (HTStream * context, CONST char* s)
+PRIVATE int WSRCParser_put_string (HTStream * context, const char* s)
 {
     while (*s)
         WSRCParser_put_character(context, *s++);
@@ -391,7 +391,7 @@ PRIVATE int WSRCParser_put_string (HTStream * context, CONST char* s)
 
 
 PRIVATE int WSRCParser_write (HTStream * 	context,
-				   CONST char* 	b,
+				   const char* 	b,
 				   int		l)
 {
     while (l-- > 0)

@@ -28,7 +28,7 @@
 #endif
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTParse.h"
@@ -702,7 +702,7 @@ PUBLIC BOOL HTRequest_setRealm (HTRequest * request, char * realm)
     return NO;
 }
 
-PUBLIC CONST char * HTRequest_realm (HTRequest * request)
+PUBLIC const char * HTRequest_realm (HTRequest * request)
 {
     return (request ? request->realm : NULL);
 }

@@ -27,7 +27,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTParse.h"
@@ -75,7 +75,7 @@ PRIVATE HTList * AuthBases = NULL;	      /* Current authentication base */
 **	If you are a server then you want to do the latter and if you are a 
 **	client then you want to do the former.
 */
-PUBLIC BOOL HTAuthCall_add (CONST char *	scheme,
+PUBLIC BOOL HTAuthCall_add (const char *	scheme,
 			    HTAuthParCallback *	parser,
 			    HTAuthGenCallback *	generator,
 			    HTAuthGcCallback *	gc)
@@ -102,7 +102,7 @@ PUBLIC BOOL HTAuthCall_add (CONST char *	scheme,
 **	Unregister a authentication scheme from the list
 **	Return YES if OK, else NO
 */
-PUBLIC BOOL HTAuthCall_delete (CONST char * scheme)
+PUBLIC BOOL HTAuthCall_delete (const char * scheme)
 {
     HTList * cur = HTSchemes;
     if (scheme && cur) {
@@ -149,7 +149,7 @@ PUBLIC BOOL HTAuthCall_deleteAll (void)
 **	which contains informations for generate either credentials or
 **	challenges. The database is symmetric for both server and client
 **	applications and the implementation can be changed independent of the 
-**	API so if you fell like using a fancy database toolkit then feel free
+**	API so if you fell like using a fancy database toolkit then feel HT_FREE
 **	to go right ahead :-)
 */
 
@@ -157,8 +157,8 @@ PUBLIC BOOL HTAuthCall_deleteAll (void)
 **	Create a new anode
 **	Returns new object or NULL if error
 */
-PRIVATE HTANode * HTANode_new (HTABase * base, CONST char * realm,
-			       CONST char * scheme, void * data)
+PRIVATE HTANode * HTANode_new (HTABase * base, const char * realm,
+			       const char * scheme, void * data)
 {
     if (base && realm && scheme) {
 	HTANode * me;
@@ -194,7 +194,7 @@ PRIVATE BOOL HTANode_delete (HTABase * base, HTANode * me)
 **	Search an authentication base for a matching anode.
 **	Return the anode object found or NULL if none
 */
-PRIVATE HTANode * HTANode_find (HTABase * base, CONST char * realm)
+PRIVATE HTANode * HTANode_find (HTABase * base, const char * realm)
 {    
     if (base && base->nodes && realm) {
 	HTList * cur = base->nodes;
@@ -243,7 +243,7 @@ PRIVATE BOOL HTATemplate_delete (HTABase * base, HTATemplate * me)
 **	Search an authentication base for a matching template.
 **	Return the template object found or NULL if none
 */
-PRIVATE HTATemplate * HTATemplate_find (HTABase * base, CONST char *docname)
+PRIVATE HTATemplate * HTATemplate_find (HTABase * base, const char *docname)
 {
     if (base && base->templates && docname) {
 	HTList * cur = base->templates;
@@ -285,7 +285,7 @@ PRIVATE BOOL HTATemplate_update (HTABase * base, HTANode * old, HTANode *me)
 **	Create a new authentication base
 **	Returns new object or NULL if error
 */
-PRIVATE HTABase * HTABase_new (CONST char * host, int port)
+PRIVATE HTABase * HTABase_new (const char * host, int port)
 {
     if (host) {
 	HTABase * me;
@@ -336,7 +336,7 @@ PRIVATE BOOL HTABase_delete (HTABase * base)
 /*
 **	Find a authentication base. Return NULL if not found
 */
-PRIVATE HTABase * HTABase_find (CONST char * host, int port)
+PRIVATE HTABase * HTABase_find (const char * host, int port)
 {
     HTList * cur = AuthBases;
     if (port <= 0) port = 80;
@@ -360,7 +360,7 @@ PRIVATE HTABase * HTABase_find (CONST char * host, int port)
 **	The template must follow normal URI syntax but can include a wildcard
 **	Return YES if added (or replaced), else NO
 */
-PUBLIC BOOL HTAuthInfo_add (CONST char * scheme, char * url,
+PUBLIC BOOL HTAuthInfo_add (const char * scheme, char * url,
 			    char * realm, void * data)
 {
     HTABase * base;
@@ -540,7 +540,7 @@ PUBLIC BOOL HTAuth_generate (HTRequest * request)
 **	Case is not significant. If the scheme is not registered then
 **	Return YES if callback found else NO
 */
-PUBLIC BOOL HTAuth_cleanup (CONST char * scheme, void * data)
+PUBLIC BOOL HTAuth_cleanup (const char * scheme, void * data)
 {
     HTList * cur = HTSchemes;
     if (scheme && cur && data) {

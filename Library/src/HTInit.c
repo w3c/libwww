@@ -8,7 +8,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTFormat.h"
 #include "HTList.h"
@@ -181,9 +181,9 @@ PUBLIC void HTAccessInit (void)
 **	media types and special icons for directories and other objects that
 **	do not have a media type.
 */
-/* PUBLIC void HTStdIconInit (CONST char * url_prefix) */
+/* PUBLIC void HTStdIconInit (const char * url_prefix) */
 {
-    CONST char * p = url_prefix ? url_prefix : "/internal-icon/";
+    const char * p = url_prefix ? url_prefix : "/internal-icon/";
 
     HTAddBlankIcon  (prefixed(p,"blank.xbm"),	NULL	);
     HTAddDirIcon    (prefixed(p,"directory.xbm"),"DIR"	);

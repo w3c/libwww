@@ -13,7 +13,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTArray.h"
 #include "HTTee.h"
@@ -23,7 +23,7 @@
 */
 
 struct _HTStream {
-    CONST HTStreamClass *	isa;
+    const HTStreamClass *	isa;
     HTStream *			s1;
     HTStream *			s2;
     HTComparer *		resolver;
@@ -32,7 +32,7 @@ struct _HTStream {
 /*
 **	Algorithm produced by H&kon
 */
-PRIVATE int default_resolver (CONST void *a, CONST void *b)
+PRIVATE int default_resolver (const void *a, const void *b)
 {
     if (*(int *) a < 0)
         return *(int *) a;
@@ -50,14 +50,14 @@ PRIVATE int HTTee_put_character (HTStream * me, char c)
     return me->resolver(&ret1, &ret2);
 }
 
-PRIVATE int HTTee_put_string (HTStream * me, CONST char* s)
+PRIVATE int HTTee_put_string (HTStream * me, const char* s)
 {
     int ret1 = (*me->s1->isa->put_string)(me->s1, s);
     int ret2 = (*me->s2->isa->put_string)(me->s2, s);
     return me->resolver(&ret1, &ret2);
 }
 
-PRIVATE int HTTee_write (HTStream * me, CONST char* s, int l)
+PRIVATE int HTTee_write (HTStream * me, const char* s, int l)
 {
     int ret1 = (*me->s1->isa->put_block)(me->s1, s, l);
     int ret2 = (*me->s2->isa->put_block)(me->s2, s, l);
@@ -91,7 +91,7 @@ PRIVATE int HTTee_abort (HTStream * me, HTList * e)
 /*	Tee stream
 **	----------
 */
-PRIVATE CONST HTStreamClass HTTeeClass =
+PRIVATE const HTStreamClass HTTeeClass =
 {		
 	"Tee",
 	HTTee_flush,

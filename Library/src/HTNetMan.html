@@ -56,7 +56,7 @@ typedef enum _TCPState {
 
 struct _HTNet {
     SOCKET		sockfd;				/* Socket descripter */
-    SockA 		sock_addr;		/* SockA is defined in tcp.h */
+    SockA 		sock_addr;		/* SockA is defined in sysdep.h */
     TCPState		tcpstate;		      /* State in connection */
     HTInputSocket *	isoc;				     /* Input buffer */
     HTdns *		dns;			       /* Entry in DNS table */

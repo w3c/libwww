@@ -36,7 +36,7 @@ Reference Library</A>.
 <PRE>
 #ifndef HTDNS_H
 #define HTDNS_H
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTEvntrg.h"
 </PRE>
 
@@ -136,7 +136,7 @@ extern BOOL HTDNS_updateWeigths (HTdns *dns, int cur, time_t deltatime);
 This function deletes a single cache entry.
 
 <PRE>
-extern BOOL HTDNS_delete (CONST char * host);
+extern BOOL HTDNS_delete (const char * host);
 </PRE>
 
 <H3>Delete ALL host elements from Cache</H3>

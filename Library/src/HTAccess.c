@@ -31,15 +31,15 @@
 #include "HTReqMan.h"
 #include "HTAccess.h"					 /* Implemented here */
 
-#ifndef VC
-#define VC "unknown"
+#ifndef W3C_VERSION
+#define W3C_VERSION	"unknown"
 #endif
 
 PRIVATE char * HTAppName = NULL;	  /* Application name: please supply */
 PRIVATE char * HTAppVersion = NULL;    /* Application version: please supply */
 
 PRIVATE char * HTLibName = "libwww";
-PRIVATE char * HTLibVersion = VC;
+PRIVATE char * HTLibVersion = W3C_VERSION;
 
 PRIVATE BOOL   HTSecure = NO;		 /* Can we access local file system? */
 
@@ -56,12 +56,12 @@ struct _HTStream {
 /*	Information about the Application
 **	---------------------------------
 */
-PUBLIC CONST char * HTLib_appName (void)
+PUBLIC const char * HTLib_appName (void)
 {
     return HTAppName ? HTAppName : "UNKNOWN";
 }
 
-PUBLIC CONST char * HTLib_appVersion (void)
+PUBLIC const char * HTLib_appVersion (void)
 {
     return HTAppVersion ? HTAppVersion : "0.0";
 }
@@ -69,12 +69,12 @@ PUBLIC CONST char * HTLib_appVersion (void)
 /*	Information about libwww
 **	------------------------
 */
-PUBLIC CONST char * HTLib_name (void)
+PUBLIC const char * HTLib_name (void)
 {
     return HTLibName ? HTLibName : "UNKNOWN";
 }
 
-PUBLIC CONST char * HTLib_version (void)
+PUBLIC const char * HTLib_version (void)
 {
     return HTLibVersion ? HTLibVersion : "0.0";
 }
@@ -98,7 +98,7 @@ PUBLIC void HTLib_setSecure (BOOL mode)
 **	This function initiates the Library and it MUST be called when
 **	starting up an application. See also HTLibTerminate()
 */
-PUBLIC BOOL HTLibInit (CONST char * AppName, CONST char * AppVersion)
+PUBLIC BOOL HTLibInit (const char * AppName, const char * AppVersion)
 {
 #ifdef WWW_WIN_ASYNC
     /*
@@ -199,9 +199,7 @@ PUBLIC BOOL HTLibInit (CONST char * AppName, CONST char * AppVersion)
     }
 #endif /* _WINSOCKAPI_ */
 
-#ifndef NO_TIMEGM
     HTGetTimeZoneOffset();	   /* Find offset from GMT if using mktime() */
-#endif
     HTTmp_setRoot(NULL);		     /* Set up default tmp directory */
     return YES;
 }
@@ -209,7 +207,7 @@ PUBLIC BOOL HTLibInit (CONST char * AppName, CONST char * AppVersion)
 
 /*	HTLibTerminate
 **	--------------
-**	This function frees memory kept by the Library and should be called
+**	This function HT_FREEs memory kept by the Library and should be called
 **	before exit of an application (if you are on a PC platform)
 */
 PUBLIC BOOL HTLibTerminate (void)
@@ -228,7 +226,7 @@ PUBLIC BOOL HTLibTerminate (void)
 
     HTFreeHostName();			    /* Free up some internal strings */
     HTFreeMailAddress();
-    HTTmp_freeRoot();
+    HTTmp_HT_FREERoot();
 
 #ifdef _WINSOCKAPI_
     WSACleanup();
@@ -267,7 +265,7 @@ PRIVATE BOOL HTLoadDocument (HTRequest * request, BOOL recursive)
 **	Request a document referencd by an absolute URL.
 **	Returns YES if request accepted, else NO
 */
-PUBLIC BOOL HTLoadAbsolute (CONST char * url, HTRequest* request)
+PUBLIC BOOL HTLoadAbsolute (const char * url, HTRequest* request)
 {
     if (url && request) {
 	HTAnchor * anchor = HTAnchor_findAddress(url);
@@ -286,7 +284,7 @@ PUBLIC BOOL HTLoadAbsolute (CONST char * url, HTRequest* request)
 **	HTRequest_setOutputStream(). 'filter' is ignored!
 **	Returns YES if request accepted, else NO
 */
-PUBLIC BOOL HTLoadToStream (CONST char * url, BOOL filter, HTRequest *request)
+PUBLIC BOOL HTLoadToStream (const char * url, BOOL filter, HTRequest *request)
 {
     return HTLoadAbsolute(url, request);
 }
@@ -299,7 +297,7 @@ PUBLIC BOOL HTLoadToStream (CONST char * url, BOOL filter, HTRequest *request)
 **	anchor.
 **	Returns YES if request accepted, else NO
 */
-PUBLIC BOOL HTLoadRelative (CONST char * 	relative,
+PUBLIC BOOL HTLoadRelative (const char * 	relative,
 			    HTParentAnchor *	base,
 			    HTRequest *		request)
 {
@@ -362,7 +360,7 @@ PUBLIC BOOL HTLoadAnchorRecursive (HTAnchor * anchor, HTRequest * request)
 **	Search can also be performed by HTLoadAbsolute() etc.
 **	Returns YES if request accepted, else NO
 */
-PUBLIC BOOL HTSearch (CONST char *	keywords,
+PUBLIC BOOL HTSearch (const char *	keywords,
 		      HTParentAnchor *  base,
 		      HTRequest * 	request)
 {
@@ -394,8 +392,8 @@ PUBLIC BOOL HTSearch (CONST char *	keywords,
 **	be converted to '+' before the request is issued.
 **	Returns YES if request accepted, else NO
 */
-PUBLIC BOOL HTSearchAbsolute (CONST char *	keywords,
-			      CONST char *	url,
+PUBLIC BOOL HTSearchAbsolute (const char *	keywords,
+			      const char *	url,
 			      HTRequest *	request)
 {
     if (url && request) {

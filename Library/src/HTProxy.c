@@ -20,7 +20,7 @@
 #endif
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTList.h"
@@ -54,7 +54,7 @@ PRIVATE HTList * onlyproxy = NULL;  /* Proxy only on these hosts and domains */
 /*
 **	Existing entries are replaced with new ones
 */
-PRIVATE BOOL add_object (HTList * list, CONST char * access, CONST char * url)
+PRIVATE BOOL add_object (HTList * list, const char * access, const char * url)
 {
     HTProxy *me;
     if (!list || !access || !url || !*url)
@@ -115,8 +115,8 @@ PRIVATE BOOL remove_allObjects (HTList * list)
 **	------------------------------------
 **	Existing entries are replaced with new ones
 */
-PRIVATE BOOL add_hostname (HTList * list, CONST char * host,
-			   CONST char * access, unsigned port)
+PRIVATE BOOL add_hostname (HTList * list, const char * host,
+			   const char * access, unsigned port)
 {
     HTHostList *me;
     if (!list || !host || !*host)
@@ -164,7 +164,7 @@ PRIVATE BOOL remove_AllHostnames (HTList * list)
 **	If an entry exists for this access then delete it and use the 
 **	ne one. Returns YES if OK, else NO
 */
-PUBLIC BOOL HTProxy_add (CONST char * access, CONST char * proxy)
+PUBLIC BOOL HTProxy_add (const char * access, const char * proxy)
 {
     if (!proxies)
 	proxies = HTList_new();    
@@ -192,7 +192,7 @@ PUBLIC BOOL HTProxy_deleteAll (void)
 **	If an entry exists for this access then delete it and use the 
 **	ne one. Returns YES if OK, else NO
 */
-PUBLIC BOOL HTGateway_add (CONST char * access, CONST char * gate)
+PUBLIC BOOL HTGateway_add (const char * access, const char * gate)
 {
     if (!gateways)
 	gateways = HTList_new();
@@ -222,7 +222,7 @@ PUBLIC BOOL HTGateway_deleteAll (void)
 **	Examples:	w3.org
 **			www.close.com
 */
-PUBLIC BOOL HTNoProxy_add (CONST char * host, CONST char * access,
+PUBLIC BOOL HTNoProxy_add (const char * host, const char * access,
 			   unsigned port)
 {
     if (!noproxy)
@@ -254,9 +254,8 @@ PUBLIC BOOL HTNoProxy_deleteAll (void)
 **	Returns: proxy	If OK (must be freed by caller)
 **		 NULL	If no proxy is found or error
 */
-PUBLIC char * HTProxy_find (CONST char * url)
+PUBLIC char * HTProxy_find (const char * url)
 {
-#ifndef HT_NO_PROXY
     char * access;
     char * proxy = NULL;
     if (!url || !proxies)
@@ -310,10 +309,7 @@ PUBLIC char * HTProxy_find (CONST char * url)
     }
     HT_FREE(access);
     return proxy;
-#else
-    return NULL
-#endif /* !HT_NO_PROXY */
-    }
+}
 
 
 /*	HTGateway_find
@@ -324,9 +320,8 @@ PUBLIC char * HTProxy_find (CONST char * url)
 **	Returns: gateway If OK (must be freed by caller)
 **		 NULL	 If no gateway is found or error
 */
-PUBLIC char * HTGateway_find (CONST char * url)
+PUBLIC char * HTGateway_find (const char * url)
 {
-#ifndef HT_NO_PROXY
     char * access;
     char * gateway = NULL;
     if (!url || !gateways)
@@ -348,9 +343,6 @@ PUBLIC char * HTGateway_find (CONST char * url)
     }
     HT_FREE(access);
     return gateway;
-#else
-    return NULL
-#endif /* !HT_NO_PROXY */
 }
 
 
@@ -361,9 +353,8 @@ PUBLIC char * HTGateway_find (CONST char * url)
 */
 PUBLIC void HTProxy_getEnvVar (void)
 {
-#ifndef HT_NO_PROXY
     char buf[80];
-    static CONST char *accesslist[] = {
+    static const char *accesslist[] = {
 	"http",
 	"ftp",
 	"news",
@@ -371,7 +362,7 @@ PUBLIC void HTProxy_getEnvVar (void)
 	"gopher",
 	NULL
     };
-    CONST char **access = accesslist;
+    const char **access = accesslist;
     while (*access) {
 	char *gateway=NULL;
 	char *proxy=NULL;
@@ -414,6 +405,5 @@ PUBLIC void HTProxy_getEnvVar (void)
 	    HT_FREE(str);
 	}
     }
-#endif /* !HT_NO_PROXY */
 }
 

@@ -16,7 +16,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTAtom.h"
@@ -45,10 +45,6 @@
 /* x seconds penalty on a multi-homed host if IP-address is timed out */
 #define TCP_DELAY		600
 
-#ifndef RESOLV_CONF
-#define RESOLV_CONF "/etc/resolv.conf"
-#endif
-
 PRIVATE char *hostname = NULL;			    /* The name of this host */
 PRIVATE char *mailaddress = NULL;		     /* Current mail address */
 
@@ -59,26 +55,34 @@ PRIVATE char *mailaddress = NULL;		     /* Current mail address */
 **	We can't use errno directly as we have both errno and socerrno. The
 **	result is a static buffer.
 */
-PUBLIC CONST char * HTErrnoString (int errornumber)
+PUBLIC const char * HTErrnoString (int errornumber)
 {
-
 #ifdef HAVE_STRERROR
     return strerror(errornumber);
 #else
+#ifdef HAVE_SYS_ERRLIST
+#ifdef HAVE_SYS_NERR
+    return (errno < sys_nerr ? sys_errlist[errno] : "Unknown error");
+#else
+    return sys_errlist[errno];
+#endif /* HAVE_SYS_NERR */
+#else
 #ifdef VMS
     static char buf[60];
-    sprintf(buf,"Unix errno = %ld dec, VMS error = %lx hex", errornumber,
+    sprintf(buf, "Unix errno=%ld dec, VMS error=%lx hex", errornumber,
 	    vaxc$errno);
     return buf;
-#else 
-#ifdef _WINSOCKAPI_ 
-	static char buf[60];
-	sprintf(buf, "Unix errno = %ld dec, WinSock erro = %ld", errornumber, WSAGetLastError());
-	return buf;
 #else
-    return (errornumber < sys_nerr ? sys_errlist[errornumber]:"Unknown error");
-#endif  /* WINDOWS */
+#ifdef _WINSOCKAPI_
+    static char buf[60];
+    sprintf(buf, "Unix errno=%ld dec, WinSock error=%ld", errornumber,
+	    WSAGetLastError());
+    return buf;
+#else
+    return "(Error number not translated)";
+#endif /* _WINSOCKAPI_ */
 #endif /* VMS */
+#endif /* HAVE_SYS_ERRLIST */
 #endif /* HAVE_STRERROR */
 }
 
@@ -87,34 +91,23 @@ PUBLIC CONST char * HTErrnoString (int errornumber)
 */
 PUBLIC int HTInetStatus (int errnum, char * where)
 {
-#if ! (defined(VMS) || defined(WINDOWS))
-
-    if (PROT_TRACE)
-	HTTrace("TCP errno... %d after call to %s() failed.\n............ %s\n", errno, where, HTErrnoString(errnum));
-
-#else /* VMS */
-#ifdef VMS 
-    if (PROT_TRACE) HTTrace("         Unix error number          = %ld dec\n", errno);
-    if (PROT_TRACE) HTTrace("         VMS error                  = %lx hex\n", vaxc$errno);
-#endif
-#ifdef WINDOWS 
-    if (PROT_TRACE) HTTrace("         Unix error number          = %ld dec\n", errno);
-    if (PROT_TRACE) HTTrace("         NT error                  = %lx hex\n", WSAGetLastError());
-#endif 
-
-#ifdef MULTINET
-    if (PROT_TRACE) HTTrace("         Multinet error             = %lx hex\n", socket_errno); 
-    if (PROT_TRACE) HTTrace("         Error String               = %s\n", vms_errno_string());
-#endif /* MULTINET */
-
-#endif /* VMS */
-
 #ifdef VMS
-    /* errno happen to be zero if vaxc$errno <> 0 */
-    return -vaxc$errno;
+    if (PROT_TRACE) HTTrace("System Error Unix = %ld dec\n", errno);
+    if (PROT_TRACE) HTTrace("System Error VMS  = %lx hex\n", vaxc$errno);
+    return (-vaxc$errno);
 #else
-    return -errno;
-#endif
+#ifdef _WINSOCKAPI_
+    if (PROT_TRACE) HTTrace("System Error Unix = %ld dec\n", errno);
+    if (PROT_TRACE) HTTrace("System Error WinSock error=%lx hex\n",
+			    WSAGetLastError());
+    return (-errnum);
+#else
+    if (PROT_TRACE)
+	HTTrace("System Error %d after call to %s() failed\n............ %s\n",
+		errno, where, HTErrnoString(errnum));
+    return (-errnum);
+#endif /* _WINSOCKAPI_ */
+#endif /* VMS */
 }
 
 
@@ -190,7 +183,7 @@ PUBLIC void HTSetSignal (void) {}
 **	returns	a pointer to a static string which must be copied if
 **		it is to be kept.
 */
-PUBLIC CONST char * HTInetString (SockA * sin)
+PUBLIC const char * HTInetString (SockA * sin)
 {
 #ifndef DECNET  /* Function only used below for a trace message */
 #if 0
@@ -276,9 +269,9 @@ PRIVATE int HTParseInet (HTNet * net, char * host)
 **
 **	Returns NULL on error, "" if domain name is not found
 */
-PUBLIC CONST char *HTGetDomainName (void)
+PUBLIC const char *HTGetDomainName (void)
 {
-    CONST char *host = HTGetHostName();
+    const char *host = HTGetHostName();
     char *domain;
     if (host && *host) {
 	if ((domain = strchr(host, '.')) != NULL)
@@ -330,9 +323,9 @@ PUBLIC void HTSetHostName (char * host)
 **
 **	Return: hostname on success else NULL
 */
-PUBLIC CONST char * HTGetHostName (void)
+PUBLIC const char * HTGetHostName (void)
 {
-    BOOL got_it = NO;
+    int fqdn = 0;				     /* 0=no, 1=host, 2=fqdn */
     FILE *fp;
     char name[MAXHOSTNAMELEN+1];
     if (hostname) {		       			  /* If already done */
@@ -343,24 +336,27 @@ PUBLIC CONST char * HTGetHostName (void)
     }
     *(name+MAXHOSTNAMELEN) = '\0';
 
-#ifndef NO_GETHOSTNAME
-    if (gethostname(name, MAXHOSTNAMELEN)) { 	     /* Maybe without domain */
-	if (PROT_TRACE)
-	    HTTrace("HostName.... Can't get host name\n");
-	return NULL;
+#ifdef HAVE_SYSINFO
+    if (!fqdn && sysinfo(SI_HOSTNAME, name, MAXHOSTNAMELEN) > 0) {
+	char * dot = strchr(name, '.');
+	if (PROT_TRACE) HTTrace("HostName.... sysinfo says `%s\'\n", name);
+	StrAllocCopy(hostname, name);
+	fqdn = dot ? 2 : 1;
     }
-    if (PROT_TRACE)
-	HTTrace("HostName.... Local host name is  `%s\'\n", name);
-    StrAllocCopy(hostname, name);
-    {
-	char *strptr = strchr(hostname, '.');
-	if (strptr != NULL)				   /* We have it all */
-	    got_it = YES;
-    }
+#endif /* HAVE_SYSINFO */
 
-#ifndef NO_RESOLV_CONF
+#ifdef HAVE_GETHOSTNAME
+    if (!fqdn && gethostname(name, MAXHOSTNAMELEN) == 0) {
+	char * dot = strchr(name, '.');
+	if (PROT_TRACE) HTTrace("HostName.... gethostname says `%s\'\n", name);
+	StrAllocCopy(hostname, name);
+	fqdn = dot ? 2 : 1;
+    }
+#endif /* HAVE_GETHOSTNAME */
+
+#ifdef RESOLV_CONF
     /* Now try the resolver config file */
-    if (!got_it && (fp = fopen(RESOLV_CONF, "r")) != NULL) {
+    if (fqdn==1 && (fp = fopen(RESOLV_CONF, "r")) != NULL) {
 	char buffer[80];
 	*(buffer+79) = '\0';
 	while (fgets(buffer, 79, fp)) {
@@ -376,18 +372,18 @@ PUBLIC CONST char * HTGetHostName (void)
 		if (*domainstr) {
 		    StrAllocCat(hostname, ".");
 		    StrAllocCat(hostname, domainstr);
-		    got_it = YES;
+		    fqdn = YES;
 		    break;
 		}
 	    }
 	}
 	fclose(fp);
     }
-#endif /* NO_RESOLV_CONF */
+#endif /* RESOLV_CONF */
 
-#ifndef NO_GETDOMAINNAME
+#ifdef HAVE_GETDOMAINNAME
     /* If everything else has failed then try getdomainname */
-    if (!got_it) {
+    if (fqdn==1) {
 	if (getdomainname(name, MAXHOSTNAMELEN)) {
 	    if (PROT_TRACE)
 		HTTrace("HostName.... Can't get domain name\n");
@@ -404,9 +400,9 @@ PUBLIC CONST char * HTGetHostName (void)
 	    StrAllocCat(hostname, domain);
 	}
     }
-#endif /* NO_GETDOMAINNAME */
+#endif /* HAVE_GETDOMAINNAME */
 
-    {
+    if (hostname) {
 	char *strptr = hostname;
 	while (*strptr) {	    
 	    *strptr = TOLOWER(*strptr);
@@ -414,11 +410,8 @@ PUBLIC CONST char * HTGetHostName (void)
 	}
 	if (*(hostname+strlen(hostname)-1) == '.')    /* Remove trailing dot */
 	    *(hostname+strlen(hostname)-1) = '\0';
+	if (PROT_TRACE) HTTrace("HostName.... FQDN is `%s\'\n", hostname);
     }
-#endif /* NO_GETHOSTNAME */
-
-    if (PROT_TRACE)
-	HTTrace("HostName.... Full host name is `%s\'\n", hostname);
     return hostname;
 }
 
@@ -467,14 +460,16 @@ PUBLIC void HTSetMailAddress (char * address)
 **
 **	Returns NULL if error else pointer to static string
 */
-PUBLIC CONST char * HTGetMailAddress (void)
+PUBLIC const char * HTGetMailAddress (void)
 {
-#ifdef HT_REENTRANT
-    char name[LOGNAME_MAX+1];				   /* For getlogin_r */
+#if defined(HT_REENTRANT) || defined(WWW_MSWINDOWS)
+    char name[LOGNAME_MAX+1];		    /* For getlogin_r or getUserName */
 #endif
-    char *login;
-    CONST char *domain;
-    struct passwd *pw_info;
+#ifdef HAVE_PWD_H
+    struct passwd * pw_info = NULL;
+#endif
+    char * login = NULL;
+    const char * domain;
     if (mailaddress) {
 	if (*mailaddress)
 	    return mailaddress;
@@ -482,47 +477,37 @@ PUBLIC CONST char * HTGetMailAddress (void)
 	    return NULL;       /* No luck the last time so we wont try again */
     }
 
-#ifdef VMS
-    if ((login = (char *) cuserid(NULL)) == NULL) {
-        if (PROT_TRACE) HTTrace("MailAddress. cuserid returns NULL\n");
-    }
-#else
-#ifdef WIN32 
-    login = getenv("USERNAME") ;
-#else 
 #ifdef WWW_MSWINDOWS
-    login = "PCUSER";				  /* @@@ COULD BE BETTER @@@ */
-#else
-#ifdef GUSI
-    if ((login = getenv("LOGNAME")) == NULL) 
-	login = "MACUSER";
-#else /* Unix like... */
-#ifdef HT_REENTRANT
-    if ((login = (char *) getlogin_r(name, LOGNAME_MAX)) == NULL) {
-#else
-    if ((login = (char *) getlogin()) == NULL) {
-#endif
-	if (PROT_TRACE)
-	    HTTrace("MailAddress. getlogin returns NULL\n");
-	if ((pw_info = getpwuid(getuid())) == NULL) {
-	    if (PROT_TRACE)
-		HTTrace("MailAddress. getpwid returns NULL\n");
-	    if ((login = getenv("LOGNAME")) == NULL) {
-		if (PROT_TRACE)
-		    HTTrace("MailAddress. LOGNAME not found\n");
-		if ((login = getenv("USER")) == NULL) {
-		    if (PROT_TRACE)
-			HTTrace("MailAddress. USER not found\n");
-		    return NULL;		/* I GIVE UP */
-		}
-	    }
-	} else
-	    login = pw_info->pw_name;
-    }
-#endif /* GUSI */
+    if (!login && GetUserName(name, LOGNAME_MAX) != TRUE)
+        if (PROT_TRACE) HTTrace("MailAddress. GetUsername returns NO\n");
 #endif /* WWW_MSWINDOWS */
-#endif /* WIN32 */
-#endif /* VMS */
+
+#ifdef HAVE_CUSERID
+    if (!login && (login = (char *) cuserid(NULL)) == NULL)
+        if (PROT_TRACE) HTTrace("MailAddress. cuserid returns NULL\n");
+#endif /* HAVE_CUSERID */
+
+#ifdef HAVE_GETLOGIN
+#ifdef HT_REENTRANT
+    if (!login && (login = (char *) getlogin_r(name, LOGNAME_MAX)) == NULL)
+#else
+    if (!login && (login = (char *) getlogin()) == NULL)
+#endif /* HT_REENTRANT */
+	if (PROT_TRACE) HTTrace("MailAddress. getlogin returns NULL\n");
+#endif /* HAVE_GETLOGIN */
+
+#ifdef HAVE_PWD_H
+    if (!login && (pw_info = getpwuid(getuid())) != NULL)
+	login = pw_info->pw_name;
+#endif /* HAVE_PWD_H */
+
+    if (!login && (login = getenv("LOGNAME")) == NULL)
+	if (PROT_TRACE) HTTrace("MailAddress. LOGNAME not found\n");
+
+    if (!login && (login = getenv("USER")) == NULL)
+	if (PROT_TRACE) HTTrace("MailAddress. USER not found\n");
+
+    if (!login) login = HT_DEFAULT_LOGIN;
 
     if (login) {
 	StrAllocCopy(mailaddress, login);

@@ -12,7 +12,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HText.h"
 #include "HTStyle.h"
@@ -29,7 +29,7 @@ extern HTStyleSheet * styleSheet;
 */
 
 struct _HTStream {
-	CONST HTStreamClass *	isa;
+	const HTStreamClass *	isa;
 
 	HText * 		text;
 };
@@ -59,14 +59,14 @@ PRIVATE int HTPlain_put_character (HTStream * me, char c)
 **	---------------
 **
 */
-PRIVATE int HTPlain_put_string (HTStream * me, CONST char * s)
+PRIVATE int HTPlain_put_string (HTStream * me, const char * s)
 {
     HText_appendText(me->text, s);
     return HT_OK;
 }
 
 
-PRIVATE int HTPlain_write (HTStream * me, CONST char* b, int l)
+PRIVATE int HTPlain_write (HTStream * me, const char* b, int l)
 {
     while (l-- > 0)
 	HText_appendCharacter(me->text, *b++);
@@ -112,7 +112,7 @@ PRIVATE int HTPlain_abort (HTStream * me, HTList * e)
 /*		Structured Object Class
 **		-----------------------
 */
-PRIVATE CONST HTStreamClass HTPlain =
+PRIVATE const HTStreamClass HTPlain =
 {
     "PlainText",
     HTPlain_flush,

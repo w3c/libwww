@@ -9,7 +9,7 @@
 ** Note: Port allocation
 **
 **	It is essential that the port is allocated by the system, rather
-**	than chosen in rotation by us (POLL_PORTS), or the following
+**	than chosen in rotation by us (FTP_POLL_PORTS), or the following
 **	problem occurs.
 **
 **	It seems that an attempt by the server to connect to a port which has
@@ -59,7 +59,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTParse.h"
@@ -81,10 +81,10 @@
 /* Macros and other defines */
 #if 0
 /* Only use this if ABSOLUTELY necessary! */
-#define POLL_PORTS	      /* If allocation does not work, poll ourselves.*/
+#define FTP_POLL_PORTS	      /* If allocation does not work, poll ourselves.*/
 #endif
 
-#ifdef POLL_PORTS
+#ifdef FTP_POLL_PORTS
 #define FIRST_TCP_PORT	 1024	       /* Region to try for a listening port */
 #define LAST_TCP_PORT	 5999
 PRIVATE	int DataPort = FIRST_TCP_PORT;
@@ -139,7 +139,7 @@ typedef struct _ftp_data {
 } ftp_data;
 
 struct _HTStream {
-    CONST HTStreamClass *	isa;
+    const HTStreamClass *	isa;
     HTStream *		  	target;
     HTRequest *			request;
     ftp_ctrl *			ctrl;
@@ -239,7 +239,7 @@ PRIVATE int ScanResponse (HTStream * me)
 **	Searches for FTP header line until buffer fills up or a CRLF or LF
 **	is found
 */
-PRIVATE int FTPStatus_put_block (HTStream * me, CONST char * b, int l)
+PRIVATE int FTPStatus_put_block (HTStream * me, const char * b, int l)
 {    
     int status;
     while (l-- > 0) {
@@ -280,7 +280,7 @@ PRIVATE int FTPStatus_put_block (HTStream * me, CONST char * b, int l)
     return HT_OK;
 }
 
-PRIVATE int FTPStatus_put_string (HTStream * me, CONST char * s)
+PRIVATE int FTPStatus_put_string (HTStream * me, const char * s)
 {
     return FTPStatus_put_block(me, s, (int) strlen(s));
 }
@@ -321,7 +321,7 @@ PRIVATE int FTPStatus_abort (HTStream * me, HTList * e)
 /*	FTPStatus Stream
 **	-----------------
 */
-PRIVATE CONST HTStreamClass FTPStatusClass =
+PRIVATE const HTStreamClass FTPStatusClass =
 {		
     "FTPStatus",
     FTPStatus_flush,
@@ -388,7 +388,7 @@ PRIVATE BOOL HTFTPParseURL (char *url, ftp_ctrl *ctrl, ftp_data *data)
 	HTUnEscape(login);
 	StrAllocCopy(ctrl->uid, login);
     } else {						    /* Use anonymous */
-	CONST char *mailaddress = HTGetMailAddress();
+	const char *mailaddress = HTGetMailAddress();
 	StrAllocCopy(ctrl->uid, "anonymous");
 	if (mailaddress)
 	    StrAllocCopy(ctrl->passwd, mailaddress);
@@ -451,7 +451,7 @@ PRIVATE BOOL FTPListType (ftp_data * data, FTPServerType type)
 */
 PRIVATE BOOL ListenSocket (HTNet *cnet, HTNet *dnet, ftp_data *data)
 {
-#ifdef POLL_PORTS
+#ifdef FTP_POLL_PORTS
     unsigned short old_DataPort = DataPort;
     for (DataPort=old_DataPort+1;; DataPort++) {
 	if (DataPort > LAST_TCP_PORT)
@@ -469,7 +469,7 @@ PRIVATE BOOL ListenSocket (HTNet *cnet, HTNet *dnet, ftp_data *data)
     }
 #else
     if (HTDoListen(dnet, 0, cnet->sockfd, 1) != HT_OK) return NO;
-#endif /* POLL_PORTS */
+#endif /* FTP_POLL_PORTS */
 
     /* Now we must find out who we are to tell the other guy */
     {

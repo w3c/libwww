@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Access manager  for libwww</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 18-Feb-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  3-Mar-1996 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -46,7 +46,7 @@ cleans up memory kept by the Library when about to exit the
 application. They <B>must</B> be used!
 
 <PRE>
-extern BOOL HTLibInit (CONST char * AppName, CONST char * AppVersion);
+extern BOOL HTLibInit (const char * AppName, const char * AppVersion);
 extern BOOL HTLibTerminate (void);
 </PRE>
 
@@ -56,8 +56,8 @@ You can get the generic name of the Library and the version by using
 the following functions:
 
 <PRE>
-extern CONST char * HTLib_name (void);
-extern CONST char * HTLib_version (void);
+extern const char * HTLib_name (void);
+extern const char * HTLib_version (void);
 </PRE>
 
 <H3>Application Name and Version</H3>
@@ -66,8 +66,8 @@ Returns the name of the application and the version number that was
 passed to the <CODE>HTLibInit()</CODE> function.
 
 <PRE>
-extern CONST char * HTLib_appName (void);
-extern CONST char * HTLib_appVersion (void);
+extern const char * HTLib_appName (void);
+extern const char * HTLib_appVersion (void);
 </PRE>
 
 <H3>Accessing the Local File System</H3>
@@ -91,7 +91,7 @@ Request a document referencd by an absolute URL.  Returns YES if
 request accepted, else NO
 
 <PRE>
-extern BOOL HTLoadAbsolute (CONST char * url, HTRequest* request);
+extern BOOL HTLoadAbsolute (const char * url, HTRequest* request);
 </PRE>
 
 <H3>Request a document from absolute name to stream</H3>
@@ -103,7 +103,7 @@ HTRequest_setOutputStream(). 'filter' is ignored!  Returns YES if
 request accepted, else NO
 
 <PRE>
-extern BOOL HTLoadToStream (CONST char * url, BOOL filter, HTRequest *request);
+extern BOOL HTLoadToStream (const char * url, BOOL filter, HTRequest *request);
 </PRE>
 
 <H3>Request a document from relative name</H3>
@@ -113,7 +113,7 @@ made absolute by resolving it relative to the address of the 'base'
 anchor. Returns YES if request accepted, else NO
 
 <PRE>
-extern BOOL HTLoadRelative (CONST char * 	relative,
+extern BOOL HTLoadRelative (const char * 	relative,
 			    HTParentAnchor *	base,
 			    HTRequest *		request);
 </PRE>
@@ -149,7 +149,7 @@ can also be performed by HTLoadAbsolute() etc.  Returns YES if request
 accepted, else NO
 
 <PRE>
-extern BOOL HTSearch (CONST char *	keywords,
+extern BOOL HTSearch (const char *	keywords,
 		      HTParentAnchor *  base,
 		      HTRequest * 	request);
 </PRE>
@@ -163,8 +163,8 @@ converted to '+' before the request is issued.  Returns YES if request
 accepted, else NO
 
 <PRE>
-extern BOOL HTSearchAbsolute (CONST char *	keywords,
-			      CONST char *	url,
+extern BOOL HTSearchAbsolute (const char *	keywords,
+			      const char *	url,
 			      HTRequest *	request);
 </PRE>
 

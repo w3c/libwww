@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>System dependencies in the W3 library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 13-Feb-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  1-Mar-1996 -->
 </HEAD>
 <BODY>
 
@@ -19,8 +19,7 @@ includes for each system the files necessary for network and file
 I/O. <P>
 
 This module is a part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>.
+HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference Library</A>.
 
 <H3>Authors</H3>
 <DL>
@@ -45,13 +44,11 @@ W3C Reference Library</A>.
 <H3>History:</H3>
 <DL>
 <DT>22 Feb 91
-<DD> Written (TBL) as part of
-the WWW library.
+<DD> Written (TBL) as part of the WWW library.
 <DT>16 Jan 92
 <DD> PC code from (EvA)
 <DT>22 Apr 93
-<DD>Merged diffs bits from
-xmosaic release
+<DD>Merged diffs bits from xmosaic release
 <DT>29 Apr 93
 <DD>Windows/NT code from (SCW)
 <DT>29 Sep 93
@@ -59,230 +56,28 @@ xmosaic release
  added BOOLEAN_DEFINED macro to avoid duplicate definitions in HUtils.h
  changed netread() macros to support reading from stdin,etc. as well
  as sockets. (Required for linemode browser to work).
+<DT>Henrik
+<DD>Changed to support autoconf for Unix
 </DL>
 
 <PRE>
-#ifndef TCP_H
-#define TCP_H
+#ifndef SYSDEP_H
+#define SYSDEP_H
 </PRE>
 
-<H2>Default values</H2>These values may be reset and altered by
-system-specific sections later on. There is also a bunch of
-<A NAME="z5" HREF="#z2">defaults</A> at the end and a section for
-<A NAME="z11" HREF="#z10">ordinary BSD unix versions</A>.
+<H1>Platform Specific Stuff</H1>
+
+<H2>Unix</H2>
+
+We rely on autoconf to do the dirty job. If you have any changhes then please add them to the <A HREF="../configure">configure script</A>
 
 <PRE>
-#define SELECT			/* Can handle &gt;1 channel */
-#define GOT_SYSTEM		/* Can call shell with string */
-#define GOT_PASSWD		/* Can we use getpass() command */
-#define TTY_IS_SELECTABLE       /* TTY can be passed to select() call */
-</PRE>
-
-If you want to use reentrant functions, for example
-<CODE>gmtime_r</CODE> then enable this flag
-
-<PRE>
-#if 0
-#define HT_REENTRANT
+#ifdef HAVE_CONFIG_H
+#include &lt;config.h&gt;
 #endif
 </PRE>
 
-<HR>
-
-<A NAME="z1"><H1>Platform Specific Stuff</H1></A>
-
-Information below this line is specific for most platforms. See also
-<A NAME="z6" HREF="#z2">General Stuff</A>
-
-<H2>Macintosh - Metrowerks Codewarrior 6</H2>
-
-Metrowerks Codewarrior is one development environment on the Mac. We
-are using GUSI (1.5.9) by Matthias Neeracher
-&lt;neeri@iis.ee.ethz.ch&gt; for our socket lib. You can find more
-information about the GUSI Library at
-<CODE>http://err.ethz.ch/members/neeri/macintosh/gusiman/GUSI.html</CODE><P>
-   
-Compiles on PPC. Should compile on 68K. <P>
-   
-August 31, 1995 by Steven T. Roussey &lt;sroussey@eng.uci.edu&gt; (STR)
-   
-<PRE>
-#ifdef __MWERKS__
-#include &lt;gusi.h&gt;
-#include &lt;dirent.h&gt;
-#include &lt;errno.h&gt;
-#include &lt;sys/errno.h&gt;
-#include &lt;sioux.h&gt;
-
-#define INCLUDES_DONE
-#define TCP_INCLUDES_DONE
-
-#define GUSI			/* Identifies changes made for GUSI */
-#define NO_GETDOMAINNAME	/* STR */
-#define NO_PASSWD		/* STR */
-
-#define NO_GETWD
-#define HAS_GETCWD
-#define USE_DIRENT
-#define NO_GROUPS
-#define GOT_READ_DIR
-
-#define NO_TIMEZONE		/* STR */
-#define NO_GMTOFF
-#define HAVE_STRERROR
-
-#define STRUCT_DIRENT	struct dirent
-#define d_ino           d_fileno        /* backward compatibility */
-
-#define SLEEP(n)	GUSIDefaultSpin( SP_SLEEP, n/60)
-
-#define MKDIR(a,b)      mkdir(a)
-#endif
-</PRE>
-
-<H2>Macintosh - MPW</H2>
-
-MPW is one development environment on the Mac.<P>
-
-This entry was created by Aleksandar Totic (atotic@ncsa.uiuc.edu) this
-file is compatible with sockets package released by NCSA.  One major conflict
-is that this library redefines write/read/etc as macros.  In some of HTML code
-these macros get executed when they should not be. Such files should
-define NO_SOCKET_DEFS on top. This is a temporary hack.
-
-<PRE>
-#ifdef applec			/* MPW  */
-#undef GOT_SYSTEM
-#define DEBUG			/* Can't put it on the CC command line */
-
-#define NO_UNIX_IO		/* getuid() missing */
-#define NO_GETPID		/* getpid() does not exist */
-#define NO_GETWD		/* getwd() does not exist */
-
-#define NETCLOSE s_close    /* Routine to close a TCP-IP socket */
-#define NETREAD  s_read	    /* Routine to read from a TCP-IP socket */
-#define NETWRITE s_write    /* Routine to write to a TCP-IP socket */
-
-#define _ANSI_SOURCE
-#define GUI
-#define LINEFEED 10
-#define ANON_FTP_HOSTNAME
-#ifndef NO_SOCKET_DEFS
-#include &lt;MacSockDefs.h&gt;
-#endif /* NO_SOCKET_DEFS */
-
-#include &lt;socket.ext.h&gt;
-#include &lt;string.h&gt;
-
-#endif /* applec MPW */
-</PRE>
-
-<H2>Big Blue - the world of incompatibility</H2>
-
-<H3>IBM RS6000</H3>
-
-On the IBM RS-6000, AIX is almost Unix. <P>
-
-<PRE>
-#ifdef _AIX
-#define AIX
-#endif
-#ifdef AIX
-#define NO_ALTZONE
-#define RLOGIN_USER
-#define unix
-#endif
-
-/*    AIX 3.2
-**    -------
-*/
-
-#ifdef _IBMR2
-#define USE_DIRENT		/* sys V style directory open */
-#endif
-</PRE>
-
-<H3>IBM VM-CMS, VM-XA Mainframes</H3>
-
-MVS is compiled as for VM. MVS has no unix-style I/O.  The command line
-compile options seem to come across in lower case.
-
-<PRE>
-#ifdef mvs
-#define MVS
-#endif
-
-#ifdef MVS
-#define VM
-#endif
-
-#ifdef NEWLIB
-#pragma linkage(newlib,OS)	/* Enables recursive NEWLIB */
-#endif
-
-/*	VM doesn't have a built-in predefined token, so we cheat: */
-#ifndef VM
-#include &lt;string.h&gt;		/* For bzero etc - not  VM */
-#endif
-
-/*	Note:	All include file names must have 8 chars max (+".h")
-**
-**	Under VM, compile with "(DEF=VM,SHORT_NAMES,DEBUG)"
-**
-**	Under MVS, compile with "NOMAR DEF(MVS)" to get rid of 72 char margin
-**	  System include files TCPIP and COMMMAC neeed line number removal(!)
-*/
-
-#ifdef VM			/* or MVS -- see above. */
-#define GOT_PIPE		/* Of sorts */
-#define NOT_ASCII		/* char type is not ASCII */
-#define NO_UNIX_IO		/* Unix I/O routines are not supported */
-#define NO_GETPID		/* getpid() does not exist */
-#define NO_GETWD		/* getwd() does not exist */
-#ifndef SHORT_NAMES
-#define SHORT_NAMES		/* 8 character uniqueness for globals */
-#endif
-#include &lt;manifest.h&gt;
-#include &lt;bsdtypes.h&gt;
-#include &lt;stdefs.h&gt;
-#include &lt;socket.h&gt;
-#include &lt;in.h&gt;
-#include &lt;inet.h&gt;
-#include &lt;netdb.h&gt;
-#include &lt;errno.h&gt;	    /* independent */
-extern char asciitoebcdic[], ebcdictoascii[];
-#define TOASCII(c)   (c=='\n' ?  10  : ebcdictoascii[c])
-#define FROMASCII(c) (c== 10  ? '\n' : asciitoebcdic[c])
-#include &lt;bsdtime.h&gt;
-#include &lt;time.h&gt;
-#include &lt;string.h&gt;
-#define INCLUDES_DONE
-#define TCP_INCLUDES_DONE
-#define SIMPLE_TELNET
-#endif
-</PRE>
-
-<H2>IBM-PC running MS-DOS with SunNFS for TCP/IP</H2>
-This code thanks to Eelco van Asperen &lt;evas@cs.few.eur.nl&gt;
-
-<PRE>
-#ifdef PCNFS
-#include &lt;sys/types.h&gt;
-#include &lt;string.h&gt;
-#include &lt;errno.h&gt;	    /* independent */
-#include &lt;sys/time.h&gt;	    /* independent */
-#include &lt;sys/stat.h&gt;
-#include &lt;fcntl.h&gt;	    /* In place of sys/param and sys/file */
-#define INCLUDES_DONE
-#define FD_SET(fd,pmask) (*(unsigned*)(pmask)) |=  (1&lt;&lt;(fd))
-#define FD_CLR(fd,pmask) (*(unsigned*)(pmask)) &amp;= ~(1&lt;&lt;(fd))
-#define FD_ZERO(pmask)   (*(unsigned*)(pmask))=0
-#define FD_ISSET(fd,pmask) (*(unsigned*)(pmask) &amp; (1&lt;&lt;(fd)))
-#define NO_GROUPS
-#endif  /* PCNFS */
-</PRE>
-
-<H2>PC running Windows (16-bit)</H2>
+<H2>Microsoft Windows Win32 API</H2>
 
 Help provided by Eric Prud'hommeaux, Susan C. Weber
 &lt;sweber@kyle.eitech.com&gt;, Paul Hounslow
@@ -325,7 +120,9 @@ Help provided by Eric Prud'hommeaux, Susan C. Weber
 #include &lt;process.h&gt;
 #include &lt;time.h&gt;
 #include &lt;direct.h&gt;
-#include &lt;stdio.h&gt;
+
+#define HAVE_STDIO_H
+
 #include &lt;stdlib.h&gt;
 #include &lt;winsock.h&gt;
 
@@ -333,19 +130,13 @@ Help provided by Eric Prud'hommeaux, Susan C. Weber
 #define NO_STDIO
 #endif
 
-#define NO_PASSWD
-#define NO_ALTZONE
+#undef HAVE_GETPASS
+#undef HAVE_ALTZONE
 #define NO_GETWD
 #define NO_FCNTL
-#define HAS_GETCWD
-#define NO_GETPASSWD
+#define HAVE_GETCWD
 
-#define NO_GETDOMAINNAME
-#define NO_RESOLV_CONF
-
-#define BOOLEAN_DEFINED
-#define INCLUDES_DONE
-#define TCP_INCLUDES_DONE
+#undef HAVE_GETDOMAINNAME
 
 #define SOCKET SOCKET			/* WinSocks socket descriptor */
 #define INVSOC INVALID_SOCKET		/* WinSocks invalid socket */
@@ -478,6 +269,170 @@ Return code for socket functions. We can't use -1 as return value <P>
 #endif /* WWW_MSWINDOWS */
 </PRE>
 
+<H2>Macintosh - Metrowerks Codewarrior 6</H2>
+
+Metrowerks Codewarrior is one development environment on the Mac. We
+are using GUSI (1.5.9) by Matthias Neeracher
+&lt;neeri@iis.ee.ethz.ch&gt; for our socket lib. You can find more
+information about the GUSI Library at
+<CODE>http://err.ethz.ch/members/neeri/macintosh/gusiman/GUSI.html</CODE><P>
+   
+Compiles on PPC. Should compile on 68K. <P>
+   
+August 31, 1995 by Steven T. Roussey &lt;sroussey@eng.uci.edu&gt; (STR)
+   
+<PRE>
+#ifdef __MWERKS__
+#include &lt;gusi.h&gt;
+#include &lt;dirent.h&gt;
+#include &lt;errno.h&gt;
+#include &lt;sys/errno.h&gt;
+#include &lt;sioux.h&gt;
+
+#define INCLUDES_DONE
+#define TCP_INCLUDES_DONE
+
+#define GUSI			/* Identifies changes made for GUSI */
+
+#undef  HAVE_GETDOMAINNAME	/* STR */
+#undef  HAVE_GETPASS
+#undef  HAVE_GETWD
+
+#define HAVE_GETCWD
+#define USE_DIRENT
+#define NO_GROUPS
+#define GOT_READ_DIR
+
+#undef  HAVE_TIMEZONE		/* STR */
+#define NO_GMTOFF
+#define HAVE_STRERROR
+
+#define DIR		struct dirent
+#define d_ino           d_fileno        /* backward compatibility */
+
+#define SLEEP(n)	GUSIDefaultSpin( SP_SLEEP, n/60)
+
+#define MKDIR(a,b)      mkdir(a)
+#endif
+</PRE>
+
+<H2>Macintosh - MPW</H2>
+
+MPW is one development environment on the Mac.<P>
+
+This entry was created by Aleksandar Totic (atotic@ncsa.uiuc.edu) this
+file is compatible with sockets package released by NCSA.  One major conflict
+is that this library redefines write/read/etc as macros.  In some of HTML code
+these macros get executed when they should not be. Such files should
+define NO_SOCKET_DEFS on top. This is a temporary hack.
+
+<PRE>
+#ifdef applec			/* MPW  */
+#undef HAVE_SYSTEM
+#define DEBUG			/* Can't put it on the CC command line */
+
+#define NO_UNIX_IO		/* getuid() missing */
+#undef  HAVE_GETPID		/* getpid() does not exist */
+#define NO_GETWD		/* getwd() does not exist */
+
+#define NETCLOSE s_close    /* Routine to close a TCP-IP socket */
+#define NETREAD  s_read	    /* Routine to read from a TCP-IP socket */
+#define NETWRITE s_write    /* Routine to write to a TCP-IP socket */
+
+#define _ANSI_SOURCE
+#define GUI
+#define LINEFEED 10
+#define ANON_FTP_HOSTNAME
+#ifndef NO_SOCKET_DEFS
+#include &lt;MacSockDefs.h&gt;
+#endif /* NO_SOCKET_DEFS */
+
+#include &lt;socket.ext.h&gt;
+#include &lt;string.h&gt;
+
+#endif /* applec MPW */
+</PRE>
+
+<H2>IBM VM-CMS, VM-XA Mainframes</H2>
+
+MVS is compiled as for VM. MVS has no unix-style I/O.  The command line
+compile options seem to come across in lower case.
+
+<PRE>
+#ifdef mvs
+#define MVS
+#endif
+
+#ifdef MVS
+#define VM
+#endif
+
+#ifdef NEWLIB
+#pragma linkage(newlib,OS)	/* Enables recursive NEWLIB */
+#endif
+
+/*	VM doesn't have a built-in predefined token, so we cheat: */
+#ifndef VM
+#include &lt;string.h&gt;		/* For bzero etc - not  VM */
+#endif
+
+/*	Note:	All include file names must have 8 chars max (+".h")
+**
+**	Under VM, compile with "(DEF=VM,SHORT_NAMES,DEBUG)"
+**
+**	Under MVS, compile with "NOMAR DEF(MVS)" to get rid of 72 char margin
+**	  System include files TCPIP and COMMMAC neeed line number removal(!)
+*/
+
+#ifdef VM			/* or MVS -- see above. */
+#define GOT_PIPE		/* Of sorts */
+#define NOT_ASCII		/* char type is not ASCII */
+#define NO_UNIX_IO		/* Unix I/O routines are not supported */
+#undef  HAVE_GETPID		/* getpid() does not exist */
+#define NO_GETWD		/* getwd() does not exist */
+#ifndef SHORT_NAMES
+#define SHORT_NAMES		/* 8 character uniqueness for globals */
+#endif
+#include &lt;manifest.h&gt;
+#include &lt;bsdtypes.h&gt;
+#include &lt;stdefs.h&gt;
+#include &lt;socket.h&gt;
+#include &lt;in.h&gt;
+#include &lt;inet.h&gt;
+#include &lt;netdb.h&gt;
+#include &lt;errno.h&gt;	    /* independent */
+extern char asciitoebcdic[], ebcdictoascii[];
+#define TOASCII(c)   (c=='\n' ?  10  : ebcdictoascii[c])
+#define FROMASCII(c) (c== 10  ? '\n' : asciitoebcdic[c])
+#include &lt;bsdtime.h&gt;
+#include &lt;time.h&gt;
+#include &lt;string.h&gt;
+#define INCLUDES_DONE
+#define TCP_INCLUDES_DONE
+#define SIMPLE_TELNET
+#endif
+</PRE>
+
+<H2>IBM-PC running MS-DOS with SunNFS for TCP/IP</H2>
+This code thanks to Eelco van Asperen &lt;evas@cs.few.eur.nl&gt;
+
+<PRE>
+#ifdef PCNFS
+#include &lt;sys/types.h&gt;
+#include &lt;string.h&gt;
+#include &lt;errno.h&gt;	    /* independent */
+#include &lt;sys/time.h&gt;	    /* independent */
+#include &lt;sys/stat.h&gt;
+#include &lt;fcntl.h&gt;	    /* In place of sys/param and sys/file */
+#define INCLUDES_DONE
+#define FD_SET(fd,pmask) (*(unsigned*)(pmask)) |=  (1&lt;&lt;(fd))
+#define FD_CLR(fd,pmask) (*(unsigned*)(pmask)) &amp;= ~(1&lt;&lt;(fd))
+#define FD_ZERO(pmask)   (*(unsigned*)(pmask))=0
+#define FD_ISSET(fd,pmask) (*(unsigned*)(pmask) &amp; (1&lt;&lt;(fd)))
+#define NO_GROUPS
+#endif  /* PCNFS */
+</PRE>
+
 <H2>VAX/VMS</H2>
 
 Under VMS, there are many versions of TCP-IP. Define one if you do not
@@ -508,6 +463,8 @@ unix file descriptor less than 10.  It works.
 #define CACHE_FILE_PREFIX	"SYS$LOGIN:Z_"
 #define DEFAULT_SUFFIXES	"._"
 
+#define HAVE_CUSERID
+
 #ifdef WIN_TCP
 #define NETREAD(s,b,l)	((s)&gt;10 ? netread((s),(b),(l)) : read((s),(b),(l)))
 #define NETWRITE(s,b,l)	((s)&gt;10 ? netwrite((s),(b),(l)) : write((s),(b),(l)))
@@ -533,11 +490,10 @@ unix file descriptor less than 10.  It works.
 #define NETWRITE(s,b,l)	((s)&gt;10 ? send((s),(b),(l),0) : write((s),(b),(l)))
 #define NETCLOSE(s) 	((s)&gt;10 ? socket_close(s) : close(s))
 
-#define NO_GETHOSTNAME			/* Decnet doesn't have a name server */
+#undef HAVE_GETHOSTNAME			/* Decnet doesn't have a name server */
 #endif /* Decnet */
 
-#define NO_RESOLV_CONF
-#define NO_GETDOMAINNAME
+#undef HAVE_GETDOMAINNAME
          
 /*	Certainly this works for UCX and Multinet; not tried for Wollongong
 */
@@ -622,7 +578,7 @@ from the system include files...
 #define USE_DIRENT
 #define GOT_READ_DIR
 #include &lt;dirent.h&gt;
-#define STRUCT_DIRENT struct dirent
+#define DIR struct dirent
 #define R_OK 4
 </PRE>
 
@@ -663,17 +619,47 @@ typedef unsigned long mode_t;
 #endif /* non VMS */
 </PRE>
 
+<H3>Dynamic Memory</H3>
+
+Replace memory allocation and free C RTL functions with VAXC$xxx_OPT
+alternatives for VAXC (but not DECC) on VMS. This makes a big
+performance difference. (Foteos Macrides). Also have a look at the <A
+HREF="HTMemory.html">Dynamic Memory Module</A> for how to handle
+<CODE>malloc</CODE> and <CODE>calloc</CODE>.
+
+<PRE>
+#ifdef VMS
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;unixlib.h&gt;
+#include &lt;ctype.h&gt;
+#if defined(VAXC) && !defined(__DECC)
+#define malloc	VAXC$MALLOC_OPT
+#define calloc	VAXC$CALLOC_OPT
+#define free	VAXC$FREE_OPT
+#define cfree	VAXC$CFREE_OPT
+#define realloc	VAXC$REALLOC_OPT
+#endif /* VAXC but not DECC */
+#define unlink remove
+#define gmtime localtime
+#include &lt;stat.h&gt;
+#define S_ISDIR(m)      (((m)&S_IFMT) == S_IFDIR)
+#define S_ISREG(m)      (((m)&S_IFMT) == S_IFREG)
+#define putenv HTVMS_putenv
+#endif /* VMS */
+</PRE>
+
 <H3>Strftime and other time stuff</H3>
 
 <PRE>
 #ifdef VMS
 #ifndef DECC
-#define NO_STRFTIME
+#undef  HAVE_STRFTIME
 #endif
-#define NO_MKTIME
-#define NO_TIMEGM
+#undef  HAVE_MKTIME
+#undef  HAVE_TIMEGM
 #define NO_GMTOFF
-#define NO_TIMEZONE
+#undef  HAVE_TIMEZONE
 #endif
 </PRE>
 
@@ -692,373 +678,328 @@ extern volatile noshare int errno;  /* noshare to avoid PSECT conflict */
 #endif /* VMS */
 </PRE>
 
-<H2>SCO ODT unix version</H2>
-
-(by Brian King)
-
-<PRE>
-#ifdef sco
-#include &lt;grp.h&gt;
-#include &lt;unistd.h&gt;
-#include &lt;sys/fcntl.h&gt;
-#include &lt;time.h&gt;
-#define USE_DIRENT
-#define NEED_INITGROUPS
-#define NO_GETDOMAINNAME
-#endif
-</PRE>
-
-<H2>BSDi BSD/386 Unix</H2>
-
-Specific stuff for BSDi BSD/386
-
-<PRE>
-#ifdef bsdi
-#define NO_GETDOMAINNAME
-#endif
-</PRE>
-
-<H2>MIPS unix</H2>
-Mips hack (bsd4.3/sysV mixture...)
-
-<PRE>
-#ifdef Mips	/* Bruker */
-typedef mode_t		int;
-#define S_ENFMT		S_ISGID		/* record locking enforcement flag */
-#define S_ISCHR(m)	((m) & S_IFCHR)
-#define S_ISBLK(m)	((m) & S_IFBLK)
-#define S_ISDIR(m)      (((m)& S_IFMT) == S_IFDIR)
-#define S_ISREG(m)      (((m)& S_IFMT) == S_IFREG)
-#define WEXITSTATUS(s)	(((s).w_status &gt;&gt; 8) & 0377)
-#define NO_STRFTIME
-
-/* Mips can't uppercase non-alpha */
-#define TOLOWER(c) (isupper(c) ? tolower(c) : (c))
-#define TOUPPER(c) (islower(c) ? toupper(c) : (c))
-</PRE>
-
-<H3>File Permissions</H3>
-
-<PRE>
-#ifndef S_IRWXU
-#define S_IRWXU 0000700
-#define S_IRWXG 0000070
-#define S_IRWXO 0000007
-#define S_IRUSR 0000400
-#define S_IWUSR 0000200
-#define S_IXUSR 0000100
-#define S_IRGRP 0000040
-#define S_IWGRP 0000020
-#define S_IXGRP 0000010
-#define S_IROTH 0000004
-#define S_IWOTH 0000002
-#define S_IXOTH 0000001
-#endif /* S_IRWXU */
-#endif /* Mips */
-</PRE>
-
-<H2>Linux</H2>
-
-Linux support (thanks to Rainer Klute) 
-
-<PRE>
-#ifdef linux
-#include &lt;unistd.h&gt;
-#include &lt;limits.h&gt;
-#include &lt;sys/fcntl.h&gt;
-
-#define NO_ALTZONE
-#define NO_GETWD
-#define HAS_GETCWD
-#define FULL_TELNET
-#endif /* linux */
-</PRE>
-
-<H2>Solaris</H2>
-
-Solaris and other SVR4 based systems
-
-<PRE>
-#if defined(__svr4__) || defined(_POSIX_SOURCE) || defined(__hpux) || defined(__sgi)
-
-#if defined(__hpux)
-#define NO_ALTZONE
-#endif
-
-#ifdef UTS4				      /* UTS wants sys/types.h first */
-#include &lt;sys/types.h&gt;
-#endif
-
-#include &lt;unistd.h&gt;
-
-#ifdef UTS4
-#include &lt;sys/fcntl.h&gt;
-#define POSIXWAIT
-#endif
-
-#ifdef AIX						       /* Apple Unix */
-#include &lt;fcntl.h&gt;
-#else
-#include &lt;sys/fcntl.h&gt;
-#endif
-</PRE>
-
-This is for NCR 3000 and Pyramid that also are SVR4 systems. Thanks to
-<EM>Alex Podlecki, &lt;a.podlecki@att.com&gt;</EM>
-
-<PRE>
-#ifndef NGROUPS_MAX		
-#include &lt;limits.h&gt;
-#endif 
-
-/* Pyramid and Mips can't uppercase non-alpha */
-#ifdef pyramid
-#define TOLOWER(c) (isupper(c) ? tolower(c) : (c))
-#define TOUPPER(c) (islower(c) ? toupper(c) : (c))
-#endif
-
-</PRE>
-
-<CODE>getwd()</CODE> is BSD. System V has <CODE>getcwd()</CODE>
-
-<PRE>
-#define NO_GETWD
-#define HAS_GETCWD
-
-#endif /* Solaris and SVR4 */
-</PRE>
-
-<H2>UTS 2.1 (BSD-like)</H2>
-<PRE>
-#ifdef UTS2
-#include &lt;time.h&gt;
-#include &lt;fcntl.h&gt;
-
-#ifndef R_OK
-#define R_OK 4
-#endif
-#define	NO_STRFTIME
-#define	WEXITSTATUS(x)	((int)((x).w_T.w_Retcode))
-
-#undef POSIXWAIT
-#endif /* UTS2 */
-</PRE>
-
-<H2>OSF/1</H2>
-
-<PRE>
-#ifdef __osf__
-#define USE_DIRENT
-#define NO_TIMEZONE					 /* OSF/1 has gmtoff */
-#endif /* OSF1 AXP */
-</PRE>
-
-<H2>Ultrix Decstation</H2>
-
-<PRE>
-#ifdef decstation
-#include &lt;unistd.h&gt;
-#define NO_TIMEZONE					/* Ultrix has gmtoff */
-#define RLOGIN_USER
-#endif
-</PRE>
-
-<H2>ISC 3.0</H2>
-by Lauren Weinstein &lt;lauren@vortex.com&gt;.
-<PRE>
-
-#ifdef ISC3			/* Lauren */
-#define USE_DIRENT
-#define GOT_READ_DIR
-#include &lt;sys/ipc.h&gt;
-#include &lt;sys/dirent.h&gt;
-#define direct dirent
-#include &lt;sys/unistd.h&gt;
-#define d_namlen d_reclen
-#include &lt;sys/limits.h&gt;
-typedef int mode_t;
-
-#define SIGSTP
-
-#define POSIXWAIT
-#define _POSIX_SOURCE
-
-#include &lt;sys/types.h&gt;
-#include &lt;sys/wait.h&gt;
-#include &lt;net/errno.h&gt;
-
-#define _SYSV3
-#include &lt;time.h&gt;
-
-#include &lt;sys/fcntl.h&gt;
-#define S_ISDIR(m)	(((m) & 0170000) == 0040000)
-#define S_ISCHR(m)	(((m) & 0170000) == 0020000)
-#define S_ISBLK(m)	(((m) & 0170000) == 0060000)
-#define S_ISREG(m)	(((m) & 0170000) == 0100000)
-#define S_ISFIFO(m)	(((m) & 0170000) == 0010000)
-#define S_ISLNK(m)	(((m) & 0170000) == 0120000)
-#endif	/* ISC 3.0 */
-</PRE>
-
-<H2>NeXT</H2>
-
-Next has a lot of strange changes in constants...
-
-<PRE>
-#ifdef NeXT
-#include &lt;sys/types.h&gt;
-#include &lt;sys/stat.h&gt;
-
-typedef unsigned short mode_t;
-
-#ifndef S_ISDIR
-#define S_ISDIR(m)     (m &amp; S_IFDIR)
-#define S_ISREG(m)     (m &amp; S_IFREG)
-#define S_ISCHR(m)     (m &amp; S_IFCHR)
-#define S_ISBLK(m)     (m &amp; S_IFBLK)
-#define S_ISLNK(m)     (m &amp; S_IFLNK)
-#define S_ISSOCK(m)    (m &amp; S_IFSOCK)
-#define S_ISFIFO(m)    (NO)
-#endif
-
-#ifndef WEXITSTATUS
-#define WEXITSTATUS(s) (((s).w_status &gt;&gt; 8) &amp; 0377)
-#endif
-
-#ifndef O_NONBLOCK
-#define O_NONBLOCK	O_NDELAY
-#endif
-
-#define NO_TIMEZONE					  /* next has gmtoff */
-</PRE>
-
-<H3>File Permissions for NeXT</H3>
-<PRE>
-#ifndef S_IRWXU
-#define S_IRWXU 0000700
-#define S_IRWXG 0000070
-#define S_IRWXO 0000007
-#define S_IRUSR 0000400
-#define S_IWUSR 0000200
-#define S_IXUSR 0000100
-#define S_IRGRP 0000040
-#define S_IWGRP 0000020
-#define S_IXGRP 0000010
-#define S_IROTH 0000004
-#define S_IWOTH 0000002
-#define S_IXOTH 0000001
-#endif /* S_IRWXU */
-#endif /* NeXT */
-</PRE>
-
-<H2>A/UX Apple UNIX</H2>
-
-<ADDRESS>Kelly King, bhutab@apple.com and Jim Jagielski,
-jim@jagubox.gsfc.nasa.gov</ADDRESS>
-
-<PRE>
-#ifdef _AUX
-#include &lt;time.h&gt;
-#define WEXITSTATUS(s) (((s).w_status &gt;&gt; 8) &amp; 0377)
-#define NO_STRFTIME
-#endif
-</PRE>
-
-<H2>Sony News</H2>
-
-Thanks to Isao SEKI, seki@tama.prug.or.jp
-
-<PRE>
-#ifdef sony_news
-#include &lt;sys/wait.h&gt;
-#define WEXITSTATUS(s) (((s).w_status &gt;&gt; 8) &amp; 0377)
-typedef int mode_t;
-#endif
-</PRE>
-
-<H2><A NAME="z10">Regular BSD unix versions</H2>
-
-These are a default unix where not already defined specifically.
-
-<PRE>
-#ifndef INCLUDES_DONE
-
-#include &lt;sys/types.h&gt;
-#include &lt;string.h&gt;
-
-#include &lt;errno.h&gt;	    /* independent */
-#include &lt;sys/time.h&gt;	    /* independent */
-#include &lt;sys/stat.h&gt;
-#include &lt;sys/param.h&gt;
-#include &lt;sys/file.h&gt;	    /* For open() etc */
-#define INCLUDES_DONE
-#endif	/* Normal includes */
-
-#ifdef SUNOS
-#include &lt;unistd.h&gt;
-#define NO_TIMEZONE
-#define NO_MKTIME
-#undef HAVE_STRERROR
-#endif
-
-#ifdef NetBSD
-#define NO_TIMEZONE
-#define HAVE_STRERROR
-#endif
-
-#ifdef __FreeBSD__
-#define NO_TIMEZONE
-#define HAVE_STRERROR
-#define NO_GETWD
-#define HAS_GETCWD
-#define FULL_TELNET
-#endif
-
-</PRE>
-
-<H3>Directory reading stuff - BSD or SYS V</H3>
-<PRE>
-#if defined(unix) || defined(__unix__)   /* If UNIX (thanks to Rainer Klute) */
-
-#define GOT_PIPE				        /* We do have a pipe */
-#define GOT_READ_DIR         /* if directory reading functions are available */
-#define GOT_OWNER			  /* If a file has owner permissions */
-
-#include &lt;pwd.h&gt;
-#include &lt;grp.h&gt;
-
-#include &lt;stdio.h&gt;
-
-#ifndef NeXT
-#define USE_DIRENT		  /* Try this all the time, Henrik May 29 94 */
-#endif
-#ifdef USE_DIRENT             			 	    /* sys v version */
-#include &lt;dirent.h&gt;
-#define STRUCT_DIRENT struct dirent
-#else
-#include &lt;sys/dir.h&gt;
-#define STRUCT_DIRENT struct direct
-#endif
-
-#ifdef SOLARIS
-#include &lt;sys/fcntl.h&gt;
-#include &lt;limits.h&gt;
-#endif
-#ifndef FNDELAY
-#define FNDELAY		O_NDELAY
-#endif
-
-#endif /* unix */
-</PRE>
-
 <HR>
-<H1><A NAME="z2">General Stuff</A></H1>
 
-Information below this line is general for most platforms. <P>
+<H1>Platform Independent Stuff</H1>
 
-See also <A NAME="z3" HREF="#z1">Platform Specific Stuff</A>
+Here we use all the knowledge we got above...
 
-<H3>Sleep System Call</H3>
+<H2>Include Files</H2>
+
+This file includes all system header files that are needed, iff they
+exist.  Their existance is discovered by <CODE>configure</CODE>.
+
+<PRE>
+/* stdio.h */
+#ifdef HAVE_STDIO_H
+#include &lt;stdio.h&gt;
+#endif
+
+/* types.h */
+#ifdef HAVE_SYS_TYPES_H
+#include &lt;sys/types.h&gt;
+#else
+#ifdef HAVE_TYPES_H
+#include &lt;types.h&gt;
+#endif
+#endif
+
+/* unistd.h */
+#ifdef HAVE_UNISTD_H
+#include &lt;unistd.h&gt;
+#else
+#ifdef HAVE_SYS_UNISTD_H
+#include &lt;sys/unistd.h&gt;
+#endif
+#endif
+
+/* fcntl.h */
+#ifdef HAVE_FCNTL_H
+#include &lt;fcntl.h&gt;
+#else
+#ifdef HAVE_SYS_FCNTL_H
+#include &lt;sys/fcntl.h&gt;
+#endif
+#endif
+
+/* limits.h */
+#ifdef HAVE_SYS_LIMITS_H
+#include &lt;sys/limits.h&gt;
+#else
+#ifdef HAVE_LIMITS_H
+#include &lt;limits.h&gt;
+#endif
+#endif
+
+/* stat.h */
+#ifdef HAVE_SYS_STAT_H
+#include &lt;sys/stat.h&gt;
+#else
+#ifdef HAVE_STAT_H
+#include &lt;stat.h&gt;
+#endif
+#endif
+
+/* file.h */
+#ifdef HAVE_SYS_FILE_H
+#include &lt;sys/file.h&gt;
+#endif
+
+/* systeminfo.h */
+#ifdef HAVE_SYS_SYSTEMINFO_H
+#include &lt;sys/systeminfo.h&gt;
+#endif
+
+/* ioctl.h */
+#ifdef HAVE_SYS_IOCTL_H
+#include &lt;sys/ioctl.h&gt;
+#endif
+
+/* time.h */
+#ifdef TIME_WITH_SYS_TIME
+#include &lt;sys/time.h&gt;
+#include &lt;time.h&gt;
+#else
+#ifdef HAVE_SYS_TIME_H
+#include &lt;sys/time.h&gt;
+#else
+#ifdef HAVE_TIME_H
+#include &lt;time.h&gt;
+#endif
+#endif
+#endif
+
+/* string{,s}.h */
+#ifdef HAVE_STRING_H
+#include &lt;string.h&gt;
+#endif
+#ifdef HAVE_STRINGS_H
+#include &lt;strings.h&gt;
+#endif
+
+/* syslog.h */
+#ifdef HAVE_SYSLOG_H
+#include &lt;syslog.h&gt;
+#endif
+
+/* socket.h */
+#ifdef HAVE_SYS_SOCKET_H
+#include &lt;sys/socket.h&gt;
+#else
+#ifdef HAVE_SOCKET_H
+#include &lt;socket.h&gt;
+#endif
+#endif
+
+/* socket.ext.h */
+#ifdef HAVE_SOCKET_EXT_H
+#include &lt;socket.ext.h&gt;
+#endif
+
+/* appkit.h */
+#ifdef HAVE_APPKIT_APPKIT_H
+#include <appkit/appkit.h>
+#else
+#ifdef HAVE_APPKIT_H
+#include <appkit.h>
+#endif
+#endif
+
+/* in.h */
+#ifdef HAVE_NETINET_IN_H
+#include &lt;netinet/in.h&gt;
+#else
+#ifdef HAVE_IN_H
+#include &lt;in.h&gt;
+#endif
+#endif
+
+/* dn.h */
+#ifdef HAVE_DN_H
+#include &lt;dn.h&gt;
+#endif
+
+/* ipc.h */
+#ifdef HAVE_SYS_IPC_H
+#include &lt;sys/ipc.h&gt;
+#endif
+
+/* errno.h */
+#ifdef HAVE_ERRNO_H
+#include &lt;errno.h&gt;
+#else
+#ifdef HAVE_SYS_ERRNO_H
+#include &lt;sys/errno.h&gt;
+#else
+#ifdef HAVE_NET_ERRNO_H
+#include &lt;net/errno.h&gt;
+#endif
+#endif
+#endif
+
+/* pwd.h */
+#ifdef HAVE_PWD_H
+#include &lt;pwd.h&gt;
+#endif
+
+/* grp.h */
+#ifdef HAVE_GRP_H
+#include &lt;grp.h&gt;
+#endif
+
+/* inet.h */
+#ifdef HAVE_ARPA_INET_H
+#include &lt;arpa/inet.h&gt;
+#else
+#ifdef HAVE_INET_H
+#include &lt;inet.h&gt;
+#endif
+#endif
+
+/* netdb.h */
+#ifdef HAVE_NETDB_H
+#include &lt;netdb.h&gt;
+#endif
+
+/* manifest.h */
+#ifdef HAVE_MANIFEST_H
+#include &lt;manifest.h&gt;
+#endif
+
+/* bsdtypes.h */
+#ifdef HAVE_BSDTYPES_H
+#include &lt;bsdtypes.h&gt;
+#endif
+
+/* stdefs.h */
+#ifdef HAVE_STDEFS_H
+#include &lt;stdefs.h&gt;
+#endif
+
+/* bsdtime.h */
+#ifdef HAVE_BSDTIME_H
+#include &lt;bsdtime.h&gt;
+#endif
+
+/* select.h */
+#ifdef HAVE_SYS_SELECT_H
+#include &lt;sys/select.h&gt;
+#else
+#ifdef HAVE_SELECT_H
+#include &lt;select.h&gt;
+#endif
+#endif
+
+/* dnetdb.h */
+#ifdef HAVE_DNETDB_H
+#include &lt;dnetdb.h&gt;
+#endif
+
+/* ucx$inetdef.h */
+#ifdef HAVE_UCX_INETDEF_H
+#include &lt;ucx$inetdef.h&gt;
+#endif
+
+/* libc.h */
+#ifdef HAVE_LIBC_H
+#include &lt;libc.h&gt;
+#endif
+
+/* stdlib.h */
+#ifdef HAVE_STDLIB_H
+#include &lt;stdlib.h&gt;
+#endif
+
+/* malloc.h */
+#ifdef HAVE_MALLOC_H
+#include &lt;malloc.h&gt;
+#endif
+
+/* memory.h */
+#ifdef HAVE_MEMORY_H
+#include &lt;memory.h&gt;
+#endif
+
+/* unixlib.h */
+#ifdef HAVE_UNIXLIB_H
+#include &lt;unixlib.h&gt;
+#endif
+
+/* ctype.h */
+#ifdef HAVE_CTYPE_H
+#include &lt;ctype.h&gt;
+#endif
+
+/* curses.h */
+#ifdef CURSES
+#ifdef HAVE_CURSESX_H
+#include &lt;cursesX.h&gt;
+#else
+#ifdef HAVE_CURSES_H
+#include &lt;curses.h&gt;
+#endif
+#endif
+#endif
+
+/* resource.h (some wait.h's require it) */
+#ifdef HAVE_SYS_RESOURCE_H
+#include &lt;sys/resource.h&gt;
+#else
+#ifdef HAVE_RESOURCE_H
+#include &lt;resource.h&gt;
+#endif
+#endif
+
+/* dirent.h / ndir.h / dir.h */
+#ifdef HAVE_DIRENT_H
+#include &lt;dirent.h&gt;
+#define NAMLEN(dirent) strlen((dirent)->d_name)
+#else
+#define dirent direct
+#define NAMLEN(dirent) (dirent)->d_namlen
+#ifdef HAVE_SYS_NDIR_H
+#include &lt;sys/ndir.h&gt;
+#endif
+#ifdef HAVE_SYS_DIR_H
+#include &lt;sys/dir.h&gt;
+#endif
+#ifdef HAVE_DIR_H
+#include &lt;dir.h&gt;
+#endif
+#ifdef HAVE_NDIR_H
+#include &lt;ndir.h&gt;
+#endif
+#endif
+
+#ifndef HAVE_STRCHR
+#define strchr index
+#define strrchr rindex
+#endif
+#ifndef HAVE_MEMCPY
+#define memcpy(d, s, n) bcopy((s), (d), (n))
+#define memmove(d, s, n) bcopy((s), (d), (n))
+#endif
+
+/* Standard headers */
+#ifdef STDC_HEADERS
+#include &lt;stdarg.h&gt;
+#else
+#include &lt;varargs.h&gt;
+#endif
+
+/* wait.h */
+#ifdef HAVE_SYS_WAIT_H
+#include &lt;sys/wait.h&gt;
+#endif
+#ifndef WEXITSTATUS
+#define WEXITSTATUS(stat_val) (((unsigned)(stat_val) &gt;&gt; 8) &amp 255)
+#endif
+#ifndef WIFEXITED
+#define WIFEXITED(stat_val) (((stat_val) &amp; 255) == 0)
+#endif
+</pre>
+
+<H2>Sleep System Call</H2>
 
 Some systems use milliseconds instead of seconds
 
@@ -1068,11 +1009,16 @@ Some systems use milliseconds instead of seconds
 #endif
 </PRE>
 
-<H3>SOCKS</H3>
+<H2>SOCKS</H2>
 
-SOCKS modifications by Ian Dunkin &lt;imd1707@ggr.co.uk&gt;.
+SOCKS is a package for allowing socket connections to tunnel through
+firewalls in carefully controlled situations.  This package can be
+optionally compiled with SOCKS support; these definitions replace the
+normal socket calls with the SOCKS ones.  Initial modification of the
+library is credited to Ian Dunkin &lt;imd1707@ggr.co.uk&gt;.</P>
+
 <PRE>
-#if defined(SOCKS) && !defined(RULE_FILE)
+#ifdef SOCKS
 #define connect Rconnect
 #define accept  Raccept
 #define getsockname Rgetsockname
@@ -1081,7 +1027,7 @@ SOCKS modifications by Ian Dunkin &lt;imd1707@ggr.co.uk&gt;.
 #endif
 </PRE>
 
-<H3>Network Family</H3>
+<H2>Network Family</H2>
 
 <PRE>
 #ifdef DECNET
@@ -1091,7 +1037,7 @@ typedef struct sockaddr_in SockA;  /* See netinet/in.h */
 #endif
 </PRE>
 
-<H3>Default Values of Network Access</H3>
+<H2>Default Values of Network Access</H2>
 
 <PRE>
 #ifndef NETCLOSE
@@ -1107,18 +1053,7 @@ typedef struct sockaddr_in SockA;  /* See netinet/in.h */
 #endif
 </PRE>
 
-<H3>Include files for TCP</H3>
-<PRE>
-#ifndef TCP_INCLUDES_DONE
-#include &lt;sys/socket.h&gt;
-#include &lt;netinet/in.h&gt;
-#include &lt;arpa/inet.h&gt;		       /* Must be after netinet/in.h */
-#include &lt;netdb.h&gt;
-#define TCP_INCLUDES_DONE
-#endif
-</PRE>
-
-<H3>Definition of errno and Return Code</H3>
+<H2>Definition of errno and Return Code</H2>
 
 This is the definition of error codes and the corresponding string
 constants.  If we do not have the <CODE>strerror</CODE> function then
@@ -1136,7 +1071,7 @@ extern int sys_nerr;
 #endif
 </PRE>
 
-<H3>Definition of Socket Desrciptores</H3>
+<H2>Definition of Socket Desrciptores</H2>
 
 This is necessary in order to support Windows NT...
 
@@ -1153,7 +1088,7 @@ This is necessary in order to support Windows NT...
 #endif /* __svr4__ */
 </PRE>
 
-<H3>Additional Network variables for SOCKET, file access bits</h3>
+<H2>Additional Network variables for SOCKET, file access bits</H2>
 
 <PRE>
 #ifndef _WINSOCKAPI_
@@ -1166,7 +1101,7 @@ This is necessary in order to support Windows NT...
 #endif /* _WINSOCKAPI_ */
 </PRE>
 
-<H3>Rough estimate of max path length</H3>
+<H2>Rough estimate of max path length</H2>
 
 <PRE>
 #ifndef HT_MAX_PATH
@@ -1182,7 +1117,7 @@ This is necessary in order to support Windows NT...
 #endif /* HT_MAX_PATH */
 </PRE>
 
-<H3>Definition of NGROUPS</H3>
+<H2>Definition of NGROUPS</H2>
 
 <PRE>
 #ifdef NO_UNIX_IO
@@ -1200,14 +1135,14 @@ This is necessary in order to support Windows NT...
 #endif
 </PRE>
 
-<H3>Definition of Max Domain Name Length</H3>
+<H2>Definition of Max Domain Name Length</H2>
 <PRE>
 #ifndef MAXHOSTNAMELEN
 #define MAXHOSTNAMELEN 64			/* Any better ideas? */
 #endif
 </PRE>
 
-<H3>File/Directory Management</H3>
+<H2>File/Directory Management</H2>
 <PRE>
 #ifndef MKDIR
 #define MKDIR(a,b)	mkdir((a), (b))
@@ -1230,20 +1165,27 @@ This is necessary in order to support Windows NT...
 #endif
 </PRE>
 
-<H3>Macros for manipulating masks for select()</H3>
+<H2>Macros for manipulating masks for select()</H2>
+
 <PRE>
-#ifdef SELECT
 #ifndef FD_SET
-typedef unsigned int fd_set;
-#define FD_SET(fd,pmask) (*(pmask)) |=  (1&lt;&lt;(fd))
-#define FD_CLR(fd,pmask) (*(pmask)) &amp;= ~(1&lt;&lt;(fd))
-#define FD_ZERO(pmask)   (*(pmask))=0
-#define FD_ISSET(fd,pmask) (*(pmask) &amp; (1&lt;&lt;(fd)))
-#endif  /* FD_SET */
-#endif  /* SELECT */
+#define FD_SET(fd, m) (*(unsigned*)(m) |=  (1 &lt;&lt; (fd)))
+#endif
+
+#ifndef FD_CLR
+#define FD_CLR(fd, m) (*(unsigned*)(m) &amp;= ~(1 &lt;&lt; (fd)))
+#endif
+
+#ifndef FD_ZERO
+#define FD_ZERO(m)    (*(unsigned*)(m)) = 0
+#endif
+
+#ifndef FD_ISSET
+#define FD_ISSET(fd, m) (*(unsigned*)(m) &amp; (1 &lt;&lt; (fd)))
+#endif
 </PRE>
 
-<H3>Macros for converting characters</H3>
+<H2>Macros for converting characters</H2>
 
 <PRE>
 #ifndef TOASCII
@@ -1252,21 +1194,21 @@ typedef unsigned int fd_set;
 #endif
 </PRE>
 
-<H3>Cache file prefix</H3>
+<H2>Cache file prefix</H2>
 
 This is something onto which we tag something meaningful to make a cache
-file name.  used in HTWSRC.c at least. If it is nor defined at all, caching
+file name.  used in HTWSRC.c at least. If it is not defined at all, caching
 is turned off.
 
 <PRE>
 #ifndef CACHE_FILE_PREFIX
-#if defined(unix) || defined(__unix__)
+#ifdef unix
 #define CACHE_FILE_PREFIX  "/usr/wsrc/"
 #endif
 #endif
 </PRE>
 
-<H3>Thread Safe Setup</H3>
+<H2>Thread Safe Setup</H2>
 
 These are some constants setting the size of buffers used by thread
 safe versions of some system calls.

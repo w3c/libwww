@@ -46,7 +46,7 @@ extern char * HTNextField (char** pstr);
 Returns a pointer to a static area!
 
 <PRE>
-extern CONST char *HTDateTimeStr (time_t *calendar, BOOL local);
+extern const char *HTDateTimeStr (time_t *calendar, BOOL local);
 </PRE>
 
 <H2>Date used for directory listings</H2>
@@ -70,14 +70,14 @@ Converts a string representation in GMT to a local representation of
 localtime <CODE>time_t</CODE>.
 
 <PRE>
-extern time_t HTParseTime (CONST char * str);
+extern time_t HTParseTime (const char * str);
 </PRE>
 
 
 <H2>Unique Message-ID String</H2>
 
 <PRE>
-extern CONST char *HTMessageIdStr (void);
+extern const char *HTMessageIdStr (void);
 </PRE>
 
 <H2>Converts an Integer to a String using Prefix</H2>
@@ -107,7 +107,7 @@ turn the wrong way ;-) Returns local file (that must be freed by
 caller) if OK, else NULL.
 
 <PRE>
-extern char * HTWWWToLocal (CONST char * url, CONST char * base);
+extern char * HTWWWToLocal (const char * url, const char * base);
 </PRE>
 
 <H3>Convert a local file name into a URL</H3>
@@ -116,7 +116,7 @@ Generates a WWW URL name from a local file name or NULL if error.
 Returns URL (that must be freed by caller) if OK, else NULL.
 
 <PRE>
-extern char * HTLocalToWWW (CONST char * local);
+extern char * HTLocalToWWW (const char * local);
 </PRE>
 
 <PRE>

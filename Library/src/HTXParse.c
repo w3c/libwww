@@ -12,7 +12,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTFormat.h"			/* defines INPUT_BUFFER_SIZE */
 #include "HTXParse.h"                 /* defines HTStreamClass */
@@ -21,7 +21,7 @@
 #include "HTEvntrg.h"
 
 struct _HTStream {
-	CONST HTStreamClass *	isa;
+	const HTStreamClass *	isa;
 	HTXParseStruct *      eps;
 };
 
@@ -38,7 +38,7 @@ PRIVATE int HTXParse_put_character (HTStream * me, char c)
     return HT_OK;
 }
 
-PRIVATE int HTXParse_put_string (HTStream * me, CONST char * s)
+PRIVATE int HTXParse_put_string (HTStream * me, const char * s)
 {
     int l = strlen(s);
 
@@ -55,7 +55,7 @@ PRIVATE int HTXParse_put_string (HTStream * me, CONST char * s)
     return HT_OK;
 }
 
-PRIVATE int HTXParse_write (HTStream * me, CONST char * s, int l)
+PRIVATE int HTXParse_write (HTStream * me, const char * s, int l)
 {
     while ((me->eps->used + l) > (me->eps->length + 1)) {
 	me->eps->length += INPUT_BUFFER_SIZE;
@@ -102,7 +102,7 @@ PRIVATE int HTXParse_abort (HTStream * me, HTList * e)
 */
 
 
-PRIVATE CONST HTStreamClass HTXParseClass =
+PRIVATE const HTStreamClass HTXParseClass =
 {		
 	"XParse",
 	HTXParse_flush,

@@ -53,8 +53,8 @@ same value for the same given string. The former is case sensitive,
 the latter is case insensitive.
 
 <PRE>
-extern HTAtom * HTAtom_for	(CONST char * string);
-extern HTAtom * HTAtom_caseFor	(CONST char * string);
+extern HTAtom * HTAtom_for	(const char * string);
+extern HTAtom * HTAtom_caseFor	(const char * string);
 </PRE>
 
 <H3>Get Content of an Atom</H3>
@@ -73,7 +73,7 @@ template like <CODE>text&lt;slash&gt;&lt;star&gt;</CODE> returns a
 list of all MIME-types of type <CODE>text</CODE>.
 
 <PRE>
-extern HTList * HTAtom_templateMatches (CONST char * templ);
+extern HTList * HTAtom_templateMatches (const char * templ);
 </PRE>
 
 <H3>Cleanup Memory</H3>

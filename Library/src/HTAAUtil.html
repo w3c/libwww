@@ -160,14 +160,14 @@ schemes if needed.
 
 <PRE>
 typedef BOOL HTAuthParCallback	(HTRequest *	request,
-				 CONST char *	scheme);
+				 const char *	scheme);
 
 typedef BOOL HTAuthGenCallback	(HTRequest *	request,
-				 CONST char *	scheme,
+				 const char *	scheme,
 				 char *		realm,
 				 void *		data);
 
-typedef BOOL HTAuthGcCallback	(CONST char *	scheme,
+typedef BOOL HTAuthGcCallback	(const char *	scheme,
 				 void *		data);
 </PRE>
 
@@ -179,7 +179,7 @@ method. Each of the callback function must have the type as defined
 below.
 
 <PRE>
-extern BOOL HTAuthCall_add	(CONST char *		scheme,
+extern BOOL HTAuthCall_add	(const char *		scheme,
 				 HTAuthParCallback *	parser,
 				 HTAuthGenCallback *	generator,
 				 HTAuthGcCallback *	gc);
@@ -190,7 +190,7 @@ extern BOOL HTAuthCall_add	(CONST char *		scheme,
 Likewise, you can delete an authentication scheme:
 
 <PRE>
-extern BOOL HTAuthCall_delete (CONST char * scheme);
+extern BOOL HTAuthCall_delete (const char * scheme);
 extern BOOL HTAuthCall_deleteAll (void);
 </PRE>
 
@@ -223,7 +223,7 @@ have in the request object and calls the cleanup callback function.
 Case is not significant. Return YES if callback found else NO
 
 <PRE>
-extern BOOL HTAuth_cleanup (CONST char * scheme, void * data);
+extern BOOL HTAuth_cleanup (const char * scheme, void * data);
 </PRE>
 
 <A NAME="authbase"><H2>Authentication Information Databases</H2></A>
@@ -266,7 +266,7 @@ The template must follow normal URI syntax but can include a wildcard
 Return YES if added (or replaced), else NO
 
 <PRE>
-extern BOOL HTAuthInfo_add	(CONST char *	scheme,
+extern BOOL HTAuthInfo_add	(const char *	scheme,
 				 char *		url,
 				 char *		realm,
 				 void *		data);

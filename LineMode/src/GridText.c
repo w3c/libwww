@@ -37,7 +37,7 @@
 #endif
 
 struct _HTStream {			/* only know it as object */
-    CONST HTStreamClass *	isa;
+    const HTStreamClass *	isa;
     /* ... */
 };
 
@@ -134,7 +134,7 @@ PUBLIC HText *	HText_new (HTRequest * request, HTParentAnchor * anchor)
 {
     HTLine * line;
     HText * self;
-    if ((self = (HText  *) HT_MALLOC(sizeof(*self))) == NULL)
+    if ((self = (HText  *) HT_CALLOC(1, sizeof(*self))) == NULL)
 /*        HT_OUTOFMEM("HText"); */
 	return self;
     
@@ -207,7 +207,7 @@ PUBLIC HText *	HText_new2 (HTRequest *		request,
 **	------------------
 **	Removes the data object from the anchor
 */
-PUBLIC void hyperfree (HText *  self)
+PUBLIC void hyper_free (HText *  self)
 {
     if (self) {
 	while (1) {				      /* Free off line array */
@@ -239,7 +239,7 @@ PUBLIC void 	HText_free (HText * self)
 {
     if (self) {
 	HTAnchor_setDocument(self->node_anchor, NULL);
-	hyperfree(self);
+	hyper_free(self);
     }
 }
 
@@ -305,7 +305,7 @@ PRIVATE void display_line (HText * text, HTLine * line)
 */
 PRIVATE void display_title (HText * text)
 {
-    CONST char * title = HTAnchor_title(text->node_anchor);
+    const char * title = HTAnchor_title(text->node_anchor);
     char percent[20], format[20];
     if (text->lines > (DISPLAY_LINES-1)) {
 #ifdef NOPE
@@ -377,7 +377,7 @@ PRIVATE void display_page (HText * text, int line_number)
 {
     HTLine * line = text->last_line->prev;
     int i;
-    CONST char * title = HTAnchor_title(text->node_anchor);
+    const char * title = HTAnchor_title(text->node_anchor);
     int lines_of_text = title ? (DISPLAY_LINES-TITLE_LINES) : DISPLAY_LINES;
     int last_screen = text->lines - lines_of_text;
 
@@ -510,20 +510,13 @@ PRIVATE void split_line (HText * text, int split)
 	previous->size = split;
     }
     
-/*	Economise on space.
-**	Not on the RS6000 due to a chaotic bug in realloc argument passing.
-**	Same problem with Ultrix (4.2) : realloc() is not declared properly.
-*/
-#ifndef AIX
-#ifndef ultrix
     while ((previous->size > 0) &&
-    	(previous->data[previous->size-1] == ' '))	/* Strip trailers */
+	   (previous->data[previous->size-1] == ' '))	/* Strip trailers */
         previous->size--;
 
-    if ((previous = (HTLine  *) HT_REALLOC(previous, LINE_SIZE(previous->size))) == NULL)
+    if ((previous = (HTLine *) HT_REALLOC(previous,
+					  LINE_SIZE(previous->size)))==NULL)
         HT_OUTOFMEM("split_line");
-#endif /* ultrix */
-#endif /* AIX */
 
     previous->prev->next = previous;	/* Link in new line */
     previous->next->prev = previous;	/* Could be same node of course */
@@ -742,8 +735,6 @@ PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anc)
     TextAnchor * a;
     if ((a = (TextAnchor  *) HT_MALLOC(sizeof(*a))) == NULL)
         HT_OUTOFMEM("HText_beginAnchor");
-    
-    if (a == NULL) outofmem(__FILE__, "HText_beginAnchor");
     a->start = text->chars + text->last_line->size;
     a->extent = 0;
     if (text->last_anchor) {
@@ -786,16 +777,16 @@ PUBLIC void HText_endAnchor (HText * text)
 PUBLIC void HText_appendImage (
 	HText * 		text,
 	HTChildAnchor * 	anc,
-	CONST char * 		alt,
-	CONST char *  		alignment,
+	const char * 		alt,
+	const char *  		alignment,
 	BOOL			isMap)
 {
     HText_appendText(text, alt? alt : "[IMAGE]");
 }
 	
-PUBLIC void HText_appendText (HText * text, CONST char * str)
+PUBLIC void HText_appendText (HText * text, const char * str)
 {
-    CONST char * p;
+    const char * p;
     for(p=str; *p; p++) {
         HText_appendCharacter(text, *p);
     }
@@ -1005,7 +996,7 @@ PUBLIC HTStyle * HText_selectionStyle (
 */
 PUBLIC void HText_replaceSel (
 	HText * me,
-	CONST char * aString, 
+	const char * aString, 
 	HTStyle * aStyle)
 {
 }

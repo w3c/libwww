@@ -106,7 +106,7 @@ the string (without the trailing zero)
 
 <PRE>
 #define HTChunkPuts(ch, str) HTChunk_puts(ch, str)
-extern void HTChunk_puts (HTChunk * ch, CONST char *str);
+extern void HTChunk_puts (HTChunk * ch, const char *str);
 </PRE>
 
 <H2>Append a block to a chunk</H2>
@@ -114,7 +114,7 @@ extern void HTChunk_puts (HTChunk * ch, CONST char *str);
 Add the block and increment the size of the chunk by the len
 
 <PRE>
-extern void HTChunk_putb (HTChunk * ch, CONST char *block, int len);
+extern void HTChunk_putb (HTChunk * ch, const char *block, int len);
 </PRE>
 
 <A NAME="Terminate"><H2>Zero Terminate a chunk</H2></A>

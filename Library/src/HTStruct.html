@@ -60,9 +60,9 @@ typedef struct _HTStructuredClass {
 
     int (*put_character)(HTStructured *	me, char ch);
 
-    int (*put_string)	(HTStructured *	me, CONST char * str);
+    int (*put_string)	(HTStructured *	me, const char * str);
 
-    int (*put_block)	(HTStructured * me, CONST char * str, int len);
+    int (*put_block)	(HTStructured * me, const char * str, int len);
 </PRE>
 
 See the <A HREF="HTStream.html">Generic Stream Definition</A> for an
@@ -73,8 +73,8 @@ stream. This is to avoid <EM>incompatible pointer</EM> warnings
 <PRE>
     void (*start_element)(HTStructured *me,
 			  int		element_number,
-			  CONST BOOL *	attribute_present,
-			  CONST char **	attribute_value);
+			  const BOOL *	attribute_present,
+			  const char **	attribute_value);
 
     void (*end_element)	(HTStructured *	me, int element_number);
 

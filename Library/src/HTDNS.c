@@ -13,7 +13,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTAtom.h"
@@ -54,7 +54,7 @@ PRIVATE time_t	TCPTimeout = TCP_TIMEOUT;	   /* Timeout on TCP sockets */
 
 /* ------------------------------------------------------------------------- */
 
-PRIVATE void free_object (HTdns * me)
+PRIVATE void HT_FREE_object (HTdns * me)
 {
     if (me) {
 	HT_FREE(me->hostname);
@@ -77,7 +77,7 @@ PRIVATE BOOL delete_object (HTList * list, HTdns *me)
     if (PROT_TRACE)
 	HTTrace("DNS Delete.. object %p from list %p\n", me, list);
     HTList_removeObject(list, (void *) me);
-    free_object(me);
+    HT_FREE_object(me);
     return YES;
 }
 
@@ -288,12 +288,12 @@ PUBLIC BOOL HTDNS_updateWeigths(HTdns *dns, int current, time_t deltatime)
 {
     if (dns) {
 	int cnt;
-	CONST double passive = 0.9; 	  /* Factor for all passive IP_addrs */
+	const double passive = 0.9; 	  /* Factor for all passive IP_addrs */
 #if 0
-	CONST int Neff = 3;
-	CONST double alpha = exp(-1.0/Neff);
+	const int Neff = 3;
+	const double alpha = exp(-1.0/Neff);
 #else
-	CONST double alpha = 0.716531310574;	/* Doesn't need the math lib */
+	const double alpha = 0.716531310574;	/* Doesn't need the math lib */
 #endif
 	for (cnt=0; cnt<dns->homes; cnt++) {
 	    if (cnt == current) {
@@ -318,11 +318,11 @@ PUBLIC BOOL HTDNS_updateWeigths(HTdns *dns, int current, time_t deltatime)
 **	Remove an element from the cache
 **	Host must be a host name possibly with a port number
 */
-PUBLIC BOOL HTDNS_delete (CONST char * host)
+PUBLIC BOOL HTDNS_delete (const char * host)
 {
     HTList *list;
     int hash = 0;
-    CONST char *ptr;
+    const char *ptr;
     if (!host || !CacheTable) return NO;
     for(ptr=host; *ptr; ptr++)
 	hash = (int) ((hash * 3 + (*(unsigned char *) ptr)) % HASH_SIZE);
@@ -351,7 +351,7 @@ PUBLIC BOOL HTDNS_deleteAll (void)
 	if ((cur = CacheTable[cnt])) { 
 	    HTdns *pres;
 	    while ((pres = (HTdns *) HTList_nextObject(cur)) != NULL)
-		free_object(pres);
+		HT_FREE_object(pres);
 	}
 	HTList_delete(CacheTable[cnt]);
 	CacheTable[cnt] = NULL;
@@ -367,7 +367,7 @@ PUBLIC BOOL HTDNS_deleteAll (void)
 **	-----------------
 **	This function is registered when the socket is idle so that we get
 **	a notification if the socket closes at the other end. At this point
-**	we can't use the request object as it might have been freed a long
+**	we can't use the request object as it might have been HT_FREEd a long
 **	time ago.
 */
 PUBLIC int HTDNS_closeSocket(SOCKET soc, HTRequest * request, SockOps ops)

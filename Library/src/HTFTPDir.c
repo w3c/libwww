@@ -13,7 +13,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTParse.h"
@@ -26,7 +26,7 @@
 #include "HTFTPDir.h"					 /* Implemented here */
 
 struct _HTStream {
-    CONST HTStreamClass *	isa;
+    const HTStreamClass *	isa;
     HTRequest *			request;
     FTPServerType		server;
     HTSocketEOL			state;
@@ -199,7 +199,7 @@ PRIVATE BOOL ParseFTPLine (HTStream *me)
 /*
 **	Searches for FTP line until buffer fills up or a CRLF or LF is found
 */
-PRIVATE int FTPDir_put_block (HTStream * me, CONST char * b, int l)
+PRIVATE int FTPDir_put_block (HTStream * me, const char * b, int l)
 {
     while (l-- > 0) {
 	if (me->state == EOL_FCR) {
@@ -236,7 +236,7 @@ PRIVATE int FTPDir_put_block (HTStream * me, CONST char * b, int l)
     return HT_OK;
 }
 
-PRIVATE int FTPDir_put_string (HTStream * me, CONST char * s)
+PRIVATE int FTPDir_put_string (HTStream * me, const char * s)
 {
     return FTPDir_put_block(me, s, (int) strlen(s));
 }
@@ -268,7 +268,7 @@ PRIVATE int FTPDir_abort (HTStream * me, HTList * e)
 /*	FTPDir Stream
 **	-----------------
 */
-PRIVATE CONST HTStreamClass FTPDirClass =
+PRIVATE const HTStreamClass FTPDirClass =
 {		
     "FTPDir",
     FTPDir_flush,

@@ -75,7 +75,7 @@
 #define HEX_ESCAPE '%'
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTParse.h"
@@ -103,12 +103,12 @@ PRIVATE char	line[2048];	/* For building strings to display */
 #define FREE_TARGET (*target->isa->_free)(target)
 
 struct _HTStructured {
-	CONST HTStructuredClass *	isa;
+	const HTStructuredClass *	isa;
 	/* ... */
 };
 
 struct _HTStream {
-	CONST HTStreamClass *	isa;
+	const HTStreamClass *	isa;
 	/* ... */
 };
 
@@ -652,11 +652,11 @@ PUBLIC int HTLoadWAIS (SOCKET soc, HTRequest * request, SockOps ops)
 #define MAX_SERVICE_LENGTH 1000
 
 {
-    CONST char * arg = HTAnchor_physical(request->anchor);
+    const char * arg = HTAnchor_physical(request->anchor);
     HTFormat		format_out = request->output_format;
     HTStream*		sink = request->output_stream;
 #if 0    
-    static CONST char * error_header =
+    static const char * error_header =
 "<h1>Access error</h1>\nThe following error occured in accesing a WAIS server:<P>\n";
 #endif
     char * key;			  /* pointer to keywords in URL */

@@ -15,7 +15,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTFormat.h"
@@ -71,7 +71,7 @@ PRIVATE HTChildAnchor * HTChildAnchor_new (void)
 **	child.
 */
 PUBLIC HTChildAnchor * HTAnchor_findChild (HTParentAnchor *	parent,
-					   CONST char *		tag)
+					   const char *		tag)
 {
     HTChildAnchor *child;
     HTList *kids;
@@ -105,7 +105,7 @@ PUBLIC HTChildAnchor * HTAnchor_findChild (HTParentAnchor *	parent,
     StrAllocCopy(child->tag, tag);
     if (ANCH_TRACE)
 	HTTrace("Find Child.. New Anchor %p named `%s' is child of %p\n",
-		(void *) child, tag ? tag : (CONST char *) "", (void *)parent);
+		(void *) child, tag ? tag : (const char *) "", (void *)parent);
     return child;
 }
 
@@ -118,7 +118,7 @@ PUBLIC HTChildAnchor * HTAnchor_findChild (HTParentAnchor *	parent,
 **	Note: You are not guaranteed a new anchor -- you might get an old one,
 **	like with fonts.
 */
-PUBLIC HTAnchor * HTAnchor_findAddress (CONST char * address)
+PUBLIC HTAnchor * HTAnchor_findAddress (const char * address)
 {
     char *tag = HTParse (address, "", PARSE_ANCHOR);	        /* Any tags? */
     
@@ -134,7 +134,7 @@ PUBLIC HTAnchor * HTAnchor_findAddress (CONST char * address)
 	return (HTAnchor *) child;
     } else {		       	     /* Else check whether we have this node */
 	int hash;
-	CONST char *p;
+	const char *p;
 	HTList * adults;
 	HTList *grownups;
 	HTParentAnchor * foundAnchor;
@@ -182,8 +182,8 @@ PUBLIC HTAnchor * HTAnchor_findAddress (CONST char * address)
 **	All parameters EXCEPT parent can be NULL
 */
 PUBLIC HTChildAnchor * HTAnchor_findChildAndLink (HTParentAnchor *	parent,
-						  CONST char *		tag,
-						  CONST char *		href,
+						  const char *		tag,
+						  const char *		href,
 						  HTLinkType		ltype)
 {
     HTChildAnchor * child = HTAnchor_findChild(parent, tag);
@@ -343,7 +343,7 @@ PUBLIC BOOL HTAnchor_setMainLink  (HTAnchor * me, HTLink * movingLink)
 	memcpy ((void *) newLink, & me->mainLink, sizeof (HTLink));
 	HTList_addObject (me->links, newLink);
 
-	/* Now make movingLink the new main link, and free it */
+	/* Now make movingLink the new main link, and HT_FREE it */
 	memcpy ((void *) &me->mainLink, movingLink, sizeof (HTLink));
 	HT_FREE(movingLink);
 	return YES;
@@ -891,17 +891,17 @@ PUBLIC void HTAnchor_appendMethods (HTParentAnchor * me, HTMethod methodset)
 /*
 **	Title
 */
-PUBLIC CONST char * HTAnchor_title  (HTParentAnchor * me)
+PUBLIC const char * HTAnchor_title  (HTParentAnchor * me)
 {
     return me ? me->title : NULL;
 }
 
-PUBLIC void HTAnchor_setTitle (HTParentAnchor * me, CONST char * title)
+PUBLIC void HTAnchor_setTitle (HTParentAnchor * me, const char * title)
 {
     if (me && title) StrAllocCopy(me->title, title);
 }
 
-PUBLIC void HTAnchor_appendTitle (HTParentAnchor * me, CONST char * title)
+PUBLIC void HTAnchor_appendTitle (HTParentAnchor * me, const char * title)
 {
     if (me && title) StrAllocCat(me->title, title);
 }
@@ -914,7 +914,7 @@ PUBLIC char * HTAnchor_version (HTParentAnchor * me)
     return me ? me->version : NULL;
 }
 
-PUBLIC void HTAnchor_setVersion (HTParentAnchor * me, CONST char * version)
+PUBLIC void HTAnchor_setVersion (HTParentAnchor * me, const char * version)
 {
     if (me && version) StrAllocCopy(me->version, version);
 }
@@ -927,7 +927,7 @@ PUBLIC char * HTAnchor_derived (HTParentAnchor * me)
     return me ? me->derived_from : NULL;
 }
 
-PUBLIC void HTAnchor_setDerived (HTParentAnchor * me, CONST char *derived_from)
+PUBLIC void HTAnchor_setDerived (HTParentAnchor * me, const char *derived_from)
 {
     if (me && derived_from) StrAllocCopy(me->derived_from, derived_from);
 }
@@ -940,7 +940,7 @@ PUBLIC time_t HTAnchor_date (HTParentAnchor * me)
     return me ? me->date : -1;
 }
 
-PUBLIC void HTAnchor_setDate (HTParentAnchor * me, CONST time_t date)
+PUBLIC void HTAnchor_setDate (HTParentAnchor * me, const time_t date)
 {
     if (me) me->date = date;
 }
@@ -953,7 +953,7 @@ PUBLIC time_t HTAnchor_expires (HTParentAnchor * me)
     return me ? me->expires : -1;
 }
 
-PUBLIC void HTAnchor_setExpires (HTParentAnchor * me, CONST time_t expires)
+PUBLIC void HTAnchor_setExpires (HTParentAnchor * me, const time_t expires)
 {
     if (me) me->expires = expires;
 }
@@ -966,7 +966,7 @@ PUBLIC time_t HTAnchor_lastModified (HTParentAnchor * me)
     return me ? me->last_modified : -1;
 }
 
-PUBLIC void HTAnchor_setLastModified (HTParentAnchor * me, CONST time_t lm)
+PUBLIC void HTAnchor_setLastModified (HTParentAnchor * me, const time_t lm)
 {
     if (me) me->last_modified = lm;
 }
@@ -979,7 +979,7 @@ PUBLIC HTList * HTAnchor_Extra  (HTParentAnchor * me)
     return me ? me->extra_headers : NULL;
 }
 
-PUBLIC void HTAnchor_addExtra (HTParentAnchor * me, CONST char * header)
+PUBLIC void HTAnchor_addExtra (HTParentAnchor * me, const char * header)
 {
     if (me) {
 	char *newhead = NULL;

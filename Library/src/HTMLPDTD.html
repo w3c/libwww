@@ -247,7 +247,7 @@ HREF="HTMLPDTD.c" NAME="z2">HTMLPDTD.c</A> ! <PRE>
 
 #define HTML_UL_ATTRIBUTES	6
 
-extern CONST SGML_dtd HTMLP_dtd;
+extern const SGML_dtd HTMLP_dtd;
 
 
 </PRE><H2>Start anchor element</H2>It is kinda convenient to have a particular
@@ -257,23 +257,23 @@ poinst to a structured stream object.<P>name and href point to attribute
 strings or are NULL if the attribute is to be omitted. <PRE>
 extern void HTStartAnchor (
 		HTStructured * targetstream,
-		CONST char *  	name,
-		CONST char *  	href);
+		const char *  	name,
+		const char *  	href);
 
 
 </PRE><H2>Put image element</H2>Hopefully as useful as HTStartAnchor. <H3>
 On entry</H3>targetstream point to a structured stream object.<P>src,
 alt and align are omitted if they are set to NULL. <PRE>
 extern void HTMLPutImg (HTStructured *obj,
-		 	       CONST char *src,
-			       CONST char *alt,
-			       CONST char *align);
+		 	       const char *src,
+			       const char *alt,
+			       const char *align);
 
 </PRE><H2>Specify next ID to be used</H2>This is another convenience routine,
 for specifying the next ID to be used by an editor in the series z1. z2,...
 <PRE>
 extern void HTNextID (HTStructured * targetStream,
-			CONST char * s);
+			const char * s);
 
 #endif /* HTMLDTD_H */
 

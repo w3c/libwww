@@ -28,12 +28,12 @@
 
 #include "HTLine.h"			     		 /* Implemented here */
 
-#ifndef VT
-#define VT "unspecified"
+#ifndef W3C_VERSION
+#define W3C_VERSION		"unspecified"
 #endif
 
 #define APP_NAME		"W3CCommandLine"
-#define APP_VERSION		VT
+#define APP_VERSION		W3C_VERSION
 
 /* Default page for "-help" command line option */
 #define HELP	"http://www.w3.org/pub/WWW/ComLine/User/CommandLine.html"
@@ -95,9 +95,9 @@ PUBLIC int OutputData(const char  * fmt, ...)
 PRIVATE ComLine * ComLine_new (void)
 {
     ComLine * me;
-    if ((me = (ComLine *) calloc(1, sizeof(ComLine))) == NULL ||
-	(me->tv = (struct timeval*) calloc(1, sizeof(struct timeval))) == NULL)
-	outofmem(__FILE__, "ComLine_new");
+    if ((me = (ComLine *) HT_CALLOC(1, sizeof(ComLine))) == NULL ||
+	(me->tv = (struct timeval*) HT_CALLOC(1, sizeof(struct timeval))) == NULL)
+	HT_OUTOFMEM("ComLine_new");
     me->tv->tv_sec = DEFAULT_TIMEOUT;
     me->cwd = HTFindRelatedName();
     me->output = OUTPUT;
@@ -176,7 +176,8 @@ PRIVATE int authentication_handler (HTRequest * request, int status)
     ComLine * cl = (ComLine *) HTRequest_context(request);
 
     /* Ask the authentication module for getting credentials */
-    if (HTAA_authentication(request) && HTAA_retryWithAuth(request)) {
+    if (HTAuth_parse(request)) {
+	HTMethod method = HTRequest_method(request);
 
 	/* Make sure we do a reload from cache */
 	HTRequest_setReloadMode(request, HT_FORCE_RELOAD);
@@ -273,7 +274,7 @@ PRIVATE int timeout_handler (HTRequest * request)
 **	---------------
 **	This function is registered to handle unknown MIME headers
 */
-PRIVATE int header_handler (HTRequest * request, CONST char * token)
+PRIVATE int header_handler (HTRequest * request, const char * token)
 {
     if (SHOW_MSG) HTTrace("Parsing unknown header `%s\'\n", token);
     return HT_OK;

@@ -18,7 +18,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTParse.h"
@@ -94,11 +94,11 @@ typedef struct _gopher_info {
 #define MAX_GOPHER_LINE		256
 
 struct _HTStructured {
-    CONST HTStructuredClass *	isa;
+    const HTStructuredClass *	isa;
 };
 
 struct _HTStream {
-    CONST HTStreamClass *	isa;
+    const HTStreamClass *	isa;
     HTStructured *	  	target;
     HTRequest *			request;
     HTSocketEOL			state;
@@ -419,7 +419,7 @@ PRIVATE BOOL GopherCSOLine (HTStream *me, char *line)
 /*
 **  Searches for Gopher line until buffer fills up or a CRLF or LF is found
 */
-PRIVATE int GopherMenu_put_block (HTStream * me, CONST char * b, int l)
+PRIVATE int GopherMenu_put_block (HTStream * me, const char * b, int l)
 {
     while (l-- > 0) {
 	if (me->state == EOL_FCR) {
@@ -462,7 +462,7 @@ PRIVATE int GopherMenu_put_block (HTStream * me, CONST char * b, int l)
     return HT_OK;
 }
 
-PRIVATE int GopherMenu_put_string (HTStream * me, CONST char* s)
+PRIVATE int GopherMenu_put_string (HTStream * me, const char* s)
 {
     return GopherMenu_put_block(me, s, (int) strlen(s));
 }
@@ -499,7 +499,7 @@ PRIVATE int GopherMenu_abort (HTStream * me, HTList * e)
 /*	Goper Menu Stream
 **	-----------------
 */
-PRIVATE CONST HTStreamClass GopherMenuClass =
+PRIVATE const HTStreamClass GopherMenuClass =
 {		
     "GopherMenu",
     GopherMenu_flush,

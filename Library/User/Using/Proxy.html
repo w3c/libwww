@@ -42,7 +42,7 @@ A proxy server is registered with a corresponding access method, for example <EM
 access then delete it and use the new one.
 
 <PRE>
-extern BOOL HTProxy_add		(CONST char * access, CONST char * proxy);
+extern BOOL HTProxy_add		(const char * access, const char * proxy);
 </PRE>
 
 In addition to the proxy list, the Library supports a list of servers for which a proxy should
@@ -51,7 +51,7 @@ inside a firewall, if the server is known to be either as well connected as the 
 server is in fact itself a proxy server.
 
 <PRE>
-extern BOOL HTNoProxy_add	(CONST char * host, CONST char * access, unsigned port);
+extern BOOL HTNoProxy_add	(const char * host, const char * access, unsigned port);
 </PRE>
 
 The set of server registered using this function are host names and domain names where we don't
@@ -74,7 +74,7 @@ name, like <CODE>http://gateway.w3.org:8001</CODE> but domain name is not requir
 exists for this access then delete it and use the new one.
 
 <PRE>
-extern BOOL HTGateway_add	(CONST char * access, CONST char * gate);
+extern BOOL HTGateway_add	(const char * access, const char * gate);
 </PRE>
 
 <H2>Backwards Compatibility with Environment Variables</H2>

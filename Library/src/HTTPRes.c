@@ -10,7 +10,7 @@
 */
 
 /* Library Includes */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTWWWStr.h"
@@ -30,7 +30,7 @@
 #define PUTBLOCK(b, l)	(*me->target->isa->put_block)(me->target, b, l)
 
 struct _HTStream {
-    CONST HTStreamClass *	isa;
+    const HTStreamClass *	isa;
     HTStream *		  	target;
     HTRequest *			request;
     BOOL			transparent;
@@ -79,7 +79,7 @@ PRIVATE int HTTPMakeResponse (HTStream * me, HTRequest * request)
     return HT_OK;
 }
 
-PRIVATE int HTTPResponse_put_block (HTStream * me, CONST char * b, int l)
+PRIVATE int HTTPResponse_put_block (HTStream * me, const char * b, int l)
 {
     if (me->target) {
 	if (me->transparent)
@@ -98,7 +98,7 @@ PRIVATE int HTTPResponse_put_character (HTStream * me, char c)
     return HTTPResponse_put_block(me, &c, 1);
 }
 
-PRIVATE int HTTPResponse_put_string (HTStream * me, CONST char * s)
+PRIVATE int HTTPResponse_put_string (HTStream * me, const char * s)
 {
     return HTTPResponse_put_block(me, s, strlen(s));
 }
@@ -141,7 +141,7 @@ PRIVATE int HTTPResponse_abort (HTStream * me, HTList * e)
 /*	HTTPResponse Stream
 **	-----------------
 */
-PRIVATE CONST HTStreamClass HTTPResponseClass =
+PRIVATE const HTStreamClass HTTPResponseClass =
 {		
     "HTTPResponse",
     HTTPResponse_flush,

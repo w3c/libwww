@@ -19,7 +19,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTFormat.h"
@@ -40,10 +40,10 @@
 #endif
 
 struct _HTStream {
-    CONST HTStreamClass *isa;
+    const HTStreamClass *isa;
     
     FILE *		fp;
-    BOOL		leave_open;		    /* Close file when free? */
+    BOOL		leave_open;		    /* Close file when HT_FREE? */
     char * 		end_command;		       /* Command to execute */
     BOOL 		remove_on_close;		     /* Remove file? */
     char *		filename;			     /* Name of file */
@@ -72,12 +72,12 @@ PRIVATE int HTBlackHole_put_character (HTStream * me, char c)
     return HT_OK;
 }
 
-PRIVATE int HTBlackHole_put_string (HTStream * me, CONST char * s)
+PRIVATE int HTBlackHole_put_string (HTStream * me, const char * s)
 {
     return HT_OK;
 }
 
-PRIVATE int HTBlackHole_write (HTStream * me, CONST char * s, int l)
+PRIVATE int HTBlackHole_write (HTStream * me, const char * s, int l)
 {
     return HT_OK;
 }
@@ -87,7 +87,7 @@ PRIVATE int HTBlackHole_flush (HTStream * me)
     return HT_OK;
 }
 
-PRIVATE int HTBlackHole_free (HTStream * me)
+PRIVATE int HTBlackHole_HT_FREE (HTStream * me)
 {
     return HT_OK;
 }
@@ -101,11 +101,11 @@ PRIVATE int HTBlackHole_abort (HTStream * me, HTList * e)
 /*	Black Hole stream
 **	-----------------
 */
-PRIVATE CONST HTStreamClass HTBlackHoleClass =
+PRIVATE const HTStreamClass HTBlackHoleClass =
 {		
     "BlackHole",
     HTBlackHole_flush,
-    HTBlackHole_free,
+    HTBlackHole_HT_FREE,
     HTBlackHole_abort,
     HTBlackHole_put_character,
     HTBlackHole_put_string,
@@ -139,12 +139,12 @@ PRIVATE int HTErrorStream_put_character (HTStream * me, char c)
     return HT_ERROR;
 }
 
-PRIVATE int HTErrorStream_put_string (HTStream * me, CONST char * s)
+PRIVATE int HTErrorStream_put_string (HTStream * me, const char * s)
 {
     return HT_ERROR;
 }
 
-PRIVATE int HTErrorStream_write (HTStream * me, CONST char * s, int l)
+PRIVATE int HTErrorStream_write (HTStream * me, const char * s, int l)
 {
     return HT_ERROR;
 }
@@ -154,7 +154,7 @@ PRIVATE int HTErrorStream_flush (HTStream * me)
     return HT_ERROR;
 }
 
-PRIVATE int HTErrorStream_free (HTStream * me)
+PRIVATE int HTErrorStream_HT_FREE (HTStream * me)
 {
     return HT_ERROR;
 }
@@ -164,11 +164,11 @@ PRIVATE int HTErrorStream_abort (HTStream * me, HTList * e)
     return HT_ERROR;
 }
 
-PRIVATE CONST HTStreamClass HTErrorStreamClass =
+PRIVATE const HTStreamClass HTErrorStreamClass =
 {		
     "ErrorStream",
     HTErrorStream_flush,
-    HTErrorStream_free,
+    HTErrorStream_HT_FREE,
     HTErrorStream_abort,
     HTErrorStream_put_character,
     HTErrorStream_put_string,
@@ -206,7 +206,7 @@ PRIVATE int HTFWriter_put_character (HTStream * me, char c)
     return (fputc(c, me->fp) == EOF) ? HT_ERROR : HT_OK;
 }
 
-PRIVATE int HTFWriter_put_string (HTStream * me, CONST char* s)
+PRIVATE int HTFWriter_put_string (HTStream * me, const char* s)
 {
     if (*s)				             /* For vms :-( 10/04-94 */
 	return (fputs(s, me->fp) == EOF) ? HT_ERROR : HT_OK;
@@ -218,7 +218,7 @@ PRIVATE int HTFWriter_flush (HTStream * me)
     return (fflush(me->fp) == EOF) ? HT_ERROR : HT_OK;
 }
 
-PRIVATE int HTFWriter_write (HTStream * me, CONST char* s, int l)
+PRIVATE int HTFWriter_write (HTStream * me, const char* s, int l)
 {
     int status ;
     status = (fwrite(s, 1, l, me->fp) != l) ? HT_ERROR : HT_OK ;
@@ -226,11 +226,11 @@ PRIVATE int HTFWriter_write (HTStream * me, CONST char* s, int l)
     return status ;
 }
 
-PRIVATE int HTFWriter_free (HTStream * me)
+PRIVATE int HTFWriter_HT_FREE (HTStream * me)
 {
     if (me) {
 	if (me->leave_open != YES) fclose(me->fp);
-#ifdef GOT_SYSTEM
+#ifdef HAVE_SYSTEM
 	if (me->end_command) system(me->end_command);    /* SECURITY HOLE!!! */
 #endif
 	if (me->remove_on_close) REMOVE(me->filename);
@@ -255,11 +255,11 @@ PRIVATE int HTFWriter_abort (HTStream * me, HTList * e)
     return HT_ERROR;
 }
 
-PRIVATE CONST HTStreamClass HTFWriter = /* As opposed to print etc */
+PRIVATE const HTStreamClass HTFWriter = /* As opposed to print etc */
 {		
     "FileWriter",
     HTFWriter_flush,
-    HTFWriter_free,
+    HTFWriter_HT_FREE,
     HTFWriter_abort,
     HTFWriter_put_character,
     HTFWriter_put_string,
@@ -291,7 +291,7 @@ PUBLIC HTStream * HTFWriter_new (HTRequest * request, FILE * fp,
 **	--------------
 **	If `tmp_root' is NULL use the current value (might be a define)
 */
-PUBLIC BOOL HTTmp_setRoot (CONST char * tmp_root)
+PUBLIC BOOL HTTmp_setRoot (const char * tmp_root)
 {
     StrAllocCopy(HTTmpRoot, tmp_root ? tmp_root : HT_TMP_ROOT);
     if (*(HTTmpRoot+strlen(HTTmpRoot)-1) != '/')
@@ -305,7 +305,7 @@ PUBLIC BOOL HTTmp_setRoot (CONST char * tmp_root)
 /*	Get Tmp Root
 **	--------------
 */
-PUBLIC CONST char * HTTmp_getRoot (void)
+PUBLIC const char * HTTmp_getRoot (void)
 {
     return HTTmpRoot;
 }
@@ -315,17 +315,17 @@ PUBLIC CONST char * HTTmp_getRoot (void)
 **	--------------
 **	For clean up memory
 */
-PUBLIC void HTTmp_freeRoot (void)
+PUBLIC void HTTmp_HT_FREERoot (void)
 {
     HT_FREE(HTTmpRoot);
 }
 
 /*
 **   This function tries really hard to find a non-existent filename relative
-**   to the path given. Returns a string that must be freed by the caller or
+**   to the path given. Returns a string that must be HT_FREEd by the caller or
 **   NULL on error. The base must be '/' terminated which!
 */
-PRIVATE char *get_filename (char * base, CONST char * url, CONST char * suffix)
+PRIVATE char *get_filename (char * base, const char * url, const char * suffix)
 {
     char *path=NULL;
     char filename[40];
@@ -334,11 +334,11 @@ PRIVATE char *get_filename (char * base, CONST char * url, CONST char * suffix)
     /* Do this until we find a name that doesn't exist */
     while (1)
     {
-	CONST char *ptr=url;
+	const char *ptr=url;
 	for( ; *ptr; ptr++)
 	    hash = (int) ((hash * 31 + (* (unsigned char *) ptr)) % HASH_SIZE);
 
-#ifndef NO_GETPID
+#ifdef HAVE_GETPID
 	sprintf(filename, "%d-%d", hash, (int) getpid());
 #else
 	sprintf(filename, "%d-%d", hash, time(NULL));

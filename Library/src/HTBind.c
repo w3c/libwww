@@ -31,7 +31,7 @@
 */
 
 /* Library Includes */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTAncMan.h"
@@ -118,7 +118,7 @@ PUBLIC void HTBind_caseSensitive (BOOL sensitive)
 /*	Get set of suffixes
 **	-------------------
 */
-PUBLIC CONST char *HTBind_delimiters (void)
+PUBLIC const char *HTBind_delimiters (void)
 {
     return HTDelimiters;
 }
@@ -127,7 +127,7 @@ PUBLIC CONST char *HTBind_delimiters (void)
 /*	Change set of suffixes
 **	----------------------
 */
-PUBLIC void HTBind_setDelimiters (CONST char * new_suffixes)
+PUBLIC void HTBind_setDelimiters (const char * new_suffixes)
 {
     if (new_suffixes && *new_suffixes)
 	StrAllocCopy(HTDelimiters, new_suffixes);
@@ -145,31 +145,31 @@ PUBLIC void HTBind_setDelimiters (CONST char * new_suffixes)
 **	If filename suffix is already defined its previous
 **	definition is overridden (or modified)
 */
-PUBLIC BOOL HTBind_addType (CONST char *	suffix,
-			    CONST char *	representation,
+PUBLIC BOOL HTBind_addType (const char *	suffix,
+			    const char *	representation,
 			    double		value)
 {
     return HTBind_add(suffix, representation, NULL, NULL, value);
 }
 
-PUBLIC BOOL HTBind_addEncoding (CONST char *	suffix,
-				CONST char *	encoding,
+PUBLIC BOOL HTBind_addEncoding (const char *	suffix,
+				const char *	encoding,
 				double		value)
 {
     return HTBind_add(suffix, NULL, encoding, NULL, value);
 }
 
-PUBLIC BOOL HTBind_addLanguage (CONST char *	suffix,
-				CONST char *	language,
+PUBLIC BOOL HTBind_addLanguage (const char *	suffix,
+				const char *	language,
 				double		value)
 {
     return HTBind_add(suffix, NULL, NULL, language, value);
 }
 
-PUBLIC BOOL HTBind_add (CONST char *	suffix,
-			CONST char *	representation,
-			CONST char *	encoding,
-			CONST char *	language,
+PUBLIC BOOL HTBind_add (const char *	suffix,
+			const char *	representation,
+			const char *	encoding,
+			const char *	language,
 			double		value)
 {
     HTBind * suff;
@@ -182,7 +182,7 @@ PUBLIC BOOL HTBind_add (CONST char *	suffix,
     else {
 	HTList *suflist;
 	int hash=0;
-	CONST char *ptr=suffix;
+	const char *ptr=suffix;
 
 	/* Select list from hash table */
 	for( ; *ptr; ptr++)
@@ -244,7 +244,7 @@ PUBLIC BOOL HTBind_add (CONST char *	suffix,
 **  for a certain combination of language, media type and encoding
 **  given in the anchor.
 **
-**  Returns a pointer to a suitable suffix string that must be freed 
+**  Returns a pointer to a suitable suffix string that must be HT_FREEd 
 **  by the caller. If more than one suffix is found they are all
 **  concatenated using the first delimiter in HTDelimiters.
 **  If no suffix is found, NULL is returned.
@@ -289,7 +289,7 @@ PUBLIC char * HTBind_getSuffix (HTParentAnchor * anchor)
 **  has highest priority, the first one lowest. See also HTBind_getFormat()
 **
 **  Returns a contentdescription object with the representations found. This
-**  must be free by the caller
+**  must be HT_FREE by the caller
 */
 PUBLIC HTContentDescription * HTBind_getDescription (char * file)
 {
@@ -351,7 +351,7 @@ PUBLIC BOOL HTBind_getBindings (HTParentAnchor * anchor)
 **  Either of format, encoding, or language can be NULL
 **  Returns the format, encoding, and language found
 */
-PUBLIC BOOL HTBind_getFormat (CONST char * filename, HTFormat * format,
+PUBLIC BOOL HTBind_getFormat (const char * filename, HTFormat * format,
 			      HTEncoding * enc, HTLanguage * lang,
 			      double * quality)
 {

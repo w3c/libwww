@@ -20,7 +20,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTMLPDTD.h"
 #include "HTStruct.h"
@@ -37,14 +37,14 @@
 
 /* HTML Generator Object */
 struct _HTStream {
-    CONST HTStreamClass *	isa;
+    const HTStreamClass *	isa;
     HTStream *			target;
 };
 
 struct _HTStructured {
-    CONST HTStructuredClass *	isa;
+    const HTStructuredClass *	isa;
     HTStream * 			target;
-    CONST SGML_dtd *		dtd;
+    const SGML_dtd *		dtd;
     BOOL			seven_bit;		  /* restrict output */
 	
     char			buffer[BUFFER_SIZE+1];
@@ -194,7 +194,7 @@ PRIVATE int HTMLGen_output_character (HTStructured * me, char c)
 /*	String handling
 **	---------------
 */
-PRIVATE int HTMLGen_output_string (HTStructured * me, CONST char* s)
+PRIVATE int HTMLGen_output_string (HTStructured * me, const char* s)
 {
     while (*s)
 	HTMLGen_output_character(me, *s++);
@@ -225,14 +225,14 @@ PRIVATE int HTMLGen_put_character (HTStructured * me, char c)
     return HT_OK;
 }
 
-PRIVATE int HTMLGen_put_string (HTStructured * me, CONST char* s)
+PRIVATE int HTMLGen_put_string (HTStructured * me, const char* s)
 {
     while (*s)
 	HTMLGen_put_character(me, *s++);
     return HT_OK;
 }
 
-PRIVATE int HTMLGen_write (HTStructured * me, CONST char* b, int l)
+PRIVATE int HTMLGen_write (HTStructured * me, const char* b, int l)
 {
     while (l-- > 0)
 	HTMLGen_put_character(me, *b++);
@@ -249,8 +249,8 @@ PRIVATE int HTMLGen_write (HTStructured * me, CONST char* b, int l)
 PRIVATE void HTMLGen_start_element (
 	HTStructured * 	me,
 	int			element_number,
-	CONST BOOL*	 	present,
-	CONST char **		value)
+	const BOOL*	 	present,
+	const char **		value)
 {
     int i;
     HTTag * tag = &me->dtd->tags[element_number];
@@ -376,7 +376,7 @@ PRIVATE int PlainToHTML_abort (HTStructured * me, HTList * e)
 /*	Structured Object Class
 **	-----------------------
 */
-PRIVATE CONST HTStructuredClass HTMLGeneration = /* As opposed to print etc */
+PRIVATE const HTStructuredClass HTMLGeneration = /* As opposed to print etc */
 {		
 	"text/html",
 	HTMLGen_flush,
@@ -421,7 +421,7 @@ PUBLIC HTStructured* HTMLGenerator (HTRequest *	request,
 **	It is officially a structured stream but only the stream bits exist.
 **	This is just the easiest way of typecasting all the routines.
 */
-PRIVATE CONST HTStructuredClass PlainToHTMLConversion =
+PRIVATE const HTStructuredClass PlainToHTMLConversion =
 {		
 	"plaintexttoHTML",
 	HTMLGen_flush,
@@ -449,7 +449,7 @@ PUBLIC HTStream* HTPlainToHTML (HTRequest *	request,
 				HTStream *	output_stream)
 {
     BOOL present[MAX_ATTRIBUTES];	/* Flags: attribute is present? */
-    CONST char *value[MAX_ATTRIBUTES];	/* malloc'd strings or NULL if none */
+    const char *value[MAX_ATTRIBUTES];	/* malloc'd strings or NULL if none */
     HTStructured* me;
     if ((me = (HTStructured *) HT_CALLOC(1,sizeof(*me))) == NULL)
         HT_OUTOFMEM("PlainToHTML");

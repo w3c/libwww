@@ -14,7 +14,7 @@
 */
 
 /* Implemention dependent include files */
-#include "tcp.h"
+#include "sysdep.h"
 
 /* Library include files */
 #include "HTUtils.h"
@@ -41,7 +41,7 @@ typedef struct _NetCall {
 } NetCall;
 
 struct _HTStream {
-    CONST HTStreamClass *	isa;
+    const HTStreamClass *	isa;
     /* ... */
 };
 

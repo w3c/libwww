@@ -41,8 +41,8 @@ then it is equivalent to <CODE>StrAllocCopy</CODE>.
 #define StrAllocCopy(dest, src) HTSACopy (&amp;(dest), src)
 #define StrAllocCat(dest, src)  HTSACat  (&amp;(dest), src)
 
-extern char * HTSACopy (char **dest, CONST char *src);
-extern char * HTSACat  (char **dest, CONST char *src);
+extern char * HTSACopy (char **dest, const char *src);
+extern char * HTSACat  (char **dest, const char *src);
 </PRE>
 
 <H2><A NAME="utils">Case-insensitive String Comparison</A></H2>
@@ -50,8 +50,8 @@ extern char * HTSACat  (char **dest, CONST char *src);
 The usual routines (comp instead of cmp) had some problem.
 
 <PRE>
-extern int strcasecomp  (CONST char *a, CONST char *b);
-extern int strncasecomp (CONST char *a, CONST char *b, int n);
+extern int strcasecomp  (const char *a, const char *b);
+extern int strncasecomp (const char *a, const char *b, int n);
 </PRE>
 
 <H2>String Comparison with Wild Card Match</H2>
@@ -73,8 +73,8 @@ wildcard if any, or NULL if no match. This is basically the same as
 YES if match, else NO.
 
 <PRE>
-extern char * HTStrMatch	(CONST char * tmpl, CONST char * name);
-extern char * HTStrCaseMatch	(CONST char * tmpl, CONST char * name);
+extern char * HTStrMatch	(const char * tmpl, const char * name);
+extern char * HTStrCaseMatch	(const char * tmpl, const char * name);
 </PRE>
 
 <H2>Case-insensitive strstr</H2>

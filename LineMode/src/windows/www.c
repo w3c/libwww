@@ -407,7 +407,7 @@ typedef struct {
     HTRequest * request;
     HTAlertOpcode op;
     int msgnum;
-    CONST char * dfault;
+    const char * dfault;
     void * input;
     HTAlertPar * reply;
     int type;
@@ -473,7 +473,7 @@ BOOL PASCAL AlertDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 } // AlertDialogProc()
 
 PRIVATE int DialogParms_do(HTRequest * request, HTAlertOpcode op, 
-				      int msgnum, CONST char * dfault, 
+				      int msgnum, const char * dfault, 
 				      void * input, HTAlertPar * reply, 
 				      int resource, 
 				      WPARAM * pWParam, 
@@ -501,7 +501,7 @@ PRIVATE int DialogParms_do(HTRequest * request, HTAlertOpcode op,
 }
 
 PUBLIC BOOL HTProgress (HTRequest * request, HTAlertOpcode op,
-                                int msgnum, CONST char * dfault, void * input,
+                                int msgnum, const char * dfault, void * input,
                                 HTAlertPar * reply)
 {
 static int inside = 0;
@@ -560,7 +560,7 @@ static int inside = 0;
 	break;
 
       case HT_PROG_WAIT:
-	sprintf(space, "Waiting for free socket...\n");
+	sprintf(space, "Waiting for HT_FREE socket...\n");
 	break;
 
       default:
@@ -575,7 +575,7 @@ static int inside = 0;
 }
 
 PUBLIC BOOL HTError_print (HTRequest * request, HTAlertOpcode op,
-                                int msgnum, CONST char * dfault, void * input,
+                                int msgnum, const char * dfault, void * input,
                                 HTAlertPar * reply)
 {
     MessageBox(0, dfault, "HTError_print", MB_OK);
@@ -583,7 +583,7 @@ PUBLIC BOOL HTError_print (HTRequest * request, HTAlertOpcode op,
 }
 
 PUBLIC BOOL HTConfirm (HTRequest * request, HTAlertOpcode op,
-                                int msgnum, CONST char * dfault, void * input,
+                                int msgnum, const char * dfault, void * input,
                                 HTAlertPar * reply)
 {
     WPARAM wParam = 0;
@@ -595,7 +595,7 @@ PUBLIC BOOL HTConfirm (HTRequest * request, HTAlertOpcode op,
 }
 
 PUBLIC BOOL HTPrompt (HTRequest * request, HTAlertOpcode op,
-                                int msgnum, CONST char * dfault, void * input,
+                                int msgnum, const char * dfault, void * input,
                                 HTAlertPar * reply)
 {
     WPARAM wParam = 0;
@@ -607,7 +607,7 @@ PUBLIC BOOL HTPrompt (HTRequest * request, HTAlertOpcode op,
 }
 
 PUBLIC BOOL HTPromptPassword (HTRequest * request, HTAlertOpcode op,
-                                int msgnum, CONST char * dfault, void * input,
+                                int msgnum, const char * dfault, void * input,
                                 HTAlertPar * reply)
 {
     WPARAM wParam = 0;
@@ -619,7 +619,7 @@ PUBLIC BOOL HTPromptPassword (HTRequest * request, HTAlertOpcode op,
 }
 
 PUBLIC BOOL HTPromptUsernameAndPassword (HTRequest * request, HTAlertOpcode op,
-                                int msgnum, CONST char * dfault, void * input,
+                                int msgnum, const char * dfault, void * input,
                                 HTAlertPar * reply)
 {
     WPARAM wParam = 0;

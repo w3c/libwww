@@ -226,7 +226,7 @@ might not be already loaded. The parent anchor returned can either be
 created on the spot or is already in the hash table.
 
 <PRE>
-extern HTAnchor * HTAnchor_findAddress		(CONST char * address);
+extern HTAnchor * HTAnchor_findAddress		(const char * address);
 </PRE>
 
 <H3>Find/Create a Child Anchor</H3>
@@ -238,7 +238,7 @@ can either be created on the spot or is already in the hash table. The
 
 <PRE>
 extern HTChildAnchor * HTAnchor_findChild	(HTParentAnchor *parent,
-						 CONST char *	tag);
+						 const char *	tag);
 </PRE>
 
 <H3>Find/Create a Child Anchor and Link to Another Parent</H3>
@@ -253,8 +253,8 @@ parent anchor.
 <PRE>
 extern HTChildAnchor * HTAnchor_findChildAndLink
 		(HTParentAnchor * parent,		/* May not be 0 */
-		CONST char * tag,			/* May be "" or 0 */
-		CONST char * href,			/* May be "" or 0 */
+		const char * tag,			/* May be "" or 0 */
+		const char * href,			/* May be "" or 0 */
 		HTLinkType ltype);			/* May be 0 */
 </PRE>
 
@@ -377,13 +377,13 @@ passed as a HTTP header in the response. Any title element found in an
 HTML document will overwrite a title given in a HTTP header.
 
 <PRE>
-extern CONST char * HTAnchor_title	(HTParentAnchor *me);
+extern const char * HTAnchor_title	(HTParentAnchor *me);
 
 extern void HTAnchor_setTitle		(HTParentAnchor *me,
-					 CONST char *	title);
+					 const char *	title);
 
 extern void HTAnchor_appendTitle	(HTParentAnchor *me,
-					 CONST char *	title);
+					 const char *	title);
 </PRE>
 
 <H3>Media Types (Content-Type)</H3>
@@ -454,7 +454,7 @@ extern void HTAnchor_appendMethods (HTParentAnchor * me, HTMethod methodset);
 
 <PRE>
 extern char * HTAnchor_version	(HTParentAnchor * me);
-extern void HTAnchor_setVersion	(HTParentAnchor * me, CONST char * version);
+extern void HTAnchor_setVersion	(HTParentAnchor * me, const char * version);
 </PRE>
 
 <H3>Date</H3>
@@ -463,7 +463,7 @@ Returns the date that was registered in the RFC822 header "Date"
 
 <PRE>
 extern time_t HTAnchor_date		(HTParentAnchor * me);
-extern void HTAnchor_setDate		(HTParentAnchor	* me, CONST time_t date);
+extern void HTAnchor_setDate		(HTParentAnchor	* me, const time_t date);
 </PRE>
 
 <H3>Last Modified Date</H3>
@@ -472,21 +472,21 @@ Returns the date that was registered in the RFC822 header "Last-Modified"
 
 <PRE>
 extern time_t HTAnchor_lastModified	(HTParentAnchor * me);
-extern void HTAnchor_setLastModified	(HTParentAnchor	* me, CONST time_t lm);
+extern void HTAnchor_setLastModified	(HTParentAnchor	* me, const time_t lm);
 </PRE>
 
 <H3>Expires Date</H3>
 
 <PRE>
 extern time_t HTAnchor_expires		(HTParentAnchor * me);
-extern void HTAnchor_setExpires		(HTParentAnchor	* me, CONST time_t exp);
+extern void HTAnchor_setExpires		(HTParentAnchor	* me, const time_t exp);
 </PRE>
 
 <H3>Derived from</H3>
 
 <PRE>
 extern char * HTAnchor_derived	(HTParentAnchor *me);
-extern void HTAnchor_setDerived	(HTParentAnchor *me, CONST char *derived_from);
+extern void HTAnchor_setDerived	(HTParentAnchor *me, const char *derived_from);
 </PRE>
 
 <H3>Extra Headers</H3>
@@ -499,7 +499,7 @@ for sending test headers.
 <PRE>
 extern HTList * HTAnchor_Extra		(HTParentAnchor *me);
 extern void HTAnchor_addExtra		(HTParentAnchor *me,
-					 CONST char *	header);
+					 const char *	header);
 </PRE>
 
 <H3>Status of Header Parsing</H3>

@@ -17,7 +17,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTParse.h"
@@ -32,7 +32,7 @@
 #define FREE_TARGET	(*me->target->isa->_free)(me->target)
 
 struct _HTStream {
-    CONST HTStreamClass *	isa;
+    const HTStreamClass *	isa;
     HTStream *			target;
     HTStream *			orig_target;
     HTFormat			format;
@@ -50,10 +50,10 @@ struct _HTStream {
 /*
 **	Searches for FTP line until buffer fills up or a CRLF or LF is found
 */
-PRIVATE int HTBoundary_put_block (HTStream * me, CONST char * b, int l)
+PRIVATE int HTBoundary_put_block (HTStream * me, const char * b, int l)
 {
-    CONST char *start = b;
-    CONST char *end = b;
+    const char *start = b;
+    const char *end = b;
     while (l-- > 0) {
 	if (me->state == EOL_FCR) {
 	    me->state = (*b == LF) ? EOL_FLF : EOL_BEGIN;
@@ -126,7 +126,7 @@ PRIVATE int HTBoundary_put_block (HTStream * me, CONST char * b, int l)
     return (start<b && me->body) ? PUTBLOCK(start, b-start) : HT_OK;
 }
 
-PRIVATE int HTBoundary_put_string (HTStream * me, CONST char * s)
+PRIVATE int HTBoundary_put_string (HTStream * me, const char * s)
 {
     return HTBoundary_put_block(me, s, (int) strlen(s));
 }
@@ -164,7 +164,7 @@ PRIVATE int HTBoundary_abort (HTStream * me, HTList * e)
     return status;
 }
 
-PRIVATE CONST HTStreamClass HTBoundaryClass =
+PRIVATE const HTStreamClass HTBoundaryClass =
 {		
     "HTBoundary",
     HTBoundary_flush,
