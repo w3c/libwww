@@ -187,7 +187,6 @@ PUBLIC HTAnchor * HTAnchor_findAddress ARGS1 (CONST char *, address)
 **
 **	Create new anchor with a given parent and possibly
 **	a name, and possibly a link to a _relatively_ named anchor.
-**	(Code originally in ParseHTML.h)
 */
 PUBLIC HTChildAnchor * HTAnchor_findChildAndLink
   ARGS4(
@@ -425,7 +424,8 @@ PUBLIC HTAnchor * HTAnchor_followTypedLink ARGS2(HTAnchor *, me,
 */
 PUBLIC BOOL HTAnchor_makeMainLink ARGS2 (HTAnchor *, me, HTLink *, movingLink)
 {
-    if (! (me && HTList_removeObject (me->links, movingLink)))
+    if (!(me && me->links && movingLink &&
+	  HTList_removeObject(me->links, movingLink)))
 	return NO;
     else {
 	/* First push current main link onto top of links list */

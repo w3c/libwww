@@ -18,7 +18,7 @@
 #include "tcp.h"
 #include "HTUtils.h"		/* Coding convention macros */
 #include "HTString.h"
-#include "HTML.h"
+#include "HTMLGen.h"
 #include "HTParse.h"
 #include "HTFormat.h"
 #include "HTAlert.h"
@@ -1039,7 +1039,7 @@ PUBLIC int HTLoadNews ARGS1(HTRequest *,		request)
 /*	Make a hypertext object with an anchor list.
 */       
     node_anchor = request->anchor;
-    target = HTML_new(request, NULL, WWW_HTML,
+    target = HTMLGenerator(request, NULL, WWW_HTML,
     		request->output_format, request->output_stream);
     targetClass = *target->isa;	/* Copy routine entry points */
     
@@ -1061,7 +1061,7 @@ PUBLIC int HTLoadNews ARGS1(HTRequest *,		request)
 		sprintf(message,
 "\nCould not access %s.\n\n (Check default WorldWideWeb NewsHost ?)\n",
 		    HTNewsHost);
-		return HTLoadError(request, 500, message);
+		return HT_ERROR;
 #endif /* OLD_CODE */
 		{
 		    char *unescaped = NULL;
@@ -1095,7 +1095,7 @@ PUBLIC int HTLoadNews ARGS1(HTRequest *,		request)
 			sprintf(message, 
 		  "Can't read news info. News host %.20s responded: %.200s",
 		  	    HTNewsHost, response_text);
-		        return HTLoadError(request, 500, message);
+		        return HT_ERROR;
 	        }
 #endif /* OLD_CODE */
 	    }

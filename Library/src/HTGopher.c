@@ -33,8 +33,7 @@
 #include "HTFormat.h"
 #include "HTError.h"
 #include "HTBind.h"
-#include "HTML.h"
-#include "HTMLPDTD.h"
+#include "HTMLGen.h"
 #include "HTDirBrw.h"
 #include "HTGopher.h"					 /* Implemented here */
 
@@ -256,7 +255,7 @@ PRIVATE int parse_menu ARGS3(HTRequest *,     	request,
 		if (!files) {
 		    CONST char *title = HTAnchor_title(request->anchor);
 		    char *outstr = NULL;
-		    target = HTML_new(request, NULL, WWW_HTML,
+		    target = HTMLGenerator(request, NULL, WWW_HTML,
 				      request->output_format,
 				      request->output_stream);
 		    HTAnchor_setFormat(request->anchor, WWW_HTML);
@@ -518,7 +517,7 @@ PRIVATE int parse_cso ARGS3(HTRequest *, 	request,
 		    !strncmp(strptr, "501", 3) || !strncmp(strptr, "502", 3)) {
 
 		    /* Put up new stream */
-		    target = HTML_new(request, NULL, WWW_HTML,
+		    target = HTMLGenerator(request, NULL, WWW_HTML,
 				      request->output_format,
 				      request->output_stream);
 		    HTAnchor_setFormat(request->anchor, WWW_HTML);
@@ -703,7 +702,7 @@ PRIVATE int parse_cso ARGS3(HTRequest *, 	request,
 PRIVATE void display_index ARGS2(HTRequest *, 		request,
 				 CONST char *,		url)
 {
-    HTStructured *target = HTML_new(request, NULL, WWW_HTML,
+    HTStructured *target = HTMLGenerator(request, NULL, WWW_HTML,
 				    request->output_format,
 				    request->output_stream);
     HTAnchor_setFormat(request->anchor, WWW_HTML);
@@ -734,7 +733,7 @@ PRIVATE void display_index ARGS2(HTRequest *, 		request,
 PRIVATE void display_cso ARGS2(HTRequest *,		request,
 			       CONST char *,		url)
 {
-    HTStructured *target = HTML_new(request, NULL, WWW_HTML,
+    HTStructured *target = HTMLGenerator(request, NULL, WWW_HTML,
 				    request->output_format,
 				    request->output_stream);
     HTAnchor_setFormat(request->anchor, WWW_HTML);

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Event Functions for Multiple threads</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 27-Aug-1995 -->
 </HEAD>
 <BODY>
 
@@ -37,36 +37,25 @@ for the application to provide. <P>
 The basic elements in the model are:
 
 <UL>
-
 <LI>An eventloop containing a <CODE>select</CODE> function
-
 <LI>Three sets of pending socket descriptors (READ, WRITE, INTERRUPTED)
-
 <LI>A set of call-back functions to e defined by the application
-
 <LI>The existent set of <A HREF="HTAccess.html#LoadDoc">load
 functions</A> in the HTAccess module.
-
 </UL>
 
 In order to use the code in the simplest way (active mode) the
 application must do the following:
 
 <OL>
-
 <LI>Implement a set (at least one) call-back function(s) of type
 <CODE>HTEventHandler</CODE>
-
 <LI>Register the eventhandlers using <CODE>HTEventRegister</CODE>
-
 <LI>Implement the <CODE>HTEventRequestTerminate</CODE> call-back
 function to react to the result of the request.
-
 <LI>Call the <CODE>HTEventLoop</CODE> with parameters to load the home
 document.
-
 </OL>
-
 
 <PRE>
 #ifndef HTEVNTRG_H

@@ -18,8 +18,10 @@
 #include "HTProt.h"
 
 /* Converters and Presenters */
-#include "HTML.h"
-#include "HTPlain.h"
+#include "HTML.h"			/* Uses HTML/HText interface */
+#include "HTPlain.h"			/* Uses HTML/HText interface */
+
+#include "HTTeXGen.h"
 #include "HTMLGen.h"
 #include "HTMIME.h"
 #include "HTWSRC.h"
@@ -57,15 +59,29 @@ extern HTConverter HTMIMEConvert, HTMLToC, HTMLToPlain, HTMLPresent,
 */
 PUBLIC void HTConverterInit ARGS1(HTList *, c)
 {
-    HTSetConversion(c,"www/mime",		"*/*",		HTMIMEConvert,	1.0, 0.0, 0.0);
+    /*
+    ** This set of converters uses the HTML/HText interface.
+    ** If you do not want this interface then disable them!
+    */
+    HTSetConversion(c,"text/html",		"www/present",	HTMLPresent,	1.0, 0.0, 0.0);
+    HTSetConversion(c,"text/plain",		"www/present",	HTPlainPresent,	1.0, 0.0, 0.0);
     HTSetConversion(c,"text/html",		"text/x-c",	HTMLToC,	0.5, 0.0, 0.0);
     HTSetConversion(c,"text/html",		"text/plain",	HTMLToPlain,	0.5, 0.0, 0.0);
-    HTSetConversion(c,"text/html",		"www/present",	HTMLPresent,	1.0, 0.0, 0.0);
+
+    /*
+    ** These are converters that converts to something other than www/present,
+    ** that is not directly outputting someting to the user on the screen
+    */
+    HTSetConversion(c,"www/mime",		"*/*",		HTMIMEConvert,	1.0, 0.0, 0.0);
     HTSetConversion(c,"text/html",	       	"text/latex",	HTMLToTeX,	1.0, 0.0, 0.0);
     HTSetConversion(c,"text/plain",		"text/html",	HTPlainToHTML,	1.0, 0.0, 0.0);
-    HTSetConversion(c,"text/plain",		"www/present",	HTPlainPresent,	1.0, 0.0, 0.0);
-    HTSetConversion(c,"application/octet-stream","www/present",	HTSaveLocally,	0.1, 0.0, 0.0);
     HTSetConversion(c,"application/x-wais-source","*/*",	HTWSRCConvert, 	1.0, 0.0, 0.0);
+
+    /*
+    ** This set dumps the following formats to local disk withour any further
+    ** action taken
+    */
+    HTSetConversion(c,"application/octet-stream","www/present",	HTSaveLocally,	0.1, 0.0, 0.0);
     HTSetConversion(c,"*/*",			"www/present",	HTSaveLocally,	0.3, 0.0, 0.0);
 }
 

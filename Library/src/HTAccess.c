@@ -19,10 +19,6 @@
 **	   Dec 93 Bug change around, more reentrant, etc
 **	09 May 94 logfile renamed to HTlogfile to avoid clash with WAIS
 **	 8 Jul 94 Insulate free() from _free structure element.
-** Bugs
-**	This module assumes that that the graphic object is hypertext, as it
-**	needs to select it when it has been loaded.  A superclass needs to be
-**	defined which accepts select and select_anchor.
 */
 
 #if !defined(HT_DIRECT_WAIS) && !defined(HT_DEFAULT_WAIS_GATEWAY)
@@ -49,8 +45,6 @@
 #include "HTProt.h"
 #include "HTInit.h"
 #include "HTProxy.h"
-#include "HTML.h"		/* SCW */
-#include "HText.h"	/* See bugs above */
 
 #ifndef NO_RULES
 #include "HTRules.h"
@@ -69,6 +63,9 @@ PUBLIC BOOL HTImProxy = NO;			   /* cern_httpd as a proxy? */
 PRIVATE HTExpiresMode HTExpMode = HT_EXPIRES_IGNORE;
 PRIVATE int HTMaxReloads = 6;
 PRIVATE char *HTExpNotify;
+
+/* Memory cache handler */
+PRIVATE HTMemoryCacheHandler HTMemoryCache = NULL;
 
 #ifdef _WINDOWS 
 PUBLIC HWND HTsocketWin = 0 ;
@@ -706,7 +703,6 @@ PRIVATE int HTLoadDocument ARGS2(HTRequest *,	request,
 
 {
     int	        status;
-    HText *	text;
     char * full_address = HTAnchor_address((HTAnchor*)request->anchor);
 
     if (PROT_TRACE) fprintf (TDEST, "HTAccess.... Accessing document %s\n",
@@ -716,48 +712,15 @@ PRIVATE int HTLoadDocument ARGS2(HTRequest *,	request,
 
     /*
     ** Check if document is already loaded. As the application handles the
-    ** memory cache, we call the application to ask. Also check if it has
-    ** expired in which case we reload it (either from disk cache or remotely)
-    ** @@@ BUG - NEED GLOBAL REGISTRATION MECHANISM @@@
+    ** memory cache, we call the application to ask.
     */
     if (request->reload != HT_FORCE_RELOAD) {
-	if ((text = (HText *) HTAnchor_document(request->anchor))) {
-	    if (request->reload != HT_MEM_REFRESH) {
-		BOOL use_object = YES;
-		if (PROT_TRACE)
-		    fprintf(TDEST,"HTAccess.... Document already in memory\n");
-		if (HTExpMode != HT_EXPIRES_IGNORE) {
-		    if (!HTCache_isValid(request->anchor)) {
-			if (HTExpMode == HT_EXPIRES_NOTIFY)
-			    HTAlert(request, HTExpNotify);
-			else {
-			    use_object = NO;
-			    if (PROT_TRACE)
-				fprintf(TDEST,
-					"HTAccess.... Expired - autoreload\n");
-			    request->RequestMask |= HT_IMS;
-#ifndef HT_SHARED_DISK_CACHE
-			    request->reload = HT_CACHE_REFRESH;
-#endif
-			}
-		    }
-		}
-
-		/* If we can use object then select it and return */
-		/* This should be a callback to the app mem cache handler */
-		if (use_object) {
-		    if (request->childAnchor)
-			HText_selectAnchor(text, request->childAnchor);
-		    else
-			HText_select(text);
-		    free(full_address);
-		    return HT_LOADED;
-		}
-	    } else {		/* If refresh version in memory */
-		request->RequestMask |= HT_IMS;
+	if (HTMemoryCache) {
+	    if (HTMemoryCache(request, HTExpMode, HTExpNotify) == HT_LOADED) {
+		free(full_address);
+		return HT_LOADED;
 	    }
-	} else			      /* Don't reuse any old metainformation */
-	    HTAnchor_clearHeader(request->anchor);
+	}
     } else {
 	request->RequestMask |= HT_NO_CACHE;		  /* no-cache pragma */
 	HTAnchor_clearHeader(request->anchor);
@@ -1390,7 +1353,7 @@ PUBLIC BOOL HTBindAnchor ARGS2(HTAnchor*, anchor, HTRequest *, request)
 }
 
 /* --------------------------------------------------------------------------*/
-/*					Flags   			     */
+/*				Flags and Other   			     */
 /* --------------------------------------------------------------------------*/
 
 /*
@@ -1428,4 +1391,23 @@ PUBLIC void HTAccess_setMaxReload ARGS1(int, newmax)
 PUBLIC int HTAccess_maxReload NOARGS
 {
     return HTMaxReloads;
+}
+
+/*
+**  Register a Memory Cache Handler. This function is introduced in order to
+**  avoid having references to HText module outside HTML.
+*/
+PUBLIC BOOL HTMemoryCache_register ARGS1(HTMemoryCacheHandler, callback)
+{
+    if (callback) {
+	HTMemoryCache = callback;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC BOOL HTMemoryCache_unRegister NOARGS
+{
+    HTMemoryCache = NULL;
+    return YES;
 }

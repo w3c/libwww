@@ -203,6 +203,99 @@ char * HTParse ARGS3(CONST char *, aName, CONST char *, relatedName,
 }
 
 
+/*							       HTCanon
+**
+**	Canonicalizes the URL in the following manner starting from the host
+**	pointer:
+**
+**	1) The host name is converted to lowercase
+**	2) Expands the host name of the URL from a local name to a full
+**	   domain name. A host name is started by `://'.
+**	3) Chop off port if `:80' (http), `:70' (gopher), or `:21' (ftp)
+**
+**	Return: OK	The position of the current path part of the URL
+**			which might be the old one or a new one.
+*/
+PRIVATE char *HTCanon ARGS2 (char **, filename, char *, host)
+{
+    char *newname = NULL;
+    char *port;
+    char *strptr;
+    char *path;
+    char *access = host-3;
+
+    while (access>*filename && *(access-1)!='/')       /* Find access method */
+	access--;
+    if ((path = strchr(host, '/')) == NULL)			/* Find path */
+	path = host + strlen(host);
+    if ((strptr = strchr(host, '@')) != NULL && strptr<path)	   /* UserId */
+	host = strptr;
+    if ((port = strchr(host, ':')) != NULL && port>path)      /* Port number */
+	port = NULL;
+
+    strptr = host;				    /* Convert to lower-case */
+    while (strptr<path) {
+	*strptr = TOLOWER(*strptr);
+	strptr++;
+    }
+    
+    /* Does the URL contain a full domain name? This also works for a
+       numerical host name. The domain name is already made lower-case
+       and without a trailing dot. */
+    if (((strptr = strchr(host, '.')) == NULL || strptr >= path) &&
+	strncasecomp(host, "localhost", 9)) {
+	CONST char *domain = HTGetDomainName();
+	if (domain && *domain) {
+	    if ((newname = (char *) calloc(1, strlen(*filename) +
+				       strlen(domain)+2)) == NULL)
+		outofmem(__FILE__, "HTCanon");
+	    if (port)
+		strncpy(newname, *filename, (int) (port-*filename));
+	    else
+		strncpy(newname, *filename, (int) (path-*filename));
+	    strcat(newname, ".");
+	    strcat(newname, domain);
+	}
+    } else {					  /* Look for a trailing dot */
+	char *dot = port ? port : path;
+	if (dot > *filename && *--dot=='.') {
+	    char *orig=dot, *dest=dot+1;
+	    while((*orig++ = *dest++));
+	    if (port) port--;
+	    path--;
+	}
+    }
+    /* Chop off port if `:', `:80' (http), `:70' (gopher), or `:21' (ftp) */
+    if (port) {
+	if (!*(port+1) || *(port+1)=='/') {
+	    if (!newname) {
+		char *orig=port, *dest=port+1;
+		while((*orig++ = *dest++));
+	    }
+	} else if ((!strncmp(access, "http", 4) &&
+	     (*(port+1)=='8'&&*(port+2)=='0'&&(*(port+3)=='/'||!*(port+3)))) ||
+	    (!strncmp(access, "gopher", 6) &&
+	     (*(port+1)=='7'&&*(port+2)=='0'&&(*(port+3)=='/'||!*(port+3)))) ||
+	    (!strncmp(access, "ftp", 3) &&
+	     (*(port+1)=='2'&&*(port+2)=='1'&&(*(port+3)=='/'||!*(port+3))))) {
+	    if (!newname) {
+		char *orig=port, *dest=port+3;
+		while((*orig++ = *dest++));
+	    }
+	} else if (newname)
+	    strncat(newname, port, (int) (path-port));
+    }
+
+    if (newname) {
+	char *newpath = newname+strlen(newname);
+	strcat(newname, path);
+	path = newpath;
+	free(*filename);				    /* Free old copy */
+	*filename = newname;
+    }
+    return path;
+}
+
 /*	        Simplify a URI
 //		--------------
 // A URI is allowed to contain the seqeunce xxx/../ which may be
@@ -413,101 +506,6 @@ char * HTRelative ARGS2(CONST char *, aName, CONST char *, relatedName)
 		       aName, relatedName, result);
     return result;
 }
-
-
-/*							       HTCanon
-**
-**	Canonicalizes the URL in the following manner starting from the host
-**	pointer:
-**
-**	1) The host name is converted to lowercase
-**	2) Expands the host name of the URL from a local name to a full
-**	   domain name. A host name is started by `://'.
-**	3) Chop off port if `:80' (http), `:70' (gopher), or `:21' (ftp)
-**
-**	Return: OK	The position of the current path part of the URL
-**			which might be the old one or a new one.
-*/
-PUBLIC char *HTCanon ARGS2 (char **, filename, char *, host)
-{
-    char *newname = NULL;
-    char *port;
-    char *strptr;
-    char *path;
-    char *access = host-3;
-
-    while (access>*filename && *(access-1)!='/')       /* Find access method */
-	access--;
-    if ((path = strchr(host, '/')) == NULL)			/* Find path */
-	path = host + strlen(host);
-    if ((strptr = strchr(host, '@')) != NULL && strptr<path)	   /* UserId */
-	host = strptr;
-    if ((port = strchr(host, ':')) != NULL && port>path)      /* Port number */
-	port = NULL;
-
-    strptr = host;				    /* Convert to lower-case */
-    while (strptr<path) {
-	*strptr = TOLOWER(*strptr);
-	strptr++;
-    }
-    
-    /* Does the URL contain a full domain name? This also works for a
-       numerical host name. The domain name is already made lower-case
-       and without a trailing dot. */
-    if (((strptr = strchr(host, '.')) == NULL || strptr >= path) &&
-	strncasecomp(host, "localhost", 9)) {
-	CONST char *domain = HTGetDomainName();
-	if (domain && *domain) {
-	    if ((newname = (char *) calloc(1, strlen(*filename) +
-				       strlen(domain)+2)) == NULL)
-		outofmem(__FILE__, "HTCanon");
-	    if (port)
-		strncpy(newname, *filename, (int) (port-*filename));
-	    else
-		strncpy(newname, *filename, (int) (path-*filename));
-	    strcat(newname, ".");
-	    strcat(newname, domain);
-	}
-    } else {					  /* Look for a trailing dot */
-	char *dot = port ? port : path;
-	if (dot > *filename && *--dot=='.') {
-	    char *orig=dot, *dest=dot+1;
-	    while((*orig++ = *dest++));
-	    if (port) port--;
-	    path--;
-	}
-    }
-    /* Chop off port if `:', `:80' (http), `:70' (gopher), or `:21' (ftp) */
-    if (port) {
-	if (!*(port+1) || *(port+1)=='/') {
-	    if (!newname) {
-		char *orig=port, *dest=port+1;
-		while((*orig++ = *dest++));
-	    }
-	} else if ((!strncmp(access, "http", 4) &&
-	     (*(port+1)=='8'&&*(port+2)=='0'&&(*(port+3)=='/'||!*(port+3)))) ||
-	    (!strncmp(access, "gopher", 6) &&
-	     (*(port+1)=='7'&&*(port+2)=='0'&&(*(port+3)=='/'||!*(port+3)))) ||
-	    (!strncmp(access, "ftp", 3) &&
-	     (*(port+1)=='2'&&*(port+2)=='1'&&(*(port+3)=='/'||!*(port+3))))) {
-	    if (!newname) {
-		char *orig=port, *dest=port+3;
-		while((*orig++ = *dest++));
-	    }
-	} else if (newname)
-	    strncat(newname, port, (int) (path-port));
-    }
-
-    if (newname) {
-	char *newpath = newname+strlen(newname);
-	strcat(newname, path);
-	path = newpath;
-	free(*filename);				    /* Free old copy */
-	*filename = newname;
-    }
-    return path;
-}
-
 
 /*							HTCleanTelnetString()
  *	Make sure that the given string doesn't contain characters that

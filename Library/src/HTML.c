@@ -6,7 +6,7 @@
 **
 **	This generates of a hypertext object.  It converts from the
 **	structured stream interface fro HTMl events into the style-
-**	oriented iunterface of the HText.h interface.  This module is
+**	oriented iunterface of the HText interface.  This module is
 **	only used in clients and shouldnot be linked into servers.
 **
 **	Override this module if making a new GUI browser.
@@ -803,7 +803,7 @@ PRIVATE void get_styles NOARGS
 /*	Structured Object Class
 **	-----------------------
 */
-PUBLIC CONST HTStructuredClass HTMLPresentation = /* As opposed to print etc */
+PRIVATE CONST HTStructuredClass HTMLPresentation = /* As opposed to print etc */
 {		
 	"text/html",
 	HTML_flush,
@@ -821,16 +821,16 @@ PUBLIC CONST HTStructuredClass HTMLPresentation = /* As opposed to print etc */
 **	The structured stream can generate either presentation,
 **	or plain text, or HTML.
 */
-PUBLIC HTStructured* HTML_new ARGS5(
-	HTRequest *,		request,
-	void *,			param,
-	HTFormat,		input_format,
-	HTFormat,		output_format,
-	HTStream *,		output_stream)
+PRIVATE HTStructured* HTML_new ARGS5(HTRequest *,	request,
+				     void *,		param,
+				     HTFormat,		input_format,
+				     HTFormat,		output_format,
+				     HTStream *,	output_stream)
 {
 
     HTStructured * me;
     
+#if 0
     if (output_format != WWW_PLAINTEXT
     	&& output_format != WWW_PRESENT
 	&& output_format != HTAtom_for("text/x-c")) {
@@ -842,6 +842,7 @@ PUBLIC HTStructured* HTML_new ARGS5(
 		    HTAtom_name(output_format));
 	exit (-99);
     }
+#endif
 
     if ((me = (HTStructured*) calloc(1, sizeof(*me))) == NULL)
 	outofmem(__FILE__, "HTML_new");
@@ -849,7 +850,7 @@ PUBLIC HTStructured* HTML_new ARGS5(
     if (!got_styles) get_styles();
 
     me->isa = &HTMLPresentation;
-    me->dtd = &DTD;
+    me->dtd = &HTMLP_dtd;
     me->node_anchor =  request->anchor;
     me->title.size = 0;
     me->title.growby = 128;
@@ -884,7 +885,7 @@ PUBLIC HTStream* HTMLToPlain ARGS5(
 	HTFormat,		output_format,
 	HTStream *,		output_stream)
 {
-    return SGML_new(&DTD, HTML_new(
+    return SGML_new(&HTMLP_dtd, HTML_new(
     	request, NULL, input_format, output_format, output_stream));
 }
 
@@ -909,9 +910,9 @@ PUBLIC HTStream* HTMLToC ARGS5(
     (*output_stream->isa->put_string)(output_stream, "/* "); /* Before title */
     html = HTML_new(request, NULL, input_format, output_format, output_stream);
     html->comment_start = "\n/* ";
-    html->dtd = &DTD;
+    html->dtd = &HTMLP_dtd;
     html->comment_end = " */\n";	/* Must start in col 1 for cpp */
-    return SGML_new(&DTD, html);
+    return SGML_new(&HTMLP_dtd, html);
 }
 
 
@@ -930,44 +931,8 @@ PUBLIC HTStream* HTMLPresent ARGS5(
 	HTFormat,		output_format,
 	HTStream *,		output_stream)
 {
-    return SGML_new(&DTD, HTML_new(
+    return SGML_new(&HTMLP_dtd, HTML_new(
     	request, NULL, input_format, output_format, output_stream));
 }
 #endif
-
-
-/*	Record error message as a hypertext object
-**	------------------------------------------
-**
-**	The error message should be marked as an error so that
-**	it can be reloaded later.
-**	This implementation just throws up an error message
-**	and leaves the document unloaded.
-**	A smarter implementation would load an error document,
-**	marking at such so that it is retried on reload.
-**
-** On entry,
-**	sink 	is a stream to the output device if any
-**	number	is the HTTP error number
-**	message	is the human readable message.
-**
-** On exit,
-**	returns	a negative number to indicate lack of success in the load.
-*/
-
-PUBLIC int HTLoadError ARGS3(
-	HTRequest *, 	req,
-	int,		number,
-	CONST char *,	message)
-{
-    char *err = "Oh I screwed up!";    	/* Dummy pointer not used (I hope) */
-    HTAlert(req, message);		/* @@@@@@@@@@@@@@@@@@@ */
-    /* Clean up! Henrik 04/03-94 */
-    if (req && req->output_stream)
-	(*req->output_stream->isa->abort)(req->output_stream, err);
-#if OLD_CODE
-    HTClearErrors(req);
-#endif
-    return -number;
-} 
 

@@ -81,7 +81,7 @@
 #include "HTParse.h"
 #include "HTAccess.h"		/* We implement a protocol */
 #include "HTError.h"
-#include "HTML.h"		/* The object we will generate */
+#include "HTMLGen.h"
 #include "HTParse.h"
 #include "HTFormat.h"
 #include "HTTCP.h"
@@ -96,8 +96,6 @@ PRIVATE char	line[2048];	/* For building strings to display */
 				/* Must be able to take id */
 
 /* Hypertext object building machinery */
-#include "HTML.h"
-
 #define PUTC(c) (*target->isa->put_character)(target, c)
 #define PUTS(s) (*target->isa->put_string)(target, s)
 #define START(e) (*target->isa->start_element)(target, e, 0, 0)
@@ -793,7 +791,7 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 	char filename[256];
 	FILE * fp;
 #endif
-	HTStructured * target = HTML_new(request, NULL,
+	HTStructured * target = HTMLGenerator(request, NULL,
 					WWW_HTML, format_out, sink);
 	
 	{
@@ -849,7 +847,7 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
     
         /* Send advance title to get something fast to the other end */
 	
-	target = HTML_new(request, NULL, WWW_HTML, format_out, sink);
+	target = HTMLGenerator(request, NULL, WWW_HTML, format_out, sink);
 	
 	START(HTML_HTML);
 	START(HTML_HEAD);

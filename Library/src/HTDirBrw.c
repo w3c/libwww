@@ -29,8 +29,7 @@
 #include "tcp.h"
 #include "HTUtils.h"
 #include "HTString.h"
-#include "HTMLPDTD.h"
-#include "HTML.h"		/* Temporary */
+#include "HTMLGen.h"
 #include "HTBind.h"
 #include "HTAnchor.h"
 #include "HTParse.h"
@@ -813,7 +812,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 
     if (HTDirAccess == HT_DIR_SELECTIVE) {
 	StrAllocCat(pathname, HT_DIR_ENABLE_FILE);
-	if (HTStat(pathname, &file_info)) {
+	if (STAT(pathname, &file_info)) {
 	    if (TRACE) fprintf(TDEST,
 	        "HTBrowse.... Can't stat() file: %s (errno: %d)\n",
 			       pathname, errno);
@@ -892,7 +891,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	    /* First make a lstat() and get a key ready. */
 	    *(pathname+pathend) = '\0';
 	    StrAllocCat(pathname, dirbuf->d_name);
-	    if (HTLstat(pathname, &file_info)) {
+	    if (LSTAT(pathname, &file_info)) {
 #ifndef VMS
 		if (TRACE) fprintf(TDEST,
 		"HTBrowse.... OUPS, lstat failed on %s (errno: %d)\n",
@@ -913,7 +912,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	       show the item in the list */
 	    if ((file_info.st_mode & S_IFMT) == S_IFLNK) {
 		int symend;		
-		if (HTStat(pathname, &file_info)) {
+		if (STAT(pathname, &file_info)) {
 		    if (TRACE)
 			fprintf(TDEST, "HTBrowse.... stat failed on symbolic link %s, errno: %d\n", pathname, errno);
 		    KeyFree(nodekey);
@@ -1107,9 +1106,9 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	if (!req->error_stack)
 #endif
 	{
-	    HTStructured *target = HTML_new(req, NULL, WWW_HTML,
-					    req->output_format,
-					    req->output_stream);
+	    HTStructured *target = HTMLGenerator(req, NULL, WWW_HTML,
+						 req->output_format,
+						 req->output_stream);
 	    
 	    /* Put out the header for the HTML object */
 	    HTDirOutTop(target, (HTAnchor *) req->anchor, topstr, directory,
@@ -1378,9 +1377,9 @@ PUBLIC int HTFTPBrowseDirectory ARGS3(HTRequest *, req, char *, directory,
 	if (!req->error_stack)
 #endif
 	{
-	    HTStructured *target = HTML_new(req, NULL, WWW_HTML,
-				    req->output_format,
-					    req->output_stream);
+	    HTStructured *target = HTMLGenerator(req, NULL, WWW_HTML,
+						 req->output_format,
+						 req->output_stream);
 
 	    /* Put out the header for the HTML object */
 	    HTDirOutTop(target, (HTAnchor *) req->anchor, topstr, directory,

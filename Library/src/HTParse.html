@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>URI Parsing</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 27-Aug-1995 -->
 <NEXTID N="1">
 </HEAD>
 <BODY>
@@ -100,14 +100,11 @@ extern char * HTRelative PARAMS((const char * aName, const char *relatedName));
 <A NAME="canon"><H2>Canonicalization</H2></A>
 
 Canonicalization of URIs is a difficult job, but it saves a lot of
-down loads and double entries in the cache if we do a good job...
-
-<H3>Canonicalize the Path Part of a URI</H3>
-
-A URI is allowed to contain the seqeunce xxx/../ which may be
-replaced by "" , and the seqeunce "/./" which may be replaced by "/".
-Simplification helps us recognize duplicate URIs. Thus, the following
-transformations are done:
+down loads and double entries in the cache if we do a good job. A URI
+is allowed to contain the seqeunce xxx/../ which may be replaced by ""
+, and the seqeunce "/./" which may be replaced by "/".  Simplification
+helps us recognize duplicate URIs. Thus, the following transformations
+are done:
 
 <UL>
 <LI> /etc/junk/../fred 	becomes	/etc/fred
@@ -140,18 +137,6 @@ only the part after the last `://' is simplified.
 
 <PRE>
 extern char *HTSimplify PARAMS((char **filename));
-</PRE>
-
-<H3>Canonicalize the DNS part of a URI</H3>
-
-This function expands the host name of the URI from a local name to a
-full domain name and converts the host name to lower case. The
-advantage by doing this is that we only have one entry in the host
-case and one entry in the document cache.
-
-<PRE>
-extern char *HTCanon PARAMS ((	char **	filename,
-				char *	host));
 </PRE>
 
 <A NAME="secure"><H2>Prevent Security Holes</H2></A>

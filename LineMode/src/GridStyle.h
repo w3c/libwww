@@ -5,7 +5,8 @@
 /*
 **      (c) COPYRIGHT MIT 1995.
 **      Please first read the full copyright statement in the file COPYRIGH.
-*//*
+*/
+/*
 
    Styles allow the translation between a logical property of a piece of text and its
    physical representation.
@@ -37,6 +38,8 @@ Overriding this module
  */
 #ifndef GridStyle_H
 #define GridStyle_H
+#include "HText.h"
+#include "HTFont.h"
 
 typedef double HTCoord;
 
@@ -114,6 +117,7 @@ struct _HTStyle {
 };
 
 #ifdef NOT_IN_GRIDSTYLE
+
 /*
 
 Style Creation
@@ -174,7 +178,7 @@ extern HTStyleSheet * HTStyleSheetWrite PARAMS((HTStyleSheet * self,
 #endif /* NOT IN GRIDSTYLE */
 #endif /* GRIDSTYLE_H */
 
+
 /*
 
     */
-

@@ -5,13 +5,15 @@
 /*
 **      (c) COPYRIGHT MIT 1995.
 **      Please first read the full copyright statement in the file COPYRIGH.
-*//*
+*/
+/*
 
    This module defines the HText functions referenced from the HTML module in the W3C
    Reference Library.
    
  */
 #include "WWWLib.h"
+#include "HText.h"
 
 extern HTChildAnchor * HText_childNumber PARAMS((HText * text, int n));
 
@@ -36,7 +38,19 @@ extern void HText_refresh PARAMS((HText * text));
 extern int HText_getTopOfScreen PARAMS((HText * text));
 extern int HText_getLines PARAMS((HText * text));
 #endif
+
+/*
+
+Memory Cache Handler
+
+   Check if document is already loaded. As the application handles the memory cache, we
+   call the application to ask. Also check if it has expired in which case we reload it
+   (either from disk cache or remotely)
+   
+ */
+extern int HTMemoryCache        PARAMS((HTRequest *     request,
+                                        HTExpiresMode   mode,
+                                        char *          notification));
 /*
 
    End of declaration  */
-

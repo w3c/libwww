@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>System dependencies in the W3 library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 17-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 25-Aug-1995 -->
 </HEAD>
 <BODY>
 
@@ -639,17 +639,18 @@ to normal C storage types.
 #endif
 </PRE>
 
-On non-VMS machines HTStat should be stat...On VMS machines
-HTStat is a function that converts directories and devices so that you
+On non-VMS machines STAT should be stat...On VMS machines
+STAT is a function that converts directories and devices so that you
 can stat them.
 
 <PRE>
 #ifdef VMS
 typedef unsigned long mode_t;
-#define HTLstat HTStat
+#define STAT	HTStat
+#define LSTAT	HTStat
 #else /* non VMS */
-#define HTStat stat
-#define HTLstat lstat
+#define STAT	stat
+#define LSTAT	lstat
 #endif /* non VMS */
 </PRE>
 
@@ -1112,7 +1113,7 @@ This is necessary in order to support Windows NT...
 <H3>Additional Network variables for SOCKET, file access bits</h3>
 
 <PRE>
- #ifndef _WINSOCKAPI_
+#ifndef _WINSOCKAPI_
 #define FD_READ         0x01
 #define FD_WRITE        0x02
 #define FD_OOB          0x04

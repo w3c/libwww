@@ -209,7 +209,7 @@ PUBLIC BOOL HTEditable ARGS2(CONST char *, filename, struct stat *, stat_info)
     struct stat *fileptr = stat_info ? stat_info : &fileStatus;
         
     if (!stat_info) {
-	if (HTStat(filename, &fileStatus))
+	if (STAT(filename, &fileStatus))
 	    return NO;				  /* Can't even access file! */
     }
     ngroups = getgroups(NGROUPS, groups);	/* Groups to which I belong  */
@@ -462,7 +462,7 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 			break;
 		    }
 		} else {
-		    if (HTStat(file->localname, &stat_info) == -1) {
+		    if (STAT(file->localname, &stat_info) == -1) {
 			if (PROT_TRACE)
 			    fprintf(TDEST, "HTLoadFile.. Can't stat %s\n",
 				    file->localname);

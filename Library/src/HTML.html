@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>HTML to rich text Converter</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 27-Aug-1995 -->
 </HEAD>
 <BODY>
 
@@ -30,27 +30,9 @@ W3C Reference Library</A>.
 #include "HTFormat.h"
 #include "HTAnchor.h"
 #include "HTMLPDTD.h"
-
-#define DTD HTMLP_dtd
-
-extern CONST HTStructuredClass HTMLPresentation;
 </PRE>
 
-<H2>HTML_new: A structured stream to parse HTML</H2>
-
-When this routine is called, the request structure may contain a <A
-NAME="z4" HREF="HTAccess.html#z6">childAnchor</A> value.  In that case
-it is the responsability of this module to select the anchor.<P>
- 
-<PRE>extern HTStructured* HTML_new PARAMS((HTRequest * request,
-					void *   param,
-					HTFormat input_format,
-					HTFormat output_format,
-				     	HTStream * output_stream));
-
-</PRE>
-
-<H3>Reopen</H3>
+<H2>Reopen an Existing HTML object</H2>
 
 Reopening an existing HTML object allows it to be retained (for
 example by the styled text object) after the structured stream has
@@ -67,45 +49,20 @@ These are the converters implemented in this module:
 
 <PRE>
 #ifndef pyramid
-extern HTConverter HTMLToPlain, HTMLToC, HTMLPresent, HTMLToTeX;
+extern HTConverter HTMLToPlain, HTMLToC, HTMLPresent;
 #endif
 </PRE>
 
-<H2>Selecting internal character set
-representations</H2>
-<PRE>typedef enum _HTMLCharacterSet {
+<H2>Selecting internal character set representations</H2>
+
+<PRE>
+typedef enum _HTMLCharacterSet {
 	HTML_ISO_LATIN1,
 	HTML_NEXT_CHARS,
 	HTML_PC_CP950
 } HTMLCharacterSet;
 
 extern void HTMLUseCharacterSet PARAMS((HTMLCharacterSet i));
-
-</PRE>
-<H2>Record error message as a hypertext
-object</H2>The error message should be marked
-as an error so that it can be reloaded
-later. This implementation just throws
-up an error message and leaves the
-document unloaded.
-<H3>On entry,</H3>
-<DL>
-<DT>sink
-<DD> is a stream to the output device
-if any
-<DT>number
-<DD> is the HTTP error number
-<DT>message
-<DD> is the human readable message.
-</DL>
-
-<H3>On exit,</H3>a return code like HT_LOADED if object
-exists else &lt; 0
-<PRE>extern int HTLoadError PARAMS((
-	HTRequest * 	req,
-	int		number,
-	CONST char *	message));
-
 
 </PRE>
 

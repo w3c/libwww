@@ -16,7 +16,7 @@
 #include "tcp.h"
 #include "HTUtils.h"
 #include "HTString.h"
-#include "HTML.h"
+#include "HTMLGen.h"
 #include "HTParse.h"
 #include "HTProxy.h"
 #include "HTWSRC.h"					 /* Implemented here */
@@ -455,8 +455,8 @@ PUBLIC HTStream* HTWSRCConvert ARGS5(
     HTStream * me = (HTStream *) calloc(1, sizeof(HTStream));
     if (!me) outofmem(__FILE__, "HTWSRCConvert");
     me->isa = &WSRCParserClass;
-    me->target = HTML_new(request,
-    		param, input_format, output_format,output_stream);
+    me->target = HTMLGenerator(request, param, input_format, output_format,
+			       output_stream);
     me->request = request;
     me->state = beginning;
 

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Global Include File for W3C Reference Library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 12-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 27-Aug-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -63,22 +63,16 @@ extern "C" {
 #include "HTCache.h"
 
 /* Presenters, converters and other streams */
-#include "HTML.h"			/* For HTML parser */
-#include "HTMLGen.h"			/* For reformatting HTML */
-#include "HTWriter.h"
-#include "HTFWrite.h"
-#include "HTMIME.h"
-#include "HTWSRC.h"
-#include "HTNetTxt.h"
+#include "HTMLGen.h"			/* Generating HTML */
+#include "HTWriter.h"			/* Write to a unix file descriptor */
+#include "HTFWrite.h"			/* Write to an ANSI file descriptor */
+#include "HTMIME.h"			/* HTTP/MIME parsing */
+#include "HTNetTxt.h"			/* Convert from CRLF to \n */
 
 /* Directory Listings */
 #include "HTIcons.h"
 #include "HTDirBrw.h"
 #include "HTDescpt.h"
-
-/* Graphic Object and Styles */
-#include "HText.h"
-#include "HTStyle.h"
 
 /* Local file access and logging */
 #include "HTBind.h"			/* Binding to file suffixes */

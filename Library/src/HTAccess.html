@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Access manager  for libwww</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 27-Aug-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -33,6 +33,7 @@ The module contains a lot of stuff but the main topics are:
 <LI><A HREF="#flags">Global Flags</A><P>
 
 <LI><A HREF="#z100">Management of the HTRequest Object</A>
+<LI><A HREF="#memcache">Memory Cache Management</A>
 <LI><A HREF="#headers">Handling HTTP headers</A><P>
 
 <LI><A HREF="#LoadDoc">Functions for loading a document</A>
@@ -260,6 +261,30 @@ extern void HTRequest_setReload	PARAMS((HTRequest * request, HTReload mode));
 #define HTRequest_reload(me)	((me) ? (me)->reload : NULL)
 </PRE>
 
+<A NAME="memcache"><H2>Memory cache Management</H2></A>
+
+The Library has two notions of a local cache: a file cache and a
+memory cache. The memory cache is handled by the client and the file
+cache is handled by the Library. Often the format of a object cached
+in memory is in the form of a hypertext object ready to be displayed
+(that is, it's already parsed). However, this is not required, and the
+application can therefore register a memory cache handler that returns
+an int with the following values:
+
+<UL>
+<LI>HT_LOADED if the document is in memory and is OK
+<LI>HT_ERROR if the document is not in memory
+</UL>
+
+<PRE>
+typedef int (*HTMemoryCacheHandler)	PARAMS((HTRequest *	request,
+						HTExpiresMode	mode,
+						char *		message));
+
+extern BOOL HTMemoryCache_register	PARAMS((HTMemoryCacheHandler handler));
+extern BOOL HTMemoryCache_unRegister	NOPARAMS;
+</PRE>
+
 <A NAME="headers"><H2>HTTP/MIME Header Methods</H2></A>
 
 These enumerations set up the headers that are used in a HTTP request
@@ -279,7 +304,8 @@ typedef enum _GenHeaderEnum {
     HT_DATE		= 0x1,
     HT_FORWARDED	= 0x2,
     HT_MESSAGE_ID	= 0x4,
-    HT_MIME		= 0x8
+    HT_MIME		= 0x8,
+    HT_NO_CACHE		= 0x10					   /* Pragma */
 } GenHeaderEnum;
 
 #define <A NAME="DEF_HEAD">DEFAULT_GENERAL_HEADERS</A> 0
@@ -301,7 +327,7 @@ typedef enum _ReqHeaderEnum {
     HT_ACCEPT_LAN	= 0x8,
     HT_FROM		= 0x10,
     HT_IMS		= 0x20,
-    HT_NO_CACHE		= 0x40,
+    HT_ORIG_URI		= 0x40,
     HT_REFERER		= 0x80,
     HT_USER_AGENT	= 0x200
 } ReqHeaderEnum;

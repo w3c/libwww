@@ -24,8 +24,7 @@
 #include "HTUtils.h"
 #include "HTTeXGen.h"
 #include "HTMLPDTD.h"
-#include "HTStream.h"
-#include "SGML.h"
+#include "HTStruct.h"
 #include "HTFormat.h"
 
 /*		HTML Object
@@ -486,14 +485,3 @@ PUBLIC HTStream* HTMLToTeX ARGS5(
         "\\documentstyle[11pt]{report}\n\\begin{document}\n");
     return SGML_new(&HTMLP_dtd, me);
 }
-
-
-/* END OF FILE HTTeXGen.c */
-
-
-
-
-
-
-
-

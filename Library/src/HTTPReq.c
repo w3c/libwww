@@ -106,6 +106,12 @@ PRIVATE void HTTPMakeRequest ARGS2(HTStream *, me, HTRequest *, request)
 	HTChunkPuts(header, linebuf);
     }
 
+    /* Various PRAGMA headers */
+    if (request->RequestMask & HT_NO_CACHE) {
+	sprintf(linebuf, "Pragma: %s%c%c", "no-cache", CR, LF);
+	HTChunkPuts(header, linebuf);
+    }
+
     /* Request Headers */
     if (request->RequestMask & HT_ACCEPT_TYPE) {
 	int list;
@@ -214,13 +220,14 @@ PRIVATE void HTTPMakeRequest ARGS2(HTStream *, me, HTRequest *, request)
     if (request->RequestMask & HT_IMS) {
 	if (entity->last_modified != -1) {
 	    sprintf(linebuf, "If-Modified-Since: %s%c%c",
-		    HTDateTimeStr(&entity->last_modified, NO), CR,LF);
+		    HTDateTimeStr(&entity->last_modified, NO), CR, LF);
 	    HTChunkPuts(header, linebuf);
 	}
     }
-    if (request->RequestMask & HT_NO_CACHE) {
-	sprintf(linebuf, "Pragma: %s%c%c", "no-cache", CR, LF);
-	HTChunkPuts(header, linebuf);
+    if (request->EntityMask & HT_ORIG_URI) {
+	char *orig = HTAnchor_address((HTAnchor *) request->anchor);
+	sprintf(linebuf, "Orig-URI: %s%c%c", orig, CR, LF);
+	free(orig);
     }
     if (request->RequestMask & HT_REFERER && request->parentAnchor) {
 	char *act = HTAnchor_address((HTAnchor *) request->anchor);

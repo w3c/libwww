@@ -23,43 +23,37 @@
 #include "tcp.h"
 #include "HTUtils.h"
 #include "HTMLPDTD.h"
-#include "HTStream.h"
-#include "SGML.h"
+#include "HTStruct.h"
 #include "HTFormat.h"
+#include "HTFWrite.h"
 #include "HTMLGen.h"				         /* Implemented here */
 
 #define BUFFER_SIZE	80	/* Line buffer attempts to make neat breaks */
+#define MAX_CLEANNESS	10
 
-#define PUTC(c) (*me->targetClass.put_character)(me->target, c)
-/* #define PUTS(s) (*me->targetClass.put_string)(me->target, s) */
-#define PUTB(s,l) (*me->targetClass.put_block)(me->target, s, l)
+#define PUT_CHAR(c)	(*me->target->isa->put_character)(me->target, c)
+#define PUT_STR(s)	(*me->target->isa->put_string)(me->target, s)
+#define PUT_BLOCK(s,l)	(*me->target->isa->put_block)(me->target, s, l)
 
-/*		HTML Object
-**		-----------
-*/
-
+/* HTML Generator Object */
 struct _HTStream {
-	CONST HTStreamClass *		isa;	
-	HTStream * 			target;
-	HTStreamClass			targetClass;	/* COPY for speed */
+    CONST HTStreamClass *	isa;
+    HTStream *			target;
 };
 
-#define MAX_CLEANNESS 10
 struct _HTStructured {
-	CONST HTStructuredClass *	isa;
-	HTStream * 			target;
-	HTStreamClass			targetClass;	/* COPY for speed */
-	CONST SGML_dtd *		dtd;
-	BOOL				seven_bit;	/* restrict output*/
+    CONST HTStructuredClass *	isa;
+    HTStream * 			target;
+    CONST SGML_dtd *		dtd;
+    BOOL			seven_bit;		  /* restrict output */
 	
-	char				buffer[BUFFER_SIZE+1];
-	char *				write_pointer;
-	char *				line_break [MAX_CLEANNESS+1];
-	int				cleanness;
-	BOOL				overflowed;
-	BOOL				delete_line_break_char
-						[MAX_CLEANNESS+1];
-	char				preformatted;
+    char			buffer[BUFFER_SIZE+1];
+    char *			write_pointer;
+    char *			line_break [MAX_CLEANNESS+1];
+    int				cleanness;
+    BOOL			overflowed;
+    BOOL			delete_line_break_char[MAX_CLEANNESS+1];
+    char			preformatted;
 };
 
 /*			OUTPUT FUNCTIONS
@@ -83,9 +77,7 @@ PRIVATE void flush_breaks ARGS1(HTStructured *, me)
 
 PRIVATE int HTMLGen_flush ARGS1(HTStructured *, me)
 {
-    (*me->targetClass.put_block)(me->target, 
-    				me->buffer,
-				me->write_pointer - me->buffer);
+    PUT_BLOCK(me->buffer, me->write_pointer - me->buffer);
     me->write_pointer = me->buffer;
     flush_breaks(me);
     me->cleanness = 0;
@@ -161,9 +153,7 @@ PRIVATE int HTMLGen_output_character ARGS2(HTStructured *, me, char, c)
 	    
 	    if (me->delete_line_break_char[me->cleanness]) saved++; 
 	    me->line_break[me->cleanness][0] = '\n';
-	    (*me->targetClass.put_block)(me->target,
-	    				me->buffer,
-					me->line_break[me->cleanness] - me->buffer + 1);
+	    PUT_BLOCK(me->buffer, me->line_break[me->cleanness]-me->buffer+1);
 	    me->line_break[me->cleanness][0] = line_break_char;
 	    {  /* move next line in */
 	    	char * p=saved;
@@ -192,9 +182,7 @@ PRIVATE int HTMLGen_output_character ARGS2(HTStructured *, me, char, c)
 	    me->write_pointer = me->write_pointer - (saved-me->buffer);
 	    me->overflowed = NO;
 	} else {   /* No break- just output with no newline */
-	    (*me->targetClass.put_block)(me->target,
-					 me->buffer,
-					 me->write_pointer - me->buffer);
+	    PUT_BLOCK(me->buffer, me->write_pointer - me->buffer);
 	    me->write_pointer = me->buffer;
 	    flush_breaks(me);
 	    me->overflowed = YES;
@@ -354,8 +342,8 @@ PRIVATE void HTMLGen_put_entity ARGS2(HTStructured *, me, int, entity_number)
 PRIVATE int HTMLGen_free ARGS1(HTStructured *, me)
 {
     HTMLGen_flush(me);
-    (*me->targetClass.put_character)(me->target, '\n');
-    (*me->targetClass._free)(me->target);	/* ripple through */
+    PUT_CHAR('\n');
+    (*me->target->isa->_free)(me->target);
     free(me);
     return HT_OK;
 }
@@ -405,17 +393,22 @@ PRIVATE CONST HTStructuredClass HTMLGeneration = /* As opposed to print etc */
 /*	Subclass-specific Methods
 **	-------------------------
 */
-
-PUBLIC HTStructured * HTMLGenerator ARGS1(HTStream *, output)
+PUBLIC HTStructured* HTMLGenerator ARGS5(HTRequest *,	request,
+					 void *,	param,
+					 HTFormat,	input_format,
+					 HTFormat,	output_format,
+					 HTStream *,	output_stream)
 {
-    HTStructured* me = (HTStructured*)calloc(1,sizeof(*me));
+    HTStructured* me = (HTStructured*)calloc(1, sizeof(*me));
     if (me == NULL) outofmem(__FILE__, "HTMLGenerator");
     me->isa = &HTMLGeneration;       
     me->dtd = &HTMLP_dtd;
-
-    me->target = output;
-    me->targetClass = *me->target->isa; /* Copy pointers to routines for speed*/
-    
+    if ((me->target = HTStreamStack(WWW_HTML, output_format, output_stream,
+				    request, YES)) == NULL) {
+	if (STREAM_TRACE)
+	    fprintf(TDEST, "HTMLGen..... Can't convert to media type\n");
+	me->target = HTBlackHole();
+    }
     me->write_pointer = me->buffer;
     flush_breaks(me);
     return me;
@@ -467,7 +460,6 @@ PUBLIC HTStream* HTPlainToHTML ARGS5(
     me->isa = (HTStructuredClass*) &PlainToHTMLConversion;
     me->dtd = &HTMLP_dtd;
     me->target = output_stream;
-    me->targetClass = *me->target->isa;/* Copy pointers to routines for speed*/
     me->write_pointer = me->buffer;
     flush_breaks(me);
     

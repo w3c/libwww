@@ -135,7 +135,8 @@ PUBLIC HText *	HText_new ARGS1(HTParentAnchor *,anchor)
     if (!loaded_texts) loaded_texts = HTList_new();
     HTList_addObject(loaded_texts, self);
     if (HTList_count(loaded_texts) >= LOADED_LIMIT) {
-        if (TRACE) fprintf(stderr, "GridText: Freeing off cached doc.\n"); 
+        if (CACHE_TRACE)
+	    fprintf(TDEST, "MemoryCache. Freeing off cached doc.\n"); 
         HText_free((HText *)HTList_removeFirstObject(loaded_texts));
     }
     
@@ -330,7 +331,6 @@ PRIVATE void display_title ARGS1(HText *,text)
     sprintf(format, "%%%d.%ds%%s\n",	/* Generate format string */
 		    (int)(HTScreenWidth-strlen(percent)),
 		    (int)(HTScreenWidth-strlen(percent)) );
-/*    if (TRACE) fprintf(stderr, "FORMAT IS `%s'\n", format);  */
 #ifdef CURSES
     mvwprintw(w_top, 0, 0, format, title, percent);
     wrefresh(w_top);
@@ -629,10 +629,9 @@ PUBLIC void HText_setStyle ARGS2(HText *,text, HTStyle *,style)
     if (!style) return;				/* Safety */
     after = (int) text->style->spaceAfter;
     before = (int) style->spaceBefore;
-    if (SGML_TRACE) fprintf(stderr, "HTML: Change to style %s\n", style->name);
-
+    if (SGML_TRACE)
+	fprintf(TDEST, "HTML: Change to style %s\n", style->name);
     blank_lines (text, after>before ? after : before);
-
     text->style = style;
 }
 
@@ -816,11 +815,11 @@ PUBLIC void HText_endAppend ARGS1(HText *,text)
 
 
 
-/* 	Dump diagnostics to stderr
+/* 	Dump diagnostics to TDEST
 */
 PUBLIC void HText_dump ARGS1(HText *,text)
 {
-    fprintf(stderr, "HText: Dump called\n");
+    fprintf(TDEST, "HText: Dump called\n");
 }
 	
 
@@ -927,8 +926,8 @@ PUBLIC BOOL HText_select ARGS1(HText *,text)
 	display_page(text, text->top_of_screen);
 	return YES;
     }
-    if (TRACE)
-	fprintf(stderr, "HText: Nothing to select!\n");
+    if (SGML_TRACE)
+	fprintf(TDEST, "HText: Nothing to select!\n");
     return NO;
 }
 
@@ -936,18 +935,12 @@ PUBLIC BOOL HText_selectAnchor ARGS2(HText *,text, HTChildAnchor *,anchor)
 {
     TextAnchor * a;
 
-/* This is done later, hence HText_select is unused in GridText.c
-   Should it be the contrary ? @@@
-    if (text != HTMainText) {
-        HText_select(text);
-    }
-*/
-
     for(a=text->first_anchor; a; a=a->next) {
         if (a->anchor == anchor) break;
     }
     if (!a) {
-        if (TRACE) fprintf(stderr, "HText: No such anchor in this text!\n");
+        if (SGML_TRACE)
+	    fprintf(TDEST, "HText: No such anchor in this text!\n");
         return NO;
     }
 
@@ -957,19 +950,17 @@ PUBLIC BOOL HText_selectAnchor ARGS2(HText *,text, HTChildAnchor *,anchor)
     }
 
     {
-	 int l = line_for_char(text, a->start);
-	if (TRACE) fprintf(stderr,
-	    "HText: Selecting anchor [%d] at character %d, line %d\n",
-	    a->number, a->start, l);
+	int l = line_for_char(text, a->start);
+	if (SGML_TRACE)
+	    fprintf(TDEST,"HText: Selecting anchor [%d] at char %d, line %d\n",
+		    a->number, a->start, l);
 
 	if ( !text->stale &&
-	     (l >= text->top_of_screen) &&
-	     ( l < text->top_of_screen + DISPLAY_LINES-1))
-	         return YES;
-
+	    (l >= text->top_of_screen) &&
+	    ( l < text->top_of_screen + DISPLAY_LINES-1))
+	    return YES;
         display_page(text, l - (DISPLAY_LINES/3));	/* Scroll to it */
     }
-    
     return YES;
 }
  
@@ -1066,4 +1057,52 @@ PUBLIC HTAnchor *	HText_linkSelTo ARGS2(HText *,me, HTAnchor *,anchor)
     return 0;
 }
 
+/*
+** Check if document is already loaded. As the application handles the
+** memory cache, we call the application to ask. Also check if it has
+** expired in which case we reload it (either from disk cache or remotely)
+*/
+PUBLIC int HTMemoryCache ARGS3(HTRequest *, request, HTExpiresMode, mode,
+			       char *, notification)
+{
+    HText *text;
+    if (!request)
+	return HT_ERROR;
+    if ((text = (HText *) HTAnchor_document(request->anchor))) {
+	if (request->reload != HT_MEM_REFRESH) {
+	    if (CACHE_TRACE)
+		fprintf(TDEST,"HTMemCache.. Document already in memory\n");
+	    if (mode != HT_EXPIRES_IGNORE) {
+		if (!HTCache_isValid(request->anchor)) {
+		    if (mode == HT_EXPIRES_NOTIFY)
+			HTAlert(request, notification);
+		    else {
+			if (CACHE_TRACE)
+			    fprintf(TDEST,
+				    "HTMemCache.. Expired - autoreload\n");
+			request->RequestMask |= HT_IMS;
+#ifndef HT_SHARED_DISK_CACHE
+			request->reload = HT_CACHE_REFRESH;
+#endif
+			return HT_ERROR; /* Must go get it */
+		    }
+		}
+	    }
 
+	    /*
+	     ** If we can use object then select it and return
+	     ** This should be a callback to the app mem cache handler
+	     */
+	    if (request->childAnchor)
+		HText_selectAnchor(text, request->childAnchor);
+	    else
+		HText_select(text);
+	    return HT_LOADED;
+	} else {		/* If refresh version in memory */
+	    request->RequestMask |= HT_IMS;
+	}
+    } else {			      /* Don't reuse any old metainformation */
+	HTAnchor_clearHeader(request->anchor);
+    }
+    return HT_ERROR;
+}

@@ -16,7 +16,6 @@
 #include "tcp.h"
 #include "HTUtils.h"
 #include "HTString.h"
-#include "HTMLPDTD.h"
 #include "HTAAUtil.h"
 #include "HTAnchor.h"
 #include "HTParse.h"

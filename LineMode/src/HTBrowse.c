@@ -277,9 +277,9 @@ PRIVATE void SetSignal NOARGS
     ** get `connection refused' back
     */
     if (signal(SIGPIPE, SIG_IGN) == SIG_ERR) {
-	if (PROT_TRACE) fprintf(stderr, "HTSignal.... Can't catch SIGPIPE\n");
+	if (PROT_TRACE) fprintf(TDEST, "HTSignal.... Can't catch SIGPIPE\n");
     } else {
-	if (PROT_TRACE) fprintf(stderr, "HTSignal.... Ignoring SIGPIPE\n");
+	if (PROT_TRACE) fprintf(TDEST, "HTSignal.... Ignoring SIGPIPE\n");
     }
 }
 #endif /* CATCH_SIG */
@@ -483,14 +483,14 @@ PRIVATE BOOL SaveOutputStream ARGS3(HTRequest *, req, char *,This, char *,Next)
     if (!fname)					       /* No file name given */
 	return NO;
     if ((fp = fopen(fname, fmode)) == NULL) {
-	if (SHOW_MSG) fprintf(stderr, "Can't access file (%s)\n", fname);
+	if (SHOW_MSG) fprintf(TDEST, "Can't access file (%s)\n", fname);
 	return NO;
     }
     req->output_stream = HTFWriter_new(fp, NO);
 
     /* Now, file is open and OK: reload the text and put up a stream for it! */
     if (TRACE)
-	fprintf(stderr, "Saving to file %s\n", fname);
+	fprintf(TDEST, "Saving to file %s\n", fname);
     return (HTLoadAnchor((HTAnchor*) HTMainAnchor, req) != HT_WOULD_BLOCK);
 }
 
@@ -567,7 +567,7 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 		}
 	    } else {
 		if (SHOW_MSG)
-		    fprintf(stderr,"Warning: Invalid Reference Number: (%d)\n",
+		    fprintf(TDEST,"Warning: Invalid Reference Number: (%d)\n",
 			    ref_num);
 	    }
 	}
@@ -691,7 +691,7 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 	    if (!next_word) {				 /* Missing argument */
 		printf ("\nName of the new local directory missing.\n");
 	    } else if (chdir (next_word)) {		 /* failed : say why */
-		fprintf (stderr, "\n  ");
+		fprintf (TDEST, "\n  ");
 		perror (next_word);
 	    } else {		    /* Success : display new local directory */
 		/* AS Sep 93 */
@@ -1304,7 +1304,9 @@ int main ARGS2(int, argc, char **, argv)
 	*/
 	if (reformat_html) {
 	    request->output_stream =
-		SGML_new(&HTMLP_dtd, HTMLGenerator(request->output_stream));
+		SGML_new(&HTMLP_dtd, HTMLGenerator(request, NULL, WWW_HTML,
+						   request->output_format,
+						   request->output_stream));
 	}
     }
     
@@ -1333,12 +1335,25 @@ int main ARGS2(int, argc, char **, argv)
     /* If in interactive mode then start the event loop which will run until
        the program terminates */
     if (HTPrompt_interactive()) {
-	hist = HTHistory_new();			    /* Start history Manager */
-	reqlist = HTList_new();			   /* Keep track of requests */
-    	HTHistory_record(hist, (HTAnchor *) home_anchor);
+
+	/* Start own list of pending requests */
+	reqlist = HTList_new();
+
+	/* Start History manager and record first page */
+	hist = HTHistory_new();
+	HTHistory_record(hist, (HTAnchor *) home_anchor);
+
+	/* Register our own memory cache handler (implemented in GridText.c) */
+	HTMemoryCache_register(HTMemoryCache);
+
+	/* Make first command line */
  	MakeCommandLine(HTAnchor_isIndex(home_anchor));
+
+	/* Register STDIN as the user socket */
 	HTEvent_RegisterTTY(STDIN_FILENO, request, (SockOps)FD_READ,
 			    scan_command, 1);
+
+	/* Go into the event loop... */
 	status = HTEvent_Loop(request);
     } else if (show_refs) {
 	Reference_List(NO);	       /* Show references from this document */

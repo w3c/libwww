@@ -395,7 +395,7 @@ PUBLIC char * HTMulti ARGS3(HTRequest *,	req,
 	    path = new_path;
 	}
 	else {
-	    stat_status = HTStat(path, stat_info);
+	    stat_status = STAT(path, stat_info);
 	    if (stat_status == -1) {
 		if (PROT_TRACE)
 		    fprintf(TDEST,
@@ -413,7 +413,7 @@ PUBLIC char * HTMulti ARGS3(HTRequest *,	req,
 #endif /* GOT_READ_DIR */
 
     if (stat_status == -1)
-	stat_status = HTStat(path, stat_info);
+	stat_status = STAT(path, stat_info);
     if (stat_status == -1) {
 	if (PROT_TRACE)
 	    fprintf(TDEST, "Stat fails.. on \"%s\" -- giving up (errno %d)\n",
