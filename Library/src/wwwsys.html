@@ -1005,6 +1005,38 @@ exist.  Their existance is discovered by <CODE>configure</CODE>.
 #ifndef WIFEXITED
 #define WIFEXITED(stat_val) (((stat_val) &amp; 255) == 0)
 #endif
+</PRE>
+
+<H2>Booleans</H2>
+
+<PRE>
+#if !defined(BOOLEAN)
+typedef char	BOOLEAN;				    /* Logical value */
+#endif
+
+#ifndef CURSES
+#ifndef TRUE
+#define TRUE	(BOOLEAN)1
+#define	FALSE	(BOOLEAN)0
+#endif
+#endif	 /*  CURSES  */
+
+#if !defined(BOOL) &amp;&amp; !defined(WWW_MSWINDOWS)
+#define BOOL BOOLEAN
+#endif
+
+#ifndef YES
+#define YES             (BOOL)1
+#define NO              (BOOL)0
+#endif
+</PRE>
+
+<H2>NULL Definition</H2>
+
+<PRE>
+#ifndef NULL
+#define NULL ((void *)0)
+#endif
 </pre>
 
 <H2>Sleep System Call</H2>

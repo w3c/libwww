@@ -290,7 +290,7 @@ PUBLIC HTList *HTNet_pendingQueue (void)
 PUBLIC HTNet * HTNet_dup (HTNet * src)
 {
     HTNet * me;
-    if (!src) return NO;
+    if (!src) return 0;
     if ((me = (HTNet *) HT_MALLOC(sizeof(HTNet))) == NULL)
 	HT_OUTOFMEM("HTNet_dup");
     memcpy((void *) me, src, sizeof(HTNet));

@@ -122,38 +122,6 @@ extern int HTTrace(const char * fmt, ...);
 #define PRIVATE static		/* Accessible only within this module */
 </PRE>
 
-<H2>Booleans</H2>
-
-<PRE>
-#if !defined(BOOLEAN)
-typedef char	BOOLEAN;				    /* Logical value */
-#endif
-
-#ifndef CURSES
-#ifndef TRUE
-#define TRUE	(BOOLEAN)1
-#define	FALSE	(BOOLEAN)0
-#endif
-#endif	 /*  CURSES  */
-
-#ifndef BOOL
-#define BOOL BOOLEAN
-#endif
-
-#ifndef YES
-#define YES             (BOOL)1
-#define NO              (BOOL)0
-#endif
-</PRE>
-
-<H2>NULL Definition</H2>
-
-<PRE>
-#ifndef NULL
-#define NULL ((void *)0)
-#endif
-</PRE>
-
 <H2>Often used Interger Macros</H2>
 
 <H3>Min and Max functions</H3>

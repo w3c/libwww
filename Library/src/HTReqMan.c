@@ -123,7 +123,7 @@ PUBLIC BOOL HTRequest_clear (HTRequest * me)
 PUBLIC HTRequest * HTRequest_dup (HTRequest * src)
 {
     HTRequest * me;
-    if (!src) return NO;
+    if (!src) return 0;
     if ((me = (HTRequest  *) HT_MALLOC(sizeof(HTRequest))) == NULL)
         HT_OUTOFMEM("HTRequest_dup");
     memcpy(me, src, sizeof(HTRequest));
@@ -141,7 +141,7 @@ PUBLIC HTRequest * HTRequest_dup (HTRequest * src)
 PUBLIC HTRequest * HTRequest_dupInternal (HTRequest * src)
 {
     HTRequest * me;
-    if (!src) return NO;
+    if (!src) return 0;
     if ((me = (HTRequest  *) HT_MALLOC(sizeof(HTRequest))) == NULL)
         HT_OUTOFMEM("HTRequest_dup");
     memcpy(me, src, sizeof(HTRequest));
