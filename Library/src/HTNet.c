@@ -820,44 +820,50 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
     return YES;
 }
 
-/*	delete_object
-**	-------------
-**	Deletes an HTNet object
+/*
+**      Check whether we have any pending HTNet objects and if so
+**	then start the next one.
 **	Return YES if OK, else NO
 */
-PRIVATE BOOL delete_object (HTNet * net)
+PRIVATE BOOL check_pending (HTNet * net)
 {
-    if (CORE_TRACE) HTTrace("Net Object.. Remove object %p\n", net);
+    if (CORE_TRACE) HTTrace("Net Object.. Check for pending Net objects\n");
     if (net) {
 
-	/* Close socket */
 	/*
 	**  As we may have a socket available we check for whether
 	**  we can start any pending requests. We do this by asking for
 	**  pending Host objects. If none then use the current object
 	*/
-/*	(*net->input->isa->consumed)(net->input, net->header_length + net->bytes_read);
- */
-
         HTHost_launchPending(net->host);
 
-        /*
-	**  Break the link to the request and free the Net object
-	*/
-	HTRequest_setNet(net->request, NULL);
-	HT_FREE(net);
+        return YES;
+    }
+    return NO;
+}
+
+PRIVATE BOOL free_net (HTNet * net)
+{
+    if (CORE_TRACE) HTTrace("Net Object.. Freeing object %p\n", net);
+    if (net) {
+        HTRequest_setNet(net->request, NULL);
+        HT_FREE(net);
 	return YES;
     }
     return NO;
 }
 
-PRIVATE BOOL remove_net (HTNet * net)
+/*
+**  Unregister the net object from the global list
+**  and see if we can start a new pending request.
+*/
+PRIVATE BOOL unregister_net (HTNet * net)
 {
     if (net && NetTable) {
 	HTList * list = NetTable[net->hash];
 	if (list) {
 	    HTList_removeObject(list, (void *) net);
-	    delete_object(net);
+	    check_pending(net);
 	    HTNetCount--;
 	    return YES;
 	}
@@ -920,18 +926,26 @@ PUBLIC BOOL HTNet_delete (HTNet * net, int status)
         }
 
         /* Remove object from the table of Net Objects */
-	remove_net(net);
+	unregister_net(net);
 
     	/* Call AFTER filters */
 	HTNet_executeAfterAll(request, status);
-        return YES;
+        
+	/*
+	** Truely delete the HTNet object. Thanks to Mikhail Grouchinski
+	** we now do this after having called the after filters so that
+	** these filters can use the information in the Net object
+	*/
+        free_net(net);
+
+	return YES;
     }
     return NO;
 }
 
 PUBLIC BOOL HTNet_deleteDup (HTNet * dup)
 {
-    return dup ? remove_net(dup) : NO;
+    return dup ? (unregister_net(dup) && free_net(dup)) : NO;
 }
 
 /*	HTNet_deleteAll
@@ -949,8 +963,10 @@ PUBLIC BOOL HTNet_deleteAll (void)
 	int cnt;
 	for (cnt=0; cnt<HT_XL_HASH_SIZE; cnt++) {
 	    if ((cur = NetTable[cnt])) { 
-		while ((pres = (HTNet *) HTList_nextObject(cur)) != NULL)
-		    delete_object(pres);
+		while ((pres = (HTNet *) HTList_nextObject(cur)) != NULL)  {
+		    check_pending(pres);
+                    free_net(pres);
+		}
 	    }
 	    HTList_delete(NetTable[cnt]);
 	}
@@ -988,7 +1004,7 @@ PUBLIC BOOL HTNet_kill (HTNet * net)
 	    (*(net->event.cbf))(HTNet_socket(net), net->event.param, HTEvent_CLOSE);
 	    return YES;
 	}
-	return remove_net(net);
+	return unregister_net(net) && free_net(net);
     }
     if (CORE_TRACE) HTTrace("Net Object.. No object to kill\n");
     return NO;
