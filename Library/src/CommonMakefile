@@ -110,7 +110,7 @@ HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h  $(CMN)HTProxy.h $(CMN)HTFile.h \
 	$(CMN)HTList.h \
 	$(CMN)HTString.h $(CMN)HTAlert.h $(CMN)HTRules.h \
 	$(CMN)HTFormat.h $(CMN)HTInit.h \
-	$(CMN)HTMIMERq.h $(CMN)HTMIMERq.h $(CMN)HTConLen.h \
+	$(CMN)HTMIME.h $(CMN)HTMIMERq.h $(CMN)HTConLen.h \
 	$(CMN)HTHist.h \
 	$(CMN)HTGopher.h $(CMN)HTDir.h \
 	$(CMN)HTUtils.h $(CMN)tcp.h $(CMN)HText.h \
