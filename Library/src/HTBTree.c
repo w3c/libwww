@@ -160,7 +160,7 @@ PUBLIC void HTBTree_add ARGS2(
                     added_element->right_depth = 0;
                 }
    	    }
-            if (tree->compare(object,father_of_element->object)>0)
+            if (tree->compare(object,father_of_element->object)>=0)
             {
                 if (father_of_element->right != NULL) 
                     father_of_element = father_of_element->right;
@@ -405,7 +405,8 @@ PUBLIC void HTBTree_add ARGS2(
                         added_element->left = father_of_element;
 		    }
                     father_of_element->up = added_element;
-                    father_of_element->right->up = father_of_element;
+                    if (father_of_element->right != NULL)
+		        father_of_element->right->up = father_of_element;
 		}
 	    }
         }
@@ -496,15 +497,140 @@ main ()
     HTBTree * tree;
     HTBTElement * next_element;
     
-    tree = HTBTree_new(strcasecmp);
-    HTBTree_add(tree,"zoo");
-    HTBTree_add(tree,"carot");
-    HTBTree_add(tree,"elephant\t");
-    HTBTree_add(tree,"coat");
-    HTBTree_add(tree,"snake");
-    HTBTree_add(tree,"Peter");
-    HTBTree_add(tree,"Harrison");
-    HTBTree_add(tree,"WWW");
+    tree = HTBTree_new((HTComparer)strcasecmp);
+    HTBTree_add(tree,"hypertext");
+    HTBTree_add(tree,"Addressing");
+    HTBTree_add(tree,"X11");
+    HTBTree_add(tree,"Tools");
+    HTBTree_add(tree,"Proposal.wn");
+    HTBTree_add(tree,"Protocols");
+    HTBTree_add(tree,"NeXT");
+    HTBTree_add(tree,"Daemon");
+    HTBTree_add(tree,"Test");
+    HTBTree_add(tree,"Administration");
+    HTBTree_add(tree,"LineMode");
+    HTBTree_add(tree,"DesignIssues");
+    HTBTree_add(tree,"MarkUp");
+    HTBTree_add(tree,"Macintosh");
+    HTBTree_add(tree,"Proposal.rtf.wn");
+    HTBTree_add(tree,"FIND");
+    HTBTree_add(tree,"Paper");
+    HTBTree_add(tree,"Tcl");
+    HTBTree_add(tree,"Talks");
+    HTBTree_add(tree,"Architecture");
+    HTBTree_add(tree,"VMSHelp");
+    HTBTree_add(tree,"Provider");
+    HTBTree_add(tree,"Archive");
+    HTBTree_add(tree,"SLAC");
+    HTBTree_add(tree,"Project");
+    HTBTree_add(tree,"News");
+    HTBTree_add(tree,"Viola");
+    HTBTree_add(tree,"Users");
+    HTBTree_add(tree,"FAQ");
+    HTBTree_add(tree,"WorkingNotes");
+    HTBTree_add(tree,"Windows");
+    HTBTree_add(tree,"FineWWW");
+    HTBTree_add(tree,"Frame");
+    HTBTree_add(tree,"XMosaic");
+    HTBTree_add(tree,"People");
+    HTBTree_add(tree,"All");
+    HTBTree_add(tree,"Curses");
+    HTBTree_add(tree,"Erwise");
+    HTBTree_add(tree,"Carl");
+    HTBTree_add(tree,"MidasWWW");
+    HTBTree_add(tree,"XPM");
+    HTBTree_add(tree,"MailRobot");
+    HTBTree_add(tree,"Illustrations");
+    HTBTree_add(tree,"VMClient");
+    HTBTree_add(tree,"XPA");
+    HTBTree_add(tree,"Clients.html");
+    HTBTree_add(tree,"Library");
+    HTBTree_add(tree,"CERNLIB_Distribution");
+    HTBTree_add(tree,"libHTML");
+    HTBTree_add(tree,"WindowsPC");
+    HTBTree_add(tree,"tkWWW");
+    HTBTree_add(tree,"tk2.3");
+    HTBTree_add(tree,"CVS-RCS");
+    HTBTree_add(tree,"DecnetSockets");
+    HTBTree_add(tree,"SGMLStream");
+    HTBTree_add(tree,"NextStep");
+    HTBTree_add(tree,"CVSRepository_old");
+    HTBTree_add(tree,"ArthurSecret");
+    HTBTree_add(tree,"CVSROOT");
+    HTBTree_add(tree,"HytelnetGate");
+    HTBTree_add(tree,"cern.www.new.src");
+    HTBTree_add(tree,"Conditions");
+    HTBTree_add(tree,"HTMLGate");
+    HTBTree_add(tree,"Makefile");
+    HTBTree_add(tree,"Newsgroups.html");
+    HTBTree_add(tree,"People.html");
+    HTBTree_add(tree,"Bugs.html");
+    HTBTree_add(tree,"Summary.html");
+    HTBTree_add(tree,"zDesignIssues.wn");
+    HTBTree_add(tree,"HT.draw");
+    HTBTree_add(tree,"HTandCERN.wn");
+    HTBTree_add(tree,"Ideas.wn");
+    HTBTree_add(tree,"MarkUp.wn");
+    HTBTree_add(tree,"Proposal.html");
+    HTBTree_add(tree,"SearchPanel.draw");
+    HTBTree_add(tree,"Comments.wn");
+    HTBTree_add(tree,"Xanadu.html");
+    HTBTree_add(tree,"Storinglinks.html");
+    HTBTree_add(tree,"TheW3Book.html");
+    HTBTree_add(tree,"Talk_Feb-91.html");
+    HTBTree_add(tree,"JFosterEntry.txt");
+    HTBTree_add(tree,"Summary.txt");
+    HTBTree_add(tree,"Bibliography.html");
+    HTBTree_add(tree,"HTandCern.txt");
+    HTBTree_add(tree,"Talk.draw");
+    HTBTree_add(tree,"zDesignNotes.html");
+    HTBTree_add(tree,"Link.html");
+    HTBTree_add(tree,"Status.html");
+    HTBTree_add(tree,"http.txt");
+    HTBTree_add(tree,"People.html~");
+    HTBTree_add(tree,"TAGS");
+    HTBTree_add(tree,"summary.txt");
+    HTBTree_add(tree,"Technical.html");
+    HTBTree_add(tree,"Terms.html");
+    HTBTree_add(tree,"JANETAccess.html");
+    HTBTree_add(tree,"People.txt");
+    HTBTree_add(tree,"README.txt");
+    HTBTree_add(tree,"CodingStandards.html");
+    HTBTree_add(tree,"Copyright.txt");
+    HTBTree_add(tree,"Status_old.html");
+    HTBTree_add(tree,"patches~");
+    HTBTree_add(tree,"RelatedProducts.html");
+    HTBTree_add(tree,"Implementation");
+    HTBTree_add(tree,"History.html");
+    HTBTree_add(tree,"Makefile.bak");
+    HTBTree_add(tree,"Makefile.old");
+    HTBTree_add(tree,"Policy.html");
+    HTBTree_add(tree,"WhatIs.html");
+    HTBTree_add(tree,"TheProject.html");
+    HTBTree_add(tree,"Notation.html");
+    HTBTree_add(tree,"Helping.html");
+    HTBTree_add(tree,"Cyber-WWW.sit.Hqx");
+    HTBTree_add(tree,"Glossary.html");
+    HTBTree_add(tree,"maketags.html");
+    HTBTree_add(tree,"IntroCS.html");
+    HTBTree_add(tree,"Contrib");
+    HTBTree_add(tree,"Help.html");
+    HTBTree_add(tree,"CodeManagExec");
+    HTBTree_add(tree,"HT-0.1draz");
+    HTBTree_add(tree,"Cello");
+    HTBTree_add(tree,"TOPUB");
+    HTBTree_add(tree,"BUILD");
+    HTBTree_add(tree,"BUILDALL");
+    HTBTree_add(tree,"Lynx");
+    HTBTree_add(tree,"ArthurLibrary");
+    HTBTree_add(tree,"RashtyClient");
+    HTBTree_add(tree,"#History.html#");
+    HTBTree_add(tree,"PerlServers");
+    HTBTree_add(tree,"modules");
+    HTBTree_add(tree,"NCSA_httpd");
+    HTBTree_add(tree,"MAIL2HTML");
+    HTBTree_add(tree,"core");
+    HTBTree_add(tree,"EmacsWWW");
 #ifdef BTREE_TRACE
     printf("\nTreeTopObject=%s\n\n",tree->top->object);
 #endif
