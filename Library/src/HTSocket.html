@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Socket I/O Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 22-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 28-Nov-1995 -->
 <NEXTID N="z18">
 </HEAD>
 <BODY>
@@ -31,7 +31,7 @@ Reference Library</A>.
 #include <A HREF="HTReq.html">"HTReq.h"</A>
 #include <A HREF="HTStream.html">"HTStream.h"</A>
 #include <A HREF="HTAnchor.html">"HTAnchor.h"</A>
-#include <A HREF="HTEvnttg.html">"HTEvntrg.h"</A>
+#include <A HREF="HTEvntrg.html">"HTEvntrg.h"</A>
 </PRE>
 
 <H2>Create an Input Buffer</H2>
@@ -61,7 +61,7 @@ extern void HTInputSocket_free (HTInputSocket * isoc);
 
 This function is a wrapper around the <CODE>HTSocketRead()</CODE>
 declared below. It provides a callback function for the <A
-HREF="HTEvntrg.hmtl">event loop</A> so that a socket can be loaded
+HREF="HTEvntrg.html">event loop</A> so that a socket can be loaded
 using non-blocking I/O. The function requires an <B>open</B>
 socket. It will typically be used in server applications or in a
 client application that can read directly from <CODE>stdin</CODE>.

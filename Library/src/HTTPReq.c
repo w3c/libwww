@@ -25,8 +25,6 @@
 #include "HTMIMERq.h"
 #include "HTTPReq.h"					       /* Implements */
 
-PUBLIC char * HTProxyHeaders = NULL;		    /* Headers to pass as-is */
-
 #define PUTBLOCK(b, l)	(*me->target->isa->put_block)(me->target, b, l)
 
 struct _HTStream {
