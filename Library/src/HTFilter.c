@@ -263,7 +263,18 @@ PUBLIC int HTRedirectFilter (HTRequest * request, HTResponse * response,
 	    }
 	}
     } 
- 
+
+    /* Register the redirection as a link relationship */
+    {
+	HTLinkType ltype = status==HT_PERM_REDIRECT ? HT_LR_PERM_REDIRECT :
+	    (status==HT_TEMP_REDIRECT || status==HT_FOUND) ? HT_LR_TEMP_REDIRECT :
+	    status==HT_SEE_OTHER ? HT_LR_SEE_OTHER : NULL;
+	if (ltype) {
+	    HTLink_add((HTAnchor *) HTRequest_anchor(request), new_anchor, 
+		       ltype, method);
+	}
+    }
+
     /* Delete any auth credendials as they get regenerated */
     HTRequest_deleteCredentialsAll(request);
 

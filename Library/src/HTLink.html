@@ -76,6 +76,17 @@ This is normally a part of deleting anchor objects.
 <PRE>extern BOOL HTLink_removeAll (HTAnchor * me);
 </PRE>
 <H2>
+  Predefined Link Types
+</H2>
+<P>
+Just for ease of use, we define a seet of commonly used link types. You can
+ofcourse use any other link type you want.
+<PRE>
+#define HT_LR_PERM_REDIRECT		HTAtom_for("PERMANENT_REDIRECTION")
+#define HT_LR_TEMP_REDIRECT		HTAtom_for("TEMPORARY_REDIRECTION")
+#define HT_LR_SEE_OTHER			HTAtom_for("SEE_OTHER")
+</PRE>
+<H2>
   Handle Link Between Anchors
 </H2>
 <P>
