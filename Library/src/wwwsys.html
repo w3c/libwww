@@ -289,6 +289,9 @@ Return code for socket functions. We can't use -1 as return value
 #define EHOSTDOWN       WSAEHOSTDOWN
 #define EISCONN         WSAEISCONN
 #define EINVAL          WSAEINVAL
+#define ECONNRESET      WSAECONNRESET
+#define ECONNABORTED    WSAECONNABORTED
+#define ESHUTDOWN       WSAESHUTDOWN
 
 /* Some compilers do only define WIN32 and NOT _WINDOWS */
 #define NO_GROUPS
