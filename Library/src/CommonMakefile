@@ -181,19 +181,22 @@ binary : /mnt/www0/pub/www/bin/$(WWW_MACH)/libwww_$(VC).a
 
 #	Source Distribution:
 
-distribute :  /mnt/www0/pub/www/README.txt /mnt/www0/pub/www/Copyright.txt
+distribute : /mnt/www0/pub/www/README.txt /mnt/www0/pub/www/Copyright.txt
 	(cd $(WWW)/..; WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
-		-f WWW/Library/Implementation/CommonMakefile \
-		/mnt/www0/pub/www/src/WWWLibrary_$(VC).tar.Z)
+	-f WWW/Library/Implementation/Version.make \
+	-f WWW/Library/Implementation/CommonMakefile \
+	/mnt/www0/pub/www/src/WWWLibrary_$(VC).tar.Z)
 	(cd ../Implementation; cvs tag \
-	    `sed -e 's/VC = /v/' Version.make | sed -e 's?\.?/?'` )
+	`sed -e 's/VC = /v/' Version.make | sed -e 's?\.?/?'` )
 	echo Distribution of Library version $(VC) up to date.
 
 /mnt/www0/pub/www/src/WWWLibrary_$(VC).tar.Z : $(SOURCES)
-	tar cf /mnt/www0/pub/www/src/WWWLibrary_$(VC).tar \
-	    $(SOURCES)  $(SPECIFIC) $(WC)/*/Makefile $(CMN)*.html
-	compress /mnt/www0/pub/www/src/WWWLibrary_$(VC).tar
-
+	tar cvf /mnt/www0/pub/www/src/WWWLibrary_$(VC).tar \
+	    $(SOURCES) \
+	    $(SPECIFIC) \
+	    $(WWW)/All \
+	    $(CMN)*.html
+	compress -f /mnt/www0/pub/www/src/WWWLibrary_$(VC).tar
 
 #	Hypertext supplied in text format
 #	---------------------------------
