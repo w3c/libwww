@@ -69,9 +69,10 @@ CLEAN :
 "$(INTDIR)" :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
-CPP_PROJ=/nologo /MD /W3 /GX /O2 /I "..\..\..\Library\src" /D "NDEBUG" /D\
- "WIN32" /D "_CONSOLE" /D "WWW_WIN_DLL" /Fp"$(INTDIR)\webbot.pch" /YX\
- /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MD /W3 /GX /O2 /I "..\..\..\Library\src" /I\
+ "..\..\..\Library\External" /D "NDEBUG" /D "WIN32" /D "_CONSOLE" /D\
+ "WWW_WIN_DLL" /Fp"$(INTDIR)\webbot.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\"\
+ /FD /c 
 CPP_OBJS=.\Release/
 CPP_SBRS=.
 BSC32=bscmake.exe
@@ -284,6 +285,7 @@ SOURCE=..\..\..\Library\src\HTBInit.c
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
 DEP_CPP_HTBIN=\
+	"..\..\..\library\external\regex.h"\
 	"..\..\..\library\src\htalert.h"\
 	"..\..\..\library\src\htanchor.h"\
 	"..\..\..\library\src\htarray.h"\
@@ -328,11 +330,6 @@ DEP_CPP_HTBIN=\
 	"..\..\..\library\src\wwwcore.h"\
 	"..\..\..\library\src\wwwsys.h"\
 	"..\..\..\library\src\wwwutil.h"\
-	{$(INCLUDE)}"sys\stat.h"\
-	{$(INCLUDE)}"sys\types.h"\
-	
-NODEP_CPP_HTBIN=\
-	"..\..\..\library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\HTBInit.obj" : $(SOURCE) $(DEP_CPP_HTBIN) "$(INTDIR)"
@@ -401,6 +398,7 @@ SOURCE=..\..\..\Library\src\HTHInit.c
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
 DEP_CPP_HTHIN=\
+	"..\..\..\library\external\regex.h"\
 	"..\..\..\library\src\htalert.h"\
 	"..\..\..\library\src\htanchor.h"\
 	"..\..\..\library\src\htarray.h"\
@@ -452,11 +450,6 @@ DEP_CPP_HTHIN=\
 	"..\..\..\library\src\wwwlib.h"\
 	"..\..\..\library\src\wwwsys.h"\
 	"..\..\..\library\src\wwwutil.h"\
-	{$(INCLUDE)}"sys\stat.h"\
-	{$(INCLUDE)}"sys\types.h"\
-	
-NODEP_CPP_HTHIN=\
-	"..\..\..\library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\HTHInit.obj" : $(SOURCE) $(DEP_CPP_HTHIN) "$(INTDIR)"
@@ -532,6 +525,7 @@ SOURCE=..\..\..\Library\src\HTInit.c
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
 DEP_CPP_HTINI=\
+	"..\..\..\library\external\regex.h"\
 	"..\..\..\library\src\htaabrow.h"\
 	"..\..\..\library\src\htaautil.h"\
 	"..\..\..\library\src\htaccess.h"\
@@ -548,7 +542,6 @@ DEP_CPP_HTINI=\
 	"..\..\..\library\src\htchannl.h"\
 	"..\..\..\library\src\htchunk.h"\
 	"..\..\..\library\src\htconlen.h"\
-	"..\..\..\Library\src\HTDemux.h"\
 	"..\..\..\library\src\htdescpt.h"\
 	"..\..\..\library\src\htdialog.h"\
 	"..\..\..\library\src\htdir.h"\
@@ -590,9 +583,6 @@ DEP_CPP_HTINI=\
 	"..\..\..\library\src\htmlpdtd.h"\
 	"..\..\..\library\src\htmulpar.h"\
 	"..\..\..\library\src\htmulti.h"\
-	"..\..\..\Library\src\HTMuxCh.h"\
-	"..\..\..\Library\src\HTMuxHeader.h"\
-	"..\..\..\Library\src\HTMuxTx.h"\
 	"..\..\..\library\src\htndir.h"\
 	"..\..\..\library\src\htnet.h"\
 	"..\..\..\library\src\htnews.h"\
@@ -628,7 +618,6 @@ DEP_CPP_HTINI=\
 	"..\..\..\library\src\htutils.h"\
 	"..\..\..\library\src\htutree.h"\
 	"..\..\..\library\src\htuu.h"\
-	"..\..\..\library\src\HTWAIS.h"\
 	"..\..\..\library\src\htwriter.h"\
 	"..\..\..\library\src\htwwwstr.h"\
 	"..\..\..\library\src\htxparse.h"\
@@ -646,20 +635,13 @@ DEP_CPP_HTINI=\
 	"..\..\..\library\src\wwwhttp.h"\
 	"..\..\..\library\src\wwwlib.h"\
 	"..\..\..\library\src\wwwmime.h"\
-	"..\..\..\Library\src\WWWMux.h"\
 	"..\..\..\library\src\wwwnews.h"\
 	"..\..\..\library\src\wwwstream.h"\
 	"..\..\..\library\src\wwwsys.h"\
 	"..\..\..\library\src\wwwtelnt.h"\
 	"..\..\..\library\src\wwwtrans.h"\
 	"..\..\..\library\src\wwwutil.h"\
-	"..\..\..\library\src\WWWWAIS.h"\
 	"..\..\..\library\src\wwwzip.h"\
-	{$(INCLUDE)}"sys\stat.h"\
-	{$(INCLUDE)}"sys\types.h"\
-	
-NODEP_CPP_HTINI=\
-	"..\..\..\library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\HTInit.obj" : $(SOURCE) $(DEP_CPP_HTINI) "$(INTDIR)"
@@ -800,6 +782,7 @@ SOURCE=..\..\..\Library\src\HTML.c
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
 DEP_CPP_HTML_=\
+	"..\..\..\library\external\regex.h"\
 	"..\..\..\library\src\htalert.h"\
 	"..\..\..\library\src\htanchor.h"\
 	"..\..\..\library\src\htarray.h"\
@@ -851,11 +834,6 @@ DEP_CPP_HTML_=\
 	"..\..\..\library\src\wwwhtml.h"\
 	"..\..\..\library\src\wwwsys.h"\
 	"..\..\..\library\src\wwwutil.h"\
-	{$(INCLUDE)}"sys\stat.h"\
-	{$(INCLUDE)}"sys\types.h"\
-	
-NODEP_CPP_HTML_=\
-	"..\..\..\library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\HTML.obj" : $(SOURCE) $(DEP_CPP_HTML_) "$(INTDIR)"
@@ -931,6 +909,7 @@ SOURCE=..\..\..\Library\src\HTMLPDTD.c
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
 DEP_CPP_HTMLP=\
+	"..\..\..\library\external\regex.h"\
 	"..\..\..\library\src\htarray.h"\
 	"..\..\..\library\src\htlist.h"\
 	"..\..\..\library\src\htmemory.h"\
@@ -941,11 +920,6 @@ DEP_CPP_HTMLP=\
 	"..\..\..\library\src\sgml.h"\
 	"..\..\..\library\src\windows\config.h"\
 	"..\..\..\library\src\wwwsys.h"\
-	{$(INCLUDE)}"sys\stat.h"\
-	{$(INCLUDE)}"sys\types.h"\
-	
-NODEP_CPP_HTMLP=\
-	"..\..\..\library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\HTMLPDTD.obj" : $(SOURCE) $(DEP_CPP_HTMLP) "$(INTDIR)"
@@ -980,6 +954,7 @@ SOURCE=..\..\..\Library\src\HTPlain.c
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
 DEP_CPP_HTPLA=\
+	"..\..\..\library\external\regex.h"\
 	"..\..\..\library\src\htanchor.h"\
 	"..\..\..\library\src\htarray.h"\
 	"..\..\..\library\src\htassoc.h"\
@@ -1017,11 +992,6 @@ DEP_CPP_HTPLA=\
 	"..\..\..\library\src\windows\config.h"\
 	"..\..\..\library\src\wwwsys.h"\
 	"..\..\..\library\src\wwwutil.h"\
-	{$(INCLUDE)}"sys\stat.h"\
-	{$(INCLUDE)}"sys\types.h"\
-	
-NODEP_CPP_HTPLA=\
-	"..\..\..\library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\HTPlain.obj" : $(SOURCE) $(DEP_CPP_HTPLA) "$(INTDIR)"
@@ -1083,6 +1053,7 @@ SOURCE=..\..\..\Library\src\HTProfil.c
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
 DEP_CPP_HTPRO=\
+	"..\..\..\library\external\regex.h"\
 	"..\..\..\library\src\htaabrow.h"\
 	"..\..\..\library\src\htaautil.h"\
 	"..\..\..\library\src\htaccess.h"\
@@ -1180,7 +1151,6 @@ DEP_CPP_HTPRO=\
 	"..\..\..\library\src\htutils.h"\
 	"..\..\..\library\src\htutree.h"\
 	"..\..\..\library\src\htuu.h"\
-	"..\..\..\library\src\HTWAIS.h"\
 	"..\..\..\library\src\htwriter.h"\
 	"..\..\..\library\src\htwwwstr.h"\
 	"..\..\..\library\src\htxparse.h"\
@@ -1205,13 +1175,7 @@ DEP_CPP_HTPRO=\
 	"..\..\..\library\src\wwwtelnt.h"\
 	"..\..\..\library\src\wwwtrans.h"\
 	"..\..\..\library\src\wwwutil.h"\
-	"..\..\..\library\src\WWWWAIS.h"\
 	"..\..\..\library\src\wwwzip.h"\
-	{$(INCLUDE)}"sys\stat.h"\
-	{$(INCLUDE)}"sys\types.h"\
-	
-NODEP_CPP_HTPRO=\
-	"..\..\..\library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\HTProfil.obj" : $(SOURCE) $(DEP_CPP_HTPRO) "$(INTDIR)"
@@ -1358,6 +1322,7 @@ SOURCE=..\HTQueue.c
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
 DEP_CPP_HTQUE=\
+	"..\..\..\library\external\regex.h"\
 	"..\..\..\library\src\htalert.h"\
 	"..\..\..\library\src\htanchor.h"\
 	"..\..\..\library\src\htarray.h"\
@@ -1403,11 +1368,6 @@ DEP_CPP_HTQUE=\
 	"..\..\..\library\src\wwwsys.h"\
 	"..\..\..\library\src\wwwutil.h"\
 	"..\HTQueue.h"\
-	{$(INCLUDE)}"sys\stat.h"\
-	{$(INCLUDE)}"sys\types.h"\
-	
-NODEP_CPP_HTQUE=\
-	"..\..\..\library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\HTQueue.obj" : $(SOURCE) $(DEP_CPP_HTQUE) "$(INTDIR)"
@@ -1477,6 +1437,7 @@ SOURCE=..\HTRobot.c
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
 DEP_CPP_HTROB=\
+	"..\..\..\library\external\regex.h"\
 	"..\..\..\library\src\htaabrow.h"\
 	"..\..\..\library\src\htaautil.h"\
 	"..\..\..\library\src\htaccess.h"\
@@ -1556,8 +1517,6 @@ DEP_CPP_HTROB=\
 	"..\..\..\library\src\htrules.h"\
 	"..\..\..\library\src\htschunk.h"\
 	"..\..\..\library\src\htsocket.h"\
-	"..\..\..\library\src\HTSQL.h"\
-	"..\..\..\library\src\HTSQLLog.h"\
 	"..\..\..\library\src\htstream.h"\
 	"..\..\..\library\src\htstring.h"\
 	"..\..\..\library\src\htstruct.h"\
@@ -1579,7 +1538,6 @@ DEP_CPP_HTROB=\
 	"..\..\..\library\src\htutils.h"\
 	"..\..\..\library\src\htutree.h"\
 	"..\..\..\library\src\htuu.h"\
-	"..\..\..\library\src\HTWAIS.h"\
 	"..\..\..\library\src\htwriter.h"\
 	"..\..\..\library\src\htwwwstr.h"\
 	"..\..\..\library\src\htxparse.h"\
@@ -1605,16 +1563,10 @@ DEP_CPP_HTROB=\
 	"..\..\..\library\src\wwwtelnt.h"\
 	"..\..\..\library\src\wwwtrans.h"\
 	"..\..\..\library\src\wwwutil.h"\
-	"..\..\..\library\src\WWWWAIS.h"\
 	"..\..\..\library\src\wwwzip.h"\
 	"..\HTQueue.h"\
 	"..\HTRobMan.h"\
 	"..\HTRobot.h"\
-	{$(INCLUDE)}"sys\stat.h"\
-	{$(INCLUDE)}"sys\types.h"\
-	
-NODEP_CPP_HTROB=\
-	"..\..\..\library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\HTRobot.obj" : $(SOURCE) $(DEP_CPP_HTROB) "$(INTDIR)"
@@ -1768,6 +1720,7 @@ SOURCE=..\..\..\Library\src\HTStyle.c
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
 DEP_CPP_HTSTY=\
+	"..\..\..\library\external\regex.h"\
 	"..\..\..\library\src\htanchor.h"\
 	"..\..\..\library\src\htarray.h"\
 	"..\..\..\library\src\htassoc.h"\
@@ -1803,11 +1756,6 @@ DEP_CPP_HTSTY=\
 	"..\..\..\library\src\windows\config.h"\
 	"..\..\..\library\src\wwwsys.h"\
 	"..\..\..\library\src\wwwutil.h"\
-	{$(INCLUDE)}"sys\stat.h"\
-	{$(INCLUDE)}"sys\types.h"\
-	
-NODEP_CPP_HTSTY=\
-	"..\..\..\library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\HTStyle.obj" : $(SOURCE) $(DEP_CPP_HTSTY) "$(INTDIR)"
@@ -1867,6 +1815,7 @@ SOURCE=..\RobotMain.c
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
 DEP_CPP_ROBOT=\
+	"..\..\..\library\external\regex.h"\
 	"..\..\..\library\src\htaabrow.h"\
 	"..\..\..\library\src\htaautil.h"\
 	"..\..\..\library\src\htaccess.h"\
@@ -1945,8 +1894,6 @@ DEP_CPP_ROBOT=\
 	"..\..\..\library\src\htrules.h"\
 	"..\..\..\library\src\htschunk.h"\
 	"..\..\..\library\src\htsocket.h"\
-	"..\..\..\library\src\HTSQL.h"\
-	"..\..\..\library\src\HTSQLLog.h"\
 	"..\..\..\library\src\htstream.h"\
 	"..\..\..\library\src\htstring.h"\
 	"..\..\..\library\src\htstruct.h"\
@@ -1968,7 +1915,6 @@ DEP_CPP_ROBOT=\
 	"..\..\..\library\src\htutils.h"\
 	"..\..\..\library\src\htutree.h"\
 	"..\..\..\library\src\htuu.h"\
-	"..\..\..\library\src\HTWAIS.h"\
 	"..\..\..\library\src\htwriter.h"\
 	"..\..\..\library\src\htwwwstr.h"\
 	"..\..\..\library\src\htxparse.h"\
@@ -1994,16 +1940,10 @@ DEP_CPP_ROBOT=\
 	"..\..\..\library\src\wwwtelnt.h"\
 	"..\..\..\library\src\wwwtrans.h"\
 	"..\..\..\library\src\wwwutil.h"\
-	"..\..\..\library\src\WWWWAIS.h"\
 	"..\..\..\library\src\wwwzip.h"\
 	"..\HTRobMan.h"\
 	"..\HTRobot.h"\
 	"..\RobotTxt.h"\
-	{$(INCLUDE)}"sys\stat.h"\
-	{$(INCLUDE)}"sys\types.h"\
-	
-NODEP_CPP_ROBOT=\
-	"..\..\..\library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\RobotMain.obj" : $(SOURCE) $(DEP_CPP_ROBOT) "$(INTDIR)"
@@ -2156,6 +2096,7 @@ SOURCE=..\RobotTxt.c
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
 DEP_CPP_ROBOTT=\
+	"..\..\..\library\external\regex.h"\
 	"..\..\..\library\src\htaabrow.h"\
 	"..\..\..\library\src\htaautil.h"\
 	"..\..\..\library\src\htaccess.h"\
@@ -2234,8 +2175,6 @@ DEP_CPP_ROBOTT=\
 	"..\..\..\library\src\htrules.h"\
 	"..\..\..\library\src\htschunk.h"\
 	"..\..\..\library\src\htsocket.h"\
-	"..\..\..\library\src\HTSQL.h"\
-	"..\..\..\library\src\HTSQLLog.h"\
 	"..\..\..\library\src\htstream.h"\
 	"..\..\..\library\src\htstring.h"\
 	"..\..\..\library\src\htstruct.h"\
@@ -2257,7 +2196,6 @@ DEP_CPP_ROBOTT=\
 	"..\..\..\library\src\htutils.h"\
 	"..\..\..\library\src\htutree.h"\
 	"..\..\..\library\src\htuu.h"\
-	"..\..\..\library\src\HTWAIS.h"\
 	"..\..\..\library\src\htwriter.h"\
 	"..\..\..\library\src\htwwwstr.h"\
 	"..\..\..\library\src\htxparse.h"\
@@ -2283,16 +2221,10 @@ DEP_CPP_ROBOTT=\
 	"..\..\..\library\src\wwwtelnt.h"\
 	"..\..\..\library\src\wwwtrans.h"\
 	"..\..\..\library\src\wwwutil.h"\
-	"..\..\..\library\src\WWWWAIS.h"\
 	"..\..\..\library\src\wwwzip.h"\
 	"..\HTRobMan.h"\
 	"..\HTRobot.h"\
 	"..\RobotTxt.h"\
-	{$(INCLUDE)}"sys\stat.h"\
-	{$(INCLUDE)}"sys\types.h"\
-	
-NODEP_CPP_ROBOTT=\
-	"..\..\..\library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\RobotTxt.obj" : $(SOURCE) $(DEP_CPP_ROBOTT) "$(INTDIR)"
@@ -2445,6 +2377,7 @@ SOURCE=..\..\..\Library\src\SGML.c
 !IF  "$(CFG)" == "webbot - Win32 Release"
 
 DEP_CPP_SGML_=\
+	"..\..\..\library\external\regex.h"\
 	"..\..\..\library\src\htarray.h"\
 	"..\..\..\library\src\htchunk.h"\
 	"..\..\..\library\src\htlist.h"\
@@ -2456,11 +2389,6 @@ DEP_CPP_SGML_=\
 	"..\..\..\library\src\sgml.h"\
 	"..\..\..\library\src\windows\config.h"\
 	"..\..\..\library\src\wwwsys.h"\
-	{$(INCLUDE)}"sys\stat.h"\
-	{$(INCLUDE)}"sys\types.h"\
-	
-NODEP_CPP_SGML_=\
-	"..\..\..\library\src\HTVMSUtils.h"\
 	
 
 "$(INTDIR)\SGML.obj" : $(SOURCE) $(DEP_CPP_SGML_) "$(INTDIR)"
