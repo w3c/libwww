@@ -162,7 +162,7 @@ PRIVATE int HTReader_read (HTInputStream * me)
 	    }
 
 	    /* Remember how much we have read from the input socket */
-	    HTTraceData(me->data, me->b_read, "HTReader_read me->data:");
+	    HTTraceData(me->data, me->b_read, "HTReader.... Reading");
 	    me->write = me->data;
 	    me->read = me->data + me->b_read;
 #ifdef FIND_SIGNATURES

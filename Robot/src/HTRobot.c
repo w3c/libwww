@@ -33,7 +33,12 @@
 #define DEFAULT_OUTPUT_FILE	"robot.out"
 #define DEFAULT_RULE_FILE	"robot.conf"
 #define DEFAULT_LOG_FILE       	"robot.log"
+#define DEFAULT_MEMLOG		"robot.mem"
 #define DEFAULT_DEPTH		0
+
+#if 0
+#define HT_MEMLOG
+#endif
 
 /* #define SHOW_MSG		(WWWTRACE || HTAlert_interactive()) */
 #define SHOW_MSG		(!(mr->flags & MR_QUIET))
@@ -484,7 +489,7 @@ int main (int argc, char ** argv)
 #endif /* __MWERKS__ */
 
 #ifdef HT_MEMLOG
-    HTMemLog_open(HT_MEMLOG, 8192, YES);
+    HTMemLog_open(DEFAULT_MEMLOG, 8192, YES);
 #endif
 
     /* Initiate W3C Reference Library with a robot profile */
@@ -532,6 +537,10 @@ int main (int argc, char ** argv)
 	    /* Start the persistent cache */
 	    } else if (!strcmp(argv[arg], "-cache")) {
 		cache = YES;
+
+	    /* Force no pipelined requests */
+	    } else if (!strcmp(argv[arg], "-nopipe")) {
+		HTTP_setConnectionMode(HTTP_NO_PIPELINING);
 
 	    /* Persistent cache flush */
 	    } else if (!strcmp(argv[arg], "-flush")) {

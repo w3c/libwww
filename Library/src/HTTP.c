@@ -41,10 +41,8 @@
 #define ABORT_TARGET	(*me->target->isa->abort)(me->target, e)
 
 #define HTTP_DUMP
-
 #ifdef HTTP_DUMP
-#define HTTP_OUTPUT	"w3chttp.out"
-PRIVATE FILE * htfp = NULL;
+#define HTTP_OUTPUT     "w3chttp.out"
 #endif
 
 /* Type definitions and global variables etc. local to this module */
@@ -89,6 +87,12 @@ struct _HTInputStream {
     const HTInputStreamClass *	isa;
 };
 
+#ifdef HT_NO_PIPELINING
+PRIVATE HTTPConnectionMode ConnectionMode = HTTP_NO_PIPELINING;
+#else
+PRIVATE HTTPConnectionMode ConnectionMode = 0;
+#endif
+
 /* ------------------------------------------------------------------------- */
 /* 			          Help Functions			     */
 /* ------------------------------------------------------------------------- */
@@ -117,13 +121,6 @@ PRIVATE int HTTPCleanup (HTRequest *req, int status)
 	    (*input->isa->_free)(input);
 	HTRequest_setInputStream(req, NULL);
     }
-
-#ifdef HTTP_DUMP
-    if (htfp) {
-	fclose(htfp);
-	htfp = NULL;
-    }
-#endif
 
     /*
     ** Remove the request object and our own context structure for http.
@@ -533,11 +530,15 @@ PRIVATE int stream_pipe (HTStream * me)
 #ifdef HT_MUX
 	    HTNet_setPersistent(net, YES, HT_TP_INTERLEAVE);
 #else
-#ifdef HT_NO_PIPELINING
-	    HTNet_setPersistent(net, YES, HT_TP_SINGLE);
-#else
-	    HTNet_setPersistent(net, YES, HT_TP_PIPELINE);
-#endif /* HT_NO_PIPELINING */
+	    if (ConnectionMode & HTTP_NO_PIPELINING) {
+		if (PROT_TRACE) HTTrace("HTTP........ Mode is HTTP/1.1 WITH NO PIPELINING\n");
+		HTNet_setPersistent(net, YES, HT_TP_SINGLE);
+	    } else if (ConnectionMode & HTTP_FORCE_10) {
+		if (PROT_TRACE) HTTrace("HTTP........ Mode is FORCE HTTP/1.0\n");
+		HTHost_setVersion(host, HTTP_10);
+		HTNet_setPersistent(net, NO, HT_TP_SINGLE);
+	    } else
+		HTNet_setPersistent(net, YES, HT_TP_PIPELINE);
 #endif /* HT_MUX */
 	} else { 
 	    if (PROT_TRACE)HTTrace("HTTP Status. No 1.x version number - treat it as a HTTP/1.0 server\n");
@@ -838,6 +839,16 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 			break;
 		    }
 		}
+
+		if (ConnectionMode & HTTP_NO_PIPELINING) {
+		    if (PROT_TRACE) HTTrace("HTTP........ Mode is HTTP/1.1 WITH NO PIPELINING\n");
+		    HTRequest_setFlush(request, YES);
+		} else if (ConnectionMode & HTTP_FORCE_10) {
+		    if (PROT_TRACE) HTTrace("HTTP........ Mode is FORCE HTTP/1.0\n");
+		    HTHost_setVersion(host, HTTP_10);
+		}
+
+		/* Jump to next state */
 		http->state = HTTP_NEED_STREAM;
 	    } else if (status == HT_WOULD_BLOCK || status == HT_PENDING)
 		return HT_OK;
@@ -886,12 +897,11 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 		    
 #ifdef HTTP_DUMP
 		if (PROT_TRACE) {
-		    if ((htfp = fopen(HTTP_OUTPUT, "ab"))) {
+		    FILE * htfp = NULL;
+		    if ((htfp = fopen(HTTP_OUTPUT, "ab")) != NULL) {
 			output = (HTOutputStream *)
-			    HTTee((HTStream *) output,
-				  HTFWriter_new(request, htfp, YES), NULL);
-			HTTrace("HTTP........ Dumping request to `%s\'\n",
-				HTTP_OUTPUT);
+			    HTTee((HTStream *) output, HTFWriter_new(request, htfp, NO), NULL);
+			HTTrace("HTTP........ Dumping request to `%s\'\n", HTTP_OUTPUT);
 		    }
 		}	
 #endif /* HTTP_DUMP */
@@ -1046,4 +1056,13 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
     } /* End of while(1) */
 }    
 
+PUBLIC void HTTP_setConnectionMode (HTTPConnectionMode mode)
+{
+    ConnectionMode = mode;
+}
+
+PUBLIC HTTPConnectionMode HTTP_connectionMode (void)
+{
+    return ConnectionMode;
+}
 

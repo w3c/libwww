@@ -76,19 +76,17 @@ struct _HTCache {
     char *		url;
     char *		cachename;
 
-    /* Cache expiration time */
-    time_t		expires;
-
     /* GC parameters */
-    long		size;		       /* Size of cached entity body */
-    BOOL		range;	      /* Is this the full part or a subpart? */
-    int			hits;				       /* Hit counts */
     char *		etag;
+    BOOL		range;	      /* Is this the full part or a subpart? */
+    BOOL		must_revalidate;
+    int			hits;				       /* Hit counts */
+    long		size;		       /* Size of cached entity body */
     time_t		lm;				    /* Last modified */
+    time_t		expires;
     time_t		freshness_lifetime;
     time_t		response_time;
     time_t		corrected_initial_age;
-    BOOL		must_revalidate;
     HTRequest *		lock;
 };
 
@@ -158,8 +156,8 @@ PRIVATE BOOL HTCacheGarbage (void)
 	if (CACHE_TRACE) HTTrace("Cache....... Collecting Stale entries\n");
 	for (cnt=0; cnt<HASH_SIZE; cnt++) {
 	    if ((cur = CacheTable[cnt])) { 
-		HTCache * pres;
 		HTList * old_cur = cur;
+		HTCache * pres;
 		while ((pres = (HTCache *) HTList_nextObject(cur)) != NULL) {
 		    time_t resident_time = cur_time - pres->response_time;
 		    time_t current_age = pres->corrected_initial_age +
@@ -187,8 +185,8 @@ PRIVATE BOOL HTCacheGarbage (void)
 	    if (HTTotalSize + SIZE_BUFFER > HTCacheSize) {
 		for (cnt=0; cnt<HASH_SIZE; cnt++) {
 		    if ((cur = CacheTable[cnt])) { 
-			HTCache * pres;
 			HTList * old_cur = cur;
+			HTCache * pres;
 			while ((pres = (HTCache *) HTList_nextObject(cur))) {
 			    if (pres->hits <= hits) {
 				HTCache_remove(pres);
@@ -339,7 +337,17 @@ PRIVATE BOOL HTCacheIndex_parseLine (char * line)
 	    StrAllocCopy(cache->cachename, cachename);
 	    if (strcmp(etag, HT_CACHE_ETAG)) StrAllocCopy(cache->etag, etag);
 	}
+#if SIZEOF_LONG==8
+	/*
+	**  On some 64 bit machines (alpha) time_t is of type int and not long.
+	**  This means that we have to adjust sscanf accordingly so that we
+	**  know what we are looking for. Otherwise er may get unalignment
+	**  problems.
+	*/
+	if (sscanf(line, "%d %d %d %c %d %d %d %d %d %c",
+#else
 	if (sscanf(line, "%ld %ld %ld %c %d %d %ld %ld %ld %c",
+#endif
 		   &cache->lm,
 		   &cache->expires,
 		   &cache->size,
@@ -1791,6 +1799,7 @@ PRIVATE int CacheEvent (SOCKET soc, void * pVoid, HTEventType type)
 						request, YES);
 		HTRequest_setOutputConnected(request, YES);
 
+#if 0
 		/*
 		** Create the stream pipe TO the channel from the application
 		** and hook it up to the request object
@@ -1799,6 +1808,7 @@ PRIVATE int CacheEvent (SOCKET soc, void * pVoid, HTEventType type)
 		    HTOutputStream * output = HTNet_getOutput(net, NULL, 0);
 		    HTRequest_setInputStream(request, (HTStream *) output);
 		}
+#endif
 		    
 		HTRequest_addError(request, ERR_INFO, NO, HTERR_OK,
 				   NULL, 0, "HTLoadCache");
@@ -1811,13 +1821,11 @@ PRIVATE int CacheEvent (SOCKET soc, void * pVoid, HTEventType type)
 		** other protocol module even though we are in fact doing
 		** blocking connect
 		*/
-#if 0
 		if (!net->preemptive) {
 		    if (PROT_TRACE) HTTrace("Load Cache.. returning\n");
 		    HTEvent_register(HTNet_socket(net), HTEvent_READ, &net->event);
 		    return HT_OK;
 		}
-#endif
 #endif
 	    } else if (status == HT_WOULD_BLOCK || status == HT_PENDING)
 		return HT_OK;
@@ -1842,7 +1850,7 @@ PRIVATE int CacheEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    break;
 
 	case CL_GOT_DATA:
-	    CacheCleanup(request, HT_LOADED);
+	    CacheCleanup(request, HT_NOT_MODIFIED);
 	    return HT_OK;
 	    break;
 

@@ -48,8 +48,10 @@ PRIVATE HWND HTSocketWin;
 PRIVATE unsigned long HTwinMsg;
 #else /* WWW_WIN_ASYNC */
 PRIVATE fd_set FdArray[HTEvent_TYPES];
-PRIVATE SOCKET MaxSock = 0 ;			  /* max socket value in use */
+PRIVATE SOCKET MaxSock = 0;			  /* max socket value in use */
 #endif /* !WWW_WIN_ASYNC */
+
+#define HT_FD_BYTES(a)	((a/16)+1)*4
 
 typedef struct {
     SOCKET 	s ;	 		/* our socket */
@@ -342,6 +344,26 @@ PUBLIC BOOL EventOrder_deleteAll (void)
 /* ------------------------------------------------------------------------- */
 
 /*
+** ResetMaxSock - reset the value of the maximum socket in use 
+*/
+PRIVATE void __ResetMaxSock (void)
+{
+    SOCKET cnt;
+    SOCKET t_max = 0;
+    SOCKET old_max = MaxSock;
+    for (cnt = 0 ; cnt <= MaxSock; cnt++) { 
+	if (FD_ISSET(cnt, (FdArray + HTEvent_INDEX(HTEvent_READ))) ||
+	    FD_ISSET(cnt, (FdArray + HTEvent_INDEX(HTEvent_WRITE))) ||
+	    FD_ISSET(cnt, (FdArray + HTEvent_INDEX(HTEvent_OOB))))
+  	    if (cnt > t_max) t_max = cnt;
+    }
+    MaxSock = t_max+1;
+    if (THD_TRACE)
+	HTTrace("Event....... Reset MaxSock from %u to %u\n", old_max, MaxSock);
+    return;
+}  
+
+/*
 **  For a given socket, reqister a request structure, a set of operations, 
 **  a HTEventCallback function, and a priority. For this implementation, 
 **  we allow only a single HTEventCallback function for all operations.
@@ -371,7 +393,10 @@ PUBLIC int HTEventList_register (SOCKET s, HTEventType type, HTEvent * event)
 	return HT_ERROR;
 #else /* WWW_WIN_ASYNC */
     FD_SET(s, FdArray+HTEvent_INDEX(type));
-    if (s > MaxSock) MaxSock = s ;
+    if (s > MaxSock) {
+	MaxSock = s ;
+	if (THD_TRACE) HTTrace("Event....... New value for MaxSock is %d\n", MaxSock);
+    }
 #endif /* !WWW_WIN_ASYNC */
 
     /*
@@ -416,9 +441,6 @@ PUBLIC int HTEventList_unregister(SOCKET s, HTEventType type)
     SockEvents *	pres;
     int			ret = HT_ERROR;
 
-#ifndef WWW_WIN_ASYNC
-    MaxSock = -1;	/* re-find maximum in-use socket */
-#endif /* !WWW_WIN_ASYNC */
     while (cur && (pres = (SockEvents *) HTList_nextObject(cur))) {
         if (pres->s == s) {
 	    int		remaining;
@@ -449,36 +471,37 @@ PUBLIC int HTEventList_unregister(SOCKET s, HTEventType type)
 		HTList * doomed = cur;
 		if (THD_TRACE)
 		    HTTrace("Event....... No more events registered for socket %d\n", s);
+
+
+#ifndef WWW_WIN_ASYNC
+		/* Check to see if we have to update MaxSock */
+		if(pres->s > MaxSock) __ResetMaxSock();
+#endif /* !WWW_WIN_ASYNC */
+
 		HT_FREE(pres);
 		pres = (SockEvents *) HTList_nextObject(cur);
 		HTList_quickRemoveElement(doomed, last);
 	    }
 	    ret = HT_OK;
+
 #ifdef WWW_WIN_ASYNC
 	    if (WSAAsyncSelect(s, HTSocketWin, HTwinMsg, remaining) < 0)
 		ret = HT_ERROR;
-	    cur = NULL; /* we don't have to finish list to look for MaxSock in WWW_WIN_ASYNC */
 #else /* WWW_WIN_ASYNC */
 	    FD_CLR(s, FdArray+HTEvent_INDEX(type));
 	    HTTraceData((char*)FdArray+HTEvent_INDEX(type), 8, "HTEventList_unregister: (s:%d)", s);
 #endif /* !WWW_WIN_ASYNC */
       	    if (THD_TRACE)
-		HTTrace("Event....... Socket %d unregisterd for %s\n", s, HTEvent_type2str(type));
+		HTTrace("Event....... Socket %d unregistered for %s\n", s, HTEvent_type2str(type));
+
 	    /*
-	    **	stay in loop to finish checking list for max socket if not at end
+	    **  We found the socket and can break
 	    */
-	    if (!cur) break;
+	    break;
 	}
 	last = cur;
-#ifndef WWW_WIN_ASYNC
-	if(pres->s > MaxSock)
-	    MaxSock = pres->s;
-#endif /* !WWW_WIN_ASYNC */
     }
     if (ret == HT_ERROR && THD_TRACE) HTTrace("Event....... Couldn't find socket %d.\n", s);
-#ifndef WWW_WIN_ASYNC
-    if (MaxSock <= 0 && THD_TRACE) HTTrace("Event....... MaxSock: %d.\n", MaxSock);
-#endif /* !WWW_WIN_ASYNC */
     return ret;
 }
 
@@ -505,6 +528,7 @@ PUBLIC int HTEventList_unregisterAll (void)
     }
 #ifndef WWW_WIN_ASYNC
     MaxSock = 0 ;
+    if (THD_TRACE) HTTrace("Event....... New value for MaxSock is %d\n", MaxSock);
     FD_ZERO(FdArray+HTEvent_INDEX(HTEvent_READ));
     FD_ZERO(FdArray+HTEvent_INDEX(HTEvent_WRITE));
     FD_ZERO(FdArray+HTEvent_INDEX(HTEvent_OOB));
@@ -763,9 +787,12 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 	    wt = &waittime;
 	}
 
-	HTTraceData((char*)&treadset, maxfds/8 + 1, "HTEventList_loop pre treadset: (maxfd:%d)", maxfds);
-	HTTraceData((char*)&twriteset, maxfds/8 + 1, "HTEventList_loop pre twriteset:");
-	HTTraceData((char*)&texceptset, maxfds/8 + 1, "HTEventList_loop pre texceptset:");
+	/* WHAT THE HECK??? */
+#define HT_FS_BYTES(a)  ((((a)/16)+1) * 4)
+
+	HTTraceData((char*)&treadset, HT_FS_BYTES(maxfds), "HTEventList_loop pre treadset: (maxfd:%d)", maxfds);
+	HTTraceData((char*)&twriteset, HT_FS_BYTES(maxfds), "HTEventList_loop pre twriteset:");
+	HTTraceData((char*)&texceptset, HT_FS_BYTES(maxfds), "HTEventList_loop pre texceptset:");
 
 #ifdef __hpux 
         active_sockets = select(maxfds+1, (int *)&treadset, (int *)&twriteset,
@@ -775,9 +802,9 @@ PUBLIC int HTEventList_loop (HTRequest * theRequest)
 #endif
 
 	now = HTGetTimeInMillis();
-	HTTraceData((char*)&treadset, maxfds/8 + 1, "HTEventList_loop post treadset: (active_sockets:%d)", active_sockets);
-	HTTraceData((char*)&twriteset, maxfds/8 + 1, "HTEventList_loop post twriteset: (errno:%d)", errno);
-	HTTraceData((char*)&texceptset, maxfds/8 + 1, "HTEventList_loop post texceptset:");
+	HTTraceData((char*)&treadset, HT_FS_BYTES(maxfds), "HTEventList_loop post treadset: (active_sockets:%d)", active_sockets);
+	HTTraceData((char*)&twriteset, HT_FS_BYTES(maxfds), "HTEventList_loop post twriteset: (errno:%d)", errno);
+	HTTraceData((char*)&texceptset, HT_FS_BYTES(maxfds), "HTEventList_loop post texceptset:");
 
 	if (THD_TRACE) HTTrace("Event Loop.. select returns %d\n", active_sockets);
 

@@ -14,8 +14,8 @@
 */
 </PRE>
 <P>
-This is actually a very small definition file as almost everything is set
-up elsewhere.
+This is the HTTP client module. This is actually a very small definition
+file as almost everything is set up elsewhere.
 <P>
 This module is implemented by <A HREF="HTTP.c">HTTP.c</A>, and it is a part
 of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C Reference Library</A>.
@@ -25,8 +25,29 @@ of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C Reference Library</A>.
 
 #include "HTProt.h"
 #include "HTStream.h"
-#include "HTFormat.h"
+</PRE>
+<H3>
+  HTTP Client Connection Mode
+</H3>
+<P>
+The HTTP client module supports various modes for communicating with HTTP
+servers. The mode are defined by the enumeration below.
+<PRE>
+typedef enum _HTTPConnectionMode { 
+    HTTP_NO_PIPELINING  = 0x1, 
+    HTTP_FORCE_10       = 0x2 
+} HTTPConnectionMode; 
 
+extern void HTTP_setConnectionMode (HTTPConnectionMode mode);
+extern HTTPConnectionMode HTTP_connectionMode (void);
+</PRE>
+<H3>
+  HTTP Event Handler
+</H3>
+<P>
+The event handler is the actual HTTP client state machine taking care of
+the communication.
+<PRE>
 extern HTProtCallback HTLoadHTTP;
 extern HTConverter HTTPStatus_new;
 

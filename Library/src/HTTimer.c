@@ -85,7 +85,13 @@ PUBLIC BOOL HTTimer_delete (HTTimer * timer)
     HTList * cur;
     CHECKME(timer);
     if ((cur = HTList_elementOf(Timers, (void *)timer, &last)) == NULL) {
+#if 0
+	/*
+	** It is not necessarily a bug to not find the timer. If it was
+	** registered with timeout 0 then it was never put into the list
+	*/
 	HTDebugBreak();
+#endif
 	CLEARME(timer);
 	return NO;
     }

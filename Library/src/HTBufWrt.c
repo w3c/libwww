@@ -30,7 +30,6 @@ struct _HTOutputStream {
     char *			read;		       /* Position in 'data' */
     char *			data;				   /* buffer */
 
-    BOOL			delaying;
     ms_t			lastFlushTime;	/* polar coordinates of the moon */
     HTTimer *			timer;
 };
@@ -39,20 +38,19 @@ struct _HTOutputStream {
 
 /* ------------------------------------------------------------------------- */
 
+/*
+**  This function is only called from either FlushEvent or HTBufferWriter_lazyFlush
+**  which means that only the host object or timeout can cause a flush
+*/
 PRIVATE int HTBufferWriter_flush (HTOutputStream * me)
 {
-    int status = HT_OK;
-    if (me == NULL) return HT_ERROR;
-    if (me->read > me->data) {
+    int status = HT_ERROR;
+    if (me && me->read > me->data) {
 	if ((status = PUTBLOCK(me->data, me->read - me->data))==HT_WOULD_BLOCK)
 	    return HT_WOULD_BLOCK;
 	me->lastFlushTime = HTGetTimeInMillis();
 	me->read = me->data;
 	me->block = NULL;
-    }
-    if (me->timer) {
-	HTTimer_delete(me->timer);
-	me->timer = NULL;
     }
     return status;
 }
@@ -61,7 +59,18 @@ PRIVATE int FlushEvent (HTTimer * timer, void * param, HTEventType type)
 {
     HTOutputStream * me = (HTOutputStream *) param;
     if (timer != me->timer) HTDebugBreak();
+    if (PROT_TRACE) HTTrace("Buffer...... Timeout Flushing...\n");
+
+    /*
+    **  We ignore the return code here which we shouldn't!!!
+    */
     HTBufferWriter_flush(me);
+
+    /*
+    **  Delete the timer
+    */
+    HTTimer_delete(me->timer);
+    me->timer = NULL;
     return HT_OK;
 }
 
@@ -82,28 +91,32 @@ PRIVATE int HTBufferWriter_lazyFlush (HTOutputStream * me)
     /*
     **	Flush immediately
     */
-    if (!delay)
-	return HTBufferWriter_flush(me);
+    if (!delay) {
+	int status;
+	if (PROT_TRACE) HTTrace("Buffer...... Flushing\n");
+	if ((status = HTBufferWriter_flush(me)) && me->timer) {
+	    HTTimer_delete(me->timer);
+	    me->timer = NULL;
+	}
+	return status;
+    }
 
     /*
-    **	Delayed flush
+    **	Set a timer and tell the host we've done the write if
+    **  we have not already started a timer earlier.
     */
-    if (me->timer)			/* already queued to flush */
-	return HT_OK;
-
-    /*
-    **	Set a timer and tell the host we've done the write
-    */
-    net = HTHost_getWriteNet(me->host);
-    me->timer = HTTimer_new(NULL, FlushEvent, me, delay, YES);
-    HTHost_unregister(me->host, net, HTEvent_WRITE);
-    if (PROT_TRACE) HTTrace("Buffer...... Waiting...\n");
+    if (!me->timer) {
+	net = HTHost_getWriteNet(me->host);
+	me->timer = HTTimer_new(NULL, FlushEvent, me, delay, YES);
+	HTHost_unregister(me->host, net, HTEvent_WRITE);
+	if (PROT_TRACE) HTTrace("Buffer...... Waiting...\n");
+    }
     return HT_OK;
 }
 
 PRIVATE int HTBufferWriter_free (HTOutputStream * me)
 {
-    return HTBufferWriter_flush(me);
+    return HTBufferWriter_lazyFlush(me);
 }
 
 PRIVATE int HTBufferWriter_abort (HTOutputStream * me, HTList * e)
@@ -144,11 +157,6 @@ PRIVATE int HTBufferWriter_write (HTOutputStream * me, const char * buf, int len
 	if (me->read > me->data) {
 	    memcpy(me->read, buf, available);
 	    me->block = (char *) buf+available;
-	    if (me->timer && me->delaying) {
-		HTTimer_delete(me->timer);
-		me->timer=NULL;
-		me->delaying = NO;
-	    }
 	    if ((status = PUTBLOCK(me->data, me->size))!=HT_OK) return status;
 	    me->lastFlushTime = HTGetTimeInMillis();
 	}
@@ -173,6 +181,10 @@ PRIVATE int HTBufferWriter_write (HTOutputStream * me, const char * buf, int len
     if (len > 0) {
 	memcpy(me->data, me->block, len);
 	me->read = me->data + len;
+	if (PROT_TRACE) HTTrace("Buffer...... Carrying %d bytes over...\n", len);
+#if 0
+	if ((status = HTBufferWriter_lazyFlush(me)) != HT_OK) return status;
+#endif
     } else
 	me->read = me->data;
     me->block = NULL;

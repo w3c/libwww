@@ -75,11 +75,27 @@ available options are:-
   <DT>
     <B>-img</B>
   <DD>
-    Test include inlined images
+    Test include inlined images using a <CODE>HEAD</CODE> request
   <DT>
     <B>-saveimg</B>
   <DD>
-    Saving the inlined images on local disk
+    Saving the inlined images on local disk or pump them to a black hole. This
+    is primarili to test a true client behavior in the robot
+  <DT>
+    <B>-cache</B>
+  <DD>
+    Enable the <A HREF="../../Library/src/WWWCache.html">libwww persistent
+    cache</A>
+  <DT>
+    <B>-validate</B>
+  <DD>
+    Force validation using either the <CODE>etag</CODE> or the <CODE>last-modified
+    </CODE>date provided by the server
+  <DT>
+    <B>-endvalidate</B>
+  <DD>
+    Force end-to-end validation by adding a <CODE>max-age=0</CODE> cache control
+    directive
   <DT>
     <B>-l</B> [ file ]
   <DD>
@@ -106,7 +122,13 @@ available options are:-
   <DT>
     <B>-q</B>
   <DD>
-    Quite mode. Don't say anything at all
+    Quit mode. Don't say anything at all
+  <DT>
+    <B>-nopipe</B>
+  <DD>
+    Do <I>not</I> use HTTP/1.1 pipelining. The default for this option can be
+    set using the <A HREF="../../INSTALL.html">configure script under
+    installation</A>.
   <DT>
     <B>-r</B> &lt;file&gt;
   <DD>
