@@ -41,8 +41,8 @@ SUBDIRS = config modules Library PICS-client LineMode Robot ComLine WinCom Icons
 dist-hook:
 	chmod -R a+r $(distdir)
 	zip -rq $(distdir).zip $(distdir)
-	$(TAR) chof $(distdir).tar $(distdir)
-	compress -f $(distdir).tar
+	$(TAR) chofz $(distdir).tar $(distdir)
+	# gzip -f $(distdir).tar
 
 # Tag before making distribution.  Also, don't make a distribution if
 # checks fail.
