@@ -182,8 +182,10 @@ static LibraryFunction www_commands[] = {
   { "HTAnchor_document",	HTAnchor_document_tcl,		NULL, 0 },
 
   { "HTAnchor_clearHeader",	HTAnchor_clearHeader_tcl,       NULL, 0 },
+#if 0
   { "HTAnchor_cacheHit",	HTAnchor_cacheHit_tcl,		NULL, 0 },
   { "HTAnchor_setCacheHit",	HTAnchor_setCacheHit_tcl,	NULL, 0 },
+#endif
   { "HTAnchor_clearIndex",	HTAnchor_clearIndex_tcl,	NULL, 0 },
   { "HTAnchor_setIndex",	HTAnchor_setIndex_tcl,		NULL, 0 },
   { "HTAnchor_isIndex",		HTAnchor_isIndex_tcl,		NULL, 0 },
@@ -229,8 +231,10 @@ static LibraryFunction www_commands[] = {
   { "HTAnchor_setExpires",    	HTAnchor_setExpires_tcl,	NULL, 0 },
   { "HTAnchor_derived",       	HTAnchor_derived_tcl,		NULL, 0 },
   { "HTAnchor_setDerived",	HTAnchor_setDerived_tcl,       	NULL, 0 },
+#if 0
   { "HTAnchor_extra",         	HTAnchor_extra_tcl,		NULL, 0 },
   { "HTAnchor_addExtra",	HTAnchor_addExtra_tcl,       	NULL, 0 },
+#endif
 
 /*Do we need HTAnchor_headerParsed???*/
 

@@ -1039,12 +1039,12 @@ PUBLIC BOOL HTAnchor_isEtagWeak (HTParentAnchor * me)
 /*
 **	Extra Header List of unknown headers
 */
-PUBLIC HTList * HTAnchor_Extra  (HTParentAnchor * me)
+PRIVATE HTList * HTAnchor_Extra  (HTParentAnchor * me)
 {
     return me ? me->extra_headers : NULL;
 }
 
-PUBLIC void HTAnchor_addExtra (HTParentAnchor * me, const char * header)
+PRIVATE void HTAnchor_addExtra (HTParentAnchor * me, const char * header)
 {
     if (me) {
 	char *newhead = NULL;

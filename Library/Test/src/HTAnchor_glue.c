@@ -611,7 +611,7 @@ int HTAnchor_clearHeader_tcl(ClientData clientData, Tcl_Interp *interp,
 }
 
 /* CACHEHIT */
-
+#if 0
 int HTAnchor_cacheHit_tcl(ClientData clientData, Tcl_Interp *interp, 
 			  int argc, char **argv) {
   if (argc == 2) {
@@ -656,7 +656,7 @@ int HTAnchor_setCacheHit_tcl(ClientData clientData, Tcl_Interp *interp,
     return TCL_ERROR;
   }
 }
-
+#endif
 /* INDEX */
 
 int HTAnchor_clearIndex_tcl(ClientData clientData, Tcl_Interp *interp, 
@@ -1779,7 +1779,7 @@ int HTAnchor_setDerived_tcl(ClientData clientData, Tcl_Interp *interp,
 }
 
 /* EXTRA */
-
+#if 0
 int HTAnchor_extra_tcl(ClientData clientData, Tcl_Interp *interp, 
                        int argc, char **argv) {
   if (argc == 2) {
@@ -1831,5 +1831,5 @@ int HTAnchor_addExtra_tcl(ClientData clientData, Tcl_Interp *interp,
     return TCL_ERROR;
   }
 }
-
+#endif
 /*Do we need HTAnchor_headerParsed? */

@@ -130,6 +130,33 @@ extern HTDisconnectedMode HTCacheMode_disconnected (void);
 extern BOOL HTCacheMode_isDisconnected (HTReload mode);
 </PRE>
 <H2>
+  The Cache Index
+</H2>
+<P>
+The persistent cache keeps an index of its current entries so that garbage
+collection and lookup becomes more efficient. This index is stored automatically
+at regular intervals so that we don't get out of sync. Also, it is automatically
+loaded at startup and saved at closedown of the cache.
+<H3>
+  Reading the Cache Index
+</H3>
+<P>
+Read the saved set of cached entries from disk. we only allow the index ro
+be read when there is no entries in memory. That way we can ensure consistancy.
+<PRE>
+extern BOOL HTCacheIndex_read (const char * cache_root);
+</PRE>
+<H3>
+  Write the Cache Index
+</H3>
+<P>
+Walk through the list of cached objects and save them to disk. We override
+any existing version but that is normally OK as we have already read its
+contents.
+<PRE>
+extern BOOL HTCacheIndex_write (const char * cache_root);
+</PRE>
+<H2>
   The HTCache Object
 </H2>
 <P>
@@ -138,7 +165,7 @@ The cache object is what we store about a cached objet in memory.
 typedef struct _HTCache HTCache;
 </PRE>
 <H3>
-  Create a Cached Object
+  Create and Update a Cache Object
 </H3>
 <P>
 Filling the cache is done as all other transportation of bulk data in libwww
@@ -147,6 +174,20 @@ stream which in many cases sits on a <A HREF="HTTee.html">T stream</A> so
 that we get the original feed and at the same time can parse the contents.
 <PRE>
 extern HTConverter HTCacheWriter;
+</PRE>
+<P>
+This function writes the metainformation along with the data object stored
+by the HTCacheWriter stream above. If no headers are available then the meta
+file is empty
+<PRE>
+extern BOOL HTCache_writeMeta (HTCache * cache, HTRequest * request);
+</PRE>
+<P>
+In case we received a "<CODE>304 Not Modified</CODE>" response then we do
+not have to tough the body but must merge the metainformation with the previous
+version. Therefore we need a special metainformation update function.
+<PRE>
+extern BOOL HTCache_updateMeta (HTCache * cache, HTRequest * request);
 </PRE>
 <H3>
   Load a Cached Object

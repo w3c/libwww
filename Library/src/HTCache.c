@@ -33,7 +33,7 @@
 
 #define MEGA		0x100000L
 #define CACHE_SIZE	(20*MEGA)		/* Default cache size is 20M */
-#define MIN_CACHE_SIZE  (long) (1.1*MEGA)			   /* Min cache size */
+#define MIN_CACHE_SIZE  (5*MEGA)			   /* Min cache size */
 #define SIZE_BUFFER	(1*MEGA)      /* Buffer for metainfo and directories */
 
 /* Final states have negative value */
@@ -110,6 +110,7 @@ PRIVATE BOOL HTCacheGarbage (void)
 	time_t cur_time = time(NULL);
 	HTList * cur;
 	int cnt;
+	int hits;
 
 	/*
 	**  Tell the use that we're gc'ing.
@@ -126,6 +127,7 @@ PRIVATE BOOL HTCacheGarbage (void)
 	**  the size and also the pain it took to get the document in the first
 	**  case. It could also include max_stale.
 	*/
+	if (CACHE_TRACE) HTTrace("Cache....... Collecting Stale entries\n");
 	for (cnt=0; cnt<HASH_SIZE; cnt++) {
 	    if ((cur = CacheTable[cnt])) { 
 		HTCache * pres;
@@ -143,9 +145,46 @@ PRIVATE BOOL HTCacheGarbage (void)
 		}
 	    }
 	}
+
+	/*
+	**  We must at least free the min buffer size so that we don't
+	**  dead lock ourselves. We start from the bottom up by taking
+	**  all the documents with 0 hits, 1 hits, 2 hits, etc.
+	*/
+	hits = 0;
+	while (1) {
+	    BOOL removed = NO;
+	    if (CACHE_TRACE)
+		HTTrace("Cache....... Collecting entries with %d hits\n",hits);
+	    if (HTTotalSize + SIZE_BUFFER > HTCacheSize) {
+		for (cnt=0; cnt<HASH_SIZE; cnt++) {
+		    if ((cur = CacheTable[cnt])) { 
+			HTCache * pres;
+			HTList * old_cur = cur;
+			while ((pres = (HTCache *) HTList_nextObject(cur))) {
+			    if (pres->hits <= hits) {
+				HTCache_remove(pres);
+				cur = old_cur;
+				removed = YES;
+			    } else {
+				old_cur = cur;
+			    }
+			}
+		    }
+		}
+	    } else
+		break;
+	    if (!removed) break;
+	    hits++;
+	}
 	if (CACHE_TRACE)
 	    HTTrace("Cache....... Size reduced from %ld to %ld\n",
 		    old_size, HTTotalSize);
+	/*
+	**  Dump the new content to the index file
+	*/
+	HTCacheIndex_write(HTCacheRoot);
+	new_entries = 0;
 	return YES;
     }
     return NO;
@@ -218,7 +257,7 @@ PUBLIC BOOL HTCacheIndex_write (const char * cache_root)
 		if ((cur = CacheTable[cnt])) { 
 		    HTCache * pres;
 		    while ((pres = (HTCache *) HTList_nextObject(cur)) != NULL) {
-			if (fprintf(fp, "%s %s %ld %d %d %ld %ld %ld %c\n",
+			if (fprintf(fp, "%s %s %ld %d %d %ld %ld %ld %c\r\n",
 				    pres->url, pres->cachename,
 				    pres->size, pres->hash, pres->hits,
 				    pres->freshness_lifetime, pres->response_time,
@@ -423,12 +462,14 @@ PUBLIC BOOL HTCacheIndex_read (const char * cache_root)
     if (cache_root && CacheTable == NULL) {
 	char * file = cache_index_name(cache_root);
 	char * index = HTParse(file, "cache:", PARSE_ALL);
+	HTAnchor * anchor = HTAnchor_findAddress(index);
 	HTRequest * request = HTRequest_new();
 	HTRequest_setPreemptive(request, YES);
-	HTAlert_setInteractive(NO);
 	HTRequest_setOutputFormat(request, WWW_SOURCE);
 	HTRequest_setOutputStream(request, HTCacheIndexReader(request));
-	status = HTLoadAbsolute(index, request);
+	HTRequest_setAnchor(request, anchor);
+	HTAlert_setInteractive(NO);
+	status = HTLoad(request, NO);
 	HTRequest_delete(request);
 	HT_FREE(file);
 	HT_FREE(index);
@@ -1119,7 +1160,7 @@ PRIVATE BOOL meta_write (FILE * fp, HTRequest * request, HTAssocList * headers)
 **  Save the metainformation along with the data object. If no headers
 **  are available then the meta file is empty
 */
-PUBLIC BOOL HTCache_write (HTCache * cache, HTRequest * request)
+PUBLIC BOOL HTCache_writeMeta (HTCache * cache, HTRequest * request)
 {
     if (cache && request) {
 	BOOL status;
@@ -1145,7 +1186,7 @@ PUBLIC BOOL HTCache_write (HTCache * cache, HTRequest * request)
 **  Merge metainformation with existing version. This means that we have had a
 **  successful validation and hence a true cache hit.
 */
-PUBLIC BOOL HTCache_update (HTCache * cache, HTAssocList * headers)
+PUBLIC BOOL HTCache_updateMeta (HTCache * cache, HTRequest * request)
 {
     if (cache) {
 	cache->hits++;
@@ -1202,7 +1243,7 @@ PRIVATE int HTCache_free (HTStream * me)
 	*/
 	if (me->cache) {
 	    HTParentAnchor * anchor = HTRequest_anchor(me->request);
-	    HTCache_write(me->cache, me->request);
+	    HTCache_writeMeta(me->cache, me->request);
 	    HTCache_releaseLock(me->cache);
 
 	    /*
@@ -1228,7 +1269,10 @@ PRIVATE int HTCache_abort (HTStream * me, HTList * e)
 {
     if (CACHE_TRACE) HTTrace("Cache....... ABORTING\n");
     if (me->fp) fclose(me->fp);    
-    if (me->cache) HTCache_remove(me->cache);
+    if (me->cache) {
+	HTCache_breakLock(me->cache, me->request);
+	HTCache_remove(me->cache);
+    }
     HT_FREE(me);
     return HT_ERROR;
 }

@@ -232,7 +232,7 @@ PUBLIC int HTCacheUpdateFilter (HTRequest * request, void * param, int status)
     if (HTAnchor_cachable(anchor) == NO) {
 	HTCache_remove(cache);
     } else {
-	HTCache_update(cache, request);
+	HTCache_updateMeta(cache, request);
 	HTRequest_setReloadMode(request, HT_CACHE_OK);
     }
 
