@@ -220,13 +220,30 @@ Autoconf <I>configure</I></A> scripts:
 --enable and --with options recognized:
 <DL>
   <DT>
+    <CODE>--with-gnu-ld</CODE>
+  <DD>
+    assume the C compiler uses GNU ld [default=no]
+  <DT>
+    <CODE>--enable-shared</CODE>
+  <DD>
+    build shared libraries [default=yes]
+  <DT>
+    <CODE>--enable-static</CODE>
+  <DD>
+    3build static libraries [default=yes]
+  <DT>
     <CODE>--with-x</CODE>
   <DD>
     use the X Window System
   <DT>
     <CODE>--with-wais[=PATH]</CODE>
   <DD>
-    Compile with support for direct WAIS access. This is a bit rusty!!!
+    Compile with support for direct WAIS access.
+  <DT>
+    <CODE>--with-mysql[=PATH]</CODE>
+  <DD>
+    Compile with support for <A HREF="http://www.tcx.se/">MySQL</A>
+    <A HREF="Library/src/HTSQLLog.html">logging</A>, caching, etc.
   <DT>
     <CODE>--with-zlib[=PATH]</CODE>
   <DD>
