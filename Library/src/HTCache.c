@@ -1785,6 +1785,8 @@ PUBLIC BOOL HTCache_resetMeta (HTCache * cache, HTRequest * request,
   /* @@ JK: and we remove the file name as it's obsolete 
      now */
   REMOVE(cache->cachename);
+
+  return YES;
 }
 
 /*
