@@ -1,0 +1,73 @@
+<HTML>
+<HEAD>
+<TITLE>ExtParse: Module to get unparsed stream from libwww</TITLE>
+<!-- Changed by: , 30-Nov-1994 -->
+</HEAD>
+<BODY>
+
+<H1>ExtParse: Module to get unparsed stream from libwww</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This version of the stream object is a hook for clients that want an
+unparsed stream from libwww. The HTExtParse_put_* and HTExtParse_write
+routines copy the content of the incoming buffer into a buffer that is
+realloced whenever necessary. This buffer is handed over to the client
+in HTExtParse_free. See also <A HREF="HTFWrite.html">HTFWriter</A>
+for writing to C files.<P>
+
+<H3>Bugs:</H3>
+
+<UL>
+<LI>strings written must be less than buffer size.
+</UL>
+
+This module is implemented by <A HREF="HTXParse.c">HTXParse.c</A>,
+and it is a part of the <A
+HREF="http://info.cern.ch/hypertext/WWW/Library/User/Guide/Guide.html">
+Library of Common Code</A>.
+
+<PRE>
+#ifndef HTEXTPARSE_H
+#define HTEXTPARSE_H
+
+#include "HTStream.h"
+#include "HTAccess.h"
+
+typedef struct _HTExtParseStruct HTExtParseStruct;
+typedef void (*CallClient) PARAMS((struct _HTExtParseStruct *me));
+struct _HTExtParseStruct {
+	CallClient	call_client;
+#if 0
+	void            (*call_client)(struct _HTExtParseStruct *eps);
+#endif
+	int             used;         /* how much of the buffer is being used */
+	BOOL            finished;     /* document loaded? */
+        int             length;       /* how long the buffer is */
+	char *          buffer;       /* buffer to store in until client takes over*/
+	char *          content_type;
+	HTRequest *	request;      /* the request structure */
+};
+
+/*extern HTStream * HTExtParse PARAMS((void (*CallMeArg)()));*/
+
+/* extern void HTExtParse PARAMS((HTExtParseStruct * eps)); */
+
+extern HTStream* HTExtParse PARAMS((
+	HTRequest *		request,
+	void *			param,
+	HTFormat		input_format,
+	HTFormat		output_format,
+	HTStream *		output_stream));
+
+
+#endif
+
+
+</PRE>end</BODY>
+</HTML>
