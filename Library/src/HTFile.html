@@ -1,66 +1,61 @@
-<PRE>
-/*			File Access				HTFile.h
-**			===========
-**
-**	These are routines for file access used by WWW browsers.
-**
-*/
-
-#ifndef HTFILE_H
+<HEADER>
+<TITLE>File access in libwww</TITLE></HEADER>
+<BODY>
+<H1>File Access</H1>These are routines for file access
+used by WWW browsers.
+<PRE>#ifndef HTFILE_H
 #define HTFILE_H
 
 #include "HTFormat.h"
 #include "HTAccess.h"
+#include "HTML.h"		/* SCW */
+
 
  
-/*	Controlling globals
-*/
-extern int HTDirAccess;		/* Directory access level */
+</PRE>
+<H2>Controlling globals</H2>These flags control how directories
+and files are represented as hypertext,
+and are typically set by the application
+from command line options, etc.
+<PRE>extern int HTDirAccess;		/* Directory access level */
 
 #define HT_DIR_FORBID 		0	/* Altogether forbidden */
-#define HT_DIR_SELECTIVE	1	/* If .www_browsable exists */
+#define HT_DIR_SELECTIVE	1	/* If HT_DIR_ENABLE_FILE exists */
 #define HT_DIR_OK		2	/* Any accesible directory */
 
 #define HT_DIR_ENABLE_FILE	".www_browsable" /* If exists, can browse */
 
-extern int HTDirReadme;		/* Include readme files? */
-				/* Values: */
-#define HT_DIR_README_NONE	0
-#define HT_DIR_README_TOP	1
-#define HT_DIR_README_BOTTOM	2
+extern int HTDirReadme;		/* Include readme files in listing? */
+					/* Values: */
+#define HT_DIR_README_NONE	0	/* No */
+#define HT_DIR_README_TOP	1	/* Yes, first */
+#define HT_DIR_README_BOTTOM	2	/* Yes, at the end */
 
 #define HT_DIR_README_FILE		"README"
 
 
-/*	Convert filenames between local and WWW formats
-**	-----------------------------------------------
-**	Make up a suitable name for saving the node in
-**
-**	E.g.	$(HOME)/WWW/news/1234@cernvax.cern.ch
-**		$(HOME)/WWW/http/crnvmc/FIND/xx.xxx.xx
-*/
-#ifdef __STDC__
-extern char * HTLocalName(const char * name);
-#else
-extern char * HTLocalName();
-#endif
-
-/*	Make a WWW name from a full local path name
-**
-*/
-extern char * WWW_nameOfFile PARAMS((const char * name));
+</PRE>
+<H2>Convert filenames between local and
+WWW formats</H2>
+<PRE>extern char * HTLocalName PARAMS((CONST char * name));
 
 
-/*	Generate the name of a cache file
-*/
+</PRE>
+<H2>Make a WWW name from a full local
+path name</H2>
+<PRE>extern char * WWW_nameOfFile PARAMS((const char * name));
 
-extern char * HTCacheFileName PARAMS((CONST char * name));
+
+</PRE>
+<H2>Generate the name of a cache file</H2>
+<PRE>extern char * HTCacheFileName PARAMS((CONST char * name));
 
 
-/*	Define the representation for a file suffix
-**	-------------------------------------------
-**
-** On entry,
+</PRE>
+<H2>Define the representation for a file
+suffix</H2>
+<PRE>
+/* On entry,
 **	suffix		includes the "." if that is important (normally, yes!)
 **	representation	is MIME-style
 **	quality		an a priori judgement of the quality of such files
@@ -75,76 +70,65 @@ extern void HTSetSuffix PARAMS((
 	float		quality));
 	
 
-/*	Determine file format from file name
-**	------------------------------------
-*/
-
-#ifdef __STDC__
-extern HTFormat HTFileFormat(const char * filename);
-#else
-extern HTFormat HTFileFormat();
-#endif	
-
-
-/*	Determine file format from file name
-**	------------------------------------
-*/
-
-extern float HTFileValue PARAMS((CONST char * filename));
-
-
-/*	Determine write access to a file
-//	--------------------------------
-//
-// On exit,
-//	return value	YES if file can be accessed and can be written to.
-//
-//	Isn't there a quicker way?
-*/
-
-#ifdef __STDC__
-extern BOOL HTEditable(const char * filename);
-#else
-extern BOOL HTEditable();
-#endif
-
-
-/*	Determine a suitable suffix, given the representation
-**	-----------------------------------------------------
-**
-** On entry,
-**	rep	is the atomized MIME style representation
-**
-** On exit,
-**	returns	a pointer to a suitable suffiz string if one has been
-**		found, else NULL.
-*/
-extern CONST char * HTFileSuffix PARAMS((HTAtom* rep)); 
-
-
-/*	Open a file descriptor for a document
-**	-------------------------------------
-**
-** On entry,
-**	addr		must point to the fully qualified hypertext reference.
-**
-** On exit,
-**	returns		&#60;0		Error has occured.
-**			HT_LOADED	Done OK
-**
-**	*pFormat	Set to the format of the file, if known.
-**			(See WWW.h)
-**
-*/
-/*
-extern int HTLoadFile
-PARAMS
-((
-  const char * addr,
-  HTParentAnchor * anchor,
-  int diagnostic
-));
-*/
-extern HTProtocol HTFTP, HTFile;
-#endif /* HTFILE_H */
 </PRE>
+<H2>Determine file format from file name</H2>
+<PRE>
+
+extern HTFormat HTFileFormat PARAMS((
+		CONST char * filename));
+
+
+</PRE>
+<H2>Determine file format from file name</H2>
+<PRE>
+
+extern float HTFileValue PARAMS((
+		CONST char * filename));
+
+
+</PRE>
+<H2>Determine write access to a file</H2>
+<H3>On exit,</H3>
+<DL>
+<DT>return value
+<DD> YES if file can be accessed
+and can be written to.
+</DL>
+
+<PRE>
+</PRE>
+<H3>Bugs</H3>Isn't there a quicker way?
+<PRE>
+
+extern BOOL HTEditable PARAMS((CONST char * filename));
+
+
+</PRE>
+<H2>Determine a suitable suffix, given
+the representation</H2>
+<H3>On entry,</H3>
+<DL>
+<DT>rep
+<DD> is the atomized MIME style representation
+</DL>
+
+<H3>On exit,</H3>
+<DL>
+<DT>returns
+<DD> a pointer to a suitable suffix
+string if one has been found, else
+NULL.
+</DL>
+
+<PRE>extern CONST char * HTFileSuffix PARAMS((
+		HTAtom* rep)); 
+
+
+
+</PRE>
+<H2>The Protocols</H2>
+<PRE>extern HTProtocol HTFTP, HTFile;
+
+#endif /* HTFILE_H */
+
+</PRE>end of HTFile</BODY>

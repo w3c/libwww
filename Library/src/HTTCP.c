@@ -247,7 +247,7 @@ PUBLIC int HTParseInet ARGS2(SockA *,sin, CONST char *,str)
 
     if (TRACE) fprintf(stderr,  
 	"TCP: Parsed address as port %d, IP address %d.%d.%d.%d\n",
-		(unsigned int)ntohs(sin->sin_port),
+		(int)ntohs(sin->sin_port),
 		(int)*((unsigned char *)(&sin->sin_addr)+0),
 		(int)*((unsigned char *)(&sin->sin_addr)+1),
 		(int)*((unsigned char *)(&sin->sin_addr)+2),

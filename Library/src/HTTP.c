@@ -38,6 +38,8 @@
 #include <ctype.h>
 #include "HTAlert.h"
 #include "HTMIME.h"
+#include "HTML.h"		/* SCW */
+#include "HTInit.h"		/* SCW */
 
 struct _HTStream {
 	HTStreamClass * isa;		/* all we need to know */

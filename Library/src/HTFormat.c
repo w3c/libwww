@@ -336,7 +336,7 @@ PUBLIC void HTCopy ARGS2(
 		"HTFormat: Read error, read returns %d\n", status);
 	    break;
 	}
-	(*targetClass.write)(sink, input_buffer, status);
+	(*targetClass.put_block)(sink, input_buffer, status);
     } /* next bufferload */
 	
 }

@@ -29,8 +29,9 @@ typedef enum _MIME_state {
 	JUNK_LINE,		/* Ignore the rest of this folded line */
 	NEWLINE,		/* Just found a LF .. maybe continuation */
 	CHECK,			/* check against check_pointer */
-	TRANSPARENT,		/* put straight through to target ASAP! */
-	IGNORE			/* ignore entire file */
+	MIME_TRANSPARENT,	/* put straight through to target ASAP! */
+	MIME_IGNORE		/* ignore entire file */
+	/* TRANSPARENT and IGNORE are defined as stg else in _WINDOWS */
 } MIME_state;
 
 #define VALUE_SIZE 128		/* @@@@@@@ Arbitrary? */
@@ -77,10 +78,10 @@ PRIVATE void HTMIME_put_character ARGS2(HTStream *, me, char, c)
 {
     switch(me->state) {
 
-    case IGNORE:
+    case MIME_IGNORE:
     	return;
 	
-    case TRANSPARENT:
+    case MIME_TRANSPARENT:
     	(*me->targetClass.put_character)(me->target, c);	/* MUST BE FAST */
 	return;
 
@@ -115,9 +116,9 @@ PRIVATE void HTMIME_put_character ARGS2(HTStream *, me, char, c)
 		    me->targetClass = *me->target->isa;
 		/* Check for encoding and select state from there @@ */
 		
-		    me->state = TRANSPARENT; /* From now push straigh through */
+		    me->state = MIME_TRANSPARENT; /* From now push straigh through */
 		} else {
-		    me->state = IGNORE;		/* What else to do? */
+		    me->state = MIME_IGNORE;		/* What else to do? */
 		}
 	    }
 	    break;
@@ -234,9 +235,9 @@ bad_field_name:				/* Ignore it */
 PRIVATE void HTMIME_put_string ARGS2(HTStream *, me, CONST char*, s)
 {
     CONST char * p;
-    if (me->state == TRANSPARENT)		/* Optimisation */
+    if (me->state == MIME_TRANSPARENT)		/* Optimisation */
         (*me->targetClass.put_string)(me->target,s);
-    else if (me->state != IGNORE)
+    else if (me->state != MIME_IGNORE)
         for (p=s; *p; p++) HTMIME_put_character(me, *p);
 }
 
@@ -247,8 +248,8 @@ PRIVATE void HTMIME_put_string ARGS2(HTStream *, me, CONST char*, s)
 PRIVATE void HTMIME_write ARGS3(HTStream *, me, CONST char*, s, int, l)
 {
     CONST char * p;
-    if (me->state == TRANSPARENT)		/* Optimisation */
-        (*me->targetClass.write)(me->target, s, l);
+    if (me->state == MIME_TRANSPARENT)		/* Optimisation */
+        (*me->targetClass.put_block)(me->target, s, l);
     else
         for (p=s; p < s+l; p++) HTMIME_put_character(me, *p);
 }

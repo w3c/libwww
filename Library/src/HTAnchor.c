@@ -99,9 +99,9 @@ PUBLIC HTChildAnchor * HTAnchor_findChild
     if (tag && *tag) {		/* TBL */
 	while (child = HTList_nextObject (kids)) {
 	    if (equivalent(child->tag, tag)) { /* Case sensitive 920226 */
-		if (TRACE) printf (
+		if (TRACE) fprintf (stderr,
 	       "Child anchor %p of parent %p with name `%s' already exists.\n",
-		    child, parent, tag);
+		    (void*)child, (void*)parent, tag);
 		return child;
 	    }
 	}
@@ -111,7 +111,7 @@ PUBLIC HTChildAnchor * HTAnchor_findChild
 
   child = HTChildAnchor_new ();
   if (TRACE) fprintf(stderr, "new Anchor %p named `%s' is child of %p\n",
-                  child, (int)tag ? tag : (CONST char *)"" , parent); /* int for apollo */
+       (void*)child, (int)tag ? tag : (CONST char *)"" , (void*)parent); /* int for apollo */
   HTList_addObject (parent->children, child);
   child->parent = parent;
   StrAllocCopy(child->tag, tag);
@@ -198,7 +198,7 @@ HTAnchor * HTAnchor_findAddress
     while (foundAnchor = HTList_nextObject (grownups)) {
        if (equivalent(foundAnchor->address, address)) {
 	if (TRACE) fprintf(stderr, "Anchor %p with address `%s' already exists.\n",
-			  foundAnchor, address);
+			  (void*) foundAnchor, address);
 	return (HTAnchor *) foundAnchor;
       }
     }
@@ -206,7 +206,7 @@ HTAnchor * HTAnchor_findAddress
     /* Node not found : create new anchor */
     foundAnchor = HTParentAnchor_new ();
     if (TRACE) fprintf(stderr, "New anchor %p has hash %d and address `%s'\n",
-    	foundAnchor, hash, address);
+    	(void*)foundAnchor, hash, address);
     StrAllocCopy(foundAnchor->address, address);
     HTList_addObject (adults, foundAnchor);
     return (HTAnchor *) foundAnchor;

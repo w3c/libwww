@@ -1,5 +1,5 @@
 <HEADER>
-<TITLE>/Net/dxcern/userd/timbl/hypertext/WWW/Library/Implementation/HTStream.html</TITLE></HEADER>
+<TITLE>The Stream class definition -- libwww</TITLE></HEADER>
 <BODY>
 <H1>Stream Object definition</H1>A Stream object is something which
 accepts a stream of text.<P>
@@ -19,7 +19,10 @@ streams.  They should be self-explanatory,
 except for end_document which must
 be called before free.  It should
 be merged with free in fact:  it
-should be dummy for new streams.
+should be dummy for new streams.<P>
+The put_block method was write, but
+this upset systems whiuch had macros
+for write().
 <PRE>typedef struct _HTStreamClass {
 
 	char*  name;				/* Just for diagnostics */
@@ -38,7 +41,7 @@ should be dummy for new streams.
 		HTStream*	me,
 		CONST char *	str));
 		
-	void (*write) PARAMS((
+	void (*put_block) PARAMS((
 		HTStream*	me,
 		CONST char *	str,
 		int		len));
@@ -48,4 +51,4 @@ should be dummy for new streams.
 
 #endif /* HTSTREAM_H */
 
-</PRE></A></BODY>
+</PRE>end of HTStream.h</BODY>

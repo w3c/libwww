@@ -1,8 +1,14 @@
+<HEADER>
+<TITLE>Utitlity macros for the W3 code library</TITLE>
+<NEXTID N="2">
+</HEADER>
+<BODY>
+<H1>Macros for general use</H1>Generates: <A
+NAME=z1 HREF="HTUtils.h">HTUtils.h</A><P>
+See also: the system dependent file<A
+NAME=z0 HREF="tcp.html">
+"tcp.h"</A>
 <PRE>
-/*	Macros for general use					HTUtils.h
-**
-**	See also: the system dependent file "tcp.h"
-*/
 #ifndef DEBUG
 #define DEBUG	/* Noone ever turns this off as trace is too important */
 #endif		/* Keeep option for really small memory applications tho */
@@ -10,14 +16,19 @@
 #ifndef HTUTILS_H
 #define HTUTILS_H
 
+#ifdef _WINDOWS				/* SCW */
+#include "windef.h"
+#define BOOLEAN_DEFINED
+#endif
+
 #ifdef SHORT_NAMES
 #define WWW_TraceFlag HTTrFlag
 #endif
 
-/*	Debug message control.
-*/
-#ifndef STDIO_H
-#include &#60;stdio.h>
+</PRE>
+<H2>Debug message control.</H2>
+<PRE>#ifndef STDIO_H
+#include &lt;stdio.h>
 #define STDIO_H
 #endif
 
@@ -34,9 +45,9 @@
 #define tfp stdout
 
 
-/*	Standard C library for malloc() etc
-*/
-#ifdef vax
+</PRE>
+<H2>Standard C library for malloc() etc</H2>
+<PRE>#ifdef vax
 #ifdef unix
 #define ultrix	/* Assume vax+unix=ultrix */
 #endif
@@ -45,23 +56,25 @@
 #ifndef VMS
 #ifndef ultrix
 #ifdef NeXT
-#include &#60;libc.h>	/* NeXT */
+#include &lt;libc.h>	/* NeXT */
 #endif
 #ifndef MACH /* Vincent.Cate@furmint.nectar.cs.cmu.edu */
-#include &#60;stdlib.h>	/* ANSI */
+#include &lt;stdlib.h>	/* ANSI */
 #endif
 #else /* ultrix */
-#include &#60;malloc.h>
-#include &#60;memory.h>
-#include &#60;stdio.h>
+#include &lt;malloc.h>
+#include &lt;memory.h>
+#include &lt;stdio.h>
 #endif
 
 #else	/* VMS */
-#include &#60;stdio.h>
-#include &#60;ctype.h>
+#include &lt;stdio.h>
+#include &lt;ctype.h>
 #endif
 
-#define PUBLIC			/* Accessible outside this module     */
+</PRE>
+<H2>Macros for declarations</H2>
+<PRE>#define PUBLIC			/* Accessible outside this module     */
 #define PRIVATE static		/* Accessible only within this module */
 
 #ifdef __STDC__
@@ -92,7 +105,9 @@
 
 #else  /* not ANSI */
 
+#ifndef _WINDOWS
 #define CONST
+#endif
 #define NOPARAMS ()
 #define PARAMS(parameter_list) ()
 #define NOARGS ()
@@ -124,11 +139,13 @@
 #define NULL ((void *)0)
 #endif
 
-
-/* Note: GOOD and BAD are already defined (differently) on RS6000 aix */
-/* #define GOOD(status) ((status)&#38;1)	 VMS style status: test bit 0	      */
+</PRE>
+<H2>Booleans</H2>
+<PRE>/* Note: GOOD and BAD are already defined (differently) on RS6000 aix */
+/* #define GOOD(status) ((status)38;1)	 VMS style status: test bit 0	      */
 /* #define BAD(status)  (!GOOD(status))	 Bit 0 set if OK, otherwise clear   */
 
+#ifndef _WINDOWS
 #ifndef BOOLEAN_DEFINED
 	typedef char	BOOLEAN;		/* Logical value */
 #ifndef CURSES
@@ -136,7 +153,8 @@
 #define TRUE	(BOOLEAN)1
 #define	FALSE	(BOOLEAN)0
 #endif
-#endif
+#endif	 /*  CURSES  */
+#endif   /* _WINDOWS */
 #define BOOLEAN_DEFINED
 #endif
 
@@ -149,22 +167,24 @@
 #endif
 
 #ifndef min
-#define min(a,b) ((a) &#60;= (b) ? (a) : (b))
+#define min(a,b) ((a) &lt;= (b) ? (a) : (b))
 #define max(a,b) ((a) >= (b) ? (a) : (b))
 #endif
 
 #define TCP_PORT 80	/* Allocated to http by Jon Postel/ISI 24-Jan-92 */
 #define OLD_TCP_PORT 2784	/* Try the old one if no answer on 80 */
 #define DNP_OBJ 80	/* This one doesn't look busy, but we must check */
+			/* That one was for decnet */
 
 /*	Inline Function WHITE: Is character c white space? */
 /*	For speed, include all control characters */
 
-#define WHITE(c) (((unsigned char)(TOASCII(c)))&#60;=32)
+#define WHITE(c) (((unsigned char)(TOASCII(c))) &lt;= 32)
 
 
-/*	Sucess (>=0) and failure (&#60;0) codes
-*/
+</PRE>
+<H2>Sucess (>=0) and failure (&lt;0) codes</H2>
+<PRE>
 #define HT_LOADED 29999			/* Instead of a socket */
 #define HT_OK		0		/* Generic success*/
 
@@ -173,17 +193,17 @@
 #define HT_INTERNAL	-12		/* Weird -- should never happen. */
 #define HT_BAD_EOF	-12		/* Premature EOF */
 
-#include "HTString.h"  /* String utilities */
+#include "HTString.h"  	/* String utilities */
 
 #ifdef __STDC__
-#include &#60;stdarg.h>
+#include &lt;stdarg.h>
 #else
-#include &#60;varargs.h>
+#include &lt;varargs.h>
 #endif
 
 #ifdef CURSES
 	/* htbrowse.c; */
-#include &#60;curses.h>
+#include &lt;curses.h>
 
 	extern        WINDOW  *w_top, *w_text, *w_prompt;
 	extern        void    user_message PARAMS((const char *fmt, ...));
@@ -193,9 +213,10 @@
 #define user_message printf
 #endif
 
-/*	Out Of Memory checking for malloc() return:
-*/
-#ifndef __FILE__
+</PRE>
+<H2>Out Of Memory checking for malloc()
+return:</H2>
+<PRE>#ifndef __FILE__
 #define __FILE__ ""
 #define __LINE__ ""
 #endif
@@ -206,19 +227,23 @@
 /* extern void outofmem PARAMS((const char *fname, const char *func)); */
 
 
+</PRE>
+<H3>who put these in and what are they
+anyway?</H3>
+<PRE>#ifdef THEY_WILL_BE_REMOVED
 extern void msg_init PARAMS((int height));
 extern void msg_printf PARAMS((int y, const char *fmt, ...));
 extern void msg_exit PARAMS((int wait_for_key));
+#endif
 
-/*	Upper- and Lowercase macros
-**
-**  The problem here is that toupper(x) is not defined officially unless
-**  isupper(x) is.  These macros are CERTAINLY needed on
-**  #if defined(pyr) || define(mips) or BDSI platforms.
-** For safefy, we make them mandatory.
-*/
-
-#include &#60;ctype.h>
+</PRE>
+<H2>Upper- and Lowercase macros</H2>The problem here is that toupper(x)
+is not defined officially unless
+isupper(x) is.  These macros are
+CERTAINLY needed on #if defined(pyr)
+|| define(mips) or BDSI platforms.
+For safefy, we make them mandatory.
+<PRE>#include &lt;ctype.h>
 
 #ifndef TOLOWER
   /* Pyramid and Mips can't uppercase non-alpha */
@@ -228,4 +253,4 @@ extern void msg_exit PARAMS((int wait_for_key));
 
 #endif /* HTUTILS_H */
 
-</PRE>
+</PRE>end of utilities</BODY>

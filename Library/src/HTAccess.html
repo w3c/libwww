@@ -1,16 +1,18 @@
-<PRE>
-/*		Access Manager					HTAccess.h
-**		==============
-**
-**	This module keeps a list of valid protocol (naming scheme) specifiers
-**	with associated access code.  It allows documents to be loaded given
-**	various combinations of parameters.
-**
-**	New access protocols may be registered at any time.
-**
-*/
-
-#ifndef HTACCESS_H
+<HEADER>
+<TITLE>Access manager -- libwww</TITLE>
+<NEXTID N="1">
+</HEADER>
+<BODY>
+<H1>Access Manager</H1>This module keeps a list of valid
+protocol (naming scheme) specifiers
+with associated access code.  It
+allows documents to be loaded given
+various combinations of parameters.
+New access protocols may be registered
+at any time.<P>
+Part of the <A
+NAME=z0 HREF="Overview.html">libwww library</A>.
+<PRE>#ifndef HTACCESS_H
 #define HTACCESS_H
 
 /*	Definition uses:
@@ -34,9 +36,9 @@
 #define HT_NO_DATA -9999	/* return code: OK but no data was loaded */
 				/* Typically, other app started or forked */
 
-/* Default Addresses */
-/* ================= */
-
+</PRE>
+<H2>Default Addresses</H2>
+<PRE>
 #define LOGICAL_DEFAULT "WWW_HOME"  /* Defined to be the home page */
 
 
@@ -59,150 +61,183 @@
 #endif
 
 
-/*	Flags which may be set to control this module
-*/
-extern int HTDiag;			/* Flag: load source as plain text */
+</PRE>
+<H2>Flags which may be set to control
+this module</H2>
+<PRE>extern int HTDiag;			/* Flag: load source as plain text */
 extern char * HTClientHost;		/* Name or number of telnetting host */
 extern FILE * logfile;			/* File to output one-liners to */
 extern HTStream* HTOutputStream;	/* For non-interactive, set this */ 
 extern HTFormat HTOutputFormat;		/* To convert on load, set this */
 
 
-/*		Load a document
-**		---------------
-**
-**    On Entry,
-**	  anchor	    is the node_anchor for the document
-**        full_address      The address of the document to be accessed.
-**        filter            if YES, treat stdin as HTML
-**
-**    On Exit,
-**        returns    YES     Success in opening document
-**                   NO      Failure 
-**
-*/
 
-#ifdef NOT_USED
-extern BOOL HTLoadDocument PARAMS((HTParentAnchor * anchor,
-	CONST char * full_address,
-	BOOL		filter,
-	HTStream*	sink));
-#endif
+</PRE>
+<H2>Load a document from relative name</H2>
+<H3>On Entry,</H3>
+<DL>
+<DT>relative_name
+<DD>The relative address
+of the file to be accessed.
+<DT>here
+<DD>The anchor of the object being
+searched
+</DL>
 
+<H3>On Exit,</H3>
+<DL>
+<DT>returns    YES
+<DD>Success in opening
+file
+<DT>NO
+<DD>Failure 
+</DL>
 
-/*		Load a document from relative name
-**		---------------
-**
-**    On Entry,
-**        relative_name     The relative address of the file to be accessed.
-**	  here 		    The anchor of the object being searched
-**
-**    On Exit,
-**        returns    YES     Success in opening file
-**                   NO      Failure 
-**
-**
-*/
-
-extern  BOOL HTLoadRelative PARAMS((
+<PRE>extern  BOOL HTLoadRelative PARAMS((
 		CONST char * 		relative_name,
 		HTParentAnchor *	here));
 
 
-/*		Load a document from absolute name
-**		---------------
-**
-**    On Entry,
-**        addr       The absolute address of the document to be accessed.
-**        filter     if YES, treat document as HTML
-**
-**    On Exit,
-**        returns    YES     Success in opening document
-**                   NO      Failure 
-**
-**    Note: This is equivalent to HTLoadDocument
-*/
+</PRE>
+<H2>Load a document from absolute name</H2>
+<H3>On Entry,</H3>
+<DL>
+<DT>addr
+<DD>The absolute address of the document
+to be accessed.
+<DT>filter
+<DD>if YES, treat document as HTML
+</DL>
 
-extern BOOL HTLoadAbsolute PARAMS((CONST char * addr));
+<PRE>
+</PRE>
+<H3>On Exit,</H3>
+<PRE>
+</PRE>
+<DL>
+<DT>returns YES
+<DD>Success in opening document
+<DT>NO
+<DD>Failure 
+</DL>
+
+<PRE>extern BOOL HTLoadAbsolute PARAMS((CONST char * addr));
 
 
-/*		Load a document from absolute name to a stream
-**		---------------
-**
-**    On Entry,
-**        addr       The absolute address of the document to be accessed.
-**        filter     if YES, treat document as HTML
-**
-**    On Exit,
-**        returns    YES     Success in opening document
-**                   NO      Failure 
-**
-**    Note: This is equivalent to HTLoadDocument
-*/
+</PRE>
+<H2>Load a document from absolute name
+to a stream</H2>
+<H3>On Entry,</H3>
+<DL>
+<DT>addr
+<DD>The absolute address of the document
+to be accessed.
+<DT>filter
+<DD>if YES, treat document as HTML
+</DL>
 
-extern BOOL HTLoadToStream PARAMS((CONST char * addr, BOOL filter,
+<H3>On Exit,</H3>
+<DL>
+<DT>returns YES
+<DD>Success in opening document
+<DT>NO
+<DD>Failure 
+</DL>
+Note: This is equivalent to HTLoadDocument
+<PRE>extern BOOL HTLoadToStream PARAMS((CONST char * addr, BOOL filter,
 				HTStream * sink));
 
 
-/*		Load if necessary, and select an anchor
-**		--------------------------------------
-**
-**    On Entry,
-**        destination      	    The child or parenet anchor to be loaded.
-**
-**    On Exit,
-**        returns    YES     Success
-**                   NO      Failure 
-**
-*/
+</PRE>
+<H2>Load if necessary, and select an
+anchor</H2>
+<H3>On Entry,</H3>
+<DL>
+<DT>destination      
+<DD>    The child or
+parenet anchor to be loaded.
+</DL>
+
+<PRE>
+</PRE>
+<H3>On Exit,</H3>
+<PRE>
+</PRE>
+<DL>
+<DT>returns YES
+<DD>Success
+<DT>returns NO
+<DD>Failure 
+</DL>
+
+<PRE>
+
 
 extern BOOL HTLoadAnchor PARAMS((HTAnchor * destination));
 
 
-/*		Make a stream for Saving object back
-**		------------------------------------
-**
-**	On Entry,
-**		anchor	is valid anchor which has previously beeing loaded
-**	On exit,
-**		returnes 0 if error else a stream to save the object to.
-**
-*/
+</PRE>
+<H2>Make a stream for Saving object back</H2>
+<H3>On Entry,</H3>
+<DL>
+<DT>anchor
+<DD>is valid anchor which has previously
+beeing loaded
+</DL>
+
+<H3>On exit,</H3>
+<DL>
+<DT>returns
+<DD>0 if error else a stream to
+save the object to.
+</DL>
+
+<PRE>
+
 extern HTStream * HTSaveStream PARAMS((HTParentAnchor * anchor));
 
 
-/*		Search
-**		------
-**  Performs a search on word given by the user. Adds the search words to 
-**  the end of the current address and attempts to open the new address.
-**
-**  On Entry,
-**       *keywords  	space-separated keyword list or similar search list
-**	  here 		The anchor of the object being searched
-*/
+</PRE>
+<H2>Search</H2>Performs a search on word given by
+the user. Adds the search words to
+the end of the current address and
+attempts to open the new address.
+<H3>On Entry,</H3>
+<DL>
+<DT>*keywords
+<DD>space-separated keyword
+list or similar search list
+<DT>here
+<DD>The anchor of the object being
+searched
+</DL>
 
-extern BOOL HTSearch PARAMS((CONST char * keywords, HTParentAnchor* here));
+<PRE>extern BOOL HTSearch PARAMS((CONST char * keywords, HTParentAnchor* here));
 
 
-/*		Search Given Indexname
-**		------
-**  Performs a keyword search on word given by the user. Adds the keyword to 
-**  the end of the current address and attempts to open the new address.
-**
-**  On Entry,
-**       *keywords  	space-separated keyword list or similar search list
-**	*addres		is name of object search is to be done on.
-*/
+</PRE>
+<H2>Search Given Indexname</H2>Performs a keyword search on word
+given by the user. Adds the keyword
+to  the end of the current address
+and attempts to open the new address.
+<H3>On Entry,</H3>
+<DL>
+<DT>*keywords
+<DD>space-separated keyword
+list or similar search list
+<DT>*indexname
+<DD>is name of object search
+is to be done on.
+</DL>
 
-extern BOOL HTSearchAbsolute PARAMS((
+<PRE>extern BOOL HTSearchAbsolute PARAMS((
 	CONST char * 	keywords,
 	CONST char * 	indexname));
 
 
-/*		Register an access method
-**		-------------------------
-*/
-
+</PRE>
+<H2>Register an access method</H2>
+<PRE>
 typedef struct _HTProtocol {
 	char * name;
 	
@@ -219,15 +254,16 @@ typedef struct _HTProtocol {
 extern BOOL HTRegisterProtocol PARAMS((HTProtocol * protocol));
 
 
-/*		Generate the anchor for the home page
-**		-------------------------------------
-**
-**	As it involves file access, this should only be done once
-**	when the program first runs.
-**	This is a default algorithm -- browser don't HAVE to use this.
-**
-*/
-extern HTParentAnchor * HTHomeAnchor NOPARAMS;
+</PRE>
+<H2>Generate the anchor for the home
+page</H2>
+<PRE>
+</PRE>As it involves file access, this
+should only be done once when the
+program first runs. This is a default
+algorithm -- browser don't HAVE to
+use this.
+<PRE>extern HTParentAnchor * HTHomeAnchor NOPARAMS;
 
 #endif /* HTACCESS_H */
-</PRE>
+</PRE>end of HTAccess</BODY>

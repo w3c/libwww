@@ -475,7 +475,8 @@ PUBLIC BOOL HTEditable ARGS1 (CONST char *,filename)
     if (TRACE) {
         int i;
 	printf("File mode is 0%o, uid=%d, gid=%d. My uid=%d, %d groups (",
-    	    fileStatus.st_mode, fileStatus.st_uid, fileStatus.st_gid,
+    	    (unsigned int) fileStatus.st_mode, fileStatus.st_uid,
+	    fileStatus.st_gid,
 	    myUid, ngroups);
 	for (i=0; i<ngroups; i++) printf(" %d", groups[i]);
 	printf(")\n");

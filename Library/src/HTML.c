@@ -6,12 +6,12 @@
 **	oriented iunterface of the HText.h interface.  This module is
 **	only used in clients and shouldnot be linked into servers.
 **
-**	Override this module is making a new GUI browser.
+**	Override this module if making a new GUI browser.
 **
 */
 #include "HTML.h"
 
-#define CAREFUL		/* Check nesting here notreally necessary */
+/* #define CAREFUL		 Check nesting here notreally necessary */
 
 #include <ctype.h>
 #include <stdio.h>
@@ -562,6 +562,10 @@ PRIVATE void HTML_start_element ARGS4(
 **	stack for an element with a defined style. (In fact, the styles
 **	should be linked to the whole stack not just the top one.)
 **	TBL 921119
+**
+**	We don't turn on "CAREFUL" check because the parser produces
+**	(internal code errors apart) good nesting. The parser checks
+**	incoming code errors, not this module.
 */
 PRIVATE void HTML_end_element ARGS2(HTStructured *, me, int , element_number)
 {
@@ -570,7 +574,7 @@ PRIVATE void HTML_end_element ARGS2(HTStructured *, me, int , element_number)
         fprintf(stderr, "HTMLText: end of element %s when expecting end of %s\n",
 		HTML_dtd.tags[element_number].name,
 		HTML_dtd.tags[me->sp->tag_number].name);
-    		exit(-20);
+		/* panic */
     }
 #endif
     
@@ -714,9 +718,9 @@ PUBLIC HTStructured* HTML_new ARGS3(
     HTStructured * me;
     
     if (format_out != WWW_PLAINTEXT && format_out != WWW_PRESENT) {
-        me = HTStreamStack(WWW_HTML, format_out,
-		HTMLGenerator(stream), anchor);
-	if (me) return me;
+        HTStream * intermediate = HTStreamStack(WWW_HTML, format_out,
+		stream, anchor);
+	if (intermediate) return HTMLGenerator(intermediate);
         fprintf(stderr, "** Internal error: can't parse HTML to %s\n",
        		HTAtom_name(format_out));
 	exit (-99);

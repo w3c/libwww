@@ -70,7 +70,7 @@ HTAnchor * HTHistory_moveBy
     } else {
       if (TRACE) fprintf(stderr, 
       		"HTHistory_moveBy: offset by %+d goes out of list %p.\n",
-		offset, kids);
+		offset, (void*)kids);
       return NULL;
     }
   } else {  /* Was a parent */

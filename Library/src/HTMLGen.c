@@ -24,7 +24,7 @@
 
 #define PUTC(c) (*me->targetClass.put_character)(me->target, c)
 #define PUTS(s) (*me->targetClass.put_string)(me->target, s)
-#define PUTB(s,l) (*me->targetClass.write)(me->target, s, l)
+#define PUTB(s,l) (*me->targetClass.put_block)(me->target, s, l)
 
 /*		HTML Object
 **		-----------

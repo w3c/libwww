@@ -111,7 +111,7 @@ PUBLIC HTStream* HTPlainPresent ARGS3(
 	HTStream *,		sink)
 {
 
-    HTStream* me = malloc(sizeof(*me));
+    HTStream* me = (HTStream*)malloc(sizeof(*me));
     if (me == NULL) outofmem(__FILE__, "HTPlain_new");
     me->isa = &HTPlain;       
 

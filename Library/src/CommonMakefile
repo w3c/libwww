@@ -31,9 +31,9 @@
 
 .SUFFIXES: .h .html
 .html.h:
-	- chmod +w $*.h
+#	- chmod +w $*.h
 	www -w90 -na -to text/x-c $*.html > $*.h
-	chmod -w $*.h
+#	chmod -w $*.h
 
 # If this is actually run in a subdirectory,
 #
@@ -101,7 +101,8 @@ HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h $(CMN)HTTP.h $(CMN)HTFile.h \
 	$(CMN)HTTelnet.h \
 	$(CMN)HTWAIS.h  $(CMN)HTWSRC.h
 
-SOURCES = $(CFILES) $(HFILES) $(CMN)Version.make $(CMN)CommonMakefile \
+SOURCES = $(CFILES) $(HFILES) $(CMN)Version.make \
+	$(CMN)CommonMakefile $(CMN)Makefile \
 	$(WWW)/README.txt $(WWW)/Copyright.txt $(WWW)/BUILD $(WWW)/Makefile
 SPECIFIC = $(WWW)/All/*/Makefile.include $(WWW)/All/Implementation/Makefile*
 
@@ -136,8 +137,9 @@ uninstall :
 #		Distribution use only:
 #		----------------------
 
+#	Needs www version 2.4 or later to do this
 includes : $(HFILES)
-	echo incldues made.
+	echo Include files generated from hypertext.
 
 binary : /pub/www/bin/$(WWW_MACH)/libwww_$(VC).a
 	echo FTP archive binary Libray $(VC) for $(WWW_MACH) up to date.
@@ -183,9 +185,9 @@ $(WWW)/Copyright.txt : $(WWW)/../Copyright.html
 
 OE = $(LOB)/.created
 $(OE) :
-	-mkdir $(WTMP)
-	-mkdir $(WTMP)/Library
-	-mkdir $(WTMP)/Library/$(WWW_MACH)
+	if [ ! -r $(WTMP) ] ; then mkdir $(WTMP); fi
+	if [ ! -r $(WTMP)/Library ] ; then mkdir $(WTMP)/Library; fi
+	if [ ! -r $(WTMP)/Library/$(WWW_MACH) ] ; then mkdir $(WTMP)/Library/$(WWW_MACH); fi
 	touch $@
 
 $(LOB)/HTList.o : $(OE) $(CMN)HTList.c $(CMN)HTUtils.h $(CMN)HTList.h

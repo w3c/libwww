@@ -3,7 +3,7 @@
 **
 ** Authors
 **	TBL	Tim Berners-Lee timbl@info.cern.ch
-**	JFG	Jean-Francois Groff jgh@next.com
+**	JFG	Jean-Francois Groff jfg@dxcern.cern.ch
 **	DD	Denis DeLaRoca (310) 825-4580  <CSP1DWD@mvs.oac.ucla.edu>
 ** History
 **       8 Jun 92 Telnet hopping prohibited as telnet is not secure TBL
@@ -28,6 +28,7 @@
 
 #include "HTParse.h"
 #include "HTUtils.h"
+#include "HTML.h"		/* SCW */
 
 #ifndef NO_RULES
 #include "HTRules.h"
