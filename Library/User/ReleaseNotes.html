@@ -1,236 +1,105 @@
 <HTML>
 <HEAD>
-<TITLE>CERN WWW Library 3.0 Release Notes</TITLE>
+<TITLE>WWW Library Release Notes</TITLE>
 </HEAD>
 <BODY>
 
-<A HREF="../../"><IMG ALT="WWW"
-SRC="../../Icons/WWW/WWW48x.gif"></A>
-<A HREF="../Status.html"><IMG ALT="Lib"
-SRC="../../Icons/WWW/Lib48x.gif"></A>
+<A HREF="../../"><IMG ALT="WWW" SRC="../../Icons/WWW/WWW48x.gif"></A>
+<A HREF="../Status.html"><IMG ALT="Lib" SRC="../../Icons/WWW/Lib48x.gif"></A>
 
-<H1>CERN Library 3.0 Release Notes</H1>
+<H1>Library 3.1 Release Notes</H1>
 
-<HR>
+This is the announcement of the first release of the Library of Common
+Code from W3C. The release is called 3.1 prerelease 1 and is to be
+considered as a beta version of the official release scheduled for
+June. The code word for the June release is support for remote
+collaborate work where people can use HTTP and the Web as a remote
+authoring environment. The purpose of this release is to build and
+maintain a close loop between W3C discussion and implementation
+leading up to the final 3.1 June release. <P>
 
-This release is the first release of source code which is covered by
-the new CERN copyright statement. The statement is published in the
-file <B>COPYRIGH</B> (truncated to 8 bytes) in the distribution packet
-or in <A HREF="../../../COPYRIGHT.html">hypertext format</A>.
+In addition to the new set of features and functionality this release
+also is the first example of source code distributed under the W3C
+conditions. This means that the code is available to consortium
+members only within a month from the release date. <P>
 
-<H2>More Information</H2>
+Due to the limited distribution of the source code it is only
+available from our <A HREF="../../../Dist/">HTTP server</A> and NOT
+our FTP server. There is a new "<A HREF="Using/">User's Guide</A>" on
+how to use the Library as a basic tool for Web applications and as
+usual, we also have a "<A HREF="Guide/">Internals and Programmer's
+Guide</A>". <P>
 
-Other pages of interest are:
+The Library is now under <A HREF="../../COPYRIGHT.html">MIT
+copyright</A> and another new formality is that everybody who makes
+modifications, contributions etc. and wishes to incorporate them as
+part of the W3C software distribution <A
+HREF="../../PATCHES.html">must sign a form</A> that gives MIT the
+permissions to use the contributions under the terms of the W3C
+software distribution. <P>
 
-<UL>
+<H2>Library 3.1pre1 Release Notes</H2>
 
-<LI> <A HREF="../User/Guide/">Internals and Programmer's Guide</A>
+A lot of the work put into this release has been to update the API of
+the Library. This is mainly described in the new "User Guide", so
+please do read this and remember that comments are welcome!
 
-<LI> <A HREF="Bugs/Workinglist.html">Working List</A>
-
-<LI> <A HREF="Features/Implementation.html">Implementation Specifications</A>
-
-<LI> <A HREF="../Status.html">CERN WWW Software</A>
-
-<LI> <A HREF="Features/Features.html">Change History</A>
-
-</UL>
-
-<HR>
-
-<H2>CERN Library 3.0, Mar 21 1995</H2>
-
-Many of the modifications and new features are mentioned under the
-pre-releases.
-
-<UL>
-
-<LI>Changed all <EM>float</EM> to <EM>double</EM> in order get it
-consistent with the working floating type in C
-
-<LI>Fixed problems with memory in HTML.c
-
-<LI>Introduced definition of <CODE>errno</CODE> constants for WIN32,
-as WinSock doesn't define them using BSD notation
-
-</UL>
-
-<H2>CERN Library 3.0 Prerelease 3, Mar 10 1995</H2>
-
-<H3>New or Changed Features</H3>
+<H3>New Features and Interfaces</H3>
 
 <UL>
+<LI>Windows NT Support (and possibly Windows 3.1 with Win32S) thanks
+to Charlie Brooks, <cbrooks@osf.org>
 
-<LI>All library include files which contains public information for
-applications are now contained in the single include file <A
-HREF="../Implementation/WWWLib.html">WWWLib.h</A> which is the only
-one necessary <B>PLEASE DON'T USE ANYTHING ELSE!!!</B>
+<LI>A lot easier handling of headers in the HTTP module including
+support for extra headers
 
-<LI>Changed TRACE messages so that the target is the macro TDEST and
-not stderr. This means that on platforms that don't support stderr,
-TRACE messages can be redirected to a local file.
+<LI>Improved <A HREF="../../Implementation/HTMIME.html">HTTP/MIME
+parser</A> which recognizes 99% of the HTTP headers The rest will be
+ready in the next release! This includes support for "charset" and
+"level" parameter
 
-<LI>Due to the PC Port some modules (definition and declaration files)
-have changed names so that the max length is 8 characters:
+<LI>Support for PUT and POST. This is not yet fully implemented but it
+is possible to experiment with it
 
-<UL>
-<LI>s?HTFWriter?<A HREF="../Implementation/HTFWrite.html">HTFWrite</A>?g
-<LI>s?HTHistory?<A HREF="../Implementation/HTHist.html">HTHist.h</A>?g
-<LI>s?HTEPtoClient?<A HREF="../Implementation/HTEPtoCl.html">HTEPtoCl</A>?g
-<LI>s?HTDescript?<A HREF="../Implementation/HTDescpt.html">HTDescpt</A>?g
-<LI>s?HTExtParse?<A HREF="../Implementation/HTXParse.html">HTXParse</A>?g
-<LI>s?HTErrorMsg?<A HREF="../Implementation/HTErrMsg.c">HTErrMsg</A>?g
-</UL>
+<LI>Big enhancement of the anchor module with support for all HTTP/1.0
+headers, garbage collection etc.
 
-<LI>Move EnableFrom to <A
-HREF="../Implementation/HTAccess.html">HTAccess module</A>. This
-variable determines whether the HTTP header <EM>From: </EM> should be
-generated. The default value is <EM>off</EM>
+<LI>The Cache manager is made more object oriented with a broader set
+of methods. The garbage collector is not the best
 
-<LI>Sockets are no longer assumed to be small, non-negative integers,
-but uses macros. This should ensure portability to Windows NT.
+<LI>HTBind module created for better bindings to file system with new
+hash function for improved speed and more functionality than before
 
-<LI>Introduced socerrno and errno so that WinSock can use its own
-definition whereas `local' errno can still use the well-known version.
+<LI>Created HTDateTimeStr() and HTMessageID() in <A
+HREF="../../Implementation/HTString.html">HTString</A>
 
-<LI>Introduced <CODE>error_stream</CODE> as field in <A
-HREF="../Implementation/HTAccess.html#z1">HTRequest structure</A>. All
-information contained in HTTP responses which don't naturally contain
-a body entity, for example redirection codes (3xx) and client error
-codes (4xx) will be put down this stream so that it can be put into a
-debug window.
+<LI>Separated HTStructured into its own stream definition module (<A
+HREF="../../Implementation/HTStruct.html">HTStruct.h</A>)
 
-<LI>HTNewsHost is now a local variable in the <A
-HREF="../Implementation/HTNews.html">HTNews module</A>. Use
-HTGetNewsHost and HTSetNewsHost to set and get the current value. The
-news module will be rewritten in the near future as it has many
-problems.
+<LI>Introduced STREAM_TRACE and BIND_TRACE as new debug flag
 
-<LI>The <A HREF="../Implementation/HTTP.html">HTTP</A> module
-understands all HTTP/1.0 return codes and is more solid
+<LI>Original reason messages are now passed back as a parameter by the
+error handler when talking to a remote HTTP server
 
-<LI>Many portability problems has been solved and optimized. Most
-system dependent things are now put into <A
-HREF="../Implementation/tcp.html">tcp module</A>
+<LI>Introduction of error_format in the request structure. This can be
+used to get debug information out of the Library
 
-<LI>Interface to CSO name server made nicer - generates correct HTML
-
+<LI>Better handling of media types in FTP and Gopher including
+recognition of UU encoded files
 </UL>
 
 <H3>Bug Fixes</H3>
 
 <UL>
-<LI>file:// no more tries ftp:// if host=localhost
-<LI>Improved proxy support and fixed bug when reloading a document from a proxy
-<LI>Bug fixed in HTGetHostName() which didn't include a dot &lt;.&gt;
-<LI>Bug fixed if UserID/passwd was not correct and don't want to retry
-<LI>HTErrorAdd and HTErrorSysAdd no always return HT_ERROR
-<LI>Fixed bug in HTGetDomainName when no domain name is present at all
-<LI>Add output_flush to request structure
-<LI>Uses IOCTL as a macro now - not fcntl
-<LI><EM>and a lot of other stuff...</EM>
+<LI>Eventloop responds now faster on events as it more often does a select
+
+<LI>HTTP version strings are now string and not floats
+
+<LI>Many platform dependent macros introduced and a lot of cleanup
 </UL>
 
-<H2>Library 3.0 Prerelease 2, Dec 2 1994</H2>
-
-<UL>
-
-<LI>Introduced memory cleanups from Eric Sink into
-<CODE>HTLibTerminate()</CODE>
-
-<LI>Now the client can provocate a call to
-<CODE>HTEventRequestTerminate()</CODE> even when the request never
-enters the eventloop. This is necesary so that the client can cancel
-busy icons, spinning globes etc.
-
-<LI>Introduced <CODE>EVENT_TERM</CODE> as return code for the
-HTEventHandler function
-
-<LI><CODE>HTEventHandler() now</CODE> has a double pointer so that the
-request pointer can be modified from the client
-
-<LI>Fixed bug in <CODE>HTSearch()</CODE> and
-<CODE>HTLoadRelative()</CODE> where wrong return code was returned
-(BOOL instead of int)
-
-<LI>Introduced BlockingIO field in the request structure to override
-the the mode registered in the protocol structure. This can be used as
-an easy way to make blocking I/O
-
-</UL>
-
-<H2>Library 3.0 Prerelease 1, Nov 26 1994</H2>
-
-<H3>New and Changed Features</H3>
-
-<UL>
-
-<LI>Introduced the function HTLibInit() and HTLibTerminate() which
-MUST be called when the application starts up and terminates.
-
-<LI>Introduced the modules HTThread and HTEvent. HTEvent is the client
-interface when using multithreaded functionality and HTThread is the
-internal socket management
-
-<LI>All __STDC__ defines now concentrated to HTUtils.html where it is
-called _STANDARD_CODE_ so that _cplusplus also handles this
-
-<LI>`new' and `template' not used a names anymore (confuses C++)
-
-<LI>Removed from field in HTRequest structure. This is now handled by
-the functions HTGetMailAddres and HTSetMailAddress and the flag
-HTEnableFrom in the HTTP module.
-
-<LI>Changed HTSetMailAddress so that a call with parameter equals NULL
-or "" clears the contents of the mail-address.
-
-<LI>The number of parameters to Streamstack function is now compatible
-with the arguments to a stream converter, so that we don't loose any
-information while putting up the stream stack.
-
-<LI>HTOutputSource variable is removed. You should use WWW_SOURCE in
-the request structure
-
-<LI>HTGuess stream is a a converter compatible stream so that it
-actually can be setup as a converter
-
-<LI>The stream methods `abort' and `_free' now returns int instead of
-void. On success from these methods `_free' returns 0 and `abort'
-return EOF
-
-<LI>Taken HTEscape and HTUnescape and put them into the HTEscape
-module. The functionality is the same but now they can be used in
-utility programs without linking in the whole Library
-
-</UL>
-
-<H3>Bug Fixes</H3>
-
-<UL>
-
-<LI>Removed bug in WAIS module which caused a lot of core dumps
-
-<LI>Removed bug in format classification from URL suffix in HTGoper
-when the file was plaintext
- 
-<LI><EM>localhost</EM> is now recognized again after canonicalization
-in <CODE>HTLoadFile()</CODE>
-
-<LI>WAIS SEARCH now produces proper HTML
-
-<LI>Max number of lines in WAIS decreased to 200 as 250 (previous)
-dumps core
-
-<LI>Bug fixed in <CODE>HTGetHostName()</CODE> if we must use the
-getdomainname() function.
-
-<LI>Added some support for SCO
-
-<LI>Handling of gopher items of type ERROR (3) changed so no more core
-dumps in server
-
-</UL>
-
+<P>
 <HR>
-
-<ADDRESS>Henrik Frystyk, libwww@info.cern.ch, Marts 1995</ADDRESS>
+<ADDRESS>Henrik Frystyk, libwww@w3.org, May 1995</ADDRESS>
+</BODY>
+</HTML>

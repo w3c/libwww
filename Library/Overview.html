@@ -24,15 +24,16 @@ Information</A> for details on how to subscribe and the very nifty <A
 HREF="http://asearch.mccmedia.com/www-lib.html">www-lib mailing list
 archive</A>.<P>
 
-<IMG SRC="../Icons/32x32/warning.gif" ALT="WARNING"> The <B>HTTPD
-3.0</B> is not compatible with the latest version of the library, the
-right version to use is <A
-HREF="/pub/src/WWWLibrary_2.17.tar.Z">Library 2.17</A>.<P>
+<IMG SRC="../Icons/32x32/caution.gif" ALT="NOTE"> The <B>HTTPD 3.0</B>
+is NOT compatible with the latest version of the library, the right
+version to use is <A
+HREF="../../Dist/src/WWWLibrary_2.17.tar.Z">Library 2.17</A>.<P>
 
 The World-Wide Web Library of Common Code is a general code base that
-can be used to build clients and servers. It contains code for
-accessing HTTP, FTP, Gopher, News, WAIS, Telnet servers, and the local
-file system. Furthermore it provides modules for parsing, managing and
+can be used to build clients, servers and many other Web
+applications. It contains reference code for accessing HTTP, FTP,
+Gopher, News, WAIS, Telnet servers, and the local file
+system. Furthermore it provides modules for parsing, managing and
 presenting hypertext objects to the user and a wide spectra of generic
 programming utilities. The Library is the basis for many <A
 HREF="../">World-Wide Web</A> applications and all the W3C software is
@@ -55,10 +56,10 @@ and a large group of contributors.
 
 <DT>Plans
 
-<DD>Version 3.0 is available now! It contains an initial port to <A
-HREF="User/Platform/Windows.html">Windows</A> and <A
-HREF="User/Platform/WindowsNT.html">Windows NT</A> <IMG ALT="NEW"
-SRC="../Icons/WWW/new_red.gif">
+<DD>Version 3.1 will be released for Consortium members Mid June, but
+is currently available for testing as a prerelease now! It contains
+support for interruptible PUT and POST for HTTP and a solid port to <A
+HREF="User/Platform/WindowsNT.html">Windows NT</A>
 
 <DT>Platforms
 
@@ -69,25 +70,14 @@ version</A>.
 
 <DT>Getting the Source Code
 
-<DD>Currently the Library is available in two versions:
+<DD>The latest source code is available as a <A
+HREF="../../Dist/src/WWWLibrary.tar.Z">compressed tar file</A> or a <A
+HREF="../../Dist/src/WWWLibrary.zip">zip file</A> together with <A
+HREF="../../Dist/src/old">old versions</A>, and <A
+HREF="../../Dist/src/diffs">diffs</A>. All this and many other things
+you can find in our <A HREF="../../Dist/src">source achive</A>.<P>
 
-<UL>
-
-<LI>The singlethreaded version 2.17 available as <A
-HREF="/pub/src/WWWLibrary_2.17.tar.Z">WWWLibrary_2.17.tar.Z</A> is
-still available for the HTTPD
-
-<LI>A multithreaded version 3.0 is  available as <A
-HREF="/pub/src/WWWLibrary_3.0.tar.Z">WWWLibrary_3.0.tar.Z</A>. Again, please
-note that this version is <B>NOT</B> compatible with the <A
-HREF="../Daemon/Status.html">HTTPD 3.0</A>
-
-</UL>
-<P>
-
-Both source packets can be found in the <A HREF="/pub/src"
-NAME="z66">Source Archive</A>. A packet contains the following
-components:
+A packet contains the following components:
 
 <UL>
 <LI>The code definitions (*.c)
@@ -95,16 +85,24 @@ components:
 <LI>The documentation (*.html)
 <LI>A Makefile for building the library
 </UL>
-
+<P>
 You can see how to unpack and compile the software in the <A
 HREF="../README.html">README</A> file, and you can find more
 information on the arthitecture in the <A HREF="User/Guide/">
-Internals and Programmer's Guide</A>.
+Internals and Programmer's Guide</A> and how to use it in the <A
+HREF="User/Using/">User's Guide</A>.
 
 <DT>Copyright
 
-<DD>Version 3.0 of the Library is put under the <A
-HREF="../../COPYRIGHT.html">CERN WWW Copyright Statement</A>
+<DD>Version 3.1 of the Library is put under the <A
+HREF="../COPYRIGHT.html">MIT Copyright Statement</A>
+
+<DT>Patches, Bug fixes, etc..
+
+<DD>When you have modifications and want them to go into our code base
+then please fill out the form for <A
+HREF="../PATCHES.html">Corrections, Modifications, and Patches</A> and
+send it to us. Otherwise we can not use the patch!
 
 </DL>
 

@@ -23,7 +23,7 @@ HREF="../../../Daemon/Status.html">CERN HTTP Server</A>, the <A
 HREF="../../Status.html">Library of Common Code</A> and the <A
 HREF="../../../LineMode/Status.html">Line Mode Browser</A>. Any
 comments and suggestions are welcome at
-<EM>libwww@info.cern.ch</EM>. <P>
+<EM>libwww@w3.org</EM>. <P>
 
 <H2>Optimizations</H2>
 
@@ -61,7 +61,7 @@ This will also help ftp, gopher and any other one-shot protocols.
 <H2>Problem with Clients going down</H2>
 
 The following hints are from Arthur Secret,
-<EM>&lt;webmaster@info.cern.ch&gt;</EM> <P>
+<EM>&lt;webmaster@w3.org&gt;</EM> <P>
 
 When a client (often Mac or a PC) opens a connection with the daemon,
 but dies in the middle of the response, the connection hangs up. If
@@ -72,7 +72,7 @@ your http daemon is running stand-alone, you can stop the loop:
 <LI> edit the file /usr/local/bin/httpd_clean:<PRE>
 #! /bin/csh
 #
-# author: Arthur Secret (webmaster@info.cern.ch)
+# author: Arthur Secret (webmaster@w3.org)
 #
 set boum4 = `ps -ef | grep 'httpd ' | grep nobody | awk '{print $2}'`
 echo '#! /bin/csh' > /tmp/httpd_clean.tmp
@@ -113,7 +113,7 @@ other daemons as well. <P>
 <HR>
 
 <ADDRESS><A HREF="../../../People.html#Frystyk">Henrik Frystyk</A>,
-libwww@info.cern.ch, November 1994</ADDRESS>
+libwww@w3.org, November 1994</ADDRESS>
 
 
 

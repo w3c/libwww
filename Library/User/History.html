@@ -3,18 +3,87 @@
 <TITLE>Change History for W3 Common Code Library</TITLE>
 <NEXTID N="z500">
 </HEAD>
-
 <BODY>
 
 <A HREF="../../../"><IMG ALT="WWW" SRC="../../../Icons/WWW/WWW48x.gif"></A>
 <A HREF="../../Status.html"><IMG ALT="Lib" SRC="../../../Icons/WWW/Lib48x.gif"></A>
 
-<H1>Change History</H1>
+<H1>Change History of libwww</H1>
 
 This is a list of changes to the <A HREF="../../Status.html">Library
 of Common Code</A> in reverse chronological order.
 
-<H2>CERN Library 3.0, Mar 21 1995</H2>
+<H2>Library 3.1 Prerelease 1, May 20 1995</H2>
+
+A lot of the work put into this release has been to update the API of
+the Library. This is mainly described in the new <A
+HREF="../Using/">User Guide</A>, so please do read this and remember
+that comments are welcome! <P>
+
+<H3>New Features and Interfaces</H3>
+
+<UL>
+<LI>Windows NT Support (and possibly Windows 3.1 with Win32S) thanks
+to Charlie Brooks, <cbrooks@osf.org>
+
+<LI>A lot easier handling of headers in the HTTP module including
+support for extra headers
+
+<LI>Improved <A HREF="../../Implementation/HTMIME.html">HTTP/MIME
+parser</A> which recognizes 99% of the HTTP headers The rest will be
+ready in the next release! This includes support for "charset" and
+"level" parameter
+
+<LI>Support for PUT and POST. This is not yet fully implemented but it
+is possible to experiment with it
+
+<LI>Big enhancement of the anchor module with support for all HTTP/1.0
+headers, garbage collection etc.
+
+<LI>The Cache manager is made more object oriented with a broader set
+of methods. The garbage collector is not the best
+
+<LI>HTBind module created for better bindings to file system with new
+hash function for improved speed and more functionality than before
+
+<LI>Created HTDateTimeStr() and HTMessageID() in <A
+HREF="../../Implementation/HTString.html">HTString</A>
+
+<LI>Separated HTStructured into its own stream definition module (<A
+HREF="../../Implementation/HTStruct.html">HTStruct.h</A>)
+
+<LI>Introduced STREAM_TRACE and BIND_TRACE as new debug flag
+
+<LI>Original reason messages are now passed back as a parameter by the
+error handler when talking to a remote HTTP server
+
+<LI>Introduction of error_format in the request structure. This can be
+used to get debug information out of the Library
+
+<LI>Better handling of media types in FTP and Gopher including
+recognition of UU encoded files
+</UL>
+
+<H3>Bug Fixes</H3>
+
+<UL>
+<LI>Eventloop responds now faster on events as it more often does a select
+
+<LI>HTTP version strings are now string and not floats
+
+<LI>Many platform dependent macros introduced and a lot of cleanup
+</UL>
+
+<HR>
+
+<IMG SRC="../../../Icons/32x32/caution.gif" ALT="NOTE"> CERN
+terminated its direct engagement in the World-Wide Web with the
+release of Library version 3.0. The code is now developed and
+maintained at W3C.
+
+<HR>
+
+<H2>Library 3.0, Mar 21 1995</H2>
 
 Many of the modifications and new features are mentioned under the
 pre-releases.
@@ -31,7 +100,7 @@ as WinSock doesn't define them using BSD notation
 
 </UL>
 
-<H2>CERN Library 3.0 Prerelease 3, Mar 10 1995</H2>
+<H2>Library 3.0 Prerelease 3, Mar 10 1995</H2>
 
 <H3>New or Changed Features</H3>
 
@@ -217,7 +286,7 @@ dumps in server
 
 <LI>The host-cache is now extended so that it tries <EM>all</EM>
 IP-addresses before it fails the request. It always starts with the
-fastest IP-address.  Different penalty is added to the connect times
+fastest IP-address.Different penalty is added to the connect times
 dependent of the errno returned from <CODE>connect()</CODE>.
 
 <LI>In addition to HTSimplify which canonicalizes the URL path, a new
@@ -392,11 +461,11 @@ for the HTTP client. The module is now reorganized and made more modular.
      number of redirections is set by the variable HTMaxRedirections.
 <DT> Referer Field in HTTP request
 <DD> Clients are provided the possibility of
-     sending a <A HREF="http://www.w3.org/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html#z14">Referer Field</A> in a <A HREF="http://www.w3.org/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html">HTTP Request</A>. This is done by
+     sending a <A HREF="../../Protocols/HTTP/HTRQ_Headers.html#z14">Referer Field</A> in a <A HREF="../../Protocols/HTTP/HTRQ_Headers.html">HTTP Request</A>. This is done by
      filling out the HTRequest-&gt;parentAnchor field.
 <DT> From field in HTTP Request
 <DD> Clients can now send the full email address of the current user in the
-     <A HREF="http://www.w3.org/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html#from">HTTP From field</A>. The feature is turned off by default as it might
+     <A HREF="../../Protocols/HTTP/HTRQ_Headers.html#from">HTTP From field</A>. The feature is turned off by default as it might
      get a bit tricky through a Proxy.
 <DT> 204 Response
 <DD> Support of return code `204 No Response'
@@ -419,7 +488,7 @@ current state.
 		<LI> if that fails, try PORT
 	</OL>	
 <LI> The URL is now parsed according to the (latest)
-     <A HREF="http://www.w3.org/hypertext/WWW/Addressing/URL/4_1_FTP.html">
+     <A HREF="../../Addressing/URL/4_1_FTP.html">
      specifications</A>:
 <PRE>
 	url	: f t p: / / login / path [  ftptype ]
@@ -1137,6 +1206,6 @@ space and to force good modularity
 
 <P>
 <HR> 
-<ADDRESS>libwww@w3.org, April 1995</ADDRESS>
+<ADDRESS>libwww@w3.org, May 1995</ADDRESS>
 </BODY>
 </HTML>
