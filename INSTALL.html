@@ -1,433 +1,438 @@
-<HTML>
-<HEAD>
-  <TITLE>Libwww - the W3C Sample Code Library Installation</TITLE>
-</HEAD>
-<BODY BGCOLOR="#ffffff" TEXT="#000000">
-<P>
-<A HREF="./"><IMG BORDER="0" SRC="Icons/WWW/w3c_home" ALT="W3C" WIDTH="72"
-    HEIGHT="48" BORDER="0"></A>
-<A HREF="Library/"><IMG BORDER="0" SRC="Icons/WWW/Lib48x" ALT="libwww" WIDTH="48"
-    HEIGHT="48" BORDER="0"></A>
-<IMG BORDER="0" SRC="Icons/WWW/install48x" ALT="INSTALL">
-<H1>
-  Libwww - the W3C Sample Code Library Installation
-</H1>
-<PRE>
- 	(c) COPYRIGHT MIT 1995.
- 	Please first read the full copyright statement in the file COPYRIGH.
- 
-</PRE>
-<P>
-First, if you got libwww <A HREF="Library/cvs.html">directly from CVS</A>
-then you <A HREF="Library/cvs.html#Boot">must bootstrap the code</A> before
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+   "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+<title>Libwww - the W3C Sample Code Library Installation</title>
+</head>
+<body bgcolor="#ffffff" text="#000000">
+<p>
+<a href="./"><img border="0" src="Icons/WWW/w3c_home" alt="W3C" width="72"
+height="48"></a> <a href="Library/"><img border="0" src="Icons/WWW/Lib48x"
+alt="libwww" width="48" height="48"></a> <img border="0"
+src="Icons/WWW/install48x" alt="INSTALL"></p>
+
+<h1>Libwww - the W3C Sample Code Library Installation</h1>
+<pre>         (c) COPYRIGHT MIT 1995.
+         Please first read the full copyright statement in the file COPYRIGH.
+ </pre>
+<p>
+First, if you got libwww <a href="Library/cvs.html">directly from CVS</a> then
+you <a href="Library/cvs.html#Boot">must bootstrap the code</a> before
 compiling. If you have already done that or if you started from a distribution
-file then you can continue installation here:
-<UL>
-  <LI>
-    <A HREF="#Windows">Building on Windows using MSVC</A>
-  <LI>
-    <A HREF="#Unix">Building on Unix or in the Cygwin Environment for Windows
-    NT, 95, and 98</A>
-  <LI>
-    After you have installed libwww, <A HREF="Library/libwww-config.html">checkout
-    how you can compile and link libwww apps</A>
-</UL>
-<P>
-  <HR>
-<H2>
-  <A NAME="Windows">Building on Windows using MSVC</A>
-</H2>
-<P>
-We are trying to phase out Windows support based on MSVC and instead move
-to the <A HREF="http://sourceware.cygnus.com/cygwin/">Cygwin environment</A>
-which is a Win32 port of the popular GNU development tools for Windows NT,
-95, and 98 which allows us to use <A HREF="#Unix">autoconf, automake, and
-libtool</A>.
-<P>
-Vladimir Kozlov provides <A HREF="http://www.idm.ru/libwww.htm">fresh binaries
-for wintel</A> and you can also get my
-<A HREF="Library/Distribution/libwww-win32.zip">MSVC makefiles to play with</A>
-(<A HREF="Library/Distribution/libwww-win32.zip.sig">PGP signature</A>) which
-are in sync with the <A HREF="Library/cvs.html">latest CVS sourcetree</A>.
-Just unzip them on top (directly in the libwww folder) of your checked out
-CVS tree, open the <TT>libwww/windows/world.dsw</TT> workspace and do a batch
-build of the whole shebang after you <A HREF="Library/cvs.html#Boot">have
-bootstrapped the code</A>.
-<P>
-You can configure libwww in <A HREF="Library/src/windows/config.h">windows
-config.h</A> and if you are interested in the details of how we build libwww
-on Windows then please read the documentation on
-<A HREF="Library/User/Platform/WinDLL.html">how to install on Windows</A>.
-Libwww can work with <A HREF="Library/External/">several external software
-packages</A> of which <A HREF="Library/External/">some you get by default</A>.
-Here is the current list:
-<H3>
-  Zlib Support
-</H3>
-<P>
-If <CODE>HT_ZLIB</CODE> is defined in the
-<A HREF="Library/src/windows/config.h">windows config.h file</A> then libwww
-can use the <A HREF="http://www.cdrom.com/pub/infozip/zlib/">zlib library</A>
-for handling the <B>deflate</B> content-encoding. This may cause better
+file then you can continue installation here:</p>
+<ul>
+<li>
+<a href="#Windows">Building on Windows using MSVC</a>
+</li>
+<li>
+<a href="#Unix">Building on Unix or in the Cygwin Environment for Windows NT,
+95, and 98</a>
+</li>
+<li>
+After you have installed libwww, <a href="Library/libwww-config.html">checkout
+how you can compile and link libwww apps</a>
+</li>
+</ul>
+<p>
+</p>
+<hr>
+
+
+<h2><a name="Windows">Building on Windows using MSVC</a></h2>
+<p>
+Note that you can also use the <a
+href="http://sourceware.cygnus.com/cygwin/">Cygwin environment</a> which is a
+Win32 port of the popular GNU development tools for Windows NT, 95, and 98
+which allows us to use <a href="#Unix">autoconf, automake, and
+libtool</a>.</p>
+<p>
+Vladimir Kozlov provides <a href="http://www.idm.ru/libwww.htm">fresh binaries
+for wintel</a> and you can also get my <a
+href="Library/Distribution/libwww-win32.zip">MSVC makefiles to play with</a>
+(<a href="Library/Distribution/libwww-win32.zip.sig">PGP signature</a>). These
+makefiles are also part of the <a href="Library/Distribution.html#Tar">libwww
+distribution package</a> in which case you don't have to download them
+again.</p>
+<p>
+If using the CVS tree, then you can get a version which is in sync with the <a
+href="Library/cvs.html">latest CVS sourcetree</a>. Unzip them on top (directly
+in the libwww folder) of your checked out CVS tree and repeat the <a
+href="Library/cvs.html#Boot">bootstrap mechanism</a>.</p>
+<p>
+Regardless of whether you are using the <a href="cvs.html">CVS tree</a>
+directly or got the <a href="Distribution.html#tar">distribution package</a>,
+you can now compile by opening the <tt>libwww/windows/world.dsw</tt> workspace
+and do a batch build of the whole thing.</p>
+<p>
+You can configure libwww in <a href="Library/src/windows/config.h">windows
+config.h</a> and if you are interested in the details of how we build libwww
+on Windows then please read the documentation on <a
+href="Library/User/Platform/WinDLL.html">how to install on Windows</a>. Libwww
+can work with <a href="Library/External/">several external software
+packages</a> of which <a href="Library/External/">some you get by default</a>.
+Here is the current list:</p>
+
+<h3>Zlib Support</h3>
+<p>
+If <code>HT_ZLIB</code> is defined in the <a
+href="Library/src/windows/config.h">windows config.h file</a> then libwww can
+use the <a href="http://www.cdrom.com/pub/infozip/zlib/">zlib library</a> for
+handling the <b>deflate</b> content-encoding. This may cause better
 performance as we then can inflate a compressed document on the fly. A version
-of the precompiled <A HREF="http://www.winimage.com/zLibDll/">zlib DLL for
-Win32</A> is already included in the w3c-libwww distribution file.
-<OL>
-  <LI>
-    Define <CODE>HT_ZLIB</CODE> in <A HREF="Library/src/windows/config.h">windows
-    config.h file</A>
-  <LI>
-    Copy <CODE>zlib.dll</CODE> into a location where Windows can find it, for
-    example <CODE>.\Bin\Debug\</CODE>
-</OL>
-<H3>
-  Regular Expressions
-</H3>
-<P>
-If <CODE>HT_POSIX_REGEX</CODE> is defined in the
-<A HREF="Library/src/windows/config.h">windows config.h file</A> then libwww
-can use <A HREF="http://www.delorie.com/gnu/docs/rx/">posix compliant regular
-expressions</A>, for example to handle URI matching. This is for example
-<A HREF="Robot/User/CommandLine.html#Constraints">used in the webbot</A>
-which can handle regular expressions when matching which URIs to check. The
-library has been tested with the
-<A HREF="http://people.delphi.com/gjc/gnu_regex.html">GNU regular expression
-library for Win32</A>.
-<OL>
-  <LI>
-    Define <CODE>HT_POSIX_REGEX</CODE> in
-    <A HREF="Library/src/windows/config.h">windows config.h file</A>
-  <LI>
-    Copy <CODE>regex.h</CODE> into <CODE>.\Library\External</CODE> and name it
-    <CODE>rxposix.h</CODE>
-  <LI>
-    Add <CODE>gnu_regex.lib</CODE> to the robot project (or whatever application
-    you are building)
-  <LI>
-    Copy <CODE>gnu_regex.dll</CODE> into a location where Windows can find it,
-    for example <CODE>.\Bin\Debug\</CODE>
-</OL>
-<H3>
-  SQL Access
-</H3>
-<P>
-&nbsp;<CODE>HT_MYSQL</CODE> is defined in the
-<A HREF="Library/src/windows/config.h">windows config.h file</A> then libwww
-can use a <A HREF="http://www.tcx.se/">MySQL database</A> for handling
-<A HREF="Robot/User/CommandLine.html#Logging">logging</A> instead of plain
-text files. This has a <A HREF="Robot/www-sql/">huge set of advantages</A>.
-<H3>
-  SOCKS Support
-</H3>
-<P>
-If either <TT>SOCKS</TT> and either <TT>SOCKS4</TT> or <TT>SOCKS5</TT> is
-defined in the <A HREF="Library/src/windows/config.h">windows config.h file</A>
-then libwww can use <A HREF="http://www.socks.nec.com/">SOCKS</A> to go through
-firewalls. The SOCKS handling code in libwww can be found in
-<A HREF="Library/src/wwwsys.html">wwwsys.h</A>.
-<H2>
-  <A NAME="Unix">Building on Unix and in the Cygwin Environment</A>
-</H2>
-<P>
-You probably need the <A HREF="http://www.delorie.com/gnu/docs/make/">GNU
-version of make</A> in order to build libwww. The reason is that some of
-the make files contain some syntax that most other makefiles don't understand.
-These installation instructions are based on the suggested instructions provided
-with <A HREF="http://www.delorie.com/gnu/docs/autoconf/">GNU Autoconf</A>.
-<P>
-The <A HREF="http://sourceware.cygnus.com/cygwin/">Cygwin environment</A>
-is a Win32 port of the popular GNU development tools for Windows NT, 95,
-and 98. They function through the use of the Cygwin library which provides
-a UNIX-like API on top of the Win32 API.
-<P>
-The <I>configure</I> shell script attempts to guess correct values for various
-system-dependent variables used during compilation. It uses those values
-to create a `Makefile' and a `wwwconf.h' file containing system-dependent
-definitions. Finally, it creates a shell script `config.status' that you
-can run in the future to recreate the current configuration, a file
-`config.cache' that saves the results of its tests to speed up reconfiguring,
-and a file `config.log' containing compiler output (useful mainly for debugging
-<I>configure</I>).
-<P>
-The simplest way to compile this package on a Unix platform is:
-<OL>
-  <LI>
-    `cd' to the directory containing the package's source code and type
-    `<CODE>./configure</CODE>' to configure the package for your system. If you're
-    using `csh' on an old version of System V, you might need to type `<CODE>sh
-    ./configure</CODE>' instead to prevent `csh' from trying to execute
-    <I>configure</I> itself. Running <I>configure</I> takes awhile. While running,
-    it prints some messages telling which features for which it is checking.
-  <LI>
-    Type `make' to compile the package.
-  <LI>
-    Type `make install' to install the library.
-  <LI>
-    You can remove the library and object files from the source directory by
-    typing `make clean.' To also remove the files that <I>configure</I> created
-    (so you can compile the package for a different kind of computer), type `make
-    distclean.'
-</OL>
-<H3>
-  Compilers and Options
-</H3>
-<P>
+of the precompiled <a href="http://www.winimage.com/zLibDll/">zlib DLL for
+Win32</a> is already included in the w3c-libwww distribution file.</p>
+<ol>
+<li>
+Define <code>HT_ZLIB</code> in <a href="Library/src/windows/config.h">windows
+config.h file</a>
+</li>
+<li>
+Copy <code>zlib.dll</code> into a location where Windows can find it, for
+example <code>.\Bin\Debug\</code>
+</li>
+</ol>
+
+<h3>Regular Expressions</h3>
+<p>
+If <code>HT_POSIX_REGEX</code> is defined in the <a
+href="Library/src/windows/config.h">windows config.h file</a> then libwww can
+use <a href="http://www.delorie.com/gnu/docs/rx/">posix compliant regular
+expressions</a>, for example to handle URI matching. This is for example <a
+href="Robot/User/CommandLine.html#Constraints">used in the webbot</a> which
+can handle regular expressions when matching which URIs to check. The library
+has been tested with the <a
+href="http://people.delphi.com/gjc/gnu_regex.html">GNU regular expression
+library for Win32</a>.</p>
+<ol>
+<li>
+Define <code>HT_POSIX_REGEX</code> in <a
+href="Library/src/windows/config.h">windows config.h file</a>
+</li>
+<li>
+Copy <code>regex.h</code> into <code>.\Library\External</code> and name it
+<code>rxposix.h</code>
+</li>
+<li>
+Add <code>gnu_regex.lib</code> to the robot project (or whatever application
+you are building)
+</li>
+<li>
+Copy <code>gnu_regex.dll</code> into a location where Windows can find it, for
+example <code>.\Bin\Debug\</code>
+</li>
+</ol>
+
+<h3>SQL Access</h3>
+<p>
+&nbsp;<code>HT_MYSQL</code> is defined in the <a
+href="Library/src/windows/config.h">windows config.h file</a> then libwww can
+use a <a href="http://www.tcx.se/">MySQL database</a> for handling <a
+href="Robot/User/CommandLine.html#Logging">logging</a> instead of plain text
+files. This has a <a href="Robot/www-sql/">huge set of advantages</a>.</p>
+
+<h3>SOCKS Support</h3>
+<p>
+If either <tt>SOCKS</tt> and either <tt>SOCKS4</tt> or <tt>SOCKS5</tt> is
+defined in the <a href="Library/src/windows/config.h">windows config.h
+file</a> then libwww can use <a href="http://www.socks.nec.com/">SOCKS</a> to
+go through firewalls. The SOCKS handling code in libwww can be found in <a
+href="Library/src/wwwsys.html">wwwsys.h</a>.</p>
+
+<h2><a name="Unix">Building on Unix and in the Cygwin Environment</a></h2>
+<p>
+You probably need the <a href="http://www.delorie.com/gnu/docs/make/">GNU
+version of make</a> in order to build libwww. The reason is that some of the
+make files contain some syntax that most other makefiles don't understand.
+These installation instructions are based on the suggested instructions
+provided with <a href="http://www.delorie.com/gnu/docs/autoconf/">GNU
+Autoconf</a>.</p>
+<p>
+The <a href="http://sourceware.cygnus.com/cygwin/">Cygwin environment</a> is a
+Win32 port of the popular GNU development tools for Windows NT, 95, and 98.
+They function through the use of the Cygwin library which provides a UNIX-like
+API on top of the Win32 API.</p>
+<p>
+The <i>configure</i> shell script attempts to guess correct values for various
+system-dependent variables used during compilation. It uses those values to
+create a `Makefile' and a `wwwconf.h' file containing system-dependent
+definitions. Finally, it creates a shell script `config.status' that you can
+run in the future to recreate the current configuration, a file `config.cache'
+that saves the results of its tests to speed up reconfiguring, and a file
+`config.log' containing compiler output (useful mainly for debugging
+<i>configure</i>).</p>
+<p>
+The simplest way to compile this package on a Unix platform is:</p>
+<ol>
+<li>
+`cd' to the directory containing the package's source code and type
+`<code>./configure</code>' to configure the package for your system. If you're
+using `csh' on an old version of System V, you might need to type `<code>sh
+./configure</code>' instead to prevent `csh' from trying to execute
+<i>configure</i> itself. Running <i>configure</i> takes awhile. While running,
+it prints some messages telling which features for which it is checking.
+</li>
+<li>
+Type `make' to compile the package.
+</li>
+<li>
+Type `make install' to install the library.
+</li>
+<li>
+You can remove the library and object files from the source directory by
+typing `make clean.' To also remove the files that <i>configure</i> created
+(so you can compile the package for a different kind of computer), type `make
+distclean.'
+</li>
+</ol>
+
+<h3>Compilers and Options</h3>
+<p>
 Some systems require unusual options for compilation or linking that the
-<I>configure</I> script does not know about. You can give <I>configure</I>
+<i>configure</i> script does not know about. You can give <i>configure</i>
 initial values for variables by setting them in the environment. Using a
-Bourne-compatible shell, you can do that on the command line like this:
-<PRE>      CC=c89 CFLAGS=-O2 LIBS=-lposix ./configure
-</PRE>
-<P>
-Or on systems that have the `env' program, you can do it like this:
-<PRE>      env CPPFLAGS=-I/usr/local/include LDFLAGS=-s ./configure
-</PRE>
-<H3>
-  Using a Different Build Directory
-</H3>
-<P>
+Bourne-compatible shell, you can do that on the command line like this:</p>
+<pre>      CC=c89 CFLAGS=-O2 LIBS=-lposix ./configure</pre>
+<p>
+Or on systems that have the `env' program, you can do it like this:</p>
+<pre>      env CPPFLAGS=-I/usr/local/include LDFLAGS=-s ./configure</pre>
+
+<h3>Using a Different Build Directory</h3>
+<p>
 You can compile the package in a directory different from the one containing
-the source code. Doing so allows you to compile it on more than one kind
-of computer at the same time. To do this, you must use a version of `make'
-that supports the `VPATH' variable, such as GNU `make.' `cd' to the directory
-where you want to object files and library to go and run the <I>configure</I>
-script (i.e., go `../src/configure'). <I>configure</I> automatically checks
-for source code in the directory that <I>configure</I> is in and in `..'
-as well.
-<H3>
-  Installation Names
-</H3>
-<P>
-By default, `<CODE>make install</CODE>' will install the library in
-`<CODE>/usr/local/lib</CODE>'. You can specify an installation prefix other
-than `/usr/local' by giving <I>configure</I> the option
-`<CODE>--prefix=PATH</CODE>'. You can cause the library to be installed with
-an extra prefix or suffix on its name by giving <I>configure</I> the options
-`<CODE>--program-prefix=PREFIX</CODE>' or
-`<CODE>--program-suffix=SUFFIX</CODE>'.
-<H3>
-  <A NAME="features">Extra Features and Packages</A>
-</H3>
-<P>
-There are a set of options you can give to <I>configure</I> in addition to
-those understood by all <A HREF="http://www.delorie.com/gnu/docs/autoconf/">GNU
-Autoconf <I>configure</I></A> scripts. This is how you can enable, disable,
-include, or exclude them:
-<DL>
-  <DT>
-    <CODE>--disable-FEATURE</CODE>
-  <DD>
-    do not include FEATURE (same as <CODE>--enable-FEATURE=no</CODE>)
-  <DT>
-    <CODE>--enable-FEATURE[=ARG]</CODE>
-  <DD>
-    include FEATURE [ARG=yes]
-  <DT>
-    <CODE>--with-PACKAGE[=ARG]</CODE>
-  <DD>
-    use PACKAGE [ARG=yes]
-  <DT>
-    <CODE>--without-PACKAGE</CODE>
-  <DD>
-    do not use PACKAGE (same as <CODE>--with-PACKAGE=no</CODE>)
-</DL>
-<H4>
-  Options for Handling Shared/Static Linking
-</H4>
-<P>
-<IMG SRC="Icons/32x32/caution" ALT="NOTE" BORDER="0" WIDTH="32" HEIGHT="32"><EM>
-Solaris 2.5.x has serious problems handling shared libraries (the linker
-dumps core) and therefore you <STRONG>MUST</STRONG> use the
-<CODE>--disable-shared</CODE> when compiling on this platform.</EM>
-<P>
-Libwww uses <A HREF="http://www.gnu.org/software/libtool/libtool.html">GNU
-Libtool</A> to build shared libraries on a variety of systems. While this
-is very nice for making usable binaries, it can be a pain when trying to
-debug a program. For that reason, compilation of shared libraries can be
-turned off by specifying the <CODE>--disable-shared</CODE> option to
-<CODE>configure</CODE>.
-<DL>
-  <DT>
-    <CODE>--with-gnu-ld</CODE>
-  <DD>
-    assume the C compiler uses GNU ld [default=no]
-  <DT>
-    <CODE>--enable-shared</CODE>
-  <DD>
-    Build shared libraries [default=yes]
-  <DT>
-    <CODE>--enable-static</CODE>
-  <DD>
-    Build static libraries [default=yes]
-</DL>
-<H4>
-  Highly Recommended Packages!
-</H4>
-<P>
-These provide very useful added functionality in the
-<A HREF="Library/">libwww</A> and the
-<A HREF="Library/User/Applications.html">libwww applications</A>
-<DL>
-  <DT>
-    <CODE>--with-mysql[=PATH]</CODE>
-  <DD>
-    Compile with support for <A HREF="http://www.tcx.se/">MySQL</A> database
-    access used for <A HREF="Robot/User/CommandLine.html#Logging">Webbot
-    logging</A> etc.
-  <DT>
-    <CODE>--with-zlib[=PATH]</CODE>
-  <DD>
-    Compile with <A HREF="http://www.cdrom.com/pub/infozip/zlib/">zlib
-    compress/decompress</A> support used for compressing HTML etc.
-  <DT>
-    <CODE>--with-regex[=PATH]</CODE>
-  <DD>
-    Compile with <A HREF="http://www.delorie.com/gnu/docs/rx/">POSIX regex
-    library</A> support used for regular expession matching of URIs
-</DL>
-<H4>
-  Other Packages
-</H4>
-<P>
-These are less used packages (or less tested packages, I should say)
-<DL>
-  <DT>
-    <CODE>--with-socks</CODE>
-  <DD>
-    Compile with SOCKS firewall traversal support.
-  <DT>
-    <CODE>--with-socks5[=PATH]</CODE>
-  <DD>
-    Compile with SOCKS5 firewall traversal support.
-  <DT>
-    <CODE>--with-socks4[=PATH]</CODE>
-  <DD>
-    Compile with SOCKS4 firewall traversal support.
-  <DT>
-    <CODE>--with-wais[=PATH]</CODE>
-  <DD>
-    Compile with support for <A HREF="Library/User/WAIS.html">direct WAIS
-    access</A>.
-</DL>
-<H4>
-  Less Used Libwww Configuration Options
-</H4>
-<P>
-Normally, you don't have to change the default settings here
-<DL>
-  <DT>
-    <CODE>--disable-nagle</CODE>
-  <DD>
-    Turning off Nagle's algorithm. Nagle is off by default
-  <DT>
-    <CODE>--disable-pipelining</CODE>
-  <DD>
-    Turning off HTTP/1.1 Pipelining. Pipelining is on by default
-  <DT>
-    <CODE>--enable-reentrant</CODE>
-  <DD>
-    Define <CODE>_REENTRANT</CODE> to enable reentrant system calls. Off by default
-  <DT>
-    <CODE>--enable-signals</CODE>
-  <DD>
-    Use internal libwww signal handler. Off by default
-  <DT>
-    <CODE>--enable-posix</CODE>
-  <DD>
-    Define _POSIX_SOURCE. Off by default
-  <DT>
-    <CODE>--enable-cyrillic</CODE>
-  <DD>
-    Include support for Cyrillic in <A HREF="LineMode/">Line Mode browser</A>
-</DL>
-<H4>
-  Location of X Files
-</H4>
-<P>
-As libwww doesn't use X, this is not really used.
-<DL>
-  <DT>
-    <CODE>--x-includes=DIR</CODE>
-  <DD>
-    X include files are in DIR
-  <DT>
-    <CODE>--x-libraries=DIR</CODE>
-  <DD>
-    X library files are in DIR
-  <DT>
-    <CODE>--with-x</CODE>
-  <DD>
-    Use the X Window System
-</DL>
-<H3>
-  Specifying the System Type
-</H3>
-<P>
-There may be some features <I>configure</I> can not figure out automatically,
+the source code. Doing so allows you to compile it on more than one kind of
+computer at the same time. To do this, you must use a version of `make' that
+supports the `VPATH' variable, such as GNU `make.' `cd' to the directory where
+you want to object files and library to go and run the <i>configure</i> script
+(i.e., go `../src/configure'). <i>configure</i> automatically checks for
+source code in the directory that <i>configure</i> is in and in `..' as
+well.</p>
+
+<h3>Installation Names</h3>
+<p>
+By default, `<code>make install</code>' will install the library in
+`<code>/usr/local/lib</code>'. You can specify an installation prefix other
+than `/usr/local' by giving <i>configure</i> the option
+`<code>--prefix=PATH</code>'. You can cause the library to be installed with
+an extra prefix or suffix on its name by giving <i>configure</i> the options
+`<code>--program-prefix=PREFIX</code>' or
+`<code>--program-suffix=SUFFIX</code>'.</p>
+
+<h3><a name="features">Extra Features and Packages</a></h3>
+<p>
+There are a set of options you can give to <i>configure</i> in addition to
+those understood by all <a
+href="http://www.delorie.com/gnu/docs/autoconf/">GNU Autoconf
+<i>configure</i></a> scripts. This is how you can enable, disable, include, or
+exclude them:</p>
+<dl>
+<dt><code>--disable-FEATURE</code></dt>
+<dd>
+do not include FEATURE (same as <code>--enable-FEATURE=no</code>)
+</dd>
+<dt><code>--enable-FEATURE[=ARG]</code></dt>
+<dd>
+include FEATURE [ARG=yes]
+</dd>
+<dt><code>--with-PACKAGE[=ARG]</code></dt>
+<dd>
+use PACKAGE [ARG=yes]
+</dd>
+<dt><code>--without-PACKAGE</code></dt>
+<dd>
+do not use PACKAGE (same as <code>--with-PACKAGE=no</code>)
+</dd>
+</dl>
+
+<h4>Options for Handling Shared/Static Linking</h4>
+<p>
+<img src="Icons/32x32/caution" alt="NOTE" border="0" width="32"
+height="32"><em> Solaris 2.5.x has serious problems handling shared libraries
+(the linker dumps core) and therefore you <strong>MUST</strong> use the
+<code>--disable-shared</code> when compiling on this platform.</em></p>
+<p>
+Libwww uses <a href="http://www.gnu.org/software/libtool/libtool.html">GNU
+Libtool</a> to build shared libraries on a variety of systems. While this is
+very nice for making usable binaries, it can be a pain when trying to debug a
+program. For that reason, compilation of shared libraries can be turned off by
+specifying the <code>--disable-shared</code> option to
+<code>configure</code>.</p>
+<dl>
+<dt><code>--with-gnu-ld</code></dt>
+<dd>
+assume the C compiler uses GNU ld [default=no]
+</dd>
+<dt><code>--enable-shared</code></dt>
+<dd>
+Build shared libraries [default=yes]
+</dd>
+<dt><code>--enable-static</code></dt>
+<dd>
+Build static libraries [default=yes]
+</dd>
+</dl>
+
+<h4>Highly Recommended Packages!</h4>
+<p>
+These provide very useful added functionality in the <a
+href="Library/">libwww</a> and the <a
+href="Library/User/Applications.html">libwww applications</a></p>
+<dl>
+<dt><code>--with-mysql[=PATH]</code></dt>
+<dd>
+Compile with support for <a href="http://www.tcx.se/">MySQL</a> database
+access used for <a href="Robot/User/CommandLine.html#Logging">Webbot
+logging</a> etc.
+</dd>
+<dt><code>--with-zlib[=PATH]</code></dt>
+<dd>
+Compile with <a href="http://www.cdrom.com/pub/infozip/zlib/">zlib
+compress/decompress</a> support used for compressing HTML etc.
+</dd>
+<dt><code>--with-regex[=PATH]</code></dt>
+<dd>
+Compile with <a href="http://www.delorie.com/gnu/docs/rx/">POSIX regex
+library</a> support used for regular expession matching of URIs
+</dd>
+</dl>
+
+<h4>Other Packages</h4>
+<p>
+These are less used packages (or less tested packages, I should say)</p>
+<dl>
+<dt><code>--with-socks</code></dt>
+<dd>
+Compile with SOCKS firewall traversal support.
+</dd>
+<dt><code>--with-socks5[=PATH]</code></dt>
+<dd>
+Compile with SOCKS5 firewall traversal support.
+</dd>
+<dt><code>--with-socks4[=PATH]</code></dt>
+<dd>
+Compile with SOCKS4 firewall traversal support.
+</dd>
+<dt><code>--with-wais[=PATH]</code></dt>
+<dd>
+Compile with support for <a href="Library/User/WAIS.html">direct WAIS
+access</a>.
+</dd>
+</dl>
+
+<h4>Less Used Libwww Configuration Options</h4>
+<p>
+Normally, you don't have to change the default settings here</p>
+<dl>
+<dt><code>--disable-nagle</code></dt>
+<dd>
+Turning off Nagle's algorithm. Nagle is off by default
+</dd>
+<dt><code>--disable-pipelining</code></dt>
+<dd>
+Turning off HTTP/1.1 Pipelining. Pipelining is on by default
+</dd>
+<dt><code>--enable-reentrant</code></dt>
+<dd>
+Define <code>_REENTRANT</code> to enable reentrant system calls. Off by
+default
+</dd>
+<dt><code>--enable-signals</code></dt>
+<dd>
+Use internal libwww signal handler. Off by default
+</dd>
+<dt><code>--enable-posix</code></dt>
+<dd>
+Define _POSIX_SOURCE. Off by default
+</dd>
+<dt><code>--enable-cyrillic</code></dt>
+<dd>
+Include support for Cyrillic in <a href="LineMode/">Line Mode browser</a>
+</dd>
+</dl>
+
+<h4>Location of X Files</h4>
+<p>
+As libwww doesn't use X, this is not really used.</p>
+<dl>
+<dt><code>--x-includes=DIR</code></dt>
+<dd>
+X include files are in DIR
+</dd>
+<dt><code>--x-libraries=DIR</code></dt>
+<dd>
+X library files are in DIR
+</dd>
+<dt><code>--with-x</code></dt>
+<dd>
+Use the X Window System
+</dd>
+</dl>
+
+<h3>Specifying the System Type</h3>
+<p>
+There may be some features <i>configure</i> can not figure out automatically,
 but needs to determine by the type of host the package will run on. Usually
-<I>configure</I> can figure that out, but if it prints a message saying it
-can not guess the host type, give it the `--host=TYPE' option. TYPE can either
-be a short name for the system type, such as `sun4', or a canonical name
-with three fields:
-<PRE>
-      CPU-COMPANY-SYSTEM
-</PRE>
-<P>
-See the file `config.sub' for the possible values of each field. If `config.sub'
-isn't included in this package, then this package doesn't need to know the
-host type.
-<P>
-If you are building compiler tools for cross-compiling, you can also use
-the `--target=TYPE' option to select the type of system they will produce
-code for and the `--build=TYPE' option to select the type of system on which
-you are compiling the package.
-<H3>
-  Sharing Defaults
-</H3>
-<P>
-If you want to set default values for <I>configure</I> scripts to share,
-you can create a site shell script called `config.site' that gives default
-values for variables like `CC', `cache_file', and `prefix'. <I>configure</I>
-looks for `PREFIX/share/config.site' if it exists, then `PREFIX/etc/config.site'
-if it exists. Or, you can set the `CONFIG_SITE' environment variable to the
-location of the site script. A warning: not all <I>configure</I> scripts
-look for a site script.
-<H3>
-  Operation Controls
-</H3>
-<P>
-<I>configure</I> recognizes the following options to control how it operates.
-<DL>
-  <DT>
-    <CODE>--cache-file=FILE</CODE>
-  <DD>
-    Save the results of the tests in FILE instead of `config.cache'. Set FILE
-    to `/dev/null' to disable caching, for debugging <I>configure</I>.
-  <DT>
-    <CODE>--help</CODE>
-  <DD>
-    Print a summary of the options to <I>configure</I>, and exit.
-  <DT>
-    <CODE>--quiet</CODE>, <CODE>--silent</CODE>
-  <DD>
-    Do not print messages saying which checks are being made.
-  <DT>
-    <CODE>--srcdir=DIR</CODE>
-  <DD>
-    Look for the package's source code in directory DIR. Usually <I>configure</I>
-    can determine that directory automatically.
-  <DT>
-    <CODE>--version</CODE>
-  <DD>
-    Print the version of Autoconf used to generate the <I>configure</I> script,
-    and exit.
-</DL>
-<P>
-<I>configure</I> also accepts some other, not widely useful, options.
-<P>
-  <HR>
-<ADDRESS>
-  <A HREF="People/Frystyk/">Henrik Frystyk Nielsen</A>,<BR>
-  @(#) $Id$
-</ADDRESS>
-</BODY></HTML>
+<i>configure</i> can figure that out, but if it prints a message saying it can
+not guess the host type, give it the `--host=TYPE' option. TYPE can either be
+a short name for the system type, such as `sun4', or a canonical name with
+three fields:</p>
+<pre>      CPU-COMPANY-SYSTEM</pre>
+<p>
+See the file `config.sub' for the possible values of each field. If
+`config.sub' isn't included in this package, then this package doesn't need to
+know the host type.</p>
+<p>
+If you are building compiler tools for cross-compiling, you can also use the
+`--target=TYPE' option to select the type of system they will produce code for
+and the `--build=TYPE' option to select the type of system on which you are
+compiling the package.</p>
+
+<h3>Sharing Defaults</h3>
+<p>
+If you want to set default values for <i>configure</i> scripts to share, you
+can create a site shell script called `config.site' that gives default values
+for variables like `CC', `cache_file', and `prefix'. <i>configure</i> looks
+for `PREFIX/share/config.site' if it exists, then `PREFIX/etc/config.site' if
+it exists. Or, you can set the `CONFIG_SITE' environment variable to the
+location of the site script. A warning: not all <i>configure</i> scripts look
+for a site script.</p>
+
+<h3>Operation Controls</h3>
+<p>
+<i>configure</i> recognizes the following options to control how it
+operates.</p>
+<dl>
+<dt><code>--cache-file=FILE</code></dt>
+<dd>
+Save the results of the tests in FILE instead of `config.cache'. Set FILE to
+`/dev/null' to disable caching, for debugging <i>configure</i>.
+</dd>
+<dt><code>--help</code></dt>
+<dd>
+Print a summary of the options to <i>configure</i>, and exit.
+</dd>
+<dt><code>--quiet</code>, <code>--silent</code></dt>
+<dd>
+Do not print messages saying which checks are being made.
+</dd>
+<dt><code>--srcdir=DIR</code></dt>
+<dd>
+Look for the package's source code in directory DIR. Usually <i>configure</i>
+can determine that directory automatically.
+</dd>
+<dt><code>--version</code></dt>
+<dd>
+Print the version of Autoconf used to generate the <i>configure</i> script,
+and exit.
+</dd>
+</dl>
+<p>
+<i>configure</i> also accepts some other, not widely useful, options.</p>
+<p>
+</p>
+<hr>
+
+<address>
+<a href="People/Frystyk/">Henrik Frystyk Nielsen</a>,<br>
+@(#) $Id$ </address>
+</body>
+</html>
