@@ -2267,7 +2267,6 @@ PRIVATE int HTFTP_get_dir ARGS4(ftp_ctrl_info *, ctrl, HTRequest *, req,
 		if (TRACE)
 		    fprintf(stderr, "FTP......... Receiving directory `%s\'\n",
 			    path);
-		fprintf(stderr, "Message `%s\'\n", ctrl->welcome->data);
 		status = HTFTPBrowseDirectory(req, path, data,
 					      HTFTP_get_dir_string);
 		if (status == -1)
