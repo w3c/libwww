@@ -17,12 +17,12 @@ PACKAGE=w3c-libwww
 AC_SUBST(PACKAGE)
 AC_DEFINE_UNQUOTED(W3C_PACKAGE, "$PACKAGE")
  
-VERSION=5.2.8
+VERSION=5.2.9
 AC_SUBST(VERSION)
 AC_DEFINE_UNQUOTED(W3C_VERSION, "$VERSION")
 
 #dnl for CVS to be able to make a release diff
-PREVIOUS_VERSION=5.2.6
+PREVIOUS_VERSION=5.2.8
 AC_SUBST(PREVIOUS_VERSION)
 
 AM_INIT_AUTOMAKE($PACKAGE, $VERSION) 
@@ -474,7 +474,7 @@ AC_ARG_WITH(expat,
     WWWXML="libwwwxml.la"
     LWWWXML="-lwwwxml -lxmltok -lxmlparse"
     LIBWWWXML='${top_builddir}/Library/src/libwwwxml.la ${top_builddir}/modules/expat/xmlparse/libxmlparse.la ${top_builddir}/modules/expat/xmltok/libxmltok.la'
-    SHOWXML="showxml"
+    SHOWXML="showxml ptri stri"
     ;;
   esac ],
   AC_MSG_RESULT(yes)
@@ -486,7 +486,7 @@ AC_ARG_WITH(expat,
   WWWXML="libwwwxml.la"
   LWWWXML="-lwwwxml -lxmltok -lxmlparse"
   LIBWWWXML='${top_builddir}/Library/src/libwwwxml.la ${top_builddir}/modules/expat/xmlparse/libxmlparse.la ${top_builddir}/modules/expat/xmltok/libxmltok.la'
-  SHOWXML="showxml"
+  SHOWXML="showxml ptri stri"
 )
 AC_SUBST(HTXML)		# for old style big library
 AC_SUBST(HTLIBXML)	# for old style big library
