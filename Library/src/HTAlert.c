@@ -39,9 +39,13 @@ PUBLIC BOOL HTConfirm ARGS1(CONST char *, Msg)
   fprintf(stderr, "WWW: %s (y/n) ", Msg);
                        /* (y/n) came twice -- AL */
 
-  scanf("%3s",Reply); /* get reply, max 3 characters */
+  fgets(Reply, 4, stdin); /* get reply, max 3 characters */
   URep=Reply;
   while (*URep) {
+    if (*URep == '\n') {
+	*URep = NULL;	/* Overwrite newline */
+	break;
+    }
     *URep=TOUPPER(*URep);
     URep++;	/* This was previously embedded in the TOUPPER */
                 /* call an it became evaluated twice because   */
@@ -63,7 +67,8 @@ PUBLIC char * HTPrompt ARGS2(CONST char *, Msg, CONST char *, deflt)
     fprintf(stderr, "WWW: %s", Msg);
     if (deflt) fprintf(stderr, " (RETURN for [%s]) ", deflt);
     
-    scanf("%199s", Tmp); /* fgets()'s does not mix very well with scanf()'s -- AL */
+    fgets(Tmp, 200, stdin);
+    Tmp[strlen(Tmp)-1] = NULL;	/* Overwrite newline */
    
     StrAllocCopy(rep, *Tmp ? Tmp : deflt);
     return rep;

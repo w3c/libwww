@@ -50,6 +50,7 @@
 #include "HTList.h"		/* HTList object		*/
 #include "HTAlert.h"		/* HTConfirm(), HTPrompt()	*/
 #include "HTAAUtil.h"		/* AA common to both sides	*/
+#include "HTAssoc.h"		/* Assoc list			*/
 #include "HTAABrow.h"		/* Implemented here		*/
 #include "HTUU.h"		/* Uuencoding and uudecoding	*/
 
@@ -80,8 +81,8 @@ typedef struct {
 typedef struct {
     HTAAServer *server;		/* Which server serves this tree	     */
     char *	template;	/* Template for this tree		     */
-    BOOL	valid_schemes[MAX_SCHEMES];	/* Valid authentic.schemes   */
-    HTAA_Arg *	scheme_specifics[MAX_SCHEMES];	/* Scheme specific params    */
+    HTList *	valid_schemes;	/* Valid authentic.schemes   		     */
+    HTAssocList**scheme_specifics;/* Scheme specific params		     */
     BOOL	retry;		/* Failed last time -- reprompt (or whatever)*/
 } HTAASetup;
 
@@ -297,13 +298,12 @@ PRIVATE HTAASetup *HTAASetup_lookup ARGS3(CONST char *, hostname,
 **			to which this setup belongs.
 **	template	documents matching this template
 **			are protected according to this setup.
-**	valid_schemes	a boolean array indicating which
-**			authentication schemes are valid for
-**			this setup.
+**	valid_schemes	a list containing all valid authentication
+**			schemes for this setup.
 **			If NULL, all schemes are disallowed.
-**	scheme_specifics is an array of strings, that are the
-**			scheme specific parameters given by
-**			server in Authenticate: fields.
+**	scheme_specifics is an array of assoc lists, which
+**			contain scheme specific parameters given
+**			by server in Authenticate: fields.
 **			If NULL, all scheme specifics are
 **			set to NULL.
 ** ON EXIT:
@@ -312,11 +312,10 @@ PRIVATE HTAASetup *HTAASetup_lookup ARGS3(CONST char *, hostname,
 */
 PRIVATE HTAASetup *HTAASetup_new ARGS4(HTAAServer *,	server,
 				       char *,		template,
-				       BOOL *,		valid_schemes,
-				       HTAA_Arg **,	scheme_specifics)
+				       HTList *,	valid_schemes,
+				       HTAssocList **,	scheme_specifics)
 {
     HTAASetup *setup;
-    HTAAScheme scheme;
 
     if (!server || !template || !*template) return NULL;
 
@@ -324,26 +323,13 @@ PRIVATE HTAASetup *HTAASetup_new ARGS4(HTAAServer *,	server,
 	outofmem(__FILE__, "HTAASetup_new");
 
     setup->retry = NO;
-
     setup->server = server;
-    HTList_addObject(server->setups, (void*)setup);
-
     setup->template = NULL;
-    StrAllocCopy(setup->template, template);
+    if (template) StrAllocCopy(setup->template, template);
+    setup->valid_schemes = valid_schemes;
+    setup->scheme_specifics = scheme_specifics;
 
-    if (valid_schemes)
-	for (scheme=0; scheme < MAX_SCHEMES; scheme++)
-	    setup->valid_schemes[scheme] = valid_schemes[scheme];
-    else
-	for (scheme=0; scheme < MAX_SCHEMES; scheme++)
-	    setup->valid_schemes[scheme] = NO;
-
-    if (scheme_specifics)
-	for (scheme=0; scheme < MAX_SCHEMES; scheme++)
-	    setup->scheme_specifics[scheme] = scheme_specifics[scheme];
-    else
-	for (scheme=0; scheme < MAX_SCHEMES; scheme++)
-	    setup->scheme_specifics[scheme] = NULL;
+    HTList_addObject(server->setups, (void*)setup);
 
     return setup;
 }
@@ -361,12 +347,15 @@ PRIVATE HTAASetup *HTAASetup_new ARGS4(HTAAServer *,	server,
 #ifdef NOT_NEEDED_IT_SEEMS
 PRIVATE void HTAASetup_delete ARGS1(HTAASetup *, killme)
 {
-    HTAAScheme scheme;
+    int scheme;
 
     if (killme) {
-	FREE(killme->template);
-	for (scheme=0; scheme < MAX_SCHEMES; scheme++)
-	    HTAA_Arg_delete(killme->scheme_specifics[scheme]);
+	if (killme->template) free(killme->template);
+	if (killme->valid_schemes)
+	    HTList_delete(killme->valid_schemes);
+	for (scheme=0; scheme < HTAA_MAX_SCHEMES; scheme++)
+	    if (killme->scheme_specifics[scheme])
+		HTAssocList_delete(killme->scheme_specifics[scheme]);
 	free(killme);
     }
 }
@@ -387,19 +376,21 @@ PRIVATE void HTAASetup_delete ARGS1(HTAASetup *, killme)
 ** ON EXIT:
 **	returns		nothing.
 */
-PRIVATE void HTAASetup_updateSpecifics ARGS2(HTAASetup *, setup,
-					     HTAA_Arg **, specifics)
+PRIVATE void HTAASetup_updateSpecifics ARGS2(HTAASetup *,	setup,
+					     HTAssocList **,	specifics)
 {
-    HTAAScheme scheme;
+    int scheme;
 
-    for (scheme=0; scheme < MAX_SCHEMES; scheme++) {
-	HTAA_Arg_delete(setup->scheme_specifics[scheme]);
-	setup->scheme_specifics[scheme] = NULL;
+    if (setup) {
+	if (setup->scheme_specifics) {
+	    for (scheme=0; scheme < HTAA_MAX_SCHEMES; scheme++) {
+		if (setup->scheme_specifics[scheme])
+		    HTAssocList_delete(setup->scheme_specifics[scheme]);
+	    }
+	    free(setup->scheme_specifics);
+	}
+	setup->scheme_specifics = specifics;
     }
-
-    if (setup)
-	for (scheme=0; scheme < MAX_SCHEMES; scheme++)
-	    setup->scheme_specifics[scheme] = specifics[scheme];
 }
 
 
@@ -514,29 +505,33 @@ PRIVATE char *compose_auth_string ARGS2(HTAAScheme,	scheme,
 
     FREE(result);	/* From previous call */
 
-    if ((scheme != HTAA_BASIC && scheme != HTAA_PUBKEY) || !setup)
+    if ((scheme != HTAA_BASIC && scheme != HTAA_PUBKEY) || !setup ||
+	!setup->scheme_specifics || !setup->scheme_specifics[scheme])
 	return "";
 
-    realmname = HTAA_Arg_lookupValue(setup->scheme_specifics[scheme], "realm");
+    realmname = HTAssocList_lookup(setup->scheme_specifics[scheme], "realm");
     if (!realmname) return "";
 
     realm = HTAARealm_lookup(realmname);
     if (!realm || setup->retry) {
+	char msg[100];
+
 	if (!realm) {
 	    if (TRACE) fprintf(stderr, "%s `%s' %s\n",
 			       "compose_auth_string: realm:", realmname,
 			       "not found -- creating");
 	    realm = HTAARealm_new(realmname, NULL, NULL);
+	    sprintf(msg,"Document is protected. Enter username for server %s: ",
+		    realm->realmname);
 	    realm->username =
-		HTPrompt("Document is protected.  Enter username: ",
-			 realm->username);
+		HTPrompt(msg, realm->username);
 	}
 	else {
-	    username = HTPrompt("Enter username: ", realm->username);
+	    sprintf(msg,"Enter username for server %s: ", realm->realmname);
+	    username = HTPrompt(msg, realm->username);
 	    FREE(realm->username);
 	    realm->username = username;
 	}
-
 	password = HTPromptPassword("Enter password: ");
 	FREE(realm->password);
 	realm->password = password;
@@ -607,11 +602,21 @@ PRIVATE char *compose_auth_string ARGS2(HTAAScheme,	scheme,
 **	use at a given time.  This can be done by inspecting
 **	environment variables etc.
 **
+**	Currently only searches for the first valid scheme,
+**	and if nothing found suggests Basic scheme;
+**
 ** ON EXIT:
 **	returns	the authentication scheme to use.
 */
 PRIVATE HTAAScheme HTAA_selectScheme ARGS1(HTAASetup *, setup)
 {
+    HTAAScheme scheme;
+
+    if (setup && setup->valid_schemes) {
+	for (scheme=HTAA_BASIC; scheme < HTAA_MAX_SCHEMES; scheme++)
+	    if (-1 < HTList_indexOf(setup->valid_schemes, (void*)scheme))
+		return scheme;
+    }
     return HTAA_BASIC;
 }
 
@@ -744,15 +749,9 @@ PUBLIC BOOL HTAA_shouldRetryWithAuth ARGS3(char *, start_of_headers,
     HTAAScheme scheme;
     char *line;
     int num_schemes = 0;
-    BOOL valid_schemes[MAX_SCHEMES];
-    HTAA_Arg *scheme_specifics[MAX_SCHEMES];
+    HTList *valid_schemes = HTList_new();
+    HTAssocList **scheme_specifics = NULL;
     char *template = NULL;
-
-
-    for (scheme=0; scheme < MAX_SCHEMES; scheme++) {
-	valid_schemes[scheme] = NO;
-	scheme_specifics[scheme] = NULL;
-    }
 
 
     /* Read server reply header lines */
@@ -774,7 +773,16 @@ PUBLIC BOOL HTAA_shouldRetryWithAuth ARGS3(char *, start_of_headers,
 	    
 	    if (0==strcasecomp(fieldname, "WWW-Authenticate:")) {
 		if (HTAA_UNKNOWN != (scheme = HTAAScheme_enum(arg1))) {
-		    valid_schemes[scheme] = YES;
+		    HTList_addObject(valid_schemes, (void*)scheme);
+		    if (!scheme_specifics) {
+			int i;
+			scheme_specifics = (HTAssocList**)
+			    malloc(HTAA_MAX_SCHEMES * sizeof(HTAssocList*));
+			if (!scheme_specifics)
+			    outofmem(__FILE__, "HTAA_shouldRetryWithAuth");
+			for (i=0; i < HTAA_MAX_SCHEMES; i++)
+			    scheme_specifics[i] = NULL;
+		    }
 		    scheme_specifics[scheme] = HTAA_parseArgList(args);
 		    num_schemes++;
 		}
