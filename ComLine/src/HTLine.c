@@ -547,7 +547,7 @@ int main (int argc, char ** argv)
     /* Rule file specified? */
     if (cl->rules) {
 	char * rules = HTParse(cl->rules, cl->cwd, PARSE_ALL);
-	if (!HTLoadRules(rules))
+	if (!HTLoadRulesAutomatically(rules))
 	    if (SHOW_MSG) HTTrace("Can't access rules\n");
 	HT_FREE(rules);
     }
