@@ -51,6 +51,7 @@ PUBLIC void HTConverterInit (HTList * c)
     ** The following conversions are converting ASCII output from various
     ** protocols to HTML objects.
     */
+    HTConversion_add(c,"text/x-http",		"*/*",		HTTPStatus_new,	1.0, 0.0, 0.0);
 #if 0
     HTConversion_add(c,"text/x-gopher",		"www/present",	HTGopherMenu,	1.0, 0.0, 0.0);
     HTConversion_add(c,"text/x-cso",		"www/present",	HTGopherCSO,	1.0, 0.0, 0.0);
@@ -180,7 +181,7 @@ PUBLIC void HTAccessInit (void)
 **	media types and special icons for directories and other objects that
 **	do not have a media type.
 */
-PUBLIC void HTStdIconInit (CONST char * url_prefix)
+/* PUBLIC void HTStdIconInit (CONST char * url_prefix) */
 {
     CONST char * p = url_prefix ? url_prefix : "/internal-icon/";
 

@@ -348,7 +348,7 @@ PUBLIC HTStream * HTFileSaveStream (HTRequest * request)
 	HTRequest_addSystemError(request, ERR_FATAL, errno, NO, "fopen");
 	return NULL;
     } else
-    	return HTFWriter_new(fp, NO);
+    	return HTFWriter_new(request, fp, NO);
 }
 
 
@@ -603,7 +603,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 #endif
 	    if (status == HT_WOULD_BLOCK)
 		return HT_OK;
-	    else if (status == HT_LOADED) {
+	    else if (status == HT_LOADED || status == HT_CLOSED) {
 		file->state = FS_GOT_DATA;
 	    } else
 		file->state = FS_ERROR;

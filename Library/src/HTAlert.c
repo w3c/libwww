@@ -153,6 +153,12 @@ PUBLIC BOOL HTAlert_add (HTAlertCallback * cbf, HTAlertOpcode opcode)
     return HTAlertCall_add(HTMessages, cbf, opcode);
 }
 
+PUBLIC BOOL HTAlert_delete (HTAlertCallback * cbf)
+{
+    if (!HTMessages) HTMessages = HTList_new();
+    return HTAlertCall_delete(HTMessages, cbf);
+}
+
 /*	HTAlert_find
 **	------------
 **	Finds a global callback function corresponding to the opcode

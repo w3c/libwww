@@ -162,7 +162,7 @@ PRIVATE int HTGuess_flush (HTStream * me)
 					me->req, NO)) == NULL) {
 	    if (STREAM_TRACE)
 		TTYPrint(TDEST, "HTGuess..... Can't convert media type\n");
-	    me->target = HTBlackHole();
+	    me->target = HTErrorStream();
 	}
     }
     return PUT_BLOCK(me->buffer, me->cnt);

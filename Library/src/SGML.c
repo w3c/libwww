@@ -184,6 +184,18 @@ PRIVATE void handle_entity (HTStream * context, char term)
     PUTC(term);
 }
 
+/*
+**	Helper function to check if the tag is on the stack
+*/
+PRIVATE BOOL lookup_element_stack (HTElement* stack, HTTag *tag)
+{
+    HTElement* elem;
+    for (elem = stack; elem != NULL; elem = elem->next)
+    {
+        if (elem->tag == tag)  return YES;
+    }
+    return NO;
+}
 
 /*	End element
 **	-----------
@@ -201,7 +213,12 @@ PRIVATE void end_element (HTStream * context, HTTag * old_tag)
 	HTTag * t = N->tag;
 	
 	if (old_tag != t) {		/* Mismatch: syntax error */
-	    if (context->element_stack->next) {	/* This is not the last level */
+	    /*
+	    ** Patch from Maciej Puzio, puzio@laser.mimuw.edu.pl
+	    ** See explanation in ../User/Patch/lib_4.0_1.fix
+	    */
+            if (context->element_stack->next   /* This is not the last level */
+		&& lookup_element_stack(context->element_stack, old_tag)) {
 		if (SGML_TRACE) TTYPrint(TDEST,
 	    	"SGML: Found </%s> when expecting </%s>. </%s> assumed.\n",
 		    old_tag->name, t->name, t->name);

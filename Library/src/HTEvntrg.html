@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Event Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  1-Dec-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 31-Jan-1996 -->
 </HEAD>
 <BODY>
 
@@ -134,7 +134,7 @@ extern BOOL HTEvent_registerTimeout (struct timeval *tp, HTRequest * request,
 				     HTEventTimeout *tcbf, BOOL always);
 </PRE>
 
-<H2>Eventloop</H2>
+<H2>Start the Event Loop</H2>
 
 That is, we wait for activity from one of our registered channels, and
 dispatch on that. Under Windows/NT, we must treat the console and
@@ -145,6 +145,14 @@ our best.
 extern int HTEvent_Loop (HTRequest * request);
 </PRE>
 
+<H2>Stop the Event Loop</H2>
+
+Stops the (select based) event loop. The function does not guarantee
+that all requests have terminated. This is for the app to do
+
+<PRE>
+extern void HTEvent_stopLoop (void);
+</PRE>
 
 <PRE>
 #endif /* HTEvent_H */

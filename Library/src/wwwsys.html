@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>System dependencies in the W3 library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 15-Jan-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 16-Jan-1996 -->
 </HEAD>
 <BODY>
 
@@ -332,6 +332,7 @@ Help provided by Eric Prud'hommeaux, Susan C. Weber
 #endif
 
 #define NO_PASSWD
+#define NO_ALTZONE
 #define NO_GETWD
 #define NO_FCNTL
 #define HAS_GETCWD
@@ -351,7 +352,7 @@ Help provided by Eric Prud'hommeaux, Susan C. Weber
 #define MINIMUM_WINSOCK_VERSION	0x0101  /* ...but we'll take ver 1.1 :) */
 </PRE>
 
-<H3>File Access</H3>
+<H3>File and Directory Access</H3>
 
 These next defintions are because the UNIX stuff is not supplied with
 BC4 (Paul Hounslow <P.M.Hounslow@reading.ac.uk>
@@ -443,21 +444,16 @@ typedef unsigned long mode_t;
 
 Winsock has its own errno codes and it returns them through
 WSAGetLastError(). However, it does also support BSD error codes, so
-we make a compromise.
+we make a compromise. WSA definitions moved from _WIN32 ifdef by EGP
 
 <PRE>
-/* extern int errno; */
 #define socerrno WSAGetLastError()
 #define ERRNO_DONE
 </PRE>
 
-Return code for socket functions. We can't use -1 as return value
-
-
-WSA definitions moved from _WIN32 ifdef by EGP
+Return code for socket functions. We can't use -1 as return value <P>
 
 <PRE>
-
 #define EWOULDBLOCK     WSAEWOULDBLOCK
 #define EINPROGRESS     WSAEINPROGRESS
 #define ECONNREFUSED    WSAECONNREFUSED
@@ -469,13 +465,12 @@ WSA definitions moved from _WIN32 ifdef by EGP
 
 /* Some compilers do only define WIN32 and NOT _WINDOWS */
 #define NO_GROUPS
-#define NO_ALTZONE
-#undef  MKDIR
+
 #ifdef _WIN32
-#define MKDIR(a,b) mkdir((a))  /* CLB NT has mkdir, but only one arg */
+#define MKDIR(a,b)	mkdir((a))     /* CLB NT has mkdir, but only one arg */
 #define SLEEP(n)        Sleep((n)*1000)
 #else
-#define MKDIR(a,b) _mkdir((a))  /* CLB NT has mkdir, but only one arg */
+#define MKDIR(a,b)	_mkdir((a))    /* CLB NT has mkdir, but only one arg */
 #endif /* WIN32 */
 
 #endif /* WWW_MSWINDOWS */

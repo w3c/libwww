@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>MIME Request Stream</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 15-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 29-Jan-1996 -->
 </HEAD>
 <BODY>
 
@@ -24,10 +24,13 @@ Reference Library</A>.
 
 <H3>Streams Definition</H3>
 
-This stream makes a MIME header before it goes into transparent mode.
+This stream makes a MIME header before it goes into transparent
+mode. If <CODE>endHeader</CODE> is YES then we send an empty
+<CODE>CRLF</CODE> in order to end the header.
 
 <PRE>
-extern HTStream * HTMIMERequest_new (HTRequest * request, HTStream * target);
+extern HTStream * HTMIMERequest_new    (HTRequest * request, HTStream * target,
+					BOOL endHeader);
 
 #endif
 </PRE>

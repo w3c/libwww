@@ -11,8 +11,11 @@ SHELL = /bin/sh
 
 MDEF= ./makedefs.pl @
 
-all :
+all : def list
+
+
+def :
 	for i in *.files; do $(MDEF) < $$i > `basename $$i files`def; done
 
 list :
-	ls -1 ../*.c | sed -e s=\.\./==1 | $(MDEF) > list
+	ls -1 ../*.c | sed -e s=\.\./==1 | $(MDEF) > wwwlist.txt 

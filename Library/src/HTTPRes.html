@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>HTTP Response Stream</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  3-Dec-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 30-Jan-1996 -->
 </HEAD>
 <BODY>
 
@@ -19,7 +19,7 @@ Reference Library</A>.
 #define HTTPRES_H
 
 #include "HTStream.h"
-#include "HTReq.h"
+#include "HTFormat.h"
 </PRE>
 
 <H3>Streams Definition</H3>
@@ -28,7 +28,7 @@ This stream makes a HTTP response header before it goes into
 transparent mode.
 
 <PRE>
-extern HTStream * HTTPResponse_new (HTRequest * request, HTStream * target);
+extern HTConverter HTTPResponse_new;
 </PRE>
 
 <PRE>

@@ -1060,7 +1060,7 @@ PUBLIC int HTDoListen (HTNet * net, u_short port, SOCKET master, int backlog)
 	  case TCP_NEED_CONNECT:
 	  case TCP_DNS:
 	  case TCP_ERROR:
-	    if (PROT_TRACE) TTYPrint(TDEST, "HTDoListen.. Connect failed\n");
+	    if (PROT_TRACE) TTYPrint(TDEST, "HTDoListen.. Listen failed\n");
 	    HTRequest_addSystemError(net->request, ERR_FATAL, socerrno, NO, "HTDoListen");
 	    net->tcpstate = TCP_BEGIN;
 	    return HT_ERROR;

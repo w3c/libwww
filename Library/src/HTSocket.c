@@ -83,7 +83,8 @@ PUBLIC void HTInputSocket_free (HTInputSocket * me)
 ** Returns      HT_LOADED	if finished reading
 **		HT_OK		if OK, but more to read
 **	      	HT_ERROR	if error,
-**     		HT_WOULD_BLOCK	if read would block
+**     		HT_WOULD_BLOCK	if read or write would block
+**		HT_PAUSE	if stream is paused
 */
 PUBLIC int HTSocketRead (HTRequest * request, HTNet * net)
 {
@@ -113,6 +114,16 @@ PUBLIC int HTSocketRead (HTRequest * request, HTNet * net)
 		    HTEvent_Register(isoc->sockfd, request, (SockOps) FD_READ,
 				     net->cbf, net->priority);
 		    return HT_WOULD_BLOCK;
+#ifdef __svr4__
+    /* 
+    ** In Solaris envirnoment, SIGPOLL is used to signal end of buffer for
+    ** /dev/audio.  If your process is also doing a socket read, it will cause
+    ** an EINTR error.  This error will cause the www library request to 
+    ** terminate prematurly.
+    */
+                } else if (socerrno == EINTR) {
+                    continue;
+#endif
 		} else { /* We have a real error */
 		    HTRequest_addSystemError(request,  ERR_FATAL, socerrno, NO,
 					     "NETREAD");
@@ -125,7 +136,7 @@ PUBLIC int HTSocketRead (HTRequest * request, HTNet * net)
 			     isoc->sockfd);
 		if(cbf)(*cbf)(request,HT_PROG_DONE,HT_MSG_NULL,NULL,NULL,NULL);
 	        HTEvent_UnRegister(isoc->sockfd, FD_READ);
-		return HT_LOADED;
+		return HT_CLOSED;
 	    }
 
 	    /* Remember how much we have read from the input socket */
@@ -161,6 +172,10 @@ PUBLIC int HTSocketRead (HTRequest * request, HTNet * net)
 		    TTYPrint(TDEST, "Read Socket. Target WOULD BLOCK\n");
 		HTEvent_UnRegister(isoc->sockfd, FD_READ);
 		return HT_WOULD_BLOCK;
+	    } else if (status == HT_PAUSE) {
+		if (PROT_TRACE) TTYPrint(TDEST,"Read Socket. Target PAUSED\n");
+		HTEvent_UnRegister(isoc->sockfd, FD_READ);
+		return HT_PAUSE;
 	    } else if (status>0) {	      /* Stream specific return code */
 		if (PROT_TRACE)
 		    TTYPrint(TDEST, "Read Socket. Target returns %d\n",status);

@@ -360,7 +360,7 @@ PUBLIC HTNet * HTNet_new (HTRequest * request, SOCKET sockfd)
 **	more than HTMaxActive connections already then return NO.
 **	Returns YES if OK, else NO
 */
-PUBLIC BOOL HTNet_newServer (HTRequest * request, SOCKET sockfd)
+PUBLIC BOOL HTNet_newServer (HTRequest * request, SOCKET sockfd, char * access)
 {
     HTNet * me;
     HTProtocol * protocol;
@@ -375,7 +375,7 @@ PUBLIC BOOL HTNet_newServer (HTRequest * request, SOCKET sockfd)
     }
 
     /* Find a protocol object for this access scheme */
-    protocol = HTProtocol_find(request, HTRequest_access(request));
+    protocol = HTProtocol_find(request, access);
 	
     /* Create new net object and bind it to the request object */
     if ((me = create_object(request)) == NULL) return NO;

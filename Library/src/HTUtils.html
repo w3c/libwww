@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Utility macros</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 20-Jan-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 29-Jan-1996 -->
 </HEAD>
 <BODY>
 
@@ -277,29 +277,26 @@ stream modules. Success are (&gt;=0) and failure are (&lt;0)
 #define HT_OK			0	/* Generic success */
 #define HT_ALL			1	/* Used by Net Manager */
 
+#define HT_CLOSED		29992	/* The socket was closed */
 #define HT_PERSISTENT		29993	/* Wait for persistent connection */
 #define HT_IGNORE		29994	/* Ignore this in the Net manager */
 #define HT_NO_DATA		29995	/* OK but no data was loaded */
+#define HT_RELOAD		29996	/* If we must reload the document */
 #define HT_PERM_REDIRECT	29997	/* Redo the retrieve with a new URL */
 #define HT_TEMP_REDIRECT	29998	/* Redo the retrieve with a new URL */
 #define HT_LOADED		29999	/* Instead of a socket */
 
 #define HT_ERROR		-1	/* Generic failure */
+
 #define HT_NO_ACCESS		-10	/* Access not available */
 #define HT_FORBIDDEN		-11	/* Access forbidden */
-#define HT_INTERNAL		-12	/* Weird -- should never happen. */
+#define HT_RETRY		-13	/* If service isn't available */
 
-#define HT_RETRY		-29996	/* If service isn't available */
+#define HT_INTERNAL		-100	/* Weird -- should never happen. */
+
 #define HT_WOULD_BLOCK		-29997  /* If we are in a select */
 #define HT_INTERRUPTED 		-29998	/* Note the negative value! */
-</PRE>
-
-The following codes are positive values that will be parsed back
-through streams. This can be used to introduce stream specific return
-values
-
-<PRE>
-#define HT_RELOAD		29996	/* If we must reload the document */
+#define HT_PAUSE                -29999  /* If we want to pause a stream */
 </PRE>
 
 <H2>Other stuff</H2>

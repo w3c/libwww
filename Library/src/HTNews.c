@@ -404,9 +404,11 @@ PRIVATE int HTNewsCleanup (HTRequest * req, int status)
 
     /* Remove the request object and our own context structure for nntp */
     HTNet_delete(net, status);
-    FREE(news->name);
-    HTChunk_delete(news->cmd);
-    FREE(news);
+    if (news) {
+	FREE(news->name);
+	HTChunk_delete(news->cmd);
+	FREE(news);
+    }
     return YES;
 }
 

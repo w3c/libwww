@@ -768,7 +768,7 @@ PUBLIC int HTLoadGopher (SOCKET soc, HTRequest * request, SockOps ops)
 	    status = HTSocketRead(request, net);
 	    if (status == HT_WOULD_BLOCK)
 		return HT_OK;
-	    else if (status == HT_LOADED)
+	    else if (status == HT_LOADED || status == HT_CLOSED)
 		gopher->state = GOPHER_GOT_DATA;
 	    else
 		gopher->state = GOPHER_ERROR;

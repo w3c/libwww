@@ -186,5 +186,5 @@ PUBLIC HTStream * HTNewsPost_new (HTRequest * request, HTStream * target)
     me->request = request;
     me->buffer = HTChunk_new(256);
     me->transparent = NO;
-    return HTMIMERequest_new(request, me);		/* @@@ */
+    return HTMIMERequest_new(request, me, YES);
 }

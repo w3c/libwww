@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Tee stream</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 19-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 31-Jan-1996 -->
 </HEAD>
 <BODY>
 
@@ -19,17 +19,23 @@ streams. One use (the only use?!) is for taking a cached copey on disk
 while loading the main copy, without having to wait for the disk copy
 to be finished and reread it. <P>
 
+You can create a T stream using this method. Each stream returns a
+return value and in order to resolve conflicts in the return code you
+can specify a resolver callback function. Each time any of the data
+methods are called the resolver function is then called with the
+return codes from the two streams. The return code of the T stream
+itself will be the result of the resolver function. If you pass NULL
+as the resolver routine then a default resolver is used.<P>
+
 This module is implemented by <A HREF="HTTee.c">HTTee.c</A>, and it is
-a part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>.
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
 
 <PRE>
-
 #include "HTStream.h"
+#include "HTArray.h"
 
-extern HTStream * HTTee (HTStream * s1, HTStream * s2);
-
+extern HTStream * HTTee (HTStream * s1, HTStream * s2, HTComparer * resolver);
 </PRE>
 
 End of definition

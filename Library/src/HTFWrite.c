@@ -40,19 +40,19 @@
 #endif
 
 struct _HTStream {
-	CONST HTStreamClass *	isa;
-	
-	FILE *			fp;
-	BOOL			leave_open;     /* Close file? HFN 08/02-94 */
-	char * 			end_command;
-	BOOL 			remove_on_close;
-	BOOL			announce;
-	char *			filename;
-	HTRequest *		request;	/* saved for callback */
-	HTRequestCallback	*callback;
+    CONST HTStreamClass *isa;
+    
+    FILE *		fp;
+    BOOL		leave_open;		    /* Close file when free? */
+    char * 		end_command;		       /* Command to execute */
+    BOOL 		remove_on_close;		     /* Remove file? */
+    char *		filename;			     /* Name of file */
+    HTRequest *		request;		       /* saved for callback */
+    HTRequestCallback *	callback;
 };
 
-PRIVATE HTStream	HTBlackHoleInstance;		      /* Made static */
+PRIVATE HTStream	HTBaseStreamInstance;		      /* Made static */
+
 PRIVATE char *		HTTmpRoot = NULL;   	       /* Dest for tmp files */
 
 /* ------------------------------------------------------------------------- */
@@ -114,10 +114,9 @@ PRIVATE CONST HTStreamClass HTBlackHoleClass =
 
 PUBLIC HTStream * HTBlackHole (void)
 {
-    if (STREAM_TRACE)
-	TTYPrint(TDEST, "BlackHole... Created\n");
-    HTBlackHoleInstance.isa = &HTBlackHoleClass;       /* The rest is random */
-    return &HTBlackHoleInstance;
+    if (STREAM_TRACE) TTYPrint(TDEST, "BlackHole... Created\n");
+    HTBaseStreamInstance.isa = &HTBlackHoleClass;      /* The rest is random */
+    return &HTBaseStreamInstance;
 }
 
 PUBLIC HTStream * HTBlackHoleConverter (HTRequest *	request,
@@ -127,6 +126,60 @@ PUBLIC HTStream * HTBlackHoleConverter (HTRequest *	request,
 					HTStream *	output_stream)
 {
     return HTBlackHole();
+}
+
+/*
+**	ERROR STREAM
+**	------------
+**	There is only one error stream shared by anyone who wants a
+**	generic error returned from all stream methods.
+*/
+PRIVATE int HTErrorStream_put_character (HTStream * me, char c)
+{
+    return HT_ERROR;
+}
+
+PRIVATE int HTErrorStream_put_string (HTStream * me, CONST char * s)
+{
+    return HT_ERROR;
+}
+
+PRIVATE int HTErrorStream_write (HTStream * me, CONST char * s, int l)
+{
+    return HT_ERROR;
+}
+
+PRIVATE int HTErrorStream_flush (HTStream * me)
+{
+    return HT_ERROR;
+}
+
+PRIVATE int HTErrorStream_free (HTStream * me)
+{
+    return HT_ERROR;
+}
+
+PRIVATE int HTErrorStream_abort (HTStream * me, HTList * e)
+{
+    return HT_ERROR;
+}
+
+PRIVATE CONST HTStreamClass HTErrorStreamClass =
+{		
+    "ErrorStream",
+    HTErrorStream_flush,
+    HTErrorStream_free,
+    HTErrorStream_abort,
+    HTErrorStream_put_character,
+    HTErrorStream_put_string,
+    HTErrorStream_write
+}; 
+
+PUBLIC HTStream * HTErrorStream (void)
+{
+    if (STREAM_TRACE) TTYPrint(TDEST, "ErrorStream. Created\n");
+    HTBaseStreamInstance.isa = &HTErrorStreamClass;    /* The rest is random */
+    return &HTBaseStreamInstance;
 }
 
 /*	HTThroughLine
@@ -165,56 +218,40 @@ PRIVATE int HTFWriter_flush (HTStream * me)
     return (fflush(me->fp) == EOF) ? HT_ERROR : HT_OK;
 }
 
-
 PRIVATE int HTFWriter_write (HTStream * me, CONST char* s, int l)
 {
     int status ;
     status = (fwrite(s, 1, l, me->fp) != l) ? HT_ERROR : HT_OK ;
-    if (l > 1 && status == HT_OK)
-	(void)HTFWriter_flush( me) ;
+    if (l > 1 && status == HT_OK) (void) HTFWriter_flush(me);
     return status ;
-
-/*    return (fwrite(s, 1, l, me->fp) != l) ? HT_ERROR : HT_OK; */
-    
 }
-
 
 PRIVATE int HTFWriter_free (HTStream * me)
 {
-    if (me->leave_open != YES) fclose(me->fp);
-    if (me->end_command) {		/* Temp file */
+    if (me) {
+	if (me->leave_open != YES) fclose(me->fp);
 #ifdef GOT_SYSTEM
-	system(me->end_command);	/* @@ Beware of security hole */
+	if (me->end_command) system(me->end_command);    /* SECURITY HOLE!!! */
 #endif
-	free (me->end_command);
-	if (me->remove_on_close) {
-	    REMOVE(me->filename);
-	}
+	if (me->remove_on_close) REMOVE(me->filename);
+	if (me->callback) (*me->callback)(me->request, me->filename);
+	FREE(me->end_command);
+	FREE(me->filename);
+	free(me);
     }
-    if (me->callback) {
-        (*me->callback)(me->request, me->filename);
-    }
-    if (me->filename) free(me->filename);
-    free(me);
     return HT_OK;
 }
 
 PRIVATE int HTFWriter_abort (HTStream * me, HTList * e)
 {
-    if (PROT_TRACE) TTYPrint(TDEST, "FileWriter.. ABORTING...\n");
-    if (me->leave_open != YES) fclose(me->fp);
-    if (me->end_command) {		/* Temp file */
-	if (STREAM_TRACE)
-	    TTYPrint(TDEST,"FileWriter.. Aborting: file %s not executed.\n",
-		    me->filename ? me->filename : "???" );
-	free (me->end_command);
-	if (me->remove_on_close) {
-	    REMOVE(me->filename);
-	}
+    if (STREAM_TRACE) TTYPrint(TDEST, "FileWriter.. ABORTING...\n");
+    if (me) {
+	if (me->leave_open != YES) fclose(me->fp);
+	if (me->remove_on_close) REMOVE(me->filename);
+	FREE(me->end_command);
+	FREE(me->filename);
+	free(me);
     }
-
-    if (me->filename) free(me->filename);
-    free(me);
     return HT_ERROR;
 }
 
@@ -229,25 +266,20 @@ PRIVATE CONST HTStreamClass HTFWriter = /* As opposed to print etc */
     HTFWriter_write
 };
 
-PUBLIC HTStream* HTFWriter_new (FILE * fp, BOOL leave_open)
+PUBLIC HTStream * HTFWriter_new (HTRequest * request, FILE * fp,
+				 BOOL leave_open)
 {
-    HTStream* me;
-    
+    HTStream * me = NULL;
     if (!fp) {
-	if (STREAM_TRACE)
-	    TTYPrint(TDEST, "FileWriter.. Bad file descriptor\n");
-	return NULL;
+	if (STREAM_TRACE)TTYPrint(TDEST, "FileWriter.. Bad file descriptor\n");
+	return HTErrorStream();
     }
-    me = (HTStream*)calloc(sizeof(*me),1);
-    if (me == NULL) outofmem(__FILE__, "HTFWriter_new");
+    if ((me = (HTStream *) calloc(1, sizeof(HTStream))) == NULL)
+	outofmem(__FILE__, "HTFWriter_new");
     me->isa = &HTFWriter;       
-
     me->fp = fp;
-    me->leave_open = leave_open;		/* HENRIK 08/02-94 */
-    me->end_command = NULL;
-    me->remove_on_close = NO;
-    me->announce = NO;
-    me->callback = NULL;
+    me->leave_open = leave_open;
+    me->request = request;
     return me;
 }
 
@@ -327,80 +359,11 @@ PRIVATE char *get_filename (char * base, CONST char * url, CONST char * suffix)
 }
 
 
-/*	Take action using a system command
-**	----------------------------------
-**
-**	Creates temporary file, writes to it, executes system command
-**	on end-document.  The suffix of the temp file can be given
-**	in case the application is fussy, or so that a generic opener can
-**	be used.
-*/
-PUBLIC HTStream* HTSaveAndExecute (HTRequest *	request,
-				   void *	param,
-				   HTFormat	input_format,
-				   HTFormat	output_format,
-				   HTStream *	output_stream)
-{
-    char *fnam;
-    HTStream* me;
-    
-    if (HTLib_secure()) {
-	HTRequest_addError(request, ERR_NON_FATAL, NO, HTERR_UNAUTHORIZED,
-			   NULL, 0, "HTSaveAndExecute");
-	return HTBlackHole();
-    }
-    
-    if (!HTTmpRoot) {
-	if (STREAM_TRACE) TTYPrint(TDEST, "Save and execute turned off");
-	return HTBlackHole();
-    }
-	
-    /* Let's find a hash name for this file */
-    {
-	HTParentAnchor *anchor = (HTParentAnchor *) HTRequest_anchor(request);
-	char *suffix = HTBind_getSuffix(anchor);
-	fnam = get_filename(HTTmpRoot, HTAnchor_physical(anchor), suffix);
-	FREE(suffix);
-	if (!fnam) {
-	    HTRequest_addError(request, ERR_NON_FATAL, NO, HTERR_NO_FILE,
-			       NULL, 0, "HTSaveAndExecute");
-	    return HTBlackHole();
-	}
-    }
-
-    me = (HTStream*)calloc(sizeof(*me), 1);
-    if (me == NULL) outofmem(__FILE__, "Save and execute");
-    me->isa = &HTFWriter;  
-    me->request = request;	/* won't be freed */    
-    me->fp = fopen (fnam, "wb");
-    if (!me->fp) {
-	HTRequest_addError(request, ERR_NON_FATAL, NO, HTERR_NO_FILE,
-			   NULL, 0, "HTSaveAndExecute");
-        free(fnam);
-	free(me);
-	return HTBlackHole();
-    }
-    StrAllocCopy(me->filename, fnam);
-
-    /* Make command to process file */
-    me->end_command = (char *) malloc ((strlen((char *) param) + 10 +
-					3*strlen(fnam)) * sizeof (char));
-    if (me == NULL) outofmem(__FILE__, "SaveAndExecute");
-    
-    sprintf (me->end_command, (char *) param, fnam, fnam, fnam);
-    me->remove_on_close = NO;
-    me->announce = NO;
-    free (fnam);
-    return me;
-}
-
-
 /*	Save Locally
 **	------------
-**
-**  Bugs:
-**	GUI Apps should open local Save panel here really.
-**
+**	Saves a file to local disk. This can for example be used to dump
+**	date objects of unknown media types to local disk. The stream prompts
+**	for a file name for the temporary file.
 */
 PUBLIC HTStream* HTSaveLocally (HTRequest *	request,
 				void *		param,
@@ -408,67 +371,119 @@ PUBLIC HTStream* HTSaveLocally (HTRequest *	request,
 				HTFormat	output_format,
 				HTStream *	output_stream)
 {
-    char *fnam = NULL;
-    char *answer = NULL;
-    HTStream* me;
-    
+    FILE * fp = NULL;
+    char * filename = NULL;
     if (HTLib_secure()) {
 	HTRequest_addError(request, ERR_NON_FATAL, NO, HTERR_UNAUTHORIZED,
 			   NULL, 0, "HTSaveLocally");
-	return HTBlackHole();
+	return HTErrorStream();
     }
-
     if (!HTTmpRoot) {
-	if (STREAM_TRACE) TTYPrint(TDEST, "Save locally turned off");
-	return HTBlackHole();
+	if (STREAM_TRACE) TTYPrint(TDEST, "Save File... turned off");
+	return HTErrorStream();
     }
 	
-    /* Let's find a file name for this file */
+    /* Let's prompt the user for a file name for this file */
     {
 	HTAlertCallback *cbf = HTAlert_find(HT_A_PROMPT);
 	HTParentAnchor *anchor = (HTParentAnchor *) HTRequest_anchor(request);
 	char *suffix = HTBind_getSuffix(anchor);
-	fnam = get_filename(HTTmpRoot, HTAnchor_physical(anchor), suffix);
+	char *deflt = get_filename(HTTmpRoot,HTAnchor_physical(anchor),suffix);
 	if (cbf) {
 	    HTAlertPar * reply = HTAlert_newReply();
-	    if ((*cbf)(request, HT_A_PROMPT, HT_MSG_FILENAME, fnam,NULL,reply))
-		answer = HTAlert_replyMessage(reply);
+	    if ((*cbf)(request, HT_A_PROMPT, HT_MSG_FILENAME,deflt,NULL,reply))
+		filename = HTAlert_replyMessage(reply);
 	    HTAlert_deleteReply(reply);
 	}
 	FREE(suffix);
-	if (!answer) {
-	    FREE(fnam);
-	    return HTBlackHole();
+	FREE(deflt);
+	if (filename) {
+	    if ((fp = fopen(filename, "wb")) == NULL) {
+		HTRequest_addError(request, ERR_NON_FATAL, NO, HTERR_NO_FILE,
+				   filename, strlen(filename),"HTSaveLocally");
+		FREE(filename);
+		return HTErrorStream();
+	    }
+	} else {
+	    if (STREAM_TRACE) TTYPrint(TDEST, "Save File... No file name\n");
+	    return HTErrorStream();
 	}
-	FREE(fnam);
     }
     
-    me = (HTStream*)calloc(sizeof(*me),1);
-    if (me == NULL) outofmem(__FILE__, "SaveLocally");
-    me->isa = &HTFWriter;  
-    me->announce = YES;
-    
-    me->fp = fopen (answer, "wb");
-    if (!me->fp) {
-	HTRequest_addError(request, ERR_NON_FATAL, NO, HTERR_NO_FILE,
+    /* Now we are ready for creating the file writer stream */
+    if (fp) {
+	HTStream * me = HTFWriter_new(request, fp, NO);
+	me->filename = filename;
+	return me;
+    }
+    FREE(filename);
+    return HTErrorStream();
+}
+
+
+/*	Take action using a system command
+**	----------------------------------
+**	Creates temporary file, writes to it and then executes system
+**	command (maybe an external viewer) when EOF has been reached. The
+**	stream finds a suitable name of the temporary file which preserves the
+**	suffix. This way, the system command can find out the file type from
+**	the name of the temporary file name.
+*/
+PUBLIC HTStream* HTSaveAndExecute (HTRequest *	request,
+				   void *	param,
+				   HTFormat	input_format,
+				   HTFormat	output_format,
+				   HTStream *	output_stream)
+{
+    FILE * fp = NULL;
+    char * filename = NULL;
+    if (HTLib_secure()) {
+	HTRequest_addError(request, ERR_NON_FATAL, NO, HTERR_UNAUTHORIZED,
 			   NULL, 0, "HTSaveLocally");
-        FREE(answer);
-	free(me);
-	return HTBlackHole();
+	return HTErrorStream();
     }
-    me->callback = NULL;
-    me->request = request;
-    me->filename = answer;
-    return me;
+    if (!HTTmpRoot) {
+	if (STREAM_TRACE) TTYPrint(TDEST, "Save File... turned off");
+	return HTErrorStream();
+    }
+	
+    /* Let's find a hash name for this file without asking user */
+    {
+	HTParentAnchor *anchor = (HTParentAnchor *) HTRequest_anchor(request);
+	char *suffix = HTBind_getSuffix(anchor);
+	filename = get_filename(HTTmpRoot, HTAnchor_physical(anchor), suffix);
+	FREE(suffix);
+	if (!filename) {
+	    HTRequest_addError(request, ERR_NON_FATAL, NO, HTERR_NO_FILE,
+			       NULL, 0, "HTSaveAndExecute");
+	    return HTErrorStream();
+	}
+    }
+    
+    /* Now we are ready for creating the file writer stream */
+    if (fp) {
+	HTStream * me = HTFWriter_new(request, fp, NO);
+	me->filename = filename;
+	me->end_command = (char *) malloc((strlen((char *) param) + 10 +
+					   3*strlen(filename)));
+	if (me->end_command == NULL) outofmem(__FILE__, "SaveAndExecute");
+        sprintf (me->end_command, (char *)param, filename, filename, filename);
+	return me;
+    }
+    FREE(filename);
+    return HTErrorStream();
 }
 
 
 /*	Save and Call Back
 **	------------------
-**
-**
-**	The special case is a kludge. Better is everything uses streams
-**	and nothing uses files.  Then this routine will go too. :-))
+**	This stream works exactly like the TSaveAndExecute
+**	stream but in addition when EOF has been reached, it checks whether a
+**	callback function has been associated with the request object in which
+**	case, this callback is being called. This can be use by the
+**	application to do some processing after the system command
+**	has terminated. The callback function is called with the file name of
+**	the temporary file as parameter.
 */
 PUBLIC HTStream* HTSaveAndCallback (HTRequest *		request,
 				    void *		param,
@@ -476,22 +491,12 @@ PUBLIC HTStream* HTSaveAndCallback (HTRequest *		request,
 				    HTFormat		output_format,
 				    HTStream *		output_stream)
 {
-   HTStream * me;
-#if 0
-   if (request->using_cache) {  /* Special case! file wanted && cache hit */
-        (*request->callback)(request,
-			 ((HTCache*) request->using_cache)->filename);
-	return HTBlackHole();
-   } else {
-   	me = HTCacheWriter(request, param,
-			    input_format, output_format, output_stream);
-	if (me) {
-	    me->callback = request->callback;
-	}
-   }
-   return me;   
-#else
-   return HTBlackHole();
-#endif
+    HTStream * me = HTSaveAndExecute(request, param, input_format,
+				     output_format, output_stream);
+    if (me) {
+	me->callback = HTRequest_callback(request);
+	return me;
+    }
+    return HTErrorStream();
 }
 

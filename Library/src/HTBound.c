@@ -197,6 +197,7 @@ PUBLIC HTStream * HTBoundary   (HTRequest *	request,
 	return me;
     } else {
 	if (STREAM_TRACE) TTYPrint(TDEST, "Boundary.... <UNKNOWN>\n");
-	return HTBlackHole();
+	free(me);
+	return HTErrorStream();
     }
 }

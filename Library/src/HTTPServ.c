@@ -39,16 +39,15 @@
 
 /* Final states have negative value */
 typedef enum _HTTPState {
-    HTTPS_ERROR		= -1,
+    HTTPS_ERROR		= -2,
+    HTTPS_OK		= -1,
     HTTPS_BEGIN		= 0,
-    HTTPS_NEED_STREAM,
     HTTPS_NEED_REQUEST
 } HTTPState;
 
 /* This is the context object for the this module */
 typedef struct _https_info {
     HTTPState	state;			  /* Current State of the connection */
-    HTRequest *	serve;			/* For handling the incoming request */
 } https_info;
 
 /* The HTTP Receive Stream */
@@ -56,42 +55,94 @@ struct _HTStream {
     CONST HTStreamClass *	isa;
     HTStream *		  	target;
     HTRequest *			request;
-    https_info *		http;
     HTSocketEOL			state;
-    char *			method;
-    char *		       	version;
     HTChunk *			buffer;
     BOOL			transparent;
 };
 
 /* ------------------------------------------------------------------------- */
+/*				REPLY STREAM				     */
+/* ------------------------------------------------------------------------- */
 
-/*	ServerCleanup
-**	-------------
-**      This function cleans up after the request
-**      Returns YES on OK, else NO
+/*
+**	This is our handle to the server reply stream when data is coming
+**	back from our request
 */
-PRIVATE int ServerCleanup (HTRequest *req, int status)
+
+/*
+**	Searches for HTTP Request Line before going into transparent mode
+*/
+PRIVATE int HTTPReply_put_block (HTStream * me, CONST char * b, int l)
 {
-    HTNet *net = req->net;
-    https_info *http = (https_info *) net->context;
-
-    /* Free stream with data TO network */
-#if 0
-    if (!HTRequest_isDestination(req) && req->input_stream) {
-	if (status == HT_INTERRUPTED)
-	    (*req->input_stream->isa->abort)(req->input_stream, NULL);
-	else
-	    (*req->input_stream->isa->_free)(req->input_stream);
-	req->input_stream = NULL;
-    }
-
-    /* Remove the request object and our own context object for http */
-    HTNet_delete(net, status);
-#endif
-    FREE(http);
-    return YES;
+    return PUTBLOCK(b, l);
 }
+
+PRIVATE int HTTPReply_put_string (HTStream * me, CONST char * s)
+{
+    return PUTBLOCK(s, strlen(s));
+}
+
+PRIVATE int HTTPReply_put_character (HTStream * me, char c)
+{
+    return PUTBLOCK(&c, 1);
+}
+
+PRIVATE int HTTPReply_flush (HTStream * me)
+{
+    return (*me->target->isa->flush)(me->target);
+}
+
+PRIVATE int HTTPReply_free (HTStream * me)
+{
+    HTNet * net = me->request->net;
+    if (me->target) FREE_TARGET;
+    if (STREAM_TRACE) TTYPrint(TDEST, "HTTPReply... Freing server stream\n");
+    if (net) {
+	if (HTDNS_socket(net->dns) == INVSOC)
+	    HTNet_delete(net, HT_IGNORE);
+	else
+	    HTEvent_Register(net->sockfd, me->request, (SockOps) FD_READ,
+			     net->cbf, net->priority);
+    }
+    free(me);
+    return HT_OK;
+}
+
+PRIVATE int HTTPReply_abort (HTStream * me, HTList * e)
+{
+    if (me->target) ABORT_TARGET;
+    free(me);
+    if (PROT_TRACE) TTYPrint(TDEST, "HTTPReply... ABORTING...\n");
+    return HT_ERROR;
+}
+
+/*	HTTPReply Stream
+**	-----------------
+*/
+PRIVATE CONST HTStreamClass HTTPReplyClass =
+{		
+    "HTTPReply",
+    HTTPReply_flush,
+    HTTPReply_free,
+    HTTPReply_abort,
+    HTTPReply_put_character,
+    HTTPReply_put_string,
+    HTTPReply_put_block
+};
+
+PRIVATE HTStream * HTTPReply_new (HTRequest * request, HTStream * target)
+{
+    HTStream * me = (HTStream *) calloc(1, sizeof(HTStream));
+    if (!me) outofmem(__FILE__, "HTTPReply_new");
+    me->isa = &HTTPReplyClass;
+    me->target = target;
+    me->request = request;
+    return me;
+}
+
+/* ------------------------------------------------------------------------- */
+/*				RECEIVE STREAM				     */
+/* ------------------------------------------------------------------------- */
 
 /*
 **	Scan the request line for METHOD, URI and VERSION
@@ -102,58 +153,44 @@ PRIVATE int ServerCleanup (HTRequest *req, int status)
 PRIVATE int ParseRequest (HTStream * me)
 {
     HTRequest * request = me->request;
-    HTRequest * newreq = me->http->serve = HTRequest_dupInternal(request);
     char * line = HTChunk_data(me->buffer);
-    char * method;
-    char * request_uri;
+    char * method_str = HTNextField(&line);
+    char * request_uri = HTNextField(&line);
+    char * version_str = HTNextField(&line);
 
-    /* Bind the two request objects together */
-    newreq->source = request;
-    request->output_format = WWW_SOURCE;
-    request->source = request;			 	  /* Point to myself */
-    HTRequest_addDestination(request, newreq);
-    newreq->input_format = WWW_SOURCE;
-
-    /* Handle method and URI */
-    if ((method = HTNextField(&line)) && (request_uri = HTNextField(&line))) {
-	if ((newreq->method = HTMethod_enum(method)) == METHOD_INVALID) {
-	    HTRequest_addError(newreq, ERR_FATAL, NO, HTERR_NOT_ALLOWED,
-			       NULL, 0, "ParseRequest");
-	    HTRequest_delete(newreq);
-	    return HT_ERROR;
-	}
-
-	{
-	    char * uri = HTParse(request_uri, "file:", PARSE_ALL);
-	    newreq->anchor = (HTParentAnchor *) HTAnchor_findAddress(uri);
-#if 0
-	    /* Take copy of the original uri */
-	    StrAllocCopy(newreq->request_uri, request_uri);
-#endif
-	}
-    } else {
-	HTRequest_addError(newreq, ERR_FATAL, NO, HTERR_BAD_REQUEST,
+    /* Check if method is allowed */
+    if (!method_str || (request->method=HTMethod_enum(method_str))==METHOD_INVALID) {
+	HTRequest_addError(request, ERR_FATAL, NO, HTERR_NOT_ALLOWED,
 			   NULL, 0, "ParseRequest");
+	request->output_stream =
+	    HTTPReply_new(request,HTWriter_new(request->net, YES));
 	return HT_ERROR;
     }
 
-    /*
-    ** Handle version. If we have a 1.x request then always parse headers.
-    ** We might find a persistent connection request in which case we don't
-    ** want to loose it.
-    */
-    me->transparent = YES;
-    if ((me->version = HTNextField(&line))) {
-	request->input_stream =
-	    HTTPResponse_new(newreq, HTBufWriter_new(newreq->net, YES, 512));
-	newreq->output_stream = request->input_stream;
-	me->target = HTStreamStack(WWW_MIME, newreq->output_format,
-				   newreq->output_stream, newreq, NO);
+    /* Find an anchor for the request URI */
+    if (request_uri) {
+	char * uri = HTParse(request_uri, "file:", PARSE_ALL);
+	request->anchor = (HTParentAnchor *) HTAnchor_findAddress(uri);
+	FREE(uri);
+    } else {
+	HTRequest_addError(request, ERR_FATAL, NO, HTERR_BAD_REQUEST,
+			   NULL, 0, "ParseRequest");
+	request->output_stream =
+	    HTTPReply_new(request,HTWriter_new(request->net, YES));
+	return HT_ERROR;
+    }
+
+    /* Get ready to get the rest of the request */
+    if (version_str) {
+	me->target = HTStreamStack(WWW_MIME, request->output_format,
+				   request->output_stream, request, NO);
+	request->output_stream =
+	    HTTPReply_new(request,HTWriter_new(request->net, YES));
 	return HT_OK;
     } else {
 	if (PROT_TRACE) TTYPrint(TDEST, "Request Line is formatted as 0.9\n");
-	request->input_stream = HTBufWriter_new(request->net, YES, 512);
-	newreq->output_stream = request->input_stream;
+	request->output_stream =
+	    HTTPReply_new(request,HTWriter_new(request->net, YES));
 	return HT_LOADED;
     }
 }
@@ -163,20 +200,23 @@ PRIVATE int ParseRequest (HTStream * me)
 */
 PRIVATE int HTTPReceive_put_block (HTStream * me, CONST char * b, int l)
 {
-    int status = HT_OK;
-    while (!me->transparent && l > 0) {
-	if (me->state == EOL_FCR) {
-	    if ((status = ParseRequest(me)) != HT_OK) return status;
-	    else if (*b != LF) break;
-	} else if (*b == CR) {
-	    me->state = EOL_FCR;
-	} else if (*b == LF) {
-	    if ((status = ParseRequest(me)) < 0) return status;
-	} else
-	    HTChunk_putc(me->buffer, *b);		/* @@@ */
-	b++, l--;
+    if (!me->transparent) {
+	CONST char *p=b;
+	while (l>0 && *p!=CR && *p!=LF) l--, p++;
+	HTChunk_putb(me->buffer, b, p-b);
+	if (*p==CR || *p==LF) {
+	    int status = ParseRequest(me);
+	    HTChunk_clear(me->buffer);
+	    if (status != HT_OK) return status;
+	    me->transparent = YES;
+	    b=p;
+	}
     }
-    if (l > 0 && me->target) return PUTBLOCK(b, l);
+    if (l > 0) {
+	int status = PUTBLOCK(b, l);
+	if (status == HT_LOADED) me->transparent = NO;
+	return status;
+    }
     return HT_OK;
 }
 
@@ -236,13 +276,26 @@ PRIVATE HTStream * HTTPReceive_new (HTRequest * request, https_info * http)
     if (!me) outofmem(__FILE__, "HTTPReceive_new");
     me->isa = &HTTPReceiveClass;
     me->request = request;
-    me->http = http;
     me->state = EOL_BEGIN;    
     me->buffer = HTChunk_new(128);		 /* Sufficiant for most URLs */
     return me;
 }
 
 /* ------------------------------------------------------------------------- */
+
+/*	ServerCleanup
+**	-------------
+**      This function cleans up after the request
+**      Returns YES on OK, else NO
+*/
+PRIVATE int ServerCleanup (HTRequest * request, HTNet * net, int status)
+{
+    https_info * http = (https_info *) net->context;
+    HTNet_delete(net, status);
+    request->net = NULL;
+    FREE(http);
+    return YES;
+}
 
 /*	HTServHTTP
 **	----------
@@ -252,7 +305,7 @@ PRIVATE HTStream * HTTPReceive_new (HTRequest * request, https_info * http)
 PUBLIC int HTServHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 {
     int status = HT_ERROR;
-    HTNet * net = request->net;		     /* Generic protocol information */
+    HTNet * net = request->net;		       /* Server information */
     https_info * http;			    /* Specific protocol information */
     
     /*
@@ -260,7 +313,6 @@ PUBLIC int HTServHTTP (SOCKET soc, HTRequest * request, SockOps ops)
     ** This is actually state HTTPS_BEGIN, but it can't be in the state
     ** machine as we need the object first (chicken and egg problem).
     */
-    if (soc == INVSOC) return HT_ERROR;
     if (ops == FD_NONE) {
 	if (PROT_TRACE)
 	    TTYPrint(TDEST,"HTTP Serve.. request %p on socket %d\n",
@@ -270,7 +322,7 @@ PUBLIC int HTServHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	http->state = HTTPS_BEGIN;
 	net->context = http;
     } else if (ops == FD_CLOSE) {			      /* Interrupted */
-	ServerCleanup(request, http->serve ? HT_IGNORE : HT_INTERRUPTED);
+	ServerCleanup(request, net, HT_INTERRUPTED);
 	return HT_OK;
     } else
 	http = (https_info *) net->context;		/* Get existing copy */
@@ -281,17 +333,18 @@ PUBLIC int HTServHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	  case HTTPS_BEGIN:
 	    status = HTDoAccept(net);
 	    if (status == HT_OK) {
+
+		/* Setup read buffer */
 		net->isoc = HTInputSocket_new(net->sockfd);	
-		http->state = HTTPS_NEED_STREAM;
+
+		/* Setup Request parser stream */
+		net->target = HTTPReceive_new(request, http);
+
+		http->state = HTTPS_NEED_REQUEST;
 	    } else {
-		ServerCleanup(request, http->serve ? HT_IGNORE : HT_ERROR);
+		ServerCleanup(request, net, HT_ERROR);
 		return HT_ERROR;
 	    }	    
-	    break;
-
-	  case HTTPS_NEED_STREAM:
-	    net->target = HTTPReceive_new(request, http);
-	    http->state = HTTPS_NEED_REQUEST;
 	    break;
 
 	  case HTTPS_NEED_REQUEST:
@@ -300,17 +353,21 @@ PUBLIC int HTServHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
 		else if (status == HT_LOADED) {
-		    HTRequest * server = http->serve;
-		    if (HTLoad(server, NO) != YES) {
-			if (PROT_TRACE) TTYPrint(TDEST,"HTTP Serve. Error!\n");
-			http->state = HTTPS_ERROR;
-		    }
-		} else
+		    HTRequest * newreq = HTRequest_dup(request);
+		    HTEvent_Register(net->sockfd, request, (SockOps) FD_READ,
+				     net->cbf, net->priority);
+		    return HTLoad(newreq, NO)==YES ? HT_OK : HT_ERROR;
+		} else if (status == HT_PAUSE) {
+		    HTRequest * newreq = HTRequest_dup(request);
+		    HTRequest_addDestination(request, newreq);
+		    return HTLoad(newreq, NO)==YES ? HT_OK : HT_ERROR;
+		} else if (status == HT_CLOSED)
+		    http->state = HTTPS_OK;
+		else
 		    http->state = HTTPS_ERROR;
-	    } else if (ops == FD_WRITE) {		
+	    } else if (ops == FD_WRITE) {
 		if (HTRequest_isSource(request)) {
 		    HTNet * dest = request->mainDestination->net;
-		    TTYPrint(TDEST,"HTTP Serve. HERE!\n");		
 		    HTEvent_Register(dest->sockfd, dest->request,
 				     (SockOps) FD_READ,
 				     dest->cbf, dest->priority);
@@ -320,10 +377,18 @@ PUBLIC int HTServHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		http->state = HTTPS_ERROR;
 	    break;
 
+	  case HTTPS_OK:
+	    return HT_OK;
+	    break;
+
 	  case HTTPS_ERROR:
-	    ServerCleanup(request, http->serve ? HT_IGNORE : HT_ERROR);
+
+	   /* Do the POSTWeb stuff */
+
+	    ServerCleanup(request, net, HT_ERROR);
 	    return HT_OK;
 	    break;
 	}
     }
 }
+

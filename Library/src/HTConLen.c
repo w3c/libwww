@@ -72,6 +72,9 @@ PRIVATE void free_buf_all (HTStream * me)
 {
     HTBufItem * cur = me->head;
     HTBufItem * killme;
+    me->tmp_ind = 0;
+    me->tmp_max = 0;
+    FREE(me->tmp_buf);
     while (cur) {
 	killme = cur;
 	cur = cur->next;
@@ -187,15 +190,8 @@ PRIVATE int buf_free (HTStream * me)
 
 PRIVATE int buf_abort (HTStream * me, HTList * e)
 {
-    HTBufItem * cur;
-    if (!me->give_up)
-	free_buf_all(me);
-    if (me->target)
-	(*me->target->isa->abort)(me->target,e);
-    while ((cur = me->head)) {
-	me->head = cur->next;
-	free_buf(cur);
-    }
+    if (me->target) (*me->target->isa->abort)(me->target,e);
+    free_buf_all(me);
     free(me);
     if (PROT_TRACE) TTYPrint(TDEST, "Length...... ABORTING...\n");
     return HT_ERROR;

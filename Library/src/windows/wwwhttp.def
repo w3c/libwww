@@ -13,8 +13,8 @@ HTAA_templateCaseMatch	@ 204
 HTAA_makeProtectionTemplate @ 205
 HTAA_parseArgList	@ 206
 
-;HTTP.c			@ 300
-HTLoadHTTP		@ 301
+;HTTPGen.c		@ 300
+HTTPGen_new		@ 301
 
 ;HTTPReq.c		@ 400
 HTTPRequest_new		@ 401
@@ -22,6 +22,10 @@ HTTPRequest_new		@ 401
 ;HTTPRes.c		@ 500
 HTTPResponse_new	@ 501
 
-;HTTPServ.c		@ 600
-HTServHTTP		@ 601
+;HTTP.c			@ 600
+HTTPStatus_new		@ 601
+HTLoadHTTP		@ 602
+
+;HTTPServ.c		@ 700
+HTServHTTP		@ 701
 

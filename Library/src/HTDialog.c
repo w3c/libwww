@@ -198,12 +198,12 @@ PUBLIC BOOL HTPrompt (HTRequest * request, HTAlertOpcode op,
 		      int msgnum, CONST char * dfault, void * input,
 		      HTAlertPar * reply)
 {
-    char buffer[200];
     TTYPrint(TDEST, "%s ", HTDialogs[msgnum]);
     if (input) TTYPrint(TDEST, " (%s) ", (char *) input);
     if (dfault) TTYPrint(TDEST, "(RETURN for [%s]) ", (char *) dfault);
     if (reply && msgnum>=0) {
 #ifndef NO_STDIO
+        char buffer[200];
 	if (!fgets(buffer, 200, stdin)) return NO;
 	buffer[strlen(buffer)-1] = '\0';	        /* Overwrite newline */
 	if (*buffer)

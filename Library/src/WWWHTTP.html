@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Declaration of W3C Reference HTTP MODULE</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  8-Dec-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 29-Jan-1996 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -36,8 +36,11 @@ extern "C" {
 <PRE>
 #include "HTTP.h"			/* HTTP client state machine */
 #include "HTTPServ.h"			/* HTTP server state machine */
-#include "HTTPReq.h"			/* Stream for generating request */
-#include "HTTPRes.h"			/* Stream for gererating response */
+
+#include "HTTPGen.h"			/* General HTTP Header Stream */
+#include "HTTPReq.h"			/* Stream for generating requests */
+#include "HTTPRes.h"			/* Stream for gererating responses */
+
 #include "HTAAUtil.h"			/* Access authentication */
 #include "HTAABrow.h"			/* Access authentication */
 </PRE>

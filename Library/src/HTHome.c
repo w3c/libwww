@@ -312,7 +312,8 @@ PUBLIC int HTLoadTerminate (HTRequest * request, int status)
 			    request->error_stack, NULL);
 	}
 	if (PROT_TRACE)
-	    TTYPrint(TDEST, "Load End.... ERROR: Can't access `%s\'\n", uri);
+	    TTYPrint(TDEST, "Load End.... ERROR: Can't access `%s\'\n",
+		     uri ? uri : "<UNKNOWN>");
 	break;
 
       default:

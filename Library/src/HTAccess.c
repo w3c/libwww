@@ -95,6 +95,11 @@ PUBLIC void HTLib_setSecure (BOOL mode)
 PUBLIC BOOL HTLibInit (CONST char * AppName, CONST char * AppVersion)
 {
 #ifdef WWW_WIN_ASYNC
+    /*
+    **	We are here starting a hidden window to take care of events from
+    **  the async select() call in the async version of the event loop in
+    **	the Internal event manager (HTEvntrg.c)
+    */
     HWND htSocketWin;
     static char className[] = "AsyncWindowClass";
     WNDCLASS wc;
@@ -109,14 +114,6 @@ PUBLIC BOOL HTLibInit (CONST char * AppName, CONST char * AppVersion)
     wc.hbrBackground=0;
     wc.lpszMenuName=(LPSTR)0;
     wc.lpszClassName=className;
-#if 0
-   {0, /* no style */
-	AsyncWindowProc, /* to handle our async messages */
-	0, 0, /* allocate no extra bytes */
-	GetCurrentProcess(), /* hInstance to be filled in soon */
-	0, 0, 0, 0, /* icon, cursor, brush, menu */
-	className};
-#endif
 #endif /* WWW_WIN_ASYNC */
 
 #if WWWTRACE_MODE == WWWTRACE_FILE			  /* Open trace file */
@@ -536,21 +533,3 @@ PUBLIC BOOL HTUploadAnchor (HTAnchor *		src_anchor,
     return NO;
 }
 
-/* --------------------------------------------------------------------------*/
-/*	           	      Server Access functions			     */
-/* --------------------------------------------------------------------------*/
-
-/*	Serv a Document
-**	---------------
-**	This function sets up a request to service a document using the
-**	specified access scheme.
-*/
-PUBLIC BOOL HTServDocument (HTRequest * request, SOCKET master,
-			    CONST char * access)
-{
-    if (request && access) {
-	HTRequest_setAccess(request, (char *) access);
-	return HTServ(request, master, NO);
-    }
-    return NO;
-}

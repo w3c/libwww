@@ -48,6 +48,8 @@ PRIVATE fd_set write_fds;				   /* for Writing... */
 PRIVATE fd_set except_fds;			       /* for exceptions ... */
 PRIVATE fd_set all_fds ;			    /* any descriptor at all */
 
+PRIVATE int HTEndLoop = 0;		       /* If !0 then exit event loop */
+
 PRIVATE CONST int SecondsToWait = 5 ;
 
 PRIVATE void __ResetMaxSock( void ) ;
@@ -535,6 +537,15 @@ PUBLIC int HTEvent_UnregisterAll( void )
 }
 
 
+/*	HTEvent_stopLoop
+**	----------------
+**	Stops the (select based) event loop. The function does not guarantee
+**	that all requests have terminated. This is for the app to do
+*/
+PUBLIC void HTEvent_stopLoop (void)
+{
+    HTEndLoop = 1;
+}
 
 /*  HTEvent_Loop
 **  ------------
@@ -546,7 +557,6 @@ PUBLIC int HTEvent_UnregisterAll( void )
 **  Unix setup with sockets
 */
 #ifdef WWW_WIN_ASYNC
-int EndLoop = 0;      /* AsyncWindowsProc tells HTEvent_Loop when it is done */
 /* only responsible for WM_TIMER and WSA_AsyncSelect */    	
 PUBLIC LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -570,17 +580,17 @@ PUBLIC LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
     sock = (SOCKET)wParam;
     if (event & (FD_READ | FD_ACCEPT | FD_CLOSE))
     	if (__DoCallback((int)sock, FD_READ) != HT_OK) {
-	    EndLoop = -1;
+	    HTEndLoop = -1;
 	    return 0;
 	}
     if (event & (FD_WRITE | FD_CONNECT))
     	if (__DoCallback((int)sock, FD_WRITE) != HT_OK) {
-	    EndLoop = -1;
+	    HTEndLoop = -1;
 	    return 0;
 	}
     if (event & FD_OOB)
     	if (__DoCallback((int)sock, FD_OOB) != HT_OK) {
-	    EndLoop = -1;
+	    HTEndLoop = -1;
 	    return 0;
 	}
     return (0);
@@ -590,8 +600,8 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 {
     MSG msg;
 #ifdef WWW_WIN_CONSOLE
-    EndLoop = 0;
-    while (!EndLoop) {
+    HTEndLoop = 0;
+    while (!HTEndLoop) {
     	DWORD toRead;
     	if (console_in_use) {
             int status;
@@ -621,7 +631,7 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 	    DispatchMessage(&msg);
     }
 #endif
-    return (EndLoop == 1 ? HT_OK : HT_ERROR);
+    return (HTEndLoop == 1 ? HT_OK : HT_ERROR);
 }
 
 #else /* WWW_WIN_ASYNC  - Unix HTEvent_Loop */
@@ -802,7 +812,7 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 	    	return status;
         }
 
-    } while(1);
+    } while (!HTEndLoop);
 }
 
 /*

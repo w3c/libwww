@@ -21,7 +21,7 @@
 PUBLIC HTChunk * HTChunk_new (int grow)
 {
     HTChunk * ch = (HTChunk *) calloc(1, sizeof(HTChunk));
-    if (ch == NULL) outofmem(__FILE__, "cretion of chunk");
+    if (ch == NULL) outofmem(__FILE__, "HTChunk_new");
     ch->growby = grow;
     return ch;
 }
@@ -32,12 +32,19 @@ PUBLIC HTChunk * HTChunk_new (int grow)
 */
 PUBLIC void HTChunk_clear (HTChunk * ch)
 {
-    if (ch->data) {
-	free(ch->data);
-	ch->data = 0;
+    if (ch) {
+	ch->size = 0;
+	/* We zero the space we some apps expect chunks to be NUL terminated */
+	memset((void *) ch->data, '\0', ch->allocated);
     }
-    ch->size = 0;
-    ch->allocated = 0;
+#if 0
+    /* We don't want to free the data as we often must reallocated it */
+    if (ch) {
+	FREE(ch->data);
+	ch->size = 0;
+	ch->allocated = 0;
+    }
+#endif
 }
 
 
@@ -46,8 +53,10 @@ PUBLIC void HTChunk_clear (HTChunk * ch)
 */
 PUBLIC void HTChunk_delete (HTChunk * ch)
 {
-    if (ch->data) free(ch->data);
-    free(ch);
+    if (ch) {
+	FREE(ch->data);
+    	free(ch);
+    }
 }
 
 
@@ -56,6 +65,8 @@ PUBLIC void HTChunk_delete (HTChunk * ch)
 */
 PUBLIC void HTChunk_putc (HTChunk * ch, char c)
 {
+    HTChunk_putb(ch, &c, 1);
+#if 0
     if (ch->size >= ch->allocated-1) {
 	if (ch->data) {
 	    ch->data = (char *) realloc(ch->data, ch->allocated + ch->growby);
@@ -67,20 +78,69 @@ PUBLIC void HTChunk_putc (HTChunk * ch, char c)
 	if (!ch->data) outofmem(__FILE__, "HTChunk_putc");
     }
     ch->data[ch->size++] = c;
+#endif
+}
+
+/*	Append a string
+**	---------------
+*/
+PUBLIC void HTChunk_puts (HTChunk * ch, CONST char * s)
+{
+    HTChunk_putb(ch, s, (int) strlen(s));
+}
+
+/*	Append a block
+**	---------------
+**	The string is always zero terminated
+*/
+PUBLIC void HTChunk_putb (HTChunk * ch, CONST char * block, int len)
+{
+    if (ch && block && len) {
+	int needed = ch->size+len;
+	if (needed >= ch->allocated) {
+	    ch->allocated = needed - needed%ch->growby + ch->growby;
+	    if (ch->data) {
+		if ((ch->data = (char *) realloc(ch->data, ch->allocated)) == NULL)
+		    outofmem(__FILE__, "HTChunk_putb");
+	        memset((void *) (ch->data + needed), '\0', ch->allocated-needed);
+	    } else {
+		if ((ch->data = (char *) calloc(1, ch->allocated)) == NULL)
+	    	    outofmem(__FILE__, "HTChunk_putb");
+	    }
+	}
+	memcpy((void *) (ch->data+ch->size), block, len);
+	ch->size = needed;
+    }
 }
 
 
 /*	Ensure a certain size
 **	---------------------
 */
-PUBLIC void HTChunk_ensure (HTChunk * ch, int needed)
+PUBLIC void HTChunk_ensure (HTChunk * ch, int len)
 {
+    if (ch && len) {
+	int needed = ch->size+len;
+	if (needed >= ch->allocated) {
+	    ch->allocated = needed - needed%ch->growby + ch->growby;
+	    if (ch->data) {
+		if ((ch->data = (char *) realloc(ch->data, ch->allocated)) == NULL)
+		    outofmem(__FILE__, "HTChunk_putb");
+	        memset((void *) (ch->data + ch->size), '\0', ch->allocated-ch->size);
+	    } else {
+		if ((ch->data = (char *) calloc(1, ch->allocated)) == NULL)
+	    	    outofmem(__FILE__, "HTChunk_putb");
+	    }
+	}
+    }
+#if 0
     if (needed <= ch->allocated) return;
     ch->allocated = needed-1 - ((needed-1) % ch->growby)
     			     + ch->growby; /* Round up */
     ch->data = ch->data ? (char *)realloc(ch->data, ch->allocated)
 			: (char *)malloc(ch->allocated);
     if (ch->data == NULL) outofmem(__FILE__, "HTChunk_ensure");
+#endif
 }
 
 
@@ -89,26 +149,7 @@ PUBLIC void HTChunk_ensure (HTChunk * ch, int needed)
 */
 PUBLIC void HTChunk_terminate (HTChunk * ch)
 {
-    HTChunk_putc(ch, (char)0);
+    char zero = '\0';
+    HTChunk_putb(ch, &zero, 1);
 }
 
-
-/*	Append a string
-**	---------------
-*/
-PUBLIC void HTChunk_puts (HTChunk * ch, CONST char * s)
-{
-    CONST char * p;
-    for (p=s; *p; p++)
-        HTChunk_putc(ch, *p);
-}
-
-/*	Append a block
-**	---------------
-*/
-PUBLIC void HTChunk_putb (HTChunk * ch, CONST char *block, int len)
-{
-    int i;
-    for (i = 0; i < len; i++)
-        HTChunk_putc(ch, block[i]);
-}

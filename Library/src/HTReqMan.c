@@ -127,7 +127,6 @@ PUBLIC HTRequest * HTRequest_dupInternal (HTRequest * src)
     me->boundary = NULL;
     me->authenticate = NULL;
     me->error_stack = NULL;
-    me->access = NULL;
     me->authorization = NULL;
     me->prot_template = NULL;
     me->dialog_msg = NULL;
@@ -147,8 +146,6 @@ PUBLIC void HTRequest_delete (HTRequest * request)
 	FREE(request->boundary);
 	FREE(request->authenticate);
 	if (request->error_stack) HTError_deleteAll(request->error_stack);
-
-	FREE(request->access);
 
 	FREE(request->authorization);
 	FREE(request->prot_template);
@@ -378,18 +375,20 @@ PUBLIC HTEnHd HTRequest_enHd (HTRequest *request)
     return request ? request->EntityMask : 0;
 }
 
+#if 0
 /*
 **	Access scheme for server
 */
-PUBLIC void HTRequest_setAccess (HTRequest * request, char * access)
+PUBLIC void HTRequest_setServerSocket (HTRequest * request, char * access)
 {
     if (request && access) StrAllocCopy(request->access, access);
 }
 
-PUBLIC CONST char * HTRequest_access (HTRequest * request)
+PUBLIC CONST char * HTRequest_serverSocket (HTRequest * request)
 {
     return request ? request->access : NULL;
 }
+#endif
 
 /*
 **	Anchor
@@ -484,6 +483,19 @@ PUBLIC void HTRequest_setCallback (HTRequest *request, HTRequestCallback *cbf)
 PUBLIC HTRequestCallback *HTRequest_callback (HTRequest *request)
 {
     return request ? request->callback : NULL;
+}
+
+/*
+**	Call back function for proxying
+*/
+PUBLIC void HTRequest_setProxying (HTRequest * request, BOOL proxying)
+{
+    if (request) request->using_proxy = proxying;
+}
+
+PUBLIC BOOL HTRequest_proxying (HTRequest * request)
+{
+    return request ? request->using_proxy : NO;
 }
 
 /*
@@ -993,23 +1005,3 @@ PUBLIC BOOL HTLoad (HTRequest * request, BOOL recursive)
     return HTNet_newClient(request);
 }
 
-/*	Serv a resource
-**	---------------
-**	This function initiates the server side of a request and starts 
-**	serving it back accross the network.
-**	Returns:
-**		YES	if request has been registered (success)
-**		NO	an error occured
-*/
-PUBLIC BOOL HTServ (HTRequest * request, SOCKET master, BOOL recursive)
-{
-    if (!request || !request->access) {
-        if (PROT_TRACE) TTYPrint(TDEST, "Serv Start.. Bad argument\n");
-        return NO;
-    }
-    if (!recursive && request->error_stack) {
-	HTError_deleteAll(request->error_stack);
-	request->error_stack = NULL;
-    }
-    return HTNet_newServer(request, master);
-}

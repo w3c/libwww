@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Public Declaration of Request Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Jan-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 31-Jan-1996 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -30,6 +30,7 @@ Reference Library</A>. <P>
 #ifndef HTREQ_H
 #define HTREQ_H
 
+typedef long HTRequestID;
 typedef struct _HTRequest HTRequest;
 
 #include "HTList.h"
@@ -47,15 +48,6 @@ anchor.  (The public routines are called with one OR the other.)
 
 <PRE>
 extern BOOL HTLoad (HTRequest * request, BOOL recursive);
-</PRE>
-
-If you are a server then you want this function. This function
-initiates the server side of a request and starts serving it back
-accross the network.  Returns: YES if request has been registered
-(success) NO an error occured
-
-<PRE>
-extern BOOL HTServ (HTRequest * request, SOCKET master, BOOL recursive);
 </PRE>
 
 <H2>Creation and Deletion Methods</H2>
@@ -121,8 +113,10 @@ extern HTParentAnchor * HTRequest_anchor (HTRequest *request);
 This is done if you are a server. In this case you do not need an anchor
 
 <PRE>
+#if 0
 extern void HTRequest_setAccess (HTRequest * request, char * access);
 extern CONST char * HTRequest_access (HTRequest * request);
+#endif
 </PRE>
 
 <H2>Set the Method</H2>
@@ -404,7 +398,18 @@ extern HTParentAnchor * HTRequest_parent (HTRequest *request);
 
 <H3>Sending data to the Network</H3>
 
-There are two ways to send (post) information to the network: It can
+The Library supports two ways of posting a data object to a remote
+destination: Input comes from a socket descriptor or from memory. In
+the case where you want to <EM>copy</EM> a URL, for example from local
+file system <EM>or</EM> from a remote HTTP server then you must use
+the <A HREF="../User/Architecture/PostWeb.html">POSTWeb
+design</A>. This model operates by using at least two request objects
+which gets linked to eachother as part of the POSTWeb model. However,
+if you are posting from memory, we only use <EM>one</EM> request
+object to perform the operation. In order to do this, the application
+must register a callback function that can be called when the <A
+HREF="HTTP.c">HTTP client module</A> is ready for accepting data.
+
 be included as part of the body and/or as extra metainformation. In
 the latter case you need to register a callback function of the
 following type using the methods provided in the next section.
@@ -497,6 +502,19 @@ using the following methods:
 <PRE>
 extern void HTRequest_setContext (HTRequest *request, void *context);
 extern void *HTRequest_context (HTRequest *request);
+</PRE>
+
+<A NAME="proxying"><H2>Using a proxy server</H2></A>
+
+As a HTTP request looks different when it is directed to a proxy
+server than to a origin server, we need to know whether we are using a
+proxy for this particular request or not. These two methods can be
+used to set and check the current state whether we are going to a
+proxy or not.
+
+<PRE>
+extern void HTRequest_setProxying (HTRequest * request, BOOL proxying);
+extern BOOL HTRequest_proxying (HTRequest * request);
 </PRE>
 
 <H2>Preemptive or Non-preemptive Access</H2>

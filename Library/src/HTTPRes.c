@@ -1,5 +1,5 @@
 /*								      HTTPRes.c
-**	HTTP MESSAGES GENERATION
+**	HTTP RESPONSE GENERATION
 **
 **	This module implements the output stream for HTTP used for sending
 **	responces with or without a entity body. It is the server equivalent
@@ -16,10 +16,11 @@
 #include "HTWWWStr.h"
 #include "HTAccess.h"
 #include "HTWriter.h"
+#include "HTFWrite.h"
 #include "HTEvntrg.h"
 #include "HTNetMan.h"
 #include "HTReqMan.h"
-#include "HTMIMERq.h"
+#include "HTTPGen.h"
 #include "HTTPUtil.h"
 #include "HTTPRes.h"					       /* Implements */
 
@@ -29,7 +30,6 @@ struct _HTStream {
     CONST HTStreamClass *	isa;
     HTStream *		  	target;
     HTRequest *			request;
-    SOCKET			sockfd;
     BOOL			transparent;
 };
 
@@ -37,47 +37,13 @@ struct _HTStream {
 /* 			    HTTP Output Request Stream			     */
 /* ------------------------------------------------------------------------- */
 
-/*	Cleanup
-**	-------
-**      Cleanup the source request
-**      Returns YES on OK, else NO
-*/
-PRIVATE BOOL Cleanup (HTStream * me)
-{
-    int status = 0;
-    HTRequest * src_req = HTRequest_source(me->request);
-    HTNet * src_net;
-    if (!src_req || !src_req->net) return NO;
-    src_net = src_req->net;
-
-    if (PROT_TRACE) TTYPrint(TDEST, "HTTPResponse FREEING...\n");
-
-#if 0
-    /* Free stream with data TO network */
-    if (!HTRequest_isDestination(src_req) && src_req->input_stream) {
-	if (status == HT_INTERRUPTED)
-	    (*src_req->input_stream->isa->abort)(src_req->input_stream, NULL);
-	else
-	    (*src_req->input_stream->isa->_free)(src_req->input_stream);
-	src_req->input_stream = NULL;
-    }
-#endif
-    /* Remove the request object and our own context object for http */
-    src_net->target = NULL;
-    if (status != HT_INTERRUPTED && HTDNS_socket(src_net->dns) == INVSOC)
-	HTNet_delete(src_net, HT_IGNORE);
-    return YES;
-}
-
 /*	HTTPMakeResponse
 **	----------------
 **	Makes a HTTP/1.0-1.1 response header.
 */
-PRIVATE void HTTPMakeResponse (HTStream * me, HTRequest * request)
+PRIVATE int HTTPMakeResponse (HTStream * me, HTRequest * request)
 {
     char linebuf[256];
-
-    /* Generate the HTTP/1.0 ResponseLine */
     if (request->error_stack) {
 
 	/* @@@ WRITE A SMALL HTError_response() function */
@@ -96,19 +62,22 @@ PRIVATE void HTTPMakeResponse (HTStream * me, HTRequest * request)
 	    PUTBLOCK(linebuf, (int) strlen(linebuf));
 	}
     }
+    if(PROT_TRACE)TTYPrint(TDEST,"HTTP........ Generating Response Headers\n");
+    return HT_OK;
 }
 
 PRIVATE int HTTPResponse_put_block (HTStream * me, CONST char * b, int l)
 {
-    if (!me->target) {
-	return HT_WOULD_BLOCK;
-    } else if (me->transparent)
-	return b ? PUTBLOCK(b, l) : HT_OK;
-    else {
-	HTTPMakeResponse(me, me->request);		  /* Generate header */
-	me->transparent = YES;
-	return b ? PUTBLOCK(b, l) : HT_OK;
+    if (me->target) {
+	if (me->transparent)
+	    return PUTBLOCK(b, l);
+	else {
+	    HTTPMakeResponse(me, me->request);		  /* Generate header */
+	    me->transparent = YES;
+	    return b ? PUTBLOCK(b, l) : HT_OK;
+	}
     }
+    return HT_WOULD_BLOCK;
 }
 
 PRIVATE int HTTPResponse_put_character (HTStream * me, char c)
@@ -126,8 +95,11 @@ PRIVATE int HTTPResponse_put_string (HTStream * me, CONST char * s)
 */
 PRIVATE int HTTPResponse_flush (HTStream * me)
 {
-    int status = HTTPResponse_put_block(me, NULL, 0);
-    return status==HT_OK ? (*me->target->isa->flush)(me->target) : status;
+    if (!me->transparent) {
+	int status = HTTPMakeResponse(me, me->request);
+	if (status != HT_OK) return status;
+    }
+    return (*me->target->isa->flush)(me->target);
 }
 
 /*
@@ -135,19 +107,21 @@ PRIVATE int HTTPResponse_flush (HTStream * me)
 */
 PRIVATE int HTTPResponse_free (HTStream * me)
 {
-    int status = HTTPResponse_flush(me);
-    if (status != HT_WOULD_BLOCK) {
-	if ((status = (*me->target->isa->_free)(me->target)) == HT_WOULD_BLOCK)
-	    return HT_WOULD_BLOCK;
-	Cleanup(me);
+    TTYPrint(TDEST, "TESTTESTTEST FREEING RESPONSE STREAM\n");
+    if (me->target) {
+	int status;
+	if (!me->transparent)
+	    if ((status = HTTPMakeResponse(me, me->request)) != HT_OK)
+		return status;
+	if ((status = (*me->target->isa->_free)(me->target)) != HT_OK)
+	    return status;
     }
-    return status;
+    return HT_OK;
 }
 
 PRIVATE int HTTPResponse_abort (HTStream * me, HTList * e)
 {
     if (me->target) (*me->target->isa->abort)(me->target, e);
-    Cleanup(me);
     if (PROT_TRACE) TTYPrint(TDEST, "HTTPResponse ABORTING...\n");
     return HT_ERROR;
 }
@@ -166,13 +140,41 @@ PRIVATE CONST HTStreamClass HTTPResponseClass =
     HTTPResponse_put_block
 };
 
-PUBLIC HTStream * HTTPResponse_new (HTRequest *	request, HTStream * target)
+/*
+**	This stream is responsible for generating a full HTTP/1.x response. It
+**	may either do so by forwarding a response directly from an origin 
+**	server (if we are proxying) - or it can generate the response itself.
+*/
+PUBLIC HTStream * HTTPResponse_new (HTRequest *		request,
+				    void *		param,
+				    HTFormat		input_format,
+				    HTFormat		output_format,
+				    HTStream *		output_stream)
 {
-    HTStream * me = (HTStream *) calloc(1, sizeof(HTStream));
-    if (!me) outofmem(__FILE__, "HTTPResponse_new");
+    HTStream * me = NULL;
+    HTdns * dns;
+    if (!request || !request->net) return HTErrorStream();
+    /*
+    ** If we have a HTTP 1.x response then forward untouched
+    */
+    if ((dns = request->net->dns)) {
+	char * s_class = HTDNS_serverClass(dns);
+	int version = HTDNS_serverVersion(dns);
+	/* We are not using the version info for the moment */
+	if (s_class && !strcasecomp(s_class, "http")) {
+	    if (STREAM_TRACE) TTYPrint(TDEST, "HTTPResponse Direct output\n");
+	    return output_stream;
+	}
+    }
+    if ((me = (HTStream *) calloc(1, sizeof(HTStream))) == NULL)
+	outofmem(__FILE__, "HTTPResponse_new");
     me->isa = &HTTPResponseClass;
-    me->target = target;
+    me->target = output_stream;    
     me->request = request;
-    me->transparent = NO;
-    return HTMIMERequest_new(request, me);
+
+    TTYPrint(TDEST, "TESTTESTTEST CREATING RESPONSE STREAM\n");
+
+    /* Here we should also check whether we have content length etc. */
+
+    return me;
 }

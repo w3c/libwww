@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Request Object</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Jan-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 26-Jan-1996 -->
 </HEAD>
 <BODY>
 
@@ -96,7 +96,6 @@ struct _HTRequest {
 <H3>Anchors</H3>
 
 <PRE>
-    char *		access;	       /* The Server access for this request */
     HTParentAnchor *	anchor;	       /* The Client anchor for this request */
 
     HTChildAnchor *	childAnchor;	    /* For element within the object */
@@ -183,10 +182,6 @@ This will go into its own structure
     HTAASetup *	setup;			/* Doc protection info		  */
     HTAARealm *	realm;			/* Password realm		  */
     char *	dialog_msg;		/* Authentication prompt (client) */
-
-#if 0
-    HTInputSocket *	isoc;		/* InputSocket object for reading */
-#endif
 </PRE>
 
 <H3>Windows Specific Information</H3>

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Asyncronous Socket Management</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 10-Dec-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 26-Jan-1996 -->
 </HEAD>
 <BODY>
 
@@ -239,7 +239,7 @@ we have more than HTMaxActive connections already then return NO.
 Returns YES if OK, else NO
 
 <PRE>
-extern BOOL HTNet_newServer (HTRequest * request, SOCKET sockfd);
+extern BOOL HTNet_newServer (HTRequest * request, SOCKET sockfd, char *access);
 </PRE>
 
 And you can create a plain new HTNet object using the following method:

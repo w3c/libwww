@@ -556,7 +556,15 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
     }
 
     anchor->header_parsed = YES;
-    if (request->access || request->method == METHOD_HEAD) return HT_LOADED;
+    me->transparent = YES;		  /* Pump rest of data right through */
+
+#if 0
+    /* If we're a server then stop here */
+    if (request->server_net) {
+	return HTMethod_hasEntity(request->method) ? HT_PAUSE : HT_LOADED;
+    }
+#endif
+    if (request->method == METHOD_HEAD) return HT_LOADED;
 
     /* News server almost never send content type or content length */
     if (anchor->content_type != WWW_UNKNOWN || me->nntp) {
@@ -568,10 +576,9 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 				      me->target, request, YES)) == NULL) {
 	    if (STREAM_TRACE)
 		TTYPrint(TDEST, "MIMEParser.. Can't convert media type\n");
-	    me->target = HTBlackHole();
+	    me->target = HTErrorStream();
 	}
     }
-    me->transparent = YES;		  /* Pump rest of data right through */
     return HT_OK;
 }
 
@@ -642,24 +649,20 @@ PRIVATE int HTMIME_put_block (HTStream * me, CONST char * b, int l)
     ** Put the rest down the stream without touching the data but make sure
     ** that we get the correct content length of data
     */
-    if (l > 0) {
-	HTParentAnchor * anchor = me->anchor;
-	if (me->target) {
-	    int status = (*me->target->isa->put_block)(me->target, b, l);
-	    if (status == HT_OK)
-		/* Check if CL at all - thanks to jwei@hal.com (John Wei) */
-		return (me->request->method == METHOD_HEAD ||
-			(anchor->content_length >= 0 &&
-			 HTNet_bytesRead(me->net) >= anchor->content_length)) ?
-			     HT_LOADED : HT_OK;
-	    else
-		return status;
-	} else if (anchor->header_parsed)
-	    return HT_LOADED;
+    if (l < 0) return HT_OK;
+    if (me->target) {
+	long cl = me->anchor->content_length;
+	int status = (*me->target->isa->put_block)(me->target, b, l);
+	if (status == HT_OK)
+	    /* Check if CL at all - thanks to jwei@hal.com (John Wei) */
+	    return (me->request->method == METHOD_HEAD ||
+		    (cl >= 0 && HTNet_bytesRead(me->net) >= cl)) ?
+			HT_LOADED : HT_OK;
 	else
-	    return HT_WOULD_BLOCK;
-    }
-    return HT_OK;
+	    return status;
+    } else if (me->anchor->header_parsed)
+	return HT_LOADED;
+    return HT_WOULD_BLOCK;
 }
 
 
@@ -686,7 +689,7 @@ PRIVATE int HTMIME_put_string (HTStream * me, CONST char * s)
 */
 PRIVATE int HTMIME_flush (HTStream * me)
 {
-    return (*me->target->isa->flush)(me->target);
+    return me->target ? (*me->target->isa->flush)(me->target) : HT_OK;
 }
 
 /*	Free a stream object

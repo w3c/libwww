@@ -314,6 +314,7 @@ int main (int argc, char ** argv)
     conv = HTList_new();
 
     /* GENERIC converters */
+    HTConversion_add(conv,"text/x-http","*/*",	HTTPStatus_new,	1.0, 0.0, 0.0);
     HTConversion_add(conv,"text/x-nntp-list","*/*", HTNewsList, 1.0, 0.0, 0.0);
     HTConversion_add(conv,"text/x-nntp-over","*/*",HTNewsGroup, 1.0, 0.0, 0.0);
 
@@ -505,8 +506,13 @@ int main (int argc, char ** argv)
 	}
     }
 
-    /* Set up the output */
-    HTRequest_setOutputStream(cl->request, HTFWriter_new(cl->output, YES));
+    /*
+    ** Set up the output. Even though we don't use this explicit, it is
+    ** required in order to show the stream stack that we know that we are
+    ** getting raw data output on the output stream of the request object.
+    */
+    HTRequest_setOutputStream(cl->request,
+			      HTFWriter_new(cl->request, cl->output, YES));
 
     /* Log file specifed? */
     if (cl->logfile) HTLog_open(cl->logfile, YES, YES);
@@ -532,21 +538,10 @@ int main (int argc, char ** argv)
     if (HTAlert_interactive()) {
 	HTAlert_add(HTProgress, HT_A_PROGRESS);
 	HTAlert_add(HTError_print, HT_A_MESSAGE);
+	HTAlert_add(HTPrompt, HT_A_PROMPT);
 	HTAlert_add(HTPromptUsernameAndPassword, HT_A_USER_PW);
 	
     }
-
-    /* Register a call back function for the Net Manager */
-    HTNetCall_addAfter(authentication_handler, HT_NO_ACCESS);
-    HTNetCall_addAfter(redirection_handler, HT_PERM_REDIRECT);
-    HTNetCall_addAfter(redirection_handler, HT_TEMP_REDIRECT);
-    HTNetCall_addAfter(terminate_handler, HT_ALL);
-    
-    /* Register our own MIME header handler for extra headers */
-    HTHeader_addParser("*", NO, header_handler);
-
-    /* Set timeout on sockets */
-    HTEvent_registerTimeout(cl->tv, cl->request, timeout_handler, NO);
 
     /* Rule file specified? */
     if (cl->rules) {
@@ -558,12 +553,27 @@ int main (int argc, char ** argv)
 	HTConversion_add(list, "application/x-www-rules", "*/*", HTRules,
 			 1.0, 0.0, 0.0);
 	HTRequest_setConversion(rr, list, YES);
+	HTAlert_add(HTConfirm, HT_A_CONFIRM);
 	if (HTLoadAnchor((HTAnchor *) ra, rr) != YES)
 	    if (SHOW_MSG) TTYPrint(TDEST, "Can't access rules\n");
 	HTConversion_deleteAll(list);
 	HTRequest_delete(rr);
+	HTAlert_delete(HTConfirm);
 	FREE(rules);
     }
+
+    /* Register a call back function for the Net Manager */
+    HTNetCall_addBefore(HTLoadStart, 0);
+    HTNetCall_addAfter(authentication_handler, HT_NO_ACCESS);
+    HTNetCall_addAfter(redirection_handler, HT_PERM_REDIRECT);
+    HTNetCall_addAfter(redirection_handler, HT_TEMP_REDIRECT);
+    HTNetCall_addAfter(terminate_handler, HT_ALL);
+    
+    /* Register our own MIME header handler for extra headers */
+    HTHeader_addParser("*", NO, header_handler);
+
+    /* Set timeout on sockets */
+    HTEvent_registerTimeout(cl->tv, cl->request, timeout_handler, NO);
 
     /* Start the request */
     if (cl->dest)					   /* PUT, POST etc. */

@@ -60,11 +60,12 @@ PUBLIC BOOL HTArray_addObject (HTArray * array, void * object)
 	    if (array->data) {
 		array->data = (void **)
 		    realloc(array->data, (array->allocated+array->growby) * sizeof(void *));
+	        if (!array->data) outofmem(__FILE__, "HTArray_add");
 		memset((array->data+array->allocated), '\0', array->growby * sizeof(void *));
 	    } else {
 		array->data = (void **) calloc(array->growby, sizeof(void *));
+	        if (!array->data) outofmem(__FILE__, "HTArray_add");
 	    }
-	    if (!array->data) outofmem(__FILE__, "HTArray_add");
 	    array->allocated += array->growby;
 	}
 	*(array->data+array->size++) = object;

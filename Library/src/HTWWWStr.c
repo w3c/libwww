@@ -48,7 +48,7 @@ PUBLIC char * HTNextField (char ** pstr)
 {
     char * p = *pstr;
     char * start = NULL;
-
+    if (!*pstr) return NULL;
     while (1) {
 	/* Strip white space and other delimiters */
 	while (*p && (WHITE(*p) || *p==',' || *p==';' || *p=='=')) p++;

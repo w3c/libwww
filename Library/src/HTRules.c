@@ -371,7 +371,7 @@ PUBLIC HTStream * HTRules (HTRequest *	request,
 {
     HTAlertCallback *cbf = HTAlert_find(HT_A_CONFIRM);
     HTStream * me;
-    if (!cbf || (cbf && (*cbf)(request,HT_A_CONFIRM,HT_MSG_RULES,NULL,NULL,NULL))) {
+    if (cbf && (*cbf)(request,HT_A_CONFIRM,HT_MSG_RULES,NULL,NULL,NULL)) {
 	if (WWWTRACE) TTYPrint(TDEST, "Rule file... Parser object created\n");
 	if ((me = (HTStream *) calloc(1, sizeof(HTStream))) == NULL)
 	    outofmem(__FILE__, "HTRules");
@@ -382,7 +382,7 @@ PUBLIC HTStream * HTRules (HTRequest *	request,
 	me->EOLstate = EOL_BEGIN;
 	if (!rules) rules = HTList_new();
     } else
-	me = HTBlackHole();
+	me = HTErrorStream();
     return me;
 }
 

@@ -6,7 +6,6 @@ HTFormatInit		@ 103
 HTNetInit		@ 104
 HTAlertInit		@ 105
 HTAccessInit		@ 106
-HTStdIconInit		@ 107
 
 ;HTBInit.c		@ 200
 HTFileInit		@ 201

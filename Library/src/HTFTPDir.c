@@ -293,7 +293,7 @@ PUBLIC HTStream * HTFTPDir_new (HTRequest *	request,
     me->first = YES;
     if (me->dir == NULL) {
 	FREE(me);
-	return HTBlackHole();
+	return HTErrorStream();
     }
     return me;
 }

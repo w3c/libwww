@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>HTTP Access</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 23-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 30-Jan-1996 -->
 </HEAD>
 <BODY>
 
@@ -26,8 +26,11 @@ Library</A>. <P>
 #define HTTP_H
 
 #include "HTEvntrg.h"
+#include "HTStream.h"
+#include "HTFormat.h"
 
 extern HTEventCallback HTLoadHTTP;
+extern HTConverter HTTPStatus_new;
 
 #endif /* HTTP_H */
 </PRE>

@@ -36,6 +36,7 @@
 #include "HTWWWStr.h"
 #include "HTNetMan.h"
 #include "HTTPUtil.h"
+#include "HTMIMERq.h"
 #include "HTTPReq.h"
 #include "HTTP.h"					       /* Implements */
 
@@ -359,7 +360,7 @@ PRIVATE int stream_pipe (HTStream * me)
 	    if (req->method==METHOD_GET && HTCache_isEnabled() &&
 		(s = HTCacheWriter(req, NULL, WWW_MIME, req->output_format,
 				   req->output_stream))) {
-		me->target = HTTee(me->target, s);
+		me->target = HTTee(me->target, s, NULL);
 	    }
 	} else if (req->debug_stream) {
 	    me->target = HTStreamStack(WWW_MIME, req->debug_format,
@@ -370,7 +371,7 @@ PRIVATE int stream_pipe (HTStream * me)
 				       req, NO);
 	}
     }
-    if (!me->target) me->target = HTBlackHole();
+    if (!me->target) me->target = HTErrorStream();
     HTTPNextState(me);					   /* Get next state */
     me->transparent = YES;
     return HT_OK;
@@ -464,15 +465,29 @@ PRIVATE CONST HTStreamClass HTTPStatusClass =
     HTTPStatus_put_block
 };
 
+#if 0
 PRIVATE HTStream * HTTPStatus_new (HTRequest * request, http_info * http)
+#endif
+
+PUBLIC HTStream * HTTPStatus_new (HTRequest *	request,
+				  void *	param,
+				  HTFormat	input_format,
+				  HTFormat	output_format,
+				  HTStream *	output_stream)
 {
     HTStream * me = (HTStream *) calloc(1, sizeof(HTStream));
     if (!me) outofmem(__FILE__, "HTTPStatus_new");
     me->isa = &HTTPStatusClass;
-    me->request = request;
-    me->http = http;
-    me->state = EOL_BEGIN;
-    return me;
+    if (request) {
+	HTNet * net = request->net;
+	http_info * http = (http_info *) net->context;	/* Get existing copy */
+	me->request = request;
+	me->http = http;
+	http->next = HTTP_ERROR;
+	me->state = EOL_BEGIN;
+	return me;
+    } else
+	return HTErrorStream();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -505,7 +520,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	if ((http = (http_info *) calloc(1, sizeof(http_info))) == NULL)
 	    outofmem(__FILE__, "HTLoadHTTP");
 	http->state = HTTP_BEGIN;
-	http->next = HTTP_ERROR;
+	http->next = HTTP_GOT_DATA;
 	net->context = http;
     } else if (ops == FD_CLOSE) {			      /* Interrupted */
 	HTRequest_addError(request, ERR_FATAL, NO, HTERR_INTERRUPTED,
@@ -556,9 +571,12 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		    TTYPrint(TDEST, "HTTP........ Connected, socket %d\n",
 			    net->sockfd);
 
-		/* Set up stream TO network */
-		request->input_stream =
-		    HTTPRequest_new(request, HTBufWriter_new(net, YES, 512));
+		/* Set up stream TO network. If we include a data object in
+		** the request then add a MIME stream
+		*/
+		request->input_stream = HTMethod_hasEntity(request->method) ?
+		    HTMIMERequest_new(request, HTTPRequest_new(request, HTBufWriter_new(net, YES, 512), NO), YES) :
+			HTTPRequest_new(request, HTBufWriter_new(net,YES,256), YES);
 
 		/*
 		** Set up concurrent read/write if this request isn't the
@@ -574,7 +592,15 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 
 		/* Set up stream FROM network and corresponding read buffer */
 		net->isoc = HTInputSocket_new(net->sockfd);
-		net->target = HTTPStatus_new(request, http);
+		net->target=HTStreamStack(WWW_HTTP, request->output_format,
+					  request->output_stream, request, NO);
+#if 0
+		if (request->output_format == WWW_RAW) {
+		    net->target = request->output_stream;
+		    http->next = HTTP_GOT_DATA;
+		} else
+		    net->target = HTTPStatus_new(request, http);
+#endif
 
 		http->state = HTTP_NEED_REQUEST;
 	    } else if (status == HT_WOULD_BLOCK || status == HT_PERSISTENT)
@@ -607,7 +633,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		status = HTSocketRead(request, net);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_OK;
-		else if (status == HT_LOADED)
+		else if (status==HT_LOADED || status==HT_CLOSED)
 		    http->state = http->next;	       /* Jump to next state */
 		else
 		    http->state = HTTP_ERROR;

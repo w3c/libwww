@@ -263,9 +263,6 @@ HTRequest * TTYReq = 0; /* The windowed version doesn't get the HTRequest* when
 PRIVATE LineMode * LineMode_new (void)
 {
     LineMode * me;
-#ifdef WWW_WIN_WINDOW
-    TTYReq = me->request;
-#endif
     if ((me = (LineMode *) calloc(1, sizeof(LineMode))) == NULL ||
 	(me->tv = (struct timeval*) calloc(1, sizeof(struct timeval))) == NULL)
 	outofmem(__FILE__, "LineMode_new");
@@ -274,7 +271,7 @@ PRIVATE LineMode * LineMode_new (void)
     me->active = HTList_new();
     me->request = HTRequest_new();
     Context_new(me, me->request, LM_UPDATE);
-#ifdef _WINDOWS
+#ifdef WWW_WIN_WINDOW
     TTYReq = me->request;
 #endif
     me->trace = SHOW_ALL_TRACE;
@@ -618,7 +615,7 @@ PRIVATE BOOL SaveOutputStream (HTRequest * req, char * This, char * Next)
 	if (SHOW_MSG) TTYPrint(TDEST, "Can't access file (%s)\n", fname);
 	return NO;
     }
-    HTRequest_setOutputStream(req, HTFWriter_new(fp, NO));
+    HTRequest_setOutputStream(req, HTFWriter_new(req, fp, NO));
     if (SHOW_MSG) TTYPrint(TDEST, "Saving to file `%s\'\n", fname);
     return (HTLoadAnchor((HTAnchor*) HTMainAnchor, req) != HT_WOULD_BLOCK);
 }
@@ -1700,7 +1697,8 @@ int main (int argc, char ** argv)
 		OUTPUT = STDOUT;
 	    }
 	}
-	HTRequest_setOutputStream(lm->request, HTFWriter_new(OUTPUT, YES));
+	HTRequest_setOutputStream(lm->request,
+				  HTFWriter_new(lm->request, OUTPUT, YES));
 #endif
 
 	/*
@@ -1738,6 +1736,24 @@ int main (int argc, char ** argv)
 
     }
 
+    /* Rule file specified? */
+    if (lm->rules) {
+	HTList * list = HTList_new();
+	HTRequest * rr = Thread_new(lm, NO, LM_NO_UPDATE);
+	char * rules = HTParse(lm->rules, lm->cwd, PARSE_ALL);
+	HTParentAnchor * ra = (HTParentAnchor *) HTAnchor_findAddress(rules);
+	HTRequest_setPreemptive(rr, YES);
+	HTConversion_add(list, "application/x-www-rules", "*/*", HTRules,
+			 1.0, 0.0, 0.0);
+	HTRequest_setConversion(rr, list, YES);
+	HTAlert_add(HTConfirm, HT_A_CONFIRM);
+	if (HTLoadAnchor((HTAnchor *) ra, rr) != YES)
+	    if (SHOW_MSG) TTYPrint(TDEST, "Can't access rules\n");
+	HTConversion_deleteAll(list);
+	HTAlert_delete(HTConfirm);
+	FREE(rules);
+    }
+
     /* Register our User Prompts etc in the Alert Manager */
     if (HTAlert_interactive()) {
 	HTAlert_add(HTError_print, HT_A_MESSAGE);
@@ -1770,22 +1786,6 @@ int main (int argc, char ** argv)
 
     /* Set the DNS cache timeout */
     HTDNS_setTimeout(3600);
-
-    /* Rule file specified? */
-    if (lm->rules) {
-	HTList * list = HTList_new();
-	HTRequest * rr = Thread_new(lm, NO, LM_NO_UPDATE);
-	char * rules = HTParse(lm->rules, lm->cwd, PARSE_ALL);
-	HTParentAnchor * ra = (HTParentAnchor *) HTAnchor_findAddress(rules);
-	HTRequest_setPreemptive(rr, YES);
-	HTConversion_add(list, "application/x-www-rules", "*/*", HTRules,
-			 1.0, 0.0, 0.0);
-	HTRequest_setConversion(rr, list, YES);
-	if (HTLoadAnchor((HTAnchor *) ra, rr) != YES)
-	    if (SHOW_MSG) TTYPrint(TDEST, "Can't access rules\n");
-	HTConversion_deleteAll(list);
-	FREE(rules);
-    }
 
     /* Start the request */
     if (keywords)

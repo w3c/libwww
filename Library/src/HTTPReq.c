@@ -1,5 +1,5 @@
 /*								      HTTPReq.c
-**	HTTP MESSAGES GENERATION
+**	HTTP REQUEST GENERATION
 **
 **	This module implements the output stream for HTTP used for sending
 **	requests with or without a entity body.
@@ -22,7 +22,7 @@
 #include "HTWriter.h"
 #include "HTReqMan.h"
 #include "HTChunk.h"
-#include "HTMIMERq.h"
+#include "HTTPGen.h"
 #include "HTTPUtil.h"
 #include "HTTPReq.h"					       /* Implements */
 
@@ -220,8 +220,10 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 	char *relative = HTParse(parent, act,
 				 PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
 	if (relative && *relative) {
-	    sprintf(linebuf, "Referer: %s%c%c", parent, CR, LF);
-	    HTChunk_puts(header, linebuf);
+	    HTChunk_puts(header, "Referer: ");
+	    HTChunk_puts(header, parent);
+	    HTChunk_putc(header, CR);
+	    HTChunk_putc(header, LF);
 	}
 	free(act);
 	free(parent);
@@ -233,7 +235,7 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 		HTLib_name(), HTLib_version(), CR, LF);
 	HTChunk_puts(header, linebuf);
     }
-    if (PROT_TRACE) TTYPrint(TDEST, "HTTP Tx..... %s", header->data);
+    if (PROT_TRACE)TTYPrint(TDEST,"HTTP........ Generating Request Headers\n");
 }
 
 PRIVATE int HTTPRequest_put_block (HTStream * me, CONST char * b, int l)
@@ -314,8 +316,8 @@ PRIVATE CONST HTStreamClass HTTPRequestClass =
     HTTPRequest_put_block
 };
 
-PUBLIC HTStream * HTTPRequest_new (HTRequest *	request,
-				   HTStream *	target)
+PUBLIC HTStream * HTTPRequest_new (HTRequest * request, HTStream * target,
+				   BOOL endHeader)
 {
     HTStream * me = (HTStream *) calloc(1, sizeof(HTStream));
     HTdns *dns = HTNet_dns(request->net);
@@ -326,5 +328,7 @@ PUBLIC HTStream * HTTPRequest_new (HTRequest *	request,
     me->buffer = HTChunk_new(512);
     me->version = HTDNS_serverVersion(dns);
     me->transparent = NO;
-    return HTMIMERequest_new(request, me);		/* @@@ */
+
+    /* Return general HTTP header stream */
+    return HTTPGen_new(request, me, endHeader);
 }

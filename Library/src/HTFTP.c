@@ -168,32 +168,38 @@ PRIVATE FTPDataCon FTPMode = FTP_DATA_PASV;
 */
 PRIVATE int FTPCleanup (HTRequest * request, int status)
 {
-    HTNet *cnet = request->net;
-    ftp_ctrl *ctrl = (ftp_ctrl *) cnet->context;
-    HTNet *dnet = ctrl->dnet;
-    ftp_data *data = (ftp_data *) dnet->context;
-
-    /* Free stream with data TO network */
-    if (!HTRequest_isDestination(request) && request->input_stream) {
-	if (status == HT_INTERRUPTED)
-	    (*request->input_stream->isa->abort)(request->input_stream, NULL);
-	else
-	    (*request->input_stream->isa->_free)(request->input_stream);
+    if (request) {
+	HTNet * cnet = request->net;
+	ftp_ctrl * ctrl;
+	
+	/* Free stream with data TO network */
+	if (!HTRequest_isDestination(request) && request->input_stream) {
+	    if (status == HT_INTERRUPTED)
+		(*request->input_stream->isa->abort)(request->input_stream,NULL);
+	    else
+		(*request->input_stream->isa->_free)(request->input_stream);
+	}
+	
+	/* Remove the request object and our own context structure for http */
+	if (cnet && (ctrl = (ftp_ctrl *) cnet->context) != NULL) {
+	    HTNet * dnet = ctrl->dnet;
+	    ftp_data * data;
+	    HTChunk_delete(ctrl->cmd);
+	    FREE(ctrl->reply);
+	    FREE(ctrl->uid);
+	    FREE(ctrl->passwd);
+	    FREE(ctrl->account);
+	    FREE(ctrl);
+	    if (dnet && (data = (ftp_data *) dnet->context) != NULL) {
+		FREE(data->file);
+		FREE(data);
+	    }
+	    HTNet_delete(dnet, HT_IGNORE);
+	}
+	HTNet_delete(cnet, status);
+	return YES;
     }
-
-    /* Remove the request object and our own context structure for http */
-    HTNet_delete(dnet, HT_IGNORE);
-    HTNet_delete(cnet, status);
-
-    HTChunk_delete(ctrl->cmd);
-    FREE(ctrl->reply);
-    FREE(ctrl->uid);
-    FREE(ctrl->passwd);
-    FREE(ctrl->account);
-    FREE(data->file);
-    FREE(ctrl);
-    FREE(data);
-    return YES;
+    return NO;
 }
 
 /*	ScanResponse
@@ -1161,7 +1167,7 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKET sockfd,
 		status = HTSocketRead(request, dnet);
 		if (status == HT_WOULD_BLOCK)
 		    return HT_WOULD_BLOCK;
-		else if (status == HT_LOADED) {
+		else if (status == HT_LOADED || status == HT_CLOSED) {
 		    if (data->ready)
 			ctrl->substate = SUB_SUCCESS;
 		    else

@@ -405,7 +405,8 @@ PUBLIC HTStructured* HTMLGenerator (HTRequest *	request,
 				    request, YES)) == NULL) {
 	if (STREAM_TRACE)
 	    TTYPrint(TDEST, "HTMLGen..... Can't convert to media type\n");
-	me->target = HTBlackHole();
+	free(me);
+	me->target = HTErrorStream();
     }
     me->write_pointer = me->buffer;
     flush_breaks(me);

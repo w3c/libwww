@@ -57,7 +57,7 @@ struct _HTStructured {
     HTStream*			target;			/* Output stream */
     HTStreamClass		targetClass;		/* Output routines */
 
-    HTChunk 			title;		/* Grow by 128 */
+    HTChunk * 			title;		/* Grow by 128 */
     
     char *			comment_start;	/* for literate programming */
     char *			comment_end;
@@ -353,7 +353,7 @@ PRIVATE int HTML_put_character (HTStructured * me, char c)
     	break;					/* Do Nothing */
 	
     case HTML_TITLE:	
-    	HTChunk_putc(&me->title, c);
+    	HTChunk_putb(me->title, &c, 1);
 	break;
 
 	
@@ -400,7 +400,7 @@ PRIVATE int HTML_put_string (HTStructured * me, CONST char* s)
     	break;					/* Do Nothing */
 	
     case HTML_TITLE:	
-    	HTChunk_puts(&me->title, s);
+    	HTChunk_putb(me->title, s, strlen(s));
 	break;
 
 	
@@ -493,7 +493,7 @@ PRIVATE void HTML_start_element (
     	break;
 	
     case HTML_TITLE:
-        HTChunk_clear(&me->title);
+        HTChunk_clear(me->title);
 	break;
 	
     case HTML_NEXTID:
@@ -680,8 +680,7 @@ PRIVATE void HTML_end_element (HTStructured * me, int element_number)
 	break;
 
     case HTML_TITLE:
-        HTChunk_terminate(&me->title);
-    	HTAnchor_setTitle(me->node_anchor, me->title.data);
+    	HTAnchor_setTitle(me->node_anchor, HTChunk_data(me->title));
 	break;
 	
     case HTML_LISTING:				/* Litteral text */
@@ -746,7 +745,7 @@ PUBLIC int HTML_free (HTStructured * me)
     if (me->target) {
         (*me->targetClass._free)(me->target);
     }
-    HTChunk_clear(&me->title);	/* Henrik 18/02-94 */
+    HTChunk_delete(me->title);
     free(me);
     return HT_OK;
 }
@@ -758,7 +757,7 @@ PRIVATE int HTML_abort (HTStructured * me, HTList * e)
     if (me->target) {
         (*me->targetClass.abort)(me->target, e);
     }
-    HTChunk_clear(&me->title);	/* Henrik 18/02-94 */
+    HTChunk_delete(me->title);
     free(me);
     return HT_ERROR;
 }
@@ -850,10 +849,7 @@ PRIVATE HTStructured* HTML_new (HTRequest *	request,
     me->dtd = &HTMLP_dtd;
     me->request = request;
     me->node_anchor =  HTRequest_anchor(request);
-    me->title.size = 0;
-    me->title.growby = 128;
-    me->title.allocated = 0;
-    me->title.data = 0;
+    me->title = HTChunk_new(128);
     me->text = 0;
     me->style_change = YES; /* Force check leading to text creation */
     me->new_style = default_style;

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Library Interface for Displaying and Promting Messages</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 19-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 31-Jan-1996 -->
 <NEXTID N="z3">
 </HEAD>
 <BODY>
@@ -180,7 +180,8 @@ case you do not need to worry about creating the list - it will be
 created automatically.
 
 <PRE>
-extern BOOL HTAlert_add (HTAlertCallback * cbf, HTAlertOpcode opcode);
+extern BOOL HTAlert_add		(HTAlertCallback * cbf, HTAlertOpcode opcode);
+extern BOOL HTAlert_delete	(HTAlertCallback * cbf);
 extern HTAlertCallback * HTAlert_find (HTAlertOpcode opcode);
 </PRE>
 

@@ -286,6 +286,38 @@ PRIVATE int timeout_handler (HTRequest * request)
     return HT_OK;
 }
 
+/*	proxy_handler
+**	---------------
+**	This function is registered to be called before a request is issued
+**	We look for redirection for proxies and gateways
+**	returns		HT_LOADED		We already have this
+**			HT_ERROR		We can't load this
+**			HT_OK			Success
+*/
+PRIVATE int proxy_handler (HTRequest * request, int status)
+{
+    HTParentAnchor *anchor = HTRequest_anchor(request);
+    char * addr = HTAnchor_address((HTAnchor *) anchor);
+    char * newaddr = NULL;
+    if ((newaddr = HTProxy_find(addr))) {
+	StrAllocCat(newaddr, addr);
+	HTRequest_setProxying(request, YES);
+	HTAnchor_setPhysical(anchor, newaddr);
+    } else if ((newaddr = HTGateway_find(addr))) {
+	char * path = HTParse(addr,"",PARSE_HOST+PARSE_PATH+PARSE_PUNCTUATION);
+	/* Chop leading / off to make host into part of path */
+	char * gatewayed = HTParse(path+1, newaddr, PARSE_ALL);
+	HTRequest_setProxying(request, NO);
+	HTAnchor_setPhysical(anchor, gatewayed);
+	free(path);
+	free(gatewayed);
+    } else
+	HTRequest_setProxying(request, NO);
+    FREE(newaddr);
+    FREE(addr);
+    return HT_OK;
+}
+
 /* ------------------------------------------------------------------------- */
 /*				HTEXT INTERFACE				     */
 /* ------------------------------------------------------------------------- */
@@ -557,10 +589,12 @@ int main (int argc, char ** argv)
 	HTConversion_add(list, "application/x-www-rules", "*/*", HTRules,
 			 1.0, 0.0, 0.0);
 	HTRequest_setConversion(rr, list, YES);
+	HTAlert_add(HTConfirm, HT_A_CONFIRM);
 	if (HTLoadAnchor((HTAnchor *) ra, rr) != YES)
 	    if (SHOW_MSG) TTYPrint(TDEST, "Can't access rules\n");
 	HTConversion_deleteAll(list);
 	HTRequest_delete(rr);
+	HTAlert_delete(HTConfirm);
 	FREE(rules);
     }
 
@@ -571,9 +605,6 @@ int main (int argc, char ** argv)
 	    mr->output = OUTPUT;
 	}
     }
-
-    /* Set up the output */
-    HTRequest_setOutputStream(mr->request, HTFWriter_new(mr->output, YES));
 
     /* Log file specifed? */
     if (mr->logfile) HTLog_open(mr->logfile, YES, YES);
@@ -588,6 +619,7 @@ int main (int argc, char ** argv)
     }
 
     /* Register a call back function for the Net Manager */
+    HTNetCall_addBefore(proxy_handler, 0);
     HTNetCall_addAfter(terminate_handler, HT_ALL);
     
     /* Set timeout on sockets */

@@ -15,6 +15,7 @@
 /* Library include files */
 #include "tcp.h"
 #include "HTUtils.h"
+#include "HTArray.h"
 #include "HTTee.h"
 
 /*		Stream Object
@@ -22,112 +23,60 @@
 */
 
 struct _HTStream {
-	CONST HTStreamClass *	isa;
-	
-	HTStream *		s1;
-	HTStream *		s2;
+    CONST HTStreamClass *	isa;
+    HTStream *			s1;
+    HTStream *			s2;
+    HTComparer *		resolver;
 };
 
+/*
+**	Algorithm produced by H&kon
+*/
+PRIVATE int default_resolver (CONST void *a, CONST void *b)
+{
+    if (*(int *) a < 0)
+        return *(int *) a;
+    if (*(int *) b < 0)
+        return *(int *) b;
+    if (*(int *) a == 0)
+        return *(int *) b;
+    return *(int *) a;
+}
 
 PRIVATE int HTTee_put_character (HTStream * me, char c)
 {
     int ret1 = (*me->s1->isa->put_character)(me->s1, c);
     int ret2 = (*me->s2->isa->put_character)(me->s2, c);
-
-    if (ret1 < 0)	/* howcome 6 dec 95 */
-        return ret1;
-    if (ret2 < 0)
-        return ret2;
-    if (ret1 == 0)
-        return ret2;
-    return ret1;
-
-/*
-    return (!(ret1+ret2) ? HT_OK :
-	    (ret1==HT_ERROR || ret2==HT_ERROR) ? HT_ERROR :
-	    HT_WOULD_BLOCK);
-*/
+    return me->resolver(&ret1, &ret2);
 }
 
 PRIVATE int HTTee_put_string (HTStream * me, CONST char* s)
 {
     int ret1 = (*me->s1->isa->put_string)(me->s1, s);
     int ret2 = (*me->s2->isa->put_string)(me->s2, s);
-
-    if (ret1 < 0)	/* howcome 6 dec 95 */
-        return ret1;
-    if (ret2 < 0)
-        return ret2;
-    if (ret1 == 0)
-        return ret2;
-    return ret1;
-
-/*
-    return (!(ret1+ret2) ? HT_OK :
-	    (ret1==HT_ERROR || ret2==HT_ERROR) ? HT_ERROR :
-	    HT_WOULD_BLOCK);
-*/
+    return me->resolver(&ret1, &ret2);
 }
 
 PRIVATE int HTTee_write (HTStream * me, CONST char* s, int l)
 {
     int ret1 = (*me->s1->isa->put_block)(me->s1, s, l);
     int ret2 = (*me->s2->isa->put_block)(me->s2, s, l);
-
-    if (ret1 < 0)	/* howcome 6 dec 95 */
-        return ret1;
-    if (ret2 < 0)
-        return ret2;
-    if (ret1 == 0)
-        return ret2;
-    return ret1;
-
-/*
-    return (!(ret1+ret2) ? HT_OK :
-	    (ret1==HT_ERROR || ret2==HT_ERROR) ? HT_ERROR :
-	    HT_WOULD_BLOCK);
-*/
+    return me->resolver(&ret1, &ret2);
 }
 
 PRIVATE int HTTee_flush (HTStream * me)
 {
     int ret1 = (*me->s1->isa->flush)(me->s1);
     int ret2 = (*me->s2->isa->flush)(me->s2);
-
-    if (ret1 < 0)	/* howcome 6 dec 95 */
-        return ret1;
-    if (ret2 < 0)
-        return ret2;
-    if (ret1 == 0)
-        return ret2;
-    return ret1;
-
-/*
-    return (!(ret1+ret2) ? HT_OK :
-	    (ret1==HT_ERROR || ret2==HT_ERROR) ? HT_ERROR :
-	    HT_WOULD_BLOCK);
-*/
+    return me->resolver(&ret1, &ret2);
 }
 
 PRIVATE int HTTee_free (HTStream * me)
 {
     int ret1 = (*me->s1->isa->_free)(me->s1);
     int ret2 = (*me->s2->isa->_free)(me->s2);
+    return me->resolver(&ret1, &ret2);
     free(me);
-
-    if (ret1 < 0)	/* howcome 6 dec 95 */
-        return ret1;
-    if (ret2 < 0)
-        return ret2;
-    if (ret1 == 0)
-        return ret2;
-    return ret1;
-
-/*
-    return (!(ret1+ret2) ? HT_OK :
-	    (ret1==HT_ERROR || ret2==HT_ERROR) ? HT_ERROR :
-	    HT_WOULD_BLOCK);
-*/
 }
 
 PRIVATE int HTTee_abort (HTStream * me, HTList * e)
@@ -153,15 +102,24 @@ PRIVATE CONST HTStreamClass HTTeeClass =
 }; 
 
 
-/*	Tee creation
+/*	Tee Stream creation
+**	-------------------
+**	You can create a T stream using this method. Each stream returns a
+**	return value and in order to resolve conflicts in the return code
+**	you can specify a resolver callback function. Each time any of the 
+**	data methods are called the resolver function is then called with
+**	the return codes from the two streams. The return code of the T stream
+**	itself will be the result of the resolver function. If you pass NULL
+**	as the resolver routine then a default resolver is used.
 */
-PUBLIC HTStream * HTTee (HTStream * s1,HTStream * s2)
+PUBLIC HTStream * HTTee(HTStream * s1, HTStream * s2, HTComparer * resolver)
 {
     HTStream * me = (HTStream *) calloc(1, sizeof(*me));
     if (!me) outofmem(__FILE__, "HTTee");
     me->isa = &HTTeeClass;
     me->s1 = s1;
     me->s2 = s2;
+    me->resolver = resolver ? resolver : default_resolver;
     return me;
 }
 

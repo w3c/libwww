@@ -75,7 +75,8 @@ COMMON=	$(LOB)/HTList.o $(LOB)/HTString.o $(LOB)/HTAtom.o \
 	$(LOB)/HTHome.o $(LOB)/HTDialog.o \
 	$(LOB)/HTEscape.o $(LOB)/HTDescpt.o $(LOB)/HTGuess.o \
 	$(LOB)/HTTelnet.o $(LOB)/HTWSRC.o $(HTWAIS) $(LOB)/HTGopher.o \
-	$(LOB)/HTTP.o $(LOB)/HTTPReq.o $(LOB)/HTTPServ.o $(LOB)/HTTPRes.o \
+	$(LOB)/HTTP.o \
+	$(LOB)/HTTPGen.o $(LOB)/HTTPReq.o \
 	$(LOB)/HTFile.o $(LOB)/HTDir.o \
 	$(LOB)/HTNews.o $(LOB)/HTNewsRq.o $(LOB)/HTNDir.o $(LOB)/HTNewsLs.o \
 	$(LOB)/HTFTP.o  $(LOB)/HTFTPDir.o 
@@ -101,7 +102,8 @@ CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTProxy.c \
 	$(CMN)HTDescpt.c $(CMN)HTGuess.c $(CMN)HTWWWStr.c \
 	$(CMN)HTIcons.c $(CMN)HTError.c $(CMN)HTLog.c \
 	$(CMN)HTHome.c $(CMN)HTDialog.c \
-	$(CMN)HTTP.c $(CMN)HTTPReq.c $(CMN)HTTPServ.c $(CMN)HTTPRes.c \
+	$(CMN)HTTP.c \
+	$(CMN)HTTPGen.c $(CMN)HTTPReq.c \
 	$(CMN)HTNet.c $(CMN)HTEvntrg.c \
 	$(CMN)HTNews.c $(CMN)HTNewsRq.c $(CMN)HTNDir.c $(CMN)HTNewsLs.c \
 	$(CMN)HTEscape.c $(CMN)HTNetTxt.c $(CMN)HTBind.c
@@ -134,7 +136,8 @@ HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h  $(CMN)HTProxy.h $(CMN)HTFile.h \
 	$(CMN)HTDescpt.h $(CMN)HTGuess.h \
 	$(CMN)HTIcons.h $(CMN)HTError.h $(CMN)HTLog.h \
 	$(CMN)HTHome.h $(CMN)HTDialog.h \
-	$(CMN)HTTP.h $(CMN)HTTPReq.h $(CMN)HTTPServ.h $(CMN)HTTPRes.h \
+	$(CMN)HTTP.h \
+	$(CMN)HTTPGen.h $(CMN)HTTPReq.h \
 	$(CMN)HTTPUtil.h \
 	$(CMN)HTNews.h $(CMN)HTNewsRq.h $(CMN)HTNDir.h $(CMN)HTNewsLs.h \
 	$(CMN)HTEscape.h $(CMN)HTNetTxt.h $(CMN)HTBind.h \
@@ -186,6 +189,7 @@ SPECIFIC = \
 	$(WIN)/*.def \
 	$(WIN)/*.c \
 	$(WIN)/*.h \
+	$(WIN)/*.txt \
 	$(VMS)/descrip.mms  $(VMS)/COPYING.LIB \
  	$(VMS)/build_multinet.com $(VMS)/build_multinet.com_alpha \
 	$(VMS)/multinet.opt $(VMS)/multinet.opt_alpha \
@@ -556,13 +560,16 @@ $(LOB)/HTWSRC.o : $(OE) $(CMN)HTWSRC.c $(CMN)HTUtils.h $(CMN)HTList.h
 $(LOB)/HTTP.o : $(OE) $(CMN)HTTP.c $(CMN)HTTP.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTTP.c
 
-$(LOB)/HTTPServ.o : $(OE) $(CMN)HTTPServ.c $(CMN)HTTPServ.h
-	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTTPServ.c
+#$(LOB)/HTTPServ.o : $(OE) $(CMN)HTTPServ.c $(CMN)HTTPServ.h
+#	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTTPServ.c
 
 $(LOB)/HTTPReq.o : $(OE) $(CMN)HTTPReq.c $(CMN)HTTPReq.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTTPReq.c
 
-$(LOB)/HTTPRes.o : $(OE) $(CMN)HTTPRes.c $(CMN)HTTPRes.h
-	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTTPRes.c
+$(LOB)/HTTPGen.o : $(OE) $(CMN)HTTPGen.c $(CMN)HTTPGen.h
+	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTTPGen.c
+
+#$(LOB)/HTTPRes.o : $(OE) $(CMN)HTTPRes.c $(CMN)HTTPRes.h
+#	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTTPRes.c
 
 

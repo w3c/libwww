@@ -298,6 +298,7 @@ PUBLIC BOOL HTDNS_updateWeigths(HTdns *dns, int current, time_t deltatime)
 	for (cnt=0; cnt<dns->homes; cnt++) {
 	    if (cnt == current) {
 		*(dns->weight+current) = *(dns->weight+current)*alpha + (1.0-alpha)*deltatime;
+		if (*(dns->weight+current) < 0.0) *(dns->weight+current) = 0.0;
 	    } else {
 		*(dns->weight+cnt) = *(dns->weight+cnt) * passive;
 	    }
