@@ -243,12 +243,204 @@ PUBLIC void HTEventInit (void)
 }
 #endif
 
+/*     standard MIME parsers
+ */
+PRIVATE int allow (HTRequest * request, char * token, char * value)
+{
+    char * field;
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    while ((field = HTNextField(&value)) != NULL) {
+        HTMethod new_method;
+	/* We treat them as case-insensitive! */
+	if ((new_method = HTMethod_enum(field)) != METHOD_INVALID)
+	    HTAnchor_appendMethods(anchor, new_method);
+    }
+    if (STREAM_TRACE)
+        HTTrace("MIMEParser.. Methods allowed: %d\n",
+		HTAnchor_methods(anchor));
+    return HT_OK;
+}
+
+PRIVATE int authenticate (HTRequest * request, char * token, char * value)
+{
+    if (!request->challenge) request->challenge = HTAssocList_new();
+
+    StrAllocCopy(request->scheme, "basic");	/* @@@@@@@@@ */
+
+    HTAssocList_add(request->challenge, "WWW-authenticate", value);
+    return HT_OK;
+}
+
+PRIVATE int connection (HTRequest * request, char * token, char * value)
+{
+    char * field;
+    if ((field = HTNextField(&value)) != NULL) {
+        if (!strcasecomp(field, "keep-alive")) {
+	    HTNet_setPersistent(request->net, YES);
+	    if (STREAM_TRACE) HTTrace("MIMEParser.. Persistent Connection\n");
+	}
+    }
+    return HT_OK;
+}
+
+PRIVATE int content_encoding (HTRequest * request, char * token, char * value)
+{
+    char * field;
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    while ((field = HTNextField(&value)) != NULL) {
+        char * lc = field;
+	while ((*lc = TOLOWER(*lc))) lc++;
+	HTAnchor_addEncoding(anchor, HTAtom_for(field));
+    }
+    return HT_OK;
+}
+
+PRIVATE int content_language (HTRequest * request, char * token, char * value)
+{
+    char * field;
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    while ((field = HTNextField(&value)) != NULL) {
+        char * lc = field;
+	while ((*lc = TOLOWER(*lc))) lc++;
+	HTAnchor_addLanguage(anchor, HTAtom_for(field));
+    }
+    return HT_OK;
+}
+
+PRIVATE int content_length (HTRequest * request, char * token, char * value)
+{
+    char * field;
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    if ((field = HTNextField(&value)) != NULL)
+        HTAnchor_setLength(anchor, atol(field));
+    return HT_OK;
+}
+
+PRIVATE int content_transfer_encoding (HTRequest * request, char * token, char * value)
+{
+    char * field;
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    if ((field = HTNextField(&value)) != NULL) {
+        char *lc = field;
+	while ((*lc = TOLOWER(*lc))) lc++;
+	HTAnchor_setTransfer(anchor, HTAtom_for(field));
+    }
+    return HT_OK;
+}
+
+PRIVATE int content_type (HTRequest * request, char * token, char * value)
+{
+    char * field;
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    if ((field = HTNextField(&value)) != NULL) {
+        char *lc = field;
+	while ((*lc = TOLOWER(*lc))) lc++; 
+	HTAnchor_setFormat(anchor, HTAtom_for(field));
+	while ((field = HTNextField(&value)) != NULL) {
+	    if (!strcasecomp(field, "charset")) {
+	        if ((field = HTNextField(&value)) != NULL) {
+		    lc = field;
+		    while ((*lc = TOLOWER(*lc))) lc++;
+		    HTAnchor_setCharset(anchor, HTAtom_for(field));
+		}
+	    } else if (!strcasecomp(field, "level")) {
+	        if ((field = HTNextField(&value)) != NULL) {
+		    lc = field;
+		    while ((*lc = TOLOWER(*lc))) lc++;
+		    HTAnchor_setLevel(anchor, HTAtom_for(field));
+		}
+	    } else if (!strcasecomp(field, "boundary")) {
+	        if ((field = HTNextField(&value)) != NULL) {
+		    StrAllocCopy(request->boundary, field);
+	        }
+	    }
+	}
+    }
+    return HT_OK;
+}
+
+PRIVATE int derived_from (HTRequest * request, char * token, char * value)
+{
+    char * field;
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    if ((field = HTNextField(&value)) != NULL)
+        HTAnchor_setDerived(anchor, field);
+    return HT_OK;
+}
+
+PRIVATE int expires (HTRequest * request, char * token, char * value)
+{
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    HTAnchor_setExpires(anchor, HTParseTime(value, 
+					    HTRequest_userProfile(request)));
+    return HT_OK;
+}
+
+PRIVATE int last_modified (HTRequest * request, char * token, char * value)
+{
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    HTAnchor_setLastModified(anchor, HTParseTime(value, 
+					    HTRequest_userProfile(request)));
+    return HT_OK;
+}
+
+PRIVATE int location (HTRequest * request, char * token, char * value)
+{
+    request->redirectionAnchor = HTAnchor_findAddress(HTStrip(value));
+    return HT_OK;
+}
+
+PRIVATE int message_digest (HTRequest * request, char * token, char * value)
+{
+    if (!request->challenge) request->challenge = HTAssocList_new();
+    HTAssocList_add(request->challenge, "Digest-MessageDigest", value);
+    return HT_OK;
+}
+
+PRIVATE int mime_date (HTRequest * request, char * token, char * value)
+{
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    HTAnchor_setDate(anchor, HTParseTime(value, 
+					 HTRequest_userProfile(request)));
+    return HT_OK;
+}
+
+PRIVATE int newsgroups (HTRequest * request, char * token, char * value)
+{
+    /* HTRequest_net(request)->nntp = YES; */	       	/* Due to news brain damage */
+    return HT_OK;
+}
+
+PRIVATE int retry_after (HTRequest * request, char * token, char * value)
+{
+    request->retry_after = HTParseTime(value, 
+				       HTRequest_userProfile(request));
+    return HT_OK;
+}
+
+PRIVATE int title (HTRequest * request, char * token, char * value)
+{
+    char * field;
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    if ((field = HTNextField(&value)) != NULL)
+        HTAnchor_setTitle(anchor, field);
+    return HT_OK;
+}
+
+PRIVATE int version (HTRequest * request, char * token, char * value)
+{
+    char * field;
+    HTParentAnchor * anchor = HTRequest_anchor(request);
+    if ((field = HTNextField(&value)) != NULL)
+        HTAnchor_setVersion(anchor, field);
+    return HT_OK;
+}
+
+
 /*	REGISTER ALL HTTP/1.1 MIME HEADERS
 **	--------------------------------------------
 **	Not done automaticly - may be done by application!
 */
-#include "mimeFuncs.c"
-
 PUBLIC void HTMIMEInit()
 {
     struct {
