@@ -543,6 +543,7 @@ PUBLIC int HTLoadGopher ARGS1(HTRequest *, request)
 			request->output_format, request->output_stream);
 		targetClass = *target->isa;
 		display_index(arg, request->anchor);	/* Display "cover page" */
+		free(p1);		/* Leak fixed Henrik 27 Feb 94 */
 		return HT_LOADED;		/* Local function only */
 	    }
 	    *query++ = 0;			/* Skip '?' 	*/
@@ -569,6 +570,7 @@ PUBLIC int HTLoadGopher ARGS1(HTRequest *, request)
 			request->output_format, request->output_stream);
 		targetClass = *target->isa;
                 display_cso(arg, request->anchor);     /* Display "cover page" */
+		free(p1);		/* Leak fixed Henrik 27 Feb 94 */
                 return HT_LOADED;                 /* Local function only */
             }
             *query++ = 0;                       /* Skip '?'     */
