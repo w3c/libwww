@@ -301,7 +301,7 @@ PRIVATE int HTCookie_beforeFilter (HTRequest * request, void * param, int mode)
 	    HTAssoc * pres;
 	    BOOL first=YES;
 	    while ((pres = (HTAssoc *) HTAssocList_nextObject(cur))) {
-		if (!first) HTChunk_putc(cookie_header, ',');
+		if (!first) HTChunk_putc(cookie_header, ';');
 		HTChunk_puts(cookie_header, HTAssoc_name(pres));
 		HTChunk_putc(cookie_header, '=');
 		HTChunk_puts(cookie_header, HTAssoc_value(pres));
