@@ -156,9 +156,9 @@ libwww API documentation. For more comprehensive descriptions, see the
 <P>
 The functions are sorted by 
 <UL>
-<LI><A HREF="#byFunction">name</A>, 
-<LI><A HREF="#byDLL">DLL</A>,
-<LI><A HREF="#byModule">module</A>
+<LI><A HREF="#byDLL">Interface collection</A>,
+<LI><A HREF="#byModule">Individual module</A>
+<LI><A HREF="#byFunction">Function name</A>, 
 EndOfHeader
 #<PRE>
 }
@@ -168,7 +168,7 @@ sub printByFunction
     print <<"EndOfByFunction";
 </UL>
 <P>
-<A NAME="byFunction"><H2>Sorted by Function</H2></A>
+<A NAME="byFunction"><H2>Sorted by Function Name</H2></A>
 <UL>
 EndOfByFunction
 }
@@ -178,7 +178,7 @@ sub printByDLL
     print <<"EndOfByDLL";
 </UL>
 <P>
-<A NAME="byDLL"><H2>Sorted by DLL</H2></A>
+<A NAME="byDLL"><H2>Sorted by Interface Collection</H2></A>
 <UL>
 EndOfByDLL
 }
@@ -201,19 +201,20 @@ sub printByModule
     print <<"EndOfByModule";
 </UL>
 <P>
-<A NAME="byModule"><H2>Sorted by Module</H2></A>
+<A NAME="byModule"><H2>Sorted by Individual Module</H2></A>
 <UL>
 EndOfByModule
 }
 
 sub printModuleName
 {
-    local($module, $dll, $text) = @_;
+    local($module, $dll, $text, $link) = @_;
+    $link = $Dir.$module;
     $text = "from the <A HREF=\"#$dll\">$dll</A> module\n" if(defined($dll));
     print <<"EndOfModuleName";
 </UL>
 <P>
-<A NAME="$module"><H3>$module</H3></A>
+<A NAME="$module"><A HREF="$link"><H3>$module</H3></A></A>
 $text
 <UL>
 EndOfModuleName
@@ -291,16 +292,7 @@ foreach $file (@ModuleList) {
 }
 @FunctionList = sort @FunctionList;
 
-# 4. output sorted by function name
-&printByFunction;
-foreach $func (@FunctionList) {
-    local($source, $nameTag) = split('#', $Functions{$func});
-    undef($nameTag) if ($nameTag eq '');
-    local($dll) = $DLLS{$source};
-    &numberEach($source, $func, $nameTag, $dll);
-}
-
-# 5. output sorted by DLL name
+# 4. output sorted by DLL name
 &printByDLL;
 foreach $checkDll (@DLLList) {
     printDLLName($checkDll);
@@ -313,7 +305,7 @@ foreach $checkDll (@DLLList) {
     }
 }
 
-# 6. output sorted by module name
+# 5. output sorted by module name
 &printByModule;
 foreach $module (@ModuleList) {
     local($dll) = $DLLS{$module};
@@ -325,4 +317,14 @@ foreach $module (@ModuleList) {
 	&numberEach($source, $func, $nameTag);
     }
 }
+
+# 6. output sorted by function name
+&printByFunction;
+foreach $func (@FunctionList) {
+    local($source, $nameTag) = split('#', $Functions{$func});
+    undef($nameTag) if ($nameTag eq '');
+    local($dll) = $DLLS{$source};
+    &numberEach($source, $func, $nameTag, $dll);
+}
+
 &printFooter;
