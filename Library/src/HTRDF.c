@@ -107,15 +107,10 @@ PRIVATE void addMarkupStart (HTRDF *rdfp, const char *name, const char **atts)
 
     if (!rdfp || !name) return;
 
-    StrAllocCat(rdfp->m_sLiteral, "<");
-    StrAllocCat(rdfp->m_sLiteral, name);
+    StrAllocMCat(&rdfp->m_sLiteral, "<", name, NULL);
 
     while (atts[i]) {
-        StrAllocCat(rdfp->m_sLiteral, " ");
-        StrAllocCat(rdfp->m_sLiteral, atts[i]);
-        StrAllocCat(rdfp->m_sLiteral, "=\"");
-        StrAllocCat(rdfp->m_sLiteral, atts[i+1]);
-        StrAllocCat(rdfp->m_sLiteral, "\"");
+        StrAllocMCat(&rdfp->m_sLiteral, " ", atts[i], "=\"", atts[i+1], "\"", NULL);
         i+=2;
     }
 
@@ -130,9 +125,7 @@ PRIVATE void addMarkupEnd (HTRDF *rdfp, const char *name)
 {
     if (!rdfp || !name) return;
 
-    StrAllocCat(rdfp->m_sLiteral, "</");
-    StrAllocCat(rdfp->m_sLiteral, name);
-    StrAllocCat(rdfp->m_sLiteral, ">");
+    StrAllocMCat(&rdfp->m_sLiteral, "</", name, ">", NULL);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1492,7 +1485,8 @@ PRIVATE char * HTRDF_processPredicate (HTRDF * 		me,
 		HTRDF_addTriple(me, predicate->m_sName, sTarget, target->m_sID);
 	    }
 	}
-	StrAllocCopy(nsStatementID, predicate->m_sID);
+	if (nsStatementID && predicate->m_sID)
+	    StrAllocCopy(nsStatementID, predicate->m_sID);
 	return nsStatementID;
     }
 
@@ -1526,7 +1520,8 @@ PRIVATE char * HTRDF_processPredicate (HTRDF * 		me,
 	HTList *cur = predicate->m_children;
 	BOOL bUsedTypedNodeProduction = NO;
 	HTElement *n2;
-	StrAllocCopy(nsStatementID, sStatementID);
+	if (nsStatementID && sStatementID)
+	    StrAllocCopy(nsStatementID, sStatementID);
 	if (HTList_isEmpty(cur)) {
 	    if (reificate) {
 		char * nr = HTRDF_newReificationID(me);
@@ -1545,7 +1540,8 @@ PRIVATE char * HTRDF_processPredicate (HTRDF * 		me,
 	    if (HTRDF_isDescription(me, n2)) {
 		HTElement *d2 = n2;
 		char * dStatementID =HTRDF_processDescription(me, d2, YES, NO, NO);
-		StrAllocCopy(d2->m_sID, dStatementID);
+		if (d2->m_sID && dStatementID && d2->m_sID != dStatementID)
+		    StrAllocCopy(d2->m_sID, dStatementID);
 		
 		if (reificate) {
 		    HT_FREE(nsStatementID);
@@ -1880,7 +1876,8 @@ PUBLIC char * HTRDF_processDescription (HTRDF *		me,
 			    sAbout = description->m_sID;
 			}
 		    } else {
-			StrAllocCopy(description->m_sID, sAbout);
+                        if (description->m_sID != sAbout)
+			    StrAllocCopy(description->m_sID, sAbout);
 		    }
 		    sChildID = HTRDF_processPredicate(me, n, description, sAbout, NO);
 		}
