@@ -1,0 +1,159 @@
+     (PICS-1.1 "http://www.gcf.org/v1.0"
+       labels on "1994.11.05T08:15-0500"
+              until "1995.12.31T23:59-0000"
+              for "http://w3.org/PICS/Overview.html"
+              by "John Patrick"
+              ratings (suds 0.5 density 0 color/hue 1))
+
+     (PICS-1.1 "http://www.gcf.org/v1.0" l
+       full "http://www.gcf.org/labels/13242123"
+       r (suds 0.5 density 0 color/hue 1))
+
+(PICS-1.1 "http://www.gcf.org/v1.0"
+  l r (suds 0.5 density 0 color/hue 1))
+
+ (PICS-1.1 "http://www.gcf.org/v1.0" labels
+  on "1994.11.05T08:15-0500"
+  exp "1995.12.31T23:59-0000"
+  for "http://www.greatdocs.com/foo.html"
+  by "George Sanderson, Jr."
+  ratings (suds 0.5 density 0 color/hue 1))
+
+(PICS-1.1
+ "http://www.ages.org/our-service/v1.0/"        ;first service
+ labels
+  for "http://www.w3.org/pub/WWW/"
+  generic true
+  by "abaird@w3.org"
+  ratings (age 11)      ;end of first label, since 'ratings' is always last part of a label
+  ;;the same generic label applies also to any URL beginning http://www.w3.org/pub/WWW/TheProject.html
+  for "http://www.w3.org/pub/WWW/"
+  generic true
+  by "abaird@w3.org"
+  ratings (age 11)      ;end of second label
+  error (not-labeled "http://www.w3.org/unknown") ;no label available for third document
+  ;three labels requested, so end of first service
+ "http://www.rsac.org/v1.0"
+ labels
+  for "http://www.w3.org/pub/WWW"
+  generic true
+  by "abaird@w3.org"
+  ratings (v 0 s 0 n 0 l 0)
+  for "http://www.w3.org/pub/WWW"
+  generic true
+  by "abaird@w3.org"
+  ratings (v 0 s 0 n 0 l 0)
+  error (not-labeled "http://www.w3.org/unknown")
+ ;;no labels for third service
+ error (no-ratings "unknown service"))
+
+(PICS-1.1
+ "http://www.ages.org/our-service/v1.0/"
+  labels
+  ;;no specific label available, so generic label returned
+  for "http://www.w3.org/pub/WWW/"
+  generic true
+  by "abaird@w3.org"
+  ratings (age 11)
+  ;;no specific label available, so generic label returned
+  for "http://www.w3.org/pub/WWW/"
+  generic true
+  by "abaird@w3.org"
+  ratings (age 11)
+  error (not-labeled "http://www.w3.org/unknown")
+ "http://www.rsac.org/v1.0"
+ labels
+  ;;no specific label available, so generic label returned
+  for "http://www.w3.org/pub/WWW"
+  generic true
+  by "abaird@w3.org"
+  ratings (v 0 s 0 n 0 l 0)
+  ;;here a specific label is returned.
+  for "http://www.w3.org/pub/WWW/TheProject.html"
+  generic false
+  by "abaird@w3.org"
+  ratings (v 0 s 0 n 0 l 0)
+  error (not-labeled "http://www.w3.org/unknown")
+ error (no-ratings "unknown service"))
+
+(PICS-1.1
+ "http://www.ages.org/our-service/v1.0/"
+ labels
+ ;;several labels delimited by ()
+ (for "http://www.w3.org/pub/WWW/"
+  generic true
+  by "abaird@w3.org"
+  ratings (age 11)
+  for "http://www.w3.org/pub/WWW/Overview.html"
+  by "abaird@w3.org"
+  generic false
+  ratings (age 12)
+  by "abaird@w3.org"
+  for "http://www.w3.org/pub/WWW/PICS"
+  generic true
+  ratings (age 5)
+  by "abaird@w3.org"
+  for "http://www.w3.org/pub/WWW/Daemon"
+  generic true
+  ratings (age 5))
+  ;;end of labels for directory http://www.w3.org/pub/WWW/
+  ;;no labels available for URLs containing http://www.w3.org/pub/WWW/TheProject.html as a prefix
+  error (not-labeled "http://www.w3.org/pub/WWW/TheProject.html")
+  error (not-labeled "http://www.w3.org/unknown")
+ "http://www.rsac.org/v1.0"
+ labels
+  (for "http://www.w3.org/pub/WWW"
+   generic true
+   by "abaird@w3.org"
+   ratings (v 0 s 0 n 0 l 0)
+   for "http://www.w3.org/pub/WWW/TheProject.html"
+   generic false
+   by "abaird@w3.org"
+   ratings (v 0 s 0 n 0 l 0)
+   for "http://www.w3.org/pub/WWW/Daemon"
+   generic true
+   by "abaird@w3.org"
+   ratings (v 0 s 0 n 0 l 0)
+   for "http://www.w3.org/pub/WWW/PICS"
+   generic true
+   by "abaird@w3.org"
+   ratings (v 0 s 0 n 0 l 0))
+  error (not-labeled "http://www.w3.org/pub/WWW/TheProject.html")
+  error (not-labeled "http://www.w3.org/unknown")
+ error (no-ratings "unknown service"))
+
+(PICS-1.1
+ "http://www.ages.org/our-service/v1.0/"
+ labels
+  (for "http://www.w3.org/pub/WWW/"
+   generic true
+   by "abaird@w3.org"
+   ratings (age 11)
+   by "abaird@w3.org"
+   for "http://www.w3.org/pub/WWW/PICS"
+   generic true
+   ratings (age 5)
+   by "abaird@w3.org"
+   for "http://www.w3.org/pub/WWW/Daemon"
+   generic true
+   ratings (age 5))
+   error (not-labeled "http://www.w3.org/pub/WWW/TheProject.html")
+   error (not-labeled "http://www.w3.org/unknown")
+ "http://www.rsac.org/v1.0"
+ labels
+  (for "http://www.w3.org/pub/WWW"
+   generic true
+   by "abaird@w3.org"
+   ratings (v 0 s 0 n 0 l 0)
+   for "http://www.w3.org/pub/WWW/Daemon"
+   generic true
+   by "abaird@w3.org"
+   ratings (v 0 s 0 n 0 l 0)
+   for "http://www.w3.org/pub/WWW/PICS"
+   generic true
+   by "abaird@w3.org"
+   ratings (v 0 s 0 n 0 l 0))
+  error (not-labeled "http://www.w3.org/pub/WWW/TheProject.html")
+  error (not-labeled "http://www.w3.org/unknown")
+ error (no-ratings "unknown service"))
+

@@ -158,7 +158,8 @@ PRIVATE StateToken_t ServiceInfo_stateTokens[] = {
        B: has service id
        C: needs option value
        D: call from Awkward or NoRat to close 
-       E: call from Awkward to re-enter */
+       E: call from Awkward to re-enter
+       F: call from Awkward to handle no-ratings error */
      {             "open", SubState_N,    Punct_ALL,                0,        0,   0, 0, &ServiceInfo_targetObject, SubState_A, Command_MATCHANY|Command_OPEN|Command_CHAIN, 0},
      {     "error w/o id", SubState_A, Punct_LPAREN,                0, "error",    0, 0, &ServiceNoRat_targetObject, SubState_N, 0, 0},
      {       "service id", SubState_A,  Punct_WHITE, &ServiceInfo_getServiceId, 0, 0, 0,  &ServiceInfo_targetObject, SubState_B, 0, 0},
@@ -169,14 +170,17 @@ PRIVATE StateToken_t ServiceInfo_stateTokens[] = {
      {       "label-mark", SubState_B, Punct_WHITE|Punct_LPAREN,    0, "l", "labels", 0,     &Label_targetObject, SubState_N, Command_CHAIN, &ServiceInfo_clearOpts},
      {     "option value", SubState_C, Punct_WHITE,    &getOptionValue,  0,        0, 0,  &ServiceInfo_targetObject, SubState_B, 0, 0},
 
-     {            "close", SubState_D, Punct_ALL,                   0,        0,   0, 0, &LabelList_targetObject, SubState_C, Command_MATCHANY|Command_CLOSE|Command_CHAIN, 0},
-     {         "re-enter", SubState_E, Punct_ALL,                   0,        0,   0, 0, &ServiceInfo_targetObject, SubState_N, Command_MATCHANY|Command_CLOSE|Command_CHAIN, 0}
+     {            "close", SubState_D, Punct_ALL,                   0,        0,   0, 0,    &LabelList_targetObject, SubState_C, Command_MATCHANY|Command_CLOSE|Command_CHAIN, 0},
+     {         "re-enter", SubState_E, Punct_ALL,                   0,        0,   0, 0,  &ServiceInfo_targetObject, SubState_N, Command_MATCHANY|Command_CLOSE|Command_CHAIN, 0},
+     {        "to no-rat", SubState_F, Punct_ALL,                   0,        0,   0, 0,  &ServiceInfo_targetObject, SubState_G, Command_MATCHANY|Command_CLOSE|Command_CHAIN, 0},
+     {    "no-rat opener", SubState_G, Punct_ALL,                   0,        0,   0, 0, &ServiceNoRat_targetObject, SubState_N, Command_MATCHANY|Command_OPEN|Command_CHAIN, 0}
     };
 PRIVATE TargetObject_t ServiceInfo_targetObject = {"ServiceInfo", ServiceInfo_open, &ServiceInfo_close, &ServiceInfo_destroy, ServiceInfo_stateTokens, raysize(ServiceInfo_stateTokens), CSLLTC_SERVICE};
 
 PRIVATE StateToken_t Label_stateTokens[] = {
     /* A: fresh SingleLabel
-       C: route to Awkward from LabelTree and LabelError*/
+       C: route to Awkward from LabelTree and LabelError
+       D: from Awkward to LabelError */
      {              "open", SubState_N,    Punct_ALL, 0,        0,    0,  0, &Label_targetObject, SubState_A, Command_MATCHANY|Command_OPEN|Command_CHAIN, 0},
      { "single label mark", SubState_A,  Punct_WHITE, 0,  "l", "labels",  0,       &Label_targetObject, SubState_A, 0, 0}, /* stick around */
      {   "tree label mark", SubState_A, Punct_LPAREN, 0,  "l", "labels",  0,   &LabelTree_targetObject, SubState_N, 0, 0},
@@ -186,13 +190,15 @@ PRIVATE StateToken_t Label_stateTokens[] = {
      {   "label extension", SubState_A, Punct_LPAREN, 0, "extension", 0,  0, &SingleLabel_targetObject, SubState_N, Command_CHAIN, 0},
      {           "ratings", SubState_A, Punct_LPAREN, 0, "r", "ratings",  0, &SingleLabel_targetObject, SubState_N, Command_CHAIN, 0},
 
-     {        "to awkward", SubState_C,    Punct_ALL, 0,        0,    0,  0,     &Awkward_targetObject, SubState_A, Command_MATCHANY|Command_CLOSE, 0}
+     {        "to awkward", SubState_C,    Punct_ALL, 0,        0,    0,  0,     &Awkward_targetObject, SubState_A, Command_MATCHANY|Command_CLOSE, 0},
+     {  "awkward to error", SubState_D,    Punct_ALL, 0,        0,    0,  0, &LabelError_targetObject, SubState_N, Command_MATCHANY|Command_OPEN|Command_CHAIN, 0}
     };
 PRIVATE TargetObject_t Label_targetObject = {"Label", &Label_open, &Label_close, &Label_destroy, Label_stateTokens, raysize(Label_stateTokens), CSLLTC_LABEL};
 
 PRIVATE StateToken_t LabelTree_stateTokens[] = {
     /* A: LabelTrees have no state */
      {              "open", SubState_N, Punct_ALL,       0,        0, 0, 0, &LabelTree_targetObject, SubState_A, Command_MATCHANY|Command_OPEN|Command_CHAIN, 0},
+     {       "label error", SubState_A, Punct_LPAREN, 0, "error", 0,     0, &LabelError_targetObject, SubState_N, 0, 0},
      {"SingleLabel option", SubState_A, Punct_WHITE, &getOption, 0,   0, 0, &SingleLabel_targetObject, SubState_N, Command_CHAIN, 0},
      {        "ratingword", SubState_A, Punct_LPAREN, 0, "r", "ratings", 0, &SingleLabel_targetObject, SubState_N, Command_CHAIN, 0},
      {       "end of tree", SubState_A, Punct_RPAREN,     0,       0, 0, 0, &Label_targetObject, SubState_C, Command_CLOSE|Command_CHAIN, 0}
@@ -237,12 +243,20 @@ PRIVATE TargetObject_t LabelRatingRange_targetObject = {"LabelRatingRange", &Lab
 /* Awkward assumes that the current Label has been closed. It decides whether to chain to LabelTree, Label, or ServiceInfo */
 PRIVATE StateToken_t Awkward_stateTokens[] = {
      {           "open", SubState_N,    Punct_ALL, 0,          0,  0, 0, &Awkward_targetObject, SubState_A, Command_MATCHANY|Command_OPEN|Command_CHAIN, 0},
-     {     "start tree", SubState_A, Punct_LPAREN,          0, 0,  0, 0,   &LabelTree_targetObject, SubState_N, 0, 0},
+     {     "start tree", SubState_A, Punct_LPAREN,          0, 0,  0, 0,               &LabelTree_targetObject, SubState_N, 0, 0},
+     {    "label error", SubState_A, Punct_LPAREN, 0,    "error",  0, 0,                 &Awkward_targetObject, SubState_B, 0, 0},
      {   "label option", SubState_A,  Punct_WHITE, &getOption, 0,  0, 0,       &Label_targetObject, SubState_N, Command_CHAIN, 0},
      {"label extension", SubState_A, Punct_LPAREN, 0, "extension", 0, 0,       &Label_targetObject, SubState_N, Command_CHAIN, 0},
      {         "rating", SubState_A, Punct_LPAREN, 0, "r", "ratings", 0,       &Label_targetObject, SubState_N, Command_CHAIN, 0},
      { "new service id", SubState_A,  Punct_WHITE,  &isQuoted, 0,  0, 0, &ServiceInfo_targetObject, SubState_E, Command_CHAIN, 0},
-     {          "close", SubState_A, Punct_RPAREN,          0, 0,  0, 0, &ServiceInfo_targetObject, SubState_D, Command_CHAIN, 0} /* close of LabelList */
+     {          "close", SubState_A, Punct_RPAREN,          0, 0,  0, 0, &ServiceInfo_targetObject, SubState_D, Command_CHAIN, 0}, /* close of LabelList */
+
+     {       "req-denied", SubState_B,  Punct_WHITE, 0, "request-denied", 0, 0, &Label_targetObject, SubState_D, Command_CHAIN, 0},
+     { "req-denied close", SubState_B, Punct_RPAREN, 0, "request-denied", 0, 0, &Label_targetObject, SubState_D, Command_CHAIN, 0},
+     {      "not-labeled", SubState_B,  Punct_WHITE, 0,    "not-labeled", 0, 0, &Label_targetObject, SubState_D, Command_CHAIN, 0},
+     {"not-labeled close", SubState_B, Punct_RPAREN, 0,    "not-labeled", 0, 0, &Label_targetObject, SubState_D, Command_CHAIN, 0},
+     {       "no-ratings", SubState_B,  Punct_WHITE, 0, "no-ratings", 0, 0, &ServiceInfo_targetObject, SubState_F, Command_CHAIN, 0},
+     { "no-ratings close", SubState_B, Punct_RPAREN, 0, "no-ratings", 0, 0, &ServiceInfo_targetObject, SubState_F, Command_CHAIN, 0}
     };
 PRIVATE TargetObject_t Awkward_targetObject = {"Awkward", &Awkward_open, &Awkward_close, &Awkward_destroy, Awkward_stateTokens, raysize(Awkward_stateTokens), 0};
 

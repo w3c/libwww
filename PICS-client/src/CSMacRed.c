@@ -193,7 +193,7 @@ PRIVATE StateToken_t Multi_stateTokens[] = {
     /* A: chained text with optional close paren
 	   B: value */
      { "enter", SubState_N,    Punct_ALL, 0,            0, 0, 0, &Multi_targetObject, SubState_A, Command_MATCHANY|Command_OPEN|Command_CHAIN, 0},
-     {"binary", SubState_A,  Punct_WHITE, 0, "multivalue", 0, 0, &Integer_targetObject, SubState_B, 0, 0},
+     {"binary", SubState_A,  Punct_WHITE, 0, "multivalue", 0, 0, &Multi_targetObject, SubState_B, 0, 0},
      { "unary", SubState_A, Punct_RPAREN, 0, "multivalue", 0, 0, 0, SubState_X, Command_CLOSE, &Multi_setTrue},
      { "value", SubState_B, Punct_RPAREN, &Multi_get,   0, 0, 0, 0, SubState_X, Command_CLOSE, &postValueState}
     };
@@ -203,7 +203,7 @@ PRIVATE StateToken_t Unord_stateTokens[] = {
     /* A: chained text with optional close paren
 	   B: value */
      { "enter", SubState_N,    Punct_ALL, 0,           0, 0, 0, &Unord_targetObject, SubState_A, Command_MATCHANY|Command_OPEN|Command_CHAIN, 0},
-     {"binary", SubState_A,  Punct_WHITE, 0, "unordered", 0, 0, &Integer_targetObject, SubState_B, 0, 0},
+     {"binary", SubState_A,  Punct_WHITE, 0, "unordered", 0, 0, &Unord_targetObject, SubState_B, 0, 0},
      { "unary", SubState_A, Punct_RPAREN, 0, "unordered", 0, 0, 0, SubState_X, Command_CLOSE, &Unord_setTrue},
      { "value", SubState_B, Punct_RPAREN, &Unord_get,  0, 0, 0, 0, SubState_X, Command_CLOSE, &postValueState}
     };
@@ -294,7 +294,7 @@ PRIVATE StateToken_t Enum_stateTokens[] = {
      {      "value", SubState_F,  Punct_WHITE, 0,       "value", 0, 0, &Value_targetObject, SubState_N, 0, 0},
      {       "open", SubState_G, Punct_LPAREN, 0,             0, 0, 0, &Enum_targetObject, SubState_H, 0, 0},
      {      "close", SubState_G, Punct_RPAREN, 0,             0, 0, 0, &Category_targetObject, SubState_B, Command_CLOSE, 0},
-     {       "icon", SubState_H,  Punct_WHITE, 0,        "icon", 0, 0, &Icon_targetObject, SubState_A, 0, 0},
+     {       "icon", SubState_H,  Punct_WHITE, 0,        "icon", 0, 0, &Icon_targetObject, SubState_N, 0, 0},
      {      "close", SubState_I, Punct_RPAREN, 0,             0, 0, 0, &Category_targetObject, SubState_B, Command_CLOSE, 0}
     };
 PRIVATE TargetObject_t Enum_targetObject = {"Enum", &Enum_open, &Enum_close, &Enum_destroy, Enum_stateTokens, raysize(Enum_stateTokens), CSMRTC_ENUM};

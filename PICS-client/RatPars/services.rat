@@ -1,0 +1,503 @@
+((PICS-version 1.1)
+ (rating-system "http://www.gcf.org/ratings")
+ (rating-service "http://www.gcf.org/v1.0/")
+ (icon "icons/gcf.gif")
+ (name "The Good Clean Fun Rating System")
+ (description "Everything you ever wanted to know about soap,
+cleaners, and related products.  For demonstration purposes only.")
+ (category  
+  (transmit-as "suds")
+  (name "Soapsuds Index")
+  (min   0.0)
+  (max   1.0))
+ (category  
+  (transmit-as "density")
+  (name "suds density")
+  (label (name "none") (value 0) (icon "icons/none.gif"))
+  (label (name "lots") (value 1) (icon "icons/lots.gif")))
+ (category  
+  (transmit-as "subject")
+  (name "document subject")
+  (multivalue true)
+  (unordered true)
+  (label (name "soap") (value 0))
+  (label (name "water") (value 1))
+  (label (name "soapdish") (value 2))
+  (label-only))
+ (category  
+  (transmit-as "color")
+  (name "picture color")
+  (integer)
+  (category  
+    (transmit-as "hue")
+    (label (name "blue")  (value 0))
+    (label (name "red")   (value 1))
+    (label (name "green") (value 2)))
+  (category  
+   (transmit-as "intensity")
+   (min 0)
+   (max 255))))
+
+((PICS-version 1.1)
+ (rating-system "http://www.ages.org/our-system/")
+ (rating-service "http://www.ages.org/our-service/v1.0/")
+ (name "The Ages Rating Service")
+ (description "We estimate the maturity required to view materials on
+the Internet.")
+ (category (transmit-as "age") (name "Minimum Age") (integer true)))
+
+((PICS-version 1.1)
+ (rating-system "http://www.rsac.org/ratingsv01.html")
+ (rating-service "http://www.rsac.org/")
+ (name "The RSAC Ratings Service")
+ (description "The Recreational Software Advisory Council rating
+service.  Based on the work of Dr. Donald F. Roberts of Stanford
+University, who has studied the effects of media on children for
+nearly 20 years.")
+ (default (label-only true))
+ (category
+  (transmit-as "v")
+  (name "Violence")
+  (label
+   (name "Conflict")
+   (description "Harmless conflict; some damage to objects")
+   (value 0))
+  (label
+   (name "Fighting")
+   (description "Creatures injured or killed; damage to objects;
+fighting")
+   (value 1))
+  (label
+   (name "Killing")
+   (description "Humans injured or killed with small amount of blood")
+   (value 2))
+  (label
+   (name "Blood and Gore")
+   (description "Humans injured or killed; blood and gore")
+   (value 3))
+  (label
+   (name "Wanton Violence")
+   (description "Wanton and gratuitous violence; torture; rape")
+   (value 4)))
+ (category
+  (transmit-as "s")
+  (name "Sex")
+  (label
+   (name "None")
+   (description "Romance; no sex")
+   (value 0))
+  (label
+   (name "Passionate kissing")
+   (description "Passionate kissing")
+   (value 1))
+  (label
+   (name "Clothed sexual touching")
+   (description "Clothed sexual touching")
+   (value 2))
+  (label
+   (name "Non-explicit sexual activity")
+   (description "Non-explicit sexual activity")
+   (value 3))
+  (label
+   (name "Explicit sexual activity; sex crimes")
+   (description
+    "Explicit sexual activity; sex crimes")
+   (value 4)))
+ (category
+  (transmit-as "n")
+  (name "Nudity")
+  (label
+   (name "None")
+   (description "No nudity or revealing attire")
+   (value 0))
+  (label
+   (name "Revealing Attire")
+   (description "Revealing attire")
+   (value 1))
+  (label
+   (name "Partial Nudity")
+   (description "Partial nudit")
+   (value 2))
+  (label
+   (name "Frontal Nudity")
+   (description "Non-sexual frontal nudity")
+   (value 3))
+  (label
+   (name "Explicit")
+   (description
+    "Provocative frontal nudity")
+   (value 4)))
+ (category
+  (transmit-as "l")
+  (description "Language")
+  (label (name "Slang")
+         (description "Inoffensive slang; no profanity")
+         (value 0))
+  (label (name "Mild Expletives")
+         (description "Mild expletives")
+         (value 1))
+  (label (name "Expletives")
+         (description "Expletives; non-sexual anatomical references")
+         (value 2))
+  (label (name "Obscene Gestures")
+         (description "Strong, vulgar language; obscene gestures")
+         (value 3))
+  (label (name "Explicit")
+         (description "Crude or explicit sexual references")
+         (value 4))))
+
+((PICS-version 1.1)
+ (rating-system "http://www.classify.org/safesurf/")
+ (rating-service "http://www.classify.org/safesurf/service/")
+ (name "SafeSurf Rating Service")
+ (description "The SafeSurf SS~~ Rating and Classification Standard.  Designed with input from thousands of parents and Net citizens worldwide to spec
+ifically to handle the vast potential of the Internet, it empowers each family to make informed decisions concerning accessibility of online content.
+Copyright 1995.  All Rights Reserved.")
+ (category (transmit-as "SS~~000") (name "Age Range")
+   (label
+     (name "All Ages")
+     (value 1))
+   (label
+     (name "Older Children")
+     (value 2))
+   (label
+     (name "Younger Teens")
+     (value 3))
+   (label
+     (name "Older Teens")
+     (value 4))
+   (label
+     (name "Adult Supervision Recommended")
+     (value 5))
+   (label
+     (name "Adults")
+     (value 6))
+   (label
+     (name "Limited to Adults")
+     (value 7))
+   (label
+     (name "Adults Only")
+     (value 8))
+   (label
+     (name "Explicitly for Adults")
+     (value 9)))
+ (category (transmit-as "SS~~001") (name "Profanity")
+   (label
+     (name "Subtle Innuendo")
+     (description "Subtly Implied through the use of Slang")
+     (value 1))
+   (label
+     (name "Strong Innuendo")
+     (description "Expressly implied through the use of Slang")
+     (value 2))
+   (label
+     (name "Technical Reference")
+     (description "Dictionary, encyclopedic, news, technical references") (value 3))
+   (label
+     (name "Non-Graphic-Artistic")
+     (description "Limited non-sexual expletives used in a artistic fashion") (value 4))
+   (label
+     (name "Graphic-Artistic")
+     (description "Non-sexual expletives used in a artistic fashion") (value 5))
+   (label
+     (name "Graphic")
+     (description "Limited use of expletives and obscene gestures") (value 6))
+   (label
+     (name "Detailed Graphic")
+     (description "Casual use of expletives and obscene gestures") (value 7))
+   (label
+     (name "Explicit Vulgarity")
+     (description "Heavy use of vulgar language and obscene gestures. Unsupervised Chat Rooms.")
+     (value 8))
+   (label
+     (name "Explicit and Crude")
+     (description "Saturated with crude sexual references and gestures. Unsupervised Chat Rooms.")
+     (value 9)))
+ (category (transmit-as "SS~~002") (name "Heterosexual Themes")
+    (label
+      (name "Subtle Innuendo")
+      (description "Subtly Implied through the use of metaphor")
+      (value 1))
+    (label
+      (name "Strong Innuendo")
+      (description "Explicitly implied (not described) through the use of metaphor")
+      (value 2))
+    (label
+      (name "Technical Reference")
+      (description "Dictionary, encyclopedic, news, medical references")
+      (value 3))
+    (label
+      (name "Non-Graphic-Artistic")
+      (description "Limited metaphoric descriptions used in a artistic fashion")
+      (value 4))
+    (label (name "Graphic-Artistic")
+      (description "Metaphoric descriptions used in a artistic fashion")
+      (value 5))
+    (label
+      (name "Graphic")
+      (description "Descriptions of intimate sexual acts")
+      (value 6))
+    (label
+      (name "Detailed Graphic")
+      (description "Descriptions of intimate details of sexual acts")
+      (value 7))
+    (label
+      (name "Explicit Vulgarity")
+      (description "Explicit Descriptions of intimate details of sexual acts designed to arouse. Inviting interactive sexual participation. Unsupervis
+ed Sexual Chat Rooms or Newsgroups")
+      (value 8))
+    (label
+      (name "Explicit and Crude")
+      (description "Profane Graphic Descriptions of intimate details of sexual acts designed to arouse. Inviting interactive sexual participation.  Un
+supervised Sexual Chat Rooms or Newsgroups")
+      (value 9)))
+ (category (transmit-as "SS~~003") (name "Homosexual Themes")
+    (label
+      (name "Subtle Innuendo")
+      (description "Subtly Implied through the use of metaphor")
+      (value 1))
+    (label
+      (name "Strong Innuendo")
+      (description "Explicitly implied (not described) through the use of metaphor")
+      (value 2))
+    (label
+      (name "Technical Reference")
+      (description "Dictionary, encyclopedic, news, medical references")
+      (value 3))
+    (label
+      (name "Non-Graphic-Artistic")
+      (description "Limited metaphoric descriptions used in a artistic fashion")
+      (value 4))
+    (label
+      (name "Graphic-Artistic")
+      (description "Metaphoric descriptions used in a artistic fashion")
+      (value 5))
+    (label
+      (name "Graphic")
+      (description "Descriptions of intimate sexual acts")
+      (value 6))
+    (label
+      (name "Detailed Graphic")
+      (description "Descriptions of intimate details of sexual acts")
+      (value 7))
+    (label
+      (name "Explicit Vulgarity")
+      (description "Explicit Descriptions of intimate details of sexual acts designed to arouse. Inviting interactive sexual participation. Unsupervis
+ed Sexual Chat Rooms or Newsgroups")
+      (value 8))
+    (label
+      (name "Explicit and Crude")
+      (description "Profane Graphic Descriptions of intimate details of sexual acts designed to arouse. Inviting interactive sexual participation.  Un
+supervised Sexual Chat Rooms or Newsgroups")
+      (value 9)))
+ (category (transmit-as "SS~~004") (name "Nudity")
+    (label
+      (name "Subtle Innuendo")
+      (description "Subtly Implied through the use of composition, lighting, shaping, revealing clothing, etc.")
+      (value 1))
+    (label
+      (name "Strong Innuendo")
+      (description "Explicitly implied (not shown) through the use of composition, lighting, shaping or revealing clothing")
+      (value 2))
+    (label
+      (name "Technical Reference")
+      (description "Dictionary, encyclopedic, news, medical references")
+      (value 3))
+    (label
+      (name "Non-Graphic-Artistic")
+      (description "Classic works of art presented in public museums for family viewing")
+      (value 4))
+    (label
+      (name "Graphic-Artistic")
+      (description "Artistically presented without full frontal nudity")
+      (value 5))
+    (label
+      (name "Graphic")
+      (description "Artistically presented with frontal nudity")
+      (value 6))
+    (label
+     (name "Detailed Graphic")
+     (description "Erotic frontal nudity")
+      (value 7))
+    (label
+      (name "Explicit Vulgarity")
+      (description "Detailed provocative presentation")
+      (value 8))
+    (label
+      (name "Explicit and Crude")
+      (description "Explicit pornographic presentation")
+      (value 9)))
+ (category (transmit-as "SS~~005")
+    (name "Violence")
+    (label
+      (name "Subtle Innuendo")
+      (value 1))
+    (label
+      (name "Strong Innuendo")
+      (value 2))
+    (label
+      (name "Technical Reference")
+      (value 3))
+    (label
+      (name "Non-Graphic-Artistic")
+      (value 4))
+    (label
+      (name "Graphic-Artistic")
+      (value 5))
+    (label
+      (name "Graphic")
+      (value 6))
+    (label
+      (name "Detailed Graphic")
+      (value 7))
+    (label
+      (name "Inviting Participation in Graphic Interactive Format")
+      (value 8))
+    (label
+      (name "Encouraging Personal Participation, Weapon Making")
+      (value 9)))
+ (category (transmit-as "SS~~006")
+   (name "Sex Violence and Profanity")
+    (label
+      (name "Subtle Innuendo")
+      (value 1))
+    (label
+      (name "Strong Innuendo")
+      (value 2))
+    (label
+      (name "Technical Reference")
+      (value 3))
+    (label
+      (name "Non-Graphic-Artistic")
+      (value 4))
+    (label
+      (name "Graphic-Artistic")
+      (value 5))
+    (label
+      (name "Graphic")
+      (value 6))
+    (label
+      (name "Detailed Graphic")
+      (value 7))
+    (label
+      (name "Explicit Vulgarity")
+      (value 8))
+    (label
+      (name "Explicit and Crude")
+      (value 9)))
+ (category (transmit-as "SS~~007")
+   (name "Intolerance of another person's racial, religious, or gender backround")
+    (label
+      (name "Subtle Innuendo")
+      (value 1))
+    (label
+      (name "Strong Innuendo")
+      (value 2))
+    (label
+      (name "Technical Reference")
+      (value 3))
+    (label
+      (name "Non-Graphic-Literary")
+      (value 4))
+    (label
+      (name "Graphic-Literary")
+      (value 5))
+    (label
+      (name "Graphic Discussions")
+      (value 6))
+    (label
+      (name "Endorsing Hatred")
+      (value 7))
+    (label
+      (name "Endorsing Violent or Hateful Action")
+      (value 8))
+    (label
+      (name "Advocating Violent or Hateful Action")
+      (value 9)))
+ (category (transmit-as "SS~~008") (name "Glorifying Drug Use")
+    (label
+      (name "Subtle Innuendo")
+      (value 1))
+    (label
+      (name "Strong Innuendo")
+      (value 2))
+    (label
+      (name "Technical Reference")
+      (value 3))
+    (label
+      (name "Non-Graphic-Artistic")
+      (value 4))
+    (label
+      (name "Graphic-Artistic")
+      (value 5))
+    (label
+      (name "Graphic")
+      (value 6))
+    (label
+      (name "Detailed Graphic")
+      (value 7))
+    (label
+      (name "Simulated Interactive Participation")
+      (value 8))
+    (label
+      (name "Soliciting Personal Participation")
+      (value 9)))
+ (category (transmit-as "SS~~009") (name "Other Adult Themes")
+    (label
+      (name "Subtle Innuendo")
+      (value 1))
+    (label
+      (name "Strong Innuendo")
+      (value 2))
+    (label
+      (name "Technical Reference")
+      (value 3))
+    (label
+      (name "Non-Graphic-Artistic")
+      (value 4))
+    (label
+      (name "Graphic-Artistic")
+      (value 5))
+    (label
+      (name "Graphic")
+      (value 6))
+    (label
+      (name "Detailed Graphic")
+      (value 7))
+    (label
+      (name "Explicit Vulgarity")
+      (value 8))
+    (label
+      (name "Explicit and Crude")
+      (value 9)))
+ (category (transmit-as "SS~~00A") (name "Gambling")
+    (label
+      (name "Subtle Innuendo")
+      (value 1))
+    (label
+      (name "Strong Innuendo")
+      (value 2))
+    (label
+      (name "Technical Discussion")
+      (value 3))
+    (label
+      (name "Non-Graphic-Artistic, Advertising")
+      (value 4))
+    (label
+      (name "Graphic-Artistic, Advertising")
+      (value 5))
+    (label
+      (name "Simulated Gambling")
+      (value 6))
+    (label
+      (name "Real Life Gambling without Stakes")
+      (value 7))
+    (label
+      (name "Encouraging Interactive Real Life Participation with Stakes")
+      (value 8))
+    (label
+      (name "Providing Means with Stakes")
+      (value 9)))
+ (category (transmit-as "SS~~100")  (name "General Information")
+      (min 1) (max 100) (integer true)))
+
