@@ -966,25 +966,23 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 			HTErrorAdd(request, ERR_WARNING, NO, HTERR_WAIS_MODULE,
 				   NULL, 0, "HTLoadWAIS");
 		    }
-		(*target->isa->free)(target);
-		free (docid->bytes);
-		freeWAISSearchResponse(retrieval_response->DatabaseDiagnosticRecords); 
-		freeSearchResponseAPDU( retrieval_response);
-		goto cleanup;
+		    (*target->isa->free)(target);
+		    free (docid->bytes);
+		    freeWAISSearchResponse(retrieval_response->DatabaseDiagnosticRecords); 
+		    freeSearchResponseAPDU( retrieval_response);
+		    goto cleanup;
 		} else {
 		    output_text_record(target, *searchres->Text,
 				       false, binary);
+		    freeWAISSearchResponse( retrieval_response->DatabaseDiagnosticRecords);
+		    freeSearchResponseAPDU( retrieval_response);
 		} /* If text existed */
 	    }
 	    
 	} /* Loop over slices */
 
 	(*target->isa->free)(target);
-
 	free (docid->bytes);
-	
-	freeWAISSearchResponse( retrieval_response->DatabaseDiagnosticRecords); 
-	freeSearchResponseAPDU( retrieval_response);
 
     } /* If document rather than search */
     status = HT_LOADED;
