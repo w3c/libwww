@@ -375,6 +375,24 @@ PUBLIC HTStream* HTSaveLocally ARGS5(
     return me;
 }
 
+
+/*	HTThroughLine
+**	-------------
+**
+** This function is a dummy function that returns the same output stream
+** as given as a parameter. Henrik 01/03-94
+*/
+PUBLIC HTStream* HTThroughLine ARGS5(
+	HTRequest *,		request,
+	void *,			param,
+	HTFormat,		input_format,
+	HTFormat,		output_format,
+	HTStream *,		output_stream)	            /* Only one used */
+{
+    return output_stream;
+}
+
+
 /*	Cache handling
 **	--------------
 */

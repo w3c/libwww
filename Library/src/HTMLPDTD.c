@@ -224,8 +224,10 @@ static attr list_attr[] = {
 	{ 0 }	/* Terminate list */
 };
 
-static attr glossary_attr[] = {
-	{ "COMPACT" },
+static attr glossary_attr[HTML_DL_ATTRIBUTES+1] = {
+	{ "ID" },
+	{ "COMPACT " },
+	{ "INDEX" },
 	{ 0 }	/* Terminate list */
 };
 

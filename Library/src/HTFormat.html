@@ -119,13 +119,13 @@ define some basic internally referenced
 representations. 
 <H3>Internal ones</H3>The www/xxx ones are of course not
 MIME standard.<P>
-www/source  is an output format which
+star/star  is an output format which
 leaves the input untouched. It is
 useful for diagnostics, and for users
 who want to see the original, whatever
 it is.
 <H3></H3>
-<PRE>#define WWW_SOURCE HTAtom_for("www/source")	/* Whatever it was originally*/
+<PRE>#define WWW_SOURCE HTAtom_for("*/*")	/* Whatever it was originally*/
 
 </PRE>www/present represents the user's
 perception of the document.  If you
@@ -416,8 +416,9 @@ add some conversions (eg using HTLoadRules)
 then you may want also to explicitly
 call this to get the defaults as
 well.
-<PRE>extern void HTFormatInit PARAMS((HTList * conversions));
-
+<PRE>
+extern void HTFormatInit PARAMS((HTList * conversions));
+extern void HTFormatInitNIM PARAMS((HTList * conversions));
 </PRE>
 <H2>Epilogue</H2>
 <PRE>extern BOOL HTOutputSource;	/* Flag: shortcut parser */

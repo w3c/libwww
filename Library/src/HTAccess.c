@@ -461,7 +461,7 @@ PRIVATE BOOL HTLoadDocument ARGS1(HTRequest *,		request)
     
     if (!request->output_format) request->output_format = WWW_PRESENT;
 
-    if ((text=(HText *)HTAnchor_document(request->anchor)))
+    if (!HTForceReload && (text=(HText *)HTAnchor_document(request->anchor)))
     {	/* Already loaded */
         if (TRACE) fprintf(stderr, "HTAccess: Document already in memory.\n");
 	if (request->childAnchor) {

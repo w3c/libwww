@@ -515,8 +515,8 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 
 copy:
 
-	if ((format_in == HTAtom_for("www/mime"))
-	    && (request->output_format == HTAtom_for("www/source"))) {
+	if ((format_in == WWW_MIME)
+	    && (request->output_format == WWW_SOURCE)) {
 	    target = HTMIMEConvert(request, NULL, format_in,
 	    request->output_format, request->output_stream);
 	} else {

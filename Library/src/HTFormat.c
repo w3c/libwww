@@ -47,7 +47,6 @@ PUBLIC float HTMaxLength = 1e10;	/* No effective limit */
 #include "HTMLGen.h"
 
 PUBLIC	BOOL HTOutputSource = NO;	/* Flag: shortcut parser to stdout */
-extern  BOOL interactive;
 
 #ifdef ORIGINAL
 struct _HTStream {
@@ -691,7 +690,7 @@ PUBLIC int HTOutputBinary ARGS3( HTInputSocket *, isoc,
 **	MIME so far.  Storing the format of a stream in the stream might
 **	be a lot neater.
 **
-**	The www/source format is special, in that if you can take
+**	The star/star format is special, in that if you can take
 **	that you can take anything. However, we
 */
 PUBLIC HTStream * HTStreamStack ARGS2(
@@ -700,10 +699,9 @@ PUBLIC HTStream * HTStreamStack ARGS2(
 {
     HTFormat rep_out = request->output_format;	/* Could be a param */
     HTList * conversion[2];
-    HTFormat source = WWW_SOURCE;
     int which_list;
     float best_quality = -1e30;		/* Pretty bad! */
-    HTPresentation *pres, *match, *best_match=0, *source_match=0;
+    HTPresentation *pres, *match, *best_match=0;
     
     if (TRACE) fprintf(stderr,
     	"HTFormat: Constructing stream stack for %s to %s\n",
@@ -728,20 +726,29 @@ PUBLIC HTStream * HTStreamStack ARGS2(
 		}
 	    }
 	    
+#ifdef OLD_CODE
+	    /* This case is now included in the best_match loop */
 	    /* Special case when input format is 'www/source' */ 
 	    if (pres->rep == source) {
-	        if (pres->rep_out == rep_out || wild_match(pres->rep_out, rep_out))
+	        if (pres->rep_out == rep_out ||
+		    wild_match(pres->rep_out, rep_out))
 	            source_match = pres;
 	    }
+#endif
 	}
     }
-    
-    match = best_match ? best_match :
-	    source_match ? source_match : 
-	    NULL;
-    if (match) return (*match->converter)(
+    match = best_match ? best_match : NULL;
+    if (match) {
+	if (match->rep == WWW_SOURCE) {
+	    if (TRACE) fprintf(stderr,
+	    "HTFormat: Don't know how to handle this, so put out %s to %s\n",
+			       HTAtom_name(match->rep), 
+			       HTAtom_name(rep_out));
+	}
+	return (*match->converter)(
 	request, match->command, rep_in, rep_out,
 	request->output_stream);
+    }
     return NULL;
 }
 	
@@ -959,7 +966,7 @@ PUBLIC int HTParseSocket ARGS3(
     HTStreamClass targetClass;    
 
     stream = HTStreamStack(rep_in, request);
-    
+
     if (!stream) {
         char buffer[1024];	/* @@@@@@@@ */
 	sprintf(buffer, "Sorry, can't convert from %s to %s.",
@@ -982,7 +989,7 @@ PUBLIC int HTParseSocket ARGS3(
 	    request->content_encoding != HTAtom_for("7bit"))
         || strstr(HTAtom_name(rep_in), "image/")
 	|| strstr(HTAtom_name(rep_in), "video/")) { /* @@@@@@ */
-        HTCopy(file_number, stream);
+	HTCopy(file_number, stream);
     } else {   /* ascii text with CRLFs :-( */
         HTCopyNoCR(file_number, stream);
     }
@@ -1018,7 +1025,7 @@ PUBLIC int HTParseFile ARGS3(
 	sprintf(buffer, "Sorry, can't convert from %s to %s.",
 		HTAtom_name(rep_in), HTAtom_name(request->output_format));
 	if (TRACE) fprintf(stderr, "HTFormat(in HTParseFile): %s\n", buffer);
-        return HTLoadError(request, 501, buffer);
+	return HTLoadError(request, 501, buffer);
     }
     
 /*	Push the data down the stream

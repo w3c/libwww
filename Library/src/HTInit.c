@@ -46,8 +46,28 @@ PUBLIC void HTFormatInit ARGS1(HTList *, c)	/* Note: Wildcard is no longer * (se
     HTSetConversion(c,"text/plain",		"text/html",	HTPlainToHTML,	1.0, 0.0, 0.0);
     HTSetConversion(c,"text/plain",		"www/present",	HTPlainPresent,	1.0, 0.0, 0.0);
     HTSetConversion(c,"application/octet-stream",	"www/present",	HTSaveLocally,	0.1, 0.0, 0.0);
-    HTSetConversion(c,"www/unknown",		"www/present",	HTSaveLocally,	0.3, 0.0, 0.0);
-    HTSetConversion(c,"www/source",		"www/present",	HTSaveLocally,	0.3, 0.0, 0.0);
+    HTSetConversion(c,"*/*",			"www/present",	HTSaveLocally,	0.3, 0.0, 0.0);
+    /* www/source is replaced by star/star */
+}
+
+
+/* -----------------
+   This function is for init of non-interactive mode, where no extern 'pop-up
+   programs' are wanted during execution. Nor should functions be used that
+   redirects the output stream to a temp file, e.g., HTSaveLocally()
+   Henrik 01/03-94
+   ----------------- */ 
+PUBLIC void HTFormatInitNIM ARGS1(HTList *, c)
+{
+    HTSetConversion(c,"www/mime",		"*/*",		HTMIMEConvert,	1.0, 0.0, 0.0);
+    HTSetConversion(c,"application/x-wais-source","*/*",	HTWSRCConvert, 	1.0, 0.0, 0.0);
+    HTSetConversion(c,"text/html",		"text/x-c",	HTMLToC,	0.5, 0.0, 0.0);
+    HTSetConversion(c,"text/html",		"text/plain",	HTMLToPlain,	0.5, 0.0, 0.0);
+    HTSetConversion(c,"text/html",		"www/present",	HTMLPresent,	1.0, 0.0, 0.0);
+    HTSetConversion(c,"text/plain",		"text/html",	HTPlainToHTML,	1.0, 0.0, 0.0);
+    HTSetConversion(c,"text/plain",		"www/present",	HTPlainPresent,	1.0, 0.0, 0.0);
+    HTSetConversion(c,"application/octet-stream","www/present",	HTThroughLine,	0.1, 0.0, 0.0);
+    HTSetConversion(c,"*/*",			"www/present",	HTThroughLine,	0.3, 0.0, 0.0);
 }
 
 
