@@ -36,7 +36,7 @@
 
 #define DELIMITERS			" \n"
 
-#define BUFSIZE				1024
+#define BUFSIZE				8196
 
 typedef enum _SQLFlags {
     SQL_CLEAR_LOCATION_TABLE 	= 0x1,
@@ -185,10 +185,10 @@ PRIVATE int find_location(HTSQL * sql, const char * location)
 {
     int index = -1;
     if (sql && location) {
-	char buf[1024];
+	char buf[4096];
         char * query = NULL;
         MYSQL_RES * result = NULL;
-	query = HTSQL_printf(buf, 1024, "select * from %s where location=%S",
+	query = HTSQL_printf(buf, 4096, "select * from %s where location=%S",
 			     DEFAULT_SQL_LOCATION_TABLE, location);
 	if (HTSQL_query(sql, query) &&
 	    (result = HTSQL_storeResult(sql)) != NULL) {
@@ -208,8 +208,8 @@ PRIVATE int add_location (HTSQL * sql, const char * location)
 
 	/* If we can't find the LOCATION then add it */
 	if ((index = find_location(sql, location)) < 0) {
-	    char buf[1024];
-	    char * query = HTSQL_printf(buf, 1024, "insert into %s (location) values (%S)",
+	    char buf[4096];
+	    char * query = HTSQL_printf(buf, 4096, "insert into %s (location) values (%S)",
 					DEFAULT_SQL_LOCATION_TABLE, location);
 	    if (HTSQL_query(sql, query) != YES) {
 		return -1;
@@ -264,8 +264,8 @@ PRIVATE int add_user (HTSQL * sql, const char * user)
 PRIVATE int add_comment (HTSQL * sql, const char * comment)
 {
     if (sql && comment) {
-	char buf[1024];
-	char * query = HTSQL_printf(buf, 1024, "insert into %s (comment) values (%S)",
+	char buf[8196];
+	char * query = HTSQL_printf(buf, 8196, "insert into %s (comment) values (%S)",
 				    DEFAULT_SQL_COMMENTS_TABLE, comment);
 	if (HTSQL_query(sql, query) != YES) return -1;
 	return HTSQL_getLastInsertId(sql);
@@ -428,8 +428,8 @@ int main (int argc, char ** argv)
 
 			/* Add log entry */
 			{
-			    char buf[1024];
-			    char * query = HTSQL_printf(buf, 1024, "insert into %s values (%u,%u,%T,%S,%u)",
+			    char buf[16384];
+			    char * query = HTSQL_printf(buf, 16384, "insert into %s values (%u,%u,%T,%S,%u)",
 							DEFAULT_SQL_LOG_TABLE,
 							location_id,
 							user_id,
