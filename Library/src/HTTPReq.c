@@ -15,9 +15,10 @@
 #include "HTString.h"
 #include "HTParse.h"
 #include "HTFormat.h"
-#include "HTThread.h"
+#include "HTNet.h"
 #include "HTTCP.h"
 #include "HTWriter.h"
+#include "HTReqMan.h"
 #include "HTChunk.h"
 #include "HTTPReq.h"					       /* Implements */
 

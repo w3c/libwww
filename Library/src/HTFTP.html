@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>FTP Access</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 12-Sep-1995 -->
 <NEXTID N="z1">
 </HEAD>
 <BODY>
@@ -38,7 +38,8 @@ W3C Reference Library</A>.
 #define HTFTP_H
 
 #include "HTChunk.h"
-#include "HTProt.h"
+#include "HTEvntrg.h"
+#include "HTNet.h"
 </PRE>
 
 <H2>Public Functions</H2>
@@ -48,21 +49,7 @@ Theese are the public functions...
 <H3>Accessing FTP-Server</H3>
 
 <PRE>
-GLOBALREF HTProtocol HTFTP;
-</PRE>
-
-<H3>Enable/Disable Reuse of Control Connections on Client Side</H3>
-
-The next two functions are for enabling and disabling reuse og control
-connections on client side. Though, this is a temporary solution as the
-library is going to be multi-threaded and then the control of open
-connections changes. Reuse of control connections is mainly intended for use
-when loading several files from the same server in the same directory, but
-changing directory IS supported using FTP-commands CDUP and CWD.
-
-<PRE>
-extern void HTFTP_enable_session NOPARAMS;
-extern BOOL HTFTP_disable_session NOPARAMS;
+extern HTEventCallBack HTLoadFTP;
 </PRE>
 
 <H3>Various Functions to parse information</H3>
@@ -71,8 +58,8 @@ Theese functions are necessary in order to keep the internal data structures
 hidden.
 
 <PRE>
-extern HTChunk *HTFTPWelcomeMsg PARAMS ((HTNetInfo *data));
-extern BOOL HTFTUseList PARAMS ((HTNetInfo *data));
+extern HTChunk *HTFTPWelcomeMsg (HTNet *data);
+extern BOOL HTFTUseList		(HTNet *data);
 </PRE>
 
 <H2>Flags for FTP connections</H2>
@@ -80,15 +67,8 @@ extern BOOL HTFTUseList PARAMS ((HTNetInfo *data));
 Those are the flags for configuring the FTP client.
 
 <PRE>
-extern BOOL HTFTPUserInfo;
 extern long HTFTPTimeOut;
 </PRE>
-
-If HTFTPUserInfo = YES (as pr default) then the users login name and password
-is reused when conneting to the same host. It is, however, overwritten by any
-userid and passwd specified in the URL. This is only for the client side, as
-server forks itself on any request. If this flag is not set, then anonymous
-and username of the current proces is used. <P>
 
 In addition, the following defines are available in the module: <P>
 
@@ -104,7 +84,6 @@ it for the next time, else we ask the system to get a new one.
 <DD>If the system doesn't support finding a new port, then let's try it
 ourselves.
 </DL>
-
 
 <PRE>
 #endif

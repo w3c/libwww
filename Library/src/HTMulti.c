@@ -17,7 +17,7 @@
 #include "HTDirBrw.h"
 #include "HTBind.h"
 #include "HTList.h"
-
+#include "HTReqMan.h"
 
 PRIVATE HTList * welcome_names = NULL;	/* Welcome.html, index.html etc. */
 
@@ -371,14 +371,12 @@ PUBLIC char * HTMulti ARGS3(HTRequest *,	req,
 {
     char * new_path = NULL;
     int stat_status = -1;
-    int len;
 
     if (!req || !path || !*path || !stat_info)
 	return NULL;
 
 #ifdef GOT_READ_DIR
-    len = strlen(path);
-    if (path[len-1] == '/') {	/* Find welcome page */
+    if (*(path+strlen(path)-1) == '/') {	/* Find welcome page */
 	new_path = get_best_welcome(path);
 	if (new_path) path = new_path;
     }

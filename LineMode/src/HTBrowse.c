@@ -154,6 +154,8 @@ PUBLIC char *HTSearchScript;
 #endif /* DECC */
 #endif /* not VMS */ 
 
+#include "HTReqMan.h"
+
 /* ------------------------------------------------------------------------- */
 /*				THREAD FUNCTIONS			     */
 /* ------------------------------------------------------------------------- */
@@ -190,11 +192,11 @@ PRIVATE HTRequest *Thread_new ARGS1(BOOL, Interactive)
 {
     HTRequest *newreq = HTRequest_new(); 	     /* Set up a new request */
     if (!reqlist) reqlist = HTList_new();
-    newreq->context = HTContext_new();		      /* Context for request */
+    HTRequest_setContext(newreq, (void *) HTContext_new());
     if (Interactive)
 	HTPresenterInit(newreq->conversions);		/* Set up local list */
     if (Blocking)
-	newreq->BlockingIO = YES;			 /* Use blocking I/O */
+	newreq->preemtive = YES;			 /* Use blocking I/O */
     HTList_addObject(reqlist, (void *) newreq);
     return newreq;
 }
@@ -499,14 +501,16 @@ PRIVATE BOOL SaveOutputStream ARGS3(HTRequest *, req, char *,This, char *,Next)
 /*				EVENT FUNCTIONS				     */
 /* ------------------------------------------------------------------------- */
 
-/*								   scan_command
-**
+/*	scan_command
+**	------------
 **	Read in the user's input, and deal with it as necessary.
-**
 **	Any Command which works returns from the routine. If nothing
 **	works then a search or error message down at the bottom.
+**
+**	Returns		HT_ERROR	Error has occured or we quit
+**			HT_OK		Call back was OK
 */
-PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
+PRIVATE int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 { 
     char choice[RESPONSE_LENGTH];			  /* Users response  */
     char * the_choice=NULL;		           /* preserved user command */
@@ -517,11 +521,10 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
     BOOL is_index = HTAnchor_isIndex(HTMainAnchor);
     BOOL found = YES;
     BOOL OutSource = NO;			    /* Output source, YES/NO */
-    int  loadstat = HT_INTERNAL;
-    HTEventState status = EVENT_OK;
+    int status = YES;
 
     if (!fgets(choice, RESPONSE_LENGTH, stdin))		  /* Read User Input */
-	return EVENT_QUIT;				      /* Exit if EOF */
+	return HT_ERROR;				      /* Exit if EOF */
     
     StrAllocCopy (the_choice, choice);		       /* Remember it as is, */
     if (the_choice[strlen(the_choice)-1] == '\n')            /* The final \n */
@@ -561,9 +564,9 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 
 		    /* Continous browsing, so we want Referer field */
 		    req->parentAnchor=HTAnchor_parent((HTAnchor*)source);
-		    loadstat = HTLoadAnchor(destination, req);
+		    status = HTLoadAnchor(destination, req);
 		} else {
-		    status = EVENT_QUIT; /* No anchor */
+		    status = NO;				/* No anchor */
 		}
 	    } else {
 		if (SHOW_MSG)
@@ -578,7 +581,7 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 	    if (HTHistory_canBacktrack(hist)) {
 		req = Thread_new(YES);
 		((HTContext *) req->context)->history = HT_HIST_NO_UPDATE;
-		loadstat = HTLoadAnchor(HTHistory_back(hist), req);
+		status = HTLoadAnchor(HTHistory_back(hist), req);
 	    } else {
 		printf("\nThis is the first document in history list\n");
 	    }
@@ -615,7 +618,7 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 	    /* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 	    
 	} else if (CHECK_INPUT("EXIT", token)) {	    /* Quit program? */
-	    status = EVENT_QUIT;
+	    status = NO;
 	} else
 	    found = NO;
 	break;
@@ -626,14 +629,14 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 	    {
 		if (next_word) {
 		    req = Thread_new(YES);
-		    loadstat = HTSearch(other_words, HTMainAnchor, req);
+		    status = HTSearch(other_words, HTMainAnchor, req);
 		}
 	    }
 	} else if (CHECK_INPUT("FORWARD", token)) {
 	    if (HTHistory_canForward(hist)) {
 		req = Thread_new(YES);
 		((HTContext *) req->context)->history = HT_HIST_NO_UPDATE;
-		loadstat = HTLoadAnchor(HTHistory_forward(hist), req);
+		status = HTLoadAnchor(HTHistory_forward(hist), req);
 	    } else {
 		printf("\nThis is the last document in history list.\n");
 	    }
@@ -645,7 +648,7 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 	if (CHECK_INPUT("GOTO", token)) {			     /* GOTO */
 	    if (next_word) {
 		req = Thread_new(YES);
-		loadstat = HTLoadRelative(next_word, HTMainAnchor, req);
+		status = HTLoadRelative(next_word, HTMainAnchor, req);
 	    }
 	} else
 	    found = NO;
@@ -653,22 +656,22 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 	
       case '?':
 	req = Thread_new(YES);
-	req->BlockingIO = YES;
-	loadstat = HTLoadRelative(C_HELP, HTMainAnchor, req);
+	req->preemtive = YES;
+	status = HTLoadRelative(C_HELP, HTMainAnchor, req);
 	break;
 	
       case 'H':
 	if (CHECK_INPUT("HELP", token)) {		     /* help menu, ..*/
 	    req = Thread_new(YES);
-	    req->BlockingIO = YES;
-	    loadstat = HTLoadRelative(C_HELP, HTMainAnchor, req);
+	    req->preemtive = YES;
+	    status = HTLoadRelative(C_HELP, HTMainAnchor, req);
 	} else if (CHECK_INPUT("HOME", token)) {		/* back HOME */
 	    if (!HTHistory_canBacktrack(hist)) {
 		HText_scrollTop(HTMainText);
 	    } else {
 		req = Thread_new(YES);
 		((HTContext *) req->context)->history = HT_HIST_NO_UPDATE;
-		loadstat = HTLoadAnchor(HTHistory_find(hist, 1), req);
+		status = HTLoadAnchor(HTHistory_find(hist, 1), req);
 	    }
 	} else
 	    found = NO;
@@ -701,7 +704,7 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 			getcwd (choice, sizeof(choice)));
 #else   /* has NO getcwd */
 		if (SHOW_MSG)
-		    fprintf(stdout, "This platform does not support getwd() or getcwd()\n");
+		    fprintf(TDEST, "This platform does not support getwd() or getcwd()\n");
 #endif	/* has no getcwd */
 #else   /* has getwd */
 		printf("\nLocal directory is now:\n %s\n",
@@ -718,15 +721,15 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
       case 'M':
 	if (CHECK_INPUT("MANUAL", token)) {		 /* Read User manual */
 	    req = Thread_new(YES);
-	    req->BlockingIO = YES;
-	    loadstat = HTLoadRelative(MANUAL, HTMainAnchor,req);
+	    req->preemtive = YES;
+	    status = HTLoadRelative(MANUAL, HTMainAnchor,req);
 	} else
 	    found = NO;
 	break;
 	
       case 'P':                    
 	if (CHECK_INPUT("POST", token)) {
-	    loadstat = Upload(req, METHOD_POST);
+	    status = Upload(req, METHOD_POST);
 	}
 
 #ifdef GOT_SYSTEM	    
@@ -764,7 +767,7 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 	}	
 #endif
 	else if (CHECK_INPUT("PUT", token)) {
-	    loadstat = Upload(req, METHOD_PUT);
+	    status = Upload(req, METHOD_PUT);
 	} else
 	    found = NO;
 	break;
@@ -778,8 +781,10 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 	    
 	    if (HTClientHost && (strcasecomp(token, "quit") != 0) ) {
 		printf ("\n Please type \"quit\" in full to leave www.\n");
-	    } else
-		status = EVENT_QUIT;
+	    } else {
+		HTNet_killAll();			/* Kill all requests */
+		status = NO;
+	    }
 	} else
 	    found = NO;
 	break;
@@ -796,10 +801,10 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 		    if ((cnt = atoi(next_word)) > 0) {
 			req = Thread_new(YES);
 			((HTContext *)req->context)->history=HT_HIST_NO_UPDATE;
-			loadstat = HTLoadAnchor(HTHistory_find(hist,cnt), req);
+			status = HTLoadAnchor(HTHistory_find(hist,cnt), req);
 		    } else {
 			if (SHOW_MSG)
-			    fprintf(stdout, "Bad command (%s), for list of commands type help\n", this_command);
+			    fprintf(TDEST, "Bad command (%s), for list of commands type help\n", this_command);
 		    }
 		} else {
 		    History_List();
@@ -812,7 +817,7 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 	    req = Thread_new(YES);
 	    req->reload = HT_FORCE_RELOAD;	/* Force full reload */
 	    ((HTContext *) req->context)->history = HT_HIST_NO_UPDATE;
-	    loadstat = HTLoadAnchor((HTAnchor*) HTMainAnchor, req);
+	    status = HTLoadAnchor((HTAnchor*) HTMainAnchor, req);
 	} else
 	    found = NO;
 	break;
@@ -860,7 +865,7 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
       case 'Z':
 	HText_setStale(HTMainText);			    /* Force refresh */
 	HText_refresh(HTMainText);			   /* Refresh screen */
-	status = EVENT_INTR_ALL;
+	HTNet_killAll();				/* Kill all requests */
 	break;
 
       case '>':
@@ -869,8 +874,7 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 	    req = Thread_new(NO);
 	    req->reload = HT_MEM_REFRESH;
 	    if (OutSource) req->output_format = WWW_SOURCE;
-	    if (SaveOutputStream(req, token, next_word))
-		loadstat = HT_WOULD_BLOCK;
+	    SaveOutputStream(req, token, next_word);
 	    HText_select(curText);
 	}
 	break;
@@ -898,7 +902,7 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
       case '!':
 	if (!HTClientHost) {				      /* Local only! */
 	    int result;
-	    if (SHOW_MSG) fprintf(stdout, "Executing `%s\'\n", this_command);
+	    if (SHOW_MSG) fprintf(TDEST, "Executing `%s\'\n", this_command);
 	    result = system(strchr(this_command, '!') + 1);
 	    if (result) printf("  %s  returns %d\n",
 			       strchr(this_command, '!') + 1, result);
@@ -917,31 +921,29 @@ PUBLIC int scan_command (SOCKET s, HTRequest * req, SockOps ops)
 	    goto find;
 	} else {             
 	    if (SHOW_MSG)
-		fprintf(stdout, "Bad command (%s), for list of commands type help\n", this_command);
+		fprintf(TDEST, "Bad command (%s), for list of commands type help\n", this_command);
 	}
     }
-    if (loadstat != HT_INTERNAL && loadstat != HT_WOULD_BLOCK)
-	status = HTEventRequestTerminate(req, loadstat);
-    if (loadstat != HT_LOADED && loadstat != HT_ERROR)
-	MakeCommandLine(is_index);
+    MakeCommandLine(is_index);
     free (the_choice);
-    return (!HTEventCheckState(req, status)) ? HT_OK : HT_WOULD_BLOCK;
+    return (status==YES) ? HT_OK : HT_ERROR;
 }
 
 
-/*						        HTEventRequestTerminate
-**
+/*	terminate_handler
+**	-----------------
 **	React to the status of the terminated request
+**	returns		HT_ERROR	Error has occured
+**			HT_OK		Call back was OK
 */
-PUBLIC HTEventState HTEventRequestTerminate ARGS2(HTRequest *,	actreq,
-						  int,		status) 
+PRIVATE int terminate_handler (HTRequest * request, int status) 
 {
     BOOL is_index = HTAnchor_isIndex(HTMainAnchor);
-    if (!HTPrompt_interactive()) return EVENT_QUIT;
     if (status == HT_LOADED) {
+	HTContext *context = (HTContext *) HTRequest_context(request);
 
 	/* Record new history if we have not moved around in the old one */
-	if (((HTContext *) actreq->context)->history != HT_HIST_NO_UPDATE)
+	if (context && context->history != HT_HIST_NO_UPDATE)
 	    HTHistory_replace(hist, (HTAnchor *) HTMainAnchor);
 
 	/* Now generate the new prompt line as a function of the result */
@@ -949,17 +951,14 @@ PUBLIC HTEventState HTEventRequestTerminate ARGS2(HTRequest *,	actreq,
 	    !HTAnchor_hasChildren(HTMainAnchor) && !is_index &&
 	    (!HTHistory_canBacktrack(hist))) {
 	    if (SHOW_MSG)
-		fprintf(stdout, "No way out of here, so I exit!\n");
-	    return EVENT_QUIT;	                 /* Exit if no other options */
+		fprintf(TDEST, "No way out of here, so I exit!\n");
+	    return HT_ERROR;
 	}
 	HText_setStale(HTMainText);		   /* We corrupt the display */
-	MakeCommandLine(is_index);
-    } else if (!HTMainText)	 				   /* Failed */
-	return EVENT_QUIT;
-    else
-	MakeCommandLine(is_index);
-    Thread_delete(actreq);
-    return EVENT_OK;
+    }
+    MakeCommandLine(is_index);
+    Thread_delete(request);
+    return HT_OK;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -987,6 +986,7 @@ int main ARGS2(int, argc, char **, argv)
     HTLibInit();			   /* Start up W3C Reference Library */
     HTStdIconInit(NULL);				 /* Initialize icons */
     HTProxy_getEnvVar();		   /* Read the environment variables */
+    HTNet_setMaxSocket (2);
 
 #ifdef GUSI				   /* Starts Mac GUSI socket library */
     GUSISetup(GUSIwithSIOUXSockets);
@@ -1009,9 +1009,7 @@ int main ARGS2(int, argc, char **, argv)
     arc.locale=0; arc.encoding=0; arc.i_encoding=0; doinull();
 #endif
 
-    /* Create the first request structure and the first context structure */
-    request =  HTRequest_new();
-    
+    request =  HTRequest_new();        /* Create the first request structure */
 
     for (arg=1; arg<argc ; arg++) {	   /* Check for command line options */
 	if (*argv[arg] == '-') {
@@ -1134,7 +1132,7 @@ int main ARGS2(int, argc, char **, argv)
 
 	    /* Multithreaded ot not? */
 	    } else if (!strcmp(argv[arg], "-single")) {
-		request->BlockingIO = YES;
+		request->preemtive = YES;
 		Blocking = YES;
 
 	    /* Output filename */
@@ -1149,17 +1147,17 @@ int main ARGS2(int, argc, char **, argv)
 		for(;*p;p++) {
 		    switch (argv[arg][2]) {
 		      case 'i':
-			HTAccess_setExpiresMode(HT_EXPIRES_IGNORE, NULL);
+			HTCache_setExpiresMode(HT_EXPIRES_IGNORE, NULL);
 			break;
 		      case 'n':
-			HTAccess_setExpiresMode(HT_EXPIRES_NOTIFY, "Document has expired, but I show it anyway");
+			HTCache_setExpiresMode(HT_EXPIRES_NOTIFY, "Document has expired, but I show it anyway");
 			break;
 		      case 'a':
-			HTAccess_setExpiresMode(HT_EXPIRES_AUTO, NULL);
+			HTCache_setExpiresMode(HT_EXPIRES_AUTO, NULL);
 			break;
 		      default:
 			if (SHOW_MSG)
-			    fprintf(stdout, "Bad parameter (%s) for option -x\n", argv[arg]);
+			    fprintf(TDEST, "Bad parameter (%s) for option -x\n", argv[arg]);
 			break;
 		    }
 		}
@@ -1196,18 +1194,16 @@ int main ARGS2(int, argc, char **, argv)
 	    	char *p = argv[arg]+2;
 		for(;*p;p++) {
 		    switch (argv[arg][2]) {
-		    case 'b':	HTDirReadme = HT_DIR_README_BOTTOM; break;
-		    case 'n':	HTDirAccess = HT_DIR_FORBID; break;
-		    case 'r':	HTDirReadme = HT_DIR_README_NONE; break;
-		    case 's':   HTDirAccess = HT_DIR_SELECTIVE; break;
-		    case 't':	HTDirReadme = HT_DIR_README_TOP; break;
-		    case 'y':	HTDirAccess = HT_DIR_OK; break;
-		    default:
+		      case 'b':	HTDirReadme = HT_DIR_README_BOTTOM; break;
+		      case 'n':	HTDirAccess = HT_DIR_FORBID; break;
+		      case 'r':	HTDirReadme = HT_DIR_README_NONE; break;
+		      case 's': HTDirAccess = HT_DIR_SELECTIVE; break;
+		      case 't':	HTDirReadme = HT_DIR_README_TOP; break;
+		      case 'y':	HTDirAccess = HT_DIR_OK; break;
+		      default:
 			if (SHOW_MSG)
-			    fprintf(stdout, "Bad parameter (%s) for -d option\n",
+			    fprintf(TDEST,"Bad parameter (%s) for -d option\n",
 				    argv[arg]);
-			status = -4;
-		        goto endproc;
 		    }
 		} /* loop over characters */
 #endif
@@ -1234,7 +1230,8 @@ int main ARGS2(int, argc, char **, argv)
 		      case 'u': WWW_TraceFlag |= SHOW_URI_TRACE; break;
 		      default:
 			if (SHOW_MSG)
-			    fprintf(stdout, "Bad parameter (%s) for -v option\n", argv[arg]);
+			    fprintf(TDEST,"Bad parameter (%s) for -v option\n",
+				    argv[arg]);
 		    }
 		}/* loop over characters */
 		if (!WWW_TraceFlag)
@@ -1249,7 +1246,8 @@ int main ARGS2(int, argc, char **, argv)
 
 	    } else {
 		if (SHOW_MSG)
-		    fprintf(stdout, "Bad Command Line Argument (%s)\n", argv[arg]);
+		    fprintf(TDEST, "Bad Command Line Argument (%s)\n",
+			    argv[arg]);
 	    }
 	} else {	   /* If no leading `-' then check for main argument */
     	    if (!keycnt) {
@@ -1294,7 +1292,7 @@ int main ARGS2(int, argc, char **, argv)
     	char * rules = rulefile ? rulefile : getenv("WWW_CONFIG");
 	if (rules && HTLoadRules(rules) < 0) {
 	    if (SHOW_MSG)
-		fprintf(stdout, "Can't open rule file (%s) - ignored\n",rules);
+		fprintf(TDEST, "Can't open rule file (%s) - ignored\n",rules);
 	}
     }
 #endif
@@ -1309,7 +1307,7 @@ int main ARGS2(int, argc, char **, argv)
     	if (outputfile) {	    
 	    if ((output = fopen(outputfile, "wb")) == NULL) {
 	        if (SHOW_MSG)
-		    fprintf(stdout, "Can't open file for writing (%s)\n",
+		    fprintf(TDEST, "Can't open file for writing (%s)\n",
 			    outputfile);
 	    }
 	}
@@ -1336,17 +1334,25 @@ int main ARGS2(int, argc, char **, argv)
 
     /* Just convert formats */
     if (filter) {
-	HTBindAnchor((HTAnchor *) home_anchor, request);
+	HTRequest_setAnchor (request, (HTAnchor *) home_anchor);
      	HTParseSocket(input_format, 0, request);      /* From std UNIX input */
 	    goto endproc;
     }
-
+    
+    /* Register a call back function for the Net Manager */
+    if (HTPrompt_interactive())
+	HTNet_register(terminate_handler, HT_ALL);
+    
     /* Load the first page. This is done using blocking I/O */
-    request->BlockingIO = YES;
-    if (HT_LOADED != (keywords ?
-		      HTSearch(HTChunkData(keywords), home_anchor, request) :
-		      HTLoadAnchor((HTAnchor*) home_anchor, request)))
+    request->preemtive = YES;
+    if ((keywords ?
+	 HTSearch(HTChunkData(keywords), home_anchor, request) :
+	 HTLoadAnchor((HTAnchor*) home_anchor, request)) != YES) {
+	if (SHOW_MSG)
+	    fprintf(TDEST, "Couldn't load home page\n");
+	status = -1;
 	goto endproc;
+    }
 
     /* If in interactive mode then start the event loop which will run until
        the program terminates */
@@ -1370,7 +1376,7 @@ int main ARGS2(int, argc, char **, argv)
 			    scan_command, 1);
 
 	/* Go into the event loop... */
-	status = HTEvent_Loop(request);
+	HTEvent_Loop(request);
     } else if (show_refs) {
 	Reference_List(NO);	       /* Show references from this document */
     }
@@ -1380,7 +1386,6 @@ endproc:
     if (output && output!=stdout)
 	fclose(output);
     Thread_deleteAll();
-    HTRequest_delete(request);
     if (abs_home)
 	free(abs_home);
     if (logfile)

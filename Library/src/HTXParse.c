@@ -14,6 +14,7 @@
 #include "HTFormat.h"			/* defines INPUT_BUFFER_SIZE */
 #include "HTXParse.h"                 /* defines HTStreamClass */
 #include "HTEPtoCl.h"         /* defines dummy routine for talking to client */
+#include "HTSocket.h"
 #include "HTEvntrg.h"
 
 struct _HTStream {

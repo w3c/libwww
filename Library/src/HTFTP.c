@@ -74,11 +74,11 @@
 #include "HTAnchor.h"
 #include "HTBind.h"
 #include "HTSocket.h"
-#include "HTBTree.h"
 #include "HTChunk.h"
 #include "HTAlert.h"
 #include "HTDirBrw.h"
 #include "HTError.h"
+#include "HTReqMan.h"
 #include "HTTCP.h"
 #include "HTFTP.h"					 /* Implemented here */
 
@@ -96,11 +96,11 @@
 
 #define FTP_DEFAULT_TIMEOUT	1000L			    /* x/100 seconds */
 
-#ifndef IPPORT_FTP
-#define IPPORT_FTP		21
+#ifndef FTP_PORT
+#define FTP_PORT		21
 #endif
 
-#define WWW_FTP_CLIENT "WWWuser"         /* If can't get user-info, use this */
+#define WWW_FTP_CLIENT "libwww"          /* If can't get user-info, use this */
 
 /* Globals */
 PUBLIC BOOL HTFTPUserInfo = YES;
@@ -120,9 +120,9 @@ PRIVATE int     master_socket = -1;	       /* Listening socket = invalid */
 PRIVATE char *	this_addr;				    /* Local address */
 #endif
 
-/* This is the local definition of HTRequest->net_info. In the special
-   case of FTP we need two structures: one for the data connection and one
-   for the control connection */
+/*
+** Local context structure used in the HTNet object.
+*/
 typedef enum _HTFTPServerType {
     UNKNOWN = -1,
     GENERIC_SERVER = 0,
@@ -138,86 +138,47 @@ typedef enum _HTFTPServerType {
 } HTFTPServerType;
 
 typedef enum _HTFTPState {
-    FTP_ERROR = -2,
-    FTP_FAILURE = -1,
-    FTP_IDLE = 0,
-    FTP_BEGIN,
+    FTP_ERROR = -3,
+    FTP_FAILURE = -2,
+    FTP_GOT_DATA = -1,
+    FTP_BEGIN = 0,
+    FTP_NEED_CCON,				       /* Control connection */
+    FTP_NEED_DCON,					  /* Data connection */
+    FTP_NEED_SERVER_INFO,			   /* For directory listings */
+
+
     FTP_LOGGED_IN,
     FTP_GOT_DATA_CON,
     FTP_GOT_SERVER_INFO,
-    FTP_GOT_DATA
 } HTFTPState;
 
-typedef struct _user_info {
-    char *		     	domain;
-    char *			id;
-    char *			passwd;
-} user_info;
-
-/* The ftp_ctrl_info and ftp_data_info are both subclasses of the HTNetInfo
-   structure defined in HTAccess.html */
-typedef struct _ftp_ctrl_info {
-    SOCKFD		sockfd;				/* Socket descripter */
-    SockA 		sock_addr;		/* SockA is defined in tcp.h */
-    HTInputSocket *	isoc;				     /* Input buffer */
-    SocAction		action;			/* Result of the select call */
-    HTStream *		target;				    /* Target stream */
-    int 		addressCount;	     /* Attempts if multi-homed host */
-    time_t		connecttime;		 /* Used on multihomed hosts */
-    long		bytes_read;		  /* Bytes read from network */
-    struct _HTRequest *	request;	   /* Link back to request structure */
-
+typedef struct _ftp_ctrl {
     HTChunk *		transmit;			  /* Line to be send */
-    u_long		serv_node;          	     /* IP address of server */
-    u_short		serv_port;	    	    /* Port number on server */
-    char *		location;        	 /* Current escaped position */
-    user_info *		user;		        /* Userid, passwd and domain */
     HTChunk *		welcome;		      /* The welcome message */
-    HTChunk *		reply;	           	   /* Last reply from server */
-    HTFTPServerType	server;		         	   /* Type of server */
-    BOOL		unsure_type;		     /* Sure about the type? */
+    char *		userid;
+    char *		passwd;
     BOOL		use_list;	  		  /* Can we use LIST */
     HTFTPState     	state;			  /* State of the connection */
-    HTList *		data_cons;  	             /* The data connections */
-} ftp_ctrl_info;
+
+    HTFTPServerType	server;		         	   /* Type of server */
+    BOOL		unsure_type;		     /* Sure about the type? */
+} ftp_ctrl;
 
 /* We assume that the data connection is established between the same hosts
    as the control connection */
-typedef struct _ftp_data_info {
-    SOCKFD		sockfd;				/* Socket descripter */
-    SockA 		sock_addr;		/* SockA is defined in tcp.h */
-    HTInputSocket *	isoc;				     /* Input buffer */
-    SocAction		action;			/* Result of the select call */
-    HTStream *		target;				    /* Target stream */
-    int 		addressCount;	     /* Attempts if multi-homed host */
-    time_t		connecttime;		 /* Used on multihomed hosts */
-    long		bytes_read;		  /* Bytes read from network */
-    struct _HTRequest *	request;	   /* Link back to request structure */
-
-    HTChunk *		transmit;			  /* Line to be send */
+typedef struct _ftp_data {
     char *		host;			 /* host to contact for data */
     char		passive;	 	 /* Have we opened passively */
     BOOL 		directory;		         /* Yes if directory */
     char *		datatype;	   /* See rfc959 p.48, but NO SPACE! */
-    ftp_ctrl_info *	ctrl;			   /* Controlling connection */
-} ftp_data_info;
+    ftp_ctrl *		ctrl;			   /* Controlling connection */
+} ftp_data;
 
-PRIVATE user_info *old_user;	    /* Only used if HT_REUSE_USER_INFO is on */
-PRIVATE HTList *session;	 /* List of control connections in a session */
-
-/* Comments to the Data Structures
-
-    location:	The current location on the FTP-site. This is kept up to date
-                using CWD and CDUP, but as there is no garanty for a
-		hierarchical file structure in FTP, it should be handled
-		carefully.
-    passive:	0 means we are active, 1 means we are passive but haven't done
-                any accept, 2 means we are passive AND have done the accept. */
 
 /* ------------------------------------------------------------------------- */
 /*			   Directory Specific Functions			     */
 /* ------------------------------------------------------------------------- */
-
+#if 0
 /*							      HTFTPParseError
 **
 **	This function parses an (multiple line) error message and takes out
@@ -310,7 +271,7 @@ PRIVATE void HTFTPParseWelcome ARGS1(HTChunk **, welcome)
 **	states in the login procedure.
 **
 */
-PRIVATE void HTFTPAddWelcome ARGS1(ftp_ctrl_info *, ctrl)
+PRIVATE void HTFTPAddWelcome ARGS1(ftp_ctrl *, ctrl)
 {
     if (!ctrl->welcome)				            /* If first time */
 	ctrl->welcome = HTChunkCreate(128);
@@ -322,71 +283,6 @@ PRIVATE void HTFTPAddWelcome ARGS1(ftp_ctrl_info *, ctrl)
     }
 }
 
-
-#if 0 /* NOT NEEDED FOR THE MOMENT */
-/*
- * is_ls_date() --
- *      Return TRUE if s points to a string of the form:
- *              "Sep  1  1990 " or
- *              "Sep 11 11:59 " or
- *              "Dec 12 1989  " or
- *              "FCv 23 1990  " ...
- *
- * Thanks to James.W.Matthews@Dartmouth.EDU (James W. Matthews)
- */
-PRIVATE BOOL is_ls_date ARGS1(char *, s)
-{
-    /* must start with three alpha characget_striters */
-    if (!isalpha(*s++) || !isalpha(*s++) || !isalpha(*s++))
-	return FALSE;
-    
-    /* space */
-    if (*s++ != ' ')
-	return FALSE;
-    
-    /* space or digit */
-    if ((*s != ' ') && !isdigit(*s))
-	return FALSE;
-    s++;
-    
-    /* digit */
-    if (!isdigit(*s++))
-	return FALSE;
-    
-    /* space */
-    if (*s++ != ' ')
-	return FALSE;
-    
-    /* space or digit */
-    if ((*s != ' ') && !isdigit(*s))
-	return FALSE;
-    s++;
-    
-    /* digit */
-    if (!isdigit(*s++))
-	return FALSE;
-    
-    /* colon or digit */
-    if ((*s != ':') && !isdigit(*s))
-	return FALSE;
-    s++;
-    
-    /* digit */
-    if (!isdigit(*s++))
-	return FALSE;
-    
-    /* space or digit */
-    if ((*s != ' ') && !isdigit(*s))
-	return FALSE;
-    s++;
-    
-    /* space */
-    if (*s++ != ' ')
-	return FALSE;
-    
-    return TRUE;
-} /* is_ls_date() */
-#endif
 
 /*								HTStrpMonth()
 **
@@ -505,7 +401,7 @@ PRIVATE time_t HTVMSStrpTime ARGS1(char *, datestr)
 
     /* This is wrong as we ignore DST at the origin server. However there
        is little we can do about it :-( */
-    memset(&time_info, '\0', sizeof(struct tm));
+    memset((void *) &time_info, '\0', sizeof(struct tm));
     if ((col = strtok(datestr, "-")) == NULL)
 	return (time_t) 0;
     time_info.tm_mday = atoi(col);				      /* Day */
@@ -525,55 +421,6 @@ PRIVATE time_t HTVMSStrpTime ARGS1(char *, datestr)
     time_info.tm_min = atoi(col);
     time_info.tm_sec = 0;
     return ((tval = mktime(&time_info)) < 0 ? (time_t) 0 : tval);
-}
-
-
-/*								HTFTPFilePerm()
-**
-**	Converts the file type from 'ls -l' into a long. The reason for
-**	doing this is to be able to handle the file type and icon selection
-**	similar to the Unix way used in HTBrowseDirectory().
-**
-*/
-PRIVATE long HTFTPFilePerm ARGS1(char *, permission)
-{
-    char *strptr = permission;
-    long mode = 0L;
-    
-    /* Special files etc. are all handled like regular files */
-    switch (*strptr++) {					/* File type */
-      case 'd':	mode = S_IFMT & S_IFDIR; break;
-      case 'l': mode = S_IFMT & S_IFLNK; break;
-      default:  mode = S_IFMT & S_IFREG; break;
-    }
-    if (*strptr++ == 'r') mode |= S_IRUSR;			     /* User */
-    if (*strptr++ == 'w') mode |= S_IWUSR;
-    if (*strptr == 'x')
-	mode |= S_IXUSR;
-    else if (*strptr == 's')
-	mode |= (S_IXUSR | S_ISUID);
-    else if (*strptr == 'S')
-	mode |= S_ISUID;
-    strptr++;
-    if (*strptr++ == 'r') mode |= S_IRGRP;		            /* Group */
-    if (*strptr++ == 'w') mode |= S_IWGRP;
-    if (*strptr == 'x')
-	mode |= S_IXGRP;
-    else if (*strptr == 's')
-	mode |= (S_IXGRP | S_ISGID);
-    else if (*strptr == 'S')
-	mode |= S_ISGID;
-    strptr++;
-    if (*strptr++ == 'r') mode |= S_IROTH;			    /* Other */
-    if (*strptr++ == 'w') mode |= S_IWOTH;
-    if (*strptr == 'x')
-	mode |= S_IXOTH;
-    else if (*strptr == 't')
-	mode |= (S_IXOTH | S_ISVTX);
-    else if (*strptr == 'T')
-	mode |= S_ISVTX;
-    strptr++;
-    return mode;
 }
 
 
@@ -757,7 +604,7 @@ PRIVATE BOOL parse_vms_line ARGS2(char *, line, dir_file_info *, f_info)
 **      If first_entry is true, this it must be the first name in a directory.
 **	Returns YES if OK, NO on error
 */
-PRIVATE BOOL parse_dir_entry ARGS4(ftp_data_info *, data, char *, entry,
+PRIVATE BOOL parse_dir_entry ARGS4(ftp_data *, data, char *, entry,
 				   BOOL, first_entry, dir_file_info *, f_info)
 {
     BOOL status = YES;
@@ -830,103 +677,9 @@ PRIVATE BOOL parse_dir_entry ARGS4(ftp_data_info *, data, char *, entry,
 }
 
 
-PRIVATE int HTFTP_get_dir_string ARGS2(HTNetInfo *, data,
-				       dir_file_info *, f_info)
-{
-    int status = 1;
-    int ch;			      /* Must be int in order to contain EOF */
-    BOOL got_line = NO;
-    static BOOL first = YES;		    /* Is it the first time through? */
-    HTChunk *chunk = HTChunkCreate(128);
-
-    do {			                /* Until we have a nice line */
-	while ((ch = HTInputSocket_getCharacter(data->isoc)) >= 0) {
-	    if (ch == CR || ch == LF) {			      /* Terminator? */
-		if (chunk->size != 0) {			    /* got some text */
-		    if (((ftp_data_info *) data)->ctrl->server == VMS_SERVER) {
-			/* Deal with MultiNet's wrapping of long lines - F.M.*/
-			if (isdigit(*(chunk->data+chunk->size-1)))
-			    continue;
-		    }
-		    HTChunkTerminate(chunk);
-		    if (parse_dir_entry((ftp_data_info *) data, chunk->data,
-					first, f_info)) {
-			first = NO;
-			got_line = YES;
-			break;
-		    } else {
-			first = NO;
-			HTChunkClear(chunk);
-		    }
-		}
-	    } else
-		HTChunkPutc(chunk, ch);
-	}
-    } while (got_line == NO && ch >= 0);
-    if (ch < 0) {
-	first = YES;
-	status = (ch == EOF) ? 0 : ch;
-    }
-    HTChunkFree(chunk);
-    return status;
-}
-
 /* ------------------------------------------------------------------------- */
 /*	  FTP Client Functions for managing control and data connections     */
 /* ------------------------------------------------------------------------- */
-
-/*								HTFTP_send_cmd
-**
-**	This function sends a command through the control connection 
-**	specified. The Telnet terminating end of line code <CRLF> is
-**	appended automaticly. The parameter argument is ignored if NULL.
-**
-**	Returns 0 on OK, else -1 but does NOT close the connection
-*/
-PRIVATE int HTFTP_send_cmd ARGS3(ftp_ctrl_info *, ctrl, char *, cmd,
-				 char *, pars)
-{
-    char *command;
-    if (!ctrl && ctrl->sockfd == INVSOC) {
-	if (PROT_TRACE)
-	    fprintf(TDEST, "HTFTP_send_cmd: Invalid socket\n");
-	return -1;
-    }
-    if ((command = (char *) malloc(strlen(cmd) + (pars ? strlen(pars)+1 : 0) +
-				   2 + 1)) == NULL)
-	outofmem(__FILE__, "HTFTP_send_cmd");
-    if (pars && *pars)
-	sprintf(command, "%s %s%c%c", cmd, pars, CR, LF);
-    else
-	sprintf(command, "%s%c%c", cmd, CR, LF);
-    if (PROT_TRACE) {
-	if (!strcasecomp(cmd, "pass"))
-	    fprintf(TDEST, "FTP Tx...... PASS ********\n");
-	else
-	    fprintf(TDEST, "FTP Tx...... %s", command);
-    }
-#ifdef NOT_ASCII
-    {
-	char *sp;
-	for (sp = command; *sp; sp++) {
-	    *sp = TOASCII(*sp);
-	}
-    }
-#endif
-    {
-	int status = NETWRITE(ctrl->sockfd, command,
-			      (int) strlen(command));
-	if (status < 0) {
-	    if (PROT_TRACE)
-		fprintf(TDEST, "FTP......... Error sending command\n");
-	    HTErrorSysAdd(ctrl->request, ERR_FATAL, socerrno, NO, "NETWRITE");
-	    free(command);
-	    return -1;
-	}
-	free(command);
-	return 0;
-    }
-}
 
 
 /*							   HTFTP_get_response
@@ -940,8 +693,7 @@ PRIVATE int HTFTP_send_cmd ARGS3(ftp_ctrl_info *, ctrl, char *, cmd,
 **	Returns the 3 digit return code on OK, else -1 but does NOT close
 **	the control connection.
 */
-PRIVATE int HTFTP_get_response ARGS2(ftp_ctrl_info *, ctrl_info,
-				     HTChunk **, text)
+PRIVATE int HTFTP_get_response (HTNet * cnet, HTChunk **text)
 {
     int result;				         /* Three-digit decimal code */
     int offset = 0;		      /* Offset for each newline in response */
@@ -949,14 +701,14 @@ PRIVATE int HTFTP_get_response ARGS2(ftp_ctrl_info *, ctrl_info,
     int ch;
     HTChunk *chunk = HTChunkCreate(128);
 
-    if (!ctrl_info && ctrl_info->sockfd==INVSOC) {
+    if (!cnet && cnet->sockfd==INVSOC) {
 	if (PROT_TRACE)
 	    fprintf(TDEST, "HTFTP_get_response: Invalid socket\n");
 	return -1;
     }
 
     /* Read response */
-    while ((ch = HTInputSocket_getCharacter(ctrl_info->isoc)) >= 0) {
+    while ((ch = HTInputSocket_getCharacter(cnet->isoc)) >= 0) {
 	if (ch == LF) {
 	    int tmpres;
 	    char cont;
@@ -1013,24 +765,24 @@ PRIVATE int HTFTP_get_response ARGS2(ftp_ctrl_info *, ctrl_info,
 **	Closes the data connection and frees memory
 **	Returns 0 if OK, -1 on error
 */
-PRIVATE int HTFTP_close_data_con ARGS1(ftp_data_info *, data)
+PRIVATE int HTFTP_close_data_con (HTNet * dnet)
 {
     int status = 0;
-    if (data) {
-	if (data->sockfd != INVSOC) {
+    if (dnet) {
+	if (dnet->sockfd != INVSOC) {
 	    if (PROT_TRACE)
 		fprintf(TDEST, "FTP......... Closing data socket %d\n",
-			data->sockfd);
-	    if ((status = NETCLOSE(data->sockfd)) < 0)
-		HTErrorSysAdd(data->request, ERR_FATAL,socerrno,NO,"NETCLOSE");
+			dnet->sockfd);
+	    if ((status = NETCLOSE(dnet->sockfd)) < 0)
+		HTErrorSysAdd(dnet->request, ERR_FATAL,socerrno,NO,"NETCLOSE");
 #ifdef REPEAT_LISTEN
-	    if (master_socket == data->sockfd)
+	    if (master_socket == dnet->sockfd)
 		master_socket = INVSOC;
 #endif
 	}
 	FREE(data->host);
 	FREE(data->datatype);
-	data->request->net_info = NULL;
+	dnet->request->net = NULL;
 	free(data);
     } else {
 	if (PROT_TRACE) fprintf(TDEST, "HTFTP_close_data_con: bad argument!");
@@ -1045,7 +797,7 @@ PRIVATE int HTFTP_close_data_con ARGS1(ftp_data_info *, data)
 **	then it can be closed and the memory freed.
 **	Returns 0 if OK, -1 on error
 */
-PRIVATE int HTFTP_close_ctrl_con ARGS1(ftp_ctrl_info *, ctrl)
+PRIVATE int HTFTP_close_ctrl_con ARGS1(ftp_ctrl *, ctrl)
 {
     int status = 0;
     if (ctrl && (!ctrl->data_cons ||
@@ -1072,7 +824,7 @@ PRIVATE int HTFTP_close_ctrl_con ARGS1(ftp_ctrl_info *, ctrl)
 	if (ctrl->reply)
 	    HTChunkFree(ctrl->reply);
 	HTList_delete(ctrl->data_cons);
-	ctrl->request->net_info = NULL;
+	ctrl->request->net = NULL;
 	free(ctrl);
     }
     return status;
@@ -1084,7 +836,7 @@ PRIVATE int HTFTP_close_ctrl_con ARGS1(ftp_ctrl_info *, ctrl)
 **	are pending => they are all removed, so be careful!
 **	Returns 0 if OK, -1 on error
 */
-PRIVATE int HTFTP_abort_ctrl_con ARGS1(ftp_ctrl_info *, ctrl)
+PRIVATE int HTFTP_abort_ctrl_con ARGS1(ftp_ctrl *, ctrl)
 {
     int status = 0;
     if (!ctrl) {
@@ -1098,36 +850,33 @@ PRIVATE int HTFTP_abort_ctrl_con ARGS1(ftp_ctrl_info *, ctrl)
     /* Close any pending data connections */
     if (ctrl->data_cons && HTList_count(ctrl->data_cons)) {
 	HTList *cur = ctrl->data_cons;
-	ftp_data_info *pres;
-	while ((pres = (ftp_data_info *) HTList_nextObject(cur))) {
+	ftp_data *pres;
+	while ((pres = (ftp_data *) HTList_nextObject(cur))) {
 	    HTFTP_close_data_con(pres);
 	}
 	HTList_delete(ctrl->data_cons);
 	ctrl->data_cons = NULL;
     }
 
-    /* If a session is going on, the control connections are closed later */
-    if (!session) {
-	if (ctrl->sockfd != INVSOC) {
-	    if ((status = NETCLOSE(ctrl->sockfd)) < 0)
-		HTErrorSysAdd(ctrl->request, ERR_FATAL,socerrno,NO,"NETCLOSE");
-	    ctrl->sockfd = INVSOC;
-	}
-	if (ctrl->isoc)
-	    HTInputSocket_free(ctrl->isoc);
-	FREE(ctrl->location);
-	if (ctrl->user) {
-	    FREE(ctrl->user->domain);
-	    FREE(ctrl->user->id);
-	    FREE(ctrl->user->passwd);
-	    free(ctrl->user);
-	}
-	if (ctrl->welcome)
-	    HTChunkFree(ctrl->welcome);
-	if (ctrl->reply)
-	    HTChunkFree(ctrl->reply);
-	free(ctrl);
+    if (ctrl->sockfd != INVSOC) {
+	if ((status = NETCLOSE(ctrl->sockfd)) < 0)
+	    HTErrorSysAdd(ctrl->request, ERR_FATAL,socerrno,NO,"NETCLOSE");
+	ctrl->sockfd = INVSOC;
     }
+    if (ctrl->isoc)
+	HTInputSocket_free(ctrl->isoc);
+    FREE(ctrl->location);
+    if (ctrl->user) {
+	FREE(ctrl->user->domain);
+	FREE(ctrl->user->id);
+	FREE(ctrl->user->passwd);
+	free(ctrl->user);
+    }
+    if (ctrl->welcome)
+	HTChunkFree(ctrl->welcome);
+    if (ctrl->reply)
+	HTChunkFree(ctrl->reply);
+    free(ctrl);
     return status;
 }
 
@@ -1142,8 +891,7 @@ PRIVATE int HTFTP_abort_ctrl_con ARGS1(ftp_ctrl_info *, ctrl)
 **	Returns YES if anything BUT the domain and serv_port is specified,
 **	else NO 
 */
-PRIVATE BOOL HTFTP_parse_login ARGS3(char *, url, user_info *, user,
-				     u_short *, serv_port)
+PRIVATE BOOL HTFTP_parse_login (char * url, user_info * user)
 {
     BOOL status = NO;
     char *login = HTParse(url, "", PARSE_HOST);
@@ -1173,9 +921,6 @@ PRIVATE BOOL HTFTP_parse_login ARGS3(char *, url, user_info *, user,
 	if ((portstr = strrchr(host, ':')) != NULL) {	   /* Port specified */
 	    char *endp = NULL;
 	    *portstr++ = '\0';
-	    *serv_port = (u_short) strtol(portstr, &endp, 10);
-	    if (endp && *endp)	 /* If portstr is not good, use default port */
-		*serv_port = (u_short) IPPORT_FTP;
 	}
     }
     StrAllocCopy(user->domain, host);	              /* This is what's left */
@@ -1231,14 +976,13 @@ PRIVATE BOOL HTFTP_parse_datatype ARGS2(char *, url, char **, datatype)
 **	are optional.
 **	If error, NULL is returned.
 */
-PRIVATE ftp_ctrl_info *HTFTP_init_con ARGS2(HTRequest *, req, char *, url)
+PRIVATE ftp_ctrl *HTFTP_init_con ARGS2(HTRequest *, req, char *, url)
 {
     int status;
     BOOL use_url = NO;	   /* YES if uid and passwd are specified in the URL */
-    u_short serv_port = IPPORT_FTP;		/* Might be changed from URL */
     
-    ftp_ctrl_info *ctrl;
-    ftp_data_info *data;
+    ftp_ctrl *ctrl;
+    ftp_data *data;
     user_info user;		    /* Contains userid, passwd etc. from URL */
 
     if (!url || !*url) {
@@ -1248,16 +992,16 @@ PRIVATE ftp_ctrl_info *HTFTP_init_con ARGS2(HTRequest *, req, char *, url)
     }
 
     /* Initiate new data connection structure and bin to request */
-    if ((data = (ftp_data_info *) calloc(1, sizeof(ftp_data_info))) == NULL)
+    if ((data = (ftp_data *) calloc(1, sizeof(ftp_data))) == NULL)
 	outofmem(__FILE__, "HTFTP_get_ctrl_con");
     data->sockfd = INVSOC;	       	            /* Illigal socket number */
     data->passive = 0;			 /* We do the active open pr default */
     data->request = req;
-    req->net_info = (HTNetInfo *) data;
+    req->net = (HTNet *) data;
     
     /* Scan URL for uid, pw and portnumber */
     memset((void *) &user, '\0', sizeof(user_info));
-    use_url = HTFTP_parse_login(url, &user, &serv_port);
+    use_url = HTFTP_parse_login(url, &user);
 
     {
 	char *filename = HTParse(url, "", PARSE_PATH+PARSE_PUNCTUATION);
@@ -1286,81 +1030,10 @@ PRIVATE ftp_ctrl_info *HTFTP_init_con ARGS2(HTRequest *, req, char *, url)
 	FREE(filename);
     }
 
-    /* Look if control connection already exists else generate new one */
-    if (session) {
-	BOOL found = NO;
-	HTList *cur = session;
-	SockA sock_addr;			/* SockA is defined in tcp.h */
-	char *host;
-	    
-	/* if theres an @ then use the stuff after it as a hostname */
-	{
-	    char *fullhost = HTParse(url, "", PARSE_HOST);
-	    char *at_sign;
-	    if((at_sign = strchr(fullhost, '@')) != NULL)
-		host = at_sign+1;
-	    else
-		host = fullhost;
-	}
-	
-	/* Set up defaults: */
-	memset((void *) &sock_addr, '\0', sizeof(sock_addr));
-	sock_addr.sin_family = AF_INET;
-	sock_addr.sin_port = htons(serv_port);
-	
-	/* Get node name */
-	if (HTParseInet(req, &sock_addr, host, NO) < 0) {
-	    if (PROT_TRACE) fprintf(TDEST,
-			       "FTP......... Can't locate remote host `%s\'\n", host);
-	    FREE(user.domain);
-	    FREE(user.id);
-	    FREE(user.passwd);
-	    free(host);
-	    return NULL;
-	}
-	{
-	    /* Check if host, port and user info is the same */
-	    u_long new_node = ntohl(sock_addr.sin_addr.s_addr);
-	    while ((ctrl = (ftp_ctrl_info *) HTList_nextObject(cur))) {
-		if (new_node==ctrl->serv_node && serv_port==ctrl->serv_port) {
-		    if ((user.id && strcmp(user.id, ctrl->user->id)) ||
-			(user.passwd && strcmp(user.id, ctrl->user->passwd))) {
-			found = NO;
-		    } else {
-			found = YES;
-			break;
-		    }
-		}
-	    }
-	}
-	FREE(host);
-	if (found) {
-	    if (PROT_TRACE) fprintf(TDEST,
-			       "FTP......... Already have connection for %d.%d.%d.%d. on port %d, socket %d at location `%s\'\n",
-			       (int)*((unsigned char *)(&ctrl->serv_node)+0),
-			       (int)*((unsigned char *)(&ctrl->serv_node)+1),
-			       (int)*((unsigned char *)(&ctrl->serv_node)+2),
-			       (int)*((unsigned char *)(&ctrl->serv_node)+3),
-			       ctrl->serv_port,
-			       ctrl->sockfd,
-			       ctrl->location);
-	    data->ctrl = ctrl;			       /* Link them together */
-	    HTList_addObject(ctrl->data_cons, (void *) data); /* Add to list */
-	    FREE(user.domain);
-	    FREE(user.id);
-	    FREE(user.passwd);
-	    return ctrl;           /* This should return the found structure */
-	} else {
-	    if (PROT_TRACE)
-		fprintf(TDEST, "FTP......... No existing connection found, so I build a new\n");
-	}
-    }
-    
     /* Set up data structure for control connection and bind to request */
-    if ((ctrl = (ftp_ctrl_info *) calloc(1, sizeof(ftp_ctrl_info))) == NULL ||
+    if ((ctrl = (ftp_ctrl *) calloc(1, sizeof(ftp_ctrl))) == NULL ||
 	(ctrl->user = (user_info *) calloc(1, sizeof(user_info))) == NULL)
 	outofmem(__FILE__, "HTFTP_init_con");
-    ctrl->serv_port = serv_port;
     ctrl->sockfd = INVSOC;	       	            /* Illigal socket number */
     ctrl->request = req;
     StrAllocCopy(ctrl->location, "");			  /* Default is root */
@@ -1368,8 +1041,6 @@ PRIVATE ftp_ctrl_info *HTFTP_init_con ARGS2(HTRequest *, req, char *, url)
     ctrl->unsure_type = YES;
     ctrl->use_list = NO;
     ctrl->state = FTP_IDLE;
-    if (session)
-	HTList_addObject(session, (void *) ctrl);
     data->ctrl = ctrl;				       /* Link them together */
     ctrl->data_cons = HTList_new();
     HTList_addObject(ctrl->data_cons, (void *) data);	    /* First element */
@@ -1412,8 +1083,7 @@ PRIVATE ftp_ctrl_info *HTFTP_init_con ARGS2(HTRequest *, req, char *, url)
     FREE(user.passwd);
 
     /* Now get ready for a connect */
-    if ((status = HTDoConnect((HTNetInfo *) ctrl, url, serv_port,
-			      &ctrl->serv_node, NO)) < 0)
+    if ((status = HTDoConnect((HTNet *) ctrl, url, FTP_PORT, NULL, NO)) < 0)
     {
 	if (PROT_TRACE)
 	    fprintf(TDEST, "HTFTP_init_con: Connection not established!\n");
@@ -1444,7 +1114,7 @@ PRIVATE ftp_ctrl_info *HTFTP_init_con ARGS2(HTRequest *, req, char *, url)
 **	master_socket	is socket number if good, else negative.
 **	port_number	is valid if good.
 */
-PRIVATE BOOL get_listen_socket ARGS1(ftp_data_info *, data)
+PRIVATE BOOL get_listen_socket ARGS1(ftp_data *, data)
 {
     SockA local_addr;				   /* Binary network address */
     int status = -1;
@@ -1579,7 +1249,7 @@ PRIVATE BOOL get_listen_socket ARGS1(ftp_data_info *, data)
 **
 **	Returns -2 on ERROR, -1 on FAILURE, 0 on SUCCESS.
 */
-PRIVATE int HTFTP_login ARGS1(ftp_ctrl_info *, ctrl)
+PRIVATE int HTFTP_login ARGS1(ftp_ctrl *, ctrl)
 {
     enum _state {
 	P_ERROR  = -2,
@@ -1749,7 +1419,7 @@ PRIVATE int HTFTP_login ARGS1(ftp_ctrl_info *, ctrl)
 **
 **	Returns -2 on P_ERROR, -1 on FAILURE, 0 on SUCCESS.
 */
-PRIVATE int HTFTP_logout ARGS1(ftp_ctrl_info *, ctrl)
+PRIVATE int HTFTP_logout ARGS1(ftp_ctrl *, ctrl)
 {
     enum _state {
 	P_ERROR  = -2,
@@ -1798,7 +1468,7 @@ PRIVATE int HTFTP_logout ARGS1(ftp_ctrl_info *, ctrl)
  **	Returns -2 on P_ERROR, -1 on FAILURE, 0 on SUCCESS.
  */
 PRIVATE int HTFTP_get_data_con ARGS3(HTRequest *, request,
-				     ftp_data_info *, data, char *, url)
+				     ftp_data *, data, char *, url)
 {
     enum _state {
 	P_ERROR = -2,
@@ -1813,7 +1483,7 @@ PRIVATE int HTFTP_get_data_con ARGS3(HTRequest *, request,
     } state = BEGIN;
     int serv_port = 0;
     int status;
-    ftp_ctrl_info *ctrl = data->ctrl;
+    ftp_ctrl *ctrl = data->ctrl;
     
     /* This loop only stops if state is P_ERROR, FAILURE or SUCCESS */
     while (state > 0) {
@@ -1874,32 +1544,11 @@ PRIVATE int HTFTP_get_data_con ARGS3(HTRequest *, request,
 			       "FTP......... Server is listening on port %d\n",
 			       serv_port);
 
-#ifdef OLD_CODE
 	    /* We can't generally expect that the data connection is going to
 	       be on the same host as the control connection. Use therefore
-	       not the URL but the host port returned by the PASV call */
-
-	    /* Got to strip any host port indication as this is for the control
-	       connection. Thanks to ramey@jello.csc.ti.com (Joe Ramey) */
-	    {
-		char *host, *port;
-		char *fullhost = HTParse(url, "",
-				 PARSE_ACCESS+PARSE_HOST+PARSE_PUNCTUATION);
-		/* Must spool by a UserID and PW if any (J.A.Stubbs) */
-		if ((host = strchr(fullhost, '@')) == NULL)
-		    host = fullhost;
-		else
-		    host++;
-		port = strrchr(host, ':');
-		if (port && strncmp(port, "://", 3))
-		    *port = '\0';
-		status = HTDoConnect((HTNetInfo *) data, fullhost, serv_port,
-				     (u_long *) NULL, YES);
-		free(fullhost);
-	    }
-#endif /* OLD_CODE */
-	    status = HTDoConnect((HTNetInfo *) data, data->host, serv_port,
-				 (u_long *) NULL, YES);
+	       not the URL but the host and port returned by the PASV call */
+	    status = HTDoConnect((HTNet *) data, data->host, serv_port,
+				 NULL, YES);
 	    if (status < 0) {
 		if (PROT_TRACE) fprintf(TDEST,
 				   "FTP......... Data connection failed using PASV, let's try PORT instead\n");
@@ -1973,7 +1622,7 @@ PRIVATE int HTFTP_get_data_con ARGS3(HTRequest *, request,
 **
 **	Returns -2 on P_ERROR, -1 on FAILURE, 0 on SUCCESS.
 */
-PRIVATE int HTFTP_switch_to_port ARGS2(ftp_data_info *, data,
+PRIVATE int HTFTP_switch_to_port ARGS2(ftp_data *, data,
 				       HTRequest *, 	req)
 {
     enum _state {
@@ -1981,7 +1630,7 @@ PRIVATE int HTFTP_switch_to_port ARGS2(ftp_data_info *, data,
 	SUCCESS = 0
     } state = P_ERROR;
     int status;
-    ftp_ctrl_info *ctrl = data->ctrl;
+    ftp_ctrl *ctrl = data->ctrl;
 
     if (data->passive) {
 	if (PROT_TRACE)
@@ -2019,12 +1668,12 @@ PRIVATE int HTFTP_switch_to_port ARGS2(ftp_data_info *, data,
 **	Returns -1 on P_ERROR, 0 if data-connection, 1 if control connection.
 */
 PRIVATE int HTFTP_look_for_data ARGS2(HTRequest *, 	request,
-				      ftp_data_info *, 	data)
+				      ftp_data *, 	data)
 {
     int status = -1;
     fd_set read_socks;
     struct timeval max_wait;
-    ftp_ctrl_info *ctrl = data->ctrl;
+    ftp_ctrl *ctrl = data->ctrl;
     int maxfdpl = HTMAX(data->sockfd, ctrl->sockfd) + 1;
     if (data->sockfd==INVSOC || ctrl->sockfd==INVSOC) {
 	if (PROT_TRACE)
@@ -2091,7 +1740,7 @@ PRIVATE int HTFTP_look_for_data ARGS2(HTRequest *, 	request,
 **	Thanks to James.W.Matthews@Dartmouth.EDU (James W. Matthews) for making
 **	his code available.
 */
-PRIVATE int HTFTPServerInfo ARGS1(ftp_ctrl_info *, ctrl)
+PRIVATE int HTFTPServerInfo ARGS1(ftp_ctrl *, ctrl)
 {
     enum _state {
 	P_ERROR  = -2,
@@ -2249,6 +1898,7 @@ PRIVATE int HTFTPServerInfo ARGS1(ftp_ctrl_info *, ctrl)
 }
 
 
+#if 0
 /*							     HTFTPLocation()
 **
 **	This function compares the current directory location in the
@@ -2259,7 +1909,7 @@ PRIVATE int HTFTPServerInfo ARGS1(ftp_ctrl_info *, ctrl)
 **	Returns relative path name if OK, else current location
 **
 */
-PRIVATE char *HTFTPLocation ARGS2(ftp_ctrl_info *, ctrl, char *, url)
+PRIVATE char *HTFTPLocation ARGS2(ftp_ctrl *, ctrl, char *, url)
 {
     unsigned char getup = 0;
     char *current;
@@ -2329,6 +1979,7 @@ PRIVATE char *HTFTPLocation ARGS2(ftp_ctrl_info *, ctrl, char *, url)
     free(newloc);
     return result;
 }
+#endif
 
 
 /* ------------------------------------------------------------------------- */
@@ -2344,7 +1995,7 @@ PRIVATE char *HTFTPLocation ARGS2(ftp_ctrl_info *, ctrl, char *, url)
 **
 **	Returns -2 on P_ERROR, -1 on FAILURE, 0 on SUCCESS.
 */
-PRIVATE int HTFTP_get_dir ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
+PRIVATE int HTFTP_get_dir ARGS3(ftp_ctrl *, ctrl, HTRequest *, req,
 				char *, relative)
 {
     enum _state {
@@ -2363,7 +2014,7 @@ PRIVATE int HTFTP_get_dir ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 	GOT_DATA
     } state = BEGIN;
     BOOL handle_ctrl = NO;
-    ftp_data_info *data = (ftp_data_info *) ctrl->data_cons->next->object; 
+    ftp_data *data = (ftp_data *) ctrl->data_cons->next->object; 
     int status;
     char *unescaped = NULL;
     StrAllocCopy(unescaped, relative);
@@ -2505,7 +2156,7 @@ PRIVATE int HTFTP_get_dir ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 	  case READY_FOR_DATA:
 	    if (data->passive == 1) {
 		int newfd;
-		if ((newfd = HTDoAccept((HTNetInfo *) data)) >= 0) {
+		if ((newfd = HTDoAccept((HTNet *) data)) >= 0) {
 #ifdef REPEAT_LISTEN
 		    if (PROT_TRACE) fprintf(TDEST, "FTP......... Passive data channel number %d stays open.\n", data->sockfd);
 #else
@@ -2543,12 +2194,7 @@ PRIVATE int HTFTP_get_dir ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 		HTInputSocket_free(data->isoc);
 		if (status == -1)
 		    state = P_ERROR;
-		else if (status == HT_INTERRUPTED) {
-		    if (!HTFTP_send_cmd(ctrl, "ABOR", NULL))
-			state = SENT_ABOR;
-		    else
-			state = P_ERROR;
-		} else
+		else
 		    state = GOT_DATA;
 		free(path);
 	    }
@@ -2630,7 +2276,7 @@ PRIVATE int HTFTP_get_dir ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 **
 **	Returns -2 on P_ERROR, -1 on FAILURE, 0 on SUCCESS.
 */
-PRIVATE int HTFTP_get_file ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
+PRIVATE int HTFTP_get_file ARGS3(ftp_ctrl *, ctrl, HTRequest *, req,
 				 char *, relative)
 {
     enum _state {
@@ -2648,7 +2294,7 @@ PRIVATE int HTFTP_get_file ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
     } state = BEGIN;
     BOOL handle_ctrl = NO;
     BOOL multiple = NO;		      /* Have we already tried multiple CWD? */
-    ftp_data_info *data = (ftp_data_info *) ctrl->data_cons->next->object; 
+    ftp_data *data = (ftp_data *) ctrl->data_cons->next->object; 
     int status;
     char *unescaped = NULL;
     StrAllocCopy(unescaped, relative);
@@ -2776,7 +2422,7 @@ PRIVATE int HTFTP_get_file ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 	  case READY_FOR_DATA:
 	    if (data->passive == 1) {
 		int newfd;
-		if ((newfd = HTDoAccept((HTNetInfo *) data)) >= 0) {
+		if ((newfd = HTDoAccept((HTNet *) data)) >= 0) {
 #ifdef REPEAT_LISTEN
 		    if (PROT_TRACE) fprintf(TDEST, "FTP......... Passive data channel number %d stays open.\n", data->sockfd);
 #else
@@ -2806,16 +2452,7 @@ PRIVATE int HTFTP_get_file ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 		fprintf(TDEST,"FTP......... Receiving file `%s\'\n",unescaped);
 	    status = HTParseSocket(HTAnchor_format(req->anchor),
 				   data->sockfd, req);
-	    if (status != HT_LOADED) {
-		if (status == HT_INTERRUPTED) {
-		    if (!HTFTP_send_cmd(ctrl, "ABOR", NULL))
-			state = SENT_ABOR;
-		    else
-			state = P_ERROR;
-		} else
-		    state = P_ERROR;
-	    } else
-		state = GOT_DATA;
+	    state = (status != HT_LOADED) ? P_ERROR : GOT_DATA;
 	    break;
 
 	  case GOT_DATA:
@@ -2889,96 +2526,69 @@ PRIVATE int HTFTP_get_file ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 /* ------------------------------------------------------------------------- */
 /*			       PUBLIC FTP functions			     */
 /* ------------------------------------------------------------------------- */
-
+#endif
 /*						   	   HTFTPWelcomeMsg
 **
 **    	Returns the welcome message from the login sequence
 */
-PUBLIC HTChunk *HTFTPWelcomeMsg ARGS1(HTNetInfo *, data)
+PUBLIC HTChunk *HTFTPWelcomeMsg ARGS1(HTNet *, data)
 {
-    return ((ftp_data_info *) data)->ctrl->welcome;
+    return ((ftp_data *) data)->ctrl->welcome;
 }
-
 
 /*						   	   HTFTPUseList
 **
 **    	Can we use long listings in HTDirBrw.c?
 */
-PUBLIC BOOL HTFTUseList ARGS1(HTNetInfo *, data)
+PUBLIC BOOL HTFTUseList ARGS1(HTNet *, data)
 {
-    return ((ftp_data_info *) data)->ctrl->use_list;
+    return ((ftp_data *) data)->ctrl->use_list;
 }
 
-
-/*						   	   HTFTP_enable_session
-**
-**    	This function makes it possible to reuse the same control connections
-**	until they are either timed out by the server, or that the session
-**	is closed by HTFTP_end_session. Note that HTLoadFTP can run
-**	independently of start and end session, and then each load runs like
-**	an atomic action.
-*/
-PUBLIC void HTFTP_enable_session NOARGS
-{
-    if (session) {
-	if (PROT_TRACE)
-	    fprintf(TDEST, "FTP......... Session is already enabled?\n");
-	return;
-    }
-    session = HTList_new();
-}
-
-
-/*						   	  HTFTP_disable_session
-**
-**    	This function is the closing function for HTFTP_enable_session.
-**
-**	Returns YES if OK, else NO
-*/
-PUBLIC BOOL HTFTP_disable_session NOARGS
-{
-    BOOL status = YES;
-    if (!session) {
-	if (PROT_TRACE)
-	    fprintf(TDEST, "FTP......... No session to disable?\n");
-	return NO;
-    }
-    {
-	HTList *cur = session;
-	ftp_ctrl_info *pres;
-	while ((pres = (ftp_ctrl_info *) HTList_nextObject(cur))) {
-	    if (HTFTP_close_ctrl_con(pres))
-		status = NO;
-	}
-	HTList_delete(session);
-    }
-    session = NULL;
-    return status;
-}
 
 
 /*	Retrieve File from Server as an atomic action. 
 **	-----------------------------------------------
+**	Given a hypertext address, this routine loads a document.
 **
 ** On entry,
-**	request		This is the request structure
-** On exit,
-**	returns		<0		Error has occured
-**			HT_LOADED	OK
+**      request		This is the request structure
+**	returns		HT_ERROR	Error has occured in call back
+**			HT_OK		Call back was OK
 */
-PUBLIC int HTLoadFTP ARGS1(HTRequest *, request)
+PUBLIC int HTLoadFTP ARGS3(SOCKET, soc, HTRequest *, request, SockOps, ops)
 {
-    char *url;
-    int status = -1;
+    int status = HT_ERROR;
+#if 0
+    HTNet *net = request->net;
+    ftp_ctrl *ctrl;
+    char *url = HTAnchor_physical(request->anchor);
     int retry;		       			    /* How many times tried? */
-    ftp_ctrl_info *ctrl;
 
-    if (!request || !request->anchor) {
-	if (PROT_TRACE) fprintf(TDEST, "HTLoadFTP... Bad argument\n");
-	return -1;
-    }
-    url = HTAnchor_physical(request->anchor);
-    if (PROT_TRACE) fprintf(TDEST, "FTP......... Looking for `%s\'\n", url);
+    /*
+    ** Initiate a new FTP data structure and bind to request structure
+    ** This is actually state FTP_BEGIN, but it can't be in the state
+    ** machine as we need the structure first.
+    */
+    if (ops == FD_NONE) {
+ 	if (PROT_TRACE) fprintf(TDEST, "FTP......... Looking for `%s\'\n",url);
+
+	/* The data HTNet object is hooked up to the request object and the
+	   ctrl HTNet object is floating around */
+	if ((data = (ftp_data *) calloc(1, sizeof(ftp_data))) == NULL)
+	    outofmem(__FILE__, "HTLoadFTP");
+	ctrl->state = FTP_BEGIN;
+	net->context = ctrl;		   /* Context for control connection */
+
+    } if (ops == FD_CLOSE) {				      /* Interrupted */
+	GopherCleanup(request, HT_INTERRUPTED);
+    } else
+	gopher = (gopher_info *) net->context;		/* Get existing copy */
+
+    /* Now jump into the machine. We know the state from the previous run */
+    while (1) {
+	switch (ctrl->state) {
+
 
     /* Initiate a (possibly already exsisting) control connection and a
        corresponding data connection */
@@ -2990,8 +2600,8 @@ PUBLIC int HTLoadFTP ARGS1(HTRequest *, request)
        transfer can be started. The control connection can be in another
        mode if (session), and then the request is getting queued in
        ctrl->data_cons. */
-    if (ctrl->state == FTP_IDLE || (session && ctrl->state == FTP_LOGGED_IN)) {
-	ftp_data_info *data = (ftp_data_info *) ctrl->data_cons->next->object;
+    if (ctrl->state == FTP_IDLE) {
+	ftp_data *data = (ftp_data *) ctrl->data_cons->next->object;
 	if (ctrl->state == FTP_IDLE)
 	    ctrl->state = FTP_BEGIN;
 	while (ctrl->state != FTP_IDLE) {	       	/* Do until finished */
@@ -3058,16 +2668,11 @@ PUBLIC int HTLoadFTP ARGS1(HTRequest *, request)
 		    ctrl->state = FTP_ERROR;
 		else {
 		    HTList_removeLastObject(ctrl->data_cons);
-		    if (!session) {
-			if (!HTFTP_logout(ctrl)) {
-			    ctrl->state = FTP_IDLE;
-			    status = HT_LOADED;
-			} else
-			    ctrl->state = FTP_ERROR;
-		    } else {
-			ctrl->state = FTP_LOGGED_IN; /*Ready for next request*/
-			return HT_LOADED;
-		    }
+		    if (!HTFTP_logout(ctrl)) {
+			ctrl->state = FTP_IDLE;
+			status = HT_LOADED;
+		    } else
+			ctrl->state = FTP_ERROR;
 		    break;
 		}
 		break;
@@ -3101,13 +2706,12 @@ PUBLIC int HTLoadFTP ARGS1(HTRequest *, request)
 	    }
 	}
 
-	/* The control connection is only closed if the load is atomic */
-	if (!session && HTFTP_close_ctrl_con(ctrl))
+	if (HTFTP_close_ctrl_con(ctrl))
 	    status = -1;
     }
 
   endfunc:
-    if (status < 0 && status != HT_INTERRUPTED) {
+    if (status < 0) {
 	char *unescaped = NULL;
 	StrAllocCopy(unescaped, url);
 	HTUnEscape(unescaped);
@@ -3115,14 +2719,7 @@ PUBLIC int HTLoadFTP ARGS1(HTRequest *, request)
 		   (int) strlen(unescaped), "HTLoadFTP");
 	free(unescaped);
     }
+#endif
     return status;
 }
-
-/* Protocol descriptors */
-GLOBALDEF PUBLIC HTProtocol HTFTP = {
-    "ftp", SOC_BLOCK, HTLoadFTP, NULL, NULL
-};
-
-/* END OF MODULE */
-
 

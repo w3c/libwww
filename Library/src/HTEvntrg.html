@@ -1,11 +1,11 @@
 <HTML>
 <HEAD>
-<TITLE>Event Functions for Multiple threads</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 27-Aug-1995 -->
+<TITLE>Event Manager</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  8-Sep-1995 -->
 </HEAD>
 <BODY>
 
-<H1>Event Functions for Multithreaded Library</H1>
+<H1>Event Manager</H1>
 
 <PRE>
 /*
@@ -17,234 +17,105 @@
 This module is the application interface to the multi-threaded
 functionality in the Library. It contains a set of functions that the
 application can either use as are or they can be overwritten by the
-application. If the current implementation is kept, then the mode is
-called <A
-HREF="http://www.w3.org/pub/WWW/Library/User/Architecture/Threads.html#active">
-Active Mode</A> of the multi-threaded model. If they are overwritten
-then it is called the <A
-HREF="http://www.w3.org/pub/WWW/Library/User/Architecture/Threads.html#passive">
-Passive Mode</A> implementation.<P>
+application. <P>
 
 This module is implemented by <A HREF="HTEvntrg.c">HTEvntrg.c</A>, and
-it is a part of the <A NAME="z10"
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>. <P>
-
-<B>Note: </B>No matter of the mode used (active or passive) the module
-uses a set of call-back functions. The definition of these modules are
-for the application to provide. <P>
-
-The basic elements in the model are:
-
-<UL>
-<LI>An eventloop containing a <CODE>select</CODE> function
-<LI>Three sets of pending socket descriptors (READ, WRITE, INTERRUPTED)
-<LI>A set of call-back functions to e defined by the application
-<LI>The existent set of <A HREF="HTAccess.html#LoadDoc">load
-functions</A> in the HTAccess module.
-</UL>
-
-In order to use the code in the simplest way (active mode) the
-application must do the following:
-
-<OL>
-<LI>Implement a set (at least one) call-back function(s) of type
-<CODE>HTEventHandler</CODE>
-<LI>Register the eventhandlers using <CODE>HTEventRegister</CODE>
-<LI>Implement the <CODE>HTEventRequestTerminate</CODE> call-back
-function to react to the result of the request.
-<LI>Call the <CODE>HTEventLoop</CODE> with parameters to load the home
-document.
-</OL>
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C
+Reference Library</A>. <P>
 
 <PRE>
 #ifndef HTEVNTRG_H
 #define HTEVNTRG_H
-
 #include "tcp.h"
-#include "HTUtils.h"
-#include "HTAccess.h"
-#include "HTThread.h"
+#include "HTReq.h"
 </PRE>
 
-<H2><A NAME="handler">Event Handlers</A></H2>
-
-<B>Note: </B> application implementation <P>
+<H2>Event Handlers</H2>
 
 The appplication registers a set of event handlers to be used on a
 specified set of sockets. The eventhandlers must be defined as follows:
 
 <PRE>
-typedef u_long SockOps ; 
-typedef u_long Priority ;
+typedef u_long SockOps; 
+typedef u_long HTPriority; 
 
-#define FD_ALL (FD_READ | FD_WRITE | FD_OOB | FD_ACCEPT | FD_CONNECT | FD_CLOSE )
+#define FD_NONE	0
+#define FD_ALL (FD_READ | FD_WRITE | FD_OOB | FD_ACCEPT | FD_CONNECT |FD_CLOSE)
+#define FD_UNREGISTER (((FD_ALL) &lt;&lt; 1) & (~(FD_ALL)))
 
-#define FD_UNREGISTER ( ((FD_ALL) &lt;&lt; 1) &   (~(FD_ALL)))
-
-
-typedef enum _HTEventState {
-    EVENT_OK = 0,
-    EVENT_INTR,				      /* Interrupt the active thread */
-    EVENT_INTR_ALL,			 /* Interrupt all registered threads */
-    EVENT_TERM,			/* Force a call to HTEventRequestTerminate() */
-    EVENT_QUIT						   /* QUIT eventloop */
-} <A NAME="state">HTEventState</A>;
-
-typedef HTEventState (*HTEventHandler)	PARAMS((HTRequest ** request));
-
-typedef int (*HTEventCallBack) PARAMS((SOCKET, HTRequest *, SockOps)) ;
-
-#if 0
-typedef struct _HTEventCallBack {
-    int			sockfd;
-    HTEventHandler	callback;
-} HTEventCallBack;
-#endif
+typedef int HTEventCallBack (SOCKET, HTRequest *, SockOps);
 </PRE>
 
-<A NAME="HTEventRegister"><H3>Register a User Event Handler</H3></A>
+<H3>Register a TTY Event Handler</H3>
 
-An event handler can be registered using the following function:
+Register the tty (console) as having events. If the TTY is
+select()-able (as is true under Unix), then we treat it as just
+another socket. Otherwise, take steps depending on the platform.
 
 <PRE>
-#if 0
-extern BOOL HTEventRegister	PARAMS((HTEventCallBack * user_socket));
-#endif
+extern int HTEvent_RegisterTTY	(SOCKET, HTRequest *, SockOps,
+				 HTEventCallBack *, HTPriority);
 </PRE>
 
-and unregistered using this function 
+<H3>Unregister a TTY Event Handler</H3>
+
+Unregisters TTY I/O channel. If the TTY is select()-able (as is true
+under Unix), then we treat it as just another socket.
 
 <PRE>
-#if 0
-extern BOOL HTEventUnregister   PARAMS((HTEventCallBack * user_socket));
-#endif
+extern int HTEvent_UnRegisterTTY (SOCKET, SockOps);
 </PRE>
 
-<H3>Cleanup Memory</H3>
+<H3>Register an Event Handler</H3>
 
-The following functions deletes the list of registered eventhandlers
-(not the structure elements themselves - only the list!
+For a given socket, reqister a request structure, a set of operations,
+a HTEventCallBack function, and a priority. For this implementation,
+we allow only a single HTEventCallBack function for all operations.
+and the priority field is ignored.
 
 <PRE>
-#if 0
-extern void HTEventCleanup	NOPARAMS;
-#endif
+extern int HTEvent_Register	(SOCKET, HTRequest *,
+				 SockOps, HTEventCallBack *,
+				 HTPriority);
 </PRE>
 
-The following functions are provided as a means of supporting 
-client implemented event loops. This requires that the library have some way
-of registering and unregistering its own sockets with the client such that
-the client can actually implement the <code>select</code> call (or 
-equivalent. These functions are provided as part of the library; they 
-are separate from the HTEvent.c module in that the 
-<EM>must</EM> be replaced if the client implements its own event loop 
-mechanism. 
-<DD> 
+<H3>Unregister an Event Handler</H3>
+
+Remove the registered information for the specified socket for the
+actions specified in ops. if no actions remain after the unregister,
+the registered info is deleted, and, if the socket has been registered
+for notification, the HTEventCallBack will be invoked.
 
 <PRE>
-#if 0
-void HTEventThread_new PARAMS (( void * )) ;
-#endif 
+extern int HTEvent_UnRegister	(SOCKET, SockOps);
 </PRE>
 
-As implemented in the library, this function just calls
-<CODE>HTThread_new</CODE> with its argument case appropriately.
+<H3>Unregister ALL Event Handlers</H3>
+
+Unregister all sockets. N.B. we just remove them for our internal data
+structures: it is up to the application to actually close the socket.
 
 <PRE>
-#if 0
-int HTEventThread_clear PARAMS(( void * )) ;
-#endif 
+extern int HTEvent_UnregisterAll (void);
 </PRE>
-
-As implemented, this function just calls <CODE>HTThead_clear</CODE>
-with its argument cast appropriately.
-
-<PRE>
-#if 0
-void HTEventThreadState PARAMS(( SOCKFD, HTThreadAction ));
-#endif 
-</PRE>
-
-This function just registers the specified <CODE>SOCKET</CODE> for the 
-action specified. As implemented, this just calls the 
-<CODE>HTThreadState</CODE> function.
-
-
-When <CODE>select</CODE> returns one of the sockets registered for
-user events, for example STDIN, as ready for READ then a function of
-type <CODE>HTEventHandler</CODE> is called to figure out what to do
-with the event. As mentioned, it is for the client to implement these
-functions, but the return codes must be as defined by
-<CODE>HTEventState</CODE>. <P>
-
-The client can use the load functions directly described in <A
-HREF="HTAccess.html#LoadDoc">HTAccess Module</A> from within any of
-the functions registered. <P>
-
-When the library calls the application the request field always
-contains the current request structure. The library reacts to the
-return value of the eventhandler.
-
-<H2>Terminate a thread</H2>
-
-<B>Note: </B> client implementation <P>
-
-This function is a callback function to the client to tell the result
-of a terminated request. The functionality is the same as for one of
-the <CODE>EventHandler</CODE> functions. The status code passed to the
-application is equivalent to the set of codes defined for the <A
-HREF="HTAccess.html#LoadDoc">load functions</A> in HTAccess.
-
-<PRE>
-#if 0
-extern HTEventState HTEventRequestTerminate PARAMS((HTRequest *	request,
-						    int		status));
-#endif 
-</PRE>
-
-This function can be used to update the history list, hotlist etc.
-
 
 <H2>Eventloop</H2>
 
-This is the internal socket eventloop that is executed when the client
-doesn't want to have the eventloop. The client can interrupt this loop
-by sending an event on one of the sockets registered for user
-events. The arguments are used to load the first document (the home
-page) and are supposed to make life easier for the client.
+That is, we wait for activity from one of our registered channels, and
+dispatch on that. Under Windows/NT, we must treat the console and
+sockets as distinct.  That means we can't avoid a busy wait, but we do
+our best.
 
 <PRE>
-extern int HTEventLoop			PARAMS((HTRequest *	homerequest,
-			     		HTParentAnchor *	homeanchor,
-					CONST char *		homekeywords));
+extern int HTEvent_Loop (HTRequest * request);
+</PRE>
 
+
+<PRE>
 #endif /* HTEvent_H */
 </PRE>
 
-End of interface definition module
-
-<pre>
-extern int HTEvent_Register PARAMS(( SOCKET, 
-                HTRequest *, SockOps, HTEventCallBack, Priority));
-
-extern int HTEvent_RegisterTTY PARAMS(( SOCKET, HTRequest *, 
-	SockOps, HTEventCallBack, Priority));
-
-extern int HTEvent_UnRegister PARAMS(( SOCKET, SockOps)) ;
-extern int HTEvent_UnRegisterTTY PARAMS(( SOCKET, SockOps)) ;
-
-
-extern int HTEvent_Loop PARAMS(( HTRequest * )) ;
-
-extern int HTEvent_UnregisterAll PARAMS(( void )) ;
-
-extern HTEventState HTEventRequestTerminate PARAMS(( HTRequest *, int)) ;
-
-extern BOOL HTEventCheckState PARAMS(( HTRequest *, HTEventState ));
-
-extern int HTEvent_Count PARAMS(( void )) ;
-</pre>
+End of declartion module
 
 </BODY>
 </HTML>

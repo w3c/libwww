@@ -79,7 +79,7 @@
 #include "HTUtils.h"
 #include "HTString.h"
 #include "HTParse.h"
-#include "HTAccess.h"		/* We implement a protocol */
+#include "HTReqMan.h"
 #include "HTError.h"
 #include "HTMLGen.h"
 #include "HTParse.h"
@@ -644,7 +644,7 @@ display_search_response ARGS4(
 **	returns		<0		Error has occured
 **			HT_LOADED	OK
 */
-PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
+PUBLIC int HTLoadWAIS ARGS3(SOCKET, soc, HTRequest *, request, SockOps, ops)
 
 #define MAX_KEYWORDS_LENGTH 4000
 #define MAX_SERVER_LENGTH 1000
@@ -1029,9 +1029,4 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
     }
     return status;
 }
-
-GLOBALDEF PUBLIC HTProtocol HTWAIS = {
-    "wais", SOC_BLOCK, HTLoadWAIS, NULL, NULL
-};
-
 

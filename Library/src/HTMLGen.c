@@ -399,7 +399,7 @@ PUBLIC HTStructured* HTMLGenerator ARGS5(HTRequest *,	request,
 					 HTFormat,	output_format,
 					 HTStream *,	output_stream)
 {
-    HTStructured* me = (HTStructured*)calloc(1, sizeof(*me));
+    HTStructured* me = (HTStructured *) calloc(1, sizeof(HTStructured));
     if (me == NULL) outofmem(__FILE__, "HTMLGenerator");
     me->isa = &HTMLGeneration;       
     me->dtd = &HTMLP_dtd;

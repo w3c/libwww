@@ -14,15 +14,16 @@
 #include "tcp.h"
 #include "HTUtils.h"
 #include "HTString.h"
-#include "HTThread.h"
+#include "HTReq.h"
+#include "HTNet.h"
 #include "HTWriter.h"					 /* Implemented here */
 
 struct _HTStream {
 	CONST HTStreamClass *	isa;
-
-	SOCKFD	soc;
-	char	*write_pointer;
-	BOOL	leave_open;
+	SOCKFD			sockfd;
+	HTNet *			net;
+	char			*write_pointer;
+	BOOL			leave_open;
 #ifdef NOT_ASCII
 	BOOL			make_ascii;    /* Are we writing to the net? */
 	char *			ascbuf;	    /* Buffer for TOASCII conversion */
@@ -65,8 +66,6 @@ PRIVATE int HTWriter_write ARGS3(HTStream *, me, CONST char *, buf, int, len)
 {
     int b_write;
     CONST char *limit = buf+len;
-    if (HTThreadIntr(me->soc))
-	return HT_INTERRUPTED;
 
 #ifdef NOT_ASCII
     if (me->make_ascii && len && !me->ascbuf) {	      /* Generate new buffer */
@@ -89,7 +88,7 @@ PRIVATE int HTWriter_write ARGS3(HTStream *, me, CONST char *, buf, int, len)
 
     /* Write data to the network */
     while (me->write_pointer < limit) {
-	if ((b_write = NETWRITE(me->soc, me->write_pointer, len)) < 0) {
+	if ((b_write = NETWRITE(me->sockfd, me->write_pointer, len)) < 0) {
 
 #ifdef EAGAIN
 	    if (errno == EAGAIN || errno == EWOULDBLOCK)      /* POSIX, SVR4 */
@@ -98,8 +97,9 @@ PRIVATE int HTWriter_write ARGS3(HTStream *, me, CONST char *, buf, int, len)
 #endif
 	    {
 		if (PROT_TRACE)
-		    fprintf(TDEST, "Write Socket WOULD BLOCK %d\n", me->soc);
-		HTThreadState(me->soc, THD_SET_WRITE);
+		    fprintf(TDEST,"Write Socket WOULD BLOCK %d\n", me->sockfd);
+		HTEvent_Register(me->sockfd,me->net->request,(SockOps)FD_WRITE,
+				 me->net->cbf, me->net->priority);
 		return HT_WOULD_BLOCK;
 	    } else {
 		if (PROT_TRACE)
@@ -107,12 +107,12 @@ PRIVATE int HTWriter_write ARGS3(HTStream *, me, CONST char *, buf, int, len)
 		return HT_ERROR;
 	    }
 	}
-	HTThreadState(me->soc, THD_CLR_WRITE);
+	HTEvent_UnRegister(me->sockfd, (SockOps) FD_WRITE);
 	me->write_pointer += b_write;
 	len -= b_write;
 	if (PROT_TRACE)
 	    fprintf(TDEST, "Write Socket %d bytes written to socket %d\n",
-		    b_write, me->soc);
+		    b_write, me->sockfd);
     }
 #ifdef NOT_ASCII
     FREE(me->ascbuf);
@@ -150,7 +150,7 @@ PRIVATE int HTWriter_free ARGS1(HTStream *, me)
 {
     int status = HT_OK;
     if (!me->leave_open) {
-	if (NETCLOSE(me->soc) < 0)
+	if (NETCLOSE(me->sockfd) < 0)
 	    status = HT_ERROR;
     }
     free(me);
@@ -160,7 +160,7 @@ PRIVATE int HTWriter_free ARGS1(HTStream *, me)
 PRIVATE int HTWriter_abort ARGS2(HTStream *, me, HTError, e)
 {
     if (!me->leave_open)
-	NETCLOSE(me->soc);
+	NETCLOSE(me->sockfd);
     free(me);
     return HT_ERROR;
 }
@@ -184,13 +184,14 @@ PRIVATE CONST HTStreamClass HTWriter =
 /*	Subclass-specific Methods
 **	-------------------------
 */
-PUBLIC HTStream* HTWriter_new ARGS2(SOCKFD, soc, BOOL, leave_open)
+PUBLIC HTStream* HTWriter_new (HTNet *net, BOOL leave_open)
 {
     HTStream* me = (HTStream *) calloc(1, sizeof(*me));
     if (me == NULL) outofmem(__FILE__, "HTWriter_new");
     me->isa = &HTWriter;       
     me->leave_open = leave_open;
-    me->soc = soc;
+    me->sockfd = net->sockfd;
+    me->net = net;
     return me;
 }
 
@@ -198,14 +199,15 @@ PUBLIC HTStream* HTWriter_new ARGS2(SOCKFD, soc, BOOL, leave_open)
 **	-------------------------
 */
 #ifdef NOT_ASCII
-PUBLIC HTStream* HTASCIIWriter ARGS2(SOCKFD, soc, BOOL, leave_open)
+PUBLIC HTStream* HTASCIIWriter (HTNet *net, BOOL leave_open)
 {
     HTStream* me = (HTStream *) calloc(1, sizeof(*me));
     if (me == NULL) outofmem(__FILE__, "HTASCIIWriter_new");
     me->isa = &HTWriter;       
     me->leave_open = leave_open;
     me->make_ascii = YES;
-    me->soc = soc;
+    me->sockfd = net->sockfd;
+    me->net = net;
     return me;
 }
 #endif

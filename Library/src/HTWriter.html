@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Socket Writer Stream</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  9-Sep-1995 -->
 </HEAD>
 <BODY>
 
@@ -16,27 +16,28 @@
 
 This version of the stream object just writes to a socket. The socket
 is assumed open and closed afterward.There are two versions (identical
-on ASCII machines) one of which converts to ASCII on output.<P>
+on ASCII machines) one of which converts to ASCII on output. We have
+to have the Net Manager involved as we want to have control of how
+many sockets we are using simultanously. This means that applications
+should use the <A HREF="HTFWrite.html">ANSI C FILE writer stream</A>
+for writing to an output. Proxy servers will have to go through the
+Net Manager anyway, so this will not be a problem for them.<P>
 
 This module is implemented by <A HREF="HTWriter.c">HTWriter.c</A>, and
-it is a part of the <A
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>. <P>
+it is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>. <P>
 
 <PRE>
 #ifndef HTWRITE_H
 #define HTWRITE_H
 
 #include "HTStream.h"
+#include "HTNet.h"
 
-extern HTStream * HTWriter_new		PARAMS((SOCKFD soc, BOOL leave_open));
-
-#if 0
-extern HTStream * HTWriter_newNoClose	PARAMS((SOCKFD soc));
-#endif
+extern HTStream * HTWriter_new (HTNet *net, BOOL leave_open);
 
 #ifdef NOT_ASCII
-extern HTStream * HTASCIIWriter		PARAMS((SOCKFD soc));
+extern HTStream * HTASCIIWriter (HTNet *net, BOOL leave_open);
 #endif
 
 #endif

@@ -21,6 +21,7 @@
 #include "HTFWrite.h"
 #include "HTBind.h"
 #include "HTList.h"
+#include "HTReqMan.h"
 #include "HTParse.h"
 #include "HTCache.h"					 /* Implemented here */
 
@@ -38,26 +39,35 @@
 #define TMP_SUFFIX	".cache_tmp"
 #define LOCK_SUFFIX	".cache_lock"
 
-typedef struct _HTCacheItem {
+/* This is the default cache directory: */
+#ifndef HT_CACHE_ROOT
+#define HT_CACHE_ROOT	"/tmp"
+#endif
+
+typedef struct _HTCache {
     HTFormat		format;		/* May have many formats per anchor */
     char *		filename;
     time_t		start_time;
     time_t		load_delay;
     int			reference_count;
-} HTCacheItem;
+} HTCache;
 
 struct _HTStream {
     CONST HTStreamClass *	isa;
     FILE *			fp;
-    HTCacheItem *		cache;
+    HTCache *			cache;
     HTRequest *			request;
 };
 
 PRIVATE BOOL		HTCacheEnable = NO;
 PRIVATE char *		HTCacheRoot = NULL;  	    /* Destination for cache */
-PRIVATE HTList *	HTCache = NULL;		  /* List of cached elements */
+PRIVATE HTList *	HTCacheList = NULL;	  /* List of cached elements */
 PRIVATE int		HTCacheLimit = CACHE_LIMIT;
 
+PRIVATE HTExpiresMode HTExpMode = HT_EXPIRES_IGNORE;
+PRIVATE char *HTExpNotify = NULL;
+
+PRIVATE HTMemoryCacheHandler *HTMemoryCache = NULL;  /* Memory cache handler */
 
 /* ------------------------------------------------------------------------- */
 /*  			      GARBAGE COLLECTOR				     */
@@ -66,12 +76,12 @@ PRIVATE int		HTCacheLimit = CACHE_LIMIT;
 /*
 **  Removes cache item from disk and corresponding object from list in memory
 */
-PRIVATE void HTCache_remove ARGS1(HTCacheItem *, item)
+PRIVATE void HTCache_remove ARGS1(HTCache *, item)
 {
-    if (HTCache && item) {
+    if (HTCacheList && item) {
 	if (CACHE_TRACE)
 	    fprintf(TDEST, "Cache....... Removing %s\n", item->filename);
-	HTList_removeObject(HTCache, item);
+	HTList_removeObject(HTCacheList, item);
 	REMOVE(item->filename);
 	
 	/* HWL 22/9/94: Clean up hierachical file structure */
@@ -98,13 +108,13 @@ PRIVATE void HTCache_remove ARGS1(HTCacheItem *, item)
 PRIVATE void limit_cache ARGS1(HTList * , list)
 {
     HTList * cur = list;
-    HTCacheItem * item;
+    HTCache * item;
     time_t best_delay = 0;   /* time_t in principle can be any arith type */
-    HTCacheItem* best_item = NULL;
+    HTCache* best_item = NULL;
 
     if (HTList_count(list) < HTCacheLimit) return;   /* Limit not reached */
 
-    while (NULL != (item = (HTCacheItem*)HTList_nextObject(cur))) {
+    while (NULL != (item = (HTCache*)HTList_nextObject(cur))) {
         if (best_delay == 0  ||  item->load_delay < best_delay) {
             best_delay = item->load_delay;
             best_item = item;
@@ -146,15 +156,15 @@ PRIVATE BOOL reserved_name ARGS1(char *, url)
 */
 PUBLIC void HTCache_clearMem NOARGS
 {
-    HTList *cur=HTCache;
-    HTCacheItem *pres;
+    HTList *cur=HTCacheList;
+    HTCache *pres;
     if (cur) {
-	while ((pres = (HTCacheItem *) HTList_nextObject(cur))) {
+	while ((pres = (HTCache *) HTList_nextObject(cur))) {
 	    FREE(pres->filename);
 	    free(pres);
 	}
-	HTList_delete(HTCache);
-	HTCache = NULL;
+	HTList_delete(HTCacheList);
+	HTCacheList = NULL;
     }
 }
 
@@ -163,13 +173,13 @@ PUBLIC void HTCache_clearMem NOARGS
 */
 PUBLIC void HTCache_deleteAll NOARGS
 {
-    HTList *cur=HTCache;
-    HTCacheItem * pres;
+    HTList *cur=HTCacheList;
+    HTCache * pres;
     if (cur) {
-	while ((pres = (HTCacheItem *) HTList_lastObject(cur)))
+	while ((pres = (HTCache *) HTList_lastObject(cur)))
 	    HTCache_remove(pres);
-	HTList_delete(HTCache);
-	HTCache = NULL;
+	HTList_delete(HTCacheList);
+	HTCacheList = NULL;
     }
 }
 
@@ -462,6 +472,52 @@ PUBLIC void HTCache_freeRoot NOARGS
 }
 
 /* ------------------------------------------------------------------------- */
+/*  				 MEMORY CACHE				     */
+/* ------------------------------------------------------------------------- */
+
+/*
+**  Register a Memory Cache Handler. This function is introduced in order to
+**  avoid having references to HText module outside HTML.
+*/
+PUBLIC BOOL HTMemoryCache_register (HTMemoryCacheHandler * cbf)
+{
+    return (HTMemoryCache = cbf) ? YES : NO;
+}
+
+PUBLIC BOOL HTMemoryCache_unRegister (void)
+{
+    HTMemoryCache = NULL;
+    return YES;
+}
+
+PUBLIC int HTMemoryCache_check (HTRequest * request)
+{
+    return HTMemoryCache ? HTMemoryCache(request,HTExpMode,HTExpNotify) : NULL;
+}
+
+/*
+**  Set the mode for how we handle Expires header from the local history
+**  list. The following modes are available:
+**
+**	HT_EXPIRES_IGNORE : No update in the history list
+**	HT_EXPIRES_NOTIFY : The user is notified but no reload
+**	HT_EXPIRES_AUTO   : Automatic reload
+**
+**  The notify only makes sense when HT_EXPIRES_NOTIFY. NULL is valid.
+*/
+PUBLIC void HTCache_setExpiresMode ARGS2(HTExpiresMode, mode, char *, notify)
+{
+    HTExpMode = mode;
+    HTExpNotify = notify;
+}
+
+PUBLIC HTExpiresMode HTCache_expiresMode ARGS1(char **, notify)
+{
+    *notify = HTExpNotify ? HTExpNotify : "This version has expired!";
+    return HTExpMode;
+}
+
+/* ------------------------------------------------------------------------- */
 /*  				 CACHE MANAGER				     */
 /* ------------------------------------------------------------------------- */
 
@@ -534,7 +590,7 @@ PRIVATE int HTCache_putString ARGS2(HTStream *, me, CONST char*, s)
 
 PRIVATE int HTCache_free ARGS1(HTStream *, me)
 {
-    me->cache->load_delay = time(NULL)-me->cache->start_time;
+    me->cache->load_delay = time(NULL) - me->cache->start_time;
     fclose(me->fp);
     free(me);
     return HT_OK;
@@ -603,15 +659,15 @@ PUBLIC HTStream* HTCacheWriter ARGS5(
 	    fprintf(TDEST, "Cache....... Creating file %s\n", fnam);
 
     /* Set up a cache record */
-    if ((me->cache = (HTCacheItem *) calloc(sizeof(*me->cache), 1)) == NULL)
+    if ((me->cache = (HTCache *) calloc(sizeof(*me->cache), 1)) == NULL)
 	outofmem(__FILE__, "Cache");
     me->cache->filename = fnam;
     me->cache->start_time = time(NULL);
     me->cache->format = input_format;
 
     /* Keep a global list of all cache items */
-    if (!HTCache) HTCache = HTList_new();
-    HTList_addObject(HTCache, me->cache);
-    limit_cache(HTCache);		 /* Limit number (not size) of files */
+    if (!HTCacheList) HTCacheList = HTList_new();
+    HTList_addObject(HTCacheList, me->cache);
+    limit_cache(HTCacheList);		 /* Limit number (not size) of files */
     return me;
 }

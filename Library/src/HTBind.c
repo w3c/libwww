@@ -38,17 +38,6 @@
 #include "HTAtom.h"
 #include "HTParse.h"
 
-#if 0
-#include "HTTCP.h"
-#include "HTWriter.h"
-#include "HTFWrite.h"
-#include "HTInit.h"
-#include "HTBTree.h"
-#include "HTFormat.h"
-#include "HTMulti.h"
-#include "HTError.h"
-#endif
-
 #ifdef VMS
 #include "HTVMSUtils.h"
 #endif

@@ -849,7 +849,7 @@ PUBLIC void HTAnchor_setLength ARGS2(HTParentAnchor *,me, long int, length)
 */
 PUBLIC int HTAnchor_methods ARGS1(HTParentAnchor *, me)
 {
-    return me ? me->methods : 0;
+    return me ? me->methods : METHOD_INVALID;
 }
 
 PUBLIC void HTAnchor_setMethods ARGS2(HTParentAnchor *,me, int, methodset)
@@ -859,7 +859,7 @@ PUBLIC void HTAnchor_setMethods ARGS2(HTParentAnchor *,me, int, methodset)
 
 PUBLIC void HTAnchor_appendMethods ARGS2(HTParentAnchor *,me, int, methodset)
 {
-    if (me) me->methods += methodset;
+    if (me) me->methods |= methodset;
 }
 
 /*

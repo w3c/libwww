@@ -20,7 +20,6 @@
 #include "HTFormat.h"
 #include "HTList.h"
 #include "HTAAUtil.h"
-#include "HTAccess.h"
 
 #define MAX_LINE_LEN 256
 

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Utilities for the Authorization</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  5-Sep-1995 -->
 </HEAD>
 <BODY>
 
@@ -47,7 +47,7 @@ W3C Reference Library</A>.
 #ifndef HTAAUTIL_H
 #define HTAAUTIL_H
 #include "HTList.h"
-#include "HTAccess.h"
+#include "HTReq.h"
 </PRE>
 
 <H2>Default filenames</H2>
@@ -74,6 +74,25 @@ W3C Reference Library</A>.
 					/* protection setup file	  */
 #define MAX_PATHNAME_LEN	80	/* @@ Longest passwd/group file	  */
 					/* patname to allow		  */
+</PRE>
+
+We need to define the following structures as they are used in the
+HTRequest structure. The AA module is declared in <A
+HREF="HTAAUtil.html">HTAAUtil</A> and <A HREF="HTAABrow.html">
+HTAABrow</A>. The enumeration <CODE>HTAAScheme </CODE>represents the
+possible authentication schemes used by the WWW Access Authorization.
+
+<PRE>
+typedef enum {
+    HTAA_UNKNOWN,
+    HTAA_NONE,
+    HTAA_BASIC,
+    HTAA_PUBKEY,
+    HTAA_KERBEROS_V4,
+    HTAA_KERBEROS_V5,
+    HTAA_MAX_SCHEMES				/* THIS MUST ALWAYS BE LAST! */
+} HTAAScheme;
+
 
 /*
 ** Access Authorization failure reasons

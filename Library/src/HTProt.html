@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Access Scheme Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  9-Jul-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  6-Sep-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -28,76 +28,89 @@ W3C Reference Library</A>. <P>
 #ifndef HTPROT_H
 #define HTPROT_H
 
-#include "HTAccess.h"
+#include "HTReq.h"
 #include "HTAnchor.h"
+#include "HTEvntrg.h"
 </PRE>
 
-An access scheme is defined by an HTProtocol structure which point to
-the routines for performing the various logical operations on an
-object: in HTTP terms, GET, PUT, and POST. The access schemes
-supported in the Library are initiated automaticly using the function
-<CODE>HTAccessInit()</CODE> <B>if not</B> defined
-<CODE>HT_NO_INIT</CODE> <P>
+After the new architecture based on call back functions managed by an
+eventloop and protocol state machines, the protocol structure has been
+modified to reflect this call back structure. The
+<CODE>HTEventCallBack</CODE> is defined in <A
+HREF="HTEvntrg.html">HTEvntrg module</A>. <P>
 
-Each of these routine takes as a parameter a <A NAME="z2"
-HREF="HTAccess.html#z1">request structure</A> containing details of
-the request.  When the protocol class routine is called, the anchor
+By default, all the access schemes supported in the Library are
+initiated automaticly using the function <CODE>HTAccessInit()</CODE>
+in <A HREF="HTInit.html">HTInit module</A>. However, this can be
+changed if defined <CODE>HT_NO_INIT</CODE> <P>
+
+An access scheme module takes as a parameter a socket (which is an
+invalid socket the first time the function is called), a <A
+HREF="HTReq.html#z1">request structure</A> containing details of the
+request, and the action by which the (valid) socket was selected in
+the event loop.  When the protocol class routine is called, the anchor
 element in the request is already valid (made valid by HTAccess).
 
 <PRE>
-typedef enum _HTSocBlock {
-    SOC_BLOCK,
-    SOC_NON_BLOCK
-} HTSocBlock;
-
-typedef struct _HTProtocol {
-    char *	name;
-    HTSocBlock	block;	
-    int		(*load)		PARAMS((HTRequest *	request));
-    HTStream*	(*saveStream)	PARAMS((HTRequest *	request));
-    HTStream* 	(*postStream)	PARAMS((HTRequest *	request,
-					HTParentAnchor* postTo));
-} HTProtocol;
+typedef struct _HTProtocol HTProtocol;
 </PRE>
 
 <H3>Add an Access Scheme</H3>
 
 This functions registers a protocol module and binds it to a specific
-access acheme. For example HTTP.c is bound to http URLs.
+access acheme. For example HTTP.c is bound to http URLs. The call back
+function is the function to be called for loading. The reason why it
+is of type HTEventCallback is that it then can be used directly in the
+event loop when used in non-preemtive mode.
 
 <PRE>
-extern BOOL HTProtocol_add		PARAMS((HTProtocol * protocol));
+extern BOOL HTProtocol_add (CONST char *       	name,
+			    BOOL		preemtive,
+			    HTEventCallBack *	callback);
 </PRE>
 
-<H3>Get an Access Scheme</H3>
+<H3>Delete an Access Scheme</H3>
 
-This function finds the access scheme that is bound to the anchor's
-type of URL. Returns YES if found, else NO
+This functions deletes a registered protocol module so that it can not
+be used for accessing a resource anymore.
 
 <PRE>
-extern BOOL HTProtocol_get		PARAMS((HTParentAnchor * anchor));
+extern BOOL HTProtocol_delete (CONST char * name);
 </PRE>
 
 <H3>Remove ALL Registered Schemes</H3>
 
 This is the garbage collection function. It is called by <A
-HREF="HTAccess.html#Library">HTLibTerminate</A>
+HREF="HTReq.html#Library">HTLibTerminate</A>
 
 <PRE>
-extern void HTProtocol_deleteAll	NOPARAMS;
+extern BOOL HTProtocol_deleteAll (void);
 </PRE>
 
-<H3>Is the Scheme using Blocking I/O?</H3>
+<H3>Bind an Access Scheme to an Anchor</H3>
 
-A small function to make life easier. Returns <CODE>YES</CODE> or
-<CODE>NO</CODE>. If the Library is run in non-interactive mode then
-the function always returns YES;
+This function finds the access scheme that is bound to the anchor's
+type of URL. Returns YES if found, else NO
 
 <PRE>
-#define HTProtocol_isBlocking(me) \
-	((me) &amp;&amp; ((me)->BlockingIO || \
-		((me)->anchor &amp;&amp; (me)->anchor->protocol &amp;&amp; \
-			((HTProtocol*)((me)->anchor->protocol))->block==SOC_BLOCK)))
+extern BOOL HTProtocol_bind		PARAMS((HTParentAnchor * anchor));
+</PRE>
+
+<H3Finds the Callback Function</H3>
+
+Returns the callback function registered with this access scheme if any.
+
+<PRE>
+extern HTEventCallBack *HTProtocol_callback (HTProtocol * protocol);
+</PRE>
+
+<H3>Is Access Scheme Preemtive</H3>
+
+Returns YES if the implementation of the access scheme supports
+preemtive access only.
+
+<PRE>
+extern BOOL HTProtocol_preemtive (HTProtocol * protocol);
 </PRE>
 
 <PRE>

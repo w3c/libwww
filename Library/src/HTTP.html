@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>HTTP Access</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  6-Sep-1995 -->
 </HEAD>
 <BODY>
 
@@ -26,9 +26,9 @@ W3C Reference Library</A>. <P>
 #ifndef HTTP_H
 #define HTTP_H
 
-#include "HTProt.h"
+#include "HTEvntrg.h"
 
-GLOBALREF HTProtocol HTTP;
+extern HTEventCallBack HTLoadHTTP;
 
 #endif /* HTTP_H */
 </PRE>

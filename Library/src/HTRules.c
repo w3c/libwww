@@ -26,12 +26,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
-#include "HTUtils.h"
-#include "HTString.h"
-#include "HTBind.h"
-#include "HTParse.h"
-#include "HTAAUtil.h"
+#include "WWWLib.h"
 #include "HTRules.h"					 /* Implemented here */
 
 #define LINE_LENGTH 256

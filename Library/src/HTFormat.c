@@ -21,8 +21,9 @@
 #include "HTTCP.h"
 #include "HTFWrite.h"
 #include "HTGuess.h"
-#include "HTThread.h"
+#include "HTNet.h"
 #include "HTError.h"
+#include "HTReqMan.h"
 #include "HTFormat.h"					 /* Implemented here */
 
 /* Public variables */
@@ -543,9 +544,6 @@ PUBLIC BOOL HTRank ARGS4(HTList *, possibilities,
 **
 **	The star/star format is special, in that if you can take
 **	that you can take anything.
-**
-**	On succes, request->error_block is set to YES so no more error
-**	messages to the stream as the stream might be of any format.
 */
 PUBLIC HTStream * HTStreamStack ARGS5(HTFormat,		rep_in,
 				      HTFormat,		rep_out,
@@ -558,7 +556,6 @@ PUBLIC HTStream * HTStreamStack ARGS5(HTFormat,		rep_in,
     double best_quality = -1e30;		/* Pretty bad! */
     HTPresentation *pres, *best_match=NULL;
     
-    request->error_block = YES;		   /* No more error output to stream */
     if (STREAM_TRACE) {
 	fprintf(TDEST, "StreamStack. Constructing stream stack for %s to %s\n",
 		HTAtom_name(rep_in), HTAtom_name(rep_out));

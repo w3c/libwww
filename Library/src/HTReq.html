@@ -1,0 +1,520 @@
+<HTML>
+<HEAD>
+<TITLE>Public Declaration of Request Manager</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 12-Sep-1995 -->
+<NEXTID N="z11">
+</HEAD>
+<BODY>
+
+<H1>Public Declaration of Request Manager</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+The request manager consists of two parts: a public part and a private
+part. The public part contains all the information needed to define a
+request the parameters to be used when requesting a resource from the
+network or local file system. When a request is handled, all kinds of
+things about it need to be passed along together with a request.
+<P>
+
+This module is implemented by <A HREF="HTReqMan.c">HTReqMan.c</A>, and
+it is a part of the <A HREF="http://www.w3.org/hypertext/WWW/Library/">
+W3C Reference Library</A>. <P>
+
+<PRE>
+#ifndef HTREQ_H
+#define HTREQ_H
+
+typedef struct _HTRequest HTRequest;
+
+#include "HTList.h"
+#include "HTFormat.h"
+#include "HTStream.h"
+#include "HTEvntrg.h"
+#include "HTNet.h"
+</PRE>
+
+<A NAME="flags"><H2>Global Flags</H2></A>
+
+Flags and variables which may be set to control the Library
+
+<H3>Allow Accss to Local File System</H3>
+
+This flag can be used to deny an application to get access to the
+local file system (through cache, file URLs etc.) It is a good way to
+avoid accitendal access if an application provides telnet service etc.
+
+<PRE>
+extern BOOL HTSecure;			/* Disable security holes? */
+</PRE>
+
+<H3>Name of Remote login Host</H3>
+
+If an application is used for remote access (allowing telnet access,
+like for example the Line Mode Browser), then set this variable to the
+name of the remote host.
+
+<PRE>
+extern char * HTClientHost;		/* Name or number of telnetting host */
+</PRE>
+
+<H3>Server Specific Flags</H3>
+
+These two flags are set by a proxy and a server application
+respectfully. They tell the Library to skip some of the client
+application specific things.
+
+<PRE>
+extern char * HTImServer;		/* If I'm cern_httpd */
+extern BOOL HTImProxy;			/* If I'm cern_httpd as a proxy */
+</PRE>
+
+<H2>Request a resource</H2>
+
+This is an internal routine, which has an address AND a matching
+anchor.  (The public routines are called with one OR the other.)
+
+<PRE>
+extern BOOL HTLoad (HTRequest * request, HTPriority priority, BOOL recursive);
+</PRE>
+
+<H2>Request Terminate Call Back Function</H2>
+
+This function is registered at startup time by HTLibInit() in order to
+probably terminate a request to the Library. The application can
+register addtional call back functions in the same manner:
+
+<PRE>
+extern HTNetCallBack HTLoad_terminate;
+</PRE>
+
+<H2>Creation and Deletion Methods</H2>
+
+The request object is intended to live as long as the request is still
+active, but can be deleted as soon as it has terminatedk, for example
+in one of the request termination callback functions as described in
+the <A HREF="HTNet.html">Net Manager</A>. Only the anchor object stays
+around after the request itself is terminated.
+
+<H3>Create new Object</H3>
+
+Creates a new request object with a default set of options -- in most
+cases it will need some information added which can be done using the
+methods in this module, but it will work as is for a simple request.
+
+<PRE>
+extern HTRequest * HTRequest_new (void);
+</PRE>
+
+<H3>Delete Object</H3>
+
+This function deletes the object and cleans up the memory.
+
+<PRE>
+extern void HTRequest_delete (HTRequest * request);
+</PRE>
+
+<H2>Bind an Anchor to a Request Object</H2>
+
+Every request object has an anchor associated with it. The anchor
+normally lives until the application terminates but a request object
+only lives as long as the request is being serviced.
+
+<PRE>
+extern void HTRequest_setAnchor (HTRequest *request, HTAnchor *anchor);
+extern HTParentAnchor * HTRequest_anchor (HTRequest *request);
+</PRE>
+
+<H2>Set the Method</H2>
+
+The Method is the operation to be executed on the requested
+object. The default set if the set of operations defined by the HTTP
+protocol, that is "GET", "HEAD", "PUT", "POST", "LINK", "UNLINK", and
+"DELETE" but many of these can be used in other protocols as well. The
+important thing is to think of the requested element as an object on
+which you want to perform an operation. Then it is for the specific
+protocol implementation to try and carry this operation out. However,
+not all operations can be implemented (or make sense) in all
+protocols. <P>
+
+Methods are handled by the <A HREF="HTMethod.html">Method Module</A>,
+and the default value is "GET".
+
+<PRE>
+extern void HTRequest_setMethod (HTRequest *request, HTMethod method);
+extern HTMethod HTRequest_method (HTRequest *request);
+</PRE>
+
+<H2>Update, Reload, or Refresh a Document</H2>
+
+The Library has two concepts of caching: in memory and on file. When
+loading a document, this flag can be set in order to define who can
+give a response to the request. <EM>IMS</EM> means that a
+"If-Modified-Since" Header is used in a HTTP request.
+
+<PRE>
+typedef enum _HTReload {
+    HT_ANY_VERSION	= 0x0,		/* Use any version available */
+    HT_MEM_REFRESH	= 0x1,		/* Reload from file cache or network */
+    HT_CACHE_REFRESH	= 0x2,		/* Update from network with IMS */
+    HT_FORCE_RELOAD	= 0x4		/* Update from network with no-cache */
+} HTReload;
+
+extern void HTRequest_setReloadMode (HTRequest *request, HTReload mode);
+extern HTReload HTRequest_reloadMode (HTRequest *request);
+</PRE>
+
+<H2>Max number of Retrys for a Down Load</H2>
+
+Automatic reload can happen in two situations:
+
+<UL>
+<LI>The server sends a redirection response
+<LI>The document has expired
+</UL>
+
+In order to avoid the Library going into an infinite loop, it is
+necessary to keep track of the number of automatic reloads. Loops can
+occur if the server has a reload to the same document or if the server
+sends back a Expires header which has already expired. The default
+maximum number of automatic reloads is 6.
+
+<PRE>
+extern BOOL HTRequest_setMaxRetry (int newmax);
+extern int  HTRequest_maxRetry (void);
+extern BOOL HTRequest_retry (HTRequest *request);
+</PRE>
+
+<H2>Retry Request After</H2>
+
+Some services, for example HTTP, can in case they are unavailable at
+the time the request is issued send back a time and date stamp to the
+client telling when they are expected to back online. In case a
+request results in a HT_RETRY status, the application can use any time
+indicated in this field to retry the request at a later time. The
+Library does not initiate any request on its own - it's for the
+application to do. The time returned by this function is in calendar
+time or -1 if not available.
+
+<PRE>
+extern time_t HTRequest_retryTime (HTRequest * request);
+</PRE>
+
+<H2>Accept Headers</H2>
+
+The Accept family of headers is an important part of HTTP handling the
+format negotiation. The Library supports both a global set of accept
+headers that are used in <EM>all</EM> HTTP requests and a local set of
+accept headers that are used in specific requests only. The global
+ones are defined in the <A HREF="HTFormat.html">Format
+Manager</A>.  <P>
+
+Each request can have its local set of accept headers that either are
+added to the global set or replaces the global set of accept
+headers. Non of the headers <EM>have</EM> to be set. If the global set
+is sufficient for all requests then this us perfectly fine. If the
+parameter "override" is set then only local accept headers are used,
+else <EM>both</EM> local and global headers are used.
+
+<H3>Content Types</H3>
+
+Th <EM>local</EM> list of specific conversions which the format
+manager can do in order to fulfill the request.  It typically points
+to a list set up on initialisation time for example by <A
+HREF="HTInit.html">HTInit()</A>. There is also a <A
+HREF="HTFormat.html#z17"><EM>global</EM></A> list of conversions which
+contains a generic set of possible conversions.
+
+<PRE>
+extern void HTRequest_setFormat	(HTRequest *request, HTList *type, BOOL override);
+extern HTList * HTRequest_format (HTRequest *request);
+</PRE>
+
+<H3>Content Encodings</H3>
+
+The list of encodings acceptable in the output stream.
+
+<PRE>
+extern void HTRequest_setEncoding (HTRequest *request, HTList *enc, BOOL override);
+extern HTList * HTRequest_encoding (HTRequest *request);
+</PRE>
+
+<H3>Content-Languages</H3>
+
+The list of (human) language values acceptable in the response. The default
+is all languages.
+
+<PRE>
+extern void HTRequest_setLanguage (HTRequest *request, HTList *lang, BOOL override);
+extern HTList * HTRequest_language (HTRequest *request);
+</PRE>
+
+<H3>Charset</H3>
+
+The list of charsets accepted by the application
+
+<PRE>
+extern void HTRequest_setCharset (HTRequest *request, HTList *charset, BOOL override);
+extern HTList * HTRequest_charset (HTRequest *request);
+</PRE>
+
+<H2>Handling Metainformation (RFC822 Headers)</H2>
+
+The Library supports a large set of headers that can be sent along
+with a request (or a response for that matter). All headers can be
+either disabled or enabled using bit flags that are defined in the
+following.
+
+<H3><A NAME="gnhd">General HTTP Header Mask</A></H3>
+
+There are a few header fields which have general applicability for
+both request and response mesages, but which do not apply to the
+communication parties or theentity being transferred. This mask
+enables and disables these headers. If the bit is not turned on they
+are not sent. All headers are optional and the default value is <EM>NO
+GENERAL HEADERS</EM>
+
+<PRE>
+typedef enum _HTGnHd {
+    HT_DATE		= 0x1,
+    HT_FORWARDED	= 0x2,
+    HT_MESSAGE_ID	= 0x4,
+    HT_MIME		= 0x8,
+    HT_NO_CACHE		= 0x10					   /* Pragma */
+} HTGnHd;
+
+#define DEFAULT_GENERAL_HEADERS		0
+
+extern void HTRequest_setGnHd (HTRequest *request, HTGnHd gnhd);
+extern void HTRequest_addGnHd (HTRequest *request, HTGnHd gnhd);
+extern HTGnHd HTRequest_gnHd (HTRequest *request);
+</PRE>
+
+<H3><A NAME="rqhd">Request Headers</A></H3>
+
+The request header fields allow the client to pass additional
+information about the request (and about the client itself) to the
+server. All headers are optional but the default value is all request
+headers if present <EM>except</EM> <CODE>From</CODE> and
+<CODE>Pragma</CODE>.
+
+<PRE>
+typedef enum _HTRqHd {
+    HT_ACCEPT_TYPE	= 0x1,
+    HT_ACCEPT_CHAR	= 0x2,
+    HT_ACCEPT_ENC	= 0x4,
+    HT_ACCEPT_LAN	= 0x8,
+    HT_FROM		= 0x10,
+    HT_IMS		= 0x20,
+    HT_ORIG_URI		= 0x40,
+    HT_REFERER		= 0x80,
+    HT_USER_AGENT	= 0x200
+} HTRqHd;
+
+#define DEFAULT_REQUEST_HEADERS \
+HT_ACCEPT_TYPE+HT_ACCEPT_CHAR+HT_ACCEPT_ENC+HT_ACCEPT_LAN+HT_REFERER+HT_USER_AGENT
+
+extern void HTRequest_setRqHd (HTRequest *request, HTRqHd rqhd);
+extern void HTRequest_addRqHd (HTRequest *request, HTRqHd rqhd);
+extern HTRqHd HTRequest_rqHd (HTRequest *request);
+</PRE>
+
+<H3><A NAME="enhd">Entity Header Mask</A></H3>
+
+The entity headers contain information about the object sent in the
+HTTP transaction. See the <A HREF="HTAnchor.html">Anchor module</A>,
+for the storage of entity headers. This flag defines which headers are
+to be sent in a request together with an entity body. All headers are
+optional but the default value is <EM>ALL ENTITY HEADERS IF
+PRESENT</EM>
+
+<PRE>
+typedef enum _HTEnHd {
+    HT_ALLOW		= 0x1,
+    HT_CONTENT_ENCODING	= 0x2,
+    HT_CONTENT_LANGUAGE	= 0x4,
+    HT_CONTENT_LENGTH	= 0x8,
+    HT_CTE		= 0x10,			/* Content-Transfer-Encoding */
+    HT_CONTENT_TYPE	= 0x20,
+    HT_DERIVED_FROM	= 0x40,
+    HT_EXPIRES		= 0x80,
+    HT_LAST_MODIFIED	= 0x200,
+    HT_LINK		= 0x400,
+    HT_TITLE		= 0x800,
+    HT_URI		= 0x1000,
+    HT_VERSION		= 0x2000
+} HTEnHd;
+
+#define DEFAULT_ENTITY_HEADERS		0xFFFF			      /* all */
+
+extern void HTRequest_setEnHd (HTRequest *request, HTEnHd enhd);
+extern void HTRequest_addEnHd (HTRequest *request, HTEnHd enhd);
+extern HTEnHd HTRequest_enHd (HTRequest *request);
+</PRE>
+
+<H3>Referer Field</H3>
+
+If this parameter is set then a `Referer: &lt;parent address&gt; can
+be generated in the request to the server, see <A
+HREF="http://www.w3.org/hypertext/WWW/Protocols/HTTP/HTRQ_Headers.html#z14">
+Referer field in a HTTP Request</A>
+
+<PRE>
+extern void HTRequest_setParent (HTRequest *request, HTParentAnchor *parent);
+extern HTParentAnchor * HTRequest_parent (HTRequest *request);
+</PRE>
+
+<H3>Extra Headers</H3>
+
+Extra header information can be send along with a request using this
+variable. The text is sent as is so it must be preformatted with
+&lt;CRLF&gt; line terminators. This will get changed at some point so
+that you can register a header together with a handler in the MIME
+parser.
+
+<PRE>
+extern void HTRequest_setExtra (HTRequest *request, char *extra);
+extern char *HTRequest_extra (HTRequest *request);
+</PRE>
+
+<H2>Streams From Network to Application</H2>
+
+<H3>Default Output Stream</H3>
+
+The output stream is to be used to put data down to as they come in
+<B>from</B> the network and back to the application. The default value
+is <CODE>NULL</CODE> which means that the stream goes to the user
+(display).
+
+<PRE>
+extern void HTRequest_setOutputStream (HTRequest *request, HTStream *output);
+extern HTStream *HTRequest_OutputStream (HTRequest *request);
+</PRE>
+
+The desired format of the output stream. This can be used to get
+unconverted data etc. from the library. If <CODE>NULL</CODE>, then <A
+HREF="HTFormat.html#FormatTypes">WWW_PRESENT</A> is default value.
+
+<PRE>
+extern void HTRequest_setOutputFormat (HTRequest *request, HTFormat format);
+extern HTFormat HTRequest_OutputFormat (HTRequest *request);
+</PRE>
+
+<H3>Debug Stream</H3>
+
+All object bodies sent from the server with status codes different
+from <CODE>200 OK</CODE> will be put down this stream. This can be
+used for redirecting body information in status codes different from
+"200 OK" to for example a debug window. If the value is NULL (default)
+then the stream is not set up.
+
+<PRE>
+extern void HTRequest_setDebugStream (HTRequest *request, HTStream *debug);
+extern HTStream *HTRequest_DebugStream (HTRequest *request);
+</PRE>
+
+The desired format of the error stream. This can be used to get
+unconverted data etc. from the library. The default value if
+<CODE>WWW_HTML</CODE> as a character based only has one WWW_PRESENT.
+
+<PRE>
+extern void HTRequest_setDebugFormat (HTRequest *request, HTFormat format);
+extern HTFormat HTRequest_DebugFormat (HTRequest *request);
+</PRE>
+
+<H2><A NAME="context">Context Swapping</A></H2>
+
+In multi threaded applications it is often required to keep track of
+the context of a request so that when the Library returns a result of
+a request, it can be put into the context it was in before the request
+was first passed to the Library. This call back function allows the
+application to do this.
+
+<PRE>
+typedef int HTRequestCallback (HTRequest * request, void *param);
+
+extern void HTRequest_setCallback (HTRequest *request, HTRequestCallback *cb);
+extern HTRequestCallback *HTRequest_callback (HTRequest *request);
+</PRE>
+
+The callback function can be passed an arbitrary pointer (the void
+part) which can describe the context of the current request
+structure. If such context information is required then it can be set
+using the following methods:
+
+<PRE>
+extern void HTRequest_setContext (HTRequest *request, void *context);
+extern void *HTRequest_context (HTRequest *request);
+</PRE>
+
+<H2>Preemtive or Non-preemtive Access</H2>
+
+A access scheme is defined with a default for using either preemtive
+(blocking I/O) or non-premitve (non-blocking I/O). This is basically a
+result of the implementation of the protocol module itself. However,
+if non-blocking I/O is the default then some times it is nice to be
+able to set the mode to blocking instead. For example when loading the
+first document (the home page) then blocking can be used instead of
+non-blocking.
+
+<PRE>
+extern void HTRequest_setPreemtive (HTRequest *request, BOOL mode);
+extern BOOL HTRequest_preemtive (HTRequest *request);
+</PRE>
+
+<H2>Format Negotiation</H2>
+
+When accessing the local file system, the Library is capable of
+performing content negotioation as described by the HTTP
+protocol. This is mainly for server applications, but some client
+applications might also want to use content negotiation when accessing
+the local file system. This method enables or disables content
+negotiation - the default value is <EM>ON</EM>.
+
+<PRE>
+extern void HTRequest_setNegotiation (HTRequest *request, BOOL mode);
+extern BOOL HTRequest_negotiation (HTRequest *request);
+</PRE>
+
+<H2>Error Manager Information</H2>
+
+The error manager keeps a list (called an error stack) of all errors
+and warnings occured during a request. The list of errors can be
+accessed for generating an error message by the following function.
+
+<PRE>
+extern HTList *HTRequest_errorStack (HTRequest *request);
+</PRE>
+
+<H2>Bytes Read in Current Request</H2>
+
+This function returns the bytes read in the current request. For a
+deeper description of what the current request is, please read the
+user's guide. This function can be used in for example the <A
+HREF="HTAlert.html">HTAlert module</A> to give the number of bytes
+read in a progress message.
+
+<PRE>
+extern long HTRequest_bytesRead(HTRequest * request);
+</PRE>
+
+<H2>Kill a Request</H2>
+
+This function kills this particular request, see HTNet module for a
+function that kills them all.
+
+<PRE>
+extern long HTRequest_kill(HTRequest * request);
+</PRE>
+
+<PRE>
+#endif /* HTREQ_H */
+</PRE>
+End of declaration
+</BODY>
+</HTML>

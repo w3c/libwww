@@ -22,10 +22,11 @@
 /* Library include files */
 #include "tcp.h"
 #include "HTUtils.h"
+#include "HTString.h"
 #include "HTParse.h"
 #include "HTAnchor.h"
 #include "HTChunk.h"
-#include "HTAccess.h"
+#include "HTReqMan.h"
 #include "HTAlert.h"
 #include "HTTelnet.h"					 /* Implemented here */
 
@@ -67,6 +68,8 @@ PRIVATE void make_system_secure ARGS1(char *, str)
 
 /*	Telnet or "rlogin" access
 **	-------------------------
+**	Returns	HT_NO_DATA	OK
+**		HT_ERROR	Error
 */
 PRIVATE int remote_session ARGS2(HTRequest *, request, char *, url)
 {
@@ -78,6 +81,15 @@ PRIVATE int remote_session ARGS2(HTRequest *, request, char *, url)
     char *user = NULL;
     char *passwd = NULL;
     char *port = NULL;
+
+    /* We must be in interactive mode */
+    if (!HTPrompt_interactive()) {
+	HTAlert(request,"Can't output live session - must be interactive");
+	free(access);
+	free(host);
+	HTChunkFree(cmd);
+	return HT_ERROR;
+    }
 
     /* Look for user name, password, and port number */
     if (hostname) {
@@ -125,6 +137,7 @@ PRIVATE int remote_session ARGS2(HTRequest *, request, char *, url)
 	HTChunkFree(msg);
 	free(access);
 	free(host);
+	HTChunkFree(cmd);
 	return HT_NO_DATA;
     }
 
@@ -137,7 +150,7 @@ PRIVATE int remote_session ARGS2(HTRequest *, request, char *, url)
     make_system_secure(hostname);
     make_system_secure(port);
 
-    if (!strcmp(access, "telnet")) {
+    if (!strcasecomp(access, "telnet")) {
 #ifdef SIMPLE_TELNET
 	HTChunkPuts(cmd, "TELNET ");
 	HTChunkPuts(cmd, hostname);			  /* Port is ignored */
@@ -173,7 +186,7 @@ PRIVATE int remote_session ARGS2(HTRequest *, request, char *, url)
 #endif /* FULL_TELNET */
 #endif /* SIMPLE_TELNET */
 
-    } else if (!strcmp(access, "rlogin")) {
+    } else if (!strcasecomp(access, "rlogin")) {
 #ifdef MULTINET
 	HTChunkPuts(cmd, "RLOGIN ");
 	if (user) {
@@ -206,7 +219,7 @@ PRIVATE int remote_session ARGS2(HTRequest *, request, char *, url)
 #endif /* RLOGIN_AFTER */
 #endif /* MULTINET */
 
-    } else if (!strcmp(access, "tn3270")) {
+    } else if (!strcasecomp(access, "tn3270")) {
 #ifdef MULTINET
 	HTChunkPuts(cmd, "TELNET/TN3270 ");
 	if (port) {
@@ -233,7 +246,7 @@ PRIVATE int remote_session ARGS2(HTRequest *, request, char *, url)
     if (user) {
 	HTChunk *msg = HTChunkCreate(128);
 	HTChunkPuts(msg, "When you are connected, log in");
-	if (strcmp(access, "rlogin")) {
+	if (strcasecomp(access, "rlogin")) {
 	    HTChunkPuts(msg, "as <");
 	    HTChunkPuts(msg, user);
 	    HTChunkPutc(msg, '>');
@@ -263,35 +276,23 @@ PRIVATE int remote_session ARGS2(HTRequest *, request, char *, url)
 **	returns		HT_ERROR	Error has occured or interrupted
 **			HT_NO_DATA	if return status 204 No Response
 */
-PRIVATE int HTLoadTelnet ARGS1(HTRequest *, request)
+PUBLIC int HTLoadTelnet ARGS3(SOCKET, soc, HTRequest *, request, SockOps, ops)
 {
-    char *url;
-    if (!request || !request->anchor) {
-        if (PROT_TRACE) fprintf(TDEST, "HTLoadTelnet Bad argument\n");
-        return HT_ERROR;
-    }
+    char *url = HTAnchor_physical(request->anchor);
 
-    /* We must be in interactive mode */
-    if (!HTPrompt_interactive()) {
-        HTAlert(request, "Can't output live session, it must be interactive");
-	return HT_ERROR;
-    }
-    url = HTAnchor_physical(request->anchor);
-    HTCleanTelnetString(url);
-    return remote_session(request, url);
+    /* This is a trick as we don't have any socket! */
+    if (ops == FD_NONE) {
+	if (PROT_TRACE) fprintf(TDEST, "Telnet...... Looking for `%s\'\n",url);
+	HTCleanTelnetString(url);
+	{
+	    int status = remote_session(request, url);
+	    HTNet_delete(request->net, status);
+	}
+    } else if (ops == FD_CLOSE)				      /* Interrupted */
+	HTNet_delete(request->net, HT_INTERRUPTED);
+    else
+	HTNet_delete(request->net, HT_ERROR);
+    return HT_OK;
 }
-
-
-GLOBALDEF PUBLIC HTProtocol HTTelnet = {
-    "telnet", SOC_BLOCK, HTLoadTelnet, NULL, NULL
-};
-
-GLOBALDEF PUBLIC HTProtocol HTRlogin = {
-    "rlogin", SOC_BLOCK, HTLoadTelnet, NULL, NULL
-};
-
-GLOBALDEF PUBLIC HTProtocol HTTn3270 = {
-    "tn3270", SOC_BLOCK, HTLoadTelnet, NULL, NULL
-};
 
 

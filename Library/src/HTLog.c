@@ -15,10 +15,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
-#include "HTUtils.h"
-#include "HTString.h"
-#include "HTAccess.h"
+#include "WWWLib.h"
 #include "HTLog.h"					 /* Implemented here */
 
 PRIVATE FILE *HTlogfile = NULL;          /* Log of requests in common format */
@@ -90,15 +87,16 @@ PUBLIC BOOL HTLog_request ARGS2(HTRequest *, request, int, status)
 {
     if (HTlogfile) {
 	time_t now = time(NULL);	
-	char * uri = HTAnchor_address((HTAnchor*)request->anchor);
+	HTParentAnchor *anchor = HTRequest_anchor(request);
+	char * uri = HTAnchor_address((HTAnchor *) anchor);
 	if (TRACE) fprintf(TDEST, "Log......... Writing log\n");
 	fprintf(HTlogfile, "%s - - [%s] %s %s %d %ld\n",
 		HTClientHost ? HTClientHost : "localhost",
 		HTDateTimeStr(&now, HTloglocal),
-		HTMethod_name(request->method),
+		HTMethod_name(HTRequest_method(request)),
 		uri,
 		status,
-		request->anchor->content_length);
+		anchor->content_length);
 	FREE(uri);
 	return (fflush(HTlogfile)!=EOF);       /* Actually update it on disk */
     }

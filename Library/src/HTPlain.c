@@ -134,7 +134,7 @@ PUBLIC HTStream* HTPlainPresent ARGS5(
     if (me == NULL) outofmem(__FILE__, "HTPlain_new");
     me->isa = &HTPlain;       
 
-    me->text = HText_new2(request->anchor, output_stream);
+    me->text = HText_new2(HTRequest_anchor(request), output_stream);
     HText_beginAppend(me->text);
     HText_setStyle(me->text, HTStyleNamed(styleSheet, "Example"));
 

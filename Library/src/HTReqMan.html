@@ -1,0 +1,219 @@
+<HTML>
+<HEAD>
+<TITLE>Request Manager</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  8-Sep-1995 -->
+<NEXTID N="z11">
+</HEAD>
+<BODY>
+
+<H1>Request Manager</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This module is the private part of the request manager. It has the
+functions declarations that are private to the Library and that
+shouldn't be used by applications. The module has been separated from
+the old HTAccess module. See also the public part of the declarition
+in the <A HREF="HTReq.html">HTReq Module</A>.<P>
+
+This module is implemented by <A HREF="HTReqMan.c">HTReqMan.c</A>, and
+it is a part of the <A HREF="http://www.w3.org/hypertext/WWW/Library/">
+W3C Reference Library</A>. <P>
+
+<PRE>
+#ifndef HTREQMAN_H
+#define HTREQMAN_H
+
+#include "<A HREF="HTReq.html">HTReq.h</A>"
+#include "<A HREF="HTList.html">HTList.h</A>"
+#include "<A HREF="HTFormat.html">HTFormat.h</A>"
+#include "<A HREF="HTAnchor.html">HTAnchor.h</A>"
+#include "<A HREF="HTMethod.html">HTMethod.h</A>"
+#include "<A HREF="HTAABrow.html">HTAABrow.h</A>"
+#include "<A HREF="HTStream.html">HTStream.h</A>"
+#include "<A HREF="HTNet.html">HTNet.h</A>"
+</PRE>
+
+<H2><A NAME="req">The Request structure</A></H2>
+
+When a request is handled, all kinds of things about it need to be
+passed along together with a request. It is intended to live as long
+as the request is still active, but can be deleted as soon as it has
+terminated. Only the anchor object stays around after the request
+itself is terminated.
+
+<PRE>
+typedef int HTPostCbf (HTRequest *request, HTStream * target);
+
+struct _HTRequest {
+    HTMethod		method;
+    HTReload		reload;
+
+    char *		redirect;			  /* Location or URI */
+    int			retrys;       	      /* Number of automatic reloads */
+    time_t		retry_after;		 /* Absolut time for a retry */
+    HTNet *		net;		    /* Information about socket etc. */
+</PRE>
+
+<H3>Accept headers</H3>
+
+<PRE>
+    HTList *		conversions;
+    BOOL		conv_local;
+
+    HTList *		encodings;
+    BOOL		enc_local;
+
+    HTList *		languages;
+    BOOL		lang_local;
+
+    HTList *		charsets;
+    BOOL		char_local;
+</PRE>
+
+<H3>Headers and header information</H3>
+
+<PRE>
+    HTGnHd		GenMask;
+    HTRqHd		RequestMask;
+    HTEnHd		EntityMask;
+    char *		ExtraHeaders;
+</PRE>
+
+<H3>Anchors</H3>
+
+<PRE>
+    HTParentAnchor *	anchor;
+    HTChildAnchor *	childAnchor;	    /* For element within the object */
+    HTParentAnchor *	parentAnchor;			/* For referer field */
+</PRE>
+
+<H3>Streams From Network to Application</H3>
+
+<PRE>
+    HTStream *		output_stream; 
+    HTFormat		output_format;
+
+    HTStream*		debug_stream;
+    HTFormat		debug_format;
+</PRE>
+
+<H3>Streams From Application to Network</H3>
+
+<PRE>
+    HTStream *		input_stream; 
+    HTFormat		input_format;
+</PRE>
+
+<H3>Callback Function for getting data down the Input Stream</H3>
+
+<PRE>
+    HTPostCbf *		PostCallBack;
+</PRE>
+
+<H3>Context Swapping</H3>
+
+<PRE>
+    HTRequestCallback *	callback;
+    void *		context;
+</PRE>
+
+<H3>Other Flags</H3>
+
+<PRE>
+    BOOL		preemtive;
+    BOOL		ContentNegotiation;
+    BOOL		using_proxy;
+</PRE>
+
+<H3>Error Manager</H3>
+
+<PRE>
+    HTList *		error_stack;		           /* List of errors */
+</PRE>
+
+<H3>PostWeb Information</H3>
+
+<PRE>
+    HTRequest *		source;		     /* Source for request or itself */
+    HTRequest *		mainDestination;	     /* For the typical case */
+    HTList *		destinations;		 /* List of related requests */
+    int			destRequests;	   /* Number of destination requests */
+    int			destStreams;	    /* Number of destination streams */
+</PRE>
+
+<H3>Access Authentication Information</H3>
+
+This will go into its own structure
+
+<PRE>
+    char *	WWWAAScheme;		/* WWW-Authenticate scheme */
+    char *	WWWAARealm;		/* WWW-Authenticate realm */
+    char *	WWWprotection;		/* WWW-Protection-Template */
+    char *	authorization;		/* Authorization: field */
+    HTAAScheme	scheme;			/* Authentication scheme used */
+    HTList *	valid_schemes;		/* Valid auth.schemes		  */
+    HTAssocList **	scheme_specifics;/* Scheme-specific parameters	  */
+    char *	authenticate;		/* WWW-authenticate: field */
+    char *	prot_template;		/* WWW-Protection-Template: field */
+    HTAASetup *	setup;			/* Doc protection info		  */
+    HTAARealm *	realm;			/* Password realm		  */
+    char *	dialog_msg;		/* Authentication prompt (client) */
+
+    HTInputSocket *	isoc;		/* InputSocket object for reading */
+</PRE>
+
+<H3>Windows Specific Information</H3>
+
+<PRE>
+#ifdef _WINDOWS 
+	HWND		hwnd;		/* Windows handle for MSWindows   */
+	unsigned long   winMsg;         /* msg number of Windows eloop    */
+#endif /* _WINDOWS */
+</PRE>
+
+<PRE>
+};
+</PRE>
+
+<H2>Post Web Management</H2>
+
+These functions are mainly used internally in the Library but there is
+no reason for them not to be public.
+
+<PRE>
+extern BOOL HTRequest_addDestination (HTRequest * src, HTRequest * dest);
+extern BOOL HTRequest_removeDestination	(HTRequest * dest);
+
+extern BOOL HTRequest_linkDestination (HTRequest * dest);
+extern BOOL HTRequest_unlinkDestination (HTRequest * dest);
+
+extern BOOL HTRequest_removePostWeb (HTRequest * me);
+extern BOOL HTRequest_killPostWeb (HTRequest * me);
+
+#define	HTRequest_mainDestination(me) \
+	((me) &amp;&amp; (me)->source ? (me)->source->mainDestination : NULL)
+#define HTRequest_isDestination(me) \
+	((me) &amp;&amp; (me)->source &amp;&amp; (me) != (me)->source)
+#define HTRequest_isMainDestination(me) \
+	((me) &amp;&amp; (me)->source &amp;&amp; \
+	(me) == (me)->source->mainDestination)
+#define HTRequest_isSource(me) \
+	((me) &amp;&amp; (me)->source &amp;&amp; (me) == (me)->source)
+#define HTRequest_isPostWeb(me) \
+	((me) &amp;&amp; (me)->source)
+</PRE>
+
+End of Declaration
+
+<PRE>
+#endif /* HTREQMAN_H */
+</PRE>
+end of HTAccess
+</BODY>
+</HTML>

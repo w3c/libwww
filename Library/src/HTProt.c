@@ -12,11 +12,18 @@
 /* Library Include files */
 #include "tcp.h"
 #include "HTUtils.h"
+#include "HTString.h"
 #include "HTParse.h"
 #include "HTString.h"
 #include "HTProt.h"					 /* Implemented here */
 
 /* Variables and typedefs local to this module */
+struct _HTProtocol {
+    char *		name;
+    BOOL		preemtive;
+    HTEventCallBack	*callback;
+};
+
 PRIVATE HTList * protocols = NULL;           /* List of registered protocols */
 
 /* --------------------------------------------------------------------------*/
@@ -26,32 +33,74 @@ PRIVATE HTList * protocols = NULL;           /* List of registered protocols */
 /*
 **	Register a Protocol module as an active access method
 */
-PUBLIC BOOL HTProtocol_add ARGS1(HTProtocol *, prot)
+PUBLIC BOOL HTProtocol_add (CONST char *       	name,
+			    BOOL		preemtive,
+			    HTEventCallBack *	callback)
 {
-    if (!protocols) protocols = HTList_new();
-    HTList_addObject(protocols, (void *) prot);
-    return YES;
+    if (name && callback) {
+	HTProtocol *newProt = (HTProtocol *) calloc(1, sizeof(HTProtocol));
+	if (newProt == NULL) outofmem(__FILE__, "HTProtocol_add");
+	StrAllocCopy(newProt->name, name);
+	newProt->preemtive = preemtive;
+	newProt->callback = callback;
+	if (!protocols) protocols = HTList_new();
+	return HTList_addObject(protocols, (void *) newProt);
+    }
+    return NO;
 }
 
 /*
 **	Deletes a Protocol module as an active access method
 */
-PUBLIC BOOL HTProtocol_delete ARGS1(HTProtocol *, prot)
+PUBLIC BOOL HTProtocol_delete (CONST char * name)
 {
-    return (protocols && prot) ?
-	HTList_removeObject(protocols, (void *) prot) : NO;
+    if (protocols) {
+	HTList *cur = protocols;
+	HTProtocol *pres;
+	while ((pres = (HTProtocol *) HTList_nextObject(cur))) {
+	    if (!strcmp(pres->name, name)) {
+		FREE(pres->name);
+		return HTList_removeObject(protocols, (void *) pres);
+	    }
+	}
+    }
+    return NO;
+}
+
+/*
+**	Returns the callback function
+*/
+PUBLIC HTEventCallBack *HTProtocol_callback (HTProtocol * protocol)
+{
+    return protocol ? protocol->callback : NULL;
+}
+
+/*
+**	Returns YES if preemtive else NO
+*/
+PUBLIC BOOL HTProtocol_preemtive (HTProtocol * protocol)
+{
+    return protocol ? protocol->preemtive : NO;
 }
 
 /*
 **	Delete the list of registered access methods. This is called from
-**	within HTLibTerminate. Written by Eric Sink, eric@spyglass.com
+**	within HTLibTerminate. Thanks to Eric Sink, eric@spyglass.com
 */
-PUBLIC void HTProtocol_deleteAll NOARGS
+PUBLIC BOOL HTProtocol_deleteAll (void)
 {
     if (protocols) {
+	HTList *cur = protocols;
+	HTProtocol *pres;
+	while ((pres = (HTProtocol *) HTList_nextObject(cur))) {
+	    FREE(pres->name);
+	    free(pres);
+	}
 	HTList_delete(protocols);
 	protocols = NULL;
+	return YES;
     }
+    return NO;
 }
 
 
@@ -59,7 +108,7 @@ PUBLIC void HTProtocol_deleteAll NOARGS
 **	Search registered protocols to find suitable one.
 **	Return YES if found, else NO
 */
-PUBLIC BOOL HTProtocol_get ARGS1(HTParentAnchor *, anchor)
+PUBLIC BOOL HTProtocol_bind ARGS1(HTParentAnchor *, anchor)
 {
     if (anchor) {
 	char *access = HTParse(HTAnchor_physical(anchor), "", PARSE_ACCESS);
@@ -70,7 +119,7 @@ PUBLIC BOOL HTProtocol_get ARGS1(HTParentAnchor *, anchor)
 		fprintf(TDEST, "HTProtocol.. NO PROTOCOL MODULES INITIATED\n");
 	} else {
 	    while ((p = (HTProtocol *) HTList_nextObject(cur))) {
-		if (strcmp(p->name, access)==0) {	/* Case insensitive? */
+		if (strcasecomp(p->name, access)==0) {
 		    HTAnchor_setProtocol(anchor, p);
 		    free(access);
 		    return YES;

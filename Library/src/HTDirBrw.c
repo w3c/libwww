@@ -34,9 +34,9 @@
 #include "HTAnchor.h"
 #include "HTParse.h"
 #include "HTFWrite.h"
-#include "HTInit.h"
 #include "HTBTree.h"
 #include "HTFormat.h"
+#include "HTReqMan.h"
 #include "HTChunk.h"
 #include "HTIcons.h"
 #include "HTDescpt.h"
@@ -1101,10 +1101,6 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	if (HTDirFileLength < HTDirMinFileLength)
 	    HTDirFileLength = HTDirMinFileLength;
 
-#if 0
-	/* Now, put up the stream if no error has occured */
-	if (!req->error_stack)
-#endif
 	{
 	    HTStructured *target = HTMLGenerator(req, NULL, WWW_HTML,
 						 req->output_format,
@@ -1221,7 +1217,7 @@ PUBLIC int HTFTPBrowseDirectory ARGS3(HTRequest *, req, char *, directory,
 	HTDirFileLength = 0;
 
 	/* Build tree */
-	while ((status = input(req->net_info, &file_info)) > 0) {
+	while ((status = input(req->net, &file_info)) > 0) {
 	    HTDirKey *nodekey;
 	    HTFormat format=NULL;
 	    HTEncoding encoding=NULL;
@@ -1317,7 +1313,7 @@ PUBLIC int HTFTPBrowseDirectory ARGS3(HTRequest *, req, char *, directory,
 		/* If we are using NLST, then don't show any size */
 		if (HTDirShowMask & HT_DIR_SHOW_SIZE) {
                     if ((file_info.f_mode & S_IFMT) != S_IFDIR &&
-			HTFTUseList(req->net_info) == YES)
+			HTFTUseList(req->net) == YES)
                         HTDirSize(file_info.f_size, bodyptr, HT_LENGTH_SIZE);
                     else
                         bodyptr[HT_LENGTH_SIZE-1] = '-';
@@ -1383,14 +1379,14 @@ PUBLIC int HTFTPBrowseDirectory ARGS3(HTRequest *, req, char *, directory,
 
 	    /* Put out the header for the HTML object */
 	    HTDirOutTop(target, (HTAnchor *) req->anchor, topstr, directory,
-			HTFTPWelcomeMsg(req->net_info));
+			HTFTPWelcomeMsg(req->net));
 	    
 	    /* Run through tree printing out in order, hopefully :-) */
 	    if (filecnt) {
 		HTDirOutList(target, bt, tail, directory);
 	    }
 	    HTDirOutBottom(target, filecnt, directory,
-			   HTFTPWelcomeMsg(req->net_info));
+			   HTFTPWelcomeMsg(req->net));
 	    FREE_TARGET;
 	}
 

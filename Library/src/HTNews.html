@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>NNTP Access</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  6-Sep-1995 -->
 </HEAD>
 <BODY>
 
@@ -23,9 +23,9 @@ W3C Reference Library</A>.
 #ifndef HTNEWS_H
 #define HTNEWS_H
 
-#include "HTProt.h"
+#include "HTEvntrg.h"
 
-GLOBALREF HTProtocol HTNews;
+extern HTEventCallBack HTLoadNews;
 
 extern void		HTSetNewsHost PARAMS((CONST char *value));
 extern CONST char *	HTGetNewsHost NOPARAMS;

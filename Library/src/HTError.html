@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Error Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  6-Sep-1995 -->
 <NEXTID N="z1">
 </HEAD>
 <BODY>
@@ -18,13 +18,7 @@
 This module maintaines a list of error messages that might occur
 during load of a requested URL. The error list is put out to standard
 output by a simple function that easily can be overwritten by a smart
-server or client.  <P>
-
-<NOTE><B>Note: </B></NOTE> At the moment, <A
-HREF="HTAlert.c">HTErrorMsg()</A> is called, if the flag
-HTRequest-&gt;error_block is set to YES, then a stream has been put up
-or taken down in the library and therefore it is <B>VERY</B> unsafe to
-put anything more to the stream. <P>
+server or client. <P>
 
 This module is implemented by <A HREF="HTError.c">HTError.c</A>, and
 it is a part of the <A
@@ -35,7 +29,7 @@ W3C Reference Library</A>.
 #ifndef HTERROR_H
 #define HTERROR_H
 
-#include "HTAccess.h"
+#include "HTReq.h"
 </PRE>
 
 <A NAME="errorinfo"><H2>Data Structures</H2></A>

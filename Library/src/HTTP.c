@@ -23,22 +23,27 @@
 #include "HTTCP.h"
 #include "HTFormat.h"
 #include "HTSocket.h"
+#include "HTReqMan.h"
 #include "HTAlert.h"
 #include "HTMIME.h"
-#include "HTAccess.h"		/* HTRequest */
 #include "HTAABrow.h"		/* Access Authorization */
 #include "HTTee.h"		/* Tee off a cache stream */
 #include "HTFWrite.h"		/* Write to cache file */
 #include "HTCache.h"
 #include "HTWriter.h"
 #include "HTError.h"
+#include "HTAccess.h"
 #include "HTChunk.h"
 #include "HTGuess.h"
-#include "HTThread.h"
+#include "HTNet.h"
 #include "HTTPReq.h"
 #include "HTTP.h"					       /* Implements */
 
 /* Macros and other defines */
+#ifndef HTTP_PORT
+#define HTTP_PORT 80	/* Allocated to http by Jon Postel/ISI 24-Jan-92 */
+#endif
+
 #define PUTC(c)		(*me->target->isa->put_character)(me->target, c)
 #define PUTS(s)		(*me->target->isa->put_string)(me->target, s)
 #define PUTBLOCK(b, l)	(*me->target->isa->put_block)(me->target, b, l)
@@ -46,7 +51,8 @@
 #define ABORT_TARGET	(*me->target->isa->abort)(me->target, e)
 
 /* Type definitions and global variables etc. local to this module */
-/* This is the local definition of HTRequest->net_info */
+
+/* Final states have negative value */
 typedef enum _HTTPState {
     HTTP_RETRY		= -4,
     HTTP_ERROR		= -3,
@@ -61,17 +67,8 @@ typedef enum _HTTPState {
     HTTP_AA
 } HTTPState;
 
+/* This is the context structure for the this module */
 typedef struct _http_info {
-    SOCKFD		sockfd;				/* Socket descripter */
-    SockA 		sock_addr;		/* SockA is defined in tcp.h */
-    HTInputSocket *	isoc;				     /* Input buffer */
-    SocAction		action;			/* Result of the select call */
-    HTStream *		target;				    /* Target stream */
-    int 		addressCount;	     /* Attempts if multi-homed host */
-    time_t		connecttime;		 /* Used on multihomed hosts */
-    long		bytes_read;		  /* Bytes read from network */
-    struct _HTRequest *	request;	   /* Link back to request structure */
-
     HTTPState		state;		  /* Current State of the connection */
     HTTPState		next;				       /* Next state */
 } http_info;
@@ -96,58 +93,32 @@ struct _HTStream {
 /* 			          Help Functions			     */
 /* ------------------------------------------------------------------------- */
 
-/*                                                                  HTTPCleanup
-**
+/*	HTTPCleanup
+**	-----------
 **      This function closes the connection and frees memory.
-**
-**      Returns 0 on OK, else -1
+**      Returns YES on OK, else NO
 */
-PRIVATE int HTTPCleanup ARGS2(HTRequest *, req, BOOL, abort)
+PRIVATE int HTTPCleanup (HTRequest *req, int status)
 {
-    http_info *http;
-    int status = 0;
-    if (!req || !req->net_info) {
-	if (PROT_TRACE) fprintf(TDEST, "HTTPCleanup. Bad argument!\n");
-	status = -1;
-    } else {
-	http = (http_info *) req->net_info;
-	if (http->sockfd != INVSOC) {
+    HTNet *net = req->net;
+    http_info *http = (http_info *) net->context;
 
-	    if (http->target) {
+    /* Free stream with data TO network */
+    if (!HTRequest_isDestination(req) && req->input_stream) {
+	if (status == HT_INTERRUPTED)
+	    (*req->input_stream->isa->abort)(req->input_stream, NULL);
+	else
+	    (*req->input_stream->isa->_free)(req->input_stream);
+    }
 
-		/* Free stream with data TO network */
-		if (!HTRequest_isDestination(req)) {
-		    if (abort)
-			(*req->input_stream->isa->abort)(req->input_stream, NULL);
-		    else
-			(*req->input_stream->isa->_free)(req->input_stream);
-		}
-
-		/* Free stream with data FROM network */
-		if (abort)
-		    (*http->target->isa->abort)(http->target, NULL);
-		else
-		    (*http->target->isa->_free)(http->target);
-	    }
-	    if (PROT_TRACE)
-		fprintf(TDEST,"HTTP........ Closing socket %d\n",http->sockfd);
-	    if ((status = NETCLOSE(http->sockfd)) < 0)
-		HTErrorSysAdd(http->request, ERR_FATAL, socerrno, NO,
-			      "NETCLOSE");
-	    HTThreadState(http->sockfd, THD_CLOSE);
-	    http->sockfd = INVSOC;
-	}
-	HTThread_clear((HTNetInfo *) http);
-	if (http->isoc)
-	    HTInputSocket_free(http->isoc);
-	free(http);
-	req->net_info = NULL;
-    }	
-    return status;
+    /* Remove the request object and our own context structure for http */
+    HTNet_delete(net, status);
+    FREE(http);
+    return YES;
 }
 
 
-PRIVATE BOOL HTTPAuthentication ARGS1(HTRequest *, request)
+PRIVATE BOOL HTTPAuthentication (HTRequest * request)
 {
     HTAAScheme scheme;
     HTList *valid_schemes = HTList_new();
@@ -332,7 +303,7 @@ PRIVATE void HTTPNextState ARGS1(HTStream *, me)
 **	Stream handling is a function of the status code returned from the 
 **	server:
 **		200:	 Use `output_stream' in HTRequest structure
-**		else:	 Use `error_stream' in HTRequest structure
+**		else:	 Use `debug_stream' in HTRequest structure
 **
 **	Return: YES if buffer should be written out. NO otherwise
 */
@@ -389,9 +360,12 @@ PRIVATE int stream_pipe ARGS1(HTStream *, me)
 		    me->target = HTTee(me->target, s);
 		}
 	      }
+	} else if (req->debug_stream) {
+	    me->target = HTStreamStack(WWW_MIME, req->debug_format,
+				       req->debug_stream, req, NO);
 	} else {
-	    me->target = HTMIMEConvert(req, NULL, WWW_MIME, req->error_format,
-				       req->error_stream);
+	    me->target = HTMIMEConvert(req, NULL, WWW_MIME, WWW_PRESENT,
+				       HTBlackHole());
 	}
 	if (!me->target)
 	    me->target = HTBlackHole();				/* What else */
@@ -493,8 +467,8 @@ PRIVATE CONST HTStreamClass HTTPStatusClass =
     HTTPStatus_put_block
 };
 
-PUBLIC HTStream * HTTPStatus_new ARGS2(HTRequest *, request,
-				       http_info *, http)
+PRIVATE HTStream * HTTPStatus_new ARGS2(HTRequest *, request,
+					http_info *, http)
 {
     HTStream * me = (HTStream *) calloc(1, sizeof(HTStream));
     if (!me) outofmem(__FILE__, "HTTPStatus_new");
@@ -514,50 +488,36 @@ PUBLIC HTStream * HTTPStatus_new ARGS2(HTRequest *, request,
 **
 ** On entry,
 **      request		This is the request structure
-** On exit,
-**	returns		HT_ERROR	Error has occured or interrupted
-**			HT_OK		Generic dummy: We are not finished!
-**			HT_WOULD_BLOCK  if operation would have blocked
-**			HT_LOADED	if return status 200 OK
-**			HT_NO_DATA	if return status 204 No Response
-**			HT_RETRY	if return status 503 Service Unavail.
+**	returns		HT_ERROR	Error has occured in call back
+**			HT_OK		Call back was OK
 */
-PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
+PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 {
     int status = HT_ERROR;
-    char *url;				  /* Gets initialized on every entry */
+    HTNet *net = request->net;		     /* Generic protocol information */
     http_info *http;			    /* Specific protocol information */
-
-    if (!request || !request->anchor) {
-        if (PROT_TRACE) fprintf(TDEST, "HTLoadHTTP.. Bad argument\n");
-        return HT_ERROR;
-    }
-    url = HTAnchor_physical(request->anchor);
     
-    /* Only do the setup first time through. This is actually state HTTP_BEGIN
-       but it can't be in the state machine as we need the structure first */
-    if (!request->net_info) {
-	/*
-	** Initiate a new http structure and bind to request structure
-	** This is actually state HTTP_BEGIN, but it can't be in the state
-	** machine as we need the structure first.
-	*/
-	if (PROT_TRACE) fprintf(TDEST, "HTTP........ Looking for `%s\'\n",url);
+    /*
+    ** Initiate a new http structure and bind to request structure
+    ** This is actually state HTTP_BEGIN, but it can't be in the state
+    ** machine as we need the structure first.
+    */
+    if (ops == FD_NONE) {
+	if (PROT_TRACE) fprintf(TDEST, "HTTP........ Looking for `%s\'\n",
+				HTAnchor_physical(request->anchor));
 	if ((http = (http_info *) calloc(1, sizeof(http_info))) == NULL)
 	    outofmem(__FILE__, "HTLoadHTTP");
-	http->sockfd = INVSOC;			    /* Invalid socket number */
-	http->request = request;
 	http->state = HTTP_BEGIN;
 	http->next = HTTP_ERROR;
-	request->net_info = (HTNetInfo *) http;
-	HTThread_new((HTNetInfo *) http);
-    } else {
-	http = (http_info *) request->net_info;		/* Get existing copy */
-	if (HTThreadIntr(http->sockfd)) {
-	    HTTPCleanup(request, YES);
-	    return HTRequest_isMainDestination(request) ? HT_ERROR : HT_OK;
-	}
-    }
+	net->context = http;
+    } if (ops == FD_CLOSE) {				      /* Interrupted */
+	if(HTRequest_isPostWeb(request)&&!HTRequest_isMainDestination(request))
+	    HTTPCleanup(request, HT_IGNORE);
+	else
+	    HTTPCleanup(request, HT_INTERRUPTED);
+	return HT_OK;
+    } else
+	http = (http_info *) net->context;		/* Get existing copy */
  
     /* Now jump into the machine. We know the state from the previous run */
     while (1) {
@@ -582,16 +542,16 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	    break;
 	    
 	  case HTTP_NEED_CONNECTION: 	    /* Now let's set up a connection */
-	    status = HTDoConnect((HTNetInfo *) http, url, TCP_PORT,
-				 NULL, NO);
+	    status = HTDoConnect(net, HTAnchor_physical(request->anchor),
+				 HTTP_PORT, NULL, NO);
 	    if (status == HT_OK) {
 		if (PROT_TRACE)
 		    fprintf(TDEST, "HTTP........ Connected, socket %d\n",
-			    http->sockfd);
+			    net->sockfd);
 
 		/* Set up stream TO network */
 		request->input_stream =
-		    HTTPRequest_new(request, HTWriter_new(http->sockfd, YES));
+		    HTTPRequest_new(request, HTWriter_new(net, YES));
 
 		/*
 		** Set up concurrent read/write if this request isn't the
@@ -600,50 +560,50 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		** register the input stream and get ready for read
 		*/
 		if (HTRequest_isPostWeb(request)) {
-		    HTThreadState(http->sockfd, THD_SET_READ);
+		    HTEvent_Register(net->sockfd, request, (SockOps) FD_READ,
+				     HTLoadHTTP, net->priority);
 		    HTRequest_linkDestination(request);
 		}
 
 		/* Set up stream FROM network and corresponding read buffer */
-		http->isoc = HTInputSocket_new(http->sockfd);
-		http->target = HTImProxy ?
+		net->isoc = HTInputSocket_new(net->sockfd);
+		net->target = HTImProxy ?
 		    request->output_stream : HTTPStatus_new(request, http);
 
 		http->state = HTTP_NEED_REQUEST;
 	    } else if (status == HT_WOULD_BLOCK)
-		return status;
+		return HT_OK;
 	    else
 		http->state = HTTP_ERROR;	       /* Error or interrupt */
 	    break;
 
 	    /* As we can do simultanous read and write this is now one state */
 	  case HTTP_NEED_REQUEST:
-	    if (http->action == SOC_WRITE) {
+	    if (ops == FD_WRITE || ops == FD_NONE) {
 		if (HTRequest_isDestination(request)) {
-		    HTThreadStateByRequest(request->source, THD_SET_READ);
-		    return HT_WOULD_BLOCK;
+		    HTNet *srcnet = request->source->net;
+		    HTEvent_Register(srcnet->sockfd, request->source,
+				     (SockOps) FD_READ,
+				     HTLoadHTTP, srcnet->priority);
+		    return HT_OK;
 		}
 		status = request->PostCallBack ?
 		    request->PostCallBack(request, request->input_stream) :
 			(*request->input_stream->isa->flush)(request->input_stream);
 		if (status == HT_WOULD_BLOCK)
-		    return HT_WOULD_BLOCK;
-		else if (status == HT_INTERRUPTED)
-		    http->state = HTTP_ERROR;
-		else {
-		    http->action = SOC_READ;
-		}
-	    } else if (http->action == SOC_READ) {
-		status = HTSocketRead(request, http->target);
+		    return HT_OK;
+		else
+		    ops = FD_READ;	  /* Trick to ensure that we do READ */
+	    } else if (ops == FD_READ) {
+		status = HTSocketRead(request, net->target);
 		if (status == HT_WOULD_BLOCK)
-		    return HT_WOULD_BLOCK;
-		else if (status == HT_INTERRUPTED)
-		    http->state = HTTP_ERROR;
+		    return HT_OK;
+		else if (status == HT_LOADED)
+		    http->state = http->next;	       /* Jump to next state */
 		else if (status == HT_RELOAD)
 		    http->state = HTTP_EXPIRED;
-		else {
-		    http->state = http->next;	       /* Jump to next state */
-		}
+		else
+		    http->state = HTTP_ERROR;
 	    } else {
 		http->state = HTTP_ERROR;
 	    }
@@ -662,7 +622,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	    if (HTRequest_isPostWeb(request))
 		HTRequest_killPostWeb(request);
 	    else
-		HTTPCleanup(request, NO);
+		HTTPCleanup(request, HT_IGNORE);
 
 	    /* If we found a new URL in the response */
 	    if (request->redirect) {
@@ -677,7 +637,7 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		}
 
 		/* If we haven't reached the limit for redirection */
-		if (++request->reloads < HTAccess_maxReload()) {
+		if (HTRequest_retry(request)) {
 		    HTAnchor *anchor = HTAnchor_findAddress(request->redirect);
 		    if (HTRequest_isPostWeb(request)) {
 			HTRequest *dest = HTRequest_mainDestination(request);
@@ -695,16 +655,19 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 						  anchor);
 			    if (HTRequest_isSource(request))
 				HTRequest_delete(request);
-			    return HTCopyAnchor((HTAnchor *) anchor, dest);
+			    return HTCopyAnchor((HTAnchor *) anchor, dest) ?
+				HT_OK : HT_ERROR;
 			}
 			free(msg);
-			return HT_ERROR;
+			return HT_OK;
 		    } if (request->PostCallBack) {
 #if 0
-			return HTUploadAnchor((HTAnchor*) anchor, request);
+			return HTUploadAnchor((HTAnchor*) anchor, request) ?
+			    HT_OK : HT_ERROR;
 #endif
 		    } else {
-			return HTLoadAnchor((HTAnchor *) anchor, request);
+			return HTLoadAnchor((HTAnchor *) anchor, request) ?
+			    HT_OK : HT_ERROR;
 		    }
 		} else {
 		    HTErrorAdd(request, ERR_FATAL, NO, HTERR_MAX_REDIRECT,
@@ -717,15 +680,15 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 						  (HTAnchor *) request->anchor);
 			    HTAnchor_setLinkResult(link, HT_LINK_ERROR);
 			}
+			HTNet_callback(request, main ? HT_ERROR : HT_IGNORE);
 			HTRequest_removeDestination(request);
-			return main ? HT_ERROR : HT_OK;
 		    }
-		    return HT_ERROR;
+		    return HT_OK;
 		}
 	    } else {
 		HTErrorAdd(request, ERR_FATAL, NO, HTERR_BAD_REPLY,
 			   NULL, 0, "HTLoadHTTP");
-		return HT_ERROR;
+		return HT_OK;
 	    }
 	    break;
 	    
@@ -734,30 +697,28 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 	    if (HTRequest_isPostWeb(request))
 		HTRequest_killPostWeb(request);
 	    else
-		HTTPCleanup(request, NO);
+		HTTPCleanup(request, HT_IGNORE);
 
 	    /* Ask the user for a UserID and a passwd */
 	    if (HTTPAuthentication(request) && HTAA_retryWithAuth(request)) {
+		int ret;
 		if (HTRequest_isPostWeb(request)) {
 		    HTRequest *dest = HTRequest_mainDestination(request);
 		    HTAnchor_appendMethods(request->anchor, request->method);
-		    return HTCopyAnchor((HTAnchor *) request->source->anchor,
-					dest);
+		    ret=HTCopyAnchor((HTAnchor*)request->source->anchor, dest);
+		    return ret ? HT_OK : HT_ERROR;
 		} else if (request->PostCallBack) {
 #if 0
-		    return HTUploadAnchor((HTAnchor*) request->anchor,request);
+		    ret = HTUploadAnchor((HTAnchor*) request->anchor,request);
+		    return ret ? HT_OK : HT_ERROR;
 #endif
 		} else {
-		    return HTLoadAnchor((HTAnchor *) request->anchor, request);
+		    ret = HTLoadAnchor((HTAnchor *) request->anchor, request);
+		    return ret ? HT_OK : HT_ERROR;
 		}
 	    } else {				   /* If the guy said no :-( */
-		char *unescaped = NULL;
-		StrAllocCopy(unescaped, url);
-		HTUnEscape(unescaped);
 		HTErrorAdd(request, ERR_FATAL, NO, HTERR_UNAUTHORIZED,
-			   (void *) unescaped,
-			   (int) strlen(unescaped), "HTLoadHTTP");
-		free(unescaped);
+			   NULL, 0, "HTLoadHTTP");
 		if (HTRequest_isPostWeb(request)) {
 		    BOOL main = HTRequest_isMainDestination(request);
 		    if (HTRequest_isDestination(request)) {
@@ -766,15 +727,14 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 					      (HTAnchor *) request->anchor);
 			HTAnchor_setLinkResult(link, HT_LINK_ERROR);
 		    }
+		    HTNet_callback(request, main ? HT_ERROR : HT_IGNORE);
 		    HTRequest_removeDestination(request);
-		    return main ? HT_ERROR : HT_OK;
 		}
-		return HT_ERROR;
+		return HT_OK;
 	    }
 	    break;
 	    
 	  case HTTP_GOT_DATA:
-	    HTTPCleanup(request, NO);
 	    if (HTRequest_isPostWeb(request)) {
 		BOOL main = HTRequest_isMainDestination(request);
 		if (HTRequest_isDestination(request)) {
@@ -784,13 +744,13 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		    HTAnchor_setLinkResult(link, HT_LINK_OK);
 		}
 		HTRequest_removeDestination(request);
-		return main ? HT_LOADED : HT_OK;
-	    }
-	    return HT_LOADED;
+		HTTPCleanup(request, main ? HT_LOADED : HT_IGNORE);
+	    } else
+		HTTPCleanup(request, HT_LOADED);
+	    return HT_OK;
 	    break;
 	    
 	  case HTTP_NO_DATA:
-	    HTTPCleanup(request, NO);
 	    if (HTRequest_isPostWeb(request)) {
 		BOOL main = HTRequest_isMainDestination(request);
 		if (HTRequest_isDestination(request)) {
@@ -800,12 +760,13 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		    HTAnchor_setLinkResult(link, HT_LINK_OK);
 		}
 		HTRequest_removeDestination(request);
-		return main ? HT_NO_DATA : HT_OK;
-	    }
-	    return HT_NO_DATA;
+		HTTPCleanup(request, main ? HT_NO_DATA : HT_IGNORE);
+	    } else
+		HTTPCleanup(request, HT_NO_DATA);
+	    return HT_OK;
 	    break;
 	    
-	  case HTTP_RETRY:	     /* Treat this as an error state for now */
+	  case HTTP_RETRY:
 	    if (HTRequest_isPostWeb(request)) {
 		BOOL main = HTRequest_isMainDestination(request);
 		HTRequest_killPostWeb(request);
@@ -816,19 +777,16 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		    HTAnchor_setLinkResult(link, HT_LINK_ERROR);
 		}
 		HTRequest_removeDestination(request);
-		return main ? HT_RETRY : HT_OK;
-
+		HTTPCleanup(request, main ? HT_RETRY : HT_IGNORE);
 	    } else
-		HTTPCleanup(request, YES);
-	    return HT_RETRY;
+		HTTPCleanup(request, HT_RETRY);
+	    return HT_OK;
 	    break;
 
 	  case HTTP_ERROR:
 	    /* Clean up the other connections or just this one */
 	    if (HTRequest_isPostWeb(request)) {
 		BOOL main = HTRequest_isMainDestination(request);
-		if (http->sockfd == INVSOC)
-		    HTTPCleanup(request, YES);         /* If no valid socket */
 		HTRequest_killPostWeb(request);
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link =
@@ -837,19 +795,13 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		    HTAnchor_setLinkResult(link, HT_LINK_ERROR);
 		}
 		HTRequest_removeDestination(request);
-		return main ? HT_ERROR : HT_OK;
+		HTTPCleanup(request, main ? HT_ERROR : HT_IGNORE);
 	    } else
-		HTTPCleanup(request, YES);
-	    return HT_ERROR;
+		HTTPCleanup(request, HT_ERROR);
+	    return HT_OK;
 	    break;
 	}
     } /* End of while(1) */
 }    
-
-/* Protocol descriptor */
-
-GLOBALDEF PUBLIC HTProtocol HTTP = {
-    "http", SOC_NON_BLOCK, HTLoadHTTP, NULL, NULL
-};
 
 

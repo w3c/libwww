@@ -23,10 +23,8 @@
 #include "HTList.h"
 #include "HTParse.h"
 #include "HTAlert.h"
-#include "HTProt.h"
-#include "HTAccess.h"
 #include "HTError.h"
-#include "HTThread.h"
+#include "HTNet.h"
 #include "HTTCP.h"					 /* Implemented here */
 
 #ifdef VMS 
@@ -433,7 +431,6 @@ PUBLIC void HTTCPAddrWeights ARGS2(char *, host, time_t, deltatime)
 /*	       		     HOST NAME FUNCTIONS 			     */
 /* ------------------------------------------------------------------------- */
 
-#ifndef DECNET  /* Function only used below for a trace message */
 
 /*	Produce a string for an Internet address
 **	----------------------------------------
@@ -442,9 +439,9 @@ PUBLIC void HTTCPAddrWeights ARGS2(char *, host, time_t, deltatime)
 **	returns	a pointer to a static string which must be copied if
 **		it is to be kept.
 */
-
 PUBLIC CONST char * HTInetString ARGS1(SockA *, sin)
 {
+#ifndef DECNET  /* Function only used below for a trace message */
 #if 0
     /* This dumps core on some Sun systems :-(. The problem is now, that 
        the current implememtation only works for IP-addresses and not in
@@ -458,8 +455,10 @@ PUBLIC CONST char * HTInetString ARGS1(SockA *, sin)
 	    (int)*((unsigned char *)(&sin->sin_addr)+2),
 	    (int)*((unsigned char *)(&sin->sin_addr)+3));
     return string;
-}
+#else
+    return "";
 #endif /* Decnet */
+}
 
 
 /*	                                                     HTGetHostByName
@@ -963,9 +962,8 @@ PUBLIC void HTFreeMailAddress NOARGS
 **	returns		HT_ERROR	Error has occured or interrupted
 **			HT_OK		if connected
 **			HT_WOULD_BLOCK  if operation would have blocked
-**			HT_INTERRUPTED	if interrupted
 */
-PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
+PUBLIC int HTDoConnect ARGS5(HTNet *, net, char *, url,
 			     u_short, default_port, u_long *, addr,
 			     BOOL, use_cur)
 {
@@ -1037,7 +1035,7 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 	    ** returns 0 when blocking and NOT -1. FNDELAY is ONLY for BSD and
 	    ** does NOT work on SVR4 systems. O_NONBLOCK is POSIX.
 	    */
-	    if (!HTProtocol_isBlocking(net->request)) {
+	    if (!net->preemtive) {
 #ifdef _WINDOWS 
 		{		/* begin windows scope  */
 		    HTRequest * rq = net->request;
@@ -1096,16 +1094,6 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 	    HTProgress(net->request, HT_PROG_CONNECT, NULL);
 	} /* IF socket is invalid */
 	
-	/* Check for interrupt */
-	if (HTThreadIntr(net->sockfd)) {
-	    if (NETCLOSE(net->sockfd) < 0)
-		HTErrorSysAdd(net->request, ERR_FATAL, socerrno,NO,"NETCLOSE");
-	    HTThreadState(net->sockfd, THD_CLOSE);
-	    net->sockfd = INVSOC;
-	    free(p1);
-	    return HT_INTERRUPTED;
-	}
-	
 	/* Do a connect */
 	status = connect(net->sockfd, (struct sockaddr *) &net->sock_addr,
 			 sizeof(net->sock_addr));
@@ -1140,7 +1128,8 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 	{
 	    if (PROT_TRACE)
 		fprintf(TDEST, "HTDoConnect. WOULD BLOCK `%s'\n", host);
-	    HTThreadState(net->sockfd, THD_SET_CONNECT);
+	    HTEvent_Register(net->sockfd, net->request, (SockOps) FD_CONNECT,
+			     net->cbf, net->priority);
 	    free(p1);
 	    return HT_WOULD_BLOCK;
 	}
@@ -1150,12 +1139,12 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 	    net->connecttime = time(NULL) - net->connecttime;
 	    if (status < 0) {					 /* multi PB */
 		if (socerrno == EISCONN) { /* connect multi after would block*/
-		    HTThreadState(net->sockfd, THD_CLR_CONNECT);
+		    HTEvent_UnRegister(net->sockfd, (SockOps) FD_CONNECT);
 		    HTTCPAddrWeights(host, net->connecttime);
 		    free(p1);
 		    net->addressCount = 0;
 		    if (PROT_TRACE)
-			fprintf(TDEST, "HTDoConnect: Socket %ld already connected\n", net->sockfd) ;
+			fprintf(TDEST, "HTDoConnect: Socket %d already connected\n", net->sockfd);
 		    return HT_OK;
 		}
 
@@ -1177,10 +1166,10 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 	        else
 		    net->connecttime += TCP_PENALTY;
 
-	        if (NETCLOSE(net->sockfd) < 0)
+	            if (NETCLOSE(net->sockfd) < 0)
 		        HTErrorSysAdd(net->request, ERR_FATAL, socerrno, NO, 
 				      "NETCLOSE");
-	        HTThreadState(net->sockfd, THD_CLOSE);
+	        HTEvent_UnRegister(net->sockfd, (SockOps) FD_ALL);
 	        net->sockfd = INVSOC;
 	        HTTCPAddrWeights(host, net->connecttime);
 	    } else {						 /* multi OK */
@@ -1191,7 +1180,7 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 	    }
         } else if (status < 0) {				/* single PB */
 	    if (socerrno==EISCONN) { 	 /* Connect single after would block */
-		HTThreadState(net->sockfd, THD_CLR_CONNECT);
+		HTEvent_UnRegister(net->sockfd, (SockOps) FD_CONNECT);
 		net->addressCount = 0;
 		free(p1);
 		return HT_OK;
@@ -1202,7 +1191,7 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 		if (NETCLOSE(net->sockfd) < 0)
 		    HTErrorSysAdd(net->request, ERR_FATAL, socerrno, NO,
 				  "NETCLOSE");
-		HTThreadState(net->sockfd, THD_CLOSE);
+	        HTEvent_UnRegister(net->sockfd, (SockOps) FD_ALL);
 		break;
 	    }
 	} else {				  		/* single OK */
@@ -1232,7 +1221,7 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 **		 0		if OK,
 **		 -1		on error
 */
-PUBLIC int HTDoAccept ARGS1(HTNetInfo *, net)
+PUBLIC int HTDoAccept ARGS1(HTNet *, net)
 {
     SockA soc_address;				/* SockA is defined in tcp.h */
     int status;

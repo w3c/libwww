@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>WAIS protocol module</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  6-Sep-1995 -->
 </HEAD>
 <BODY>
 
@@ -46,7 +46,7 @@ W3C Reference Library</A>.
 #ifndef HTWAIS_H
 #define HTWAIS_H
 
-#include "HTProt.h"
+#include "HTEvntrg.h"
 </PRE>
 
 <H2>Control Flags</H2>
@@ -57,7 +57,7 @@ The default value is 100 (this is defined in the module)
 <PRE>
 extern int HTMaxWAISLines;
 
-GLOBALREF HTProtocol HTWAIS;
+extern HTEventCallBack HTLoadWAIS;
 </PRE>
 
 End of Difinition module

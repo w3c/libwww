@@ -31,6 +31,11 @@
 
 #define HASH_SIZE 1001		/* Tunable */
 
+/* The default directory for "save locally" and "save and execute" files: */
+#ifndef HT_TMP_ROOT
+#define HT_TMP_ROOT		"/tmp"
+#endif
+
 struct _HTStream {
 	CONST HTStreamClass *	isa;
 	
@@ -341,9 +346,9 @@ PUBLIC HTStream* HTSaveAndExecute ARGS5(
 	
     /* Let's find a hash name for this file */
     {
-	char *suffix = HTBind_getSuffix(request->anchor);
-	fnam = get_filename(HTTmpRoot, HTAnchor_physical(request->anchor),
-			    suffix);
+	HTParentAnchor *anchor = (HTParentAnchor *) HTRequest_anchor(request);
+	char *suffix = HTBind_getSuffix(anchor);
+	fnam = get_filename(HTTmpRoot, HTAnchor_physical(anchor), suffix);
 	FREE(suffix);
 	if (!fnam) {
 	    HTAlert(request, "Can't find a suitable file name");
@@ -408,9 +413,9 @@ PUBLIC HTStream* HTSaveLocally ARGS5(
 	
     /* Let's find a file name for this file */
     {
-	char *suffix = HTBind_getSuffix(request->anchor);
-	fnam = get_filename(HTTmpRoot, HTAnchor_physical(request->anchor),
-			    suffix);
+	HTParentAnchor *anchor = (HTParentAnchor *) HTRequest_anchor(request);
+	char *suffix = HTBind_getSuffix(anchor);
+	fnam = get_filename(HTTmpRoot, HTAnchor_physical(anchor), suffix);
 	answer = HTPrompt(request, "Give name of file to save in",
 			  fnam ? fnam : "");
 	if (!answer) {
@@ -459,7 +464,7 @@ PUBLIC HTStream* HTSaveAndCallBack ARGS5(
 #if 0
    if (request->using_cache) {  /* Special case! file wanted && cache hit */
         (*request->callback)(request,
-			 ((HTCacheItem*)request->using_cache)->filename);
+			 ((HTCache*) request->using_cache)->filename);
 	return HTBlackHole();
    } else {
    	me = HTCacheWriter(request, param,

@@ -43,7 +43,7 @@ W3C Reference Library</A>.
 #include <A HREF="HTAtom.html">"HTAtom.h"</A>
 #include <A HREF="HTList.html">"HTList.h"</A>
 #include <A HREF="HTAnchor.html">"HTAnchor.h"</A>
-#include <A HREF="HTAccess.html">"HTAccess.h"</A>
+#include <A HREF="HTReq.html">"HTReq.h"</A>
 </PRE>
 
 <A NAME="converter"><H2>Stream Converters</H2></A>
@@ -296,7 +296,7 @@ local and the global lists:
 
 <H3>Remove Local Preferences</H3>
 
-The function is called from <A HREF="HTAccess.html#z100">HTRequest_delete</A>.
+The function is called from <A HREF="HTReq.html#z100">HTRequest_delete</A>.
 
 <PRE>
 extern void HTFormatDelete	PARAMS((HTRequest * request));
@@ -304,7 +304,7 @@ extern void HTFormatDelete	PARAMS((HTRequest * request));
 
 <H3>Remove Global Preferences</H3>
 
-The function is called from <A HREF="HTAccess.html#Library">HTLibTerminate</A>.
+The function is called from <A HREF="HTReq.html#Library">HTLibTerminate</A>.
 
 <PRE>
 extern void HTDisposeConversions NOPARAMS;

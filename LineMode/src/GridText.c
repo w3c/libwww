@@ -14,6 +14,8 @@
 #include "GridStyle.h"
 #include "GridText.h"
 
+#include "HTReqMan.h"
+
 /* HWL 18/7/94: applied patch from agl@glas2.glas.apc.org (Anton Tropashko) */
 #ifdef CYRILLIC
 #include "a_stdio.h"

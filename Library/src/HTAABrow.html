@@ -1,6 +1,6 @@
 <HEAD>
 <TITLE>Browser side Access Auth</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  5-Sep-1995 -->
 </HEAD>
 <BODY>
 
@@ -49,17 +49,17 @@ W3C Reference Library</A>.
 <PRE>
 #ifndef HTAABROW_H
 #define HTAABROW_H
-		/* BOOL, PARAMS, ARGS */
-#include "HTAAUtil.h"		/* Common parts of AA */
+#include "HTAAUtil.h"
 #include "HTList.h"
 #include "HTAssoc.h"
+#include "HTReq.h"
 
 /*
 ** Local datatype definitions
 **
 ** HTAAServer contains all the information about one server.
 */
-typedef struct {
+typedef struct _HTAAServer {
 
     char *	hostname;	/* Host's name			*/
     int		portnumber;	/* Port number			*/
@@ -77,30 +77,25 @@ typedef struct {
 ** HTAASetup contains information about one server's one
 ** protected tree of documents.
 */
-struct _HTAASetup {
+typedef struct _HTAASetup {
     HTAAServer *server;		/* Which server serves this tree	     */
     char *	tmplate;	/* Template for this tree		     */
     HTList *	valid_schemes;	/* Valid authentic.schemes   		     */
     HTAssocList**scheme_specifics;/* Scheme specific params		     */
     BOOL	reprompt;	/* Failed last time -- reprompt (or whatever)*/
-};
+} HTAASetup;
 
 
 /*
 ** Information about usernames and passwords in
 ** Basic and Pubkey authentication schemes;
 */
-struct _HTAARealm {
+typedef struct _HTAARealm {
     char *	realmname;	/* Password domain name		*/
     char *	username;	/* Username in that domain	*/
     char *	password;	/* Corresponding password	*/
-};
-
-
-#include "HTAccess.h"		/* HTRequest */
-
+} HTAARealm;
 </PRE>
-
 
 <H2>Routines for Browser Side Recording of AA Info</H2>
 

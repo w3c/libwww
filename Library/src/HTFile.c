@@ -33,6 +33,7 @@
 #include "HTMIME.h"
 #include "HTAnchor.h"
 #include "HTAtom.h"
+#include "HTAccess.h"
 #include "HTWriter.h"
 #include "HTFWrite.h"
 #include "HTFormat.h"
@@ -40,11 +41,14 @@
 #include "HTDirBrw.h"
 #include "HTBind.h"
 #include "HTSocket.h"
-#include "HTThread.h"
+#include "HTNet.h"
 #include "HTError.h"
+#include "HTReqMan.h"
 #include "HTFile.h"		/* Implemented here */
 
-/* This is the local definition of HTRequest->net_info */
+/* This is the local definition of HTRequest->net */
+
+/* Final states have negative value */
 typedef enum _FileState {
     FS_FILE_RETRY		= -4,
     FS_FILE_ERROR		= -3,
@@ -59,26 +63,19 @@ typedef enum _FileState {
     FS_FILE_TRY_FTP
 } FileState;
 
+/* This is the context structure for the this module */
 typedef struct _file_info {
-    SOCKFD		sockfd;				/* Socket descripter */
-    SockA 		sock_addr;		/* SockA is defined in tcp.h */
-    HTInputSocket *	isoc;				     /* Input buffer */
-    SocAction		action;			/* Result of the select call */
-    HTStream *		target;				    /* Target stream */
-    int 		addressCount;	     /* Attempts if multi-homed host */
-    time_t		connecttime;		 /* Used on multihomed hosts */
-    long		bytes_read;		  /* Bytes read from network */
-    struct _HTRequest *	request;	   /* Link back to request structure */
-
     FileState		state;		  /* Current state of the connection */
     char *		localname;	/* Local representation of file name */
+#ifdef NO_UNIX_IO    
     FILE *		fp;        /* If we can't use sockets on local files */
+#endif
 } file_info;
 
 /* Local definition */
 struct _HTStream {
     CONST HTStreamClass *	isa;
-    HTStream *		  	target;
+    /* ... */
 };
 
 /* Controlling globals */
@@ -315,55 +312,28 @@ PUBLIC HTStream * HTFileSaveStream ARGS1(HTRequest *, request)
 }
 
 
-/*                                                                  FileCleanup
-**
+/*	FileCleanup
+**	-----------
 **      This function closes the connection and frees memory.
-**
-**      Returns 0 on OK, else -1
+**      Returns YES on OK, else NO
 */
-PRIVATE int FileCleanup ARGS2(HTRequest *, req, BOOL, abort)
+PRIVATE int FileCleanup (HTRequest *req, int status)
 {
-    file_info *file;
-    int status = 0;
-    if (!req || !req->net_info) {
-	if (PROT_TRACE) fprintf(TDEST, "FileCleanup. Bad argument!\n");
-	status = -1;
-    } else {
-	file = (file_info *) req->net_info;
-	if (file->sockfd != INVSOC || file->fp) {
-
-	    if (file->target) {
-
-		/* Free stream with data FROM local file system */
-		if (abort)
-		    (*file->target->isa->abort)(file->target, NULL);
-		else
-		    (*file->target->isa->_free)(file->target);
-	    }
-
-#ifndef NO_UNIX_IO
+    HTNet *net = req->net;
+    file_info *file = (file_info *) net->context;
+    if (file) {
+#ifdef NO_UNIX_IO
+	if (file->fp) {
 	    if (PROT_TRACE)
-		fprintf(TDEST,"FILE........ Closing socket %d\n",file->sockfd);
-	    if ((status = NETCLOSE(file->sockfd)) < 0)
-		HTErrorSysAdd(file->request, ERR_FATAL, socerrno, NO,
-			      "NETCLOSE");
-	    HTThreadState(file->sockfd, THD_CLOSE);
-	    file->sockfd = INVSOC;
-#else
-	    if (PROT_TRACE)
-		fprintf(TDEST,"FILE........ Closing file %p\n", file->fp);
+		fprintf(TDEST,"FileCleanup. Closing file %p\n", file->fp);
 	    fclose(file->fp);
-	    file->fp = NULL;
-#endif
 	}
-	    HTThread_clear((HTNetInfo *) file);
-	if (file->isoc)
-	    HTInputSocket_free(file->isoc);
+#endif
 	FREE(file->localname);
 	free(file);
-	req->net_info = NULL;
     }
-    return status;
+    HTNet_delete(net, status);
+    return YES;
 }
 
 
@@ -373,48 +343,35 @@ PRIVATE int FileCleanup ARGS2(HTRequest *, req, BOOL, abort)
 ** On entry,
 **	request		This is the request structure
 ** On exit,
-**	returns		HT_ERROR	Error has occured or interrupted
-**			HT_WOULD_BLOCK  We are using blocking I/O so this
-**					indicates that we have a read a chunk
-**					of data and now want to see what's up
-**					in the eventloop.
-**			HT_LOADED	if file has been loaded successfully
-**			HT_NO_DATA	if file is empty
-**			HT_RETRY	if file service is unavailable
+**	returns		HT_ERROR	Error has occured in call back
+**			HT_OK		Call back was OK
 */
-PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
+PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 {
     int status = HT_ERROR;
+    HTNet *net = request->net;		     /* Generic protocol information */
     file_info *file;			      /* Specific access information */
 
-    if (!request || !request->anchor) {
-	if (TRACE) fprintf(TDEST, "HTLoadFile.. Called with bad argument\n");
-	return HT_ERROR;
-    }
-
-    /* Only do the setup first time through. This is actually state FILE_BEGIN
-       but it can't be in the state machine as we need the structure first */
-    if (!request->net_info) {    
-	if (PROT_TRACE) {
-	    char *url = HTAnchor_physical(request->anchor);
-	    fprintf(TDEST, "LoadFile.... Looking for `%s\'\n", url);
-	}
+    /*
+    ** Initiate a new file structure and bind to request structure
+    ** This is actually state FILE_BEGIN, but it can't be in the state
+    ** machine as we need the structure first.
+    */
+    if (ops == FD_NONE) {
+	if (PROT_TRACE) fprintf(TDEST, "HTLoadFile.. Looking for `%s\'\n",
+				HTAnchor_physical(request->anchor));
 	if ((file = (file_info *) calloc(1, sizeof(file_info))) == NULL)
 	    outofmem(__FILE__, "HTLoadFILE");
-	file->sockfd = INVSOC;			    /* Invalid socket number */
-	file->request = request;
 	file->state = FS_FILE_BEGIN;
-	request->net_info = (HTNetInfo *) file;
-	HTThread_new((HTNetInfo *) file);
-    } else {
-	file = (file_info *) request->net_info;		/* Get existing copy */
-
-	/* @@@ NEED ALSO TO CHECK FOR ANSI FILE DESCRIPTORS @@@ */
-	if (HTThreadIntr(file->sockfd)) {
-	    FileCleanup(request, YES);
-	    return HTRequest_isMainDestination(request) ? HT_ERROR : HT_OK;
-	}
-    }
+	net->context = file;
+    } if (ops == FD_CLOSE) {				      /* Interrupted */
+	if(HTRequest_isPostWeb(request)&&!HTRequest_isMainDestination(request))
+	    FileCleanup(request, HT_IGNORE);
+	else
+	    FileCleanup(request, HT_INTERRUPTED);
+	return HT_OK;
+    } else
+	file = (file_info *) net->context;		/* Get existing copy */
 
     /* Now jump into the machine. We know the state from the previous run */
     while (1) {
@@ -506,14 +463,14 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 	    ** the ANSI C file descriptors
 	    */
 #ifndef NO_UNIX_IO
-	    if ((file->sockfd = open(file->localname, O_RDONLY)) == -1) {
+	    if ((net->sockfd = open(file->localname, O_RDONLY)) == -1) {
 		HTErrorSysAdd(request, ERR_FATAL, errno, NO, "open");
 		file->state = FS_FILE_ERROR;
 		break;
 	    }
 	    if (PROT_TRACE)
-		fprintf(TDEST,"HTLoadFile.. `%s' opened using fd %d \n",
-			file->localname, file->sockfd);
+		fprintf(TDEST,"HTLoadFile.. `%s' opened using socket %d \n",
+			file->localname, net->sockfd);
 
 	    /* If non-blocking protocol then change socket status
 	    ** I use FCNTL so that I can ask the status before I set it.
@@ -523,10 +480,10 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 	    ** and does NOT work on SVR4 systems. O_NONBLOCK is POSIX.
 	    */
 #ifndef NO_FCNTL
-	    if (!HTProtocol_isBlocking(request)) {
-		if ((status = FCNTL(file->sockfd, F_GETFL, 0)) != -1) {
+	    if (!request->net->preemtive) {
+		if ((status = FCNTL(net->sockfd, F_GETFL, 0)) != -1) {
 		    status |= O_NONBLOCK;			    /* POSIX */
-		    status = FCNTL(file->sockfd, F_SETFL, status);
+		    status = FCNTL(net->sockfd, F_SETFL, status);
 		}
 		if (PROT_TRACE) {
 		    if (status == -1)
@@ -558,7 +515,7 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 	    ** We need to wait for the destinations to get ready
 	    */
 	    if (HTRequest_isSource(request) && !request->output_stream)
-		return HT_WOULD_BLOCK;
+		return HT_OK;
 	    /*
 	    ** Set up concurrent read/write if this request isn't the
 	    ** source for a PUT or POST. As source we don't start reading
@@ -566,7 +523,8 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 	    ** register the input stream and get ready for read
 	    */
 	    if (HTRequest_isPostWeb(request)) {
-		HTThreadState(file->sockfd, THD_SET_READ);
+		HTEvent_Register(net->sockfd, request, (SockOps) FD_READ,
+				 HTLoadFile, net->priority);
 		HTRequest_linkDestination(request);
 	    }
 
@@ -575,29 +533,27 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 	    ** If cache element, we know that it's MIME, so call MIME parser
 	    ** If ANSI then sockfd=INVSOC
 	    */
-	    file->isoc = HTInputSocket_new(file->sockfd);
+	    net->isoc = HTInputSocket_new(net->sockfd);
 	    if (HTAnchor_cacheHit(request->anchor))
-		file->target = HTMIMEConvert(request, NULL, WWW_MIME,
+		net->target = HTMIMEConvert(request, NULL, WWW_MIME,
 					     request->output_format,
 					     request->output_stream);
 	    else
-		file->target = HTStreamStack(HTAnchor_format(request->anchor),
+		net->target = HTStreamStack(HTAnchor_format(request->anchor),
 					     request->output_format,
 					     request->output_stream,
 					     request, YES);
-	    file->state = file->target ? FS_FILE_NEED_BODY : FS_FILE_ERROR;
+	    file->state = net->target ? FS_FILE_NEED_BODY : FS_FILE_ERROR;
 	    break;
 
 	  case FS_FILE_NEED_BODY:
 #ifndef NO_UNIX_IO
-	    status = HTSocketRead(request, file->target);
+	    status = HTSocketRead(request, net->target);
 #else
-	    status = HTFileRead(file->fp, request, file->target);
+	    status = HTFileRead(file->fp, request, net->target);
 #endif
 	    if (status == HT_WOULD_BLOCK)
-		return HT_WOULD_BLOCK;
-	    else if (status == HT_INTERRUPTED)
-		file->state = FS_FILE_ERROR;
+		return HT_OK;
 	    else if (status == HT_LOADED) {
 		file->state = FS_FILE_GOT_DATA;
 	    } else
@@ -625,13 +581,12 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 		    StrAllocCat(newname, url);
 		anchor = HTAnchor_findAddress(newname);
 		free(newname);
-		FileCleanup(request, NO);
+		FileCleanup(request, HT_IGNORE);
 		return HTLoadAnchorRecursive(anchor, request);
 	    }
 	    break;
 
 	  case FS_FILE_GOT_DATA:
-	    FileCleanup(request, NO);
 	    if (HTRequest_isPostWeb(request)) {
 		BOOL main = HTRequest_isMainDestination(request);
 		if (HTRequest_isDestination(request)) {
@@ -641,13 +596,13 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 		    HTAnchor_setLinkResult(link, HT_LINK_OK);
 		}
 		HTRequest_removeDestination(request);
-		return main ? HT_LOADED : HT_OK;
-	    }
-	    return HT_LOADED;
+		FileCleanup(request, main ? HT_LOADED : HT_IGNORE);
+	    } else
+		FileCleanup(request, HT_LOADED);
+	    return HT_OK;
 	    break;
 
 	  case FS_FILE_NO_DATA:
-	    FileCleanup(request, NO);
 	    if (HTRequest_isPostWeb(request)) {
 		BOOL main = HTRequest_isMainDestination(request);
 		if (HTRequest_isDestination(request)) {
@@ -657,9 +612,10 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 		    HTAnchor_setLinkResult(link, HT_LINK_OK);
 		}
 		HTRequest_removeDestination(request);
-		return main ? HT_NO_DATA : HT_OK;
-	    }
-	    return HT_NO_DATA;
+		FileCleanup(request, main ? HT_NO_DATA : HT_IGNORE);
+	    } else
+		FileCleanup(request, HT_NO_DATA);
+	    return HT_OK;
 	    break;
 
 	  case FS_FILE_RETRY:
@@ -673,18 +629,16 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 		    HTAnchor_setLinkResult(link, HT_LINK_ERROR);
 		}
 		HTRequest_removeDestination(request);
-		return main ? HT_RETRY : HT_OK;
+		FileCleanup(request, main ? HT_RETRY : HT_IGNORE);
 	    } else
-		FileCleanup(request, YES);
-	    return HT_RETRY;
+		FileCleanup(request, HT_RETRY);
+	    return HT_OK;
 	    break;
 
 	  case FS_FILE_ERROR:
 	    /* Clean up the other connections or just this one */
 	    if (HTRequest_isPostWeb(request)) {
 		BOOL main = HTRequest_isMainDestination(request);
-		if (file->sockfd == INVSOC)
-		    FileCleanup(request, YES);         /* If no valid socket */
 		HTRequest_killPostWeb(request);
 		if (HTRequest_isDestination(request)) {
 		    HTLink *link =
@@ -693,21 +647,11 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 		    HTAnchor_setLinkResult(link, HT_LINK_ERROR);
 		}
 		HTRequest_removeDestination(request);
-		return main ? HT_ERROR : HT_OK;
+		FileCleanup(request, main ? HT_ERROR : HT_IGNORE);
 	    } else
-		FileCleanup(request, YES);
-	    return HT_ERROR;
+		FileCleanup(request, HT_ERROR);
+	    return HT_OK;
 	    break;
 	}
     } /* End of while(1) */
 }
-
-
-/*
-**  Protocol descriptor
-*/
-
-GLOBALDEF PUBLIC HTProtocol HTFile = {
-    "file", SOC_NON_BLOCK, HTLoadFile, HTFileSaveStream, NULL
-};
-

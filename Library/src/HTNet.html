@@ -1,11 +1,11 @@
 <HTML>
 <HEAD>
-<TITLE>Multithreaded Management</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 12-Jul-1995 -->
+<TITLE>Asyncronous Socket Management</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 12-Sep-1995 -->
 </HEAD>
 <BODY>
 
-<H1>Multithreaded Management of Sockets</H1>
+<H1>Asyncronous Socket Management</H1>
 
 <PRE>
 /*
@@ -19,145 +19,212 @@ sockets currently in use by the multithreaded clients. It is an
 internal module to the Library, the application interface is
 implemented in the <A HREF="HTEvntrg.html">Event Module</A>. Look for
 more information in the <A
-HREF="http://www.w3.org/pub/WWW/Library/User/Architecture/Threads.html">
+HREF="http://www.w3.org/pub/WWW/Library/User/Architecture/">
 Multithread Specifications</A>. <P>
 
-This module is implemented by <A HREF="HTThread.c">HTThread.c</A>, and
-it is a part of the <A NAME="z10"
-HREF="http://www.w3.org/pub/WWW/Library/">
-W3C Reference Library</A>.
+This module is implemented by <A HREF="HTNet.c">HTNet.c</A>, and it is
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C
+Reference Library</A>.
 
 <PRE>
-#ifndef HTTHREAD_H
-#define HTTHREAD_H
-#include "HTAccess.h"
+#ifndef HTNET_H
+#define HTNET_H
+#include "HTReq.h"
+#include "HTEvntrg.h"
+#include "HTSocket.h"
 </PRE>
 
-<A NAME="Init"><H2>Initiation</H2></A>
+<H2>The HTNet Object</H2>
 
-This function initiates the arrays of socket descriptors used in the
-Library. It's called in <A HREF="HTAccess.html#Library">HTLibInit()</A>.
+The <CODE>HTNet</CODE> object is the core of the request queue
+management. This object contains information about the socket
+descriptor, the input read buffer etc. required to identify and
+service a request. <P>
 
 <PRE>
-extern BOOL HTThreadInit	NOPARAMS;
+typedef struct _HTNet {
+    SOCKFD		sockfd;				/* Socket descripter */
+    SockA 		sock_addr;		/* SockA is defined in tcp.h */
+    HTInputSocket *	isoc;				     /* Input buffer */
+    HTStream *		target;				    /* Target stream */
+    int 		addressCount;	     /* Attempts if multi-homed host */
+    time_t		connecttime;		 /* Used on multihomed hosts */
+    long		bytes_read;		  /* Bytes read from network */
+    BOOL		preemtive;   /* Eff result from Request and Protocol */
+    BOOL		persistent;		/* Do persistent connection? */
+    HTPriority		priority;	 /* Priority of this request (event) */
+    HTEventCallBack *	cbf;			     /* Library load routine */
+    HTRequest *		request;	   /* Link back to request structure */
+    void *		context;		/* Protocol Specific context */
+} HTNet;
+
+#define HTNet_bytesRead(me) ((me) ? (me)-&gt;bytes_read : -1)
 </PRE>
 
-<IMG ALT="NOTE"
-SRC="http://www.w3.org/pub/WWW/Icons/32x32/caution.gif"> It is
-<B>VERY</B> important that this one is called before the first
-request, as otherwise the socket bit arrays are uninitialized.
+<H2>Request Termination Call Back Functions</H2>
 
-<H2>Registration of a Thread</H2>
+The termination callback functions is a set of functions that can be
+registered by the application to be called when a request has
+terminated. There can be more than one callback function which are
+called on turn and each callback function can be associated with a
+status code of the request. For example one callback function can be
+registered for HT_LOADED, another for HT_ERROR etc.
 
-These two functions put a <A HREF="HTAccess.html#HTNetInfo">HTNetInfo
-object</A> into the list of threads and takes it out again
-respectively. A normal place to call these functions would be on
-creation and deletion of the <CODE>HTNetInfo</CODE> data structure.
+<H3>Register a Request Callback</H3>
+
+Register a call back function that is to be called on every
+termination of a request. Several call back functions can be
+registered in which case all of them are called in the reverse order
+of which they were registered (last one first). The status signifies
+which call back function to call depending of the result of the
+request. This can be
+
+<DL>
+<DT>HT_ERROR
+<DD>An error occured
+<DT>HT_LOADED
+<DD>The document was loaded
+<DT>HT_NO_DATA
+<DD>OK, but no data
+<DT>HT_RETRY
+<DD>Retry request after at a later time
+<DT>HT_ALL
+<DD>All of above
+</DL>
 
 <PRE>
-extern BOOL HTThread_new	PARAMS((HTNetInfo * new_net));
-extern BOOL HTThread_clear	PARAMS((HTNetInfo * old_net));
+typedef int HTNetCallBack (HTRequest * request, int status);
+
+extern BOOL HTNet_register (HTNetCallBack *cbf, int status);
 </PRE>
 
-<H2>Kill a Thread</H2>
+<H3>Unregister</H3>
 
-This function forces a call to the load function and resets the state
-machine. It also removes the thread from the list of active threads.
+Unregister call back functions
 
 <PRE>
-extern BOOL HTThread_kill	PARAMS((HTNetInfo * net));
+extern BOOL HTNet_unregister (HTNetCallBack *cbf);
+extern BOOL HTNet_unregisterAll (void);
 </PRE>
 
-<H2>Is Thread Alive?</H2>
+<H2>Call the Call Back Functions</H2>
 
-Checks whether a thread is still registered and if so returns the
-corresponding <A HREF="HTAccess.html#z1">HTRequest structure</A>, else
-return NULL.
+Call all the call back functions registered in the list IF not the
+status is HT_IGNORE. The callback functions are called in the reverse
+order of which they were registered (last one first). Returns YES if
+OK, else NO.
 
 <PRE>
-extern HTRequest *HTThread_isAlive	PARAMS((HTNetInfo * net));
+extern BOOL HTNet_callback (HTRequest * me, int status);
 </PRE>
 
-<H2>Get Copy of Registered Bit-arrays</H2>
+<H2>Request Queue</H2>
 
-This function returns a copy of the current bit-arrays contaning the
-active sockets registered for <CODE>READ</CODE> and
-<CODE>WRITE</CODE>.
+The request queue ensures that no more than a fixed number of TCP
+connections are open at the same time. If more requests are handed to
+the Library, they are put into the pending queue and initiated when
+sockets become free.
+
+<H3>Number of Simultanous open TCP connections</H3>
+
+Set the max number of simultanous sockets. The default value is
+HT_MAX_SOCKETS which is 6.
 
 <PRE>
-extern int HTThreadGetFDInfo 	PARAMS((fd_set * read, fd_set * write));
+extern BOOL HTNet_setMaxSocket (int newmax);
+extern int  HTNet_maxSocket (void);
 </PRE>
 
-<H2>Registration of the State of a Socket</H2>
+<H2>List Active Queue</H2>
 
-When a new request is initiated from the client and a socket has been
-created, is gets registered in a linked list of <A
-HREF="HTAccess.html#HTNetInfo">HTNetInfo objects</A>. The object stays
-in this list until the request has ended (either having an error or
-success as result). Every time the program execution gets to a point
-where a socket operation would normally block the program, this
-function is called in order to register the socket as waiting for the
-actual operation.
+Returns the list of active requests that are currently having an open
+connection. Returns list of HTNet objects or NULL if error
 
 <PRE>
-typedef enum _HTThreadAction {
-    THD_SET_WRITE=0,
-    THD_CLR_WRITE,
-    THD_SET_READ,
-    THD_CLR_READ,
-    THD_SET_INTR,
-    THD_CLR_INTR,
-    THD_CLOSE,
-    THD_SET_CONNECT,
-    THD_CLR_CONNECT
-} HTThreadAction;
+extern HTList *HTNet_activeQueue (void);
+</PRE>
+
+
+<H2>List Pending Queue</H2>
+
+Returns the list of pending requests that are waiting to become
+active. Returns list of HTNet objects or NULL if error
+
+<PRE>
+extern HTList *HTNet_pendingQueue (void);
+</PRE>
+
+<H2>HTNet Object Creation and deletion methods</H2>
+
+These methods are used from within the Request Manager and are not
+normally to be used outside the Library kernel.
+
+<H3>Create an Object</H3>
+
+Create a new HTNet object as a new request to be handled. If we have
+more than HTMaxActive connections already then put this into the
+pending queue, else start the request by calling the call back
+function registered with this access method.  Returns YES if OK, else
+NO
+
+<PRE>
+extern BOOL HTNet_new (HTRequest * request, HTPriority priority);
+</PRE>
+
+<H3>Delete an Object</H3>
+
+Deletes the HTNet object from the list of active requests and calls
+any registered call back functions IF not the status is HT_IGNORE.
+This is used if we have internal requests that the app doesn't know
+about. We also see if we have pending requests that can be started up
+now when we have a socket free. The callback functions are called in
+the reverse order of which they were registered (last one first)
+
+<PRE>
+extern BOOL HTNet_delete (HTNet * me, int status);
+</PRE>
+
+<H3>Delete ALL HTNet Objects</H3>
+
+Deletes all HTNet object that might either be active or pending We DO
+NOT call the call back functions and we don't care about open socket
+descriptors. A crude way of saying goodbye!
+
+<PRE>
+extern BOOL HTNet_deleteAll (void);
+</PRE>
+
+<H2>Killing requests</H2>
+
+For those who can't help it ;-)
+
+<H3>Kill a Request</H3>
+
+Kill the request by calling the call back function with a request for
+closing the connection. Does not remove the object. This is done by
+HTNet_delete() function which is called by the load routine.  Returns
+OK if success, NO on error
+
+<PRE>
+extern BOOL HTNet_kill (HTNet * me);
+</PRE>
+
+<H3>Kill ALL requests</H3>
+
+Kills all registered (active+pending) requests by calling the call
+back function with a request for closing the connection. We do not
+remove the HTNet object as it is done by HTNet_delete().  Returns OK
+if success, NO on error
+
+<PRE>
+extern BOOL HTNet_killAll (void);
 </PRE>
 
 <PRE>
-extern void HTThreadState		PARAMS((SOCKFD sockfd,
-					HTThreadAction action));
-extern void HTThreadStateByRequest	PARAMS((HTRequest * request,
-					HTThreadAction action));
+#endif /* HTNET_H */
 </PRE>
 
-This function makes life easier if you want to mark all sockets as
-interrupted.
-
-<PRE>
-extern BOOL HTThreadMarkIntrAll	PARAMS((CONST fd_set * fd_user));
-</PRE>
-
-<H2>Is a Thread Interrupted?</H2>
-
-This function returns YES if the socket is registered as interrupted
-
-<PRE>
-extern BOOL HTThreadIntr	PARAMS((SOCKFD sockfd));
-</PRE>
-
-<H2>Any Threads Registered?</H2>
-
-This function returns YES if any HTTP sockets are still registered in the
-set of active sockets. Otherwise it returns NO.
-
-<PRE>
-extern BOOL HTThreadActive	NOPARAMS;
-</PRE>
-
-<H2>Select an Active Thread</H2>
-
-When the <CODE>select</CODE> function has returned a set of pending
-sockets this functions selects one of them and finds the
-correseponding request structure.
-
-<PRE>
-extern HTRequest *HTThread_getRequest	PARAMS((CONST fd_set * fd_read,
-						CONST fd_set * fd_write));
-
-#endif
-</PRE>
-
-End of HTThread module
+End of declaration module
 </BODY>
 </HTML>
 

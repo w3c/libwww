@@ -81,7 +81,7 @@ PRIVATE BOOL HTProxy_set ARGS3(HTList *, list, CONST char *, access,
 		break;				       /* We already have it */
 	}
 	if (pres) {
-	    if (TRACE)
+	    if (PROT_TRACE)
 		fprintf(TDEST, "HTProxy..... replacing for `%s\' access %s\n",
 			me->url, me->access);
 	    FREE(pres->access);
@@ -89,7 +89,7 @@ PRIVATE BOOL HTProxy_set ARGS3(HTList *, list, CONST char *, access,
 	    HTList_removeObject(list, (void *) pres);
 	    free(pres);
 	}
-	if (TRACE)
+	if (PROT_TRACE)
 	    fprintf(TDEST, "HTProxy..... adding for `%s\' access %s\n",
 		    me->url, me->access);
 	HTList_addObject(list, (void *) me);
@@ -203,7 +203,7 @@ PRIVATE BOOL HTHostList_set ARGS4(HTList *, list, CONST char *, host,
 	while ((*ptr = TOLOWER(*ptr))) ptr++;
     }
     me->port = port;					      /* Port number */
-    if (TRACE)
+    if (PROT_TRACE)
 	fprintf(TDEST, "HTHostList.. adding `%s\' to list\n", me->host);
     HTList_addObject(list, (void *) me);
     return YES;
@@ -301,7 +301,7 @@ PUBLIC char * HTProxy_getProxy ARGS1(CONST char *, url)
 			char *hp = host+strlen(host);
 			while (np>=pres->host && hp>=host && (*np--==*hp--));
 			if (np==pres->host-1 && (hp==host-1 || *hp=='.')) {
-			    if (TRACE)
+			    if (PROT_TRACE)
 				fprintf(TDEST, "GetProxy.... No proxy directive found: `%s\'\n", pres->host);
 			    FREE(access);
 			    return NULL;

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Global Include File for W3C Reference Library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 27-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  5-Sep-1995 -->
 <NEXTID N="z11">
 </HEAD>
 <BODY>
@@ -28,36 +28,40 @@ one.
 #ifdef __cplusplus
 extern "C" { 
 #endif
+</PRE>
 
-/* System dependencies */
+<H2>System dependencies</H2>
+
+<PRE>
 #include "tcp.h"
+</PRE>
+
+<H2>General Utilities</H2>
+
+<PRE>
 #include "HTUtils.h"			/* Macros and other stuff */
+#include "HTString.h"			/* Generic string utilities */
+#include "HTList.h"			/* Linked lists */
+#include "HTChunk.h"			/* Dynamic arrays */
+#include "HTAtom.h"			/* Pointer referenced strings */
+#include "HTParse.h"			/* Parse URLs */
+</PRE>
 
-/* General Utilities */
-#include "HTString.h"
-#include "HTList.h"			/* Memory management for lists  */
-#include "HTChunk.h"			/* Memory management for chunks */
-#include "HTSocket.h"			/* Network read and write */
+<H2>Core Modules</H2>
 
-/* Initialization routines */
-#include "HTInit.h"			/* Initialization functions */
-#include "HTProxy.h"
-
+<PRE>
 /* Format Management, and Access functions for loading a URL etc. */
 #include "HTMethod.h"			/* Request methods like PUT, GET */
 #include "HTFormat.h"			/* Stream Stack and content neg. */
-#include "HTAccess.h"			/* Document access network code */
-
-/* URLs and Anchors - Internal representation of URLs */
+#include "HTReq.h"			/* public part of request manager */
 #include "HTAnchor.h"			/* Anchor class Definition */
-#include "HTParse.h"			/* Parse URLs */
+#include "HTEvntrg.h"
+#include "HTError.h"
+#include "HTProt.h"
 
 /* Access Authentication */
 #include "HTAAUtil.h"
 #include "HTUU.h"
-
-/* History Management */
-#include "HTHist.h"			/* Navigational aids */
 
 /* Cache manager */
 #include "HTCache.h"
@@ -74,22 +78,24 @@ extern "C" {
 #include "HTDirBrw.h"
 #include "HTDescpt.h"
 
-/* Local file access and logging */
-#include "HTBind.h"			/* Binding to file suffixes */
+/* Application specific modules */
+#include "HTInit.h"			/* Initialization functions */
 #include "HTLog.h"
+#include "HTAccess.h"			/* Document access network code */
+#include "HTHist.h"			/* Navigational aids */
 
 /* For TCP relevant information (mail address etc.) */
 #include "HTTCP.h"
 
 /* Management of Rule Files for configuring the application */
 #include "HTRules.h"
+#include "HTProxy.h"
+#include "HTBind.h"			/* Binding to file suffixes */
 
 /* Event loop for multithreaded functionality */
-#include "HTEvntrg.h"
 
 /* Messages and User prompts */
 #include "HTAlert.h"
-#include "HTError.h"
 
 #ifdef __cplusplus
 } /* end extern C definitions */

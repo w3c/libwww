@@ -22,6 +22,7 @@
 #include "HTParse.h"
 #include "HTFormat.h"
 #include "HTAlert.h"
+#include "HTReqMan.h"
 #include "HTSocket.h"
 #include "HTError.h"
 #include "HTNews.h"				/* Implemented here */
@@ -964,7 +965,7 @@ PRIVATE void read_group ARGS3(
 /*		Load by name					HTLoadNews
 **		============
 */
-PUBLIC int HTLoadNews ARGS1(HTRequest *,		request)
+PUBLIC int HTLoadNews ARGS3(SOCKET, soc, HTRequest *, request, SockOps, ops)
 {
     char * arg = HTAnchor_physical(request->anchor);
     char command[257];			/* The whole command */
@@ -977,10 +978,22 @@ PUBLIC int HTLoadNews ARGS1(HTRequest *,		request)
 
     diagnostic = (request->output_format == WWW_SOURCE);	/* set global flag */
     
-    if (TRACE) fprintf(TDEST, "HTNews: Looking for %s\n", arg);
-    
+    if (ops == FD_NONE) {
+	if (PROT_TRACE) fprintf(TDEST, "News........ Looking for `%s\'\n",arg);
+#if 0
+	if ((news = (news_info *) calloc(1, sizeof(news_info))) == NULL)
+	    outofmem(__FILE__, "HTLoadNews");
+	news->state = NEWS_BEGIN;
+	net->context = news;
+#endif
+    } if (ops == FD_CLOSE) {				      /* Interrupted */
+	HTNet_delete(request->net, HT_INTERRUPTED);
+	return HT_OK;
+    } else
+	HTNet_delete(request->net, HT_ERROR);
+
     if (!initialized) initialized = initialize();
-    if (!initialized) return -1;	/* FAIL */
+    if (!initialized) return HT_ERROR;	/* FAIL */
     
     {
         char * p1=arg;
@@ -1036,7 +1049,7 @@ PUBLIC int HTLoadNews ARGS1(HTRequest *,		request)
 	}
     } /* scope of p1 */
     
-    if (!*arg) return NO;			/* Ignore if no name */
+    if (!*arg) return HT_ERROR;			/* Ignore if no name */
 
     
 /*	Make a hypertext object with an anchor list.
@@ -1074,7 +1087,7 @@ PUBLIC int HTLoadNews ARGS1(HTRequest *,		request)
 			       (void *) unescaped,
 			       (int) strlen(unescaped), "HTLoadNews");
 		    free(unescaped);
-		    return -1;
+		    return HT_OK;
 		}
 	    } else {
 		if (TRACE) fprintf(TDEST, "HTNews: Connected to news host %s.\n",
@@ -1091,7 +1104,7 @@ PUBLIC int HTLoadNews ARGS1(HTRequest *,		request)
 		    HTErrorAdd(request, ERR_FATAL, NO, HTERR_INTERNAL,
 			       (void *) HTNewsHost,
 			       (int) strlen(HTNewsHost), "HTLoadNews");
-		    return -1;
+		    return HT_OK;
 		}
 #ifdef OLD_CODE
 			char message[BIG];
@@ -1129,7 +1142,7 @@ PUBLIC int HTLoadNews ARGS1(HTRequest *,		request)
         else read_article();
 
 	(*targetClass._free)(target);
-	return HT_LOADED;
+	return HT_OK;
 	
     } /* Retry loop */
     
@@ -1140,9 +1153,5 @@ PUBLIC int HTLoadNews ARGS1(HTRequest *,		request)
 	    NULL,NULL,NULL, arg);No -- message earlier wil have covered it */
 
     (*targetClass._free)(target);	/* AL May 2, 1994 */
-    return HT_LOADED;
+    return HT_OK;
 }
-
-GLOBALDEF PUBLIC HTProtocol HTNews = {
-    "news", SOC_BLOCK, HTLoadNews, NULL, NULL
-};

@@ -30,7 +30,9 @@
 /* Protocol Modules */
 #include "HTTP.h"
 #include "HTFile.h"
+#if 0
 #include "HTFTP.h"
+#endif
 #include "HTGopher.h"
 #include "HTTelnet.h"
 #include "HTNews.h"
@@ -137,22 +139,24 @@ PUBLIC void HTFormatInit ARGS1(HTList *, c)
 **	force in at link time.
 */
 #ifndef HT_NO_INIT
-PUBLIC void HTAccessInit NOARGS
+PUBLIC void HTAccessInit (void)
 {
 #ifndef DECNET
-    HTProtocol_add(&HTFTP);
-    HTProtocol_add(&HTNews);
-    HTProtocol_add(&HTGopher);
+#if 0
+    HTProtocol_add("ftp", YES, HTLoadFTP);
+#endif
+    HTProtocol_add("nntp", YES, HTLoadNews);
+    HTProtocol_add("gopher", NO, HTLoadGopher);
 #ifdef HT_DIRECT_WAIS
-    HTProtocol_add(&HTWAIS);
+    HTProtocol_add("wais", YES, HTLoadWAIS);
 #endif
 #endif /* DECNET */
 
-    HTProtocol_add(&HTTP);
-    HTProtocol_add(&HTFile);
-    HTProtocol_add(&HTTelnet);
-    HTProtocol_add(&HTTn3270);
-    HTProtocol_add(&HTRlogin);
+    HTProtocol_add("http", NO, HTLoadHTTP);
+    HTProtocol_add("file", NO, HTLoadFile);
+    HTProtocol_add("telnet", YES, HTLoadTelnet);
+    HTProtocol_add("tn3270", YES, HTLoadTelnet);
+    HTProtocol_add("rlogin", YES, HTLoadTelnet);
 }
 #endif /* !HT_NO_INIT */
 

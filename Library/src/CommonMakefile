@@ -67,27 +67,28 @@ CERNLIBBIN = $(WWW)/bin
 
 COMMON = $(LOB)/HTParse.o $(LOB)/HTAccess.o $(LOB)/HTProxy.o \
 	$(LOB)/HTMethod.o $(LOB)/HTProt.o $(LOB)/HTCache.o \
-	$(LOB)/HTFile.o	$(LOB)/HTBTree.o $(LOB)/HTFTP.o $(LOB)/HTTCP.o \
+	$(LOB)/HTNet.o $(LOB)/HTReqMan.o $(LOB)/HTBind.o \
+	$(LOB)/HTBTree.o $(LOB)/HTTCP.o $(LOB)/HTNetTxt.o \
 	$(LOB)/SGML.o $(LOB)/HTML.o $(LOB)/HTMLPDTD.o $(LOB)/HTChunk.o \
 	$(LOB)/HTPlain.o $(LOB)/HTWriter.o $(LOB)/HTFWrite.o \
 	$(LOB)/HTMLGen.o $(LOB)/HTTee.o $(LOB)/HTXParse.o $(LOB)/HTEPtoCl.o \
 	$(LOB)/HTAtom.o $(LOB)/HTAnchor.o $(LOB)/HTStyle.o \
 	$(LOB)/HTList.o $(LOB)/HTString.o $(LOB)/HTAlert.o \
 	$(LOB)/HTRules.o $(LOB)/HTFormat.o $(LOB)/HTInit.o $(LOB)/HTMIME.o \
-	$(LOB)/HTHist.o $(LOB)/HTNews.o $(LOB)/HTGopher.o \
-	$(LOB)/HTTelnet.o $(LOB)/HTWSRC.o $(HTWAIS) $(LOB)/HTSocket.o \
-	$(LOB)/HTAAUtil.o $(LOB)/HTAABrow.o $(LOB)/HTAssoc.o \
+	$(LOB)/HTHist.o $(LOB)/HTSocket.o $(LOB)/HTEvntrg.o \
 	$(LOB)/HTUU.o $(LOB)/HTMulti.o $(LOB)/HTTeXGen.o \
-	$(LOB)/HTDirBrw.o $(LOB)/HTDescpt.o $(LOB)/HTGuess.o \
+	$(LOB)/HTAAUtil.o $(LOB)/HTAABrow.o $(LOB)/HTAssoc.o \
 	$(LOB)/HTIcons.o $(LOB)/HTError.o $(LOB)/HTLog.o \
-	$(LOB)/HTTP.o $(LOB)/HTTPReq.o $(LOB)/HTThread.o $(LOB)/HTEvntrg.o \
-	$(LOB)/HTEscape.o $(LOB)/HTNetTxt.o $(LOB)/HTBind.o
+	$(LOB)/HTEscape.o $(LOB)/HTDescpt.o $(LOB)/HTGuess.o \
+	$(LOB)/HTTelnet.o $(LOB)/HTWSRC.o $(HTWAIS) $(LOB)/HTGopher.o \
+	$(LOB)/HTTP.o $(LOB)/HTTPReq.o $(LOB)/HTFile.o $(LOB)/HTNews.o \
+	$(LOB)/HTDirBrw.o $(LOB)/HTFTP.o
 
-
-CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTProxy.c $(CMN)HTFile.c \
+CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTProxy.c \
 	$(CMN)HTMethod.c $(CMN)HTProt.c $(CMN)HTCache.c \
-        $(CMN)HTBTree.c $(CMN)HTMulti.c \
-	$(CMN)HTFTP.c   $(CMN)HTTCP.c     $(CMN)SGML.c $(CMN)HTML.c	\
+	$(CMN)HTReqMan.c \
+        $(CMN)HTFile.c $(CMN)HTBTree.c $(CMN)HTMulti.c \
+	$(CMN)HTFTP.c $(CMN)HTTCP.c     $(CMN)SGML.c $(CMN)HTML.c \
 	$(CMN)HTMLPDTD.c \
 	$(CMN)HTPlain.c	$(CMN)HTWriter.c  $(CMN)HTFWrite.c \
         $(CMN)HTMLGen.c	$(CMN)HTTee.c $(CMN)HTXParse.c $(CMN)HTEPtoCl.c \
@@ -100,11 +101,12 @@ CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTProxy.c $(CMN)HTFile.c \
 	$(CMN)HTUU.c $(CMN)HTTeXGen.c \
 	$(CMN)HTDirBrw.c $(CMN)HTDescpt.c $(CMN)HTGuess.c \
 	$(CMN)HTIcons.c $(CMN)HTError.c $(CMN)HTLog.c \
-	$(CMN)HTTP.c $(CMN)HTTPReq.c $(CMN)HTThread.c $(CMN)HTEvntrg.c \
+	$(CMN)HTTP.c $(CMN)HTTPReq.c $(CMN)HTNet.c $(CMN)HTEvntrg.c \
 	$(CMN)HTEscape.c $(CMN)HTNetTxt.c $(CMN)HTBind.c
 
 HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h  $(CMN)HTProxy.h $(CMN)HTFile.h \
 	$(CMN)HTMethod.h $(CMN)HTProt.h $(CMN)HTCache.h \
+	$(CMN)HTReqMan.h $(CMN)HTReq.h \
 	$(CMN)HTMulti.h $(CMN)HTBTree.h $(CMN)HTFTP.h $(CMN)HTTCP.h \
 	$(CMN)SGML.h $(CMN)HTML.h $(CMN)HTMLPDTD.h $(CMN)HTChunk.h \
 	$(CMN)HTPlain.h		$(CMN)HTWriter.h \
@@ -124,7 +126,7 @@ HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h  $(CMN)HTProxy.h $(CMN)HTFile.h \
 	$(CMN)HTUU.h $(CMN)HTTeXGen.h \
 	$(CMN)HTDirBrw.h $(CMN)HTDescpt.h $(CMN)HTGuess.h \
 	$(CMN)HTIcons.h $(CMN)HTError.h $(CMN)HTLog.h \
-	$(CMN)HTTP.h $(CMN)HTTPReq.h $(CMN)HTThread.h $(CMN)HTEvntrg.h \
+	$(CMN)HTTP.h $(CMN)HTTPReq.h $(CMN)HTNet.h $(CMN)HTEvntrg.h \
 	$(CMN)HTEscape.h $(CMN)HTNetTxt.h $(CMN)HTBind.h $(CMN)WWWLib.h
 
 SOURCES = $(CFILES) $(HFILES) \
@@ -419,6 +421,9 @@ $(LOB)/HTFTP.o : $(OE) $(CMN)HTFTP.c $(CMN)HTUtils.h
 $(LOB)/HTAccess.o : $(OE)  $(CMN)HTAccess.c $(CMN)HTUtils.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTAccess.c
 
+$(LOB)/HTReqMan.o : $(OE)  $(CMN)HTReqMan.c $(CMN)HTReqMan.h $(CMN)HTReq.h
+	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTReqMan.c
+
 $(LOB)/HTProt.o : $(OE)  $(CMN)HTProt.c $(CMN)HTUtils.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTProt.c
 
@@ -448,8 +453,8 @@ $(LOB)/HTTP.o : $(OE) $(CMN)HTTP.c $(CMN)HTTP.h
 $(LOB)/HTTPReq.o : $(OE) $(CMN)HTTPReq.c $(CMN)HTTPReq.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTTPReq.c
 
-$(LOB)/HTThread.o : $(OE) $(CMN)HTThread.c $(CMN)HTThread.h
-	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTThread.c
+$(LOB)/HTNet.o : $(OE) $(CMN)HTNet.c $(CMN)HTNet.h
+	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTNet.c
 
 $(LOB)/HTEvntrg.o : $(OE) $(CMN)HTEvntrg.c $(CMN)HTEvntrg.h
 	$(CC) -c -o $@ $(CFLAGS2) $(CMN)HTEvntrg.c

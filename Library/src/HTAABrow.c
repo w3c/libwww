@@ -60,7 +60,7 @@
 #include "HTAssoc.h"		/* Assoc list			*/
 #include "HTAABrow.h"		/* Implemented here		*/
 #include "HTUU.h"		/* Uuencoding and uudecoding	*/
-#include "HTAccess.h"		/* HTRequest structure		*/
+#include "HTReqMan.h"
 
 
 /*

@@ -17,6 +17,7 @@
 #include "tcp.h"
 #include "HTUtils.h"
 #include "HTString.h"
+#include "HTReqMan.h"
 #include "HTTCP.h"
 #include "HTError.h"					 /* Implemented here */
 

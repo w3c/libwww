@@ -1,5 +1,5 @@
-/*								     HTThread.c
-**	MULTIPLE THREAD SOCKET MANAGEMENT
+/*								     HTNet.c
+**	ASYNCRONOUS SOCKET MANAGEMENT
 **
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
@@ -18,71 +18,406 @@
 
 /* Library include files */
 #include "HTUtils.h"
-#include "HTAccess.h"
 #include "HTProt.h"
 #include "HTError.h"
-#include "HTThread.h"					 /* Implemented here */
+#include "HTReqMan.h"
 #include "HTEvntrg.h"
+#include "HTStream.h"
+#include "HTNet.h"					 /* Implemented here */
 
 #ifdef WIN32
 #include <io.h>
 #endif
 
-PRIVATE HTList *HTThreads = NULL;      	 /* List of the HTNetInfo structures */
-PRIVATE fd_set nullSet ;
-PRIVATE fd_set HTfd_intr;
-PRIVATE fd_set HTfd_libs ;
-PRIVATE SOCKET libMaxSock = 0 ;
+#ifndef HT_MAX_SOCKETS
+#define HT_MAX_SOCKETS	6
+#endif
+
+typedef struct _CBFInfo {
+    HTNetCallBack *	cbf;
+    int 		status;	     /* Status associated with this callback */
+} CBFInfo;
+
+struct _HTStream {
+    CONST HTStreamClass *	isa;
+    /* ... */
+};
+
+PRIVATE int 	HTMaxActive = HT_MAX_SOCKETS;  	      /* Max active requests */
+PRIVATE HTList *HTNetActive = NULL;               /* List of active requests */
+PRIVATE HTList *HTNetPending = NULL;		 /* List of pending requests */
+PRIVATE HTList *HTNetCBF = NULL;	      /* List of call back functions */
 
 /* ------------------------------------------------------------------------- */
 
-/*								   HTThreadInit
-**
-**	Initiates the thread socket registers. It is very important that
-**	this function is called. It is currently done inside HTAccess in the
-**	HTAccessInit function.
+/*
+**	Set the max number of simultanous sockets. Default is HT_MAX_SOCKETS
 */
-PUBLIC BOOL HTThreadInit NOARGS
+PUBLIC BOOL HTNet_setMaxSocket (int newmax)
 {
-    static BOOL done=NO;
+    if (newmax > 0) {
+	HTMaxActive = newmax;
+	return YES;
+    }
+    return NO;
+}
 
-    if (done) {
+PUBLIC int HTNet_maxSocket (void)
+{
+    return HTMaxActive;
+}
+
+/* ------------------------------------------------------------------------- */
+/*			  Termination Call Back Functions		     */
+/* ------------------------------------------------------------------------- */
+
+/*	HTNet_Register
+**	--------------
+**	Register a call back function that is to be called on every
+**	termination of a request. Several call back functions can be registered
+**	in which case all of them are called in the order of which they
+**	were registered.
+**
+**	The status signifies which call back function to call depending of the 
+**	result of the request. This can be
+**
+**		HT_ERROR	An error occured
+**		HT_LOADED	The document was loaded
+**		HT_NO_DATA	OK, but no data
+**		HT_RETRY	Retry request after at a later time
+**		HT_ALL		All of above
+*/
+PUBLIC BOOL HTNet_register (HTNetCallBack *cbf, int status)
+{
+    if (THD_TRACE) 
+	fprintf(TDEST, "Net register HTNetCallBack %p\n", (void *) cbf);
+    if (cbf) {
+	CBFInfo *cbfinfo = (CBFInfo *) calloc(1, sizeof(CBFInfo));
+	if (!cbfinfo) outofmem(__FILE__, "HTNet_register");
+	cbfinfo->cbf = cbf;
+	cbfinfo->status = status;
+	if (!HTNetCBF) HTNetCBF = HTList_new();
+	return HTList_addObject(HTNetCBF, (void *) cbfinfo);
+    }
+    return NO;
+}
+
+/*	HTNet_unregister
+**	--------------
+**	Unregister a call back function that is to be called on every
+**	termination of a request.
+*/
+PUBLIC BOOL HTNet_unregister (HTNetCallBack *cbf)
+{
+    if (THD_TRACE) 
+	fprintf(TDEST, "Net unreg.. HTNetCallBack %p\n", (void *) cbf);
+    if (HTNetCBF && cbf) {
+	HTList *cur = HTNetCBF;
+	CBFInfo *pres;
+	while ((pres = (CBFInfo *) HTList_nextObject(cur))) {
+	    if (pres->cbf == cbf) {
+		HTList_removeObject(HTNetCBF, (void *) pres);
+		free(pres);
+		return YES;
+	    }
+	}
+    }
+    return NO;
+}
+
+/*	HTNet_unregisterAll
+**	-------------------
+**	Unregisters all call back functions
+*/
+PUBLIC BOOL HTNet_unregisterAll (void)
+{
+    if (THD_TRACE) 
+	fprintf(TDEST, "Net unreg.. All callback functions\n");
+    if (HTNetCBF) {
+	HTList *cur = HTNetCBF;
+	CBFInfo *pres;
+	while ((pres = (CBFInfo *) HTList_nextObject(cur))) {
+	    HTList_removeObject(HTNetCBF, (void *) pres);
+	    free(pres);
+	}
+	HTList_delete(HTNetCBF);
+	HTNetCBF = NULL;
+	return YES;
+    }
+    return NO;
+}
+
+/*	HTNet_callback
+**	--------------
+**	Call all the call back functions registered in the list IF not the 
+**	status is HT_IGNORE.
+**	The callback functions are called in the order of which they
+**	were registered. At the moment an application callback function is
+**	called, it can free the request object - it is no longer used by the
+**	Library.
+**	Returns YES if OK, else NO.
+*/
+PUBLIC BOOL HTNet_callback (HTRequest * request, int status)
+{
+    if (HTNetCBF && request && status != HT_IGNORE) {	
+	int cnt = HTList_count(HTNetCBF);
+	while (--cnt >= 0) {
+	    CBFInfo *pres = HTList_objectAt(HTNetCBF, cnt);
+	    if (pres && (pres->status == status || pres->status == HT_ALL)) {
+		if (THD_TRACE)
+		    fprintf(TDEST, "Net callback %p (request=%p, status=%d)\n",
+			    (void *) pres->cbf, request, status);
+		(*(pres->cbf))(request, status);
+	    }
+	}
+	return YES;
+    }
+    return NO;
+}
+
+/* ------------------------------------------------------------------------- */
+/*			  	Request Queue				     */
+/* ------------------------------------------------------------------------- */
+
+/*	HTNet_activeQueue
+**	-----------------
+**	Returns the list of active requests that are currently having an open
+**	connection.
+**	Returns list of HTNet objects or NULL if error
+*/
+PUBLIC HTList *HTNet_activeQueue (void)
+{
+    return HTNetActive;
+}
+
+/*	HTNet_pendingQueue
+**	------------------
+**	Returns the list of pending requests that are waiting to become active
+**	Returns list of HTNet objects or NULL if error
+*/
+PUBLIC HTList *HTNet_pendingQueue (void)
+{
+    return HTNetPending;
+}
+
+/* ------------------------------------------------------------------------- */
+/*			  Creation and deletion methods  		     */
+/* ------------------------------------------------------------------------- */
+
+/*							     	   HTNet_new
+**
+**	Create a new HTNet object as a new request to be handled. If we have
+**	more than HTMaxActive connections already then put this into the
+**	pending queue, else start the request by calling the call back
+**	function registered with this access method. 
+**	Returns YES if OK, else NO
+*/
+PUBLIC BOOL HTNet_new (HTRequest * request, HTPriority priority)
+{
+    HTNet *me;
+    HTProtocol *prot;
+    if (!request) return HT_ERROR;
+    if (!HTNetActive) HTNetActive = HTList_new();
+    prot = HTAnchor_protocol(request->anchor);
+
+    /* Create new net object and bind it to the request object */
+    if ((me = (HTNet *) calloc(1, sizeof(HTNet))) == NULL)
+	outofmem(__FILE__, "HTNet_new");
+    me->request = request;
+    request->net = me;
+    me->preemtive = (HTProtocol_preemtive(prot) || request->preemtive);
+    me->priority = priority;
+    me->sockfd = INVSOC;
+    if (!(me->cbf = HTProtocol_callback(prot))) {
 	if (THD_TRACE)
-	    fprintf(TDEST, "ThreadInit.. Already done\n");
+	    fprintf(TDEST, "HTNet_new... NO CALL BACK FUNCTION!\n");
+	free(me);
 	return NO;
     }
-    done = YES;
-    FD_ZERO( &HTfd_intr) ;
+
+    /*
+    ** Check if we can start the request, else put it into pending queue
+    ** If so then call the call back function associated with the anchor.
+    ** We use the INVSOC as we don't have a valid socket yet!
+    */
+    if (HTList_count(HTNetActive) < HTMaxActive) {
+	HTList_addObject(HTNetActive, (void *) me);
+	me->request->retrys++;
+	if (THD_TRACE)
+	    fprintf(TDEST, "HTNet_new... starting request %p (retry=%d)\n",
+		    me->request, me->request->retrys);
+	(*(me->cbf))(INVSOC, me->request, FD_NONE);
+    } else {
+	if (!HTNetPending) HTNetPending = HTList_new();
+	if (THD_TRACE)
+	    fprintf(TDEST, "HTNet_new... request %p registered as pending\n",
+		    me->request);
+	HTList_addObject(HTNetPending, (void *) me);
+    }
     return YES;
 }
 
-
-/*							      HTThreadGetFDInfo
-**
-**	Returns the maximum bit width and the read and write bit array.
-** 	N.B. Only used by old HTEvent.c module
+/*	delete_object
+**	-------------
+**	Deletes an HTNet object
 */
-
-PUBLIC int HTThreadGetFDInfo ARGS2(fd_set *, read, fd_set *, write)
+PRIVATE BOOL delete_object (HTNet *net, int status)
 {
-    *read = nullSet;
-    *write = nullSet;
-    return libMaxSock;
+    if (THD_TRACE)
+	fprintf(TDEST, "HTNet_delete Remove net object %p\n", net);
+    if (net) {
+	int status = 0;
+
+	/* Free stream with data FROM network to application */
+	if (net->target) {
+	    if (status == HT_INTERRUPTED)
+		(*net->target->isa->abort)(net->target, NULL);
+	    else
+		(*net->target->isa->_free)(net->target);
+	}
+
+	/* Close socket */
+	if (net->sockfd != INVSOC) {
+	    if ((status = NETCLOSE(net->sockfd)) < 0)
+		HTErrorSysAdd(net->request, ERR_FATAL,socerrno,NO,"NETCLOSE");
+	    if (THD_TRACE)
+		fprintf(TDEST, "HTNet_delete closing socket %d\n",net->sockfd);
+	    HTEvent_UnRegister(net->sockfd, (SockOps) FD_ALL);
+	}
+	if (net->isoc)
+	    HTInputSocket_free(net->isoc);
+	if (net->request)
+	    net->request->net = NULL;		    /* Break link to request */
+	free(net);
+	return status ? NO : YES;
+    }
+    return NO;
 }
 
-/*							 HTThreadStateByRequest
-**
-**	This function registers a socket as waiting for the action given
-**	(read or write etc.). It uses the request structure to find the socket
+/*	HTNet_delete
+**	------------
+**	Deletes the HTNet object from the list of active requests and calls
+**	any registered call back functions IF not the status is HT_IGNORE.
+**	This is used if we have internal requests that the app doesn't know
+**	about. We also see if we have pending requests that can be started
+**	up now when we have a socket free.
+**	The callback functions are called in the reverse order of which they
+**	were registered (last one first)
 */
-PUBLIC void HTThreadStateByRequest ARGS2(HTRequest *, request,
-					 HTThreadAction, action)
+PUBLIC BOOL HTNet_delete (HTNet * net, int status)
 {
-    if (request && request->net_info && request->net_info->sockfd != INVSOC)
-	HTThreadState(request->net_info->sockfd, action);
+    if (THD_TRACE) 
+	fprintf(TDEST,"HTNetDelete. Net Object and call callback functions\n");
+    if (HTNetActive && net) {
+
+	/* Remove object and call callback functions */
+	HTRequest *request = net->request;
+	HTList_removeObject(HTNetActive, (void *) net);
+ 	delete_object(net, status);
+	HTNet_callback(request, status);
+
+	/* See if we can start a pending request */
+	if (HTList_count(HTNetActive) < HTMaxActive &&
+	    HTList_count(HTNetPending)) {
+	    HTNet *next = (HTNet *) HTList_removeFirstObject(HTNetPending);
+	    if (next) {
+		HTList_addObject(HTNetActive, (void *) next);
+		next->request->retrys++;
+		if (THD_TRACE)
+		    fprintf(TDEST,"HTNet_delete start request %p from queue\n",
+			    next->request);
+		(*(next->cbf))(INVSOC, next->request, FD_NONE);
+	    }
+	}
+	return YES;
+    }
+    return NO;
 }
 
+/*	HTNet_deleteAll
+**	---------------
+**	Deletes all HTNet object that might either be active or pending
+**	We DO NOT call the call back functions and we don't care about open
+**	socket descriptors. A crude way of saying goodbye!
+*/
+PUBLIC BOOL HTNet_deleteAll (void)
+{
+    if (THD_TRACE) 
+	fprintf(TDEST, "HTNetDelete. Removing ALL Net - NO call backs\n"); 
+    if (HTNetPending) {
+	HTList *cur = HTNetPending;
+	HTNet *pres;
+	while ((pres = (HTNet *) HTList_nextObject(cur)))
+	    delete_object(pres, HT_INTERRUPTED);
+	HTList_delete(HTNetPending);
+	HTNetPending = NULL;
+    }
+    if (HTNetActive) {
+	HTList *cur = HTNetActive;
+	HTNet *pres;
+	while ((pres = (HTNet *) HTList_nextObject(cur)))
+	    delete_object(pres, HT_INTERRUPTED);
+	HTList_delete(HTNetActive);
+	HTNetActive = NULL;
+    }
+    return NO;
+}
 
+/* ------------------------------------------------------------------------- */
+/*			        Killing requests  			     */
+/* ------------------------------------------------------------------------- */
+
+/*	HTNet_kill
+**	----------
+**	Kill the request by calling the call back function with a request for 
+**	closing the connection. Does not remove the object. This is done by
+**	HTNet_delete() function which is called by the load routine.
+**	Returns OK if success, NO on error
+*/
+PUBLIC BOOL HTNet_kill (HTNet * me)
+{
+    if (HTNetActive && me) {
+	HTNet *pres;
+	while ((pres = (HTNet *) HTList_lastObject(HTNetActive)) != NULL) {
+	    if (pres == me) {
+		(*(pres->cbf))(INVSOC, pres->request, FD_CLOSE);
+		return YES;
+	    }
+	}
+    }
+    if (THD_TRACE)
+	fprintf(TDEST, "HTNet_kill.. Request %p is not registered\n", me);
+    return NO;
+}
+
+/*	HTNet_killAll
+**	-------------
+**	Kills all registered (active+pending) requests by calling the call
+**	back function with a request for closing the connection. We do not
+**	remove the HTNet object as it is done by HTNet_delete().
+**	Returns OK if success, NO on error
+*/
+PUBLIC BOOL HTNet_killAll (void)
+{
+    HTNet *pres;
+    if (THD_TRACE)
+	fprintf(TDEST, "HTNet_kill.. ALL registered requests!!!\n");
+
+    /* We start off in pending queue so we avoid racing */
+    if (HTNetPending) {
+	while ((pres = (HTNet *) HTList_lastObject(HTNetPending)) != NULL) {
+	    (*(pres->cbf))(INVSOC, pres->request, FD_CLOSE);
+	    HTList_removeObject(HTNetPending, pres);
+	}
+    }
+    if (HTNetActive) {
+	while ((pres = (HTNet *) HTList_lastObject(HTNetActive)) != NULL)
+	    (*(pres->cbf))(INVSOC, pres->request, FD_CLOSE);
+    }
+    return YES;
+}
+
+#if 0
 /*
 **  LibraryCallback - "glue" between 3.0 thread code and new callback functions
 **  map return codes into a simple yes/no model. 
@@ -98,7 +433,7 @@ PRIVATE int LibraryCallback ARGS3(SOCKET, s, HTRequest *, rq, SockOps, f)
 
     if (proto == 0)   	/* Whoa! No protocol! */
     	return -1;
-    status = proto->load( rq ) ;
+    status = proto->callback( s, rq, f) ;
     if (status != HT_WOULD_BLOCK) {   /* completed - good or bad... */
         if (THD_TRACE) 
             fprintf(TDEST, "LibCallBack. Calling Terminate...\n");
@@ -113,7 +448,7 @@ PRIVATE int LibraryCallback ARGS3(SOCKET, s, HTRequest *, rq, SockOps, f)
     return HT_WOULD_BLOCK;
 }
 
-/*								  HTThreadState
+/*								  HTNetState
 **
 **	This function registers a socket as waiting for the action given
 **	(read or write etc.).
@@ -121,16 +456,16 @@ PRIVATE int LibraryCallback ARGS3(SOCKET, s, HTRequest *, rq, SockOps, f)
 **  	Charlie Brooks - we handle the interrupt thread state internally to this module 
 **      setting the interrupt on a socket disables it from read/write.
 */
-PUBLIC void HTThreadState ARGS2(SOCKFD, sockfd, HTThreadAction, action)
+PUBLIC void HTNetState ARGS2(SOCKFD, sockfd, HTNetAction, action)
 {
-    register HTNetInfo * pres ;
-    HTList * cur = HTThreads ;
+    register HTNet * pres ;
+    HTList * cur = HTNetActive ;
     int found = 0 ;
     HTRequest * reqst ;
 
 #ifdef _WIN32
-	if (sockfd <= 2) 
-		sockfd = _get_osfhandle(sockfd) ;
+    if (sockfd <= 2) 
+	sockfd = _get_osfhandle(sockfd);
 #endif
   
     if (THD_TRACE) {
@@ -146,7 +481,7 @@ PUBLIC void HTThreadState ARGS2(SOCKFD, sockfd, HTThreadAction, action)
 	    "CLEAR CONNECT"
 	    };
 	fprintf(TDEST,
-		"Thread...... Registering socket number %d for action %s\n",
+		"Net......... Registering socket number %d for action %s\n",
 		sockfd, *(actionmsg+action));
     }	 /* if */
 
@@ -155,7 +490,7 @@ PUBLIC void HTThreadState ARGS2(SOCKFD, sockfd, HTThreadAction, action)
     	libMaxSock = sockfd ;
 
 
-    while ((pres = (HTNetInfo *)HTList_nextObject(cur) ) != 0) { 
+    while ((pres = (HTNet *)HTList_nextObject(cur) ) != 0) { 
         if (pres->sockfd == sockfd) {
             found = 1 ;
             break ;
@@ -191,7 +526,7 @@ PUBLIC void HTThreadState ARGS2(SOCKFD, sockfd, HTThreadAction, action)
 	FD_CLR( sockfd, &HTfd_libs);
 	FD_CLR( sockfd, &HTfd_intr);
 	libMaxSock = 0 ;
-	while ((pres = (HTNetInfo *)HTList_nextObject(cur) ) != 0) { 
+	while ((pres = (HTNet *)HTList_nextObject(cur) ) != 0) { 
 	    if (pres->sockfd > libMaxSock) {
 		libMaxSock = sockfd ;
 	    }   /* if */
@@ -216,135 +551,10 @@ PUBLIC void HTThreadState ARGS2(SOCKFD, sockfd, HTThreadAction, action)
 
       default:
 	if (THD_TRACE)
-	    fprintf(TDEST, "Thread...... Illegal socket action (%d)\n", (int)action);
+	    fprintf(TDEST, "Net...... Illegal socket action (%d)\n", (int)action);
     }
     return ;
 }
+#endif
 
 
-/*								   HTThreadIntr
-**
-**	This function returns YES or NO to the question
-*/
-PUBLIC BOOL HTThreadIntr ARGS1(SOCKFD, sockfd)
-{
-    return FD_ISSET(sockfd, &HTfd_intr) ? YES : NO;
-}
-
-
-/*							    HTThreadMarkIntrAll
-**
-**	Marks all Library sockets as interrupted. User sockets can not be
-**	interrupted
-*/
-PUBLIC BOOL HTThreadMarkIntrAll ARGS1(CONST fd_set *, fd_user)
-{
-    HTNetInfo *pres;
-    if (HTThreads) {
-	while ((pres = (HTNetInfo *) HTList_lastObject(HTThreads)) != NULL)
-	    HTThread_kill(pres);
-	return YES;
-    }
-    return NO;
-
-}
-
-
-/*								 HTThreadActive
-**
-**	Returns yes as long as a socket other than stdin is registered in 
-**	the total set of sockets.
-*/
-PUBLIC BOOL HTThreadActive NOARGS
-{
-    if (libMaxSock > 0)
-       return YES; 
-    else 
-       return NO;
-}
-
-
-/*							     	   HTThread_new
-**
-**	Register the HTNetInfo structure in a list so that we can find the 
-**	request which corresponds to a socket descriptor
-*/
-PUBLIC BOOL HTThread_new ARGS1(HTNetInfo *, new_net)
-{
-    if (!HTThreads)
-		HTThreads = HTList_new();
-    return HTList_addObject(HTThreads, (void *) new_net);
-}
-
-
-/*							         HTThread_clear
-**
-**	Remove the HTNetInfo from the list of acrive threads.
-*/
-PUBLIC BOOL HTThread_clear ARGS1(HTNetInfo *, old_net)
-{
-    if (HTThreads)
-	return HTList_removeObject(HTThreads, (void *) old_net);
-    return NO;
-}
-
-/*							      HTThread_isAlive
-**
-**	Checks whether a thread is still registered and if so returns the 
-**	corresponding HTRequest structure, else return NULL.
-*/
-PUBLIC HTRequest *HTThread_isAlive ARGS1(HTNetInfo *, net)
-{
-    HTList *cur = HTThreads;
-    HTNetInfo *pres;
-    if (cur && net) {
-	while ((pres = (HTNetInfo *) HTList_nextObject(cur)) != NULL) {
-	    if (pres == net) return pres->request;
-	}
-    }
-    if (THD_TRACE)
-	fprintf(TDEST, "Thread...... Thread is not alive\n");
-    return NULL;
-}
-
-/*							         HTThread_kill
-**
-**	Kill the thread and remove the HTNetInfo from the list of active
-**	threads.
-**	Returns YES on success, NO on error
-**
-**	BUG: We do not take ANSI C file descriptors into account
-*/
-
-PUBLIC BOOL HTThread_kill ARGS1(HTNetInfo *, kill_net)
-{
-    if (HTThreads) {
-	HTList *cur = HTThreads;
-	HTNetInfo *pres;
-
-	/* Find the corresponding HTRequest structure */
-	while ((pres = (HTNetInfo *) HTList_nextObject(cur)) != NULL) {
-	    if (pres == kill_net) break;
-	}
-
-	/*
-	**  Now see if a socket is active (or an ANSI C file descriptor).
-	**  If so then mark the thread as interrupted and call the load
-	**  function.
-	*/
-	if (pres) {
-	    if (kill_net->sockfd != INVSOC) {	  /* @@@ ANSI C FIlE DES @@@ */
-		HTProtocol *prot = (HTProtocol *)
-		    HTAnchor_protocol(kill_net->request->anchor);
-		HTThreadState(kill_net->sockfd, THD_SET_INTR);
-		(*(prot->load))(kill_net->request);
-	    }
-	    return HTThread_clear(kill_net);
-	} else {
-	    if (THD_TRACE)
-		fprintf(TDEST, "Kill Thread. Thread is not registered\n");
-	    return NO;
-	}
-    }
-    return NO;
-}

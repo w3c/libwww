@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Socket I/O Manager</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 14-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  5-Sep-1995 -->
 <NEXTID N="z18">
 </HEAD>
 <BODY>
@@ -28,7 +28,8 @@ W3C Reference Library</A>.
 #ifndef HTSOCKET_H
 #define HTSOCKET_H
 
-#include <A HREF="HTAccess.html">"HTAccess.h"</A>
+#include <A HREF="tcp.html">"tcp.h"</A>
+#include <A HREF="HTReq.html">"HTReq.h"</A>
 #include <A HREF="HTStream.html">"HTStream.h"</A>
 #include <A HREF="HTAnchor.html">"HTAnchor.h"</A>
 </PRE>
@@ -36,9 +37,16 @@ W3C Reference Library</A>.
 <H2>Create an Input Buffer</H2>
 
 This function allocates a input buffer and binds it to the socket
-descriptor given as parameter.
+descriptor given as parameter. The size of the buffer,
+<CODE>INPUT_BUFFER_SIZE</CODE>, is a compromis between speed and
+memory.
 
 <PRE>
+
+#define INPUT_BUFFER_SIZE 8192
+
+typedef struct _HTInputSocket HTInputSocket;
+
 extern HTInputSocket* HTInputSocket_new PARAMS((SOCKFD file_number));
 </PRE>
 

@@ -28,6 +28,7 @@
 #include "HTMethod.h"
 #include "HTSocket.h"
 #include "HTFWrite.h"
+#include "HTReqMan.h"
 #include "HTMIME.h"					 /* Implemented here */
 
 /*		MIME Object
@@ -406,8 +407,15 @@ PRIVATE int parseheader ARGS3(HTStream *, me, HTRequest *, request,
 	    break;
 
 	  case LOCATION:
+#if 0
+	    /*
+	    ** Doesn't work as a redirection header might contain a '='
+	    ** Thanks to mitch@tam.net (Mitch DeShields)
+	    */
 	    if ((value = HTNextField(&ptr)) != NULL)
 		StrAllocCopy(request->redirect, value);
+#endif
+	    StrAllocCopy(request->redirect, ptr);
 	    state = JUNK_LINE;
 	    break;
 
@@ -456,18 +464,18 @@ PRIVATE int parseheader ARGS3(HTStream *, me, HTRequest *, request,
     */
     {
 	char *msg;
-	HTExpiresMode expire_mode = HTAccess_expiresMode(&msg);
+	HTExpiresMode expire_mode = HTCache_expiresMode(&msg);
 	if (expire_mode != HT_EXPIRES_IGNORE) {
 	    time_t cur = time(NULL);
 	    if (anchor->expires>0 && cur>0 && anchor->expires<cur) {
 		if (expire_mode == HT_EXPIRES_NOTIFY)
 		    HTAlert(request, msg);
-		else if (request->reloads < HTAccess_maxReload()-1) {
+		else if (HTRequest_retry(request)) {
 		    if (PROT_TRACE)
 			fprintf(TDEST, "MIMEParser.. Expired - auto reload\n");
 		    if (anchor->cacheHit) {
-			request->RequestMask |= HT_IMS;
-			request->reload = HT_FORCE_RELOAD;
+			HTRequest_addRqHd(request, HT_IMS);
+			HTRequest_setReloadMode(request, HT_FORCE_RELOAD);
 			anchor->cacheHit = NO;	       /* Don't want to loop */
 		    }
 		    return HT_RELOAD;
@@ -504,7 +512,7 @@ PRIVATE int HTMIME_put_block ARGS3(HTStream *, me, CONST char *, b, int, l)
 	if (me->EOLstate == EOL_FCR) {
 	    if (*b == CR) {				    /* End of header */
 		int status = parseheader(me, me->request, me->request->anchor);
-		me->request->net_info->bytes_read = l;
+		me->request->net->bytes_read = l;
 		if (status != HT_OK)
 		    return status;
 	    } else if (*b == LF)			   	     /* CRLF */
@@ -522,7 +530,7 @@ PRIVATE int HTMIME_put_block ARGS3(HTStream *, me, CONST char *, b, int, l)
 		me->EOLstate = EOL_SCR;
 	    else if (*b == LF) {			    /* End of header */
 		int status = parseheader(me, me->request, me->request->anchor);
-		me->request->net_info->bytes_read = l;
+		me->request->net->bytes_read = l;
 		if (status != HT_OK)
 		    return status;
 	    } else if (WHITE(*b)) {	       /* Folding: LF SP or CR LF SP */
@@ -536,7 +544,7 @@ PRIVATE int HTMIME_put_block ARGS3(HTStream *, me, CONST char *, b, int, l)
 	} else if (me->EOLstate == EOL_SCR) {
 	    if (*b==CR || *b==LF) {			    /* End of header */
 		int status = parseheader(me, me->request, me->request->anchor);
-		me->request->net_info->bytes_read = l;
+		me->request->net->bytes_read = l;
 		if (status != HT_OK)
 		    return status;
 	    } else if (WHITE(*b)) {	 /* Folding: LF CR SP or CR LF CR SP */

@@ -13,21 +13,21 @@
 #include "tcp.h"
 #include "HTUtils.h"
 #include "HTString.h"
-#include "HTAccess.h"
+#include "HTReqMan.h"
 #include "HTProt.h"
 #include "HTTCP.h"
 #include "HTStream.h"
 #include "HTAlert.h"
 #include "HTFormat.h"
-#include "HTThread.h"
+#include "HTNet.h"
 #include "HTError.h"
 #include "HTSocket.h"					 /* Implemented here */
 
 struct _HTInputSocket {
-    char	input_buffer[INPUT_BUFFER_SIZE];
-    char *	input_pointer;
-    char *	input_limit;
-    SOCKFD	input_file_number;
+    char	buffer[INPUT_BUFFER_SIZE];
+    char *	write;					/* Last byte written */
+    char *	read;					   /* Last byte read */
+    SOCKFD	sockfd;
 };
 
 struct _HTStream {
@@ -60,8 +60,8 @@ PUBLIC HTInputSocket * HTInputSocket_new ARGS1 (SOCKFD, file_number)
 {
     HTInputSocket *isoc = (HTInputSocket *)calloc(1, sizeof(*isoc));
     if (!isoc) outofmem(__FILE__, "HTInputSocket_new");
-    isoc->input_file_number = file_number;
-    isoc->input_pointer = isoc->input_limit = isoc->input_buffer;
+    isoc->sockfd = file_number;
+    isoc->write = isoc->read = isoc->buffer;
     return isoc;
 }
 
@@ -71,25 +71,19 @@ PUBLIC int HTInputSocket_getCharacter ARGS1(HTInputSocket*, isoc)
 {
     int ch;
     do {
-	if (isoc->input_pointer >= isoc->input_limit) {
-	    int status = NETREAD(isoc->input_file_number,
-				 isoc->input_buffer, INPUT_BUFFER_SIZE);
+	if (isoc->write >= isoc->read) {
+	    int status = NETREAD(isoc->sockfd, isoc->buffer,INPUT_BUFFER_SIZE);
 	    if (status <= 0) {
 		if (status == 0)
 		    return EOF;
-		if (status == HT_INTERRUPTED) {
-		    if (TRACE)
-			fprintf(TDEST, "Get Char.... Interrupted in HTInputSocket_getCharacter\n");
-		    return HT_INTERRUPTED;
-		}
 		if (PROT_TRACE)
 		    fprintf(TDEST, "Read Socket. READ ERROR %d\n", socerrno);
 		return EOF; 	/* -1 is returned by UCX at end of HTTP link */
 	    }
-	    isoc->input_pointer = isoc->input_buffer;
-	    isoc->input_limit = isoc->input_buffer + status;
+	    isoc->write = isoc->buffer;
+	    isoc->read = isoc->buffer + status;
 	}
-	ch = (unsigned char) *isoc->input_pointer++;
+	ch = (unsigned char) *isoc->write++;
     } while (ch == 13);			     /* Ignore ASCII carriage return */
     
     return FROMASCII(ch);
@@ -104,13 +98,13 @@ PUBLIC void HTInputSocket_free ARGS1(HTInputSocket *, me)
 PUBLIC char * HTInputSocket_getBlock ARGS2(HTInputSocket*,	isoc,
 					   int *,		len)
 {
-    if (isoc->input_pointer >= isoc->input_limit) {
-	int status = NETREAD(isoc->input_file_number,
-			     isoc->input_buffer,
+    if (isoc->write >= isoc->read) {
+	int status = NETREAD(isoc->sockfd,
+			     isoc->buffer,
 			     ((*len < INPUT_BUFFER_SIZE) ?
 			      *len : INPUT_BUFFER_SIZE));
 	if (status <= 0) {
-	    isoc->input_limit = isoc->input_buffer;
+	    isoc->read = isoc->buffer;
 	    if (status < 0) {
 		if (PROT_TRACE)
 		    fprintf(TDEST, "Read Socket. READ ERROR %d\n", socerrno);
@@ -120,13 +114,13 @@ PUBLIC char * HTInputSocket_getBlock ARGS2(HTInputSocket*,	isoc,
 	}
 	else {
 	    *len = status;
-	    return isoc->input_buffer;
+	    return isoc->buffer;
 	}
     }
     else {
-	char * ret = isoc->input_pointer;
-	*len = isoc->input_limit - isoc->input_pointer;
-	isoc->input_pointer = isoc->input_limit;
+	char * ret = isoc->write;
+	*len = isoc->read - isoc->write;
+	isoc->write = isoc->read;
 	return ret;
     }
 }
@@ -137,19 +131,19 @@ PRIVATE int fill_in_buffer ARGS1(HTInputSocket *, isoc)
     if (isoc) {
 	int status;
 
-	isoc->input_pointer = isoc->input_buffer;
-	status = NETREAD(isoc->input_file_number,
-			 isoc->input_buffer,
+	isoc->write = isoc->buffer;
+	status = NETREAD(isoc->sockfd,
+			 isoc->buffer,
 			 INPUT_BUFFER_SIZE);
 	if (status <= 0) {
-	    isoc->input_limit = isoc->input_buffer;
+	    isoc->read = isoc->buffer;
 	    if (status < 0) {
 		if (PROT_TRACE)
 		    fprintf(TDEST, "Read Socket. READ ERROR %d\n", socerrno);
 	    }
 	}
 	else 
-	    isoc->input_limit = isoc->input_buffer + status;
+	    isoc->read = isoc->buffer + status;
 	return status;
     }
     return -1;
@@ -190,32 +184,32 @@ PRIVATE char * get_some_line ARGS2(HTInputSocket *,	isoc,
     else {
 	BOOL check_unfold = NO;
 	int prev_cr = 0;
-	char *start = isoc->input_pointer;
-	char *cur = isoc->input_pointer;
+	char *start = isoc->write;
+	char *cur = isoc->write;
 	char * line = NULL;
 
 	for(;;) {
 	    /*
 	    ** Get more if needed to complete line
 	    */
-	    if (cur >= isoc->input_limit) { /* Need more data */
+	    if (cur >= isoc->read) { /* Need more data */
 		ascii_cat(&line, start, cur);
 		if (fill_in_buffer(isoc) <= 0)
 		    return line;
-		start = cur = isoc->input_pointer;
+		start = cur = isoc->write;
 	    } /* if need more data */
 
 	    /*
 	    ** Find a line feed if there is one
 	    */
-	    for(; cur < isoc->input_limit; cur++) {
+	    for(; cur < isoc->read; cur++) {
 		char c = FROMASCII(*cur);
 		if (!c) {
 		    if (line) free(line);	/* Leak fixed AL 6 Feb 94 */
 		    return NULL;	/* Panic! read a 0! */
 		}
 		if (check_unfold  &&  c != ' '  &&  c != '\t') {
-		    return line;  /* Note: didn't update isoc->input_pointer */
+		    return line;  /* Note: didn't update isoc->write */
 		}
 		else {
 		    check_unfold = NO;
@@ -227,7 +221,7 @@ PRIVATE char * get_some_line ARGS2(HTInputSocket *,	isoc,
 		else {
 		    if (c=='\n') {		/* Found a line feed */
 			ascii_cat(&line, start, cur-prev_cr);
-			start = isoc->input_pointer = cur+1;
+			start = isoc->write = cur+1;
 
 			if (line && (int) strlen(line) > 0 && unfold) {
 			    check_unfold = YES;
@@ -290,7 +284,7 @@ PUBLIC int HTCopy ARGS2(
     */
     for(;;) {
 	int status = NETREAD(
-		file_number, isoc->input_buffer, INPUT_BUFFER_SIZE);
+		file_number, isoc->buffer, INPUT_BUFFER_SIZE);
 	if (status <= 0) {
 	    if (status == 0) break;
 	    if (TRACE) fprintf(TDEST,
@@ -302,13 +296,13 @@ PUBLIC int HTCopy ARGS2(
 #ifdef NOT_ASCII
 	{
 	    char * p;
-	    for(p = isoc->input_buffer; p < isoc->input_buffer+status; p++) {
+	    for(p = isoc->buffer; p < isoc->buffer+status; p++) {
 		*p = FROMASCII(*p);
 	    }
 	}
 #endif
 
-	(*targetClass.put_block)(sink, isoc->input_buffer, status);
+	(*targetClass.put_block)(sink, isoc->buffer, status);
 	cnt += status;
     } /* next bufferload */
 
@@ -332,7 +326,7 @@ PUBLIC void HTFileCopy ARGS2(
 	HTStream*,		sink)
 {
     HTStreamClass targetClass;    
-    char input_buffer[INPUT_BUFFER_SIZE];
+    char buffer[INPUT_BUFFER_SIZE];
     
 /*	Push the data down the stream
 **
@@ -343,14 +337,14 @@ PUBLIC void HTFileCopy ARGS2(
     */
     for(;;) {
 	int status = fread(
-	       input_buffer, 1, INPUT_BUFFER_SIZE, fp);
+	       buffer, 1, INPUT_BUFFER_SIZE, fp);
 	if (status == 0) { /* EOF or error */
 	    if (ferror(fp) == 0) break;
 	    if (TRACE) fprintf(TDEST,
 		"File Copy... Read error, read returns %d\n", ferror(fp));
 	    break;
 	}
-	(*targetClass.put_block)(sink, input_buffer, status);
+	(*targetClass.put_block)(sink, buffer, status);
     } /* next bufferload */	
 }
 
@@ -510,27 +504,23 @@ PRIVATE int HTParseFile ARGS3(
 ** Returns      HT_LOADED	if finished reading
 **		HT_OK		if OK, but more to read
 **	      	HT_ERROR	if error,
-**    		HT_INTERRUPTED	if interrupted
 **     		HT_WOULD_BLOCK	if read would block
 */
 PUBLIC int HTSocketRead ARGS2(HTRequest *, request, HTStream *, target)
 {
-    HTInputSocket *isoc = request->net_info->isoc;
-    int b_read = isoc->input_limit-isoc->input_buffer;
-    BOOL blocking = HTProtocol_isBlocking(request);
+    HTNet *net = request->net;
+    HTInputSocket *isoc = net->isoc;
+    int b_read = isoc->read - isoc->buffer;
     int status;
-    if (!isoc || isoc->input_file_number==INVSOC) {
+    if (!isoc || isoc->sockfd==INVSOC) {
 	if (PROT_TRACE) fprintf(TDEST, "Read Socket. Bad argument\n");
 	return HT_ERROR;
     }
 
-    if (HTThreadIntr(isoc->input_file_number))		      /* Interrupted */
-	return HT_INTERRUPTED;
-
     /* Read from socket if we got rid of all the data previously read */
     do {
-	if (isoc->input_pointer >= isoc->input_limit) {
-	    if ((b_read = NETREAD(isoc->input_file_number, isoc->input_buffer,
+	if (isoc->write >= isoc->read) {
+	    if ((b_read = NETREAD(isoc->sockfd, isoc->buffer,
 				  INPUT_BUFFER_SIZE)) < 0) {
 #ifdef EAGAIN
 		if (socerrno==EAGAIN || socerrno==EWOULDBLOCK)      /* POSIX */
@@ -540,8 +530,10 @@ PUBLIC int HTSocketRead ARGS2(HTRequest *, request, HTStream *, target)
 			{
 			    if (PROT_TRACE)
 				fprintf(TDEST, "Read Socket. WOULD BLOCK soc %d\n",
-					isoc->input_file_number);
-			    HTThreadState(isoc->input_file_number, THD_SET_READ);
+					isoc->sockfd);
+			    HTEvent_Register(isoc->sockfd, request,
+					     (SockOps) FD_READ, net->cbf,
+					     net->priority);
 			    return HT_WOULD_BLOCK;
 			} else { /* We have a real error */
 			    if (PROT_TRACE)
@@ -552,20 +544,20 @@ PUBLIC int HTSocketRead ARGS2(HTRequest *, request, HTStream *, target)
 	    } else if (!b_read) {
 		if (PROT_TRACE)
 		    fprintf(TDEST, "Read Socket. Finished loading socket %d\n",
-			    isoc->input_file_number);
+			    isoc->sockfd);
 		HTProgress(request, HT_PROG_DONE, NULL);
-		HTThreadState(isoc->input_file_number, THD_CLR_READ);
+	        HTEvent_UnRegister(isoc->sockfd, FD_READ);
 		return HT_LOADED;
 	    }
 
 	    /* Remember how much we have read from the input socket */
-	    isoc->input_pointer = isoc->input_buffer;
-	    isoc->input_limit = isoc->input_buffer + b_read;
+	    isoc->write = isoc->buffer;
+	    isoc->read = isoc->buffer + b_read;
 
 #ifdef NOT_ASCII
 	    {
-		char *p = isoc->input_buffer;
-		while (p < isoc->input_limit) {
+		char *p = isoc->buffer;
+		while (p < isoc->read) {
 		    *p = FROMASCII(*p);
 		    p++;
 		}
@@ -573,18 +565,18 @@ PUBLIC int HTSocketRead ARGS2(HTRequest *, request, HTStream *, target)
 #endif
 	    if (PROT_TRACE)
 		fprintf(TDEST, "Read Socket. %d bytes read from socket %d\n",
-			b_read, isoc->input_file_number);
-	    request->net_info->bytes_read += b_read;
+			b_read, isoc->sockfd);
+	    request->net->bytes_read += b_read;
 	    HTProgress(request, HT_PROG_READ, NULL);
 	}
 	
 	/* Now push the data down the stream */
-	if ((status = (*target->isa->put_block)(target, isoc->input_buffer,
+	if ((status = (*target->isa->put_block)(target, isoc->buffer,
 						b_read)) != HT_OK) {
 	    if (status==HT_WOULD_BLOCK) {
 		if (PROT_TRACE)
 		    fprintf(TDEST, "Read Socket. Stream WOULD BLOCK\n");
-		HTThreadState(isoc->input_file_number, THD_CLR_READ);
+		HTEvent_UnRegister(isoc->sockfd, FD_READ);
 		return HT_WOULD_BLOCK;
 	    } else if (status>0) {	      /* Stream specific return code */
 		if (PROT_TRACE)
@@ -596,9 +588,12 @@ PUBLIC int HTSocketRead ARGS2(HTRequest *, request, HTStream *, target)
 		return status;
 	    }
 	}
-	isoc->input_pointer = isoc->input_buffer + b_read;
-	HTThreadState(isoc->input_file_number, THD_SET_READ);
-    } while (blocking);
+	isoc->write = isoc->buffer + b_read;
+#if 0
+        HTEvent_Register(isoc->sockfd, request, (SockOps) FD_READ,
+			 net->cbf, net->priority);
+#endif
+    } while (net->preemtive);
     return HT_WOULD_BLOCK;
 }
 
@@ -618,7 +613,7 @@ PUBLIC int HTSocketRead ARGS2(HTRequest *, request, HTStream *, target)
 PUBLIC int HTFileRead ARGS3(FILE *, fp, HTRequest *, request,
 			    HTStream *, target)
 {
-    HTInputSocket *isoc = request->net_info->isoc;
+    HTInputSocket *isoc = request->net->isoc;
     int b_read;
     int status;
     if (!fp) {
@@ -627,27 +622,27 @@ PUBLIC int HTFileRead ARGS3(FILE *, fp, HTRequest *, request,
     }
 
     while(1) {
-	if ((b_read = fread(isoc->input_buffer, 1, INPUT_BUFFER_SIZE, fp))==0){
+	if ((b_read = fread(isoc->buffer, 1, INPUT_BUFFER_SIZE, fp))==0){
 	    if (ferror(fp)) {
 		if (PROT_TRACE)
 		    fprintf(TDEST, "Read File... READ ERROR\n");
 	    } else
 		return HT_LOADED;
 	}
-	isoc->input_pointer = isoc->input_buffer;
-	isoc->input_limit = isoc->input_buffer + b_read;
+	isoc->write = isoc->buffer;
+	isoc->read = isoc->buffer + b_read;
 	if (PROT_TRACE)
 	    fprintf(TDEST, "Read File... %d bytes read from file %p\n",
 		    b_read, fp);
 
 	/* Now push the data down the stream (we use blocking I/O) */
-	if ((status = (*target->isa->put_block)(target, isoc->input_buffer,
+	if ((status = (*target->isa->put_block)(target, isoc->buffer,
 						b_read)) != HT_OK) {
 	    if (PROT_TRACE)
 		fprintf(TDEST, "Read File... Stream ERROR\n");
 	    return status;
 	}
-	isoc->input_pointer = isoc->input_buffer + b_read;
+	isoc->write = isoc->buffer + b_read;
     }
 }
 

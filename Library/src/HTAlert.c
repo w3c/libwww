@@ -13,9 +13,7 @@
 */
 
 /* Library include files */
-#include "tcp.h"
-#include "HTUtils.h"
-#include "HTString.h"
+#include "WWWLib.h"
 #include "HTError.h"					 /* Implemented here */
 #include "HTAlert.h"					 /* Implemented here */
 
@@ -44,7 +42,7 @@ PUBLIC void HTProgress ARGS3(HTRequest *, request, HTProgressState, state,
     /* This is just to avoid that we get a lot of progress messages in LMB */
     if (!TRACE) return;
 
-    if (!request || !request->anchor) {
+    if (!request) {
 	if (TRACE)
 	    fprintf(TDEST, "HTProgress.. Bad argument\n");
 	return;
@@ -60,9 +58,9 @@ PUBLIC void HTProgress ARGS3(HTRequest *, request, HTProgressState, state,
 
       case HT_PROG_READ:
 	{
-	    long cl = HTAnchor_length(request->anchor);
+	    long cl = HTAnchor_length(HTRequest_anchor(request));
 	    if (cl > 0) {
-		long b_read = HTNetInfo_bytesRead(request->net_info);
+		long b_read = HTRequest_bytesRead(request);
 		double pro = (double) b_read/cl*100;
 		char buf[10];
 		HTNumToStr((unsigned long) cl, buf);
@@ -209,24 +207,10 @@ PUBLIC void HTPromptUsernameAndPassword ARGS4(HTRequest *,	request,
 */
 PUBLIC void HTErrorMsg ARGS1(HTRequest *, request)
 {
-    HTList *cur = request->error_stack;
+    HTList *cur = HTRequest_errorStack(request);
     BOOL highest = YES;
     HTChunk *chunk;
     HTErrorInfo *pres;
-    if (!request) {
-	if (TRACE) fprintf(TDEST, "HTErrorMsg.. Bad argument!\n");
-	return;
-    }
-
-    /* This check is only necessary if the error message is put down the
-       stream, because we have to know if a stream has been put up and/or
-       taken down again. Here it is only put as an example */
-#if 0
-    if (request->error_block) {
-	if (TRACE) fprintf(TDEST, "HTErrorMsg.. No messages are printed as no stream is available.\n");
-	return;
-    }
-#endif
 
     /* Output messages */
     chunk = HTChunkCreate(128);

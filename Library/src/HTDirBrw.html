@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Directory Browsing</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen,  9-Sep-1995 -->
 </HEAD>
 <BODY>
 
@@ -32,6 +33,7 @@ W3C Reference Library</A>.
 #define HTDIRBRW_H
 
 #include "HTFTP.h"
+#include "HTReq.h"
 </PRE>
 
 <H2>Controlling globals</H2>
@@ -155,13 +157,12 @@ typedef struct _dir_file_info {
 This function fills out the EntryInfo file structure and should return:
 
 <UL>
-<LI>HT_INTERRUPTED if Interrupted
 <LI>0 if EOF
 <LI>1 if succes and more to read
 </UL>
 
 <PRE>
-typedef int (*HTDirLineInput) PARAMS((HTNetInfo *, dir_file_info *));
+typedef int (*HTDirLineInput) PARAMS((HTNet *, dir_file_info *));
 </PRE>
 
 <PRE>

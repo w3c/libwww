@@ -851,7 +851,7 @@ PRIVATE HTStructured* HTML_new ARGS5(HTRequest *,	request,
 
     me->isa = &HTMLPresentation;
     me->dtd = &HTMLP_dtd;
-    me->node_anchor =  request->anchor;
+    me->node_anchor =  HTRequest_anchor(request);
     me->title.size = 0;
     me->title.growby = 128;
     me->title.allocated = 0;

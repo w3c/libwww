@@ -18,6 +18,7 @@
 #include "HTString.h"
 #include "HTMLGen.h"
 #include "HTParse.h"
+#include "HTReqMan.h"
 #include "HTProxy.h"
 #include "HTWSRC.h"					 /* Implemented here */
 

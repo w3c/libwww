@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Utility macros</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 16-Aug-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  9-Sep-1995 -->
 </HEAD>
 <BODY>
 
@@ -279,11 +279,6 @@ typedef char	BOOLEAN;				    /* Logical value */
 #define HTMIN(a,b) ((a) &lt;= (b) ? (a) : (b))
 #define HTMAX(a,b) ((a) >= (b) ? (a) : (b))
 #endif
-
-#define TCP_PORT 80	/* Allocated to http by Jon Postel/ISI 24-Jan-92 */
-#define OLD_TCP_PORT 2784	/* Try the old one if no answer on 80 */
-#define DNP_OBJ 80	/* This one doesn't look busy, but we must check */
-			/* That one was for decnet */
 </PRE>
 
 <A NAME="ReturnCodes"><H2>Return Codes for Protocol Modules and Streams</H2></A>
@@ -293,6 +288,9 @@ stream modules. Success are (&gt;=0) and failure are (&lt;0)
 
 <PRE>
 #define HT_OK			0	/* Generic success */
+#define HT_ALL			1	/* Used by Net Manager */
+
+#define HT_IGNORE		29996	/* Ignore this in the Net manager */
 #define HT_NO_DATA		29997	/* OK but no data was loaded */
 #define HT_REDIRECTION_ON_FLY   29998	/* Redo the retrieve with a new URL */
 #define HT_LOADED		29999	/* Instead of a socket */

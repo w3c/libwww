@@ -19,6 +19,7 @@
 **	   Dec 93 Bug change around, more reentrant, etc
 **	09 May 94 logfile renamed to HTlogfile to avoid clash with WAIS
 **	 8 Jul 94 Insulate free() from _free structure element.
+**	   Sep 95 Rewritten, HFN
 */
 
 #if !defined(HT_DIRECT_WAIS) && !defined(HT_DEFAULT_WAIS_GATEWAY)
@@ -26,312 +27,11 @@
 #endif
 
 /* Library include files */
-#include "tcp.h"
-#include "HTUtils.h"
-#include "HTString.h"
-#include "HTParse.h"
-#include "HTAlert.h"
-#include "HTError.h"
-#include "HTList.h"
-#include "HTAABrow.h"				/* Should be HTAAUtil.html! */
-#include "HTFWrite.h"
-#include "HTCache.h"
-#include "HTLog.h"
-#include "HTSocket.h"
-#include "HTTCP.h"      /* HWL: for HTFindRelatedName */
-#include "HTThread.h"
-#include "HTEvntrg.h"
-#include "HTBind.h"
-#include "HTProt.h"
+#include "WWWLib.h"
+#include "HTReqMan.h"	     /* @@@@@@@@@@@@@@@@@@@@@@@@ */
+
 #include "HTInit.h"
-#include "HTProxy.h"
-
-#ifndef NO_RULES
-#include "HTRules.h"
-#endif
-
 #include "HTAccess.h"					 /* Implemented here */
-
-/* These flags may be set to modify the operation of this module */
-PUBLIC char * HTClientHost = NULL;	 /* Name of remote login host if any */
-PUBLIC BOOL HTSecure = NO;		 /* Disable access for telnet users? */
-
-PUBLIC char * HTImServer = NULL;/* cern_httpd sets this to the translated URL*/
-PUBLIC BOOL HTImProxy = NO;			   /* cern_httpd as a proxy? */
-
-/* Private flags */
-PRIVATE HTExpiresMode HTExpMode = HT_EXPIRES_IGNORE;
-PRIVATE int HTMaxReloads = 6;
-PRIVATE char *HTExpNotify;
-
-/* Memory cache handler */
-PRIVATE HTMemoryCacheHandler HTMemoryCache = NULL;
-
-#ifdef _WINDOWS 
-PUBLIC HWND HTsocketWin = 0 ;
-unsigned long HTwinMsg = 0 ;
-#endif 
-
-/* Variables and typedefs local to this module */
-struct _HTStream {
-	HTStreamClass * isa;
-	/* ... */
-};
-
-/* --------------------------------------------------------------------------*/
-/*			Management of the HTRequest structure		     */
-/* --------------------------------------------------------------------------*/
-
-/*	Create  a request structure
-**	---------------------------
-*/
-PUBLIC HTRequest * HTRequest_new NOARGS
-{
-    HTRequest * me = (HTRequest*) calloc(1, sizeof(*me));  /* zero fill */
-    if (!me) outofmem(__FILE__, "HTRequest_new()");
-    
-    /* User preferences for this particular request. Only empty lists! */
-    me->conversions = HTList_new();
-    me->encodings = HTList_new();
-    me->languages = HTList_new();
-    me->charsets = HTList_new();
-
-    /* Force Reload */
-    me->reload = HT_ANY_VERSION;
-
-    /* Format of output */
-    me->output_format	= WWW_PRESENT;	    /* default it to present to user */
-    me->error_format	= WWW_HTML;	 /* default format of error messages */
-
-    /* HTTP headers */
-    me->GenMask		= DEFAULT_GENERAL_HEADERS;
-    me->RequestMask	= DEFAULT_REQUEST_HEADERS;
-    me->EntityMask	= DEFAULT_ENTITY_HEADERS;
-
-    /* Content negotiation */
-    me->ContentNegotiation = NO;		       /* Do this by default */
-
-#ifdef _WINDOWS
-    me->hwnd = HTsocketWin;
-    me->winMsg = HTwinMsg;
-#endif
-
-    return me;
-}
-
-
-/*	Delete a request structure
-**	--------------------------
-*/
-PUBLIC void HTRequest_delete ARGS1(HTRequest *, req)
-{
-    if (req) {
-	FREE(req->redirect);
-	FREE(req->authenticate);
-	HTFormatDelete(req);
-	HTErrorFree(req);
-	HTAACleanup(req);
-
-	/* These are temporary until we get a MIME thingy */
-	FREE(req->redirect);
-	FREE(req->WWWAAScheme);
-	FREE(req->WWWAARealm);
-	FREE(req->WWWprotection);
-
-	FREE(req);
-    }
-}
-
-/*
-**  Add a destination request to this source request structure so that we
-**  build the internal request representation of the POST web
-**  Returns YES if OK, else NO
-*/
-PUBLIC BOOL HTRequest_addDestination ARGS2(HTRequest *, src, HTRequest *, dest)
-{
-    if (src && dest) {
-	if (!src->mainDestination) {
-	    src->mainDestination = dest;
-	    src->destRequests = 1;
-	    return YES;
-	} else {
-	    if (!src->destinations)
-		src->destinations = HTList_new();
-	    if (HTList_addObject(src->destinations, (void *) dest)==YES) {
-		src->destRequests++;
-		return YES;
-	    }
-	}
-    }
-    return NO;
-}
-
-
-/*
-**  Remove a destination request from this source request structure
-**  Remember not to delete the main destination as it comes from the
-**  application!
-**  Returns YES if OK, else NO
-*/
-PUBLIC BOOL HTRequest_removeDestination ARGS1(HTRequest *, dest)
-{
-    BOOL found=NO;
-    if (dest && dest->source) {
-	HTRequest *src = dest->source;
-	if (src->mainDestination == dest) {
-	    dest->source = NULL;
-	    src->mainDestination = NULL;
-	    src->destRequests--;
-	    found = YES;
-	} if (src->destinations) {
-	    if (HTList_removeObject(src->destinations, (void *) dest)) {
-		HTRequest_delete(dest);
-		src->destRequests--;
-		found = YES;
-	    }
-	}
-	if (found) {
-	    if (TRACE)
-		fprintf(TDEST, "Destination. %p removed from %p\n",
-			dest, src);
-	}
-	if (!src->destRequests) {
-	    if (TRACE)
-		fprintf(TDEST, "Destination. PostWeb terminated\n");
-	    HTRequest_delete(src);
-	}
-    }
-    return found;
-}
-
-
-/*
-**  Find the source request structure and make the link between the 
-**  source output stream and the destination input stream. There can be
-**  a conversion between the two streams!
-**
-**  Returns YES if link is made, NO otherwise
-*/
-PUBLIC BOOL HTRequest_linkDestination ARGS1(HTRequest *, dest)
-{
-    if (dest && dest->input_stream && dest->source && dest!=dest->source) {
-	HTRequest *source = dest->source;
-	HTStream *pipe = HTStreamStack(source->output_format,
-				       dest->input_format,
-				       dest->input_stream,
-				       dest, YES);
-
-	/* Check if we are the only one - else spawn off T streams */
-
-	/* @@@ We don't do this yet @@@ */
-
-	source->output_stream = pipe ? pipe : dest->input_stream;
-
-	if (STREAM_TRACE)
-	    fprintf(TDEST,"Destination. Linked %p to source %p\n",dest,source);
-	if (++source->destStreams == source->destRequests) {
-	    if (STREAM_TRACE)
-		fprintf(TDEST, "Destination. All destinations ready!\n");
-	    if (source->net_info)	      /* Might already have finished */
-		HTThreadState(source->net_info->sockfd, THD_SET_READ);
-	    return YES;
-	}
-    }
-    return NO;
-}
-
-/*
-**  Remove a feed stream to a destination request from this source
-**  request structure. When all feeds are removed the request tree is
-**  ready to take down and the operation can be terminated.
-**  Returns YES if removed, else NO
-*/
-PUBLIC BOOL HTRequest_unlinkDestination ARGS1(HTRequest *, dest)
-{
-    BOOL found = NO;
-    if (dest && dest->source && dest != dest->source) {
-	HTRequest *src = dest->source;
-	if (src->mainDestination == dest) {
-	    src->output_stream = NULL;
-	    if (dest->input_stream)
-		(*dest->input_stream->isa->_free)(dest->input_stream);
-	    found = YES;
-	} else if (src->destinations) {
-
-	    /* LOOK THROUGH THE LIST AND FIND THE RIGHT ONE */
-
-	}	
-	if (found) {
-	    src->destStreams--;
-	    if (STREAM_TRACE)
-		fprintf(TDEST, "Destination. Unlinked %p from source %p\n",
-			dest, src);
-	    return YES;
-	}
-    }
-    return NO;
-}
-
-/*
-**  Removes all request structures in this PostWeb.
-*/
-PUBLIC BOOL HTRequest_removePostWeb  ARGS1(HTRequest *, me)
-{
-    if (me && me->source) {
-	HTRequest *source = me->source;
-
-	/* Kill main destination */
-	if (source->mainDestination)
-	    HTRequest_removeDestination(source->mainDestination);
-
-	/* Kill all other destinations */
-	if (source->destinations) {
-	    HTList *cur = source->destinations;
-	    HTRequest *pres;
-	    while ((pres = (HTRequest *) HTList_nextObject(cur)) != NULL)
-		HTRequest_removeDestination(pres);
-	}
-
-	/* Remove source request */
-	HTRequest_removeDestination(source);
-	return YES;
-    }
-    return NO;
-}
-
-/*
-**  Kills all threads in a POST WEB connected to this request but
-**  keep the request structures.
-**  Some requests might be preemtive, for example a SMTP request (when
-**  that has been implemented). However, this will be handled internally
-**  in the load function.
-*/
-PUBLIC BOOL HTRequest_killPostWeb  ARGS1(HTRequest *, me)
-{
-    if (me && me->source) {
-	HTRequest *source = me->source;
-
-	/* Kill main destination */
-	if (source->mainDestination)
-	    HTThread_kill(source->mainDestination->net_info);
-
-	/* Kill all other destinations */
-	if (source->destinations) {
-	    HTList *cur = source->destinations;
-	    HTRequest *pres;
-	    while ((pres = (HTRequest *) HTList_nextObject(cur)) != NULL)
-		HTThread_kill(pres->net_info);
-	}
-	/*
-	** Kill source. The stream tree is now freed so we have to build
-	** that again. This is done in HTRequest_linkDestination()
-	*/
-	HTThread_kill(source->net_info);
-	source->output_stream = NULL;
-	return YES;
-    }
-    return NO;
-}
 
 /* --------------------------------------------------------------------------*/
 /*	           Initialization and Termination of the Library	     */
@@ -381,6 +81,9 @@ PUBLIC BOOL HTLibInit NOARGS
     HTProxy_setGateway("wais", HT_DEFAULT_WAIS_GATEWAY);
 #endif
 
+    /* Register a call back function for the Net Manager */
+    HTNet_register (HTLoad_terminate, HT_ALL);
+
 #ifdef WWWLIB_SIG
     /* On Solaris (and others?) we get a BROKEN PIPE signal when connecting
     ** to a port where we should get `connection refused'. We ignore this 
@@ -414,7 +117,6 @@ PUBLIC BOOL HTLibInit NOARGS
     HTGetTimeZoneOffset();	   /* Find offset from GMT if using mktime() */
 #endif
     HTTmp_setRoot(NULL);		     /* Set up default tmp directory */
-    HTThreadInit();			            /* Initialize bit arrays */
     return YES;
 }
 
@@ -428,6 +130,9 @@ PUBLIC BOOL HTLibTerminate NOARGS
 {
     if (TRACE)
 	fprintf(TDEST, "WWWLibTerm.. Cleaning up LIBRARY OF COMMON CODE\n");
+#if 0
+    HTNet_deleteAll();			    /* Remove all remaining requests */
+#endif
     HTAtom_deleteAll();
     HTDisposeConversions();
     HTTCPCacheRemoveAll();
@@ -462,221 +167,11 @@ PUBLIC BOOL HTLibTerminate NOARGS
 }
 
 /* --------------------------------------------------------------------------*/
-/*			Physical Anchor Address Manager			     */
+/*	           		Access functions			     */
 /* --------------------------------------------------------------------------*/
 
-/*		Find physical name and access protocol
-**		--------------------------------------
-**
-**	Checks for Cache, proxy, and gateway (in that order)
-**
-** On exit,    
-**	returns		HT_NO_ACCESS		no protocol module found
-**			HT_FORBIDDEN		Error has occured.
-**			HT_OK			Success
-**
-*/
-PRIVATE int get_physical ARGS1(HTRequest *, req)
-{    
-    char * addr = HTAnchor_address((HTAnchor*)req->anchor);	/* free me */
-
-#ifndef HT_NO_RULES
-    if (HTImServer) {	/* cern_httpd has already done its own translations */
-	HTAnchor_setPhysical(req->anchor, HTImServer);
-	StrAllocCopy(addr, HTImServer);	/* Oops, queries thru many proxies */
-					/* didn't work without this -- AL  */
-    }
-    else {
-	char * physical = HTTranslate(addr);
-	if (!physical) {
-	    free(addr);
-	    return HT_FORBIDDEN;
-	}
-	HTAnchor_setPhysical(req->anchor, physical);
-	free(physical);			/* free our copy */
-    }
-#else
-    HTAnchor_setPhysical(req->anchor, addr);
-#endif /* HT_NO_RULES */
-
-    /*
-    ** Check local Disk Cache (if we are not forced to reload), then
-    ** for proxy, and finally gateways
-    */
-    {
-	char *newaddr=NULL;
-	if (req->reload != HT_FORCE_RELOAD &&
-	    (newaddr = HTCache_getReference(addr))) {
-	    if (req->reload != HT_CACHE_REFRESH) {
-		HTAnchor_setPhysical(req->anchor, newaddr);
-		HTAnchor_setCacheHit(req->anchor, YES);
-	    } else {			 /* If refresh version in file cache */
-		req->RequestMask |= (HT_IMS + HT_NO_CACHE);
-	    }
-	} else if ((newaddr = HTProxy_getProxy(addr))) {
-	    StrAllocCat(newaddr, addr);
-	    req->using_proxy = YES;
-	    HTAnchor_setPhysical(req->anchor, newaddr);
-	    free(newaddr);
-	} else if ((newaddr = HTProxy_getGateway(addr))) {
-	    char * path = HTParse(addr, "",
-				  PARSE_HOST + PARSE_PATH + PARSE_PUNCTUATION);
-		/* Chop leading / off to make host into part of path */
-	    char * gatewayed = HTParse(path+1, newaddr, PARSE_ALL);
-            HTAnchor_setPhysical(req->anchor, gatewayed);
-	    free(path);
-	    free(gatewayed);
-	    free(newaddr);
-	} else {
-	    req->using_proxy = NO;     	    /* We don't use proxy or gateway */
-	}
-	    FREE(newaddr);
-    }
-    FREE(addr);
-
-    /* Set the access scheme on our way out */
-    return (HTProtocol_get(req->anchor)==YES) ? HT_OK : HT_NO_ACCESS;
-}
-
-/* --------------------------------------------------------------------------*/
-/*				Document Loader 			     */
-/* --------------------------------------------------------------------------*/
-
-/*		Load a document
-**		---------------
-**
-**	This is an internal routine, which has an address AND a matching
-**	anchor.  (The public routines are called with one OR the other.)
-**
-** On entry,
-**	request->
-**	    anchor		a parent anchor with fully qualified
-**				hypertext reference as its address set
-**	    output_format	valid
-**	    output_stream	valid on NULL
-**
-** On exit,
-**	returns		HT_WOULD_BLOCK	An I/O operation would block
-**			HT_ERROR	Error has occured
-**			HT_LOADED	Success
-**			HT_NO_DATA	Success, but no document loaded.
-**					(telnet sesssion started etc)
-**			HT_RETRY	if service isn't available before
-**					request->retry_after
-*/
-PUBLIC int HTLoad ARGS2(HTRequest *, request, BOOL, keep_error_stack)
-{
-    char	*arg = NULL;
-    HTProtocol	*p;
-    int 	status;
-
-    if (request->method == METHOD_INVALID)
-	request->method = METHOD_GET;
-    if (!keep_error_stack) {
-	HTErrorFree(request);
-	request->error_block = NO;
-    }
-
-    if ((status = get_physical(request)) < 0) {
-	if (status == HT_FORBIDDEN) {
-	    char *url = HTAnchor_address((HTAnchor *) request->anchor);
-	    if (url) {
-		HTUnEscape(url);
-		HTErrorAdd(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
-			   (void *) url, (int) strlen(url), "HTLoad");
-		free(url);
-	    } else {
-		HTErrorAdd(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
-			   NULL, 0, "HTLoad");
-	    }
-	} 
-	return HT_ERROR;		       /* Can't resolve or forbidden */
-    }
-
-    if(!(arg = HTAnchor_physical(request->anchor)) || !*arg) 
-    	return HT_ERROR;
-
-    p = (HTProtocol *) HTAnchor_protocol(request->anchor);
-    return (*(p->load))(request);
-}
-
-
-/*		Terminate a LOAD
-**		----------------
-**
-**	This function looks at the status code from the HTLoadDocument
-**	function and updates logfiles, creates error messages etc.
-**
-**    On Entry,
-**	Status code from load function
-*/
-PUBLIC BOOL HTLoadTerminate ARGS2(HTRequest *, request, int, status)
-{
-    char * uri = HTAnchor_address((HTAnchor*)request->anchor);
-
-    HTLog_request(request, status);
-
-    /* The error stack might contain general information to the client
-       about what has been going on in the library (not only errors) */
-    if (!HTImProxy && request->error_stack)
-	HTErrorMsg(request);
-
-    switch (status) {
-      case HT_LOADED:
-	if (PROT_TRACE) {
-	    fprintf(TDEST, "HTAccess.... OK: `%s\' has been accessed.\n", uri);
-	}
-	break;
-
-      case HT_OK:
-	if (PROT_TRACE) {
-	    fprintf(TDEST, "HTAccess.... FRIEND FINISHED ACCESS: `%s\'\n",uri);
-	}
-	break;
-
-      case HT_NO_DATA:
-	if (PROT_TRACE) {
-	    fprintf(TDEST, "HTAccess.... OK BUT NO DATA: `%s\'\n", uri);
-	}
-	break;
-
-      case HT_WOULD_BLOCK:
-	if (PROT_TRACE) {
-	    fprintf(TDEST, "HTAccess.... WOULD BLOCK: `%s\'\n", uri);
-	}
-	break;
-
-      case HT_RETRY:
-	if (PROT_TRACE) {
-	    fprintf(TDEST, "HTAccess.... NOT AVAILABLE, RETRY AT `%s\'\n",uri);
-	}
-	break;
-
-      case HT_ERROR:
-	if (HTImProxy)
-	    HTErrorMsg(request);		     /* Only on a real error */
-	if (PROT_TRACE) {
-	    fprintf(TDEST, "HTAccess.... ERROR: Can't access `%s\'\n", uri);
-	}
-	break;
-
-      default:
-	if (PROT_TRACE) {
-	    fprintf(TDEST, "HTAccess.... **** Internal software error in CERN WWWLib version %s ****\n", HTLibraryVersion);
-	    fprintf(TDEST, "............ Please mail libwww@w3.org quoting what software\n");
-	    fprintf(TDEST, "............ and version you are using including the URL:\n");
-	    fprintf(TDEST, "............ `%s\'\n", uri);
-	    fprintf(TDEST, "............ that caused the problem, thanks!\n");
-	}
-	break;
-    }
-    free(uri);
-    return YES;
-}
-
-
-/*		Load a document - with logging etc
-**		----------------------------------
+/*	Load a document
+**	---------------
 **
 **	- Checks or documents already loaded
 **	- Logs the access
@@ -689,48 +184,20 @@ PUBLIC BOOL HTLoadTerminate ARGS2(HTRequest *, request, int, status)
 **	  request->anchor   is the node_anchor for the document
 **	  request->output_format is valid
 **
-** On exit,
-**	returns		HT_WOULD_BLOCK	An I/O operation would block
-**			HT_ERROR	Error has occured
-**			HT_LOADED	Success
-**			HT_NO_DATA	Success, but no document loaded.
-**					(telnet sesssion started etc)
-**			HT_RETRY	if service isn't available before
-**					request->retry_after
+**	returns
+**		YES	if request has been registered (success)
+**		NO	an error occured
 */
-PRIVATE int HTLoadDocument ARGS2(HTRequest *,	request,
-				 BOOL,		keep_error_stack)
-
+PRIVATE int HTLoadDocument ARGS2(HTRequest *, request, BOOL, recursive)
 {
-    int	        status;
-    char * full_address = HTAnchor_address((HTAnchor*)request->anchor);
-
-    if (PROT_TRACE) fprintf (TDEST, "HTAccess.... Accessing document %s\n",
-			     full_address);
-
-    if (!request->output_format) request->output_format = WWW_PRESENT;
-
-    /*
-    ** Check if document is already loaded. As the application handles the
-    ** memory cache, we call the application to ask.
-    */
-    if (request->reload != HT_FORCE_RELOAD) {
-	if (HTMemoryCache) {
-	    if (HTMemoryCache(request, HTExpMode, HTExpNotify) == HT_LOADED) {
-		free(full_address);
-		return HT_LOADED;
-	    }
-	}
-    } else {
-	request->RequestMask |= HT_NO_CACHE;		  /* no-cache pragma */
-	HTAnchor_clearHeader(request->anchor);
+    if (PROT_TRACE) {
+	char * full_address = HTAnchor_address((HTAnchor *) request->anchor);
+	fprintf (TDEST, "HTAccess.... Accessing document %s\n", full_address);
+	free(full_address);
     }
-
-    /* Now do the load */
-    if ((status = HTLoad(request, keep_error_stack)) != HT_WOULD_BLOCK)
-	HTLoadTerminate(request, status);
-    free(full_address);
-    return status;
+    if (!request->output_format)
+	request->output_format = WWW_PRESENT;
+    return HTLoad(request, recursive, 0);	       /* @@@@ PRIORITY @@@@ */
 }
 
 
@@ -999,6 +466,7 @@ PUBLIC int HTSearchAbsolute ARGS3(CONST char *, 	keywords,
 /*				Document Poster 			     */
 /* --------------------------------------------------------------------------*/
 
+#if 0
 /*		Get a save stream for a document
 **		--------------------------------
 */
@@ -1013,11 +481,11 @@ PUBLIC HTStream *HTSaveStream ARGS1(HTRequest *, request)
 	if (url) {
 	    HTUnEscape(url);
 	    HTErrorAdd(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
-		       (void *) url, (int) strlen(url), "HTLoad");
+		       (void *) url, (int) strlen(url), "HTSaveStream");
 	    free(url);
 	} else {
 	    HTErrorAdd(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
-		       NULL, 0, "HTLoad");
+		       NULL, 0, "HTSaveStream");
 	}
 	return NULL;	/* should return error status? */
     }
@@ -1029,6 +497,7 @@ PUBLIC HTStream *HTSaveStream ARGS1(HTRequest *, request)
     return (*p->saveStream)(request);
     
 }
+#endif
 
 /*	COPY AN ANCHOR
 **	--------------
@@ -1326,88 +795,3 @@ PUBLIC HTParentAnchor * HTHomeAnchor NOARGS
     return anchor;
 }
 
-
-/*		Bind an Anchor to the request structure
-**		---------------------------------------
-**
-**    On Entry,
-**	anchor		The child or parenet anchor to be binded
-**	request		The request sturcture
-**    On Exit,
-**        returns    YES     Success
-**                   NO      Failure 
-**
-**  Note: Actually the same as HTLoadAnchor() but DOES NOT do the loading
-**						Henrik Frystyk 17/02-94
-*/
-
-PUBLIC BOOL HTBindAnchor ARGS2(HTAnchor*, anchor, HTRequest *, request)
-{
-    if (!anchor) return NO;	/* No link */
-    
-    request->anchor  = HTAnchor_parent(anchor);
-    request->childAnchor = ((HTAnchor*)request->anchor == anchor) ? NULL
-    					: (HTChildAnchor*) anchor;
-	
-    return YES;
-}
-
-/* --------------------------------------------------------------------------*/
-/*				Flags and Other   			     */
-/* --------------------------------------------------------------------------*/
-
-/*
-**  Set the mode for how we handle Expires header from the local history
-**  list. The following modes are available:
-**
-**	HT_EXPIRES_IGNORE : No update in the history list
-**	HT_EXPIRES_NOTIFY : The user is notified but no reload
-**	HT_EXPIRES_AUTO   : Automatic reload
-**
-**  The notify only makes sense when HT_EXPIRES_NOTIFY. NULL is valid.
-*/
-PUBLIC void HTAccess_setExpiresMode ARGS2(HTExpiresMode, mode,
-					  char *,	 notify)
-{
-    HTExpMode = mode;
-    HTExpNotify = notify;
-}
-
-PUBLIC HTExpiresMode HTAccess_expiresMode ARGS1(char **, notify)
-{
-    *notify = HTExpNotify ? HTExpNotify : "This version has expired!";
-    return HTExpMode;
-}
-
-/*
-**  Set max number of automatic reload. Default is HT_MAX_RELOADS
-*/
-PUBLIC void HTAccess_setMaxReload ARGS1(int, newmax)
-{
-    if (newmax > 0)
-	HTMaxReloads = newmax;
-}
-
-PUBLIC int HTAccess_maxReload NOARGS
-{
-    return HTMaxReloads;
-}
-
-/*
-**  Register a Memory Cache Handler. This function is introduced in order to
-**  avoid having references to HText module outside HTML.
-*/
-PUBLIC BOOL HTMemoryCache_register ARGS1(HTMemoryCacheHandler, callback)
-{
-    if (callback) {
-	HTMemoryCache = callback;
-	return YES;
-    }
-    return NO;
-}
-
-PUBLIC BOOL HTMemoryCache_unRegister NOARGS
-{
-    HTMemoryCache = NULL;
-    return YES;
-}

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Displaying and Promting User Messages</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  1-Sep-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  6-Sep-1995 -->
 <NEXTID N="z3">
 </HEAD>
 <BODY>
@@ -40,7 +40,7 @@ W3C Reference Library</A>.
 #ifndef HTALERT_H
 #define HTALERT_H
 
-#include "HTAccess.h"
+#include "HTReq.h"
 </PRE>
 
 <A NAME="Interactive"><H2>User Interactive Functions</H2></A>
@@ -145,11 +145,6 @@ output (used in Line Mode Browser), but smart clients and servers
 might overwrite this function so that the error messages can be
 handled to the user in a nice(r) way. That is the reason for putting
 the actual implementation in <A HREF="HTAlert.c">HTAlert.c</A>.<P>
-
-<B>Note:</B> If a stream <EM>has</EM> been put up (and maybe taken
-down again) inside the Library, then request-&gt;error_block has been
-set to YES. This indicates that it is NOT possible any more to use the
-stream as output for the message.
 
 <PRE>
 extern void HTErrorMsg	PARAMS((HTRequest * request));
