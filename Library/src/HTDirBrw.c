@@ -39,7 +39,6 @@
 #include "HTDirBrw.h"					 /* Implemented here */
 #include "HTDescript.h"
 
-
 /* Macros and other defines */
 #ifdef USE_DIRENT			       /* Set this for Sys V systems */
 #define STRUCT_DIRENT struct dirent
@@ -61,6 +60,7 @@ struct _HTStructured {
 
 /* Globals */
 PUBLIC int HTDirReadme = HT_DIR_README_TOP;
+PUBLIC int HTDirInfo = HT_DIR_INFO_TOP;
 PUBLIC int HTDirAccess = HT_DIR_OK;
 PUBLIC unsigned int HTDirShowMask = HT_DIR_SHOW_ICON+HT_DIR_SHOW_SIZE+HT_DIR_KEY_NAME+HT_DIR_SHOW_DATE;
 
@@ -87,55 +87,9 @@ typedef struct _HTDirKey {
     char *filename;
     BOOL is_dir;                                           /* If a directory */
     char *body;			/* Contains all the stuff as date, size etc. */
-#if 0
-    int  icon_number;			      /* What icon matches this file */
-#endif
     HTIconNode *icon;
     char *symlink;
 } HTDirKey;
-
-
-#if OLD_CODE
-typedef enum _HTDirIconEnum {
-    HT_ICON_UNKNOWN = 0,
-    HT_ICON_BINARY,
-    HT_ICON_BINHEX,
-    HT_ICON_COMPRESS,
-    HT_ICON_DIR,
-    HT_ICON_SLINK,
-    HT_ICON_FTP,
-    HT_ICON_IMAGE,
-    HT_ICON_INDEX,
-    HT_ICON_MOVIE,
-    HT_ICON_TAR,
-    HT_ICON_TEXT,
-    HT_ICON_UU,
-    HT_ICON_AUDIO,
-    HT_ICON_PARENT,
-    HT_ICON_BLANK,
-    HT_MAX_ICON				     /* This item MUST be the last!! */
-} HTDirIconEnum;
-
-PRIVATE char *HTDirIcons[HT_MAX_ICON][2] = {
-    {"/dir-icons/unknown.xbm", 		"[FILE ]"},	/* HT_ICON_UNKNOWN */
-    {"/dir-icons/binary.xbm", 		"[BIN  ]"},	/* HT_ICON_BINARY */
-    {"/dir-icons/binhex.xbm", 		"[HEX  ]"},	/* HT_ICON_BINHEX */
-    {"/dir-icons/compressed.xbm", 	"[COMP ]"},	/* HT_ICON_COMPRESS */
-    {"/dir-icons/directory.xbm", 	"[DIR  ]"},	/* HT_ICON_DIR */
-    {"/dir-icons/link.xbm", 		"[LINK ]"},	/* HT_ICON_SLINK */
-    {"/dir-icons/ftp.xbm", 		"[FTP  ]"},	/* HT_ICON_FTP */
-    {"/dir-icons/image.xbm", 		"[IMAGE]"},	/* HT_ICON_IMAGE */
-    {"/dir-icons/index.xbm", 		"[INDEX]"},	/* HT_ICON_INDEX */
-    {"/dir-icons/movie.xbm",		"[MOVIE]"},	/* HT_ICON_MOVIE */
-    {"/dir-icons/tar.xbm",		"[TAR  ]"},	/* HT_ICON_TAR */
-    {"/dir-icons/text.xbm",		"[TEXT ]"},	/* HT_ICON_TEXT */
-    {"/dir-icons/uu.xbm",		"[UU   ]"},	/* HT_ICON_UU */
-    {"/dir-icons/sound.xbm",		"[AUDIO]"},	/* HT_ICON_AUDIO */
-    {"/dir-icons/back.xbm",	 	"[UP   ]"},	/* HT_ICON_PARENT */
-    {"/dir-icons/blank.xbm", 		"       "}	/* HT_ICON_BLANK */
-};
-#endif /* OLD_CODE */
-
 
 typedef enum _HTShowLength {                        /* Width of each collumn */
     HT_LENGTH_MODE  = 10,
@@ -146,7 +100,6 @@ typedef enum _HTShowLength {                        /* Width of each collumn */
     HT_LENGTH_DATE  = 15,
     HT_LENGTH_SPACE = 1
 } HTShowLength;
-
 
 PRIVATE int HTDirFileLength;      /* HTMinDirFileName < x < HTMaxDirFileName */
 PRIVATE int HTBodyLength;
@@ -400,10 +353,6 @@ PRIVATE HTIconNode * HTGetIcon ARGS3(mode_t,	mode,
 }
 
 
-
-
-#ifdef GOT_READ_DIR
-
 /* 							     	FilePerm()
 **	Writes the file permissions into strptr.
 **	ISN'T THERE A FASTER METHOD???
@@ -453,53 +402,6 @@ PRIVATE void FilePerm ARGS2(mode_t, mode, char *, strptr)
     else
 	*strptr++ = '-';
 }
-
-
-#ifdef OLD_CODE
-/* 							     	IconType()
-**	Finds an appropiate icon for the file, directory etc.
-**     	First mode is checked to see if it is a REG FILE, DIR, LINK or SPECIAL.
-**	If it is a REG FILE then the content type and content encoding is
-**	considered.
-*/
-PRIVATE HTDirIconEnum IconType ARGS2(mode_t, mode, char *, filename)
-{
-    if ((mode & S_IFMT) == S_IFREG) {
-	char *formatstr;
-	char *strptr;
-	HTAtom *encoding;
-	HTAtom *language;
-	HTFormat format = HTFileFormat(filename, &encoding, &language);
-	formatstr = HTAtom_name(format);
-	if ((strptr = strrchr(formatstr, '/')) == NULL)
-	    return HT_ICON_UNKNOWN;
-	if (!strncasecomp(formatstr, "text", 4)) {
-	    return HT_ICON_TEXT;
-	} else if (!strncasecomp(formatstr, "application", 11)) {
-	    if (encoding == WWW_ENC_BINARY) {
-		return HT_ICON_BINARY;
-	    } else if (encoding == WWW_ENC_COMPRESS) {
-		return HT_ICON_COMPRESS;
-	    } else {
-		return HT_ICON_TEXT;
-	    }
-	} else if (!strncasecomp(formatstr, "image", 5)) {
-	    return HT_ICON_IMAGE;
-	} else if (!strncasecomp(formatstr, "video", 5)) {
-	    return HT_ICON_MOVIE;
-	} else if (!strncasecomp(formatstr, "audio", 5)) {
-	    return HT_ICON_AUDIO;
-	} else
-	    return HT_ICON_UNKNOWN;
-    } else if ((mode & S_IFMT) == S_IFDIR) {
-	return HT_ICON_DIR;
-    } else if ((mode & S_IFMT) == S_IFLNK) {
-	return HT_ICON_SLINK;
-    } else {
-	return HT_ICON_UNKNOWN;
-    }
-}
-#endif /* OLD_CODE */
 
 
 #if 0	/* Not needed currently */
@@ -651,7 +553,7 @@ PRIVATE void  DirFileInfoClear ARGS1(dir_file_info *, file_info)
     FREE(file_info->f_uid);
     FREE(file_info->f_gid);
     file_info->f_size = 0L;
-    file_info->f_mtime = 0L;
+    file_info->f_mtime = (time_t) 0;
 }
 
 
@@ -788,6 +690,22 @@ PRIVATE char *InitBody NOARGS
 }
 
 
+/*      							HTDirOutMessage
+**
+**    Puts out the message to default output.
+*/
+PRIVATE void HTDirOutMessage ARGS2(HTStructured *, target,
+				   HTChunk *, message)
+{
+    if (!message)
+	return;
+    START(HTML_PRE);
+    PUTS(message->data);
+    END(HTML_PRE);
+    return;
+}
+
+
 /*	Send README file			       		HTDirOutReadme
 **
 **  If a README file exists, then it is inserted into the document here.
@@ -841,10 +759,11 @@ Bug removed thanks to joe@athena.mit.edu */
 **    This gives the TITLE and H1 header, and also a link
 **    to the parent directory if appropriate.
 */
-PRIVATE void HTDirOutTop ARGS4(HTStructured *, target,
+PRIVATE void HTDirOutTop ARGS5(HTStructured *, target,
 			       HTAnchor *, anchor,
 			       char *, top_body,
-			       char *, directory)
+			       char *, directory,
+			       HTChunk *, message)
 {
     char *logical = HTAnchor_address(anchor);
     char *path = HTParse(logical, "", PARSE_PATH + PARSE_PUNCTUATION);
@@ -887,8 +806,9 @@ PRIVATE void HTDirOutTop ARGS4(HTStructured *, target,
 	END(HTML_H1);
 	free(title);
     }
-
-    if (HTDirReadme == HT_DIR_README_TOP)
+    if (message && HTDirInfo == HT_DIR_INFO_TOP)
+	HTDirOutMessage(target, message);
+    else if (HTDirReadme == HT_DIR_README_TOP)
 	HTDirOutReadme(target, directory);
 
     /* Output parent directory */
@@ -935,22 +855,10 @@ PRIVATE void HTDirOutTop ARGS4(HTStructured *, target,
 	    HTStartAnchor(target, NULL, relative);
 	    free(relative);
 	    PUTS("Parent directory");
-#if 0
-	    PUTS(parent);
-#endif
 	    END(HTML_A);
 	    PUTC('\n');
 	}
     }
-#if 0
-    } else
-	PUTS(parent);
-#endif
-
-#if 0
-    END(HTML_PRE);
-#endif
-
     free(logical);
     free(path);
 }
@@ -977,12 +885,13 @@ PRIVATE void HTDirOutList ARGS3(HTStructured *, target, HTBTree *, bt,
     HTDirKey *nkey;
     StrAllocCopy(tail, pathtail);
     tailend = strlen(tail);
-    
+
     do {
 	nkey = (HTDirKey *) next_node->object;
 	escaped = HTEscape(nkey->filename, URL_XPALPHAS);
 	*(tail+tailend) = '\0';
 	StrAllocCat(tail, escaped);
+
 	if (HTDirShowMask & HT_DIR_ICON_ANCHOR  &&
 	    nkey->icon && nkey->icon->icon_url) {	/* Icon as anchor */
 	    HTStartAnchor(target, NULL, tail);
@@ -1018,9 +927,6 @@ PRIVATE void HTDirOutList ARGS3(HTStructured *, target, HTBTree *, bt,
 	    if (HTDirShowMask & HT_DIR_SHOW_SLINK && nkey->symlink)
 		START(HTML_I);
 	    HTStartAnchor(target, NULL, tail);
-#if 0
-	    PUTS(nkey->filename);
-#else
 	    {
 		int extra = nkey->is_dir ? 1 : 0;
 		if ((int)strlen(nkey->filename) + extra > HTDirFileLength) {
@@ -1045,7 +951,6 @@ PRIVATE void HTDirOutList ARGS3(HTStructured *, target, HTBTree *, bt,
 			PUTC('/');
 		}
 	    }
-#endif
 	    END(HTML_A);
 	    if (HTDirShowMask & HT_DIR_SHOW_SLINK && nkey->symlink)
 		END(HTML_I);
@@ -1061,9 +966,6 @@ PRIVATE void HTDirOutList ARGS3(HTStructured *, target, HTBTree *, bt,
 	KeyFree(nkey);
 	FREE(escaped);
     } while ((next_node = HTBTree_next(bt, next_node)) != NULL);
-#if 0
-    END(HTML_PRE);
-#endif
     free(tail);
 }
 
@@ -1073,9 +975,10 @@ PRIVATE void HTDirOutList ARGS3(HTStructured *, target, HTBTree *, bt,
 **
 **    This function outputs the last part of the directory listings
 */
-PRIVATE void HTDirOutBottom ARGS3(HTStructured *, target,
+PRIVATE void HTDirOutBottom ARGS4(HTStructured *, target,
 				  unsigned int, files,
-				  char *, directory)
+				  char *, directory,
+				  HTChunk *, message)
 {
     char *outstr;
 
@@ -1092,11 +995,14 @@ PRIVATE void HTDirOutBottom ARGS3(HTStructured *, target,
     free(outstr);
     END(HTML_PRE);
 
-    if (HTDirReadme == HT_DIR_README_BOTTOM)
+    if (message && HTDirInfo == HT_DIR_INFO_BOTTOM)
+	HTDirOutMessage(target, message);
+    else if (HTDirReadme == HT_DIR_README_BOTTOM)
 	HTDirOutReadme(target, directory);
 }
 
 
+#ifdef GOT_READ_DIR
 /*						    	HTBrowseDirectory()
 **	This function scrolls through the directory file given and
 **	generates an HTML-object. It uses the global variables:
@@ -1130,16 +1036,13 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
     HTList * descriptions = NULL;
 
     if (TRACE)
-	fprintf(stderr,"HTBrowseDirectory: %s is a directory\n", directory);
+	fprintf(stderr,"HTBrowse.... Browsing `%s\'\n", directory);
         
     if (HTDirAccess == HT_DIR_FORBID)
 	return HTLoadError(req, 403, "Directory browsing is not allowed.");
     
     /* Initialize path name for stat() */
     StrAllocCopy(pathname, directory);
-#if 0
-    HTUnEscape(pathname);
-#endif
     pathend = strlen(pathname);
     if (*(pathname+pathend-1) != '/') {
 	StrAllocCat(pathname, "/");
@@ -1171,7 +1074,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	StrAllocCat(pathname, HT_DIR_ENABLE_FILE);
 	if (stat(pathname, &file_info)) {
 	    if (TRACE) fprintf(stderr,
-	        "HTBrowseDirectory: Can't stat() file: %s (errno: %d)\n",
+	        "HTBrowse.... Can't stat() file: %s (errno: %d)\n",
 			       pathname, errno);
 	    free(pathname);
 	    return HTLoadError(req, 403,
@@ -1181,7 +1084,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 
     if ((dp = opendir(directory)) == NULL) {
 	if (TRACE) fprintf(stderr,
-	    "HTBrowseDirectory: Can't open directory: %s. (errno: %d)\n",
+	    "HTBrowse.... Can't open directory: %s. (errno: %d)\n",
 			   directory, errno);
 	return HTLoadError(req, 403, "This directory is not readable.");
     }
@@ -1249,7 +1152,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	    StrAllocCat(pathname, dirbuf->d_name);
 	    if (lstat(pathname, &file_info)) {
 		if (TRACE) fprintf(stderr,
-		"HTBrowseDirectory: OUPS, lstat failed on %s (errno: %d)\n",
+		"HTBrowse.... OUPS, lstat failed on %s (errno: %d)\n",
 				   pathname, errno);
 		KeyFree(nodekey);
 		DirAbort(bt);
@@ -1264,9 +1167,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 		int symend;		
 		if (stat(pathname, &file_info)) {
 		    if (TRACE)
-			fprintf(stderr,
-				"stat failed on symbolic link %s, errno: %d\n",
-				pathname, errno);
+			fprintf(stderr, "HTBrowse.... stat failed on symbolic link %s, errno: %d\n", pathname, errno);
 		    KeyFree(nodekey);
 		    continue;
 		}
@@ -1277,7 +1178,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 		if (symend < 0) {
 		    if (TRACE)
 			fprintf(stderr,
-			        "HTBrowseDirectory: readlink errno: %d (%s)\n",
+			        "HTBrowse.... readlink errno: %d (%s)\n",
 				errno, pathname);
 		    FREE(nodekey->symlink);
 		} else {
@@ -1327,10 +1228,6 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 		bodyptr = nodekey->body;
 		memset(bodyptr, ' ', HTBodyLength);
 		if (HTDirShowMask & HT_DIR_SHOW_DATE) {
-#ifdef OLD_CODE
-		    strftime(bodyptr, HT_LENGTH_DATE+1, "%b %d %y %H:%M",
-			     localtime(&file_info.st_mtime));
-#endif
 		    strftime(bodyptr, HT_LENGTH_DATE+1, "%d-%b-%y %H:%M",
 			     localtime(&file_info.st_mtime));
 		    bodyptr += HT_LENGTH_DATE;
@@ -1357,7 +1254,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 		    char *pwptr;
 		    if ((pw_info = getpwuid(file_info.st_uid)) == NULL) {
 			if (TRACE) fprintf(stderr,
-			    "HTBrowseDirectory: getpwuid() failed on %s\n",
+				      "HTBrowse.... getpwuid() failed on %s\n",
 					   pathname);
 			ItoA(file_info.st_uid, bodyptr, HT_LENGTH_OWNER);
 		    } else {
@@ -1372,7 +1269,7 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 		    char *grptr;
 		    if ((gr_info = getgrgid(file_info.st_gid)) == NULL) {
 			if (TRACE) fprintf(stderr,
-			    "HTBrowseDirectory: getgrgid() failed on %s\n",
+			    "HTBrowse.... getgrgid() failed on %s\n",
 					   pathname);
 			ItoA(file_info.st_gid, bodyptr, HT_LENGTH_GROUP);
 		    } else {
@@ -1416,14 +1313,14 @@ PUBLIC int HTBrowseDirectory ARGS2(HTRequest *, req, char *, directory)
 	    HTDirFileLength = HTDirMinFileLength;
    
 	/* Put out the header for the HTML object */
-	HTDirOutTop(target, (HTAnchor *) req->anchor, topstr, directory);
+	HTDirOutTop(target, (HTAnchor *) req->anchor, topstr, directory, NULL);
 
 	/* Run through tree printing out in order, hopefully :-) */
 	if (filecnt) {
 	    HTDirOutList(target, bt, tail);
 	}
 
-	HTDirOutBottom(target, filecnt, directory);
+	HTDirOutBottom(target, filecnt, directory, NULL);
 
 cleanup:
 	if (descriptions)
@@ -1439,6 +1336,7 @@ cleanup:
     return HT_LOADED;
 } /* End of directory reading section */
 
+#endif /* GOT_READ_DIR */
 
 /*						    	HTFTPBrowseDirectory()
 **	This function scrolls through the directory file given in a FTP session
@@ -1459,19 +1357,18 @@ cleanup:
 **	NOTE:	The function expects that the URL given as directory IS
 **		UNescaped AND Simplified.
 **
-**	NOTE: THIS IS NOT FINISHED
-**
 **	Returns < 0 on error, HT_LOADED on succes
 */
-PUBLIC int HTFTPBrowseDirectory ARGS3(HTRequest *, req, char *, directory,
+PUBLIC int HTFTPBrowseDirectory ARGS4(HTRequest *, req, char *, directory,
+				      ftp_data_info *, data,
 				      HTDirLineInput, input)
 {
+    int status;
     char *tail = NULL;
     HTStructured *target;				      /* HTML object */
     HTStructuredClass targetClass;
     
-    if (TRACE)
-	fprintf(stderr,"HTFTPBrowseDirectory: %s is a directory\n", directory);
+    if (TRACE) fprintf(stderr, "HTFTPBrowse. Browsing `%s\'\n", directory);
         
     /* Set up the offset string of the anchor reference */
     {
@@ -1501,18 +1398,13 @@ PUBLIC int HTFTPBrowseDirectory ARGS3(HTRequest *, req, char *, directory,
     /* Now, generate the Btree and put it out to the output stream. */
     {
 	BOOL old_descr = HTDirDescriptions;
-	unsigned int old_show_mask = HTDirShowMask;
 	unsigned int filecnt = 0;
 	char *topstr = NULL;
-	int status;
 	char dottest = 2;		  /* To avoid two strcmp() each time */
 	dir_file_info file_info;
 	HTBTree *bt;
 
 	/* TEMPORARY */
-#if 0
-	HTDirShowMask = HT_DIR_SHOW_ICON+HT_DIR_KEY_NAME;
-#endif
 	HTDirDescriptions = NULL;
 
 	/* Set up sort key and initialize BTree */
@@ -1534,7 +1426,7 @@ PUBLIC int HTFTPBrowseDirectory ARGS3(HTRequest *, req, char *, directory,
 	HTDirFileLength = 0;
 
 	/* Build tree */
-	while ((status = input(&file_info)) > 0) {
+	while ((status = input(data, &file_info)) > 0) {
 	    HTDirKey *nodekey;
 	    HTAtom *encoding;
 	    HTAtom *language;
@@ -1642,7 +1534,7 @@ PUBLIC int HTFTPBrowseDirectory ARGS3(HTRequest *, req, char *, directory,
 	    HTBTree_add(bt, (void *) nodekey);
 	} /* End while input() */
 
-	if (status < 0) {  /* On error: exit, if interrupt: Show what's read */
+	if (status < 0) {
 	    DirAbort(bt);
 	    goto cleanup;
 	}
@@ -1653,29 +1545,24 @@ PUBLIC int HTFTPBrowseDirectory ARGS3(HTRequest *, req, char *, directory,
             HTDirFileLength = HTDirMinFileLength;
 
 	/* Put out the header for the HTML object */
-	HTDirOutTop(target, (HTAnchor *) req->anchor, topstr, directory);
+	HTDirOutTop(target, (HTAnchor *) req->anchor, topstr, directory,
+		    data->ctrl->welcome);
 
 	/* Run through tree printing out in order, hopefully :-) */
 	if (filecnt) {
 	    HTDirOutList(target, bt, tail);
 	}
-	HTDirOutBottom(target, filecnt, directory);
+	HTDirOutBottom(target, filecnt, directory, data->ctrl->welcome);
 
 cleanup:
 	FREE(HTDirSpace);
 	FREE(topstr);
 	free(tail);
-#if 0
-	HTChunkFree(dirbuf);
-#endif
 	HTBTree_free(bt);
-#if 0
-	HTDirShowMask = old_show_mask;		                /* TEMPORARY */
-#endif
+
+	/* TEMPORARY */
 	HTDirDescriptions = old_descr;
     } /* End of two big loops */
     FREE_TARGET;
-    return HT_LOADED;
+    return status ? status : HT_LOADED;
 } /* End of FTP directory listing */
-
-#endif /* GOT_READ_DIR */

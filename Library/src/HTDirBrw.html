@@ -6,6 +6,8 @@
 <H1>Directory Browsing</H1>
 <PRE>#ifndef HTDIRBRW_H
 #define HTDIRBRW_H
+
+#include "HTFTP.h"
 </PRE>
  
 <H2>Controlling globals</H2>
@@ -28,6 +30,17 @@ extern int HTDirReadme;			 /* List a file in the dir listings? */
 #define HT_DIR_README_TOP	1	                       /* Yes, first */
 #define HT_DIR_README_BOTTOM	2	                  /* Yes, at the end */
 #define HT_DIR_README_FILE	"README"
+</PRE>
+
+<H3>Show additional info in the Listings?</H3>
+
+This might be the welcome message when using FTP etc.
+
+<PRE>
+extern int HTDirInfo;
+#define HT_DIR_INFO_NONE	0	                               /* No */
+#define HT_DIR_INFO_TOP		1	                       /* Yes, first */
+#define HT_DIR_INFO_BOTTOM	2	                  /* Yes, at the end */
 </PRE>
 
 <H3>What Should the Listings Look Like?</H3>
@@ -100,16 +113,16 @@ extern int HTDirMaxDescrLength;
 
 <H3>Rough estimate of max path length</H3>
 <PRE>
-#if defined(MAXPATHLEN)
+#ifdef MAXPATHLEN
 #define HT_MAX_PATH MAXPATHLEN
-#elif defined(PATH_MAX)
+#else
+#ifdef PATH_MAX
 #define HT_MAX_PATH PATH_MAX
 #else
-#define HT_MAX_PATH 1024			      /* Any better ideas??? */
+#define HT_MAX_PATH 1024	 	      /* Any better ideas??? */
+#endif
 #endif
 </PRE>
-
-<<<<<<< HTDirBrw.html
 
 <H3>Functions for directory browsing on local UNIX system</H3>
 
@@ -131,7 +144,7 @@ typedef struct _dir_file_info {
     char *		f_uid;
     char *		f_gid;
     unsigned long	f_size;
-    unsigned long	f_mtime;
+    time_t		f_mtime;
 } dir_file_info;
 </PRE>
 
@@ -139,12 +152,22 @@ typedef struct _dir_file_info {
 This function fills out the EntryInfo fil structure and should return 
 
 <UL>
-<LI>If error: -1
-<LI>EOF or interrupted by user: 0
+<LI>If Interrupted: HTINTERRUPT
+<LI>If EOF: 0
 <LI>If succes and more to read: 1
 </UL>
 
-=======
+<PRE>
+typedef int (*HTDirLineInput) PARAMS((ftp_data_info *, dir_file_info *));
+</PRE>
+
+<PRE>
+extern int HTFTPBrowseDirectory PARAMS((
+		HTRequest * 	req,
+		char *		directory,
+		ftp_data_info *	data,
+		HTDirLineInput  input));
+</PRE>
 
 <H2>Icons</H2>
 
@@ -209,28 +232,6 @@ initialize a standard icon set:
 </UL>
 <PRE>
 PUBLIC void HTStdIconInit PARAMS((char * url_prefix));
-</PRE>
-
-
-
-<H2>Where do FTP Directory Listings get input?</H2>
-This function fills out the EntryInfo fil structure and should return
-
-<UL>
-<LI>If error: -1
-<LI>EOF or interrupted by user: 0
-<LI>If succes and more to read: 1
-</UL>
-
-<PRE>
-typedef int (*HTDirLineInput) PARAMS((void *));
-</PRE>
-
-<PRE>
-extern int HTFTPBrowseDirectory PARAMS((
-		HTRequest * 	req,
-		char *		directory,
-		HTDirLineInput  input));
 </PRE>
 
 <PRE>

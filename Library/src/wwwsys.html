@@ -506,6 +506,9 @@ already defined specifically.
 #include &lt;sys/fcntl.h>
 #include &lt;limits.h>
 #endif
+#ifndef FNDELAY
+#define FNDELAY		O_NDELAY
+#endif
 #endif
 
 </PRE>

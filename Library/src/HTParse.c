@@ -218,8 +218,10 @@ char * HTParse(aName, relatedName, wanted)
 		    *p = (char)0;	/* It is the default: ignore it */
 		}
 		if (!p) p = tail + strlen(tail); /* After hostname */
-		p--;				/* End of hostname */
-		if (*p == '.') *p = (char)0; /* chop final . */
+		if (*p) {				  /* Henrik 17/04-94 */
+		    p--;				/* End of hostname */
+		    if (*p == '.') *p = (char)0; /* chop final . */
+		}
 	    }
 #endif
 	}
@@ -269,6 +271,7 @@ char * HTParse(aName, relatedName, wanted)
 }
 
 
+#if 0  /* NOT USED FOR THE MOMENT */
 /*
 **	As strcpy() but guaranteed to work correctly
 **	with overlapping parameters.	AL 7 Feb 1994
@@ -287,10 +290,11 @@ PRIVATE void ari_strcpy ARGS2(char *, to,
     strcpy(to, tmp);
     free(tmp);
 }
+#endif
+
 
 /*	        Simplify a URI
 //		--------------
-//
 // A URI is allowed to contain the seqeunce xxx/../ which may be
 // replaced by "" , and the seqeunce "/./" which may be replaced by "/".
 // Simplification helps us recognize duplicate URIs. 
@@ -384,7 +388,7 @@ PUBLIC void HTSimplify ARGS1(char *, filename)
 	free(tokstart);
     }
     if (TRACE)
-	fprintf(stderr, "HTSimplify: %s\n", filename);
+	fprintf(stderr, "HTSimplify.. `%s\'\n", filename);
 }
 #ifdef OLD_CODE
     char * p = filename;
@@ -472,8 +476,10 @@ char * HTRelative(aName, relatedName)
         StrAllocCopy(result, aName);
     } else if (slashes<3){			/* Different nodes */
     	StrAllocCopy(result, after_access);
+#if 0
     } else if (slashes==3){			/* Same node, different path */
         StrAllocCopy(result, path);
+#endif
     } else {					/* Some path in common */
         int levels= 0;
         for(; *q && (*q!='#'); q++)  if (*q=='/') levels++;
@@ -483,8 +489,9 @@ char * HTRelative(aName, relatedName)
 	for(;levels; levels--)strcat(result, "../");
 	strcat(result, last_slash+1);
     }
-    if (TRACE) fprintf(stderr, "HT: `%s' expressed relative to\n    `%s' is\n   `%s'.",
-    		aName, relatedName, result);
+    if (TRACE) fprintf(stderr,
+		      "HTRelative.. `%s' expressed relative to `%s' is `%s'\n",
+		       aName, relatedName, result);
     return result;
 }
 

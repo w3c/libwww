@@ -422,26 +422,27 @@ PUBLIC HTInputSocket * HTInputSocket_new ARGS1 (int,file_number)
     return isoc;
 }
 
-
-PUBLIC char HTInputSocket_getCharacter ARGS1(HTInputSocket*, isoc)
+/* This should return HT_INTERRUPTED if interrupted BUT the connection
+   MUST not be closed */ 
+PUBLIC int HTInputSocket_getCharacter ARGS1(HTInputSocket*, isoc)
 {
-    char ch;
+    int ch;
     do {
 	if (isoc-> input_pointer >= isoc->input_limit) {
 	    int status = NETREAD(
 		   isoc->input_file_number,
 		   isoc->input_buffer, INPUT_BUFFER_SIZE);
 	    if (status <= 0) {
-		if (status == 0) return (char)EOF;
+		if (status == 0) return EOF;
 		if (TRACE) fprintf(stderr,
 		    "HTFormat: File read error %d\n", status);
-		return (char)EOF; /* -1 is returned by UCX at end of HTTP link */
+		return EOF; /* -1 is returned by UCX at end of HTTP link */
 	    }
-	    isoc-> input_pointer = isoc->input_buffer;
+	    isoc->input_pointer = isoc->input_buffer;
 	    isoc->input_limit = isoc->input_buffer + status;
 	}
-	ch = *isoc-> input_pointer++;
-    } while (ch == (char) 13); /* Ignore ASCII carriage return */
+	ch = (int) *isoc->input_pointer++;
+    } while (ch == 13); /* Ignore ASCII carriage return */
     
     return FROMASCII(ch);
 }

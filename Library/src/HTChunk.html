@@ -8,6 +8,10 @@ A chunk is a structure which may
 be extended.  These routines create
 and append data to chunks, automatically
 reallocating them as necessary.
+<PRE>#ifndef HTCHUNK_H
+#define HTCHUNK_H
+</PRE>
+
 <PRE>typedef struct {
 	int	size;		/* In bytes			*/
 	int	growby;		/* Allocation unit in bytes	*/
@@ -170,6 +174,8 @@ HTChunkCreate()
 <PRE>
 
 extern void HTChunkTerminate PARAMS((HTChunk * ch));
+
+#endif
 
 </PRE>end</A></BODY>
 </HTML>
