@@ -130,7 +130,6 @@ PUBLIC void HTFileInit (void)
 
     HTBind_add("zip",	"application/zip",		NULL,		"binary",	NULL,	1.0);	/* PKZIP		*/
     HTBind_add("Z",	 NULL,				"compress", 	"binary",	NULL,	1.0);	/* Compressed data	*/
-    HTBind_add("Z",	 NULL,				"x-compress", 	"binary",	NULL,	1.0);	/* Compressed data	*/
     HTBind_add("gz",	 NULL,				"gzip",		"binary",	NULL,	1.0);	/* Gnu Compressed data	*/
 
     HTBind_add("*.*",	"www/unknown",			NULL,		"binary",	NULL,	0.1);	/* Unknown suffix */
