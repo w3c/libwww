@@ -1772,6 +1772,21 @@ PUBLIC BOOL HTCache_updateMeta (HTCache * cache, HTRequest * request,
     return NO;
 }
 
+PUBLIC BOOL HTCache_resetMeta (HTCache * cache, HTRequest * request,
+				HTResponse * response)
+{
+  /* what a problem... we update the cache with the wrong data
+     from the response... after the redirection */
+  HTCache_updateMeta (cache, request, response);
+  cache->size = 0;
+  cache->range = YES;
+  /* @@ JK: update the cache meta data on disk */
+  HTCache_writeMeta (cache, request, response);
+  /* @@ JK: and we remove the file name as it's obsolete 
+     now */
+  REMOVE(cache->cachename);
+}
+
 /*
 **  Remove from disk. You must explicitly remove a lock
 **  before this operation can succeed

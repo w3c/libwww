@@ -1,5 +1,23 @@
 Changes with libwww 5.3.3
 
+2001-08-30      Jose Kahan <jose@w3.org>
+
+	* Added a new field in the HTRequest structure for specifying
+	  a user defined Content-Location. This allows to use the library
+	  functions to access a resource, while in fact the request sent
+	  to the server is made to the value of the user defined 
+	  Content-Location. This sound silly, but it allows to keep the
+	  libwww state coherent and it doesn't break the requests like
+	  the previous (and banned since long time) real content-location
+	  handling. To avoid confusion, this field is called
+	  default_put_name. See HTReqMan.h for the name of the functions
+	  that handle this field.
+
+        * New public function in HTCache.c to reset the value of a cache
+	  entry and delete the cached file. This is interesting when 
+	  we want to keep a cache entry, but force the cache entry to be
+	  refreshed.  HTCache_resetMeta ().
+
 2001-08-14	Jose Kahan <jose@w3.org>
 
 	* HTProfile_newPreemptiveClient wasn't intializing the 

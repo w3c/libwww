@@ -251,6 +251,12 @@ version. Therefore we need a special metainformation update function.
 extern BOOL HTCache_updateMeta (HTCache * cache, HTRequest * request,
                                 HTResponse * response);
 </PRE>
+<P>
+Clear a cache entry
+<PRE>
+extern BOOL HTCache_resetMeta (HTCache * cache, HTRequest * request,
+                                HTResponse * response);
+</PRE>
 <H3>
   Check Cached Entry
 </H3>
