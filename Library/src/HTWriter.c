@@ -167,7 +167,7 @@ PRIVATE int HTWriter_write (HTOutputStream * me, const char * buf, int len)
 	len -= b_write;
 	if (STREAM_TRACE) HTTrace("Write Socket %d bytes written to %d\n", b_write, soc);
 	{
-	    HTAlertCallback *cbf = HTAlert_find(HT_PROG_READ);
+	    HTAlertCallback *cbf = HTAlert_find(HT_PROG_WRITE);
 	    if (cbf) (*cbf)(net->request, HT_PROG_WRITE,
 			    HT_MSG_NULL, NULL, NULL, NULL);
 	}
