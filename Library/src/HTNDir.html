@@ -1,0 +1,87 @@
+<HTML>
+<HEAD>
+<TITLE>Generic News Browsing</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 29-Oct-1995 -->
+</HEAD>
+<BODY>
+
+<H1>Generic News Browsing</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This news browser generates listings for NNTP reponses. This module
+contains the protocol independent code and it produces the HTML
+object. It is only included if the <A HREF="HTNews.html">NNTP</A>.<P>
+
+This module is implemented by <A HREF="HTNDir.c">HTNDir.c</A>, and it
+is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C
+Reference Library</A>.
+
+<PRE>
+#ifndef HTNDIR_H
+#define HTNDIR_H
+#include "HTReq.h"
+</PRE>
+
+<H2>What Should the Listings Look Like?</H2>
+
+You can set how the listings are to be sorted using the following
+flags.
+
+<PRE>
+typedef enum _HTNewsDirKey {
+    HT_NDK_THREAD	= 0,			/* Sort by Thread */
+    HT_NDK_SUBJECT	= 1,			/* Sort by Subject */
+    HT_NDK_FROM		= 2,			/* Sort by Sender */
+    HT_NDK_GROUP	= 3			/* Sort group listing */
+} HTNewsDirKey;
+</PRE>
+
+<H2>The News Listing Object</H2>
+
+The news listing object handles the generation of a news listing. It
+is a bit like a stream in that it accept data, but it must be
+formatted in a special way which makes the normal stream architecture
+inadequate.
+
+<H3>Create a News Listing Object</H3>
+
+Creates a structured stream object and sets up the initial HTML stuff
+Returns the dir object if OK, else NULL
+
+<PRE>
+typedef struct _HTNewsDir HTNewsDir;
+extern HTNewsDir * HTNewsDir_new (HTRequest * request, CONST char * title,
+				  HTNewsDirKey key);
+</PRE>
+
+<H3>Add a Line to the List</H3>
+
+This function accepts a news line. Everything except dir and nama can
+can be 0 or NULL. Returns YES if OK, else NO
+
+<PRE>
+extern BOOL HTNewsDir_addElement (HTNewsDir * dir, char * name, int  index,
+				  char * subject, char * from, int refs);
+</PRE>
+
+<H3>Free a News Listing Object</H3>
+
+If we are sorting then do the sorting and put out the list, else just
+append the end of the list.
+
+<PRE>
+extern BOOL HTNewsDir_free (HTNewsDir * dir);
+</PRE>
+
+<PRE>
+#endif /* HTNDIR */
+</PRE>
+End of declaration
+</BODY>
+</HTML>
