@@ -55,6 +55,14 @@ int main (int argc, char ** argv)
     /* Add our own filter to update the history list */
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
 
+    /* Set the timeout for long we are going to wait for a response */
+    HTHost_setEventTimeout(20000);
+
+    /* Get trace messages */
+#if 0
+    HTSetTraceMessageMask("sop");
+#endif
+
     /* Handle command line args */
     if (argc >= 2) {
 	int arg;
