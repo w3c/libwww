@@ -220,6 +220,7 @@ PUBLIC void HTBTree_add ARGS2(
 
             /*
             ** 2/ Balancing the binary tree, if necessary
+	    ** Bugs in this part have been fixed in March 94  -  AS
             */
         top_found = YES;
         corrections = 0;
@@ -246,7 +247,7 @@ PUBLIC void HTBTree_add ARGS2(
                     **
                     ** 3 is used to show that it need not be the top of the tree
 		    ** But let's avoid these two exceptions anyhow 
-		    ** with the two following conditions (4 March 94 - AS)
+		    ** with the two following conditions (March 94 - AS)
                     */
 
 		if ((father_of_element->left == NULL) 
@@ -271,7 +272,7 @@ PUBLIC void HTBTree_add ARGS2(
                                           father_of_element->left_depth);
                     if (father_of_element->up != NULL)
 		    {
-			/* Bug fixed in March 94  -  AS */
+			/* Bug fixed in March 94  */
 			BOOL first_time;
 
                         father_of_forefather = father_of_element->up;
@@ -376,7 +377,7 @@ PUBLIC void HTBTree_add ARGS2(
                             MAXIMUM(father_of_element->right_depth,
                                 father_of_element->left_depth);
                     if (father_of_element->up != NULL)
-			/* Bug fixed in March 94  -  AS */
+			/* Bug fixed in March 94  */
 		    {
 			BOOL first_time;
 
