@@ -2,8 +2,20 @@ Changes with libwww 5.3.2
 
 2002-06-05	Jose Kahan <jose@w3.org>
 
+	* The Library/User/Extrnals.html file (a list of all exported
+ 	  functions and variables) wasn't being generated with the
+	  consequence that make failed.
+
+2002-06-05	Jose Kahan <jose@w3.org>
+
         * Updated the auto-tools files in ~/libwww and ~/libwww/config
-	  to the latest version.
+	  to the latest versions (autoconf 2.13, libtool 1.4.2a). If you
+   	  when compiling you see warning messages saying:
+	    libtool: test =: unary operator expected
+  	  it means you're running an old version of libtool. If you
+          cannot update this tool, then, go to the libwww directory and type:
+		libtoolize -c -f
+          then bootstrap the library again. This will fix your problem.
 
 2002-06-05	Richard Atterer <libwww@list02.atterer.net>
 
