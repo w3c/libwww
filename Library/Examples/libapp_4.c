@@ -15,9 +15,10 @@ int main (int argc, char ** argv)
 		     1.0, 0.0, 0.0);
     HTFormat_setConversion(converters);
     if (argc == 3 && *argv[2]) {
-	FILE = fp;
+	FILE * fp;
 	if ((fp = fopen(argv[2], "wb")) != NULL) {
-	    HTRequest_setOutputStream(request, HTFWriter_new(request, fp, YES));
+	    HTRequest_setOutputFormat(request, WWW_SOURCE);
+	    HTRequest_setOutputStream(request, HTFWriter_new(request, fp,YES));
 	    HTLoadAbsolute(argv[1], request);
 	    fclose(fp);
 	} else {

@@ -1798,6 +1798,15 @@ int main (int argc, char ** argv)
 
     }
 
+    /* Register our User Prompts etc in the Alert Manager */
+    if (HTAlert_interactive()) {
+	HTAlert_add(HTError_print, HT_A_MESSAGE);
+	HTAlert_add(HTConfirm, HT_A_CONFIRM);
+	HTAlert_add(HTPrompt, HT_A_PROMPT);
+	HTAlert_add(HTPromptPassword, HT_A_SECRET);
+	HTAlert_add(HTPromptUsernameAndPassword, HT_A_USER_PW);
+    }
+
     /* Rule file specified? */
     if (lm->rules) {
 	HTList * list = HTList_new();
@@ -1808,21 +1817,10 @@ int main (int argc, char ** argv)
 	HTConversion_add(list, "application/x-www-rules", "*/*", HTRules,
 			 1.0, 0.0, 0.0);
 	HTRequest_setConversion(rr, list, YES);
-	HTAlert_add(HTConfirm, HT_A_CONFIRM);
 	if (HTLoadAnchor((HTAnchor *) ra, rr) != YES)
 	    if (SHOW_MSG) TTYPrint(TDEST, "Can't access rules\n");
 	HTConversion_deleteAll(list);
-	HTAlert_delete(HTConfirm);
 	HT_FREE(rules);
-    }
-
-    /* Register our User Prompts etc in the Alert Manager */
-    if (HTAlert_interactive()) {
-	HTAlert_add(HTError_print, HT_A_MESSAGE);
-	HTAlert_add(HTConfirm, HT_A_CONFIRM);
-	HTAlert_add(HTPrompt, HT_A_PROMPT);
-	HTAlert_add(HTPromptPassword, HT_A_SECRET);
-	HTAlert_add(HTPromptUsernameAndPassword, HT_A_USER_PW);
     }
 
     /* Register a call back function for the Net Manager */

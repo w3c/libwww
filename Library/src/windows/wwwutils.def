@@ -40,17 +40,29 @@ HTList_indexOf		@ 509
 HTList_objectAt		@ 510
 HTList_removeObjectAt	@ 511
 
-;HTString.c		@ 600
-strcasecomp		@ 601
-strncasecomp		@ 602
-strcasestr		@ 603
-HTSACopy		@ 604
-HTSACat			@ 605
-HTStrMatch		@ 606
-HTStrCaseMatch		@ 607
-HTStrip			@ 608
+;HTMemory.c		@ 600
+HTMemoryCall_add	@ 601
+HTMemoryCall_delete	@ 602
+HTMemoryCall_deleteAll	@ 603
+HTMemory_malloc		@ 604
+HTMemory_calloc		@ 605
+HTMemory_realloc	@ 606
+HTMemory_free		@ 607
+HTMemory_setExit	@ 608
+HTMemory_exit		@ 609
+HTMemory_outofmem	@ 610
 
-;HTUU.c			@ 700
-HTUU_encode		@ 701
-HTUU_decode		@ 702
+;HTString.c		@ 700
+strcasecomp		@ 701
+strncasecomp		@ 702
+strcasestr		@ 703
+HTSACopy		@ 704
+HTSACat			@ 705
+HTStrMatch		@ 706
+HTStrCaseMatch		@ 707
+HTStrip			@ 708
+
+;HTUU.c			@ 800
+HTUU_encode		@ 801
+HTUU_decode		@ 802
 

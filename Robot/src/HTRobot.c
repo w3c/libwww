@@ -129,7 +129,7 @@ PRIVATE HyperDoc * HyperDoc_new (Robot * mr,HTParentAnchor * anchor, int depth)
 PRIVATE BOOL HyperDoc_delete (HyperDoc * hd)
 {
     if (hd) {
-	free (hd);
+	HT_FREE (hd);
 	return YES;
     }
     return NO;
@@ -182,9 +182,9 @@ PRIVATE BOOL Robot_delete (Robot * me)
 	}
 	if (me->logfile) HTLog_close();
 	if (me->output && me->output != STDOUT) fclose(me->output);
-	FREE(me->cwd);
-	free(me->tv);
-	free(me);
+	HT_FREE(me->cwd);
+	HT_FREE(me->tv);
+	HT_FREE(me);
 	return YES;
     }
     return NO;
@@ -313,12 +313,12 @@ PRIVATE int proxy_handler (HTRequest * request, int status)
 	char * gatewayed = HTParse(path+1, newaddr, PARSE_ALL);
 	HTRequest_setProxying(request, NO);
 	HTAnchor_setPhysical(anchor, gatewayed);
-	free(path);
-	free(gatewayed);
+	HT_FREE(path);
+	HT_FREE(gatewayed);
     } else
 	HTRequest_setProxying(request, NO);
-    FREE(newaddr);
-    FREE(addr);
+    HT_FREE(newaddr);
+    HT_FREE(addr);
     return HT_OK;
 }
 
@@ -344,7 +344,7 @@ PUBLIC HText * HText_new2 (HTRequest * request, HTParentAnchor * anchor,
 }
 
 PUBLIC void HText_free (HText * me) {
-    if (me) free (me);
+    if (me) HT_FREE (me);
 }
 
 PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
@@ -381,7 +381,7 @@ PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
 	} else {
 	    if (SHOW_MSG) TTYPrint(TDEST, "duplicate\n");
 	}
-	FREE(uri);
+	HT_FREE(uri);
     }
 }
 
@@ -404,7 +404,7 @@ PUBLIC void HText_appendImage (HText * text, HTChildAnchor * anchor,
 	    if (SHOW_MSG) {
 		char * uri = HTAnchor_address((HTAnchor *) dest);
 		TTYPrint(TDEST, "Robot....... Checking Image `%s\'\n", uri);
-		free(uri);
+		HT_FREE(uri);
 	    }
 	    if (HTLoadAnchor((HTAnchor *) dest, newreq) != YES) {
 		if (SHOW_MSG)
@@ -561,7 +561,7 @@ int main (int argc, char ** argv)
 		mr->anchor = (HTParentAnchor *) HTAnchor_findAddress(ref);
 		HyperDoc_new(mr, mr->anchor, 0);
 		keycnt = 1;
-		FREE(ref);
+		HT_FREE(ref);
 	    } else {		   /* Check for successive keyword arguments */
 		char *escaped = HTEscape(argv[arg], URL_XALPHAS);
 		if (keycnt++ <= 1)
@@ -569,7 +569,7 @@ int main (int argc, char ** argv)
 		else
 		    HTChunk_putc(keywords, ' ');
 		HTChunk_puts(keywords, HTStrip(escaped));
-		free(escaped);
+		HT_FREE(escaped);
 	    }
 	}
     }
@@ -599,7 +599,7 @@ int main (int argc, char ** argv)
 	HTConversion_deleteAll(list);
 	HTRequest_delete(rr);
 	HTAlert_delete(HTConfirm);
-	FREE(rules);
+	HT_FREE(rules);
     }
 
     /* Output file specified? */

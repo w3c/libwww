@@ -103,9 +103,9 @@ PRIVATE BOOL ComLine_delete (ComLine * me)
 	HTRequest_delete(me->request);
 	if (me->logfile) HTLog_close();
 	if (me->output && me->output != STDOUT) fclose(me->output);
-	FREE(me->cwd);
-	free(me->tv);
-	free(me);
+	HT_FREE(me->cwd);
+	HT_FREE(me->tv);
+	HT_FREE(me);
 	return YES;
     }
     return NO;
@@ -364,7 +364,7 @@ int main (int argc, char ** argv)
 		if (arg+1 < argc && *argv[arg+1] != '-') {
 		    char * dest = HTParse(argv[++arg], cl->cwd, PARSE_ALL);
 		    cl->dest = (HTParentAnchor *) HTAnchor_findAddress(dest);
-		    FREE(dest);
+		    HT_FREE(dest);
 		}
 
 	    /* source please */
@@ -468,7 +468,7 @@ int main (int argc, char ** argv)
 		char * ref = HTParse(argv[arg], cl->cwd, PARSE_ALL);
 		cl->anchor = (HTParentAnchor *) HTAnchor_findAddress(ref);
 		keycnt = 1;
-		FREE(ref);
+		HT_FREE(ref);
 	    } else {		   /* Check for successive keyword arguments */
 		char *escaped = HTEscape(argv[arg], URL_XALPHAS);
 		if (keycnt++ <= 1)
@@ -476,7 +476,7 @@ int main (int argc, char ** argv)
 		else
 		    HTChunk_putc(keywords, ' ');
 		HTChunk_puts(keywords, HTStrip(escaped));
-		free(escaped);
+		HT_FREE(escaped);
 	    }
 	}
     }
@@ -555,7 +555,7 @@ int main (int argc, char ** argv)
 	HTConversion_deleteAll(list);
 	HTRequest_delete(rr);
 	HTAlert_delete(HTConfirm);
-	FREE(rules);
+	HT_FREE(rules);
     }
 
     /* Register a call back function for the Net Manager */
