@@ -212,6 +212,8 @@ distribute :  /pub/www/README.txt /pub/www/Copyright.txt
 	(cd $(WWW)/.. && WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 		-f WWW/LineMode/Implementation/CommonMakefile \
 		/pub/www/src/WWWLineMode_$(VL).tar.Z)
+	(cd ../Implementation; cvs tag \
+	    `sed -e 's/V. = /v/' Version.make | sed -e 's?\.?/?'` )
 	echo Distribution of Line Mode version $(VC) up to date.
 
 # THIS MUST BE BUILT FROM THE DIRECTORY ABOVE WWW ! USE distribute above!
