@@ -29,11 +29,6 @@ PUBLIC void HTProfile_delete (void)
     if (!preemptive) HTEventTerminate();
     if (HTLib_isInitialized()) {
 
-	/* Clean up SSL */
-#ifdef HT_SSL
-	HTSSLhttps_terminate();
-#endif
-
 	/* Clean up the persistent cache (if any) */
 	HTCacheTerminate();
 
@@ -90,10 +85,6 @@ PRIVATE void client_profile (const char * AppName, const char * AppVersion,
 
     /* Set up the default set of Authentication schemes */
     HTAAInit();
-
-#ifdef HT_SSL
-    HTSSLhttps_init(preemptive);
-#endif
 
     /* Get any proxy or gateway environment variables */
     HTProxy_getEnvVar();
