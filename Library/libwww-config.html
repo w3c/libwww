@@ -60,40 +60,6 @@ when compiling libwww), you can do the following:
 % <B>cd libwww</B>
 % <B>gcc -o test `libwww-config --cflags` Library/Examples/libapp_1.c `libwww-config --libs`</B>
 </PRE>
-<H2>
-  Undefined References
-</H2>
-<P>
-If you get an error message from your compiler looking like this:
-<PRE>
-/usr/local/lib/libwww.so: undefined reference to `HText_endAnchor'
-/usr/local/lib/libwww.so: undefined reference to `HText_appendParagraph'
-/usr/local/lib/libwww.so: undefined reference to `styleSheet'
-/usr/local/lib/libwww.so: undefined reference to `HText_appendLink'
-/usr/local/lib/libwww.so: undefined reference to `HText_appendObject'
-/usr/local/lib/libwww.so: undefined reference to `HText_appendText'
-/usr/local/lib/libwww.so: undefined reference to `HText_endAppend'
-/usr/local/lib/libwww.so: undefined reference to `HText_beginAnchor'
-/usr/local/lib/libwww.so: undefined reference to `HText_beginAppend'
-/usr/local/lib/libwww.so: undefined reference to `HText_setStyle'
-/usr/local/lib/libwww.so: undefined reference to `HText_appendImage'
-/usr/local/lib/libwww.so: undefined reference to `HText_appendCharacter'
-/usr/local/lib/libwww.so: undefined reference to `HText_new2'
-</PRE>
-<P>
-Then it is likely that you have <A HREF="../INSTALL.html#features">compiled
-libwww as a shared library</A> (default) and not provided an implementation
-for the HTML <A HREF="src/HText.html">HText interface</A>. If you don't want
-to include the libwww <A HREF="../src/HTML.html">HTML parser</A>, then you
-can solve this problem by including the following lines in your source code
-<PRE>
-#ifdef LIBWWW_SHARED
-#include "HTextImp.h"
-#endif
-</PRE>
-<P>
-The <A HREF="src/HTextImp.html">HTextImp module</A> provides a dummy
-implementation of the HText interface.
 <P>
   <HR>
 <ADDRESS>
