@@ -67,7 +67,7 @@ SOURCES = $(LM)HTBrowse.c	$(LM)HTBrowse.h \
 	$(LM)README \
 	$(WWW)/README		$(WWW)/COPYRIGH \
 	$(WWW)/BUILD		$(WWW)/BUILD.SH \
-	$(WWW)/makefile \
+	$(WWW)/Makefile \
  	$(LM)a_stdio.g		$(LM)a_stdio.h
 
 DISTRIBUTION = \
