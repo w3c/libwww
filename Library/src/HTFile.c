@@ -402,7 +402,17 @@ PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
     /* Now jump into the machine. We know the state from the previous run */
     while (1) {
 	switch (file->state) {
-	  case FS_BEGIN:
+	case FS_BEGIN:
+
+	    /* We only support safe (GET, HEAD, etc) methods for the moment */
+	    if (!HTMethod_isSafe(HTRequest_method(request))) {
+		HTRequest_addError(request, ERR_FATAL, NO, HTERR_NOT_ALLOWED,
+				   NULL, 0, "HTLoadFile");
+		file->state = FS_ERROR;
+		break;
+	    }
+
+	    /* Check whether we have access to local disk at all */
 	    if (HTLib_secure()) {
 		if (PROT_TRACE)
 		    HTTrace("LoadFile.... No access to local file system\n");
@@ -416,9 +426,7 @@ PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
 		break;
 	    }
 
-	    /*
-	    **  Create a new host object and link it to the net object
-	    */
+	    /* Create a new host object and link it to the net object */
 	    {
 		HTHost * host = NULL;
 		if ((host = HTHost_new("localhost", 0)) == NULL) return HT_ERROR;
@@ -429,7 +437,7 @@ PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    file->state = FS_DO_CN;
 	    break;
 
-	  case FS_DO_CN:
+	case FS_DO_CN:
 	    /*
 	    ** If we have to do content negotiation then find the object that
 	    ** fits best into either what the client has indicated in the
@@ -496,8 +504,10 @@ PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
 		    HTRequest_addError(request, ERR_INFO, NO, HTERR_NO_CONTENT,
 				       NULL, 0, "HTLoadFile");
 		    file->state = FS_NO_DATA;
-		} else
-		    file->state = FS_NEED_OPEN_FILE;
+		} else {
+		    file->state = (HTRequest_method(request)==METHOD_GET) ? 
+			FS_NEED_OPEN_FILE : FS_GOT_DATA;
+		}
 	    }
 	    break;
 
@@ -607,59 +617,21 @@ PRIVATE int FileEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    break;
 
 	  case FS_GOT_DATA:
-	    if (HTRequest_isPostWeb(request)) {
-		if (HTRequest_isDestination(request)) {
-		    HTRequest * source = HTRequest_source(request);
-		    HTLink *link =
-			HTLink_find((HTAnchor *)HTRequest_anchor(source),
-					  (HTAnchor *) anchor);
-		    HTLink_setResult(link, HT_LINK_OK);
-		}
-	    }
 	    FileCleanup(request, HT_LOADED);
 	    return HT_OK;
 	    break;
 
 	  case FS_NO_DATA:
-	    if (HTRequest_isPostWeb(request)) {
-		if (HTRequest_isDestination(request)) {
-		    HTRequest * source = HTRequest_source(request);
-		    HTLink *link =
-			HTLink_find((HTAnchor *)HTRequest_anchor(source),
-					  (HTAnchor *) anchor);
-		    HTLink_setResult(link, HT_LINK_OK);
-		}
-	    }
 	    FileCleanup(request, HT_NO_DATA);
 	    return HT_OK;
 	    break;
 
 	  case FS_RETRY:
-	    if (HTRequest_isPostWeb(request)) {
-		if (HTRequest_isDestination(request)) {
-		    HTRequest * source = HTRequest_source(request);
-		    HTLink *link =
-			HTLink_find((HTAnchor *)HTRequest_anchor(source),
-					  (HTAnchor *) anchor);
-		    HTLink_setResult(link, HT_LINK_ERROR);
-		}
-		HTRequest_killPostWeb(request);
-	    }
 	    FileCleanup(request, HT_RETRY);
 	    return HT_OK;
 	    break;
 
 	  case FS_ERROR:
-	    if (HTRequest_isPostWeb(request)) {
-		if (HTRequest_isDestination(request)) {
-		    HTRequest * source = HTRequest_source(request);
-		    HTLink *link =
-			HTLink_find((HTAnchor *)HTRequest_anchor(source),
-					  (HTAnchor *) anchor);
-		    HTLink_setResult(link, HT_LINK_ERROR);
-		}
-		HTRequest_killPostWeb(request);
-	    }
 	    FileCleanup(request, HT_ERROR);
 	    return HT_OK;
 	    break;
