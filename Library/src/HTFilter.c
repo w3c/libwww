@@ -371,7 +371,7 @@ PUBLIC int HTCacheUpdateFilter (HTRequest * request, HTResponse * response,
 	**  keep this around until the cache load request has terminated
 	**  In the case of a 
 	*/
-#if 1 /* FIX ME!!! */
+#if 0 /* FIX ME!!! */
 	{
 	    static BOOL done = NO;
 	    if (!done) {	

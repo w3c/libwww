@@ -1772,7 +1772,13 @@ PRIVATE int CacheEvent (SOCKET soc, void * pVoid, HTEventType type)
 		cache->state = CL_ERROR;
 		break;
 	    }
-	    if ((net->host = HTHost_new("<local access>", 0)) == NULL)
+	    cache->local = HTWWWToLocal(HTAnchor_physical(anchor), "",
+					HTRequest_userProfile(request));
+	    if (!cache->local) {
+		cache->state = CL_ERROR;
+		break;
+	    }
+	    if ((net->host = HTHost_new(cache->local, 0)) == NULL)
 		return NO;
 	    if (HTHost_addNet(net->host, net) == HT_PENDING)
 		if (PROT_TRACE) HTTrace("HTLoadCache. Pending...\n");
@@ -1780,29 +1786,24 @@ PRIVATE int CacheEvent (SOCKET soc, void * pVoid, HTEventType type)
 	    break;
 
 	case CL_NEED_BODY:
-	    cache->local = HTWWWToLocal(HTAnchor_physical(anchor), "",
-					HTRequest_userProfile(request));
-	    if (cache->local) {
-		if (HT_STAT(cache->local, &cache->stat_info) == -1) {
-		    if (PROT_TRACE)
-			HTTrace("Load Cache.. Not found `%s\'\n", cache->local);
-		    HTRequest_addError(request, ERR_FATAL, NO, HTERR_NOT_FOUND,
-				       NULL, 0, "HTLoadCache");
-		    cache->state = CL_ERROR;
-		    break;
-		}
-
-		/*
-		**  The cache entry may be empty in which case we just return
-		*/
-		if (!cache->stat_info.st_size) {
-		    HTRequest_addError(request, ERR_FATAL, NO,HTERR_NO_CONTENT,
-				       NULL, 0, "HTLoadCache");
-		    cache->state = CL_NO_DATA;
-		} else
-		    cache->state = CL_NEED_OPEN_FILE;
-	    } else 
+	    if (HT_STAT(cache->local, &cache->stat_info) == -1) {
+		if (PROT_TRACE)
+		    HTTrace("Load Cache.. Not found `%s\'\n", cache->local);
+		HTRequest_addError(request, ERR_FATAL, NO, HTERR_NOT_FOUND,
+				   NULL, 0, "HTLoadCache");
 		cache->state = CL_ERROR;
+		break;
+	    }
+
+	    /*
+	    **  The cache entry may be empty in which case we just return
+	    */
+	    if (!cache->stat_info.st_size) {
+		HTRequest_addError(request, ERR_FATAL, NO,HTERR_NO_CONTENT,
+				   NULL, 0, "HTLoadCache");
+		cache->state = CL_NO_DATA;
+	    } else
+		cache->state = CL_NEED_OPEN_FILE;
 	    break;
 
 	case CL_NEED_OPEN_FILE:
