@@ -34,8 +34,12 @@ $PlotTemplate = '$from[0].":".$fromPort."-".$to[0].":".$toPort.".xplot"';
 $Tcpdump = 'STDIN';
 $Usage_first = 1;
 $BreakOnSyns = 0;
+$EndOnFins = 0;
 $Quiet = 0;
 $Cumulative = 0;
+$TimeConvert = 0;
+$ForceRelative = 0;
+$FinThreshold = 1; # seconds
 
 # other initializations
 #$Packets;
@@ -53,6 +57,7 @@ sub usage
 Usage: $0 [-w] [-s] [-c] [-plot[filename]] [-list[filename]] [-?] [-help]
 -w: plot window.
 -s: break up conversations on syns.
+-f: ignore socket activity after a fin (until socket is re-used)
 -c: cumulative - adds all data coming from a server
 -plot[filename]: plot packets in <filename>.
     The <filename> may be built out of $from (host and port), $fromHost, 
@@ -60,6 +65,8 @@ Usage: $0 [-w] [-s] [-c] [-plot[filename]] [-list[filename]] [-?] [-help]
     would be abc.def.com:1234. The corresponding fields exist for the to field.
     default: '$from[0].":".$fromPort."-".$to[0].":".$toPort.".xplot"'.
 -list[filename]: output the list of generated plot files to filename.
+-r: relative sequence numbers.
+-t: time convert - insure that time is in decimal number of seconds.
 -q: quiet - no visible output.
 -?/-help: this message.
 END_OF_USAGE
@@ -76,6 +83,9 @@ sub ReadArg
 	$Plotwindow = 1;
     } elsif ($arg eq 's') {
 	$BreakOnSyns = 1;
+    } elsif ($arg =~ /f(\d*)/) {
+	$EndOnFins = 1;
+	$FinThreshold = $1 if ($1 ne '');
     } elsif ($arg eq 'c') {
 	$Cumulative = 1;
     } elsif (substr($arg, 0, 4) eq 'plot') {
@@ -83,6 +93,10 @@ sub ReadArg
     } elsif (substr($arg, 0, 4) eq 'list') {
         $ListFile = substr($arg, 4);
 	open($ListFile, ">$ListFile") || die "error opening \"$ListFile\" for writing: $!\n";
+    } elsif ($arg eq 't') {
+	$TimeConvert = 1;
+    } elsif ($arg eq 'r') {
+	$ForceRelative = 1;
     } elsif ($arg eq 'q') {
 	$Quiet = 1;
     } else {
@@ -131,6 +145,7 @@ sub newConversation
     $StartTime{$from} = $time;
     push(@Froms, $from);
     $AckOffset{$from} = $SeqOffset{$from} = 0;
+    $Ignored{$from.'-'.$to} = 0;
 }
 
 sub closeOut
@@ -141,6 +156,7 @@ sub closeOut
     $TotalBytes += $Bytes{$from};
     print "$from: $Packets{$from} packets $Bytes{$from} bytes took ", 
 	&subTimes($LastTime{$from}, $StartTime{$from}), "\n" if (!Quiet);
+    $Mode{$from} = 'client' if (!defined($Mode{$from})); # added to handle bogus NT netmon dumps
     print $ListFile "$from $To{$from} $Mode{$from} $XplotName{$from} $Packets{$from} $Bytes{$from} ", 
 	&subTimes($LastTime{$from}, $StartTime{$from}), ' ', $Bytes{$from}/($Bytes{$from} + $Packets{$from}*40), "\n" if $ListFile;
     $MaxLast = $LastTime{$from} if (!defined($MaxLast) || $LastTime{$from} > $MaxLast);
@@ -167,6 +183,7 @@ sub clearOut
     delete $Served{$from};	# not needed now because server is never cleared
     delete $To{$from};
     delete $XplotName{$from};
+    delete $Ignored{$from.'-'.$to};
 }
 
 sub removeFrom
@@ -189,6 +206,7 @@ if (($inputFile = shift(@ARGV))) {
 }
 
 for ($lineNo = 1; <$Tcpdump>; $lineNo++) {
+    local($ackIsZero) = (0);
     chop;
     split(/ /);
     $time = $_[0];
@@ -198,6 +216,11 @@ for ($lineNo = 1; <$Tcpdump>; $lineNo++) {
     $flags = $_[4];
 
     last if (/\d+\s+packets/);
+    if ($_[2] ne '>') {
+	print stderr "tcpdump2xplot: Malformed entry in dump file $inputFile:$lineNo \"$_\"\n";
+	next;
+    }
+    $time = &justSeconds($time) if ($TimeConvert);
     &newConversation($from, $to, $time) if (!(defined($StartTime{$from})));
 
     if ($flags =~ /S/) {
@@ -217,17 +240,33 @@ for ($lineNo = 1; <$Tcpdump>; $lineNo++) {
 	}
     }
 
+    if ($flags =~ /F/ && $Mode{$from} eq 'client' && $EndOnFins && !$Ignored{$from.'-'.$to}) {
+	local ($dif) = $time - $LastTime{$from};
+	if ($dif > $FinThreshold) {
+	    print stderr "tcpdump2xplot: delayed F ($dif seconds) in dump file $inputFile:$lineNo \"$_\"\n";
+	}
+	$Ignored{$from.'-'.$to} = 1;
+    }
+
+    next if ($Ignored{$from.'-'.$to} || $Ignored{$to.'-'.$from});
     $LastTime{$from} = $time;
     $Packets{$from}++;
 
     if (/$flags ([0-9]*):([0-9]*)\(([0-9]*)\) /) {
 	$LastSendSeq{$from.'-'.$to} = $sendseq = $1;
-	if (!defined $FirstSeq{$from.'-'.$to}) {
-	    $FirstSeq{$from.'-'.$to} = $1;
-	}
 	$sendseqlast = $2;
 	$datalength = $3;
 	$Bytes{$from} += $3;
+	if (!defined $FirstSeq{$from.'-'.$to}) {
+	    if ($ForceRelative) {
+		$LastSendSeq{$from.'-'.$to} = $sendseq = 0;
+		$sendseqlast = $2 - $1;
+		$FirstSeq{$from.'-'.$to} = 0;
+		$ackIsZero = 1;
+	    } else {
+		$FirstSeq{$from.'-'.$to} = $1;
+	    }
+	}
     } else {
 	$sendseq = $LastSendSeq{$from.'-'.$to};
 	$sendseqlast = $LastSendSeq{$from.'-'.$to};
@@ -240,7 +279,7 @@ for ($lineNo = 1; <$Tcpdump>; $lineNo++) {
     }
 
     if (/ack ([0-9]*) /) {
-	$ack = $1;
+	$ack = $ackIsZero ? 0 : $1;
     } else {
 	$ack = -1;
     }
