@@ -395,7 +395,6 @@ PUBLIC HTStream* HTSaveAndExecute ARGS5(
 				   HTFileSuffix(input_format),
 				   1000)) == NULL) {
 	HTAlert("Can't find a suitable file name");
-	free(me);
 	return NULL;
     }
 
@@ -455,8 +454,8 @@ PUBLIC HTStream* HTSaveLocally ARGS5(
 	HTStream *,		output_stream)	/* Not used */
 
 {
-    char *fnam;
-    char * answer;
+    char *fnam = NULL;
+    char *answer = NULL;
     HTStream* me;
     
     if (HTClientHost) {
@@ -484,21 +483,19 @@ PUBLIC HTStream* HTSaveLocally ARGS5(
 #endif
  
     /* Let's find a 'human' file name for this file */
-    if ((fnam = HTFWriter_filename(HTSaveLocallyDir,
-				   HTAnchor_physical(request->anchor),
-				   HTFileSuffix(input_format),
-				   0)) == NULL) {
-	fnam = "";	          /* Well, this might be better than nothing */
-    }
+    fnam = HTFWriter_filename(HTSaveLocallyDir,
+			      HTAnchor_physical(request->anchor),
+			      HTFileSuffix(input_format),
+			      0);
     
     /*	Save Panel */
-    answer = HTPrompt("Give name of file to save in", fnam);    
-    free(fnam);
+    answer = HTPrompt("Give name of file to save in", fnam ? fnam : "");
+    FREE(fnam);
     
     me->fp = fopen (answer, "w");
     if (!me->fp) {
 	HTAlert("Can't open local file to write into.");
-        free(answer);
+        FREE(answer);
 	free(me);
 	return NULL;
     }

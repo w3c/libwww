@@ -69,7 +69,7 @@ PUBLIC char * HTPrompt ARGS2(CONST char *, Msg, CONST char *, deflt)
     if (deflt) fprintf(stderr, " (RETURN for [%s]) ", deflt);
     
     if (!fgets(Tmp, 200, stdin))
-	return "";		       	/* Empty string on error, Henrik */
+	return NULL;		       	/* NULL string on error, Henrik */
     Tmp[strlen(Tmp)-1] = (char)0;	/* Overwrite newline */
    
     StrAllocCopy(rep, *Tmp ? Tmp : deflt);
