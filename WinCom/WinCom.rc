@@ -647,7 +647,7 @@ BEGIN
     ID_PROXY_SETUP          "Access the Internet through one or more proxy servers"
     ID_OPTIONS_PROXIES      "Define Proxies\nProxy Setup"
     ID_VERSION_CONFLICT     "Detect Version Conflicts\nDetect Version Conflicts"
-    ID_SHOW_SERVER_STATUS   "Show the server's response status message/nShow the server's response status message"
+    ID_SHOW_SERVER_STATUS   "Show the Server's Response Status Message\nShow the Server's Response Status Message"
 END
 
 STRINGTABLE DISCARDABLE 
