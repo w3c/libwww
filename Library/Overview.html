@@ -11,62 +11,28 @@
 <H1>
   Libwww - the W3C Sample Code Library
 </H1>
+<P ALIGN=Center>
+<A HREF="#News">News</A> | <A HREF="Activity.html">Libwww Activity</A> |
+<A HREF="Distribution.html">Get it!</A> | <A HREF="#Apps">Sample Apps</A>
+| <A HREF="User/ReleaseNotes.html">Release Notes</A> |
+<A HREF="User/">Documentation</A> | <A HREF="#Forums">Mailing list</A> |
+<A HREF="#Authors">Authors</A>
+<P>
 <DIV class="intro">
   Libwww is a general-purpose Web API written in C for
   <A HREF="User/Platform/">Unix and Windows (Win32)</A>. With a highly extensible
   and layered API, it can accommodate many different types of applications
   including clients, robots, etc. The purpose of Libwww is to provide a sample
   implementation of HTTP and other Internet protocols and to serve as a testbed
-  for protocol experiments. It comes with a lot of "plug-and-play" modules
-  including a rudimentary HTML parser which can do the very basics.
+  for protocol experiments.
   <UL>
     <LI>
-      <A NAME="Getting" HREF="Distribution.html">Get the Source Code</A> &nbsp;and
-      browse the <A HREF="http://dev.w3.org/cgi-bin/cvsweb/">libwww cvs log</A>
+      <A HREF="cvs.html">Get libwww directly from CVS</A>
     <LI>
-      <A HREF="../INSTALL.html">Installation Guide</A>, a list of
-      <A HREF="User/ReleaseNotes.html">new features and bug fixes</A>, and
-      <A HREF="#Installation">change history etc</A>.
-    <LI>
-      <A HREF="User/Guide/">Tons of WWW interfaces</A> with a
-      <A HREF="User/Extrnals.html">large index of public functions</A>
-    <LI>
-      <A HREF="#User">User Documentation and Design Overview</A>
-    <LI>
-      <A HREF="#Forums">Libwww mailinglists</A> - where to ask questions and send
-      comments
-    <LI>
-      <A HREF="#Authors">Authors and Contributors</A>
+      Browse the <A HREF="http://dev.w3.org/cgi-bin/cvsweb/">libwww cvs log</A>
+      and check out <A HREF="http://db.w3.org/Library/latest.sql">the latest
+      edits</A>
   </UL>
-  <P>
-  Nearby you can find the following sample applications that you get when you
-  download the libwww distribution:
-  <UL>
-    <LI>
-      The <A HREF="../Robot/">Mini Robot</A> - a fast robot that allows you to
-      check links etc.
-    <LI>
-      The <A HREF="../LineMode/">Line Mode Browser</A> - a terminal based, simple
-      browser
-    <LI>
-      The <A HREF="../ComLine/">Command Line Tool</A> - a quick too to do all your
-      Web work
-    <LI>
-      Try out <A HREF="../WinCom/">Web Commander</A> - the new Windows 95/NT tool
-      for saving documents on an HTTP server
-    <LI>
-      A simple <A HREF="cvs2sql/">cvs2sql log module</A> that
-      <A HREF="http://db.w3.org/Library/">we use ourselves</A> for tracking changes
-    <LI>
-      A <A HREF="../PICS-client/">PICS client library</A> - enables you to write
-      PICS enabled clients
-  </UL>
-  <P>
-  Some other applications that use libwww are
-  <A HREF="http://www.yggdrasil.com/Products/Arena/">Arena</A> and
-  <A HREF="../Amaya/">Amaya</A> - two GUI clients and Amaya is also an editor.
-  Also have a look at the <A HREF="Activity.html">W3C Libwww activity</A> statement
-  on support, usability etc.
   <P>
   @(#) $Id$
 </DIV>
@@ -123,16 +89,6 @@
     events</A>
 </DL>
 <H2>
-  <A HREF="../Consortium/Prospectus/ActivityList.html"><IMG BORDER="0" SRC="../Icons/WWW/activity_48x48"
-      ALT="Activities" BORDER="0"></A> <A NAME="Activity">Libwww Activity
-  Statement</A>
-</H2>
-<P>
-What is the purpose of libwww? Can I use it as a developer tool for writing
-Web applications? How is it supported? Read answers to these questions and
-much more from the <A HREF="Activity.html">W3C activity statement on
-libwww</A>.
-<H2>
   <A HREF="../INSTALL.html"><IMG BORDER="0" ALT="Install" SRC="../Icons/WWW/install48x"
       BORDER="0"></A> <A NAME="Installation">Installation Guide and new Features</A>
 </H2>
@@ -160,6 +116,39 @@ in the latest release. Find out by starting here!
     -send it to us. Otherwise we can not use the patch!
 </UL>
 <H2>
+  <A NAME="Apps"><A href="../Status.html" name="Software"><IMG src="../Icons/WWW/disk_48x48"
+      alt="Software" border="0" height="48" width="48"></A>Sample Apps</A>
+</H2>
+<P>
+We provide a bunch of sample applications that you get when you download
+the libwww distribution:
+<UL>
+  <LI>
+    The <A HREF="../Robot/">Mini Robot</A> - a fast robot that allows you to
+    check links etc.
+  <LI>
+    The <A HREF="../ComLine/">Command Line Tool</A> - a quick too to do all your
+    Web work in batch mode
+  <LI>
+    The <A HREF="../LineMode/">Line Mode Browser</A> - a terminal based, simple
+    browser
+  <LI>
+    Try out <A HREF="../WinCom/">Web Commander</A> - the new Windows 95/NT tool
+    for saving documents on an HTTP server
+  <LI>
+    A simple <A HREF="cvs2sql/">cvs2sql log module</A> that
+    <A HREF="http://db.w3.org/Library/">we use ourselves</A> for tracking changes
+  <LI>
+    A <A HREF="../PICS-client/">PICS client library</A> - enables you to write
+    PICS enabled clients
+</UL>
+<P>
+Some other applications that use libwww are
+<A HREF="http://www.yggdrasil.com/Products/Arena/">Arena</A> and
+<A HREF="../Amaya/">Amaya</A> - two GUI clients and Amaya is also an editor.
+Also have a look at the <A HREF="Activity.html">W3C Libwww activity</A> statement
+on support, usability etc.
+<H2>
   <A HREF="User/"><IMG SRC="../Icons/WWW/doc48x" ALT="Documentation" BORDER="0"></A>
   <A NAME="User">User Documentation and Design Overview</A>
 </H2>
@@ -174,27 +163,11 @@ This list is generated automatically and is always up to date.
   <LI>
     <A HREF="User/">Documentation Overview</A>
   <LI>
-    <A HREF="User/Style/">The libwww Programming Style Guide</A>
-  <LI>
-    <A HREF="User/Start.html">Quick Overview</A> and <A HREF="Examples/">Easy
-    Startup Examples</A>
-  <LI>
-    <A HREF="User/Extrnals.html">Complete list of public functions in libwww</A>
-  <LI>
-    <A HREF="User/Architecture/">Libwww Architecture</A> - the design overview
-    of how libwww is put together
-  <LI>
-    <A HREF="User/Using/">User's Guide</A> - the APIs described from a User's
-    perspective
-  <LI>
-    <A HREF="User/Guide/">Library Interfaces</A>- the APIs described in more
-    details
-  <LI>
     <A HREF="User/WAIS.html">Compiling for direct WAIS access</A>
 </UL>
 <H2>
   <A HREF="../Mail/"><IMG SRC="../Icons/WWW/mail48x" ALT="Mail" BORDER="0"></A>
-  <A NAME="Forums">Libwww Mailinglists</A>
+  <A NAME="Forums">Libwww Mailinglist</A>
 </H2>
 <P>
 Please send all requests regarding libwww to
