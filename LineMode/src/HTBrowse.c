@@ -186,7 +186,7 @@ PRIVATE int scan_command (SOCKET s, void * param, HTEventType type);
 PRIVATE HTEvent * ConsoleEvent = NULL;
 
 #ifndef WWW_WIN_WINDOW
-PRIVATE FILE *		OUTPUT = stdout;
+PRIVATE FILE *		OUTPUT = NULL;
 #endif
  
 PRIVATE InputParser_t parse_command;
@@ -1605,6 +1605,10 @@ int main (int argc, char ** argv)
     HTRequest *	request = NULL;
     LineMode *	lm;
     char *      picsUser = NULL;
+
+#ifndef WWW_WIN_WINDOW
+    OUTPUT = stdout;
+#endif
 
     /* Starts Mac GUSI socket library */
 #ifdef GUSI

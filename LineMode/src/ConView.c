@@ -7,12 +7,13 @@ struct _HTView {
     FILE * outFile;
 };
 
-PRIVATE HTView TheOnlyView = {stdout};
+PRIVATE HTView TheOnlyView;
 
 PUBLIC HTView * HTView_create(char* name, int rows, int cols, LineMode * pLm)
 {
     if (WeHaveAView) return 0;
     WeHaveAView = 1;
+    TheOnlyView.outFile = stdout;
     return &TheOnlyView;
 }
 
