@@ -167,28 +167,24 @@ things to do</B></A> before doing a CVS commit.
   <A NAME="Boot">Getting Bootstrapped</A>
 </H2>
 <P>
-When you get libwww from CVS there are some files (<TT>.h</TT>,
-<TT>Makefile</TT>, and Windows <TT>.def</TT> files) that must be generated
-before you can compile. Generate the files by following these steps:
+When compiling directly from the CVS repository there are a few steps you
+have to go through which are already done if compiling from a distribution
+package. For example, the <TT>*.h</TT>, <TT>Makefile</TT>, and <TT>*.def</TT>
+files must be generated before you can compile. Generate the files by following
+these steps:
 <H3>
-  <A NAME="Easy">The Easy Start</A>
+  <A NAME="Easy">Windows and Unix</A>
 </H3>
 <P>
-If you really only want to generate the header files (<B>for both Unix and
-Windows</B>) and the DLL <TT>.def</TT> files for Windows, then you can run
-<A HREF="../config/winConfigure.pl">this Perl script</A> provided by
-<A HREF="/People/Eric/">Eric Prud'hommeaux</A>, which you can find in the
-<CODE>config</CODE> directory after you have checked out the source from
-CVS. Run it as this
+On both Windows and Unix you can generate the <TT>*.h</TT> files and the
+<TT>*.def</TT> files by running a <A HREF="http://www.perl.org">Perl</A>
+script provided by <A HREF="/People/Eric/">Eric Prud'hommeaux</A>. Never
+mind that it gives a few warnings when it runs - they are all OK. It requires
+that you have a recent version of <A HREF="http://www.perl.org">Perl</A>
+on your machine. Run the script like this (note the explicit use of the perl
+interpreter):
 <PRE>% <B>cd libwww</B>
 % <B>perl config/winConfigure.pl</B>
-</PRE>
-<P>
-The script also runs on <B>Unix</B> - never mind that it gives a few warnings
-- they are all OK. It requires that you have
-<A HREF="http://www.perl.org">Perl</A> on your machine and that it can be
-found as
-<PRE>	/usr/local/bin/perl
 </PRE>
 <P>
 If you are <A HREF="../INSTALL.html#Windows">compiling for Windows</A> this
@@ -196,16 +192,19 @@ should be enough if you are using the
 <A HREF="User/Platform/WinDLL.html#Make">MSVC makefiles</A>. On Unix, you
 <A HREF="#More">need some more</A>...
 <H3>
-  <A NAME="More">Adding a bit of Complexity</A>
+  <A NAME="More">Unix (continued)</A>
 </H3>
 <P>
-On Unix you need some GNU tools in order to continue. I <B>strongly</B> recommend
-that you are using <A HREF="http://www.gnu.org/software/make/make.html">GNU
-make</A> and <A HREF="http://www.gnu.org/software/gcc/gcc.html">gcc</A>.
-Many OS specific make's don't have the libwww make files. Check that you
-have the following programs with the correct version number:
-<P>
+On Unix you <B>MUST</B> have the following GNU tools installed in order to
+continue. Check that you have the following programs with the correct version
+number:
 <DL>
+  <DT>
+    <A HREF="http://www.gnu.org/order/ftp.html"><B>gcc</B></A> and
+    <A HREF="http://www.gnu.org/order/ftp.html"><B>gmake</B></A>
+  <DD>
+    Automake relies on features provided by gcc and gmake that don't come with
+    other compilers
   <DT>
     <B><A HREF="http://www.gnu.org/software/automake/index.html">GNU automake</A>
     (at least version 1.3)</B>
@@ -228,35 +227,29 @@ have the following programs with the correct version number:
     The libwww Line Mode Browser is used to generate the header files (from
     <CODE>.html</CODE> to <CODE>.h</CODE>)
 </DL>
+<H4>
+  Using the GNU Tools
+</H4>
 <P>
 After having checked that you have the programs you need, you are now ready
-to execute the commands noting the following:
-<UL>
-  <LI>
-    You will see some warnings about <CODE>AC_TRY_RUN</CODE> -
-    <A HREF="http://subzero.campus.luth.se/FreeDocs/autoconf-2.12/autoconf_44.html#IDX36">that's
-    OK!</A>
-  <LI>
-    Libwww uses <A HREF="http://www.gnu.org/software/libtool/libtool.html">GNU
-    Libtool</A> in order to build shared libraries on a variety of systems. While
-    this is very nice for making usable binaries, it can be a pain when trying
-    to debug a program. For that reason, compilation of shared libraries can
-    be turned off by specifying the <CODE>--disable-shared</CODE> option to
-    <CODE>configure</CODE>.
-</UL>
-<P>
-Commands:
-<PRE>% <B>aclocal</B>
-% <B>automake</B>
-% <B>autoconf</B>
+to use them. Don't worry about the
+<A HREF="http://subzero.campus.luth.se/FreeDocs/autoconf-2.12/autoconf_44.html#IDX36">warnings
+produced by autoconf</A>&nbsp;- that's OK. Run them like this:
+<PRE>% <B>aclocal</B>; <B>automake</B>; <B>autoconf</B>
 </PRE>
 <H2>
   <A NAME="Compiling">Compiling libwww</A>
 </H2>
 <P>
-Now you have a set of files equivalent to what you normally get in a distribution
-file. You are now ready to <A HREF="../INSTALL.html#Unix">compile the
-software</A>
+Libwww uses <A HREF="http://www.gnu.org/software/libtool/libtool.html">GNU
+Libtool</A> in order to build shared libraries on a variety of systems. While
+this is very nice for making usable binaries, it can be a pain when trying
+to debug a program. For that reason, compilation of shared libraries can
+be turned off by specifying the <CODE>--disable-shared</CODE> option to
+<CODE>configure</CODE>.
+<P>
+Congratulations - you are now ready to <A HREF="../INSTALL.html#Unix">compile
+libwww</A>!
 <P>
   <HR>
 <ADDRESS>
