@@ -3,7 +3,7 @@
 SUFFIXES = .files .def
 
 SRC := $(wildcard *.c)
-MAK := $(wildcard *.mak)
+MAK := $(wildcard *.mak *.dsp)
 PL  := $(wildcard *.pl)
 
 AUTOMAKE_OPTIONS = foreign
