@@ -11,7 +11,7 @@
 */
 
 /* Implementation dependent include files */
-#include "tcp.h"
+#include "sysdep.h"
 
 #include "HTUtils.h"
 #include "HTChunk.h"

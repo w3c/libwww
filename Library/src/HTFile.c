@@ -24,24 +24,14 @@
 **	target machine runs VMS?
 */
 
-#ifdef VMS
-#define GOT_READ_DIR
-#endif /* VMS */
-
-#ifdef VMS
-#include "HTVMSUtils.h"
-#endif /* VMS */
-
 /* System dependent stuff */
-#include "tcp.h"
+#include "sysdep.h"
 
 /* Library Includes */
 #include "HTUtils.h"
 #include "HTParse.h"
 #include "HTTCP.h"
-#ifndef DECNET			/* Temporary ? */
 #include "HTFTP.h"
-#endif
 #include "HTAnchor.h"
 #include "HTAtom.h"
 #include "HTWriter.h"
@@ -58,11 +48,6 @@ PRIVATE char * suffix_separators = "._";
 #else
 PRIVATE char * suffix_separators = ".,_";
 #endif /* VMS */
-
-#ifdef ISC3	/* Lauren */		
-#define _POSIX_SOURCE       
-#include <sys/limits.h>		
-#endif
 
 typedef struct _HTSuffix {
 	char *		suffix;
@@ -559,17 +544,12 @@ PUBLIC float HTFileValue ARGS1 (CONST char *,filename)
 **	1.	No code for non-unix systems.
 **	2.	Isn't there a quicker way?
 */
-#ifndef NO_UNIX_IO
 PUBLIC BOOL HTEditable ARGS1 (CONST char *,filename)
 {
-#ifdef NO_GROUPS
+#ifndef HAVE_GRP_H
     return NO;		/* Safe answer till we find the correct algorithm */
 #else
-#ifdef NeXT
-    int		groups[NGROUPS];
-#else
-    gid_t 	groups[NGROUPS];
-#endif	
+    GETGROUPS_T groups[NGROUPS];
     uid_t	myUid;
     int		ngroups;			/* The number of groups  */
     struct stat	fileStatus;
@@ -609,7 +589,6 @@ PUBLIC BOOL HTEditable ARGS1 (CONST char *,filename)
     return NO;					/* If no excuse, can't do */
 #endif
 }
-#endif /* NO_UNIX_IO */
 
 /*	Make a save stream
 **	------------------
@@ -702,7 +681,6 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 **
 **	Not allowed in secure (HTClientHost) situations TBL 921019
 */
-#ifndef NO_UNIX_IO
     /*  Need protection here for telnet server but not httpd server */
 	 
     if (!HTSecure) {
@@ -713,7 +691,7 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 				       &request->content_language);
 	if (TRACE) fprintf(stderr, "HTLoadFile.. Accessing local file system.\n");
 
-#ifdef GOT_READ_DIR
+#ifdef HAVE_OPENDIR
 
 /*	Multiformat handling. If suffix matches MULTI_SUFFIX then scan
 **	directory to find a good file.
@@ -751,7 +729,7 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 	    }
 	}
 
-#endif /* GOT_READ_DIR */
+#endif /* HAVE_OPENDIR */
 
 open_file:
 	{
@@ -780,7 +758,6 @@ open_file:
 	}
 	FREE(localname);
     } /* End of local file system */
-#endif /* NO_UNIX_IO */
 
 #ifndef DECNET
     /* Now, as transparently mounted access has failed, we try FTP. */

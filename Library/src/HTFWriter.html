@@ -27,8 +27,8 @@ Library of Common Code</A>.
 #ifndef HTFWRITE_H
 #define HTFWRITE_H
 
+#include "sysdep.h"
 #include "HTStream.h"
-#include &lt;stdio.h>
 #include "HTFormat.h"
 
 #ifdef SHORT_NAMES
@@ -51,7 +51,7 @@ HTSaveAndCallBack will save to a cache file and call the request->callback
 function with the filename as parameter.
 
 <PRE>
-#ifndef pyramid
+#ifndef NO_EXTERN_TYPEDEF_FUNC
 extern HTConverter HTSaveAndExecute, HTSaveLocally, HTSaveAndCallBack,
        HTThroughLine;
 #endif
@@ -132,7 +132,7 @@ extern void HTCacheDeleteAll NOPARAMS;
 also generate a cache file.
 
 <PRE>
-#ifndef pyramid
+#ifndef NO_EXTERN_TYPEDEF_FUNC
 extern HTConverter HTCacheWriter;
 #endif
 

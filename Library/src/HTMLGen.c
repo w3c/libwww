@@ -19,6 +19,8 @@
 **
 */
 
+#include "sysdep.h"
+
 #include "HTMLPDTD.h"
 #include "HTStream.h"
 #include "SGML.h"

@@ -20,7 +20,7 @@
 */
 
 
-#include <string.h>
+#include "sysdep.h"
 
 #include "HTAAUtil.h"
 #include "HTAssoc.h"

@@ -18,6 +18,8 @@
 **		  and user names (code from Mosaic/Eric Bina).
 */
 
+#include "sysdep.h"
+
 #include "HTParse.h"
 #include "HTUtils.h"
 #include "HTAnchor.h"
@@ -134,100 +136,40 @@ PRIVATE int remote_session ARGS2(char *, access, char *, host)
 ** so we always tell the guy what to log in as
 */
         if (user) printf("When you are connected, log in as %s\n", user);
-	
-#ifdef NeXT
-#define TELNET_MINUS_L
-#endif
-#ifdef ultrix
-#define TELNET_MINUS_L
-#endif
 
-#ifdef TELNET_MINUS_L
-	sprintf(command, "%s%s%s %s %s", access,
-		user ? " -l " : "",
-		user ? user : "",
-		hostname,
-		port ? port : "");
-
-	if (TRACE) fprintf(stderr, "HTaccess: Command is: %s\n", command);
-	system(command);
-	return HT_NO_DATA;		/* Ok - it was done but no data */
-#define TELNET_DONE
-#endif
-
-/* Most unix machines suppport username only with rlogin */
-#ifdef unix
-#ifndef TELNET_DONE
-	if (login_protocol != rlogin) {
-	    sprintf(command, "%s %s %s", access,
-		hostname,
-		port ? port : "");
-	} else {
-	    sprintf(command, "%s%s%s %s %s", access,
-		user ? " -l " : "",
-		user ? user : "",
-		hostname,
-		port ? port : "");
-	}
-	if (TRACE) fprintf(stderr, "HTaccess: Command is: %s\n", command);
-	system(command);
-	return HT_NO_DATA;		/* Ok - it was done but no data */
-#define TELNET_DONE
-#endif
-#endif
-
-#ifdef MULTINET				/* VMS varieties */
+#ifdef TELNET_COMMAND
 	if (login_protocol == telnet) {
-	    sprintf(command, "TELNET %s%s %s",
-		port ? "/PORT=" : "",
-		port ? port : "",
-		hostname);
-	} else if (login_protocol == tn3270) {
-	    sprintf(command, "TELNET/TN3270 %s%s %s",
-		port ? "/PORT=" : "",
-		port ? port : "",
-		hostname);
-	} else {
-	    sprintf(command, "RLOGIN%s%s%s%s %s",  /*lm 930713 */
-		user ? "/USERNAME=" : "",
-		user ? user : "",
-		port ? "/PORT=" : "",
-		port ? port : "",
-		hostname);
+	    TELNET_COMMAND(command, user, hostname, port);
+        } else
+#endif
+
+#ifdef RLOGIN_COMMAND
+	if (login_protocol == rlogin) {
+	    RLOGIN_COMMAND(command, user, hostname, port);
+	} else
+#endif
+
+#ifdef TN3270_COMMAND
+	if (login_protocol == tn3270) {
+	    RLOGIN_COMMAND(command, user, hostname, port);
+	} else
+#endif
+
+	{
+	    fprintf(stderr,
+	    "Sorry, this browser was compiled without the %s access option.\n",
+		access);
+	    fprintf(stderr,
+	    "\nTo access the information you must %s to %s", access, hostname);
+	    if (port) fprintf(stderr," (port %s)", port);
+	    if (user) fprintf(stderr," logging in with username %s", user);
+	    fprintf(stderr, ".\n");
+	    return -1;
 	}
+
 	if (TRACE) fprintf(stderr, "HTaccess: Command is: %s\n", command);
 	system(command);
-	return HT_NO_DATA;		/* Ok - it was done but no data */
-#define TELNET_DONE
-#endif
-
-#ifdef UCX
-#define SIMPLE_TELNET
-#endif
-#ifdef VM
-#define SIMPLE_TELNET
-#endif
-#ifdef SIMPLE_TELNET
-	if (login_protocol == telnet) {			/* telnet only */
-	    sprintf(command, "TELNET  %s",	/* @@ Bug: port ignored */
-		hostname);
-	    if (TRACE) fprintf(stderr, "HTaccess: Command is: %s\n", command);
-	    system(command);
-	    return HT_NO_DATA;		/* Ok - it was done but no data */
-	}
-#endif
-
-#ifndef TELNET_DONE
-	fprintf(stderr,
-	"Sorry, this browser was compiled without the %s access option.\n",
-		access);
-	fprintf(stderr,
-	"\nTo access the information you must %s to %s", access, hostname);
-	if (port) fprintf(stderr," (port %s)", port);
-	if (user) fprintf(stderr," logging in with username %s", user);
-	fprintf(stderr, ".\n");
-	return -1;
-#endif
+	return HT_NO_DATA;
 }
 
 /*	"Load a document" -- establishes a session

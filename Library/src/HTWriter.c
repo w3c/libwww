@@ -5,12 +5,12 @@
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 
+#include "sysdep.h"
 #include "HTWriter.h"
 
 #define BUFFER_SIZE 4096	/* Tradeoff */
 
 #include "HTUtils.h"
-#include "tcp.h"
 
 /*		HTML Object
 **		-----------

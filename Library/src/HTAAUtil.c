@@ -47,6 +47,8 @@
 **
 */
 
+#include "sysdep.h"
+
 #include "HTUtils.h"
 #include "HTAAUtil.h"	/* Implemented here	*/
 #include "HTAssoc.h"	/* Assoc list		*/

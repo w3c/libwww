@@ -15,11 +15,7 @@
 **			and HTDoAccept
 */
 
-#ifndef VMS
-#include <pwd.h>
-#endif /* not VMS */
-
-#include "tcp.h"		/* Defines SHORT_NAMES if necessary */
+#include "sysdep.h"
 
 #include "HTUtils.h"
 #include "HTAtom.h"
@@ -34,26 +30,12 @@
 
 #include "HTTCP.h"					 /* Implemented here */
 
-#ifdef VMS 
-#include "HTVMSUtils.h"
-#endif /* VMS */
-
 #ifdef SHORT_NAMES
 #define HTInetStatus		HTInStat
 #define HTErrnoString		HTErrnoS
 #define HTInetString 		HTInStri
 #define HTParseInet		HTPaInet
 #endif
-
-
-/* VMS stuff */
-#ifdef VMS
-#ifndef MULTINET
-#define FD_SETSIZE 32
-#else /* Multinet */
-#define FD_SETSIZE 256
-#endif /* Multinet */
-#endif /* VMS */
 
 /* Macros and other defines */
 /* x seconds penalty on a multi-homed host if IP-address is down */
@@ -65,10 +47,6 @@
 /* Max number of non-blocking accepts */
 #define MAX_ACCEPT_POLL		30
 #define FCNTL(r, s, t)		fcntl(r, s, t)
-
-#ifndef RESOLV_CONF
-#define RESOLV_CONF "/etc/resolv.conf"
-#endif
 
 /* Globals */
 PUBLIC unsigned int	HTConCacheSize = 512;	 /* Number of cached servers */
@@ -109,89 +87,80 @@ PRIVATE unsigned int HTCacheSize = 0;		    /* Current size of cache */
 ** On return,
 **	returns		a negative status in the unix way.
 */
-#ifndef PCNFS
-#ifdef VMS
-#ifndef __DECC
-extern int uerrno;	/* Deposit of error info (as per errno.h) */
-extern volatile noshare int socket_errno; /* socket VMS error info 
-                                             (used for translation of vmserrno) */
-extern volatile noshare int vmserrno;	/* Deposit of VMS error info */
-extern volatile noshare int errno;  /* noshare to avoid PSECT conflict */
-#endif /* not DECC */
-#endif /* VMS */
+#if 0 /* Is this needed? --fgmr */
+#ifdef HAVE_SOCKET_ERRNO
+extern volatile noshare int socket_errno;
+#endif
 
 #ifndef errno
-extern int errno;
-#endif /* errno */
+extern volatile noshare int errno; 
+#endif
+#endif
 
-#ifndef VM
-#ifndef VMS
-#ifndef NeXT
-#ifndef THINK_C
+#ifdef HAVE_SYS_ERRLIST
+#ifdef NEED_SYS_ERRLIST_DECLARED
 extern char *sys_errlist[];		/* see man perror on cernvax */
+#endif
+#endif
+
+#ifdef HAVE_SYS_NERR
+#ifdef NEED_SYS_NERR_DECLARED
 extern int sys_nerr;
-#endif  /* think c */
-#endif	/* NeXT */
-#endif  /* VMS */
-#endif	/* VM */
-
-#endif	/* PCNFS */
-
+#endif
+#endif
 
 /*
  *	Returns the string equivalent of the current errno.
  */
 PUBLIC CONST char * HTErrnoString NOARGS
 {
-#ifndef VMS
-
-#ifdef VM
-    return "(Error number not translated)";	/* What Is the VM equiv? */
-#define ER_NO_TRANS_DONE
-#endif
-
-#if defined(NeXT) || defined(THINK_C)
+#ifdef HAVE_STRERROR
     return strerror(errno);
-#define ER_NO_TRANS_DONE
-#endif
+#else
 
-#ifndef ER_NO_TRANS_DONE
+#ifdef HAVE_SYS_ERRLIST
+# ifdef HAVE_SYS_NERR
     return (errno < sys_nerr ? sys_errlist[errno] : "Unknown error");
+# else
+    return sys_errlist[errno];
+# endif
 #endif
 
-#else /* VMS */
-
+#ifdef HAVE_VAXC_ERRNO
     static char buf[60];
     sprintf(buf,"Unix errno = %ld dec, VMS error = %lx hex",errno,vaxc$errno);
     return buf;
+#endif
 
+    return "(Error number not translated)";
 #endif
 }
-
 
 /*	Report Internet Error
 **	---------------------
 */
 PUBLIC int HTInetStatus ARGS1(char *, where)
 {
-#ifndef VMS
+#ifndef HAVE_VAXC_ERRNO
 
     if (PROT_TRACE)
 	fprintf(stderr, "TCP errno... %d after call to %s() failed.\n............ %s\n", errno, where, HTErrnoString());
 
-#else /* VMS */
+#else /* HAVE_VAXC_ERRNO */
 
     if (PROT_TRACE) fprintf(stderr, "         Unix error number          = %ld dec\n", errno);
     if (PROT_TRACE) fprintf(stderr, "         VMS error                  = %lx hex\n", vaxc$errno);
 
-#ifdef MULTINET
+#ifdef HAVE_SOCKET_ERRNO
     if (PROT_TRACE) fprintf(stderr, "         Multinet error             = %lx hex\n", socket_errno); 
+#endif
+#ifdef HAVE_VMS_ERRNO_STRING
     if (PROT_TRACE) fprintf(stderr, "         Error String               = %s\n", vms_errno_string());
-#endif /* MULTINET */
+#endif
 
-#endif /* VMS */
+#endif /* HAVE_VAXC_ERRNO */
 
-#ifdef VMS
+#ifdef HAVE_VAXC_ERRNO
     /* errno happen to be zero if vaxc$errno <> 0 */
     return -vaxc$errno;
 #else
@@ -717,10 +686,6 @@ PUBLIC int HTParseInet ARGS3(SockA *, sin, CONST char *, str,
 */
 PRIVATE void get_host_details NOARGS
 
-#ifndef MAXHOSTNAMELEN
-#define MAXHOSTNAMELEN 64		/* Arbitrary limit */
-#endif
-
 {
     char name[MAXHOSTNAMELEN+1];	/* The name of this host */
     struct hostent * phost;		/* Pointer to host -- See netdb.h */
@@ -840,7 +805,7 @@ PUBLIC CONST char * HTGetHostName NOARGS
 	    got_it = YES;
     }
 
-#ifndef VMS
+#ifdef RESOLV_CONF
     /* Now try the resolver config file */
     if (!got_it && (fp = fopen(RESOLV_CONF, "r")) != NULL) {
 	char buffer[80];
@@ -865,9 +830,10 @@ PUBLIC CONST char * HTGetHostName NOARGS
 	}
 	fclose(fp);
     }
+#endif /* RESOLV_CONF */
 
     /* If everything else has failed then try getdomainname */
-#ifndef sco
+#ifdef HAVE_GETDOMAINNAME
     if (!got_it) {
 	if (getdomainname(name, MAXHOSTNAMELEN)) {
 	    if (PROT_TRACE)
@@ -886,8 +852,7 @@ PUBLIC CONST char * HTGetHostName NOARGS
 	    StrAllocCat(hostname, domain);
 	}
     }
-#endif /* not sco */
-#endif /* not VMS */
+#endif /* HAVE_GETDOMAINNAME */
 
     {
 	char *strptr = hostname;
@@ -968,7 +933,9 @@ PUBLIC CONST char * HTGetMailAddress NOARGS
 {
     char *login;
     CONST char *domain;
+#ifdef HAVE_PWD_H
     struct passwd *pw_info;
+#endif
     if (mailaddress) {
 	if (*mailaddress)
 	    return mailaddress;
@@ -976,32 +943,36 @@ PUBLIC CONST char * HTGetMailAddress NOARGS
 	    return NULL;       /* No luck the last time so we wont try again */
     }
 
-#ifdef VMS
+#ifdef HAVE_CUSERID
     if ((login = (char *) cuserid(NULL)) == NULL) {
         if (PROT_TRACE) fprintf(stderr, "MailAddress. cuserid returns NULL\n");
-    }
-
-#else /* not VMS */
+    } else goto ok;
+#endif
+#ifdef HAVE_GETLOGIN
     if ((login = (char *) getlogin()) == NULL) {
-	if (PROT_TRACE)
-	    fprintf(stderr, "MailAddress. getlogin returns NULL\n");
-	if ((pw_info = getpwuid(getuid())) == NULL) {
-	    if (PROT_TRACE)
-		fprintf(stderr, "MailAddress. getpwid returns NULL\n");
-	    if ((login = getenv("LOGNAME")) == NULL) {
-		if (PROT_TRACE)
-		    fprintf(stderr, "MailAddress. LOGNAME not found\n");
-		if ((login = getenv("USER")) == NULL) {
-		    if (PROT_TRACE)
-			fprintf(stderr,"MailAddress. USER not found\n");
-		    return NULL;		/* I GIVE UP */
-		}
-	    }
-	} else
-	    login = pw_info->pw_name;
+	if (PROT_TRACE) fprintf(stderr, "MailAddress. getlogin returns NULL\n");
+    } else goto ok;
+#endif
+#ifdef HAVE_PWD_H
+    if ((pw_info = getpwuid(getuid())) == NULL) {
+        if (PROT_TRACE) fprintf(stderr, "MailAddress. getpwid returns NULL\n");
+    } else {
+        login = pw_info->pw_name;
+        goto ok;
     }
-#endif /* not VMS */
+#endif
 
+    if ((login = getenv("LOGNAME")) == NULL) {
+	if (PROT_TRACE) fprintf(stderr, "MailAddress. LOGNAME not found\n");
+    } else goto ok;
+
+    if ((login = getenv("USER")) == NULL) {
+        if (PROT_TRACE) fprintf(stderr,"MailAddress. USER not found\n");
+    } else goto ok;
+
+    return NULL;		/* I GIVE UP */
+
+  ok:
     if (login) {
 	StrAllocCopy(mailaddress, login);
 	StrAllocCat(mailaddress, "@");
@@ -1110,10 +1081,14 @@ PUBLIC int HTDoConnect ARGS5(HTNetInfo *, net, char *, url,
 	    ** does NOT work on SVR4 systems. O_NONBLOCK is POSIX.
 	    */
 	    if (!HTProtocolBlocking(net->request)) {
+#ifdef O_NONBLOCK
 		if((status = FCNTL(net->sockfd, F_GETFL, 0)) != -1) {
 		    status |= O_NONBLOCK;			    /* POSIX */
 		    status = FCNTL(net->sockfd, F_SETFL, status);
 		}
+#else
+		status = -1;
+#endif
 		if (status == -1) {
 		    if (PROT_TRACE)
 			fprintf(stderr, "HTDoConnect. Can NOT make socket non-blocking\n");
@@ -1266,19 +1241,17 @@ PUBLIC int HTDoAccept ARGS1(HTNetInfo *, net)
     }
 
     /* First make the socket non-blocking */
-#ifdef VMS
-#ifdef MULTINET
+#ifdef HAVE_SOCKET_IOCTL
     {
        int enable = 1;
        status = socket_ioctl(net->sockfd, FIONBIO, &enable);
     }
-#endif /* MULTINET */
-#else /* not VMS */
+#else /* no socket_ioctl */
     if((status = FCNTL(net->sockfd, F_GETFL, 0)) != -1) {
 	status |= FNDELAY;					/* O_NDELAY; */
 	status = FCNTL(net->sockfd, F_SETFL, status);
     }
-#endif /* not VMS */
+#endif /* SOCKET_IOCTL */
     if (status == -1) {
 	HTErrorSysAdd(net->request, ERR_FATAL, NO, "fcntl");
 	return -1;

@@ -15,6 +15,7 @@
 **	 8 Jul 94  FM	Insulate free() from _free structure element.
 **
 */
+#include "sysdep.h"
 #include "HTFormat.h"
 #include "HTAlert.h"
 #include "HTFWriter.h"

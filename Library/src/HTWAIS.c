@@ -48,6 +48,8 @@
    Brewster@think.com
 */
 
+#include "sysdep.h"
+
 
 #define DIRECTORY "/cnidr.org:210/directory-of-servers"
 /* define DIRECTORY "/quake.think.com:210/directory-of-servers" */
@@ -71,9 +73,6 @@
 #define BUFFER_SIZE 4096	/* Arbitrary size for efficiency */
 
 #define HEX_ESCAPE '%'
-
-/* Platform dependent stuff */
-#include "tcp.h"
 
 /* Library includes */
 #include "HTUtils.h"

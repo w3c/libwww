@@ -9,6 +9,8 @@
 **			multiformat handling would be a mess in VMS.
 */
 
+#include "sysdep.h"
+
 #include "HTMulti.h"
 #include "HTFile.h"
 #include "HTList.h"
@@ -33,7 +35,7 @@ PUBLIC void HTAddWelcome ARGS1(char *, name)
 }
 
 
-#ifdef GOT_READ_DIR
+#ifdef HAVE_OPENDIR
 
 /* PRIVATE						multi_match()
 **
@@ -95,7 +97,7 @@ PRIVATE HTList * dir_matches ARGS1(char *, path)
     int baselen;
     char * multi = NULL;
     DIR * dp;
-    STRUCT_DIRENT * dirbuf;
+    struct dirent * dirbuf;
     HTList * matches = NULL;
 
     if (!path) return NULL;
@@ -122,16 +124,17 @@ PRIVATE HTList * dir_matches ARGS1(char *, path)
 
     matches = HTList_new();
     while ((dirbuf = readdir(dp))) {
+#ifdef HAVE_DIRENT_INO
 	if (!dirbuf->d_ino) continue;	/* Not in use */
+#else
+	if (!dirbuf->d_name) continue; 	/* Not in use */
+#endif
 	if (!strcmp(dirbuf->d_name,".") ||
 	    !strcmp(dirbuf->d_name,"..") ||
 	    !strcmp(dirbuf->d_name, HT_DIR_ENABLE_FILE))
 	    continue;
 
-	/* Use of direct->namlen is only valid in BSD'ish system */
-	/* Thanks to chip@chinacat.unicom.com (Chip Rosenthal) */
-	/* if ((int)(dirbuf->d_namlen) >= baselen) { */
-	if ((int) strlen(dirbuf->d_name) >= baselen) {
+	if (NAMLEN(dirbuf) >= baselen) {
 	    n = HTSplitFilename(dirbuf->d_name, actual);
 	    if (multi_match(required, m, actual, n)) {
 		HTContentDescription * cd;
@@ -252,7 +255,7 @@ PRIVATE char * get_best_welcome ARGS1(char *, path)
     char * best_welcome = NULL;
     int best_value = 0;
     DIR * dp;
-    STRUCT_DIRENT * dirbuf;
+    struct dirent * dirbuf;
     char * last = strrchr(path, '/');
 
     if (!welcome_names) {
@@ -272,7 +275,12 @@ PRIVATE char * get_best_welcome ARGS1(char *, path)
 	return NULL;
     }
     while ((dirbuf = readdir(dp))) {
-	if (!dirbuf->d_ino ||
+	if (
+#ifdef HAVE_DIRENT_INO
+	    !dirbuf->d_ino ||
+#else
+	    !dirbuf->d_name ||
+#endif
 	    !strcmp(dirbuf->d_name,".") ||
 	    !strcmp(dirbuf->d_name,"..") ||
 	    !strcmp(dirbuf->d_name, HT_DIR_ENABLE_FILE))
@@ -298,7 +306,7 @@ PRIVATE char * get_best_welcome ARGS1(char *, path)
     return NULL;
 }
 
-#endif /* GOT_READ_DIR */
+#endif /* HAVE_OPENDIR */
 
 
 /*
@@ -329,7 +337,7 @@ PUBLIC char * HTMulti ARGS3(HTRequest *,	req,
     if (!req || !path || !*path || !stat_info)
 	return NULL;
 
-#ifdef GOT_READ_DIR
+#ifdef HAVE_OPENDIR
     len = strlen(path);
     if (path[len-1] == '/') {	/* Find welcome page */
 	new_path = get_best_welcome(path);
@@ -359,7 +367,7 @@ PUBLIC char * HTMulti ARGS3(HTRequest *,	req,
 	    }
 	}
     }
-#endif /* GOT_READ_DIR */
+#endif /* HAVE_OPENDIR */
 
     if (stat_status == -1)
 	stat_status = HTStat(path, stat_info);

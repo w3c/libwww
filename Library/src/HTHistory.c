@@ -5,6 +5,8 @@
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 
+#include "sysdep.h"
+
 #include "HTHistory.h"
 
 static HTList * history;	/* List of visited anchors */

@@ -40,6 +40,7 @@ Library of Common Code</A>.
 #ifndef HTMIME_H
 #define HTMIME_H
 
+#include "sysdep.h"
 #include "HTStream.h"
 #include "HTAnchor.h"
 </PRE>
@@ -47,7 +48,7 @@ Library of Common Code</A>.
 <H3>Converters in this Module</H3>
 
 <PRE>
-#ifndef pyramid
+#ifndef NO_EXTERN_TYPEDEF_FUNC
 extern HTConverter HTMIMEConvert, HTNetMIME;
 #endif
 

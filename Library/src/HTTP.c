@@ -16,8 +16,8 @@
 */
 
 /* Platform dependent stuff */
+#include "sysdep.h"
 #include "HTUtils.h"
-#include "tcp.h"
 
 /* Libray Includes */
 #include "HTParse.h"

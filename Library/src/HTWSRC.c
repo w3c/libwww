@@ -12,6 +12,8 @@
 **	8 Jul 94  FM	Insulate free() from _free structure element.
 */
 
+#include "sysdep.h"
+
 #include "HTML.h"
 #include "HTUtils.h"
 #include "HTParse.h"

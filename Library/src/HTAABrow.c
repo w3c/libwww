@@ -49,7 +49,7 @@
 **
 */
 
-#include <string.h>		/* strchr() */
+#include "sysdep.h"
 
 #include "HTUtils.h"
 #include "HTString.h"

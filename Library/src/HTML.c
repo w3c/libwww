@@ -16,12 +16,11 @@
 **
 */
 
+#include "sysdep.h"
+
 #include "HTML.h"
 
 /* #define CAREFUL		 Check nesting here not really necessary */
-
-#include <ctype.h>
-#include <stdio.h>
 
 #include "HTAtom.h"
 #include "HTChunk.h"

@@ -33,6 +33,7 @@ Library of Common Code</A>.
 <PRE>
 #ifndef HTERROR_H
 #define HTERROR_H
+#include "sysdep.h"
 #include "HTAccess.h"
 </PRE>
 
@@ -88,6 +89,10 @@ typedef enum _HTErrorElement {
 	HTERR_SYSTEM,
 	HTERR_ELEMENTS		            /* This MUST be the last element */
 } HTErrorElement;
+
+#ifdef ERR_WARNING
+#undef ERR_WARNING
+#endif
 
 typedef enum _HTErrSeverity {
     ERR_FATAL		  = 0x1,

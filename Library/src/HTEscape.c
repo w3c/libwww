@@ -10,8 +10,8 @@
 */
 
 /* Platform dependent stuff */
+#include "sysdep.h"
 #include "HTUtils.h"
-#include "tcp.h"
 
 /* Library Includes */
 #include "HTEscape.h"					 /* Implemented here */

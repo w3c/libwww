@@ -66,7 +66,7 @@
 */
 
 /* Implementation dependent include files */
-#include "tcp.h"
+#include "sysdep.h"
 
 /* Library include files */
 #include "HTParse.h"
@@ -81,10 +81,6 @@
 #include "HTError.h"
 #include "HTTCP.h"
 #include "HTFTP.h"					 /* Implemented here */
-
-#ifdef VMS
-#include "HTVMSUtils.h"
-#endif /* VMS */
 
 /* Macros and other defines */
 /* If LISTEN is defined, then first 'PASV' then 'PORT' (if error) is tried,
@@ -1576,7 +1572,7 @@ PRIVATE BOOL get_listen_socket ARGS1(ftp_data_info *, data)
 PRIVATE int HTFTP_login ARGS1(ftp_ctrl_info *, ctrl)
 {
     enum _state {
-	ERROR  = -2,
+	ERROR_STATE = -2,
 	FAILURE = -1,
 	SUCCESS = 0,
 	BEGIN,
@@ -1591,7 +1587,7 @@ PRIVATE int HTFTP_login ARGS1(ftp_ctrl_info *, ctrl)
     int status = HTFTP_get_response(ctrl, &ctrl->reply);     /* Get greeting */
     if (status < 0) {
         if (PROT_TRACE) fprintf (stderr, "FTP......... Interrupted at beginning of login.\n");
-	return ERROR;
+	return ERROR_STATE;
     } else
 	HTFTPAddWelcome(ctrl);
 
@@ -1602,7 +1598,7 @@ PRIVATE int HTFTP_login ARGS1(ftp_ctrl_info *, ctrl)
 	    if (!HTFTP_send_cmd(ctrl, "USER", ctrl->user->id))
 		state = SENT_UID;
 	    else
-		state = ERROR;
+		state = ERROR_STATE;
 	    break;
 
 	  case SENT_UID:
@@ -1618,7 +1614,7 @@ PRIVATE int HTFTP_login ARGS1(ftp_ctrl_info *, ctrl)
 	    else if (status/100 == 4)
 		state = FAILURE;
 	    else
-		state = ERROR;
+		state = ERROR_STATE;
 	    break;
 
 	  case NEED_PASSWD:
@@ -1630,7 +1626,7 @@ PRIVATE int HTFTP_login ARGS1(ftp_ctrl_info *, ctrl)
 		StrAllocCat(prompt, ctrl->user->domain);
 		StrAllocCat(prompt, ": ");
 		if ((ctrl->user->passwd = HTPromptPassword(prompt)) == NULL) {
-		    state = ERROR;
+		    state = ERROR_STATE;
 		    free(prompt);
 		    break;
 		}
@@ -1646,7 +1642,7 @@ PRIVATE int HTFTP_login ARGS1(ftp_ctrl_info *, ctrl)
 	    if (!HTFTP_send_cmd(ctrl, "PASS", ctrl->user->passwd))
 		state = SENT_PASSWD;
 	    else
-		state = ERROR;
+		state = ERROR_STATE;
 	    break;
 
 	  case SENT_PASSWD:
@@ -1662,7 +1658,7 @@ PRIVATE int HTFTP_login ARGS1(ftp_ctrl_info *, ctrl)
 	    else if (status/100 == 4)
 		state = FAILURE;
 	    else
-		state = ERROR;
+		state = ERROR_STATE;
 	    break;
 	    
 	  case NEED_ACCOUNT:
@@ -1677,7 +1673,7 @@ PRIVATE int HTFTP_login ARGS1(ftp_ctrl_info *, ctrl)
 		    !HTFTP_send_cmd(ctrl, "ACCT", account)) {
 		    state = SENT_ACCOUNT;
 		} else {
-		    state = ERROR;
+		    state = ERROR_STATE;
 		}
 		free(prompt);
 		free(account);
@@ -1692,7 +1688,7 @@ PRIVATE int HTFTP_login ARGS1(ftp_ctrl_info *, ctrl)
 	    } else if (status/100 == 4)
 		state = FAILURE;
 	    else
-		state = ERROR;
+		state = ERROR_STATE;
 	    break;
 	    
 	  case NEED_USER_INFO:
@@ -1708,14 +1704,14 @@ PRIVATE int HTFTP_login ARGS1(ftp_ctrl_info *, ctrl)
 		    !HTFTP_send_cmd(ctrl, "USER", ctrl->user->id))
 		    state = SENT_UID;
 		else
-		    state = ERROR;
+		    state = ERROR_STATE;
 		free(prompt);
 	    }
 	    asked = NO;
 	    break;
 
 	  case FAILURE:			      /* Otherwise gcc complains :-( */
-	  case ERROR:
+	  case ERROR_STATE:
 	  case SUCCESS:
 	    break;
 	} /* end of switch */
@@ -1744,7 +1740,7 @@ PRIVATE int HTFTP_login ARGS1(ftp_ctrl_info *, ctrl)
 PRIVATE int HTFTP_logout ARGS1(ftp_ctrl_info *, ctrl)
 {
     enum _state {
-	ERROR  = -2,
+	ERROR_STATE = -2,
 	FAILURE = -1,
 	SUCCESS = 0,
 	BEGIN,
@@ -1759,7 +1755,7 @@ PRIVATE int HTFTP_logout ARGS1(ftp_ctrl_info *, ctrl)
 	    if (!HTFTP_send_cmd(ctrl, "QUIT", NULL))
 		state = SENT_QUIT;
 	    else
-		state = ERROR;
+		state = ERROR_STATE;
 	    break;
 
 	  case SENT_QUIT:
@@ -1769,11 +1765,11 @@ PRIVATE int HTFTP_logout ARGS1(ftp_ctrl_info *, ctrl)
 	    else if (status/100 == 4)
 		state = FAILURE;
 	    else
-		state = ERROR;
+		state = ERROR_STATE;
 	    break;
 
 	  case FAILURE:			      /* Otherwise gcc complains :-( */
-	  case ERROR:
+	  case ERROR_STATE:
 	  case SUCCESS:
 	    break;
 	}
@@ -1793,7 +1789,7 @@ PRIVATE int HTFTP_get_data_con ARGS3(HTRequest *, request,
 				     ftp_data_info *, data, char *, url)
 {
     enum _state {
-	ERROR = -2,
+	ERROR_STATE = -2,
 	FAILURE = -1,
 	SUCCESS = 0,
 	BEGIN,
@@ -1817,12 +1813,12 @@ PRIVATE int HTFTP_get_data_con ARGS3(HTRequest *, request,
 		if (!HTFTP_send_cmd(ctrl, "TYPE", data->datatype))
 		    state = SENT_TYPE;
 		else
-		    state = ERROR;
+		    state = ERROR_STATE;
 	    } else {
 		if (!HTFTP_send_cmd(ctrl, "PASV", NULL))
 		    state = SENT_PASV;
 		else
-		    state = ERROR;
+		    state = ERROR_STATE;
 	    }
 	    break;
 	    
@@ -1842,7 +1838,7 @@ PRIVATE int HTFTP_get_data_con ARGS3(HTRequest *, request,
 					    &h0, &h1, &h2, &h3, &p0, &p1)<6) {
 			if (PROT_TRACE) fprintf(stderr,
 			    "FTP......... PASV reply has no IP-address or port number\n");
-			state = ERROR;
+			state = ERROR_STATE;
 		    } else {
 			if ((data->host = (char *) malloc(30)) == NULL)
 			    outofmem(__FILE__, "HTFTP_get_data_con");
@@ -1856,7 +1852,7 @@ PRIVATE int HTFTP_get_data_con ARGS3(HTRequest *, request,
 		} else if (status/100 == 4)
 		    state = FAILURE;
 		else if (status == 530)			 /* Not logged in??? */
-		    state = ERROR;
+		    state = ERROR_STATE;
 		else
 		    state = NEED_PASSIVE;      /* If error, try PORT instead */
 	    }
@@ -1903,7 +1899,7 @@ PRIVATE int HTFTP_get_data_con ARGS3(HTRequest *, request,
 		if (PROT_TRACE) fprintf(stderr, "FTP......... Data connected using PASV, socket %d\n", data->sockfd);
 		state = SUCCESS;
 	    } else {
-		state = ERROR;     	       		      /* Interrupted */
+		state = ERROR_STATE;     	 	      /* Interrupted */
 	    }
 	    break;
 
@@ -1913,13 +1909,13 @@ PRIVATE int HTFTP_get_data_con ARGS3(HTRequest *, request,
 	       passive using PORT */
 	    if (get_listen_socket(data) < 0 ||
 		HTFTP_send_cmd(ctrl, "PORT", this_addr))
-		state = ERROR;
+		state = ERROR_STATE;
 	    else
 		state = SENT_PORT;
 #else
 	    /* If PORT is not compiled, then there is nothing we can do! */
 	    if (PROT_TRACE) fprintf(stderr, "FTP......... PORT is not possible!\n");
-	    state = ERROR;
+	    state = ERROR_STATE;
 #endif
 	    break;
 
@@ -1931,7 +1927,7 @@ PRIVATE int HTFTP_get_data_con ARGS3(HTRequest *, request,
 	    } else if (status/100 == 4)
 		state = FAILURE;
 	    else
-		state = ERROR;
+		state = ERROR_STATE;
 	    break;
 
 	  case SENT_TYPE:
@@ -1941,14 +1937,14 @@ PRIVATE int HTFTP_get_data_con ARGS3(HTRequest *, request,
 		if (!HTFTP_send_cmd(ctrl, "PASV", NULL))
 		    state = SENT_PASV;
 		else
-		    state = ERROR;
+		    state = ERROR_STATE;
 	    } else if (status/100 == 4)
 		state = FAILURE;
 	    else
-		state = ERROR;
+		state = ERROR_STATE;
 	    break;
 	    		
-	  case ERROR:			      /* Otherwise gcc complains :-( */
+	  case ERROR_STATE:		      /* Otherwise gcc complains :-( */
 	  case FAILURE:
 	  case SUCCESS:
 	    break;
@@ -1971,9 +1967,9 @@ PRIVATE int HTFTP_switch_to_port ARGS2(ftp_data_info *, data,
 				       HTRequest *, 	req)
 {
     enum _state {
-	ERROR = -2,
+	ERROR_STATE = -2,
 	SUCCESS = 0
-    } state = ERROR;
+    } state = ERROR_STATE;
     int status;
     ftp_ctrl_info *ctrl = data->ctrl;
 
@@ -2043,13 +2039,8 @@ PRIVATE int HTFTP_look_for_data ARGS2(HTRequest *, 	request,
     sleep(1);
 
     /* Now make the select */
-#ifdef __hpux
-    if ((status = select(maxfdpl, (int *) &read_socks, (int *) NULL,
-			 (int *) NULL, &max_wait)) < 0)
-#else
-    if ((status = select(maxfdpl, &read_socks, (fd_set *) NULL,
+    if ((status = select(maxfdpl, (fd_set *) &read_socks, (fd_set *) NULL,
 			 (fd_set *) NULL, &max_wait)) < 0)
-#endif /* __hpux */
         HTErrorSysAdd(request, ERR_FATAL, NO, "select");
     else if (!status) {
 	HTErrorAdd(request, ERR_FATAL, NO,
@@ -2088,7 +2079,7 @@ PRIVATE int HTFTP_look_for_data ARGS2(HTRequest *, 	request,
 PRIVATE int HTFTPServerInfo ARGS1(ftp_ctrl_info *, ctrl)
 {
     enum _state {
-	ERROR  = -2,
+	ERROR_STATE = -2,
 	FAILURE = -1,
 	SUCCESS = 0,
 	BEGIN,
@@ -2098,14 +2089,14 @@ PRIVATE int HTFTPServerInfo ARGS1(ftp_ctrl_info *, ctrl)
     } state = BEGIN;
     int status;
 
-    /* This loop only stops if state is ERROR, FAILURE or SUCCESS */
+    /* This loop only stops if state is ERROR_STATE, FAILURE or SUCCESS */
     while (state > 0) {
 	switch (state) {
 	  case BEGIN:
 	    if (!HTFTP_send_cmd(ctrl, "SYST", NULL))
 		state = SENT_SYST;
 	    else
-		state = ERROR;
+		state = ERROR_STATE;
 	    break;
 	    
 	  case SENT_SYST:
@@ -2173,14 +2164,14 @@ PRIVATE int HTFTPServerInfo ARGS1(ftp_ctrl_info *, ctrl)
 	    if (!HTFTP_send_cmd(ctrl, "PWD", NULL))
 		state = SENT_PWD;
 	    else
-		state = ERROR;
+		state = ERROR_STATE;
 	    break;
 
 	  case SENT_PWD:
 	    {
 		status = HTFTP_get_response(ctrl, &ctrl->reply);
 		if (status/100 != 2)
-		    state = ERROR;
+		    state = ERROR_STATE;
 		else {
 		    char *start, *end;
 
@@ -2213,7 +2204,7 @@ PRIVATE int HTFTPServerInfo ARGS1(ftp_ctrl_info *, ctrl)
 	    break;
 	    
 	  case FAILURE:			      /* Otherwise gcc complains :-( */
-	  case ERROR:
+	  case ERROR_STATE:
 	  case SUCCESS:
 	    break;
 	}
@@ -2342,7 +2333,7 @@ PRIVATE int HTFTP_get_dir ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 				char *, relative)
 {
     enum _state {
-	ERROR  = -2,
+	ERROR_STATE = -2,
 	FAILURE = -1,
 	SUCCESS = 0,
 	BEGIN,
@@ -2377,7 +2368,7 @@ PRIVATE int HTFTP_get_dir ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 		if (!HTFTP_send_cmd(ctrl, "CWD", unescaped))
 		    state = SENT_CWD;
 		else
-		    state = ERROR;
+		    state = ERROR_STATE;
 	    }
 	    break;
 
@@ -2386,17 +2377,17 @@ PRIVATE int HTFTP_get_dir ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 		if (!HTFTP_send_cmd(ctrl, "LIST", NULL))
 		    state = SENT_LIST;
 		else
-		    state = ERROR;
+		    state = ERROR_STATE;
 	    } else {
 		if (!HTFTP_send_cmd(ctrl, "NLST", NULL))
 		    state = SENT_LIST;
 		else
-		    state = ERROR;
+		    state = ERROR_STATE;
 	    }
 	    break;
 
 	  case SENT_LIST:
-#ifdef SEQUENT
+#ifdef WEIRD_ACCEPT
 	    
 	    /* If we are listening, do a non-blocking accept now, as the
 	       accept on some systems (DYNIX) completes the connection. On
@@ -2404,14 +2395,14 @@ PRIVATE int HTFTP_get_dir ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 	       accept. (thanks to Bill Rushka, wcr@aps.org) */
 	    if (data->passive == 1) {
 		int newfd;
-		if ((newfd = HTDoAccept(req, data->sockfd)) >= 0) {
+		if ((newfd = HTDoAccept((HTNetInfo *)data)) >= 0) {
 #ifdef REPEAT_LISTEN
 		    if (PROT_TRACE) fprintf(stderr, "FTP......... Passive data channel number %d stays open.\n", data->sockfd);
 #else
 		    if (PROT_TRACE) fprintf(stderr, "FTP......... Passive data channel number %d closed.\n", data->sockfd);
 		    if (NETCLOSE(data->sockfd) < 0) {
 			HTErrorSysAdd(data->request, ERR_FATAL, NO,"NETCLOSE");
-			state = ERROR;
+			state = ERROR_STATE;
 			break;
 		    }
 #endif
@@ -2423,11 +2414,11 @@ PRIVATE int HTFTP_get_dir ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 		} else {
 		    HTChunkClear(ctrl->reply);
 		    ctrl->reply = NULL;
-		    state = ERROR;
+		    state = ERROR_STATE;
 		    break;
 		}
 	    }
-#endif /* SEQUENT */
+#endif /* WEIRD_ACCEPT */
 
 	    status = HTFTP_get_response(ctrl, &ctrl->reply);
 	    if (status == 150)			 /* About to open connection */
@@ -2437,7 +2428,7 @@ PRIVATE int HTFTP_get_dir ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 	    else if (status/100 == 4)
 		state = FAILURE;
 	    else
-		state = ERROR;
+		state = ERROR_STATE;
 	    break;
 	    
 	  case SENT_CWD:
@@ -2470,7 +2461,7 @@ PRIVATE int HTFTP_get_dir ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 		    HTUnEscape(segment);
 		    HTCleanTelnetString(segment);  /* Prevent security holes */
 		    if (HTFTP_send_cmd(ctrl, "CWD", segment)) {
-			state = ERROR;
+			state = ERROR_STATE;
 			break;
 		    }
 		    status = HTFTP_get_response(ctrl, &ctrl->reply);
@@ -2478,7 +2469,7 @@ PRIVATE int HTFTP_get_dir ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 			if (status/100 == 4)
 			    state = FAILURE;
 			else
-			    state = ERROR;
+			    state = ERROR_STATE;
 			break;
 		    } else {			  /* Update current location */
 			char *new_seg = HTEscape(segment, URL_XPALPHAS);
@@ -2505,7 +2496,7 @@ PRIVATE int HTFTP_get_dir ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 		    if (PROT_TRACE) fprintf(stderr, "FTP......... Passive data channel number %d closed.\n", data->sockfd);
 		    if (NETCLOSE(data->sockfd) < 0) {
 			HTErrorSysAdd(data->request, ERR_FATAL, NO,"NETCLOSE");
-			state = ERROR;
+			state = ERROR_STATE;
 			break;
 		    }
 #endif
@@ -2517,7 +2508,7 @@ PRIVATE int HTFTP_get_dir ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 		} else {
 		    HTChunkClear(ctrl->reply);
 		    ctrl->reply = NULL;
-		    state = ERROR;
+		    state = ERROR_STATE;
 		    break;
 		}
 	    }
@@ -2534,12 +2525,12 @@ PRIVATE int HTFTP_get_dir ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 		status = HTFTPBrowseDirectory(req, path, HTFTP_get_dir_string);
 		HTInputSocket_free(data->isoc);
 		if (status == -1)
-		    state = ERROR;
+		    state = ERROR_STATE;
 		else if (status == HT_INTERRUPTED) {
 		    if (!HTFTP_send_cmd(ctrl, "ABOR", NULL))
 			state = SENT_ABOR;
 		    else
-			state = ERROR;
+			state = ERROR_STATE;
 		} else
 		    state = GOT_DATA;
 		free(path);
@@ -2554,7 +2545,7 @@ PRIVATE int HTFTP_get_dir ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 		else if (status/100 == 4)
 		    state = FAILURE;
 		else
-		    state = ERROR;
+		    state = ERROR_STATE;
 	    } else
 		state = SUCCESS;
 	    break;
@@ -2566,7 +2557,7 @@ PRIVATE int HTFTP_get_dir ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 	    else if (status/100 == 4)
 		state = FAILURE;
 	    else
-		state = ERROR;
+		state = ERROR_STATE;
 	    break;
 
 	  case WAIT_FOR_CONNECTION:
@@ -2578,7 +2569,7 @@ PRIVATE int HTFTP_get_dir ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 	    else if (status == 1)
 		state = HANDLE_CTRL;
 	    else
-		state = ERROR;
+		state = ERROR_STATE;
 	    break;
 
 	  case HANDLE_CTRL:
@@ -2588,19 +2579,19 @@ PRIVATE int HTFTP_get_dir ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 #ifdef LISTEN
 	    } else if (status == 425) {	   /* Connection could not be opened */
 		if (HTFTP_switch_to_port(data, req))
-		    state = ERROR;
+		    state = ERROR_STATE;
 		else
 		    state = NEED_LIST;
 #endif /* LISTEN */
 	    } else if (status/100 == 4)
 		state = FAILURE;
 	    else
-		state = ERROR;
+		state = ERROR_STATE;
 	    handle_ctrl = YES;
 	    break;
 
 	  case FAILURE:			      /* Otherwise gcc complains :-( */
-	  case ERROR:
+	  case ERROR_STATE:
 	  case SUCCESS:
 	    break;
 	}
@@ -2620,13 +2611,13 @@ PRIVATE int HTFTP_get_dir ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 **	directly to HTFTP_get_dir. The relative is searched relative to
 **	the login directory, that is without a starting '/'.
 **
-**	Returns -2 on ERROR, -1 on FAILURE, 0 on SUCCESS.
+**	Returns -2 on ERROR_STATE, -1 on FAILURE, 0 on SUCCESS.
 */
 PRIVATE int HTFTP_get_file ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 				 char *, relative)
 {
     enum _state {
-	ERROR  = -2,
+	ERROR_STATE = -2,
 	FAILURE = -1,
 	SUCCESS = 0,
 	BEGIN,
@@ -2647,7 +2638,7 @@ PRIVATE int HTFTP_get_file ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
     HTUnEscape(unescaped);
     HTCleanTelnetString(unescaped);  /* Prevent security holes */
 
-    /* This loop only stops if state is ERROR, FAILURE or SUCCESS */
+    /* This loop only stops if state is ERROR_STATE, FAILURE or SUCCESS */
     while (state > 0) {
 	switch (state) {
 	  case BEGIN:
@@ -2655,25 +2646,25 @@ PRIVATE int HTFTP_get_file ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 	    if (!HTFTP_send_cmd(ctrl, "RETR", unescaped))
 		state = SENT_RETR;
 	    else
-		state = ERROR;
+		state = ERROR_STATE;
 	    break;
 
 	  case SENT_RETR:
-#ifdef SEQUENT	    
+#ifdef WEIRD_ACCEPT
 	    /* If we are listening, do a non-blocking accept now, as the
 	       accept on some systems (DYNIX) completes the connection. On
 	       BSD systems, the completion is done independently of the
 	       accept. (thanks to Bill Rushka, wcr@aps.org) */
 	    if (data->passive == 1) {
 		int newfd;
-		if ((newfd = HTDoAccept(req, data->sockfd)) >= 0) {
+		if ((newfd = HTDoAccept((HTNetInfo *)data)) >= 0) {
 #ifdef REPEAT_LISTEN
 		    if (PROT_TRACE) fprintf(stderr, "FTP......... Passive data channel number %d stays open.\n", data->sockfd);
 #else
 		    if (PROT_TRACE) fprintf(stderr, "FTP......... Passive data channel number %d closed.\n", data->sockfd);
 		    if (NETCLOSE(data->sockfd) < 0) {
 			HTErrorSysAdd(data->request, ERR_FATAL, NO,"NETCLOSE");
-			state = ERROR;
+			state = ERROR_STATE;
 			break;
 		    }
 #endif
@@ -2685,11 +2676,11 @@ PRIVATE int HTFTP_get_file ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 		} else {
 		    HTChunkClear(ctrl->reply);
 		    ctrl->reply = NULL;
-		    state = ERROR;
+		    state = ERROR_STATE;
 		    break;
 		}
 	    }
-#endif /* SEQUENT */
+#endif /* WEIRD_ACCEPT */
 
 	    status = HTFTP_get_response(ctrl, &ctrl->reply);
 	    if (status == 150)			 /* About to open connection */
@@ -2728,7 +2719,7 @@ PRIVATE int HTFTP_get_file ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 		    HTUnEscape(segment);
 		    HTCleanTelnetString(segment);  /* Prevent security holes */
 		    if (HTFTP_send_cmd(ctrl, "CWD", segment)) {
-			state = ERROR;
+			state = ERROR_STATE;
 			break;
 		    }
 		    status = HTFTP_get_response(ctrl, &ctrl->reply);
@@ -2736,7 +2727,7 @@ PRIVATE int HTFTP_get_file ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 			if (status/100 == 4)
 			    state = FAILURE;
 			else
-			    state = ERROR;
+			    state = ERROR_STATE;
 			break;
 		    } else {			  /* Update current location */
 			char *new_seg = HTEscape(segment, URL_XPALPHAS);
@@ -2755,10 +2746,10 @@ PRIVATE int HTFTP_get_file ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 			StrAllocCopy(unescaped, segment);
 			state = SENT_RETR;
 		    } else
-			state = ERROR;
+			state = ERROR_STATE;
 		} else {
 		    if (PROT_TRACE) fprintf(stderr, "FTP......... Strange error, filename not found?\n");
-		    state = ERROR;
+		    state = ERROR_STATE;
 		}
 		free(path);
 	    }
@@ -2774,7 +2765,7 @@ PRIVATE int HTFTP_get_file ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 		    if (PROT_TRACE) fprintf(stderr, "FTP......... Passive data channel number %d closed.\n", data->sockfd);
 		    if (NETCLOSE(data->sockfd) < 0) {
 			HTErrorSysAdd(data->request, ERR_FATAL, NO,"NETCLOSE");
-			state = ERROR;
+			state = ERROR_STATE;
 			break;
 		    }
 #endif
@@ -2786,7 +2777,7 @@ PRIVATE int HTFTP_get_file ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 		} else {
 		    HTChunkClear(ctrl->reply);
 		    ctrl->reply = NULL;
-		    state = ERROR;
+		    state = ERROR_STATE;
 		    break;
 		}
 	    }
@@ -2800,9 +2791,9 @@ PRIVATE int HTFTP_get_file ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 		    if (!HTFTP_send_cmd(ctrl, "ABOR", NULL))
 			state = SENT_ABOR;
 		    else
-			state = ERROR;
+			state = ERROR_STATE;
 		} else
-		    state = ERROR;
+		    state = ERROR_STATE;
 	    } else
 		state = GOT_DATA;
 	    break;
@@ -2815,7 +2806,7 @@ PRIVATE int HTFTP_get_file ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 		else if (status/100 == 4)
 		    state = FAILURE;
 		else
-		    state = ERROR;
+		    state = ERROR_STATE;
 	    } else
 		state = SUCCESS;
 	    break;
@@ -2827,7 +2818,7 @@ PRIVATE int HTFTP_get_file ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 	    else if (status/100 == 4)
 		state = FAILURE;
 	    else
-		state = ERROR;
+		state = ERROR_STATE;
 	    break;
 
           case WAIT_FOR_CONNECTION:
@@ -2839,7 +2830,7 @@ PRIVATE int HTFTP_get_file ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
             else if (status == 1)
                 state = HANDLE_CTRL;
 	    else
-		state = ERROR;
+		state = ERROR_STATE;
             break;
 
           case HANDLE_CTRL:
@@ -2849,23 +2840,23 @@ PRIVATE int HTFTP_get_file ARGS3(ftp_ctrl_info *, ctrl, HTRequest *, req,
 #ifdef LISTEN
             } else if (status == 425) {    /* Connection could not be opened */
                 if (HTFTP_switch_to_port(data, req))
-                    state = ERROR;
+                    state = ERROR_STATE;
                 else {
 		    if (!HTFTP_send_cmd(ctrl, "RETR", unescaped))
 			state = SENT_RETR;
 		    else
-			state = ERROR;
+			state = ERROR_STATE;
 		}
 #endif /* LISTEN */
             } else if (status/100 == 4)
                 state = FAILURE;
             else
-                state = ERROR;
+                state = ERROR_STATE;
             handle_ctrl = YES;
             break;
 
 	  case FAILURE:			      /* Otherwise gcc complains :-( */
-	  case ERROR:
+	  case ERROR_STATE:
 	  case SUCCESS:
 	    break;
 	}

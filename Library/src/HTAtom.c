@@ -14,11 +14,11 @@
 **	TBL	Tim Berners-Lee, WorldWideWeb project, CERN
 **
 */
+
+#include "sysdep.h"
+
 #define HASH_SIZE	101		/* Tunable */
 #include "HTAtom.h"
-
-#include <stdio.h>				/* joe@athena, TBL 921019 */
-#include <string.h>
 
 #include "HTUtils.h"
 #include "HTList.h"

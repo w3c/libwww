@@ -24,28 +24,11 @@ Library of Common Code</A>.
 #ifndef HTUTILS_H
 #define HTUTILS_H
 
-#if defined(__STDC__) || defined(__cplusplus)
-#define _STANDARD_CODE_
-#endif
-
-#ifndef DEBUG
-#define DEBUG	/* No one ever turns this off as trace is too important */
-#endif		/* Keep option for really small memory applications too */
-
-#ifdef _WINDOWS				/* SCW */
-#include "windef.h"
-#define BOOLEAN_DEFINED
-#endif
+#include "sysdep.h"
 
 #ifdef SHORT_NAMES
 #define WWW_TraceFlag HTTrFlag
 #endif
-
-#ifndef STDIO_H
-#include &lt;stdio.h>
-#define STDIO_H
-#endif
-
 </PRE>
 
 <H2>Debug message control</H2>
@@ -115,72 +98,13 @@ numbers, and recursive pointers to
 reasons. Curently this is a placeholder
 for something more sophisticated.
 <PRE>typedef void * HTError;			/* Unused at present -- best definition? */
-
-</PRE>
-<H2>Standard C library for malloc() etc</H2>
-
-Replace memory allocation and free C RTL functions
-with VAXC$xxx_OPT altrenatives for VAXC (but not DECC)
-on VMS. This makes a big performance difference. (Foteos
-Macrides).
-
-<PRE>#ifdef vax
-#ifdef unix
-#define ultrix	/* Assume vax+unix=ultrix */
-#endif
-#endif
-
-#ifndef VMS
-#ifndef ultrix
-#ifdef NeXT
-#include &lt;libc.h>	/* NeXT */
-#endif
-#ifndef Mips
-#ifndef MACH /* Vincent.Cate@furmint.nectar.cs.cmu.edu */
-#include &lt;stdlib.h>	/* ANSI */
-#endif
-#else /* Mips */
-#define S_ISDIR(m)      (((m)&S_IFMT) == S_IFDIR)
-#define S_ISREG(m)      (((m)&S_IFMT) == S_IFREG)
-#endif /* Mips */
-#else /* ultrix */
-#include &lt;malloc.h>
-#include &lt;memory.h>
-#include &lt;stdio.h>
-#include &lt;stdlib.h>   /* ANSI */   /* BSN */
-#endif
-
-#else	/* VMS */
-#include &lt;stdio.h>
-#include &lt;stdlib.h>
-#include &lt;unixlib.h>
-#include &lt;ctype.h>
-#if defined(VAXC) && !defined(__DECC)
-#define malloc	VAXC$MALLOC_OPT
-#define calloc	VAXC$CALLOC_OPT
-#define free	VAXC$FREE_OPT
-#define cfree	VAXC$CFREE_OPT
-#define realloc	VAXC$REALLOC_OPT
-#endif /* VAXC but not DECC */
-#define unlink remove
-#define gmtime localtime
-#include &lt;stat.h>
-#define S_ISDIR(m)      (((m)&S_IFMT) == S_IFDIR)
-#define S_ISREG(m)      (((m)&S_IFMT) == S_IFREG)
-#define putenv HTVMS_putenv
-#endif
-
 </PRE>
 <H2>Macros for declarations</H2>
-<PRE>#define PUBLIC			/* Accessible outside this module     */
+<PRE>#define PUBLIC			/* Accessible outside this module */
 #define PRIVATE static		/* Accessible only within this module */
 
-#ifdef _STANDARD_CODE_
-
-#ifndef sco			/* The sco CC compiler does not know const */
-#define CONST const		/* "const" only exists in STDC */
-#endif
-
+#define CONST const
+#ifdef __STDC__
 #define NOPARAMS (void)
 #define PARAMS(parameter_list) parameter_list
 #define NOARGS (void)
@@ -207,9 +131,6 @@ Macrides).
 
 #else  /* not ANSI */
 
-#ifndef _WINDOWS
-#define CONST
-#endif
 #define NOPARAMS ()
 #define PARAMS(parameter_list) ()
 #define NOARGS ()
@@ -247,18 +168,12 @@ Macrides).
 /* #define GOOD(status) ((status)38;1)	 VMS style status: test bit 0	      */
 /* #define BAD(status)  (!GOOD(status))	 Bit 0 set if OK, otherwise clear   */
 
-#ifndef _WINDOWS
-#ifndef BOOLEAN_DEFINED
-	typedef char	BOOLEAN;		/* Logical value */
 #ifndef CURSES
 #ifndef TRUE
 #define TRUE	(BOOLEAN)1
 #define	FALSE	(BOOLEAN)0
 #endif
 #endif	 /*  CURSES  */
-#endif   /* _WINDOWS */
-#define BOOLEAN_DEFINED
-#endif
 
 #ifndef BOOL
 #define BOOL BOOLEAN
@@ -300,19 +215,7 @@ failure (&lt;0) codes
 
 #include "HTString.h"  	/* String utilities */
 
-#ifdef _STANDARD_CODE_
-#include &lt;stdarg.h>
-#else
-#include &lt;varargs.h>
-#endif
-
 #ifdef CURSES
-	/* htbrowse.c; */
-#ifdef ULTRIX      /* or DECSTATION */
-#include &lt;cursesX.h>	/* Extended curses under X. Only decent one :lou. */
-#else
-#include &lt;curses.h>
-#endif /* ULTRIX */
 	extern        WINDOW  *w_top, *w_text, *w_prompt;
 	extern        void    user_message PARAMS((const char *fmt, ...));
 	extern        void    prompt_set PARAMS((CONST char * msg));
@@ -351,7 +254,7 @@ isupper(x) is.  These macros are
 CERTAINLY needed on #if defined(pyr)
 || define(mips) or BDSI platforms.
 For safefy, we make them mandatory.
-<PRE>#include &lt;ctype.h>
+<PRE>
 
 #ifndef TOLOWER
   /* Pyramid and Mips can't uppercase non-alpha */

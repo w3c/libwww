@@ -11,11 +11,10 @@
 **
 */
 
+#include "sysdep.h"
 
 #include "HTUtils.h"
 #include "HTBTree.h"
-#include <stdlib.h>
-#include <string.h>
 
 #define MAXIMUM(a,b) ((a)>(b)?(a):(b))
 

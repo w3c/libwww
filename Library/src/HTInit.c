@@ -7,6 +7,8 @@
 **	Define a basic set of suffixes and presentations
 */
 
+#include "sysdep.h"
+
 /* Implements: */
 #include "HTInit.h"
 

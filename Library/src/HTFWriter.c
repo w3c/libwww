@@ -17,6 +17,8 @@
 **
 */
 
+#include "sysdep.h"
+
 #define CACHE_LIMIT 100		/* files */
 
 #include "HTFWriter.h"
@@ -25,14 +27,6 @@
 #include "HTAlert.h"
 #include "HTFile.h"
 #include "HTList.h"
-
-#ifdef Mips
-#define L_tmpnam 64
-#endif
-
-
-
-
 #include "HTParse.h"
 
 #define CACHE_INFO	".cache_info"
@@ -421,7 +415,7 @@ PUBLIC char *HTFWriter_filename ARGS5(char *, path, char *, url,
 	    sprintf(hashstr, format, hash);
 	    *(hashstr+digits) = '\0';
 	    StrAllocCat(filename, hashstr);
-#ifndef NO_GETPID
+#ifdef HAVE_GETPID
 /* RISK: Race conditions may occur if this is not added to the filename */
 	    {
 		char pidstr[10];
@@ -635,14 +629,7 @@ PUBLIC HTStream* HTSaveAndExecute ARGS5(
 	HTFormat,		output_format,
 	HTStream *,		output_stream)
 
-#ifdef unix
-#define REMOVE_FILE unlink
-#endif
-#ifdef VMS
-#define REMOVE_FILE unlink		/* ok? */
-#endif
-
-#ifdef REMOVE_FILE
+#ifdef HAVE_UNLINK
 {
     char *fnam;
     
@@ -840,8 +827,6 @@ PRIVATE void limit_cache ARGS1(HTList * , list)
     if (best_item) HTCache_remove(list, best_item);
 }
 
-#ifdef GOT_READ_DIR
-
 /*	Cache Writer
 **	------------------
 **
@@ -854,6 +839,7 @@ PUBLIC HTStream* HTCacheWriter ARGS5(
 	HTStream *,		output_stream)
 
 {
+#ifdef HAVE_OPENDIR
     char *fnam;
     HTStream* me;
 
@@ -909,9 +895,10 @@ PUBLIC HTStream* HTCacheWriter ARGS5(
     me->request = request;	/* won't be freed */
     me->filename = fnam;   /* will be freed */
     return me;
+#else /* HAVE_OPENDIR */
+    return HTBlackHole();
+#endif /* HAVE_OPENDIR */
 }
-
-#endif /* GOT_READ_DIR */
 
 
 /*	Save and Call Back

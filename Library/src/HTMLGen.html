@@ -25,13 +25,14 @@ Library of Common Code</A>.
 #ifndef HTMLGEN_H
 #define HTMLGEN_H
 
+#include "sysdep.h"
 #include "HTML.h"
 #include "HTStream.h"
 
 /* Special Creation: */
 extern HTStructured * HTMLGenerator PARAMS((HTStream * output));
 
-#ifndef pyramid
+#ifndef NO_EXTERN_TYPEDEF_FUNC
 extern HTConverter HTPlainToHTML;
 #endif
 

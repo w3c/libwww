@@ -12,13 +12,15 @@
 **	   Sep 93 Corrected 3 bugs in HTConfirm() :-( AL
 */
 
+#include "sysdep.h"
+
 #include "HTAlert.h"
 
 PUBLIC BOOL HTInteractive=YES;		    /* Any prompts from the Library? */
 
 PUBLIC void HTAlert ARGS1(CONST char *, Msg)
 {
-#ifdef NeXTStep
+#ifdef HAVE_NXRUNALERTPANEL
     NXRunAlertPanel(NULL, "%s", NULL, NULL, NULL, Msg);
 #else
     fprintf(stderr, "WWW Alert:  %s\n", Msg);
@@ -82,11 +84,16 @@ PUBLIC char * HTPromptPassword ARGS1(CONST char *, Msg)
     char *result = NULL;
     char *pw;
 
+#ifdef HAVE_GETPASS
     if (!HTInteractive)
 	return "";
     pw = (char *) getpass(Msg ? Msg : "Password: ");
     StrAllocCopy(result, pw);
     return result;
+#else
+    return HTPrompt(Msg, NULL);
+#endif
+
 }
 
 

@@ -14,6 +14,9 @@
 **			sent to an NNTP server.
 **	 8 Jul 94  FM	Insulate free() from _free structure element.
 */
+
+#include "sysdep.h"
+
 /* Implements:
 */
 #include "HTNews.h"
@@ -33,10 +36,7 @@
 #define SERVER_FILE "/usr/local/lib/rn/server"
 #endif
 
-#include <ctype.h>
 #include "HTUtils.h"		/* Coding convention macros */
-#include "tcp.h"
-
 #include "HTML.h"
 #include "HTParse.h"
 #include "HTFormat.h"
@@ -118,7 +118,7 @@ PRIVATE BOOL initialize NOARGS
 
 /*   Get name of Host
 */
-#ifdef NeXTStep
+#ifdef HAVE_NXGETDEFAULTVALUE
     if ((HTNewsHost = NXGetDefaultValue("WorldWideWeb","NewsHost"))==0)
         if ((HTNewsHost = NXGetDefaultValue("News","NewsHost")) == 0)
 	    HTNewsHost = DEFAULT_NEWS_HOST;

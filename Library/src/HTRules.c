@@ -25,9 +25,7 @@
 **
 */
 
-#ifndef VMS
-#include <pwd.h>	/* Unix password file routine: getpwnam() */
-#endif /* not VMS */
+#include "sysdep.h"
 
 #include "HTFile.h"
 #include "HTParse.h"
@@ -299,7 +297,7 @@ PUBLIC int HTSetConfiguration ARGS1(CONST char *, config)
 			    &quality, &secs, &secs_per_byte);
         else status = 0;
 	if (!HTConversions) HTConversions = HTList_new();
-	HTSetPresentation(HTConversions, word2, word3, NULL,
+	HTSetPresentation(HTConversions, word2, word3, (const char *)NULL,
 		    status >= 1? quality 		: 1.0,
 		    status >= 2 ? secs 			: 0.0,
 		    status >= 3 ? secs_per_byte 	: 0.0 );

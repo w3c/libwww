@@ -12,6 +12,8 @@
 **  	05 May 94	Written by Henrik Frystyk, frystyk@dxcern.cern.ch
 */
 
+#include "sysdep.h"
+
 /* Library include files */
 #include "HTUtils.h"
 #include "HTAccess.h"

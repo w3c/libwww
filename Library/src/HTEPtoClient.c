@@ -13,6 +13,7 @@
 **  	19 Sep 94	Written by Hakon W Lie, howcome@info.cern.ch
 */
 
+#include "sysdep.h"
 #include "HTFormat.h"
 
 PUBLIC void HTCallClient ARGS1(HTStream *, me)

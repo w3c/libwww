@@ -8,6 +8,7 @@
 **  				for terminator.
 */
 
+#include "sysdep.h"
 #include "HTMLDTD.h"
 
 /* 	Entity Names

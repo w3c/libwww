@@ -13,6 +13,8 @@
 **  	05 May 94	Written by Henrik Frystyk, frystyk@dxcern.cern.ch
 */
 
+#include "sysdep.h"
+
 /* Library include files */
 #include "HTTCP.h"
 #include "HTUtils.h"

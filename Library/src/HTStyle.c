@@ -11,6 +11,8 @@
 **	translation necessary to
 **	represent a document. It is a linked list of styles.
 */
+#include "sysdep.h"
+
 #include "HTStyle.h"
 #include "HTUtils.h"
 

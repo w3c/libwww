@@ -8,6 +8,8 @@
 **	HWL 23/8/94
 */
 
+#include "sysdep.h"
+
 #include "HTFormat.h"			/* defines INPUT_BUFFER_SIZE */
 #include "HTExtParse.h"                 /* defines HTStreamClass */
 #include "HTEPtoClient.h"               /* defines dummy routine for talking to client */

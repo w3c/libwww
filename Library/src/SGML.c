@@ -14,7 +14,7 @@
 */
 
 /* System dependent stuff */
-#include "tcp.h"		/* For FROMASCII */
+#include "sysdep.h"
 
 /* Library includes */
 #include "HTUtils.h"

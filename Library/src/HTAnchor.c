@@ -14,6 +14,8 @@
 **
 */
 
+#include "sysdep.h"
+
 #include "HTFormat.h"
 #include "HTUtils.h"
 #include "HTParse.h"
@@ -23,9 +25,9 @@
 #define HASH_SIZE 101		/* Arbitrary prime. Memory/speed tradeoff */
 
 typedef struct _HyperDoc Hyperdoc;
-#ifdef VMS
+#ifdef NO_PTR_UNDEF_STRUCT
 struct _HyperDoc {
-	int junk;	/* VMS cannot handle pointers to undefined structs */
+	int junk;	/* some platforms cannot handle pointers to undefined structs */
 };
 #endif
 

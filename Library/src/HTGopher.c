@@ -22,7 +22,7 @@
 */
 
 /* Implementation dependent include files */
-#include "tcp.h"
+#include "sysdep.h"
 
 /* Library include files */
 #include "HTParse.h"

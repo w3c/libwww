@@ -16,6 +16,8 @@
 **
 */
 
+#include "sysdep.h"
+
 #define BUFFER_SIZE	80	/* Line buffer attempts to make neat breaks */
 #define WORD_DELIMITERS ",;:[]()"
 

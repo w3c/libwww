@@ -12,7 +12,7 @@
 */
 
 /* Implemention dependent include files */
-#include "tcp.h"
+#include "sysdep.h"
 
 /* Library include files */
 #include "HTUtils.h"

@@ -13,6 +13,8 @@
 **
 */
 
+#include "sysdep.h"
+
 #include "HTUtils.h"
 #include "HTList.h"
 #include "HTAAUtil.h"

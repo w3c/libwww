@@ -25,6 +25,8 @@
 **	defined which accepts select and select_anchor.
 */
 
+#include "sysdep.h"
+
 #ifndef DEFAULT_WAIS_GATEWAY
 #define DEFAULT_WAIS_GATEWAY "http://info.cern.ch:8001/"
 #endif
@@ -1102,19 +1104,11 @@ PUBLIC char * HTFindRelatedName NOARGS
 	StrAllocCat(default_default, host);
     else
 	StrAllocCat(default_default, "localhost");
+
+#ifdef HAVE_GETCWD
     {
 	char wd[HT_MAX_PATH+1];
-
-#ifdef NO_GETWD
-#ifdef HAS_GETCWD	      /* System V variant SIGN CHANGED TBL 921006 !! */
-	char *result = (char *) getcwd(wd, sizeof(wd)); 
-#else
-	char *result = NULL;
-	HTAlert("This platform does not support neither getwd nor getcwd\n");
-#endif
-#else
-	char *result = (char *) getwd(wd);
-#endif
+	char * result = getcwd(wd, sizeof(wd)); 
 	*(wd+HT_MAX_PATH) = '\0';
 	if (result) {
 #ifdef VMS 
@@ -1136,9 +1130,28 @@ PUBLIC char * HTFindRelatedName NOARGS
 	    }
 #else  /* not VMS */
 	    StrAllocCat (default_default, wd);
-#endif /* not VMS */
+#endif  /* not VMS */
+	    } else {
+	        fprintf(stderr,"Can't read working directory (getcwd)", NULL);
+	    }
+	}  /* end if good getcwd result */
+#else /* HAVE_GETCWD */	
+# ifdef HAVE_GETWD
+	{
+      	    char wd[HT_MAX_PATH+1];
+      	    char * result = (char *) getwd(wd);
+	    *(wd+HT_MAX_PATH) = '\0';
+	    if (result) {
+	        StrAllocCat(default_default, wd);
+	    } else {
+	        fprintf(stderr,"Can't read working directory.");
+	    }
 	}
-    }
+# else /* Neither HAVE_GETCWD or HAVE_GETWD */
+  fprintf(stderr,"This platform does not support getwd() or getcwd()",NULL);
+# endif /* HAVE_GETWD */
+#endif /* HAVE_GETCWD */
+		
     StrAllocCat(default_default, "/default.html");
     return default_default;
 }
@@ -1188,9 +1201,6 @@ PUBLIC HTParentAnchor * HTHomeAnchor NOARGS
     }
 
     
-
-#ifdef unix
-
     if (!my_home_document) {
 	FILE * fp = NULL;
 	CONST char * home =  (CONST char*)getenv("HOME");
@@ -1217,7 +1227,7 @@ PUBLIC HTParentAnchor * HTHomeAnchor NOARGS
 	    my_home_document = NULL;
 	}
     }
-#endif
+
     ref = HTParse( my_home_document ?	my_home_document :
 				HTClientHost ? REMOTE_ADDRESS
 				: LAST_RESORT,

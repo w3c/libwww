@@ -12,6 +12,8 @@
 **
 */
 
+#include "sysdep.h"
+
 /* Library include files */
 #include "HTMLPDTD.h"
 #include "HTUtils.h"
@@ -21,11 +23,6 @@
 #include "HTFormat.h"
 #include "HTChunk.h"
 #include "HTIcons.h"					 /* Implemented here */
-
-#ifdef VMS
-typedef unsigned long mode_t;
-#include "HTVMSUtils.h"
-#endif /* VMS */
 
 /* Globals */
 PUBLIC BOOL HTDirShowBrackets = YES;

@@ -33,9 +33,10 @@ Library of Common Code</A>.
 #define HTWSRC_H
 #include "HTUtils.h"
 
+#include "sysdep.h"
 #include "HTFormat.h"
 
-#ifndef pyramid
+#ifndef NO_EXTERN_TYPEDEF_FUNC
 extern  HTConverter HTWSRCConvert;
 #endif
 

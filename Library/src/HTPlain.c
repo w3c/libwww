@@ -10,6 +10,9 @@
 **	Bugs:
 **		strings written must be less than buffer size.
 */
+
+#include "sysdep.h"
+
 #include "HTPlain.h"
 
 #define BUFFER_SIZE 4096;	/* Tradeoff */

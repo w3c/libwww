@@ -13,6 +13,7 @@
 **
 */
 
+#include "sysdep.h"
 
 #define SAMPLE_SIZE	200	/* Number of chars to look at */
 

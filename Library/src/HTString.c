@@ -11,7 +11,7 @@
 **	 6 Oct 92 (TBL) Moved WWW_TraceFlag in here to be in library
 */
 
-#include "tcp.h"
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTString.h"					 /* Implemented here */
 
@@ -23,7 +23,7 @@ PUBLIC int WWW_TraceFlag = 0;	/* Global trace flag for ALL W3 code */
 
 PUBLIC CONST char * HTLibraryVersion = VC; /* String for help screen etc */
 
-#ifndef VM		/* VM has these already it seems */
+#ifndef HAVE_STRCASECOMP
 	
 /*	Strings of any length
 **	---------------------
@@ -40,7 +40,9 @@ PUBLIC int strcasecomp ARGS2 (CONST char*,a, CONST char *,b)
 	if (*q) return -1;	/* p was shorter than q */
 	return 0;		/* Exact match */
 }
+#endif
 
+#ifndef HAVE_STRNCASECOMP
 
 /*	With count limit
 **	----------------

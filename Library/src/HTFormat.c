@@ -13,10 +13,12 @@
 **	8 Jul 94  FM	Insulate free() from _free structure element.
 **	8 Nov 94  HFN	Changed a lot to make reentrant
 */
+#include "sysdep.h"
+#include "HTFormat.h"
 
 /* Implementation dependent include files */
+#include "sysdep.h"
 #include "HTUtils.h"
-#include "tcp.h"
 
 /* Library Include files */
 #include "HTTCP.h"
@@ -25,18 +27,6 @@
 #include "HTThread.h"
 #include "HTError.h"
 #include "HTFormat.h"					 /* Implemented here */
-
-/* Macsor and other defines */
-#if 0 /* IS THIS USED??? */
-#ifdef unix
-#ifdef NeXT
-#define PRESENT_POSTSCRIPT "open %s; /bin/rm -f %s\n"
-#else
-#define PRESENT_POSTSCRIPT "(ghostview %s ; /bin/rm -f %s)&\n"	
-	/* Full pathname would be better! */
-#endif
-#endif
-#endif
 
 /* Public variables */
 PUBLIC float HTMaxSecs = 1e10;		/* No effective limit */

@@ -9,9 +9,8 @@
 **	New nodes are inserted between the header and the rest of the list.
 */
 
+#include "sysdep.h"
 #include "HTList.h"
-
-#include <stdio.h>				/* joe@athena, TBL 921019 */
 
 HTList * HTList_new NOARGS
 {

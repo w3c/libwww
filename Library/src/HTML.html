@@ -26,6 +26,7 @@ Library of Common Code</A>.
 #ifndef HTML_H
 #define HTML_H
 
+#include "sysdep.h"
 #include "HTUtils.h"
 #include "HTFormat.h"
 #include "HTAnchor.h"
@@ -71,7 +72,7 @@ extern void HTML_reopen PARAMS((HTStructured * me));
 These are the converters implemented in this module:
 
 <PRE>
-#ifndef pyramid
+#ifndef NO_EXTERN_TYPEDEF_FUNC
 extern HTConverter HTMLToPlain, HTMLToC, HTMLPresent, HTMLToTeX;
 #endif
 </PRE>
