@@ -59,7 +59,7 @@ cvs-export-member:
 	  echo making $$target in $$subdir;	\
 	  rm -rf $$subdir/member;	\
 	  cvs export -d $$subdir/member \
-		-r `echo "Release-$(VERSION)" | sed 's/\./-/g'` $$subdir; \
+		-r `echo "Release-$(VERSION)" | sed 's/\./-/g'` WWW/$$subdir; \
 	done && test -z "$$fail"
 
 cvs-export-pub:
@@ -68,7 +68,7 @@ cvs-export-pub:
 	  echo making $$target in $$subdir;	\
 	  rm -rf $$subdir/pub;	\
 	  cvs export -d $$subdir/pub \
-		-r `echo "Release-$(VERSION)" | sed 's/\./-/g'` $$subdir; \
+		-r `echo "Release-$(VERSION)" | sed 's/\./-/g'` WWW/$$subdir; \
 	done && test -z "$$fail"
 
 cvs-diff:
