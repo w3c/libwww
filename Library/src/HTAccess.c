@@ -763,35 +763,49 @@ PUBLIC HTChunk * HTPostFormAnchorToChunk (HTAssocList * formdata,
 **  or last modified date in the cache and use it on all
 **  our PUT operations.
 */
-PRIVATE BOOL add_preconditions (HTRequest * request)
+PRIVATE BOOL set_preconditions (HTRequest * request)
 {
     if (request) {
 	HTPreconditions precons = HTRequest_preconditions(request);
-	switch (precons) {
+        HTRqHd if_headers = HTRequest_rqHd (request);
+        HTRqHd all_if_headers =
+           (HT_C_IF_MATCH | HT_C_IF_MATCH_ANY |
+            HT_C_IF_NONE_MATCH | HT_C_IF_NONE_MATCH_ANY |
+            HT_C_IMS | HT_C_IF_UNMOD_SINCE);
+        switch (precons) {
 	case HT_NO_MATCH:
+            if_headers &= ~(all_if_headers);
 	    break;
 
 	case HT_MATCH_THIS:
-	    HTRequest_addRqHd(request, HT_C_IF_MATCH | HT_C_IF_UNMOD_SINCE);
+            if_headers &= ~(all_if_headers);
+            if_headers |= (HT_C_IF_MATCH | HT_C_IF_UNMOD_SINCE);
 	    break;
 	    
 	case HT_MATCH_ANY:
-	    HTRequest_addRqHd(request, HT_C_IF_MATCH_ANY);
+            if_headers &= ~(all_if_headers);
+            if_headers |= (HT_C_IF_MATCH_ANY);
 	    break;
 	    
 	case HT_DONT_MATCH_THIS:
-	    HTRequest_addRqHd(request, HT_C_IF_NONE_MATCH | HT_C_IMS);
+            if_headers &= ~(all_if_headers);
+            if_headers |= (HT_C_IF_NONE_MATCH | HT_C_IMS);
 	    break;
 	    
 	case HT_DONT_MATCH_ANY:
-	    HTRequest_addRqHd(request, HT_C_IF_NONE_MATCH_ANY);
+            if_headers &= ~(all_if_headers);
+	    if_headers |= (HT_C_IF_NONE_MATCH_ANY);
 	    break;
 
 	default:
 	    if (APP_TRACE) HTTrace("Precondition %d not understood\n", precons);
 
 	}
-	return YES;
+
+        /* Set the if-* bit flag */
+        HTRequest_setRqHd(request, if_headers);
+        
+        return YES;
     }
     return NO;
 }
@@ -919,10 +933,12 @@ PUBLIC BOOL HTPutAnchor (HTParentAnchor *	source,
 
 	    /* Set up the request object */
 	    HTRequest_addGnHd(request, HT_G_DATE);
-	    add_preconditions(request);
 	    HTRequest_setEntityAnchor(request, source);
 	    HTRequest_setMethod(request, METHOD_PUT);
 	    HTRequest_setAnchor(request, destination);
+
+            /* Setup preconditions */
+    	    set_preconditions(request);
 
 	    /* Add the entity callback function to provide the form data */
 	    HTRequest_setPostCallback(request, HTEntity_callback);
@@ -1073,10 +1089,12 @@ PUBLIC BOOL HTPutStructuredAnchor (HTParentAnchor *	source,
 
 	    /* Set up the request object */
 	    HTRequest_addGnHd(request, HT_G_DATE);
-	    add_preconditions(request);
 	    HTRequest_setEntityAnchor(request, source);
 	    HTRequest_setMethod(request, METHOD_PUT);
 	    HTRequest_setAnchor(request, destination);
+
+            /* Setup preconditions */
+            set_preconditions(request);
 
 	    /* Add the entity callback function to provide the form data */
 	    HTRequest_setPostCallback(request, input);
@@ -1173,7 +1191,7 @@ PRIVATE int HTSaveFilter (HTRequest * request, HTResponse * response,
 	HTRequest_setOutputStream(request, me->target);
 
         /* Set up preconditions */
-	add_preconditions(request);
+	set_preconditions(request);
 
         /* Delete existing credentials as they are generated anew */
         HTRequest_deleteCredentialsAll(request);
