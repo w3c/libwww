@@ -55,6 +55,11 @@ date/time.
 	<INPUT type=radio name=days value=28></TD>
       <TD>In the last 4 weeks
     </TR>
+    <TR>
+      <TD>
+	<INPUT type=radio name=days value=56></TD>
+      <TD>In the last 8 weeks
+    </TR>
 </TABLE>
 <input type=submit>
 </form>
