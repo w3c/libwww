@@ -15,6 +15,9 @@
 **
 **      Parses one or more files of RDF and for each file, its RDF triples 
 **      are output.
+**      Test case for the HTRDF_parseFile API.  One or more files
+**      are given via the command line and each file is sent to
+**      the RDF parser.
 **
 **	Author: Arthur Barstow
 */
@@ -50,7 +53,7 @@ int main (int argc, char ** argv)
     }
 
     for (i=1; i < argc; i++) {
-        status = HTRDF_parseFile(argv[i], new_triple_handler);
+        status = HTRDF_parseFile(argv[i], new_triple_handler, NULL);
         if (!status) 
             (void) fprintf (stderr, "An error occured parsing: '%s'\n", argv[i]);
     }
