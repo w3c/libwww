@@ -17,7 +17,7 @@ the <A HREF="../Using/">User's Guide</A> for more details. <P>
 
 TTYPrint is a generic way for libwww to send error and logging messages to the user interface or a
 logging file. Several option exist to define the TTYPrint target. These are defined in <A
-HREF="../../Implementation/HTUtils.html#debug">HTUtils.h</A>.<P>
+HREF="../../src/HTUtils.html#debug">HTUtils.h</A>.<P>
 
 You may define the WWWTRACE_MODE to
 
@@ -31,7 +31,7 @@ your application.
 <A NAME="file"><H2>WWWTRACE_FILE</H2></A>
 
 All calls to the macro TTYPrint will result in an fprintf to HT_TRACE_FILE (also defined in <A
-HREF="../../Implementation/HTUtils.html#debug">HTUtils.h </A>). This defaults to "WWWTRACE.TXT".
+HREF="../../src/HTUtils.html#debug">HTUtils.h </A>). This defaults to "WWWTRACE.TXT".
 
 <A NAME="stderr"><H2>WWWTRACE_STDERR</H2></A>
 

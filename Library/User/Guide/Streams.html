@@ -12,12 +12,12 @@
 
 <H1>Stream Modules</H1>
 
-A <A HREF="../../Implementation/HTStream.html">stream</A> is an object
+A <A HREF="../../src/HTStream.html">stream</A> is an object
 which accepts sequences of characters. It is a destination of data
 which can be thought of much like an output stream in C++ or an ANSI
 C-file stream for writing data to a disk or another peripheral
 device. The Library defines a generic stream class in the <A
-HREF="../../Implementation/HTStream.html">HTStream module</A>, but
+HREF="../../src/HTStream.html">HTStream module</A>, but
 almost all stream modules define their own sub class definition of the
 stream object.
 
@@ -27,7 +27,7 @@ These are normally internal streams that parses or generates protocol
 specific information to communicate with remote servers.
 
 <DL>
-<DT><A HREF="../../Implementation/HTTPReq.html">HTTP Request Stream</A>
+<DT><A HREF="../../src/HTTPReq.html">HTTP Request Stream</A>
 <DD>This stream is one of the first real protocol streams - more are to come!
 </DL>
 
@@ -41,47 +41,47 @@ initialized as a <A HREF="Prefs.html">application preference</A>.
 
 <DL>
 
-<DT><A HREF="../../Implementation/SGML.html">SGML Tokenizer</A>
+<DT><A HREF="../../src/SGML.html">SGML Tokenizer</A>
 <DD>Parses the data and generates a <A HREF="StrucStreams.html">
 structured stream</A>. Each parser instance is created with reference
 to a particular DTD structure.
 
-<DT><A HREF="../../Implementation/HTMLGen.html">Plain to HTML Converter</A>
+<DT><A HREF="../../src/HTMLGen.html">Plain to HTML Converter</A>
 <DD>This stream takes a plain file and converts it into HTML. Like the
 SGML tokenizer, it also converts a generic stream into a structured
 stream.
 
-<DT><A HREF="../../Implementation/HTPlain.html">Plain Text Presentation</A>
+<DT><A HREF="../../src/HTPlain.html">Plain Text Presentation</A>
 <DD>Takes plain ASCII text and presents it to the user as preformatted text.
 
-<DT><A HREF="../../Implementation/HTMIME.html">HTTP/MIME header parser</A>
+<DT><A HREF="../../src/HTMIME.html">HTTP/MIME header parser</A>
 <DD>Parse a MIME format message and puts all the information in an <A
-HREF="../../Implementation/HTAnchor.html">Anchor object</A>
+HREF="../../src/HTAnchor.html">Anchor object</A>
 
-<DT><A HREF="../../Implementation/HTWSRC.html">WAIS source file Stream</A>
+<DT><A HREF="../../src/HTWSRC.html">WAIS source file Stream</A>
 <DD>Parses a <EM>WAIS source</EM> description file. By default, this
 is enabled even if direct WAIS access is not present (no linking with
 the freeWAIS library).
 
-<DT><A HREF="../../Implementation/HTGuess.html">Guessing Stream</A>
+<DT><A HREF="../../src/HTGuess.html">Guessing Stream</A>
 <DD>If the input format is unknown at the time when putting up a
 stream stack, then this module scans a part of the stream and on a
 statistical basis determines the type of stream needed from the <A
 HREF="../../../Protocols/">content-type</A>.
 
-<DT><A HREF="../../Implementation/HTXParse.html">External Parser with Call back</A>
+<DT><A HREF="../../src/HTXParse.html">External Parser with Call back</A>
 <DD>This is a call back stream module where the implementation is
 defined in the application and not in the Library.
 
-<DT><A HREF="../../Implementation/HTFWrite.html">Save Locally</A>
+<DT><A HREF="../../src/HTFWrite.html">Save Locally</A>
 <DD>The <EM>HTSaveLocally</EM> stream saves the data object to a local file.
 
-<DT><A HREF="../../Implementation/HTFWrite.html">Save Locally and Execute Application</A>
+<DT><A HREF="../../src/HTFWrite.html">Save Locally and Execute Application</A>
 <DD>The <EM>HTSaveAndExecute</EM> stream saves the data object to a
 local file and calls an external application, for example a post
 script viewer.
 
-<DT><A HREF="../../Implementation/HTFWrite.html">Save Locally and Execute Application</A>
+<DT><A HREF="../../src/HTFWrite.html">Save Locally and Execute Application</A>
 <DD>The <EM>HTSaveAndCallBack</EM> stream saves the data object to a
 local file, calls an external application and when the stream is
 freed, the libwww application gets called with a specified call back
@@ -97,18 +97,18 @@ saving a document in the cache.
 
 <DL>
 
-<DT><A HREF="../../Implementation/HTFWrite.html">ANSI C File Writer stream</A>
+<DT><A HREF="../../src/HTFWrite.html">ANSI C File Writer stream</A>
 <DD>Writes to an ANSI C FILE * object, as opened by fopen, etc.
 
-<DT><A HREF="../../Implementation/HTFWrite.html#cache">Cache Writer Stream</A>
+<DT><A HREF="../../src/HTFWrite.html#cache">Cache Writer Stream</A>
 <DD>This is the stream that's used by the <A
-HREF="../../Implementation/HTFWrite.html#cache">cache manager</A>
+HREF="../../src/HTFWrite.html#cache">cache manager</A>
 
-<DT><A HREF="../../Implementation/HTWriter.html">Socket Writer Stream</A>
+<DT><A HREF="../../src/HTWriter.html">Socket Writer Stream</A>
 <DD>Writes to a socket or something opened with the UNIX file I/O open
 function.
 
-<DT><A HREF="../../Implementation/HTNetTxt.html">Net to Text Converter</A>
+<DT><A HREF="../../src/HTNetTxt.html">Net to Text Converter</A>
 <DD>Converts "Net ASCII" line terminators <CODE>&lt;CRLF&gt;</CODE>
 into the equivalent C representation which is a '\n'.
 
@@ -121,13 +121,13 @@ but required in order to cascade streams.
 
 <DL>
 
-<DT><A NAME="z75" HREF="../../Implementation/HTTee.html">Tee Stream</A>
+<DT><A NAME="z75" HREF="../../src/HTTee.html">Tee Stream</A>
 <DD>Just writes into two streams at once. Useful for taking a copy for a cache.
 
-<DT><A HREF="../../Implementation/HTFWrite.html">Black Hole</A>
+<DT><A HREF="../../src/HTFWrite.html">Black Hole</A>
 <DD>A quite expensive way of piping data into a hole for then to be forgotten forever.
 
-<DT><A HREF="../../Implementation/HTFWrite.html">Through Line</A>
+<DT><A HREF="../../src/HTFWrite.html">Through Line</A>
 <DD>A short circuited stream that returns the same output sink as it is called with.
 
 </DL>

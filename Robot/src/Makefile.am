@@ -1,9 +1,5 @@
 ## Process this file with Automake to create Makefile.in.
 
-VMS = $(srcdir)/vms
-WIN = $(srcdir)/windows
-FTP = /afs/w3.org/devel/Dist/$(PROD)
-
 bin_PROGRAMS = webbot
 
 webbot_LDADD = ../../Library/src/libwww.a -lm
@@ -27,12 +23,3 @@ webbot_SOURCES = \
 
 noinst_HEADERS = \
 	HTRobot.h
-
-DIST_OTHER = \
-	$(WIN)/*.rc \
-	$(WIN)/*.ico \
-	$(WIN)/*.mak \
-	$(WIN)/*.def \
-	$(WIN)/*.c \
-	$(WIN)/*.h \
-	$(WIN)/*.txt

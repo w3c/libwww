@@ -16,24 +16,24 @@ dynamically (using static binding) or statically by the application.
 
 <H2>Default Initializations</H2>
 
-The <A HREF="../../Implementation/HTInit.html">HTInit module</A>
-defines a <A HREF="../../Implementation/HTInit.c">standard set of
+The <A HREF="../../src/HTInit.html">HTInit module</A>
+defines a <A HREF="../../src/HTInit.c">standard set of
 initializations</A> where all protocol modules and converters are
 setup at startup time of the application in the <A
-HREF="../../Implementation/HTAccess.html#Library">HTLibInit()</A>. Often
+HREF="../../src/HTAccess.html#Library">HTLibInit()</A>. Often
 you can take this module and just override it with your own
 preferences.
 
 <H2>Handling a Configuration File</H2>
 
 Bindings can also be set up by a rule file that is handled by the <A
-HREF="../../Implementation/HTRules.html">Configuration File
+HREF="../../src/HTRules.html">Configuration File
 Manager</A>. The format of the rule file is yet to be specified and it
 does still need some work.
 
 <H2>Bindings to the local file system</H2>
 
-The <A HREF="../../Implementation/HTBind.html">Bind Module</A> makes
+The <A HREF="../../src/HTBind.html">Bind Module</A> makes
 bindings between file suffixes and content-type, content-language,
 charset etc. As an application this is used when talking to, for
 example FTP servers that do not support media types, and servers use
@@ -51,13 +51,13 @@ structure is there :-)
 
 Access schemes like HTTP, FTP etc. can be registered dynamically
 (using static binding) and the <A
-HREF="../../Implementation/HTProt.html">HTProt module</A> provides the
+HREF="../../src/HTProt.html">HTProt module</A> provides the
 support for this.
 
 
 <H2>Registration of Proxies and Gateways</H2>
 
-The <A HREF="../../Implementation/HTProxy.html">HTProxy Module</A>
+The <A HREF="../../src/HTProxy.html">HTProxy Module</A>
 provides functionality for registering proxies and gateways
 dynamically. This has traditionally been handled by environment
 variables, but is now a registration module just like the registration

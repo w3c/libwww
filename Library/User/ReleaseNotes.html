@@ -41,20 +41,20 @@ the full list of changes:
 <LI>Optimized HTTP request header by taken away an "Accept:" line pr accepted content type and
 instead use the commna notation.
 
-<LI>Introduced <A HREF="../Implementation/HTMemory.html">HTMemory</A> as dynamic memory handler. This
-module is a part of the <A HREF="../Implementation/WWWUtil.html">WWWUtils interface</A> and it
+<LI>Introduced <A HREF="../src/HTMemory.html">HTMemory</A> as dynamic memory handler. This
+module is a part of the <A HREF="../src/WWWUtil.html">WWWUtils interface</A> and it
 handles better management of dynamic memory.  You can find a full description in the <A
 HREF="Using/Memory.html">User's Guide.</A>
 
 <LI>We now have an updated list of <EM>all</EM> public functions exported from the Library. It's
-available as <A HREF="../Implementation/windows/wwwlist.txt">wwwlist.txt</A>
+available as <A HREF="../src/windows/wwwlist.txt">wwwlist.txt</A>
 
 <LI>We also present an updated list of <EM>all</EM> public interfaces available in the Library. You
 can find it in the <A HREF="Guide/Interfaces.html">Library Internals</A>.
 
 <LI>PUT and POST from memory is implemented. You can now post data from memory using the POSTWeb
 model as for posting remote data objects. The Interface is described in <A
-HREF="../Implementation/HTAccess.html">HTAccess module</A>. There is a very small dummy test
+HREF="../src/HTAccess.html">HTAccess module</A>. There is a very small dummy test
 implemented in the Line Mode browser. You can activate it if you type<EM>edit</EM> from the command
 line.
 
@@ -70,24 +70,24 @@ interrupted.
 <LI>The <EM>referer URL</EM> header can now contain a unlimited length URL
 
 <LI>A resolver callback function has been introduced in the <A
-HREF="../Implementation/HTTee.html">HTTee stream</A>. This allows the caller to assign a callback
+HREF="../src/HTTee.html">HTTee stream</A>. This allows the caller to assign a callback
 function to resolve conflicts between the return codes of the two streams.
 
 
 <LI>The request object as been added as a calling parameter to the <A
-HREF="../Implementation/HTFWrite.html">HTFWrite stream creation method</A>. This allows errors from
+HREF="../src/HTFWrite.html">HTFWrite stream creation method</A>. This allows errors from
 writing to a file to propagate back to the request object.
 
 <LI>The three streams <CODE>HTSaveLocally</CODE>, <CODE>HTSaveAndExecute</CODE> and
 <CODE>HTSaveAndCallBack</CODE> have been optimized and they now all use the <A
-HREF="../Implementation/HTFWrite.html">HTFWrite stream creation method</A>
+HREF="../src/HTFWrite.html">HTFWrite stream creation method</A>
 
-<LI>We have a new module called <A HREF="../Implementation/HTTPGen.html">HTTPGen</A>. It generates
+<LI>We have a new module called <A HREF="../src/HTTPGen.html">HTTPGen</A>. It generates
 general HTTP headers. These headers were a part of the MIME header generator, but by isolating them,
 we can use the MIME header as a generic MIME entity header generator.
 
-<LI>Created <A HREF="../Implementation/HTFWrite.html">HTErrorStream</A> which always returns
-HT_ERROR. It replaces the <A HREF="../Implementation/HTFWrite.html">HTBlackHole</A> has been replace
+<LI>Created <A HREF="../src/HTFWrite.html">HTErrorStream</A> which always returns
+HT_ERROR. It replaces the <A HREF="../src/HTFWrite.html">HTBlackHole</A> has been replace
 with HTErrorStream in many places in order to speed up performance
 
 <LI>Made HTTP response stream (which parses the response line only) into a converter so that we can
@@ -182,20 +182,20 @@ multiple events at the same time.
 <H2>Alpha Release 7, November 28 1995</H2>
 
 <UL>
-<LI>Added a backlog parameter to the <A HREF="../Implementation/HTTCP.html">HTDoListen() function</A>
+<LI>Added a backlog parameter to the <A HREF="../src/HTTCP.html">HTDoListen() function</A>
 
 <LI>Added a parameter for handling <CODE>server modules</CODE> to the <A
-HREF="../Implementation/HTProt.html">Protocol</A> module. An access scheme (for example HTTP, can
+HREF="../src/HTProt.html">Protocol</A> module. An access scheme (for example HTTP, can
 now be registered together with a <EM>client module</EM> and a <EM>server modele</EM>
 
-<LI>Added <A HREF="../Implementation/HTAccess.html">HTServDocument</A> to the <A
-HREF="../Implementation/HTAccess.html">HTAccess module</A> in order to better support server
+<LI>Added <A HREF="../src/HTAccess.html">HTServDocument</A> to the <A
+HREF="../src/HTAccess.html">HTAccess module</A> in order to better support server
 applications.
 
-<LI>Made <A HREF="../Implementation/WWWNews.html">WWWNews.html</A>, <A
-HREF="../Implementation/WWWHTTP.html">WWWHTTP.html</A>, <A
-HREF="../Implementation/WWWMIME.html">WWWMIME.html</A>, and <A
-HREF="../Implementation/WWWFTP.html">WWWFTP.html</A> include files to be used by applications.
+<LI>Made <A HREF="../src/WWWNews.html">WWWNews.html</A>, <A
+HREF="../src/WWWHTTP.html">WWWHTTP.html</A>, <A
+HREF="../src/WWWMIME.html">WWWMIME.html</A>, and <A
+HREF="../src/WWWFTP.html">WWWFTP.html</A> include files to be used by applications.
 
 <LI>Changed functions with the name <CODE>preemptive</CODE> to <CODE>preemptive</CODE> it was a spelling mistake
 </UL>
@@ -207,61 +207,61 @@ HREF="../Implementation/WWWFTP.html">WWWFTP.html</A> include files to be used by
 <LI>Removed remaining <CODE>ARGS</CODE> and <CODE>PARAMS</CODE> from the sources. All function
 declarations and definitions now follow the ANSI standard.
 
-<LI>Changed <A HREF="../Implementation/HTAlert.html">HTAlert</A> to be a registration module instead
+<LI>Changed <A HREF="../src/HTAlert.html">HTAlert</A> to be a registration module instead
 of a module to be overriden by an application. Now you can register a <A
-HREF="../Implementation/HTDialog.html">Dialog</A> module as a callback function which is a much more
+HREF="../src/HTDialog.html">Dialog</A> module as a callback function which is a much more
 generic moduel. It also means that there are no more English text in the <A
-HREF="../Implementation/WWWCore.html">Core</A> of the Library - it's all in a application
+HREF="../src/WWWCore.html">Core</A> of the Library - it's all in a application
 module. The Library provides a default implementation in the new <A
-HREF="../Implementation/HTDialog.html">HTDialog</A> module.
+HREF="../src/HTDialog.html">HTDialog</A> module.
  
-<LI>Taken the WWW relevant stuff out of <A HREF="../Implementation/HTString.html">HTString</A> and
-put it into the new module called <A HREF="../Implementation/HTWWWStr.html">HTWWWStr</A>. The latter
+<LI>Taken the WWW relevant stuff out of <A HREF="../src/HTString.html">HTString</A> and
+put it into the new module called <A HREF="../src/HTWWWStr.html">HTWWWStr</A>. The latter
 is a part of the core whereas the former is generic string utilities.
 
 <LI>Made the global variable <CODE>HTLibraryVersion</CODE> local to <A
-HREF="../Implementation/HTAccess.html">HTAccess</A>. The are now only <CODE>WWW_TraceFlag</CODE>
+HREF="../src/HTAccess.html">HTAccess</A>. The are now only <CODE>WWW_TraceFlag</CODE>
 left as a global variable in the whole Library.
 
 <LI>There are now four main include files. They are called:
 
 <DL>
-<DT><A HREF="../Implementation/WWWUtil.html">WWWUtil.h</A>
+<DT><A HREF="../src/WWWUtil.html">WWWUtil.h</A>
 <DD>The WWW Utility module contains a lot of the functionality that makes it possible to make
 applications, that is container modules for data objects, basic string functionality etc. This
 module is the basis for all of the following modules and is used extensively.
 
-<DT><A HREF="../Implementation/WWWCore.html">WWWCore.h</A>
+<DT><A HREF="../src/WWWCore.html">WWWCore.h</A>
 <DD>The WWW Core module is a set of registration modules that glues an application together. It
 contains no real functionality in itself; it is for example not capable of loading a HTML
 document. It only provides a large set of hooks which can be used to add functionality to the
 Library and to give an application real life. We will here a lot more to the structure of the core,
 and much of this guide is actually describing how to add functionality to the core.
 
-<DT><A HREF="../Implementation/WWWLib.html">WWWLib.h</A>
+<DT><A HREF="../src/WWWLib.html">WWWLib.h</A>
 <DD>This include is the main include file for the Library. It basically consists of the WWWUtil.h
 and the WWWCore.h so that the application only needs to include this one instead of two.
 
-<DT><A HREF="../Implementation/WWWApp.html">WWWApp.h</A>
+<DT><A HREF="../src/WWWApp.html">WWWApp.h</A>
 <DD>This module contains a huge set of modules that can be hooked into the Core Library and make the
 application work. In contrast to the Core part, you can pick exactly the modules you want from the
 WWWApp.h in order to create your special application whether it is a server, a client, a proxy, a
 robot or any other Web application.
 </DL>
 
-<LI><A HREF="../Implementation/HTGuess.html">HTGuess stream</A> is now a converter just like any
+<LI><A HREF="../src/HTGuess.html">HTGuess stream</A> is now a converter just like any
 other converter, and it can be registered by the application if wanted
 
 <LI><CODE>HTClientHost</CODE> (global var) is removed from the Library as it wasn't use there at all
 
-<LI>Introduced <A HREF="../Implementation/HTHome.html">HTHome module</A> as part of the application
+<LI>Introduced <A HREF="../src/HTHome.html">HTHome module</A> as part of the application
 specific part of the Library. It contains handy functions for the application.
 
 <LI>HTFindRelatedName() and HTHomeAnchor() are moved from HTAccess.c to the new module HTHome.c
 
 <LI>HTImProxy is taken out as it can be handled in the setup of the converters
 
-<LI>Created HTList_appendObject() in <A HREF="../Implementation/HTList.html">HTList module</A> which
+<LI>Created HTList_appendObject() in <A HREF="../src/HTList.html">HTList module</A> which
 adds an element to end of list
 
 <LI>Introduced pre request callback functions in HTNet and changed the interface. It's described in
@@ -269,13 +269,13 @@ User's Guide. This means that an application can register any action to be execu
 <EM>before</EM> and/or <EM>after</EM> a request is done. This is described in detail in the <A
 HREF="Using/Net.html">User's Guide.</A>
 
-<LI><A HREF="../Implementation/HTHome.html">HTHome module</A> contains default callback functions to
+<LI><A HREF="../src/HTHome.html">HTHome module</A> contains default callback functions to
 be called before and after a request.
 
-<LI>Removed the HTInputSocket_get* functions from <A HREF="../Implementation/HTSocket.html">
+<LI>Removed the HTInputSocket_get* functions from <A HREF="../src/HTSocket.html">
 HTSocket</A> as they are no more needed (they were non-reentrant and belonged to the old interface)
 
-<LI>Added the following HTLib_* functions to the <A HREF="../Implementation/HTAccess.html">HTAccess
+<LI>Added the following HTLib_* functions to the <A HREF="../src/HTAccess.html">HTAccess
 module</A>:
 
 <UL>
@@ -312,7 +312,7 @@ define to your project if you want it
 <LI>Changed format <EM>image/x-tiff</EM> to <EM>image/tiff</EM> and <EM>image/x-png</EM> to
 <EM>image/png</EM>
 
-<LI>Finished the <A HREF="../Implementation/HTNews.html">News module</A> using non-preemptive
+<LI>Finished the <A HREF="../src/HTNews.html">News module</A> using non-preemptive
 sockets. Final testing is still missing
 
 <LI>Changed HTRules so that it now is a stream. It also handles line wrapping and has a much more
@@ -334,14 +334,14 @@ Request manager where the HTRequest object is an opaque object.
 
 <UL>
 
-<LI>Generalized the <A HREF="../Implementation/HTError.html">Error Manager</A> to work on lists
+<LI>Generalized the <A HREF="../src/HTError.html">Error Manager</A> to work on lists
 instead of as directly on a request object. This makes it possible to use the error manager in all
 situations.
 
 <LI>Changed <EM>HTAppName</EM> and <EM>HTAppVersion</EM> to parameters to HTLibInit() instead of as
 global parameters.
 
-<LI>Introduced a new main include file called <A HREF="../Implementation/WWWApp.html">WWWApp.h</A>
+<LI>Introduced a new main include file called <A HREF="../src/WWWApp.html">WWWApp.h</A>
 which contains applications specific modules. None of these modules are actually required to compile
 and link the Library, but the application can use them if needed.
 
@@ -350,15 +350,15 @@ for the applications to do.
 
 <LI>Changed <EM>TRACE</EM> to <EM>WWWTRACE</EM> as it interferes with macro on NT
 
-<LI>The balanced binary tree in <A HREF="../Implementation/HTBTree.html">HTBtree</A> is not used
-anymore. The functionality is now provided by the new <A HREF="../Implementation/HTArray.html">
+<LI>The balanced binary tree in <A HREF="../src/HTBTree.html">HTBtree</A> is not used
+anymore. The functionality is now provided by the new <A HREF="../src/HTArray.html">
 HTArray module</A> that is a dynamic array of pointers. It is much like the <A
-HREF="../Implementation/HTChunk.html">HTChunk module</A> but for pointers instead of dynamic
+HREF="../src/HTChunk.html">HTChunk module</A> but for pointers instead of dynamic
 strings. The advantage is that the fast <EM>qsort</EM> algorithm can be used on the array.
 
 <LI>Moved the two functions <CODE>HTWWWTLocal()</CODE> and <CODE>HTLocalToWWW()</CODE> from the <A
-HREF="../Implementation/HTFile.html">HTFile Module</A> to the <A
-HREF="../Implementation/HTString.html">HTString module</A> for converting between local file names
+HREF="../src/HTFile.html">HTFile Module</A> to the <A
+HREF="../src/HTString.html">HTString module</A> for converting between local file names
 and URLs
 
 <LI>It is now possible to register a call back function together with a timeout that is used in the
@@ -369,22 +369,22 @@ select call times out <EM>or</EM> only when Library sockets are in use.
 <LI>We have a port to PowerMac and 68K!!! This has been provided by Steven T. Roussey
 &lt;sroussey@eng.uci.edu&gt; and Brad Barber &lt;barber@well.com&gt;
 
-<LI>We have changed HTThread to <A HREF="../Implementation/HTNet.c"> HTNet.c</A> as thread was too
+<LI>We have changed HTThread to <A HREF="../src/HTNet.c"> HTNet.c</A> as thread was too
 confusing. This module has been cleaned up and rewritten so that <A
-HREF="../Implementation/HTNet.c">HTNet.c</A> now contains the Net manager. The Net manager controls
+HREF="../src/HTNet.c">HTNet.c</A> now contains the Net manager. The Net manager controls
 the net access so that we only keeps a specified amount of sockets open simultaneously (called a
 request queue). It also partly controls the management of persistent connections together with the
-<A HREF="../Implementation/HTDNS.html"> DNS Manager.</A>
+<A HREF="../src/HTDNS.html"> DNS Manager.</A>
 
-<LI>The <EM>HTRequest Object</EM> is now known to the <A HREF="../Implementation/HTReq.html">Request
+<LI>The <EM>HTRequest Object</EM> is now known to the <A HREF="../src/HTReq.html">Request
 Manager</A> only. It is accessible through a lot of methods just like the <A
-HREF="../Implementation/HTAnchor.html">Anchor object</A> etc. The <A
-HREF="../Implementation/HTAccess.html">HTAccess module</A> is now a user interface to the Request
+HREF="../src/HTAnchor.html">Anchor object</A> etc. The <A
+HREF="../src/HTAccess.html">HTAccess module</A> is now a user interface to the Request
 Manager but it doesn't have to be used - you can use the Request Manager directly but often it is
 easier to go through the Access Module.
 
 <LI>The Protocol object has been turned into an object internal to the <A
-HREF="../Implementation/HTProt.html">Protocol manager</A>. This means that protocol information can
+HREF="../src/HTProt.html">Protocol manager</A>. This means that protocol information can
 be accessed via a set of methods provided by the manager.
 
 <LI>We have changed case sensitive search to insensitive search when finding an access methods
@@ -392,26 +392,26 @@ be accessed via a set of methods provided by the manager.
 <EM>HTTP://www.foo.com</EM>
 
 <LI>The static protocol declarations have been replaced with a set of parameters to the creation
-method of a protocol object in the <A HREF="../Implementation/HTProt.html"> Protocol Manager</A>
+method of a protocol object in the <A HREF="../src/HTProt.html"> Protocol Manager</A>
 which is more handy.
 
-<LI>We added HTProtocol_delete() as method in the <A HREF="../Implementation/HTProt.html">Protocol
+<LI>We added HTProtocol_delete() as method in the <A HREF="../src/HTProt.html">Protocol
 manager</A>. This means that it is now possible to <EM>unregister</EM> a protocol at runtime. If you
 are on a platform with dynamic linking (for example DLLs) then this can save a lot of space.
 
 <LI>Introduction of application call back function for memory cache. This is a part of separating
-the <A HREF="../Implementation/HText.html">HText module</A> and also to make the memory cache
+the <A HREF="../src/HText.html">HText module</A> and also to make the memory cache
 manager more flexible. An example implementation can be found in the <A
-HREF="../../LineMode/Implementation/GridText.c">GridText module</A> in the <A
+HREF="../../LineMode/src/GridText.c">GridText module</A> in the <A
 HREF="../../LineMode/">Line Mode Browser</A>.
 
-<LI>Full support for the <A HREF="../Implementation/HTAnchor.html#links">HTLink object</A> that
+<LI>Full support for the <A HREF="../src/HTAnchor.html#links">HTLink object</A> that
 binds together two anchors. This is a requirement for keeping track of the <A
 HREF="Architecture/PostWeb.html">Post Web</A>.
 
 <LI>URL fragment identifiers were case insensitive - they are now case sensitive
 
-<LI>Added <CODE>result</CODE> field to the <A HREF="../Implementation/HTAnchor.html#links">
+<LI>Added <CODE>result</CODE> field to the <A HREF="../src/HTAnchor.html#links">
 HTLink</A> so that the result of a posting operation is stored in the link object. This means that
 the application can see which post operations succeeded and which didn't. This can for example be
 used in a GUI client to show the relations between the source and destination anchor as "dim" links.
@@ -422,12 +422,12 @@ discarded all together, but often the information is nice to have. On a GUI clie
 as 'dimmed' destinations.
 
 <LI>Removed remaining outputs directly to stdout using <EM>fprintf()</EM>. Now all goes through <A
-HREF="../Implementation/HTAlert.html"> HTAlert module</A>. This was a problem in some of the
+HREF="../src/HTAlert.html"> HTAlert module</A>. This was a problem in some of the
 protocol modules as well (especially in the Telnet module).
 
 <LI>The <CODE>CacheItems</CODE> structure is removed from anchor object and replaced by <CODE>(BOOL)
 CacheHit</CODE>. If <CODE>CacheHit=YES</CODE> then the format negotiation and suffix binding is not
-used in <A HREF="../Implementation/HTFile.html">HTFile Module</A> but the object is loaded directly
+used in <A HREF="../src/HTFile.html">HTFile Module</A> but the object is loaded directly
 (from the local file cache) using non-blocking I/O
 
 <LI>Internal DNS/hostname cache optimized and made more flexible to support <B>persistent
@@ -440,19 +440,19 @@ request to a remote server once the type is known. For example, the Library now 
 between HTTP servers version 0.9, 1.0, and 1.1. New classes and versions can be registered at run
 time just like protocol modules.
 
-<LI><A HREF="../Implementation/HTTCP.html">HTDoConnect</A> rewritten as a state machine which makes
+<LI><A HREF="../src/HTTCP.html">HTDoConnect</A> rewritten as a state machine which makes
 it a lot easier to understand and change. It is furthermore and important part of the persistent
 connection management.
 
 <LI>Removed <CODE>HTMaxRedirect</CODE> as a global variable. It is now private to <A
-HREF="../Implementation/HTReq.html">Request manager</A> with two methods to access it
+HREF="../src/HTReq.html">Request manager</A> with two methods to access it
 
 <LI>Support for context swapping and call back function in the <A
-HREF="../Implementation/HTReqMan.html">HTRequest object</A>. This allows the application to
+HREF="../src/HTReqMan.html">HTRequest object</A>. This allows the application to
 distinguish between multiple ongoing requests. See more information in the <A
 HREF="Using/Access.html">User's Guide</A>.
 
-<LI>Bug fix in <A HREF="../Implementation/HTTCP.c">HTTCP.c</A> HTGetHostName thanks to "dave (d.)
+<LI>Bug fix in <A HREF="../src/HTTCP.c">HTTCP.c</A> HTGetHostName thanks to "dave (d.)
 mielke" &lt;davem@bnr.ca&gt;
 
 </UL>
@@ -461,11 +461,11 @@ mielke" &lt;davem@bnr.ca&gt;
 
 <UL>
 
-<LI>We have a first version of a new <A HREF="../Implementation/HTNews.html">News module</A> which
+<LI>We have a first version of a new <A HREF="../src/HTNews.html">News module</A> which
 supports POST, persistent connections and a lot of more efficient NNTP commands.
 
 <LI>Re-implemented long directory listings for FILE and FTP access using streams. The HTML machinery is
-now separated into the new <A HREF="../Implementation/HTDir.html">HTDir module</A>. It provides long
+now separated into the new <A HREF="../src/HTDir.html">HTDir module</A>. It provides long
 directory listings for Unix, NT, and VMS.
 
 <LI>Support for <B>persistent connections</B> in HTTP requests. This has been enabled by the generic
@@ -473,7 +473,7 @@ model in the DNS manager.
 
 <LI>Support for the methods <EM>DELETE</EM>, <EM>LINK</EM>, and <EM>UNLINK</EM>.
 
-<LI>Re-implemented <A HREF="../Implementation/HTFTP.html">HTFTP</A> module using <B>persistent
+<LI>Re-implemented <A HREF="../src/HTFTP.html">HTFTP</A> module using <B>persistent
 connections</B>, multiplexed (non-blocking) sockets and streams for input and output. In fact the
 FTP module is now very capable and it's <EM>half</EM> the size of what it was because the Library in
 general supports the features needed in the FTP module. NOTE: Generation of HTML objects from
@@ -484,17 +484,17 @@ now it is possible to get the raw source code directly from the FTP server by ty
 	www -source ftp://ftp.w3.org
 </PRE>
 
-<LI>Re-implemented <A HREF="../Implementation/HTGopher.html">Gopher module</A> so that it uses
-streams for input and output instead of the obsolete <A HREF="../Implementation/HTSocket.html">
+<LI>Re-implemented <A HREF="../src/HTGopher.html">Gopher module</A> so that it uses
+streams for input and output instead of the obsolete <A HREF="../src/HTSocket.html">
 HTSocket_getCharacter()</A> method. The module now also uses non-blocking I/O as the HTTP module and
 the file module. A result of using streams is that you now can obtain the "real" source (the ASCII
 object sent by the gopher server) by using <EM>WWW_SOURCE</EM> as the output format. Before the
 source was equivalent of the source of the HTML object that was generated on the fly.
 
-<LI>Updated <A HREF="../Implementation/HTTelnet.c">Telnet module</A> to understand URL format
+<LI>Updated <A HREF="../src/HTTelnet.c">Telnet module</A> to understand URL format
 <EM>user:passwd@host:port</EM>. Cleaned up the code and fixed a set of bugs at the same time.
 
-<LI>Support for <EM>Host</EM> header in <A HREF="../Implementation/HTTPReq.html">HTTP Request
+<LI>Support for <EM>Host</EM> header in <A HREF="../src/HTTPReq.html">HTTP Request
 module</A>. Actually this was <EM>Orig-URI</EM> but it was changed on the fly.
 
 <LI>Fixed bug on HTTP redirect if no body part was present. This is the new "trend" especially from
@@ -507,13 +507,13 @@ didn't understand automatic redirect.
 
 <UL>
 
-<LI>We now have a <A HREF="../Implementation/HTBound.html">MIME multipart parser stream</A> which
+<LI>We now have a <A HREF="../src/HTBound.html">MIME multipart parser stream</A> which
 supports nested MIME multipart messages. This stream sets up a new MIME parser stream each time it
 finds a new body. Preamble and epilog messages are ignored by default but can be redirected to the
-special <A HREF="../Implementation/HTReq.html">Debug Stream</A> output of the Request object.
+special <A HREF="../src/HTReq.html">Debug Stream</A> output of the Request object.
 
 <LI>We have added a content counter stream and a buffer stream in <A
-HREF="../Implementation/HTConLen.html">HTConLen module</A>. This can be used to count the number of
+HREF="../src/HTConLen.html">HTConLen module</A>. This can be used to count the number of
 bytes in a data object either to be sent to a remote server or as a check of a received
 body. Together with the Content Length counter stream there is also a buffer stream that can buffer
 up to a certain amount of dat before it goes transparent.
@@ -522,34 +522,34 @@ up to a certain amount of dat before it goes transparent.
 <CODE>message/rfc822</CODE> format. This may affect the setup of stream converters that used the old
 format.
 
-<LI>We have also added a new <A HREF="../Implementation/HTMIMERq.html">HTMIMERq module</A> which is
+<LI>We have also added a new <A HREF="../src/HTMIMERq.html">HTMIMERq module</A> which is
 responsible for creatin MIME metainformation when sending requests. This is used, for example, by
-the <A HREF="../Implementation/HTTP.c">HTTP protocol module</A> and the <A
-HREF="../Implementation/HTNews.c">NNTP protocol module</A>
+the <A HREF="../src/HTTP.c">HTTP protocol module</A> and the <A
+HREF="../src/HTNews.c">NNTP protocol module</A>
 
 <LI>For the first time, it is <EM>not</EM> required to define dummy definitions of the external
-declared function in the <A HREF="../Implementation/HText.html">HText Interface</A>. It is now only
-referenced from the <A HREF="../Implementation/HTML.html">HTML module</A> and the <A
-HREF="../Implementation/HTPlain.html">Plain Text Presentation module</A>. This means that
+declared function in the <A HREF="../src/HText.html">HText Interface</A>. It is now only
+referenced from the <A HREF="../src/HTML.html">HTML module</A> and the <A
+HREF="../src/HTPlain.html">Plain Text Presentation module</A>. This means that
 applications that do not use the HTML/HText interface no more have the modules linked into the final
 object code.
 
-<LI>The <A HREF="../Implementation/SGML.html">SGML module</A> is no longer included anywhere anymore
+<LI>The <A HREF="../src/SGML.html">SGML module</A> is no longer included anywhere anymore
 except where necessary. The structured stream definition can be found in <A
-HREF="../Implementation/HTStruct.html">HTStruct module</A>
+HREF="../src/HTStruct.html">HTStruct module</A>
 
 <LI>Make registration of callback function for unknown MIME headers in the <A
-HREF="../Implementation/HTMIME.html">MIME parser</A>. The application can now more easily experiment
+HREF="../src/HTMIME.html">MIME parser</A>. The application can now more easily experiment
 with new headers. The registration process is described in the section <A HREF="Using.html">How to
 get Started Writing an App</A>
 
 <LI>Added support for png (lossless graphics format) (patch from unknown?) into the <A
-HREF="../Implementation/HTGuess.html">Guess stream</A>
+HREF="../src/HTGuess.html">Guess stream</A>
 
-<LI>Bug fixed in <A HREF="../Implementation/HTML.html">HTML parser</A> It couldn't handle more than
+<LI>Bug fixed in <A HREF="../src/HTML.html">HTML parser</A> It couldn't handle more than
 20 nested HTML tags which can happen for example in auto-generated HTML documents.
 
-<LI>HTLoadError taken out completely. Replaced by the <A HREF="../Implementation/HTError.html">error
+<LI>HTLoadError taken out completely. Replaced by the <A HREF="../src/HTError.html">error
 manager</A>. It was for (stupid) historic reasons put into the HTML parser.
 
 </UL>
@@ -558,20 +558,20 @@ manager</A>. It was for (stupid) historic reasons put into the HTML parser.
 
 <UL>
 
-<LI><A HREF="../Implementation/HTAlert.html">HTInteractive</A> made a private flag to <A
-HREF="../Implementation/HTAlert.c">HTAlert.c</A>. It can now be reached via two methods in the
+<LI><A HREF="../src/HTAlert.html">HTInteractive</A> made a private flag to <A
+HREF="../src/HTAlert.c">HTAlert.c</A>. It can now be reached via two methods in the
 module.
 
-<LI>All functions in the <A HREF="../Implementation/HTAlert.html">Alert Module</A> now has a request
+<LI>All functions in the <A HREF="../src/HTAlert.html">Alert Module</A> now has a request
 object as part of the calling parameters. The reason is that then the implementation of this module
 can call a registered call back function (as described above) so that the user message can be put
 into the right context.
 
-<LI>Mem leak fixed in <A HREF="../Implementation/HTLog.html">HTLog module</A> and added result of
+<LI>Mem leak fixed in <A HREF="../src/HTLog.html">HTLog module</A> and added result of
 request to the log file. The log module is no longer called in the Library at all so if you do not
 use then it is not included in the application.
 
-<LI>Rewritten <A HREF="../Implementation/HTHist.html">HTHistory module</A> to perform a better
+<LI>Rewritten <A HREF="../src/HTHist.html">HTHistory module</A> to perform a better
 history mechanism - the old version did not work properly. Some of the new features are
 
 <UL>
@@ -583,7 +583,7 @@ more "back trace with deletion".
 
 See <A HREF="Using/History.html">User's Guide</A> for more information
 
-<LI>Introduced <A HREF="../Implementation/HTAlert.html">HTProgress()</A> notifications for the
+<LI>Introduced <A HREF="../src/HTAlert.html">HTProgress()</A> notifications for the
 following operations
 
 <UL>
@@ -605,25 +605,25 @@ application can define what to do with it.
 <UL>
 
 <LI>Introduced HTChunkData() and HTChunkSize() as methods in the <A
-HREF="../Implementation/HTChunk.html">HTChunk module</A>. No more need to look into the HTChunk
+HREF="../src/HTChunk.html">HTChunk module</A>. No more need to look into the HTChunk
 object itself.
 
 <LI>Changed HTStat to HT_STAT and HTLStat to HT_LSTAT as they are macros
 
-<LI>The <CODE>HTSimplify()</CODE> function in the <A HREF="../Implementation/HTParse.html">HTParse
+<LI>The <CODE>HTSimplify()</CODE> function in the <A HREF="../src/HTParse.html">HTParse
 module</A> now follows the <A HREF="http://www.ics.uci.edu/pub/ietf/uri/rfc1808.txt">RFC 1808
 Specification</A>
 
-<LI>Fixed bug in <A HREF="../Implementation/HTParse.c">HTCanon()</A> that got confused about
+<LI>Fixed bug in <A HREF="../src/HTParse.c">HTCanon()</A> that got confused about
 &lt;http://teller.datawave.net:80/test/../imx/weelogo.gif&gt; thanks to Henry Minsky
 
-<LI><A HREF="../Implementation/HTParse.c">HTCanon()</A> made private to <A
-HREF="../Implementation/HTParse.html">HTParse module</A> as it is called from HTSimplify() only
+<LI><A HREF="../src/HTParse.c">HTCanon()</A> made private to <A
+HREF="../src/HTParse.html">HTParse module</A> as it is called from HTSimplify() only
 
 <LI>All <EM></EM> replaced with <EM>(wb|ab)</EM> if known binary output. This was a problem on
 Windows 3.1 platform as it inserted extra <EM>CRLF</EM> line terminators.
 
-<LI>Created HTNumToStr() in <A HREF="../Implementation/HTString.html">HTString Module</A> to convert
+<LI>Created HTNumToStr() in <A HREF="../src/HTString.html">HTString Module</A> to convert
 a number to a string using prefixes. This can be used in the progress notification to write <EM>Read
 1.6K</EM> etc.
 

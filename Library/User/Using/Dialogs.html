@@ -13,7 +13,7 @@
 <H1>User Messages and Dialogs</H1>
 
 The Core part of the Library is completely natural language independent. All messages and dialogs
-are handled through enumerations defined by the <A HREF="../../Implementation/HTAlert.html">User
+are handled through enumerations defined by the <A HREF="../../src/HTAlert.html">User
 Message Manager</A>. The task of converting this set of enumerations to dialog boxes, progress
 notifications etc. is completely for the application to provide. The advantage of having this model
 is of course that the core part of the Library remains platform independent and if the application
@@ -22,7 +22,7 @@ is not interested in having a user interface then the Library does not require i
 <H2>Handling of Dialog Callback Functions</H2>
 
 The registration of callback functions is handled by the <A
-HREF="../../Implementation/HTAlert.html">User Message Manager Manager</A> and it is (of course)
+HREF="../../src/HTAlert.html">User Message Manager Manager</A> and it is (of course)
 based on lists as we have seen so many times before. A callback function can be added to a list by
 using the following function:
 
@@ -73,7 +73,7 @@ extern BOOL HTAlertCall_delete (HTList * list, HTAlertCallback * cbf);
 </PRE>
 
 The Library provides sample implementations of all these Callback functions. Yon can find this in
-the <A HREF="../../Implementation/WWWApp.html">Application Interface description</A>
+the <A HREF="../../src/WWWApp.html">Application Interface description</A>
 
 <P>
 <HR>

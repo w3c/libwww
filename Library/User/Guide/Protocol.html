@@ -13,7 +13,7 @@
 <H1>Protocol Modules</H1>
 
 A protocol module is invoked by the <A
-HREF="../../Implementation/HTAccess.html">HTAccess module</A> in order
+HREF="../../src/HTAccess.html">HTAccess module</A> in order
 to access a document. Each protocol module is responsible for handling
 the transmission of a data object either from the application to a
 remote server, or vice verse. <P>
@@ -30,22 +30,22 @@ order to support <A HREF="../Architecture/Threads.html">libwww
 Threads</A>.
 
 When the client parses a request to the library a <A
-HREF="../../Implementation/HTAccess.html#z1">HTRequest Structure</A>
+HREF="../../src/HTAccess.html#z1">HTRequest Structure</A>
 is filled out and parsed to a load function in the access manager, for
-example <A HREF="../../Implementation/HTAccess.html">
+example <A HREF="../../src/HTAccess.html">
 HTLoadAnchor</A>. HTRequest contains all information needed by the
 Library in order to fulfill a request.
 
 <DL>
 
-<DT><A NAME="z46" HREF="../../Implementation/HTFile.html">File access</A>
+<DT><A NAME="z46" HREF="../../src/HTFile.html">File access</A>
 
 <DD>This module provides access to files on a local file system. Due
 to general confusion of the "file://" access scheme in the <A
 HREF="../../../Addressing/">URL Specifications</A> tries FTP access on
 failure.
 
-<DT><A NAME="z60" HREF="../../Implementation/HTFTP.html">FTP access</A>
+<DT><A NAME="z60" HREF="../../src/HTFTP.html">FTP access</A>
 
 <DD>This is a complete state based FTP client which is capable of
 communicating with a lot of weird FTP servers. It uses
@@ -54,9 +54,9 @@ connection as <CODE>PORT</CODE> does not work if the application is
 run from a firewall machine, as is often the case with <A
 HREF="../../../Daemon/User/Proxies/Proxies.html">proxy server</A>.
 
-<DT><A NAME="z45" HREF="../../Implementation/HTTP.html">HTTP access</A>
+<DT><A NAME="z45" HREF="../../src/HTTP.html">HTTP access</A>
 
-<DD>The <A NAME="25" HREF="../../Implementation/HTTP.html">HTTP
+<DD>The <A NAME="25" HREF="../../src/HTTP.html">HTTP
 module</A> handles document search and retrieve using the <A
 HREF="../../../Protocols/">HTTP</A> protocol. See also information on
 the <A HREF="../Architecture/HTTPFeatures.html"> current
@@ -64,11 +64,11 @@ implementation</A> of the HTTP client. The module is now a complete
 state machine which is a required functionality in the <A
 HREF="../Architecture/Threads.html">libwww thread model</A>. It uses
 streams for both outgoing and incoming data, the outgoing stream is
-implemented in <A HREF="../../Implementation/HTTPReq.c"> HTTPReq.c</A>
+implemented in <A HREF="../../src/HTTPReq.c"> HTTPReq.c</A>
 and the incoming stream in <A
-HREF="../../Implementation/HTTP.c">HTTP.c</A>
+HREF="../../src/HTTP.c">HTTP.c</A>
 
-<DT><A NAME="z40" HREF="../../Implementation/HTNews.html">News access</A>
+<DT><A NAME="z40" HREF="../../src/HTNews.html">News access</A>
 
 <DD>The NNTP internet news protocol is handled by HTNews which builds a
 hypertext object. <P>
@@ -76,18 +76,18 @@ hypertext object. <P>
 <IMG SRC="../../../Icons/WWW/construction.gif"> This module is under
 reconstruction!
 
-<DT><A NAME="z44" HREF="../../Implementation/HTGopher.html">Gopher access</A>
+<DT><A NAME="z44" HREF="../../src/HTGopher.html">Gopher access</A>
 
 <DD>The internet gopher access to menus and flat files (and links to telnet
 nodes, WhoIs servers, CSO Name Server etc.) is handled by <A NAME="26"
-HREF="../../Implementation/HTGopher.html">HTGopher Module</A>.
+HREF="../../src/HTGopher.html">HTGopher Module</A>.
 
-<DT><A NAME="z72" HREF="../../Implementation/HTTelnet.html">Telnet access</A>
+<DT><A NAME="z72" HREF="../../src/HTTelnet.html">Telnet access</A>
 
 <DD>This module provides the possibility of running telnet sessions in
 a subshell. It also provides functionality for rlogin and tn3270.
 
-<DT><A NAME="z39" HREF="../../Implementation/HTWAIS.html">WAIS access</A>
+<DT><A NAME="z39" HREF="../../src/HTWAIS.html">WAIS access</A>
 
 <DD>WAIS access is not compiled into the Library by default as it
 requires the freeWAIS library. This is easily changed in the platform

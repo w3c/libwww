@@ -12,42 +12,42 @@
 
 <H1>Structured Stream Modules</H1>
 
-The <A HREF="../../Implementation/SGML.html">SGML stream</A> generates
+The <A HREF="../../src/SGML.html">SGML stream</A> generates
 a structured stream that is sub class of a <A
 HREF="Streams.html">generic stream</A>. The Library defines a
 structured stream class in the <A
-HREF="../../Implementation/HTStruct.html">HTStruct module</A>, but
+HREF="../../src/HTStruct.html">HTStruct module</A>, but
 almost all stream modules define their own sub class definition of the
 stream object. <P>
 
 A structured stream uses a DTD definition expressed in a C data
 structure - no, it doesn't not understand a real DTD (yet). The
 definition of the HTML DTD is placed in the <A
-HREF="../../Implementation/HTMLPDTD.html">HTMLPDTD module</A>.
+HREF="../../src/HTMLPDTD.html">HTMLPDTD module</A>.
 
 <DL>
 
-<DT><A HREF="../../Implementation/HTML.html">HTML Presentation</A>
+<DT><A HREF="../../src/HTML.html">HTML Presentation</A>
 <DD>The <EM>HTMLPresent</EM> stream presents a HTML object to the user
 using the "HText API" as explained in the section on <A
 HREF="Presentation.html">HTML Presentation</A>.
 
-<DT><A HREF="../../Implementation/HTMLGen.html">HTML Generation</A>
+<DT><A HREF="../../src/HTMLGen.html">HTML Generation</A>
 <DD>The <EM>HTMLGenerator</EM> stream generates a HTML object which
 for example can be written to a file.
 
-<DT><A HREF="../../Implementation/HTMLGen.html">HTML to C conversion</A>
+<DT><A HREF="../../src/HTMLGen.html">HTML to C conversion</A>
 <DD>The <EM>HTMLToC</EM> stream converts an HTML object into a C
 compliant text object. This is for example used by the <A
 HREF="../../../LineMode/">Line Mode Browser</A> in order to generate C
 like include files from the HTML files that you have been reading
 throughout this document.
 
-<DT><A HREF="../../Implementation/HTTeXGen.html">HTML to LaTeX Conversion</A>
+<DT><A HREF="../../src/HTTeXGen.html">HTML to LaTeX Conversion</A>
 <DD>The <EM>HTMLToTeX</EM> stream is a very simple HTML to LaTeX
 converter. It is not error free but a start.
 
-<DT><A HREF="../../Implementation/HTMLGen.html">HTML to Plain Text Converter</A>
+<DT><A HREF="../../src/HTMLGen.html">HTML to Plain Text Converter</A>
 <DD>The <EM>HTMLToPlain</EM> stream takes a HTML object and converts
 it into plain text using the styles in the "HText API"
 

@@ -1,10 +1,8 @@
 ## Process this file with Automake to create Makefile.in.
 
-VMS = $(srcdir)/vms
-WIN = $(srcdir)/windows
-FTP = /afs/w3.org/devel/Dist/$(PROD)
-
 lib_LIBRARIES = www
+
+SUBDIRS = windows vms
 
 #	.h files are distributed but originally are made from the
 #	self-documenting hypertext files.
@@ -88,23 +86,7 @@ noinst_HEADERS = sysdep.h \
 EXTRA_HEADERS = \
 	HTWAIS.h
 
-DIST_OTHER = \
-	$(WIN)/Makefile \
-	$(WIN)/*.bat \
-	$(WIN)/*.pl \
-	$(WIN)/*.mak \
-	$(WIN)/*.def \
-	$(WIN)/*.c \
-	$(WIN)/*.h \
-	$(WIN)/*.txt \
-	$(VMS)/descrip.mms  $(VMS)/COPYING.LIB \
- 	$(VMS)/build_multinet.com $(VMS)/build_multinet.com_alpha \
-	$(VMS)/multinet.opt $(VMS)/multinet.opt_alpha \
-	$(VMS)/build_ucx.com $(VMS)/build_ucx.com_alpha \
-	$(VMS)/ucx.opt $(VMS)/ucx.opt_alpha \
-	$(VMS)/patchlevel.h $(VMS)/ufc-crypt.h \
-	$(VMS)/crypt.c $(VMS)/crypt_util.c \
-	$(VMS)/getline.c $(VMS)/getpass.c \
-	$(VMS)/HTVMSUtils.h $(VMS)/HTVMSUtils.c \
-	$(VMS)/dirent.h $(VMS)/dirent.c $(VMS)/sys_dirent.h
+DOCS :=	$(wildcard *.html)
 
+DIST_OTHER = \
+	$(DOCS)

@@ -32,7 +32,7 @@ new documents. The <CODE>HyperDoc</CODE> object is only declared in
 the Library - the real definition is left to the application as it is
 for the application to handle graphic objects. The Line Mode Browser
 has its own definition of the <CODE>HyperDoc</CODE> object called
-<A HREF="../../../LineMode/Implementation/GridText.html"
+<A HREF="../../../LineMode/src/GridText.html"
 ><CODE>HText</CODE></A>. Before a request is processed over the net,
 the anchor object is searched for a <CODE>HyperDoc</CODE> object
 and a new request is issued only if this is not present or the Library
@@ -44,7 +44,7 @@ it is also for the application to handle the garbage collection of the
 memory cache. The <A HREF="../../../LineMode/">Line Mode Browser</A>
 has a very simple memory management of how long graphic objects stay
 around in memory. It is determined by a constant in the <A
-HREF="../../../LineMode/Implementation/GridText.c" >GridText</A>
+HREF="../../../LineMode/src/GridText.c" >GridText</A>
 module and is by default set to 5 documents. This approach can be much
 more advanced and the memory garbage collection can be determined by
 the size of the graphic objects, when they expire etc., but the API is

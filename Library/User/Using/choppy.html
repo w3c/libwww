@@ -90,7 +90,7 @@ you verify that the version is up to date. On a Unix platform you can do this by
 following command
 
 <PRE>
-	cat Library/Implementation/Version.make
+	cat Library/src/Version.make
 </PRE>
 
 assuming that you are at the top of the WWW tree created when unpacking the distribution file. You
@@ -102,35 +102,35 @@ all have a name starting with <EM>WWW</EM>, and as they will be referenced throu
 might as well introduce them from the beginning:
 
 <DL>
-<DT><A HREF="../../Implementation/WWWUtil.html">WWWUtil.h</A>
+<DT><A HREF="../../src/WWWUtil.html">WWWUtil.h</A>
 <DD>The WWW Utility module contains a lot of the functionality that makes it possible to make
 applications, that is container modules for data objects, basic string functionality etc. This
 module is the basis for all of the following modules and is used extensively.
 
-<DT><A HREF="../../Implementation/WWWCore.html">WWWCore.h</A>
+<DT><A HREF="../../src/WWWCore.html">WWWCore.h</A>
 <DD>The WWW Core module is a set of registration modules that glues an application together. It
 contains no real functionality in itself; it is for example not capable of loading a HTML
 document. It only provides a large set of hooks which can be used to add functionality to the
 Library and to give an application real life. We will here a lot more to the structure of the core,
 and much of this guide is actually describing how to add functionality to the core.
 
-<DT><A HREF="../../Implementation/WWWLib.html">WWWLib.h</A>
+<DT><A HREF="../../src/WWWLib.html">WWWLib.h</A>
 
 <DD>This include is the main include file for the Library. It basically consists of the <A
-HREF="../../Implementation/WWWUtil.html">WWWUtil.h</A> and the <A
-HREF="../../Implementation/WWWCore.html">WWWCore.h</A> so that the application only needs to include
+HREF="../../src/WWWUtil.html">WWWUtil.h</A> and the <A
+HREF="../../src/WWWCore.html">WWWCore.h</A> so that the application only needs to include
 this one instead of two.
 
-<DT><A HREF="../../Implementation/WWWApp.html">WWWApp.h</A>
+<DT><A HREF="../../src/WWWApp.html">WWWApp.h</A>
 <DD>This module contains a huge set of modules that can be hooked into the Core Library and make the
 application work. In contrast to the Core part, you can pick exactly the modules you want from the
-<A HREF="../../Implementation/WWWApp.html">WWWApp.h</A> in order to create your special application
+<A HREF="../../src/WWWApp.html">WWWApp.h</A> in order to create your special application
 whether it is a server, a client, a proxy, a robot or any other Web application.
 
 </DL>
 
 As mentioned, in order to use the core public functions of the Library, your application needs to
-include the file "<A HREF="../../Implementation/WWWLib.html">WWWLib.h</A>". This file is a container
+include the file "<A HREF="../../src/WWWLib.html">WWWLib.h</A>". This file is a container
 for all the Library include files that together define the public API of the core of the Library. As
 described in the document <A HREF="../Architecture/">Library Architecture</A> the core is a frame
 work for other modules that provide the actual functionality, for example for parsing HTML documents
@@ -157,7 +157,7 @@ at compile time, and the dynamic modules are an important part of the Library co
 
 The two arguments to the function are the name of the application and the version number
 respectively. It is not a requirement that these values are unique and they can both be the empty
-string (""). However, as the strings are used in the <A HREF="../../Implementation/HTTP.html/">HTTP
+string (""). However, as the strings are used in the <A HREF="../../src/HTTP.html/">HTTP
 protocol module</A> when communicating with other WWW applications it is strongly recommended that
 the values are chosen carefully according to the <A HREF="../../../Protocols/">HTTP
 specifications</A>. The most important requirement is to use normal ASCII characters without any
@@ -398,7 +398,7 @@ functionality we want for our application. If you are interested in a more detai
 the architecture of the core to see how the glue is designed then please read the <A
 HREF="../Architecture/ControlFlow.html">chapter on the model behind the Core of the Library</A> in
 the Architecture document. In this section we will concentrate on the APIs defined by the <A
-HREF="../../Implementation/WWWCore.html">WWWCore.h</A> include file and how to use the Core in a
+HREF="../../src/WWWCore.html">WWWCore.h</A> include file and how to use the Core in a
 real application.
 
 <P>
@@ -453,7 +453,7 @@ extern void HTConversion_add   (HTList *	conversions,
 				double		secs_per_byte);
 </PRE>
 
-The first argument is a <A HREF="../../Implementation/HTList.html">list object</A>. List objects are
+The first argument is a <A HREF="../../src/HTList.html">list object</A>. List objects are
 one of the several container objects in the Library and they are explained in more details in the <A
 HREF="../Guide/">W3C Library Internals</A>. All we have to know at this point is to create a list
 object:
@@ -766,11 +766,11 @@ extern void HTFormat_deleteAll		(void);
 
 <H2>Getting Help on Initialization Converters and Presenters</H2>
 
-The Library has a special module called <A HREF="../../Implementation/HTInit.html">HTInit</A> which
+The Library has a special module called <A HREF="../../src/HTInit.html">HTInit</A> which
 helps the application doing the initialization of all the converters and other preferences supported
 internally by the Library. This module is not called directly from the Library and must explicitly
-be invoked by the application. <A HREF="../../Implementation/HTInit.html">HTInit</A> is a part of
-the <A HREF="../../Implementation/WWWApp.html">WWWApp.h</A> include file described in the previous
+be invoked by the application. <A HREF="../../src/HTInit.html">HTInit</A> is a part of
+the <A HREF="../../src/WWWApp.html">WWWApp.h</A> include file described in the previous
 section, so if you include this in your application then you have direct access to the following
 functions:
 
@@ -842,7 +842,7 @@ we have to do in this case is to register the HTTP module to the Library as bein
 handling <B>http</B> URLs. <P>
 
 Let's see how we can register a protocol module. The support for this is provided by the <A
-HREF="../../Implementation/HTProt.html">protocol manager</A> which exports the following function:
+HREF="../../src/HTProt.html">protocol manager</A> which exports the following function:
 
 <PRE>
 extern BOOL HTProtocol_add (const char *       	scheme,
@@ -855,7 +855,7 @@ argument the access scheme which the protocol module is capable of handling. Thi
 <B>http</B>, but it can also be non-existent schemes which can be used for experimental protocol
 implementations, for example <B>whois</B> etc. In case a protocol module is capable of handling more
 than one access scheme, it can be registered multiple time with different schemes. This is the case
-with the <A HREF="../../Implementation/HTTelnet.html">Telnet access module</A> which also can handle
+with the <A HREF="../../src/HTTelnet.html">Telnet access module</A> which also can handle
 <B>rlogin</B> and <B>tn3270</B> terminal sessions. <P>
 
 <A NAME="preemptive"></A>The <CODE>preemptive</CODE> argument describes to the Library whether it is
@@ -922,7 +922,7 @@ therefore required to have a dynamic binding just like the preferences themselve
 latter is HTML files which on most Unix systems end in <EM>.html</EM> whereas they on many MS-DOS
 based systems end in <EM>.htm</EM>. <P>
 
-The <A HREF="../../Implementation/HTBind.html">HTBind module</A> provides a generic binding
+The <A HREF="../../src/HTBind.html">HTBind module</A> provides a generic binding
 mechanism between a file and its representation internally in the Library. It is not limited to
 simple file suffix classification but can also be used in more advanced environments using data
 bases etc. However, at this point we are interested in how we can register bindings between file
@@ -1050,7 +1050,7 @@ servers.
 <DT>Entity Headers
 
 <DD>The entity headers contain information about the object sent in the HTTP transaction. See the <A
-HREF="../../Implementation/HTAnchor.html">anchor module</A>, for the storage of entity headers. This
+HREF="../../src/HTAnchor.html">anchor module</A>, for the storage of entity headers. This
 flag defines which headers are to be sent in a request together with an entity body. All headers are
 optional but the default value is to use as many as possible.
 
@@ -1062,7 +1062,7 @@ functionality for registering additional headers which we will have a look at in
 
 <H3>Generating Additional Headers</H3>
 
-The API for handling extra headers is provided by the <A HREF="../../Implementation/HTHeader.html">
+The API for handling extra headers is provided by the <A HREF="../../src/HTHeader.html">
 Header Manager</A>. The API is built in exactly the same way as we have seen in section <A
 HREF="Request Preferences">Prefs.html</A>, that is it uses lists of objects as the main
 component. This time the elements registered is callback functions which the application provides
@@ -1111,12 +1111,12 @@ extern BOOL HTGenerator_delete (HTList * gens, HTPostCallback * callback);
 
 <H2>Header Parsing</H2>
 
-The <A HREF="../../Implementation/HTMIME.html">MIME parser stream</A> parses MIME metainformation,
+The <A HREF="../../src/HTMIME.html">MIME parser stream</A> parses MIME metainformation,
 for example generated by MIME-like protocols, such as HTTP, NNTP, and soon SMTP as well. For <A
 HREF="../../../Protocols/">HTTP</A> it handles all headers as defined in HTTP/1.1 of the
 specification. When a MIME header is parsed, the obtained metainformation about the document is
 stored in the <A HREF="Anchors.html">anchor object</A> where it can be accessed by the application
-using the methods of the <A HREF="../../Implementation/HTAnchor.html">Anchor module</A>. The
+using the methods of the <A HREF="../../src/HTAnchor.html">Anchor module</A>. The
 metainformation in an anchor object can also be used to describe a data object that is to be
 <EM>sent</EM> to a remote location, for example using HTTP or NNTP, but we will describe this in
 more detail later in this guide. In this case the order is reversed as the application provides the
@@ -1125,7 +1125,7 @@ anchor object by parsing the headers. <P>
 
 <H3>Parsing Known Headers</H3>
 
-The set of headers directly handled by the <A HREF="../../Implementation/HTMIME.html">internal MIME
+The set of headers directly handled by the <A HREF="../../src/HTMIME.html">internal MIME
 parser</A> is the reader is referred to the actual implementation in order to see the exact
 list. However, some of the more special headers are: </P>
 
@@ -1158,13 +1158,13 @@ describe in this section, the Library provides a very similar interface to the o
 for generating extra headers. <P>
 
 Again, the API for handling extra headers is provided by the <A
-HREF="../../Implementation/HTHeader.html">Header Manager</A> and is based on managing list objects,
+HREF="../../src/HTHeader.html">Header Manager</A> and is based on managing list objects,
 just like we have seen many times before. Each time a request is received, and a unknown header is
-encountered by the internal <A HREF="../../Implementation/HTMIME.html">MIME parser</A>, the Library
+encountered by the internal <A HREF="../../src/HTMIME.html">MIME parser</A>, the Library
 looks to see if a list of callback functions has been registered to parse additional
 metainformation. In case a parser is found for this particular header, the call back is called with
 the header and all parameters that might follow it. As MIME headers can contain line wrappings, the
-<A HREF="../../Implementation/HTMIME.html">MIME parser</A> canonicalizes the header line before the
+<A HREF="../../src/HTMIME.html">MIME parser</A> canonicalizes the header line before the
 callback function is called which makes the job easier for the callback function.<P>
 
 Exactly as for the header generators you can <EM>add</EM> and <EM>delete</EM> an element, which also
@@ -1316,7 +1316,7 @@ The Library does provide a large amount of such pre- and post processing modules
 amount used by an application depends on the purpose of the application. Simple script-like
 applications typically do not need any history mechanism etc. Therefore these modules are not a part
 of the core but instead they can be registered as all other preferences. The <A
-HREF="../../Implementation/HTNet.html">Net Manager</A> provides functionality for registering a set
+HREF="../../src/HTNet.html">Net Manager</A> provides functionality for registering a set
 of callback functions that can be called <EM>before</EM> and <EM>after</EM> a request has been
 executed. Of course, the result of a pre-processing might be that the request does not have to be
 executed at all in which case the request can be terminated before the protocol module is called to
@@ -1324,7 +1324,7 @@ execute the request. <P>
 
 <H2>Generic Handling of Callbacks</H2>
 
-The registration of callback functions is handled by the <A HREF="../../Implementation/HTNet.html">
+The registration of callback functions is handled by the <A HREF="../../src/HTNet.html">
 HTNet Manager</A> and it is (of course) based on lists as we have seen so many times before. A
 callback function can be added to a list by using the following function:
 
@@ -1398,7 +1398,7 @@ of modules are:
 
 An application can be setup by using a rule file, also known as a configuration file. This is for
 example the case with the W3C httpd and the W3C Line Mode Browser. The <A
-HREF="../../Implementation/HTRules.html">Rules module</A> provides basic support for configuration
+HREF="../../src/HTRules.html">Rules module</A> provides basic support for configuration
 file management and the application can use this is desired. The module is not referred to by the
 Library. Reading a rule file is implemented as a stream converter so that a rule file can come from
 anywhere, even across the network!
@@ -1411,7 +1411,7 @@ carry client requests through a firewall where they can provide services like co
 other network optimizations. Both Proxy servers and gateways can serve as "protocol translators"
 which can convert a request in the main Web protocol, HTTP, to an equivalent request in another
 protocol, for example NNTP, FTP, or Gopher. In a later section we will see how to set up the Proxy
-servers and gateways using the <A HREF="../../Implementation/HTProxy.html">Proxy module</A>. <P>
+servers and gateways using the <A HREF="../../src/HTProxy.html">Proxy module</A>. <P>
 
 As a HTTP request looks different when it is directed to a proxy server than to a origin server, the
 HTTP module needs to know whether it is talking to a proxy for this particular request or not. You
@@ -1430,7 +1430,7 @@ different types of cache: The memory cache and the file cache. The two types dif
 which reflects their two main purposes: The memory cache is for short term storage of graphic
 objects whereas the file cache is for intermediate term storage of data objects. Often it is
 desirable to have both a memory and a file version of a cached document, so the two types do not
-exclude each other. The <A HREF="../../Implementation/HTCache.html">HTCache module</A> provides a
+exclude each other. The <A HREF="../../src/HTCache.html">HTCache module</A> provides a
 basic cache that can be used by an application.
 
 <H3>Register a list of BEFORE Callbacks</H3>
@@ -1457,20 +1457,20 @@ extern BOOL HTNetCall_addbefore	(HTNetCallback *cbf, int status);
 When a request is terminated, the application often has to do some action as a result of the request
 (and of the result of the request). The Application part of the Library provides two following
 modules to handle <EM>logging</EM> and <EM>history management</EM>. You can register a <EM>POST
-request handler</EM> in the <A HREF="../../Implementation/HTNet.html">Net Manager</A> as described
+request handler</EM> in the <A HREF="../../src/HTNet.html">Net Manager</A> as described
 in the <A HREF="./">User's Guide</A>. The set of modules provided by the Library is:<P>
 
 <H3>Logging</H3>
 
 Often it is required to log the requests issued to the Library. This can either be the case if the
 application is a server or it can also be useful in a client application. The <A
-HREF="../../Implementation/HTLog.html">HTLog Module</A> provides a simple logging mechanism which
+HREF="../../src/HTLog.html">HTLog Module</A> provides a simple logging mechanism which
 can be enabled if needed.
 
 <H3>History Management</H3>
 
 Another type of logging is keeping track of which documents a user has visited when browsing along
-on the Web. The <A HREF="../../Implementation/HTHist.html">HTHistory module</A> provides a basic set
+on the Web. The <A HREF="../../src/HTHist.html">HTHistory module</A> provides a basic set
 of functionality to keep track of multiple linear history lists.
 
 <H3>Register a list of AFTER Callbacks</H3>
@@ -1507,14 +1507,14 @@ all the errors that can occur when the Library is used in a "real" environment w
 connections can disappear, disks can get full, and memory can get exhausted. The letter type of
 errors are at a lower level including invalid arguments passed to procedures, missing function
 calls, or any other application misbehavior. In this section we will examine the Library <A
-HREF="../../Implementation/HTError.html">Error Manager</A> which handles user errors. In a later
+HREF="../../src/HTError.html">Error Manager</A> which handles user errors. In a later
 section we will have a look at how to control the application errors at an application debug
 level using trace messages.<P>
 
 As a part of the core Library, the error object is intended to pass information about errors and
 messages occuring in the Library back to the application. Each error is kept as an object so
 multiple errors can be nested together using the well-known <A
-HREF="../../Implementation/HTList.html">HTList object</A>. Nested error management can be used to
+HREF="../../src/HTList.html">HTList object</A>. Nested error management can be used to
 build complicated error messages which an arbitrary level of details, for example:
 
 <PRE>
@@ -1576,10 +1576,10 @@ functionality in that an error can be registered at any time with the notion: "R
 but ignore it for now". <P>
 
 The <CODE>element</CODE> argument is an index into a table of all error messages. This table is
-maintained in the <A HREF="../../Implementation/HTError.c">HTError Module</A> and contains an error
+maintained in the <A HREF="../../src/HTError.c">HTError Module</A> and contains an error
 message together with a URl that might be included in an error message presented to the user. The
 values of the <CODE>element</CODE> argument itself is given by the <CODE>HTErrorElement</CODE>
-enumeration definition in the <A HREF="../../Implementation/HTEvntrg.html">HTEvntrg Module</A>. <P>
+enumeration definition in the <A HREF="../../src/HTEvntrg.html">HTEvntrg Module</A>. <P>
 
 The next two arguments are used to register any parameters associated with the error. This can for
 example be the file name of a file which could not be opened, a URL which could not be accessed
@@ -1588,7 +1588,7 @@ be an arbitrary data object. The last argument is a location description to indi
 occured. Often this is the name of the function or a module. <P>
 
 One thing, we didn't mention when describing the <A HREF="Request.html">request object</A> was that
-the <A HREF="../../Implementation/HTReq.html">Request Object</A> provides a similar function for
+the <A HREF="../../src/HTReq.html">Request Object</A> provides a similar function for
 directly associating an error object with a request object. These functions uses request objects and
 not a list as the basic data object and hence the caller does not have to worry about creating or
 assigning the list to the request object; this is done automatically. The request version of how to
@@ -1620,7 +1620,7 @@ extern BOOL HTError_addSystem (HTList *		list,
 The only difference is the <CODE>errornumber</CODE> argument which, as described above, in many
 situations is provided by the operating system, for example as a <EM>errno</EM> variable. The
 <CODE>syscall</CODE> is simply the name of the function. Also this function has a mirror function in
-the <A HREF="../../Implementation/HTReq.html">HTRequest object</A>, and again they look very much
+the <A HREF="../../src/HTReq.html">HTRequest object</A>, and again they look very much
 alike:
 
 <PRE>
@@ -1714,12 +1714,12 @@ extern BOOL HTError_setShow (HTErrorShow mask);
 The actual generation of error messages often involves a platform dependent interface including
 special windows etc. In order to keep the error manager itself completely platform independent, the
 error presentation functionality is part of the <A
-HREF="../../Implementation/HTAlert.html">Messaging Module</A> which is described in detail later in
+HREF="../../src/HTAlert.html">Messaging Module</A> which is described in detail later in
 this guide.
 
 <H2>Data Methods</H2>
 
-The <A HREF="../../Implementation/HTError.html">Error manager</A> contains a large set of
+The <A HREF="../../src/HTError.html">Error manager</A> contains a large set of
 configuration options and methods for accessing information about registered lists. This guide is
 not intended to describe every single public function, so here we will only present the methods in a list. Often they are self explanatory, so you can probably get a clue of what is going on anyway!
 
@@ -1842,7 +1842,7 @@ extern BOOL HTLoad (HTRequest * request, HTPriority priority, BOOL recursive);
 The request object is intended to live as long as the request is still
 active, but can be deleted as soon as it has terminatedk, for example
 in one of the request termination callback functions as described in
-the <A HREF="../../Implementation/HTNet.html">Net Manager</A>. Only the anchor object stays
+the <A HREF="../../src/HTNet.html">Net Manager</A>. Only the anchor object stays
 around after the request itself is terminated.
 
 <H3>Create new Object</H3>
@@ -1886,7 +1886,7 @@ protocol implementation to try and carry this operation out. However,
 not all operations can be implemented (or make sense) in all
 protocols. <P>
 
-Methods are handled by the <A HREF="../../Implementation/HTMethod.html">Method Module</A>,
+Methods are handled by the <A HREF="../../src/HTMethod.html">Method Module</A>,
 and the default value is "GET".
 
 <PRE>
@@ -1955,7 +1955,7 @@ The Accept family of headers is an important part of HTTP handling the
 format negotiation. The Library supports both a global set of accept
 headers that are used in <EM>all</EM> HTTP requests and a local set of
 accept headers that are used in specific requests only. The global
-ones are defined in the <A HREF="../../Implementation/HTFormat.html">Format
+ones are defined in the <A HREF="../../src/HTFormat.html">Format
 Manager</A>.  <P>
 
 Each request can have its local set of accept headers that either are
@@ -1970,8 +1970,8 @@ else <EM>both</EM> local and global headers are used.
 Th <EM>local</EM> list of specific conversions which the format
 manager can do in order to fulfill the request.  It typically points
 to a list set up on initialisation time for example by <A
-HREF="../../Implementation/HTInit.html">HTInit()</A>. There is also a <A
-HREF="../../Implementation/HTFormat.html#z17"><EM>global</EM></A> list of conversions which
+HREF="../../src/HTInit.html">HTInit()</A>. There is also a <A
+HREF="../../src/HTFormat.html#z17"><EM>global</EM></A> list of conversions which
 contains a generic set of possible conversions.
 
 <PRE>
@@ -2071,7 +2071,7 @@ extern HTRqHd HTRequest_rqHd (HTRequest *request);
 <H3><A NAME="enhd">Entity Header Mask</A></H3>
 
 The entity headers contain information about the object sent in the
-HTTP transaction. See the <A HREF="../../Implementation/HTAnchor.html">Anchor module</A>,
+HTTP transaction. See the <A HREF="../../src/HTAnchor.html">Anchor module</A>,
 for the storage of entity headers. This flag defines which headers are
 to be sent in a request together with an entity body. All headers are
 optional but the default value is <EM>ALL ENTITY HEADERS IF
@@ -2141,7 +2141,7 @@ extern HTStream *HTRequest_OutputStream (HTRequest *request);
 
 The desired format of the output stream. This can be used to get
 unconverted data etc. from the library. If <CODE>NULL</CODE>, then <A
-HREF="../../Implementation/HTFormat.html#FormatTypes">WWW_PRESENT</A> is default value.
+HREF="../../src/HTFormat.html#FormatTypes">WWW_PRESENT</A> is default value.
 
 <PRE>
 extern void HTRequest_setOutputFormat (HTRequest *request, HTFormat format);
@@ -2238,7 +2238,7 @@ extern HTList *HTRequest_errorStack (HTRequest *request);
 This function returns the bytes read in the current request. For a
 deeper description of what the current request is, please read the
 user's guide. This function can be used in for example the <A
-HREF="../../Implementation/HTAlert.html">HTAlert module</A> to give the number of bytes
+HREF="../../src/HTAlert.html">HTAlert module</A> to give the number of bytes
 read in a progress message.
 
 <PRE>
@@ -2330,7 +2330,7 @@ time when the blocking situation has ceased to exist.
 In a multithreaded environment it is necessary to keep track of the context of each simultanous
 requests issued to the Library as the response might return in another order than the one they were
 issued. The Library allows such a context registration in the <A
-HREF="../../Implementation/HTReq.html">HTRequest object</A> by providing the registration mechanism
+HREF="../../src/HTReq.html">HTRequest object</A> by providing the registration mechanism
 of a call back function and a pointer to an arbitrary data object to be passed to that call back
 function. <P>
 
@@ -2481,7 +2481,7 @@ more. However, they are not part of the core but of the application. The applica
 the set of modules that provides the desired functionality which is basically what we have seen in
 the description of the core. This section discusses the application modules and what functionality
 they provide. The Library provides a special include file called <A
-HREF="../../Implementation/WWWApp.html">WWWApp.h</A> which includes all the modules mentioned in
+HREF="../../src/WWWApp.html">WWWApp.h</A> which includes all the modules mentioned in
 this section. This include file <EM>may</EM> be included in an application but is not required. <P>
 
 OK, let's continue and get an overview of the functionality provided by the application modules.
@@ -2525,7 +2525,7 @@ new documents. The <CODE>HyperDoc</CODE> object is only declared in
 the Library - the real definition is left to the application as it is
 for the application to handle graphic objects. The Line Mode Browser
 has its own definition of the <CODE>HyperDoc</CODE> object called
-<A HREF="../../../LineMode/Implementation/GridText.html"
+<A HREF="../../../LineMode/src/GridText.html"
 ><CODE>HText</CODE></A>. Before a request is processed over the net,
 the anchor object is searched for a <CODE>HyperDoc</CODE> object
 and a new request is issued only if this is not present or the Library
@@ -2537,7 +2537,7 @@ it is also for the application to handle the garbage collection of the
 memory cache. The <A HREF="../../../LineMode/">Line Mode Browser</A>
 has a very simple memory management of how long graphic objects stay
 around in memory. It is determined by a constant in the <A
-HREF="../../../LineMode/Implementation/GridText.c" >GridText</A>
+HREF="../../../LineMode/src/GridText.c" >GridText</A>
 module and is by default set to 5 documents. This approach can be much
 more advanced and the memory garbage collection can be determined by
 the size of the graphic objects, when they expire etc., but the API is
@@ -2692,7 +2692,7 @@ which then handle the communications with the remote server, for example using F
 document and return it to the application (proxy client) using HTTP. <P>
 
 The Library supports both proxies and gateways through the <A
-HREF="../../Implementation/HTProxy.html">HTProxy module</A> and all requests can be redirected to a
+HREF="../../src/HTProxy.html">HTProxy module</A> and all requests can be redirected to a
 proxy or a gateway, even requests on the local file system. Of course, the Library can also be used
 in proxy or gateway applications which in terms can use other proxies or gateways so that a single
 request can be passed through a series of intermediate agents.<P>
@@ -2827,11 +2827,11 @@ The W3C Library provides this module for handling configuration files (a.k.a.  r
 files can be used to initialize as much as the application desires including setting up new protocol
 modules etc. Also the rules file do not have to be a file - it can be a database or any other way of
 storage information. This implementation is not used by the Library at all and is part of the <A
-HREF="../../Implementation/WWWApp.html">WWWApp.h</A> interface. <P>
+HREF="../../src/WWWApp.html">WWWApp.h</A> interface. <P>
 
 Parsing a whole rule file is done using a converter stream. This means that a rule file can come
 from anywhere, even across the network. We have defined a special content type for rule files
-called <CODE>WWW_RULES</CODE> in <A HREF="../../Implementation/HTFormat.html">HTFormat</A>. <P>
+called <CODE>WWW_RULES</CODE> in <A HREF="../../src/HTFormat.html">HTFormat</A>. <P>
 
 In some situations, a set of rules comes from a subset of a file or some other origin, for example
 INI files for X resources. In that case, you can also parse a single line from a rules file using
@@ -2920,7 +2920,7 @@ where the date and time stamp can be either in local time or
 GMT. Logging is turned off but the application can enable it at any
 time. However, it is also for the application to disable the logging
 in order to close any open file descriptors etc. The exact log API is
-described in the <A HREF="../../Implementation/HTLog.html">Log
+described in the <A HREF="../../src/HTLog.html">Log
 Manager</A>.
 
 <P>
@@ -2944,7 +2944,7 @@ Manager</A>.
 The Library supports client applications in keeping track of which
 locations the user has visited while browsing the Web. The internal
 history list is implemented in the <A
-HREF="../../Implementation/HTHist.html">HTHist module</A>. This module
+HREF="../../src/HTHist.html">HTHist module</A>. This module
 is completely autonomous as it is not used by any other modules in the
 Library so if it is not referred to in the application code then it
 will not be linked into the linked application. This means that if the
@@ -2966,7 +2966,7 @@ are:
 Some of the navigation steps supported by the module are "back",
 "forward", and jump to a position in the list. The details of the
 module is listed in the declaration part of the <A
-HREF="../../Implementation/HTHist.html">HTHist module</A>.
+HREF="../../src/HTHist.html">HTHist module</A>.
 
 <P>
 <HR>
@@ -2999,10 +2999,10 @@ or a set of callback functions as indicated in the figure below:
 
 <DD>This interface provides the most basic API consisting of the
 output from a stream without any form for structure imposed on the
-data. The internal <A HREF="../../Implementation/SGML.html">SGML
+data. The internal <A HREF="../../src/SGML.html">SGML
 parser</A> parses the data sequence, identifies SGML markup tags, and
 passes the information on the the <A
-HREF="../../Implementation/HTML.html">HTML parser</A>. However, if the
+HREF="../../src/HTML.html">HTML parser</A>. However, if the
 application has its own SGML parser and HTML parser, the internal
 parsers can be disabled by removing the internal HTML converter called
 <CODE>HTMLPresent()</CODE> used to present a graphic object on the
@@ -3021,11 +3021,11 @@ does not understand many of the new features in HTML 2 and 3.
 <DD>The last API can be in case the application prefers to use the
 internal HTML parser and only wants to provide a platform dependent
 definition of the callback functions defined in the <A
-HREF="../../Implementation/HText.html" >HText module</A>.  Now, the
+HREF="../../src/HText.html" >HText module</A>.  Now, the
 parsing is all done internally in the Library and the application is
 only called with segments of fully parsed HTML. The callback functions
 are all defined as prototypes in the <A
-HREF="../../Implementation/HText.html" >HText module</A> but the
+HREF="../../src/HText.html" >HText module</A> but the
 client must provide the actual code that defines the presentation
 method used for a specific HTML tag.
 
@@ -3060,7 +3060,7 @@ parser. The current parser can be overriding as described in section
 <H1>The Library Utilities</H1>
 
 The Library contains a set of basic utility modules which are used throughour all the Library
-code. The APIs defined by the <A HREF="../../Implementation/WWWUtil.html">WWWUtil.h</A> include file
+code. The APIs defined by the <A HREF="../../src/WWWUtil.html">WWWUtil.h</A> include file
 provides basic memory management and container modules. You can see a list of the utility modules in
 the <A HREF="../Guide/Utils.html">Library Internals</A>
 

@@ -24,10 +24,10 @@ or a set of callback functions as indicated in the figure below:
 
 <DD>This interface provides the most basic API consisting of the
 output from a stream without any form for structure imposed on the
-data. The internal <A HREF="../../Implementation/SGML.html">SGML
+data. The internal <A HREF="../../src/SGML.html">SGML
 parser</A> parses the data sequence, identifies SGML markup tags, and
 passes the information on the the <A
-HREF="../../Implementation/HTML.html">HTML parser</A>. However, if the
+HREF="../../src/HTML.html">HTML parser</A>. However, if the
 application has its own SGML parser and HTML parser, the internal
 parsers can be disabled by removing the internal HTML converter called
 <CODE>HTMLPresent()</CODE> used to present a graphic object on the
@@ -46,11 +46,11 @@ does not understand many of the new features in HTML 2 and 3.
 <DD>The last API can be in case the application prefers to use the
 internal HTML parser and only wants to provide a platform dependent
 definition of the callback functions defined in the <A
-HREF="../../Implementation/HText.html" >HText module</A>.  Now, the
+HREF="../../src/HText.html" >HText module</A>.  Now, the
 parsing is all done internally in the Library and the application is
 only called with segments of fully parsed HTML. The callback functions
 are all defined as prototypes in the <A
-HREF="../../Implementation/HText.html" >HText module</A> but the
+HREF="../../src/HText.html" >HText module</A> but the
 client must provide the actual code that defines the presentation
 method used for a specific HTML tag.
 

@@ -13,13 +13,13 @@
 
 We have now almost finised the description of the W3C Reference Core - we only need the last module
 which we will describe in this section. The module is called <A
-HREF="../../Implementation/HTAlert.htm">HTAlert</A> and it contains the functionality for prompting
+HREF="../../src/HTAlert.htm">HTAlert</A> and it contains the functionality for prompting
 the user for feedback or for reporting messages from the Library. As mentioned many times in this
 guide, the Library has been designed to be as portable as possible. This means that the actual
 implementation of this module is very simple and does only use ANSI C I/O functions. However, the
 can be overridden by more complex applications, for example using a GUI window manager. <P>
 
-The <A HREF="../../Implementation/HTAlert.html">Alert module</A> is a part of the core as the rest
+The <A HREF="../../src/HTAlert.html">Alert module</A> is a part of the core as the rest
 of the core files depend on it. Hence the definition of the module must be provided either by the
 internal or an external definition. A C Library module can be overriding by redefining all external
 references (normally declared in the include file) by new definitions in an application module. By
@@ -34,7 +34,7 @@ functions visible to other modules. As an example, the following module:</P>
 	char GlobalFlag;
 	int GlobalFunction(void)
 	{
-		/* Library Implementation */
+		/* Library src */
 	}
 </PRE>
 
@@ -53,7 +53,7 @@ can get a new definition module</P>
 	char GlobalFlag;
 	int GlobalFunction(void)
 	{
-		/* Application Implementation */
+		/* Application src */
 	}
 </PRE>
 

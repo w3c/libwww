@@ -25,7 +25,7 @@ The Library does provide a large amount of such pre- and post processing modules
 amount used by an application depends on the purpose of the application. Simple script-like
 applications typically do not need any history mechanism etc. Therefore these modules are not a part
 of the core but instead they can be registered as all other preferences. The <A
-HREF="../../Implementation/HTNet.html">Net Manager</A> provides functionality for registering a set
+HREF="../../src/HTNet.html">Net Manager</A> provides functionality for registering a set
 of callback functions that can be called <EM>before</EM> and <EM>after</EM> a request has been
 executed. Of course, the result of a pre-processing might be that the request does not have to be
 executed at all in which case the request can be terminated before the protocol module is called to
@@ -33,7 +33,7 @@ execute the request. <P>
 
 <H2>Generic Handling of Callbacks</H2>
 
-The registration of callback functions is handled by the <A HREF="../../Implementation/HTNet.html">
+The registration of callback functions is handled by the <A HREF="../../src/HTNet.html">
 HTNet Manager</A> and it is (of course) based on lists as we have seen so many times before. A
 callback function can be added to a list by using the following function:
 
@@ -107,7 +107,7 @@ of modules are:
 
 An application can be setup by using a rule file, also known as a configuration file. This is for
 example the case with the W3C httpd and the W3C Line Mode Browser. The <A
-HREF="../../Implementation/HTRules.html">Rules module</A> provides basic support for configuration
+HREF="../../src/HTRules.html">Rules module</A> provides basic support for configuration
 file management and the application can use this is desired. The module is not referred to by the
 Library. Reading a rule file is implemented as a stream converter so that a rule file can come from
 anywhere, even across the network!
@@ -120,7 +120,7 @@ carry client requests through a firewall where they can provide services like co
 other network optimizations. Both Proxy servers and gateways can serve as "protocol translators"
 which can convert a request in the main Web protocol, HTTP, to an equivalent request in another
 protocol, for example NNTP, FTP, or Gopher. In a later section we will see how to set up the Proxy
-servers and gateways using the <A HREF="../../Implementation/HTProxy.html">Proxy module</A>. <P>
+servers and gateways using the <A HREF="../../src/HTProxy.html">Proxy module</A>. <P>
 
 As a HTTP request looks different when it is directed to a proxy server than to a origin server, the
 HTTP module needs to know whether it is talking to a proxy for this particular request or not. You
@@ -139,7 +139,7 @@ different types of cache: The memory cache and the file cache. The two types dif
 which reflects their two main purposes: The memory cache is for short term storage of graphic
 objects whereas the file cache is for intermediate term storage of data objects. Often it is
 desirable to have both a memory and a file version of a cached document, so the two types do not
-exclude each other. The <A HREF="../../Implementation/HTCache.html">HTCache module</A> provides a
+exclude each other. The <A HREF="../../src/HTCache.html">HTCache module</A> provides a
 basic cache that can be used by an application.
 
 <H3>Register a list of BEFORE Callbacks</H3>
@@ -166,20 +166,20 @@ extern BOOL HTNetCall_addbefore	(HTNetCallback *cbf, int status);
 When a request is terminated, the application often has to do some action as a result of the request
 (and of the result of the request). The Application part of the Library provides two following
 modules to handle <EM>logging</EM> and <EM>history management</EM>. You can register a <EM>POST
-request handler</EM> in the <A HREF="../../Implementation/HTNet.html">Net Manager</A> as described
+request handler</EM> in the <A HREF="../../src/HTNet.html">Net Manager</A> as described
 in the <A HREF="./">User's Guide</A>. The set of modules provided by the Library is:<P>
 
 <H3>Logging</H3>
 
 Often it is required to log the requests issued to the Library. This can either be the case if the
 application is a server or it can also be useful in a client application. The <A
-HREF="../../Implementation/HTLog.html">HTLog Module</A> provides a simple logging mechanism which
+HREF="../../src/HTLog.html">HTLog Module</A> provides a simple logging mechanism which
 can be enabled if needed.
 
 <H3>History Management</H3>
 
 Another type of logging is keeping track of which documents a user has visited when browsing along
-on the Web. The <A HREF="../../Implementation/HTHist.html">HTHistory module</A> provides a basic set
+on the Web. The <A HREF="../../src/HTHist.html">HTHistory module</A> provides a basic set
 of functionality to keep track of multiple linear history lists.
 
 <H3>Register a list of AFTER Callbacks</H3>

@@ -1,21 +1,152 @@
-#	Makefile for W3C Reference Library DLLs
-#	---------------------------------------
-#
-#	(c) COPYRIGHT MIT 1995.
-#	Please first read the full copyright statement in the file COPYRIGH.
-#
-#______________________________________________________________________
-#
-#  If this env var is set to something else Some makes will use that instead
+# Generated automatically from Makefile.in by configure.
+# Makefile.in generated automatically by automake 0.30 from Makefile.am
+
+# Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
+# This Makefile.in is free software; the Free Software Foundation
+# gives unlimited permission to copy, distribute and modify it.
+
+
 SHELL = /bin/sh
 
-MDEF= ./makedefs.pl @
+srcdir = .
+top_srcdir = ../../..
+prefix = /usr/local
+exec_prefix = ${prefix}
 
-all : def list
+bindir = ${exec_prefix}/bin
+sbindir = ${exec_prefix}/sbin
+libexecdir = ${exec_prefix}/libexec
+datadir = ${prefix}/share
+sysconfdir = ${prefix}/etc
+sharedstatedir = ${prefix}/com
+localstatedir = ${prefix}/var
+libdir = ${exec_prefix}/lib
+infodir = ${prefix}/info
+mandir = ${prefix}/man
+includedir = ${prefix}/include
+oldincludedir = /usr/include
+
+pkgdatadir = $(datadir)/w3c-libwww
+pkglibdir = $(libdir)/w3c-libwww
+pkgincludedir = $(includedir)/w3c-libwww
+
+top_builddir = ../../..
+
+INSTALL = /usr/local/bin/ginstall -c
+INSTALL_PROGRAM = ${INSTALL}
+INSTALL_DATA = ${INSTALL} -m 644
+INSTALL_SCRIPT = ${INSTALL} -m 755
+transform = s,x,x,
+
+SUFFIXES = .files .def .txt
+
+DIST_OTHER = \
+	$(DEF) \
+	$(MAK) \
+	$(PL)
+CONFIG_HEADER = ../../../config.h
+DIST_COMMON = README Makefile.am Makefile.in README
 
 
-def :
-	for i in *.files; do $(MDEF) < $$i > `basename $$i files`def; done
+PACKAGE = w3c-libwww
+VERSION = 4.1
 
-list :
-	ls -1 ../*.c | sed -e s=\.\./==1 | $(MDEF) > wwwlist.txt 
+DISTFILES = $(DIST_COMMON) $(SOURCES) $(BUILT_SOURCES) $(HEADERS) \
+	$(TEXINFOS) $(INFOS) $(MANS) $(DIST_OTHER) $(DATA)
+DEP_DISTFILES = $(DIST_COMMON) $(SOURCES) $(BUILT_SOURCES) $(HEADERS) \
+	$(TEXINFOS) $(INFO_DEPS) $(MANS) $(DIST_OTHER) $(DATA)
+default: all
+
+
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in
+	cd $(top_srcdir) && automake $(subdir)/Makefile
+
+Makefile: $(top_builddir)/config.status Makefile.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= ./config.status
+tags: TAGS
+TAGS:
+
+
+subdir = Library/src/windows
+distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
+dist: $(DEP_DISTFILES)
+	@for file in `cd $(srcdir) && echo $(DISTFILES)`; do \
+	  test -f $(distdir)/$$file \
+	  || ln $(srcdir)/$$file $(distdir)/$$file 2> /dev/null \
+	  || cp -p $(srcdir)/$$file $(distdir)/$$file; \
+	done
+info:
+
+dvi:
+
+check: all
+
+installcheck:
+
+install-exec: 
+
+install-data: 
+
+install: install-exec install-data
+	@:
+
+uninstall: 
+
+all: Makefile
+
+installdirs:
+
+
+mostlyclean-generic:
+	test -z "$(MOSTLYCLEANFILES)" || rm -f $(MOSTLYCLEANFILES)
+
+clean-generic:
+	test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
+
+distclean-generic:
+	rm -f Makefile $(DISTCLEANFILES)
+	rm -f config.cache config.log $(CONFIG_HEADER) stamp-h
+
+maintainer-clean-generic:
+	test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
+	test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
+mostlyclean:  mostlyclean-generic
+
+clean:  clean-generic mostlyclean 
+
+distclean:  distclean-generic clean 
+	rm -f config.status
+
+maintainer-clean:  maintainer-clean-generic distclean 
+	@echo "This command is intended for maintainers to use;"
+	@echo "it deletes files that may require special tools to rebuild."
+
+.PHONY: default tags dist info dvi check installcheck install-exec \
+    install-data install uninstall all installdirs mostlyclean-generic \
+    distclean-generic clean-generic maintainer-clean-generic clean \
+    mostlyclean distclean maintainer-clean
+
+
+DEF := $(wildcard *.def)
+MAK := $(wildcard *.mak)
+PL  := $(wildcard *.pl)
+
+def:
+	for i in *.files; do ./makedefs.pl @ < $$i > `basename $$i files`def; done
+
+list:
+	ls -1 ../*.c | sed -e s=\.\./==1 | ./makedefs.pl @ > wwwlist.txt 
+
+.files.def:
+	./makedefs.pl @ < $(srcdir)/$(*F).files > $(srcdir)/$(*F).def
+
+wwwlist.txt:
+	ls -1 ../*.c | sed -e s=\.\./==1 | ./makedefs.pl @ > wwwlist.txt
+
+windows: def list
+.SUFFIXES:
+.SUFFIXES: $(SUFFIXES)
+
+# Tell versions [3.59,3.63) of GNU make to not export all variables.
+# Otherwise a system limit (for SysV at least) may be exceeded.
+.NOEXPORT:

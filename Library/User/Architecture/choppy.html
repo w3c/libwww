@@ -342,12 +342,12 @@ Threads</A>".
 
 <DL>
 
-<DT><A HREF="../../Implementation/HTReq.html">Request Object</A>
+<DT><A HREF="../../src/HTReq.html">Request Object</A>
 <DD>The access manager is the main entry point for requesting a data object pointed to by a URI. It
 has a set of methods that allows the application to request different services, for example to get a
 URI, post a URI, or to search a URI.
 
-<DT><A HREF="../../Implementation/HTProt.html">Protocol Object</A>
+<DT><A HREF="../../src/HTProt.html">Protocol Object</A>
 
 <DD>The protocol manager is invoked by the access manager in order to
 access a document not found in memory or in cache. The manager
@@ -361,7 +361,7 @@ file-system) and extract information using a specific access
 method. When data arrives from the network, it is passed on to the
 format manager.
 
-<DT><A HREF="../../Implementation/HTFormat.html">Format Manager</A>
+<DT><A HREF="../../src/HTFormat.html">Format Manager</A>
 
 <DD>The stream format manager takes care of the transportation of
 streams of data from the network to the application and vice versa. It
@@ -371,7 +371,7 @@ selecting the best conversion. As the protocol modules, data format
 converters can be registered dynamically, and the current set of
 streams includes among others: MIME, SGML, HTML, and LaTeX.
 
-<DT><A HREF="../../Implementation/HTError.html">Error Object</A>
+<DT><A HREF="../../src/HTError.html">Error Object</A>
 
 <DD>This module manages an information stack which contains
 information of all errors occurred during the communication with a
@@ -382,12 +382,12 @@ according to its impact on the current request, for example "Fatal",
 "Non-Fatal", "Warning" etc. The filtering can be used to decide which
 level of messages will be passed back to the user.
 
-<DT><A HREF="../../Implementation/HTNet.html">Net Object</A>
+<DT><A HREF="../../src/HTNet.html">Net Object</A>
 
 <DD>The net manager provides an interface for handling asynchronous
 sockets which is an integral part of the Library.
 
-<DT><A HREF="../../Implementation/HTEvntrg.html">Event Manager</A>
+<DT><A HREF="../../src/HTEvntrg.html">Event Manager</A>
 
 <DD>The event manager is a "session layer" handling which thread
 should be the active thread. A thread can either be an internal libwww
@@ -435,7 +435,7 @@ Flow</A>", but it also introduces the core objects associated.
 
 <DL>
 
-<DT><IMG ALIGN=BOTTOM SRC="R.gif" ALT="R"> <A NAME="request" HREF="../../Implementation/HTReq.html">HTRequest</A>
+<DT><IMG ALIGN=BOTTOM SRC="R.gif" ALT="R"> <A NAME="request" HREF="../../src/HTReq.html">HTRequest</A>
 
 <DD>The <EM>HTRequest</EM> object contains information necessary to handle a request issued by the
 application. It contains information about the method to be used (for example "GET" and "PUT"), user
@@ -446,7 +446,7 @@ application, but the Library is capable of creating them on its own under certai
 example is when the Library creates a "Post Web" as explained in section "<A
 HREF="PostWeb.html">Building a POST Web, an API for PUT and POST</A>".
 
-<DT><IMG ALIGN=BOTTOM SRC="A.gif" ALT="A"> <A NAME="anchor" HREF="../../Implementation/HTAnchor.html#anchor">HTAnchor</A> 
+<DT><IMG ALIGN=BOTTOM SRC="A.gif" ALT="A"> <A NAME="anchor" HREF="../../src/HTAnchor.html#anchor">HTAnchor</A> 
 
 <DD><EM>HTAnchor</EM> objects represent any document which may be the source or destination of
 hypertext links. The HTAnchor object contains all information about the object, whether it has been
@@ -456,7 +456,7 @@ information about whole data objects and the latter contains about subparts of a
 HTAnchor object is a generic superclass of both parent anchors and child anchors. Section "<A
 HREF="Anchors.html">Anchor Objects</A>" describes anchors and their relations in more detail.
 
-<DT><IMG ALIGN=BOTTOM SRC="N.gif" ALT="N"> <A NAME="net" HREF="../../Implementation/HTNet.html">HTNet</A>
+<DT><IMG ALIGN=BOTTOM SRC="N.gif" ALT="N"> <A NAME="net" HREF="../../src/HTNet.html">HTNet</A>
 
 <DD>The <EM>HTNet</EM> is a network object which contains all information required to read and write
 from the network. It contains the current socket descriptor (or ANSI C file descriptor) used for
@@ -467,16 +467,16 @@ to optimize access on multi homed hosts. The HTNet object is also a key element 
 model where it is used to identify a "thread". The libwww thread model is explained in "<A
 HREF="Threads.html">Description of libwww Threads</A>".
 
-<DT><IMG ALIGN=BOTTOM SRC="E.gif" ALT="E"> <A NAME="error" HREF="../../Implementation/HTError.html">HTError</A>
+<DT><IMG ALIGN=BOTTOM SRC="E.gif" ALT="E"> <A NAME="error" HREF="../../src/HTError.html">HTError</A>
 
 <DD>The <EM>HTError</EM> object contains information about errors occured along the way when a
 request is handled by the Library. Errors can be nested and the object is independent of the natural
 langue used to pass information to the User. The definition of the messages may be handled by the
 application - or it can ignore it all together.
 
-<DT><IMG ALIGN=BOTTOM SRC="S.gif" ALT="S"> <A NAME="stream" HREF="../../Implementation/HTStream.html">HTStream</A> 
+<DT><IMG ALIGN=BOTTOM SRC="S.gif" ALT="S"> <A NAME="stream" HREF="../../src/HTStream.html">HTStream</A> 
 
-<DD>The <A HREF="../../Implementation/HTStream.html">stream</A> object accepts sequences of
+<DD>The <A HREF="../../src/HTStream.html">stream</A> object accepts sequences of
 characters. It is a destination of data which can be thought of much like an output stream in C++ or
 an ANSI C-file stream for writing data to a disk or another peripheral device. The broad definition
 makes streams very flexible and they are used as the main method to transport data from the
@@ -500,7 +500,7 @@ that the application has been in touch with including metainformation etc.
 
 <LI>The application can make a binding between the request object and the desired destination for
 the data when it arrives, typically from the network. The request object is by default bound to a <A
-HREF="../../Implementation/HTML.html">presentation stream</A> which presents a hypertext object to
+HREF="../../src/HTML.html">presentation stream</A> which presents a hypertext object to
 the user on the screen, but it can also be written to a file, represented as source text etc.
 
 <LI>If the file cache is enabled a cache object is created and linked to the anchor object by the
@@ -603,7 +603,7 @@ parent anchor.
 </DL>
 
 Both types of anchors are subclasses of a <A
-HREF="../../Implementation/HTAnchor.html#Generic">generic anchor
+HREF="../../src/HTAnchor.html#Generic">generic anchor
 class</A> which defines a set of outgoing links to where the anchor
 points. Every parent anchor points to an address which may or may not
 exist. In the case of posting an anchor to a remote server, the
@@ -830,7 +830,7 @@ HREF="../Using/Error.html">User's Guide</A>
 
 <H1>Data Transportation using Streams</H1>
 
-A <A HREF="../../Implementation/HTStream.html">stream</A> is an object
+A <A HREF="../../src/HTStream.html">stream</A> is an object
 which accepts sequences of characters. It is a destination of data
 which can be thought of much like an output stream in C++ or an ANSI
 C-file stream for writing data to a disk or another peripheral
@@ -1062,7 +1062,7 @@ requirement.
 <DT><B>Active Mode (Internal Event Loop)</B>
 
 <DD>In this mode the event loop is placed in the Library in the <A
-HREF="../../Implementation/HTEvntrg.html" >HTEvntrg module</A>. The mode
+HREF="../../src/HTEvntrg.html" >HTEvntrg module</A>. The mode
 can either be used by character based applications with a limited
 capability of user interaction, or it can be used by more advanced GUI
 clients where the window widget allows redirection of user events to
@@ -1071,7 +1071,7 @@ should be noted, that even though all sockets are non-blocking, the
 select() function is blocking if no sockets are pending so if no
 actions are pending, the select call will be put to sleep. <P>
 
-The <A HREF="../../Implementation/HTNet.html">HTNet module</A>
+The <A HREF="../../src/HTNet.html">HTNet module</A>
 contains a thread scheduler which gives highest priority to the events
 on the redirected user events which allows a smooth operation on GUI
 applications with a fast response time. This mode has a major impact
@@ -1087,7 +1087,7 @@ be redirected to a socket or there is already an event loop that can
 not work together with the event loop in the Library. The major
 difference from the <B>Active mode</B> is that instead of using the
 event loop defined in the <A
-HREF="../../Implementation/HTEvntrg.html">HTEvntrg module</A>, this
+HREF="../../src/HTEvntrg.html">HTEvntrg module</A>, this
 module is overridden by the application as described in the <A
 HREF="../Using/">"User's Guide"</A>. The <B>Passive mode</B> has the
 same impact on the application architecture as the <B>Active mode</B>
@@ -1325,7 +1325,7 @@ abstract, an actual application must transform the information into a
 specific representation supported by the Library. To the application,
 the Post Web is a request for change in the topology of the Web. The
 application can describe this change using <A
-HREF="../../Implementation/HTAnchor.html#anchor">anchor objects</A>
+HREF="../../src/HTAnchor.html#anchor">anchor objects</A>
 which is the Library's representation of the Web where each node
 represents a data object or a subpart of a data object that the
 application has been in contact with while browsing on the Web. <P>
@@ -1384,7 +1384,7 @@ independently of the static binding, and often this happens multiple
 times during the handling of a request. <P>
 
 As described in the section "<A HREF="DataStructures.html#request">Core Objects </A>", the <A
-HREF="../../Implementation/HTReqMan.html">HTRequest</A> object is one of the core objects used to
+HREF="../../src/HTReqMan.html">HTRequest</A> object is one of the core objects used to
 describe a request from the application. This object is used in the static binding between the
 source and the destinations and it is initialized as soon as the request is passed to the Library
 from the application.
@@ -1622,7 +1622,7 @@ object is only declared in the Library - the real definition is
 left to the application as it is for the application to handle graphic
 objects. For example, the Line Mode Browser has its own definition of
 the <CODE>HyperDoc</CODE> object called <A
-HREF="../../../LineMode/Implementation/GridText.html"
+HREF="../../../LineMode/src/GridText.html"
 ><CODE>HText</CODE></A> which describes a fully parsed HTML object
 with enough information to display itself to the user. However, the
 memory cache handler can handle other objects than HTML, for example
@@ -1634,7 +1634,7 @@ which can be based on available memory etc. Again, the <A
 HREF="../../../LineMode/">Line Mode Browser</A> has a very simple
 memory management of how long objects stay around in memory. It is
 determined by a constant in the <A
-HREF="../../../LineMode/Implementation/GridText.c" >GridText</A>
+HREF="../../../LineMode/src/GridText.c" >GridText</A>
 module and is by default set to 5 documents. This approach can be much
 more advanced and the memory garbage collection can be determined by
 the size of the graphic objects, when they expire etc. but the API is
@@ -1714,7 +1714,7 @@ application.
 A part of the libwww thread model is to keep track of the current
 state in the communication interface to the network. As an example,
 this section describes the current implementation of the <A
-HREF="../../Implementation/HTTP.html">HTTP module</A> and how it has
+HREF="../../src/HTTP.html">HTTP module</A> and how it has
 been implemented as a state machine. The HTTP module is based on the
 HTTP 1.0 specification but is backwards compatible with the 0.9
 version. The major difference between the implementation before
@@ -1799,7 +1799,7 @@ redirection code returned from the server:
 
 <DD>The load procedure is recursively called on a 301 redirection
 code. The new URI is parsed back to the user as information via the <A
-HREF="../../../Library/Implementation/HTError.html">Error and
+HREF="../../../Library/src/HTError.html">Error and
 Information module</A>, and a new request generated. The new request
 can be of any <A HREF="../../../Addressing/URL/4_1_Schemes.html">
 access scheme</A> accepted in a URI. An upper limit of redirections
@@ -1839,7 +1839,7 @@ application.
 <DD>If at any point in the request handling a fatal error occurs the
 request is aborted and the connection closed. All information about
 the error is parsed back to the application via the <A
-HREF="../../../Library/Implementation/HTError.html">Error and
+HREF="../../../Library/src/HTError.html">Error and
 Information Module</A>. As the HTTP protocol is stateless, all errors
 are fatal between the server and the server. If the erroneous request
 is to be repeated, the request starts in the <A

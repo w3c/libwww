@@ -1,14 +1,12 @@
 ## Process this file with Automake to create Makefile.in.
 
-VMS = $(srcdir)/vms
-WIN = $(srcdir)/windows
-FTP = /afs/w3.org/devel/Dist/$(PROD)
-
 bin_PROGRAMS = www
 
-www_LDADD = ../../Library/src/libwww.a -lm
+www_LDADD = ../../Library/src/libwww.a ../../PICS/src/libpics.a -lm
 
-INCLUDES = -I$(srcdir)/../../Library/src
+SUBDIRS = windows vms
+
+INCLUDES = -I$(srcdir)/../../Library/src -I$(srcdir)/../../PICS/src
 
 #	.h files are distributed but originally are made from the
 #	self-documenting hypertext files.
@@ -33,16 +31,6 @@ noinst_HEADERS = \
 # need the WAIS library and the cyrrilic support!
 
 DIST_OTHER = \
-	$(WIN)/*.rc \
-	$(WIN)/*.ico \
-	$(WIN)/*.mak \
-	$(WIN)/*.def \
-	$(WIN)/*.c \
-	$(WIN)/*.h \
-	$(WIN)/*.txt \
-	$(VMS)/descrip.mms \
- 	$(VMS)/build_multinet.com \
-	$(VMS)/setup.com \
 	DefaultStyles.c.classic \
 	DefaultStyles.c.modern \
  	a_stdio.g \

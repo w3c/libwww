@@ -38,19 +38,10 @@ INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
 
-DOC = User
-EXP = Examples
-
-EXAMPLES =
-
-DOCS =	*.html \
-	`find $(DOC) -follow \( -name \*.html -o -name \*.gif \) -print` \
-	$(DOC)/Patch/*.fix
-
 DIST_OTHER = \
 	$(DOCS)
 
-SUBDIRS = src
+SUBDIRS = src User
 CONFIG_HEADER = ../config.h
 DIST_COMMON = README Makefile.am Makefile.in README
 
@@ -199,6 +190,8 @@ maintainer-clean:  maintainer-clean-am maintainer-clean-recursive
     maintainer-clean-generic clean mostlyclean distclean \
     maintainer-clean
 
+
+DOCS :=	$(wildcard *.html *.gif)
 
 #	Some extra make directives
 inc-recursive:

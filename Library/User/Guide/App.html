@@ -20,7 +20,7 @@ overwritten by GUI clients etc.
 
 <H2>Displaying and Prompting User Messages</H2>
 
-The <A HREF="../../Implementation/HTAlert.html">HTAlert module</A>
+The <A HREF="../../src/HTAlert.html">HTAlert module</A>
 contains the code for prompting the user for file names, userid,
 password etc. Furthermore, it presents messages containing status
 information, error messages etc. to the user. The implementation in
@@ -29,7 +29,7 @@ stderr) but can easily be overwritten by GUI browsers.
 
 <H2>History Manager</H2>
 
-The <A HREF="../../Implementation/HTHist.html">HTHist module</A>
+The <A HREF="../../src/HTHist.html">HTHist module</A>
 records and replays on request the documents which the user
 visits. There are no calls to this module within the Library so if the
 application does not use it then it is not linked in at all. If the
@@ -39,17 +39,17 @@ be overwritten.
 <H2>Internal Event loop</H2>
 
 The internal event loop in the <A
-HREF="../../Implementation/HTEvntrg.html">HTEvtrg module</A> is made to
+HREF="../../src/HTEvntrg.html">HTEvtrg module</A> is made to
 support <A HREF="../Architecture/Threads.html">libwww threads</A> If
 an application wants its own event loop, then this module must be
 overwritten.
 
 <H2>Default Initializations</H2>
 
-The <A HREF="../../Implementation/HTInit.html">HTInit module</A>
+The <A HREF="../../src/HTInit.html">HTInit module</A>
 defines a standard set of initializations where all protocol modules
 and converters are setup at startup time of the application in the <A
-HREF="../../Implementation/HTAccess.html#Library">HTLibInit()</A>. Often
+HREF="../../src/HTAccess.html#Library">HTLibInit()</A>. Often
 you can take this module and just override it with your own
 preferences.
 

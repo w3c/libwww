@@ -51,7 +51,7 @@ the power of the W3C Reference Library:
 
 <A NAME="pref"><H2>Define preferences and application capabilities</H2></A>
 
-The <A HREF="../Implementation/HTInit.html">HTInit module</A> is a special module in that it defines
+The <A HREF="../src/HTInit.html">HTInit module</A> is a special module in that it defines
 the capabilities of the Library. Think of libwww as a core that can do absolutely nothing on its
 own. All the functionality comes from modules that are registered dynamically at runtime. This is
 why it is so important to use the initialization function mentioned above. The library basically
@@ -64,14 +64,14 @@ documents, MIME documents and various conversions between these data formats. Fu
 the possibility of defining <EM>presenters</EM> that use external viewers to present for example
 images, audio files etc. <P>
 
-By default, the <A HREF="../Implementation/HTInit.html">HTInit module</A> contains functions to
+By default, the <A HREF="../src/HTInit.html">HTInit module</A> contains functions to
 enable all the functionality that the library provides, but you might want to change this, for
 example if you have a special image viewer that you would like to use. The way to do this is either
 to modify the HTInit module or to override HTInit with your own version. It's described in more
 detail in the <A HREF="./">User's Guide</A> what it means to override a Library module. <P>
 
 Both converters and presenters are stored in a linked list (the <A
-HREF="../Implementation/HTList.html">HTList object</A>). This list can either be bound to a global
+HREF="../src/HTList.html">HTList object</A>). This list can either be bound to a global
 list of converters and presenters that are used in <EM>all</EM> requests or you can bind the lists
 locally to a single request object in which case it is only used in this particular case.
 
@@ -120,7 +120,7 @@ local file system which in most cases do not keep information about the data for
 The library solves this by looking into a table of bindings between a file suffix and the
 corresponding data format. By default the Library defines a long list of the "most common file
 suffixes" but the list is of course configurable! If you look into the <A
-HREF="../Implementation/HTInit.html">HTInit module</A> again, you will find a function called:
+HREF="../src/HTInit.html">HTInit module</A> again, you will find a function called:
 
 <PRE>
 extern void HTFileInit (void);
@@ -145,7 +145,7 @@ you want to do yourself. The three interfaces are illustrated below:
 
 <DT>SGML Stream Interface
 
-<DD>Use this interface if you do not want to use the <A HREF="../Implementation/SGML.html">SGML
+<DD>Use this interface if you do not want to use the <A HREF="../src/SGML.html">SGML
 parser</A> in the Library and the following transition to a structured stream which is a subclass of
 the stream class. This can all be set up with out overwriting any module but simply by defining the
 converters not to use the SGML/HTML parsers.
@@ -155,7 +155,7 @@ converters not to use the SGML/HTML parsers.
 <DD>If the client has its own HTML parser then the interface is between the client HTML parser and
 the Library SGML parser. The SGML parser is a general SGML parser which can be setup with a specific
 DTD and it feeds the HTML parser with structured data. In this case, you will be emulating the <A
-HREF="../Implementation/HTML.c">HTML module</A>, and generating a hypertext object from the
+HREF="../src/HTML.c">HTML module</A>, and generating a hypertext object from the
 structured stream.
 
 <DT>HText Call Back Interface
@@ -163,7 +163,7 @@ structured stream.
 <DD>If the client wants to use the HTML parser in the Library then this is the interface to use for
 the application. The hypertext object is parsed and the communication with the client is based on a
 set of call-back functions in the HTML parser. The call-back functions are all defined as prototypes
-in the <A HREF="../Implementation/HText.html">HText module</A> but the client must provide the
+in the <A HREF="../src/HText.html">HText module</A> but the client must provide the
 actual code that defines the presentation method used for a specific HTML tag. If you wish to
 maintain the structure of the SGML file within your object, then the SGML interface will be a better
 place to connect your code.
@@ -171,7 +171,7 @@ place to connect your code.
 </DL>
 
 You are free to define the structure of the hypertext object (the declaration can be found in the <A
-HREF="../Implementation/HText.html">HText module</A>. You may want to define your own styles and
+HREF="../src/HText.html">HText module</A>. You may want to define your own styles and
 font definitions. <P>
 
 <A NAME="mem"><H2>Register a memory cache handler</H2></A>
@@ -185,7 +185,7 @@ storing data objects in memory.<P>
 
 If the application wants a memory cache (which has an important performance impact) it must register
 a memory cache handler that can make a decision whether a data object is in memory or not and if it
-is stale or not. Every URL has an associated <A HREF="../Implementation/HTAnchor.html">HTAnchor
+is stale or not. Every URL has an associated <A HREF="../src/HTAnchor.html">HTAnchor
 object</A> that stores all known information about that URL, for example the title, length of the
 data object (if any) etc. The Library calls the memory handler on every request but before making a
 decision about a data object, the memory cache manager can consult the requested anchor object to
@@ -198,7 +198,7 @@ extern BOOL HTMemoryCache_unRegister	(void);
 </PRE>
 
 The handler can use two return codes which both are defined in the <A
-HREF="../Implementation/HTUtils.html">HTUtils modules</A>.
+HREF="../src/HTUtils.html">HTUtils modules</A>.
 
 <DL>
 <DT><CODE>HT_LOADED</CODE>
@@ -208,15 +208,15 @@ HREF="../Implementation/HTUtils.html">HTUtils modules</A>.
 </DL>
 	
 An example of a memory handler can be found in the <A HREF="../../LineMode/"> Line Mode Browser</A>
-in the <A HREF="../../LineMode/Implementation/GridText.c">GridText module</A>. You can also see
+in the <A HREF="../../LineMode/src/GridText.c">GridText module</A>. You can also see
 where it is registered as <EM>the</EM> memory handler in the Library in the <A
-HREF="../../LineMode/Implementation/HTBrowse.c">HTBrowse.c module</A>
+HREF="../../LineMode/src/HTBrowse.c">HTBrowse.c module</A>
 
 <A NAME="eh"><H2>Register event handlers for user input</H2></A>
 
 The Library has a very flexible event model that allows an application to either use it's own event
 loop that the library can makes calls to or to use the event loop in the <A
-HREF="../Implementation/HTEvntrg.html">HTEvntrg module</A> in the library. In most cases the library
+HREF="../src/HTEvntrg.html">HTEvntrg module</A> in the library. In most cases the library
 event loop is sufficient which is the case for example on Mac, Window, and Unix platforms. <P>
 
 The application can register as many event handlers for as many channels that it can get input
@@ -244,7 +244,7 @@ extern int HTEvent_Register	(SOCKET sockfd, HTRequest * request, SockOps ops,
 extern int HTEvent_UnRegister	(SOCKET sockfd, SockOps ops);
 </PRE>
 
-See the <A HREF="../Implementation/HTEvntrg.html">HTEvntrg module</A> for more information on the
+See the <A HREF="../src/HTEvntrg.html">HTEvntrg module</A> for more information on the
 arguments. Likewise if you are on for example a Windows NT platform then use the following
 functions:
 
@@ -321,7 +321,7 @@ extern int HTMIME_unRegister	(void);
 <A NAME="to"><H2>Register a Select Timeout Function</H2></A>
 
 You can register a call back function together with a timeout that is used in the select call of the
-<A HREF="../Implementation/HTEvntrg.html">event loop</A>. When the select() call times out, the call
+<A HREF="../src/HTEvntrg.html">event loop</A>. When the select() call times out, the call
 back function is called. The registration can either be so that the call back <EM>always</EM> is
 called when that the select call times out <EM>or</EM> only when Library sockets are in use.
 
@@ -333,10 +333,10 @@ extern BOOL HTEvent_registerTimeout (struct timeval *tp, HTRequest * request, HT
 
 <A NAME="req"><H2>Issue Requests to the Library</H2></A>
 
-The <A HREF="../Implementation/HTAccess.html">Access module</A> has a set of functions that works as
-a user interface to the <A HREF="../Implementation/HTReqMan.html">request manager</A>. You can call
+The <A HREF="../src/HTAccess.html">Access module</A> has a set of functions that works as
+a user interface to the <A HREF="../src/HTReqMan.html">request manager</A>. You can call
 the request manager directly but often it is simpler to use the <A
-HREF="../Implementation/HTAccess.html">Access module</A>. As mentioned, the request manager returns
+HREF="../src/HTAccess.html">Access module</A>. As mentioned, the request manager returns
 immediately and the result of the request is handled back to the application using the termination
 handlers. <P>
 
@@ -349,7 +349,7 @@ FTP. All location strings passed to the Library are also treated as URLs which m
 arguments <EM>must</EM> be escaped if the resource is to be found.<P>
 
 Most often this is only a problem when people type in location strings directly, for example using
-"goto location" etc. In the <A HREF="../Implementation/HTEscape.html">Escape module</A> the Library
+"goto location" etc. In the <A HREF="../src/HTEscape.html">Escape module</A> the Library
 provides two functions for escaping location strings into URLs and unescaping URLs into location
 strings:
 
@@ -368,7 +368,7 @@ extern char * HTUnEscape (char * str);
 
 Multiple simultaneous requests can be started at any time from within an event handler. It is simply
 a question of calling one of the load functions in the <A
-HREF="../Implementation/HTAccess.html">Access module</A>. The Library keeps a request queue where
+HREF="../src/HTAccess.html">Access module</A>. The Library keeps a request queue where
 all active requests are kept. The application can define the maximum number of open sockets that can
 be open at any one time. This number is by default 6 but can be changed using the following
 functions:
@@ -387,7 +387,7 @@ When multiple requests can be initiated simultaneously it is in general not poss
 order that the results return to the application. This is a function of the size of the individual
 data objects, net work speed etc. In order to keep track of ordering of the requests, for example in
 the history list, it is necessary to put them into some kind of context. The Library provides the
-hooks for maintaining a context together with the <A HREF="../Implementation/HTReqMan.html">Request
+hooks for maintaining a context together with the <A HREF="../src/HTReqMan.html">Request
 object</A> by the following methods:
 
 <PRE>
@@ -422,14 +422,14 @@ extern BOOL HTNet_killAll	(void);
 <A NAME="log"><H2>Logging and History Management</H2></A>
 
 The library has a set of modules that are not called from within the library at all but can be used
-by the application. Two examples are a <A HREF="../Implementation/HTHist.html">History manager</A>
-and a <A HREF="../Implementation/HTLog.html">Log manager</A> that provides functionality for keeping
+by the application. Two examples are a <A HREF="../src/HTHist.html">History manager</A>
+and a <A HREF="../src/HTLog.html">Log manager</A> that provides functionality for keeping
 a history list of visited objects and to provide logging of the results. The application is free to
 use there modules but does not have to.
 
 <A NAME="user"><H2>User Messages</H2></A>
 
-The library has a basic <A HREF="../Implementation/HTAlert.html">User Messages and Prompts</A>
+The library has a basic <A HREF="../src/HTAlert.html">User Messages and Prompts</A>
 module which is intended for the Line Mode Browser. In case you are building a GUI client you would
 probably want to write your own version using windows etc. This can be done by overriding the module
 in the Library with your own that has the same set of functions as described in the <A
@@ -440,13 +440,13 @@ HREF="./">User's Guide</A>.
 This is a short set of recommendation on when to free objects in memory.
 
 <DL>
-<DT><A HREF="../Implementation/HTAnchor.html">Anchors</A>
+<DT><A HREF="../src/HTAnchor.html">Anchors</A>
 
 <DD>Anchors are normally not freed before the application terminates as they have important
 information about the part of the Web that the user has been in tough with. However, anchors
 <EM>can</EM> be freed at any time if they are not used by an ongoing request
 
-<DT><A HREF="../Implementation/HTReq.html">Requests</A>
+<DT><A HREF="../src/HTReq.html">Requests</A>
 
 <DD>Request objects are only intended to live as long as a request is being executed. A request
 object is a "information binder" that binds various data objects together as long as the request is
@@ -454,7 +454,7 @@ running. As the Library uses asynchronous network I/O many requests can be handl
 each request object only knows about one request. Therefore a request object can be free whenever a
 it has terminated which is the case when the request termination handler is called.
 
-<DT><A HREF="../Implementation/HTStream.html">Streams</A>
+<DT><A HREF="../src/HTStream.html">Streams</A>
 
 <DD>Streams are used as the main media for data transportation in the Library. Therefore they are
 normally hooked together in what is called stream chains where data can carry the data from the user
@@ -462,7 +462,7 @@ to the network and vice verse. As any operation on a stream ripples through the 
 streams you should not free any streams on your own. The free method is initiated in the Library,
 for example when all data has been transferred from a remote server and the connection closed.
 
-<DT><A HREF="../Implementation/HTCache.html">Memory Cache Objects</A>
+<DT><A HREF="../src/HTCache.html">Memory Cache Objects</A>
 
 <DD>As mentioned in the section on memory cache handlers the application can handle all data objects
 in memory as it likes. Therefore the app is also free to delete any object at any time but of course

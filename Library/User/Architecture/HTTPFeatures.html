@@ -15,7 +15,7 @@
 A part of the libwww thread model is to keep track of the current
 state in the communication interface to the network. As an example,
 this section describes the current implementation of the <A
-HREF="../../Implementation/HTTP.html">HTTP module</A> and how it has
+HREF="../../src/HTTP.html">HTTP module</A> and how it has
 been implemented as a state machine. The HTTP module is based on the
 HTTP 1.0 specification but is backwards compatible with the 0.9
 version. The major difference between the implementation before
@@ -100,7 +100,7 @@ redirection code returned from the server:
 
 <DD>The load procedure is recursively called on a 301 redirection
 code. The new URI is parsed back to the user as information via the <A
-HREF="../../../Library/Implementation/HTError.html">Error and
+HREF="../../../Library/src/HTError.html">Error and
 Information module</A>, and a new request generated. The new request
 can be of any <A HREF="../../../Addressing/URL/4_1_Schemes.html">
 access scheme</A> accepted in a URI. An upper limit of redirections
@@ -140,7 +140,7 @@ application.
 <DD>If at any point in the request handling a fatal error occurs the
 request is aborted and the connection closed. All information about
 the error is parsed back to the application via the <A
-HREF="../../../Library/Implementation/HTError.html">Error and
+HREF="../../../Library/src/HTError.html">Error and
 Information Module</A>. As the HTTP protocol is stateless, all errors
 are fatal between the server and the server. If the erroneous request
 is to be repeated, the request starts in the <A

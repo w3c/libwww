@@ -37,7 +37,7 @@ requirement.
 <DT><B>Active Mode (Internal Event Loop)</B>
 
 <DD>In this mode the event loop is placed in the Library in the <A
-HREF="../../Implementation/HTEvntrg.html" >HTEvntrg module</A>. The mode
+HREF="../../src/HTEvntrg.html" >HTEvntrg module</A>. The mode
 can either be used by character based applications with a limited
 capability of user interaction, or it can be used by more advanced GUI
 clients where the window widget allows redirection of user events to
@@ -46,7 +46,7 @@ should be noted, that even though all sockets are non-blocking, the
 select() function is blocking if no sockets are pending so if no
 actions are pending, the select call will be put to sleep. <P>
 
-The <A HREF="../../Implementation/HTNet.html">HTNet module</A>
+The <A HREF="../../src/HTNet.html">HTNet module</A>
 contains a thread scheduler which gives highest priority to the events
 on the redirected user events which allows a smooth operation on GUI
 applications with a fast response time. This mode has a major impact
@@ -62,7 +62,7 @@ be redirected to a socket or there is already an event loop that can
 not work together with the event loop in the Library. The major
 difference from the <B>Active mode</B> is that instead of using the
 event loop defined in the <A
-HREF="../../Implementation/HTEvntrg.html">HTEvntrg module</A>, this
+HREF="../../src/HTEvntrg.html">HTEvntrg module</A>, this
 module is overridden by the application as described in the <A
 HREF="../Using/">"User's Guide"</A>. The <B>Passive mode</B> has the
 same impact on the application architecture as the <B>Active mode</B>

@@ -13,13 +13,13 @@
 <H1>Rule File Syntax</H1>
 
 This section described the syntax of a rule file as supported by the <A
-HREF="../../Implementation/HTRules.html">Rule File manager</A> in the Library. Please read the
+HREF="../../src/HTRules.html">Rule File manager</A> in the Library. Please read the
 section on <A HREF="Rules.html">Rule Files</A> for a full description of the rule file API.
 
 <H2>File Suffix Bindings</H2>
 
 The W3C Reference Library can use suffixes to discover the content-type, content-encoding and
-content-language of a file. The Library contains a <A HREF="../../Implementation/HTBInit.html">long
+content-language of a file. The Library contains a <A HREF="../../src/HTBInit.html">long
 list of commonly used file suffix types</A> but the application doesn't have to use this. In any
 case, the following configuration directives can be used to add new suffix bindings and override
 existing defaults:
@@ -34,7 +34,7 @@ existing defaults:
 
 As well as any mapping lines in the rule file, the rule file may be used to define the data types of
 files with particular suffixes. The Library has an extensive set of <A
-HREF="../../Implementation/HTBInit.c">predefined suffixes</A>, but applications do not need to use
+HREF="../../src/HTBInit.c">predefined suffixes</A>, but applications do not need to use
 this. The syntax is:
 
 <PRE>
@@ -48,7 +48,7 @@ The parameters are as follows:
 <DD>The last part of the filename.  There are two special cases.  <CODE>*.*</CODE> matches to all
 files which have not been matched by any explicit suffixes but do contain a file suffix delimiter. A
 file suffix delimiter is often a dot &lt;.&gt; but it can be defined as an arbitrary character,
-please see the <A HREF="../../Implementation/HTBind.html">Suffix Binding Module</A> for
+please see the <A HREF="../../src/HTBind.html">Suffix Binding Module</A> for
 details. <CODE>*</CODE> by itself matches to any file which does not match any other suffix. <P>
 
 <DT><I>representation</I>
@@ -64,7 +64,7 @@ maybe extension to compression. <P>
 <DT><I>quality</I>
 <DD>Optional. A floating point number between 0.0 and 1.0 which determines the relative merits of
 files <CODE>xxx.*</CODE> which differ in their suffix only, when a link to <CODE>xxx.multi</CODE> is being
-resolved.  Defaults to 1.0. <P>
+resolved.  User to 1.0. <P>
 
 </DL> 
 

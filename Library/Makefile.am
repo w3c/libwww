@@ -1,19 +1,11 @@
 ## Process this file with Automake to create Makefile.in.
 
-DOC = User
-EXP = Examples
-
-EXAMPLES =
-
-DOCS =	*.html \
-	`find $(DOC) -follow \( -name \*.html -o -name \*.gif \) -print` \
-	$(DOC)/Patch/*.fix
+DOCS :=	$(wildcard *.html *.gif)
 
 DIST_OTHER = \
-	$(DOCS) \
-	$(EXAMPLES)
+	$(DOCS)
 
-SUBDIRS = src
+SUBDIRS = src User
 
 #	Some extra make directives
 inc-recursive:

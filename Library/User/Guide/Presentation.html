@@ -44,10 +44,10 @@ to handle on its own:
 between the client HTML parser and the Library SGML parser. The SGML
 parser is a general SGML parser which can be setup with a specific DTD
 and it feeds the HTML parser with structured data. In this case, you
-will be emulating the <A HREF="../../Implementation/HTML.c">HTML
+will be emulating the <A HREF="../../src/HTML.c">HTML
 module</A>, and generating a hypertext object from the structured
 stream. The actual structured stream definition is in the <A
-HREF="../../Implementation/SGML.html">SGML module</A>.
+HREF="../../src/SGML.html">SGML module</A>.
 
 <DT>HTML Level
 
@@ -56,7 +56,7 @@ this is the second interface to the Library. The hypertext object is
 parsed and the communication with the client is based on a set of
 call-back functions in the HTML parser. The call-back functions are
 all defined as prototypes in the <A
-HREF="../../Implementation/HText.html">HText module</A> but the client
+HREF="../../src/HText.html">HText module</A> but the client
 must provide the actual code that defines the presentation method used
 for a specific HTML tag. If you wish to maintain the structure of the
 SGML file within your object, then the SGML interface will be a better
@@ -65,7 +65,7 @@ place to connect your code.
 </DL>
 
 You are free to define the structure of the hypertext object declared
-in the <A HREF="../../Implementation/HText.html">HText module</A>. You
+in the <A HREF="../../src/HText.html">HText module</A>. You
 may want to define your own styles and font definitions. <P>
 
 </DL>

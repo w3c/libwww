@@ -33,13 +33,13 @@ NT is fully supported!
 <LI>Changed "rs6000" to "AIX" and "decstation" to "ultrix" in
 BUILD script. The previous names were not obvious
 
-<LI>Have created <A HREF="../../Implementation/HTProt.html">HTProt
+<LI>Have created <A HREF="../../src/HTProt.html">HTProt
 module</A> which handles protocol module registration. It used to be
-in <A HREF="../../Implementation/HTAccess.html">HTAccess module</A>, but
+in <A HREF="../../src/HTAccess.html">HTAccess module</A>, but
 this module is now uniquely for user requests
 
 <LI>Changed the names of the following functions in the <A
-HREF="../../Implementation/HTProt.html">HTProt module</A>
+HREF="../../src/HTProt.html">HTProt module</A>
 
 <PRE>
 	HTRegisterProtocol	-> HTProtocol_add
@@ -69,7 +69,7 @@ HTEvntrg.c and HTEvntrg.html.
 	readdir_r
 </PRE>
 
-<EM>except</EM> in <A HREF="../../Implementation/HTFTP.html">HTFTP
+<EM>except</EM> in <A HREF="../../src/HTFTP.html">HTFTP
 module</A> as it will be changed later. Some of the function cause
 problems on Solaris...
 
@@ -119,9 +119,9 @@ the HTRequest object
 <LI>HTRequest_killPostWeb()
 </UL>
 
-<LI><A HREF="../../Implementation/HTFile.html">HTFile module</A> is
+<LI><A HREF="../../src/HTFile.html">HTFile module</A> is
 completely rewritten as a state machine much like the <A
-HREF="../../Implementation/HTTP.html">HTTP module</A>. It is now
+HREF="../../src/HTTP.html">HTTP module</A>. It is now
 possible to have non-blocking, interruptible I/O and to PUT and POTS
 from a local file as well as from a remote HTTP server.
 
@@ -130,17 +130,17 @@ from a local file as well as from a remote HTTP server.
 <LI>The thread model is extended to include a HTThread_kill() function
 so that threads are terminated immediately upon request
 
-<LI><A HREF="../../Implementation/HTProxy.html">HTProxy module</A> is
+<LI><A HREF="../../src/HTProxy.html">HTProxy module</A> is
 introduced. This module substitutes the environment variables for
 defining gateways and proxies. It can now be done dynamically at run
 time. For backwards compatibility HTProxy_getEnvVar() can be used to
 read the most used environment variables.
 
 <LI>Taken socket read/write functionality out of HTFormat and created
-<A HREF="../../Implementation/HTSocket.html">HTSocket module</A> which
+<A HREF="../../src/HTSocket.html">HTSocket module</A> which
 handles all the basic network access
 
-<LI>Spawned <A HREF="../../Implementation/HTMethod.html">HTMethod
+<LI>Spawned <A HREF="../../src/HTMethod.html">HTMethod
 module</A> from HTAccess module
 
 <LI>Better handling of WAIS src files and use of gateway information
@@ -202,7 +202,7 @@ to Charlie Brooks, &lt;cbrooks@osf.org&gt;
 <LI>A lot easier handling of headers in the HTTP module including
 support for extra headers
 
-<LI>Improved <A HREF="../../Implementation/HTMIME.html">HTTP/MIME
+<LI>Improved <A HREF="../../src/HTMIME.html">HTTP/MIME
 parser</A> which recognizes 99% of the HTTP headers The rest will be
 ready in the next release! This includes support for "charset" and
 "level" parameter
@@ -220,10 +220,10 @@ of methods. The garbage collector is not the best
 hash function for improved speed and more functionality than before
 
 <LI>Created HTDateTimeStr() and HTMessageID() in <A
-HREF="../../Implementation/HTString.html">HTString</A>
+HREF="../../src/HTString.html">HTString</A>
 
 <LI>Separated HTStructured into its own stream definition module (<A
-HREF="../../Implementation/HTStruct.html">HTStruct.h</A>)
+HREF="../../src/HTStruct.html">HTStruct.h</A>)
 
 <LI>Introduced STREAM_TRACE and BIND_TRACE as new debug flag
 
@@ -281,7 +281,7 @@ as WinSock doesn't define them using BSD notation
 
 <LI>All library include files which contains public information for
 applications are now contained in the single include file <A
-HREF="../../Implementation/WWWLib.html">WWWLib.h</A> which is the only
+HREF="../../src/WWWLib.html">WWWLib.h</A> which is the only
 one necessary <B>PLEASE DON'T USE ANYTHING ELSE!!!</B>
 
 <LI>Changed TRACE messages so that the target is the macro TDEST and
@@ -292,16 +292,16 @@ TRACE messages can be redirected to a local file.
 have changed names so that the max length is 8 characters:
 
 <UL>
-<LI>s?HTFWriter?<A HREF="../../Implementation/HTFWrite.html">HTFWrite</A>?g
-<LI>s?HTHistory?<A HREF="../../Implementation/HTHist.html">HTHist.h</A>?g
-<LI>s?HTEPtoClient?<A HREF="../../Implementation/HTEPtoCl.html">HTEPtoCl</A>?g
-<LI>s?HTDescript?<A HREF="../../Implementation/HTDescpt.html">HTDescpt</A>?g
-<LI>s?HTExtParse?<A HREF="../../Implementation/HTXParse.html">HTXParse</A>?g
+<LI>s?HTFWriter?<A HREF="../../src/HTFWrite.html">HTFWrite</A>?g
+<LI>s?HTHistory?<A HREF="../../src/HTHist.html">HTHist.h</A>?g
+<LI>s?HTEPtoClient?<A HREF="../../src/HTEPtoCl.html">HTEPtoCl</A>?g
+<LI>s?HTDescript?<A HREF="../../src/HTDescpt.html">HTDescpt</A>?g
+<LI>s?HTExtParse?<A HREF="../../src/HTXParse.html">HTXParse</A>?g
 <LI>s?HTErrorMsg?HTErrMsg?g
 </UL>
 
 <LI>Move EnableFrom to <A
-HREF="../../Implementation/HTAccess.html">HTAccess module</A>. This
+HREF="../../src/HTAccess.html">HTAccess module</A>. This
 variable determines whether the HTTP header <EM>From: </EM> should be
 generated. The default value is <EM>off</EM>
 
@@ -318,17 +318,17 @@ and client error codes (4xx) will be put down this stream so that it
 can be put into a debug window.
 
 <LI>HTNewsHost is now a local variable in the <A
-HREF="../../Implementation/HTNews.html">HTNews module</A>. Use
+HREF="../../src/HTNews.html">HTNews module</A>. Use
 HTGetNewsHost and HTSetNewsHost to set and get the current value. The
 news module will be rewritten in the near future as it has many
 problems.
 
-<LI>The <A HREF="../../Implementation/HTTP.html">HTTP</A> module
+<LI>The <A HREF="../../src/HTTP.html">HTTP</A> module
 understands all HTTP/1.0 return codes and is more solid
 
 <LI>Many portability problems has been solved and optimized. Most
 system dependent things are now put into <A
-HREF="../../Implementation/sysdep.html">tcp module</A>
+HREF="../../src/sysdep.html">tcp module</A>
 
 <LI>Interface to CSO name server made nicer - generates correct HTML
 
@@ -622,14 +622,14 @@ The WAIS client has been improved and some bugs have been fixed:
 
 <H4>HTTP Client</H4>
 
-<A HREF="../../Implementation/HTTP.html">HTTP</A> module contains the code
+<A HREF="../../src/HTTP.html">HTTP</A> module contains the code
 for the HTTP client. The module is now reorganized and made more modular.
 
 <DL> 
 <DT> Automatic Redirection
 <DD> Now supported by the HTTP Module. The name of the new URL is parsed
      to the client via the error_stack as a ERR_INFO message, see
-     <A HREF="../../Implementation/HTError.html">HTError</A> module. The maximum
+     <A HREF="../../src/HTError.html">HTError</A> module. The maximum
      number of redirections is set by the variable HTMaxRedirections.
 <DT> Referer Field in HTTP request
 <DD> Clients are provided the possibility of
@@ -645,7 +645,7 @@ for the HTTP client. The module is now reorganized and made more modular.
 
 <H4>FTP Client</H4>
 
-<A HREF="../../Implementation/HTFTP.html">HTFTP</A> module contains the code for
+<A HREF="../../src/HTFTP.html">HTFTP</A> module contains the code for
 the FTP client. The FTP client has changed a lot in this release. It is now a
 complete state machine where the actual action executed is a function of the
 current state.
@@ -694,7 +694,7 @@ current state.
 
 <H4>Gopher Client</H4>
 
-The <A HREF="../../Implementation/HTGopher.html">Gopher</A> has been revised and 
+The <A HREF="../../src/HTGopher.html">Gopher</A> has been revised and 
 improved error handling has been implemented.
 
 <DL>
@@ -755,7 +755,7 @@ the functionality, e.g, sorting, which columns to show etc. is exploited, see <A
 <H4>Icon Management</H4>
 
 Icons in directory listings are bound to MIME content-types and encoding. They
-can be found in the <A HREF="../../Implementation/HTIcons.html">HTIcons</A> 
+can be found in the <A HREF="../../src/HTIcons.html">HTIcons</A> 
 module. The default set of icons is set up using HTStdIconInit() and new 
 icons can be added dynamicly using HTAddIcon().
 
@@ -766,8 +766,8 @@ thing is to peek the title of the HTML files.
 
 <H4>Error and Information Message Management</H4>
 
-A new error handling module is introduced in <A HREF="../../Implementation/HTError.html"></A>HTError. It uses the error_stack entry in the
-<A HREF="../../Implementation/HTReq.html">HTRequest object</A>. It
+A new error handling module is introduced in <A HREF="../../src/HTError.html"></A>HTError. It uses the error_stack entry in the
+<A HREF="../../src/HTReq.html">HTRequest object</A>. It
 handles nested error messages so that we can give a reason for the error, e.g.
 <PRE>
     Error in ...
@@ -813,7 +813,7 @@ the highest probability from a statistical analysis.
 <DD> Added new parameter to HTLoad: BOOL keep_error_stack. If YES then the 
      error_stack is not cleared. This is used in redirection etc.
 <DT> HTLoadError()
-<DD> Because of the new <A HREF="../../Implementation/HTError.html">HTError</A>
+<DD> Because of the new <A HREF="../../src/HTError.html">HTError</A>
      module, this function in HTML.c is not needed anymore.
 </DL>
 
@@ -847,7 +847,7 @@ This is a list of fixed bugs from earlier versions.
      non-forking servers (VMS).
 <LI> Definition of HT_NO_DATA moved to HTUtils.html where the other
      return codes are placed.
-<LI> Functions from <A HREF="../../Implementation/HTAlert.html">HTAlert Module</A> that prompt the user don't get 
+<LI> Functions from <A HREF="../../src/HTAlert.html">HTAlert Module</A> that prompt the user don't get 
      confused about <EM>ctrl-D</EM> anymore.
 </UL>
 
@@ -874,7 +874,7 @@ Distribution for VMS</A>
 <LI>Lou Montulli's Lynx and LIST NEWSGROUP diffs put in to HTNews.c
 
 <LI>Complete <A NAME="z8"
-HREF="../../Implementation/HTMLPDTD.html">HTML+ DTD</A> in parser as
+HREF="../../src/HTMLPDTD.html">HTML+ DTD</A> in parser as
 per Dave Raggett's internet draft 00. All 78 elements in the spec plus
 COMMENT, H7, HTML, XMP, LISTING and PLAINTEXT for back-compatibility.
 
@@ -882,15 +882,15 @@ COMMENT, H7, HTML, XMP, LISTING and PLAINTEXT for back-compatibility.
 according to global flag HTTakeBackup, defaults to YES.
 
 <LI>Changed interface to <A NAME="z13"
-HREF="../../Implementation/HText.html">HText</A> -- added<A NAME="z12"
-HREF="../../Implementation/HText.html#z0"> HText_new3</A> creation
+HREF="../../src/HText.html">HText</A> -- added<A NAME="z12"
+HREF="../../src/HText.html#z0"> HText_new3</A> creation
 method.  All clients using this interface should ensure that the
 structured stream used during creation is reopen()ed if it is still
 needed to hold dcoument structure after the original load has been
 done. In this case it should later be freed.
 
 <LI>CHANGED INTERFACE to <A
-HREF="../../Implementation/HTAccess.html">HTAccess</A>: Now an
+HREF="../../src/HTAccess.html">HTAccess</A>: Now an
 HTRequest environment is passed to almost all calls.  Allows better
 reentrant use of library for image embedding, etc.  Implies (minor)
 changes to all clients.

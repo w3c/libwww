@@ -38,11 +38,9 @@ INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
 
-VMS = $(srcdir)/vms
-WIN = $(srcdir)/windows
-FTP = /afs/w3.org/devel/Dist/$(PROD)
-
 lib_LIBRARIES = www
+
+SUBDIRS = windows vms
 
 #	.h files are distributed but originally are made from the
 #	self-documenting hypertext files.
@@ -119,24 +117,7 @@ EXTRA_HEADERS = \
 	HTWAIS.h
 
 DIST_OTHER = \
-	$(WIN)/Makefile \
-	$(WIN)/*.bat \
-	$(WIN)/*.pl \
-	$(WIN)/*.mak \
-	$(WIN)/*.def \
-	$(WIN)/*.c \
-	$(WIN)/*.h \
-	$(WIN)/*.txt \
-	$(VMS)/descrip.mms  $(VMS)/COPYING.LIB \
- 	$(VMS)/build_multinet.com $(VMS)/build_multinet.com_alpha \
-	$(VMS)/multinet.opt $(VMS)/multinet.opt_alpha \
-	$(VMS)/build_ucx.com $(VMS)/build_ucx.com_alpha \
-	$(VMS)/ucx.opt $(VMS)/ucx.opt_alpha \
-	$(VMS)/patchlevel.h $(VMS)/ufc-crypt.h \
-	$(VMS)/crypt.c $(VMS)/crypt_util.c \
-	$(VMS)/getline.c $(VMS)/getpass.c \
-	$(VMS)/HTVMSUtils.h $(VMS)/HTVMSUtils.c \
-	$(VMS)/dirent.h $(VMS)/dirent.c $(VMS)/sys_dirent.h
+	$(DOCS)
 CONFIG_HEADER = ../../config.h
 LIBRARIES = $(lib_LIBRARIES)
 
@@ -253,13 +234,40 @@ uninstall-includeHEADERS:
 	  rm -f $(includedir)/$$p;		\
 	done
 
-ID: $(HEADERS) $(SOURCES)
-	here=`pwd` && cd $(srcdir) && mkid -f $$here/ID $(SOURCES) $(HEADERS)
+# This directory's subdirectories are mostly independent; you can cd
+# into them and run `make' without going through this Makefile.
+# To change the values of `make' variables: instead of editing Makefiles,
+# (1) if the variable is set in `config.status', edit `config.status'
+#     (which will cause the Makefiles to be regenerated when you run `make');
+# (2) otherwise, pass the desired values on the `make' command line.
+
+@SET_MAKE@
+
+all-recursive install-data-recursive install-exec-recursive \
+installdirs-recursive install-recursive uninstall-recursive \
+check-recursive installcheck-recursive info-recursive dvi-recursive \
+mostlyclean-recursive clean-recursive distclean-recursive \
+maintainer-clean-recursive:
+	for subdir in $(SUBDIRS); do		\
+	  target=`echo $@ | sed s/-recursive//`; \
+	  echo making $$target in $$subdir;	\
+	  (cd $$subdir && $(MAKE) $$target)	\
+	   || case "$(MFLAGS)" in *k*) fail=yes;; *) exit 1;; esac; \
+	done && test -z "$$fail"
 
 tags: TAGS
 
 TAGS:
-	here=`pwd` && cd $(srcdir) && etags $(ETAGS_ARGS) $(SOURCES) $(HEADERS) -o $$here/TAGS
+	tags=;					\
+	here=`pwd`;				\
+	for subdir in $(SUBDIRS); do		\
+	  (cd $$subdir && $(MAKE) TAGS);	\
+	  test -f $$subdir/TAGS && {		\
+	    tags="$$tags -i $$here/$$subdir/TAGS"; \
+	  }					\
+	done;					\
+	test -z "$(ETAGS_ARGS)$(CONFIG_HEADER)$(SOURCES)$(HEADERS)$$tags" \
+	  || etags $(ETAGS_ARGS) $$tags $(CONFIG_HEADER) $(SOURCES) $(HEADERS)
 
 mostlyclean-tags:
 
@@ -277,6 +285,13 @@ dist: $(DEP_DISTFILES)
 	  test -f $(distdir)/$$file \
 	  || ln $(srcdir)/$$file $(distdir)/$$file 2> /dev/null \
 	  || cp -p $(srcdir)/$$file $(distdir)/$$file; \
+	done
+	for subdir in $(SUBDIRS); do		\
+	  test -d $(distdir)/$$subdir		\
+	  || mkdir $(distdir)/$$subdir		\
+	  || exit 1;				\
+	  chmod 777 $(distdir)/$$subdir;	\
+	  (cd $$subdir && $(MAKE) dist) || exit 1; \
 	done
 HTAABrow.o: HTAABrow.c WWWLib.h \
   WWWUtil.h sysdep.h \
@@ -1136,26 +1151,34 @@ SGML.o: SGML.c sysdep.h \
   SGML.h HTStream.h \
   HTList.h HTStruct.h
 
-info:
+info: info-recursive
 
-dvi:
+dvi: dvi-recursive
 
-check: all
+check: all check-recursive
 
-installcheck:
+installcheck: installcheck-recursive
 
-install-exec: install-libLIBRARIES
+all-am: $(LIBFILES) $(HEADERS) Makefile all-local
 
-install-data: install-includeHEADERS
+install-exec-am: install-libLIBRARIES
 
-install: install-exec install-data
+install-data-am: install-includeHEADERS
+
+uninstall-am: uninstall-libLIBRARIES uninstall-includeHEADERS
+
+install-exec: install-exec-recursive install-exec-am
+
+install-data: install-data-recursive install-data-am
+
+install: install-recursive install-exec-am install-data-am
 	@:
 
-uninstall: uninstall-libLIBRARIES uninstall-includeHEADERS
+uninstall: uninstall-recursive uninstall-am
 
-all: $(LIBFILES) $(HEADERS) Makefile all-local
+all: all-recursive all-am
 
-installdirs:
+installdirs: installdirs-recursive
 	$(top_srcdir)/mkinstalldirs  $(libdir) $(includedir)
 
 
@@ -1172,19 +1195,27 @@ distclean-generic:
 maintainer-clean-generic:
 	test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
 	test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
-mostlyclean:  mostlyclean-libLIBRARIES mostlyclean-compile \
+mostlyclean-am:  mostlyclean-libLIBRARIES mostlyclean-compile \
 		mostlyclean-tags mostlyclean-generic
 
-clean:  clean-libLIBRARIES clean-compile clean-tags clean-generic \
-		mostlyclean 
+clean-am:  clean-libLIBRARIES clean-compile clean-tags clean-generic \
+		mostlyclean-am 
 
-distclean:  distclean-libLIBRARIES distclean-compile distclean-tags \
-		distclean-generic clean 
+distclean-am:  distclean-libLIBRARIES distclean-compile distclean-tags \
+		distclean-generic clean-am 
+
+maintainer-clean-am:  maintainer-clean-libLIBRARIES \
+		maintainer-clean-compile maintainer-clean-tags \
+		maintainer-clean-generic distclean-am 
+
+mostlyclean:  mostlyclean-am mostlyclean-recursive
+
+clean:  clean-am clean-recursive
+
+distclean:  distclean-am distclean-recursive
 	rm -f config.status
 
-maintainer-clean:  maintainer-clean-libLIBRARIES \
-		maintainer-clean-compile maintainer-clean-tags \
-		maintainer-clean-generic distclean 
+maintainer-clean:  maintainer-clean-am maintainer-clean-recursive
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
 
@@ -1192,12 +1223,18 @@ maintainer-clean:  maintainer-clean-libLIBRARIES \
     clean-libLIBRARIES maintainer-clean-libLIBRARIES \
     uninstall-libLIBRARIES install-libLIBRARIES mostlyclean-compile \
     distclean-compile clean-compile maintainer-clean-compile \
-    uninstall-includeHEADERS install-includeHEADERS tags \
-    mostlyclean-tags distclean-tags clean-tags maintainer-clean-tags \
-    dist info dvi check installcheck install-exec install-data install \
-    uninstall all installdirs mostlyclean-generic distclean-generic \
-    clean-generic maintainer-clean-generic clean mostlyclean distclean \
-    maintainer-clean
+    uninstall-includeHEADERS install-includeHEADERS \
+    install-data-recursive uninstall-data-recursive \
+    install-exec-recursive uninstall-exec-recursive \
+    installdirs-recursive uninstalldirs-recursive all-recursive \
+    check-recursive installcheck-recursive info-recursive dvi-recursive \
+    mostlyclean-recursive distclean-recursive clean-recursive \
+    maintainer-clean-recursive tags mostlyclean-tags distclean-tags \
+    clean-tags maintainer-clean-tags dist info dvi check installcheck \
+    all-am install-exec-am install-data-am uninstall-am install-exec \
+    install-data install uninstall all installdirs mostlyclean-generic \
+    distclean-generic clean-generic maintainer-clean-generic clean \
+    mostlyclean distclean maintainer-clean
 
 .html.h:
 	www -w90 -na -p -to text/x-c $(srcdir)/$(*F).html > $(srcdir)/$(*F).h
@@ -1207,6 +1244,8 @@ inc : $(HEADERS)
 	@echo Include files generated from hypertext.
 
 all-local : inc
+
+DOCS :=	$(wildcard *.html)
 .SUFFIXES:
 .SUFFIXES: .c .o $(SUFFIXES)
 

@@ -24,32 +24,32 @@ within the modules whereas user data is for the caller to free. The
 modules consist of:<P>
 
 <DL>
-<DT><A NAME="z59" HREF="../../Implementation/HTBTree.html">Binary Trees</A>
+<DT><A NAME="z59" HREF="../../src/HTBTree.html">Binary Trees</A>
 <DD>This is a complete balanced binary tree that might be used for storage
 and sort of a large number of data objects, e.g. filenames in directory
 listings etc.
 
-<DT><A NAME="z50" HREF="../../Implementation/HTChunk.html">Dynamic Strings</A>
+<DT><A NAME="z50" HREF="../../src/HTChunk.html">Dynamic Strings</A>
 <DD>A Chunk is a block wise expandable array of type (char *) and is a sort of
 apology for real strings in C. Chunks make it easier to handle dynamic strings
 of unknown size. It is often faster than using the String Copy Routines</A>.
 
-<DT><A NAME="z77" HREF="../../Implementation/HTList.html">Linked Lists</A>
+<DT><A NAME="z77" HREF="../../src/HTList.html">Linked Lists</A>
 <DD>This module provides the functionality for managing a generic list of data
 objects. The module is implemented as a single linked list using the scheme
 <EM>first in - last out (FILO)</EM>.
 
-<DT><A HREF="../../Implementation/HTAssoc.html">Association Lists</A>
+<DT><A HREF="../../src/HTAssoc.html">Association Lists</A>
 <DD>This is a small module build on top of HTList that provides a way to
 store <EM>Name-Value</EM> pairs in an easy way.
 
-<DT><A HREF="../../Implementation/HTString.html">Strings</A>
+<DT><A HREF="../../src/HTString.html">Strings</A>
 
 <DD>Routines for dynamic arrays of characters include string copy,
 case insensitive comparison etc. It also contains functions for
 generating <B>date and time stamps</B>, <B>MessageID</B> etc.
 
-<DT><A HREF="../../Implementation/HTAtom.html">Atoms</A>
+<DT><A HREF="../../src/HTAtom.html">Atoms</A>
 <DD>Atoms are strings which are given representative pointer values so that
 they can be stored more efficiently, and comparisons for equality done more
 efficiently. The pointer values are in fact entries into a hash table.
@@ -64,14 +64,14 @@ already defined here! The list of basic utility modules are currently
 as follows
 
 <DL>
-<DT><A HREF="../../Implementation/sysdep.html">System specifics</A>
-<DD>The <A HREF="../../Implementation/sysdep.html">sysdep.h</A> file
+<DT><A HREF="../../src/sysdep.html">System specifics</A>
+<DD>The <A HREF="../../src/sysdep.html">sysdep.h</A> file
 includes system-specific include files and flags for I/O to network
 and disk. The only reason for this file is that the Internet world is
 more complicated than Posix and ANSI.
 
-<DT><A HREF="../../Implementation/HTUtils.html">Platform Independent macros</A>
-<DD>The <A HREF="../../Implementation/HTUtils.html">HTUtil.h</A>
+<DT><A HREF="../../src/HTUtils.html">Platform Independent macros</A>
+<DD>The <A HREF="../../src/HTUtils.html">HTUtil.h</A>
 include file contains things we need everywhere, generally macros for
 declarations, booleans, etc.
 

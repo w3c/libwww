@@ -52,7 +52,7 @@ object is only declared in the Library - the real definition is
 left to the application as it is for the application to handle graphic
 objects. For example, the Line Mode Browser has its own definition of
 the <CODE>HyperDoc</CODE> object called <A
-HREF="../../../LineMode/Implementation/GridText.html"
+HREF="../../../LineMode/src/GridText.html"
 ><CODE>HText</CODE></A> which describes a fully parsed HTML object
 with enough information to display itself to the user. However, the
 memory cache handler can handle other objects than HTML, for example
@@ -64,7 +64,7 @@ which can be based on available memory etc. Again, the <A
 HREF="../../../LineMode/">Line Mode Browser</A> has a very simple
 memory management of how long objects stay around in memory. It is
 determined by a constant in the <A
-HREF="../../../LineMode/Implementation/GridText.c" >GridText</A>
+HREF="../../../LineMode/src/GridText.c" >GridText</A>
 module and is by default set to 5 documents. This approach can be much
 more advanced and the memory garbage collection can be determined by
 the size of the graphic objects, when they expire etc. but the API is

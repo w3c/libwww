@@ -19,7 +19,7 @@ independent part and a platform dependent part. The independent stuff
 is all in
 
 <PRE>
-	WWW/&lt;application&gt;/Implementation/CommonMakefile
+	WWW/&lt;application&gt;/src/CommonMakefile
 </PRE>
 
 whereas the platform dependent stuff can be found in 
@@ -69,7 +69,7 @@ see how to do this by looking at the other entries in this file.
 
 If the code doesn't compile then you have to look into the source code
 itself. Often the only module to modify is the <A
-HREF="../../Implementation/sysdep.html">tcp module</A> which includes all
+HREF="../../src/sysdep.html">tcp module</A> which includes all
 system specific details such as system include files etc.
 
 <LI>Mail the Makefile, and any other changes you found were necessary,

@@ -19,7 +19,7 @@ you verify that the version is up to date. On a Unix platform you can do this by
 following command
 
 <PRE>
-	cat Library/Implementation/Version.make
+	cat Library/src/Version.make
 </PRE>
 
 assuming that you are at the top of the WWW tree created when unpacking the distribution file. You
@@ -31,35 +31,35 @@ all have a name starting with <EM>WWW</EM>, and as they will be referenced throu
 might as well introduce them from the beginning:
 
 <DL>
-<DT><A HREF="../../Implementation/WWWUtil.html">WWWUtil.h</A>
+<DT><A HREF="../../src/WWWUtil.html">WWWUtil.h</A>
 <DD>The WWW Utility module contains a lot of the functionality that makes it possible to make
 applications, that is container modules for data objects, basic string functionality etc. This
 module is the basis for all of the following modules and is used extensively.
 
-<DT><A HREF="../../Implementation/WWWCore.html">WWWCore.h</A>
+<DT><A HREF="../../src/WWWCore.html">WWWCore.h</A>
 <DD>The WWW Core module is a set of registration modules that glues an application together. It
 contains no real functionality in itself; it is for example not capable of loading a HTML
 document. It only provides a large set of hooks which can be used to add functionality to the
 Library and to give an application real life. We will here a lot more to the structure of the core,
 and much of this guide is actually describing how to add functionality to the core.
 
-<DT><A HREF="../../Implementation/WWWLib.html">WWWLib.h</A>
+<DT><A HREF="../../src/WWWLib.html">WWWLib.h</A>
 
 <DD>This include is the main include file for the Library. It basically consists of the <A
-HREF="../../Implementation/WWWUtil.html">WWWUtil.h</A> and the <A
-HREF="../../Implementation/WWWCore.html">WWWCore.h</A> so that the application only needs to include
+HREF="../../src/WWWUtil.html">WWWUtil.h</A> and the <A
+HREF="../../src/WWWCore.html">WWWCore.h</A> so that the application only needs to include
 this one instead of two.
 
-<DT><A HREF="../../Implementation/WWWApp.html">WWWApp.h</A>
+<DT><A HREF="../../src/WWWApp.html">WWWApp.h</A>
 <DD>This module contains a huge set of modules that can be hooked into the Core Library and make the
 application work. In contrast to the Core part, you can pick exactly the modules you want from the
-<A HREF="../../Implementation/WWWApp.html">WWWApp.h</A> in order to create your special application
+<A HREF="../../src/WWWApp.html">WWWApp.h</A> in order to create your special application
 whether it is a server, a client, a proxy, a robot or any other Web application.
 
 </DL>
 
 As mentioned, in order to use the core public functions of the Library, your application needs to
-include the file "<A HREF="../../Implementation/WWWLib.html">WWWLib.h</A>". This file is a container
+include the file "<A HREF="../../src/WWWLib.html">WWWLib.h</A>". This file is a container
 for all the Library include files that together define the public API of the core of the Library. As
 described in the document <A HREF="../Architecture/">Library Architecture</A> the core is a frame
 work for other modules that provide the actual functionality, for example for parsing HTML documents
@@ -86,7 +86,7 @@ at compile time, and the dynamic modules are an important part of the Library co
 
 The two arguments to the function are the name of the application and the version number
 respectively. It is not a requirement that these values are unique and they can both be the empty
-string (""). However, as the strings are used in the <A HREF="../../Implementation/HTTP.html/">HTTP
+string (""). However, as the strings are used in the <A HREF="../../src/HTTP.html/">HTTP
 protocol module</A> when communicating with other WWW applications it is strongly recommended that
 the values are chosen carefully according to the <A HREF="../../../Protocols/">HTTP
 specifications</A>. The most important requirement is to use normal ASCII characters without any

@@ -19,17 +19,17 @@ applications issuing requests, for example to access a data object.
 
 <DL>
 
-<DT><A HREF="../../Implementation/WWWLib.html">WWWLib Include</A>
+<DT><A HREF="../../src/WWWLib.html">WWWLib Include</A>
 <DD>This is not really a core module, but an important part as this is
 the only include file you need to use the Library.
 
-<DT><A HREF="../../Implementation/HTAccess.html">Access Manager</A>
+<DT><A HREF="../../src/HTAccess.html">Access Manager</A>
 <DD>The access manager is the main entry point for requesting a data
 object pointed to by a URI. It has a set of methods that allows the
 application to request different services, for example to get a URI,
 post a URI, or to search a URI.
 
-<DT><A HREF="../../Implementation/HTProt.html">Protocol Manager</A>
+<DT><A HREF="../../src/HTProt.html">Protocol Manager</A>
 <DD>The protocol manager is invoked by the access manager in order to
 access a document not found in memory or in file cache. The manager
 consists of a set of protocol modules handling the access schemes
@@ -42,19 +42,19 @@ file-system) and extract information using a specific access
 method. When data arrives from the network, it is passed on to the
 format manager.
 
-<DT><A HREF="../../Implementation/HTFormat.html">Format Manager</A>
+<DT><A HREF="../../src/HTFormat.html">Format Manager</A>
 <DD>The stream format manager takes care of data format conversion
 requested based on a set of registered format converters and a simple
 algorithm for selecting the best conversion.
 
-<DT><A HREF="../../Implementation/HTFWrite.html#z3">Cache Manager</A>
+<DT><A HREF="../../src/HTFWrite.html#z3">Cache Manager</A>
 <DD>The cache manager is used to save data objects once they have been
 down loaded from the network. The cache uses the hierarchy indicated
 in the URLs as a way to identify items in the cache but is still under
 construction and requires a lot of work to be a highly efficient cache
 manager!
 
-<DT><A HREF="../../Implementation/HTError.html">Error Manager</A>
+<DT><A HREF="../../src/HTError.html">Error Manager</A>
 <DD>This module manages an information stack which contains
 information of all errors occurred during the communication with a
 remote server or simply information about the current state. Using a
@@ -64,7 +64,7 @@ according to its impact on the current request, for example "Fatal",
 "Non-Fatal", "Warning" etc. The filtering can be used to decide which
 level of messages will be passed back to the user.
  
-<DT><A HREF="../../Implementation/HTEvntrg.html">Event Manager</A>
+<DT><A HREF="../../src/HTEvntrg.html">Event Manager</A>
 <DD>The event manager is a "session layer" handling which thread
 should be the active thread. A thread can either be an internal libwww
 thread or an external thread, for example a Posix thread, and the

@@ -32,7 +32,7 @@ we have to do in this case is to register the HTTP module to the Library as bein
 handling <B>http</B> URLs. <P>
 
 Let's see how we can register a protocol module. The support for this is provided by the <A
-HREF="../../Implementation/HTProt.html">protocol manager</A> which exports the following function:
+HREF="../../src/HTProt.html">protocol manager</A> which exports the following function:
 
 <PRE>
 extern BOOL HTProtocol_add (const char *       	scheme,
@@ -45,7 +45,7 @@ argument the access scheme which the protocol module is capable of handling. Thi
 <B>http</B>, but it can also be non-existent schemes which can be used for experimental protocol
 implementations, for example <B>whois</B> etc. In case a protocol module is capable of handling more
 than one access scheme, it can be registered multiple time with different schemes. This is the case
-with the <A HREF="../../Implementation/HTTelnet.html">Telnet access module</A> which also can handle
+with the <A HREF="../../src/HTTelnet.html">Telnet access module</A> which also can handle
 <B>rlogin</B> and <B>tn3270</B> terminal sessions. <P>
 
 <A NAME="preemptive"></A>The <CODE>preemptive</CODE> argument describes to the Library whether it is

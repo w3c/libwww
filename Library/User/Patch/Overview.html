@@ -1,124 +1,143 @@
-<HTML>
-<HEAD>
+<HTML><HEAD>
 <TITLE>Known Bugs in W3C Reference Library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  8-Feb-1996 -->
-</HEAD>
-<BODY>
-
-<A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
+<!-- Changed by: Henrik Frystyk Nielsen, 10-Mar-1996 -->
+</HEAD><BODY><P><A HREF="../../../"><IMG ALT="W3C" SRC="../../../Icons/WWW/w3c_48x48.gif"></A>
 <A HREF="../../../Library/"><IMG SRC="../../../Icons/WWW/Lib48x.gif"></A>
 <IMG SRC="../../../Icons/WWW/Bug48x.gif" ALT="BUGS">
 
-<H1>Known Bugs and Patches</H1>
+<H1>Known Bugs and Patches in W3C Distribution</H1>
 
-The list of known bugs are in reverse chronological order. Please report bugs or bug-fixes to <A
-HREF="mailto:libwww@w3.org">libwww@w3.org</A> noting the version of the Library and what caused the
-bug to appear. <P>
+The list of known bugs are in reverse chronological order. Please
+report bugs or bug-fixes to <A
+HREF="mailto:libwww@w3.org">libwww@w3.org</A> noting the version of
+the Library and what caused the bug to appear.  <P>
 
-The provided patches are relative to the <CODE>WWW</CODE> directory in the distribution tree. In
-order to apply a patch, do the following in the <CODE>WWW</CODE> directory:
+The provided patches are relative to the <CODE>WWW</CODE> directory in
+the distribution tree. In order to apply a patch, do the following in
+the <CODE>WWW</CODE> directory:
 
-<OL>
-
-<LI>Download the patch, for example <EM>lib-1.fix</EM>
+<OL><LI>Download the patch, for example <EM>lib-1.fix</EM>
 
 <LI>Invoke the patch command by typing 
 
-<PRE>
+<PRE><P>
 	patch &lt; lib-1.fix
 </PRE>
 
-<LI>Rebuild the code by typing
+<LI>Rebuild the code by following the normal instructions for
+<B>autoconf</B> builds. In many cases you can simply type
 
 <PRE>
-	make clobber
-	./BUILD library
+	make
 </PRE>
-</OL>
 
-You should only apply patches under the section with <B>same</B> version number as your current
-version. You can see the current version of this software by looking into the <A
-HREF="../../Implementation/Version.make">version file</A>.
+from the place where you have run the configure script.
+
+</OL>
 
 <HR>
 
-<H2>Library 4.0D</H2>
+<H2>Version 4.0D</H2>
+
+<H3>Library</H3>
 
 <DL>
 <DT><A HREF="lib_4.0_2.fix">Patch for better logging</A>
 <DD>
 </DL>
 
-<H2>Library 4.0C</H2>
+<H3>Mini Server</H3>
 
 <DL>
-<DT><A HREF="lib_4.0C_1.fix">Patch for PUT and POST</A>
 
-<DD>This patch is rather big but it contains some fixes and modifications that enables PUT and POST
-to work reliably. If you download the 4.0C version of the distribution then the patch has already
-been applied. It is basically the difference between versions 4.0B and 4.0C. The main set of differences are:
+<DT>Event Loop and Timeouts
+<DD>The current implementation of the server has a problem with requests that timeout. That is, if the
+remote server is not capable of generating a response within the amount of time the server is
+willing to wait. The server is not capable of finding which request object timed out so it has to
+stop the search completely. This is a limitatation of the current implementation of the internal <A
+HREF="../../../Library/src/HTEvntrg.html">Event loop</A> in the Library. It is not a design
+limitation, but the event loop is currently optimized for use by user active applications and not so
+much "non-user" application.
+ 
+<DT>DNS lookup
 
-<UL>
+<DD>The current DNS resolution uses the standard <B>getXbyY</B> system calls. However, as they
+traditionally are implemented using blocking sockets, the server may block as we only have a single
+process and a single stack. The solution is of course to have a non-blocking DNS resolver library.
 
-<LI>Automatic redirection and Access authentication has been take n out of the HTTP module. Instead
-the new mechanism with request callback functions are used so that the application can register
-handlers to handle these situations. The reason for this change is that not all applications are
+</DL>
+
+
+<H2>Version 4.0C</H2>
+
+<DL><DT><A HREF="lib_4.0C_1.fix">Patch for PUT and POST</A>
+
+<DD>This patch is rather big but it contains some fixes and modifications
+that enables PUT and POST
+to work reliably. If you download the 4.0C version of the distribution then
+the patch has already
+been applied. It is basically the difference between versions 4.0B and 4.0C.
+The main set of differences are:
+
+<UL><LI>Automatic redirection and Access authentication has been take n out
+of the HTTP module. Instead
+the new mechanism with request callback functions are used so that the
+application can register
+handlers to handle these situations. The reason for this change is that not
+all applications are
 interested in having this functionality performed automatically.
 
-<LI>Authentication handler and redirection handler added to both the Line Mode Browser and the Command Line Tool
+<LI>Authentication handler and redirection handler added to both the Line
+Mode Browser and the Command Line Tool
 
-<LI>Added three possible return codes on which a request callback function can be called:
+<LI>Added three possible return codes on which a request callback function
+can be called:
 
-<UL>
-<LI>HT_PERM_REDIRECT for permanently moved objects
+<UL><LI>HT_PERM_REDIRECT for permanently moved objects
 <LI>HT_TEMP_REDIRECT for temporarily moved objects
 <LI>HT_NO_ACCESS for insufficient credentials
-</UL>
-
-<LI>PUT and POST do now work reliably in the Line Mode Browser and the Command Line Tool. Both can
-PUT or POST a document <B>from</B> either a remote HTTP server <EM>or</EM> the local file system
+</UL><LI>PUT and POST do now work reliably in the Line Mode Browser and the
+Command Line Tool. Both can
+PUT or POST a document <B>from</B> either a remote HTTP server <EM>or</EM>
+the local file system
 <B>to</B> a remote HTTP server.
 
-<LI>An important bug-fix in the internal event manager that prevented a socket to be registered for
+<LI>An important bug-fix in the internal event manager that prevented a socket
+to be registered for
 multiple events at the same time.
 
 <LI>Cleanup of the POSTWeb management in the file module and the HTTP module
 
-<LI>In addition to progress notification on READ we now support progress notification when sending a data object
+<LI>In addition to progress notification on READ we now support progress
+notification when sending a data object
 
-<LI>Spelling mistake fixed. <EM>preemtive</EM> is changed to <EM>preemptive</EM>
+<LI>Spelling mistake fixed. <EM>preemtive</EM> is changed to
+<EM>preemptive</EM>
 
-<LI>The W3C Mini Robot has now the ability to stop at a certain depth while traversing the Web.
+<LI>The W3C Mini Robot has now the ability to stop at a certain depth while
+traversing the Web.
 
-</UL>
+</UL></DL><H2>Library 4.0
+</H2><UL><LI><A HREF="lib_4.0_1.fix">SGML fix from Maciej Puzio for better
+error handling</A>
 
-</DL>
+<LI><A HREF="lib_4.0_bug_3.html">Generating DLLs under Windows using Borland
+compilers</A>
 
-<H2>Library 4.0</H2>
-
-<UL>
-
-<LI><A HREF="lib_4.0_1.fix">SGML fix from Maciej Puzio for better error handling</A>
-
-<LI><A HREF="lib_4.0_bug_3.html">Generating DLLs under Windows using Borland compilers</A>
-
-<LI>Bug in management of <A HREF="lib_4.0_bug_2.html"><EM>select()</EM> timeout handler</A>
+<LI>Bug in management of <A HREF="lib_4.0_bug_2.html"><EM>select()</EM> timeout
+handler</A>
 
 <LI>Bug in <A HREF="lib_4.0_bug_1.html"><EM>no-proxy</EM> directive</A>
 
-<LI>HTML Machinery is still missing a great deal. However this part is now isolated into the
-SGML-HTML-HText stream pipe and will be replaced by a new parser as soon as possible in connection
+<LI>HTML Machinery is still missing a great deal. However this part is now
+isolated into the
+SGML-HTML-HText stream pipe and will be replaced by a new parser as soon
+as possible in connection
 with the development of Arena.
 
 <LI>Directory listings do not work completely on Windows NT
-
-</UL>
-
-<H2>Library 3.1</H2>
-
-<DL>
-
-<DT>Bug in time stamp on files in FTP directory listings
+</UL><H2>Library 3.1
+</H2><DL><DT>Bug in time stamp on files in FTP directory listings
 
 <DD>The Library supports "long" directory listings for FTP Unix, VMS
 and Windows NT servers with file type, size, time and date
@@ -128,37 +147,31 @@ in the Library doesn't know the time-zone of the remote FTP server and
 hence doesn't know when DSR is enabled or disabled. This is fixed in
 the next version
 
-<DT><A HREF="lib_3.1_1.fix">Problem with nested HTML tags in the HTML parser</A>
+<DT><A HREF="lib_3.1_1.fix">Problem with nested HTML tags in the HTML
+parser</A>
 
 <DD>A bug which makes the HTML parser crash if is gets more than 20
 nested HTML tags. Thanks to Robert M. Fleischman for pointing this
 out!
+</DL>
 
-</UL>
+<H2>Library 3.0
+</H2><DL><DT><A HREF="lib_3.0_1.fix">Problems with redirection</A>
 
-<H2>Library 3.0</H2>
-
-<DL>
-
-<DT><A HREF="lib_3.0_1.fix">Problems with redirection</A>
-
-<DD>Until now all HTTP servers have sent back a small HTML document with a 
+<DD>Until now all HTTP servers have sent back a small HTML document with
+a 
 redirection message going:
 
-<PRE>
+<PRE><P>
 	If you can see this message then your browser
 	does not support automatic redirection.
-</PRE>
-
-However, new severs like Netscape and other servers don't send this
+</PRE><P>However, new severs like Netscape and other servers don't send this
 and hence no stream should be set up. This confuses the Library and it
 dumps core.
 
-</DL>
-
-
-<P>
+</DL><P>
 <HR>
-<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>, December 1995</ADDRESS>
-</BODY>
-</HTML>
+<ADDRESS>Henrik Frystyk, <A HREF="mailto:libwww@w3.org">libwww@w3.org</A>,
+December 1995
+</ADDRESS></BODY></HTML>
+

@@ -1,7 +1,7 @@
 <Html>
 <HEAD>
 <TITLE>How to Build the WWW Libraries for Windows</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  7-Feb-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 13-Feb-1996 -->
 </HEAD>
 
 <BODY>
@@ -42,7 +42,7 @@ other libraries you are using.
 
 <A NAME="unix"><H3>Interleaved I/O Using select()</H3></A>
 
-In this mode the <A HREF="../../Implementation/HTEvntrg.html">Event Manager</A> registers all
+In this mode the <A HREF="../../src/HTEvntrg.html">Event Manager</A> registers all
 active sockets and passes them to a <CODE>select()</CODE> call which then processes the registered
 sockets. When <CODE>select()</CODE> returns the Event Manager dispatches the appropriate handlers as
 the sockets get ready. <P>
@@ -53,17 +53,17 @@ as a preprocessor directive when generating the project for the Library. Please 
 
 <A NAME="async"><H3>Asynchronous I/O based using Signals</H3></A>
 
-Here the <A HREF="../../Implementation/HTEvntrg.html">Event Manager</A> registers all active sockets
+Here the <A HREF="../../src/HTEvntrg.html">Event Manager</A> registers all active sockets
 using <CODE>WSAAsyncSelect</CODE> which is part of the WinSock API. When <CODE>AsyncSelect()</CODE>
 which is the asynchronous equivalent to the <CODE>select()</CODE> returns, the Event Manager
 dispatches the results of the <CODE>AsyncSelect()</CODE>. As the asynchronous select call needs a
 windows handle, the Library creates a <EM>hidden window</EM> in the <A
-HREF="../../Implementation/HTAccess.html#Library">Library initialization function</A>. This window
+HREF="../../src/HTAccess.html#Library">Library initialization function</A>. This window
 is <EM>not</EM> to be used explicitly by the application and the Library closes the window when
 exiting.<P>
 
-<IMG SRC="../../../Icons/WWW/bullet.gif"> <B>What to do:</B> This is the default mode and you don't
-have to do anything
+<IMG SRC="../../../Icons/WWW/bullet.gif"> <B>What to do:</B> <EM>Define</EM> <B>WWW_WIN_ASYNC</B> as
+preprocessor directives when generating the project for the Library.
 
 <A NAME="io"><H2>Console vs Windows Application</H2></A>
 
@@ -81,13 +81,13 @@ version you prefer. This is often something you have to decide as you are creati
 If you want to make a windows application then this is the mode to use. Eric Prud'hommeaux has
 provided a Windows application wrapper for the <A HREF="../../../LineMode/">W3C Line Mode
 Browser</A> which you can use in order to build the browser as a Windows application. This is found
-in <A HREF="../../../LineMode/Implementation/windows/www.c">www.c</A>. Three other modules, <A
-HREF="../../../LineMode/Implementation/windows/scroll.c">scroll.c</A> and <A
-HREF="../../../LineMode/Implementation/windows/lib.c">lib.c</A> provide the window for the
+in <A HREF="../../../LineMode/src/windows/www.c">www.c</A>. Three other modules, <A
+HREF="../../../LineMode/src/windows/scroll.c">scroll.c</A> and <A
+HREF="../../../LineMode/src/windows/lib.c">lib.c</A> provide the window for the
 application. <P>
 
-<IMG SRC="../../../Icons/WWW/bullet.gif"> <B>What to do:</B> This is the default mode and you don't
-have to do anything
+<IMG SRC="../../../Icons/WWW/bullet.gif"> <B>What to do:</B> Define <B>_WINDOWS</B> as preprocessor
+directives when generating the project for the Library.
 
 <A NAME="console"><H3>Console Application</H3></A>
 
@@ -118,9 +118,10 @@ building a static library, see the following sections on <A HREF="#select">Selec
 HREF="#io">Input/Output Options</A>, accumulate all the <I>#defines</I> that are required, and build
 the whole libwww with those <I>#defines</I>. <P>
 
-<IMG SRC="../../../Icons/WWW/bullet.gif"> <B>What to do:</B> This is the default mode and you don't
-have to do anything but please note, that it is not recommended to staticly link to the libraries if
-you are building a Win16 application as it creates segment size problems.
+<IMG SRC="../../../Icons/WWW/bullet.gif"> <B>What to do:</B> <EM>Undefine</EM> <B>WWW_WIN_DLL</B> as
+preprocessor directives when generating the project for the Library. Please note, that it is not
+recommended to staticly link to the libraries if you are building a Win16 application as it creates
+segment size problems.
 
 <A NAME="dynamic"><H3>Dynamic Libraries (DLLs)</H3></A>
 
@@ -154,8 +155,8 @@ your project and make sure that it is built as the first DLL.
 <H3>Exporting Functions from DLLs</H3>
 
 The functions exported from a DLL are listed in the EXPORTS section of a .def file. These can be
-found in the <A HREF="../../Implementation/windows">windows</A> directory. These may also be build
-by the <A HREF="../../Implementation/windows/makedefs.pl">makeDefs.pl</A> perl script, see the
+found in the <A HREF="../../src/windows">windows</A> directory. These may also be build
+by the <A HREF="../../src/windows/makedefs.pl">makeDefs.pl</A> perl script, see the
 description below. You can use the def files as a basis for generating the DLL projects for your
 compiler. <P>
 
@@ -166,21 +167,41 @@ included in the DLL.
 <H2>Make Files and Projects</H2>
 
 Unfortunately, make files are not easily shared among different C compilers on Windows which
-complicates the distribution.
+complicates the distribution. We can not support all of them but we can give some hints which may
+help you to get going.
 
 <H3>Microsoft Visual C++ 4.0</H3>
 
 In the distribution file you can find a complete <A
-HREF="../../Implementation/windows/msvc_40.mak">Microsoft Visual C++ 4.0 Project</A> that builds the
+HREF="../../src/windows/msvc_40.mak">Microsoft Visual C++ 4.0 Project</A> that builds the
 W3C Reference Library as a set of DLLs as described in the <A HREF="../../User/Guide/">Library
 Internals</A>.
 
 <H3>Microsoft Visual C++ 2.0</H3>
 
 You can also find a set of Microsoft 2.0 make files in the <A
-HREF="../../Implementation/windows/">windows directory</A> of the distribution file. However, as
+HREF="../../src/windows/">windows directory</A> of the distribution file. However, as
 version 2.0 does not support having one single Make file, you must compile the set described by the
-<A HREF="../Guide/Interfaces.html">following list of DLLs</A> in the order they are listed.
+<A HREF="../Guide/Interfaces.html">following list of DLLs</A> in the order they are listed. Please
+note that these files may be slightly out of date as we do not update them as often as the MSVC 4.0
+files.
+
+<H3>Microsoft Visual C++ 1.x</H3>
+
+A problem with the MSVC 1.5 compiler is that it doesn't get the dependencies right. It includes all
+<CODE>#include</CODE> directives even tough that some of these directives are for Unix only and the
+include files don't exist on windows. The only way to get around this is to manually edit the
+project make files generated by MSVC 1.x and take out the dependencies of files that are not
+intended for the Windows platform. Compiling on a 16 bit platform may also cause some trouble as we
+don't really support that.
+
+<H3>Borland C Compiler</H3>
+
+The Borland C compiler has a different DLL interface where you need to use the reserved word
+<CODE>export</CODE> in front of all methods and data objects to be exported from a DLL. This is not
+currently the case but you can use the <A
+HREF="../../src/windows/makexprt.pl">makexprt.pl</A> Perl script to change the Library
+code.
 
 <H3>Other Compilers</H3>
 
@@ -191,7 +212,7 @@ multiple compilers.
 
 <A NAME="makedefs"><H3>makeDefs.pl</H3></A>
 
-<A HREF="../../Implementation/windows/makedefs.pl">makeDefs.pl</A> is a perl 4 script which takes a
+<A HREF="../../src/windows/makedefs.pl">makeDefs.pl</A> is a perl 4 script which takes a
 list of modules and generates a list of exports from them. The module list may be taken from the
 appropriate header file for the library, e.g. <I>wwwutils.dll</I> uses <I>wwwutils.def</I> which is
 made from <I>WWWUtils.html</I>. The file list assumes nothing except the module file names with no
