@@ -18,6 +18,7 @@
 #include "wwwsys.h"
 #include "WWWUtil.h"
 #include "WWWLib.h"
+#include "WWWFile.h"
 #include "HTGuess.h"
 
 #define SAMPLE_SIZE	200	/* Number of chars to look at */

@@ -23,6 +23,7 @@
 #include "wwwsys.h"
 #include "WWWUtil.h"
 #include "WWWCore.h"
+#include "WWWFile.h"
 #include "WWWHTML.h"
 #include "HTIcons.h"
 #include "HTDescpt.h"

@@ -21,7 +21,7 @@
 #include "wwwsys.h"
 #include "WWWUtil.h"
 #include "WWWCore.h"
-#include "WWWStream.h"
+#include "HTMerge.h"
 #include "HTReqMan.h"
 #include "HTBound.h"					 /* Implemented here */
 

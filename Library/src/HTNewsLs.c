@@ -19,6 +19,7 @@
 #include "wwwsys.h"
 #include "WWWUtil.h"
 #include "WWWCore.h"
+#include "HTUTree.h"
 #include "HTNDir.h"
 #include "HTNews.h"
 #include "HTNewsLs.h"					 /* Implemented here */

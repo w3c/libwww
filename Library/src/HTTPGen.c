@@ -15,8 +15,7 @@
 #include "wwwsys.h"
 #include "WWWUtil.h"
 #include "WWWCore.h"
-#include "WWWMIME.h"
-#include "WWWTrans.h"
+#include "HTHeader.h"
 #include "HTTPUtil.h"
 #include "HTTPReq.h"					       /* Implements */
 

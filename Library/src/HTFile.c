@@ -33,6 +33,7 @@
 #include "WWWDir.h"
 #include "WWWTrans.h"
 #include "HTReqMan.h"
+#include "HTBind.h"
 #include "HTMulti.h"
 #include "HTFile.h"		/* Implemented here */
 

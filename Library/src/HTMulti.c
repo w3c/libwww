@@ -15,6 +15,7 @@
 #include "WWWUtil.h"
 #include "WWWCore.h"
 #include "HTMulti.h"
+#include "HTBind.h"
 #include "HTFile.h"
 
 #define MULTI_SUFFIX	".multi"/* Extension for scanning formats */

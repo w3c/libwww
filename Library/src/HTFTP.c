@@ -66,6 +66,7 @@
 #include "WWWCore.h"
 #include "WWWStream.h"
 #include "WWWTrans.h"
+#include "WWWFile.h"
 #include "HTReqMan.h"
 #include "HTNetMan.h"
 #include "HTFTPDir.h"

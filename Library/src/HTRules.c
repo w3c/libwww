@@ -30,6 +30,7 @@
 
 /* Library include files */
 #include "WWWLib.h"
+#include "WWWFile.h"
 #include "HTProxy.h"
 #include "HTRules.h"					 /* Implemented here */
 
