@@ -66,6 +66,7 @@ typedef struct _http_info {
     HTNet *		net;
     HTRequest *		request;
     HTTimer *		timer;
+    BOOL		usedTimer;
 } http_info;
 
 #define MAX_STATUS_LEN		100   /* Max nb of chars to check StatusLine */
@@ -928,6 +929,7 @@ PRIVATE int FlushPutEvent (HTTimer * timer, void * param, HTEventType type)
     HTStream * input = HTRequest_inputStream(http->request);
     HTPostCallback * pcbf = HTRequest_postCallback(http->request);
 
+    http->usedTimer = YES;
     if (timer != http->timer)
 	HTDebugBreak(__FILE__, __LINE__, "HTTP timer %p not in sync\n", timer);
     if (PROT_TRACE) HTTrace("Uploading... Flushing %p with timer %p\n", http, timer);
@@ -938,9 +940,10 @@ PRIVATE int FlushPutEvent (HTTimer * timer, void * param, HTEventType type)
     if (http && input && pcbf) (*pcbf)(http->request, input);
 
     /*
-    **  Delete the timer
+    **  Delete the timer but remember that we have used it
     */
     http->timer = NULL;
+
     return HT_OK;
 }
 
@@ -1096,12 +1099,12 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 		      if (http->lock == NO) {
 			  int retrys = HTRequest_retrys(request);
 			  ms_t delay = retrys > 3 ? 3000 : 2000;
-			  if (!http->timer) {
+			  if (!http->timer && !http->usedTimer) {
 			      http->timer = HTTimer_new(NULL, FlushPutEvent,
 							http, delay, YES, NO);
 			      if (PROT_TRACE)
-				  HTTrace("Uploading... Holding %p request for %lu ms\n",
-					  request, delay);
+				  HTTrace("Uploading... Holding %p for %lu ms using time %p\n",
+					  http, delay, http->timer);
 			      HTHost_register(host, net, HTEvent_READ);
 			  }
 			  http->lock = YES;
