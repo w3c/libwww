@@ -55,10 +55,24 @@ PUBLIC BOOL HTSecure = NO;	/* Disable access for telnet users? */
 /*	To generate other things, play with these:
 */
 
-PUBLIC HTFormat HTOutputFormat = NULL;
-PUBLIC HTStream* HTOutputStream = NULL;	/* For non-interactive, set this */ 
+/* PUBLIC HTFormat HTOutputFormat = NULL;	use request->output_format */
+/* PUBLIC HTStream* HTOutputStream = NULL;	use request->output_stream */ 
 
 PRIVATE HTList * protocols = NULL;   /* List of registered protocol descriptors */
+
+
+/*	Create  a request structure
+**	---------------------------
+*/
+
+PUBLIC HTRequest * HTRequest_new NOARGS
+{
+    HTRequest * me = (HTRequest*) calloc(sizeof(*me), 1);  /* zero fill */
+    if (!me) outofmem(__FILE__, "HTRequest_new()");
+    
+    me->output_format = WWW_PRESENT;	/* default it to present to user */
+    return me;
+}
 
 
 /*	Register a Protocol				HTRegisterProtocol
@@ -215,7 +229,10 @@ PRIVATE int get_physical ARGS2(
 **
 ** On entry,
 **	addr		must point to the fully qualified hypertext reference.
-**	anchor		a pareent anchor with whose address is addr
+**	request->
+**	    anchor		a parent anchor with whose address is addr
+**	    output_format	valid
+**	    output_stream	valid on NULL
 **
 ** On exit,
 **	returns		<0		Error has occured.
@@ -224,34 +241,37 @@ PRIVATE int get_physical ARGS2(
 **					(telnet sesssion started etc)
 **
 */
-PRIVATE int HTLoad ARGS4(
+PRIVATE int HTLoad ARGS2(
 	CONST char *,		addr,
-	HTParentAnchor *,	anchor,
-	HTFormat,		format_out,
-	HTStream *,		sink)
+	HTRequest *,		request)
 {
     HTProtocol* p;
-    int status = get_physical(addr, anchor);
+    int status = get_physical(addr, request->anchor);
     if (status == HT_FORBIDDEN) {
-        return HTLoadError(sink, 500, "Access forbidden by rule");
+        return HTLoadError(request->output_stream, 500,
+		"Access forbidden by rule");
     }
     if (status < 0) return status;	/* Can't resolve or forbidden */
     
-    p = HTAnchor_protocol(anchor);
-    return (*(p->load))(HTAnchor_physical(anchor),
-    			anchor, format_out, sink);
+    p = HTAnchor_protocol(request->anchor);
+    return (*(p->load))(HTAnchor_physical(request->anchor),
+    			request);
 }
 
 
 /*		Get a save stream for a document
 **		--------------------------------
 */
-PUBLIC HTStream *HTSaveStream ARGS1(HTParentAnchor *, anchor)
+PUBLIC HTStream *HTSaveStream ARGS2(
+			HTParentAnchor *, 	anchor,
+			HTRequest *, 		request)
 {
-    HTProtocol * p = HTAnchor_protocol(anchor);
+    HTProtocol * p;
+    request->anchor = anchor;
+    p = HTAnchor_protocol(request->anchor);
     if (!p) return NULL;
     
-    return (*p->saveStream)(anchor);
+    return (*p->saveStream)(request);
     
 }
 
@@ -265,9 +285,11 @@ PUBLIC HTStream *HTSaveStream ARGS1(HTParentAnchor *, anchor)
 **	- Trace ouput and error messages
 **
 **    On Entry,
-**	  anchor	    is the node_anchor for the document
 **        full_address      The address of the document to be accessed.
 **        filter            if YES, treat stdin as HTML
+**
+**	  request->anchor   is the node_anchor for the document
+**	  request->output_format is valid
 **
 **    On Exit,
 **        returns    YES     Success in opening document
@@ -275,11 +297,9 @@ PUBLIC HTStream *HTSaveStream ARGS1(HTParentAnchor *, anchor)
 **
 */
 
-PRIVATE BOOL HTLoadDocument ARGS4(
+PRIVATE BOOL HTLoadDocument ARGS2(
 	CONST char *,		full_address,
-	HTParentAnchor *,	anchor,
-	HTFormat,		format_out,
-	HTStream*,		sink)
+	HTRequest *,		request)
 
 {
     int	        status;
@@ -288,13 +308,16 @@ PRIVATE BOOL HTLoadDocument ARGS4(
     if (TRACE) fprintf (stderr,
       "HTAccess: loading document %s\n", full_address);
 
-    if (text=(HText *)HTAnchor_document(anchor)) {	/* Already loaded */
+    if (!request->output_format) request->output_format = WWW_PRESENT;
+    
+    if (text=(HText *)HTAnchor_document(request->anchor))
+    {	/* Already loaded */
         if (TRACE) fprintf(stderr, "HTAccess: Document already in memory.\n");
         HText_select(text);
 	return YES;
     }
     
-    status = HTLoad(full_address, anchor, format_out, sink);
+    status = HTLoad(full_address, request);
 
     
 /*	Log the access if necessary
@@ -340,7 +363,7 @@ PRIVATE BOOL HTLoadDocument ARGS4(
 	if (TRACE) fprintf(stderr, 
 		"HTAccess: Can't access `%s'\n", full_address);
 #endif
-	HTLoadError(sink, 500, "Unable to access document.");
+	HTLoadError(request->output_stream, 500, "Unable to access document.");
 	return NO;
     }
  
@@ -371,12 +394,11 @@ PRIVATE BOOL HTLoadDocument ARGS4(
 **
 */
 
-PUBLIC BOOL HTLoadAbsolute ARGS1(CONST char *,addr)
+PUBLIC BOOL HTLoadAbsolute ARGS2(CONST char *,addr, HTRequest*, request)
 {
-   return HTLoadDocument( addr,
-       		HTAnchor_parent(HTAnchor_findAddress(addr)),
-       			HTOutputFormat ? HTOutputFormat : WWW_PRESENT,
-			HTOutputStream);
+   request->anchor = HTAnchor_parent(HTAnchor_findAddress(addr));
+
+   return HTLoadDocument( addr, request);
 }
 
 
@@ -385,7 +407,7 @@ PUBLIC BOOL HTLoadAbsolute ARGS1(CONST char *,addr)
 **
 **    On Entry,
 **        addr     The absolute address of the document to be accessed.
-**        sink     if non-NULL, send data down this stream
+**        request->output_stream     if non-NULL, send data down this stream
 **
 **    On Exit,
 **        returns    YES     Success in opening document
@@ -397,12 +419,11 @@ PUBLIC BOOL HTLoadAbsolute ARGS1(CONST char *,addr)
 PUBLIC BOOL HTLoadToStream ARGS3(
 		CONST char *,	addr,
 		BOOL, 		filter,
-		HTStream *, 	sink)
+		HTRequest*,	request)
 {
-   return HTLoadDocument(addr,
-       		HTAnchor_parent(HTAnchor_findAddress(addr)),
-       			HTOutputFormat ? HTOutputFormat : WWW_PRESENT,
-			sink);
+    request->output_stream = request->output_stream;
+    request->anchor = HTAnchor_parent(HTAnchor_findAddress(addr));
+    return HTLoadDocument(addr, request);
 }
 
 
@@ -422,9 +443,10 @@ PUBLIC BOOL HTLoadToStream ARGS3(
 **
 */
 
-PUBLIC BOOL HTLoadRelative ARGS2(
+PUBLIC BOOL HTLoadRelative ARGS3(
 		CONST char *,		relative_name,
-		HTParentAnchor *,	here)
+		HTParentAnchor *,	here,
+		HTRequest*,		request)
 {
     char * 		full_address = 0;
     BOOL       		result;
@@ -439,7 +461,7 @@ PUBLIC BOOL HTLoadRelative ARGS2(
     full_address = HTParse(stripped,
 	           current_address,
 		   PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
-    result = HTLoadAbsolute(full_address);
+    result = HTLoadAbsolute(full_address, request);
     free(full_address);
     free(current_address);
     free(mycopy);  /* Memory leak fixed 10/7/92 -- JFG */
@@ -459,32 +481,27 @@ PUBLIC BOOL HTLoadRelative ARGS2(
 **
 */
 
-PUBLIC BOOL HTLoadAnchor ARGS1(HTAnchor *,destination)
+PUBLIC BOOL HTLoadAnchor ARGS2(HTAnchor*, anchor, HTRequest *, request)
 {
-    HTParentAnchor * parent;
     BOOL loaded = NO;
-    if (!destination) return NO;	/* No link */
+    if (!anchor) return NO;	/* No link */
     
-    parent  = HTAnchor_parent(destination);
+    request->anchor  = HTAnchor_parent(anchor);
     
-    if (HTAnchor_document(parent) == NULL) {	/* If not alread loaded */
-    						/* TBL 921202 */
-
+    if (HTAnchor_document(request->anchor) == NULL) {/* If not alread loaded */
         BOOL result;
-        char * address = HTAnchor_address((HTAnchor*) parent);
-	result = HTLoadDocument(address, parent,
-		HTOutputFormat ? HTOutputFormat : WWW_PRESENT,
-		HTOutputStream);
+        char * address = HTAnchor_address((HTAnchor*) request->anchor);
+	result = HTLoadDocument(address, request);
 	free(address);
 	if (!result) return NO;
 	loaded = YES;
     }
     
     {
-	HText *text = (HText*)HTAnchor_document(parent);
-	if (destination != (HTAnchor *)parent) {  /* If child anchor */
+	HText *text = (HText*)HTAnchor_document(request->anchor);
+	if (anchor != (HTAnchor *)request->anchor) {  /* If child anchor */
 	    HText_selectAnchor(text, 
-		    (HTChildAnchor*)destination); /* Double display? @@ */
+		    (HTChildAnchor*)anchor); /* Double display? @@ */
 	} else {
 	    if (!loaded) HText_select(text);
 	}
@@ -511,9 +528,10 @@ PRIVATE char hex(i)
     return hexchars[i];
 }
 
-PUBLIC BOOL HTSearch ARGS2(
+PUBLIC BOOL HTSearch ARGS3(
 	CONST char *, 		keywords,
-	HTParentAnchor *, 	here)
+	HTParentAnchor *, 	here,
+	HTRequest *,		request)
 {
 
 #define acceptable \
@@ -563,7 +581,7 @@ PUBLIC BOOL HTSearch ARGS2(
     StrAllocCat(address, "?");
     StrAllocCat(address, escaped);
     free(escaped);
-    result = HTLoadRelative(address, here);
+    result = HTLoadRelative(address, here, request);
     free(address);
     
     return result;
@@ -580,13 +598,14 @@ PUBLIC BOOL HTSearch ARGS2(
 **	*addres		is name of object search is to be done on.
 */
 
-PUBLIC BOOL HTSearchAbsolute ARGS2(
+PUBLIC BOOL HTSearchAbsolute ARGS3(
 	CONST char *, 	keywords,
-	CONST char *, 	indexname)
+	CONST char *, 	indexname,
+	HTRequest *,	request)
 {
     HTParentAnchor * anchor =
     	(HTParentAnchor*) HTAnchor_findAddress(indexname);
-    return HTSearch(keywords, anchor);
+    return HTSearch(keywords, anchor, request);
 }
 
 

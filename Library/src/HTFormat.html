@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>HTFormat: The format manager in the WWW Library</TITLE>
-<NEXTID N="z12">
+<NEXTID N="z13">
 </HEAD>
 <BODY>
 <H1>Manage different document formats</H1>Here we describe the functions of
@@ -39,18 +39,25 @@ representations. This allows faster
 manipulation (comparison and copying)
 that if we stayed with strings.
 <PRE>typedef HTAtom * HTFormat;
+
+</PRE>Now we can pick up the HTAccess definitions
+which we need later on but which
+use HTFormat.
+<PRE>#include "HTAccess.h"   /* Required for HTRequest definition */
+
 			
 </PRE>These macros (which used to be constants)
 define some basic internally referenced
-representations.  The www/xxx ones
-are of course not MIME standard.<P>
+representations. 
+<H3>Internal ones</H3>The www/xxx ones are of course not
+MIME standard.<P>
 www/source  is an output format which
 leaves the input untouched. It is
 useful for diagnostics, and for users
 who want to see the original, whatever
 it is.
-<PRE>			/* Internal ones */
-#define WWW_SOURCE HTAtom_for("www/source")	/* Whatever it was originally*/
+<H3></H3>
+<PRE>#define WWW_SOURCE HTAtom_for("www/source")	/* Whatever it was originally*/
 
 </PRE>www/present represents the user's
 perception of the document.  If you
@@ -72,7 +79,10 @@ it represents a printed copy.
 Some default action is appropriate.
 <PRE>#define WWW_UNKNOWN     HTAtom_for("www/unknown")
 
-</PRE>These are regular MIME types.  HTML
+
+
+</PRE>
+<H3>MIME ones (a few)</H3>These are regular MIME types.  HTML
 is assumed to be added by the W3
 code. application/octet-stream was
 mistakenly application/binary in
@@ -117,13 +127,16 @@ NAME="z6" HREF="HTInit.html">initialisation
 module</A> for a list of conversion routines.
 <PRE>typedef struct _HTPresentation HTPresentation;
 
-typedef HTStream * HTConverter PARAMS((
-	HTPresentation *	pres,
-	HTParentAnchor *	anchor,
-	HTStream *		sink));
+typedef HTStream * <A
+NAME="z12">HTConverter</A> PARAMS((
+	HTRequest *		request,
+	void *			param,
+	HTFormat		input_format,
+	HTFormat		output_format,
+	HTStream *		output_stream));
 	
 struct _HTPresentation {
-	HTAtom* rep;		/* representation name atmoized */
+	HTAtom* rep;		/* representation name atomized */
 	HTAtom* rep_out;	/* resulting representation */
 	HTConverter *converter;	/* The routine to gen the stream stack */
 	char *  command;	/* MIME-format string */
@@ -136,11 +149,11 @@ struct _HTPresentation {
 by this module.  It is also scanned
 by modules which want to know the
 set of formats supported. for example.
-<PRE>extern HTList * HTPresentations;
+<PRE>/* extern HTList * HTPresentations; */
 
 </PRE>The default presentation is used
-when no other is appriporate
-<PRE>extern  HTPresentation* default_presentation;
+when no other is approporate
+<PRE>/* extern  HTPresentation* default_presentation; */
 
 </PRE>
 <H2>HTSetPresentation: Register a system
@@ -163,11 +176,12 @@ will wait (0 for infinity)
 </DL>
 
 <PRE>extern void HTSetPresentation PARAMS((
-	CONST char * representation,
-	CONST char * command,
-	float	quality,
-	float	secs, 
-	float	secs_per_byte
+	HTList *	conversions,
+	CONST char * 	representation,
+	CONST char * 	command,
+	float		quality,
+	float		secs, 
+	float		secs_per_byte
 ));
 
 
@@ -187,6 +201,7 @@ the stream to do it
 
 <PRE>
 extern void HTSetConversion PARAMS((
+	HTList *	conversions,
 	CONST char * 	rep_in,
 	CONST char * 	rep_out,
 	HTConverter *	converter,
@@ -214,9 +229,7 @@ into the anchor object which represents
 them.
 <PRE>extern HTStream * HTStreamStack PARAMS((
 	HTFormat		format_in,
-	HTFormat		format_out,
-	HTStream*		stream_out,
-	HTParentAnchor*		anchor));
+	HTRequest *		request));
 
 </PRE>
 <H2>HTStackValue: Find the cost of a
@@ -240,8 +253,9 @@ in the input format
 </DL>
 
 <PRE>extern float HTStackValue PARAMS((
+	HTList *		conversions,
 	HTFormat		format_in,
-	HTFormat		rep_out,
+	HTFormat		format_out,
 	float			initial_value,
 	long int		length));
 
@@ -305,10 +319,8 @@ above.  Returns HT_LOADED if succesful,
 &lt;0 if not.
 <PRE>extern int HTParseSocket PARAMS((
 	HTFormat	format_in,
-	HTFormat	format_out,
-	HTParentAnchor	*anchor,
 	int 		file_number,
-	HTStream*	sink));
+	HTRequest *	request));
 
 </PRE>
 <H2><A
@@ -321,10 +333,8 @@ NAME="c7" HREF="#c6">HTFileCopy</A> .  Returns HT_LOADED
 if succesful, &lt;0 if not.
 <PRE>extern int HTParseFile PARAMS((
 	HTFormat	format_in,
-	HTFormat	format_out,
-	HTParentAnchor	*anchor,
 	FILE		*fp,
-	HTStream*	sink));
+	HTRequest *	request));
 
 </PRE>
 <H2><A
@@ -351,7 +361,7 @@ add some conversions (eg using HTLoadRules)
 then you may want also to explicitly
 call this to get the defaults as
 well.
-<PRE>extern void HTFormatInit NOPARAMS;
+<PRE>extern void HTFormatInit PARAMS((HTList * conversions));
 
 </PRE>
 <H2>Epilogue</H2>

@@ -484,11 +484,9 @@ PRIVATE void de_escape ARGS2(char *, command, CONST char *, selector)
 **	 Bug:	No decoding of strange data types as yet.
 **
 */
-PUBLIC int HTLoadGopher ARGS4(
+PUBLIC int HTLoadGopher ARGS2(
 	CONST char *,		arg,
-	HTParentAnchor *,	anAnchor,
-	HTFormat,		format_out,
-	HTStream*,		sink)
+	HTRequest *,		request)
 {
     char *command;			/* The whole command */
     int status;				/* tcp return */
@@ -531,12 +529,12 @@ PUBLIC int HTLoadGopher ARGS4(
 	}
 	if (gtype == GOPHER_INDEX) {
 	    char * query;
-            HTAnchor_setIndex(anAnchor);	/* Search is allowed */
+            HTAnchor_setIndex(request->anchor);	/* Search is allowed */
 	    query = strchr(selector, '?');	/* Look for search string */
 	    if (!query || !query[1]) {		/* No search required */
-		target = HTML_new(anAnchor, format_out, sink);
+		target = HTML_new(request->anchor, request->output_format, request->output_stream);
 		targetClass = *target->isa;
-		display_index(arg, anAnchor);	/* Display "cover page" */
+		display_index(arg, request->anchor);	/* Display "cover page" */
 		return HT_LOADED;		/* Local function only */
 	    }
 	    *query++ = 0;			/* Skip '?' 	*/
@@ -556,12 +554,12 @@ PUBLIC int HTLoadGopher ARGS4(
 	    strcat(command, query);
         } else if (gtype == GOPHER_CSO) {
             char * query;
-            HTAnchor_setIndex(anAnchor);        /* Search is allowed */
+            HTAnchor_setIndex(request->anchor);        /* Search is allowed */
             query = strchr(selector, '?');      /* Look for search string */
             if (!query || !query[1]) {          /* No search required */
-		target = HTML_new(anAnchor, format_out, sink);
+		target = HTML_new(request->anchor, request->output_format, request->output_stream);
 		targetClass = *target->isa;
-                display_cso(arg, anAnchor);     /* Display "cover page" */
+                display_cso(arg, request->anchor);     /* Display "cover page" */
                 return HT_LOADED;                 /* Local function only */
             }
             *query++ = 0;                       /* Skip '?'     */
@@ -632,25 +630,25 @@ PUBLIC int HTLoadGopher ARGS4(
     switch (gtype) {
     
     case GOPHER_HTML :
-    	HTParseSocket(WWW_HTML, format_out, anAnchor, s, sink);
+    	HTParseSocket(WWW_HTML, request->output_format, request->anchor, s, request->output_stream);
 	break;
 
     case GOPHER_GIF:
     case GOPHER_IMAGE:
     	HTParseSocket(HTAtom_for("image/gif"), 
-			   format_out, anAnchor, s, sink);
+			   request->output_format, request->anchor, s, request->output_stream);
   	break;
     case GOPHER_MENU :
     case GOPHER_INDEX :
-	target = HTML_new(anAnchor, format_out, sink);
+	target = HTML_new(request->anchor, request->output_format, request->output_stream);
 	targetClass = *target->isa;
-        parse_menu(arg, anAnchor);
+        parse_menu(arg, request->anchor);
 	break;
 	 
     case GOPHER_CSO:
-	target = HTML_new(anAnchor, format_out, sink);
+	target = HTML_new(request->anchor, request->output_format, request->output_stream);
 	targetClass = *target->isa;
-      	parse_cso(arg, anAnchor);
+      	parse_cso(arg, request->anchor);
 	break;
    	
       case GOPHER_MACBINHEX:
@@ -658,16 +656,16 @@ PUBLIC int HTLoadGopher ARGS4(
       case GOPHER_UUENCODED:
       case GOPHER_BINARY:
         /* Specifying WWW_UNKNOWN forces dump to local disk. */
-        HTParseSocket (WWW_UNKNOWN, format_out, anAnchor, s, sink);
+        HTParseSocket (WWW_UNKNOWN, request->output_format, request->anchor, s, request->output_stream);
 	break;
 
     case GOPHER_TEXT :
     default:			/* @@ parse as plain text */
-     	HTParseSocket(WWW_PLAINTEXT, format_out, anAnchor, s, sink);
+     	HTParseSocket(WWW_PLAINTEXT, request->output_format, request->anchor, s, request->output_stream);
 	break;
 
       case GOPHER_SOUND :
-    	HTParseSocket(WWW_AUDIO, format_out, anAnchor, s, sink);
+    	HTParseSocket(WWW_AUDIO, request->output_format, request->anchor, s, request->output_stream);
 	break;
 	
     } /* switch(gtype) */
@@ -676,5 +674,5 @@ PUBLIC int HTLoadGopher ARGS4(
     return HT_LOADED;
 }
 
-GLOBALDEF PUBLIC HTProtocol HTGopher = { "gopher", HTLoadGopher, NULL };
+GLOBALDEF PUBLIC HTProtocol HTGopher = { "gopher", HTLoadGopher, NULL, NULL };
 

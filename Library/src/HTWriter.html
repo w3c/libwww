@@ -1,18 +1,24 @@
-<PRE>
-/*		Unix File or Socket Writer			HTWriter.c
-**		--------------------------
-**
-**	This version of the stream object just writes to a socket.
-**	The socket is assumed open and closed afterward.
-**
-**	There are two versions (identical on ASCII machines)
-**	one of which converts to ASCII on output.
-**
-**	Bugs:
-**		strings written must be less than buffer size.
-*/
-
-#ifndef HTWRITE_H
+<HTML>
+<HEAD>
+<TITLE>Socket writer for libwww</TITLE>
+<NEXTID N="z2">
+</HEAD>
+<BODY>
+<H1>Unix File descriptor or Socket Writer</H1>This version of the stream object
+just writes to a socket. The socket
+is assumed open and closed afterward.There are two versions (identical
+on ASCII machines) one of which converts
+to ASCII on output.<P>
+Part of <A
+NAME="z1" HREF="Overview.html">libwww</A>. See also <A
+NAME="z0" HREF="HTFWriter.html">HTFWriter</A>
+for writing to C files.
+<H3>Bugs:</H3>
+<UL>
+<LI>strings written must be less than
+buffer size.
+</UL>
+<PRE>#ifndef HTWRITE_H
 #define HTWRITE_H
 
 #include "HTStream.h"
@@ -22,4 +28,6 @@ extern HTStream * HTWriter_new PARAMS((int soc));
 extern HTStream * HTASCIIWriter PARAMS((int soc));
 
 #endif
-</PRE>
+
+</PRE>end</BODY>
+</HTML>

@@ -105,17 +105,19 @@ PUBLIC CONST HTStreamClass HTPlain =
 /*		New object
 **		----------
 */
-PUBLIC HTStream* HTPlainPresent ARGS3(
-	HTPresentation *,	pres,
-	HTParentAnchor *,	anchor,	
-	HTStream *,		sink)
+PUBLIC HTStream* HTPlainPresent ARGS5(
+	HTRequest *,		request,
+	void *,			param,
+	HTFormat,		input_format,
+	HTFormat,		output_format,
+	HTStream *,		output_stream)
 {
 
     HTStream* me = (HTStream*)malloc(sizeof(*me));
     if (me == NULL) outofmem(__FILE__, "HTPlain_new");
     me->isa = &HTPlain;       
 
-    me->text = HText_new(anchor);
+    me->text = HText_new(request->anchor);
     HText_setStyle(me->text, HTStyleNamed(styleSheet, "Example"));
     HText_beginAppend(me->text);
 

@@ -1,10 +1,15 @@
 <HTML>
 <HEAD>
-<TITLE>File Writer for libwww</TITLE></HEAD>
+<TITLE>File Writer for libwww</TITLE>
+<NEXTID N="z2">
+</HEAD>
 <BODY>
 <H1>C File Writer</H1>It is useful to have both FWriter
 and Writer for environments in which
-fdopen() doesn't exist for example.
+fdopen() doesn't exist for example.<P>
+Part of <A
+NAME="z1" HREF="Overview.html">libwww</A> . Implemented by <A
+NAME="z0" HREF="HTFWriter.c">HTFWriter.c</A>
 <PRE>#ifndef HTFWRITE_H
 #define HTFWRITE_H
 
@@ -16,18 +21,30 @@ fdopen() doesn't exist for example.
 #define	HTFWriter_new	HTFWnew
 #endif
 
-extern HTStream * HTFWriter_new PARAMS((FILE * fp));
+</PRE>
+<H2>Stream given file</H2>
+<PRE>extern HTStream * HTFWriter_new PARAMS((FILE * fp));
 
-extern HTStream * HTSaveAndExecute PARAMS((
-	HTPresentation *	pres,
-	HTParentAnchor *	anchor,	/* Not used */
-	HTStream *		sink));
+</PRE>
+<H2>Converters</H2>
+<PRE>extern HTConverter HTSaveAndExecute, HTSaveLocally, HTSaveAndCallBack;
+/*
+extern HTStream * HTSaveAndExecute PARAMS((HTRequest * request,
+					HTFormat input_format,
+					HTFormat output_format,
+				     	HTStream * output_stream));
 
-extern HTStream * HTSaveLocally PARAMS((
-	HTPresentation *	pres,
-	HTParentAnchor *	anchor,	/* Not used */
-	HTStream *		sink));
+extern HTStream * HTSaveLocally PARAMS((HTRequest * request,
+					HTFormat input_format,
+					HTFormat output_format,
+				     	HTStream * output_stream));
+
+extern HTStream * HTSaveAndCallBack PARAMS((HTRequest * request,
+					HTFormat input_format,
+					HTFormat output_format,
+				     	HTStream * output_stream));
+*/
 
 #endif
-</PRE>end</BODY>
+</PRE>end</A></BODY>
 </HTML>

@@ -435,7 +435,8 @@ PRIVATE void read_article NOARGS
 	(*targetClass.end_element)(target, HTML_ADDRESS);
     
 	if (newsgroups || references) {
-	    (*targetClass.start_element)(target, HTML_DLC , 0, 0);
+	    (*targetClass.start_element)(target, HTML_DL , 0, 0);
+	    	/* @@@@@@@@@@ SHOULD BE COMPACT */
 	    if (newsgroups) {
 	        (*targetClass.start_element)(target, HTML_DT , 0, 0);
 		PUTS("Newsgroups:");
@@ -451,7 +452,7 @@ PRIVATE void read_article NOARGS
 		write_anchors(references);
 		free(references);
 	    }
-	    (*targetClass.end_element)(target, HTML_DLC);
+	    (*targetClass.end_element)(target, HTML_DL);
 	}
 	PUTS("\n\n\n");
 	
@@ -826,11 +827,9 @@ PRIVATE void read_group ARGS3(
 /*		Load by name					HTLoadNews
 **		============
 */
-PUBLIC int HTLoadNews ARGS4(
+PUBLIC int HTLoadNews ARGS2(
 	CONST char *,		arg,
-	HTParentAnchor *,	anAnchor,
-	HTFormat,		format_out,
-	HTStream*,		stream)
+	HTRequest *,		request)
 {
     char command[257];			/* The whole command */
     char groupName[GROUP_NAME_LENGTH];	/* Just the group name */
@@ -840,7 +839,7 @@ PUBLIC int HTLoadNews ARGS4(
     BOOL list_wanted;			/* Flag: group was asked for, not article */
     int first, last;			/* First and last articles asked for */
 
-    diagnostic = (format_out == WWW_SOURCE);	/* set global flag */
+    diagnostic = (request->output_format == WWW_SOURCE);	/* set global flag */
     
     if (TRACE) fprintf(stderr, "HTNews: Looking for %s\n", arg);
     
@@ -904,8 +903,8 @@ PUBLIC int HTLoadNews ARGS4(
     
 /*	Make a hypertext object with an anchor list.
 */       
-    node_anchor = anAnchor;
-    target = HTML_new(anAnchor, format_out, stream);
+    node_anchor = request->anchor;
+    target = HTML_new(request->anchor, request->output_format, request->output_stream);
     targetClass = *target->isa;	/* Copy routine entry points */
     
     	
@@ -926,7 +925,7 @@ PUBLIC int HTLoadNews ARGS4(
 		sprintf(message,
 "\nCould not access %s.\n\n (Check default WorldWideWeb NewsHost ?)\n",
 		    HTNewsHost);
-		return HTLoadError(stream, 500, message);
+		return HTLoadError(request->output_stream, 500, message);
 	    } else {
 		if (TRACE) fprintf(stderr, "HTNews: Connected to news host %s.\n",
 				HTNewsHost);
@@ -938,7 +937,7 @@ PUBLIC int HTLoadNews ARGS4(
 			sprintf(message, 
 		  "Can't read news info. News host %.20s responded: %.200s",
 		  	    HTNewsHost, response_text);
-		        return HTLoadError(stream, 500, message);
+		        return HTLoadError(request->output_stream, 500, message);
 		}
 	    }
 	} /* If needed opening */
@@ -980,4 +979,4 @@ PUBLIC int HTLoadNews ARGS4(
     return HT_LOADED;
 }
 
-GLOBALDEF PUBLIC HTProtocol HTNews = { "news", HTLoadNews, NULL };
+GLOBALDEF PUBLIC HTProtocol HTNews = { "news", HTLoadNews, NULL, NULL};

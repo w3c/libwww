@@ -1,19 +1,20 @@
-<HEADER>
+<HTML>
+<HEAD>
 <TITLE>A parser for WAIS source files</TITLE>
-<NEXTID N="5">
-</HEADER>
+<NEXTID N="z5">
+</HEAD>
 <BODY>
 <H1>WAIS Source file parser</H1>This converter returns a <A
-NAME=z1 HREF="Overview.html#z37">stream</A> object
+NAME="z1" HREF="Overview.html#z37">stream</A> object
 into which a <A
-NAME=z3 HREF="../../../Products/WAIS/Overview.html">WAIS</A> source file can
+NAME="z3" HREF="../../../Products/WAIS/Overview.html">WAIS</A> source file can
 be written.  The result is put via
 a <A
-NAME=z2 HREF="Overview.html#z38">structured stream</A> into whatever
+NAME="z2" HREF="Overview.html#z38">structured stream</A> into whatever
 format was required for the output
 stream.<P>
 See also: <A
-NAME=z4 HREF="HTWAIS.html">HTWAIS</A> protocol interface
+NAME="z4" HREF="HTWAIS.html">HTWAIS</A> protocol interface
 module
 <PRE>#ifndef HTWSRC_H
 #define HTWSRC_H
@@ -21,10 +22,7 @@ module
 
 #include "HTFormat.h"
 
-extern  HTStream* HTWSRCConvert PARAMS((
-	HTPresentation *	pres,
-	HTParentAnchor *	anchor,	
-	HTStream *		sink));
+extern  HTConverter HTWSRCConvert;
 
 </PRE>
 <H2>Escaping Strings</H2>HTDeSlash takes out the invlaid characters
@@ -42,5 +40,6 @@ extern char * HTEnSlash PARAMS((CONST char * str));
 
 </PRE>
 <ADDRESS><A
-NAME=0 HREF="http://info.cern.ch./hypertext/TBL_Disclaimer.html">Tim BL</A></A>
+NAME="0" HREF="http://info.cern.ch./hypertext/TBL_Disclaimer.html">Tim BL</A></A>
 </ADDRESS></BODY>
+</HTML>

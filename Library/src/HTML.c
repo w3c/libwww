@@ -9,9 +9,10 @@
 **	Override this module if making a new GUI browser.
 **
 */
+
 #include "HTML.h"
 
-/* #define CAREFUL		 Check nesting here notreally necessary */
+/* #define CAREFUL		 Check nesting here not really necessary */
 
 #include <ctype.h>
 #include <stdio.h>
@@ -30,7 +31,7 @@ extern HTStyleSheet * styleSheet;	/* Application-wide */
 /*	Module-wide style cache
 */
 PRIVATE int 		got_styles = 0;
-PRIVATE HTStyle *styles[HTML_ELEMENTS];
+PRIVATE HTStyle *styles[HTMLP_ELEMENTS];
 PRIVATE HTStyle *default_style;
 
 
@@ -56,7 +57,9 @@ struct _HTStructured {
     
     char *			comment_start;	/* for literate programming */
     char *			comment_end;
-
+    
+    CONST SGML_dtd*		dtd;
+    
     HTTag *			current_tag;
     BOOL			style_change;
     HTStyle *			new_style;
@@ -446,9 +449,9 @@ PRIVATE void HTML_write ARGS3(HTStructured *, me, CONST char*, s, int, l)
 */
 PRIVATE void HTML_start_element ARGS4(
 	HTStructured *, 	me,
-	int,		element_number,
+	int,			element_number,
 	CONST BOOL*,	 	present,
-	CONST char **,	value)
+	CONST char **,		value)
 {
     switch (element_number) {
     case HTML_A:
@@ -463,8 +466,8 @@ PRIVATE void HTML_start_element ARGS4(
 		me->node_anchor,				/* parent */
 		present[HTML_A_NAME] ? value[HTML_A_NAME] : 0,	/* Tag */
 		present[HTML_A_HREF] ? href : 0,		/* Addresss */
-		present[HTML_A_TYPE] && value[HTML_A_TYPE] ? 
-			(HTLinkType*)HTAtom_for(value[HTML_A_TYPE])
+		present[HTML_A_REL] && value[HTML_A_REL] ? 
+			(HTLinkType*)HTAtom_for(value[HTML_A_REL])
 			    			: 0);
 	    
 	    if (present[HTML_A_TITLE] && value[HTML_A_TITLE]) {
@@ -502,7 +505,7 @@ PRIVATE void HTML_start_element ARGS4(
     case HTML_HR: 
 	UPDATE_STYLE;
 	HText_appendCharacter(me->text, '\n');
-	HText_appendCharacter(me->text, "___________________________________");
+	HText_appendText(me->text, "___________________________________");
 	HText_appendCharacter(me->text, '\n');
 	me->in_word = NO;
 	break;
@@ -515,7 +518,7 @@ PRIVATE void HTML_start_element ARGS4(
 
     case HTML_DL:
         change_paragraph_style(me, present && present[DL_COMPACT]
-    		? styles[HTML_DLC]
+    		? styles[HTML_DL]
 		: styles[HTML_DL]);
 	break;
 	
@@ -593,7 +596,7 @@ PRIVATE void HTML_start_element ARGS4(
 
     } /* end switch */
 
-    if (HTML_dtd.tags[element_number].contents!= SGML_EMPTY) {
+    if (me->dtd->tags[element_number].contents!= SGML_EMPTY) {
         if (me->sp == me->stack) {
 	    fprintf(stderr, "HTML: ****** Maximum nesting of %d exceded!\n",
 	    MAX_NESTING); 
@@ -626,8 +629,8 @@ PRIVATE void HTML_end_element ARGS2(HTStructured *, me, int , element_number)
 #ifdef CAREFUL			/* parser assumed to produce good nesting */
     if (element_number != me->sp[0].tag_number) {
         fprintf(stderr, "HTMLText: end of element %s when expecting end of %s\n",
-		HTML_dtd.tags[element_number].name,
-		HTML_dtd.tags[me->sp->tag_number].name);
+		me->dtd->tags[element_number].name,
+		me->dtd->tags[me->sp->tag_number].name);
 		/* panic */
     }
 #endif
@@ -733,7 +736,7 @@ PRIVATE void get_styles NOARGS
     styles[HTML_OL] =		HTStyleNamed(styleSheet, "List");
     styles[HTML_MENU] =		HTStyleNamed(styleSheet, "Menu");
     styles[HTML_DIR] =		HTStyleNamed(styleSheet, "Dir");    
-    styles[HTML_DLC] =		HTStyleNamed(styleSheet, "GlossaryCompact");
+/*  styles[HTML_DLC] =		HTStyleNamed(styleSheet, "GlossaryCompact"); */
     styles[HTML_ADDRESS]=	HTStyleNamed(styleSheet, "Address");
     styles[HTML_BLOCKQUOTE]=	HTStyleNamed(styleSheet, "BlockQuote");
     styles[HTML_PLAINTEXT] =
@@ -761,23 +764,26 @@ PUBLIC CONST HTStructuredClass HTMLPresentation = /* As opposed to print etc */
 /*		New Structured Text object
 **		--------------------------
 **
-**	The strutcured stream can generate either presentation,
+**	The structured stream can generate either presentation,
 **	or plain text, or HTML.
 */
-PUBLIC HTStructured* HTML_new ARGS3(
-	HTParentAnchor *, 	anchor,
-	HTFormat,		format_out,
-	HTStream*,		stream)
+PUBLIC HTStructured* HTML_new ARGS5(
+	HTRequest *,		request,
+	void *,			param,
+	HTFormat,		input_format,
+	HTFormat,		output_format,
+	HTStream *,		output_stream)
 {
 
     HTStructured * me;
     
-    if (format_out != WWW_PLAINTEXT && format_out != WWW_PRESENT) {
-        HTStream * intermediate = HTStreamStack(WWW_HTML, format_out,
-		stream, anchor);
+    if (output_format != WWW_PLAINTEXT
+    	&& output_format != WWW_PRESENT
+	&& output_format != HTAtom_for("text/x-c")) {
+        HTStream * intermediate = HTStreamStack(WWW_HTML, request);
 	if (intermediate) return HTMLGenerator(intermediate);
         fprintf(stderr, "** Internal error: can't parse HTML to %s\n",
-       		HTAtom_name(format_out));
+       		HTAtom_name(output_format));
 	exit (-99);
     }
 
@@ -787,7 +793,8 @@ PUBLIC HTStructured* HTML_new ARGS3(
     if (!got_styles) get_styles();
 
     me->isa = &HTMLPresentation;
-    me->node_anchor =  anchor;
+    me->dtd = &DTD;
+    me->node_anchor =  request->anchor;
     me->title.size = 0;
     me->title.growby = 128;
     me->title.allocated = 0;
@@ -802,8 +809,8 @@ PUBLIC HTStructured* HTML_new ARGS3(
     
     me->comment_start = NULL;
     me->comment_end = NULL;
-    me->target = stream;
-    if (stream) me->targetClass = *stream->isa;	/* Copy pointers */
+    me->target = output_stream;
+    if (output_stream) me->targetClass = *output_stream->isa;	/* Copy pointers */
     
     return (HTStructured*) me;
 }
@@ -814,12 +821,15 @@ PUBLIC HTStructured* HTML_new ARGS3(
 **
 **	This will convert from HTML to presentation or plain text.
 */
-PUBLIC HTStream* HTMLToPlain ARGS3(
-	HTPresentation *,	pres,
-	HTParentAnchor *,	anchor,	
-	HTStream *,		sink)
+PUBLIC HTStream* HTMLToPlain ARGS5(
+	HTRequest *,		request,
+	void *,			param,
+	HTFormat,		input_format,
+	HTFormat,		output_format,
+	HTStream *,		output_stream)
 {
-    return SGML_new(&HTML_dtd, HTML_new(anchor, pres->rep_out, sink));
+    return SGML_new(&DTD, HTML_new(
+    	request, NULL, input_format, output_format, output_stream));
 }
 
 
@@ -830,20 +840,23 @@ PUBLIC HTStream* HTMLToPlain ARGS3(
 **	is commented out.
 **	This will convert from HTML to presentation or plain text.
 */
-PUBLIC HTStream* HTMLToC ARGS3(
-	HTPresentation *,	pres,
-	HTParentAnchor *,	anchor,	
-	HTStream *,		sink)
+PUBLIC HTStream* HTMLToC ARGS5(
+	HTRequest *,		request,
+	void *,			param,
+	HTFormat,		input_format,
+	HTFormat,		output_format,
+	HTStream *,		output_stream)
 {
     
     HTStructured * html;
     
-    (*sink->isa->put_string)(sink, "/* ");	/* Before even title */
-    html = HTML_new(anchor, WWW_PLAINTEXT, sink);
+    (*output_stream->isa->put_string)(output_stream, "/* "); /* Before even title */
+    html = HTML_new(request, NULL, input_format, output_format, output_stream);
     html->comment_start = "/* ";
+    html->dtd = &DTD;
     html->comment_end = " */\n";	/* Must start in col 1 for cpp */
 /*    HTML_put_string(html,html->comment_start); */
-    return SGML_new(&HTML_dtd, html);
+    return SGML_new(&DTD, html);
 }
 
 
@@ -855,12 +868,15 @@ PUBLIC HTStream* HTMLToC ARGS3(
 **	Override this if you have a windows version
 */
 #ifndef GUI
-PUBLIC HTStream* HTMLPresent ARGS3(
-	HTPresentation *,	pres,
-	HTParentAnchor *,	anchor,	
-	HTStream *,		sink)
+PUBLIC HTStream* HTMLPresent ARGS5(
+	HTRequest *,		request,
+	void *,			param,
+	HTFormat,		input_format,
+	HTFormat,		output_format,
+	HTStream *,		output_stream)
 {
-    return SGML_new(&HTML_dtd, HTML_new(anchor, WWW_PRESENT, sink));
+    return SGML_new(&DTD, HTML_new(
+    	request, NULL, input_format, output_format, output_stream));
 }
 #endif
 

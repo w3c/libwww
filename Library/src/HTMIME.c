@@ -49,8 +49,8 @@ struct _HTStream {
 	char *			value_pointer;	/* storing values */
 	char 			value[VALUE_SIZE];
 	
-	HTParentAnchor *	anchor;		/* Given on creation */
 	HTStream *		sink;		/* Given on creation */
+	HTRequest *		request;	/* Given on creation */
 	
 	char *			boundary;	/* For multipart */
 	
@@ -127,8 +127,7 @@ PRIVATE void HTMIME_put_character ARGS2(HTStream *, me, char, c)
 	        if (TRACE) fprintf(stderr,
 			"HTMIME: MIME content type is %s, converting to %s\n",
 			HTAtom_name(me->format), HTAtom_name(me->targetRep));
-		me->target = HTStreamStack(me->format, me->targetRep,
-	 		me->sink , me->anchor);
+		me->target = HTStreamStack(me->targetRep, me->request);
 		if (!me->target) {
 		    if (TRACE) fprintf(stderr, "MIME: Can't translate! ** \n");
 		    me->target = me->sink;	/* Cheat */
@@ -317,10 +316,12 @@ PRIVATE CONST HTStreamClass HTMIME =
 **	-------------------------
 */
 
-PUBLIC HTStream* HTMIMEConvert ARGS3(
-	HTPresentation *,	pres,
-	HTParentAnchor *,	anchor,
-	HTStream *,		sink)
+PUBLIC HTStream* HTMIMEConvert ARGS5(
+	HTRequest *,		request,
+	void *,			param,
+	HTFormat,		input_format,
+	HTFormat,		output_format,
+	HTStream *,		output_stream)
 {
     HTStream* me;
     
@@ -328,23 +329,26 @@ PUBLIC HTStream* HTMIMEConvert ARGS3(
     if (me == NULL) outofmem(__FILE__, "HTML_new");
     me->isa = &HTMIME;       
 
-    me->sink = 		sink;
-    me->anchor = 	anchor;
+    me->sink = 		output_stream;
+    me->request = 	request;
     me->target = 	NULL;
     me->state = 	BEGINNING_OF_LINE;
     me->format = 	WWW_PLAINTEXT;
-    me->targetRep = 	pres->rep_out;
+    me->targetRep = 	output_format;
     me->boundary = 	0;		/* Not set yet */
     me->net_ascii = 	NO;	/* Local character set */
     return me;
 }
 
-PUBLIC HTStream* HTNetMIME ARGS3(
-	HTPresentation *,	pres,
-	HTParentAnchor *,	anchor,
-	HTStream *,		sink)
+PUBLIC HTStream* HTNetMIME ARGS5(
+	HTRequest *,		request,
+	void *,			param,
+	HTFormat,		input_format,
+	HTFormat,		output_format,
+	HTStream *,		output_stream)
 {
-    HTStream* me = HTMIMEConvert(pres,anchor, sink);
+    HTStream* me = HTMIMEConvert(
+    	request, param, input_format, output_format, output_stream);
     if (!me) return NULL;
     
     me->net_ascii = YES;

@@ -54,7 +54,7 @@ struct _HTStream {
     int 		current_attribute_number;
     HTChunk		*string;
     HTElement		*element_stack;
-    enum sgml_state { S_text, S_litteral, S_tag, S_tag_gap, 
+    enum sgml_state { S_text, S_literal, S_tag, S_tag_gap, 
 		S_attr, S_attr_gap, S_equals, S_value,
 		S_ero, S_cro,
 		  S_squoted, S_dquoted, S_end, S_entity, S_junk_tag} state;
@@ -343,21 +343,21 @@ PUBLIC void SGML_character ARGS2(HTStream *, context, char,c)
 	    string->size = 0;
 	    context->state = (context->element_stack &&
 	    		context->element_stack->tag  &&
-	    		context->element_stack->tag->contents == SGML_LITTERAL) ?
-	    			S_litteral : S_tag;
+	    		context->element_stack->tag->contents == SGML_LITERAL) ?
+	    			S_literal : S_tag;
 	} else PUTC(c);
 	break;
 
-/*	In litteral mode, waits only for specific end tag!
+/*	In literal mode, waits only for specific end tag!
 **	Only foir compatibility with old servers.
 */
-    case S_litteral :
+    case S_literal :
 	HTChunkPutc(string, c);
 	if ( TOUPPER(c) != ((string->size ==1) ? '/'
 		: context->element_stack->tag->name[string->size-2])) {
 	    int i;
 	    
-	    /*	If complete match, end litteral */
+	    /*	If complete match, end literal */
 	    if ((c=='>') && (!context->element_stack->tag->name[string->size-2])) {
 		end_element(context, context->element_stack->tag);
 		string->size = 0;

@@ -428,16 +428,19 @@ HTStreamClass WSRCParserClass = {
 /*		Converter from WAIS Source to whatever
 **		--------------------------------------
 */
-PUBLIC HTStream* HTWSRCConvert ARGS3(
-	HTPresentation *,	pres,
-	HTParentAnchor *,	anchor,	
-	HTStream *,		sink)
+PUBLIC HTStream* HTWSRCConvert ARGS5(
+	HTRequest *,		request,
+	void *,			param,
+	HTFormat,		input_format,
+	HTFormat,		output_format,
+	HTStream *,		output_stream)
 {
     HTStream * me = (HTStream*) malloc(sizeof(*me));
     if (!me) outofmem(__FILE__, "HTWSRCConvert");
 
     me->isa = &WSRCParserClass;
-    me->target = HTML_new(anchor, pres->rep_out, sink);
+    me->target = HTML_new(request,
+    		param, input_format, output_format,output_stream);
 
     {
 	int p;

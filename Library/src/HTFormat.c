@@ -33,7 +33,7 @@ PUBLIC float HTMaxLength = 1e10;	/* No effective limit */
 #include "tcp.h"
 
 #include "HTML.h"
-#include "HTMLDTD.h"
+#include "HTMLPDTD.h"
 #include "HText.h"
 #include "HTAlert.h"
 #include "HTList.h"
@@ -68,19 +68,20 @@ struct _HTStream {
 **	--------------------
 */
 
-PUBLIC  HTList * HTPresentations = 0;
-PUBLIC  HTPresentation* default_presentation = 0;
+/* PUBLIC  HTList * HTPresentations = 0;		*/
+/* PUBLIC  HTPresentation* default_presentation = 0;	*/
 
 
 /*	Define a presentation system command for a content-type
 **	-------------------------------------------------------
 */
-PUBLIC void HTSetPresentation ARGS5(
-	CONST char *, representation,
-	CONST char *, command,
-	float,	quality,
-	float,	secs, 
-	float,	secs_per_byte
+PUBLIC void HTSetPresentation ARGS6(
+	HTList *,	conversions,
+	CONST char *, 	representation,
+	CONST char *, 	command,
+	float,		quality,
+	float,		secs, 
+	float,		secs_per_byte
 ){
 
     HTPresentation * pres = (HTPresentation *)malloc(sizeof(HTPresentation));
@@ -96,27 +97,28 @@ PUBLIC void HTSetPresentation ARGS5(
     pres->command = 0;
     StrAllocCopy(pres->command, command);
     
-    if (!HTPresentations) HTPresentations = HTList_new();
+/*    if (!HTPresentations) HTPresentations = HTList_new(); */
     
-    if (strcmp(representation, "*")==0) {
+#ifdef OLD_CODE    if (strcmp(representation, "*")==0) {
         if (default_presentation) free(default_presentation);
 	default_presentation = pres;
-    } else {
-        HTList_addObject(HTPresentations, pres);
-    }
+    } else 
+#endif
+    HTList_addObject(conversions, pres);
 }
 
 
 /*	Define a built-in function for a content-type
 **	---------------------------------------------
 */
-PUBLIC void HTSetConversion ARGS6(
-	CONST char *, representation_in,
-	CONST char *, representation_out,
+PUBLIC void HTSetConversion ARGS7(
+	HTList *,	conversions,
+	CONST char *, 	representation_in,
+	CONST char *, 	representation_out,
 	HTConverter*,	converter,
-	float,	quality,
-	float,	secs, 
-	float,	secs_per_byte
+	float,		quality,
+	float,		secs, 
+	float,		secs_per_byte
 ){
 
     HTPresentation * pres = (HTPresentation *)malloc(sizeof(HTPresentation));
@@ -131,14 +133,15 @@ PUBLIC void HTSetConversion ARGS6(
     pres->secs_per_byte = secs_per_byte;
     pres->command = 0;
     
-    if (!HTPresentations) HTPresentations = HTList_new();
+/*    if (!HTPresentations) HTPresentations = HTList_new();  */
     
+#ifdef OLD_CODE
     if (strcmp(representation_in, "*")==0) {
         if (default_presentation) free(default_presentation);
 	default_presentation = pres;
-    } else {
-        HTList_addObject(HTPresentations, pres);
-    }
+    } else 
+#endif
+    HTList_addObject(conversions, pres);
 }
 
 
@@ -224,12 +227,12 @@ PUBLIC int HTOutputBinary ARGS2( int, 		input,
 **	The www/source format is special, in that if you can take
 **	that you can take anything. However, we
 */
-PUBLIC HTStream * HTStreamStack ARGS4(
+PUBLIC HTStream * HTStreamStack ARGS2(
 	HTFormat,		rep_in,
-	HTFormat,		rep_out,
-	HTStream*,		sink,
-	HTParentAnchor*,	anchor)
+	HTRequest *,		request)
 {
+    HTFormat rep_out = request->output_format;	/* Could be a param */
+    HTList * conversions = request->conversions; /* Could be a param */
     HTAtom * wildcard = HTAtom_for("*");
     HTFormat source = WWW_SOURCE;
     if (TRACE) fprintf(stderr,
@@ -238,20 +241,21 @@ PUBLIC HTStream * HTStreamStack ARGS4(
 	HTAtom_name(rep_out));
 		
     if (rep_out == WWW_SOURCE ||
-    	rep_out == rep_in) return sink;
+    	rep_out == rep_in) return request->output_stream;
 
-    if (!HTPresentations) HTFormatInit();	/* set up the list */
+/*    if (!HTPresentations) HTFormatInit(); */	/* set up the list */
     
     {
-	int n = HTList_count(HTPresentations);
+	int n = HTList_count(conversions);
 	int i;
 	HTPresentation * pres, *match, *wildcard_match=0,
 			*source_match=0, *source_wildcard_match=0;
 	for(i=0; i<n; i++) {
-	    pres = HTList_objectAt(HTPresentations, i);
+	    pres = HTList_objectAt(conversions, i);
 	    if (pres->rep == rep_in) {
 	        if (pres->rep_out == rep_out)
-	            return (*pres->converter)(pres, anchor, sink);
+	            return (*pres->converter)(request, pres->command,
+		    		rep_in, pres->rep_out, request->output_stream);
 		if (pres->rep_out == wildcard) {
 		    wildcard_match = pres;
 		}
@@ -269,18 +273,14 @@ PUBLIC HTStream * HTStreamStack ARGS4(
 		source_match ?	source_match : 
 		source_wildcard_match;
 	
-	if (match) {
-		HTPresentation temp;
-		temp = *match;			/* Specific instance */
-		temp.rep = rep_in;		/* yuk */
-		temp.rep_out = rep_out;		/* yuk */
-		return (*match->converter)(&temp, anchor, sink);
-        }
+	if (match) return (*match->converter)(
+		    request, match->command, rep_in, rep_out,
+		    request->output_stream);
     }
 
     
 #ifdef XMOSAIC_HACK_REMOVED_NOW  /* Use above source method instead */
-    return sink;
+    return request->output_stream;
 #else
     return NULL;
 #endif
@@ -295,7 +295,8 @@ PUBLIC HTStream * HTStreamStack ARGS4(
 ** On entry,
 **	length	The size of the data to be converted
 */
-PUBLIC float HTStackValue ARGS4(
+PUBLIC float HTStackValue ARGS5(
+	HTList *,		conversions,
 	HTFormat,		rep_in,
 	HTFormat,		rep_out,
 	float,			initial_value,
@@ -311,14 +312,14 @@ PUBLIC float HTStackValue ARGS4(
     if (rep_out == WWW_SOURCE ||
     	rep_out == rep_in) return 0.0;
 
-    if (!HTPresentations) HTFormatInit();	/* set up the list */
+ /*   if (!HTPresentations) HTFormatInit();	 set up the list */
     
     {
-	int n = HTList_count(HTPresentations);
+	int n = HTList_count(conversions);
 	int i;
 	HTPresentation * pres;
 	for(i=0; i<n; i++) {
-	    pres = HTList_objectAt(HTPresentations, i);
+	    pres = HTList_objectAt(conversions, i);
 	    if (pres->rep == rep_in && (
 	    		pres->rep_out == rep_out ||
 			pres->rep_out == wildcard)) {
@@ -474,26 +475,22 @@ PUBLIC void HTCopyNoCR ARGS2(
 **   when the format is textual.
 **
 */
-PUBLIC int HTParseSocket ARGS5(
+PUBLIC int HTParseSocket ARGS3(
 	HTFormat,		rep_in,
-	HTFormat,		format_out,
-	HTParentAnchor *,	anchor,
 	int,			file_number,
-	HTStream*,		sink)
+	HTRequest *,		request)
 {
     HTStream * stream;
     HTStreamClass targetClass;    
 
-    stream = HTStreamStack(rep_in,
-			format_out,
-	 		sink , anchor);
+    stream = HTStreamStack(rep_in, request);
     
     if (!stream) {
         char buffer[1024];	/* @@@@@@@@ */
 	sprintf(buffer, "Sorry, can't convert from %s to %s.",
-		HTAtom_name(rep_in), HTAtom_name(format_out));
+		HTAtom_name(rep_in), HTAtom_name(request->output_format));
 	if (TRACE) fprintf(stderr, "HTFormat: %s\n", buffer);
-        return HTLoadError(sink, 501, buffer);
+        return HTLoadError(request->output_stream, 501, buffer);
     }
     
 /*	Push the data, ignoring CRLF if necessary, down the stream
@@ -528,26 +525,22 @@ PUBLIC int HTParseSocket ARGS5(
 **   when the format is textual.
 **
 */
-PUBLIC int HTParseFile ARGS5(
+PUBLIC int HTParseFile ARGS3(
 	HTFormat,		rep_in,
-	HTFormat,		format_out,
-	HTParentAnchor *,	anchor,
 	FILE *,			fp,
-	HTStream*,		sink)
+	HTRequest *,		request)
 {
     HTStream * stream;
     HTStreamClass targetClass;    
 
-    stream = HTStreamStack(rep_in,
-			format_out,
-	 		sink , anchor);
+    stream = HTStreamStack(rep_in, request);
     
     if (!stream) {
         char buffer[1024];	/* @@@@@@@@ */
 	sprintf(buffer, "Sorry, can't convert from %s to %s.",
-		HTAtom_name(rep_in), HTAtom_name(format_out));
+		HTAtom_name(rep_in), HTAtom_name(request->output_format));
 	if (TRACE) fprintf(stderr, "HTFormat(in HTParseFile): %s\n", buffer);
-        return HTLoadError(sink, 501, buffer);
+        return HTLoadError(request->output_stream, 501, buffer);
     }
     
 /*	Push the data down the stream

@@ -19,7 +19,7 @@
 #include "HTMLGen.h"
 
 #include <stdio.h>
-#include "HTMLDTD.h"
+#include "HTMLPDTD.h"
 #include "HTStream.h"
 #include "SGML.h"
 #include "HTFormat.h"
@@ -43,6 +43,7 @@ struct _HTStructured {
 	CONST HTStructuredClass *	isa;
 	HTStream * 			target;
 	HTStreamClass			targetClass;	/* COPY for speed */
+	CONST SGML_dtd *		dtd;
 	
 	char				buffer[BUFFER_SIZE+1]; /* 1for NL */
 	char *				write_pointer;
@@ -172,7 +173,7 @@ PRIVATE void HTMLGen_start_element ARGS4(
     int i;
     
     BOOL was_preformatted = me->preformatted;
-    HTTag * tag = &HTML_dtd.tags[element_number];
+    HTTag * tag = &me->dtd->tags[element_number];
 
     me->preformatted = NO;	/* free text within tags */
     HTMLGen_put_character(me, '<');
@@ -216,14 +217,14 @@ PRIVATE void HTMLGen_start_element ARGS4(
 PRIVATE void HTMLGen_end_element ARGS2(HTStructured *, me,
 			int , element_number)
 {
-    if (HTML_dtd.tags[element_number].contents != SGML_EMPTY) {
+    if (me->dtd->tags[element_number].contents != SGML_EMPTY) {
     				/* can break before element end */ 
     	me->line_break = me->write_pointer;	/* Don't you hate SGML?  */
 	me->cleanness = 1;
 	me->delete_line_break_char = NO;
     }
     HTMLGen_put_string(me, "</");
-    HTMLGen_put_string(me, HTML_dtd.tags[element_number].name);
+    HTMLGen_put_string(me, me->dtd->tags[element_number].name);
     HTMLGen_put_character(me, '>');
     if (element_number == HTML_PRE) me->preformatted = NO;
 }
@@ -237,7 +238,7 @@ PRIVATE void HTMLGen_end_element ARGS2(HTStructured *, me,
 PRIVATE void HTMLGen_put_entity ARGS2(HTStructured *, me, int, entity_number)
 {
     HTMLGen_put_character(me, '&');
-    HTMLGen_put_string(me, HTML_dtd.entity_names[entity_number]);
+    HTMLGen_put_string(me, me->dtd->entity_names[entity_number]);
     HTMLGen_put_character(me, ';');
 }
 
@@ -302,6 +303,7 @@ PUBLIC HTStructured * HTMLGenerator ARGS1(HTStream *, output)
     HTStructured* me = (HTStructured*)malloc(sizeof(*me));
     if (me == NULL) outofmem(__FILE__, "HTMLGenerator");
     me->isa = &HTMLGeneration;       
+    me->dtd = &HTMLP_dtd;
 
     me->target = output;
     me->targetClass = *me->target->isa; /* Copy pointers to routines for speed*/
@@ -318,7 +320,7 @@ PUBLIC HTStructured * HTMLGenerator ARGS1(HTStream *, output)
 **	-------------------
 **
 **	This object just converts a plain text stream into HTML
-**	It is officially a structured strem but only the stream bits exist.
+**	It is officially a structured stream but only the stream bits exist.
 **	This is just the easiest way of typecasting all the routines.
 */
 PRIVATE CONST HTStructuredClass PlainToHTMLConversion =
@@ -339,16 +341,19 @@ PRIVATE CONST HTStructuredClass PlainToHTMLConversion =
 **	------------------------------------------
 */
 
-PUBLIC HTStream* HTPlainToHTML ARGS3(
-	HTPresentation *,	pres,
-	HTParentAnchor *,	anchor,	
-	HTStream *,		sink)
+PUBLIC HTStream* HTPlainToHTML ARGS5(
+	HTRequest *,		request,
+	void *,			param,
+	HTFormat,		input_format,
+	HTFormat,		output_format,
+	HTStream *,		output_stream)
 {
     HTStructured* me = (HTStructured*)malloc(sizeof(*me));
     if (me == NULL) outofmem(__FILE__, "PlainToHTML");
     me->isa = (HTStructuredClass*) &PlainToHTMLConversion;       
 
-    me->target = sink;
+    me->dtd = &HTMLP_dtd;
+    me->target = output_stream;
     me->targetClass = *me->target->isa;
     	/* Copy pointers to routines for speed*/
 	

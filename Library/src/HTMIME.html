@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<TITLE>/Net/dxcern/userd/timbl/hypertext/WWW/Library/Implementation/HTMIME.html</TITLE>
+<TITLE>HTMIME:   Parser of MIME format for libwww</TITLE>
 <NEXTID N="z2">
 </HEAD>
 <BODY>
@@ -39,17 +39,24 @@ are therefore two creation routines.
 
 </PRE>
 <H3>Input: Local text</H3>
-<PRE>extern HTStream * HTMIMEConvert PARAMS((HTPresentation * pres,
-					HTParentAnchor * anchor,
-				     	HTStream * sink));
+<PRE>/* extern HTStream * HTMIMEConvert PARAMS((HTRequest * request,
+					HTFormat input_format,
+					HTFormat output_format,
+				     	HTStream * output_stream));
+*/
+extern HTConverter HTMIMEConvert;
+
 </PRE>
 <H3>Input: Net ASCII</H3>
-<PRE>extern HTStream * HTNetMIME PARAMS((HTPresentation * pres,
-					HTParentAnchor * anchor,
-				     	HTStream * sink));
+<PRE>/* extern HTStream * HTNetMIME PARAMS((HTRequest * request,
+					HTFormat input_format,
+					HTFormat output_format,
+				     	HTStream * output_stream));
+*/
+extern HTConverter HTNetMIME;
 
 
 #endif
 
-</PRE>end of HTMIME</A></BODY>
+</PRE>end of HTMIME</BODY>
 </HTML>

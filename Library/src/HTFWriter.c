@@ -25,6 +25,9 @@ struct _HTStream {
 	char * 			end_command;
 	char * 			remove_command;
 	BOOL			announce;
+	char *			filename;
+	HTRequest *		request;	/* saved for callback */
+	BOOL (*callback) PARAMS((struct _HTRequest * req, void * filename));
 };
 
 
@@ -33,7 +36,7 @@ struct _HTStream {
 **		B L A C K    H O L E    C L A S S
 **
 **	There is only one black hole instance shared by anyone
-**	who wanst a black hole.  These black holes don't radiate,
+**	who wants a black hole.  These black holes don't radiate,
 **	they just absorb data.
 */
 PRIVATE void HTBlackHole_put_character ARGS2(HTStream *, me, char, c)
@@ -66,10 +69,14 @@ PRIVATE HTStream HTBlackHoleInstance =
 	NULL,
 	NULL,
 	NULL,
-	NO
+
+	NO,
+	NULL,
+	NULL,
+	NULL,
 };
 
-/*	Black hole craetion
+/*	Black hole creation
 */
 PUBLIC HTStream * HTBlackHole NOARGS
 {
@@ -136,7 +143,10 @@ PRIVATE void HTFWriter_free ARGS1(HTStream *, me)
 	    free(me->remove_command);
 	}
     }
-
+    if (me->callback) {
+        (*me->callback)(me->request, me->filename);
+    }
+    if (me->filename) free(me->filename);
     free(me);
 }
 
@@ -148,7 +158,8 @@ PRIVATE void HTFWriter_abort ARGS2(HTStream *, me, HTError, e)
     fclose(me->fp);
     if (me->end_command) {		/* Temp file */
 	if (TRACE) fprintf(stderr,
-		"HTFWriter: Aborting: file not executed.\n");
+		"HTFWriter: Aborting: file %s not executed.\n",
+		me->filename ? me->filename : "???" );
 	free (me->end_command);
 	if (me->remove_command) {
 	    system(me->remove_command);
@@ -156,6 +167,7 @@ PRIVATE void HTFWriter_abort ARGS2(HTStream *, me, HTError, e)
 	}
     }
 
+    if (me->filename) free(me->filename);
     free(me);
 }
 
@@ -192,7 +204,7 @@ PUBLIC HTStream* HTFWriter_new ARGS1(FILE *, fp)
     me->end_command = NULL;
     me->remove_command = NULL;
     me->announce = NO;
-
+    me->callback = NULL;
     return me;
 }
 
@@ -208,19 +220,20 @@ PUBLIC HTStream* HTFWriter_new ARGS1(FILE *, fp)
 /*	Take action using a system command
 **	----------------------------------
 **
-**	originally from Ghostview handling by Marc Andreseen.
 **	Creates temporary file, writes to it, executes system command
 **	on end-document.  The suffix of the temp file can be given
 **	in case the application is fussy, or so that a generic opener can
 **	be used.
 */
-PUBLIC HTStream* HTSaveAndExecute ARGS3(
-	HTPresentation *,	pres,
-	HTParentAnchor *,	anchor,	/* Not used */
-	HTStream *,		sink)	/* Not used */
+PUBLIC HTStream* HTSaveAndExecute ARGS5(
+	HTRequest *,		request,
+	void *,			param,
+	HTFormat,		input_format,
+	HTFormat,		output_format,
+	HTStream *,		output_stream)
 
 #ifdef unix
-#define REMOVE_COMMAND "/bin/rm -f %s\n"
+#define REMOVE_COMMAND "/bin/rm -f %s\n"	/* @@@ security @@@ */
 #endif
 #ifdef VMS
 #define REMOVE_COMMAND "delete/noconfirm/nolog %s.."
@@ -233,7 +246,7 @@ PUBLIC HTStream* HTSaveAndExecute ARGS3(
     
     HTStream* me;
     
-    if (HTClientHost) {
+    if (HTSecure) {
         HTAlert("Can't save data to file -- please run WWW locally");
 	return HTBlackHole();
     }
@@ -244,11 +257,12 @@ PUBLIC HTStream* HTSaveAndExecute ARGS3(
     
     /* Save the file under a suitably suffixed name */
     
-    suffix = HTFileSuffix(pres->rep);
+    suffix = HTFileSuffix(input_format);
 
     fnam = (char *)malloc (L_tmpnam + 16 + strlen(suffix));
     tmpnam (fnam);
     if (suffix) strcat(fnam, suffix);
+    me->filename = NULL;
     
     me->fp = fopen (fnam, "w");
     if (!me->fp) {
@@ -257,15 +271,16 @@ PUBLIC HTStream* HTSaveAndExecute ARGS3(
 	free(me);
 	return NULL;
     }
+    StrAllocCopy(me->filename, fnam);
 
 /*	Make command to process file
 */
     me->end_command = (char *)malloc (
-    			(strlen (pres->command) + 10+ 3*strlen(fnam))
+    			(strlen (param) + 10+ 3*strlen(fnam))
     			 * sizeof (char));
     if (me == NULL) outofmem(__FILE__, "SaveAndExecute");
     
-    sprintf (me->end_command, pres->command, fnam, fnam, fnam);
+    sprintf (me->end_command, param, fnam, fnam, fnam);
 
     me->remove_command = NULL;	/* If needed, put into end_command */
 #ifdef NOPE
@@ -284,7 +299,7 @@ PUBLIC HTStream* HTSaveAndExecute ARGS3(
     return me;
 }
 
-#else	/* can do remove */
+#else	/* can't do remove */
 { return NULL; }
 #endif
 
@@ -296,16 +311,17 @@ PUBLIC HTStream* HTSaveAndExecute ARGS3(
 **	GUI Apps should open local Save panel here really.
 **
 */
-PUBLIC HTStream* HTSaveLocally ARGS3(
-	HTPresentation *,	pres,
-	HTParentAnchor *,	anchor,	/* Not used */
-	HTStream *,		sink)	/* Not used */
+PUBLIC HTStream* HTSaveLocally ARGS5(
+	HTRequest *,		request,
+	void *,			param,
+	HTFormat,		input_format,
+	HTFormat,		output_format,
+	HTStream *,		output_stream)	/* Not used */
 
 {
     char *fnam;
-    char *answer;
     CONST char * suffix;
-    
+    char * answer;
     HTStream* me;
     
     if (HTClientHost) {
@@ -319,10 +335,11 @@ PUBLIC HTStream* HTSaveLocally ARGS3(
     me->end_command = NULL;
     me->remove_command = NULL;	/* If needed, put into end_command */
     me->announce = YES;
+    me->filename = NULL;
     
     /* Save the file under a suitably suffixed name */
     
-    suffix = HTFileSuffix(pres->rep);
+    suffix = HTFileSuffix(input_format);
 
     fnam = (char *)malloc (L_tmpnam + 16 + strlen(suffix));
     tmpnam (fnam);
@@ -340,13 +357,63 @@ PUBLIC HTStream* HTSaveLocally ARGS3(
 	free(me);
 	return NULL;
     }
-
-    free(answer);
+    me->callback = NULL;
+    me->request = request;	/* won't be freed */
+    me->filename = answer;	/* Will be freed */
     return me;
 }
 
 
-
-/*	Format Converter using system command
-**	-------------------------------------
+/*	Save and Call Back
+**	------------------
+**
+** Bugs: Cache management @@@@
+**
 */
+PUBLIC HTStream* HTSaveAndCallBack ARGS5(
+	HTRequest *,		request,
+	void *,			param,
+	HTFormat,		input_format,
+	HTFormat,		output_format,
+	HTStream *,		output_stream)
+
+{
+    char *fnam;
+    CONST char * suffix;
+    
+    HTStream* me;
+    
+    if (HTClientHost) {
+        HTAlert("Can't save data to file -- please run WWW locally");
+	return HTBlackHole();
+    }
+    
+    me = (HTStream*)malloc(sizeof(*me));
+    if (me == NULL) outofmem(__FILE__, "SaveLocally");
+    me->isa = &HTFWriter;  
+    me->end_command = NULL;
+    me->remove_command = NULL;	/* If needed, put into end_command */
+    me->announce = NO;
+    
+    /* Save the file under a suitably suffixed name */
+    
+    suffix = HTFileSuffix(input_format);
+
+    fnam = (char *)malloc (L_tmpnam + 16 + strlen(suffix));
+    tmpnam (fnam);
+    if (suffix) strcat(fnam, suffix);
+    me->filename = NULL;
+    
+    me->fp = fopen (fnam, "w");
+    if (!me->fp) {
+	HTAlert("Can't open local file to write into for callback.");
+	free(fnam);
+	free(me);
+	return NULL;
+    }
+    me->callback = request->callback;
+    me->filename = fnam;   /* will be freed */
+    return me;
+}
+
+

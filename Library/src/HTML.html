@@ -1,17 +1,23 @@
 <HTML>
 <HEAD>
 <TITLE>HTML to rich text converter for libwww</TITLE>
-<NEXTID N="z1">
+<NEXTID N="z4">
 </HEAD>
 <BODY>
-<H1>The HTML to rtf object converter</H1>This interprets the <A
-NAME="z0" HREF="../../MarkUp/HTML.html">HTML</A> semantics.
+<H1>The HTML to styled text object converter</H1>This interprets the <A
+NAME="z0" HREF="../../MarkUp/MarkUp.html">HTML</A> semantics
+and some HTMLPlus.<P>
+Part of <A
+NAME="z2" HREF="Overview.html">libwww</A> . Implemented by <A
+NAME="z3" HREF="HTML.c">HTML.c</A>
 <PRE>#ifndef HTML_H
 #define HTML_H
 
 #include "HTUtils.h"
 #include "HTAnchor.h"
-#include "HTMLDTD.h"
+#include "HTMLPDTD.h"
+
+#define DTD HTMLP_dtd
 
 #ifdef SHORT_NAMES
 #define HTMLPresentation 	HTMLPren
@@ -21,30 +27,38 @@ NAME="z0" HREF="../../MarkUp/HTML.html">HTML</A> semantics.
 extern CONST HTStructuredClass HTMLPresentation;
 
 </PRE>
-<H2>HTConverter to present HTML</H2>
-<PRE>PUBLIC HTStream* HTMLToPlain PARAMS((
-	HTPresentation *	pres,
-	HTParentAnchor *	anchor,	
-	HTStream *		sink));
+<H2>HTConverter instances to present
+HTML</H2>
+<PRE>/* PUBLIC HTStream* HTMLToPlain PARAMS((HTRequest * request,
+					HTFormat input_format,
+					HTFormat output_format,
+				     	HTStream * output_stream));
 
-PUBLIC HTStream* HTMLToC PARAMS((
-	HTPresentation *	pres,
-	HTParentAnchor *	anchor,	
-	HTStream *		sink));
+PUBLIC HTStream* HTMLToC PARAMS((HTRequest * request,
+					HTFormat input_format,
+					HTFormat output_format,
+				     	HTStream * output_stream));
 
-PUBLIC HTStream* HTMLPresent PARAMS((
-	HTPresentation *	pres,
-	HTParentAnchor *	anchor,	
-	HTStream *		sink));
-
-extern HTStructured* HTML_new PARAMS((
-	HTParentAnchor * anchor,
-	HTFormat	format_out,
-	HTStream *	target));
-
-/*	Names for selected internal representations:
+PUBLIC HTStream* HTMLPresent PARAMS((HTRequest * request,
+					HTFormat input_format,
+					HTFormat output_format,
+				     	HTStream * output_stream));
 */
-typedef enum _HTMLCharacterSet {
+
+extern HTStructured* HTML_new PARAMS((HTRequest * request,
+					void *   param,
+					HTFormat input_format,
+					HTFormat output_format,
+				     	HTStream * output_stream));
+
+
+extern HTConverter HTMLToPlain, HTMLToC, HTMLPresent;
+
+
+</PRE>
+<H2>Selecting internal character set
+representations</H2>
+<PRE>typedef enum _HTMLCharacterSet {
 	HTML_ISO_LATIN1,
 	HTML_NEXT_CHARS,
 	HTML_PC_CP950
@@ -75,5 +89,12 @@ PUBLIC int HTLoadError PARAMS((
 #endif
 
 
-</BODY>
+
+
+
+
+
+
+
+</PRE></BODY>
 </HTML>

@@ -2,20 +2,16 @@
 <HEAD>
 <TITLE>/Net/dxcern/userd/timbl/hypertext/WWW/Library/Implementation/HTPlain.html</TITLE></HEAD>
 <BODY>
-<H1>Plain text object</H1>
+<H1>Plain text object</H1>What a small file!
 <PRE>#ifndef HTPLAIN_H
 #define HTPLAIN_H
 
-#include "HTStream.h"
-#include "HTAnchor.h"
+#include "HTFormat.h"
 
-extern HTStream* HTPlainPresent PARAMS((
-	HTPresentation *	pres,
-	HTParentAnchor *	anchor,	
-	HTStream *		sink));
-
+extern HTConverter HTPlainPresent;
 
 #endif
+
 
 </PRE></BODY>
 </HTML>

@@ -12,6 +12,7 @@
 #include "HTInit.h"
 
 #include "HTML.h"
+#include "HTList.h"
 #include "HTPlain.h"
 #include "HTMLGen.h"
 #include "HTFile.h"
@@ -20,33 +21,33 @@
 #include "HTWSRC.h"
 #include "HTFWriter.h"
 
-PUBLIC void HTFormatInit NOARGS
+PUBLIC void HTFormatInit ARGS1(HTList *, c)
 {
 #ifdef NeXT
-    HTSetPresentation("application/postscript", "open %s",	1.0, 2.0, 0.0);
+    HTSetPresentation(c,"application/postscript", "open %s",	1.0, 2.0, 0.0);
     /* The following needs the GIF previewer -- you might not have it. */
-    HTSetPresentation("image/gif", 		"open %s", 	0.3, 2.0, 0.0);
-    HTSetPresentation("image/x-tiff", 		"open %s", 	1.0, 2.0, 0.0);
-    HTSetPresentation("audio/basic", 		"open %s", 	1.0, 2.0, 0.0);
-    HTSetPresentation("*", 			"open %s", 	1.0, 0.0, 0.0);
+    HTSetPresentation(c,"image/gif", 		"open %s", 	0.3, 2.0, 0.0);
+    HTSetPresentation(c,"image/x-tiff", 		"open %s", 	1.0, 2.0, 0.0);
+    HTSetPresentation(c,"audio/basic", 		"open %s", 	1.0, 2.0, 0.0);
+    HTSetPresentation(c,"*", 			"open %s", 	1.0, 0.0, 0.0);
 #else
     if (getenv("DISPLAY")) {	/* Must have X11 */
-	HTSetPresentation("application/postscript", "ghostview %s",	1.0, 3.0, 0.0);
-	HTSetPresentation("image/gif", 		"xv %s",	1.0, 3.0, 0.0);
-	HTSetPresentation("image/x-tiff", 	"xv %s",	1.0, 3.0, 0.0);
-	HTSetPresentation("image/jpeg", 	"xv %s",	1.0, 3.0, 0.0);
+	HTSetPresentation(c,"application/postscript", "ghostview %s",	1.0, 3.0, 0.0);
+	HTSetPresentation(c,"image/gif", 		"xv %s",	1.0, 3.0, 0.0);
+	HTSetPresentation(c,"image/x-tiff", 	"xv %s",	1.0, 3.0, 0.0);
+	HTSetPresentation(c,"image/jpeg", 	"xv %s",	1.0, 3.0, 0.0);
     }
 #endif
-    HTSetConversion("www/mime",			"*",		HTMIMEConvert,	1.0, 0.0, 0.0);
-    HTSetConversion("application/x-wais-source","*",		HTWSRCConvert, 	1.0, 0.0, 0.0);
-    HTSetConversion("text/html",		"text/x-c",	HTMLToC,	0.5, 0.0, 0.0);
-    HTSetConversion("text/html",		"text/plain",	HTMLToPlain,	0.5, 0.0, 0.0);
-    HTSetConversion("text/html",		"www/present",	HTMLPresent,	1.0, 0.0, 0.0);
-    HTSetConversion("text/plain",		"text/html",	HTPlainToHTML,	1.0, 0.0, 0.0);
-    HTSetConversion("text/plain",		"www/present",	HTPlainPresent,	1.0, 0.0, 0.0);
-    HTSetConversion("application/octet-stream",	"www/present",	HTSaveLocally,	0.1, 0.0, 0.0);
-    HTSetConversion("www/unknown",		"www/present",	HTSaveLocally,	0.3, 0.0, 0.0);
-    HTSetConversion("www/source",		"www/present",	HTSaveLocally,	0.3, 0.0, 0.0);
+    HTSetConversion(c,"www/mime",			"*",		HTMIMEConvert,	1.0, 0.0, 0.0);
+    HTSetConversion(c,"application/x-wais-source","*",		HTWSRCConvert, 	1.0, 0.0, 0.0);
+    HTSetConversion(c,"text/html",		"text/x-c",	HTMLToC,	0.5, 0.0, 0.0);
+    HTSetConversion(c,"text/html",		"text/plain",	HTMLToPlain,	0.5, 0.0, 0.0);
+    HTSetConversion(c,"text/html",		"www/present",	HTMLPresent,	1.0, 0.0, 0.0);
+    HTSetConversion(c,"text/plain",		"text/html",	HTPlainToHTML,	1.0, 0.0, 0.0);
+    HTSetConversion(c,"text/plain",		"www/present",	HTPlainPresent,	1.0, 0.0, 0.0);
+    HTSetConversion(c,"application/octet-stream",	"www/present",	HTSaveLocally,	0.1, 0.0, 0.0);
+    HTSetConversion(c,"www/unknown",		"www/present",	HTSaveLocally,	0.3, 0.0, 0.0);
+    HTSetConversion(c,"www/source",		"www/present",	HTSaveLocally,	0.3, 0.0, 0.0);
 }
 
 

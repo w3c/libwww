@@ -1,7 +1,8 @@
-<HEADER>
+<HTML>
+<HEAD>
 <TITLE>HTAccess:  Access manager  for libwww</TITLE>
-<NEXTID N="1">
-</HEADER>
+<NEXTID N="z3">
+</HEAD>
 <BODY>
 <H1>Access Manager</H1>This module keeps a list of valid
 protocol (naming scheme) specifiers
@@ -10,8 +11,11 @@ allows documents to be loaded given
 various combinations of parameters.
 New access protocols may be registered
 at any time.<P>
+Note: HTRequest defined and request
+parametsr added to almost all calls
+18 Nov 1993.<P>
 Part of the <A
-NAME=z0 HREF="Overview.html">libwww library</A> .
+NAME="z0" HREF="Overview.html">libwww library</A> .
 <PRE>#ifndef HTACCESS_H
 #define HTACCESS_H
 
@@ -73,6 +77,61 @@ is asking for user confusion.
 #define LAST_RESORT	"http://info.cern.ch/default.html"
 #endif
 
+</PRE>
+<H2><A
+NAME="z1">The Request structure</A></H2>When a request is handled, all kinds
+of things about it need to be passed
+along.  These are all put into a
+HTRequest structure.
+<PRE>typedef struct _HTRequest {
+	HTList * 	conversions;	/* conversions allowed in this case */
+	char *		from;		/* On behalf of whom? */
+	HTStream*	output_stream;	/* For non-interactive, set this */ 
+	HTFormat 	output_format;	/* To convert on load, set this */
+	BOOL		(*callback) PARAMS((
+				struct _HTRequest* request,
+				void *param));
+	void *		context;	/* caller data -- HTAccess unaware */
+
+	HTParentAnchor*	anchor;		/* Set by HTAccess */
+	/* To be added: authentication, etc */
+} HTRequest;
+
+</PRE>The elements of the request structure
+are as follows.
+<DL>
+<DT>conversions
+<DD>NULL, or a list of conversions
+which the format manager can do in
+order to fulfill the request.  This
+is set by the caller of HTAccess.
+ Typically points to a list set up
+an initialisation time for example
+by HTInit.
+<DT>from
+<DD>Email format adderss of person
+responible for request
+<DT>output_stream
+<DD>NULL or if a specific
+output stream is required, te stream.
+<DT>output_format
+<DD>The output format required,
+or a generic format such as www/present
+(present to user). 
+<DT>anchor
+<DD>The anchor for teh object in
+question.  NOTE: Set by HTAcesss.
+</DL>
+Just to make things easier especially
+for clients, here is a function to
+return a new blank request:
+<H2>Create blank request</H2>This request has defaults in -- in
+most cases it will need some information
+added before being passed to HTAccess,
+but it will work as is for a simple
+request.
+<PRE>extern HTRequest * HTRequest_new NOPARAMS;
+
 
 </PRE>
 <H2>Flags which may be set to control
@@ -81,8 +140,6 @@ this module</H2>
 extern char * HTClientHost;		/* Name or number of telnetting host */
 extern FILE * logfile;			/* File to output one-liners to */
 extern BOOL HTSecure;			/* Disable security holes? */
-extern HTStream* HTOutputStream;	/* For non-interactive, set this */ 
-extern HTFormat HTOutputFormat;		/* To convert on load, set this */
 
 
 
@@ -96,6 +153,8 @@ of the file to be accessed.
 <DT>here
 <DD> The anchor of the object being
 searched
+<DT>request->anchor
+<DD> not filled in yet
 </DL>
 
 <H3>On Exit,</H3>
@@ -109,7 +168,8 @@ file
 
 <PRE>extern  BOOL HTLoadRelative PARAMS((
 		CONST char * 		relative_name,
-		HTParentAnchor *	here));
+		HTParentAnchor *	here,
+		HTRequest *		request));
 
 
 </PRE>
@@ -122,6 +182,8 @@ document to be accessed.
 <DT>filter
 <DD> if YES, treat document as
 HTML
+<DT>request->anchor
+<DD> not filled in yet
 </DL>
 
 <PRE>
@@ -136,7 +198,8 @@ HTML
 <DD> Failure 
 </DL>
 
-<PRE>extern BOOL HTLoadAbsolute PARAMS((CONST char * addr));
+<PRE>extern BOOL HTLoadAbsolute PARAMS((CONST char * addr,
+		HTRequest *		request));
 
 
 </PRE>
@@ -150,6 +213,8 @@ document to be accessed.
 <DT>filter
 <DD> if YES, treat document as
 HTML
+<DT>request->anchor
+<DD> not filled in yet
 </DL>
 
 <H3>On Exit,</H3>
@@ -160,22 +225,28 @@ HTML
 <DD> Failure 
 </DL>
 Note: This is equivalent to HTLoadDocument
-<PRE>extern BOOL HTLoadToStream PARAMS((CONST char * addr, BOOL filter,
-				HTStream * sink));
+<PRE>extern BOOL HTLoadToStream PARAMS((
+		CONST char * 		addr,
+		BOOL 			filter,
+		HTRequest *		request));
 
 
 </PRE>
 <H2>Load if necessary, and select an
-anchor</H2>
+anchor</H2>The anchor parameter may be a child
+anchor. The anchor in the request
+is set to the parent anchor.
 <H3>On Entry,</H3>
 <DL>
-<DT>destination      
-<DD>    The child or
-parenet anchor to be loaded.
+<DT>anchor
+<DD> may be a child or parenet
+anchor or 0 in which case there is
+no effect.
+<DT>request->anchor      
+<DD>    Not set
+yet.
 </DL>
 
-<PRE>
-</PRE>
 <H3>On Exit,</H3>
 <PRE>
 </PRE>
@@ -184,21 +255,21 @@ parenet anchor to be loaded.
 <DD> Success
 <DT>returns NO
 <DD> Failure 
+<DT>request->anchor
+<DD> The parenet anchor.
 </DL>
 
-<PRE>
-
-
-extern BOOL HTLoadAnchor PARAMS((HTAnchor * destination));
+<PRE>extern BOOL HTLoadAnchor PARAMS((HTAnchor * a,
+			HTRequest *		request));
 
 
 </PRE>
 <H2>Make a stream for Saving object back</H2>
 <H3>On Entry,</H3>
 <DL>
-<DT>anchor
-<DD> is valid anchor which has
-previously beeing loaded
+<DT>request->anchor
+<DD> is valid anchor which
+has previously beeing loaded
 </DL>
 
 <H3>On exit,</H3>
@@ -210,7 +281,8 @@ to save the object to.
 
 <PRE>
 
-extern HTStream * HTSaveStream PARAMS((HTParentAnchor * anchor));
+extern HTStream * HTSaveStream PARAMS((HTParentAnchor* anchor,
+			HTRequest *		request));
 
 
 </PRE>
@@ -228,7 +300,10 @@ list or similar search list
 searched
 </DL>
 
-<PRE>extern BOOL HTSearch PARAMS((CONST char * keywords, HTParentAnchor* here));
+<PRE>extern BOOL HTSearch PARAMS((
+		CONST char *		keywords,
+		HTParentAnchor*		here,
+		HTRequest *		request));
 
 
 </PRE>
@@ -247,23 +322,37 @@ is to be done on.
 </DL>
 
 <PRE>extern BOOL HTSearchAbsolute PARAMS((
-	CONST char * 	keywords,
-	CONST char * 	indexname));
+	CONST char * 		keywords,
+	CONST char * 		indexname,
+	HTRequest *		request));
 
 
 </PRE>
-<H2>Register an access method</H2>
-<PRE>
-typedef struct _HTProtocol {
+<H2>Register an access method</H2>An access method is defined by an
+HTProtocol structure which point
+to the routines for performing the
+various logical operations on an
+object: in HTTP terms,  GET, PUT,
+and POST.<P>
+Each of these routine takes as a
+parameter a <A
+NAME="z2" HREF="#z1">request structure</A> containing
+details ofthe request.  When the
+protocol class routine is called,
+the anchor elemnt in the request
+is already valid (made valid by HTAccess).
+<PRE>typedef struct _HTProtocol {
 	char * name;
 	
 	int (*load)PARAMS((
 		CONST char * 	full_address,
-		HTParentAnchor * anchor,
-		HTFormat	format_out,
-		HTStream*	sink));
+		HTRequest *	request));
 		
-	HTStream* (*saveStream)PARAMS((HTParentAnchor * anchor));
+	HTStream* (*saveStream)PARAMS((
+				HTRequest *	request));
+	HTStream* (*postStream)PARAMS((
+				HTRequest *	request,
+				HTParentAnchor* postTo));
 
 } HTProtocol;
 
@@ -283,3 +372,4 @@ use this.
 
 #endif /* HTACCESS_H */
 </PRE>end of HTAccess</A></BODY>
+</HTML>

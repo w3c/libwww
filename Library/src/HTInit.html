@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<TITLE>/Net/dxcern/userd/timbl/hypertext/WWW/Library/Implementation/HTInit.html</TITLE>
+<TITLE>Initialisation routines in libwww</TITLE>
 <NEXTID N="z1">
 </HEAD>
 <BODY>
@@ -14,9 +14,14 @@ with the library.<P>
 Implemented by <A
 NAME="z0" HREF="HTInit.c">HTInit.c</A> by default.
 <PRE>#include "HTUtils.h"
+#include "HTList.h"
 
-extern void HTFormatInit NOPARAMS;
+extern void HTFormatInit PARAMS((HTList * conversions));
 extern void HTFileInit NOPARAMS;
 
-</BODY>
+
+
+
+
+</A></BODY>
 </HTML>

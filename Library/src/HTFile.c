@@ -527,10 +527,10 @@ PUBLIC BOOL HTEditable ARGS1 (CONST char *,filename)
 **	The stream must be used for writing back the file.
 **	@@@ no backup done
 */
-PUBLIC HTStream * HTFileSaveStream ARGS1(HTParentAnchor *, anchor)
+PUBLIC HTStream * HTFileSaveStream ARGS1(HTRequest *, request)
 {
 
-    CONST char * addr = HTAnchor_address((HTAnchor*)anchor);
+    CONST char * addr = HTAnchor_address((HTAnchor*)request->anchor);
     char *  localname = HTLocalName(addr);
     
     FILE* fp = fopen(localname, "w");
@@ -639,11 +639,9 @@ PUBLIC void HTDirTitles ARGS2(HTStructured *, target,
 **			HTLOADED	OK 
 **
 */
-PUBLIC int HTLoadFile ARGS4 (
+PUBLIC int HTLoadFile ARGS2 (
 	CONST char *,		addr,
-	HTParentAnchor *,	anchor,
-	HTFormat,		format_out,
-	HTStream *,		sink
+	HTRequest *,		request
 )
 {
     char * filename;
@@ -687,12 +685,12 @@ PUBLIC int HTLoadFile ARGS4 (
         {
 	    if (HTEditable(vmsname)) {
 		HTAtom * put = HTAtom_for("PUT");
-		HTList * methods = HTAnchor_methods(anchor);
+		HTList * methods = HTAnchor_methods(request->anchor);
 		if (HTList_indexOf(methods, put) == (-1)) {
 	   	    HTList_addObject(methods, put);
 	        }
 	    }
-	    HTParseFile(format, format_out, anchor, fp, sink);
+	    HTParseFile(format, request->output_format, request->anchor, fp, request->output_stream);
 	    fclose(fp);
             return HT_LOADED;
         }  /* If successfull open */
@@ -742,7 +740,7 @@ PUBLIC int HTLoadFile ARGS4 (
 	    if (!dp) {
 forget_multi:
 		free(localname);
-		return HTLoadError(sink, 500,
+		return HTLoadError(request->output_stream, 500,
 			"Multiformat: directory scan failed.");
 	    }
 	    
@@ -754,7 +752,7 @@ forget_multi:
 		if (dirbuf->d_namlen > baselen &&      /* Match? */
 		    !strncmp(dirbuf->d_name, base, baselen)) {	
 		    HTFormat rep = HTFileFormat(dirbuf->d_name, &encoding);
-		    float value = HTStackValue(rep, format_out,
+		    float value = HTStackValue(rep, request->output_format,
 		    				HTFileValue(dirbuf->d_name),
 						0.0  /* @@@@@@ */);
 		    if (value != NO_VALUE_FOUND) {
@@ -781,7 +779,7 @@ forget_multi:
 		
 	    } else { 			/* If not found suitable file */
 		free(localname);
-		return HTLoadError(sink, 403,	/* List formats? */
+		return HTLoadError(request->output_stream, 403,	/* List formats? */
 		   "Could not find suitable representation for transmission.");
 	    }
 	    /*NOTREACHED*/
@@ -830,7 +828,7 @@ forget_multi:
 */
 		if (HTDirAccess == HT_DIR_FORBID) {
 		    free(localname);
-		    return HTLoadError(sink, 403,
+		    return HTLoadError(request->output_stream, 403,
 		    "Directory browsing is not allowed.");
 		}
 
@@ -844,7 +842,7 @@ forget_multi:
 		    strcat(enable_file_name, HT_DIR_ENABLE_FILE);
 		    if (stat(enable_file_name, &file_info) != 0) {
 			free(localname);
-			return HTLoadError(sink, 403,
+			return HTLoadError(request->output_stream, 403,
 			"Selective access is not enabled for this directory");
 		    }
 		}
@@ -853,16 +851,16 @@ forget_multi:
 		dp = opendir(localname);
 		if (!dp) {
 		    free(localname);
-		    return HTLoadError(sink, 403, "This directory is not readable.");
+		    return HTLoadError(request->output_stream, 403, "This directory is not readable.");
 		}
 
 
  /*	Directory access is allowed and possible
  */
-		logical = HTAnchor_address((HTAnchor*)anchor);
+		logical = HTAnchor_address((HTAnchor*)request->anchor);
 		tail = strrchr(logical, '/') +1;	/* last part or "" */
 		
-		target = HTML_new(anchor, format_out, sink);
+		target = HTML_new(request->anchor, request->output_format, request->output_stream);
 		targetClass = *target->isa;	/* Copy routine entry points */
 		    
   		{ int i;
@@ -870,7 +868,7 @@ forget_multi:
 				present[i] = (i==HTML_A_HREF);
 		}
 		
-                HTDirTitles(target, (HTAnchor *)anchor);
+                HTDirTitles(target, (HTAnchor *)request->anchor);
 
                 if (HTDirReadme == HT_DIR_README_TOP)
 		    do_readme(target, localname);
@@ -998,13 +996,13 @@ open_file:
 	    if (fp) {		/* Good! */
 		if (HTEditable(localname)) {
 		    HTAtom * put = HTAtom_for("PUT");
-		    HTList * methods = HTAnchor_methods(anchor);
+		    HTList * methods = HTAnchor_methods(request->anchor);
 		    if (HTList_indexOf(methods, put) == (-1)) {
 			HTList_addObject(methods, put);
 		    }
 		}
 		free(localname);
-		HTParseFile(format, format_out, anchor, fp, sink);
+		HTParseFile(format, request->output_format, request->anchor, fp, request->output_stream);
 		fclose(fp);
 		return HT_LOADED;
 	    }  /* If succesfull open */
@@ -1018,7 +1016,7 @@ open_file:
 */
     {
 	if (strcmp(nodename, HTHostName())!=0)
-	    return HTFTPLoad(addr, anchor, format_out, sink);
+	    return HTFTPLoad(addr, request->anchor, request->output_format, request->output_stream);
     }
 #endif
 
@@ -1028,7 +1026,7 @@ open_file:
     	if (TRACE)
 	    printf("Can't open `%s', errno=%d\n", addr, errno);
 
-	return HTLoadError(sink, 403, "Can't access requested file.");
+	return HTLoadError(request->output_stream, 403, "Can't access requested file.");
     }
     
  
@@ -1036,5 +1034,6 @@ open_file:
 
 /*		Protocol descriptors
 */
-GLOBALDEF PUBLIC HTProtocol HTFTP  = { "ftp", HTLoadFile, 0 };
-GLOBALDEF PUBLIC HTProtocol HTFile = { "file", HTLoadFile, HTFileSaveStream };
+GLOBALDEF PUBLIC HTProtocol HTFTP  = { "ftp", HTLoadFile, 0 , 0 };
+GLOBALDEF PUBLIC HTProtocol HTFile = { "file", HTLoadFile,
+					HTFileSaveStream, 0 };

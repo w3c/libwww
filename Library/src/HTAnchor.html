@@ -1,15 +1,12 @@
-<HEADER>
-<TITLE>/Net/dxcern/userd/timbl/hypertext/WWW/Library/Implementation/HTAnchor.html</TITLE></HEADER>
+<HTML>
+<HEAD>
+<TITLE>Anchor object for libwww</TITLE></HEAD>
 <BODY>
-<PRE>
-/*	Hypertext "Anchor" Object				     HTAnchor.h
-**	==========================
-**
-**	An anchor represents a region of a hypertext document which is linked
-**	to another anchor in the same or a different document.
-*/
-
-#ifndef HTANCHOR_H
+<H1>Hypertext "Anchor" Object</H1>An anchor represents a region of
+a hypertext document which is linked
+to another anchor in the same or
+a different document.
+<PRE>#ifndef HTANCHOR_H
 #define HTANCHOR_H
 
 /* Version 0 (TBL) written in Objective-C for the NeXT browser */
@@ -18,7 +15,9 @@
 #include "HTList.h"
 #include "HTAtom.h"
 
-#ifdef SHORT_NAMES
+</PRE>
+<H3>Short names</H3>
+<PRE>#ifdef SHORT_NAMES
 #define HTAnchor_findChild			HTAnFiCh
 #define HTAnchor_findChildAndLink		HTAnFiLi
 #define HTAnchor_findAddress			HTAnFiAd
@@ -47,16 +46,15 @@
 #define HTAnchor_methods			HtAnMeth
 #endif
 
-/*			Main definition of anchor
-**			=========================
-*/
-
-typedef struct _HyperDoc HyperDoc;  /* Ready for forward references */
+</PRE>
+<H2>Anchor data structures</H2>
+<PRE>typedef struct _HyperDoc HyperDoc;  /* Ready for forward references */
 typedef struct _HTAnchor HTAnchor;
 typedef struct _HTParentAnchor HTParentAnchor;
 
-/*	After definition of HTFormat: */
-#include "HTFormat.h"
+</PRE>Must be AFTER definition of HTAnchor:
+
+<PRE>#include "HTFormat.h"
 
 typedef HTAtom HTLinkType;
 
@@ -103,28 +101,25 @@ typedef struct {
   char * 	tag;		/* Address of this anchor relative to parent */
 } HTChildAnchor;
 
-
-/*	Create new or find old sub-anchor
-**	---------------------------------
-**
-**	This one is for a new anchor being edited into an existing
-**	document. The parent anchor must already exist.
-*/
-
-extern HTChildAnchor * HTAnchor_findChild
+</PRE>
+<H2>Class methods</H2>
+<H3>HTAnchor_findChild:  Create new or
+find old sub-anchor</H3>This one is for a new anchor being
+edited into an existing document.
+The parent anchor must already exist.
+<PRE>extern HTChildAnchor * HTAnchor_findChild
   PARAMS(
      (HTParentAnchor *parent,
       CONST char *tag)
   );
 
-/*	Create or find a child anchor with a possible link
-**	--------------------------------------------------
-**
-**	Create new anchor with a given parent and possibly
-**	a name, and possibly a link to a _relatively_ named anchor.
-**	(Code originally in ParseHTML.h)
-*/
-extern HTChildAnchor * HTAnchor_findChildAndLink
+</PRE>
+<H3>HTAnchor_findChildAndLink:  Create
+or find a child anchor with a possible
+link</H3>Create new anchor with a given parent
+and possibly  a name, and possibly
+a link to a _relatively_ named anchor.
+<PRE>extern HTChildAnchor * HTAnchor_findChildAndLink
   PARAMS((
       HTParentAnchor * parent,	/* May not be 0 */
       CONST char * tag,         /* May be "" or 0 */
@@ -133,52 +128,57 @@ extern HTChildAnchor * HTAnchor_findChildAndLink
   ));
 
 
-/*	Create new or find old named anchor
-**	-----------------------------------
-**
-**	This one is for a reference which is found in a document, and might
-**	not be already loaded.
-**	Note: You are not guaranteed a new anchor -- you might get an old one,
-**	like with fonts.
-*/
-
-extern HTAnchor * HTAnchor_findAddress
+</PRE>
+<H3>Create new or find old named anchor</H3>
+<PRE>
+</PRE>This one is for a reference which
+is found in a document, and might
+not be already loaded. Note: You
+are not guaranteed a new anchor --
+you might get an old one, like with
+NXFonts.
+<PRE>extern HTAnchor * HTAnchor_findAddress
   PARAMS(
      (CONST char * address)
      );
 
 
-/*	Delete an anchor and possibly related things (auto garbage collection)
-**	--------------------------------------------
-**
-**	The anchor is only deleted if the corresponding document is not loaded.
-**	All outgoing links from parent and children are deleted, and this anchor
-**	is removed from the sources list of all its targets.
-**	We also try to delete the targets whose documents are not loaded.
-**	If this anchor's source list is empty, we delete it and its children.
-*/
-
-extern BOOL HTAnchor_delete
+</PRE>
+<H3>HTAnchor_delete:  Delete an anchor</H3>Also possibly delete related things
+(auto garbage collection)<P>
+The anchor is only deleted if the
+corresponding document is not loaded.
+All outgoing links from parent and
+children are deleted, and this anchor
+is removed from the sources list
+of all its targets. We also try to
+delete the targets whose documents
+are not loaded. If this anchor's
+source list is empty, we delete it
+and  its children.
+<PRE>extern BOOL HTAnchor_delete
   PARAMS(
      (HTParentAnchor *me)
      );
 
 
-/*		Move an anchor to the head of the list of its siblings
-**		------------------------------------------------------
-**
-**	This is to ensure that an anchor which might have already existed
-**	is put in the correct order as we load the document.
-*/
+</PRE>
+<H3>HTAnchor_makeLastChild:  Move an
+anchor to the head of the list of
+its siblings</H3>This is to ensure that an anchor
+which might have already existed
+is put in the correct order as we
+load the document.
+<PRE>
 
 extern void HTAnchor_makeLastChild
   PARAMS(
      (HTChildAnchor *me)
      );
 
-/*	Data access functions
-**	---------------------
-*/
+</PRE>
+<H2>Accessing propertiesof the anchor</H2>
+<PRE>
 
 extern HTParentAnchor * HTAnchor_parent
   PARAMS(
@@ -201,15 +201,19 @@ extern void HTAnchor_setAddress
      );
 */
 
-/*	Returns the full URI of the anchor, child or parent
-**	as a malloc'd string to be freed by the caller.
-*/
+</PRE>
+<H3>HTAnchor_address</H3>Returns the full URI of the anchor,
+child or parent as a malloc'd string
+to be freed by the caller.
+<PRE>
 extern char * HTAnchor_address
   PARAMS(
      (HTAnchor *me)
      );
 
-extern void HTAnchor_setFormat
+</PRE>
+<H3>Format of source</H3>
+<PRE>extern void HTAnchor_setFormat
   PARAMS(
      (HTParentAnchor *me, HTFormat form)
      );
@@ -219,7 +223,9 @@ extern HTFormat HTAnchor_format
      (HTParentAnchor *me)
      );
 
-extern void HTAnchor_setIndex
+</PRE>
+<H3>Is it searchable?</H3>
+<PRE>extern void HTAnchor_setIndex
   PARAMS(
      (HTParentAnchor *me)
      );
@@ -229,13 +235,33 @@ extern BOOL HTAnchor_isIndex
      (HTParentAnchor *me)
      );
 
-extern BOOL HTAnchor_hasChildren
+</PRE>
+<H3>Does it have any anchors within it?</H3>
+<PRE>extern BOOL HTAnchor_hasChildren
   PARAMS(
      (HTParentAnchor *me)
      );
 
-/*	Title handling
-*/
+</PRE>
+<H3>List of methods which can operate
+on object</H3>
+<PRE>extern HTList * HTAnchor_methods PARAMS((HTParentAnchor *me));
+
+</PRE>
+<H3>Protocol</H3>
+<PRE>extern void * HTAnchor_protocol PARAMS((HTParentAnchor * me));
+extern void HTAnchor_setProtocol PARAMS((HTParentAnchor * me,
+					void* protocol));
+
+</PRE>
+<H3>Physical address</H3>
+<PRE>extern char * HTAnchor_physical PARAMS((HTParentAnchor * me));
+extern void HTAnchor_setPhysical PARAMS((HTParentAnchor * me,
+					char * protocol));
+
+</PRE>
+<H2>Title handling</H2>
+<PRE>
 extern CONST char * HTAnchor_title
   PARAMS(
      (HTParentAnchor *me)
@@ -251,53 +277,41 @@ extern void HTAnchor_appendTitle
      (HTParentAnchor *me, CONST char * title)
      );
 
-/*	Link this Anchor to another given one
-**	-------------------------------------
-*/
 
+</PRE>
+<H2>Manipulation of Links</H2>
+<H3>Link this Anchor to another given
+one</H3>
+<PRE>
 extern BOOL HTAnchor_link
   PARAMS(
      (HTAnchor *source, HTAnchor *destination, HTLinkType *type)
      );
 
-/*	Manipulation of links
-**	---------------------
-*/
-
-extern HTAnchor * HTAnchor_followMainLink
+</PRE>
+<H3>Find destination of link</H3>
+<PRE>extern HTAnchor * HTAnchor_followMainLink
   PARAMS(
      (HTAnchor *me)
      );
 
-extern HTAnchor * HTAnchor_followTypedLink
+</PRE>
+<H3>Find destination with given relationship</H3>
+<PRE>extern HTAnchor * HTAnchor_followTypedLink
   PARAMS(
      (HTAnchor *me, HTLinkType *type)
      );
 
-extern BOOL HTAnchor_makeMainLink
+</PRE>
+<H3>Make a particular link the main link</H3>
+<PRE>extern BOOL HTAnchor_makeMainLink
   PARAMS(
      (HTAnchor *me, HTLink *movingLink)
      );
      
-/*	Read and write methods
-**	----------------------
-*/
-extern HTList * HTAnchor_methods PARAMS((HTParentAnchor *me));
-
-/*	Protocol
-**	--------
-*/
-extern void * HTAnchor_protocol PARAMS((HTParentAnchor * me));
-extern void HTAnchor_setProtocol PARAMS((HTParentAnchor * me,
-					void* protocol));
-
-/*	Physical address
-**	----------------
-*/
-extern char * HTAnchor_physical PARAMS((HTParentAnchor * me));
-extern void HTAnchor_setPhysical PARAMS((HTParentAnchor * me,
-					char * protocol));
 
 #endif /* HTANCHOR_H */
 
-</A></PRE></BODY>
+
+</BODY>
+</HTML>
