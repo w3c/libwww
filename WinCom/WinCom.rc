@@ -173,17 +173,16 @@ STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About WinCom"
 FONT 8, "MS Sans Serif"
 BEGIN
-    ICON            IDR_MAINFRAME,IDC_STATIC,11,17,20,20
-    LTEXT           "WebCommander 0.985",IDC_STATIC,41,10,80,8,SS_NOPREFIX
-    LTEXT           "Henrik Frystyk Nielsen",IDC_STATIC,41,22,154,8
+    ICON            IDR_MAINFRAME,IDC_STATIC,11,15,20,20
+    LTEXT           "Henrik Frystyk Nielsen",IDC_STATIC,41,14,128,8
     DEFPUSHBUTTON   "OK",IDOK,178,7,32,14,WS_GROUP
-    LTEXT           "W3C Copyright (C) 1998",IDC_STATIC,41,34,154,8
+    LTEXT           "W3C Copyright (C) 1998",IDC_STATIC,41,27,126,8
 END
 
 IDD_LOCATION DIALOGEX 0, 0, 267, 98
 STYLE WS_CHILD | WS_DISABLED | WS_CAPTION
 CAPTION "Save Document"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     LTEXT           "Source",IDC_STATIC,5,11,24,8
     COMBOBOX        IDC_SOURCE_URI,42,9,165,58,CBS_DROPDOWN | 
@@ -248,7 +247,7 @@ END
 IDD_LINKS DIALOGEX 0, 0, 267, 98
 STYLE WS_CHILD | WS_CAPTION
 CAPTION "Link Relationships"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     LTEXT           "Link Type",IDC_STATIC,5,12,32,8
     COMBOBOX        IDC_LINK_TYPE,42,9,84,56,CBS_DROPDOWN | CBS_SORT | 
@@ -319,7 +318,7 @@ END
 IDD_LOAD DIALOGEX 0, 0, 267, 101
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Load Document"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     LTEXT           "Load a document and save it to local file...",
                     IDC_STATIC,5,7,134,8
@@ -355,7 +354,7 @@ END
 IDD_DELETE DIALOGEX 0, 0, 267, 63
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Delete Document"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     LTEXT           "Remove a document on a remote server...",IDC_STATIC,5,7,
                     134,8
