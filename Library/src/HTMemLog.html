@@ -1,0 +1,47 @@
+<HTML>
+<HEAD>
+  <!-- Changed by: Henrik Frystyk Nielsen,  6-Apr-1996 -->
+  <TITLE>W3C Reference Library libwww Generic String Management</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  Memory Buffered Logging
+</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 199G.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+<P>
+These functions provide functionality for memory buffered
+logging. This is usefull for tracking data read and written without
+affecting the timing of the network traffic.
+<P>
+This module is implemented by <A HREF="HTMemLog.c">HTMemLog.c</A>, and it
+is a part of the <A NAME="z10" HREF="http://www.w3.org/pub/WWW/Library/">W3C
+Reference Library</A>.
+<PRE>
+#ifndef HTMEMLOG_H
+#define HTMEMLOG_H
+</PRE>
+<H2>
+  <A NAME="all">The Whole Deal</A>
+</H2>
+Too much to do right now.
+<P>
+<PRE>
+extern int HTMemLog_open (const char *ident, const size_t size);
+extern int HTMemLog_add(const char * buf, const size_t len);
+extern void HTMemLog_close (void);
+extern HTTraceDataCallback HTMemLog_callback;
+</PRE>
+<PRE>
+#endif /* !HTMEMLOG_H */
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

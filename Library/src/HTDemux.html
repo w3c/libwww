@@ -1,0 +1,47 @@
+<HTML>
+<HEAD>
+  <TITLE>W3C Reference Library Socket Reader Stream</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  Demultiplexing Stream
+</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+<P>
+The MUX Reader Stream is an <A HREF="HTIOStream.html">input stream
+</A>&nbsp;which knows how to demultiplex a MUX channel. It is part of the
+<A HREF="WWWTrans.html">Transport interface </A>and may be registered as
+part of a <A HREF="HTTrans.html">Transport Object</A>. The application
+can&nbsp;initialize this stream together with the
+<A HREF="HTMuxTx.html">HTMuxTx stream</A>, for example. In the
+<A HREF="HTInit.html">default initialization module</A>, you can find the
+<CODE>HTTransportInit()</CODE> function which sets up this stream as a default
+transport for handling socket read operations.
+<P>
+This module is implemented by <A HREF="HTMuxRx.c">HTMuxRx.c</A>, and it is
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>.
+<PRE>
+#ifndef HTMUXRX_H
+#define HTMUXRX_H
+#include <A HREF="HTStream.html">"HTStream.h"</A>
+#include <A HREF="HTMuxCh.html">"HTMuxCh.h"</A>
+</PRE>
+
+<PRE>
+extern HTStream * HTDemux_new (HTHost * host, HTMuxChannel * muxch);
+</PRE>
+<PRE>
+#endif
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

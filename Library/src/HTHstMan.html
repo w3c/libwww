@@ -1,0 +1,110 @@
+<HTML>
+<HEAD>
+<!-- Changed by: Henrik Frystyk Nielsen, 19-May-1996 -->
+  <TITLE>W3C Reference Library libwww Private Hst Definition</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  Private Host Definition
+</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+<P>
+This is the private definition of the Host Class. Please look in the public
+<A HREF="HTHost.html">Host Class</A> for more documentation 
+<P>
+This module is implemented by <A HREF="HTHost.c">HTHost.c</A>, and it is a
+part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C Reference
+Library</A>.
+<PRE>
+#ifndef HTHSTMAN_H
+#define HTHSTMAN_H
+#include "HTHost.h"
+#include "HTDNS.h"
+#include "HTEvent.h"
+#include "HTProt.h"
+
+#define PIPE_BUFFER_SIZE	8192
+</PRE>
+<P>
+The <CODE>HTHost</CODE> object is the core of the request queue management.
+This object contains information about the socket descriptor, the input read
+buffer etc. required to identify and service a request.
+<PRE>
+typedef enum _TCPState {
+    TCP_ERROR		= -2,
+    TCP_CONNECTED	= -1,
+    TCP_BEGIN		= 0,
+    TCP_CHANNEL,
+    TCP_DNS,
+    TCP_NEED_SOCKET,
+    TCP_NEED_BIND,
+    TCP_NEED_LISTEN,
+    TCP_NEED_CONNECT
+} TCPState;
+
+struct _HTHost {
+    int                 hash;
+
+    /* Information about the otherend */
+    char *  		hostname;	     /* name of host + optional port */
+    time_t		ntime;				    /* Creation time */
+    char *		type;				        /* Peer type */
+    int 		version;			     /* Peer version */
+    HTMethod		methods;	       	/* Public methods (bit-flag) */
+    char *		server;				      /* Server name */
+    char *		user_agent;			       /* User Agent */
+    char *		range_units;			       	      /* ??? */
+
+    /* When does this entry expire? */
+    time_t		expires;	  /* Persistent channel expires time */
+
+    /* Queuing and connection modes */
+    HTList *		pipeline;		 /* Pipe line of net objects */
+    HTList *		pending;	      /* List of pending Net objects */
+    BOOL		persistent;
+    HTTransportMode	mode;	      			   /* Supported mode */
+
+    /* Support for transports */
+    HTChannel *		channel;			     /* data channel */
+    FILE *		fp;			 /* If we can't use a socket */
+
+    /* Connection dependent stuff */
+    HTdns *		dns;			       /* Link to DNS object */
+    TCPState		tcpstate;		      /* State in connection */
+    SockA 		sock_addr;	     /* SockA is defined in sysdep.h */
+    int			retry;		     /* Counting attempts to connect */
+    int 		home;			 /* Current home if multiple */
+    time_t		connecttime;		 /* Used on multihomed hosts */
+
+    /* Event Management */
+    HTEvent *		events[2];	   /* reading and writing may differ */
+    HTEventType	        registeredFor;	  /* Which actions are we blocked on */
+    size_t		remainingRead;	 /* Tells HostEvent to call next net */
+
+    /* User specific stuff */
+    void *		context;		/* Protocol Specific context */
+    int			forceWriteFlush;
+};
+
+#define HTHost_bytesRead(me)		((me) ? (me)-&gt;bytes_read : -1)
+#define HTHost_bytesWritten(me)		((me) ? (me)-&gt;bytes_written : -1)
+
+#define HTHost_setBytesRead(me,l)	((me) ? (me-&gt;bytes_read=(l)) : -1)
+#define HTHost_setBytesWritten(me,l)	((me) ? (me-&gt;bytes_written=(l)) :-1)
+#define HTHost_setDNS (host, dns)	((me) ? (me-&gt;dns=(dns)) :-1)
+</PRE>
+
+<PRE>
+#endif /* HTHSTMAN_H */
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

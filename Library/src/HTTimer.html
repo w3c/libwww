@@ -1,0 +1,38 @@
+<HTML>
+<HEAD>
+  <!-- Changed by: Henrik Frystyk Nielsen, 16-May-1996 -->
+  <TITLE>W3C Reference Library libwww Default Event Manager</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  Default Event Manager
+</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+
+#ifndef HTEVNTLST_H
+#define HTEVNTLST_H
+
+#include "sysdep.h"
+#include "HTReq.h"
+
+typedef struct _HTTimer HTTimer;
+typedef int HTTimerCallback (HTTimer *, void *);
+
+extern HTTimer * HTTimer_new (HTTimer *, HTTimerCallback *, 
+			      void *, int millis, BOOL relative);
+extern BOOL HTTimer_delete (HTTimer * timer);
+extern BOOL HTTimer_deleteAll (void);
+extern int HTTimer_soonest (void);
+extern int HTTimer_dispatchAll (void);
+#endif /* HTEVTLST_H */
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

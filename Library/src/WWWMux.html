@@ -1,0 +1,54 @@
+<HTML>
+<HEAD>
+  <TITLE>W3C Reference Library libwww MUX Transport</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  Declaration of W3C Reference Library MUX Transport
+</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+<PRE>
+#ifndef WWWMUX_H
+#define WWWMUX_H
+</PRE>
+<PRE>
+#ifdef __cplusplus
+extern "C" { 
+#endif
+</PRE>
+<H2>
+  System dependencies
+</H2>
+<P>
+The <A HREF="sysdep.html">sysdep.h</A> file includes system-specific include
+files and flags for I/O to network and disk. The only reason for this file
+is that the Internet world is more complicated than Posix and ANSI.
+<PRE>
+#include "sysdep.h"
+</PRE>
+
+<PRE>
+#include "<A HREF="HTMuxCh.html">HTMuxCh.h</A>"
+#include "<A HREF="HTMuxTx.html">HTMuxTx.h</A>"
+#include "<A HREF="HTMux.html">HTMux.h</A>"
+#include "<A HREF="HTDemux.html">HTDemux.h</A>"
+</PRE>
+
+<PRE>
+#ifdef __cplusplus
+} /* end extern C definitions */
+#endif
+
+#endif
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

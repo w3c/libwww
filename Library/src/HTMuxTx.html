@@ -1,0 +1,45 @@
+<HTML>
+<HEAD>
+  <!-- Changed by: Henrik Frystyk Nielsen, 12-Apr-1996 -->
+  <TITLE>W3C Reference Library libwww Buffered MUX Writer Stream</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  Buffered MUX Writer Stream
+</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+<P>
+The MUX Writer Stream is an <A HREF="HTIOStream.html">output stream
+</A>&nbsp;which knows how to write to a MUX channel. It is part of the
+<A HREF="WWWTrans.html">Transport interface </A>and may be registered as
+part of a <A HREF="HTTrans.html">Transport Object</A>. In the
+<A HREF="HTInit.html">default initialization module</A>, you can find the
+<CODE>HTTransportInit()</CODE> function which sets up this stream as a default
+transport for handling unbuffered socket write operations. 
+<P>
+This module is implemented by <A HREF="HTMuxTx.c">HTMuxTx.c</A>, and it is
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C Reference
+Library</A>.
+<PRE>
+#ifndef HTMUXWRITE_H
+#define HTMUXWRITE_H
+</PRE>
+
+<PRE>
+#define MUX_BUFFER_SIZE    2048
+
+extern HTOutput_new HTMuxBuffer_new;
+</PRE>
+<PRE>#endif
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

@@ -1,0 +1,163 @@
+<HTML>
+<HEAD>
+  <!-- Changed by: Henrik Frystyk Nielsen, 16-May-1996 -->
+  <TITLE>W3C Reference Library libwww Default Event Manager</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  Default Event Manager
+</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+<P>
+This module provides an event registry and a multi-threaded event
+loop. An application may use this module for:
+<UL>
+<LI>event loop and registry - Application registers <A
+HREF="#registry">HTEvntrg_register and HTEvntrg_unregister</A> and
+calls <A HREF="#eventLoop">HTEventList_loop</A> to dispatch events as
+they occur.<P>
+
+<LI>event registry - Application just registers its own <A
+HREF="HTEvent.html#eventHandlers">event handlers</A> and chains them
+to <A HREF="#registry">HTEvntrg_register and
+HTEvntrg_unregister</A>. When the application's event loop gets
+activity on a socket, it calls <A
+HREF="#dispatch">HTEvent_dispatch</A> to handle it.<P>
+
+<LI>nothing - Application registers its own <A
+HREF="HTEvent.html#eventHandlers">event handler</A> uses its own event
+loop to dispatch those events.<P>
+</UL>
+
+This module is implemented by <A HREF="HTEvntrg.c">HTEvntrg.c</A>, and it
+is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">W3C Reference
+Library</A>.
+<PRE>
+#ifndef HTEVNTLST_H
+#define HTEVNTLST_H
+
+#include "sysdep.h"
+#include "HTEvent.h"
+#include "HTReq.h"
+</PRE>
+<H3>
+  Windows Specific Handles
+</H3>
+<PRE>
+#if defined(WWW_WIN_ASYNC) || defined(WWW_WIN_DLL)
+extern BOOL HTEventList_winHandle (HTRequest * request);
+extern BOOL HTEventList_setWinHandle (HWND window, unsigned long message);
+extern HWND HTEventList_getWinHandle (unsigned long * pMessage);
+extern LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+#endif
+</PRE>
+<H2>
+  <A NAME="registry">Event Registry</A>
+</H2>
+The libwww's event registry binds a socket and operation (FD_READ,
+FD_WRITE...) to a callback function. Event are registered,
+unregistered, and dispatched.
+<H3>
+  Register an Event Handler
+</H3>
+<P>
+For a given socket, reqister a request structure, a set of operations, a
+HTEventCallback function, and a priority. For this implementation, we allow
+only a single HTEventCallback function for all operations. and the priority
+field is ignored.
+<PRE>
+extern HTEvent_registerCallback HTEventList_register;
+</PRE>
+<H3>
+  Unregister an Event Handler
+</H3>
+<P>
+Remove the registered information for the specified socket for the actions
+specified in ops. if no actions remain after the unregister, the registered
+info is deleted, and, if the socket has been registered for notification,
+the HTEventCallback will be invoked.
+<PRE>
+extern HTEvent_unregisterCallback HTEventList_unregister;
+</PRE>
+<H3>
+  Unregister ALL Event Handlers
+</H3>
+<P>
+Unregister all sockets. N.B. we just remove them for our internal data
+structures: it is up to the application to actually close the socket.
+<PRE>
+extern int HTEventList_unregisterAll (void);
+</PRE>
+<H3>
+  <A NAME="dispatch">HTEventList_lookup/dispatch</A>
+</H3>
+<P>
+Callbacks can be looked up or dispatched based on the socket and operation 
+(read/write/oob)
+<PRE>
+extern int HTEventList_dispatch (SOCKET, HTEventType);
+extern HTEvent * HTEventList_lookup (SOCKET s, HTEventType type);
+</PRE>
+<H2>
+  Handler for Timeout on Sockets
+</H2>
+<P>
+This function sets the timeout for sockets in the <CODE>select()</CODE> call
+and registers a timeout function that is called if select times out. This
+does only works on NON windows platforms as we need to poll for the console
+on windows If <CODE>tv = NULL</CODE> then timeout is disabled. Default is
+no timeout. If <EM>always=YES</EM> then the callback is called at all times,
+if NO then only when Library sockets are active. Returns YES if OK else NO.
+<PRE>
+#if 0
+typedef int HTEventTimeout (HTRequest *);
+
+extern BOOL HTEventList_registerTimeout (struct timeval *tp, HTRequest * request,
+				     HTEventTimeout *tcbf, BOOL always);
+#endif
+</PRE>
+<H2>
+  <A NAME="eventLoop">Event Loop</A>
+</H2>
+The libwww's default event loop dispatches events to the <A
+HREF="#registry">event registry</A>.
+<H3>
+  Start and Stop the Event Manager
+</H3>
+<PRE>
+extern BOOL HTEventInit (void);
+extern BOOL HTEventTerminate (void);
+</PRE>
+<H3>
+  Start the Event Loop
+</H3>
+<P>
+That is, we wait for activity from one of our registered channels, and dispatch
+on that. Under Windows/NT, we must treat the console and sockets as distinct.
+That means we can't avoid a busy wait, but we do our best.
+<PRE>
+extern int HTEventList_loop (HTRequest * request);
+</PRE>
+<H3>
+  Stop the Event Loop
+</H3>
+<P>
+Stops the (select based) event loop. The function does not guarantee that
+all requests have terminated. This is for the app to do
+<PRE>
+extern void HTEventList_stopLoop (void);
+</PRE>
+<PRE>
+#endif /* HTEVTLST_H */
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

@@ -1,0 +1,126 @@
+<HTML>
+<HEAD>
+  <TITLE>W3C Reference Library libwww MUX Header Definition</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  MUX Header Definition
+</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+<P>
+Define the parts of a mux header as defined by the MUX draft specification.
+This is not finalized so be warned!
+<P>
+This module is does not contain a <CODE>.c</CODE> file. It is a part of the
+<A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference Library</A>.
+<PRE>
+#ifndef HTMUXHEADER_H
+#define HTMUXHEADER_H
+</PRE>
+<H2>
+  Byte Swapping
+</H2>
+<P>
+MUX is currently using little endian headers.
+<PRE>
+#ifdef WORDS_BIGENDIAN
+#define HT_WORDSWAP(a) ( ((a) &lt;&lt; 24) | \
+		         (((a) &lt;&lt; 8) &amp; 0x00ff0000) | \
+		         (((a) &gt;&gt; 8) &amp; 0x0000ff00) | \
+	                 ((unsigned int)(a) &gt;&gt; 24) )
+#else
+#define HT_WORDSWAP(a) ((a))
+#endif
+</PRE>
+<H2>
+  The MUX Header
+</H2>
+<P>
+Simple, huh?
+<PRE>
+typedef unsigned int  HTMuxHeader;
+</PRE>
+<H3>
+  Generic Header flags
+</H3>
+<PRE>
+#define MUX_LONG_LENGTH	0x80000000
+#define MUX_CONTROL	0x40000000
+</PRE>
+<H3>
+  Data Header Flags
+</H3>
+<PRE>
+#define MUX_FLAGS       0x3C000000
+#define MUX_SYN		0x20000000
+#define MUX_FIN		0x10000000
+#define MUX_RST		0x08000000
+#define MUX_PUSH 	0x04000000
+</PRE>
+<H3>
+  Control Header Opcodes
+</H3>
+<PRE>
+#define MUX_OPCODES     0x3C000000
+#define MUX_STRING	0x00000000
+#define MUX_STACK	0x04000000
+#define MUX_FRAGMENT	0x08000000
+#define MUX_CREDIT	0x0C000000
+</PRE>
+<H3>
+  Length and Session ID
+</H3>
+<PRE>
+#define MUX_SESSION	0x03FC0000
+#define MUX_LENGTH	0x0003FFFF
+</PRE>
+<H2>
+  Macros for Byte Shifting
+</H2>
+<PRE>
+#define MUX_SET_SID(sid)	((sid) &lt;&lt; 18)
+#define MUX_SET_LEN(len)	((len))
+#define MUX_SET_PID             MUX_SET_LEN
+#define MUX_SET_OPCODE(op)      ((op) &lt;&lt; 26)
+
+#define MUX_GET_SID(sid)	(((sid) &amp; MUX_SESSION) &gt;&gt; 18)
+#define MUX_GET_LEN(len)	((len) &amp; MUX_LENGTH)
+#define MUX_GET_PID             MUX_GET_LEN
+#define MUX_GET_OPCODE(op)      ((op) &amp; MUX_OPCODES &gt;&gt; 26)
+</PRE>
+<H2>
+  Header Alignment
+</H2>
+<P>
+You can force 8 byte alignment by defining this to 1. Normally, we decide
+pr MUX segment whether we have to use a long header or not.
+<PRE>
+#define LONG_LENGTH	0			     /* 4 or 8 bytes header? */
+#define MUX_IS_LONG(hdr)     ((hdr) &amp; MUX_LONG_LENGTH)
+
+#define MUX_ALIGN(len)       ((len) + ((4-(len)%4) % 4))
+#define MUX_LONG_ALIGN(len)  ((len) + ((8-(len)%8) % 8))
+</PRE>
+
+<H2>
+Default Values
+</H2>
+
+<PRE>
+#define DEFAULT_CREDIT          4096
+</PRE>
+
+<PRE>
+#endif
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>
