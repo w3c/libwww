@@ -95,6 +95,20 @@ exponentially for all the entries.
 extern BOOL HTDNS_updateWeigths (HTdns *dns, int cur, ms_t deltatime);
 </PRE>
 <H2>
+  IDN (Internationalized Domain Names) Functions
+</H2>
+<H3>
+  Calculate ACE (punycode) from UTF-8 encoded IDN
+</H3>
+<P>
+Converts to ACE (Ascii-compatible encoding, punycode) from an
+Internationalized Domain name. %hh-escaping in domain name is
+accepted for backwards compatibility. Returns 0 if successful.
+</P>
+<PRE>
+extern int HTACEfromUTF8 (char *hostUTF8, char *punycode, size_t punyLength);
+</PRE>
+<H2>
   Resolver Functions
 </H2>
 <P>
