@@ -1133,6 +1133,7 @@ int main ARGS2(int, argc, char **, argv)
 
     /* Start up Library of Common Code */
     HTLibInit();
+    HTStdIconInit(NULL);
 
 #ifdef THINK_C /* command line from Think_C */
     int i;
@@ -1346,6 +1347,7 @@ int main ARGS2(int, argc, char **, argv)
 		for(; *p; p++) {
 		    switch (*p) {
 		      case 'a': WWW_TraceFlag += SHOW_ANCHOR_TRACE; break;
+		      case 'b': WWW_TraceFlag += SHOW_BIND_TRACE; break;
 		      case 'c': WWW_TraceFlag += SHOW_CACHE_TRACE; break;
 		      case 'g':	WWW_TraceFlag += SHOW_SGML_TRACE; break;
 		      case 'p':	WWW_TraceFlag += SHOW_PROTOCOL_TRACE; break;
