@@ -190,6 +190,12 @@ We store the&nbsp;original headers as they may become useful in many ways
 <PRE>
     HTAssocList *      headers;
 </PRE>
+<P>
+The reason string furnished by the server, as some servers may send
+useful custom information in it
+<PRE>
+    char *             reason;             /* JK: HTTP reason string */
+</PRE>
 <PRE>
 }; /* End of definition of HTResponse */
 </PRE>

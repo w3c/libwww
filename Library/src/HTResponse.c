@@ -91,6 +91,9 @@ PUBLIC BOOL HTResponse_delete (HTResponse * me)
 	    if (me->headers) HTAssocList_delete(me->headers);
 	}
 
+	/* HTTP reason string */
+	if (me->reason)  HT_FREE (me->reason);
+
  	HT_FREE(me);
 	return YES;
     }
@@ -664,5 +667,23 @@ PUBLIC HTAssocList * HTResponse_handOverHeader (HTResponse * me)
     return headers;
 }
 
+/*
+**  HTTP reason string
+*/
+PUBLIC char * HTResponse_reason (HTResponse * me)
+{
+    if (me) {
+      return me->reason;
+    }
+    return NULL;
+}
 
+PUBLIC BOOL HTResponse_setReason (HTResponse * me, char * reason)
+{
+  if (me && reason && *reason) {
+      StrAllocCopy(me->reason, reason);
+      return YES;
+    }
+  return NO;
+}
 

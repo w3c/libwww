@@ -727,6 +727,10 @@ PRIVATE int stream_pipe (HTStream * me, int length)
 	    }
 	}
 
+	/* 2000/Oct/27 JK: copying the current reason info into the 
+	   response object.  */
+	HTResponse_setReason (response, me->reason);
+
 	/*
 	**  As we are getting fresh metainformation in the HTTP response,
 	**  we clear the old metainfomation in order not to mix it with the new

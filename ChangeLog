@@ -1,3 +1,9 @@
+2000-30-10	Jose Kahan <jose@w3.org>
+	
+	* Enhancement, added a new field to the HTResponse object to
+	  store the HTTP reason sent by the server. Two new functions to 
+  	  get it/set it: HTResponse_reason(), HTResponse_setReason()
+
 2000-09-01 	Wayne Davison <wayne@clari.net>
 
 	* HTAccess.c: Typo fix
