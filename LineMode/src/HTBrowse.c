@@ -356,8 +356,6 @@ PRIVATE void MakeCommandLine ARGS1(BOOL, is_index)
     if (is_index)
 	printf("FIND <keywords>, ");
     printf("Quit, or Help: ");	
-    printf(" (%d)", HTHistory_position(hist));
-
     fflush(stdout);  	           	  /* For use to flush out the prompt */
     return;
 }
