@@ -227,7 +227,7 @@ PUBLIC LineMode * Context_getLineMode(HTRequest * request)
 **  This function creates a new request object and adds it to the global
 **  list of active threads
 */
-CSApp_callback PICSCallback;
+CSDisposition_callback PICSCallback;
 PRIVATE HTRequest * Thread_new (LineMode * lm, BOOL Interactive, LMState state)
 {
     HTRequest * newreq = HTRequest_new();
@@ -297,7 +297,7 @@ PRIVATE LineMode * LineMode_new (void)
     me->trace = SHOW_ALL_TRACE;
     me->pCSUser = 0;
     if (!(me->pView = HTView_create("'nother Window", 50, 80, me)))
-    	return (NO);
+    	return 0;
     return me;
 }
 
@@ -826,7 +826,7 @@ PRIVATE BOOL SetPICSUser(LineMode * lm, char * userName)
         char * url;
         if ((url = CSUserList_findURL(userName)) == NULL)
 	    HTTrace("PICS user \"%s\" is unknown.\n", userName);
-	else if (CSLoadedUser_load(url, lm->cwd) == NO)
+	else if (!CSLoadedUser_load(url, lm->cwd))
 	    HTTrace("Can't load PICS user \"%s\".\n", userName);
 	else if ((CSLoadedUser_find(userName)) == NO)
 	    HTTrace("PICS user \"%s\" not found in \"%s\".\n", userName, url);

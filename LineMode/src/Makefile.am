@@ -3,17 +3,17 @@
 bin_PROGRAMS = www
 
 www_LDADD = \
-	../../Library/src/libwww.a ../../PICS/src/libpics.a -lm
+	../../Library/src/libwww.a ../../PICS-client/src/libpics.a -lm
 
 www_DEPENDENCIES = \
-	../../Library/src/libwww.a ../../PICS/src/libpics.a
+	../../Library/src/libwww.a ../../PICS-client/src/libpics.a
 
 #	For easier use - NOT THE DEFAULT!
 AUTOMAKE_OPTIONS = foreign
 
 SUBDIRS = windows vms
 
-INCLUDES = -I$(srcdir)/../../Library/src -I$(srcdir)/../../PICS/src
+INCLUDES = -I$(srcdir)/../../Library/src -I$(srcdir)/../../PICS-client/src
 
 #	.h files are distributed but originally are made from the
 #	self-documenting hypertext files.
