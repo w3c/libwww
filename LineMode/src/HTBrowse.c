@@ -62,6 +62,7 @@
 #include "HTBrowse.h"			     /* Things exported, short names */
 #include "CSLApp.h" /* the PICApp library should provide everything the app needs */
 #include "CSUser.h"
+#include "CSUsrLst.h"
 
 #ifndef W3C_VERSION
 #define W3C_VERSION		"Unspecified"
@@ -151,6 +152,7 @@ struct _LineMode {
     HTFormat		format;		        /* Input format from console */
     LMFlags		flags;
     HTView *		pView;
+    CSUser_t * 		pCSUser;
 };
 
 typedef enum _LMState {
@@ -274,6 +276,7 @@ PRIVATE LineMode * LineMode_new (void)
     me->console = HTRequest_new();
     Context_new(me, me->console, LM_UPDATE);
     me->trace = SHOW_ALL_TRACE;
+    me->pCSUser = 0;
     if (!(me->pView = HTView_create("'nother Window", 50, 80, me)))
     	return (NO);
     return me;
@@ -292,6 +295,8 @@ PRIVATE BOOL LineMode_delete (LineMode * lm)
 	HTHistory_delete(lm->history);
 	HT_FREE(lm->cwd);
 	if (lm->logfile) HTLog_close();
+	if (lm->pCSUser)
+	    CSLoadedUser_remove(lm->pCSUser);
 	HTView_destroy(lm->pView);
 #ifndef WWW_WIN_WINDOW
 	if (OUTPUT && OUTPUT != stdout) fclose(OUTPUT);
@@ -310,6 +315,23 @@ PUBLIC HTRequest * LineMode_getConsole(LineMode * pLm)
 PUBLIC HTView * LineMode_getView(LineMode * pLm)
 {
     return pLm ? pLm->pView : 0;
+}
+
+PRIVATE BOOL LineMode_load(LineMode * lm, HTParentAnchor * anchor, 
+			   char * url, BOOL preemptive, HTRequest ** pPReq)
+{
+    char * fullURL;
+    HTParentAnchor * pAnchor;
+
+    *pPReq = Thread_new(lm, YES, LM_NO_UPDATE);
+    if (preemptive)
+        HTRequest_setPreemptive(*pPReq, YES);
+    if (anchor)
+	return HTLoadRelative(url, anchor, *pPReq);
+    fullURL = HTParse(url, lm->cwd, PARSE_ALL);
+    pAnchor = (HTParentAnchor *) HTAnchor_findAddress(fullURL);
+    HT_FREE(fullURL);
+    return HTLoadAnchor((HTAnchor *) pAnchor, *pPReq);
 }
 
 PRIVATE void Cleanup (LineMode * me, int status)
@@ -696,50 +718,89 @@ PRIVATE BOOL SaveOutputStream (HTRequest * req, char * This, char * Next)
     return (HTLoadAnchor((HTAnchor*) HTMainAnchor, req) != HT_WOULD_BLOCK);
 }
 
-CSApp_error LoadedUsersCallback(CSUser_t * pCSUser, int index, void * pVoid)
+CSError_t LoadedUsersCallback(CSUser_t * pCSUser, int index, void * pVoid)
 {
     LineMode * lm = (LineMode *)pVoid;
-    OutputData(lm->pView, "%d: %s\n", index, CSUser_getName(pCSUser));
-    return 0;
+    OutputData(lm->pView, "%d: %s\n", index, CSUser_name(pCSUser));
+    return CSError_OK;
 }
 
-CSApp_error UserListCallback(char * username, char * url, int index, void * pVoid)
+CSError_t UserListCallback(char * username, char * url, int index, void * pVoid)
 {
     LineMode * lm = (LineMode *)pVoid;
     OutputData(lm->pView, "%d: %s %s\n", index, username, url);
-    return 0;
+    return CSError_OK;
 }
 
 PRIVATE BOOL ShowPICSUsers(LineMode * lm)
 {
     OutputData(lm->pView, "Loaded users:\n");
-    CSLoadedUsers_enum(&LoadedUsersCallback, (void *)lm);
+    CSLoadedUser_enum(&LoadedUsersCallback, (void *)lm);
     OutputData(lm->pView, "Listed users:\n");
     CSUserList_enum(&UserListCallback, (void *)lm);
     return YES;
 }
 
-PRIVATE BOOL SetPICSUser(HTRequest * req, char * userName)
+PRIVATE BOOL SetPICSUser(LineMode * lm, char * userName)
 {
-    char * username = NULL;
     char * password = NULL;
     HTAlertCallback *cbf = HTAlert_find(HT_A_USER_PW);
     BOOL ret;
-	HTAlertPar * reply;
+    HTAlertPar * reply;
 
     if (!cbf)
-		return NO;
-	reply = HTAlert_newReply();
-	if (((*cbf)(req, HT_A_USER_PW, HT_MSG_NULL, userName,
-		    NULL, reply))) {
-	    username = HTAlert_replyMessage(reply);
-	    password = HTAlert_replySecret(reply);
-	}
-	HTAlert_deleteReply(reply);
-	ret = CSApp_registerDefaultUserByName(username, password);
-	HT_FREE(username);
-	HT_FREE(password);
-	return ret;
+        return NO;
+    reply = HTAlert_newReply();
+    if (((*cbf)(lm->console, HT_A_USER_PW, 
+		HT_MSG_NULL, userName, NULL, reply))) {
+        userName = HTAlert_replyMessage(reply);
+        password = HTAlert_replySecret(reply);
+    }
+    HTAlert_deleteReply(reply);
+    if (!userName)
+	HTTrace("Canceled.\n");
+    else if ((ret = CSApp_registerDefaultUserByName(userName, password)) == NO) {
+        char * url;
+        if ((url = CSUserList_findURL(userName)) == NULL)
+	    HTTrace("PICS user \"%s\" is unknown.\n", userName);
+	else if (CSLoadedUser_load(url, lm->cwd) == NO)
+	    HTTrace("Can't load PICS user \"%s\".\n", userName);
+	else if ((CSLoadedUser_find(userName)) == NO)
+	    HTTrace("PICS user \"%s\" not found in \"%s\".\n", userName, url);
+	else if ((ret = CSApp_registerDefaultUserByName(userName, password)) == NO)
+	    HTTrace("Failed to set PICS user to \"%s\".\n", userName);
+	HT_FREE(url);
+    }
+    HT_FREE(userName);
+    HT_FREE(password);
+    return ret;
+}
+
+PRIVATE BOOL LoadPICSUser(LineMode * lm, char * url)
+{
+    CSUser_t * pCSUser;
+    if (!(pCSUser = CSLoadedUser_load(url, lm->cwd)))
+        return NO;
+    return SetPICSUser(lm, CSUser_name(pCSUser));
+}
+
+CSApp_callback CSApp_appCallback;
+CSError_t CSApp_appCallback(HTRequest* pReq, CSError_t disposition, void * pVoid)
+{
+    LineMode * lm = (LineMode *)pVoid;
+    switch (disposition) {
+        case CSError_OK:break;
+        case CSError_BUREAU_NONE:OutputData(lm->pView, "CSError_BUREAU_NONE\n");break;
+        case CSError_RATING_VALUE:OutputData(lm->pView, "CSError_RATING_VALUE\n");break;
+        case CSError_RATING_RANGE:OutputData(lm->pView, "CSError_RATING_RANGE\n");break;
+        case CSError_RATING_MISSING:OutputData(lm->pView, "CSError_RATING_MISSING\n");break;
+        case CSError_SERVICE_MISSING:OutputData(lm->pView, "CSError_SERVICE_MISSING\n");break;
+        case CSError_SERVICE_NONE:OutputData(lm->pView, "CSError_SERVICE_NONE\n");break;
+        case CSError_RATING_NONE:OutputData(lm->pView, "CSError_RATING_NONE\n");break;
+        case CSError_BAD_DATE:OutputData(lm->pView, "CSError_BAD_DATE\n");break;
+        default:HTTrace("CSApp_appCallback default : odd error code\n");break;
+    }
+    return disposition;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -893,25 +954,19 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	
       case 'G':
 	if (CHECK_INPUT("GOTO", token)) {			     /* GOTO */
-	    if (next_word) {
-		req = Thread_new(lm, YES, LM_UPDATE);
-		status = HTLoadRelative(next_word, HTMainAnchor, req);
-	    }
+	    if (next_word)
+	        status = LineMode_load(lm, HTMainAnchor, next_word, NO, &req);
 	} else
 	    found = NO;
 	break;
 	
       case '?':
-	req = Thread_new(lm, YES, LM_NO_UPDATE);
-	HTRequest_setPreemptive(req, YES);
-	status = HTLoadRelative(C_HELP, HTMainAnchor, req);
+	status = LineMode_load(lm, HTMainAnchor, C_HELP, YES, &req);
 	break;
 	
       case 'H':
 	if (CHECK_INPUT("HELP", token)) {		     /* help menu, ..*/
-	    req = Thread_new(lm, YES, LM_NO_UPDATE);
-	    HTRequest_setPreemptive(req, YES);
-	    status = HTLoadRelative(C_HELP, HTMainAnchor, req);
+	    status = LineMode_load(lm, HTMainAnchor, C_HELP, YES, &req);
 	} else if (CHECK_INPUT("HOME", token)) {		/* back HOME */
 	    if (!HTHistory_canBacktrack(lm->history)) {
 		HText_scrollTop(HTMainText);
@@ -959,15 +1014,19 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	    }
 	}
 #endif /* HAVE_CHDIR */
-	else
+	else if (CHECK_INPUT("LUSER", token)) {	     /* List of references ? */
+	    if (next_word) {
+	        LoadPICSUser(lm, next_word);
+	    } else {
+	        HTTrace("URL needed\n");
+	    }
+	} else
 	    found = NO;
 	break;
 	
       case 'M':
 	if (CHECK_INPUT("MANUAL", token)) {		 /* Read User manual */
-	    req = Thread_new(lm, YES, LM_NO_UPDATE);
-	    HTRequest_setPreemptive(req, YES);
-	    status = HTLoadRelative(MANUAL, HTMainAnchor,req);
+	    status = LineMode_load(lm, HTMainAnchor, MANUAL, YES, &req);
 	} else
 	    found = NO;
 	break;
@@ -1061,7 +1120,8 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	} else if (CHECK_INPUT("RELOAD", token)) {
 	    req = Thread_new(lm, YES, LM_NO_UPDATE);
 	    HTRequest_setReloadMode(req, HT_FORCE_RELOAD);
-	    status = HTLoadAnchor((HTAnchor*) HTMainAnchor, req);
+	    status = HTLoadAnchor((HTAnchor*) (HTMainAnchor ? HTMainAnchor : 
+				  lm->anchor), req);
 	} else
 	    found = NO;
 	break;
@@ -1097,12 +1157,12 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	    if (next_word) {
 			if (!strcasecomp(next_word, "?")) {
 				ShowPICSUsers(lm);
-				SetPICSUser(lm->console, 0);
+				SetPICSUser(lm, 0);
 			} else {
-				SetPICSUser(lm->console, next_word);
+				SetPICSUser(lm, next_word);
 			}
 	    } else {
-	        SetPICSUser(lm->console, 0);
+	        SetPICSUser(lm, 0);
 		}
 	} else 
 	    found = NO;
@@ -1475,24 +1535,6 @@ PRIVATE int header_handler (HTRequest * request, const char * token)
 
 /* ------------------------------------------------------------------------- */
 /*				  MAIN PROGRAM				     */
-CSApp_callback CSApp_appCallback; /* forward reference for strong typechecking */
-CSApp_error CSApp_appCallback(HTRequest* pReq, CSApp_error disposition, void * pVoid)
-{
-    LineMode * lm = (LineMode *)pVoid;
-    switch (disposition) {
-        case iteratorError_OK:break;
-        case iteratorError_RATING_VALUE:OutputData(lm->pView, "iteratorError_RATING_VALUE\n");break;
-        case iteratorError_RATING_RANGE:OutputData(lm->pView, "iteratorError_RATING_RANGE\n");break;
-        case iteratorError_RATING_MISSING:OutputData(lm->pView, "iteratorError_RATING_MISSING\n");break;
-        case iteratorError_SERVICE_MISSING:OutputData(lm->pView, "iteratorError_SERVICE_MISSING\n");break;
-        case iteratorError_SERVICE_NONE:OutputData(lm->pView, "iteratorError_SERVICE_NONE\n");break;
-        case iteratorError_RATING_NONE:OutputData(lm->pView, "iteratorError_RATING_NONE\n");break;
-        case iteratorError_BAD_DATE:OutputData(lm->pView, "iteratorError_BAD_DATE\n");break;
-        default:HTTrace("default\n");break;
-    }
-    return disposition;
-}
-
 /* ------------------------------------------------------------------------- */
 
 int main (int argc, char ** argv)
@@ -1504,6 +1546,7 @@ int main (int argc, char ** argv)
     HTRequest *	request = NULL;
     LineMode *	lm;
     char *      picsUser = NULL;
+    char *      picsUserList = NULL;
 
     /* Starts Mac GUSI socket library */
 #ifdef GUSI
@@ -1672,7 +1715,12 @@ int main (int argc, char ** argv)
 	    /* PICS user */
 	    } else if (!strcmp(argv[arg], "-u")) {
 		picsUser = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    argv[++arg] : "dad";
+		    argv[++arg] : "user";
+
+	    /* PICS user list */
+	    } else if (!strcmp(argv[arg], "-ul")) {
+		picsUserList = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    argv[++arg] : "users.url";
 
 	    /* preemptive or non-preemptive access */
 	    } else if (!strcmp(argv[arg], "-single")) {
@@ -1926,8 +1974,10 @@ int main (int argc, char ** argv)
     HTDNS_setTimeout(3600);
 
     CSApp_registerApp(CSApp_appCallback, CSApp_callOnBad|CSApp_callOnGood, (void *)lm);
-    if (picsUser)
-        SetPICSUser(lm->console, picsUser);
+    if (picsUserList && !CSUserList_load(picsUserList, lm->cwd))
+        HTTrace("Unable to load PICS user list \"%s\".\n", picsUserList);
+    if (picsUser && !LoadPICSUser(lm, picsUser))
+        HTTrace("Unable to load PICS user \"%s\".\n", picsUser);
 
     /* Start the request */
     if (keywords)
@@ -1938,10 +1988,8 @@ int main (int argc, char ** argv)
     if (keywords) HTChunk_delete(keywords);
     if (status != YES) {
 	if (SHOW_MSG) HTTrace("Couldn't load home page\n");
-#ifdef WWW_PICS
-    CSApp_unregisterDefaultUser();
-    CSApp_unregisterApp();
-#endif /* WWW_PICS */
+	CSApp_unregisterDefaultUser();
+	CSApp_unregisterApp();
 	Cleanup(lm, -1);
     }
 

@@ -7,6 +7,7 @@
 ** history:	AL, HF	28 Apr 94, Now chunk->data is filled by '\0' so
 **			that the string is terminated at any time. That makes
 **			HTChunk_terminate not needed any more, but never mind.
+**		EGP	15 Mar 96, Added CString conversions.
 **
 */
 
@@ -53,6 +54,29 @@ PUBLIC void HTChunk_delete (HTChunk * ch)
     }
 }
 
+/*	Create a chunk from an allocated string
+**	---------------------------------------
+*/
+PUBLIC HTChunk * HTChunk_fromCString (char * str, int grow)
+{
+    HTChunk * ch;
+    ch = HTChunk_new(grow);
+    ch->data = str; /* can't handle non-allocated str */
+    return ch;
+}
+
+/*	Free a chunk but keep the data
+**	------------------------------
+*/
+PUBLIC char * HTChunk_toCString (HTChunk * ch)
+{
+    char * ret = 0;
+    if (ch) {
+	ret = ch->data;
+    	HT_FREE(ch);
+    }
+    return ret;
+}
 
 /*	Append a character
 **	------------------
