@@ -20,9 +20,8 @@
 #include "wwwsys.h"
 #include "WWWUtil.h"
 #include "WWWCore.h"
-#include "WWWMIME.h"
-#include "WWWStream.h"
-#include "WWWTrans.h"
+#include "HTHeader.h"
+#include "HTMIMERq.h"
 #include "HTReqMan.h"
 #include "HTTPUtil.h"
 #include "HTTPReq.h"
@@ -39,8 +38,8 @@
 #define FREE_TARGET	(*me->target->isa->_free)(me->target)
 #define ABORT_TARGET	(*me->target->isa->abort)(me->target, e)
 
-#define HTTP_DUMP
-#ifdef HTTP_DUMP
+#ifdef DEBUG
+#include "WWWStream.h"
 #define HTTP_OUTPUT     "w3chttp.out"
 PRIVATE FILE * htfp = NULL;
 #endif
@@ -1083,7 +1082,7 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 				   HTRequest_outputFormat(request),
 				   HTRequest_outputStream(request),
 				   request, YES);
-#ifdef HTTP_DUMP
+#ifdef DEBUG
 		if (PROT_TRACE) {
 		    if (!htfp) htfp = fopen(HTTP_OUTPUT, "ab");
 		    if (htfp) {
@@ -1091,7 +1090,7 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 			HTTrace("HTTP........ Dumping response to `%s\'\n", HTTP_OUTPUT);
 		    }
 		}
-#endif /* HTTP_DUMP */
+#endif /* DEBUG */
 
 		HTNet_setReadStream(net, me);
             }
@@ -1108,7 +1107,7 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 		int version = HTHost_version(host);
 		HTStream * app = NULL;
 		
-#ifdef HTTP_DUMP
+#ifdef DEBUG
 		if (PROT_TRACE) {
 		    if (!htfp) htfp = fopen(HTTP_OUTPUT, "ab");
 		    if (htfp) {
@@ -1117,7 +1116,7 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 			HTTrace("HTTP........ Dumping request to `%s\'\n", HTTP_OUTPUT);
 		    }
 		}	
-#endif /* HTTP_DUMP */
+#endif /* DEBUG */
 		app = HTMethod_hasEntity(HTRequest_method(request)) ?
 		    HTMIMERequest_new(request,
 				      HTTPRequest_new(request, (HTStream *) output, NO,
