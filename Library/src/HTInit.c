@@ -252,16 +252,6 @@ PUBLIC void HTProtocolPreemptiveInit (void)
     HTProtocol_add("rlogin", "", YES, HTLoadTelnet, NULL);
 }
 
-/*	REGISTER DEFULT EVENT MANAGER
-**	-----------------------------
-**	Not done automaticly - may be done by application!
-*/
-PUBLIC void HTEventInit (void)
-{
-    HTEvent_setRegisterCallback(HTEventrg_register);
-    HTEvent_setUnregisterCallback(HTEventrg_unregister);
-}
-
 /*	BINDINGS BETWEEN ICONS AND MEDIA TYPES
 **	--------------------------------------
 **	Not done automaticly - may be done by application!

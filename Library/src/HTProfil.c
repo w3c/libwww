@@ -22,9 +22,9 @@ PRIVATE BOOL preemptive = NO;
 
 PUBLIC void HTProfile_delete (void)
 {
+    if (!preemptive) HTEventTerminate();
     if (HTLib_isInitialized()) {
 	HTFormat_deleteAll();
-	if (!preemptive) HTEventrgTerminate();
 	HTLibTerminate();
     }
 }
@@ -39,9 +39,6 @@ PRIVATE void client_profile (const char * AppName, const char * AppVersion)
 
     /* Register the default set of transport protocols */
     HTTransportInit();
-
-    /* Set up the default event loop */
-    HTEventInit();
 
     /* Register the default set of transport protocols */
     HTTransportInit();
@@ -78,7 +75,9 @@ PRIVATE void client_profile (const char * AppName, const char * AppVersion)
 }
 
 PUBLIC void HTProfile_newClient (const char * AppName, const char * AppVersion)
-{    
+{
+  /* set up default event loop */
+    HTEventInit();
     client_profile(AppName, AppVersion);
 
     /* Register the default set of application protocol modules */
@@ -104,12 +103,6 @@ PRIVATE void robot_profile (const char * AppName, const char * AppVersion)
 
     if (!converters) converters = HTList_new();
     if (!encodings) encodings = HTList_new();
-
-    /* Register the default set of transport protocols */
-    HTTransportInit();
-
-    /* Set up the default event loop */
-    HTEventInit();
 
     /* Register the default set of transport protocols */
     HTTransportInit();
@@ -159,6 +152,8 @@ PRIVATE void robot_profile (const char * AppName, const char * AppVersion)
 
 PUBLIC void HTProfile_newRobot (const char * AppName, const char * AppVersion)
 {    
+  /* set up default event loop */
+    HTEventInit();
     robot_profile(AppName, AppVersion);
 
     /* Register the default set of application protocol modules */

@@ -357,6 +357,7 @@ PRIVATE void Cleanup (LineMode * me, int status)
 	OutputData(me->pView, "\n");
     CSLoadedUser_deleteAll();
     CSApp_unregisterApp();
+
     LineMode_delete(me);
     HTProfile_delete();
 #ifdef VMS
@@ -373,6 +374,7 @@ PRIVATE void scrsize (int * p_height, int * p_width)
 {
 #if defined(HAVE_IOCTL) && defined(HAVE_WINSIZE)
     register char *s;
+    int ioctl();
     struct winsize w;
     if (ioctl(2, TIOCGWINSZ, &w) == 0 && w.ws_row > 0)
 	*p_height = w.ws_row;
@@ -1398,8 +1400,6 @@ PRIVATE int terminate_handler (HTRequest * request, void * param, int status)
     LineMode * lm;
     BOOL is_index;
 
-    /*    if (!(Context *)HTRequest_context(request))
-        request = CSApp_originalRequest(request); */
     if (!context)
         return HT_OK;
     lm = context->lm;
@@ -1443,8 +1443,6 @@ PRIVATE int terminate_handler (HTRequest * request, void * param, int status)
 */
 PRIVATE int timeout_handler (HTRequest * request)
 {
-    if (!(Context *)HTRequest_context(request))
-        request = CSApp_originalRequest(request);
     if (!HTAlert_interactive()) {
 	Context * context = (Context *) HTRequest_context(request);
 	LineMode * lm = context->lm;

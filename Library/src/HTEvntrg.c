@@ -1008,7 +1008,7 @@ PRIVATE void __DumpFDSet( fd_set * fdp, const char * str)
 **	-----------------------------
 **	Not done automaticly - may be done by application!
 */
-PUBLIC BOOL HTEventrgInit (void)
+PUBLIC BOOL HTEventInit (void)
 {
 #ifdef WWW_WIN_ASYNC
     /*
@@ -1055,7 +1055,7 @@ PUBLIC BOOL HTEventrgInit (void)
     return YES;
 }
 
-PUBLIC BOOL HTEventrgTerminate (void)
+PUBLIC BOOL HTEventTerminate (void)
 {
 #ifdef WWW_WIN_ASYNC
     DestroyWindow(HTSocketWin);

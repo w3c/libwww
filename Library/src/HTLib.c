@@ -189,6 +189,8 @@ PUBLIC BOOL HTLibTerminate (void)
 {
     if (WWWTRACE) HTTrace("WWWLibTerm.. Cleaning up LIBRARY OF COMMON CODE\n");
 
+    HTNet_killAll();
+
     HT_FREE(HTAppName);	        /* Freed thanks to Wade Ogden <wade@ebt.com> */
     HT_FREE(HTAppVersion);
 
