@@ -1,0 +1,28 @@
+
+		 WELCOME TO THE W3C LINE MODE BROWSER
+		 ====================================
+
+(c) COPYRIGHT MIT 1995.
+Please first read the full copyright statement in the file COPYRIGH.
+
+"This product includes computer software created and made available by
+CERN. This acknowledgement shall be mentioned in full in any product
+which includes the CERN computer software included herein or parts
+thereof."
+
+The Line Mode Browser is a character based World-Wide Web Browser. It
+is developed for use on dumb terminals, as a test tool for the W3C
+Reference Library, and as a full featured command line tool for
+exchanging information on the Web. It can be run in interactive mode,
+non- interactive mode and as a proxy client. Furthermore it gives a
+variety of possibilities for data format conversion, filtering etc.
+
+For more information on the Line Mode Browser, please look at the page
+
+	http://www.w3.org/pub/WWW/LineMode/
+
+Have fun!
+
+--
+
+www-bug@w3.org, July 1995

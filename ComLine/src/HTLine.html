@@ -1,0 +1,51 @@
+<HTML>
+<HEAD>
+<TITLE>W3C Command Line Tool</TITLE>
+<!-- Changed by: Henrik Frystyk Nielsen, 25-Nov-1995 -->
+</HEAD>
+<BODY>
+
+<H1>W3C Command Line Tool</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+The W3C Command Line Tool is a "proof of concept" application that is
+using the W3C Reference Library. It can be used to perform all kind of
+Web operations from the command line. It can issue HTTP, FTP, Gopher,
+local Files, and News request and it can handle <EM>PUT</EM>,
+<EM>POST</EM>, <EM>HEAD</EM>, <EM>GET</EM> and a set of other methods
+depending on the protocol used. <P>
+
+The module is implemented by <A HREF="HTLine.c">HTLine.c</A>, and it
+is a part of the <A HREF="http://www.w3.org/pub/WWW/ComLine/">W3C
+Command Line Tool</A>. <P>
+
+<PRE>
+#ifndef HTLINE_H
+#define HTLINE_H
+</PRE>
+
+<H2>Handling of output</H2>
+
+<PRE>
+#if WWWTRACE_MODE == WWWTRACE_TTY
+#define STDOUT 1
+#define OUTPUT 2	/* used in TTYPrint's switch for output multiplexing */
+#else
+#define STDOUT stdout
+#define OUTPUT stdout
+#endif
+</PRE>
+
+<PRE>
+#endif /* HTLINE_H */
+</PRE>
+
+End of HTLine Declaration
+</BODY>
+</HTML>

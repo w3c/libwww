@@ -1,0 +1,235 @@
+#	Makefile for W3C Command Line Tool
+#
+#	(c) COPYRIGHT MIT 1995.
+#	Please first read the full copyright statement in the file COPYRIGH.
+#
+# This file should be invariant between systems.
+#	DEPENDENCIES NOT COMPLETE @@
+#
+#	make		Compile and link the software (private version)
+#	make install	Copy it into the system (implies make)
+#	make update	Copy installed version into installed version
+#	make uninstall	Unlink installed version from the system
+#	make clean	Remove intermediate files
+#	make cleanall	Remove intremediate files and products
+#	
+# Macros required to be defined already for make:
+#
+# CC		The C compiler
+# CFLAGS	Flags for $(CC)
+# LFLAGS	Flags for ld
+# WWW		Root of WWW source tree
+# USELIBDIR	Directory in which libwww.a should be found
+#
+# Macros needed for make install:
+#
+# BINDIR	Directory for installed binary
+#______________________________________________________________________
+
+#  If this env var is set to something else Some makes will use that instead
+SHELL = /bin/sh
+
+#	.h files are distributed but originally are made from the
+#	self-documenting hypertext files.
+.SUFFIXES: .h .html
+.html.h:
+	www -w90 -na -p -to text/x-c $*.html > $*.h
+
+#	Directories
+OBJ = $(WTMP)/ComLine/$(WWW_MACH)
+LIB = $(WTMP)/Library/$(WWW_MACH)
+CMN = $(WWW)/Library/Implementation
+CL  = $(WWW)/ComLine/Implementation
+DOC = $(WWW)/ComLine/Defaults
+ICON= $(WWW)/Icons
+VMS = $(CL)/vms
+WIN = $(CL)/windows
+BIN = $(WWW)/ComLine/$(WWW_MACH)
+LIBWWW = $(LIB)/libwww.a
+PROD= w3c
+FTP = /afs/w3.org/devel/Dist/ComLine
+
+CFLAGS2 = $(CFLAGS) -I$(CMN) -I$(CL)
+LFLAGS2 = $(LFLAGS) -L$(LIB) $(WAISLIB) $(MATHLIB) -lwww
+
+#	memory leak checkers
+PROOF = proof
+PURIFY_CACHE = /home2/frystyk/purify-cache
+
+#	MODULES
+OBJS =	$(OBJ)/HTLine.o
+
+CFILES =$(CL)/HTLine.c
+
+HFILES=	$(CL)/HTLine.h
+
+SOURCES=$(CFILES) $(HFILES) \
+	$(CL)/Version.make \
+	$(CL)/CommonMakefile \
+	$(CL)/README \
+	$(WWW)/Makefile \
+	$(WWW)/BUILD \
+	$(WWW)/BUILD.SH
+
+ICONS = $(ICON)/WWW/Bug48x.gif \
+	$(ICON)/WWW/LMB48x.gif \
+	$(ICON)/WWW/w3c_48x48.gif \
+	$(ICON)/WWW/doc48x.gif \
+	$(ICON)/WWW/guide48x.gif \
+	$(ICON)/WWW/internals48x.gif \
+	$(ICON)/WWW/install48x.gif \
+	$(ICON)/WWW/relnotes48x.gif \
+	$(ICON)/WWW/startup48x.gif \
+	$(ICON)/32x32/caution.gif
+
+LEGAL =	$(WWW)/README \
+	$(WWW)/COPYRIGH \
+	$(WWW)/PATCHES \
+	$(WWW)/CERN
+
+DOCS =	$(CL)/*.html \
+	`find $(DOC) -follow \( -name \*.html -o -name \*.gif \) -print`
+
+SPECIFIC = \
+	$(WWW)/All/*/Makefile.include \
+	$(WWW)/All/Implementation/Makefile \
+	$(DOC)/Patch/*.fix \
+	$(WIN)/*.ico \
+	$(WIN)/*.mak \
+	$(WIN)/*.def \
+	$(WIN)/*.c \
+	$(WIN)/*.h \
+	$(VMS)/descrip.mms \
+	$(VMS)/build_multinet.com \
+	$(VMS)/setup.com
+
+TOTAL =	$(LEGAL) \
+	$(SOURCES) \
+	$(ICONS) \
+	$(DOCS) \
+	$(SPECIFIC)
+
+all : inc $(BIN)/$(PROD)
+
+$(BIN)/$(PROD) : $(OBJS) $(LIBWWW)
+	$(CC) -o $(BIN)/$(PROD)_$(VT)  $(OBJS) $(LFLAGS2)
+	-rm $(BIN)/$(PROD)
+	ln -s $(PROD)_$(VT) $(BIN)/$(PROD)
+
+purify : $(OBJS) $(LIBWWW)
+	purify -cache-dir=$(PURIFY_CACHE) \
+	$(CC) -o $(PROD)_$(VT) $(OBJS) $(LFLAGS2)
+	-rm $(BIN)/$(PROD)
+	ln -s $(PROD)_$(VT) $(BIN)/$(PROD)
+
+proof : $(OBJS) $(LIBWWW)
+	$(PROOF) $(CC) -o $(PROD)_$(VT) $(OBJS) $(LFLAGS2)
+	-rm $(BIN)/$(PROD)
+	ln -s $(PROD)_$(VT) $(BIN)/$(PROD)
+
+$(LIBWWW) :
+	@echo You must get and make the WWWLibrary product first!
+	(cd $(WWW)/Library/$(WWW_MACH) && make)
+
+lib :
+	(cd $(WWW)/Library/$(WWW_MACH) && make)
+
+inc :	$(HFILES)
+	@echo "Include files generated from member"
+
+#	Make a copy of the binary and documentation on this machine
+install :	$(PROD)
+	cp $(PROD) $(BINDIR)/$(PROD)
+	- mkdir /usr/local
+	- mkdir /usr/local/lib
+	- mkdir /usr/local/lib/WWW
+	cp $(DEFAULTS)/*.html /usr/local/lib/WWW
+
+#	Link system to the binary and documentation in this tree
+link : Works/$(PROD)
+	ln -s `pwd`/$(PROD) $(BINDIR)/$(PROD)
+	- mkdir /usr/local
+	- mkdir /usr/local/lib
+	ln -s $(DEFAULTS) /usr/local/lib/WWW
+
+uninstall :
+	rm $(BINDIR)/$(PROD)
+	rm -r /usr/local/lib/WWW
+
+#	Clean up everything generatable except final products
+#	Including obj directory UNLESS there is anything else in it
+clean :
+	rm $(OBJ)/.created $(OBJ)/*.o
+	-rmdir $(OBJ)
+
+#	Clean up everything generatable including final products
+cleanall : clean
+	rm $(PROD)
+
+#		Distribution use only:
+#		----------------------
+distribute : inc $(LEGAL) $(SOURCES)
+	(cd $(WWW)/.. && WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
+	-f WWW/ComLine/Implementation/Version.make \
+	-f WWW/ComLine/Implementation/CommonMakefile \
+	$(FTP)/$(PROD)_$(VT)_src.tar.Z)
+	(cd $(WWW); cvs tag \
+	    `sed -e 's/V. = /v/' ComLine/Implementation/Version.make | sed -e 's?\.?/?'` \
+	    ComLine)
+	@echo Distribution of Command Line Tool version $(VT) up to date.
+
+#	Source Snapshot
+snapshot : inc $(LEGAL) $(SOURCES)
+	(cd $(WWW)/.. && WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
+	-f WWW/ComLine/Implementation/Version.make \
+	-f WWW/ComLine/Implementation/CommonMakefile \
+	$(FTP)/$(PROD)_$(VT)_src.tar.Z)
+	@echo Snapshot of Command Line Tool version $(VT) up to date.
+
+$(FTP)/$(PROD)_$(VT)_src.tar.Z : $(SOURCES)
+	tar cvhf $(FTP)/$(PROD)_$(VT)_src.tar $(TOTAL)
+	cp $(FTP)/$(PROD)_$(VT)_src.tar $(FTP)/temp.tar
+	compress -f $(FTP)/$(PROD)_$(VT)_src.tar
+	mv $(FTP)/temp.tar $(FTP)/$(PROD)_$(VT)_src.tar
+	gzip -f $(FTP)/$(PROD)_$(VT)_src.tar
+
+zip : $(LEGAL) $(SOURCES)
+	(cd $(WWW)/..; WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
+	-f WWW/ComLine/Implementation/Version.make \
+	-f WWW/ComLine/Implementation/CommonMakefile \
+	$(FTP)/$(PROD)_$(VT)_src.zip)
+	@echo Distribution of Command Line Tool version $(VT) up to date.
+
+$(FTP)/$(PROD)_$(VT)_src.zip : $(SOURCES)
+	zip -v $(FTP)/$(PROD)_$(VT)_src.zip $(TOTAL)
+
+#	Hypertext supplied in text format
+#	---------------------------------
+
+$(WWW)/README : /afs/w3.org/member/WWW/README.html
+	www -p -na http://www.w3.org/member/WWW/README.html -o $(WWW)/README
+
+$(WWW)/COPYRIGHT : /afs/w3.org/member/WWW/COPYRIGHT.html
+	www -p -na http://www.w3.org/member/WWW/COPYRIGHT.html -o $(WWW)/COPYRIGH
+
+$(WWW)/PATCHES : /afs/w3.org/member/WWW/PATCHES.html
+	www -p -na http://www.w3.org/member/WWW/PATCHES.html -o $(WWW)/PATCHES
+
+$(WWW)/CERN : /afs/w3.org/member/WWW/CERN.html
+	www -p -na http://www.w3.org/member/WWW/CERN.html -o $(WWW)/CERN
+
+#	OBJECT GENERATION
+#	=================
+#	Directory for object files - .created checks it exists
+OE = $(OBJ)/.created
+$(OE) :
+	if [ ! -r $(WTMP) ] ; then mkdir $(WTMP); else echo OK ; fi
+	if [ ! -r $(WTMP)/ComLine ] ; then mkdir $(WTMP)/ComLine; else echo OK ; fi
+	if [ ! -r $(WTMP)/ComLine/$(WWW_MACH) ] ; \
+		then mkdir $(WTMP)/ComLine/$(WWW_MACH); else echo OK ; fi
+	touch $@
+
+$(OBJ)/HTLine.o : $(OE) $(CL)/HTLine.c $(CL)/HTLine.h \
+	$(CL)/Version.make \
+	$(CMN)/WWWUtil.h $(CMN)/WWWCore.h $(CMN)/WWWApp.h
+	$(CC) -c -o $@ $(CFLAGS2) -DVT=\"$(VT)\" $(CL)/HTLine.c  
