@@ -85,7 +85,7 @@
  
 extern FILE * logfile;		/* Log file output */
 
-PUBLIC int HTMaxWAISLines = 250;/* Max number of entries from a search */
+PUBLIC int HTMaxWAISLines = 200;/* Max number of entries from a search */
 
 PRIVATE BOOL	as_gate;	/* Client is using us as gateway */
 
@@ -685,6 +685,9 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
     
     extern FILE * connect_to_server();
     
+    if (PROT_TRACE)
+	fprintf(stderr, "HTLoadWAIS.. Looking for `%s\'\n", arg);
+     
     if (!acceptable_inited) init_acceptable();
     
         
@@ -794,11 +797,15 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 					WWW_HTML, format_out, sink);
 	
 	{
+	    START(HTML_HTML);
+	    START(HTML_HEAD);
 	    START(HTML_TITLE);
 	    PUTS(basetitle);
 	    PUTS(" Index");
 	    END(HTML_TITLE);
+	    END(HTML_HEAD);
 	    
+	    START(HTML_BODY);
 	    START(HTML_H1);
 	    PUTS("WAIS Index: ");
 	    PUTS(basetitle);
@@ -829,6 +836,8 @@ PUBLIC int HTLoadWAIS ARGS1(HTRequest * , request)
 	    fclose(fp);
 	}
 #endif
+	END(HTML_BODY);
+	END(HTML_HTML);
 	FREE_TARGET;
 	
     } else if (key) {					/* S E A R C H */

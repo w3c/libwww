@@ -676,7 +676,7 @@ PRIVATE BOOL HTLoadDocument ARGS2(HTRequest *,		request,
 
     /* The error stack might contain general information to the client
        about what has been going on in the library (not only errors) */
-    if (request->error_stack)
+    if (!HTImProxy && request->error_stack)
 	HTErrorMsg(request);
 
     if (status == HT_LOADED) {
@@ -699,13 +699,11 @@ PRIVATE BOOL HTLoadDocument ARGS2(HTRequest *,		request,
     }
     
     /* Bug fix thanks to Lou Montulli. Henrik 10/03-94 */
-    if (status<=0) {		      /* Failure in accessing a document */
-#ifdef CURSES
-        user_message("Can't access `%s'", full_address);
-#else
-	if (TRACE) fprintf(stderr, 
-		"HTAccess: Can't access `%s'\n", full_address);
-#endif
+    if (status <= 0) {		          /* Failure in accessing a document */
+	if (HTImProxy)
+	    HTErrorMsg(request);		     /* Only on a real error */
+	if (PROT_TRACE)
+	    fprintf(stderr, "HTAccess.... Can't access `%s'\n", full_address);
 	free(full_address);
 	return NO;
     }
@@ -719,9 +717,8 @@ PRIVATE BOOL HTLoadDocument ARGS2(HTRequest *,		request,
     free(full_address);
    
     exit(-6996);
-    return NO;	/* For gcc :-( */
-} /* HTLoadDocument */
-
+    return NO;		/* For gcc :-( */
+}
 
 
 /*		Load a document from absolute name

@@ -521,7 +521,8 @@ PUBLIC char *HTCanon ARGS2 (char **, filename, char *, host)
     /* Does the URL contain a full domain name? This also works for a
        numerical host name. The domain name is already made lower-case
        and without a trailing dot. */
-    if ((strptr = strchr(host, '.')) == NULL || strptr >= path) {
+    if (((strptr = strchr(host, '.')) == NULL || strptr >= path) &&
+	strncasecomp(host, "localhost", 9)) {
 	CONST char *domain = HTGetDomainName();
 	if (domain) {
 	    if ((newname = (char *) calloc(1, strlen(*filename) +
