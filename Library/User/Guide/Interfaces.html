@@ -1,8 +1,5 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen,  2-Feb-1996 -->
-  <!-- Changed by: Eric Prud'hommeaux, 10-May-1996 -->
-  <NEXTID N="z78">
   <TITLE>Internals - Library Interfaces</TITLE>
 </HEAD>
 <BODY>
@@ -30,17 +27,12 @@ The core interfaces must be included in all applications. <A NAME="dll"></A>
   wwwdll.dll
 </H3>
 <P>
-The wwwdll library is a tiny library that contains a pointer to the
-<A HREF="../../src/TTYPrint.html">TTYPrint</A> function. When Windows loads
-a DLL, the exported function and data pointers get "fixed up" in the other
-modules. Consequently, what may be a directly addressable piece of data in
-it's home library will be a pointer in the other libraries and executables
-that dynamically link to it. The
-<A HREF="../../src/TTYPrint.html">TTYPrint</A> pointer is
-<A HREF="../../src/windows/wwwdll.def">exported</A> to the other modules
-and referenced via the TTYPrint macro in
-<A HREF="../../src/HTUtils.html">HTUtils.h</A>. <A HREF="#dll">wwwdll.dll
-</A> also contains the WWW_TraceFlag to the same end of macroing the indirection.
+The wwwdll library is a tiny library that contains a few global variables
+like the global <CODE>WWW_TraceFlag</CODE>. When Windows loads a DLL, the
+exported function and data pointers get "fixed up" in the other modules.
+Consequently, what may be a directly addressable piece of data in it's home
+library will be a pointer in the other libraries and executables that dynamically
+link to it.
 <UL>
   <LI>
     <A HREF="../../src/windows/wwwdll.def">Definition list of exported API</A>
@@ -195,10 +187,10 @@ for adding streams that can convert from one media type to some other type,
 or presenting the result to the user. In the distribution file of the Library
 you will find a large set of protocol modules and streams already implemented.
 However, in order to use these you need to initialize them. This can be done
-by using the methods in the <A HREF="WWWInit.html">WWWInit</A> module. You
-can modify these modules as you like to fit your particular needs. The modules
-in this interface are <B>not</B> part of any DLL and so must be included
-directly if desired.
+by using the methods in the <A HREF="../../src/WWWInit.html">WWWInit
+module</A>. You can modify these modules as you like to fit your particular
+needs. The modules in this interface are <B>not</B> part of any DLL and so
+must be included directly if desired.
 <UL>
   <LI>
     <A HREF="../../src/WWWInit.html">WWWInit Interface include file</A>
