@@ -17,7 +17,7 @@ SUFFIXES = .html
 DEPENDENCIES = \
 	../src/libwww.la
 
-Extrnals.html:
+export: Extrnals.html
 	-rm $(srcdir)/Extrnals.html;
 	(cd $(srcdir) && \
 	perl $(top_srcdir)/config/makeindx.pl ../src/ ../src/WWW*.html > $(srcdir)/Extrnals.html)
