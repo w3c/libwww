@@ -151,6 +151,7 @@ PUBLIC BOOL HTAssocList_removeObject (HTAssocList * list, const char * name)
 		HTList_removeObject(list, assoc);
 		HT_FREE(assoc);
 		found = YES;
+		cur = list;
 	    }
 	}
     }
