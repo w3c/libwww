@@ -1100,6 +1100,7 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
 {
     CONST char * addr;
     char * filename;
+    char * access;
     HTFormat format;
     static char * nodename = 0;
     char * newname=0;	/* Simplified name of file */
@@ -1117,6 +1118,19 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
     StrAllocCopy(newname, addr);
     filename=HTParse(newname, "", PARSE_PATH|PARSE_PUNCTUATION);
     nodename=HTParse(newname, "", PARSE_HOST);
+
+    /* If access is ftp => go directly to ftp code (henrik 27/02-94) */
+    access = HTParse(newname, "", PARSE_ACCESS);
+    if(!strcmp("ftp", access)) {
+        FREE(newname);
+        FREE(access);
+	FREE(filename);		                         /* Not used anymore */
+        goto try_ftp;
+    } else {
+        FREE(newname);
+        FREE(access);
+    }
+
     free(newname);
 
     format = HTFileFormat(filename, &encoding, &language);
