@@ -201,41 +201,6 @@ PUBLIC int HTAAFile_readPasswdRec ARGS3(FILE *, fp,
 
 
 
-/* PUBLIC						HTAA_addPasswdRec()
-**			ADDS A NEW ENTRY TO PASSWORD FILE
-** ON ENTRY:
-**	username	is the username to add.
-**	password	is the corresponding password in clear.
-**	real_name	is the users real name.
-**	pw_filename	is the name of the password file.
-**
-**			This function calls HTAA_encryptPassword()
-**			to encrypt the password field before writing
-**			it to password file.
-** ON EXIT:
-**	returns		YES, if operation was successful.
-**			NO, otherwise.
-*/
-PUBLIC BOOL HTAA_addPasswdRec ARGS4(CONST char *, username,
-				    CONST char *, password,
-				    CONST char *, real_name,
-				    CONST char *, pw_filename)
-{
-    FILE *fp = fopen(pw_filename, "a");
-    char *encrypted;
-
-    if (!fp) return NO;
-
-    encrypted = HTAA_encryptPasswd(password);
-
-    fprintf(fp, "%-12s:%-26s:%s\n", username, encrypted, real_name);
-    fclose(fp);
-    free(encrypted);
-    return YES;
-}
-
-
-
 /* PUBLIC						HTAA_checkPassword()
 **		CHECK A USERNAME-PASSWORD PAIR
 ** ON ENTRY:
