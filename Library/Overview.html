@@ -14,10 +14,12 @@
 <P ALIGN=Center>
 <A HREF="#News">News</A> | <A HREF="Activity.html">Why libwww?</A> |
 <A NAME="Installation" HREF="Distribution.html">Get it!</A> |
+<A HREF="http://db.w3.org/Library/latest.sql">Latest updates</A> |
 <A HREF="User/Applications.html">Sample Apps</A> |
 <A HREF="User/ReleaseNotes.html">Release Notes</A> |
 <A HREF="User/">Documentation</A> | <A HREF="#Forums">Mailing list</A> |
-<A HREF="#Legal">Legal</A> | <A HREF="#Authors">Authors &amp; Contributors</A>
+<A HREF="#Legal">Legal</A> | <A HREF="#Authors">Authors</A> &amp;
+<A HREF="Collaborators.html">Hackers</A>
 <P>
 <DIV class="intro">
   Libwww is a general-purpose Web API written in C for
@@ -29,21 +31,24 @@
   a testbed for protocol experiments.
   <UL>
     <LI>
-      <STRONG>Dec 3, 1998:</STRONG> Number of libwww <A HREF="cvs.html">check-outs
-      from CVS</A> exceeds 700!
+      <STRONG>Jan 6, 1999</STRONG>: Improved <A HREF="src/HTML.html">libwww HTML
+      parser</A> and <A HREF="src/HText.html">new callback interface</A> committed
+      to <A HREF="cvs.html">CVS</A>
     <LI>
-      <STRONG>Dec 1, 1998:</STRONG> <A HREF="cvs.html">Checkout libwww from CVS</A>,
-      browse the <A HREF="http://dev.w3.org/cgi-bin/cvsweb/"> repository</A> and
-      see <A HREF="http://db.w3.org/Library/latest.sql">the latest edits</A>
+      <STRONG>Dec 16, 1998</STRONG>: <A HREF="../People/W3Cpeople.html#Kahan">Jose
+      Kahan</A> announces
+      <A HREF="http://www.egroups.com/list/www-lib/703.html">client-side Digest
+      Authentication implementation in libwww</A> - <A HREF="../Library/cvs.html">try
+      it out</A>!
+    <LI>
+      <STRONG>Dec 14, 1998:</STRONG> Looking for Win32 binaries? Vladimir Kozlov
+      provides <A HREF="http://www.idm.ru/libwww.htm">fresh libwww binaries</A>
+      from the <A HREF="http://www.idm.ru">IDM Web site</A>
     <LI>
       <STRONG>Dec 1, 1998:</STRONG>
       <A HREF="http://www.egroups.com/list/www-lib/626.html">Libwww now runs</A>
       in the latest <A HREF="http://sourceware.cygnus.com/cygwin/">Cygwin b20
       environment</A> - please help testing!
-    <LI>
-      <STRONG>Nov 20, 1998:</STRONG> Looking for Win32 binaries? Vladimir Kozlov
-      most kindly provides <A HREF="http://www.idm.ru/libwww.htm">libwww binaries</A>
-      from the <A HREF="http://www.idm.ru">IDM Web site</A>
   </UL>
 </DIV>
 <P>
@@ -51,7 +56,11 @@
 <H2>
   <A NAME="News">News, Updates, and Events</A>
 </H2>
-<DL>
+<DL COMPACT>
+  <DT>
+    <STRONG>Dec 3, 1998</STRONG>
+  <DD>
+    Number of libwww <A HREF="cvs.html">check-outs from CVS</A> exceeds 700!
   <DT>
     <STRONG>Nov 1, 1998</STRONG>
   <DD>
@@ -59,66 +68,9 @@
     <A HREF="Collaborators.html#Collaborators">close collaboration</A> and extensive
     testing by the <A HREF="#Forums">libwww community</A>. Special thanks to
     Bob Racko, John Punin, Vladimir Kozlov, and Jose Kahan.
-  <DT>
-    <STRONG>Sep 24, 1998</STRONG>
-  <DD>
-    <A HREF="../WinCom/">New binary version of the Web Commander made
-    available</A>. This version <A HREF="../WinCom/NoMoreLostUpdates.html">avoids
-    the lost update problem</A>
-  <DT>
-    <STRONG>Sep 14, 1998</STRONG>
-  <DD>
-    The <A HREF="cvs.html">latest CVS version of libwww</A> supports
-    <A HREF="../Protocols/">HTTP/1.1, rev 05</A>
-  <DT>
-    <STRONG>Sep 1, 1998</STRONG>
-  <DD>
-    The number of people having <A HREF="cvs.html">checked out libwww from CVS</A>
-    exceeds 300!
-  <DT>
-    <STRONG>Jun 1, 1998</STRONG>
-  <DD>
-    The <A HREF="http://dev.w3.org/cgi-bin/cvsweb/">libwww cvs repository log</A>
-    can now be browsed online.
-  <DT>
-    <STRONG>May 21, 1998</STRONG>
-  <DD>
-    The libwww repository is now available to the public - <A href="cvs.html">come
-    and try it out</A>. The hope is that this will speed up development and
-    deployment of new features.
-  <DT>
-    <STRONG>Mar 27, 1998</STRONG>
-  <DD>
-    Try out the latest <A HREF="WinCom.html">Windows based PUT Tool</A> - a small
-    Windows Widget that can be the start to something big :)
-  <DT>
-    <STRONG>Mar 25, 1998</STRONG>: <A HREF="Distribution.html" NAME="5.1d">Libwww
-    Version 5.1l</A> available for <A HREF="../Protocols/HTTP/Forum/">HTTP/1.1
-    testing</A>! <A HREF="../Protocols/HTTP/Performance/LAN/">Check out the
-    performance!</A>
-  <DD>
-    This release is a "second generation" HTTP/1.1 implementation using persistent
-    connections, pipelining, smart output buffering, and persistent caching.
-    It is the code base that was used in the
-    "<A HREF="../Protocols/HTTP/Performance/Pipeline.html">Network Performance
-    Effects of HTTP/1.1, CSS1, and PNG</A>" paper
-    <UL>
-      <LI>
-	This release implements <A HREF="../Protocols/History.html#Rev02">HTTP/1.1
-	Rev-02</A>!
-      <LI>
-	Check out the <A HREF="User/ReleaseNotes.html">list of new features</A>
-      <LI>
-	Complete HTTP/1.1 compliant <A HREF="src/WWWCache.html">client side persistent
-	cache manager</A>
-      <LI>
-	Support for zlib based decompression and regular expressions - can do really
-	cool things in the <A HREF="../Robot/">Robot</A>
-    </UL>
-  <DT>
-    See also the <A HREF="OldEvents.html">list of previous head lines and
-    events</A>
 </DL>
+<P>
+See also the <A HREF="OldEvents.html">libwww timeline</A>
 <H2>
   <A NAME="Forums">Libwww Mailinglist</A>
 </H2>
@@ -155,19 +107,19 @@ on mailing&nbsp;lists</A> for more details.
     use the patch!
 </UL>
 <H2>
-  <A NAME="Authors">Authors and Contributors</A>
+  <A NAME="Authors">Authors</A>
 </H2>
 <P>
 The development of libwww depends on <B>YOU</B>! The more people who
 are&nbsp;contributing and helping the development, the more useful the code
-base gets. Check out the <A HREF="Collaborators.html"><B>list of
-collaborators</B></A> who provide invaluable contributions to the libwww
-code base and find out how you can help!
+base gets. Check out the <A HREF="Collaborators.html"><B>list of libwww
+hackers</B></A> who provide invaluable contributions to the libwww code base
+and find out how you can help!
 <DL>
   <DT>
     <A HREF="/People/Frystyk/">Henrik Frystyk Nielsen</A>
   <DD>
-    Designed and implemented libwww from version 2.17 up until version 5.1
+    Designed and implemented libwww from version 2.17 up to the latest version
   <DT>
     <A HREF="../People/#BernersLee">Tim Berners-Lee</A> and
     <A HREF="../People.html#Groff">Jean-Francois Groff</A>

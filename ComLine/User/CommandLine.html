@@ -243,12 +243,19 @@ following flags:
   <DD>
     Max forwards to be used with the TRACE method
   <DT>
-    <B>-r</B> &lt;file&gt;
+    <B>-r &lt;address&gt;</B>
   <DD>
-    Rule file, a.k.a. configuration file. If this is specified, a rule file may
-    be used to map URLs, and to set up other aspects of the behavior of the browser.
-    Many rule files may be given with successive -r options, and a default rule
-    file name may be given using the <B>WWW_CONFIG</B> environment variable.
+    Rule file, a.k.a. <A
+    HREF="../../Library/User/Using/RuleSyntax.html">configuration
+    file</A> is a set of rules and configuration options that can be
+    used to map URLs, and to set up other aspects of the behavior of
+    the command line tool. Note that the address must be specified as
+    a URI - and in fact it can be located on HTTP servers etc. as need
+    be. File URIs are parsed relative to the current folder, so a rule
+    file address of "<TT>rules.conf</TT>" will point to a file in the
+    location where this tool it started. If a local file then the file
+    suffix must be "<TT>.conf</TT>" - otherwise the media type must be
+    <TT>application/x-www-rules</TT>.
   <DT>
     <B>-timeout</B> &lt;n&gt;
   <DD>

@@ -91,11 +91,10 @@ extern int  HTCacheMode_maxSize    (void);
   Max Size of a Single Cache Entry
 </H3>
 <P>
-It is also possible to control the max size of a single cache entry so
-that the cache doesn't get filled with a very few, very large cached
-entries. The default max size for a single cached entry is 3M. The
-value indicated must be in Mbytes, for example, a vaue of 3 would mean
-3 MBytes.
+It is also possible to control the max size of a single cache entry so that
+the cache doesn't get filled with a very few, very large cached entries.
+The default max size for a single cached entry is 3M. The value indicated
+must be in Mbytes, for example, a vaue of 3 would mean 3 MBytes.
 <PRE>
 extern BOOL HTCacheMode_setMaxCacheEntrySize (int size);
 extern int HTCacheMode_maxCacheEntrySize (void);
@@ -125,13 +124,22 @@ extern HTExpiresMode HTCacheMode_expires (void);
 </H3>
 <P>
 The cache can be set to handle disconnected operation where it does not use
-the network to validate entries and do not attempt to load new versions.
+the network to validate entries and do not attempt to load new documents.
 All requests that can not be fulfilled by the cache will be returned with
 a <CODE>"504 Gateway Timeout"</CODE> response. There are two modes of how
-the cache can operate in disconnected mode: it can use diconnected mode on
-its own persistent cache or it can forward the disconnected request to a
-proxy cache, for example. The latter mode only really makes sense when you
-are using a proxy, of course.
+the cache can operate in disconnected mode: 
+<DL>
+  <DT>
+    <EM>No network activity at all</EM>
+  <DD>
+    Here is uses its own persistent cache
+  <DT>
+    <EM>Forward all disconnected requests to a proxy cache</EM>
+  <DD>
+    Here it uses the HTTP/1.1 cache-control to indicate that the proxy should
+    operate in disconnected mode. This mode only really makes sense when you
+    are using a proxy, of course.
+</DL>
 <PRE>
 typedef enum _HTDisconnectedMode {
     HT_DISCONNECT_NONE     = 0,

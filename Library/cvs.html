@@ -12,10 +12,10 @@
 </H1>
 <P>
 <DIV class="intro">
-  <A HREF="http://www.cyclic.com/cvs/info.html">CVS</A> allows <B>YOU</B> to
-  follow the development of <A HREF="./">libwww</A> and its
-  <A HREF="User/Applications.html">sample applications</A> closely and to
-  contribute with patches and new features.
+  <A HREF="http://www.cyclic.com/cvs/info.html">CVS</A> allows
+  <STRONG>YOU</STRONG> to follow the development of <A HREF="./">libwww</A>
+  and its <A HREF="User/Applications.html">sample applications</A> closely
+  and to contribute with patches and new features.
   <UL>
     <LI>
       <A HREF="#Releases">How does libwww releases and CVS work together?</A>
@@ -71,9 +71,11 @@ Anonymous checkout is read-only access which allows you to get the latest
 edits and to provide patches to be integrated into the code base. The
 instructions should work for both
 <A HREF="http://www.cyclic.com/cvs/unix.html">Unix</A> and
-<A HREF="http://www.cyclic.com/cvs/windows.html">Windows</A>. Make sure you
-are running at least CVS 1.9 or later. Start by login as follows:
-<PRE>% <B>cvs -d :pserver:anonymous@dev.w3.org:/sources/public login</B>
+<A HREF="http://www.cyclic.com/cvs/windows.html">Windows</A>, and may even
+work for <A HREF="http://www.cyclic.com/cvs/mac.html">Macs</A> although I
+am not sure.&nbsp;Make sure you are running at least CVS 1.9 or later. Start
+by login as follows:
+<PRE>% <STRONG>cvs -d :pserver:anonymous@dev.w3.org:/sources/public login</STRONG>
 </PRE>
 <P>
 after which you type "<STRONG>anonymous</STRONG>" as password.
@@ -82,7 +84,7 @@ after which you type "<STRONG>anonymous</STRONG>" as password.
 </H3>
 <P>
 To get the <EM>latest</EM> version from the CVS repository, run this command:
-<PRE>% <B>cvs -d :pserver:anonymous@dev.w3.org:/sources/public -z3 checkout libwww</B>
+<PRE>% <STRONG>cvs -d :pserver:anonymous@dev.w3.org:/sources/public -z3 checkout libwww</STRONG>
 </PRE>
 <P>
 After which you will get all the code coming at you, you'd better have at
@@ -94,14 +96,14 @@ least 10MBytes available on your machine. Now you are ready to
 <P>
 If you want to get a <A HREF="#Releases">specific release</A> using CVS tags
 then you can do this by using the the CVS "<TT>-r</TT>" option, for example
-<PRE>% <B>cvs -d :pserver:anonymous@dev.w3.org:/sources/public -z3 -r Release-5-2 checkout libwww</B>
+<PRE>% <STRONG>cvs -d :pserver:anonymous@dev.w3.org:/sources/public -z3 -r Release-5-2 checkout libwww</STRONG>
 </PRE>
 <P>
 Check the <A HREF="http://dev.w3.org/cgi-bin/cvsweb/">CVS log walker</A>
 for the current set of release tags. If you at some point want to revert
 to the latest untagged version then you should use the following command:
-<PRE>% <B>cd libwww</B>
-% <B>cvs -z3 update -A</B>
+<PRE>% <STRONG>cd libwww</STRONG>
+% <STRONG>cvs -z3 update -A</STRONG>
 </PRE>
 <H2>
   <A NAME="Write">CVS Write Access</A>
@@ -123,17 +125,17 @@ access to the CVS repository using
 <A HREF="http://www.cs.hut.fi/ssh/">SSH</A>. You setup CVS to use SSH as
 remote shell by setting the <CODE>CVS_RSH</CODE> env variable. Using bash
 or similar, it looks like this:
-<PRE>% <B>export CVS_RSH=/usr/local/bin/ssh</B>
+<PRE>% <STRONG>export CVS_RSH=/usr/local/bin/ssh</STRONG>
 </PRE>
 <P>
 When you are using SSH, you don't need to do a CVS login. Instead you can
 just go ahead checking out libwww like this
-<PRE>% <B>cvs -d dev.w3.org:/sources/public checkout libwww</B>
+<PRE>% <STRONG>cvs -d dev.w3.org:/sources/public checkout libwww</STRONG>
 </PRE>
 <P>
 and you will be prompted for your SSH credentials. Again, if you want a specific
 revision then use something like this
-<PRE>% <B>cvs -d dev.w3.org:/sources/public -r Release-5-2 checkout libwww</B>
+<PRE>% <STRONG>cvs -d dev.w3.org:/sources/public -r Release-5-2 checkout libwww</STRONG>
 </PRE>
 <P>
 The <A HREF="http://www.apache.org">Apache Group</A> has some
@@ -158,13 +160,13 @@ Once you have <A HREF="#latest">checked out the libwww CVS tree</A>
 committed to the tree by using the
 <A HREF="http://www.loria.fr/~molli/cvs/doc/cvs_16.html#SEC148">cvs update
 command</A> like this
-<PRE>% <B>cd libwww</B>
-% <B>cvs -z3 update -d</B>
-% <B>cd ..</B>
+<PRE>% <STRONG>cd libwww</STRONG>
+% <STRONG>cvs -z3 update -d</STRONG>
+% <STRONG>cd ..</STRONG>
 </PRE>
 <P>
 It is important that you use the "<TT>-d</TT>" flag so that you get new
-directories as well as updated files. Now you <B>MUST</B>
+directories as well as updated files. Now you <STRONG>MUST</STRONG>
 <A HREF="#Easy">repeat the compilation bootstrapping</A> procedure.
 <H2>
   <A NAME="Boot">Getting Bootstrapped</A>
@@ -186,8 +188,8 @@ and the <TT>*.def</TT> files by running a
 a few warnings when it runs - they are all OK. It requires that you have
 a recent version of <A HREF="http://www.perl.org">Perl</A> on your machine.
 Run the script like this (note the explicit use of the perl interpreter):
-<PRE>% <B>cd libwww</B>
-% <B>perl config/winConfigure.pl</B>
+<PRE>% <STRONG>cd libwww</STRONG>
+% <STRONG>perl config/winConfigure.pl</STRONG>
 </PRE>
 <P>
 Windows people are now done and can jump directly to the instructions for
@@ -197,41 +199,41 @@ On Unix, you <A HREF="#More">need some more</A>...
   <A NAME="More">Unix (continued)</A>
 </H3>
 <P>
-On Unix you <B>MUST</B> have the following GNU tools installed in order to
-continue. Check that you have the following programs with the correct version
-number:
+On Unix you <STRONG>MUST</STRONG> have the following GNU tools installed
+in order to continue. Check that you have the following programs with the
+correct version number:
 <DL>
   <DT>
-    <A HREF="http://www.gnu.org/order/ftp.html"><B>gcc</B></A> and
-    <A HREF="http://www.gnu.org/order/ftp.html"><B>GNU make</B></A>
+    <A HREF="http://www.gnu.org/order/ftp.html"><STRONG>gcc</STRONG></A> and
+    <A HREF="http://www.gnu.org/order/ftp.html"><STRONG>GNU make</STRONG></A>
   <DD>
     Automake relies on features provided by gcc and GNU make that don't come
     with other compilers and makes. When compiling directly from our CVS repository
     you MUST therefore use these tools.
   <DT>
-    <B><A HREF="http://sourceware.cygnus.com/automake/">GNU automake</A> (at
-    least version 1.3)</B>
+    <STRONG><A HREF="http://sourceware.cygnus.com/automake/">GNU automake</A>
+    (version 1.4 or later)</STRONG>
   <DD>
     Automake is a tool for automatically generating Makefile.in's which are used
     by autoconf
   <DT>
-    <B><A HREF="http://www.gnu.org/order/ftp.html">GNU autoconf</A> (at least
-    version 2.12)</B>
+    <STRONG><A HREF="http://sourceware.cygnus.com/autoconf/">GNU autoconf</A>
+    (version 2.13 or later)</STRONG>
   <DD>
     A tool for automatically generating Makefile's which are used by make
   <DT>
-    <B><A HREF="http://www.gnu.org/software/libtool/libtool.html">GNU libtool</A>
-    (at least version 1.1)</B>
+    <STRONG><A HREF="http://www.gnu.org/software/libtool/libtool.html">GNU
+    libtool</A> (version 1.2d or later)</STRONG>
   <DD>
     A tool for automatically handling generation of shared libraries. If you
-    upgrade libtool to a new version then you <B>MUST</B> rerun the configure
-    script as some files used by libtool have to be regenerated.
+    upgrade libtool to a new version then you <STRONG>MUST</STRONG> rerun the
+    configure script as some files used by libtool have to be regenerated.
 </DL>
 <P>
-<B>Optionally</B> these tools are used by libwww if available
+<STRONG>Optionally</STRONG> these tools are used by libwww if available
 <DL>
   <DT>
-    <B><A HREF="../LineMode/">W3C www</A></B>
+    <STRONG><A HREF="../LineMode/">W3C www</A></STRONG>
   <DD>
     If available then the libwww Line Mode Browser is used by the makefiles to
     generate the header files (from <CODE>.html</CODE> to <CODE>.h</CODE>) and
@@ -246,11 +248,15 @@ After having checked that you have the programs you need, you are now ready
 to use them. Don't worry about the
 <A HREF="http://subzero.campus.luth.se/FreeDocs/autoconf-2.12/autoconf_44.html#IDX36">warnings
 produced by autoconf</A>&nbsp;- that's OK. Run them like this:
-<PRE>% <B>aclocal</B>; <B>autoheader; automake</B>; <B>autoconf</B>
+<PRE>% <STRONG>aclocal</STRONG>; <STRONG>autoheader; automake</STRONG>; <STRONG>autoconf</STRONG>
 </PRE>
 <P>
-Now you <B>MUST</B> run the configure script as described in the
-<A HREF="#Compiling">installation instructions</A>.
+Now you <STRONG>MUST</STRONG> run the configure script as described in the
+next section on <A HREF="#Compiling">installation instructions</A>. If for
+some reason <EM>you have trouble</EM> running the configure script then try
+and run this command instead
+<PRE>% <STRONG>make distclean</STRONG>; <STRONG>autoheader; automake</STRONG>; <STRONG>autoconf</STRONG>
+</PRE>
 <H2>
   <A NAME="Compiling">Compiling libwww</A>
 </H2>

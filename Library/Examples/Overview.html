@@ -12,9 +12,9 @@
 <P ALIGN=Center>
 <A HREF="#Initialization">Initialization</A> | <A HREF="#GET">GET</A> |
 <A HREF="#HEAD">HEAD</A> | <A HREF="#PUT">PUT</A> | <A HREF="#POST">POST</A>
-| <A HREF="#TRACE">TRACE</A> | <A HREF="#OPTIONS">OPTIONS</A>
-|&nbsp;<A HREF="#serve">Serving Requests</A> | <A HREF="#event">Eventloop</A>
-| <A HREF="#Big">Big sample apps</A>
+| <A HREF="#TRACE">TRACE</A> | <A HREF="#OPTIONS">OPTIONS</A> |
+<A HREF="#HTML">HTML Parsing</A> |&nbsp;<A HREF="#serve">Serving Requests</A>
+| <A HREF="#event">Eventloop</A> | <A HREF="#Big">Big sample apps</A>
 <P>
 This is the list of small examples using the very basic features of the Library.
 If you have not already compiled the library then please read the
@@ -128,6 +128,11 @@ which is what comes most natural to libwww.
   <DD>
     Lets you save a document to an HTTP server. Note that both input and output
     is a Web address (URI) so you can save a document from anywhere to anywhere.
+  <DT>
+    <A HREF="memput.c">Save data from memory to a remote server</A>
+  <DD>
+    This sample shows you how to use temporary anchors and how to save data from
+    memory using PUT
 </DL>
 <H3>
   <A NAME="POST">Samples using POST Requests</A>
@@ -161,6 +166,28 @@ which is what comes most natural to libwww.
   <DD>
     It should allow support for sending <TT>OPTIONS</TT> on a * URI (although
     I really don't like that!)
+</DL>
+<H2>
+  <A NAME="HTML">HTML Parsing</A>
+</H2>
+<P>
+Three small sample apps that show how to use the new
+<A HREF="../src/HText.html">HText interface</A> and the
+<A HREF="../src/HTML.html\">libwww HTML parser</A>.
+<DL>
+  <DT>
+    <A HREF="showlinks.c">showlinks.c</A>
+  <DD>
+    Parses a document and writes out all the links that it found to stdout
+  <DT>
+    <A HREF="showtags.c">showtags.c</A>
+  <DD>
+    Parses a document and writes out all the HTML tags found to stdout
+  <DT>
+    <A HREF="showtext.c">showtext.c</A>
+  <DD>
+    Parses a document and writes out all the "plain" text - that is what's between
+    the HTML markup
 </DL>
 <H2>
   <A NAME="serve">Server Requests using libwww</A>
