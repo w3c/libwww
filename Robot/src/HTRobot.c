@@ -44,6 +44,7 @@
 #define DEFAULT_FORMAT_FILE  	"log-format.txt"
 #define DEFAULT_MEMLOG		"robot.mem"
 #define DEFAULT_PREFIX		""
+#define DEFAULT_IMG_PREFIX	""
 #define DEFAULT_DEPTH		0
 #define DEFAULT_DELAY		50			/* Write delay in ms */
 
@@ -78,10 +79,13 @@ typedef struct _Robot {
     HTList *		hyperdoc;	     /* List of our HyperDoc Objects */
     HTList *		htext;			/* List of our HText Objects */
     HTList *		fingers;
+
     int 		timer;
     char *		cwd;				  /* Current dir URL */
     char *		rules;
     char *		prefix;
+    char *		img_prefix;
+
     char *		logfile;
     HTLog *             log;
     char *		reffile;
@@ -96,10 +100,17 @@ typedef struct _Robot {
     FILE *	        output;
     char *		hitfile;
     char *		mtfile;
+
     MRFlags		flags;
 
-    long		total_bytes;	/* Total number of bytes processed */
-    long                total_docs;     /* Total number of documents processed */
+    long		get_bytes;	/* Total number of bytes processed using GET*/
+    long                get_docs;     	/* Total number of documents using GET */
+
+    long		head_bytes;	/* bytes processed bytes processed using HEAD */
+    long                head_docs;   	/* Total number of documents using HEAD*/
+
+    long		other_docs;
+
     ms_t		time;		/* Time of run */
 
 #ifdef HT_POSIX_REGEX
@@ -347,24 +358,32 @@ PRIVATE BOOL delete_meta_distribution (HTList * distribution)
 */
 PRIVATE BOOL calculate_statistics (Robot * mr)
 {
+    long total_docs = mr->get_docs + mr->head_docs + mr->other_docs;
     if (!mr) return NO;
 
     /* Calculate efficiency */
-    {
+    if (mr->time > 0) {
 	ms_t t = HTGetTimeInMillis() - mr->time;
 	if (t > 0) {
-	    double loadfactor = 1000 * (mr->total_bytes / t);
+	    double loadfactor = 1000 * (mr->get_bytes / t);
 	    double secs = t / 1000.0;
             char bytes[50];
-            HTNumToStr(mr->total_bytes, bytes, 50);
-	    HTTrace("Downloaded %s bytes in %ld document bodies in %.2f seconds (%2.1f bytes/sec)\n",
-		    bytes, mr->total_docs, secs, loadfactor);
+	    HTTrace("Accessed %ld documents in %.2f seconds\n",
+		    total_docs, secs);
+
+            HTNumToStr(mr->get_bytes, bytes, 50);
+	    HTTrace("Did a GET on %ld document(s) and downloaded %s bytes of document bodies (%2.1f bytes/sec)\n",
+		    mr->get_docs, bytes, loadfactor);
+
+            HTNumToStr(mr->head_bytes, bytes, 50);
+	    HTTrace("Did a HEAD on %ld document(s) with a total of %s bytes\n",
+		    mr->head_docs, bytes);
 	}
     }
 
     /* Create an array of existing anchors */
-    if (mr->total_docs > 1) {
-	HTArray * array = HTAnchor_getArray(mr->total_docs);
+    if (total_docs > 1) {
+	HTArray * array = HTAnchor_getArray(total_docs);
         if (array) {
 
             /* Sort after hit counts */
@@ -460,6 +479,7 @@ PRIVATE BOOL Robot_delete (Robot * me)
 
 	HT_FREE(me->cwd);
 	HT_FREE(me->prefix);
+	HT_FREE(me->img_prefix);
 	HT_FREE(me);
 	return YES;
     }
@@ -648,13 +668,17 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
     }
 
     /* Count the amount of body data that we have read */
-    if (status == HT_LOADED && HTRequest_method(request) == METHOD_GET) {
+    if (HTRequest_method(request) == METHOD_GET) {
 	int length = HTAnchor_length(HTRequest_anchor(request));
-	if (length > 0) mr->total_bytes += length;
+	if (length > 0) mr->get_bytes += length;
+	mr->get_docs++;
+    } else if (HTRequest_method(request) == METHOD_HEAD) {
+	int length = HTAnchor_length(HTRequest_anchor(request));
+	if (length > 0) mr->head_bytes += length;
+	mr->head_docs++;
+    } else {
+	mr->other_docs++;
     }
-
-    /* Count the number of documents that we have processed */
-    mr->total_docs++;
 
     /* Cleanup the anchor so that we don't drown in metainformation */
     if (!(mr->flags & MR_KEEP_META))
@@ -770,30 +794,43 @@ PUBLIC void HText_appendImage (HText * text, HTChildAnchor * anchor,
     if (text && anchor) {
 	Finger * finger = (Finger *) HTRequest_context(text->request);
 	Robot * mr = finger->robot;
-	HTParentAnchor * dest = (HTParentAnchor *)
-	    HTAnchor_followMainLink((HTAnchor *) anchor);
-	HyperDoc * hd = HTAnchor_document(dest);
+	if (mr->flags & MR_IMG) {
+	    HTParentAnchor * dest = (HTParentAnchor *)
+		HTAnchor_followMainLink((HTAnchor *) anchor);
+	    char * uri = HTAnchor_address((HTAnchor *) dest);
+	    HyperDoc * hd = HTAnchor_document(dest);
+	    BOOL match = YES;
 
-	/* Test whether we already have a hyperdoc for this document */
-	if (mr->flags & MR_IMG && dest && !hd) {
-	    HTParentAnchor * parent = HTRequest_parent(text->request);
-	    HyperDoc * last = HTAnchor_document(parent);
-	    int depth = last ? last->depth+1 : 0;
-	    Finger * newfinger = Finger_new(mr, dest,
-					    mr->flags & MR_SAVE ?
-					    METHOD_GET : METHOD_HEAD);
-	    HTRequest * newreq = newfinger->request;
-	    HyperDoc_new(mr, dest, depth);
-	    if (SHOW_MSG) {
-		char * uri = HTAnchor_address((HTAnchor *) dest);
-		HTTrace("Robot....... Checking Image `%s\'\n", uri);
+	    if (hd) {
+		if (SHOW_MSG) HTTrace("Already checked\n");
+		hd->hits++;
 		HT_FREE(uri);
+		return;
 	    }
-	    if (HTLoadAnchor((HTAnchor *) dest, newreq) != YES) {
-		if (SHOW_MSG)
-		    HTTrace("Robot....... Image not tested!\n");
-		Finger_delete(newfinger);
+
+	    /* Check for prefix match */
+	    if (mr->img_prefix) match = HTStrMatch(mr->img_prefix, uri) ? YES : NO;
+
+	    /* Test whether we already have a hyperdoc for this document */
+	    if (match && dest) {
+		HTParentAnchor * parent = HTRequest_parent(text->request);
+		HyperDoc * last = HTAnchor_document(parent);
+		int depth = last ? last->depth+1 : 0;
+		Finger * newfinger = Finger_new(mr, dest,
+						mr->flags & MR_SAVE ?
+						METHOD_GET : METHOD_HEAD);
+		HTRequest * newreq = newfinger->request;
+		HyperDoc_new(mr, dest, depth);
+		if (SHOW_MSG) HTTrace("Robot....... Checking Image `%s\'\n", uri);
+		if (HTLoadAnchor((HTAnchor *) dest, newreq) != YES) {
+		    if (SHOW_MSG) HTTrace("Robot....... Image not tested!\n");
+		    Finger_delete(newfinger);
+		}
+	    } else {
+		if (SHOW_MSG) HTTrace("does not fulfill constraints\n");
+		if (mr->reject) HTLog_addLine(mr->reject, uri);
 	    }
+	    HT_FREE(uri);
 	}
     }
 }
@@ -974,6 +1011,16 @@ int main (int argc, char ** argv)
 	    /* load inlined images */
 	    } else if (!strcmp(argv[arg], "-saveimg")) {
 		mr->flags |= (MR_IMG | MR_SAVE);
+
+	    /* URI prefix for inlined images */
+	    } else if (!strcmp(argv[arg], "-imgprefix")) {
+		char * prefix = NULL;
+		prefix = (arg+1 < argc && *argv[arg+1] != '-') ?
+		    argv[++arg] : DEFAULT_IMG_PREFIX;
+		if (*prefix) {
+		    StrAllocCopy(mr->img_prefix, prefix);
+		    StrAllocCat(mr->img_prefix, "*");
+		}
 
 	    /* load anchors */
 	    } else if (!strcmp(argv[arg], "-link") || !strcmp(argv[arg], "-depth")) {
