@@ -1,5 +1,13 @@
 Changes with libwww 5.3.2
 
+2001-03-06      Stefan Wiesner <sw@ais-ag.de>
+
+	* Timer bug. There was a bug in the code of function HTTimer_new
+	  if a timer is already expired when HTTimer_new is called. See
+	  http://lists.w3.org/Archives/Public/www-lib/2001JanMar/0123.html
+	  for the full analysis.
+	  
+	
 2001-02-26	Jose Kahan <jose@w3.org>
 
 	* Cache bug. An HTResponse object was being freed repetively inside

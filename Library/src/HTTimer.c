@@ -106,7 +106,8 @@ PRIVATE int Timer_dispatch (HTList * cur, HTList * last)
     /* 2000/07/31 Jens Meggers (meggers@firepad.com):
        On Windows, timers are always repetitive, so we have to delete the 
        timer */
-    DeletePlatformTimer(timer);
+    if (DeletePlatformTimer)
+      DeletePlatformTimer(timer);
 #endif /* WWW_WIN_ASYNC */
     if (timer->repetitive)
 	HTTimer_new(timer, timer->cbf, timer->param, timer->millis, YES, YES);
@@ -248,7 +249,7 @@ PUBLIC HTTimer * HTTimer_new (HTTimer * timer, HTTimerCallback * cbf,
     /*
     **	add to list if timer is new
     */
-    HTList_addObject(last, (void *)timer);
+    cur = HTList_addList(last, (void *)timer);
 
     /*
     **  Call any platform specific timer handler
