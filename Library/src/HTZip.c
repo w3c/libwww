@@ -148,6 +148,15 @@ PRIVATE int HTZLibInflate_write (HTStream * me, const char * buf, int len)
 	    */
 	    return HT_OK;
 
+	case Z_STREAM_END:
+	    me->state = (*me->target->isa->put_block)(me->target,
+						       me->outbuf,
+						       OUTBUF_SIZE - me->zstream->avail_out);
+	    if (me->state != HT_OK) return me->state;
+
+	    if (STREAM_TRACE) HTTrace("Zlib Inflate End of Stream\n");
+	    return HT_OK;
+
 	default:
 	    if (STREAM_TRACE) HTTrace("Zlib Inflate Inflate returned %d\n", status);
 	    return HT_ERROR;

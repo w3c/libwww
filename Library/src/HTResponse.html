@@ -302,6 +302,17 @@ extern HTEncoding HTResponse_transfer (HTResponse * response);
 extern BOOL HTResponse_setTransfer (HTResponse * response, HTEncoding cte);
 </PRE>
 <H3>
+  Trailers
+</H3>
+<P>
+Any trailer header fields
+<PRE>
+extern BOOL HTResponse_addTrailer (HTResponse * me, char * token, char * value);
+extern BOOL HTResponse_deleteTrailerAll (HTResponse * me);
+extern HTAssocList * HTResponse_trailer (HTResponse * me);
+</PRE>
+
+<H3>
   Original Response Headers
 </H3>
 <P>

@@ -212,6 +212,11 @@ PUBLIC const char * HTCoding_name (HTCoding * me)
     return me ? HTAtom_name(me->encoding) : NULL;
 }
 
+PUBLIC double HTCoding_quality (HTCoding * me)
+{
+    return me ? me->quality : 0.0;
+}
+
 /* ------------------------------------------------------------------------- */
 /* 	  			CONTENT LANGUAGE			     */
 /* ------------------------------------------------------------------------- */

@@ -36,7 +36,7 @@ PRIVATE HTList * Timers = NULL;			   /* List of timers */
 PRIVATE HTTimerSetCallback * SetPlatformTimer = NULL;
 PRIVATE HTTimerSetCallback * DeletePlatformTimer = NULL;
 
-#if 1 /* WATCH_RECURSION */
+#if 0 /* WATCH_RECURSION */
 
 PRIVATE HTTimer * InTimer = NULL;
 #define CHECKME(timer) if (InTimer != NULL) HTDebugBreak(); InTimer = timer;
@@ -114,7 +114,10 @@ PUBLIC HTTimer * HTTimer_new (HTTimer * timer, HTTimerCallback * cbf,
 
     CHECKME(timer);
     expires = millis;
-    if (relative) expires += now;
+    if (relative)
+	expires += now;
+    else
+	millis = expires-now;
 
     if (Timers == NULL)
 	Timers = HTList_new();
@@ -229,6 +232,7 @@ PRIVATE int Timer_dispatch (HTList * cur, HTList * last, int now)
 {
     HTTimer * timer;
     int ret;
+    BOOL relative;
 
     timer = (HTTimer *)HTList_objectOf(cur);
     if (timer == NULL) {
@@ -236,16 +240,22 @@ PRIVATE int Timer_dispatch (HTList * cur, HTList * last, int now)
 	CLEARME(timer);
 	return HT_ERROR;
     }
-    if (timer->relative)
+    relative = timer->relative;
+    if (relative)
 	HTTimer_new(timer, timer->cbf, timer->param, timer->millis, YES);
     else
 	HTList_quickRemoveElement(cur, last);
     if (THD_TRACE) HTTrace("Timer....... Dispatch timer %p\n", timer);
-/*    CHECKME(timer); all entries to this function are now re-entry save */
     ret = (*timer->cbf) (timer, timer->param, HTEvent_TIMEOUT);
-/*    CLEARME(timer); */
-    if (!timer->relative)
+    if (!relative) {
+
+	/*
+	**  Call any platform specific timer handler
+	*/
+	if (DeletePlatformTimer) DeletePlatformTimer(timer);
+
 	HT_FREE(timer);
+    }
     return ret;
 }
 
@@ -261,16 +271,14 @@ PUBLIC int HTTimer_dispatch (HTTimer * timer)
 
 PUBLIC int HTTimer_next (ms_t * pSoonest)
 {
-    HTList * cur;
-    HTList * last;
+    HTList * cur = Timers;
+    HTList * last = Timers;
     HTTimer * pres;
     ms_t now = HTGetTimeInMillis();
     int ret = HT_OK;
-    HTList * head;
 
-    if (Timers == NULL)
-	return HT_OK;
-
+#if 0
+    if (Timers == NULL) return HT_OK;
     /*	The Timers list may be modified during a dispatch
     **	so we have to build an intermediate list
     */
@@ -289,6 +297,19 @@ PUBLIC int HTTimer_next (ms_t * pSoonest)
 	ret = Timer_dispatch(cur, last, now);
 	last = cur;
     }
+#else
+    /*
+    **  Dispatch all timers that have expired
+    */
+    while (Timers && (pres = (HTTimer *) HTList_nextObject(cur))) {
+	if (pres->expires <= now) {
+	    if ((ret = Timer_dispatch(cur, last, now)) != HT_OK) break;
+	    cur = last = Timers;
+	} else {
+	    last = cur;
+	}	
+    }
+#endif
 
     if (pSoonest) {
 	/*
@@ -298,7 +319,6 @@ PUBLIC int HTTimer_next (ms_t * pSoonest)
 	pres = (HTTimer *) HTList_nextObject(cur);
 	*pSoonest = pres ? pres->expires - now : 0;
     }
-    HTList_delete(head);
     return ret;
 }
 

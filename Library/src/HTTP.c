@@ -236,6 +236,14 @@ PRIVATE void HTTPNextState (HTStream * me)
 	http->result = HT_PARTIAL_CONTENT;
 	break;
 
+      case 207:						/* Partial Update OK */
+	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_PARTIAL_OK,
+			   me->reason, (int) strlen(me->reason),
+			   "HTTPNextState");
+	http->next = HTTP_OK;
+	http->result = HT_PARTIAL_CONTENT;
+	break;
+
       case 300:						 /* Multiple Choices */
 	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_MULTIPLE,
 			   me->reason, (int) strlen(me->reason),
@@ -257,11 +265,11 @@ PRIVATE void HTTPNextState (HTStream * me)
 			   me->reason, (int) strlen(me->reason),
 			   "HTTPNextState");
 	http->next = HTTP_ERROR;
-	http->result = HT_TEMP_REDIRECT;
+	http->result = HT_FOUND;
 	break;
 	
       case 303:							   /* Method */
-	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_NOT_IMPLEMENTED,
+	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_METHOD,
 			   me->reason, (int) strlen(me->reason),
 			   "HTTPNextState");
 	http->next = HTTP_ERROR;
@@ -282,6 +290,24 @@ PRIVATE void HTTPNextState (HTStream * me)
 			   "HTTPNextState");
 	http->next = HTTP_ERROR;
 	http->result = HT_USE_PROXY;
+	break;
+	
+#if 0
+      case 306:						        /* Use proxy */
+	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_PROXY_REDIRECT,
+			   me->reason, (int) strlen(me->reason),
+			   "HTTPNextState");
+	http->next = HTTP_ERROR;
+	http->result = HT_USE_PROXY;
+	break;
+#endif
+
+      case 307:						        /* Use proxy */
+	HTRequest_addError(me->request, ERR_INFO, NO, HTERR_TEMP_REDIRECT,
+			   me->reason, (int) strlen(me->reason),
+			   "HTTPNextState");
+	http->next = HTTP_ERROR;
+	http->result = HT_TEMP_REDIRECT;
 	break;
 	
       case 400:						      /* Bad Request */
@@ -396,6 +422,34 @@ PRIVATE void HTTPNextState (HTStream * me)
 	http->result = HT_ERROR;
 	break;
 
+      case 416:				    /* Request Range not satisfiable */
+	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_BAD_RANGE,
+		   me->reason, (int) strlen(me->reason), "HTTPNextState");
+	http->next = HTTP_ERROR;
+	http->result = HT_ERROR;
+	break;
+
+      case 417:				               /* Expectation Failed */
+	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_EXPECTATION_FAILED,
+		   me->reason, (int) strlen(me->reason), "HTTPNextState");
+	http->next = HTTP_ERROR;
+	http->result = HT_ERROR;
+	break;
+
+      case 418:				        /* Reauthentication required */
+	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_REAUTH,
+		   me->reason, (int) strlen(me->reason), "HTTPNextState");
+	http->next = HTTP_ERROR;
+	http->result = HT_ERROR;
+	break;
+
+      case 419:				  /* Proxy Reauthentication required */
+	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_PROXY_REAUTH,
+		   me->reason, (int) strlen(me->reason), "HTTPNextState");
+	http->next = HTTP_ERROR;
+	http->result = HT_ERROR;
+	break;
+
       case 500:
 	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_INTERNAL,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
@@ -444,6 +498,13 @@ PRIVATE void HTTPNextState (HTStream * me)
 
       case 505:				     /* Unsupported protocol version */
 	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_BAD_VERSION,
+		   me->reason, (int) strlen(me->reason), "HTTPNextState");
+        http->next = HTTP_ERROR;
+	http->result = HT_BAD_VERSION;
+	break;
+
+      case 506:				   /* Partial update Not Implemented */
+	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_NO_PARTIAL_UPDATE,
 		   me->reason, (int) strlen(me->reason), "HTTPNextState");
         http->next = HTTP_ERROR;
 	http->result = HT_BAD_VERSION;

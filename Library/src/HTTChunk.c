@@ -32,7 +32,8 @@ struct _HTStream {
     char * 			param;	    /* Extra parameters for encoding */
     long			left;	    /* Remaining bytes in this chunk */
     long			total;			      /* Full length */
-    BOOL			done;
+    BOOL			lastchunk;	  /* Is this the last chunk? */
+    BOOL			trailer;	    /* Do we have a trailer? */
     HTEOLState			state;    
     HTChunk *			buf;
     int				status;	     /* return code from down stream */
@@ -49,14 +50,16 @@ PRIVATE BOOL HTChunkDecode_header (HTStream * me)
     if (line) {
 	me->left = strtol(line, (char **) NULL, 16);    /* hex! */
 	if (STREAM_TRACE) HTTrace("Chunked..... chunk size: %X\n", me->left);
-	if (me->left) {
+	if (me->left > 0) {
 	    me->total += me->left;
 
 	    /* Look for arguments */
 	
 	    HTChunk_clear(me->buf);
-	} else						/* Last chunk */
-	    me->done = YES;
+	} else if (me->left == 0)	       		      /* Last chunk */
+	    me->lastchunk = YES;
+	else if (me->left < 0)
+	    return NO;
 	return YES;
     }
     return NO;
@@ -66,29 +69,36 @@ PRIVATE int HTChunkDecode_block (HTStream * me, const char * b, int l)
 {
     int length = l;
     while (l > 0) {
-	if (me->left <= 0 && !me->done) {
+	if (me->left <= 0 && !me->lastchunk) {
 	    while (l > 0) {
 		if (me->state == EOL_FLF) {
-		    HTChunkDecode_header(me);
-		    me->state = EOL_DOT;
-		    if (me->done)	/* look for new line or MIME header */
-			continue;
+		    if (HTChunkDecode_header(me) == NO) return HT_ERROR;
+		    if (me->lastchunk) {
+			if (*b != CR && *b != LF) me->trailer = YES;
+		    } else {
+			me->state = EOL_DOT;
+		    }
 		    break;
 		} else if (*b == CR) {
 		    me->state = me->state == EOL_DOT ? EOL_SCR : EOL_FCR;
 		} else if (*b == LF) {
 		    me->state = me->state == EOL_SCR ? EOL_BEGIN : EOL_FLF;
-		} else {
-		    if (me->done) {
-			HTRequest * request = me->request;
-			me->target = HTStreamStack(WWW_MIME_FOOT, WWW_SOURCE,
-						   me->target, request, NO);
-			break;
-		    }
-		    HTChunk_putc(me->buf, *b); }
+		} else
+		    HTChunk_putc(me->buf, *b);
 		b++, l--;
 	    }
 	}
+
+	/*
+	** If we have to read trailers
+	*/
+	if (me->trailer)
+	    me->target = HTStreamStack(WWW_MIME_FOOT, WWW_SOURCE,
+				       me->target, me->request, NO);
+
+	/*
+	**  Handle the rest of the data including trailers
+	*/
 	if (l > 0) {
 	    int bytes = me->left ? HTMIN(l, me->left) : l;
 	    int status;
@@ -99,19 +109,21 @@ PRIVATE int HTChunkDecode_block (HTStream * me, const char * b, int l)
 	    me->status = HT_LOADED;
 	    me->left -= bytes;
 	    l -= bytes, b+= bytes;
+
 	    /*
-	    **	If we are processing footers, the consumed is taken care of downstream
+	    **	If we are processing tailers, the consumed is taken care of
+	    **  downstream
 	    */
-	    if (me->done)
-		length = l;
+	    if (me->trailer) length = l;
 	}
+
 	/*
 	**	account for the bytes used
 	*/
 	HTHost_setConsumed(HTNet_host(HTRequest_net(me->request)), length - l);
 	length = l;
     }
-    return me->done ? me->status : HT_OK;
+    return me->lastchunk ? me->status : HT_OK;
 }
 
 PRIVATE int HTChunkDecode_string (HTStream * me, const char * s)
@@ -196,7 +208,7 @@ PUBLIC HTStream * HTChunkedDecoder   (HTRequest *	request,
 PRIVATE int HTChunkEncode_block (HTStream * me, const char * b, int l)
 {
     char * chunky = HTChunk_data(me->buf);
-    if (me->done) return HT_LOADED;
+    if (me->lastchunk) return HT_LOADED;
     if (me->param) {
 	if (me->total)
 	    sprintf(chunky, "%c%c%x %s %c%c", CR, LF, l, me->param, CR, LF);
@@ -217,7 +229,7 @@ PRIVATE int HTChunkEncode_block (HTStream * me, const char * b, int l)
 
     PUTC(CR);
     PUTC(LF);
-    me->done = YES;
+    me->lastchunk = YES;
     (*me->target->isa->flush)(me->target);
     return HT_LOADED;
 }

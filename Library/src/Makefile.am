@@ -60,6 +60,8 @@ EXTRA_libwww_a_SOURCES = \
 
 libwww_a_DEPENDENCIES = @HTWAIS@ @HTZLIB@
 
+INCLUDES = -I/usr/local/include
+
 BUILT_SOURCES = sysdep.h \
 	WWWUtil.h 	WWWCore.h 	WWWLib.h \
 	WWWDir.h 	WWWFTP.h 	WWWFile.h \

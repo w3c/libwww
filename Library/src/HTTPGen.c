@@ -236,5 +236,11 @@ PUBLIC HTStream * HTTPGen_new (HTRequest * request, HTStream * target,
     if (me->version == HTTP_10 && HTRequest_proxy(request) == NULL)
 	HTRequest_addConnection(request, "Keep-Alive", "");
 
+    /*
+    **  Check for any TE headers that are also hop-by-hop
+    */
+    if (HTFormat_transferCoding() != NULL || HTRequest_transfer(request) != NULL)
+	HTRequest_addConnection(request, "TE", "");
+
     return me;
 }

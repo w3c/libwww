@@ -21,11 +21,14 @@
 #define DEFAULT_HOST	"pfunk.w3.org"
 #define DEFAULT_PORT	"8080"
 #define DEFAULT_HOME	"/microscape/microscape.html"
-#define ZIP_HOME	"/microscape/mic.html"
+#define ZIP_HOME	"/microscape/m.d.html"
 #define DEFAULT_SLEEP	5
 
 #define DEFAULT_LOG	"tcpdump"
 #define TCPDUMP		"/usr/local/sbin/tcpdump"
+
+#define TEXT_SUFFIX	"txt"
+#define BIN_SUFFIX	"bin"
 
 #define	YES	1
 #define NO	0
@@ -56,6 +59,7 @@ void HelpScreen (const char *progname)
     fprintf(stderr, "\t-r\tPath for where to find the Robot executables, for example '/u1/frystyk'\n");
     fprintf(stderr, "\t-s\tHost we are connection to, for example 'pfunk.w3.org'\n");
     fprintf(stderr, "\t-t\tFull path for tcpdump program, for example '/usr/sbin/tcpdump'\n");
+    fprintf(stderr, "\t-b\tGenerate binary tcpdump outputs instead of ascii\n");
     fprintf(stderr, "\t-w\tWhat tests to run (1=HTTP/1.0, 2=HTTP/1.1, 4=HTTP/1.1pl). Default is all\n\n");
 }
 
@@ -71,14 +75,19 @@ static int CreateLogDir (const char * logdir)
     return -1;
 }
 
-static char ** BuildArgv (const char * host, const char * port, const char * log)
+static char ** BuildArgv (const char * host, const char * port, char binary)
 {
     char ** argv = NULL;
-    if ((argv = (char **) calloc(10, sizeof(char *))) == NULL)
+    if ((argv = (char **) calloc(20, sizeof(char *))) == NULL)
 	exit (-10);
     *(argv+0) = "tcpdump";
-    *(argv+1) = "-tt";
-    *(argv+2) = "-S";
+    if (binary) {
+	*(argv+1) = "-w";
+	*(argv+2) = "-";
+    } else {
+	*(argv+1) = "-tt";
+	*(argv+2) = "-S";
+    }
     *(argv+3) = "host";
     *(argv+4) = host;
     *(argv+5) = "and";
@@ -90,7 +99,8 @@ static char ** BuildArgv (const char * host, const char * port, const char * log
 
 static int RunTest (const char * program, const char * url,
 		    const char * host, const char * port,
-		    const char * param, const char * log)
+		    const char * param, const char * log,
+		    char binary)
 {
     int pid;
     if (program && host && port && log) {
@@ -105,7 +115,7 @@ static int RunTest (const char * program, const char * url,
 	    int fd = -1;
 
 	    /* Build the calling parameters */
-	    argv = BuildArgv(host, port, log);
+	    argv = BuildArgv(host, port, binary);
 
 	    fprintf(stderr, "Child running as pid %d\n", getpid());
 
@@ -162,11 +172,13 @@ int main (int argc, char ** argv)
     char logpath [512];
     char url [512];
     char param[512];
+    char binary = NO;
     char * logprefix = DEFAULT_LOG;
     char * host = DEFAULT_HOST;
     char * port = DEFAULT_PORT;
     char * options = NULL;
     ProgMask mask = HTTPALL;
+    char * suffix = TEXT_SUFFIX;
 
     /* Print help screen and exit */
     if (argc < 2) {
@@ -203,6 +215,10 @@ int main (int argc, char ** argv)
 		tcpdump = (arg+1 < argc && *argv[arg+1] != '-') ?
 		    argv[++arg] : TCPDUMP;
 		
+	    /* Should we produce binary tcpdump output? */
+	    } else if (!strcmp(argv[arg], "-b")) {
+		binary = YES;
+		
 	    /* What robot base path should we use */
 	    } else if (!strcmp(argv[arg], "-r")) {
 		robotpath = (arg+1 < argc && *argv[arg+1] != '-') ?
@@ -219,15 +235,20 @@ int main (int argc, char ** argv)
 		    atoi(argv[++arg]) : HTTPALL;
 		
 	    } else {
+		fprintf(stderr, "Don't understand `%s\'\n", argv[arg]);
 		HelpScreen(*argv);
 		return 1;
 	    }
 	} else {
+	    fprintf(stderr, "Don't understand `%s\'\n", argv[arg]);
 	    HelpScreen(*argv);
 	    return 1;
 	}
     }
 
+    /* Initialize variables */
+    suffix = binary ? BIN_SUFFIX : TEXT_SUFFIX;
+    
 
     /* Run test for HTTP/1.0 */
     if (mask & HTTP10) {
@@ -237,10 +258,14 @@ int main (int argc, char ** argv)
 	sprintf(url, "'http://%s:%s%s'", host, port, DEFAULT_HOME);
 	CreateLogDir(logdir);
 	for (cnt=1; cnt<6; cnt++) {
-	    sprintf(logpath, "%s/run-%s-%d.txt", logdir, "ft", cnt); 
-	    if (RunTest(program, url, host, port, "-n -saveimg", logpath)) exit (-5);
-	    sprintf(logpath, "%s/run-%s-%d.txt", logdir, "cv", cnt); 
-	    if (RunTest(program, url, host, port, "-n -img", logpath)) exit (-5);
+	    sprintf(logpath, "%s/run-%s-%d.%s", logdir, "ft", cnt, suffix); 
+	    if (RunTest(program, url, host, port,
+			"-n -saveimg",
+			logpath, binary)) exit (-5);
+	    sprintf(logpath, "%s/run-%s-%d.%s", logdir, "cv", cnt, suffix); 
+	    if (RunTest(program, url, host, port,
+			"-n -img",
+			logpath, binary)) exit (-5);
 	}
     }
 
@@ -252,10 +277,14 @@ int main (int argc, char ** argv)
 	sprintf(url, "'http://%s:%s%s'", host, port, DEFAULT_HOME);
 	CreateLogDir(logdir);
 	for (cnt=1; cnt<6; cnt++) {
-	    sprintf(logpath, "%s/run-%s-%d.txt", logdir, "ft", cnt); 
-	    if (RunTest(program, url, host, port, "-saveimg -nopipe -cache -flush -n -q", logpath)) exit (-5);
-	    sprintf(logpath, "%s/run-%s-%d.txt", logdir, "cv", cnt); 
-	    if (RunTest(program, url, host, port, "-saveimg -nopipe -cache -validate -n -q", logpath)) exit (-5);
+	    sprintf(logpath, "%s/run-%s-%d.%s", logdir, "ft", cnt, suffix); 
+	    if (RunTest(program, url, host, port,
+			"-saveimg -nopipe -cache -flush -n -q",
+			logpath, binary)) exit (-5);
+	    sprintf(logpath, "%s/run-%s-%d.%s", logdir, "cv", cnt, suffix); 
+	    if (RunTest(program, url, host, port,
+			"-saveimg -nopipe -cache -validate -n -q",
+			logpath, binary)) exit (-5);
 	}
     }
 
@@ -267,13 +296,15 @@ int main (int argc, char ** argv)
 	sprintf(url, "'http://%s:%s%s'", host, port, DEFAULT_HOME);
 	CreateLogDir(logdir);
 	for (cnt=1; cnt<6; cnt++) {
-	    sprintf(logpath, "%s/run-%s-%d.txt", logdir, "ft", cnt); 
+	    sprintf(logpath, "%s/run-%s-%d.%s", logdir, "ft", cnt, suffix); 
 	    sprintf(param, "-saveimg -cache -flush -n -q %s", options ? options : "");
-	    if (RunTest(program, url, host, port, param, logpath)) exit (-5);
+	    if (RunTest(program, url, host, port,
+			param, logpath, binary)) exit (-5);
 
-	    sprintf(logpath, "%s/run-%s-%d.txt", logdir, "cv", cnt);
+	    sprintf(logpath, "%s/run-%s-%d.%s", logdir, "cv", cnt, suffix);
 	    sprintf(param, "-saveimg -cache -validate -n -q %s", options ? options : "");
-	    if (RunTest(program, url, host, port, param, logpath)) exit (-5);
+	    if (RunTest(program, url, host, port,
+			param, logpath, binary)) exit (-5);
 	}
     }
 
@@ -285,13 +316,15 @@ int main (int argc, char ** argv)
 	sprintf(url, "'http://%s:%s%s'", host, port, ZIP_HOME);
 	CreateLogDir(logdir);
 	for (cnt=1; cnt<6; cnt++) {
-	    sprintf(logpath, "%s/run-%s-%d.txt", logdir, "ft", cnt); 
+	    sprintf(logpath, "%s/run-%s-%d.%s", logdir, "ft", cnt, suffix); 
 	    sprintf(param, "-saveimg -cache -flush -n -q %s", options ? options : "");
-	    if (RunTest(program, url, host, port, param, logpath)) exit (-5);
+	    if (RunTest(program, url, host, port,
+			param, logpath, binary)) exit (-5);
 
-	    sprintf(logpath, "%s/run-%s-%d.txt", logdir, "cv", cnt);
+	    sprintf(logpath, "%s/run-%s-%d.%s", logdir, "cv", cnt, suffix);
 	    sprintf(param, "-saveimg -cache -validate -n -q %s", options ? options : "");
-	    if (RunTest(program, url, host, port, param, logpath)) exit (-5);
+	    if (RunTest(program, url, host, port,
+			param, logpath, binary)) exit (-5);
 	}
     }
 

@@ -10,5 +10,6 @@ EXTRA_DIST = \
 	config.sub \
 	install-sh \
 	mkinstalldirs \
+	missing \
 	$(PERL) \
 	$(SRC)

@@ -46,8 +46,8 @@ sub main
     }
 }
 
-open(INPUT, "<BIG.www26.netmon.robot.BIG") || die "Can't open input: $!\n";
-open(OUTPUT, ">BIG.www26.tcpdump.robot.BIG") || die "Can't open output: $!\n";
+open(INPUT, "<BIG.www26.robot.netmon.BIG") || die "Can't open input: $!\n";
+open(OUTPUT, ">BIG.www26.robot.tcpdump.BIG") || die "Can't open output: $!\n";
 
 main('INPUT', 'OUTPUT');
 

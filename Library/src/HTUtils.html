@@ -193,10 +193,12 @@ Success are (&gt;=0) and failure are (&lt;0)
 
 #define HT_MULTIPLE_CHOICES     300     /* Multiple choices */
 #define HT_PERM_REDIRECT	301  	/* Permanent redirection */
-#define HT_TEMP_REDIRECT	302  	/* Temporary redirection */
+#define HT_FOUND        	302  	/* Found */
 #define HT_SEE_OTHER            303     /* See other */
 #define HT_NOT_MODIFIED         304     /* Not Modified */
 #define HT_USE_PROXY            305     /* Use Proxy */
+#define HT_PROXY_REDIRECT       306     /* Proxy Redirect */
+#define HT_TEMP_REDIRECT        307     /* Temporary redirect */
 
 #define HT_IGNORE		900  	/* Ignore this in the Net manager */
 #define HT_CLOSED		901  	/* The socket was closed */
@@ -211,6 +213,14 @@ Success are (&gt;=0) and failure are (&lt;0)
 #define HT_NO_PROXY_ACCESS      -407    /* Proxy Authentication Failed */
 #define HT_CONFLICT             -409    /* Conflict */
 #define HT_LENGTH_REQUIRED      -411    /* Length required */
+#define HT_PRECONDITION_FAILED  -412    /* Precondition failed */
+#define HT_TOO_BIG              -413    /* Request entity too large */
+#define HT_URI_TOO_BIG          -414    /* Request-URI too long */
+#define HT_UNSUPPORTED          -415    /* Unsupported */
+#define HT_BAD_RANGE            -416    /* Request Range not satisfiable */
+#define HT_EXPECTATION_FAILED   -417    /* Expectation Failed */
+#define HT_REAUTH               -418    /* Reauthentication required */
+#define HT_PROXY_REAUTH         -419    /* Proxy Reauthentication required */
 
 #define HT_RETRY		-503	/* If service isn't available */
 #define HT_BAD_VERSION		-505	/* Bad protocol version */

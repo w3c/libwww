@@ -67,6 +67,9 @@ PUBLIC BOOL HTResponse_delete (HTResponse * me)
 	/* Content Encoding */
 	if (me->content_encoding) HTList_delete(me->content_encoding);
 
+	/* Trailers */
+	if (me->trailer) HTAssocList_delete(me->trailer);
+
 	/*
 	** Only delete Content Type parameters and original headers if the
 	** information is not used elsewhere, for example by the anchor
@@ -552,6 +555,35 @@ PUBLIC HTAssocList * HTResponse_variant (HTResponse * me)
 {
     return (me ? me->variants : NULL);
 }
+
+/*
+**  Trailers
+*/
+PUBLIC BOOL HTResponse_addTrailer (HTResponse * me,
+				   char * token, char * value)
+{
+    if (me) {
+	if (!me->trailer) me->trailer = HTAssocList_new();
+	return HTAssocList_addObject(me->trailer, token, value);
+    }
+    return NO;
+}
+
+PUBLIC BOOL HTResponse_deleteTrailerAll (HTResponse * me)
+{
+    if (me && me->trailer) {
+	HTAssocList_delete(me->trailer);
+	me->trailer = NULL;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTAssocList * HTResponse_trailer (HTResponse * me)
+{
+    return (me ? me->trailer : NULL);
+}
+
 
 /*
 **  Original header information

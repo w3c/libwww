@@ -462,14 +462,27 @@ PUBLIC int HTRedirectFilter (HTRequest * request, HTResponse * response,
     }
 
     /*
-    ** Only do redirect on GET and HEAD
+    ** Only do automatic redirect on GET and HEAD. Ask for all
+    ** other methods
     */
-    if (!HTMethod_isSafe(method)) { 
-	HTAlertCallback * prompt = HTAlert_find(HT_A_CONFIRM);
-	if (prompt) {
-	    if ((*prompt)(request, HT_A_CONFIRM, HT_MSG_REDIRECTION,
-			  NULL, NULL, NULL) != YES)
-		return HT_ERROR;
+    if (!HTMethod_isSafe(method)) {
+
+	/*
+	** If we got a 303 See Other then change the method to GET.
+	** Otherwise ask the user whether we should continue.
+	*/
+	if (status == HT_SEE_OTHER) {
+	    if (PROT_TRACE)
+		HTTrace("Redirection. Changing method from %s to GET\n",
+			HTMethod_name(method));
+	    HTRequest_setMethod(request, METHOD_GET);
+	} else {
+	    HTAlertCallback * prompt = HTAlert_find(HT_A_CONFIRM);
+	    if (prompt) {
+		if ((*prompt)(request, HT_A_CONFIRM, HT_MSG_REDIRECTION,
+			      NULL, NULL, NULL) != YES)
+		    return HT_ERROR;
+	    }
 	}
     } 
  

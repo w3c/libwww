@@ -125,8 +125,9 @@ extern HTNetAfter HTInfoFilter;
   Redirection filter
 </H3>
 <P>
-The redirection handler only handles redirections on the <CODE>GET</CODE>
-or <CODE>HEAD</CODE> method (or any other safe method)
+The redirection handler only handles automatic redirections on the <CODE>GET</CODE>
+or <CODE>HEAD</CODE> method (or any other safe method). The users is asked for
+all other methods.
 <PRE>
 extern HTNetAfter HTRedirectFilter;
 </PRE>

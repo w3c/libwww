@@ -51,6 +51,9 @@
 /* Define to disable HTTP/1.1 pipelining */
 #undef HT_NO_PIPELINING
 
+/* Define to enable MUX as HTTP transport */
+#undef HT_MUX
+
 /* Define this if a typedef'd function definition may not be preceeded by 
 its ``extern'' declaration. */
 #undef NO_EXTERN_TYPEDEF_FUNC

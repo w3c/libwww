@@ -372,6 +372,8 @@ extern BOOL HTCoding_add (HTList * 	list,
 extern void HTCoding_deleteAll (HTList * list);
 
 extern const char * HTCoding_name (HTCoding * me);
+
+extern double HTCoding_quality (HTCoding * me);
 </PRE>
 <H2>
   <A NAME="charset">Content Charsets</A>
@@ -454,7 +456,7 @@ an encoding or whether it is a unity encoder.
 	((me)==NULL)
 </PRE>
 <H3>
-  Global Content Transfer Codings
+  Global Transfer Codings
 </H3>
 <PRE>extern void HTFormat_setTransferCoding	(HTList * list);
 extern HTList * HTFormat_transferCoding	(void);
@@ -564,7 +566,7 @@ extern HTStream * HTContentDecodingStack (HTList *	encodings,
 					  void *	param);
 </PRE>
 <H2>
-  <A NAME="CTEStack">Content Transfer Encoding Stream Stack</A>
+  <A NAME="CTEStack">Transfer Encoding Stream Stack</A>
 </H2>
 <P>
 Creating the transfer content encoding stream stack is not based on quality

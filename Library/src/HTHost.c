@@ -25,6 +25,10 @@
 #include "HTHost.h"					 /* Implemented here */
 #include "HTHstMan.h"
 
+#ifdef HT_MUX
+#include "WWWMux.h"
+#endif
+
 #define HOST_TIMEOUT		43200L	     /* Default host timeout is 12 h */
 
 /*
@@ -125,7 +129,9 @@ PRIVATE int HostEvent (SOCKET soc, void * pVoid, HTEventType type)
 		    return ret;
 	    }
 	    if (targetNet == NULL && host->remainingRead > 0) {
-		HTTrace("HostEvent... Error: %d bytes left to read and nowhere to put them\n", host->remainingRead);
+		if (CORE_TRACE)
+		    HTTrace("HostEvent... Error: %d bytes left to read and nowhere to put them\n",
+			    host->remainingRead);
 		host->remainingRead = 0;
 		/*
 		**	Fall through to close the channel

@@ -993,7 +993,8 @@ PRIVATE int HTSaveFilter (HTRequest * request, HTResponse * response,
     **  Just ignore authentication in the hope that some other filter will
     **  handle this.
     */
-    if (status == HT_NO_ACCESS || status == HT_NO_PROXY_ACCESS) {
+    if (status == HT_NO_ACCESS || status == HT_NO_PROXY_ACCESS ||
+        status == HT_REAUTH || status == HT_PROXY_REAUTH) {
 	if (APP_TRACE) HTTrace("Save Filter. Waiting for authentication\n");
 	return HT_OK;
     }
@@ -1002,7 +1003,8 @@ PRIVATE int HTSaveFilter (HTRequest * request, HTResponse * response,
     **  If either the source or the destination has moved then ask the user
     **  what to do. If there is no user then stop
     */
-    if (status == HT_TEMP_REDIRECT || status == HT_PERM_REDIRECT) {
+    if (status == HT_TEMP_REDIRECT || status == HT_PERM_REDIRECT ||
+	status == HT_FOUND || status == HT_SEE_OTHER) {
 	HTAlertCallback * prompt = HTAlert_find(HT_A_CONFIRM);
 	HTAnchor * redirection = HTResponse_redirection(response);
 	if (prompt && redirection) {

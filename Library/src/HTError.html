@@ -60,12 +60,15 @@ typedef enum _HTErrorElement {
 	HTERR_NO_CONTENT,					/* 204 */
 	HTERR_RESET,						/* 205 */
 	HTERR_PARTIAL,						/* 206 */
+	HTERR_PARTIAL_OK,					/* 207 */
 	HTERR_MULTIPLE,						/* 300 */
 	HTERR_MOVED,						/* 301 */
 	HTERR_FOUND,						/* 302 */
 	HTERR_METHOD,						/* 303 */
 	HTERR_NOT_MODIFIED,					/* 304 */
 	HTERR_USE_PROXY,					/* 305 */
+	HTERR_PROXY_REDIRECT,					/* 306 */
+	HTERR_TEMP_REDIRECT,					/* 307 */
 	HTERR_BAD_REQUEST,					/* 400 */
 	HTERR_UNAUTHORIZED,					/* 401 */
 	HTERR_PAYMENT_REQUIRED,					/* 402 */
@@ -82,12 +85,17 @@ typedef enum _HTErrorElement {
 	HTERR_TOO_BIG,						/* 413 */
 	HTERR_URI_TOO_BIG,					/* 414 */
 	HTERR_UNSUPPORTED,					/* 415 */
+	HTERR_BAD_RANGE,					/* 416 */
+	HTERR_EXPECTATION_FAILED,				/* 417 */
+	HTERR_REAUTH,				                /* 418 */
+	HTERR_PROXY_REAUTH,				        /* 419 */
 	HTERR_INTERNAL,						/* 500 */
 	HTERR_NOT_IMPLEMENTED,					/* 501 */
 	HTERR_BAD_GATE,						/* 502 */
 	HTERR_DOWN,						/* 503 */
 	HTERR_GATE_TIMEOUT,					/* 504 */
 	HTERR_BAD_VERSION,					/* 505 */
+	HTERR_NO_PARTIAL_UPDATE,				/* 506 */
 
 	/* Cache warnings */
 	HTERR_STALE,						/* 10 */
@@ -176,12 +184,15 @@ typedef struct _HTErrorMessage {
     { 204, "No Content",				"success" }, \
     { 205, "Reset Content",				"success" }, \
     { 206, "Partial Content",				"success" }, \
+    { 207, "Partial Update OK",				"success" }, \
     { 300, "Multiple Choices",				"redirection" }, \
     { 301, "Moved Permanently",				"redirection" }, \
-    { 302, "Moved Temporarily", 			"redirection" }, \
+    { 302, "Found",  			                "redirection" }, \
     { 303, "See Other",					"redirection" }, \
     { 304, "Not Modified",       			"redirection" }, \
     { 305, "Use Proxy",					"redirection" }, \
+    { 306, "Proxy Redirect",				"redirection" }, \
+    { 307, "Temporary Redirect",			"redirection" }, \
     { 400, "Bad Request", 				"client_error" }, \
     { 401, "Unauthorized",				"client_error" }, \
     { 402, "Payment Required", 				"client_error" }, \
@@ -198,12 +209,17 @@ typedef struct _HTErrorMessage {
     { 413, "Request Entity Too Large",	 		"client_error" }, \
     { 414, "Request-URI Too Large",	 		"client_error" }, \
     { 415, "Unsupported Media Type",	 		"client_error" }, \
+    { 416, "Range Not Satisfiable",	 		"client_error" }, \
+    { 417, "Expectation Failed",	 		"client_error" }, \
+    { 418, "Reauthentication Required",	 		"client_error" }, \
+    { 419, "Proxy Reauthentication Reuired", 		"client_error" }, \
     { 500, "Internal Server Error",			"server_error" }, \
     { 501, "Not Implemented", 				"server_error" }, \
     { 502, "Bad Gateway", 				"server_error" }, \
     { 503, "Service Unavailable",			"server_error" }, \
     { 504, "Gateway Timeout", 				"server_error" }, \
     { 505, "HTTP Version not supported",		"server_error" }, \
+    { 506, "Partial update Not Implemented",		"server_error" }, \
  \
     /* Cache Warnings */ \
     { 10,  "Response is Stale",				"cache" }, \

@@ -99,7 +99,7 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
     if (EntityMask & HT_E_CTE && entity->transfer) {
 	HTEncoding transfer = HTAnchor_transfer(entity);
 	if (!HTFormat_isUnityTransfer(transfer)) {
-	    sprintf(linebuf, "Transfer-Encoding: %s%c%c",
+	    sprintf(linebuf, "Content-Transfer-Encoding: %s%c%c",
 		    HTAtom_name(transfer), CR, LF);
 	    PUTBLOCK(linebuf, (int) strlen(linebuf));
 	}

@@ -69,7 +69,6 @@ PRIVATE int FlushEvent (HTTimer * timer, void * param, HTEventType type)
     /*
     **  Delete the timer
     */
-    HTTimer_delete(me->timer);
     me->timer = NULL;
     return HT_OK;
 }
@@ -106,8 +105,9 @@ PRIVATE int HTBufferWriter_lazyFlush (HTOutputStream * me)
     **  we have not already started a timer earlier.
     */
     if (!me->timer) {
+	ms_t exp = HTGetTimeInMillis() + delay;
 	net = HTHost_getWriteNet(me->host);
-	me->timer = HTTimer_new(NULL, FlushEvent, me, delay, YES);
+	me->timer = HTTimer_new(NULL, FlushEvent, me, exp, NO);
 	HTHost_unregister(me->host, net, HTEvent_WRITE);
 	if (PROT_TRACE) HTTrace("Buffer...... Waiting...\n");
     }

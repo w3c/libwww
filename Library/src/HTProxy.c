@@ -177,6 +177,8 @@ PUBLIC BOOL HTProxy_add (const char * access, const char * proxy)
 			HT_FILTER_MIDDLE);
 	HTNet_addAfter(HTAuthFilter, NULL, NULL,
 		       HT_NO_PROXY_ACCESS, HT_FILTER_MIDDLE);
+	HTNet_addAfter(HTAuthFilter, NULL, NULL,
+		       HT_PROXY_REAUTH, HT_FILTER_MIDDLE);
     }
     return add_object(proxies, access, proxy);
 }

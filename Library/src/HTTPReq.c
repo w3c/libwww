@@ -186,7 +186,7 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 			    } else
 				PUTC(',');
 			    PUTS(HTAtom_name(pres->rep));
-			    if (pres->quality != 1.0) {
+			    if (pres->quality < 1.0 && pres->quality >= 0.0) {
 				sprintf(qstr, ";q=%1.1f", pres->quality);
 				PUTS(qstr);
 			    }
@@ -216,6 +216,10 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 		    } else
 			PUTC(',');
 		    PUTS(HTAtom_name(pres->atom));
+		    if (pres->quality < 1.0 && pres->quality >= 0.0) {
+			sprintf(qstr, ";q=%1.1f", pres->quality);
+			PUTS(qstr);
+		    }
 		}
 	    }
 	}
@@ -230,12 +234,42 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 		(list && ((cur = HTRequest_encoding(request)) != NULL))) {
 		HTCoding * pres;
 		while ((pres = (HTCoding *) HTList_nextObject(cur))) {
+		    double quality = HTCoding_quality(pres);
 		    if (first) {
 			PUTS("Accept-Encoding: ");
 			first = NO;
 		    } else
 			PUTC(',');
 		    PUTS(HTCoding_name(pres));
+		    if (quality < 1.0 && quality >= 0.0) {
+			sprintf(qstr, ";q=%1.1f", quality);
+			PUTS(qstr);
+		    }
+		}
+	    }
+	}
+	if (!first) PUTBLOCK(crlf, 2);
+    }
+    if (request_mask & HT_C_ACCEPT_TE) {
+	int list;
+	HTList *cur;
+	BOOL first=YES;
+	for (list=0; list<2; list++) {
+	    if ((!list && ((cur = HTFormat_transferCoding()) != NULL)) ||
+		(list && ((cur = HTRequest_transfer(request)) != NULL))) {
+		HTCoding * pres;
+		while ((pres = (HTCoding *) HTList_nextObject(cur))) {
+		    double quality = HTCoding_quality(pres);
+		    if (first) {
+			PUTS("TE: ");
+			first = NO;
+		    } else
+			PUTC(',');
+		    PUTS(HTCoding_name(pres));
+		    if (quality < 1.0 && quality >= 0.0) {
+			sprintf(qstr, ";q=%1.1f", quality);
+			PUTS(qstr);
+		    }
 		}
 	    }
 	}
@@ -256,7 +290,7 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 		    } else
 			PUTC(',');
 		    PUTS(HTAtom_name(pres->atom));
-		    if (pres->quality != 1.0) {
+		    if (pres->quality < 1.0 && pres->quality >= 0.0) {
 			sprintf(qstr, ";q=%1.1f", pres->quality);
 			PUTS(qstr);
 		    }
@@ -275,6 +309,31 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 		PUTS(HTAssoc_value(pres));
 		PUTBLOCK(crlf, 2);
 	    }
+	}
+    }
+    if (request_mask & HT_C_EXPECT) {
+	HTAssocList * cur = HTRequest_expect(request);
+	if (cur) {
+	    BOOL first=YES;
+	    HTAssoc * pres;
+	    while ((pres = (HTAssoc *) HTAssocList_nextObject(cur))) {
+		char * value = HTAssoc_value(pres);
+		if (first) {
+		    PUTS("Expect: ");
+		    first = NO;
+		} else
+		    PUTC(',');
+
+		/* Output the name */
+		PUTS(HTAssoc_name(pres));
+
+		/* Only output the value if not empty string */
+		if (*value) {
+		    PUTS("=");
+		    PUTS(value);
+		}
+	    }
+	    PUTBLOCK(crlf, 2);
 	}
     }
     if (request_mask & HT_C_FROM) {
@@ -339,8 +398,9 @@ PRIVATE int HTTPMakeRequest (HTStream * me, HTRequest * request)
 	PUTS(etag);
 	PUTC('"');
 	PUTBLOCK(crlf, 2);
-	if (PROT_TRACE) HTTrace("HTTP........ If-None-Match using etag `%s\'\n", etag);
-    } else if (request_mask & HT_C_IMS) {
+	if (PROT_TRACE) HTTrace("HTTP........ If-None-Match `%s\'\n", etag);
+    }
+    if (request_mask & HT_C_IMS) {
 	time_t lm = HTAnchor_lastModified(anchor);
 	if (lm > 0) {
 	    PUTS("If-Modified-Since: ");
@@ -504,6 +564,13 @@ PUBLIC HTStream * HTTPRequest_new (HTRequest * request, HTStream * target,
     me->request = request;
     me->version = version;
     me->transparent = NO;
+
+    /*
+    ** If sending a body in the request then we want a 100 code!
+    */
+    if (HTMethod_hasEntity(HTRequest_method(request)))
+	HTRequest_addExpect(request, "100-continue", "");
+
 
     /* Return general HTTP header stream */
     return HTTPGen_new(request, me, endHeader, version);

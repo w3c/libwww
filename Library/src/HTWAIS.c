@@ -59,7 +59,9 @@
 /*			From WAIS
 **			---------
 */
+#if 0
 #include "wais.h"
+#endif
 
 #define MAX_MESSAGE_LEN 100000
 #define CHARS_PER_PAGE 10000 /* number of chars retrieved in each request */

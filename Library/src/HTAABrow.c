@@ -210,6 +210,12 @@ PUBLIC int HTBasic_generate (HTRequest * request, void * context, int mode)
 	const char * realm = HTRequest_realm(request);
 
 	/*
+	**  If we were asked to explicitly ask the user again
+	*/
+	if (mode == HT_REAUTH || mode == HT_PROXY_REAUTH)
+	    basic->retry = YES;
+
+	/*
 	** If we don't have a basic context then add a new one to the tree.
 	** We use different trees for normal and proxy authentication
 	*/
@@ -441,6 +447,12 @@ PUBLIC int HTDigest_generate (HTRequest * request, void * context, int mode)
     BOOL proxy = mode==HT_NO_PROXY_ACCESS ? YES : NO;
     if (request) {
 	const char * realm = HTRequest_realm(request);
+
+	/*
+	**  If we were asked to explicitly ask the user again
+	*/
+	if (mode == HT_REAUTH || mode == HT_PROXY_REAUTH)
+	    digest->retry = YES;
 
 	/*
 	** If we don't have a digest context then add a new one to the tree.

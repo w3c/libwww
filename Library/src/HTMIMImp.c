@@ -393,6 +393,22 @@ PUBLIC int HTMIME_server (HTRequest * request, HTResponse * response,
     return HT_OK;
 }
 
+PUBLIC int HTMIME_trailer (HTRequest * request, HTResponse * response,
+			   char * token, char * value)
+{
+    /*
+    **  Walk through the set of trailer directives and add them to the
+    **  response association list for trailer directives
+    */
+    char * name_val;
+    while ((name_val = HTNextPair(&value)) != NULL) {
+	char * name = HTNextField(&name_val);
+	char * val = HTNextField(&name_val);
+	if (name) HTResponse_addTrailer(response, name, val ? val : "");
+    }
+    return HT_OK;
+}
+
 PUBLIC int HTMIME_upgrade (HTRequest * request, HTResponse * response,
 			   char * token, char * value)
 {

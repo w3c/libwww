@@ -176,9 +176,12 @@ PUBLIC void HTBeforeInit (void)
 PUBLIC void HTAfterInit (void)
 {
     HTNet_addAfter(HTAuthFilter, 	"http://*",	NULL, HT_NO_ACCESS, 	HT_FILTER_MIDDLE);
+    HTNet_addAfter(HTAuthFilter, 	"http://*",	NULL, HT_REAUTH, 	HT_FILTER_MIDDLE);
     HTNet_addAfter(HTPEP_afterFilter, 	"http://*",	NULL, HT_ALL, 		HT_FILTER_MIDDLE);
-    HTNet_addAfter(HTRedirectFilter, 	"http://*",	NULL, HT_TEMP_REDIRECT, HT_FILTER_MIDDLE);
     HTNet_addAfter(HTRedirectFilter, 	"http://*",	NULL, HT_PERM_REDIRECT, HT_FILTER_MIDDLE);
+    HTNet_addAfter(HTRedirectFilter, 	"http://*",	NULL, HT_FOUND, 	HT_FILTER_MIDDLE);
+    HTNet_addAfter(HTRedirectFilter,	"http://*",	NULL, HT_SEE_OTHER,	HT_FILTER_MIDDLE);
+    HTNet_addAfter(HTRedirectFilter, 	"http://*",	NULL, HT_TEMP_REDIRECT, HT_FILTER_MIDDLE);
     HTNet_addAfter(HTUseProxyFilter, 	"http://*",	NULL, HT_USE_PROXY, 	HT_FILTER_MIDDLE);
     HTNet_addAfter(HTCacheUpdateFilter, "http://*",	NULL, HT_NOT_MODIFIED, 	HT_FILTER_MIDDLE);
     HTNet_addAfter(HTLogFilter, 	NULL,		NULL, HT_ALL, 		HT_FILTER_LATE);
@@ -367,6 +370,7 @@ PUBLIC void HTMIMEInit (void)
 	{"referer", &HTMIME_referer},
 	{"retry-after", &HTMIME_retryAfter}, 
 	{"server", &HTMIME_server}, 
+	{"trailer", &HTMIME_trailer},
 	{"transfer-encoding", &HTMIME_contentTransferEncoding}, 
 	{"upgrade", &HTMIME_upgrade},
 	{"user-agent", &HTMIME_userAgent},

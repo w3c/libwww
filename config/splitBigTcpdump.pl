@@ -2,19 +2,19 @@
 
 @Locations = ('BIG');
 
-$InPrefix = 'BIG.www26.tcpdump.aps.';
-
+$InPrefix = 'BIG.www26.msiens.tcpdump.';
 @OutTemplates = ('"A1-LH-netscape-10/" . $location . "-ft-" . $run . ".txt"',
-		  '"A1-LH-netscape-10/" . $location . "-cv-" . $run . ".txt"',
+		 '"A1-LH-netscape-10/" . $location . "-cv-" . $run . ".txt"',
+		 '"J5-LH-iexplore-10/" . $location . "-ft-" . $run . ".txt"',
+		 '"J5-LH-iexplore-10/" . $location . "-cv-" . $run . ".txt"', 
                  '"J5-LH-netscape-10/" . $location . "-ft-" . $run . ".txt"',
                  '"J5-LH-netscape-10/" . $location . "-cv-" . $run . ".txt"',
-		  '"A1-LH-iexplore-10/" . $location . "-ft-" . $run . ".txt"',
-		  '"J5-LH-iexplore-10/" . $location . "-ft-" . $run . ".txt"');
-
-@PingChecks = (1, 2, 3, 4, 5, 6);
+		 '"A1-LH-iexplore-10/" . $location . "-ft-" . $run . ".txt"',
+		 '"A1-LH-iexplore-10/" . $location . "-cv-" . $run . ".txt"');
+@PingChecks = (1, 2, 7, 8, 3, 4, 5, 6);
+$Runs = 3;
 
 #$InPrefix = 'BIG.www26.tcpdump.robot.';
-
 #@OutTemplates = ('"A1-LH-http-11/" . $location . "-ft-" . $run . ".txt"',
 #		 '"A1-LH-http-11/" . $location . "-cv-" . $run . ".txt"',
 #		 '"J5-LH-http-11/" . $location . "-ft-" . $run . ".txt"',
@@ -23,15 +23,15 @@ $InPrefix = 'BIG.www26.tcpdump.aps.';
 #		 '"A1-LH-http-11-pl/" . $location . "-cv-" . $run . ".txt"',
 #		 '"J5-LH-http-11-pl/" . $location . "-ft-" . $run . ".txt"',
 #		 '"J5-LH-http-11-pl/" . $location . "-cv-" . $run . ".txt"',
+#		 '"A1-LH-http-11-pl-zip/" . $location . "-ft-" . $run . ".txt"',
+#		 '"A1-LH-http-11-pl-zip/" . $location . "-cv-" . $run . ".txt"',
 #		 '"J5-LH-http-11-pl-zip/" . $location . "-ft-" . $run . ".txt"',
 #		 '"J5-LH-http-11-pl-zip/" . $location . "-cv-" . $run . ".txt"');
-
-#@PingChecks = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+#@PingChecks = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+#$Runs = 5;
 
 $Client = 'BIG';
 $Server = 'www26';
-
-$Runs = 5;
 
 sub main
 {

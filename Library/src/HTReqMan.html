@@ -159,8 +159,8 @@ These are the accept headers that we want to send out.
     HTList *		encodings;
     BOOL		enc_local;
 
-    HTList *		ctes;
-    BOOL		cte_local;
+    HTList *		tes;
+    BOOL		te_local;
 
     HTList *		languages;
     BOOL		lang_local;
@@ -217,6 +217,19 @@ are to be sent as part of the <CODE>Connection</CODE> header.
 
 <PRE>
     HTAssocList *       connection;
+</PRE>
+<H3>
+  Expect Directives
+</H3>
+<P>
+The Expect request-header field is used to indicate that particular
+server behaviors are required by the client.  A server that does not
+understand or is unable to comply with any of the expectation values in
+the Expect field of a request MUST respond with appropriate error
+status.
+
+<PRE>
+    HTAssocList *       expect;
 </PRE>
 <H3>
   Access Authentication Information

@@ -185,6 +185,9 @@ PUBLIC void HTRequest_delete (HTRequest * me)
 	/* Connection headers */
 	if (me->connection) HTAssocList_delete(me->connection);
 
+	/* Connection headers */
+	if (me->expect) HTAssocList_delete(me->expect);
+
 	/* Proxy information */
 	HT_FREE(me->proxy);
 
@@ -615,17 +618,17 @@ PUBLIC HTList * HTRequest_encoding (HTRequest * me)
 **	list can be NULL
 */
 PUBLIC void HTRequest_setTransfer (HTRequest * me,
-				   HTList * cte, BOOL override)
+				   HTList * te, BOOL override)
 {
     if (me) {
-	me->ctes = cte;
-	me->cte_local = override;
+	me->tes = te;
+	me->te_local = override;
     }
 }
 
 PUBLIC HTList * HTRequest_transfer (HTRequest * me)
 {
-    return me ? me->ctes : NULL;
+    return me ? me->tes : NULL;
 }
 
 /*
@@ -800,6 +803,34 @@ PUBLIC BOOL HTRequest_deleteConnection (HTRequest * me)
 PUBLIC HTAssocList * HTRequest_connection (HTRequest * me)
 {
     return (me ? me->connection : NULL);
+}
+
+/*
+**	Expect directives. 
+*/
+PUBLIC BOOL HTRequest_addExpect (HTRequest * me,
+				 char * token, char * value)
+{
+    if (me) {
+	if (!me->expect) me->expect = HTAssocList_new();
+	return HTAssocList_replaceObject(me->expect, token, value);
+    }
+    return NO;
+}
+
+PUBLIC BOOL HTRequest_deleteExpect (HTRequest * me)
+{
+    if (me && me->expect) {
+	HTAssocList_delete(me->expect);
+	me->expect = NULL;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTAssocList * HTRequest_expect (HTRequest * me)
+{
+    return (me ? me->expect : NULL);
 }
 
 /*

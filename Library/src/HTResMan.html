@@ -158,12 +158,20 @@ it up.
     HTList *	       content_encoding;
 </PRE>
 <H3>
-  Content Transfer Encoding
+  Transfer Encoding
 </H3>
 <P>
 The transfer encoding is likewise important when we set up the stream pipe.
 <PRE>
     HTEncoding         transfer_encoding;
+</PRE>
+<H3>
+  Trailer
+</H3>
+<P>
+The tailers are headers that come at the end
+<PRE>
+    HTAssocList *      trailer;
 </PRE>
 <H3>
   Original Reponse Header Values
