@@ -224,8 +224,10 @@ PUBLIC void HTAAInit (void)
 {
     HTAA_newModule ("basic", HTBasic_generate, HTBasic_parse, NULL,
 		     HTBasic_delete);
+#ifdef HT_MD5
     HTAA_newModule ("digest", HTDigest_generate, HTDigest_parse, 
 		     HTDigest_updateInfo,  HTDigest_delete);
+#endif /* HT_MD5 */
 }
 
 /*	REGISTER BEFORE AND AFTER FILTERS
