@@ -1080,9 +1080,17 @@ PRIVATE int HTSaveFilter (HTRequest * request, HTResponse * response,
 	HTRequest_setPostCallback(request, HTEntity_callback);
 
 	/* Now start the load normally */
+	if (launch_request(request, NO) == YES)
+	    me->state = HT_SAVE_DEST;
+        else {
+	    HTAnchor_setDocument(me->source, me->placeholder);
+	    HTChunk_delete(me->document);
+	    HT_FREE(me);
+	}
+#if 0    
 	me->state = launch_request(request, NO) ?
 	    HT_SAVE_DEST : HT_LOAD_SOURCE;
-
+#endif
 	/*
 	**  By returning HT_ERROR we make sure that this is the last handler to
 	**  be called. We do this as we don't want any other filter to delete
