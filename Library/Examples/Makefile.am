@@ -4,9 +4,9 @@ noinst_PROGRAMS = head libapp_1 libapp_2 libapp_3 libapp_4 init \
 	chunk chunkbody LoadToFile postform multichunk put post trace \
 	range tzcheck mget isredirected listen eventloop memput \
 	getheaders showlinks showtags showtext tiny upgrade cookie \
-	@SHOWXML@ @WWWSSLEX@
+        @DAVSAMPLE@ @MYEXT@ @SHOWXML@ @WWWSSLEX@
 
-EXTRA_PROGRAMS = showxml ptri stri wwwssl rdf_parse_file rdf_parse_buffer
+EXTRA_PROGRAMS = myext myext2 davsample showxml ptri stri wwwssl rdf_parse_file rdf_parse_buffer
 
 LDADD = \
 	../src/libwwwinit.la \
@@ -26,6 +26,7 @@ LDADD = \
 	../src/libwwwtrans.la \
 	../src/libwwwcore.la \
 	../src/libwwwutils.la \
+        @LIBWWWDAV@ \
 	@LIBWWWSSL@ \
 	-lm @LIBWWWZIP@ @LIBWWWWAIS@ @LIBWWWSQL@ @LIBWWWMD5@
 
@@ -64,6 +65,7 @@ purify: $(mget_OBJECTS) $(mget_DEPENDENCIES)
 	../src/.libs/libwwwtrans.a \
 	../src/.libs/libwwwcore.a \
 	../src/.libs/libwwwutils.a \
+        ../src/.libs/libwwwdav.a \
 	../src/.libs/libwwwzip.a \
 	../../modules/md5/.libs/libmd5.a \
 	../../modules/expat/xmlparse/.libs/libxmlparse.a \

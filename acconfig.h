@@ -7,6 +7,12 @@
 /* Define to enable MD5 for HTTP access authentication. */
 #undef HT_MD5
 
+/* Define to enable WebDAV protocol. */
+#undef HT_DAV
+
+/* Define to enable extension methods. */
+#undef HT_EXT
+
 /* Define to enable expat XML parser. */
 #undef HT_EXPAT
 

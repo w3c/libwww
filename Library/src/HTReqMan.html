@@ -1,49 +1,44 @@
-<HTML>
-<HEAD>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html">
   <!-- Changed by: Henrik Frystyk Nielsen, 15-Jul-1996 -->
-  <TITLE>W3C Sample Code Library libwww Private Request Definition</TITLE>
-</HEAD>
-<BODY>
-<H1>
-  Private Request Definition
-</H1>
-<PRE>
-/*
+  <title>W3C Sample Code Library libwww Private Request Definition</title>
+</head>
+
+<body>
+<h1>Private Request Definition</h1>
+<pre>/*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
-*/
-</PRE>
-<P>
-This module is the private part of the request object. It has the functions
-declarations that are private to the Library and that shouldn't be used by
-applications. The module has been separated from the old HTAccess module.
-See also the public part of the declarition in the <A HREF="HTReq.html">HTReq
-Module</A>.
-<P>
-This module is implemented by <A HREF="HTReqMan.c">HTReqMan.c</A>, and it
-is a part of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code
-Library</A>.
-<PRE>
-#ifndef HTREQMAN_H
+*/</pre>
+
+<p>This module is the private part of the request object. It has the
+functions declarations that are private to the Library and that shouldn't be
+used by applications. The module has been separated from the old HTAccess
+module. See also the public part of the declarition in the <a
+href="HTReq.html">HTReq Module</a>.</p>
+
+<p>This module is implemented by <a href="HTReqMan.c">HTReqMan.c</a>, and it
+is a part of the <a href="http://www.w3.org/Library/"> W3C Sample Code
+Library</a>.</p>
+<pre>#ifndef HTREQMAN_H
 #define HTREQMAN_H
 
-#include "<A HREF="HTReq.html">HTReq.h</A>"
-#include "<A HREF="HTList.html">HTList.h</A>"
-#include "<A HREF="HTFormat.html">HTFormat.h</A>"
-#include "<A HREF="HTAnchor.html">HTAnchor.h</A>"
-#include "<A HREF="HTMethod.html">HTMethod.h</A>"
-#include "<A HREF="HTAABrow.html">HTAABrow.h</A>"
-#include "<A HREF="HTStream.html">HTStream.h</A>"
-#include "<A HREF="HTNet.html">HTNet.h</A>"
-#include "<A HREF="HTMIMPrs.html">HTMIMPrs.h</A>"
-</PRE>
-<P>
-When a request is handled, all kinds of things about it need to be passed
+#include "<a href="HTReq.html">HTReq.h</a>"
+#include "<a href="HTList.html">HTList.h</a>"
+#include "<a href="HTFormat.html">HTFormat.h</a>"
+#include "<a href="HTAnchor.html">HTAnchor.h</a>"
+#include "<a href="HTMethod.html">HTMethod.h</a>"
+#include "<a href="HTAABrow.html">HTAABrow.h</a>"
+#include "<a href="HTStream.html">HTStream.h</a>"
+#include "<a href="HTNet.html">HTNet.h</a>"
+#include "<a href="HTMIMPrs.html">HTMIMPrs.h</a>"</pre>
+
+<p>When a request is handled, all kinds of things about it need to be passed
 along together with a request. It is intended to live as long as the request
 is still active, but can be deleted as soon as it has terminated. Only the
-anchor object stays around after the request itself is terminated.
-<PRE>
-struct _HTRequest {
+anchor object stays around after the request itself is terminated.</p>
+<pre>struct _HTRequest {
 
     BOOL		internal;      /* Does the app knows about this one? */
 
@@ -53,103 +48,80 @@ struct _HTRequest {
 
     BOOL                flush;                /* Should we flush immediately */
 
-    HTPriority		priority;		/* Priority for this request */
-</PRE>
-<H3>
-  User Profile
-</H3>
-<P>
-Each request can be assigned a <A HREF="HTUser.html">user profile</A> containing
-information about this host and the user issuing the request.
-<PRE>
-    HTUserProfile *	userprofile;
-</PRE>
-<H3>
-  Net Object
-</H3>
-<P>
-Each request is assigned a Net object which contains pointers to other objects
-handling the request.
-<PRE>
-    HTNet *		net;		    /* Information about socket etc. */
-</PRE>
-<H3>
-  Response Object
-</H3>
-<P>
-When we start getting MIME headers in as a response we keep it in this object
-until we know what to do with it.
-<PRE>
-    HTResponse *        response;
-</PRE>
-<H3>
-  Error Manager
-</H3>
-<PRE>
-    HTList *		error_stack;		           /* List of errors */
-</PRE>
-<H3>
-  Have many times do We Want to Try?
-</H3>
-<PRE>
-    int			retrys;       	      /* Number of automatic reloads */
+    HTPriority          priority;   /* Priority for this request */</pre>
+
+<h3>Message body</h3>
+
+<p>A request message body indicated for XML bodies. It is used for extension
+methods. See <a href="HTReq.html">HTReq.html</a> for details. </p>
+<pre>#ifdef HT_EXT
+    char *             messageBody;
+    long int           messageBodyLength;
+    HTFormat           messageBodyFormat;
+#endif</pre>
+
+<h3>User Profile</h3>
+
+<p>Each request can be assigned a <a href="HTUser.html">user profile</a>
+containing information about this host and the user issuing the request.</p>
+<pre>    HTUserProfile *        userprofile;</pre>
+
+<h3>Net Object</h3>
+
+<p>Each request is assigned a Net object which contains pointers to other
+objects handling the request.</p>
+<pre>    HTNet *                net;                    /* Information about socket etc. */</pre>
+
+<h3>Response Object</h3>
+
+<p>When we start getting MIME headers in as a response we keep it in this
+object until we know what to do with it.</p>
+<pre>    HTResponse *        response;</pre>
+
+<h3>Error Manager</h3>
+<pre>    HTList *                error_stack;                           /* List of errors */</pre>
+
+<h3>Have many times do We Want to Try?</h3>
+<pre>    int                        retrys;                     /* Number of automatic reloads */
     int                 max_forwards;
     int			AAretrys;      	      /* Number of authentication
-                                                 retries */
-</PRE>
-<H3>
-  Preemptive or Non-Preemptive load?
-</H3>
-<P>
-Each protocol module is registered with a default behavior but if you have
-registered a protocol module for non-preemtive load you can override this
-by using the following flag.
-<PRE>
-    BOOL		preemptive;
-</PRE>
-<H3>
-  Content Negotiation
-</H3>
-<P>
-Normally, when we access the local file system we do content negotiation
+                                                 retries */</pre>
+
+<h3>Preemptive or Non-Preemptive load?</h3>
+
+<p>Each protocol module is registered with a default behavior but if you have
+registered a protocol module for non-preemtive load you can override this by
+using the following flag.</p>
+<pre>    BOOL                preemptive;</pre>
+
+<h3>Content Negotiation</h3>
+
+<p>Normally, when we access the local file system we do content negotiation
 in order to find the most suited representation. However, you can turn this
-off by using the following flag.
-<PRE>
-    BOOL		ContentNegotiation;
-</PRE>
-<H3>
-  Should we use preconditions?
-</H3>
-<PRE>
-    HTPreconditions     preconditions;
-</PRE>
-<H3>
-  Headers and header information
-</H3>
-<P>
-These are the masks that decides what headers to send.
-<PRE>
-    HTGnHd		GenMask;
+off by using the following flag.</p>
+<pre>    BOOL                ContentNegotiation;</pre>
+
+<h3>Should we use preconditions?</h3>
+<pre>    HTPreconditions     preconditions;</pre>
+
+<h3>Headers and header information</h3>
+
+<p>These are the masks that decides what headers to send.</p>
+<pre>    HTGnHd                GenMask;
     HTRsHd		ResponseMask;
     HTRqHd		RequestMask;
-    HTEnHd		EntityMask;
-</PRE>
-<H3>
-  Local MIME Header Parsers
-</H3>
-<P>
-Each request can be assigned its own MIME header parsers.
-<PRE>
-    HTMIMEParseSet *	parseSet;
-    BOOL		pars_local;
-</PRE>
-<H3>
-  Accept headers
-</H3>
-<P>
-These are the accept headers that we want to send out.
-<PRE>
-    HTList *		conversions;
+    HTEnHd                EntityMask;</pre>
+
+<h3>Local MIME Header Parsers</h3>
+
+<p>Each request can be assigned its own MIME header parsers.</p>
+<pre>    HTMIMEParseSet *        parseSet;
+    BOOL                pars_local;</pre>
+
+<h3>Accept headers</h3>
+
+<p>These are the accept headers that we want to send out.</p>
+<pre>    HTList *                conversions;
     BOOL		conv_local;
 
     HTList *		encodings;
@@ -168,174 +140,121 @@ These are the accept headers that we want to send out.
     BOOL		befores_local;
 
     HTList *		afters;
-    BOOL		afters_local;
-</PRE>
-<H3>
-  Are we using a Proxy?
-</H3>
-<P>
-If so then we keep the name in this variable
-<PRE>
-    char * 		proxy;
-    BOOL                full_uri;
-</PRE>
-<H3>
-  Cache Control Directives
-</H3>
-<P>
-This association list is a list of the cache control directives that are
-to be sent as part of the <CODE>Cache-Control</CODE> header.
-<PRE>
-    HTReload		reload;
-    HTAssocList *       cache_control;
-</PRE>
-<H3>
-  Default PUT name
-</H3>
-<P>
-Stores the default name when publishing to a "/" URL.
-<PRE>
-   char *               default_put_name;
-</PRE>
-<H3>
-  Byte Ranges
-</H3>
-<P>
-This association list is a list of the cache control directives that are
-to be sent as part of the <CODE>Range</CODE> header.
-<PRE>
-    HTAssocList *       byte_ranges;
-</PRE>
-<H3>
-  Connection Control Directives
-</H3>
-<P>
-This association list is a list of the connection control directives that
-are to be sent as part of the <CODE>Connection</CODE> header.
-<PRE>
-    HTAssocList *       connection;
-</PRE>
-<H3>
-  Expect Directives
-</H3>
-<P>
-The Expect request-header field is used to indicate that particular server
-behaviors are required by the client. A server that does not understand or
-is unable to comply with any of the expectation values in the Expect field
-of a request MUST respond with appropriate error status.
-<PRE>
-    HTAssocList *       expect;
-</PRE>
-<H3>
-  Access Authentication Information
-</H3>
-<P>
-The <CODE>credentials</CODE> list contains the information that we are to
-send as part of the <CODE>Authorization</CODE> header. The realm is if we
-already know that we need to generate credentials for a specific realm.
-<PRE>
-    char *		realm;				    /* Current realm */
-    HTAssocList *	credentials;	   /* Credentials received by server */
-</PRE>
-<H3>
-  Request Header Extensibility
-</H3>
-<P>
-  <HR>
-<H4>
-  1) Simple Association List
-</H4>
-<P>
-Add the (name, value) and it will be converted into MIME header format as
-<CODE>name: value</CODE>. DO NOT ADD CRLF line termination - this is done
-by the <A HREF="HTTPReq.html">HTTP header generator stream</A>
-<PRE>
-    HTAssocList	*	extra_headers;
-</PRE>
-<H4>
-  2) Stream Oriented Header Generators
-</H4>
-<P>
-A generator is a stream with direct access to the output stream
-<PRE>
-    HTList *		generators;
-    BOOL		gens_local;
-</PRE>
-<H4>
-  4) HTTP Extension Framework
-</H4>
-<P>
-These association lists contain the information that we are to send as
-<A HREF="/Protocols/HTTP/ietf-http-ext/">HTTP Extension Framework</A>.
-<PRE>
-    HTAssocList *	mandatory;
-    HTAssocList *	optional;
-</PRE>
-<H3>
-  Anchors
-</H3>
-<PRE>
-    HTParentAnchor *	anchor;	       /* The Client anchor for this request */
+    BOOL                afters_local;</pre>
+
+<h3>Are we using a Proxy?</h3>
+
+<p>If so then we keep the name in this variable</p>
+<pre>    char *                 proxy;
+    BOOL                full_uri;</pre>
+
+<h3>Cache Control Directives</h3>
+
+<p>This association list is a list of the cache control directives that are
+to be sent as part of the <code>Cache-Control</code> header.</p>
+<pre>    HTReload                reload;
+    HTAssocList *       cache_control;</pre>
+
+<h3>Default PUT name</h3>
+
+<p>Stores the default name when publishing to a "/" URL.</p>
+<pre>   char *               default_put_name;</pre>
+
+<h3>Byte Ranges</h3>
+
+<p>This association list is a list of the cache control directives that are
+to be sent as part of the <code>Range</code> header.</p>
+<pre>    HTAssocList *       byte_ranges;</pre>
+
+<h3>Connection Control Directives</h3>
+
+<p>This association list is a list of the connection control directives that
+are to be sent as part of the <code>Connection</code> header.</p>
+<pre>    HTAssocList *       connection;</pre>
+
+<h3>Expect Directives</h3>
+
+<p>The Expect request-header field is used to indicate that particular server
+behaviors are required by the client. A server that does not understand or is
+unable to comply with any of the expectation values in the Expect field of a
+request MUST respond with appropriate error status.</p>
+<pre>    HTAssocList *       expect;</pre>
+
+<h3>Access Authentication Information</h3>
+
+<p>The <code>credentials</code> list contains the information that we are to
+send as part of the <code>Authorization</code> header. The realm is if we
+already know that we need to generate credentials for a specific realm.</p>
+<pre>    char *                realm;                                    /* Current realm */
+    HTAssocList *        credentials;           /* Credentials received by server */</pre>
+
+<h3>Request Header Extensibility</h3>
+
+<p></p>
+<hr>
+
+<h4>1) Simple Association List</h4>
+
+<p>Add the (name, value) and it will be converted into MIME header format as
+<code>name: value</code>. DO NOT ADD CRLF line termination - this is done by
+the <a href="HTTPReq.html">HTTP header generator stream</a></p>
+<pre>    HTAssocList        *        extra_headers;</pre>
+
+<h4>2) Stream Oriented Header Generators</h4>
+
+<p>A generator is a stream with direct access to the output stream</p>
+<pre>    HTList *                generators;
+    BOOL                gens_local;</pre>
+
+<h4>4) HTTP Extension Framework</h4>
+
+<p>These association lists contain the information that we are to send as <a
+href="/Protocols/HTTP/ietf-http-ext/">HTTP Extension Framework</a>.</p>
+<pre>    HTAssocList *        mandatory;
+    HTAssocList *        optional;</pre>
+
+<h3>Anchors</h3>
+<pre>    HTParentAnchor *        anchor;               /* The Client anchor for this request */
 
     HTChildAnchor *	childAnchor;	    /* For element within the object */
-    HTParentAnchor *	parentAnchor;			/* For referer field */
-</PRE>
-<H3>
-  Streams From Network to Application
-</H3>
-<PRE>
-    HTStream *		output_stream; 
+    HTParentAnchor *        parentAnchor;                        /* For referer field */</pre>
+
+<h3>Streams From Network to Application</h3>
+<pre>    HTStream *                output_stream; 
     HTStream *		orig_output_stream; 
     HTFormat		output_format;
     BOOL		connected;
 
     HTStream *		debug_stream;
     HTStream *		orig_debug_stream;
-    HTFormat		debug_format;
-</PRE>
-<H3>
-  Streams From Application to Network
-</H3>
-<PRE>
-    HTStream *		input_stream; 
-    HTFormat		input_format;
-</PRE>
-<H3>
-  Callback Function for getting data down the Input Stream
-</H3>
-<PRE>
-    HTPostCallback *	PostCallback;
-</PRE>
-<H3>
-  Context Swapping
-</H3>
-<PRE>
-    HTRequestCallback *	callback;
-    void *		context;
-</PRE>
-<H3>
-  PostWeb Information (Not used anymore - don't use!)
-</H3>
-<PRE>
-    HTRequest *		source;		     /* Source for request or itself */
+    HTFormat                debug_format;</pre>
+
+<h3>Streams From Application to Network</h3>
+<pre>    HTStream *                input_stream; 
+    HTFormat                input_format;</pre>
+
+<h3>Callback Function for getting data down the Input Stream</h3>
+<pre>    HTPostCallback *        PostCallback;</pre>
+
+<h3>Context Swapping</h3>
+<pre>    HTRequestCallback *        callback;
+    void *                context;</pre>
+
+<h3>PostWeb Information (Not used anymore - don't use!)</h3>
+<pre>    HTRequest *                source;                     /* Source for request or itself */
     HTParentAnchor *	source_anchor;		  /* Source anchor or itself */
 
     HTRequest *		mainDestination;	     /* For the typical case */
     HTList *		destinations;		 /* List of related requests */
     int			destRequests;	   /* Number of destination requests */
-    int			destStreams;	    /* Number of destination streams */
-</PRE>
-<PRE>
-};
-</PRE>
-<H2>
-  Post Web Management
-</H2>
-<P>
-These functions are mainly used internally in the Library but there is no
-reason for them not to be public.
-<PRE>
-extern BOOL HTRequest_addDestination (HTRequest * src, HTRequest * dest);
+    int                        destStreams;            /* Number of destination streams */</pre>
+<pre>};</pre>
+
+<h2>Post Web Management</h2>
+
+<p>These functions are mainly used internally in the Library but there is no
+reason for them not to be public.</p>
+<pre>extern BOOL HTRequest_addDestination (HTRequest * src, HTRequest * dest);
 extern BOOL HTRequest_removeDestination	(HTRequest * dest);
 extern BOOL HTRequest_destinationsReady (HTRequest * me);
 
@@ -353,16 +272,15 @@ extern BOOL HTRequest_killPostWeb (HTRequest * me);
 	((me) &amp;&amp; (me)-&gt;source &amp;&amp; \
 	(me) == (me)-&gt;source-&gt;mainDestination)
 #define HTRequest_isSource(me) \
-	((me) &amp;&amp; (me)-&gt;source &amp;&amp; (me) == (me)-&gt;source)
-</PRE>
-<P>
-End of Declaration
-<PRE>
-#endif /* HTREQMAN_H */
-</PRE>
-<P>
-  <HR>
-<ADDRESS>
+        ((me) &amp;&amp; (me)-&gt;source &amp;&amp; (me) == (me)-&gt;source)</pre>
+
+<p>End of Declaration</p>
+<pre>#endif /* HTREQMAN_H */</pre>
+
+<p></p>
+<hr>
+<address>
   @(#) $Id$
-</ADDRESS>
-</BODY></HTML>
+</address>
+</body>
+</html>

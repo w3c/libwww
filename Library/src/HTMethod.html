@@ -1,37 +1,33 @@
-<HTML>
-<HEAD>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html">
   <!-- Changed by: Henrik Frystyk Nielsen,  1-Jul-1996 -->
-  <TITLE>W3C Sample Code Library libwww Request Access Methods</TITLE>
-</HEAD>
-<BODY>
-<H1>
-  Request Access Methods
-</H1>
-<PRE>
-/*
+  <title>W3C Sample Code Library libwww Request Access Methods</title>
+</head>
+
+<body>
+<h1>Request Access Methods</h1>
+<pre>/*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
-*/
-</PRE>
-<P>
-This module keeps a list of valid methods to be performed on a
-<A HREF="HTReq.html">request object</A>, for example <B>GET</B>, <B>HEAD</B>,
-<B>PUT</B>, <B>POST</B>, <B>DELETE</B>, etc.&nbsp;You can assign which method
-to be performed on the request object <A HREF="HTReq.html">directly</A> or
-you can go through the <A HREF="HTReq.html">Access module</A> for higher
-level functions.
-<P>
-This module is implemented by <A HREF="HTMethod.c">HTMethod.c</A>, and it
-is a part of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code
-Library</A>.
-<PRE>#ifndef HTMETHOD_H
-#define HTMETHOD_H
+*/</pre>
 
-</PRE>
-<P>
-<B>NOTE:</B> The anchor list of allowed methods is a bitflag, not at list!
-<PRE>
-typedef enum {
+<p>This module keeps a list of valid methods to be performed on a <a
+href="HTReq.html">request object</a>, for example <b>GET</b>, <b>HEAD</b>,
+<b>PUT</b>, <b>POST</b>, <b>DELETE</b>, etc. You can assign which method to
+be performed on the request object <a href="HTReq.html">directly</a> or you
+can go through the <a href="HTReq.html">Access module</a> for higher level
+functions.</p>
+
+<p>This module is implemented by <a href="HTMethod.c">HTMethod.c</a>, and it
+is a part of the <a href="http://www.w3.org/Library/"> W3C Sample Code
+Library</a>.</p>
+<pre>#ifndef HTMETHOD_H
+#define HTMETHOD_H</pre>
+
+<p><b>NOTE:</b> The anchor list of allowed methods is a bitflag, not at
+list!</p>
+<pre>typedef enum {
     METHOD_INVALID	= 0x0,
     METHOD_GET		= 0x1,
     METHOD_HEAD		= 0x2,    
@@ -42,57 +38,92 @@ typedef enum {
     METHOD_TRACE	= 0x40,
     METHOD_OPTIONS	= 0x80,
     METHOD_LINK		= 0x100,
+
+#ifdef HT_DAV
+    METHOD_LOCK         = 0x400,              /* WebDAV Methods */
+    METHOD_UNLOCK       = 0x800,
+
+    METHOD_PROPFIND     = 0x1000,
+    METHOD_PROPPATCH    = 0x2000,
+    METHOD_MKCOL        = 0x4000,
+    METHOD_COPY         = 0x8000,
+    METHOD_MOVE         = 0x10000,
+#endif
+
+#ifdef HT_EXT
+    METHOD_EXT_0        = 0x20000,            /* Extension methods */
+    METHOD_EXT_1        = 0x40000,    
+    METHOD_EXT_2        = 0x80000,
+    METHOD_EXT_3        = 0x100000,
+    METHOD_EXT_4        = 0x200000,
+    METHOD_EXT_5        = 0x400000,
+    METHOD_EXT_6        = 0x800000,
+#endif
+   
     METHOD_UNLINK	= 0x200
-} HTMethod;
-</PRE>
-<H3>
-  Get Method Enumeration
-</H3>
-<P>
-Gives the enumeration value of the method as a function of the (char *) name.
-<PRE>
-extern HTMethod HTMethod_enum (const char * name);
-</PRE>
-<H3>
-  Get Method String
-</H3>
-<P>
-The reverse of <I>HTMethod_enum()</I>
-<PRE>
-extern const char * HTMethod_name (HTMethod method);
-</PRE>
-<H3>
-  Is Method "Safe"?
-</H3>
-<P>
-If a method is safe, it doesn't produce any side effects on the server
-<PRE>
-#define HTMethod_isSafe(me)	((me) &amp; (METHOD_GET|METHOD_HEAD))
-</PRE>
-<H3>
-  Does the Method Replace or Add to Metainformation
-</H3>
-<P>
-Most methods override the current set of metainformation stored in an
-<A HREF="HTAnchor.html">anchor</A>. However, a few methods actually only
-add to the anchor metainformation. We have a small macro to make the distinction.
-<PRE>
-#define HTMethod_addMeta(me)  ((me) &amp; (METHOD_TRACE | METHOD_OPTIONS))
-</PRE>
-<H3>
-  Does a Method include Entity?
-</H3>
-<P>
-Does a method include an entity to be sent from the client to the server?
-<PRE>
+
+} HTMethod;</pre>
+
+<h3>Get Method Enumeration</h3>
+
+<p>Gives the enumeration value of the method as a function of the (char *)
+name.</p>
+<pre>extern HTMethod HTMethod_enum (const char * name);</pre>
+
+<h3>Get Method String</h3>
+
+<p>The reverse of <i>HTMethod_enum()</i></p>
+<pre>extern const char * HTMethod_name (HTMethod method);</pre>
+
+<h3>Is Method "Safe"?</h3>
+
+<p>If a method is safe, it doesn't produce any side effects on the server</p>
+<pre>#define HTMethod_isSafe(me)        ((me) &amp; (METHOD_GET|METHOD_HEAD))</pre>
+
+<h3>Does the Method Replace or Add to Metainformation</h3>
+
+<p>Most methods override the current set of metainformation stored in an <a
+href="HTAnchor.html">anchor</a>. However, a few methods actually only add to
+the anchor metainformation. We have a small macro to make the distinction.</p>
+<pre>#define HTMethod_addMeta(me)  ((me) &amp; (METHOD_TRACE | METHOD_OPTIONS))</pre>
+
+<h3>Does a Method include Entity?</h3>
+
+<p>Does a method include an entity to be sent from the client to the
+server?</p>
+
+<p>If not using WebDAV functions, neither extension methods, the
+HTMethod_hasEntity is not changed, because a macro is much more performant
+than a function. The function is interesting only when using WebDAV (many
+methods) or extension methods (in this case, a dynamic structure is
+needed).</p>
+<pre>
+#if !defined(HT_DAV) &amp;&amp; !defined(HT_EXT)
 #define HTMethod_hasEntity(me)	((me) &amp; (METHOD_PUT | METHOD_POST))
-</PRE>
-<PRE>
-#endif /* HTMETHOD_H */
-</PRE>
-<P>
-  <HR>
-<ADDRESS>
+#else
+extern BOOL HTMethod_hasEntity(HTMethod me);
+#endif</pre>
+
+<h3>Extension Methods</h3>
+
+<p>These methods have been introduced in Libwww for extension purposes.
+Through these methods, application may register new methods, even libwww
+unknown methods, and use them. It's recomended for applications that need
+only a few new methods, that aren't yet in the libwww. The application should
+register the desired methos, an before finish, it must unregister these
+methods.</p>
+<pre>#ifdef HT_EXT
+extern BOOL HTMethod_setExtensionMethod (HTMethod method, const char * name, BOOL hasEntity);
+extern BOOL HTMethod_deleteExtensionMethod (HTMethod method);
+#endif</pre>
+
+<p></p>
+<pre>#endif /* HTMETHOD_H */</pre>
+
+<p></p>
+<hr>
+<address>
   @(#) $Id$
-</ADDRESS>
-</BODY></HTML>
+</address>
+</body>
+</html>

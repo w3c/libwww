@@ -1,33 +1,30 @@
-<HTML>
-<HEAD>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html">
   <!-- Changed by: Henrik Frystyk Nielsen,  4-Jul-1996 -->
-  <TITLE>W3C Sample Code Library libwww Error Class</TITLE>
-</HEAD>
-<BODY>
-<H1>
-  The Error Class
-</H1>
-<PRE>
-/*
+  <title>W3C Sample Code Library libwww Error Class</title>
+</head>
+
+<body>
+<h1>The Error Class</h1>
+<pre>/*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
-*/
-</PRE>
-<P>
-The Error class provides an easy API for registering errors ocurring while
-libwww serves a request. All errors are registered in an "error stack"&nbsp;in
-the <A HREF="HTReq.html">Request object</A> which allows for nested errors.
-The Error class is both natural language independent and application independent
-in that it uses enumerations in order to refer to specific errors. It is
-for the application to provide an error presentation module which interprets
-the errors associated with a request. An eample of such an implementation
-can be found in the <A HREF="HTDialog.html">HTDialog module</A>.
-<P>
-This module is implemented by <A HREF="HTError.c">HTError.c</A>, and it is
-a part of the <A HREF="http://www.w3.org/Library/"> W3C Sample Code
-Library</A>.
-<PRE>
-#ifndef HTERROR_H
+*/</pre>
+
+<p>The Error class provides an easy API for registering errors ocurring while
+libwww serves a request. All errors are registered in an "error stack" in the
+<a href="HTReq.html">Request object</a> which allows for nested errors. The
+Error class is both natural language independent and application independent
+in that it uses enumerations in order to refer to specific errors. It is for
+the application to provide an error presentation module which interprets the
+errors associated with a request. An eample of such an implementation can be
+found in the <a href="HTDialog.html">HTDialog module</a>.</p>
+
+<p>This module is implemented by <a href="HTError.c">HTError.c</a>, and it is
+a part of the <a href="http://www.w3.org/Library/"> W3C Sample Code
+Library</a>.</p>
+<pre>#ifndef HTERROR_H
 #define HTERROR_H
 
 typedef struct _HTError HTError;
@@ -40,39 +37,33 @@ typedef enum _HTSeverity {
     ERR_INFO	 	  = 0x8
 } HTSeverity;
 
-#include "HTReq.h"
-</PRE>
-<H2>
-  <A NAME="errorinfo">The Error Message Object</A>
-</H2>
-<P>
-An error consists of a messsage code, a short, natural language specific
+#include "HTReq.h"</pre>
+
+<h2><a name="errorinfo">The Error Message Object</a></h2>
+
+<p>An error consists of a messsage code, a short, natural language specific
 message, and a URI which can point to more information. This module also
-provides a <A HREF="#Lang">default set of error objects with English text</A>.
-Errors are registered together with a severity and you can also set the mode
-for <A HREF="#What">what class of error severities should be shown and which
-should be ignored</A>.
-<PRE>
-typedef struct _HTErrorMessage {
+provides a <a href="#Lang">default set of error objects with English
+text</a>. Errors are registered together with a severity and you can also set
+the mode for <a href="#What">what class of error severities should be shown
+and which should be ignored</a>.</p>
+<pre>typedef struct _HTErrorMessage {
     int  	code;           	/* Error number */
     char *	msg;          		/* Short explanation */
     char *	url;			/* Explaning URL */
-} HTErrorMessage;
-</PRE>
-<H3>
-  <A NAME="Codes">Error Message Index</A>
-</H3>
-<P>
-<B>Note:</B> All non-HTTP error codes have (<CODE>index number &gt;
-HTERR_HTTP_CODES</CODE>), and they will not be shown in the error-message
-generated.
-<P>
-Error codes are registered in an array where the following enumerations serve
-as an index. They must <STRONG>not</STRONG> be replaced! See the
-<A HREF="HTDialog.html#Messsages">HTDialog module</A> for default initialization
-of these messages.
-<PRE>
-typedef enum _HTErrorElement {
+} HTErrorMessage;</pre>
+
+<h3><a name="Codes">Error Message Index</a></h3>
+
+<p><b>Note:</b> All non-HTTP error codes have (<code>index number &gt;
+HTERR_HTTP_CODES</code>), and they will not be shown in the error-message
+generated.</p>
+
+<p>Error codes are registered in an array where the following enumerations
+serve as an index. They must <strong>not</strong> be replaced! See the <a
+href="HTDialog.html#Messsages">HTDialog module</a> for default initialization
+of these messages.</p>
+<pre>typedef enum _HTErrorElement {
 	HTERR_CONTINUE = 0,					/* 100 */
 	HTERR_SWITCHING,					/* 101 */
 	HTERR_OK,						/* 200 */
@@ -119,6 +110,13 @@ typedef enum _HTErrorElement {
 	HTERR_BAD_VERSION,					/* 505 */
 	HTERR_NO_PARTIAL_UPDATE,				/* 506 */
 
+#ifdef HT_DAV                                   /* WebDAV error codes */
+        HTERR_UNPROCESSABLE,                                   /* 422 */
+        HTERR_LOCKED,                                          /* 423 */
+        HTERR_FAILED_DEPENDENCY,                               /* 424 */
+        HTERR_INSUFFICIENT_STORAGE,                            /* 507 */
+#endif
+
 	/* Cache warnings */
 	HTERR_STALE,						/* 10 */
 	HTERR_REVALIDATION_FAILED,				/* 11 */
@@ -158,32 +156,28 @@ typedef enum _HTErrorElement {
         HTERR_NO_AUTO_RULES,
         HTERR_NO_AUTO_PROXY,
 	HTERR_ELEMENTS		            /* This MUST be the last element */
-} HTErrorElement;
-</PRE>
-<H3>
-  <A NAME="Lang">Default English Language Messages</A>
-</H3>
-<P>
-Default set of error messages arranged in an array into which the
-<A HREF="#Codes">index codes</A> serve as index. See the
-<A HREF="HTDialog.html#Messsages">HTDialog module</A> for default initialization
-of these strings.
-<H2>
-  <A NAME="What">What Errors should be Ignored or Passed Through?</A>
-</H2>
-<P>
-This variable dictates which errors should be put out when generating the
+} HTErrorElement;</pre>
+
+<h3><a name="Lang">Default English Language Messages</a></h3>
+
+<p>Default set of error messages arranged in an array into which the <a
+href="#Codes">index codes</a> serve as index. See the <a
+href="HTDialog.html#Messsages">HTDialog module</a> for default initialization
+of these strings.</p>
+
+<h2><a name="What">What Errors should be Ignored or Passed Through?</a></h2>
+
+<p>This variable dictates which errors should be put out when generating the
 message to the user. The first four enumerations make it possible to see
-`everything as bad or worse than' this level, e.g. <CODE>HT_ERR_SHOW_NON_FATAL
-</CODE>shows messages of type <CODE>HT_ERR_SHOW_NON_FATAL </CODE>and
-<CODE>HT_ERR_SHOW_FATAL</CODE>.
-<P>
-<B>Note:</B> The default value is made so that it only puts a message to
-<EM>stderr</EM> if a `real' error has occurred. If a separate widget is available
-for information and error messages then probably
-<CODE>HT_ERR_SHOW_DETAILED</CODE> would be more appropriate.
-<PRE>
-typedef enum _HTErrorShow {
+`everything as bad or worse than' this level, e.g.
+<code>HT_ERR_SHOW_NON_FATAL </code>shows messages of type
+<code>HT_ERR_SHOW_NON_FATAL </code>and <code>HT_ERR_SHOW_FATAL</code>.</p>
+
+<p><b>Note:</b> The default value is made so that it only puts a message to
+<em>stderr</em> if a `real' error has occurred. If a separate widget is
+available for information and error messages then probably
+<code>HT_ERR_SHOW_DETAILED</code> would be more appropriate.</p>
+<pre>typedef enum _HTErrorShow {
     HT_ERR_SHOW_FATAL     = 0x1,
     HT_ERR_SHOW_NON_FATAL = 0x3,
     HT_ERR_SHOW_WARNING   = 0x7,
@@ -199,124 +193,91 @@ typedef enum _HTErrorShow {
 } HTErrorShow;
 
 extern HTErrorShow HTError_show (void);
-extern BOOL HTError_setShow (HTErrorShow mask);
-</PRE>
-<H2>
-  Creation and Deletion Methods
-</H2>
-<H3>
-  Add an Error
-</H3>
-<P>
-Add an error message to the error list. `par' and `where' might be set to
+extern BOOL HTError_setShow (HTErrorShow mask);</pre>
+
+<h2>Creation and Deletion Methods</h2>
+
+<h3>Add an Error</h3>
+
+<p>Add an error message to the error list. `par' and `where' might be set to
 NULL. If par is a string, it is sufficient to let length be unspecified,
-i.e., 0. If only a part of the string is wanted then specify a length inferior
-to strlen((char *) par). The string is '\0' terminated automaticly. See also
-HTError_addSystem for system errors. Returns YES if OK, else NO.
-<PRE>
-extern BOOL HTError_add (HTList * 	list,
+i.e., 0. If only a part of the string is wanted then specify a length
+inferior to strlen((char *) par). The string is '\0' terminated automaticly.
+See also HTError_addSystem for system errors. Returns YES if OK, else NO.</p>
+<pre>extern BOOL HTError_add (HTList *         list,
 			 HTSeverity	severity,
 			 BOOL		ignore,
 			 int		element,
 			 void *		par,
 			 unsigned int	length,
-			 char *		where);
+                         char *                where);</pre>
 
-</PRE>
-<H3>
-  Add a System Error
-</H3>
-<P>
-Add a system error message to the error list. syscall is the name of the
-system call, e.g. "close". The message put to the list is that corresponds
-to the error number passed. See also HTError_add. Returns YES if OK, else
-NO.
-<PRE>
-extern BOOL HTError_addSystem (HTList *		list,
+<h3>Add a System Error</h3>
+
+<p>Add a system error message to the error list. syscall is the name of the
+system call, e.g. "close". The message put to the list is that corresponds to
+the error number passed. See also HTError_add. Returns YES if OK, else NO.</p>
+<pre>extern BOOL HTError_addSystem (HTList *                list,
 			       HTSeverity 	severity,
 			       int		errornumber,
 			       BOOL		ignore,
-			       char *		syscall);
-</PRE>
-<H3>
-  Delete an Entire Error Stack
-</H3>
-<P>
-Deletes all errors in a list.
-<PRE>
-extern BOOL HTError_deleteAll (HTList * list);
-</PRE>
-<H3>
-  Deletes the Last Edded Entry
-</H3>
-<P>
-Deletes the last error entry added to the list. Return YES if OK, else NO
-<PRE>
-extern BOOL HTError_deleteLast (HTList * list);
-</PRE>
-<H2>
-  Object Methods
-</H2>
-<H3>
-  Show the Error Entry?
-</H3>
-<P>
-Should we show this entry in the list or just continue to the next one?
-<PRE>
-extern BOOL HTError_doShow (HTError * info);
-</PRE>
-<H3>
-  Ignore last Added Error
-</H3>
-<P>
-Turns on the `ignore' flag for the most recent error entered the error list.
-Returns YES if OK else NO
-<PRE>
-extern BOOL HTError_ignoreLast	(HTList * list);
-extern BOOL HTError_setIgnore	(HTError * info);
-</PRE>
-<H3>
-  Error Index Number
-</H3>
-<P>
-Each error object is assigned an index number as defined by the
-<CODE>HTErrorElement</CODE> above. The mapping from this index to an error
-code and a message must be done by the application. The Library provides
-a default implementation in the <A HREF="HTDialog.html"> HTDialog module</A>,
-but that can of course be changed depending on the application.
-<PRE>
-extern int HTError_index		(HTError * info);
-</PRE>
-<H3>
-  Error Severity
-</H3>
-<P>
-This function returns the severity of the error object passed by the caller
-<PRE>extern HTSeverity HTError_severity	(HTError * info);
-</PRE>
-<P>
-You can ask whether a list of errors contains any error object with a severity
-level which is higher than the one specifed.
-<PRE>extern BOOL HTError_hasSeverity 	(HTList * list, HTSeverity severity);
-</PRE>
-<H3>
-  Parameters Asscotiated with Error
-</H3>
-<PRE>
-extern void * HTError_parameter		(HTError * info, int * length);
-</PRE>
-<H3>
-  Where did it happen?
-</H3>
-<PRE>
-extern const char * HTError_location	(HTError * info);
-</PRE>
-<PRE>
-#endif /* HTERROR_H */
-</PRE>
-<P>
-  <HR>
-<ADDRESS>
+                               char *                syscall);</pre>
+
+<h3>Delete an Entire Error Stack</h3>
+
+<p>Deletes all errors in a list.</p>
+<pre>extern BOOL HTError_deleteAll (HTList * list);</pre>
+
+<h3>Deletes the Last Edded Entry</h3>
+
+<p>Deletes the last error entry added to the list. Return YES if OK, else
+NO</p>
+<pre>extern BOOL HTError_deleteLast (HTList * list);</pre>
+
+<h2>Object Methods</h2>
+
+<h3>Show the Error Entry?</h3>
+
+<p>Should we show this entry in the list or just continue to the next one?</p>
+<pre>extern BOOL HTError_doShow (HTError * info);</pre>
+
+<h3>Ignore last Added Error</h3>
+
+<p>Turns on the `ignore' flag for the most recent error entered the error
+list. Returns YES if OK else NO</p>
+<pre>extern BOOL HTError_ignoreLast        (HTList * list);
+extern BOOL HTError_setIgnore        (HTError * info);</pre>
+
+<h3>Error Index Number</h3>
+
+<p>Each error object is assigned an index number as defined by the
+<code>HTErrorElement</code> above. The mapping from this index to an error
+code and a message must be done by the application. The Library provides a
+default implementation in the <a href="HTDialog.html"> HTDialog module</a>,
+but that can of course be changed depending on the application.</p>
+<pre>extern int HTError_index                (HTError * info);</pre>
+
+<h3>Error Severity</h3>
+
+<p>This function returns the severity of the error object passed by the
+caller</p>
+<pre>extern HTSeverity HTError_severity        (HTError * info);</pre>
+
+<p>You can ask whether a list of errors contains any error object with a
+severity level which is higher than the one specifed.</p>
+<pre>extern BOOL HTError_hasSeverity         (HTList * list, HTSeverity severity);</pre>
+
+<h3>Parameters Asscotiated with Error</h3>
+<pre>extern void * HTError_parameter                (HTError * info, int * length);</pre>
+
+<h3>Where did it happen?</h3>
+<pre>extern const char * HTError_location        (HTError * info);</pre>
+<pre>#endif /* HTERROR_H */</pre>
+
+<p></p>
+<hr>
+<address>
   @(#) $Id$
-</ADDRESS>
-</BODY></HTML>
+</address>
+</body>
+</html>

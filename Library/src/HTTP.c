@@ -13,6 +13,8 @@
 **			Forward, redirection, error handling and referer field
 **	 8 Jul 94  FM	Insulate free() from _free structure element.
 **	Jul 94 HFN	Written on top of HTTP.c, Henrik Frystyk
+**      Fev 02 MKP      WebDAV status codes, Manuele Kirsch Pinheiro
+**                      (Manuele.Kirsch_Pinheiro@inrialpes.fr)
 **
 */
 
@@ -205,6 +207,21 @@ PRIVATE BOOL HTTPInformation (HTStream * me)
 	return YES;
 	break;
 
+#ifdef HT_DAV
+   case 102:            /* 102 Processing */
+        /*
+        ** MKP: 102 Processing indicates that the server is processing the
+        **      request, and a final response will be sent later. So the client
+        **      should wait for this final response.
+        ** MKP: I'm not sure that it will work. Any suggestion??
+        */      
+        http->result = HT_CONTINUE;
+        http->next = HTTP_CONNECTED;
+        return YES;
+        break;
+#endif
+
+        
     default:
 	HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_BAD_REPLY,
 		   (void *) me->buffer, me->buflen, "HTTPNextState");
@@ -286,7 +303,11 @@ PRIVATE void HTTPNextState (HTStream * me)
 			       me->reason, (int) strlen(me->reason),
 			       "HTTPNextState");
 	    http->next = HTTP_OK;
+#ifdef HT_DAV                                   /* WebDAV : Multistatus status code */
+            http->result = HT_LOADED;
+#else 
 	    http->result = HT_PARTIAL_CONTENT;
+#endif
 	    break;
 
 	default:
@@ -507,6 +528,29 @@ PRIVATE void HTTPNextState (HTStream * me)
 	    http->result = -419;
 	    break;
 
+#ifdef HT_DAV
+        case 422:                       /* WebDAV Unprocessable Entity */
+            HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_UNPROCESSABLE,
+                               me->reason, (int) strlen(me->reason), "HTTPNextState");
+            http->next = HTTP_ERROR;
+            http->result = HT_UNPROCESSABLE;
+            break;
+
+        case 423:                       /* WebDAV Locked */
+            HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_LOCKED,
+                               me->reason, (int) strlen(me->reason), "HTTPNextState");
+            http->next = HTTP_ERROR;
+            http->result = HT_LOCKED;
+            break;
+
+        case 424:                       /* WebDAV Failed Dependency */
+            HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_FAILED_DEPENDENCY,
+                               me->reason, (int) strlen(me->reason), "HTTPNextState");
+            http->next = HTTP_ERROR;
+            http->result = HT_FAILED_DEPENDENCY;
+            break;
+#endif
+            
 	default:
 	    HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_BAD_REQUEST,
 			       me->reason, (int) strlen(me->reason), "HTTPNextState");
@@ -571,6 +615,15 @@ PRIVATE void HTTPNextState (HTStream * me)
 	    http->next = HTTP_ERROR;
 	    http->result = HT_BAD_VERSION;
 	    break;
+
+#ifdef HT_DAV
+        case 507:                       /* WebDAV Insufficient Storage */
+            HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_INSUFFICIENT_STORAGE,
+                               me->reason, (int) strlen(me->reason), "HTTPNextState");
+            http->next = HTTP_ERROR;
+            http->result = HT_INSUFFICIENT_STORAGE;
+            break;
+#endif
 
 	default:						       /* bad number */
 	    HTRequest_addError(me->request, ERR_FATAL, NO, HTERR_INTERNAL,
@@ -738,7 +791,12 @@ PRIVATE int stream_pipe (HTStream * me, int length)
 	**  like. The TRACE and OPTIONS method just adds to the current 
 	**  metainformation so in that case we don't clear the anchor.
 	*/
+#ifdef HT_DAV
+        if (me->status==200 || me->status==203 ||
+            me->status==207 ||  me->status==300) {
+#else
 	if (me->status==200 || me->status==203 || me->status==300) {
+#endif
 	    /*
 	    **  200, 203 and 300 are all fully cacheable responses. No byte 
 	    **  ranges or anything else make life hard in this case.

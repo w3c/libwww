@@ -1,4 +1,53 @@
 Changes with libwww 5.3.3
+ 
+2002-03-19      Manuele Kirsch <Manuele.Kirsch_Pinheiro@inrialpes.fr>
+
+	* The WebDAV module has been changed to use HTRequest entity 
+	  and PostCallback to send all message bodies in its requests.
+
+	* Extension methods have been changed - now the application
+	  may chose, when register an extension method, between use
+	  "Expect: 100-continue" heander and HTRequest Entity, or the
+	  new message body present in HTRequest. When using the first
+	  one, the application must set a PostCallback, and when using
+	  the second, it may set a small message body to be sent with
+	  the request. This last may be used to other protocols, other
+	  than HTTP. 
+
+	* Added a new example (myext2.c) that shows how to set the
+	  extension methods and how to use it with "Expect: 100-contine"
+	  and with message body. 
+
+2002-03-08      Manuele Kirsch <Manuele.Kirsch_Pinheiro@inrialpes.fr>
+
+	* Added new methods in HTMethod enumeration. There are the 7
+	  methods defined in WebDAV protocol (LOCK,UNLOCK,PROPFIND,
+	  PROPPATCH,MKCOL,COPY and MOVE), and also 7 extension methods 
+	  (METHOD_EXT_0 to METHOD_EXT_6). These methods are undefined 
+	  methods that can be set/unset for the applications using two 
+	  new functions introduced to HTMethod module 
+	  ("HTMethod_setExtensionMethod" and "HTMethod_deleteExtensionMethod").
+	  Those extension methods are available only if configure used
+	  --with-extension option (which define HT_EXT).
+
+	* Added new fields to HTRequest structure: a message body array,
+	  its length and format. HTTPGenMake functions in HTTPGen.c has
+	  been changed to include Content-Type and Content-Lenght headers
+	  if messageBody field and messageBodyType/messageBodyFormat are
+	  set. It also send this message body only if it is set. This 
+	  message body may be use for XML message bodies (indeed, it is
+	  used by some DAV methods in HTDAV module). These modifications
+	  are activated only if HT_DAV or HT_EXT are defined.
+	  
+	* Added a new module HTDAV with high level functions for WebDAV 
+	  protocol. It is defined in HTDAV.h/html and implemented in 
+	  HTDAV.c. This is only enabled with "--with-dav" option in 
+	  configure procedure (this option will define HT_DAV). An example 
+	  of use (davsample.c) have been included in Library/Examples.  
+
+	* Added new status codes (in HTUtils.h/html) and error codes (in
+	  HTError.h/html) defined by WebDAV protocol (102,207,422,423,424
+	  and 507). This codes are activated only if HT_DAV is defined.
 
 2002-03-21      Jose Kahan <jose@w3.org>
 
@@ -19,7 +68,7 @@ Changes with libwww 5.3.3
 	  default_put_name. See HTReqMan.h for the name of the functions
 	  that handle this field.
 
-        * New public function in HTCache.c to reset the value of a cache
+	* New public function in HTCache.c to reset the value of a cache
 	  entry and delete the cached file. This is interesting when 
 	  we want to keep a cache entry, but force the cache entry to be
 	  refreshed.  HTCache_resetMeta ().
@@ -104,8 +153,8 @@ Changes with libwww 5.3.2
 	  the headers from one object to the other. Well, more than a 
 	  copy, it adds a link to the headers. I call this function in
 	  HTCache:CacheCleanup when it succesfully retrieved an object
-          from the cache. Result, you can now use the response object 
-          in both cases.
+	  from the cache. Result, you can now use the response object 
+	  in both cases.
 
 2000-10-30	Jose Kahan <jose@w3.org>
 	
@@ -142,7 +191,7 @@ Changes with libwww 5.3.2
 	  The application-specific context will be available in the 
 	  triple callback handler.
 	
-        * HTRDF.html - updated to API changes mentioned above
+	* HTRDF.html - updated to API changes mentioned above
 
 	* Library/Examples/ updated rdf_parse_{file,buffer} programs
 	  to reflect the above API changes.
@@ -165,22 +214,22 @@ Changes with libwww 5.3.2
 2000-08-18 	Arthur Barstow <barstow@w3.org>
 
 	* HTRDF.c: Added a new public API HTRDF_parseBuffer.  It
-          parses an arbitrary buffer (char *) of RDF.
+	  parses an arbitrary buffer (char *) of RDF.
 
 	* HTRDF.c: Changed the name of HTRDFParseFile to HTRDF_parseFile.
-          it now returns BOOL instead of char * to be consistent with
-          other RDF parser APIs.
+	  it now returns BOOL instead of char * to be consistent with
+	  other RDF parser APIs.
 
-        * HTRDF.html - updated to HTRDF.c changes mentioned above
+	* HTRDF.html - updated to HTRDF.c changes mentioned above
 
-        * Library/Examples/: added two new example programs:
+	* Library/Examples/: added two new example programs:
 
-          1. rdf_parse_file - demos/tests HTRDF_parseFile()
-          2. rdf_parse_buffer - demos/tests HTRDF_parseBuffer()
+	  1. rdf_parse_file - demos/tests HTRDF_parseFile()
+	  2. rdf_parse_buffer - demos/tests HTRDF_parseBuffer()
 
-        * configure.in - added the two new programs above
+	* configure.in - added the two new programs above
 
-        * Library/Examples/Makefile.am - added the two new programs
+	* Library/Examples/Makefile.am - added the two new programs
 
 2000-08-17 	Arthur Barstow <barstow@w3.org>
 
@@ -246,21 +295,21 @@ Changes with libwww 5.3.2
 	
 	* New HTChunk_setSize function to allow to set the size of a
 	  chunk object upwards or downwards. (HTChunk_truncate() still
-          exists and still enforces the sizing of the string downwards.)
-          Both these string-sizing functions only zero the relevant bytes
-          in the "size" region (if the string is being shortened).  Note
-          that HTChunk_clear() was left unchanged -- it still clears all of
-          the Chunk's allocated memory.
+	  exists and still enforces the sizing of the string downwards.)
+	  Both these string-sizing functions only zero the relevant bytes
+	  in the "size" region (if the string is being shortened).  Note
+	  that HTChunk_clear() was left unchanged -- it still clears all of
+	  the Chunk's allocated memory.
 	
-        * Fixed the HT_OUTOFMEM() calls in HTChunk_ensure() to have the
-          proper location string.
+	* Fixed the HT_OUTOFMEM() calls in HTChunk_ensure() to have the
+	  proper location string.
 	
-        * Some code in HTBind.c was optimized to use HTChunk_truncate().
+	* Some code in HTBind.c was optimized to use HTChunk_truncate().
 	
-        * HTFTP.c and HTNews.c was optimized to use HTChunk_setSize()
+	* HTFTP.c and HTNews.c was optimized to use HTChunk_setSize()
 	  rather than using HTChunk_ensure() and writing data past the "size".
 
-        * Optimized the code in HTMIME.c and HTML.c to use
+	* Optimized the code in HTMIME.c and HTML.c to use
 	  HTChunk_truncate(chunk,0) rather than HTChunk_clear(chunk).
 
 	* Documented the new HTChunk_setSize() function.

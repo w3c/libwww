@@ -20,6 +20,7 @@ lib_LTLIBRARIES = \
 	libwwwapp.la \
 	libwwwinit.la \
 	libwwwmux.la \
+        @WWWDAV@ \
 	@WWWXML@ \
 	@WWWZIP@ \
 	@WWWWAIS@ \
@@ -29,6 +30,7 @@ EXTRA_LTLIBRARIES = \
 	libwwwxml.la \
 	libwwwzip.la \
 	libwwwwais.la \
+        libwwwdav.la \
 	libwwwsql.la
 
 SUBDIRS = SSL windows vms
@@ -347,6 +349,12 @@ libwwwmux_la_SOURCES = \
 	HTMuxTx.h \
 	HTMuxTx.c
 
+libwwwdav_la_SOURCES = \
+        HTDAV.h \
+        HTDAV.c
+
+libwwwdav_la_LDFLAGS = -rpath $(libdir)
+
 libwwwxml_la_SOURCES = \
 	WWWXML.h \
 	HTRDF.h \
@@ -513,6 +521,7 @@ BUILT_SOURCES = \
 	HTZip.h \
 	HText.h \
 	HTextImp.h \
+        HTDAV.h \
 	SGML.h \
 	WWWApp.h \
 	WWWCache.h \

@@ -493,3 +493,8 @@
 /* Define this if sys_nerr must be declared (if it exists). */
 /* #undef NEED_SYS_NERR_DECLARED */
 
+/* Define this if you want WebDAV methods from HTDAV module */
+/* #undef HT_DAV */
+
+/* Define this if you want enable the "extension methods" */
+/* #undef HT_EXT */

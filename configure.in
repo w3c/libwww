@@ -532,6 +532,61 @@ AC_SUBST(WWWMD5)
 AC_SUBST(LWWWMD5)
 AC_SUBST(LIBWWWMD5)
 
+AC_MSG_CHECKING(whether we include WebDAV support.)
+AC_ARG_WITH(dav,
+[  --with-dav      Compile with support for WebDAV.],
+[ case "$withval" in
+  no)
+    AC_MSG_RESULT(no)
+    HTDAV=""
+    WWWDAV=""
+    LWWWDAV=""
+    LIBWWWDAV=""
+    DAVSAMPLE=""
+    ;;
+  *)
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(HT_DAV)
+    HTDAV="HTDAV.lo"
+    WWWDAV="libwwwdav.la"
+    LWWWDAV="-lwwwdav"
+    LIBWWWDAV='${top_builddir}/Library/src/libwwwdav.la'
+    DAVSAMPLE="davsample"
+    ;;
+  esac ],
+  AC_MSG_RESULT(no)
+  HTDAV=""
+  WWWDAV=""
+  LWWWDAV=""
+  LIBWWWDAV=""
+  DAVSAMPLE=""
+)
+AC_SUBST(WWWDAV)
+AC_SUBST(LWWWDAV)
+AC_SUBST(LIBWWWDAV)
+AC_SUBST(DAVSAMPLE)
+
+AC_MSG_CHECKING(whether we include extension methods.)
+AC_ARG_WITH(extension,
+[  --with-extension      Compile with support for extension methods.],
+[ case "$withval" in
+  no)
+    AC_MSG_RESULT(no)
+    MYEXT=""
+    ;;
+  *)
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(HT_EXT)
+    MYEXT="myext myext2"
+    ;;
+  esac ],
+  AC_MSG_RESULT(no)
+  MYEXT=""
+)
+AC_SUBST(MYEXT)
+
+
+
 dnl Checks for libwww and OpenSSL:
 AC_MSG_CHECKING(whether we can find OpenSSL)
 dnl find the ssl library dir (empirical)

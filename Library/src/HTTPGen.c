@@ -9,6 +9,10 @@
 **
 ** History:
 **	Jan 96 HFN	Written
+**      Fev 02 MKP      Added message body and Content-Type/Content-Length
+**                      headers only if this message body is set.
+**      Mar 08 MKP      Bug fix: avoid overflow in linebuf array (at method
+**                      HTTPGenMake, line 218.
 */
 
 /* Library Includes */
@@ -17,6 +21,7 @@
 #include "WWWCore.h"
 #include "HTHeader.h"
 #include "HTTPUtil.h"
+#include "HTFormat.h"
 #include "HTTPReq.h"					       /* Implements */
 
 #define MIME_VERSION	"MIME/1.0"
@@ -24,6 +29,8 @@
 #define PUTC(c)		(*me->target->isa->put_character)(me->target, c)
 #define PUTS(s)		(*me->target->isa->put_string)(me->target, s)
 #define PUTBLOCK(b, l)	(*me->target->isa->put_block)(me->target, b, l)
+
+#define LINEBUF_LENGTH 256
 
 struct _HTStream {
     const HTStreamClass *	isa;
@@ -44,7 +51,7 @@ struct _HTStream {
 */
 PRIVATE int HTTPGenMake (HTStream * me, HTRequest * request)
 {
-    char linebuf[256];				/* @@@ */
+    char linebuf[LINEBUF_LENGTH];                               /* @@@ */
     char crlf[3];
     HTGnHd gen_mask = HTRequest_gnHd(request);
     *crlf = CR; *(crlf+1) = LF; *(crlf+2) = '\0';
@@ -171,11 +178,59 @@ PRIVATE int HTTPGenMake (HTStream * me, HTRequest * request)
 	}
     }
 
+/* @@@ MKP: set here Content-Type and Content-Length only if : 
+** @@@      - the method has not an entity 
+** @@@      - the message body is set 
+*/
+#ifdef HT_EXT
+    if (!HTMethod_hasEntity(HTRequest_method(request)))
+    {
+        char * body = HTRequest_messageBody (request);
+        HTFormat bodyFormat = HTRequest_messageBodyFormat(request);
+        long int bodyLength = HTRequest_messageBodyLength(request);
+
+
+        if (body && *body) {
+            if ( bodyLength>0 ) {
+                HTTRACE(STREAM_TRACE, "HTTPGen..... Adding Content-Length  \n");
+                sprintf (linebuf,"Content-Length: %ld%c%c", bodyLength, CR,LF);
+                PUTBLOCK(linebuf, (int) strlen(linebuf));
+            }
+            if ( bodyFormat != NULL ) {
+                HTTRACE(STREAM_TRACE, "HTTPGen..... Adding Content-Type  \n");
+                PUTS ("Content-Type: ");
+                PUTS (HTAtom_name(bodyFormat));
+                PUTBLOCK(crlf,2);
+            }
+            HT_FREE (body);
+        }
+    }
+#endif
+   
+    
     /* Check to see if we are done */
     if (me->endHeader) {
 	sprintf(linebuf, "%c%c", CR, LF);	   /* Blank line means "end" */
 	PUTBLOCK(linebuf, (int) strlen(linebuf));
     }
+
+    
+/* @@@ MKP: copy message body to the stream only if :
+** @@@      - the method has not an entity 
+** @@@      - the message body is set 
+*/
+#ifdef HT_EXT
+    if (!HTMethod_hasEntity(HTRequest_method(request)))
+    {
+       char * body = HTRequest_messageBody (request);
+       if (body && *body) {
+           HTTRACE(STREAM_TRACE, "HTTPGen..... Adding message body  \n");
+           PUTBLOCK (body, (int) strlen (body));
+           HT_FREE (body);         
+       }
+    }
+#endif
+    
     HTTRACE(PROT_TRACE, "HTTP........ Generating General Headers\n");
     return HT_OK;
 }
