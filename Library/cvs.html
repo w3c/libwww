@@ -79,18 +79,28 @@ by running the following command:
 </PRE>
 <P>
 after which you type "<STRONG>anonymous</STRONG>" as password. To get the
-latest version from the CVS repository, run this command:
+<STRONG>latest</STRONG> version from the CVS repository, run this command:
 <PRE>% <B>cvs -d :pserver:anonymous@dev.w3.org:/sources/public -z3 checkout libwww</B>
 </PRE>
 <P>
 After which you will get all the code coming at you, you'd better have at
-least 10MBytes available on your machine. If you want to get a specific release
-using CVS tags then you need to add a <CODE>-r</CODE> option, for example
+least 10MBytes available on your machine. Now you are ready to
+<A HREF="#Boot">getting boot strapped</A>.
+<H3>
+  <A NAME="revision">Checkout of Specific Revision</A>
+</H3>
+<P>
+If you want to get a <A HREF="#Releases">specific release</A> using CVS tags
+then you can do this by uisng the the CVS "<TT>-r</TT>" option, for example
 <PRE>% <B>cvs -d :pserver:anonymous@dev.w3.org:/sources/public -z3 -r Release-5-1m checkout libwww</B>
 </PRE>
 <P>
 Check the <A HREF="http://dev.w3.org/cgi-bin/cvsweb/">CVS log walker</A>
-for the current set of release tags.
+for the current set of release tags. If you at some point want to revert
+to the latest untagged version then you should use the following command:
+<PRE>% <B>cd libwww</B>
+% <B>cvs -z3 update -A</B>
+</PRE>
 <H2>
   <A NAME="SSH">SSH Based CVS Checkout</A>
 </H2>
@@ -129,10 +139,10 @@ mailing list (<A HREF="http://www.w3.org/Mail/Request">see here how to
 subscribe</A>) and also described in the <A HREF="User/ReleaseNotes.html">list
 of new features</A>.
 <P>
-Once you have checked out the libwww CVS tree, you can get any updates committed
-to the tree by using the
-<A HREF="http://www.loria.fr/~molli/cvs/doc/cvs_16.html#SEC148">cvs update
-command</A> like this
+Once you have checked out the libwww CVS tree (<A HREF="#revision">not a
+specific revision</A>), you can get any updates committed to the tree by
+using the <A HREF="http://www.loria.fr/~molli/cvs/doc/cvs_16.html#SEC148">cvs
+update command</A> like this
 <PRE>% <B>cd libwww</B>
 % <B>cvs -z3 update -d</B>
 % <B>cd ..</B>
@@ -157,15 +167,15 @@ things to do</B></A> before doing a CVS commit.
   <A NAME="Boot">Getting Bootstrapped</A>
 </H2>
 <P>
-When you get libwww from CVS there are some files (header files, make files,
-and Windows def files) that have to be generated before you can compile it.
-Start <A HREF="#Easy">here</A> and work your way down...
+When you get libwww from CVS there are some files (<TT>.h</TT>,
+<TT>Makefile</TT>, and Windows <TT>.def</TT> files) that must be generated
+before you can compile. Generate the files by following these steps:
 <H3>
   <A NAME="Easy">The Easy Start</A>
 </H3>
 <P>
 If you really only want to generate the header files (<B>for both Unix and
-Windows</B>) and the DLL def files for Windows then you can run
+Windows</B>) and the DLL <TT>.def</TT> files for Windows, then you can run
 <A HREF="../config/winConfigure.pl">this Perl script</A> provided by
 <A HREF="/People/Eric/">Eric Prud'hommeaux</A>, which you can find in the
 <CODE>config</CODE> directory after you have checked out the source from
@@ -189,8 +199,11 @@ should be enough if you are using the
   <A NAME="More">Adding a bit of Complexity</A>
 </H3>
 <P>
-This is mostly for Unix people. First, check that you have the following
-programs with the correct version number:
+On Unix you need some GNU tools in order to continue. I <B>strongly</B> recommend
+that you are using <A HREF="http://www.gnu.org/software/make/make.html">GNU
+make</A> and <A HREF="http://www.gnu.org/software/gcc/gcc.html">gcc</A>.
+Many OS specific make's don't have the libwww make files. Check that you
+have the following programs with the correct version number:
 <P>
 <DL>
   <DT>
@@ -210,27 +223,14 @@ programs with the correct version number:
   <DD>
     A tool for automatically handling generation of shared libraries
   <DT>
-    <B><A HREF="../LineMode/">W3C www</A></B>
+    <B><A HREF="../LineMode/">W3C www</A></B> (<EM>optional</EM>)
   <DD>
-    The Line Mode Browser is used to generate the header files (from
-    <CODE>.html</CODE> to <CODE>.h</CODE>). If you have already done this
-    <A HREF="#Easy">the easy way</A> then you don't need it in order to get
-    bootstrapped and can just install the version that you compile here.
+    The libwww Line Mode Browser is used to generate the header files (from
+    <CODE>.html</CODE> to <CODE>.h</CODE>)
 </DL>
 <P>
-I also <B>strongly</B> recommend that you are using
-<A HREF="http://www.gnu.org/software/make/make.html">GNU make</A> and
-<A HREF="http://www.gnu.org/software/gcc/gcc.html">GCC</A>. Many OS specific
-make's don't have the libwww make files.
-<P>
 After having checked that you have the programs you need, you are now ready
-to execute the commands
-<PRE>% <B>aclocal</B>
-% <B>automake</B>
-% <B>autoconf</B>
-</PRE>
-<P>
-Note the following:
+to execute the commands noting the following:
 <UL>
   <LI>
     You will see some warnings about <CODE>AC_TRY_RUN</CODE> -
@@ -244,6 +244,12 @@ Note the following:
     be turned off by specifying the <CODE>--disable-shared</CODE> option to
     <CODE>configure</CODE>.
 </UL>
+<P>
+Commands:
+<PRE>% <B>aclocal</B>
+% <B>automake</B>
+% <B>autoconf</B>
+</PRE>
 <H2>
   <A NAME="Compiling">Compiling libwww</A>
 </H2>
