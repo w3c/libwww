@@ -1,16 +1,18 @@
 EXPORTS
 ;HTSSL.c		@ 100
-HTSSL_init		@ 101
-HTSSL_terminate		@ 102
-HTSSL_isInitialized	@ 103
-HTSSL_new		@ 104
-HTSSL_free		@ 105
-HTSSL_open		@ 106
-HTSSL_close		@ 107
-HTSSL_isOpen		@ 108
-HTSSL_read		@ 109
-HTSSL_write		@ 110
-HTSSL_getError		@ 111
+HTSSL_protMethod_set	@ 101
+HTSSL_protMethod	@ 102
+HTSSL_init		@ 103
+HTSSL_terminate		@ 104
+HTSSL_isInitialized	@ 105
+HTSSL_new		@ 106
+HTSSL_free		@ 107
+HTSSL_open		@ 108
+HTSSL_close		@ 109
+HTSSL_isOpen		@ 110
+HTSSL_read		@ 111
+HTSSL_write		@ 112
+HTSSL_getError		@ 113
 
 ;HTSSLhttps.c		@ 200
 HTSSLhttps_init		@ 201
