@@ -279,12 +279,14 @@ int main
 #endif /* ultrix and OSF/1 */
 
     HTFormat format_in = WWW_HTML;		/* By default */
-    HTOutputFormat = WWW_PRESENT;	        /* By default */
+    HTFormat * request;
     
 #ifdef THINK_C /* command line from Think_C */
     int i;
     argc=ccommand(&argv);
 #endif
+
+    request =  HTRequest_new();
 
 #ifdef VMS
     output = stdout;
@@ -475,14 +477,14 @@ int main
 
 	    /* Source please */
 	    } else if (0==strcmp(argv[arg], "-source")) {
-		    HTOutputFormat = WWW_SOURCE;
+		    request->output_format = WWW_SOURCE;
 		    HTOutputSource = YES;	/* Turn on shortcut */
 		    interactive = NO;	/* JFG */
 		    
 	    /* to -- Final represntation */
 	    } else if (0==strcmp(argv[arg], "-to")) {
 		if (++arg < argc) {
-		    HTOutputFormat = HTAtom_for(argv[arg]);
+		    request->output_format = HTAtom_for(argv[arg]);
 		    HTOutputSource = YES;	/* Turn on shortcut */
 		    interactive = NO;	/* JFG */
 		}
@@ -574,7 +576,7 @@ int main
 	    }
 	    output = fp;
 	}
-	HTOutputStream = HTFWriter_new(output);   /* Just pump to stdout */
+	request->output_stream = HTFWriter_new(output);   /* Just pump to stdout */
     }
     
     
@@ -617,18 +619,18 @@ int main
 */
 
     if (filter) {			/* Just convert formats */
-        HTParseSocket(format_in, HTOutputFormat, 
+        HTParseSocket(format_in, request->output_format, 
                 home_anchor,
 		0,			/* stdin unix file */
-		HTOutputStream);
+		request->output_stream);
         goto good;
     }
     
 /*	Load first document
 **	-------------------
 */
-    if ( *keywords ? HTSearch(keywords, home_anchor)
-    		   : HTLoadAnchor((HTAnchor*)home_anchor)){
+    if ( *keywords ? HTSearch(keywords, home_anchor, request)
+    		   : HTLoadAnchor((HTAnchor*)home_anchor, request)){
 		   
 	HTHistory_record((HTAnchor *)home_anchor);
 	
@@ -800,7 +802,7 @@ BOOL Select_Reference ARGS1(int,reference_num) {
     
     if (!source) return NO; /* No anchor */
     destination = HTAnchor_followMainLink((HTAnchor*) source);
-    if (!HTLoadAnchor(destination)) return NO;	/* No link */
+    if (!HTLoadAnchor(destination, request)) return NO;	/* No link */
     HTHistory_leavingFrom((HTAnchor*) source);
     HTHistory_record(destination);
     
@@ -1100,7 +1102,7 @@ loop:
 				printf(" as there are no previous documents\n");
 				goto ret; 
 				}
-			HTLoadAnchor(HTHistory_backtrack());
+			HTLoadAnchor(HTHistory_backtrack(), request);
 			goto ret;
 			}
 		else if (Check_User_Input("BOTTOM")) { /* Scroll to bottom  */
@@ -1157,7 +1159,7 @@ find:
 
 	case 'G':
 	if (Check_User_Input("GOTO")){ /* GOTO */
-		if (HTLoadRelative(next_word, HTMainAnchor))
+		if (HTLoadRelative(next_word, HTMainAnchor, request))
 			HTHistory_record((HTAnchor*)HTMainAnchor);
 		goto ret;
 		}
@@ -1178,7 +1180,8 @@ find:
 				HText_scrollTop(HTMainText);
 				} 
 			else {
-				HTLoadAnchor(HTHistory_recall(1)); /*!! this assumes history is kept.*/
+				HTLoadAnchor(HTHistory_recall(1), request);
+				 /*!! this assumes history is kept.*/
 				}
 			goto ret;
 			} /* if HOME */
@@ -1233,7 +1236,7 @@ lcd:	      if (!next_word) {  /* Missing argument */
 
 	case 'M':
 	if (Check_User_Input("MANUAL")){ 	/* Read User manual */
-		if (HTLoadRelative(MANUAL, HTMainAnchor))
+		if (HTLoadRelative(MANUAL, HTMainAnchor), request)
 			HTHistory_record((HTAnchor*)HTMainAnchor);
 		goto ret;
 		}
@@ -1250,7 +1253,7 @@ lcd:	      if (!next_word) {  /* Missing argument */
 				printf(" document.\n");
 				goto ret; 
 				}
-			HTLoadAnchor(HTHistory_moveBy(1));
+			HTLoadAnchor(HTHistory_moveBy(1), request);
 			goto ret;
 			}
 		break;
@@ -1267,7 +1270,7 @@ lcd:	      if (!next_word) {  /* Missing argument */
 				printf(" document.\n");
 				goto ret;
 				}
-			HTLoadAnchor(HTHistory_moveBy(-1));
+			HTLoadAnchor(HTHistory_moveBy(-1), request);
 			goto ret;
 			}
 #ifdef GOT_SYSTEM	    
@@ -1317,7 +1320,7 @@ lcd:	      if (!next_word) {  /* Missing argument */
 		if (Check_User_Input("QUIT")) {
 #ifdef VM
 		    if (HTHistory_canBacktrack()){  /* Means one level only */
-			    HTLoadAnchor(HTHistory_backtrack());
+			    HTLoadAnchor(HTHistory_backtrack(), request);
 			    goto ret;
 		    } else {
 		        exit(0);		/* On last level, exit */
@@ -1355,7 +1358,8 @@ lcd:	      if (!next_word) {  /* Missing argument */
 		
 		if (next_word) {
 		    if ((recall_node_num = atoi(next_word)) > 0)  /* Good parameter */
-		    	HTLoadAnchor(HTHistory_recall(recall_node_num));
+		    	HTLoadAnchor(HTHistory_recall(recall_node_num),
+				 request);
 		    else
 		    	Error_Selection();
 		}

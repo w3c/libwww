@@ -770,6 +770,20 @@ PUBLIC void HText_endAnchor ARGS1(HText *,text)
 }
 
 
+/*		IMAGES
+*/
+PUBLIC void HText_appendImage ARGS5(
+	HText *,		text,
+	HTChildAnchor *,	anc,
+	CONST char *,		alt,
+	int,			alignment,
+	BOOL,			isMap)
+{
+    /* HText_beginAnchor(text, anc); */
+    HText_appendText(text, alt? alt: "<IMAGE>");
+    /* HText_endAnchor(text) */
+}
+	
 PUBLIC void HText_appendText ARGS2(HText *,text, CONST char *,str)
 {
     CONST char * p;
