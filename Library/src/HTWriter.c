@@ -94,7 +94,7 @@ PRIVATE int HTWriter_write (HTOutputStream * me, const char * buf, int len)
 
     /* If we don't have a Net object then return right away */
     if (!net) {
-	HTTRACE(STREAM_TRACE, "Write Socket WOULD BLOCK %d (offset %d)\n" _ soc _ me->offset);
+	HTTRACE(STREAM_TRACE, "Write Socket No Net object %d (offset %d)\n" _ soc _ me->offset);
 	return HT_ERROR;
     }
 

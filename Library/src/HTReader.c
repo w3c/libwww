@@ -60,6 +60,7 @@ PRIVATE int HTReader_abort (HTInputStream * me, HTList * e)
     return HT_ERROR;
 }
 
+#ifdef FIND_SIGNATURES
 /*	Push data from a socket down a stream
 **	-------------------------------------
 **
@@ -76,7 +77,7 @@ PRIVATE int HTReader_abort (HTInputStream * me, HTList * e)
 **     		HT_WOULD_BLOCK	if read or write would block
 **		HT_PAUSE	if stream is paused
 */
-char * strnstr(char * haystack, int *pLen, char * needle)
+PRIVATE char * strnstr(char * haystack, int *pLen, char * needle)
 {
     int found = 0;
     int need = strlen(needle);
@@ -94,8 +95,7 @@ char * strnstr(char * haystack, int *pLen, char * needle)
     *pLen = 0;
     return NULL;
 }
-
-/* int DebugBufferSize = INPUT_BUFFER_SIZE; */
+#endif /* FIND_SIGNATURES */
 
 PRIVATE int HTReader_read (HTInputStream * me)
 {
@@ -109,7 +109,6 @@ PRIVATE int HTReader_read (HTInputStream * me)
         return HT_ERROR;
     }
         
-    /*    me->b_read = me->read - me->data; */
     /* Read from socket if we got rid of all the data previously read */
     do {
 	/* don't read if we have to push unwritten data from last call */
