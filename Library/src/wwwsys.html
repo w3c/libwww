@@ -494,6 +494,16 @@ already defined specifically.
 #endif
 
 </PRE>
+<H2>NeXT</H2>
+<PRE>
+#ifdef NeXT
+#include "sys/types.h"
+#include "sys/stat.h"
+#define S_ISDIR(m) (m & S_IFDIR)
+#define S_ISREG(m) (m & S_IFREG)
+#endif
+
+</PRE>
 <H2><A
 NAME="z1">Defaults</A></H2>
 <H3>Include files for TCP</H3>

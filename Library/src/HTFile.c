@@ -447,7 +447,8 @@ PUBLIC void HTSetAttributes ARGS2(HTRequest *,		req,
 {
     struct tm * gmt;
 
-    if (!req || !stat_info) return;
+    if (!req || !stat_info || !S_ISREG(stat_info->st_mode))
+	return;
 
     req->content_length = stat_info->st_size;
     CTRACE(stderr, "Content-Length %d\n", req->content_length);

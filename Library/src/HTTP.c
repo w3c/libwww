@@ -46,13 +46,6 @@ struct _HTStream {
 	HTStreamClass * isa;		/* all we need to know */
 };
 
-#ifdef NeXT
-#include "sys/types.h"
-#include "sys/stat.h"
-#define S_ISDIR(m) (m & S_IFDIR)
-#define S_ISREG(m) (m & S_IFREG)
-#endif
-
 extern char * HTAppName;	/* Application name: please supply */
 extern char * HTAppVersion;	/* Application version: please supply */
 
