@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>Utility macros</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  9-Oct-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  5-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -48,15 +48,42 @@ it is possible to see parts of the output messages. The
 active, but in addition the following WWWTRACE defines have been made:
 
 <PRE>
-#ifdef NO_STDIO
+#define WWWTRACE_FILE	1
+#define WWWTRACE_STDERR	2
+#define WWWTRACE_TTY	3
+
+#ifndef WWWTRACE_MODE
+#define WWWTRACE_MODE WWWTRACE_STDERR
+#endif
+
+#if WWWTRACE_MODE == WWWTRACE_FILE
 extern FILE *WWWTrace;
-#ifndef TRACE_FILE
-#define TRACE_FILE "WWWTRACE.TXT"
+#ifndef WWWTRACE_FILE
+#define WWWTRACE_FILE	"WWWTRACE.TXT"
 #endif
-#define TDEST WWWTrace 
-#else /* got stdio */
-#define TDEST stderr
+#define TTYPrint fprintf
+#define TDEST	 WWWTrace
 #endif
+
+#if WWWTRACE_MODE == WWWTRACE_STDERR
+#define TTYPrint fprintf
+#define TDEST	 stderr
+#endif
+
+#if WWWTRACE_MODE == WWWTRACE_TTY
+#if defined(_WINDOWS) && !defined(_CONSOLE) /* EGP */
+/* standard windows 3.x and non-console WIN32 programs */
+#undef TDEST
+#define TDEST 0
+#define STDOUT 1 /* for printfs in htstyle.c */
+int TTYPrint(unsigned int target, const char* fmt, ...);
+#else
+/* if there is a real console, us it */
+#define STDOUT stdout
+int TTYPrint(FILE* target, const char* fmt, ...);
+#endif
+#endif
+
 
 typedef enum _HTTraceFlags {
     SHOW_CACHE_TRACE	= 0x2,				/*		  10 */

@@ -131,7 +131,7 @@ PRIVATE int HTFile_readDir (HTRequest * request, file_info *file)
     char *url = HTAnchor_physical(request->anchor);
     char fullname[HT_MAX_PATH+1];
     char *name;
-    if (PROT_TRACE) fprintf(TDEST, "Reading..... directory\n");
+    if (PROT_TRACE) TTYPrint(TDEST, "Reading..... directory\n");
     if (dir_access == HT_DIR_FORBID) {
 	HTErrorAdd(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
 		   NULL, 0, "HTFile_readDir");
@@ -155,7 +155,7 @@ PRIVATE int HTFile_readDir (HTRequest * request, file_info *file)
 	strcpy(name, DEFAULT_DIR_FILE);
 	if (HT_STAT(fullname, &file_info)) {
 	    if (PROT_TRACE)
-		fprintf(TDEST,
+		TTYPrint(TDEST,
 			"Read dir.... `%s\' not found\n", DEFAULT_DIR_FILE);
 	    HTErrorAdd(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
 		       NULL, 0, "HTFile_readDir");
@@ -185,7 +185,7 @@ PRIVATE int HTFile_readDir (HTRequest * request, file_info *file)
 	    strcpy(name, dirbuf->d_name);
 	    if (HT_LSTAT(fullname, &file_info)) {
 		if (PROT_TRACE)
-		    fprintf(TDEST, "Read dir.... lstat failed: %s\n",fullname);
+		    TTYPrint(TDEST, "Read dir.... lstat failed: %s\n",fullname);
 		continue;
 	    }
 
@@ -254,12 +254,12 @@ PRIVATE BOOL HTEditable (CONST char * filename, struct stat * stat_info)
 
     if (PROT_TRACE) {
         int i;
-	fprintf(TDEST, 
+	TTYPrint(TDEST, 
 	    "File mode is 0%o, uid=%d, gid=%d. My uid=%d, %d groups (",
     	    (unsigned int) fileptr->st_mode, (int) fileptr->st_uid,
 	    (int) fileptr->st_gid, (int) myUid, ngroups);
-	for (i=0; i<ngroups; i++) fprintf(TDEST, " %d", (int) groups[i]);
-	fprintf(TDEST, ")\n");
+	for (i=0; i<ngroups; i++) TTYPrint(TDEST, " %d", (int) groups[i]);
+	TTYPrint(TDEST, ")\n");
     }
     
     if (fileptr->st_mode & 0002)		/* I can write anyway? */
@@ -276,7 +276,7 @@ PRIVATE BOOL HTEditable (CONST char * filename, struct stat * stat_info)
 	        return YES;
 	}
     }
-    if (PROT_TRACE) fprintf(TDEST, "\tFile is not editable.\n");
+    if (PROT_TRACE) TTYPrint(TDEST, "\tFile is not editable.\n");
     return NO;					/* If no excuse, can't do */
 #endif
 #else
@@ -326,17 +326,17 @@ PUBLIC HTStream * HTFileSaveStream ARGS1(HTRequest *, request)
 	if ((fp=fopen(filename, "r"))) {		/* File exists */
 #endif /* not VMS */
 	    fclose(fp);
-	    if (PROT_TRACE) fprintf(TDEST, "File `%s' exists\n", filename);
+	    if (PROT_TRACE) TTYPrint(TDEST, "File `%s' exists\n", filename);
 	    if (REMOVE(backup_filename)) {
-		if (PROT_TRACE) fprintf(TDEST, "Backup file `%s' removed\n",
+		if (PROT_TRACE) TTYPrint(TDEST, "Backup file `%s' removed\n",
 				   backup_filename);
 	    }
 	    if (rename(filename, backup_filename)) {	/* != 0 => Failure */
-		if (PROT_TRACE) fprintf(TDEST, "Rename `%s' to `%s' FAILED!\n",
+		if (PROT_TRACE) TTYPrint(TDEST, "Rename `%s' to `%s' FAILED!\n",
 				   filename, backup_filename);
 	    } else {					/* Success */
 		if (PROT_TRACE)
-		    fprintf(TDEST, "Renamed `%s' to `%s'\n", filename,
+		    TTYPrint(TDEST, "Renamed `%s' to `%s'\n", filename,
 			    backup_filename);
 	    }
 	}
@@ -364,7 +364,7 @@ PRIVATE int FileCleanup (HTRequest *req, int status)
 #ifdef NO_UNIX_IO
 	if (file->fp) {
 	    if (PROT_TRACE)
-		fprintf(TDEST,"FileCleanup. Closing file %p\n", file->fp);
+		TTYPrint(TDEST,"FileCleanup. Closing file %p\n", file->fp);
 	    fclose(file->fp);
 	}
 #endif
@@ -397,7 +397,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
     ** machine as we need the structure first.
     */
     if (ops == FD_NONE) {
-	if (PROT_TRACE) fprintf(TDEST, "HTLoadFile.. Looking for `%s\'\n",
+	if (PROT_TRACE) TTYPrint(TDEST, "HTLoadFile.. Looking for `%s\'\n",
 				HTAnchor_physical(request->anchor));
 	if ((file = (file_info *) calloc(1, sizeof(file_info))) == NULL)
 	    outofmem(__FILE__, "HTLoadFILE");
@@ -418,7 +418,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 	  case FS_BEGIN:
 	    if (HTSecure) {
 		if (PROT_TRACE)
-		    fprintf(TDEST, "LoadFile.... No access to local file system\n");
+		    TTYPrint(TDEST, "LoadFile.... No access to local file system\n");
 		file->state = FS_TRY_FTP;
 		break;
 	    }
@@ -458,7 +458,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		} else {
 		    if (HT_STAT(file->local, &stat_info) == -1) {
 			if (PROT_TRACE)
-			    fprintf(TDEST, "HTLoadFile.. Can't stat %s\n",
+			    TTYPrint(TDEST, "HTLoadFile.. Can't stat %s\n",
 				    file->local);
 			HTErrorAdd(request, ERR_FATAL, NO, HTERR_NOT_FOUND,
 				   NULL, 0, "HTLoadFile");
@@ -505,7 +505,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		break;
 	    }
 	    if (PROT_TRACE)
-		fprintf(TDEST,"HTLoadFile.. `%s' opened using socket %d \n",
+		TTYPrint(TDEST,"HTLoadFile.. `%s' opened using socket %d \n",
 			file->local, net->sockfd);
 
 	    /* If non-blocking protocol then change socket status
@@ -523,9 +523,9 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		}
 		if (PROT_TRACE) {
 		    if (status == -1)
-			fprintf(TDEST, "HTLoadFile.. Can't make socket non-blocking\n");
+			TTYPrint(TDEST, "HTLoadFile.. Can't make socket non-blocking\n");
 		    else
-			fprintf(TDEST,"HTLoadFile.. Using NON_BLOCKING I/O\n");
+			TTYPrint(TDEST,"HTLoadFile.. Using NON_BLOCKING I/O\n");
 		}
 	    }
 #endif /* NO_FCNTL */
@@ -540,7 +540,7 @@ PUBLIC int HTLoadFile (SOCKET soc, HTRequest * request, SockOps ops)
 		break;
 	    }
 	    if (PROT_TRACE)
-		fprintf(TDEST,"HTLoadFile.. `%s' opened using FILE %p\n",
+		TTYPrint(TDEST,"HTLoadFile.. `%s' opened using FILE %p\n",
 			file->local, file->fp);
 #endif /* !NO_UNIX_IO */
 	    file->state = FS_NEED_TARGET;

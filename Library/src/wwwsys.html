@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>System dependencies in the W3 library</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  2-Nov-1995 -->
+<!-- Changed by: Henrik Frystyk Nielsen,  3-Nov-1995 -->
 </HEAD>
 <BODY>
 
@@ -438,42 +438,39 @@ we make a compromise.
 
 Return code for socket functions. We can't use -1 as return value
 
-<PRE>
 
-#endif  /* WINDOWS */
-</PRE>
-
-<H2>Windows NT (32 bit)</H2>
-
-Some special things for the 32 bit version...
+WSA definitions moved from _WIN32 ifdef by EGP
 
 <PRE>
-#ifdef WIN32
-#define EWOULDBLOCK	WSAEWOULDBLOCK
-#define EINPROGRESS	WSAEINPROGRESS
-#define ECONNREFUSED	WSAECONNREFUSED
-#define ETIMEDOUT	WSAETIMEDOUT
-#define ENETUNREACH	WSAENETUNREACH
-#define EHOSTUNREACH	WSAEHOSTUNREACH
-#define EHOSTDOWN	WSAEHOSTDOWN
-#define EISCONN		WSAEISCONN
 
-#undef NETREAD 
-#undef NETWRITE 
+#define EWOULDBLOCK     WSAEWOULDBLOCK
+#define EINPROGRESS     WSAEINPROGRESS
+#define ECONNREFUSED    WSAECONNREFUSED
+#define ETIMEDOUT       WSAETIMEDOUT
+#define ENETUNREACH     WSAENETUNREACH
+#define EHOSTUNREACH    WSAEHOSTUNREACH
+#define EHOSTDOWN       WSAEHOSTDOWN
+#define EISCONN         WSAEISCONN
+
+#undef NETREAD
+#undef NETWRITE
 
 #define NETREAD(s,b,l)  ((s) >= 10) ? recv((s),(b),(l),0) : read((s), (b), (l))
 #define NETWRITE(s,b,l) ((s) >= 10) ? send((s),(b),(l),0) : write((s), (b), (l))
- 
-/* #undef NO_UNIX_IO */	/* CLB NT has some Unix IO - must be more specific */
+
+/* #undef NO_UNIX_IO */ /* CLB NT has some Unix IO - must be more specific */
 
 /* Some compilers do only define WIN32 and NOT _WINDOWS */
-#undef  MKDIR
-#define MKDIR(a,b) mkdir((a))  /* CLB NT has mkdir, but only one arg */
-
 #define NO_GROUPS
 #define NO_ALTZONE
-#define SLEEP(n)	Sleep((n)*1000)
+#undef  MKDIR
+#ifdef _WIN32
+#define MKDIR(a,b) mkdir((a))  /* CLB NT has mkdir, but only one arg */
+#define SLEEP(n)        Sleep((n)*1000)
+#else
+#define MKDIR(a,b) _mkdir((a))  /* CLB NT has mkdir, but only one arg */
 #endif /* WIN32 */
+#endif  /* WINDOWS */
 </PRE>
 
 <H2>VAX/VMS</H2>

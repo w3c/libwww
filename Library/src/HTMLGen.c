@@ -406,7 +406,7 @@ PUBLIC HTStructured* HTMLGenerator ARGS5(HTRequest *,	request,
     if ((me->target = HTStreamStack(WWW_HTML, output_format, output_stream,
 				    request, YES)) == NULL) {
 	if (STREAM_TRACE)
-	    fprintf(TDEST, "HTMLGen..... Can't convert to media type\n");
+	    TTYPrint(TDEST, "HTMLGen..... Can't convert to media type\n");
 	me->target = HTBlackHole();
     }
     me->write_pointer = me->buffer;

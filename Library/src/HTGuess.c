@@ -78,10 +78,10 @@ PRIVATE int HTGuess_flush ARGS1(HTStream *, me)
 {
     if (!me->transparent) {
 	if (STREAM_TRACE)
-	    fprintf(TDEST,"GUESSING.... text=%d newlines=%d ctrl=%d high=%d\n",
+	    TTYPrint(TDEST,"GUESSING.... text=%d newlines=%d ctrl=%d high=%d\n",
 		    me->text_cnt, me->lf_cnt, me->ctrl_cnt, me->high_cnt);
 	if (me->cnt) {
-	    if (STREAM_TRACE) fprintf(TDEST,
+	    if (STREAM_TRACE) TTYPrint(TDEST,
 				    "Percentages. text=%d%% newlines=%d%% ctrl=%d%% high=%d%%\n",
 				    (int)(100*me->text_cnt/me->cnt + 0.5),
 				    (int)(100*me->lf_cnt  /me->cnt + 0.5),
@@ -150,15 +150,15 @@ PRIVATE int HTGuess_flush ARGS1(HTStream *, me)
 	if (!me->anchor->content_type)  CONTENT_TYPE("www/unknown");
 	if (!me->anchor->content_encoding)  CONTENT_ENCODING("binary");
 	
-	if (STREAM_TRACE) fprintf(TDEST,"Guessed..... %s\n",
+	if (STREAM_TRACE) TTYPrint(TDEST,"Guessed..... %s\n",
 				HTAtom_name(me->anchor->content_type));
-	if (STREAM_TRACE) fprintf(TDEST,"Encoding.... %s\n",
+	if (STREAM_TRACE) TTYPrint(TDEST,"Encoding.... %s\n",
 				HTAtom_name(me->anchor->content_encoding));
 	if ((me->target = HTStreamStack(me->anchor->content_type,
 					me->output_format, me->output_stream,
 					me->req, NO)) == NULL) {
 	    if (STREAM_TRACE)
-		fprintf(TDEST, "HTGuess..... Can't convert media type\n");
+		TTYPrint(TDEST, "HTGuess..... Can't convert media type\n");
 	    me->target = HTBlackHole();
 	}
     }

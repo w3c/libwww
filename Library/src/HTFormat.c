@@ -137,7 +137,7 @@ PUBLIC void HTEncoding_add (HTList * 		list,
     HTAcceptNode * node;
     if (!list || !enc || !*enc) {
 	if (WWWTRACE)
-	    fprintf(TDEST, "Encodings... Bad argument\n");
+	    TTYPrint(TDEST, "Encodings... Bad argument\n");
 	return;
     }
     node = (HTAcceptNode*)calloc(1, sizeof(HTAcceptNode));
@@ -167,7 +167,7 @@ PUBLIC void HTLanguage_add (HTList *		list,
     HTAcceptNode * node;
     if (!list || !lang || !*lang)  {
 	if (WWWTRACE)
-	    fprintf(TDEST, "Languages... Bad argument\n");
+	    TTYPrint(TDEST, "Languages... Bad argument\n");
 	return;
     }
     node = (HTAcceptNode*)calloc(1, sizeof(HTAcceptNode));
@@ -190,7 +190,7 @@ PUBLIC void HTCharset_add (HTList *		list,
     HTAcceptNode * node;
     if (!list || !charset || !*charset)  {
 	if (WWWTRACE)
-	    fprintf(TDEST, "Charset..... Bad argument\n");
+	    TTYPrint(TDEST, "Charset..... Bad argument\n");
 	return;
     }
     node = (HTAcceptNode*)calloc(1, sizeof(HTAcceptNode));
@@ -485,8 +485,8 @@ PUBLIC BOOL HTRank ARGS4(HTList *, possibilities,
 	}
     }
 
-    if (PROT_TRACE) fprintf(TDEST, "Ranking.....\n");
-    if (PROT_TRACE) fprintf(TDEST,
+    if (PROT_TRACE) TTYPrint(TDEST, "Ranking.....\n");
+    if (PROT_TRACE) TTYPrint(TDEST,
 	   "\nRANK QUALITY CONTENT-TYPE         LANGUAGE ENCODING    FILE\n");
 
     sorted = HTList_new();
@@ -499,7 +499,7 @@ PUBLIC BOOL HTRank ARGS4(HTList *, possibilities,
 	}
 	if (worst) {
 	    if (PROT_TRACE)
-		fprintf(TDEST, "%d.   %.4f  %-20.20s %-8.8s %-10.10s %s\n",
+		TTYPrint(TDEST, "%d.   %.4f  %-20.20s %-8.8s %-10.10s %s\n",
 			accepted_cnt+1,
 			worst->quality,
 			(worst->content_type
@@ -514,7 +514,7 @@ PUBLIC BOOL HTRank ARGS4(HTList *, possibilities,
 	    HTList_addObject(sorted, (void*)worst);
 	}
     }
-    if (PROT_TRACE) fprintf(TDEST, "\n");
+    if (PROT_TRACE) TTYPrint(TDEST, "\n");
     HTList_delete(accepted);
     HTList_delete(possibilities->next);
     possibilities->next = sorted->next;
@@ -550,17 +550,17 @@ PUBLIC HTStream * HTStreamStack ARGS5(HTFormat,		rep_in,
     HTPresentation *pres, *best_match=NULL;
     
     if (guess && rep_in == WWW_UNKNOWN) {
-	if (STREAM_TRACE)fprintf(TDEST,"StreamStack. Using guessing stream\n");
+	if (STREAM_TRACE)TTYPrint(TDEST,"StreamStack. Using guessing stream\n");
 	return HTGuess_new(request, NULL, rep_in, rep_out, output_stream);
     }
     if (rep_out == WWW_SOURCE || rep_out == rep_in) {
 	if (STREAM_TRACE)
-	    fprintf(TDEST,"StreamStack. Identical in/out format: %s\n",
+	    TTYPrint(TDEST,"StreamStack. Identical in/out format: %s\n",
 		    HTAtom_name(rep_in));
 	return output_stream ? output_stream : HTBlackHole();
     }
     if (STREAM_TRACE) {
-	fprintf(TDEST, "StreamStack. Constructing stream stack for %s to %s\n",
+	TTYPrint(TDEST, "StreamStack. Constructing stream stack for %s to %s\n",
 		HTAtom_name(rep_in), HTAtom_name(rep_out));
     }
 
@@ -581,7 +581,7 @@ PUBLIC HTStream * HTStreamStack ARGS5(HTFormat,		rep_in,
 		    if (pres->test_command) {
 			result = system(pres->test_command);
 			if (STREAM_TRACE) 
-			    fprintf(TDEST, "StreamStack. system(%s) returns %d\n", pres->test_command, result);
+			    TTYPrint(TDEST, "StreamStack. system(%s) returns %d\n", pres->test_command, result);
 		    }
 		    if (!result) {
 			best_match = pres;
@@ -599,7 +599,7 @@ PUBLIC HTStream * HTStreamStack ARGS5(HTFormat,		rep_in,
 	return (*best_match->converter)(request, best_match->command,
 					rep_in, rep_out, output_stream);
     if (STREAM_TRACE)
-	fprintf(TDEST, "StreamStack. No match found, dumping to local file\n");
+	TTYPrint(TDEST, "StreamStack. No match found, dumping to local file\n");
     return HTSaveLocally(request, NULL, rep_in, rep_out, output_stream);
 }
 	
@@ -623,7 +623,7 @@ PUBLIC double HTStackValue ARGS5(
     HTList* conversion[2];
     
     if (STREAM_TRACE) {
-	fprintf(TDEST, "StackValue.. Evaluating stream stack for %s worth %.3f to %s\n",
+	TTYPrint(TDEST, "StackValue.. Evaluating stream stack for %s worth %.3f to %s\n",
 		HTAtom_name(rep_in),	initial_value,
 		HTAtom_name(rep_out));
     }

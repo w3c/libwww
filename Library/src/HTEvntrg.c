@@ -16,6 +16,15 @@
 **
 */
 
+/*   WSAAsyncSelect and windows app stuff need the following definitions:
+ *   WWW_WIN_ASYNC - enable WSAAsyncSelect instead of select
+ *   _WIN23 - win32 libararies - may be window or console app
+ *   _WINSOCKAPI_ - using WINSOCK.DLL - not necessarily the async routines.
+ *   _CONSOLE - the console app for NT
+ *
+ * first pass: EGP - 10/26/95
+ */
+
 #include <assert.h>			/* @@@ Should be in tcp.h @@@ */
 
 /* Implementation dependent include files */
@@ -26,6 +35,12 @@
 #include "HTReqMan.h"
 #include "HTDNS.h"
 #include "HTEvntrg.h"					 /* Implemented here */
+
+#ifdef WWW_WIN_ASYNC
+#define TIMEOUT	1 /* WM_TIMER id */
+extern PUBLIC HWND HTsocketWin;
+extern PUBLIC unsigned long HTwinMsg;
+#endif
 
 /* Type definitions and global variables etc. local to this module */
 PRIVATE fd_set read_fds ;		   /* sockets registered for reading */
@@ -99,7 +114,9 @@ typedef struct _HTTimeout {
 } HTTimeout;
 
 PRIVATE HTTimeout 	seltime;
+#ifndef WWW_WIN_ASYNC
 PRIVATE struct timeval *tvptr = NULL;
+#endif
 
 /*
 ** this set of SockOps map our WinSock "socket event SockOps" into 
@@ -137,23 +154,24 @@ PRIVATE int __EventUnregister(RQ * , RQ **, SockOps );
 PUBLIC BOOL HTEvent_registerTimeout (struct timeval *tp, HTRequest * request,
 				     HTEventTimeout *tcbf, BOOL always)
 {
-#ifdef _WIN32
-    return NO;
-#else
     if (tp) {
+#ifdef WWW_WIN_ASYNC
+	/* same window process WWW_WIN_ASYNC stuff and TIMEOUT */
+	SetTimer(HTsocketWin, TIMEOUT, tp->tv_usec/1000 + tp->tv_sec*1000, 0);
+#else
 	tvptr = &seltime.tv;
 	tvptr->tv_sec = tp->tv_sec;
 	tvptr->tv_usec = tp->tv_usec;
+#endif
 	seltime.tcbf = tcbf;
 	seltime.request = request;
 	seltime.always = always;
 	if (THD_TRACE)
-	    fprintf(TDEST,"Timeout cbf. %p %s (request=%p, sec=%d, usec=%d)\n",
-		    tcbf, always ? "always" : "active",
-		    request, (int) tp->tv_sec, (int) tp->tv_usec);
+	    TTYPrint(TDEST,"Timeout cbf. %p %s (req=%p, sec=%d, usec=%d)\n",
+		     tcbf, always ? "always" : "active",
+		     request, (int) tp->tv_sec, (int) tp->tv_usec);
     }
     return YES;
-#endif
 }
 
 /*	HTEvent_unregisterTimeout 
@@ -163,7 +181,12 @@ PUBLIC BOOL HTEvent_registerTimeout (struct timeval *tp, HTRequest * request,
 */
 PUBLIC BOOL HTEvent_unregisterTimeout (void)
 {
+#ifdef WWW_WIN_ASYNC
+    /* Same window process WWW_WIN_ASYNC stuff and TIMEOUT */
+    KillTimer(HTsocketWin, TIMEOUT);
+#else
     tvptr = NULL;
+#endif
     return YES;
 }
 
@@ -177,12 +200,15 @@ PUBLIC BOOL HTEvent_unregisterTimeout (void)
 PUBLIC int HTEvent_RegisterTTY( SOCKET fd, HTRequest * rq, SockOps ops, 
 			       HTEventCallback *cbf, HTPriority p) 
 {
+#ifdef TTY_IS_SELECTABLE
+    int status;
+#endif
     assert(rq != 0);
     console_in_use = YES;
     console_handle = (HANDLE) fd;
 
     if (THD_TRACE) 
-	fprintf(TDEST, 
+	TTYPrint(TDEST, 
 		"RegisterTTY. socket %d, request %p HTEventCallback %p SockOps %x at priority %d\n",
 		fd, (void *)rq,  (void *)cbf, (unsigned) ops, (unsigned) p);
 	
@@ -194,19 +220,27 @@ PUBLIC int HTEvent_RegisterTTY( SOCKET fd, HTRequest * rq, SockOps ops,
 
 #else 
 
-#ifdef _WINDOWS	/* should be true for Windows3.x and NT and 95 */
+/* 
+** Should be true for Windows3.x and NT and 95 - EGP changed _WINDOWS to
+** WIN32
+*/
+#ifdef WIN32
 
     if (rq->hwnd != 0)  /* Windows GUI processing requested */
     	return 0;
     if (THD_TRACE) 
-   	fprintf(TDEST, "RegisterTTY. Windows, and no handle given\n");
+   	TTYPrint(TDEST, "RegisterTTY. Windows, and no handle given\n");
 
     console_handle = GetStdHandle( STD_INPUT_HANDLE) ;
  
     return __HTEvent_addRequest((SOCKET)console_handle, rq, ops, cbf, p);
 #else 
+#ifdef _WINDOWS /* EGP - added stub */
+    return (0);
+#else
 #error "Don't know how to handle console tty for this system!"
-#endif /* WINDOWS */
+#endif
+#endif /* WIN32 */
 #endif /* TTY_IS_SELECTABLE */
 }
 
@@ -216,7 +250,7 @@ PUBLIC int HTEvent_RegisterTTY( SOCKET fd, HTRequest * rq, SockOps ops,
 PUBLIC int HTEvent_UnRegisterTTY(SOCKET s, SockOps ops) 
 {
     if (THD_TRACE)
-	fprintf(TDEST, "UnregisterTTY on channel %d\n", s) ;
+	TTYPrint(TDEST, "UnregisterTTY on channel %d\n", s) ;
     if (!console_in_use)
     	return 0;
     console_in_use = NO;
@@ -242,13 +276,16 @@ PUBLIC int HTEvent_Register (SOCKET s, HTRequest * rq, SockOps ops,
 			     HTEventCallback *cbf, HTPriority p) 
 {
     if (THD_TRACE) 
-	fprintf(TDEST, "Register.... socket %d, request %p HTEventCallback %p SockOps %x at priority %d\n",
+	TTYPrint(TDEST, "Register.... socket %d, request %p HTEventCallback %p SockOps %x at priority %d\n",
 		s, (void *)rq,  (void *)cbf, (unsigned) ops, (unsigned) p) ;
 
 
     (void)__HTEvent_addRequest( s, rq, ops, cbf, p);
  
 #ifdef _WINSOCKAPI_
+#ifndef WIN32	/* EGP */
+#define GetLastError WSAGetLastError
+#endif
     if (rq -> hwnd != 0) {
         if (WSAAsyncSelect( s, rq->hwnd, rq->winMsg, ops) < 0) {
 	    HTErrorSysAdd( rq, ERR_FATAL, GetLastError(), NO,"WSAAsyncSelect");
@@ -262,21 +299,21 @@ PUBLIC int HTEvent_Register (SOCKET s, HTRequest * rq, SockOps ops,
 	if (! FD_ISSET(s, &read_fds))
 	    FD_SET(s, &read_fds) ;
 	if (THD_TRACE)
-	   fprintf(TDEST, "Register.... Registering socket as readable\n");
+	   TTYPrint(TDEST, "Register.... Registering socket as readable\n");
     }
 
     if (ops & WriteBits) {
 	if (! FD_ISSET(s, &write_fds))
 	    FD_SET(s, &write_fds);
 	if (THD_TRACE) 
-	   fprintf(TDEST, "Register.... Registering socket as writeable\n");
+	   TTYPrint(TDEST, "Register.... Registering socket as writeable\n");
     }
 
     if (ops & ExceptBits) { 
 	if (! FD_ISSET(s, &except_fds))
 	    FD_SET(s, &except_fds);
 	if (THD_TRACE) 
-	    fprintf(TDEST, "Register.... Registering socket for exceptions\n");
+	    TTYPrint(TDEST, "Register.... Registering socket for exceptions\n");
     }
 
     if (!FD_ISSET(s, &all_fds)) {
@@ -309,7 +346,7 @@ PRIVATE int __HTEvent_addRequest(SOCKET s, HTRequest * rq, SockOps ops,
     }  
     
     if (THD_TRACE)
-    	fprintf(TDEST, "AddRequest.. %s socket %d\n", found ? "found" : "Did NOT find" , s) ;          
+    	TTYPrint(TDEST, "AddRequest.. %s socket %d\n", found ? "found" : "Did NOT find" , s) ;          
 
     if (!found) { 
         /* error if memory not allocated */
@@ -330,7 +367,7 @@ PRIVATE void __RequestInit(RQ * rqp, SOCKET s, HTRequest * rq,
 			   SockOps ops, HTEventCallback *cbf, HTPriority p) 
 {
     if( THD_TRACE)
-    	fprintf(TDEST,"RequestInit. initializing RQ entry for socket %d\n", s);
+    	TTYPrint(TDEST,"RequestInit. initializing RQ entry for socket %d\n", s);
     rqp->s = s; 
     __RequestUpdate( rqp, s, rq, ops, cbf, p) ;
     rqp->next = 0 ;
@@ -347,7 +384,7 @@ PRIVATE void __RequestUpdate( RQ * rqp, SOCKET s, HTRequest * rq,
 			     SockOps ops, HTEventCallback * cbf, HTPriority p)
 {
     if (THD_TRACE) 
-    	fprintf(TDEST, "Req Update.. updating for socket %u\n", s) ;
+    	TTYPrint(TDEST, "Req Update.. updating for socket %u\n", s) ;
     rqp->unregister = (ops & FD_UNREGISTER) ? YES : NO;
     rqp->actions[0].rq = rq ;
     rqp->actions[0].ops = ops ;
@@ -378,7 +415,7 @@ PUBLIC int HTEvent_UnRegister( SOCKET s, SockOps ops)
     }
 
     if (THD_TRACE)
-    	fprintf(TDEST, "UnRegister.. %s entry for socket %d\n",
+    	TTYPrint(TDEST, "UnRegister.. %s entry for socket %d\n",
 		(found) ? "Found" : "Didn't find", s);
     if (! found) 
         return 0;
@@ -409,7 +446,7 @@ PUBLIC HTEventCallback *HTEvent_Retrieve(SOCKET s, SockOps ops,HTRequest **arp)
     }
 
     if (THD_TRACE) 
-    	fprintf(TDEST, "Retrieve.... %s socket %d\n", found ? "Found" : "Didn't find", s) ;
+    	TTYPrint(TDEST, "Retrieve.... %s socket %d\n", found ? "Found" : "Didn't find", s) ;
 
     if (!found) 
         return (HTEventCallback *) NULL;
@@ -432,7 +469,7 @@ PUBLIC int HTEvent_UnregisterAll( void )
 
     /* begin */
     if (THD_TRACE)
-	fprintf(TDEST, "Unregister.. all sockets\n");
+	TTYPrint(TDEST, "Unregister.. all sockets\n");
 
     for (i = 0 ; i < PRIME_TABLE_SIZE; i++) {
 	if (table[i] != 0) { 
@@ -462,6 +499,111 @@ PUBLIC int HTEvent_UnregisterAll( void )
 ** Under Windows/NT, we must treat the console and sockets as distinct. 
 ** That means we can't avoid a busy wait, but we do our best.
 */
+#ifdef WWW_WIN_ASYNC
+int EndLoop = 0;      /* AsyncWindowsProc tells HTEvent_Loop when it is done */
+/* only responsible for WM_TIMER and WSA_AsyncSelect */    	
+LRESULT CALLBACK AsyncWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
+				 LPARAM lParam)
+{
+    WORD event;
+    SOCKET sock;
+
+    /* timeout stuff */
+    if (uMsg == WM_TIMER) {
+	if (seltime.tcbf && (seltime.always || !HTNet_idle())) {
+	    if (THD_TRACE)
+		TTYPrint(TDEST, "Event Loop.. calling timeout cbf\n");
+	    (*(seltime.tcbf))(seltime.request);
+	}
+	return (0);
+    }
+
+    if (uMsg != HTwinMsg)	/* not our async message */
+    	return (DefWindowProc(hwnd, uMsg, wParam, lParam));
+
+    event = LOWORD(lParam);
+    sock = (SOCKET)wParam;
+    if (event & (FD_READ | FD_ACCEPT | FD_CLOSE))
+    	if (__DoCallBack((int)sock, FD_READ) != HT_OK) {
+	    EndLoop = -1;
+	    return 0;
+	}
+    if (event & (FD_WRITE | FD_CONNECT))
+    	if (__DoCallBack((int)sock, FD_WRITE) != HT_OK) {
+	    EndLoop = -1;
+	    return 0;
+	}
+    if (event & FD_OOB)
+    	if (__DoCallBack((int)sock, FD_OOB) != HT_OK) {
+	    EndLoop = -1;
+	    return 0;
+	}
+    return (0);
+}
+extern HWND MonitorWindow;
+#pragma message(__FILE__ ": using async HTEvent_Loop")
+PUBLIC int HTEvent_Loop( HTRequest * theRequest )
+{
+    int status;
+    static char className[] = "AsyncWindowClass";
+    WNDCLASS wc = {
+    	0, /* no style */
+	AsyncWindowProc, /* to handle our async messages */
+	0, 0, /* allocate no extra bytes */
+	GetCurrentProcess(), /* hInstance to be filled in soon */
+	0, 0, 0, 0, /* icon, cursor, brush, menu */
+	className
+    };
+    MSG msg;
+
+    if (!RegisterClass(&wc)) {
+	TTYPrint(TDEST, "HTEvent_Loop.. Can't RegisterClass \"%s\"\n",
+		 className);
+	return (HT_ERROR);
+    }
+    if (!(HTsocketWin = CreateWindow(className, "", WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, GetCurrentProcess(),0))) {
+   	TTYPrint(TDEST, "HTEvent_Loop.. Can't CreateWindow \"%s\"\n", "");
+	return (HT_ERROR);
+    }
+    HTwinMsg = WM_USER;	      /* first available message since app uses none */
+#ifdef _CONSOLE
+    EndLoop = 0;
+    while (!EndLoop) {
+	DWORD toRead;
+	if (console_in_use) {
+	    /* Check keystrokes */
+	    GetNumberOfConsoleInputEvents(console_handle, &toRead);
+	    if (toRead) {
+		if (THD_TRACE) 
+		    TTYPrint(TDEST,"Event Loop.. console ready, invoke callback\n");
+		status = __DoUserCallBack((SOCKET) console_handle, FD_READ);
+		if (status != HT_OK)
+		    return status;
+	    }
+	}
+    	if (!PeekMessage(&msg, HTsocketWin, 0, 0, PM_REMOVE)) { /* PeekMessage won't work with a NULL hWnd */
+	    if (msg.message == WM_QUIT) {
+    		/* got a WM_QUIT from system */
+		DestroyWindow(HTsocketWin);
+		return HT_ERROR;
+	    }
+	    TranslateMessage(&msg);
+	    DispatchMessage(&msg);
+	}
+    }
+#else
+    while (GetMessage(&msg,0,0,0)) {
+	TranslateMessage(&msg);
+	DispatchMessage(&msg);
+    }
+#endif
+    DestroyWindow(HTsocketWin);
+    return (EndLoop == 1 ? HT_OK : HT_ERROR);
+}
+
+#else /* WWW_WIN_ASYNC  - Unix HTEvent_Loop */
+
+#pragma message(__FILE__ ": using unix-style HTEvent_Loop")
 PUBLIC int HTEvent_Loop( HTRequest * theRequest ) 
 {
     fd_set treadset, twriteset, texceptset ;    
@@ -484,7 +626,7 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 
 	if (console_in_use) { 
 
-#ifdef _WIN32
+#ifdef _CONSOLE
             int result;
  	    DWORD time2wait;
 	    tvptr = &seltime.tv;
@@ -496,7 +638,7 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 		time2wait = 1000;	      /* this is a poll - one second */
 
 	    if (THD_TRACE)
-		fprintf(TDEST, "Event Loop. console in use: waiting %s\n",
+		TTYPrint(TDEST, "Event Loop. console in use: waiting %s\n",
 			(time2wait == 1000) ? "1 second" : "forever" );
 
 	    switch( result = WaitForSingleObject( console_handle, time2wait)) {
@@ -516,9 +658,9 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 		    break;
 	     } /* switch */
 	     if (THD_TRACE)
-		fprintf(TDEST, "Console..... %s ready for input\n",
+		TTYPrint(TDEST, "Console..... %s ready for input\n",
 			consoleReady ? "is" : "ISN'T" );
-#endif /* _WIN32 */
+#endif /* _CONSOLE */
 
 	} /* if tty in use */
 	 
@@ -527,7 +669,7 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 	 */
 
 	if (THD_TRACE)
-	    fprintf(TDEST, "Event Loop.. calling select: maxfds is %d\n",
+	    TTYPrint(TDEST, "Event Loop.. calling select: maxfds is %d\n",
 		    maxfds);
 
 #ifdef __hpux 
@@ -538,7 +680,7 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 				(struct timeval *) tvptr);
 #endif
 	if (THD_TRACE)
-	    fprintf(TDEST, "Event Loop.. select returns %d\n", active_sockets);
+	    TTYPrint(TDEST, "Event Loop.. select returns %d\n",active_sockets);
 
         switch(active_sockets)  {
             case 0:         /* no activity - timeout - allowed */
@@ -568,7 +710,7 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 	
 	if (console_in_use && consoleReady) {
 	    if (THD_TRACE) 
-	    	fprintf(TDEST,"Event Loop.. console ready, invoke callback\n");
+	    	TTYPrint(TDEST,"Event Loop.. console ready, make callback\n");
 	    status = __DoUserCallback((SOCKET) console_handle, FD_READ);
 	    if (status != HT_OK)
 		return status;
@@ -584,7 +726,8 @@ PUBLIC int HTEvent_Loop( HTRequest * theRequest )
 	if (active_sockets == 0) {
 	    if (seltime.tcbf && (seltime.always || !HTNet_idle())) {
 #if 0
-		if (THD_TRACE) fprintf(TDEST,"Event Loop.. select timeout\n");
+		/* This drives you crazy! */
+		if (THD_TRACE) TTYPrint(TDEST,"Event Loop.. select timeout\n");
 #endif
 		(*(seltime.tcbf))(seltime.request);
 	    } else
@@ -638,7 +781,7 @@ PRIVATE int __ProcessFds( fd_set * fdsp, SockOps ops, CONST char * str)
     unsigned ui ;
     SOCKET s ;
     if (THD_TRACE)
-	fprintf(TDEST, "Processing.. %s socket set. max_sock is %d\n",
+	TTYPrint(TDEST, "Processing.. %s socket set. max_sock is %d\n",
 		str, max_sock);
     
 #ifdef _WINSOCKAPI_ 
@@ -652,6 +795,7 @@ PRIVATE int __ProcessFds( fd_set * fdsp, SockOps ops, CONST char * str)
     }
     return HT_OK;
 }
+#endif /* else WWW_WIN_ASYNC */
 
 /*
 ** __DoCallback( SOCKET, SockOps ) 
@@ -691,7 +835,7 @@ PRIVATE void __ResetMaxSock( void )
     SOCKET t_max = 0; 
 
     if (THD_TRACE)
-    	fprintf(TDEST, "ResetMaxSock max socket is %u\n", max_sock);
+    	TTYPrint(TDEST, "ResetMaxSock max socket is %u\n", max_sock);
 
 #ifdef _WINSOCKAPI_ 
     for (ui = 0 ; ui < all_fds.fd_count; ui++) { 
@@ -708,7 +852,7 @@ PRIVATE void __ResetMaxSock( void )
 
     max_sock = t_max ;
     if (THD_TRACE)
-    	fprintf(TDEST,"ResetMaxSock new max is %u\n", max_sock);
+    	TTYPrint(TDEST,"ResetMaxSock new max is %u\n", max_sock);
     return;
 }  
 
@@ -722,7 +866,7 @@ PRIVATE int __EventUnregister(register RQ *rqp, register RQ ** rqpp,
     ap->ops &= ~ops ;      /* get rid of 'em */
 
     if (THD_TRACE)
-    	fprintf(TDEST, "Unregister.. operations set for socket is %x\n",
+    	TTYPrint(TDEST, "Unregister.. operations set for socket is %x\n",
 		ap->ops);
 
     /* do we need to delete the socket from it's set as well? */
@@ -774,7 +918,7 @@ PRIVATE void __DumpFDSet( fd_set * fdp, CONST char * str)
     
     if (THD_TRACE) {
 	
-	fprintf(TDEST, "Dumping..... %s file descriptor set\n", str );
+	TTYPrint(TDEST, "Dumping..... %s file descriptor set\n", str );
 #ifdef _WINSOCKAPI_ 
         for (ui = 0 ; ui < fdp->fd_count; ui++) { 
             s = all_fds.fd_array[ui] ;
@@ -783,7 +927,7 @@ PRIVATE void __DumpFDSet( fd_set * fdp, CONST char * str)
             if (FD_ISSET(s, &all_fds))
 #endif
 	    {
-	        fprintf(TDEST, "%4d\n", s);
+	        TTYPrint(TDEST, "%4d\n", s);
 	    }
         }	/* for */
     }           /* if */

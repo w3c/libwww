@@ -337,10 +337,10 @@ PUBLIC char *HTSimplify ARGS1(char **, url)
     char *p;
 
     if (!url || !*url) {
-	if (URI_TRACE) fprintf(TDEST, "HTSimplify.. Nothing done\n");
+	if (URI_TRACE) TTYPrint(TDEST, "HTSimplify.. Nothing done\n");
 	return *url;
     }
-    if (URI_TRACE) fprintf(TDEST, "HTSimplify.. `%s\' ", *url);
+    if (URI_TRACE) TTYPrint(TDEST, "HTSimplify.. `%s\' ", *url);
 
     /* Find any scheme name */
     if ((path = strstr(*url, "://")) != NULL) {		   /* Find host name */
@@ -363,7 +363,7 @@ PUBLIC char *HTSimplify ARGS1(char **, url)
 	    ptr++;
 	}
 	if (URI_TRACE)
-	    fprintf(TDEST, "into\n............ `%s'\n", *url);
+	    TTYPrint(TDEST, "into\n............ `%s'\n", *url);
 	return *url;		      /* Doesn't need to do any more */
     }
     if ((p = path)) {
@@ -405,7 +405,7 @@ PUBLIC char *HTSimplify ARGS1(char **, url)
 	}
     }
     if (URI_TRACE)
-	fprintf(TDEST, "into\n............ `%s'\n", *url);
+	TTYPrint(TDEST, "into\n............ `%s'\n", *url);
     return *url;
 }
 
@@ -498,7 +498,7 @@ char * HTRelative ARGS2(CONST char *, aName, CONST char *, relatedName)
 	for(;levels; levels--)strcat(result, "../");
 	strcat(result, last_slash+1);
     }
-    if (URI_TRACE) fprintf(TDEST,
+    if (URI_TRACE) TTYPrint(TDEST,
 		      "HTRelative.. `%s' expressed relative to `%s' is `%s'\n",
 		       aName, relatedName, result);
     return result;
@@ -528,10 +528,10 @@ PUBLIC BOOL HTCleanTelnetString ARGS1(char *, str)
 	int a = TOASCII((unsigned char) *cur);
 	if (a != 0x9 && (a < 0x20 || (a > 0x7E && a < 0xA0) ||  a > 0xFE)) {
 	    if (URI_TRACE)
-		fprintf(TDEST, "Illegal..... character in URL: \"%s\"\n",str);
+		TTYPrint(TDEST, "Illegal..... character in URL: \"%s\"\n",str);
 	    *cur = 0;
 	    if (URI_TRACE)
-		fprintf(TDEST, "Truncated... \"%s\"\n",str);
+		TTYPrint(TDEST, "Truncated... \"%s\"\n",str);
 	    return YES;
 	}
 	cur++;

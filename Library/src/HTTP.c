@@ -146,7 +146,7 @@ PRIVATE BOOL HTTPAuthentication (HTRequest * request)
     }
     if (request->WWWprotection) {
 	if (PROT_TRACE)
-	    fprintf(TDEST, "Protection template set to `%s'\n",
+	    TTYPrint(TDEST, "Protection template set to `%s'\n",
 		    request->WWWprotection);
 	StrAllocCopy(tmplate, request->WWWprotection);
     }
@@ -451,7 +451,7 @@ PRIVATE int HTTPStatus_abort (HTStream * me, HTError e)
 	ABORT_TARGET;
     free(me);
     if (PROT_TRACE)
-	fprintf(TDEST, "HTTPStatus.. ABORTING...\n");
+	TTYPrint(TDEST, "HTTPStatus.. ABORTING...\n");
     return HT_ERROR;
 }
 
@@ -504,7 +504,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
     ** machine as we need the structure first.
     */
     if (ops == FD_NONE) {
-	if (PROT_TRACE) fprintf(TDEST, "HTTP........ Looking for `%s\'\n",
+	if (PROT_TRACE) TTYPrint(TDEST, "HTTP........ Looking for `%s\'\n",
 				HTAnchor_physical(request->anchor));
 	if ((http = (http_info *) calloc(1, sizeof(http_info))) == NULL)
 	    outofmem(__FILE__, "HTLoadHTTP");
@@ -537,10 +537,10 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 	    HTAA_composeAuth(request);
 	    if (PROT_TRACE) {
 		if (request->authorization)
-		    fprintf(TDEST, "HTTP........ Sending Authorization: %s\n",
+		    TTYPrint(TDEST, "HTTP........ Sending Authorization: %s\n",
 			    request->authorization);
 		else
-		    fprintf(TDEST,
+		    TTYPrint(TDEST,
 			    "HTTP........ Not sending authorization (yet)\n");
 	    }
 	    http->state = HTTP_NEED_CONNECTION;
@@ -562,7 +562,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 		HTDNS_setServerClass(net->dns, "http");
 
 		if (PROT_TRACE)
-		    fprintf(TDEST, "HTTP........ Connected, socket %d\n",
+		    TTYPrint(TDEST, "HTTP........ Connected, socket %d\n",
 			    net->sockfd);
 
 		/* Set up stream TO network */
@@ -631,7 +631,7 @@ PUBLIC int HTLoadHTTP (SOCKET soc, HTRequest * request, SockOps ops)
 
 	  case HTTP_EXPIRED:
 	    /* Dirty hack and fall through */
-	    if (PROT_TRACE) fprintf(TDEST, "HTTP........ Expired\n");
+	    if (PROT_TRACE) TTYPrint(TDEST, "HTTP........ Expired\n");
 	    request->redirect = request->anchor->address;
 
 	  case HTTP_REDIRECTION:

@@ -235,14 +235,14 @@ PRIVATE int remote_session (HTRequest * request, char * url)
 
     } else {
 	if (PROT_TRACE)
-	    fprintf(TDEST, "Telnet...... Unknown access method: `%s\'\n",
+	    TTYPrint(TDEST, "Telnet...... Unknown access method: `%s\'\n",
 		    access);
 	status = HT_ERROR;
     }
 
     /* Now we are ready to execute the command */
     if (PROT_TRACE)
-	fprintf(TDEST, "Telnet...... Command is `%s\'\n", cmd->data);
+	TTYPrint(TDEST, "Telnet...... Command is `%s\'\n", cmd->data);
     if (user) {
 	HTChunk *msg = HTChunkCreate(128);
 	HTChunkPuts(msg, "When you are connected, log in");
@@ -259,7 +259,9 @@ PRIVATE int remote_session (HTRequest * request, char * url)
 	HTAlert(request, msg->data);
 	HTChunkFree(msg);
     }
+#ifdef GOT_SYSTEM
     system(cmd->data);
+#endif
     free(access);
     free(host);
     HTChunkFree(cmd);
@@ -282,7 +284,7 @@ PUBLIC int HTLoadTelnet (SOCKET soc, HTRequest * request, SockOps ops)
 
     /* This is a trick as we don't have any socket! */
     if (ops == FD_NONE) {
-	if (PROT_TRACE) fprintf(TDEST, "Telnet...... Looking for `%s\'\n",url);
+	if (PROT_TRACE) TTYPrint(TDEST, "Telnet...... Looking for `%s\'\n",url);
 	HTCleanTelnetString(url);
 	{
 	    int status = remote_session(request, url);

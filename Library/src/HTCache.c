@@ -80,7 +80,7 @@ PRIVATE void HTCache_remove ARGS1(HTCache *, item)
 {
     if (HTCacheList && item) {
 	if (CACHE_TRACE)
-	    fprintf(TDEST, "Cache....... Removing %s\n", item->filename);
+	    TTYPrint(TDEST, "Cache....... Removing %s\n", item->filename);
 	HTList_removeObject(HTCacheList, item);
 	REMOVE(item->filename);
 	
@@ -91,7 +91,7 @@ PRIVATE void HTCache_remove ARGS1(HTCache *, item)
 		item->filename[p-item->filename] = 0;
 		if (strcmp(item->filename, HTCacheRoot) != 0) {
 		    if (CACHE_TRACE) 
-			fprintf(TDEST, "rmdir....... %s\n", item->filename);
+			TTYPrint(TDEST, "rmdir....... %s\n", item->filename);
 		    RMDIR(item->filename); /* fails if directory isn't empty */
 		}
 	    }
@@ -208,7 +208,7 @@ PRIVATE char * cache_file_name ARGS1(char *, url)
 	if (access) free(access);
 
 	if (res && CACHE_TRACE)
-	    fprintf(TDEST,
+	    TTYPrint(TDEST,
 		    "Cache....... Clash with reserved name (\"%s\")\n",url);
 
 	return NULL;
@@ -247,7 +247,7 @@ PRIVATE char * cache_file_name ARGS1(char *, url)
 	if (!last) last = cfn;
 	if ((int)strlen(last) > 64) {
 	    if (CACHE_TRACE)
-		fprintf(TDEST, "Too long.... cache file name \"%s\"\n", cfn);
+		TTYPrint(TDEST, "Too long.... cache file name \"%s\"\n", cfn);
 	    free(cfn);
 	    cfn = NULL;
 	}
@@ -281,10 +281,10 @@ PRIVATE BOOL create_cache_place ARGS1(char *, cfn)
 	if (create || HT_STAT(cfn, &stat_info) == -1) {
 	    create = YES;	/* To avoid doing stat()s in vain */
 	    if (CACHE_TRACE)
-		fprintf(TDEST,"Cache....... creating cache dir \"%s\"\n",cfn);
+		TTYPrint(TDEST,"Cache....... creating cache dir \"%s\"\n",cfn);
 	    if (MKDIR(cfn, 0777) < 0) {
 		if (CACHE_TRACE)
-		    fprintf(TDEST,"Cache....... can't create dir `%s\'\n",cfn);
+		    TTYPrint(TDEST,"Cache....... can't create dir `%s\'\n",cfn);
 		return NO;
 	    }
 	} else {
@@ -299,11 +299,11 @@ PRIVATE BOOL create_cache_place ARGS1(char *, cfn)
 		sprintf(tmp2, "%s/%s", cfn, INDEX_FILE);
 
 		if (CACHE_TRACE) {
-		    fprintf(TDEST,"Cache....... moving \"%s\" to \"%s\"\n",
+		    TTYPrint(TDEST,"Cache....... moving \"%s\" to \"%s\"\n",
 			    cfn,tmp1);
-		    fprintf(TDEST,"and......... creating dir \"%s\"\n",
+		    TTYPrint(TDEST,"and......... creating dir \"%s\"\n",
 			    cfn);
-		    fprintf(TDEST,"and......... moving \"%s\" to \"%s\"\n",
+		    TTYPrint(TDEST,"and......... moving \"%s\" to \"%s\"\n",
 			    tmp1,tmp2);
 		}
 		rename(cfn,tmp1);
@@ -314,7 +314,7 @@ PRIVATE BOOL create_cache_place ARGS1(char *, cfn)
 	    }
 	    else {
 		if (CACHE_TRACE)
-		    fprintf(TDEST,"Cache....... dir \"%s\" already exists\n",
+		    TTYPrint(TDEST,"Cache....... dir \"%s\" already exists\n",
 			    cfn);
 	    }
 	}
@@ -448,7 +448,7 @@ PUBLIC BOOL HTCache_setRoot ARGS1(CONST char *, cache_root)
     if (*(HTCacheRoot+strlen(HTCacheRoot)-1) != '/')
 	StrAllocCat(HTCacheRoot, "/");
     if (CACHE_TRACE)
-	fprintf(TDEST, "Cache Root.. Root set to `%s\'\n", HTCacheRoot);
+	TTYPrint(TDEST, "Cache Root.. Root set to `%s\'\n", HTCacheRoot);
     return YES;
 }
 
@@ -538,7 +538,7 @@ PUBLIC char * HTCache_getReference ARGS1(char *, url)
 		char *url = HTCache_wwwName(fnam);
 		fclose(fp);
 		if (CACHE_TRACE)
-		    fprintf(TDEST, "Cache....... Object found `%s\'\n", url);
+		    TTYPrint(TDEST, "Cache....... Object found `%s\'\n", url);
 		free(fnam);
 		return url;
 	    } else
@@ -598,7 +598,7 @@ PRIVATE int HTCache_free ARGS1(HTStream *, me)
 PRIVATE int HTCache_abort ARGS2(HTStream *, me, HTError, e)
 {
     if (CACHE_TRACE)
-	fprintf(TDEST, "Cache....... ABORTING\n");
+	TTYPrint(TDEST, "Cache....... ABORTING\n");
     if (me->fp)
 	fclose(me->fp);
     if (me->cache)
@@ -635,7 +635,7 @@ PUBLIC HTStream* HTCacheWriter ARGS5(
     HTStream *me;
     if (HTSecure) {
 	if (CACHE_TRACE)
-	    fprintf(TDEST, "Cache....... No caching in secure mode.\n");
+	    TTYPrint(TDEST, "Cache....... No caching in secure mode.\n");
 	return HTBlackHole();
     }
 
@@ -650,12 +650,12 @@ PUBLIC HTStream* HTCacheWriter ARGS5(
     me->request = request;
     if ((me->fp = fopen(fnam, "wb")) == NULL) {
 	if (CACHE_TRACE)
-	    fprintf(TDEST, "Cache....... Can't open %s for writing\n", fnam);
+	    TTYPrint(TDEST, "Cache....... Can't open %s for writing\n", fnam);
 	free(fnam);
 	return HTBlackHole();
     } else
 	if (CACHE_TRACE)
-	    fprintf(TDEST, "Cache....... Creating file %s\n", fnam);
+	    TTYPrint(TDEST, "Cache....... Creating file %s\n", fnam);
 
     /* Set up a cache record */
     if ((me->cache = (HTCache *) calloc(sizeof(*me->cache), 1)) == NULL)

@@ -80,7 +80,7 @@ PRIVATE BOOL add_object (HTList * list, CONST char * access, CONST char * url)
 	}
 	if (pres) {
 	    if (PROT_TRACE)
-		fprintf(TDEST, "HTProxy..... replacing for `%s\' access %s\n",
+		TTYPrint(TDEST, "HTProxy..... replacing for `%s\' access %s\n",
 			me->url, me->access);
 	    FREE(pres->access);
 	    FREE(pres->url);
@@ -88,7 +88,7 @@ PRIVATE BOOL add_object (HTList * list, CONST char * access, CONST char * url)
 	    free(pres);
 	}
 	if (PROT_TRACE)
-	    fprintf(TDEST, "HTProxy..... adding for `%s\' access %s\n",
+	    TTYPrint(TDEST, "HTProxy..... adding for `%s\' access %s\n",
 		    me->url, me->access);
 	HTList_addObject(list, (void *) me);
     }
@@ -135,7 +135,7 @@ PRIVATE BOOL add_hostname (HTList * list, CONST char * host,
     }
     me->port = port;					      /* Port number */
     if (PROT_TRACE)
-	fprintf(TDEST, "HTHostList.. adding `%s\' to list\n", me->host);
+	TTYPrint(TDEST, "HTHostList.. adding `%s\' to list\n", me->host);
     HTList_addObject(list, (void *) me);
     return YES;
 }
@@ -283,7 +283,7 @@ PUBLIC char * HTProxy_find (CONST char * url)
 			while (np>=pres->host && hp>=host && (*np--==*hp--));
 			if (np==pres->host-1 && (hp==host-1 || *hp=='.')) {
 			    if (PROT_TRACE)
-				fprintf(TDEST, "GetProxy.... No proxy directive found: `%s\'\n", pres->host);
+				TTYPrint(TDEST, "GetProxy.... No proxy directive found: `%s\'\n", pres->host);
 			    FREE(access);
 			    return NULL;
 			}
@@ -302,7 +302,7 @@ PUBLIC char * HTProxy_find (CONST char * url)
 	    if (!strcmp(pres->access, access)) {
 		StrAllocCopy(proxy, pres->url);
 		if (PROT_TRACE)
-		    fprintf(TDEST, "GetProxy.... Found: `%s\'\n", pres->url);
+		    TTYPrint(TDEST, "GetProxy.... Found: `%s\'\n", pres->url);
 		break;
 	    }
 	}
@@ -340,7 +340,7 @@ PUBLIC char * HTGateway_find (CONST char * url)
 	    if (!strcmp(pres->access, access)) {
 		StrAllocCopy(gateway, pres->url);
 		if (PROT_TRACE)
-		    fprintf(TDEST, "GetGateway.. Found: `%s\'\n", pres->url);
+		    TTYPrint(TDEST, "GetGateway.. Found: `%s\'\n", pres->url);
 		break;
 	    }
 	}

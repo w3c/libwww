@@ -210,7 +210,7 @@ PRIVATE int ScanResponse (HTStream * me)
     *(me->buffer+me->buflen) = '\0';
     if (isdigit(*(me->buffer))) sscanf(me->buffer, "%d%c", &reply, &cont);
     if (me->first_line) {
-	if (PROT_TRACE) fprintf(TDEST, "FTP Rx...... `%s\'\n", me->buffer);
+	if (PROT_TRACE) TTYPrint(TDEST, "FTP Rx...... `%s\'\n", me->buffer);
 	if (!reply) return HT_ERROR;
 	me->first_line = NO;
 	me->ctrl->repcode = reply;
@@ -261,7 +261,7 @@ PRIVATE int FTPStatus_put_block (HTStream * me, CONST char * b, int l)
 	    *(me->buffer+me->buflen++) = *b;
 	    if (me->buflen >= MAX_FTP_LINE) {
 		if (PROT_TRACE)
-		    fprintf(TDEST, "FTP Status.. Line too long - chopped\n");
+		    TTYPrint(TDEST, "FTP Status.. Line too long - chopped\n");
 		me->junk = YES;
 		if ((status = ScanResponse(me)) != HT_OK) {
 		    me->junk = NO;
@@ -308,7 +308,7 @@ PRIVATE int FTPStatus_abort (HTStream * me, HTError e)
     HTChunkFree(me->welcome);
     free(me);
     if (PROT_TRACE)
-	fprintf(TDEST, "FTPStatus... ABORTING...\n");
+	TTYPrint(TDEST, "FTPStatus... ABORTING...\n");
     return HT_ERROR;
 }
 
@@ -353,7 +353,7 @@ PRIVATE int SendCommand (HTRequest *request, ftp_ctrl *ctrl,
 	sprintf(HTChunkData(ctrl->cmd), "%s %s%c%c", token, pars, CR, LF);
     else
 	sprintf(HTChunkData(ctrl->cmd), "%s%c%c", token, CR, LF);
-    if (PROT_TRACE) fprintf(TDEST, "FTP Tx...... %s", HTChunkData(ctrl->cmd));
+    if (PROT_TRACE) TTYPrint(TDEST, "FTP Tx...... %s", HTChunkData(ctrl->cmd));
     return (*request->input_stream->isa->put_block)
 	(request->input_stream, HTChunkData(ctrl->cmd), len);
 }
@@ -389,7 +389,7 @@ PRIVATE BOOL HTFTPParseURL (char *url, ftp_ctrl *ctrl, ftp_data *data)
 	    StrAllocCopy(ctrl->passwd, WWW_FTP_CLIENT);
     }
     if (PROT_TRACE)
-	fprintf(TDEST, "FTPParse.... uid `%s\' pw `%s\'\n",
+	TTYPrint(TDEST, "FTPParse.... uid `%s\' pw `%s\'\n",
 		ctrl->uid ? ctrl->uid : "<null>",
 		ctrl->passwd ? ctrl->passwd : "<null>");	
 
@@ -405,7 +405,7 @@ PRIVATE BOOL HTFTPParseURL (char *url, ftp_ctrl *ctrl, ftp_data *data)
 	data->type = 'N';
     }
     if (data->type && PROT_TRACE)
-	fprintf(TDEST, "FTPParse.... Datatype %c\n", data->type);	
+	TTYPrint(TDEST, "FTPParse.... Datatype %c\n", data->type);	
     StrAllocCopy(data->file, path);
     data->offset = data->file;
     free(login);
@@ -450,7 +450,7 @@ PRIVATE BOOL ListenSocket (HTNet *cnet, HTNet *dnet, ftp_data *data)
 	if (DataPort > LAST_TCP_PORT)
 	    DataPort = FIRST_TCP_PORT;
 	if (DataPort == old_DataPort) {
-	    if (PROT_TRACE) fprintf(TDEST,"FTP......... No data port found\n");
+	    if (PROT_TRACE) TTYPrint(TDEST,"FTP......... No data port found\n");
 	    return NO;
 	}
 	if (HTDoListen(dnet, DataPort) == HT_OK)
@@ -474,7 +474,7 @@ PRIVATE BOOL ListenSocket (HTNet *cnet, HTNet *dnet, ftp_data *data)
 	    HTErrorSysAdd(dnet->request, ERR_FATAL, socerrno,NO,"getsockname");
 	    return NO;
 	}
-	if (PROT_TRACE) fprintf(TDEST, "FTP......... This host is `%s\'\n",
+	if (PROT_TRACE) TTYPrint(TDEST, "FTP......... This host is `%s\'\n",
 				HTInetString(&local_addr));
 	{
 	    u_long addr = local_addr.sin_addr.s_addr;
@@ -663,14 +663,14 @@ PRIVATE int HTFTPLogin (HTRequest *request, HTNet *cnet, ftp_ctrl *ctrl)
 
 	  case SUB_ERROR:
 	    if (PROT_TRACE)
-		fprintf(TDEST, "FTP......... Login failed\n");
+		TTYPrint(TDEST, "FTP......... Login failed\n");
 	    ctrl->substate = 0;
 	    return HT_ERROR;
 	    break;
 
 	  case SUB_SUCCESS:
 	    if (PROT_TRACE)
-		fprintf(TDEST, "FTP......... Logged in as `%s\'\n", ctrl->uid);
+		TTYPrint(TDEST, "FTP......... Logged in as `%s\'\n", ctrl->uid);
 	    ctrl->substate = 0;
 	    return HT_OK;
 	    break;
@@ -766,7 +766,7 @@ PRIVATE int HTFTPDataConnection (HTRequest * request, HTNet *cnet,
 			if (!*host || sscanf(--host, "%d,%d,%d,%d,%d,%d",
 					     &h0,&h1,&h2,&h3,&p0,&p1) < 6) {
 			    if (PROT_TRACE)
-				fprintf(TDEST, "FTP......... PASV No addr\n");
+				TTYPrint(TDEST, "FTP......... PASV No addr\n");
 			    ctrl->substate = SUB_ERROR;
 			    break;
 			} else {
@@ -810,14 +810,14 @@ PRIVATE int HTFTPDataConnection (HTRequest * request, HTNet *cnet,
 
 	  case SUB_ERROR:
 	    if (PROT_TRACE)
-		fprintf(TDEST, "FTP......... Can't setup data connection\n");
+		TTYPrint(TDEST, "FTP......... Can't setup data connection\n");
 	    ctrl->substate = 0;
 	    return HT_ERROR;
 	    break;
 
 	  case SUB_SUCCESS:
 	    if (PROT_TRACE)
-		fprintf(TDEST, "FTP......... Data connection negotiated\n");
+		TTYPrint(TDEST, "FTP......... Data connection negotiated\n");
 	    ctrl->substate = 0;
 	    return HT_OK;
 	    break;
@@ -879,7 +879,7 @@ PRIVATE int HTFTPServerInfo (HTRequest *request, HTNet *cnet,
 		char *reply = ctrl->reply;
 		if (!*reply) {
 		    if (PROT_TRACE)
-			fprintf(TDEST, "FTP......... No server info?\n");
+			TTYPrint(TDEST, "FTP......... No server info?\n");
 		    ctrl->substate = NEED_PWD;
 		    break;
 		}
@@ -938,7 +938,7 @@ PRIVATE int HTFTPServerInfo (HTRequest *request, HTNet *cnet,
 		char *end;
 		if (!start || (end = strchr(++start, '"')) == NULL) {
 		    if (PROT_TRACE)
-			fprintf(TDEST, "FTP......... No current directory?\n");
+			TTYPrint(TDEST, "FTP......... No current directory?\n");
 		    ctrl->server = FTP_GENERIC;
 		} else {
 		    *end = '\0';
@@ -959,7 +959,7 @@ PRIVATE int HTFTPServerInfo (HTRequest *request, HTNet *cnet,
 
 	  case SUB_ERROR:
 	    if (PROT_TRACE)
-		fprintf(TDEST, "FTP......... Can't get server information\n");
+		TTYPrint(TDEST, "FTP......... Can't get server information\n");
 	    ctrl->substate = 0;
 	    ctrl->server = FTP_GENERIC;
 	    return HT_ERROR;
@@ -967,7 +967,7 @@ PRIVATE int HTFTPServerInfo (HTRequest *request, HTNet *cnet,
 
 	  case SUB_SUCCESS:
 	    if (PROT_TRACE)
-		fprintf(TDEST, "FTP Server.. Guessed type %d\n", ctrl->server);
+		TTYPrint(TDEST, "FTP Server.. Guessed type %d\n", ctrl->server);
 	    HTDNS_setServerVersion(cnet->dns, ctrl->server);
 	    FTPListType(data, ctrl->server);
 	    ctrl->substate = 0;
@@ -1017,14 +1017,14 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKFD sockfd,
 		return HT_WOULD_BLOCK;
 	    else if (status == HT_OK) {
 		if (PROT_TRACE)
-		    fprintf(TDEST, "FTP Data.... Active data socket %d\n",
+		    TTYPrint(TDEST, "FTP Data.... Active data socket %d\n",
 			    dnet->sockfd);
 		ctrl->substate = NEED_ACTION;
 	    } else {				  /* Swap to PORT on the fly */
 		NETCLOSE(dnet->sockfd);
 		dnet->sockfd = INVSOC;
 		if (PROT_TRACE)
-		    fprintf(TDEST, "FTP......... Swap to PORT on the fly\n");
+		    TTYPrint(TDEST, "FTP......... Swap to PORT on the fly\n");
 		ctrl->substate = 0;
 		FREE(segment);
 		return HT_OK;
@@ -1039,12 +1039,12 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKFD sockfd,
 		    return HT_WOULD_BLOCK;
 		else if (status == HT_OK) {
 		    if (PROT_TRACE)
-			fprintf(TDEST, "FTP Data.... Passive data socket %d\n",
+			TTYPrint(TDEST, "FTP Data.... Passive data socket %d\n",
 				dnet->sockfd);
 		    NETCLOSE(dnet->sockfd);
 		    dnet->sockfd = newfd;
 		    if (PROT_TRACE)
-			fprintf(TDEST, "FTP Data.... New data socket %d\n",
+			TTYPrint(TDEST, "FTP Data.... New data socket %d\n",
 				dnet->sockfd);
 		    ctrl->substate = NEED_STREAM;
 		} else
@@ -1188,7 +1188,7 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKFD sockfd,
 
 	  case SUB_ERROR:
 	    if (PROT_TRACE)
-		fprintf(TDEST, "FTP......... Can't retrieve object\n");
+		TTYPrint(TDEST, "FTP......... Can't retrieve object\n");
 	    ctrl->substate = 0;
 	    FREE(segment);
 	    return HT_ERROR;
@@ -1196,7 +1196,7 @@ PRIVATE int HTFTPGetData (HTRequest *request, HTNet *cnet, SOCKFD sockfd,
 
 	  case SUB_SUCCESS:
 	    if (PROT_TRACE)
-		fprintf(TDEST, "FTP......... Object is loaded\n");
+		TTYPrint(TDEST, "FTP......... Object is loaded\n");
 	    ctrl->substate = 0;
 	    FREE(segment);
 	    return HT_LOADED;
@@ -1230,7 +1230,7 @@ PUBLIC int HTLoadFTP (SOCKET soc, HTRequest * request, SockOps ops)
     ** machine as we need the structure first.
     */
     if (ops == FD_NONE) {
- 	if (PROT_TRACE) fprintf(TDEST, "FTP......... Looking for `%s\'\n",url);
+ 	if (PROT_TRACE) TTYPrint(TDEST, "FTP......... Looking for `%s\'\n",url);
 	if ((ctrl = (ftp_ctrl *) calloc(1, sizeof(ftp_ctrl))) == NULL ||
 	    (data = (ftp_data *) calloc(1, sizeof(ftp_data))) == NULL)
 	    outofmem(__FILE__, "HTLoadFTP");
@@ -1278,13 +1278,13 @@ PUBLIC int HTLoadFTP (SOCKET soc, HTRequest * request, SockOps ops)
 		if (HTDNS_socket(cnet->dns) != INVSOC) {
 		    ctrl->server = HTDNS_serverVersion(cnet->dns);
 		    if (PROT_TRACE)
-			fprintf(TDEST, "FTP Server.. We know from cache that this is a type %d server\n",
+			TTYPrint(TDEST, "FTP Server.. We know from cache that this is a type %d server\n",
 				ctrl->server);
 		    ctrl->reset = 1;
 		} else
 		    HTDNS_setSocket(cnet->dns, cnet->sockfd);
 		if (PROT_TRACE)
-		    fprintf(TDEST, "FTP Ctrl.... Connected, socket %d\n",
+		    TTYPrint(TDEST, "FTP Ctrl.... Connected, socket %d\n",
 			    cnet->sockfd);
 
 		/* Set up stream TO network */

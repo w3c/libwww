@@ -88,9 +88,9 @@ PUBLIC int HTAddRule ARGS3(HTRuleOp,		op,
     strcpy(pPattern, pattern);
     if (WWWTRACE) {
        if (equiv)
-          fprintf(TDEST, "Rule: For `%s' op %d `%s'\n", pattern, op, equiv);
+          TTYPrint(TDEST, "Rule: For `%s' op %d `%s'\n", pattern, op, equiv);
        else
-          fprintf(TDEST, "Rule: For `%s' op %d\n", pattern, op);
+          TTYPrint(TDEST, "Rule: For `%s' op %d\n", pattern, op);
     }
 
 #ifdef PUT_ON_HEAD
@@ -174,7 +174,7 @@ PUBLIC char * HTTranslate ARGS1(CONST char *, required)
 	case HT_Pass:				/* Authorised */
     		if (!r->equiv) {
 		    if (PROT_TRACE)
-			fprintf(TDEST, "HTRule: Pass `%s'\n", current);
+			TTYPrint(TDEST, "HTRule: Pass `%s'\n", current);
 		    return current;
 	        }
 		/* Else fall through ...to map and pass */
@@ -182,7 +182,7 @@ PUBLIC char * HTTranslate ARGS1(CONST char *, required)
 	case HT_Map:
 	    if (*p == *q) { /* End of both strings, no wildcard */
 		if (PROT_TRACE)
-		    fprintf(TDEST, "For `%s' using `%s'\n",current,r->equiv);
+		    TTYPrint(TDEST, "For `%s' using `%s'\n",current,r->equiv);
 		StrAllocCopy(current, r->equiv); /* use entire translation */
 	    } else {
 		  char * ins = strchr(r->equiv, '*');	/* Insertion point */
@@ -196,7 +196,7 @@ PUBLIC char * HTTranslate ARGS1(CONST char *, required)
 			strncpy(temp+(ins-r->equiv), q, m);  /* Matched bit */
 			strcpy (temp+(ins-r->equiv)+m, ins+1);	/* Last bit */
     			if (PROT_TRACE)
-			    fprintf(TDEST, "For `%s' using `%s'\n",
+			    TTYPrint(TDEST, "For `%s' using `%s'\n",
 				    current, temp);
 			free(current);
 			current = temp;			/* Use this */
@@ -207,7 +207,7 @@ PUBLIC char * HTTranslate ARGS1(CONST char *, required)
 			    outofmem(__FILE__, "HTTranslate"); /* NT & AS */
 			strcpy(temp, r->equiv);
     			if (PROT_TRACE)
-			    fprintf(TDEST, "For `%s' using `%s'\n", current,
+			    TTYPrint(TDEST, "For `%s' using `%s'\n", current,
 				    temp);
 			free(current);
 			current = temp;			/* Use this */
@@ -215,7 +215,7 @@ PUBLIC char * HTTranslate ARGS1(CONST char *, required)
 		}
 		if (r->op == HT_Pass) {
 		    if (PROT_TRACE)
-			fprintf(TDEST, "HTRule: ...and pass `%s'\n", current);
+			TTYPrint(TDEST, "HTRule: ...and pass `%s'\n", current);
 		    return current;
 		}
 		break;
@@ -223,7 +223,7 @@ PUBLIC char * HTTranslate ARGS1(CONST char *, required)
 	case HT_Fail:				/* Unauthorised */
 	default:
 	    if (PROT_TRACE)
-		fprintf(TDEST,"HTRule: *** FAIL `%s'\n", current);
+		TTYPrint(TDEST,"HTRule: *** FAIL `%s'\n", current);
 	    return (char *)0;
 		    		    
 	} /* if tail matches ... switch operation */
@@ -267,7 +267,7 @@ PUBLIC int HTSetConfiguration ARGS1(CONST char *, config)
     word3 = HTNextField(&pointer);
 
     if (!word2) {
-	fprintf(TDEST, "HTRule: Insufficient operands: %s\n", line);
+	TTYPrint(TDEST, "HTRule: Insufficient operands: %s\n", line);
 	free(line);
 	return -2;	/*syntax error */
     }
@@ -320,7 +320,7 @@ PUBLIC int HTSetConfiguration ARGS1(CONST char *, config)
 	    :					HT_Invalid;
 	if (op==HT_Invalid) {
 	    if (PROT_TRACE)
-		fprintf(TDEST, "HTRule: Bad rule `%s'\n", config);
+		TTYPrint(TDEST, "HTRule: Bad rule `%s'\n", config);
 	} else {  
 	    HTAddRule(op, word2, word3);
 	} 
@@ -357,7 +357,7 @@ int HTLoadRules ARGS1(CONST char *, filename)
 	}
     }
     if (PROT_TRACE)
-	fprintf(TDEST, "Rule file... Can't open file %s\n", filename);
+	TTYPrint(TDEST, "Rule file... Can't open file %s\n", filename);
     return -1;
 }
 

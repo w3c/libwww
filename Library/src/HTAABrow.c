@@ -223,24 +223,24 @@ PRIVATE HTAASetup *HTAASetup_lookup ARGS3(CONST char *, hostname,
 	HTList *cur = server->setups;
 
 	if (PROT_TRACE)
-	    fprintf(TDEST, "Access Auth. resolving setup for (%s:%d:%s)\n",
+	    TTYPrint(TDEST, "Access Auth. resolving setup for (%s:%d:%s)\n",
 		    hostname, portnumber, docname);
 
 	while (NULL != (setup = (HTAASetup*)HTList_nextObject(cur))) {
 	    if (HTAA_templateMatch(setup->tmplate, docname)) {
 		if (PROT_TRACE)
-		    fprintf(TDEST, "Access Auth. `%s' matched template `%s'\n",
+		    TTYPrint(TDEST, "Access Auth. `%s' matched template `%s'\n",
 			    docname, setup->tmplate);
 		return setup;
 	    }
 	    else if (PROT_TRACE)
-		fprintf(TDEST,"%s `%s' %s `%s'\n","HTAASetup_lookup:", docname,
+		TTYPrint(TDEST,"%s `%s' %s `%s'\n","HTAASetup_lookup:", docname,
 			"did NOT match template", setup->tmplate);
 	} /* while setups remain */
     } /* if valid parameters and server found */
 
     if (PROT_TRACE)
-	fprintf(TDEST, "Access Auth. `%s' (so probably not protected)\n",
+	TTYPrint(TDEST, "Access Auth. `%s' (so probably not protected)\n",
 		(docname ? docname : "(null)"));
     return NULL;			 /* NULL in parameters, or not found */
 }
@@ -573,7 +573,7 @@ PUBLIC BOOL HTAA_composeAuth ARGS1(HTRequest *, req)
     else portnumber = 80;
 	
     if (PROT_TRACE)
-	fprintf(TDEST, "Access Auth. composing authorization for %s:%d/%s\n",
+	TTYPrint(TDEST, "Access Auth. composing authorization for %s:%d/%s\n",
 		hostname, portnumber, docname);
 
 #ifdef OLD_CODE
@@ -669,7 +669,7 @@ PUBLIC BOOL HTPasswordDialog ARGS1(HTRequest *,	req)
 {
     if (!req || !req->setup || !req->realm || !req->dialog_msg) {
 	if (PROT_TRACE)
-	    fprintf(TDEST, "Access...... called with an illegal parameter");
+	    TTYPrint(TDEST, "Access...... called with an illegal parameter");
 	return NO;
     }
     if (req->setup->reprompt &&
@@ -771,7 +771,7 @@ PUBLIC BOOL HTAA_retryWithAuth ARGS1(HTRequest *,	req)
 	else portnumber = 80;
 	
 	if (PROT_TRACE)
-	    fprintf(TDEST, "HTAA_retryWithAuth: first retry of %s:%d/%s\n",
+	    TTYPrint(TDEST, "HTAA_retryWithAuth: first retry of %s:%d/%s\n",
 		    hostname, portnumber, docname);
 
 	if (!(server = HTAAServer_lookup(hostname, portnumber))) {

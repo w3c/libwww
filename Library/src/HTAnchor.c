@@ -83,7 +83,7 @@ PUBLIC HTChildAnchor * HTAnchor_findChild (HTParentAnchor *	parent,
     
     if (!parent) {
 	if (ANCH_TRACE)
-	    fprintf(TDEST, "Find Child.. called with NULL parent.\n");
+	    TTYPrint(TDEST, "Find Child.. called with NULL parent.\n");
 	return NULL;
     }
 
@@ -93,7 +93,7 @@ PUBLIC HTChildAnchor * HTAnchor_findChild (HTParentAnchor *	parent,
 	    while ((child = (HTChildAnchor *) HTList_nextObject(kids))) {
 		if (child->tag && !strcmp(child->tag, tag)) {
 		    if (ANCH_TRACE)
-			fprintf (TDEST,
+			TTYPrint(TDEST,
 				 "Find Child.. %p of parent %p with name `%s' already exists.\n",
 				 (void *) child, (void *) parent, tag);
 		    return child;
@@ -109,7 +109,7 @@ PUBLIC HTChildAnchor * HTAnchor_findChild (HTParentAnchor *	parent,
     child->parent = parent;
     StrAllocCopy(child->tag, tag);
     if (ANCH_TRACE)
-	fprintf(TDEST,"Find Child.. New Anchor %p named `%s' is child of %p\n",
+	TTYPrint(TDEST,"Find Child.. New Anchor %p named `%s' is child of %p\n",
 		(void *) child, tag ? tag : (CONST char *) "", (void *)parent);
     return child;
 }
@@ -164,7 +164,7 @@ PUBLIC HTAnchor * HTAnchor_findAddress (CONST char * address)
 	while ((foundAnchor = (HTParentAnchor *) HTList_nextObject(grownups))){
 	    if (!strcmp(foundAnchor->address, newaddr)) {
 		if (ANCH_TRACE)
-		    fprintf(TDEST, "Find Parent. %p with address `%s' already exists.\n",
+		    TTYPrint(TDEST, "Find Parent. %p with address `%s' already exists.\n",
 			    (void*) foundAnchor, newaddr);
 		free(newaddr);			       /* We already have it */
 		return (HTAnchor *) foundAnchor;
@@ -175,7 +175,7 @@ PUBLIC HTAnchor * HTAnchor_findAddress (CONST char * address)
 	foundAnchor = HTParentAnchor_new();
 	foundAnchor->address = newaddr;			/* Remember our copy */
 	HTList_addObject (adults, foundAnchor);
-	if (ANCH_TRACE) fprintf(TDEST, "Find Parent. %p with hash %d and address `%s' created\n", (void*)foundAnchor, hash, newaddr);
+	if (ANCH_TRACE) TTYPrint(TDEST, "Find Parent. %p with hash %d and address `%s' created\n", (void*)foundAnchor, hash, newaddr);
 	return (HTAnchor *) foundAnchor;
     }
 }
@@ -219,7 +219,7 @@ PUBLIC BOOL HTAnchor_link (HTAnchor *	source,
     if (!(source && destination))
 	return NO;		/* Can't link to/from non-existing anchor */
     if (ANCH_TRACE)
-	fprintf(TDEST, "Link Anchors anchor %p to anchor %p\n",
+	TTYPrint(TDEST, "Link Anchors anchor %p to anchor %p\n",
 		(void *) source, (void *) destination);
     if (!source->mainLink.dest) {
 	source->mainLink.dest = destination;
@@ -307,7 +307,7 @@ PUBLIC BOOL HTAnchor_moveAllLinks (HTAnchor * src, HTAnchor * dest)
 {
     if (!src || !dest) return NO;
     if (ANCH_TRACE)
-	fprintf(TDEST, "Move Links.. from anchor %p to anchor %p\n",
+	TTYPrint(TDEST, "Move Links.. from anchor %p to anchor %p\n",
 		(void *) src, (void *) dest);
 
     /* Move main link information */
@@ -343,7 +343,7 @@ PUBLIC BOOL HTAnchor_removeLink (HTAnchor * src, HTAnchor * dest)
 {
     if (!src || !dest) return NO;
     if (ANCH_TRACE)
-	fprintf(TDEST, "Remove Link. from anchor %p to anchor %p\n",
+	TTYPrint(TDEST, "Remove Link. from anchor %p to anchor %p\n",
 		(void *) src, (void *) dest);
 
     /* Remove if dest is the main link */
@@ -378,7 +378,7 @@ PUBLIC BOOL HTAnchor_removeAllLinks (HTAnchor * me)
 {
     if (!me) return NO;
     if (ANCH_TRACE)
-	fprintf(TDEST, "Remove Link. from anchor %p\n", (void *) me);
+	TTYPrint(TDEST, "Remove Link. from anchor %p\n", (void *) me);
 
     /* Remove if dest is the main link */
     me->mainLink.dest = NULL;
@@ -511,10 +511,10 @@ PRIVATE HyperDoc *delete_family (HTAnchor * me)
 {
     HTParentAnchor *parent = me->parent;
     if (ANCH_TRACE)
-	fprintf(TDEST, "AnchorDelete Remove parent %p and children\n", parent);
+	TTYPrint(TDEST, "AnchorDelete Remove parent %p and children\n", parent);
     if (!me) {
 	if (ANCH_TRACE)
-	    fprintf(TDEST, "AnchorDelete No anchor found\n");
+	    TTYPrint(TDEST, "AnchorDelete No anchor found\n");
 	return NULL;
     }
 
@@ -719,7 +719,7 @@ PUBLIC void HTAnchor_setPhysical (HTParentAnchor * me,
 {
     if (!me || !physical) {
 	if (ANCH_TRACE)
-	    fprintf(TDEST, "HTAnchor.... setPhysical, called with null argument\n");
+	    TTYPrint(TDEST, "HTAnchor.... setPhysical, called with null argument\n");
 	return;
     }
     StrAllocCopy(me->physical, physical);

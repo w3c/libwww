@@ -113,7 +113,7 @@ PRIVATE CONST HTStreamClass HTBlackHoleClass =
 PUBLIC HTStream * HTBlackHole (void)
 {
     if (STREAM_TRACE)
-	fprintf(TDEST, "BlackHole... Created\n");
+	TTYPrint(TDEST, "BlackHole... Created\n");
     HTBlackHoleInstance.isa = &HTBlackHoleClass;       /* The rest is random */
     return &HTBlackHoleInstance;
 }
@@ -174,7 +174,9 @@ PRIVATE int HTFWriter_free (HTStream * me)
     if (me->leave_open != YES) fclose(me->fp);
 
     if (me->end_command) {		/* Temp file */
+#ifdef GOT_SYSTEM
 	system(me->end_command);	/* @@ Beware of security hole */
+#endif
 	free (me->end_command);
 	if (me->remove_on_close) {
 	    REMOVE(me->filename);
@@ -193,7 +195,7 @@ PRIVATE int HTFWriter_abort (HTStream * me, HTError e)
     if (me->leave_open != YES) fclose(me->fp);
     if (me->end_command) {		/* Temp file */
 	if (STREAM_TRACE)
-	    fprintf(TDEST,"FileWriter.. Aborting: file %s not executed.\n",
+	    TTYPrint(TDEST,"FileWriter.. Aborting: file %s not executed.\n",
 		    me->filename ? me->filename : "???" );
 	free (me->end_command);
 	if (me->remove_on_close) {
@@ -223,7 +225,7 @@ PUBLIC HTStream* HTFWriter_new (FILE * fp, BOOL leave_open)
     
     if (!fp) {
 	if (STREAM_TRACE)
-	    fprintf(TDEST, "FileWriter.. Bad file descriptor\n");
+	    TTYPrint(TDEST, "FileWriter.. Bad file descriptor\n");
 	return NULL;
     }
     me = (HTStream*)calloc(sizeof(*me),1);
@@ -253,7 +255,7 @@ PUBLIC BOOL HTTmp_setRoot (CONST char * tmp_root)
     if (*(HTTmpRoot+strlen(HTTmpRoot)-1) != '/')
 	StrAllocCat(HTTmpRoot, "/");
     if (STREAM_TRACE)
-	fprintf(TDEST, "Tmp Root.... Root set to `%s\'\n", HTTmpRoot);
+	TTYPrint(TDEST, "Tmp Root.... Root set to `%s\'\n", HTTmpRoot);
     return YES;
 }
 
@@ -338,7 +340,7 @@ PUBLIC HTStream* HTSaveAndExecute (HTRequest *	request,
     }
     
     if (!HTTmpRoot) {
-	if (STREAM_TRACE) fprintf(TDEST, "Save and execute turned off");
+	if (STREAM_TRACE) TTYPrint(TDEST, "Save and execute turned off");
 	return HTBlackHole();
     }
 	
@@ -403,7 +405,7 @@ PUBLIC HTStream* HTSaveLocally (HTRequest *	request,
     }
 
     if (!HTTmpRoot) {
-	if (STREAM_TRACE) fprintf(TDEST, "Save locally turned off");
+	if (STREAM_TRACE) TTYPrint(TDEST, "Save locally turned off");
 	return HTBlackHole();
     }
 	

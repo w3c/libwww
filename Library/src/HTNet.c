@@ -93,7 +93,7 @@ PUBLIC int HTNet_maxSocket (void)
 PUBLIC BOOL HTNet_register (HTNetCallback *cbf, int status)
 {
     if (THD_TRACE) 
-	fprintf(TDEST, "Net register HTNetCallback %p\n", (void *) cbf);
+	TTYPrint(TDEST, "Net register HTNetCallback %p\n", (void *) cbf);
     if (cbf) {
 	CBFInfo *cbfinfo = (CBFInfo *) calloc(1, sizeof(CBFInfo));
 	if (!cbfinfo) outofmem(__FILE__, "HTNet_register");
@@ -113,7 +113,7 @@ PUBLIC BOOL HTNet_register (HTNetCallback *cbf, int status)
 PUBLIC BOOL HTNet_unregister (HTNetCallback *cbf)
 {
     if (THD_TRACE) 
-	fprintf(TDEST, "Net unreg.. HTNetCallback %p\n", (void *) cbf);
+	TTYPrint(TDEST, "Net unreg.. HTNetCallback %p\n", (void *) cbf);
     if (HTNetCBF && cbf) {
 	HTList *cur = HTNetCBF;
 	CBFInfo *pres;
@@ -135,7 +135,7 @@ PUBLIC BOOL HTNet_unregister (HTNetCallback *cbf)
 PUBLIC BOOL HTNet_unregisterAll (void)
 {
     if (THD_TRACE) 
-	fprintf(TDEST, "Net unreg.. All callback functions\n");
+	TTYPrint(TDEST, "Net unreg.. All callback functions\n");
     if (HTNetCBF) {
 	HTList *cur = HTNetCBF;
 	CBFInfo *pres;
@@ -168,7 +168,7 @@ PUBLIC BOOL HTNet_callback (HTRequest * request, int status)
 	    CBFInfo *pres = (CBFInfo *) HTList_objectAt(HTNetCBF, cnt);
 	    if (pres && (pres->status == status || pres->status == HT_ALL)) {
 		if (THD_TRACE)
-		    fprintf(TDEST, "Net callback %p (request=%p, status=%d)\n",
+		    TTYPrint(TDEST, "Net callback %p (request=%p, status=%d)\n",
 			    (void *) pres->cbf, request, status);
 		(*(pres->cbf))(request, status);
 	    }
@@ -281,7 +281,7 @@ PUBLIC BOOL HTNet_new (HTRequest * request)
     me->sockfd = INVSOC;
     if (!(me->cbf = HTProtocol_callback(prot))) {
 	if (THD_TRACE)
-	    fprintf(TDEST, "HTNet_new... NO CALL BACK FUNCTION!\n");
+	    TTYPrint(TDEST, "HTNet_new... NO CALL BACK FUNCTION!\n");
 	free(me);
 	return NO;
     }
@@ -295,13 +295,13 @@ PUBLIC BOOL HTNet_new (HTRequest * request)
     if (HTList_count(HTNetActive) < HTMaxActive) {
 	HTList_addObject(HTNetActive, (void *) me);
 	if (THD_TRACE)
-	    fprintf(TDEST, "HTNet_new... starting request %p (retry=%d)\n",
+	    TTYPrint(TDEST, "HTNet_new... starting request %p (retry=%d)\n",
 		    request, request->retrys);
 	(*(me->cbf))(me->sockfd, request, FD_NONE);
     } else {
 	if (!HTNetPending) HTNetPending = HTList_new();
 	if (THD_TRACE)
-	    fprintf(TDEST, "HTNet_new... request %p registered as pending\n",
+	    TTYPrint(TDEST, "HTNet_new... request %p registered as pending\n",
 		    request);
 	HTProgress(request, HT_PROG_WAIT, NULL);
 	HTList_addObject(HTNetPending, (void *) me);	
@@ -316,7 +316,7 @@ PUBLIC BOOL HTNet_new (HTRequest * request)
 PRIVATE BOOL delete_object (HTNet *net, int status)
 {
     if (THD_TRACE)
-	fprintf(TDEST, "HTNet_delete Remove net object %p\n", net);
+	TTYPrint(TDEST, "HTNet_delete Remove net object %p\n", net);
     if (net) {
 	int status = 0;
 
@@ -335,11 +335,11 @@ PRIVATE BOOL delete_object (HTNet *net, int status)
 		    HTErrorSysAdd(net->request, ERR_FATAL, socerrno, NO,
 				  "NETCLOSE");
 		if (THD_TRACE)
-		    fprintf(TDEST, "HTNet_delete closing %d\n", net->sockfd);
+		    TTYPrint(TDEST, "HTNet_delete closing %d\n", net->sockfd);
 		HTEvent_UnRegister(net->sockfd, (SockOps) FD_ALL);
 	    } else {
 		if (THD_TRACE)
-		    fprintf(TDEST, "HTNet_delete keeping %d\n", net->sockfd);
+		    TTYPrint(TDEST, "HTNet_delete keeping %d\n", net->sockfd);
 		HTDNS_clearActive(net->dns);
 		/* Here we should probably use a low priority */
 		HTEvent_UnRegister(net->sockfd, (SockOps) FD_ALL);
@@ -370,7 +370,7 @@ PRIVATE BOOL delete_object (HTNet *net, int status)
 PUBLIC BOOL HTNet_delete (HTNet * net, int status)
 {
     if (THD_TRACE) 
-	fprintf(TDEST,"HTNetDelete. Net Object and call callback functions\n");
+	TTYPrint(TDEST,"HTNetDelete. Net Object and call callback functions\n");
     if (HTNetActive && net) {
 	SOCKFD cs = net->sockfd;			   /* Current sockfd */
 
@@ -390,7 +390,7 @@ PUBLIC BOOL HTNet_delete (HTNet * net, int status)
 	    while ((next = (HTNet *) HTList_nextObject(cur))) {
 		if (next->sockfd == cs) {
 		    if (THD_TRACE)
-			fprintf(TDEST, "HTNet delete launch WARM request %p\n",
+			TTYPrint(TDEST, "HTNet delete launch WARM request %p\n",
 				next->request);
 		    HTList_addObject(HTNetActive, (void *) next);
 		    HTList_removeObject(HTNetPersistent, (void *) next);
@@ -404,7 +404,7 @@ PUBLIC BOOL HTNet_delete (HTNet * net, int status)
 	    if (next) {
 		HTList_addObject(HTNetActive, (void *) next);
 		if (THD_TRACE)
-		    fprintf(TDEST,"HTNet delete launch PENDING request %p\n",
+		    TTYPrint(TDEST,"HTNet delete launch PENDING request %p\n",
 			    next->request);
 		(*(next->cbf))(INVSOC, next->request, FD_NONE);
 	    }
@@ -422,7 +422,7 @@ PUBLIC BOOL HTNet_delete (HTNet * net, int status)
 PUBLIC BOOL HTNet_deleteAll (void)
 {
     if (THD_TRACE) 
-	fprintf(TDEST, "HTNetDelete. Remove all Net objects, NO callback\n"); 
+	TTYPrint(TDEST, "HTNetDelete. Remove all Net objects, NO callback\n"); 
     if (HTNetPersistent) {
 	HTList *cur = HTNetPersistent;
 	HTNet *pres;
@@ -461,7 +461,7 @@ PUBLIC BOOL HTNet_wait (HTNet *net)
 {
     if (net) {
 	if (THD_TRACE)
-	    fprintf(TDEST,"HTNet_wait.. request %p is waiting for socket %d\n",
+	    TTYPrint(TDEST,"HTNet_wait.. request %p is waiting for socket %d\n",
 		    net->request, net->sockfd);
 	if (!HTNetPersistent) HTNetPersistent = HTList_new();
 	HTList_addObject(HTNetPersistent, (void *) net);	
@@ -494,7 +494,7 @@ PUBLIC BOOL HTNet_kill (HTNet * me)
 	}
     }
     if (THD_TRACE)
-	fprintf(TDEST, "HTNet_kill.. object %p is not registered\n", me);
+	TTYPrint(TDEST, "HTNet_kill.. object %p is not registered\n", me);
     return NO;
 }
 
@@ -509,7 +509,7 @@ PUBLIC BOOL HTNet_killAll (void)
 {
     HTNet *pres;
     if (THD_TRACE)
-	fprintf(TDEST, "HTNet_kill.. ALL registered requests!!!\n");
+	TTYPrint(TDEST, "HTNet_kill.. ALL registered requests!!!\n");
 
     /* We start off in persistent queue so we avoid racing */
     if (HTNetPersistent) {

@@ -61,20 +61,20 @@ PUBLIC CONST char * HTLib_appVersion (void)
 */
 PUBLIC BOOL HTLibInit (CONST char * AppName, CONST char * AppVersion)
 {
-#ifdef NO_STDIO						  /* Open trace file */
+#if WWWTRACE_MODE == WWWTRACE_FILE			  /* Open trace file */
     if ((TDEST = fopen(TRACE_FILE, "a")) != NULL) {
 	if (setvbuf(TDEST, NULL, _IOLBF, 0) < 0) {  /* Change to line buffer */
-	    printf("WWWLibInit.. Can't initialize TRACE buffer - no TRACE\n");
+	    TTYPrint(TDEST, "WWWLibInit.. Can't initialize TRACE buffer - no TRACE\n");
 	    fclose(TDEST);
 	    TDEST = NULL;
 	    WWW_TraceFlag = 0;
 	}
     } else
 	WWW_TraceFlag = 0;
-#endif
+#endif /* WWWTRACE_FILE */
 
     if (WWWTRACE)
-	fprintf(TDEST, "WWWLibInit.. INITIALIZING LIBRARY OF COMMON CODE\n");
+	TTYPrint(TDEST, "WWWLibInit.. INITIALIZING LIBRARY OF COMMON CODE\n");
 
     /* Set the application name and version */
     if (AppName) {
@@ -121,13 +121,13 @@ PUBLIC BOOL HTLibInit (CONST char * AppName, CONST char * AppVersion)
         WSADATA            wsadata;
 	if (WSAStartup(DESIRED_WINSOCK_VERSION, &wsadata)) {
 	    if (WWWTRACE)
-		fprintf(TDEST, "WWWLibInit.. Can't initialize WinSoc\n");
+		TTYPrint(TDEST, "WWWLibInit.. Can't initialize WinSoc\n");
             WSACleanup();
             return NO;
         }
         if (wsadata.wVersion < MINIMUM_WINSOCK_VERSION) {
             if (WWWTRACE)
-		fprintf(TDEST, "WWWLibInit.. Bad version of WinSoc\n");
+		TTYPrint(TDEST, "WWWLibInit.. Bad version of WinSoc\n");
             WSACleanup();
             return NO;
         }
@@ -150,7 +150,7 @@ PUBLIC BOOL HTLibInit (CONST char * AppName, CONST char * AppVersion)
 PUBLIC BOOL HTLibTerminate NOARGS
 {
     if (WWWTRACE)
-	fprintf(TDEST, "WWWLibTerm.. Cleaning up LIBRARY OF COMMON CODE\n");
+	TTYPrint(TDEST, "WWWLibTerm.. Cleaning up LIBRARY OF COMMON CODE\n");
     HTAtom_deleteAll();
     HTDNS_deleteAll();
 
@@ -171,13 +171,13 @@ PUBLIC BOOL HTLibTerminate NOARGS
     WSACleanup();
 #endif
 
-#ifdef NO_STDIO						 /* Close trace file */
+#if WWWTRACE_MODE == WWWTRACE_FILE			 /* Close trace file */
     if (TDEST) {
 	fclose(TDEST);
 	TDEST = NULL;
 	WWW_TraceFlag = 0;
     }
-#endif
+#endif /* WWWTRACE_FILE */
     return YES;
 }
 
@@ -195,7 +195,7 @@ PRIVATE BOOL HTLoadDocument ARGS2(HTRequest *, request, BOOL, recursive)
     if (PROT_TRACE) {
 	HTParentAnchor *anchor = HTRequest_anchor(request);
 	char * full_address = HTAnchor_address((HTAnchor *) anchor);
-	fprintf (TDEST, "HTAccess.... Accessing document %s\n", full_address);
+	TTYPrint(TDEST, "HTAccess.... Accessing document %s\n", full_address);
 	free(full_address);
     }
     return HTLoad(request, recursive);
@@ -379,7 +379,7 @@ PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_req)
 	    HTMethod method = HTAnchor_linkMethod(main_link);
 	    if (!main_link || method==METHOD_INVALID) {
 		if (WWWTRACE)
-		    fprintf(TDEST, "Copy Anchor. No destination found or unspecified method");
+		    TTYPrint(TDEST, "Copy Anchor. No destination found or unspecified method");
 		HTRequest_delete(src_req);
 		return NO;
 	    }
@@ -406,7 +406,7 @@ PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_req)
 		HTRequest *dest_req;
 		if (!dest || method==METHOD_INVALID) {
 		    if (WWWTRACE)
-			fprintf(TDEST, "Copy Anchor. Bad anchor setup %p\n",
+			TTYPrint(TDEST, "Copy Anchor. Bad anchor setup %p\n",
 				dest);
 		    return NO;
 		}
@@ -606,7 +606,7 @@ PUBLIC HTParentAnchor * HTHomeAnchor NOARGS
 	    fclose(fp);
 	} else {
 	    if (WWWTRACE)
-		fprintf(TDEST,
+		TTYPrint(TDEST,
 			"HTBrowse: No local home document ~/%s or %s\n",
 			PERSONAL_DEFAULT, LOCAL_DEFAULT_FILE);
 	    free(my_home_document);
@@ -619,7 +619,7 @@ PUBLIC HTParentAnchor * HTHomeAnchor NOARGS
 		  PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
     if (my_home_document) {
 	if (WWWTRACE)
-	    fprintf(TDEST,
+	    TTYPrint(TDEST,
 		   "HTAccess.... `%s\' used for custom home page as\n`%s\'\n",
 		    my_home_document, ref);
 	free(my_home_document);
@@ -628,4 +628,20 @@ PUBLIC HTParentAnchor * HTHomeAnchor NOARGS
     free(ref);
     return anchor;
 }
+
+#if WWWTRACE_MODE == WWWTRACE_TTY && (!defined(_WINDOWS) || defined(_CONSOLE))
+/* single function through which all trace messages must pass - EGP */
+int TTYPrint(FILE* file, const char* fmt, ...)
+	{
+	int len;
+	char space[513];
+	char* pArgs;
+
+	pArgs = (char*)(&fmt + 1);
+	len = vsprintf(space, (char*)fmt, (char*)pArgs);
+	fprintf(file, space);
+	return (len);
+	}
+/* otherwise handled in www.c with the rest of the window shit */
+#endif
 

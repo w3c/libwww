@@ -603,12 +603,12 @@ PUBLIC BOOL HTRequest_removeDestination (HTRequest *dest)
 	}
 	if (found) {
 	    if (WWWTRACE)
-		fprintf(TDEST, "Destination. %p removed from %p\n",
+		TTYPrint(TDEST, "Destination. %p removed from %p\n",
 			dest, src);
 	}
 	if (!src->destRequests) {
 	    if (WWWTRACE)
-		fprintf(TDEST, "Destination. PostWeb terminated\n");
+		TTYPrint(TDEST, "Destination. PostWeb terminated\n");
 	    HTRequest_delete(src);
 	}
     }
@@ -637,11 +637,11 @@ PUBLIC BOOL HTRequest_linkDestination (HTRequest *dest)
 	source->output_stream = pipe ? pipe : dest->input_stream;
 
 	if (STREAM_TRACE)
-	    fprintf(TDEST,"Destination. Linked %p to source %p\n",dest,source);
+	    TTYPrint(TDEST,"Destination. Linked %p to source %p\n",dest,source);
 	if (++source->destStreams == source->destRequests) {
 	    HTNet *net = source->net;
 	    if (STREAM_TRACE)
-		fprintf(TDEST, "Destination. All destinations ready!\n");
+		TTYPrint(TDEST, "Destination. All destinations ready!\n");
 	    if (net)			      /* Might already have finished */
 		HTEvent_Register(net->sockfd, source, (SockOps) FD_READ,
 				 net->cbf, net->priority);
@@ -675,7 +675,7 @@ PUBLIC BOOL HTRequest_unlinkDestination (HTRequest *dest)
 	if (found) {
 	    src->destStreams--;
 	    if (STREAM_TRACE)
-		fprintf(TDEST, "Destination. Unlinked %p from source %p\n",
+		TTYPrint(TDEST, "Destination. Unlinked %p from source %p\n",
 			dest, src);
 	    return YES;
 	}
@@ -836,7 +836,7 @@ PUBLIC BOOL HTLoad (HTRequest * request, BOOL recursive)
     char *arg = NULL;
     int status;
     if (!request || !request->anchor) {
-        if (PROT_TRACE) fprintf(TDEST, "Load Start.. Bad argument\n");
+        if (PROT_TRACE) TTYPrint(TDEST, "Load Start.. Bad argument\n");
         return NO;
     }
 
@@ -903,22 +903,22 @@ PUBLIC int HTLoad_terminate (HTRequest *request, int status)
     switch (status) {
       case HT_LOADED:
 	if (PROT_TRACE)
-	    fprintf(TDEST, "Load End.... OK: `%s\' has been accessed.\n", uri);
+	    TTYPrint(TDEST, "Load End.... OK: `%s\' has been accessed.\n", uri);
 	break;
 
       case HT_NO_DATA:
 	if (PROT_TRACE)
-	    fprintf(TDEST, "Load End.... OK BUT NO DATA: `%s\'\n", uri);
+	    TTYPrint(TDEST, "Load End.... OK BUT NO DATA: `%s\'\n", uri);
 	break;
 
       case HT_INTERRUPTED:
 	if (PROT_TRACE)
-	    fprintf(TDEST, "Load End.... INTERRUPTED: `%s\'\n", uri);
+	    TTYPrint(TDEST, "Load End.... INTERRUPTED: `%s\'\n", uri);
 	break;
 
       case HT_RETRY:
 	if (PROT_TRACE)
-	    fprintf(TDEST, "Load End.... NOT AVAILABLE, RETRY AT %ld\n",
+	    TTYPrint(TDEST, "Load End.... NOT AVAILABLE, RETRY AT %ld\n",
 		    HTRequest_retryTime(request));
 	break;
 
@@ -926,12 +926,12 @@ PUBLIC int HTLoad_terminate (HTRequest *request, int status)
 	if (HTImProxy)
 	    HTErrorMsg(request);		     /* Only on a real error */
 	if (PROT_TRACE)
-	    fprintf(TDEST, "Load End.... ERROR: Can't access `%s\'\n", uri);
+	    TTYPrint(TDEST, "Load End.... ERROR: Can't access `%s\'\n", uri);
 	break;
 
       default:
 	if (PROT_TRACE)
-	    fprintf(TDEST, "Load End.... UNKNOWN RETURN CODE %d\n", status);
+	    TTYPrint(TDEST, "Load End.... UNKNOWN RETURN CODE %d\n", status);
 	break;
     }
     free(uri);

@@ -103,7 +103,7 @@ PRIVATE BOOL HTNewsNode_print (HTNewsDir *dir, HTNewsNode *node)
     char *tp = NULL;
     HTStructured *target = dir->target;
 #if 1
-    fprintf(TDEST, "%s\n", node->name);
+    TTYPrint(TDEST, "%s\n", node->name);
 #else
     if (dir->show & HT_DS_ICON) {
 	HTFormat format = NULL;

@@ -144,7 +144,7 @@ PUBLIC BOOL HTAA_templateMatch ARGS2(CONST char *, tmplate,
 
     if (!tmplate || !filename) {
 	if (PROT_TRACE)
-	    fprintf(TDEST, "HTAA_templateMatch: invalid param: %s is NULL!!\n",
+	    TTYPrint(TDEST, "HTAA_templateMatch: invalid param: %s is NULL!!\n",
 		    (tmplate ? "filename" : "template"));
 	return NO;
     }
@@ -197,7 +197,7 @@ PUBLIC BOOL HTAA_templateCaseMatch ARGS2(CONST char *, tmplate,
 
     if (!tmplate || !filename) {
 	if (PROT_TRACE)
-	    fprintf(TDEST,
+	    TTYPrint(TDEST,
 		    "HTAA_templateCaseMatch: invalid param: %s is NULL!!\n",
 		    (tmplate ? "filename" : "template"));
 	return NO;
@@ -255,7 +255,7 @@ PUBLIC char *HTAA_makeProtectionTemplate ARGS1(CONST char *, docname)
     else StrAllocCopy(tmplate, "*");
 
     if (PROT_TRACE)
-	fprintf(TDEST, "make_template: made template `%s' for file `%s'\n",
+	TTYPrint(TDEST, "make_template: made template `%s' for file `%s'\n",
 		tmplate, docname);
 
     return tmplate;

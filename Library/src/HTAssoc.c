@@ -63,7 +63,7 @@ PUBLIC void HTAssocList_add ARGS3(HTAssocList *,	alist,
 	if (value) StrAllocCopy(assoc->value, value);
 	HTList_addObject(alist, (void*)assoc);
     }
-    else if (WWWTRACE) fprintf(TDEST, "HTAssoc_add: ERROR: assoc list NULL!!\n");
+    else if (WWWTRACE) TTYPrint(TDEST, "HTAssoc_add: ERROR: assoc list NULL!!\n");
 }
 
 

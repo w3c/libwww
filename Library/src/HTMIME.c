@@ -348,7 +348,7 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 		    anchor->methods += new_method;
 	    }
 	    if (STREAM_TRACE)
-		fprintf(TDEST, "MIMEParser.. Methods allowed: %d\n",
+		TTYPrint(TDEST, "MIMEParser.. Methods allowed: %d\n",
 			anchor->methods);
 	    state = JUNK_LINE;
 	    break;
@@ -367,7 +367,7 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
  	    if ((value = HTNextField(&ptr)) != NULL) {
 		if (!strcasecomp(value, "keep-alive")) {
 		    if (STREAM_TRACE)
-			fprintf(TDEST,"MIMEParser.. Persistent Connection!\n");
+			TTYPrint(TDEST,"MIMEParser.. Persistent Connection!\n");
 		    HTDNS_setSocket(me->net->dns, me->net->sockfd);
 		}
 	    }
@@ -501,7 +501,7 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 		int status;
 		BOOL override;
 		if (STREAM_TRACE)
-		    fprintf(TDEST,"MIMEParser.. Unknown token `%s\'\n",header);
+		    TTYPrint(TDEST,"MIMEParser.. Unknown token `%s\'\n",header);
 		if ((list = HTRequest_parser(request, &override)) &&
 		    (cbf = HTParser_find(list, value)) &&
 		    (status = (*cbf)(request, value) != HT_OK)) {
@@ -536,7 +536,7 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
 		    HTAlert(request, msg);
 		else if (HTRequest_retry(request)) {
 		    if (PROT_TRACE)
-			fprintf(TDEST, "MIMEParser.. Expired - auto reload\n");
+			TTYPrint(TDEST, "MIMEParser.. Expired - auto reload\n");
 		    if (anchor->cacheHit) {
 			HTRequest_addRqHd(request, HT_IMS);
 			HTRequest_setReloadMode(request, HT_FORCE_RELOAD);
@@ -552,13 +552,13 @@ PRIVATE int parseheader (HTStream * me, HTRequest * request,
     /* News server almost never send content type or content length */
     if (anchor->content_type != WWW_UNKNOWN || me->nntp) {
 	if (STREAM_TRACE)
-	    fprintf(TDEST, "MIMEParser.. Convert %s to %s\n",
+	    TTYPrint(TDEST, "MIMEParser.. Convert %s to %s\n",
 		    HTAtom_name(anchor->content_type),
 		    HTAtom_name(me->target_format));
 	if ((me->target=HTStreamStack(anchor->content_type, me->target_format,
 				      me->target, request, YES)) == NULL) {
 	    if (STREAM_TRACE)
-		fprintf(TDEST, "MIMEParser.. Can't convert media type\n");
+		TTYPrint(TDEST, "MIMEParser.. Can't convert media type\n");
 	    me->target = HTBlackHole();
 	}
     }
@@ -688,7 +688,7 @@ PRIVATE int HTMIME_free (HTStream * me)
 	    return HT_WOULD_BLOCK;
     }
     if (PROT_TRACE)
-	fprintf(TDEST, "MIME........ FREEING....\n");
+	TTYPrint(TDEST, "MIME........ FREEING....\n");
     HTChunkFree(me->buffer);
     free(me);
     return status;
@@ -702,7 +702,7 @@ PRIVATE int HTMIME_abort (HTStream * me, HTError e)
     if (me->target)
 	status = (*me->target->isa->abort)(me->target, e);
     if (PROT_TRACE)
-	fprintf(TDEST, "MIME........ ABORTING...\n");
+	TTYPrint(TDEST, "MIME........ ABORTING...\n");
     HTChunkFree(me->buffer);
     free(me);
     return status;

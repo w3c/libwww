@@ -209,14 +209,14 @@ HTStyle * HTStyleDump (HTStyle * style)
 {
     int tab;
     NXTextStyle *p = style->paragraph;
-    printf("Style %d `%s' SGML:%s. Font %s %.1f point.\n",
+    TTYPrint(TDEST, "Style %d `%s' SGML:%s. Font %s %.1f point.\n",
     	style,
 	style->name,
 	style->SGMLTag,
 	[style->font name],
 	style->fontSize);
     if (p) {
-        printf(
+        TTYPrint(TDEST, 
     	"\tIndents: first=%.0f others=%.0f, Height=%.1f Desc=%.1f\n"
 	"\tAlign=%d, %d tabs. (%.0f before, %.0f after)\n",
 	    p->indent1st,
@@ -229,11 +229,11 @@ HTStyle * HTStyleDump (HTStyle * style)
 	    style->spaceAfter);
 	    
 	for (tab=0; tab < p->numTabs; tab++) {
-	    printf("\t\tTab kind=%d at %.0f\n",
+	    TTYPrint(TDEST, "\t\tTab kind=%d at %.0f\n",
 		    p->tabs[tab].kind,
 		    p->tabs[tab].x);
     	}
-	printf("\n");
+	TTYPrint(TDEST, "\n");
     } /* if paragraph */
     return style;
 }
@@ -251,13 +251,13 @@ HTStyle * HTStyleNamed ARGS2 (HTStyleSheet *,self, CONST char *,name)
     HTStyle * scan;
 
     if (!self) {	/* added by HWL 11/8/94 */
-	if (WWWTRACE) fprintf(TDEST, "HTStyleNamed.. Called with NULL pointer\n");
+	if (WWWTRACE) TTYPrint(TDEST, "HTStyleNamed.. Called with NULL pointer\n");
 	return NULL;
     }
 
     for (scan=self->styles; scan; scan=scan->next)
         if (0==strcmp(scan->name, name)) return scan;
-    if (WWWTRACE) fprintf(TDEST, "StyleSheet: No style named `%s'\n", name);
+    if (WWWTRACE) TTYPrint(TDEST, "StyleSheet: No style named `%s'\n", name);
     return NULL;
 }
 
@@ -308,7 +308,7 @@ HTStyle * HTStyleForRun (HTStyleSheet *self, NXRun *run)
 	    }
 	}
     }
-    if (WWWTRACE) fprintf(TDEST, "HTStyleForRun: Best match for style is %d out of 18\n",
+    if (WWWTRACE) TTYPrint(TDEST, "HTStyleForRun: Best match for style is %d out of 18\n",
     			 bestMatch);
     return best;
 }
@@ -393,7 +393,7 @@ HTStyleSheet * HTStyleSheetRead(HTStyleSheet * self, NXStream * stream)
     HTStyle * style;
     char styleName[80];
     NXScanf(stream, " %d ", &numStyles);
-    if (WWWTRACE) fprintf(TDEST, "Stylesheet: Reading %d styles\n", numStyles);
+    if (WWWTRACE) TTYPrint(TDEST, "Stylesheet: Reading %d styles\n", numStyles);
     for (i=0; i<numStyles; i++) {
         NXScanf(stream, "%s", styleName);
         style = HTStyleNamed(self, styleName);
@@ -421,7 +421,7 @@ HTStyleSheet * HTStyleSheetWrite(HTStyleSheet * self, NXStream * stream)
     for(style=self->styles; style; style=style->next) numStyles++;
     NXPrintf(stream, "%d\n", numStyles);
     
-    if (WWWTRACE) fprintf(TDEST, "StyleSheet: Writing %d styles\n", numStyles);
+    if (WWWTRACE) TTYPrint(TDEST, "StyleSheet: Writing %d styles\n", numStyles);
     for (style=self->styles; style; style=style->next) {
         NXPrintf(stream, "%s ", style->name);
 	(void) HTStyleWrite(style, stream);

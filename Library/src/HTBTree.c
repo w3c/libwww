@@ -536,22 +536,22 @@ PUBLIC HTBTElement * HTBTree_next ARGS2(
     */
     if (father_of_element != NULL)
     {
-        fprintf(TDEST, "\nObject = %s\t",(char *)father_of_element->object);
+        TTYPrint(TDEST, "\nObject = %s\t",(char *)father_of_element->object);
         if (father_of_element->up != NULL)
-            fprintf(TDEST, "Objet du pere = %s\n",
+            TTYPrint(TDEST, "Objet du pere = %s\n",
 		   (char *)father_of_element->up->object);
-        else fprintf(TDEST, "Pas de Pere\n");
+        else TTYPrint(TDEST, "Pas de Pere\n");
         if (father_of_element->left != NULL)
-            fprintf(TDEST, "Objet du fils gauche = %s\t",
+            TTYPrint(TDEST, "Objet du fils gauche = %s\t",
 		   (char *)father_of_element->left->object); 
-        else fprintf(TDEST, "Pas de fils gauche\t");
+        else TTYPrint(TDEST, "Pas de fils gauche\t");
         if (father_of_element->right != NULL)
-            fprintf(TDEST, "Objet du fils droit = %s\n",
+            TTYPrint(TDEST, "Objet du fils droit = %s\n",
 		   (char *)father_of_element->right->object);
-        else fprintf(TDEST, "Pas de fils droit\n");
-        fprintf(TDEST, "Profondeur gauche = %i\t",father_of_element->left_depth);
-        fprintf(TDEST, "Profondeur droite = %i\n",father_of_element->right_depth);
-        fprintf(TDEST, "      **************\n");
+        else TTYPrint(TDEST, "Pas de fils droit\n");
+        TTYPrint(TDEST, "Profondeur gauche = %i\t",father_of_element->left_depth);
+        TTYPrint(TDEST, "Profondeur droite = %i\n",father_of_element->right_depth);
+        TTYPrint(TDEST, "      **************\n");
     }
 #endif
     return father_of_element;
@@ -702,13 +702,13 @@ main ()
     HTBTree_add(tree,"core");
     HTBTree_add(tree,"EmacsWWW");
 #ifdef BTREE_TRACE
-    fprintf(TDEST, "\nTreeTopObject=%s\n\n",tree->top->object);
+    TTYPrint(TDEST, "\nTreeTopObject=%s\n\n",tree->top->object);
 #endif
     next_element = HTBTree_next(tree,NULL);
     while (next_element != NULL)
     {
 #ifndef BTREE_TRACE
-        fprintf(TDEST, "The next element is %s\n",next_element->object);
+        TTYPrint(TDEST, "The next element is %s\n",next_element->object);
 #endif
         next_element = HTBTree_next(tree,next_element);
     }

@@ -116,7 +116,7 @@ PUBLIC BOOL HTProtocol_find (HTParentAnchor * anchor)
 	HTProtocol *p;
 	if (!cur) {
 	    if (WWWTRACE)
-		fprintf(TDEST, "HTProtocol.. NO PROTOCOL MODULES INITIATED\n");
+		TTYPrint(TDEST, "HTProtocol.. NO PROTOCOL MODULES INITIATED\n");
 	} else {
 	    while ((p = (HTProtocol *) HTList_nextObject(cur))) {
 		if (strcasecomp(p->name, access)==0) {

@@ -75,7 +75,7 @@ PRIVATE void free_object (HTdns * me)
 PRIVATE BOOL delete_object (HTList * list, HTdns *me)
 {
     if (PROT_TRACE)
-	fprintf(TDEST,"DNS Delete.. object %p from list %p\n", me, list);
+	TTYPrint(TDEST,"DNS Delete.. object %p from list %p\n", me, list);
     HTList_removeObject(list, (void *) me);
     free_object(me);
     return YES;
@@ -197,7 +197,7 @@ PUBLIC void HTDNS_clearActive (HTdns *dns)
 {
     if (dns) {
 	if (PROT_TRACE)
-	    fprintf(TDEST, "DNS Clear... Active bit for socket %d\n",
+	    TTYPrint(TDEST, "DNS Clear... Active bit for socket %d\n",
 		    dns->sockfd);
 	dns->active = NO;
     }
@@ -253,7 +253,7 @@ PRIVATE HTdns * HTDNS_add (HTList * list, struct hostent * element,
 	outofmem(__FILE__, "HTDNS_add");
     me->addrlength = element->h_length;
     if (PROT_TRACE)
-	fprintf(TDEST, "DNS Add..... `%s\' with %d home(s) to %p\n",
+	TTYPrint(TDEST, "DNS Add..... `%s\' with %d home(s) to %p\n",
 		host, *homes, list);
     HTList_addObject(list, (void *) me);
     return me;
@@ -293,13 +293,13 @@ PUBLIC BOOL HTDNS_updateWeigths(HTdns *dns, int current, time_t deltatime)
 		*(dns->weight+cnt) = *(dns->weight+cnt) * passive;
 	    }
 	    if (PROT_TRACE)
-		fprintf(TDEST, "DNS Weigths. Home %d has weight %4.2f\n", cnt,
+		TTYPrint(TDEST, "DNS Weigths. Home %d has weight %4.2f\n", cnt,
 			*(dns->weight+cnt));
 	}
 	return YES;
     }
     if (PROT_TRACE)
-	fprintf(TDEST, "DNS Weigths. Object %p not found'\n", dns);
+	TTYPrint(TDEST, "DNS Weigths. Object %p not found'\n", dns);
     return NO;
 }
 
@@ -363,20 +363,20 @@ PUBLIC BOOL HTDNS_deleteAll (void)
 PUBLIC int HTDNS_closeSocket(SOCKET soc, HTRequest * request, SockOps ops)
 {
     if (PROT_TRACE)
-	fprintf(TDEST, "DNS Close... called with socket %d with ops %x\n",
+	TTYPrint(TDEST, "DNS Close... called with socket %d with ops %x\n",
 		soc, (unsigned) ops);
     if (ops == FD_READ && PersSock) {
 	HTList *cur = PersSock;
 	HTdns *pres;
 	while ((pres = (HTdns *) HTList_nextObject(cur))) {
 	    if (pres->sockfd == soc) {
-		if (PROT_TRACE) fprintf(TDEST, "DNS Close... socket %d\n",soc);
+		if (PROT_TRACE) TTYPrint(TDEST, "DNS Close... socket %d\n",soc);
 		NETCLOSE(soc);
 		HTDNS_setSocket(pres, INVSOC);
 		break;
 	    }
 	}
-	if (!pres) fprintf(TDEST, "DNS Close... socket NOT FOUND!\n");
+	if (!pres) TTYPrint(TDEST, "DNS Close... socket NOT FOUND!\n");
     }
     HTEvent_UnRegister(soc, (SockOps) FD_ALL);
     return HT_OK;
@@ -401,7 +401,7 @@ PUBLIC int HTGetHostByName (HTNet *net, char *host)
     HTdns *pres = NULL;
     if (!net || !host) {
 	if (PROT_TRACE)
-	    fprintf(TDEST, "HostByName.. Bad argument\n");
+	    TTYPrint(TDEST, "HostByName.. Bad argument\n");
 	return -1;
     }
     net->home = 0;
@@ -427,7 +427,7 @@ PUBLIC int HTGetHostByName (HTNet *net, char *host)
 	    if (!strcmp(pres->hostname, host)) {
 		if (time(NULL) > pres->ntime + DNSTimeout) {
 		    if (PROT_TRACE)
-			fprintf(TDEST, "HostByName.. Refreshing cache\n");
+			TTYPrint(TDEST, "HostByName.. Refreshing cache\n");
 		    delete_object(list, pres);
 		    pres = NULL;
 		}
@@ -437,7 +437,7 @@ PUBLIC int HTGetHostByName (HTNet *net, char *host)
     }
     if (pres) {
 	if (PROT_TRACE)
-	    fprintf(TDEST, "HostByName.. '%s\' found in cache\n", host);
+	    TTYPrint(TDEST, "HostByName.. '%s\' found in cache\n", host);
 
 	/* See if we have an open connection already */
 	if (pres->sockfd != INVSOC) {
@@ -445,12 +445,12 @@ PUBLIC int HTGetHostByName (HTNet *net, char *host)
 		net->sockfd = pres->sockfd;		    /* Assign always */
 		if (pres->type == HT_TCP_INTERLEAVE) {
 		    if (PROT_TRACE)
-			fprintf(TDEST, "HostByName.. waiting for socket\n");
+			TTYPrint(TDEST, "HostByName.. waiting for socket\n");
 		    return 0;			/* Wait for clear connection */
 		}
 	    } else if (pres->expires < time(NULL)) {	      /* Gotton cold */
 		if (PROT_TRACE)
-		    fprintf(TDEST, "HostByName.. Closing %d\n", pres->sockfd);
+		    TTYPrint(TDEST, "HostByName.. Closing %d\n", pres->sockfd);
 		NETCLOSE(pres->sockfd);
 		HTEvent_UnRegister(pres->sockfd, (SockOps) FD_ALL);
 		HTDNS_setSocket(pres, INVSOC);
@@ -497,7 +497,7 @@ PUBLIC int HTGetHostByName (HTNet *net, char *host)
 #endif
 	if (!hostelement) {
 	    if (PROT_TRACE)
-		fprintf(TDEST, "HostByName.. Can't find node `%s'.\n", host);
+		TTYPrint(TDEST, "HostByName.. Can't find node `%s'.\n", host);
 	    return -1;
 	}	
 	if (port) *port=':';			       	  /* Put ':' back in */
@@ -540,11 +540,11 @@ PUBLIC char * HTGetHostBySock ARGS1(int, soc)
 #endif
     if (!phost) {
 	if (PROT_TRACE)
-	    fprintf(TDEST, "TCP......... Can't find internet node name for peer!!\n");
+	    TTYPrint(TDEST, "TCP......... Can't find internet node name for peer!!\n");
 	return NULL;
     }
     StrAllocCopy(name, phost->h_name);
-    if (PROT_TRACE) fprintf(TDEST, "TCP......... Peer name is `%s'\n", name);
+    if (PROT_TRACE) TTYPrint(TDEST, "TCP......... Peer name is `%s'\n", name);
     return name;
 
 #endif	/* not DECNET */

@@ -84,7 +84,7 @@ PUBLIC int HTInputSocket_getCharacter ARGS1(HTInputSocket*, isoc)
 		if (status == 0)
 		    return EOF;
 		if (PROT_TRACE)
-		    fprintf(TDEST, "Read Socket. READ ERROR %d\n", socerrno);
+		    TTYPrint(TDEST, "Read Socket. READ ERROR %d\n", socerrno);
 		return EOF; 	/* -1 is returned by UCX at end of HTTP link */
 	    }
 	    isoc->write = isoc->buffer;
@@ -108,7 +108,7 @@ PUBLIC char * HTInputSocket_getBlock ARGS2(HTInputSocket*,	isoc,
 	    isoc->read = isoc->buffer;
 	    if (status < 0) {
 		if (PROT_TRACE)
-		    fprintf(TDEST, "Read Socket. READ ERROR %d\n", socerrno);
+		    TTYPrint(TDEST, "Read Socket. READ ERROR %d\n", socerrno);
 	    }
 	    *len = 0;
 	    return NULL;
@@ -140,7 +140,7 @@ PRIVATE int fill_in_buffer ARGS1(HTInputSocket *, isoc)
 	    isoc->read = isoc->buffer;
 	    if (status < 0) {
 		if (PROT_TRACE)
-		    fprintf(TDEST, "Read Socket. READ ERROR %d\n", socerrno);
+		    TTYPrint(TDEST, "Read Socket. READ ERROR %d\n", socerrno);
 	    }
 	}
 	else 
@@ -288,7 +288,7 @@ PRIVATE int HTCopy ARGS2(
 		file_number, isoc->buffer, INPUT_BUFFER_SIZE);
 	if (status <= 0) {
 	    if (status == 0) break;
-	    if (WWWTRACE) fprintf(TDEST,
+	    if (WWWTRACE) TTYPrint(TDEST,
 		"Socket Copy. Read error, read returns %d with errno=%d\n",
 		status, socerrno);
 	    break;
@@ -341,7 +341,7 @@ PRIVATE void HTFileCopy ARGS2(
 	       buffer, 1, INPUT_BUFFER_SIZE, fp);
 	if (status == 0) { /* EOF or error */
 	    if (ferror(fp) == 0) break;
-	    if (WWWTRACE) fprintf(TDEST,
+	    if (WWWTRACE) TTYPrint(TDEST,
 		"File Copy... Read error, read returns %d\n", ferror(fp));
 	    break;
 	}
@@ -412,7 +412,7 @@ PUBLIC int HTParseSocket ARGS3(
     HTStreamClass targetClass;    
 
     if (request->error_stack) {
-	if (WWWTRACE) fprintf(TDEST, "ParseSocket. Called whith non-empty error stack, so I return right away!\n");
+	if (WWWTRACE) TTYPrint(TDEST, "ParseSocket. Called whith non-empty error stack, so I return right away!\n");
 	return -1;
     }
 
@@ -464,7 +464,7 @@ PRIVATE int HTParseFile ARGS3(
     HTStreamClass targetClass;    
 
     if (request->error_stack) {
-	if (WWWTRACE) fprintf(TDEST, "ParseFile... Called whith non-empty error stack, so I return right away!\n");
+	if (WWWTRACE) TTYPrint(TDEST, "ParseFile... Called whith non-empty error stack, so I return right away!\n");
 	return -1;
     }
 
@@ -514,7 +514,7 @@ PUBLIC int HTSocketRead (HTRequest * request, HTNet * net)
     int b_read = isoc->read - isoc->buffer;
     int status;
     if (!isoc || isoc->sockfd==INVSOC) {
-	if (PROT_TRACE) fprintf(TDEST, "Read Socket. Bad argument\n");
+	if (PROT_TRACE) TTYPrint(TDEST, "Read Socket. Bad argument\n");
 	return HT_ERROR;
     }
 
@@ -530,20 +530,20 @@ PUBLIC int HTSocketRead (HTRequest * request, HTNet * net)
 #endif	
 		{
 		    if (PROT_TRACE)
-			fprintf(TDEST, "Read Socket. WOULD BLOCK soc %d\n",
+			TTYPrint(TDEST, "Read Socket. WOULD BLOCK soc %d\n",
 				isoc->sockfd);
 		    HTEvent_Register(isoc->sockfd, request, (SockOps) FD_READ,
 				     net->cbf, net->priority);
 		    return HT_WOULD_BLOCK;
 		} else { /* We have a real error */
 		    if (PROT_TRACE)
-			fprintf(TDEST, "Read Socket. READ ERROR %d\n",
+			TTYPrint(TDEST, "Read Socket. READ ERROR %d\n",
 				socerrno);
 		    return HT_ERROR;
 		}
 	    } else if (!b_read) {
 		if (PROT_TRACE)
-		    fprintf(TDEST, "Read Socket. Finished loading socket %d\n",
+		    TTYPrint(TDEST, "Read Socket. Finished loading socket %d\n",
 			    isoc->sockfd);
 		HTProgress(request, HT_PROG_DONE, NULL);
 	        HTEvent_UnRegister(isoc->sockfd, FD_READ);
@@ -564,7 +564,7 @@ PUBLIC int HTSocketRead (HTRequest * request, HTNet * net)
 	    }
 #endif
 	    if (PROT_TRACE)
-		fprintf(TDEST, "Read Socket. %d bytes read from socket %d\n",
+		TTYPrint(TDEST, "Read Socket. %d bytes read from socket %d\n",
 			b_read, isoc->sockfd);
 	    net->bytes_read += b_read;
 	    HTProgress(request, HT_PROG_READ, NULL);
@@ -575,17 +575,17 @@ PUBLIC int HTSocketRead (HTRequest * request, HTNet * net)
 						b_read)) != HT_OK) {
 	    if (status==HT_WOULD_BLOCK) {
 		if (PROT_TRACE)
-		    fprintf(TDEST, "Read Socket. Target WOULD BLOCK\n");
+		    TTYPrint(TDEST, "Read Socket. Target WOULD BLOCK\n");
 		HTEvent_UnRegister(isoc->sockfd, FD_READ);
 		return HT_WOULD_BLOCK;
 	    } else if (status>0) {	      /* Stream specific return code */
 		if (PROT_TRACE)
-		    fprintf(TDEST, "Read Socket. Target returns %d\n", status);
+		    TTYPrint(TDEST, "Read Socket. Target returns %d\n", status);
 		isoc->write = isoc->buffer + b_read;
 		return status;
 	    } else {				     /* We have a real error */
 		if (PROT_TRACE)
-		    fprintf(TDEST, "Read Socket. Target ERROR\n");
+		    TTYPrint(TDEST, "Read Socket. Target ERROR\n");
 		return status;
 	    }
 	}
@@ -616,7 +616,7 @@ PUBLIC int HTFileRead (HTRequest * request, HTNet * net, FILE * fp)
     int b_read;
     int status;
     if (!fp) {
-	if (PROT_TRACE) fprintf(TDEST, "Read File... Bad argument\n");
+	if (PROT_TRACE) TTYPrint(TDEST, "Read File... Bad argument\n");
 	return HT_ERROR;
     }
 
@@ -624,21 +624,21 @@ PUBLIC int HTFileRead (HTRequest * request, HTNet * net, FILE * fp)
 	if ((b_read = fread(isoc->buffer, 1, INPUT_BUFFER_SIZE, fp))==0){
 	    if (ferror(fp)) {
 		if (PROT_TRACE)
-		    fprintf(TDEST, "Read File... READ ERROR\n");
+		    TTYPrint(TDEST, "Read File... READ ERROR\n");
 	    } else
 		return HT_LOADED;
 	}
 	isoc->write = isoc->buffer;
 	isoc->read = isoc->buffer + b_read;
 	if (PROT_TRACE)
-	    fprintf(TDEST, "Read File... %d bytes read from file %p\n",
+	    TTYPrint(TDEST, "Read File... %d bytes read from file %p\n",
 		    b_read, fp);
 
 	/* Now push the data down the stream (we use blocking I/O) */
 	if ((status = (*target->isa->put_block)(target, isoc->buffer,
 						b_read)) != HT_OK) {
 	    if (PROT_TRACE)
-		fprintf(TDEST, "Read File... Target ERROR\n");
+		TTYPrint(TDEST, "Read File... Target ERROR\n");
 	    return status;
 	}
 	isoc->write = isoc->buffer + b_read;

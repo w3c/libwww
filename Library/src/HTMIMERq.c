@@ -170,13 +170,13 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 	if ((list = HTRequest_generator(request, &override))) {
 	    HTList *local = list;
 	    HTPostCallback *pres;
-	    if (STREAM_TRACE) fprintf(TDEST,"MIMEGen..... Extra local\n");
+	    if (STREAM_TRACE) TTYPrint(TDEST,"MIMEGen..... Extra local\n");
 	    while ((pres = (HTPostCallback *) HTList_nextObject(local)))
 		(*pres)(request, me->target);
 	} else if (!override && (list = HTHeader_generator())) {
 	    HTList *global = list;
 	    HTPostCallback *pres;
-	    if (STREAM_TRACE) fprintf(TDEST,"MIMEGen..... Extra global\n");
+	    if (STREAM_TRACE) TTYPrint(TDEST,"MIMEGen..... Extra global\n");
 	    while ((pres = (HTPostCallback *) HTList_nextObject(global)))
 		(*pres)(request, me->target);
 	}
@@ -243,7 +243,7 @@ PRIVATE int MIMERequest_abort (HTStream * me, HTError e)
 {
     if (me->target) (*me->target->isa->abort)(me->target, e);
     free(me);
-    if (PROT_TRACE) fprintf(TDEST, "MIMERequest. ABORTING...\n");
+    if (PROT_TRACE) TTYPrint(TDEST, "MIMERequest. ABORTING...\n");
     return HT_ERROR;
 }
 

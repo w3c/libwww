@@ -44,20 +44,20 @@ PUBLIC void HTProgress (HTRequest * request, HTProgressState state,
 
     if (!request) {
 	if (WWWTRACE)
-	    fprintf(TDEST, "HTProgress.. Bad argument\n");
+	    TTYPrint(TDEST, "HTProgress.. Bad argument\n");
 	return;
     }
     switch (state) {
       case HT_PROG_DNS:
-	fprintf(TDEST, "Looking up %s\n", (char *) param);
+	TTYPrint(TDEST, "Looking up %s\n", (char *) param);
 	break;
 
       case HT_PROG_CONNECT:
-	fprintf(TDEST, "Contacting host...\n");
+	TTYPrint(TDEST, "Contacting host...\n");
 	break;
 
       case HT_PROG_ACCEPT:
-	fprintf(TDEST, "Waiting for connection...\n");
+	TTYPrint(TDEST, "Waiting for connection...\n");
 	break;
 
       case HT_PROG_READ:
@@ -68,26 +68,26 @@ PUBLIC void HTProgress (HTRequest * request, HTProgressState state,
 		double pro = (double) b_read/cl*100;
 		char buf[10];
 		HTNumToStr((unsigned long) cl, buf, 10);
-		fprintf(TDEST, "Read (%d%% of %s)\n", (int) pro, buf);
+		TTYPrint(TDEST, "Read (%d%% of %s)\n", (int) pro, buf);
 	    } else
-		fprintf(TDEST, "Reading...\n");
+		TTYPrint(TDEST, "Reading...\n");
 	}
 	break;
 
       case HT_PROG_WRITE:
-	fprintf(TDEST, "Writing...\n");
+	TTYPrint(TDEST, "Writing...\n");
 	break;
 
       case HT_PROG_DONE:
-	fprintf(TDEST, "Finished\n");
+	TTYPrint(TDEST, "Finished\n");
 	break;
 
       case HT_PROG_WAIT:
-	fprintf(TDEST, "Waiting for free socket...\n");
+	TTYPrint(TDEST, "Waiting for free socket...\n");
 	break;
 
       default:
-	fprintf(TDEST, "UNKNOWN PROGRESS STATE\n");
+	TTYPrint(TDEST, "UNKNOWN PROGRESS STATE\n");
 	break;
     }
 }
@@ -98,7 +98,7 @@ PUBLIC void HTAlert (HTRequest * request, CONST char * Msg)
 #ifdef NeXTStep
     NXRunAlertPanel(NULL, "%s", NULL, NULL, NULL, Msg);
 #else
-    fprintf(TDEST, "\nWARNING:  %s\n", Msg ? Msg : "UNKNOWN");
+    TTYPrint(TDEST, "\nWARNING:  %s\n", Msg ? Msg : "UNKNOWN");
 #endif
 }
 
@@ -107,7 +107,7 @@ PUBLIC BOOL HTConfirm (HTRequest * request, CONST char * Msg)
   char Reply[4];	/* One more for terminating NULL -- AL */
   char *URep;
   
-  fprintf(TDEST, "%s (y/n) ", Msg ? Msg : "UNKNOWN");
+  TTYPrint(TDEST, "%s (y/n) ", Msg ? Msg : "UNKNOWN");
 #ifndef NO_STDIO
   if (!HTInteractive || !fgets(Reply, 4, stdin))   /* get reply, max 3 chars */
 #endif
@@ -138,9 +138,9 @@ PUBLIC char * HTPrompt (HTRequest * request, CONST char * Msg,
 {
     char buffer[200];
     char *reply = NULL;
-    fprintf(TDEST, "%s ", Msg ? Msg : "UNKNOWN");
+    TTYPrint(TDEST, "%s ", Msg ? Msg : "UNKNOWN");
     if (deflt)
-	fprintf(TDEST, "(RETURN for [%s]) ", deflt);
+	TTYPrint(TDEST, "(RETURN for [%s]) ", deflt);
 
     if (HTInteractive) {
 #ifndef NO_STDIO
@@ -198,7 +198,7 @@ PUBLIC void HTPromptUsernameAndPassword (HTRequest *	request,
 					 char **	username,
 					 char **	password)
 {
-    fprintf(TDEST, "%s\n", Msg ? Msg : "UNKNOWN");
+    TTYPrint(TDEST, "%s\n", Msg ? Msg : "UNKNOWN");
     *username = HTPrompt(request, "Username:", *username);
     *password = HTPromptPassword(request, "Password: ");
 }
@@ -231,7 +231,7 @@ PUBLIC void HTErrorMsg (HTRequest * request)
 	    /* Output code number */
 	    if (highest) {			    /* If first time through */
 		if (WWWTRACE)
-		    fprintf(TDEST,
+		    TTYPrint(TDEST,
 			    "HTError..... Generating message.\n");
 		
 		/* Output title */
@@ -245,7 +245,7 @@ PUBLIC void HTErrorMsg (HTRequest * request)
 		    HTChunkPuts(chunk, "Information ");
 		else {
 		    if (WWWTRACE)
-			fprintf(TDEST, "HTError..... Unknown Classification of Error (%d)...\n", pres->severity);
+			TTYPrint(TDEST, "HTError..... Unknown Classification of Error (%d)...\n", pres->severity);
 		    HTChunkFree(chunk);
 		    return;
 		}

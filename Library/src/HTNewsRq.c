@@ -82,7 +82,7 @@ PRIVATE BOOL NewsPost_start (HTStream * me, HTRequest * request)
 	/* DO FOR ALL SUB ANCHOR DESTINATION S AS WELL */
 	
     }
-    if (PROT_TRACE) fprintf(TDEST, "News Tx..... %s", HTChunkData(header));
+    if (PROT_TRACE) TTYPrint(TDEST, "News Tx..... %s", HTChunkData(header));
     return YES;
 }
 
@@ -159,7 +159,7 @@ PRIVATE int NewsPost_abort (HTStream * me, HTError e)
     if (me->target) (*me->target->isa->abort)(me->target, e);
     HTChunkFree(me->buffer);
     free(me);
-    if (PROT_TRACE) fprintf(TDEST, "NewsPost.... ABORTING...\n");
+    if (PROT_TRACE) TTYPrint(TDEST, "NewsPost.... ABORTING...\n");
     return HT_ERROR;
 }
 

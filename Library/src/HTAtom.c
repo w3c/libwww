@@ -54,7 +54,7 @@ PUBLIC HTAtom * HTAtom_for ARGS1(CONST char *, string)
     */
     for (a=hash_table[hash]; a; a=a->next) {
 	if (0==strcmp(a->name, string)) {
-    	    /* if (WWWTRACE) fprintf(TDEST,
+    	    /* if (WWWTRACE) TTYPrint(TDEST,
 	    	"HTAtom: Old atom %p for `%s'\n", a, string); */
 	    return a;				/* Found: return it */
 	}
@@ -69,7 +69,7 @@ PUBLIC HTAtom * HTAtom_for ARGS1(CONST char *, string)
     strcpy(a->name, string);
     a->next = hash_table[hash];		/* Put onto the head of list */
     hash_table[hash] = a;
-/*    if (WWWTRACE) fprintf(TDEST, "HTAtom: New atom %p for `%s'\n", a, string); */
+/*    if (WWWTRACE) TTYPrint(TDEST, "HTAtom: New atom %p for `%s'\n", a, string); */
     return a;
 }
 

@@ -56,7 +56,7 @@ PRIVATE void HTTP09Request (HTStream * me, HTRequest * request)
     HTChunkPutc(header, ' ');
     HTChunkPutc(header, CR);
     HTChunkPutc(header, LF);
-    if (PROT_TRACE) fprintf(TDEST, "HTTP Tx..... %s", HTChunkData(header));
+    if (PROT_TRACE) TTYPrint(TDEST, "HTTP Tx..... %s", HTChunkData(header));
 }
 
 /*	HTTPMakeRequest
@@ -235,7 +235,7 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 		HTLibraryVersion, CR, LF);
 	HTChunkPuts(header, linebuf);
     }
-    if (PROT_TRACE) fprintf(TDEST, "HTTP Tx..... %s", header->data);
+    if (PROT_TRACE) TTYPrint(TDEST, "HTTP Tx..... %s", header->data);
 }
 
 PRIVATE int HTTPRequest_put_block ARGS3(HTStream *, me, CONST char*, b, int, l)
@@ -298,7 +298,7 @@ PRIVATE int HTTPRequest_abort ARGS2(HTStream *, me, HTError, e)
     if (me->target) (*me->target->isa->abort)(me->target, e);
     HTChunkFree(me->buffer);
     free(me);
-    if (PROT_TRACE) fprintf(TDEST, "HTTPRequest. ABORTING...\n");
+    if (PROT_TRACE) TTYPrint(TDEST, "HTTPRequest. ABORTING...\n");
     return HT_ERROR;
 }
 

@@ -153,7 +153,7 @@ PRIVATE int WSRCParser_put_character ARGS2(HTStream*, me, char, c)
 		}
 	    }
 	    if (!par_name[me->param_number]) {	/* Unknown field */
-	        if (WWWTRACE) fprintf(TDEST,
+	        if (WWWTRACE) TTYPrint(TDEST,
 		    "HTWSRC: Unknown field `%s' in source file\n",
 		    me->param);
 		me->param_number = PAR_UNKNOWN;

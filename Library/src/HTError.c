@@ -107,7 +107,7 @@ PUBLIC int HTErrorAdd ARGS7(HTRequest *, 	request,
 {
     HTErrorInfo *newError;
     if (!request) {
-	if (WWWTRACE) fprintf(TDEST, "HTErrorAdd.. Bad argument!\n");
+	if (WWWTRACE) TTYPrint(TDEST, "HTErrorAdd.. Bad argument!\n");
 	return HT_ERROR;
     }
     if ((newError = (HTErrorInfo *) calloc(1, sizeof(HTErrorInfo))) == NULL)
@@ -136,7 +136,7 @@ PUBLIC int HTErrorAdd ARGS7(HTRequest *, 	request,
 	    newError->handle = pres->handle+1;
     }
     if (WWWTRACE) {
-	fprintf(TDEST, "Message..... Handle: %d\tCode: %3d\tMessage: `%s\'\tSeverity: %d\tParameter: `%s\'\tWhere: `%s\'\n",
+	TTYPrint(TDEST, "Message..... Handle: %d\tCode: %3d\tMessage: `%s\'\tSeverity: %d\tParameter: `%s\'\tWhere: `%s\'\n",
 		newError->handle,
 		error_info[newError->element].code,
 		error_info[newError->element].msg,
@@ -166,7 +166,7 @@ PUBLIC int HTErrorSysAdd ARGS5(HTRequest *, 	request,
 			       char *,		syscall)
 {
     if (!request) {
-	if (WWWTRACE) fprintf(TDEST, "HTErrorSys.. Bad argument!\n");
+	if (WWWTRACE) TTYPrint(TDEST, "HTErrorSys.. Bad argument!\n");
 	return HT_ERROR;
     }
     {
@@ -214,7 +214,7 @@ PUBLIC void HTErrorIgnore ARGS2(HTRequest *, request, int, handle)
     HTList *cur;
     HTErrorInfo *pres;
     if (!request) {
-	if (WWWTRACE) fprintf(TDEST, "HTErrorIgnore Bad argument!\n");
+	if (WWWTRACE) TTYPrint(TDEST, "HTErrorIgnore Bad argument!\n");
 	return;
     }
     cur = request->error_stack;
@@ -228,7 +228,7 @@ PUBLIC void HTErrorIgnore ARGS2(HTRequest *, request, int, handle)
 
     if (WWWTRACE) {
 	if (found) {
-	    fprintf(TDEST, "Error Ignore Handle: %d\tCode: %3d\tMessage: `%s\tSeverity: %d\tParameter: `%s\'\tWhere: `%s\'\n",
+	    TTYPrint(TDEST, "Error Ignore Handle: %d\tCode: %3d\tMessage: `%s\tSeverity: %d\tParameter: `%s\'\tWhere: `%s\'\n",
 		    pres->handle,
 		    error_info[pres->element].code,
 		    error_info[pres->element].msg,
@@ -236,7 +236,7 @@ PUBLIC void HTErrorIgnore ARGS2(HTRequest *, request, int, handle)
 		    pres->par ? (char *) pres->par : "Unspecified",
 		    pres->where ? pres->where : "Unspecified");
 	} else {
-	    fprintf(TDEST, "Error Ignore Bad handle\n");
+	    TTYPrint(TDEST, "Error Ignore Bad handle\n");
 	}
     }
     return;
@@ -253,13 +253,13 @@ PUBLIC void HTErrorIgnoreLast ARGS1(HTRequest *, request)
     HTList *cur;
     HTErrorInfo *pres;
     if (!request) {
-	if (WWWTRACE) fprintf(TDEST, "HTErrorIgnore Bad argument!\n");
+	if (WWWTRACE) TTYPrint(TDEST, "HTErrorIgnore Bad argument!\n");
 	return;
     }
     cur = request->error_stack;
     if (cur && (pres = (HTErrorInfo *) HTList_nextObject(cur)) != NULL) {
 	if (WWWTRACE)
-	    fprintf(TDEST, "Error Ignore Code: %3d\tMessage: `%s\tSeverity: %d\tParameter: `%s\'\tWhere: `%s\'\n",
+	    TTYPrint(TDEST, "Error Ignore Code: %3d\tMessage: `%s\tSeverity: %d\tParameter: `%s\'\tWhere: `%s\'\n",
 		    error_info[pres->element].code,
 		    error_info[pres->element].msg,
 		    pres->severity,

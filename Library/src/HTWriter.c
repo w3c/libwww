@@ -101,13 +101,13 @@ PRIVATE int HTWriter_write (HTStream * me, CONST char * buf, int len)
 #endif
 	    {
 		if (PROT_TRACE)
-		    fprintf(TDEST,"Write Socket WOULD BLOCK %d\n", me->sockfd);
+		    TTYPrint(TDEST,"Write Socket WOULD BLOCK %d\n", me->sockfd);
 		HTEvent_Register(me->sockfd,me->net->request,(SockOps)FD_WRITE,
 				 me->net->cbf, me->net->priority);
 		return HT_WOULD_BLOCK;
 	    } else {
 		if (PROT_TRACE)
-		    fprintf(TDEST, "Write Socket WRITE ERROR %d\n", socerrno);
+		    TTYPrint(TDEST, "Write Socket WRITE ERROR %d\n", socerrno);
 		return HT_ERROR;
 	    }
 	}
@@ -115,7 +115,7 @@ PRIVATE int HTWriter_write (HTStream * me, CONST char * buf, int len)
 	me->wptr += b_write;
 	len -= b_write;
 	if (PROT_TRACE)
-	    fprintf(TDEST, "Write Socket %d bytes written to socket %d\n",
+	    TTYPrint(TDEST, "Write Socket %d bytes written to socket %d\n",
 		    b_write, me->sockfd);
     }
 #ifdef NOT_ASCII
