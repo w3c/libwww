@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<!-- Changed by: Henrik Frystyk Nielsen,  1-Jul-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Jul-1996 -->
   <TITLE>W3C Reference Library libwww System Dependencies</TITLE>
 </HEAD>
 <BODY>
@@ -1140,6 +1140,14 @@ This is necessary in order to support Windows NT...
 #endif
 #endif
 #endif /* HT_MAX_PATH */
+
+#ifndef HT_MAX_TMPNAM
+#ifdef L_tmpnam
+#define HT_MAX_TMPNAM	L_tmpnam
+#else
+#define HT_MAX_TMPNAM	128
+#endif
+#endif
 </PRE>
 <H2>
   Definition of NGROUPS

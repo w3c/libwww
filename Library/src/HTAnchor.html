@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen,  1-Jul-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Jul-1996 -->
   <TITLE>W3C Reference Library libwww Anchor Class</TITLE>
 </HEAD>
 <BODY>
@@ -205,13 +205,13 @@ Does this parent anchor have any children
 <PRE>extern BOOL HTAnchor_hasChildren	(HTParentAnchor *me);
 </PRE>
 <H2>
-  Anchor Address
+  Anchor Addresses
 </H2>
 <P>
 There are two addresses of an anchor. The URI that was passed when the anchor
 was crated and the physical address that's used when the URI is going to
 be requested. The two addresses may be different if the request is going
-through a proxy or a gateway.
+through a proxy or a gateway or it may have been mapped through a rule file.
 <H3>
   Logical Address
 </H3>
@@ -221,12 +221,29 @@ to be freed by the caller as when the anchor was created.
 <PRE>extern char * HTAnchor_address		(HTAnchor * me);
 </PRE>
 <H3>
+  Expanded Logical Address
+</H3>
+<P>
+When expanding URLs within a hypertext document, the base address is taken
+as the following value if present (in that order):
+<UL>
+  <LI>
+    <CODE>Content-Base</CODE> header
+  <LI>
+    <CODE>Content-Location</CODE> header
+  <LI>
+    Logical address
+</UL>
+<PRE>extern char * HTAnchor_expandedAddress  (HTAnchor * me);
+</PRE>
+<H3>
   Physical address
 </H3>
 <P>
 Contains the physical address after we haved looked for proxies etc.
 <PRE>extern char * HTAnchor_physical		(HTParentAnchor * me);
 extern void HTAnchor_setPhysical	(HTParentAnchor * me, char * protocol);
+extern void HTAnchor_clearPhysical	(HTParentAnchor * me);
 </PRE>
 <H2>
   Entity Body Information

@@ -38,6 +38,8 @@ PRIVATE char * HTLibVersion = W3C_VERSION;
 
 PRIVATE BOOL   HTSecure = NO;		 /* Can we access local file system? */
 
+PRIVATE BOOL   initialized = NO;
+
 PRIVATE HTUserProfile * UserProfile = NULL;	     /* Default user profile */
 
 /* --------------------------------------------------------------------------*/
@@ -97,6 +99,14 @@ PUBLIC BOOL HTLib_secure (void)
 PUBLIC void HTLib_setSecure (BOOL mode)
 {
     HTSecure = mode;
+}
+
+/*	Have application initalized
+**	---------------------------
+*/
+PUBLIC BOOL HTLib_isInitialized (void)
+{
+    return initialized;
 }
 
 /*								     HTLibInit
@@ -165,7 +175,7 @@ PUBLIC BOOL HTLibInit (const char * AppName, const char * AppVersion)
         }
     }
 #endif /* _WINSOCKAPI_ */
-
+    initialized = YES;
     return YES;
 }
 
@@ -196,7 +206,7 @@ PUBLIC BOOL HTLibTerminate (void)
 #ifdef _WINSOCKAPI_
     WSACleanup();
 #endif
-
+    initialized = NO;
     return YES;
 }
 

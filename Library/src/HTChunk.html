@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 12-Apr-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 13-Jul-1996 -->
   <TITLE>W3C Reference Library libwww Chunk Class</TITLE>
 </HEAD>
 <BODY>
@@ -150,8 +150,8 @@ of the passes string, elminating the need for additional allocations and
 string copies.<BR>
 Once a string is built, the chunk may be destroyed and the string kept around.
 <PRE>
-extern HTChunk * HTChunk_fromCString (char * str, int grow);
-extern char * HTChunk_toCString (HTChunk * ch);
+extern HTChunk * HTChunk_fromCString	(char * str, int grow);
+extern char * HTChunk_toCString		(HTChunk * ch);
 </PRE>
 <H2>
   Return Current Size

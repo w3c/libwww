@@ -14,6 +14,12 @@
 #include "WWWCore.h"
 #include "HTInit.h"				         /* Implemented here */
 
+#ifndef W3C_ICONS
+#define W3C_ICONS	"/tmp"
+#endif
+
+#define ICON_LOCATION	"/internal-icon/"
+
 /* ------------------------------------------------------------------------- */
 
 /*	BINDINGS BETWEEN A SOURCE MEDIA TYPE AND A DEST MEDIA TYPE (CONVERSION)
@@ -127,10 +133,10 @@ PUBLIC void HTEncoderInit (HTList * c)
 */
 PUBLIC void HTBeforeInit (void)
 {
-    HTNetCall_addBefore(HTProxyFilter, NULL, 0);
-    HTNetCall_addBefore(HTRuleFilter, NULL, 0);
     HTNetCall_addBefore(HTCacheFilter, NULL, 0);
     HTNetCall_addBefore(HTCredentialsFilter, NULL, 0);
+    HTNetCall_addBefore(HTRuleFilter, NULL, 0);
+    HTNetCall_addBefore(HTProxyFilter, NULL, 0);
 }
 
 /*	REGISTER AFTER FILTERS
@@ -223,6 +229,29 @@ PUBLIC void HTProtocolInit (void)
     HTProtocol_add("rlogin", "", YES, HTLoadTelnet, NULL);
 }
 
+/*	REGISTER ALL KNOWN PROTOCOLS IN THE LIBRARY PREEMPTIVELY
+**	--------------------------------------------------------
+**	Not done automaticly - may be done by application!
+*/
+PUBLIC void HTProtocolPreemptiveInit (void)
+{
+#ifndef DECNET
+    HTProtocol_add("ftp", "tcp", YES, HTLoadFTP, NULL);
+    HTProtocol_add("nntp", "tcp", YES, HTLoadNews, NULL);
+    HTProtocol_add("news", "tcp", YES, HTLoadNews, NULL);
+    HTProtocol_add("gopher", "tcp", YES, HTLoadGopher, NULL);
+#ifdef HT_DIRECT_WAIS
+    HTProtocol_add("wais", "", YES, HTLoadWAIS, NULL);
+#endif
+#endif /* DECNET */
+
+    HTProtocol_add("http", "buffered_tcp", YES, HTLoadHTTP, NULL);
+    HTProtocol_add("file", "local", YES, HTLoadFile, NULL);
+    HTProtocol_add("telnet", "", YES, HTLoadTelnet, NULL);
+    HTProtocol_add("tn3270", "", YES, HTLoadTelnet, NULL);
+    HTProtocol_add("rlogin", "", YES, HTLoadTelnet, NULL);
+}
+
 /*	REGISTER DEFULT EVENT MANAGER
 **	-----------------------------
 **	Not done automaticly - may be done by application!
@@ -242,7 +271,7 @@ PUBLIC void HTEventInit (void)
 */
 PUBLIC void HTIconInit (const char * url_prefix)
 {
-    const char * prefix = url_prefix ? url_prefix : "/internal-icon/";
+    const char * prefix = url_prefix ? url_prefix : ICON_LOCATION;
 
     HTIcon_addBlank("blank.xbm", 	prefix,	NULL);
     HTIcon_addDir("directory.xbm", 	prefix, "DIR");
@@ -265,6 +294,9 @@ PUBLIC void HTIconInit (const char * url_prefix)
     HTIcon_add("telnet.xbm", 	prefix,	"TEL",	"application/x-gopher-telnet");
     HTIcon_add("unknown.xbm",	prefix,	"DUP",	"application/x-gopher-duplicate");
     HTIcon_add("unknown.xbm",	prefix,	"TN",	"application/x-gopher-tn3270");
+
+    /* Add global  mapping to where to find the internal icons */
+    HTRule_addGlobal(HT_Pass, ICON_LOCATION, W3C_ICONS);
 }
 
 /*	REGISTER ALL HTTP/1.1 MIME HEADERS

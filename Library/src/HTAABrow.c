@@ -36,7 +36,7 @@
 typedef struct _HTBasic {		  /* Basic challenge and credentials */
     char *	uid;
     char *	pw;
-    BOOL	first;
+    BOOL	retry;			    /* Should we ask the user again? */
 } HTBasic;
 
 /* ------------------------------------------------------------------------- */
@@ -46,7 +46,7 @@ PRIVATE HTBasic * HTBasic_new()
     HTBasic * me = NULL;
     if ((me = (HTBasic *) HT_CALLOC(1, sizeof(HTBasic))) == NULL)
 	HT_OUTOFMEM("HTBasic_new");
-    me->first = YES;
+    me->retry = YES;			       /* Ask the first time through */
     return me;
 }
 
@@ -111,7 +111,7 @@ PRIVATE BOOL basic_credentials (HTRequest * request, HTBasic * basic)
 	char * cleartext = NULL;
 	char * cipher = NULL;
 	int cl_len = strlen(basic->uid ? basic->uid : "") +
-	    strlen(basic->pw ? basic->pw : "") + 3;
+	    strlen(basic->pw ? basic->pw : "") + 2;
 	int ci_len = 4 * (((cl_len+2)/3) + 1);
 	if ((cleartext = (char *) HT_CALLOC(1, cl_len)) == NULL)
 	    HT_OUTOFMEM("basic_credentials");
@@ -158,7 +158,6 @@ PRIVATE int prompt_user (HTRequest * request, const char * realm,
 	    HT_FREE(basic->pw);
 	    basic->uid = HTAlert_replyMessage(reply);
 	    basic->pw = HTAlert_replySecret(reply);
-	    basic->first = NO;
 	}
 	HTAlert_deleteReply(reply);
 	return res ? HT_OK : HT_ERROR;
@@ -183,16 +182,17 @@ PUBLIC int HTBasic_generate (HTRequest * request, void * context, int status)
 	if (!basic) {
 	    char * url = HTAnchor_physical(HTRequest_anchor(request));
 	    basic = HTBasic_new();
-	    HTAA_addNode(BASIC_AUTH, realm, url, basic);
+	    HTAA_updateNode(BASIC_AUTH, realm, url, basic);
 	}
 
 	/*
 	** If we have a set of credentials (or the user provides a new set)
 	** then store it in the request object as the credentials
 	*/
-	if (basic->uid || prompt_user(request, realm, basic) == HT_OK)
+	if (basic->retry && prompt_user(request, realm, basic) == HT_OK) {
+	    basic->retry = NO;
 	    return basic_credentials(request, basic);
-	else
+	} else
 	    return HT_ERROR;
     }
     return HT_OK;
@@ -209,10 +209,12 @@ PUBLIC int HTBasic_generate (HTRequest * request, void * context, int status)
 PUBLIC int HTBasic_parse (HTRequest * request, void * context, int status)
 {
     HTAssocList * challenge = HTRequest_challenge(request);
+    HTBasic * basic = NULL;
     if (request && challenge) {
 	char * p = HTAssocList_findObject(challenge, BASIC_AUTH);
 	char * realm = HTNextField(&p);
 	char * rm = HTNextField(&p);
+
 	/*
 	** If valid challenge then make a template for the resource and
 	** store this information in our authentication URL Tree
@@ -220,16 +222,28 @@ PUBLIC int HTBasic_parse (HTRequest * request, void * context, int status)
 	if (realm && !strcasecomp(realm, "realm") && rm) {
 	    char * url = HTAnchor_physical(HTRequest_anchor(request));
 	    char * tmplate = make_template(url);
-	    HTBasic * basic = HTBasic_new();
 	    if (AUTH_TRACE) HTTrace("Basic Parse. Realm `%s\' found\n", rm);
-	    HTAA_addNode(BASIC_AUTH, rm, tmplate, basic);
+	    basic = (HTBasic *) HTAA_updateNode(BASIC_AUTH, rm, tmplate, NULL);
 	    HTRequest_setRealm(request, rm);
 	    HT_FREE(tmplate);
+	}
+
+	/*
+	** For some reason the authentication failed so we have to ask the user
+	** if we should try again. It may be because the user typed the wrong
+	** user name and password
+	*/
+	if (basic) {
+	    HTAlertCallback * prompt = HTAlert_find(HT_A_CONFIRM);
+	    if (prompt) {
+		if ((*prompt)(request,HT_A_CONFIRM,HT_MSG_RETRY_AUTHENTICATION,
+			      NULL, NULL, NULL) != YES)
+		    return HT_ERROR;
+		basic->retry = YES;
+	    }
 	}
 	return HT_OK;
     }
     if (AUTH_TRACE) HTTrace("Auth........ No challenges found\n");
-    return HT_OK;
+    return HT_ERROR;
 }
-
-

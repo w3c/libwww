@@ -124,6 +124,14 @@ PRIVATE int HTWriter_write (HTOutputStream * me, const char * buf, int len)
 		HTEvent_register(soc, net->request, (SockOps) FD_WRITE,
 				 net->cbf, net->priority);
 		return HT_WOULD_BLOCK;
+	    } else if (socerrno == EINTR) {
+		/*
+		**	EINTR	A signal was caught during the  write  opera-
+		**		tion and no data was transferred.
+		*/
+		if (PROT_TRACE)
+		    HTTrace("Write Socket call interruted - try again\n");
+		continue;
 	    } else {
 		HTRequest_addSystemError(net->request, ERR_FATAL, socerrno, NO,
 					 "NETWRITE");

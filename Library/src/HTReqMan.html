@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<!-- Changed by: Henrik Frystyk Nielsen,  7-Jul-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Jul-1996 -->
   <TITLE>W3C Reference Library libwww Private Request Definition</TITLE>
 </HEAD>
 <BODY>
@@ -185,12 +185,18 @@ request to the application using this anchor.
 <P>
 The <CODE>challenge</CODE> and the <CODE>credentials</CODE> entries are use
 by the authentication parsers and generators respectively.
-<PRE>
-    char *		realm;				    /* Current realm */
+<PRE>    char *		realm;				    /* Current realm */
     char *		scheme;				   /* Current scheme */
 
     HTAssocList *	challenge;           /* Challenge received by client */
     HTAssocList *	credentials;	   /* Credentials received by server */
+</PRE>
+<H3>
+  Protocol Extension Protocol (PEP) Information
+</H3>
+<PRE>    HTAssocList *	protocol;
+    HTAssocList *	protocol_info;
+    HTAssocList *	protocol_request;
 </PRE>
 <H3>
   Windows Specific Information

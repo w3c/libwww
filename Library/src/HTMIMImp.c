@@ -77,11 +77,10 @@ PUBLIC int HTMIME_allow (HTRequest * request, char * token, char * value)
 PUBLIC int HTMIME_authenticate (HTRequest * request, char * token, char * value)
 {    
     char * scheme = HTNextField(&value);
-
-    /* Check that we know how to handle this scheme */
-
-    HTRequest_addChallenge(request, scheme, value);
-    HTRequest_setScheme(request, scheme);
+    if (scheme) {
+	HTRequest_addChallenge(request, scheme, value);
+	HTRequest_setScheme(request, scheme);
+    }
     return HT_OK;
 }
 

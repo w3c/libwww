@@ -25,7 +25,6 @@
 #include "HTFormat.h"
 #include "HTError.h"
 #include "HTAlert.h"
-#include "HTAccess.h"
 #include "HTLib.h"
 #include "HTBind.h"
 #include "HTParse.h"
@@ -172,7 +171,6 @@ PRIVATE char *get_filename (char * base, const char * url, const char * suffix)
     if (STREAM_TRACE) HTTrace("Save file... Temporaray file `%s\'\n", path);
     return path;
 }
-
 
 /*	Save Locally
 **	------------

@@ -201,7 +201,7 @@ AC_FUNC_VPRINTF
 AC_FUNC_STRFTIME
 AC_CHECK_FUNCS(getcwd gethostname getdomainname getwd mktime timegm \
 		select socket strerror strtol opendir getpid strchr memcpy \
-		getlogin getpass fcntl readdir sysinfo ioctl chdir)
+		getlogin getpass fcntl readdir sysinfo ioctl chdir tempnam)
 AC_CHECK_FUNC(unlink, , AC_CHECK_FUNC(remove, AC_DEFINE(unlink, remove)))
 
 dnl Checks for external globals.
@@ -209,7 +209,6 @@ dnl AC_CHECK_EXTERNS(socket_errno sys_errlist sys_nerr)
 
 dnl This is the standard UNIX value
 AC_DEFINE(CACHE_FILE_PREFIX, "/usr/wsrc/")
-
 
 dnl THINGS TO CONSIDER
 dnl ******************
@@ -237,4 +236,3 @@ ComLine/Makefile ComLine/User/Makefile ComLine/src/Makefile
 Listen/Makefile Listen/User/Makefile Listen/src/Makefile
 Icons/Makefile Icons/WWW/Makefile Icons/32x32/Makefile Icons/internal/Makefile
 ], date>stamp-h)
-

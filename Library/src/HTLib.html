@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
+  <!-- Changed by: Henrik Frystyk Nielsen, 12-Jul-1996 -->
   <TITLE>W3C Reference Library libwww Global Libwww Information</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen, 27-Jun-1996 -->
 </HEAD>
 <BODY>
 <H1>
@@ -45,6 +45,13 @@ You can get the generic name of the Library and the version by using the
 following functions:
 <PRE>extern const char * HTLib_name (void);
 extern const char * HTLib_version (void);
+</PRE>
+<H3>
+  Is the Library Initalized?
+</H3>
+<P>
+Returns YES or NO
+<PRE>extern BOOL HTLib_isInitialized (void);
 </PRE>
 <H3>
   Application Name and Version

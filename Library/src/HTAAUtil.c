@@ -172,12 +172,30 @@ PRIVATE HTAAElement * HTAA_newElement (const char * scheme, void * context)
     return NULL;
 }
 
+/*
+**	If the new scheme differs from the existing one then use the
+**	new context, otherwise only override the old context if new
+**	one differs from NULL
+*/
 PRIVATE BOOL HTAA_updateElement (HTAAElement * element,
 				 const char * scheme, void * context)
 {
     if (element && scheme) {
-	StrAllocCopy(element->scheme, scheme);
-	element->context = context;
+	/*
+	** If the old scheme differs from the new one then delete our
+	** context by calling the gc provided by the caller
+	*/
+	if (strcmp(element->scheme, scheme)) {
+	    HTAAModule * module = HTAA_findModule(element->scheme);
+	    if (module && module->gc && element->context)
+		(*module->gc)(element->context);
+	    /*
+	    **  Insert the new scheme
+	    */
+	    StrAllocCopy(element->scheme, scheme);
+	    element->context = context;
+	} else if (context && context != element->context)
+	    element->context = context;
 	return YES;
     }
     return NO;
@@ -255,14 +273,15 @@ PRIVATE HTAAElement * HTAA_findElement (const char * realm, const char * url)
 **	Each node in the AA URL tree is a list of the modules we must call
 **	for this particular node.
 */
-PUBLIC BOOL HTAA_addNode (char const * scheme,
-			  const char * realm, const char * url, void * context)
+PUBLIC void * HTAA_updateNode (char const * scheme,
+			       const char * realm, const char * url,
+			       void * context)
 {
     HTUTree * tree = NULL;
     HTAAModule * module = NULL;
     if (!scheme || !url) {
 	if (AUTH_TRACE) HTTrace("Auth Engine. Bad argument\n");
-	return NO;
+	return NULL;
     }
     if (AUTH_TRACE) HTTrace("Auth Engine. Adding info for `%s'\n", url);
 
@@ -270,7 +289,7 @@ PUBLIC BOOL HTAA_addNode (char const * scheme,
     if ((module = HTAA_findModule(scheme)) == NULL) {
 	if (AUTH_TRACE) HTTrace("Auth Engine. Module `%s\' not registered\n",
 			       scheme ? scheme : "<null>");
-	return NO;
+	return NULL;
     }
 
     /* Find an existing URL Tree or create a new one */
@@ -286,7 +305,7 @@ PUBLIC BOOL HTAA_addNode (char const * scheme,
 	HT_FREE(host);
 	if (!tree) {
 	    if (AUTH_TRACE) HTTrace("Auth Engine. Can't create tree\n");
-	    return NO;
+	    return NULL;
 	}
     }
 
@@ -302,7 +321,7 @@ PUBLIC BOOL HTAA_addNode (char const * scheme,
 	    status = HTUTree_addNode(tree, realm, path, element);
 	}
 	HT_FREE(path);
-	return status;
+	return status==YES ? element->context : NULL;
     }
 }
 
@@ -312,6 +331,9 @@ PUBLIC BOOL HTAA_addNode (char const * scheme,
 
 /*	HTAA_beforeFilter
 **	------------------
+**	Make a lookup in the URL tree to find any context for this node,
+**	If no context is found then we assume that we don't know anything about
+**	this URL and hence we don't call any BEFORE filters at all.
 **	Return HT_OK or whatever callback returns
 */
 PUBLIC int HTAA_beforeFilter (HTRequest * request, void * param, int status)
@@ -320,11 +342,11 @@ PUBLIC int HTAA_beforeFilter (HTRequest * request, void * param, int status)
     const char * realm = HTRequest_realm(request);
     HTAAElement * element = HTAA_findElement(realm, url); 
 
-    /* Delete any old credentials if any */
+    /* Delete any old challenges if any */
     if (element) {
 	HTAAModule * module = HTAA_findModule(element->scheme);
-	HTRequest_deleteChallenge(request);
 	if (module) {
+	    HTRequest_deleteChallenge(request);
 	    if (AUTH_TRACE) HTTrace("Auth Engine. Found BEFORE filter %p\n",
 				   module->before);
 	    return (*module->before)(request, element->context,status);
@@ -335,17 +357,26 @@ PUBLIC int HTAA_beforeFilter (HTRequest * request, void * param, int status)
 
 /*	HTAA_afterFilter
 **	-----------------
+**	Call the AFTER filter that knows how to handle this scheme.
 **	Return YES or whatever callback returns
 */
 PUBLIC BOOL HTAA_afterFilter (HTRequest * request, void * param, int status)
 {
     const char * scheme = HTRequest_scheme(request);
-    HTAAModule * module = HTAA_findModule(scheme);
-    if (module) {
+    HTAAModule * module = NULL;
+    /*
+    **	If we don't have a scheme then the server has made an error. We
+    **  try to make up for it by creating our own "noop" realm and use basic.
+    */
+    if (!scheme) {
+	HTRequest_addChallenge(request, "basic", "realm UNKNOWN");
+	scheme = "basic";
+    }
+    if ((module = HTAA_findModule(scheme)) != NULL) {
 	if (AUTH_TRACE)
 	    HTTrace("Auth Engine. Found AFTER filter %p\n", module->after);
+	HTRequest_deleteCredentials(request);
 	return (*module->after)(request, NULL, status);
     }
-    return HT_OK;
+    return HT_ERROR;
 }
-

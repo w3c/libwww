@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<!-- Changed by: Henrik Frystyk Nielsen,  7-Jul-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Jul-1996 -->
   <TITLE>W3C Reference Library libwww Request Class</TITLE>
 </HEAD>
 <BODY>
@@ -561,6 +561,17 @@ typedef int HTPostCallback (HTRequest * request, HTStream * target);
 extern void HTRequest_setPostCallback (HTRequest * request, HTPostCallback * cbf);
 extern HTPostCallback * HTRequest_postCallback (HTRequest * request);
 </PRE>
+
+The Entity Anchor is either the anchor directly associated with the
+Request object or the post anchor associated with the object. The
+purpose of the entity anchor is if we are to send data to a remote
+server then we get the metainformation using the entity anchor.
+
+<PRE>
+extern BOOL HTRequest_setEntityAnchor (HTRequest * request, HTParentAnchor * anchor);
+extern HTParentAnchor * HTRequest_entityAnchor (HTRequest * request);
+</PRE>
+
 <H3>
   Input Stream
 </H3>

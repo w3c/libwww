@@ -186,7 +186,7 @@ PUBLIC HTChildAnchor * HTAnchor_findChildAndLink (HTParentAnchor *	parent,
 {
     HTChildAnchor * child = HTAnchor_findChild(parent, tag);
     if (href && *href) {
-	char * relative_to = HTAnchor_address((HTAnchor *) parent);
+	char * relative_to = HTAnchor_expandedAddress((HTAnchor *) parent);
 	char * parsed_address = HTParse(href, relative_to, PARSE_ALL);
 	HTAnchor * dest = HTAnchor_findAddress(parsed_address);
 	HTLink_add((HTAnchor *) child, dest, ltype, METHOD_INVALID);
@@ -457,16 +457,36 @@ PUBLIC void * HTAnchor_document  (HTParentAnchor * me)
     return me ? me->document : NULL;
 }
 
+PUBLIC char * HTAnchor_address  (HTAnchor * me) 
+{ 
+    char *addr = NULL;
+    if (me) {
+        if (((HTParentAnchor *) me == me->parent) ||
+            !((HTChildAnchor *) me)->tag) { /* it's an adult or no tag */
+            StrAllocCopy (addr, me->parent->address);
+        }
+        else {                  /* it's a named child */
+            if ((addr = (char  *) HT_MALLOC(2 + strlen (me->parent->address) + \
+strlen (((HTChildAnchor *) me)->tag))) == NULL)
+                HT_OUTOFMEM("HTAnchor_address");
+            sprintf (addr, "%s#%s", me->parent->address,
+                     ((HTChildAnchor *) me)->tag);
+        }
+    }
+    return addr;
+}
+
 /*
-**	We resolve the child address with respect to either a base URL
-**	given as part of the context or as the request-URI
+**	We resolve the child address with respect to either a base URL,
+**	a content-location, or to the request-URI
 */
-PUBLIC char * HTAnchor_address  (HTAnchor * me)
+PUBLIC char * HTAnchor_expandedAddress  (HTAnchor * me)
 {
     char *addr = NULL;
     if (me) {
-	char * base = me->parent->content_base ?
-	    me->parent->content_base : me->parent->address;
+	HTParentAnchor * parent = me->parent;
+	char * base = parent->content_location ? parent->content_location :
+	    parent->content_base ? parent->content_base : parent->address;
 	if (((HTParentAnchor *) me == me->parent) ||
 	    !((HTChildAnchor *) me)->tag) { /* it's an adult or no tag */
 	    StrAllocCopy(addr, base);
@@ -484,11 +504,10 @@ PUBLIC char * HTAnchor_address  (HTAnchor * me)
 */
 PUBLIC char * HTAnchor_physical (HTParentAnchor * me)
 {
-    return me ? me->physical : NULL;
+    return me ? me->physical ? me->physical : me->address : NULL;
 }
 
-PUBLIC void HTAnchor_setPhysical (HTParentAnchor * me,
-	char * 	physical)
+PUBLIC void HTAnchor_setPhysical (HTParentAnchor * me, char * physical)
 {
     if (!me || !physical) {
 	if (ANCH_TRACE)
@@ -498,6 +517,14 @@ PUBLIC void HTAnchor_setPhysical (HTParentAnchor * me,
     StrAllocCopy(me->physical, physical);
 }
 
+PUBLIC void HTAnchor_clearPhysical(HTParentAnchor * me)
+{
+    if (me) HT_FREE(me->physical);
+}
+
+/*
+**	Children information
+*/
 PUBLIC BOOL HTAnchor_hasChildren  (HTParentAnchor * me)
 {
     return me ? ! HTList_isEmpty(me->children) : NO;
@@ -591,15 +618,18 @@ PUBLIC char * HTAnchor_location (HTParentAnchor * me)
     return me ? me->content_location : NULL;
 }
 
+/*
+**	Expand the location relative to the base URL if any, otherwise the 
+**	anchor address it self
+*/
 PUBLIC BOOL HTAnchor_setLocation (HTParentAnchor * me, char * location)
 {
-    if (!me || !location) {
-	if (ANCH_TRACE)
-	    HTTrace("HTAnchor.... set location called with null argument\n");
-	return NO;
+    if (me && location) {
+	char * base = me->content_base ? me->content_base : me->address;
+	me->content_location = HTParse(location, base, PARSE_ALL);
+	return YES;
     }
-    StrAllocCopy(me->content_location, location);
-    return YES;
+    return NO;
 }
 
 /*	Content-Type

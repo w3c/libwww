@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen,  7-Jul-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 14-Jul-1996 -->
   <TITLE>W3C Reference Library libwww Access Authentication</TITLE>
 </HEAD>
 <BODY>
@@ -143,17 +143,16 @@ and port number, they control. For example, a server with interfaces
 "<CODE>www.foo.com</CODE>" and "<CODE>internal.foo.com</CODE>" can have different
 protection setups for each interface.
 <H3>
-  Add information to the Database
+  Add new or Update Existng information to the Database
 </H3>
 <P>
-Add an access authentication information node to the database. If the entry
-is already found then it is replaced with the new one. The template must
-follow normal URI syntax but can include a wildcard Return YES if added (or
-replaced), else NO
-<PRE>
-extern BOOL HTAA_addNode (const char * scheme,
-			  const char * realm, const char * url,
-			  void * context);
+Add an access authentication information node to the database or update an
+existing one. If the entry is already found then it is replaced with the
+new one. The template must follow normal URI syntax but can include a wildcard
+Return YES if added (or replaced), else NO
+<PRE>extern void * HTAA_updateNode (char const * scheme,
+			       const char * realm, const char * url,
+			       void * context);
 </PRE>
 <H2>
   The Authentication Manager Filters
@@ -162,11 +161,21 @@ extern BOOL HTAA_addNode (const char * scheme,
 As mentioned, the <I>Access Authentication Manager</I> is itself a set of
 <A HREF="HTFilter.html">filters</A> that can be registered by the
 <A HREF="HTNet.html">Net manager</A>.
-<PRE>
-extern int HTAA_beforeFilter (HTRequest * request, void * param, int status);
+<H3>
+  Before Filter
+</H3>
+<P>
+Make a lookup in the URL tree to find any context for this node, If no context
+is found then we assume that we don't know anything about this URL and hence
+we don't call any <I>BEFORE</I> filters at all.
+<PRE>extern int HTAA_beforeFilter (HTRequest * request, void * param, int status);
 </PRE>
-<PRE>
-extern BOOL HTAA_afterFilter (HTRequest * request, void * param, int status);
+<H3>
+  After Filter
+</H3>
+<P>
+Call the <I>AFTER</I> filter that knows how to handle this scheme.
+<PRE>extern BOOL HTAA_afterFilter (HTRequest * request, void * param, int status);
 </PRE>
 <PRE>
 #endif	/* NOT HTAAUTIL_H */

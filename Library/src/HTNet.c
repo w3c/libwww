@@ -458,7 +458,7 @@ PUBLIC BOOL HTNet_newClient (HTRequest * request)
     ** If no translation was provided by the application then use the anchor
     ** address directly
     */
-    if (!(physical = HTAnchor_physical(request->anchor)) || !*physical) {
+    if (!(physical = HTAnchor_physical(request->anchor))) {
 	char * addr = HTAnchor_address((HTAnchor *) request->anchor);
 	if (CORE_TRACE) HTTrace("HTNet New... Using default address\n");
 	HTAnchor_setPhysical(request->anchor, addr);

@@ -62,7 +62,10 @@ PUBLIC HTChunk * HTChunk_fromCString (char * str, int grow)
 {
     HTChunk * ch;
     ch = HTChunk_new(grow);
-    ch->data = str; /* can't handle non-allocated str */
+    if (str) {
+	ch->data = str;			/* can't handle non-allocated str */
+	ch->size = strlen(str);
+    }
     return ch;
 }
 

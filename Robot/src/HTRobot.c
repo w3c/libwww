@@ -60,8 +60,6 @@ typedef struct _Robot {
     HTList *		htext;			/* List of our HText Objects */
     struct timeval *	tv;				/* Timeout on socket */
     char *		cwd;				  /* Current dir URL */
-    HTList *		converters;
-    HTList *		encoders;
     char *		rules;
     char *		logfile;
     char *		outputfile;
@@ -195,8 +193,6 @@ PRIVATE BOOL Robot_delete (Robot * me)
 		HText_free(pres);
 	    HTList_delete(me->htext);
 	}
-	HTConversion_deleteAll(me->converters);
-	HTCoding_deleteAll(me->encoders);
 	if (me->logfile) HTLog_close();
 	if (me->output && me->output != STDOUT) fclose(me->output);
 	if (me->flags & MR_TIME) {
@@ -301,44 +297,14 @@ PRIVATE int terminate_handler (HTRequest * request, void * param, int status)
 */
 PRIVATE int timeout_handler (HTRequest * request)
 {
+#if 0
     Robot * mr = (Robot *) HTRequest_context(request);
+#endif
     if (SHOW_MSG) HTTrace("Robot....... We don't know how to handle timeout...\n");
 #if 0
     HTRequest_kill(request);
     Thread_delete(mr, request);
 #endif
-    return HT_OK;
-}
-
-/*	proxy_handler
-**	---------------
-**	This function is registered to be called before a request is issued
-**	We look for redirection for proxies and gateways
-**	returns		HT_LOADED		We already have this
-**			HT_ERROR		We can't load this
-**			HT_OK			Success
-*/
-PRIVATE int proxy_handler (HTRequest * request, void * param, int status)
-{
-    HTParentAnchor *anchor = HTRequest_anchor(request);
-    char * addr = HTAnchor_address((HTAnchor *) anchor);
-    char * newaddr = NULL;
-    if ((newaddr = HTProxy_find(addr))) {
-	StrAllocCat(newaddr, addr);
-	HTRequest_setFullURI(request, YES);
-	HTAnchor_setPhysical(anchor, newaddr);
-    } else if ((newaddr = HTGateway_find(addr))) {
-	char * path = HTParse(addr,"",PARSE_HOST+PARSE_PATH+PARSE_PUNCTUATION);
-	/* Chop leading / off to make host into part of path */
-	char * gatewayed = HTParse(path+1, newaddr, PARSE_ALL);
-	HTRequest_setFullURI(request, NO);
-	HTAnchor_setPhysical(anchor, gatewayed);
-	HT_FREE(path);
-	HT_FREE(gatewayed);
-    } else
-	HTRequest_setFullURI(request, NO);
-    HT_FREE(newaddr);
-    HT_FREE(addr);
     return HT_OK;
 }
 
@@ -472,38 +438,17 @@ int main (int argc, char ** argv)
     argc=ccommand(&argv);
 #endif
 
-    /* Initiate W3C Reference Library */
-    HTLibInit(APP_NAME, APP_VERSION);
-    HTMIMEInit();
+    /* Initiate W3C Reference Library with a robot profile */
+    HTProfile_newRobot(APP_NAME, APP_VERSION);
+
+    /* Add the default HTML parser to the set of converters */
+    {
+	HTList * converters = HTFormat_conversion();
+	HTMLInit(converters);
+    }
 
     /* Build a new robot object */
     mr = Robot_new();
-
-    /* Set up our event manager */
-    HTEventrgInit();
-
-    /* Register a transport */
-    HTTransportInit();
-
-    /* Initialize the protocol modules */
-    HTProtocolInit();
-
-    /* Initialize set of converters */
-    mr->converters = HTList_new();
-    HTConverterInit(mr->converters);
-    HTMLInit(mr->converters);
-    HTFormat_setConversion(mr->converters);
-
-    /* Set up encoders and decoders */
-    mr->encoders = HTList_new();
-    HTEncoderInit(mr->encoders);
-    HTFormat_setTransferCoding(mr->encoders);
-
-    /* Initialize bindings between file suffixes and media types */
-    HTFileInit();
-
-    /* Get any proxy or gateway environment variables */
-    HTProxy_getEnvVar();
 
     /* Scan command Line for parameters */
     for (arg=1; arg<argc; arg++) {
@@ -608,21 +553,9 @@ int main (int argc, char ** argv)
 
     /* Rule file specified? */
     if (mr->rules) {
-	HTList * list = HTList_new();
-	HTRequest * rr = HTRequest_new();
 	char * rules = HTParse(mr->rules, mr->cwd, PARSE_ALL);
-	HTParentAnchor * ra = (HTParentAnchor *) HTAnchor_findAddress(rules);
-	HTRequest_setPreemptive(rr, YES);
-	HTAlert_setInteractive(NO);
-	HTConversion_add(list, "application/x-www-rules", "*/*", HTRules,
-			 1.0, 0.0, 0.0);
-	HTRequest_setConversion(rr, list, YES);
-	HTAlert_add(HTConfirm, HT_A_CONFIRM);
-	if (HTLoadAnchor((HTAnchor *) ra, rr) != YES)
+	if (!HTLoadRules(rules))
 	    if (SHOW_MSG) HTTrace("Can't access rules\n");
-	HTConversion_deleteAll(list);
-	HTRequest_delete(rr);
-	HTAlert_delete(HTConfirm);
 	HT_FREE(rules);
     }
 
@@ -637,22 +570,7 @@ int main (int argc, char ** argv)
     /* Log file specifed? */
     if (mr->logfile) HTLog_open(mr->logfile, YES, YES);
 
-    /* Register our User Prompts etc in the Alert Manager */
-    if (HTAlert_interactive()) {
-	HTAlert_add(HTError_print, HT_A_MESSAGE);
-	HTAlert_add(HTConfirm, HT_A_CONFIRM);
-	HTAlert_add(HTPrompt, HT_A_PROMPT);
-	HTAlert_add(HTPromptPassword, HT_A_SECRET);
-	HTAlert_add(HTPromptUsernameAndPassword, HT_A_USER_PW);
-    }
-
-    /*
-    ** Register some standard BEFORE and AFTER filters
-    */
-    HTNetCall_addBefore(HTProxyFilter, NULL, 0);
-    HTNetCall_addBefore(HTRuleFilter, NULL, 0);
-    HTNetCall_addAfter(HTLogFilter, NULL, HT_ALL);
-    HTNetCall_addAfter(HTInfoFilter, NULL, HT_ALL);
+    /* Register our own someterminater filter */
     HTNetCall_addAfter(terminate_handler, NULL, HT_ALL);
     
     /* Set timeout on sockets */
@@ -660,7 +578,7 @@ int main (int argc, char ** argv)
 
     /* Start the request */
     if (keywords)						   /* Search */
-	status = HTSearch(HTChunk_data(keywords), mr->anchor, mr->request);
+	status = HTSearchAnchor(keywords, mr->anchor, mr->request);
     else
 	status = HTLoadAnchor((HTAnchor *) mr->anchor, mr->request);
 

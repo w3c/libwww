@@ -37,7 +37,7 @@
 PUBLIC int HTProxyFilter (HTRequest * request, void * param, int status)
 {
     HTParentAnchor * anchor = HTRequest_anchor(request);
-    char * addr = HTAnchor_address((HTAnchor *) anchor);
+    char * addr = HTAnchor_physical(anchor);
     char * physical = NULL;
     if ((physical = HTProxy_find(addr))) {
 	StrAllocCat(physical, addr);
@@ -58,7 +58,6 @@ PUBLIC int HTProxyFilter (HTRequest * request, void * param, int status)
     } else {
 	HTRequest_setFullURI(request, NO);
     }
-    HT_FREE(addr);
     return HT_OK;
 }
 
@@ -70,16 +69,15 @@ PUBLIC int HTProxyFilter (HTRequest * request, void * param, int status)
 **	is that a parent anchor has a "address" which is the part from the URL
 **	we used when we created the anchor. However, it also have a "physical
 **	address" which is the place we are actually going to look for the
-**	resource. Hence this filter translates from the address to the
-**	physical address (if any translations are found)
+**	resource. Hence this filter translates the physical address
+**	(if any translations are found)
 */
 PUBLIC int HTRuleFilter (HTRequest * request, void * param, int status)
 {
     HTList * list = HTRule_global();
     HTParentAnchor * anchor = HTRequest_anchor(request);
-    char * addr = HTAnchor_address((HTAnchor *) anchor);
+    char * addr = HTAnchor_physical(anchor);
     char * physical = HTRule_translate(list, addr, NO);
-    HT_FREE(addr);
     if (!physical) {
 	HTRequest_addError(request, ERR_FATAL, NO, HTERR_FORBIDDEN,
 			   NULL, 0, "HTRuleFilter");

@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 28-Jun-1996 -->
+  <!-- Changed by: Henrik Frystyk Nielsen, 15-Jul-1996 -->
   <TITLE>W3C Reference Library libwww Accessing URLs</TITLE>
 </HEAD>
 <BODY>
@@ -33,7 +33,7 @@ Library</A>.
 #include "HTAnchor.h"
 </PRE>
 <H2>
-  Loading a URL
+  Load a Document (Method = GET)
 </H2>
 <P>
 URLs can be accesses using a character string, for example
@@ -43,7 +43,7 @@ object</A>. Note that we call all objects accessible through URLs for
 <I>documents</I> - this is a notion we have inherited from the hypertext
 world.
 <H3>
-  Request a Document from Absolute URL
+  Load a Document from Absolute URL
 </H3>
 <P>
 Request a document referencd by an <I>absolute</I> URL. The output from the
@@ -54,7 +54,7 @@ or to a local file depending on the set of
 <PRE>extern BOOL HTLoadAbsolute (const char * url, HTRequest * request);
 </PRE>
 <H3>
-  Request a Document from Relative URL
+  Load a Document from Relative URL
 </H3>
 <P>
 Request a document referenced by a <I>relative</I> URL. The relative URL
@@ -65,7 +65,7 @@ anchor.
 			    HTRequest *		request);
 </PRE>
 <H3>
-  Load a URL into Memory
+  Load a Document into Memory
 </H3>
 <P>
 Request a document referred to by the URL and load it into a chunk object.
@@ -74,7 +74,30 @@ you will have a single memory buffer containing the document.
 <PRE>extern HTChunk * HTLoadToChunk (const char * url, HTRequest * request);
 </PRE>
 <H3>
-  Request a Document using an Anchor
+  Load a Document and Save as a Local File
+</H3>
+<P>
+This function loads a URL and saves the contents in the file specifed. The
+file does not have to be open, the load function both opens and closes the
+file. If the file already exists then it asks whether the file should be
+overwritten or not. the contents is saved <I>ASIS</I> - that is - we do not
+touch the contents of the file!
+<PRE>
+extern BOOL HTLoadToFile (const char * url, HTRequest * request,
+			  const char * filename);
+</PRE>
+<H3>
+  Load a Document and put the Contents into a Stream
+</H3>
+<P>
+Request a document referencd by an absolute URL and sending the data down
+a stream.
+<PRE>
+extern BOOL HTLoadToStream (const char * url, HTStream * output,
+			    HTRequest * request);
+</PRE>
+<H3>
+  Load a Document using an Anchor
 </H3>
 <P>
 Here the URL is represented by an <A HREF="HTAnchor.html">Anchor object</A>.
@@ -83,7 +106,7 @@ approproiate method in the <A HREF="HTAnchor.html">Anchor class</A>.
 <PRE>extern BOOL HTLoadAnchor (HTAnchor * anchor, HTRequest * request);
 </PRE>
 <H3>
-  Load a URL into Memory using an Anchor
+  Load a Document into Memory using an Anchor
 </H3>
 <P>
 This is the same as HTLoadToChunk but instead of passing a URL string you
@@ -92,7 +115,7 @@ contains all the information we have about the resource.
 <PRE>extern HTChunk * HTLoadAnchorToChunk (HTAnchor * anchor, HTRequest * request);
 </PRE>
 <H3>
-  Recursively Request a Document using an Anchor
+  Recursively Request a Document using Anchors
 </H3>
 <P>
 Same as <CODE>HTLoadAnchor()</CODE> but the information in the error stack
@@ -103,36 +126,249 @@ accepted, else NO
 <PRE>extern BOOL HTLoadAnchorRecursive (HTAnchor * anchor, HTRequest * request);
 </PRE>
 <H2>
-  Searching a URL
+  Load Special Documents
 </H2>
+<P>
+We also have a set of functions for loading special files like rules files
+which also are referenced by a URL but which do have to be treated specially.
 <H3>
-  Search an Anchor
+  Load a Rule File
 </H3>
 <P>
-Performs a keyword search on word given by the user. Adds the keyword to
-the end of the current address and attempts to open the new address. The
-list of keywords must be a space-separated list and spaces will be converted
-to '+' before the request is issued. Search can also be performed by
-HTLoadAbsolute() etc. Returns YES if request accepted, else NO
-<PRE>
-extern BOOL HTSearch (const char *	keywords,
-		      HTParentAnchor *  base,
-		      HTRequest * 	request);
-</PRE>
-<H3>
-  Search a document from absolute name
-</H3>
-<P>
-Request a document referencd by an absolute URL appended with the keywords
-given. The URL can NOT contain any fragment identifier! The list of keywords
-must be a space-separated list and spaces will be converted to '+' before
-the request is issued. Returns YES if request accepted, else NO
-<PRE>extern BOOL HTSearchAbsolute (const char *	keywords,
-			      const char *	url,
-			      HTRequest *	request);
+Rule files can be loaded just like any other URL but yuou can also just use
+this function which does all the work for you :-) It loads a rule find with
+the URL specified and add the set of rules to the existing set.
+<PRE>extern BOOL HTLoadRules (const char * url);
 </PRE>
 <H2>
-  Saving a URL
+  Search a Document (Method = GET)
+</H2>
+<P>
+The search methods all use GET as the method in the HTTP request. The functions
+take the keywirds and encode them according to RFC 1866 (Hypertext Markup
+language). That is, the query part is separated from the rest of the URL
+by a "?" nu is treated as being part of the URL path.
+<P>
+The keywords are passed to the function as a <A HREF="HTChunk.html">Chunk
+Object</A> and each keyword must be separated by a space ' '. This will then
+be converted into a '+' before added to the URL.
+<H3>
+  Search a Document from Absolute URL
+</H3>
+<PRE>
+extern BOOL HTSearchAbsolute (HTChunk *		keywords,
+			      const char *	base,
+			      HTRequest *	request);
+</PRE>
+<H3>
+  Search a Document from Relative URL
+</H3>
+<P>
+Search a document referenced by a <I>relative</I> URL. The relative URL is
+made absolute by resolving it relative to the address of the '<I>base</I>'
+anchor.
+<PRE>
+extern BOOL HTSearchRelative (HTChunk *		keywords,
+			      const char * 	relative,
+			      HTParentAnchor *	base,
+			      HTRequest *	request);
+</PRE>
+<H3>
+  Search a Document using an Anchor
+</H3>
+<PRE>
+extern BOOL HTSearchAnchor (HTChunk *		keywords,
+			    HTAnchor *		anchor,
+			    HTRequest * 	request);
+</PRE>
+<H3>
+  Search a Document using an Anchor Using a String
+</H3>
+<P>
+This works exactly as the <CODE>HTSearchAnchor()</CODE> function but takes
+a C string instead of a <A HREF="HTChunk.html">chunk object</A>.
+<PRE>
+extern BOOL HTSearchString (const char *	keywords,
+			    HTAnchor *		anchor,
+			    HTRequest * 	request);
+</PRE>
+<H2>
+  Handle Forms Using GET Method
+</H2>
+<P>
+Form data can be sent to a HTTP server in two ways - it can either use a
+GET method or it can use a POST method. The difference is whether the request
+"has side effects" or not. For example, if you are ordering a pizza then
+the (hopefully positive) sideeffect is that you actually get one delivered.
+However, if you are issuing search data - for example to Alta Vista, then
+there is no sideeffect. In the former example you would use the GET form
+and in the latter you would use the POST form.
+<H3>
+  Send a Form from Absolute URL using GET
+</H3>
+<P>
+Request a document referencd by an absolute URL appended with the formdata
+given. The URL can NOT contain any fragment identifier! The list of form
+data must be given as an association list where the name is the field name
+and the value is the value of the field.
+<PRE>
+extern BOOL HTGetFormAbsolute (HTAssocList *	formdata,
+			       const char *	base,
+			       HTRequest *	request);
+</PRE>
+<H3>
+  Send a Form from Relative URL using GET
+</H3>
+<P>
+Request a document referencd by a relative URL appended with the formdata
+given. The URL can NOT contain any fragment identifier! The list of form
+data must be given as an association list where the name is the field name
+and the value is the value of the field.
+<PRE>
+extern BOOL HTGetFormRelative (HTAssocList * 	formdata,
+			       const char * 	relative,
+			       HTParentAnchor *	base,
+			       HTRequest *	request);
+</PRE>
+<H3>
+  Send a Form using an Anchor and the GET Method
+</H3>
+<P>
+Request a document referencd by an anchor object appended with the formdata
+given. The URL can NOT contain any fragment identifier! The list of form
+data must be given as an association list where the name is the field name
+and the value is the value of the field.
+<PRE>
+extern BOOL HTGetFormAnchor (HTAssocList *	formdata,
+			     HTAnchor *		anchor,
+			     HTRequest * 	request);
+</PRE>
+<H2>
+  Handle Forms Using POST Method
+</H2>
+<P>
+The main difference between a <CODE>GET</CODE> form and a <CODE>POST</CODE>
+form is that the data in a <CODE>POST</CODE> form is sent as the body part
+of the <A HREF="http://www.w3.org/pub/WWW/Protocols/">HTTP</A> message whereas
+a <CODE>GET</CODE> form wraps it all up into the URL. In order to be able
+to use the <CODE>POST</CODE> data object at a later point in time, we create
+a new anchor on the fly. This anchor has a URL file location which points
+into the temporary area given by the <A HREF="HTUser.html">User Profile
+Object</A>. That is - you can actually save the anchor using a PUT request
+and then be able to retrive the form data at a later point in time. Even
+though this may seem "ambitious" for posting form data, it is really just
+a special example of sending any kind of data to a remote server. All
+<CODE>POST</CODE> form functions return the new anchor or <CODE>NULL</CODE>
+if they fail.
+<H3>
+  Send a Form from Absolute URL using POST
+</H3>
+<P>
+Request a document referencd by an absolute URL appended with the formdata
+given. The URL can NOT contain any fragment identifier! The list of form
+data must be given as an association list where the name is the field name
+and the value is the value of the field.
+<PRE>
+extern HTParentAnchor * HTPostFormAbsolute (HTAssocList *	formdata,
+					    const char *	base,
+					    HTRequest *	request);
+</PRE>
+<H3>
+  Send a Form from a Relative URL using GET
+</H3>
+<P>
+Request a document referencd by a relative URL appended with the formdata
+given. The URL can NOT contain any fragment identifier! The list of form
+data must be given as an association list where the name is the field name
+and the value is the value of the field.
+<PRE>
+extern HTParentAnchor * HTPostFormRelative (HTAssocList * 	formdata,
+					    const char * 	relative,
+					    HTParentAnchor *	base,
+					    HTRequest *		request);
+</PRE>
+<H3>
+  Send a Form using an Anchor and the POST Method
+</H3>
+<P>
+Request a document referencd by an anchor object appended with the formdata
+given. The URL can NOT contain any fragment identifier! The list of form
+data must be given as an association list where the name is the field name
+and the value is the value of the field.
+<PRE>
+extern HTParentAnchor * HTPostFormAnchor (HTAssocList *	formdata,
+					  HTAnchor *	anchor,
+					  HTRequest * 	request);
+</PRE>
+<H2>
+  Get Metainformation about a Document (Method = HEAD)
+</H2>
+<P>
+If you are not interested in the document itself but only in the
+<I>metainformation</I> that you can get <I>describing</I> the document then
+you should use the <CODE>HEAD</CODE> method in your request.
+<H3>
+  Get Metainformation about a Document from Absolute URL
+</H3>
+<P>
+Request metainfomration about a document referencd by an <I>absolute</I>
+URL.
+<PRE>extern BOOL HTHeadAbsolute (const char * url, HTRequest * request);
+</PRE>
+<H3>
+  Get Metainformation about a Document from Relative URL
+</H3>
+<P>
+Request metainformation about a document referenced by a <I>relative</I>
+URL.
+<PRE>extern BOOL HTHeadRelative (const char * 	relative,
+			    HTParentAnchor *	base,
+			    HTRequest *		request);
+</PRE>
+<H3>
+  Get Metainformation about a Document using an Anchor
+</H3>
+<P>
+Here the URL is represented by an <A HREF="HTAnchor.html">Anchor object</A>.
+You can get an anchor object representing a URL by passing the URL to the
+approproiate method in the <A HREF="HTAnchor.html">Anchor class</A>.
+<PRE>extern BOOL HTHeadAnchor (HTAnchor * anchor, HTRequest * request);
+</PRE>
+<H2>
+  Delete a URL
+</H2>
+<P>
+If you want to delete a document (or make the document inaccessible for future
+references) then you can use the <CODE>DELETE</CODE> method in your request.
+<H3>
+  Delete a Document from Absolute URL
+</H3>
+<P>
+Request metainfomration about a document referencd by an <I>absolute</I>
+URL.
+<PRE>extern BOOL HTDeleteAbsolute (const char * url, HTRequest * request);
+</PRE>
+<H3>
+  Delete a Document from Relative URL
+</H3>
+<P>
+Request metainformation about a document referenced by a <I>relative</I>
+URL.
+<PRE>extern BOOL HTDeleteRelative (const char * 	relative,
+			    HTParentAnchor *	base,
+			    HTRequest *		request);
+</PRE>
+<H3>
+  Delete a Document using an Anchor
+</H3>
+<P>
+Here the URL is represented by an <A HREF="HTAnchor.html">Anchor object</A>.
+You can get an anchor object representing a URL by passing the URL to the
+approproiate method in the <A HREF="HTAnchor.html">Anchor class</A>.
+<PRE>extern BOOL HTDeleteAnchor (HTAnchor * anchor, HTRequest * request);
+</PRE>
+<H2>
+  Save a URL
 </H2>
 <H3>
   Copy an anchor
@@ -161,14 +397,12 @@ return the value returned by this stream to the Library so that it knows
 what to do next. The reason is that the outgoing stream might block or an
 error may occur and in that case the Library must know about it. If you do
 not want to handle the stream interface yourself then you can use the
-<CODE>HTUpload_callback</CODE> which is declared below.
-<P>
-The source anchor represents the data object in memory and it points to the
-destination anchor by using the
-<A HREF="../User/Architecture/PostWeb.html">POSTWeb method</A>. The source
-anchor contains metainformation about the data object in memory and the
-destination anchor represents the reponse from the remote server. Returns
-YES if request accepted, else NO
+<CODE>HTUpload_callback</CODE> which is declared below. The source anchor
+represents the data object in memory and it points to the destination anchor
+by using the <A HREF="../User/Architecture/PostWeb.html">POSTWeb method</A>.
+The source anchor contains metainformation about the data object in memory
+and the destination anchor represents the reponse from the remote server.
+Returns YES if request accepted, else NO
 <PRE>extern BOOL HTUploadAnchor (HTAnchor *		source_anchor,
 			    HTRequest * 	request,
 			    HTPostCallback *	callback);

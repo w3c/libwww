@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 23-Mar-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 12-Jul-1996 -->
   <TITLE>W3C Reference Library libwww Rule File Configuration manager</TITLE>
 </HEAD>
 <BODY>
@@ -96,6 +96,7 @@ We provide two functions for getting and setting the global rules:
 <PRE>
 extern HTList * HTRule_global	(void);
 extern BOOL HTRule_setGlobal	(HTList * list);
+extern BOOL HTRule_addGlobal	(HTRuleOp op, const char * pattern, const char * replace);
 </PRE>
 <H2>
   Translate by rules

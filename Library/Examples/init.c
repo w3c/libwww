@@ -23,7 +23,7 @@ int main()
     /* Register the default set of protocol modules */
     HTProtocolInit();
 
-    /* Register the default set of BEFORE and AFTER callback functions */
+    /* Register the default set of BEFORE and AFTER filters */
     HTNetInit();
 
     /* Register the default set of converters */

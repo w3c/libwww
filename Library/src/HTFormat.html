@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen,  5-Jun-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Jul-1996 -->
   <TITLE>W3C Reference Library libwww Stream Pipe Manager</TITLE>
 </HEAD>
 <BODY>
@@ -210,6 +210,7 @@ These are regular MIME types defined. Others can be added!
 <PRE>
 #define WWW_HTML 	HTAtom_for("text/html")
 #define WWW_PLAINTEXT 	HTAtom_for("text/plain")
+#define WWW_FORM	HTAtom_for("application/x-www-form-urlencoded")
 
 #define WWW_MIME	HTAtom_for("message/rfc822")
 #define WWW_MIME_HEAD	HTAtom_for("message/x-rfc822-head")
@@ -493,6 +494,13 @@ a generic set of possible conversions.
 <PRE>
 extern void HTFormat_setConversion	(HTList * list);
 extern HTList * HTFormat_conversion	(void);
+
+extern void HTFormat_addConversion (const char *	input_format,
+				    const char *	output_format,
+				    HTConverter *	converter,
+				    double		quality,
+				    double		secs, 
+				    double		secs_per_byte);
 </PRE>
 <H3>
   Content Codings
@@ -500,6 +508,11 @@ extern HTList * HTFormat_conversion	(void);
 <PRE>
 extern void HTFormat_setContentCoding	(HTList * list);
 extern HTList * HTFormat_contentCoding	(void);
+
+extern BOOL HTFormat_addCoding ( char *		encoding,
+				 HTCoder *	encoder,
+				 HTCoder *	decoder,
+				 double		quality);
 </PRE>
 <H3>
   Content Transfer Codings
@@ -507,6 +520,11 @@ extern HTList * HTFormat_contentCoding	(void);
 <PRE>
 extern void HTFormat_setTransferCoding	(HTList * list);
 extern HTList * HTFormat_transferCoding	(void);
+
+extern BOOL HTFormat_addTransferCoding ( char *		encoding,
+					 HTCoder *	encoder,
+					 HTCoder *	decoder,
+					 double		quality);
 </PRE>
 <P>
 We also define a macro to find out whether a transfer encoding is really

@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen,  3-Jul-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 13-Jul-1996 -->
   <TITLE>W3C Reference Library libwww Default Initialization</TITLE>
 </HEAD>
 <BODY>
@@ -52,7 +52,7 @@ extern void HTTransportInit (void);
 </H2>
 <P>
 Set up default bindings between access schemes and the set of protocol modules
-in the Library.
+in the Library. The preemptive version registers all protocol modules to use blocking sockets.
 <PRE>
 #include "WWWHTTP.h"
 #include "WWWFile.h"
@@ -66,7 +66,10 @@ in the Library.
 #endif
 
 #define HTAccessInit	HTProtocolInit
+
 extern void HTProtocolInit (void);
+
+extern void HTProtocolPreemptiveInit (void);
 </PRE>
 <H2>
   <A NAME="MIME">Default MIME Parsers</A>

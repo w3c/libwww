@@ -145,9 +145,7 @@ struct _LineMode {
     HTParentAnchor *	anchor;
     struct timeval *	tv;				/* Timeout on socket */
     HTList *		active;			  /* List of acitve contexts */
-    HTList *		converters;
     HTList *		presenters;
-    HTList *		encoders;
     HTHistory *		history;    			     /* History list */
     char *		cwd;				  /* Current dir URL */
     char *		rules;
@@ -309,9 +307,7 @@ PRIVATE BOOL LineMode_delete (LineMode * lm)
     if (lm) {
 	HT_FREE(lm->tv);
 	Thread_deleteAll(lm);
-	HTConversion_deleteAll(lm->converters);
 	HTPresentation_deleteAll(lm->presenters);
-	HTCoding_deleteAll(lm->encoders);
 	HTHistory_delete(lm->history);
 	HT_FREE(lm->cwd);
 	if (lm->logfile) HTLog_close();
@@ -362,9 +358,7 @@ PRIVATE void Cleanup (LineMode * me, int status)
     CSLoadedUser_deleteAll();
     CSApp_unregisterApp();
     LineMode_delete(me);
-
-    HTEventrgTerminate();
-    HTLibTerminate();
+    HTProfile_delete();
 #ifdef VMS
     exit(status ? status : 1);
 #else
@@ -1026,7 +1020,7 @@ PRIVATE int parse_command (char* choice, SOCKET s, HTRequest *req, SockOps ops)
 	    {
 		if (next_word) {
 		    req = Thread_new(lm, YES, LM_UPDATE);
-		    status = HTSearch(other_words, HTMainAnchor, req);
+		    status = HTSearchString(other_words, HTMainAnchor, req);
 		}
 	    }
 	} else if (CHECK_INPUT("FORWARD", token)) {
@@ -1584,12 +1578,14 @@ int main (int argc, char ** argv)
     arc.locale=0; arc.encoding=0; arc.i_encoding=0; doinull();
 #endif
 
-    /* Initiate W3C Reference Library */
-    HTLibInit(APP_NAME, APP_VERSION);    
-    HTMIMEInit();
+    /* Initiate W3C Reference Library with a client profile */
+    HTProfile_newClient(APP_NAME, APP_VERSION);
 
-    /* Set up our event manager */
-    HTEventrgInit();
+    /* Add the default HTML parser to the set of converters */
+    {
+	HTList * converters = HTFormat_conversion();
+	HTMLInit(converters);
+    }
 
     /* Create a new Line Mode object */
     lm = LineMode_new();
@@ -1850,37 +1846,10 @@ int main (int argc, char ** argv)
     SetSignal();
 #endif
 
-    /* Initialize the protocol modules */
-    HTProtocolInit();
-
-    /* Setup authentication manager */
-    HTAAInit();
-
-    /* Initialize set of converters */
-    lm->converters = HTList_new();
-    HTMLInit(lm->converters);
-    HTConverterInit(lm->converters);
-    HTMLInit(lm->converters);
-    HTFormat_setConversion(lm->converters);
-
-    /* Set up encoders and decoders */
-    lm->encoders = HTList_new();
-    HTEncoderInit(lm->encoders);
-    HTFormat_setTransferCoding(lm->encoders);
-
-    /* Initialize bindings between file suffixes and media types */
-    HTFileInit();
-
-    /* Set up default set of icons */
-    HTIconInit(NULL);
-
-    /* Get any proxy or gateway environment variables */
-    HTProxy_getEnvVar();
-
     /* Make home page address */
     if (!lm->anchor) lm->anchor = HTHomeAnchor();
 
-    /* Do we need list of presenters? */
+    /* Do we need list of presenters? (external viewers) */
     if (HTAlert_interactive()) {
 	lm->presenters = HTList_new();
 	HTPresenterInit(lm->presenters);
@@ -1894,7 +1863,7 @@ int main (int argc, char ** argv)
 	    HTScreenHeight = 999999;
     }
 
-    /* Disable HT_FREE directory browsing when using telnet host */
+    /* Disable free directory browsing when using telnet host */
     if (lm->host && HTFile_dirAccess() == HT_DIR_OK)
 	HTFile_setDirAccess(HT_DIR_SELECTIVE);
 
@@ -1938,35 +1907,8 @@ int main (int argc, char ** argv)
 	Cleanup(lm, 0);
     }
 
-    /* Register our User Prompts etc in the Alert Manager */
-    if (HTAlert_interactive()) {
-	HTAlert_add(HTError_print, HT_A_MESSAGE);
-	HTAlert_add(HTConfirm, HT_A_CONFIRM);
-	HTAlert_add(HTPrompt, HT_A_PROMPT);
-	HTAlert_add(HTPromptPassword, HT_A_SECRET);
-	HTAlert_add(HTPromptUsernameAndPassword, HT_A_USER_PW);
-    }
-
-    /* Register a call back function for the Net Manager */
-#if 0
-    HTNetCall_addBefore(HTLoadStart, NULL, 0);
-    HTNetCall_addAfter(authentication_handler, NULL, HT_NO_ACCESS);
-    HTNetCall_addAfter(redirection_handler, NULL, HT_PERM_REDIRECT);
-    HTNetCall_addAfter(redirection_handler, NULL, HT_TEMP_REDIRECT);
-    HTNetCall_addAfter(HTLoadTerminate, NULL, HT_ALL);
-#endif
-
-    /*
-    ** Register all the standard BEFORE and AFTER filters
-    */
-    HTBeforeInit();
-    HTAfterInit();
-
     /* Add our own filter to update the history list */
     HTNetCall_addAfter(terminate_handler, NULL, HT_ALL);
-
-    /* Register a transport */
-    HTTransportInit();
 
     /* Set timeout on sockets */
     if (lm->tv->tv_sec < 0) {
@@ -1975,26 +1917,14 @@ int main (int argc, char ** argv)
     }
     HTEventrg_registerTimeout(lm->tv, request, timeout_handler, NO);
 
-    /* Set max number of sockets we want open simultanously */
-    HTNet_setMaxSocket(6);
-
     /* Set the DNS cache timeout */
     HTDNS_setTimeout(3600);
 
     /* Rule file specified? */
     if (lm->rules) {
-	HTList * list = HTList_new();
-	HTRequest * rr = Thread_new(lm, NO, LM_IGNORE);
 	char * rules = HTParse(lm->rules, lm->cwd, PARSE_ALL);
-	HTParentAnchor * ra = (HTParentAnchor *) HTAnchor_findAddress(rules);
-	HTRequest_setPreemptive(rr, YES);
-	HTAlert_setInteractive(NO);
-	HTConversion_add(list, "application/x-www-rules", "*/*", HTRules,
-			 1.0, 0.0, 0.0);
-	HTRequest_setConversion(rr, list, YES);
-	if (HTLoadAnchor((HTAnchor *) ra, rr) != YES)
+	if (!HTLoadRules(rules))
 	    if (SHOW_MSG) HTTrace("Can't access rules\n");
-	HTConversion_deleteAll(list);
 	HT_FREE(rules);
     }
 
@@ -2018,7 +1948,7 @@ int main (int argc, char ** argv)
 
     /* Start the request */
     if (keywords)
-	status = HTSearch(HTChunk_data(keywords), lm->anchor, request);
+	status = HTSearchAnchor(keywords, lm->anchor, request);
     else
 	status = HTLoadAnchor((HTAnchor *) lm->anchor, request);
 

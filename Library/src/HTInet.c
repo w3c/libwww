@@ -561,3 +561,33 @@ PUBLIC time_t HTGetTimeZoneOffset (void)
 #endif /* HAVE_TIMEZONE */
     return HTTimeZone;
 }
+
+/*
+**	Finds a temporary name in in the directory given. If the directory
+**	is NULL then use whatever the system dependent function provides as
+**	alternatives. A suffix (if any) will be appended to the file name.
+**	If success, the result must be freed by caller, else we return NULL
+*/
+PUBLIC char * HTGetTmpFileName (const char * dir)
+{
+    char * result = NULL;
+#ifdef HAVE_TEMPNAM
+    result = tempnam(dir, "www-");
+#else /* Use tmpnam */
+    char * offset = NULL;
+    if (!(result = (char *) HT_MALLOC(dir ? strlen(dir) : 0 +HT_MAX_TMPNAM+2)))
+	HT_OUTOFMEM("HTGetTmpFileName");
+    if (dir && *dir) {
+	strcpy(result, dir);
+	offset = result+strlen(result)-1;
+	if (*offset != '/') *offset++ = '/';
+    } else
+	offset = result;
+#ifdef HT_REENTRANT
+    tmpnam_r(offset);
+#else
+    tmpnam(offset);
+#endif
+#endif
+    return result;
+}

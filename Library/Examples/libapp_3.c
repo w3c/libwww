@@ -1,28 +1,35 @@
 #include "WWWLib.h"
-#include "WWWTrans.h"
-#include "WWWHTTP.h"
-#include "WWWMIME.h"
-#include "WWWApp.h"
+#include "WWWStream.h"
+#include "WWWInit.h"
 
+/*
+**	Loads a URL and count the content length
+*/
 int main (int argc, char ** argv)
 {
-    HTList * converters = HTList_new();
-    HTRequest * request = HTRequest_new();	  /* Create a request object */
-    HTLibInit("TestApp", "1.0");
-    HTTransport_add("tcp", HT_CH_SINGLE, HTReader_new, HTWriter_new);
-    HTProtocol_add("http", "tcp", YES, HTLoadHTTP, NULL);
-    HTConversion_add(converters, "text/x-http","*/*", HTTPStatus_new,
-		     1.0, 0.0, 0.0);
-    HTConversion_add(converters, "message/rfc822", "*/*", HTMIMEConvert,
-		     1.0, 0.0, 0.0);
-    HTFormat_setConversion(converters);
-    HTAlert_add(HTPrompt, HT_A_PROMPT);
+    HTRequest * request;
+    HTProfile_newPreemptiveRobot("TestApp", "1.0");
+    request = HTRequest_new();
+    HTRequest_setOutputFormat(request, WWW_SOURCE);
     if (argc == 2) {
-	HTLoadAbsolute(argv[1], request);
-    } else
+	char * url = argv[1];
+	if (url && *url) {
+	    HTParentAnchor * anchor=(HTParentAnchor*)HTAnchor_findAddress(url);
+	    BOOL status =
+		HTLoadToStream(url,
+			       HTContentCounter(HTBlackHole(), request,0x2000),
+			       request);
+	    if (status)
+		printf("Content length found to be %ld bytes\n",
+		       HTAnchor_length(anchor));
+	    else
+		printf("Content length could not be found\n");
+	} else
+	    printf("Bad parameters - please try again\n");
+    } else {
 	printf("Type the URL to fetch\n");
+    }
     HTRequest_delete(request);			/* Delete the request object */
-    HTConversion_deleteAll(converters);
-    HTLibTerminate();
+    HTProfile_delete();
     return 0;
 }

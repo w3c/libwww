@@ -30,7 +30,9 @@ PRIVATE char *HTDialogs[HT_MSG_ELEMENTS] = {
     "Plase enter account:",
     "It might not be allowed to use this method, continue?",
     "Location has moved, continue?",
-    "A new set of rules is to be added to your setup - continue?"
+    "A new set of rules is to be added to your setup - continue?",
+    "This file already exists - replace existing file?",
+    "Authentication failed - retry?"
 };
 
 /*

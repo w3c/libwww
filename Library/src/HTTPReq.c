@@ -92,30 +92,41 @@ PRIVATE void HTTPMakeRequest (HTStream * me, HTRequest * request)
 
     /* Request Headers */
     if (request_mask & HT_C_ACCEPT_TYPE) {
-	int list;
-	HTList *cur;
-	BOOL first=YES;
-	for (list=0; list<2; list++) {
-	    if ((!list && ((cur = HTFormat_conversion()) != NULL)) ||
-		(list && ((cur = HTRequest_conversion(request)) != NULL))) {
-		HTPresentation  *pres;
-		while ((pres = (HTPresentation *) HTList_nextObject(cur))) {
-		    if (pres->rep_out==WWW_PRESENT && pres->quality <= 1.0) {
-			if (first) {
-			    PUTS("Accept: ");
-			    first=NO;
-			} else
-			    PUTC(',');
-			PUTS(HTAtom_name(pres->rep));
-			if (pres->quality != 1.0) {
-			    sprintf(qstr, ";q=%1.1f", pres->quality);
-			    PUTS(qstr);
+	/*
+	** If caller has specified a specific output format then use this.
+	** Otherwise use all the registered converters to generate the 
+	** accept header
+	*/
+	if (HTRequest_outputFormat(request) == WWW_PRESENT) {
+	    int list;
+	    HTList *cur;
+	    BOOL first=YES;
+	    for (list=0; list<2; list++) {
+		if ((!list && ((cur = HTFormat_conversion()) != NULL)) ||
+		    (list && ((cur = HTRequest_conversion(request))!=NULL))) {
+		    HTPresentation * pres;
+		    while ((pres=(HTPresentation *) HTList_nextObject(cur))) {
+			if (pres->rep_out==WWW_PRESENT && pres->quality<=1.0) {
+			    if (first) {
+				PUTS("Accept: ");
+				first=NO;
+			    } else
+				PUTC(',');
+			    PUTS(HTAtom_name(pres->rep));
+			    if (pres->quality != 1.0) {
+				sprintf(qstr, ";q=%1.1f", pres->quality);
+				PUTS(qstr);
+			    }
 			}
 		    }
 		}
 	    }
-	}
-	if (!first) PUTBLOCK(crlf, 2);
+	    if (!first) PUTBLOCK(crlf, 2);
+	} else {
+	    PUTS("Accept: ");
+	    PUTS(HTAtom_name(HTRequest_outputFormat(request)));
+	    PUTBLOCK(crlf, 2);
+	}	
     }
     if (request_mask & HT_C_ACCEPT_CHAR) {
 	int list;

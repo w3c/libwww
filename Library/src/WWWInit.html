@@ -1,11 +1,11 @@
 <HTML>
 <HEAD>
-  <!-- Changed by: Henrik Frystyk Nielsen, 14-Jun-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Jul-1996 -->
   <TITLE>W3C Reference Library libwww Default Initialization</TITLE>
 </HEAD>
 <BODY>
 <H1>
-  Default Initialization Modules
+  Default Initialization Modules and Profiles
 </H1>
 <PRE>
 /*
@@ -34,6 +34,20 @@ up all this functionality, but it is important to note that none of it is
 #ifdef __cplusplus
 extern "C" { 
 #endif
+</PRE>
+<H2>
+  Application Profiles
+</H2>
+<P>
+Application profiles are initialization functions that are "preset" to initialize
+the Library with the set of features often used in <I>clients</I>,
+<I>servers</I>, <I>robots</I>, and <I>proxy servers</I>. They are basically
+collections of the more detailed initialization functions that you can find
+later in this interface description. In many cases you do not need to use
+anything else than the profiles, but if you have more specific requirements
+then you can always fall back on using the initialization functions below
+or even werite your own extensions.
+<PRE>#include "<A HREF="HTProfil.html">HTProfil.h</A>"
 </PRE>
 <H2>
   Default Protocols, Transports, MIME Headers, Dialogs etc.

@@ -28,6 +28,7 @@
 #include "WWWUtil.h"
 #include "WWWCore.h"
 #include "WWWStream.h"
+#include "WWWRules.h"
 #include "HTReqMan.h"
 #include "HTAccess.h"					 /* Implemented here */
 
@@ -37,7 +38,9 @@ struct _HTStream {
     HTStreamClass * isa;
 };
 
-/* ------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------*/
+/*				THE GET METHOD 				     */
+/* --------------------------------------------------------------------------*/
 
 /*	Request a document
 **	-----------------
@@ -55,7 +58,6 @@ PRIVATE BOOL HTLoadDocument (HTRequest * request, BOOL recursive)
     return HTLoad(request, recursive);
 }
 
-
 /*	Request a document from absolute name
 **	-------------------------------------
 **	Request a document referencd by an absolute URL.
@@ -71,18 +73,80 @@ PUBLIC BOOL HTLoadAbsolute (const char * url, HTRequest * request)
     return NO;
 }
 
+/*	Request a document from relative name
+**	-------------------------------------
+**	Request a document referenced by a relative URL. The relative URL is 
+**	made absolute by resolving it relative to the address of the 'base' 
+**	anchor.
+**	Returns YES if request accepted, else NO
+*/
+PUBLIC BOOL HTLoadRelative (const char * 	relative,
+			    HTParentAnchor *	base,
+			    HTRequest *		request)
+{
+    BOOL status = NO;
+    if (relative && base && request) {
+	char * full_url = NULL;
+	char * base_url = HTAnchor_address((HTAnchor *) base);
+	full_url = HTParse(relative, base_url,
+			 PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
+	status = HTLoadAbsolute(full_url, request);
+	HT_FREE(full_url);
+	HT_FREE(base_url);
+    }
+    return status;
+}
 
 /*	Request a document from absolute name to stream
 **	-----------------------------------------------
 **	Request a document referencd by an absolute URL and sending the data
-**	down a stream. This is _excactly_ the same as HTLoadAbsolute as
-**	the ourputstream is specified using the function
-**	HTRequest_setOutputStream(). 'filter' is ignored!
+**	down a stream.
 **	Returns YES if request accepted, else NO
 */
-PUBLIC BOOL HTLoadToStream (const char * url, BOOL filter, HTRequest *request)
+PUBLIC BOOL HTLoadToStream (const char * url, HTStream * output,
+			    HTRequest * request)
 {
-    return HTLoadAbsolute(url, request);
+    if (url && output && request) {
+	HTRequest_setOutputStream(request, output);
+	return HTLoadAbsolute(url, request);
+    }
+    return NO;
+}
+
+/*	Load a document and save it ASIS in a local file
+**	------------------------------------------------
+**	Returns YES if request accepted, else NO
+*/
+PUBLIC BOOL HTLoadToFile (const char * url, HTRequest * request,
+			  const char * filename)
+{
+    if (url && filename && request) {
+	FILE * fp = NULL;
+	
+	/* Check if file exists. If so then ask user if we can replace it */
+	if (access(filename, F_OK) != -1) {
+	    HTAlertCallback * prompt = HTAlert_find(HT_A_CONFIRM);
+	    if (prompt) {
+		if ((*prompt)(request, HT_A_CONFIRM, HT_MSG_FILE_REPLACE, NULL,
+			      NULL, NULL) != YES)
+		    return NO;
+	    }
+	}
+
+	/* If replace then open the file */
+	if ((fp = fopen(filename, "wb")) == NULL) {
+	    HTRequest_addError(request, ERR_NON_FATAL, NO, HTERR_NO_FILE, 
+			       (char *) filename, strlen(filename),
+			       "HTLoadToFile"); 
+	    return NO;
+	}
+
+	/* Set the output stream and start the request */
+	HTRequest_setOutputFormat(request, WWW_SOURCE);
+	HTRequest_setOutputStream(request, HTFWriter_new(request, fp, NO));
+	return HTLoadAbsolute(url, request);
+    }
+    return NO;
 }
 
 /*
@@ -109,34 +173,6 @@ PUBLIC HTChunk * HTLoadToChunk (const char * url, HTRequest * request)
     return NULL;
 }
 
-/*	Request a document from relative name
-**	-------------------------------------
-**	Request a document referenced by a relative URL. The relative URL is 
-**	made absolute by resolving it relative to the address of the 'base' 
-**	anchor.
-**	Returns YES if request accepted, else NO
-*/
-PUBLIC BOOL HTLoadRelative (const char * 	relative,
-			    HTParentAnchor *	base,
-			    HTRequest *		request)
-{
-    BOOL status = NO;
-    if (relative && base && request) {
-	char * rel = NULL;
-	char * full_url = NULL;
-	char * base_url = HTAnchor_address((HTAnchor *) base);
-	StrAllocCopy(rel, relative);
-	full_url = HTParse(HTStrip(rel), base_url,
-			 PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
-	status = HTLoadAbsolute(full_url, request);
-	HT_FREE(rel);
-	HT_FREE(full_url);
-	HT_FREE(base_url);
-    }
-    return status;
-}
-
-
 /*	Request an anchor
 **	-----------------
 **	Request the document referenced by the anchor
@@ -150,7 +186,6 @@ PUBLIC BOOL HTLoadAnchor (HTAnchor * anchor, HTRequest * request)
     }
     return NO;
 }
-
 
 /*	Request an anchor
 **	-----------------
@@ -168,7 +203,6 @@ PUBLIC BOOL HTLoadAnchorRecursive (HTAnchor * anchor, HTRequest * request)
     }
     return NO;
 }
-
 
 /*
 **	Load a URL to a mem buffer
@@ -193,38 +227,108 @@ PUBLIC HTChunk * HTLoadAnchorToChunk (HTAnchor * anchor, HTRequest * request)
     return NULL;
 }
 
-/*	Search an Anchor
+/*
+**	Load a Rule File
 **	----------------
-**	Performs a keyword search on word given by the user. Adds the keyword
-**	to the end of the current address and attempts to open the new address.
-**	The list of keywords must be a space-separated list and spaces will
-**	be converted to '+' before the request is issued.
-**	Search can also be performed by HTLoadAbsolute() etc.
-**	Returns YES if request accepted, else NO
+**	Load a rule find with the URL specified and add the set of rules to
+**	the existing set.
 */
-PUBLIC BOOL HTSearch (const char *	keywords,
-		      HTParentAnchor *  base,
-		      HTRequest * 	request)
+PUBLIC BOOL HTLoadRules (const char * url)
 {
     BOOL status = NO;
-    if (keywords && base && request) {
-	char *base_url = HTAnchor_address((HTAnchor *) base);
-	if (*keywords) {
-	    char *plus;
-	    StrAllocCat(base_url, "?");
-	    StrAllocCat(base_url, keywords);
-	    plus = strchr(base_url, '?');
-	    while (*plus) {
-		if (*plus == ' ') *plus = '+';
-		plus++;
-	    }
-	}
-	status = HTLoadAbsolute(base_url, request);
-	HT_FREE(base_url);
+    if (url) {
+	HTList * list = HTList_new();
+	HTRequest * request = HTRequest_new();
+	HTRequest_setPreemptive(request, YES);
+	HTAlert_setInteractive(NO);
+	HTConversion_add(list, "application/x-www-rules", "*/*", HTRules,
+			 1.0, 0.0, 0.0);
+	HTRequest_setConversion(request, list, YES);
+	status = HTLoadAbsolute(url, request);
+	HTConversion_deleteAll(list);
+	HTRequest_delete(request);
     }
     return status;
 }
 
+/* --------------------------------------------------------------------------*/
+/*			 GET WITH KEYWORDS (SEARCH)			     */
+/* --------------------------------------------------------------------------*/
+
+/*
+**	This function creates a URL with a searh part as defined by RFC 1866
+**	Both the baseurl and the keywords must be escaped.
+**
+**	1. The form field names and values are escaped: space
+**	characters are replaced by `+', and then reserved characters
+**	are escaped as per [URL]; that is, non-alphanumeric
+**	characters are replaced by `%HH', a percent sign and two
+**	hexadecimal digits representing the ASCII code of the
+**	character. Line breaks, as in multi-line text field values,
+**	are represented as CR LF pairs, i.e. `%0D%0A'.
+**
+**	2. The fields are listed in the order they appear in the
+**	document with the name separated from the value by `=' and
+**	the pairs separated from each other by `&'. Fields with null
+**	values may be omitted. In particular, unselected radio
+**	buttons and checkboxes should not appear in the encoded
+**	data, but hidden fields with VALUE attributes present
+**	should.
+**
+**	    NOTE - The URI from a query form submission can be
+**	    used in a normal anchor style hyperlink.
+**	    Unfortunately, the use of the `&' character to
+**	    separate form fields interacts with its use in SGML
+**	    attribute values as an entity reference delimiter.
+**	    For example, the URI `http://host/?x=1&y=2' must be
+**	    written `<a href="http://host/?x=1&#38;y=2"' or `<a
+**	    href="http://host/?x=1&amp;y=2">'.
+**
+**	    HTTP server implementors, and in particular, CGI
+**	    implementors are encouraged to support the use of
+**	    `;' in place of `&' to save users the trouble of
+**	    escaping `&' characters this way.
+*/
+PRIVATE char * query_url_encode (const char * baseurl, HTChunk * keywords)
+{
+    char * fullurl = NULL;
+    if (baseurl && keywords && HTChunk_size(keywords)) {
+	int len = strlen(baseurl);
+	fullurl = (char *) HT_MALLOC(len + HTChunk_size(keywords) + 2);
+	sprintf(fullurl, "%s?%s", baseurl, HTChunk_data(keywords));
+	{
+	    char * ptr = fullurl+len;
+	    while (*ptr) {
+		if (*ptr == ' ') *ptr = '+';
+		ptr++;
+	    }
+	}
+    }
+    return fullurl;
+}
+
+PRIVATE char * form_url_encode (const char * baseurl, HTAssocList * formdata)
+{
+    if (formdata) {
+	BOOL first = YES;
+	int cnt = HTList_count((HTList *) formdata);
+	HTChunk * fullurl = HTChunk_new(128);
+	HTAssoc * pres;
+	if (baseurl) HTChunk_puts(fullurl, baseurl);
+	while (cnt > 0) {
+	    pres = (HTAssoc *) HTList_objectAt((HTList *) formdata, --cnt);
+	    if (first)
+		first = NO;
+	    else
+		HTChunk_putc(fullurl, '&');	    /* Could use ';' instead */
+	    HTChunk_puts(fullurl, HTAssoc_name(pres));
+	    HTChunk_putc(fullurl, '=');
+	    HTChunk_puts(fullurl, HTAssoc_value(pres));
+	}
+	return HTChunk_toCString(fullurl);
+    }
+    return NULL;
+}
 
 /*	Search a document from absolute name
 **	------------------------------------
@@ -234,19 +338,296 @@ PUBLIC BOOL HTSearch (const char *	keywords,
 **	be converted to '+' before the request is issued.
 **	Returns YES if request accepted, else NO
 */
-PUBLIC BOOL HTSearchAbsolute (const char *	keywords,
-			      const char *	url,
+PUBLIC BOOL HTSearchAbsolute (HTChunk *		keywords,
+			      const char *	base,
 			      HTRequest *	request)
 {
-    if (url && request) {
-	HTAnchor * anchor = HTAnchor_findAddress(url);
-	return HTSearch(keywords, HTAnchor_parent(anchor), request);
+    if (keywords && base && request) {
+	char * full = query_url_encode(base, keywords);
+	if (full) {
+	    HTAnchor * anchor = HTAnchor_findAddress(full);
+	    HTRequest_setAnchor(request, anchor);
+	    HT_FREE(full);
+	    return HTLoadDocument(request, NO);
+	}
     }
     return NO;
 }
 
+/*	Search a document from relative name
+**	-------------------------------------
+**	Request a document referenced by a relative URL. The relative URL is 
+**	made absolute by resolving it relative to the address of the 'base' 
+**	anchor.
+**	Returns YES if request accepted, else NO
+*/
+PUBLIC BOOL HTSearchRelative (HTChunk * 	keywords,
+			      const char * 	relative,
+			      HTParentAnchor *	base,
+			      HTRequest *	request)
+{
+    BOOL status = NO;
+    if (keywords && relative && base && request) {
+	char * full_url = NULL;
+	char * base_url = HTAnchor_address((HTAnchor *) base);
+	full_url = HTParse(relative, base_url,
+			 PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
+	status = HTSearchAbsolute(keywords, full_url, request);
+	HT_FREE(full_url);
+	HT_FREE(base_url);
+    }
+    return status;
+}
+
+/*
+**	Search a string
+**	---------------
+**	This is the same as HTSearchAbsolute but instead of using a chunk
+**	you can pass a string.
+*/
+PUBLIC BOOL HTSearchString (const char *	keywords,
+			    HTAnchor *		anchor,
+			    HTRequest *		request)
+{
+    BOOL status = NO;
+    if (keywords && anchor && request) {	
+	char * base_url = HTAnchor_address((HTAnchor *) anchor);
+	HTChunk * chunk = HTChunk_new(strlen(keywords)+2);
+	HTChunk_puts(chunk, keywords);
+	status = HTSearchAbsolute(chunk, base_url, request);	
+	HT_FREE(base_url);
+	HTChunk_delete(chunk);
+    }
+    return status;
+}	
+
+/*	Search an Anchor
+**	----------------
+**	Performs a keyword search on word given by the user. Adds the keyword
+**	to the end of the current address and attempts to open the new address.
+**	The list of keywords must be a space-separated list and spaces will
+**	be converted to '+' before the request is issued.
+**	Search can also be performed by HTLoadAbsolute() etc.
+**	Returns YES if request accepted, else NO
+*/
+PUBLIC BOOL HTSearchAnchor (HTChunk *		keywords,
+			    HTAnchor *		anchor,
+			    HTRequest * 	request)
+{
+    BOOL status = NO;
+    if (keywords && anchor && request) {
+	char * base_url = HTAnchor_address(anchor);
+	status = HTSearchAbsolute(keywords, base_url, request);	
+	HT_FREE(base_url);
+    }
+    return status;
+}
+
 /* --------------------------------------------------------------------------*/
-/*				Post Access Functions 			     */
+/*			 HANDLING FORMS USING GET AND POST		     */
+/* --------------------------------------------------------------------------*/
+
+/*	Send a Form request using GET from absolute name
+**	------------------------------------------------
+**	Request a document referencd by an absolute URL appended with the
+**	formdata given. The URL can NOT contain any fragment identifier!
+**	The list of form data must be given as an association list where 
+**	the name is the field name and the value is the value of the field.
+**	Returns YES if request accepted, else NO
+*/
+PUBLIC BOOL HTGetFormAbsolute (HTAssocList *	formdata,
+			       const char *	base,
+			       HTRequest *	request)
+{
+    if (formdata && base && request) {
+	char * full = form_url_encode(base, formdata);
+	if (full) {
+	    HTAnchor * anchor = HTAnchor_findAddress(full);
+	    HTRequest_setAnchor(request, anchor);
+	    HT_FREE(full);
+	    return HTLoadDocument(request, NO);
+	}
+    }
+    return NO;
+}
+
+/*	Send a Form request using GET from relative name
+**	------------------------------------------------
+**	Request a document referencd by a relative URL appended with the
+**	formdata given. The URL can NOT contain any fragment identifier!
+**	The list of form data must be given as an association list where 
+**	the name is the field name and the value is the value of the field.
+**	Returns YES if request accepted, else NO
+*/
+PUBLIC BOOL HTGetFormRelative (HTAssocList * 	formdata,
+			       const char * 	relative,
+			       HTParentAnchor *	base,
+			       HTRequest *	request)
+{
+    BOOL status = NO;
+    if (formdata && relative && base && request) {
+	char * full_url = NULL;
+	char * base_url = HTAnchor_address((HTAnchor *) base);
+	full_url=HTParse(relative, base_url,
+			 PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
+	status = HTGetFormAbsolute(formdata, full_url, request);
+	HT_FREE(full_url);
+	HT_FREE(base_url);
+    }
+    return status;
+}
+
+/*	Send a Form request using GET from an anchor
+**	--------------------------------------------
+**	Request a document referencd by an anchor object appended with the
+**	formdata given. The URL can NOT contain any fragment identifier!
+**	The list of form data must be given as an association list where 
+**	the name is the field name and the value is the value of the field.
+**	Returns YES if request accepted, else NO
+*/
+PUBLIC BOOL HTGetFormAnchor (HTAssocList *	formdata,
+			     HTAnchor *		anchor,
+			     HTRequest * 	request)
+{
+    BOOL status = NO;
+    if (formdata && anchor && request) {
+	char * base_url = HTAnchor_address((HTAnchor *) anchor);
+	status = HTGetFormAbsolute(formdata, base_url, request);	
+	HT_FREE(base_url);
+    }
+    return status;
+}
+
+PRIVATE int HTEntity_callback (HTRequest * request, HTStream * target)
+{
+    HTParentAnchor * entity = HTRequest_entityAnchor(request);
+    if (WWWTRACE) HTTrace("Posting Form from callback function\n");
+    if (!request || !entity || !target) return HT_ERROR;
+    {
+	int status;
+	char * document = (char *) HTAnchor_document(entity);
+	int len = HTAnchor_length(entity);
+	status = (*target->isa->put_block)(target, document, len);
+	if (status == HT_OK)
+	    return (*target->isa->flush)(target);
+	if (status == HT_WOULD_BLOCK) {
+	    if (PROT_TRACE)HTTrace("Posting Form Target WOULD BLOCK\n");
+	    return HT_WOULD_BLOCK;
+	} else if (status == HT_PAUSE) {
+	    if (PROT_TRACE) HTTrace("Posting Form. Target PAUSED\n");
+	    return HT_PAUSE;
+	} else if (status > 0) {	      /* Stream specific return code */
+	    if (PROT_TRACE)
+		HTTrace("Posting Form. Target returns %d\n", status);
+	    return status;
+	} else {				     /* we have a real error */
+	    if (PROT_TRACE) HTTrace("Posting Form Target ERROR\n");
+	    return status;
+	}
+    }
+}
+
+/*	Send a Form request using POST from absolute name
+**	-------------------------------------------------
+**	Request a document referencd by an absolute URL appended with the
+**	formdata given. The URL can NOT contain any fragment identifier!
+**	The list of form data must be given as an association list where 
+**	the name is the field name and the value is the value of the field.
+*/
+PUBLIC HTParentAnchor * HTPostFormAbsolute (HTAssocList *	formdata,
+					    const char *	base,
+					    HTRequest *		request)
+{
+    if (formdata && base && request) {
+	HTAnchor * anchor = HTAnchor_findAddress(base);
+	return HTPostFormAnchor(formdata, anchor, request);
+    }
+    return NULL;
+}
+
+/*	Send a Form request using POST from relative name
+**	-------------------------------------------------
+**	Request a document referencd by a relative URL appended with the
+**	formdata given. The URL can NOT contain any fragment identifier!
+**	The list of form data must be given as an association list where 
+**	the name is the field name and the value is the value of the field.
+*/
+PUBLIC HTParentAnchor * HTPostFormRelative (HTAssocList * 	formdata,
+					    const char * 	relative,
+					    HTParentAnchor *	base,
+					    HTRequest *		request)
+{
+    HTParentAnchor * postanchor = NULL;
+    if (formdata && relative && base && request) {
+	char * full_url = NULL;
+	char * base_url = HTAnchor_address((HTAnchor *) base);
+	full_url=HTParse(relative, base_url,
+			 PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
+	postanchor = HTPostFormAbsolute(formdata, full_url, request);
+	HT_FREE(full_url);
+	HT_FREE(base_url);
+    }
+    return postanchor;
+}
+
+/*	Send a Form request using POST from an anchor
+**	---------------------------------------------
+**	Request a document referencd by an anchor object appended with the
+**	formdata given. The URL can NOT contain any fragment identifier!
+**	The list of form data must be given as an association list where 
+**	the name is the field name and the value is the value of the field.
+*/
+PUBLIC HTParentAnchor * HTPostFormAnchor (HTAssocList *	formdata,
+					  HTAnchor *	anchor,
+					  HTRequest * 	request)
+{
+    HTParentAnchor * postanchor = NULL;
+    if (formdata && anchor && request) {
+	HTUserProfile * up = HTRequest_userProfile(request);
+	char * tmpfile = HTGetTmpFileName(HTUserProfile_tmp(up));
+	char * tmpurl = HTParse(tmpfile, "file:", PARSE_ALL);
+	char * form_encoded = form_url_encode(NULL, formdata);
+	if (form_encoded) {
+
+	    /*
+	    **  Now create a new anchor for the post data and set up
+	    **  the rest of the metainformation we know about this anchor. The
+	    **  tmp anchor may actually already exist from previous postings.
+	    */
+	    postanchor = (HTParentAnchor *) HTAnchor_findAddress(tmpurl);
+	    HTAnchor_clearHeader(postanchor);
+	    HTAnchor_setDocument(postanchor, form_encoded);
+	    HTAnchor_setLength(postanchor, strlen(form_encoded));
+	    HTAnchor_setFormat(postanchor, WWW_FORM);
+
+	    /*
+	    **  Bind the temporary anchor to the anchor that will contain the
+	    **  response 
+	    */
+	    HTLink_removeAll((HTAnchor *) postanchor);
+	    HTLink_add((HTAnchor *) postanchor, (HTAnchor *) anchor, 
+		       NULL, METHOD_POST);
+
+	    /* Set up the request object */
+	    HTRequest_addGnHd(request, HT_G_DATE);	 /* Send date header */
+	    HTRequest_setAnchor(request, anchor);
+	    HTRequest_setEntityAnchor(request, postanchor);
+	    HTRequest_setMethod(request, METHOD_POST);
+
+	    /* Add the post form callback function to provide the form data */
+	    HTRequest_setPostCallback(request, HTEntity_callback);
+
+	    /* Now start the load normally */
+	    HTLoadDocument(request, NO);
+	}
+	HT_FREE(tmpfile);
+	HT_FREE(tmpurl);
+    }
+    return postanchor;
+}
+
+/* --------------------------------------------------------------------------*/
+/*				PUT AND POST METHODS 			     */
 /* --------------------------------------------------------------------------*/
 
 /*	Copy an anchor
@@ -258,7 +639,6 @@ PUBLIC BOOL HTSearchAbsolute (const char *	keywords,
 **	If posting to NNTP then we can't dispatch at this level but must pass
 **	the source anchor to the news module that then takes all the refs
 **	to NNTP and puts into the "newsgroups" header
-**	Returns YES if request accepted, else NO
 */
 PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_dest)
 { 
@@ -345,7 +725,6 @@ PUBLIC BOOL HTCopyAnchor (HTAnchor * src_anchor, HTRequest * main_dest)
     return HTLoadAnchor(src_anchor, src_req);
 }
 
-
 /*	Upload an Anchor
 **	----------------
 **	This function can be used to send data along with a request to a remote
@@ -424,4 +803,130 @@ PUBLIC int HTUpload_callback (HTRequest * request, HTStream * target)
 	    return status;
 	}
     }
+}
+
+/* ------------------------------------------------------------------------- */
+/*				HEAD METHOD 				     */
+/* ------------------------------------------------------------------------- */
+
+/*	Request metainformation about a document from absolute name
+**	-----------------------------------------------------------
+**	Request a document referencd by an absolute URL.
+**	Returns YES if request accepted, else NO
+*/
+PUBLIC BOOL HTHeadAbsolute (const char * url, HTRequest * request)
+{
+    if (url && request) {
+	HTAnchor * anchor = HTAnchor_findAddress(url);
+	HTRequest_setAnchor(request, anchor);
+	HTRequest_setMethod(request, METHOD_HEAD);
+	return HTLoadDocument(request, NO);
+    }
+    return NO;
+}
+
+/*	Request metainformation about a document from relative name
+**	-----------------------------------------------------------
+**	Request a document referenced by a relative URL. The relative URL is 
+**	made absolute by resolving it relative to the address of the 'base' 
+**	anchor.
+**	Returns YES if request accepted, else NO
+*/
+PUBLIC BOOL HTHeadRelative (const char * 	relative,
+			    HTParentAnchor *	base,
+			    HTRequest *		request)
+{
+    BOOL status = NO;
+    if (relative && base && request) {
+	char * rel = NULL;
+	char * full_url = NULL;
+	char * base_url = HTAnchor_address((HTAnchor *) base);
+	StrAllocCopy(rel, relative);
+	full_url = HTParse(HTStrip(rel), base_url,
+			 PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
+	HTRequest_setMethod(request, METHOD_HEAD);
+	status = HTLoadAbsolute(full_url, request);
+	HT_FREE(rel);
+	HT_FREE(full_url);
+	HT_FREE(base_url);
+    }
+    return status;
+}
+
+/*	Request metainformation about an anchor
+**	--------------------------------------
+**	Request the document referenced by the anchor
+**	Returns YES if request accepted, else NO
+*/
+PUBLIC BOOL HTHeadAnchor (HTAnchor * anchor, HTRequest * request)
+{
+    if (anchor && request) {
+	HTRequest_setAnchor(request, anchor);
+	HTRequest_setMethod(request, METHOD_HEAD);
+	return HTLoadDocument(request, NO);
+    }
+    return NO;
+}
+
+/* ------------------------------------------------------------------------- */
+/*				DELETE METHOD 				     */
+/* ------------------------------------------------------------------------- */
+
+/*	Delete a document on a remote server
+**	------------------------------------
+**	Request a document referencd by an absolute URL.
+**	Returns YES if request accepted, else NO
+*/
+PUBLIC BOOL HTDeleteAbsolute (const char * url, HTRequest * request)
+{
+    if (url && request) {
+	HTAnchor * anchor = HTAnchor_findAddress(url);
+	HTRequest_setAnchor(request, anchor);
+	HTRequest_setMethod(request, METHOD_DELETE);
+	return HTLoadDocument(request, NO);
+    }
+    return NO;
+}
+
+/*	Request metainformation about a document from relative name
+**	-----------------------------------------------------------
+**	Request a document referenced by a relative URL. The relative URL is 
+**	made absolute by resolving it relative to the address of the 'base' 
+**	anchor.
+**	Returns YES if request accepted, else NO
+*/
+PUBLIC BOOL HTDeleteRelative (const char * 	relative,
+			    HTParentAnchor *	base,
+			    HTRequest *		request)
+{
+    BOOL status = NO;
+    if (relative && base && request) {
+	char * rel = NULL;
+	char * full_url = NULL;
+	char * base_url = HTAnchor_address((HTAnchor *) base);
+	StrAllocCopy(rel, relative);
+	full_url = HTParse(HTStrip(rel), base_url,
+			 PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
+	HTRequest_setMethod(request, METHOD_DELETE);
+	status = HTLoadAbsolute(full_url, request);
+	HT_FREE(rel);
+	HT_FREE(full_url);
+	HT_FREE(base_url);
+    }
+    return status;
+}
+
+/*	Request metainformation about an anchor
+**	--------------------------------------
+**	Request the document referenced by the anchor
+**	Returns YES if request accepted, else NO
+*/
+PUBLIC BOOL HTDeleteAnchor (HTAnchor * anchor, HTRequest * request)
+{
+    if (anchor && request) {
+	HTRequest_setAnchor(request, anchor);
+	HTRequest_setMethod(request, METHOD_DELETE);
+	return HTLoadDocument(request, NO);
+    }
+    return NO;
 }

@@ -31,7 +31,6 @@
 /* Library include files */
 #include "sysdep.h"
 #include "WWWUtil.h"
-#include "HTAccess.h"
 #include "HTParse.h"
 #include "HTAlert.h"
 #include "HTError.h"
@@ -946,6 +945,25 @@ PUBLIC HTPostCallback * HTRequest_postCallback (HTRequest * request)
     return request ? request->PostCallback : NULL;
 }
 
+/*
+**	Entity Anchor
+*/
+PUBLIC BOOL HTRequest_setEntityAnchor (HTRequest * request,
+				       HTParentAnchor * anchor)
+{
+    if (request) {
+	request->source_anchor = anchor;
+	return YES;
+    }
+    return NO;
+}
+
+PUBLIC HTParentAnchor * HTRequest_entityAnchor (HTRequest * request)
+{
+    return request ? request->source_anchor ? request->source_anchor :
+	request->anchor : NULL;
+}
+
 /* ------------------------------------------------------------------------- */
 /*				POST WEB METHODS	      	 	     */
 /* ------------------------------------------------------------------------- */
@@ -1193,6 +1211,7 @@ PUBLIC BOOL HTLoad (HTRequest * request, BOOL recursive)
         if (CORE_TRACE) HTTrace("Load Start.. Bad argument\n");
         return NO;
     }
+    HTAnchor_clearPhysical(request->anchor);
     if (request->method == METHOD_INVALID) request->method = METHOD_GET;
     if (!recursive && request->error_stack) {
 	HTError_deleteAll(request->error_stack);

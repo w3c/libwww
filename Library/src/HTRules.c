@@ -69,6 +69,13 @@ PUBLIC BOOL HTRule_setGlobal(HTList * list)
     return YES;
 }
 
+PUBLIC BOOL HTRule_addGlobal(HTRuleOp op,
+			     const char * pattern, const char * replace)
+{
+    if (!rules) rules = HTList_new();
+    return HTRule_add(rules, op, pattern, replace);
+}
+
 /*	Add rule to the list
 **	--------------------
 **	This function adds a rule to the list of rules. The

@@ -15,18 +15,13 @@
 
 /* Library Includes */
 #include "sysdep.h"
-#include "HTUtils.h"
-#include "HTString.h"
-#include "HTWWWStr.h"
-#include "HTParse.h"
-#include "HTFormat.h"
+#include "WWWUtil.h"
+#include "WWWCore.h"
 #include "HTAncMan.h"
 #include "HTNetMan.h"
-#include "HTDNS.h"
-#include "HTTCP.h"
-#include "HTHeader.h"
 #include "HTReqMan.h"
-#include "HTTPReq.h"					       /* Implements */
+#include "HTHeader.h"
+#include "HTMIMERq.h"					       /* Implements */
 
 #define PUTC(c)		(*me->target->isa->put_character)(me->target, c)
 #define PUTS(s)		(*me->target->isa->put_string)(me->target, s)
@@ -52,14 +47,14 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 {
     char crlf[3];
     char linebuf[256];			/* @@@ */
-    HTParentAnchor *entity = request->source_anchor ?
-	request->source_anchor : request->anchor;
+    HTParentAnchor * entity = HTRequest_entityAnchor(request);
+    HTEnHd EntityMask = HTRequest_enHd(request);
     *crlf = CR; *(crlf+1) = LF; *(crlf+2) = '\0';
 
-    if (request->EntityMask & HT_E_ALLOW) {
+    if (EntityMask & HT_E_ALLOW) {
 	/* @@@@@@@@@@ */
     }
-    if (request->EntityMask&HT_E_CONTENT_ENCODING && entity->content_encoding){
+    if (EntityMask & HT_E_CONTENT_ENCODING && entity->content_encoding){
 	BOOL first = YES;
 	HTList * cur = entity->content_encoding;
 	HTEncoding pres;
@@ -74,7 +69,7 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 	if (!first) PUTBLOCK(crlf, 2);
     }
     
-    if (request->EntityMask&HT_E_CONTENT_LANGUAGE && entity->content_language){
+    if (EntityMask & HT_E_CONTENT_LANGUAGE && entity->content_language){
 	BOOL first = YES;
 	HTList * cur = entity->content_language;
 	HTLanguage pres;
@@ -88,7 +83,7 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 	}
 	if (!first) PUTBLOCK(crlf, 2);
     }
-    if (request->EntityMask & HT_E_CONTENT_LENGTH) {
+    if (EntityMask & HT_E_CONTENT_LENGTH) {
  	if (entity->content_length >= 0) {
 	    sprintf(linebuf, "Content-Length: %ld%c%c",
 		    entity->content_length, CR, LF);
@@ -98,7 +93,7 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 	    HTAnchor_setTransfer(entity, chunked);
 	}
     }
-    if (request->EntityMask & HT_E_CTE && entity->transfer) {
+    if (EntityMask & HT_E_CTE && entity->transfer) {
 	HTEncoding transfer = HTAnchor_transfer(entity);
 	if (!HTFormat_isUnityTransfer(transfer)) {
 	    sprintf(linebuf, "Transfer-Encoding: %s%c%c",
@@ -106,7 +101,7 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 	    PUTBLOCK(linebuf, (int) strlen(linebuf));
 	}
     }
-    if (request->EntityMask & HT_E_CONTENT_TYPE && entity->content_type &&
+    if (EntityMask & HT_E_CONTENT_TYPE && entity->content_type &&
 	entity->content_type != WWW_UNKNOWN) {
 	HTAssocList * parameters = HTAnchor_formatParam(entity);
 
@@ -141,35 +136,35 @@ PRIVATE int MIMEMakeRequest (HTStream * me, HTRequest * request)
 	PUTBLOCK(linebuf, (int) len+2);
 #endif
     }
-    if (request->EntityMask & HT_E_DERIVED_FROM && entity->derived_from) {
+    if (EntityMask & HT_E_DERIVED_FROM && entity->derived_from) {
 	sprintf(linebuf, "Derived-From: %s%c%c", entity->derived_from,
 		CR, LF);
 	PUTBLOCK(linebuf, (int) strlen(linebuf));
     }
-    if (request->EntityMask & HT_E_EXPIRES) {
+    if (EntityMask & HT_E_EXPIRES) {
 	if (entity->expires != -1) {
 	    sprintf(linebuf, "Expires: %s%c%c",
 		    HTDateTimeStr(&entity->expires, NO), CR,LF);
 	    PUTBLOCK(linebuf, (int) strlen(linebuf));
 	}
     }
-    if (request->EntityMask & HT_E_LAST_MODIFIED) {
+    if (EntityMask & HT_E_LAST_MODIFIED) {
 	if (entity->last_modified != -1) {
 	    sprintf(linebuf, "Last-Modified: %s%c%c",
 		    HTDateTimeStr(&entity->last_modified, NO), CR,LF);
 	    PUTBLOCK(linebuf, (int) strlen(linebuf));
 	}
     }
-    if (request->EntityMask & HT_E_LINK) {		/* @@@@@@@@@@ */
+    if (EntityMask & HT_E_LINK) {		/* @@@@@@@@@@ */
 
     }
-    if (request->EntityMask & HT_E_TITLE) {		/* @@@@@@@@@@ */
+    if (EntityMask & HT_E_TITLE) {		/* @@@@@@@@@@ */
 
     }
-    if (request->EntityMask & HT_E_URI) {		/* @@@@@@@@@@ */
+    if (EntityMask & HT_E_URI) {		/* @@@@@@@@@@ */
 
     }
-    if (request->EntityMask & HT_E_VERSION && entity->version) {
+    if (EntityMask & HT_E_VERSION && entity->version) {
 	sprintf(linebuf, "Version: %s%c%c", entity->version, CR, LF);
 	PUTBLOCK(linebuf, (int) strlen(linebuf));
     }
@@ -212,8 +207,9 @@ PRIVATE int MIMERequest_put_block (HTStream * me, const char * b, int l)
     else {
 	MIMEMakeRequest(me, me->request);
 	if (HTRequest_isDestination(me->request)) {
+	    HTNet * net = HTRequest_net(me->request);
 	    (*me->target->isa->flush)(me->target);
-	    HTNet_setBytesWritten(me->request->net, 0);
+	    HTNet_setBytesWritten(net, 0);
 	}
 	me->transparent = YES;	
 	return b ? PUTBLOCK(b, l) : HT_OK;

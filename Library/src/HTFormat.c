@@ -297,6 +297,18 @@ PUBLIC HTList * HTFormat_conversion (void)
     return HTConversions;
 }
 
+PUBLIC void HTFormat_addConversion (const char *	input_format,
+				    const char *	output_format,
+				    HTConverter *	converter,
+				    double		quality,
+				    double		secs, 
+				    double		secs_per_byte)
+{
+    if (!HTConversions) HTConversions = HTList_new();
+    HTConversion_add(HTConversions, input_format, output_format,
+		     converter, quality, secs, secs_per_byte);
+}
+
 /*
 **	Global list of Content Encodings
 **	list can be NULL
@@ -311,6 +323,15 @@ PUBLIC HTList * HTFormat_contentCoding (void)
     return HTContentCoders;
 }
 
+PUBLIC BOOL HTFormat_addCoding ( char *		encoding,
+				 HTCoder *	encoder,
+				 HTCoder *	decoder,
+				 double		quality)
+{
+    if (!HTContentCoders) HTContentCoders = HTList_new();
+    return HTCoding_add(HTContentCoders, encoding, encoder, decoder, quality);
+}
+
 /*
 **	Global list of Content Transfer Encodings
 **	list can be NULL
@@ -323,6 +344,15 @@ PUBLIC void HTFormat_setTransferCoding (HTList *list)
 PUBLIC HTList * HTFormat_transferCoding (void)
 {
     return HTTransferCoders;
+}
+
+PUBLIC BOOL HTFormat_addTransferCoding ( char *		encoding,
+					 HTCoder *	encoder,
+					 HTCoder *	decoder,
+					 double		quality)
+{
+    if (!HTTransferCoders) HTTransferCoders = HTList_new();
+    return HTCoding_add(HTTransferCoders, encoding, encoder, decoder, quality);
 }
 
 /*

@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<!-- Changed by: Henrik Frystyk Nielsen, 20-May-1996 -->
+<!-- Changed by: Henrik Frystyk Nielsen, 15-Jul-1996 -->
   <TITLE>W3C Reference Library libwww Generic Network Communication</TITLE>
 </HEAD>
 <BODY>
@@ -112,6 +112,16 @@ extern char * HTGetMailAddress (void);
 <P>
 The default news host is "news" but you can get ans set the value here.
 <PRE>extern char * HTGetNewsServer (void);
+</PRE>
+<H2>
+  Get a Temporary File Name
+</H2>
+<P>
+Finds a temporary name in in the directory given. If the directory is NULL
+then use whatever the system dependent function provides as alternatives.
+A suffix (if any) will be appended to the file name. If success, the result
+must be freed by caller, else we return <CODE>NULL</CODE>
+<PRE>extern char * HTGetTmpFileName (const char * dir);
 </PRE>
 <H2>
   Signal Handling
