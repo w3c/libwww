@@ -6,11 +6,11 @@
 **
 **  Authors:
 **	NP:  Nicola Pellow  Tech.Student CERN 1990-91
-**	TBL: Tim Berners-Lee CERN (timbl@info.cern.ch)
-**	JFG: Jean-Francois Groff, Cooperant CERN 1991-92 (jfg@info.cern.ch)
+**	TBL: Tim Berners-Lee CERN (timbl@w3.org)
+**	JFG: Jean-Francois Groff, Cooperant CERN 1991-92 (jfg@dxcern.cern.ch)
 **	DR:  Dudu Rashty +972-2-584848 <RASHTY@hujivms.bitnet>
 **	MD:  Mark Donszelmann, DELPHI CERN, (duns@vxdeop.cern.ch)
-**	HFN: Henrik Frystyk Nielsen, CERN, (frystyk@dxcern.cern.ch)
+**	HFN: Henrik Frystyk Nielsen, CERN, (frystyk@w3.org)
 **
 **  History:
 **
