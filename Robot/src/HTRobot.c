@@ -736,6 +736,7 @@ PRIVATE BOOL Robot_delete (Robot * mr)
 	}
 #endif
 
+	if (mr->queue) HTQueue_delete(mr->queue);
 	HT_FREE(mr->cwd);
 	HT_FREE(mr->prefix);
 	HT_FREE(mr->img_prefix);
@@ -805,8 +806,8 @@ PRIVATE int Finger_delete (Finger * me)
 */
 PUBLIC void Cleanup (Robot * me, int status)
 {
-    Robot_delete(me);
     HTProfile_delete();
+    Robot_delete(me);
 #ifdef HT_MEMLOG
     HTMemLog_close();
 #endif
@@ -1099,7 +1100,11 @@ PRIVATE HText * RHText_new (HTRequest * request, HTParentAnchor * anchor,
 }
 
 PRIVATE BOOL RHText_delete (HText * me) {
-    if (me) HT_FREE (me);
+    if (me) {
+	HT_FREE(me);
+	return YES;
+    }
+    return NO;
 }
 
 PRIVATE void RHText_foundAnchor (HText * text, HTChildAnchor * anchor)
