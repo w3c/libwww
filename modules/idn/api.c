@@ -74,14 +74,14 @@ static char *rcsid = "$Id$";
 #include <string.h>
 #include <stdlib.h>
 
-#include "result.h"
-#include "assert.h"
-#include "log.h"
-#include "logmacro.h"
-#include "resconf.h"
-#include "api.h"
-#include "debug.h"
-#include "res.h"
+#include <idn/result.h>
+#include <idn/assert.h>
+#include <idn/log.h>
+#include <idn/logmacro.h>
+#include <idn/resconf.h>
+#include <idn/api.h>
+#include <idn/debug.h>
+#include <idn/res.h>
 
 static int initialized;
 static idn_resconf_t default_conf;
