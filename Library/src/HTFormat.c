@@ -337,6 +337,16 @@ PUBLIC void HTCopy ARGS2(
 		"HTFormat: Read error, read returns %d\n", status);
 	    break;
 	}
+	
+#ifdef NOT_ASCII
+	{
+	    char * p;
+	    for(p = input_buffer; p < input_buffer+status; p++) {
+		*p = FROMASCII(*p);
+	    }
+	}
+#endif
+
 	(*targetClass.put_block)(sink, input_buffer, status);
     } /* next bufferload */
 	
@@ -386,7 +396,7 @@ PUBLIC void HTFileCopy ARGS2(
 **	--------------------------------------------------
 **
 **   This routine is responsible for creating and PRESENTING any
-**   graphic (or other) objects described by the file.
+**   graphic (or other) objects described by the socket.
 **
 **   The file number given is assumed to be a TELNET stream ie containing
 **   CRLF at the end of lines which need to be stripped to LF for unix

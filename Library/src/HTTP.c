@@ -79,6 +79,7 @@ PUBLIC int HTLoadHTTP ARGS4 (
     char * eol = 0;			/* End of line if found */
     char * start_of_data;		/* Start of body of reply */
     int status;				/* tcp return */
+    char crlf[3];			/* A CR LF equivalent string */
     HTStream *	target = NULL;		/* Unconverted data */
     HTFormat format_in;			/* Format arriving in the message */
     
@@ -101,6 +102,8 @@ PUBLIC int HTLoadHTTP ARGS4 (
     sin->sin_port = htons(TCP_PORT);    /* Default: http port    */
 #endif
 
+    sprintf(crlf, "%c%c", CR, LF);	/* To be corect on Mac, VM, etc */
+    
     if (TRACE) {
         if (gate) fprintf(stderr,
 		"HTTPAccess: Using gateway %s for %s\n", gate, arg);
@@ -118,7 +121,7 @@ PUBLIC int HTLoadHTTP ARGS4 (
     
 retry:
    
-/*	Now, let's get a socket set up from the server for the sgml data:
+/*	Now, let's get a socket set up from the server for the data:
 */      
 #ifdef DECNET
     s = socket(AF_DECnet, SOCK_STREAM, 0);
@@ -127,28 +130,10 @@ retry:
 #endif
     status = connect(s, (struct sockaddr*)&soc_address, sizeof(soc_address));
     if (status < 0) {
-#ifndef DECNET
-	/* This code is temporary backward-compatibility. It should
-	   go away when no server runs on port 2784 alone */
-	if (sin->sin_port == htons(TCP_PORT)) {  /* Try the old one */
-	  if (TRACE) printf (
-	    "HTTP: Port %d doesn't answer (errno = %d). Trying good old port %d...\n",
-	    TCP_PORT, errno, OLD_TCP_PORT);
-	  sin->sin_port = htons(OLD_TCP_PORT);
-	  /* First close current socket and open a clean one */
-	  status = NETCLOSE (s);
-	  s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	  status = connect(s, (struct sockaddr*)&soc_address,
-			   sizeof(soc_address));
-	}
-	if (status < 0)
-#endif
-	  {
 	    if (TRACE) fprintf(stderr, 
 	      "HTTP: Unable to connect to remote host for `%s' (errno = %d).\n", arg, errno);
 	    /* free(command);   BUG OUT TBL 921121 */
 	    return HTInetStatus("connect");
-	  }
       }
     
     if (TRACE) fprintf(stderr, "HTTP connected, socket %d\n", s);
@@ -175,13 +160,8 @@ retry:
         strcat(command, HTTP_VERSION);
     }
 #endif
-    {
-	char * p = command + strlen(command);
-	*p++ = CR;		/* Macros to be correct on Mac */
-	*p++ = LF;
-	*p++ = 0;
-	/* strcat(command, "\r\n");	*/	/* CR LF, as in rfc 977 */
-    }
+
+    strcat(command, crlf);	/* CR LF, as in rfc 977 */
 
     if (extensions) {
 
@@ -215,7 +195,12 @@ retry:
 	      StrAllocCat(command, line);
     }
        
-    StrAllocCat(command, "\015\012");	/* Blank line means "end" */
+    StrAllocCat(command, crlf);	/* Blank line means "end" */
+
+    if (TRACE) fprintf(stderr, "HTTP Tx: %s\n", command);
+
+/*	Translate into ASCII if necessary
+*/
 #ifdef NOT_ASCII
     {
     	char * p;
@@ -225,7 +210,6 @@ retry:
     }
 #endif
 
-    if (TRACE) fprintf(stderr, "HTTP Tx: %s\n", command);
     status = NETWRITE(s, command, (int)strlen(command));
     free(command);
     if (status<0) {
@@ -267,12 +251,17 @@ retry:
 		NETCLOSE(s);
 		return status;
 	    }
+
+	    if (TRACE) fprintf(stderr, "HTTP: read returned %d bytes.\n",
+	    	 status);
+
 	    if (status == 0) {
 	        end_of_file = YES;
 		break;
 	    }
 	    line_buffer[length+status] = 0;
 #ifdef NOT_ASCII
+	    if (TRACE) fprintf(stderr, "Local codes CR=%d, LF=%d\n", CR, LF);
 	    {
 		char * p;
 		for(p = line_buffer+length; *p; p++) {
