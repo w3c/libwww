@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
   <TITLE>Status of the W3C Libwww Mini Robot</TITLE>
+  <LINK rel=STYLESHEET href="../StyleSheets/Area/Overview.css" type="text/css">
 </HEAD>
 <BODY BGCOLOR="#ffffff" TEXT="#000000">
 <P>
@@ -10,44 +11,48 @@
   The Libwww Mini Robot
 </H1>
 <P>
-The W3C Mini Robot is a cross platform command line tool for accessing the
-Web. It is developed in C and serves as an example of a client application
-using the <A HREF="../Library/">W3C Sample Code Library</A> and as a test-tool
-for quick access to the Web from scripts, cron jobs etc. It gives a variety
-of possibilities for data format conversion, filtering etc. It is primarily
-intended as a test-tool for quick access to the Web or used in scripts, cron
-jobs etc. 
-<UL>
-  <LI>
-    Really fast <A HREF="../Library/">libwww HTTP/1.1 engine</A> - uses
-    <A HREF="../Protocols/HTTP/Performance/">HTTP/1.1 pipelining</A> which speeds
-    up performance a lot
-  <LI>
-    Smart use of <CODE>GET</CODE> and <CODE>HEAD</CODE> - only downloads the
-    strictly necessary
-  <LI>
-    Support for regular expressions allows detailed Web traversal constraints
-  <LI>
-    Support for traditional Common Log File formats and Referer log file formats
-  <LI>
-    A wealth of logging facilities including:
-    <UL>
-      <LI>
-	Missing or empty ALT tags in inlined images
-      <LI>
-	Broken links
-      <LI>
-	Document titles based on the <CODE>TITLE</CODE> HTML tag and the
-	<CODE>Title</CODE> HTTP header field
-      <LI>
-	Link relationships between documents based on the <CODE>LINK</CODE> HTML
-	tag
-      <LI>
-	Modification dates based on the <CODE>Last-Modified</CODE> HTTP header field
-      <LI>
-	Distributions of content-types and charsets encountered in the traversal
-    </UL>
-</UL>
+<DIV class="intro">
+  The W3C Mini Robot is a cross platform command line tool for accessing the
+  Web. It is developed in C and serves as an example of a client application
+  using the <A HREF="../Library/">W3C Sample Code Library</A> and as a test-tool
+  for quick access to the Web from scripts, cron jobs etc. It gives a variety
+  of possibilities for data format conversion, filtering etc. It is primarily
+  intended as a test-tool for quick access to the Web or used in scripts, cron
+  jobs etc.
+  <UL>
+    <LI>
+      Really fast <A HREF="../Library/">libwww HTTP/1.1 engine</A> - uses
+      <A HREF="../Protocols/HTTP/Performance/">HTTP/1.1 pipelining</A> which speeds
+      up performance a lot
+    <LI>
+      Smart use of <CODE>GET</CODE> and <CODE>HEAD</CODE> - only downloads the
+      strictly necessary
+    <LI>
+      Support for regular expressions allows detailed Web traversal constraints
+    <LI>
+      Support for traditional Common Log File formats and Referer log file formats
+    <LI>
+      A <A HREF="User/CommandLine.html">wealth of logging facilities</A> including:
+      <UL>
+	<LI>
+	  Missing or empty ALT tags in inlined images
+	<LI>
+	  Broken links
+	<LI>
+	  Document titles based on the <CODE>TITLE</CODE> HTML tag and the
+	  <CODE>Title</CODE> HTTP header field
+	<LI>
+	  Link relationships between documents based on the <CODE>LINK</CODE> HTML
+	  tag
+	<LI>
+	  Modification dates based on the <CODE>Last-Modified</CODE> HTTP header field
+	<LI>
+	  Distributions of content-types and charsets encountered in the traversal
+      </UL>
+  </UL>
+</DIV>
+<P>
+  <HR>
 <DL>
   <DT>
     Authors
