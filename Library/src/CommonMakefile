@@ -44,11 +44,12 @@ SHELL = /bin/sh
 # WWW = ../../..
 # WWW = ../..	For [cernlib] build in this directory
 
-WC = $(WWW)/Library
+WC  = $(WWW)/Library
 CMN = $(WWW)/Library/Implementation/
 VMS = $(CMN)vms
-# Where shall we put the objects and built library?
+FTP = /appl/disk5/ftp/pub
 
+# Where shall we put the objects and built library?
 LOB = $(WTMP)/Library/$(WWW_MACH)
 
 # This path, if relative, is taken relative to the directory
@@ -95,7 +96,7 @@ CFILES = $(CMN)HTParse.c $(CMN)HTAccess.c $(CMN)HTFile.c \
 	$(CMN)HTUU.c $(CMN)HTTeXGen.c \
 	$(CMN)HTDirBrw.c $(CMN)HTDescript.c $(CMN)HTGuess.c \
 	$(CMN)HTIcons.c $(CMN)HTError.c $(CMN)HTErrorMsg.c \
-	$(CMN)/HTTP.c $(LOB)/HTThread.o $(LOB)/HTEvent.o \
+	$(CMN)/HTTP.c $(LOB)/HTThread.c $(LOB)/HTEvent.c \
 	$(CMN)/HTEscape.c
 
 HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h $(CMN)HTFile.h \
@@ -120,13 +121,13 @@ HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h $(CMN)HTFile.h \
 	$(CMN)HTTP.h $(CMN)HTThread.h $(CMN)HTEvent.h \
 	$(CMN)HTEscape.h
 
-SOURCES = $(CFILES) $(HFILES) $(CMN)Version.make \
-	$(CMN)CommonMakefile $(CMN)Makefile \
+SOURCES = $(CFILES) $(HFILES) \
+	$(CMN)Version.make $(CMN)CommonMakefile $(CMN)Makefile \
 	$(WWW)/README $(WWW)/COPYRIGH \
 	$(WWW)/BUILD $(WWW)/BUILD.SH $(WWW)/Makefile
 
 SPECIFIC = $(WWW)/All/*/Makefile.include $(WWW)/All/Implementation/Makefile* \
-	$(VMS)/descrip.mms  $(VMS)/COPYING.LIB $(VMS)/setup.com \
+	$(VMS)/descrip.mms  $(VMS)/COPYING.LIB \
  	$(VMS)/build_multinet.com $(VMS)/build_multinet.com_alpha \
 	$(VMS)/multinet.opt $(VMS)/multinet.opt_alpha \
 	$(VMS)/build_ucx.com $(VMS)/build_ucx.com_alpha \
@@ -177,44 +178,41 @@ uninstall :
 
 #	Needs www version 2.4 or later to do this
 inc : $(HFILES)
-	echo Include files generated from hypertext.
+	@echo Include files generated from hypertext.
 
-binary : /appl/disk5/ftp/pub/www/bin/$(WWW_MACH)/libwww_$(VC).a
-	echo FTP archive binary Libray $(VC) for $(WWW_MACH) up to date.
+binary : $(FTP)/www/bin/$(WWW_MACH)/libwww_$(VC).a
+	@echo FTP archive binary Libray $(VC) for $(WWW_MACH) up to date.
 
-
-/appl/disk5/ftp/pub/www/bin/$(WWW_MACH)/libwww_$(VC).a : libwww.a
-	-mkdir /appl/disk5/ftp/pub/www/bin/$(WWW_MACH)
-	cp libwww.a /appl/disk5/ftp/pub/www/bin/$(WWW_MACH)/libwww_$(VC).a
+$(FTP)/www/bin/$(WWW_MACH)/libwww_$(VC).a : libwww.a
+	-mkdir $(FTP)/www/bin/$(WWW_MACH)
+	cp libwww.a $(FTP)/www/bin/$(WWW_MACH)/libwww_$(VC).a
 
 #	Source Distribution:
-
-distribute : $(WWW)/README $(WWW)/COPYRIGH
+distribute : $(WWW)/README $(WWW)/COPYRIGHT
 	(cd $(WWW)/..; WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 	-f WWW/Library/Implementation/Version.make \
 	-f WWW/Library/Implementation/CommonMakefile \
-	/appl/disk5/ftp/pub/www/src/WWWLibrary_$(VC).tar.Z)
+	$(FTP)/www/src/WWWLibrary_$(VC).tar.Z)
 	(cd ../Implementation; cvs tag \
 	`sed -e 's/VC = /v/' Version.make | sed -e 's?\.?/?'` )
-	echo Distribution of Library version $(VC) up to date.
+	@echo Distribution of Library version $(VC) up to date.
 
-/appl/disk5/ftp/pub/www/src/WWWLibrary_$(VC).tar.Z : $(SOURCES)
-	tar cvf /appl/disk5/ftp/pub/www/src/WWWLibrary_$(VC).tar \
+$(FTP)/www/src/WWWLibrary_$(VC).tar.Z : $(SOURCES)
+	tar cvf $(FTP)/www/src/WWWLibrary_$(VC).tar \
 	    $(SOURCES) \
 	    $(SPECIFIC) \
-	    $(WWW)/All \
 	    $(CMN)*.html
-	compress -f /appl/disk5/ftp/pub/www/src/WWWLibrary_$(VC).tar
+	compress -f $(FTP)/www/src/WWWLibrary_$(VC).tar
 
 #	Hypertext supplied in text format
 #	---------------------------------
 
 $(WWW)/README : $(WWW)/../README.html
-	www -n -p66 http://info.cern.ch/hypertext/README.html \
+	www -n -na -p http://info.cern.ch/hypertext/README.html \
 		> $(WWW)/README
 
-$(WWW)/COPYRIGH : $(WWW)/../COPYRIGH.html
-	www -n -p66 http://info.cern.ch/hypertext/COPYRIGHT.html \
+$(WWW)/COPYRIGHT : $(WWW)/../COPYRIGHT.html
+	www -n -na -p http://info.cern.ch/hypertext/COPYRIGHT.html \
 		> $(WWW)/COPYRIGH
 
 # 			Common code
