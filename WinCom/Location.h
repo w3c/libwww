@@ -10,7 +10,7 @@
 /////////////////////////////////////////////////////////////////////////////
 // CLocation dialog
 
-class CWinComApp;
+class CRequest;
 
 class CLocation : public CPropertyPage
 {
@@ -18,8 +18,7 @@ class CLocation : public CPropertyPage
 
 // Construction
 public:
-	CLocation( CWinComApp *pApp );
-        CWinComApp *m_pApp;
+	CLocation( CRequest * pRequest );
         CLocation();
         ~CLocation();
 
@@ -40,11 +39,13 @@ public:
             virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	//}}AFX_VIRTUAL
 
+        CRequest * m_pRequest;
+
 // Implementation
 protected:
 	// Generated message map functions
 	//{{AFX_MSG(CLocation)
-		// NOTE: the ClassWizard will add member functions here
+	afx_msg void OnBrowse();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 

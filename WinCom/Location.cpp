@@ -23,13 +23,14 @@ CLocation::CLocation() : CPropertyPage(CLocation::IDD)
 {
 }
 
-CLocation::CLocation( CWinComApp * pApp) : CPropertyPage(CLocation::IDD)
+CLocation::CLocation( CRequest * pRequest) : CPropertyPage(CLocation::IDD)
 {
-	//{{AFX_DATA_INIT(CLocation)
-	m_destination = _T("http://");
-	m_source = _T("");
-	//}}AFX_DATA_INIT
-        m_pApp = pApp;
+    //{{AFX_DATA_INIT(CLocation)
+    m_destination = _T("http://");
+    m_source = _T("");
+    //}}AFX_DATA_INIT
+    m_pRequest = pRequest;
+    pRequest->m_pLocation = this;
 }
 
 CLocation::~CLocation()
@@ -38,55 +39,35 @@ CLocation::~CLocation()
 
 void CLocation::DoDataExchange(CDataExchange* pDX)
 {
-	CPropertyPage::DoDataExchange(pDX);
-	//{{AFX_DATA_MAP(CLocation)
-	DDX_CBString(pDX, IDC_DESTINATION_URI, m_destination);
-	DDV_MaxChars(pDX, m_destination, 2048);
-	DDX_CBString(pDX, IDC_SOURCE_URI, m_source);
-	DDV_MaxChars(pDX, m_source, 2048);
-	//}}AFX_DATA_MAP
+    CPropertyPage::DoDataExchange(pDX);
+    //{{AFX_DATA_MAP(CLocation)
+    DDX_CBString(pDX, IDC_DESTINATION_URI, m_destination);
+    DDV_MaxChars(pDX, m_destination, 2048);
+    DDX_CBString(pDX, IDC_SOURCE_URI, m_source);
+    DDV_MaxChars(pDX, m_source, 2048);
+    //}}AFX_DATA_MAP
 }
+
+BEGIN_MESSAGE_MAP(CLocation, CPropertyPage)
+    //{{AFX_MSG_MAP(CLocation)
+    ON_BN_CLICKED(ID_BROWSE, OnBrowse)
+    //}}AFX_MSG_MAP
+END_MESSAGE_MAP()
+
+/////////////////////////////////////////////////////////////////////////////
+// CLocation message handlers
 
 BOOL CLocation::OnKillActive() 
 {
     BOOL bOk = CPropertyPage::OnKillActive();
     if ( bOk ) {
 
-        /* If the soruce is a local file then check it out */
-        if (m_source && !m_source.IsEmpty()) {
-            CFile src_file;
-            if (src_file.Open(m_source, CFile::modeRead)) {
-                LPTSTR src_str = m_source.GetBuffer( 64 );
-                char * src = HTParse(src_str, m_pApp->Request.mp_cwd, PARSE_ALL);
-                HTAnchor * src_anchor = HTAnchor_findAddress(src);
-                HTParentAnchor * src_parent = HTAnchor_parent(src_anchor);
-                HTBind_getAnchorBindings(src_parent);
-                m_source.ReleaseBuffer();
-
-#if 0
-                /* Update the bindings in the Entity Information Window */
-                {
-                    char * mt = HTAtom_name(HTAnchor_format(src_parent));
-                    char * charset = HTAtom_name(HTAnchor_charset(src_parent));
-                    long length = HTAnchor_length(src_parent);
-
-                    SetDlgItemText(IDC_MEDIA_TYPE, mt);
-                    m_mediaType = mt;
-
-                    SetDlgItemText(IDC_MEDIA_CHARSET, charset);
-                    m_charset = charset;
-
-                    SetDlgItemInt(IDC_CONTENT_LENGTH, length);
-                    m_length = length
-
-                    SetDlgItemText(IDC_CONTENT_ENCODING, HTAtom_name(HTAnchor_encoding(src_parent)));
-                }
-#endif
-                src_file.Close();
-            }
- 
-        }
-
+	/* Find the source */
+        LPTSTR source = m_source.GetBuffer(64);
+	char * src = HTParse(source, m_pRequest->m_cwd, PARSE_ALL);
+	m_pRequest->m_pHTAnchorSource = HTAnchor_findAddress(src);
+	m_source.ReleaseBuffer( );
+	
         /* If destination is a local file then error */
         if (m_destination && !m_destination.IsEmpty()) {
             CFile dst_file;
@@ -96,17 +77,31 @@ BOOL CLocation::OnKillActive()
                 AfxMessageBox(strMessage);
                 dst_file.Close();
                 return FALSE;
-            }
-        }
+            } else {
+		LPTSTR destination = m_destination.GetBuffer(64);
+		char * dest = HTParse(destination, m_pRequest->m_cwd, PARSE_ALL);
+		m_pRequest->m_pHTAnchorDestination = HTAnchor_findAddress(dest);
+		m_destination.ReleaseBuffer( );
+	    }
+	}
     }
     return bOk;
 }
 
-BEGIN_MESSAGE_MAP(CLocation, CPropertyPage)
-	//{{AFX_MSG_MAP(CLocation)
-		// NOTE: the ClassWizard will add message map macros here
-	//}}AFX_MSG_MAP
-END_MESSAGE_MAP()
+void CLocation::OnBrowse() 
+{
+    CFileDialog fd(true);
+    if (fd.DoModal() == IDOK) {
+        char * local = HTLocalToWWW(fd.GetPathName());
+	CString file = fd.GetFileName();
+        if (local) {
+            SetDlgItemText(IDC_SOURCE_URI, local);
+            HT_FREE(local);
+        }
+	if (file) {
+	    m_destination += file; 
+	    SetDlgItemText(IDC_DESTINATION_URI, m_destination);
+	}
+    }
+}
 
-/////////////////////////////////////////////////////////////////////////////
-// CLocation message handlers

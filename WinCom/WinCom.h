@@ -14,6 +14,9 @@
 
 #include "resource.h"       // main symbols
 #include "Request.h"	// Added by ClassView
+#include "Options.h"	// Added by ClassView
+#include "EntityInfo.h"	// Added by ClassView
+#include "Location.h"	// Added by ClassView
 
 /////////////////////////////////////////////////////////////////////////////
 // CWinComApp:
@@ -23,13 +26,16 @@
 class CWinComApp : public CWinApp
 {
 public:
+	CRequest * m_pRequest;
+	COptions * m_pOptions;
 	CWinComApp();
-	CRequest Request;
 // Overrides
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CWinComApp)
 	public:
 	virtual BOOL InitInstance();
+	virtual int Run();
+	virtual int ExitInstance();
 	//}}AFX_VIRTUAL
 
 // Implementation

@@ -100,11 +100,11 @@ BOOL CWinComApp::InitInstance()
 	LoadStdProfileSettings();  // Load standard INI file options (including MRU)
 
         /* Initialize libwww */
-        HTProfile_newNoCacheClient("WebCommandor", "1.0");
+        HTProfile_newNoCacheClient("WebCommander", "1.0");
 
         /* Setup our own dialog handlers */
         {
-            HTAlert_deleteAll();
+            //HTAlert_deleteAll();
             HTAlert_add(UserProgress, HT_A_PROGRESS);
             HTAlert_add(UserPrint, HT_A_MESSAGE);
             HTAlert_add(UserConfirm, HT_A_CONFIRM);
@@ -122,19 +122,21 @@ BOOL CWinComApp::InitInstance()
         /* We do our own local file suffix bindings */
         HTFile_doFileSuffixBinding(NO);
 
-        /* Get the local directory as a URI */
-        Request.mp_cwd = HTGetCurrentDirectoryURL();
+        // Create our (currently one and only request */
+        m_pRequest = new CRequest( this );
 
         // add and initialize the general page....
 	CPropertySheet WinCom( IDS_WINCOM );
-	CLocation locationPage( this );
+
+        // add and initialize the location page....
+	CLocation locationPage( m_pRequest );
 	WinCom.AddPage( &locationPage );
 
-	// add and initialize the root dir page....
-	CEntityInfo entityPage( this );
+	// add and initialize the entiy information dir page....
+	CEntityInfo entityPage( m_pRequest );
 	WinCom.AddPage( &entityPage );
 
-	// add and initialize the name page....
+	// add and initialize the options page....
 	COptions optionsPage( this );
 	WinCom.AddPage( &optionsPage );
 
@@ -142,49 +144,23 @@ BOOL CWinComApp::InitInstance()
 	CCommandLineInfo cmdInfo;
 	ParseCommandLine(cmdInfo);
 
-        if (WinCom.DoModal() == IDOK) {
-
-            Request.mp_source = &locationPage.m_source;
-            Request.mp_destination = &locationPage.m_destination;
-            Request.mp_proxy = &optionsPage.m_proxy;
-            Request.mp_proxy_prefix = &optionsPage.m_proxy_prefix;
+	if (WinCom.DoModal() == IDOK) {
 
             /* Do we have any options to set first? */
-            if (Request.mp_proxy_prefix && Request.mp_proxy) {
-                LPTSTR proxy_prefix = Request.mp_proxy_prefix->GetBuffer( 64 );
-                LPTSTR proxy = Request.mp_proxy->GetBuffer( 64 );
+            if (m_pOptions->m_proxy_prefix && m_pOptions->m_proxy) {
+                LPTSTR proxy_prefix = m_pOptions->m_proxy.GetBuffer( 64 );
+                LPTSTR proxy = m_pOptions->m_proxy.GetBuffer( 64 );
                 HTProxy_add(proxy_prefix, proxy);
-                Request.mp_proxy_prefix->ReleaseBuffer( );
-                Request.mp_proxy->ReleaseBuffer( );
+                m_pOptions->m_proxy_prefix.ReleaseBuffer( );
+                m_pOptions->m_proxy.ReleaseBuffer( );
             }
 
-            /* Set up the anchors and call libwww */
-            {
-                LPTSTR source = Request.mp_source->GetBuffer( 64 );
-                LPTSTR destination = Request.mp_destination->GetBuffer( 64 );
-		char * src = HTParse(source, Request.mp_cwd, PARSE_ALL);
-		char * dest = HTParse(destination, Request.mp_cwd, PARSE_ALL);
-                HTRequest * www_request = HTRequest_new();
-                HTAnchor * www_source = HTAnchor_findAddress(src);
-                HTAnchor * www_destination = HTAnchor_findAddress(dest);
-
-                /* Set the context so that we can find it again */
-                HTRequest_setContext(www_request, &Request);
-
-                /* Start the PUT */    
-                if (HTPutDocumentAnchor(HTAnchor_parent(www_source),
-                    www_destination, www_request) != YES) {
-
-                    /* @@@ handle error @@@ */
-                    ;
-
-                }
+            /* Start the request */
+            if (!m_pRequest->PutDocument()) {
 
                 /* Go into the event loop... */
-                HTEventList_loop(www_request);
+                HTEventList_loop(m_pRequest->m_pHTRequest);
 
-                Request.mp_source->ReleaseBuffer( );
-                Request.mp_destination->ReleaseBuffer( );
             }
         }
 
@@ -246,3 +222,18 @@ void CWinComApp::OnAppAbout()
 
 /////////////////////////////////////////////////////////////////////////////
 // CWinComApp commands
+
+int CWinComApp::Run() 
+{
+	// TODO: Add your specialized code here and/or call the base class
+	
+	return CWinApp::Run();
+}
+
+int CWinComApp::ExitInstance() 
+{
+    /* Terminate libwww */
+    HTProfile_delete();
+	
+    return CWinApp::ExitInstance();
+}

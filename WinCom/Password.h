@@ -14,6 +14,7 @@
 
 class CPassword : public CDialog
 {
+
 // Construction
 public:
 	CPassword(CUserParameters * UserParameters);
@@ -45,5 +46,5 @@ protected:
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Developer Studio will insert additional declarations immediately before the previous line.
-
 #endif // !defined(AFX_PASSWORD_H__B7CDBAE1_C4DC_11D1_93E1_080009DCA30B__INCLUDED_)
+

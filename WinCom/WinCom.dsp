@@ -46,7 +46,7 @@ RSC=rc.exe
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o NUL /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o NUL /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG" /d "_AFXDLL"
-# ADD RSC /l 0x409 /d "NDEBUG" /d "_AFXDLL"
+# ADD RSC /l 0x409 /fo"..\Bin\Release\WinCom.res" /d "NDEBUG" /d "_AFXDLL"
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
@@ -73,7 +73,7 @@ LINK32=link.exe
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o NUL /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o NUL /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG" /d "_AFXDLL"
-# ADD RSC /l 0x409 /d "_DEBUG" /d "_AFXDLL"
+# ADD RSC /l 0x409 /fo"..\Bin\Debug\WinCom.res" /d "_DEBUG" /d "_AFXDLL"
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
@@ -143,35 +143,6 @@ SOURCE=.\WinCom.cpp
 
 SOURCE=.\hlp\WinCom.hpj
 USERDEP__WINCO="$(ProjDir)\hlp\AfxCore.rtf"	"$(ProjDir)\hlp\AfxPrint.rtf"	
-
-!IF  "$(CFG)" == "WinCom - Win32 Release"
-
-# Begin Custom Build - Making help file...
-OutDir=.\..\Bin\Release
-ProjDir=.
-TargetName=WinCom
-InputPath=.\hlp\WinCom.hpj
-
-"$(OutDir)\$(TargetName).hlp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	call "$(ProjDir)\makehelp.bat"
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "WinCom - Win32 Debug"
-
-# Begin Custom Build - Making help file...
-OutDir=.\..\Bin\Debug
-ProjDir=.
-TargetName=WinCom
-InputPath=.\hlp\WinCom.hpj
-
-"$(OutDir)\$(TargetName).hlp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	call "$(ProjDir)\makehelp.bat"
-
-# End Custom Build
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -437,9 +408,5 @@ SOURCE=.\hlp\Scmin.bmp
 SOURCE=.\hlp\WinCom.cnt
 # End Source File
 # End Group
-# Begin Source File
-
-SOURCE=.\ReadMe.txt
-# End Source File
 # End Target
 # End Project

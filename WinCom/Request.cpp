@@ -6,6 +6,10 @@
 #include "WinCom.h"
 #include "Request.h"
 
+// From libwww
+#include "WWWLib.h"			      /* Global Library Include file */
+#include "WWWApp.h"
+
 #ifdef _DEBUG
 #undef THIS_FILE
 static char THIS_FILE[]=__FILE__;
@@ -16,12 +20,38 @@ static char THIS_FILE[]=__FILE__;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CRequest::CRequest()
-{
+IMPLEMENT_DYNCREATE(CRequest, CObject)
 
+CRequest::CRequest() : CObject()
+{
+}
+
+CRequest::CRequest( CWinComApp * pApp ) : CObject()
+{
+    m_pApp = pApp;
+    pApp->m_pRequest = this;
+    m_cwd = HTGetCurrentDirectoryURL();
+    m_pHTRequest = HTRequest_new();
 }
 
 CRequest::~CRequest()
 {
 
+}
+
+int CRequest::PutDocument()
+{
+    if (m_pHTAnchorDestination && m_pHTAnchorSource) {
+	
+	/* Set the context so that we can find it again */
+	HTRequest_setContext(m_pHTRequest, this);
+	
+	/* Start the PUT */    
+	if (HTPutDocumentAnchor(HTAnchor_parent(m_pHTAnchorSource),
+	    m_pHTAnchorDestination, m_pHTRequest) != YES) {
+	    return -1;
+	}
+	return 0;
+    }
+    return -1;
 }

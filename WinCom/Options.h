@@ -14,38 +14,38 @@ class CWinComApp;
 
 class COptions : public CPropertyPage
 {
-	DECLARE_DYNCREATE(COptions)
-
-// Construction
+    DECLARE_DYNCREATE(COptions)
+        
+        // Construction
 public:
-        COptions( CWinComApp *pApp );
-        CWinComApp *m_pApp;
-        COptions();
-	~COptions();
-
-// Dialog Data
-	//{{AFX_DATA(COptions)
-	enum { IDD = IDD_OPTIONS };
-	CString	m_proxy;
-	CString	m_proxy_prefix;
-	//}}AFX_DATA
-
-
-// Overrides
-	// ClassWizard generate virtual function overrides
-	//{{AFX_VIRTUAL(COptions)
-	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-	//}}AFX_VIRTUAL
-
-// Implementation
+    COptions( CWinComApp *pApp );
+    CWinComApp *m_pApp;
+    COptions();
+    ~COptions();
+    
+    // Dialog Data
+    //{{AFX_DATA(COptions)
+    enum { IDD = IDD_OPTIONS };
+    CString	m_proxy;
+    CString	m_proxy_prefix;
+    //}}AFX_DATA
+    
+    
+    // Overrides
+    // ClassWizard generate virtual function overrides
+    //{{AFX_VIRTUAL(COptions)
 protected:
-	// Generated message map functions
-	//{{AFX_MSG(COptions)
-		// NOTE: the ClassWizard will add member functions here
-	//}}AFX_MSG
-	DECLARE_MESSAGE_MAP()
-
+    virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+    //}}AFX_VIRTUAL
+    
+    // Implementation
+protected:
+    // Generated message map functions
+    //{{AFX_MSG(COptions)
+    // NOTE: the ClassWizard will add member functions here
+    //}}AFX_MSG
+    DECLARE_MESSAGE_MAP()
+        
 };
 
 //{{AFX_INSERT_LOCATION}}

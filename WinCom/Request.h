@@ -9,21 +9,32 @@
 #pragma once
 #endif // _MSC_VER >= 1000
 
-class CRequest : public CObject  
-{
-public:
-	CRequest();
-	virtual ~CRequest();
-	char * mp_cwd;
-        CString * mp_source;
-	CString * mp_destination;
-	CString * mp_proxy_prefix;
-	CString * mp_proxy;
+#include "WWWLib.h"			      /* Global Library Include file */
 
-        CString * mp_charset;
-        CString * mp_contentEncoding;
-        CString * mp_mediaType;
+class CWinComApp;
+class CLocation;
+class CEntityInfo;
+
+class CRequest : public CObject
+{
+   DECLARE_DYNCREATE(CRequest)
+        
+        // Construction
+public:
+	HTAnchor * m_pHTAnchorSource;
+	HTAnchor * m_pHTAnchorDestination;
+	char * m_cwd;
+	int PutDocument();
+        CRequest( CWinComApp *pApp );
+        CRequest();
+        ~CRequest();
+	CWinComApp * m_pApp;
+	CLocation * m_pLocation;
+    	CEntityInfo * m_pEntityInfo;
+	HTRequest * m_pHTRequest;
+    
 protected:
+        
 };
 
 #endif // !defined(AFX_REQUEST_H__E0D48280_C4BE_11D1_93E1_080009DCA30B__INCLUDED_)
