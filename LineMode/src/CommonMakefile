@@ -246,10 +246,8 @@ $(OBJ)/a_stdio.o : $(OE) $(LM)a_stdio.g $(LM)a_stdio.h
 #_________________________________________________________________
 # For W3 Administrative use only:
 
-#		W3 Source + documentation release
-#		---------------------------------
-
-distribute : $(WWW)/README $(WWW)/COPYRIGHT
+#	Source Destribution
+distribute : $(WWW)/COPYRIGHT $(WWW)/README
 	(cd $(WWW)/.. && WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 	-f WWW/LineMode/Implementation/Version.make \
 	-f WWW/LineMode/Implementation/CommonMakefile \
@@ -261,8 +259,8 @@ distribute : $(WWW)/README $(WWW)/COPYRIGHT
 $(FTP)/www/src/WWWLineMode_$(VL).tar.Z : $(SOURCES)
 	tar cvf $(FTP)/www/src/WWWLineMode_$(VL).tar \
 	    $(SOURCES) \
-	    $(DISTRIBUTION) \
-	    $(CMN)*.html
+	    $(DISTRIBUTION)
+	    $(LM)*.html
 	compress -f $(FTP)/www/src/WWWLineMode_$(VL).tar
 
 
@@ -270,12 +268,10 @@ $(FTP)/www/src/WWWLineMode_$(VL).tar.Z : $(SOURCES)
 #		---------------------------------
 
 $(WWW)/README : $(WWW)/../README.html
-	www -n -p -na http://info.cern.ch/hypertext/README.html \
-		> $(WWW)/README
+	www -p -na http://info.cern.ch/hypertext/README.html -o $(WWW)/README
 
 $(WWW)/COPYRIGHT : $(WWW)/../COPYRIGHT.html
-	www -n -p -na http://info.cern.ch/hypertext/COPYRIGHT.html \
-		> $(WWW)/COPYRIGH
+	www -p -na http://info.cern.ch/hypertext/COPYRIGHT.html -o $(WWW)/COPYRIGH
 
 #	Line Mode Manual
 #
