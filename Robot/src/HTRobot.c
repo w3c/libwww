@@ -1,210 +1,36 @@
-/*         		    					     HTRobot.c
-**	W3C MINI ROBOT
-**
-**	(c) COPRIGHT MIT 1995.
-**	Please first read the full copyright statement in the file COPYRIGH.
-**
-**	This program illustrates how to travers links using the Anchor object
+/*
+**	@(#) $Id$
+**	
+**	W3C Webbot can be found at "http://www.w3.org/Robot/"
+**	
+**	Copyright Å© 1995-1998 World Wide Web Consortium, (Massachusetts
+**	Institute of Technology, Institut National de Recherche en
+**	Informatique et en Automatique, Keio University). All Rights
+**	Reserved. This program is distributed under the W3C's Software
+**	Intellectual Property License. This program is distributed in the hope
+**	that it will be useful, but WITHOUT ANY WARRANTY; without even the
+**	implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+**	PURPOSE. See W3C License http://www.w3.org/Consortium/Legal/ for more
+**	details.
 **
 **  Authors:
 **	HFN		Henrik Frystyk Nielsen, (frystyk@w3.org)
+**	BR		Bob Racko
+**	JP		John Punin
 **
 **  History:
 **	Dec 04 95	First version
+**	Oct 1998	Split into separate files
 */
 
-#include "WWWLib.h"			      /* Global Library Include file */
-#include "WWWApp.h"				        /* Application stuff */
-#include "WWWTrans.h"
-#include "WWWInit.h"
-#include "WWWSQL.h"
+#include "HTRobMan.h"
+#include "HTQueue.h"
+#include "HTAncMan.h"
 
-#include "HText.h"
-
-#include "HTRobot.h"			     		 /* Implemented here */
-
-#ifdef HT_POSIX_REGEX
-#ifdef HAVE_RXPOSIX_H
-#include <rxposix.h>
-#else
-#ifdef HAVE_REGEX_H
-#include <regex.h>
-#endif
-#endif
-#define	W3C_REGEX_FLAGS		(REG_EXTENDED | REG_NEWLINE)
-#endif
-
-#ifndef W3C_VERSION
-#define W3C_VERSION 		"Unspecified"
-#endif
-
-#define APP_NAME		"W3CRobot"
-#define APP_VERSION		W3C_VERSION
-#define COMMAND_LINE		"http://www.w3.org/Robot/User/CommandLine"
-
-#define DEFAULT_OUTPUT_FILE	"robot.out"
-#define DEFAULT_RULE_FILE	"robot.conf"
-#define DEFAULT_LOG_FILE       	"log-clf.txt"
-#define DEFAULT_HIT_FILE       	"log-hit.txt"
-#define DEFAULT_REL_FILE      	"log-rel.txt"
-#define DEFAULT_LM_FILE       	"log-lastmodified.txt"
-#define DEFAULT_TITLE_FILE     	"log-title.txt"
-#define DEFAULT_REFERER_FILE   	"log-referer.txt"
-#define DEFAULT_REJECT_FILE   	"log-reject.txt"
-#define DEFAULT_NOTFOUND_FILE  	"log-notfound.txt"
-#define DEFAULT_CONNEG_FILE  	"log-conneg.txt"
-#define DEFAULT_NOALTTAG_FILE  	"log-alt.txt"
-#define DEFAULT_FORMAT_FILE  	"log-format.txt"
-#define DEFAULT_CHARSET_FILE  	"log-charset.txt"
-#define DEFAULT_MEMLOG		"robot.mem"
-#define DEFAULT_PREFIX		""
-#define DEFAULT_IMG_PREFIX	""
-#define DEFAULT_DEPTH		0
-#define DEFAULT_DELAY		50			/* Write delay in ms */
-
-#define DEFAULT_SQL_SERVER	"localhost"
-#define DEFAULT_SQL_DB		"webbot"
-#define DEFAULT_SQL_USER	"webbot"
-#define DEFAULT_SQL_PW		""
-
-#if 0
-#define HT_MEMLOG		/* Is expensive in performance! */
-#endif
-
-/* #define SHOW_MSG		(WWWTRACE || HTAlert_interactive()) */
 #define SHOW_QUIET(mr)		((mr) && !((mr)->flags & MR_QUIET))
 #define SHOW_REAL_QUIET(mr)	((mr) && !((mr)->flags & MR_REAL_QUIET))
 
-#define MILLIES			1000
-#define DEFAULT_TIMEOUT		20		          /* timeout in secs */
-
-#if defined(__svr4__)
-#define CATCH_SIG
-#endif
-
-typedef enum _MRFlags {
-    MR_IMG		= 0x1,
-    MR_LINK		= 0x2,
-    MR_PREEMPTIVE	= 0x4,
-    MR_TIME		= 0x8,
-    MR_SAVE	  	= 0x10,
-    MR_QUIET	  	= 0x20,
-    MR_REAL_QUIET  	= 0x40,
-    MR_VALIDATE		= 0x80,
-    MR_END_VALIDATE	= 0x100,
-    MR_KEEP_META	= 0x200,
-    MR_LOGGING		= 0x400,
-    MR_DISTRIBUTIONS	= 0x800
-} MRFlags;
-
-typedef struct _Robot {
-    int			depth;			     /* How deep is our tree */
-    int			cnt;				/* Count of requests */
-    HTList *		hyperdoc;	     /* List of our HyperDoc Objects */
-    HTList *		htext;			/* List of our HText Objects */
-    HTList *		fingers;
-
-    int 		timer;
-    char *		cwd;			/* Current dir URL */
-    char *		rules;
-    char *		prefix;
-    char *		img_prefix;
-
-    char *		logfile;		/* clf log */
-    HTLog *             log;
-    char *		reffile;		/* referer log */
-    HTLog *             ref;
-    char *		rejectfile;		/* unchecked links */
-    HTLog *	        reject;
-    char *		notfoundfile;		/* links that returned 404 */
-    HTLog *	        notfound;
-    char *		connegfile;		/* links that were conneg'ed */
-    HTLog *	        conneg;
-    char *		noalttagfile;		/* images without alt tags*/
-    HTLog *	        noalttag;
-
-    char *		hitfile;		/* links sorted after hit counts */
-    char *		relfile;		/* link sorted after relationships */
-    HTLinkType		relation;		/* Specific relation to look for */
-    char *		titlefile;		/* links with titles */
-    char *		mtfile;			/* media types encountered */
-    char *		charsetfile;		/* charsets encountered */
-    char *		lmfile;			/* sortef after last modified dates */
-
-    char *		outputfile;		
-    FILE *	        output;
-
-    MRFlags		flags;
-
-    long		get_bytes;	/* Total number of bytes processed using GET*/
-    long                get_docs;     	/* Total number of documents using GET */
-
-    long		head_bytes;	/* bytes processed bytes processed using HEAD */
-    long                head_docs;   	/* Total number of documents using HEAD*/
-
-    long		other_docs;
-
-    ms_t		time;		/* Time of run */
-
-#ifdef HT_POSIX_REGEX
-    regex_t *		include;
-    regex_t *		exclude;
-    regex_t *		check;
-#endif
-
-#ifdef HT_MYSQL
-    HTSQLLog *		sqllog;
-    char *		sqlserver;
-    char *		sqldb;
-    char *		sqluser;
-    char *		sqlpw;
-    char *		sqlrelative;
-    BOOL		sqlexternals;
-    int			sqlflags;
-#endif
-
-} Robot;
-
-typedef struct _Finger {
-    Robot * robot;
-    HTRequest * request;
-    HTParentAnchor * dest;
-} Finger;
-
-typedef enum _LoadState {
-    L_INVALID	= -2,
-    L_LOADING	= -1,
-    L_SUCCESS 	= 0,
-    L_ERROR
-} LoadState;
-
-/*
-**  The HyperDoc object is bound to the anchor and contains information about
-**  where we are in the search for recursive searches
-*/
-typedef struct _HyperDoc {
-    HTParentAnchor * 	anchor;
-    LoadState		state;
-    int			depth;
-    int                 hits;
-} HyperDoc;
-
-/*
-** This is the HText object that is created every time we start parsing an 
-** HTML object
-*/
-struct _HText {
-    HTRequest *		request;
-    BOOL		follow;
-};
-
-/*
-**  A structure for calculating metadata distributions
-*/
-typedef struct _MetaDist {
-    HTAtom *		name;
-    int			hits;
-} MetaDist;
+PRIVATE HTErrorMessage HTErrors[HTERR_ELEMENTS] = {HTERR_ENGLISH_INITIALIZER};
 
 /*
 **  Some sorting algorithms
@@ -237,15 +63,17 @@ PUBLIC int OutputData(const char  * fmt, ...)
 **	A HyperDoc object contains information about whether we have already
 **	started checking the anchor and the depth in our search
 */
-PRIVATE HyperDoc * HyperDoc_new (Robot * mr,HTParentAnchor * anchor, int depth)
+PUBLIC HyperDoc * HyperDoc_new (Robot * mr,HTParentAnchor * anchor, int depth)
 {
     HyperDoc * hd;
     if ((hd = (HyperDoc *) HT_CALLOC(1, sizeof(HyperDoc))) == NULL)
 	HT_OUTOFMEM("HyperDoc_new");
-    hd->state = L_INVALID;
     hd->depth = depth;
     hd->hits = 1;
- 
+
+    hd->code = -1;
+    hd->index = ++mr->cindex;
+
     /* Bind the HyperDoc object together with the Anchor Object */
     hd->anchor = anchor;
     HTAnchor_setDocument(anchor, (void *) hd);
@@ -259,7 +87,7 @@ PRIVATE HyperDoc * HyperDoc_new (Robot * mr,HTParentAnchor * anchor, int depth)
 /*	Delete a "HyperDoc" object
 **	--------------------------
 */
-PRIVATE BOOL HyperDoc_delete (HyperDoc * hd)
+PUBLIC BOOL HyperDoc_delete (HyperDoc * hd)
 {
     if (hd) {
 	HT_FREE (hd);
@@ -732,10 +560,50 @@ PRIVATE BOOL calculate_statistics (Robot * mr)
     return YES;
 }
 
+PRIVATE HTParentAnchor *
+get_last_parent(HTParentAnchor *anchor)
+{
+  HTAnchor *anc;
+  HTList *sources = anchor->sources;
+
+  while((anc = (HTAnchor *) HTList_nextObject(sources)) != NULL)
+    {
+      HTParentAnchor *panchor = HTAnchor_parent(anc);
+      return panchor;
+    }
+  return NULL;
+}
+
+PRIVATE void
+set_error_state_hyperdoc(HyperDoc * hd, HTRequest *request)
+{
+  HTList * cur = HTRequest_error(request);
+  HTError *pres;
+
+  while((pres = (HTError *) HTList_nextObject(cur)) != NULL)
+    {
+      int code =HTErrors[HTError_index(pres)].code;
+
+      hd->code = code;
+    }
+}
+
+
+PRIVATE int
+test_for_blank_spaces(char *uri)
+{
+  char *ptr = uri;
+  for(;*ptr!='\0';ptr++)
+    if(*ptr == ' ')
+      return 1;
+  return 0;
+}
+
+
 /*	Create a Command Line Object
 **	----------------------------
 */
-PRIVATE Robot * Robot_new (void)
+PUBLIC Robot * Robot_new (void)
 {
     Robot * me;
     if ((me = (Robot *) HT_CALLOC(1, sizeof(Robot))) == NULL)
@@ -743,10 +611,18 @@ PRIVATE Robot * Robot_new (void)
     me->hyperdoc = HTList_new();
     me->htext = HTList_new();
     me->timer = DEFAULT_TIMEOUT*MILLIES;
+    me->waits = 0;
     me->cwd = HTGetCurrentDirectoryURL();
     me->output = OUTPUT;
     me->cnt = 0;
+    me->ndoc = -1;
     me->fingers = HTList_new();
+ 
+   /* This is new */
+    me->queue = HTQueue_new();
+    me->cq = 0;
+    me->furl = NULL;
+
     return me;
 }
 
@@ -826,6 +702,11 @@ PRIVATE BOOL Robot_delete (Robot * mr)
 		HTTrace("\nRobot terminated %s\n", HTDateTimeStr(&local, YES));
 	}
 
+	/* This is new */
+	if(mr->cdepth)
+	  HT_FREE(mr->cdepth);
+	if(mr->furl) HT_FREE(mr->furl);
+
 #ifdef HT_POSIX_REGEX
 	if (mr->include) {
 	    regfree(mr->include);
@@ -834,6 +715,10 @@ PRIVATE BOOL Robot_delete (Robot * mr)
 	if (mr->exclude) {
 	    regfree(mr->exclude);
 	    HT_FREE(mr->exclude);
+	}
+	if (mr->exc_robot) {
+	    regfree(mr->exc_robot);
+	    HT_FREE(mr->exc_robot);
 	}
 	if (mr->check) {
 	    regfree(mr->check);
@@ -860,7 +745,7 @@ PRIVATE BOOL Robot_delete (Robot * mr)
 /*
 **  This function creates a new finger object and initializes it with a new request
 */
-PRIVATE Finger * Finger_new (Robot * robot, HTParentAnchor * dest, HTMethod method)
+PUBLIC Finger * Finger_new (Robot * robot, HTParentAnchor * dest, HTMethod method)
 {
     Finger * me;
     HTRequest * request = HTRequest_new();
@@ -915,7 +800,7 @@ PRIVATE int Finger_delete (Finger * me)
 **  Cleanup and make sure we close all connections including the persistent
 **  ones
 */
-PRIVATE void Cleanup (Robot * me, int status)
+PUBLIC void Cleanup (Robot * me, int status)
 {
     Robot_delete(me);
     HTProfile_delete();
@@ -936,7 +821,7 @@ PRIVATE void Cleanup (Robot * me, int status)
 **  This function sets up signal handlers. This might not be necessary to
 **  call if the application has its own handlers (lossage on SVR4)
 */
-PRIVATE void SetSignal (void)
+PUBLIC void SetSignal (void)
 {
     /* On some systems (SYSV) it is necessary to catch the SIGPIPE signal
     ** when attemting to connect to a remote host where you normally should
@@ -966,7 +851,7 @@ PRIVATE char * get_regerror (int errcode, regex_t * compiled)
     return str;
 }
 
-PRIVATE regex_t * get_regtype (Robot * mr, const char * regex_str, int cflags)
+PUBLIC regex_t * get_regtype (Robot * mr, const char * regex_str, int cflags)
 {
     regex_t * regex = NULL;
     if (regex_str && *regex_str) {
@@ -985,13 +870,17 @@ PRIVATE regex_t * get_regtype (Robot * mr, const char * regex_str, int cflags)
 }
 #endif
 
-PRIVATE void VersionInfo (void)
+PUBLIC void VersionInfo (void)
 {
-    OutputData("W3C Sample Software\n\n");
-    OutputData("\tW3C Mini Robot (%s) version %s\n", APP_NAME, APP_VERSION);
-    OutputData("\tW3C Sample Library (libwww) version %s\n\n", HTLib_version());
-    OutputData("For command line options, see\n\t%s\n\n", COMMAND_LINE);
-    OutputData("Please send feedback to <libwww@w3.org>\n");
+    OutputData("\nW3C OpenSource Software");
+    OutputData("\n-----------------------\n\n");
+    OutputData("\tWebbot version %s\n", APP_VERSION);
+    OutputData("\tusing the W3C libwww library version %s.\n\n",HTLib_version());
+    OutputData("\tSee \"%s\" for help\n", COMMAND_LINE);
+    OutputData("\tSee \"http://www.w3.org/Robot/User/\" for user information\n");
+    OutputData("\tSee \"http://www.w3.org/Robot/\" for general information\n\n");
+    OutputData("\tPlease send feedback to the <www-lib@w3.org> mailing list,\n");
+    OutputData("\tsee \"http://www.w3.org/Library/#Forums\" for details\n\n");
 }
 
 /*	terminate_handler
@@ -999,7 +888,7 @@ PRIVATE void VersionInfo (void)
 **	This function is registered to handle the result of the request.
 **	If no more requests are pending then terminate program
 */
-PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
+PUBLIC int terminate_handler (HTRequest * request, HTResponse * response,
 			       void * param, int status) 
 {
     Finger * finger = (Finger *) HTRequest_context(request);
@@ -1056,20 +945,91 @@ PRIVATE int terminate_handler (HTRequest * request, HTResponse * response,
 	mr->other_docs++;
     }
 
-    /* Cleanup the anchor so that we don't drown in metainformation */
-    if (!(mr->flags & MR_KEEP_META))
-	HTAnchor_clearHeader(HTRequest_anchor(request));
-
-    /* Delete this thread */
-    Finger_delete(finger);
-
-    /* Should we stop? */
-    if (mr->cnt <= 0) {
-	if (SHOW_QUIET(mr)) HTTrace("             Everything is finished...\n");
-	Cleanup(mr, 0);			/* No way back from here */
-    }
     if (SHOW_QUIET(mr)) HTTrace("             %d outstanding request%s\n", mr->cnt, mr->cnt == 1 ? "" : "s");
     return HT_OK;
+
+}
+PUBLIC int my_terminate_handler (HTRequest * request, HTResponse * response,
+			       void * param, int status) 
+{
+    Finger * finger = (Finger *) HTRequest_context(request);
+    Robot * mr = finger->robot;
+    HTParentAnchor * dest = finger->dest;
+    HyperDoc * hd = HTAnchor_document(dest);
+    int depth = (hd ? hd->depth : -1);
+
+    if (hd) set_error_state_hyperdoc(hd,request);
+      
+    if(hd && (HTRequest_method(request)== METHOD_HEAD) && 
+       (depth < mr->depth))
+      {
+	hd->method = METHOD_GET;
+	HTQueue_append(mr->queue, (void *)hd); (mr->cq)++;
+      }
+
+    Finger_delete(finger);
+
+    if(!(mr->flags & MR_PREEMPTIVE))
+      Serving_queue(mr);
+
+    return HT_OK;
+}
+
+
+PUBLIC void Serving_queue(Robot *mr)
+{
+  BOOL abort = NO;
+  Finger *nfinger;
+  
+  while(!abort)
+    {
+      if(!HTQueue_isEmpty(mr->queue))
+	{
+	  HTRequest *newreq;
+	  
+	  HyperDoc *nhd = (HyperDoc *)HTQueue_headOfQueue(mr->queue);
+	  
+	  if(nhd)
+	    {
+	      char *uri = HTAnchor_address((HTAnchor *)nhd->anchor);
+	      HTQueue_dequeue(mr->queue); (mr->cq)--;
+
+	      nfinger = Finger_new(mr, nhd->anchor, nhd->method); 
+	      
+	      newreq = nfinger->request;
+
+	      if(SHOW_QUIET(mr))  HTTrace("Request from QUEUE  %s\n",uri);
+	      HT_FREE(uri);
+	      if(SHOW_QUIET(mr)) HTTrace("%d elements in queue \n", mr->cq);
+
+	      HTRequest_setParent(newreq,get_last_parent(nhd->anchor));
+
+	      if(mr->waits)
+		  sleep(mr->waits);
+	      
+	      if (HTLoadAnchor((HTAnchor *)nhd->anchor , newreq) != YES) 
+		{
+		  if (SHOW_QUIET(mr)) HTTrace("not tested!\n");
+		  Finger_delete(nfinger);
+		}
+	    }
+	  else
+	    abort = YES;
+	}
+      else
+	abort = YES;
+    }
+
+  if(SHOW_QUIET(mr)) HTTrace("Queue size: %d \n", mr->cq);
+
+    if (mr->cnt <= 0 || (abort && (mr->flags & MR_PREEMPTIVE)))
+      {
+	if(mr->cnt > 0)
+	  if(SHOW_QUIET(mr)) HTTrace("%d requests were not served\n", mr->cnt);
+
+	if (SHOW_QUIET(mr)) HTTrace("             Everything is finished...\n");
+	Cleanup(mr, 0);			/* No way back from here */
+      }
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1130,11 +1090,21 @@ PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
 	BOOL match = text->follow;
 	BOOL check = NO;
 
+	/* These are new variables */
+	HyperDoc * nhd = NULL;
+	BOOL follow = YES;
+
+	/* These three variables were moved */
+	/*HTParentAnchor * last_anchor = HTRequest_parent(text->request);*/
+	HTParentAnchor * last_anchor = HTRequest_anchor(text->request);
+	HyperDoc * last_doc = HTAnchor_document(last_anchor);
+	int depth = last_doc ? last_doc->depth+1 : 0;
+
 	if (!uri) return;
-	if (SHOW_QUIET(mr)) HTTrace("Robot....... Found `%s\' - ", uri ? uri : "NULL\n");
+	if (SHOW_QUIET(mr)) HTTrace("Robot....... Found `%s\' - \n", uri ? uri : "NULL\n");
 
         if (hd) {
-	    if (SHOW_QUIET(mr)) HTTrace("Already checked\n");
+	    if (SHOW_QUIET(mr)) HTTrace("............ Already checked\n");
             hd->hits++;
 #ifdef HT_MYSQL
 	    if (mr->sqllog) {
@@ -1163,6 +1133,9 @@ PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
 	if (mr->include) {
 	    match = regexec(mr->include, uri, 0, NULL, 0) ? NO : YES;
 	}
+	if (match && mr->exc_robot) {
+	    match = regexec(mr->exc_robot, uri, 0, NULL, 0) ? YES : NO;
+	}
 	if (match && mr->exclude) {
 	    match = regexec(mr->exclude, uri, 0, NULL, 0) ? YES : NO;
 	}
@@ -1170,28 +1143,28 @@ PUBLIC void HText_beginAnchor (HText * text, HTChildAnchor * anchor)
 	    check = regexec(mr->check, uri, 0, NULL, 0) ? NO : YES;
 	}
 #endif
+	if(uri && test_for_blank_spaces(uri))
+	  follow = NO;
+	else if (mr->ndoc == 0) /* Number of Documents is reached */
+	  follow = NO;
 
 	/* Test whether we already have a hyperdoc for this document */
-        if (mr->flags & MR_LINK && match && dest_parent) {
-	    HTParentAnchor * last_anchor = HTRequest_parent(text->request);
-	    HyperDoc * last_doc = HTAnchor_document(last_anchor);
-	    int depth = last_doc ? last_doc->depth+1 : 0;
-	    Finger * newfinger = Finger_new(mr, dest_parent, METHOD_GET);
-	    HTRequest * newreq = newfinger->request;
-	    HyperDoc_new(mr, dest_parent, depth);
-	    HTRequest_setParent(newreq, referer);
-	    if (check || depth >= mr->depth) {
-		if (SHOW_QUIET(mr)) HTTrace("loading at depth %d using HEAD\n", depth);
-		HTRequest_setMethod(newreq, METHOD_HEAD);
-	    } else {
-		if (SHOW_QUIET(mr)) HTTrace("loading at depth %d\n", depth);
-	    }
-	    if (HTLoadAnchor((HTAnchor *) dest_parent, newreq) != YES) {
-		if (SHOW_QUIET(mr)) HTTrace("not tested!\n");
-		Finger_delete(newfinger);
-	    }
+	if(!hd && dest_parent)
+	  {
+	    nhd = HyperDoc_new(mr, dest_parent, depth);
+	    mr->cdepth[depth]++;
+	  }
+
+	/* Test whether we already have a hyperdoc for this document */
+        if (mr->flags & MR_LINK && match && dest_parent
+	    && follow && !hd ) {
+
+          nhd->method = METHOD_HEAD;
+	  HTQueue_enqueue(mr->queue, (void *)nhd); (mr->cq)++;
+	  if(mr->ndoc > 0)      mr->ndoc--;
+
 	} else {
-	    if (SHOW_QUIET(mr)) HTTrace("does not fulfill constraints\n");
+	    if (SHOW_QUIET(mr)) HTTrace("............ does not fulfill constraints\n");
 #ifdef HT_MYSQL
 	    if (mr->reject || mr->sqllog) {
 #else	
@@ -1222,6 +1195,7 @@ PUBLIC void HText_appendImage (HText * text, HTChildAnchor * anchor,
     if (text && anchor) {
 	Finger * finger = (Finger *) HTRequest_context(text->request);
 	Robot * mr = finger->robot;
+
 	if (mr->flags & MR_IMG) {
 	    HTAnchor * dest = HTAnchor_followMainLink((HTAnchor *) anchor);
 	    HTParentAnchor * dest_parent = HTAnchor_parent(dest);
@@ -1232,7 +1206,7 @@ PUBLIC void HText_appendImage (HText * text, HTChildAnchor * anchor,
 
 	    if (!uri) return;
 	    if (hd) {
-		if (SHOW_QUIET(mr)) HTTrace("Already checked\n");
+		if (SHOW_QUIET(mr)) HTTrace("............ Already checked\n");
 		hd->hits++;
 #ifdef HT_MYSQL
 		if (mr->sqllog) {
@@ -1276,7 +1250,7 @@ PUBLIC void HText_appendImage (HText * text, HTChildAnchor * anchor,
 		    Finger_delete(newfinger);
 		}
 	    } else {
-		if (SHOW_QUIET(mr)) HTTrace("does not fulfill constraints\n");
+		if (SHOW_QUIET(mr)) HTTrace("............ does not fulfill constraints\n");
 #ifdef HT_MYSQL
 		if (mr->reject || mr->sqllog) {
 #else	
@@ -1364,482 +1338,20 @@ PUBLIC void HText_setStyle (HText * text, HTStyle * style) {}
 PUBLIC void HText_beginAppend (HText * text) {}
 PUBLIC void HText_appendParagraph (HText * text) {}
 
-PRIVATE int RobotTrace (const char * fmt, va_list pArgs)
+
+PUBLIC char *
+get_robots_txt(char *uri)
 {
-    return (vfprintf(stderr, fmt, pArgs));
+  char *str = NULL;
+  HTChunk * chunk;
+  HTParentAnchor *anchor = HTAnchor_parent(HTAnchor_findAddress(uri));
+  HTRequest *request = HTRequest_new();
+  HTRequest_setOutputFormat(request, WWW_SOURCE);
+  HTRequest_setPreemptive(request, YES);
+  HTRequest_setMethod(request, METHOD_GET);
+  chunk = HTLoadAnchorToChunk ((HTAnchor *)anchor, request);
+  str = HTChunk_toCString(chunk);
+  HTRequest_delete(request);
+  return str;
 }
 
-/* ------------------------------------------------------------------------- */
-/*				  MAIN PROGRAM				     */
-/* ------------------------------------------------------------------------- */
-
-int main (int argc, char ** argv)
-{
-    int		status = 0;
-    int		arg;
-    BOOL	cache = NO;			     /* Use persistent cache */
-    BOOL	flush = NO;		       /* flush the persistent cache */
-    char *	cache_root = NULL;
-    HTChunk *	keywords = NULL;			/* From command line */
-    int		keycnt = 0;
-    Robot *	mr = NULL;
-    Finger *	finger = NULL;
-    HTParentAnchor * startAnchor = NULL;
-
-    /* Starts Mac GUSI socket library */
-#ifdef GUSI
-    GUSISetup(GUSIwithSIOUXSockets);
-    GUSISetup(GUSIwithInternetSockets);
-#endif
-
-#ifdef __MWERKS__ /* STR */
-    InitGraf((Ptr) &qd.thePort); 
-    InitFonts(); 
-    InitWindows(); 
-    InitMenus(); TEInit(); 
-    InitDialogs(nil); 
-    InitCursor();
-    SIOUXSettings.asktosaveonclose = false;
-    argc=ccommand(&argv);
-#endif /* __MWERKS__ */
-
-#ifdef HT_MEMLOG
-    HTMemLog_open(DEFAULT_MEMLOG, 8192, YES);
-#endif
-
-    /* Initiate W3C Reference Library with a robot profile */
-    HTProfile_newRobot(APP_NAME, APP_VERSION);
-    HTTrace_setCallback(RobotTrace);
-
-    /* Add the default HTML parser to the set of converters */
-    {
-	HTList * converters = HTFormat_conversion();
-	HTMLInit(converters);
-    }
-
-    /* Build a new robot object */
-    mr = Robot_new();
-
-    /* Scan command Line for parameters */
-    for (arg=1; arg<argc; arg++) {
-	if (*argv[arg] == '-') {
-	    
-	    /* non-interactive */
-	    if (!strcmp(argv[arg], "-n")) {
-		HTAlert_setInteractive(NO);
-
-  	    /* help */
-	    } else if (!strcmp(argv[arg], "-h") || !strcmp(argv[arg], "-?")) {
-		VersionInfo();
-		Cleanup(mr, 0);
-
-  	    /* clf log file */
-	    } else if (!strcmp(argv[arg], "-l")) {
-		mr->logfile = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    argv[++arg] : DEFAULT_LOG_FILE;
-		mr->flags |= MR_LOGGING;
-
-  	    /* referer log file */
-	    } else if (!strncmp(argv[arg], "-ref", 4)) {
-		mr->reffile = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    argv[++arg] : DEFAULT_REFERER_FILE;
-		mr->flags |= MR_LOGGING;
-
-  	    /* Not found error log file */
-	    } else if (!strncmp(argv[arg], "-404", 4)) {
-		mr->notfoundfile = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    argv[++arg] : DEFAULT_NOTFOUND_FILE;
-		mr->flags |= MR_LOGGING;
-
-  	    /* reject log file */
-	    } else if (!strncmp(argv[arg], "-rej", 4)) {
-		mr->rejectfile = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    argv[++arg] : DEFAULT_REJECT_FILE;
-		mr->flags |= MR_LOGGING;
-
-  	    /* no alt tags log file */
-	    } else if (!strncmp(argv[arg], "-alt", 4)) {
-		mr->noalttagfile = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    argv[++arg] : DEFAULT_NOALTTAG_FILE;
-		mr->flags |= MR_LOGGING;
-
-  	    /* negotiated resource log file */
-	    } else if (!strncmp(argv[arg], "-neg", 4)) {
-		mr->connegfile = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    argv[++arg] : DEFAULT_CONNEG_FILE;
-		mr->flags |= MR_LOGGING;
-
-  	    /* hit file log */
-	    } else if (!strcmp(argv[arg], "-hit")) {
-		mr->hitfile = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    argv[++arg] : DEFAULT_HIT_FILE;
-		mr->flags |= MR_DISTRIBUTIONS;
-
-  	    /* link relations file log */
-	    } else if (!strcmp(argv[arg], "-rellog")) {
-		mr->relfile = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    argv[++arg] : DEFAULT_REL_FILE;
-		mr->flags |= MR_DISTRIBUTIONS;
-
-  	    /* Specific link relation to look for (only used i also -rellog) */
-	    } else if (!strcmp(argv[arg], "-relation")) {
-		mr->relation = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    (HTLinkType) HTAtom_caseFor(argv[++arg]) : NULL;
-		mr->flags |= MR_DISTRIBUTIONS;
-
-  	    /* last modified log file */
-	    } else if (!strcmp(argv[arg], "-lm")) {
-		mr->lmfile = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    argv[++arg] : DEFAULT_LM_FILE;
-		mr->flags |= MR_DISTRIBUTIONS;
-
-  	    /* title log file */
-	    } else if (!strcmp(argv[arg], "-title")) {
-		mr->titlefile = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    argv[++arg] : DEFAULT_TITLE_FILE;
-		mr->flags |= MR_DISTRIBUTIONS;
-
-  	    /* mediatype distribution log file */
-	    } else if (!strncmp(argv[arg], "-for", 4)) {
-		mr->mtfile = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    argv[++arg] : DEFAULT_FORMAT_FILE;
-		mr->flags |= (MR_KEEP_META | MR_DISTRIBUTIONS);
-
-  	    /* charset distribution log file */
-	    } else if (!strncmp(argv[arg], "-char", 5)) {
-		mr->charsetfile = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    argv[++arg] : DEFAULT_CHARSET_FILE;
-		mr->flags |= (MR_KEEP_META | MR_DISTRIBUTIONS);
-
-            /* rule file */
-	    } else if (!strcmp(argv[arg], "-r")) {
-		mr->rules = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    argv[++arg] : DEFAULT_RULE_FILE;
-
-	    /* output filename */
-	    } else if (!strcmp(argv[arg], "-o")) { 
-		mr->outputfile = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    argv[++arg] : DEFAULT_OUTPUT_FILE;
-
-	    /* URI prefix */
-	    } else if (!strcmp(argv[arg], "-prefix")) {
-		char * prefix = NULL;
-		prefix = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    argv[++arg] : DEFAULT_PREFIX;
-		if (*prefix && *prefix != '*') {
-		    StrAllocCopy(mr->prefix, prefix);
-		    StrAllocCat(mr->prefix, "*");
-		}
-
-	    /* timeout -- Change the default request timeout */
-	    } else if (!strcmp(argv[arg], "-timeout")) {
-		int timeout = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    atoi(argv[++arg]) : DEFAULT_TIMEOUT;
-		if (timeout > 1) mr->timer = timeout*MILLIES;
-
-	    /* Force no pipelined requests */
-	    } else if (!strcmp(argv[arg], "-nopipe")) {
-		HTTP_setConnectionMode(HTTP_11_NO_PIPELINING);
-
-	    /* Start the persistent cache */
-	    } else if (!strcmp(argv[arg], "-cache")) {
-		cache = YES;
-
-	    /* Determine the cache root */
-	    } else if (!strcmp(argv[arg], "-cacheroot")) { 
-		cache_root = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    argv[++arg] : NULL;
-
-	    /* Stream write flush delay in ms */
-	    } else if (!strcmp(argv[arg], "-delay")) {
-		int delay = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    atoi(argv[++arg]) : DEFAULT_DELAY;
-		HTHost_setDefaultWriteDelay(delay);
-
-	    /* Persistent cache flush */
-	    } else if (!strcmp(argv[arg], "-flush")) {
-		flush = YES;
-
-	    /* Do a cache validation */
-	    } else if (!strcmp(argv[arg], "-validate")) {
-		mr->flags |= MR_VALIDATE;
-
-	    /* Do an end-to-end cache-validation */
-	    } else if (!strcmp(argv[arg], "-endvalidate")) {
-		mr->flags |= MR_END_VALIDATE;
-
-	    /* preemptive or non-preemptive access */
-	    } else if (!strcmp(argv[arg], "-single")) {
-		mr->flags |= MR_PREEMPTIVE;
-
-	    /* test inlined images */
-	    } else if (!strcmp(argv[arg], "-img")) {
-		mr->flags |= MR_IMG;
-
-	    /* load inlined images */
-	    } else if (!strcmp(argv[arg], "-saveimg")) {
-		mr->flags |= (MR_IMG | MR_SAVE);
-
-	    /* URI prefix for inlined images */
-	    } else if (!strcmp(argv[arg], "-imgprefix")) {
-		char * prefix = NULL;
-		prefix = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    argv[++arg] : DEFAULT_IMG_PREFIX;
-		if (*prefix && *prefix!='*') {
-		    StrAllocCopy(mr->img_prefix, prefix);
-		    StrAllocCat(mr->img_prefix, "*");
-		}
-
-	    /* load anchors */
-	    } else if (!strcmp(argv[arg], "-link") || !strcmp(argv[arg], "-depth")) {
-		mr->flags |= MR_LINK;
-		mr->depth = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    atoi(argv[++arg]) : DEFAULT_DEPTH;
-
-	    /* Output start and end time */
-	    } else if (!strcmp(argv[arg], "-ss")) {
-		mr->flags |= MR_TIME;
-
-	    /* print version and exit */
-	    } else if (!strcmp(argv[arg], "-version")) { 
-		VersionInfo();
-		Cleanup(mr, 0);
-
-	    /* run in quiet mode */
-	    } else if (!strcmp(argv[arg], "-q")) { 
-		mr->flags |= MR_QUIET;
-
-	    /* run in really quiet mode */
-	    } else if (!strcmp(argv[arg], "-Q")) { 
-		mr->flags |= MR_REAL_QUIET;
-
-#ifdef WWWTRACE
-	    /* trace flags */
-	    } else if (!strncmp(argv[arg], "-v", 2)) {
-		HTSetTraceMessageMask(argv[arg]+2);
-#endif
-
-#ifdef HT_POSIX_REGEX
-
-	    /* If we can link against a POSIX regex library */
-	    } else if (!strncmp(argv[arg], "-inc", 4)) {
-		if (arg+1 < argc && *argv[arg+1] != '-') {
-		    mr->include = get_regtype(mr, argv[++arg], W3C_REGEX_FLAGS);
-		}
-	    } else if (!strncmp(argv[arg], "-exc", 4)) {
-		if (arg+1 < argc && *argv[arg+1] != '-') {
-		    mr->exclude = get_regtype(mr, argv[++arg], W3C_REGEX_FLAGS);
-		}
-	    } else if (!strncmp(argv[arg], "-check", 6)) {
-		if (arg+1 < argc && *argv[arg+1] != '-') {
-		    mr->check = get_regtype(mr, argv[++arg], W3C_REGEX_FLAGS);
-		}
-#endif
-
-#ifdef HT_MYSQL
-	    /* If we can link against a MYSQL database library */
-	    } else if (!strncmp(argv[arg], "-sqldb", 5)) {
-		mr->sqldb = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    argv[++arg] : DEFAULT_SQL_DB;
-
-	    } else if (!strncmp(argv[arg], "-sqlclearlinks", 10)) {
-		mr->sqlflags |= HTSQLLOG_CLEAR_LINKS_TABLE;
-
-	    } else if (!strncmp(argv[arg], "-sqlclearrequests", 12)) {
-		mr->sqlflags |= HTSQLLOG_CLEAR_REQUESTS_TABLE;
-
-	    } else if (!strncmp(argv[arg], "-sqlclearresources", 12)) {
-		mr->sqlflags |= HTSQLLOG_CLEAR_RESOURCES_TABLE;
-
-	    } else if (!strncmp(argv[arg], "-sqlclearuris", 10)) {
-		mr->sqlflags |= HTSQLLOG_CLEAR_URIS_TABLE;
-
-	    } else if (!strncmp(argv[arg], "-sqlexternals", 5)) {
-		mr->sqlexternals = YES;
-
-	    } else if (!strncmp(argv[arg], "-sqlpassword", 5)) {
-		mr->sqlpw = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    argv[++arg] : DEFAULT_SQL_PW;
-
-	    } else if (!strncmp(argv[arg], "-sqlrelative", 5)) {
-		mr->sqlrelative = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    argv[++arg] : NULL;
-
-	    } else if (!strncmp(argv[arg], "-sqlserver", 5)) {
-		mr->sqlserver = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    argv[++arg] : DEFAULT_SQL_SERVER;
-
-	    } else if (!strncmp(argv[arg], "-sqluser", 5)) {
-		mr->sqluser = (arg+1 < argc && *argv[arg+1] != '-') ?
-		    argv[++arg] : DEFAULT_SQL_USER;
-
-#endif
-
-	    } else {
-		if (SHOW_REAL_QUIET(mr)) HTTrace("Bad Argument (%s)\n", argv[arg]);
-	    }
-       } else {	 /* If no leading `-' then check for URL or keywords */
-    	    if (!keycnt) {
-		char * ref = HTParse(argv[arg], mr->cwd, PARSE_ALL);
-		startAnchor = HTAnchor_parent(HTAnchor_findAddress(ref));
-		HyperDoc_new(mr, startAnchor, 0);
-		keycnt = 1;
-		HT_FREE(ref);
-	    } else {		   /* Check for successive keyword arguments */
-		char *escaped = HTEscape(argv[arg], URL_XALPHAS);
-		if (keycnt++ <= 1)
-		    keywords = HTChunk_new(128);
-		else
-		    HTChunk_putc(keywords, ' ');
-		HTChunk_puts(keywords, HTStrip(escaped));
-		HT_FREE(escaped);
-	    }
-	}
-    }
-
-#ifdef CATCH_SIG
-    SetSignal();
-#endif
-
-    if (!keycnt) {
-	if (SHOW_REAL_QUIET(mr)) HTTrace("Please specify URL to check.\n");
-	Cleanup(mr, -1);
-    }
-
-    if (mr->depth != DEFAULT_DEPTH && 
-	(mr->prefix == NULL || *mr->prefix == '*')) {
-	if (SHOW_REAL_QUIET(mr))
-	    HTTrace("A depth of more than 0 requires that you also specify a URI prefix.\n",
-		    mr->depth);
-	Cleanup(mr, -1);
-    }
-
-    /* Testing that HTTrace is working */
-    if (mr->flags & MR_TIME) {
-	if (SHOW_REAL_QUIET(mr)) {
-	    time_t local = time(NULL);
-	    HTTrace("Welcome to the W3C mini Robot version %s - started on %s\n",
-		    APP_VERSION, HTDateTimeStr(&local, YES));
-	}
-    }
-
-    /* Rule file specified? */
-    if (mr->rules) {
-	char * rules = HTParse(mr->rules, mr->cwd, PARSE_ALL);
-	if (!HTLoadRulesAutomatically(rules))
-	    if (SHOW_REAL_QUIET(mr)) HTTrace("Can't access rules\n");
-	HT_FREE(rules);
-    }
-
-    /* Output file specified? */
-    if (mr->outputfile) {
-	if ((mr->output = fopen(mr->outputfile, "wb")) == NULL) {
-	    if (SHOW_REAL_QUIET(mr)) HTTrace("Can't open `%s'\n", mr->outputfile);
-	    mr->output = OUTPUT;
-	}
-    }
-
-    /* Should we use persistent cache? */
-    if (cache) {
-	HTCacheInit(cache_root, 20);
-	HTNet_addBefore(HTCacheFilter, "http://*", NULL, HT_FILTER_MIDDLE);
-	HTNet_addAfter(HTCacheUpdateFilter, "http://*", NULL,
-		       HT_NOT_MODIFIED, HT_FILTER_MIDDLE);
-
-	/* Should we start by flushing? */
-	if (flush) HTCache_flushAll();
-    }
-
-    /* SQL Log specified? */
-#ifdef HT_MYSQL
-    if (mr->sqlserver) {
-	if ((mr->sqllog =
-	     HTSQLLog_open(mr->sqlserver,
-			   mr->sqluser ? mr->sqluser : DEFAULT_SQL_USER,
-			   mr->sqlpw ? mr->sqlpw : DEFAULT_SQL_PW,
-			   mr->sqldb ? mr->sqldb : DEFAULT_SQL_DB,
-			   mr->sqlflags)) != NULL) {
-	    if (mr->sqlrelative) HTSQLLog_makeRelativeTo(mr->sqllog, mr->sqlrelative);
-	}
-    }
-#endif
-
-    /* CLF Log file specified? */
-    if (mr->logfile) {
-        mr->log = HTLog_open(mr->logfile, YES, YES);
-        if (mr->log) HTNet_addAfter(HTLogFilter, NULL, mr->log, HT_ALL, HT_FILTER_LATE);
-    }
-
-    /* Referer Log file specified? */
-    if (mr->reffile) {
-        mr->ref = HTLog_open(mr->reffile, YES, YES);
-        if (mr->ref)
-	    HTNet_addAfter(HTRefererFilter, NULL, mr->ref, HT_ALL, HT_FILTER_LATE);
-    }
-
-    /* Not found error log specified? */
-    if (mr->notfoundfile) {
-        mr->notfound = HTLog_open(mr->notfoundfile, YES, YES);
-        if (mr->notfound)
-	    HTNet_addAfter(HTRefererFilter, NULL, mr->notfound, -404, HT_FILTER_LATE);
-    }
-
-    /* Negotiated resource log specified? */
-    if (mr->connegfile) mr->conneg = HTLog_open(mr->connegfile, YES, YES);
-
-    /* No alt tags log file specified? */
-    if (mr->noalttagfile) mr->noalttag = HTLog_open(mr->noalttagfile, YES, YES);
-
-    /* Reject Log file specified? */
-    if (mr->rejectfile) mr->reject = HTLog_open(mr->rejectfile, YES, YES);
-
-    /* Register our own terminate filter */
-    HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
-
-    /* Setting event timeout */
-    HTHost_setEventTimeout(mr->timer);
-
-    mr->time = HTGetTimeInMillis();
-
-    /* Start the request */
-    finger = Finger_new(mr, startAnchor, METHOD_GET);
-
-    /*
-    ** Make sure that the first request is flushed immediately and not
-    ** buffered in the output buffer
-    */
-    HTRequest_setFlush(finger->request, YES);
-
-    /*
-    ** Check whether we should do some kind of cache validation on
-    ** the load
-    */
-    if (mr->flags & MR_VALIDATE)
-	HTRequest_setReloadMode(finger->request, HT_CACHE_VALIDATE);
-    if (mr->flags & MR_END_VALIDATE)
-	HTRequest_setReloadMode(finger->request, HT_CACHE_END_VALIDATE);
-
-    /*
-    **  Now do the load
-    */
-    if (mr->flags & MR_PREEMPTIVE)
-	HTRequest_setPreemptive(finger->request, YES);
-
-    if (keywords)						   /* Search */
-	status = HTSearchAnchor(keywords, (HTAnchor *)startAnchor, finger->request);
-    else
-	status = HTLoadAnchor((HTAnchor *)startAnchor, finger->request);
-
-    if (keywords) HTChunk_delete(keywords);
-    if (status != YES) {
-	if (SHOW_REAL_QUIET(mr)) HTTrace("Can't access resource\n");
-	Cleanup(mr, -1);
-    }
-
-    /* Go into the event loop... */
-    HTEventList_loop(finger->request);
-
-    /* Only gets here if event loop fails */
-    Cleanup(mr, 0);
-    return 0;
-}

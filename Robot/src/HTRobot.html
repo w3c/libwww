@@ -1,46 +1,42 @@
 <HTML>
 <HEAD>
-<TITLE>W3C Mini Robot</TITLE>
-<!-- Changed by: Henrik Frystyk Nielsen,  5-Dec-1995 -->
-<!-- Changed by: Eric Prud'hommeaux, 13-Feb-1996 -->
+  <TITLE>Webbot - the W3C Mini Robot</TITLE>
 </HEAD>
 <BODY>
-
-<H1>W3C Mini Robot</H1>
-
+<H1>
+  Webbot - the W3C Mini Robot
+</H1>
 <PRE>
 /*
 **	(c) COPYRIGHT MIT 1995.
 **	Please first read the full copyright statement in the file COPYRIGH.
 */
 </PRE>
-
-The W3C Mini Robot is a "proof of concept" application that is using
-the W3C Sample Code Library. It can be used to perform multiple down
-loads from the command line. It can issue HTTP, FTP, Gopher, local
-Files, and News request and it can handle <EM>GET</EM> and
-<EM>HEAD</EM>. <P>
-
-The module is implemented by <A HREF="HTRobot.c">HTRobot.c</A>, and it
-is a part of the <A HREF="http://www.w3.org/pub/WWW/Robot/">W3C
-Mini Robot</A>. <P>
-
+<P>
+The Webbot is a "proof of concept" application that is using
+<A HREF="../../Library/">libwww</A>. It can be used to perform multiple down
+loads from the command line. It can issue HTTP, FTP, Gopher, local Files,
+and News request and it can handle <EM>GET</EM> and <EM>HEAD</EM>.
+<P>
+The module is implemented by <A HREF="HTRobot.c">HTRobot.c</A>, and it is
+a part of the <A HREF="http://www.w3.org/pub/WWW/Robot/">W3C Mini Robot</A>.
 <PRE>
 #ifndef HTROBOT_H
 #define HTROBOT_H
 </PRE>
-
-<H2>Handling of output</H2>
-
+<H2>
+  Handling of output
+</H2>
 <PRE>
 #define STDOUT stdout
 #define OUTPUT stdout
 </PRE>
-
 <PRE>
 #endif /* HTROBOT_H */
 </PRE>
-
-End of HTRobot Declaration
-</BODY>
-</HTML>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

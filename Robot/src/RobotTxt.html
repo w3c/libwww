@@ -1,0 +1,68 @@
+<HTML>
+<HEAD>
+  <!-- Changed by: John R. Punin,  24-10-98 -->
+  <TITLE>Robots Exclusion Protocol File Parser</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  Robots Exclusion Protocol File Parser
+</H1>
+<PRE>
+/*
+**      (c) COPYRIGHT MIT 1995.
+**      Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+<P>
+This module parses a
+<A HREF="http://info.webcrawler.com/mak/projects/robots/exclusion.html#robotstxt">robots.txt</A>
+exclusion file which nice robots are expected to honor. Together with the
+<A HREF="http://info.webcrawler.com/mak/projects/robots/exclusion.html#meta">robot
+META tags</A>, the webbot should now behave itself on the Internet.
+<PRE>
+#ifndef ROBOTTXT_H
+#define ROBOTTXT_H
+
+typedef struct _user_agent_ {
+  char * name;
+  HTList * disallow;
+} UserAgent;
+
+extern char * skip_comments(char *ptr);
+
+extern UserAgent * new_user_agent(void);
+
+extern void set_name_user_agent(UserAgent *ua,char *name);
+
+extern char * get_name_user_agent(UserAgent *ua);
+
+extern void add_disallow_user_agent(UserAgent *ua, char *disallow);
+
+extern HTList * get_disallow_user_agent(UserAgent *ua);
+
+extern void delete_user_agent(UserAgent *ua);
+
+extern void delete_all_user_agents(HTList *user_agents);
+
+extern void print_user_agent(UserAgent *ua);
+
+extern void print_all_user_agents(HTList *user_agents);
+
+extern HTList * get_all_user_agents(char *rob_str);
+
+extern BOOL get_user_agents(char * ptr, HTList *user_agents);
+
+extern void put_string_disallow(HTChunk *ch, UserAgent *ua);
+
+extern char * get_regular_expression(HTList* user_agents, char *name_robot);
+
+extern char * scan_robots_txt(char *rob_str, char *name_robot);
+
+#endif
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

@@ -27,10 +27,10 @@ SUFFIXES = .h .html
     endif
 
 webbot_SOURCES = \
-	HTRobot.c
+	HTRobot.c RobotMain.c RobotTxt.c HTQueue.c
 
 BUILT_SOURCES = \
-	HTRobot.h
+	HTRobot.h HTRobMan.h RobotTxt.h HTQueue.h
 
 EXTRA_DIST = \
 	 $(BUILT_SOURCES) \
@@ -47,3 +47,7 @@ purify: $(webbot_OBJECTS) $(webbot_DEPENDENCIES)
 	purify -cache-dir=$(PURIFY_CACHE) \
 	$(CC) $(LDFLAGS) -o purify $(webbot_OBJECTS) \
 	../../Library/src/.libs/libwww.a -lm $(LIBS)
+
+
+
+
