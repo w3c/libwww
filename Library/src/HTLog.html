@@ -1,0 +1,63 @@
+<HTML>
+<HEAD>
+<TITLE>Log Manager</TITLE>
+<NEXTID N="z1">
+</HEAD>
+<BODY>
+
+<H1>Log Manager</H1>
+
+<PRE>
+/*
+**	(c) COPYRIGHT CERN 1994.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+
+This module maintaines logs of request to a file.<P>
+
+This module is implemented by <A HREF="HTLog.c">HTLog.c</A>, and it is
+a part of the <A
+HREF="http://www.w3.org/hypertext/WWW/Library/User/Guide/Guide.html">
+Library of Common Code</A>.
+
+<PRE>
+#ifndef HTLIBLOG_H
+#define HTLIBLOG_H
+
+#include "HTAccess.h"
+</PRE>
+
+<H2>Enable the log</H2>
+
+Open the log file and start doing log. The time used in the log file
+is either GMT or local dependent on <CODE>local</CODE>.
+
+<PRE>
+extern BOOL HTLog_enable	PARAMS((CONST char * filename, BOOL local));
+</PRE>
+
+<H2>Disable the log</H2>
+
+Close the log file and do more log
+
+<PRE>
+extern BOOL HTLog_disable NOPARAMS;
+</PRE>
+
+<H2>Log a Request</H2>
+
+This functions logs the result of a request.
+
+<PRE>
+extern BOOL HTLog_request	PARAMS((HTRequest * request));
+
+#endif
+</PRE>
+
+End of declaration
+</BODY>
+</HTML>
+
+
+
