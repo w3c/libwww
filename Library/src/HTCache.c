@@ -69,6 +69,7 @@ typedef struct _cache_info {
     char *		local;		/* Local representation of file name */
     struct stat		stat_info;	      /* Contains actual file chosen */
     HTNet *		net;
+    HTTimer *		timer;
 } cache_info;
 
 struct _HTCache {
@@ -1887,13 +1888,19 @@ PRIVATE int CacheCleanup (HTRequest * req, int status)
 	HTRequest_setInputStream(req, NULL);
     }
 
-    if (status != HT_IGNORE) {
-	HTNet_delete(net, status);
-	if (cache) {
-	    HT_FREE(cache->local);
-	    HT_FREE(cache);
-	}
+    /*
+    **  Remove if we have registered a timer function as a callback
+    */
+    if (cache->timer) {
+        HTTimer_delete(cache->timer);
+        cache->timer = NULL;
     }
+    
+    if (cache) {
+        HT_FREE(cache->local);
+        HT_FREE(cache);
+    }
+    HTNet_delete(net, status);
     return YES;
 }
 
@@ -1930,6 +1937,24 @@ PUBLIC int HTLoadCache (SOCKET soc, HTRequest * request)
     HTNet_setEventParam(net, cache);  /* callbacks get http* */
 
     return CacheEvent(soc, cache, HTEvent_BEGIN);		/* get it started - ops is ignored */
+}
+
+PRIVATE int ReturnEvent (HTTimer * timer, void * param, HTEventType type)
+{
+    cache_info * cache = (cache_info *) param;
+    if (timer != cache->timer)
+	HTDebugBreak(__FILE__, __LINE__, "File timer %p not in sync\n", timer);
+    if (PROT_TRACE) HTTrace("HTLoadCache. Continuing %p with timer %p\n", cache, timer);
+
+    /*
+    **  Delete the timer
+    */
+    cache->timer = NULL;
+
+    /*
+    **  Now call the event again
+    */
+    return CacheEvent(INVSOC, cache, HTEvent_READ);
 }
 
 PRIVATE int CacheEvent (SOCKET soc, void * pVoid, HTEventType type)
@@ -2030,20 +2055,25 @@ PRIVATE int CacheEvent (SOCKET soc, void * pVoid, HTEventType type)
 				   NULL, 0, "HTLoadCache");
 		cache->state = CL_NEED_CONTENT;
 
-#ifndef NO_UNIX_IO
 		/* If we are _not_ using preemptive mode and we are Unix fd's
 		** then return here to get the same effect as when we are
 		** connecting to a socket. That way, HTCache acts just like any
 		** other protocol module even though we are in fact doing
 		** blocking connect
 		*/
-		if (!HTNet_preemptive(net)) {
-		    if (PROT_TRACE) HTTrace("Load Cache.. returning\n");
-		    HTHost_register(HTNet_host(net), net, HTEvent_READ);
-		    return HT_OK;
-		}
-#endif
-	    } else if (status == HT_WOULD_BLOCK || status == HT_PENDING)
+		if (HTEvent_isCallbacksRegistered()) {
+		    if (!HTRequest_preemptive(request)) {
+			if (!HTNet_preemptive(net)) {
+			    if (PROT_TRACE) HTTrace("HTLoadCache. Returning\n");
+			    HTHost_register(HTNet_host(net), net, HTEvent_READ);
+			} else if (!cache->timer) {
+			    if (PROT_TRACE) HTTrace("HTLoadCache. Returning\n");
+			    cache->timer = HTTimer_new(NULL, ReturnEvent, cache, 1, YES, NO);
+			}
+			return HT_OK;
+                    }
+                }
+            } else if (status == HT_WOULD_BLOCK || status == HT_PENDING)
 		return HT_OK;
 	    else {
 		HTRequest_addError(request, ERR_INFO, NO, HTERR_INTERNAL,
