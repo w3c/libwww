@@ -5,45 +5,47 @@
 <title>External Software Packages</title>
 </head>
 <body bgcolor="#ffffff">
-<p>
-<a href="../../"><img alt="W3C" src="../../Icons/WWW/w3c_home" border="0"></a>
-<a href="../"><img alt="libwww" src="../../Icons/WWW/Lib48x"
+
+<p><a href="../../"><img alt="W3C" src="../../Icons/WWW/w3c_home"
+border="0"></a> <a href="../"><img alt="libwww" src="../../Icons/WWW/Lib48x"
 border="0"></a></p>
 
 <h1>Libwww and Other Software Packages</h1>
-<p style="text-align: center">
-<a href="#Expat">expat</a> | <a href="#Zlib">zlib</a> | <a
-href="#Regular">regex</a> | <a href="#MySQL">mysql</a> | <a
-href="#SOCKS">socks</a></p>
-<p>
-Libwww can work with a set of other software packages which greatly can
+
+<p style="text-align: center"><a href="#Expat">Expat</a> | <a
+href="#Zlib">zlib</a> | <a href="#Regular">regex</a> | <a
+href="#MySQL">MySQL</a> | <a href="#SOCKS">Socks</a> | <a
+href="#Support">MD5</a> | <a href="#Transport">SSL</a></p>
+
+<p>Libwww can work with a set of other software packages which greatly can
 augmunt the capabilities of libwww and applications that you build on top.</p>
-<p>
-On Unix, this is all handled very well by the <a
-href="../../INSTALL.html#Unix">autoconf configure script</a> but on Windows,
-the setup is somewhat more tricky as you need to manually edit the <a
-href="../src/windows/config.h">config.h</a> file and have the right DLLs in
-the right places. In order to make it easier for you to get bootstrapped on
-Windows, I have included <a
+
+<p>On Unix, this is all handled very well by the <a
+href="../../INSTALL.html#Highly">autoconf configure script</a> but on Windows,
+the setup is <a href="../../INSTALL.html">somewhat more tricky</a> as you need
+to manually edit the <a href="../src/windows/config.h">config.h</a> file and
+have the right DLLs in the right places. In order to make it easier for you to
+get bootstrapped on Windows, I have included <a
 href="http://dev.w3.org/cgi-bin/cvsweb/libwww/Library/External/">DLLs for some
 of these software packages</a> in the <a href="../cvs.html">libwww CVS
 tree</a>:</p>
-<p>
-You should of course always check the web sites for these packages to get up
-to date information on the latest versions, etc. You can find the full set of
-supported packages in the <a href="../../INSTALL.html#Windows">detailed
+
+<p>You should of course always check the web sites for these packages to get
+up to date information on the latest versions, etc. You can find the full set
+of supported packages in the <a href="../../INSTALL.html#Windows">detailed
 installation instructions</a> and also information for how to link libwww with
 these packages.</p>
 
 <h3><a name="Expat">Expat XML Parser</a></h3>
-<p>
-We use <a href="http://www.jclark.com/xml/expat.html">James Clark's expat XML
-parser and tokenizer</a> for handling XML in libwww. Data is retieved over the
-network and parsed as soon as it arrives.</p>
+
+<p>We use <a href="http://www.jclark.com/xml/expat.html">James Clark's expat
+XML parser and tokenizer</a> for handling XML in libwww. Data is retieved over
+the network and parsed as soon as it arrives. This is already part of the
+libwww CVS repository so no external packages are needed.</p>
 
 <h3><a name="Zlib">Zlib Compression/Decompression</a></h3>
-<p>
-Libwww can use the <a href="http://www.cdrom.com/pub/infozip/zlib/">zlib
+
+<p>Libwww can use the <a href="http://www.cdrom.com/pub/infozip/zlib/">zlib
 library</a> for handling the <b>deflate</b> content and transfer encodings in
 HTTP. This increases performance as we then can inflate a compressed document
 on the fly. A version of the precompiled <a
@@ -51,31 +53,44 @@ href="http://www.winimage.com/zLibDll/">zlib DLL for Win32</a> is already
 included in the w3c-libwww distribution file.</p>
 
 <h3><a name="Regular">Regular Expressions</a></h3>
-<p>
-Libwww can use <a href="http://www.delorie.com/gnu/docs/rx/">posix compliant
-regular expressions</a>, for example to handle URI matching. This is for
-example <a
-href="http://jigtest.w3.org/frystyk/dev/libwww/Robot/User/CommandLine.html#Constraints">used
-in the Webbot</a> which can handle regular expressions when matching which
-URIs to check. The library has been tested with the <a
+
+<p>Libwww can use <a href="http://www.delorie.com/gnu/docs/rx/">posix
+compliant regular expressions</a>, for example to handle URI matching. This is
+for example <a href="/Robot/User/CommandLine.html#Constraints">used in the
+Webbot</a> which can handle regular expressions when matching which URIs to
+check. The library has been tested with the <a
 href="http://people.delphi.com/gjc/gnu_regex.html">GNU regular expression
 library for Win32</a>.</p>
 
 <h3><a name="MySQL">MySQL Access</a></h3>
-<p>
-Libwww can use a <a href="http://www.tcx.se/">MySQL database</a> for <a
-href="http://jigtest.w3.org/frystyk/dev/libwww/Robot/User/CommandLine.html#Logging">logging
-requests and responses</a> instead of plain text files. The <a
-href="../../Robot/">Webbot</a> uses this for creating a map of the resources
-<a href="http://jigtest.w3.org/frystyk/dev/libwww/Robot/www-sql/">exported by
-a server</a>.</p>
+
+<p>Libwww can use a <a href="http://www.tcx.se/">MySQL database</a> for <a
+href="/Robot/User/CommandLine.html#Logging">logging requests and responses</a>
+instead of plain text files. The <a href="../../Robot/">Webbot</a> uses this
+for creating a map of the resources <a href="/Robot/www-sql/">exported by a
+server</a>.</p>
 
 <h3><a name="SOCKS">SOCKS Firewall Traversal</a></h3>
-<p>
-Libwww can use <a href="http://www.socks.nec.com/">SOCKS</a> to go through
-firewalls.</p>
-<p>
-</p>
+
+<p>Libwww can use <a href="http://www.socks.nec.com/">SOCKS</a> to go through
+firewalls by <a href="../src/wwwsys.html#SOCKS">replacing the socket calls
+with SOCKS calls</a>. </p>
+
+<h3 id="Support">MD5 Support</h3>
+
+<p>MD5 is used by the<a href="../src/HTAABrow.html"> HTTP Digest
+authentication</a>, for example, but can be used for other things as well. It
+is taken from the HTTP Digest Authentication specification. This is already
+part of the libwww CVS repository so no external packages are needed.</p>
+
+<h3 id="Transport">SSL Transport</h3>
+
+<p>Libwww can be <a href="../src/SSL/WWWSSL.html">set up to use SSL as a
+transport</a>, for example in order to deal with the <code>https</code> URI
+access scheme. This requires the <a href="http://www.openssl.org/">OpenSSL
+library</a>, for example.</p>
+
+<p></p>
 <hr>
 
 <address>
