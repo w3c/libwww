@@ -114,6 +114,7 @@ HFILES = $(CMN)HTParse.h $(CMN)HTAccess.h $(CMN)HTTP.h $(CMN)HTFile.h \
 SOURCES = $(CFILES) $(HFILES) $(CMN)Version.make \
 	$(CMN)CommonMakefile $(CMN)Makefile \
 	$(WWW)/README.txt $(WWW)/Copyright.txt $(WWW)/BUILD $(WWW)/Makefile
+
 SPECIFIC = $(WWW)/All/*/Makefile.include $(WWW)/All/Implementation/Makefile* \
 	$(VMS)/descrip.mms  $(VMS)/COPYING.LIB $(VMS)/setup.com \
  	$(VMS)/build_multinet.com $(VMS)/build_multinet.com_alpha \
@@ -169,28 +170,28 @@ uninstall :
 inc : $(HFILES)
 	echo Include files generated from hypertext.
 
-binary : /pub/www/bin/$(WWW_MACH)/libwww_$(VC).a
+binary : /mnt/www0/pub/www/bin/$(WWW_MACH)/libwww_$(VC).a
 	echo FTP archive binary Libray $(VC) for $(WWW_MACH) up to date.
 
 
-/pub/www/bin/$(WWW_MACH)/libwww_$(VC).a : libwww.a
-	-mkdir /pub/www/bin/$(WWW_MACH)
-	cp libwww.a /pub/www/bin/$(WWW_MACH)/libwww_$(VC).a
+/mnt/www0/pub/www/bin/$(WWW_MACH)/libwww_$(VC).a : libwww.a
+	-mkdir /mnt/www0/pub/www/bin/$(WWW_MACH)
+	cp libwww.a /mnt/www0/pub/www/bin/$(WWW_MACH)/libwww_$(VC).a
 
 #	Source Distribution:
 
-distribute :  /pub/www/README.txt /pub/www/Copyright.txt
+distribute :  /mnt/www0/pub/www/README.txt /mnt/www0/pub/www/Copyright.txt
 	(cd $(WWW)/..; WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 		-f WWW/Library/Implementation/CommonMakefile \
-		/pub/www/src/WWWLibrary_$(VC).tar.Z)
+		/mnt/www0/pub/www/src/WWWLibrary_$(VC).tar.Z)
 	(cd ../Implementation; cvs tag \
 	    `sed -e 's/VC = /v/' Version.make | sed -e 's?\.?/?'` )
 	echo Distribution of Library version $(VC) up to date.
 
-/pub/www/src/WWWLibrary_$(VC).tar.Z : $(SOURCES)
-	tar cf /pub/www/src/WWWLibrary_$(VC).tar \
-	    $(SOURCES)  $(SPECIFIC) $(WC)/*/Makefile
-	compress /pub/www/src/WWWLibrary_$(VC).tar
+/mnt/www0/pub/www/src/WWWLibrary_$(VC).tar.Z : $(SOURCES)
+	tar cf /mnt/www0/pub/www/src/WWWLibrary_$(VC).tar \
+	    $(SOURCES)  $(SPECIFIC) $(WC)/*/Makefile $(CMN)*.html
+	compress /mnt/www0/pub/www/src/WWWLibrary_$(VC).tar
 
 
 #	Hypertext supplied in text format
@@ -199,14 +200,14 @@ distribute :  /pub/www/README.txt /pub/www/Copyright.txt
 $(WWW)/README.txt : $(WWW)/../README.html
 	www -n -p66 http://info.cern.ch/hypertext/README.html \
 		> $(WWW)/README.txt
-/pub/www/README.txt : $(WWW)/README.txt
-	cp $(WWW)/README.txt /pub/www/README.txt
+/mnt/www0/pub/www/README.txt : $(WWW)/README.txt
+	cp $(WWW)/README.txt /mnt/www0/pub/www/README.txt
 
 $(WWW)/Copyright.txt : $(WWW)/../Copyright.html
 	www -n -p66 http://info.cern.ch/hypertext/Copyright.html \
 		> $(WWW)/Copyright.txt
-/pub/www/Copyright.txt : $(WWW)/Copyright.txt
-	cp $(WWW)/Copyright.txt /pub/www/Copyright.txt
+/mnt/www0/pub/www/Copyright.txt : $(WWW)/Copyright.txt
+	cp $(WWW)/Copyright.txt /mnt/www0/pub/www/Copyright.txt
 
 # 			Common code
 #			-----------
