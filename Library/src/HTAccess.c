@@ -632,6 +632,8 @@ PUBLIC HTParentAnchor * HTHomeAnchor NOARGS
 	if (TRACE) fprintf(stderr,
 	    "HTBrowse: No local home document ~/%s or %s\n",
 	    PERSONAL_DEFAULT, LOCAL_DEFAULT_FILE);
+	    free(my_home_document);
+	    my_home_document = NULL;
 	}
     }
 #endif

@@ -995,6 +995,7 @@ PUBLIC int HTLoadNews ARGS4(
         else read_article();
 
 	(*targetClass.end_document)(target);
+	(*targetClass.free)(target);
 	return HT_LOADED;
 	
     } /* Retry loop */
