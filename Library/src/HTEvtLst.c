@@ -69,6 +69,24 @@ PRIVATE int HTEndLoop = 0;		       /* If !0 then exit event loop */
 
 /* ------------------------------------------------------------------------- */
 
+#ifdef WWW_WIN_ASYNC
+PRIVATE BOOL Timer_setWindowsTimer (HTTimer * timer)
+{
+    HWND hwnd;
+    UINT id;
+    hwnd = HTEventList_getWinHandle(&id);
+    return SetTimer(hwnd, (UINT)timer, (UINT)timer->millis, NULL) != 0;
+}
+
+PRIVATE BOOL Timer_deleteWindowsTimer (HTTimer * timer)
+{
+    HWND hwnd;
+    UINT id;
+    hwnd = HTEventList_getWinHandle(&id);
+    return KillTimer(hwnd, (UINT)timer) != 0;
+}
+#endif /* WWW_WIN_ASYNC */
+
 PRIVATE SockEvents * SockEvents_get (SOCKET s, SockEvents_action action)
 {
     long v = HASH(s);
@@ -576,6 +594,13 @@ PUBLIC BOOL HTEventInit (void)
     	return NO;
     }
     HTwinMsg = WM_USER;  /* use first available message since app uses none */
+
+    /*
+    **  Register platform specific timer handlers for windows
+    */
+    HTTimer_registerSetTimerCallback(Timer_setWindowsTimer);
+    HTTimer_registerDeleteTimerCallback(Timer_deleteWindowsTimer);
+
 #endif /* WWW_WIN_ASYNC */
 
 #ifdef _WINSOCKAPI_

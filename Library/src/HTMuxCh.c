@@ -431,7 +431,7 @@ PUBLIC HTMuxSession * HTMuxChannel_findSession (HTMuxChannel * me, HTMuxSessionI
 }
 
 #if 0
-PUBLIC HTMuxSession * HTMuxChannel_findSessionFromNet (HTMuxChannel * me, HTNet * net)
+PRIVATE HTMuxSession * HTMuxChannel_findSessionFromNet (HTMuxChannel * me, HTNet * net)
 {
     if (me && net) {
 	int cnt = 0;

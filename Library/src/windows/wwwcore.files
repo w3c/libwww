@@ -19,7 +19,9 @@ HTProt.c
 HTReqMan.c
 HTResponse.c
 HTStream.c
+HTTimer.c
 HTTrans.c
+HTTCP.c
 HTUser.c
 HTUTree.c
 HTWWWStr.c

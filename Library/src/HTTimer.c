@@ -33,6 +33,9 @@ struct _HTTimer {
 
 PRIVATE HTList * Timers = NULL;			   /* List of timers */
 
+PRIVATE HTTimerSetCallback * SetPlatformTimer = NULL;
+PRIVATE HTTimerSetCallback * DeletePlatformTimer = NULL;
+
 #if 1 /* WATCH_RECURSION */
 
 PRIVATE HTTimer * InTimer = NULL;
@@ -49,33 +52,25 @@ PRIVATE HTTimer * InTimer = NULL;
 #endif /* !WATCH_RECURSION */
 /* ------------------------------------------------------------------------- */
 
-#ifdef WWW_WIN_ASYNC
-
-#define SET_PLATFORM_TIMER(timer)	Timer_setWindowsTimer(timer)
-#define DELETE_PLATFORM_TIMER(timer)	Timer_deleteWindowsTimer(timer)
-
-PRIVATE int Timer_setWindowsTimer(HTTimer * timer)
+PUBLIC BOOL HTTimer_registerSetTimerCallback (HTTimerSetCallback * cbf)
 {
-    HWND hwnd;
-    UINT id;
-    hwnd = HTEventList_getWinHandle(&id);
-    return SetTimer(hwnd, (UINT)timer, (UINT)timer->millis, NULL) != 0;
+    if (CORE_TRACE) HTTrace("Timer....... registering %p as timer set cbf\n", cbf);
+    if (cbf) {
+	SetPlatformTimer = cbf;
+	return YES;
+    }
+    return NO;
 }
 
-PRIVATE int Timer_deleteWindowsTimer(HTTimer * timer)
+PUBLIC BOOL HTTimer_registerDeleteTimerCallback (HTTimerSetCallback * cbf)
 {
-    HWND hwnd;
-    UINT id;
-    hwnd = HTEventList_getWinHandle(&id);
-    return KillTimer(hwnd, (UINT)timer) != 0;
+    if (CORE_TRACE) HTTrace("Timer....... registering %p as timer delete cbf\n", cbf);
+    if (cbf) {
+	DeletePlatformTimer = cbf;
+	return YES;
+    }
+    return NO;
 }
-
-#else /* WWW_WIN_ASYNC */
-
-#define SET_PLATFORM_TIMER(timer)
-#define DELETE_PLATFORM_TIMER(timer)
-
-#endif /* !WWW_WIN_ASYNC */
 
 PUBLIC BOOL HTTimer_delete (HTTimer * timer)
 {
@@ -88,7 +83,12 @@ PUBLIC BOOL HTTimer_delete (HTTimer * timer)
 	return NO;
     }
     HTList_quickRemoveElement(cur, last);
-    DELETE_PLATFORM_TIMER(timer);
+
+    /*
+    **  Call any platform specific timer handler
+    */
+    if (DeletePlatformTimer) DeletePlatformTimer(timer);
+
     if (THD_TRACE) HTTrace("Timer....... Deleted timer %p\n", timer);
     CLEARME(timer);
     HT_FREE(timer);
@@ -162,7 +162,12 @@ PUBLIC HTTimer * HTTimer_new (HTTimer * timer, HTTimerCallback * cbf,
     **	add to list if timer is new
     */
     HTList_addObject(last, (void *)timer);
-    SET_PLATFORM_TIMER(timer);
+
+    /*
+    **  Call any platform specific timer handler
+    */
+    if (SetPlatformTimer) SetPlatformTimer(timer);
+
     CLEARME(timer);
     return timer;
 }
@@ -183,7 +188,11 @@ PUBLIC BOOL HTTimer_deleteAll (void)
     HTTimer * pres;
     if (Timers) {
 	while ((pres = (HTTimer *) HTList_nextObject(cur))) {
-	    DELETE_PLATFORM_TIMER(pres);
+
+	    /*
+	    **  Call any platform specific timer handler
+	    */
+	    if (DeletePlatformTimer) DeletePlatformTimer(pres);
 	    HT_FREE(pres);
 	}
 	HTList_delete(Timers);

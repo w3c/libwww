@@ -39,7 +39,24 @@ extern HTTimer * HTTimer_new (HTTimer *, HTTimerCallback *,
 extern BOOL HTTimer_refresh(HTTimer * timer, ms_t now);
 extern BOOL HTTimer_delete (HTTimer * timer);
 extern BOOL HTTimer_deleteAll (void);
+extern int HTTimer_dispatch (HTTimer * timer);
 </PRE>
+
+<H3>
+Platform Specific Timers
+</H3>
+
+On some platform, timers are supported via events or other OS specific
+mechanisms. You can make libwww can support these by registering a
+platform specific timer add and timer delete method.
+
+<PRE>
+typedef BOOL HTTimerSetCallback (HTTimer * timer);
+
+extern BOOL HTTimer_registerSetTimerCallback (HTTimerSetCallback * cbf);
+extern BOOL HTTimer_registerDeleteTimerCallback (HTTimerSetCallback * cbf);
+</PRE>
+
 <H3>
   Get the next timer in line
 </H3>

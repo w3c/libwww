@@ -1013,25 +1013,6 @@ PUBLIC HTRequest * HTNet_request (HTNet * net)
     return (net ? net->request : NULL);
 }
 
-#if 0
-/*
-**  Get and set the HTTransport object
-*/
-PUBLIC BOOL HTHost_setTransport (HTHost * me, HTTransport * tp)
-{
-    if (me && tp) {
-	me->transport = tp;
-	return YES;
-    }
-    return NO;
-}
-
-PUBLIC HTTransport * HTHost_transport (HTHost * me)
-{
-    return (me ? me->transport : NULL);
-}
-#endif
-
 /*
 **  Get and set the HTChannel object
 */

@@ -5,4 +5,5 @@ HTChunk.c
 HTList.c
 HTMemory.c
 HTString.c
+HTTrace.c
 HTUU.c

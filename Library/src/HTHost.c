@@ -15,7 +15,6 @@
 /* Library include files */
 #include "sysdep.h"
 #include "WWWUtil.h"
-#include "WWWMux.h"
 #include "HTParse.h"
 #include "HTAlert.h"
 #include "HTError.h"
@@ -1033,7 +1032,7 @@ PUBLIC int HTHost_home (HTHost * host)
 }
 
 #if 0	/* Is a macro right now */
-PUBLIC BOOL HTHost_setDNS5 (HTHost * host, HTdns * dns)
+PRIVATE BOOL HTHost_setDNS5 (HTHost * host, HTdns * dns)
 {
     if (!host) return NO;
     host->dns = dns;
@@ -1052,8 +1051,10 @@ PUBLIC HTNet * HTHost_getReadNet(HTHost * host)
 {
     if (host) {
 	if (host->mode == HT_TP_INTERLEAVE) {
+#ifdef HT_MUX
 	    HTMuxChannel * muxch = HTMuxChannel_find(host);
 	    return HTMuxChannel_net(muxch);
+#endif
 	}
 	return (HTNet *) HTList_firstObject(host->pipeline);
     }
@@ -1106,8 +1107,10 @@ PUBLIC HTOutputStream * HTHost_output (HTHost * host, HTNet * net)
 	**  have.
 	*/
 	if (host->mode == HT_TP_INTERLEAVE) {
+#ifdef HT_MUX
 	    HTStream * target = (HTStream *) HTChannel_output(host->channel);
 	    output = HTMuxWriter_new(host, net, target);
+#endif
 	}
 	return output;
     }
@@ -1186,43 +1189,3 @@ PUBLIC void HTHost_setEventTimeout (int millis)
     EventTimeout = millis;
     if (CORE_TRACE) HTTrace("Host........ Setting event timeout to %d ms\n", millis);
 }
-
-#if 0
-PRIVATE int lazyWriteFlushEvent (SOCKET soc, void * pVoid, HTEventType type)
-{
-    HTOutputStream * stream = (HTOutputStream *) pVoid;
-    HTBufferWriter_reallyFlush(me);
-    return HT_OK;
-}
-
-/*
-**	HTHost_lazyFlush(host, cbf) - call cbf with an HTEvent_TIMEOUT 
-**	when the host's write interval has expired.
-*/
-PUBLIC int HTHost_lazyFlush (HTHost * host, int (*lazyFlush)(HTOutputStream *))
-{
-    /*
-    **  If we are allowed to delay the flush then register an event with the
-    **  delay descibed by our delay variable. If we can't delay then flush 
-    **  right away.
-    */
-    if (host->delay_output) {
-	HTChannel * ch = HTHost_channel(host);
-	me->delay_event = HTEvent_new(FlushEvent, host, HT_PRIORITY_MAX, me->delay_ms);
-	HTEvent_register(HTChannel_socket(ch), HTEvent_TIMEOUT, me->delay_event);
-	me->delaying = YES;
-	if (PROT_TRACE) HTTrace("Buffer...... Waiting...\n");
-
-    int				delay_ms;		      /* Delay in ms */
-    BOOL			delaying;
-    HTEvent *			delay_event;
-	    me->delay_ms = 10000;
-
-PUBLIC int HTHost_cancelLazyFlush(me->host)
-	    if (me->delay_event && me->delaying) {
-		HTChannel * ch = HTHost_channel(me->host);
-		HTEvent_unregister(HTChannel_socket(ch), HTEvent_TIMEOUT);
-		me->delaying = NO;
-	    }
-#endif /* 0 */
-

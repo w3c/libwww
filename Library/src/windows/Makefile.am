@@ -21,7 +21,10 @@ EXTRA_DIST = \
 	$(SRC) \
 	$(MAK)
 
-def: maintainer-clean-generic
+def-clean:
+	test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
+
+def: $(BUILT_SOURCES)
 	
 .files.def:
 	$(top_srcdir)/config/makedefs.pl -headerEXPORTS -d.. @$(srcdir)/$(*F).files > $(srcdir)/$(*F).def
