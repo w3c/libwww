@@ -61,7 +61,7 @@ PRIVATE int HTMIMEParseSet_hash(HTMIMEParseSet * me, const char * token)
     for (p=token, ret=0; *p; p++) {
         char ch;
         ch = *(unsigned char *) p;
-	ch = tolower(ch);
+	ch = TOLOWER(ch);
         ret = (ret * 3 +(ch)) % me->size;
     }
     return ret;

@@ -257,7 +257,7 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
 {
     const char * start = b;
     const char * end = start;
-    const char * value = me->value->size ? b : NULL;
+    const char * value = HTChunk_size(me->value) >= 0 ? b : NULL;
     int length = l;
     int status;
 
@@ -299,7 +299,7 @@ PRIVATE int HTMIME_put_block (HTStream * me, const char * b, int l)
 		    me->haveToken = YES;
 		} else {
 		    unsigned char ch = *(unsigned char *) b;
-		    ch = tolower(ch);
+		    ch = TOLOWER(ch);
 		    me->hash = (me->hash * 3 + ch) % MIME_HASH_SIZE;
 		}
 	    } else if (value == NULL && *b != ':' && !isspace((int) *b))

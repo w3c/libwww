@@ -50,7 +50,7 @@ PUBLIC HTAtom * HTAtom_for (const char * string)
     /*		Generate hash function
     */
     for (p=string, hash=0; *p; p++) {
-        hash = (hash * 3 + tolower(*p)) % HASH_SIZE;
+        hash = (hash * 3 + TOLOWER(*p)) % HASH_SIZE;
     }
     
     /*		Search for the string in the list
@@ -100,7 +100,7 @@ PUBLIC HTAtom * HTAtom_caseFor (const char * string)
     /*		Generate hash function
     */
     for(p=string, hash=0; *p; p++) {
-        hash = (hash * 3 + tolower(*p)) % HASH_SIZE;
+        hash = (hash * 3 + TOLOWER(*p)) % HASH_SIZE;
     }
     
     /*		Search for the string in the list

@@ -246,8 +246,8 @@ is. These macros are CERTAINLY needed on #if defined(pyr) || define(mips)
 or BDSI platforms. For safefy, we make them mandatory.
 <PRE>
 #ifndef TOLOWER
-#define TOLOWER(c) tolower(c)
-#define TOUPPER(c) toupper(c)
+#define TOLOWER(c) tolower((int) (c))
+#define TOUPPER(c) toupper((int) (c))
 #endif
 </PRE>
 <H2>
