@@ -798,8 +798,7 @@ PUBLIC BOOL HTCacheTerminate (void)
 	HTNet_deleteAfter(HTCacheCheckFilter);
 
 	/*
-	**  Set a lock on the cache so that multiple users
-	**  don't step on each other.
+	**  Remove the global cache lock.
 	*/
 	HTCache_deleteSingleUserLock(HTCacheRoot);
 
@@ -1191,6 +1190,7 @@ PUBLIC HTCache * HTCache_touch (HTRequest * request, HTResponse * response,
 PRIVATE int HTCacheFilter (HTRequest * request, void * param, int mode)
 {
     HTParentAnchor * anchor = HTRequest_anchor(request);
+    char * default_name = HTRequest_defaultPutName (request); 
     HTCache * cache = NULL;
     HTReload reload = HTRequest_reloadMode(request);
     HTMethod method = HTRequest_method(request);
@@ -1233,7 +1233,7 @@ PRIVATE int HTCacheFilter (HTRequest * request, void * param, int mode)
 	** check. This filter assumes that we can get the cached version
 	** through one of our protocol modules (for example the file module)
 	*/
-	cache = HTCache_find(anchor);
+	cache = HTCache_find(anchor, default_name);
 	if (cache) {
 	    HTReload cache_mode = HTCache_isFresh(cache, request);
 	    if (cache_mode == HT_CACHE_ERROR) cache = NULL;
@@ -1322,7 +1322,8 @@ PRIVATE int  HTCacheUpdateFilter (HTRequest * request, HTResponse * response,
 				 void * param, int status)
 {
     HTParentAnchor * anchor = HTRequest_anchor(request);
-    HTCache * cache = HTCache_find(anchor);
+    char * default_name = HTRequest_defaultPutName(request);
+    HTCache * cache = HTCache_find(anchor, default_name);
     if (cache) {
 
 	/*
@@ -1377,20 +1378,30 @@ PRIVATE int HTCacheCheckFilter (HTRequest * request, HTResponse * response,
 	    HTCache_touch(request, response, anchor);
 	} else {
 	    HTParentAnchor * anchor = HTRequest_anchor(request);
-	    HTCache * cache = HTCache_find(anchor);
+	    char * default_name = HTRequest_defaultPutName(request);
+	    HTCache * cache = HTCache_find(anchor, default_name);
 	    if (cache) {
 		/* 
 		** If we receive a 204 and the method is unsafe then we have
 		** to delete the cache body but not the header information
 		*/
+		/*
+		** @@ JK: see how to add all the methods here (201, etc.) when
+		** it's a PUT
+		*/
 		if (status == 204) {
 		    HTCache_updateMeta(cache, request, response);
 		    cache->size = 0;
 		    cache->range = YES;
+		    /* @@ JK: update the cache meta data on disk */
+		    HTCache_writeMeta (cache, request, response);
+		    /* @@ JK: and we remove the file name as it's obsolete 
+		       now */
 		    REMOVE(cache->cachename);
 		} else
 		    HTCache_remove(cache);
-	    }
+	    } 
+	    /* @@  this operation will clear the cache->size and cache_range */
 	    HTCache_touch(request, response, anchor);
 	}
     }
@@ -1434,16 +1445,23 @@ PRIVATE BOOL HTCache_setSize (HTCache * cache, long written, BOOL append)
 **  Returns: file name	If OK (must be freed by caller)
 **	     NULL	If no cache object found
 */
-PUBLIC HTCache * HTCache_find (HTParentAnchor * anchor)
+PUBLIC HTCache * HTCache_find (HTParentAnchor * anchor, char * default_name)
 {
     HTList * list = NULL;
     HTCache * pres = NULL;
 
     /* Find a hash entry for this URL */
     if (HTCacheMode_enabled() && anchor && CacheTable) {
-	char * url = HTAnchor_address((HTAnchor *) anchor);
+	char * url = NULL;
 	int hash = 0;
-	char * ptr = url;
+	char * ptr;
+
+	if (default_name)
+	    StrAllocCopy (url, default_name);
+	  else
+	    url = HTAnchor_address((HTAnchor *) anchor);
+	ptr = url;
+
 	for (; *ptr; ptr++)
 	    hash = (int) ((hash * 3 + (*(unsigned char *) ptr)) % HT_XL_HASH_SIZE);
 	if (!CacheTable[hash]) {
@@ -1816,6 +1834,13 @@ PUBLIC HTReload HTCache_isFresh (HTCache * cache, HTRequest * request)
 	    HTAnchor_setHeaderParsed(anchor);
 	}
 
+	/* the cache size is 0 when we want to force the 
+    	   revalidation of the cache, for example, after a PUT */
+#if 0
+	/* @@ JK: trying the following instruction */
+    	if (cache->size == 0) 
+    	  return HT_CACHE_FLUSH;
+#endif
 	/*
 	**  If we only have a part of this request then make a range request
 	**  using the If-Range condition GET request

@@ -149,7 +149,7 @@ PRIVATE int buf_flush (HTStream * me)
 	}
 
 	/* If we are not a pipe then do no more buffering */
-	if (!(me->mode & HT_BM_PIPE)) me->state = HT_BS_TRANSPARENT;
+	if ((me->mode & HT_BM_PIPE)) me->state = HT_BS_TRANSPARENT;
     }
     return (*me->target->isa->flush)(me->target);
 }

@@ -312,7 +312,7 @@ the cached object. It does not verify whether the object is valid or not,
 for example it might have expired. Use the cache validation methods for checking
 this.
 <PRE>
-extern HTCache * HTCache_find (HTParentAnchor * anchor);
+extern HTCache * HTCache_find (HTParentAnchor * anchor, char * default_name);
 </PRE>
 <H3>
   Verify if an Object is Fresh

@@ -194,7 +194,11 @@ PRIVATE int pumpData (HTStream * me)
 	    HTStream * append = HTStreamStack(WWW_CACHE_APPEND,
 					      me->target_format,
 					      me->target, request, NO);
-            me->target = append;
+	    if (append) me->target = HTTee(me->target, append, NULL);
+#if 0
+	    /* @@ JK: change */
+	    if (append) me->target = append;
+#endif
 	} else if (HTResponse_isCachable(me->response) == HT_CACHE_ALL) {
 	    HTStream * cache = HTStreamStack(WWW_CACHE, me->target_format,
 					     me->target, request, NO);
@@ -611,7 +615,12 @@ PUBLIC HTStream * HTMIMEFooter (HTRequest *	request,
 PRIVATE int HTCacheLoadFilter (HTRequest * request, void * param, int mode)
 {
     HTParentAnchor * anchor = HTRequest_anchor(request);
-    HTCache * cache = HTCache_find(anchor);
+    char * default_name;
+    HTCache * cache;
+
+    default_name = HTRequest_defaultPutName (request);
+    cache = HTCache_find(anchor, default_name);
+
     HTTRACE(STREAM_TRACE, "Cache Load.. loading partial cache entry\n");
     if (cache) {
 	char * name = HTCache_name(cache);
@@ -633,7 +642,11 @@ PRIVATE int HTCacheFlushFilter (HTRequest * request, HTResponse * response,
     if (pipe) {
 	HTTRACE(STREAM_TRACE, "Cache Flush. Flushing and freeing PIPE buffer\n");
 	(*pipe->isa->flush)(pipe);
+#if 0
+	/* @@ JK: flush converts the pipe to an open one, we shouldn't
+	   free it as we'll loose our references */
 	(*pipe->isa->_free)(pipe);
+#endif
     }
 
     /*
@@ -686,6 +699,8 @@ PUBLIC HTStream * HTMIMEPartial (HTRequest *	request,
     me->mode |= HT_MIME_PARTIAL;
     me->target = merge;
 
+#if 0
+    /* JK: this doesn't work because this work is repeated before */
     /*
     **  Create the cache append stream, and a Tee stream
     */
@@ -694,6 +709,7 @@ PUBLIC HTStream * HTMIMEPartial (HTRequest *	request,
 					  output_stream, request, NO);
 	if (append) me->target = HTTee(me->target, append, NULL);
     }
+#endif
 
     /*
     **  Create the pipe buffer stream to buffer the data that we read
