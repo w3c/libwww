@@ -46,6 +46,26 @@ typedef enum _FTPServerType {
 #define MAX_FTP_LINE	128			 /* Don't use more than this */
 </PRE>
 
+<H2>
+  Global Transfer Mode
+</H2>
+
+Can be used to set the default transfer mode overruling what may be
+indicated in the FTP URL.<P>
+Added by Neil Griffin, <a href="http://www.gainsoft.com">GAIN Software</a>
+
+<PRE>
+typedef enum _FTPTransferMode {
+    FTP_DEFAULT_TRANSFER_MODE   = 0,
+    FTP_ASCII_TRANSFER_MODE     = 1,
+    FTP_BINARY_TRANSFER_MODE    = 2,
+    FTP_DIR_TRANSFER_MODE       = 3
+} FTPTransferMode;
+
+extern FTPTransferMode HTFTP_transferMode (void);
+extern void HTFTP_setTransferMode (FTPTransferMode mode);
+</PRE>
+
 <PRE>
 #endif
 </PRE>

@@ -56,7 +56,7 @@ PUBLIC int HTProxyFilter (HTRequest * request, void * param, int mode)
 	*/
 	char * path =
 	    HTParse(addr, "", PARSE_HOST + PARSE_PATH + PARSE_PUNCTUATION);
-	char * gatewayed = HTParse(path+1, physical, PARSE_ALL);
+	char * gatewayed = HTParse((*path=='/') ? path+1 : path, physical, PARSE_ALL);
 	HTAnchor_setPhysical(anchor, gatewayed);
 	HT_FREE(path);
 	HT_FREE(gatewayed);

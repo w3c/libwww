@@ -48,6 +48,15 @@ typedef enum _HTURIEncoding {
 
 extern char * HTEscape (const char * str, HTURIEncoding mask);
 </PRE>
+
+<H2>
+  Convert a single Character from Ascii Hex to Char
+</H2>
+
+<PRE>
+extern char HTAsciiHexToChar (char c);
+</PRE>
+
 <H2>
   Decode %xy Escaped Characters
 </H2>

@@ -34,7 +34,7 @@ PRIVATE int 		got_styles = 0;
 PRIVATE HTStyle *styles[HTMLP_ELEMENTS];
 PRIVATE HTStyle *default_style;
 
-#define TAB	'\0'
+#define HTTAB	'\0'
 
 /*		HTML Object
 **		-----------
@@ -304,57 +304,56 @@ PRIVATE void change_paragraph_style (HTStructured * me, HTStyle *style)
 **			A C T I O N 	R O U T I N E S
 */
 
-PRIVATE int HTML_put_character (HTStructured * me, char c)
-{
-    switch (me->sp[0].tag_number) {
-    case HTML_COMMENT:
-    	break;					/* Do Nothing */
-	
-    case HTML_TITLE:	
-    	HTChunk_putb(me->title, &c, 1);
-	break;
-
-	
-    case HTML_LISTING:				/* Litteral text */
-    case HTML_XMP:
-    case HTML_PLAINTEXT:
-    case HTML_PRE:
-/*	We guarrantee that the style is up-to-date in begin_litteral
-*/
-    	HText_appendCharacter(me->text, c);
-	break;
-	
-    default:					/* Free format text */
-	if (me->style_change) {
-	    if ((c=='\n') || (c==' ')) return HT_OK;	/* Ignore it */
-	    UPDATE_STYLE;
-	}
-	if (c == TAB)
-	    HText_appendCharacter(me->text, '\t');
-	else if (isspace((int) c)) {
-	    if (me->in_word) {
-		HText_appendCharacter(me->text, ' ');
-		me->in_word = NO;
-	    }
-	} else {
-	    HText_appendCharacter(me->text, c);
-	    me->in_word = YES;
-	}
-    } /* end switch */
-    return HT_OK;
-}
-
-
 PRIVATE int HTML_write (HTStructured * me, const char * b, int l)
 {
-    while (l-- > 0) HTML_put_character(me, *b++);
+    while (l-- > 0) {
+	const char c = *b++;
+	switch (me->sp[0].tag_number) {
+	case HTML_COMMENT:
+	    break;					/* Do Nothing */
+	
+	case HTML_TITLE:	
+	    HTChunk_putb(me->title, &c, 1);
+	    break;
+	
+	case HTML_LISTING:				/* Litteral text */
+	case HTML_XMP:
+	case HTML_PLAINTEXT:
+	case HTML_PRE:
+	    /* We guarrantee that the style is up-to-date in begin_litteral */
+	    HText_appendCharacter(me->text, c);
+	    break;
+	
+	default:					/* Free format text */
+	    if (me->style_change) {
+		if ((c=='\n') || (c==' ')) return HT_OK;	/* Ignore it */
+		UPDATE_STYLE;
+	    }
+	    if (c == HTTAB)
+		HText_appendCharacter(me->text, '\t');
+	    else if (isspace((int) c)) {
+		if (me->in_word) {
+		    HText_appendCharacter(me->text, ' ');
+		    me->in_word = NO;
+		}
+	    } else {
+		HText_appendCharacter(me->text, c);
+		me->in_word = YES;
+	    }
+	}
+    }
     return HT_OK;
 }
+
+PRIVATE int HTML_put_character (HTStructured * me, char c)
+{
+    return HTML_write(me, &c, sizeof(char));
+}
+
 
 PRIVATE int HTML_put_string (HTStructured * me, const char* s)
 {
-    while (*s) HTML_put_character(me, *s++);
-    return HT_OK;
+    return HTML_write(me, s, (int) strlen(s));
 }
 
 /*	Start Element
@@ -499,7 +498,7 @@ PRIVATE void HTML_start_element (
 	
     case HTML_DD:
         UPDATE_STYLE;
-	HTML_put_character(me, TAB);	/* Just tab out one stop */
+	HTML_put_character(me, HTTAB);	/* Just tab out one stop */
 	me->in_word = NO;
 	break;
 
@@ -515,7 +514,7 @@ PRIVATE void HTML_start_element (
 	if (me->sp[0].tag_number != HTML_DIR)
 	    HText_appendParagraph(me->text);
 	else
-	    HText_appendCharacter(me->text, TAB);
+	    HText_appendCharacter(me->text, HTTAB);
 	me->in_word = NO;
 	break;
 	

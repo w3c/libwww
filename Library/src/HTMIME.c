@@ -106,7 +106,7 @@ PRIVATE int pumpData (HTStream * me)
     */
     {
 	HTHost * host = HTNet_host(me->net);
-	if (length<=0 && te==NULL &&
+	if (length<0 && te==NULL &&
 	    HTHost_isPersistent(host) && !HTHost_closeNotification(host)) {
 	    if (format != WWW_UNKNOWN) {
 		if (STREAM_TRACE) HTTrace("MIME Parser. BAD - there seems to be a body but no length. This must be an HTTP/1.0 server pretending that it is HTTP/1.1\n");

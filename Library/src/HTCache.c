@@ -26,6 +26,7 @@
 #define HT_CACHE_LOC	"/tmp/"
 #define HT_CACHE_ROOT	"w3c-cache/"
 #define HT_CACHE_INDEX	".index"
+#define HT_CACHE_LOCK	".lock"
 #define HT_CACHE_META	".meta"
 #define HT_CACHE_ETAG	"@w3c@"
 
@@ -108,6 +109,7 @@ struct _HTInputStream {
 
 /* Cache parameters */ 
 PRIVATE BOOL		HTCacheEnable = NO;	      /* Disabled by default */
+PRIVATE BOOL		HTCacheInitialized = NO;
 PRIVATE char *		HTCacheRoot = NULL;  	    /* Destination for cache */
 PRIVATE HTExpiresMode	HTExpMode = HT_EXPIRES_IGNORE;
 PRIVATE HTDisconnectedMode DisconnectedMode = HT_DISCONNECT_NONE;
@@ -287,15 +289,15 @@ PUBLIC BOOL HTCacheIndex_write (const char * cache_root)
 				    pres->url,
 				    pres->cachename,
 				    pres->etag ? pres->etag : HT_CACHE_ETAG,
-				    pres->lm,
-				    pres->expires,
+				    (long) (pres->lm),
+				    (long) (pres->expires),
 				    pres->size,
 				    pres->range+0x30,
 				    pres->hash,
 				    pres->hits,
-				    pres->freshness_lifetime,
-				    pres->response_time,
-				    pres->corrected_initial_age,
+				    (long) (pres->freshness_lifetime),
+				    (long) (pres->response_time),
+				    (long) (pres->corrected_initial_age),
 				    pres->must_revalidate+0x30) < 0) {
 			    if (CACHE_TRACE)
 				HTTrace("Cache Index. Error writing cache index\n");
@@ -337,16 +339,16 @@ PRIVATE BOOL HTCacheIndex_parseLine (char * line)
 	    StrAllocCopy(cache->cachename, cachename);
 	    if (strcmp(etag, HT_CACHE_ETAG)) StrAllocCopy(cache->etag, etag);
 	}
-#if SIZEOF_LONG==8
+#ifdef HAVE_LONG_TIME_T
 	/*
 	**  On some 64 bit machines (alpha) time_t is of type int and not long.
 	**  This means that we have to adjust sscanf accordingly so that we
 	**  know what we are looking for. Otherwise er may get unalignment
 	**  problems.
 	*/
-	if (sscanf(line, "%d %d %d %c %d %d %d %d %d %c",
-#else
 	if (sscanf(line, "%ld %ld %ld %c %d %d %ld %ld %ld %c",
+#else
+	if (sscanf(line, "%d %d %ld %c %d %d %d %d %d %c",
 #endif
 		   &cache->lm,
 		   &cache->expires,
@@ -625,6 +627,57 @@ PUBLIC const char * HTCacheMode_getRoot (void)
 }
 
 /*
+**	As this is a single user cache, we have to lock it when in use.
+*/
+PRIVATE BOOL HTCache_getSingleUserLock (const char * root)
+{
+    if (root) {
+	FILE * fp;
+	char * location = NULL;
+	if ((location = (char *)
+	     HT_MALLOC(strlen(root) + strlen(HT_CACHE_LOCK) + 1)) == NULL)
+	    HT_OUTOFMEM("HTCache_getLock");
+	strcpy(location, root);
+	strcat(location, HT_CACHE_LOCK);
+	if ((fp = fopen(location, "r")) != NULL) {
+	    HTAlertCallback *cbf = HTAlert_find(HT_A_CONFIRM);
+	    HTTrace("Cache....... Is already in use\n");
+    	    if (cbf) (*cbf)(NULL, HT_A_CONFIRM, HT_MSG_CACHE_LOCK,NULL,location,NULL);
+	    fclose(fp);
+	    HT_FREE(location);
+	    return NO;
+	}
+	if ((fp = fopen(location, "w")) == NULL) {
+	    HTTrace("Cache....... Can't open `%s\' for writing\n", location);
+	    HT_FREE(location);
+	    return NO;
+	}
+	HT_FREE(location);
+	return YES;
+    }
+    return NO;
+}
+
+/*
+**	Release the single user lock
+*/
+PRIVATE BOOL HTCache_deleteSingleUserLock (const char * root)
+{
+    if (root) {
+	char * location = NULL;
+	if ((location = (char *)
+	     HT_MALLOC(strlen(root) + strlen(HT_CACHE_LOCK) + 1)) == NULL)
+	    HT_OUTOFMEM("HTCache_deleteLock");
+	strcpy(location, root);
+	strcat(location, HT_CACHE_LOCK);
+	REMOVE(location);
+	HT_FREE(location);
+	return YES;
+    }
+    return NO;
+}
+
+/*
 **	If `cache_root' is NULL then reuse old value or use HT_CACHE_ROOT.
 **	An empty string will make '/' as cache root
 **	We can only enable the cache if the HTSecure flag is not set. This
@@ -645,6 +698,13 @@ PUBLIC BOOL HTCacheInit (const char * cache_root, int size)
 	HTCacheMode_setMaxSize(size);
 
 	/*
+	**  Set a lock on the cache so that multiple users
+	**  don't step on each other.
+	*/
+	if (HTCache_getSingleUserLock(HTCacheRoot) == NO)
+	    return NO;
+
+	/*
 	**  Look for the cache index and read the contents
 	*/
 	HTCacheIndex_read(HTCacheRoot);
@@ -653,6 +713,7 @@ PUBLIC BOOL HTCacheInit (const char * cache_root, int size)
 	**  Do caching from now on
 	*/
 	HTCacheEnable = YES;
+	HTCacheInitialized = YES;
 	return YES;
     }
     return NO;
@@ -663,22 +724,32 @@ PUBLIC BOOL HTCacheInit (const char * cache_root, int size)
 */
 PUBLIC BOOL HTCacheTerminate (void)
 {
-    /*
-    **  Write the index to file
-    */
-    HTCacheIndex_write(HTCacheRoot);
+    if (HTCacheInitialized) {
 
-    /*
-    **  Cleanup memory by deleting all HTCache objects
-    */
-    HTCache_deleteAll();
+	/*
+	**  Write the index to file
+	*/
+	HTCacheIndex_write(HTCacheRoot);
 
-    /*
-    **  Don't do anymore caching from now on
-    */
-    HT_FREE(HTCacheRoot);
-    HTCacheEnable = NO;
-    return YES;
+	/*
+	**  Set a lock on the cache so that multiple users
+	**  don't step on each other.
+	*/
+	HTCache_deleteSingleUserLock(HTCacheRoot);
+
+	/*
+	**  Cleanup memory by deleting all HTCache objects
+	*/
+	HTCache_deleteAll();
+
+	/*
+	**  Don't do anymore caching from now on
+	*/
+	HT_FREE(HTCacheRoot);
+	HTCacheEnable = NO;
+	return YES;
+    }
+    return NO;
 }
 
 /*
@@ -1640,7 +1711,7 @@ PRIVATE HTStream * HTCacheStream (HTRequest * request, BOOL append)
     
     HTResponse * response = HTRequest_response(request);
     HTParentAnchor * anchor = HTRequest_anchor(request);
-    if (!HTCacheEnable) {
+    if (!HTCacheEnable || !HTCacheInitialized) {
 	if (CACHE_TRACE) HTTrace("Cache....... Not enabled\n");
 	return NULL;
     }

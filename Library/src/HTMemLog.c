@@ -163,8 +163,11 @@ PUBLIC int HTMemLog_callback (char * data, size_t len, char * fmt, va_list pArgs
     syslog(LOG_DEBUG, "%s\n", buff);
 #else /* USE_SYSLOG */
     HTMemLog_addTime();
-
+#ifdef HAVE_LONG_SIZE_T
+    ret = sprintf(buff, " %ld ", len);
+#else
     ret = sprintf(buff, " %d ", len);
+#endif
     HTMemLog_add(buff, ret);
 
     if (fmt) {

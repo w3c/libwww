@@ -14,12 +14,17 @@
 **	BK	Brewster Kahle, Thinking Machines, <Brewster@think.com>
 **	TBL	Tim Berners-Lee, CERN <timbl@w3.org>
 **
+** Contributors
+**	QL	QingLong, Yggdrasil Inc., <qinglong@Yggdrasil.com>
+**
 ** History
 **	   Sep 91	TBL adapted shell-ui.c (BK) with HTRetrieve.c from WWW.
 **	   Feb 91	TBL Generated HTML cleaned up a bit (quotes, escaping)
 **			    Refers to lists of sources. 
 **	   Mar 93	TBL   Lib 2.0 compatible module made.	
 **	   May 95       CHJ modified for freeWAIS-0.5
+**	   Jun 97	QL  modified for w3c-libwww-5.0a.
+**	   Mar 98	QL  modified for w3c-libwww-5.1i.
 **
 ** Bugs
 **	Uses C stream i/o to read and write sockets, which won't work
@@ -52,67 +57,134 @@
 
 
 #define DIRECTORY "/cnidr.org:210/directory-of-servers"
-/* define DIRECTORY "/quake.think.com:210/directory-of-servers" */
 
 #define BIG 1024	/* identifier size limit  @@@@@ */
-
-/*			From WAIS
-**			---------
-*/
-#if 0
-#include "wais.h"
-#endif
-
-#define MAX_MESSAGE_LEN 100000
-#define CHARS_PER_PAGE 10000 /* number of chars retrieved in each request */
-#define WAISSEARCH_DATE "Fri Jul 19 1991"
-
-
-/*			FROM WWW
-**			--------
-*/
-#define BUFFER_SIZE 4096	/* Arbitrary size for efficiency */
-
-#define HEX_ESCAPE '%'
 
 /* Library include files */
 #include "sysdep.h"
 #include "WWWUtil.h"
 #include "WWWCore.h"
 #include "WWWHTML.h"
+#include "HTReqMan.h"
  
-extern FILE * logfile;		/* Log file output */
+#ifdef HAVE_WAIS_H
+#include "wais.h"
+#else
+#ifdef HAVE_WAIS_WAIS_H
+#include "wais/wais.h"
+#else
+#ifdef WAIS_INCLUDE
+#include WAIS_INCLUDE
+#endif
+#endif
+#endif
 
-PRIVATE int HTMaxWAISLines = 200;/* Max number of entries from a search */
+/*			From WAIS
+**			---------
+*/
+#undef MAX_MESSAGE_LEN
+#define MAX_MESSAGE_LEN 100000
+#undef CHARS_PER_PAGE
+#define CHARS_PER_PAGE   10000 /* number of chars retrieved in each request */
+#undef WAISSEARCH_DATE
+#define WAISSEARCH_DATE "Fri Jul 19 1991"
 
-PRIVATE BOOL	as_gate;	/* Client is using us as gateway */
+/*			FROM WWW
+**			--------
+*/
+#define      BUFFER_SIZE 4096	/* Arbitrary size for efficiency */
+#define LINE_BUFFER_SIZE 2048
 
-PRIVATE char	line[2048];	/* For building strings to display */
-				/* Must be able to take id */
+#define HEX_ESCAPE '%'
+
+extern FILE * logfile;            /* Log file output */
+
+PRIVATE int HTMaxWAISLines = 200; /* Max number of entries from a search */
+
 
 /* Hypertext object building machinery */
-#define PUTC(c) (*target->isa->put_character)(target, c)
-#define PUTS(s) (*target->isa->put_string)(target, s)
-#define START(e) (*target->isa->start_element)(target, e, 0, 0)
-#define END(e) (*target->isa->end_element)(target, e)
+#define PUTC(c)     (*target->isa->put_character)(target, c)
+#define PUTS(s)     (*target->isa->put_string)(target, s)
+#define START(e)    (*target->isa->start_element)(target, e, 0, 0)
+#define END(e)      (*target->isa->end_element)(target, e)
 #define FREE_TARGET (*target->isa->_free)(target)
 
-struct _HTStructured {
-	const HTStructuredClass *	isa;
-	/* ... */
+
+
+/*
+ * Type definitions and global variables etc. local to this module
+ */
+
+
+/* Final states have negative value */
+typedef enum _HTWAISState
+{
+  HTWAIS_ERROR            = -2,
+  HTWAIS_OK               = -1,
+  HTWAIS_BEGIN            =  0,
+  HTWAIS_PARSING_URL      =  1,
+  HTWAIS_NEED_CONNECTION  =  2,
+  HTWAIS_NEED_REQUEST     =  3,
+  HTWAIS_NEED_RESPONSE    =  4,
+  HTWAIS_PARSING_RESPONSE =  5,
+  HTWAIS_FETCH_DOCUMENT   =  6,
+  HTWAIS_CLEANUP          =  7
+} HTWAISState;
+
+
+/*
+ * This is the context structure for this module
+ */
+typedef struct _wais_info
+{
+  BOOL        as_gate;          /* Client is using us as gateway */
+  HTWAISState state;            /* Current State */
+  int         result;           /* Result to report to the after filter */
+  HTNet*      net;		/* Net object */
+  FILE*       connection;
+  char*       names;            /* Copy of arg to be hacked up */
+  char*       basetitle;
+  char*       wais_database;    /* name of current database */
+  char*        www_database;    /* Same name escaped */
+  char*       request_message;  /* arbitrary message limit */
+  char*       response_message; /* arbitrary message limit */
+} wais_info;
+
+
+struct _HTStream
+{
+  const HTStreamClass* isa;
+  HTStream*            target;
+  HTRequest*           request;
+  wais_info*           wais;
+  int                  status;
+  /* ... */
 };
 
-struct _HTStream {
-	const HTStreamClass *	isa;
-	/* ... */
+
+struct _HTInputStream
+{
+  const HTInputStreamClass *	isa;
 };
 
 
-/*								showDiags
-*/
+struct _HTStructured
+{
+  const HTStructuredClass *	isa;
+  /* ... */
+};
+
+
+/* ------------------------------------------------------------------------- */
+/* 			      Auxilliary Functions			     */
+/* ------------------------------------------------------------------------- */
+
+
+/*								HTshowDiags
+ */
 /* modified from Jonny G's version in ui/question.c */
 
-void showDiags (
+void HTshowDiags (
 	HTStream * 		target,
 	diagnosticRecord ** 	d)
 {
@@ -138,13 +210,17 @@ PRIVATE BOOL acceptable_inited = NO;
 
 PRIVATE void init_acceptable (void)
 {
-    unsigned int i;
-    char * good = 
-      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789./-_$";
-    for(i=0; i<256; i++) acceptable[i] = NO;
-    for(;*good; good++) acceptable[(unsigned int)*good] = YES;
-    acceptable_inited = YES;
+ unsigned int i;
+ char * good = 
+         "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789./-_$";
+
+ if (acceptable_inited == YES) return;
+
+ for(i=256; i--; ) acceptable[i] = NO;
+ for(;*good; good++) acceptable[(unsigned int)*good] = YES;
+ acceptable_inited = YES;
 }
+
 
 /*	Transform file identifier into WWW address
 **	------------------------------------------
@@ -172,6 +248,7 @@ char * WWW_from_archie  (char * file)
     return result;
 } /* WWW_from_archie */
 
+
 /*	Transform document identifier into URL
 **	--------------------------------------
 **
@@ -183,7 +260,6 @@ char * WWW_from_archie  (char * file)
 **			pointer to malloced string (must be freed) if ok
 */
 PRIVATE char hex [17] = "0123456789ABCDEF";
-extern char from_hex (char a);			/* In HTWSRC @@ */
 
 PRIVATE char * WWW_from_WAIS (any * docid)
 
@@ -332,11 +408,11 @@ PRIVATE any * WAIS_from_WWW  (any * docid, char * docname)
 		    unsigned int b;
 		    p++;
 		    c = *p++;
-		    b = from_hex(c);
+		    b = HTAsciiHexToChar(c);
 		    c = *p++;
 		    if (!c) 
 			break;	/* Odd number of chars! */
-		    *z++ = (b<<4) + from_hex(c);
+		    *z++ = (b<<4) + HTAsciiHexToChar(c);
 		} else {
 		    *z++ = *p++;	/* Record */
 		}
@@ -362,11 +438,11 @@ PRIVATE any * WAIS_from_WWW  (any * docid, char * docname)
 		unsigned int b;
 		p++;
 		c = *p++;
-		b = from_hex(c);
+		b = HTAsciiHexToChar(c);
 		c = *p++;
 		if (!c) 
 		    break;	/* Odd number of chars! */
-		*z++ = (b<<4) + from_hex(c);
+		*z++ = (b<<4) + HTAsciiHexToChar(c);
 	    } else {
 		*z++ = *p++;	/* Record */
 	    }
@@ -400,10 +476,10 @@ PRIVATE any * WAIS_from_WWW  (any * docid, char * docname)
 		unsigned int b;
 		p++;
 	        c = *p++;
-		b =   from_hex(c);
+		b =   HTAsciiHexToChar(c);
 		c = *p++;
 		if (!c) break;	/* Odd number of chars! */
-		*z++ = (b<<4) + from_hex(c);
+		*z++ = (b<<4) + HTAsciiHexToChar(c);
 	    } else {
 	        *z++ = *p++;	/* Record */
 	    }
@@ -478,8 +554,10 @@ void display_search_response (HTStructured *		target,
 {
   WAISSearchResponse  *info;
   long i, k;
+  char line[LINE_BUFFER_SIZE];	/* For building strings to display */
   
   BOOL archie =  strstr(database, "archie")!=0;	/* Specical handling */
+
   
   if (PROT_TRACE) HTTrace("WAIS........ Displaying search response\n");
   sprintf(line,
@@ -498,7 +576,7 @@ void display_search_response (HTStructured *		target,
     i =0; 
 
     if (info->Diagnostics != NULL)
-      showDiags((HTStream*)target, info->Diagnostics);
+      HTshowDiags((HTStream*)target, info->Diagnostics);
 
     if ( info->DocHeaders != 0 ) {
       for (k=0; info->DocHeaders[k] != 0; k++ ) {
@@ -628,6 +706,109 @@ void display_search_response (HTStructured *		target,
 }
 
 
+/*	HTWAISCleanup
+**	-----------
+**      This function closes the connection and frees memory.
+**      Returns YES on OK, else NO
+*/
+PRIVATE int HTWAISCleanup (HTRequest *req, int status)
+{
+ HTNet* net;
+ HTStream* input;
+ wais_info* theWAISinfo = NULL;
+
+
+ if (req)
+   {
+    net = HTRequest_net(req);
+    input = HTRequest_inputStream(req);
+
+    /* Free stream with data TO network */
+    if (HTRequest_isDestination(req))
+      HTRequest_removeDestination(req);
+     else
+      if (input)
+	{
+	 if (status == HT_INTERRUPTED)
+	   (*input->isa->abort)(input, NULL);
+	  else
+	   (*input->isa->_free)(input);
+
+	 HTRequest_setInputStream(req, NULL);
+	}
+
+    if (net)
+      {
+       if ((theWAISinfo = (wais_info*)HTNet_context(net)))
+	 {
+	  theWAISinfo->state = HTWAIS_CLEANUP;
+
+	  if (theWAISinfo->connection)
+	    close_connection_to_server(theWAISinfo->connection);
+
+	  if (theWAISinfo->wais_database)
+	    HT_FREE(theWAISinfo->wais_database);
+
+	  if (theWAISinfo->request_message)
+	    s_free(theWAISinfo->request_message);
+
+	  if (theWAISinfo->response_message)
+	    s_free(theWAISinfo->response_message);
+
+	  HT_FREE(theWAISinfo->names);
+	  HT_FREE(theWAISinfo->basetitle);
+
+	  if (status < 0)
+	    {
+	     HTParentAnchor* anchor;
+	     char* unescaped = NULL;
+	     void* err_par;
+	     unsigned int err_par_length;
+
+	     if ((anchor = HTRequest_anchor(req)))   /* Be robust */
+	       {
+		char* arg;
+
+		if ((arg = HTAnchor_physical(anchor)))
+		  {
+		   StrAllocCopy(unescaped, arg);
+		   HTUnEscape(unescaped);
+		  }
+	       }
+
+	     if (unescaped)
+	       {
+		err_par = (void*)unescaped;
+		err_par_length = (unsigned int)(strlen(unescaped));
+	       }
+	      else
+	       {
+		err_par = (void*)"???";
+		err_par_length = 3;
+	       }
+
+	     HTRequest_addError(req, ERR_FATAL, NO, HTERR_INTERNAL,
+				err_par, err_par_length, "HTLoadWAIS");
+	     if (unescaped) HT_FREE(unescaped);
+	    }
+
+	  /* Free and remove our own context structure for wais */
+	  HT_FREE(theWAISinfo);
+	  HTNet_setContext(net, NULL);
+	 }
+       /* End ``if (theWAISinfo)'' */
+
+       /* Remove the request object */
+       HTNet_delete(net, status);
+      }
+
+    return YES;
+   }
+  else
+   return NO;
+}
+
+
 
 
 /*	Load Document from WAIS Server				HTLoadWAIS()
@@ -639,392 +820,593 @@ void display_search_response (HTStructured *		target,
 **	returns		<0		Error has occured
 **			HT_LOADED	OK
 */
-PUBLIC int HTLoadWAIS (SOCKET soc, HTRequest * request, HTEventType type)
 
 #define MAX_KEYWORDS_LENGTH 4000
-#define MAX_SERVER_LENGTH 1000
+#define MAX_SERVER_LENGTH   1000
 #define MAX_DATABASE_LENGTH 1000
-#define MAX_SERVICE_LENGTH 1000
+#define MAX_SERVICE_LENGTH  1000
 
+PRIVATE int HTWAISEvent(SOCKET soc, void * pVoid, HTEventType type)
 {
-    HTParentAnchor * anchor = HTRequest_anchor(request);
-    const char * arg = HTAnchor_physical(anchor);
-    HTFormat		format_out = HTRequest_outputFormat(request);
-    HTStream*		sink = HTRequest_outputStream(request);
-#if 0    
-    static const char * error_header =
-"<h1>Access error</h1>\nThe following error occured in accesing a WAIS server:<P>\n";
+ wais_info* theWAISinfo;  /* Specific protocol information */
+ HTNet* net;              /* Generic protocol information */
+ HTRequest* request;
+ HTParentAnchor* anchor;
+ const char * arg;
+ HTStream* sink;
+ HTFormat format_out;
+#if 0
+ static const char * error_header = "<h1>Access error</h1>\n<p>The following error occured in accesing a WAIS server:\n</p>\n";
 #endif
-    char * key;			  /* pointer to keywords in URL */
-    char* request_message = NULL; /* arbitrary message limit */
-    char* response_message = NULL; /* arbitrary message limit */
-    long request_buffer_length;	/* how of the request is left */
-    SearchResponseAPDU  *retrieval_response = 0;
-    char keywords[MAX_KEYWORDS_LENGTH + 1];
-    char *server_name;	
-    char *wais_database = NULL;		/* name of current database */
-    char *www_database;			/* Same name escaped */
-    char *service;
-    char *doctype;
-    char *doclength;
-    long document_length;
-    char *docname;
-    FILE *connection = 0;
-    char * names;		/* Copy of arg to be hacked up */
-    BOOL ok = NO;
-    int status = -1;
-    char *basetitle = NULL;
+ char* key;			  /* pointer to keywords in URL */
+ long request_buffer_length;	/* how of the request is left */
+ SearchResponseAPDU* retrieval_response = 0;
+ char keywords[MAX_KEYWORDS_LENGTH + 1];
+ char* server_name = NULL;
+ char* service;
+ char* docname = NULL;
+ char* doctype = NULL;
+ long document_length = -1;
+ BOOL ok = NO;
+ int status = HT_ERROR;
+
+#if 0
+ FILE* connection = 0;
+ char* names;		/* Copy of arg to be hacked up */
+ char* basetitle = NULL;
+ char* wais_database = NULL;    /* name of current database */
+ char*  www_database = NULL;    /* Same name escaped */
+ char*  request_message = NULL; /* arbitrary message limit */
+ char* response_message = NULL; /* arbitrary message limit */
+#endif
     
 #if 0
-    extern FILE * connect_to_server();
+ extern FILE * connect_to_server();
 #endif
+
+
+ if ((theWAISinfo = (wais_info*)pVoid))   /* Be robust */
+   {
+    if ((net = theWAISinfo->net) == NULL) return HT_ERROR;
+    if ((request = HTNet_request(net)) == NULL) return HT_ERROR;
+    if ((anchor = HTRequest_anchor(request)))
+      arg = HTAnchor_physical(anchor);
+     else
+      return HT_ERROR;
+
+    sink = HTRequest_outputStream(request);
+    format_out = HTRequest_outputFormat(request);
+   }
+  else
+   return HT_ERROR;
     
-    if (PROT_TRACE)
-	HTTrace("HTLoadWAIS.. Looking for `%s\'\n", arg);
-     
-    if (!acceptable_inited) init_acceptable();
-    
-        
-/*	Decipher and check syntax of WWW address:
-**	----------------------------------------
-**
-**	First we remove the "wais:" if it was spcified.  920110
-*/  
-    names = HTParse(arg, "", PARSE_HOST | PARSE_PATH | PARSE_PUNCTUATION);
-    key = strchr(names, '?');
-    
-    if (key) {
-    	char * p;
-	*key++ = 0;	/* Split off keywords */
-	for (p=key; *p; p++) if (*p == '+') *p = ' ';
-	HTUnEscape(key);
-    }
-    if (names[0]== '/') {
-	server_name = names+1;
-	if ((as_gate =(*server_name == '/')))
-	    server_name++;	/* Accept one or two */
-	www_database = strchr(server_name,'/');
-	if (www_database) {
-	    *www_database++ = 0;		/* Separate database name */
-	    doctype = strchr(www_database, '/');
-	    if (key) ok = YES;	/* Don't need doc details */
-	    else if (doctype) {	/* If not search parse doc details */
-		*doctype++ = 0;	/* Separate rest of doc address */
-		doclength = strchr(doctype, '/');
-		if(doclength) {
-		    *doclength++ = 0;
-		    document_length = atol(doclength);
-		    if (document_length) {
-			docname=strchr(doclength, '/');
-			if (docname) {
-			    *docname++ = 0;
-			    ok = YES;	/* To avoid a goto! */
-			} /* if docname */
-		    } /* if document_length valid */
-		} /* if doclength */
-	    } else { /* no doctype?  Assume index required */
-	        if (!key) key = "";
-		ok = YES;
-	    } /* if doctype */
-	} /* if database */
+
+ if (type == HTEvent_BEGIN)
+   {
+    theWAISinfo->state  = HTWAIS_BEGIN;
+    theWAISinfo->result = HT_ERROR;
+   }
+  else
+   if (type == HTEvent_CLOSE)
+     {
+     /* Interrupted */
+      char interrupted[] = "request interruption";
+
+      HTRequest_addError(request, ERR_FATAL, NO, HTERR_INTERRUPTED,
+			 (void*)interrupted, (unsigned int)strlen(interrupted),
+			 "HTLoadWAIS");
+      HTWAISCleanup(request, HT_INTERRUPTED);
+      return HT_OK;
      }
-     
-    if (!ok) {
-	char *unescaped = NULL;
-	StrAllocCopy(unescaped, arg);
-	HTUnEscape(unescaped);
-	HTRequest_addError(request, ERR_FATAL, NO, HTERR_BAD_REQUEST,
-		   (void *) unescaped, (int) strlen(unescaped),
-		   "HTLoadWAIS");
-	HT_FREE(unescaped);
-	HT_FREE(names);
-	return -1;
-    }
-    
-    if (PROT_TRACE) HTTrace("HTLoadWAIS.. URL Parsed OK\n");
-     
-     service = strchr(names, ':');
-     if (service)  *service++ = 0;
-     else service = "210";
-     
-     if (server_name[0] == 0)
-        connection = NULL;
+    else
+     if (type == HTEvent_END)
+       {
+	HTWAISCleanup(request, (theWAISinfo ? theWAISinfo->result : HT_ERROR));
+	return HT_OK;
+       }
 
-     else if (!(key && !*key))
-      if ((connection=connect_to_server(server_name,atoi(service))) == NULL)  {
-	  char *host = HTParse(arg, "", PARSE_HOST);
+
+ /*	Decipher and check syntax of WWW address:
+ **	----------------------------------------
+ **
+ **	First we remove the "wais:" if it was spcified.  920110
+ */
+
+ if (!acceptable_inited) init_acceptable();
+ theWAISinfo->state = HTWAIS_PARSING_URL;
+ if (PROT_TRACE) HTTrace("HTLoadWAIS.. Looking for \"%s\"\n", arg);
+
+ theWAISinfo->names = HTParse(arg, "",
+			      PARSE_HOST | PARSE_PATH | PARSE_PUNCTUATION);
+ key = strchr(theWAISinfo->names, '?');
+
+ if (key)
+   {
+    char* p;
+
+    *key++ = 0;	/* Split off keywords */
+
+    for (p=key; *p; p++) if (*p == '+') *p = ' ';
+    HTUnEscape(key);
+   }
+
+ if (theWAISinfo->names[0] == '/')
+   {
+    server_name = theWAISinfo->names+1;
+
+	/* Accept one or two */
+    if ((theWAISinfo->as_gate = (*server_name == '/'))) server_name++;
+
+    if ((theWAISinfo->www_database = strchr(server_name, '/')))
+      {
+       *(theWAISinfo->www_database)++ = 0;  /* Separate database name */
+       doctype = strchr(theWAISinfo->www_database, '/');
+
+       if (key)
+	 ok = YES;	/* Don't need doc details */
+        else
+	 if (doctype)
+	   {	/* If not search parse doc details */
+	    char* doclength;
+
+	    *doctype++ = 0;	/* Separate rest of doc address */
+	    doclength = strchr(doctype, '/');
+	    if (doclength)
+	      {
+	       *doclength++ = 0;
+	       document_length = atol(doclength);
+	       if (document_length)
+		 {
+		  docname = strchr(doclength, '/');
+		  if (docname)
+		    {
+		     *docname++ = 0;
+		     ok = YES;	/* To avoid a goto! */
+		    } /* if docname */
+		 } /* if document_length valid */
+	      } /* if doclength */
+	   }
+	  else
+	   { /* no doctype?  Assume index required */
+	    if (!key) key = "";
+	    ok = YES;
+	   } /* if doctype */
+      } /* if database */
+   }
+     
+ if (!ok)
+   {
+    char *unescaped = NULL;
+
+    StrAllocCopy(unescaped, arg);
+    HTUnEscape(unescaped);
+    HTRequest_addError(request, ERR_FATAL, NO, HTERR_BAD_REQUEST,
+		       (void *) unescaped, (int) strlen(unescaped),
+		       "HTLoadWAIS");
+    HT_FREE(unescaped);
+    HT_FREE(theWAISinfo->names);
+    return -1;
+   }
+    
+ if (PROT_TRACE) HTTrace("HTLoadWAIS.. URL Parsed OK\n");
+ theWAISinfo->state = HTWAIS_NEED_CONNECTION;
+
+ if ((service = strchr(theWAISinfo->names, ':')))
+   *service++ = 0;
+  else
+   service = "210";
+
+ if ((server_name ? server_name[0] : 0))
+   {
+    boolean do_need_to_connect_to_server = true;
+
+    if (key) if ((*key) == 0) do_need_to_connect_to_server = false;
+
+    if (do_need_to_connect_to_server)
+      {
+       if ((theWAISinfo->connection = connect_to_server(server_name,
+							atoi(service)))
+	   == NULL)
+	 {
+	  char* host = HTParse(arg, "", PARSE_HOST);
+
 	  if (PROT_TRACE)
-	      HTTrace("HTLoadWAIS.. Can't open connection to %s via service %s.\n",
-		       server_name, service);
+	    HTTrace("HTLoadWAIS.."
+		    " Can't open connection to %s via service %s.\n",
+		    server_name, service);
+
 	  HTRequest_addError(request, ERR_FATAL, NO, HTERR_WAIS_NO_CONNECT,
-		     (void *) host, (int) strlen(host), "HTLoadWAIS");
-	  goto cleanup;
+			     (void *) host, (int) strlen(host), "HTLoadWAIS");
+	  theWAISinfo->result = HT_ERROR;
+	  HTWAISCleanup(request, status);
+	  return status;
+	 }
       }
+   }
+  else
+   theWAISinfo->connection = NULL;
 
-    StrAllocCopy(wais_database,www_database);
-    HTUnEscape(wais_database);
+ StrAllocCopy(theWAISinfo->wais_database, theWAISinfo->www_database);
+ HTUnEscape(theWAISinfo->wais_database);
 
-    /* Make title name without the .src */
-    {
-	char *srcstr;
-	StrAllocCopy(basetitle, wais_database);
-	if ((srcstr = strstr(basetitle, ".src")) != NULL)
-	    *srcstr = '\0';
-    }
+
+ /* Make title name without the .src */
+ {
+  char *srcstr;
+
+  StrAllocCopy(theWAISinfo->basetitle, theWAISinfo->wais_database);
+  if ((srcstr = strstr(theWAISinfo->basetitle, ".src")) != NULL)
+    *srcstr = '\0';
+ }
     
-    /* This below fixed size stuff is terrible */
-    if ((request_message = (char*)s_malloc((size_t)MAX_MESSAGE_LEN * sizeof(char))) == NULL)
-	HT_OUTOFMEM("WAIS request message");
-    if ((response_message = (char*)s_malloc((size_t)MAX_MESSAGE_LEN * sizeof(char))) == NULL)
-	HT_OUTOFMEM("WAIS response message");
 
-/*	If keyword search is performed but there are no keywords,
-**	the user has followed a link to the index itself. It would be
-**	appropriate at this point to send him the .SRC file - how?
-*/
+ /* This below fixed size stuff is terrible */
+ if ((theWAISinfo->request_message =
+                       (char*)s_malloc((size_t)MAX_MESSAGE_LEN * sizeof(char)))
+     == NULL)
+   HT_OUTOFMEM("WAIS request message");
 
-    if (key && !*key) {				/* I N D E X */
-    
+ if ((theWAISinfo->response_message =
+                       (char*)s_malloc((size_t)MAX_MESSAGE_LEN * sizeof(char)))
+     == NULL)
+   HT_OUTOFMEM("WAIS response message");
+
+
+ /*	If keyword search is performed but there are no keywords,
+ **	the user has followed a link to the index itself.
+ **     It would be appropriate at this point to send him the .SRC file - how?
+ */
+
+ if (key)
+   {
+    if (*key)
+      {
+      /*
+       *   S E A R C H   (nonempty key (*key != 0))
+       */
+       char *p;
+       HTStructured* target;
+
+       theWAISinfo->state = HTWAIS_NEED_RESPONSE;
+
+       strncpy(keywords, key, MAX_KEYWORDS_LENGTH);
+       while ((p = strchr(keywords,'+'))) *p = ' ';
+
+       /* Send advance title to get something fast to the other end */
+
+       target = HTMLGenerator(request, NULL, WWW_HTML, format_out, sink);
+
+       START(HTML_HTML);
+       START(HTML_HEAD);
+       START(HTML_TITLE);
+       PUTS(keywords);
+       PUTS(" in ");
+       PUTS(theWAISinfo->basetitle);
+       END(HTML_TITLE);
+       END(HTML_HEAD);
+
+       START(HTML_BODY);
+       START(HTML_H1);
+       PUTS("WAIS Search of \"");
+       PUTS(keywords);
+       PUTS("\" in ");
+       PUTS(theWAISinfo->basetitle);
+       END(HTML_H1);
+
+       START(HTML_ISINDEX);
+
+       request_buffer_length = MAX_MESSAGE_LEN; /* Amount left */
+       if (PROT_TRACE)
+	 HTTrace("HTLoadWAIS.. Search for `%s' in `%s'\n",
+		 keywords, theWAISinfo->wais_database);
+
+       if (generate_search_apdu(theWAISinfo->request_message + HEADER_LENGTH, 
+				&request_buffer_length, 
+				keywords, theWAISinfo->wais_database, NULL,
+				HTMaxWAISLines) == NULL)
+	 {
+	  if (PROT_TRACE)
+	    HTTrace("WAIS Search. Too many lines in response\n");
+
+	  HTRequest_addError(request, ERR_WARN, NO, HTERR_WAIS_OVERFLOW, 
+			     NULL, 0, "HTLoadWAIS");
+	 }
+
+       if (!interpret_message(theWAISinfo->request_message, 
+			      MAX_MESSAGE_LEN - request_buffer_length, 
+			      theWAISinfo->response_message,
+			      MAX_MESSAGE_LEN,
+			      theWAISinfo->connection,
+			      false	/* true verbose */
+			      ))
+	 {
+	  if (PROT_TRACE)
+	    HTTrace("WAIS Search. Too many lines in response\n");
+
+	  HTRequest_addError(request, ERR_WARN, NO, HTERR_WAIS_OVERFLOW, 
+			     NULL, 0, "HTLoadWAIS");
+	 }
+        else
+	 {	/* returned message ok */
+	  SearchResponseAPDU  *query_response = 0;
+
+	  readSearchResponseAPDU(&query_response,
+				theWAISinfo->response_message + HEADER_LENGTH);
+	  display_search_response(target, 
+				  query_response, theWAISinfo->wais_database,
+				  keywords);
+	  if (query_response->DatabaseDiagnosticRecords)
+	    freeWAISSearchResponse(query_response->DatabaseDiagnosticRecords);
+
+	  freeSearchResponseAPDU(query_response);
+	 }	/* returned message not too large */
+
+       END(HTML_BODY);
+       END(HTML_HTML);
+       FREE_TARGET;
+
+       HTAnchor_setFormat(anchor, WWW_HTML);
+
+       theWAISinfo->result = status = HT_LOADED;
+      }
+     else
+      {
+      /*
+       *   I N D E X   (key is empty (*key = 0))
+       */
 #ifdef CACHE_FILE_PREFIX
-	char filename[256];
-	FILE * fp;
+       char filename[256];
+       FILE * fp;
 #endif
-	HTStructured * target = HTMLGenerator(request, NULL,
-					WWW_HTML, format_out, sink);
-	
-	{
-	    START(HTML_HTML);
-	    START(HTML_HEAD);
-	    START(HTML_TITLE);
-	    PUTS(basetitle);
-	    PUTS(" Index");
-	    END(HTML_TITLE);
-	    END(HTML_HEAD);
-	    
-	    START(HTML_BODY);
-	    START(HTML_H1);
-	    PUTS("WAIS Index: ");
-	    PUTS(basetitle);
-	    END(HTML_H1);
-	    
-	}
-	START(HTML_ISINDEX);
+       HTStructured* target = HTMLGenerator(request, NULL,
+					    WWW_HTML, format_out, sink);
 
-	/* If we have seen a source file for this database, use that: */
+       theWAISinfo->state = HTWAIS_NEED_REQUEST;
 
-#ifdef CACHE_FILE_PREFIX
-	sprintf(filename, "%sWSRC-%s:%s:%.100s.txt",
-		CACHE_FILE_PREFIX,
-		server_name, service, www_database);
-
-	fp = fopen(filename, "r");	/* Have we found this already? */
-	if (PROT_TRACE) HTTrace(
-		"HTLoadWAIS.. Description of server %s %s.\n",
-		filename,
-		fp ? "exists already" : "does NOT exist!");
-
-	if (fp) {
-	    int c;
-	    START(HTML_PRE);			 /* Preformatted description */
-	    while((c=getc(fp)) != EOF)
-		PUTC(c);				    /* Transfer file */
-	    END(HTML_PRE);
-	    fclose(fp);
-	}
-#endif
-	END(HTML_BODY);
-	END(HTML_HTML);
-	FREE_TARGET;
-	
-    } else if (key) {					/* S E A R C H */
-	char *p;
-	HTStructured * target;
-	
-	strncpy(keywords, key, MAX_KEYWORDS_LENGTH);
-	while ((p = strchr(keywords,'+'))) *p = ' ';
-    
-        /* Send advance title to get something fast to the other end */
-	
-	target = HTMLGenerator(request, NULL, WWW_HTML, format_out, sink);
-	
+       {
 	START(HTML_HTML);
 	START(HTML_HEAD);
 	START(HTML_TITLE);
-	PUTS(keywords);
-	PUTS(" in ");
-	PUTS(basetitle);
+	PUTS(theWAISinfo->basetitle);
+	PUTS(" Index");
 	END(HTML_TITLE);
 	END(HTML_HEAD);
-	
+
 	START(HTML_BODY);
 	START(HTML_H1);
-	PUTS("WAIS Search of \"");
-	PUTS(keywords);
-	PUTS("\" in ");
-	PUTS(basetitle);
+	PUTS("WAIS Index: ");
+	PUTS(theWAISinfo->basetitle);
 	END(HTML_H1);
+       }
 
-	START(HTML_ISINDEX);
+       START(HTML_ISINDEX);
 
-	request_buffer_length = MAX_MESSAGE_LEN; /* Amount left */
-	if (PROT_TRACE)
-	    HTTrace("HTLoadWAIS.. Search for `%s' in `%s'\n",
-		    keywords, wais_database);
-	if(generate_search_apdu(request_message + HEADER_LENGTH, 
-				&request_buffer_length, 
-				keywords, wais_database, NULL,
-				HTMaxWAISLines) == NULL) {
-	    if (PROT_TRACE)
-		HTTrace("WAIS Search. Too many lines in response\n");
-	    HTRequest_addError(request, ERR_WARN, NO, HTERR_WAIS_OVERFLOW, 
-		       NULL, 0, "HTLoadWAIS");
-	}
+       /* If we have seen a source file for this database, use that: */
 
-	if(!interpret_message(request_message, 
-				MAX_MESSAGE_LEN - request_buffer_length, 
-				response_message,
-				MAX_MESSAGE_LEN,
-				connection,
-				false	/* true verbose */
-				)) {
-	    if (PROT_TRACE)
-		HTTrace("WAIS Search. Too many lines in response\n");
-	    HTRequest_addError(request, ERR_WARN, NO, HTERR_WAIS_OVERFLOW, 
-		       NULL, 0, "HTLoadWAIS");
-        } else {	/* returned message ok */
-	    SearchResponseAPDU  *query_response = 0;
-	    readSearchResponseAPDU(&query_response,
-	    	response_message + HEADER_LENGTH);
-	    display_search_response(target, 
-	    	query_response, wais_database, keywords);
-	    if (query_response->DatabaseDiagnosticRecords)
-		freeWAISSearchResponse(
-			query_response->DatabaseDiagnosticRecords);         
-	    freeSearchResponseAPDU( query_response);
-	}	/* returned message not too large */
-    
-	END(HTML_BODY);
-	END(HTML_HTML);
-	FREE_TARGET;
+#ifdef CACHE_FILE_PREFIX
+       sprintf(filename,
+	       "%sWSRC-%s:%s:%.100s.txt",
+	       CACHE_FILE_PREFIX,
+	       server_name, service, theWAISinfo->www_database);
 
-    } else {			/* D O C U M E N T    F E T C H */
-    
-	boolean binary;     /* how to transfer stuff coming over */
-	HTStream * target;
-	long count;
-	any   doc_chunk;
-	any * docid = &doc_chunk;
-	if (PROT_TRACE)
-	    HTTrace(
-		    "HTLoadWAIS.. Retrieve document `%s'\n............ type `%s' length %ld\n", docname, doctype, document_length);
-		
-	HTAnchor_setFormat(anchor,
-	  !strcmp(doctype, "WSRC") ? HTAtom_for("application/x-wais-source") :
-	  !strcmp(doctype, "TEXT") ? WWW_UNKNOWN :
-	  !strcmp(doctype, "HTML") ? WWW_HTML:
-	  !strcmp(doctype, "GIF")  ? WWW_GIF:
-	   		             HTAtom_for("application/octet-stream"));
-	binary = 
-	  0 != strcmp(doctype, "WSRC") &&
-	  0 != strcmp(doctype, "TEXT") &&
-	  0 != strcmp(doctype, "HTML") ;
+       fp = fopen(filename, "r");	/* Have we found this already? */
+       if (PROT_TRACE)
+	 HTTrace("HTLoadWAIS.. Description of server %s %s.\n",
+		 filename,
+		 fp ? "exists already" : "does NOT exist!");
 
-	/* Guess on TEXT format as it might be HTML */
-	if ((target = HTStreamStack(HTAnchor_format(anchor),
-				    HTRequest_outputFormat(request),
-				    HTRequest_outputStream(request),
-				    request, YES)) == NULL) {
-	    status = -1;
-	    goto cleanup;
-	}
+       if (fp)
+	 {
+	  int c;
 
-	/* Decode hex or litteral format for document ID */
-	WAIS_from_WWW(docid, docname);
+	  START(HTML_PRE);   /* Preformatted description */
+	  while((c=getc(fp)) != EOF) PUTC(c);   /* Transfer file */
+	  END(HTML_PRE);
+	  fclose(fp);
+	 }
+#endif
 
-	/* Loop over slices of the document */
-	for (count = 0; count * CHARS_PER_PAGE < document_length; count++) {
-	    char *type = s_strdup(doctype);
-	    request_buffer_length = MAX_MESSAGE_LEN;	      /* Amount left */
-	    if (PROT_TRACE) HTTrace("HTLoadWAIS.. Slice number %ld\n",
-			       count);
-	    if (generate_retrieval_apdu(request_message + HEADER_LENGTH,
-					&request_buffer_length, 
-					docid, CT_byte,
-					count * CHARS_PER_PAGE,
-					HTMIN((count + 1) * CHARS_PER_PAGE,
-					      document_length),
-					type,
-					wais_database) == 0) {
-		HTRequest_addError(request, ERR_WARN, NO, HTERR_WAIS_OVERFLOW, 
-			   NULL, 0, "HTLoadWAIS");
-	    }
-	    HT_FREE(type);
-	    
-	    /* Actually do the transaction given by request_message */   
-	    if (interpret_message(request_message, 
-				  MAX_MESSAGE_LEN - request_buffer_length, 
-				  response_message,
-				  MAX_MESSAGE_LEN,
-				  connection,
-				  false /* true verbose */	
-				  ) == 0) {
-		HTRequest_addError(request, ERR_WARN, NO, HTERR_WAIS_OVERFLOW, 
-			   NULL, 0, "HTLoadWAIS");
-	    }
-	    
-	    /* Parse the result which came back into memory. */
-	    readSearchResponseAPDU(&retrieval_response, 
-				   response_message + HEADER_LENGTH);
-	    {
-		WAISSearchResponse *searchres = (WAISSearchResponse *) retrieval_response->DatabaseDiagnosticRecords;
-		if (!searchres->Text) {
-		    if (searchres->Diagnostics && *searchres->Diagnostics &&
-			(*searchres->Diagnostics)->ADDINFO) {
-			char *errmsg = (*searchres->Diagnostics)->ADDINFO;
-			HTRequest_addError(request, ERR_WARN, NO, HTERR_WAIS_MODULE,
-				   (void *) errmsg, (int) strlen(errmsg),
-				   "HTLoadWAIS");
-		    } else {
-			HTRequest_addError(request, ERR_WARN, NO, HTERR_WAIS_MODULE,
-				   NULL, 0, "HTLoadWAIS");
-		    }
-		    (*target->isa->_free)(target);
-		    HTRequest_setOutputStream(request, NULL);
-		    HT_FREE(docid->bytes);
-		    freeWAISSearchResponse(retrieval_response->DatabaseDiagnosticRecords); 
-		    freeSearchResponseAPDU( retrieval_response);
-		    goto cleanup;
-		} else {
-		    output_text_record(target, *searchres->Text,
-				       false, binary);
-		    freeWAISSearchResponse( retrieval_response->DatabaseDiagnosticRecords);
-		    freeSearchResponseAPDU( retrieval_response);
-		} /* If text existed */
-	    }
-	    
-	} /* Loop over slices */
+       END(HTML_BODY);
+       END(HTML_HTML);
+       FREE_TARGET;
+      }
 
-	(*target->isa->_free)(target);
-	HTRequest_setOutputStream(request, NULL);
-	HT_FREE(docid->bytes);
-    } /* If document rather than search */
-    status = HT_LOADED;
+    HTAnchor_setFormat(anchor, WWW_HTML);
 
-  cleanup:
-    if (connection) close_connection_to_server(connection);
-    if (wais_database) HT_FREE(wais_database);
-    if (request_message) s_free(request_message);
-    if (response_message) s_free(response_message);
-    HT_FREE(names);
-    HT_FREE(basetitle);
-    if (status < 0) {
-	char *unescaped = NULL;
-	StrAllocCopy(unescaped, arg);
-	HTUnEscape(unescaped);
-	HTRequest_addError(request, ERR_FATAL, NO, HTERR_INTERNAL, (void *) unescaped,
-		   (int) strlen(unescaped), "HTLoadWAIS");
-	HT_FREE(unescaped);
-    }
-    return status;
+    theWAISinfo->result = status = HT_LOADED;
+   }
+  else
+   {/* document rather than search */
+   /*
+    *   D O C U M E N T    F E T C H   (no key (key == NULL))
+    */
+    boolean binary = true;     /* how to transfer stuff coming over */
+    HTStream* target;
+    HTAtom* document_type_atom = HTAtom_for("application/octet-stream");
+    long count;
+    any   doc_chunk;
+    any * docid = &doc_chunk;
+
+    theWAISinfo->state = HTWAIS_FETCH_DOCUMENT;
+    if (PROT_TRACE)
+      HTTrace("HTLoadWAIS.. Retrieve document `%s'\n"
+	      "............ type `%s' length %ld\n",
+	      (docname ? docname : "unknown"),
+	      (doctype ? doctype : "unknown"),
+	      document_length);
+
+    if (doctype)
+      {
+       if (strcmp(doctype, "WSRC") == 0)
+	 {
+	  document_type_atom = HTAtom_for("application/x-wais-source");
+	  binary = false;
+	 }
+        else
+	 if (strcmp(doctype, "TEXT") == 0)
+	   {
+	    document_type_atom = WWW_UNKNOWN;
+	    binary = false;
+	   }
+	  else
+	   if (strcmp(doctype, "HTML") == 0)
+	     {
+	      document_type_atom = WWW_HTML;
+	      binary = false;
+	     }
+	    else
+	     if (strcmp(doctype, "GIF") == 0) document_type_atom = WWW_GIF;
+      }
+
+    HTAnchor_setFormat(anchor, document_type_atom);
+
+    /* Guess on TEXT format as it might be HTML */
+    if ((target = HTStreamStack(HTAnchor_format(anchor),
+				HTRequest_outputFormat(request),
+				HTRequest_outputStream(request),
+				request, YES))
+	== NULL)
+      {
+       theWAISinfo->result = HT_ERROR;
+       status = -1;
+       HTWAISCleanup(request, status);
+       return status;
+      }
+
+    /* Decode hex or litteral format for document ID */
+    WAIS_from_WWW(docid, docname);
+
+    /* Loop over slices of the document */
+    for (count = 0; count * CHARS_PER_PAGE < document_length; count++)
+      {
+       char *type = s_strdup(doctype);
+
+       request_buffer_length = MAX_MESSAGE_LEN;	      /* Amount left */
+       if (PROT_TRACE) HTTrace("HTLoadWAIS.. Slice number %ld\n", count);
+       if (generate_retrieval_apdu(theWAISinfo->request_message + HEADER_LENGTH,
+				   &request_buffer_length, 
+				   docid, CT_byte,
+				   count * CHARS_PER_PAGE,
+				   HTMIN((count + 1) * CHARS_PER_PAGE,
+					 document_length),
+				     type,
+				   theWAISinfo->wais_database) == 0)
+	 {
+	  HTRequest_addError(request, ERR_WARN, NO, HTERR_WAIS_OVERFLOW, 
+			     NULL, 0, "HTLoadWAIS");
+	 }
+
+       HT_FREE(type);
+
+       /* Actually do the transaction given by request_message */   
+       if (interpret_message(theWAISinfo->request_message, 
+			     MAX_MESSAGE_LEN - request_buffer_length, 
+			     theWAISinfo->response_message,
+			     MAX_MESSAGE_LEN,
+			     theWAISinfo->connection,
+			     false /* true verbose */	
+			     )
+	   == 0)
+	 {
+	  HTRequest_addError(request, ERR_WARN, NO, HTERR_WAIS_OVERFLOW, 
+			     NULL, 0, "HTLoadWAIS");
+	 }
+
+       /* Parse the result which came back into memory. */
+       readSearchResponseAPDU(&retrieval_response, 
+			      theWAISinfo->response_message + HEADER_LENGTH);
+       {
+	WAISSearchResponse* searchres = (WAISSearchResponse*)retrieval_response->DatabaseDiagnosticRecords;
+
+	if (!searchres->Text)
+	  {
+	   if (searchres->Diagnostics &&
+	       *searchres->Diagnostics &&
+	       (*searchres->Diagnostics)->ADDINFO)
+	     {
+	      char *errmsg = (*searchres->Diagnostics)->ADDINFO;
+
+	      HTRequest_addError(request, ERR_WARN, NO, HTERR_WAIS_MODULE,
+				 (void *) errmsg, (int) strlen(errmsg),
+				 "HTLoadWAIS");
+	     }
+	    else
+	     {
+	      HTRequest_addError(request, ERR_WARN, NO, HTERR_WAIS_MODULE,
+				 NULL, 0, "HTLoadWAIS");
+	     }
+
+	   (*target->isa->_free)(target);
+	   HTRequest_setOutputStream(request, NULL);
+	   HT_FREE(docid->bytes);
+	   freeWAISSearchResponse(retrieval_response->DatabaseDiagnosticRecords); 
+	   freeSearchResponseAPDU(retrieval_response);
+	   theWAISinfo->result = HT_OK;
+	   HTWAISCleanup(request, status);
+	  }
+	 else
+	  {
+	   output_text_record(target, *searchres->Text,
+			      false, binary);
+	   freeWAISSearchResponse(retrieval_response->DatabaseDiagnosticRecords);
+	   freeSearchResponseAPDU(retrieval_response);
+	  } /* If text existed */
+       }
+      } /* Loop over slices */
+
+    (*target->isa->_free)(target);
+    HTRequest_setOutputStream(request, NULL);
+    HT_FREE(docid->bytes);
+
+    theWAISinfo->result = status = HT_LOADED;
+   }
+ /* End ``if (key)'' */
+
+ HTWAISCleanup(request, status);
+
+ return status;
 }
 
+
+PUBLIC int HTLoadWAIS (SOCKET soc, HTRequest* request)
+{
+ wais_info* theWAISinfo;  /* Specific protocol information */
+ HTNet* net;              /* Generic protocol information */
+ HTParentAnchor* anchor;
+
+ /*
+  * Initiate a new wais structure and bind to request structure.
+  * This is actually state HTWAIS_BEGIN,
+  * but it can't be in the state machine,
+  * as we need the structure first.
+  */
+
+ if (request)
+   {
+    if ((anchor = HTRequest_anchor(request)) == NULL) return HT_ERROR;
+    if ((net = HTRequest_net(request)) == NULL) return HT_ERROR;
+   }
+  else
+   return HT_ERROR;
+
+ if (PROT_TRACE)
+   HTTrace("HTWAIS...... Looking for `%s\'\n", HTAnchor_physical(anchor));
+
+                     /* Get existing copy */
+ if ((theWAISinfo = (wais_info*)HTNet_context(net)) == NULL)
+   {
+    if ((theWAISinfo = (wais_info*)HT_CALLOC(1, sizeof(wais_info))) == NULL)
+      HT_OUTOFMEM("HTLoadWAIS");
+
+    HTNet_setEventCallback(net, HTWAISEvent);
+    HTNet_setEventParam(net, theWAISinfo);  /* callbacks get theWAISinfo* */
+    HTNet_setContext(net, theWAISinfo);
+
+    theWAISinfo->state  = HTWAIS_BEGIN;
+    theWAISinfo->result = HT_ERROR;
+    theWAISinfo->net    = net;
+   }
+
+ /* get it started - ops is ignored */
+ return HTWAISEvent(soc, theWAISinfo, HTEvent_BEGIN);
+}

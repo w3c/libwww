@@ -71,6 +71,7 @@ struct _HTHost {
     HTList *		pipeline;		 /* Pipe line of net objects */
     HTList *		pending;	      /* List of pending Net objects */
     HTNet *             doit;               /* Transfer from pending to pipe */ 
+    HTNet *             lock;             /* This is a kludge! */
     BOOL		persistent;
     HTTransportMode	mode;	      			   /* Supported mode */
     HTTimer *           timer;         /* Timer for handling idle connection */

@@ -20,10 +20,10 @@
 #include "HTInit.h"				         /* Implemented here */
 
 #ifndef W3C_ICONS
-#define W3C_ICONS	"/usr/local/share/w3c-icons"
+#define W3C_ICONS	"w3c-icons"
 #endif
 
-#define ICON_LOCATION	"/internal-icon/"
+#define ICON_LOCATION	"/icons/"
 
 /* ------------------------------------------------------------------------- */
 
@@ -337,7 +337,29 @@ PUBLIC void HTIconInit (const char * url_prefix)
     HTIcon_add("unknown.xbm",	prefix,	"TN",	"application/x-gopher-tn3270");
 
     /* Add global  mapping to where to find the internal icons */
-    HTRule_addGlobal(HT_Pass, ICON_LOCATION, W3C_ICONS);
+    {
+	char * curdir = HTGetCurrentDirectoryURL();
+	char * virtual = HTParse(ICON_LOCATION, curdir,
+				 PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
+	char * physical = NULL;
+	StrAllocCat(virtual, "*");
+
+	{
+	    char * str = NULL;
+	    if ((str = (char *) HT_MALLOC(strlen(W3C_ICONS) + 4)) == NULL)
+		HT_OUTOFMEM("HTIconInit");
+	    strcpy(str, W3C_ICONS);
+	    if (*(str + strlen(str) - 1) != '/') strcat(str, "/");
+	    strcat(str, "*");
+	    physical = HTParse(str, curdir,
+			       PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
+	    HT_FREE(str);
+	}
+	HTRule_addGlobal(HT_Pass, virtual, physical);
+	HT_FREE(virtual);
+	HT_FREE(physical);
+	HT_FREE(curdir);
+    }
 }
 
 /*	REGISTER ALL HTTP/1.1 MIME HEADERS

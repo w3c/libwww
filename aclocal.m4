@@ -1,4 +1,4 @@
-dnl aclocal.m4 generated automatically by aclocal 1.2e
+dnl aclocal.m4 generated automatically by aclocal 1.2f
 
 dnl Copyright (C) 1994, 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
 dnl This Makefile.in is free software; the Free Software Foundation
@@ -671,6 +671,32 @@ AC_DEFUN(AC_STRUCT_WINSIZE,
   if test $ac_cv_struct_winsize = yes ; then
     AC_DEFINE(HAVE_WINSIZE)
   fi
+])
+
+dnl AC_CHECK_SIZEOF_TYPE_T
+AC_DEFUN(AC_CHECK_SIZEOF_TIME_T,
+[AC_CACHE_CHECK(for whether time_t is long, ac_cv_c_long_time_t,
+[AC_TRY_RUN([
+#include <time.h>
+int main() { exit(sizeof(time_t) == sizeof(long)); }],
+ac_cv_c_long_time_t=no, ac_cv_c_long_time_t=yes)
+])
+if test $ac_cv_c_long_time_t = yes; then
+  AC_DEFINE(HAVE_LONG_TIME_T)
+fi
+])
+
+dnl AC_CHECK_SIZEOF_SIZE_T
+AC_DEFUN(AC_CHECK_SIZEOF_SIZE_T,
+[AC_CACHE_CHECK(for whether size_t is long, ac_cv_c_long_size_t,
+[AC_TRY_RUN([
+#include <stddef.h>
+int main() { exit(sizeof(size_t) == sizeof(int)); }],
+ac_cv_c_long_size_t=yes, ac_cv_c_long_size_t=no)
+])
+if test $ac_cv_c_long_size_t = yes; then
+  AC_DEFINE(HAVE_LONG_SIZE_T)
+fi
 ])
 
 dnl AC_DECL_NEED_SYS_ERR (Let me know if you have a better name.)

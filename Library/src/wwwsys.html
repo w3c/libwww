@@ -707,6 +707,14 @@ Their existance is discovered by <CODE>configure</CODE>.
 #endif
 #endif
 
+/* Patch for problems in glibc6 */
+#if defined(__GLIBC__)
+#undef S_IFMT
+#undef S_IFDIR
+#define S_IFMT __S_IFMT
+#define S_IFDIR __S_IFDIR
+#endif
+
 /* tcp.h */
 #ifdef HAVE_NETINET_TCP_H
 #include &lt;netinet/tcp.h&gt;
@@ -1011,6 +1019,21 @@ typedef char	BOOLEAN;				    /* Logical value */
 #define NO              (BOOL)0
 #endif
 </PRE>
+<H2>
+  Integers
+</H2>
+If we don't have these (for some mysterious reason) then define them. This should
+(is?) be handled by the configure script already.
+<PRE>
+#ifndef u_short
+#define u_short unsigned short
+#endif
+
+#ifndef u_long
+#define u_long unsigned long
+#endif
+</PRE>
+
 <H2>
   NULL Definition
 </H2>

@@ -44,6 +44,10 @@ PRIVATE void client_profile (const char * AppName, const char * AppVersion,
     /* If the Library is not already initialized then do it */
     if (!HTLib_isInitialized()) HTLibInit(AppName, AppVersion);
 
+    /* Register the default set of messages and dialog functions */
+    HTAlertInit();
+    HTAlert_setInteractive(YES);
+
     if (!converters) converters = HTList_new();
     if (!transfer_encodings) transfer_encodings = HTList_new();
     if (!content_encodings) content_encodings = HTList_new();
@@ -94,10 +98,6 @@ PRIVATE void client_profile (const char * AppName, const char * AppVersion,
 
     /* Register the default set of Icons for directory listings */
     HTIconInit(NULL);
-
-    /* Register the default set of messages and dialog functions */
-    HTAlertInit();
-    HTAlert_setInteractive(YES);
 }
 
 PUBLIC void HTProfile_newClient (const char * AppName, const char * AppVersion)

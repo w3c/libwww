@@ -1471,8 +1471,8 @@ int main (int argc, char ** argv)
     if (mr->flags & MR_TIME) {
 	if (SHOW_REAL_QUIET(mr)) {
 	    time_t local = time(NULL);
-	    HTTrace("Welcome to the W3C mini Robot - started on %s\n",
-		    HTDateTimeStr(&local, YES));
+	    HTTrace("Welcome to the W3C mini Robot version %s - started on %s\n",
+		    APP_VERSION, HTDateTimeStr(&local, YES));
 	}
     }
 

@@ -771,6 +771,7 @@ PRIVATE int HTTPStatus_put_block (HTStream * me, const char * b, int l)
 	    /* Update where we are in the stream */
 	    l = HTHost_remainingRead(HTNet_host(HTRequest_net(me->request)));
 	    b += (length-l);
+	    length = l;
 
 	} else {
 	    *(me->buffer+me->buflen++) = *b;
@@ -792,6 +793,9 @@ PRIVATE int HTTPStatus_put_block (HTStream * me, const char * b, int l)
 	    b++;
 	}
     }
+
+    if (!me->transparent && length != l)
+	HTHost_setConsumed(HTNet_host(HTRequest_net(me->request)), length-l);
 
     if (l > 0) return PUTBLOCK(b, l);
     return status;
@@ -1000,9 +1004,9 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 
 		/* Jump to next state */
 		http->state = HTTP_NEED_STREAM;
-	    } else if (status == HT_WOULD_BLOCK || status == HT_PENDING)
+	    } else if (status == HT_WOULD_BLOCK || status == HT_PENDING) {
 		return HT_OK;
-	    else	
+	    } else	
 		http->state = HTTP_ERROR;	       /* Error or interrupt */
 	    break;
 	    

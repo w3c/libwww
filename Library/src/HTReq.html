@@ -256,6 +256,7 @@ to a request object.
 <PRE>
 extern HTList * HTRequest_error (HTRequest * request);
 extern void HTRequest_setError	(HTRequest * request, HTList * list);
+extern void HTRequest_deleteAllErrors (HTRequest * request);
 </PRE>
 <P>
 These are the cover functions that go directly to the

@@ -94,20 +94,28 @@ PUBLIC BOOL HTList_quickRemoveElement (HTList * me, HTList * last)
 
 PUBLIC BOOL HTList_removeObjectAll (HTList * me, void * oldObject)
 {
-    BOOL found = NO;
-    if (me) {
-	HTList *previous;
-	while (me->next) {
-	    previous = me;
-	    me = me->next;
-	    if (me->object == oldObject) {
-		previous->next = me->next;
-		HT_FREE(me);
-		found = YES;	/* At least one object found */
-	    }
-	}
-    }
-    return found;
+ BOOL found = NO;
+
+ if (me)
+   {
+    HTList* i;
+
+    while ((i = me->next))
+      {
+       if (i->object == oldObject)
+	 {
+	  me->next = i->next;
+	  HT_FREE(i);
+	  found = YES;	/* At least one object found */
+	 }
+        else
+	 {
+	  me = i;
+	 }
+      }
+   }
+
+ return found;
 }
 
 PUBLIC void * HTList_removeLastObject  (HTList * me)

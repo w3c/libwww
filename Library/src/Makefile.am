@@ -10,6 +10,9 @@ SUFFIXES = .h .html .txt
 .html.h:
 	www -w90 -na -p -to text/x-c $(srcdir)/$(*F).html > $(srcdir)/$(*F).h
 
+icondir = @icondir@
+CPPFLAGS := $(CPPFLAGS) -DW3C_ICONS=\"$(icondir)\"
+
 inc: $(BUILT_SOURCES)
 	@echo Generated built sources
 

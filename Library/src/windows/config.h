@@ -97,7 +97,7 @@
 #define W3C_PACKAGE "w3c-libwww"
 
 /* Define to be the version. */
-#define W3C_VERSION "5.1j"
+#define W3C_VERSION "5.1k"
 
 /* Define to be the location of the W3C Icons */
 #define W3C_ICONS "/usr/local/share/w3c-icons"
@@ -146,6 +146,18 @@
 
 /* Define this if it isn't in the header files.  */
 /* #undef u_long */
+
+/* Define if time_t is of type long */
+#define HAVE_LONG_TIME_T 1
+
+/* Define if size_t is of type long */
+/* undef HAVE_LONG_SIZE_T */
+
+/* The number of bytes in a char.  */
+#define SIZEOF_CHAR 1
+
+/* The number of bytes in a char *.  */
+#define SIZEOF_CHAR_P 4
 
 /* The number of bytes in a int.  */
 #define SIZEOF_INT 4

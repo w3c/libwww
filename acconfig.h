@@ -36,9 +36,6 @@
 /* Define to be the location of the W3C Icons */
 #undef W3C_ICONS
 
-/* Define to be the location of the TCL Library */
-#undef W3C_TCL
-
 /* Define this to be the prefix for cache files. */
 #undef CACHE_FILE_PREFIX
 
@@ -99,6 +96,12 @@ its ``extern'' declaration. */
 
 /* Define this if it isn't in the header files.  */
 #undef u_long
+
+/* Define if type_t is of type long */
+#undef HAVE_LONG_TIME_T
+
+/* Define if size_t is of type long */
+#undef HAVE_LONG_SIZE_T
 
 @BOTTOM@
 

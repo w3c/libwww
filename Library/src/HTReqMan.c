@@ -369,6 +369,15 @@ PUBLIC void HTRequest_setError (HTRequest * me, HTList * list)
     if (me) me->error_stack = list;
 }
 
+/* begin _GM_ */
+/* Note: libwww bug ID: GM11 */
+PUBLIC void HTRequest_deleteAllErrors (HTRequest * request)
+{
+    HTError_deleteAll(request->error_stack);
+    HTRequest_setError(request, NULL);
+}
+/* end _GM_ */
+
 PUBLIC BOOL HTRequest_addError (HTRequest * 	me,
 				HTSeverity	severity,
 				BOOL		ignore,

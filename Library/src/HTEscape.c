@@ -82,6 +82,13 @@ PUBLIC char * HTEscape (const char * str, HTURIEncoding mask)
 }
 
 
+PUBLIC char HTAsciiHexToChar (char c)
+{
+    return  c >= '0' && c <= '9' ?  c - '0' 
+    	    : c >= 'A' && c <= 'F'? c - 'A' + 10
+    	    : c - 'a' + 10;	/* accept small letters just in case */
+}
+
 /*		Decode %xx escaped characters			HTUnEscape()
 **		-----------------------------
 **
@@ -90,14 +97,6 @@ PUBLIC char * HTEscape (const char * str, HTURIEncoding mask)
 **	the acsii hex code for character 16x+y.
 **	The string is converted in place, as it will never grow.
 */
-
-PRIVATE char from_hex (char c)
-{
-    return  c >= '0' && c <= '9' ?  c - '0' 
-    	    : c >= 'A' && c <= 'F'? c - 'A' + 10
-    	    : c - 'a' + 10;	/* accept small letters just in case */
-}
-
 PUBLIC char * HTUnEscape (char * str)
 {
     char * p = str;
@@ -111,14 +110,15 @@ PUBLIC char * HTUnEscape (char * str)
     while(*p) {
         if (*p == HEX_ESCAPE) {
 	    p++;
-	    if (*p) *q = from_hex(*p++) * 16;
-#ifdef UNTESTED /* suggestion from Markku Savela - I just copied it in - EGP */
-	    if (*p) *q = FROMASCII(*q + from_hex(*p)), ++p;
+	    if (*p) *q = HTAsciiHexToChar(*p++) * 16;
+#if 1
+	    /* Suggestion from Markku Savela */
+	    if (*p) *q = FROMASCII(*q + HTAsciiHexToChar(*p)), ++p;
 	    q++;
-#else /* UNTESTED */
-	    if (*p) *q = FROMASCII(*q + from_hex(*p));
+#else 
+	    if (*p) *q = FROMASCII(*q + HTAsciiHexToChar(*p));
 	    p++, q++;
-#endif /* !UNTESTED */
+#endif
 	} else {
 	    *q++ = *p++; 
 	}

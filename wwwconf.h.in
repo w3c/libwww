@@ -18,6 +18,9 @@
 /* Define if you don't have vprintf but do have _doprnt.  */
 #undef HAVE_DOPRNT
 
+/* Define if the `long double' type works.  */
+#undef HAVE_LONG_DOUBLE
+
 /* Define if you have the strftime function.  */
 #undef HAVE_STRFTIME
 
@@ -97,12 +100,6 @@
 /* Define to be the version. */
 #undef W3C_VERSION
 
-/* Define to be the location of the W3C Icons */
-#undef W3C_ICONS
-
-/* Define to be the location of the TCL Library */
-#undef W3C_TCL
-
 /* Define this to be the prefix for cache files. */
 #undef CACHE_FILE_PREFIX
 
@@ -147,6 +144,18 @@
 
 /* Define this if it isn't in the header files.  */
 #undef u_long
+
+/* Define if type_t is of type long */
+#undef HAVE_LONG_TIME_T
+
+/* Define if size_t is of type long */
+#undef HAVE_LONG_SIZE_T
+
+/* The number of bytes in a char.  */
+#undef SIZEOF_CHAR
+
+/* The number of bytes in a char *.  */
+#undef SIZEOF_CHAR_P
 
 /* The number of bytes in a int.  */
 #undef SIZEOF_INT
@@ -417,6 +426,12 @@
 
 /* Define if you have the <unixlib.h> header file.  */
 #undef HAVE_UNIXLIB_H
+
+/* Define if you have the <wais.h> header file.  */
+#undef HAVE_WAIS_H
+
+/* Define if you have the <wais/wais.h> header file.  */
+#undef HAVE_WAIS_WAIS_H
 
 /* Define if you have the ICE library (-lICE).  */
 #undef HAVE_LIBICE

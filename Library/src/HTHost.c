@@ -882,6 +882,7 @@ PUBLIC int HTHost_addNet (HTHost * host, HTNet * net)
     if (host && net) {
 	int status = HT_OK;
 	BOOL doit = (host->doit==net);
+	BOOL connector = (!host->lock || (host->lock && host->lock==net));
 
 	/*
 	**  If we don't have a socket already then check to see if we can get
@@ -898,7 +899,7 @@ PUBLIC int HTHost_addNet (HTHost * host, HTNet * net)
 	/*
 	**  Add net object to either active or pending queue.
 	*/
-	if (_roomInPipe(host) && (HTList_isEmpty(host->pending) || doit)) {
+	if (_roomInPipe(host) && (HTList_isEmpty(host->pending) || doit) && connector) {
 	    if (doit) host->doit = NULL;
 	    if (!host->pipeline) host->pipeline = HTList_new();
 	    HTList_addObject(host->pipeline, net);
@@ -1152,11 +1153,35 @@ PUBLIC HTNet * HTHost_firstNet (HTHost * host)
 */
 PUBLIC int HTHost_connect (HTHost * host, HTNet * net, char * url, HTProtocolId port)
 {
+    HTRequest * request = HTNet_request(net);
     int status;
-    status = HTDoConnect(net, url, port);
-    if (status == HT_OK) return HT_OK;
-    if (status == HT_WOULD_BLOCK || status == HT_PENDING)
-	return HT_WOULD_BLOCK;
+    if (!host) {
+	HTProtocol * protocol = HTNet_protocol(net);
+	if ((host = HTHost_newWParse(request, url, HTProtocol_id(protocol))) == NULL)
+	    return NO;
+	if (!host->channel) {
+	    host->forceWriteFlush = YES;
+	    host->lock = net;
+	}
+	HTNet_setHost(net, host);
+    }
+
+    if (!host->lock || (host->lock && host->lock == net)) {
+	status = HTDoConnect(net, url, port);
+	if (status == HT_OK) {
+	    host->lock = NULL;
+	    return HT_OK;
+	}
+	if (status == HT_WOULD_BLOCK) {
+	    host->lock = net;
+	    return HT_WOULD_BLOCK;
+	}
+	if (status == HT_PENDING) return HT_WOULD_BLOCK;
+    } else {
+	if ((status = HTHost_addNet(host, net)) == HT_PENDING) {
+	    return HT_PENDING;
+	}
+    }
     return HT_ERROR; /* @@@ - some more deletion and stuff here? */
 }
 
@@ -1478,7 +1503,7 @@ PRIVATE int HTHost_ActivateRequest (HTNet *net)
   HTRequest *request;
 
   if (!ActivateReqCBF) {
-    if (CORE_TRACE) HTTrace("HTHost....... No ActivateRequest "
+    if (CORE_TRACE) HTTrace("HTHost...... No ActivateRequest "
                             "callback handler registered\n");
     return -1;
   }

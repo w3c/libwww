@@ -3,8 +3,6 @@
 # Please first read the full copyright statement in the file COPYRIGH.
 # @(#) $Id$
 
-FTP = /afs/w3.org/devel/Dist/$(PROD)
-
 #	.h files are distributed but originally are made from the
 #	self-documenting hypertext files.
 SUFFIXES = .html

@@ -46,6 +46,8 @@ This is the set of things that have been done for the next release.
   New Features
 </H3>
 <UL>
+<LI>
+Improved support in the configure script for determining whether the WAIS libraries are available for direct WAIS access.
   <LI>
     Added a simple "single user lock" on the persistent cache as it gets confused
     if multiple users are using it.
@@ -54,9 +56,13 @@ This is the set of things that have been done for the next release.
   Bug Fixes
 </H3>
 <UL>
+<LI>
+Fixed a problem where libwww may loop if several requests are coming on a connection that is not yet established.
+  <LI>
+Fixed the mapping rules for internal icons used when presenting local file directory listings. The icons are installed as part of the libwww distibution package
   <LI>
     <A HREF="Patch/5.1j/">These are the patches</A> that I have recieved for
-    the current release. They will be applied to this upcoming release.
+    the current release. They have all (with minor modifications) been applied to this upcoming release.
 </UL>
 <H2>
   Release 5.1j March 9 1998

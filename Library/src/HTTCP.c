@@ -186,17 +186,6 @@ PUBLIC int HTDoConnect (HTNet * net, char * url, u_short default_port)
     char * hostname = HTHost_name(me);
 
     /* Jump into the state machine */
-    if (!me) {
-	char * proxy = HTRequest_proxy(request);
-	HTProtocol * protocol = HTNet_protocol(net);
-
-	/* Check to see whether we connect directly or via a proxy */
-	if ((me = HTHost_newWParse(request, proxy ? proxy : url, 
-				   HTProtocol_id(protocol))) == NULL)
-	    return NO;
-
-	net->host = me;
-    }
     while (1) {
 	switch (me->tcpstate) {
 	  case TCP_BEGIN:

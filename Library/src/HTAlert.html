@@ -112,6 +112,7 @@ typedef enum _HTAlertMsg {
     HT_MSG_DESTINATION_MOVED,
     HT_MSG_REDIRECTION,
     HT_MSG_PROXY,
+    HT_MSG_CACHE_LOCK,
     HT_MSG_ELEMENTS		            /* This MUST be the last element */
 } HTAlertMsg;
 
@@ -135,7 +136,9 @@ with new location?", \
     "The destination document for this operation has moved - continue \
 operation with new location?", \
     "A redirection may change the behavior of this method - proceed anyway?", \
-    "An automatic request for changing proxy has been encountered - continue?"
+    "An automatic request for changing proxy has been encountered - continue?", \
+    "The persistent cache is already in use by another user. If this is not \
+the case then you can manually delete this lock and restart."
 </PRE>
 <H2>
   Enable or Disable Messages

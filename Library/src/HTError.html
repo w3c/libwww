@@ -111,6 +111,7 @@ typedef enum _HTErrorElement {
 	HTERR_NO_FILE,
 	HTERR_FTP_SERVER,
 	HTERR_FTP_NO_RESPONSE,
+        HTERR_FTP_LOGIN_FAILURE,
 	HTERR_TIME_OUT,
 	HTERR_GOPHER_SERVER,
 	HTERR_INTERRUPTED,
@@ -233,8 +234,9 @@ typedef struct _HTErrorMessage {
     { 0,   "Can't locate remote host", 			"internal" }, \
     { 0,   "No host name found", 			"internal" }, \
     { 0,   "No file name found or file not accessible", "internal" }, \
-    { 0,   "FTP-server replies", 			"internal" }, \
-    { 0,   "FTP-server doesn't reply", 			"internal" }, \
+    { 0,   "FTP server replies", 			"internal" }, \
+    { 0,   "FTP server doesn't reply", 			"internal" }, \
+    { 0,   "FTP login failure", 			"internal" }, \
     { 0,   "Server timed out", 				"internal" }, \
     { 0,   "Gopher-server replies", 			"internal" }, \
     { 0,   "Data transfer interrupted", 		"internal" }, \
