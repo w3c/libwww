@@ -64,7 +64,7 @@ PUBLIC void HTChunkPutc ARGS2 (HTChunk *,ch, char,c)
     }
     ch->data[ch->size++] = c;
 #endif
-    if (ch->size >= ch->allocated) {
+    if (ch->size >= ch->allocated-1) {
 	if (ch->data) {
 	    ch->data = (char *) realloc(ch->data, ch->allocated + ch->growby);
 	    memset((void *) (ch->data + ch->allocated), '\0', ch->growby);

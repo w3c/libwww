@@ -237,18 +237,25 @@ PRIVATE void HTFTPParseWelcome ARGS1(HTChunk **, welcome)
 	return;
     }
     {
-	BOOL lastline;
-	char *oldp = oldtext->data+3;	    /* Start after first return code */
+	int result;		       /* The first return code in the chunk */
+	char cont;					/* Either ' ' or '-' */
+	char *oldp = oldtext->data;
 	HTChunk *newtext = HTChunkCreate(128);
-	if (oldtext->size > 4) {
-	    lastline = *oldp++ == '-' ? NO : YES;
-	    while (!lastline) {
+	if (oldtext->size > 4 && sscanf(oldp, "%d%c", &result, &cont) == 2) {
+	    oldp += 4;
+	    while (cont == '-') {
 		HTChunkPutc(newtext, *oldp);
 		if (*oldp == '\n') {
-		    oldp += 4;
-		    lastline = *oldp == '-' ? NO : YES;
+		    int tmpres;
+		    if (isdigit(*++oldp) &&
+			sscanf(oldp, "%d%c", &tmpres, &cont) == 2) {
+			if (tmpres == result && cont == ' ')
+			    break;
+			else
+			    oldp +=3;			   /* Skip this code */
+		    }
 		}
-		++oldp;
+		oldp++;
 	    }
 	}
 	HTChunkTerminate(newtext);
@@ -271,6 +278,7 @@ PRIVATE void HTFTPAddWelcome ARGS1(ftp_ctrl_info *, ctrl)
 
     HTFTPParseWelcome(&ctrl->reply);
     if (ctrl->reply->size > 1) {
+	HTChunkPutc(ctrl->welcome, '\n');
 	HTChunkPuts(ctrl->welcome, ctrl->reply->data);
     }
 }
@@ -919,7 +927,8 @@ PRIVATE int HTFTP_get_response ARGS2(ftp_ctrl_info *, ctrl_info,
 		    break;
 		}
 	    } else {
-		if (sscanf(chunk->data+offset, "%d%c", &tmpres, &cont) == 2 &&
+		if (isdigit(*(chunk->data+offset)) &&
+		    sscanf(chunk->data+offset, "%d%c", &tmpres, &cont) == 2 &&
 		    tmpres == result && cont == ' ') {
 		    HTChunkTerminate(chunk);
 		    break;
@@ -1542,11 +1551,12 @@ PRIVATE int HTFTP_login ARGS1(ftp_ctrl_info *, ctrl)
 	  case SENT_UID:
 	    status = HTFTP_get_response(ctrl, &ctrl->reply);
 	    if (status/100 == 2) {		    /* Logged in w/o passwd! */
-		HTFTPAddWelcome(ctrl);		
+		HTFTPAddWelcome(ctrl);
 		state = SUCCESS;
-	    } else if (status/100 == 3)			/* Password demanded */
+	    } else if (status/100 == 3) {      		/* Password demanded */
+		HTFTPAddWelcome(ctrl);
 		state = NEED_PASSWD;
-	    else if (status == 530 && asked == YES)
+	    } else if (status == 530 && asked == YES)
 		state = NEED_USER_INFO;			     /* User unknown */
 	    else if (status/100 == 4)
 		state = FAILURE;
@@ -1586,9 +1596,10 @@ PRIVATE int HTFTP_login ARGS1(ftp_ctrl_info *, ctrl)
 	    if (status/100 == 2) {		    /* Logged in with passwd */
 		HTFTPAddWelcome(ctrl);
 		state = SUCCESS;
-	    } else if (status/100 == 3)			 /* Account demanded */
+	    } else if (status/100 == 3) {      		 /* Account demanded */
+		HTFTPAddWelcome(ctrl);
 		state = NEED_ACCOUNT;
-	    else if (status == 530 && asked == YES)
+	    } else if (status == 530 && asked == YES)
 		state = NEED_USER_INFO;			     /* User unknown */
 	    else if (status/100 == 4)
 		state = FAILURE;
@@ -1694,7 +1705,7 @@ PRIVATE int HTFTP_logout ARGS1(ftp_ctrl_info *, ctrl)
 	    break;
 
 	  case SENT_QUIT:
-	    status = HTFTP_get_response(ctrl, NULL);
+	    status = HTFTP_get_response(ctrl, &ctrl->reply);
 	    if (status/100 == 2)
 		state = SUCCESS;
 	    else if (status/100 == 4)
@@ -1735,6 +1746,7 @@ PRIVATE int HTFTP_get_data_con ARGS2(ftp_data_info *, data, char *, url)
     } state = BEGIN;
     int serv_port;
     int status;
+    ftp_ctrl_info *ctrl = data->ctrl;
     
     /* This loop only stops if state is ERROR, FAILURE or SUCCESS */
     while (state > 0) {
@@ -1742,12 +1754,12 @@ PRIVATE int HTFTP_get_data_con ARGS2(ftp_data_info *, data, char *, url)
 	  case BEGIN:
 	    /* First check if it is necessary to send TYPE, else send PASV */
 	    if (data->datatype) {
-		if (!HTFTP_send_cmd(data->ctrl, "TYPE", data->datatype))
+		if (!HTFTP_send_cmd(ctrl, "TYPE", data->datatype))
 		    state = SENT_TYPE;
 		else
 		    state = ERROR;
 	    } else {
-		if (!HTFTP_send_cmd(data->ctrl, "PASV", NULL))
+		if (!HTFTP_send_cmd(ctrl, "PASV", NULL))
 		    state = SENT_PASV;
 		else
 		    state = ERROR;
@@ -1756,8 +1768,7 @@ PRIVATE int HTFTP_get_data_con ARGS2(ftp_data_info *, data, char *, url)
 	    
 	  case SENT_PASV:
 	    {
-		HTChunk *text = NULL;
-		status = HTFTP_get_response(data->ctrl, &text);
+		status = HTFTP_get_response(ctrl, &ctrl->reply);
 		if (status == 227) {		    
 		    /* If succes, we have to scan for the returned port number.
 		       However, the format for the response is not standard, so
@@ -1765,7 +1776,7 @@ PRIVATE int HTFTP_get_data_con ARGS2(ftp_data_info *, data, char *, url)
 		       after the status code, see RFC1123 */
 		    char *portstr;
 		    int h0, h1, h2, h3, p0, p1;
-		    portstr = text->data+3;
+		    portstr = ctrl->reply->data+3;
 		    while (*portstr && !isdigit(*portstr++));
 		    if (!*portstr || sscanf(--portstr, "%d,%d,%d,%d,%d,%d",
 					    &h0, &h1, &h2, &h3, &p0, &p1)<4) {
@@ -1782,8 +1793,6 @@ PRIVATE int HTFTP_get_data_con ARGS2(ftp_data_info *, data, char *, url)
 		    state = ERROR;
 		else
 		    state = NEED_PASSIVE;      /* If error, try PORT instead */
-		if (text)
-		    HTChunkFree(text);
 	    }
 	    break;
 
@@ -1811,7 +1820,7 @@ PRIVATE int HTFTP_get_data_con ARGS2(ftp_data_info *, data, char *, url)
 	    /* The server didn't accept our PASV so now we try ourselves to be
 	       passive using PORT */
 	    if (get_listen_socket(data) < 0 ||
-		HTFTP_send_cmd(data->ctrl, "PORT", this_addr))
+		HTFTP_send_cmd(ctrl, "PORT", this_addr))
 		state = ERROR;
 	    else
 		state = SENT_PORT;
@@ -1823,7 +1832,7 @@ PRIVATE int HTFTP_get_data_con ARGS2(ftp_data_info *, data, char *, url)
 	    break;
 
 	  case SENT_PORT:
-	    status = HTFTP_get_response(data->ctrl, NULL);
+	    status = HTFTP_get_response(ctrl, &ctrl->reply);
 	    if (status/100 == 2) {
 		data->active = NO;
 		state = SUCCESS;
@@ -1834,10 +1843,10 @@ PRIVATE int HTFTP_get_data_con ARGS2(ftp_data_info *, data, char *, url)
 	    break;
 
 	  case SENT_TYPE:
-	    status = HTFTP_get_response(data->ctrl, NULL);
+	    status = HTFTP_get_response(ctrl, &ctrl->reply);
 	    /* If OK, then tell the server to be passive */
 	    if (status/100 == 2) {
-		if (!HTFTP_send_cmd(data->ctrl, "PASV", NULL))
+		if (!HTFTP_send_cmd(ctrl, "PASV", NULL))
 		    state = SENT_PASV;
 		else
 		    state = ERROR;
@@ -1890,22 +1899,19 @@ PRIVATE int HTFTPServerInfo ARGS1(ftp_ctrl_info *, ctrl)
 	    
 	  case SENT_SYST:
 	    {
-		HTChunk *text = NULL;
 		char *info;
-		status = HTFTP_get_response(ctrl, &text);
+		status = HTFTP_get_response(ctrl, &ctrl->reply);
 		if (status/100 != 2) {
-		    HTChunkFree(text);
 		    state = NEED_PWD;
 		    break;
 		}
 
 		/* Got a line - what kind of server are we talking to? */
-		info = text->data+3;		       /* Skip response code */
+		info = ctrl->reply->data+3;	       /* Skip response code */
 		while (*info && *info++ == ' ');
 		if (!*info) {
 		    if (TRACE)
 			fprintf(stderr, "FTP......... No server info?\n");
-		    HTChunkFree(text);
 		    state = NEED_PWD;
 		    break;
 		}
@@ -1944,7 +1950,6 @@ PRIVATE int HTFTPServerInfo ARGS1(ftp_ctrl_info *, ctrl)
 		    state = NEED_PWD;
 		else
 		    state = SUCCESS;
-		HTChunkFree(text);
 	    }
 	    break;
 
@@ -1958,15 +1963,14 @@ PRIVATE int HTFTPServerInfo ARGS1(ftp_ctrl_info *, ctrl)
 
 	  case SENT_PWD:
 	    {
-		HTChunk *path = NULL;
-		status = HTFTP_get_response(ctrl, &path);
+		status = HTFTP_get_response(ctrl, &ctrl->reply);
 		if (status/100 != 2)
 		    state = ERROR;
 		else {
 		    char *start, *end;
 
 		    /* Now analyze response information between "'s */
-		    if ((start = strchr(path->data, '"')) == NULL ||
+		    if ((start = strchr(ctrl->reply->data, '"')) == NULL ||
 			(end = strchr(++start, '"')) == NULL) {
 			if (TRACE)
 			    fprintf(stderr,
@@ -1990,7 +1994,6 @@ PRIVATE int HTFTPServerInfo ARGS1(ftp_ctrl_info *, ctrl)
 		    }
 		    state = SUCCESS;
 		}
-		HTChunkFree(path);
 	    }		    
 	    break;
 	    
@@ -2065,7 +2068,7 @@ PRIVATE char *HTFTPLocation ARGS2(ftp_ctrl_info *, ctrl, char *, url)
 	    if (HTFTP_send_cmd(ctrl, "CDUP", NULL)) {
 		break;
 	    }
-	    status = HTFTP_get_response(ctrl, NULL);
+	    status = HTFTP_get_response(ctrl, &ctrl->reply);
 	    if (status/100 != 2) {
 		break;
 	    }
@@ -2199,7 +2202,7 @@ PRIVATE int HTFTP_get_dir ARGS4(ftp_ctrl_info *, ctrl, HTRequest *, req,
 		    break;
 		}
 	    }
-	    status = HTFTP_get_response(ctrl, NULL);
+	    status = HTFTP_get_response(ctrl, &ctrl->reply);
 	    if (status/100 == 1)
 		state = READY_FOR_DATA;
 	    else if (status/100 == 4)
@@ -2209,12 +2212,14 @@ PRIVATE int HTFTP_get_dir ARGS4(ftp_ctrl_info *, ctrl, HTRequest *, req,
 	    break;
 	    
 	  case SENT_CWD:
-	    status = HTFTP_get_response(ctrl, &ctrl->welcome);
+	    status = HTFTP_get_response(ctrl, &ctrl->reply);
 	    if (status/100 == 2) {
 		/* Update current location */
 		if (*ctrl->location)
 		    StrAllocCat(ctrl->location, "/");
 		StrAllocCat(ctrl->location, relative);
+		HTChunkClear(ctrl->welcome);
+		HTFTPAddWelcome(ctrl);
 		state = NEED_LIST;
 	    } else if (status/100 == 4)
 		state = FAILURE;
@@ -2238,7 +2243,7 @@ PRIVATE int HTFTP_get_dir ARGS4(ftp_ctrl_info *, ctrl, HTRequest *, req,
 			state = ERROR;
 			break;
 		    }
-		    status = HTFTP_get_response(ctrl, &ctrl->welcome);
+		    status = HTFTP_get_response(ctrl, &ctrl->reply);
 		    if (status/100 != 2) {
 			if (status/100 == 4)
 			    state = FAILURE;
@@ -2251,6 +2256,8 @@ PRIVATE int HTFTP_get_dir ARGS4(ftp_ctrl_info *, ctrl, HTRequest *, req,
 			    StrAllocCat(ctrl->location, "/");
 			StrAllocCat(ctrl->location, new_seg);
 			free(new_seg);
+			HTChunkClear(ctrl->welcome);
+			HTFTPAddWelcome(ctrl);
 		    }
 		    segment = strtok(NULL, "/");	   /* Get next token */
 		}
@@ -2283,7 +2290,7 @@ PRIVATE int HTFTP_get_dir ARGS4(ftp_ctrl_info *, ctrl, HTRequest *, req,
 	    break;
 
 	  case GOT_DATA:
-	    status = HTFTP_get_response(ctrl, NULL);
+	    status = HTFTP_get_response(ctrl, &ctrl->reply);
 	    if (status/100 == 2)
 		state = SUCCESS;       			   /* Directory read */
 	    else if (status/100 == 4)
@@ -2293,7 +2300,7 @@ PRIVATE int HTFTP_get_dir ARGS4(ftp_ctrl_info *, ctrl, HTRequest *, req,
 	    break;
 
 	  case SENT_ABOR:
-	    status = HTFTP_get_response(ctrl, NULL);
+	    status = HTFTP_get_response(ctrl, &ctrl->reply);
 	    if (status/100 == 2)
 		state = SUCCESS;
 	    else if (status/100 == 4)
@@ -2384,7 +2391,7 @@ PRIVATE int HTFTP_get_file ARGS4(ftp_ctrl_info *, ctrl, HTRequest *, req,
 		    break;
 		}
 	    }
-	    status = HTFTP_get_response(ctrl, NULL);
+	    status = HTFTP_get_response(ctrl, &ctrl->reply);
 	    if (status/100 == 1)
 		state = READY_FOR_DATA;
 	    else if (status/100 == 4)
@@ -2420,7 +2427,7 @@ PRIVATE int HTFTP_get_file ARGS4(ftp_ctrl_info *, ctrl, HTRequest *, req,
 			state = ERROR;
 			break;
 		    }
-		    status = HTFTP_get_response(ctrl, NULL);
+		    status = HTFTP_get_response(ctrl, &ctrl->reply);
 		    if (status/100 != 2) {
 			if (status/100 == 4)
 			    state = FAILURE;
@@ -2469,7 +2476,7 @@ PRIVATE int HTFTP_get_file ARGS4(ftp_ctrl_info *, ctrl, HTRequest *, req,
 	    break;
 
 	  case GOT_DATA:
-	    status = HTFTP_get_response(ctrl, NULL);
+	    status = HTFTP_get_response(ctrl, &ctrl->reply);
 	    if (status/100 == 2)
 		state = SUCCESS;       			   /* Directory read */
 	    else if (status/100 == 4)
@@ -2479,7 +2486,7 @@ PRIVATE int HTFTP_get_file ARGS4(ftp_ctrl_info *, ctrl, HTRequest *, req,
 	    break;
 
 	  case SENT_ABOR:
-	    status = HTFTP_get_response(ctrl, NULL);
+	    status = HTFTP_get_response(ctrl, &ctrl->reply);
 	    if (status/100 == 2)
 		state = SUCCESS;
 	    else if (status/100 == 4)
