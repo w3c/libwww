@@ -18,6 +18,7 @@
 #include "WWWUtil.h"
 #include "WWWCore.h"
 #include "HTHeader.h"
+#include "HTTPUtil.h"
 #include "HTMIMImp.h"					 /* Implemented here */
 
 /* ------------------------------------------------------------------------- */
@@ -124,8 +125,17 @@ PUBLIC int HTMIME_connection (HTRequest * request, HTResponse * response,
 		if (STREAM_TRACE) HTTrace("MIMEParser.. Close negotiated\n");
 	    } else if (!strcasecomp(name, "keep-alive")) {       /* HTTP/1.0 */
 		HTNet * net = HTRequest_net(request);
-		HTNet_setPersistent(net, YES, HT_TP_SINGLE);
-		if (STREAM_TRACE)HTTrace("MIMEParser.. HTTP/1.0 Keep Alive\n");
+		HTHost * host = HTNet_host(net);
+
+		/*
+		**  In case this is an HTTP/1.1 server sending keep-alive then
+		**  ignore it.
+		*/
+		if (HTHost_version(host) < HTTP_11) {
+		    HTNet_setPersistent(net, YES, HT_TP_SINGLE);
+		    if (STREAM_TRACE) HTTrace("MIMEParser.. HTTP/1.0 Keep Alive\n");
+		} else 
+		    if (STREAM_TRACE) HTTrace("MIMEParser.. HTTP/1.0 Keep Alive ignored\n");
 	    } else
 		HTResponse_addConnection(response, name, val ? val : "");
 	}

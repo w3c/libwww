@@ -53,20 +53,23 @@ PRIVATE int HTMemLog_flush(void)
 
 PUBLIC int HTMemLog_add(const char * buf, const size_t len)
 {
-    /*
-    **	Dump everything that won't fit in buffer
-    */
-    while (len + LogLen > LogBuffSize) {
-	size_t toWrite = LogBuffSize-LogLen;
-	memcpy(LogBuff+LogLen, buf, toWrite);
-	LogLen = LogBuffSize;	/* same as += toWrite */
-	HTMemLog_flush();
-	buf += toWrite;
-	len -= toWrite;
+    if (LogBuff) {
+	/*
+	**	Dump everything that won't fit in buffer
+	*/
+	while (len + LogLen > LogBuffSize) {
+	    size_t toWrite = LogBuffSize-LogLen;
+	    memcpy(LogBuff+LogLen, buf, toWrite);
+	    LogLen = LogBuffSize;	/* same as += toWrite */
+	    HTMemLog_flush();
+	    buf += toWrite;
+	    len -= toWrite;
+	}
+	memcpy(LogBuff+LogLen, buf, len);
+	LogLen += len;
+	return HT_OK;
     }
-    memcpy(LogBuff+LogLen, buf, len);
-    LogLen += len;
-    return HT_OK;
+    return HT_ERROR;
 }
 
 PRIVATE int HTMemLog_adjustGMT(long theTime)

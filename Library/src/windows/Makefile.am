@@ -9,12 +9,11 @@ AUTOMAKE_OPTIONS = foreign
 
 BUILT_SOURCES = \
 	wwwapp.def	wwwapp.def	wwwcache.def \
-	wwwcore.def	wwwdir.def \
+	wwwcore.def	wwwdir.def 	wwwmux.def \
 	wwwfile.def	wwwftp.def	wwwgophe.def \
 	wwwstream.def	wwwhtml.def	wwwhttp.def \
-	wwwmime.def	wwwnews.def \
-	wwwtelnt.def	wwwutils.def	wwwwais.def \
-	wwwtrans.def
+	wwwmime.def	wwwnews.def 	wwwtrans.def \
+	wwwtelnt.def	wwwutils.def	wwwwais.def
 
 EXTRA_DIST = \
 	$(BUILT_SOURCES) \
@@ -22,7 +21,7 @@ EXTRA_DIST = \
 	$(SRC) \
 	$(MAK)
 
-def:  maintainer-clean-generic $(BUILT_SOURCES)
+def: maintainer-clean-generic
 	
 .files.def:
 	$(top_srcdir)/config/makedefs.pl -headerEXPORTS -d.. @$(srcdir)/$(*F).files > $(srcdir)/$(*F).def

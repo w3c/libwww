@@ -218,7 +218,7 @@ PUBLIC void HTTransportInit (void)
     HTTransport_add("tcp", HT_TP_SINGLE, HTReader_new, HTWriter_new);
     HTTransport_add("buffered_tcp", HT_TP_SINGLE, HTReader_new, HTBufferWriter_new);
 #ifdef HT_MUX
-    HTTransport_add("mux", HT_TP_INTERLEAVE, HTReader_new, HTMuxBuffer_new);
+    HTTransport_add("mux", HT_TP_INTERLEAVE, HTReader_new, HTBufferWriter_new);
 #endif /* HT_MUX */
 #ifndef NO_UNIX_IO
     HTTransport_add("local", HT_TP_SINGLE, HTReader_new, HTWriter_new);

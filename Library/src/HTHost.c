@@ -1068,8 +1068,14 @@ PUBLIC int HTHost_read(HTHost * host, HTNet * net)
 	HTHost_register(host, net, HTEvent_READ);
 	return HT_WOULD_BLOCK;
     }
-    if (input == NULL) return HT_ERROR;
-    return (*input->isa->read)(input);
+
+    /*
+    **  If there is no input channel then this can either mean that
+    **  we have lost the channel or an error occurred. We return
+    **  HT_CLOSED as this is a sign to the caller that we don't 
+    **  have a channel
+    */
+    return input ? (*input->isa->read)(input) : HT_CLOSED;
 }
 
 PUBLIC BOOL HTHost_setConsumed(HTHost * host, size_t bytes)

@@ -1025,36 +1025,32 @@ PRIVATE int HTTPEvent (SOCKET soc, void * pVoid, HTEventType type)
 	      ** restarting the pipe line of requests if any
 	      */
 	      if (HTHost_isPersistent(host)) {
+		  HTHost * host = HTNet_host(net);
+		  if (host == NULL) return HT_ERROR;
+		  HTChannel_setSemaphore(host->channel, 0);
+		  HTHost_clearChannel(host, HT_INTERRUPTED);
+		  HTHost_setMode(host, HT_TP_SINGLE);
 		  http->result = HT_RECOVER_PIPE;
-		  http->state = HTTP_ERROR;
-		  break;
 	      } else
 		  http->state = HTTP_OK;
 	  }
+	  break;
 
 	  case HTTP_ERROR:
-	    if (http->result == HT_RECOVER_PIPE) {
-		HTHost * host = HTNet_host(net);
-		if (host == NULL) return HT_ERROR;
-		HTChannel_setSemaphore(host->channel, 0);
-		HTHost_clearChannel(host, HT_INTERRUPTED);
-		HTHost_setMode(host, HT_TP_SINGLE);
-	    } else {
-/*		HTTPEvent(soc, pVoid, HTEvent_RESET); */
-		if (HTRequest_isPostWeb(request)) {
-		    if (HTRequest_isDestination(request)) {
-			HTRequest * source = HTRequest_source(request);
-			HTLink *link =
-			    HTLink_find((HTAnchor *)HTRequest_anchor(source),
-					(HTAnchor *) anchor);
-			HTLink_setResult(link, HT_LINK_ERROR);
-		    }
-		    HTRequest_killPostWeb(request);
-		}
-		HTTPCleanup(request, http->result);
-	    }
-	    return HT_OK;
-	    break;
+	      if (HTRequest_isPostWeb(request)) {
+		  if (HTRequest_isDestination(request)) {
+		      HTRequest * source = HTRequest_source(request);
+		      HTLink *link =
+			  HTLink_find((HTAnchor *)HTRequest_anchor(source),
+				      (HTAnchor *) anchor);
+		      HTLink_setResult(link, HT_LINK_ERROR);
+		  }
+		  HTRequest_killPostWeb(request);
+	      }
+	      HTTPCleanup(request, http->result);
+	      return HT_OK;
+	      break;
+
 	default:
 	    HTTrace("bad http state %d.\n", http->state);
 	    HTDebugBreak();
