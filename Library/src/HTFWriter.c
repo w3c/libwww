@@ -40,7 +40,11 @@ struct _HTStream {
 };
 
 
-/*_________________________________________________________________________
+/* ------------------------------------------------------------------------- */
+/*  			     BASIC STREAM CLASSES			     */
+/* ------------------------------------------------------------------------- */
+
+/*
 **
 **		B L A C K    H O L E    C L A S S
 **
@@ -93,6 +97,22 @@ PUBLIC HTStream * HTBlackHole NOARGS
     return &HTBlackHoleInstance;
 }
 
+
+/*	HTThroughLine
+**	-------------
+**
+** This function is a dummy function that returns the same output stream
+** as given as a parameter. Henrik 01/03-94
+*/
+PUBLIC HTStream* HTThroughLine ARGS5(
+	HTRequest *,		request,
+	void *,			param,
+	HTFormat,		input_format,
+	HTFormat,		output_format,
+	HTStream *,		output_stream)	            /* Only one used */
+{
+    return output_stream;
+}
 
 /*_________________________________________________________________________
 **
@@ -313,8 +333,6 @@ PRIVATE CONST HTStreamClass HTFWriter = /* As opposed to print etc */
 /*	Subclass-specific Methods
 **	-------------------------
 */
-
-/* PUBLIC HTStream* HTFWriter_new ARGS1(FILE *, fp) HENRIK 08/02-94 */
 PUBLIC HTStream* HTFWriter_new ARGS2(FILE *, fp, BOOL, leave_open)
 {
     HTStream* me;
@@ -322,7 +340,7 @@ PUBLIC HTStream* HTFWriter_new ARGS2(FILE *, fp, BOOL, leave_open)
     if (!fp) return NULL;
 
     me = (HTStream*)calloc(sizeof(*me),1);
-    if (me == NULL) outofmem(__FILE__, "HTML_new");
+    if (me == NULL) outofmem(__FILE__, "HTFWriter_new");
     me->isa = &HTFWriter;       
 
     me->fp = fp;
@@ -386,21 +404,6 @@ PUBLIC HTStream* HTSaveAndExecute ARGS5(
     if (me == NULL) outofmem(__FILE__, "Save and execute");
     me->isa = &HTFWriter;  
     
-#ifdef OLD_CODE
-    CONST char * suffix;
-    /* Save the file under a suitably suffixed name */
-    suffix = HTFileSuffix(input_format);
-#ifdef OLD_CODE
-    fnam = (char *)malloc (L_tmpnam + 16 + strlen(suffix));
-    tmpnam (fnam);
-#endif
-    fnam = HTFWriter_filename(HTSaveLocallyDir,
-			      HTAnchor_physical(request->anchor),
-			      HTFileSuffix(input_format),
-			      0);
-    if (suffix) strcat(fnam, suffix);
-#endif
-
     /* Let's find a hash name for this file */
     if ((fnam = HTFWriter_filename(HTSaveLocallyDir,
 				   HTAnchor_physical(request->anchor),
@@ -475,15 +478,6 @@ PUBLIC HTStream* HTSaveLocally ARGS5(
     me->isa = &HTFWriter;  
     me->announce = YES;
     
-#ifdef OLD_CODE
-    CONST char * suffix;
-    /* Save the file under a suitably suffixed name */    
-    suffix = HTFileSuffix(input_format);
-    fnam = (char *)malloc (L_tmpnam + 16 + strlen(suffix));
-    tmpnam (fnam);
-    if (suffix) strcat(fnam, suffix);
-#endif
- 
     /* Let's find a 'human' file name for this file */
     fnam = HTFWriter_filename(HTSaveLocallyDir,
 			      HTAnchor_physical(request->anchor),
@@ -505,23 +499,6 @@ PUBLIC HTStream* HTSaveLocally ARGS5(
     me->request = request;	/* won't be freed */
     me->filename = answer;	/* Will be freed */
     return me;
-}
-
-
-/*	HTThroughLine
-**	-------------
-**
-** This function is a dummy function that returns the same output stream
-** as given as a parameter. Henrik 01/03-94
-*/
-PUBLIC HTStream* HTThroughLine ARGS5(
-	HTRequest *,		request,
-	void *,			param,
-	HTFormat,		input_format,
-	HTFormat,		output_format,
-	HTStream *,		output_stream)	            /* Only one used */
-{
-    return output_stream;
 }
 
 
@@ -592,7 +569,7 @@ PRIVATE void limit_cache ARGS1(HTList * , list)
 
 
 
-/*	Save and Call Back
+/*	Cache Writer
 **	------------------
 **
 */
@@ -605,25 +582,11 @@ PUBLIC HTStream* HTCacheWriter ARGS5(
 
 {
     char *fnam;
-    CONST char * suffix;
-    
     HTStream* me;
-
     if (HTClientHost) {
 	if (TRACE) fprintf(stderr, "Only caching if WWW is run locally.\n");
 	return HTBlackHole();
     }
-
-#ifdef OLD_CODE
-    /* THIS IS A TEMP SOLUTION UNTIL WE HAVE A MORE STEADY CACHING SYSTEM
-       RUNNING. THEN IT SHOULD USE (char *) HTCacheDir from HTAccess.c. 
-       FOR NOW, JUST RETURN BLACK HOLE, Henrik 09/03-94 */
-       /* But SaveAndCallBack uses this code -- cache is disabled in HTTP tim */
-    if (TRACE)
-	fprintf (stderr, "HTFCacheWriter: Caching is turned OFF...\n");
-    return HTBlackHole();
-#endif
-    
     me = (HTStream*)calloc(sizeof(*me),1);
     if (me == NULL) outofmem(__FILE__, "CacheWriter");
     me->isa = &HTFWriter;  
@@ -632,23 +595,12 @@ PUBLIC HTStream* HTCacheWriter ARGS5(
     me->announce = NO;
     
     /* Save the file under a suitably suffixed name */
-    
-    suffix = HTFileSuffix(input_format);
-
-#ifdef OLD_CODE
-    fnam = (char *)malloc (L_tmpnam + 16 + strlen(suffix));
-    tmpnam (fnam);
-#endif
-    fnam = HTFWriter_filename(HTSaveLocallyDir,
+    fnam = HTFWriter_filename(HTCacheDir,
 			      HTAnchor_physical(request->anchor),
 			      HTFileSuffix(input_format),
 			      0);
-    
-    if (suffix) strcat(fnam, suffix);
     me->filename = NULL;
-    
-    limit_cache(HTCache);		/* Limit number (not size) of files */
-    
+    limit_cache(HTCache);		 /* Limit number (not size) of files */
     me->fp = fopen (fnam, "w");
     if (!me->fp) {
 	HTAlert("Can't open local file to write into for callback.");

@@ -38,8 +38,10 @@ HTSaveAndCallBack will save to a cache file and call the request->callback
 function with the filename as parameter.
 
 <PRE>
+#ifndef pyramid
 extern HTConverter HTSaveAndExecute, HTSaveLocally, HTSaveAndCallBack,
-HTThroughLine;
+       HTThroughLine;
+#endif
 </PRE>
 
 <H2>Get Local File Name</H2>
@@ -107,8 +109,15 @@ extern void HTCacheDeleteAll NOPARAMS;
 
 <H3>Stream for writing to cache</H3>Note that HTSaveAndCallBack will
 also generate a cache file.
-<PRE>extern HTConverter HTCacheWriter;
+
+<PRE>
+#ifndef pyramid
+extern HTConverter HTCacheWriter;
+#endif
 
 #endif
-</PRE>end</BODY>
+</PRE>
+
+End of definition module
+</BODY>
 </HTML>
