@@ -98,10 +98,10 @@ than a function. The function is interesting only when using WebDAV (many
 methods) or extension methods (in this case, a dynamic structure is
 needed).</p>
 <pre>
-#if !defined(HT_DAV) &amp;&amp; !defined(HT_EXT)
-#define HTMethod_hasEntity(me)	((me) &amp; (METHOD_PUT | METHOD_POST))
-#else
+#if defined(HT_DAV) || defined(HT_EXT)
 extern BOOL HTMethod_hasEntity(HTMethod me);
+#else
+#define HTMethod_hasEntity(me)    ((me) &amp; (METHOD_PUT | METHOD_POST))
 #endif</pre>
 
 <h3>Extension Methods</h3>
