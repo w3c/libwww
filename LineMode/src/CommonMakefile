@@ -129,7 +129,7 @@ lib :
 	(cd $(WWW)/Library/$(WWW_MACH) && make)
 
 inc :	$(HTMLFILES)
-	echo "Include files generated from hypertext"
+	@echo "Include files generated from hypertext"
 
 #	Make a copy of the binary and documentation on this machine
 install :	$(PROD)
@@ -181,7 +181,7 @@ binary : $(PROD)_$(VL)
 asis : /asis/share/usr.local/lib/WWW/default.html \
 	/asis/specific/$(ASIS_MACH)/usr.local/bin/$(PROD)
 	touch asis
-	echo ASIS distribution is now up-to-date.
+	@echo ASIS distribution is now up-to-date.
 
 /asis/specific/$(ASIS_MACH)/usr.local/bin/$(PROD) : $(PROD)_$(VL)
 	cp $(PROD)_$(VL) /asis/specific/$(ASIS_MACH)/usr.local/bin/$(PROD)_$(VL)
@@ -249,14 +249,14 @@ $(OBJ)/a_stdio.o : $(OE) $(LM)a_stdio.g $(LM)a_stdio.h
 #		W3 Source + documentation release
 #		---------------------------------
 
-distribute :  $(WWW)/README $(WWW)/COPYRIGHT
+distribute : $(WWW)/README $(WWW)/COPYRIGHT
 	(cd $(WWW)/.. && WWW=WWW ABS=`pwd`/ make $(MFLAGS) \
 	-f WWW/LineMode/Implementation/Version.make \
 	-f WWW/LineMode/Implementation/CommonMakefile \
 	$(FTP)/www/src/WWWLineMode_$(VL).tar.Z)
 	(cd ../Implementation; cvs tag \
 	    `sed -e 's/V. = /v/' Version.make | sed -e 's?\.?/?'` )
-	echo Distribution of Line Mode version $(VC) up to date.
+	@echo Distribution of Line Mode version $(VC) up to date.
 
 $(FTP)/www/src/WWWLineMode_$(VL).tar.Z : $(SOURCES)
 	tar cvf $(FTP)/www/src/WWWLineMode_$(VL).tar \
@@ -303,7 +303,7 @@ QUICKGUIDE = \
 	$(LMD)/Features.html
 
 doc : $(FTP)/www/doc/line-mode-guide.txt
-	echo line mode browser guide exists.
+	@echo line mode browser guide exists.
 
 $(FTP)/www/doc/line-mode-guide.txt : $(LMD)/line-mode-guide.txt
 	cp $? $@
