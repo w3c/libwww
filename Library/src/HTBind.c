@@ -324,7 +324,7 @@ PUBLIC BOOL HTBind_getAnchorBindings (HTParentAnchor * anchor)
     BOOL status = NO;
     double quality=1.0;		  /* @@@ Should we add this into the anchor? */
     if (anchor) {
-	char *addr = HTAnchor_physical(anchor);
+	char *addr = HTAnchor_address(anchor);
 	char *path = HTParse(addr, "", PARSE_PATH+PARSE_PUNCTUATION);
 	char *file;
 	char *end;
@@ -346,7 +346,8 @@ PUBLIC BOOL HTBind_getAnchorBindings (HTParentAnchor * anchor)
 		HTAnchor_addLanguage(anchor, language);
 	    }
 	}
-	HT_FREE(path);
+        HT_FREE(addr);
+        HT_FREE(path);
     }
     return status;
 }
