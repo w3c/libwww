@@ -15,7 +15,9 @@
 
 #define HASH_SIZE 101		/* Arbitrary prime. Memory/speed tradeoff */
 
+#if 0
 #include <ctype.h>
+#endif
 #include "tcp.h"
 #include "HTFormat.h"
 #include "HTAnchor.h"
@@ -160,7 +162,7 @@ PUBLIC HTChildAnchor * HTAnchor_findChildAndLink
 **	like with fonts.
 */
 
-HTAnchor * HTAnchor_findAddress
+PUBLIC HTAnchor * HTAnchor_findAddress
   ARGS1 (CONST char *,address)
 {
   char *tag = HTParse (address, "", PARSE_ANCHOR);  /* Anchor tag specified ? */
@@ -223,8 +225,8 @@ HTAnchor * HTAnchor_findAddress
 **	--------------------------------------------
 **
 **	The anchor is only deleted if the corresponding document is not loaded.
-**	All outgoing links from parent and children are deleted, and this anchor
-**	is removed from the sources list of all its targets.
+**	All outgoing links from parent and children are deleted, and this
+**	anchor is removed from the sources list of all its targets.
 **	We also try to delete the targets whose documents are not loaded.
 **	If this anchor's source list is empty, we delete it and its children.
 */
@@ -301,7 +303,7 @@ PUBLIC BOOL HTAnchor_delete
 **	is put in the correct order as we load the document.
 */
 
-void HTAnchor_makeLastChild
+PUBLIC void HTAnchor_makeLastChild
   ARGS1(HTChildAnchor *,me)
 {
   if (me->parent != (HTParentAnchor *) me) {  /* Make sure it's a child */
@@ -321,30 +323,31 @@ PUBLIC HTParentAnchor * HTAnchor_parent
   return me ? me->parent : NULL;
 }
 
-void HTAnchor_setDocument
+PUBLIC void HTAnchor_setDocument
   ARGS2 (HTParentAnchor *,me, HyperDoc *,doc)
 {
   if (me)
     me->document = doc;
 }
 
-HyperDoc * HTAnchor_document
+PUBLIC HyperDoc * HTAnchor_document
   ARGS1 (HTParentAnchor *,me)
 {
   return me ? me->document : NULL;
 }
 
 
-/* We don't want code to change an address after anchor creation... yet ?
-void HTAnchor_setAddress
+#if 0
+PUBLIC void HTAnchor_setAddress
   ARGS2 (HTAnchor *,me, char *,addr)
 {
   if (me)
     StrAllocCopy (me->parent->address, addr);
 }
-*/
+#endif
 
-char * HTAnchor_address
+
+PUBLIC char * HTAnchor_address
   ARGS1 (HTAnchor *,me)
 {
   char *addr = NULL;
@@ -366,42 +369,41 @@ char * HTAnchor_address
 
 
 
-void HTAnchor_setFormat
+PUBLIC void HTAnchor_setFormat
   ARGS2 (HTParentAnchor *,me, HTFormat ,form)
 {
   if (me)
     me->format = form;
 }
 
-HTFormat HTAnchor_format
+PUBLIC HTFormat HTAnchor_format
   ARGS1 (HTParentAnchor *,me)
 {
   return me ? me->format : NULL;
 }
 
-void HTAnchor_clearIndex
+PUBLIC void HTAnchor_clearIndex
   ARGS1 (HTParentAnchor *,me)
 {
   if (me)
     me->isIndex = NO;
 }
 
-void HTAnchor_setIndex
+PUBLIC void HTAnchor_setIndex
   ARGS1 (HTParentAnchor *,me)
 {
   if (me)
     me->isIndex = YES;
 }
 
-BOOL HTAnchor_isIndex
+PUBLIC BOOL HTAnchor_isIndex
   ARGS1 (HTParentAnchor *,me)
 {
   return me ? me->isIndex : NO;
 }
 
 
-
-BOOL HTAnchor_hasChildren
+PUBLIC BOOL HTAnchor_hasChildren
   ARGS1 (HTParentAnchor *,me)
 {
   return me ? ! HTList_isEmpty(me->children) : NO;
@@ -409,19 +411,19 @@ BOOL HTAnchor_hasChildren
 
 /*	Title handling
 */
-CONST char * HTAnchor_title
+PUBLIC CONST char * HTAnchor_title
   ARGS1 (HTParentAnchor *,me)
 {
   return me ? me->title : 0;
 }
 
-void HTAnchor_setTitle
+PUBLIC void HTAnchor_setTitle
   ARGS2(HTParentAnchor *,me, CONST char *,title)
 {
   StrAllocCopy(me->title, title);
 }
 
-void HTAnchor_appendTitle
+PUBLIC void HTAnchor_appendTitle
   ARGS2(HTParentAnchor *,me, CONST char *,title)
 {
   StrAllocCat(me->title, title);
@@ -431,7 +433,7 @@ void HTAnchor_appendTitle
 **	-------------------------------------
 */
 
-BOOL HTAnchor_link
+PUBLIC BOOL HTAnchor_link
   ARGS3(HTAnchor *,source, HTAnchor *,destination, HTLinkType *,type)
 {
   if (! (source && destination))
@@ -462,13 +464,13 @@ BOOL HTAnchor_link
 **	---------------------
 */
 
-HTAnchor * HTAnchor_followMainLink
+PUBLIC HTAnchor * HTAnchor_followMainLink
   ARGS1 (HTAnchor *,me)
 {
   return me->mainLink.dest;
 }
 
-HTAnchor * HTAnchor_followTypedLink
+PUBLIC HTAnchor * HTAnchor_followTypedLink
   ARGS2 (HTAnchor *,me, HTLinkType *,type)
 {
   if (me->mainLink.type == type)
@@ -486,7 +488,7 @@ HTAnchor * HTAnchor_followTypedLink
 
 /*	Make main link
 */
-BOOL HTAnchor_makeMainLink
+PUBLIC BOOL HTAnchor_makeMainLink
   ARGS2 (HTAnchor *,me, HTLink *,movingLink)
 {
   /* Check that everything's OK */
@@ -553,3 +555,4 @@ PUBLIC void HTAnchor_setPhysical ARGS2(HTParentAnchor *, me,
     }
     StrAllocCopy(me->physical, physical);
 }
+

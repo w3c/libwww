@@ -516,7 +516,7 @@ char * HTRelative(aName, relatedName)
         StrAllocCopy(result, aName);
     } else if (slashes<3){			/* Different nodes */
     	StrAllocCopy(result, after_access);
-#if 0
+#if 0 /* Henrik */
     } else if (slashes==3){			/* Same node, different path */
         StrAllocCopy(result, path);
 #endif

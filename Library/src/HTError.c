@@ -55,7 +55,7 @@ PUBLIC HTErrorMsgInfo error_info[HTERR_ELEMENTS] = {
     { 0,   "Gopher-server replies", 	"gopher.multi" },
     { 0,   "Data transfer interrupted", "interrupt.multi" },
     { 0,   "CSO-server replies", 	"cso.multi" },
-    { 0,   "Bad or Unknown Response",	"bad_reply.multi" },	     /* HTTP */
+    { 0,   "Bad or Incomplete Response","bad_reply.multi" },	     /* HTTP */
     { 0,   "News-server replies",	"news.multi" },
     { 0,   "System call `%s' failed: ",	"system.multi" }
 };

@@ -224,7 +224,7 @@ PRIVATE int parse_menu ARGS3(HTRequest *,     	request,
 		}
 
 		/* Stop listing if line with a dot by itself */
-		if (message && gtype=='.' && !*strptr) {
+		if (!files && message && gtype=='.' && !*strptr) {
 		    status = -1;
 		    break;
 		}
@@ -859,10 +859,12 @@ PUBLIC int HTLoadGopher ARGS1(HTRequest *, request)
 	}
 
 	/* Close the connection */
-	if (TRACE) fprintf(stderr, "Gopher...... Closing socket %d\n",
-			   gopher->socket);
-	if (NETCLOSE(gopher->socket) < 0)
-	    status = HTErrorSysAdd(request, ERR_FATAL, NO, "close");
+	if (gopher->socket >= 0) {
+	    if (TRACE) fprintf(stderr, "Gopher...... Closing socket %d\n",
+			       gopher->socket);
+	    if (NETCLOSE(gopher->socket) < 0)
+		status = HTErrorSysAdd(request, ERR_FATAL, NO, "close");
+	}
     }
     if (status == HT_INTERRUPTED) {
         HTErrorAdd(request, ERR_WARNING, NO, HTERR_INTERRUPTED, NULL, 0,

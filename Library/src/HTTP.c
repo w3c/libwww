@@ -5,13 +5,9 @@
 **
 ** History:
 **    < May 24 94 ??	Unknown - but obviosly written
-**	May 24 94 HF	Made reentrent and cleaned up a bit
+**	May 24 94 HF	Made reentrent and cleaned up a bit. Implemented
+**			Forward, redirection, error handling and referer field
 **
-** Bugs:
-**	Not implemented:
-**		Forward
-**		Redirection
-**		Error handling
 */
 
 #define HTTP_VERSION	"HTTP/1.0"
@@ -203,6 +199,7 @@ PRIVATE int HTTPSendRequest ARGS3(HTRequest *, request,
     if (extensions && HTImProxy && HTProxyHeaders) {
 	HTChunkPuts(command, HTProxyHeaders);
     } else if (extensions) {
+	char line[256];    /*@@@@ */
 
 	/* If no conversion list, then put it up, but leave initialization
 	   to the client */
@@ -212,7 +209,6 @@ PRIVATE int HTTPSendRequest ARGS3(HTRequest *, request,
 	/* Run through both lists and generate `accept' lines */
 	{
 	    int i;
-	    char line[256];    /*@@@@ */
 	    HTList *conversions[2];
 	    conversions[0] = HTConversions;
 	    conversions[1] = request->conversions;
@@ -236,15 +232,30 @@ PRIVATE int HTTPSendRequest ARGS3(HTRequest *, request,
 	    }
 	}
 
-	/* Put out user-agent */
-	{
-	    char line[256];
-	    sprintf(line, "User-Agent: %s/%s  libwww/%s%c%c",
-		    HTAppName ? HTAppName : "unknown",
-		    HTAppVersion ? HTAppVersion : "0.0",
-		    HTLibraryVersion, CR, LF);
-	    HTChunkPuts(command, line);
+#if 0
+	/* Put out referer field if any parent */
+	if (HTAnchor_parent((HTAnchor *) request->anchor) != request->anchor) {
+	    char *this = HTAnchor_address((HTAnchor *) request->anchor);
+	    char *parent = HTAnchor_address((HTAnchor *)
+					    HTAnchor_parent((HTAnchor *)
+							    request->anchor));
+	    char *relative = HTParse(parent, this,
+                PARSE_ACCESS|PARSE_HOST|PARSE_PATH|PARSE_PUNCTUATION);
+	    if (relative && *relative) {
+		sprintf(line, "Referer: %s%c%c", parent, CR, LF);
+		HTChunkPuts(command, line);
+	    }
+	    free(this);
+	    free(parent);
+	    free(relative);
 	}
+#endif
+	/* Put out user-agent */
+	sprintf(line, "User-Agent: %s/%s  libwww/%s%c%c",
+		HTAppName ? HTAppName : "unknown",
+		HTAppVersion ? HTAppVersion : "0.0",
+		HTLibraryVersion, CR, LF);
+	HTChunkPuts(command, line);
 
 	/* Put out authorization */
 	if (request->authorization != NULL) {
@@ -334,6 +345,72 @@ PRIVATE int HTTPGetBody ARGS5(HTRequest *, request, http_info *, http,
 	status = HT_LOADED;
     }
     return status;
+}
+
+
+/*                                                              HTTPRedirect
+**
+**      Reads the response from a 3xx server status code. Only the first line
+**	is read. The format expected is
+**
+**	Location: <url> String CrLf
+**
+**	The comment string is ignored!
+**
+**	NOTE: THIS IS NOT IN CORRESPONDANCE WITH THE SPECS!!!
+**
+**	Returns new anchor on success else NULL
+*/
+PRIVATE HTAnchor *HTTPRedirect ARGS3(HTRequest *, request,
+				     HTInputSocket *, isoc, int, code)
+{
+    BOOL found = NO;
+    HTAnchor *anchor = NULL;				       /* New anchor */
+    char *line;
+    if (TRACE)
+	fprintf(stderr, "Redirection. Looking for URL's\n");
+    while ((line = HTInputSocket_getUnfoldedLine(isoc)) != NULL) {
+	char *strptr = line;
+	if (*strptr) {
+	    while (*strptr && *strptr == ' ')	      /* Skip leading spaces */
+		strptr++;
+	    if (!strncasecomp(strptr, "location:", 9)) {
+		char *url = strchr(strptr, ' ');
+		char *comment;
+		while (*url && *url == ' ')	      /* Skip leading spaces */
+		    url++;
+		if ((comment = strchr(url, ' ')) != NULL)
+		    *comment = '\0';			/* Skip any comments */
+		if (code == 301)
+		    HTErrorAdd(request, ERR_WARNING, NO, HTERR_MOVED,
+			       (void *) url, (int) strlen(url),
+			       "HTTPRedirect");
+		else if (code == 302)
+		    HTErrorAdd(request, ERR_WARNING, NO, HTERR_FOUND,
+			       (void *) url, (int) strlen(url),
+			       "HTTPRedirect");
+		else {
+		    if (TRACE)
+			fprintf(stderr,
+				"Redirection. Weird, should never happen\n");
+		}
+
+		/* Now use the new anchor instead of the old one */
+		anchor = HTAnchor_findAddress(url);
+		found = YES;
+		FREE(line);
+		break;
+	    }
+	}
+	free(line);
+    }
+
+    if (!found) {
+	int length = (int) strlen(line);
+	HTErrorAdd(request, ERR_FATAL, NO, HTERR_BAD_REPLY,
+		   (void *) line, length < 50 ? length : 50, "HTTPRedirect");
+    }
+    return anchor;
 }
 
 
@@ -523,9 +600,25 @@ PUBLIC int HTLoadHTTP ARGS1 (HTRequest *, request)
 		switch (server_status) {
 		  case 301:					    /* Moved */
 		  case 302:					    /* Found */
+		    {
+			HTParentAnchor *anchor;
+			if ((anchor = (HTParentAnchor *)
+			     HTTPRedirect(request, isoc,
+					  server_status)) != NULL) {
+			    free(status_line);
+			    HTInputSocket_free(isoc);
+			    HTTPCleanup(request, http);
+			    if (HTLoadAnchor((HTAnchor *) anchor,
+					     request) == YES)
+				return HT_LOADED;
+			    else
+				return -1;
+			}
+		    }
+		    break;
 		  case 303:					   /* Method */
-		    HTAlert("This client doesn't support automatic redirection");
-			    status = -1;
+		    HTAlert("This client doesn't support automatic redirection of type `Method'");
+		    status = -1;
 		    break;
 		  case 304:			       /* Not modified Since */
 		    {

@@ -118,141 +118,8 @@ PRIVATE char *	this_addr;				    /* Local address */
 #endif
 
 /* ------------------------------------------------------------------------- */
-/*		  ************** TEMPORARY STUFF *************	      	     */
-/* ------------------------------------------------------------------------- */
-#define MAX_ACCEPT_POLL		30
-#define FCNTL(r, s, t) fcntl(r, s, t)
-
-
-/*								HTDoConnect()
-**
-**	TEMPORARY FUNCTION.
-**	Note: Any port indication in URL, e.g., as `host:port' overwrites
-**	the default_port value.
-**
-**	Returns 0 if OK, -1 on error
-*/
-PUBLIC int HTDoConnect ARGS5(HTRequest *, request, char *, url,
-			     u_short, default_port, int *, sockfd,
-			     u_long *, addr)
-{
-    int status;
-    SockA sock_addr;				/* SockA is defined in tcp.h */
-    char *p1 = HTParse(url, "", PARSE_HOST);
-    char *at_sign;
-    char *host;
-
-    /* if theres an @ then use the stuff after it as a hostname */
-    if((at_sign = strchr(p1,'@')) != NULL)
-	host = at_sign+1;
-    else
-	host = p1;
-    if (TRACE) fprintf(stderr, "HTDoConnect. Looking up `%s\'\n", host);
-
-   /* Set up defaults */
-    memset((void *) &sock_addr, '\0', sizeof(sock_addr));
-#ifdef DECNET
-    sock_addr.sdn_family = AF_DECnet;	      /* Family = DECnet, host order */
-    sock_addr.sdn_objnum = DNP_OBJ;	      /* Default: http object number */
-#else  /* Internet */
-    sock_addr.sin_family = AF_INET;
-    sock_addr.sin_port = htons(default_port);
-#endif
-
-    /* Get node name */
-    if (HTParseInet(&sock_addr, host)) {
-	if (TRACE) fprintf(stderr, "HTDoConnect. Can't locate remote host `%s\'\n", host);
-	HTErrorAdd(request, ERR_FATAL, NO, HTERR_NO_REMOTE_HOST,
-		   (void *) host, strlen(host), "HTDoConnect");
-	free (p1);
-	*sockfd = -1;
-	return -1;
-    }
-
-#ifdef DECNET
-    if ((*sockfd = socket(AF_DECnet, SOCK_STREAM, 0)) < 0) {
-#else
-    if ((*sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
-#endif
-	HTErrorSysAdd(request, ERR_FATAL, NO, "socket");
-	free (p1);
-	return -1;
-    }
-    if (addr)
-	*addr = ntohl(sock_addr.sin_addr.s_addr);
-
-    if (TRACE)
-	fprintf(stderr, "HTDoConnect. Created socket number %d\n", *sockfd);
-
-    if ((status = connect(*sockfd, (struct sockaddr *) &sock_addr,
-			  sizeof(sock_addr))) < 0) {
-	HTErrorSysAdd(request, ERR_FATAL, NO, "connect");
-	if (NETCLOSE(*sockfd) < 0)
-	    HTErrorSysAdd(request, ERR_FATAL, NO, "close");
-	free(p1);
-	*sockfd = -1;
-	return -1;
-    }
-    free(p1);
-    return status;
-}
-
-
-/*								HTDoAccept()
-**
-**	This function makes a non-blocking accept on a port and polls every
-**	second until MAX_ACCEPT_POLL or interrupted by user.
-**
-**	BUGS Interrupted is not yet implemented!!!
-**
-**	Returns 0 if OK, -1 on error
-*/
-PRIVATE int HTDoAccept ARGS2(HTRequest *, request, int, sockfd)
-{
-    SockA soc_address;				/* SockA is defined in tcp.h */
-    int status;
-    int cnt;
-    int soc_addrlen = sizeof(soc_address);
-    if (sockfd < 0) {
-	if (TRACE) fprintf(stderr, "HTDoAccept.. Bad socket number\n");
-	return -1;
-    }
-	
-    /* First make the socket non-blocking */
-    if((status = FCNTL(sockfd, F_GETFL, 0)) != -1) {
-	status |= FNDELAY;
-	status = FCNTL(sockfd, F_SETFL, status);
-    }
-    if (status == -1) {
-	HTErrorSysAdd(request, ERR_FATAL, NO, "fcntl");
-	return -1;
-    }
-
-    /* Now poll every sekund */
-    for(cnt=0; cnt<MAX_ACCEPT_POLL; cnt++) {
-	if ((status = accept(sockfd, (struct sockaddr*) &soc_address,
-			     &soc_addrlen)) >= 0) {
-	    if (TRACE) fprintf(stderr,
-			       "HTDoAccept.. Accepted new socket %d\n",	
-			       status);
-	    return status;
-	} else
-	    HTErrorSysAdd(request, ERR_WARNING, YES, "accept");
-	sleep(1);
-    }	
-    
-    /* If nothing has happened */    
-    if (TRACE)
-	fprintf(stderr, "HTDoAccept.. Timed out, no connection!\n");
-    HTErrorAdd(request, ERR_FATAL, NO, HTERR_TIME_OUT, NULL, 0, "HTDoAccept");
-    return -1;
-}
-
-
-/* ------------------------------------------------------------------------- */
 /*			   Directory Specific Functions			     */
 /* ------------------------------------------------------------------------- */
-
 
 /*							      HTFTPParseError
 **
@@ -1308,6 +1175,7 @@ PRIVATE ftp_ctrl_info *HTFTP_init_con ARGS2(HTRequest *, req, char *, url)
     /* Look if control connection already exists else generate new one */
     if (session) {
 	BOOL found = NO;
+	BOOL multi;				      /* Dummy not used here */
 	HTList *cur = session;
 	SockA sock_addr;			/* SockA is defined in tcp.h */
 	char *host;
@@ -1328,7 +1196,7 @@ PRIVATE ftp_ctrl_info *HTFTP_init_con ARGS2(HTRequest *, req, char *, url)
 	sock_addr.sin_port = htons(serv_port);
 	
 	/* Get node name */
-	if (HTParseInet(&sock_addr, host)) {
+	if (HTParseInet(&sock_addr, host, &multi)) {
 	    if (TRACE) fprintf(stderr,
 			       "FTP......... Can't locate remote host `%s\'\n", host);
 	    FREE(user.domain);

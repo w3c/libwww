@@ -3,50 +3,90 @@
 <BODY>
 <H1>Generic TCP/IP Communication</H1>This module has the common code for
 handling TCP/IP connections etc.
-<PRE>#ifndef HTTCP_H
+<PRE>
+#ifndef HTTCP_H
 #define HTTCP_H
 
-#include "HTUtils.h"
-
 #include "tcp.h"
+
+#include "HTUtils.h"
+#include "HTAccess.h"
 
 #ifdef SHORT_NAMES
 #define HTInetStatus		HTInStat
 #define HTInetString 		HTInStri
 #define HTParseInet		HTPaInet
 #endif
+</PRE>
+
+<H2>Connection Management</H2>
+
+Theese functions handle access to the net.
+
+<H3>Active Connection Establishment</H3>
+
+This makes an active connect to the specified host. The request structure is
+parsed in order to handle errors. Default port might be overwritten by any
+port indication in the URL specified as &lt;host&gt;:&lt;port&gt; If it is
+a multihomed host then HTDoConnect measures the time to do the connection and
+updates the calculated weights in the cache of visited hosts. 
+
+<PRE>
+extern int HTDoConnect PARAMS((	HTRequest 	*request,
+				char		*url,
+			     	u_short		default_port,
+				int		*sockfd,
+			    	u_long 		*addr));
+</PRE>
 
 
-/*	Produce a string for an internet address
-**	---------------------------------------
-**
-** On exit:
-**	     returns a pointer to a static string which must be copied if
-**		  it is to be kept.
-*/
-PUBLIC CONST char * HTInetString PARAMS((struct sockaddr_in * sin));
+<H3>Passive Connection Establishment</H3>
+
+This function makes a non-blocking accept on a port and polls every second
+until MAX_ACCEPT_POLL or interrupted by user.
+
+<PRE>
+extern int HTDoAccept PARAMS((HTRequest *request, int sockfd));
+</PRE>
+
+<H2>Caching Hosts</H2>
+
+This is mainly an internal matter to the HTTCP.c module but it keeps a
+cache of all visited hosts so that we don't have to consult the DNS every
+time. One public function is HTTCPAddrWeights(). It updates the calculated
+weights on the time it takes to sestablish a connection.
+
+<PRE>
+extern void HTTCPAddrWeights PARAMS((char * host, time_t deltatime));
+</PRE>
 
 
-/*
-** Return error message corresponding to current errno
-*/
-PUBLIC CONST char * HTErrnoString NOPARAMS;
+<H2>Errors and status indications</H2>
 
+Theese functions return an explanation if an error has occured.
 
-/*	Encode INET status (as in sys/errno.h)			  inet_status()
-**	------------------
-**
-** On entry:
-**		where gives a description of what caused the error
-** 	global errno gives the error number in the unix way.
-**
-** On return:
-** 	returns a negative status in the unix way.
-*/
-PUBLIC int HTInetStatus PARAMS((char * where));
+<H3>Errno Message</H3>
 
+Return error message corresponding to current errno, just like strerror().
 
+<PRE>
+extern CONST char * HTErrnoString NOPARAMS;
+</PRE>
 
+<H3>Description of what Caused the Error</H3>
+
+The parameter `where' gives a description of what caused the error, often
+the name of a system call. <P>
+
+This function should only rarely be called directly. Instead the common error
+function HTErrorAdd() should be used as then the error is parsed all the way
+to the user. The function returns a negative status in the unix way.
+
+<PRE>
+extern int HTInetStatus PARAMS((char * where));
+</PRE>
+
+<PRE>
 /*	Parse a cardinal value				       parse_cardinal()
 **	----------------------
 **
@@ -64,36 +104,74 @@ PUBLIC int HTInetStatus PARAMS((char * where));
 PUBLIC unsigned int HTCardinal PARAMS((int *		pstatus,
 				       char **		pp,
 				       unsigned int	max_value));
+</PRE>
+
+<H2>Internet Name Server Functions</H2>
+
+The following functions are available to get information about a
+specified host.
+
+<H3>Produce a string for an internet address</H3>
+
+This function is equivalent to the BSD system call <B>inet_ntoa</B> in that it
+converts a numeric 32-bit IP-address to a dotted-notation decimal string. The
+pointer returned points to static memory which must be copied if it is to be
+kept.
+
+<PRE>
+extern CONST char * HTInetString PARAMS((struct sockaddr_in * sin));
+</PRE>
+
+<H3>Parse an internet node address and port</H3>
+
+This function finds the address of a specified host and fills out the sockaddr
+structure. str points to a string with a node name or number, with optional
+trailing colon and port number. sin points to the binary internet or decnet
+address field. <P>
+
+On exit *sin is filled in. If no port is specified in str, that field is left
+unchanged in *sin. If it is a multihomed host then multihomed is returned as
+YES. This is used for knowing when to measure the setup time for a connection
+in order to use the fastest IP-address on the multihomed host.
+<PRE>
+extern int HTParseInet PARAMS((struct sockaddr_in *	sin,
+			       CONST char *		str,
+			       BOOL *			multihomed));
+</PRE>
+
+<H3>Name of a Machine on the Other Side of a Socket</H3>
+
+This function should have been called HTGetHostByAddr but for historical
+reasons this is not the case.
+
+<PRE>
+extern char * HTGetHostName PARAMS((int soc));
+</PRE>
+
+<H3>Host address retuned for specified host name</H3>
+
+This function gets the address of the host and puts it in to the socket
+structure. It maintains its own cache of connections so that the communication
+to the Domain Name Server is minimized. If it is a multihomed host, then 
+`multi' is set to YES.
+
+<PRE>
+extern char * HTGetHostByName PARAMS((char *host, SockA *sin, BOOL *multi));
+</PRE>
 
 
-/*	Parse an internet node address and port
-**	---------------------------------------
-**
-** On entry:
-**		 str points to a string with a node name or number,
-**		 with optional trailing colon and port number.
-**		 sin points to the binary internet or decnet address field.
-**
-** On exit:
-**		 *sin is filled in. If no port is specified in str, that
-**		 field is left unchanged in *sin.
-*/
-PUBLIC int HTParseInet PARAMS((struct sockaddr_in *	sin,
-			       CONST char *		str));
+<H3>Get Name of This Machine</H3>
 
+This functions a char pointer to a static location containing the name of this
+host.
 
-/*
-**	Get Name of a Machine on the Other Side of a Socket
-**	---------------------------------------------------
-*/
-PUBLIC char * HTGetHostName PARAMS((int soc));
+<PRE>
+extern CONST char * HTHostName NOPARAMS;
+</PRE>
 
-
-/*	Get Name of This Machine
-**	------------------------
-**
-*/
-PUBLIC CONST char * HTHostName NOPARAMS;
-
+<PRE>
 #endif   /* HTTCP_H */
-</PRE>End.</BODY>
+</PRE>
+End of file
+</BODY>
+</HTML>

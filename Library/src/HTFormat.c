@@ -640,12 +640,13 @@ PRIVATE char * get_some_line ARGS2(HTInputSocket *,	isoc,
     } /* valid parameters to function */
 }
 
-
+/* The returned string must be freed by the caller */
 PUBLIC char * HTInputSocket_getLine ARGS1(HTInputSocket *, isoc)
 {
     return get_some_line(isoc, NO);
 }
 
+/* The returned string must be freed by the caller */
 PUBLIC char * HTInputSocket_getUnfoldedLine ARGS1(HTInputSocket *, isoc)
 {
     return get_some_line(isoc, YES);

@@ -723,12 +723,10 @@ PRIVATE BOOL HTLoadDocument ARGS1(HTRequest *,		request)
  
     /* If you get this, then please find which routine is returning
        a positive unrecognised error code! */
- 
     fprintf(stderr,
-    "**** HTAccess: socket or file number returned by obsolete load routine!\n");
-    fprintf(stderr,
-    "**** HTAccess: Internal software error. Please mail www-bug@info.cern.ch quoting the version number of this software and the URL: %s!\n",
-    	full_address);
+    "**** HTAccess: Internal software error in CERN WWWLib version %s ****\n\nPlease mail www-bug@info.cern.ch quoting what software and what version you are using\nand the URL: %s that caused the problem, thanks!\n",
+	    HTLibraryVersion,
+	    full_address);
     free(full_address);
    
     exit(-6996);
