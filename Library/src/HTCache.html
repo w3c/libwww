@@ -66,7 +66,7 @@ extern BOOL HTCacheTerminate (void);
   Cache Mode Parameters
 </H2>
 <P>
-The persistent cache has a set of overall parameters that you can adust
+The persistent cache has a set of overall parameters that you can adjust
 <H3>
   Enable and Disable the Cache
 </H3>
@@ -77,6 +77,13 @@ in time.
 <PRE>
 extern void HTCacheMode_setEnabled (BOOL mode);
 extern BOOL HTCacheMode_enabled (void);
+</PRE>
+<P>
+The cache can be setup to whether cache password protected documents thru the
+protected flag. By default this flag is turned off.
+<PRE>
+extern void HTCacheMode_setProtected (BOOL mode);
+extern BOOL HTCacheMode_protected (void);
 </PRE>
 <H3>
   What is the current Cache Root?

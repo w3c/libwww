@@ -112,6 +112,7 @@ struct _HTInputStream {
 /* Cache parameters */ 
 PRIVATE BOOL		HTCacheEnable = NO;	      /* Disabled by default */
 PRIVATE BOOL		HTCacheInitialized = NO;
+PRIVATE BOOL		HTCacheProtected = YES;
 PRIVATE char *		HTCacheRoot = NULL;   /* Local Destination for cache */
 PRIVATE HTExpiresMode	HTExpMode = HT_EXPIRES_IGNORE;
 PRIVATE HTDisconnectedMode DisconnectedMode = HT_DISCONNECT_NONE;
@@ -835,6 +836,16 @@ PUBLIC void HTCacheMode_setEnabled (BOOL mode)
 PUBLIC BOOL HTCacheMode_enabled (void)
 {
     return HTCacheEnable;
+}
+
+PUBLIC void HTCacheMode_setProtected (BOOL mode)
+{
+    HTCacheProtected = mode;
+}
+
+PUBLIC BOOL HTCacheMode_protected (void)
+{
+    return HTCacheProtected;
 }
 
 /*
@@ -2056,6 +2067,12 @@ PRIVATE HTStream * HTCacheStream (HTRequest * request, BOOL append)
     if (!HTCacheEnable || !HTCacheInitialized) {
 	if (CACHE_TRACE) HTTrace("Cache....... Not enabled\n");
 	return NULL;
+    }
+
+    /* don't cache protected documents */
+    if (HTRequest_credentials (request) && !HTCacheProtected) {
+      if (CACHE_TRACE) HTTrace("Cache....... won't cache protected objects\n");
+      return NULL;
     }
 
     /*
