@@ -236,8 +236,9 @@ PRIVATE void do_readme ARGS2(HTStructured *, target, CONST char *, localname)
 			PUTC((char) (c % 10));
 			PUTC(';');
 			break;
-	    	case '\n':
-			PUTC('\r');	/* Fall through */
+/*	    	case '\n':
+			PUTC('\r');    
+Bug removed thanks to joe@athena.mit.edu */			
 		default:
 			PUTC(c);
 	    }
