@@ -119,6 +119,7 @@ PRIVATE char *HTFWriter_filename ARGS4(char *, path, char *, url,
     if (filename && urlfile++) {		   /* We don't want two '/'s */
 	int digits = 1;
 	unsigned hash;
+	char *hashstr = NULL;
 	char *replace = 0;
 	char *ptr;				/* Dummy used several places */
 	char format[10];
@@ -128,30 +129,29 @@ PRIVATE char *HTFWriter_filename ARGS4(char *, path, char *, url,
 	    unsigned int residue = limit;
 	    while (residue /= 10)		    /* Find number of digits */
 		digits++;
+	    if ((hashstr = malloc(digits+1)) == NULL)
+		outofmem(__FILE__, "HTFWriter_filename");
 	    for(ptr=urlfile, hash=0; *ptr; ptr++)          /* Calculate hash */
 		hash = *ptr + *primes * hash;
 	    hash %= limit;
-	    {					   /* Convert hash to string */
-		char hashstr[20+1];	/* @@@ fixme */
-		sprintf(format, "%%0%du", digits);
-		sprintf(hashstr, format, hash);
-		*(hashstr+digits) = '\0';
-		StrAllocCat(filename, hashstr);
+	    sprintf(format, "%%0%du", digits);     /* Convert hash to string */
+	    sprintf(hashstr, format, hash);
+	    *(hashstr+digits) = '\0';
+	    StrAllocCat(filename, hashstr);
 #ifndef NO_GETPID
 /* RISK: Race conditions may occur if this is not added to the filename */
-		{
-		    char pidstr[10];
-		    sprintf(pidstr, "-%d", getpid());
-		    StrAllocCat(filename, pidstr);
-		}
-#endif
-		if (suffix) {				       /* Add suffix */
-		    if (*suffix != '.')
-			StrAllocCat(filename, ".");
-		    StrAllocCat(filename, suffix);
-		}
-		replace = strrchr(filename, '/')+1;	   /* Remember place */
+	    {
+		char pidstr[10];
+		sprintf(pidstr, "-%d", getpid());
+		StrAllocCat(filename, pidstr);
 	    }
+#endif
+	    if (suffix) {				       /* Add suffix */
+		if (*suffix != '.')
+		    StrAllocCat(filename, ".");
+		StrAllocCat(filename, suffix);
+	    }
+	    replace = strrchr(filename, '/')+1;	   /* Remember place */
 	} else {      					     /* Use url name */
 	    char *urlptr = 0;			     /* Strip off any suffix */
 	    StrAllocCopy(urlptr, urlfile);
@@ -176,12 +176,9 @@ PRIVATE char *HTFWriter_filename ARGS4(char *, path, char *, url,
 			for(ptr=urlfile, hash=0; *ptr; ptr++)
 			    hash = *ptr + *(primes+cnt) * hash;
 			hash %= limit;
-			{
-			    char hashstr[20+1]; /* @@@ fixme */
-			    sprintf(hashstr, format, hash);
-			    *(hashstr+digits) = '\0';
-			    memcpy(replace, hashstr, digits);
-			}
+			sprintf(hashstr, format, hash);
+			*(hashstr+digits) = '\0';
+			memcpy(replace, hashstr, digits);
 		    } else { 		/* Add .n to the urlfile. n is a int */
 			if (cnt == 1) {
 			    StrAllocCat(filename, ".1");
@@ -197,6 +194,7 @@ PRIVATE char *HTFWriter_filename ARGS4(char *, path, char *, url,
 		filename = NULL;
 	    }
 	}
+	FREE(hashstr);
     }
     return filename;
 }
