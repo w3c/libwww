@@ -241,10 +241,8 @@ PUBLIC void HTDisposeProtocols NOARGS
 */
 PUBLIC BOOL HTProtocolBlocking ARGS1(HTRequest *, me)
 {
-    if (HTInteractive)
-	return (me && me->anchor && me->anchor->protocol &&
-		((HTProtocol *) (me->anchor->protocol))->block == SOC_BLOCK);
-    return YES;
+    return (me && me->anchor && me->anchor->protocol &&
+	    ((HTProtocol *) (me->anchor->protocol))->block == SOC_BLOCK);
 }
 
 /* --------------------------------------------------------------------------*/
