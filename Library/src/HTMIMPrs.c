@@ -40,7 +40,7 @@ PRIVATE HTMIMEParseEl * HTMIMEParseEl_new(HTMIMEParseEl ** pBefore,
     *pBefore = ret;
     if ((ret->token = (char *) HT_MALLOC(strlen(token)+1)) == NULL)
         HT_OUTOFMEM("token");
-    strcpy(ret->token, token);
+    strcpy((char *)ret->token, token);
     ret->caseSensitive = caseSensitive;
     ret->pFunk = callback;
     
@@ -78,9 +78,21 @@ PUBLIC HTMIMEParseSet * HTMIMEParseSet_new(int hashSize)
     return me;
 }
 
-PUBLIC int HTMIMEParseSet_delete (HTMIMEParseSet * me)
+PUBLIC int HTMIMEParseSet_deleteAll (HTMIMEParseSet * me)
 {
-    HTMIMEParseSet_empty(me);
+    int i;
+    HTMIMEParseEl * pEl, * next;
+    
+    for (i=0; i<me->size; i++)
+	for (pEl = me->parsers[i]; pEl; pEl = next) {
+	    next = pEl->next;
+	    HT_FREE(pEl);
+	}
+
+    for (pEl = me->parsers[i]; pEl; pEl = next) {
+        next = pEl->next;
+	HT_FREE(pEl);
+    }
     HT_FREE(me);
     return HT_OK;
 }
@@ -118,7 +130,7 @@ PUBLIC HTMIMEParseEl * HTMIMEParseSet_addRegex (HTMIMEParseSet * me,
 			     caseSensitive, callback);
 }
 
-PUBLIC int HTMIMEParseSet_deleteToken (HTMIMEParseSet * me, const char * token)
+PUBLIC int HTMIMEParseSet_delete (HTMIMEParseSet * me, const char * token)
 {
     int hash, i;
     HTMIMEParseEl * pEl, ** last;
@@ -140,24 +152,6 @@ PUBLIC int HTMIMEParseSet_deleteToken (HTMIMEParseSet * me, const char * token)
     return HT_ERROR;
 }
 
-PUBLIC int HTMIMEParseSet_empty (HTMIMEParseSet * me)
-{
-    int i;
-    HTMIMEParseEl * pEl, * next;
-    
-    for (i=0; i<me->size; i++)
-	for (pEl = me->parsers[i]; pEl; pEl = next) {
-	    next = pEl->next;
-	    HT_FREE(pEl);
-	}
-
-    for (pEl = me->parsers[i]; pEl; pEl = next) {
-        next = pEl->next;
-	HT_FREE(pEl);
-    }
-    return HT_OK;
-}
-
 /*
 **	Search registered parsers to find suitable one for this token
 **	If a parser isn't found, the function returns HT_OK
@@ -165,22 +159,30 @@ PUBLIC int HTMIMEParseSet_empty (HTMIMEParseSet * me)
 PUBLIC int HTMIMEParseSet_dispatch (HTMIMEParseSet * me, HTRequest * request, 
 				    char * token, char * value, BOOL * pFound)
 {
-    int hash, i;
+    int hash;
     HTMIMEParseEl * pEl;
     
     if (pFound) *pFound = NO;
-    hash = HTMIMEParseSet_hash(me, token);
 
-    for (i = 0, pEl = me->parsers[hash]; i < 2; i++, pEl = me->regexParsers) {
-        for (; pEl; pEl = pEl->next) {
-	    if ((pEl->caseSensitive && !strcmp(pEl->token, token)) || 
-		(!pEl->caseSensitive && !strcasecomp(pEl->token, token))) {
-	        if (pFound) *pFound = YES;
-		if (!pEl->pFunk) return HT_OK; /* registered with no callback*/
-		return (*pEl->pFunk)(request, token, value);
-	    }
+    hash = HTMIMEParseSet_hash(me, token);
+    for (pEl = me->parsers[hash]; pEl; pEl = pEl->next) {
+        if ((pEl->caseSensitive && !strcmp(pEl->token, token)) || 
+	    (!pEl->caseSensitive && !strcasecomp(pEl->token, token))) {
+	    if (pFound) *pFound = YES;
+	    if (!pEl->pFunk) return HT_OK; /* registered with no callback*/
+	    return (*pEl->pFunk)(request, token, value);
 	}
     }
+
+    for (pEl = me->regexParsers; pEl; pEl = pEl->next) {
+        if ((pEl->caseSensitive && !HTStrMatch(pEl->token, token)) || 
+	    (!pEl->caseSensitive && !HTStrCaseMatch(pEl->token, token))) {
+	    if (pFound) *pFound = YES;
+	    if (!pEl->pFunk) return HT_OK; /* registered with no callback*/
+	    return (*pEl->pFunk)(request, token, value);
+	}
+    }
+
     return HT_OK;
 }
 
