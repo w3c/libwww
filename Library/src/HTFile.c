@@ -1131,8 +1131,6 @@ PUBLIC int HTLoadFile ARGS1 (HTRequest *, request)
         FREE(access);
     }
 
-    free(newname);
-
     format = HTFileFormat(filename, &encoding, &language);
 
 #ifdef VMS
