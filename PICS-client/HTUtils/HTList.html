@@ -1,0 +1,122 @@
+<HTML>
+<HEAD>
+  <!-- Changed by: Henrik Frystyk Nielsen,  2-Jul-1996 -->
+  <TITLE>W3C Reference Library libwww List Class</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  The List Class
+</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+<P>
+The list class defines a generic container for storing collections of things
+in order. In principle it could be implemented in many ways, but in practice
+knowing that it is a linked list is important for speed.
+<P>
+This module is implemented by <A HREF="HTList.c">HTList.c</A>, and it is
+a part of the <A HREF="http://www.w3.org/pub/WWW/Library/"> W3C Reference
+Library</A>.
+<PRE>
+#ifndef HTLIST_H
+#define HTLIST_H
+
+typedef struct _HTList HTList;
+
+struct _HTList {
+  void * object;
+  HTList * next;
+};
+</PRE>
+<H2>
+  Creation and Deletion Methods
+</H2>
+<P>
+These two functions create and deletes a list
+<PRE>
+extern HTList *	HTList_new	(void);
+extern BOOL	HTList_delete	(HTList *me);
+</PRE>
+<H2>
+  Add an Element to List
+</H2>
+<P>
+A new list element is added to the beginning of the list so that it is first
+element just after the head element.
+<PRE>extern BOOL HTList_addObject (HTList *me, void *newObject);
+</PRE>
+<P>
+<A NAME="appendObject"></A> You can also append an element to the end of
+the list (the end is the first entered object) by using the following function:
+<PRE>extern BOOL HTList_appendObject (HTList * me, void * newObject);
+</PRE>
+<H2>
+  Remove List Elements
+</H2>
+<P>
+You can delete elements in a list usin the following methods
+<PRE>extern BOOL	HTList_removeObject		(HTList *me, void *oldObject);
+extern void *	HTList_removeLastObject		(HTList *me);
+extern void *	HTList_removeFirstObject	(HTList *me);
+</PRE>
+<H2>
+  Size of a List
+</H2>
+<P>
+Two small function to ask for the size
+<PRE>#define 	HTList_isEmpty(me)		(me ? me-&gt;next == NULL : YES)
+extern int	HTList_count			(HTList *me);
+</PRE>
+<H2>
+  Reference List Elements By Index
+</H2>
+<P>
+In some situations is is required to use an index in order to refer to a
+list element. This is for example the case if an element can be registered
+multiple times.
+<PRE>extern int	HTList_indexOf	(HTList *me, void *object);
+extern void *	HTList_objectAt	(HTList *me, int position);
+</PRE>
+<H2>
+  Find List Elements
+</H2>
+<P>
+This method returns the <I>last</I> element to the list or NULL if list is
+empty
+<PRE>#define		HTList_lastObject(me) \
+		((me) &amp;&amp; (me)-&gt;next ? (me)-&gt;next-&gt;object : NULL)
+</PRE>
+<P>
+This method returns the <I>first</I> element to the list or NULL if list
+is empty
+<PRE>extern void * HTList_firstObject  (HTList * me);
+</PRE>
+<H2>
+  Traverse list
+</H2>
+<P>
+Fast macro to traverse the list. Call it first with copy of list header:
+it returns the first object and increments the passed list pointer. Call
+it with the same variable until it returns NULL.
+<PRE>
+#define		HTList_nextObject(me) \
+		((me) &amp;&amp; ((me) = (me)-&gt;next) ? (me)-&gt;object : NULL)
+</PRE>
+<H2>
+  Free list
+</H2>
+<PRE>
+#define HTList_free(x)  HT_FREE(x)
+
+#endif /* HTLIST_H */
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>

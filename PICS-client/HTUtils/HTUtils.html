@@ -1,0 +1,236 @@
+<HTML>
+<HEAD>
+  <!-- Changed by: Henrik Frystyk Nielsen,  6-Apr-1996 -->
+  <TITLE>W3C Reference Library libwww General Purpose Macros</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  General Purpose Macros
+</H1>
+<PRE>
+/*
+**	(c) COPYRIGHT MIT 1995.
+**	Please first read the full copyright statement in the file COPYRIGH.
+*/
+</PRE>
+<P>
+This module is a part of the <A HREF="http://www.w3.org/pub/WWW/Library/">
+W3C Reference Library</A>. See also the system dependent file
+<A HREF="sysdep.html">sysdep module</A> for system specific information.
+<PRE>
+#ifndef HTUTILS_H
+#define HTUTILS_H
+</PRE>
+<H2>
+  <A NAME="Debug">Debug Message Control</A>
+</H2>
+<P>
+This is the global flag for setting the <CODE>WWWTRACE</CODE> options. The
+verbose mode is no longer a simple boolean but a bit field so that it is
+possible to see parts of the output messages.
+<PRE>
+#ifndef DEBUG
+#define DEBUG	/* No one ever turns this off as trace is too important */
+#endif
+</PRE>
+<H3>
+  Definition of the Global Trace Flag
+</H3>
+<P>
+The global trace flag variable is available everywhere.
+<PRE>
+#ifdef DEBUG
+#ifdef WWW_WIN_DLL
+extern int *		WWW_TraceFlag;	 /* In DLLs, we need the indirection */
+#define WWWTRACE	(*WWW_TraceFlag) 
+#else
+extern int		WWW_TraceFlag;	     /* Global flag for all W3 trace */
+#define WWWTRACE	(WWW_TraceFlag)
+#endif /* WWW_WIN_DLL */
+#else
+#define WWWTRACE	0
+#endif /* DEBUG */
+</PRE>
+<P>
+The <EM><CODE>WWWTRACE</CODE></EM> define outputs messages if verbose mode
+is active according to the following rules:
+<PRE>
+typedef enum _HTTraceFlags {
+    SHOW_UTIL_TRACE	= 0x1,				/* 	           1 */
+    SHOW_APP_TRACE	= 0x2,				/* 	          10 */
+    SHOW_CACHE_TRACE	= 0x4,				/*		 100 */
+    SHOW_SGML_TRACE	= 0x8,				/*		1000 */
+    SHOW_BIND_TRACE	= 0x10,				/* 	      1.0000 */
+    SHOW_THREAD_TRACE	= 0x20,				/* 	     10.0000 */
+    SHOW_STREAM_TRACE	= 0x40,				/* 	    100.0000 */
+    SHOW_PROTOCOL_TRACE = 0x80,				/* 	   1000.0000 */
+    SHOW_MEM_TRACE	= 0x100,			/*	 1.0000.0000 */
+    SHOW_URI_TRACE	= 0x200,			/* 	10.0000.0000 */
+    SHOW_AUTH_TRACE	= 0x400,			/*     100.0000.0000 */
+    SHOW_ANCHOR_TRACE	= 0x800,			/*    1000.0000.0000 */
+    SHOW_PICS_TRACE	= 0x1000,			/*  1.0000.0000.0000 */
+    SHOW_CORE_TRACE	= 0x2000,			/* 10.0000.0000.0000 */
+    SHOW_ALL_TRACE	= 0x3FFF			/* 11.1111.1111.1111 */
+} HTTraceFlags;
+</PRE>
+<P>
+The flags are made so that they can serve as a group flag for correlated
+trace messages, e.g. showing messages for SGML and HTML at the same time.
+<PRE>
+#define UTIL_TRACE	(WWWTRACE &amp; SHOW_UTIL_TRACE)
+#define APP_TRACE	(WWWTRACE &amp; SHOW_APP_TRACE)
+#define CACHE_TRACE	(WWWTRACE &amp; SHOW_CACHE_TRACE)
+#define SGML_TRACE	(WWWTRACE &amp; SHOW_SGML_TRACE)
+#define BIND_TRACE	(WWWTRACE &amp; SHOW_BIND_TRACE)
+#define THD_TRACE	(WWWTRACE &amp; SHOW_THREAD_TRACE)
+#define STREAM_TRACE	(WWWTRACE &amp; SHOW_STREAM_TRACE)
+#define PROT_TRACE	(WWWTRACE &amp; SHOW_PROTOCOL_TRACE)
+#define MEM_TRACE	(WWWTRACE &amp; SHOW_MEM_TRACE)
+#define URI_TRACE	(WWWTRACE &amp; SHOW_URI_TRACE)
+#define AUTH_TRACE	(WWWTRACE &amp; SHOW_AUTH_TRACE)
+#define ANCH_TRACE	(WWWTRACE &amp; SHOW_ANCHOR_TRACE)
+#define PICS_TRACE	(WWWTRACE &amp; SHOW_PICS_TRACE)
+#define CORE_TRACE	(WWWTRACE &amp; SHOW_CORE_TRACE)
+</PRE>
+<H3>
+  Destination for Trace Messages
+</H3>
+<P>
+You can send trace messages to various destinations depending on the type
+of your application. By default, on Unix the messages are sent to stderr
+using fprintf() and if we are on Windows and have a windows applications
+then register a HTTraceCallback function. This is done with HTTrace_setCallback.
+It tells HTTrace to call a HTTraceCallback. If your compiler has problems
+with va_list, then you may forget about registering the callback and instead
+macro HTTrace as follows: #define HTTrace MyAppSpecificTrace
+<A NAME="HTTrace"></A>
+<PRE>
+typedef int HTTraceCallback(const char * fmt, va_list pArgs);
+
+extern void HTTrace_setCallback(HTTraceCallback * pCall);
+extern HTTraceCallback * HTTrace_getCallback(void);
+
+extern int HTTrace(const char * fmt, ...);
+</PRE>
+<H2>
+  Macros for Function Declarations
+</H2>
+<PRE>
+#define PUBLIC			/* Accessible outside this module     */
+#define PRIVATE static		/* Accessible only within this module */
+</PRE>
+<H2>
+  Often used Interger Macros
+</H2>
+<H3>
+  Min and Max functions
+</H3>
+<PRE>
+#ifndef HTMIN 
+#define HTMIN(a,b) ((a) &lt;= (b) ? (a) : (b))
+#define HTMAX(a,b) ((a) &gt;= (b) ? (a) : (b))
+#endif
+</PRE>
+<H3>
+  Double abs function
+</H3>
+<PRE>
+#ifndef HTDABS
+#define HTDABS(a) ((a) &lt; 0.0 ? (-(a)) : (a))
+#endif
+</PRE>
+<P>
+<A NAME="ReturnCodes"></A>
+<H2>
+  <A NAME="return">Return Codes for Protocol Modules and Streams</A>
+</H2>
+<P>
+Theese are the codes returned from the protocol modules, and the stream modules.
+Success are (&gt;=0) and failure are (&lt;0)
+<PRE>
+#define HT_OK			0	/* Generic success */
+#define HT_ALL			1	/* Used by Net Manager */
+
+#define HT_CONTINUE             29991   /* Continue an operation */
+#define HT_CLOSED		29992	/* The socket was closed */
+#define HT_PERSISTENT		29993	/* Wait for persistent connection */
+#define HT_IGNORE		29994	/* Ignore this in the Net manager */
+#define HT_NO_DATA		29995	/* OK but no data was loaded */
+#define HT_RELOAD		29996	/* If we must reload the document */
+#define HT_PERM_REDIRECT	29997	/* Redo the retrieve with a new URL */
+#define HT_TEMP_REDIRECT	29998	/* Redo the retrieve with a new URL */
+#define HT_LOADED		29999	/* Instead of a socket */
+
+#define HT_ERROR		-1	/* Generic failure */
+
+#define HT_NO_ACCESS		-10	/* Access not available */
+#define HT_FORBIDDEN		-11	/* Access forbidden */
+#define HT_RETRY		-13	/* If service isn't available */
+#define HT_NO_PROXY_ACCESS      -14     /* No proxy access */
+
+#define HT_INTERNAL		-100	/* Weird -- should never happen. */
+
+#define HT_WOULD_BLOCK		-29997  /* If we are in a select */
+#define HT_INTERRUPTED 		-29998	/* Note the negative value! */
+#define HT_PAUSE                -29999  /* If we want to pause a stream */
+</PRE>
+<H2>
+  Upper- and Lowercase macros
+</H2>
+<P>
+The problem here is that toupper(x) is not defined officially unless isupper(x)
+is. These macros are CERTAINLY needed on #if defined(pyr) || define(mips)
+or BDSI platforms. For safefy, we make them mandatory.
+<PRE>
+#ifndef TOLOWER
+#define TOLOWER(c) tolower(c)
+#define TOUPPER(c) toupper(c)
+#endif
+</PRE>
+<H2>
+  Max and Min values for Integers and Floating Point
+</H2>
+<PRE>
+#ifdef FLT_EPSILON				    /* The ANSI C way define */
+#define HT_EPSILON FLT_EPSILON
+#else
+#define HT_EPSILON 0.00000001
+#endif
+</PRE>
+<H2>
+  White Characters
+</H2>
+<P>
+Is character <B>c</B> white space?
+<PRE>
+#define WHITE(c) isspace(c)
+</PRE>
+<H2>
+  The local equivalents of CR and LF
+</H2>
+<P>
+We can check for these after net ascii text has been converted to the local
+representation. Similarly, we include them in strings to be sent as net ascii
+after translation.
+<PRE>
+#define LF   FROMASCII('\012')  /* ASCII line feed LOCAL EQUIVALENT */
+#define CR   FROMASCII('\015')  /* Will be converted to ^M for transmission */
+</PRE>
+<H2>
+  Library Dynamic Memory Magement
+</H2>
+<P>
+The Library has it's own dynamic memory API which is declared in
+<A HREF="HTMemory.html">memory management module</A>.
+<PRE>
+#include "HTMemory.h"
+</PRE>
+<PRE>
+#endif /* HT_UTILS.h */
+</PRE>
+<P>
+  <HR>
+<ADDRESS>
+  @(#) $Id$
+</ADDRESS>
+</BODY></HTML>
