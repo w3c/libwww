@@ -56,8 +56,11 @@ int main (int argc, char ** argv)
     /* Add our own filter to update the history list */
     HTNet_addAfter(terminate_handler, NULL, NULL, HT_ALL, HT_FILTER_LAST);
 
-    /* Set trace messages */
+    /* Set trace messages and alert messages*/
+#if 0
     HTSetTraceMessageMask("sop");
+#endif
+    HTAlert_setInteractive(NO);
 
     /* Setup a timeout on the request for 15 secs */
     HTHost_setEventTimeout(15000);
