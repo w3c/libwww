@@ -168,6 +168,12 @@ PUBLIC BOOL HText_unregisterCDCallback (void)
     return YES;
 }
 
+PUBLIC BOOL HText_registerBuildCallback (HText_build * bcb)
+{
+    text_build = bcb;
+    return YES;
+}
+
 PUBLIC BOOL HText_registerTextCallback (HText_addText * tcb)
 {
     text_addText = tcb;
